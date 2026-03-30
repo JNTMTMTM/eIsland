@@ -60,19 +60,14 @@ function DynamicIsland(): JSX.Element {
     >
       {state === 'idle' ? (
         <div className="flex items-center gap-2">
-          <Moon size={14} className="text-[--color-island-text] opacity-60" />
           <span className="text-xs text-[--color-island-text] opacity-60 tracking-wide font-medium">
-            eIsland
+            静默状态
           </span>
         </div>
       ) : (
         <div className="flex items-center gap-3">
-          <Activity
-            size={16}
-            className="text-[--color-island-accent]"
-          />
           <span className="text-sm text-[--color-island-text] tracking-wide font-medium">
-            eIsland Active
+            hover 状态
           </span>
           <div className="flex items-center gap-1">
             <div className="w-1.5 h-1.5 rounded-full bg-[--color-island-accent] animate-pulse" />

@@ -22,8 +22,8 @@ function createWindow(): void {
   const { x: workX, y: workY } = primaryDisplay.workArea;
 
   /** 灵动岛尺寸与定位常量 */
-  const ISLAND_WIDTH = 320;
-  const ISLAND_HEIGHT = 52;
+  const ISLAND_WIDTH = 420;
+  const ISLAND_HEIGHT = 32;
 
   mainWindow = new BrowserWindow({
     width: ISLAND_WIDTH,
