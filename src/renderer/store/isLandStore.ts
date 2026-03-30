@@ -15,6 +15,9 @@ import type { WeatherApiConfig } from '../api/weatherApi';
  */
 export type IslandState = 'idle' | 'hover';
 
+/** Hover 状态下的子标签页类型 */
+export type HoverTab = 'time' | 'weather';
+
 /** 天气数据类型定义 */
 export interface WeatherData {
   /** 温度（摄氏度） */
@@ -27,6 +30,8 @@ export interface WeatherData {
 interface IIslandStore {
   /** 当前状态 */
   state: IslandState;
+  /** hover 状态下的子标签页 */
+  hoverTab: HoverTab;
   /** 天气数据 */
   weather: WeatherData;
   /** 更新天气数据 */
@@ -37,6 +42,8 @@ interface IIslandStore {
   setIdle: () => void;
   /** 切换到悬停状态 */
   setHover: () => void;
+  /** 切换 hover 子标签页 */
+  setHoverTab: (tab: HoverTab) => void;
 }
 
 /**
@@ -45,6 +52,7 @@ interface IIslandStore {
  */
 const useIslandStore = create<IIslandStore>((set) => ({
   state: 'idle',
+  hoverTab: 'time',
   weather: {
     temperature: 0,
     description: ''
@@ -55,7 +63,8 @@ const useIslandStore = create<IIslandStore>((set) => ({
     set({ weather: data });
   },
   setIdle: (): void => set({ state: 'idle' }),
-  setHover: (): void => set({ state: 'hover' })
+  setHover: (): void => set({ state: 'hover' }),
+  setHoverTab: (tab): void => set({ hoverTab: tab })
 }));
 
 export default useIslandStore;
