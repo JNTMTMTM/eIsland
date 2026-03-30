@@ -33,6 +33,7 @@ function createWindow(): void {
     show: false,
     frame: false,
     transparent: true,
+    backgroundColor: '#00000000',
     resizable: false,
     alwaysOnTop: true,
     skipTaskbar: true,
@@ -53,6 +54,19 @@ function createWindow(): void {
 
   mainWindow.on('ready-to-show', () => {
     mainWindow?.show();
+  });
+
+  /**
+   * 窗口失焦时强制背景重绘，防止 Windows DWM 缓存白色回退背景
+   */
+  mainWindow.on('blur', () => {
+    if (mainWindow) {
+      mainWindow.setBackgroundColor('#00000000');
+      mainWindow.webContents.executeJavaScript(`
+        document.body.style.background = 'transparent';
+        document.documentElement.style.background = 'transparent';
+      `);
+    }
   });
 
   mainWindow.webContents.setWindowOpenHandler((details) => {

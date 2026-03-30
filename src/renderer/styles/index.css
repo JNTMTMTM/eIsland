@@ -23,7 +23,18 @@ body,
   margin: 0;
   padding: 0;
   overflow: hidden;
+  background: transparent !important;
+  -webkit-app-region: no-drag;
+}
+
+/* 防止 Electron 透明窗口失焦后出现白色回退背景 */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
   background: transparent;
+  pointer-events: none;
+  z-index: -1;
 }
 
 /**
