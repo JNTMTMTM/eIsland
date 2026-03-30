@@ -4,9 +4,9 @@
  * @author 鸡哥
  */
 
-import React, { useEffect, useRef } from 'react';
-// import { Activity, Moon } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
 import useIslandStore from '../store/isLandStore';
+import { formatTime, getDayName } from '../utils/timeUtils';
 
 /** 渲染进程自定义 API 类型声明 */
 declare global {
@@ -19,10 +19,25 @@ declare global {
 }
 
 function DynamicIsland(): React.JSX.Element {
-  const { state, setHover, setIdle } = useIslandStore();
+  const { state, weather, setHover, setIdle } = useIslandStore();
 
   /** 标记是否已完成初始化，防止 StrictMode 双挂载导致状态抖动 */
   const initRef = useRef(false);
+
+  /** 当前时间状态 */
+  const [timeStr, setTimeStr] = useState(() => formatTime(new Date()));
+  const [dayStr, setDayStr] = useState(() => getDayName(new Date()));
+
+  /** 定时更新时间，每秒刷新一次 */
+  useEffect(() => {
+    const update = (): void => {
+      const now = new Date();
+      setTimeStr(formatTime(now));
+      setDayStr(getDayName(now));
+    };
+    const timer = setInterval(update, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   /**
    * 组件挂载时初始化鼠标穿透
@@ -59,10 +74,25 @@ function DynamicIsland(): React.JSX.Element {
       onMouseLeave={handleMouseLeave}
     >
       {state === 'idle' ? (
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-[--color-island-text] opacity-60 tracking-wide font-medium">
-            静默状态
-          </span>
+        <div className="flex items-center justify-between w-full px-6">
+          {/* 左侧：时间 + 星期 */}
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-[--color-island-text] font-medium tabular-nums">
+              {timeStr}
+            </span>
+            <span className="text-xs text-[--color-island-text] opacity-50">
+              {dayStr}
+            </span>
+          </div>
+          {/* 右侧：天气文字 + 温度 */}
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs text-[--color-island-text] opacity-60">
+              {weather.description || '—'}
+            </span>
+            <span className="text-sm text-[--color-island-text] font-medium tabular-nums">
+              {weather.temperature > 0 ? `${weather.temperature}°` : '--°'}
+            </span>
+          </div>
         </div>
       ) : (
         <div className="flex items-center gap-3">
