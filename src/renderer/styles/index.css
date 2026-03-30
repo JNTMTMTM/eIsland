@@ -1,0 +1,58 @@
+/**
+ * @file index.css
+ * @description 全局样式与 Tailwind CSS v4 基础层，定义透明窗口背景与灵动岛外形样式
+ * @author 鸡哥
+ */
+
+@import "tailwindcss";
+
+@theme {
+  --color-island-bg: oklch(0.15 0 0);
+  --color-island-border: oklch(0.3 0 0);
+  --color-island-hover-bg: oklch(0.22 0 0);
+  --color-island-text: oklch(0.95 0 0);
+  --color-island-accent: oklch(0.7 0.15 250);
+  --color-island-pill: oklch(0.65 0.12 250);
+}
+
+/** 强制根元素透明，使 Electron 透明窗口生效 */
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: transparent;
+}
+
+/**
+ * 灵动岛主体容器样式
+ * - 仅下方两个角为圆角（模仿灵动岛造型）
+ * - 半透明黑背景配合柔和光晕
+ * - 固定高度，内可弹性布局
+ */
+.island-shell {
+  width: 100%;
+  height: 100%;
+  background: var(--color-island-bg);
+  border-radius: 0 0 22px 22px;
+  border: 1px solid var(--color-island-border);
+  border-top: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.25s ease, box-shadow 0.25s ease;
+  cursor: default;
+  user-select: none;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.island-shell.hover {
+  background: var(--color-island-hover-bg);
+  box-shadow:
+    0 0 20px rgba(100, 120, 255, 0.15),
+    0 0 40px rgba(100, 120, 255, 0.05);
+}
