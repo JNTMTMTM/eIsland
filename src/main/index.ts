@@ -107,7 +107,10 @@ function registerIpcHandlers(): void {
     }
   });
 
-  /** 展开窗口 - 基于初始中心点，向两边均匀扩展 */
+  /**
+   * 展开窗口 - 基于初始中心点，向两边均匀扩展
+   * @description 窗口宽度从 180px 扩展到 320px，高度从 42px 扩展到 120px
+   */
   ipcMain.on('window:expand', () => {
     if (mainWindow) {
       mainWindow.setBounds({
@@ -119,7 +122,10 @@ function registerIpcHandlers(): void {
     }
   });
 
-  /** 收缩窗口 - 基于初始中心点，收缩回原始尺寸 */
+  /**
+   * 收缩窗口 - 基于初始中心点，收缩回原始尺寸
+   * @description 窗口恢复到 180x42 的 idle 状态
+   */
   ipcMain.on('window:collapse', () => {
     if (mainWindow) {
       mainWindow.setBounds({
@@ -131,13 +137,19 @@ function registerIpcHandlers(): void {
     }
   });
 
-  /** 获取鼠标当前位置 */
+  /**
+   * 获取鼠标当前位置（屏幕坐标）
+   * @returns 包含 x、y 坐标的对象
+   */
   ipcMain.handle('window:get-mouse-position', () => {
     const point = screen.getCursorScreenPoint();
     return { x: point.x, y: point.y };
   });
 
-  /** 获取窗口边界 */
+  /**
+   * 获取窗口边界信息
+   * @returns 窗口边界对象，包含 x、y、width、height
+   */
   ipcMain.handle('window:get-bounds', () => {
     if (mainWindow) {
       return mainWindow.getBounds();

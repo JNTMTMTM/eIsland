@@ -22,7 +22,10 @@ declare global {
   }
 }
 
-/** 检查鼠标是否在窗口范围内 */
+/**
+ * 检查鼠标是否在灵动岛窗口范围内
+ * @returns 鼠标在窗口内返回 true，否则返回 false
+ */
 async function isMouseInWindow(): Promise<boolean> {
   try {
     const mousePos = await window.api?.getMousePosition();
@@ -41,6 +44,10 @@ async function isMouseInWindow(): Promise<boolean> {
   }
 }
 
+/**
+ * 灵动岛主组件
+ * @description 根据 hover/idle 状态渲染不同 UI，通过 requestAnimationFrame 检测鼠标位置实现可靠的 hover 交互
+ */
 function DynamicIsland(): React.JSX.Element {
   const { state, weather, setHover, setIdle } = useIslandStore();
 
