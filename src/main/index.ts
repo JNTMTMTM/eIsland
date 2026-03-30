@@ -27,7 +27,7 @@ function createWindow(): void {
 
   /** 灵动岛尺寸与定位常量 */
   const ISLAND_WIDTH = 320;
-  const ISLAND_HEIGHT = 32;
+  const ISLAND_HEIGHT = 40;
 
   mainWindow = new BrowserWindow({
     width: ISLAND_WIDTH,
