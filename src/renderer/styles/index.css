@@ -27,7 +27,7 @@ body,
   -webkit-app-region: no-drag;
 }
 
-/* 防止 Electron 透明窗口失焦后出现白色回退背景 */
+/** 防止 Electron 透明窗口失焦后出现白色回退背景 */
 body::before {
   content: '';
   position: fixed;

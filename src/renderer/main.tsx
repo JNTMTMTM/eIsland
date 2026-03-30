@@ -14,6 +14,10 @@ if (!root) {
   throw new Error('[Renderer] 未找到 #root 挂载节点');
 }
 
+/**
+ * 挂载 React 根组件，启动灵动岛 UI
+ * @description 使用 StrictMode 捕获潜在问题，生产环境无额外影响
+ */
 createRoot(root).render(
   <StrictMode>
     <DynamicIsland />

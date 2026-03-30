@@ -16,6 +16,10 @@ if (!gotTheLock) {
 
 let mainWindow: BrowserWindow | null = null;
 
+/**
+ * 创建 Electron BrowserWindow 实例，配置透明无边框灵动岛窗口
+ * @description 窗口固定尺寸、始终置顶、跳过任务栏，并初始化鼠标穿透行为
+ */
 function createWindow(): void {
   const primaryDisplay = screen.getPrimaryDisplay();
   const { width: screenWidth } = primaryDisplay.workAreaSize;
@@ -104,6 +108,9 @@ app.on('second-instance', () => {
   }
 });
 
+/**
+ * 应用就绪入口，初始化窗口、注册 IPC 处理器并响应 macOS dock 点击重建窗口
+ */
 app.whenReady().then(() => {
   electronApp.setAppUserModelId('com.eisland.app');
 

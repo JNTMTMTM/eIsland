@@ -1,3 +1,9 @@
+/**
+ * @file index.d.ts
+ * @description 渲染进程全局类型声明，扩展 Window 接口以包含 Electron API 和自定义 API
+ * @author 鸡哥
+ */
+
 import { ElectronAPI } from '@electron-toolkit/preload';
 
 declare global {
