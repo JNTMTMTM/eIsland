@@ -4,7 +4,7 @@
  * @author 鸡哥
  */
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import useIslandStore, { HoverTab } from '../../store/isLandStore';
 
 interface HoverContentProps {
@@ -26,9 +26,33 @@ const NAV_DOTS: { tab: HoverTab; label: string }[] = [
  */
 export function HoverContent({ fullTimeStr, lunarStr }: HoverContentProps): React.ReactElement {
   const { hoverTab, setHoverTab, weather } = useIslandStore();
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  // 滚轮切换标签页
+  useEffect(() => {
+    const el = contentRef.current;
+    if (!el) return;
+
+    const handleWheel = (e: WheelEvent): void => {
+      e.preventDefault();
+      const currentIndex = NAV_DOTS.findIndex(d => d.tab === hoverTab);
+      if (e.deltaY > 0) {
+        // 向下滚动 -> 下一个
+        const next = (currentIndex + 1) % NAV_DOTS.length;
+        setHoverTab(NAV_DOTS[next].tab);
+      } else {
+        // 向上滚动 -> 上一个
+        const prev = (currentIndex - 1 + NAV_DOTS.length) % NAV_DOTS.length;
+        setHoverTab(NAV_DOTS[prev].tab);
+      }
+    };
+
+    el.addEventListener('wheel', handleWheel, { passive: false });
+    return () => el.removeEventListener('wheel', handleWheel);
+  }, [hoverTab, setHoverTab]);
 
   return (
-    <div className="hover-content">
+    <div className="hover-content" ref={contentRef}>
       {/* 左侧竖向导航点 */}
       <div className="hover-nav-dots">
         {NAV_DOTS.map(({ tab, label }) => (
