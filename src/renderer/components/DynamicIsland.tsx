@@ -77,32 +77,42 @@ function DynamicIsland(): React.JSX.Element {
         <div className="flex items-center justify-between w-full px-6">
           {/* 左侧：时间 + 星期 */}
           <div className="flex items-center gap-2">
-            <span className="text-sm text-[--color-island-text] font-medium tabular-nums">
+            <span className="text-sm text-white font-medium tabular-nums">
               {timeStr}
             </span>
-            <span className="text-xs text-[--color-island-text] opacity-50">
+            <span className="text-xs text-white opacity-50">
               {dayStr}
             </span>
           </div>
           {/* 右侧：天气文字 + 温度 */}
           <div className="flex items-center gap-1.5">
-            <span className="text-xs text-[--color-island-text] opacity-60">
+            <span className="text-xs text-white opacity-60">
               {weather.description || '—'}
             </span>
-            <span className="text-sm text-[--color-island-text] font-medium tabular-nums">
+            <span className="text-sm text-white font-medium tabular-nums">
               {weather.temperature > 0 ? `${weather.temperature}°` : '--°'}
             </span>
           </div>
         </div>
       ) : (
-        <div className="flex items-center gap-3">
-          <span className="text-sm text-[--color-island-text] tracking-wide font-medium">
-            hover 状态
-          </span>
-          <div className="flex items-center gap-1">
-            <div className="w-1.5 h-1.5 rounded-full bg-[--color-island-accent] animate-pulse" />
-            <div className="w-1.5 h-1.5 rounded-full bg-[--color-island-pill] animate-pulse opacity-70" />
-            <div className="w-1.5 h-1.5 rounded-full bg-[--color-island-accent] opacity-40 animate-pulse" />
+        <div className="flex items-center justify-between w-full px-6">
+          {/* 左侧：时间 + 星期 */}
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-white font-medium tabular-nums">
+              {timeStr}
+            </span>
+            <span className="text-xs text-white opacity-50">
+              {dayStr}
+            </span>
+          </div>
+          {/* 右侧：天气文字 + 温度 */}
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs text-white opacity-60">
+              {weather.description || '—'}
+            </span>
+            <span className="text-sm text-white font-medium tabular-nums">
+              {weather.temperature > 0 ? `${weather.temperature}°` : '--°'}
+            </span>
           </div>
         </div>
       )}
