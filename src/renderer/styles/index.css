@@ -44,7 +44,7 @@ body::before {
  */
 .island-shell {
   position: relative;
-  width: 180px;
+  width: 240px;
   height: 42px;
   background: var(--color-island-bg);
   border-radius: 0 0 22px 22px;
@@ -77,16 +77,15 @@ body::before {
 }
 
 .island-shell:hover {
-  width: 320px;
-  height: 120px;
-  background: rgba(0, 0, 0, 0.85);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4),
-              0 0 0 1px rgba(255, 255, 255, 0.05),
-              inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  width: 340px;
+  height: 80px;
+  background: var(--color-island-bg);
+  box-shadow: none;
 }
 
 .island-shell:hover::before {
-  opacity: 1;
+  opacity: 0;
+  pointer-events: none;
 }
 
 /** hover 内容区域 */

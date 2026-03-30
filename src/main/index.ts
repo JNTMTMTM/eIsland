@@ -17,10 +17,10 @@ if (!gotTheLock) {
 let mainWindow: BrowserWindow | null = null;
 
 /** 灵动岛尺寸常量 */
-const ISLAND_WIDTH = 180;
+const ISLAND_WIDTH = 240;
 const ISLAND_HEIGHT = 42;
-const EXPANDED_WIDTH = 320;
-const EXPANDED_HEIGHT = 120;
+const EXPANDED_WIDTH = 340;
+const EXPANDED_HEIGHT = 80;
 
 /** 记录窗口初始中心 X 坐标 */
 let initialCenterX = 0;
