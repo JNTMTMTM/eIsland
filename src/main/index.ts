@@ -24,14 +24,12 @@ function createWindow(): void {
   /** 灵动岛尺寸与定位常量 */
   const ISLAND_WIDTH = 320;
   const ISLAND_HEIGHT = 52;
-  const ISLAND_MARGIN_TOP = 12;
-  const ISLAND_MARGIN_RIGHT = 60;
 
   mainWindow = new BrowserWindow({
     width: ISLAND_WIDTH,
     height: ISLAND_HEIGHT,
-    x: workX + screenWidth - ISLAND_WIDTH - ISLAND_MARGIN_RIGHT,
-    y: workY + ISLAND_MARGIN_TOP,
+    x: workX + (screenWidth - ISLAND_WIDTH) / 2,
+    y: workY,
     show: false,
     frame: false,
     transparent: true,
