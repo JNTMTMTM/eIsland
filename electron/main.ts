@@ -26,7 +26,7 @@
 // 　　　　　　┃┫┫　┃┫┫
 // 　　　　　　┗┻┛　┗┻┛+ + + +
 
-import { app, shell, BrowserWindow, globalShortcut } from 'electron';
+import { app, shell, BrowserWindow, globalShortcut, screen } from 'electron';
 import { join } from 'path';
 import { electronApp, optimizer, is } from '@electron-toolkit/utils';
 import log from 'electron-log/main';
@@ -42,13 +42,14 @@ let mainWindow: BrowserWindow | null = null;
 function createWindow(): void {
   log.info('Creating main window...');
 
+  const COMPACT_WIDTH = 400;
+  const COMPACT_HEIGHT = 80;
+
   mainWindow = new BrowserWindow({
-    width: 400,
-    height: 80,
+    width: COMPACT_WIDTH,
+    height: COMPACT_HEIGHT,
     minWidth: 200,
     minHeight: 60,
-    x: 0,
-    y: 0,
     frame: false,
     transparent: true,
     resizable: false,
@@ -66,6 +67,12 @@ function createWindow(): void {
   });
 
   mainWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+
+  const display = screen.getPrimaryDisplay();
+  const { width: screenWidth } = display.workAreaSize;
+  const x = Math.round((screenWidth - COMPACT_WIDTH) / 2);
+  mainWindow.setPosition(x, 0);
+  log.info(`Window positioned at x=${x}, y=0`);
 
   mainWindow.on('ready-to-show', () => {
     mainWindow?.show();

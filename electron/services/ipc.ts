@@ -4,7 +4,7 @@
  * @author 鸡哥
  */
 
-import { ipcMain } from 'electron';
+import { ipcMain, screen } from 'electron';
 import { getMainWindow } from '../main';
 import {
   getAllNotifications,
@@ -91,14 +91,19 @@ export function registerIpcHandlers(): void {
     const mainWindow = getMainWindow();
     if (!mainWindow) return;
 
-    const width = state.expanded ? 600 : 300;
+    const width = state.expanded ? 600 : 400;
     const height = state.expanded ? state.height : 80;
 
-    mainWindow.setSize(width, height);
+    const primaryDisplay = screen.getPrimaryDisplay();
+    const { width: screenWidth } = primaryDisplay.workAreaSize;
+    const x = Math.round((screenWidth - width) / 2);
+    const y = 0;
+
+    mainWindow.setBounds({ x, y, width, height });
 
     mainWindow.webContents.send('island:expand', state.expanded);
 
-    log.info(`Island state updated: expanded=${state.expanded}, height=${height}`);
+    log.info(`Island state updated: expanded=${state.expanded}, size=${width}x${height}, x=${x}`);
   });
 
   ipcMain.handle('island:getState', async () => {
