@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.2.2",
+    "lunar-javascript": "^1.7.7",
     "openmeteo": "^1.2.3",
     "zustand": "^5.0.4"
   },

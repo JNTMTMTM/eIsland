@@ -95,12 +95,12 @@ body::before {
 
 .hover-content {
   display: none;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  justify-content: center;
-  gap: 12px;
+  justify-content: flex-end;
   width: 100%;
   height: 100%;
+  padding: 0 16px;
   opacity: 0;
   transform: translateY(10px) scale(0.95);
   transition: opacity 0.3s ease 0.1s,

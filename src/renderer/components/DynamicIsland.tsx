@@ -6,7 +6,7 @@
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import useIslandStore from '../store/isLandStore';
-import { formatTime, getDayName } from '../utils/timeUtils';
+import { formatTime, formatFullTime, getDayName, getLunarDate } from '../utils/timeUtils';
 
 /** 渲染进程自定义 API 类型声明 */
 declare global {
@@ -58,12 +58,16 @@ function DynamicIsland(): React.JSX.Element {
 
   const [timeStr, setTimeStr] = useState(() => formatTime(new Date()));
   const [dayStr, setDayStr] = useState(() => getDayName(new Date()));
+  const [fullTimeStr, setFullTimeStr] = useState(() => formatFullTime(new Date()));
+  const [lunarStr, setLunarStr] = useState(() => getLunarDate(new Date()));
 
   useEffect(() => {
     const update = (): void => {
       const now = new Date();
       setTimeStr(formatTime(now));
       setDayStr(getDayName(now));
+      setFullTimeStr(formatFullTime(now));
+      setLunarStr(getLunarDate(now));
     };
     const timer = setInterval(update, 1000);
     return () => clearInterval(timer);
@@ -144,6 +148,7 @@ function DynamicIsland(): React.JSX.Element {
 
   return (
     <div className={`island-shell ${state === 'hover' ? 'hover' : ''}`}>
+      {/* Leave 状态内容 */}
       <div className="idle-content">
         <div className="flex items-center gap-2">
           <span className="text-sm text-white font-medium tabular-nums">
@@ -163,24 +168,17 @@ function DynamicIsland(): React.JSX.Element {
         </div>
       </div>
 
+      {/* Hover 状态内容 */}
       <div className="hover-content">
-        <div className="flex items-center justify-between w-full px-6">
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-white font-medium tabular-nums">
-              {timeStr}
-            </span>
-            <span className="text-xs text-white opacity-50">
-              {dayStr}
-            </span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="text-xs text-white opacity-60">
-              {weather.description || '—'}
-            </span>
-            <span className="text-sm text-white font-medium tabular-nums">
-              {weather.temperature > 0 ? `${weather.temperature}°` : '--°'}
-            </span>
-          </div>
+        <div className="flex flex-col gap-1 text-right">
+          {/* 第一行：时间 */}
+          <span className="text-sm text-white font-medium tabular-nums">
+            {fullTimeStr}
+          </span>
+          {/* 第二行：农历日期 */}
+          <span className="text-xs text-white opacity-60">
+            农历 {lunarStr}
+          </span>
         </div>
       </div>
     </div>
