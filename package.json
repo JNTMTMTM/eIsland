@@ -9,7 +9,8 @@
     "dev": "electron-vite dev",
     "build": "electron-vite build",
     "preview": "electron-vite preview",
-    "postinstall": "electron-builder install-app-deps"
+    "postinstall": "electron-builder install-app-deps",
+    "package": "electron-vite build && electron-builder"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.2.2",
