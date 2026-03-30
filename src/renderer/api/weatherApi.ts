@@ -13,7 +13,6 @@ export interface WeatherApiConfig {
   latitude: number;
 }
 
-/** WMO 天气代码映射为中文描述 */
 function mapWeatherDescription(code: number): string {
   const map: Record<number, string> = {
     0: '晴',

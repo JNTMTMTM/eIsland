@@ -9,6 +9,7 @@ import React from 'react';
 /**
  * Expanded 状态内容组件
  * @description 扩展状态下的完整功能面板
+ * @returns Expanded 状态下的 UI 元素
  */
 export function ExpandedContent(): React.ReactElement {
   return (

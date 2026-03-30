@@ -48,7 +48,7 @@ interface IIslandStore {
 
 /**
  * 灵动岛状态管理 Store
- * 使用 zustand 管理状态变更，无需 Redux 的模板代码
+ * @description 使用 zustand 管理状态变更，无需 Redux 的模板代码
  */
 const useIslandStore = create<IIslandStore>((set) => ({
   state: 'idle',
@@ -57,13 +57,16 @@ const useIslandStore = create<IIslandStore>((set) => ({
     temperature: 0,
     description: ''
   },
+  /** @param data - 天气数据对象 */
   setWeather: (data): void => set({ weather: data }),
+  /** @param config - 经纬度配置 */
   fetchWeatherData: async (config): Promise<void> => {
     const data = await fetchWeather(config);
     set({ weather: data });
   },
   setIdle: (): void => set({ state: 'idle' }),
   setHover: (): void => set({ state: 'hover' }),
+  /** @param tab - 目标 tab 标签页 */
   setHoverTab: (tab): void => set({ hoverTab: tab })
 }));
 

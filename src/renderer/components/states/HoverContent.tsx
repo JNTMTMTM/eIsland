@@ -28,7 +28,6 @@ export function HoverContent({ fullTimeStr, lunarStr }: HoverContentProps): Reac
   const { hoverTab, setHoverTab } = useIslandStore();
   const contentRef = useRef<HTMLDivElement>(null);
 
-  // 滚轮切换标签页
   useEffect(() => {
     const el = contentRef.current;
     if (!el) return;

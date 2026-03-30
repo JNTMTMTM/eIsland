@@ -139,7 +139,6 @@ function DynamicIsland(): React.JSX.Element {
   const [fullTimeStr, setFullTimeStr] = useState(() => formatFullTime(new Date()));
   const [lunarStr, setLunarStr] = useState(() => getLunarDate(new Date()));
 
-  // 时间更新定时器
   useEffect(() => {
     const update = (): void => {
       const now = new Date();
@@ -152,7 +151,6 @@ function DynamicIsland(): React.JSX.Element {
     return () => clearInterval(timer);
   }, []);
 
-  // 初始化鼠标穿透
   useEffect(() => {
     if (!initRef.current) {
       initRef.current = true;
@@ -160,7 +158,6 @@ function DynamicIsland(): React.JSX.Element {
     }
   }, []);
 
-  // 清除所有定时器
   const clearAllTimers = useCallback(() => {
     if (enterTimerRef.current !== null) {
       clearTimeout(enterTimerRef.current);
@@ -172,7 +169,6 @@ function DynamicIsland(): React.JSX.Element {
     }
   }, []);
 
-  // 鼠标位置检测
   useEffect(() => {
     let rafId: number | null = null;
 
@@ -266,7 +262,6 @@ function DynamicIsland(): React.JSX.Element {
 
   return (
     <div className={`island-shell ${getStateClassName(state)}`}>
-      {/* 渲染当前状态的内容 */}
       {stateRenderers
         .filter(renderer => renderer.state === state)
         .map(renderer => renderer.render())}
