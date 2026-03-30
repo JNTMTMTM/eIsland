@@ -8,11 +8,19 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import './styles/index.css';
 import DynamicIsland from './components/DynamicIsland';
+import useIslandStore from './store/isLandStore';
 
 const root = document.getElementById('root');
 if (!root) {
   throw new Error('[Renderer] 未找到 #root 挂载节点');
 }
+
+/** 模拟调用 */
+useIslandStore.getState().fetchWeatherData({
+  apiKey: '',
+  longitude: 0,
+  latitude: 0
+});
 
 /**
  * 挂载 React 根组件，启动灵动岛 UI

@@ -5,6 +5,7 @@
  */
 
 import { create } from 'zustand';
+import { fetchWeather } from '../api/weatherApi';
 
 /**
  * 灵动岛 UI 状态枚举
@@ -13,27 +14,31 @@ import { create } from 'zustand';
  */
 export type IslandState = 'idle' | 'hover';
 
-/** 天气图标类型枚举（预留，可扩展为图标模式） */
-export type WeatherIcon = 'sunny' | 'cloudy' | 'rainy' | 'snowy' | 'thunder';
-
 /** 天气数据类型定义 */
 export interface WeatherData {
   /** 温度（摄氏度） */
   temperature: number;
   /** 天气文字描述 */
   description: string;
-  /** 天气图标类型 */
-  icon: WeatherIcon;
+}
+
+/** 天气 API 配置 */
+interface WeatherApiConfig {
+  apiKey: string;
+  longitude: number;
+  latitude: number;
 }
 
 /** 灵动岛 Store 接口定义 */
 interface IIslandStore {
   /** 当前状态 */
   state: IslandState;
-  /** 天气数据（预留接口） */
+  /** 天气数据 */
   weather: WeatherData;
   /** 更新天气数据 */
   setWeather: (data: WeatherData) => void;
+  /** 从接口拉取并更新天气 */
+  fetchWeatherData: (config: WeatherApiConfig) => Promise<void>;
   /** 切换到待机状态 */
   setIdle: () => void;
   /** 切换到悬停状态 */
@@ -48,10 +53,13 @@ const useIslandStore = create<IIslandStore>((set) => ({
   state: 'idle',
   weather: {
     temperature: 0,
-    description: '',
-    icon: 'sunny'
+    description: ''
   },
   setWeather: (data): void => set({ weather: data }),
+  fetchWeatherData: async (config): Promise<void> => {
+    const data = await fetchWeather(config);
+    set({ weather: data });
+  },
   setIdle: (): void => set({ state: 'idle' }),
   setHover: (): void => set({ state: 'hover' })
 }));
