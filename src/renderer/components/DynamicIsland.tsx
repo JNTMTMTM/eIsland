@@ -1,12 +1,71 @@
 /**
  * @file DynamicIsland.tsx
- * @description 灵动岛主组件，根据 hover/idle 状态渲染不同 UI，响应鼠标事件并控制窗口穿透
+ * @description 灵动岛主组件，使用状态模式管理 idle/hover/expanded 等状态
  * @author 鸡哥
  */
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import useIslandStore from '../store/isLandStore';
 import { formatTime, formatFullTime, getDayName, getLunarDate } from '../utils/timeUtils';
+import { IdleContent } from './states/IdleContent';
+import { HoverContent } from './states/HoverContent';
+import { ExpandedContent } from './states/ExpandedContent';
+
+/** 灵动岛状态类型 */
+export type IslandState = 'idle' | 'hover' | 'expanded' | 'notification' | 'minimal';
+
+/** 状态配置接口 */
+interface StateConfig {
+  /** 状态名称 */
+  name: IslandState;
+  /** 是否启用鼠标穿透 */
+  mousePassthrough: boolean;
+  /** 是否展开窗口 */
+  expanded: boolean;
+  /** 状态切换延迟（毫秒） */
+  enterDelay: number;
+  /** 状态退出延迟（毫秒） */
+  leaveDelay: number;
+}
+
+/** 状态配置映射表 */
+export const STATE_CONFIGS: Record<IslandState, StateConfig> = {
+  idle: {
+    name: 'idle',
+    mousePassthrough: true,
+    expanded: false,
+    enterDelay: 0,
+    leaveDelay: 0,
+  },
+  hover: {
+    name: 'hover',
+    mousePassthrough: false,
+    expanded: true,
+    enterDelay: 60,
+    leaveDelay: 80,
+  },
+  expanded: {
+    name: 'expanded',
+    mousePassthrough: false,
+    expanded: true,
+    enterDelay: 0,
+    leaveDelay: 0,
+  },
+  notification: {
+    name: 'notification',
+    mousePassthrough: false,
+    expanded: true,
+    enterDelay: 0,
+    leaveDelay: 0,
+  },
+  minimal: {
+    name: 'minimal',
+    mousePassthrough: true,
+    expanded: false,
+    enterDelay: 0,
+    leaveDelay: 0,
+  },
+};
 
 /** 渲染进程自定义 API 类型声明 */
 declare global {
@@ -45,8 +104,27 @@ async function isMouseInWindow(): Promise<boolean> {
 }
 
 /**
+ * 获取状态对应的 CSS 类名
+ * @param state 当前状态
+ * @returns CSS 类名字符串
+ */
+export function getStateClassName(state: IslandState): string {
+  return state === 'idle' ? '' : state;
+}
+
+/**
+ * 状态渲染配置
+ */
+interface StateRenderer {
+  /** 状态名称 */
+  state: IslandState;
+  /** 渲染函数 */
+  render: () => React.ReactNode;
+}
+
+/**
  * 灵动岛主组件
- * @description 根据 hover/idle 状态渲染不同 UI，通过 requestAnimationFrame 检测鼠标位置实现可靠的 hover 交互
+ * @description 使用状态模式管理不同状态的 UI 渲染，通过 requestAnimationFrame 检测鼠标位置实现可靠的 hover 交互
  */
 function DynamicIsland(): React.JSX.Element {
   const { state, weather, setHover, setIdle } = useIslandStore();
@@ -61,6 +139,7 @@ function DynamicIsland(): React.JSX.Element {
   const [fullTimeStr, setFullTimeStr] = useState(() => formatFullTime(new Date()));
   const [lunarStr, setLunarStr] = useState(() => getLunarDate(new Date()));
 
+  // 时间更新定时器
   useEffect(() => {
     const update = (): void => {
       const now = new Date();
@@ -73,6 +152,7 @@ function DynamicIsland(): React.JSX.Element {
     return () => clearInterval(timer);
   }, []);
 
+  // 初始化鼠标穿透
   useEffect(() => {
     if (!initRef.current) {
       initRef.current = true;
@@ -80,6 +160,7 @@ function DynamicIsland(): React.JSX.Element {
     }
   }, []);
 
+  // 清除所有定时器
   const clearAllTimers = useCallback(() => {
     if (enterTimerRef.current !== null) {
       clearTimeout(enterTimerRef.current);
@@ -91,11 +172,13 @@ function DynamicIsland(): React.JSX.Element {
     }
   }, []);
 
+  // 鼠标位置检测
   useEffect(() => {
     let rafId: number | null = null;
 
     const checkMousePosition = async (): Promise<void> => {
       const inWindow = await isMouseInWindow();
+      const config = STATE_CONFIGS[state];
 
       if (inWindow) {
         if (leaveTimerRef.current !== null) {
@@ -109,10 +192,14 @@ function DynamicIsland(): React.JSX.Element {
             if (isHoveringRef.current) return;
 
             isHoveringRef.current = true;
-            window.api?.disableMousePassthrough();
-            window.api?.expandWindow();
+            if (config.mousePassthrough) {
+              window.api?.disableMousePassthrough();
+            }
+            if (!config.expanded) {
+              window.api?.expandWindow();
+            }
             setHover();
-          }, 60);
+          }, config.enterDelay || 60);
         }
       } else {
         if (enterTimerRef.current !== null) {
@@ -122,16 +209,18 @@ function DynamicIsland(): React.JSX.Element {
 
         if (isHoveringRef.current && leaveTimerRef.current === null) {
           leaveTimerRef.current = setTimeout(() => {
-            leaveTimerRef.current = setTimeout(() => {
-              leaveTimerRef.current = null;
-              if (!isHoveringRef.current) return;
+            leaveTimerRef.current = null;
+            if (!isHoveringRef.current) return;
 
-              isHoveringRef.current = false;
+            isHoveringRef.current = false;
+            if (config.expanded) {
               window.api?.collapseWindow();
+            }
+            if (config.mousePassthrough) {
               window.api?.enableMousePassthrough();
-              setIdle();
-            }, 80);
-          }, 10);
+            }
+            setIdle();
+          }, config.leaveDelay || 80);
         }
       }
 
@@ -144,43 +233,43 @@ function DynamicIsland(): React.JSX.Element {
       if (rafId !== null) cancelAnimationFrame(rafId);
       clearAllTimers();
     };
-  }, [setHover, setIdle, clearAllTimers]);
+  }, [state, setHover, setIdle, clearAllTimers]);
+
+  // 状态渲染配置
+  const stateRenderers: StateRenderer[] = [
+    {
+      state: 'idle',
+      render: () => (
+        <IdleContent
+          timeStr={timeStr}
+          dayStr={dayStr}
+          weather={weather}
+        />
+      ),
+    },
+    {
+      state: 'hover',
+      render: () => (
+        <HoverContent
+          fullTimeStr={fullTimeStr}
+          lunarStr={lunarStr}
+        />
+      ),
+    },
+    {
+      state: 'expanded',
+      render: () => (
+        <ExpandedContent />
+      ),
+    },
+  ];
 
   return (
-    <div className={`island-shell ${state === 'hover' ? 'hover' : ''}`}>
-      {/* Leave 状态内容 */}
-      <div className="idle-content">
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-white font-medium tabular-nums">
-            {timeStr}
-          </span>
-          <span className="text-xs text-white opacity-50">
-            {dayStr}
-          </span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span className="text-xs text-white opacity-60">
-            {weather.description || '—'}
-          </span>
-          <span className="text-sm text-white font-medium tabular-nums">
-            {weather.temperature > 0 ? `${weather.temperature}°` : '--°'}
-          </span>
-        </div>
-      </div>
-
-      {/* Hover 状态内容 */}
-      <div className="hover-content">
-        <div className="flex flex-col gap-1 text-right">
-          {/* 第一行：时间 */}
-          <span className="text-sm text-white font-medium tabular-nums">
-            {fullTimeStr}
-          </span>
-          {/* 第二行：农历日期 */}
-          <span className="text-xs text-white opacity-60">
-            农历 {lunarStr}
-          </span>
-        </div>
-      </div>
+    <div className={`island-shell ${getStateClassName(state)}`}>
+      {/* 渲染当前状态的内容 */}
+      {stateRenderers
+        .filter(renderer => renderer.state === state)
+        .map(renderer => renderer.render())}
     </div>
   );
 }
