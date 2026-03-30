@@ -127,7 +127,7 @@ function DynamicIsland(): React.JSX.Element {
               window.api?.enableMousePassthrough();
               setIdle();
             }, 80);
-          }, 100);
+          }, 10);
         }
       }
 

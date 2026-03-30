@@ -81,8 +81,8 @@ body::before {
 }
 
 .island-shell.hover {
-  width: 340px;
-  height: 80px;
+  width: 500px;
+  height: 60px;
   background: var(--color-island-bg);
   border-radius: 0 0 22px 22px;
   box-shadow: none;
