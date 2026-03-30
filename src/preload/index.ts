@@ -16,6 +16,22 @@ const api = {
   /** 禁用鼠标穿透，恢复窗口捕获鼠标事件 */
   disableMousePassthrough: (): void => {
     ipcRenderer.send('window:disable-mouse-passthrough');
+  },
+  /** 展开窗口到 hover 状态尺寸 */
+  expandWindow: (): void => {
+    ipcRenderer.send('window:expand');
+  },
+  /** 收缩窗口到 idle 状态尺寸 */
+  collapseWindow: (): void => {
+    ipcRenderer.send('window:collapse');
+  },
+  /** 获取当前鼠标位置 */
+  getMousePosition: (): Promise<{ x: number; y: number }> => {
+    return ipcRenderer.invoke('window:get-mouse-position');
+  },
+  /** 获取窗口边界 */
+  getWindowBounds: (): Promise<{ x: number; y: number; width: number; height: number }> => {
+    return ipcRenderer.invoke('window:get-bounds');
   }
 };
 

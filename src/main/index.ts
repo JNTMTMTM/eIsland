@@ -16,6 +16,15 @@ if (!gotTheLock) {
 
 let mainWindow: BrowserWindow | null = null;
 
+/** 灵动岛尺寸常量 */
+const ISLAND_WIDTH = 180;
+const ISLAND_HEIGHT = 42;
+const EXPANDED_WIDTH = 320;
+const EXPANDED_HEIGHT = 120;
+
+/** 记录窗口初始中心 X 坐标 */
+let initialCenterX = 0;
+
 /**
  * 创建 Electron BrowserWindow 实例，配置透明无边框灵动岛窗口
  * @description 窗口固定尺寸、始终置顶、跳过任务栏，并初始化鼠标穿透行为
@@ -25,9 +34,8 @@ function createWindow(): void {
   const { width: screenWidth } = primaryDisplay.workAreaSize;
   const { x: workX, y: workY } = primaryDisplay.workArea;
 
-  /** 灵动岛尺寸与定位常量 */
-  const ISLAND_WIDTH = 320;
-  const ISLAND_HEIGHT = 40;
+  /** 计算初始中心 X 坐标，用于展开/收缩时保持居中 */
+  initialCenterX = workX + (screenWidth - ISLAND_WIDTH) / 2 + ISLAND_WIDTH / 2;
 
   mainWindow = new BrowserWindow({
     width: ISLAND_WIDTH,
@@ -85,7 +93,7 @@ function createWindow(): void {
   }
 }
 
-/** 注册 IPC 处理器，供渲染进程动态切换鼠标穿透状态 */
+/** 注册 IPC 处理器，供渲染进程动态切换鼠标穿透状态及调整窗口大小 */
 function registerIpcHandlers(): void {
   ipcMain.on('window:enable-mouse-passthrough', () => {
     if (mainWindow) {
@@ -97,6 +105,44 @@ function registerIpcHandlers(): void {
     if (mainWindow) {
       mainWindow.setIgnoreMouseEvents(false);
     }
+  });
+
+  /** 展开窗口 - 基于初始中心点，向两边均匀扩展 */
+  ipcMain.on('window:expand', () => {
+    if (mainWindow) {
+      mainWindow.setBounds({
+        x: Math.round(initialCenterX - EXPANDED_WIDTH / 2),
+        y: mainWindow.getBounds().y,
+        width: EXPANDED_WIDTH,
+        height: EXPANDED_HEIGHT
+      });
+    }
+  });
+
+  /** 收缩窗口 - 基于初始中心点，收缩回原始尺寸 */
+  ipcMain.on('window:collapse', () => {
+    if (mainWindow) {
+      mainWindow.setBounds({
+        x: Math.round(initialCenterX - ISLAND_WIDTH / 2),
+        y: mainWindow.getBounds().y,
+        width: ISLAND_WIDTH,
+        height: ISLAND_HEIGHT
+      });
+    }
+  });
+
+  /** 获取鼠标当前位置 */
+  ipcMain.handle('window:get-mouse-position', () => {
+    const point = screen.getCursorScreenPoint();
+    return { x: point.x, y: point.y };
+  });
+
+  /** 获取窗口边界 */
+  ipcMain.handle('window:get-bounds', () => {
+    if (mainWindow) {
+      return mainWindow.getBounds();
+    }
+    return null;
   });
 }
 

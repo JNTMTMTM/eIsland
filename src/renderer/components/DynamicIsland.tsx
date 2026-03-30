@@ -4,7 +4,7 @@
  * @author 鸡哥
  */
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import useIslandStore from '../store/isLandStore';
 import { formatTime, getDayName } from '../utils/timeUtils';
 
@@ -14,15 +14,39 @@ declare global {
     api: {
       enableMousePassthrough: () => void;
       disableMousePassthrough: () => void;
+      expandWindow: () => void;
+      collapseWindow: () => void;
+      getMousePosition: () => Promise<{ x: number; y: number }>;
+      getWindowBounds: () => Promise<{ x: number; y: number; width: number; height: number } | null>;
     };
+  }
+}
+
+/** 检查鼠标是否在窗口范围内 */
+async function isMouseInWindow(): Promise<boolean> {
+  try {
+    const mousePos = await window.api?.getMousePosition();
+    const bounds = await window.api?.getWindowBounds();
+
+    if (!mousePos || !bounds) return false;
+
+    return (
+      mousePos.x >= bounds.x &&
+      mousePos.x <= bounds.x + bounds.width &&
+      mousePos.y >= bounds.y &&
+      mousePos.y <= bounds.y + bounds.height
+    );
+  } catch {
+    return false;
   }
 }
 
 function DynamicIsland(): React.JSX.Element {
   const { state, weather, setHover, setIdle } = useIslandStore();
 
-  /** 标记是否已完成初始化，防止 StrictMode 双挂载导致状态抖动 */
+  /** 标记是否已完成初始化 */
   const initRef = useRef(false);
+  const isHoveringRef = useRef(false);
 
   /** 当前时间状态 */
   const [timeStr, setTimeStr] = useState(() => formatTime(new Date()));
@@ -39,11 +63,7 @@ function DynamicIsland(): React.JSX.Element {
     return () => clearInterval(timer);
   }, []);
 
-  /**
-   * 组件挂载时初始化鼠标穿透
-   * 避免 Electron 透明窗口遮挡下层应用
-   * 仅在首次挂载时执行一次
-   */
+  /** 初始化鼠标穿透 */
   useEffect(() => {
     if (!initRef.current) {
       initRef.current = true;
@@ -51,21 +71,63 @@ function DynamicIsland(): React.JSX.Element {
     }
   }, []);
 
-  /**
-   * 鼠标进入灵动岛时：禁用穿透并切换到 hover 状态
-   */
-  const handleMouseEnter = (): void => {
-    window.api?.disableMousePassthrough();
-    setHover();
-  };
+  /** 尝试进入 hover 状态 */
+  const tryEnterHover = useCallback(async () => {
+    if (isHoveringRef.current) return;
 
-  /**
-   * 鼠标离开灵动岛时：恢复穿透并切换到 idle 状态
-   */
-  const handleMouseLeave = (): void => {
+    const inWindow = await isMouseInWindow();
+    if (!inWindow) return;
+
+    isHoveringRef.current = true;
+    window.api?.disableMousePassthrough();
+    window.api?.expandWindow();
+    setHover();
+  }, [setHover]);
+
+  /** 尝试离开 hover 状态 */
+  const tryLeaveHover = useCallback(async () => {
+    if (!isHoveringRef.current) return;
+
+    isHoveringRef.current = false;
+    window.api?.collapseWindow();
     window.api?.enableMousePassthrough();
     setIdle();
+  }, [setIdle]);
+
+  /** 鼠标进入 */
+  const handleMouseEnter = (): void => {
+    tryEnterHover();
   };
+
+  /** 鼠标离开 */
+  const handleMouseLeave = (): void => {
+    tryLeaveHover();
+  };
+
+  /** 全局鼠标移动检测 - 处理穿透状态下的 hover 检测 */
+  useEffect(() => {
+    let rafId: number | null = null;
+
+    const checkMousePosition = async (): Promise<void> => {
+      const inWindow = await isMouseInWindow();
+
+      if (inWindow && !isHoveringRef.current) {
+        tryEnterHover();
+      } else if (!inWindow && isHoveringRef.current) {
+        tryLeaveHover();
+      }
+
+      rafId = requestAnimationFrame(checkMousePosition);
+    };
+
+    rafId = requestAnimationFrame(checkMousePosition);
+
+    return () => {
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId);
+      }
+    };
+  }, [tryEnterHover, tryLeaveHover]);
 
   return (
     <div
@@ -73,9 +135,29 @@ function DynamicIsland(): React.JSX.Element {
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      {state === 'idle' ? (
+      {/* 空闲状态内容 */}
+      <div className="idle-content">
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-white font-medium tabular-nums">
+            {timeStr}
+          </span>
+          <span className="text-xs text-white opacity-50">
+            {dayStr}
+          </span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="text-xs text-white opacity-60">
+            {weather.description || '—'}
+          </span>
+          <span className="text-sm text-white font-medium tabular-nums">
+            {weather.temperature > 0 ? `${weather.temperature}°` : '--°'}
+          </span>
+        </div>
+      </div>
+
+      {/* 悬停状态内容 */}
+      <div className="hover-content">
         <div className="flex items-center justify-between w-full px-6">
-          {/* 左侧：时间 + 星期 */}
           <div className="flex items-center gap-2">
             <span className="text-sm text-white font-medium tabular-nums">
               {timeStr}
@@ -84,7 +166,6 @@ function DynamicIsland(): React.JSX.Element {
               {dayStr}
             </span>
           </div>
-          {/* 右侧：天气文字 + 温度 */}
           <div className="flex items-center gap-1.5">
             <span className="text-xs text-white opacity-60">
               {weather.description || '—'}
@@ -94,28 +175,7 @@ function DynamicIsland(): React.JSX.Element {
             </span>
           </div>
         </div>
-      ) : (
-        <div className="flex items-center justify-between w-full px-6">
-          {/* 左侧：时间 + 星期 */}
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-white font-medium tabular-nums">
-              {timeStr}
-            </span>
-            <span className="text-xs text-white opacity-50">
-              {dayStr}
-            </span>
-          </div>
-          {/* 右侧：天气文字 + 温度 */}
-          <div className="flex items-center gap-1.5">
-            <span className="text-xs text-white opacity-60">
-              {weather.description || '—'}
-            </span>
-            <span className="text-sm text-white font-medium tabular-nums">
-              {weather.temperature > 0 ? `${weather.temperature}°` : '--°'}
-            </span>
-          </div>
-        </div>
-      )}
+      </div>
     </div>
   );
 }
