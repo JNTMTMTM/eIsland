@@ -15,6 +15,7 @@
   "dependencies": {
     "@tailwindcss/vite": "^4.2.2",
     "lunar-javascript": "^1.7.7",
+    "lyric-resolver": "^0.1.6",
     "openmeteo": "^1.2.3",
     "zustand": "^5.0.4"
   },
