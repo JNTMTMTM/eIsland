@@ -53,7 +53,14 @@ function DynamicIsland(): React.JSX.Element {
 
   /** 标记是否已完成初始化 */
   const initRef = useRef(false);
+
+  /** 当前 hover 状态（ref 驱动，避免闭包延迟） */
   const isHoveringRef = useRef(false);
+
+  /** 进入延迟计时器 ID（用于防抖：鼠标快速划过时避免误触发） */
+  const enterTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /** 离开延迟计时器 ID（用于防抖：鼠标在边缘反复横跳时不闪烁） */
+  const leaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   /** 当前时间状态 */
   const [timeStr, setTimeStr] = useState(() => formatTime(new Date()));
@@ -78,50 +85,69 @@ function DynamicIsland(): React.JSX.Element {
     }
   }, []);
 
-  /** 尝试进入 hover 状态 */
-  const tryEnterHover = useCallback(async () => {
-    if (isHoveringRef.current) return;
+  /** 清理所有待执行的延迟计时器 */
+  const clearAllTimers = useCallback(() => {
+    if (enterTimerRef.current !== null) {
+      clearTimeout(enterTimerRef.current);
+      enterTimerRef.current = null;
+    }
+    if (leaveTimerRef.current !== null) {
+      clearTimeout(leaveTimerRef.current);
+      leaveTimerRef.current = null;
+    }
+  }, []);
 
-    const inWindow = await isMouseInWindow();
-    if (!inWindow) return;
-
-    isHoveringRef.current = true;
-    window.api?.disableMousePassthrough();
-    window.api?.expandWindow();
-    setHover();
-  }, [setHover]);
-
-  /** 尝试离开 hover 状态 */
-  const tryLeaveHover = useCallback(async () => {
-    if (!isHoveringRef.current) return;
-
-    isHoveringRef.current = false;
-    window.api?.collapseWindow();
-    window.api?.enableMousePassthrough();
-    setIdle();
-  }, [setIdle]);
-
-  /** 鼠标进入 */
-  const handleMouseEnter = (): void => {
-    tryEnterHover();
-  };
-
-  /** 鼠标离开 */
-  const handleMouseLeave = (): void => {
-    tryLeaveHover();
-  };
-
-  /** 全局鼠标移动检测 - 处理穿透状态下的 hover 检测 */
+  /**
+   * RAF 循环：持续检测鼠标是否在窗口内
+   * - 鼠标进入 → 延迟 60ms 后确认（防抖划过误触）
+   * - 鼠标离开 → 延迟 100ms 后确认（防抖边缘抖动），再 80ms 延迟收缩窗口（等 bounds 同步）
+   */
   useEffect(() => {
     let rafId: number | null = null;
 
     const checkMousePosition = async (): Promise<void> => {
       const inWindow = await isMouseInWindow();
 
-      if (inWindow && !isHoveringRef.current) {
-        tryEnterHover();
-      } else if (!inWindow && isHoveringRef.current) {
-        tryLeaveHover();
+      if (inWindow) {
+        // 鼠标在窗口内：取消待执行的离开，确认进入
+        if (leaveTimerRef.current !== null) {
+          clearTimeout(leaveTimerRef.current);
+          leaveTimerRef.current = null;
+        }
+
+        if (!isHoveringRef.current && enterTimerRef.current === null) {
+          // 防抖延迟后再确认，避免快速划过误触
+          enterTimerRef.current = setTimeout(() => {
+            enterTimerRef.current = null;
+            if (isHoveringRef.current) return;
+
+            isHoveringRef.current = true;
+            window.api?.disableMousePassthrough();
+            window.api?.expandWindow();
+            setHover();
+          }, 60);
+        }
+      } else {
+        // 鼠标在窗口外：取消待执行的进入，延迟确认离开
+        if (enterTimerRef.current !== null) {
+          clearTimeout(enterTimerRef.current);
+          enterTimerRef.current = null;
+        }
+
+        if (isHoveringRef.current && leaveTimerRef.current === null) {
+          // 两次延迟：第一次确认真的离开了，第二次等 bounds 更新
+          leaveTimerRef.current = setTimeout(() => {
+            leaveTimerRef.current = setTimeout(() => {
+              leaveTimerRef.current = null;
+              if (!isHoveringRef.current) return;
+
+              isHoveringRef.current = false;
+              window.api?.collapseWindow();
+              window.api?.enableMousePassthrough();
+              setIdle();
+            }, 80);
+          }, 10);
+        }
       }
 
       rafId = requestAnimationFrame(checkMousePosition);
@@ -130,18 +156,13 @@ function DynamicIsland(): React.JSX.Element {
     rafId = requestAnimationFrame(checkMousePosition);
 
     return () => {
-      if (rafId !== null) {
-        cancelAnimationFrame(rafId);
-      }
+      if (rafId !== null) cancelAnimationFrame(rafId);
+      clearAllTimers();
     };
-  }, [tryEnterHover, tryLeaveHover]);
+  }, [setHover, setIdle, clearAllTimers]);
 
   return (
-    <div
-      className={`island-shell ${state === 'hover' ? 'hover' : ''}`}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-    >
+    <div className={`island-shell ${state === 'hover' ? 'hover' : ''}`}>
       {/* 空闲状态内容 */}
       <div className="idle-content">
         <div className="flex items-center gap-2">

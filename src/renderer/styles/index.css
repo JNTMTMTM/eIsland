@@ -80,7 +80,7 @@ body::before {
   transition: opacity 0.4s ease;
 }
 
-.island-shell:hover {
+.island-shell.hover {
   width: 340px;
   height: 80px;
   background: var(--color-island-bg);
@@ -88,12 +88,11 @@ body::before {
   box-shadow: none;
 }
 
-.island-shell:hover::before {
+.island-shell.hover::before {
   opacity: 0;
   pointer-events: none;
 }
 
-/** hover 内容区域 */
 .hover-content {
   display: none;
   flex-direction: column;
@@ -108,13 +107,12 @@ body::before {
               transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s;
 }
 
-.island-shell:hover .hover-content {
+.island-shell.hover .hover-content {
   display: flex;
   opacity: 1;
   transform: translateY(0) scale(1);
 }
 
-/** 基础内容区域 - idle 时显示 */
 .idle-content {
   display: flex;
   align-items: center;
@@ -124,7 +122,7 @@ body::before {
   transition: opacity 0.2s ease;
 }
 
-.island-shell:hover .idle-content {
+.island-shell.hover .idle-content {
   opacity: 0;
   pointer-events: none;
 }
