@@ -1,10 +1,10 @@
 {
   "name": "eisland",
-  "version": "1.0.0",
+  "version": "26.0.0",
   "description": "Windows Dynamic Island - Electron App",
   "main": "./out/main/index.js",
   "author": "JNTMTMTM",
-  "license": "MIT",
+  "license": "GPL-3.0",
   "scripts": {
     "dev": "electron-vite dev",
     "build": "electron-vite build",
@@ -13,7 +13,6 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.2.2",
-    "electron-log": "^5.3.4",
     "zustand": "^5.0.4"
   },
   "devDependencies": {

@@ -7,11 +7,6 @@
 import { app, BrowserWindow, shell, screen, ipcMain } from 'electron';
 import { join } from 'path';
 import { electronApp, optimizer, is } from '@electron-toolkit/utils';
-import log from 'electron-log/main';
-
-/** 初始化日志模块 */
-log.initialize();
-log.info('[Main] 应用启动中...');
 
 /** 防止 Electron 创建多个实例 */
 const gotTheLock = app.requestSingleInstanceLock();
@@ -60,7 +55,6 @@ function createWindow(): void {
 
   mainWindow.on('ready-to-show', () => {
     mainWindow?.show();
-    log.info('[Main] 主窗口已显示');
   });
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
@@ -80,14 +74,12 @@ function registerIpcHandlers(): void {
   ipcMain.on('window:enable-mouse-passthrough', () => {
     if (mainWindow) {
       mainWindow.setIgnoreMouseEvents(true, { forward: true });
-      log.info('[Main] 鼠标穿透已启用');
     }
   });
 
   ipcMain.on('window:disable-mouse-passthrough', () => {
     if (mainWindow) {
       mainWindow.setIgnoreMouseEvents(false);
-      log.info('[Main] 鼠标穿透已禁用');
     }
   });
 }
@@ -120,5 +112,3 @@ app.on('window-all-closed', () => {
     app.quit();
   }
 });
-
-log.info('[Main] 主进程初始化完成');

@@ -8,7 +8,6 @@
 
 @theme {
   --color-island-bg: oklch(0.15 0 0);
-  --color-island-border: oklch(0.3 0 0);
   --color-island-hover-bg: oklch(0.22 0 0);
   --color-island-text: oklch(0.95 0 0);
   --color-island-accent: oklch(0.7 0.15 250);
@@ -30,7 +29,7 @@ body,
 /**
  * 灵动岛主体容器样式
  * - 仅下方两个角为圆角（模仿灵动岛造型）
- * - 半透明黑背景配合柔和光晕
+ * - 半透明黑背景，无边框无光晕
  * - 固定高度，内可弹性布局
  */
 .island-shell {
@@ -38,21 +37,14 @@ body,
   height: 100%;
   background: var(--color-island-bg);
   border-radius: 0 0 22px 22px;
-  border: 1px solid var(--color-island-border);
-  border-top: none;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background-color 0.25s ease, box-shadow 0.25s ease;
+  transition: background-color 0.25s ease;
   cursor: default;
   user-select: none;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
 }
 
 .island-shell.hover {
   background: var(--color-island-hover-bg);
-  box-shadow:
-    0 0 20px rgba(100, 120, 255, 0.15),
-    0 0 40px rgba(100, 120, 255, 0.05);
 }
