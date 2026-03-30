@@ -15,11 +15,10 @@ if (!root) {
   throw new Error('[Renderer] 未找到 #root 挂载节点');
 }
 
-/** 模拟调用 */
+/** 启动时调用天气接口（默认北京坐标，正式使用可替换为真实定位） */
 useIslandStore.getState().fetchWeatherData({
-  apiKey: '',
-  longitude: 0,
-  latitude: 0
+  longitude: 116.4074,
+  latitude: 39.9042
 });
 
 /**

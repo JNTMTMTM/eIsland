@@ -1,5 +1,6 @@
 /.cursor
 /.claude
+/test.ts
 
 node_modules/
 dist/

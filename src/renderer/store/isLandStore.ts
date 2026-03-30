@@ -6,6 +6,7 @@
 
 import { create } from 'zustand';
 import { fetchWeather } from '../api/weatherApi';
+import type { WeatherApiConfig } from '../api/weatherApi';
 
 /**
  * 灵动岛 UI 状态枚举
@@ -20,13 +21,6 @@ export interface WeatherData {
   temperature: number;
   /** 天气文字描述 */
   description: string;
-}
-
-/** 天气 API 配置 */
-interface WeatherApiConfig {
-  apiKey: string;
-  longitude: number;
-  latitude: number;
 }
 
 /** 灵动岛 Store 接口定义 */

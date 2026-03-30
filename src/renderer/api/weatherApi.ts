@@ -1,44 +1,74 @@
 /**
  * @file weatherApi.ts
- * @description 天气数据接口模块，提供获取天气信息的统一入口
+ * @description 天气数据接口模块
  * @author 鸡哥
  */
 
+import { fetchWeatherApi } from 'openmeteo';
 import type { WeatherData } from '../store/isLandStore';
 
 /** 天气接口配置 */
-interface WeatherApiConfig {
-  apiKey: string;
+export interface WeatherApiConfig {
   longitude: number;
   latitude: number;
 }
 
-/**
- * 获取天气数据
- *
- * TODO: 替换API
- *
- */
-export async function fetchWeather(_config: WeatherApiConfig): Promise<WeatherData> {
-  void _config;
-  return {
-    temperature: 23,
-    description: '晴'
+/** WMO 天气代码映射为中文描述 */
+function mapWeatherDescription(code: number): string {
+  const map: Record<number, string> = {
+    0: '晴',
+    1: '晴',
+    2: '多云',
+    3: '阴',
+    45: '雾',
+    48: '雾',
+    51: '毛毛雨',
+    53: '毛毛雨',
+    55: '毛毛雨',
+    61: '小雨',
+    63: '中雨',
+    65: '大雨',
+    66: '冻雨',
+    67: '冻雨',
+    71: '小雪',
+    73: '中雪',
+    75: '大雪',
+    77: '雪粒',
+    80: '阵雨',
+    81: '中阵雨',
+    82: '强阵雨',
+    85: '阵雪',
+    86: '强阵雪',
+    95: '雷雨',
+    96: '雷暴',
+    99: '雷暴'
   };
+  return map[code] ?? '未知';
 }
 
 /**
- * 将天气 code 映射为中文描述
- * @param code - 天气代码
- * @returns 中文描述
+ * 获取天气数据
+ * @param config - 经纬度配置
+ * @returns 天气数据
  */
-export function mapWeatherDescription(code: string): string {
-  const map: Record<string, string> = {
-    CLEAR: '晴', SUNNY: '晴',
-    PARTLY_CLOUDY: '多云', CLOUDY: '阴', OVERCAST: '阴', FOG: '雾',
-    LIGHT_RAIN: '小雨', MODERATE_RAIN: '中雨', HEAVY_RAIN: '大雨', RAIN: '雨',
-    LIGHT_SNOW: '小雪', MODERATE_SNOW: '中雪', HEAVY_SNOW: '大雪', SNOW: '雪',
-    THUNDERSTORM: '雷雨', THUNDER: '雷雨'
+export async function fetchWeather(config: WeatherApiConfig): Promise<WeatherData> {
+  const { latitude, longitude } = config;
+
+  const url = 'https://api.open-meteo.com/v1/forecast';
+  const responses = await fetchWeatherApi(url, {
+    latitude,
+    longitude,
+    current: ['temperature_2m', 'weather_code'],
+    timezone: 'auto',
+    forecast_days: 1
+  });
+
+  const current = responses[0].current()!;
+  const temperature = Math.round(current.variables(0)!.value());
+  const weatherCode = current.variables(1)!.value();
+
+  return {
+    temperature,
+    description: mapWeatherDescription(weatherCode)
   };
-  return map[code] ?? '未知';
 }

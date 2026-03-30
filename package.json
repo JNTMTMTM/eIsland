@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.2.2",
+    "openmeteo": "^1.2.3",
     "zustand": "^5.0.4"
   },
   "devDependencies": {
