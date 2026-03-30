@@ -4,8 +4,8 @@
  * @author 鸡哥
  */
 
-import { useEffect, useRef } from 'react';
-import { Activity, Moon } from 'lucide-react';
+import React, { useEffect, useRef } from 'react';
+// import { Activity, Moon } from 'lucide-react';
 import useIslandStore from '../store/isLandStore';
 
 /** 渲染进程自定义 API 类型声明 */
@@ -18,7 +18,7 @@ declare global {
   }
 }
 
-function DynamicIsland(): JSX.Element {
+function DynamicIsland(): React.JSX.Element {
   const { state, setHover, setIdle } = useIslandStore();
 
   /** 标记是否已完成初始化，防止 StrictMode 双挂载导致状态抖动 */
