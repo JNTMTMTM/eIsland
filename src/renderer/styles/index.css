@@ -119,7 +119,6 @@ body::before {
   justify-content: space-between;
   width: 100%;
   padding: 0 16px;
-  transition: opacity 0.2s ease;
 }
 
 .island-shell.hover .idle-content {
