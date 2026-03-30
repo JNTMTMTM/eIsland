@@ -17,7 +17,7 @@ interface HoverContentProps {
 /** 导航点配置 */
 const NAV_DOTS: { tab: HoverTab; label: string }[] = [
   { tab: 'time', label: '时间' },
-  { tab: 'weather', label: '天气' },
+  { tab: 'lyrics', label: '歌词' },
 ];
 
 /**
@@ -25,7 +25,7 @@ const NAV_DOTS: { tab: HoverTab; label: string }[] = [
  * @description 左侧有竖向导航点，点击可切换不同的 hover 界面（时间 / 天气）
  */
 export function HoverContent({ fullTimeStr, lunarStr }: HoverContentProps): React.ReactElement {
-  const { hoverTab, setHoverTab, weather } = useIslandStore();
+  const { hoverTab, setHoverTab } = useIslandStore();
   const contentRef = useRef<HTMLDivElement>(null);
 
   // 滚轮切换标签页
@@ -78,13 +78,13 @@ export function HoverContent({ fullTimeStr, lunarStr }: HoverContentProps): Reac
             </span>
           </div>
         )}
-        {hoverTab === 'weather' && (
+        {hoverTab === 'lyrics' && (
           <div className="flex flex-col gap-1 text-right">
             <span className="text-sm text-white font-medium">
-              {weather.description || '—'}
+              歌词
             </span>
             <span className="text-xs text-white opacity-60">
-              {weather.temperature > 0 ? `${weather.temperature}°C` : '--°C'}
+              待接入
             </span>
           </div>
         )}

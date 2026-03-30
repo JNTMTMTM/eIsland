@@ -16,7 +16,7 @@ import type { WeatherApiConfig } from '../api/weatherApi';
 export type IslandState = 'idle' | 'hover';
 
 /** Hover 状态下的子标签页类型 */
-export type HoverTab = 'time' | 'weather';
+export type HoverTab = 'time' | 'lyrics';
 
 /** 天气数据类型定义 */
 export interface WeatherData {
