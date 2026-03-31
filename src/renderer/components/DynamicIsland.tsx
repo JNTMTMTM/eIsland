@@ -67,20 +67,6 @@ export const STATE_CONFIGS: Record<IslandState, StateConfig> = {
   },
 };
 
-/** 渲染进程自定义 API 类型声明 */
-declare global {
-  interface Window {
-    api: {
-      enableMousePassthrough: () => void;
-      disableMousePassthrough: () => void;
-      expandWindow: () => void;
-      collapseWindow: () => void;
-      getMousePosition: () => Promise<{ x: number; y: number }>;
-      getWindowBounds: () => Promise<{ x: number; y: number; width: number; height: number } | null>;
-    };
-  }
-}
-
 /**
  * 检查鼠标是否在灵动岛窗口范围内
  * @returns 鼠标在窗口内返回 true，否则返回 false
