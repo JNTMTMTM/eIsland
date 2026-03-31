@@ -195,7 +195,7 @@ function DynamicIsland(): React.JSX.Element {
               window.api?.expandWindow();
             }
             setHover();
-          }, config.enterDelay || 60);
+          });
         }
       } else {
         if (enterTimerRef.current !== null) {
@@ -216,7 +216,7 @@ function DynamicIsland(): React.JSX.Element {
               window.api?.enableMousePassthrough();
             }
             setIdle();
-          }, config.leaveDelay || 80);
+          });
         }
       }
 
