@@ -9,7 +9,6 @@ import useIslandStore, { HoverTab } from '../../../store/isLandStore';
 import '../../../styles/hover.css';
 import { TimeTab } from './TimeTab';
 import { LyricsTab } from './LyricsTab';
-import { ActionButtons } from './ActionButtons';
 
 interface HoverContentProps {
   /** 完整时间字符串 (YY-MM-DD HH:MM:SS) */
@@ -21,7 +20,7 @@ interface HoverContentProps {
 /** 导航点配置 */
 const NAV_DOTS: { tab: HoverTab; label: string }[] = [
   { tab: 'time', label: '时间' },
-  { tab: 'lyrics', label: '歌词' },
+  { tab: 'o3ics', label: '歌词' },
 ];
 
 /**
@@ -40,11 +39,9 @@ export function HoverContent({ fullTimeStr, lunarStr }: HoverContentProps): Reac
       e.preventDefault();
       const currentIndex = NAV_DOTS.findIndex(d => d.tab === hoverTab);
       if (e.deltaY > 0) {
-        // 向下滚动 -> 下一个
         const next = (currentIndex + 1) % NAV_DOTS.length;
         setHoverTab(NAV_DOTS[next].tab);
       } else {
-        // 向上滚动 -> 上一个
         const prev = (currentIndex - 1 + NAV_DOTS.length) % NAV_DOTS.length;
         setHoverTab(NAV_DOTS[prev].tab);
       }
@@ -69,13 +66,10 @@ export function HoverContent({ fullTimeStr, lunarStr }: HoverContentProps): Reac
         ))}
       </div>
 
-      {/* 操作按钮 */}
-      <ActionButtons />
-
       {/* 右侧内容区域 */}
       <div className="hover-tab-content">
         {hoverTab === 'time' && <TimeTab fullTimeStr={fullTimeStr} lunarStr={lunarStr} />}
-        {hoverTab === 'lyrics' && <LyricsTab />}
+        {hoverTab === 'o3ics' && <LyricsTab />}
       </div>
     </div>
   );

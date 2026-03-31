@@ -5,6 +5,7 @@
  */
 
 import React from 'react';
+import { ActionButtons } from './ActionButtons';
 
 interface TimeTabProps {
   /** 完整时间字符串 (YY-MM-DD HH:MM:SS) */
@@ -19,13 +20,16 @@ interface TimeTabProps {
  */
 export function TimeTab({ fullTimeStr, lunarStr }: TimeTabProps): React.ReactElement {
   return (
-    <div className="flex flex-col gap-1 text-right">
-      <span className="text-sm text-white font-medium tabular-nums">
-        {fullTimeStr}
-      </span>
-      <span className="text-xs text-white opacity-60">
-        农历 {lunarStr}
-      </span>
+    <div className="flex items-center gap-3">
+      <ActionButtons />
+      <div className="flex flex-col gap-1 text-right">
+        <span className="text-sm text-white font-medium tabular-nums">
+          {fullTimeStr}
+        </span>
+        <span className="text-xs text-white opacity-60">
+          农历 {lunarStr}
+        </span>
+      </div>
     </div>
   );
 }
