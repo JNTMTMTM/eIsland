@@ -10,6 +10,7 @@ import '../../../styles/hover.css';
 import { TimeTab } from './TimeTab';
 import { LyricsTab } from './LyricsTab';
 import { ActionButtons } from './ActionButtons';
+import { CountdownEdit } from './CountdownEdit';
 
 interface HoverContentProps {
   /** 完整时间字符串 (YY-MM-DD HH:MM:SS) */
@@ -21,14 +22,17 @@ interface HoverContentProps {
 /** 导航点配置 */
 const NAV_DOTS: { tab: HoverTab; label: string }[] = [
   { tab: 'time', label: '时间' },
-  { tab: 'lyrics', label: '歌词' },
+  { tab: 'o3ics', label: '歌词' },
 ];
 
 /**
  * Hover 状态内容组件
  * @description 左侧有竖向导航点，点击可切换不同的 hover 界面
  */
-export function HoverContent({ fullTimeStr, lunarStr }: HoverContentProps): React.ReactElement {
+export function HoverContent({
+  fullTimeStr,
+  lunarStr
+}: HoverContentProps): React.ReactElement {
   const { hoverTab, setHoverTab } = useIslandStore();
   const contentRef = useRef<HTMLDivElement>(null);
 
@@ -72,8 +76,16 @@ export function HoverContent({ fullTimeStr, lunarStr }: HoverContentProps): Reac
 
       {/* 右侧内容区域 */}
       <div className="hover-tab-content">
-        {hoverTab === 'time' && <TimeTab fullTimeStr={fullTimeStr} lunarStr={lunarStr} />}
-        {hoverTab === 'lyrics' && <LyricsTab />}
+        {hoverTab === 'time' && (
+          <div className="time-tab-wrapper">
+            <CountdownEdit />
+            <TimeTab
+              fullTimeStr={fullTimeStr}
+              lunarStr={lunarStr}
+            />
+          </div>
+        )}
+        {hoverTab === 'o3ics' && <LyricsTab />}
       </div>
     </div>
   );

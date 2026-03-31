@@ -15,9 +15,12 @@ interface TimeTabProps {
 
 /**
  * 时间 Tab 内容
- * @description 显示当前时间和农历日期
+ * @description 显示当前时间、农历日期
  */
-export function TimeTab({ fullTimeStr, lunarStr }: TimeTabProps): React.ReactElement {
+export function TimeTab({
+  fullTimeStr,
+  lunarStr
+}: TimeTabProps): React.ReactElement {
   return (
     <div className="flex flex-col gap-1 text-right">
       <span className="text-sm text-white font-medium tabular-nums">

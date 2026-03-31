@@ -16,7 +16,17 @@ import type { WeatherApiConfig } from '../api/weatherApi';
 export type IslandState = 'idle' | 'hover';
 
 /** Hover 状态下的子标签页类型 */
-export type HoverTab = 'time' | 'lyrics';
+export type HoverTab = 'time' | 'o3ics';
+
+/** 倒计时数据类型 */
+export interface CountdownConfig {
+  /** 目标日期（ISO 字符串） */
+  targetDate: string;
+  /** 倒计时标签名称 */
+  label: string;
+  /** 是否启用 */
+  enabled: boolean;
+}
 
 /** 天气数据类型定义 */
 export interface WeatherData {
@@ -34,6 +44,8 @@ interface IIslandStore {
   hoverTab: HoverTab;
   /** 天气数据 */
   weather: WeatherData;
+  /** 倒计时配置 */
+  countdown: CountdownConfig;
   /** 更新天气数据 */
   setWeather: (data: WeatherData) => void;
   /** 从接口拉取并更新天气 */
@@ -44,6 +56,21 @@ interface IIslandStore {
   setHover: () => void;
   /** 切换 hover 子标签页 */
   setHoverTab: (tab: HoverTab) => void;
+  /** 设置倒计时配置 */
+  setCountdown: (config: Partial<CountdownConfig>) => void;
+}
+
+/**
+ * 获取默认倒计时配置（24小时内）
+ */
+function getDefaultCountdown(): CountdownConfig {
+  const now = new Date();
+  const target = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+  return {
+    targetDate: target.toISOString(),
+    label: '明天',
+    enabled: true,
+  };
 }
 
 /**
@@ -57,6 +84,7 @@ const useIslandStore = create<IIslandStore>((set) => ({
     temperature: 0,
     description: ''
   },
+  countdown: getDefaultCountdown(),
   /** @param data - 天气数据对象 */
   setWeather: (data): void => set({ weather: data }),
   /** @param config - 经纬度配置 */
@@ -73,7 +101,12 @@ const useIslandStore = create<IIslandStore>((set) => ({
     set({ state: 'hover' });
   },
   /** @param tab - 目标 tab 标签页 */
-  setHoverTab: (tab): void => set({ hoverTab: tab })
+  setHoverTab: (tab): void => set({ hoverTab: tab }),
+  /** @param config - 倒计时配置 */
+  setCountdown: (config): void =>
+    set((state) => ({
+      countdown: { ...state.countdown, ...config }
+    }))
 }));
 
 export default useIslandStore;
