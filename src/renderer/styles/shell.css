@@ -1,0 +1,79 @@
+/**
+ * @file shell.css
+ * @description 灵动岛主体容器样式，包含 idle / hover 扩展状态的骨架样式
+ * @author 鸡哥
+ */
+
+/** 灵动岛主体容器 */
+.island-shell {
+  position: relative;
+  width: 240px;
+  height: 42px;
+  background: var(--color-island-bg);
+  border-radius: 0 0 22px 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: default;
+  user-select: none;
+  transition: width 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
+              height 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
+              border-radius 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
+              background 0.3s ease;
+  overflow: hidden;
+  box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+  margin: 0 auto;
+  will-change: width, height, border-radius;
+  mask-image: radial-gradient(white, white);
+  -webkit-mask-image: -webkit-radial-gradient(white, white);
+}
+
+.island-shell::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    transparent 50%,
+    rgba(0, 0, 0, 0.1) 100%
+  );
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.island-shell.hover {
+  width: 500px;
+  height: 60px;
+  background: var(--color-island-bg);
+  border-radius: 0 0 22px 22px;
+  box-shadow: none;
+}
+
+.island-shell.hover::before {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/** Idle 内容 */
+.idle-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0 16px;
+}
+
+.island-shell.hover .idle-content {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/** 分隔线 */
+.divider {
+  width: 1px;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.15);
+  margin: 0 8px;
+}

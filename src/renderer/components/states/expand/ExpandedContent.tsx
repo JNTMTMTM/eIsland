@@ -5,6 +5,7 @@
  */
 
 import React from 'react';
+import '../../../styles/expanded.css';
 
 /**
  * Expanded 状态内容组件

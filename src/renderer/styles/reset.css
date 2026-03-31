@@ -1,0 +1,37 @@
+/**
+ * @file reset.css
+ * @description Tailwind v4 基础层 + CSS 主题变量 + 根元素重置
+ * @author 鸡哥
+ */
+
+@import "tailwindcss";
+
+@theme {
+  --color-island-bg: #000000;
+  --color-island-text: #ffffff;
+  --color-island-accent: oklch(0.7 0.15 250);
+  --color-island-pill: oklch(0.65 0.12 250);
+}
+
+/** 强制根元素透明，使 Electron 透明窗口生效 */
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: transparent !important;
+  -webkit-app-region: no-drag;
+}
+
+/** 防止 Electron 透明窗口失焦后出现白色回退背景 */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: transparent;
+  pointer-events: none;
+  z-index: -1;
+}

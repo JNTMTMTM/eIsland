@@ -5,6 +5,7 @@
  */
 
 import React from 'react';
+import '../../../styles/shell.css';
 
 interface IdleContentProps {
   /** 时间字符串 */
