@@ -177,9 +177,6 @@ function DynamicIsland(): React.JSX.Element {
             if (config.mousePassthrough) {
               window.api?.disableMousePassthrough();
             }
-            if (!config.expanded) {
-              window.api?.expandWindow();
-            }
             setHover();
           });
         }
@@ -195,13 +192,13 @@ function DynamicIsland(): React.JSX.Element {
             if (!isHoveringRef.current) return;
 
             isHoveringRef.current = false;
+            setIdle();
             if (config.expanded) {
               window.api?.collapseWindow();
             }
             if (config.mousePassthrough) {
               window.api?.enableMousePassthrough();
             }
-            setIdle();
           });
         }
       }

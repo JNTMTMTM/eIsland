@@ -64,8 +64,14 @@ const useIslandStore = create<IIslandStore>((set) => ({
     const data = await fetchWeather(config);
     set({ weather: data });
   },
-  setIdle: (): void => set({ state: 'idle' }),
-  setHover: (): void => set({ state: 'hover' }),
+  setIdle: (): void => {
+    window.api?.collapseWindow();
+    set({ state: 'idle' });
+  },
+  setHover: (): void => {
+    window.api?.expandWindow();
+    set({ state: 'hover' });
+  },
   /** @param tab - 目标 tab 标签页 */
   setHoverTab: (tab): void => set({ hoverTab: tab })
 }));

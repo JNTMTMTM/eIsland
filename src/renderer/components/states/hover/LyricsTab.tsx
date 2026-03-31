@@ -12,7 +12,7 @@ import React from 'react';
  */
 export function LyricsTab(): React.ReactElement {
   return (
-    <div className="flex flex-col gap-1 text-right">
+    <div className="flex flex-col gap-1 text-right ml-auto">
       <span className="text-sm text-white font-medium">
         歌词
       </span>

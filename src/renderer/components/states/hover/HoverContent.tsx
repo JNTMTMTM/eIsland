@@ -9,6 +9,7 @@ import useIslandStore, { HoverTab } from '../../../store/isLandStore';
 import '../../../styles/hover.css';
 import { TimeTab } from './TimeTab';
 import { LyricsTab } from './LyricsTab';
+import { ActionButtons } from './ActionButtons';
 
 interface HoverContentProps {
   /** 完整时间字符串 (YY-MM-DD HH:MM:SS) */
@@ -53,6 +54,9 @@ export function HoverContent({ fullTimeStr, lunarStr }: HoverContentProps): Reac
 
   return (
     <div className="hover-content" ref={contentRef}>
+      {/* 左侧操作按钮 */}
+      <ActionButtons />
+
       {/* 左侧竖向导航点 */}
       <div className="hover-nav-dots">
         {NAV_DOTS.map(({ tab, label }) => (
