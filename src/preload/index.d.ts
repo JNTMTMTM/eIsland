@@ -12,6 +12,11 @@ declare global {
     api: {
       enableMousePassthrough: () => void;
       disableMousePassthrough: () => void;
+      expandWindow: () => void;
+      collapseWindow: () => void;
+      getMousePosition: () => Promise<{ x: number; y: number }>;
+      getWindowBounds: () => Promise<{ x: number; y: number; width: number; height: number }>;
+      quitApp: () => void;
     };
   }
 }

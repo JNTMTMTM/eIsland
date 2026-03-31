@@ -4,7 +4,7 @@
  * @author 鸡哥
  */
 
-import { app, BrowserWindow, shell, screen, ipcMain } from 'electron';
+import { app, BrowserWindow, shell, screen, ipcMain, Tray, Menu, nativeImage, NativeImage } from 'electron';
 import { join } from 'path';
 import { electronApp, optimizer, is } from '@electron-toolkit/utils';
 
@@ -15,6 +15,7 @@ if (!gotTheLock) {
 }
 
 let mainWindow: BrowserWindow | null = null;
+let tray: Tray | null = null;
 
 /** 灵动岛尺寸常量 */
 const ISLAND_WIDTH = 240;
@@ -24,6 +25,67 @@ const EXPANDED_HEIGHT = 60;
 
 /** 记录窗口初始中心 X 坐标 */
 let initialCenterX = 0;
+
+/**
+ * 创建托盘图标
+ * @description 生成一个简单的纯色图标用于系统托盘
+ */
+function createTrayIcon(): NativeImage {
+  const size = 16;
+  const canvas = Buffer.alloc(size * size * 4);
+
+  for (let i = 0; i < size * size; i++) {
+    const offset = i * 4;
+    canvas[offset] = 0; // R
+    canvas[offset + 1] = 0; // G
+    canvas[offset + 2] = 0; // B
+    canvas[offset + 3] = 0; // A - fully transparent
+  }
+
+  const centerX = size / 2;
+  const centerY = size / 2;
+  const radius = 6;
+
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      const distance = Math.sqrt((x - centerX) ** 2 + (y - centerY) ** 2);
+      if (distance <= radius) {
+        const offset = (y * size + x) * 4;
+        canvas[offset] = 255; // R
+        canvas[offset + 1] = 255; // G
+        canvas[offset + 2] = 255; // B
+        canvas[offset + 3] = 255; // A
+      }
+    }
+  }
+
+  return nativeImage.createFromBuffer(canvas, { width: size, height: size });
+}
+
+/**
+ * 创建系统托盘
+ * @description 初始化托盘图标和右键菜单，提供退出功能
+ */
+function createTray(): void {
+  const icon = createTrayIcon();
+  tray = new Tray(icon);
+
+  const contextMenu = Menu.buildFromTemplate([
+    {
+      label: '退出',
+      click: () => {
+        app.quit();
+      }
+    }
+  ]);
+
+  tray.setToolTip('eIsland');
+  tray.setContextMenu(contextMenu);
+
+  tray.on('click', () => {
+    mainWindow?.show();
+  });
+}
 
 /**
  * 创建 Electron BrowserWindow 实例，配置透明无边框灵动岛窗口
@@ -156,6 +218,13 @@ function registerIpcHandlers(): void {
     }
     return null;
   });
+
+  /**
+   * 退出应用
+   */
+  ipcMain.on('app:quit', () => {
+    app.quit();
+  });
 }
 
 /** 单实例锁回调 */
@@ -178,6 +247,7 @@ app.whenReady().then(() => {
 
   registerIpcHandlers();
   createWindow();
+  createTray();
 
   app.on('activate', function () {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();

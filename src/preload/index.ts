@@ -50,6 +50,12 @@ const api = {
    */
   getWindowBounds: (): Promise<{ x: number; y: number; width: number; height: number }> => {
     return ipcRenderer.invoke('window:get-bounds');
+  },
+  /**
+   * 退出应用
+   */
+  quitApp: (): void => {
+    ipcRenderer.send('app:quit');
   }
 };
 
