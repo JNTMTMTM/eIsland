@@ -4,9 +4,10 @@
  * @author 鸡哥
  */
 
-import { app, BrowserWindow, shell, screen, ipcMain, Tray, Menu, nativeImage, NativeImage } from 'electron';
+import { app, BrowserWindow, shell, screen, ipcMain } from 'electron';
 import { join } from 'path';
 import { electronApp, optimizer, is } from '@electron-toolkit/utils';
+import { createTray } from './tray';
 
 /** 防止 Electron 创建多个实例 */
 const gotTheLock = app.requestSingleInstanceLock();
@@ -15,7 +16,6 @@ if (!gotTheLock) {
 }
 
 let mainWindow: BrowserWindow | null = null;
-let tray: Tray | null = null;
 
 /** 灵动岛尺寸常量 */
 const ISLAND_WIDTH = 240;
@@ -25,41 +25,6 @@ const EXPANDED_HEIGHT = 60;
 
 /** 记录窗口初始中心 X 坐标 */
 let initialCenterX = 0;
-
-/**
- * 创建托盘图标
- * @description 从 resources 目录加载 SVG 文件，解析其中嵌入的 base64 PNG 数据
- */
-function createTrayIcon(): NativeImage {
-  const path = require('path');
-  const icoPath = path.join(__dirname, '../../resources/icon/eisland_16x16.ico');
-  return nativeImage.createFromPath(icoPath);
-}
-
-/**
- * 创建系统托盘
- * @description 初始化托盘图标和右键菜单，提供退出功能
- */
-function createTray(): void {
-  const icon = createTrayIcon();
-  tray = new Tray(icon);
-
-  const contextMenu = Menu.buildFromTemplate([
-    {
-      label: '退出',
-      click: () => {
-        app.quit();
-      }
-    }
-  ]);
-
-  tray.setToolTip('eIsland');
-  tray.setContextMenu(contextMenu);
-
-  tray.on('click', () => {
-    mainWindow?.show();
-  });
-}
 
 /**
  * 创建 Electron BrowserWindow 实例，配置透明无边框灵动岛窗口
@@ -221,7 +186,7 @@ app.whenReady().then(() => {
 
   registerIpcHandlers();
   createWindow();
-  createTray();
+  createTray(mainWindow);
 
   app.on('activate', function () {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
