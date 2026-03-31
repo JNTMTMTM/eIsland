@@ -6,6 +6,8 @@
 
 import React, { useEffect, useRef } from 'react';
 import useIslandStore, { HoverTab } from '../../store/isLandStore';
+import { TimeTab } from './TimeTab';
+import { LyricsTab } from './LyricsTab';
 
 interface HoverContentProps {
   /** 完整时间字符串 (YY-MM-DD HH:MM:SS) */
@@ -22,7 +24,7 @@ const NAV_DOTS: { tab: HoverTab; label: string }[] = [
 
 /**
  * Hover 状态内容组件
- * @description 左侧有竖向导航点，点击可切换不同的 hover 界面（时间 / 天气）
+ * @description 左侧有竖向导航点，点击可切换不同的 hover 界面
  */
 export function HoverContent({ fullTimeStr, lunarStr }: HoverContentProps): React.ReactElement {
   const { hoverTab, setHoverTab } = useIslandStore();
@@ -67,26 +69,8 @@ export function HoverContent({ fullTimeStr, lunarStr }: HoverContentProps): Reac
 
       {/* 右侧内容区域 */}
       <div className="hover-tab-content">
-        {hoverTab === 'time' && (
-          <div className="flex flex-col gap-1 text-right">
-            <span className="text-sm text-white font-medium tabular-nums">
-              {fullTimeStr}
-            </span>
-            <span className="text-xs text-white opacity-60">
-              农历 {lunarStr}
-            </span>
-          </div>
-        )}
-        {hoverTab === 'lyrics' && (
-          <div className="flex flex-col gap-1 text-right">
-            <span className="text-sm text-white font-medium">
-              歌词
-            </span>
-            <span className="text-xs text-white opacity-60">
-              待接入
-            </span>
-          </div>
-        )}
+        {hoverTab === 'time' && <TimeTab fullTimeStr={fullTimeStr} lunarStr={lunarStr} />}
+        {hoverTab === 'lyrics' && <LyricsTab />}
       </div>
     </div>
   );
