@@ -125,13 +125,21 @@ export function CountdownEdit(): React.ReactElement {
 
         <div className="timer-controls">
           {timerState === 'running' ? (
-            <button className="timer-btn timer-btn-pause" onClick={handlePause}>⏸</button>
+            <button className="timer-btn timer-btn-pause" onClick={handlePause} title="暂停">
+              <img src="/svg/PAUSE.svg" alt="暂停" className="timer-btn-icon" />
+            </button>
           ) : timerState === 'paused' ? (
-            <button className="timer-btn timer-btn-start" onClick={handleResume}>▶</button>
+            <button className="timer-btn timer-btn-start" onClick={handleResume} title="继续">
+              <img src="/svg/CONTINUE.svg" alt="继续" className="timer-btn-icon" />
+            </button>
           ) : (
-            <button className="timer-btn timer-btn-start" onClick={handleStart}>▶</button>
+            <button className="timer-btn timer-btn-start" onClick={handleStart} title="开始">
+              <img src="/svg/CONTINUE.svg" alt="开始" className="timer-btn-icon" />
+            </button>
           )}
-          <button className="timer-btn timer-btn-reset" onClick={handleReset}>↺</button>
+          <button className="timer-btn timer-btn-reset" onClick={handleReset} title="重置">
+            <img src="/svg/REVERT.svg" alt="重置" className="timer-btn-icon" />
+          </button>
         </div>
       </div>
     </div>

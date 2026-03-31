@@ -208,12 +208,12 @@
 }
 
 .timer-btn {
-  width: 28px;
+  width: 26px;
   height: 26px;
   padding: 0;
   border: none;
   border-radius: 5px;
-  font-size: 12px;
+  background: transparent;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -221,35 +221,18 @@
   transition: background 0.2s ease, transform 0.15s ease;
 }
 
+.timer-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
 .timer-btn:active {
   transform: scale(0.9);
 }
 
-.timer-btn-start {
-  background: rgba(76, 175, 80, 0.8);
-  color: #ffffff;
-}
-
-.timer-btn-start:hover {
-  background: rgba(76, 175, 80, 1);
-}
-
-.timer-btn-pause {
-  background: rgba(255, 193, 7, 0.8);
-  color: #ffffff;
-}
-
-.timer-btn-pause:hover {
-  background: rgba(255, 193, 7, 1);
-}
-
-.timer-btn-reset {
-  background: rgba(244, 67, 54, 0.8);
-  color: #ffffff;
-}
-
-.timer-btn-reset:hover {
-  background: rgba(244, 67, 54, 1);
+.timer-btn-icon {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
 }
 
 /* ==========================================
