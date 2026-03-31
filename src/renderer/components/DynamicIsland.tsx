@@ -8,7 +8,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import useIslandStore from '../store/isLandStore';
 import { formatTime, formatFullTime, getDayName, getLunarDate } from '../utils/timeUtils';
 import { IdleContent } from './states/IdleContent';
-import { HoverContent } from './states/HoverContent';
+import { HoverContent } from './states/hover/HoverContent';
 import { ExpandedContent } from './states/ExpandedContent';
 
 /** 灵动岛状态类型 */

@@ -5,5 +5,5 @@
  */
 
 export { IdleContent } from './IdleContent';
-export { HoverContent } from './HoverContent';
+export { HoverContent } from './hover/HoverContent';
 export { ExpandedContent } from './ExpandedContent';
