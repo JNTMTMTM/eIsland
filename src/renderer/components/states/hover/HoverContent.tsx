@@ -20,7 +20,7 @@ interface HoverContentProps {
 /** 导航点配置 */
 const NAV_DOTS: { tab: HoverTab; label: string }[] = [
   { tab: 'time', label: '时间' },
-  { tab: 'o3ics', label: '歌词' },
+  { tab: 'lyrics', label: '歌词' },
 ];
 
 /**
@@ -69,7 +69,7 @@ export function HoverContent({ fullTimeStr, lunarStr }: HoverContentProps): Reac
       {/* 右侧内容区域 */}
       <div className="hover-tab-content">
         {hoverTab === 'time' && <TimeTab fullTimeStr={fullTimeStr} lunarStr={lunarStr} />}
-        {hoverTab === 'o3ics' && <LyricsTab />}
+        {hoverTab === 'lyrics' && <LyricsTab />}
       </div>
     </div>
   );
