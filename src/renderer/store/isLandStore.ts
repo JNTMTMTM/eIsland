@@ -36,6 +36,18 @@ export interface WeatherData {
   description: string;
 }
 
+/** 计时器状态类型 */
+export type TimerState = 'idle' | 'running' | 'paused';
+
+/** 计时器数据接口 */
+export interface TimerData {
+  state: TimerState;
+  remainingSeconds: number;
+  inputHours: string;
+  inputMinutes: string;
+  inputSeconds: string;
+}
+
 /** 灵动岛 Store 接口定义 */
 interface IIslandStore {
   /** 当前状态 */
@@ -46,6 +58,8 @@ interface IIslandStore {
   weather: WeatherData;
   /** 倒计时配置 */
   countdown: CountdownConfig;
+  /** 计时器数据 */
+  timerData: TimerData;
   /** 更新天气数据 */
   setWeather: (data: WeatherData) => void;
   /** 从接口拉取并更新天气 */
@@ -58,6 +72,8 @@ interface IIslandStore {
   setHoverTab: (tab: HoverTab) => void;
   /** 设置倒计时配置 */
   setCountdown: (config: Partial<CountdownConfig>) => void;
+  /** 设置计时器数据 */
+  setTimerData: (data: Partial<TimerData>) => void;
 }
 
 /**
@@ -74,6 +90,19 @@ function getDefaultCountdown(): CountdownConfig {
 }
 
 /**
+ * 获取默认计时器数据
+ */
+function getDefaultTimerData(): TimerData {
+  return {
+    state: 'idle',
+    remainingSeconds: 0,
+    inputHours: '00',
+    inputMinutes: '00',
+    inputSeconds: '00',
+  };
+}
+
+/**
  * 灵动岛状态管理 Store
  * @description 使用 zustand 管理状态变更，无需 Redux 的模板代码
  */
@@ -85,6 +114,7 @@ const useIslandStore = create<IIslandStore>((set) => ({
     description: ''
   },
   countdown: getDefaultCountdown(),
+  timerData: getDefaultTimerData(),
   /** @param data - 天气数据对象 */
   setWeather: (data): void => set({ weather: data }),
   /** @param config - 经纬度配置 */
@@ -106,6 +136,17 @@ const useIslandStore = create<IIslandStore>((set) => ({
   setCountdown: (config): void =>
     set((state) => ({
       countdown: { ...state.countdown, ...config }
+    })),
+  /** @param data - 计时器数据 */
+  setTimerData: (data): void =>
+    set((state) => ({
+      timerData: {
+        state: data.state ?? state.timerData.state,
+        remainingSeconds: data.remainingSeconds ?? state.timerData.remainingSeconds,
+        inputHours: data.inputHours ?? state.timerData.inputHours,
+        inputMinutes: data.inputMinutes ?? state.timerData.inputMinutes,
+        inputSeconds: data.inputSeconds ?? state.timerData.inputSeconds,
+      }
     }))
 }));
 

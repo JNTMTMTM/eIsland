@@ -113,17 +113,43 @@ interface StateRenderer {
  * @description 使用状态模式管理不同状态的 UI 渲染，通过 requestAnimationFrame 检测鼠标位置实现可靠的 hover 交互
  */
 function DynamicIsland(): React.JSX.Element {
-  const { state, weather, setHover, setIdle } = useIslandStore();
+  const { state, weather, setHover, setIdle, timerData, setTimerData } = useIslandStore();
 
   const initRef = useRef(false);
   const isHoveringRef = useRef(false);
   const enterTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const leaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const timerIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const [timeStr, setTimeStr] = useState(() => formatTime(new Date()));
   const [dayStr, setDayStr] = useState(() => getDayName(new Date()));
   const [fullTimeStr, setFullTimeStr] = useState(() => formatFullTime(new Date()));
   const [lunarStr, setLunarStr] = useState(() => getLunarDate(new Date()));
+
+  // 全局计时器逻辑
+  useEffect(() => {
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current);
+    }
+
+    if (timerData?.state === 'running' && timerData.remainingSeconds > 0) {
+      timerIntervalRef.current = setInterval(() => {
+        const next = (timerData.remainingSeconds ?? 0) - 1;
+        if (next <= 0) {
+          setTimerData({ state: 'idle', remainingSeconds: 0 });
+        } else {
+          setTimerData({ remainingSeconds: next });
+        }
+      }, 1000);
+    }
+
+    return () => {
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
+        timerIntervalRef.current = null;
+      }
+    };
+  }, [timerData?.state, timerData?.remainingSeconds, setTimerData]);
 
   useEffect(() => {
     const update = (): void => {

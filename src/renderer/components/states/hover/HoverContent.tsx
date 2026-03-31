@@ -79,6 +79,7 @@ export function HoverContent({
         {hoverTab === 'time' && (
           <div className="time-tab-wrapper">
             <CountdownEdit />
+            <div className="timer-divider" />
             <TimeTab
               fullTimeStr={fullTimeStr}
               lunarStr={lunarStr}

@@ -4,7 +4,8 @@
  * @author 鸡哥
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useCallback } from 'react';
+import useIslandStore from '../../../store/isLandStore';
 
 type TimerState = 'idle' | 'running' | 'paused';
 
@@ -15,46 +16,29 @@ function padZero(value: number): string {
 /**
  * 可编辑计时器组件
  * @description 位于时间和农历左侧，直接显示输入框，支持开始、暂停、重置
+ * 倒计时逻辑由 DynamicIsland 全局管理，此组件仅负责 UI 展示和用户交互
  */
 export function CountdownEdit(): React.ReactElement {
-  const [timerState, setTimerState] = useState<TimerState>('idle');
-  const [remainingSeconds, setRemainingSeconds] = useState(0);
-  const [inputHours, setInputHours] = useState('00');
-  const [inputMinutes, setInputMinutes] = useState('00');
-  const [inputSeconds, setInputSeconds] = useState('00');
+  const { timerData, setTimerData } = useIslandStore();
 
-  useEffect(() => {
-    let interval: ReturnType<typeof setInterval> | null = null;
-
-    if (timerState === 'running' && remainingSeconds > 0) {
-      interval = setInterval(() => {
-        setRemainingSeconds((prev) => {
-          if (prev <= 1) {
-            setTimerState('idle');
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    }
-
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [timerState, remainingSeconds]);
+  const timerState: TimerState = timerData?.state ?? 'idle';
+  const remainingSeconds: number = timerData?.remainingSeconds ?? 0;
+  const inputHours: string = timerData?.inputHours ?? '00';
+  const inputMinutes: string = timerData?.inputMinutes ?? '00';
+  const inputSeconds: string = timerData?.inputSeconds ?? '00';
 
   const handleInputChange = useCallback((
     value: string,
-    setter: (v: string) => void,
+    setter: 'inputHours' | 'inputMinutes' | 'inputSeconds',
     max: number
   ) => {
     const num = parseInt(value, 10);
-    if (!isNaN(num) && num <= max) {
-      setter(value.padStart(2, '0'));
-    } else if (value === '') {
-      setter('00');
-    }
-  }, []);
+    const newValue = (!isNaN(num) && num <= max)
+      ? value.padStart(2, '0')
+      : (value === '' ? '00' : timerData?.[setter] ?? '00');
+
+    setTimerData({ [setter]: newValue });
+  }, [timerData, setTimerData]);
 
   const handleStart = useCallback(() => {
     const h = parseInt(inputHours, 10) || 0;
@@ -63,28 +47,32 @@ export function CountdownEdit(): React.ReactElement {
     const total = h * 3600 + m * 60 + s;
 
     if (total > 0) {
-      setRemainingSeconds(total);
-      setTimerState('running');
+      setTimerData({
+        state: 'running',
+        remainingSeconds: total,
+      });
     }
-  }, [inputHours, inputMinutes, inputSeconds]);
+  }, [inputHours, inputMinutes, inputSeconds, setTimerData]);
 
   const handlePause = useCallback(() => {
-    setTimerState('paused');
-  }, []);
+    setTimerData({ state: 'paused' });
+  }, [setTimerData]);
 
   const handleResume = useCallback(() => {
     if (remainingSeconds > 0) {
-      setTimerState('running');
+      setTimerData({ state: 'running' });
     }
-  }, [remainingSeconds]);
+  }, [remainingSeconds, setTimerData]);
 
   const handleReset = useCallback(() => {
-    setTimerState('idle');
-    setRemainingSeconds(0);
-    setInputHours('00');
-    setInputMinutes('00');
-    setInputSeconds('00');
-  }, []);
+    setTimerData({
+      state: 'idle',
+      remainingSeconds: 0,
+      inputHours: '00',
+      inputMinutes: '00',
+      inputSeconds: '00',
+    });
+  }, [setTimerData]);
 
   const getTimeParts = (totalSeconds: number) => {
     const h = Math.floor(totalSeconds / 3600);
@@ -105,7 +93,7 @@ export function CountdownEdit(): React.ReactElement {
               type="text"
               className="timer-input"
               value={inputHours}
-              onChange={(e) => handleInputChange(e.target.value, setInputHours, 23)}
+              onChange={(e) => handleInputChange(e.target.value, 'inputHours', 23)}
               maxLength={2}
             />
             <span className="timer-sep">:</span>
@@ -113,7 +101,7 @@ export function CountdownEdit(): React.ReactElement {
               type="text"
               className="timer-input"
               value={inputMinutes}
-              onChange={(e) => handleInputChange(e.target.value, setInputMinutes, 59)}
+              onChange={(e) => handleInputChange(e.target.value, 'inputMinutes', 59)}
               maxLength={2}
             />
             <span className="timer-sep">:</span>
@@ -121,7 +109,7 @@ export function CountdownEdit(): React.ReactElement {
               type="text"
               className="timer-input"
               value={inputSeconds}
-              onChange={(e) => handleInputChange(e.target.value, setInputSeconds, 59)}
+              onChange={(e) => handleInputChange(e.target.value, 'inputSeconds', 59)}
               maxLength={2}
             />
           </div>
