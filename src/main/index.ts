@@ -28,38 +28,12 @@ let initialCenterX = 0;
 
 /**
  * 创建托盘图标
- * @description 生成一个简单的纯色图标用于系统托盘
+ * @description 从 resources 目录加载 SVG 文件，解析其中嵌入的 base64 PNG 数据
  */
 function createTrayIcon(): NativeImage {
-  const size = 16;
-  const canvas = Buffer.alloc(size * size * 4);
-
-  for (let i = 0; i < size * size; i++) {
-    const offset = i * 4;
-    canvas[offset] = 0; // R
-    canvas[offset + 1] = 0; // G
-    canvas[offset + 2] = 0; // B
-    canvas[offset + 3] = 0; // A - fully transparent
-  }
-
-  const centerX = size / 2;
-  const centerY = size / 2;
-  const radius = 6;
-
-  for (let y = 0; y < size; y++) {
-    for (let x = 0; x < size; x++) {
-      const distance = Math.sqrt((x - centerX) ** 2 + (y - centerY) ** 2);
-      if (distance <= radius) {
-        const offset = (y * size + x) * 4;
-        canvas[offset] = 255; // R
-        canvas[offset + 1] = 255; // G
-        canvas[offset + 2] = 255; // B
-        canvas[offset + 3] = 255; // A
-      }
-    }
-  }
-
-  return nativeImage.createFromBuffer(canvas, { width: size, height: size });
+  const path = require('path');
+  const icoPath = path.join(__dirname, '../../resources/icon/eisland_16x16.ico');
+  return nativeImage.createFromPath(icoPath);
 }
 
 /**
