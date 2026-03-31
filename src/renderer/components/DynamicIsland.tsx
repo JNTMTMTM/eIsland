@@ -7,9 +7,9 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import useIslandStore from '../store/isLandStore';
 import { formatTime, formatFullTime, getDayName, getLunarDate } from '../utils/timeUtils';
-import { IdleContent } from './states/IdleContent';
+import { IdleContent } from './states/idle/IdleContent';
 import { HoverContent } from './states/hover/HoverContent';
-import { ExpandedContent } from './states/ExpandedContent';
+import { ExpandedContent } from './states/expand/ExpandedContent';
 
 /** 灵动岛状态类型 */
 export type IslandState = 'idle' | 'hover' | 'expanded' | 'notification' | 'minimal';

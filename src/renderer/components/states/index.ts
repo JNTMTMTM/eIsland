@@ -4,6 +4,6 @@
  * @author 鸡哥
  */
 
-export { IdleContent } from './IdleContent';
+export { IdleContent } from './idle/IdleContent';
 export { HoverContent } from './hover/HoverContent';
-export { ExpandedContent } from './ExpandedContent';
+export { ExpandedContent } from './expand/ExpandedContent';
