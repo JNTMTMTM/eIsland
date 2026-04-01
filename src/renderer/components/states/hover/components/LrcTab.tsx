@@ -4,9 +4,9 @@
  * @author 鸡哥
  */
 
-import React, { useEffect, useRef, useState } from 'react';
+import React from 'react';
 import useIslandStore from '../../../../store/isLandStore';
-import { calculateProgressPercent, calculateSliderPercentFromMouse, calculatePositionFromPercent } from '../../../../utils/musicUtils';
+import { calculateProgressPercent } from '../../../../utils/musicUtils';
 
 /** 播放/暂停图标 SVG */
 function PlayIcon({ size = 16 }: { size?: number }) {
@@ -44,34 +44,15 @@ function NextIcon({ size = 14 }: { size?: number }) {
 /** 播放进度条组件 */
 function ProgressBar({
   progressPercent,
-  isSeeking,
-  seekPercent,
-  progressBarRef,
-  onMouseDown,
-  onMouseMove,
-  onMouseUp,
 }: {
   progressPercent: number;
-  isSeeking: boolean;
-  seekPercent: number;
-  progressBarRef: React.RefObject<HTMLDivElement | null>;
-  onMouseDown: (e: React.MouseEvent) => void;
-  onMouseMove: (e: React.MouseEvent) => void;
-  onMouseUp: (e: React.MouseEvent) => void;
 }) {
-  const displayPercent = isSeeking ? seekPercent : progressPercent;
   return (
-    <div
-      className={`lrc-progress-bar ${isSeeking ? 'seeking' : ''}`}
-      ref={progressBarRef}
-      onMouseDown={onMouseDown}
-      onMouseMove={isSeeking ? onMouseMove : undefined}
-      onMouseUp={isSeeking ? onMouseUp : undefined}
-    >
+    <div className="lrc-progress-bar">
       <div className="lrc-progress-track">
-        <div className="lrc-progress-fill" style={{ width: `${displayPercent}%` }} />
+        <div className="lrc-progress-fill" style={{ width: `${progressPercent}%` }} />
       </div>
-      <div className="lrc-progress-thumb" style={{ left: `${displayPercent}%` }} />
+      <div className="lrc-progress-thumb" style={{ left: `${progressPercent}%` }} />
     </div>
   );
 }
@@ -93,72 +74,8 @@ export function LyricsTab(): React.ReactElement {
     setLrcMode,
   } = useIslandStore();
 
-  const progressBarRef = useRef<HTMLDivElement>(null);
-  const [isSeeking, setIsSeeking] = useState(false);
-  const [seekPercent, setSeekPercent] = useState(0);
-
-  // 计算当前进度百分比
-  const progressPercent = isSeeking
-    ? seekPercent
-    : calculateProgressPercent(currentPositionMs, currentDurationMs);
-
-  // 处理进度条拖动
-  useEffect(() => {
-    if (!isSeeking) return;
-
-    const handleDocumentMouseMove = (e: MouseEvent) => {
-      if (!progressBarRef.current) return;
-      const rect = progressBarRef.current.getBoundingClientRect();
-      const percent = calculateSliderPercentFromMouse(e, rect) * 100;
-      setSeekPercent(percent);
-    };
-
-    const handleDocumentMouseUp = (e: MouseEvent) => {
-      if (!progressBarRef.current) return;
-      const rect = progressBarRef.current.getBoundingClientRect();
-      const percent = calculateSliderPercentFromMouse(e, rect);
-      const seekMs = calculatePositionFromPercent(percent, currentDurationMs);
-      window.api?.mediaSeek(seekMs);
-      setIsSeeking(false);
-    };
-
-    document.addEventListener('mousemove', handleDocumentMouseMove);
-    document.addEventListener('mouseup', handleDocumentMouseUp);
-
-    return () => {
-      document.removeEventListener('mousemove', handleDocumentMouseMove);
-      document.removeEventListener('mouseup', handleDocumentMouseUp);
-    };
-  }, [isSeeking, currentDurationMs]);
-
-  // 元素级别的 mouseup（同步触发，防止 document 监听器尚未附加时鼠标已松开）
-  const handleProgressMouseUp = (e: React.MouseEvent) => {
-    if (!progressBarRef.current) return;
-    const rect = progressBarRef.current.getBoundingClientRect();
-    const percent = calculateSliderPercentFromMouse(e.nativeEvent, rect);
-    const seekMs = calculatePositionFromPercent(percent, currentDurationMs);
-    window.api?.mediaSeek(seekMs);
-    setIsSeeking(false);
-  };
-
-  // 元素级别的 mousemove（拖动过程中实时更新进度）
-  const handleProgressMouseMove = (e: React.MouseEvent) => {
-    if (!progressBarRef.current) return;
-    const rect = progressBarRef.current.getBoundingClientRect();
-    const percent = calculateSliderPercentFromMouse(e.nativeEvent, rect) * 100;
-    setSeekPercent(percent);
-  };
-
-  // 进度条鼠标按下，开始拖动
-  const handleProgressMouseDown = (e: React.MouseEvent) => {
-    if (currentDurationMs <= 0) return;
-    e.stopPropagation();
-    if (!progressBarRef.current) return;
-    setIsSeeking(true);
-    const rect = progressBarRef.current.getBoundingClientRect();
-    const percent = calculateSliderPercentFromMouse(e.nativeEvent, rect) * 100;
-    setSeekPercent(percent);
-  };
+  // 当前播放进度百分比
+  const progressPercent = calculateProgressPercent(currentPositionMs, currentDurationMs);
 
   // 媒体控制
   const handlePlayPause = () => window.api?.mediaPlayPause();
@@ -177,9 +94,6 @@ export function LyricsTab(): React.ReactElement {
   const artistText = mediaInfo.artist || '未知艺术家';
   const albumText = mediaInfo.title || '未知歌曲';
 
-  // 是否显示播放控制
-  const showControls = isMusicPlaying;
-
   return (
     <div className="lrc-tab-wrapper">
       {/* 左侧：旋转唱片 */}
@@ -197,8 +111,8 @@ export function LyricsTab(): React.ReactElement {
         {/* 歌曲标题 */}
         <div
           className={`lrc-title ${!isMusicPlaying ? 'inactive' : ''}`}
-          onClick={showControls ? toggleLrcMode : undefined}
-          title={showControls ? `歌词模式: ${lrcMode}` : undefined}
+          onClick={isMusicPlaying ? toggleLrcMode : undefined}
+          title={isMusicPlaying ? `歌词模式: ${lrcMode}` : undefined}
         >
           {albumText}
         </div>
@@ -213,20 +127,12 @@ export function LyricsTab(): React.ReactElement {
 
         {/* 进度条 */}
         {isMusicPlaying && (
-          <ProgressBar
-            progressPercent={progressPercent}
-            isSeeking={isSeeking}
-            seekPercent={seekPercent}
-            progressBarRef={progressBarRef}
-            onMouseDown={handleProgressMouseDown}
-            onMouseMove={handleProgressMouseMove}
-            onMouseUp={handleProgressMouseUp}
-          />
+          <ProgressBar progressPercent={progressPercent} />
         )}
       </div>
 
       {/* 播放控制按钮 */}
-      {showControls && (
+      {isMusicPlaying && (
         <div className="lrc-media-controls">
           <button
             className="lrc-media-btn"

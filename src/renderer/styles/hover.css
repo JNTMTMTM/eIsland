@@ -384,7 +384,6 @@
   align-items: center;
   position: relative;
   margin-top: 2px;
-  cursor: pointer;
   overflow: visible;
 }
 
@@ -404,7 +403,6 @@
   height: 2px;
   background: rgba(255, 255, 255, 0.6);
   border-radius: 1px;
-  transition: width 0.15s linear;
 }
 
 .lrc-progress-thumb {
@@ -414,29 +412,9 @@
   border-radius: 50%;
   background: #fff;
   transform: translateX(-50%);
-  opacity: 0;
-  transition: opacity 0.15s ease, transform 0.1s ease;
   z-index: 1;
   pointer-events: none;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-}
-
-.lrc-progress-bar:hover .lrc-progress-thumb {
-  opacity: 1;
-}
-
-.lrc-progress-bar:hover .lrc-progress-fill {
-  background: #1ed760;
-}
-
-.lrc-progress-bar.seeking .lrc-progress-thumb {
-  opacity: 1;
-  transform: translateX(-50%) scale(1.3);
-}
-
-.lrc-progress-bar.seeking .lrc-progress-fill {
-  background: #1ed760;
-  transition: none;
 }
 
 /* --- 时间显示 --- */
