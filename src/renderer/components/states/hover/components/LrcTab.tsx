@@ -52,7 +52,6 @@ function ProgressBar({
       <div className="lrc-progress-track">
         <div className="lrc-progress-fill" style={{ width: `${progressPercent}%` }} />
       </div>
-      <div className="lrc-progress-thumb" style={{ left: `${progressPercent}%` }} />
     </div>
   );
 }

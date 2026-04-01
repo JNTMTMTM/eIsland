@@ -405,18 +405,6 @@
   border-radius: 1px;
 }
 
-.lrc-progress-thumb {
-  position: absolute;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #fff;
-  transform: translateX(-50%);
-  z-index: 1;
-  pointer-events: none;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-}
-
 /* --- 时间显示 --- */
 .lrc-time-row {
   display: flex;
