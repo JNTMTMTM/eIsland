@@ -6,7 +6,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import useIslandStore from '../../../../store/isLandStore';
-import { formatMusicTime, calculateProgressPercent } from '../../../../utils/musicUtils';
+import { calculateProgressPercent } from '../../../../utils/musicUtils';
 
 /** 播放/暂停图标 SVG */
 function PlayIcon({ size = 16 }: { size?: number }) {
