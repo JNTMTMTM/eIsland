@@ -225,23 +225,18 @@ function registerIpcHandlers(): void {
  * @description 通过 NowPlaying 订阅系统媒体信息变更，实时推送到渲染进程
  */
 function initNowPlaying(mainWindow: BrowserWindow | null): void {
-  console.log('[NowPlaying] 开始初始化...');
 
   try {
     // 检查模块是否正确加载
-    console.log('[NowPlaying] NowPlaying 类已加载');
 
     const player = new NowPlaying((info) => {
-      console.log('[NowPlaying] 收到回调:', JSON.stringify(info, null, 2));
 
       if (!mainWindow || mainWindow.isDestroyed()) {
-        console.log('[NowPlaying] 窗口已销毁，跳过');
         return;
       }
 
       // 过滤无效数据（无歌曲名时视为停止播放）
       if (!info || !info.trackName) {
-        console.log('[NowPlaying] 无歌曲信息，发送 null');
         mainWindow.webContents.send('nowplaying:info', null);
         return;
       }
@@ -261,20 +256,19 @@ function initNowPlaying(mainWindow: BrowserWindow | null): void {
         canChangeVolume: info.canChangeVolume || false,
         canSetOutput: info.canSetOutput || false,
       };
-      console.log('[NowPlaying] 发送到渲染进程:', JSON.stringify(payload, null, 2));
+
       mainWindow.webContents.send('nowplaying:info', payload);
     });
 
-    console.log('[NowPlaying] 正在订阅...');
     player.subscribe()
       .then(() => {
-        console.log('[NowPlaying] 订阅成功');
+        console.log('[NowPlaying] success');
       })
       .catch((err) => {
-        console.error('[NowPlaying] 订阅失败:', err);
+        console.error('[NowPlaying] fail:', err);
       });
   } catch (err) {
-    console.error('[NowPlaying] 初始化失败:', err);
+    console.error('[NowPlaying] fail:', err);
   }
 }
 

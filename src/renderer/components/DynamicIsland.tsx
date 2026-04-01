@@ -190,16 +190,13 @@ function DynamicIsland(): React.JSX.Element {
   // 全局订阅 NowPlaying 歌曲信息（主进程推送）
   // 在 DynamicIsland 层级订阅，确保应用启动时就开始监听
   useEffect(() => {
-    console.log('[DynamicIsland] 开始订阅 nowplaying:info');
     const unsubscribe = window.api?.onNowPlayingInfo((info: NowPlayingInfo | null) => {
-      console.log('[DynamicIsland] 收到歌曲信息:', JSON.stringify(info, null, 2));
       handleNowPlayingUpdateRef.current(info);
       if (info && info.position_ms) {
         updateProgress(info.position_ms);
       }
     });
     return () => {
-      console.log('[DynamicIsland] 取消订阅');
       unsubscribe?.();
     };
   }, []);
