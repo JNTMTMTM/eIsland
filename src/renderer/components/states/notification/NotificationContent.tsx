@@ -30,6 +30,13 @@ export function NotificationContent({
   const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    const timer = setTimeout(() => {
+      setIdle();
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [setIdle]);
+
+  useEffect(() => {
     const el = contentRef.current;
     if (!el) return;
 
