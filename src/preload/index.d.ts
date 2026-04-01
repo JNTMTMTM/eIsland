@@ -6,6 +6,22 @@
 
 import { ElectronAPI } from '@electron-toolkit/preload';
 
+/** 歌曲信息类型（来自 node-nowplaying 主进程推送） */
+export interface NowPlayingInfo {
+  title: string;
+  artist: string;
+  album: string;
+  duration_ms: number;
+  position_ms: number;
+  isPlaying: boolean;
+  thumbnail: string | null;
+  canFastForward: boolean;
+  canSkip: boolean;
+  canLike: boolean;
+  canChangeVolume: boolean;
+  canSetOutput: boolean;
+}
+
 declare global {
   interface Window {
     electron: ElectronAPI;
@@ -25,6 +41,8 @@ declare global {
       mediaSeek: (positionMs: number) => Promise<void>;
       mediaGetVolume: () => Promise<number>;
       mediaSetVolume: (volume: number) => Promise<void>;
+      /** ===== 歌曲信息监听 API ===== */
+      onNowPlayingInfo: (callback: (info: NowPlayingInfo | null) => void) => () => void;
     };
   }
 }

@@ -5,67 +5,68 @@
  */
 
 import React, { useEffect, useRef, useState } from 'react';
-import useIslandStore, { LrcMode, LyricLine, MediaInfo } from '../../../../store/isLandStore';
+import useIslandStore from '../../../../store/isLandStore';
 import { formatMusicTime, calculateProgressPercent } from '../../../../utils/musicUtils';
 
-/** 媒体控制按钮接口 */
-interface MediaButtonProps {
-  onClick: () => void;
-  title: string;
-  children: React.ReactNode;
-  className?: string;
-}
-
-/**
- * 媒体控制按钮
- */
-function MediaButton({ onClick, title, children, className = '' }: MediaButtonProps) {
+/** 播放/暂停图标 SVG */
+function PlayIcon({ size = 16 }: { size?: number }) {
   return (
-    <button
-      className={`lrc-media-btn ${className}`}
-      onClick={(e) => {
-        e.stopPropagation();
-        onClick();
-      }}
-      title={title}
-    >
-      {children}
-    </button>
-  );
-}
-
-/**
- * 播放/暂停图标 SVG
- */
-function PlayIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24">
+    <svg width={size} height={size} viewBox="0 0 24 24">
       <path d="M8 5v14l11-7z" fill="currentColor" />
     </svg>
   );
 }
 
-function PauseIcon() {
+function PauseIcon({ size = 16 }: { size?: number }) {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24">
+    <svg width={size} height={size} viewBox="0 0 24 24">
       <path d="M6 19h4V5H6zm8-14v14h4V5z" fill="currentColor" />
     </svg>
   );
 }
 
-function PrevIcon() {
+function PrevIcon({ size = 14 }: { size?: number }) {
   return (
-    <svg width="14" height="14" viewBox="0 0 24 24">
+    <svg width={size} height={size} viewBox="0 0 24 24">
       <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" fill="currentColor" />
     </svg>
   );
 }
 
-function NextIcon() {
+function NextIcon({ size = 14 }: { size?: number }) {
   return (
-    <svg width="14" height="14" viewBox="0 0 24 24">
+    <svg width={size} height={size} viewBox="0 0 24 24">
       <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6z" fill="currentColor" />
     </svg>
+  );
+}
+
+/** 播放进度条组件 */
+function ProgressBar({
+  progressPercent,
+  isSeeking,
+  seekPercent,
+  progressBarRef,
+  onMouseDown,
+}: {
+  progressPercent: number;
+  isSeeking: boolean;
+  seekPercent: number;
+  progressBarRef: React.RefObject<HTMLDivElement | null>;
+  onMouseDown: (e: React.MouseEvent) => void;
+}) {
+  const displayPercent = isSeeking ? seekPercent : progressPercent;
+  return (
+    <div
+      className={`lrc-progress-bar ${isSeeking ? 'seeking' : ''}`}
+      ref={progressBarRef}
+      onMouseDown={onMouseDown}
+    >
+      <div className="lrc-progress-track">
+        <div className="lrc-progress-fill" style={{ width: `${displayPercent}%` }} />
+      </div>
+      <div className="lrc-progress-thumb" style={{ left: `${displayPercent}%` }} />
+    </div>
   );
 }
 
@@ -146,14 +147,16 @@ export function LyricsTab(): React.ReactElement {
     setLrcMode(modes[nextIndex]);
   };
 
-  // 显示内容
-  const showContent = isMusicPlaying && lrcMode !== 'off';
-  const lyricText = currentLyricText || (lrcMode === 'info' ? mediaInfo.title : '♪');
-  const metaText = lrcMode === 'info' ? '' : `${mediaInfo.artist} - ${mediaInfo.title}`;
+  // 歌曲信息展示文本
+  const artistText = mediaInfo.artist || '未知艺术家';
+  const albumText = mediaInfo.title || '未知歌曲';
+
+  // 是否显示播放控制
+  const showControls = isMusicPlaying;
 
   return (
     <div className="lrc-tab-wrapper">
-      {/* 唱片封面 */}
+      {/* 左侧：旋转唱片 */}
       <div className={`lrc-vinyl-disc ${isPlaying ? '' : 'paused'}`}>
         <div className="lrc-vinyl-grooves" />
         <div
@@ -163,31 +166,38 @@ export function LyricsTab(): React.ReactElement {
         <div className="lrc-vinyl-center" />
       </div>
 
-      {/* 歌词与信息 */}
+      {/* 右侧：歌曲信息区域 */}
       <div className="lrc-info-section">
+        {/* 歌曲标题 */}
         <div
-          className={`lrc-text ${!currentLyricText && lrcMode !== 'info' ? 'lrc-placeholder' : ''}`}
-          onClick={toggleLrcMode}
-          title={`歌词模式: ${lrcMode}`}
+          className={`lrc-title ${!isMusicPlaying ? 'inactive' : ''}`}
+          onClick={showControls ? toggleLrcMode : undefined}
+          title={showControls ? `歌词模式: ${lrcMode}` : undefined}
         >
-          {lyricText}
+          {albumText}
         </div>
-        {metaText && <div className="lrc-meta">{metaText}</div>}
+
+        {/* 艺术家 */}
+        <div className="lrc-artist">{artistText}</div>
+
+        {/* 歌词内容（仅在歌词模式下显示） */}
+        {isMusicPlaying && lrcMode === 'lrc' && currentLyricText && (
+          <div className="lrc-lyric-text">{currentLyricText}</div>
+        )}
 
         {/* 进度条 */}
-        {showContent && (
-          <div
-            className={`lrc-progress-bar ${isSeeking ? 'seeking' : ''}`}
-            ref={progressBarRef}
+        {isMusicPlaying && (
+          <ProgressBar
+            progressPercent={progressPercent}
+            isSeeking={isSeeking}
+            seekPercent={seekPercent}
+            progressBarRef={progressBarRef}
             onMouseDown={handleProgressMouseDown}
-          >
-            <div className="lrc-progress-fill" style={{ width: `${progressPercent}%` }} />
-            <div className="lrc-progress-thumb" style={{ left: `${progressPercent}%` }} />
-          </div>
+          />
         )}
 
         {/* 时间显示 */}
-        {showContent && (
+        {isMusicPlaying && (
           <div className="lrc-time-row">
             <span className="lrc-time-current">{formatMusicTime(currentPositionMs)}</span>
             <span className="lrc-time-sep">/</span>
@@ -197,25 +207,36 @@ export function LyricsTab(): React.ReactElement {
       </div>
 
       {/* 播放控制按钮 */}
-      {showContent && (
+      {showControls && (
         <div className="lrc-media-controls">
-          <MediaButton onClick={handlePrev} title="上一曲">
+          <button
+            className="lrc-media-btn"
+            onClick={(e) => { e.stopPropagation(); handlePrev(); }}
+            title="上一曲"
+          >
             <PrevIcon />
-          </MediaButton>
-          <MediaButton onClick={handlePlayPause} title="播放/暂停" className="lrc-play-btn">
-            {isPlaying ? <PauseIcon /> : <PlayIcon />}
-          </MediaButton>
-          <MediaButton onClick={handleNext} title="下一曲">
+          </button>
+          <button
+            className="lrc-media-btn lrc-play-btn"
+            onClick={(e) => { e.stopPropagation(); handlePlayPause(); }}
+            title={isPlaying ? '暂停' : '播放'}
+          >
+            {isPlaying ? <PauseIcon size={18} /> : <PlayIcon size={18} />}
+          </button>
+          <button
+            className="lrc-media-btn"
+            onClick={(e) => { e.stopPropagation(); handleNext(); }}
+            title="下一曲"
+          >
             <NextIcon />
-          </MediaButton>
+          </button>
         </div>
       )}
 
-      {/* 未播放状态 */}
+      {/* 未播放状态提示 */}
       {!isMusicPlaying && (
-        <div className="lrc-empty-state">
-          <span className="lrc-empty-icon">♪</span>
-          <span className="lrc-empty-text">播放音乐时显示歌词</span>
+        <div className="lrc-empty-hint">
+          <span>♪</span>
         </div>
       )}
     </div>

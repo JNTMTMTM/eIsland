@@ -8,6 +8,7 @@ import { app, BrowserWindow, shell, screen, ipcMain, globalShortcut } from 'elec
 import { join } from 'path';
 import { electronApp, optimizer, is } from '@electron-toolkit/utils';
 import { createTray } from './tray';
+import { NowPlaying } from 'node-nowplaying';
 
 /** 防止 Electron 创建多个实例 */
 const gotTheLock = app.requestSingleInstanceLock();
@@ -215,6 +216,66 @@ function registerIpcHandlers(): void {
     console.log('[Media] Set volume:', volume);
     return Promise.resolve();
   });
+
+  // ===== node-nowplaying 歌曲信息监听 =====
+}
+
+/**
+ * 初始化 node-nowplaying 监听歌曲信息
+ * @description 通过 NowPlaying 订阅系统媒体信息变更，实时推送到渲染进程
+ */
+function initNowPlaying(mainWindow: BrowserWindow | null): void {
+  console.log('[NowPlaying] 开始初始化...');
+
+  try {
+    // 检查模块是否正确加载
+    console.log('[NowPlaying] NowPlaying 类已加载');
+
+    const player = new NowPlaying((info) => {
+      console.log('[NowPlaying] 收到回调:', JSON.stringify(info, null, 2));
+
+      if (!mainWindow || mainWindow.isDestroyed()) {
+        console.log('[NowPlaying] 窗口已销毁，跳过');
+        return;
+      }
+
+      // 过滤无效数据（无歌曲名时视为停止播放）
+      if (!info || !info.trackName) {
+        console.log('[NowPlaying] 无歌曲信息，发送 null');
+        mainWindow.webContents.send('nowplaying:info', null);
+        return;
+      }
+
+      // 发送歌曲信息到渲染进程
+      const payload = {
+        title: info.trackName || '',
+        artist: Array.isArray(info.artist) ? info.artist.join(', ') : (info.artist || ''),
+        album: info.album || '',
+        duration_ms: info.trackDuration || 0,
+        position_ms: info.trackProgress || 0,
+        isPlaying: info.isPlaying || false,
+        thumbnail: info.thumbnail || null,
+        canFastForward: info.canFastForward || false,
+        canSkip: info.canSkip || false,
+        canLike: info.canLike || false,
+        canChangeVolume: info.canChangeVolume || false,
+        canSetOutput: info.canSetOutput || false,
+      };
+      console.log('[NowPlaying] 发送到渲染进程:', JSON.stringify(payload, null, 2));
+      mainWindow.webContents.send('nowplaying:info', payload);
+    });
+
+    console.log('[NowPlaying] 正在订阅...');
+    player.subscribe()
+      .then(() => {
+        console.log('[NowPlaying] 订阅成功');
+      })
+      .catch((err) => {
+        console.error('[NowPlaying] 订阅失败:', err);
+      });
+  } catch (err) {
+    console.error('[NowPlaying] 初始化失败:', err);
+  }
 }
 
 /** 单实例锁回调 */
@@ -238,6 +299,9 @@ app.whenReady().then(() => {
   registerIpcHandlers();
   createWindow();
   createTray(mainWindow);
+
+  // 初始化 node-nowplaying 监听歌曲信息
+  initNowPlaying(mainWindow);
 
   app.on('activate', function () {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();

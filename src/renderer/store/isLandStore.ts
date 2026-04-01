@@ -35,6 +35,22 @@ export interface MediaInfo {
   duration_ms: number;
 }
 
+/** NowPlaying 原始数据结构（来自 node-nowplaying） */
+export type NowPlayingInfo = {
+  title: string;
+  artist: string;
+  album: string;
+  duration_ms: number;
+  position_ms: number;
+  isPlaying: boolean;
+  thumbnail: string | null;
+  canFastForward: boolean;
+  canSkip: boolean;
+  canLike: boolean;
+  canChangeVolume: boolean;
+  canSetOutput: boolean;
+};
+
 /** 歌词更新数据（后端推送的格式） */
 export interface LrcUpdateData {
   text: string | null;
@@ -136,6 +152,8 @@ interface IIslandStore {
   updateProgress: (position_ms: number) => void;
   /** 更新封面 */
   setCoverImage: (cover: string | null) => void;
+  /** 处理 NowPlaying 数据更新（主进程推送） */
+  handleNowPlayingUpdate: (info: NowPlayingInfo | null) => void;
   /** ===== 原有方法 ===== */
   /** 更新天气数据 */
   setWeather: (data: WeatherData) => void;
@@ -250,6 +268,41 @@ const useIslandStore = create<IIslandStore>((set) => ({
   setLrcMode: (mode): void => set({ lrcMode: mode }),
   updateProgress: (position_ms): void => set({ currentPositionMs: position_ms }),
   setCoverImage: (cover): void => set({ coverImage: cover }),
+  /** 处理 NowPlaying 数据更新（主进程推送） */
+  handleNowPlayingUpdate: (info): void => {
+    console.log('[Store] handleNowPlayingUpdate 收到:', JSON.stringify(info, null, 2));
+    if (!info || !info.title) {
+      // 无歌曲信息 = 停止播放
+      console.log('[Store] 无歌曲信息，重置状态');
+      set({
+        isMusicPlaying: false,
+        isPlaying: false,
+        currentLyricText: null,
+        nearbyLyrics: [],
+        mediaInfo: { title: '', artist: '', duration_ms: 0 },
+        currentDurationMs: 0,
+        currentPositionMs: 0,
+        coverImage: null,
+      });
+      return;
+    }
+
+    console.log('[Store] 更新歌曲信息:', info.title, '-', info.artist);
+    set({
+      isMusicPlaying: true,
+      isPlaying: info.isPlaying,
+      mediaInfo: {
+        title: info.title,
+        artist: info.artist,
+        duration_ms: info.duration_ms,
+      },
+      currentDurationMs: info.duration_ms,
+      currentPositionMs: info.position_ms,
+      coverImage: info.thumbnail,
+      currentLyricText: null,
+      nearbyLyrics: [],
+    });
+  },
   /** ===== 原有方法 ===== */
   /** @param data - 天气数据对象 */
   setWeather: (data): void => set({ weather: data }),

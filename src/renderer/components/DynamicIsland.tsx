@@ -11,6 +11,7 @@ import { IdleContent } from './states/idle/IdleContent';
 import { HoverContent } from './states/hover/HoverContent';
 import { NotificationContent } from './states/notification/NotificationContent';
 import { ExpandedContent } from './states/expand/ExpandedContent';
+import type { NowPlayingInfo } from '../store/isLandStore';
 
 /** 灵动岛状态类型 */
 export type IslandState = 'idle' | 'hover' | 'expanded' | 'notification' | 'minimal';
@@ -114,7 +115,9 @@ interface StateRenderer {
  * @description 使用状态模式管理不同状态的 UI 渲染，通过 requestAnimationFrame 检测鼠标位置实现可靠的 hover 交互
  */
 function DynamicIsland(): React.JSX.Element {
-  const { state, weather, setHover, setIdle, timerData, setTimerData, notification, setNotification } = useIslandStore();
+  const { state, weather, setHover, setIdle, timerData, setTimerData, notification, setNotification, handleNowPlayingUpdate, updateProgress } = useIslandStore();
+  const handleNowPlayingUpdateRef = useRef(handleNowPlayingUpdate);
+  handleNowPlayingUpdateRef.current = handleNowPlayingUpdate;
 
   const initRef = useRef(false);
   const isHoveringRef = useRef(false);
@@ -182,6 +185,23 @@ function DynamicIsland(): React.JSX.Element {
       initRef.current = true;
       window.api?.enableMousePassthrough();
     }
+  }, []);
+
+  // 全局订阅 NowPlaying 歌曲信息（主进程推送）
+  // 在 DynamicIsland 层级订阅，确保应用启动时就开始监听
+  useEffect(() => {
+    console.log('[DynamicIsland] 开始订阅 nowplaying:info');
+    const unsubscribe = window.api?.onNowPlayingInfo((info: NowPlayingInfo | null) => {
+      console.log('[DynamicIsland] 收到歌曲信息:', JSON.stringify(info, null, 2));
+      handleNowPlayingUpdateRef.current(info);
+      if (info && info.position_ms) {
+        updateProgress(info.position_ms);
+      }
+    });
+    return () => {
+      console.log('[DynamicIsland] 取消订阅');
+      unsubscribe?.();
+    };
   }, []);
 
   const clearAllTimers = () => {

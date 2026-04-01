@@ -343,8 +343,8 @@
   gap: 2px;
 }
 
-.lrc-text {
-  font-size: 14px;
+.lrc-title {
+  font-size: 13px;
   font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
@@ -355,16 +355,25 @@
   transition: opacity 0.15s ease;
 }
 
-.lrc-text.lrc-placeholder {
+.lrc-title.inactive {
   color: rgba(255, 255, 255, 0.45);
 }
 
-.lrc-meta {
+.lrc-artist {
   font-size: 10px;
   color: rgba(255, 255, 255, 0.4);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.lrc-o3ic-text {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.7);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 1px;
 }
 
 /* --- 进度条 --- */

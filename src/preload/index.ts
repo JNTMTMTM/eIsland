@@ -101,8 +101,39 @@ const api = {
    */
   mediaSetVolume: (volume: number): Promise<void> => {
     return ipcRenderer.invoke('media:set-volume', volume);
+  },
+  /** ===== 歌曲信息监听 API ===== */
+  /**
+   * 订阅歌曲信息变更事件
+   * @param callback 回调函数，接收歌曲信息对象或 null（无播放时）
+   */
+  onNowPlayingInfo: (callback: (info: NowPlayingInfo | null) => void): (() => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, info: NowPlayingInfo | null) => {
+      callback(info);
+    };
+    ipcRenderer.on('nowplaying:info', handler);
+    // 返回取消订阅函数
+    return () => {
+      ipcRenderer.removeListener('nowplaying:info', handler);
+    };
   }
 };
+
+/** 歌曲信息类型（与主进程发送的数据格式一致） */
+interface NowPlayingInfo {
+  title: string;
+  artist: string;
+  album: string;
+  duration_ms: number;
+  position_ms: number;
+  isPlaying: boolean;
+  thumbnail: string | null;
+  canFastForward: boolean;
+  canSkip: boolean;
+  canLike: boolean;
+  canChangeVolume: boolean;
+  canSetOutput: boolean;
+}
 
 /** 注入到 window 对象，供渲染进程访问 */
 if (process.contextIsolated) {
