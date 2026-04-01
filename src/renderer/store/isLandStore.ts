@@ -309,6 +309,7 @@ const useIslandStore = create<IIslandStore>((set) => ({
   },
   setIdle: (): void => {
     window.api?.collapseWindow();
+    window.api?.enableMousePassthrough();
     set({ state: 'idle' });
   },
   setHover: (): void => {
