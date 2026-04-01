@@ -209,6 +209,7 @@ function DynamicIsland(): React.JSX.Element {
         }
         
         if (state === 'notification') {
+          window.api?.disableMousePassthrough();
           setIdle();
           return;
         }
