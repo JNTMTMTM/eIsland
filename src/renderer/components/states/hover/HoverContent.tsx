@@ -7,10 +7,10 @@
 import React, { useEffect, useRef } from 'react';
 import useIslandStore, { HoverTab } from '../../../store/isLandStore';
 import '../../../styles/hover.css';
-import { TimeTab } from './TimeTab';
-import { LyricsTab } from './LyricsTab';
-import { ActionButtons } from './ActionButtons';
-import { CountdownEdit } from './CountdownEdit';
+import { TimeTab } from './components/TimeTab';
+import { LyricsTab } from './components/LyricsTab';
+import { ActionButtons } from './utils/ActionButtons';
+import { CountdownEdit } from './utils/CountdownEdit';
 
 interface HoverContentProps {
   /** 完整时间字符串 (YY-MM-DD HH:MM:SS) */
