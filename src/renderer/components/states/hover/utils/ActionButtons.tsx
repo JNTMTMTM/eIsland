@@ -25,6 +25,7 @@ export function ActionButtons({
   powerOffIcon = POWER_OFF_SVG,
 }: ActionButtonsProps): React.ReactElement {
   const handleHide = (): void => {
+    window.api.collapseWindow();
     window.api?.hideWindow();
   };
 
