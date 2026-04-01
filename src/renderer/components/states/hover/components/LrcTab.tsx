@@ -195,15 +195,6 @@ export function LyricsTab(): React.ReactElement {
             onMouseDown={handleProgressMouseDown}
           />
         )}
-
-        {/* 时间显示 */}
-        {isMusicPlaying && (
-          <div className="lrc-time-row">
-            <span className="lrc-time-current">{formatMusicTime(currentPositionMs)}</span>
-            <span className="lrc-time-sep">/</span>
-            <span className="lrc-time-total">{formatMusicTime(currentDurationMs)}</span>
-          </div>
-        )}
       </div>
 
       {/* 播放控制按钮 */}

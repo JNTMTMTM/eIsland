@@ -270,10 +270,7 @@ const useIslandStore = create<IIslandStore>((set) => ({
   setCoverImage: (cover): void => set({ coverImage: cover }),
   /** 处理 NowPlaying 数据更新（主进程推送） */
   handleNowPlayingUpdate: (info): void => {
-    console.log('[Store] handleNowPlayingUpdate 收到:', JSON.stringify(info, null, 2));
     if (!info || !info.title) {
-      // 无歌曲信息 = 停止播放
-      console.log('[Store] 无歌曲信息，重置状态');
       set({
         isMusicPlaying: false,
         isPlaying: false,
@@ -287,7 +284,6 @@ const useIslandStore = create<IIslandStore>((set) => ({
       return;
     }
 
-    console.log('[Store] 更新歌曲信息:', info.title, '-', info.artist);
     set({
       isMusicPlaying: true,
       isPlaying: info.isPlaying,

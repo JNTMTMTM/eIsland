@@ -4,7 +4,7 @@
  * @author 鸡哥
  */
 
-import { app, BrowserWindow, shell, screen, ipcMain, globalShortcut } from 'electron';
+import { app, BrowserWindow, shell, screen, ipcMain } from 'electron';
 import { join } from 'path';
 import { electronApp, optimizer, is } from '@electron-toolkit/utils';
 import { createTray } from './tray';
@@ -17,6 +17,9 @@ if (!gotTheLock) {
 }
 
 let mainWindow: BrowserWindow | null = null;
+
+/** NowPlaying 全局实例，用于歌曲信息监听和控制命令 */
+let nowPlayingPlayer: NowPlaying | null = null;
 
 /** 灵动岛尺寸常量 */
 const ISLAND_WIDTH = 240;
@@ -176,45 +179,53 @@ function registerIpcHandlers(): void {
   });
 
   // ===== 音乐相关 IPC 处理器 =====
-  // 使用全局快捷键模拟媒体键（适用于 SMTC 不支持的场景）
-  ipcMain.on('media:play-pause', () => {
-    globalShortcut?.isRegistered('MediaPlayPause')
-      ? globalShortcut.unregister('MediaPlayPause')
-      : globalShortcut.register('MediaPlayPause', () => {
-          if (mainWindow) {
-            mainWindow.webContents.send('media:toggle-playback');
-          }
-        });
-    // 通过 PowerShell 发送媒体键
-    const { exec } = require('child_process');
-    exec('powershell -command "(New-Object Media.SoundPlayer).Load(); [System.Console]::Beep()" || (Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.SendKeys]::SendWait(\'{MediaPlayPause}\'))"');
+  ipcMain.handle('media:play-pause', async () => {
+    try {
+      await nowPlayingPlayer?.playPause();
+    } catch (err) {
+      console.error('[Media] playPause error:', err);
+    }
   });
 
-  ipcMain.on('media:next', () => {
-    const { exec } = require('child_process');
-    exec('powershell -command "[System.Windows.Forms.SendKeys]::SendWait(\'{MediaNextTrack}\')"');
+  ipcMain.handle('media:next', async () => {
+    try {
+      await nowPlayingPlayer?.nextTrack();
+    } catch (err) {
+      console.error('[Media] nextTrack error:', err);
+    }
   });
 
-  ipcMain.on('media:prev', () => {
-    const { exec } = require('child_process');
-    exec('powershell -command "[System.Windows.Forms.SendKeys]::SendWait(\'{MediaPreviousTrack}\')"');
+  ipcMain.handle('media:prev', async () => {
+    try {
+      await nowPlayingPlayer?.previousTrack();
+    } catch (err) {
+      console.error('[Media] previousTrack error:', err);
+    }
   });
 
-  ipcMain.handle('media:seek', (_event, positionMs: number) => {
-    // SMTC seek 需要 Rust 后端支持，此处为占位实现
-    console.log('[Media] Seek to:', positionMs, 'ms');
-    return Promise.resolve();
+  ipcMain.handle('media:seek', async (_event, positionMs: number) => {
+    try {
+      await nowPlayingPlayer?.seekTo(positionMs);
+    } catch (err) {
+      console.error('[Media] seekTo error:', err);
+    }
   });
 
-  ipcMain.handle('media:get-volume', () => {
-    // 音量获取需要 Rust 后端支持，此处返回默认值
+  ipcMain.handle('media:get-volume', async () => {
+    try {
+      await nowPlayingPlayer?.setVolume(0); // 查询当前音量
+    } catch {
+      // ignore
+    }
     return Promise.resolve(0.5);
   });
 
-  ipcMain.handle('media:set-volume', (_event, volume: number) => {
-    // 音量设置需要 Rust 后端支持，此处为占位实现
-    console.log('[Media] Set volume:', volume);
-    return Promise.resolve();
+  ipcMain.handle('media:set-volume', async (_event, volume: number) => {
+    try {
+      await nowPlayingPlayer?.setVolume(volume);
+    } catch (err) {
+      console.error('[Media] setVolume error:', err);
+    }
   });
 
   // ===== node-nowplaying 歌曲信息监听 =====
@@ -225,23 +236,17 @@ function registerIpcHandlers(): void {
  * @description 通过 NowPlaying 订阅系统媒体信息变更，实时推送到渲染进程
  */
 function initNowPlaying(mainWindow: BrowserWindow | null): void {
-
   try {
-    // 检查模块是否正确加载
-
-    const player = new NowPlaying((info) => {
-
+    nowPlayingPlayer = new NowPlaying((info) => {
       if (!mainWindow || mainWindow.isDestroyed()) {
         return;
       }
 
-      // 过滤无效数据（无歌曲名时视为停止播放）
       if (!info || !info.trackName) {
         mainWindow.webContents.send('nowplaying:info', null);
         return;
       }
 
-      // 发送歌曲信息到渲染进程
       const payload = {
         title: info.trackName || '',
         artist: Array.isArray(info.artist) ? info.artist.join(', ') : (info.artist || ''),
@@ -260,15 +265,15 @@ function initNowPlaying(mainWindow: BrowserWindow | null): void {
       mainWindow.webContents.send('nowplaying:info', payload);
     });
 
-    player.subscribe()
+    nowPlayingPlayer.subscribe()
       .then(() => {
-        console.log('[NowPlaying] success');
+        // 订阅成功
       })
       .catch((err) => {
-        console.error('[NowPlaying] fail:', err);
+        console.error('[NowPlaying] subscribe error:', err);
       });
   } catch (err) {
-    console.error('[NowPlaying] fail:', err);
+    console.error('[NowPlaying] init error:', err);
   }
 }
 
@@ -290,12 +295,13 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(window);
   });
 
-  registerIpcHandlers();
   createWindow();
   createTray(mainWindow);
 
-  // 初始化 node-nowplaying 监听歌曲信息
+  // 初始化 node-nowplaying 必须在 IPC 处理器之前，确保 nowPlayingPlayer 已就绪
   initNowPlaying(mainWindow);
+
+  registerIpcHandlers();
 
   app.on('activate', function () {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
