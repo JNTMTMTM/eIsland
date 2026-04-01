@@ -47,11 +47,11 @@ export function getDayName(date: Date): string {
 /**
  * 获取农历日期描述
  * @param date - 要查询的 Date 对象
- * @returns 农历日期字符串（如"二月十二"）
+ * @returns 农历日期字符串（如"二月十四"、"闰四月廿三"）
  */
 export function getLunarDate(date: Date): string {
   const lunar = Lunar.fromDate(date);
   const month = lunar.getMonthInChinese();
   const day = lunar.getDayInChinese();
-  return `${month}${day}`;
+  return `${month}月${day}`;
 }
