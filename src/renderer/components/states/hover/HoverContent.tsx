@@ -8,7 +8,7 @@ import React, { useEffect, useRef } from 'react';
 import useIslandStore, { HoverTab } from '../../../store/isLandStore';
 import '../../../styles/hover.css';
 import { TimeTab } from './components/TimeTab';
-import { LyricsTab } from './components/LyricsTab';
+import { LyricsTab } from './components/LrcTab';
 import { ActionButtons } from './utils/ActionButtons';
 import { CountdownEdit } from './utils/CountdownEdit';
 
