@@ -31,7 +31,7 @@
   height: 36px;
   margin-right: 12px;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.1);
+  background: transparent;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -42,6 +42,8 @@
   height: 24px;
   object-fit: contain;
   border-radius: 4px;
+  box-shadow: none;
+  filter: none;
 }
 
 .notification-icon-default {

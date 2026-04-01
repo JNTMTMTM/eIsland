@@ -149,6 +149,7 @@ function DynamicIsland(): React.JSX.Element {
           setNotificationRef.current({
             title: '计时器',
             body: '倒计时已结束',
+            icon: '/svg/TIMER.svg'
           });
         } else {
           setTimerData({ remainingSeconds: next });
