@@ -313,6 +313,7 @@ const useIslandStore = create<IIslandStore>((set) => ({
   },
   setHover: (): void => {
     window.api?.expandWindow();
+    window.api?.disableMousePassthrough();
     set({ state: 'hover' });
   },
   /** @param data - 通知数据 */

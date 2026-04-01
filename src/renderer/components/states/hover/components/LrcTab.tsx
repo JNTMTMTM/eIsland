@@ -6,7 +6,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import useIslandStore from '../../../../store/isLandStore';
-import { calculateProgressPercent } from '../../../../utils/musicUtils';
+import { calculateProgressPercent, calculateSliderPercentFromMouse, calculatePositionFromPercent } from '../../../../utils/musicUtils';
 
 /** 播放/暂停图标 SVG */
 function PlayIcon({ size = 16 }: { size?: number }) {
@@ -48,12 +48,16 @@ function ProgressBar({
   seekPercent,
   progressBarRef,
   onMouseDown,
+  onMouseMove,
+  onMouseUp,
 }: {
   progressPercent: number;
   isSeeking: boolean;
   seekPercent: number;
   progressBarRef: React.RefObject<HTMLDivElement | null>;
   onMouseDown: (e: React.MouseEvent) => void;
+  onMouseMove: (e: React.MouseEvent) => void;
+  onMouseUp: (e: React.MouseEvent) => void;
 }) {
   const displayPercent = isSeeking ? seekPercent : progressPercent;
   return (
@@ -61,6 +65,8 @@ function ProgressBar({
       className={`lrc-progress-bar ${isSeeking ? 'seeking' : ''}`}
       ref={progressBarRef}
       onMouseDown={onMouseDown}
+      onMouseMove={isSeeking ? onMouseMove : undefined}
+      onMouseUp={isSeeking ? onMouseUp : undefined}
     >
       <div className="lrc-progress-track">
         <div className="lrc-progress-fill" style={{ width: `${displayPercent}%` }} />
@@ -100,37 +106,57 @@ export function LyricsTab(): React.ReactElement {
   useEffect(() => {
     if (!isSeeking) return;
 
-    const handleMouseMove = (e: MouseEvent) => {
+    const handleDocumentMouseMove = (e: MouseEvent) => {
       if (!progressBarRef.current) return;
       const rect = progressBarRef.current.getBoundingClientRect();
-      const percent = Math.min(100, Math.max(0, ((e.clientX - rect.left) / rect.width) * 100));
+      const percent = calculateSliderPercentFromMouse(e, rect) * 100;
       setSeekPercent(percent);
     };
 
-    const handleMouseUp = (e: MouseEvent) => {
+    const handleDocumentMouseUp = (e: MouseEvent) => {
       if (!progressBarRef.current) return;
       const rect = progressBarRef.current.getBoundingClientRect();
-      const percent = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width));
-      const seekMs = Math.round(percent * currentDurationMs);
+      const percent = calculateSliderPercentFromMouse(e, rect);
+      const seekMs = calculatePositionFromPercent(percent, currentDurationMs);
       window.api?.mediaSeek(seekMs);
       setIsSeeking(false);
     };
 
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
+    document.addEventListener('mousemove', handleDocumentMouseMove);
+    document.addEventListener('mouseup', handleDocumentMouseUp);
 
     return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener('mousemove', handleDocumentMouseMove);
+      document.removeEventListener('mouseup', handleDocumentMouseUp);
     };
   }, [isSeeking, currentDurationMs]);
 
+  // 元素级别的 mouseup（同步触发，防止 document 监听器尚未附加时鼠标已松开）
+  const handleProgressMouseUp = (e: React.MouseEvent) => {
+    if (!progressBarRef.current) return;
+    const rect = progressBarRef.current.getBoundingClientRect();
+    const percent = calculateSliderPercentFromMouse(e.nativeEvent, rect);
+    const seekMs = calculatePositionFromPercent(percent, currentDurationMs);
+    window.api?.mediaSeek(seekMs);
+    setIsSeeking(false);
+  };
+
+  // 元素级别的 mousemove（拖动过程中实时更新进度）
+  const handleProgressMouseMove = (e: React.MouseEvent) => {
+    if (!progressBarRef.current) return;
+    const rect = progressBarRef.current.getBoundingClientRect();
+    const percent = calculateSliderPercentFromMouse(e.nativeEvent, rect) * 100;
+    setSeekPercent(percent);
+  };
+
+  // 进度条鼠标按下，开始拖动
   const handleProgressMouseDown = (e: React.MouseEvent) => {
     if (currentDurationMs <= 0) return;
     e.stopPropagation();
+    if (!progressBarRef.current) return;
     setIsSeeking(true);
-    const rect = progressBarRef.current!.getBoundingClientRect();
-    const percent = Math.min(100, Math.max(0, ((e.clientX - rect.left) / rect.width) * 100));
+    const rect = progressBarRef.current.getBoundingClientRect();
+    const percent = calculateSliderPercentFromMouse(e.nativeEvent, rect) * 100;
     setSeekPercent(percent);
   };
 
@@ -193,6 +219,8 @@ export function LyricsTab(): React.ReactElement {
             seekPercent={seekPercent}
             progressBarRef={progressBarRef}
             onMouseDown={handleProgressMouseDown}
+            onMouseMove={handleProgressMouseMove}
+            onMouseUp={handleProgressMouseUp}
           />
         )}
       </div>
