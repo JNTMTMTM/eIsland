@@ -41,6 +41,8 @@ export function HoverContent({
     if (!el) return;
 
     const handleWheel = (e: WheelEvent): void => {
+      const target = e.target as HTMLElement;
+      if (hoverTab === 'time' && target.closest('.timer-inputs')) return;
       e.preventDefault();
       const currentIndex = NAV_DOTS.findIndex(d => d.tab === hoverTab);
       if (e.deltaY > 0) {

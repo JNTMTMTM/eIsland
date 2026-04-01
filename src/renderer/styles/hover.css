@@ -178,6 +178,10 @@
   box-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
 }
 
+.timer-input:hover {
+  cursor: ns-resize;
+}
+
 .timer-sep {
   font-size: 18px;
   font-weight: 600;

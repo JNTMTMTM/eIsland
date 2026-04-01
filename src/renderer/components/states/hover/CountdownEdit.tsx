@@ -40,6 +40,21 @@ export function CountdownEdit(): React.ReactElement {
     setTimerData({ [setter]: newValue });
   }, [timerData, setTimerData]);
 
+  const handleWheelChange = useCallback((
+    e: React.WheelEvent<HTMLInputElement>,
+    setter: 'inputHours' | 'inputMinutes' | 'inputSeconds',
+    max: number
+  ) => {
+    e.preventDefault();
+    const delta = e.deltaY < 0 ? 1 : -1;
+    const currentStr = timerData?.[setter] ?? '00';
+    const current = parseInt(currentStr, 10) || 0;
+    let next = current + delta;
+    if (next < 0) next = max;
+    if (next > max) next = 0;
+    setTimerData({ [setter]: padZero(next) });
+  }, [timerData, setTimerData]);
+
   const handleStart = useCallback(() => {
     const h = parseInt(inputHours, 10) || 0;
     const m = parseInt(inputMinutes, 10) || 0;
@@ -94,6 +109,7 @@ export function CountdownEdit(): React.ReactElement {
               className="timer-input"
               value={inputHours}
               onChange={(e) => handleInputChange(e.target.value, 'inputHours', 23)}
+              onWheel={(e) => handleWheelChange(e, 'inputHours', 23)}
               maxLength={2}
             />
             <span className="timer-sep">:</span>
@@ -102,6 +118,7 @@ export function CountdownEdit(): React.ReactElement {
               className="timer-input"
               value={inputMinutes}
               onChange={(e) => handleInputChange(e.target.value, 'inputMinutes', 59)}
+              onWheel={(e) => handleWheelChange(e, 'inputMinutes', 59)}
               maxLength={2}
             />
             <span className="timer-sep">:</span>
@@ -110,6 +127,7 @@ export function CountdownEdit(): React.ReactElement {
               className="timer-input"
               value={inputSeconds}
               onChange={(e) => handleInputChange(e.target.value, 'inputSeconds', 59)}
+              onWheel={(e) => handleWheelChange(e, 'inputSeconds', 59)}
               maxLength={2}
             />
           </div>
