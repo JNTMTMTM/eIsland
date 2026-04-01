@@ -58,9 +58,12 @@ export function IdleContent({
       </div>
 
       {isTimerActive ? (
-        <span className="text-sm text-white font-medium tabular-nums">
-          {padZero(h)}:{padZero(m)}:{padZero(s)}
-        </span>
+        <div className="flex items-center gap-1.5">
+          <span className="text-xs text-white opacity-60">倒计时</span>
+          <span className="text-sm text-white font-medium tabular-nums">
+            {padZero(h)}:{padZero(m)}:{padZero(s)}
+          </span>
+        </div>
       ) : (
         <div className="flex items-center gap-1.5">
           <span className="text-xs text-white opacity-60">
