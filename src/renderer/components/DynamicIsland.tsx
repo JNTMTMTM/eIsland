@@ -9,6 +9,7 @@ import useIslandStore from '../store/isLandStore';
 import { formatTime, formatFullTime, getDayName, getLunarDate } from '../utils/timeUtils';
 import { IdleContent } from './states/idle/IdleContent';
 import { HoverContent } from './states/hover/HoverContent';
+import { NotificationContent } from './states/notification/NotificationContent';
 import { ExpandedContent } from './states/expand/ExpandedContent';
 
 /** 灵动岛状态类型 */
@@ -113,13 +114,15 @@ interface StateRenderer {
  * @description 使用状态模式管理不同状态的 UI 渲染，通过 requestAnimationFrame 检测鼠标位置实现可靠的 hover 交互
  */
 function DynamicIsland(): React.JSX.Element {
-  const { state, weather, setHover, setIdle, timerData, setTimerData } = useIslandStore();
+  const { state, weather, setHover, setIdle, timerData, setTimerData, notification, setNotification } = useIslandStore();
 
   const initRef = useRef(false);
   const isHoveringRef = useRef(false);
   const enterTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const leaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const timerIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const setNotificationRef = useRef(setNotification);
+  setNotificationRef.current = setNotification;
 
   const [timeStr, setTimeStr] = useState(() => formatTime(new Date()));
   const [dayStr, setDayStr] = useState(() => getDayName(new Date()));
@@ -142,6 +145,10 @@ function DynamicIsland(): React.JSX.Element {
             inputHours: '00',
             inputMinutes: '00',
             inputSeconds: '00',
+          });
+          setNotificationRef.current({
+            title: '计时器',
+            body: '倒计时已结束',
           });
         } else {
           setTimerData({ remainingSeconds: next });
@@ -273,6 +280,16 @@ function DynamicIsland(): React.JSX.Element {
       state: 'expanded',
       render: () => (
         <ExpandedContent />
+      ),
+    },
+    {
+      state: 'notification',
+      render: () => (
+        <NotificationContent
+          title={notification.title}
+          body={notification.body}
+          icon={notification.icon}
+        />
       ),
     },
   ];

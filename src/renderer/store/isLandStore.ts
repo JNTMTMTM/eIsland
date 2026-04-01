@@ -12,8 +12,9 @@ import type { WeatherApiConfig } from '../api/weatherApi';
  * 灵动岛 UI 状态枚举
  * - idle: 待机状态，灵动岛静默显示
  * - hover: 悬停状态，展示额外信息或图标
+ * - notification: 通知状态，灵动岛展开显示通知
  */
-export type IslandState = 'idle' | 'hover';
+export type IslandState = 'idle' | 'hover' | 'notification';
 
 /** Hover 状态下的子标签页类型 */
 export type HoverTab = 'time' | 'o3ics';
@@ -48,6 +49,13 @@ export interface TimerData {
   inputSeconds: string;
 }
 
+/** 通知数据类型 */
+export interface NotificationData {
+  title: string;
+  body: string;
+  icon?: string;
+}
+
 /** 灵动岛 Store 接口定义 */
 interface IIslandStore {
   /** 当前状态 */
@@ -60,6 +68,8 @@ interface IIslandStore {
   countdown: CountdownConfig;
   /** 计时器数据 */
   timerData: TimerData;
+  /** 当前通知数据 */
+  notification: NotificationData;
   /** 更新天气数据 */
   setWeather: (data: WeatherData) => void;
   /** 从接口拉取并更新天气 */
@@ -68,6 +78,8 @@ interface IIslandStore {
   setIdle: () => void;
   /** 切换到悬停状态 */
   setHover: () => void;
+  /** 切换到通知状态 */
+  setNotification: (data: NotificationData) => void;
   /** 切换 hover 子标签页 */
   setHoverTab: (tab: HoverTab) => void;
   /** 设置倒计时配置 */
@@ -115,6 +127,10 @@ const useIslandStore = create<IIslandStore>((set) => ({
   },
   countdown: getDefaultCountdown(),
   timerData: getDefaultTimerData(),
+  notification: {
+    title: '',
+    body: '',
+  },
   /** @param data - 天气数据对象 */
   setWeather: (data): void => set({ weather: data }),
   /** @param config - 经纬度配置 */
@@ -129,6 +145,11 @@ const useIslandStore = create<IIslandStore>((set) => ({
   setHover: (): void => {
     window.api?.expandWindow();
     set({ state: 'hover' });
+  },
+  /** @param data - 通知数据 */
+  setNotification: (data): void => {
+    window.api?.expandWindow();
+    set({ state: 'notification', notification: data });
   },
   /** @param tab - 目标 tab 标签页 */
   setHoverTab: (tab): void => set({ hoverTab: tab }),
