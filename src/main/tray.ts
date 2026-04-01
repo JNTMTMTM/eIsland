@@ -32,9 +32,15 @@ function createTray(mainWindow: BrowserWindow | null): Tray {
 
   const contextMenu = Menu.buildFromTemplate([
     {
-      label: '显示窗口',
+      label: '显示灵动岛',
       click: () => {
         mainWindow?.show();
+      }
+    },
+    {
+      label: '隐藏灵动岛',
+      click: () => {
+        mainWindow?.hide();
       }
     },
     {
