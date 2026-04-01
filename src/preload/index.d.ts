@@ -14,6 +14,7 @@ declare global {
       disableMousePassthrough: () => void;
       expandWindow: () => void;
       collapseWindow: () => void;
+      hideWindow: () => void;
       getMousePosition: () => Promise<{ x: number; y: number }>;
       getWindowBounds: () => Promise<{ x: number; y: number; width: number; height: number }>;
       quitApp: () => void;

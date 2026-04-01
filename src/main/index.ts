@@ -139,6 +139,15 @@ function registerIpcHandlers(): void {
   });
 
   /**
+   * 隐藏窗口
+   */
+  ipcMain.on('window:hide', () => {
+    if (mainWindow) {
+      mainWindow.hide();
+    }
+  });
+
+  /**
    * 获取鼠标当前位置（屏幕坐标）
    * @returns 包含 x、y 坐标的对象
    */

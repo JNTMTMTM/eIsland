@@ -38,6 +38,12 @@ const api = {
     ipcRenderer.send('window:collapse');
   },
   /**
+   * 隐藏窗口
+   */
+  hideWindow: (): void => {
+    ipcRenderer.send('window:hide');
+  },
+  /**
    * 获取当前鼠标位置（屏幕坐标）
    * @returns 包含 x、y 坐标的对象
    */
