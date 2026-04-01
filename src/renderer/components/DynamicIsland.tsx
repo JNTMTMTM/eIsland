@@ -4,7 +4,7 @@
  * @author 鸡哥
  */
 
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import useIslandStore from '../store/isLandStore';
 import { formatTime, formatFullTime, getDayName, getLunarDate } from '../utils/timeUtils';
 import { IdleContent } from './states/idle/IdleContent';
@@ -136,7 +136,13 @@ function DynamicIsland(): React.JSX.Element {
       timerIntervalRef.current = setInterval(() => {
         const next = (timerData.remainingSeconds ?? 0) - 1;
         if (next <= 0) {
-          setTimerData({ state: 'idle', remainingSeconds: 0 });
+          setTimerData({
+            state: 'idle',
+            remainingSeconds: 0,
+            inputHours: '00',
+            inputMinutes: '00',
+            inputSeconds: '00',
+          });
         } else {
           setTimerData({ remainingSeconds: next });
         }
@@ -170,7 +176,7 @@ function DynamicIsland(): React.JSX.Element {
     }
   }, []);
 
-  const clearAllTimers = useCallback(() => {
+  const clearAllTimers = () => {
     if (enterTimerRef.current !== null) {
       clearTimeout(enterTimerRef.current);
       enterTimerRef.current = null;
@@ -179,7 +185,7 @@ function DynamicIsland(): React.JSX.Element {
       clearTimeout(leaveTimerRef.current);
       leaveTimerRef.current = null;
     }
-  }, []);
+  };
 
   useEffect(() => {
     let rafId: number | null = null;
@@ -249,6 +255,8 @@ function DynamicIsland(): React.JSX.Element {
           timeStr={timeStr}
           dayStr={dayStr}
           weather={weather}
+          timerState={timerData?.state ?? 'idle'}
+          remainingSeconds={timerData?.remainingSeconds ?? 0}
         />
       ),
     },
