@@ -207,6 +207,11 @@ function DynamicIsland(): React.JSX.Element {
           clearTimeout(leaveTimerRef.current);
           leaveTimerRef.current = null;
         }
+        
+        if (state === 'notification') {
+          setIdle();
+          return;
+        }
 
         if (!isHoveringRef.current && enterTimerRef.current === null) {
           enterTimerRef.current = setTimeout(() => {
