@@ -56,13 +56,6 @@ export function NotificationContent({
         <span className="notification-title">{title}</span>
         <span className="notification-body">{body}</span>
       </div>
-      <button
-        className="notification-close"
-        onClick={setIdle}
-        aria-label="关闭通知"
-      >
-        ✕
-      </button>
     </div>
   );
 }
