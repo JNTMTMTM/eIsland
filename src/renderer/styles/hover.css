@@ -249,3 +249,262 @@
   background: rgba(255, 255, 255, 0.2);
   margin: 0 4px;
 }
+
+/* ==========================================
+   歌词（音乐）标签页样式
+   ========================================== */
+
+/** 歌词标签页容器 */
+.lrc-tab-wrapper {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  height: 100%;
+  padding-right: 4px;
+}
+
+/* --- 唱片封面 --- */
+.lrc-vinyl-disc {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: radial-gradient(circle at center,
+      #1a1a1a 0%,
+      #111 28%,
+      #1a1a1a 30%,
+      #222 100%
+  );
+  flex-shrink: 0;
+  position: relative;
+  animation: vinyl-spin 8s linear infinite;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+}
+
+.lrc-vinyl-disc.paused {
+  animation-play-state: paused;
+}
+
+@keyframes vinyl-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.lrc-vinyl-grooves {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: repeating-radial-gradient(
+      circle at center,
+      transparent 0px,
+      rgba(255, 255, 255, 0.03) 1px,
+      transparent 2px,
+      transparent 3px
+  );
+  pointer-events: none;
+}
+
+.lrc-vinyl-cover {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  background: #333;
+  background-size: cover;
+  background-position: center;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  z-index: 1;
+}
+
+.lrc-vinyl-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  background: #555;
+  z-index: 2;
+}
+
+/* --- 歌词与信息区域 --- */
+.lrc-info-section {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  gap: 2px;
+}
+
+.lrc-text {
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: rgba(255, 255, 255, 0.95);
+  line-height: 1.3;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.lrc-text.lrc-placeholder {
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.lrc-meta {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.4);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* --- 进度条 --- */
+.lrc-progress-bar {
+  width: 100%;
+  height: 4px;
+  display: flex;
+  align-items: center;
+  position: relative;
+  margin-top: 2px;
+  cursor: pointer;
+  overflow: visible;
+}
+
+.lrc-progress-bar::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 1px;
+}
+
+.lrc-progress-fill {
+  position: absolute;
+  left: 0;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 1px;
+  transition: width 0.15s linear;
+}
+
+.lrc-progress-thumb {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #fff;
+  transform: translateX(-50%);
+  opacity: 0;
+  transition: opacity 0.15s ease, transform 0.1s ease;
+  z-index: 1;
+  pointer-events: none;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.lrc-progress-bar:hover .lrc-progress-thumb {
+  opacity: 1;
+}
+
+.lrc-progress-bar:hover .lrc-progress-fill {
+  background: #1ed760;
+}
+
+.lrc-progress-bar.seeking .lrc-progress-thumb {
+  opacity: 1;
+  transform: translateX(-50%) scale(1.3);
+}
+
+.lrc-progress-bar.seeking .lrc-progress-fill {
+  background: #1ed760;
+  transition: none;
+}
+
+/* --- 时间显示 --- */
+.lrc-time-row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.35);
+  font-variant-numeric: tabular-nums;
+  margin-top: 1px;
+}
+
+.lrc-time-sep {
+  opacity: 0.5;
+}
+
+/* --- 媒体控制按钮 --- */
+.lrc-media-controls {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.lrc-media-btn {
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+  padding: 0;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.lrc-media-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+}
+
+.lrc-media-btn:active {
+  transform: scale(0.9);
+}
+
+.lrc-media-btn svg {
+  fill: currentColor;
+}
+
+.lrc-play-btn {
+  width: 32px;
+  height: 32px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* --- 空状态 --- */
+.lrc-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  flex: 1;
+}
+
+.lrc-empty-icon {
+  font-size: 20px;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.lrc-empty-text {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.35);
+  white-space: nowrap;
+}
+

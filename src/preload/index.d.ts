@@ -18,6 +18,13 @@ declare global {
       getMousePosition: () => Promise<{ x: number; y: number }>;
       getWindowBounds: () => Promise<{ x: number; y: number; width: number; height: number }>;
       quitApp: () => void;
+      /** ===== 音乐相关 API ===== */
+      mediaPlayPause: () => Promise<void>;
+      mediaNext: () => Promise<void>;
+      mediaPrev: () => Promise<void>;
+      mediaSeek: (positionMs: number) => Promise<void>;
+      mediaGetVolume: () => Promise<number>;
+      mediaSetVolume: (volume: number) => Promise<void>;
     };
   }
 }

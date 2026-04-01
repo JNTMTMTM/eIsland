@@ -19,6 +19,40 @@ export type IslandState = 'idle' | 'hover' | 'notification';
 /** Hover 状态下的子标签页类型 */
 export type HoverTab = 'time' | 'o3ics';
 
+/** 歌词显示模式 */
+export type LrcMode = 'off' | 'info' | 'lrc';
+
+/** 单行歌词数据类型 */
+export interface LyricLine {
+  text: string;
+  is_current: boolean;
+}
+
+/** 媒体信息数据类型 */
+export interface MediaInfo {
+  title: string;
+  artist: string;
+  duration_ms: number;
+}
+
+/** 歌词更新数据（后端推送的格式） */
+export interface LrcUpdateData {
+  text: string | null;
+  title: string;
+  artist: string;
+  position_ms?: number;
+  duration_ms?: number;
+  nearby_o3ics?: LyricLine[];
+}
+
+/** 媒体变化数据 */
+export interface MediaChangedData {
+  title: string;
+  artist: string;
+  thumbnail?: string | null;
+  duration_ms?: number;
+}
+
 /** 倒计时数据类型 */
 export interface CountdownConfig {
   /** 目标日期（ISO 字符串） */
@@ -70,6 +104,39 @@ interface IIslandStore {
   timerData: TimerData;
   /** 当前通知数据 */
   notification: NotificationData;
+  /** ===== 音乐相关状态 ===== */
+  /** 是否正在播放音乐 */
+  isMusicPlaying: boolean;
+  /** 是否播放（内部状态） */
+  isPlaying: boolean;
+  /** 歌词模式 */
+  lrcMode: LrcMode;
+  /** 当前歌曲时长（毫秒） */
+  currentDurationMs: number;
+  /** 当前播放位置（毫秒） */
+  currentPositionMs: number;
+  /** 当前歌词文本 */
+  currentLyricText: string | null;
+  /** 歌曲元信息 */
+  mediaInfo: MediaInfo;
+  /** 多行歌词（用于展开面板） */
+  nearbyLyrics: LyricLine[];
+  /** 封面图片（base64 或 URL） */
+  coverImage: string | null;
+  /** ===== 音乐相关方法 ===== */
+  /** 更新歌词数据 */
+  updateLrcData: (data: LrcUpdateData) => void;
+  /** 媒体变化 */
+  onMediaChanged: (data: MediaChangedData) => void;
+  /** 播放状态变化 */
+  setPlaybackState: (isPlaying: boolean) => void;
+  /** 歌词模式变化 */
+  setLrcMode: (mode: LrcMode) => void;
+  /** 更新进度（内部轮询） */
+  updateProgress: (position_ms: number) => void;
+  /** 更新封面 */
+  setCoverImage: (cover: string | null) => void;
+  /** ===== 原有方法 ===== */
   /** 更新天气数据 */
   setWeather: (data: WeatherData) => void;
   /** 从接口拉取并更新天气 */
@@ -131,6 +198,59 @@ const useIslandStore = create<IIslandStore>((set) => ({
     title: '',
     body: '',
   },
+  /** ===== 音乐相关初始状态 ===== */
+  isMusicPlaying: false,
+  isPlaying: false,
+  lrcMode: 'lrc',
+  currentDurationMs: 0,
+  currentPositionMs: 0,
+  currentLyricText: null,
+  mediaInfo: { title: '', artist: '', duration_ms: 0 },
+  nearbyLyrics: [],
+  coverImage: null,
+  /** ===== 音乐相关方法 ===== */
+  updateLrcData: (data): void => set((state) => {
+    // 无歌词数据 = 停止播放
+    if (data === null) {
+      return {
+        isMusicPlaying: false,
+        isPlaying: false,
+        currentLyricText: null,
+        nearbyLyrics: [],
+      };
+    }
+
+    return {
+      isMusicPlaying: true,
+      currentLyricText: data.text,
+      currentPositionMs: data.position_ms ?? state.currentPositionMs,
+      currentDurationMs: data.duration_ms ?? state.currentDurationMs,
+      mediaInfo: {
+        title: data.title || state.mediaInfo.title,
+        artist: data.artist || state.mediaInfo.artist,
+        duration_ms: data.duration_ms ?? state.mediaInfo.duration_ms,
+      },
+      nearbyLyrics: data.nearby_o3ics ?? [],
+    };
+  }),
+  onMediaChanged: (data): void => set({
+    isMusicPlaying: true,
+    mediaInfo: {
+      title: data.title,
+      artist: data.artist,
+      duration_ms: data.duration_ms ?? 0,
+    },
+    currentLyricText: null,
+    nearbyLyrics: [],
+    currentDurationMs: data.duration_ms ?? 0,
+    currentPositionMs: 0,
+    coverImage: data.thumbnail ?? null,
+  }),
+  setPlaybackState: (isPlaying): void => set({ isPlaying }),
+  setLrcMode: (mode): void => set({ lrcMode: mode }),
+  updateProgress: (position_ms): void => set({ currentPositionMs: position_ms }),
+  setCoverImage: (cover): void => set({ coverImage: cover }),
+  /** ===== 原有方法 ===== */
   /** @param data - 天气数据对象 */
   setWeather: (data): void => set({ weather: data }),
   /** @param config - 经纬度配置 */

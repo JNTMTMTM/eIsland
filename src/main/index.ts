@@ -4,7 +4,7 @@
  * @author 鸡哥
  */
 
-import { app, BrowserWindow, shell, screen, ipcMain } from 'electron';
+import { app, BrowserWindow, shell, screen, ipcMain, globalShortcut } from 'electron';
 import { join } from 'path';
 import { electronApp, optimizer, is } from '@electron-toolkit/utils';
 import { createTray } from './tray';
@@ -172,6 +172,48 @@ function registerIpcHandlers(): void {
    */
   ipcMain.on('app:quit', () => {
     app.quit();
+  });
+
+  // ===== 音乐相关 IPC 处理器 =====
+  // 使用全局快捷键模拟媒体键（适用于 SMTC 不支持的场景）
+  ipcMain.on('media:play-pause', () => {
+    globalShortcut?.isRegistered('MediaPlayPause')
+      ? globalShortcut.unregister('MediaPlayPause')
+      : globalShortcut.register('MediaPlayPause', () => {
+          if (mainWindow) {
+            mainWindow.webContents.send('media:toggle-playback');
+          }
+        });
+    // 通过 PowerShell 发送媒体键
+    const { exec } = require('child_process');
+    exec('powershell -command "(New-Object Media.SoundPlayer).Load(); [System.Console]::Beep()" || (Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.SendKeys]::SendWait(\'{MediaPlayPause}\'))"');
+  });
+
+  ipcMain.on('media:next', () => {
+    const { exec } = require('child_process');
+    exec('powershell -command "[System.Windows.Forms.SendKeys]::SendWait(\'{MediaNextTrack}\')"');
+  });
+
+  ipcMain.on('media:prev', () => {
+    const { exec } = require('child_process');
+    exec('powershell -command "[System.Windows.Forms.SendKeys]::SendWait(\'{MediaPreviousTrack}\')"');
+  });
+
+  ipcMain.handle('media:seek', (_event, positionMs: number) => {
+    // SMTC seek 需要 Rust 后端支持，此处为占位实现
+    console.log('[Media] Seek to:', positionMs, 'ms');
+    return Promise.resolve();
+  });
+
+  ipcMain.handle('media:get-volume', () => {
+    // 音量获取需要 Rust 后端支持，此处返回默认值
+    return Promise.resolve(0.5);
+  });
+
+  ipcMain.handle('media:set-volume', (_event, volume: number) => {
+    // 音量设置需要 Rust 后端支持，此处为占位实现
+    console.log('[Media] Set volume:', volume);
+    return Promise.resolve();
   });
 }
 

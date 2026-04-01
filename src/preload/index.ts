@@ -62,6 +62,45 @@ const api = {
    */
   quitApp: (): void => {
     ipcRenderer.send('app:quit');
+  },
+  /** ===== 音乐相关 API ===== */
+  /**
+   * 播放/暂停
+   */
+  mediaPlayPause: (): Promise<void> => {
+    return ipcRenderer.invoke('media:play-pause');
+  },
+  /**
+   * 下一曲
+   */
+  mediaNext: (): Promise<void> => {
+    return ipcRenderer.invoke('media:next');
+  },
+  /**
+   * 上一曲
+   */
+  mediaPrev: (): Promise<void> => {
+    return ipcRenderer.invoke('media:prev');
+  },
+  /**
+   * 跳转到指定位置
+   * @param positionMs 目标位置（毫秒）
+   */
+  mediaSeek: (positionMs: number): Promise<void> => {
+    return ipcRenderer.invoke('media:seek', positionMs);
+  },
+  /**
+   * 获取系统音量 (0.0 ~ 1.0)
+   */
+  mediaGetVolume: (): Promise<number> => {
+    return ipcRenderer.invoke('media:get-volume');
+  },
+  /**
+   * 设置系统音量 (0.0 ~ 1.0)
+   * @param volume 目标音量
+   */
+  mediaSetVolume: (volume: number): Promise<void> => {
+    return ipcRenderer.invoke('media:set-volume', volume);
   }
 };
 
