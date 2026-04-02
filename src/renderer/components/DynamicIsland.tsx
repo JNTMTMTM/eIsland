@@ -357,7 +357,9 @@ function DynamicIsland(): React.JSX.Element {
     <div className={`island-shell ${getStateClassName(state)}`}>
       {stateRenderers
         .filter(renderer => renderer.state === state)
-        .map(renderer => renderer.render())}
+        .map(renderer => (
+          <React.Fragment key={renderer.state}>{renderer.render()}</React.Fragment>
+        ))}
     </div>
   );
 }
