@@ -202,6 +202,17 @@
   transform: scale(0.9);
 }
 
+.lrc-media-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.lrc-media-btn:disabled:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.85);
+}
+
 .lrc-media-btn svg {
   fill: currentColor;
 }

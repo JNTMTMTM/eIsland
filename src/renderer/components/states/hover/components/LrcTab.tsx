@@ -93,41 +93,36 @@ export function LyricsTab(): React.ReactElement {
         <div className="lrc-artist">{artistText}</div>
       </div>
 
-      {isMusicPlaying && (
-        <div className="lrc-media-controls">
-          <button
-            className="lrc-media-btn"
-            onClick={(e) => { e.stopPropagation(); handlePrev(); }}
-            title="上一曲"
-          >
-            <img src={SvgIcon.PREVIOUS_SONG} alt="上一曲" className="lrc-media-btn-icon lrc-media-btn-icon--sm" />
-          </button>
-          <button
-            className="lrc-media-btn lrc-play-btn"
-            onClick={(e) => { e.stopPropagation(); handlePlayPause(); }}
-            title={isPlaying ? '暂停' : '播放'}
-          >
-            {isPlaying ? (
-              <img src={SvgIcon.PAUSE} alt="暂停" className="lrc-media-btn-icon" />
-            ) : (
-              <img src={SvgIcon.CONTINUE} alt="播放" className="lrc-media-btn-icon" />
-            )}
-          </button>
-          <button
-            className="lrc-media-btn"
-            onClick={(e) => { e.stopPropagation(); handleNext(); }}
-            title="下一曲"
-          >
-            <img src={SvgIcon.NEXT_SONG} alt="下一曲" className="lrc-media-btn-icon lrc-media-btn-icon--sm" />
-          </button>
-        </div>
-      )}
-
-      {!isMusicPlaying && (
-        <div className="lrc-empty-hint">
-          <span>♪</span>
-        </div>
-      )}
+      <div className="lrc-media-controls">
+        <button
+          className="lrc-media-btn"
+          onClick={(e) => { e.stopPropagation(); handlePrev(); }}
+          title="上一曲"
+          disabled={!isMusicPlaying}
+        >
+          <img src={SvgIcon.PREVIOUS_SONG} alt="上一曲" className="lrc-media-btn-icon lrc-media-btn-icon--sm" />
+        </button>
+        <button
+          className="lrc-media-btn lrc-play-btn"
+          onClick={(e) => { e.stopPropagation(); handlePlayPause(); }}
+          title={isPlaying ? '暂停' : '播放'}
+          disabled={!isMusicPlaying}
+        >
+          {isPlaying ? (
+            <img src={SvgIcon.PAUSE} alt="暂停" className="lrc-media-btn-icon" />
+          ) : (
+            <img src={SvgIcon.CONTINUE} alt="播放" className="lrc-media-btn-icon" />
+          )}
+        </button>
+        <button
+          className="lrc-media-btn"
+          onClick={(e) => { e.stopPropagation(); handleNext(); }}
+          title="下一曲"
+          disabled={!isMusicPlaying}
+        >
+          <img src={SvgIcon.NEXT_SONG} alt="下一曲" className="lrc-media-btn-icon lrc-media-btn-icon--sm" />
+        </button>
+      </div>
 
       <div
         className="lrc-wave-container"
