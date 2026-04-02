@@ -41,6 +41,25 @@ function NextIcon({ size = 14 }: { size?: number }) {
 }
 
 /**
+ * 按视觉宽度截断文本（支持中日韩多字节字符）
+ * 中文/繁体汉字: 2em | 日文平假名/片假名: 2em | 韩文 Hangul: 2em | 其他: 1em
+ */
+function truncateByVisualWidth(text: string, maxWidth: number): string {
+  let finalWidth = 0;
+  let finalEnd = 0;
+  for (const ch of text) {
+    const isEastAsianWide =
+      /[\u4e00-\u9fff\u3400-\u4dbf\u3000-\u303f\uff00-\uffef\u3040-\u309f\u30a0-\u30ff\uac00-\ud7af\u1100-\u115f\u3130-\u318f]/.test(ch);
+    const charWidth = isEastAsianWide ? 2 : 1;
+    if (finalWidth + charWidth > maxWidth - 1) break;
+    finalWidth += charWidth;
+    finalEnd++;
+  }
+  if (finalEnd === text.length) return text;
+  return text.slice(0, finalEnd) + '…';
+}
+
+/**
  * 歌词 Tab 内容
  * @description 显示当前播放歌词、唱片封面和播放控制
  */
@@ -56,8 +75,8 @@ export function LyricsTab(): React.ReactElement {
   const handlePrev = () => window.api?.mediaPrev();
   const handleNext = () => window.api?.mediaNext();
 
-  const artistText = mediaInfo.artist || '未知艺术家';
-  const albumText = mediaInfo.title || '未知歌曲';
+  const artistText = truncateByVisualWidth(mediaInfo.artist || '未知艺术家', 35);
+  const albumText = truncateByVisualWidth(mediaInfo.title || '未知歌曲', 35);
 
   return (
     <div className="lrc-tab-wrapper">
