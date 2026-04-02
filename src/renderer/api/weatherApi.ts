@@ -85,21 +85,56 @@ export async function fetchWeather(
     location = await fetchLocation();
   }
 
-  const url = 'https://api.open-meteo.com/v1/forecast';
-  const responses = await fetchWeatherApi(url, {
-    latitude: location.latitude,
-    longitude: location.longitude,
-    current: ['temperature_2m', 'weather_code'],
-    timezone: 'auto',
-    forecast_days: 1
-  });
+  try {
+    console.log('[Weather] 请求天气数据...');
+    console.log('[Weather] 位置信息:', location);
 
-  const current = responses[0].current()!;
-  const temperature = Math.round(current.variables(0)!.value());
-  const weatherCode = current.variables(1)!.value();
+    const url = 'https://api.open-meteo.com/v1/forecast';
+    const responses = await fetchWeatherApi(url, {
+      latitude: location.latitude,
+      longitude: location.longitude,
+      current: ['temperature_2m', 'weather_code'],
+      daily: ['temperature_2m_max', 'temperature_2m_min', 'weather_code'],
+      timezone: 'auto',
+      forecast_days: 3
+    });
 
-  return {
-    weather: { temperature, description: mapWeatherDescription(weatherCode) },
-    location
-  };
+    const current = responses[0].current()!;
+    const temperature = Math.round(current.variables(0)!.value());
+    const weatherCode = current.variables(1)!.value();
+
+    const daily = responses[0].daily()!;
+    const forecast: [ReturnType<typeof mapWeatherDescription>, ReturnType<typeof mapWeatherDescription>] = [
+      mapWeatherDescription(daily.variables(2)!.values(1)!),
+      mapWeatherDescription(daily.variables(2)!.values(2)!)
+    ];
+    const forecastTemps: [[number, number], [number, number]] = [
+      [
+        Math.round(daily.variables(0)!.values(1)!),
+        Math.round(daily.variables(1)!.values(1)!)
+      ],
+      [
+        Math.round(daily.variables(0)!.values(2)!),
+        Math.round(daily.variables(1)!.values(2)!)
+      ]
+    ];
+
+    const weather: WeatherData = {
+      temperature,
+      description: mapWeatherDescription(weatherCode),
+      forecast: [
+        { temperature: forecastTemps[0][0], description: forecast[0] },
+        { temperature: forecastTemps[1][0], description: forecast[1] }
+      ]
+    };
+
+    console.log('[Weather] 当前天气:', weather.description, weather.temperature + '°C');
+    console.log('[Weather] 明日预报:', forecast[0], forecastTemps[0][0] + '°C');
+    console.log('[Weather] 后日预报:', forecast[1], forecastTemps[1][0] + '°C');
+
+    return { weather, location };
+  } catch (error) {
+    console.error('[Weather] 获取天气数据失败:', error);
+    throw error;
+  }
 }

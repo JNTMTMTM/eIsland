@@ -15,7 +15,17 @@ if (!root) {
   throw new Error('[Renderer] 未找到 #root 挂载节点');
 }
 
-/** 启动时自动获取精确位置并拉取天气 */
+/** 先从本地存储加载缓存数据，确保首次渲染有内容可展示 */
+const cachedWeather = useIslandStore.getState().weather;
+const cachedLocation = useIslandStore.getState().location;
+if (cachedWeather.description) {
+  console.log('[Renderer] 启动时加载缓存天气数据:', cachedWeather);
+}
+if (cachedLocation) {
+  console.log('[Renderer] 启动时加载缓存位置信息:', cachedLocation);
+}
+
+/** 立即从接口拉取最新天气数据（不读取本地缓存） */
 useIslandStore.getState().fetchWeatherData();
 
 /**

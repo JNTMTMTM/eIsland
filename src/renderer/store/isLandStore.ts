@@ -7,6 +7,7 @@
 import { create } from 'zustand';
 import { fetchWeather } from '../api/weatherApi';
 import type { WeatherApiConfig } from '../api/weatherApi';
+import type { LocationInfo } from '../api/locationApi';
 
 /**
  * 灵动岛 UI 状态枚举
@@ -79,12 +80,22 @@ export interface CountdownConfig {
   enabled: boolean;
 }
 
-/** 天气数据类型定义 */
-export interface WeatherData {
+/** 单日天气预报数据类型 */
+export interface DayForecast {
   /** 温度（摄氏度） */
   temperature: number;
   /** 天气文字描述 */
   description: string;
+}
+
+/** 天气数据类型定义 */
+export interface WeatherData {
+  /** 当前温度（摄氏度） */
+  temperature: number;
+  /** 当前天气文字描述 */
+  description: string;
+  /** 未来两天天气预报 */
+  forecast: [DayForecast, DayForecast];
 }
 
 /** 计时器状态类型 */
@@ -114,6 +125,8 @@ interface IIslandStore {
   hoverTab: HoverTab;
   /** 天气数据 */
   weather: WeatherData;
+  /** 位置信息 */
+  location: LocationInfo | null;
   /** 倒计时配置 */
   countdown: CountdownConfig;
   /** 计时器数据 */
@@ -199,17 +212,77 @@ function getDefaultTimerData(): TimerData {
   };
 }
 
+/** 本地存储 key */
+const WEATHER_STORAGE_KEY = 'island_weather';
+const LOCATION_STORAGE_KEY = 'island_location';
+
+/**
+ * 从本地存储加载天气数据
+ */
+function loadWeatherFromStorage(): WeatherData {
+  try {
+    const raw = localStorage.getItem(WEATHER_STORAGE_KEY);
+    if (raw) {
+      const data = JSON.parse(raw) as WeatherData;
+      console.log('[Weather] 从本地存储加载天气数据成功:', data);
+      return data;
+    }
+  } catch (error) {
+    console.error('[Weather] 从本地存储加载天气数据失败:', error);
+  }
+  return { temperature: 0, description: '', forecast: [{ temperature: 0, description: '' }, { temperature: 0, description: '' }] };
+}
+
+/**
+ * 保存天气数据到本地存储
+ */
+function saveWeatherToStorage(data: WeatherData): void {
+  try {
+    localStorage.setItem(WEATHER_STORAGE_KEY, JSON.stringify(data));
+    console.log('[Weather] 天气数据已保存到本地存储');
+  } catch (error) {
+    console.error('[Weather] 保存天气数据到本地存储失败:', error);
+  }
+}
+
+/**
+ * 从本地存储加载位置信息
+ */
+function loadLocationFromStorage(): LocationInfo | null {
+  try {
+    const raw = localStorage.getItem(LOCATION_STORAGE_KEY);
+    if (raw) {
+      const data = JSON.parse(raw) as LocationInfo;
+      console.log('[Weather] 从本地存储加载位置信息成功:', data);
+      return data;
+    }
+  } catch (error) {
+    console.error('[Weather] 从本地存储加载位置信息失败:', error);
+  }
+  return null;
+}
+
+/**
+ * 保存位置信息到本地存储
+ */
+function saveLocationToStorage(data: LocationInfo): void {
+  try {
+    localStorage.setItem(LOCATION_STORAGE_KEY, JSON.stringify(data));
+    console.log('[Weather] 位置信息已保存到本地存储');
+  } catch (error) {
+    console.error('[Weather] 保存位置信息到本地存储失败:', error);
+  }
+}
+
 /**
  * 灵动岛状态管理 Store
  * @description 使用 zustand 管理状态变更，无需 Redux 的模板代码
  */
-const useIslandStore = create<IIslandStore>((set) => ({
+const useIslandStore = create<IIslandStore>((set, get) => ({
   state: 'idle',
   hoverTab: 'time',
-  weather: {
-    temperature: 0,
-    description: ''
-  },
+  weather: loadWeatherFromStorage(),
+  location: loadLocationFromStorage(),
   countdown: getDefaultCountdown(),
   timerData: getDefaultTimerData(),
   notification: {
@@ -301,11 +374,23 @@ const useIslandStore = create<IIslandStore>((set) => ({
   },
   /** ===== 原有方法 ===== */
   /** @param data - 天气数据对象 */
-  setWeather: (data): void => set({ weather: data }),
+  setWeather: (data): void => {
+    saveWeatherToStorage(data);
+    set({ weather: data });
+  },
   /** @param config - 经纬度配置（可选，不传则自动获取精确位置） */
   fetchWeatherData: async (config?): Promise<void> => {
-    const { weather } = config ? await fetchWeather(config) : await fetchWeather();
-    set({ weather });
+    let location: LocationInfo;
+    if (config) {
+      location = { latitude: config.latitude, longitude: config.longitude, city: '', regionName: '', country: '' };
+    } else {
+      const cached = get().location;
+      location = cached ?? await import('../api/locationApi').then(m => m.fetchLocation());
+    }
+    const { weather } = await fetchWeather({ latitude: location.latitude, longitude: location.longitude });
+    saveWeatherToStorage(weather);
+    saveLocationToStorage(location);
+    set({ weather, location });
   },
   setIdle: (): void => {
     window.api?.collapseWindow();
