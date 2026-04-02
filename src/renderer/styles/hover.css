@@ -138,7 +138,9 @@
 /** 计时器容器 */
 .timer-container {
   display: flex;
+  flex-direction: row;
   align-items: center;
+  gap: 6px;
 }
 
 /** 计时器主体 */
@@ -209,6 +211,31 @@
   flex-direction: row;
   align-items: center;
   gap: 6px;
+}
+
+/** 工具按钮组（截图、任务管理器） */
+.timer-tools {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+/** 工具按钮组内按钮尺寸覆盖（小于默认 action-btn） */
+.timer-tools .action-btn {
+  width: 26px;
+}
+
+.timer-tools .action-btn-icon {
+  width: 18px;
+  height: 18px;
+}
+
+/** 工具按钮组与计时器之间的垂直分割线 */
+.timer-tools-divider {
+  width: 1px;
+  height: 32px;
+  background: rgba(255, 255, 255, 0.2);
 }
 
 .timer-btn {

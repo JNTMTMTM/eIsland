@@ -116,6 +116,20 @@ const api = {
     return () => {
       ipcRenderer.removeListener('nowplaying:info', handler);
     };
+  },
+  /** ===== 系统工具 API ===== */
+  /**
+   * 截图并返回 Base64 图片数据
+   * @returns Base64 编码的 PNG 图片数据，或 null（失败时）
+   */
+  screenshot: (): Promise<string | null> => {
+    return ipcRenderer.invoke('system:screenshot');
+  },
+  /**
+   * 打开任务管理器
+   */
+  openTaskManager: (): void => {
+    ipcRenderer.send('system:open-task-manager');
   }
 };
 

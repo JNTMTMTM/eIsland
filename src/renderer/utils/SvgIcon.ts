@@ -21,6 +21,10 @@ export const SvgIcon = {
   TIMER: '/svg/TIMER.svg',
   /** 重置 */
   REVERT: '/svg/REVERT.svg',
+  /** 截图 */
+  SCREENSHOT: '/svg/SCREENSHOT.svg',
+  /** 任务管理器 */
+  TASK_MANAGER: '/svg/TASK_MANAGER.svg',
 } as const;
 
 export type SvgIconKey = keyof typeof SvgIcon;

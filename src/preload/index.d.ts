@@ -43,6 +43,9 @@ declare global {
       mediaSetVolume: (volume: number) => Promise<void>;
       /** ===== 歌曲信息监听 API ===== */
       onNowPlayingInfo: (callback: (info: NowPlayingInfo | null) => void) => () => void;
+      /** ===== 系统工具 API ===== */
+      screenshot: () => Promise<string | null>;
+      openTaskManager: () => void;
     };
   }
 }

@@ -4,7 +4,7 @@
  * @author 鸡哥
  */
 
-import { app, BrowserWindow, shell, screen, ipcMain } from 'electron';
+import { app, BrowserWindow, shell, screen, ipcMain, desktopCapturer } from 'electron';
 import { join } from 'path';
 import { electronApp, optimizer, is } from '@electron-toolkit/utils';
 import { createTray } from './tray';
@@ -230,6 +230,34 @@ function registerIpcHandlers(): void {
   });
 
   // ===== node-nowplaying 歌曲信息监听 =====
+
+  /** 截图并保存 */
+  ipcMain.handle('system:screenshot', async () => {
+    try {
+      const sources = await desktopCapturer.getSources({
+        types: ['screen'],
+        thumbnailSize: screen.getPrimaryDisplay().workAreaSize
+      });
+      if (sources.length > 0) {
+        const screenshot = sources[0].thumbnail.toPNG();
+        return screenshot.toString('base64');
+      }
+    } catch (err) {
+      console.error('[System] screenshot error:', err);
+    }
+    return null;
+  });
+
+  /** 打开任务管理器 */
+  ipcMain.on('system:open-task-manager', () => {
+    try {
+      if (process.platform === 'win32') {
+        require('child_process').exec('taskmgr');
+      }
+    } catch (err) {
+      console.error('[System] open-task-manager error:', err);
+    }
+  });
 }
 
 /**
