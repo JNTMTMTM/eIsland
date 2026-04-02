@@ -6,6 +6,7 @@
 
 import React from 'react';
 import useIslandStore from '../../../../store/slices';
+import '../../../../styles/hover/weather-tab.css';
 
 /** 获取星期标签 */
 function getWeekLabel(index: number): string {
@@ -21,12 +22,12 @@ export function WeatherTab(): React.ReactElement {
   const location = useIslandStore(s => s.location);
 
   return (
-    <div className="flex items-center gap-3 text-white">
+    <div className="weather-tab">
       {/* 左侧：今日天气标题 + 当前天气（垂直排列） + 位置信息 */}
-      <div className="flex items-center gap-3">
-        <div className="flex flex-col items-center gap-0.5">
+      <div className="weather-tab-left">
+        <div className="weather-tab-current">
           <span className="text-[10px] opacity-60 leading-tight">今日天气</span>
-          <div className="flex items-center gap-2">
+          <div className="weather-tab-temp">
             <span className="text-xl font-medium leading-none tabular-nums">
               {weather.temperature}°
             </span>
@@ -35,7 +36,7 @@ export function WeatherTab(): React.ReactElement {
             </span>
           </div>
         </div>
-        <div className="flex flex-col items-center gap-0.5">
+        <div className="weather-tab-location">
           <span className="text-[10px] opacity-60 leading-tight">
             {location?.city ?? '未知'}
           </span>
@@ -46,12 +47,12 @@ export function WeatherTab(): React.ReactElement {
       </div>
 
       {/* 分隔线 */}
-      <div className="w-px h-14 bg-white opacity-20" />
+      <div className="weather-tab-divider" />
 
       {/* 右侧：未来两天预报 - 上下排列，完整参数 */}
-      <div className="flex flex-col gap-1.5">
+      <div className="weather-tab-forecast">
         {weather.forecast.map((day, index) => (
-          <div key={index} className="flex items-center gap-2">
+          <div key={index} className="weather-tab-forecast-row">
             <span className="text-xs opacity-60 w-6 leading-none">{getWeekLabel(index)}</span>
             <span className="text-xs leading-none w-6">{day.description}</span>
             <span className="text-[10px] opacity-40 leading-none">雨{day.precipitationProbability}%</span>
