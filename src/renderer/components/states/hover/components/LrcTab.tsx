@@ -48,25 +48,14 @@ export function LyricsTab(): React.ReactElement {
   const {
     isMusicPlaying,
     isPlaying,
-    currentLyricText,
     mediaInfo,
     coverImage,
-    lrcMode,
-    setLrcMode,
   } = useIslandStore();
 
   // 媒体控制
   const handlePlayPause = () => window.api?.mediaPlayPause();
   const handlePrev = () => window.api?.mediaPrev();
   const handleNext = () => window.api?.mediaNext();
-
-  // 切换歌词模式
-  const toggleLrcMode = () => {
-    const modes: Array<'lrc' | 'info' | 'off'> = ['lrc', 'info', 'off'];
-    const currentIndex = modes.indexOf(lrcMode);
-    const nextIndex = (currentIndex + 1) % modes.length;
-    setLrcMode(modes[nextIndex]);
-  };
 
   // 歌曲信息展示文本
   const artistText = mediaInfo.artist || '未知艺术家';
@@ -87,21 +76,12 @@ export function LyricsTab(): React.ReactElement {
       {/* 右侧：歌曲信息区域 */}
       <div className="lrc-info-section">
         {/* 歌曲标题 */}
-        <div
-          className={`lrc-title ${!isMusicPlaying ? 'inactive' : ''}`}
-          onClick={isMusicPlaying ? toggleLrcMode : undefined}
-          title={isMusicPlaying ? `歌词模式: ${lrcMode}` : undefined}
-        >
+        <div className={`lrc-title ${!isMusicPlaying ? 'inactive' : ''}`}>
           {albumText}
         </div>
 
         {/* 艺术家 */}
         <div className="lrc-artist">{artistText}</div>
-
-        {/* 歌词内容（仅在歌词模式下显示） */}
-        {isMusicPlaying && lrcMode === 'lrc' && currentLyricText && (
-          <div className="lrc-o3ic-text">{currentLyricText}</div>
-        )}
       </div>
 
       {/* 播放控制按钮 */}
