@@ -23,9 +23,16 @@
 /** 计时器主体 */
 .timer-main {
   display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.timer-main-row {
+  display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 10px;
+  gap: 6px;
 }
 
 /** 计时器输入框模式 */
@@ -150,4 +157,18 @@
   height: 28px;
   background: rgba(255, 255, 255, 0.2);
   margin: 0 4px;
+}
+
+/** 计时器标题 */
+.timer-title {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.timer-title-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
 }

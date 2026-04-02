@@ -108,8 +108,15 @@ export function CountdownEdit(): React.ReactElement {
       <div className="timer-tools-divider" />
 
       <div className="timer-main">
-        {isEditing ? (
-          <div className="timer-inputs">
+        <div className="timer-title-row">
+          <div className="timer-title">
+            <span className="text-[10px] text-white leading-tight">倒计时</span>
+          </div>
+          <span className="text-[10px] text-white opacity-60 leading-tight ml-2">滚动滚轮编辑时间</span>
+        </div>
+        <div className="timer-main-row">
+          {isEditing ? (
+            <div className="timer-inputs">
             <input
               type="text"
               className="timer-input"
@@ -165,8 +172,8 @@ export function CountdownEdit(): React.ReactElement {
             <img src={SvgIcon.REVERT} alt="重置" className="timer-btn-icon" />
           </button>
         </div>
+        </div>
       </div>
     </div>
   );
 }
-
