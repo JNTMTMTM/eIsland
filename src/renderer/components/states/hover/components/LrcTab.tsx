@@ -46,7 +46,7 @@ export function LyricsTab(): React.ReactElement {
   const albumText = truncateByVisualWidth(mediaInfo.title || '未知歌曲', 35);
 
   return (
-    <div className="lrc-tab-wrapper">
+    <div className={`lrc-tab-wrapper ${isPlaying ? 'playing' : ''}`}>
       <div className="lrc-vinyl-disc">
         <div
           className="lrc-vinyl-cover"
@@ -97,6 +97,12 @@ export function LyricsTab(): React.ReactElement {
           <span>♪</span>
         </div>
       )}
+
+      <div className="lrc-wave-container">
+        <div className="lrc-wave lrc-wave-1" />
+        <div className="lrc-wave lrc-wave-2" />
+        <div className="lrc-wave lrc-wave-3" />
+      </div>
     </div>
   );
 }
