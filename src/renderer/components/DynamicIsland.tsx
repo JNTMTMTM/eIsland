@@ -11,6 +11,7 @@ import { IdleContent } from './states/idle/IdleContent';
 import { HoverContent } from './states/hover/HoverContent';
 import { NotificationContent } from './states/notification/NotificationContent';
 import { ExpandedContent } from './states/expand/ExpandedContent';
+import { SvgIcon } from '../utils/SvgIcon';
 import type { NowPlayingInfo } from '../store/isLandStore';
 
 /** 灵动岛状态类型 */
@@ -159,7 +160,7 @@ function DynamicIsland(): React.JSX.Element {
           setNotificationRef.current({
             title: '计时器',
             body: '倒计时已结束',
-            icon: '/svg/TIMER.svg'
+            icon: SvgIcon.TIMER
           });
         } else {
           setTimerData({ remainingSeconds: next });

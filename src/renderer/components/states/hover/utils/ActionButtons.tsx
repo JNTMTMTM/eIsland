@@ -5,9 +5,7 @@
  */
 
 import React from 'react';
-
-const HIDE_SVG = '/svg/HIDE.svg';
-const POWER_OFF_SVG = '/svg/POWER_OFF.svg';
+import { SvgIcon } from '../../../../utils/SvgIcon';
 
 interface ActionButtonsProps {
   /** 隐藏图标路径 */
@@ -21,8 +19,8 @@ interface ActionButtonsProps {
  * @description 提供隐藏灵动岛和退出应用两个功能按钮
  */
 export function ActionButtons({
-  hideIcon = HIDE_SVG,
-  powerOffIcon = POWER_OFF_SVG,
+  hideIcon = SvgIcon.HIDE,
+  powerOffIcon = SvgIcon.POWER_OFF,
 }: ActionButtonsProps): React.ReactElement {
   const handleHide = (): void => {
     window.api.collapseWindow();

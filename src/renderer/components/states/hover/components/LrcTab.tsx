@@ -5,11 +5,7 @@
  */
 
 import useIslandStore from '../../../../store/isLandStore';
-
-const PAUSE_SVG = '/svg/PAUSE.svg';
-const CONTINUE_SVG = '/svg/CONTINUE.svg';
-const PREV_SVG = '/svg/PREVIOUS_SONG.svg';
-const NEXT_SVG = '/svg/NEXT_SONG.svg';
+import { SvgIcon } from '../../../../utils/SvgIcon';
 
 /**
  * 按视觉宽度截断文本（支持中日韩多字节字符）
@@ -75,7 +71,7 @@ export function LyricsTab(): React.ReactElement {
             onClick={(e) => { e.stopPropagation(); handlePrev(); }}
             title="上一曲"
           >
-            <img src={PREV_SVG} alt="上一曲" className="lrc-media-btn-icon lrc-media-btn-icon--sm" />
+            <img src={SvgIcon.PREVIOUS_SONG} alt="上一曲" className="lrc-media-btn-icon lrc-media-btn-icon--sm" />
           </button>
           <button
             className="lrc-media-btn lrc-play-btn"
@@ -83,9 +79,9 @@ export function LyricsTab(): React.ReactElement {
             title={isPlaying ? '暂停' : '播放'}
           >
             {isPlaying ? (
-              <img src={PAUSE_SVG} alt="暂停" className="lrc-media-btn-icon" />
+              <img src={SvgIcon.PAUSE} alt="暂停" className="lrc-media-btn-icon" />
             ) : (
-              <img src={CONTINUE_SVG} alt="播放" className="lrc-media-btn-icon" />
+              <img src={SvgIcon.CONTINUE} alt="播放" className="lrc-media-btn-icon" />
             )}
           </button>
           <button
@@ -93,7 +89,7 @@ export function LyricsTab(): React.ReactElement {
             onClick={(e) => { e.stopPropagation(); handleNext(); }}
             title="下一曲"
           >
-            <img src={NEXT_SVG} alt="下一曲" className="lrc-media-btn-icon lrc-media-btn-icon--sm" />
+            <img src={SvgIcon.NEXT_SONG} alt="下一曲" className="lrc-media-btn-icon lrc-media-btn-icon--sm" />
           </button>
         </div>
       )}
