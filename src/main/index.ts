@@ -214,6 +214,7 @@ function registerIpcHandlers(): void {
   ipcMain.handle('media:get-volume', async () => {
     try {
       await nowPlayingPlayer?.setVolume(0); // 查询当前音量
+    // node-nowplaying 不支持查询当前音量，忽略错误并返回默认值
     } catch {
       // ignore
     }

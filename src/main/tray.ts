@@ -4,7 +4,7 @@
  * @author 鸡哥
  */
 
-import { Tray, Menu, nativeImage, NativeImage, BrowserWindow, app } from 'electron';
+import { Tray, Menu, nativeImage, BrowserWindow, app } from 'electron';
 import { join } from 'path';
 
 let tray: Tray | null = null;
@@ -15,19 +15,11 @@ let tray: Tray | null = null;
 const TRAY_ICON_PATH = join(__dirname, '../../resources/icon/eisland_16x16.ico');
 
 /**
- * 创建托盘图标
- * @description 从 resources 目录加载 ICO 文件
- */
-function createTrayIcon(): NativeImage {
-  return nativeImage.createFromPath(TRAY_ICON_PATH);
-}
-
-/**
  * 创建系统托盘
  * @description 初始化托盘图标、右键菜单，提供退出和显示窗口功能
  */
 function createTray(mainWindow: BrowserWindow | null): Tray {
-  const icon = createTrayIcon();
+  const icon = nativeImage.createFromPath(TRAY_ICON_PATH);
   tray = new Tray(icon);
 
   const contextMenu = Menu.buildFromTemplate([
@@ -61,11 +53,4 @@ function createTray(mainWindow: BrowserWindow | null): Tray {
   return tray;
 }
 
-/**
- * 获取托盘实例
- */
-function getTray(): Tray | null {
-  return tray;
-}
-
-export { createTray, getTray, createTrayIcon };
+export { createTray };

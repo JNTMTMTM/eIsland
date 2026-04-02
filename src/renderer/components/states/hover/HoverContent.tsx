@@ -60,10 +60,8 @@ export function HoverContent({
 
   return (
     <div className="hover-content" ref={contentRef}>
-      {/* 左侧操作按钮 */}
       <ActionButtons />
 
-      {/* 左侧竖向导航点 */}
       <div className="hover-nav-dots">
         {NAV_DOTS.map(({ tab, label }) => (
           <button
@@ -76,7 +74,6 @@ export function HoverContent({
         ))}
       </div>
 
-      {/* 右侧内容区域 */}
       <div className="hover-tab-content">
         {hoverTab === 'time' && (
           <div className="time-tab-wrapper">

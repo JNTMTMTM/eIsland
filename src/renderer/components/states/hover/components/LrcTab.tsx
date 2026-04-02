@@ -52,18 +52,15 @@ export function LyricsTab(): React.ReactElement {
     coverImage,
   } = useIslandStore();
 
-  // 媒体控制
   const handlePlayPause = () => window.api?.mediaPlayPause();
   const handlePrev = () => window.api?.mediaPrev();
   const handleNext = () => window.api?.mediaNext();
 
-  // 歌曲信息展示文本
   const artistText = mediaInfo.artist || '未知艺术家';
   const albumText = mediaInfo.title || '未知歌曲';
 
   return (
     <div className="lrc-tab-wrapper">
-      {/* 左侧：旋转唱片 */}
       <div className={`lrc-vinyl-disc ${isPlaying ? '' : 'paused'}`}>
         <div className="lrc-vinyl-grooves" />
         <div
@@ -73,18 +70,14 @@ export function LyricsTab(): React.ReactElement {
         <div className="lrc-vinyl-center" />
       </div>
 
-      {/* 右侧：歌曲信息区域 */}
       <div className="lrc-info-section">
-        {/* 歌曲标题 */}
         <div className={`lrc-title ${!isMusicPlaying ? 'inactive' : ''}`}>
           {albumText}
         </div>
 
-        {/* 艺术家 */}
         <div className="lrc-artist">{artistText}</div>
       </div>
 
-      {/* 播放控制按钮 */}
       {isMusicPlaying && (
         <div className="lrc-media-controls">
           <button
@@ -111,7 +104,6 @@ export function LyricsTab(): React.ReactElement {
         </div>
       )}
 
-      {/* 未播放状态提示 */}
       {!isMusicPlaying && (
         <div className="lrc-empty-hint">
           <span>♪</span>

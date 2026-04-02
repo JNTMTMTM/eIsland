@@ -20,6 +20,11 @@ export interface WeatherWithLocation {
   location: LocationInfo;
 }
 
+/**
+ * 将 WMO 天气代码映射为中文描述
+ * @param code - WMO 天气代码
+ * @returns 中文天气描述
+ */
 function mapWeatherDescription(code: number): string {
   const map: Record<number, string> = {
     0: '晴',
