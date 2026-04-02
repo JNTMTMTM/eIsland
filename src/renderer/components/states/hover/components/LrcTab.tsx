@@ -4,6 +4,8 @@
  * @author 鸡哥
  */
 
+import { useState, useEffect } from 'react';
+import { getColor } from 'colorthief';
 import useIslandStore from '../../../../store/slices';
 import { SvgIcon } from '../../../../utils/SvgIcon';
 
@@ -38,12 +40,36 @@ export function LyricsTab(): React.ReactElement {
     coverImage,
   } = useIslandStore();
 
+  const [dominantColor, setDominantColor] = useState<[number, number, number]>([255, 255, 255]);
+
+  useEffect(() => {
+    if (!coverImage) return;
+
+    const img = new Image();
+    img.crossOrigin = 'Anonymous';
+    img.src = coverImage;
+
+    img.onload = async () => {
+      try {
+        const color = await getColor(img, { colorSpace: 'rgb' });
+        if (color) {
+          const { r, g, b } = color.rgb();
+          setDominantColor([r, g, b]);
+        }
+      } catch (e) {
+        console.error('ColorThief error:', e);
+      }
+    };
+  }, [coverImage]);
+
   const handlePlayPause = () => window.api?.mediaPlayPause();
   const handlePrev = () => window.api?.mediaPrev();
   const handleNext = () => window.api?.mediaNext();
 
   const artistText = truncateByVisualWidth(mediaInfo.artist || '未知艺术家', 35);
   const albumText = truncateByVisualWidth(mediaInfo.title || '未知歌曲', 35);
+
+  const [r, g, b] = dominantColor;
 
   return (
     <div className={`lrc-tab-wrapper ${isPlaying ? 'playing' : ''}`}>
@@ -98,7 +124,14 @@ export function LyricsTab(): React.ReactElement {
         </div>
       )}
 
-      <div className="lrc-wave-container">
+      <div
+        className="lrc-wave-container"
+        style={{
+          '--wave-color-1': `rgba(${r}, ${g}, ${b}, 0.3)`,
+          '--wave-color-2': `rgba(${r}, ${g}, ${b}, 0.2)`,
+          '--wave-color-3': `rgba(${r}, ${g}, ${b}, 0.1)`,
+        } as React.CSSProperties}
+      >
         <div className="lrc-wave lrc-wave-1" />
         <div className="lrc-wave lrc-wave-2" />
         <div className="lrc-wave lrc-wave-3" />

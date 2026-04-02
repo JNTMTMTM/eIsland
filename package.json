@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.2.2",
+    "colorthief": "^3.3.1",
     "lunar-javascript": "^1.7.7",
     "lyric-resolver": "^0.1.6",
     "node-nowplaying": "^0.1.0",
