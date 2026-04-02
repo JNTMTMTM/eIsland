@@ -60,6 +60,11 @@ export function LyricsTab(): React.ReactElement {
         console.error('ColorThief error:', e);
       }
     };
+
+    return () => {
+      img.onload = null;
+      img.src = '';
+    };
   }, [coverImage]);
 
   const handlePlayPause = () => window.api?.mediaPlayPause();

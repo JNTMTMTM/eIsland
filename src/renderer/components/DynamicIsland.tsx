@@ -4,7 +4,7 @@
  * @author 鸡哥
  */
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useLayoutEffect } from 'react';
 import useIslandStore from '../store/isLandStore';
 import { formatTime, formatFullTime, getDayName, getLunarDate } from '../utils/timeUtils';
 import { IdleContent } from './states/idle/IdleContent';
@@ -118,9 +118,16 @@ interface StateRenderer {
 function DynamicIsland(): React.JSX.Element {
   const { state, weather, setHover, setIdle, timerData, setTimerData, notification, setNotification, handleNowPlayingUpdate, updateProgress } = useIslandStore();
   const handleNowPlayingUpdateRef = useRef(handleNowPlayingUpdate);
-  handleNowPlayingUpdateRef.current = handleNowPlayingUpdate;
   const updateProgressRef = useRef(updateProgress);
-  updateProgressRef.current = updateProgress;
+
+  // 使用 useLayoutEffect 确保 ref 在渲染后同步更新，避免闭包捕获过期函数
+  useLayoutEffect(() => {
+    handleNowPlayingUpdateRef.current = handleNowPlayingUpdate;
+  });
+
+  useLayoutEffect(() => {
+    updateProgressRef.current = updateProgress;
+  });
 
   // 用于平滑进度插值的基准数据（来自 node-nowplaying 事件）
   const progressBaseRef = useRef({ positionMs: 0, durationMs: 0, timestamp: 0 });
@@ -133,7 +140,11 @@ function DynamicIsland(): React.JSX.Element {
   const leaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const timerIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const setNotificationRef = useRef(setNotification);
-  setNotificationRef.current = setNotification;
+
+  // 同步 ref 以在回调中使用最新函数
+  useLayoutEffect(() => {
+    setNotificationRef.current = setNotification;
+  });
 
   const [timeStr, setTimeStr] = useState(() => formatTime(new Date()));
   const [dayStr, setDayStr] = useState(() => getDayName(new Date()));

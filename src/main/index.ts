@@ -7,7 +7,7 @@
 import { app, BrowserWindow, shell, screen, ipcMain, desktopCapturer } from 'electron';
 import { join } from 'path';
 import { electronApp, optimizer, is } from '@electron-toolkit/utils';
-import { createTray } from './tray';
+import { createTray, destroyTray } from './tray';
 import { NowPlaying } from 'node-nowplaying';
 
 /** 防止 Electron 创建多个实例 */
@@ -18,8 +18,8 @@ if (!gotTheLock) {
 
 let mainWindow: BrowserWindow | null = null;
 
-/** NowPlaying 全局实例，用于歌曲信息监听和控制命令 */
-let nowPlayingPlayer: NowPlaying | null = null;
+/** NowPlaying 局部实例引用 */
+let nowPlaying: NowPlaying | null = null;
 
 /** 灵动岛尺寸常量 */
 const ISLAND_WIDTH = 240;
@@ -200,7 +200,7 @@ function registerIpcHandlers(): void {
   ipcMain.handle('media:play-pause', async () => {
     if (!isWhitelisted()) return;
     try {
-      await nowPlayingPlayer?.playPause(currentDeviceId);
+      await nowPlaying?.playPause(currentDeviceId);
     } catch (err) {
       console.error('[Media] playPause error:', err);
     }
@@ -209,7 +209,7 @@ function registerIpcHandlers(): void {
   ipcMain.handle('media:next', async () => {
     if (!isWhitelisted()) return;
     try {
-      await nowPlayingPlayer?.nextTrack(currentDeviceId);
+      await nowPlaying?.nextTrack(currentDeviceId);
     } catch (err) {
       console.error('[Media] nextTrack error:', err);
     }
@@ -218,7 +218,7 @@ function registerIpcHandlers(): void {
   ipcMain.handle('media:prev', async () => {
     if (!isWhitelisted()) return;
     try {
-      await nowPlayingPlayer?.previousTrack(currentDeviceId);
+      await nowPlaying?.previousTrack(currentDeviceId);
     } catch (err) {
       console.error('[Media] previousTrack error:', err);
     }
@@ -227,7 +227,7 @@ function registerIpcHandlers(): void {
   ipcMain.handle('media:seek', async (_event, positionMs: number) => {
     if (!isWhitelisted()) return;
     try {
-      await nowPlayingPlayer?.seekTo(positionMs, currentDeviceId);
+      await nowPlaying?.seekTo(positionMs, currentDeviceId);
     } catch (err) {
       console.error('[Media] seekTo error:', err);
     }
@@ -236,7 +236,7 @@ function registerIpcHandlers(): void {
   ipcMain.handle('media:get-volume', async () => {
     if (!isWhitelisted()) return 0.5;
     try {
-      await nowPlayingPlayer?.setVolume(0, currentDeviceId); // 查询当前音量
+      await nowPlaying?.setVolume(0, currentDeviceId); // 查询当前音量
     // node-nowplaying 不支持查询当前音量，忽略错误并返回默认值
     } catch {
       // ignore
@@ -247,7 +247,7 @@ function registerIpcHandlers(): void {
   ipcMain.handle('media:set-volume', async (_event, volume: number) => {
     if (!isWhitelisted()) return;
     try {
-      await nowPlayingPlayer?.setVolume(volume, currentDeviceId);
+      await nowPlaying?.setVolume(volume, currentDeviceId);
     } catch (err) {
       console.error('[Media] setVolume error:', err);
     }
@@ -290,7 +290,7 @@ function registerIpcHandlers(): void {
  */
 function initNowPlaying(mainWindow: BrowserWindow | null): void {
   try {
-    nowPlayingPlayer = new NowPlaying((info) => {
+    nowPlaying = new NowPlaying((info) => {
       if (!mainWindow || mainWindow.isDestroyed()) {
         return;
       }
@@ -327,7 +327,7 @@ function initNowPlaying(mainWindow: BrowserWindow | null): void {
       mainWindow.webContents.send('nowplaying:info', payload);
     });
 
-    nowPlayingPlayer.subscribe()
+    nowPlaying.subscribe()
       .then(() => {
         // 订阅成功
       })
@@ -337,6 +337,14 @@ function initNowPlaying(mainWindow: BrowserWindow | null): void {
   } catch (err) {
     console.error('[NowPlaying] init error:', err);
   }
+}
+
+/**
+ * 清理 node-nowplaying 资源
+ * @description 应用退出时调用，释放实例
+ */
+function cleanupNowPlaying(): void {
+  nowPlaying = null;
 }
 
 /** 单实例锁回调 */
@@ -360,7 +368,7 @@ app.whenReady().then(() => {
   createWindow();
   createTray(mainWindow);
 
-  // 初始化 node-nowplaying 必须在 IPC 处理器之前，确保 nowPlayingPlayer 已就绪
+  // 初始化 node-nowplaying 必须在 IPC 处理器之前，确保 nowPlaying 已就绪
   initNowPlaying(mainWindow);
 
   registerIpcHandlers();
@@ -371,6 +379,8 @@ app.whenReady().then(() => {
 });
 
 app.on('window-all-closed', () => {
+  cleanupNowPlaying();
+  destroyTray();
   if (process.platform !== 'darwin') {
     app.quit();
   }

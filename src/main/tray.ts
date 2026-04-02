@@ -53,4 +53,15 @@ function createTray(mainWindow: BrowserWindow | null): Tray {
   return tray;
 }
 
-export { createTray };
+/**
+ * 销毁系统托盘
+ * @description 应用退出时调用，释放托盘资源
+ */
+function destroyTray(): void {
+  if (tray) {
+    tray.destroy();
+    tray = null;
+  }
+}
+
+export { createTray, destroyTray };
