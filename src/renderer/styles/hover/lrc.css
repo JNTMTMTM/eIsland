@@ -18,67 +18,29 @@
 .lrc-vinyl-disc {
   width: 36px;
   height: 36px;
-  border-radius: 50%;
-  background: radial-gradient(circle at center,
-      #1a1a1a 0%,
-      #111 28%,
-      #1a1a1a 30%,
-      #222 100%
-  );
+  border-radius: 4px;
+  background: #111;
   flex-shrink: 0;
   position: relative;
-  animation: vinyl-spin 8s linear infinite;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
-}
-
-.lrc-vinyl-disc.paused {
-  animation-play-state: paused;
-}
-
-@keyframes vinyl-spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-.lrc-vinyl-grooves {
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  background: repeating-radial-gradient(
-      circle at center,
-      transparent 0px,
-      rgba(255, 255, 255, 0.03) 1px,
-      transparent 2px,
-      transparent 3px
-  );
-  pointer-events: none;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .lrc-vinyl-cover {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
+  top: 2px;
+  left: 2px;
+  right: 2px;
+  bottom: 2px;
+  border-radius: 2px;
   background: #333;
   background-size: cover;
   background-position: center;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  z-index: 1;
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .lrc-vinyl-center {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  background: #555;
-  z-index: 2;
+  display: none;
 }
 
 /* --- 歌词与信息区域 --- */

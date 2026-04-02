@@ -47,13 +47,11 @@ export function LyricsTab(): React.ReactElement {
 
   return (
     <div className="lrc-tab-wrapper">
-      <div className={`lrc-vinyl-disc ${isPlaying ? '' : 'paused'}`}>
-        <div className="lrc-vinyl-grooves" />
+      <div className="lrc-vinyl-disc">
         <div
           className="lrc-vinyl-cover"
           style={coverImage ? { backgroundImage: `url(${coverImage})` } : undefined}
         />
-        <div className="lrc-vinyl-center" />
       </div>
 
       <div className="lrc-info-section">
