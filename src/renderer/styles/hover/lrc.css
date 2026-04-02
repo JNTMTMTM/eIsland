@@ -15,6 +15,7 @@
   position: relative;
   overflow: hidden;
   border-radius: 4px;
+  white-space: nowrap;
 }
 
 /* --- 波浪动画 --- */

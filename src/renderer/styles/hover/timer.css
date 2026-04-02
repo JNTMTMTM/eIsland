@@ -9,6 +9,7 @@
   flex-direction: row;
   align-items: center;
   gap: 12px;
+  white-space: nowrap;
 }
 
 /** 计时器容器 */

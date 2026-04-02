@@ -8,6 +8,7 @@
   align-items: center;
   gap: 12px;
   color: white;
+  white-space: nowrap;
 }
 
 .weather-tab-left {
@@ -52,4 +53,5 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  white-space: nowrap;
 }

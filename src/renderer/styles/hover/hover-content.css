@@ -30,6 +30,8 @@
   align-items: center;
   justify-content: flex-end;
   animation: fadeSlideIn 0.2s ease;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 @keyframes fadeSlideIn {
