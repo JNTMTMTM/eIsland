@@ -30,7 +30,8 @@ const EXPANDED_HEIGHT = 60;
 /** 播放程序白名单 - 只有在白名单中的程序才会执行歌曲相关操作 */
 const NOW_PLAYING_WHITELIST = [
     'QQMusic.exe',
-    'cloudmusic.exe'
+    'cloudmusic.exe',
+    '汽水音乐'
 ];
 
 /** 记录当前生效的设备ID（仅白名单内程序） */
@@ -198,7 +199,7 @@ function registerIpcHandlers(): void {
   ipcMain.handle('media:play-pause', async () => {
     if (!isWhitelisted()) return;
     try {
-      await nowPlayingPlayer?.playPause();
+      await nowPlayingPlayer?.playPause(currentDeviceId);
     } catch (err) {
       console.error('[Media] playPause error:', err);
     }
@@ -207,7 +208,7 @@ function registerIpcHandlers(): void {
   ipcMain.handle('media:next', async () => {
     if (!isWhitelisted()) return;
     try {
-      await nowPlayingPlayer?.nextTrack();
+      await nowPlayingPlayer?.nextTrack(currentDeviceId);
     } catch (err) {
       console.error('[Media] nextTrack error:', err);
     }
@@ -216,7 +217,7 @@ function registerIpcHandlers(): void {
   ipcMain.handle('media:prev', async () => {
     if (!isWhitelisted()) return;
     try {
-      await nowPlayingPlayer?.previousTrack();
+      await nowPlayingPlayer?.previousTrack(currentDeviceId);
     } catch (err) {
       console.error('[Media] previousTrack error:', err);
     }
@@ -225,7 +226,7 @@ function registerIpcHandlers(): void {
   ipcMain.handle('media:seek', async (_event, positionMs: number) => {
     if (!isWhitelisted()) return;
     try {
-      await nowPlayingPlayer?.seekTo(positionMs);
+      await nowPlayingPlayer?.seekTo(positionMs, currentDeviceId);
     } catch (err) {
       console.error('[Media] seekTo error:', err);
     }
@@ -234,7 +235,7 @@ function registerIpcHandlers(): void {
   ipcMain.handle('media:get-volume', async () => {
     if (!isWhitelisted()) return 0.5;
     try {
-      await nowPlayingPlayer?.setVolume(0); // 查询当前音量
+      await nowPlayingPlayer?.setVolume(0, currentDeviceId); // 查询当前音量
     // node-nowplaying 不支持查询当前音量，忽略错误并返回默认值
     } catch {
       // ignore
@@ -245,7 +246,7 @@ function registerIpcHandlers(): void {
   ipcMain.handle('media:set-volume', async (_event, volume: number) => {
     if (!isWhitelisted()) return;
     try {
-      await nowPlayingPlayer?.setVolume(volume);
+      await nowPlayingPlayer?.setVolume(volume, currentDeviceId);
     } catch (err) {
       console.error('[Media] setVolume error:', err);
     }
@@ -303,6 +304,9 @@ function initNowPlaying(mainWindow: BrowserWindow | null): void {
       if (!NOW_PLAYING_WHITELIST.some(name => deviceId.includes(name))) {
         return;
       }
+
+      // 更新当前激活的设备ID
+      currentDeviceId = deviceId;
 
       const payload = {
         title: info.trackName || '',
