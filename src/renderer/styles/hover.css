@@ -234,8 +234,9 @@
 /** 工具按钮组与计时器之间的垂直分割线 */
 .timer-tools-divider {
   width: 1px;
-  height: 32px;
+  height: 28px;
   background: rgba(255, 255, 255, 0.2);
+  margin: 0 4px;
 }
 
 .timer-btn {
