@@ -31,7 +31,8 @@ const EXPANDED_HEIGHT = 60;
 const NOW_PLAYING_WHITELIST = [
     'QQMusic.exe',
     'cloudmusic.exe',
-    '汽水音乐'
+    '汽水音乐',
+    'kugou'
 ];
 
 /** 记录当前生效的设备ID（仅白名单内程序） */
