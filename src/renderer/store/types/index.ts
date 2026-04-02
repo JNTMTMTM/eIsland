@@ -1,6 +1,7 @@
 /**
  * @file index.ts
  * @description 灵动岛 Store 类型定义
+ * @author 鸡哥
  */
 
 import type { LocationInfo } from '../../api/locationApi';

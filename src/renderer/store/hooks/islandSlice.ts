@@ -1,6 +1,7 @@
 /**
  * @file islandSlice.ts
  * @description 灵动岛 UI 状态相关逻辑
+ * @author 鸡哥
  */
 
 import type { StateCreator } from 'zustand';

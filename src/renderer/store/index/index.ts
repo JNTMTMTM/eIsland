@@ -1,6 +1,7 @@
 /**
  * @file index.ts
  * @description 灵动岛 Store 模块统一导出
+ * @author 鸡哥
  */
 
 // Store

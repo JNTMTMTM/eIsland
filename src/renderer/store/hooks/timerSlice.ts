@@ -1,6 +1,7 @@
 /**
  * @file timerSlice.ts
  * @description 计时器相关逻辑
+ * @author 鸡哥
  */
 
 import type { StateCreator } from 'zustand';

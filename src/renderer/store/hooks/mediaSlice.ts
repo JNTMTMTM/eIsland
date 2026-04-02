@@ -1,6 +1,7 @@
 /**
  * @file mediaSlice.ts
  * @description 媒体/音乐相关逻辑
+ * @author 鸡哥
  */
 
 import type { StateCreator } from 'zustand';

@@ -1,6 +1,7 @@
 /**
  * @file defaults.ts
  * @description 灵动岛 Store 默认值配置
+ * @author 鸡哥
  */
 
 import type { CountdownConfig, TimerData } from '../types';

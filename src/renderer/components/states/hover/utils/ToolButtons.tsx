@@ -1,6 +1,7 @@
 /**
  * @file ToolButtons.tsx
  * @description 截图和任务管理器工具按钮组件
+ * @author 鸡哥
  */
 
 import React, { useCallback } from 'react';
