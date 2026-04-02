@@ -4,7 +4,7 @@
  * @author 鸡哥
  */
 
-import useIslandStore from '../../../../store/isLandStore';
+import useIslandStore from '../../../../store/hooks';
 import { SvgIcon } from '../../../../utils/SvgIcon';
 
 /**

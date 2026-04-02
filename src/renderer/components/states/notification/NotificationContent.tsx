@@ -5,7 +5,7 @@
  */
 
 import React, { useEffect, useRef } from 'react';
-import useIslandStore from '../../../store/isLandStore';
+import useIslandStore from '../../../store/hooks';
 import '../../../styles/notification/notification.css';
 
 interface NotificationContentProps {

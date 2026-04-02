@@ -5,7 +5,7 @@
  */
 
 import React, { useCallback } from 'react';
-import useIslandStore from '../../../../store/isLandStore';
+import useIslandStore from '../../../../store/hooks/';
 import { SvgIcon } from '../../../../utils/SvgIcon';
 import { ToolButtons } from './ToolButtons';
 

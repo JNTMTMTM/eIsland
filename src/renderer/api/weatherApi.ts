@@ -6,7 +6,7 @@
 
 import { fetchWeatherApi } from 'openmeteo';
 import { fetchLocation, type LocationInfo } from './locationApi';
-import type { WeatherData } from '../store/isLandStore';
+import type { WeatherData } from '../store';
 
 /** 天气接口配置 */
 export interface WeatherApiConfig {

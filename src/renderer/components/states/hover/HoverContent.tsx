@@ -5,7 +5,8 @@
  */
 
 import React, { useEffect, useRef } from 'react';
-import useIslandStore, { HoverTab } from '../../../store/isLandStore';
+import useIslandStore from '../../../store/hooks';
+import type { HoverTab } from '../../../store/types';
 import '../../../styles/hover/hover.css';
 import { TimeTab } from './components/TimeTab';
 import { LyricsTab } from './components/LrcTab';

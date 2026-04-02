@@ -8,7 +8,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import './styles/index.css';
 import DynamicIsland from './components/DynamicIsland';
-import useIslandStore from './store/isLandStore';
+import useIslandStore from './store/hooks';
 
 const root = document.getElementById('root');
 if (!root) {
