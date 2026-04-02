@@ -414,6 +414,17 @@
   fill: currentColor;
 }
 
+.lrc-media-btn-icon {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
+
+.lrc-media-btn-icon--sm {
+  width: 13px;
+  height: 13px;
+}
+
 .lrc-play-btn {
   width: 32px;
   height: 32px;

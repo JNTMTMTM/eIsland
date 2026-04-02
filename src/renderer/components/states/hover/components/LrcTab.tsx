@@ -4,41 +4,12 @@
  * @author 鸡哥
  */
 
-import React from 'react';
 import useIslandStore from '../../../../store/isLandStore';
 
-/** 播放/暂停图标 SVG */
-function PlayIcon({ size = 16 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24">
-      <path d="M8 5v14l11-7z" fill="currentColor" />
-    </svg>
-  );
-}
-
-function PauseIcon({ size = 16 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24">
-      <path d="M6 19h4V5H6zm8-14v14h4V5z" fill="currentColor" />
-    </svg>
-  );
-}
-
-function PrevIcon({ size = 14 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24">
-      <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" fill="currentColor" />
-    </svg>
-  );
-}
-
-function NextIcon({ size = 14 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24">
-      <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6z" fill="currentColor" />
-    </svg>
-  );
-}
+const PAUSE_SVG = '/svg/PAUSE.svg';
+const CONTINUE_SVG = '/svg/CONTINUE.svg';
+const PREV_SVG = '/svg/PREVIOUS_SONG.svg';
+const NEXT_SVG = '/svg/NEXT_SONG.svg';
 
 /**
  * 按视觉宽度截断文本（支持中日韩多字节字符）
@@ -104,21 +75,25 @@ export function LyricsTab(): React.ReactElement {
             onClick={(e) => { e.stopPropagation(); handlePrev(); }}
             title="上一曲"
           >
-            <PrevIcon />
+            <img src={PREV_SVG} alt="上一曲" className="lrc-media-btn-icon lrc-media-btn-icon--sm" />
           </button>
           <button
             className="lrc-media-btn lrc-play-btn"
             onClick={(e) => { e.stopPropagation(); handlePlayPause(); }}
             title={isPlaying ? '暂停' : '播放'}
           >
-            {isPlaying ? <PauseIcon size={18} /> : <PlayIcon size={18} />}
+            {isPlaying ? (
+              <img src={PAUSE_SVG} alt="暂停" className="lrc-media-btn-icon" />
+            ) : (
+              <img src={CONTINUE_SVG} alt="播放" className="lrc-media-btn-icon" />
+            )}
           </button>
           <button
             className="lrc-media-btn"
             onClick={(e) => { e.stopPropagation(); handleNext(); }}
             title="下一曲"
           >
-            <NextIcon />
+            <img src={NEXT_SVG} alt="下一曲" className="lrc-media-btn-icon lrc-media-btn-icon--sm" />
           </button>
         </div>
       )}
