@@ -29,18 +29,18 @@ const EXPANDED_HEIGHT = 60;
 
 /** 播放程序白名单 - 只有在白名单中的程序才会执行歌曲相关操作 */
 const NOW_PLAYING_WHITELIST = [
-    'QQMusic.exe'
+    'QQMusic.exe',
+    'cloudmusic.exe'
 ];
 
 /** 记录当前生效的设备ID（仅白名单内程序） */
-let currentDeviceId: string | null = null;
+let currentDeviceId: string = NOW_PLAYING_WHITELIST[0] || '';
 
 /**
  * 检查当前设备ID是否在白名单内
  */
 function isWhitelisted(): boolean {
-  if (!currentDeviceId) return false;
-  return NOW_PLAYING_WHITELIST.some(name => currentDeviceId!.includes(name));
+  return NOW_PLAYING_WHITELIST.some(name => currentDeviceId.includes(name));
 }
 
 /** 记录窗口初始中心 X 坐标 */
