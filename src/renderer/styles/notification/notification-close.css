@@ -1,0 +1,30 @@
+/**
+ * @file notification-close.css
+ * @description 通知关闭按钮样式
+ */
+
+.notification-close {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.7);
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  margin-left: 12px;
+  transition: background 0.2s ease, transform 0.15s ease;
+}
+
+.notification-close:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.1);
+}
+
+.notification-close:active {
+  transform: scale(0.9);
+}

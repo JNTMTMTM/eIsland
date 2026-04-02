@@ -1,0 +1,152 @@
+/**
+ * @file timer.css
+ * @description 计时器输入框、显示、开始/暂停/重置控制按钮样式
+ */
+
+/** 时间标签页整体容器 - 左侧时间，右侧日期 */
+.time-tab-wrapper {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+}
+
+/** 计时器容器 */
+.timer-container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+}
+
+/** 计时器主体 */
+.timer-main {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+}
+
+/** 计时器输入框模式 */
+.timer-inputs {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 3px;
+}
+
+.timer-input {
+  width: 32px;
+  height: 26px;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 600;
+  text-align: center;
+  border-radius: 5px;
+  outline: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.timer-input:focus {
+  background: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+}
+
+.timer-input:hover {
+  cursor: ns-resize;
+}
+
+.timer-sep {
+  font-size: 18px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/** 计时器显示模式 */
+.timer-display {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 3px;
+}
+
+.timer-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: #ffffff;
+  font-variant-numeric: tabular-nums;
+}
+
+/** 计时器控制按钮 */
+.timer-controls {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+}
+
+/** 工具按钮组（截图、任务管理器） */
+.timer-tools {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+/** 工具按钮组内按钮尺寸覆盖（小于默认 action-btn） */
+.timer-tools .action-btn {
+  width: 26px;
+}
+
+.timer-tools .action-btn-icon {
+  width: 18px;
+  height: 18px;
+}
+
+/** 工具按钮组与计时器之间的垂直分割线 */
+.timer-tools-divider {
+  width: 1px;
+  height: 28px;
+  background: rgba(255, 255, 255, 0.2);
+  margin: 0 4px;
+}
+
+.timer-btn {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: none;
+  border-radius: 5px;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease, transform 0.15s ease;
+}
+
+.timer-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.timer-btn:active {
+  transform: scale(0.9);
+}
+
+.timer-btn-icon {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+}
+
+/** 时间与计时器分割线 */
+.timer-divider {
+  width: 1px;
+  height: 28px;
+  background: rgba(255, 255, 255, 0.2);
+  margin: 0 4px;
+}
