@@ -22,8 +22,8 @@ interface HoverContentProps {
 
 /** 导航点配置 */
 const NAV_DOTS: { tab: HoverTab; label: string }[] = [
-  { tab: 'time', label: '时间' },
-  { tab: 'o3ics', label: '歌词' },
+  { tab: 'time', label: '工具' },
+  { tab: 'o3ics', label: '歌曲' },
 ];
 
 /**

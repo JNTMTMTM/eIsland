@@ -27,6 +27,22 @@ const ISLAND_HEIGHT = 42;
 const EXPANDED_WIDTH = 500;
 const EXPANDED_HEIGHT = 60;
 
+/** 播放程序白名单 - 只有在白名单中的程序才会执行歌曲相关操作 */
+const NOW_PLAYING_WHITELIST = [
+    'QQMusic.exe'
+];
+
+/** 记录当前生效的设备ID（仅白名单内程序） */
+let currentDeviceId: string | null = null;
+
+/**
+ * 检查当前设备ID是否在白名单内
+ */
+function isWhitelisted(): boolean {
+  if (!currentDeviceId) return false;
+  return NOW_PLAYING_WHITELIST.some(name => currentDeviceId!.includes(name));
+}
+
 /** 记录窗口初始中心 X 坐标 */
 let initialCenterX = 0;
 
@@ -180,6 +196,7 @@ function registerIpcHandlers(): void {
 
   // ===== 音乐相关 IPC 处理器 =====
   ipcMain.handle('media:play-pause', async () => {
+    if (!isWhitelisted()) return;
     try {
       await nowPlayingPlayer?.playPause();
     } catch (err) {
@@ -188,6 +205,7 @@ function registerIpcHandlers(): void {
   });
 
   ipcMain.handle('media:next', async () => {
+    if (!isWhitelisted()) return;
     try {
       await nowPlayingPlayer?.nextTrack();
     } catch (err) {
@@ -196,6 +214,7 @@ function registerIpcHandlers(): void {
   });
 
   ipcMain.handle('media:prev', async () => {
+    if (!isWhitelisted()) return;
     try {
       await nowPlayingPlayer?.previousTrack();
     } catch (err) {
@@ -204,6 +223,7 @@ function registerIpcHandlers(): void {
   });
 
   ipcMain.handle('media:seek', async (_event, positionMs: number) => {
+    if (!isWhitelisted()) return;
     try {
       await nowPlayingPlayer?.seekTo(positionMs);
     } catch (err) {
@@ -212,6 +232,7 @@ function registerIpcHandlers(): void {
   });
 
   ipcMain.handle('media:get-volume', async () => {
+    if (!isWhitelisted()) return 0.5;
     try {
       await nowPlayingPlayer?.setVolume(0); // 查询当前音量
     // node-nowplaying 不支持查询当前音量，忽略错误并返回默认值
@@ -222,6 +243,7 @@ function registerIpcHandlers(): void {
   });
 
   ipcMain.handle('media:set-volume', async (_event, volume: number) => {
+    if (!isWhitelisted()) return;
     try {
       await nowPlayingPlayer?.setVolume(volume);
     } catch (err) {
@@ -276,6 +298,12 @@ function initNowPlaying(mainWindow: BrowserWindow | null): void {
         return;
       }
 
+      const deviceId = info.deviceId || '';
+
+      if (!NOW_PLAYING_WHITELIST.some(name => deviceId.includes(name))) {
+        return;
+      }
+
       const payload = {
         title: info.trackName || '',
         artist: Array.isArray(info.artist) ? info.artist.join(', ') : (info.artist || ''),
@@ -289,8 +317,8 @@ function initNowPlaying(mainWindow: BrowserWindow | null): void {
         canLike: info.canLike || false,
         canChangeVolume: info.canChangeVolume || false,
         canSetOutput: info.canSetOutput || false,
+        deviceId: deviceId,
       };
-
       mainWindow.webContents.send('nowplaying:info', payload);
     });
 
