@@ -6,7 +6,6 @@
 
 import React from 'react';
 import useIslandStore from '../../../../store/isLandStore';
-import { calculateProgressPercent } from '../../../../utils/musicUtils';
 
 /** 播放/暂停图标 SVG */
 function PlayIcon({ size = 16 }: { size?: number }) {
@@ -41,24 +40,9 @@ function NextIcon({ size = 14 }: { size?: number }) {
   );
 }
 
-/** 播放进度条组件 */
-function ProgressBar({
-  progressPercent,
-}: {
-  progressPercent: number;
-}) {
-  return (
-    <div className="lrc-progress-bar">
-      <div className="lrc-progress-track">
-        <div className="lrc-progress-fill" style={{ width: `${progressPercent}%` }} />
-      </div>
-    </div>
-  );
-}
-
 /**
  * 歌词 Tab 内容
- * @description 显示当前播放歌词、唱片封面、进度条和播放控制
+ * @description 显示当前播放歌词、唱片封面和播放控制
  */
 export function LyricsTab(): React.ReactElement {
   const {
@@ -66,15 +50,10 @@ export function LyricsTab(): React.ReactElement {
     isPlaying,
     currentLyricText,
     mediaInfo,
-    currentPositionMs,
-    currentDurationMs,
     coverImage,
     lrcMode,
     setLrcMode,
   } = useIslandStore();
-
-  // 当前播放进度百分比
-  const progressPercent = calculateProgressPercent(currentPositionMs, currentDurationMs);
 
   // 媒体控制
   const handlePlayPause = () => window.api?.mediaPlayPause();
@@ -121,12 +100,7 @@ export function LyricsTab(): React.ReactElement {
 
         {/* 歌词内容（仅在歌词模式下显示） */}
         {isMusicPlaying && lrcMode === 'lrc' && currentLyricText && (
-          <div className="lrc-lyric-text">{currentLyricText}</div>
-        )}
-
-        {/* 进度条 */}
-        {isMusicPlaying && (
-          <ProgressBar progressPercent={progressPercent} />
+          <div className="lrc-o3ic-text">{currentLyricText}</div>
         )}
       </div>
 

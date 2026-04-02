@@ -118,6 +118,13 @@ function DynamicIsland(): React.JSX.Element {
   const { state, weather, setHover, setIdle, timerData, setTimerData, notification, setNotification, handleNowPlayingUpdate, updateProgress } = useIslandStore();
   const handleNowPlayingUpdateRef = useRef(handleNowPlayingUpdate);
   handleNowPlayingUpdateRef.current = handleNowPlayingUpdate;
+  const updateProgressRef = useRef(updateProgress);
+  updateProgressRef.current = updateProgress;
+
+  // 用于平滑进度插值的基准数据（来自 node-nowplaying 事件）
+  const progressBaseRef = useRef({ positionMs: 0, durationMs: 0, timestamp: 0 });
+  // rAF 循环 ID，用于停止插值
+  const progressRafRef = useRef<number | null>(null);
 
   const initRef = useRef(false);
   const isHoveringRef = useRef(false);
@@ -190,14 +197,42 @@ function DynamicIsland(): React.JSX.Element {
   // 全局订阅 NowPlaying 歌曲信息（主进程推送）
   // 在 DynamicIsland 层级订阅，确保应用启动时就开始监听
   useEffect(() => {
+    const stopProgressRAF = () => {
+      if (progressRafRef.current !== null) {
+        cancelAnimationFrame(progressRafRef.current);
+        progressRafRef.current = null;
+      }
+    };
     const unsubscribe = window.api?.onNowPlayingInfo((info: NowPlayingInfo | null) => {
       handleNowPlayingUpdateRef.current(info);
-      if (info && info.position_ms) {
-        updateProgress(info.position_ms);
+      if (info && info.position_ms !== undefined) {
+        if (info.isPlaying) {
+          // 重置插值基准：必须无条件更新，确保切歌时 durationMs 也同步刷新
+          progressBaseRef.current = {
+            positionMs: info.position_ms,
+            durationMs: info.duration_ms,
+            timestamp: Date.now(),
+          };
+          // 复用已有循环；若旧循环已停止则自动重新启动
+          if (progressRafRef.current === null) {
+            const tick = () => {
+              const base = progressBaseRef.current;
+              const elapsed = Date.now() - base.timestamp;
+              updateProgressRef.current(base.positionMs + elapsed);
+              progressRafRef.current = requestAnimationFrame(tick);
+            };
+            progressRafRef.current = requestAnimationFrame(tick);
+          }
+        } else {
+          // 暂停时：停止插值并直接设置最终位置
+          stopProgressRAF();
+          updateProgressRef.current(info.position_ms);
+        }
       }
     });
     return () => {
       unsubscribe?.();
+      stopProgressRAF();
     };
   }, []);
 

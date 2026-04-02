@@ -376,50 +376,6 @@
   margin-top: 1px;
 }
 
-/* --- 进度条 --- */
-.lrc-progress-bar {
-  width: 100%;
-  height: 4px;
-  display: flex;
-  align-items: center;
-  position: relative;
-  margin-top: 2px;
-  overflow: visible;
-}
-
-.lrc-progress-bar::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: rgba(255, 255, 255, 0.12);
-  border-radius: 1px;
-}
-
-.lrc-progress-fill {
-  position: absolute;
-  left: 0;
-  height: 2px;
-  background: rgba(255, 255, 255, 0.6);
-  border-radius: 1px;
-}
-
-/* --- 时间显示 --- */
-.lrc-time-row {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  font-size: 9px;
-  color: rgba(255, 255, 255, 0.35);
-  font-variant-numeric: tabular-nums;
-  margin-top: 1px;
-}
-
-.lrc-time-sep {
-  opacity: 0.5;
-}
-
 /* --- 媒体控制按钮 --- */
 .lrc-media-controls {
   display: flex;

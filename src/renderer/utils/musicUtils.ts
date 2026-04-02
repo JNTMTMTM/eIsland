@@ -18,17 +18,6 @@ export function formatMusicTime(ms: number): string {
 }
 
 /**
- * 计算进度百分比
- * @param position_ms 当前播放位置（毫秒）
- * @param duration_ms 总时长（毫秒）
- * @returns 0-100 的百分比数值
- */
-export function calculateProgressPercent(position_ms: number, duration_ms: number): number {
-  if (!duration_ms || duration_ms <= 0) return 0;
-  return Math.min(100, Math.max(0, (position_ms / duration_ms) * 100));
-}
-
-/**
  * 从鼠标事件计算滑块百分比
  * @param e 鼠标事件
  * @param rect 滑块边界矩形
