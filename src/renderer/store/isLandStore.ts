@@ -5,5 +5,5 @@
  * @author 鸡哥
  */
 
-export { default } from './hooks';
+export { default } from './slices';
 export * from './types';

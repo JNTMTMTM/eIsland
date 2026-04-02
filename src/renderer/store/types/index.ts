@@ -6,6 +6,7 @@
 
 import type { LocationInfo } from '../../api/locationApi';
 import type { WeatherApiConfig } from '../../api/weatherApi';
+export type { WeatherApiConfig };
 
 /** 灵动岛 UI 状态枚举 */
 export type IslandState = 'idle' | 'hover' | 'notification';
@@ -108,6 +109,7 @@ export interface NotificationData {
 export interface IslandSlice {
   state: IslandState;
   hoverTab: HoverTab;
+  notification: NotificationData;
   setIdle: () => void;
   setHover: () => void;
   setNotification: (data: NotificationData) => void;
@@ -156,4 +158,4 @@ export interface MediaSlice {
 }
 
 /** 完整 Store 类型 */
-export type IIslandStore = IslandSlice & WeatherSlice & TimerSlice & NotificationSlice & MediaSlice;
+export type IIslandStore = IslandSlice & WeatherSlice & TimerSlice & MediaSlice;

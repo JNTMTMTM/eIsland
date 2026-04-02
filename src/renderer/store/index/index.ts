@@ -5,7 +5,7 @@
  */
 
 // Store
-export { default as useIslandStore } from './hooks';
+export { default as useIslandStore } from '../slices';
 
 // Types
 export type {
@@ -30,4 +30,4 @@ export type {
   TimerSlice,
   NotificationSlice,
   MediaSlice,
-} from './types';
+} from '../types';

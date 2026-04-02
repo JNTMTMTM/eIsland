@@ -6,6 +6,7 @@
 
 import type { StateCreator } from 'zustand';
 import type { IslandSlice } from '../types';
+import { emptyNotification } from '../constants/defaults';
 
 export const createIslandSlice: StateCreator<
   IslandSlice,
@@ -15,6 +16,7 @@ export const createIslandSlice: StateCreator<
 > = (set) => ({
   state: 'idle',
   hoverTab: 'time',
+  notification: emptyNotification,
 
   setIdle: () => {
     window.api?.collapseWindow();
