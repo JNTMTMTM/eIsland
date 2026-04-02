@@ -12,7 +12,7 @@ export type { WeatherApiConfig };
 export type IslandState = 'idle' | 'hover' | 'notification';
 
 /** Hover 状态下的子标签页类型 */
-export type HoverTab = 'time' | 'o3ics';
+export type HoverTab = 'time' | 'o3ics' | 'weather';
 
 /** 歌词显示模式 */
 export type LrcMode = 'off' | 'info' | 'lrc';
@@ -75,12 +75,20 @@ export interface CountdownConfig {
 export interface DayForecast {
   temperature: number;
   description: string;
+  temperatureMax: number;
+  temperatureMin: number;
+  windSpeed: number;
+  uvIndex: number;
+  precipitationProbability: number;
 }
 
 /** 天气数据类型定义 */
 export interface WeatherData {
   temperature: number;
   description: string;
+  humidity: number;
+  windSpeed: number;
+  uvIndex: number;
   forecast: [DayForecast, DayForecast];
 }
 

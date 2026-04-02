@@ -10,6 +10,7 @@ import type { HoverTab } from '../../../store/types';
 import '../../../styles/hover/hover.css';
 import { TimeTab } from './components/TimeTab';
 import { LyricsTab } from './components/LrcTab';
+import { WeatherTab } from './components/WeatherTab';
 import { ActionButtons } from './utils/ActionButtons';
 import { CountdownEdit } from './utils/CountdownEdit';
 
@@ -24,6 +25,7 @@ interface HoverContentProps {
 const NAV_DOTS: { tab: HoverTab; label: string }[] = [
   { tab: 'time', label: '工具' },
   { tab: 'o3ics', label: '歌曲' },
+  { tab: 'weather', label: '天气' },
 ];
 
 /**
@@ -87,6 +89,7 @@ export function HoverContent({
           </div>
         )}
         {hoverTab === 'o3ics' && <LyricsTab />}
+        {hoverTab === 'weather' && <WeatherTab />}
       </div>
     </div>
   );

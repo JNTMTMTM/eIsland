@@ -93,8 +93,20 @@ export async function fetchWeather(
     const responses = await fetchWeatherApi(url, {
       latitude: location.latitude,
       longitude: location.longitude,
-      current: ['temperature_2m', 'weather_code'],
-      daily: ['temperature_2m_max', 'temperature_2m_min', 'weather_code'],
+      current: [
+        'temperature_2m',
+        'weather_code',
+        'relative_humidity_2m',
+        'wind_speed_10m'
+      ],
+      daily: [
+        'temperature_2m_max',
+        'temperature_2m_min',
+        'weather_code',
+        'wind_speed_10m_max',
+        'uv_index_max',
+        'precipitation_probability_max'
+      ],
       timezone: 'auto',
       forecast_days: 3
     });
@@ -102,35 +114,39 @@ export async function fetchWeather(
     const current = responses[0].current()!;
     const temperature = Math.round(current.variables(0)!.value());
     const weatherCode = current.variables(1)!.value();
+    const humidity = Math.round(current.variables(2)!.value());
+    const windSpeed = Math.round(current.variables(3)!.value());
 
     const daily = responses[0].daily()!;
-    const forecast: [ReturnType<typeof mapWeatherDescription>, ReturnType<typeof mapWeatherDescription>] = [
-      mapWeatherDescription(daily.variables(2)!.values(1)!),
-      mapWeatherDescription(daily.variables(2)!.values(2)!)
-    ];
-    const forecastTemps: [[number, number], [number, number]] = [
-      [
-        Math.round(daily.variables(0)!.values(1)!),
-        Math.round(daily.variables(1)!.values(1)!)
-      ],
-      [
-        Math.round(daily.variables(0)!.values(2)!),
-        Math.round(daily.variables(1)!.values(2)!)
-      ]
-    ];
+
+    // daily indices: 0=温度最高, 1=温度最低, 2=天气码, 3=最大风速, 4=最大UV, 5=降水概率
+    // values(0)=今天, values(1)=明天, values(2)=后天
+
+    const makeForecast = (dayIndex: number) => ({
+      temperature: Math.round(daily.variables(0)!.values(dayIndex)!),
+      description: mapWeatherDescription(daily.variables(2)!.values(dayIndex)!),
+      temperatureMax: Math.round(daily.variables(0)!.values(dayIndex)!),
+      temperatureMin: Math.round(daily.variables(1)!.values(dayIndex)!),
+      windSpeed: Math.round(daily.variables(3)!.values(dayIndex)!),
+      uvIndex: Math.round(daily.variables(4)!.values(dayIndex)!),
+      precipitationProbability: Math.round(daily.variables(5)!.values(dayIndex)!),
+    });
 
     const weather: WeatherData = {
       temperature,
       description: mapWeatherDescription(weatherCode),
+      humidity,
+      windSpeed,
+      uvIndex: Math.round(daily.variables(4)!.values(0)!),
       forecast: [
-        { temperature: forecastTemps[0][0], description: forecast[0] },
-        { temperature: forecastTemps[1][0], description: forecast[1] }
+        makeForecast(1), // 明天
+        makeForecast(2), // 后天
       ]
     };
 
     console.log('[Weather] 当前天气:', weather.description, weather.temperature + '°C');
-    console.log('[Weather] 明日预报:', forecast[0], forecastTemps[0][0] + '°C');
-    console.log('[Weather] 后日预报:', forecast[1], forecastTemps[1][0] + '°C');
+    console.log('[Weather] 明日预报:', weather.forecast[0].description, weather.forecast[0].temperatureMax + '°C');
+    console.log('[Weather] 后日预报:', weather.forecast[1].description, weather.forecast[1].temperatureMax + '°C');
 
     return { weather, location };
   } catch (error) {

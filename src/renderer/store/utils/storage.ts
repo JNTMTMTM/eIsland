@@ -25,7 +25,17 @@ export function loadWeatherFromStorage(): WeatherData {
   } catch (error) {
     console.error('[Weather] 从本地存储加载天气数据失败:', error);
   }
-  return { temperature: 0, description: '', forecast: [{ temperature: 0, description: '' }, { temperature: 0, description: '' }] };
+  return {
+    temperature: 0,
+    description: '',
+    humidity: 0,
+    windSpeed: 0,
+    uvIndex: 0,
+    forecast: [
+      { temperature: 0, description: '', temperatureMax: 0, temperatureMin: 0, windSpeed: 0, uvIndex: 0, precipitationProbability: 0 },
+      { temperature: 0, description: '', temperatureMax: 0, temperatureMin: 0, windSpeed: 0, uvIndex: 0, precipitationProbability: 0 }
+    ]
+  };
 }
 
 /**
