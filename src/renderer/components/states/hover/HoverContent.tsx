@@ -6,7 +6,7 @@
 
 import React, { useEffect, useRef } from 'react';
 import useIslandStore, { HoverTab } from '../../../store/isLandStore';
-import '../../../styles/hover.css';
+import '../../../styles/hover/hover.css';
 import { TimeTab } from './components/TimeTab';
 import { LyricsTab } from './components/LrcTab';
 import { ActionButtons } from './utils/ActionButtons';

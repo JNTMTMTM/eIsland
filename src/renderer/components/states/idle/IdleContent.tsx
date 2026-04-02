@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import '../../../styles/shell.css';
+import '../../../styles/shell/shell.css';
 
 type TimerState = 'idle' | 'running' | 'paused';
 

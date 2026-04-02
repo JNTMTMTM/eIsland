@@ -4,8 +4,8 @@
  * @author 鸡哥
  */
 
-@import "./reset.css";
-@import "./shell.css";
-@import "./hover.css";
-@import "./expanded.css";
-@import "./notification.css";
+@import "./reset/reset.css";
+@import "./shell/shell.css";
+@import "./hover/hover.css";
+@import "./expanded/expanded.css";
+@import "./notification/notification.css";

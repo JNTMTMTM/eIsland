@@ -6,7 +6,7 @@
 
 import React, { useEffect, useRef } from 'react';
 import useIslandStore from '../../../store/isLandStore';
-import '../../../styles/notification.css';
+import '../../../styles/notification/notification.css';
 
 interface NotificationContentProps {
   /** 通知标题 */
