@@ -15,11 +15,8 @@ if (!root) {
   throw new Error('[Renderer] 未找到 #root 挂载节点');
 }
 
-/** 启动时调用天气接口（默认北京坐标，正式使用可替换为真实定位） */
-useIslandStore.getState().fetchWeatherData({
-  longitude: 116.4074,
-  latitude: 39.9042
-});
+/** 启动时自动获取精确位置并拉取天气 */
+useIslandStore.getState().fetchWeatherData();
 
 /**
  * 挂载 React 根组件，启动灵动岛 UI

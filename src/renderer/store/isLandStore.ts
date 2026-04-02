@@ -157,8 +157,8 @@ interface IIslandStore {
   /** ===== 原有方法 ===== */
   /** 更新天气数据 */
   setWeather: (data: WeatherData) => void;
-  /** 从接口拉取并更新天气 */
-  fetchWeatherData: (config: WeatherApiConfig) => Promise<void>;
+  /** 从接口拉取并更新天气（无参数时自动获取精确位置） */
+  fetchWeatherData: (config?: WeatherApiConfig) => Promise<void>;
   /** 切换到待机状态 */
   setIdle: () => void;
   /** 切换到悬停状态 */
@@ -302,10 +302,10 @@ const useIslandStore = create<IIslandStore>((set) => ({
   /** ===== 原有方法 ===== */
   /** @param data - 天气数据对象 */
   setWeather: (data): void => set({ weather: data }),
-  /** @param config - 经纬度配置 */
-  fetchWeatherData: async (config): Promise<void> => {
-    const data = await fetchWeather(config);
-    set({ weather: data });
+  /** @param config - 经纬度配置（可选，不传则自动获取精确位置） */
+  fetchWeatherData: async (config?): Promise<void> => {
+    const { weather } = config ? await fetchWeather(config) : await fetchWeather();
+    set({ weather });
   },
   setIdle: (): void => {
     window.api?.collapseWindow();
