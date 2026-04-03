@@ -22,7 +22,7 @@ let mainWindow: BrowserWindow | null = null;
 let nowPlaying: NowPlaying | null = null;
 
 /** 灵动岛尺寸常量 */
-const ISLAND_WIDTH = 240;
+const ISLAND_WIDTH = 260;
 const ISLAND_HEIGHT = 42;
 const EXPANDED_WIDTH = 500;
 const EXPANDED_HEIGHT = 60;

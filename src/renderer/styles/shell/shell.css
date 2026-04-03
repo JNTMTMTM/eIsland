@@ -7,7 +7,7 @@
 /** 灵动岛主体容器 */
 .island-shell {
   position: relative;
-  width: 240px;
+  width: 260px;
   height: 42px;
   background: var(--color-island-bg);
   border-radius: 0 0 22px 22px;
