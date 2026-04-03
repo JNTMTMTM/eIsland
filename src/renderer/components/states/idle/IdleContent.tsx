@@ -87,7 +87,7 @@ export function IdleContent({
   return (
     <div className="idle-content">
       <div
-        className={`idle-glow${isMusicPlaying && coverImage ? ' active' : ''}`}
+        className={`idle-glow${isMusicPlaying && coverImage ? ' active' : ''}${isMusicPlaying && coverImage && !isPlaying ? ' paused' : ''}`}
         style={isMusicPlaying && coverImage
           ? { background: `radial-gradient(ellipse at 10% 50%, rgba(${r}, ${g}, ${b}, 0.35) 0%, transparent 60%)` }
           : undefined}

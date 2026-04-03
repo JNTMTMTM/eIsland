@@ -151,3 +151,9 @@
   transition: background 0.8s ease, opacity 0.8s ease;
   animation: idle-glow-pulse 3s ease-in-out infinite;
 }
+
+.idle-glow.active.paused,
+.idle-album-cover.glowing.paused,
+.idle-album-cover.paused {
+  animation-play-state: paused;
+}
