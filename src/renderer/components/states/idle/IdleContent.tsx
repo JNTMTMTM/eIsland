@@ -5,6 +5,7 @@
  */
 
 import React from 'react';
+import useIslandStore from '../../../store/slices';
 import '../../../styles/shell/shell.css';
 
 type TimerState = 'idle' | 'running' | 'paused';
@@ -40,6 +41,7 @@ export function IdleContent({
   timerState,
   remainingSeconds,
 }: IdleContentProps): React.ReactElement {
+  const { isMusicPlaying, coverImage, isPlaying } = useIslandStore();
   const isTimerActive = timerState === 'running' || timerState === 'paused';
 
   const h = Math.floor(remainingSeconds / 3600);
@@ -48,31 +50,67 @@ export function IdleContent({
 
   return (
     <div className="idle-content">
-      <div className="flex items-center gap-2">
-        <span className="text-sm text-white font-medium tabular-nums">
-          {timeStr}
-        </span>
-        <span className="text-xs text-white opacity-50">
-          {dayStr}
-        </span>
-      </div>
-
-      {isTimerActive ? (
-        <div className="flex items-center gap-1.5">
-          <span className="text-xs text-white opacity-60">倒计时</span>
-          <span className="text-sm text-white font-medium tabular-nums">
-            {padZero(h)}:{padZero(m)}:{padZero(s)}
-          </span>
-        </div>
+      {isMusicPlaying && coverImage ? (
+        <>
+          <div
+            className={`idle-album-cover${!isPlaying ? ' paused' : ''}`}
+            style={{ backgroundImage: `url(${coverImage})` }}
+          />
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-white font-medium tabular-nums">
+              {timeStr}
+            </span>
+            <span className="text-xs text-white opacity-50">
+              {dayStr}
+            </span>
+          </div>
+          {isTimerActive ? (
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs text-white opacity-60">倒计时</span>
+              <span className="text-sm text-white font-medium tabular-nums">
+                {padZero(h)}:{padZero(m)}:{padZero(s)}
+              </span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs text-white opacity-60">
+                {weather.description || '—'}
+              </span>
+              <span className="text-sm text-white font-medium tabular-nums">
+                {weather.temperature > 0 ? `${weather.temperature}°` : '--°'}
+              </span>
+            </div>
+          )}
+        </>
       ) : (
-        <div className="flex items-center gap-1.5">
-          <span className="text-xs text-white opacity-60">
-            {weather.description || '—'}
-          </span>
-          <span className="text-sm text-white font-medium tabular-nums">
-            {weather.temperature > 0 ? `${weather.temperature}°` : '--°'}
-          </span>
-        </div>
+        <>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-white font-medium tabular-nums">
+              {timeStr}
+            </span>
+            <span className="text-xs text-white opacity-50">
+              {dayStr}
+            </span>
+          </div>
+
+          {isTimerActive ? (
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs text-white opacity-60">倒计时</span>
+              <span className="text-sm text-white font-medium tabular-nums">
+                {padZero(h)}:{padZero(m)}:{padZero(s)}
+              </span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs text-white opacity-60">
+                {weather.description || '—'}
+              </span>
+              <span className="text-sm text-white font-medium tabular-nums">
+                {weather.temperature > 0 ? `${weather.temperature}°` : '--°'}
+              </span>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
