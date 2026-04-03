@@ -13,11 +13,16 @@ function getWeekLabel(index: number): string {
   return index === 0 ? '明天' : '后天';
 }
 
-/** 获取当前天气图标路径 */
-function getWeatherIconPath(iconCode: number): string {
-  const hour = new Date().getHours();
-  const suffix = (hour >= 6 && hour < 18) ? 'd' : 'n';
+/** 获取当前天气图标路径（白天/晚上） */
+function getWeatherIconPath(iconCode: number, isDay: boolean): string {
+  const suffix = isDay ? 'd' : 'n';
   return `/icon/${iconCode}${suffix}_big.png`;
+}
+
+/** 获取小图标路径 */
+function getWeatherSmallIconPath(iconCode: number, isDay: boolean): string {
+  const suffix = isDay ? 'd' : 'n';
+  return `/icon/${iconCode}${suffix}.png`;
 }
 
 /**
@@ -27,12 +32,14 @@ function getWeatherIconPath(iconCode: number): string {
 export function WeatherTab(): React.ReactElement {
   const weather = useIslandStore(s => s.weather);
   const location = useIslandStore(s => s.location);
+  const hour = new Date().getHours();
+  const isDay = hour >= 6 && hour < 18;
 
   return (
     <div className="weather-tab">
       {/* 左侧：当前天气大图标 */}
       <img
-        src={getWeatherIconPath(weather.iconCode)}
+        src={getWeatherIconPath(weather.iconCode, isDay)}
         alt={weather.description}
         className="weather-tab-icon"
       />
@@ -68,10 +75,14 @@ export function WeatherTab(): React.ReactElement {
         {weather.forecast.map((day, index) => (
           <div key={index} className="weather-tab-forecast-row">
             <span className="text-xs opacity-60 w-6 leading-none">{getWeekLabel(index)}</span>
-            <span className="text-xs leading-none w-6">{day.description}</span>
+            <img
+              src={getWeatherSmallIconPath(day.iconCode, isDay)}
+              alt={day.description}
+              className="weather-tab-forecast-icon"
+            />
+            <span className="text-xs leading-none">{day.description}</span>
             <span className="text-[10px] opacity-40 leading-none">雨{day.precipitationProbability}%</span>
             <span className="text-[10px] opacity-40 leading-none">风{day.windSpeed}m/s</span>
-            <span className="text-[10px] opacity-40 leading-none">UV{day.uvIndex}</span>
             <span className="text-xs tabular-nums leading-none">
               {day.temperatureMin}°~{day.temperatureMax}°
             </span>

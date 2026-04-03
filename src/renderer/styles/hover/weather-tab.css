@@ -55,6 +55,12 @@
   gap: 6px;
 }
 
+.weather-tab-forecast-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
 .weather-tab-forecast-row {
   display: flex;
   align-items: center;
