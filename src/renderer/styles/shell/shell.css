@@ -94,7 +94,21 @@
   background-repeat: no-repeat;
   flex-shrink: 0;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  transition: box-shadow 0.8s ease;
   animation: idle-vinyl-spin 8s linear infinite;
+}
+
+.idle-album-cover.glowing {
+  animation: idle-vinyl-spin 8s linear infinite, idle-cover-glow 3s ease-in-out infinite;
+}
+
+@keyframes idle-cover-glow {
+  0%, 100% {
+    filter: brightness(0.9);
+  }
+  50% {
+    filter: brightness(1);
+  }
 }
 
 .idle-album-cover.paused {
@@ -117,7 +131,7 @@
   }
   50% {
     opacity: 0.9;
-    transform: scale(1.05);
+    transform: scale(1.5);
   }
 }
 

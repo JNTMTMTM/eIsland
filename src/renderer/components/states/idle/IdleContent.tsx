@@ -96,8 +96,11 @@ export function IdleContent({
         <>
           <div className="flex items-center gap-2">
             <div
-              className={`idle-album-cover${!isPlaying ? ' paused' : ''}`}
-              style={{ backgroundImage: `url(${coverImage})` }}
+              className={`idle-album-cover${!isPlaying ? ' paused' : ''}${isMusicPlaying && coverImage ? ' glowing' : ''}`}
+              style={{
+                backgroundImage: `url(${coverImage})`,
+                ...(isMusicPlaying && coverImage ? { boxShadow: `0 0 12px 4px rgba(${r}, ${g}, ${b}, 0.5)` } : {})
+              }}
             />
             <div className="flex items-center gap-1">
               <span className="text-sm text-white font-medium tabular-nums">
