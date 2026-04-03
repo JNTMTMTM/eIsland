@@ -71,8 +71,8 @@ export function LyricsTab(): React.ReactElement {
   const handlePrev = () => window.api?.mediaPrev();
   const handleNext = () => window.api?.mediaNext();
 
-  const artistText = truncateByVisualWidth(mediaInfo.artist || '未知艺术家', 35);
-  const albumText = truncateByVisualWidth(mediaInfo.title || '未知歌曲', 35);
+  const artistText = truncateByVisualWidth(mediaInfo.artist || '未知艺术家', 50);
+  const albumText = truncateByVisualWidth(mediaInfo.title || '未知歌曲', 45);
 
   const [r, g, b] = dominantColor;
 
