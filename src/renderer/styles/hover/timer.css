@@ -8,8 +8,31 @@
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   white-space: nowrap;
+}
+
+/** TimeTab 中 action buttons 的尺寸覆盖 */
+.time-tab-wrapper .action-buttons {
+  gap: 2px;
+}
+
+.time-tab-wrapper .action-btn {
+  width: 28px;
+}
+
+.time-tab-wrapper .action-btn-icon {
+  width: 20px;
+  height: 20px;
+}
+
+/** TimeTab 中时间区与按钮组的分割线 */
+.time-tab-divider {
+  width: 1px;
+  height: 28px;
+  background: rgba(255, 255, 255, 0.2);
+  margin: 0 2px;
+  flex-shrink: 0;
 }
 
 /** 计时器容器 */

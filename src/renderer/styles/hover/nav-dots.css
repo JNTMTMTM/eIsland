@@ -3,7 +3,7 @@
  * @description Hover 导航点（标签页切换指示器）样式
  */
 
-/** Hover 导航点容器 — 竖向排列于左侧 */
+/** Hover 导航点容器 — 竖向排列于最左侧 */
 .hover-nav-dots {
   display: flex;
   flex-direction: column;
@@ -11,7 +11,7 @@
   justify-content: center;
   gap: 8px;
   padding: 0 10px;
-  margin-right: 4px;
+  margin-right: auto;
   height: 100%;
   flex-shrink: 0;
 }

@@ -5,6 +5,8 @@
  */
 
 import React from 'react';
+import { ActionButtons } from '../utils/ActionButtons';
+import { CountdownEdit } from '../utils/CountdownEdit';
 
 interface TimeTabProps {
   /** 完整时间字符串 (YY-MM-DD HH:MM:SS) */
@@ -22,13 +24,19 @@ export function TimeTab({
   lunarStr
 }: TimeTabProps): React.ReactElement {
   return (
-    <div className="flex flex-col gap-1 text-right">
-      <span className="text-sm text-white font-medium tabular-nums">
-        {fullTimeStr}
-      </span>
-      <span className="text-xs text-white opacity-60">
-        农历 {lunarStr}
-      </span>
+    <div className="time-tab-wrapper">
+      <ActionButtons />
+      <div className="time-tab-divider" />
+      <CountdownEdit />
+      <div className="time-tab-divider" />
+      <div className="flex flex-col gap-1 text-right">
+        <span className="text-sm text-white font-medium tabular-nums">
+          {fullTimeStr}
+        </span>
+        <span className="text-xs text-white opacity-60">
+          农历 {lunarStr}
+        </span>
+      </div>
     </div>
   );
 }

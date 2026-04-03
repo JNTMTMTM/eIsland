@@ -11,8 +11,6 @@ import '../../../styles/hover/hover.css';
 import { TimeTab } from './components/TimeTab';
 import { LyricsTab } from './components/LrcTab';
 import { WeatherTab } from './components/WeatherTab';
-import { ActionButtons } from './utils/ActionButtons';
-import { CountdownEdit } from './utils/CountdownEdit';
 
 interface HoverContentProps {
   /** 完整时间字符串 (YY-MM-DD HH:MM:SS) */
@@ -63,8 +61,6 @@ export function HoverContent({
 
   return (
     <div className="hover-content" ref={contentRef}>
-      <ActionButtons />
-
       <div className="hover-nav-dots">
         {NAV_DOTS.map(({ tab, label }) => (
           <button
@@ -79,14 +75,10 @@ export function HoverContent({
 
       <div className="hover-tab-content">
         {hoverTab === 'time' && (
-          <div className="time-tab-wrapper">
-            <CountdownEdit />
-            <div className="timer-divider" />
-            <TimeTab
-              fullTimeStr={fullTimeStr}
-              lunarStr={lunarStr}
-            />
-          </div>
+          <TimeTab
+            fullTimeStr={fullTimeStr}
+            lunarStr={lunarStr}
+          />
         )}
         {hoverTab === 'o3ics' && <LyricsTab />}
         {hoverTab === 'weather' && <WeatherTab />}
