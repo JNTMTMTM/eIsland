@@ -84,7 +84,7 @@ export function WeatherTab(): React.ReactElement {
             <span className="text-[10px] opacity-40 leading-none">雨{day.precipitationProbability}%</span>
             <span className="text-[10px] opacity-40 leading-none">风{day.windSpeed}m/s</span>
             <span className="text-xs tabular-nums leading-none">
-              {day.temperatureMin}°~{day.temperatureMax}°
+              {(day.temperatureMin + day.temperatureMax) / 2}℃
             </span>
           </div>
         ))}
