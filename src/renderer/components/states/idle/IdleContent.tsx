@@ -4,7 +4,8 @@
  * @author 鸡哥
  */
 
-import React from 'react';
+import { useState, useEffect } from 'react';
+import { getColor } from 'colorthief';
 import useIslandStore from '../../../store/slices';
 import '../../../styles/shell/shell.css';
 
@@ -44,12 +45,53 @@ export function IdleContent({
   const { isMusicPlaying, coverImage, isPlaying } = useIslandStore();
   const isTimerActive = timerState === 'running' || timerState === 'paused';
 
+  const [dominantColor, setDominantColor] = useState<[number, number, number]>([0, 0, 0]);
+
+  useEffect(() => {
+    if (!coverImage) return;
+
+    let isStale = false;
+    const img = new Image();
+    img.crossOrigin = 'Anonymous';
+    img.src = coverImage;
+
+    img.onload = async () => {
+      if (isStale) return;
+      try {
+        const color = await getColor(img, { colorSpace: 'rgb' });
+        if (color && !isStale) {
+          const { r, g, b } = color.rgb();
+          setDominantColor([r, g, b]);
+        }
+      } catch (e) {
+        console.error('ColorThief error:', e);
+      }
+    };
+
+    return () => {
+      isStale = true;
+      img.onload = null;
+      img.src = '';
+      if (coverImage.startsWith('blob:')) {
+        URL.revokeObjectURL(coverImage);
+      }
+    };
+  }, [coverImage]);
+
   const h = Math.floor(remainingSeconds / 3600);
   const m = Math.floor((remainingSeconds % 3600) / 60);
   const s = remainingSeconds % 60;
 
+  const [r, g, b] = dominantColor;
+
   return (
     <div className="idle-content">
+      <div
+        className={`idle-glow${isMusicPlaying && coverImage ? ' active' : ''}`}
+        style={isMusicPlaying && coverImage
+          ? { background: `radial-gradient(ellipse at 10% 50%, rgba(${r}, ${g}, ${b}, 0.35) 0%, transparent 60%)` }
+          : undefined}
+      />
       {isMusicPlaying && coverImage ? (
         <>
           <div className="flex items-center gap-2">

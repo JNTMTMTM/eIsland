@@ -58,11 +58,13 @@
 
 /** Idle 内容 */
 .idle-content {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
   width: 100%;
   padding: 0 16px;
+  z-index: 1;
 }
 
 .island-shell.hover .idle-content {
@@ -106,4 +108,20 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+/** Idle 专辑主题色光晕 */
+.idle-glow {
+  position: absolute;
+  pointer-events: none;
+  z-index: 0;
+  inset: -50%;
+  background: radial-gradient(ellipse at 10% 50%, rgba(0, 0, 0, 0.2) 0%, transparent 50%);
+  opacity: 0;
+  transition: background 0.8s ease, opacity 0.8s ease;
+}
+
+.idle-glow.active {
+  opacity: 1;
+  transition: background 0.8s ease, opacity 0.8s ease;
 }
