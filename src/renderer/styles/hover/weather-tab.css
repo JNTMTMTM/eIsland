@@ -11,6 +11,12 @@
   white-space: nowrap;
 }
 
+.weather-tab-icon {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+}
+
 .weather-tab-left {
   display: flex;
   align-items: center;

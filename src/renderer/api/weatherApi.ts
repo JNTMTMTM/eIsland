@@ -130,6 +130,7 @@ export async function fetchWeather(
       windSpeed: Math.round(daily.variables(3)!.values(dayIndex)!),
       uvIndex: Math.round(daily.variables(4)!.values(dayIndex)!),
       precipitationProbability: Math.round(daily.variables(5)!.values(dayIndex)!),
+      iconCode: daily.variables(2)!.values(dayIndex)!,
     });
 
     const weather: WeatherData = {
@@ -138,15 +139,16 @@ export async function fetchWeather(
       humidity,
       windSpeed,
       uvIndex: Math.round(daily.variables(4)!.values(0)!),
+      iconCode: weatherCode,
       forecast: [
         makeForecast(1), // 明天
         makeForecast(2), // 后天
       ]
     };
 
-    console.log('[Weather] 当前天气:', weather.description, weather.temperature + '°C');
-    console.log('[Weather] 明日预报:', weather.forecast[0].description, weather.forecast[0].temperatureMax + '°C');
-    console.log('[Weather] 后日预报:', weather.forecast[1].description, weather.forecast[1].temperatureMax + '°C');
+    console.log('[Weather] 当前天气:', weather.description, weather.temperature + '°C', '| 图标编号:', weather.iconCode);
+    console.log('[Weather] 明日预报:', weather.forecast[0].description, weather.forecast[0].temperatureMax + '°C', '| 图标编号:', weather.forecast[0].iconCode);
+    console.log('[Weather] 后日预报:', weather.forecast[1].description, weather.forecast[1].temperatureMax + '°C', '| 图标编号:', weather.forecast[1].iconCode);
 
     return { weather, location };
   } catch (error) {

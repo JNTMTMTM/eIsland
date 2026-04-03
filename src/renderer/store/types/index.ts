@@ -80,6 +80,7 @@ export interface DayForecast {
   windSpeed: number;
   uvIndex: number;
   precipitationProbability: number;
+  iconCode: number;
 }
 
 /** 天气数据类型定义 */
@@ -90,6 +91,7 @@ export interface WeatherData {
   windSpeed: number;
   uvIndex: number;
   forecast: [DayForecast, DayForecast];
+  iconCode: number;
 }
 
 /** 计时器状态类型 */

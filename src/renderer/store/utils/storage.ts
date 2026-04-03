@@ -31,9 +31,10 @@ export function loadWeatherFromStorage(): WeatherData {
     humidity: 0,
     windSpeed: 0,
     uvIndex: 0,
+    iconCode: 0,
     forecast: [
-      { temperature: 0, description: '', temperatureMax: 0, temperatureMin: 0, windSpeed: 0, uvIndex: 0, precipitationProbability: 0 },
-      { temperature: 0, description: '', temperatureMax: 0, temperatureMin: 0, windSpeed: 0, uvIndex: 0, precipitationProbability: 0 }
+      { temperature: 0, description: '', temperatureMax: 0, temperatureMin: 0, windSpeed: 0, uvIndex: 0, precipitationProbability: 0, iconCode: 0 },
+      { temperature: 0, description: '', temperatureMax: 0, temperatureMin: 0, windSpeed: 0, uvIndex: 0, precipitationProbability: 0, iconCode: 0 }
     ]
   };
 }

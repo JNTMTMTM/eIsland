@@ -13,6 +13,13 @@ function getWeekLabel(index: number): string {
   return index === 0 ? '明天' : '后天';
 }
 
+/** 获取当前天气图标路径 */
+function getWeatherIconPath(iconCode: number): string {
+  const hour = new Date().getHours();
+  const suffix = (hour >= 6 && hour < 18) ? 'd' : 'n';
+  return `/icon/${iconCode}${suffix}_big.png`;
+}
+
 /**
  * 天气 Tab 内容
  * @description 显示当前天气及未来两天预报
@@ -23,6 +30,13 @@ export function WeatherTab(): React.ReactElement {
 
   return (
     <div className="weather-tab">
+      {/* 左侧：当前天气大图标 */}
+      <img
+        src={getWeatherIconPath(weather.iconCode)}
+        alt={weather.description}
+        className="weather-tab-icon"
+      />
+
       {/* 左侧：今日天气标题 + 当前天气（垂直排列） + 位置信息 */}
       <div className="weather-tab-left">
         <div className="weather-tab-current">
