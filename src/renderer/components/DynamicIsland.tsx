@@ -248,7 +248,8 @@ function DynamicIsland(): React.JSX.Element {
     };
   }, []);
 
-  const clearAllTimers = () => {
+  // 必须放在 useEffect 之前，且 useCallback 依赖为空（所有依赖都是 ref/函数）
+  const clearAllTimers = React.useCallback(() => {
     if (enterTimerRef.current !== null) {
       clearTimeout(enterTimerRef.current);
       enterTimerRef.current = null;
@@ -257,12 +258,21 @@ function DynamicIsland(): React.JSX.Element {
       clearTimeout(leaveTimerRef.current);
       leaveTimerRef.current = null;
     }
-  };
+  }, []);
 
   useEffect(() => {
     let rafId: number | null = null;
+    let lastCheckTime = 0;
+    const CHECK_INTERVAL = 16; // ~60fps throttle
 
     const checkMousePosition = async (): Promise<void> => {
+      const now = Date.now();
+      if (now - lastCheckTime < CHECK_INTERVAL) {
+        rafId = requestAnimationFrame(checkMousePosition);
+        return;
+      }
+      lastCheckTime = now;
+
       const inWindow = await isMouseInWindow();
       const config = STATE_CONFIGS[state];
 
@@ -271,7 +281,7 @@ function DynamicIsland(): React.JSX.Element {
           clearTimeout(leaveTimerRef.current);
           leaveTimerRef.current = null;
         }
-        
+
         if (state === 'notification') {
           window.api?.disableMousePassthrough();
           setIdle();

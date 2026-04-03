@@ -45,14 +45,16 @@ export function LyricsTab(): React.ReactElement {
   useEffect(() => {
     if (!coverImage) return;
 
+    let isStale = false;
     const img = new Image();
     img.crossOrigin = 'Anonymous';
     img.src = coverImage;
 
     img.onload = async () => {
+      if (isStale) return;
       try {
         const color = await getColor(img, { colorSpace: 'rgb' });
-        if (color) {
+        if (color && !isStale) {
           const { r, g, b } = color.rgb();
           setDominantColor([r, g, b]);
         }
@@ -62,8 +64,12 @@ export function LyricsTab(): React.ReactElement {
     };
 
     return () => {
+      isStale = true;
       img.onload = null;
       img.src = '';
+      if (coverImage.startsWith('blob:')) {
+        URL.revokeObjectURL(coverImage);
+      }
     };
   }, [coverImage]);
 
