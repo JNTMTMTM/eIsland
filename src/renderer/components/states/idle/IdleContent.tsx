@@ -42,10 +42,20 @@ export function IdleContent({
   timerState,
   remainingSeconds,
 }: IdleContentProps): React.ReactElement {
-  const { isMusicPlaying, coverImage, isPlaying } = useIslandStore();
+  const { isMusicPlaying, coverImage, isPlaying, handleNowPlayingUpdate } = useIslandStore();
   const isTimerActive = timerState === 'running' || timerState === 'paused';
 
   const [dominantColor, setDominantColor] = useState<[number, number, number]>([0, 0, 0]);
+
+  useEffect(() => {
+    if (!isMusicPlaying || isPlaying) {
+      return;
+    }
+    const timer = setTimeout(() => {
+      handleNowPlayingUpdate(null);
+    }, 5 * 60 * 1000);
+    return () => clearTimeout(timer);
+  }, [isPlaying, isMusicPlaying, handleNowPlayingUpdate]);
 
   useEffect(() => {
     if (!coverImage) return;
