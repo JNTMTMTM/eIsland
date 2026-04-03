@@ -52,17 +52,19 @@ export function IdleContent({
     <div className="idle-content">
       {isMusicPlaying && coverImage ? (
         <>
-          <div
-            className={`idle-album-cover${!isPlaying ? ' paused' : ''}`}
-            style={{ backgroundImage: `url(${coverImage})` }}
-          />
           <div className="flex items-center gap-2">
-            <span className="text-sm text-white font-medium tabular-nums">
-              {timeStr}
-            </span>
-            <span className="text-xs text-white opacity-50">
-              {dayStr}
-            </span>
+            <div
+              className={`idle-album-cover${!isPlaying ? ' paused' : ''}`}
+              style={{ backgroundImage: `url(${coverImage})` }}
+            />
+            <div className="flex items-center gap-1">
+              <span className="text-sm text-white font-medium tabular-nums">
+                {timeStr}
+              </span>
+              <span className="text-xs text-white opacity-50">
+                {dayStr}
+              </span>
+            </div>
           </div>
           {isTimerActive ? (
             <div className="flex items-center gap-1.5">
