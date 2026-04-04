@@ -4,7 +4,7 @@
  * @author 鸡哥
  */
 
-import { useEffect } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import useIslandStore from '../../../store/slices';
 import '../../../styles/shell/shell.css';
 
@@ -43,6 +43,22 @@ export function IdleContent({
 }: IdleContentProps): React.ReactElement {
   const { isMusicPlaying, coverImage, isPlaying, handleNowPlayingUpdate, dominantColor } = useIslandStore();
   const isTimerActive = timerState === 'running' || timerState === 'paused';
+
+  /** 检查未完成的 P0 待办数量 */
+  const checkP0Count = useCallback((): number => {
+    try {
+      const raw = localStorage.getItem('eIsland_todos');
+      if (!raw) return 0;
+      const todos = JSON.parse(raw) as { done?: boolean; priority?: string }[];
+      return todos.filter(t => !t.done && t.priority === 'P0').length;
+    } catch { return 0; }
+  }, []);
+  const [p0Count, setP0Count] = useState(checkP0Count);
+
+  useEffect(() => {
+    const id = setInterval(() => setP0Count(checkP0Count()), 2000);
+    return () => clearInterval(id);
+  }, [checkP0Count]);
 
   useEffect(() => {
     if (!isMusicPlaying || isPlaying) {
@@ -94,6 +110,12 @@ export function IdleContent({
                 {padZero(h)}:{padZero(m)}:{padZero(s)}
               </span>
             </div>
+          ) : p0Count > 0 ? (
+            <div className="flex items-center gap-1">
+              <span className="text-xs font-medium" style={{ color: '#ff5252' }}>•</span>
+              <span className="text-xs font-medium" style={{ color: '#ff5252', opacity: 0.9 }}>P0-TODO</span>
+              <span style={{ fontSize: 9, fontWeight: 600, color: '#fff', background: '#ff5252', borderRadius: 6, padding: '0 4px', lineHeight: '14px', minWidth: 14, textAlign: 'center' as const }}>{p0Count}</span>
+            </div>
           ) : (
             <div className="flex items-center gap-1.5">
               <span className="text-xs text-white opacity-60">
@@ -122,6 +144,12 @@ export function IdleContent({
               <span className="text-sm text-white font-medium tabular-nums">
                 {padZero(h)}:{padZero(m)}:{padZero(s)}
               </span>
+            </div>
+          ) : p0Count > 0 ? (
+            <div className="flex items-center gap-1">
+              <span className="text-xs font-medium" style={{ color: '#ff5252' }}>•</span>
+              <span className="text-xs font-medium" style={{ color: '#ff5252', opacity: 0.9 }}>P0-TODO</span>
+              <span style={{ fontSize: 9, fontWeight: 600, color: '#fff', background: '#ff5252', borderRadius: 6, padding: '0 4px', lineHeight: '14px', minWidth: 14, textAlign: 'center' as const }}>{p0Count}</span>
             </div>
           ) : (
             <div className="flex items-center gap-1.5">

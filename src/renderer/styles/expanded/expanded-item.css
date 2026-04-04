@@ -156,17 +156,50 @@
   letter-spacing: 0.5px;
 }
 
-.expand-todo-badge {
-  min-width: 16px;
+/** 统计徽章容器 */
+.expand-todo-stats {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+}
+
+.expand-todo-stat {
   height: 16px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 10px;
-  padding: 0 4px;
+  font-size: 9px;
+  font-weight: 600;
+  padding: 0 5px;
+  line-height: 1;
+  gap: 2px;
+}
+
+.expand-todo-stat.done {
+  background: rgba(120, 220, 120, 0.12);
+  color: rgba(120, 220, 120, 0.7);
+}
+
+.expand-todo-stat.undone {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.expand-todo-stat.p0 {
+  background: rgba(255, 82, 82, 0.15);
+  color: #ff5252;
+}
+
+.expand-todo-stat.p1 {
+  background: rgba(255, 171, 64, 0.15);
+  color: #ffab40;
+}
+
+.expand-todo-stat.p2 {
+  background: rgba(105, 192, 255, 0.15);
+  color: #69c0ff;
 }
 
 /** 输入栏 */

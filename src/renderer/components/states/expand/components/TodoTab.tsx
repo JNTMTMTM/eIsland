@@ -115,13 +115,23 @@ export function TodoTab(): React.ReactElement {
   };
 
   const doneCount = todos.filter(t => t.done).length;
+  const undoneCount = todos.length - doneCount;
+  const p0Count = todos.filter(t => !t.done && t.priority === 'P0').length;
+  const p1Count = todos.filter(t => !t.done && t.priority === 'P1').length;
+  const p2Count = todos.filter(t => !t.done && t.priority === 'P2').length;
 
   return (
     <div className="expand-todo">
       {/* 标题栏 */}
       <div className="expand-todo-header">
         <span className="expand-todo-title">待办事项</span>
-        <span className="expand-todo-badge">{todos.length}</span>
+        <div className="expand-todo-stats">
+          <span className="expand-todo-stat done">✓ {doneCount}</span>
+          <span className="expand-todo-stat undone">○ {undoneCount}</span>
+          {p0Count > 0 && <span className="expand-todo-stat p0">P0 {p0Count}</span>}
+          {p1Count > 0 && <span className="expand-todo-stat p1">P1 {p1Count}</span>}
+          {p2Count > 0 && <span className="expand-todo-stat p2">P2 {p2Count}</span>}
+        </div>
       </div>
 
       {/* 输入栏 */}
