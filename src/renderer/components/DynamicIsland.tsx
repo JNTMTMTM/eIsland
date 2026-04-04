@@ -346,10 +346,13 @@ function DynamicIsland(): React.JSX.Element {
 
   useEffect(() => {
     let rafId: number | null = null;
+    let aborted = false;
     let lastCheckTime = 0;
     const CHECK_INTERVAL = 16; // ~60fps throttle
 
     const checkMousePosition = async (): Promise<void> => {
+      if (aborted) return;
+
       const now = Date.now();
       if (now - lastCheckTime < CHECK_INTERVAL) {
         rafId = requestAnimationFrame(checkMousePosition);
@@ -358,6 +361,8 @@ function DynamicIsland(): React.JSX.Element {
       lastCheckTime = now;
 
       const inWindow = await isMouseInWindow();
+      if (aborted) return;
+
       const config = STATE_CONFIGS[state];
 
       if (inWindow) {
@@ -375,7 +380,7 @@ function DynamicIsland(): React.JSX.Element {
         if (!isHoveringRef.current && enterTimerRef.current === null) {
           enterTimerRef.current = setTimeout(() => {
             enterTimerRef.current = null;
-            if (isHoveringRef.current) return;
+            if (aborted || isHoveringRef.current) return;
 
             isHoveringRef.current = true;
             if (config.mousePassthrough) {
@@ -396,27 +401,24 @@ function DynamicIsland(): React.JSX.Element {
           } else {
             leaveTimerRef.current = setTimeout(() => {
               leaveTimerRef.current = null;
-              if (!isHoveringRef.current) return;
+              if (aborted || !isHoveringRef.current) return;
 
               isHoveringRef.current = false;
               setIdle();
-              if (config.expanded) {
-                window.api?.collapseWindow();
-              }
-              if (config.mousePassthrough) {
-                window.api?.enableMousePassthrough();
-              }
             });
           }
         }
       }
 
-      rafId = requestAnimationFrame(checkMousePosition);
+      if (!aborted) {
+        rafId = requestAnimationFrame(checkMousePosition);
+      }
     };
 
     rafId = requestAnimationFrame(checkMousePosition);
 
     return () => {
+      aborted = true;
       if (rafId !== null) cancelAnimationFrame(rafId);
       clearAllTimers();
     };
