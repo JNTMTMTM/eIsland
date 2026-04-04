@@ -96,7 +96,7 @@ function formatCountdownRemaining(targetDate: string): string {
 export function OverviewTab(): React.ReactElement {
   const {
     isMusicPlaying, isPlaying, mediaInfo, syncedLyrics, lyricsLoading,
-    coverImage, weather, countdown, timerData,
+    coverImage, dominantColor, weather, countdown, timerData,
   } = useIslandStore();
 
   const [currentIdx, setCurrentIdx] = useState(-1);
@@ -158,12 +158,14 @@ export function OverviewTab(): React.ReactElement {
     <div className="expand-tab-panel ov-panel">
       {/* ========== 左栏：封面 + 信息 + 控制 ========== */}
       <div className="ov-left">
-        <div className={`ov-disc ${isPlaying ? 'spinning' : ''}`}>
+        <div
+          className={`ov-disc ${isPlaying ? 'spinning' : ''}`}
+          style={{ '--disc-glow': `rgba(${dominantColor[0]}, ${dominantColor[1]}, ${dominantColor[2]}, 0.45)` } as React.CSSProperties}
+        >
           <div
             className="ov-disc-cover"
             style={coverImage ? { backgroundImage: `url(${coverImage})` } : undefined}
           />
-          <div className="ov-disc-hole" />
         </div>
         <div className="ov-meta">
           <span className="ov-meta-title">{mediaInfo.title || '未在播放'}</span>

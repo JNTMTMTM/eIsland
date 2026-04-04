@@ -159,9 +159,10 @@
   background: #1a1a1a;
   flex-shrink: 0;
   position: relative;
-  box-shadow: 0 0 20px 6px rgba(0, 0, 0, 0.5),
-              0 0 40px 10px rgba(255, 255, 255, 0.03);
+  box-shadow: 0 0 18px 6px var(--disc-glow, rgba(0, 0, 0, 0.4)),
+              0 0 36px 12px var(--disc-glow, rgba(0, 0, 0, 0.2));
   overflow: hidden;
+  transition: box-shadow 0.6s ease;
 }
 
 .ov-disc::after {
@@ -181,19 +182,6 @@
   background: #333;
   background-size: cover;
   background-position: center;
-}
-
-.ov-disc-hole {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 12px;
-  height: 12px;
-  margin: -6px 0 0 -6px;
-  border-radius: 50%;
-  background: #111;
-  border: 1.5px solid rgba(255, 255, 255, 0.08);
-  z-index: 3;
 }
 
 .ov-disc.spinning {
