@@ -92,6 +92,13 @@ function formatCountdownRemaining(targetDate: string): string {
 
 // ===================== 频谱波形组件 =====================
 
+/**
+ * 频谱波形画布组件
+ * @description 绘制三层叠加正弦波动画，用于音乐播放时的视觉装饰效果
+ * @param color - RGB 主题色
+ * @param playing - 是否处于播放状态（true 时动画运行）
+ * @returns Canvas 元素，绘制动态波形
+ */
 function WaveCanvas({ color, playing }: { color: [number, number, number]; playing: boolean }): React.ReactElement {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rafRef = useRef<number>(0);
