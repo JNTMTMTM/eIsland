@@ -607,11 +607,36 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-/** 描述文本框 */
+/** 描述区域（文本 + 按钮） */
+.expand-todo-desc-area {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+/** 只读描述文本 */
+.expand-todo-desc-text {
+  flex: 1;
+  min-width: 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.7);
+  white-space: pre-wrap;
+  word-break: break-word;
+  padding: 4px 0;
+}
+
+.expand-todo-desc-empty {
+  color: rgba(255, 255, 255, 0.2);
+  font-style: italic;
+}
+
+/** 描述编辑文本框 */
 .expand-todo-desc {
-  width: 100%;
+  flex: 1;
+  min-width: 0;
   background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 6px;
   padding: 4px 8px;
   color: rgba(255, 255, 255, 0.75);
@@ -630,6 +655,39 @@
 .expand-todo-desc:focus {
   border-color: rgba(255, 255, 255, 0.15);
   background: rgba(255, 255, 255, 0.06);
+}
+
+/** 编辑 / 保存按钮 */
+.expand-todo-desc-btn {
+  flex-shrink: 0;
+  border: none;
+  border-radius: 4px;
+  padding: 3px 8px;
+  font-size: 10px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+  white-space: nowrap;
+}
+
+.expand-todo-desc-btn.edit {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.expand-todo-desc-btn.edit:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.expand-todo-desc-btn.save {
+  background: rgba(100, 200, 120, 0.15);
+  color: rgba(120, 220, 140, 0.8);
+}
+
+.expand-todo-desc-btn.save:hover {
+  background: rgba(100, 200, 120, 0.25);
+  color: rgba(120, 220, 140, 1);
 }
 
 /** ========== 子待办区域 ========== */

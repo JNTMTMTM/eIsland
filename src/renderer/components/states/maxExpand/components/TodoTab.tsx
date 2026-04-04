@@ -96,6 +96,9 @@ export function TodoTab(): React.ReactElement {
   const [subInput, setSubInput] = useState('');
   const [subPriority, setSubPriority] = useState<Priority | undefined>(undefined);
   const [subSize, setSubSize] = useState<Size | undefined>(undefined);
+  const [editingDescId, setEditingDescId] = useState<number | null>(null);
+  const [descDraft, setDescDraft] = useState('');
+  const descRef = useRef<HTMLTextAreaElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const subInputRef = useRef<HTMLInputElement>(null);
@@ -179,9 +182,17 @@ export function TodoTab(): React.ReactElement {
     setSubSize(undefined);
   };
 
-  /** 更新描述 */
-  const updateDescription = (id: number, desc: string): void => {
-    update(prev => prev.map(t => t.id === id ? { ...t, description: desc } : t));
+  /** 进入描述编辑模式 */
+  const startEditDesc = (todo: TodoItem): void => {
+    setEditingDescId(todo.id);
+    setDescDraft(todo.description ?? '');
+    requestAnimationFrame(() => descRef.current?.focus());
+  };
+
+  /** 保存描述 */
+  const saveDesc = (id: number): void => {
+    update(prev => prev.map(t => t.id === id ? { ...t, description: descDraft } : t));
+    setEditingDescId(null);
   };
 
   /** 添加子待办 */
@@ -341,14 +352,32 @@ export function TodoTab(): React.ReactElement {
               {/* 展开详情 */}
               {isExpanded && (
                 <div className="expand-todo-detail" onClick={(e) => e.stopPropagation()}>
-                  {/* 描述编辑 */}
-                  <textarea
-                    className="expand-todo-desc"
-                    placeholder="添加详细描述..."
-                    value={todo.description ?? ''}
-                    onChange={(e) => updateDescription(todo.id, e.target.value)}
-                    rows={2}
-                  />
+                  {/* 描述区域 */}
+                  <div className="expand-todo-desc-area">
+                    {editingDescId === todo.id ? (
+                      <>
+                        <textarea
+                          ref={descRef}
+                          className="expand-todo-desc"
+                          placeholder="添加详细描述..."
+                          value={descDraft}
+                          onChange={(e) => setDescDraft(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); saveDesc(todo.id); }
+                          }}
+                          rows={3}
+                        />
+                        <button className="expand-todo-desc-btn save" onClick={() => saveDesc(todo.id)} title="保存 (Ctrl+Enter)">保存</button>
+                      </>
+                    ) : (
+                      <>
+                        <div className="expand-todo-desc-text">
+                          {todo.description ? todo.description : <span className="expand-todo-desc-empty">暂无描述</span>}
+                        </div>
+                        <button className="expand-todo-desc-btn edit" onClick={() => startEditDesc(todo)} title="编辑描述">编辑</button>
+                      </>
+                    )}
+                  </div>
 
                   {/* 子待办列表 */}
                   <div className="expand-todo-subs">
