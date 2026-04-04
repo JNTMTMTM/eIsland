@@ -12,7 +12,7 @@ export type { WeatherApiConfig };
 export type IslandState = 'idle' | 'hover' | 'expanded' | 'notification';
 
 /** Hover 状态下的子标签页类型 */
-export type HoverTab = 'time' | 'o3ics' | 'weather';
+export type HoverTab = 'time' | 'o3ics' | 'weather' | 'expand';
 
 /** 歌词显示模式 */
 export type LrcMode = 'off' | 'info' | 'lrc';

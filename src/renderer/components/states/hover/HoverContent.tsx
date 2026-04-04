@@ -24,6 +24,7 @@ const NAV_DOTS: { tab: HoverTab; label: string }[] = [
   { tab: 'time', label: '工具' },
   { tab: 'o3ics', label: '歌曲' },
   { tab: 'weather', label: '天气' },
+  { tab: 'expand', label: '展开' },
 ];
 
 /**
@@ -34,7 +35,7 @@ export function HoverContent({
   fullTimeStr,
   lunarStr
 }: HoverContentProps): React.ReactElement {
-  const { hoverTab, setHoverTab } = useIslandStore();
+  const { hoverTab, setHoverTab, setExpanded } = useIslandStore();
   const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -46,13 +47,17 @@ export function HoverContent({
       if (hoverTab === 'time' && target.closest('.timer-inputs')) return;
       e.preventDefault();
       const currentIndex = NAV_DOTS.findIndex(d => d.tab === hoverTab);
+      let nextTab: HoverTab;
       if (e.deltaY > 0) {
-        const next = (currentIndex + 1) % NAV_DOTS.length;
-        setHoverTab(NAV_DOTS[next].tab);
+        nextTab = NAV_DOTS[(currentIndex + 1) % NAV_DOTS.length].tab;
       } else {
-        const prev = (currentIndex - 1 + NAV_DOTS.length) % NAV_DOTS.length;
-        setHoverTab(NAV_DOTS[prev].tab);
+        nextTab = NAV_DOTS[(currentIndex - 1 + NAV_DOTS.length) % NAV_DOTS.length].tab;
       }
+      if (nextTab === 'expand') {
+        setExpanded();
+        return;
+      }
+      setHoverTab(nextTab);
     };
 
     el.addEventListener('wheel', handleWheel, { passive: false });
@@ -66,7 +71,7 @@ export function HoverContent({
           <button
             key={tab}
             className={`hover-nav-dot ${hoverTab === tab ? 'active' : ''}`}
-            onClick={(e) => { e.stopPropagation(); setHoverTab(tab); }}
+            onClick={(e) => { e.stopPropagation(); if (tab === 'expand') { setExpanded(); } else { setHoverTab(tab); } }}
             title={label}
             aria-label={`切换到${label}页面`}
           />
