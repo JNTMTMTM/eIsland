@@ -163,6 +163,8 @@
               0 0 36px 12px var(--disc-glow, rgba(0, 0, 0, 0.2));
   overflow: hidden;
   transition: box-shadow 0.6s ease;
+  animation: discSpin 8s linear infinite;
+  animation-play-state: paused;
 }
 
 .ov-disc::after {
@@ -185,7 +187,7 @@
 }
 
 .ov-disc.spinning {
-  animation: discSpin 8s linear infinite;
+  animation-play-state: running;
 }
 
 @keyframes discSpin {
