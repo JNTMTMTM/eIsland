@@ -37,6 +37,12 @@ export const createIslandSlice: StateCreator<
     set({ state: 'expanded' });
   },
 
+  setSettings: () => {
+    window.api?.expandWindowSettings();
+    window.api?.disableMousePassthrough();
+    set({ state: 'settings' });
+  },
+
   setNotification: (data) => {
     window.api?.expandWindow();
     set({ state: 'notification', notification: data });

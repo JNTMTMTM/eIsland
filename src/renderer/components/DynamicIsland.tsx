@@ -12,11 +12,12 @@ import { IdleContent } from './states/idle/IdleContent';
 import { HoverContent } from './states/hover/HoverContent';
 import { NotificationContent } from './states/notification/NotificationContent';
 import { ExpandedContent } from './states/expand/ExpandedContent';
+import { SettingsContent } from './states/settings/SettingsContent';
 import { SvgIcon } from '../utils/SvgIcon';
 import type { NowPlayingInfo } from '../store/isLandStore';
 
 /** 灵动岛状态类型 */
-export type IslandState = 'idle' | 'hover' | 'expanded' | 'notification' | 'minimal';
+export type IslandState = 'idle' | 'hover' | 'expanded' | 'notification' | 'settings' | 'minimal';
 
 /** 状态配置接口 */
 interface StateConfig {
@@ -57,6 +58,13 @@ export const STATE_CONFIGS: Record<IslandState, StateConfig> = {
   },
   notification: {
     name: 'notification',
+    mousePassthrough: false,
+    expanded: true,
+    enterDelay: 0,
+    leaveDelay: 0,
+  },
+  settings: {
+    name: 'settings',
     mousePassthrough: false,
     expanded: true,
     enterDelay: 0,
@@ -403,6 +411,12 @@ function DynamicIsland(): React.JSX.Element {
         />
       ),
     },
+    {
+      state: 'settings',
+      render: () => (
+        <SettingsContent />
+      ),
+    },
   ];
 
   /**
@@ -412,7 +426,7 @@ function DynamicIsland(): React.JSX.Element {
   const handleIslandClick = React.useCallback(() => {
     if (state === 'hover') {
       setExpanded();
-    } else if (state === 'expanded') {
+    } else if (state === 'expanded' || state === 'settings') {
       setHover();
     }
   }, [state, setExpanded, setHover]);

@@ -7,3 +7,4 @@
 export { IdleContent } from './idle/IdleContent';
 export { HoverContent } from './hover/HoverContent';
 export { ExpandedContent } from './expand/ExpandedContent';
+export { SettingsContent } from './settings/SettingsContent';

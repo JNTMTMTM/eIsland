@@ -86,6 +86,20 @@
   pointer-events: none;
 }
 
+/** Settings 状态 - 独立设置面板（860x400） */
+.island-shell.settings {
+  width: 860px;
+  height: 400px;
+  background: var(--color-island-bg);
+  border-radius: 0 0 22px 22px;
+  box-shadow: none;
+}
+
+.island-shell.settings::before {
+  opacity: 0;
+  pointer-events: none;
+}
+
 .island-shell.notification {
   width: 500px;
   height: 60px;

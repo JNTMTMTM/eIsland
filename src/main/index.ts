@@ -29,6 +29,9 @@ const EXPANDED_HEIGHT = 60;
 /** 单击展开后的完整面板尺寸 */
 const EXPANDED_FULL_WIDTH = 860;
 const EXPANDED_FULL_HEIGHT = 150;
+/** 设置面板尺寸 */
+const SETTINGS_WIDTH = 860;
+const SETTINGS_HEIGHT = 400;
 
 /** 播放程序白名单 - 只有在白名单中的程序才会执行歌曲相关操作 */
 const NOW_PLAYING_WHITELIST = [
@@ -159,6 +162,21 @@ function registerIpcHandlers(): void {
         y: mainWindow.getBounds().y,
         width: EXPANDED_FULL_WIDTH,
         height: EXPANDED_FULL_HEIGHT
+      });
+    }
+  });
+
+  /**
+   * 展开设置面板 - 比 expanded 更大的独立设置界面
+   * @description 窗口扩展到 860x400，基于初始中心点左右均匀扩展
+   */
+  ipcMain.on('window:expand-settings', () => {
+    if (mainWindow) {
+      mainWindow.setBounds({
+        x: Math.round(initialCenterX - SETTINGS_WIDTH / 2),
+        y: mainWindow.getBounds().y,
+        width: SETTINGS_WIDTH,
+        height: SETTINGS_HEIGHT
       });
     }
   });

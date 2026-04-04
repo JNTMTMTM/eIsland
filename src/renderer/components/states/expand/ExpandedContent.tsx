@@ -10,10 +10,12 @@ import type { ExpandTab } from '../../../store/types';
 import '../../../styles/expanded/expanded.css';
 import { OverviewTab } from './components/MusicTab';
 import { ToolsTab } from './components/ToolsTab';
-import { SettingsTab } from './components/SettingsTab';
 
-/** 导航点配置 — 首项为返回 hover 的特殊导航点 */
-const EXPAND_NAV_DOTS: { tab: ExpandTab; label: string }[] = [
+/** 导航点标识 — 含特殊动作：hover 返回、settings 切换独立状态 */
+type NavDotId = ExpandTab | 'settings';
+
+/** 导航点配置 */
+const EXPAND_NAV_DOTS: { tab: NavDotId; label: string }[] = [
   { tab: 'hover', label: '返回' },
   { tab: 'overview', label: '总览' },
   { tab: 'tools', label: '工具' },
@@ -26,8 +28,10 @@ const EXPAND_NAV_DOTS: { tab: ExpandTab; label: string }[] = [
  * @returns Expanded 状态下的 UI 元素
  */
 export function ExpandedContent(): React.ReactElement {
-  const { expandTab, setExpandTab, setHover } = useIslandStore();
+  const { expandTab, setExpandTab, setHover, setSettings } = useIslandStore();
   const contentRef = useRef<HTMLDivElement>(null);
+  const expandTabRef = useRef(expandTab);
+  expandTabRef.current = expandTab;
 
   /** 滚轮切换 Tab */
   useEffect(() => {
@@ -36,23 +40,22 @@ export function ExpandedContent(): React.ReactElement {
 
     const handleWheel = (e: WheelEvent): void => {
       e.preventDefault();
-      const currentIndex = EXPAND_NAV_DOTS.findIndex(d => d.tab === expandTab);
-      let nextTab: ExpandTab;
+      const cur = expandTabRef.current;
+      const currentIndex = EXPAND_NAV_DOTS.findIndex(d => d.tab === cur);
+      let nextId: NavDotId;
       if (e.deltaY > 0) {
-        nextTab = EXPAND_NAV_DOTS[(currentIndex + 1) % EXPAND_NAV_DOTS.length].tab;
+        nextId = EXPAND_NAV_DOTS[(currentIndex + 1) % EXPAND_NAV_DOTS.length].tab;
       } else {
-        nextTab = EXPAND_NAV_DOTS[(currentIndex - 1 + EXPAND_NAV_DOTS.length) % EXPAND_NAV_DOTS.length].tab;
+        nextId = EXPAND_NAV_DOTS[(currentIndex - 1 + EXPAND_NAV_DOTS.length) % EXPAND_NAV_DOTS.length].tab;
       }
-      if (nextTab === 'hover') {
-        setHover();
-        return;
-      }
-      setExpandTab(nextTab);
+      if (nextId === 'hover') { setHover(); return; }
+      if (nextId === 'settings') { setSettings(); return; }
+      setExpandTab(nextId);
     };
 
     el.addEventListener('wheel', handleWheel, { passive: false });
     return () => el.removeEventListener('wheel', handleWheel);
-  }, [expandTab, setExpandTab]);
+  }, [setExpandTab, setHover, setSettings]);
 
   return (
     <div className="expanded-content" ref={contentRef}>
@@ -60,7 +63,6 @@ export function ExpandedContent(): React.ReactElement {
       <div className="expand-tab-content" onClick={(e) => e.stopPropagation()}>
         {expandTab === 'overview' && <OverviewTab />}
         {expandTab === 'tools' && <ToolsTab />}
-        {expandTab === 'settings' && <SettingsTab />}
       </div>
 
       {/* 底部导航点 */}
@@ -69,7 +71,11 @@ export function ExpandedContent(): React.ReactElement {
           <button
             key={tab}
             className={`expand-nav-dot ${expandTab === tab ? 'active' : ''}`}
-            onClick={() => { if (tab === 'hover') { setHover(); } else { setExpandTab(tab); } }}
+            onClick={() => {
+              if (tab === 'hover') { setHover(); }
+              else if (tab === 'settings') { setSettings(); }
+              else { setExpandTab(tab); }
+            }}
             title={label}
             aria-label={`切换到${label}页面`}
           />

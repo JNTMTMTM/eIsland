@@ -1,0 +1,6 @@
+/**
+ * @file settings.css
+ * @description Settings 状态入口，@import 各 partial
+ */
+
+@import "./settings-item.css";

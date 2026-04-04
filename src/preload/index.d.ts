@@ -30,6 +30,7 @@ declare global {
       disableMousePassthrough: () => void;
       expandWindow: () => void;
       expandWindowFull: () => void;
+      expandWindowSettings: () => void;
       collapseWindow: () => void;
       hideWindow: () => void;
       getMousePosition: () => Promise<{ x: number; y: number }>;

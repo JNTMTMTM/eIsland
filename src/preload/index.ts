@@ -38,6 +38,13 @@ const api = {
     ipcRenderer.send('window:expand-full');
   },
   /**
+   * 展开窗口到设置面板尺寸
+   * @description 比 expanded 更大的独立设置界面（860x400）
+   */
+  expandWindowSettings: (): void => {
+    ipcRenderer.send('window:expand-settings');
+  },
+  /**
    * 收缩窗口到 idle 状态尺寸
    * @description 收缩回原始尺寸，保持中心对齐
    */
