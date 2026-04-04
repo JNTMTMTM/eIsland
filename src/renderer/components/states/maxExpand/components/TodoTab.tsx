@@ -291,7 +291,31 @@ export function TodoTab(): React.ReactElement {
       {/* 列表 */}
       <div className="expand-todo-list" ref={listRef}>
         {todos.length === 0 && (
-          <div className="expand-todo-empty">暂无待办</div>
+          <div className="expand-todo-onboarding">
+            <div className="expand-todo-onboarding-icon">
+              <span className="onboarding-check">✓</span>
+              <span className="onboarding-circle" />
+            </div>
+            <div className="expand-todo-onboarding-title">待办事项</div>
+            <div className="expand-todo-onboarding-desc">
+              在这里管理你的任务，保持高效有序
+            </div>
+            <div className="expand-todo-onboarding-features">
+              <div className="onboarding-feature">
+                <span className="onboarding-feature-dot" />
+                <span>创建待办并设置紧急程度与大小</span>
+              </div>
+              <div className="onboarding-feature">
+                <span className="onboarding-feature-dot" />
+                <span>点击展开查看详情，添加描述</span>
+              </div>
+              <div className="onboarding-feature">
+                <span className="onboarding-feature-dot" />
+                <span>拆分子任务，追踪完成进度</span>
+              </div>
+            </div>
+            <div className="expand-todo-onboarding-hint">在上方输入框添加你的第一个待办 ↑</div>
+          </div>
         )}
         {todos.map(todo => {
           const isExpanded = expandedId === todo.id;
