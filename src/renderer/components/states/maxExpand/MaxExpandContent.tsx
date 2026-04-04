@@ -1,116 +1,88 @@
 /**
  * @file MaxExpandContent.tsx
- * @description 最大展开模式内容组件，独立于 Expanded 的大面板
+ * @description 最大展开模式内容组件，独立于 Expanded 的大面板，包含 AI 对话和设置 Tab
  * @author 鸡哥
  */
 
 import React, { useEffect, useRef, useState } from 'react';
 import useIslandStore from '../../../store/slices';
 import '../../../styles/settings/settings.css';
+import { AiChatTab } from './components/AiChatTab';
+import { SettingsTab } from './components/SettingsTab';
 
-/** 单条消息 */
-interface ChatMessage {
-  role: 'user' | 'ai';
-  content: string;
-}
+/** 最大展开模式下的子标签页类型 */
+type MaxExpandTab = 'aiChat' | 'settings';
+
+/** 导航点标识 — 含特殊动作：expanded 返回 */
+type NavDotId = MaxExpandTab | 'expanded';
+
+/** 导航点配置 */
+const NAV_DOTS: { id: NavDotId; label: string }[] = [
+  { id: 'expanded', label: '返回' },
+  { id: 'aiChat', label: 'AI 对话' },
+  { id: 'settings', label: '设置' },
+];
 
 /**
  * 最大展开模式内容组件
- * @description 包含 AI 对话窗口，底部导航点可返回 expanded 状态
+ * @description 包含 AI 对话窗口和设置面板，底部导航点切换 Tab 或返回 expanded
  */
 export function MaxExpandContent(): React.ReactElement {
   const { setExpanded } = useIslandStore();
   const contentRef = useRef<HTMLDivElement>(null);
-  const chatEndRef = useRef<HTMLDivElement>(null);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [input, setInput] = useState('');
+  const [activeTab, setActiveTab] = useState<MaxExpandTab>('aiChat');
+  const activeTabRef = useRef(activeTab);
+  activeTabRef.current = activeTab;
 
-  /** 滚动到最新消息 */
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-
-  /** 滚轮返回 expanded（仅在聊天区域外触发） */
+  /** 滚轮切换 Tab */
   useEffect(() => {
     const el = contentRef.current;
     if (!el) return;
 
     const handleWheel = (e: WheelEvent): void => {
-      const target = e.target as HTMLElement;
-      if (target.closest('.max-expand-chat')) return;
       e.preventDefault();
-      setExpanded();
+
+      const cur = activeTabRef.current;
+      const currentIndex = NAV_DOTS.findIndex(d => d.id === cur);
+      let nextId: NavDotId;
+      if (e.deltaY > 0) {
+        nextId = NAV_DOTS[(currentIndex + 1) % NAV_DOTS.length].id;
+      } else {
+        nextId = NAV_DOTS[(currentIndex - 1 + NAV_DOTS.length) % NAV_DOTS.length].id;
+      }
+      if (nextId === 'expanded') { setExpanded(); return; }
+      setActiveTab(nextId);
     };
 
     el.addEventListener('wheel', handleWheel, { passive: false });
     return () => el.removeEventListener('wheel', handleWheel);
   }, [setExpanded]);
 
-  /** 发送消息 */
-  const handleSend = (): void => {
-    const text = input.trim();
-    if (!text) return;
-    setMessages(prev => [...prev, { role: 'user', content: text }]);
-    setInput('');
-    // 模拟 AI 回复
-    setTimeout(() => {
-      setMessages(prev => [...prev, { role: 'ai', content: `收到：「${text}」— AI 功能开发中...` }]);
-    }, 600);
-  };
-
-  /** 回车发送 */
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>): void => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
+  /** 导航点点击 */
+  const handleNavClick = (id: NavDotId): void => {
+    if (id === 'expanded') { setExpanded(); return; }
+    setActiveTab(id);
   };
 
   return (
     <div className="settings-content" ref={contentRef}>
-      {/* AI 对话窗口 */}
-      <div className="max-expand-chat" onClick={(e) => e.stopPropagation()}>
-        {/* 消息列表 */}
-        <div className="max-expand-chat-messages">
-          {messages.length === 0 && (
-            <div className="max-expand-chat-empty">有什么可以帮你的？</div>
-          )}
-          {messages.map((msg, i) => (
-            <div key={i} className={`max-expand-chat-bubble ${msg.role}`}>
-              {msg.content}
-            </div>
-          ))}
-          <div ref={chatEndRef} />
-        </div>
-        {/* 输入栏 */}
-        <div className="max-expand-chat-input-bar">
-          <input
-            className="max-expand-chat-input"
-            type="text"
-            placeholder="输入消息..."
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-          />
-          <button className="max-expand-chat-send" onClick={handleSend}>
-            发送
-          </button>
-        </div>
+      {/* Tab 内容区域 */}
+      <div className="max-expand-tab-content" onClick={(e) => e.stopPropagation()}>
+        {activeTab === 'aiChat' && <AiChatTab />}
+        {activeTab === 'settings' && <SettingsTab />}
       </div>
 
-      {/* 底部导航点 — 返回 expanded */}
+      {/* 底部导航点 */}
       <div className="settings-nav-dots" onClick={(e) => e.stopPropagation()}>
-        <button
-          className="settings-nav-dot"
-          onClick={() => setExpanded()}
-          title="返回"
-          aria-label="返回到展开界面"
-        />
-        <button
-          className="settings-nav-dot active"
-          title="最大展开"
-          aria-label="最大展开模式"
-        />
+        {NAV_DOTS.map(({ id, label }) => (
+          <button
+            key={id}
+            className={`settings-nav-dot ${activeTab === id ? 'active' : ''}`}
+            onClick={() => handleNavClick(id)}
+            title={label}
+            aria-label={`切换到${label}`}
+          />
+        ))}
       </div>
     </div>
   );
