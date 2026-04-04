@@ -21,12 +21,12 @@
   justify-content: center;
   width: 100%;
   overflow: hidden;
-  animation: expandFadeIn 0.2s ease;
+  animation: expandFadeIn 0.3s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 @keyframes expandFadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /** Expanded Tab 面板通用容器 */
@@ -58,14 +58,14 @@
   border: none;
   padding: 0;
   cursor: pointer;
-  transition: background 0.2s ease,
-              transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
-              box-shadow 0.2s ease;
+  transition: background 0.25s ease,
+              transform 0.25s cubic-bezier(0.25, 1, 0.5, 1),
+              box-shadow 0.25s ease;
 }
 
 .expand-nav-dot:hover {
   background: rgba(255, 255, 255, 0.5);
-  transform: scale(1.3);
+  transform: scale(1.25);
 }
 
 .expand-nav-dot.active {
@@ -90,13 +90,13 @@
   padding: 8px 16px;
   border-radius: 12px;
   transition: background 0.3s ease,
-              transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+              transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
   cursor: pointer;
 }
 
 .expanded-item:hover {
   background: rgba(255, 255, 255, 0.08);
-  transform: scale(1.05);
+  transform: scale(1.04);
 }
 
 .expanded-item:active {
