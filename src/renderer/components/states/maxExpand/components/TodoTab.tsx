@@ -4,7 +4,7 @@
  * @author 鸡哥
  */
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 
 /** 紧急程度 */
 type Priority = 'P0' | 'P1' | 'P2';
@@ -32,6 +32,8 @@ interface SubTodo {
   id: number;
   text: string;
   done: boolean;
+  priority?: Priority;
+  size?: Size;
 }
 
 /** 单条待办 */
@@ -61,11 +63,17 @@ function formatCreatedTime(ts: number): string {
 /** 本地存储 key */
 const STORAGE_KEY = 'eIsland_todos';
 
-/** 从 localStorage 读取 */
+/** 从 localStorage 读取（并规范化旧数据） */
 function loadTodos(): TodoItem[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
+    if (!raw) return [];
+    const items: TodoItem[] = JSON.parse(raw);
+    return items.map(t => ({
+      ...t,
+      description: t.description ?? '',
+      subTodos: (t.subTodos ?? []).map(s => ({ ...s, priority: s.priority, size: s.size })),
+    }));
   } catch { return []; }
 }
 
@@ -85,19 +93,27 @@ export function TodoTab(): React.ReactElement {
   const [size, setSize] = useState<Size | undefined>(undefined);
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [subInput, setSubInput] = useState('');
+  const [subPriority, setSubPriority] = useState<Priority | undefined>(undefined);
+  const [subSize, setSubSize] = useState<Size | undefined>(undefined);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const subInputRef = useRef<HTMLInputElement>(null);
 
-  /** 持久化 */
-  useEffect(() => { saveTodos(todos); }, [todos]);
+  /** 同步更新状态并写入 localStorage */
+  const setAndSave = (updater: (prev: TodoItem[]) => TodoItem[]): void => {
+    setTodos(prev => {
+      const next = updater(prev);
+      saveTodos(next);
+      return next;
+    });
+  };
 
   /** 添加待办 */
   const handleAdd = (): void => {
     const text = input.trim();
     if (!text) return;
     const now = Date.now();
-    setTodos(prev => [...prev, { id: now, text, done: false, createdAt: now, priority, size, description: '', subTodos: [] }]);
+    setAndSave(prev => [...prev, { id: now, text, done: false, createdAt: now, priority, size, description: '', subTodos: [] }]);
     setInput('');
     setPriority(undefined);
     setSize(undefined);
@@ -113,12 +129,12 @@ export function TodoTab(): React.ReactElement {
 
   /** 切换完成 */
   const toggleDone = (id: number): void => {
-    setTodos(prev => prev.map(t => t.id === id ? { ...t, done: !t.done } : t));
+    setAndSave(prev => prev.map(t => t.id === id ? { ...t, done: !t.done } : t));
   };
 
   /** 删除 */
   const removeTodo = (id: number): void => {
-    setTodos(prev => prev.filter(t => t.id !== id));
+    setAndSave(prev => prev.filter(t => t.id !== id));
     if (expandedId === id) setExpandedId(null);
   };
 
@@ -126,29 +142,33 @@ export function TodoTab(): React.ReactElement {
   const toggleExpand = (id: number): void => {
     setExpandedId(prev => prev === id ? null : id);
     setSubInput('');
+    setSubPriority(undefined);
+    setSubSize(undefined);
   };
 
   /** 更新描述 */
   const updateDescription = (id: number, desc: string): void => {
-    setTodos(prev => prev.map(t => t.id === id ? { ...t, description: desc } : t));
+    setAndSave(prev => prev.map(t => t.id === id ? { ...t, description: desc } : t));
   };
 
   /** 添加子待办 */
   const addSubTodo = (parentId: number): void => {
     const text = subInput.trim();
     if (!text) return;
-    setTodos(prev => prev.map(t => {
+    setAndSave(prev => prev.map(t => {
       if (t.id !== parentId) return t;
       const subs = t.subTodos ?? [];
-      return { ...t, subTodos: [...subs, { id: Date.now(), text, done: false }] };
+      return { ...t, subTodos: [...subs, { id: Date.now(), text, done: false, priority: subPriority, size: subSize }] };
     }));
     setSubInput('');
+    setSubPriority(undefined);
+    setSubSize(undefined);
     requestAnimationFrame(() => subInputRef.current?.focus());
   };
 
   /** 切换子待办完成 */
   const toggleSubDone = (parentId: number, subId: number): void => {
-    setTodos(prev => prev.map(t => {
+    setAndSave(prev => prev.map(t => {
       if (t.id !== parentId) return t;
       return { ...t, subTodos: (t.subTodos ?? []).map(s => s.id === subId ? { ...s, done: !s.done } : s) };
     }));
@@ -156,7 +176,7 @@ export function TodoTab(): React.ReactElement {
 
   /** 删除子待办 */
   const removeSubTodo = (parentId: number, subId: number): void => {
-    setTodos(prev => prev.map(t => {
+    setAndSave(prev => prev.map(t => {
       if (t.id !== parentId) return t;
       return { ...t, subTodos: (t.subTodos ?? []).filter(s => s.id !== subId) };
     }));
@@ -263,10 +283,18 @@ export function TodoTab(): React.ReactElement {
                     </span>
                   )}
                   {subs.length > 0 && (
-                    <span className="expand-todo-sub-count">{subDone}/{subs.length}</span>
+                    <span className="expand-todo-progress-wrap">
+                      <span className="expand-todo-progress-bar">
+                        <span className="expand-todo-progress-fill" style={{ width: `${subs.length > 0 ? (subDone / subs.length) * 100 : 0}%` }} />
+                      </span>
+                      <span className="expand-todo-progress-label">{subDone}/{subs.length}</span>
+                    </span>
                   )}
                   <span className="expand-todo-time">{formatCreatedTime(todo.createdAt ?? todo.id)}</span>
                 </div>
+                {!isExpanded && todo.description && (
+                  <span className="expand-todo-desc-preview" title={todo.description}>{todo.description}</span>
+                )}
                 <span className={`expand-todo-arrow ${isExpanded ? 'open' : ''}`}>›</span>
                 <button
                   className="expand-todo-delete"
@@ -304,6 +332,22 @@ export function TodoTab(): React.ReactElement {
                           {sub.done ? '✓' : '○'}
                         </button>
                         <span className="expand-todo-sub-text">{sub.text}</span>
+                        {sub.priority && (
+                          <span
+                            className="expand-todo-priority-badge"
+                            style={{ '--tag-color': PRIORITIES.find(p => p.value === sub.priority)?.color } as React.CSSProperties}
+                          >
+                            {sub.priority}
+                          </span>
+                        )}
+                        {sub.size && (
+                          <span
+                            className="expand-todo-size-badge"
+                            style={{ '--tag-color': SIZES.find(s => s.value === sub.size)?.color } as React.CSSProperties}
+                          >
+                            {sub.size}
+                          </span>
+                        )}
                         <button
                           className="expand-todo-sub-delete"
                           onClick={() => removeSubTodo(todo.id, sub.id)}
@@ -325,6 +369,32 @@ export function TodoTab(): React.ReactElement {
                           if (e.key === 'Enter') { e.preventDefault(); addSubTodo(todo.id); }
                         }}
                       />
+                      <div className="expand-todo-selector">
+                        {PRIORITIES.map(p => (
+                          <button
+                            key={p.value}
+                            className={`expand-todo-tag ${subPriority === p.value ? 'active' : ''}`}
+                            style={{ '--tag-color': p.color } as React.CSSProperties}
+                            onClick={() => setSubPriority(subPriority === p.value ? undefined : p.value)}
+                            title={p.label}
+                          >
+                            {p.label}
+                          </button>
+                        ))}
+                      </div>
+                      <div className="expand-todo-selector">
+                        {SIZES.map(s => (
+                          <button
+                            key={s.value}
+                            className={`expand-todo-tag size ${subSize === s.value ? 'active' : ''}`}
+                            style={{ '--tag-color': s.color } as React.CSSProperties}
+                            onClick={() => setSubSize(subSize === s.value ? undefined : s.value)}
+                            title={s.label}
+                          >
+                            {s.label}
+                          </button>
+                        ))}
+                      </div>
                       <button className="expand-todo-sub-add-btn" onClick={() => addSubTodo(todo.id)}>+</button>
                     </div>
                   </div>

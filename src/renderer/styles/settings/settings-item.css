@@ -550,16 +550,47 @@
   color: rgba(255, 255, 255, 0.6);
 }
 
-/** 子任务进度徽章（标题行内） */
-.expand-todo-sub-count {
+/** 进度条包裹 */
+.expand-todo-progress-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   flex-shrink: 0;
-  font-size: 9px;
+}
+
+.expand-todo-progress-bar {
+  width: 32px;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.expand-todo-progress-fill {
+  display: block;
+  height: 100%;
+  border-radius: 2px;
+  background: rgba(120, 220, 120, 0.6);
+  transition: width 0.25s ease;
+}
+
+.expand-todo-progress-label {
+  font-size: 8px;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.35);
-  background: rgba(255, 255, 255, 0.06);
-  padding: 0 4px;
-  border-radius: 3px;
-  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.3);
+  line-height: 1;
+}
+
+/** 标题行缩略描述 */
+.expand-todo-desc-preview {
+  flex-shrink: 1;
+  min-width: 0;
+  max-width: 80px;
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /** ========== 展开详情区域 ========== */
@@ -700,6 +731,7 @@
   align-items: center;
   gap: 4px;
   padding-top: 2px;
+  flex-wrap: wrap;
 }
 
 .expand-todo-sub-input {
