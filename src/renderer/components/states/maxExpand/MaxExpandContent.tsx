@@ -44,6 +44,11 @@ export function MaxExpandContent(): React.ReactElement {
     const handleWheel = (e: WheelEvent): void => {
       const target = e.target as HTMLElement;
       if (target.closest('.expand-todo-list')) return;
+      if (target.closest('.max-expand-settings-panel')) return;
+      if (target.closest('.max-expand-chat-messages')) return;
+      if (target.closest('.max-expand-chat-input')) return;
+      if (target.closest('.settings-field-input')) return;
+      if (target.closest('.settings-field-textarea')) return;
       e.preventDefault();
 
       const cur = activeTabRef.current;

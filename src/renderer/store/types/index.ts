@@ -123,6 +123,21 @@ export interface NotificationData {
   icon?: string;
 }
 
+/** AI 配置数据 */
+export interface AiConfig {
+  apiKey: string;
+  endpoint: string;
+  model: string;
+  mcpEndpoint: string;
+  systemPrompt: string;
+}
+
+/** AI 对话单条消息 */
+export interface AiChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
 // ============= Slice Interfaces =============
 
 /** 岛屿状态 Slice */
@@ -188,5 +203,15 @@ export interface MediaSlice {
   setLyricsLoading: (loading: boolean) => void;
 }
 
+/** AI Slice */
+export interface AiSlice {
+  aiConfig: AiConfig;
+  setAiConfig: (config: Partial<AiConfig>) => void;
+
+  aiChatMessages: AiChatMessage[];
+  setAiChatMessages: (messages: AiChatMessage[]) => void;
+  clearAiChatMessages: () => void;
+}
+
 /** 完整 Store 类型 */
-export type IIslandStore = IslandSlice & WeatherSlice & TimerSlice & MediaSlice;
+export type IIslandStore = IslandSlice & WeatherSlice & TimerSlice & MediaSlice & AiSlice;

@@ -1,42 +1,243 @@
 /**
  * @file AiChatTab.tsx
- * @description 最大展开模式 — AI 对话 Tab
+ * @description 最大展开模式 — AI 对话 Tab（OpenAI 兼容 API + 流式输出）
  * @author 鸡哥
  */
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
+import useIslandStore from '../../../../store/slices';
 
 /** 单条消息 */
 interface ChatMessage {
-  role: 'user' | 'ai';
+  role: 'user' | 'assistant';
   content: string;
+}
+
+function escapeHtml(input: string): string {
+  return input
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+/**
+ * 轻量 Markdown → HTML（安全：先整体转义，再做有限替换）
+ * 支持：标题、粗体、斜体、链接、行内 code、代码块、列表、换行
+ */
+function markdownToSafeHtml(markdown: string): string {
+  const escaped = escapeHtml(markdown);
+
+  const fenceTokens: string[] = [];
+  let text = escaped.replace(/```([\s\S]*?)```/g, (_m, code) => {
+    const token = `__FENCE_${fenceTokens.length}__`;
+    fenceTokens.push(`<pre><code>${code.replace(/^\n+|\n+$/g, '')}</code></pre>`);
+    return token;
+  });
+
+  // 标题（最多 3 级）
+  text = text
+    .replace(/^###\s+(.+)$/gm, '<h3>$1</h3>')
+    .replace(/^##\s+(.+)$/gm, '<h2>$1</h2>')
+    .replace(/^#\s+(.+)$/gm, '<h1>$1</h1>');
+
+  // 粗体 / 斜体（简单版）
+  text = text
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>');
+
+  // 行内 code
+  text = text.replace(/`([^`]+?)`/g, '<code>$1</code>');
+
+  // 链接
+  text = text.replace(/\[([^\]]+?)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noreferrer">$1</a>');
+
+  // 列表（尽量简单：连续 - 开头的行组装为 <ul>）
+  text = text.replace(/(?:^\-\s+.+(?:\n|$))+?/gm, (block) => {
+    const items = block
+      .trim()
+      .split(/\n/)
+      .map((l) => l.replace(/^\-\s+/, '').trim())
+      .filter(Boolean)
+      .map((c) => `<li>${c}</li>`)
+      .join('');
+    return items ? `<ul>${items}</ul>` : block;
+  });
+
+  // 段落/换行：先把空行分段
+  const paragraphs = text
+    .split(/\n{2,}/)
+    .map((p) => p.trim())
+    .filter(Boolean)
+    .map((p) => {
+      if (/^<h[1-3]>/.test(p) || /^<ul>/.test(p) || /^<pre><code>/.test(p)) return p;
+      return `<p>${p.replace(/\n/g, '<br/>')}</p>`;
+    });
+  text = paragraphs.join('');
+
+  // 恢复代码块
+  for (let i = 0; i < fenceTokens.length; i += 1) {
+    text = text.replace(`__FENCE_${i}__`, fenceTokens[i]);
+  }
+  return text;
+}
+
+/**
+ * 调用 OpenAI 兼容 Chat Completions API（流式）
+ */
+async function streamChatCompletion(
+  endpoint: string,
+  apiKey: string,
+  model: string,
+  messages: { role: string; content: string }[],
+  onChunk: (text: string) => void,
+  signal: AbortSignal,
+): Promise<void> {
+  const url = `${endpoint.replace(/\/+$/, '')}/chat/completions`;
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({ model, messages, stream: true }),
+    signal,
+  });
+
+  if (!res.ok) {
+    const body = await res.text().catch(() => '');
+    throw new Error(`API 请求失败 (${res.status}): ${body || res.statusText}`);
+  }
+
+  const reader = res.body?.getReader();
+  if (!reader) throw new Error('无法读取响应流');
+
+  const decoder = new TextDecoder();
+  let buffer = '';
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split('\n');
+    buffer = lines.pop() || '';
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed || !trimmed.startsWith('data: ')) continue;
+      const data = trimmed.slice(6);
+      if (data === '[DONE]') return;
+      try {
+        const parsed = JSON.parse(data);
+        const delta = parsed.choices?.[0]?.delta?.content;
+        if (delta) onChunk(delta);
+      } catch { /* skip malformed chunks */ }
+    }
+  }
 }
 
 /**
  * AI 对话 Tab
- * @description 包含消息列表和输入栏的聊天界面
+ * @description 包含消息列表和输入栏的聊天界面，调用 OpenAI 兼容 API
  */
 export function AiChatTab(): React.ReactElement {
   const chatEndRef = useRef<HTMLDivElement>(null);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(false);
+  const abortRef = useRef<AbortController | null>(null);
+  const { aiConfig, aiChatMessages, setAiChatMessages } = useIslandStore();
+
+  /** 始终从 store 读最新消息再更新，避免流式 chunk 之间的闭包过期 */
+  const updateMessages = useCallback((updater: (prev: ChatMessage[]) => ChatMessage[]) => {
+    const latest = useIslandStore.getState().aiChatMessages;
+    useIslandStore.getState().setAiChatMessages(updater(latest));
+  }, []);
 
   /** 滚动到最新消息 */
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [aiChatMessages]);
 
-  /** 发送消息 */
-  const handleSend = (): void => {
+  /** 取消正在进行的请求 */
+  useEffect(() => {
+    return () => { abortRef.current?.abort(); };
+  }, []);
+
+  /** 发送消息并调用 API */
+  const handleSend = useCallback(async (): Promise<void> => {
     const text = input.trim();
-    if (!text) return;
-    setMessages(prev => [...prev, { role: 'user', content: text }]);
+    if (!text || loading) return;
+
+    if (!aiConfig.apiKey) {
+      updateMessages(prev => ([
+        ...prev,
+        { role: 'user', content: text },
+        { role: 'assistant', content: '⚠️ 请先在「设置 → AI配置」中填写 API Key。' },
+      ]));
+      setInput('');
+      return;
+    }
+
+    const userMsg: ChatMessage = { role: 'user', content: text };
+    const nextMessages = [...aiChatMessages, userMsg];
+    setAiChatMessages(nextMessages);
     setInput('');
-    // 模拟 AI 回复
-    setTimeout(() => {
-      setMessages(prev => [...prev, { role: 'ai', content: `收到：「${text}」— AI 功能开发中...` }]);
-    }, 600);
-  };
+    setLoading(true);
+
+    // 构建 API 请求消息（含 system prompt）
+    const apiMessages: { role: string; content: string }[] = [];
+    if (aiConfig.systemPrompt) {
+      apiMessages.push({ role: 'system', content: aiConfig.systemPrompt });
+    }
+    for (const m of nextMessages) {
+      apiMessages.push({ role: m.role, content: m.content });
+    }
+
+    // 添加占位 AI 消息
+    updateMessages(prev => ([...prev, { role: 'assistant', content: '' }]));
+
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    try {
+      await streamChatCompletion(
+        aiConfig.endpoint,
+        aiConfig.apiKey,
+        aiConfig.model,
+        apiMessages,
+        (chunk) => {
+          updateMessages(prev => {
+            const copy = [...prev];
+            const last = copy[copy.length - 1];
+            if (last && last.role === 'assistant') {
+              copy[copy.length - 1] = { ...last, content: last.content + chunk };
+            }
+            return copy;
+          });
+        },
+        controller.signal,
+      );
+    } catch (err: unknown) {
+      if ((err as Error).name === 'AbortError') return;
+      const errMsg = err instanceof Error ? err.message : '未知错误';
+      updateMessages(prev => {
+        const copy = [...prev];
+        const last = copy[copy.length - 1];
+        if (last && last.role === 'assistant' && !last.content) {
+          copy[copy.length - 1] = { ...last, content: `❌ ${errMsg}` };
+        } else {
+          copy.push({ role: 'assistant', content: `❌ ${errMsg}` });
+        }
+        return copy;
+      });
+    } finally {
+      abortRef.current = null;
+      setLoading(false);
+    }
+  }, [input, loading, aiChatMessages, aiConfig, setAiChatMessages, updateMessages]);
 
   /** 回车发送 */
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>): void => {
@@ -46,16 +247,37 @@ export function AiChatTab(): React.ReactElement {
     }
   };
 
+  /** 停止生成 */
+  const handleStop = (): void => {
+    abortRef.current?.abort();
+  };
+
   return (
     <div className="max-expand-chat">
+      {/* 标题 */}
+      <div className="max-expand-chat-header">
+        <span className="max-expand-chat-header-title">AI 对话</span>
+      </div>
       {/* 消息列表 */}
       <div className="max-expand-chat-messages">
-        {messages.length === 0 && (
-          <div className="max-expand-chat-empty">有什么可以帮你的？</div>
+        {aiChatMessages.length === 0 && (
+          <div className="max-expand-chat-empty">
+            {aiConfig.apiKey ? '有什么可以帮你的？' : '请先在「设置 → AI配置」中填写 API Key'}
+          </div>
         )}
-        {messages.map((msg, i) => (
-          <div key={i} className={`max-expand-chat-bubble ${msg.role}`}>
-            {msg.content}
+        {aiChatMessages.map((msg, i) => (
+          <div key={i} className={`max-expand-chat-bubble ${msg.role === 'user' ? 'user' : 'ai'}`}>
+            {msg.role === 'user' ? (
+              msg.content
+            ) : (
+              <div
+                dangerouslySetInnerHTML={{
+                  __html: msg.content
+                    ? markdownToSafeHtml(msg.content)
+                    : (loading && i === aiChatMessages.length - 1 ? '...' : ''),
+                }}
+              />
+            )}
           </div>
         ))}
         <div ref={chatEndRef} />
@@ -65,14 +287,17 @@ export function AiChatTab(): React.ReactElement {
         <input
           className="max-expand-chat-input"
           type="text"
-          placeholder="输入消息..."
+          placeholder={loading ? '生成中...' : '输入消息...'}
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
+          disabled={loading}
         />
-        <button className="max-expand-chat-send" onClick={handleSend}>
-          发送
-        </button>
+        {loading ? (
+          <button className="max-expand-chat-send" onClick={handleStop}>停止</button>
+        ) : (
+          <button className="max-expand-chat-send" onClick={handleSend}>发送</button>
+        )}
       </div>
     </div>
   );
