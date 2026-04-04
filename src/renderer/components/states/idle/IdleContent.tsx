@@ -53,7 +53,7 @@ export function IdleContent({
     }
     const timer = setTimeout(() => {
       handleNowPlayingUpdate(null);
-    }, 5 * 60 * 1000);
+    }, 10 * 60 * 1000);
     return () => clearTimeout(timer);
   }, [isPlaying, isMusicPlaying, handleNowPlayingUpdate]);
 
