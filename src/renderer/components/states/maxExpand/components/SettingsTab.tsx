@@ -26,6 +26,7 @@ export function SettingsTab(): React.ReactElement {
             onClick={() => setActiveTab('app')}
             type="button"
           >
+            <span className="sidebar-dot" />
             软件设置
           </button>
           <button
@@ -33,6 +34,7 @@ export function SettingsTab(): React.ReactElement {
             onClick={() => setActiveTab('ai')}
             type="button"
           >
+            <span className="sidebar-dot" />
             AI配置
           </button>
         </div>

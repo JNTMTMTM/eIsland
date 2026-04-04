@@ -55,39 +55,60 @@
 }
 
 .max-expand-settings-sidebar {
-  width: 140px;
+  width: 120px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 10px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 0;
 }
 
 .max-expand-settings-sidebar-item {
   appearance: none;
   border: none;
+  background: none;
   text-align: left;
-  padding: 9px 10px;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.75);
-  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 12px;
+  font-weight: 400;
   cursor: pointer;
-  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+  transition: color 0.3s ease, font-size 0.3s cubic-bezier(0.25, 1, 0.5, 1), font-weight 0.3s ease, transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 .max-expand-settings-sidebar-item:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.92);
-  transform: translateY(-1px);
+  color: rgba(255, 255, 255, 0.65);
 }
 
 .max-expand-settings-sidebar-item.active {
-  background: rgba(255, 255, 255, 0.14);
   color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  transform: translateX(2px);
+}
+
+/** 导航点 */
+.sidebar-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  flex-shrink: 0;
+  transition: background 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+}
+
+.max-expand-settings-sidebar-item:hover .sidebar-dot {
+  background: rgba(255, 255, 255, 0.45);
+}
+
+.max-expand-settings-sidebar-item.active .sidebar-dot {
+  background: #fff;
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.5);
+  transform: scale(1.2);
 }
 
 .max-expand-settings-panel {
@@ -107,6 +128,18 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
+  animation: settingsPanelIn 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+@keyframes settingsPanelIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .max-expand-settings-title {
