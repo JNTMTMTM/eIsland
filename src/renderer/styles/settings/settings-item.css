@@ -223,6 +223,69 @@
   border-color: rgba(255, 255, 255, 0.3);
 }
 
+/** System Prompt 编辑/查看区域 */
+.settings-prompt-area {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.settings-prompt-area .settings-field-textarea {
+  flex: 1;
+}
+
+.settings-prompt-text {
+  flex: 1;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  padding: 6px 10px;
+  min-height: 48px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.5;
+}
+
+.settings-prompt-empty {
+  color: rgba(255, 255, 255, 0.25);
+  font-style: italic;
+}
+
+.settings-prompt-btn {
+  appearance: none;
+  border: none;
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s ease, color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.settings-prompt-btn.edit {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.settings-prompt-btn.edit:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.settings-prompt-btn.save {
+  background: rgba(100, 200, 120, 0.15);
+  color: rgba(100, 200, 120, 0.9);
+}
+
+.settings-prompt-btn.save:hover {
+  background: rgba(100, 200, 120, 0.25);
+  color: rgba(130, 230, 150, 1);
+}
+
 .max-expand-settings-placeholder {
   color: rgba(255, 255, 255, 0.3);
   font-size: 14px;

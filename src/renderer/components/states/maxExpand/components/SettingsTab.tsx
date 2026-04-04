@@ -4,7 +4,7 @@
  * @author 鸡哥
  */
 
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import useIslandStore from '../../../../store/slices';
 
 /** 单行配置项 */
@@ -35,32 +35,6 @@ function SettingsField({
   );
 }
 
-/** 多行配置项 */
-function SettingsTextarea({
-  label,
-  value,
-  placeholder,
-  onChange,
-}: {
-  label: string;
-  value: string;
-  placeholder?: string;
-  onChange: (v: string) => void;
-}): React.ReactElement {
-  return (
-    <label className="settings-field">
-      <span className="settings-field-label">{label}</span>
-      <textarea
-        className="settings-field-textarea"
-        value={value}
-        placeholder={placeholder}
-        onChange={(e) => onChange(e.target.value)}
-        rows={3}
-      />
-    </label>
-  );
-}
-
 /**
  * 设置 Tab
  * @description 最大展开模式下的设置面板
@@ -68,6 +42,20 @@ function SettingsTextarea({
 export function SettingsTab(): React.ReactElement {
   const [activeTab, setActiveTab] = React.useState<'app' | 'ai'>('app');
   const { aiConfig, setAiConfig } = useIslandStore();
+  const [editingPrompt, setEditingPrompt] = useState(false);
+  const [promptDraft, setPromptDraft] = useState('');
+  const promptRef = useRef<HTMLTextAreaElement>(null);
+
+  const startEditPrompt = (): void => {
+    setPromptDraft(aiConfig.systemPrompt);
+    setEditingPrompt(true);
+    requestAnimationFrame(() => promptRef.current?.focus());
+  };
+
+  const savePrompt = (): void => {
+    setAiConfig({ systemPrompt: promptDraft });
+    setEditingPrompt(false);
+  };
 
   return (
     <div className="max-expand-settings">
@@ -131,12 +119,34 @@ export function SettingsTab(): React.ReactElement {
                   placeholder="http://localhost:3000/mcp (可选)"
                   onChange={(v) => setAiConfig({ mcpEndpoint: v })}
                 />
-                <SettingsTextarea
-                  label="System Prompt"
-                  value={aiConfig.systemPrompt}
-                  placeholder="你是一个有用的助手。"
-                  onChange={(v) => setAiConfig({ systemPrompt: v })}
-                />
+                <div className="settings-field">
+                  <span className="settings-field-label">System Prompt</span>
+                  <div className="settings-prompt-area">
+                    {editingPrompt ? (
+                      <>
+                        <textarea
+                          ref={promptRef}
+                          className="settings-field-textarea"
+                          placeholder="你是一个有用的助手。"
+                          value={promptDraft}
+                          onChange={(e) => setPromptDraft(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); savePrompt(); }
+                          }}
+                          rows={3}
+                        />
+                        <button className="settings-prompt-btn save" onClick={savePrompt} type="button" title="保存 (Ctrl+Enter)">保存</button>
+                      </>
+                    ) : (
+                      <>
+                        <div className="settings-prompt-text">
+                          {aiConfig.systemPrompt || <span className="settings-prompt-empty">未设置</span>}
+                        </div>
+                        <button className="settings-prompt-btn edit" onClick={startEditPrompt} type="button" title="编辑 Prompt">编辑</button>
+                      </>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
           )}
