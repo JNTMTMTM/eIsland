@@ -164,12 +164,14 @@ export interface MediaSlice {
   mediaInfo: MediaInfo;
   nearbyLyrics: LyricLine[];
   coverImage: string | null;
+  dominantColor: [number, number, number];
   updateLrcData: (data: LrcUpdateData | null) => void;
   onMediaChanged: (data: MediaChangedData) => void;
   setPlaybackState: (isPlaying: boolean) => void;
   setLrcMode: (mode: LrcMode) => void;
   updateProgress: (position_ms: number) => void;
   setCoverImage: (cover: string | null) => void;
+  setDominantColor: (color: [number, number, number]) => void;
   handleNowPlayingUpdate: (info: NowPlayingInfo | null) => void;
 }
 

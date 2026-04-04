@@ -23,6 +23,7 @@ export const createMediaSlice: StateCreator<
   mediaInfo: emptyMediaInfo,
   nearbyLyrics: [],
   coverImage: null,
+  dominantColor: [0, 0, 0] as [number, number, number],
 
   updateLrcData: (data) => set((state) => {
     if (data === null) {
@@ -69,6 +70,7 @@ export const createMediaSlice: StateCreator<
   updateProgress: (position_ms) => set({ currentPositionMs: position_ms }),
 
   setCoverImage: (cover) => set({ coverImage: cover }),
+  setDominantColor: (color) => set({ dominantColor: color }),
 
   handleNowPlayingUpdate: (info) => {
     if (!info || !info.title) {

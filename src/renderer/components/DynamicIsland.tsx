@@ -5,6 +5,7 @@
  */
 
 import React, { useEffect, useRef, useState, useLayoutEffect } from 'react';
+import { getColor } from 'colorthief';
 import useIslandStore from '../store/isLandStore';
 import { formatTime, formatFullTime, getDayName, getLunarDate } from '../utils/timeUtils';
 import { IdleContent } from './states/idle/IdleContent';
@@ -116,7 +117,7 @@ interface StateRenderer {
  * @description 使用状态模式管理不同状态的 UI 渲染，通过 requestAnimationFrame 检测鼠标位置实现可靠的 hover 交互
  */
 function DynamicIsland(): React.JSX.Element {
-  const { state, weather, setHover, setIdle, setExpanded, timerData, setTimerData, notification, setNotification, handleNowPlayingUpdate, updateProgress } = useIslandStore();
+  const { state, weather, setHover, setIdle, setExpanded, timerData, setTimerData, notification, setNotification, handleNowPlayingUpdate, updateProgress, coverImage, isMusicPlaying, isPlaying, dominantColor, setDominantColor } = useIslandStore();
   const handleNowPlayingUpdateRef = useRef(handleNowPlayingUpdate);
   const updateProgressRef = useRef(updateProgress);
 
@@ -145,6 +146,35 @@ function DynamicIsland(): React.JSX.Element {
   useLayoutEffect(() => {
     setNotificationRef.current = setNotification;
   });
+
+  /** 从专辑封面提取主题色并存入 store */
+  useEffect(() => {
+    if (!coverImage) {
+      setDominantColor([0, 0, 0]);
+      return;
+    }
+    let isStale = false;
+    const img = new Image();
+    img.crossOrigin = 'Anonymous';
+    img.src = coverImage;
+    img.onload = async () => {
+      if (isStale) return;
+      try {
+        const color = await getColor(img, { colorSpace: 'rgb' });
+        if (color && !isStale) {
+          const { r, g, b } = color.rgb();
+          setDominantColor([r, g, b]);
+        }
+      } catch (e) {
+        console.error('ColorThief error:', e);
+      }
+    };
+    return () => {
+      isStale = true;
+      img.onload = null;
+      img.src = '';
+    };
+  }, [coverImage, setDominantColor]);
 
   const [timeStr, setTimeStr] = useState(() => formatTime(new Date()));
   const [dayStr, setDayStr] = useState(() => getDayName(new Date()));
@@ -387,10 +417,18 @@ function DynamicIsland(): React.JSX.Element {
     }
   }, [state, setExpanded, setHover]);
 
+  const [r, g, b] = dominantColor;
+  const showGlow = isMusicPlaying && coverImage;
+
   return (
     <div
-      className={`island-shell ${getStateClassName(state)}`}
+      className={`island-shell ${getStateClassName(state)}${showGlow ? ' music-glow' : ''}${showGlow && !isPlaying ? ' music-paused' : ''}`}
       onClick={handleIslandClick}
+      style={showGlow ? {
+        '--glow-r': r,
+        '--glow-g': g,
+        '--glow-b': b,
+      } as React.CSSProperties : undefined}
     >
       {stateRenderers
         .filter(renderer => renderer.state === state)

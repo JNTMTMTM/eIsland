@@ -4,8 +4,7 @@
  * @author 鸡哥
  */
 
-import { useState, useEffect } from 'react';
-import { getColor } from 'colorthief';
+import { useEffect } from 'react';
 import useIslandStore from '../../../store/slices';
 import '../../../styles/shell/shell.css';
 
@@ -42,10 +41,8 @@ export function IdleContent({
   timerState,
   remainingSeconds,
 }: IdleContentProps): React.ReactElement {
-  const { isMusicPlaying, coverImage, isPlaying, handleNowPlayingUpdate } = useIslandStore();
+  const { isMusicPlaying, coverImage, isPlaying, handleNowPlayingUpdate, dominantColor } = useIslandStore();
   const isTimerActive = timerState === 'running' || timerState === 'paused';
-
-  const [dominantColor, setDominantColor] = useState<[number, number, number]>([0, 0, 0]);
 
   useEffect(() => {
     if (!isMusicPlaying || isPlaying) {
@@ -56,37 +53,6 @@ export function IdleContent({
     }, 10 * 60 * 1000);
     return () => clearTimeout(timer);
   }, [isPlaying, isMusicPlaying, handleNowPlayingUpdate]);
-
-  useEffect(() => {
-    if (!coverImage) return;
-
-    let isStale = false;
-    const img = new Image();
-    img.crossOrigin = 'Anonymous';
-    img.src = coverImage;
-
-    img.onload = async () => {
-      if (isStale) return;
-      try {
-        const color = await getColor(img, { colorSpace: 'rgb' });
-        if (color && !isStale) {
-          const { r, g, b } = color.rgb();
-          setDominantColor([r, g, b]);
-        }
-      } catch (e) {
-        console.error('ColorThief error:', e);
-      }
-    };
-
-    return () => {
-      isStale = true;
-      img.onload = null;
-      img.src = '';
-      if (coverImage.startsWith('blob:')) {
-        URL.revokeObjectURL(coverImage);
-      }
-    };
-  }, [coverImage]);
 
   const h = Math.floor(remainingSeconds / 3600);
   const m = Math.floor((remainingSeconds % 3600) / 60);
