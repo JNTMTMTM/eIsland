@@ -68,34 +68,71 @@ function parseSyncedLrc(lrc: string): LyricLine[] {
 }
 
 /**
- * 清理歌曲标题，去除括号内容、feat 信息等干扰搜索的部分
+ * 规范化文本：全角转半角、合并空白、去除首尾空白
  */
-function cleanTitle(title: string): string {
-  let result = title;
-
-  // 去除各种括号内容: (feat. X), [Remix], （翻唱）等
-  for (const [open, close] of [['\\(', '\\)'], ['\\[', '\\]']]) {
-    const openRegex = new RegExp(open, 'g');
-    const closeRegex = new RegExp(close, 'g');
-
-    result = result.replace(openRegex, '\0').replace(closeRegex, '\0');
-    result = result.split('\0').join('');
-  }
-
-  // 去除 " - " 后面的副标题
-  const dashIndex = result.indexOf(' - ');
-  if (dashIndex !== -1) {
-    result = result.slice(0, dashIndex);
-  }
-
-  return result.trim();
+function normalize(s: string): string {
+  return s
+    .replace(/[\uff01-\uff5e]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0xfee0))
+    .replace(/\u3000/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 /**
- * 清理艺术家名称，取第一个
+ * 去除所有类型的括号及其内容
+ */
+function stripBrackets(s: string): string {
+  return s
+    .replace(/[\(（\[【〔{＜<《][^)）\]】〕}＞>》]*[)）\]】〕}＞>》]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/**
+ * 清理歌曲标题，去除括号内容、feat 信息等干扰搜索的部分
+ */
+function cleanTitle(title: string): string {
+  let result = normalize(title);
+
+  // 去除所有括号及其内容
+  result = stripBrackets(result);
+
+  // 去除 feat./ft./prod./with 及其后续内容（不在括号内的情况）
+  result = result.replace(/\s*(?:feat\.?|ft\.?|prod\.?|with)\s+.*/i, '');
+
+  // 去除 " - " 后面的副标题 / remix / version 等
+  result = result.replace(/\s*-\s+.*$/i, '');
+
+  // 去除末尾常见后缀标签
+  result = result.replace(/\s*(?:remix|remaster(?:ed)?|live|acoustic|instrumental|demo|radio\s*edit|explicit|clean|deluxe|bonus\s*track|original\s*mix)\s*$/i, '');
+
+  // 去除末尾标点和多余空白
+  result = result.replace(/[.\-_~·]+$/, '').trim();
+
+  return result || normalize(title);
+}
+
+/**
+ * 清理艺术家名称
+ * 取主艺术家，处理多种分隔符和标签
  */
 function cleanArtist(artist: string): string {
-  return artist.split(/[/,]/)[0].trim() || artist.trim();
+  let result = normalize(artist);
+
+  // 去除括号内容（如"(feat. X)"）
+  result = stripBrackets(result);
+
+  // 去除 feat./ft./prod./with 及后续
+  result = result.replace(/\s*(?:feat\.?|ft\.?|prod\.?|with)\s+.*/i, '');
+
+  // 按常见分隔符拆分取第一个：/ , & ; × x · 、
+  const parts = result.split(/[/,;&×·、]|\s+x\s+/i);
+  result = (parts[0] || '').trim();
+
+  // 去除首尾引号
+  result = result.replace(/^["'""'']+|["'""'']+$/g, '');
+
+  return result || normalize(artist);
 }
 
 /**
