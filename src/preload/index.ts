@@ -144,6 +144,24 @@ const api = {
    */
   openTaskManager: (): void => {
     ipcRenderer.send('system:open-task-manager');
+  },
+  /** ===== 文件存储 API ===== */
+  /**
+   * 从文件读取 JSON 数据
+   * @param key 存储键名（对应文件名）
+   * @returns 解析后的数据，不存在时返回 null
+   */
+  storeRead: (key: string): Promise<unknown> => {
+    return ipcRenderer.invoke('store:read', key);
+  },
+  /**
+   * 将数据写入 JSON 文件
+   * @param key 存储键名（对应文件名）
+   * @param data 要存储的数据
+   * @returns 是否写入成功
+   */
+  storeWrite: (key: string, data: unknown): Promise<boolean> => {
+    return ipcRenderer.invoke('store:write', key, data);
   }
 };
 

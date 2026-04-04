@@ -48,6 +48,9 @@ declare global {
       /** ===== 系统工具 API ===== */
       screenshot: () => Promise<string | null>;
       openTaskManager: () => void;
+      /** ===== 文件存储 API ===== */
+      storeRead: (key: string) => Promise<unknown>;
+      storeWrite: (key: string, data: unknown) => Promise<boolean>;
     };
   }
 }

@@ -6,6 +6,7 @@
 
 import { app, BrowserWindow, shell, screen, ipcMain, desktopCapturer } from 'electron';
 import { join } from 'path';
+import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
 import { electronApp, optimizer, is } from '@electron-toolkit/utils';
 import { createTray, destroyTray } from './tray';
 import { NowPlaying } from 'node-nowplaying';
@@ -316,6 +317,37 @@ function registerIpcHandlers(): void {
       }
     } catch (err) {
       console.error('[System] open-task-manager error:', err);
+    }
+  });
+
+  // ===== 文件存储 IPC =====
+  const storeDir = join(app.getPath('userData'), 'eIsland_store');
+  if (!existsSync(storeDir)) {
+    mkdirSync(storeDir, { recursive: true });
+  }
+
+  /** 读取 JSON 文件 */
+  ipcMain.handle('store:read', (_event, key: string) => {
+    try {
+      const filePath = join(storeDir, `${key}.json`);
+      if (!existsSync(filePath)) return null;
+      const raw = readFileSync(filePath, 'utf-8');
+      return JSON.parse(raw);
+    } catch (err) {
+      console.error(`[Store] read '${key}' error:`, err);
+      return null;
+    }
+  });
+
+  /** 写入 JSON 文件 */
+  ipcMain.handle('store:write', (_event, key: string, data: unknown) => {
+    try {
+      const filePath = join(storeDir, `${key}.json`);
+      writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8');
+      return true;
+    } catch (err) {
+      console.error(`[Store] write '${key}' error:`, err);
+      return false;
     }
   });
 }

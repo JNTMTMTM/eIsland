@@ -4,7 +4,7 @@
  * @author 鸡哥
  */
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 
 /** 紧急程度 */
 type Priority = 'P0' | 'P1' | 'P2';
@@ -60,26 +60,26 @@ function formatCreatedTime(ts: number): string {
   return `${yyyy}-${MM}-${dd} ${hh}:${mm}:${ss}`;
 }
 
-/** 本地存储 key */
-const STORAGE_KEY = 'eIsland_todos';
+/** 存储键名（对应 userData/eIsland_store/todos.json） */
+const STORE_KEY = 'todos';
 
-/** 从 localStorage 读取（并规范化旧数据） */
-function loadTodos(): TodoItem[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
-    const items: TodoItem[] = JSON.parse(raw);
-    return items.map(t => ({
-      ...t,
-      description: t.description ?? '',
-      subTodos: (t.subTodos ?? []).map(s => ({ ...s, priority: s.priority, size: s.size })),
-    }));
-  } catch { return []; }
+/** 规范化旧数据，补全缺失字段 */
+function normalizeTodos(items: TodoItem[]): TodoItem[] {
+  return items.map(t => ({
+    ...t,
+    description: t.description ?? '',
+    subTodos: (t.subTodos ?? []).map(s => ({
+      ...s,
+      priority: s.priority,
+      size: s.size,
+    })),
+  }));
 }
 
-/** 写入 localStorage */
-function saveTodos(items: TodoItem[]): void {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+/** 通过 IPC 写入文件，同时同步写入 localStorage 作为缓存 */
+function persistTodos(items: TodoItem[]): void {
+  try { localStorage.setItem('eIsland_todos', JSON.stringify(items)); } catch { /* noop */ }
+  window.api.storeWrite(STORE_KEY, items).catch(() => {});
 }
 
 /**
@@ -87,7 +87,8 @@ function saveTodos(items: TodoItem[]): void {
  * @description 最大展开模式下的待办事项面板
  */
 export function TodoTab(): React.ReactElement {
-  const [todos, setTodos] = useState<TodoItem[]>(loadTodos);
+  const [todos, setTodos] = useState<TodoItem[]>([]);
+  const [loaded, setLoaded] = useState(false);
   const [input, setInput] = useState('');
   const [priority, setPriority] = useState<Priority | undefined>(undefined);
   const [size, setSize] = useState<Size | undefined>(undefined);
@@ -99,21 +100,53 @@ export function TodoTab(): React.ReactElement {
   const listRef = useRef<HTMLDivElement>(null);
   const subInputRef = useRef<HTMLInputElement>(null);
 
-  /** 同步更新状态并写入 localStorage */
-  const setAndSave = (updater: (prev: TodoItem[]) => TodoItem[]): void => {
-    setTodos(prev => {
-      const next = updater(prev);
-      saveTodos(next);
-      return next;
+  /** 启动时从文件加载（回退到 localStorage） */
+  useEffect(() => {
+    let cancelled = false;
+    window.api.storeRead(STORE_KEY).then((data) => {
+      if (cancelled) return;
+      if (Array.isArray(data) && data.length > 0) {
+        setTodos(normalizeTodos(data as TodoItem[]));
+      } else {
+        // 回退：从 localStorage 迁移旧数据
+        try {
+          const raw = localStorage.getItem('eIsland_todos');
+          if (raw) {
+            const items = normalizeTodos(JSON.parse(raw) as TodoItem[]);
+            setTodos(items);
+            window.api.storeWrite(STORE_KEY, items).catch(() => {});
+          }
+        } catch { /* noop */ }
+      }
+      setLoaded(true);
+    }).catch(() => {
+      // IPC 失败，从 localStorage 兜底
+      try {
+        const raw = localStorage.getItem('eIsland_todos');
+        if (raw) setTodos(normalizeTodos(JSON.parse(raw) as TodoItem[]));
+      } catch { /* noop */ }
+      if (!cancelled) setLoaded(true);
     });
-  };
+    return () => { cancelled = true; };
+  }, []);
+
+  /** todos 变化时持久化（跳过初始空状态） */
+  useEffect(() => {
+    if (!loaded) return;
+    persistTodos(todos);
+  }, [todos, loaded]);
+
+  /** 更新状态的便捷方法 */
+  const update = useCallback((updater: (prev: TodoItem[]) => TodoItem[]): void => {
+    setTodos(updater);
+  }, []);
 
   /** 添加待办 */
   const handleAdd = (): void => {
     const text = input.trim();
     if (!text) return;
     const now = Date.now();
-    setAndSave(prev => [...prev, { id: now, text, done: false, createdAt: now, priority, size, description: '', subTodos: [] }]);
+    update(prev => [...prev, { id: now, text, done: false, createdAt: now, priority, size, description: '', subTodos: [] }]);
     setInput('');
     setPriority(undefined);
     setSize(undefined);
@@ -129,12 +162,12 @@ export function TodoTab(): React.ReactElement {
 
   /** 切换完成 */
   const toggleDone = (id: number): void => {
-    setAndSave(prev => prev.map(t => t.id === id ? { ...t, done: !t.done } : t));
+    update(prev => prev.map(t => t.id === id ? { ...t, done: !t.done } : t));
   };
 
   /** 删除 */
   const removeTodo = (id: number): void => {
-    setAndSave(prev => prev.filter(t => t.id !== id));
+    update(prev => prev.filter(t => t.id !== id));
     if (expandedId === id) setExpandedId(null);
   };
 
@@ -148,14 +181,14 @@ export function TodoTab(): React.ReactElement {
 
   /** 更新描述 */
   const updateDescription = (id: number, desc: string): void => {
-    setAndSave(prev => prev.map(t => t.id === id ? { ...t, description: desc } : t));
+    update(prev => prev.map(t => t.id === id ? { ...t, description: desc } : t));
   };
 
   /** 添加子待办 */
   const addSubTodo = (parentId: number): void => {
     const text = subInput.trim();
     if (!text) return;
-    setAndSave(prev => prev.map(t => {
+    update(prev => prev.map(t => {
       if (t.id !== parentId) return t;
       const subs = t.subTodos ?? [];
       return { ...t, subTodos: [...subs, { id: Date.now(), text, done: false, priority: subPriority, size: subSize }] };
@@ -168,7 +201,7 @@ export function TodoTab(): React.ReactElement {
 
   /** 切换子待办完成 */
   const toggleSubDone = (parentId: number, subId: number): void => {
-    setAndSave(prev => prev.map(t => {
+    update(prev => prev.map(t => {
       if (t.id !== parentId) return t;
       return { ...t, subTodos: (t.subTodos ?? []).map(s => s.id === subId ? { ...s, done: !s.done } : s) };
     }));
@@ -176,7 +209,7 @@ export function TodoTab(): React.ReactElement {
 
   /** 删除子待办 */
   const removeSubTodo = (parentId: number, subId: number): void => {
-    setAndSave(prev => prev.map(t => {
+    update(prev => prev.map(t => {
       if (t.id !== parentId) return t;
       return { ...t, subTodos: (t.subTodos ?? []).filter(s => s.id !== subId) };
     }));
