@@ -6,6 +6,7 @@
 
 import React, { useState, useRef } from 'react';
 import useIslandStore from '../../../../store/slices';
+import avatarImg from '../../../../public/avatar/T.jpg';
 
 /** 单行配置项 */
 function SettingsField({
@@ -164,7 +165,7 @@ export function SettingsTab(): React.ReactElement {
 
               {/* 作者信息 */}
               <div className="settings-about-author">
-                <img className="settings-about-avatar" src="/avatar/T.jpg" alt="作者头像" />
+                <img className="settings-about-avatar" src={avatarImg} alt="作者头像" />
                 <div className="settings-about-author-info">
                   <div className="settings-about-name">
                     <a className="settings-about-github" href="https://github.com/JNTMTMTM" target="_blank" rel="noreferrer" title="GitHub 主页">
