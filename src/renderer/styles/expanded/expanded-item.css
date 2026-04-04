@@ -129,74 +129,296 @@
   opacity: 1;
 }
 
-/** ========== 总览歌词显示 ========== */
-.overview-lrc-container {
+/** ========== 总览三栏布局 ========== */
+
+.ov-panel {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: 12px;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* ---- 左栏：封面 + 信息 + 控制 ---- */
+.ov-left {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  min-width: 0;
+}
+
+/** 圆形碟片封面 */
+.ov-disc {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: #1a1a1a;
+  flex-shrink: 0;
+  position: relative;
+  box-shadow: 0 0 20px 6px rgba(0, 0, 0, 0.5),
+              0 0 40px 10px rgba(255, 255, 255, 0.03);
+  overflow: hidden;
+}
+
+.ov-disc::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  box-shadow: inset 0 0 14px 6px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.ov-disc-cover {
+  position: absolute;
+  inset: 6px;
+  border-radius: 50%;
+  background: #333;
+  background-size: cover;
+  background-position: center;
+}
+
+.ov-disc-hole {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 12px;
+  height: 12px;
+  margin: -6px 0 0 -6px;
+  border-radius: 50%;
+  background: #111;
+  border: 1.5px solid rgba(255, 255, 255, 0.08);
+  z-index: 3;
+}
+
+.ov-disc.spinning {
+  animation: discSpin 8s linear infinite;
+}
+
+@keyframes discSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/** 元数据 + 控制按钮 */
+.ov-meta {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1px;
+  min-width: 0;
+  max-width: 130px;
+}
+
+.ov-meta-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.88);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ov-meta-artist {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.50);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ov-meta-album {
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.30);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/** 控制按钮 */
+.ov-controls {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  margin-top: 4px;
+}
+
+.ov-ctrl-btn {
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+  padding: 0;
+}
+
+.ov-ctrl-btn:hover { background: rgba(255, 255, 255, 0.15); }
+.ov-ctrl-btn:active { transform: scale(0.9); }
+.ov-ctrl-btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; }
+
+.ov-ctrl-play {
+  width: 28px;
+  height: 28px;
+  background: rgba(255, 255, 255, 0.10);
+}
+
+.ov-ctrl-icon {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+  opacity: 0.85;
+}
+
+.ov-ctrl-icon--sm {
+  width: 11px;
+  height: 11px;
+}
+
+/* ---- 中栏：歌词 ---- */
+.ov-center {
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 1px;
-  width: 100%;
   overflow: hidden;
+  min-width: 0;
+  max-width: 340px;
 }
 
-.overview-lrc-line {
-  font-size: 11px;
-  line-height: 1.5;
-  color: rgba(255, 255, 255, 0.15);
-  text-align: center;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 95%;
-  transition: color 0.3s ease, opacity 0.3s ease;
-  opacity: 0.6;
-}
-
-.overview-lrc-line.current {
-  color: rgba(255, 255, 255, 0.85);
-  font-size: 13px;
-  font-weight: 600;
-  opacity: 1;
-}
-
-/** 无音乐 / 加载中 */
-.overview-no-music,
-.overview-loading {
+.ov-lrc-hint {
   font-size: 11px;
   color: rgba(255, 255, 255, 0.18);
 }
 
-.overview-loading {
-  animation: overviewPulse 1.5s ease-in-out infinite;
-}
-
-@keyframes overviewPulse {
-  0%, 100% { opacity: 0.2; }
-  50% { opacity: 0.6; }
-}
-
-/** 无歌词时显示歌曲信息 */
-.overview-no-lrc {
+.ov-lrc-container {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 3px;
+  justify-content: center;
+  gap: 2px;
+  width: 100%;
 }
 
-.overview-song-title {
-  font-size: 13px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.6);
+.ov-lrc-line {
+  font-size: 11px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.40);
   text-align: center;
-  max-width: 90%;
+  max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  transition: color 0.3s ease, opacity 0.3s ease, transform 0.3s ease;
+  opacity: 0.75;
+  animation: ovLrcIn 0.3s ease both;
 }
 
-.overview-song-artist {
-  font-size: 10px;
-  color: rgba(255, 255, 255, 0.25);
+.ov-lrc-line.current {
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 13px;
+  font-weight: 600;
+  opacity: 1;
+  transform: scale(1.02);
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.15);
+  animation: ovLrcCurrentIn 0.35s ease both;
 }
+
+@keyframes ovLrcIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to   { opacity: 0.75; transform: translateY(0); }
+}
+
+@keyframes ovLrcCurrentIn {
+  from { opacity: 0; transform: translateY(5px) scale(1); }
+  to   { opacity: 1; transform: translateY(0) scale(1.02); }
+}
+
+/* ---- 右栏：时间/天气/倒计时/待办 ---- */
+.ov-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 4px;
+  flex-shrink: 0;
+  min-width: 70px;
+  max-width: 120px;
+}
+
+.ov-time {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.ov-time-clock {
+  font-size: 16px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.80);
+  letter-spacing: 0.5px;
+}
+
+.ov-time-day {
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.ov-weather {
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+}
+
+.ov-weather-temp {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.ov-weather-desc {
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.ov-countdown {
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+}
+
+.ov-countdown-label {
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.30);
+}
+
+.ov-countdown-value {
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.ov-timer {
+  display: flex;
+  align-items: center;
+}
+
+.ov-timer-value {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.60);
+  font-variant-numeric: tabular-nums;
+}
+
 

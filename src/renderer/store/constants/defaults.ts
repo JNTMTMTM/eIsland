@@ -46,5 +46,6 @@ export const emptyNotification = {
 export const emptyMediaInfo = {
   title: '',
   artist: '',
+  album: '',
   duration_ms: 0,
 };

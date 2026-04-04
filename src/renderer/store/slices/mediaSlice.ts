@@ -45,6 +45,7 @@ export const createMediaSlice: StateCreator<
       mediaInfo: {
         title: data.title || state.mediaInfo.title,
         artist: data.artist || state.mediaInfo.artist,
+        album: state.mediaInfo.album,
         duration_ms: data.duration_ms ?? state.mediaInfo.duration_ms,
       },
       nearbyLyrics: data.nearby_o3ics ?? [],
@@ -56,6 +57,7 @@ export const createMediaSlice: StateCreator<
     mediaInfo: {
       title: data.title,
       artist: data.artist,
+      album: '',
       duration_ms: data.duration_ms ?? 0,
     },
     currentLyricText: null,
@@ -97,6 +99,7 @@ export const createMediaSlice: StateCreator<
       mediaInfo: {
         title: info.title,
         artist: info.artist,
+        album: info.album || '',
         duration_ms: info.duration_ms,
       },
       currentDurationMs: info.duration_ms,

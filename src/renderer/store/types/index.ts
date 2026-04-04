@@ -36,6 +36,7 @@ export interface SyncedLyricLine {
 export interface MediaInfo {
   title: string;
   artist: string;
+  album: string;
   duration_ms: number;
 }
 
