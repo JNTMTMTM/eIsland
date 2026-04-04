@@ -20,6 +20,8 @@
     "node-nowplaying": "^0.1.0",
     "node-nowplaying-win32-x64-msvc": "^0.1.0",
     "openmeteo": "^1.2.3",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1",
     "zustand": "^5.0.4"
   },
   "devDependencies": {

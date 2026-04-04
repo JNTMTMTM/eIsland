@@ -5,82 +5,14 @@
  */
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import useIslandStore from '../../../../store/slices';
 
 /** 单条消息 */
 interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
-}
-
-function escapeHtml(input: string): string {
-  return input
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
-
-/**
- * 轻量 Markdown → HTML（安全：先整体转义，再做有限替换）
- * 支持：标题、粗体、斜体、链接、行内 code、代码块、列表、换行
- */
-function markdownToSafeHtml(markdown: string): string {
-  const escaped = escapeHtml(markdown);
-
-  const fenceTokens: string[] = [];
-  let text = escaped.replace(/```([\s\S]*?)```/g, (_m, code) => {
-    const token = `__FENCE_${fenceTokens.length}__`;
-    fenceTokens.push(`<pre><code>${code.replace(/^\n+|\n+$/g, '')}</code></pre>`);
-    return token;
-  });
-
-  // 标题（最多 3 级）
-  text = text
-    .replace(/^###\s+(.+)$/gm, '<h3>$1</h3>')
-    .replace(/^##\s+(.+)$/gm, '<h2>$1</h2>')
-    .replace(/^#\s+(.+)$/gm, '<h1>$1</h1>');
-
-  // 粗体 / 斜体（简单版）
-  text = text
-    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*(.+?)\*/g, '<em>$1</em>');
-
-  // 行内 code
-  text = text.replace(/`([^`]+?)`/g, '<code>$1</code>');
-
-  // 链接
-  text = text.replace(/\[([^\]]+?)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noreferrer">$1</a>');
-
-  // 列表（尽量简单：连续 - 开头的行组装为 <ul>）
-  text = text.replace(/(?:^\-\s+.+(?:\n|$))+?/gm, (block) => {
-    const items = block
-      .trim()
-      .split(/\n/)
-      .map((l) => l.replace(/^\-\s+/, '').trim())
-      .filter(Boolean)
-      .map((c) => `<li>${c}</li>`)
-      .join('');
-    return items ? `<ul>${items}</ul>` : block;
-  });
-
-  // 段落/换行：先把空行分段
-  const paragraphs = text
-    .split(/\n{2,}/)
-    .map((p) => p.trim())
-    .filter(Boolean)
-    .map((p) => {
-      if (/^<h[1-3]>/.test(p) || /^<ul>/.test(p) || /^<pre><code>/.test(p)) return p;
-      return `<p>${p.replace(/\n/g, '<br/>')}</p>`;
-    });
-  text = paragraphs.join('');
-
-  // 恢复代码块
-  for (let i = 0; i < fenceTokens.length; i += 1) {
-    text = text.replace(`__FENCE_${i}__`, fenceTokens[i]);
-  }
-  return text;
 }
 
 /**
@@ -270,13 +202,13 @@ export function AiChatTab(): React.ReactElement {
             {msg.role === 'user' ? (
               msg.content
             ) : (
-              <div
-                dangerouslySetInnerHTML={{
-                  __html: msg.content
-                    ? markdownToSafeHtml(msg.content)
-                    : (loading && i === aiChatMessages.length - 1 ? '...' : ''),
-                }}
-              />
+              msg.content ? (
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {msg.content}
+                </ReactMarkdown>
+              ) : (
+                loading && i === aiChatMessages.length - 1 ? '...' : ''
+              )
             )}
           </div>
         ))}
