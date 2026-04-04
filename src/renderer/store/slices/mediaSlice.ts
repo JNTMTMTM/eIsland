@@ -24,6 +24,8 @@ export const createMediaSlice: StateCreator<
   nearbyLyrics: [],
   coverImage: null,
   dominantColor: [0, 0, 0] as [number, number, number],
+  syncedLyrics: null,
+  lyricsLoading: false,
 
   updateLrcData: (data) => set((state) => {
     if (data === null) {
@@ -71,6 +73,8 @@ export const createMediaSlice: StateCreator<
 
   setCoverImage: (cover) => set({ coverImage: cover }),
   setDominantColor: (color) => set({ dominantColor: color }),
+  setSyncedLyrics: (lyrics) => set({ syncedLyrics: lyrics, lyricsLoading: false }),
+  setLyricsLoading: (loading) => set({ lyricsLoading: loading }),
 
   handleNowPlayingUpdate: (info) => {
     if (!info || !info.title) {

@@ -26,6 +26,12 @@ export interface LyricLine {
   is_current: boolean;
 }
 
+/** 同步歌词行（来自 lrcApi） */
+export interface SyncedLyricLine {
+  time_ms: number;
+  text: string;
+}
+
 /** 媒体信息数据类型 */
 export interface MediaInfo {
   title: string;
@@ -166,6 +172,9 @@ export interface MediaSlice {
   nearbyLyrics: LyricLine[];
   coverImage: string | null;
   dominantColor: [number, number, number];
+  /** 同步歌词（SMTC 回调后立即获取） */
+  syncedLyrics: SyncedLyricLine[] | null;
+  lyricsLoading: boolean;
   updateLrcData: (data: LrcUpdateData | null) => void;
   onMediaChanged: (data: MediaChangedData) => void;
   setPlaybackState: (isPlaying: boolean) => void;
@@ -174,6 +183,8 @@ export interface MediaSlice {
   setCoverImage: (cover: string | null) => void;
   setDominantColor: (color: [number, number, number]) => void;
   handleNowPlayingUpdate: (info: NowPlayingInfo | null) => void;
+  setSyncedLyrics: (lyrics: SyncedLyricLine[] | null) => void;
+  setLyricsLoading: (loading: boolean) => void;
 }
 
 /** 完整 Store 类型 */

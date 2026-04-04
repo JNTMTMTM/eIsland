@@ -15,6 +15,7 @@ import { ExpandedContent } from './states/expand/ExpandedContent';
 import { MaxExpandContent } from './states/maxExpand/MaxExpandContent';
 import { SvgIcon } from '../utils/SvgIcon';
 import type { NowPlayingInfo } from '../store/isLandStore';
+import { fetchLyrics } from '../api/lrcApi';
 
 /** 灵动岛状态类型 */
 export type IslandState = 'idle' | 'hover' | 'expanded' | 'notification' | 'maxExpand' | 'minimal';
@@ -125,9 +126,13 @@ interface StateRenderer {
  * @description 使用状态模式管理不同状态的 UI 渲染，通过 requestAnimationFrame 检测鼠标位置实现可靠的 hover 交互
  */
 function DynamicIsland(): React.JSX.Element {
-  const { state, weather, setHover, setIdle, setExpanded, timerData, setTimerData, notification, setNotification, handleNowPlayingUpdate, updateProgress, coverImage, isMusicPlaying, isPlaying, dominantColor, setDominantColor } = useIslandStore();
+  const { state, weather, setHover, setIdle, setExpanded, timerData, setTimerData, notification, setNotification, handleNowPlayingUpdate, updateProgress, coverImage, isMusicPlaying, isPlaying, dominantColor, setDominantColor, setSyncedLyrics, setLyricsLoading } = useIslandStore();
   const handleNowPlayingUpdateRef = useRef(handleNowPlayingUpdate);
   const updateProgressRef = useRef(updateProgress);
+  const setSyncedLyricsRef = useRef(setSyncedLyrics);
+  const setLyricsLoadingRef = useRef(setLyricsLoading);
+  /** 当前歌曲标识，用于检测切歌 */
+  const songKeyRef = useRef('');
 
   // 使用 useLayoutEffect 确保 ref 在渲染后同步更新，避免闭包捕获过期函数
   useLayoutEffect(() => {
@@ -136,6 +141,11 @@ function DynamicIsland(): React.JSX.Element {
 
   useLayoutEffect(() => {
     updateProgressRef.current = updateProgress;
+  });
+
+  useLayoutEffect(() => {
+    setSyncedLyricsRef.current = setSyncedLyrics;
+    setLyricsLoadingRef.current = setLyricsLoading;
   });
 
   // 用于平滑进度插值的基准数据（来自 node-nowplaying 事件）
@@ -255,6 +265,28 @@ function DynamicIsland(): React.JSX.Element {
     };
     const unsubscribe = window.api?.onNowPlayingInfo((info: NowPlayingInfo | null) => {
       handleNowPlayingUpdateRef.current(info);
+
+      // ===== 歌词获取：检测切歌后立即获取 =====
+      const newKey = info ? `${info.title}||${info.artist}` : '';
+      if (newKey && newKey !== songKeyRef.current) {
+        songKeyRef.current = newKey;
+        console.log('[Lyrics] Song changed:', info!.title, '-', info!.artist, '| pos_ms:', info!.position_ms, '| dur_ms:', info!.duration_ms);
+        setSyncedLyricsRef.current(null);
+        setLyricsLoadingRef.current(true);
+        const capturedKey = newKey;
+        fetchLyrics(info!.title, info!.artist).then(result => {
+          if (songKeyRef.current !== capturedKey) return;
+          console.log('[Lyrics] Fetched:', result ? `${result.length} lines` : 'null');
+          setSyncedLyricsRef.current(result);
+        }).catch((err) => {
+          console.error('[Lyrics] Fetch error:', err);
+          if (songKeyRef.current === capturedKey) setSyncedLyricsRef.current(null);
+        });
+      } else if (!newKey) {
+        songKeyRef.current = '';
+        setSyncedLyricsRef.current(null);
+      }
+
       if (info && info.position_ms !== undefined) {
         if (info.isPlaying) {
           // 重置插值基准：必须无条件更新，确保切歌时 durationMs 也同步刷新

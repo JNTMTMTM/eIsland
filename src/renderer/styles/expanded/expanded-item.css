@@ -129,3 +129,74 @@
   opacity: 1;
 }
 
+/** ========== 总览歌词显示 ========== */
+.overview-lrc-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  width: 100%;
+  overflow: hidden;
+}
+
+.overview-lrc-line {
+  font-size: 11px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.15);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 95%;
+  transition: color 0.3s ease, opacity 0.3s ease;
+  opacity: 0.6;
+}
+
+.overview-lrc-line.current {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 13px;
+  font-weight: 600;
+  opacity: 1;
+}
+
+/** 无音乐 / 加载中 */
+.overview-no-music,
+.overview-loading {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.18);
+}
+
+.overview-loading {
+  animation: overviewPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes overviewPulse {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 0.6; }
+}
+
+/** 无歌词时显示歌曲信息 */
+.overview-no-lrc {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.overview-song-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.6);
+  text-align: center;
+  max-width: 90%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.overview-song-artist {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.25);
+}
+
