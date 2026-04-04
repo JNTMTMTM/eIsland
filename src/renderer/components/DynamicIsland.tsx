@@ -377,19 +377,23 @@ function DynamicIsland(): React.JSX.Element {
         }
 
         if (isHoveringRef.current && leaveTimerRef.current === null) {
-          leaveTimerRef.current = setTimeout(() => {
-            leaveTimerRef.current = null;
-            if (!isHoveringRef.current) return;
+          if (state === 'expanded' || state === 'maxExpand') {
+            // expanded / maxExpand 状态下鼠标移出不回到 idle
+          } else {
+            leaveTimerRef.current = setTimeout(() => {
+              leaveTimerRef.current = null;
+              if (!isHoveringRef.current) return;
 
-            isHoveringRef.current = false;
-            setIdle();
-            if (config.expanded) {
-              window.api?.collapseWindow();
-            }
-            if (config.mousePassthrough) {
-              window.api?.enableMousePassthrough();
-            }
-          });
+              isHoveringRef.current = false;
+              setIdle();
+              if (config.expanded) {
+                window.api?.collapseWindow();
+              }
+              if (config.mousePassthrough) {
+                window.api?.enableMousePassthrough();
+              }
+            });
+          }
         }
       }
 
