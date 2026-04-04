@@ -97,8 +97,12 @@ function createWindow(): void {
    */
   mainWindow.setIgnoreMouseEvents(true, { forward: true });
 
+  /** 使用最高级别置顶，确保不被全屏应用或其他置顶窗口覆盖 */
+  mainWindow.setAlwaysOnTop(true, 'screen-saver');
+
   mainWindow.on('ready-to-show', () => {
     mainWindow?.show();
+    mainWindow?.setAlwaysOnTop(true, 'screen-saver');
   });
 
   /**
