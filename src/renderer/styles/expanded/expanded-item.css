@@ -134,8 +134,8 @@
 .ov-panel {
   display: flex;
   flex-direction: row;
-  align-items: stretch;
-  gap: 12px;
+  align-items: center;
+  gap: 10px;
   width: 100%;
   height: 100%;
   overflow: hidden;
@@ -147,7 +147,7 @@
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 20px;
+  gap: 12px;
   flex-shrink: 0;
   min-width: 0;
   z-index: 1;
@@ -155,8 +155,8 @@
 
 /** 圆形碟片封面 */
 .ov-disc {
-  width: 80px;
-  height: 80px;
+  width: 70px;
+  height: 70px;
   border-radius: 50%;
   background: #1a1a1a;
   flex-shrink: 0;
@@ -181,7 +181,7 @@
 
 .ov-disc-cover {
   position: absolute;
-  inset: 6px;
+  inset: 5px;
   border-radius: 50%;
   background: #333;
   background-size: cover;
@@ -202,13 +202,13 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 1px;
+  gap: 0px;
   min-width: 0;
-  max-width: 130px;
+  max-width: 120px;
 }
 
 .ov-meta-title {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
   color: rgba(255, 255, 255, 0.88);
   overflow: hidden;
@@ -217,7 +217,7 @@
 }
 
 .ov-meta-artist {
-  font-size: 10px;
+  font-size: 9px;
   color: rgba(255, 255, 255, 0.50);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -236,13 +236,13 @@
 .ov-controls {
   display: flex;
   align-items: center;
-  gap: 3px;
-  margin-top: 4px;
+  gap: 2px;
+  margin-top: 3px;
 }
 
 .ov-ctrl-btn {
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   border: none;
   background: rgba(255, 255, 255, 0.06);
   border-radius: 50%;
@@ -259,22 +259,22 @@
 .ov-ctrl-btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; }
 
 .ov-ctrl-play {
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
   background: rgba(255, 255, 255, 0.10);
 }
 
 .ov-ctrl-icon {
-  width: 14px;
-  height: 14px;
+  width: 12px;
+  height: 12px;
   object-fit: contain;
   filter: brightness(0) invert(1);
   opacity: 0.85;
 }
 
 .ov-ctrl-icon--sm {
-  width: 11px;
-  height: 11px;
+  width: 10px;
+  height: 10px;
 }
 
 /* ---- 中栏：歌词 ---- */
@@ -304,6 +304,97 @@
   z-index: 1;
 }
 
+/** ========== 音乐总览引导 ========== */
+.ov-onboarding {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  z-index: 1;
+  animation: ovOnboardFadeIn 0.6s ease both;
+}
+
+@keyframes ovOnboardFadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.ov-onboarding-icon {
+  position: relative;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ov-onboarding-note {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.35);
+  z-index: 1;
+  animation: ovNoteFloat 2.5s ease-in-out infinite;
+}
+
+@keyframes ovNoteFloat {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-2px); }
+}
+
+.ov-onboarding-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  animation: ovRingPulse 2.5s ease-in-out infinite;
+}
+
+@keyframes ovRingPulse {
+  0%, 100% { transform: scale(1); opacity: 0.4; }
+  50%      { transform: scale(1.15); opacity: 0.8; }
+}
+
+.ov-onboarding-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.65);
+  letter-spacing: 0.5px;
+}
+
+.ov-onboarding-desc {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.38);
+}
+
+.ov-onboarding-features {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin-top: 1px;
+}
+
+.ov-onboarding-feat {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.32);
+}
+
+.ov-onboarding-dot {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.20);
+  flex-shrink: 0;
+}
+
+.ov-onboarding-hint {
+  margin-top: 3px;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.25);
+}
+
 .ov-lrc-container {
   display: flex;
   flex-direction: column;
@@ -315,8 +406,8 @@
 }
 
 .ov-lrc-line {
-  font-size: 11px;
-  line-height: 1.6;
+  font-size: 10px;
+  line-height: 1.5;
   color: rgba(255, 255, 255, 0.40);
   text-align: center;
   max-width: 100%;
@@ -330,7 +421,7 @@
 
 .ov-lrc-line.current {
   color: rgba(255, 255, 255, 0.95);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   opacity: 1;
   transform: scale(1.02);
@@ -368,7 +459,7 @@
 }
 
 .ov-time-clock {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 700;
   color: rgba(255, 255, 255, 0.80);
   letter-spacing: 0.5px;

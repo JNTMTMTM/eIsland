@@ -267,7 +267,17 @@ export function OverviewTab(): React.ReactElement {
       <div className="ov-center">
         {lyricsLoading && <span className="ov-lrc-hint">...</span>}
         {!lyricsLoading && !hasLyrics && isMusicPlaying && <span className="ov-lrc-hint">暂无歌词</span>}
-        {!isMusicPlaying && <span className="ov-lrc-hint">暂无播放</span>}
+        {!isMusicPlaying && (
+          <div className="ov-onboarding">
+            <div className="ov-onboarding-title">音乐总览</div>
+            <div className="ov-onboarding-desc">播放音乐后，这里将展示实时信息</div>
+            <div className="ov-onboarding-features">
+              <div className="ov-onboarding-feat"><span className="ov-onboarding-dot" /><span>封面碟片、实时歌词与频谱动画</span></div>
+              <div className="ov-onboarding-feat"><span className="ov-onboarding-dot" /><span>时间、天气与倒计时一览</span></div>
+            </div>
+            <div className="ov-onboarding-hint">播放任意歌曲即可开始</div>
+          </div>
+        )}
         {hasLyrics && (
           <div className="ov-lrc-container">
             {lines.map((line) => (
