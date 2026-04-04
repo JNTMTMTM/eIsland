@@ -8,10 +8,11 @@ import React, { useEffect, useRef, useState } from 'react';
 import useIslandStore from '../../../store/slices';
 import '../../../styles/settings/settings.css';
 import { AiChatTab } from './components/AiChatTab';
+import { TodoTab } from './components/TodoTab';
 import { SettingsTab } from './components/SettingsTab';
 
 /** 最大展开模式下的子标签页类型 */
-type MaxExpandTab = 'aiChat' | 'settings';
+type MaxExpandTab = 'aiChat' | 'todo' | 'settings';
 
 /** 导航点标识 — 含特殊动作：expanded 返回 */
 type NavDotId = MaxExpandTab | 'expanded';
@@ -20,6 +21,7 @@ type NavDotId = MaxExpandTab | 'expanded';
 const NAV_DOTS: { id: NavDotId; label: string }[] = [
   { id: 'expanded', label: '返回' },
   { id: 'aiChat', label: 'AI 对话' },
+  { id: 'todo', label: '待办' },
   { id: 'settings', label: '设置' },
 ];
 
@@ -40,6 +42,8 @@ export function MaxExpandContent(): React.ReactElement {
     if (!el) return;
 
     const handleWheel = (e: WheelEvent): void => {
+      const target = e.target as HTMLElement;
+      if (target.closest('.expand-todo-list')) return;
       e.preventDefault();
 
       const cur = activeTabRef.current;
@@ -69,6 +73,7 @@ export function MaxExpandContent(): React.ReactElement {
       {/* Tab 内容区域 */}
       <div className="max-expand-tab-content" onClick={(e) => e.stopPropagation()}>
         {activeTab === 'aiChat' && <AiChatTab />}
+        {activeTab === 'todo' && <TodoTab />}
         {activeTab === 'settings' && <SettingsTab />}
       </div>
 

@@ -1,6 +1,6 @@
 /**
  * @file TodoTab.tsx
- * @description Expanded Todo List Tab — 待办事项管理
+ * @description 最大展开模式 Todo List Tab — 待办事项管理
  * @author 鸡哥
  */
 
@@ -67,7 +67,7 @@ function saveTodos(items: TodoItem[]): void {
 
 /**
  * Todo List Tab
- * @description 展开状态下的待办事项面板
+ * @description 最大展开模式下的待办事项面板
  */
 export function TodoTab(): React.ReactElement {
   const [todos, setTodos] = useState<TodoItem[]>(loadTodos);

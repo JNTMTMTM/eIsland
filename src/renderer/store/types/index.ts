@@ -15,7 +15,7 @@ export type IslandState = 'idle' | 'hover' | 'expanded' | 'notification' | 'maxE
 export type HoverTab = 'time' | 'o3ics' | 'weather' | 'expand';
 
 /** Expanded 状态下的子标签页类型 */
-export type ExpandTab = 'hover' | 'overview' | 'todo' | 'tools';
+export type ExpandTab = 'hover' | 'overview' | 'tools';
 
 /** 歌词显示模式 */
 export type LrcMode = 'off' | 'info' | 'lrc';
