@@ -127,6 +127,8 @@ interface StateRenderer {
  */
 function DynamicIsland(): React.JSX.Element {
   const { state, weather, setHover, setIdle, setExpanded, timerData, setTimerData, notification, setNotification, handleNowPlayingUpdate, updateProgress, coverImage, isMusicPlaying, isPlaying, dominantColor, setDominantColor, setSyncedLyrics, setLyricsLoading } = useIslandStore();
+  const prevStateRef = useRef(state);
+  const [morphing, setMorphing] = useState(false);
   const handleNowPlayingUpdateRef = useRef(handleNowPlayingUpdate);
   const updateProgressRef = useRef(updateProgress);
   const setSyncedLyricsRef = useRef(setSyncedLyrics);
@@ -134,7 +136,14 @@ function DynamicIsland(): React.JSX.Element {
   /** 当前歌曲标识，用于检测切歌 */
   const songKeyRef = useRef('');
 
-  // 使用 useLayoutEffect 确保 ref 在渲染后同步更新，避免闭包捕获过期函数
+  useEffect(() => {
+    if (prevStateRef.current === state) return;
+    prevStateRef.current = state;
+    setMorphing(true);
+    const id = setTimeout(() => setMorphing(false), 500);
+    return () => clearTimeout(id);
+  }, [state]);
+
   useLayoutEffect(() => {
     handleNowPlayingUpdateRef.current = handleNowPlayingUpdate;
   });
@@ -477,7 +486,7 @@ function DynamicIsland(): React.JSX.Element {
 
   return (
     <div
-      className={`island-shell ${getStateClassName(state)}${showGlow ? ' music-glow' : ''}${showGlow && !isPlaying ? ' music-paused' : ''}`}
+      className={`island-shell ${getStateClassName(state)}${morphing ? ' morphing' : ''}${showGlow ? ' music-glow' : ''}${showGlow && !isPlaying ? ' music-paused' : ''}`}
       onClick={handleIslandClick}
       style={showGlow ? {
         '--glow-r': r,

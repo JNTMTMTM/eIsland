@@ -19,11 +19,12 @@ export const createIslandSlice: StateCreator<
   expandTab: 'overview',
   notification: emptyNotification,
 
-  setIdle: () => {
+  setIdle: () => set((prev) => {
+    if (prev.state === 'expanded' || prev.state === 'maxExpand') return prev;
     window.api?.collapseWindow();
     window.api?.enableMousePassthrough();
-    set({ state: 'idle' });
-  },
+    return { state: 'idle' as const };
+  }),
 
   setHover: () => {
     window.api?.expandWindow();

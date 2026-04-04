@@ -57,6 +57,19 @@
   pointer-events: none;
 }
 
+/** 状态切换形变脉冲动画 */
+.island-shell.morphing {
+  animation: shellMorph 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+@keyframes shellMorph {
+  0%   { transform: scale(1); }
+  20%  { transform: scale(0.97, 1.01); }
+  50%  { transform: scale(1.015, 0.99); }
+  75%  { transform: scale(0.998, 1.003); }
+  100% { transform: scale(1); }
+}
+
 /** Idle 内容 */
 .idle-content {
   position: relative;
@@ -67,6 +80,12 @@
   padding: 0 16px;
   z-index: 1;
   white-space: nowrap;
+  animation: contentFadeIn 0.35s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+@keyframes contentFadeIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
 }
 
 .island-shell.hover .idle-content {
