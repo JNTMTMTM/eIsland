@@ -8,7 +8,7 @@
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  width: 100%;
+  width: 500px;
   height: 100%;
   padding: 0 16px;
   opacity: 0;
@@ -26,6 +26,7 @@
 /** Hover 内容区的标签页内容 */
 .hover-tab-content {
   flex: 1;
+  min-width: 0;
   display: flex;
   align-items: center;
   justify-content: flex-end;
