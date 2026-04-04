@@ -286,6 +286,160 @@
   color: rgba(130, 230, 150, 1);
 }
 
+/** 关于软件 Tab */
+.settings-about {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.settings-about-author {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 10px;
+}
+
+.settings-about-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  flex-shrink: 0;
+}
+
+.settings-about-author-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.settings-about-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.settings-about-id {
+  font-weight: 400;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.4);
+  margin-left: 4px;
+}
+
+.settings-about-version {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.settings-about-links {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 10px;
+}
+
+.settings-about-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.settings-about-label {
+  color: rgba(255, 255, 255, 0.4);
+  min-width: 56px;
+  flex-shrink: 0;
+}
+
+.settings-about-value {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.settings-about-link {
+  color: rgba(100, 180, 255, 0.85);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.settings-about-link:hover {
+  color: rgba(130, 200, 255, 1);
+  text-decoration: underline;
+}
+
+.settings-about-deps {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.settings-about-deps-title {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: 500;
+}
+
+.settings-about-deps-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.settings-about-dep {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.settings-about-notice {
+  font-size: 12px;
+  color: rgba(255, 100, 100, 0.85);
+  background: rgba(255, 80, 80, 0.08);
+  border: 1px solid rgba(255, 80, 80, 0.15);
+  border-radius: 8px;
+  padding: 8px 12px;
+  line-height: 1.5;
+}
+
+.settings-about-github {
+  display: inline-flex;
+  align-items: center;
+  color: rgba(255, 255, 255, 0.5);
+  margin-right: 4px;
+  vertical-align: middle;
+  transition: color 0.2s ease;
+}
+
+.settings-about-github:hover {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.settings-about-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding-bottom: 14px;
+}
+
+.settings-about-copyright {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.25);
+}
+
+.settings-about-slogan {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.2);
+  font-style: italic;
+}
+
 .max-expand-settings-placeholder {
   color: rgba(255, 255, 255, 0.3);
   font-size: 14px;
