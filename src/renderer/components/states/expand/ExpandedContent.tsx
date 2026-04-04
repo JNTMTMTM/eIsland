@@ -8,13 +8,14 @@ import React, { useEffect, useRef } from 'react';
 import useIslandStore from '../../../store/slices';
 import type { ExpandTab } from '../../../store/types';
 import '../../../styles/expanded/expanded.css';
-import { MusicTab } from './components/MusicTab';
+import { OverviewTab } from './components/MusicTab';
 import { ToolsTab } from './components/ToolsTab';
 import { SettingsTab } from './components/SettingsTab';
 
-/** 导航点配置 */
+/** 导航点配置 — 首项为返回 hover 的特殊导航点 */
 const EXPAND_NAV_DOTS: { tab: ExpandTab; label: string }[] = [
-  { tab: 'music', label: '音乐' },
+  { tab: 'hover', label: '返回' },
+  { tab: 'overview', label: '总览' },
   { tab: 'tools', label: '工具' },
   { tab: 'settings', label: '设置' },
 ];
@@ -25,7 +26,7 @@ const EXPAND_NAV_DOTS: { tab: ExpandTab; label: string }[] = [
  * @returns Expanded 状态下的 UI 元素
  */
 export function ExpandedContent(): React.ReactElement {
-  const { expandTab, setExpandTab } = useIslandStore();
+  const { expandTab, setExpandTab, setHover } = useIslandStore();
   const contentRef = useRef<HTMLDivElement>(null);
 
   /** 滚轮切换 Tab */
@@ -36,13 +37,17 @@ export function ExpandedContent(): React.ReactElement {
     const handleWheel = (e: WheelEvent): void => {
       e.preventDefault();
       const currentIndex = EXPAND_NAV_DOTS.findIndex(d => d.tab === expandTab);
+      let nextTab: ExpandTab;
       if (e.deltaY > 0) {
-        const next = (currentIndex + 1) % EXPAND_NAV_DOTS.length;
-        setExpandTab(EXPAND_NAV_DOTS[next].tab);
+        nextTab = EXPAND_NAV_DOTS[(currentIndex + 1) % EXPAND_NAV_DOTS.length].tab;
       } else {
-        const prev = (currentIndex - 1 + EXPAND_NAV_DOTS.length) % EXPAND_NAV_DOTS.length;
-        setExpandTab(EXPAND_NAV_DOTS[prev].tab);
+        nextTab = EXPAND_NAV_DOTS[(currentIndex - 1 + EXPAND_NAV_DOTS.length) % EXPAND_NAV_DOTS.length].tab;
       }
+      if (nextTab === 'hover') {
+        setHover();
+        return;
+      }
+      setExpandTab(nextTab);
     };
 
     el.addEventListener('wheel', handleWheel, { passive: false });
@@ -53,7 +58,7 @@ export function ExpandedContent(): React.ReactElement {
     <div className="expanded-content" ref={contentRef}>
       {/* Tab 内容区域 */}
       <div className="expand-tab-content" onClick={(e) => e.stopPropagation()}>
-        {expandTab === 'music' && <MusicTab />}
+        {expandTab === 'overview' && <OverviewTab />}
         {expandTab === 'tools' && <ToolsTab />}
         {expandTab === 'settings' && <SettingsTab />}
       </div>
@@ -64,7 +69,7 @@ export function ExpandedContent(): React.ReactElement {
           <button
             key={tab}
             className={`expand-nav-dot ${expandTab === tab ? 'active' : ''}`}
-            onClick={() => setExpandTab(tab)}
+            onClick={() => { if (tab === 'hover') { setHover(); } else { setExpandTab(tab); } }}
             title={label}
             aria-label={`切换到${label}页面`}
           />

@@ -16,7 +16,7 @@ export const createIslandSlice: StateCreator<
 > = (set) => ({
   state: 'idle',
   hoverTab: 'time',
-  expandTab: 'music',
+  expandTab: 'overview',
   notification: emptyNotification,
 
   setIdle: () => {
