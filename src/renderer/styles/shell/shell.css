@@ -86,8 +86,8 @@
   pointer-events: none;
 }
 
-/** Settings 状态 - 独立设置面板（860x400） */
-.island-shell.settings {
+/** 最大展开模式 - 独立大面板（860x400） */
+.island-shell.maxExpand {
   width: 860px;
   height: 400px;
   background: var(--color-island-bg);
@@ -95,7 +95,7 @@
   box-shadow: none;
 }
 
-.island-shell.settings::before {
+.island-shell.maxExpand::before {
   opacity: 0;
   pointer-events: none;
 }

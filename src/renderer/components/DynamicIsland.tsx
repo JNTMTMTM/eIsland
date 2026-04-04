@@ -12,12 +12,12 @@ import { IdleContent } from './states/idle/IdleContent';
 import { HoverContent } from './states/hover/HoverContent';
 import { NotificationContent } from './states/notification/NotificationContent';
 import { ExpandedContent } from './states/expand/ExpandedContent';
-import { SettingsContent } from './states/settings/SettingsContent';
+import { MaxExpandContent } from './states/maxExpand/MaxExpandContent';
 import { SvgIcon } from '../utils/SvgIcon';
 import type { NowPlayingInfo } from '../store/isLandStore';
 
 /** 灵动岛状态类型 */
-export type IslandState = 'idle' | 'hover' | 'expanded' | 'notification' | 'settings' | 'minimal';
+export type IslandState = 'idle' | 'hover' | 'expanded' | 'notification' | 'maxExpand' | 'minimal';
 
 /** 状态配置接口 */
 interface StateConfig {
@@ -63,8 +63,8 @@ export const STATE_CONFIGS: Record<IslandState, StateConfig> = {
     enterDelay: 0,
     leaveDelay: 0,
   },
-  settings: {
-    name: 'settings',
+  maxExpand: {
+    name: 'maxExpand',
     mousePassthrough: false,
     expanded: true,
     enterDelay: 0,
@@ -412,9 +412,9 @@ function DynamicIsland(): React.JSX.Element {
       ),
     },
     {
-      state: 'settings',
+      state: 'maxExpand',
       render: () => (
-        <SettingsContent />
+        <MaxExpandContent />
       ),
     },
   ];
@@ -426,7 +426,7 @@ function DynamicIsland(): React.JSX.Element {
   const handleIslandClick = React.useCallback(() => {
     if (state === 'hover') {
       setExpanded();
-    } else if (state === 'expanded' || state === 'settings') {
+    } else if (state === 'expanded' || state === 'maxExpand') {
       setHover();
     }
   }, [state, setExpanded, setHover]);

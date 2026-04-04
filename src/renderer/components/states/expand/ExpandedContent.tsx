@@ -12,14 +12,14 @@ import { OverviewTab } from './components/MusicTab';
 import { ToolsTab } from './components/ToolsTab';
 
 /** 导航点标识 — 含特殊动作：hover 返回、settings 切换独立状态 */
-type NavDotId = ExpandTab | 'settings';
+type NavDotId = ExpandTab | 'maxExpand';
 
 /** 导航点配置 */
 const EXPAND_NAV_DOTS: { tab: NavDotId; label: string }[] = [
   { tab: 'hover', label: '返回' },
   { tab: 'overview', label: '总览' },
   { tab: 'tools', label: '工具' },
-  { tab: 'settings', label: '设置' },
+  { tab: 'maxExpand', label: '最大展开' },
 ];
 
 /**
@@ -28,7 +28,7 @@ const EXPAND_NAV_DOTS: { tab: NavDotId; label: string }[] = [
  * @returns Expanded 状态下的 UI 元素
  */
 export function ExpandedContent(): React.ReactElement {
-  const { expandTab, setExpandTab, setHover, setSettings } = useIslandStore();
+  const { expandTab, setExpandTab, setHover, setMaxExpand } = useIslandStore();
   const contentRef = useRef<HTMLDivElement>(null);
   const expandTabRef = useRef(expandTab);
   expandTabRef.current = expandTab;
@@ -49,13 +49,13 @@ export function ExpandedContent(): React.ReactElement {
         nextId = EXPAND_NAV_DOTS[(currentIndex - 1 + EXPAND_NAV_DOTS.length) % EXPAND_NAV_DOTS.length].tab;
       }
       if (nextId === 'hover') { setHover(); return; }
-      if (nextId === 'settings') { setSettings(); return; }
+      if (nextId === 'maxExpand') { setMaxExpand(); return; }
       setExpandTab(nextId);
     };
 
     el.addEventListener('wheel', handleWheel, { passive: false });
     return () => el.removeEventListener('wheel', handleWheel);
-  }, [setExpandTab, setHover, setSettings]);
+  }, [setExpandTab, setHover, setMaxExpand]);
 
   return (
     <div className="expanded-content" ref={contentRef}>
@@ -73,7 +73,7 @@ export function ExpandedContent(): React.ReactElement {
             className={`expand-nav-dot ${expandTab === tab ? 'active' : ''}`}
             onClick={() => {
               if (tab === 'hover') { setHover(); }
-              else if (tab === 'settings') { setSettings(); }
+              else if (tab === 'maxExpand') { setMaxExpand(); }
               else { setExpandTab(tab); }
             }}
             title={label}
