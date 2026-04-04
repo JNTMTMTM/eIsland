@@ -25,7 +25,6 @@ const EXPAND_NAV_DOTS: { tab: NavDotId; label: string }[] = [
 /**
  * Expanded 状态内容组件
  * @description 扩展状态下的完整功能面板，底部正中间导航点切换 Tab
- * @returns Expanded 状态下的 UI 元素
  */
 export function ExpandedContent(): React.ReactElement {
   const { expandTab, setExpandTab, setHover, setMaxExpand } = useIslandStore();

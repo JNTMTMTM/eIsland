@@ -261,6 +261,11 @@ function registerIpcHandlers(): void {
     }
   });
 
+  /**
+   * 跳转到指定播放位置
+   * @param _event - IPC 事件
+   * @param positionMs - 目标位置（毫秒）
+   */
   ipcMain.handle('media:seek', async (_event, positionMs: number) => {
     if (!isWhitelisted()) return;
     try {
@@ -281,6 +286,11 @@ function registerIpcHandlers(): void {
     return Promise.resolve(0.5);
   });
 
+  /**
+   * 设置系统音量
+   * @param _event - IPC 事件
+   * @param volume - 目标音量（0.0 ~ 1.0）
+   */
   ipcMain.handle('media:set-volume', async (_event, volume: number) => {
     if (!isWhitelisted()) return;
     try {
@@ -326,7 +336,12 @@ function registerIpcHandlers(): void {
     mkdirSync(storeDir, { recursive: true });
   }
 
-  /** 读取 JSON 文件 */
+  /**
+   * 读取 JSON 文件
+   * @param _event - IPC 事件
+   * @param key - 存储键名（对应文件名）
+   * @returns 解析后的数据，不存在时返回 null
+   */
   ipcMain.handle('store:read', (_event, key: string) => {
     try {
       const filePath = join(storeDir, `${key}.json`);
@@ -339,7 +354,13 @@ function registerIpcHandlers(): void {
     }
   });
 
-  /** 写入 JSON 文件 */
+  /**
+   * 写入 JSON 文件
+   * @param _event - IPC 事件
+   * @param key - 存储键名（对应文件名）
+   * @param data - 要存储的数据
+   * @returns 是否写入成功
+   */
   ipcMain.handle('store:write', (_event, key: string, data: unknown) => {
     try {
       const filePath = join(storeDir, `${key}.json`);

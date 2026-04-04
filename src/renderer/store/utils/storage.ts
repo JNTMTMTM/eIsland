@@ -13,6 +13,7 @@ const LOCATION_STORAGE_KEY = 'island_location';
 
 /**
  * 从本地存储加载天气数据
+ * @returns WeatherData 天气数据对象，加载失败时返回默认值
  */
 export function loadWeatherFromStorage(): WeatherData {
   try {
@@ -41,6 +42,7 @@ export function loadWeatherFromStorage(): WeatherData {
 
 /**
  * 保存天气数据到本地存储
+ * @param data - 要保存的天气数据
  */
 export function saveWeatherToStorage(data: WeatherData): void {
   try {
@@ -53,6 +55,7 @@ export function saveWeatherToStorage(data: WeatherData): void {
 
 /**
  * 从本地存储加载位置信息
+ * @returns LocationInfo 位置信息对象，加载失败时返回 null
  */
 export function loadLocationFromStorage(): LocationInfo | null {
   try {
@@ -70,6 +73,7 @@ export function loadLocationFromStorage(): LocationInfo | null {
 
 /**
  * 保存位置信息到本地存储
+ * @param data - 要保存的位置信息
  */
 export function saveLocationToStorage(data: LocationInfo): void {
   try {

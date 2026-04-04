@@ -8,18 +8,32 @@ import React from 'react';
 import useIslandStore from '../../../../store/slices';
 import '../../../../styles/hover/weather-tab.css';
 
-/** 获取星期标签 */
+/**
+ * 获取星期标签
+ * @param index - 预报天数索引（0=明天，1=后天）
+ * @returns 星期标签字符串
+ */
 function getWeekLabel(index: number): string {
   return index === 0 ? '明天' : '后天';
 }
 
-/** 获取当前天气图标路径（白天/晚上） */
+/**
+ * 获取当前天气图标路径（白天/晚上）
+ * @param iconCode - 天气图标编号
+ * @param isDay - 是否为白天（true=白天，false=夜晚）
+ * @returns 天气图标资源路径
+ */
 function getWeatherIconPath(iconCode: number, isDay: boolean): string {
   const suffix = isDay ? 'd' : 'n';
   return `/icon/${iconCode}${suffix}_big.png`;
 }
 
-/** 获取小图标路径 */
+/**
+ * 获取小图标路径
+ * @param iconCode - 天气图标编号
+ * @param isDay - 是否为白天（true=白天，false=夜晚）
+ * @returns 天气小图标资源路径
+ */
 function getWeatherSmallIconPath(iconCode: number, isDay: boolean): string {
   const suffix = isDay ? 'd' : 'n';
   return `/icon/${iconCode}${suffix}.png`;

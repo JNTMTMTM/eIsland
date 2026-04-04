@@ -1,6 +1,7 @@
 /**
  * @file index.ts
  * @description 灵动岛状态管理 Store - 使用 Slice 模式模块化
+ * @author 鸡哥
  */
 
 import { create } from 'zustand';

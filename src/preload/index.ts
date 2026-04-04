@@ -98,13 +98,14 @@ const api = {
   },
   /**
    * 跳转到指定位置
-   * @param positionMs 目标位置（毫秒）
+   * @param positionMs - 目标位置（毫秒）
    */
   mediaSeek: (positionMs: number): Promise<void> => {
     return ipcRenderer.invoke('media:seek', positionMs);
   },
   /**
-   * 获取系统音量 (0.0 ~ 1.0)
+   * 获取系统音量
+   * @returns 当前音量值（0.0 ~ 1.0）
    */
   mediaGetVolume: (): Promise<number> => {
     return ipcRenderer.invoke('media:get-volume');
@@ -141,6 +142,7 @@ const api = {
   },
   /**
    * 打开任务管理器
+   * @returns 无返回值
    */
   openTaskManager: (): void => {
     ipcRenderer.send('system:open-task-manager');
@@ -148,7 +150,7 @@ const api = {
   /** ===== 文件存储 API ===== */
   /**
    * 从文件读取 JSON 数据
-   * @param key 存储键名（对应文件名）
+   * @param key - 存储键名（对应文件名）
    * @returns 解析后的数据，不存在时返回 null
    */
   storeRead: (key: string): Promise<unknown> => {
@@ -156,8 +158,8 @@ const api = {
   },
   /**
    * 将数据写入 JSON 文件
-   * @param key 存储键名（对应文件名）
-   * @param data 要存储的数据
+   * @param key - 存储键名（对应文件名）
+   * @param data - 要存储的数据
    * @returns 是否写入成功
    */
   storeWrite: (key: string, data: unknown): Promise<boolean> => {
