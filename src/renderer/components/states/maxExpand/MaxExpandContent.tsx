@@ -20,8 +20,8 @@ type NavDotId = MaxExpandTab | 'expanded';
 /** 导航点配置 */
 const NAV_DOTS: { id: NavDotId; label: string }[] = [
   { id: 'expanded', label: '返回' },
-  { id: 'aiChat', label: 'AI 对话' },
   { id: 'todo', label: '待办' },
+  { id: 'aiChat', label: 'AI 对话' },
   { id: 'settings', label: '设置' },
 ];
 
@@ -32,7 +32,7 @@ const NAV_DOTS: { id: NavDotId; label: string }[] = [
 export function MaxExpandContent(): React.ReactElement {
   const { setExpanded } = useIslandStore();
   const contentRef = useRef<HTMLDivElement>(null);
-  const [activeTab, setActiveTab] = useState<MaxExpandTab>('aiChat');
+  const [activeTab, setActiveTab] = useState<MaxExpandTab>('todo');
   const activeTabRef = useRef(activeTab);
   activeTabRef.current = activeTab;
 
