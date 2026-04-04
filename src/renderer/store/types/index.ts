@@ -14,6 +14,9 @@ export type IslandState = 'idle' | 'hover' | 'expanded' | 'notification';
 /** Hover 状态下的子标签页类型 */
 export type HoverTab = 'time' | 'o3ics' | 'weather' | 'expand';
 
+/** Expanded 状态下的子标签页类型 */
+export type ExpandTab = 'music' | 'tools' | 'settings';
+
 /** 歌词显示模式 */
 export type LrcMode = 'off' | 'info' | 'lrc';
 
@@ -119,12 +122,14 @@ export interface NotificationData {
 export interface IslandSlice {
   state: IslandState;
   hoverTab: HoverTab;
+  expandTab: ExpandTab;
   notification: NotificationData;
   setIdle: () => void;
   setHover: () => void;
   setExpanded: () => void;
   setNotification: (data: NotificationData) => void;
   setHoverTab: (tab: HoverTab) => void;
+  setExpandTab: (tab: ExpandTab) => void;
 }
 
 /** 天气 Slice */
