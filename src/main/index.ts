@@ -465,6 +465,8 @@ app.commandLine.appendSwitch('disable-print-preview');
 app.commandLine.appendSwitch('disable-component-update');
 app.commandLine.appendSwitch('disable-breakpad');
 app.commandLine.appendSwitch('disable-domain-reliability');
+app.commandLine.appendSwitch('js-flags', '--max-old-space-size=128 --lite-mode');
+app.commandLine.appendSwitch('disable-dev-shm-usage');
 
 /** 单实例锁回调 */
 app.on('second-instance', () => {

@@ -4,8 +4,6 @@
  * @author 鸡哥
  */
 
-import { useState, useEffect } from 'react';
-import { getColor } from 'colorthief';
 import useIslandStore from '../../../../store/slices';
 import { SvgIcon } from '../../../../utils/SvgIcon';
 
@@ -38,40 +36,8 @@ export function LyricsTab(): React.ReactElement {
     isPlaying,
     mediaInfo,
     coverImage,
+    dominantColor,
   } = useIslandStore();
-
-  const [dominantColor, setDominantColor] = useState<[number, number, number]>([255, 255, 255]);
-
-  useEffect(() => {
-    if (!coverImage) return;
-
-    let isStale = false;
-    const img = new Image();
-    img.crossOrigin = 'Anonymous';
-    img.src = coverImage;
-
-    img.onload = async () => {
-      if (isStale) return;
-      try {
-        const color = await getColor(img, { colorSpace: 'rgb' });
-        if (color && !isStale) {
-          const { r, g, b } = color.rgb();
-          setDominantColor([r, g, b]);
-        }
-      } catch (e) {
-        console.error('ColorThief error:', e);
-      }
-    };
-
-    return () => {
-      isStale = true;
-      img.onload = null;
-      img.src = '';
-      if (coverImage.startsWith('blob:')) {
-        URL.revokeObjectURL(coverImage);
-      }
-    };
-  }, [coverImage]);
 
   const handlePlayPause = () => window.api?.mediaPlayPause();
   const handlePrev = () => window.api?.mediaPrev();

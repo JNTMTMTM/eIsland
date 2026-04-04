@@ -297,10 +297,15 @@ function DynamicIsland(): React.JSX.Element {
           };
           // 复用已有循环；若旧循环已停止则自动重新启动
           if (progressRafRef.current === null) {
+            let lastProgressWrite = 0;
             const tick = () => {
+              const now = Date.now();
               const base = progressBaseRef.current;
-              const elapsed = Date.now() - base.timestamp;
-              updateProgressRef.current(base.positionMs + elapsed);
+              const elapsed = now - base.timestamp;
+              if (now - lastProgressWrite >= 66) {
+                lastProgressWrite = now;
+                updateProgressRef.current(base.positionMs + elapsed);
+              }
               progressRafRef.current = requestAnimationFrame(tick);
             };
             progressRafRef.current = requestAnimationFrame(tick);
