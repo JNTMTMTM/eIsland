@@ -72,6 +72,20 @@
   pointer-events: none;
 }
 
+/** Expanded 状态 - 单击展开后的快捷操作面板（860x120） */
+.island-shell.expanded {
+  width: 860px;
+  height: 150px;
+  background: var(--color-island-bg);
+  border-radius: 0 0 22px 22px;
+  box-shadow: none;
+}
+
+.island-shell.expanded::before {
+  opacity: 0;
+  pointer-events: none;
+}
+
 .island-shell.notification {
   width: 500px;
   height: 60px;

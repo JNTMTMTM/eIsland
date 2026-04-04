@@ -31,6 +31,13 @@ const api = {
     ipcRenderer.send('window:expand');
   },
   /**
+   * 完整展开窗口到 expanded 状态尺寸
+   * @description 单击灵动岛后展开为完整操作面板（560x200）
+   */
+  expandWindowFull: (): void => {
+    ipcRenderer.send('window:expand-full');
+  },
+  /**
    * 收缩窗口到 idle 状态尺寸
    * @description 收缩回原始尺寸，保持中心对齐
    */

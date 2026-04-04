@@ -116,7 +116,7 @@ interface StateRenderer {
  * @description 使用状态模式管理不同状态的 UI 渲染，通过 requestAnimationFrame 检测鼠标位置实现可靠的 hover 交互
  */
 function DynamicIsland(): React.JSX.Element {
-  const { state, weather, setHover, setIdle, timerData, setTimerData, notification, setNotification, handleNowPlayingUpdate, updateProgress } = useIslandStore();
+  const { state, weather, setHover, setIdle, setExpanded, timerData, setTimerData, notification, setNotification, handleNowPlayingUpdate, updateProgress } = useIslandStore();
   const handleNowPlayingUpdateRef = useRef(handleNowPlayingUpdate);
   const updateProgressRef = useRef(updateProgress);
 
@@ -332,7 +332,7 @@ function DynamicIsland(): React.JSX.Element {
       if (rafId !== null) cancelAnimationFrame(rafId);
       clearAllTimers();
     };
-  }, [state, setHover, setIdle, clearAllTimers]);
+  }, [state, setHover, setIdle, setExpanded, clearAllTimers]);
 
   // 状态渲染配置
   const stateRenderers: StateRenderer[] = [
@@ -375,8 +375,23 @@ function DynamicIsland(): React.JSX.Element {
     },
   ];
 
+  /**
+   * 单击灵动岛切换状态
+   * @description hover 状态下单击展开到 expanded；expanded 状态下单击收回到 hover
+   */
+  const handleIslandClick = React.useCallback(() => {
+    if (state === 'hover') {
+      setExpanded();
+    } else if (state === 'expanded') {
+      setHover();
+    }
+  }, [state, setExpanded, setHover]);
+
   return (
-    <div className={`island-shell ${getStateClassName(state)}`}>
+    <div
+      className={`island-shell ${getStateClassName(state)}`}
+      onClick={handleIslandClick}
+    >
       {stateRenderers
         .filter(renderer => renderer.state === state)
         .map(renderer => (

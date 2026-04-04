@@ -26,6 +26,9 @@ const ISLAND_WIDTH = 260;
 const ISLAND_HEIGHT = 42;
 const EXPANDED_WIDTH = 500;
 const EXPANDED_HEIGHT = 60;
+/** 单击展开后的完整面板尺寸 */
+const EXPANDED_FULL_WIDTH = 860;
+const EXPANDED_FULL_HEIGHT = 150;
 
 /** 播放程序白名单 - 只有在白名单中的程序才会执行歌曲相关操作 */
 const NOW_PLAYING_WHITELIST = [
@@ -141,6 +144,21 @@ function registerIpcHandlers(): void {
         y: mainWindow.getBounds().y,
         width: EXPANDED_WIDTH,
         height: EXPANDED_HEIGHT
+      });
+    }
+  });
+
+  /**
+   * 完整展开窗口 - 单击灵动岛后展开为完整操作面板
+   * @description 窗口从 hover 尺寸扩展到 560x200，基于初始中心点左右均匀扩展
+   */
+  ipcMain.on('window:expand-full', () => {
+    if (mainWindow) {
+      mainWindow.setBounds({
+        x: Math.round(initialCenterX - EXPANDED_FULL_WIDTH / 2),
+        y: mainWindow.getBounds().y,
+        width: EXPANDED_FULL_WIDTH,
+        height: EXPANDED_FULL_HEIGHT
       });
     }
   });
