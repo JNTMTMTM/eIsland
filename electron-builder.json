@@ -9,7 +9,15 @@
     "out/**/*",
     "!out/renderer/.vite/**"
   ],
+  "extraResources": [
+    {
+      "from": "resources/icon",
+      "to": "icon",
+      "filter": ["**/*"]
+    }
+  ],
   "win": {
+    "icon": "resources/icon/eisland_256x256.ico",
     "target": [
       {
         "target": "nsis",
@@ -22,6 +30,7 @@
     "oneClick": false,
     "perMachine": false,
     "allowToChangeInstallationDirectory": true,
+    "allowElevation": true,
     "deleteAppDataOnUninstall": false
   }
 }

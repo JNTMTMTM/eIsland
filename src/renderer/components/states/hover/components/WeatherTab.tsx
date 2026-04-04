@@ -25,7 +25,7 @@ function getWeekLabel(index: number): string {
  */
 function getWeatherIconPath(iconCode: number, isDay: boolean): string {
   const suffix = isDay ? 'd' : 'n';
-  return `/icon/${iconCode}${suffix}_big.png`;
+  return `./icon/${iconCode}${suffix}_big.png`;
 }
 
 /**
@@ -36,7 +36,7 @@ function getWeatherIconPath(iconCode: number, isDay: boolean): string {
  */
 function getWeatherSmallIconPath(iconCode: number, isDay: boolean): string {
   const suffix = isDay ? 'd' : 'n';
-  return `/icon/${iconCode}${suffix}.png`;
+  return `./icon/${iconCode}${suffix}.png`;
 }
 
 /**

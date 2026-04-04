@@ -6,13 +6,17 @@
 
 import { Tray, Menu, nativeImage, BrowserWindow, app } from 'electron';
 import { join } from 'path';
+import { is } from '@electron-toolkit/utils';
 
 let tray: Tray | null = null;
 
 /**
  * 托盘图标路径常量
+ * @description 开发环境从项目根目录加载，生产环境从 extraResources 打包目录加载
  */
-const TRAY_ICON_PATH = join(__dirname, '../../resources/icon/eisland_16x16.ico');
+const TRAY_ICON_PATH = is.dev
+  ? join(__dirname, '../../resources/icon/eisland_16x16.ico')
+  : join(process.resourcesPath, 'icon/eisland_16x16.ico');
 
 /**
  * 创建系统托盘
