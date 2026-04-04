@@ -80,7 +80,7 @@ export function AiChatTab(): React.ReactElement {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
-  const { aiConfig, aiChatMessages, setAiChatMessages } = useIslandStore();
+  const { aiConfig, aiChatMessages, setAiChatMessages, clearAiChatMessages } = useIslandStore();
 
   /** 始终从 store 读最新消息再更新，避免流式 chunk 之间的闭包过期 */
   const updateMessages = useCallback((updater: (prev: ChatMessage[]) => ChatMessage[]) => {
@@ -184,11 +184,24 @@ export function AiChatTab(): React.ReactElement {
     abortRef.current?.abort();
   };
 
+  /** 清空对话 */
+  const handleClear = (): void => {
+    abortRef.current?.abort();
+    clearAiChatMessages();
+    setLoading(false);
+  };
+
   return (
     <div className="max-expand-chat">
       {/* 标题 */}
       <div className="max-expand-chat-header">
         <span className="max-expand-chat-header-title">AI 对话</span>
+        <div className="max-expand-chat-header-actions">
+          <span className="max-expand-chat-header-model">{aiConfig.model || '未配置'}</span>
+          {aiChatMessages.length > 0 && (
+            <button className="max-expand-chat-clear" onClick={handleClear} type="button">清空</button>
+          )}
+        </div>
       </div>
       {/* 消息列表 */}
       <div className="max-expand-chat-messages">

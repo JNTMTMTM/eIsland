@@ -256,12 +256,35 @@
   color: rgba(255, 255, 255, 0.9);
 }
 
+.max-expand-chat-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .max-expand-chat-header-model {
   font-size: 11px;
   color: rgba(255, 255, 255, 0.4);
   background: rgba(255, 255, 255, 0.06);
   padding: 2px 8px;
   border-radius: 6px;
+}
+
+.max-expand-chat-clear {
+  appearance: none;
+  border: none;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.max-expand-chat-clear:hover {
+  background: rgba(255, 80, 80, 0.15);
+  color: rgba(255, 120, 120, 0.9);
 }
 
 @keyframes maxExpandFadeIn {
