@@ -66,14 +66,14 @@ export function HoverContent({
           <button
             key={tab}
             className={`hover-nav-dot ${hoverTab === tab ? 'active' : ''}`}
-            onClick={() => setHoverTab(tab)}
+            onClick={(e) => { e.stopPropagation(); setHoverTab(tab); }}
             title={label}
             aria-label={`切换到${label}页面`}
           />
         ))}
       </div>
 
-      <div className="hover-tab-content">
+      <div className="hover-tab-content" onClick={(e) => e.stopPropagation()}>
         {hoverTab === 'time' && (
           <TimeTab
             fullTimeStr={fullTimeStr}
