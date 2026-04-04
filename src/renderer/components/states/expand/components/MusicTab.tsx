@@ -4,7 +4,7 @@
  * @author 鸡哥
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useCallback, useState } from 'react';
 import useIslandStore from '../../../../store/slices';
 import type { SyncedLyricLine } from '../../../../store/types';
 import { SvgIcon } from '../../../../utils/SvgIcon';
@@ -64,13 +64,16 @@ function findCurrentIndex(lyrics: SyncedLyricLine[], posMs: number): number {
 function sliceNearby(
   lyrics: SyncedLyricLine[],
   idx: number,
-): { text: string; isCurrent: boolean }[] {
+): { text: string; isCurrent: boolean; key: string }[] {
   const half = Math.floor(VISIBLE_LINES / 2);
-  const start = Math.max(0, idx - half);
-  const end = Math.min(lyrics.length, idx + half + 1);
-  const result: { text: string; isCurrent: boolean }[] = [];
-  for (let i = start; i < end; i++) {
-    result.push({ text: lyrics[i].text, isCurrent: i === idx });
+  const result: { text: string; isCurrent: boolean; key: string }[] = [];
+  for (let offset = -half; offset <= half; offset++) {
+    const i = idx + offset;
+    if (i >= 0 && i < lyrics.length) {
+      result.push({ text: lyrics[i].text, isCurrent: offset === 0, key: `${i}` });
+    } else {
+      result.push({ text: '', isCurrent: false, key: `pad_${offset}` });
+    }
   }
   return result;
 }
@@ -85,6 +88,80 @@ function formatCountdownRemaining(targetDate: string): string {
   if (d > 0) return `${d}天${h}时`;
   if (h > 0) return `${h}时${m}分`;
   return `${m}分`;
+}
+
+// ===================== 频谱波形组件 =====================
+
+function WaveCanvas({ color, playing }: { color: [number, number, number]; playing: boolean }): React.ReactElement {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const rafRef = useRef<number>(0);
+  const tRef = useRef(0);
+  const playingRef = useRef(playing);
+  playingRef.current = playing;
+
+  const sizeCanvas = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const parent = canvas.parentElement;
+    if (!parent) return;
+    const w = parent.clientWidth;
+    const h = parent.clientHeight;
+    const dpr = window.devicePixelRatio;
+    if (canvas.width !== Math.round(w * dpr) || canvas.height !== Math.round(h * dpr)) {
+      canvas.width = Math.round(w * dpr);
+      canvas.height = Math.round(h * dpr);
+      canvas.style.width = `${w}px`;
+      canvas.style.height = `${h}px`;
+      const ctx = canvas.getContext('2d');
+      if (ctx) ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+  }, []);
+
+  const draw = useCallback(() => {
+    sizeCanvas();
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const dpr = window.devicePixelRatio;
+    const W = canvas.width / dpr;
+    const H = canvas.height / dpr;
+    ctx.clearRect(0, 0, W, H);
+
+    if (playingRef.current) tRef.current += 0.025;
+
+    const [r, g, b] = color;
+    const waves = [
+      { amp: H * 0.22, freq: 1.8, phase: 0,    speed: 1.0, alpha: 0.15 },
+      { amp: H * 0.17, freq: 2.5, phase: 1.2,  speed: 0.7, alpha: 0.10 },
+      { amp: H * 0.12, freq: 3.2, phase: 2.8,  speed: 1.3, alpha: 0.07 },
+    ];
+
+    for (const w of waves) {
+      ctx.beginPath();
+      ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${w.alpha})`;
+      ctx.lineWidth = 2;
+      for (let x = 0; x <= W; x += 2) {
+        const nx = x / W;
+        const y = H / 2
+          + Math.sin(nx * Math.PI * w.freq + tRef.current * w.speed + w.phase) * w.amp
+          + Math.cos(nx * Math.PI * w.freq * 0.6 + tRef.current * w.speed * 0.8) * w.amp * 0.3;
+        if (x === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    }
+
+    rafRef.current = requestAnimationFrame(draw);
+  }, [color, sizeCanvas]);
+
+  useEffect(() => {
+    rafRef.current = requestAnimationFrame(draw);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [draw]);
+
+  return <canvas ref={canvasRef} className="ov-wave-canvas" />;
 }
 
 // ===================== 组件 =====================
@@ -156,6 +233,7 @@ export function OverviewTab(): React.ReactElement {
 
   return (
     <div className="expand-tab-panel ov-panel">
+      <WaveCanvas color={dominantColor} playing={isPlaying} />
       {/* ========== 左栏：封面 + 信息 + 控制 ========== */}
       <div className="ov-left">
         <div
@@ -194,7 +272,7 @@ export function OverviewTab(): React.ReactElement {
           <div className="ov-lrc-container">
             {lines.map((line) => (
               <div
-                key={line.text}
+                key={line.key}
                 className={`ov-lrc-line ${line.isCurrent ? 'current' : ''}`}
               >
                 {line.text}

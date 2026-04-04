@@ -139,6 +139,7 @@
   width: 100%;
   height: 100%;
   overflow: hidden;
+  position: relative;
 }
 
 /* ---- 左栏：封面 + 信息 + 控制 ---- */
@@ -146,9 +147,10 @@
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 10px;
+  gap: 20px;
   flex-shrink: 0;
   min-width: 0;
+  z-index: 1;
 }
 
 /** 圆形碟片封面 */
@@ -285,11 +287,21 @@
   overflow: hidden;
   min-width: 0;
   max-width: 340px;
+  z-index: 1;
+}
+
+.ov-wave-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.8;
 }
 
 .ov-lrc-hint {
   font-size: 11px;
   color: rgba(255, 255, 255, 0.18);
+  z-index: 1;
 }
 
 .ov-lrc-container {
@@ -299,6 +311,7 @@
   justify-content: center;
   gap: 2px;
   width: 100%;
+  z-index: 1;
 }
 
 .ov-lrc-line {
@@ -345,6 +358,7 @@
   flex-shrink: 0;
   min-width: 70px;
   max-width: 120px;
+  z-index: 1;
 }
 
 .ov-time {
