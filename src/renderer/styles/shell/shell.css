@@ -192,14 +192,14 @@
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  padding: 1.5px;
+  padding: 3px;
   background: conic-gradient(
     from var(--glow-angle, 0deg),
     transparent 0%,
     rgba(var(--glow-r), var(--glow-g), var(--glow-b), 0.05) 5%,
     rgba(var(--glow-r), var(--glow-g), var(--glow-b), 0.7) 12%,
     rgba(var(--glow-r), var(--glow-g), var(--glow-b), 0.05) 19%,
-    transparent 24%
+    transparent 30%
   );
   -webkit-mask:
     linear-gradient(#fff 0 0) content-box,
