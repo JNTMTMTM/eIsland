@@ -172,44 +172,57 @@
   animation-play-state: paused;
 }
 
-/** 音乐播放时的主题色描边光效 — 左/右/下边缘 */
+/** 注册自定义角度属性用于 conic-gradient 旋转动画 */
+@property --glow-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+/** 音乐播放时的主题色描边光效 — 跑马灯旋转 */
 .island-shell.music-glow {
   --glow-r: 0;
   --glow-g: 0;
   --glow-b: 0;
-  box-shadow:
-    inset  1px  0 3px rgba(var(--glow-r), var(--glow-g), var(--glow-b), 0.35),
-    inset -1px  0 3px rgba(var(--glow-r), var(--glow-g), var(--glow-b), 0.35),
-    inset  0  -1px 3px rgba(var(--glow-r), var(--glow-g), var(--glow-b), 0.35),
-    1px  0 6px rgba(var(--glow-r), var(--glow-g), var(--glow-b), 0.2),
-   -1px  0 6px rgba(var(--glow-r), var(--glow-g), var(--glow-b), 0.2),
-    0    2px 6px rgba(var(--glow-r), var(--glow-g), var(--glow-b), 0.2);
-  animation: music-glow-shimmer 3s ease-in-out infinite;
 }
 
-/** 流光动画 — 描边亮度脉冲 */
-@keyframes music-glow-shimmer {
-  0%, 100% {
-    box-shadow:
-      inset  1px  0 3px rgba(var(--glow-r), var(--glow-g), var(--glow-b), 0.3),
-      inset -1px  0 3px rgba(var(--glow-r), var(--glow-g), var(--glow-b), 0.3),
-      inset  0  -1px 3px rgba(var(--glow-r), var(--glow-g), var(--glow-b), 0.3),
-      1px  0 5px rgba(var(--glow-r), var(--glow-g), var(--glow-b), 0.15),
-     -1px  0 5px rgba(var(--glow-r), var(--glow-g), var(--glow-b), 0.15),
-      0    2px 5px rgba(var(--glow-r), var(--glow-g), var(--glow-b), 0.15);
-  }
-  50% {
-    box-shadow:
-      inset  1px  0 5px rgba(var(--glow-r), var(--glow-g), var(--glow-b), 0.55),
-      inset -1px  0 5px rgba(var(--glow-r), var(--glow-g), var(--glow-b), 0.55),
-      inset  0  -1px 5px rgba(var(--glow-r), var(--glow-g), var(--glow-b), 0.55),
-      2px  0 8px rgba(var(--glow-r), var(--glow-g), var(--glow-b), 0.35),
-     -2px  0 8px rgba(var(--glow-r), var(--glow-g), var(--glow-b), 0.35),
-      0    3px 8px rgba(var(--glow-r), var(--glow-g), var(--glow-b), 0.35);
+/** 旋转光带 — 利用 conic-gradient + mask 实现边框跑马灯 */
+.island-shell.music-glow::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: conic-gradient(
+    from var(--glow-angle, 0deg),
+    transparent 0%,
+    rgba(var(--glow-r), var(--glow-g), var(--glow-b), 0.05) 5%,
+    rgba(var(--glow-r), var(--glow-g), var(--glow-b), 0.7) 12%,
+    rgba(var(--glow-r), var(--glow-g), var(--glow-b), 0.05) 19%,
+    transparent 24%
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  clip-path: inset(1px 0 0 0);
+  animation: music-glow-rotate 2.5s linear infinite;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/** 跑马灯旋转动画 */
+@keyframes music-glow-rotate {
+  to {
+    --glow-angle: 360deg;
   }
 }
 
-/** 音乐播放暂停时停止流光动画 */
-.island-shell.music-glow.music-paused {
+/** 音乐播放暂停时停止旋转 */
+.island-shell.music-glow.music-paused::after {
   animation-play-state: paused;
 }
