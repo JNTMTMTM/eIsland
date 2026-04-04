@@ -84,7 +84,10 @@ function createWindow(): void {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false,
       contextIsolation: true,
-      nodeIntegration: false
+      nodeIntegration: false,
+      spellcheck: false,
+      enableWebSQL: false,
+      v8CacheOptions: 'bypassHeatCheck'
     }
   });
 
@@ -435,6 +438,33 @@ function initNowPlaying(mainWindow: BrowserWindow | null): void {
 function cleanupNowPlaying(): void {
   nowPlaying = null;
 }
+
+/**
+ * Chromium 性能优化：禁用不需要的内核功能以降低内存和 CPU 占用
+ * @description 必须在 app.whenReady() 之前调用
+ */
+app.commandLine.appendSwitch('disable-software-rasterizer');
+app.commandLine.appendSwitch('disable-gpu-shader-disk-cache');
+app.commandLine.appendSwitch('disable-backgrounding-occluded-windows');
+app.commandLine.appendSwitch('disable-renderer-backgrounding');
+app.commandLine.appendSwitch('disable-background-timer-throttling');
+app.commandLine.appendSwitch('disable-features',
+  [
+    'SpareRendererForSitePerProcess',
+    'HardwareMediaKeyHandling',
+    'MediaSessionService',
+    'WebRtcHideLocalIpsWithMdns',
+    'CalculateNativeWinOcclusion',
+    'WinRetrieveSuggestionsOnlyOnDemand',
+  ].join(',')
+);
+app.commandLine.appendSwitch('enable-features', 'BackForwardCache');
+app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
+app.commandLine.appendSwitch('disable-speech-api');
+app.commandLine.appendSwitch('disable-print-preview');
+app.commandLine.appendSwitch('disable-component-update');
+app.commandLine.appendSwitch('disable-breakpad');
+app.commandLine.appendSwitch('disable-domain-reliability');
 
 /** 单实例锁回调 */
 app.on('second-instance', () => {
