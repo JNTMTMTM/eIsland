@@ -53,6 +53,8 @@ declare global {
       getFileIcon: (filePath: string) => Promise<string | null>;
       openFile: (filePath: string) => Promise<boolean>;
       resolveShortcut: (lnkPath: string) => Promise<{ target: string; name: string } | null>;
+      /** ===== 文件选择对话框 API ===== */
+      openImageDialog: () => Promise<string | null>;
       /** ===== HTTP 代理 API ===== */
       netFetch: (url: string, options?: {
         method?: string;

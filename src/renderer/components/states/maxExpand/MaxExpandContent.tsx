@@ -47,8 +47,10 @@ export function MaxExpandContent(): React.ReactElement {
       const target = e.target as HTMLElement;
       if (target.closest('.expand-todo-list')) return;
       if (target.closest('.max-expand-settings')) return;
-      if (target.closest('.countdown-right')) return;
       if (target.closest('.countdown-calendar-wrap')) return;
+      if (target.closest('.cd-cards-wrap')) return;
+      if (target.closest('.cd-editor-form')) return;
+      if (target.closest('.cd-color-picker-popup')) return;
       if (target.closest('.max-expand-chat-messages')) return;
       if (target.closest('.max-expand-chat-input')) return;
       if (target.closest('.settings-field-input')) return;

@@ -8,25 +8,36 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 
+/** 事件类型 */
+type EventType = 'countdown' | 'anniversary' | 'birthday' | 'holiday' | 'exam';
+
+const EVENT_TYPES: { value: EventType; label: string }[] = [
+  { value: 'countdown', label: '倒数日' },
+  { value: 'anniversary', label: '纪念日' },
+  { value: 'birthday', label: '生日' },
+  { value: 'holiday', label: '节日' },
+  { value: 'exam', label: '考试' },
+];
+
 /** 倒数日数据 */
 interface CountdownItem {
   id: number;
   name: string;
-  date: string; // ISO 日期字符串 YYYY-MM-DD
+  date: string;
   color: string;
+  type: EventType;
+  description?: string;
 }
 
 const STORE_KEY = 'countdown-dates';
 
-const COLORS = [
-  '#ff5252', '#ffab40', '#69c0ff', '#81c784',
-  '#ce93d8', '#f48fb1', '#ffcc80', '#80deea',
-];
+function toLocalDateStr(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
 
-/**
- * 计算距离目标日期的天数差
- * 正数=还剩N天，负数=已过N天，0=就是今天
- */
 function diffDays(targetStr: string): number {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -34,21 +45,79 @@ function diffDays(targetStr: string): number {
   return Math.ceil((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 }
 
-/**
- * 倒数日 Tab
- */
+/** 颜色选择器弹窗 */
+function ColorPicker({ value, onChange, onClose }: {
+  value: string;
+  onChange: (c: string) => void;
+  onClose: () => void;
+}): React.ReactElement {
+  const ref = useRef<HTMLDivElement>(null);
+  const [hex, setHex] = useState(value);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent): void => {
+      if (ref.current && !ref.current.contains(e.target as Node)) onClose();
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [onClose]);
+
+  const presets = [
+    '#ff5252', '#ff7043', '#ffab40', '#ffd740',
+    '#69f0ae', '#81c784', '#69c0ff', '#448aff',
+    '#7c4dff', '#ce93d8', '#f48fb1', '#80deea',
+    '#a1887f', '#90a4ae', '#e0e0e0', '#ff1744',
+  ];
+
+  return (
+    <div className="cd-color-picker-popup" ref={ref}>
+      <div className="cd-color-presets">
+        {presets.map(c => (
+          <button
+            key={c}
+            className={`cd-color-preset ${value === c ? 'active' : ''}`}
+            style={{ background: c }}
+            onClick={() => { onChange(c); setHex(c); }}
+            type="button"
+          />
+        ))}
+      </div>
+      <div className="cd-color-custom">
+        <input
+          type="color"
+          value={hex}
+          onChange={(e) => { setHex(e.target.value); onChange(e.target.value); }}
+          className="cd-color-native"
+        />
+        <input
+          className="cd-color-hex-input"
+          value={hex}
+          onChange={(e) => {
+            setHex(e.target.value);
+            if (/^#[0-9a-fA-F]{6}$/.test(e.target.value)) onChange(e.target.value);
+          }}
+          placeholder="#ffffff"
+        />
+      </div>
+    </div>
+  );
+}
+
 export function CountdownTab(): React.ReactElement {
   const [items, setItems] = useState<CountdownItem[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [newName, setNewName] = useState('');
-  const [newColor, setNewColor] = useState(COLORS[0]);
+  const [newColor, setNewColor] = useState('#69c0ff');
+  const [newType, setNewType] = useState<EventType>('countdown');
+  const [newDesc, setNewDesc] = useState('');
+  const [showColorPicker, setShowColorPicker] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [editName, setEditName] = useState('');
-  const editRef = useRef<HTMLInputElement>(null);
-  const listRef = useRef<HTMLDivElement>(null);
+  const [editData, setEditData] = useState<Partial<CountdownItem>>({});
+  const [editColorPicker, setEditColorPicker] = useState(false);
+  const cardsRef = useRef<HTMLDivElement>(null);
 
-  /** 加载数据 */
+  /** 加载 */
   useEffect(() => {
     let cancelled = false;
     window.api.storeRead(STORE_KEY).then((data) => {
@@ -65,69 +134,81 @@ export function CountdownTab(): React.ReactElement {
     window.api.storeWrite(STORE_KEY, items).catch(() => {});
   }, [items, loaded]);
 
-  /** 聚焦编辑 */
-  useEffect(() => {
-    if (editingId !== null && editRef.current) {
-      editRef.current.focus();
-      editRef.current.select();
-    }
-  }, [editingId]);
-
-  /** 添加倒数日 */
+  /** 添加 */
   const addItem = useCallback(() => {
     if (!selectedDate || !newName.trim()) return;
-    const y = selectedDate.getFullYear();
-    const m = String(selectedDate.getMonth() + 1).padStart(2, '0');
-    const d = String(selectedDate.getDate()).padStart(2, '0');
-    const dateStr = `${y}-${m}-${d}`;
+    const dateStr = toLocalDateStr(selectedDate);
     setItems(prev => [...prev, {
       id: Date.now() + Math.random(),
       name: newName.trim(),
       date: dateStr,
       color: newColor,
+      type: newType,
+      description: newDesc.trim() || undefined,
     }]);
     setNewName('');
+    setNewDesc('');
     setSelectedDate(null);
-  }, [selectedDate, newName, newColor]);
+  }, [selectedDate, newName, newColor, newType, newDesc]);
 
   /** 删除 */
   const removeItem = useCallback((id: number) => {
     setItems(prev => prev.filter(i => i.id !== id));
-  }, []);
+    if (editingId === id) setEditingId(null);
+  }, [editingId]);
 
   /** 开始编辑 */
   const startEdit = useCallback((item: CountdownItem) => {
     setEditingId(item.id);
-    setEditName(item.name);
+    setEditData({ name: item.name, description: item.description || '', color: item.color, type: item.type });
+    setEditColorPicker(false);
   }, []);
 
   /** 保存编辑 */
   const saveEdit = useCallback(() => {
     if (editingId === null) return;
-    setItems(prev => prev.map(i => i.id === editingId ? { ...i, name: editName.trim() || i.name } : i));
+    setItems(prev => prev.map(i => {
+      if (i.id !== editingId) return i;
+      return {
+        ...i,
+        name: (editData.name || '').trim() || i.name,
+        description: (editData.description || '').trim() || undefined,
+        color: editData.color || i.color,
+        type: editData.type || i.type,
+      };
+    }));
     setEditingId(null);
-  }, [editingId, editName]);
+    setEditColorPicker(false);
+  }, [editingId, editData]);
 
-  /** 日历上需要高亮的日期 */
+  /** 日历高亮 */
   const highlightDates = items.map(i => new Date(i.date + 'T00:00:00'));
 
-  /** 按日期排序：最近的在前 */
+  /** 排序 */
   const sorted = [...items].sort((a, b) => {
     const da = Math.abs(diffDays(a.date));
     const db = Math.abs(diffDays(b.date));
     return da - db;
   });
 
-  /** 阻止列表滚轮冒泡 */
-  const handleListWheel = useCallback((e: React.WheelEvent) => {
+  /** 卡片列表水平滚轮 */
+  const handleCardsWheel = useCallback((e: React.WheelEvent) => {
     e.stopPropagation();
+    if (cardsRef.current) {
+      cardsRef.current.scrollLeft += e.deltaY;
+    }
   }, []);
 
+  const typeInfo = (t: EventType) => EVENT_TYPES.find(et => et.value === t) || EVENT_TYPES[0];
+
+  const editItem = editingId !== null ? items.find(i => i.id === editingId) : null;
+
   return (
-    <div className="max-expand-tab-panel countdown-panel">
-      {/* ===== 左侧：日历 + 添加 ===== */}
-      <div className="countdown-left">
-        <div className="countdown-calendar-wrap">
+    <div className="max-expand-tab-panel countdown-panel-v2">
+      {/* ===== 上部区域 ===== */}
+      <div className="cd-top">
+        {/* 左上：日历 */}
+        <div className="cd-calendar-wrap countdown-calendar-wrap">
           <DatePicker
             selected={selectedDate}
             onChange={(date: Date | null) => setSelectedDate(date)}
@@ -136,97 +217,213 @@ export function CountdownTab(): React.ReactElement {
             calendarClassName="countdown-calendar"
           />
         </div>
-        <div className="countdown-add">
-          <input
-            className="countdown-add-input"
-            placeholder="输入事件名称"
-            value={newName}
-            onChange={(e) => setNewName(e.target.value)}
-            onKeyDown={(e) => { if (e.key === 'Enter') addItem(); }}
-          />
-          <div className="countdown-add-row">
-            <div className="countdown-color-picker">
-              {COLORS.map(c => (
-                <button
-                  key={c}
-                  className={`countdown-color-dot ${newColor === c ? 'active' : ''}`}
-                  style={{ background: c }}
-                  onClick={() => setNewColor(c)}
-                  type="button"
-                />
-              ))}
+
+        {/* 中：编辑表单 */}
+        {editItem ? (
+          <div className="cd-editor-form">
+            <div className="cd-editor-title">编辑事件</div>
+            <input
+              className="cd-input"
+              value={editData.name || ''}
+              onChange={(e) => setEditData(prev => ({ ...prev, name: e.target.value }))}
+              placeholder="事件名称"
+            />
+            <textarea
+              className="cd-textarea"
+              value={editData.description || ''}
+              onChange={(e) => setEditData(prev => ({ ...prev, description: e.target.value }))}
+              placeholder="描述（可选）"
+              rows={2}
+            />
+            <div className="cd-form-row">
+              <div className="cd-type-selector">
+                {EVENT_TYPES.map(t => (
+                  <button
+                    key={t.value}
+                    className={`cd-type-btn ${editData.type === t.value ? 'active' : ''}`}
+                    onClick={() => setEditData(prev => ({ ...prev, type: t.value }))}
+                    type="button"
+                    title={t.label}
+                  >
+                    <span className="cd-type-label">{t.label}</span>
+                  </button>
+                ))}
+              </div>
             </div>
-            <button
-              className="countdown-add-btn"
-              onClick={addItem}
-              disabled={!selectedDate || !newName.trim()}
-              type="button"
-            >
-              添加
-            </button>
+            <div className="cd-form-row">
+              <div className="cd-color-trigger-wrap">
+                <button
+                  className="cd-color-trigger"
+                  style={{ background: editData.color }}
+                  onClick={() => setEditColorPicker(!editColorPicker)}
+                  type="button"
+                  title="选择颜色"
+                />
+                {editColorPicker && (
+                  <ColorPicker
+                    value={editData.color || '#69c0ff'}
+                    onChange={(c) => setEditData(prev => ({ ...prev, color: c }))}
+                    onClose={() => setEditColorPicker(false)}
+                  />
+                )}
+              </div>
+            </div>
+            <div className="cd-form-actions">
+              <button className="cd-btn save" onClick={saveEdit} type="button">保存</button>
+              <button className="cd-btn cancel" onClick={() => { setEditingId(null); setEditColorPicker(false); }} type="button">取消</button>
+            </div>
           </div>
+        ) : (
+          <div className="cd-editor-form">
+            <div className="cd-editor-title">
+              {selectedDate ? `新建事件 - ${toLocalDateStr(selectedDate)}` : '< 选择日期以添加事件'}
+            </div>
+            <input
+              className="cd-input"
+              placeholder="事件名称"
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') addItem(); }}
+            />
+            <textarea
+              className="cd-textarea"
+              placeholder="描述（可选）"
+              value={newDesc}
+              onChange={(e) => setNewDesc(e.target.value)}
+              rows={2}
+            />
+            <div className="cd-form-row">
+              <div className="cd-type-selector">
+                {EVENT_TYPES.map(t => (
+                  <button
+                    key={t.value}
+                    className={`cd-type-btn ${newType === t.value ? 'active' : ''}`}
+                    onClick={() => setNewType(t.value)}
+                    type="button"
+                    title={t.label}
+                  >
+                    <span className="cd-type-label">{t.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="cd-form-row">
+              <div className="cd-color-trigger-wrap">
+                <button
+                  className="cd-color-trigger"
+                  style={{ background: newColor }}
+                  onClick={() => setShowColorPicker(!showColorPicker)}
+                  type="button"
+                  title="选择颜色"
+                />
+                {showColorPicker && (
+                  <ColorPicker
+                    value={newColor}
+                    onChange={(c) => setNewColor(c)}
+                    onClose={() => setShowColorPicker(false)}
+                  />
+                )}
+              </div>
+            </div>
+            <div className="cd-form-actions">
+              <button
+                className="cd-btn save"
+                onClick={addItem}
+                disabled={!selectedDate || !newName.trim()}
+                type="button"
+              >
+                添加
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* 右：卡片预览 */}
+        <div className="cd-preview">
+          <div className="cd-preview-label">预览</div>
+          {editItem ? (
+            <div
+              className={`cd-card cd-card-${editData.type || editItem.type}`}
+              style={{ borderColor: editData.color || editItem.color }}
+            >
+              <div className="cd-card-overlay" style={{ background: `linear-gradient(135deg, ${editData.color || editItem.color}30, ${editData.color || editItem.color}10)` }} />
+              <div className="cd-card-content">
+                <div className="cd-card-top-row">
+                  <span className="cd-card-type-badge" style={{ background: `${editData.color || editItem.color}50`, color: '#fff' }}>{typeInfo(editData.type || editItem.type).label}</span>
+                </div>
+                <div className="cd-card-name">{(editData.name || '').trim() || editItem.name}</div>
+                {(editData.description || '').trim() && <div className="cd-card-desc">{(editData.description || '').trim()}</div>}
+                <div className="cd-card-bottom">
+                  <span className="cd-card-date">{editItem.date}</span>
+                  <span className="cd-card-days" style={{ color: editData.color || editItem.color }}>
+                    {(() => { const d = diffDays(editItem.date); return d > 0 ? `${d} 天后` : d === 0 ? '就是今天' : `${Math.abs(d)} 天前`; })()}
+                  </span>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div
+              className={`cd-card cd-card-${newType}`}
+              style={{ borderColor: newColor }}
+            >
+              <div className="cd-card-overlay" style={{ background: `linear-gradient(135deg, ${newColor}30, ${newColor}10)` }} />
+              <div className="cd-card-content">
+                <div className="cd-card-top-row">
+                  <span className="cd-card-type-badge" style={{ background: `${newColor}50`, color: '#fff' }}>{typeInfo(newType).label}</span>
+                </div>
+                <div className="cd-card-name">{newName.trim() || '事件名称'}</div>
+                {newDesc.trim() && <div className="cd-card-desc">{newDesc.trim()}</div>}
+                <div className="cd-card-bottom">
+                  <span className="cd-card-date">{selectedDate ? toLocalDateStr(selectedDate) : 'YYYY-MM-DD'}</span>
+                  <span className="cd-card-days" style={{ color: newColor }}>
+                    {selectedDate ? (() => { const d = diffDays(toLocalDateStr(selectedDate)); return d > 0 ? `${d} 天后` : d === 0 ? '就是今天' : `${Math.abs(d)} 天前`; })() : '-- 天'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* ===== 右侧：倒数日列表 ===== */}
-      <div className="countdown-right" ref={listRef} onWheel={handleListWheel}>
-        <div className="countdown-list-header">
-          <span className="countdown-list-title">倒数日</span>
-          <span className="countdown-list-count">{items.length} 项</span>
-        </div>
-        <div className="countdown-list">
-          {sorted.length === 0 ? (
-            <div className="countdown-empty">选择日期并添加事件</div>
-          ) : (
-            sorted.map(item => {
-              const days = diffDays(item.date);
-              const isEditing = editingId === item.id;
-              return (
-                <div key={item.id} className="countdown-item">
-                  <div className="countdown-item-color" style={{ background: item.color }} />
-                  <div className="countdown-item-body">
-                    {isEditing ? (
-                      <input
-                        ref={editRef}
-                        className="countdown-item-edit"
-                        value={editName}
-                        onChange={(e) => setEditName(e.target.value)}
-                        onBlur={saveEdit}
-                        onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(); if (e.key === 'Escape') setEditingId(null); }}
-                      />
-                    ) : (
-                      <span className="countdown-item-name" onDoubleClick={() => startEdit(item)}>{item.name}</span>
-                    )}
-                    <span className="countdown-item-date">{item.date}</span>
+      {/* ===== 下部：卡片水平列表 ===== */}
+      <div className="cd-cards-wrap" ref={cardsRef} onWheel={handleCardsWheel}>
+        {sorted.length === 0 ? (
+          <div className="cd-cards-empty">选择日期并添加事件</div>
+        ) : (
+          sorted.map(item => {
+            const days = diffDays(item.date);
+            const info = typeInfo(item.type);
+            return (
+              <div
+                key={item.id}
+                className={`cd-card cd-card-${item.type}`}
+                style={{ borderColor: item.color }}
+                onClick={() => startEdit(item)}
+              >
+                <div className="cd-card-overlay" style={{ background: `linear-gradient(135deg, ${item.color}30, ${item.color}10)` }} />
+                <div className="cd-card-content">
+                  <div className="cd-card-top-row">
+                    <span className="cd-card-type-badge" style={{ background: `${item.color}50`, color: '#fff' }}>{info.label}</span>
+                    <button
+                      className="cd-card-delete"
+                      onClick={(e) => { e.stopPropagation(); removeItem(item.id); }}
+                      type="button"
+                      title="删除"
+                    >x</button>
                   </div>
-                  <div className="countdown-item-days">
-                    {days > 0 ? (
-                      <>
-                        <span className="countdown-days-num">{days}</span>
-                        <span className="countdown-days-label">天后</span>
-                      </>
-                    ) : days === 0 ? (
-                      <span className="countdown-days-today">今天</span>
-                    ) : (
-                      <>
-                        <span className="countdown-days-num past">{Math.abs(days)}</span>
-                        <span className="countdown-days-label">天前</span>
-                      </>
-                    )}
+                  <div className="cd-card-name">{item.name}</div>
+                  {item.description && <div className="cd-card-desc">{item.description}</div>}
+                  <div className="cd-card-bottom">
+                    <span className="cd-card-date">{item.date}</span>
+                    <span className="cd-card-days" style={{ color: item.color }}>
+                      {days > 0 ? `${days} 天后` : days === 0 ? '就是今天' : `${Math.abs(days)} 天前`}
+                    </span>
                   </div>
-                  <button
-                    className="countdown-item-delete"
-                    onClick={() => removeItem(item.id)}
-                    type="button"
-                    title="删除"
-                  >
-                    ×
-                  </button>
                 </div>
-              );
-            })
-          )}
-        </div>
+              </div>
+            );
+          })
+        )}
       </div>
     </div>
   );

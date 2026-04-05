@@ -180,6 +180,14 @@ const api = {
   resolveShortcut: (lnkPath: string): Promise<{ target: string; name: string } | null> => {
     return ipcRenderer.invoke('app:resolve-shortcut', lnkPath);
   },
+  /** ===== 文件选择对话框 API ===== */
+  /**
+   * 打开图片文件选择对话框
+   * @returns 文件路径，取消返回 null
+   */
+  openImageDialog: (): Promise<string | null> => {
+    return ipcRenderer.invoke('dialog:open-image');
+  },
   /** ===== HTTP 代理 API（绕过 CORS） ===== */
   /**
    * 通过主进程代理 HTTP 请求（绕过浏览器 CORS 限制）

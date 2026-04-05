@@ -4,7 +4,7 @@
  * @author 鸡哥
  */
 
-import { app, BrowserWindow, shell, screen, ipcMain, desktopCapturer } from 'electron';
+import { app, BrowserWindow, shell, screen, ipcMain, desktopCapturer, dialog } from 'electron';
 import { join, basename } from 'path';
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
 import { electronApp, optimizer, is } from '@electron-toolkit/utils';
@@ -379,6 +379,19 @@ function registerIpcHandlers(): void {
       console.error('[App] resolve-shortcut error:', err);
       return null;
     }
+  });
+
+  // ===== 文件选择对话框 IPC =====
+  ipcMain.handle('dialog:open-image', async () => {
+    const win = BrowserWindow.getFocusedWindow();
+    if (!win) return null;
+    const result = await dialog.showOpenDialog(win, {
+      title: '选择图片',
+      filters: [{ name: '图片', extensions: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg'] }],
+      properties: ['openFile'],
+    });
+    if (result.canceled || result.filePaths.length === 0) return null;
+    return result.filePaths[0];
   });
 
   // ===== HTTP 代理 IPC（绕过 CORS） =====
