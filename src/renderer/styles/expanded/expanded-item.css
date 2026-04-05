@@ -1037,28 +1037,35 @@
   flex: 1;
   display: flex;
   flex-direction: column;
+  align-items: center;
   justify-content: center;
   gap: 8px;
+  position: relative;
+  overflow: hidden;
+  border-radius: 10px;
 }
-.ov-dash-song-body {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 0;
-}
-.ov-dash-song-cover {
-  width: 52px;
-  height: 52px;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.06);
+.ov-dash-song-bg {
+  position: absolute;
+  width: 80%;
+  height: 80%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   background-size: cover;
   background-position: center;
-  flex-shrink: 0;
-  transition: box-shadow 0.4s ease;
+  opacity: 0.45;
+  filter: blur(10px);
+  mask-image: radial-gradient(ellipse at center, rgba(0,0,0,0.9) 20%, transparent 70%);
+  -webkit-mask-image: radial-gradient(ellipse at center, rgba(0,0,0,0.9) 20%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
 }
 .ov-dash-song-info {
-  flex: 1;
+  position: relative;
+  z-index: 1;
+  text-align: center;
   min-width: 0;
+  max-width: 100%;
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -1066,27 +1073,29 @@
 .ov-dash-song-title {
   font-size: 12px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.88);
+  color: rgba(255, 255, 255, 0.9);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .ov-dash-song-artist {
   font-size: 10px;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(255, 255, 255, 0.55);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .ov-dash-song-album {
   font-size: 9px;
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.35);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   margin-top: 1px;
 }
 .ov-dash-song-controls {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1095,7 +1104,7 @@
 .ov-dash-song-btn {
   appearance: none;
   border: none;
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.08);
   width: 28px;
   height: 28px;
   border-radius: 50%;
@@ -1107,7 +1116,7 @@
   padding: 0;
 }
 .ov-dash-song-btn:hover {
-  background: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.16);
 }
 .ov-dash-song-btn-play {
   width: 32px;
@@ -1116,9 +1125,8 @@
 .ov-dash-song-btn-icon {
   width: 14px;
   height: 14px;
-  opacity: 0.7;
+  opacity: 0.75;
   transition: opacity 0.15s ease;
-  filter: invert(1);
 }
 .ov-dash-song-btn:hover .ov-dash-song-btn-icon {
   opacity: 1;
