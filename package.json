@@ -10,7 +10,8 @@
     "build": "electron-vite build",
     "preview": "electron-vite preview",
     "postinstall": "electron-builder install-app-deps",
-    "package": "electron-vite build && electron-builder"
+    "package": "electron-vite build && electron-builder",
+    "release:notes": "node --experimental-strip-types scripts/generate-incremental-release-notes.ts -o RELEASE_NOTES_SINCE_LAST_TAG.md"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.2.2",
