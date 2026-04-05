@@ -219,7 +219,7 @@ export async function fetchLyricsFromLrclib(
   }
 
   // 策略4: 精确匹配
-  const url4 = `https://lrclib.net/api/get?track_name=${encodeURIComponent(cleanedTitle)}&artist_name=${encodeURIComponent(cleanedArtist)}&album_name=&duration=0`;
+  const url4 = `https://lrclib.net/api/get?track_name=${encodeURIComponent(cleanedTitle)}&artist_name=${encodeURIComponent(cleanedArtist)}`;
   try {
     const resp = await fetch(url4, { headers });
     if (resp.ok) {
@@ -249,8 +249,8 @@ export async function fetchLyricsFromNetease(
   const query = `${cleanedTitle} ${cleanedArtist}`;
 
   try {
-    // 搜索歌曲
-    const searchResp = await fetch('https://music.163.com/api/search/get', {
+    // 搜索歌曲（通过主进程代理绕过 CORS）
+    const searchResp = await window.api.netFetch('https://music.163.com/api/search/get', {
       method: 'POST',
       headers: {
         'Referer': 'https://music.163.com',
@@ -262,7 +262,7 @@ export async function fetchLyricsFromNetease(
 
     if (!searchResp.ok) return null;
 
-    const searchJson = await searchResp.json() as Record<string, unknown>;
+    const searchJson = JSON.parse(searchResp.body) as Record<string, unknown>;
     const result = searchJson.result as Record<string, unknown> | undefined;
     const songs = result?.songs as unknown[] | undefined;
 
@@ -272,8 +272,8 @@ export async function fetchLyricsFromNetease(
     const songId = typeof firstSong.id === 'number' ? firstSong.id : parseInt(String(firstSong.id), 10);
     if (isNaN(songId)) return null;
 
-    // 获取歌词
-    const lrcResp = await fetch(`https://music.163.com/api/song/lyric?id=${songId}&lv=1`, {
+    // 获取歌词（通过主进程代理绕过 CORS）
+    const lrcResp = await window.api.netFetch(`https://music.163.com/api/song/lyric?id=${songId}&lv=1`, {
       headers: {
         'Referer': 'https://music.163.com',
         'User-Agent': 'Mozilla/5.0',
@@ -282,7 +282,7 @@ export async function fetchLyricsFromNetease(
 
     if (!lrcResp.ok) return null;
 
-    const lrcJson = await lrcResp.json() as Record<string, unknown>;
+    const lrcJson = JSON.parse(lrcResp.body) as Record<string, unknown>;
     const lrcObj = lrcJson.lrc as Record<string, unknown> | undefined;
     const lrcStr = typeof lrcObj?.lyric === 'string' ? lrcObj.lyric : null;
 

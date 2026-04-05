@@ -180,6 +180,20 @@ const api = {
   resolveShortcut: (lnkPath: string): Promise<{ target: string; name: string } | null> => {
     return ipcRenderer.invoke('app:resolve-shortcut', lnkPath);
   },
+  /** ===== HTTP 代理 API（绕过 CORS） ===== */
+  /**
+   * 通过主进程代理 HTTP 请求（绕过浏览器 CORS 限制）
+   * @param url - 请求 URL
+   * @param options - 请求选项
+   * @returns 响应结果
+   */
+  netFetch: (url: string, options?: {
+    method?: string;
+    headers?: Record<string, string>;
+    body?: string;
+  }): Promise<{ ok: boolean; status: number; body: string }> => {
+    return ipcRenderer.invoke('net:fetch', url, options);
+  },
   /** ===== 文件存储 API ===== */
   /**
    * 从文件读取 JSON 数据

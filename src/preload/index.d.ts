@@ -53,6 +53,12 @@ declare global {
       getFileIcon: (filePath: string) => Promise<string | null>;
       openFile: (filePath: string) => Promise<boolean>;
       resolveShortcut: (lnkPath: string) => Promise<{ target: string; name: string } | null>;
+      /** ===== HTTP 代理 API ===== */
+      netFetch: (url: string, options?: {
+        method?: string;
+        headers?: Record<string, string>;
+        body?: string;
+      }) => Promise<{ ok: boolean; status: number; body: string }>;
       /** ===== 文件存储 API ===== */
       storeRead: (key: string) => Promise<unknown>;
       storeWrite: (key: string, data: unknown) => Promise<boolean>;

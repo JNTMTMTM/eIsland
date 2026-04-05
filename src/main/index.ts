@@ -381,6 +381,27 @@ function registerIpcHandlers(): void {
     }
   });
 
+  // ===== HTTP 代理 IPC（绕过 CORS） =====
+  ipcMain.handle('net:fetch', async (_event, url: string, options?: {
+    method?: string;
+    headers?: Record<string, string>;
+    body?: string;
+  }) => {
+    try {
+      const { net } = require('electron');
+      const resp = await net.fetch(url, {
+        method: options?.method || 'GET',
+        headers: options?.headers,
+        body: options?.body,
+      });
+      const text = await resp.text();
+      return { ok: resp.ok, status: resp.status, body: text };
+    } catch (err) {
+      console.error('[Net] fetch proxy error:', err);
+      return { ok: false, status: 0, body: '' };
+    }
+  });
+
   // ===== 文件存储 IPC =====
   const storeDir = join(app.getPath('userData'), 'eIsland_store');
   if (!existsSync(storeDir)) {
