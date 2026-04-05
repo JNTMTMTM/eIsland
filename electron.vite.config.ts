@@ -18,6 +18,12 @@
  * GNU General Public License for more details.
  */
 
+/**
+ * @file electron.vite.config.ts
+ * @description Electron + Vite 构建配置，定义 main、preload、renderer 的打包入口与输出目录
+ * @author 鸡哥
+ */
+
 import { defineConfig, externalizeDepsPlugin } from 'electron-vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';

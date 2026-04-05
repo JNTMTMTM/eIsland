@@ -74,6 +74,11 @@ const COLOR_PRESETS = [
   '#7c4dff', '#ce93d8', '#f48fb1', '#80deea',
 ];
 
+/**
+ * 渲染倒数日管理面板
+ * @description 提供倒数日新增、编辑、删除与卡片预览能力
+ * @returns 倒数日 Tab 组件
+ */
 export function CountdownTab(): React.ReactElement {
   const [items, setItems] = useState<CountdownItem[]>([]);
   const [loaded, setLoaded] = useState(false);

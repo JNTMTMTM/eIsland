@@ -260,6 +260,11 @@ const SETTINGS_TABS: ('app' | 'ai' | 'about')[] = ['app', 'ai', 'about'];
 const LAYOUT_STORE_KEY = 'overview-layout';
 const DEFAULT_LAYOUT: OverviewLayoutConfig = { left: 'shortcuts', right: 'todo' };
 
+/**
+ * 渲染设置面板主视图
+ * @description 提供应用设置、AI 配置与关于软件三类设置入口
+ * @returns 设置 Tab 组件
+ */
 export function SettingsTab(): React.ReactElement {
   const [activeTab, setActiveTab] = React.useState<'app' | 'ai' | 'about'>('app');
   const { aiConfig, setAiConfig } = useIslandStore();
