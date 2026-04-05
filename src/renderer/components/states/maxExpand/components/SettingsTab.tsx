@@ -517,6 +517,7 @@ export function SettingsTab(): React.ReactElement {
                 <div className="settings-about-deps-grid">
                   <span className="settings-about-dep">Electron</span>
                   <span className="settings-about-dep">React</span>
+                  <span className="settings-about-dep">React DOM</span>
                   <span className="settings-about-dep">TypeScript</span>
                   <span className="settings-about-dep">Zustand</span>
                   <span className="settings-about-dep">Tailwind CSS</span>
@@ -524,14 +525,18 @@ export function SettingsTab(): React.ReactElement {
                   <span className="settings-about-dep">electron-vite</span>
                   <span className="settings-about-dep">electron-builder</span>
                   <span className="settings-about-dep">react-markdown</span>
+                  <span className="settings-about-dep">react-datepicker</span>
                   <span className="settings-about-dep">remark-gfm</span>
                   <span className="settings-about-dep">node-nowplaying</span>
+                  <span className="settings-about-dep">node-nowplaying-win32-x64-msvc</span>
                   <span className="settings-about-dep">openmeteo</span>
                   <span className="settings-about-dep">lunar-javascript</span>
                   <span className="settings-about-dep">lyric-resolver</span>
                   <span className="settings-about-dep">colorthief</span>
                   <span className="settings-about-dep">lucide-react</span>
-                  <span className="settings-about-dep">@electron-toolkit</span>
+                  <span className="settings-about-dep">@electron-toolkit/preload</span>
+                  <span className="settings-about-dep">@electron-toolkit/utils</span>
+                  <span className="settings-about-dep">@electron-toolkit/tsconfig</span>
                   <span className="settings-about-dep">@tailwindcss/vite</span>
                   <span className="settings-about-dep">@vitejs/plugin-react</span>
                   <span className="settings-about-dep">PostCSS</span>
