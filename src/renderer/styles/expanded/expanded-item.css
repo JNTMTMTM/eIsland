@@ -1176,44 +1176,37 @@
 }
 
 /** 倒数日控件 */
-.ov-dash-countdown-list {
+.ov-dash-countdown-cards {
   flex: 1;
   display: flex;
-  flex-direction: column;
-  gap: 4px;
-  overflow-y: auto;
-  scrollbar-width: none;
-}
-.ov-dash-countdown-list::-webkit-scrollbar {
-  display: none;
-}
-.ov-dash-countdown-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   gap: 6px;
-  padding: 4px 8px;
-  border-left: 2px solid rgba(255, 255, 255, 0.15);
-  border-radius: 0 4px 4px 0;
-  background: rgba(255, 255, 255, 0.03);
-  transition: background 0.15s ease;
+  min-height: 0;
+  align-items: stretch;
 }
-.ov-dash-countdown-item:hover {
-  background: rgba(255, 255, 255, 0.06);
-}
-.ov-dash-countdown-name {
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.7);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  min-width: 0;
+.ov-cd-card {
   flex: 1;
+  width: auto !important;
+  height: auto !important;
+  min-height: 0;
 }
-.ov-dash-countdown-days {
+.ov-cd-card .cd-card-content {
+  padding: 5px 7px;
+}
+.ov-cd-card .cd-card-type-badge {
+  font-size: 8px;
+  padding: 1px 4px;
+}
+.ov-cd-card .cd-card-name {
   font-size: 11px;
-  font-weight: 600;
-  flex-shrink: 0;
+}
+.ov-cd-card .cd-card-desc {
+  font-size: 7px;
+}
+.ov-cd-card .cd-card-date {
+  font-size: 7px;
+}
+.ov-cd-card .cd-card-days {
+  font-size: 12px;
 }
 .ov-dash-countdown-empty {
   flex: 1;

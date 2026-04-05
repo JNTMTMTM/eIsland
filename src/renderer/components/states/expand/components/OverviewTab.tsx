@@ -81,9 +81,18 @@ interface CountdownDateItem {
   date: string;
   color: string;
   type: string;
+  description?: string;
   backgroundImage?: string;
   backgroundOpacity?: number;
 }
+
+const CD_TYPE_LABELS: Record<string, string> = {
+  countdown: '倒数日',
+  anniversary: '纪念日',
+  birthday: '生日',
+  holiday: '节日',
+  exam: '考试',
+};
 
 function cdDiffDays(targetStr: string): number {
   const today = new Date();
@@ -163,7 +172,7 @@ function CountdownWidget(): React.ReactElement {
     const da = Math.abs(cdDiffDays(a.date));
     const db = Math.abs(cdDiffDays(b.date));
     return da - db;
-  }).slice(0, 6);
+  }).slice(0, 2);
 
   return (
     <div className="ov-dash-widget ov-dash-countdown-widget">
@@ -173,15 +182,33 @@ function CountdownWidget(): React.ReactElement {
       {sorted.length === 0 ? (
         <div className="ov-dash-countdown-empty">暂无倒数日</div>
       ) : (
-        <div className="ov-dash-countdown-list">
+        <div className="ov-dash-countdown-cards">
           {sorted.map(item => {
             const days = cdDiffDays(item.date);
+            const typeLabel = CD_TYPE_LABELS[item.type] || item.type;
             return (
-              <div key={item.id} className="ov-dash-countdown-item" style={{ borderLeftColor: item.color }}>
-                <span className="ov-dash-countdown-name">{item.name}</span>
-                <span className="ov-dash-countdown-days" style={{ color: item.color }}>
-                  {days > 0 ? `${days}天后` : days === 0 ? '今天' : `${Math.abs(days)}天前`}
-                </span>
+              <div
+                key={item.id}
+                className={`cd-card cd-card-${item.type} ov-cd-card`}
+                style={{ borderColor: item.color }}
+              >
+                {item.backgroundImage && (
+                  <div className="cd-card-bg" style={{ backgroundImage: `url(${item.backgroundImage})`, opacity: item.backgroundOpacity ?? 0.5 }} />
+                )}
+                <div className="cd-card-overlay" style={{ background: `linear-gradient(135deg, ${item.color}30, ${item.color}10)` }} />
+                <div className="cd-card-content">
+                  <div className="cd-card-top-row">
+                    <span className="cd-card-type-badge" style={{ background: `${item.color}50`, color: '#fff' }}>{typeLabel}</span>
+                  </div>
+                  <div className="cd-card-name">{item.name}</div>
+                  {item.description && <div className="cd-card-desc">{item.description}</div>}
+                  <div className="cd-card-bottom">
+                    <span className="cd-card-date">{item.date}</span>
+                    <span className="cd-card-days" style={{ color: item.color }}>
+                      {days > 0 ? `${days} 天后` : days === 0 ? '就是今天' : `${Math.abs(days)} 天前`}
+                    </span>
+                  </div>
+                </div>
               </div>
             );
           })}
