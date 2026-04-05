@@ -5,6 +5,7 @@
  */
 
 import React, { useEffect, useState } from 'react';
+import useIslandStore from '../../../../store/slices';
 import { getDayName, getLunarDate } from '../../../../utils/timeUtils';
 
 /** 紧急程度 */
@@ -48,6 +49,7 @@ const STORE_KEY = 'todos';
  * @description 展开状态下仪表盘式概览面板
  */
 export function OverviewTab(): React.ReactElement {
+  const { setMaxExpand } = useIslandStore();
   const [now, setNow] = useState(new Date());
   const [todos, setTodos] = useState<TodoItem[]>([]);
   const [expandedId, setExpandedId] = useState<number | null>(null);
@@ -120,7 +122,7 @@ export function OverviewTab(): React.ReactElement {
       {/* ========== 右区：待办事项 ========== */}
       <div className="ov-dash-todo">
         <div className="ov-dash-todo-header">
-          <span className="ov-dash-todo-title">待办事项</span>
+          <span className="ov-dash-todo-title clickable" onClick={() => setMaxExpand()} title="前往待办事项">待办事项</span>
           <div className="ov-dash-todo-stats">
             <span className="ov-dash-todo-stat done">✓ {doneTodos.length}</span>
             <span className="ov-dash-todo-stat undone">○ {undoneTodos.length}</span>

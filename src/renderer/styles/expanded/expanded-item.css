@@ -588,6 +588,15 @@
   letter-spacing: 0.5px;
 }
 
+.ov-dash-todo-title.clickable {
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.ov-dash-todo-title.clickable:hover {
+  color: rgba(255, 255, 255, 0.85);
+}
+
 .ov-dash-todo-stats {
   display: flex;
   align-items: center;
