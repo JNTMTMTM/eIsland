@@ -546,8 +546,6 @@
   flex-direction: column;
   min-width: 0;
   overflow: hidden;
-  border-right: 1px solid rgba(255, 255, 255, 0.06);
-  padding-right: 12px;
 }
 
 .ov-dash-apps-header {
@@ -739,8 +737,6 @@
   flex-direction: column;
   min-width: 0;
   overflow: hidden;
-  border-left: 1px solid rgba(255, 255, 255, 0.06);
-  padding-left: 12px;
 }
 
 .ov-dash-todo-header {
@@ -997,6 +993,196 @@
 @keyframes ovTodoDescIn {
   from { opacity: 0; max-height: 0; }
   to   { opacity: 1; max-height: 200px; }
+}
+
+/** ========== 总览控件插槽 ========== */
+.ov-dash-slot {
+  flex: 1;
+  display: flex;
+  min-width: 0;
+  overflow: hidden;
+}
+.ov-dash-slot-left {
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  padding-right: 12px;
+}
+.ov-dash-slot-right {
+  border-left: 1px solid rgba(255, 255, 255, 0.06);
+  padding-left: 12px;
+}
+
+/** ========== 总览控件通用 ========== */
+.ov-dash-widget {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+.ov-dash-widget-header {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  margin-bottom: 4px;
+}
+.ov-dash-widget-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.55);
+  letter-spacing: 0.5px;
+}
+
+/** 歌曲控件 */
+.ov-dash-song-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+}
+.ov-dash-song-body {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.ov-dash-song-cover {
+  width: 52px;
+  height: 52px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  background-size: cover;
+  background-position: center;
+  flex-shrink: 0;
+  transition: box-shadow 0.4s ease;
+}
+.ov-dash-song-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.ov-dash-song-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.88);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ov-dash-song-artist {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.5);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ov-dash-song-album {
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-top: 1px;
+}
+.ov-dash-song-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+.ov-dash-song-btn {
+  appearance: none;
+  border: none;
+  background: rgba(255, 255, 255, 0.06);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease;
+  padding: 0;
+}
+.ov-dash-song-btn:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+.ov-dash-song-btn-play {
+  width: 32px;
+  height: 32px;
+}
+.ov-dash-song-btn-icon {
+  width: 14px;
+  height: 14px;
+  opacity: 0.7;
+  transition: opacity 0.15s ease;
+  filter: invert(1);
+}
+.ov-dash-song-btn:hover .ov-dash-song-btn-icon {
+  opacity: 1;
+}
+.ov-dash-song-btn-icon--sm {
+  width: 11px;
+  height: 11px;
+}
+.ov-dash-song-empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.18);
+}
+
+/** 倒数日控件 */
+.ov-dash-countdown-list {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.ov-dash-countdown-list::-webkit-scrollbar {
+  display: none;
+}
+.ov-dash-countdown-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 4px 8px;
+  border-left: 2px solid rgba(255, 255, 255, 0.15);
+  border-radius: 0 4px 4px 0;
+  background: rgba(255, 255, 255, 0.03);
+  transition: background 0.15s ease;
+}
+.ov-dash-countdown-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+.ov-dash-countdown-name {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.7);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+  flex: 1;
+}
+.ov-dash-countdown-days {
+  font-size: 11px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+.ov-dash-countdown-empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.18);
 }
 
 /** ========== 系统工具面板（左右布局） ========== */

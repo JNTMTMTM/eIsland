@@ -278,6 +278,80 @@
   color: rgba(130, 230, 150, 1);
 }
 
+/** 总览布局配置 */
+.settings-layout-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.settings-layout-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.7);
+}
+.settings-layout-desc {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.35);
+  line-height: 1.4;
+}
+.settings-layout-slots {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.settings-layout-slot {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.settings-layout-slot-center {
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  min-width: 70px;
+}
+.settings-layout-slot-label {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.4);
+  font-weight: 500;
+}
+.settings-layout-fixed {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.25);
+  padding: 4px 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  text-align: center;
+}
+.settings-layout-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.settings-layout-btn {
+  appearance: none;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+.settings-layout-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.7);
+}
+.settings-layout-btn.active {
+  background: rgba(100, 180, 255, 0.15);
+  border-color: rgba(100, 180, 255, 0.3);
+  color: rgba(100, 180, 255, 0.9);
+}
+
 /** 关于软件 Tab */
 .settings-about {
   display: flex;

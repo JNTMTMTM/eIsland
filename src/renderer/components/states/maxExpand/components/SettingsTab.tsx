@@ -7,6 +7,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import useIslandStore from '../../../../store/slices';
 import avatarImg from '../../../../assets/avatar/T.jpg';
+import type { OverviewWidgetType, OverviewLayoutConfig } from '../../expand/components/OverviewTab';
+import { OVERVIEW_WIDGET_OPTIONS } from '../../expand/components/OverviewTab';
 
 /** 单行配置项 */
 function SettingsField({
@@ -43,6 +45,9 @@ function SettingsField({
 /** 设置页侧边栏 Tab 顺序 */
 const SETTINGS_TABS: ('app' | 'ai' | 'about')[] = ['app', 'ai', 'about'];
 
+const LAYOUT_STORE_KEY = 'overview-layout';
+const DEFAULT_LAYOUT: OverviewLayoutConfig = { left: 'shortcuts', right: 'todo' };
+
 export function SettingsTab(): React.ReactElement {
   const [activeTab, setActiveTab] = React.useState<'app' | 'ai' | 'about'>('app');
   const { aiConfig, setAiConfig } = useIslandStore();
@@ -52,6 +57,25 @@ export function SettingsTab(): React.ReactElement {
   const settingsRef = useRef<HTMLDivElement>(null);
   const activeTabRef = useRef(activeTab);
   activeTabRef.current = activeTab;
+  const [layoutConfig, setLayoutConfig] = useState<OverviewLayoutConfig>(DEFAULT_LAYOUT);
+
+  /** 加载总览布局配置 */
+  useEffect(() => {
+    let cancelled = false;
+    window.api.storeRead(LAYOUT_STORE_KEY).then((data) => {
+      if (cancelled) return;
+      if (data && typeof data === 'object' && 'left' in (data as object) && 'right' in (data as object)) {
+        setLayoutConfig(data as OverviewLayoutConfig);
+      }
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+
+  const updateLayout = (side: 'left' | 'right', value: OverviewWidgetType): void => {
+    const updated = { ...layoutConfig, [side]: value };
+    setLayoutConfig(updated);
+    window.api.storeWrite(LAYOUT_STORE_KEY, updated).catch(() => {});
+  };
 
   /** 滚轮切换设置侧边栏 Tab */
   useEffect(() => {
@@ -124,7 +148,48 @@ export function SettingsTab(): React.ReactElement {
           {activeTab === 'app' && (
             <div className="max-expand-settings-section">
               <div className="max-expand-settings-title">软件设置</div>
-              <div className="max-expand-settings-desc">此处用于放置软件相关配置项。</div>
+              <div className="settings-field-group">
+                <div className="settings-layout-section">
+                  <div className="settings-layout-label">总览布局</div>
+                  <div className="settings-layout-desc">自定义总览页左右两侧显示的控件，中间时间栏固定不可更改。</div>
+                  <div className="settings-layout-slots">
+                    <div className="settings-layout-slot">
+                      <span className="settings-layout-slot-label">左侧控件</span>
+                      <div className="settings-layout-options">
+                        {OVERVIEW_WIDGET_OPTIONS.map(opt => (
+                          <button
+                            key={opt.value}
+                            className={`settings-layout-btn ${layoutConfig.left === opt.value ? 'active' : ''}`}
+                            type="button"
+                            onClick={() => updateLayout('left', opt.value)}
+                          >
+                            {opt.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="settings-layout-slot settings-layout-slot-center">
+                      <span className="settings-layout-slot-label">中间</span>
+                      <div className="settings-layout-fixed">时间（固定）</div>
+                    </div>
+                    <div className="settings-layout-slot">
+                      <span className="settings-layout-slot-label">右侧控件</span>
+                      <div className="settings-layout-options">
+                        {OVERVIEW_WIDGET_OPTIONS.map(opt => (
+                          <button
+                            key={opt.value}
+                            className={`settings-layout-btn ${layoutConfig.right === opt.value ? 'active' : ''}`}
+                            type="button"
+                            onClick={() => updateLayout('right', opt.value)}
+                          >
+                            {opt.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
           {activeTab === 'ai' && (
