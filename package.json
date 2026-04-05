@@ -1,6 +1,6 @@
 {
   "name": "eisland",
-  "version": "26.0.5",
+  "version": "26.0.6",
   "description": "Windows Dynamic Island - Electron App",
   "main": "./out/main/index.js",
   "author": "JNTMTMTM",
@@ -20,6 +20,7 @@
     "node-nowplaying": "^0.1.0",
     "node-nowplaying-win32-x64-msvc": "^0.1.0",
     "openmeteo": "^1.2.3",
+    "react-datepicker": "^9.1.0",
     "react-markdown": "^10.1.0",
     "remark-gfm": "^4.0.1",
     "zustand": "^5.0.4"
