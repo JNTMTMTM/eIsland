@@ -4,23 +4,47 @@
  */
 
 .hover-content {
-  display: none;
+  display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
   width: 500px;
   height: 100%;
   padding: 0 16px;
-  opacity: 0;
-  transform: translateY(6px) scale(0.97);
-  transition: opacity 0.35s cubic-bezier(0.25, 1, 0.5, 1) 0.08s,
-              transform 0.4s cubic-bezier(0.25, 1, 0.5, 1) 0.06s;
+  animation: hoverContentEnter 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-.island-shell.hover .hover-content {
-  display: flex;
-  opacity: 1;
-  transform: translateY(0) scale(1);
+@keyframes hoverContentEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(8px) scale(0.94);
+    filter: blur(4px);
+  }
+  50% {
+    opacity: 0.85;
+    filter: blur(0);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+/** Hover 导航点入场：依次弹入 */
+.hover-content .hover-nav-dots {
+  animation: hoverNavEnter 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) 0.08s both;
+}
+
+@keyframes hoverNavEnter {
+  0% {
+    opacity: 0;
+    transform: translateX(-6px) scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
 }
 
 /** Hover 内容区的标签页内容 */
@@ -30,16 +54,18 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  animation: fadeSlideIn 0.2s ease;
   white-space: nowrap;
   overflow: hidden;
+  animation: hoverTabEnter 0.4s cubic-bezier(0.22, 1, 0.36, 1) 0.12s both;
 }
 
-@keyframes fadeSlideIn {
-  from {
+@keyframes hoverTabEnter {
+  0% {
     opacity: 0;
+    transform: translateY(6px);
   }
-  to {
+  100% {
     opacity: 1;
+    transform: translateY(0);
   }
 }

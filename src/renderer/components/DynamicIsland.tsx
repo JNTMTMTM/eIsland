@@ -129,6 +129,7 @@ function DynamicIsland(): React.JSX.Element {
   const { state, weather, setHover, setIdle, setExpanded, timerData, setTimerData, notification, setNotification, handleNowPlayingUpdate, updateProgress, coverImage, isMusicPlaying, isPlaying, dominantColor, setDominantColor, setSyncedLyrics, setLyricsLoading } = useIslandStore();
   const prevStateRef = useRef(state);
   const [morphing, setMorphing] = useState(false);
+  const [fromState, setFromState] = useState('');
   const handleNowPlayingUpdateRef = useRef(handleNowPlayingUpdate);
   const updateProgressRef = useRef(updateProgress);
   const setSyncedLyricsRef = useRef(setSyncedLyrics);
@@ -138,9 +139,10 @@ function DynamicIsland(): React.JSX.Element {
 
   useEffect(() => {
     if (prevStateRef.current === state) return;
+    setFromState(prevStateRef.current);
     prevStateRef.current = state;
     setMorphing(true);
-    const id = setTimeout(() => setMorphing(false), 500);
+    const id = setTimeout(() => { setMorphing(false); setFromState(''); }, 600);
     return () => clearTimeout(id);
   }, [state]);
 
@@ -488,7 +490,7 @@ function DynamicIsland(): React.JSX.Element {
 
   return (
     <div
-      className={`island-shell ${getStateClassName(state)}${morphing ? ' morphing' : ''}${showGlow ? ' music-glow' : ''}${showGlow && !isPlaying ? ' music-paused' : ''}`}
+      className={`island-shell ${getStateClassName(state)}${morphing ? ' morphing' : ''}${fromState ? ` from-${fromState}` : ''}${showGlow ? ' music-glow' : ''}${showGlow && !isPlaying ? ' music-paused' : ''}`}
       onClick={handleIslandClick}
       style={showGlow ? {
         '--glow-r': r,

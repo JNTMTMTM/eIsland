@@ -4,20 +4,28 @@
  */
 
 .notification-content {
-  display: none;
+  display: flex;
   flex-direction: row;
   align-items: center;
   width: 100%;
   height: 100%;
   padding: 0 16px;
-  opacity: 0;
-  transform: translateY(6px) scale(0.97);
-  transition: opacity 0.35s cubic-bezier(0.25, 1, 0.5, 1) 0.1s,
-              transform 0.4s cubic-bezier(0.25, 1, 0.5, 1) 0.08s;
+  animation: notificationEnter 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-.island-shell.notification .notification-content {
-  display: flex;
-  opacity: 1;
-  transform: translateY(0) scale(1);
+@keyframes notificationEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(8px) scale(0.95);
+    filter: blur(3px);
+  }
+  50% {
+    opacity: 0.85;
+    filter: blur(0);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
 }

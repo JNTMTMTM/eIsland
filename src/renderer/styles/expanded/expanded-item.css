@@ -25,8 +25,9 @@
 }
 
 @keyframes expandFadeIn {
-  from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: translateY(0); }
+  0%   { opacity: 0; transform: translateY(6px) scale(0.97); filter: blur(2px); }
+  50%  { opacity: 0.8; filter: blur(0); }
+  100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
 }
 
 /** Expanded Tab 面板通用容器 */
