@@ -10,9 +10,10 @@ import '../../../styles/settings/settings.css';
 import { AiChatTab } from './components/AiChatTab';
 import { TodoTab } from './components/TodoTab';
 import { SettingsTab } from './components/SettingsTab';
+import { CountdownTab } from './components/CountdownTab';
 
 /** 最大展开模式下的子标签页类型 */
-type MaxExpandTab = 'aiChat' | 'todo' | 'settings';
+type MaxExpandTab = 'aiChat' | 'todo' | 'countdown' | 'settings';
 
 /** 导航点标识 — 含特殊动作：expanded 返回 */
 type NavDotId = MaxExpandTab | 'expanded';
@@ -22,6 +23,7 @@ const NAV_DOTS: { id: NavDotId; label: string }[] = [
   { id: 'expanded', label: '返回' },
   { id: 'todo', label: '待办' },
   { id: 'aiChat', label: 'AI 对话' },
+  { id: 'countdown', label: '倒数日' },
   { id: 'settings', label: '设置' },
 ];
 
@@ -45,6 +47,8 @@ export function MaxExpandContent(): React.ReactElement {
       const target = e.target as HTMLElement;
       if (target.closest('.expand-todo-list')) return;
       if (target.closest('.max-expand-settings')) return;
+      if (target.closest('.countdown-right')) return;
+      if (target.closest('.countdown-calendar-wrap')) return;
       if (target.closest('.max-expand-chat-messages')) return;
       if (target.closest('.max-expand-chat-input')) return;
       if (target.closest('.settings-field-input')) return;
@@ -79,6 +83,7 @@ export function MaxExpandContent(): React.ReactElement {
       <div className="max-expand-tab-content" onClick={(e) => e.stopPropagation()}>
         {activeTab === 'aiChat' && <AiChatTab />}
         {activeTab === 'todo' && <TodoTab />}
+        {activeTab === 'countdown' && <CountdownTab />}
         {activeTab === 'settings' && <SettingsTab />}
       </div>
 
