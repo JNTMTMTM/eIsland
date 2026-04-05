@@ -295,10 +295,10 @@
   padding: 14px 0 8px;
 }
 .settings-island-shell {
-  width: 580px;
-  height: 101px;
+  width: 688px;
+  height: 120px;
   background: #000;
-  border-radius: 0 0 16px 16px;
+  border-radius: 0 0 18px 18px;
   overflow: hidden;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.06);
   position: relative;
@@ -306,7 +306,7 @@
 .settings-island-shell .expand-tab-panel {
   width: 860px;
   height: 150px;
-  transform: scale(0.674);
+  transform: scale(0.8);
   transform-origin: top left;
 }
 
