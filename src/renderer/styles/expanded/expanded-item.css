@@ -1799,13 +1799,15 @@
   margin-top: 2px;
 }
 .cd-btn {
+  flex: 1;
   border-radius: 6px;
-  padding: 3px 120px;
+  padding: 3px 12px;
   font-size: 10px;
   cursor: pointer;
   font-family: inherit;
   border: 1px solid transparent;
   transition: background 0.12s ease;
+  text-align: center;
 }
 .cd-btn.save {
   background: rgba(100, 180, 255, 0.15);
