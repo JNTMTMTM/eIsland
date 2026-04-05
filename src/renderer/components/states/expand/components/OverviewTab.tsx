@@ -58,7 +58,7 @@ interface AppShortcut {
  * @description 展开状态下仪表盘式概览面板
  */
 export function OverviewTab(): React.ReactElement {
-  const { setMaxExpand } = useIslandStore();
+  const { setMaxExpand, setExpandTab } = useIslandStore();
   const [now, setNow] = useState(new Date());
   const [todos, setTodos] = useState<TodoItem[]>([]);
   const [expandedId, setExpandedId] = useState<number | null>(null);
@@ -149,25 +149,30 @@ export function OverviewTab(): React.ReactElement {
   return (
     <div className="expand-tab-panel overview-dashboard">
       {/* ========== 左区：应用快捷启动 ========== */}
-      <div className="ov-dash-apps">
-        {apps.length === 0 && (
-          <div className="ov-dash-apps-empty">在系统工具中添加</div>
-        )}
-        {apps.map(app => (
-          <div
-            key={app.id}
-            className="ov-dash-app-item"
-            onClick={() => openApp(app.path)}
-            title={app.name}
-          >
-            {app.iconBase64 ? (
-              <img className="ov-dash-app-icon" src={`data:image/png;base64,${app.iconBase64}`} alt={app.name} />
-            ) : (
-              <div className="ov-dash-app-icon-placeholder">📂</div>
-            )}
-            <span className="ov-dash-app-name">{app.name}</span>
-          </div>
-        ))}
+      <div className="ov-dash-apps-wrap">
+        <div className="ov-dash-apps-header">
+          <span className="ov-dash-apps-title clickable" onClick={() => setExpandTab('tools')} title="编辑快捷启动">快捷启动</span>
+        </div>
+        <div className="ov-dash-apps">
+          {apps.length === 0 && (
+            <div className="ov-dash-apps-empty">在系统工具中添加</div>
+          )}
+          {apps.map(app => (
+            <div
+              key={app.id}
+              className="ov-dash-app-item"
+              onClick={() => openApp(app.path)}
+              title={app.name}
+            >
+              {app.iconBase64 ? (
+                <img className="ov-dash-app-icon" src={`data:image/png;base64,${app.iconBase64}`} alt={app.name} />
+              ) : (
+                <div className="ov-dash-app-icon-placeholder">📂</div>
+              )}
+              <span className="ov-dash-app-name">{app.name}</span>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* ========== 中区：时间（始终居中） ========== */}

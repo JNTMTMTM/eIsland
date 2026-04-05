@@ -539,7 +539,42 @@
   flex-shrink: 0;
 }
 
-/** 左区：应用快速启动（只读展示） */
+/** 左区：应用快速启动容器 */
+.ov-dash-apps-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  padding-right: 12px;
+}
+
+.ov-dash-apps-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  margin-bottom: 4px;
+}
+
+.ov-dash-apps-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.55);
+  letter-spacing: 0.5px;
+}
+
+.ov-dash-apps-title.clickable {
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.ov-dash-apps-title.clickable:hover {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/** 应用快速启动网格（只读展示） */
 .ov-dash-apps {
   display: flex;
   flex-wrap: wrap;
@@ -548,8 +583,8 @@
   gap: 2px;
   flex: 1;
   min-width: 0;
-  height: 100%;
-  padding: 4px 2px;
+  min-height: 0;
+  padding: 2px;
   overflow-y: auto;
 }
 
