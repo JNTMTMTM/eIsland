@@ -1500,6 +1500,12 @@
 .cd-bg-btn-clear { border-color: rgba(255, 100, 100, 0.25); }
 .cd-bg-btn-clear:hover { border-color: rgba(255, 100, 100, 0.6) !important; }
 .cd-bg-btn-clear .cd-bg-btn-icon { color: rgba(255, 100, 100, 0.5); }
+.cd-bg-label {
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.35);
+  white-space: nowrap;
+  margin-right: 4px;
+}
 
 /** 透明度滑块 */
 .cd-opacity-slider {
@@ -1576,7 +1582,7 @@
 }
 .cd-btn {
   border-radius: 6px;
-  padding: 3px 12px;
+  padding: 3px 120px;
   font-size: 10px;
   cursor: pointer;
   font-family: inherit;

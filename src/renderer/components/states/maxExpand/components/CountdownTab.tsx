@@ -278,6 +278,7 @@ export function CountdownTab(): React.ReactElement {
                     <span className="cd-bg-btn-icon">♪</span>
                   )}
                 </button>
+                <span className="cd-bg-label">专辑背景</span>
                 <button
                   className="cd-bg-btn"
                   type="button"
@@ -289,6 +290,7 @@ export function CountdownTab(): React.ReactElement {
                 >
                   <span className="cd-bg-btn-icon">…</span>
                 </button>
+                <span className="cd-bg-label">自定义背景</span>
                 {editBgImage && (
                   <button
                     className="cd-bg-btn cd-bg-btn-clear"
@@ -400,6 +402,7 @@ export function CountdownTab(): React.ReactElement {
                     <span className="cd-bg-btn-icon">♪</span>
                   )}
                 </button>
+                <span className="cd-bg-label">专辑背景</span>
                 <button
                   className="cd-bg-btn"
                   type="button"
@@ -411,6 +414,7 @@ export function CountdownTab(): React.ReactElement {
                 >
                   <span className="cd-bg-btn-icon">…</span>
                 </button>
+                <span className="cd-bg-label">自定义背景</span>
                 {newBgImage && (
                   <button
                     className="cd-bg-btn cd-bg-btn-clear"
