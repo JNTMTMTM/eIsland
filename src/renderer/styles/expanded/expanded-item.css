@@ -932,6 +932,54 @@
   animation: ovTodoDescIn 0.2s ease both;
 }
 
+.ov-dash-todo-subs {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 0 8px 4px 16px;
+  animation: ovTodoDescIn 0.2s ease both;
+}
+
+.ov-dash-todo-sub {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 0;
+}
+
+.ov-dash-todo-sub-check {
+  border: none;
+  background: none;
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  width: 14px;
+  text-align: center;
+}
+
+.ov-dash-todo-sub-check:hover {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.ov-dash-todo-sub-text {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.5);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ov-dash-todo-sub.done .ov-dash-todo-sub-check {
+  color: rgba(120, 220, 120, 0.5);
+}
+
+.ov-dash-todo-sub.done .ov-dash-todo-sub-text {
+  text-decoration: line-through;
+  color: rgba(255, 255, 255, 0.2);
+}
+
 @keyframes ovTodoDescIn {
   from { opacity: 0; max-height: 0; }
   to   { opacity: 1; max-height: 200px; }

@@ -129,6 +129,19 @@ export function OverviewTab(): React.ReactElement {
     });
   };
 
+  /** 切换子待办完成状态并持久化 */
+  const toggleSubDone = (todoId: number, subId: number): void => {
+    setTodos(prev => {
+      const updated = prev.map(t => {
+        if (t.id !== todoId || !t.subTodos) return t;
+        return { ...t, subTodos: t.subTodos.map(s => s.id === subId ? { ...s, done: !s.done } : s) };
+      });
+      try { localStorage.setItem('eIsland_todos', JSON.stringify(updated)); } catch { /* noop */ }
+      window.api.storeWrite(STORE_KEY, updated).catch(() => {});
+      return updated;
+    });
+  };
+
   /** 删除待办并持久化 */
   const removeTodo = (id: number): void => {
     setTodos(prev => {
@@ -236,7 +249,7 @@ export function OverviewTab(): React.ReactElement {
                         </span>
                       )}
                       <span className="ov-dash-todo-text">{todo.text}</span>
-                      {todo.description && (
+                      {(todo.description || (todo.subTodos && todo.subTodos.length > 0)) && (
                         <span className={`ov-dash-todo-arrow ${isExpanded ? 'open' : ''}`}>›</span>
                       )}
                       <button
@@ -249,6 +262,31 @@ export function OverviewTab(): React.ReactElement {
                     </div>
                     {isExpanded && todo.description && (
                       <div className="ov-dash-todo-desc">{todo.description}</div>
+                    )}
+                    {isExpanded && todo.subTodos && todo.subTodos.length > 0 && (
+                      <div className="ov-dash-todo-subs">
+                        {todo.subTodos.map(sub => (
+                          <div key={sub.id} className={`ov-dash-todo-sub ${sub.done ? 'done' : ''}`}>
+                            <button
+                              className="ov-dash-todo-sub-check"
+                              onClick={() => toggleSubDone(todo.id, sub.id)}
+                            >
+                              {sub.done ? '✓' : '○'}
+                            </button>
+                            {sub.priority && (
+                              <span className="ov-dash-todo-priority" style={{ background: PRIORITIES.find(p => p.value === sub.priority)?.color }}>
+                                {sub.priority}
+                              </span>
+                            )}
+                            {sub.size && (
+                              <span className="ov-dash-todo-size" style={{ background: SIZES.find(s => s.value === sub.size)?.color }}>
+                                {sub.size}
+                              </span>
+                            )}
+                            <span className="ov-dash-todo-sub-text">{sub.text}</span>
+                          </div>
+                        ))}
+                      </div>
                     )}
                   </div>
                 );
