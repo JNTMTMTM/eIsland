@@ -1197,7 +1197,7 @@
   padding: 1px 4px;
 }
 .ov-cd-card .cd-card-name {
-  font-size: 11px;
+  font-size: 13px;
 }
 .ov-cd-card .cd-card-desc {
   font-size: 7px;
@@ -1909,13 +1909,17 @@
 .cd-card-delete:hover { color: rgba(255, 100, 100, 0.9); background: rgba(255,100,100,0.2); }
 
 .cd-card-name {
-  font-size: 13px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.9);
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  text-shadow: 0 1px 3px rgba(0,0,0,0.4);
+  text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+  letter-spacing: 0.3px;
+  flex: 1;
+  display: flex;
+  align-items: center;
 }
 .cd-card-desc {
   font-size: 8px;
