@@ -7,6 +7,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
+import useIslandStore from '../../../../store/slices';
 
 /** 事件类型 */
 type EventType = 'countdown' | 'anniversary' | 'birthday' | 'holiday' | 'exam';
@@ -27,6 +28,8 @@ interface CountdownItem {
   color: string;
   type: EventType;
   description?: string;
+  backgroundImage?: string;
+  backgroundOpacity?: number;
 }
 
 const STORE_KEY = 'countdown-dates';
@@ -59,8 +62,13 @@ export function CountdownTab(): React.ReactElement {
   const [newColor, setNewColor] = useState('#69c0ff');
   const [newType, setNewType] = useState<EventType>('countdown');
   const [newDesc, setNewDesc] = useState('');
+  const [newBgImage, setNewBgImage] = useState<string | undefined>(undefined);
+  const [newBgOpacity, setNewBgOpacity] = useState(0.5);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editData, setEditData] = useState<Partial<CountdownItem>>({});
+  const [editBgImage, setEditBgImage] = useState<string | undefined>(undefined);
+  const [editBgOpacity, setEditBgOpacity] = useState(0.5);
+  const coverImage = useIslandStore((s) => s.coverImage);
   const editCustomColorRef = useRef<HTMLInputElement>(null);
   const addCustomColorRef = useRef<HTMLInputElement>(null);
   const cardsRef = useRef<HTMLDivElement>(null);
@@ -112,11 +120,15 @@ export function CountdownTab(): React.ReactElement {
       color: newColor,
       type: newType,
       description: newDesc.trim() || undefined,
+      backgroundImage: newBgImage,
+      backgroundOpacity: newBgImage ? newBgOpacity : undefined,
     }]);
     setNewName('');
     setNewDesc('');
+    setNewBgImage(undefined);
+    setNewBgOpacity(0.5);
     setSelectedDate(null);
-  }, [selectedDate, newName, newColor, newType, newDesc]);
+  }, [selectedDate, newName, newColor, newType, newDesc, newBgImage, newBgOpacity]);
 
   /** 删除 */
   const removeItem = useCallback((id: number) => {
@@ -128,6 +140,8 @@ export function CountdownTab(): React.ReactElement {
   const startEdit = useCallback((item: CountdownItem) => {
     setEditingId(item.id);
     setEditData({ name: item.name, description: item.description || '', color: item.color, type: item.type });
+    setEditBgImage(item.backgroundImage);
+    setEditBgOpacity(item.backgroundOpacity ?? 0.5);
   }, []);
 
   /** 保存编辑 */
@@ -141,10 +155,12 @@ export function CountdownTab(): React.ReactElement {
         description: (editData.description || '').trim() || undefined,
         color: editData.color || i.color,
         type: editData.type || i.type,
+        backgroundImage: editBgImage,
+        backgroundOpacity: editBgImage ? editBgOpacity : undefined,
       };
     }));
     setEditingId(null);
-  }, [editingId, editData]);
+  }, [editingId, editData, editBgImage, editBgOpacity]);
 
   /** 日历高亮 */
   const highlightDates = items.map(i => new Date(i.date + 'T00:00:00'));
@@ -246,6 +262,58 @@ export function CountdownTab(): React.ReactElement {
                 />
               </div>
             </div>
+            <div className="cd-form-row">
+              <span className="cd-form-label">背景</span>
+              <div className="cd-bg-row">
+                <button
+                  className={`cd-bg-btn ${editBgImage && coverImage && editBgImage === coverImage ? 'active' : ''}`}
+                  type="button"
+                  title={coverImage ? '使用当前专辑封面' : '暂无正在播放的歌曲'}
+                  disabled={!coverImage}
+                  onClick={() => { if (coverImage) setEditBgImage(coverImage); }}
+                >
+                  {coverImage ? (
+                    <img src={coverImage} className="cd-bg-btn-thumb" alt="" />
+                  ) : (
+                    <span className="cd-bg-btn-icon">♪</span>
+                  )}
+                </button>
+                <button
+                  className="cd-bg-btn"
+                  type="button"
+                  title="从文件选择图片"
+                  onClick={async () => {
+                    const path = await window.api.openImageDialog();
+                    if (path) setEditBgImage(path);
+                  }}
+                >
+                  <span className="cd-bg-btn-icon">…</span>
+                </button>
+                {editBgImage && (
+                  <button
+                    className="cd-bg-btn cd-bg-btn-clear"
+                    type="button"
+                    title="清除背景"
+                    onClick={() => setEditBgImage(undefined)}
+                  >
+                    <span className="cd-bg-btn-icon">x</span>
+                  </button>
+                )}
+              </div>
+            </div>
+            {editBgImage && (
+              <div className="cd-form-row">
+                <span className="cd-form-label">透明度</span>
+                <input
+                  type="range"
+                  className="cd-opacity-slider"
+                  min={0} max={1} step={0.05}
+                  value={editBgOpacity}
+                  onChange={(e) => setEditBgOpacity(parseFloat(e.target.value))}
+                />
+                <span className="cd-opacity-value">{Math.round(editBgOpacity * 100)}%</span>
+              </div>
+            )}
             <div className="cd-form-actions">
               <button className="cd-btn save" onClick={saveEdit} type="button">保存</button>
               <button className="cd-btn cancel" onClick={() => setEditingId(null)} type="button">取消</button>
@@ -316,6 +384,58 @@ export function CountdownTab(): React.ReactElement {
                 />
               </div>
             </div>
+            <div className="cd-form-row">
+              <span className="cd-form-label">背景</span>
+              <div className="cd-bg-row">
+                <button
+                  className={`cd-bg-btn ${newBgImage && coverImage && newBgImage === coverImage ? 'active' : ''}`}
+                  type="button"
+                  title={coverImage ? '使用当前专辑封面' : '暂无正在播放的歌曲'}
+                  disabled={!coverImage}
+                  onClick={() => { if (coverImage) setNewBgImage(coverImage); }}
+                >
+                  {coverImage ? (
+                    <img src={coverImage} className="cd-bg-btn-thumb" alt="" />
+                  ) : (
+                    <span className="cd-bg-btn-icon">♪</span>
+                  )}
+                </button>
+                <button
+                  className="cd-bg-btn"
+                  type="button"
+                  title="从文件选择图片"
+                  onClick={async () => {
+                    const path = await window.api.openImageDialog();
+                    if (path) setNewBgImage(path);
+                  }}
+                >
+                  <span className="cd-bg-btn-icon">…</span>
+                </button>
+                {newBgImage && (
+                  <button
+                    className="cd-bg-btn cd-bg-btn-clear"
+                    type="button"
+                    title="清除背景"
+                    onClick={() => setNewBgImage(undefined)}
+                  >
+                    <span className="cd-bg-btn-icon">x</span>
+                  </button>
+                )}
+              </div>
+            </div>
+            {newBgImage && (
+              <div className="cd-form-row">
+                <span className="cd-form-label">透明度</span>
+                <input
+                  type="range"
+                  className="cd-opacity-slider"
+                  min={0} max={1} step={0.05}
+                  value={newBgOpacity}
+                  onChange={(e) => setNewBgOpacity(parseFloat(e.target.value))}
+                />
+                <span className="cd-opacity-value">{Math.round(newBgOpacity * 100)}%</span>
+              </div>
+            )}
             <div className="cd-form-actions">
               <button
                 className="cd-btn save"
@@ -337,6 +457,7 @@ export function CountdownTab(): React.ReactElement {
               className={`cd-card cd-card-${editData.type || editItem.type}`}
               style={{ borderColor: editData.color || editItem.color }}
             >
+              {editBgImage && <div className="cd-card-bg" style={{ backgroundImage: `url(${editBgImage})`, opacity: editBgOpacity }} />}
               <div className="cd-card-overlay" style={{ background: `linear-gradient(135deg, ${editData.color || editItem.color}30, ${editData.color || editItem.color}10)` }} />
               <div className="cd-card-content">
                 <div className="cd-card-top-row">
@@ -357,6 +478,7 @@ export function CountdownTab(): React.ReactElement {
               className={`cd-card cd-card-${newType}`}
               style={{ borderColor: newColor }}
             >
+              {newBgImage && <div className="cd-card-bg" style={{ backgroundImage: `url(${newBgImage})`, opacity: newBgOpacity }} />}
               <div className="cd-card-overlay" style={{ background: `linear-gradient(135deg, ${newColor}30, ${newColor}10)` }} />
               <div className="cd-card-content">
                 <div className="cd-card-top-row">
@@ -391,6 +513,7 @@ export function CountdownTab(): React.ReactElement {
                 style={{ borderColor: item.color }}
                 onClick={() => startEdit(item)}
               >
+                {item.backgroundImage && <div className="cd-card-bg" style={{ backgroundImage: `url(${item.backgroundImage})`, opacity: item.backgroundOpacity ?? 0.5 }} />}
                 <div className="cd-card-overlay" style={{ background: `linear-gradient(135deg, ${item.color}30, ${item.color}10)` }} />
                 <div className="cd-card-content">
                   <div className="cd-card-top-row">

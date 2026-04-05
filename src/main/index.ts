@@ -391,7 +391,19 @@ function registerIpcHandlers(): void {
       properties: ['openFile'],
     });
     if (result.canceled || result.filePaths.length === 0) return null;
-    return result.filePaths[0];
+    const filePath = result.filePaths[0];
+    try {
+      const ext = filePath.split('.').pop()?.toLowerCase() || 'png';
+      const mimeMap: Record<string, string> = {
+        jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png',
+        gif: 'image/gif', webp: 'image/webp', bmp: 'image/bmp', svg: 'image/svg+xml',
+      };
+      const mime = mimeMap[ext] || 'image/png';
+      const buf = readFileSync(filePath);
+      return `data:${mime};base64,${buf.toString('base64')}`;
+    } catch {
+      return null;
+    }
   });
 
   // ===== HTTP 代理 IPC（绕过 CORS） =====
