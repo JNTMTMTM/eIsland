@@ -1079,14 +1079,14 @@
   background-position: center;
   flex-shrink: 0;
   border: 1.5px solid rgba(0, 0, 0, 0.5);
-  transform: perspective(300px) rotateY(8deg) rotateX(2deg);
+  transform: perspective(200px) rotateY(14deg) rotateX(3deg);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
-  box-shadow: -3px 3px 10px rgba(0, 0, 0, 0.35),
+  box-shadow: -5px 4px 12px rgba(0, 0, 0, 0.4),
     0 0 12px var(--song-glow, rgba(255,255,255,0.1)),
     0 0 24px var(--song-glow, rgba(255,255,255,0.08));
 }
 .ov-dash-song-cover:hover {
-  transform: perspective(300px) rotateY(2deg) rotateX(0deg);
+  transform: perspective(200px) rotateY(4deg) rotateX(1deg);
 }
 .ov-dash-song-info {
   position: relative;
