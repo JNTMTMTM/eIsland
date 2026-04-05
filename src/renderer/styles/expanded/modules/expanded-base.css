@@ -1,0 +1,131 @@
+/**
+ * @file expanded-base.css
+ * @description Expanded 基础容器与导航样式
+ */
+
+/** Expanded 内容容器 - 垂直布局：Tab 内容 + 底部导航点 */
+.expanded-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  padding: 8px 16px 6px;
+}
+
+/** Expanded Tab 内容区域 */
+.expand-tab-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  overflow: hidden;
+  animation: expandFadeIn 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+@keyframes expandFadeIn {
+  0%   { opacity: 0; transform: translateY(6px) scale(0.97); filter: blur(2px); }
+  50%  { opacity: 0.8; filter: blur(0); }
+  100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+}
+
+/** Expanded Tab 面板通用容器 */
+.expand-tab-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+/** Expanded 底部导航点容器 — 水平居中 */
+.expand-nav-dots {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 4px 0;
+  flex-shrink: 0;
+}
+
+/** Expanded 单个导航点 */
+.expand-nav-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.25);
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: background 0.25s ease,
+              transform 0.25s cubic-bezier(0.25, 1, 0.5, 1),
+              box-shadow 0.25s ease;
+}
+
+.expand-nav-dot:hover {
+  background: rgba(255, 255, 255, 0.5);
+  transform: scale(1.25);
+}
+
+.expand-nav-dot.active {
+  background: #ffffff;
+  transform: scale(1.2);
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.5);
+}
+
+/** Expanded 分隔线 */
+.expanded-divider {
+  width: 1px;
+  height: 28px;
+  background: rgba(255, 255, 255, 0.1);
+  flex-shrink: 0;
+}
+
+.expanded-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 16px;
+  border-radius: 12px;
+  transition: background 0.3s ease,
+              transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+  cursor: pointer;
+}
+
+.expanded-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  transform: scale(1.04);
+}
+
+.expanded-item:active {
+  transform: scale(0.95);
+}
+
+.expanded-item .label {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.expanded-item .value {
+  font-size: 14px;
+  font-weight: 500;
+  color: #ffffff;
+}
+
+/** Expanded 图标样式 */
+.expanded-icon {
+  width: 18px;
+  height: 18px;
+  opacity: 0.85;
+  transition: opacity 0.2s ease;
+  filter: brightness(0) invert(1);
+}
+
+.expanded-item:hover .expanded-icon {
+  opacity: 1;
+}

@@ -1,0 +1,498 @@
+/**
+ * @file expanded-countdown-panel.css
+ * @description Expanded 倒数日面板样式
+ */
+
+/** ========== 倒数日面板 v2 ========== */
+
+.countdown-panel-v2 {
+  display: flex;
+  flex-direction: column;
+  padding: 6px 10px;
+  gap: 6px;
+  width: 100%;
+  height: 100%;
+}
+
+/** 上部区域 */
+.cd-top {
+  display: flex;
+  gap: 10px;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+}
+
+/** 日历容器 */
+.cd-calendar-wrap {
+  flex-shrink: 0;
+  width: 230px;
+}
+
+.countdown-calendar-wrap { flex-shrink: 0; }
+
+/** react-datepicker 暗色主题 */
+.countdown-calendar.react-datepicker {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 8px !important;
+  font-size: 10px !important;
+  color: rgba(255, 255, 255, 0.7) !important;
+  font-family: inherit !important;
+}
+.countdown-calendar .react-datepicker__header {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+  padding: 4px 0 !important;
+}
+.countdown-calendar .react-datepicker__current-month {
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  color: rgba(255, 255, 255, 0.7) !important;
+  margin-bottom: 4px !important;
+}
+.countdown-calendar .react-datepicker__day-name {
+  color: rgba(255, 255, 255, 0.35) !important;
+  font-size: 10px !important;
+  width: 28px !important;
+  line-height: 26px !important;
+  margin: 1px !important;
+}
+.countdown-calendar .react-datepicker__day {
+  color: rgba(255, 255, 255, 0.6) !important;
+  width: 28px !important;
+  line-height: 26px !important;
+  margin: 1px !important;
+  border-radius: 5px !important;
+  font-size: 11px !important;
+}
+.countdown-calendar .react-datepicker__day:hover {
+  background: rgba(100, 180, 255, 0.25) !important;
+  color: #fff !important;
+}
+.countdown-calendar .react-datepicker__day--selected {
+  background: rgba(100, 180, 255, 0.4) !important;
+  color: #fff !important;
+}
+.countdown-calendar .react-datepicker__day--keyboard-selected {
+  background: rgba(100, 180, 255, 0.15) !important;
+}
+.countdown-calendar .react-datepicker__day--highlighted {
+  background: rgba(255, 170, 50, 0.25) !important;
+  color: #ffcc80 !important;
+  font-weight: 600 !important;
+}
+.countdown-calendar .react-datepicker__day--highlighted:hover {
+  background: rgba(255, 170, 50, 0.4) !important;
+}
+.countdown-calendar .react-datepicker__day--outside-month {
+  color: rgba(255, 255, 255, 0.15) !important;
+}
+.countdown-calendar .react-datepicker__day--today {
+  font-weight: 700 !important;
+  color: rgba(120, 200, 255, 0.9) !important;
+}
+.countdown-calendar .react-datepicker__navigation { top: 4px; }
+.countdown-calendar .react-datepicker__navigation-icon::before {
+  border-color: rgba(255, 255, 255, 0.3) !important;
+  border-width: 2px 2px 0 0 !important;
+  height: 6px !important;
+  width: 6px !important;
+}
+.countdown-calendar .react-datepicker__navigation:hover .react-datepicker__navigation-icon::before {
+  border-color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.cd-editor-form {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  overflow-y: auto;
+}
+.cd-editor-form::-webkit-scrollbar { width: 3px; }
+.cd-editor-form::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.06); border-radius: 2px; }
+.cd-editor-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 2px;
+}
+
+/** 通用表单控件 */
+.cd-input {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.8);
+  outline: none;
+  font-family: inherit;
+}
+.cd-input::placeholder, .cd-textarea::placeholder { color: rgba(255,255,255,0.2); }
+.cd-input:focus, .cd-textarea:focus { border-color: rgba(100, 180, 255, 0.3); }
+
+.cd-textarea {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.7);
+  outline: none;
+  font-family: inherit;
+  resize: none;
+}
+
+.cd-form-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/** 类型选择器 */
+.cd-type-selector {
+  display: flex;
+  gap: 3px;
+  flex-wrap: wrap;
+}
+.cd-type-btn {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.03);
+  cursor: pointer;
+  transition: all 0.12s ease;
+  font-family: inherit;
+}
+.cd-type-btn.active {
+  background: rgba(100, 180, 255, 0.12);
+  border-color: rgba(100, 180, 255, 0.25);
+}
+.cd-type-btn:hover { background: rgba(255, 255, 255, 0.06); }
+.cd-type-icon { font-size: 11px; }
+.cd-type-label { font-size: 9px; color: rgba(255,255,255,0.5); }
+.cd-type-btn.active .cd-type-label { color: rgba(100, 180, 255, 0.8); }
+
+.cd-form-label {
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.4);
+  margin-right: 4px;
+  white-space: nowrap;
+}
+
+/** 颜色行 */
+.cd-color-row {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  flex-wrap: wrap;
+}
+.cd-color-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.1s ease, border-color 0.1s ease;
+  flex-shrink: 0;
+}
+.cd-color-dot:hover { transform: scale(1.2); }
+.cd-color-dot.active { border-color: rgba(255, 255, 255, 0.8); }
+.cd-color-custom-trigger {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px dashed rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.cd-color-custom-trigger:hover { border-color: rgba(100, 180, 255, 0.5); }
+.cd-color-custom-icon {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.35);
+  line-height: 1;
+}
+.cd-color-native-hidden {
+  position: absolute;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/** 背景图按钮行 */
+.cd-bg-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.cd-bg-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  transition: border-color 0.12s ease;
+}
+.cd-bg-btn:hover:not(:disabled) { border-color: rgba(100, 180, 255, 0.4); }
+.cd-bg-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.cd-bg-btn.active { border-color: rgba(100, 180, 255, 0.6); }
+.cd-bg-btn-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 3px;
+}
+.cd-bg-btn-icon {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.35);
+  line-height: 1;
+}
+.cd-bg-btn-clear { border-color: rgba(255, 100, 100, 0.25); }
+.cd-bg-btn-clear:hover { border-color: rgba(255, 100, 100, 0.6) !important; }
+.cd-bg-btn-clear .cd-bg-btn-icon { color: rgba(255, 100, 100, 0.5); }
+.cd-bg-label {
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.35);
+  white-space: nowrap;
+  margin-right: 4px;
+}
+
+/** 透明度滑块 */
+.cd-opacity-slider {
+  flex: 1;
+  height: 3px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+.cd-opacity-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(100, 180, 255, 0.8);
+  border: none;
+  cursor: pointer;
+}
+.cd-opacity-value {
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.35);
+  min-width: 28px;
+  text-align: right;
+}
+
+/** 卡片背景图层 */
+.cd-card-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  border-radius: inherit;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/** 卡片预览区 */
+.cd-preview {
+  width: 280px;
+  height: 210px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 8px;
+  padding: 6px;
+}
+.cd-preview-label {
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.25);
+  margin-bottom: 4px;
+  letter-spacing: 1px;
+  text-align: center;
+  flex-shrink: 0;
+}
+.cd-preview .cd-card {
+  width: 160px;
+  height: 105px;
+  flex-shrink: 0;
+}
+
+/** 操作按钮 */
+.cd-form-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 2px;
+}
+.cd-btn {
+  flex: 1;
+  border-radius: 6px;
+  padding: 3px 12px;
+  font-size: 10px;
+  cursor: pointer;
+  font-family: inherit;
+  border: 1px solid transparent;
+  transition: background 0.12s ease;
+  text-align: center;
+}
+.cd-btn.save {
+  background: rgba(100, 180, 255, 0.15);
+  border-color: rgba(100, 180, 255, 0.2);
+  color: rgba(100, 180, 255, 0.8);
+}
+.cd-btn.save:hover:not(:disabled) { background: rgba(100, 180, 255, 0.25); }
+.cd-btn.save:disabled { opacity: 0.3; cursor: not-allowed; }
+.cd-btn.cancel {
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.4);
+}
+.cd-btn.cancel:hover { background: rgba(255, 255, 255, 0.08); }
+
+/** ===== 底部卡片水平列表 ===== */
+.cd-cards-wrap {
+  flex-shrink: 0;
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 20px 0 6px;
+  min-height: 110px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+.cd-cards-wrap::-webkit-scrollbar { height: 3px; }
+.cd-cards-wrap::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 2px; }
+
+.cd-cards-empty {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+/** 单个卡片 */
+.cd-card {
+  flex-shrink: 0;
+  width: 160px;
+  height: 105px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.cd-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.cd-card-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+.cd-card-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+  padding: 6px 8px;
+}
+.cd-card-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.cd-card-type-badge {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 700;
+  white-space: nowrap;
+  letter-spacing: 0.5px;
+}
+.cd-card-delete {
+  border: none;
+  background: rgba(0,0,0,0.3);
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 12px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  opacity: 0;
+  transition: opacity 0.12s ease, color 0.12s ease;
+}
+.cd-card:hover .cd-card-delete { opacity: 1; }
+.cd-card-delete:hover { color: rgba(255, 100, 100, 0.9); background: rgba(255,100,100,0.2); }
+
+.cd-card-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+  letter-spacing: 0.3px;
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+.cd-card-desc {
+  font-size: 8px;
+  color: rgba(255, 255, 255, 0.5);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+.cd-card-bottom {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+.cd-card-date {
+  font-size: 8px;
+  color: rgba(255, 255, 255, 0.35);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+.cd-card-days {
+  font-size: 14px;
+  font-weight: 700;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.4);
+}
+
+/** 不同类型卡片的默认渐变背景 */
+.cd-card-countdown { background: linear-gradient(135deg, rgba(30,40,60,0.9), rgba(20,30,50,0.95)); }
+.cd-card-anniversary { background: linear-gradient(135deg, rgba(60,30,50,0.9), rgba(40,20,40,0.95)); }
+.cd-card-birthday { background: linear-gradient(135deg, rgba(60,40,30,0.9), rgba(50,30,20,0.95)); }
+.cd-card-holiday { background: linear-gradient(135deg, rgba(40,50,30,0.9), rgba(30,40,20,0.95)); }
+.cd-card-exam { background: linear-gradient(135deg, rgba(40,35,55,0.9), rgba(30,25,45,0.95)); }

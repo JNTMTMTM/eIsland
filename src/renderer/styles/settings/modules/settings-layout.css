@@ -1,0 +1,530 @@
+/**
+ * @file settings-layout.css
+ * @description Settings 面板布局与基础区块样式
+ */
+
+/** Settings 内容容器 - 垂直布局 */
+.settings-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  padding: 8px 16px 6px;
+}
+
+/** Tab 内容区域 */
+.max-expand-tab-content {
+  flex: 1;
+  display: flex;
+  width: 100%;
+  overflow: hidden;
+}
+
+/** 设置面板 */
+.max-expand-settings {
+  flex: 1;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  flex-direction: column;
+  animation: maxExpandFadeIn 0.2s ease;
+}
+
+.max-expand-settings-layout {
+  display: flex;
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  gap: 10px;
+}
+
+.max-expand-settings-sidebar {
+  width: 120px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 0;
+}
+
+.max-expand-settings-sidebar-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.92);
+  padding: 0 8px 4px;
+}
+
+.max-expand-settings-sidebar-item {
+  appearance: none;
+  border: none;
+  background: none;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 12px;
+  font-weight: 400;
+  cursor: pointer;
+  transition: color 0.3s ease, font-size 0.3s cubic-bezier(0.25, 1, 0.5, 1), font-weight 0.3s ease, transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.max-expand-settings-sidebar-item:hover {
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.max-expand-settings-sidebar-item.active {
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  transform: translateX(2px);
+}
+
+/** 导航点 */
+.sidebar-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  flex-shrink: 0;
+  transition: background 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+}
+
+.max-expand-settings-sidebar-item:hover .sidebar-dot {
+  background: rgba(255, 255, 255, 0.45);
+}
+
+.max-expand-settings-sidebar-item.active .sidebar-dot {
+  background: #fff;
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.5);
+  transform: scale(1.2);
+}
+
+.max-expand-settings-panel {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  overflow-y: auto;
+}
+
+.max-expand-settings-panel::-webkit-scrollbar {
+  width: 4px;
+}
+
+.max-expand-settings-panel::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 2px;
+}
+
+.max-expand-settings-section {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  animation: settingsPanelIn 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+@keyframes settingsPanelIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.max-expand-settings-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.max-expand-settings-desc {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+/** 设置字段组 */
+.settings-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.settings-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.settings-field-label {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 500;
+}
+
+.settings-field-input {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 6px 10px;
+  color: #fff;
+  font-size: 12px;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.settings-field-input::placeholder {
+  color: rgba(255, 255, 255, 0.25);
+}
+
+.settings-field-input:focus {
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.settings-field-textarea {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 6px 10px;
+  color: #fff;
+  font-size: 12px;
+  outline: none;
+  resize: vertical;
+  min-height: 48px;
+  font-family: inherit;
+  transition: border-color 0.2s ease;
+}
+
+.settings-field-textarea::placeholder {
+  color: rgba(255, 255, 255, 0.25);
+}
+
+.settings-field-textarea:focus {
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+/** System Prompt 编辑/查看区域 */
+.settings-prompt-area {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.settings-prompt-area .settings-field-textarea {
+  flex: 1;
+}
+
+.settings-prompt-text {
+  flex: 1;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  padding: 6px 10px;
+  min-height: 48px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.5;
+}
+
+.settings-prompt-empty {
+  color: rgba(255, 255, 255, 0.25);
+  font-style: italic;
+}
+
+.settings-prompt-btn {
+  appearance: none;
+  border: none;
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s ease, color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.settings-prompt-btn.edit {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.settings-prompt-btn.edit:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.settings-prompt-btn.save {
+  background: rgba(100, 200, 120, 0.15);
+  color: rgba(100, 200, 120, 0.9);
+}
+
+.settings-prompt-btn.save:hover {
+  background: rgba(100, 200, 120, 0.25);
+  color: rgba(130, 230, 150, 1);
+}
+
+/** 总览布局配置 — 灵动岛预览 */
+.settings-island-preview-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.settings-island-preview-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.6);
+}
+.settings-island-preview-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 14px 0 8px;
+}
+.settings-island-shell {
+  width: 688px;
+  height: 120px;
+  background: #000;
+  border-radius: 0 0 18px 18px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.06);
+  position: relative;
+}
+.settings-island-shell .expand-tab-panel {
+  width: 860px;
+  height: 150px;
+  transform: scale(0.8);
+  transform-origin: top left;
+}
+
+/** 布局控制器 */
+.settings-layout-controls {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  justify-content: center;
+}
+.settings-layout-control {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+}
+.settings-layout-control-center {
+  flex: 0 0 auto;
+  min-width: 70px;
+}
+.settings-layout-control-label {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.4);
+  font-weight: 500;
+}
+.settings-layout-fixed {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.25);
+  padding: 4px 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  text-align: center;
+}
+.settings-layout-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  justify-content: center;
+}
+.settings-layout-btn {
+  appearance: none;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+.settings-layout-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.7);
+}
+.settings-layout-btn.active {
+  background: rgba(100, 180, 255, 0.15);
+  border-color: rgba(100, 180, 255, 0.3);
+  color: rgba(100, 180, 255, 0.9);
+}
+
+/** 关于软件 Tab */
+.settings-about {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.settings-about-author {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 10px;
+}
+
+.settings-about-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  flex-shrink: 0;
+}
+
+.settings-about-author-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.settings-about-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.settings-about-id {
+  font-weight: 400;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.4);
+  margin-left: 4px;
+}
+
+.settings-about-version {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.settings-about-links {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 10px;
+}
+
+.settings-about-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.settings-about-label {
+  color: rgba(255, 255, 255, 0.4);
+  min-width: 56px;
+  flex-shrink: 0;
+}
+
+.settings-about-value {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.settings-about-link {
+  color: rgba(100, 180, 255, 0.85);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.settings-about-link:hover {
+  color: rgba(130, 200, 255, 1);
+  text-decoration: underline;
+}
+
+.settings-about-deps {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.settings-about-deps-title {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: 500;
+}
+
+.settings-about-deps-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.settings-about-dep {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.settings-about-notice {
+  font-size: 12px;
+  color: rgba(255, 100, 100, 0.85);
+  background: rgba(255, 80, 80, 0.08);
+  border: 1px solid rgba(255, 80, 80, 0.15);
+  border-radius: 8px;
+  padding: 8px 12px;
+  line-height: 1.5;
+}
+
+.settings-about-github {
+  display: inline-flex;
+  align-items: center;
+  color: rgba(255, 255, 255, 0.5);
+  margin-right: 4px;
+  vertical-align: middle;
+  transition: color 0.2s ease;
+}
+
+.settings-about-github:hover {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.settings-about-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding-bottom: 14px;
+}
+
+.settings-about-copyright {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.25);
+}
+
+.settings-about-slogan {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.2);
+  font-style: italic;
+}
+
+.max-expand-settings-placeholder {
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 14px;
+}

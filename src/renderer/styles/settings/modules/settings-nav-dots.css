@@ -1,0 +1,40 @@
+/**
+ * @file settings-nav-dots.css
+ * @description Settings 底部导航点样式
+ */
+
+/** Settings 底部导航点容器 — 水平居中 */
+.settings-nav-dots {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 4px 0;
+  flex-shrink: 0;
+}
+
+/** Settings 单个导航点 */
+.settings-nav-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.25);
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: background 0.25s ease,
+              transform 0.25s cubic-bezier(0.25, 1, 0.5, 1),
+              box-shadow 0.25s ease;
+}
+
+.settings-nav-dot:hover {
+  background: rgba(255, 255, 255, 0.5);
+  transform: scale(1.25);
+}
+
+.settings-nav-dot.active {
+  background: #ffffff;
+  transform: scale(1.2);
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.5);
+}

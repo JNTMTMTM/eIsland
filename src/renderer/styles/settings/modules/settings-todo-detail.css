@@ -1,0 +1,242 @@
+/**
+ * @file settings-todo-detail.css
+ * @description Settings Todo 详情与子待办样式
+ */
+
+/** ========== 展开详情区域 ========== */
+.expand-todo-detail {
+  padding: 4px 6px 6px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  animation: todoDetailIn 0.15s ease;
+}
+
+@keyframes todoDetailIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/** 描述区域（文本 + 按钮） */
+.expand-todo-desc-area {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+/** 只读描述文本 */
+.expand-todo-desc-text {
+  flex: 1;
+  min-width: 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.7);
+  white-space: pre-wrap;
+  word-break: break-word;
+  padding: 4px 0;
+}
+
+.expand-todo-desc-empty {
+  color: rgba(255, 255, 255, 0.2);
+  font-style: italic;
+}
+
+/** 描述编辑文本框 */
+.expand-todo-desc {
+  flex: 1;
+  min-width: 0;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 4px 8px;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 11px;
+  line-height: 1.5;
+  resize: vertical;
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.expand-todo-desc::placeholder {
+  color: rgba(255, 255, 255, 0.2);
+}
+
+.expand-todo-desc:focus {
+  border-color: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/** 编辑 / 保存按钮 */
+.expand-todo-desc-btn {
+  flex-shrink: 0;
+  border: none;
+  border-radius: 4px;
+  padding: 3px 8px;
+  font-size: 10px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+  white-space: nowrap;
+}
+
+.expand-todo-desc-btn.edit {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.expand-todo-desc-btn.edit:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.expand-todo-desc-btn.save {
+  background: rgba(100, 200, 120, 0.15);
+  color: rgba(120, 220, 140, 0.8);
+}
+
+.expand-todo-desc-btn.save:hover {
+  background: rgba(100, 200, 120, 0.25);
+  color: rgba(120, 220, 140, 1);
+}
+
+/** ========== 子待办区域 ========== */
+.expand-todo-subs {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.expand-todo-subs-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-bottom: 2px;
+}
+
+.expand-todo-subs-title {
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.4);
+  letter-spacing: 0.3px;
+}
+
+.expand-todo-subs-progress {
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+/** 单条子待办 */
+.expand-todo-sub {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: background 0.15s ease;
+}
+
+.expand-todo-sub:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.expand-todo-sub-check {
+  width: 14px;
+  height: 14px;
+  border: none;
+  background: none;
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 10px;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  transition: color 0.15s ease;
+}
+
+.expand-todo-sub.done .expand-todo-sub-check {
+  color: rgba(120, 220, 120, 0.6);
+}
+
+.expand-todo-sub-text {
+  flex: 1;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.7);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.expand-todo-sub.done .expand-todo-sub-text {
+  text-decoration: line-through;
+  color: rgba(255, 255, 255, 0.25);
+}
+
+.expand-todo-sub-delete {
+  width: 12px;
+  height: 12px;
+  border: none;
+  background: none;
+  color: rgba(255, 255, 255, 0.1);
+  font-size: 10px;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.15s ease, color 0.15s ease;
+}
+
+.expand-todo-sub:hover .expand-todo-sub-delete {
+  opacity: 1;
+}
+
+.expand-todo-sub-delete:hover {
+  color: rgba(255, 100, 100, 0.7);
+}
+
+/** 添加子待办输入行 */
+.expand-todo-sub-add {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding-top: 2px;
+  flex-wrap: wrap;
+}
+
+.expand-todo-sub-input {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 4px;
+  padding: 2px 6px;
+  color: #fff;
+  font-size: 10px;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.expand-todo-sub-input::placeholder {
+  color: rgba(255, 255, 255, 0.18);
+}
+
+.expand-todo-sub-input:focus {
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.expand-todo-sub-add-btn {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  border: none;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 11px;
+  line-height: 1;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.expand-todo-sub-add-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+}

@@ -1,0 +1,711 @@
+/**
+ * @file expanded-overview-dashboard.css
+ * @description Expanded 总览仪表盘及控件样式
+ */
+
+/** ========== 总览仪表盘 ========== */
+
+.overview-dashboard {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: 16px;
+  width: 100%;
+  height: 100%;
+  padding: 0 12px;
+}
+
+/** 中区：时间（始终居中） */
+.ov-dash-time {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  flex-shrink: 0;
+}
+
+/** 左区：应用快速启动容器 */
+.ov-dash-apps-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.ov-dash-apps-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  margin-bottom: 4px;
+}
+
+.ov-dash-apps-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.55);
+  letter-spacing: 0.5px;
+}
+
+.ov-dash-apps-title.clickable {
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.ov-dash-apps-title.clickable:hover {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.ov-dash-apps-count {
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.25);
+}
+
+/** 应用快速启动网格（只读展示） */
+.ov-dash-apps {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  align-content: flex-start;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  padding: 2px;
+  overflow-y: auto;
+}
+
+.ov-dash-apps::-webkit-scrollbar {
+  width: 3px;
+}
+
+.ov-dash-apps::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+}
+
+.ov-dash-apps-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.15);
+}
+
+.ov-dash-app-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: 42px;
+  padding: 4px 2px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.ov-dash-app-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.ov-dash-app-item:active {
+  transform: scale(0.95);
+}
+
+.ov-dash-app-item.dragging {
+  opacity: 0.3;
+}
+
+.ov-dash-app-item.drag-over {
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.2);
+}
+
+.ov-dash-app-icon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.ov-dash-app-icon-placeholder {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.ov-dash-app-name {
+  font-size: 8px;
+  color: rgba(255, 255, 255, 0.55);
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+  line-height: 1.2;
+}
+
+.ov-dash-clock {
+  font-size: 32px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.92);
+  letter-spacing: 2px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.15;
+}
+
+.ov-dash-date {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.45);
+  margin-bottom: 2px;
+  letter-spacing: 0.5px;
+}
+
+.ov-dash-lunar {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.28);
+  margin-top: 2px;
+}
+
+.ov-dash-yiji {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-top: 5px;
+}
+
+.ov-dash-yiji-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.ov-dash-yiji-label {
+  font-size: 8px;
+  font-weight: 700;
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.ov-dash-yiji-label.yi {
+  background: rgba(120, 220, 120, 0.15);
+  color: rgba(120, 220, 120, 0.8);
+}
+
+.ov-dash-yiji-label.ji {
+  background: rgba(255, 82, 82, 0.12);
+  color: rgba(255, 82, 82, 0.7);
+}
+
+.ov-dash-yiji-items {
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.32);
+}
+
+/** 右区：待办事项 */
+.ov-dash-todo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.ov-dash-todo-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  margin-bottom: 4px;
+}
+
+.ov-dash-todo-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.55);
+  letter-spacing: 0.5px;
+}
+
+.ov-dash-todo-title.clickable {
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.ov-dash-todo-title.clickable:hover {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.ov-dash-todo-stats {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ov-dash-todo-stat {
+  font-size: 9px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.30);
+}
+
+.ov-dash-todo-stat.done {
+  color: rgba(120, 220, 120, 0.6);
+}
+
+.ov-dash-todo-stat.undone {
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.ov-dash-todo-stat.p0 {
+  color: rgba(255, 82, 82, 0.7);
+}
+
+.ov-dash-todo-stat.p1 {
+  color: rgba(255, 171, 64, 0.7);
+}
+
+.ov-dash-todo-stat.p2 {
+  color: rgba(105, 192, 255, 0.7);
+}
+
+.ov-dash-todo-list {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  scrollbar-width: none;
+}
+
+.ov-dash-todo-list::-webkit-scrollbar {
+  display: none;
+}
+
+.ov-dash-todo-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.18);
+}
+
+.ov-dash-todo-item {
+  display: flex;
+  flex-direction: column;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.03);
+  transition: background 0.2s ease;
+}
+
+.ov-dash-todo-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.ov-dash-todo-item.expanded {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.ov-dash-todo-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  cursor: pointer;
+  min-height: 24px;
+}
+
+.ov-dash-todo-check {
+  width: 16px;
+  height: 16px;
+  border: none;
+  background: none;
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 11px;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  transition: color 0.15s ease, transform 0.15s ease;
+}
+
+.ov-dash-todo-check:hover {
+  transform: scale(1.15);
+}
+
+.ov-dash-todo-item.done .ov-dash-todo-check {
+  color: rgba(120, 220, 120, 0.7);
+}
+
+.ov-dash-todo-item.done .ov-dash-todo-text {
+  text-decoration: line-through;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.ov-dash-todo-divider {
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.2);
+  padding: 4px 8px 2px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  margin-top: 2px;
+}
+
+.ov-dash-todo-priority,
+.ov-dash-todo-size {
+  font-size: 8px;
+  font-weight: 700;
+  color: #fff;
+  padding: 1px 4px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  line-height: 1.3;
+}
+
+.ov-dash-todo-text {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.75);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.ov-dash-todo-delete {
+  width: 14px;
+  height: 14px;
+  border: none;
+  background: none;
+  color: rgba(255, 255, 255, 0.12);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.15s ease, color 0.15s ease;
+}
+
+.ov-dash-todo-row:hover .ov-dash-todo-delete {
+  opacity: 1;
+}
+
+.ov-dash-todo-delete:hover {
+  color: rgba(255, 100, 100, 0.8);
+}
+
+.ov-dash-todo-arrow {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.25);
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+  line-height: 1;
+}
+
+.ov-dash-todo-arrow.open {
+  transform: rotate(90deg);
+}
+
+.ov-dash-todo-desc {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.35);
+  padding: 0 8px 6px 8px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+  animation: ovTodoDescIn 0.2s ease both;
+}
+
+.ov-dash-todo-subs {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 0 8px 4px 16px;
+  animation: ovTodoDescIn 0.2s ease both;
+}
+
+.ov-dash-todo-sub {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 0;
+}
+
+.ov-dash-todo-sub-check {
+  border: none;
+  background: none;
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  width: 14px;
+  text-align: center;
+}
+
+.ov-dash-todo-sub-check:hover {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.ov-dash-todo-sub-text {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.5);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ov-dash-todo-sub.done .ov-dash-todo-sub-check {
+  color: rgba(120, 220, 120, 0.5);
+}
+
+.ov-dash-todo-sub.done .ov-dash-todo-sub-text {
+  text-decoration: line-through;
+  color: rgba(255, 255, 255, 0.2);
+}
+
+@keyframes ovTodoDescIn {
+  from { opacity: 0; max-height: 0; }
+  to   { opacity: 1; max-height: 200px; }
+}
+
+/** ========== 总览控件插槽 ========== */
+.ov-dash-slot {
+  flex: 1;
+  display: flex;
+  min-width: 0;
+  overflow: hidden;
+}
+.ov-dash-slot-left {
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  padding-right: 12px;
+}
+.ov-dash-slot-right {
+  border-left: 1px solid rgba(255, 255, 255, 0.06);
+  padding-left: 12px;
+}
+
+/** ========== 总览控件通用 ========== */
+.ov-dash-widget {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+.ov-dash-widget-header {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  margin-bottom: 4px;
+}
+.ov-dash-widget-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.55);
+  letter-spacing: 0.5px;
+}
+.ov-dash-widget-title--link {
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+.ov-dash-widget-title--link:hover {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/** 歌曲控件 */
+.ov-dash-song-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  position: relative;
+  overflow: hidden;
+  border-radius: 10px;
+  padding: 6px;
+}
+.ov-dash-song-bg {
+  position: absolute;
+  width: 80%;
+  height: 80%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-size: cover;
+  background-position: center;
+  opacity: 0.2;
+  filter: blur(10px);
+  mask-image: radial-gradient(ellipse at center, rgba(0,0,0,0.9) 20%, transparent 70%);
+  -webkit-mask-image: radial-gradient(ellipse at center, rgba(0,0,0,0.9) 20%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+.ov-dash-song-body {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  max-width: 100%;
+}
+.ov-dash-song-cover {
+  width: 50px;
+  height: 50px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  background-size: cover;
+  background-position: center;
+  flex-shrink: 0;
+  border: 1.5px solid rgba(0, 0, 0, 0.5);
+  transform: perspective(200px) rotateY(14deg) rotateX(3deg);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: -5px 4px 12px rgba(0, 0, 0, 0.4),
+    0 0 12px var(--song-glow, rgba(255,255,255,0.1)),
+    0 0 24px var(--song-glow, rgba(255,255,255,0.08));
+}
+.ov-dash-song-cover:hover {
+  transform: perspective(200px) rotateY(4deg) rotateX(1deg);
+}
+.ov-dash-song-info {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+.ov-dash-song-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+.ov-dash-song-artist {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.55);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+.ov-dash-song-album {
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.35);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-top: 1px;
+  max-width: 100%;
+}
+.ov-dash-song-controls {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+.ov-dash-song-btn {
+  appearance: none;
+  border: none;
+  background: rgba(255, 255, 255, 0.08);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease;
+  padding: 0;
+}
+.ov-dash-song-btn:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+.ov-dash-song-btn-play {
+  width: 32px;
+  height: 32px;
+}
+.ov-dash-song-btn-icon {
+  width: 14px;
+  height: 14px;
+  opacity: 0.75;
+  transition: opacity 0.15s ease;
+}
+.ov-dash-song-btn:hover .ov-dash-song-btn-icon {
+  opacity: 1;
+}
+.ov-dash-song-btn-icon--sm {
+  width: 11px;
+  height: 11px;
+}
+.ov-dash-song-empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.18);
+}
+
+/** 倒数日控件 */
+.ov-dash-countdown-cards {
+  flex: 1;
+  display: flex;
+  gap: 6px;
+  min-height: 0;
+  align-items: stretch;
+}
+.ov-cd-card {
+  flex: 1;
+  width: auto !important;
+  height: auto !important;
+  min-height: 0;
+}
+.ov-cd-card .cd-card-content {
+  padding: 5px 7px;
+}
+.ov-cd-card .cd-card-type-badge {
+  font-size: 8px;
+  padding: 1px 4px;
+}
+.ov-cd-card .cd-card-name {
+  font-size: 13px;
+}
+.ov-cd-card .cd-card-desc {
+  font-size: 7px;
+}
+.ov-cd-card .cd-card-date {
+  font-size: 7px;
+}
+.ov-cd-card .cd-card-days {
+  font-size: 12px;
+}
+.ov-dash-countdown-empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.18);
+}
