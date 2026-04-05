@@ -4,7 +4,7 @@
  * @author 鸡哥
  */
 
-import { contextBridge, ipcRenderer } from 'electron';
+import { contextBridge, ipcRenderer, webUtils } from 'electron';
 import { electronAPI } from '@electron-toolkit/preload';
 
 /** 自定义 API，供渲染进程调用 */
@@ -146,6 +146,39 @@ const api = {
    */
   openTaskManager: (): void => {
     ipcRenderer.send('system:open-task-manager');
+  },
+  /**
+   * 获取拖拽文件的本地路径（contextIsolation 下 file.path 不可用）
+   * @param file - File 对象
+   * @returns 文件的完整本地路径
+   */
+  getPathForFile: (file: File): string => {
+    return webUtils.getPathForFile(file);
+  },
+  /** ===== 应用快捷方式 API ===== */
+  /**
+   * 获取文件图标（base64 PNG）
+   * @param filePath - 文件路径
+   * @returns base64 编码的 PNG 图标数据，或 null
+   */
+  getFileIcon: (filePath: string): Promise<string | null> => {
+    return ipcRenderer.invoke('app:get-file-icon', filePath);
+  },
+  /**
+   * 打开文件/应用
+   * @param filePath - 文件路径
+   * @returns 是否成功
+   */
+  openFile: (filePath: string): Promise<boolean> => {
+    return ipcRenderer.invoke('app:open-file', filePath);
+  },
+  /**
+   * 解析快捷方式 (.lnk)
+   * @param lnkPath - .lnk 文件路径
+   * @returns 目标路径和名称，或 null
+   */
+  resolveShortcut: (lnkPath: string): Promise<{ target: string; name: string } | null> => {
+    return ipcRenderer.invoke('app:resolve-shortcut', lnkPath);
   },
   /** ===== 文件存储 API ===== */
   /**

@@ -48,6 +48,11 @@ declare global {
       /** ===== 系统工具 API ===== */
       screenshot: () => Promise<string | null>;
       openTaskManager: () => void;
+      getPathForFile: (file: File) => string;
+      /** ===== 应用快捷方式 API ===== */
+      getFileIcon: (filePath: string) => Promise<string | null>;
+      openFile: (filePath: string) => Promise<boolean>;
+      resolveShortcut: (lnkPath: string) => Promise<{ target: string; name: string } | null>;
       /** ===== 文件存储 API ===== */
       storeRead: (key: string) => Promise<unknown>;
       storeWrite: (key: string, data: unknown) => Promise<boolean>;

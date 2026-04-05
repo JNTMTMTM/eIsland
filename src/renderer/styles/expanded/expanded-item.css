@@ -529,7 +529,7 @@
   padding: 0 12px;
 }
 
-/** 左区：时间 */
+/** 中区：时间（始终居中） */
 .ov-dash-time {
   display: flex;
   flex-direction: column;
@@ -537,7 +537,87 @@
   justify-content: center;
   gap: 0;
   flex-shrink: 0;
-  min-width: 150px;
+}
+
+/** 左区：应用快速启动（只读展示） */
+.ov-dash-apps {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  align-content: flex-start;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding: 4px 2px;
+  overflow-y: auto;
+}
+
+.ov-dash-apps::-webkit-scrollbar {
+  width: 3px;
+}
+
+.ov-dash-apps::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+}
+
+.ov-dash-apps-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.15);
+}
+
+.ov-dash-app-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: 42px;
+  padding: 4px 2px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.ov-dash-app-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.ov-dash-app-item:active {
+  transform: scale(0.95);
+}
+
+.ov-dash-app-icon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.ov-dash-app-icon-placeholder {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.ov-dash-app-name {
+  font-size: 8px;
+  color: rgba(255, 255, 255, 0.55);
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+  line-height: 1.2;
 }
 
 .ov-dash-clock {
@@ -820,4 +900,227 @@
 @keyframes ovTodoDescIn {
   from { opacity: 0; max-height: 0; }
   to   { opacity: 1; max-height: 200px; }
+}
+
+/** ========== 系统工具面板（左右布局） ========== */
+
+.tools-panel {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 12px;
+  padding: 8px 12px;
+}
+
+/** 左侧：拖拽添加区 */
+.tools-drop-zone {
+  width: 120px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px dashed rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  transition: border-color 0.2s ease, background 0.2s ease;
+  cursor: default;
+}
+
+.tools-drop-zone.drag-over {
+  border-color: rgba(120, 200, 255, 0.5);
+  background: rgba(120, 200, 255, 0.06);
+}
+
+.tools-drop-zone-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.tools-drop-zone-icon {
+  font-size: 26px;
+  font-weight: 300;
+  color: rgba(255, 255, 255, 0.15);
+  line-height: 1;
+}
+
+.tools-drop-zone.drag-over .tools-drop-zone-icon {
+  color: rgba(120, 200, 255, 0.5);
+}
+
+.tools-drop-zone-hint {
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.2);
+}
+
+.tools-drop-zone-hint.active {
+  color: rgba(120, 200, 255, 0.7);
+  animation: ovAppDropPulse 0.8s ease-in-out infinite alternate;
+}
+
+/** 右侧：快捷启动列表 */
+.tools-app-list {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.tools-app-list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  margin-bottom: 4px;
+}
+
+.tools-app-list-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.tools-app-list-count {
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.2);
+}
+
+.tools-app-list-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.tools-app-list-body::-webkit-scrollbar {
+  width: 3px;
+}
+
+.tools-app-list-body::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+}
+
+.tools-app-list-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.15);
+}
+
+/** 单条应用行 */
+.tools-app-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 6px;
+  border-radius: 6px;
+  transition: background 0.15s ease;
+}
+
+.tools-app-row:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.tools-app-icon-wrap {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tools-app-icon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  border-radius: 3px;
+}
+
+.tools-app-icon-placeholder {
+  font-size: 14px;
+}
+
+.tools-app-name {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.7);
+  min-width: 50px;
+  max-width: 90px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex-shrink: 0;
+  cursor: default;
+}
+
+.tools-app-edit-input {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(120, 200, 255, 0.4);
+  border-radius: 4px;
+  padding: 1px 4px;
+  min-width: 50px;
+  max-width: 90px;
+  outline: none;
+  flex-shrink: 0;
+}
+
+.tools-app-path {
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.2);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tools-app-edit,
+.tools-app-delete {
+  width: 18px;
+  height: 18px;
+  border: none;
+  background: none;
+  font-size: 10px;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  opacity: 0;
+  transition: opacity 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.tools-app-row:hover .tools-app-edit,
+.tools-app-row:hover .tools-app-delete {
+  opacity: 1;
+}
+
+.tools-app-edit {
+  color: rgba(120, 200, 255, 0.6);
+}
+
+.tools-app-edit:hover {
+  background: rgba(120, 200, 255, 0.12);
+  color: rgba(120, 200, 255, 0.9);
+}
+
+.tools-app-delete {
+  color: rgba(255, 100, 100, 0.5);
+}
+
+.tools-app-delete:hover {
+  background: rgba(255, 100, 100, 0.12);
+  color: rgba(255, 100, 100, 0.9);
 }

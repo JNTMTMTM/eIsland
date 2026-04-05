@@ -4,7 +4,7 @@
  * @author 鸡哥
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import useIslandStore from '../../../../store/slices';
 import { getDayName, getDayJi, getDayYi, getLunarDate } from '../../../../utils/timeUtils';
 
@@ -43,6 +43,15 @@ interface TodoItem {
 
 /** 存储键名 */
 const STORE_KEY = 'todos';
+const APPS_STORE_KEY = 'app-shortcuts';
+
+/** 应用快捷方式 */
+interface AppShortcut {
+  id: number;
+  name: string;
+  path: string;
+  iconBase64: string | null;
+}
 
 /**
  * 总览 Tab
@@ -53,10 +62,26 @@ export function OverviewTab(): React.ReactElement {
   const [now, setNow] = useState(new Date());
   const [todos, setTodos] = useState<TodoItem[]>([]);
   const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [apps, setApps] = useState<AppShortcut[]>([]);
 
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(id);
+  }, []);
+
+  /** 加载应用快捷方式（只读） */
+  useEffect(() => {
+    let cancelled = false;
+    window.api.storeRead(APPS_STORE_KEY).then((data) => {
+      if (cancelled) return;
+      if (Array.isArray(data)) setApps(data as AppShortcut[]);
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+
+  /** 打开应用 */
+  const openApp = useCallback((path: string) => {
+    window.api.openFile(path).catch(() => {});
   }, []);
 
   /** 加载待办数据 */
@@ -123,7 +148,29 @@ export function OverviewTab(): React.ReactElement {
 
   return (
     <div className="expand-tab-panel overview-dashboard">
-      {/* ========== 左区：时间 + 日期 + 农历 ========== */}
+      {/* ========== 左区：应用快捷启动 ========== */}
+      <div className="ov-dash-apps">
+        {apps.length === 0 && (
+          <div className="ov-dash-apps-empty">在系统工具中添加</div>
+        )}
+        {apps.map(app => (
+          <div
+            key={app.id}
+            className="ov-dash-app-item"
+            onClick={() => openApp(app.path)}
+            title={app.name}
+          >
+            {app.iconBase64 ? (
+              <img className="ov-dash-app-icon" src={`data:image/png;base64,${app.iconBase64}`} alt={app.name} />
+            ) : (
+              <div className="ov-dash-app-icon-placeholder">📂</div>
+            )}
+            <span className="ov-dash-app-name">{app.name}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* ========== 中区：时间（始终居中） ========== */}
       <div className="ov-dash-time">
         <span className="ov-dash-date">{yyyy}年{month}月{day}日 {dayName}</span>
         <span className="ov-dash-clock">{hh}:{mm}:{ss}</span>
