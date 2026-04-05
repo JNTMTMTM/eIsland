@@ -18,6 +18,28 @@ Windows 灵动岛桌面应用，基于 Electron + React + TypeScript 构建。
 - **设置面板** — API Key / Endpoint / 模型 / MCP / System Prompt 可视化配置
 - **系统托盘** — 后台运行，最小化到托盘
 
+## 界面预览
+
+### 1. 总览界面
+
+![总览界面](assets/1.png)
+
+### 2. 歌曲界面
+
+![歌曲界面](assets/2.png)
+
+### 3. 快捷启动编辑界面
+
+![快捷启动编辑界面](assets/3.png)
+
+### 4. 倒数日编辑界面
+
+![倒数日编辑界面](assets/4.png)
+
+### 5. 设置界面
+
+![设置界面](assets/5.png)
+
 ## 运行
 
 ```bash
