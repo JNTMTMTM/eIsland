@@ -16,6 +16,8 @@ interface AppShortcut {
 
 /** 存储键名 */
 const APPS_STORE_KEY = 'app-shortcuts';
+/** 最大快捷启动数量 */
+const MAX_APPS = 18;
 
 /**
  * 系统工具 Tab
@@ -80,6 +82,7 @@ export function ToolsTab(): React.ReactElement {
       if (!filePath) continue;
       if (!filePath.toLowerCase().endsWith('.exe')) continue;
       if (apps.some(a => a.path === filePath)) continue;
+      if (apps.length >= MAX_APPS) break;
       const name = filePath.split('\\').pop()?.replace(/\.exe$/i, '') || 'App';
       try {
         const iconBase64 = await window.api.getFileIcon(filePath);

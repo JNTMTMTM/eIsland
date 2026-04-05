@@ -42,6 +42,7 @@ export function ExpandedContent(): React.ReactElement {
     const handleWheel = (e: WheelEvent): void => {
       const target = e.target as HTMLElement;
       if (target.closest('.ov-dash-todo-list')) return;
+      if (target.closest('.tools-app-list-body')) return;
       e.preventDefault();
       const cur = expandTabRef.current;
       const currentIndex = EXPAND_NAV_DOTS.findIndex(d => d.tab === cur);
