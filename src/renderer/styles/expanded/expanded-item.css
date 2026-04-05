@@ -1031,6 +1031,13 @@
   color: rgba(255, 255, 255, 0.55);
   letter-spacing: 0.5px;
 }
+.ov-dash-widget-title--link {
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+.ov-dash-widget-title--link:hover {
+  color: rgba(255, 255, 255, 0.85);
+}
 
 /** 歌曲控件 */
 .ov-dash-song-content {

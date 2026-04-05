@@ -278,40 +278,55 @@
   color: rgba(130, 230, 150, 1);
 }
 
-/** 总览布局配置 */
-.settings-layout-section {
+/** 总览布局配置 — 灵动岛预览 */
+.settings-island-preview-section {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-}
-.settings-layout-label {
-  font-size: 12px;
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.7);
-}
-.settings-layout-desc {
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.35);
-  line-height: 1.4;
-}
-.settings-layout-slots {
-  display: flex;
-  align-items: flex-start;
   gap: 12px;
 }
-.settings-layout-slot {
+.settings-island-preview-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.6);
+}
+.settings-island-preview-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 14px 0 8px;
+}
+.settings-island-shell {
+  width: 580px;
+  height: 105px;
+  background: #000;
+  border-radius: 0 0 16px 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.06);
+  position: relative;
+}
+.settings-island-shell .expand-tab-panel {
+  width: 100%;
+  height: 100%;
+}
+
+/** 布局控制器 */
+.settings-layout-controls {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  justify-content: center;
+}
+.settings-layout-control {
   flex: 1;
   display: flex;
   flex-direction: column;
   gap: 4px;
-}
-.settings-layout-slot-center {
-  flex: 0 0 auto;
   align-items: center;
-  justify-content: center;
+}
+.settings-layout-control-center {
+  flex: 0 0 auto;
   min-width: 70px;
 }
-.settings-layout-slot-label {
+.settings-layout-control-label {
   font-size: 10px;
   color: rgba(255, 255, 255, 0.4);
   font-weight: 500;
@@ -329,6 +344,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
+  justify-content: center;
 }
 .settings-layout-btn {
   appearance: none;

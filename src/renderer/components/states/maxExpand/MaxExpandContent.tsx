@@ -4,16 +4,14 @@
  * @author 鸡哥
  */
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import useIslandStore from '../../../store/slices';
+import type { MaxExpandTab } from '../../../store/types';
 import '../../../styles/settings/settings.css';
 import { AiChatTab } from './components/AiChatTab';
 import { TodoTab } from './components/TodoTab';
 import { SettingsTab } from './components/SettingsTab';
 import { CountdownTab } from './components/CountdownTab';
-
-/** 最大展开模式下的子标签页类型 */
-type MaxExpandTab = 'aiChat' | 'todo' | 'countdown' | 'settings';
 
 /** 导航点标识 — 含特殊动作：expanded 返回 */
 type NavDotId = MaxExpandTab | 'expanded';
@@ -32,9 +30,8 @@ const NAV_DOTS: { id: NavDotId; label: string }[] = [
  * @description 包含 AI 对话窗口和设置面板，底部导航点切换 Tab 或返回 expanded
  */
 export function MaxExpandContent(): React.ReactElement {
-  const { setExpanded } = useIslandStore();
+  const { setExpanded, maxExpandTab: activeTab, setMaxExpandTab: setActiveTab } = useIslandStore();
   const contentRef = useRef<HTMLDivElement>(null);
-  const [activeTab, setActiveTab] = useState<MaxExpandTab>('todo');
   const activeTabRef = useRef(activeTab);
   activeTabRef.current = activeTab;
 

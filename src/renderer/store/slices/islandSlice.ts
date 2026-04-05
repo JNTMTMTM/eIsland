@@ -17,6 +17,7 @@ export const createIslandSlice: StateCreator<
   state: 'idle',
   hoverTab: 'time',
   expandTab: 'overview',
+  maxExpandTab: 'todo',
   notification: emptyNotification,
 
   setIdle: () => set((prev) => {
@@ -51,4 +52,5 @@ export const createIslandSlice: StateCreator<
 
   setHoverTab: (tab) => set({ hoverTab: tab }),
   setExpandTab: (tab) => set({ expandTab: tab }),
+  setMaxExpandTab: (tab) => set({ maxExpandTab: tab }),
 });

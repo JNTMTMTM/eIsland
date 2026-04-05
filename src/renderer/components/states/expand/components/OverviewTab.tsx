@@ -103,13 +103,13 @@ function cdDiffDays(targetStr: string): number {
 
 /** 歌曲控件 */
 function SongWidget(): React.ReactElement {
-  const { mediaInfo, coverImage, isPlaying, isMusicPlaying, dominantColor } = useIslandStore();
+  const { mediaInfo, coverImage, isPlaying, isMusicPlaying, dominantColor, setExpandTab } = useIslandStore();
   const [r, g, b] = dominantColor;
 
   return (
     <div className="ov-dash-widget ov-dash-song-widget">
       <div className="ov-dash-widget-header">
-        <span className="ov-dash-widget-title">正在播放</span>
+        <span className="ov-dash-widget-title ov-dash-widget-title--link" onClick={() => setExpandTab('song')}>正在播放</span>
       </div>
       {isMusicPlaying ? (
         <div
@@ -158,6 +158,7 @@ function SongWidget(): React.ReactElement {
 
 /** 倒数日控件 */
 function CountdownWidget(): React.ReactElement {
+  const { setMaxExpand, setMaxExpandTab } = useIslandStore();
   const [cdItems, setCdItems] = useState<CountdownDateItem[]>([]);
   useEffect(() => {
     let cancelled = false;
@@ -174,10 +175,15 @@ function CountdownWidget(): React.ReactElement {
     return da - db;
   }).slice(0, 2);
 
+  const goToCountdown = (): void => {
+    setMaxExpandTab('countdown');
+    setMaxExpand();
+  };
+
   return (
     <div className="ov-dash-widget ov-dash-countdown-widget">
       <div className="ov-dash-widget-header">
-        <span className="ov-dash-widget-title">倒数日</span>
+        <span className="ov-dash-widget-title ov-dash-widget-title--link" onClick={goToCountdown}>倒数日</span>
       </div>
       {sorted.length === 0 ? (
         <div className="ov-dash-countdown-empty">暂无倒数日</div>

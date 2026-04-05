@@ -8,7 +8,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import useIslandStore from '../../../../store/slices';
 import avatarImg from '../../../../assets/avatar/T.jpg';
 import type { OverviewWidgetType, OverviewLayoutConfig } from '../../expand/components/OverviewTab';
-import { OVERVIEW_WIDGET_OPTIONS } from '../../expand/components/OverviewTab';
+import { OVERVIEW_WIDGET_OPTIONS, OverviewTab } from '../../expand/components/OverviewTab';
 
 /** 单行配置项 */
 function SettingsField({
@@ -148,44 +148,48 @@ export function SettingsTab(): React.ReactElement {
           {activeTab === 'app' && (
             <div className="max-expand-settings-section">
               <div className="max-expand-settings-title">软件设置</div>
-              <div className="settings-field-group">
-                <div className="settings-layout-section">
-                  <div className="settings-layout-label">总览布局</div>
-                  <div className="settings-layout-desc">自定义总览页左右两侧显示的控件，中间时间栏固定不可更改。</div>
-                  <div className="settings-layout-slots">
-                    <div className="settings-layout-slot">
-                      <span className="settings-layout-slot-label">左侧控件</span>
-                      <div className="settings-layout-options">
-                        {OVERVIEW_WIDGET_OPTIONS.map(opt => (
-                          <button
-                            key={opt.value}
-                            className={`settings-layout-btn ${layoutConfig.left === opt.value ? 'active' : ''}`}
-                            type="button"
-                            onClick={() => updateLayout('left', opt.value)}
-                          >
-                            {opt.label}
-                          </button>
-                        ))}
-                      </div>
+
+              <div className="settings-island-preview-section">
+                <div className="settings-island-preview-label">总览布局预览</div>
+                <div className="settings-island-preview-wrap">
+                  <div className="settings-island-shell" key={`${layoutConfig.left}-${layoutConfig.right}`}>
+                    <OverviewTab />
+                  </div>
+                </div>
+
+                <div className="settings-layout-controls">
+                  <div className="settings-layout-control">
+                    <span className="settings-layout-control-label">左侧控件</span>
+                    <div className="settings-layout-options">
+                      {OVERVIEW_WIDGET_OPTIONS.map(opt => (
+                        <button
+                          key={opt.value}
+                          className={`settings-layout-btn ${layoutConfig.left === opt.value ? 'active' : ''}`}
+                          type="button"
+                          onClick={() => updateLayout('left', opt.value)}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
                     </div>
-                    <div className="settings-layout-slot settings-layout-slot-center">
-                      <span className="settings-layout-slot-label">中间</span>
-                      <div className="settings-layout-fixed">时间（固定）</div>
-                    </div>
-                    <div className="settings-layout-slot">
-                      <span className="settings-layout-slot-label">右侧控件</span>
-                      <div className="settings-layout-options">
-                        {OVERVIEW_WIDGET_OPTIONS.map(opt => (
-                          <button
-                            key={opt.value}
-                            className={`settings-layout-btn ${layoutConfig.right === opt.value ? 'active' : ''}`}
-                            type="button"
-                            onClick={() => updateLayout('right', opt.value)}
-                          >
-                            {opt.label}
-                          </button>
-                        ))}
-                      </div>
+                  </div>
+                  <div className="settings-layout-control settings-layout-control-center">
+                    <span className="settings-layout-control-label">中间</span>
+                    <div className="settings-layout-fixed">时间（固定）</div>
+                  </div>
+                  <div className="settings-layout-control">
+                    <span className="settings-layout-control-label">右侧控件</span>
+                    <div className="settings-layout-options">
+                      {OVERVIEW_WIDGET_OPTIONS.map(opt => (
+                        <button
+                          key={opt.value}
+                          className={`settings-layout-btn ${layoutConfig.right === opt.value ? 'active' : ''}`}
+                          type="button"
+                          onClick={() => updateLayout('right', opt.value)}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
                     </div>
                   </div>
                 </div>
