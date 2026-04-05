@@ -1,6 +1,6 @@
 {
   "name": "eisland",
-  "version": "26.0.6",
+  "version": "26.0.7",
   "description": "Windows Dynamic Island - Electron App",
   "main": "./out/main/index.js",
   "author": "JNTMTMTM",
