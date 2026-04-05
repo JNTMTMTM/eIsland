@@ -574,6 +574,11 @@
   color: rgba(255, 255, 255, 0.85);
 }
 
+.ov-dash-apps-count {
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.25);
+}
+
 /** 应用快速启动网格（只读展示） */
 .ov-dash-apps {
   display: flex;

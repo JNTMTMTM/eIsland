@@ -165,6 +165,7 @@ export function OverviewTab(): React.ReactElement {
       <div className="ov-dash-apps-wrap">
         <div className="ov-dash-apps-header">
           <span className="ov-dash-apps-title clickable" onClick={() => setExpandTab('tools')} title="编辑快捷启动">快捷启动</span>
+          <span className="ov-dash-apps-count">{apps.length} 项</span>
         </div>
         <div className="ov-dash-apps">
           {apps.length === 0 && (
