@@ -60,12 +60,9 @@ export function SettingsTab(): React.ReactElement {
 
   return (
     <div className="max-expand-settings">
-      <div className="max-expand-settings-header">
-        <div className="max-expand-settings-header-title">设置</div>
-      </div>
-
       <div className="max-expand-settings-layout">
         <div className="max-expand-settings-sidebar">
+          <div className="max-expand-settings-sidebar-title">设置</div>
           <button
             className={`max-expand-settings-sidebar-item ${activeTab === 'app' ? 'active' : ''}`}
             onClick={() => setActiveTab('app')}

@@ -27,23 +27,8 @@
   display: flex;
   width: 100%;
   height: 100%;
-  width: 100%;
   flex-direction: column;
-  gap: 10px;
   animation: maxExpandFadeIn 0.2s ease;
-}
-
-.max-expand-settings-header {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 2px 2px 0;
-}
-
-.max-expand-settings-header-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.92);
 }
 
 .max-expand-settings-layout {
@@ -62,6 +47,13 @@
   justify-content: center;
   gap: 6px;
   padding: 6px 0;
+}
+
+.max-expand-settings-sidebar-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.92);
+  padding: 0 8px 4px;
 }
 
 .max-expand-settings-sidebar-item {
