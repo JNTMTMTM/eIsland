@@ -517,4 +517,165 @@
   font-variant-numeric: tabular-nums;
 }
 
+/** ========== 总览仪表盘 ========== */
 
+.overview-dashboard {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  height: 100%;
+  padding: 0 8px;
+}
+
+/** 左区：时间 */
+.ov-dash-time {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  flex-shrink: 0;
+  min-width: 100px;
+}
+
+.ov-dash-clock {
+  font-size: 26px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.90);
+  letter-spacing: 1px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.ov-dash-date {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.40);
+}
+
+.ov-dash-lunar {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.25);
+}
+
+/** 中区：卡片组 */
+.ov-dash-cards {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+  justify-content: center;
+  align-content: center;
+}
+
+.ov-dash-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  min-width: 70px;
+  gap: 1px;
+}
+
+.ov-dash-card-label {
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.30);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.ov-dash-card-value {
+  font-size: 15px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.80);
+  font-variant-numeric: tabular-nums;
+}
+
+.ov-dash-card-sub {
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.30);
+}
+
+/** 右区：正在播放 */
+.ov-dash-music {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  min-width: 0;
+  max-width: 200px;
+  padding: 6px 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 10px;
+}
+
+.ov-dash-cover {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #222;
+  background-size: cover;
+  background-position: center;
+  flex-shrink: 0;
+  animation: discSpin 8s linear infinite;
+  animation-play-state: paused;
+}
+
+.ov-dash-cover.spinning {
+  animation-play-state: running;
+}
+
+.ov-dash-music-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 1px;
+}
+
+.ov-dash-music-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.80);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ov-dash-music-artist {
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.40);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ov-dash-music-status {
+  flex-shrink: 0;
+}
+
+.ov-dash-music-icon {
+  width: 14px;
+  height: 14px;
+  filter: brightness(0) invert(1);
+  opacity: 0.5;
+}
+
+.ov-dash-music-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 8px 0;
+}
+
+.ov-dash-music-empty-text {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.20);
+}

@@ -6,7 +6,7 @@
 
 import React, { useState, useRef } from 'react';
 import useIslandStore from '../../../../store/slices';
-import avatarImg from '../../../../public/avatar/T.jpg';
+import avatarImg from '../../../../assets/avatar/T.jpg';
 
 /** 单行配置项 */
 function SettingsField({

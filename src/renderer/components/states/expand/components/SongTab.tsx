@@ -1,6 +1,6 @@
 /**
- * @file MusicTab.tsx
- * @description Expanded 总览 Tab — 三栏布局：左(封面+信息+控制) | 中(歌词) | 右(待办/时间/天气/倒计时)
+ * @file SongTab.tsx
+ * @description Expanded 歌曲 Tab — 三栏布局：左(封面+信息+控制) | 中(歌词) | 右(待办/时间/天气/倒计时)
  * @author 鸡哥
  */
 
@@ -174,10 +174,10 @@ function WaveCanvas({ color, playing }: { color: [number, number, number]; playi
 // ===================== 组件 =====================
 
 /**
- * 总览 Tab
- * @description 展开状态下三栏布局总览面板
+ * 歌曲 Tab
+ * @description 展开状态下三栏布局歌曲面板
  */
-export function OverviewTab(): React.ReactElement {
+export function SongTab(): React.ReactElement {
   const {
     isMusicPlaying, isPlaying, mediaInfo, syncedLyrics, lyricsLoading,
     coverImage, dominantColor, weather, countdown, timerData,

@@ -8,7 +8,8 @@ import React, { useEffect, useRef } from 'react';
 import useIslandStore from '../../../store/slices';
 import type { ExpandTab } from '../../../store/types';
 import '../../../styles/expanded/expanded.css';
-import { OverviewTab } from './components/MusicTab';
+import { OverviewTab } from './components/OverviewTab';
+import { SongTab } from './components/SongTab';
 import { ToolsTab } from './components/ToolsTab';
 
 /** 导航点标识 — 含特殊动作：hover 返回、settings 切换独立状态 */
@@ -18,6 +19,7 @@ type NavDotId = ExpandTab | 'maxExpand';
 const EXPAND_NAV_DOTS: { tab: NavDotId; label: string }[] = [
   { tab: 'hover', label: '返回' },
   { tab: 'overview', label: '总览' },
+  { tab: 'song', label: '歌曲' },
   { tab: 'tools', label: '工具' },
   { tab: 'maxExpand', label: '最大展开' },
 ];
@@ -61,6 +63,7 @@ export function ExpandedContent(): React.ReactElement {
       {/* Tab 内容区域 */}
       <div className="expand-tab-content" onClick={(e) => e.stopPropagation()}>
         {expandTab === 'overview' && <OverviewTab />}
+        {expandTab === 'song' && <SongTab />}
         {expandTab === 'tools' && <ToolsTab />}
       </div>
 
