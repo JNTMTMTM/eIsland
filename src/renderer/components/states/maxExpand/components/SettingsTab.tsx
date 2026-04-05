@@ -4,7 +4,7 @@
  * @author 鸡哥
  */
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import useIslandStore from '../../../../store/slices';
 import avatarImg from '../../../../assets/avatar/T.jpg';
 
@@ -40,12 +40,43 @@ function SettingsField({
  * 设置 Tab
  * @description 最大展开模式下的设置面板
  */
+/** 设置页侧边栏 Tab 顺序 */
+const SETTINGS_TABS: ('app' | 'ai' | 'about')[] = ['app', 'ai', 'about'];
+
 export function SettingsTab(): React.ReactElement {
   const [activeTab, setActiveTab] = React.useState<'app' | 'ai' | 'about'>('app');
   const { aiConfig, setAiConfig } = useIslandStore();
   const [editingPrompt, setEditingPrompt] = useState(false);
   const [promptDraft, setPromptDraft] = useState('');
   const promptRef = useRef<HTMLTextAreaElement>(null);
+  const settingsRef = useRef<HTMLDivElement>(null);
+  const activeTabRef = useRef(activeTab);
+  activeTabRef.current = activeTab;
+
+  /** 滚轮切换设置侧边栏 Tab */
+  useEffect(() => {
+    const el = settingsRef.current;
+    if (!el) return;
+    const handleWheel = (e: WheelEvent): void => {
+      const target = e.target as HTMLElement;
+      if (target.closest('.settings-field-input')) return;
+      if (target.closest('.settings-field-textarea')) return;
+      if (target.closest('.settings-about')) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const cur = activeTabRef.current;
+      const idx = SETTINGS_TABS.indexOf(cur);
+      let nextIdx: number;
+      if (e.deltaY > 0) {
+        nextIdx = Math.min(idx + 1, SETTINGS_TABS.length - 1);
+      } else {
+        nextIdx = Math.max(idx - 1, 0);
+      }
+      if (nextIdx !== idx) setActiveTab(SETTINGS_TABS[nextIdx]);
+    };
+    el.addEventListener('wheel', handleWheel, { passive: false });
+    return () => el.removeEventListener('wheel', handleWheel);
+  }, []);
 
   const startEditPrompt = (): void => {
     setPromptDraft(aiConfig.systemPrompt);
@@ -59,7 +90,7 @@ export function SettingsTab(): React.ReactElement {
   };
 
   return (
-    <div className="max-expand-settings">
+    <div className="max-expand-settings" ref={settingsRef}>
       <div className="max-expand-settings-layout">
         <div className="max-expand-settings-sidebar">
           <div className="max-expand-settings-sidebar-title">设置</div>
