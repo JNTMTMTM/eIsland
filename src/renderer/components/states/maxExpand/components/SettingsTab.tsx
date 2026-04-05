@@ -201,7 +201,7 @@ export function SettingsTab(): React.ReactElement {
                     </a>
                     鸡哥 <span className="settings-about-id">JNTMTMTM</span>
                   </div>
-                  <div className="settings-about-version">eIsland v26.0.4</div>
+                  <div className="settings-about-version">eIsland v26.0.6</div>
                 </div>
               </div>
 
