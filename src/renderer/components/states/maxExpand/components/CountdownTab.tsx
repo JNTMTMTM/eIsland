@@ -45,63 +45,11 @@ function diffDays(targetStr: string): number {
   return Math.ceil((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 }
 
-/** 颜色选择器弹窗 */
-function ColorPicker({ value, onChange, onClose }: {
-  value: string;
-  onChange: (c: string) => void;
-  onClose: () => void;
-}): React.ReactElement {
-  const ref = useRef<HTMLDivElement>(null);
-  const [hex, setHex] = useState(value);
-
-  useEffect(() => {
-    const handler = (e: MouseEvent): void => {
-      if (ref.current && !ref.current.contains(e.target as Node)) onClose();
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [onClose]);
-
-  const presets = [
-    '#ff5252', '#ff7043', '#ffab40', '#ffd740',
-    '#69f0ae', '#81c784', '#69c0ff', '#448aff',
-    '#7c4dff', '#ce93d8', '#f48fb1', '#80deea',
-    '#a1887f', '#90a4ae', '#e0e0e0', '#ff1744',
-  ];
-
-  return (
-    <div className="cd-color-picker-popup" ref={ref}>
-      <div className="cd-color-presets">
-        {presets.map(c => (
-          <button
-            key={c}
-            className={`cd-color-preset ${value === c ? 'active' : ''}`}
-            style={{ background: c }}
-            onClick={() => { onChange(c); setHex(c); }}
-            type="button"
-          />
-        ))}
-      </div>
-      <div className="cd-color-custom">
-        <input
-          type="color"
-          value={hex}
-          onChange={(e) => { setHex(e.target.value); onChange(e.target.value); }}
-          className="cd-color-native"
-        />
-        <input
-          className="cd-color-hex-input"
-          value={hex}
-          onChange={(e) => {
-            setHex(e.target.value);
-            if (/^#[0-9a-fA-F]{6}$/.test(e.target.value)) onChange(e.target.value);
-          }}
-          placeholder="#ffffff"
-        />
-      </div>
-    </div>
-  );
-}
+const COLOR_PRESETS = [
+  '#ff5252', '#ff7043', '#ffab40', '#ffd740',
+  '#69f0ae', '#81c784', '#69c0ff', '#448aff',
+  '#7c4dff', '#ce93d8', '#f48fb1', '#80deea',
+];
 
 export function CountdownTab(): React.ReactElement {
   const [items, setItems] = useState<CountdownItem[]>([]);
@@ -111,10 +59,10 @@ export function CountdownTab(): React.ReactElement {
   const [newColor, setNewColor] = useState('#69c0ff');
   const [newType, setNewType] = useState<EventType>('countdown');
   const [newDesc, setNewDesc] = useState('');
-  const [showColorPicker, setShowColorPicker] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editData, setEditData] = useState<Partial<CountdownItem>>({});
-  const [editColorPicker, setEditColorPicker] = useState(false);
+  const editCustomColorRef = useRef<HTMLInputElement>(null);
+  const addCustomColorRef = useRef<HTMLInputElement>(null);
   const cardsRef = useRef<HTMLDivElement>(null);
 
   /** 加载 */
@@ -161,7 +109,6 @@ export function CountdownTab(): React.ReactElement {
   const startEdit = useCallback((item: CountdownItem) => {
     setEditingId(item.id);
     setEditData({ name: item.name, description: item.description || '', color: item.color, type: item.type });
-    setEditColorPicker(false);
   }, []);
 
   /** 保存编辑 */
@@ -178,7 +125,6 @@ export function CountdownTab(): React.ReactElement {
       };
     }));
     setEditingId(null);
-    setEditColorPicker(false);
   }, [editingId, editData]);
 
   /** 日历高亮 */
@@ -236,6 +182,7 @@ export function CountdownTab(): React.ReactElement {
               rows={2}
             />
             <div className="cd-form-row">
+              <span className="cd-form-label">类型</span>
               <div className="cd-type-selector">
                 {EVENT_TYPES.map(t => (
                   <button
@@ -251,26 +198,38 @@ export function CountdownTab(): React.ReactElement {
               </div>
             </div>
             <div className="cd-form-row">
-              <div className="cd-color-trigger-wrap">
-                <button
-                  className="cd-color-trigger"
-                  style={{ background: editData.color }}
-                  onClick={() => setEditColorPicker(!editColorPicker)}
-                  type="button"
-                  title="选择颜色"
-                />
-                {editColorPicker && (
-                  <ColorPicker
-                    value={editData.color || '#69c0ff'}
-                    onChange={(c) => setEditData(prev => ({ ...prev, color: c }))}
-                    onClose={() => setEditColorPicker(false)}
+              <span className="cd-form-label">颜色</span>
+              <div className="cd-color-row">
+                {COLOR_PRESETS.map(c => (
+                  <button
+                    key={c}
+                    className={`cd-color-dot ${(editData.color || '#69c0ff') === c ? 'active' : ''}`}
+                    style={{ background: c }}
+                    onClick={() => setEditData(prev => ({ ...prev, color: c }))}
+                    type="button"
                   />
-                )}
+                ))}
+                <button
+                  className="cd-color-dot cd-color-custom-trigger"
+                  style={{ background: COLOR_PRESETS.includes(editData.color || '') ? undefined : editData.color }}
+                  onClick={() => editCustomColorRef.current?.click()}
+                  type="button"
+                  title="自定义颜色"
+                >
+                  <span className="cd-color-custom-icon">+</span>
+                </button>
+                <input
+                  ref={editCustomColorRef}
+                  type="color"
+                  className="cd-color-native-hidden"
+                  value={editData.color || '#69c0ff'}
+                  onChange={(e) => setEditData(prev => ({ ...prev, color: e.target.value }))}
+                />
               </div>
             </div>
             <div className="cd-form-actions">
               <button className="cd-btn save" onClick={saveEdit} type="button">保存</button>
-              <button className="cd-btn cancel" onClick={() => { setEditingId(null); setEditColorPicker(false); }} type="button">取消</button>
+              <button className="cd-btn cancel" onClick={() => setEditingId(null)} type="button">取消</button>
             </div>
           </div>
         ) : (
@@ -293,6 +252,7 @@ export function CountdownTab(): React.ReactElement {
               rows={2}
             />
             <div className="cd-form-row">
+              <span className="cd-form-label">类型</span>
               <div className="cd-type-selector">
                 {EVENT_TYPES.map(t => (
                   <button
@@ -308,21 +268,33 @@ export function CountdownTab(): React.ReactElement {
               </div>
             </div>
             <div className="cd-form-row">
-              <div className="cd-color-trigger-wrap">
-                <button
-                  className="cd-color-trigger"
-                  style={{ background: newColor }}
-                  onClick={() => setShowColorPicker(!showColorPicker)}
-                  type="button"
-                  title="选择颜色"
-                />
-                {showColorPicker && (
-                  <ColorPicker
-                    value={newColor}
-                    onChange={(c) => setNewColor(c)}
-                    onClose={() => setShowColorPicker(false)}
+              <span className="cd-form-label">颜色</span>
+              <div className="cd-color-row">
+                {COLOR_PRESETS.map(c => (
+                  <button
+                    key={c}
+                    className={`cd-color-dot ${newColor === c ? 'active' : ''}`}
+                    style={{ background: c }}
+                    onClick={() => setNewColor(c)}
+                    type="button"
                   />
-                )}
+                ))}
+                <button
+                  className="cd-color-dot cd-color-custom-trigger"
+                  style={{ background: COLOR_PRESETS.includes(newColor) ? undefined : newColor }}
+                  onClick={() => addCustomColorRef.current?.click()}
+                  type="button"
+                  title="自定义颜色"
+                >
+                  <span className="cd-color-custom-icon">+</span>
+                </button>
+                <input
+                  ref={addCustomColorRef}
+                  type="color"
+                  className="cd-color-native-hidden"
+                  value={newColor}
+                  onChange={(e) => setNewColor(e.target.value)}
+                />
               </div>
             </div>
             <div className="cd-form-actions">

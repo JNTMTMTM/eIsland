@@ -1416,72 +1416,51 @@
 .cd-type-label { font-size: 9px; color: rgba(255,255,255,0.5); }
 .cd-type-btn.active .cd-type-label { color: rgba(100, 180, 255, 0.8); }
 
-/** 颜色触发器 */
-.cd-color-trigger-wrap { position: relative; }
-.cd-color-trigger {
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  border: 2px solid rgba(255, 255, 255, 0.15);
-  cursor: pointer;
-  padding: 0;
-  transition: border-color 0.12s ease;
+.cd-form-label {
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.4);
+  margin-right: 4px;
+  white-space: nowrap;
 }
-.cd-color-trigger:hover { border-color: rgba(255, 255, 255, 0.4); }
 
-/** 颜色选择器弹窗 */
-.cd-color-picker-popup {
-  position: absolute;
-  bottom: 28px;
-  left: 0;
-  background: rgba(30, 30, 35, 0.97);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  padding: 8px;
-  z-index: 100;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
-  min-width: 160px;
-}
-.cd-color-presets {
-  display: grid;
-  grid-template-columns: repeat(8, 1fr);
+/** 颜色行 */
+.cd-color-row {
+  display: flex;
+  align-items: center;
   gap: 3px;
-  margin-bottom: 6px;
+  flex-wrap: wrap;
 }
-.cd-color-preset {
-  width: 16px;
-  height: 16px;
-  border-radius: 3px;
+.cd-color-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
   border: 2px solid transparent;
   cursor: pointer;
   padding: 0;
-  transition: transform 0.1s ease;
+  transition: transform 0.1s ease, border-color 0.1s ease;
+  flex-shrink: 0;
 }
-.cd-color-preset.active { border-color: #fff; }
-.cd-color-preset:hover { transform: scale(1.2); }
-.cd-color-custom {
+.cd-color-dot:hover { transform: scale(1.2); }
+.cd-color-dot.active { border-color: rgba(255, 255, 255, 0.8); }
+.cd-color-custom-trigger {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px dashed rgba(255, 255, 255, 0.2);
   display: flex;
   align-items: center;
-  gap: 4px;
+  justify-content: center;
 }
-.cd-color-native {
-  width: 22px;
-  height: 22px;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  background: none;
-}
-.cd-color-hex-input {
-  flex: 1;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 4px;
-  padding: 2px 6px;
+.cd-color-custom-trigger:hover { border-color: rgba(100, 180, 255, 0.5); }
+.cd-color-custom-icon {
   font-size: 10px;
-  color: rgba(255, 255, 255, 0.7);
-  outline: none;
-  font-family: monospace;
+  color: rgba(255, 255, 255, 0.35);
+  line-height: 1;
+}
+.cd-color-native-hidden {
+  position: absolute;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  pointer-events: none;
 }
 
 /** 卡片预览区 */
