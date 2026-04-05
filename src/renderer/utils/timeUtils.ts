@@ -55,3 +55,23 @@ export function getLunarDate(date: Date): string {
   const day = lunar.getDayInChinese();
   return `${month}月${day}`;
 }
+
+/**
+ * 获取当日宜做事项
+ * @param date - 要查询的 Date 对象
+ * @returns 宜做事项数组
+ */
+export function getDayYi(date: Date): string[] {
+  const lunar = Lunar.fromDate(date);
+  return lunar.getDayYi() as string[];
+}
+
+/**
+ * 获取当日忌做事项
+ * @param date - 要查询的 Date 对象
+ * @returns 忌做事项数组
+ */
+export function getDayJi(date: Date): string[] {
+  const lunar = Lunar.fromDate(date);
+  return lunar.getDayJi() as string[];
+}

@@ -562,6 +562,47 @@
   margin-top: 2px;
 }
 
+.ov-dash-yiji {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-top: 5px;
+}
+
+.ov-dash-yiji-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.ov-dash-yiji-label {
+  font-size: 8px;
+  font-weight: 700;
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.ov-dash-yiji-label.yi {
+  background: rgba(120, 220, 120, 0.15);
+  color: rgba(120, 220, 120, 0.8);
+}
+
+.ov-dash-yiji-label.ji {
+  background: rgba(255, 82, 82, 0.12);
+  color: rgba(255, 82, 82, 0.7);
+}
+
+.ov-dash-yiji-items {
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.32);
+}
+
 /** 右区：待办事项 */
 .ov-dash-todo {
   flex: 1;

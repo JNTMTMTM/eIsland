@@ -6,7 +6,7 @@
 
 import React, { useEffect, useState } from 'react';
 import useIslandStore from '../../../../store/slices';
-import { getDayName, getLunarDate } from '../../../../utils/timeUtils';
+import { getDayName, getDayJi, getDayYi, getLunarDate } from '../../../../utils/timeUtils';
 
 /** 紧急程度 */
 type Priority = 'P0' | 'P1' | 'P2';
@@ -117,6 +117,16 @@ export function OverviewTab(): React.ReactElement {
         <span className="ov-dash-date">{yyyy}年{month}月{day}日 {dayName}</span>
         <span className="ov-dash-clock">{hh}:{mm}:{ss}</span>
         <span className="ov-dash-lunar">{getLunarDate(now)}</span>
+        <div className="ov-dash-yiji">
+          <div className="ov-dash-yiji-row">
+            <span className="ov-dash-yiji-label yi">宜</span>
+            <span className="ov-dash-yiji-items">{getDayYi(now).slice(0, 3).join(' · ')}</span>
+          </div>
+          <div className="ov-dash-yiji-row">
+            <span className="ov-dash-yiji-label ji">忌</span>
+            <span className="ov-dash-yiji-items">{getDayJi(now).slice(0, 3).join(' · ')}</span>
+          </div>
+        </div>
       </div>
 
       {/* ========== 右区：待办事项 ========== */}
