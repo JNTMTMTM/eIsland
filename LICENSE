@@ -672,3 +672,17 @@ may consider it more useful to permit linking proprietary applications with
 the library.  If this is what you want to do, use the GNU Lesser General
 Public License instead of this License.  But first, please read
 <https://www.gnu.org/licenses/why-not-lgpl.html>.
+
+Additional terms under GPLv3 Section 7(b):
+
+You must preserve the following author attributions and copyright notices in all copies and modified versions of this software, including in the Appropriate Legal Notices displayed by the work:
+
+Copyright (C) 2026 JNTMTMTM
+Copyright (C) 2026 pyisland.com
+
+Original author: JNTMTMTM[](https://github.com/JNTMTMTM)
+
+This attribution must remain visible in:
+- source code headers
+- README files
+- any "About" or legal notices screen of the program
