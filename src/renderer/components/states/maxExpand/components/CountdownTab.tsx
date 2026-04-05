@@ -64,6 +64,25 @@ export function CountdownTab(): React.ReactElement {
   const editCustomColorRef = useRef<HTMLInputElement>(null);
   const addCustomColorRef = useRef<HTMLInputElement>(null);
   const cardsRef = useRef<HTMLDivElement>(null);
+  const colorRafRef = useRef<number | null>(null);
+
+  const handleEditColorInput = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const v = e.target.value;
+    if (colorRafRef.current !== null) cancelAnimationFrame(colorRafRef.current);
+    colorRafRef.current = requestAnimationFrame(() => {
+      setEditData(prev => ({ ...prev, color: v }));
+      colorRafRef.current = null;
+    });
+  }, []);
+
+  const handleAddColorInput = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const v = e.target.value;
+    if (colorRafRef.current !== null) cancelAnimationFrame(colorRafRef.current);
+    colorRafRef.current = requestAnimationFrame(() => {
+      setNewColor(v);
+      colorRafRef.current = null;
+    });
+  }, []);
 
   /** 加载 */
   useEffect(() => {
@@ -223,7 +242,7 @@ export function CountdownTab(): React.ReactElement {
                   type="color"
                   className="cd-color-native-hidden"
                   value={editData.color || '#69c0ff'}
-                  onChange={(e) => setEditData(prev => ({ ...prev, color: e.target.value }))}
+                  onChange={handleEditColorInput}
                 />
               </div>
             </div>
@@ -293,7 +312,7 @@ export function CountdownTab(): React.ReactElement {
                   type="color"
                   className="cd-color-native-hidden"
                   value={newColor}
-                  onChange={(e) => setNewColor(e.target.value)}
+                  onChange={handleAddColorInput}
                 />
               </div>
             </div>
