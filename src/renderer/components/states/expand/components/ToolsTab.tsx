@@ -27,6 +27,8 @@ export function ToolsTab(): React.ReactElement {
   const [apps, setApps] = useState<AppShortcut[]>([]);
   const [appsLoaded, setAppsLoaded] = useState(false);
   const [dragOver, setDragOver] = useState(false);
+  const [dropError, setDropError] = useState(false);
+  const [dropDuplicate, setDropDuplicate] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editName, setEditName] = useState('');
   const editRef = useRef<HTMLInputElement>(null);
@@ -77,17 +79,28 @@ export function ToolsTab(): React.ReactElement {
     dragCountRef.current = 0;
     setDragOver(false);
     const files = Array.from(e.dataTransfer.files);
+    let hasInvalid = false;
+    let hasValid = false;
+    let hasDuplicate = false;
     for (const file of files) {
       const filePath = window.api.getPathForFile(file);
       if (!filePath) continue;
-      if (!filePath.toLowerCase().endsWith('.exe')) continue;
-      if (apps.some(a => a.path === filePath)) continue;
+      if (!filePath.toLowerCase().endsWith('.exe')) { hasInvalid = true; continue; }
+      if (apps.some(a => a.path === filePath)) { hasDuplicate = true; continue; }
       if (apps.length >= MAX_APPS) break;
+      hasValid = true;
       const name = filePath.split('\\').pop()?.replace(/\.exe$/i, '') || 'App';
       try {
         const iconBase64 = await window.api.getFileIcon(filePath);
         setApps(prev => [...prev, { id: Date.now() + Math.random(), name, path: filePath, iconBase64 }]);
       } catch { /* noop */ }
+    }
+    if (hasInvalid && !hasValid) {
+      setDropError(true);
+      setTimeout(() => setDropError(false), 2000);
+    } else if (hasDuplicate && !hasValid) {
+      setDropDuplicate(true);
+      setTimeout(() => setDropDuplicate(false), 2000);
     }
   }, [apps]);
 
@@ -144,7 +157,7 @@ export function ToolsTab(): React.ReactElement {
     <div className="expand-tab-panel tools-panel">
       {/* ===== 左侧：拖拽添加区 ===== */}
       <div
-        className={`tools-drop-zone ${dragOver ? 'drag-over' : ''}`}
+        className={`tools-drop-zone ${dragOver ? 'drag-over' : ''} ${dropError ? 'drop-error' : ''} ${dropDuplicate ? 'drop-duplicate' : ''}`}
         onDrop={handleDrop}
         onDragEnter={handleDragEnter}
         onDragOver={handleDragOver}
@@ -153,6 +166,10 @@ export function ToolsTab(): React.ReactElement {
         <div className="tools-drop-zone-inner">
           {dragOver ? (
             <span className="tools-drop-zone-hint active">松开添加</span>
+          ) : dropError ? (
+            <span className="tools-drop-zone-hint error">仅支持 .exe 文件</span>
+          ) : dropDuplicate ? (
+            <span className="tools-drop-zone-hint duplicate">已存在该应用</span>
           ) : (
             <>
               <span className="tools-drop-zone-icon">+</span>

@@ -1056,6 +1056,24 @@
   animation: ovAppDropPulse 0.8s ease-in-out infinite alternate;
 }
 
+.tools-drop-zone.drop-error {
+  border-color: rgba(255, 80, 80, 0.5);
+  background: rgba(255, 80, 80, 0.08);
+}
+
+.tools-drop-zone-hint.error {
+  color: rgba(255, 80, 80, 0.8);
+}
+
+.tools-drop-zone.drop-duplicate {
+  border-color: rgba(255, 170, 50, 0.5);
+  background: rgba(255, 170, 50, 0.08);
+}
+
+.tools-drop-zone-hint.duplicate {
+  color: rgba(255, 170, 50, 0.8);
+}
+
 /** 右侧：快捷启动列表 */
 .tools-app-list {
   flex: 1;
