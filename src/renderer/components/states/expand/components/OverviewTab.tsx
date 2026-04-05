@@ -4,7 +4,7 @@
  * @author 鸡哥
  */
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import useIslandStore from '../../../../store/slices';
 import { getDayName, getDayJi, getDayYi, getLunarDate } from '../../../../utils/timeUtils';
 
@@ -79,9 +79,45 @@ export function OverviewTab(): React.ReactElement {
     return () => { cancelled = true; };
   }, []);
 
+  /** 拖拽排序状态 */
+  const dragIndexRef = useRef<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+
   /** 打开应用 */
   const openApp = useCallback((path: string) => {
     window.api.openFile(path).catch(() => {});
+  }, []);
+
+  /** 拖拽排序 */
+  const handleAppDragStart = useCallback((e: React.DragEvent, index: number) => {
+    dragIndexRef.current = index;
+    e.dataTransfer.effectAllowed = 'move';
+  }, []);
+
+  const handleAppDragOver = useCallback((e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setDragOverIndex(index);
+  }, []);
+
+  const handleAppDrop = useCallback((e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault();
+    const fromIndex = dragIndexRef.current;
+    if (fromIndex === null || fromIndex === dropIndex) return;
+    setApps(prev => {
+      const updated = [...prev];
+      const [moved] = updated.splice(fromIndex, 1);
+      updated.splice(dropIndex, 0, moved);
+      window.api.storeWrite(APPS_STORE_KEY, updated).catch(() => {});
+      return updated;
+    });
+    dragIndexRef.current = null;
+    setDragOverIndex(null);
+  }, []);
+
+  const handleAppDragEnd = useCallback(() => {
+    dragIndexRef.current = null;
+    setDragOverIndex(null);
   }, []);
 
   /** 加载待办数据 */
@@ -171,12 +207,17 @@ export function OverviewTab(): React.ReactElement {
           {apps.length === 0 && (
             <div className="ov-dash-apps-empty">在系统工具中添加</div>
           )}
-          {apps.map(app => (
+          {apps.map((app, index) => (
             <div
               key={app.id}
-              className="ov-dash-app-item"
+              className={`ov-dash-app-item ${dragOverIndex === index ? 'drag-over' : ''} ${dragIndexRef.current === index ? 'dragging' : ''}`}
               onClick={() => openApp(app.path)}
               title={app.name}
+              draggable
+              onDragStart={(e) => handleAppDragStart(e, index)}
+              onDragOver={(e) => handleAppDragOver(e, index)}
+              onDrop={(e) => handleAppDrop(e, index)}
+              onDragEnd={handleAppDragEnd}
             >
               {app.iconBase64 ? (
                 <img className="ov-dash-app-icon" src={`data:image/png;base64,${app.iconBase64}`} alt={app.name} />

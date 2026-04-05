@@ -631,6 +631,15 @@
   transform: scale(0.95);
 }
 
+.ov-dash-app-item.dragging {
+  opacity: 0.3;
+}
+
+.ov-dash-app-item.drag-over {
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.2);
+}
+
 .ov-dash-app-icon {
   width: 24px;
   height: 24px;
