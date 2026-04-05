@@ -113,10 +113,16 @@ function SongWidget(): React.ReactElement {
               style={{ backgroundImage: `url(${coverImage})` }}
             />
           )}
-          <div className="ov-dash-song-info">
-            <div className="ov-dash-song-title">{mediaInfo.title || '未知歌曲'}</div>
-            <div className="ov-dash-song-artist">{mediaInfo.artist || '未知艺术家'}</div>
-            {mediaInfo.album && <div className="ov-dash-song-album">{mediaInfo.album}</div>}
+          <div className="ov-dash-song-body">
+            <div
+              className="ov-dash-song-cover"
+              style={coverImage ? { backgroundImage: `url(${coverImage})` } : undefined}
+            />
+            <div className="ov-dash-song-info">
+              <div className="ov-dash-song-title">{mediaInfo.title || '未知歌曲'}</div>
+              <div className="ov-dash-song-artist">{mediaInfo.artist || '未知艺术家'}</div>
+              {mediaInfo.album && <div className="ov-dash-song-album">{mediaInfo.album}</div>}
+            </div>
           </div>
           <div className="ov-dash-song-controls">
             <button className="ov-dash-song-btn" onClick={() => window.api.mediaPrev()} type="button" title="上一首">

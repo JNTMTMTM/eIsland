@@ -1043,6 +1043,7 @@
   position: relative;
   overflow: hidden;
   border-radius: 10px;
+  padding: 6px;
 }
 .ov-dash-song-bg {
   position: absolute;
@@ -1053,21 +1054,48 @@
   transform: translate(-50%, -50%);
   background-size: cover;
   background-position: center;
-  opacity: 0.45;
+  opacity: 0.2;
   filter: blur(10px);
   mask-image: radial-gradient(ellipse at center, rgba(0,0,0,0.9) 20%, transparent 70%);
   -webkit-mask-image: radial-gradient(ellipse at center, rgba(0,0,0,0.9) 20%, transparent 70%);
   pointer-events: none;
   z-index: 0;
 }
+.ov-dash-song-body {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  max-width: 100%;
+}
+.ov-dash-song-cover {
+  width: 50px;
+  height: 50px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  background-size: cover;
+  background-position: center;
+  flex-shrink: 0;
+  border: 1.5px solid rgba(0, 0, 0, 0.5);
+  transform: perspective(300px) rotateY(8deg) rotateX(2deg);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: -3px 3px 10px rgba(0, 0, 0, 0.35),
+    0 0 12px var(--song-glow, rgba(255,255,255,0.1)),
+    0 0 24px var(--song-glow, rgba(255,255,255,0.08));
+}
+.ov-dash-song-cover:hover {
+  transform: perspective(300px) rotateY(2deg) rotateX(0deg);
+}
 .ov-dash-song-info {
   position: relative;
   z-index: 1;
-  text-align: center;
   min-width: 0;
-  max-width: 100%;
+  text-align: right;
   display: flex;
   flex-direction: column;
+  align-items: flex-end;
   gap: 2px;
 }
 .ov-dash-song-title {
@@ -1077,6 +1105,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  max-width: 100%;
 }
 .ov-dash-song-artist {
   font-size: 10px;
@@ -1084,6 +1113,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  max-width: 100%;
 }
 .ov-dash-song-album {
   font-size: 9px;
@@ -1092,6 +1122,7 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   margin-top: 1px;
+  max-width: 100%;
 }
 .ov-dash-song-controls {
   position: relative;
