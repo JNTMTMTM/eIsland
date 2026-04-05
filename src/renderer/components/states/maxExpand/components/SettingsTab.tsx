@@ -173,10 +173,6 @@ export function SettingsTab(): React.ReactElement {
                       ))}
                     </div>
                   </div>
-                  <div className="settings-layout-control settings-layout-control-center">
-                    <span className="settings-layout-control-label">中间</span>
-                    <div className="settings-layout-fixed">时间（固定）</div>
-                  </div>
                   <div className="settings-layout-control">
                     <span className="settings-layout-control-label">右侧控件</span>
                     <div className="settings-layout-options">
