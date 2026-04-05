@@ -104,6 +104,17 @@ export function OverviewTab(): React.ReactElement {
     });
   };
 
+  /** 删除待办并持久化 */
+  const removeTodo = (id: number): void => {
+    setTodos(prev => {
+      const updated = prev.filter(t => t.id !== id);
+      try { localStorage.setItem('eIsland_todos', JSON.stringify(updated)); } catch { /* noop */ }
+      window.api.storeWrite(STORE_KEY, updated).catch(() => {});
+      return updated;
+    });
+    if (expandedId === id) setExpandedId(null);
+  };
+
   const undoneTodos = todos.filter(t => !t.done);
   const doneTodos = todos.filter(t => t.done);
   const p0Count = todos.filter(t => !t.done && t.priority === 'P0').length;
@@ -176,6 +187,13 @@ export function OverviewTab(): React.ReactElement {
                       {todo.description && (
                         <span className={`ov-dash-todo-arrow ${isExpanded ? 'open' : ''}`}>›</span>
                       )}
+                      <button
+                        className="ov-dash-todo-delete"
+                        onClick={(e) => { e.stopPropagation(); removeTodo(todo.id); }}
+                        aria-label="删除"
+                      >
+                        ×
+                      </button>
                     </div>
                     {isExpanded && todo.description && (
                       <div className="ov-dash-todo-desc">{todo.description}</div>
@@ -196,6 +214,13 @@ export function OverviewTab(): React.ReactElement {
                           ✓
                         </button>
                         <span className="ov-dash-todo-text">{todo.text}</span>
+                        <button
+                          className="ov-dash-todo-delete"
+                          onClick={(e) => { e.stopPropagation(); removeTodo(todo.id); }}
+                          aria-label="删除"
+                        >
+                          ×
+                        </button>
                       </div>
                     </div>
                   ))}

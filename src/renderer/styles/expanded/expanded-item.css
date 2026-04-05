@@ -773,6 +773,28 @@
   min-width: 0;
 }
 
+.ov-dash-todo-delete {
+  width: 14px;
+  height: 14px;
+  border: none;
+  background: none;
+  color: rgba(255, 255, 255, 0.12);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.15s ease, color 0.15s ease;
+}
+
+.ov-dash-todo-row:hover .ov-dash-todo-delete {
+  opacity: 1;
+}
+
+.ov-dash-todo-delete:hover {
+  color: rgba(255, 100, 100, 0.8);
+}
+
 .ov-dash-todo-arrow {
   font-size: 12px;
   color: rgba(255, 255, 255, 0.25);
