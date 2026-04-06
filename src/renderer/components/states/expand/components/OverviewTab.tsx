@@ -271,6 +271,17 @@ interface PomodoroData {
   completedCount: number;
 }
 
+/** 获取时间轴上下文（上一、当前、下一阶段） */
+function getPomodoroTimeline(phase: PomodoroPhase, count: number): { prev: PomodoroPhase | null; next: PomodoroPhase } {
+  if (phase === 'work') {
+    const prev: PomodoroPhase | null = count === 0 ? null : count % 4 === 0 ? 'longBreak' : 'shortBreak';
+    const nextCount = count + 1;
+    const next: PomodoroPhase = nextCount % 4 === 0 ? 'longBreak' : 'shortBreak';
+    return { prev, next };
+  }
+  return { prev: 'work', next: 'work' };
+}
+
 /** 格式化秒为 MM:SS */
 function fmtPomodoroTime(seconds: number): string {
   const m = Math.floor(seconds / 60).toString().padStart(2, '0');
@@ -376,6 +387,7 @@ function PomodoroWidget(): React.ReactElement {
   };
 
   const phaseColor = phase === 'work' ? '#ff6b6b' : phase === 'shortBreak' ? '#51cf66' : '#339af0';
+  const { prev: prevPhase, next: nextPhase } = getPomodoroTimeline(phase, completedCount);
 
   return (
     <div className="ov-dash-widget ov-dash-pomodoro-widget">
@@ -387,34 +399,61 @@ function PomodoroWidget(): React.ReactElement {
         </span>
       </div>
       <div className="ov-dash-pomodoro-body">
+        {/* 环形进度盘 */}
         <div className="ov-dash-pomodoro-ring-wrap">
           <svg className="ov-dash-pomodoro-ring" viewBox="0 0 84 84">
             <circle className="ov-dash-pomodoro-ring-bg" cx="42" cy="42" r="38" />
             <circle
               className="ov-dash-pomodoro-ring-progress"
               cx="42" cy="42" r="38"
-              style={{
-                stroke: phaseColor,
-                strokeDasharray: circumference,
-                strokeDashoffset: dashOffset,
-              }}
+              style={{ stroke: phaseColor, strokeDasharray: circumference, strokeDashoffset: dashOffset }}
             />
           </svg>
-          <div className="ov-dash-pomodoro-time">{fmtPomodoroTime(remaining)}</div>
-        </div>
-        <div className="ov-dash-pomodoro-info">
-          <span className="ov-dash-pomodoro-phase" style={{ color: phaseColor }}>{POMODORO_LABELS[phase]}</span>
-          <div className="ov-dash-pomodoro-controls">
-            <button className="ov-dash-pomodoro-btn" onClick={handleStartPause} type="button" title={running ? '暂停' : '开始'}>
-              <img src={running ? SvgIcon.PAUSE : SvgIcon.CONTINUE} alt={running ? '暂停' : '开始'} className="ov-dash-pomodoro-btn-icon" />
-            </button>
-            <button className="ov-dash-pomodoro-btn" onClick={handleReset} type="button" title="重置">
-              <img src={SvgIcon.REVERT} alt="重置" className="ov-dash-pomodoro-btn-icon" />
-            </button>
-            <button className="ov-dash-pomodoro-btn" onClick={handleSkip} type="button" title="跳过">
-              <img src={SvgIcon.NEXT_SONG} alt="跳过" className="ov-dash-pomodoro-btn-icon" />
-            </button>
+          <div className="ov-dash-pomodoro-ring-inner">
+            <div className="ov-dash-pomodoro-time">{fmtPomodoroTime(remaining)}</div>
+            <div className="ov-dash-pomodoro-phase" style={{ color: phaseColor }}>{POMODORO_LABELS[phase]}</div>
           </div>
+        </div>
+
+        {/* 时间线 */}
+        <div className="ov-dash-pomodoro-timeline">
+          <div className={`ov-dash-pomodoro-tl-item${!prevPhase ? ' ov-dash-pomodoro-tl-item--empty' : ''}`}>
+            {prevPhase && (
+              <>
+                <div className="ov-dash-pomodoro-tl-dot" />
+                <div className="ov-dash-pomodoro-tl-info">
+                  <span className="ov-dash-pomodoro-tl-name">{POMODORO_LABELS[prevPhase]}</span>
+                  <span className="ov-dash-pomodoro-tl-dur">{POMODORO_DURATIONS[prevPhase] / 60}m</span>
+                </div>
+              </>
+            )}
+          </div>
+          <div className="ov-dash-pomodoro-tl-item ov-dash-pomodoro-tl-item--current">
+            <div className="ov-dash-pomodoro-tl-dot ov-dash-pomodoro-tl-dot--current" style={{ background: phaseColor, boxShadow: `0 0 5px ${phaseColor}99` }} />
+            <div className="ov-dash-pomodoro-tl-info">
+              <span className="ov-dash-pomodoro-tl-name ov-dash-pomodoro-tl-name--current">{POMODORO_LABELS[phase]}</span>
+              <span className="ov-dash-pomodoro-tl-dur ov-dash-pomodoro-tl-dur--current" style={{ color: phaseColor }}>{fmtPomodoroTime(remaining)}</span>
+            </div>
+          </div>
+          <div className="ov-dash-pomodoro-tl-item">
+            <div className="ov-dash-pomodoro-tl-dot" />
+            <div className="ov-dash-pomodoro-tl-info">
+              <span className="ov-dash-pomodoro-tl-name">{POMODORO_LABELS[nextPhase]}</span>
+              <span className="ov-dash-pomodoro-tl-dur">{POMODORO_DURATIONS[nextPhase] / 60}m</span>
+            </div>
+          </div>
+        </div>
+        {/* 控制按钮（横排） */}
+        <div className="ov-dash-pomodoro-controls">
+          <button className="ov-dash-pomodoro-btn" onClick={handleStartPause} type="button" title={running ? '暂停' : '开始'}>
+            <img src={running ? SvgIcon.PAUSE : SvgIcon.CONTINUE} alt={running ? '暂停' : '开始'} className="ov-dash-pomodoro-btn-icon" />
+          </button>
+          <button className="ov-dash-pomodoro-btn" onClick={handleReset} type="button" title="重置">
+            <img src={SvgIcon.REVERT} alt="重置" className="ov-dash-pomodoro-btn-icon" />
+          </button>
+          <button className="ov-dash-pomodoro-btn" onClick={handleSkip} type="button" title="跳过">
+            <img src={SvgIcon.NEXT_SONG} alt="跳过" className="ov-dash-pomodoro-btn-icon" />
+          </button>
         </div>
       </div>
     </div>

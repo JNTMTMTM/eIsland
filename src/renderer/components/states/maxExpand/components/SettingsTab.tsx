@@ -236,24 +236,43 @@ function OverviewPreview({ layoutConfig }: { layoutConfig: OverviewLayoutConfig 
                   <circle
                     className="ov-dash-pomodoro-ring-progress"
                     cx="42" cy="42" r="38"
-                    style={{ stroke: '#ff6b6b', strokeDasharray: 2 * Math.PI * 38, strokeDashoffset: 0 }}
+                    style={{ stroke: '#ff6b6b', strokeDasharray: 2 * Math.PI * 38, strokeDashoffset: 2 * Math.PI * 38 * 0.3 }}
                   />
                 </svg>
-                <div className="ov-dash-pomodoro-time">25:00</div>
-              </div>
-              <div className="ov-dash-pomodoro-info">
-                <span className="ov-dash-pomodoro-phase" style={{ color: '#ff6b6b' }}>专注中</span>
-                <div className="ov-dash-pomodoro-controls">
-                  <button className="ov-dash-pomodoro-btn" type="button" style={{ cursor: 'default' }}>
-                    <img src={SvgIcon.CONTINUE} alt="开始" className="ov-dash-pomodoro-btn-icon" />
-                  </button>
-                  <button className="ov-dash-pomodoro-btn" type="button" style={{ cursor: 'default' }}>
-                    <img src={SvgIcon.REVERT} alt="重置" className="ov-dash-pomodoro-btn-icon" />
-                  </button>
-                  <button className="ov-dash-pomodoro-btn" type="button" style={{ cursor: 'default' }}>
-                    <img src={SvgIcon.NEXT_SONG} alt="跳过" className="ov-dash-pomodoro-btn-icon" />
-                  </button>
+                <div className="ov-dash-pomodoro-ring-inner">
+                  <div className="ov-dash-pomodoro-time">25:00</div>
+                  <div className="ov-dash-pomodoro-phase" style={{ color: '#ff6b6b' }}>专注中</div>
                 </div>
+              </div>
+              <div className="ov-dash-pomodoro-timeline">
+                <div className="ov-dash-pomodoro-tl-item ov-dash-pomodoro-tl-item--empty">
+                  <div className="ov-dash-pomodoro-tl-dot" />
+                </div>
+                <div className="ov-dash-pomodoro-tl-item ov-dash-pomodoro-tl-item--current">
+                  <div className="ov-dash-pomodoro-tl-dot ov-dash-pomodoro-tl-dot--current" style={{ background: '#ff6b6b', boxShadow: '0 0 5px #ff6b6b99' }} />
+                  <div className="ov-dash-pomodoro-tl-info">
+                    <span className="ov-dash-pomodoro-tl-name ov-dash-pomodoro-tl-name--current">专注中</span>
+                    <span className="ov-dash-pomodoro-tl-dur ov-dash-pomodoro-tl-dur--current" style={{ color: '#ff6b6b' }}>25:00</span>
+                  </div>
+                </div>
+                <div className="ov-dash-pomodoro-tl-item">
+                  <div className="ov-dash-pomodoro-tl-dot" />
+                  <div className="ov-dash-pomodoro-tl-info">
+                    <span className="ov-dash-pomodoro-tl-name">短休息</span>
+                    <span className="ov-dash-pomodoro-tl-dur">5m</span>
+                  </div>
+                </div>
+              </div>
+              <div className="ov-dash-pomodoro-controls">
+                <button className="ov-dash-pomodoro-btn" type="button" style={{ cursor: 'default' }}>
+                  <img src={SvgIcon.CONTINUE} alt="开始" className="ov-dash-pomodoro-btn-icon" />
+                </button>
+                <button className="ov-dash-pomodoro-btn" type="button" style={{ cursor: 'default' }}>
+                  <img src={SvgIcon.REVERT} alt="重置" className="ov-dash-pomodoro-btn-icon" />
+                </button>
+                <button className="ov-dash-pomodoro-btn" type="button" style={{ cursor: 'default' }}>
+                  <img src={SvgIcon.NEXT_SONG} alt="跳过" className="ov-dash-pomodoro-btn-icon" />
+                </button>
               </div>
             </div>
           </div>

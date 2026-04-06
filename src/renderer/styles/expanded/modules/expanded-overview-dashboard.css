@@ -734,37 +734,38 @@
 .ov-dash-pomodoro-widget {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 5px;
   flex: 1;
   min-width: 0;
   overflow: hidden;
 }
 .ov-dash-pomodoro-count {
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(255, 255, 255, 0.45);
   white-space: nowrap;
   display: inline-flex;
   align-items: center;
   gap: 3px;
 }
 .ov-dash-pomodoro-icon {
-  width: 14px;
-  height: 14px;
+  width: 13px;
+  height: 13px;
   object-fit: contain;
 }
 .ov-dash-pomodoro-body {
   flex: 1;
   display: flex;
+  flex-direction: row;
   align-items: center;
-  gap: 14px;
-  padding: 4px 0;
+  gap: 8px;
+  min-height: 0;
 }
 
-/* 环形进度 */
+/* 环形进度盘 */
 .ov-dash-pomodoro-ring-wrap {
   position: relative;
-  width: 72px;
-  height: 72px;
+  width: 80px;
+  height: 80px;
   flex-shrink: 0;
 }
 .ov-dash-pomodoro-ring {
@@ -781,62 +782,132 @@
   fill: none;
   stroke-width: 4;
   stroke-linecap: round;
-  transition: stroke-dashoffset 0.4s ease;
+  transition: stroke-dashoffset 0.5s ease, stroke 0.4s ease;
 }
-.ov-dash-pomodoro-time {
+.ov-dash-pomodoro-ring-inner {
   position: absolute;
   inset: 0;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: 15px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.9);
+  gap: 2px;
+}
+.ov-dash-pomodoro-time {
+  font-size: 18px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.92);
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.5px;
-}
-
-/* 右侧信息区 */
-.ov-dash-pomodoro-info {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  min-width: 0;
+  line-height: 1;
 }
 .ov-dash-pomodoro-phase {
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 9px;
+  font-weight: 500;
+  opacity: 0.8;
+  line-height: 1;
   transition: color 0.3s;
 }
+
+/* 时间线 */
+.ov-dash-pomodoro-timeline {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  justify-content: space-between;
+}
+.ov-dash-pomodoro-timeline::before {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 12px;
+  bottom: 12px;
+  width: 1px;
+  background: rgba(255, 255, 255, 0.1);
+  z-index: 0;
+}
+.ov-dash-pomodoro-tl-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ov-dash-pomodoro-tl-item--empty {
+  visibility: hidden;
+}
+.ov-dash-pomodoro-tl-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.12);
+  position: relative;
+  z-index: 1;
+}
+.ov-dash-pomodoro-tl-dot--current {
+  width: 11px;
+  height: 11px;
+  margin-left: -2px;
+}
+.ov-dash-pomodoro-tl-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.ov-dash-pomodoro-tl-name {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.28);
+  white-space: nowrap;
+  line-height: 1.2;
+}
+.ov-dash-pomodoro-tl-dur {
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.16);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+.ov-dash-pomodoro-tl-name--current {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+}
+.ov-dash-pomodoro-tl-dur--current {
+  font-size: 10px;
+  font-weight: 500;
+}
+
+/* 控制按钮（横排，body 内第三列） */
 .ov-dash-pomodoro-controls {
   display: flex;
-  gap: 6px;
+  flex-direction: row;
+  gap: 5px;
+  align-items: center;
+  align-self: center;
+  flex-shrink: 0;
 }
 .ov-dash-pomodoro-btn {
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
   border: none;
   background: rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  transition: background 0.15s;
   padding: 0;
-  line-height: 1;
+  flex-shrink: 0;
 }
 .ov-dash-pomodoro-btn:hover {
   background: rgba(255, 255, 255, 0.16);
-  color: #fff;
 }
 .ov-dash-pomodoro-btn-icon {
-  width: 14px;
-  height: 14px;
+  width: 13px;
+  height: 13px;
   object-fit: contain;
-  filter: brightness(0) invert(0.75);
+  filter: brightness(0) invert(0.7);
   transition: filter 0.15s;
 }
 .ov-dash-pomodoro-btn:hover .ov-dash-pomodoro-btn-icon {
