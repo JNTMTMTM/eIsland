@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-04-06T10:02:02.742Z
+> 生成时间：2026-04-06T11:14:08.849Z
 
 ## 26.0.5
 
@@ -230,6 +230,12 @@
 
 ## Unreleased
 
+- 2026-04-06 | cc89b4f | 鸡哥 | Merge pull request #13 from JNTMTMTM/dev
+- 2026-04-06 | 401057b | 鸡哥 | fix: 修复歌词严重错位问题
+- 2026-04-06 | 3c42801 | 鸡哥 | refactor: 更换smtc调度库
+- 2026-04-06 | 278c3d6 | 鸡哥 | feat: 把快捷键配置界面移动到单独的tab上
+- 2026-04-06 | c015308 | 鸡哥 | Merge commit '0995ecbed01dc4bd24483476dc7c4a18783d17af'
+- 2026-04-06 | 0995ecb | github-actions[bot] | docs: auto update CHANGE_LOG.md for #12 by @JNTMTMTM [skip ci]
 - 2026-04-06 | 2cf9c0f | 鸡哥 | Merge pull request #12 from JNTMTMTM/dev
 - 2026-04-06 | 2e53cf4 | 鸡哥 | fix: 使代码符合代码质量和注释标准
 - 2026-04-06 | aa530e1 | 鸡哥 | feat: 搜索歌曲歌词时添加加载动画
