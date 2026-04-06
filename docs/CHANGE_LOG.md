@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-04-06T06:18:48.880Z
+> 生成时间：2026-04-06T06:25:51.784Z
 
 ## 26.0.5
 
@@ -230,6 +230,8 @@
 
 ## Unreleased
 
+- 2026-04-06 | 83a011a | 鸡哥 | Merge pull request #9 from JNTMTMTM/dev
+- 2026-04-06 | 7b09ca3 | 鸡哥 | ci: 创建自动更新changelog工作流
 - 2026-04-06 | d2861f2 | 鸡哥 | Merge pull request #8 from JNTMTMTM/dev
 - 2026-04-06 | 263b8c0 | 鸡哥 | ci: 放宽前端代码审查条件
 - 2026-04-06 | 41fedaf | 鸡哥 | style: 修复setting tab中不符合规范的地方
