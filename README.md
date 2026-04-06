@@ -1,5 +1,7 @@
 # eIsland
 
+注意 这是开发分支
+
 Windows 灵动岛桌面应用，基于 Electron + React + TypeScript 构建。
 
 支持实时显示天气、歌词、计时器、系统工具快捷操作等功能。
