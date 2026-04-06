@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-04-06T07:52:23.653Z
+> 生成时间：2026-04-06T09:36:35.004Z
 
 ## 26.0.5
 
@@ -230,6 +230,18 @@
 
 ## Unreleased
 
+- 2026-04-06 | 62000b4 | 鸡哥 | Merge pull request #11 from JNTMTMTM/dev
+- 2026-04-06 | 4242c3f | 鸡哥 | fix: 修复不符合代码质量标注的地方
+- 2026-04-06 | b752825 | 鸡哥 | style: 添加番茄钟时间线入场动画
+- 2026-04-06 | e5ba291 | 鸡哥 | feat: 给番茄钟总体计数添加重置按钮
+- 2026-04-06 | 256f328 | 鸡哥 | fix: 使用 singleton 监听番茄钟倒计时
+- 2026-04-06 | e1dda72 | 鸡哥 | fix: 修复番茄钟结束后未重置倒计时的问题
+- 2026-04-06 | 46b224f | 鸡哥 | style: 优化番茄钟界面和设置界面灵动岛预览界面的布局
+- 2026-04-06 | eaac29e | 鸡哥 | style: 优化番茄钟界面布局
+- 2026-04-06 | e81b76b | 鸡哥 | feat: 添加overall界面番茄钟卡片
+- 2026-04-06 | 97744f4 | 鸡哥 | ci: 删除弃用的工作流
+- 2026-04-06 | cf5bda0 | 鸡哥 | ci: release时也触发自动更新changelog工作流
+- 2026-04-06 | 0681014 | github-actions[bot] | docs: auto update CHANGE_LOG.md for #10 by @JNTMTMTM [skip ci]
 - 2026-04-06 | e3c01c8 | 鸡哥 | Merge pull request #10 from JNTMTMTM/dev
 - 2026-04-06 | 698a94e | 鸡哥 | ci: 更新代码质量审查 jsx-brace-spacing 规则
 - 2026-04-06 | 1b21f1a | 鸡哥 | feat: 添加歌曲数据源和歌词文件获取配置界面
