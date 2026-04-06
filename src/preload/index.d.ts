@@ -87,6 +87,11 @@ declare global {
       /** ===== 快捷键 API ===== */
       hotkeyGet: () => Promise<string>;
       hotkeySet: (accelerator: string) => Promise<boolean>;
+      /** ===== 歌曲设置 API ===== */
+      musicWhitelistGet: () => Promise<string[]>;
+      musicWhitelistSet: (list: string[]) => Promise<boolean>;
+      musicLyricsSourceGet: () => Promise<string>;
+      musicLyricsSourceSet: (source: string) => Promise<boolean>;
     };
   }
 }

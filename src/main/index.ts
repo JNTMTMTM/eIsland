@@ -54,22 +54,60 @@ const EXPANDED_FULL_HEIGHT = 150;
 const SETTINGS_WIDTH = 860;
 const SETTINGS_HEIGHT = 400;
 
-/** 播放程序白名单 - 只有在白名单中的程序才会执行歌曲相关操作 */
-const NOW_PLAYING_WHITELIST = [
-    'QQMusic.exe',
-    'cloudmusic.exe',
-    '汽水音乐',
-    'kugou'
-];
+/** 播放程序白名单默认值 */
+const DEFAULT_WHITELIST = ['QQMusic.exe', 'cloudmusic.exe', '汽水音乐', 'kugou'];
+
+/** 白名单存储键名 */
+const WHITELIST_STORE_KEY = 'music-whitelist';
+
+/** 歌词源存储键名 */
+const LYRICS_SOURCE_STORE_KEY = 'lyrics-source';
+
+/** 运行时白名单（可被用户修改） */
+let nowPlayingWhitelist: string[] = [...DEFAULT_WHITELIST];
 
 /** 记录当前生效的设备ID（仅白名单内程序） */
-let currentDeviceId: string = NOW_PLAYING_WHITELIST[0] || '';
+let currentDeviceId: string = nowPlayingWhitelist[0] || '';
 
 /**
  * 检查当前设备ID是否在白名单内
  */
 function isWhitelisted(): boolean {
-  return NOW_PLAYING_WHITELIST.some(name => currentDeviceId.includes(name));
+  return nowPlayingWhitelist.some(name => currentDeviceId.includes(name));
+}
+
+/**
+ * 读取持久化的白名单配置
+ * @returns 白名单数组
+ */
+function readWhitelistConfig(): string[] {
+  try {
+    const storeDir = join(app.getPath('userData'), 'eIsland_store');
+    const filePath = join(storeDir, `${WHITELIST_STORE_KEY}.json`);
+    if (!existsSync(filePath)) return DEFAULT_WHITELIST;
+    const raw = readFileSync(filePath, 'utf-8');
+    const data = JSON.parse(raw);
+    return Array.isArray(data) ? data : DEFAULT_WHITELIST;
+  } catch {
+    return DEFAULT_WHITELIST;
+  }
+}
+
+/**
+ * 读取持久化的歌词源配置
+ * @returns 歌词源标识字符串
+ */
+function readLyricsSourceConfig(): string {
+  try {
+    const storeDir = join(app.getPath('userData'), 'eIsland_store');
+    const filePath = join(storeDir, `${LYRICS_SOURCE_STORE_KEY}.json`);
+    if (!existsSync(filePath)) return 'lrclib-first';
+    const raw = readFileSync(filePath, 'utf-8');
+    const data = JSON.parse(raw);
+    return typeof data === 'string' ? data : 'lrclib-first';
+  } catch {
+    return 'lrclib-first';
+  }
 }
 
 /** 当前注册的隐藏快捷键 */
@@ -546,6 +584,59 @@ function registerIpcHandlers(): void {
     }
   });
 
+  // ===== 歌曲设置 IPC =====
+
+  /**
+   * 获取当前播放器白名单
+   * @returns 白名单数组
+   */
+  ipcMain.handle('music:whitelist:get', () => {
+    return nowPlayingWhitelist;
+  });
+
+  /**
+   * 设置播放器白名单并持久化
+   * @param _event - IPC 事件
+   * @param list - 新的白名单数组
+   * @returns 是否保存成功
+   */
+  ipcMain.handle('music:whitelist:set', (_event, list: string[]) => {
+    try {
+      nowPlayingWhitelist = list;
+      const filePath = join(storeDir, `${WHITELIST_STORE_KEY}.json`);
+      writeFileSync(filePath, JSON.stringify(list, null, 2), 'utf-8');
+      return true;
+    } catch (err) {
+      console.error('[Whitelist] persist error:', err);
+      return false;
+    }
+  });
+
+  /**
+   * 获取歌词源配置
+   * @returns 歌词源标识字符串
+   */
+  ipcMain.handle('music:lyrics-source:get', () => {
+    return readLyricsSourceConfig();
+  });
+
+  /**
+   * 设置歌词源并持久化
+   * @param _event - IPC 事件
+   * @param source - 歌词源标识
+   * @returns 是否保存成功
+   */
+  ipcMain.handle('music:lyrics-source:set', (_event, source: string) => {
+    try {
+      const filePath = join(storeDir, `${LYRICS_SOURCE_STORE_KEY}.json`);
+      writeFileSync(filePath, JSON.stringify(source, null, 2), 'utf-8');
+      return true;
+    } catch (err) {
+      console.error('[LyricsSource] persist error:', err);
+      return false;
+    }
+  });
+
   // ===== 快捷键 IPC =====
 
   /**
@@ -595,7 +686,7 @@ function initNowPlaying(mainWindow: BrowserWindow | null): void {
 
       const deviceId = info.deviceId || '';
 
-      if (!NOW_PLAYING_WHITELIST.some(name => deviceId.includes(name))) {
+      if (!nowPlayingWhitelist.some(name => deviceId.includes(name))) {
         return;
       }
 
@@ -694,6 +785,9 @@ app.whenReady().then(() => {
   initNowPlaying(mainWindow);
 
   registerIpcHandlers();
+
+  // 读取持久化白名单
+  nowPlayingWhitelist = readWhitelistConfig();
 
   // 读取持久化快捷键并注册
   const savedHotkey = readHotkeyConfig();

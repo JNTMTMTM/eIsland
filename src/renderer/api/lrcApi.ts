@@ -326,15 +326,27 @@ export async function fetchLyrics(
   title: string,
   artist: string
 ): Promise<LyricLine[] | null> {
-  // 优先尝试 LRCLIB
+  let source = 'lrclib-first';
+  try {
+    source = await window.api.musicLyricsSourceGet();
+  } catch { /* fallback */ }
+
+  if (source === 'lrclib-only') {
+    return fetchLyricsFromLrclib(title, artist);
+  }
+  if (source === 'netease-only') {
+    return fetchLyricsFromNetease(title, artist);
+  }
+  if (source === 'netease-first') {
+    const neteaseResult = await fetchLyricsFromNetease(title, artist);
+    if (neteaseResult) return neteaseResult;
+    return fetchLyricsFromLrclib(title, artist);
+  }
+
+  // 默认 lrclib-first
   const lrclibResult = await fetchLyricsFromLrclib(title, artist);
   if (lrclibResult) return lrclibResult;
-
-  // 备用网易云音乐
-  const neteaseResult = await fetchLyricsFromNetease(title, artist);
-  if (neteaseResult) return neteaseResult;
-
-  return null;
+  return fetchLyricsFromNetease(title, artist);
 }
 
 /**
