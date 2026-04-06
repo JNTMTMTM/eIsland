@@ -302,6 +302,8 @@ function PomodoroWidget(): React.ReactElement {
   phaseRef.current = phase;
   const countRef = useRef(completedCount);
   countRef.current = completedCount;
+  const remainingRef = useRef(remaining);
+  remainingRef.current = remaining;
 
   /** 加载持久化状态 */
   useEffect(() => {
@@ -350,13 +352,12 @@ function PomodoroWidget(): React.ReactElement {
       return;
     }
     intervalRef.current = setInterval(() => {
-      setRemaining(prev => {
-        if (prev <= 1) {
-          handlePhaseEnd();
-          return 0;
-        }
-        return prev - 1;
-      });
+      const current = remainingRef.current;
+      if (current <= 1) {
+        handlePhaseEnd();
+      } else {
+        setRemaining(current - 1);
+      }
     }, 1000);
     return () => { if (intervalRef.current) { clearInterval(intervalRef.current); intervalRef.current = null; } };
   }, [running, handlePhaseEnd]);
