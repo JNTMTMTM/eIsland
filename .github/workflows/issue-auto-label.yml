@@ -1,0 +1,78 @@
+name: Issue Auto Label
+
+on:
+  issues:
+    types: [opened, edited, reopened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  auto-label-issue:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Detect issue type and apply labels
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { owner, repo } = context.repo;
+            const issue = context.payload.issue;
+
+            const text = `${issue.title || ''}\n${issue.body || ''}`.toLowerCase();
+
+            const labelsToApply = new Set();
+
+            if (/(bug|错误|异常|崩溃|无法|失败|报错)/i.test(text)) labelsToApply.add('bug');
+            if (/(feature|需求|建议|增强|改进|优化|新功能)/i.test(text)) labelsToApply.add('enhancement');
+            if (/(doc|docs|readme|文档)/i.test(text)) labelsToApply.add('documentation');
+            if (/(ui|renderer|界面|前端)/i.test(text)) labelsToApply.add('frontend');
+            if (/(electron|main process|preload|托盘|主进程)/i.test(text)) labelsToApply.add('electron-core');
+            if (/(workflow|github action|ci|pipeline)/i.test(text)) labelsToApply.add('ci');
+            if (/(question|疑问|请教|咨询|如何)/i.test(text)) labelsToApply.add('question');
+
+            if (labelsToApply.size === 0) {
+              labelsToApply.add('needs-triage');
+            }
+
+            const colorMap = {
+              bug: 'd73a4a',
+              enhancement: 'a2eeef',
+              documentation: '0075ca',
+              frontend: '1f6feb',
+              'electron-core': '0e8a16',
+              ci: '5319e7',
+              question: 'd876e3',
+              'needs-triage': 'd4c5f9'
+            };
+
+            const labels = [...labelsToApply];
+
+            for (const name of labels) {
+              try {
+                await github.rest.issues.getLabel({ owner, repo, name });
+              } catch (error) {
+                if (error.status === 404) {
+                  await github.rest.issues.createLabel({
+                    owner,
+                    repo,
+                    name,
+                    color: colorMap[name] || 'ededed',
+                    description: `Auto-generated issue label: ${name}`
+                  });
+                } else {
+                  throw error;
+                }
+              }
+            }
+
+            await github.rest.issues.addLabels({
+              owner,
+              repo,
+              issue_number: issue.number,
+              labels
+            });
+
+            core.notice(`Applied labels to issue #${issue.number}: ${labels.join(', ')}`);

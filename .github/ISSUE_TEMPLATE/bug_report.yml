@@ -1,0 +1,67 @@
+name: Bug Report
+description: Report a reproducible problem in eIsland
+title: "[Bug]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping us improve eIsland. Please fill in the details below.
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: 问题描述
+      description: 简要描述你遇到的问题。
+      placeholder: 例如：点击设置页面后应用闪退。
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: 复现步骤
+      description: 请按顺序填写可稳定复现问题的步骤。
+      placeholder: |
+        1. 打开应用
+        2. 进入 xxx 页面
+        3. 点击 xxx
+        4. 出现错误
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期望行为
+      placeholder: 你期望发生什么？
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: 实际行为
+      placeholder: 实际发生了什么？有无报错提示？
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: 软件版本
+      description: 例如 v26.1.0
+      placeholder: v26.x.x
+
+  - type: input
+    id: os
+    attributes:
+      label: 操作系统
+      description: 例如 Windows 11 24H2
+      placeholder: Windows 10 / Windows 11
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: 日志 / 截图（可选）
+      description: 粘贴日志或拖拽截图，能显著提高排查效率。
+      render: shell
