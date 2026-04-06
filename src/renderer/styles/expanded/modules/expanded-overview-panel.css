@@ -366,8 +366,27 @@
   font-weight: 600;
   opacity: 1;
   transform: scale(1.02);
-  text-shadow: 0 0 8px rgba(255, 255, 255, 0.15);
   animation: ovLrcCurrentIn 0.35s ease both;
+}
+
+/* ---- 歌词行：渐变扫光进度 ---- */
+@property --lrc-prog {
+  syntax: '<percentage>';
+  inherits: false;
+  initial-value: 0%;
+}
+
+.ov-lrc-progress-text {
+  display: inline;
+  transition: --lrc-prog 0.15s linear;
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0.95) var(--lrc-prog),
+    rgba(255, 255, 255, 0.28) var(--lrc-prog)
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 @keyframes ovLrcIn {
