@@ -831,6 +831,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  padding: 5px 0;
 }
 .ov-dash-pomodoro-tl-item--empty {
   visibility: hidden;
