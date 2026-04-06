@@ -698,8 +698,8 @@
 }
 .ov-cd-card {
   flex: 1;
-  width: auto !important;
-  height: auto !important;
+  width: auto;
+  height: auto;
   min-height: 0;
 }
 .ov-cd-card .cd-card-content {
