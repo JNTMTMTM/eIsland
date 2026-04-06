@@ -1,0 +1,263 @@
+name: PR Code Quality Review
+
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  review-quality:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Analyze changed frontend files
+        id: quality_check
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('node:fs');
+            const { owner, repo } = context.repo;
+            const pr = context.payload.pull_request;
+
+            const requiredChecklist = [
+              { id: 'STD-1-HTML', label: '已核对 docs/FRONTEND_STANDARDS.md 第 1 章 HTML 规范全部条款' },
+              { id: 'STD-2-CSS', label: '已核对 docs/FRONTEND_STANDARDS.md 第 2 章 CSS 规范全部条款' },
+              { id: 'STD-3-JSTS', label: '已核对 docs/FRONTEND_STANDARDS.md 第 3 章 JavaScript / TypeScript 规范全部条款' },
+              { id: 'STD-4-REACT', label: '已核对 docs/FRONTEND_STANDARDS.md 第 4 章 React 规范全部条款' },
+              { id: 'STD-5-NEXT', label: '已核对 docs/FRONTEND_STANDARDS.md 第 5 章 Next.js 规范全部条款（如适用）' },
+              { id: 'STD-COMMENT', label: '已核对 docs/COMMENT_STANDARDS.md 注释规范全部条款' }
+            ];
+
+            const prBody = pr.body || '';
+            const missingChecklist = requiredChecklist
+              .filter((item) => {
+                const checkedPattern = new RegExp(`-\\s*\\[[xX]\\]\\s*${item.id}\\b`);
+                return !checkedPattern.test(prBody);
+              })
+              .map((item) => `${item.id} | ${item.label}`);
+
+            const rules = [
+              {
+                id: 'no-var',
+                desc: 'JS/TS 禁止使用 var',
+                applies: /\.(js|jsx|ts|tsx)$/,
+                test: (text) => /(^|\s)var\s+/.test(text)
+              },
+              {
+                id: 'no-any',
+                desc: 'TypeScript 避免 any',
+                applies: /\.(ts|tsx)$/,
+                test: (text) => /(:\s*any\b|<\s*any\s*>|\bas\s+any\b)/.test(text)
+              },
+              {
+                id: 'eqeqeq',
+                desc: '必须使用 === / !==',
+                applies: /\.(js|jsx|ts|tsx)$/,
+                test: (text) => /(^|[^=!])==([^=]|$)|(^|[^!])!=([^=]|$)/m.test(text)
+              },
+              {
+                id: 'no-for-in-of',
+                desc: '避免 for...in / for...of，优先高阶函数',
+                applies: /\.(js|jsx|ts|tsx)$/,
+                test: (text) => /for\s*\([^)]*\b(?:in|of)\b[^)]*\)/.test(text)
+              },
+              {
+                id: 'no-eval-function-constructor',
+                desc: '安全要求：禁止 eval / new Function',
+                applies: /\.(js|jsx|ts|tsx)$/,
+                test: (text) => /\beval\s*\(|new\s+Function\s*\(/.test(text)
+              },
+              {
+                id: 'no-react-import-in-jsx-runtime',
+                desc: 'React 17+ JSX 文件避免未使用 React 默认导入',
+                applies: /\.(jsx|tsx)$/,
+                test: (text) => /import\s+React\s+from\s+['"]react['"]\s*;/.test(text)
+              },
+              {
+                id: 'no-props-spread',
+                desc: 'React 禁止 Props 扩散传递',
+                applies: /\.(jsx|tsx)$/,
+                test: (text) => /<\w[^>]*\{\s*\.\.\.[^}]+\}[^>]*>/.test(text)
+              },
+              {
+                id: 'no-index-key',
+                desc: 'React 列表 key 禁止使用 index',
+                applies: /\.(jsx|tsx)$/,
+                test: (text) => /key\s*=\s*\{\s*index\s*\}/.test(text)
+              },
+              {
+                id: 'jsx-brace-spacing',
+                desc: 'JSX 花括号内不应有多余空格',
+                applies: /\.(jsx|tsx)$/,
+                test: (text) => /\{\s+[^\n}]+\s+\}/.test(text)
+              },
+              {
+                id: 'no-important',
+                desc: 'CSS 禁止使用 !important',
+                applies: /\.(css|scss|sass)$/,
+                test: (text) => /!important/.test(text)
+              },
+              {
+                id: 'html-no-inline-handler',
+                desc: 'HTML 禁止内联事件处理器',
+                applies: /\.html$/,
+                test: (text) => /\son[a-z]+\s*=\s*['"][^'"]*['"]/i.test(text)
+              }
+            ];
+
+            const files = await github.paginate(github.rest.pulls.listFiles, {
+              owner,
+              repo,
+              pull_number: pr.number,
+              per_page: 100
+            });
+
+            const targets = files
+              .filter((f) => f.status !== 'removed')
+              .map((f) => f.filename)
+              .filter((name) => /^(src\/renderer\/|src\/shared\/|assets\/|index\.html|src\/)/.test(name))
+              .filter((name) => /\.(js|jsx|ts|tsx|css|scss|sass|html)$/.test(name));
+
+            const violations = [];
+
+            for (const filename of targets) {
+              let text = '';
+              try {
+                const resp = await github.rest.repos.getContent({
+                  owner,
+                  repo,
+                  path: filename,
+                  ref: pr.head.sha
+                });
+
+                if (!('content' in resp.data) || !resp.data.content) {
+                  continue;
+                }
+                text = Buffer.from(resp.data.content, 'base64').toString('utf8');
+              } catch (error) {
+                violations.push(`${filename}:1 | fetch-error | 无法读取文件内容`);
+                continue;
+              }
+
+              for (const rule of rules) {
+                if (!rule.applies.test(filename)) continue;
+                if (rule.test(text)) {
+                  violations.push(`${filename}:1 | ${rule.id} | ${rule.desc}`);
+                }
+              }
+            }
+
+            const byRule = violations.reduce((acc, line) => {
+              const rule = (line.split('|')[1] || '').trim() || 'unknown';
+              acc[rule] = (acc[rule] || 0) + 1;
+              return acc;
+            }, {});
+
+            const summary = [];
+            summary.push(`Scanned files: ${targets.length}`);
+            summary.push(`Violations: ${violations.length}`);
+            summary.push(`By rule: ${JSON.stringify(byRule)}`);
+            summary.push(`Checklist missing: ${missingChecklist.length}`);
+            summary.push('');
+            if (violations.length > 0) {
+              summary.push(...violations);
+            } else {
+              summary.push('No violations detected in checked rules.');
+            }
+
+            summary.push('');
+            summary.push('Checklist status:');
+            if (missingChecklist.length > 0) {
+              summary.push(...missingChecklist.map((line) => `MISSING | ${line}`));
+            } else {
+              summary.push('All required docs/FRONTEND_STANDARDS.md and docs/COMMENT_STANDARDS.md checklist items are confirmed in PR body.');
+            }
+
+            fs.writeFileSync('quality-check.log', summary.join('\n'), 'utf8');
+
+            const changedFilesBody = targets.length > 0
+              ? targets.map((f) => `- ${f}`).join('\n')
+              : '- No frontend-related target files were detected.';
+            fs.writeFileSync('quality-checked-files.md', changedFilesBody, 'utf8');
+
+            const passed = violations.length === 0 && missingChecklist.length === 0;
+            core.setOutput('passed', passed ? 'true' : 'false');
+            core.setOutput('violations', `${violations.length}`);
+            core.setOutput('checklist_missing', `${missingChecklist.length}`);
+
+      - name: Compose review comment
+        shell: bash
+        run: |
+          if [ -s quality-check.log ]; then
+            sed -n '1,180p' quality-check.log > quality-check-preview.log
+          else
+            echo "No output from code quality review." > quality-check-preview.log
+          fi
+
+          {
+            echo "<!-- pr-auto-code-quality-review -->"
+            echo "## 🧪 PR 代码质量审查"
+            echo ""
+            echo "- PR: #${{ github.event.pull_request.number }}"
+            echo "- 分支: \`${{ github.event.pull_request.head.ref }}\` -> \`${{ github.event.pull_request.base.ref }}\`"
+            echo "- 触发提交: \`${{ github.event.pull_request.head.sha }}\`"
+            echo "- 审查结果: ${{ steps.quality_check.outputs.passed == 'true' && '✅ 通过' || '❌ 未通过' }}"
+            echo "- 违规数量: \`${{ steps.quality_check.outputs.violations }}\`"
+            echo "- Checklist 缺失项: \`${{ steps.quality_check.outputs.checklist_missing }}\`"
+            echo ""
+            echo "### 已检查文件"
+            cat quality-checked-files.md
+            echo ""
+            echo "### 审查输出（前 180 行）"
+            echo '```text'
+            cat quality-check-preview.log
+            echo '```'
+            echo ""
+          } > pr-quality-comment.md
+
+      - name: Create or update quality comment
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('node:fs');
+            const marker = '<!-- pr-auto-code-quality-review -->';
+            const body = fs.readFileSync('pr-quality-comment.md', 'utf8');
+            const { owner, repo } = context.repo;
+            const issue_number = context.payload.pull_request.number;
+
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner,
+              repo,
+              issue_number,
+              per_page: 100
+            });
+
+            const existing = comments.find((c) => c.user?.type === 'Bot' && c.body?.includes(marker));
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner,
+                repo,
+                comment_id: existing.id,
+                body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number,
+                body
+              });
+            }
+
+      - name: Fail workflow on quality violations
+        if: steps.quality_check.outputs.passed != 'true'
+        run: |
+          echo "Code quality review found violations. See PR comment for details."
+          exit 1
