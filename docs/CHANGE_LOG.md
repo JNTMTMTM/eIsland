@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-04-06T09:36:35.004Z
+> 生成时间：2026-04-06T10:02:02.742Z
 
 ## 26.0.5
 
@@ -230,6 +230,11 @@
 
 ## Unreleased
 
+- 2026-04-06 | 2cf9c0f | 鸡哥 | Merge pull request #12 from JNTMTMTM/dev
+- 2026-04-06 | 2e53cf4 | 鸡哥 | fix: 使代码符合代码质量和注释标准
+- 2026-04-06 | aa530e1 | 鸡哥 | feat: 搜索歌曲歌词时添加加载动画
+- 2026-04-06 | 61720f9 | 鸡哥 | feat: 前奏播放时显示音符图标而不是第一句歌词 #5
+- 2026-04-06 | f3125bb | github-actions[bot] | docs: auto update CHANGE_LOG.md for #11 by @JNTMTMTM [skip ci]
 - 2026-04-06 | 62000b4 | 鸡哥 | Merge pull request #11 from JNTMTMTM/dev
 - 2026-04-06 | 4242c3f | 鸡哥 | fix: 修复不符合代码质量标注的地方
 - 2026-04-06 | b752825 | 鸡哥 | style: 添加番茄钟时间线入场动画
