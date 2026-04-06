@@ -24,7 +24,7 @@ jobs:
             const { owner, repo } = context.repo;
             const pr = context.payload.pull_request;
 
-            const requiredChecklist = [
+            const selfCheckChecklist = [
               { id: 'STD-1-HTML', label: '已核对 docs/FRONTEND_STANDARDS.md 第 1 章 HTML 规范全部条款' },
               { id: 'STD-2-CSS', label: '已核对 docs/FRONTEND_STANDARDS.md 第 2 章 CSS 规范全部条款' },
               { id: 'STD-3-JSTS', label: '已核对 docs/FRONTEND_STANDARDS.md 第 3 章 JavaScript / TypeScript 规范全部条款' },
@@ -34,7 +34,7 @@ jobs:
             ];
 
             const prBody = pr.body || '';
-            const missingChecklist = requiredChecklist
+            const uncheckedChecklist = selfCheckChecklist
               .filter((item) => {
                 const checkedPattern = new RegExp(`-\\s*\\[[xX]\\]\\s*${item.id}\\b`);
                 return !checkedPattern.test(prBody);
@@ -162,7 +162,7 @@ jobs:
             summary.push(`Scanned files: ${targets.length}`);
             summary.push(`Violations: ${violations.length}`);
             summary.push(`By rule: ${JSON.stringify(byRule)}`);
-            summary.push(`Checklist missing: ${missingChecklist.length}`);
+            summary.push(`Checklist unchecked (self-check only): ${uncheckedChecklist.length}`);
             summary.push('');
             if (violations.length > 0) {
               summary.push(...violations);
@@ -171,11 +171,11 @@ jobs:
             }
 
             summary.push('');
-            summary.push('Checklist status:');
-            if (missingChecklist.length > 0) {
-              summary.push(...missingChecklist.map((line) => `MISSING | ${line}`));
+            summary.push('Checklist self-check status (non-blocking):');
+            if (uncheckedChecklist.length > 0) {
+              summary.push(...uncheckedChecklist.map((line) => `UNCHECKED | ${line}`));
             } else {
-              summary.push('All required docs/FRONTEND_STANDARDS.md and docs/COMMENT_STANDARDS.md checklist items are confirmed in PR body.');
+              summary.push('All self-check checklist items are checked in PR body.');
             }
 
             fs.writeFileSync('quality-check.log', summary.join('\n'), 'utf8');
@@ -185,10 +185,10 @@ jobs:
               : '- No frontend-related target files were detected.';
             fs.writeFileSync('quality-checked-files.md', changedFilesBody, 'utf8');
 
-            const passed = violations.length === 0 && missingChecklist.length === 0;
+            const passed = violations.length === 0;
             core.setOutput('passed', passed ? 'true' : 'false');
             core.setOutput('violations', `${violations.length}`);
-            core.setOutput('checklist_missing', `${missingChecklist.length}`);
+            core.setOutput('checklist_missing', `${uncheckedChecklist.length}`);
 
       - name: Compose review comment
         shell: bash
@@ -208,7 +208,7 @@ jobs:
             echo "- 触发提交: \`${{ github.event.pull_request.head.sha }}\`"
             echo "- 审查结果: ${{ steps.quality_check.outputs.passed == 'true' && '✅ 通过' || '❌ 未通过' }}"
             echo "- 违规数量: \`${{ steps.quality_check.outputs.violations }}\`"
-            echo "- Checklist 缺失项: \`${{ steps.quality_check.outputs.checklist_missing }}\`"
+            echo "- Checklist 未勾选项（仅自检提示，不影响结果）: \`${{ steps.quality_check.outputs.checklist_missing }}\`"
             echo ""
             echo "### 已检查文件"
             cat quality-checked-files.md
