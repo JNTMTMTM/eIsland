@@ -769,7 +769,7 @@ export function SettingsTab(): ReactElement {
                     </a>
                     鸡哥 <span className="settings-about-id">JNTMTMTM</span>
                   </div>
-                  <div className="settings-about-version">eIsland v26.1.0</div>
+                  <div className="settings-about-version">eIsland v26.1.1-beta.1</div>
                 </div>
               </div>
 
@@ -836,7 +836,7 @@ export function SettingsTab(): ReactElement {
 
               {/* 版权信息 */}
               <div className="settings-about-footer">
-                <div className="settings-about-copyright">© pyisland.com 版权所有</div>
+                <div className="settings-about-copyright">© JNTMTMTM, pyisland.com 版权所有</div>
                 <div className="settings-about-slogan">算法诠释一切 质疑即是认可</div>
               </div>
             </div>
