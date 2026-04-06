@@ -45,6 +45,8 @@ export const SvgIcon = {
   SCREENSHOT: './svg/SCREENSHOT.svg',
   /** 任务管理器 */
   TASK_MANAGER: './svg/TASK_MANAGER.svg',
+  /** 番茄钟 */
+  POMODORO: './svg/POMODORO.svg',
 } as const;
 
 export type SvgIconKey = keyof typeof SvgIcon;

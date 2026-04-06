@@ -75,7 +75,7 @@ interface AppShortcut {
 }
 
 /** 总览控件类型 */
-export type OverviewWidgetType = 'shortcuts' | 'todo' | 'song' | 'countdown';
+export type OverviewWidgetType = 'shortcuts' | 'todo' | 'song' | 'countdown' | 'pomodoro';
 
 /** 控件选项列表 */
 export const OVERVIEW_WIDGET_OPTIONS: { value: OverviewWidgetType; label: string }[] = [
@@ -83,6 +83,7 @@ export const OVERVIEW_WIDGET_OPTIONS: { value: OverviewWidgetType; label: string
   { value: 'todo', label: '待办事项' },
   { value: 'song', label: '歌曲' },
   { value: 'countdown', label: '倒数日' },
+  { value: 'pomodoro', label: '番茄钟' },
 ];
 
 /** 总览布局配置 */
@@ -240,6 +241,182 @@ function CountdownWidget(): React.ReactElement {
           })}
         </div>
       )}
+    </div>
+  );
+}
+
+/** 番茄钟阶段 */
+type PomodoroPhase = 'work' | 'shortBreak' | 'longBreak';
+
+/** 番茄钟配置（秒） */
+const POMODORO_DURATIONS: Record<PomodoroPhase, number> = {
+  work: 25 * 60,
+  shortBreak: 5 * 60,
+  longBreak: 15 * 60,
+};
+
+const POMODORO_LABELS: Record<PomodoroPhase, string> = {
+  work: '专注中',
+  shortBreak: '短休息',
+  longBreak: '长休息',
+};
+
+const POMODORO_STORE_KEY = 'pomodoro-state';
+
+/** 番茄钟持久化数据 */
+interface PomodoroData {
+  phase: PomodoroPhase;
+  remaining: number;
+  running: boolean;
+  completedCount: number;
+}
+
+/** 格式化秒为 MM:SS */
+function fmtPomodoroTime(seconds: number): string {
+  const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+  const s = (seconds % 60).toString().padStart(2, '0');
+  return `${m}:${s}`;
+}
+
+/** 番茄钟控件 */
+function PomodoroWidget(): React.ReactElement {
+  const [phase, setPhase] = useState<PomodoroPhase>('work');
+  const [remaining, setRemaining] = useState(POMODORO_DURATIONS.work);
+  const [running, setRunning] = useState(false);
+  const [completedCount, setCompletedCount] = useState(0);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  /** Refs 供 interval 读取最新值 */
+  const phaseRef = useRef(phase);
+  phaseRef.current = phase;
+  const countRef = useRef(completedCount);
+  countRef.current = completedCount;
+
+  /** 加载持久化状态 */
+  useEffect(() => {
+    let cancelled = false;
+    window.api.storeRead(POMODORO_STORE_KEY).then((data) => {
+      if (cancelled || !data) return;
+      const d = data as PomodoroData;
+      if (d.phase) setPhase(d.phase);
+      if (typeof d.remaining === 'number') setRemaining(d.remaining);
+      if (typeof d.completedCount === 'number') setCompletedCount(d.completedCount);
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+
+  /** 持久化 */
+  const persist = useCallback((p: PomodoroPhase, rem: number, count: number) => {
+    const payload: PomodoroData = { phase: p, remaining: rem, running: false, completedCount: count };
+    window.api.storeWrite(POMODORO_STORE_KEY, payload).catch(() => {});
+  }, []);
+
+  /** 切到下一阶段 */
+  const advancePhase = useCallback((currentPhase: PomodoroPhase, count: number): { nextPhase: PomodoroPhase; nextCount: number } => {
+    if (currentPhase === 'work') {
+      const nextCount = count + 1;
+      const nextPhase: PomodoroPhase = nextCount % 4 === 0 ? 'longBreak' : 'shortBreak';
+      return { nextPhase, nextCount };
+    }
+    return { nextPhase: 'work', nextCount: count };
+  }, []);
+
+  /** 阶段结束：通过 ref 读取最新值，一次性批量更新 */
+  const handlePhaseEnd = useCallback(() => {
+    setRunning(false);
+    const { nextPhase, nextCount } = advancePhase(phaseRef.current, countRef.current);
+    const nextRemaining = POMODORO_DURATIONS[nextPhase];
+    setPhase(nextPhase);
+    setRemaining(nextRemaining);
+    setCompletedCount(nextCount);
+    persist(nextPhase, nextRemaining, nextCount);
+  }, [advancePhase, persist]);
+
+  /** 计时器 tick */
+  useEffect(() => {
+    if (!running) {
+      if (intervalRef.current) { clearInterval(intervalRef.current); intervalRef.current = null; }
+      return;
+    }
+    intervalRef.current = setInterval(() => {
+      setRemaining(prev => {
+        if (prev <= 1) {
+          handlePhaseEnd();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => { if (intervalRef.current) { clearInterval(intervalRef.current); intervalRef.current = null; } };
+  }, [running, handlePhaseEnd]);
+
+  const totalDuration = POMODORO_DURATIONS[phase];
+  const progress = 1 - remaining / totalDuration;
+  const circumference = 2 * Math.PI * 38;
+  const dashOffset = circumference * (1 - progress);
+
+  const handleStartPause = (): void => {
+    setRunning(prev => !prev);
+  };
+
+  const handleReset = (): void => {
+    setRunning(false);
+    setRemaining(POMODORO_DURATIONS[phase]);
+    persist(phase, POMODORO_DURATIONS[phase], completedCount);
+  };
+
+  const handleSkip = (): void => {
+    setRunning(false);
+    const { nextPhase, nextCount } = advancePhase(phase, completedCount);
+    setPhase(nextPhase);
+    setCompletedCount(nextCount);
+    const nextRemaining = POMODORO_DURATIONS[nextPhase];
+    setRemaining(nextRemaining);
+    persist(nextPhase, nextRemaining, nextCount);
+  };
+
+  const phaseColor = phase === 'work' ? '#ff6b6b' : phase === 'shortBreak' ? '#51cf66' : '#339af0';
+
+  return (
+    <div className="ov-dash-widget ov-dash-pomodoro-widget">
+      <div className="ov-dash-widget-header">
+        <span className="ov-dash-widget-title">番茄钟</span>
+        <span className="ov-dash-pomodoro-count" title="已完成番茄数">
+          <img src={SvgIcon.POMODORO} alt="番茄" className="ov-dash-pomodoro-icon" />
+          {completedCount}
+        </span>
+      </div>
+      <div className="ov-dash-pomodoro-body">
+        <div className="ov-dash-pomodoro-ring-wrap">
+          <svg className="ov-dash-pomodoro-ring" viewBox="0 0 84 84">
+            <circle className="ov-dash-pomodoro-ring-bg" cx="42" cy="42" r="38" />
+            <circle
+              className="ov-dash-pomodoro-ring-progress"
+              cx="42" cy="42" r="38"
+              style={{
+                stroke: phaseColor,
+                strokeDasharray: circumference,
+                strokeDashoffset: dashOffset,
+              }}
+            />
+          </svg>
+          <div className="ov-dash-pomodoro-time">{fmtPomodoroTime(remaining)}</div>
+        </div>
+        <div className="ov-dash-pomodoro-info">
+          <span className="ov-dash-pomodoro-phase" style={{ color: phaseColor }}>{POMODORO_LABELS[phase]}</span>
+          <div className="ov-dash-pomodoro-controls">
+            <button className="ov-dash-pomodoro-btn" onClick={handleStartPause} type="button" title={running ? '暂停' : '开始'}>
+              <img src={running ? SvgIcon.PAUSE : SvgIcon.CONTINUE} alt={running ? '暂停' : '开始'} className="ov-dash-pomodoro-btn-icon" />
+            </button>
+            <button className="ov-dash-pomodoro-btn" onClick={handleReset} type="button" title="重置">
+              <img src={SvgIcon.REVERT} alt="重置" className="ov-dash-pomodoro-btn-icon" />
+            </button>
+            <button className="ov-dash-pomodoro-btn" onClick={handleSkip} type="button" title="跳过">
+              <img src={SvgIcon.NEXT_SONG} alt="跳过" className="ov-dash-pomodoro-btn-icon" />
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -557,6 +734,8 @@ export function OverviewTab(): React.ReactElement {
         return <SongWidget />;
       case 'countdown':
         return <CountdownWidget />;
+      case 'pomodoro':
+        return <PomodoroWidget />;
       default:
         return null;
     }

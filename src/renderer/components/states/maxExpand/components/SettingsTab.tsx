@@ -219,6 +219,45 @@ function OverviewPreview({ layoutConfig }: { layoutConfig: OverviewLayoutConfig 
             )}
           </div>
         );
+      case 'pomodoro':
+        return (
+          <div className="ov-dash-widget ov-dash-pomodoro-widget">
+            <div className="ov-dash-widget-header">
+              <span className="ov-dash-widget-title">番茄钟</span>
+              <span className="ov-dash-pomodoro-count">
+                <img src={SvgIcon.POMODORO} alt="番茄" className="ov-dash-pomodoro-icon" />
+                0
+              </span>
+            </div>
+            <div className="ov-dash-pomodoro-body">
+              <div className="ov-dash-pomodoro-ring-wrap">
+                <svg className="ov-dash-pomodoro-ring" viewBox="0 0 84 84">
+                  <circle className="ov-dash-pomodoro-ring-bg" cx="42" cy="42" r="38" />
+                  <circle
+                    className="ov-dash-pomodoro-ring-progress"
+                    cx="42" cy="42" r="38"
+                    style={{ stroke: '#ff6b6b', strokeDasharray: 2 * Math.PI * 38, strokeDashoffset: 0 }}
+                  />
+                </svg>
+                <div className="ov-dash-pomodoro-time">25:00</div>
+              </div>
+              <div className="ov-dash-pomodoro-info">
+                <span className="ov-dash-pomodoro-phase" style={{ color: '#ff6b6b' }}>专注中</span>
+                <div className="ov-dash-pomodoro-controls">
+                  <button className="ov-dash-pomodoro-btn" type="button" style={{ cursor: 'default' }}>
+                    <img src={SvgIcon.CONTINUE} alt="开始" className="ov-dash-pomodoro-btn-icon" />
+                  </button>
+                  <button className="ov-dash-pomodoro-btn" type="button" style={{ cursor: 'default' }}>
+                    <img src={SvgIcon.REVERT} alt="重置" className="ov-dash-pomodoro-btn-icon" />
+                  </button>
+                  <button className="ov-dash-pomodoro-btn" type="button" style={{ cursor: 'default' }}>
+                    <img src={SvgIcon.NEXT_SONG} alt="跳过" className="ov-dash-pomodoro-btn-icon" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
       default:
         return null;
     }

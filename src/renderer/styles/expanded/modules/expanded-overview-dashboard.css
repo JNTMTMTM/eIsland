@@ -729,3 +729,116 @@
   font-size: 11px;
   color: rgba(255, 255, 255, 0.18);
 }
+
+/** ========== 番茄钟控件 ========== */
+.ov-dash-pomodoro-widget {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+.ov-dash-pomodoro-count {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+.ov-dash-pomodoro-icon {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+}
+.ov-dash-pomodoro-body {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 4px 0;
+}
+
+/* 环形进度 */
+.ov-dash-pomodoro-ring-wrap {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  flex-shrink: 0;
+}
+.ov-dash-pomodoro-ring {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+.ov-dash-pomodoro-ring-bg {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.06);
+  stroke-width: 4;
+}
+.ov-dash-pomodoro-ring-progress {
+  fill: none;
+  stroke-width: 4;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.4s ease;
+}
+.ov-dash-pomodoro-time {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.5px;
+}
+
+/* 右侧信息区 */
+.ov-dash-pomodoro-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+.ov-dash-pomodoro-phase {
+  font-size: 13px;
+  font-weight: 600;
+  transition: color 0.3s;
+}
+.ov-dash-pomodoro-controls {
+  display: flex;
+  gap: 6px;
+}
+.ov-dash-pomodoro-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  padding: 0;
+  line-height: 1;
+}
+.ov-dash-pomodoro-btn:hover {
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+}
+.ov-dash-pomodoro-btn-icon {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+  filter: brightness(0) invert(0.75);
+  transition: filter 0.15s;
+}
+.ov-dash-pomodoro-btn:hover .ov-dash-pomodoro-btn-icon {
+  filter: brightness(0) invert(1);
+}
