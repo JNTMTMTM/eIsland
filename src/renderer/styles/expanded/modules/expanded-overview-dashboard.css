@@ -698,8 +698,8 @@
 }
 .ov-cd-card {
   flex: 1;
-  width: auto !important;
-  height: auto !important;
+  width: auto;
+  height: auto;
   min-height: 0;
 }
 .ov-cd-card .cd-card-content {
@@ -728,4 +728,228 @@
   justify-content: center;
   font-size: 11px;
   color: rgba(255, 255, 255, 0.18);
+}
+
+/** ========== 番茄钟控件 ========== */
+.ov-dash-pomodoro-widget {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+.ov-dash-pomodoro-count {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.45);
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+.ov-dash-pomodoro-icon {
+  width: 13px;
+  height: 13px;
+  object-fit: contain;
+}
+.ov-dash-pomodoro-count-reset {
+  width: 14px;
+  height: 14px;
+  border: none;
+  background: transparent;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0.4;
+  transition: opacity 0.15s;
+  flex-shrink: 0;
+}
+.ov-dash-pomodoro-count-reset:hover {
+  opacity: 1;
+}
+.ov-dash-pomodoro-count-reset-icon {
+  width: 11px;
+  height: 11px;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+}
+.ov-dash-pomodoro-body {
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  min-height: 0;
+}
+
+/* 环形进度盘 */
+.ov-dash-pomodoro-ring-wrap {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  flex-shrink: 0;
+}
+.ov-dash-pomodoro-ring {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+.ov-dash-pomodoro-ring-bg {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.06);
+  stroke-width: 4;
+}
+.ov-dash-pomodoro-ring-progress {
+  fill: none;
+  stroke-width: 4;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.5s ease, stroke 0.4s ease;
+}
+.ov-dash-pomodoro-ring-inner {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+.ov-dash-pomodoro-time {
+  font-size: 18px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.92);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.5px;
+  line-height: 1;
+}
+.ov-dash-pomodoro-phase {
+  font-size: 9px;
+  font-weight: 500;
+  opacity: 0.8;
+  line-height: 1;
+  transition: color 0.3s;
+}
+
+@keyframes ov-tl-item-in {
+  from {
+    transform: translateY(16px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* 时间线 */
+.ov-dash-pomodoro-timeline {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  justify-content: space-between;
+  overflow: hidden;
+}
+.ov-dash-pomodoro-timeline::before {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 12px;
+  bottom: 12px;
+  width: 1px;
+  background: rgba(255, 255, 255, 0.1);
+  z-index: 0;
+}
+.ov-dash-pomodoro-tl-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 0;
+  animation: ov-tl-item-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.ov-dash-pomodoro-tl-item:nth-child(1) { animation-delay: 0ms; }
+.ov-dash-pomodoro-tl-item:nth-child(2) { animation-delay: 55ms; }
+.ov-dash-pomodoro-tl-item:nth-child(3) { animation-delay: 110ms; }
+.ov-dash-pomodoro-tl-item--empty {
+  visibility: hidden;
+}
+.ov-dash-pomodoro-tl-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.12);
+  position: relative;
+  z-index: 1;
+}
+.ov-dash-pomodoro-tl-dot--current {
+  width: 11px;
+  height: 11px;
+  margin-left: -2px;
+}
+.ov-dash-pomodoro-tl-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.ov-dash-pomodoro-tl-name {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.28);
+  white-space: nowrap;
+  line-height: 1.2;
+}
+.ov-dash-pomodoro-tl-dur {
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.16);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+.ov-dash-pomodoro-tl-name--current {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+}
+.ov-dash-pomodoro-tl-dur--current {
+  font-size: 10px;
+  font-weight: 500;
+}
+
+/* 控制按钮（横排，body 内第三列） */
+.ov-dash-pomodoro-controls {
+  display: flex;
+  flex-direction: row;
+  gap: 5px;
+  align-items: center;
+  align-self: center;
+  flex-shrink: 0;
+}
+.ov-dash-pomodoro-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s;
+  padding: 0;
+  flex-shrink: 0;
+}
+.ov-dash-pomodoro-btn:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+.ov-dash-pomodoro-btn-icon {
+  width: 13px;
+  height: 13px;
+  object-fit: contain;
+  filter: brightness(0) invert(0.7);
+  transition: filter 0.15s;
+}
+.ov-dash-pomodoro-btn:hover .ov-dash-pomodoro-btn-icon {
+  filter: brightness(0) invert(1);
 }

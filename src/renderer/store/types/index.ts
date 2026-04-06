@@ -97,6 +97,9 @@ export interface MediaChangedData {
   duration_ms?: number;
 }
 
+/** 番茄钟阶段 */
+export type PomodoroPhase = 'work' | 'shortBreak' | 'longBreak';
+
 /** 倒计时数据类型 */
 export interface CountdownConfig {
   targetDate: string;
@@ -238,5 +241,17 @@ export interface AiSlice {
   clearAiChatMessages: () => void;
 }
 
+/** 番茄钟 Slice */
+export interface PomodoroSlice {
+  pomodoroPhase: PomodoroPhase;
+  pomodoroRemaining: number;
+  pomodoroRunning: boolean;
+  pomodoroCompletedCount: number;
+  setPomodoroPhase: (phase: PomodoroPhase) => void;
+  setPomodoroRemaining: (remaining: number) => void;
+  setPomodoroRunning: (running: boolean) => void;
+  setPomodoroCompletedCount: (count: number) => void;
+}
+
 /** 完整 Store 类型 */
-export type IIslandStore = IslandSlice & WeatherSlice & TimerSlice & MediaSlice & AiSlice;
+export type IIslandStore = IslandSlice & WeatherSlice & TimerSlice & MediaSlice & AiSlice & PomodoroSlice;

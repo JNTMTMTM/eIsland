@@ -19,34 +19,29 @@
  */
 
 /**
- * @file SvgIcon.ts
- * @description 全局 SVG 图标路径枚举
+ * @file pomodoroSlice.ts
+ * @description 番茄钟状态管理 Slice
  * @author 鸡哥
  */
 
-export const SvgIcon = {
-  /** 播放 */
-  CONTINUE: './svg/CONTINUE.svg',
-  /** 暂停 */
-  PAUSE: './svg/PAUSE.svg',
-  /** 上一曲 */
-  PREVIOUS_SONG: './svg/PREVIOUS_SONG.svg',
-  /** 下一曲 */
-  NEXT_SONG: './svg/NEXT_SONG.svg',
-  /** 隐藏 */
-  HIDE: './svg/HIDE.svg',
-  /** 退出 */
-  POWER_OFF: './svg/POWER_OFF.svg',
-  /** 计时器 */
-  TIMER: './svg/TIMER.svg',
-  /** 重置 */
-  REVERT: './svg/REVERT.svg',
-  /** 截图 */
-  SCREENSHOT: './svg/SCREENSHOT.svg',
-  /** 任务管理器 */
-  TASK_MANAGER: './svg/TASK_MANAGER.svg',
-  /** 番茄钟 */
-  POMODORO: './svg/POMODORO.svg',
-} as const;
+import type { StateCreator } from 'zustand';
+import type { PomodoroSlice } from '../types';
 
-export type SvgIconKey = keyof typeof SvgIcon;
+const WORK_DURATION = 25 * 60;
+
+export const createPomodoroSlice: StateCreator<
+  PomodoroSlice,
+  [],
+  [],
+  PomodoroSlice
+> = (set) => ({
+  pomodoroPhase: 'work',
+  pomodoroRemaining: WORK_DURATION,
+  pomodoroRunning: false,
+  pomodoroCompletedCount: 0,
+
+  setPomodoroPhase: (phase) => set({ pomodoroPhase: phase }),
+  setPomodoroRemaining: (remaining) => set({ pomodoroRemaining: remaining }),
+  setPomodoroRunning: (running) => set({ pomodoroRunning: running }),
+  setPomodoroCompletedCount: (count) => set({ pomodoroCompletedCount: count }),
+});
