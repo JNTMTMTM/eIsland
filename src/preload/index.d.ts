@@ -84,6 +84,9 @@ declare global {
       /** ===== 文件存储 API ===== */
       storeRead: (key: string) => Promise<unknown>;
       storeWrite: (key: string, data: unknown) => Promise<boolean>;
+      /** ===== 快捷键 API ===== */
+      hotkeyGet: () => Promise<string>;
+      hotkeySet: (accelerator: string) => Promise<boolean>;
     };
   }
 }

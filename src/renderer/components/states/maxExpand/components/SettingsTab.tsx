@@ -276,6 +276,12 @@ export function SettingsTab(): React.ReactElement {
   activeTabRef.current = activeTab;
   const [layoutConfig, setLayoutConfig] = useState<OverviewLayoutConfig>(DEFAULT_LAYOUT);
 
+  /** 快捷键相关状态 */
+  const [hideHotkey, setHideHotkey] = useState<string>('Alt+X');
+  const [hotkeyRecording, setHotkeyRecording] = useState(false);
+  const [hotkeyError, setHotkeyError] = useState<string>('');
+  const hotkeyInputRef = useRef<HTMLInputElement>(null);
+
   /** 加载总览布局配置 */
   useEffect(() => {
     let cancelled = false;
@@ -284,6 +290,16 @@ export function SettingsTab(): React.ReactElement {
       if (data && typeof data === 'object' && 'left' in (data as object) && 'right' in (data as object)) {
         setLayoutConfig(data as OverviewLayoutConfig);
       }
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+
+  /** 加载快捷键配置 */
+  useEffect(() => {
+    let cancelled = false;
+    window.api.hotkeyGet().then((key) => {
+      if (cancelled) return;
+      if (key) setHideHotkey(key);
     }).catch(() => {});
     return () => { cancelled = true; };
   }, []);
@@ -330,6 +346,58 @@ export function SettingsTab(): React.ReactElement {
     setEditingPrompt(false);
   };
 
+  /**
+   * 将键盘事件转换为 Electron accelerator 字符串
+   * @param e - React 键盘事件
+   * @returns Electron accelerator 格式字符串，或空字符串（仅修饰键时）
+   */
+  const keyEventToAccelerator = (e: React.KeyboardEvent): string => {
+    const parts: string[] = [];
+    if (e.ctrlKey) parts.push('Ctrl');
+    if (e.altKey) parts.push('Alt');
+    if (e.shiftKey) parts.push('Shift');
+    if (e.metaKey) parts.push('Super');
+
+    const ignoredKeys = ['Control', 'Alt', 'Shift', 'Meta'];
+    if (ignoredKeys.includes(e.key)) return '';
+
+    const keyMap: Record<string, string> = {
+      ' ': 'Space', ArrowUp: 'Up', ArrowDown: 'Down',
+      ArrowLeft: 'Left', ArrowRight: 'Right',
+      Escape: 'Escape', Enter: 'Return', Backspace: 'Backspace',
+      Delete: 'Delete', Tab: 'Tab', Home: 'Home', End: 'End',
+      PageUp: 'PageUp', PageDown: 'PageDown', Insert: 'Insert',
+    };
+    const mapped = keyMap[e.key] || (e.key.length === 1 ? e.key.toUpperCase() : e.key);
+    parts.push(mapped);
+
+    return parts.length >= 2 ? parts.join('+') : '';
+  };
+
+  /**
+   * 快捷键录入键盘事件处理
+   * @param e - React 键盘事件
+   */
+  const handleHotkeyKeyDown = (e: React.KeyboardEvent): void => {
+    e.preventDefault();
+    e.stopPropagation();
+    setHotkeyError('');
+    const acc = keyEventToAccelerator(e);
+    if (!acc) return;
+
+    window.api.hotkeySet(acc).then((ok) => {
+      if (ok) {
+        setHideHotkey(acc);
+        setHotkeyRecording(false);
+        hotkeyInputRef.current?.blur();
+      } else {
+        setHotkeyError('快捷键注册失败，请尝试其他组合');
+      }
+    }).catch(() => {
+      setHotkeyError('快捷键注册失败');
+    });
+  };
+
   return (
     <div className="max-expand-settings" ref={settingsRef}>
       <div className="max-expand-settings-layout">
@@ -365,6 +433,34 @@ export function SettingsTab(): React.ReactElement {
           {activeTab === 'app' && (
             <div className="max-expand-settings-section">
               <div className="max-expand-settings-title">软件设置</div>
+
+              <div className="settings-hotkey-section">
+                <div className="settings-hotkey-label">隐藏/显示快捷键</div>
+                <div className="settings-hotkey-row">
+                  <input
+                    ref={hotkeyInputRef}
+                    className={`settings-hotkey-input ${hotkeyRecording ? 'recording' : ''}`}
+                    type="text"
+                    readOnly
+                    value={hotkeyRecording ? '请按下快捷键组合…' : hideHotkey}
+                    onFocus={() => { setHotkeyRecording(true); setHotkeyError(''); }}
+                    onBlur={() => setHotkeyRecording(false)}
+                    onKeyDown={handleHotkeyKeyDown}
+                  />
+                  <button
+                    className="settings-hotkey-btn"
+                    type="button"
+                    onClick={() => {
+                      setHotkeyRecording(true);
+                      hotkeyInputRef.current?.focus();
+                    }}
+                  >
+                    {hotkeyRecording ? '录入中' : '修改'}
+                  </button>
+                </div>
+                {hotkeyError && <div className="settings-hotkey-error">{hotkeyError}</div>}
+                <div className="settings-hotkey-hint">点击"修改"后按下组合键（如 Alt+X、Ctrl+Shift+H）</div>
+              </div>
 
               <div className="settings-island-preview-section">
                 <div className="settings-island-preview-label">总览布局预览</div>

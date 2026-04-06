@@ -239,6 +239,22 @@ const api = {
    */
   storeWrite: (key: string, data: unknown): Promise<boolean> => {
     return ipcRenderer.invoke('store:write', key, data);
+  },
+  /** ===== 快捷键 API ===== */
+  /**
+   * 获取当前隐藏灵动岛的快捷键
+   * @returns 当前快捷键字符串
+   */
+  hotkeyGet: (): Promise<string> => {
+    return ipcRenderer.invoke('hotkey:get');
+  },
+  /**
+   * 设置隐藏灵动岛的快捷键
+   * @param accelerator - Electron accelerator 字符串（如 "Alt+X"）
+   * @returns 是否注册成功
+   */
+  hotkeySet: (accelerator: string): Promise<boolean> => {
+    return ipcRenderer.invoke('hotkey:set', accelerator);
   }
 };
 

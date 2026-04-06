@@ -298,6 +298,79 @@
   color: rgba(130, 230, 150, 1);
 }
 
+/** 快捷键配置区域 */
+.settings-hotkey-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.settings-hotkey-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.settings-hotkey-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.settings-hotkey-input {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 6px 10px;
+  color: #fff;
+  font-size: 12px;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease;
+  font-family: inherit;
+}
+
+.settings-hotkey-input:focus,
+.settings-hotkey-input.recording {
+  border-color: rgba(100, 180, 255, 0.5);
+  background: rgba(100, 180, 255, 0.08);
+}
+
+.settings-hotkey-input.recording {
+  color: rgba(100, 180, 255, 0.7);
+}
+
+.settings-hotkey-btn {
+  appearance: none;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 11px;
+  padding: 5px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.settings-hotkey-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.settings-hotkey-error {
+  font-size: 11px;
+  color: rgba(255, 100, 100, 0.85);
+}
+
+.settings-hotkey-hint {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.3);
+}
+
 /** 总览布局配置 — 灵动岛预览 */
 .settings-island-preview-section {
   display: flex;
