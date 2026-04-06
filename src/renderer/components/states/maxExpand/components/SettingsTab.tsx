@@ -818,8 +818,7 @@ export function SettingsTab(): ReactElement {
                   <span className="settings-about-dep">react-markdown</span>
                   <span className="settings-about-dep">react-datepicker</span>
                   <span className="settings-about-dep">remark-gfm</span>
-                  <span className="settings-about-dep">node-nowplaying</span>
-                  <span className="settings-about-dep">node-nowplaying-win32-x64-msvc</span>
+                  <span className="settings-about-dep">@coooookies/windows-smtc-monitor</span>
                   <span className="settings-about-dep">openmeteo</span>
                   <span className="settings-about-dep">lunar-javascript</span>
                   <span className="settings-about-dep">lyric-resolver</span>

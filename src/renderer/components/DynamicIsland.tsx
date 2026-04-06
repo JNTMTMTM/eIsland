@@ -179,7 +179,7 @@ function DynamicIsland(): React.JSX.Element {
     setLyricsLoadingRef.current = setLyricsLoading;
   });
 
-  // 用于平滑进度插值的基准数据（来自 node-nowplaying 事件）
+  // 用于平滑进度插值的基准数据（来自 SMTC Worker 事件）
   const progressBaseRef = useRef({ positionMs: 0, durationMs: 0, timestamp: 0 });
   // rAF 循环 ID，用于停止插值
   const progressRafRef = useRef<number | null>(null);

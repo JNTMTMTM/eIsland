@@ -26,7 +26,7 @@
 
 import { ElectronAPI } from '@electron-toolkit/preload';
 
-/** 歌曲信息类型（来自 node-nowplaying 主进程推送） */
+/** 歌曲信息类型（来自 SMTC Worker 主进程推送） */
 export interface NowPlayingInfo {
   title: string;
   artist: string;

@@ -63,7 +63,7 @@ export interface MediaInfo {
   duration_ms: number;
 }
 
-/** NowPlaying 原始数据结构（来自 node-nowplaying） */
+/** NowPlaying 原始数据结构（来自 @coooookies/windows-smtc-monitor） */
 export type NowPlayingInfo = {
   title: string;
   artist: string;
