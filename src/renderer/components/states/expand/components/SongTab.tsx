@@ -165,7 +165,7 @@ function WaveCanvas({ color, playing }: { color: [number, number, number]; playi
       { amp: H * 0.12, freq: 3.2, phase: 2.8,  speed: 1.3, alpha: 0.07 },
     ];
 
-    for (const w of waves) {
+    waves.forEach((w) => {
       ctx.beginPath();
       ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${w.alpha})`;
       ctx.lineWidth = 2;
@@ -178,7 +178,7 @@ function WaveCanvas({ color, playing }: { color: [number, number, number]; playi
         else ctx.lineTo(x, y);
       }
       ctx.stroke();
-    }
+    });
 
     rafRef.current = requestAnimationFrame(draw);
   }, [color, sizeCanvas]);
@@ -255,8 +255,8 @@ export function SongTab(): React.ReactElement {
 
   /** 歌词切片 */
   const hasLyrics = syncedLyrics && syncedLyrics.length > 0 && !lyricsLoading;
-  const visibleIdx = currentIdx < 0 ? 0 : currentIdx;
-  const lines = hasLyrics ? sliceNearby(syncedLyrics!, visibleIdx) : [];
+  const isIntro = hasLyrics && currentIdx < 0;
+  const lines = hasLyrics && !isIntro ? sliceNearby(syncedLyrics!, currentIdx) : [];
 
   return (
     <div className="expand-tab-panel ov-panel">
@@ -292,7 +292,14 @@ export function SongTab(): React.ReactElement {
 
       {/* ========== 中栏：歌词 ========== */}
       <div className="ov-center">
-        {lyricsLoading && <span className="ov-lrc-hint">...</span>}
+        {lyricsLoading && (
+          <div className="ov-lrc-loading">
+            <span className="ov-lrc-loading-dot" />
+            <span className="ov-lrc-loading-dot" />
+            <span className="ov-lrc-loading-dot" />
+            <span className="ov-lrc-loading-label">正在加载歌词</span>
+          </div>
+        )}
         {!lyricsLoading && !hasLyrics && isMusicPlaying && <span className="ov-lrc-hint">暂无歌词</span>}
         {!isMusicPlaying && (
           <div className="ov-onboarding">
@@ -305,7 +312,17 @@ export function SongTab(): React.ReactElement {
             <div className="ov-onboarding-hint">播放任意歌曲即可开始</div>
           </div>
         )}
-        {hasLyrics && (
+        {isIntro && (
+          <div className="ov-lrc-container">
+            <img src={SvgIcon.MUSIC} alt="" className="ov-lrc-intro-icon" />
+            {syncedLyrics!.slice(0, 2).map((line, i) => (
+              <div key={`intro-${i}`} className="ov-lrc-line">
+                {line.text}
+              </div>
+            ))}
+          </div>
+        )}
+        {hasLyrics && !isIntro && (
           <div className="ov-lrc-container">
             {lines.map((line) => (
               <div
