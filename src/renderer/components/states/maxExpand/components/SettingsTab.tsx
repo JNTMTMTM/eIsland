@@ -24,7 +24,8 @@
  * @author 鸡哥
  */
 
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import type { KeyboardEvent, ReactElement, ReactNode } from 'react';
 import useIslandStore from '../../../../store/slices';
 import avatarImg from '../../../../assets/avatar/T.jpg';
 import type { OverviewWidgetType, OverviewLayoutConfig } from '../../expand/components/OverviewTab';
@@ -44,7 +45,7 @@ function SettingsField({
   placeholder?: string;
   type?: string;
   onChange: (v: string) => void;
-}): React.ReactElement {
+}): ReactElement {
   return (
     <label className="settings-field">
       <span className="settings-field-label">{label}</span>
@@ -87,7 +88,7 @@ function previewDiffDays(targetStr: string): number {
 }
 
 /** 设置界面灵动岛静态预览 */
-function OverviewPreview({ layoutConfig }: { layoutConfig: OverviewLayoutConfig }): React.ReactElement {
+function OverviewPreview({ layoutConfig }: { layoutConfig: OverviewLayoutConfig }): ReactElement {
   const [cdItems, setCdItems] = useState<PreviewCountdownItem[]>([]);
 
   useEffect(() => {
@@ -105,7 +106,7 @@ function OverviewPreview({ layoutConfig }: { layoutConfig: OverviewLayoutConfig 
     return da - db;
   }).slice(0, 2);
 
-  const renderWidget = (type: OverviewWidgetType): React.ReactNode => {
+  const renderWidget = (type: OverviewWidgetType): ReactNode => {
     switch (type) {
       case 'shortcuts':
         return (
@@ -265,8 +266,8 @@ const DEFAULT_LAYOUT: OverviewLayoutConfig = { left: 'shortcuts', right: 'todo' 
  * @description 提供应用设置、AI 配置与关于软件三类设置入口
  * @returns 设置 Tab 组件
  */
-export function SettingsTab(): React.ReactElement {
-  const [activeTab, setActiveTab] = React.useState<'app' | 'ai' | 'about'>('app');
+export function SettingsTab(): ReactElement {
+  const [activeTab, setActiveTab] = useState<'app' | 'ai' | 'about'>('app');
   const { aiConfig, setAiConfig } = useIslandStore();
   const [editingPrompt, setEditingPrompt] = useState(false);
   const [promptDraft, setPromptDraft] = useState('');
@@ -351,7 +352,7 @@ export function SettingsTab(): React.ReactElement {
    * @param e - React 键盘事件
    * @returns Electron accelerator 格式字符串，或空字符串（仅修饰键时）
    */
-  const keyEventToAccelerator = (e: React.KeyboardEvent): string => {
+  const keyEventToAccelerator = (e: KeyboardEvent): string => {
     const parts: string[] = [];
     if (e.ctrlKey) parts.push('Ctrl');
     if (e.altKey) parts.push('Alt');
@@ -378,7 +379,7 @@ export function SettingsTab(): React.ReactElement {
    * 快捷键录入键盘事件处理
    * @param e - React 键盘事件
    */
-  const handleHotkeyKeyDown = (e: React.KeyboardEvent): void => {
+  const handleHotkeyKeyDown = (e: KeyboardEvent): void => {
     e.preventDefault();
     e.stopPropagation();
     setHotkeyError('');
