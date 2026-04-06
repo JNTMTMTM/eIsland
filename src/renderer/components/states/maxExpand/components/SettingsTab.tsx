@@ -325,7 +325,7 @@ const LYRICS_SOURCE_OPTIONS = [
 ];
 
 /** 设置页侧边栏 Tab 顺序 */
-const SETTINGS_TABS: ('app' | 'music' | 'ai' | 'about')[] = ['app', 'music', 'ai', 'about'];
+const SETTINGS_TABS: ('app' | 'music' | 'ai' | 'shortcut' | 'about')[] = ['app', 'music', 'ai', 'shortcut', 'about'];
 
 const LAYOUT_STORE_KEY = 'overview-layout';
 const DEFAULT_LAYOUT: OverviewLayoutConfig = { left: 'shortcuts', right: 'todo' };
@@ -336,7 +336,7 @@ const DEFAULT_LAYOUT: OverviewLayoutConfig = { left: 'shortcuts', right: 'todo' 
  * @returns 设置 Tab 组件
  */
 export function SettingsTab(): ReactElement {
-  const [activeTab, setActiveTab] = useState<'app' | 'music' | 'ai' | 'about'>('app');
+  const [activeTab, setActiveTab] = useState<'app' | 'music' | 'ai' | 'shortcut' | 'about'>('app');
   const { aiConfig, setAiConfig } = useIslandStore();
   const [editingPrompt, setEditingPrompt] = useState(false);
   const [promptDraft, setPromptDraft] = useState('');
@@ -514,7 +514,15 @@ export function SettingsTab(): ReactElement {
             type="button"
           >
             <span className="sidebar-dot" />
-            AI配置
+            AI Agent
+          </button>
+          <button
+            className={`max-expand-settings-sidebar-item ${activeTab === 'shortcut' ? 'active' : ''}`}
+            onClick={() => setActiveTab('shortcut')}
+            type="button"
+          >
+            <span className="sidebar-dot" />
+            快捷键
           </button>
           <button
             className={`max-expand-settings-sidebar-item ${activeTab === 'about' ? 'active' : ''}`}
@@ -530,34 +538,6 @@ export function SettingsTab(): ReactElement {
           {activeTab === 'app' && (
             <div className="max-expand-settings-section">
               <div className="max-expand-settings-title">软件设置</div>
-
-              <div className="settings-hotkey-section">
-                <div className="settings-hotkey-label">隐藏/显示快捷键</div>
-                <div className="settings-hotkey-row">
-                  <input
-                    ref={hotkeyInputRef}
-                    className={`settings-hotkey-input ${hotkeyRecording ? 'recording' : ''}`}
-                    type="text"
-                    readOnly
-                    value={hotkeyRecording ? '请按下快捷键组合…' : hideHotkey}
-                    onFocus={() => { setHotkeyRecording(true); setHotkeyError(''); }}
-                    onBlur={() => setHotkeyRecording(false)}
-                    onKeyDown={handleHotkeyKeyDown}
-                  />
-                  <button
-                    className="settings-hotkey-btn"
-                    type="button"
-                    onClick={() => {
-                      setHotkeyRecording(true);
-                      hotkeyInputRef.current?.focus();
-                    }}
-                  >
-                    {hotkeyRecording ? '录入中' : '修改'}
-                  </button>
-                </div>
-                {hotkeyError && <div className="settings-hotkey-error">{hotkeyError}</div>}
-                <div className="settings-hotkey-hint">点击"修改"后按下组合键（如 Alt+X、Ctrl+Shift+H）</div>
-              </div>
 
               <div className="settings-island-preview-section">
                 <div className="settings-island-preview-label">总览布局预览</div>
@@ -599,6 +579,38 @@ export function SettingsTab(): ReactElement {
                     </div>
                   </div>
                 </div>
+              </div>
+            </div>
+          )}
+          {activeTab === 'shortcut' && (
+            <div className="max-expand-settings-section">
+              <div className="max-expand-settings-title">快捷键</div>
+              <div className="settings-hotkey-section">
+                <div className="settings-hotkey-label">隐藏/显示快捷键</div>
+                <div className="settings-hotkey-row">
+                  <input
+                    ref={hotkeyInputRef}
+                    className={`settings-hotkey-input ${hotkeyRecording ? 'recording' : ''}`}
+                    type="text"
+                    readOnly
+                    value={hotkeyRecording ? '请按下快捷键组合…' : hideHotkey}
+                    onFocus={() => { setHotkeyRecording(true); setHotkeyError(''); }}
+                    onBlur={() => setHotkeyRecording(false)}
+                    onKeyDown={handleHotkeyKeyDown}
+                  />
+                  <button
+                    className="settings-hotkey-btn"
+                    type="button"
+                    onClick={() => {
+                      setHotkeyRecording(true);
+                      hotkeyInputRef.current?.focus();
+                    }}
+                  >
+                    {hotkeyRecording ? '录入中' : '修改'}
+                  </button>
+                </div>
+                {hotkeyError && <div className="settings-hotkey-error">{hotkeyError}</div>}
+                <div className="settings-hotkey-hint">点击“修改”后按下组合键（如 Alt+X、Ctrl+Shift+H）</div>
               </div>
             </div>
           )}
@@ -685,7 +697,7 @@ export function SettingsTab(): ReactElement {
           )}
           {activeTab === 'ai' && (
             <div className="max-expand-settings-section">
-              <div className="max-expand-settings-title">AI配置</div>
+              <div className="max-expand-settings-title">AI Agent</div>
               <div className="settings-field-group">
                 <SettingsField
                   label="API Key"
