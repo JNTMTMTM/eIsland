@@ -366,8 +366,27 @@
   font-weight: 600;
   opacity: 1;
   transform: scale(1.02);
-  text-shadow: 0 0 8px rgba(255, 255, 255, 0.15);
   animation: ovLrcCurrentIn 0.35s ease both;
+}
+
+/* ---- 歌词行：字符级进度高亮 ---- */
+.ov-lrc-char {
+  display: inline;
+  color: rgba(255, 255, 255, 0.28);
+  text-shadow: none;
+  transition: color 0.1s ease, text-shadow 0.1s ease;
+}
+
+.ov-lrc-char.played {
+  color: rgba(255, 255, 255, 0.95);
+  text-shadow: 0 0 8px var(--lrc-accent, rgba(255, 255, 255, 0.25));
+}
+
+.ov-lrc-char.current-char {
+  color: #ffffff;
+  text-shadow:
+    0 0 12px var(--lrc-accent, rgba(255, 255, 255, 0.4)),
+    0 0 4px rgba(255, 255, 255, 0.55);
 }
 
 @keyframes ovLrcIn {

@@ -64,6 +64,20 @@ function sliceNearby(
   return result;
 }
 
+/** 计算当前行在本行时间区间内的播放进度（0~1） */
+function calcLineProgress(
+  lyrics: SyncedLyricLine[],
+  idx: number,
+  posMs: number,
+): number {
+  if (idx < 0 || idx >= lyrics.length) return 0;
+  const lineStart = lyrics[idx].time_ms;
+  const lineEnd = idx + 1 < lyrics.length ? lyrics[idx + 1].time_ms : lineStart + 5000;
+  const duration = lineEnd - lineStart;
+  if (duration <= 0) return 0;
+  return Math.min(1, Math.max(0, (posMs - lineStart) / duration));
+}
+
 /** 格式化倒计时剩余 */
 function formatCountdownRemaining(targetDate: string): string {
   const diff = new Date(targetDate).getTime() - Date.now();
@@ -74,6 +88,40 @@ function formatCountdownRemaining(targetDate: string): string {
   if (d > 0) return `${d}天${h}时`;
   if (h > 0) return `${h}时${m}分`;
   return `${m}分`;
+}
+
+// ===================== 歌词字符级高亮组件 =====================
+
+/**
+ * 当前歌词行字符级进度渲染
+ * @description 将歌词文本拆分为单字符 span，按播放进度区分已播放（高亮）与未播放（变暗）
+ * @param text - 歌词文本
+ * @param lineProgress - 当前行播放进度（0~1）
+ */
+function LyricLineChars({
+  text,
+  lineProgress,
+}: {
+  text: string;
+  lineProgress: number;
+}): React.ReactElement {
+  const chars = Array.from(text);
+  const playedCount = Math.floor(lineProgress * chars.length);
+
+  return (
+    <>
+      {chars.map((char, i) => {
+        let cls = 'ov-lrc-char';
+        if (i < playedCount) cls += ' played';
+        else if (i === playedCount) cls += ' current-char';
+        return (
+          <span key={i} className={cls}>
+            {char}
+          </span>
+        );
+      })}
+    </>
+  );
 }
 
 // ===================== 频谱波形组件 =====================
@@ -202,6 +250,9 @@ export function SongTab(): React.ReactElement {
   const hasLyrics = syncedLyrics && syncedLyrics.length > 0 && !lyricsLoading;
   const isIntro = hasLyrics && currentIdx < 0;
   const lines = hasLyrics && !isIntro ? sliceNearby(syncedLyrics!, currentIdx) : [];
+  const lineProgress = (hasLyrics && !isIntro && currentIdx >= 0)
+    ? calcLineProgress(syncedLyrics!, currentIdx, currentPositionMs)
+    : 0;
 
   return (
     <div className="expand-tab-panel ov-panel">
@@ -273,8 +324,15 @@ export function SongTab(): React.ReactElement {
               <div
                 key={line.key}
                 className={`ov-lrc-line ${line.isCurrent ? 'current' : ''}`}
+                style={line.isCurrent ? {
+                  '--lrc-accent': `rgba(${dominantColor[0]},${dominantColor[1]},${dominantColor[2]},0.6)`,
+                } as React.CSSProperties : undefined}
               >
-                {line.text}
+                {line.isCurrent ? (
+                  <LyricLineChars text={line.text} lineProgress={lineProgress} />
+                ) : (
+                  line.text
+                )}
               </div>
             ))}
           </div>
