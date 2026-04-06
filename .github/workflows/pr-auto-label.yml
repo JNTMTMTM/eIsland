@@ -1,0 +1,88 @@
+name: PR Auto Label
+
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  auto-label:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Detect changed files and apply labels
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { owner, repo } = context.repo;
+            const pr = context.payload.pull_request;
+
+            const files = await github.paginate(github.rest.pulls.listFiles, {
+              owner,
+              repo,
+              pull_number: pr.number,
+              per_page: 100
+            });
+
+            const filenames = files.map((f) => f.filename || '');
+
+            const hasMatch = (patterns) => {
+              return filenames.some((name) => patterns.some((re) => re.test(name)));
+            };
+
+            const labelsToApply = new Set();
+
+            if (hasMatch([/^src\/renderer\//])) labelsToApply.add('frontend');
+            if (hasMatch([/^src\/main\//, /^src\/preload\//])) labelsToApply.add('electron-core');
+            if (hasMatch([/^\.github\/workflows\//, /^scripts\//])) labelsToApply.add('ci');
+            if (hasMatch([/\.md$/i, /^README\.md$/i, /^\.github\/CONTRIBUTING\.md$/i])) labelsToApply.add('documentation');
+            if (hasMatch([/\.(png|jpg|jpeg|gif|svg|webp|ico)$/i, /^assets\//])) labelsToApply.add('assets');
+            if (filenames.length >= 20) labelsToApply.add('large-pr');
+
+            if (labelsToApply.size === 0) {
+              labelsToApply.add('needs-triage');
+            }
+
+            const colorMap = {
+              frontend: '1f6feb',
+              'electron-core': '0e8a16',
+              ci: '5319e7',
+              documentation: '0075ca',
+              assets: 'fbca04',
+              'large-pr': 'b60205',
+              'needs-triage': 'd4c5f9'
+            };
+
+            const labels = [...labelsToApply];
+
+            for (const name of labels) {
+              try {
+                await github.rest.issues.getLabel({ owner, repo, name });
+              } catch (error) {
+                if (error.status === 404) {
+                  await github.rest.issues.createLabel({
+                    owner,
+                    repo,
+                    name,
+                    color: colorMap[name] || 'ededed',
+                    description: `Auto-generated label: ${name}`
+                  });
+                } else {
+                  throw error;
+                }
+              }
+            }
+
+            await github.rest.issues.addLabels({
+              owner,
+              repo,
+              issue_number: pr.number,
+              labels
+            });
+
+            core.notice(`Applied labels to PR #${pr.number}: ${labels.join(', ')}`);
