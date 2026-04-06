@@ -22,6 +22,14 @@ jobs:
         with:
           ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.ref || github.event.release.target_commitish }}
           fetch-depth: 0
+          fetch-tags: true
+
+      - name: Sync release tag for changelog range
+        if: github.event_name == 'release'
+        shell: bash
+        run: |
+          git fetch --force --tags origin
+          git fetch origin "refs/tags/${{ github.event.release.tag_name }}:refs/tags/${{ github.event.release.tag_name }}" --force
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -29,7 +37,12 @@ jobs:
           node-version: 22
 
       - name: Generate CHANGE_LOG.md
-        run: npm run changelog:generate
+        run: |
+          if [ "${{ github.event_name }}" = "release" ]; then
+            npm run changelog:generate -- --no-unreleased
+          else
+            npm run changelog:generate
+          fi
 
       - name: Commit and push CHANGE_LOG.md
         shell: bash
