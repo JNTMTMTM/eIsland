@@ -369,24 +369,24 @@
   animation: ovLrcCurrentIn 0.35s ease both;
 }
 
-/* ---- 歌词行：字符级进度高亮 ---- */
-.ov-lrc-char {
+/* ---- 歌词行：渐变扫光进度 ---- */
+@property --lrc-prog {
+  syntax: '<percentage>';
+  inherits: false;
+  initial-value: 0%;
+}
+
+.ov-lrc-progress-text {
   display: inline;
-  color: rgba(255, 255, 255, 0.28);
-  text-shadow: none;
-  transition: color 0.1s ease, text-shadow 0.1s ease;
-}
-
-.ov-lrc-char.played {
-  color: rgba(255, 255, 255, 0.95);
-  text-shadow: 0 0 8px var(--lrc-accent, rgba(255, 255, 255, 0.25));
-}
-
-.ov-lrc-char.current-char {
-  color: #ffffff;
-  text-shadow:
-    0 0 12px var(--lrc-accent, rgba(255, 255, 255, 0.4)),
-    0 0 4px rgba(255, 255, 255, 0.55);
+  transition: --lrc-prog 0.15s linear;
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0.95) var(--lrc-prog),
+    rgba(255, 255, 255, 0.28) var(--lrc-prog)
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 @keyframes ovLrcIn {
