@@ -1,7 +1,7 @@
 name: PR Comment Report
 
 on:
-  pull_request:
+  pull_request_target:
     types: [opened, reopened, synchronize, ready_for_review]
 
 permissions:
@@ -13,47 +13,146 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-
-      - name: Check comment standards
+      - name: Analyze PR changes and comment standards
         id: comment_check
-        shell: bash
-        run: |
-          set +e
-          node --experimental-strip-types scripts/check-comment-standards.ts > comment-check.log 2>&1
-          status=$?
-          if [ "$status" -eq 0 ]; then
-            echo "passed=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "passed=false" >> "$GITHUB_OUTPUT"
-          fi
-          echo "status=$status" >> "$GITHUB_OUTPUT"
-          exit 0
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('node:fs');
+            const { owner, repo } = context.repo;
+            const pr = context.payload.pull_request;
 
-      - name: Generate PR change notes
-        id: change_notes
-        shell: bash
-        env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        run: |
-          git log "$BASE_SHA..$HEAD_SHA" --date=short --pretty=format:'- %ad - [%h] %s' > pr-change-notes.md
-          if [ ! -s pr-change-notes.md ]; then
-            echo "- No commits found in this PR range." > pr-change-notes.md
-          fi
+            const hasJsdocBefore = (lines, index) => {
+              let i = index - 1;
+              while (i >= 0 && lines[i].trim() === '') i--;
+              if (i < 0) return false;
+              if (!lines[i].trim().endsWith('*/')) return false;
+              let j = i;
+              while (j >= 0 && !lines[j].includes('/**')) j--;
+              return j >= 0;
+            };
 
-          git diff --name-status "$BASE_SHA..$HEAD_SHA" > pr-changed-files.md
-          if [ ! -s pr-changed-files.md ]; then
-            echo "- No changed files detected." > pr-changed-files.md
-          fi
+            const getFileHeaderJsdoc = (content) => {
+              const top = content.slice(0, 3000);
+              const matches = top.match(/\/\*\*[\s\S]*?\*\//g);
+              if (!matches || matches.length === 0) return null;
+              for (const block of matches) {
+                if (block.includes('@file') || block.includes('@description') || block.includes('@author')) {
+                  return block;
+                }
+              }
+              return null;
+            };
+
+            const checkOneFile = (relPath, content) => {
+              const violations = [];
+              const header = getFileHeaderJsdoc(content);
+              if (!header) {
+                violations.push(`${relPath}:1 | file_header | 缺少文件级 JSDoc（需包含 @file / @description / @author）`);
+              } else {
+                if (!header.includes('@file') || !header.includes('@description') || !header.includes('@author')) {
+                  violations.push(`${relPath}:1 | file_header | 文件级 JSDoc 标签不完整（需包含 @file / @description / @author）`);
+                }
+                const authorLine = header
+                  .split(/\r?\n/)
+                  .map((l) => l.trim())
+                  .find((l) => l.includes('@author'));
+                if (!authorLine || !authorLine.includes('鸡哥')) {
+                  violations.push(`${relPath}:1 | author | @author 必须统一为 鸡哥`);
+                }
+              }
+
+              const lines = content.split(/\r?\n/);
+              for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
+                const isExportFunction = /^\s*export\s+function\s+\w+/.test(line);
+                const isExportArrow = /^\s*export\s+const\s+\w+\s*=\s*(async\s*)?\([^)]*\)\s*=>/.test(line);
+                const isExportDefaultFunction = /^\s*export\s+default\s+function\s+\w*/.test(line);
+                if (isExportFunction || isExportArrow || isExportDefaultFunction) {
+                  if (!hasJsdocBefore(lines, i)) {
+                    violations.push(`${relPath}:${i + 1} | export_function_jsdoc | 导出函数缺少 JSDoc 注释`);
+                  }
+                }
+              }
+
+              return violations;
+            };
+
+            const commits = await github.paginate(github.rest.pulls.listCommits, {
+              owner,
+              repo,
+              pull_number: pr.number,
+              per_page: 100
+            });
+
+            const commitLines = commits.map((c) => {
+              const d = (c.commit?.author?.date || '').slice(0, 10);
+              const shortSha = (c.sha || '').slice(0, 7);
+              const subject = (c.commit?.message || '').split('\n')[0] || '(no subject)';
+              return `- ${d} - [${shortSha}] ${subject}`;
+            });
+
+            fs.writeFileSync(
+              'pr-change-notes.md',
+              commitLines.length > 0 ? commitLines.join('\n') : '- No commits found in this PR range.',
+              'utf8'
+            );
+
+            const files = await github.paginate(github.rest.pulls.listFiles, {
+              owner,
+              repo,
+              pull_number: pr.number,
+              per_page: 100
+            });
+
+            const changedFileLines = files.map((f) => `${f.status}\t${f.filename}`);
+            fs.writeFileSync(
+              'pr-changed-files.md',
+              changedFileLines.length > 0 ? changedFileLines.join('\n') : '- No changed files detected.',
+              'utf8'
+            );
+
+            const violations = [];
+            for (const f of files) {
+              const filename = f.filename || '';
+              if (!filename.match(/\.(ts|tsx)$/) || filename.endsWith('.d.ts')) continue;
+              if (f.status === 'removed') continue;
+
+              try {
+                const resp = await github.rest.repos.getContent({
+                  owner,
+                  repo,
+                  path: filename,
+                  ref: pr.head.sha
+                });
+
+                if (!('content' in resp.data) || !resp.data.content) continue;
+                const text = Buffer.from(resp.data.content, 'base64').toString('utf8');
+                violations.push(...checkOneFile(filename, text));
+              } catch (error) {
+                violations.push(`${filename}:1 | fetch_error | 无法读取该文件内容进行检查`);
+              }
+            }
+
+            const byRule = violations.reduce((acc, line) => {
+              const rule = (line.split('|')[1] || '').trim() || 'unknown';
+              acc[rule] = (acc[rule] || 0) + 1;
+              return acc;
+            }, {});
+
+            const checkLog = [];
+            checkLog.push(`Comment standard violations: ${violations.length}`);
+            checkLog.push(`By rule: ${JSON.stringify(byRule)}`);
+            checkLog.push('');
+            if (violations.length > 0) {
+              checkLog.push(...violations);
+            } else {
+              checkLog.push('Comment standard check passed for changed TS/TSX files.');
+            }
+
+            fs.writeFileSync('comment-check.log', checkLog.join('\n'), 'utf8');
+            core.setOutput('passed', violations.length === 0 ? 'true' : 'false');
 
       - name: Compose PR comment body
         shell: bash
