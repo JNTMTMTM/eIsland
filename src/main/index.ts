@@ -27,9 +27,10 @@
 import { app, BrowserWindow, shell, screen, ipcMain, desktopCapturer, dialog, globalShortcut } from 'electron';
 import { join, basename } from 'path';
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
+import { exec } from 'child_process';
+import { Worker } from 'worker_threads';
 import { electronApp, optimizer, is } from '@electron-toolkit/utils';
 import { createTray, destroyTray } from './tray';
-import { NowPlaying } from 'node-nowplaying';
 
 /** 防止 Electron 创建多个实例 */
 const gotTheLock = app.requestSingleInstanceLock();
@@ -39,8 +40,8 @@ if (!gotTheLock) {
 
 let mainWindow: BrowserWindow | null = null;
 
-/** NowPlaying 局部实例引用 */
-let nowPlaying: NowPlaying | null = null;
+/** SMTC Worker 线程引用 */
+let smtcWorker: Worker | null = null;
 
 /** 灵动岛尺寸常量 */
 const ISLAND_WIDTH = 260;
@@ -245,6 +246,30 @@ function createWindow(): void {
   }
 }
 
+/**
+ * 通过 PowerShell P/Invoke 向系统发送媒体虚拟按键
+ * 使用 -EncodedCommand 传递 Base64(UTF-16LE) 编码脚本，避免内联引号转义问题
+ * @param vkCode - Windows 虚拟键代码（VK_MEDIA_*）
+ */
+function sendMediaVirtualKey(vkCode: number): void {
+  const script = [
+    'Add-Type -TypeDefinition @"',
+    'using System;',
+    'using System.Runtime.InteropServices;',
+    'public class MediaKey {',
+    '    [DllImport("user32.dll")]',
+    '    public static extern void keybd_event(byte vk, byte scan, uint flags, IntPtr extra);',
+    '}',
+    '"@',
+    `[MediaKey]::keybd_event(${vkCode}, 0, 0, [IntPtr]::Zero)`,
+    `[MediaKey]::keybd_event(${vkCode}, 0, 2, [IntPtr]::Zero)`,
+  ].join('\n');
+  const encoded = Buffer.from(script, 'utf16le').toString('base64');
+  exec(`powershell.exe -NonInteractive -NoProfile -EncodedCommand ${encoded}`, (err) => {
+    if (err) console.error('[Media] virtual key error:', err.message);
+  });
+}
+
 /** 注册 IPC 处理器，供渲染进程动态切换鼠标穿透状态及调整窗口大小 */
 function registerIpcHandlers(): void {
   ipcMain.on('window:enable-mouse-passthrough', () => {
@@ -355,74 +380,44 @@ function registerIpcHandlers(): void {
     app.quit();
   });
 
-  // ===== 音乐相关 IPC 处理器 =====
-  ipcMain.handle('media:play-pause', async () => {
+  // ===== 音乐媒体控制 IPC 处理器 =====
+  ipcMain.handle('media:play-pause', () => {
     if (!isWhitelisted()) return;
-    try {
-      await nowPlaying?.playPause(currentDeviceId);
-    } catch (err) {
-      console.error('[Media] playPause error:', err);
-    }
+    sendMediaVirtualKey(0xB3);
   });
 
-  ipcMain.handle('media:next', async () => {
+  ipcMain.handle('media:next', () => {
     if (!isWhitelisted()) return;
-    try {
-      await nowPlaying?.nextTrack(currentDeviceId);
-    } catch (err) {
-      console.error('[Media] nextTrack error:', err);
-    }
+    sendMediaVirtualKey(0xB0);
   });
 
-  ipcMain.handle('media:prev', async () => {
+  ipcMain.handle('media:prev', () => {
     if (!isWhitelisted()) return;
-    try {
-      await nowPlaying?.previousTrack(currentDeviceId);
-    } catch (err) {
-      console.error('[Media] previousTrack error:', err);
-    }
+    sendMediaVirtualKey(0xB1);
   });
 
   /**
-   * 跳转到指定播放位置
+   * 跳转到指定播放位置（SMTC 不支持，保留接口兼容性）
    * @param _event - IPC 事件
-   * @param positionMs - 目标位置（毫秒）
+   * @param _positionMs - 目标位置（毫秒，暂未实现）
    */
-  ipcMain.handle('media:seek', async (_event, positionMs: number) => {
-    if (!isWhitelisted()) return;
-    try {
-      await nowPlaying?.seekTo(positionMs, currentDeviceId);
-    } catch (err) {
-      console.error('[Media] seekTo error:', err);
-    }
-  });
-
-  ipcMain.handle('media:get-volume', async () => {
-    if (!isWhitelisted()) return 0.5;
-    try {
-      await nowPlaying?.setVolume(0, currentDeviceId); // 查询当前音量
-    // node-nowplaying 不支持查询当前音量，忽略错误并返回默认值
-    } catch {
-      // ignore
-    }
-    return Promise.resolve(0.5);
+  ipcMain.handle('media:seek', (_event, _positionMs: number) => {
+    // SMTCMonitor 暂不支持 seek 操作
   });
 
   /**
-   * 设置系统音量
-   * @param _event - IPC 事件
-   * @param volume - 目标音量（0.0 ~ 1.0）
+   * 获取系统音量（固定返回 0.5，SMTC 不提供音量查询接口）
    */
-  ipcMain.handle('media:set-volume', async (_event, volume: number) => {
-    if (!isWhitelisted()) return;
-    try {
-      await nowPlaying?.setVolume(volume, currentDeviceId);
-    } catch (err) {
-      console.error('[Media] setVolume error:', err);
-    }
-  });
+  ipcMain.handle('media:get-volume', () => 0.5);
 
-  // ===== node-nowplaying 歌曲信息监听 =====
+  /**
+   * 设置系统音量（SMTC 不支持，保留接口兼容性）
+   * @param _event - IPC 事件
+   * @param _volume - 目标音量（0.0 ~ 1.0，暂未实现）
+   */
+  ipcMain.handle('media:set-volume', (_event, _volume: number) => {
+    // SMTCMonitor 暂不支持音量控制
+  });
 
   /** 截图并保存 */
   ipcMain.handle('system:screenshot', async () => {
@@ -669,66 +664,85 @@ function registerIpcHandlers(): void {
 }
 
 /**
- * 初始化 node-nowplaying 监听歌曲信息
- * @description 通过 NowPlaying 订阅系统媒体信息变更，实时推送到渲染进程
+ * 初始化 SMTC Worker 线程，监听系统媒体信息变更并推送到渲染进程
+ * @param win - 主窗口引用
  */
-function initNowPlaying(mainWindow: BrowserWindow | null): void {
+function initSmtcWorker(win: BrowserWindow | null): void {
   try {
-    nowPlaying = new NowPlaying((info) => {
-      if (!mainWindow || mainWindow.isDestroyed()) {
+    const workerPath = join(__dirname, 'smtcWorker.js');
+    smtcWorker = new Worker(workerPath);
+
+    smtcWorker.on('message', (msg: {
+      type: string;
+      sourceAppId?: string;
+      session?: {
+        media: { title: string; artist: string; albumTitle: string; thumbnail: string | null } | null;
+        playback: { playbackStatus: number; playbackType: number } | null;
+        timeline: { position: number; duration: number } | null;
+      };
+    }) => {
+      if (!win || win.isDestroyed()) return;
+
+      if (msg.type === 'session-removed') {
+        if (msg.sourceAppId === currentDeviceId) {
+          currentDeviceId = '';
+          win.webContents.send('nowplaying:info', null);
+        }
         return;
       }
 
-      if (!info || !info.trackName) {
-        mainWindow.webContents.send('nowplaying:info', null);
+      if (msg.type !== 'session-update') return;
+
+      const { sourceAppId = '', session } = msg;
+      const { media, playback, timeline } = session ?? {};
+
+      if (!nowPlayingWhitelist.some(name => sourceAppId.includes(name))) return;
+
+      currentDeviceId = sourceAppId;
+
+      if (!media?.title) {
+        win.webContents.send('nowplaying:info', null);
         return;
       }
-
-      const deviceId = info.deviceId || '';
-
-      if (!nowPlayingWhitelist.some(name => deviceId.includes(name))) {
-        return;
-      }
-
-      // 更新当前激活的设备ID
-      currentDeviceId = deviceId;
 
       const payload = {
-        title: info.trackName || '',
-        artist: Array.isArray(info.artist) ? info.artist.join(', ') : (info.artist || ''),
-        album: info.album || '',
-        duration_ms: info.trackDuration || 0,
-        position_ms: info.trackProgress || 0,
-        isPlaying: info.isPlaying || false,
-        thumbnail: info.thumbnail || null,
-        canFastForward: info.canFastForward || false,
-        canSkip: info.canSkip || false,
-        canLike: info.canLike || false,
-        canChangeVolume: info.canChangeVolume || false,
-        canSetOutput: info.canSetOutput || false,
-        deviceId: deviceId,
+        title: media.title,
+        artist: media.artist,
+        album: media.albumTitle,
+        duration_ms: Math.round((timeline?.duration ?? 0) * 1000),
+        position_ms: Math.round((timeline?.position ?? 0) * 1000),
+        isPlaying: (playback?.playbackStatus ?? 0) === 4,
+        thumbnail: media.thumbnail ?? null,
+        canFastForward: false,
+        canSkip: false,
+        canLike: false,
+        canChangeVolume: false,
+        canSetOutput: false,
+        deviceId: sourceAppId,
       };
-      mainWindow.webContents.send('nowplaying:info', payload);
+      win.webContents.send('nowplaying:info', payload);
     });
 
-    nowPlaying.subscribe()
-      .then(() => {
-        // 订阅成功
-      })
-      .catch((err) => {
-        console.error('[NowPlaying] subscribe error:', err);
-      });
+    smtcWorker.on('error', (err) => {
+      console.error('[SMTC] Worker error:', err);
+    });
+
+    smtcWorker.on('exit', (code) => {
+      if (code !== 0) console.error('[SMTC] Worker exited with code:', code);
+    });
   } catch (err) {
-    console.error('[NowPlaying] init error:', err);
+    console.error('[SMTC] Worker init error:', err);
   }
 }
 
 /**
- * 清理 node-nowplaying 资源
- * @description 应用退出时调用，释放实例
+ * 终止 SMTC Worker 线程并释放资源
  */
-function cleanupNowPlaying(): void {
-  nowPlaying = null;
+function cleanupSmtcWorker(): void {
+  if (smtcWorker) {
+    smtcWorker.terminate();
+    smtcWorker = null;
+  }
 }
 
 /**
@@ -781,8 +795,7 @@ app.whenReady().then(() => {
   createWindow();
   createTray(mainWindow);
 
-  // 初始化 node-nowplaying 必须在 IPC 处理器之前，确保 nowPlaying 已就绪
-  initNowPlaying(mainWindow);
+  initSmtcWorker(mainWindow);
 
   registerIpcHandlers();
 
@@ -803,7 +816,7 @@ app.on('will-quit', () => {
 });
 
 app.on('window-all-closed', () => {
-  cleanupNowPlaying();
+  cleanupSmtcWorker();
   destroyTray();
   if (process.platform !== 'darwin') {
     app.quit();

@@ -32,40 +32,6 @@ import { formatTime, getDayName } from '../../../../utils/timeUtils';
 
 /** 显示歌词行数 */
 const VISIBLE_LINES = 5;
-/** 歌词刷新间隔 (ms) */
-const TICK_MS = 100;
-
-
-// ===================== 模块级计时器（跨挂载持久） =====================
-
-let _songKey = '';
-let _timerBase = 0;
-let _elapsed = 0;
-let _playing = false;
-
-function timerReset(): void {
-  _timerBase = Date.now();
-  _elapsed = 0;
-  _playing = true;
-}
-
-function timerPause(): void {
-  if (_playing) {
-    _elapsed += Date.now() - _timerBase;
-    _playing = false;
-  }
-}
-
-function timerResume(): void {
-  if (!_playing) {
-    _timerBase = Date.now();
-    _playing = true;
-  }
-}
-
-function timerGetMs(): number {
-  return _elapsed + (_playing ? Date.now() - _timerBase : 0);
-}
 
 // ===================== 工具函数 =====================
 
@@ -201,6 +167,7 @@ export function SongTab(): React.ReactElement {
   const {
     isMusicPlaying, isPlaying, mediaInfo, syncedLyrics, lyricsLoading,
     coverImage, dominantColor, weather, countdown, timerData,
+    currentPositionMs,
   } = useIslandStore();
 
   const [currentIdx, setCurrentIdx] = useState(-1);
@@ -212,36 +179,14 @@ export function SongTab(): React.ReactElement {
     return () => clearInterval(id);
   }, []);
 
-  /** 歌曲变化 → 重置计时器 */
-  useEffect(() => {
-    const key = `${mediaInfo.title}||${mediaInfo.artist}`;
-    if (key !== _songKey) {
-      _songKey = key;
-      timerReset();
-    }
-  }, [mediaInfo.title, mediaInfo.artist]);
-
-  /** 播放/暂停 → 暂停/恢复计时器 */
-  useEffect(() => {
-    if (isPlaying) timerResume();
-    else timerPause();
-  }, [isPlaying]);
-
-  /** 定时刷新当前歌词行 */
+  /** 歌词进度同步：每当 currentPositionMs 变化（SMTC timeline 事件或 RAF 插值）立即更新歌词行 */
   useEffect(() => {
     if (!syncedLyrics || syncedLyrics.length === 0) {
       setCurrentIdx(-1);
       return;
     }
-    const tick = (): void => {
-      const elapsed = timerGetMs();
-      const idx = findCurrentIndex(syncedLyrics, elapsed);
-      setCurrentIdx(idx);
-    };
-    tick();
-    const id = setInterval(tick, TICK_MS);
-    return () => clearInterval(id);
-  }, [syncedLyrics, isPlaying]);
+    setCurrentIdx(findCurrentIndex(syncedLyrics, currentPositionMs));
+  }, [syncedLyrics, currentPositionMs]);
 
   /** 媒体控制 */
   const handlePlayPause = () => window.api?.mediaPlayPause();

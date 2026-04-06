@@ -16,12 +16,11 @@
     "comment:check": "node --experimental-strip-types scripts/check-comment-standards.ts"
   },
   "dependencies": {
+    "@coooookies/windows-smtc-monitor": "^1.0.12",
     "@tailwindcss/vite": "^4.2.2",
     "colorthief": "^3.3.1",
     "lunar-javascript": "^1.7.7",
     "lyric-resolver": "^0.1.6",
-    "node-nowplaying": "^0.1.0",
-    "node-nowplaying-win32-x64-msvc": "^0.1.0",
     "openmeteo": "^1.2.3",
     "react-datepicker": "^9.1.0",
     "react-markdown": "^10.1.0",
