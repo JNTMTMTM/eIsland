@@ -90,11 +90,11 @@ function formatCountdownRemaining(targetDate: string): string {
   return `${m}分`;
 }
 
-// ===================== 歌词字符级高亮组件 =====================
+// ===================== 歌词渐变扫光组件 =====================
 
 /**
- * 当前歌词行字符级进度渲染
- * @description 将歌词文本拆分为单字符 span，按播放进度区分已播放（高亮）与未播放（变暗）
+ * 当前歌词行渐变扫光渲染
+ * @description 以 CSS background-clip:text 渐变实现播放进度扫光，@property 使百分比可 CSS 过渡
  * @param text - 歌词文本
  * @param lineProgress - 当前行播放进度（0~1）
  */
@@ -105,22 +105,13 @@ function LyricLineChars({
   text: string;
   lineProgress: number;
 }): React.ReactElement {
-  const chars = Array.from(text);
-  const playedCount = Math.floor(lineProgress * chars.length);
-
   return (
-    <>
-      {chars.map((char, i) => {
-        let cls = 'ov-lrc-char';
-        if (i < playedCount) cls += ' played';
-        else if (i === playedCount) cls += ' current-char';
-        return (
-          <span key={i} className={cls}>
-            {char}
-          </span>
-        );
-      })}
-    </>
+    <span
+      className="ov-lrc-progress-text"
+      style={{ '--lrc-prog': `${(lineProgress * 100).toFixed(2)}%` } as React.CSSProperties}
+    >
+      {text}
+    </span>
   );
 }
 
@@ -324,9 +315,6 @@ export function SongTab(): React.ReactElement {
               <div
                 key={line.key}
                 className={`ov-lrc-line ${line.isCurrent ? 'current' : ''}`}
-                style={line.isCurrent ? {
-                  '--lrc-accent': `rgba(${dominantColor[0]},${dominantColor[1]},${dominantColor[2]},0.6)`,
-                } as React.CSSProperties : undefined}
               >
                 {line.isCurrent ? (
                   <LyricLineChars text={line.text} lineProgress={lineProgress} />
