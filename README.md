@@ -28,18 +28,9 @@ Windows 灵动岛桌面应用，基于 Electron + React + TypeScript 构建。
 
 ![设置界面](assets/5.png)
 
-## 运行
+## 图标来源
 
-```bash
-# 安装依赖
-npm install
-# 开发模式
-npm run dev
-# 构建安装包
-npm run package
-```
-
-构建产物位于 `dist/` 目录，包含可执行的 `.exe` 安装包。
+本软件使用的所有图标均来源于 [iconfont](https://www.iconfont.cn/)。
 
 ## 许可证 (License)
 
