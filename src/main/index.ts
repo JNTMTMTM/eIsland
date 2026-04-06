@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import { app, BrowserWindow, shell, screen, ipcMain, desktopCapturer, dialog } from 'electron';
+import { app, BrowserWindow, shell, screen, ipcMain, desktopCapturer, dialog, globalShortcut } from 'electron';
 import { join, basename } from 'path';
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
 import { electronApp, optimizer, is } from '@electron-toolkit/utils';
@@ -70,6 +70,63 @@ let currentDeviceId: string = NOW_PLAYING_WHITELIST[0] || '';
  */
 function isWhitelisted(): boolean {
   return NOW_PLAYING_WHITELIST.some(name => currentDeviceId.includes(name));
+}
+
+/** 当前注册的隐藏快捷键 */
+let currentHideHotkey: string = '';
+
+/** 隐藏快捷键存储键名 */
+const HOTKEY_STORE_KEY = 'hide-hotkey';
+
+/** 默认隐藏快捷键 */
+const DEFAULT_HIDE_HOTKEY = 'Alt+X';
+
+/**
+ * 读取快捷键配置
+ * @returns 存储的快捷键字符串，不存在时返回默认值
+ */
+function readHotkeyConfig(): string {
+  try {
+    const storeDir = join(app.getPath('userData'), 'eIsland_store');
+    const filePath = join(storeDir, `${HOTKEY_STORE_KEY}.json`);
+    if (!existsSync(filePath)) return DEFAULT_HIDE_HOTKEY;
+    const raw = readFileSync(filePath, 'utf-8');
+    const data = JSON.parse(raw);
+    return typeof data === 'string' ? data : DEFAULT_HIDE_HOTKEY;
+  } catch {
+    return DEFAULT_HIDE_HOTKEY;
+  }
+}
+
+/**
+ * 注册隐藏灵动岛的全局快捷键
+ * @param accelerator - Electron accelerator 字符串（如 "Alt+X"）
+ */
+function registerHideHotkey(accelerator: string): boolean {
+  // 先注销旧快捷键
+  if (currentHideHotkey) {
+    try { globalShortcut.unregister(currentHideHotkey); } catch { /* ignore */ }
+    currentHideHotkey = '';
+  }
+  if (!accelerator) return false;
+  try {
+    const success = globalShortcut.register(accelerator, () => {
+      if (!mainWindow) return;
+      if (mainWindow.isVisible()) {
+        mainWindow.hide();
+      } else {
+        mainWindow.show();
+        mainWindow.setAlwaysOnTop(true, 'screen-saver');
+      }
+    });
+    if (success) {
+      currentHideHotkey = accelerator;
+    }
+    return success;
+  } catch (err) {
+    console.error('[Hotkey] register error:', err);
+    return false;
+  }
 }
 
 /** 记录窗口初始中心 X 坐标 */
@@ -488,6 +545,36 @@ function registerIpcHandlers(): void {
       return false;
     }
   });
+
+  // ===== 快捷键 IPC =====
+
+  /**
+   * 获取当前隐藏快捷键配置
+   * @returns 当前快捷键字符串
+   */
+  ipcMain.handle('hotkey:get', () => {
+    return currentHideHotkey || readHotkeyConfig();
+  });
+
+  /**
+   * 设置隐藏快捷键并持久化
+   * @param _event - IPC 事件
+   * @param accelerator - 新的快捷键字符串
+   * @returns 是否注册成功
+   */
+  ipcMain.handle('hotkey:set', (_event, accelerator: string) => {
+    const success = registerHideHotkey(accelerator);
+    if (success) {
+      // 持久化到 store
+      const filePath = join(storeDir, `${HOTKEY_STORE_KEY}.json`);
+      try {
+        writeFileSync(filePath, JSON.stringify(accelerator, null, 2), 'utf-8');
+      } catch (err) {
+        console.error('[Hotkey] persist error:', err);
+      }
+    }
+    return success;
+  });
 }
 
 /**
@@ -608,9 +695,17 @@ app.whenReady().then(() => {
 
   registerIpcHandlers();
 
+  // 读取持久化快捷键并注册
+  const savedHotkey = readHotkeyConfig();
+  registerHideHotkey(savedHotkey);
+
   app.on('activate', function () {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
   });
+});
+
+app.on('will-quit', () => {
+  globalShortcut.unregisterAll();
 });
 
 app.on('window-all-closed', () => {
