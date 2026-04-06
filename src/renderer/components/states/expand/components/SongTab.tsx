@@ -292,7 +292,14 @@ export function SongTab(): React.ReactElement {
 
       {/* ========== 中栏：歌词 ========== */}
       <div className="ov-center">
-        {lyricsLoading && <span className="ov-lrc-hint">...</span>}
+        {lyricsLoading && (
+          <div className="ov-lrc-loading">
+            <span className="ov-lrc-loading-dot" />
+            <span className="ov-lrc-loading-dot" />
+            <span className="ov-lrc-loading-dot" />
+            <span className="ov-lrc-loading-label">正在加载歌词</span>
+          </div>
+        )}
         {!lyricsLoading && !hasLyrics && isMusicPlaying && <span className="ov-lrc-hint">暂无歌词</span>}
         {!isMusicPlaying && (
           <div className="ov-onboarding">
