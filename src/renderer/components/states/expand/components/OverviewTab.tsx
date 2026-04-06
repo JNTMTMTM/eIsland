@@ -271,6 +271,69 @@ interface PomodoroData {
   completedCount: number;
 }
 
+/** 首次挂载标记，防止 Tab 切换重复读 IPC */
+let _pomodoroInitialized = false;
+
+/** 番茄钟持久化写入（模块级，无需组件实例） */
+function _persistPomodoro(phase: PomodoroPhase, remaining: number, count: number): void {
+  const payload: PomodoroData = { phase, remaining, running: false, completedCount: count };
+  window.api.storeWrite(POMODORO_STORE_KEY, payload).catch(() => {});
+}
+
+/** 计算下一阶段（模块级） */
+function _advancePomodoroPhase(phase: PomodoroPhase, count: number): { nextPhase: PomodoroPhase; nextCount: number } {
+  if (phase === 'work') {
+    const nextCount = count + 1;
+    const nextPhase: PomodoroPhase = nextCount % 4 === 0 ? 'longBreak' : 'shortBreak';
+    return { nextPhase, nextCount };
+  }
+  return { nextPhase: 'work', nextCount: count };
+}
+
+/** 模块级计时器 ID（切换 Tab 也持续运行） */
+let _pomodoroIntervalId: ReturnType<typeof setInterval> | null = null;
+
+function _startPomodoroInterval(): void {
+  if (_pomodoroIntervalId !== null) return;
+  _pomodoroIntervalId = setInterval(() => {
+    const store = useIslandStore.getState();
+    const current = store.pomodoroRemaining;
+    if (current <= 1) {
+      clearInterval(_pomodoroIntervalId!);
+      _pomodoroIntervalId = null;
+      const { nextPhase, nextCount } = _advancePomodoroPhase(store.pomodoroPhase, store.pomodoroCompletedCount);
+      const nextRemaining = POMODORO_DURATIONS[nextPhase];
+      store.setPomodoroRunning(false);
+      store.setPomodoroPhase(nextPhase);
+      store.setPomodoroRemaining(nextRemaining);
+      store.setPomodoroCompletedCount(nextCount);
+      _persistPomodoro(nextPhase, nextRemaining, nextCount);
+    } else {
+      store.setPomodoroRemaining(current - 1);
+    }
+  }, 1000);
+}
+
+function _stopPomodoroInterval(): void {
+  if (_pomodoroIntervalId !== null) {
+    clearInterval(_pomodoroIntervalId);
+    _pomodoroIntervalId = null;
+  }
+}
+
+/** 订阅 pomodoroRunning，自动启停模块级计时器 */
+let _prevPomodoroRunning = false;
+useIslandStore.subscribe((state) => {
+  const running = state.pomodoroRunning;
+  if (running === _prevPomodoroRunning) return;
+  _prevPomodoroRunning = running;
+  if (running) {
+    _startPomodoroInterval();
+  } else {
+    _stopPomodoroInterval();
+  }
+});
+
 /** 获取时间轴上下文（上一、当前、下一阶段） */
 function getPomodoroTimeline(phase: PomodoroPhase, count: number): { prev: PomodoroPhase | null; next: PomodoroPhase } {
   if (phase === 'work') {
@@ -289,78 +352,31 @@ function fmtPomodoroTime(seconds: number): string {
   return `${m}:${s}`;
 }
 
-/** 番茄钟控件 */
+/** 番茄钟控件（仅负责显示和控制，计时逻辑在模块级） */
 function PomodoroWidget(): React.ReactElement {
-  const [phase, setPhase] = useState<PomodoroPhase>('work');
-  const [remaining, setRemaining] = useState(POMODORO_DURATIONS.work);
-  const [running, setRunning] = useState(false);
-  const [completedCount, setCompletedCount] = useState(0);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const {
+    pomodoroPhase: phase,
+    pomodoroRemaining: remaining,
+    pomodoroRunning: running,
+    pomodoroCompletedCount: completedCount,
+    setPomodoroPhase: setPhase,
+    setPomodoroRemaining: setRemaining,
+    setPomodoroRunning: setRunning,
+    setPomodoroCompletedCount: setCompletedCount,
+  } = useIslandStore();
 
-  /** Refs 供 interval 读取最新值 */
-  const phaseRef = useRef(phase);
-  phaseRef.current = phase;
-  const countRef = useRef(completedCount);
-  countRef.current = completedCount;
-  const remainingRef = useRef(remaining);
-  remainingRef.current = remaining;
-
-  /** 加载持久化状态 */
+  /** 首次挂载时从 IPC 恢复持久化状态 */
   useEffect(() => {
-    let cancelled = false;
+    if (_pomodoroInitialized) return;
+    _pomodoroInitialized = true;
     window.api.storeRead(POMODORO_STORE_KEY).then((data) => {
-      if (cancelled || !data) return;
+      if (!data) return;
       const d = data as PomodoroData;
       if (d.phase) setPhase(d.phase);
       if (typeof d.remaining === 'number') setRemaining(d.remaining);
       if (typeof d.completedCount === 'number') setCompletedCount(d.completedCount);
     }).catch(() => {});
-    return () => { cancelled = true; };
-  }, []);
-
-  /** 持久化 */
-  const persist = useCallback((p: PomodoroPhase, rem: number, count: number) => {
-    const payload: PomodoroData = { phase: p, remaining: rem, running: false, completedCount: count };
-    window.api.storeWrite(POMODORO_STORE_KEY, payload).catch(() => {});
-  }, []);
-
-  /** 切到下一阶段 */
-  const advancePhase = useCallback((currentPhase: PomodoroPhase, count: number): { nextPhase: PomodoroPhase; nextCount: number } => {
-    if (currentPhase === 'work') {
-      const nextCount = count + 1;
-      const nextPhase: PomodoroPhase = nextCount % 4 === 0 ? 'longBreak' : 'shortBreak';
-      return { nextPhase, nextCount };
-    }
-    return { nextPhase: 'work', nextCount: count };
-  }, []);
-
-  /** 阶段结束：通过 ref 读取最新值，一次性批量更新 */
-  const handlePhaseEnd = useCallback(() => {
-    setRunning(false);
-    const { nextPhase, nextCount } = advancePhase(phaseRef.current, countRef.current);
-    const nextRemaining = POMODORO_DURATIONS[nextPhase];
-    setPhase(nextPhase);
-    setRemaining(nextRemaining);
-    setCompletedCount(nextCount);
-    persist(nextPhase, nextRemaining, nextCount);
-  }, [advancePhase, persist]);
-
-  /** 计时器 tick */
-  useEffect(() => {
-    if (!running) {
-      if (intervalRef.current) { clearInterval(intervalRef.current); intervalRef.current = null; }
-      return;
-    }
-    intervalRef.current = setInterval(() => {
-      const current = remainingRef.current;
-      if (current <= 1) {
-        handlePhaseEnd();
-      } else {
-        setRemaining(current - 1);
-      }
-    }, 1000);
-    return () => { if (intervalRef.current) { clearInterval(intervalRef.current); intervalRef.current = null; } };
-  }, [running, handlePhaseEnd]);
+  }, [setPhase, setRemaining, setCompletedCount]);
 
   const totalDuration = POMODORO_DURATIONS[phase];
   const progress = 1 - remaining / totalDuration;
@@ -368,23 +384,23 @@ function PomodoroWidget(): React.ReactElement {
   const dashOffset = circumference * (1 - progress);
 
   const handleStartPause = (): void => {
-    setRunning(prev => !prev);
+    setRunning(!running);
   };
 
   const handleReset = (): void => {
     setRunning(false);
     setRemaining(POMODORO_DURATIONS[phase]);
-    persist(phase, POMODORO_DURATIONS[phase], completedCount);
+    _persistPomodoro(phase, POMODORO_DURATIONS[phase], completedCount);
   };
 
   const handleSkip = (): void => {
     setRunning(false);
-    const { nextPhase, nextCount } = advancePhase(phase, completedCount);
+    const { nextPhase, nextCount } = _advancePomodoroPhase(phase, completedCount);
     setPhase(nextPhase);
     setCompletedCount(nextCount);
     const nextRemaining = POMODORO_DURATIONS[nextPhase];
     setRemaining(nextRemaining);
-    persist(nextPhase, nextRemaining, nextCount);
+    _persistPomodoro(nextPhase, nextRemaining, nextCount);
   };
 
   const phaseColor = phase === 'work' ? '#ff6b6b' : phase === 'shortBreak' ? '#51cf66' : '#339af0';
