@@ -443,7 +443,7 @@ function PomodoroWidget(): React.ReactElement {
         </div>
 
         {/* 时间线 */}
-        <div className="ov-dash-pomodoro-timeline">
+        <div className="ov-dash-pomodoro-timeline" key={`${phase}-${completedCount}`}>
           <div className={`ov-dash-pomodoro-tl-item${!prevPhase ? ' ov-dash-pomodoro-tl-item--empty' : ''}`}>
             {prevPhase && (
               <>

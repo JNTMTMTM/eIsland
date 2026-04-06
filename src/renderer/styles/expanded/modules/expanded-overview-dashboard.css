@@ -832,6 +832,17 @@
   transition: color 0.3s;
 }
 
+@keyframes ov-tl-item-in {
+  from {
+    transform: translateY(16px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
 /* 时间线 */
 .ov-dash-pomodoro-timeline {
   flex: 1;
@@ -839,6 +850,7 @@
   flex-direction: column;
   position: relative;
   justify-content: space-between;
+  overflow: hidden;
 }
 .ov-dash-pomodoro-timeline::before {
   content: '';
@@ -855,7 +867,11 @@
   align-items: center;
   gap: 8px;
   padding: 5px 0;
+  animation: ov-tl-item-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
+.ov-dash-pomodoro-tl-item:nth-child(1) { animation-delay: 0ms; }
+.ov-dash-pomodoro-tl-item:nth-child(2) { animation-delay: 55ms; }
+.ov-dash-pomodoro-tl-item:nth-child(3) { animation-delay: 110ms; }
 .ov-dash-pomodoro-tl-item--empty {
   visibility: hidden;
 }
