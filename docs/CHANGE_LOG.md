@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-04-06T06:25:51.784Z
+> 生成时间：2026-04-06T07:52:23.653Z
 
 ## 26.0.5
 
@@ -230,6 +230,10 @@
 
 ## Unreleased
 
+- 2026-04-06 | e3c01c8 | 鸡哥 | Merge pull request #10 from JNTMTMTM/dev
+- 2026-04-06 | 698a94e | 鸡哥 | ci: 更新代码质量审查 jsx-brace-spacing 规则
+- 2026-04-06 | 1b21f1a | 鸡哥 | feat: 添加歌曲数据源和歌词文件获取配置界面
+- 2026-04-06 | 6714a7c | github-actions[bot] | docs: auto update CHANGE_LOG.md for #9 by @JNTMTMTM [skip ci]
 - 2026-04-06 | 83a011a | 鸡哥 | Merge pull request #9 from JNTMTMTM/dev
 - 2026-04-06 | 7b09ca3 | 鸡哥 | ci: 创建自动更新changelog工作流
 - 2026-04-06 | d2861f2 | 鸡哥 | Merge pull request #8 from JNTMTMTM/dev
