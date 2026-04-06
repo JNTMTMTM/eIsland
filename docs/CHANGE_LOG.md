@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-04-06T13:35:29.134Z
+> 生成时间：2026-04-06T13:36:25.172Z
 
 ## 26.0.5
 
@@ -230,6 +230,7 @@
 
 ## Unreleased
 
+- 2026-04-06 | 03dd1ec | github-actions[bot] | docs: auto update CHANGE_LOG.md for #15 by @JNTMTMTM [skip ci]
 - 2026-04-06 | 2630289 | 鸡哥 | Merge pull request #15 from JNTMTMTM/dev
 - 2026-04-06 | 99c3fd7 | 鸡哥 | chore: 更新版本号到V26.1.1-beta.1
 - 2026-04-06 | 54ab381 | github-actions[bot] | docs: auto update CHANGE_LOG.md for #14 by @JNTMTMTM [skip ci]
