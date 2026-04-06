@@ -1,0 +1,48 @@
+name: Feature Request
+description: Suggest an idea or enhancement for eIsland
+title: "[Feature]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for your suggestion. Clear context helps us evaluate faster.
+
+  - type: textarea
+    id: pain
+    attributes:
+      label: 当前痛点
+      description: 你现在遇到的痛点是什么？
+      placeholder: 例如：现有设置方式步骤较多，切换配置效率低。
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 期望方案
+      description: 你希望新增或调整什么能力？
+      placeholder: 描述你理想中的交互或功能。
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: 可选方案（可选）
+      description: 你考虑过哪些替代方案？
+      placeholder: 可以填写你尝试过的方法及不足。
+
+  - type: textarea
+    id: scenarios
+    attributes:
+      label: 使用场景
+      description: 在什么场景下会频繁使用该功能？
+      placeholder: 请给出 1-2 个具体场景。
+    validations:
+      required: true
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: 补充信息（可选）
+      description: 如设计稿、参考链接、截图等。
