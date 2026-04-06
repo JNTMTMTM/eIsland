@@ -752,6 +752,29 @@
   height: 13px;
   object-fit: contain;
 }
+.ov-dash-pomodoro-count-reset {
+  width: 14px;
+  height: 14px;
+  border: none;
+  background: transparent;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0.4;
+  transition: opacity 0.15s;
+  flex-shrink: 0;
+}
+.ov-dash-pomodoro-count-reset:hover {
+  opacity: 1;
+}
+.ov-dash-pomodoro-count-reset-icon {
+  width: 11px;
+  height: 11px;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+}
 .ov-dash-pomodoro-body {
   flex: 1;
   display: flex;

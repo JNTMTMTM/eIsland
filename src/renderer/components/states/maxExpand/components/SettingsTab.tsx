@@ -226,7 +226,10 @@ function OverviewPreview({ layoutConfig }: { layoutConfig: OverviewLayoutConfig 
               <span className="ov-dash-widget-title">番茄钟</span>
               <span className="ov-dash-pomodoro-count">
                 <img src={SvgIcon.POMODORO} alt="番茄" className="ov-dash-pomodoro-icon" />
-                0
+                3
+                <button className="ov-dash-pomodoro-count-reset" type="button" style={{ cursor: 'default' }}>
+                  <img src={SvgIcon.REVERT} alt="重置" className="ov-dash-pomodoro-count-reset-icon" />
+                </button>
               </span>
             </div>
             <div className="ov-dash-pomodoro-body">

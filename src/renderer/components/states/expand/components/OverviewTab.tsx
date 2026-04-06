@@ -393,6 +393,11 @@ function PomodoroWidget(): React.ReactElement {
     _persistPomodoro(phase, POMODORO_DURATIONS[phase], completedCount);
   };
 
+  const handleResetCount = (): void => {
+    setCompletedCount(0);
+    _persistPomodoro(phase, remaining, 0);
+  };
+
   const handleSkip = (): void => {
     setRunning(false);
     const { nextPhase, nextCount } = _advancePomodoroPhase(phase, completedCount);
@@ -413,6 +418,11 @@ function PomodoroWidget(): React.ReactElement {
         <span className="ov-dash-pomodoro-count" title="已完成番茄数">
           <img src={SvgIcon.POMODORO} alt="番茄" className="ov-dash-pomodoro-icon" />
           {completedCount}
+          {completedCount > 0 && (
+            <button className="ov-dash-pomodoro-count-reset" onClick={handleResetCount} type="button" title="重置计数">
+              <img src={SvgIcon.REVERT} alt="重置" className="ov-dash-pomodoro-count-reset-icon" />
+            </button>
+          )}
         </span>
       </div>
       <div className="ov-dash-pomodoro-body">
