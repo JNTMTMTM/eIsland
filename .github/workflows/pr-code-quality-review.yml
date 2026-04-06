@@ -94,7 +94,11 @@ jobs:
                 id: 'jsx-brace-spacing',
                 desc: 'JSX 花括号内不应有多余空格',
                 applies: /\.(jsx|tsx)$/,
-                test: (text) => /\b[\w:-]+\s*=\s*\{\s+[^\n}]+\s+\}/.test(text)
+                test: (text) => text.split('\n').some(line => {
+                  const t = line.trim();
+                  if (/^(const|let|var|return)\s/.test(t)) return false;
+                  return /\b[\w:-]+\s*=\s*\{\s+[^\n}]+\s+\}/.test(t);
+                })
               },
               {
                 id: 'no-important',

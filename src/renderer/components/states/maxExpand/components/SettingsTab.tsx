@@ -255,8 +255,16 @@ function OverviewPreview({ layoutConfig }: { layoutConfig: OverviewLayoutConfig 
  * 设置 Tab
  * @description 最大展开模式下的设置面板
  */
+/** 歌词源选项 */
+const LYRICS_SOURCE_OPTIONS = [
+  { value: 'lrclib-first', label: 'LRCLIB 优先' },
+  { value: 'netease-first', label: '网易云优先' },
+  { value: 'lrclib-only', label: '仅 LRCLIB' },
+  { value: 'netease-only', label: '仅网易云' },
+];
+
 /** 设置页侧边栏 Tab 顺序 */
-const SETTINGS_TABS: ('app' | 'ai' | 'about')[] = ['app', 'ai', 'about'];
+const SETTINGS_TABS: ('app' | 'music' | 'ai' | 'about')[] = ['app', 'music', 'ai', 'about'];
 
 const LAYOUT_STORE_KEY = 'overview-layout';
 const DEFAULT_LAYOUT: OverviewLayoutConfig = { left: 'shortcuts', right: 'todo' };
@@ -267,7 +275,7 @@ const DEFAULT_LAYOUT: OverviewLayoutConfig = { left: 'shortcuts', right: 'todo' 
  * @returns 设置 Tab 组件
  */
 export function SettingsTab(): ReactElement {
-  const [activeTab, setActiveTab] = useState<'app' | 'ai' | 'about'>('app');
+  const [activeTab, setActiveTab] = useState<'app' | 'music' | 'ai' | 'about'>('app');
   const { aiConfig, setAiConfig } = useIslandStore();
   const [editingPrompt, setEditingPrompt] = useState(false);
   const [promptDraft, setPromptDraft] = useState('');
@@ -277,11 +285,30 @@ export function SettingsTab(): ReactElement {
   activeTabRef.current = activeTab;
   const [layoutConfig, setLayoutConfig] = useState<OverviewLayoutConfig>(DEFAULT_LAYOUT);
 
+  /** 歌曲设置相关状态 */
+  const [whitelist, setWhitelist] = useState<string[]>([]);
+  const [whitelistDraft, setWhitelistDraft] = useState<string>('');
+  const [lyricsSource, setLyricsSource] = useState<string>('lrclib-first');
+
   /** 快捷键相关状态 */
   const [hideHotkey, setHideHotkey] = useState<string>('Alt+X');
   const [hotkeyRecording, setHotkeyRecording] = useState(false);
   const [hotkeyError, setHotkeyError] = useState<string>('');
   const hotkeyInputRef = useRef<HTMLInputElement>(null);
+
+  /** 加载歌曲设置 */
+  useEffect(() => {
+    let cancelled = false;
+    window.api.musicWhitelistGet().then((list) => {
+      if (cancelled) return;
+      setWhitelist(list);
+    }).catch(() => {});
+    window.api.musicLyricsSourceGet().then((src) => {
+      if (cancelled) return;
+      setLyricsSource(src);
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
 
   /** 加载总览布局配置 */
   useEffect(() => {
@@ -413,6 +440,14 @@ export function SettingsTab(): ReactElement {
             软件设置
           </button>
           <button
+            className={`max-expand-settings-sidebar-item ${activeTab === 'music' ? 'active' : ''}`}
+            onClick={() => setActiveTab('music')}
+            type="button"
+          >
+            <span className="sidebar-dot" />
+            歌曲设置
+          </button>
+          <button
             className={`max-expand-settings-sidebar-item ${activeTab === 'ai' ? 'active' : ''}`}
             onClick={() => setActiveTab('ai')}
             type="button"
@@ -502,6 +537,87 @@ export function SettingsTab(): ReactElement {
                       ))}
                     </div>
                   </div>
+                </div>
+              </div>
+            </div>
+          )}
+          {activeTab === 'music' && (
+            <div className="max-expand-settings-section">
+              <div className="max-expand-settings-title">歌曲设置</div>
+
+              {/* 播放器白名单 */}
+              <div className="settings-music-section">
+                <div className="settings-music-label">播放器白名单</div>
+                <div className="settings-music-hint">只有白名单内的播放器才会触发歌曲信息获取</div>
+                <div className="settings-whitelist-list">
+                  {whitelist.map((item, idx) => (
+                    <div className="settings-whitelist-item" key={idx}>
+                      <span className="settings-whitelist-name">{item}</span>
+                      <button
+                        className="settings-whitelist-remove"
+                        type="button"
+                        title="移除"
+                        onClick={() => {
+                          const next = whitelist.filter((_, i) => i !== idx);
+                          setWhitelist(next);
+                          window.api.musicWhitelistSet(next).catch(() => {});
+                        }}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <div className="settings-whitelist-add-row">
+                  <input
+                    className="settings-whitelist-input"
+                    type="text"
+                    placeholder="输入播放器进程名（如 Spotify.exe）"
+                    value={whitelistDraft}
+                    onChange={(e) => setWhitelistDraft(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && whitelistDraft.trim()) {
+                        const next = [...whitelist, whitelistDraft.trim()];
+                        setWhitelist(next);
+                        setWhitelistDraft('');
+                        window.api.musicWhitelistSet(next).catch(() => {});
+                      }
+                    }}
+                  />
+                  <button
+                    className="settings-whitelist-add-btn"
+                    type="button"
+                    onClick={() => {
+                      if (!whitelistDraft.trim()) return;
+                      const next = [...whitelist, whitelistDraft.trim()];
+                      setWhitelist(next);
+                      setWhitelistDraft('');
+                      window.api.musicWhitelistSet(next).catch(() => {});
+                    }}
+                  >
+                    添加
+                  </button>
+                </div>
+              </div>
+
+              {/* 歌词源 */}
+              <div className="settings-music-section">
+                <div className="settings-music-label">歌词源</div>
+                <div className="settings-music-hint">选择歌词获取的优先顺序或唯一来源</div>
+                <div className="settings-lyrics-source-options">
+                  {LYRICS_SOURCE_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.value}
+                      className={`settings-lyrics-source-btn ${lyricsSource === opt.value ? 'active' : ''}`}
+                      type="button"
+                      onClick={() => {
+                        setLyricsSource(opt.value);
+                        window.api.musicLyricsSourceSet(opt.value).catch(() => {});
+                      }}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
                 </div>
               </div>
             </div>

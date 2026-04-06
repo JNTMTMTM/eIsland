@@ -617,6 +617,129 @@
   font-style: italic;
 }
 
+/** ===== 歌曲设置 ===== */
+.settings-music-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.settings-music-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.7);
+}
+.settings-music-hint {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.3);
+  margin-bottom: 4px;
+}
+
+/* 白名单列表 */
+.settings-whitelist-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.settings-whitelist-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.75);
+  transition: background 0.15s;
+}
+.settings-whitelist-item:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+.settings-whitelist-name {
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.settings-whitelist-remove {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 2px;
+  transition: color 0.15s;
+}
+.settings-whitelist-remove:hover {
+  color: #ff6b6b;
+}
+
+/* 白名单添加行 */
+.settings-whitelist-add-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+.settings-whitelist-input {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 11px;
+  color: #fff;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.settings-whitelist-input::placeholder {
+  color: rgba(255, 255, 255, 0.25);
+}
+.settings-whitelist-input:focus {
+  border-color: rgba(255, 255, 255, 0.3);
+}
+.settings-whitelist-add-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  padding: 5px 14px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+.settings-whitelist-add-btn:hover {
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+}
+
+/* 歌词源选择 */
+.settings-lyrics-source-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.settings-lyrics-source-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 5px 14px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.55);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.settings-lyrics-source-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.8);
+}
+.settings-lyrics-source-btn.active {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.25);
+  color: #fff;
+}
+
 .max-expand-settings-placeholder {
   color: rgba(255, 255, 255, 0.3);
   font-size: 14px;

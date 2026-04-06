@@ -255,6 +255,37 @@ const api = {
    */
   hotkeySet: (accelerator: string): Promise<boolean> => {
     return ipcRenderer.invoke('hotkey:set', accelerator);
+  },
+  /** ===== 歌曲设置 API ===== */
+  /**
+   * 获取播放器白名单
+   * @returns 白名单数组
+   */
+  musicWhitelistGet: (): Promise<string[]> => {
+    return ipcRenderer.invoke('music:whitelist:get');
+  },
+  /**
+   * 设置播放器白名单
+   * @param list - 新的白名单数组
+   * @returns 是否保存成功
+   */
+  musicWhitelistSet: (list: string[]): Promise<boolean> => {
+    return ipcRenderer.invoke('music:whitelist:set', list);
+  },
+  /**
+   * 获取歌词源配置
+   * @returns 歌词源标识字符串
+   */
+  musicLyricsSourceGet: (): Promise<string> => {
+    return ipcRenderer.invoke('music:lyrics-source:get');
+  },
+  /**
+   * 设置歌词源
+   * @param source - 歌词源标识
+   * @returns 是否保存成功
+   */
+  musicLyricsSourceSet: (source: string): Promise<boolean> => {
+    return ipcRenderer.invoke('music:lyrics-source:set', source);
   }
 };
 

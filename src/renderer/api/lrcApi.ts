@@ -66,26 +66,21 @@ function parseLrcTime(tag: string): number | null {
  * 解析同步歌词字符串
  */
 function parseSyncedLrc(lrc: string): LyricLine[] {
-  const lines: LyricLine[] = [];
-
-  for (const line of lrc.split('\n')) {
-    const trimmed = line.trim();
-    if (!trimmed.startsWith('[')) continue;
-
-    const endIndex = trimmed.indexOf(']');
-    if (endIndex === -1) continue;
-
-    const tag = trimmed.slice(1, endIndex);
-    const text = trimmed.slice(endIndex + 1).trim();
-
-    const timeMs = parseLrcTime(tag);
-    if (timeMs !== null && text && !META_PREFIXES.some(p => text.startsWith(p))) {
-      lines.push({ time_ms: timeMs, text });
-    }
-  }
-
-  lines.sort((a, b) => a.time_ms - b.time_ms);
-  return lines;
+  return lrc.split('\n')
+    .reduce<LyricLine[]>((acc, raw) => {
+      const trimmed = raw.trim();
+      if (!trimmed.startsWith('[')) return acc;
+      const endIndex = trimmed.indexOf(']');
+      if (endIndex === -1) return acc;
+      const tag = trimmed.slice(1, endIndex);
+      const text = trimmed.slice(endIndex + 1).trim();
+      const timeMs = parseLrcTime(tag);
+      if (timeMs !== null && text && !META_PREFIXES.some(p => text.startsWith(p))) {
+        acc.push({ time_ms: timeMs, text });
+      }
+      return acc;
+    }, [])
+    .sort((a, b) => a.time_ms - b.time_ms);
 }
 
 /**
@@ -160,15 +155,12 @@ function cleanArtist(artist: string): string {
  * 从 LRCLIB API 搜索结果数组中提取第一个有 syncedLyrics 的结果
  */
 function extractSyncedFromArray(json: unknown[]): LyricLine[] | null {
-  for (const item of json) {
-    const obj = item as Record<string, unknown>;
-    const synced = typeof obj.syncedLyrics === 'string' ? obj.syncedLyrics : null;
-    if (synced && synced.length > 0) {
-      const lines = parseSyncedLrc(synced);
-      if (lines.length > 0) return lines;
-    }
-  }
-  return null;
+  const match = json
+    .map(item => (item as Record<string, unknown>).syncedLyrics)
+    .filter((s): s is string => typeof s === 'string' && s.length > 0)
+    .map(synced => parseSyncedLrc(synced))
+    .find(lines => lines.length > 0);
+  return match ?? null;
 }
 
 /**
@@ -326,15 +318,27 @@ export async function fetchLyrics(
   title: string,
   artist: string
 ): Promise<LyricLine[] | null> {
-  // 优先尝试 LRCLIB
+  let source = 'lrclib-first';
+  try {
+    source = await window.api.musicLyricsSourceGet();
+  } catch { /* fallback */ }
+
+  if (source === 'lrclib-only') {
+    return fetchLyricsFromLrclib(title, artist);
+  }
+  if (source === 'netease-only') {
+    return fetchLyricsFromNetease(title, artist);
+  }
+  if (source === 'netease-first') {
+    const neteaseResult = await fetchLyricsFromNetease(title, artist);
+    if (neteaseResult) return neteaseResult;
+    return fetchLyricsFromLrclib(title, artist);
+  }
+
+  // 默认 lrclib-first
   const lrclibResult = await fetchLyricsFromLrclib(title, artist);
   if (lrclibResult) return lrclibResult;
-
-  // 备用网易云音乐
-  const neteaseResult = await fetchLyricsFromNetease(title, artist);
-  if (neteaseResult) return neteaseResult;
-
-  return null;
+  return fetchLyricsFromNetease(title, artist);
 }
 
 /**
@@ -346,15 +350,10 @@ export function getCurrentLyric(
 ): LyricLine | null {
   if (lyrics.length === 0) return null;
 
-  let result: LyricLine | null = null;
-  for (const line of lyrics) {
-    if (line.time_ms <= positionMs) {
-      result = line;
-    } else {
-      break;
-    }
-  }
-  return result;
+  return lyrics.reduce<LyricLine | null>(
+    (acc, line) => (line.time_ms <= positionMs ? line : acc),
+    null
+  );
 }
 
 /**
@@ -367,26 +366,18 @@ export function getNearbyLyrics(
 ): Array<{ text: string; isCurrent: boolean }> {
   if (lyrics.length === 0) return [];
 
-  let currentIdx: number | null = null;
-  for (let i = 0; i < lyrics.length; i++) {
-    if (lyrics[i].time_ms <= positionMs) {
-      currentIdx = i;
-    } else {
-      break;
-    }
-  }
+  const currentIdx = lyrics.reduce<number | null>(
+    (acc, line, i) => (line.time_ms <= positionMs ? i : acc),
+    null
+  );
 
   if (currentIdx === null) return [];
 
   const start = Math.max(0, currentIdx - 2);
   const end = Math.min(lyrics.length, currentIdx + 3);
 
-  const result: Array<{ text: string; isCurrent: boolean }> = [];
-  for (let i = start; i < end; i++) {
-    result.push({
-      text: lyrics[i].text,
-      isCurrent: i === currentIdx,
-    });
-  }
-  return result;
+  return lyrics.slice(start, end).map((line, i) => ({
+    text: line.text,
+    isCurrent: start + i === currentIdx,
+  }));
 }
