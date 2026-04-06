@@ -165,7 +165,7 @@ function WaveCanvas({ color, playing }: { color: [number, number, number]; playi
       { amp: H * 0.12, freq: 3.2, phase: 2.8,  speed: 1.3, alpha: 0.07 },
     ];
 
-    for (const w of waves) {
+    waves.forEach((w) => {
       ctx.beginPath();
       ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${w.alpha})`;
       ctx.lineWidth = 2;
@@ -178,7 +178,7 @@ function WaveCanvas({ color, playing }: { color: [number, number, number]; playi
         else ctx.lineTo(x, y);
       }
       ctx.stroke();
-    }
+    });
 
     rafRef.current = requestAnimationFrame(draw);
   }, [color, sizeCanvas]);
