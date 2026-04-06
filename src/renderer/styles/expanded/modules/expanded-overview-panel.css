@@ -289,6 +289,20 @@
   color: rgba(255, 255, 255, 0.25);
 }
 
+@keyframes ov-lrc-intro-pulse {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50%       { opacity: 0.65; transform: scale(1.1); }
+}
+
+.ov-lrc-intro-icon {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+  animation: ov-lrc-intro-pulse 1.6s ease-in-out infinite;
+  margin-bottom: 6px;
+}
+
 .ov-lrc-container {
   display: flex;
   flex-direction: column;

@@ -255,8 +255,8 @@ export function SongTab(): React.ReactElement {
 
   /** 歌词切片 */
   const hasLyrics = syncedLyrics && syncedLyrics.length > 0 && !lyricsLoading;
-  const visibleIdx = currentIdx < 0 ? 0 : currentIdx;
-  const lines = hasLyrics ? sliceNearby(syncedLyrics!, visibleIdx) : [];
+  const isIntro = hasLyrics && currentIdx < 0;
+  const lines = hasLyrics && !isIntro ? sliceNearby(syncedLyrics!, currentIdx) : [];
 
   return (
     <div className="expand-tab-panel ov-panel">
@@ -305,7 +305,17 @@ export function SongTab(): React.ReactElement {
             <div className="ov-onboarding-hint">播放任意歌曲即可开始</div>
           </div>
         )}
-        {hasLyrics && (
+        {isIntro && (
+          <div className="ov-lrc-container">
+            <img src={SvgIcon.MUSIC} alt="" className="ov-lrc-intro-icon" />
+            {syncedLyrics!.slice(0, 2).map((line, i) => (
+              <div key={`intro-${i}`} className="ov-lrc-line">
+                {line.text}
+              </div>
+            ))}
+          </div>
+        )}
+        {hasLyrics && !isIntro && (
           <div className="ov-lrc-container">
             {lines.map((line) => (
               <div
