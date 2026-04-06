@@ -1,0 +1,130 @@
+name: PR Comment Report
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  comment-report:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Check comment standards
+        id: comment_check
+        shell: bash
+        run: |
+          set +e
+          node --experimental-strip-types scripts/check-comment-standards.ts > comment-check.log 2>&1
+          status=$?
+          if [ "$status" -eq 0 ]; then
+            echo "passed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "passed=false" >> "$GITHUB_OUTPUT"
+          fi
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Generate PR change notes
+        id: change_notes
+        shell: bash
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          git log "$BASE_SHA..$HEAD_SHA" --date=short --pretty=format:'- %ad - [%h] %s' > pr-change-notes.md
+          if [ ! -s pr-change-notes.md ]; then
+            echo "- No commits found in this PR range." > pr-change-notes.md
+          fi
+
+          git diff --name-status "$BASE_SHA..$HEAD_SHA" > pr-changed-files.md
+          if [ ! -s pr-changed-files.md ]; then
+            echo "- No changed files detected." > pr-changed-files.md
+          fi
+
+      - name: Compose PR comment body
+        shell: bash
+        run: |
+          if [ -s comment-check.log ]; then
+            sed -n '1,120p' comment-check.log > comment-check-preview.log
+          else
+            echo "No output from comment check script." > comment-check-preview.log
+          fi
+
+          {
+            echo "<!-- pr-auto-comment-report -->"
+            echo "## 🤖 PR 自动检查报告"
+            echo ""
+            echo "- PR: #${{ github.event.pull_request.number }}"
+            echo "- 分支: \`${{ github.event.pull_request.head.ref }}\` -> \`${{ github.event.pull_request.base.ref }}\`"
+            echo "- 触发提交: \`${{ github.event.pull_request.head.sha }}\`"
+            echo "- 注释规范检查: ${{ steps.comment_check.outputs.passed == 'true' && '✅ 通过' || '❌ 未通过' }}"
+            echo ""
+            echo "### 本次 PR 更新记录"
+            cat pr-change-notes.md
+            echo ""
+            echo "### 变更文件"
+            echo '```text'
+            cat pr-changed-files.md
+            echo '```'
+            echo ""
+            echo "### 注释检查输出（前 120 行）"
+            echo '```text'
+            cat comment-check-preview.log
+            echo '```'
+          } > pr-comment.md
+
+      - name: Create or update PR comment
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('node:fs');
+            const marker = '<!-- pr-auto-comment-report -->';
+            const body = fs.readFileSync('pr-comment.md', 'utf8');
+            const { owner, repo } = context.repo;
+            const issue_number = context.payload.pull_request.number;
+
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner,
+              repo,
+              issue_number,
+              per_page: 100
+            });
+
+            const existing = comments.find((c) => c.user?.type === 'Bot' && c.body?.includes(marker));
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner,
+                repo,
+                comment_id: existing.id,
+                body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number,
+                body
+              });
+            }
+
+      - name: Fail workflow when comment check fails
+        if: steps.comment_check.outputs.passed != 'true'
+        run: |
+          echo "Comment standard check failed. See PR comment for details."
+          exit 1
