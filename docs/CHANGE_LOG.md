@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-04-06T11:14:08.849Z
+> 生成时间：2026-04-06T11:43:29.220Z
 
 ## 26.0.5
 
@@ -230,6 +230,11 @@
 
 ## Unreleased
 
+- 2026-04-06 | 3e4d45e | 鸡哥 | Merge pull request #14 from JNTMTMTM/dev
+- 2026-04-06 | 0791fb1 | 鸡哥 | pref: 拆分CJK字符并使用正则分词算法优化歌词进度
+- 2026-04-06 | 62a36e2 | 鸡哥 | style: 使用CSS平滑扫光优化动画
+- 2026-04-06 | db856fc | 鸡哥 | feat: 支持歌词字符级轮播显示
+- 2026-04-06 | a6a86a0 | github-actions[bot] | docs: auto update CHANGE_LOG.md for #13 by @JNTMTMTM [skip ci]
 - 2026-04-06 | cc89b4f | 鸡哥 | Merge pull request #13 from JNTMTMTM/dev
 - 2026-04-06 | 401057b | 鸡哥 | fix: 修复歌词严重错位问题
 - 2026-04-06 | 3c42801 | 鸡哥 | refactor: 更换smtc调度库
