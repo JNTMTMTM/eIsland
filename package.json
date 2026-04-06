@@ -11,6 +11,7 @@
     "preview": "electron-vite preview",
     "postinstall": "electron-builder install-app-deps",
     "package": "electron-vite build && electron-builder",
+    "changelog:generate": "node --experimental-strip-types scripts/generate-changelog.ts -o docs/CHANGE_LOG.md",
     "release:notes": "node --experimental-strip-types scripts/generate-incremental-release-notes.ts -o RELEASE_NOTES_SINCE_LAST_TAG.md",
     "comment:check": "node --experimental-strip-types scripts/check-comment-standards.ts"
   },
