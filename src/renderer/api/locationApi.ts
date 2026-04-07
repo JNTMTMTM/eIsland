@@ -25,6 +25,7 @@
  */
 
 import { loadNetworkConfig } from '../store/utils/storage';
+import { logger } from '../utils/logger';
 
 /** 位置信息接口 */
 export interface LocationInfo {
@@ -41,18 +42,22 @@ export interface LocationInfo {
  */
 export async function fetchLocation(): Promise<LocationInfo> {
   const { timeoutMs } = loadNetworkConfig();
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
-  let res: Response;
-  try {
-    res = await fetch(
-      'http://ip-api.com/json/?fields=lat,lon,city,regionName,country&lang=zh-CN',
-      { signal: controller.signal }
-    );
-  } finally {
-    clearTimeout(timer);
+  const url = 'http://ip-api.com/json/?fields=lat,lon,city,regionName,country&lang=zh-CN';
+  const headers: Record<string, string> = {};
+  const body = '';
+  logger.info('[LocationApi] request', { url, headers, body, timeoutMs });
+  const resp = await window.api.netFetch(url, { timeoutMs });
+  logger.info('[LocationApi] response', { url, status: resp.status, ok: resp.ok, body: resp.body });
+  if (!resp.ok) {
+    throw new Error(`Location API HTTP ${resp.status}: ${resp.body.slice(0, 200)}`);
   }
-  const data = await res.json();
+  const data = JSON.parse(resp.body) as {
+    lat: number;
+    lon: number;
+    city: string;
+    regionName: string;
+    country: string;
+  };
 
   return {
     latitude: data.lat,

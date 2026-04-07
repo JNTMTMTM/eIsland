@@ -434,15 +434,15 @@ function registerIpcHandlers(): void {
    * @param _volume - 目标音量（0.0 ~ 1.0，暂未实现）
    */
   ipcMain.handle('media:set-volume', (_event, _volume: number) => {
-    // SMTCMonitor 暂不支持音量控制
+    // SMTCMonitor 暂不支持设置音量
   });
 
-  /** 截图并保存 */
+  /** 截图并返回 base64（PNG） */
   ipcMain.handle('system:screenshot', async () => {
     try {
       const sources = await desktopCapturer.getSources({
         types: ['screen'],
-        thumbnailSize: screen.getPrimaryDisplay().workAreaSize
+        thumbnailSize: { width: 1920, height: 1080 },
       });
       if (sources.length > 0) {
         const screenshot = sources[0].thumbnail.toPNG();
@@ -534,6 +534,24 @@ function registerIpcHandlers(): void {
     }
   });
 
+  const logDir = join(app.getPath('userData'), 'logs');
+  if (!existsSync(logDir)) {
+    mkdirSync(logDir, { recursive: true });
+  }
+
+  const writeMainLog = (level: 'info' | 'warn' | 'error', message: string): void => {
+    try {
+      const now = new Date();
+      const date = now.toISOString().slice(0, 10);
+      const time = now.toISOString().slice(11, 23);
+      const line = `[${date} ${time}] [${level.toUpperCase()}] ${message}\n`;
+      const logFile = join(logDir, `${date}.log`);
+      appendFileSync(logFile, line, 'utf-8');
+    } catch {
+      /* 日志写入失败不影响主流程 */
+    }
+  };
+
   // ===== HTTP 代理 IPC（绕过 CORS） =====
   ipcMain.handle('net:fetch', async (_event, url: string, options?: {
     method?: string;
@@ -541,24 +559,40 @@ function registerIpcHandlers(): void {
     body?: string;
     timeoutMs?: number;
   }) => {
-    const timeoutMs = typeof options?.timeoutMs === 'number' ? options.timeoutMs : 10000;
+    const method = options?.method || 'GET';
+    const headers = options?.headers || {};
+    const body = options?.body;
+    const allowsBody = method.toUpperCase() !== 'GET' && method.toUpperCase() !== 'HEAD';
+    const timeoutMs = typeof options?.timeoutMs === 'number' ? options?.timeoutMs : 10000;
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), timeoutMs);
+    writeMainLog('info', `[Net] request ${JSON.stringify({ method, url, headers, body: body ?? '', timeoutMs })}`);
     try {
       const { net } = require('electron');
-      const resp = await net.fetch(url, {
-        method: options?.method || 'GET',
-        headers: options?.headers,
-        body: options?.body,
+      const fetchOptions: {
+        method: string;
+        headers: Record<string, string>;
+        signal: AbortSignal;
+        body?: string;
+      } = {
+        method,
+        headers,
         signal: controller.signal,
-      });
+      };
+      if (allowsBody && typeof body === 'string') {
+        fetchOptions.body = body;
+      }
+      const resp = await net.fetch(url, fetchOptions);
       const text = await resp.text();
+      writeMainLog('info', `[Net] response ${JSON.stringify({ method, url, status: resp.status, ok: resp.ok, body: text })}`);
       return { ok: resp.ok, status: resp.status, body: text };
     } catch (err) {
       if (err && typeof err === 'object' && 'name' in err && err.name === 'AbortError') {
+        writeMainLog('warn', `[Net] timeout ${JSON.stringify({ method, url, headers, body: body ?? '', timeoutMs })}`);
         return { ok: false, status: 408, body: 'timeout' };
       }
       console.error('[Net] fetch proxy error:', err);
+      writeMainLog('error', `[Net] error ${JSON.stringify({ method, url, headers, body: body ?? '', timeoutMs, error: String(err) })}`);
       return { ok: false, status: 0, body: '' };
     } finally {
       clearTimeout(timeout);
@@ -608,11 +642,6 @@ function registerIpcHandlers(): void {
   });
 
   // ===== 日志文件 IPC =====
-  const logDir = join(app.getPath('userData'), 'logs');
-  if (!existsSync(logDir)) {
-    mkdirSync(logDir, { recursive: true });
-  }
-
   /**
    * 写入日志到文件
    * @param _event - IPC 事件
@@ -620,14 +649,7 @@ function registerIpcHandlers(): void {
    * @param message - 日志内容
    */
   ipcMain.on('log:write', (_event, level: string, message: string) => {
-    try {
-      const now = new Date();
-      const date = now.toISOString().slice(0, 10);
-      const time = now.toISOString().slice(11, 23);
-      const line = `[${date} ${time}] [${level.toUpperCase()}] ${message}\n`;
-      const logFile = join(logDir, `${date}.log`);
-      appendFileSync(logFile, line, 'utf-8');
-    } catch { /* 日志写入失败不影响主流程 */ }
+    writeMainLog(level === 'warn' ? 'warn' : level === 'error' ? 'error' : 'info', message);
   });
 
   // ===== 歌曲设置 IPC =====

@@ -26,6 +26,7 @@
 
 import type { WeatherData } from '../store/types';
 import { loadNetworkConfig } from '../store/utils/storage';
+import { logger } from '../utils/logger';
 
 /** 天气接口配置（经纬度） */
 export interface WeatherApiConfig {
@@ -94,8 +95,6 @@ function mapWeatherDescription(code: number): string {
  * @returns WeatherData
  */
 export async function fetchWeather(config: WeatherApiConfig): Promise<WeatherData> {
-  console.log('[WeatherApi] 请求天气数据, 坐标:', config.latitude, config.longitude);
-
   const params = new URLSearchParams({
     latitude: String(config.latitude),
     longitude: String(config.longitude),
@@ -106,10 +105,16 @@ export async function fetchWeather(config: WeatherApiConfig): Promise<WeatherDat
   });
 
   const { timeoutMs } = loadNetworkConfig();
+  const url = `https://api.open-meteo.com/v1/forecast?${params.toString()}`;
+  const requestHeaders: Record<string, string> = {};
+  const requestBody = '';
+  logger.info('[WeatherApi] request', { url, headers: requestHeaders, body: requestBody, timeoutMs });
+
   const resp = await window.api.netFetch(
-    `https://api.open-meteo.com/v1/forecast?${params.toString()}`,
+    url,
     { timeoutMs }
   );
+  logger.info('[WeatherApi] response', { url, status: resp.status, ok: resp.ok, body: resp.body });
 
   if (!resp.ok) {
     const isHtml = resp.body.trimStart().startsWith('<');
@@ -167,6 +172,6 @@ export async function fetchWeather(config: WeatherApiConfig): Promise<WeatherDat
     ]
   };
 
-  console.log('[WeatherApi] 天气获取成功:', weather.description, weather.temperature + '°C');
+  logger.info('[WeatherApi] 天气获取成功:', weather.description, weather.temperature + '°C');
   return weather;
 }
