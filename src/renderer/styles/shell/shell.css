@@ -233,6 +233,13 @@
   height: 88px;
 }
 
+.island-shell.lyrics {
+  width: 500px;
+  height: 60px;
+  background: var(--color-island-bg);
+  border-radius: 0 0 22px 22px;
+}
+
 /** 分隔线 */
 .divider {
   width: 1px;

@@ -33,12 +33,13 @@ import { HoverContent } from './states/hover/HoverContent';
 import { NotificationContent } from './states/notification/NotificationContent';
 import { ExpandedContent } from './states/expand/ExpandedContent';
 import { MaxExpandContent } from './states/maxExpand/MaxExpandContent';
+import { LyricsContent } from './states/lyrics/LyricsContent';
 import { SvgIcon } from '../utils/SvgIcon';
 import type { NowPlayingInfo } from '../store/isLandStore';
 import { fetchLyrics } from '../api/lrcApi';
 
 /** 灵动岛状态类型 */
-export type IslandState = 'idle' | 'hover' | 'expanded' | 'notification' | 'maxExpand' | 'minimal';
+export type IslandState = 'idle' | 'hover' | 'expanded' | 'notification' | 'maxExpand' | 'minimal' | 'lyrics';
 
 /** 状态配置接口 */
 interface StateConfig {
@@ -98,6 +99,13 @@ export const STATE_CONFIGS: Record<IslandState, StateConfig> = {
     enterDelay: 0,
     leaveDelay: 0,
   },
+  lyrics: {
+    name: 'lyrics',
+    mousePassthrough: true,
+    expanded: true,
+    enterDelay: 50,
+    leaveDelay: 0,
+  },
 };
 
 /**
@@ -146,7 +154,7 @@ interface StateRenderer {
  * @description 使用状态模式管理不同状态的 UI 渲染，通过 requestAnimationFrame 检测鼠标位置实现可靠的 hover 交互
  */
 function DynamicIsland(): React.JSX.Element {
-  const { state, weather, setHover, setIdle, setExpanded, timerData, setTimerData, notification, setNotification, handleNowPlayingUpdate, updateProgress, coverImage, isMusicPlaying, isPlaying, dominantColor, setDominantColor, setSyncedLyrics, setLyricsLoading } = useIslandStore();
+  const { state, weather, setHover, setIdle, setExpanded, setLyrics, timerData, setTimerData, notification, setNotification, handleNowPlayingUpdate, updateProgress, coverImage, isMusicPlaying, isPlaying, dominantColor, setDominantColor, setSyncedLyrics, setLyricsLoading } = useIslandStore();
   const prevStateRef = useRef(state);
   const [morphing, setMorphing] = useState(false);
   const [fromState, setFromState] = useState('');
@@ -430,7 +438,12 @@ function DynamicIsland(): React.JSX.Element {
               if (aborted || !isHoveringRef.current) return;
 
               isHoveringRef.current = false;
-              setIdle();
+              const store = useIslandStore.getState();
+              if (store.isMusicPlaying && store.coverImage && store.timerData.state === 'idle') {
+                setLyrics();
+              } else {
+                setIdle();
+              }
             });
           }
         }
@@ -448,7 +461,7 @@ function DynamicIsland(): React.JSX.Element {
       if (rafId !== null) cancelAnimationFrame(rafId);
       clearAllTimers();
     };
-  }, [state, setHover, setIdle, setExpanded, clearAllTimers]);
+  }, [state, setHover, setIdle, setExpanded, setLyrics, clearAllTimers]);
 
   // 状态渲染配置
   const stateRenderers: StateRenderer[] = [
@@ -493,6 +506,12 @@ function DynamicIsland(): React.JSX.Element {
       state: 'maxExpand',
       render: () => (
         <MaxExpandContent />
+      ),
+    },
+    {
+      state: 'lyrics',
+      render: () => (
+        <LyricsContent />
       ),
     },
   ];
