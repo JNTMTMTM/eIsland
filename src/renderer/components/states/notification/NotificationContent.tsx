@@ -46,21 +46,30 @@ export function NotificationContent({
   body,
   icon,
 }: NotificationContentProps): ReactElement {
-  const { setIdle, setNotification } = useIslandStore();
+  const { setIdle, setLyrics, setNotification } = useIslandStore();
+
+  const dismiss = (): void => {
+    const store = useIslandStore.getState();
+    if (store.isMusicPlaying && store.coverImage && (store.syncedLyrics?.length || store.lyricsLoading)) {
+      setLyrics();
+    } else {
+      setIdle();
+    }
+  };
 
   const handleSnooze = (minutes: number): void => {
     window.setTimeout(() => {
       setNotification({ title, body, icon });
     }, minutes * 60 * 1000);
-    setIdle();
+    dismiss();
   };
 
   const handleComplete = (): void => {
-    setIdle();
+    dismiss();
   };
 
   const handleIgnore = (): void => {
-    setIdle();
+    dismiss();
   };
 
   return (
