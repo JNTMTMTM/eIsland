@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-04-06T13:36:25.172Z
+> 生成时间：2026-04-07T11:31:06.352Z
 
 ## 26.0.5
 
@@ -230,6 +230,25 @@
 
 ## Unreleased
 
+- 2026-04-07 | 0d677fd | 鸡哥 | Merge pull request #16 from JNTMTMTM/dev
+- 2026-04-07 | abf11f7 | 鸡哥 | fix: 修复uapi降水量和风速错误引用缓存的问题
+- 2026-04-07 | 927c232 | 鸡哥 | fix: 使代码符合前端代码质量规范
+- 2026-04-07 | 31d9f33 | 鸡哥 | feat: 使用uapi调取时自动转译图标代码至WMO标准
+- 2026-04-07 | e48a998 | 鸡哥 | feat: 添加冗余天气接口方案
+- 2026-04-07 | 6f8c8f7 | 鸡哥 | feat: 添加额外的天气请求日志记录项
+- 2026-04-07 | d7da19a | 鸡哥 | feat: 添加额外的歌词请求日志记录项
+- 2026-04-07 | 2151e0f | 鸡哥 | feat: 网络请求超时时间支持自定义
+- 2026-04-07 | f63f205 | 鸡哥 | feat: 设置界面添加网络配置tab
+- 2026-04-07 | a0c19fe | 鸡哥 | feat: 添加net代理网络请求超时控制
+- 2026-04-07 | 225683b | 鸡哥 | refactor: 不再使用天气sdk获取气象信息
+- 2026-04-07 | 45956e7 | 鸡哥 | feat: 添加日志系统
+- 2026-04-07 | bfbf396 | 鸡哥 | feat: 添加刷新天气按钮
+- 2026-04-07 | 42a7257 | 鸡哥 | fix: 修复地理位置缓存未正常写入的问题
+- 2026-04-07 | 289d69b | 鸡哥 | pref: 优化屏幕边界检测方案
+- 2026-04-07 | 7d2675b | 鸡哥 | pref: 优化歌词tab性能表现
+- 2026-04-06 | 47522d0 | 鸡哥 | fix: 修复设置tab未同步最新版本的问题
+- 2026-04-06 | 43eace5 | 鸡哥 | ci: 修复工作流在release时仍然存在unrelease的问题
+- 2026-04-06 | 0923d37 | github-actions[bot] | docs: auto update CHANGE_LOG.md for release 26.1.1-beta.1 by @JNTMTMTM [skip ci]
 - 2026-04-06 | 03dd1ec | github-actions[bot] | docs: auto update CHANGE_LOG.md for #15 by @JNTMTMTM [skip ci]
 - 2026-04-06 | 2630289 | 鸡哥 | Merge pull request #15 from JNTMTMTM/dev
 - 2026-04-06 | 99c3fd7 | 鸡哥 | chore: 更新版本号到V26.1.1-beta.1
