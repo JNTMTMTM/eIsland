@@ -25,19 +25,12 @@
  */
 
 import { fetchWeatherApi } from 'openmeteo';
-import { fetchLocation, type LocationInfo } from './locationApi';
 import type { WeatherData } from '../store/types';
 
-/** 天气接口配置 */
+/** 天气接口配置（经纬度） */
 export interface WeatherApiConfig {
   longitude: number;
   latitude: number;
-}
-
-/** 天气数据 + 位置信息 */
-export interface WeatherWithLocation {
-  weather: WeatherData;
-  location: LocationInfo;
 }
 
 /**
@@ -78,101 +71,70 @@ function mapWeatherDescription(code: number): string {
 }
 
 /**
- * 获取天气数据
+ * 根据经纬度获取天气数据
  * @param config - 经纬度配置
- * @returns 天气数据及位置信息
+ * @returns WeatherData
  */
-export async function fetchWeather(config: WeatherApiConfig): Promise<WeatherWithLocation>;
-/**
- * 获取天气数据（自动获取精确位置）
- * @returns 天气数据及位置信息
- */
-export async function fetchWeather(): Promise<WeatherWithLocation>;
-export async function fetchWeather(
-  config?: WeatherApiConfig
-): Promise<WeatherWithLocation> {
-  let location: LocationInfo;
+export async function fetchWeather(config: WeatherApiConfig): Promise<WeatherData> {
+  console.log('[WeatherApi] 请求天气数据, 坐标:', config.latitude, config.longitude);
 
-  if (config) {
-    location = {
-      latitude: config.latitude,
-      longitude: config.longitude,
-      city: '',
-      regionName: '',
-      country: ''
-    };
-  } else {
-    location = await fetchLocation();
-  }
+  const url = 'https://api.open-meteo.com/v1/forecast';
+  const responses = await fetchWeatherApi(url, {
+    latitude: config.latitude,
+    longitude: config.longitude,
+    current: [
+      'temperature_2m',
+      'weather_code',
+      'relative_humidity_2m',
+      'wind_speed_10m'
+    ],
+    daily: [
+      'temperature_2m_max',
+      'temperature_2m_min',
+      'weather_code',
+      'wind_speed_10m_max',
+      'uv_index_max',
+      'precipitation_probability_max'
+    ],
+    timezone: 'auto',
+    forecast_days: 3
+  });
 
-  try {
-    console.log('[Weather] 请求天气数据...');
-    console.log('[Weather] 位置信息:', location);
+  const current = responses[0].current()!;
+  const temperature = Math.round(current.variables(0)!.value());
+  const weatherCode = current.variables(1)!.value();
+  const humidity = Math.round(current.variables(2)!.value());
+  const windSpeed = Math.round(current.variables(3)!.value());
 
-    const url = 'https://api.open-meteo.com/v1/forecast';
-    const responses = await fetchWeatherApi(url, {
-      latitude: location.latitude,
-      longitude: location.longitude,
-      current: [
-        'temperature_2m',
-        'weather_code',
-        'relative_humidity_2m',
-        'wind_speed_10m'
-      ],
-      daily: [
-        'temperature_2m_max',
-        'temperature_2m_min',
-        'weather_code',
-        'wind_speed_10m_max',
-        'uv_index_max',
-        'precipitation_probability_max'
-      ],
-      timezone: 'auto',
-      forecast_days: 3
-    });
+  const daily = responses[0].daily()!;
 
-    const current = responses[0].current()!;
-    const temperature = Math.round(current.variables(0)!.value());
-    const weatherCode = current.variables(1)!.value();
-    const humidity = Math.round(current.variables(2)!.value());
-    const windSpeed = Math.round(current.variables(3)!.value());
+  // daily indices: 0=温度最高, 1=温度最低, 2=天气码, 3=最大风速, 4=最大UV, 5=降水概率
+  // values(0)=今天, values(1)=明天, values(2)=后天
 
-    const daily = responses[0].daily()!;
+  const makeForecast = (dayIndex: number) => ({
+    temperature: Math.round(daily.variables(0)!.values(dayIndex)!),
+    description: mapWeatherDescription(daily.variables(2)!.values(dayIndex)!),
+    temperatureMax: Math.round(daily.variables(0)!.values(dayIndex)!),
+    temperatureMin: Math.round(daily.variables(1)!.values(dayIndex)!),
+    windSpeed: Math.round(daily.variables(3)!.values(dayIndex)!),
+    uvIndex: Math.round(daily.variables(4)!.values(dayIndex)!),
+    precipitationProbability: Math.round(daily.variables(5)!.values(dayIndex)!),
+    iconCode: daily.variables(2)!.values(dayIndex)!,
+  });
 
-    // daily indices: 0=温度最高, 1=温度最低, 2=天气码, 3=最大风速, 4=最大UV, 5=降水概率
-    // values(0)=今天, values(1)=明天, values(2)=后天
+  const weather: WeatherData = {
+    temperature,
+    description: mapWeatherDescription(weatherCode),
+    humidity,
+    windSpeed,
+    uvIndex: Math.round(daily.variables(4)!.values(0)!),
+    iconCode: weatherCode,
+    forecast: [
+      makeForecast(1),
+      makeForecast(2),
+    ]
+  };
 
-    const makeForecast = (dayIndex: number) => ({
-      temperature: Math.round(daily.variables(0)!.values(dayIndex)!),
-      description: mapWeatherDescription(daily.variables(2)!.values(dayIndex)!),
-      temperatureMax: Math.round(daily.variables(0)!.values(dayIndex)!),
-      temperatureMin: Math.round(daily.variables(1)!.values(dayIndex)!),
-      windSpeed: Math.round(daily.variables(3)!.values(dayIndex)!),
-      uvIndex: Math.round(daily.variables(4)!.values(dayIndex)!),
-      precipitationProbability: Math.round(daily.variables(5)!.values(dayIndex)!),
-      iconCode: daily.variables(2)!.values(dayIndex)!,
-    });
-
-    const weather: WeatherData = {
-      temperature,
-      description: mapWeatherDescription(weatherCode),
-      humidity,
-      windSpeed,
-      uvIndex: Math.round(daily.variables(4)!.values(0)!),
-      iconCode: weatherCode,
-      forecast: [
-        makeForecast(1), // 明天
-        makeForecast(2), // 后天
-      ]
-    };
-
-    console.log('[Weather] 当前天气:', weather.description, weather.temperature + '°C', '| 图标编号:', weather.iconCode);
-    console.log('[Weather] 明日预报:', weather.forecast[0].description, weather.forecast[0].temperatureMax + '°C', '| 图标编号:', weather.forecast[0].iconCode);
-    console.log('[Weather] 后日预报:', weather.forecast[1].description, weather.forecast[1].temperatureMax + '°C', '| 图标编号:', weather.forecast[1].iconCode);
-
-    return { weather, location };
-  } catch (error) {
-    console.error('[Weather] 获取天气数据失败:', error);
-    throw error;
-  }
+  console.log('[WeatherApi] 天气获取成功:', weather.description, weather.temperature + '°C');
+  return weather;
 }

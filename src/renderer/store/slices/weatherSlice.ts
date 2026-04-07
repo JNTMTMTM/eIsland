@@ -35,7 +35,7 @@ export const createWeatherSlice: StateCreator<
   [],
   [],
   WeatherSlice
-> = (set, get) => ({
+> = (set) => ({
   weather: loadWeatherFromStorage(),
   location: loadLocationFromStorage(),
 
@@ -45,16 +45,41 @@ export const createWeatherSlice: StateCreator<
   },
 
   fetchWeatherData: async (config?: WeatherApiConfig) => {
-    let location;
-    if (config) {
-      location = { latitude: config.latitude, longitude: config.longitude, city: '', regionName: '', country: '' };
-    } else {
-      const cached = get().location;
-      location = cached ?? await fetchLocation();
+    try {
+      // ① 读取缓存（已在 store 初始化时完成，此处打印供调试）
+      const cachedWeather = loadWeatherFromStorage();
+      const cachedLocation = loadLocationFromStorage();
+      console.log('[Weather] 当前缓存 -', cachedLocation
+        ? `位置: ${cachedLocation.city} (${cachedLocation.latitude}, ${cachedLocation.longitude})`
+        : '位置: 无缓存',
+        cachedWeather.description ? `天气: ${cachedWeather.description} ${cachedWeather.temperature}°C` : '天气: 无缓存'
+      );
+
+      // ② 获取位置信息
+      let location;
+      if (config) {
+        console.log('[Weather] 使用手动配置坐标:', config.latitude, config.longitude);
+        location = { latitude: config.latitude, longitude: config.longitude, city: '', regionName: '', country: '' };
+      } else {
+        console.log('[Weather] 正在获取 IP 定位...');
+        location = await fetchLocation();
+        console.log('[Weather] 定位成功:', location.city, location.regionName, `(${location.latitude}, ${location.longitude})`);
+      }
+      saveLocationToStorage(location);
+      set({ location });
+      console.log('[Weather] 位置信息已写入缓存');
+
+      // ③ 获取天气数据
+      console.log('[Weather] 正在获取天气数据...');
+      const weather = await fetchWeather({ latitude: location.latitude, longitude: location.longitude });
+      console.log('[Weather] 天气获取成功:', weather.description, weather.temperature + '°C');
+
+      // ④ 写入天气缓存 & 更新 store
+      saveWeatherToStorage(weather);
+      set({ weather });
+      console.log('[Weather] 天气数据已写入本地缓存');
+    } catch (error) {
+      console.error('[Weather] 获取天气数据失败:', error);
     }
-    const { weather } = await fetchWeather({ latitude: location.latitude, longitude: location.longitude });
-    saveWeatherToStorage(weather);
-    saveLocationToStorage(location);
-    set({ weather, location });
   },
 });
