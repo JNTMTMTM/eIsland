@@ -66,7 +66,7 @@ export const createIslandSlice: StateCreator<
   },
 
   setLyrics: () => {
-    window.api?.expandWindow();
+    window.api?.expandWindowLyrics();
     window.api?.enableMousePassthrough();
     set({ state: 'lyrics' });
   },

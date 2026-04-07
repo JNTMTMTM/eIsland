@@ -58,6 +58,13 @@ const api = {
     ipcRenderer.send('window:expand-notification');
   },
   /**
+   * 展开窗口到歌词状态尺寸
+   * @description 宽度 500，高度与 idle 一致（42）
+   */
+  expandWindowLyrics: (): void => {
+    ipcRenderer.send('window:expand-lyrics');
+  },
+  /**
    * 完整展开窗口到 expanded 状态尺寸
    * @description 单击灵动岛后展开为完整操作面板（560x200）
    */

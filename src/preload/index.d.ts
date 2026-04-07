@@ -50,6 +50,7 @@ declare global {
       disableMousePassthrough: () => void;
       expandWindow: () => void;
       expandWindowNotification: () => void;
+      expandWindowLyrics: () => void;
       expandWindowFull: () => void;
       expandWindowSettings: () => void;
       collapseWindow: () => void;

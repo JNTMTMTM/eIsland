@@ -235,7 +235,7 @@
 
 .island-shell.lyrics {
   width: 500px;
-  height: 60px;
+  height: 42px;
   background: var(--color-island-bg);
   border-radius: 0 0 22px 22px;
 }

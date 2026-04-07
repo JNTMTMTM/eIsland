@@ -50,6 +50,8 @@ const EXPANDED_WIDTH = 500;
 const EXPANDED_HEIGHT = 60;
 const NOTIFICATION_WIDTH = 500;
 const NOTIFICATION_HEIGHT = 88;
+const LYRICS_WIDTH = 500;
+const LYRICS_HEIGHT = 42;
 /** 单击展开后的完整面板尺寸 */
 const EXPANDED_FULL_WIDTH = 860;
 const EXPANDED_FULL_HEIGHT = 150;
@@ -330,6 +332,20 @@ function registerIpcHandlers(): void {
         y: mainWindow.getBounds().y,
         width: NOTIFICATION_WIDTH,
         height: NOTIFICATION_HEIGHT
+      });
+    }
+  });
+
+  /**
+   * 展开歌词窗口 - 宽度 500，高度与 idle 一致（42）
+   */
+  ipcMain.on('window:expand-lyrics', () => {
+    if (mainWindow) {
+      mainWindow.setBounds({
+        x: Math.round(initialCenterX - LYRICS_WIDTH / 2),
+        y: mainWindow.getBounds().y,
+        width: LYRICS_WIDTH,
+        height: LYRICS_HEIGHT
       });
     }
   });
