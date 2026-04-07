@@ -31,13 +31,21 @@ import type { LocationInfo } from '../../api/locationApi';
 const WEATHER_STORAGE_KEY = 'island_weather';
 const LOCATION_STORAGE_KEY = 'island_location';
 const NETWORK_CONFIG_KEY = 'island_network_config';
+const WEATHER_PROVIDER_CONFIG_KEY = 'island_weather_provider_config';
 
 /** 默认网络请求超时（毫秒） */
 export const DEFAULT_NETWORK_TIMEOUT_MS = 10000;
+export const DEFAULT_WEATHER_PRIMARY_PROVIDER: WeatherProvider = 'open-meteo';
 
 /** 网络配置类型 */
 export interface NetworkConfig {
   timeoutMs: number;
+}
+
+export type WeatherProvider = 'open-meteo' | 'uapi';
+
+export interface WeatherProviderConfig {
+  primaryProvider: WeatherProvider;
 }
 
 /**
@@ -62,6 +70,33 @@ export function loadNetworkConfig(): NetworkConfig {
 export function saveNetworkConfig(config: NetworkConfig): void {
   try {
     localStorage.setItem(NETWORK_CONFIG_KEY, JSON.stringify(config));
+  } catch { /* 忽略 */ }
+}
+
+/**
+ * 从本地存储加载天气提供商配置
+ * @returns WeatherProviderConfig 天气提供商配置对象，加载失败时返回默认值
+ */
+export function loadWeatherProviderConfig(): WeatherProviderConfig {
+  try {
+    const raw = localStorage.getItem(WEATHER_PROVIDER_CONFIG_KEY);
+    if (raw) {
+      const data = JSON.parse(raw) as WeatherProviderConfig;
+      if (data.primaryProvider === 'open-meteo' || data.primaryProvider === 'uapi') {
+        return data;
+      }
+    }
+  } catch { /* 忽略 */ }
+  return { primaryProvider: DEFAULT_WEATHER_PRIMARY_PROVIDER };
+}
+
+/**
+ * 保存天气提供商配置到本地存储
+ * @param config - 要保存的天气提供商配置
+ */
+export function saveWeatherProviderConfig(config: WeatherProviderConfig): void {
+  try {
+    localStorage.setItem(WEATHER_PROVIDER_CONFIG_KEY, JSON.stringify(config));
   } catch { /* 忽略 */ }
 }
 

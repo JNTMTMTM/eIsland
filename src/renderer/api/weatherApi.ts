@@ -25,7 +25,11 @@
  */
 
 import type { WeatherData } from '../store/types';
-import { loadLocationFromStorage, loadNetworkConfig } from '../store/utils/storage';
+import {
+  loadLocationFromStorage,
+  loadNetworkConfig,
+  loadWeatherProviderConfig,
+} from '../store/utils/storage';
 import { logger } from '../utils/logger';
 
 /** 天气接口配置（经纬度） */
@@ -336,34 +340,32 @@ export async function fetchWeather(config: WeatherApiConfig): Promise<WeatherDat
   });
 
   const { timeoutMs } = loadNetworkConfig();
+  const { primaryProvider } = loadWeatherProviderConfig();
   const url = `https://api.open-meteo.com/v1/forecast?${params.toString()}`;
-  const requestId = `weather_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-  const startedAt = Date.now();
-  const query = {
-    latitude: config.latitude,
-    longitude: config.longitude,
-    current: params.get('current') ?? '',
-    daily: params.get('daily') ?? '',
-    timezone: params.get('timezone') ?? '',
-    forecast_days: params.get('forecast_days') ?? '',
-  };
-  const requestHeaders: Record<string, string> = {};
-  const requestBody = '';
-  logger.info('[WeatherApi] request:start', {
-    requestId,
-    method: 'GET',
-    url,
-    query,
-    headers: requestHeaders,
-    body: requestBody,
-    timeoutMs,
-  });
+  const requestOpenMeteo = async (): Promise<WeatherData> => {
+    const requestId = `weather_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    const startedAt = Date.now();
+    const query = {
+      latitude: config.latitude,
+      longitude: config.longitude,
+      current: params.get('current') ?? '',
+      daily: params.get('daily') ?? '',
+      timezone: params.get('timezone') ?? '',
+      forecast_days: params.get('forecast_days') ?? '',
+    };
 
-  try {
-    const resp = await window.api.netFetch(
+    logger.info('[WeatherApi] request:start', {
+      requestId,
+      provider: 'open-meteo',
+      method: 'GET',
       url,
-      { timeoutMs }
-    );
+      query,
+      headers: {},
+      body: '',
+      timeoutMs,
+    });
+
+    const resp = await window.api.netFetch(url, { timeoutMs });
     logger.info('[WeatherApi] request:end', {
       requestId,
       provider: 'open-meteo',
@@ -392,58 +394,75 @@ export async function fetchWeather(config: WeatherApiConfig): Promise<WeatherDat
     const weather = mapOpenMeteoToData(data);
     logger.info('[WeatherApi] 天气获取成功:', weather.description, weather.temperature + '°C', { provider: 'open-meteo' });
     return weather;
+  };
+
+  const requestUapi = async (): Promise<WeatherData> => {
+    const fallbackParams = new URLSearchParams({
+      forecast: 'true',
+      extended: 'true',
+      lang: 'zh',
+    });
+    const cachedLocation = loadLocationFromStorage();
+    if (cachedLocation?.city) fallbackParams.set('city', cachedLocation.city);
+    const fallbackUrl = `https://uapis.cn/api/v1/misc/weather?${fallbackParams.toString()}`;
+    const requestId = `weather_fallback_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    const startedAt = Date.now();
+
+    logger.info('[WeatherApi] request:start', {
+      requestId,
+      provider: 'uapis',
+      method: 'GET',
+      url: fallbackUrl,
+      query: Object.fromEntries(fallbackParams.entries()),
+      headers: {},
+      body: '',
+      timeoutMs,
+    });
+
+    const fallbackResp = await window.api.netFetch(fallbackUrl, { timeoutMs });
+    logger.info('[WeatherApi] request:end', {
+      requestId,
+      provider: 'uapis',
+      method: 'GET',
+      url: fallbackUrl,
+      status: fallbackResp.status,
+      ok: fallbackResp.ok,
+      durationMs: Date.now() - startedAt,
+      responseSize: fallbackResp.body.length,
+      body: fallbackResp.body,
+    });
+
+    if (!fallbackResp.ok) {
+      throw new Error(`UAPI Weather HTTP ${fallbackResp.status}: ${fallbackResp.body.slice(0, 200)}`);
+    }
+    if (fallbackResp.body.trimStart().startsWith('<')) {
+      throw new Error('UAPI Weather 返回了非 JSON 内容，请检查网络环境');
+    }
+
+    const parsed = JSON.parse(fallbackResp.body) as Record<string, unknown>;
+    const payload = (
+      typeof parsed.data === 'object' && parsed.data !== null
+        ? parsed.data
+        : parsed
+    ) as UapiWeatherResponse;
+    const weather = mapUapiWeatherToData(payload);
+    logger.info('[WeatherApi] 天气获取成功:', weather.description, weather.temperature + '°C', { provider: 'uapis' });
+    return weather;
+  };
+
+  const firstProvider = primaryProvider === 'uapi' ? 'uapis' : 'open-meteo';
+  const secondProvider = firstProvider === 'open-meteo' ? 'uapis' : 'open-meteo';
+  logger.info('[WeatherApi] provider:priority', { primaryProvider: firstProvider, fallbackProvider: secondProvider });
+
+  try {
+    return firstProvider === 'open-meteo'
+      ? await requestOpenMeteo()
+      : await requestUapi();
   } catch (primaryError) {
-    logger.warn('[WeatherApi] open-meteo 失败，尝试 uapis 冗余源', { error: primaryError });
+    logger.warn(`[WeatherApi] ${firstProvider} 失败，尝试 ${secondProvider} 冗余源`, { error: primaryError });
   }
 
-  const fallbackParams = new URLSearchParams({
-    forecast: 'true',
-    extended: 'true',
-    lang: 'zh',
-  });
-  const cachedLocation = loadLocationFromStorage();
-  if (cachedLocation?.city) fallbackParams.set('city', cachedLocation.city);
-  const fallbackUrl = `https://uapis.cn/api/v1/misc/weather?${fallbackParams.toString()}`;
-  const fallbackRequestId = `weather_fallback_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-  const fallbackStartedAt = Date.now();
-  logger.info('[WeatherApi] request:start', {
-    requestId: fallbackRequestId,
-    provider: 'uapis',
-    method: 'GET',
-    url: fallbackUrl,
-    query: Object.fromEntries(fallbackParams.entries()),
-    headers: {},
-    body: '',
-    timeoutMs,
-  });
-
-  const fallbackResp = await window.api.netFetch(fallbackUrl, { timeoutMs });
-  logger.info('[WeatherApi] request:end', {
-    requestId: fallbackRequestId,
-    provider: 'uapis',
-    method: 'GET',
-    url: fallbackUrl,
-    status: fallbackResp.status,
-    ok: fallbackResp.ok,
-    durationMs: Date.now() - fallbackStartedAt,
-    responseSize: fallbackResp.body.length,
-    body: fallbackResp.body,
-  });
-
-  if (!fallbackResp.ok) {
-    throw new Error(`UAPI Weather HTTP ${fallbackResp.status}: ${fallbackResp.body.slice(0, 200)}`);
-  }
-  if (fallbackResp.body.trimStart().startsWith('<')) {
-    throw new Error('UAPI Weather 返回了非 JSON 内容，请检查网络环境');
-  }
-
-  const parsed = JSON.parse(fallbackResp.body) as Record<string, unknown>;
-  const payload = (
-    typeof parsed.data === 'object' && parsed.data !== null
-      ? parsed.data
-      : parsed
-  ) as UapiWeatherResponse;
-  const weather = mapUapiWeatherToData(payload);
-  logger.info('[WeatherApi] 天气获取成功:', weather.description, weather.temperature + '°C', { provider: 'uapis' });
-  return weather;
+  return firstProvider === 'open-meteo'
+    ? requestUapi()
+    : requestOpenMeteo();
 }

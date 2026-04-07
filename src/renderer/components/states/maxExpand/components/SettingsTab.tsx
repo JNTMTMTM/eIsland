@@ -31,7 +31,15 @@ import avatarImg from '../../../../assets/avatar/T.jpg';
 import type { OverviewWidgetType, OverviewLayoutConfig } from '../../expand/components/OverviewTab';
 import { OVERVIEW_WIDGET_OPTIONS } from '../../expand/components/OverviewTab';
 import { SvgIcon } from '../../../../utils/SvgIcon';
-import { loadNetworkConfig, saveNetworkConfig, DEFAULT_NETWORK_TIMEOUT_MS } from '../../../../store/utils/storage';
+import {
+  loadNetworkConfig,
+  saveNetworkConfig,
+  DEFAULT_NETWORK_TIMEOUT_MS,
+  loadWeatherProviderConfig,
+  saveWeatherProviderConfig,
+  DEFAULT_WEATHER_PRIMARY_PROVIDER,
+  type WeatherProvider,
+} from '../../../../store/utils/storage';
 
 /** 单行配置项 */
 function SettingsField({
@@ -325,8 +333,13 @@ const LYRICS_SOURCE_OPTIONS = [
   { value: 'netease-only', label: '仅网易云' },
 ];
 
+const WEATHER_PROVIDER_OPTIONS: Array<{ value: WeatherProvider; label: string }> = [
+  { value: 'open-meteo', label: 'Open-Meteo 优先' },
+  { value: 'uapi', label: 'UAPI 优先' },
+];
+
 /** 设置页侧边栏 Tab 顺序 */
-const SETTINGS_TABS: ('app' | 'network' | 'music' | 'ai' | 'shortcut' | 'about')[] = ['app', 'network', 'music', 'ai', 'shortcut', 'about'];
+const SETTINGS_TABS: ('app' | 'network' | 'weather' | 'music' | 'ai' | 'shortcut' | 'about')[] = ['app', 'network', 'weather', 'music', 'ai', 'shortcut', 'about'];
 
 const NETWORK_TIMEOUT_OPTIONS = [
   { label: '5 秒', value: 5000 },
@@ -345,7 +358,7 @@ const DEFAULT_LAYOUT: OverviewLayoutConfig = { left: 'shortcuts', right: 'todo' 
  * @returns 设置 Tab 组件
  */
 export function SettingsTab(): ReactElement {
-  const [activeTab, setActiveTab] = useState<'app' | 'network' | 'music' | 'ai' | 'shortcut' | 'about'>('app');
+  const [activeTab, setActiveTab] = useState<'app' | 'network' | 'weather' | 'music' | 'ai' | 'shortcut' | 'about'>('app');
   const { aiConfig, setAiConfig } = useIslandStore();
   const [editingPrompt, setEditingPrompt] = useState(false);
   const [promptDraft, setPromptDraft] = useState('');
@@ -363,6 +376,7 @@ export function SettingsTab(): ReactElement {
   /** 网络配置相关状态 */
   const [networkTimeoutMs, setNetworkTimeoutMs] = useState<number>(DEFAULT_NETWORK_TIMEOUT_MS);
   const [customTimeoutInput, setCustomTimeoutInput] = useState<string>('');
+  const [weatherPrimaryProvider, setWeatherPrimaryProvider] = useState<WeatherProvider>(DEFAULT_WEATHER_PRIMARY_PROVIDER);
 
   /** 快捷键相关状态 */
   const [hideHotkey, setHideHotkey] = useState<string>('Alt+X');
@@ -375,6 +389,11 @@ export function SettingsTab(): ReactElement {
     const cfg = loadNetworkConfig();
     setNetworkTimeoutMs(cfg.timeoutMs);
     setCustomTimeoutInput(String(cfg.timeoutMs / 1000));
+  }, []);
+
+  useEffect(() => {
+    const cfg = loadWeatherProviderConfig();
+    setWeatherPrimaryProvider(cfg.primaryProvider);
   }, []);
 
   /** 加载歌曲设置 */
@@ -529,6 +548,14 @@ export function SettingsTab(): ReactElement {
             网络配置
           </button>
           <button
+            className={`max-expand-settings-sidebar-item ${activeTab === 'weather' ? 'active' : ''}`}
+            onClick={() => setActiveTab('weather')}
+            type="button"
+          >
+            <span className="sidebar-dot" />
+            天气配置
+          </button>
+          <button
             className={`max-expand-settings-sidebar-item ${activeTab === 'music' ? 'active' : ''}`}
             onClick={() => setActiveTab('music')}
             type="button"
@@ -657,6 +684,30 @@ export function SettingsTab(): ReactElement {
                     />
                     <span className="settings-network-custom-unit">秒</span>
                   </div>
+                </div>
+              </div>
+            </div>
+          )}
+          {activeTab === 'weather' && (
+            <div className="max-expand-settings-section">
+              <div className="max-expand-settings-title">天气配置</div>
+              <div className="settings-music-section">
+                <div className="settings-music-label">天气接口优先级</div>
+                <div className="settings-music-hint">可选择优先使用 Open-Meteo 或 UAPI，失败时自动切换到另一源</div>
+                <div className="settings-lyrics-source-options">
+                  {WEATHER_PROVIDER_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.value}
+                      className={`settings-lyrics-source-btn ${weatherPrimaryProvider === opt.value ? 'active' : ''}`}
+                      type="button"
+                      onClick={() => {
+                        setWeatherPrimaryProvider(opt.value);
+                        saveWeatherProviderConfig({ primaryProvider: opt.value });
+                      }}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
                 </div>
               </div>
             </div>
