@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import React, { useEffect, useRef, useCallback, useState } from 'react';
+import React, { useEffect, useRef, useCallback, useMemo, useState } from 'react';
 import useIslandStore from '../../../../store/slices';
 import type { SyncedLyricLine } from '../../../../store/types';
 import { SvgIcon } from '../../../../utils/SvgIcon';
@@ -203,13 +203,18 @@ function WaveCanvas({ color, playing }: { color: [number, number, number]; playi
  * @description 展开状态下三栏布局歌曲面板
  */
 export function SongTab(): React.ReactElement {
-  const {
-    isMusicPlaying, isPlaying, mediaInfo, syncedLyrics, lyricsLoading,
-    coverImage, dominantColor, weather, countdown, timerData,
-    currentPositionMs,
-  } = useIslandStore();
+  const isMusicPlaying = useIslandStore((state) => state.isMusicPlaying);
+  const isPlaying = useIslandStore((state) => state.isPlaying);
+  const mediaInfo = useIslandStore((state) => state.mediaInfo);
+  const syncedLyrics = useIslandStore((state) => state.syncedLyrics);
+  const lyricsLoading = useIslandStore((state) => state.lyricsLoading);
+  const coverImage = useIslandStore((state) => state.coverImage);
+  const dominantColor = useIslandStore((state) => state.dominantColor);
+  const weather = useIslandStore((state) => state.weather);
+  const countdown = useIslandStore((state) => state.countdown);
+  const timerData = useIslandStore((state) => state.timerData);
+  const currentPositionMs = useIslandStore((state) => state.currentPositionMs);
 
-  const [currentIdx, setCurrentIdx] = useState(-1);
   const [now, setNow] = useState(new Date());
 
   /** 时钟 + 倒计时刷新 */
@@ -218,13 +223,10 @@ export function SongTab(): React.ReactElement {
     return () => clearInterval(id);
   }, []);
 
-  /** 歌词进度同步：每当 currentPositionMs 变化（SMTC timeline 事件或 RAF 插值）立即更新歌词行 */
-  useEffect(() => {
-    if (!syncedLyrics || syncedLyrics.length === 0) {
-      setCurrentIdx(-1);
-      return;
-    }
-    setCurrentIdx(findCurrentIndex(syncedLyrics, currentPositionMs));
+  /** 当前歌词行索引（由进度与歌词直接推导） */
+  const currentIdx = useMemo(() => {
+    if (!syncedLyrics || syncedLyrics.length === 0) return -1;
+    return findCurrentIndex(syncedLyrics, currentPositionMs);
   }, [syncedLyrics, currentPositionMs]);
 
   /** 媒体控制 */
@@ -240,7 +242,10 @@ export function SongTab(): React.ReactElement {
   /** 歌词切片 */
   const hasLyrics = syncedLyrics && syncedLyrics.length > 0 && !lyricsLoading;
   const isIntro = hasLyrics && currentIdx < 0;
-  const lines = hasLyrics && !isIntro ? sliceNearby(syncedLyrics!, currentIdx) : [];
+  const lines = useMemo(
+    () => (hasLyrics && !isIntro ? sliceNearby(syncedLyrics!, currentIdx) : []),
+    [hasLyrics, isIntro, syncedLyrics, currentIdx],
+  );
   const lineProgress = (hasLyrics && !isIntro && currentIdx >= 0)
     ? calcLineProgress(syncedLyrics!, currentIdx, currentPositionMs)
     : 0;
