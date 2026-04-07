@@ -28,6 +28,8 @@ import React from 'react';
 import useIslandStore from '../../../../store/slices';
 import '../../../../styles/hover/weather-tab.css';
 
+const FALLBACK_WEATHER_ICON = './svg/NA.svg';
+
 /**
  * 获取星期标签
  * @param index - 预报天数索引（0=明天，1=后天）
@@ -71,6 +73,11 @@ export function WeatherTab(): React.ReactElement {
   const hour = new Date().getHours();
   const isDay = hour >= 6 && hour < 18;
 
+  const handleIconError = (event: React.SyntheticEvent<HTMLImageElement>): void => {
+    event.currentTarget.onerror = null;
+    event.currentTarget.src = FALLBACK_WEATHER_ICON;
+  };
+
   const handleRefresh = async (): Promise<void> => {
     if (refreshing) return;
     setRefreshing(true);
@@ -89,6 +96,7 @@ export function WeatherTab(): React.ReactElement {
         alt={weather.description}
         className={`weather-tab-icon weather-tab-icon-clickable${refreshing ? ' weather-tab-icon-spinning' : ''}`}
         onClick={handleRefresh}
+        onError={handleIconError}
         title="点击刷新天气"
       />
 
@@ -127,6 +135,7 @@ export function WeatherTab(): React.ReactElement {
               src={getWeatherSmallIconPath(day.iconCode, isDay)}
               alt={day.description}
               className="weather-tab-forecast-icon"
+              onError={handleIconError}
             />
             <span className="text-xs leading-none">{day.description}</span>
             <span className="text-[10px] opacity-40 leading-none">雨{day.precipitationProbability}%</span>
