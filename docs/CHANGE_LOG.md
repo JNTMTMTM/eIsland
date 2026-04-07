@@ -1,7 +1,113 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-04-07T11:31:06.352Z
+> 生成时间：2026-04-07T11:41:35.776Z
+
+## 26.1.1-beta.1
+
+- 2026-04-06 | 03dd1ec | github-actions[bot] | docs: auto update CHANGE_LOG.md for #15 by @JNTMTMTM [skip ci]
+- 2026-04-06 | 2630289 | 鸡哥 | Merge pull request #15 from JNTMTMTM/dev
+- 2026-04-06 | 99c3fd7 | 鸡哥 | chore: 更新版本号到V26.1.1-beta.1
+- 2026-04-06 | 54ab381 | github-actions[bot] | docs: auto update CHANGE_LOG.md for #14 by @JNTMTMTM [skip ci]
+- 2026-04-06 | 3e4d45e | 鸡哥 | Merge pull request #14 from JNTMTMTM/dev
+- 2026-04-06 | 0791fb1 | 鸡哥 | pref: 拆分CJK字符并使用正则分词算法优化歌词进度
+- 2026-04-06 | 62a36e2 | 鸡哥 | style: 使用CSS平滑扫光优化动画
+- 2026-04-06 | db856fc | 鸡哥 | feat: 支持歌词字符级轮播显示
+- 2026-04-06 | a6a86a0 | github-actions[bot] | docs: auto update CHANGE_LOG.md for #13 by @JNTMTMTM [skip ci]
+- 2026-04-06 | cc89b4f | 鸡哥 | Merge pull request #13 from JNTMTMTM/dev
+- 2026-04-06 | 401057b | 鸡哥 | fix: 修复歌词严重错位问题
+- 2026-04-06 | 3c42801 | 鸡哥 | refactor: 更换smtc调度库
+- 2026-04-06 | 278c3d6 | 鸡哥 | feat: 把快捷键配置界面移动到单独的tab上
+- 2026-04-06 | c015308 | 鸡哥 | Merge commit '0995ecbed01dc4bd24483476dc7c4a18783d17af'
+- 2026-04-06 | 0995ecb | github-actions[bot] | docs: auto update CHANGE_LOG.md for #12 by @JNTMTMTM [skip ci]
+- 2026-04-06 | 2cf9c0f | 鸡哥 | Merge pull request #12 from JNTMTMTM/dev
+- 2026-04-06 | 2e53cf4 | 鸡哥 | fix: 使代码符合代码质量和注释标准
+- 2026-04-06 | aa530e1 | 鸡哥 | feat: 搜索歌曲歌词时添加加载动画
+- 2026-04-06 | 61720f9 | 鸡哥 | feat: 前奏播放时显示音符图标而不是第一句歌词 #5
+- 2026-04-06 | f3125bb | github-actions[bot] | docs: auto update CHANGE_LOG.md for #11 by @JNTMTMTM [skip ci]
+- 2026-04-06 | 62000b4 | 鸡哥 | Merge pull request #11 from JNTMTMTM/dev
+- 2026-04-06 | 4242c3f | 鸡哥 | fix: 修复不符合代码质量标注的地方
+- 2026-04-06 | b752825 | 鸡哥 | style: 添加番茄钟时间线入场动画
+- 2026-04-06 | e5ba291 | 鸡哥 | feat: 给番茄钟总体计数添加重置按钮
+- 2026-04-06 | 256f328 | 鸡哥 | fix: 使用 singleton 监听番茄钟倒计时
+- 2026-04-06 | e1dda72 | 鸡哥 | fix: 修复番茄钟结束后未重置倒计时的问题
+- 2026-04-06 | 46b224f | 鸡哥 | style: 优化番茄钟界面和设置界面灵动岛预览界面的布局
+- 2026-04-06 | eaac29e | 鸡哥 | style: 优化番茄钟界面布局
+- 2026-04-06 | e81b76b | 鸡哥 | feat: 添加overall界面番茄钟卡片
+- 2026-04-06 | 97744f4 | 鸡哥 | ci: 删除弃用的工作流
+- 2026-04-06 | cf5bda0 | 鸡哥 | ci: release时也触发自动更新changelog工作流
+- 2026-04-06 | 0681014 | github-actions[bot] | docs: auto update CHANGE_LOG.md for #10 by @JNTMTMTM [skip ci]
+- 2026-04-06 | e3c01c8 | 鸡哥 | Merge pull request #10 from JNTMTMTM/dev
+- 2026-04-06 | 698a94e | 鸡哥 | ci: 更新代码质量审查 jsx-brace-spacing 规则
+- 2026-04-06 | 1b21f1a | 鸡哥 | feat: 添加歌曲数据源和歌词文件获取配置界面
+- 2026-04-06 | 6714a7c | github-actions[bot] | docs: auto update CHANGE_LOG.md for #9 by @JNTMTMTM [skip ci]
+- 2026-04-06 | 83a011a | 鸡哥 | Merge pull request #9 from JNTMTMTM/dev
+- 2026-04-06 | 7b09ca3 | 鸡哥 | ci: 创建自动更新changelog工作流
+- 2026-04-06 | d2861f2 | 鸡哥 | Merge pull request #8 from JNTMTMTM/dev
+- 2026-04-06 | 263b8c0 | 鸡哥 | ci: 放宽前端代码审查条件
+- 2026-04-06 | 41fedaf | 鸡哥 | style: 修复setting tab中不符合规范的地方
+- 2026-04-06 | f0a7a71 | 鸡哥 | ci: 修复前端代码质量检查工作流误报问题
+- 2026-04-06 | 4f029de | 鸡哥 | Merge pull request #7 from JNTMTMTM/dev
+- 2026-04-06 | 577198f | 鸡哥 | feat: 添加快捷键隐藏灵动岛功能
+- 2026-04-06 | 5f3a78a | 鸡哥 | Merge pull request #6 from JNTMTMTM/dev
+- 2026-04-06 | f7b1b34 | 鸡哥 | ci: 添加pr模板和前端代码标准
+- 2026-04-06 | cf85da0 | 鸡哥 | Merge pull request #4 from JNTMTMTM/dev
+- 2026-04-06 | f25880c | 鸡哥 | ci: 添加issue模板和issue自动打标工作流
+- 2026-04-06 | fa1ce0a | 鸡哥 | Merge pull request #3 from JNTMTMTM/dev
+- 2026-04-06 | 66c55cb | 鸡哥 | ci: 添加pr自动打标工作流
+- 2026-04-06 | df15d00 | 鸡哥 | ci: 允许fork仓库的pr执行工作流
+- 2026-04-06 | 3d1ce5f | 鸡哥 | ci: 添加代码质量评审工作流
+- 2026-04-06 | f85af1d | 鸡哥 | docs: 添加readme文件图标版权信息
+- 2026-04-06 | c2ac68f | 鸡哥 | docs: 完善readme和开源协议
+- 2026-04-06 | 8ee5c67 | 鸡哥 | docs: 给readme文件添加界面展示
+- 2026-04-05 | ba43cc5 | 鸡哥 | docs: 更新readme文件
+- 2026-04-05 | 58d7cfe | 鸡哥 | script: 添加注释规范检查脚本
+- 2026-04-05 | e1f5bdf | 鸡哥 | script: 添加更新日志一键生成脚本
+
+## 26.1.0
+
+- 2026-04-05 | 2844f9a | 鸡哥 | chore: 更新版本至V26.1.0
+- 2026-04-05 | 3b4f3e2 | 鸡哥 | chore: 根据注释规范完善代码
+- 2026-04-05 | 5305420 | 鸡哥 | chore: 更新开源组件使用情况
+- 2026-04-05 | 8a18b54 | 鸡哥 | docs: 添加开源信息
+- 2026-04-05 | 53ba879 | 鸡哥 | refactor: 将过长的样式文件模块化
+- 2026-04-05 | 768e1e3 | 鸡哥 | chore: 更新版本至26.0.7
+- 2026-04-05 | 689166a | 鸡哥 | sytle: 继续美化设置界面灵动岛样式
+- 2026-04-05 | e9d00ac | 鸡哥 | sytle: 美化设置界面灵动岛样式
+- 2026-04-05 | 4bbf891 | 鸡哥 | refactor: 重构设置界面 直接把expand状态的灵动岛塞里面了
+- 2026-04-05 | a485ab8 | 鸡哥 | style: 增强所有倒数日卡片的标题展示
+- 2026-04-05 | 45da9a5 | 鸡哥 | fix: 修复倒数日编辑界面在修改已有卡片模式下控制按钮样式错位的问题
+- 2026-04-05 | 4f9e1c6 | 鸡哥 | refactor: 重构overall倒数日卡片布局
+- 2026-04-05 | a4f4a74 | 鸡哥 | style: 修改overall歌曲卡片的专辑封面倾斜角度
+- 2026-04-05 | 4e80d1d | 鸡哥 | style: 优化overall歌曲卡片的布局
+- 2026-04-05 | 6ce8ce9 | 鸡哥 | refactor: 重构overall界面歌词卡片
+- 2026-04-05 | 36038ae | 鸡哥 | feat: 添加overall界面歌曲和倒数日卡片
+- 2026-04-05 | 8b18563 | 鸡哥 | docs: 更新GPLv3协议
+- 2026-04-05 | b71d4b0 | 鸡哥 | feat: 添加自定义背景文本展示
+- 2026-04-05 | e29c469 | 鸡哥 | feat: 支持自定义倒数日背景图片
+- 2026-04-05 | 9b2853a | 鸡哥 | fix: 修复颜色提取器监听逻辑
+- 2026-04-05 | 9f3dfde | 鸡哥 | feat: 完善倒数日界面
+- 2026-04-05 | 6199398 | 鸡哥 | feat: 添加自定义倒数日功能
+- 2026-04-05 | a10993e | 鸡哥 | feat: 添加倒数日界面
+- 2026-04-05 | 40c20d8 | 鸡哥 | chore: 更新设置界面版本号
+- 2026-04-05 | fe9c2ca | 鸡哥 | chore: 更新版本至26.0.6
+- 2026-04-05 | 911f6a8 | 鸡哥 | feat(lrc): 添加网易云歌词获取接口
+- 2026-04-05 | 0ea5f0d | 鸡哥 | feat: 设置界面支持滚轮切换索引
+- 2026-04-05 | b92ea51 | 鸡哥 | feat: 添加错误的文件类型和重复索引警告
+- 2026-04-05 | c96c640 | 鸡哥 | feat: 添加快捷启动图标调换位置功能
+- 2026-04-05 | 2b6de7a | 鸡哥 | feat: 添加当前快捷启动程序数量显示
+- 2026-04-05 | c051f70 | 鸡哥 | feat: todo单元展开后显示sub-todos
+- 2026-04-05 | b091582 | 鸡哥 | style: 优化overall界面样式
+- 2026-04-05 | 7173276 | 鸡哥 | fix: 修复tooltab滚轮冲突问题
+- 2026-04-05 | cf100ff | 鸡哥 | feat: 添加快捷启动功能
+- 2026-04-05 | 0fd315b | 鸡哥 | feat: overall界面的待办事件支持删除
+- 2026-04-05 | 8ed3d12 | 鸡哥 | sytle: 优化设置界面布局
+- 2026-04-05 | 02f5a50 | 鸡哥 | feat: 添加overall界面老黄历显示
+- 2026-04-05 | 9db6ab8 | 鸡哥 | feat: 添加todo objects滚动区域
+- 2026-04-05 | 78be02d | 鸡哥 | feat: overll添加跳转todo界面按钮
+- 2026-04-05 | 2a0f2e6 | 鸡哥 | feat: 在overall界面对接todo数据
+- 2026-04-05 | fd8cf0e | 鸡哥 | refactor: 重构expand界面索引
+- 2026-04-05 | 3b48086 | 鸡哥 | style: 重构hover界面切换动画
 
 ## 26.0.5
 
@@ -183,53 +289,11 @@
 - 2026-03-30 | 044489f | 鸡哥 | chore: 更新 .gitignore 忽略 .claude 目录
 - 2026-03-30 | 1fc5faf | 鸡哥 | chore: 添加社区规范文档
 
-## 26.1.0
-
-- 2026-04-05 | 2844f9a | 鸡哥 | chore: 更新版本至V26.1.0
-- 2026-04-05 | 3b4f3e2 | 鸡哥 | chore: 根据注释规范完善代码
-- 2026-04-05 | 5305420 | 鸡哥 | chore: 更新开源组件使用情况
-- 2026-04-05 | 8a18b54 | 鸡哥 | docs: 添加开源信息
-- 2026-04-05 | 53ba879 | 鸡哥 | refactor: 将过长的样式文件模块化
-- 2026-04-05 | 768e1e3 | 鸡哥 | chore: 更新版本至26.0.7
-- 2026-04-05 | 689166a | 鸡哥 | sytle: 继续美化设置界面灵动岛样式
-- 2026-04-05 | e9d00ac | 鸡哥 | sytle: 美化设置界面灵动岛样式
-- 2026-04-05 | 4bbf891 | 鸡哥 | refactor: 重构设置界面 直接把expand状态的灵动岛塞里面了
-- 2026-04-05 | a485ab8 | 鸡哥 | style: 增强所有倒数日卡片的标题展示
-- 2026-04-05 | 45da9a5 | 鸡哥 | fix: 修复倒数日编辑界面在修改已有卡片模式下控制按钮样式错位的问题
-- 2026-04-05 | 4f9e1c6 | 鸡哥 | refactor: 重构overall倒数日卡片布局
-- 2026-04-05 | a4f4a74 | 鸡哥 | style: 修改overall歌曲卡片的专辑封面倾斜角度
-- 2026-04-05 | 4e80d1d | 鸡哥 | style: 优化overall歌曲卡片的布局
-- 2026-04-05 | 6ce8ce9 | 鸡哥 | refactor: 重构overall界面歌词卡片
-- 2026-04-05 | 36038ae | 鸡哥 | feat: 添加overall界面歌曲和倒数日卡片
-- 2026-04-05 | 8b18563 | 鸡哥 | docs: 更新GPLv3协议
-- 2026-04-05 | b71d4b0 | 鸡哥 | feat: 添加自定义背景文本展示
-- 2026-04-05 | e29c469 | 鸡哥 | feat: 支持自定义倒数日背景图片
-- 2026-04-05 | 9b2853a | 鸡哥 | fix: 修复颜色提取器监听逻辑
-- 2026-04-05 | 9f3dfde | 鸡哥 | feat: 完善倒数日界面
-- 2026-04-05 | 6199398 | 鸡哥 | feat: 添加自定义倒数日功能
-- 2026-04-05 | a10993e | 鸡哥 | feat: 添加倒数日界面
-- 2026-04-05 | 40c20d8 | 鸡哥 | chore: 更新设置界面版本号
-- 2026-04-05 | fe9c2ca | 鸡哥 | chore: 更新版本至26.0.6
-- 2026-04-05 | 911f6a8 | 鸡哥 | feat(lrc): 添加网易云歌词获取接口
-- 2026-04-05 | 0ea5f0d | 鸡哥 | feat: 设置界面支持滚轮切换索引
-- 2026-04-05 | b92ea51 | 鸡哥 | feat: 添加错误的文件类型和重复索引警告
-- 2026-04-05 | c96c640 | 鸡哥 | feat: 添加快捷启动图标调换位置功能
-- 2026-04-05 | 2b6de7a | 鸡哥 | feat: 添加当前快捷启动程序数量显示
-- 2026-04-05 | c051f70 | 鸡哥 | feat: todo单元展开后显示sub-todos
-- 2026-04-05 | b091582 | 鸡哥 | style: 优化overall界面样式
-- 2026-04-05 | 7173276 | 鸡哥 | fix: 修复tooltab滚轮冲突问题
-- 2026-04-05 | cf100ff | 鸡哥 | feat: 添加快捷启动功能
-- 2026-04-05 | 0fd315b | 鸡哥 | feat: overall界面的待办事件支持删除
-- 2026-04-05 | 8ed3d12 | 鸡哥 | sytle: 优化设置界面布局
-- 2026-04-05 | 02f5a50 | 鸡哥 | feat: 添加overall界面老黄历显示
-- 2026-04-05 | 9db6ab8 | 鸡哥 | feat: 添加todo objects滚动区域
-- 2026-04-05 | 78be02d | 鸡哥 | feat: overll添加跳转todo界面按钮
-- 2026-04-05 | 2a0f2e6 | 鸡哥 | feat: 在overall界面对接todo数据
-- 2026-04-05 | fd8cf0e | 鸡哥 | refactor: 重构expand界面索引
-- 2026-04-05 | 3b48086 | 鸡哥 | style: 重构hover界面切换动画
-
 ## Unreleased
 
+- 2026-04-07 | 2e2bd60 | 鸡哥 | Merge pull request #17 from JNTMTMTM/dev
+- 2026-04-07 | fd9cec8 | 鸡哥 | fix(ci): 修复git差异日志更新脚本
+- 2026-04-07 | a3f2988 | github-actions[bot] | docs: auto update CHANGE_LOG.md for #16 by @JNTMTMTM [skip ci]
 - 2026-04-07 | 0d677fd | 鸡哥 | Merge pull request #16 from JNTMTMTM/dev
 - 2026-04-07 | abf11f7 | 鸡哥 | fix: 修复uapi降水量和风速错误引用缓存的问题
 - 2026-04-07 | 927c232 | 鸡哥 | fix: 使代码符合前端代码质量规范
@@ -249,61 +313,3 @@
 - 2026-04-06 | 47522d0 | 鸡哥 | fix: 修复设置tab未同步最新版本的问题
 - 2026-04-06 | 43eace5 | 鸡哥 | ci: 修复工作流在release时仍然存在unrelease的问题
 - 2026-04-06 | 0923d37 | github-actions[bot] | docs: auto update CHANGE_LOG.md for release 26.1.1-beta.1 by @JNTMTMTM [skip ci]
-- 2026-04-06 | 03dd1ec | github-actions[bot] | docs: auto update CHANGE_LOG.md for #15 by @JNTMTMTM [skip ci]
-- 2026-04-06 | 2630289 | 鸡哥 | Merge pull request #15 from JNTMTMTM/dev
-- 2026-04-06 | 99c3fd7 | 鸡哥 | chore: 更新版本号到V26.1.1-beta.1
-- 2026-04-06 | 54ab381 | github-actions[bot] | docs: auto update CHANGE_LOG.md for #14 by @JNTMTMTM [skip ci]
-- 2026-04-06 | 3e4d45e | 鸡哥 | Merge pull request #14 from JNTMTMTM/dev
-- 2026-04-06 | 0791fb1 | 鸡哥 | pref: 拆分CJK字符并使用正则分词算法优化歌词进度
-- 2026-04-06 | 62a36e2 | 鸡哥 | style: 使用CSS平滑扫光优化动画
-- 2026-04-06 | db856fc | 鸡哥 | feat: 支持歌词字符级轮播显示
-- 2026-04-06 | a6a86a0 | github-actions[bot] | docs: auto update CHANGE_LOG.md for #13 by @JNTMTMTM [skip ci]
-- 2026-04-06 | cc89b4f | 鸡哥 | Merge pull request #13 from JNTMTMTM/dev
-- 2026-04-06 | 401057b | 鸡哥 | fix: 修复歌词严重错位问题
-- 2026-04-06 | 3c42801 | 鸡哥 | refactor: 更换smtc调度库
-- 2026-04-06 | 278c3d6 | 鸡哥 | feat: 把快捷键配置界面移动到单独的tab上
-- 2026-04-06 | c015308 | 鸡哥 | Merge commit '0995ecbed01dc4bd24483476dc7c4a18783d17af'
-- 2026-04-06 | 0995ecb | github-actions[bot] | docs: auto update CHANGE_LOG.md for #12 by @JNTMTMTM [skip ci]
-- 2026-04-06 | 2cf9c0f | 鸡哥 | Merge pull request #12 from JNTMTMTM/dev
-- 2026-04-06 | 2e53cf4 | 鸡哥 | fix: 使代码符合代码质量和注释标准
-- 2026-04-06 | aa530e1 | 鸡哥 | feat: 搜索歌曲歌词时添加加载动画
-- 2026-04-06 | 61720f9 | 鸡哥 | feat: 前奏播放时显示音符图标而不是第一句歌词 #5
-- 2026-04-06 | f3125bb | github-actions[bot] | docs: auto update CHANGE_LOG.md for #11 by @JNTMTMTM [skip ci]
-- 2026-04-06 | 62000b4 | 鸡哥 | Merge pull request #11 from JNTMTMTM/dev
-- 2026-04-06 | 4242c3f | 鸡哥 | fix: 修复不符合代码质量标注的地方
-- 2026-04-06 | b752825 | 鸡哥 | style: 添加番茄钟时间线入场动画
-- 2026-04-06 | e5ba291 | 鸡哥 | feat: 给番茄钟总体计数添加重置按钮
-- 2026-04-06 | 256f328 | 鸡哥 | fix: 使用 singleton 监听番茄钟倒计时
-- 2026-04-06 | e1dda72 | 鸡哥 | fix: 修复番茄钟结束后未重置倒计时的问题
-- 2026-04-06 | 46b224f | 鸡哥 | style: 优化番茄钟界面和设置界面灵动岛预览界面的布局
-- 2026-04-06 | eaac29e | 鸡哥 | style: 优化番茄钟界面布局
-- 2026-04-06 | e81b76b | 鸡哥 | feat: 添加overall界面番茄钟卡片
-- 2026-04-06 | 97744f4 | 鸡哥 | ci: 删除弃用的工作流
-- 2026-04-06 | cf5bda0 | 鸡哥 | ci: release时也触发自动更新changelog工作流
-- 2026-04-06 | 0681014 | github-actions[bot] | docs: auto update CHANGE_LOG.md for #10 by @JNTMTMTM [skip ci]
-- 2026-04-06 | e3c01c8 | 鸡哥 | Merge pull request #10 from JNTMTMTM/dev
-- 2026-04-06 | 698a94e | 鸡哥 | ci: 更新代码质量审查 jsx-brace-spacing 规则
-- 2026-04-06 | 1b21f1a | 鸡哥 | feat: 添加歌曲数据源和歌词文件获取配置界面
-- 2026-04-06 | 6714a7c | github-actions[bot] | docs: auto update CHANGE_LOG.md for #9 by @JNTMTMTM [skip ci]
-- 2026-04-06 | 83a011a | 鸡哥 | Merge pull request #9 from JNTMTMTM/dev
-- 2026-04-06 | 7b09ca3 | 鸡哥 | ci: 创建自动更新changelog工作流
-- 2026-04-06 | d2861f2 | 鸡哥 | Merge pull request #8 from JNTMTMTM/dev
-- 2026-04-06 | 263b8c0 | 鸡哥 | ci: 放宽前端代码审查条件
-- 2026-04-06 | 41fedaf | 鸡哥 | style: 修复setting tab中不符合规范的地方
-- 2026-04-06 | f0a7a71 | 鸡哥 | ci: 修复前端代码质量检查工作流误报问题
-- 2026-04-06 | 4f029de | 鸡哥 | Merge pull request #7 from JNTMTMTM/dev
-- 2026-04-06 | 577198f | 鸡哥 | feat: 添加快捷键隐藏灵动岛功能
-- 2026-04-06 | 5f3a78a | 鸡哥 | Merge pull request #6 from JNTMTMTM/dev
-- 2026-04-06 | f7b1b34 | 鸡哥 | ci: 添加pr模板和前端代码标准
-- 2026-04-06 | cf85da0 | 鸡哥 | Merge pull request #4 from JNTMTMTM/dev
-- 2026-04-06 | f25880c | 鸡哥 | ci: 添加issue模板和issue自动打标工作流
-- 2026-04-06 | fa1ce0a | 鸡哥 | Merge pull request #3 from JNTMTMTM/dev
-- 2026-04-06 | 66c55cb | 鸡哥 | ci: 添加pr自动打标工作流
-- 2026-04-06 | df15d00 | 鸡哥 | ci: 允许fork仓库的pr执行工作流
-- 2026-04-06 | 3d1ce5f | 鸡哥 | ci: 添加代码质量评审工作流
-- 2026-04-06 | f85af1d | 鸡哥 | docs: 添加readme文件图标版权信息
-- 2026-04-06 | c2ac68f | 鸡哥 | docs: 完善readme和开源协议
-- 2026-04-06 | 8ee5c67 | 鸡哥 | docs: 给readme文件添加界面展示
-- 2026-04-05 | ba43cc5 | 鸡哥 | docs: 更新readme文件
-- 2026-04-05 | 58d7cfe | 鸡哥 | script: 添加注释规范检查脚本
-- 2026-04-05 | e1f5bdf | 鸡哥 | script: 添加更新日志一键生成脚本
