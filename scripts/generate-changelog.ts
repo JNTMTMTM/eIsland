@@ -34,6 +34,8 @@ type VersionTag = {
   major: number;
   minor: number;
   patch: number;
+  prerelease: string | null;
+  prereleaseParts: string[];
 };
 
 type CommitItem = {
@@ -102,26 +104,61 @@ function printHelpAndExit(code: number): never {
 }
 
 function parseVersionTag(tag: string): VersionTag | null {
-  const matched = /^v?(\d+)\.(\d+)\.(\d+)$/.exec(tag.trim());
+  const matched = /^v?(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?$/.exec(tag.trim());
   if (!matched) return null;
 
   const major = Number(matched[1]);
   const minor = Number(matched[2]);
   const patch = Number(matched[3]);
+  const prerelease = matched[4] ?? null;
 
   return {
     raw: tag,
-    normalized: `${major}.${minor}.${patch}`,
+    normalized: prerelease ? `${major}.${minor}.${patch}-${prerelease}` : `${major}.${minor}.${patch}`,
     major,
     minor,
     patch,
+    prerelease,
+    prereleaseParts: prerelease ? prerelease.split('.') : [],
   };
+}
+
+function comparePrereleaseIdentifier(a: string, b: string): number {
+  const aIsNumeric = /^\d+$/.test(a);
+  const bIsNumeric = /^\d+$/.test(b);
+
+  if (aIsNumeric && bIsNumeric) {
+    return Number(a) - Number(b);
+  }
+
+  if (aIsNumeric && !bIsNumeric) return -1;
+  if (!aIsNumeric && bIsNumeric) return 1;
+
+  return a.localeCompare(b);
 }
 
 function compareVersion(a: VersionTag, b: VersionTag): number {
   if (a.major !== b.major) return a.major - b.major;
   if (a.minor !== b.minor) return a.minor - b.minor;
-  return a.patch - b.patch;
+  if (a.patch !== b.patch) return a.patch - b.patch;
+
+  if (a.prerelease === null && b.prerelease === null) return 0;
+  if (a.prerelease === null) return 1;
+  if (b.prerelease === null) return -1;
+
+  const maxLen = Math.max(a.prereleaseParts.length, b.prereleaseParts.length);
+  for (let i = 0; i < maxLen; i++) {
+    const left = a.prereleaseParts[i];
+    const right = b.prereleaseParts[i];
+
+    if (left === undefined) return -1;
+    if (right === undefined) return 1;
+
+    const cmp = comparePrereleaseIdentifier(left, right);
+    if (cmp !== 0) return cmp;
+  }
+
+  return 0;
 }
 
 function getSortedVersionTags(): VersionTag[] {
@@ -181,11 +218,16 @@ function buildMarkdown(tags: VersionTag[], includeUnreleased: boolean): string {
     return lines.join('\n');
   }
 
-  for (let i = 0; i < tags.length; i++) {
-    const current = tags[i];
+  const sections = tags.map((current, i) => {
     const previous = i > 0 ? tags[i - 1] : null;
     const range = previous ? `${previous.raw}..${current.raw}` : current.raw;
     const commits = readCommitsInRange(range);
+
+    return { current, commits };
+  });
+
+  for (let i = sections.length - 1; i >= 0; i--) {
+    const { current, commits } = sections[i];
 
     lines.push(`## ${current.normalized}`);
     lines.push('');
@@ -223,7 +265,7 @@ function main(): void {
   writeFileSync(outputPath, markdown, 'utf8');
 
   console.log(`Generated: ${outputPath}`);
-  console.log(`Version tags found: ${tags.map((t) => t.normalized).join(', ') || 'none'}`);
+  console.log(`Version tags found: ${tags.slice().reverse().map((t) => t.normalized).join(', ') || 'none'}`);
 }
 
 main();
