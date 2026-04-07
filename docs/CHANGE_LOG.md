@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-04-07T11:41:35.776Z
+> 生成时间：2026-04-07T16:19:13.836Z
 
 ## 26.1.1-beta.1
 
@@ -291,6 +291,18 @@
 
 ## Unreleased
 
+- 2026-04-08 | 935c056 | 鸡哥 | Merge pull request #18 from JNTMTMTM/dev
+- 2026-04-07 | 6321b51 | 鸡哥 | feat: 添加前奏时歌曲名称显示
+- 2026-04-07 | 6804eea | 鸡哥 | fix: 修复通知界面关闭后无法正确切换到歌词界面的问题
+- 2026-04-07 | dc42581 | 鸡哥 | style: 调整歌词界面的大小
+- 2026-04-07 | ea4e376 | 鸡哥 | feat: 在没有歌词的情况下不显示歌词界面直接返回IDLE状态
+- 2026-04-07 | 252c6f7 | 鸡哥 | fix: 修复音符图标执行浮动动画时超出歌词容器范围
+- 2026-04-07 | 50f5b7d | 鸡哥 | style: 添加歌词扫光特效
+- 2026-04-07 | c3975fc | 鸡哥 | feat: 添加歌词idle界面
+- 2026-04-07 | 8f5876f | 鸡哥 | style: 美化通知界面展开动画
+- 2026-04-07 | de2a39c | 鸡哥 | refactor: 重写通知模式
+- 2026-04-07 | 86dbf54 | 鸡哥 | feat: 添加设置tab自定义天气数据源功能
+- 2026-04-07 | 7e7f091 | github-actions[bot] | docs: auto update CHANGE_LOG.md for #17 by @JNTMTMTM [skip ci]
 - 2026-04-07 | 2e2bd60 | 鸡哥 | Merge pull request #17 from JNTMTMTM/dev
 - 2026-04-07 | fd9cec8 | 鸡哥 | fix(ci): 修复git差异日志更新脚本
 - 2026-04-07 | a3f2988 | github-actions[bot] | docs: auto update CHANGE_LOG.md for #16 by @JNTMTMTM [skip ci]
