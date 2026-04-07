@@ -26,7 +26,7 @@
 
 import { app, BrowserWindow, shell, screen, ipcMain, desktopCapturer, dialog, globalShortcut } from 'electron';
 import { join, basename } from 'path';
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
+import { readFileSync, writeFileSync, appendFileSync, mkdirSync, existsSync } from 'fs';
 import { exec } from 'child_process';
 import { Worker } from 'worker_threads';
 import { electronApp, optimizer, is } from '@electron-toolkit/utils';
@@ -595,6 +595,29 @@ function registerIpcHandlers(): void {
       console.error(`[Store] write '${key}' error:`, err);
       return false;
     }
+  });
+
+  // ===== 日志文件 IPC =====
+  const logDir = join(app.getPath('userData'), 'logs');
+  if (!existsSync(logDir)) {
+    mkdirSync(logDir, { recursive: true });
+  }
+
+  /**
+   * 写入日志到文件
+   * @param _event - IPC 事件
+   * @param level - 日志级别（info/warn/error）
+   * @param message - 日志内容
+   */
+  ipcMain.on('log:write', (_event, level: string, message: string) => {
+    try {
+      const now = new Date();
+      const date = now.toISOString().slice(0, 10);
+      const time = now.toISOString().slice(11, 23);
+      const line = `[${date} ${time}] [${level.toUpperCase()}] ${message}\n`;
+      const logFile = join(logDir, `${date}.log`);
+      appendFileSync(logFile, line, 'utf-8');
+    } catch { /* 日志写入失败不影响主流程 */ }
   });
 
   // ===== 歌曲设置 IPC =====
