@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import React from 'react';
+import { type SyntheticEvent, useState } from 'react';
 import useIslandStore from '../../../../store/slices';
 import '../../../../styles/hover/weather-tab.css';
 
@@ -69,11 +69,11 @@ export function WeatherTab(): React.ReactElement {
   const weather = useIslandStore(s => s.weather);
   const location = useIslandStore(s => s.location);
   const fetchWeatherData = useIslandStore(s => s.fetchWeatherData);
-  const [refreshing, setRefreshing] = React.useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const hour = new Date().getHours();
   const isDay = hour >= 6 && hour < 18;
 
-  const handleIconError = (event: React.SyntheticEvent<HTMLImageElement>): void => {
+  const handleIconError = (event: SyntheticEvent<HTMLImageElement>): void => {
     event.currentTarget.onerror = null;
     event.currentTarget.src = FALLBACK_WEATHER_ICON;
   };
@@ -129,7 +129,7 @@ export function WeatherTab(): React.ReactElement {
       {/* 右侧：未来两天预报 - 上下排列，完整参数 */}
       <div className="weather-tab-forecast">
         {weather.forecast.map((day, index) => (
-          <div key={index} className="weather-tab-forecast-row">
+          <div key={`${getWeekLabel(index)}-${day.description}-${day.iconCode}-${day.temperatureMin}-${day.temperatureMax}`} className="weather-tab-forecast-row">
             <span className="text-xs opacity-60 w-6 leading-none">{getWeekLabel(index)}</span>
             <img
               src={getWeatherSmallIconPath(day.iconCode, isDay)}
