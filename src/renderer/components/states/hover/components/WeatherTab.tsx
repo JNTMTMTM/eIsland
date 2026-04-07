@@ -75,7 +75,7 @@ export function WeatherTab(): React.ReactElement {
     if (refreshing) return;
     setRefreshing(true);
     try {
-      await fetchWeatherData();
+      await fetchWeatherData(undefined, true);
     } finally {
       setRefreshing(false);
     }

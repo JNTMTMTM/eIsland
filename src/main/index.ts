@@ -539,19 +539,29 @@ function registerIpcHandlers(): void {
     method?: string;
     headers?: Record<string, string>;
     body?: string;
+    timeoutMs?: number;
   }) => {
+    const timeoutMs = typeof options?.timeoutMs === 'number' ? options.timeoutMs : 10000;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), timeoutMs);
     try {
       const { net } = require('electron');
       const resp = await net.fetch(url, {
         method: options?.method || 'GET',
         headers: options?.headers,
         body: options?.body,
+        signal: controller.signal,
       });
       const text = await resp.text();
       return { ok: resp.ok, status: resp.status, body: text };
     } catch (err) {
+      if (err && typeof err === 'object' && 'name' in err && err.name === 'AbortError') {
+        return { ok: false, status: 408, body: 'timeout' };
+      }
       console.error('[Net] fetch proxy error:', err);
       return { ok: false, status: 0, body: '' };
+    } finally {
+      clearTimeout(timeout);
     }
   });
 

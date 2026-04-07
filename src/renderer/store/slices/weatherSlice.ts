@@ -45,18 +45,22 @@ export const createWeatherSlice: StateCreator<
     set({ weather: data });
   },
 
-  fetchWeatherData: async (config?: WeatherApiConfig) => {
+  fetchWeatherData: async (config?: WeatherApiConfig, forceRefresh?: boolean) => {
     try {
-      // ① 读取缓存（已在 store 初始化时完成，此处打印供调试）
-      const cachedWeather = loadWeatherFromStorage();
-      const cachedLocation = loadLocationFromStorage();
-      logger.info('[Weather] 当前缓存 -', cachedLocation
-        ? `位置: ${cachedLocation.city} (${cachedLocation.latitude}, ${cachedLocation.longitude})`
-        : '位置: 无缓存',
-        cachedWeather.description ? `天气: ${cachedWeather.description} ${cachedWeather.temperature}°C` : '天气: 无缓存'
-      );
+      // 读取缓存（强制刷新时跳过）
+      if (!forceRefresh) {
+        const cachedWeather = loadWeatherFromStorage();
+        const cachedLocation = loadLocationFromStorage();
+        logger.info('[Weather] 当前缓存 -', cachedLocation
+          ? `位置: ${cachedLocation.city} (${cachedLocation.latitude}, ${cachedLocation.longitude})`
+          : '位置: 无缓存',
+          cachedWeather.description ? `天气: ${cachedWeather.description} ${cachedWeather.temperature}°C` : '天气: 无缓存'
+        );
+      } else {
+        logger.info('[Weather] 强制刷新，跳过缓存加载');
+      }
 
-      // ② 获取位置信息（失败则回退到缓存）
+      // 获取位置信息（强制刷新时不回退到缓存）
       let location;
       if (config) {
         logger.info('[Weather] 使用手动配置坐标:', config.latitude, config.longitude);
@@ -70,6 +74,11 @@ export const createWeatherSlice: StateCreator<
           set({ location });
           logger.info('[Weather] 位置信息已写入缓存');
         } catch (locError) {
+          if (forceRefresh) {
+            logger.warn('[Weather] 强制刷新：定位失败，跳过天气获取:', locError);
+            return;
+          }
+          const cachedLocation = loadLocationFromStorage();
           logger.warn('[Weather] 定位失败，回退使用缓存位置:', locError);
           location = cachedLocation;
         }
@@ -80,12 +89,12 @@ export const createWeatherSlice: StateCreator<
         return;
       }
 
-      // ③ 获取天气数据
+      // 获取天气数据
       logger.info('[Weather] 正在获取天气数据...');
       const weather = await fetchWeather({ latitude: location.latitude, longitude: location.longitude });
       logger.info('[Weather] 天气获取成功:', weather.description, weather.temperature + '°C');
 
-      // ④ 写入天气缓存 & 更新 store
+      // 写入天气缓存 & 更新 store
       saveWeatherToStorage(weather);
       set({ weather });
       logger.info('[Weather] 天气数据已写入本地缓存');

@@ -219,6 +219,7 @@ const api = {
     method?: string;
     headers?: Record<string, string>;
     body?: string;
+    timeoutMs?: number;
   }): Promise<{ ok: boolean; status: number; body: string }> => {
     return ipcRenderer.invoke('net:fetch', url, options);
   },

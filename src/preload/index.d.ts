@@ -80,6 +80,7 @@ declare global {
         method?: string;
         headers?: Record<string, string>;
         body?: string;
+        timeoutMs?: number;
       }) => Promise<{ ok: boolean; status: number; body: string }>;
       /** ===== 文件存储 API ===== */
       storeRead: (key: string) => Promise<unknown>;
