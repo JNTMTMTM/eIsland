@@ -65,8 +65,14 @@ export const createIslandSlice: StateCreator<
     set({ state: 'maxExpand' });
   },
 
+  setLyrics: () => {
+    window.api?.expandWindowLyrics();
+    window.api?.enableMousePassthrough();
+    set({ state: 'lyrics' });
+  },
+
   setNotification: (data) => {
-    window.api?.expandWindow();
+    window.api?.expandWindowNotification();
     set({ state: 'notification', notification: data });
   },
 

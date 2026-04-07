@@ -25,27 +25,90 @@
 
 .notification-content {
   display: flex;
-  flex-direction: row;
-  align-items: center;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  gap: 8px;
   width: 100%;
   height: 100%;
-  padding: 0 16px;
-  animation: notificationEnter 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+  padding: 8px 12px;
 }
 
-@keyframes notificationEnter {
-  0% {
-    opacity: 0;
-    transform: translateY(8px) scale(0.95);
-    filter: blur(3px);
-  }
-  50% {
-    opacity: 0.85;
-    filter: blur(0);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-    filter: blur(0);
-  }
+.notification-main-row {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  animation: notifRowEnter 0.46s cubic-bezier(0.22, 1, 0.36, 1) 0.06s both;
+}
+
+.notification-actions {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  animation: notifActionsEnter 0.42s cubic-bezier(0.22, 1, 0.36, 1) 0.16s both;
+}
+
+.notification-snooze-actions,
+.notification-decision-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.notification-action-btn {
+  border: none;
+  border-radius: 8px;
+  padding: 5px 9px;
+  font-size: 11px;
+  line-height: 1;
+  white-space: nowrap;
+  color: #fff;
+  cursor: pointer;
+  transition: transform 0.15s ease, background-color 0.2s ease, opacity 0.2s ease;
+}
+
+.notification-action-btn:hover {
+  transform: translateY(-1px);
+}
+
+.notification-action-btn:active {
+  transform: translateY(0);
+}
+
+.notification-action-snooze {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.notification-action-snooze:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.notification-action-complete {
+  background: rgba(47, 211, 120, 0.34);
+}
+
+.notification-action-complete:hover {
+  background: rgba(47, 211, 120, 0.5);
+}
+
+.notification-action-ignore {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.notification-action-ignore:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+@keyframes notifRowEnter {
+  0%   { opacity: 0; transform: translateY(7px) scale(0.97); }
+  55%  { opacity: 1; }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes notifActionsEnter {
+  0%   { opacity: 0; transform: translateY(5px); }
+  100% { opacity: 1; transform: translateY(0); }
 }
