@@ -44,6 +44,20 @@ function findCurrentIndex(lyrics: SyncedLyricLine[], posMs: number): number {
   return lo;
 }
 
+/** 计算当前行在本行时间区间内的播放进度（0~1） */
+function calcLineProgress(
+  lyrics: SyncedLyricLine[],
+  idx: number,
+  posMs: number,
+): number {
+  if (idx < 0 || idx >= lyrics.length) return 0;
+  const lineStart = lyrics[idx].time_ms;
+  const lineEnd = idx + 1 < lyrics.length ? lyrics[idx + 1].time_ms : lineStart + 5000;
+  const duration = lineEnd - lineStart;
+  if (duration <= 0) return 0;
+  return Math.min(1, Math.max(0, (posMs - lineStart) / duration));
+}
+
 /**
  * 歌词状态内容组件
  * @description 鼠标离开 hover 且正在播放音乐时显示，左侧专辑封面+光晕，右侧歌词
@@ -85,6 +99,11 @@ export function LyricsContent(): ReactElement {
     return '';
   }, [hasLyrics, isIntro, currentIdx, syncedLyrics]);
 
+  /** 当前行扫光进度 */
+  const lineProgress = (hasLyrics && !isIntro && currentIdx >= 0 && syncedLyrics)
+    ? calcLineProgress(syncedLyrics, currentIdx, currentPositionMs)
+    : 0;
+
   return (
     <div className="lyrics-content">
       {/* 背景光晕 — 与 IdleContent 一致 */}
@@ -111,7 +130,13 @@ export function LyricsContent(): ReactElement {
         {isIntro ? (
           <img src={SvgIcon.MUSIC} alt="" className="lyrics-intro-icon" />
         ) : currentText ? (
-          <span className="lyrics-current-line">{currentText}</span>
+          <span
+            key={currentIdx}
+            className="lyrics-current-line lyrics-sweep"
+            style={{ '--lrc-prog': `${(lineProgress * 100).toFixed(2)}%` } as React.CSSProperties}
+          >
+            {currentText}
+          </span>
         ) : (
           <span className="lyrics-empty">♪</span>
         )}

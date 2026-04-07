@@ -63,6 +63,20 @@
   animation: lyricFadeSwap 0.35s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+.lyrics-sweep {
+  display: inline;
+  transition: --lrc-prog 0.15s linear;
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0.95) var(--lrc-prog),
+    rgba(255, 255, 255, 0.28) var(--lrc-prog)
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
 .lyrics-intro-icon {
   width: 20px;
   height: 20px;
