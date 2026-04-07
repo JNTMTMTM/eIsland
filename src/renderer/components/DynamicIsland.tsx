@@ -439,7 +439,7 @@ function DynamicIsland(): React.JSX.Element {
 
               isHoveringRef.current = false;
               const store = useIslandStore.getState();
-              if (store.isMusicPlaying && store.coverImage && store.timerData.state === 'idle') {
+              if (store.isMusicPlaying && store.coverImage && store.timerData.state === 'idle' && (store.syncedLyrics?.length || store.lyricsLoading)) {
                 setLyrics();
               } else {
                 setIdle();

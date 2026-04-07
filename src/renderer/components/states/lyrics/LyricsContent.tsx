@@ -74,12 +74,16 @@ export function LyricsContent(): ReactElement {
 
   const [r, g, b] = dominantColor;
 
-  /** 音乐停止时自动回到 idle */
+  /** 音乐停止 或 无歌词时自动回到 idle */
   useEffect(() => {
     if (!isMusicPlaying) {
       setIdle();
+      return;
     }
-  }, [isMusicPlaying, setIdle]);
+    if (!lyricsLoading && (!syncedLyrics || syncedLyrics.length === 0)) {
+      setIdle();
+    }
+  }, [isMusicPlaying, lyricsLoading, syncedLyrics, setIdle]);
 
   /** 当前歌词行索引 */
   const currentIdx = useMemo(() => {
@@ -127,7 +131,14 @@ export function LyricsContent(): ReactElement {
 
       {/* 右侧：歌词 */}
       <div className="lyrics-right">
-        {isIntro ? (
+        {lyricsLoading ? (
+          <div className="lyrics-loading">
+            <span className="lyrics-loading-dot" />
+            <span className="lyrics-loading-dot" />
+            <span className="lyrics-loading-dot" />
+            <span className="lyrics-loading-label">正在加载歌词</span>
+          </div>
+        ) : isIntro ? (
           <img src={SvgIcon.MUSIC} alt="" className="lyrics-intro-icon" />
         ) : currentText ? (
           <span
@@ -138,7 +149,7 @@ export function LyricsContent(): ReactElement {
             {currentText}
           </span>
         ) : (
-          <span className="lyrics-empty">♪</span>
+          <span className="lyrics-empty">暂无歌词 享受音乐</span>
         )}
       </div>
     </div>
