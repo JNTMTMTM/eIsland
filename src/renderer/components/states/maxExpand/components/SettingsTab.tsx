@@ -362,6 +362,7 @@ export function SettingsTab(): ReactElement {
 
   /** 网络配置相关状态 */
   const [networkTimeoutMs, setNetworkTimeoutMs] = useState<number>(DEFAULT_NETWORK_TIMEOUT_MS);
+  const [customTimeoutInput, setCustomTimeoutInput] = useState<string>('');
 
   /** 快捷键相关状态 */
   const [hideHotkey, setHideHotkey] = useState<string>('Alt+X');
@@ -371,7 +372,9 @@ export function SettingsTab(): ReactElement {
 
   /** 加载网络配置 */
   useEffect(() => {
-    setNetworkTimeoutMs(loadNetworkConfig().timeoutMs);
+    const cfg = loadNetworkConfig();
+    setNetworkTimeoutMs(cfg.timeoutMs);
+    setCustomTimeoutInput(String(cfg.timeoutMs / 1000));
   }, []);
 
   /** 加载歌曲设置 */
@@ -613,20 +616,47 @@ export function SettingsTab(): ReactElement {
               <div className="settings-music-section">
                 <div className="settings-music-label">请求超时时间</div>
                 <div className="settings-music-hint">设置网络请求的最长等待时间，网络较差时可适当增大</div>
-                <div className="settings-lyrics-source-options">
-                  {NETWORK_TIMEOUT_OPTIONS.map((opt) => (
-                    <button
-                      key={opt.value}
-                      className={`settings-lyrics-source-btn ${networkTimeoutMs === opt.value ? 'active' : ''}`}
-                      type="button"
-                      onClick={() => {
-                        setNetworkTimeoutMs(opt.value);
-                        saveNetworkConfig({ timeoutMs: opt.value });
+                <div className="settings-network-timeout-row">
+                  <div className="settings-lyrics-source-options">
+                    {NETWORK_TIMEOUT_OPTIONS.map((opt) => (
+                      <button
+                        key={opt.value}
+                        className={`settings-lyrics-source-btn ${networkTimeoutMs === opt.value ? 'active' : ''}`}
+                        type="button"
+                        onClick={() => {
+                          setNetworkTimeoutMs(opt.value);
+                          setCustomTimeoutInput(String(opt.value / 1000));
+                          saveNetworkConfig({ timeoutMs: opt.value });
+                        }}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                  <div className={`settings-network-custom${NETWORK_TIMEOUT_OPTIONS.every(o => o.value !== networkTimeoutMs) ? ' active' : ''}`}>
+                    <input
+                      className="settings-network-custom-input"
+                      type="number"
+                      min="1"
+                      max="120"
+                      value={customTimeoutInput}
+                      onChange={(e) => setCustomTimeoutInput(e.target.value)}
+                      onBlur={() => {
+                        const sec = parseFloat(customTimeoutInput);
+                        if (!isNaN(sec) && sec >= 1) {
+                          const ms = Math.round(sec * 1000);
+                          setNetworkTimeoutMs(ms);
+                          saveNetworkConfig({ timeoutMs: ms });
+                        } else {
+                          setCustomTimeoutInput(String(networkTimeoutMs / 1000));
+                        }
                       }}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+                      }}
+                    />
+                    <span className="settings-network-custom-unit">秒</span>
+                  </div>
                 </div>
               </div>
             </div>
