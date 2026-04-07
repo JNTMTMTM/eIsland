@@ -32,13 +32,13 @@
   width: 100%;
   height: 100%;
   padding: 8px 12px;
-  animation: notificationEnter 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .notification-main-row {
   display: flex;
   align-items: center;
   min-width: 0;
+  animation: notifRowEnter 0.46s cubic-bezier(0.22, 1, 0.36, 1) 0.06s both;
 }
 
 .notification-actions {
@@ -47,6 +47,7 @@
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 8px;
+  animation: notifActionsEnter 0.42s cubic-bezier(0.22, 1, 0.36, 1) 0.16s both;
 }
 
 .notification-snooze-actions,
@@ -101,19 +102,13 @@
   background: rgba(255, 255, 255, 0.18);
 }
 
-@keyframes notificationEnter {
-  0% {
-    opacity: 0;
-    transform: translateY(8px) scale(0.95);
-    filter: blur(3px);
-  }
-  50% {
-    opacity: 0.85;
-    filter: blur(0);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-    filter: blur(0);
-  }
+@keyframes notifRowEnter {
+  0%   { opacity: 0; transform: translateY(7px) scale(0.97); }
+  55%  { opacity: 1; }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes notifActionsEnter {
+  0%   { opacity: 0; transform: translateY(5px); }
+  100% { opacity: 1; transform: translateY(0); }
 }

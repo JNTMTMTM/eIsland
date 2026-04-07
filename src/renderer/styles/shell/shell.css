@@ -116,20 +116,57 @@
   100% { transform: scale(1); }
 }
 
+/** idle → notification：弹性横向膨胀 + 纵向伸展 */
+.island-shell.notification.morphing.from-idle {
+  animation: shellExpandToNotification 0.58s cubic-bezier(0.34, 1.18, 0.64, 1);
+}
+
+@keyframes shellExpandToNotification {
+  0%   { transform: scaleX(0.86) scaleY(1.06); }
+  32%  { transform: scaleX(1.028) scaleY(0.974); }
+  60%  { transform: scaleX(0.996) scaleY(1.004); }
+  80%  { transform: scaleX(1.002) scaleY(0.999); }
+  100% { transform: scale(1); }
+}
+
+/** hover → notification：小幅纵向伸展 */
+.island-shell.notification.morphing.from-hover {
+  animation: shellExpandNotifFromHover 0.48s cubic-bezier(0.34, 1.2, 0.64, 1);
+}
+
+@keyframes shellExpandNotifFromHover {
+  0%   { transform: scaleY(0.92) scaleX(1.01); }
+  45%  { transform: scaleY(1.025) scaleX(0.99); }
+  75%  { transform: scaleY(0.997) scaleX(1.001); }
+  100% { transform: scale(1); }
+}
+
 /** notification → hover：同尺寸，微妙呼吸 */
 .island-shell.hover.morphing.from-notification {
-  animation: shellCrossfade 0.45s ease;
+  animation: shellCrossfade 0.45s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 @keyframes shellCrossfade {
-  0%   { transform: scale(1.005); opacity: 0.92; }
-  50%  { transform: scale(0.993); opacity: 1; }
+  0%   { transform: scaleY(1.06) scaleX(0.99); opacity: 0.9; }
+  50%  { transform: scaleY(0.995) scaleX(1.003); opacity: 1; }
   100% { transform: scale(1); opacity: 1; }
 }
 
 /** hover → idle：柔和收拢 */
 .island-shell.morphing.from-hover:not(.hover):not(.expanded):not(.maxExpand):not(.notification) {
   animation: shellShrinkToIdle 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+/** notification → idle：横向收拢 */
+.island-shell.morphing.from-notification:not(.hover):not(.expanded):not(.maxExpand):not(.notification) {
+  animation: shellShrinkFromNotification 0.48s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+@keyframes shellShrinkFromNotification {
+  0%   { transform: scaleX(1.04) scaleY(0.96); }
+  38%  { transform: scaleX(0.979) scaleY(1.015); }
+  68%  { transform: scaleX(1.003) scaleY(0.999); }
+  100% { transform: scale(1); }
 }
 
 @keyframes shellShrinkToIdle {
