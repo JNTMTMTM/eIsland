@@ -241,14 +241,20 @@ function mapUapiWeatherToData(data: UapiWeatherResponse): WeatherData {
     const item = baseForecast[idx];
     const temperatureMax = Math.round(item?.temp_max ?? fallbackMax);
     const temperatureMin = Math.round(item?.temp_min ?? fallbackMin);
+    const windSpeed = typeof item?.wind_speed_day === 'number'
+      ? Math.round(item.wind_speed_day)
+      : -1;
+    const precipitationProbability = typeof item?.precip === 'number'
+      ? Math.round(item.precip)
+      : -1;
     return {
       temperature: Math.round((temperatureMax + temperatureMin) / 2),
       description: item?.weather_day ?? item?.weather_night ?? currentDesc,
       temperatureMax,
       temperatureMin,
-      windSpeed: Math.round(item?.wind_speed_day ?? currentWind),
+      windSpeed,
       uvIndex: Math.round(item?.uv_index ?? data.uv ?? 0),
-      precipitationProbability: Math.round(item?.precip ?? 0),
+      precipitationProbability,
       iconCode: mapUapiIconToWmoCode(
         item?.weather_icon ?? data.weather_icon,
         item?.weather_day ?? item?.weather_night ?? currentDesc

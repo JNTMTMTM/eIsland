@@ -61,6 +61,14 @@ function getWeatherSmallIconPath(iconCode: number, isDay: boolean): string {
   return `./icon/${iconCode}${suffix}.png`;
 }
 
+function formatPrecipitationText(value: number): string {
+  return value < 0 ? ' N/A' : `${value}%`;
+}
+
+function formatWindText(value: number): string {
+  return value < 0 ? ' N/A' : `${value}m/s`;
+}
+
 /**
  * 天气 Tab 内容
  * @description 显示当前天气及未来两天预报
@@ -138,8 +146,8 @@ export function WeatherTab(): React.ReactElement {
               onError={handleIconError}
             />
             <span className="text-xs leading-none">{day.description}</span>
-            <span className="text-[10px] opacity-40 leading-none">雨{day.precipitationProbability}%</span>
-            <span className="text-[10px] opacity-40 leading-none">风{day.windSpeed}m/s</span>
+            <span className="text-[10px] opacity-40 leading-none">雨{formatPrecipitationText(day.precipitationProbability)}</span>
+            <span className="text-[10px] opacity-40 leading-none">风{formatWindText(day.windSpeed)}</span>
             <span className="text-xs tabular-nums leading-none">
               {(day.temperatureMin + day.temperatureMax) / 2}℃
             </span>
