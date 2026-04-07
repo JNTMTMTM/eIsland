@@ -25,6 +25,7 @@
  */
 
 import type { WeatherData } from '../store/types';
+import { loadNetworkConfig } from '../store/utils/storage';
 
 /** 天气接口配置（经纬度） */
 export interface WeatherApiConfig {
@@ -104,8 +105,10 @@ export async function fetchWeather(config: WeatherApiConfig): Promise<WeatherDat
     forecast_days: '3',
   });
 
+  const { timeoutMs } = loadNetworkConfig();
   const resp = await window.api.netFetch(
-    `https://api.open-meteo.com/v1/forecast?${params.toString()}`
+    `https://api.open-meteo.com/v1/forecast?${params.toString()}`,
+    { timeoutMs }
   );
 
   if (!resp.ok) {

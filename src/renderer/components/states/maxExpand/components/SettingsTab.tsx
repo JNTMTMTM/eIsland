@@ -31,6 +31,7 @@ import avatarImg from '../../../../assets/avatar/T.jpg';
 import type { OverviewWidgetType, OverviewLayoutConfig } from '../../expand/components/OverviewTab';
 import { OVERVIEW_WIDGET_OPTIONS } from '../../expand/components/OverviewTab';
 import { SvgIcon } from '../../../../utils/SvgIcon';
+import { loadNetworkConfig, saveNetworkConfig, DEFAULT_NETWORK_TIMEOUT_MS } from '../../../../store/utils/storage';
 
 /** 单行配置项 */
 function SettingsField({
@@ -325,7 +326,15 @@ const LYRICS_SOURCE_OPTIONS = [
 ];
 
 /** 设置页侧边栏 Tab 顺序 */
-const SETTINGS_TABS: ('app' | 'music' | 'ai' | 'shortcut' | 'about')[] = ['app', 'music', 'ai', 'shortcut', 'about'];
+const SETTINGS_TABS: ('app' | 'network' | 'music' | 'ai' | 'shortcut' | 'about')[] = ['app', 'network', 'music', 'ai', 'shortcut', 'about'];
+
+const NETWORK_TIMEOUT_OPTIONS = [
+  { label: '5 秒', value: 5000 },
+  { label: '10 秒（默认）', value: 10000 },
+  { label: '15 秒', value: 15000 },
+  { label: '20 秒', value: 20000 },
+  { label: '30 秒', value: 30000 },
+];
 
 const LAYOUT_STORE_KEY = 'overview-layout';
 const DEFAULT_LAYOUT: OverviewLayoutConfig = { left: 'shortcuts', right: 'todo' };
@@ -336,7 +345,7 @@ const DEFAULT_LAYOUT: OverviewLayoutConfig = { left: 'shortcuts', right: 'todo' 
  * @returns 设置 Tab 组件
  */
 export function SettingsTab(): ReactElement {
-  const [activeTab, setActiveTab] = useState<'app' | 'music' | 'ai' | 'shortcut' | 'about'>('app');
+  const [activeTab, setActiveTab] = useState<'app' | 'network' | 'music' | 'ai' | 'shortcut' | 'about'>('app');
   const { aiConfig, setAiConfig } = useIslandStore();
   const [editingPrompt, setEditingPrompt] = useState(false);
   const [promptDraft, setPromptDraft] = useState('');
@@ -351,11 +360,19 @@ export function SettingsTab(): ReactElement {
   const [whitelistDraft, setWhitelistDraft] = useState<string>('');
   const [lyricsSource, setLyricsSource] = useState<string>('lrclib-first');
 
+  /** 网络配置相关状态 */
+  const [networkTimeoutMs, setNetworkTimeoutMs] = useState<number>(DEFAULT_NETWORK_TIMEOUT_MS);
+
   /** 快捷键相关状态 */
   const [hideHotkey, setHideHotkey] = useState<string>('Alt+X');
   const [hotkeyRecording, setHotkeyRecording] = useState(false);
   const [hotkeyError, setHotkeyError] = useState<string>('');
   const hotkeyInputRef = useRef<HTMLInputElement>(null);
+
+  /** 加载网络配置 */
+  useEffect(() => {
+    setNetworkTimeoutMs(loadNetworkConfig().timeoutMs);
+  }, []);
 
   /** 加载歌曲设置 */
   useEffect(() => {
@@ -501,6 +518,14 @@ export function SettingsTab(): ReactElement {
             软件设置
           </button>
           <button
+            className={`max-expand-settings-sidebar-item ${activeTab === 'network' ? 'active' : ''}`}
+            onClick={() => setActiveTab('network')}
+            type="button"
+          >
+            <span className="sidebar-dot" />
+            网络配置
+          </button>
+          <button
             className={`max-expand-settings-sidebar-item ${activeTab === 'music' ? 'active' : ''}`}
             onClick={() => setActiveTab('music')}
             type="button"
@@ -578,6 +603,30 @@ export function SettingsTab(): ReactElement {
                       ))}
                     </div>
                   </div>
+                </div>
+              </div>
+            </div>
+          )}
+          {activeTab === 'network' && (
+            <div className="max-expand-settings-section">
+              <div className="max-expand-settings-title">网络配置</div>
+              <div className="settings-music-section">
+                <div className="settings-music-label">请求超时时间</div>
+                <div className="settings-music-hint">设置网络请求的最长等待时间，网络较差时可适当增大</div>
+                <div className="settings-lyrics-source-options">
+                  {NETWORK_TIMEOUT_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.value}
+                      className={`settings-lyrics-source-btn ${networkTimeoutMs === opt.value ? 'active' : ''}`}
+                      type="button"
+                      onClick={() => {
+                        setNetworkTimeoutMs(opt.value);
+                        saveNetworkConfig({ timeoutMs: opt.value });
+                      }}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
                 </div>
               </div>
             </div>

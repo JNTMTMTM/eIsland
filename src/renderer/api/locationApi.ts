@@ -24,6 +24,8 @@
  * @author 鸡哥
  */
 
+import { loadNetworkConfig } from '../store/utils/storage';
+
 /** 位置信息接口 */
 export interface LocationInfo {
   latitude: number;
@@ -38,9 +40,18 @@ export interface LocationInfo {
  * @returns 包含经纬度及城市/地区/国家信息的 LocationInfo
  */
 export async function fetchLocation(): Promise<LocationInfo> {
-  const res = await fetch(
-    'http://ip-api.com/json/?fields=lat,lon,city,regionName,country&lang=zh-CN'
-  );
+  const { timeoutMs } = loadNetworkConfig();
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  let res: Response;
+  try {
+    res = await fetch(
+      'http://ip-api.com/json/?fields=lat,lon,city,regionName,country&lang=zh-CN',
+      { signal: controller.signal }
+    );
+  } finally {
+    clearTimeout(timer);
+  }
   const data = await res.json();
 
   return {
