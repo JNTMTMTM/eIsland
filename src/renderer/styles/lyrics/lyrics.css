@@ -81,6 +81,7 @@
   width: 20px;
   height: 20px;
   opacity: 0.6;
+  flex-shrink: 0;
   animation: lyricIntroFloat 2s ease-in-out infinite;
 }
 
@@ -101,5 +102,5 @@
 
 @keyframes lyricIntroFloat {
   0%, 100% { transform: translateY(0); }
-  50%      { transform: translateY(-3px); }
+  50%      { transform: translateY(-1.5px); }
 }
