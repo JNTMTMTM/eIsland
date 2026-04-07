@@ -171,23 +171,36 @@ function registerHideHotkey(accelerator: string): boolean {
 /** 记录窗口初始中心 X 坐标 */
 let initialCenterX = 0;
 
+/** 计算灵动岛默认窗口边界（主屏工作区顶部居中） */
+function getInitialIslandBounds(): Electron.Rectangle {
+  const primaryDisplay = screen.getPrimaryDisplay();
+  const { width: screenWidth } = primaryDisplay.workAreaSize;
+  const { x: workX, y: workY } = primaryDisplay.workArea;
+  const x = Math.round(workX + (screenWidth - ISLAND_WIDTH) / 2);
+  const y = Math.round(workY);
+  return {
+    x,
+    y,
+    width: ISLAND_WIDTH,
+    height: ISLAND_HEIGHT,
+  };
+}
+
 /**
  * 创建 Electron BrowserWindow 实例，配置透明无边框灵动岛窗口
  * @description 窗口固定尺寸、始终置顶、跳过任务栏，并初始化鼠标穿透行为
  */
 function createWindow(): void {
-  const primaryDisplay = screen.getPrimaryDisplay();
-  const { width: screenWidth } = primaryDisplay.workAreaSize;
-  const { x: workX, y: workY } = primaryDisplay.workArea;
+  const initialBounds = getInitialIslandBounds();
 
   /** 计算初始中心 X 坐标，用于展开/收缩时保持居中 */
-  initialCenterX = workX + (screenWidth - ISLAND_WIDTH) / 2 + ISLAND_WIDTH / 2;
+  initialCenterX = initialBounds.x + ISLAND_WIDTH / 2;
 
   mainWindow = new BrowserWindow({
     width: ISLAND_WIDTH,
     height: ISLAND_HEIGHT,
-    x: workX + (screenWidth - ISLAND_WIDTH) / 2,
-    y: workY,
+    x: initialBounds.x,
+    y: initialBounds.y,
     show: false,
     frame: false,
     transparent: true,
@@ -216,7 +229,12 @@ function createWindow(): void {
   /** 使用最高级别置顶，确保不被全屏应用或其他置顶窗口覆盖 */
   mainWindow.setAlwaysOnTop(true, 'screen-saver');
 
+  // 某些 Windows 版本/打包环境下，首次显示前可能回退到系统默认居中，显式重置一次边界
+  mainWindow.setBounds(initialBounds, false);
+
   mainWindow.on('ready-to-show', () => {
+    // 再次确保首次展示位置稳定在主屏顶部居中
+    mainWindow?.setBounds(initialBounds, false);
     mainWindow?.show();
     mainWindow?.setAlwaysOnTop(true, 'screen-saver');
   });
