@@ -80,6 +80,7 @@ declare global {
         method?: string;
         headers?: Record<string, string>;
         body?: string;
+        timeoutMs?: number;
       }) => Promise<{ ok: boolean; status: number; body: string }>;
       /** ===== 文件存储 API ===== */
       storeRead: (key: string) => Promise<unknown>;
@@ -87,6 +88,8 @@ declare global {
       /** ===== 快捷键 API ===== */
       hotkeyGet: () => Promise<string>;
       hotkeySet: (accelerator: string) => Promise<boolean>;
+      /** ===== 日志文件 API ===== */
+      logWrite: (level: string, message: string) => void;
       /** ===== 歌曲设置 API ===== */
       musicWhitelistGet: () => Promise<string[]>;
       musicWhitelistSet: (list: string[]) => Promise<boolean>;

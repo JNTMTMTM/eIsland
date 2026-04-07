@@ -26,7 +26,7 @@
 
 import { app, BrowserWindow, shell, screen, ipcMain, desktopCapturer, dialog, globalShortcut } from 'electron';
 import { join, basename } from 'path';
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
+import { readFileSync, writeFileSync, appendFileSync, mkdirSync, existsSync } from 'fs';
 import { exec } from 'child_process';
 import { Worker } from 'worker_threads';
 import { electronApp, optimizer, is } from '@electron-toolkit/utils';
@@ -171,23 +171,36 @@ function registerHideHotkey(accelerator: string): boolean {
 /** 记录窗口初始中心 X 坐标 */
 let initialCenterX = 0;
 
+/** 计算灵动岛默认窗口边界（主屏工作区顶部居中） */
+function getInitialIslandBounds(): Electron.Rectangle {
+  const primaryDisplay = screen.getPrimaryDisplay();
+  const { width: screenWidth } = primaryDisplay.workAreaSize;
+  const { x: workX, y: workY } = primaryDisplay.workArea;
+  const x = Math.round(workX + (screenWidth - ISLAND_WIDTH) / 2);
+  const y = Math.round(workY);
+  return {
+    x,
+    y,
+    width: ISLAND_WIDTH,
+    height: ISLAND_HEIGHT,
+  };
+}
+
 /**
  * 创建 Electron BrowserWindow 实例，配置透明无边框灵动岛窗口
  * @description 窗口固定尺寸、始终置顶、跳过任务栏，并初始化鼠标穿透行为
  */
 function createWindow(): void {
-  const primaryDisplay = screen.getPrimaryDisplay();
-  const { width: screenWidth } = primaryDisplay.workAreaSize;
-  const { x: workX, y: workY } = primaryDisplay.workArea;
+  const initialBounds = getInitialIslandBounds();
 
   /** 计算初始中心 X 坐标，用于展开/收缩时保持居中 */
-  initialCenterX = workX + (screenWidth - ISLAND_WIDTH) / 2 + ISLAND_WIDTH / 2;
+  initialCenterX = initialBounds.x + ISLAND_WIDTH / 2;
 
   mainWindow = new BrowserWindow({
     width: ISLAND_WIDTH,
     height: ISLAND_HEIGHT,
-    x: workX + (screenWidth - ISLAND_WIDTH) / 2,
-    y: workY,
+    x: initialBounds.x,
+    y: initialBounds.y,
     show: false,
     frame: false,
     transparent: true,
@@ -216,7 +229,12 @@ function createWindow(): void {
   /** 使用最高级别置顶，确保不被全屏应用或其他置顶窗口覆盖 */
   mainWindow.setAlwaysOnTop(true, 'screen-saver');
 
+  // 某些 Windows 版本/打包环境下，首次显示前可能回退到系统默认居中，显式重置一次边界
+  mainWindow.setBounds(initialBounds, false);
+
   mainWindow.on('ready-to-show', () => {
+    // 再次确保首次展示位置稳定在主屏顶部居中
+    mainWindow?.setBounds(initialBounds, false);
     mainWindow?.show();
     mainWindow?.setAlwaysOnTop(true, 'screen-saver');
   });
@@ -416,15 +434,15 @@ function registerIpcHandlers(): void {
    * @param _volume - 目标音量（0.0 ~ 1.0，暂未实现）
    */
   ipcMain.handle('media:set-volume', (_event, _volume: number) => {
-    // SMTCMonitor 暂不支持音量控制
+    // SMTCMonitor 暂不支持设置音量
   });
 
-  /** 截图并保存 */
+  /** 截图并返回 base64（PNG） */
   ipcMain.handle('system:screenshot', async () => {
     try {
       const sources = await desktopCapturer.getSources({
         types: ['screen'],
-        thumbnailSize: screen.getPrimaryDisplay().workAreaSize
+        thumbnailSize: { width: 1920, height: 1080 },
       });
       if (sources.length > 0) {
         const screenshot = sources[0].thumbnail.toPNG();
@@ -516,24 +534,68 @@ function registerIpcHandlers(): void {
     }
   });
 
+  const logDir = join(app.getPath('userData'), 'logs');
+  if (!existsSync(logDir)) {
+    mkdirSync(logDir, { recursive: true });
+  }
+
+  const writeMainLog = (level: 'info' | 'warn' | 'error', message: string): void => {
+    try {
+      const now = new Date();
+      const date = now.toISOString().slice(0, 10);
+      const time = now.toISOString().slice(11, 23);
+      const line = `[${date} ${time}] [${level.toUpperCase()}] ${message}\n`;
+      const logFile = join(logDir, `${date}.log`);
+      appendFileSync(logFile, line, 'utf-8');
+    } catch {
+      /* 日志写入失败不影响主流程 */
+    }
+  };
+
   // ===== HTTP 代理 IPC（绕过 CORS） =====
   ipcMain.handle('net:fetch', async (_event, url: string, options?: {
     method?: string;
     headers?: Record<string, string>;
     body?: string;
+    timeoutMs?: number;
   }) => {
+    const method = options?.method || 'GET';
+    const headers = options?.headers || {};
+    const body = options?.body;
+    const allowsBody = method.toUpperCase() !== 'GET' && method.toUpperCase() !== 'HEAD';
+    const timeoutMs = typeof options?.timeoutMs === 'number' ? options?.timeoutMs : 10000;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), timeoutMs);
+    writeMainLog('info', `[Net] request ${JSON.stringify({ method, url, headers, body: body ?? '', timeoutMs })}`);
     try {
       const { net } = require('electron');
-      const resp = await net.fetch(url, {
-        method: options?.method || 'GET',
-        headers: options?.headers,
-        body: options?.body,
-      });
+      const fetchOptions: {
+        method: string;
+        headers: Record<string, string>;
+        signal: AbortSignal;
+        body?: string;
+      } = {
+        method,
+        headers,
+        signal: controller.signal,
+      };
+      if (allowsBody && typeof body === 'string') {
+        fetchOptions.body = body;
+      }
+      const resp = await net.fetch(url, fetchOptions);
       const text = await resp.text();
+      writeMainLog('info', `[Net] response ${JSON.stringify({ method, url, status: resp.status, ok: resp.ok, body: text })}`);
       return { ok: resp.ok, status: resp.status, body: text };
     } catch (err) {
+      if (err && typeof err === 'object' && 'name' in err && err.name === 'AbortError') {
+        writeMainLog('warn', `[Net] timeout ${JSON.stringify({ method, url, headers, body: body ?? '', timeoutMs })}`);
+        return { ok: false, status: 408, body: 'timeout' };
+      }
       console.error('[Net] fetch proxy error:', err);
+      writeMainLog('error', `[Net] error ${JSON.stringify({ method, url, headers, body: body ?? '', timeoutMs, error: String(err) })}`);
       return { ok: false, status: 0, body: '' };
+    } finally {
+      clearTimeout(timeout);
     }
   });
 
@@ -577,6 +639,17 @@ function registerIpcHandlers(): void {
       console.error(`[Store] write '${key}' error:`, err);
       return false;
     }
+  });
+
+  // ===== 日志文件 IPC =====
+  /**
+   * 写入日志到文件
+   * @param _event - IPC 事件
+   * @param level - 日志级别（info/warn/error）
+   * @param message - 日志内容
+   */
+  ipcMain.on('log:write', (_event, level: string, message: string) => {
+    writeMainLog(level === 'warn' ? 'warn' : level === 'error' ? 'error' : 'info', message);
   });
 
   // ===== 歌曲设置 IPC =====

@@ -2,6 +2,7 @@
 /.claude
 /test.ts
 /test.tsx
+/desc.json
 
 node_modules/
 dist/

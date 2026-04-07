@@ -728,19 +728,73 @@
   font-size: 11px;
   color: rgba(255, 255, 255, 0.55);
   cursor: pointer;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  transition: background 0.15s, color 0.15s, border-color 0.15s, box-shadow 0.15s;
 }
 .settings-lyrics-source-btn:hover {
   background: rgba(255, 255, 255, 0.1);
   color: rgba(255, 255, 255, 0.8);
 }
 .settings-lyrics-source-btn.active {
-  background: rgba(255, 255, 255, 0.14);
-  border-color: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.7);
   color: #fff;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.4);
 }
 
 .max-expand-settings-placeholder {
   color: rgba(255, 255, 255, 0.3);
   font-size: 14px;
+}
+
+/* 网络超时设置行 */
+.settings-network-timeout-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.settings-network-custom {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.settings-network-custom-input {
+  width: 60px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 13px;
+  padding: 4px 8px;
+  text-align: center;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.settings-network-custom-input:focus {
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #fff;
+}
+
+.settings-network-custom-input::-webkit-inner-spin-button,
+.settings-network-custom-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+}
+
+.settings-network-custom-unit {
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 12px;
+}
+
+.settings-network-custom.active .settings-network-custom-input {
+  border-color: rgba(255, 255, 255, 0.7);
+  color: #fff;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.4);
+}
+
+.settings-network-custom.active .settings-network-custom-unit {
+  color: rgba(255, 255, 255, 0.8);
 }

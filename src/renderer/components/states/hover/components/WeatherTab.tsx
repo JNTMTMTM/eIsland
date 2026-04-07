@@ -24,9 +24,11 @@
  * @author 鸡哥
  */
 
-import React from 'react';
+import { type SyntheticEvent, useState } from 'react';
 import useIslandStore from '../../../../store/slices';
 import '../../../../styles/hover/weather-tab.css';
+
+const FALLBACK_WEATHER_ICON = './svg/NA.svg';
 
 /**
  * 获取星期标签
@@ -59,6 +61,14 @@ function getWeatherSmallIconPath(iconCode: number, isDay: boolean): string {
   return `./icon/${iconCode}${suffix}.png`;
 }
 
+function formatPrecipitationText(value: number): string {
+  return value < 0 ? ' N/A' : `${value}%`;
+}
+
+function formatWindText(value: number): string {
+  return value < 0 ? ' N/A' : `${value}m/s`;
+}
+
 /**
  * 天气 Tab 内容
  * @description 显示当前天气及未来两天预报
@@ -66,16 +76,36 @@ function getWeatherSmallIconPath(iconCode: number, isDay: boolean): string {
 export function WeatherTab(): React.ReactElement {
   const weather = useIslandStore(s => s.weather);
   const location = useIslandStore(s => s.location);
+  const fetchWeatherData = useIslandStore(s => s.fetchWeatherData);
+  const [refreshing, setRefreshing] = useState(false);
   const hour = new Date().getHours();
   const isDay = hour >= 6 && hour < 18;
 
+  const handleIconError = (event: SyntheticEvent<HTMLImageElement>): void => {
+    event.currentTarget.onerror = null;
+    event.currentTarget.src = FALLBACK_WEATHER_ICON;
+  };
+
+  const handleRefresh = async (): Promise<void> => {
+    if (refreshing) return;
+    setRefreshing(true);
+    try {
+      await fetchWeatherData(undefined, true);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   return (
     <div className="weather-tab">
-      {/* 左侧：当前天气大图标 */}
+      {/* 左侧：当前天气大图标（点击刷新） */}
       <img
         src={getWeatherIconPath(weather.iconCode, isDay)}
         alt={weather.description}
-        className="weather-tab-icon"
+        className={`weather-tab-icon weather-tab-icon-clickable${refreshing ? ' weather-tab-icon-spinning' : ''}`}
+        onClick={handleRefresh}
+        onError={handleIconError}
+        title="点击刷新天气"
       />
 
       {/* 左侧：今日天气标题 + 当前天气（垂直排列） + 位置信息 */}
@@ -107,16 +137,17 @@ export function WeatherTab(): React.ReactElement {
       {/* 右侧：未来两天预报 - 上下排列，完整参数 */}
       <div className="weather-tab-forecast">
         {weather.forecast.map((day, index) => (
-          <div key={index} className="weather-tab-forecast-row">
+          <div key={`${getWeekLabel(index)}-${day.description}-${day.iconCode}-${day.temperatureMin}-${day.temperatureMax}`} className="weather-tab-forecast-row">
             <span className="text-xs opacity-60 w-6 leading-none">{getWeekLabel(index)}</span>
             <img
               src={getWeatherSmallIconPath(day.iconCode, isDay)}
               alt={day.description}
               className="weather-tab-forecast-icon"
+              onError={handleIconError}
             />
             <span className="text-xs leading-none">{day.description}</span>
-            <span className="text-[10px] opacity-40 leading-none">雨{day.precipitationProbability}%</span>
-            <span className="text-[10px] opacity-40 leading-none">风{day.windSpeed}m/s</span>
+            <span className="text-[10px] opacity-40 leading-none">雨{formatPrecipitationText(day.precipitationProbability)}</span>
+            <span className="text-[10px] opacity-40 leading-none">风{formatWindText(day.windSpeed)}</span>
             <span className="text-xs tabular-nums leading-none">
               {(day.temperatureMin + day.temperatureMax) / 2}℃
             </span>

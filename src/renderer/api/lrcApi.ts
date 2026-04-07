@@ -25,6 +25,9 @@
  * @author 鸡哥
  */
 
+import { loadNetworkConfig } from '../store/utils/storage';
+import { logger } from '../utils/logger';
+
 export interface LyricLine {
   time_ms: number;
   text: string;
@@ -173,6 +176,27 @@ function extractSyncedFromObject(json: Record<string, unknown>): LyricLine[] | n
   return lines.length > 0 ? lines : null;
 }
 
+async function requestJsonWithLog<T>(url: string, options?: {
+  method?: string;
+  headers?: Record<string, string>;
+  body?: string;
+}): Promise<T | null> {
+  const { timeoutMs } = loadNetworkConfig();
+  const method = options?.method || 'GET';
+  const headers = options?.headers || {};
+  const body = options?.body ?? '';
+  logger.info('[LrcApi] request', { method, url, headers, body, timeoutMs });
+  const resp = await window.api.netFetch(url, { method, headers, body, timeoutMs });
+  logger.info('[LrcApi] response', { method, url, status: resp.status, ok: resp.ok, body: resp.body });
+  if (!resp.ok) return null;
+  try {
+    return JSON.parse(resp.body) as T;
+  } catch (err) {
+    logger.error('[LrcApi] JSON 解析失败:', { method, url, error: String(err), body: resp.body });
+    return null;
+  }
+}
+
 /**
  * 从 LRCLIB 获取歌词
  * @param title 歌曲标题
@@ -192,9 +216,8 @@ export async function fetchLyricsFromLrclib(
   // 策略1: 使用原始标题和艺术家搜索
   const url1 = `https://lrclib.net/api/search?track_name=${encodeURIComponent(title)}&artist_name=${encodeURIComponent(artist)}`;
   try {
-    const resp = await fetch(url1, { headers });
-    if (resp.ok) {
-      const json = await resp.json() as unknown[];
+    const json = await requestJsonWithLog<unknown[]>(url1, { headers });
+    if (json) {
       const lines = extractSyncedFromArray(json);
       if (lines) return lines;
     }
@@ -206,9 +229,8 @@ export async function fetchLyricsFromLrclib(
   if (cleanedTitle !== title || cleanedArtist !== artist) {
     const url2 = `https://lrclib.net/api/search?track_name=${encodeURIComponent(cleanedTitle)}&artist_name=${encodeURIComponent(cleanedArtist)}`;
     try {
-      const resp = await fetch(url2, { headers });
-      if (resp.ok) {
-        const json = await resp.json() as unknown[];
+      const json = await requestJsonWithLog<unknown[]>(url2, { headers });
+      if (json) {
         const lines = extractSyncedFromArray(json);
         if (lines) return lines;
       }
@@ -221,9 +243,8 @@ export async function fetchLyricsFromLrclib(
   const query = `${cleanedTitle} ${cleanedArtist}`;
   const url3 = `https://lrclib.net/api/search?q=${encodeURIComponent(query)}`;
   try {
-    const resp = await fetch(url3, { headers });
-    if (resp.ok) {
-      const json = await resp.json() as unknown[];
+    const json = await requestJsonWithLog<unknown[]>(url3, { headers });
+    if (json) {
       const lines = extractSyncedFromArray(json);
       if (lines) return lines;
     }
@@ -234,9 +255,8 @@ export async function fetchLyricsFromLrclib(
   // 策略4: 精确匹配
   const url4 = `https://lrclib.net/api/get?track_name=${encodeURIComponent(cleanedTitle)}&artist_name=${encodeURIComponent(cleanedArtist)}`;
   try {
-    const resp = await fetch(url4, { headers });
-    if (resp.ok) {
-      const json = await resp.json() as Record<string, unknown>;
+    const json = await requestJsonWithLog<Record<string, unknown>>(url4, { headers });
+    if (json) {
       const lines = extractSyncedFromObject(json);
       if (lines) return lines;
     }
@@ -263,7 +283,7 @@ export async function fetchLyricsFromNetease(
 
   try {
     // 搜索歌曲（通过主进程代理绕过 CORS）
-    const searchResp = await window.api.netFetch('https://music.163.com/api/search/get', {
+    const searchJson = await requestJsonWithLog<Record<string, unknown>>('https://music.163.com/api/search/get', {
       method: 'POST',
       headers: {
         'Referer': 'https://music.163.com',
@@ -272,10 +292,7 @@ export async function fetchLyricsFromNetease(
       },
       body: `s=${encodeURIComponent(query)}&type=1&limit=5&offset=0`,
     });
-
-    if (!searchResp.ok) return null;
-
-    const searchJson = JSON.parse(searchResp.body) as Record<string, unknown>;
+    if (!searchJson) return null;
     const result = searchJson.result as Record<string, unknown> | undefined;
     const songs = result?.songs as unknown[] | undefined;
 
@@ -286,16 +303,13 @@ export async function fetchLyricsFromNetease(
     if (isNaN(songId)) return null;
 
     // 获取歌词（通过主进程代理绕过 CORS）
-    const lrcResp = await window.api.netFetch(`https://music.163.com/api/song/lyric?id=${songId}&lv=1`, {
+    const lrcJson = await requestJsonWithLog<Record<string, unknown>>(`https://music.163.com/api/song/lyric?id=${songId}&lv=1`, {
       headers: {
         'Referer': 'https://music.163.com',
         'User-Agent': 'Mozilla/5.0',
       },
     });
-
-    if (!lrcResp.ok) return null;
-
-    const lrcJson = JSON.parse(lrcResp.body) as Record<string, unknown>;
+    if (!lrcJson) return null;
     const lrcObj = lrcJson.lrc as Record<string, unknown> | undefined;
     const lrcStr = typeof lrcObj?.lyric === 'string' ? lrcObj.lyric : null;
 

@@ -24,20 +24,55 @@
  * @author 鸡哥
  */
 
-import { fetchWeatherApi } from 'openmeteo';
-import { fetchLocation, type LocationInfo } from './locationApi';
 import type { WeatherData } from '../store/types';
+import { loadLocationFromStorage, loadNetworkConfig } from '../store/utils/storage';
+import { logger } from '../utils/logger';
 
-/** 天气接口配置 */
+/** 天气接口配置（经纬度） */
 export interface WeatherApiConfig {
   longitude: number;
   latitude: number;
 }
 
-/** 天气数据 + 位置信息 */
-export interface WeatherWithLocation {
-  weather: WeatherData;
-  location: LocationInfo;
+/** Open-Meteo JSON 响应结构 */
+interface OpenMeteoResponse {
+  current?: {
+    temperature_2m?: number;
+    weather_code?: number;
+    relative_humidity_2m?: number;
+    wind_speed_10m?: number;
+  };
+  daily?: {
+    temperature_2m_max?: number[];
+    temperature_2m_min?: number[];
+    weather_code?: number[];
+    wind_speed_10m_max?: number[];
+    uv_index_max?: number[];
+    precipitation_probability_max?: number[];
+  };
+}
+
+interface UapiWeatherForecastItem {
+  temp_max?: number;
+  temp_min?: number;
+  weather_day?: string;
+  weather_night?: string;
+  wind_speed_day?: number;
+  uv_index?: number;
+  precip?: number;
+  weather_icon?: string;
+}
+
+interface UapiWeatherResponse {
+  weather?: string;
+  weather_icon?: string;
+  temperature?: number;
+  humidity?: number;
+  uv?: number;
+  wind_power?: string;
+  temp_max?: number;
+  temp_min?: number;
+  forecast?: UapiWeatherForecastItem[];
 }
 
 /**
@@ -77,102 +112,338 @@ function mapWeatherDescription(code: number): string {
   return map[code] ?? '未知';
 }
 
-/**
- * 获取天气数据
- * @param config - 经纬度配置
- * @returns 天气数据及位置信息
- */
-export async function fetchWeather(config: WeatherApiConfig): Promise<WeatherWithLocation>;
-/**
- * 获取天气数据（自动获取精确位置）
- * @returns 天气数据及位置信息
- */
-export async function fetchWeather(): Promise<WeatherWithLocation>;
-export async function fetchWeather(
-  config?: WeatherApiConfig
-): Promise<WeatherWithLocation> {
-  let location: LocationInfo;
+function parseWindPowerToSpeed(power?: string): number {
+  if (!power) return 0;
+  const nums = (power.match(/\d+(?:\.\d+)?/g) ?? []).map(v => Number(v));
+  if (nums.length === 0) return 0;
+  return Math.round(Math.max(...nums));
+}
 
-  if (config) {
-    location = {
-      latitude: config.latitude,
-      longitude: config.longitude,
-      city: '',
-      regionName: '',
-      country: ''
-    };
-  } else {
-    location = await fetchLocation();
+function mapWeatherTextToWmoCode(text?: string): number {
+  const normalized = (text ?? '').toLowerCase();
+  if (!normalized) return 0;
+  if (normalized.includes('雷')) return 95;
+  if (normalized.includes('雪')) {
+    if (normalized.includes('暴雪') || normalized.includes('大雪')) return 75;
+    if (normalized.includes('中雪')) return 73;
+    if (normalized.includes('阵雪')) return 85;
+    return 71;
   }
+  if (normalized.includes('雨')) {
+    if (normalized.includes('冻雨')) return 67;
+    if (normalized.includes('暴雨') || normalized.includes('强')) return 82;
+    if (normalized.includes('阵雨')) return 80;
+    if (normalized.includes('小雨')) return 61;
+    if (normalized.includes('中雨')) return 63;
+    if (normalized.includes('大雨')) return 65;
+    return 63;
+  }
+  if (normalized.includes('雾') || normalized.includes('霾') || normalized.includes('沙')) return 45;
+  if (normalized.includes('阴')) return 3;
+  if (normalized.includes('多云')) return 2;
+  if (normalized.includes('晴')) return 0;
+  return 0;
+}
+
+function mapUapiIconToWmoCode(icon?: string, weatherText?: string): number {
+  const code = Number.parseInt(icon ?? '', 10);
+  if (Number.isNaN(code)) return mapWeatherTextToWmoCode(weatherText);
+  if ((code >= 0 && code <= 3) || (code >= 45 && code <= 99)) return code;
+
+  const map: Record<number, number> = {
+    100: 0,
+    101: 2,
+    102: 1,
+    103: 2,
+    104: 3,
+    150: 0,
+    151: 2,
+    152: 1,
+    153: 2,
+    300: 80,
+    301: 82,
+    302: 95,
+    303: 96,
+    304: 99,
+    305: 61,
+    306: 63,
+    307: 65,
+    308: 65,
+    309: 53,
+    310: 82,
+    311: 82,
+    312: 82,
+    313: 67,
+    314: 63,
+    315: 65,
+    316: 65,
+    317: 82,
+    318: 82,
+    350: 80,
+    351: 82,
+    399: 63,
+    400: 71,
+    401: 73,
+    402: 75,
+    403: 75,
+    404: 77,
+    405: 77,
+    406: 85,
+    407: 85,
+    408: 73,
+    409: 75,
+    410: 75,
+    456: 85,
+    457: 85,
+    499: 73,
+    500: 45,
+    501: 45,
+    502: 48,
+    503: 45,
+    504: 45,
+    507: 45,
+    508: 45,
+    509: 48,
+    510: 48,
+    511: 48,
+    512: 48,
+    513: 48,
+    514: 45,
+    515: 48,
+    800: 0,
+    801: 1,
+    802: 2,
+    803: 2,
+    804: 0,
+    805: 2,
+    806: 2,
+    807: 1,
+    900: 0,
+    901: 0,
+    999: 0,
+    9999: 0,
+  };
+
+  if (typeof map[code] === 'number') return map[code];
+  return mapWeatherTextToWmoCode(weatherText);
+}
+
+function mapUapiWeatherToData(data: UapiWeatherResponse): WeatherData {
+  const iconCode = mapUapiIconToWmoCode(data.weather_icon, data.weather);
+  const currentTemp = Math.round(data.temperature ?? 0);
+  const currentDesc = data.weather ?? '未知';
+  const currentWind = parseWindPowerToSpeed(data.wind_power);
+  const baseForecast = (data.forecast ?? []).slice(1, 3);
+  const fallbackMax = Math.round(data.temp_max ?? currentTemp);
+  const fallbackMin = Math.round(data.temp_min ?? currentTemp);
+
+  const makeFallbackForecast = (idx: number) => {
+    const item = baseForecast[idx];
+    const temperatureMax = Math.round(item?.temp_max ?? fallbackMax);
+    const temperatureMin = Math.round(item?.temp_min ?? fallbackMin);
+    const windSpeed = typeof item?.wind_speed_day === 'number'
+      ? Math.round(item.wind_speed_day)
+      : -1;
+    const precipitationProbability = typeof item?.precip === 'number'
+      ? Math.round(item.precip)
+      : -1;
+    return {
+      temperature: Math.round((temperatureMax + temperatureMin) / 2),
+      description: item?.weather_day ?? item?.weather_night ?? currentDesc,
+      temperatureMax,
+      temperatureMin,
+      windSpeed,
+      uvIndex: Math.round(item?.uv_index ?? data.uv ?? 0),
+      precipitationProbability,
+      iconCode: mapUapiIconToWmoCode(
+        item?.weather_icon ?? data.weather_icon,
+        item?.weather_day ?? item?.weather_night ?? currentDesc
+      ),
+    };
+  };
+
+  return {
+    temperature: currentTemp,
+    description: currentDesc,
+    humidity: Math.round(data.humidity ?? 0),
+    windSpeed: currentWind,
+    uvIndex: Math.round(data.uv ?? 0),
+    iconCode,
+    forecast: [
+      makeFallbackForecast(0),
+      makeFallbackForecast(1),
+    ],
+  };
+}
+
+function mapOpenMeteoToData(data: OpenMeteoResponse): WeatherData {
+  const current = data.current;
+  const daily = data.daily;
+  if (!current || !daily) {
+    throw new Error('Weather API response missing current/daily fields');
+  }
+
+  const temperature = Math.round(current.temperature_2m ?? 0);
+  const weatherCode = current.weather_code ?? 0;
+  const humidity = Math.round(current.relative_humidity_2m ?? 0);
+  const windSpeed = Math.round(current.wind_speed_10m ?? 0);
+
+  const temperatureMax = daily.temperature_2m_max ?? [];
+  const temperatureMin = daily.temperature_2m_min ?? [];
+  const weatherCodes = daily.weather_code ?? [];
+  const windSpeedMax = daily.wind_speed_10m_max ?? [];
+  const uvIndexMax = daily.uv_index_max ?? [];
+  const precipitationProbabilityMax = daily.precipitation_probability_max ?? [];
+
+  const makeForecast = (dayIndex: number) => ({
+    temperature: Math.round(temperatureMax[dayIndex] ?? temperature),
+    description: mapWeatherDescription(weatherCodes[dayIndex] ?? weatherCode),
+    temperatureMax: Math.round(temperatureMax[dayIndex] ?? temperature),
+    temperatureMin: Math.round(temperatureMin[dayIndex] ?? temperature),
+    windSpeed: Math.round(windSpeedMax[dayIndex] ?? windSpeed),
+    uvIndex: Math.round(uvIndexMax[dayIndex] ?? 0),
+    precipitationProbability: Math.round(precipitationProbabilityMax[dayIndex] ?? 0),
+    iconCode: weatherCodes[dayIndex] ?? weatherCode,
+  });
+
+  return {
+    temperature,
+    description: mapWeatherDescription(weatherCode),
+    humidity,
+    windSpeed,
+    uvIndex: Math.round(uvIndexMax[0] ?? 0),
+    iconCode: weatherCode,
+    forecast: [
+      makeForecast(1),
+      makeForecast(2),
+    ]
+  };
+}
+
+/**
+ * 根据经纬度获取天气数据（通过主进程 netFetch 代理绕过 CORS）
+ * @param config - 经纬度配置
+ * @returns WeatherData
+ */
+export async function fetchWeather(config: WeatherApiConfig): Promise<WeatherData> {
+  const params = new URLSearchParams({
+    latitude: String(config.latitude),
+    longitude: String(config.longitude),
+    current: 'temperature_2m,weather_code,relative_humidity_2m,wind_speed_10m',
+    daily: 'temperature_2m_max,temperature_2m_min,weather_code,wind_speed_10m_max,uv_index_max,precipitation_probability_max',
+    timezone: 'auto',
+    forecast_days: '3',
+  });
+
+  const { timeoutMs } = loadNetworkConfig();
+  const url = `https://api.open-meteo.com/v1/forecast?${params.toString()}`;
+  const requestId = `weather_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  const startedAt = Date.now();
+  const query = {
+    latitude: config.latitude,
+    longitude: config.longitude,
+    current: params.get('current') ?? '',
+    daily: params.get('daily') ?? '',
+    timezone: params.get('timezone') ?? '',
+    forecast_days: params.get('forecast_days') ?? '',
+  };
+  const requestHeaders: Record<string, string> = {};
+  const requestBody = '';
+  logger.info('[WeatherApi] request:start', {
+    requestId,
+    method: 'GET',
+    url,
+    query,
+    headers: requestHeaders,
+    body: requestBody,
+    timeoutMs,
+  });
 
   try {
-    console.log('[Weather] 请求天气数据...');
-    console.log('[Weather] 位置信息:', location);
-
-    const url = 'https://api.open-meteo.com/v1/forecast';
-    const responses = await fetchWeatherApi(url, {
-      latitude: location.latitude,
-      longitude: location.longitude,
-      current: [
-        'temperature_2m',
-        'weather_code',
-        'relative_humidity_2m',
-        'wind_speed_10m'
-      ],
-      daily: [
-        'temperature_2m_max',
-        'temperature_2m_min',
-        'weather_code',
-        'wind_speed_10m_max',
-        'uv_index_max',
-        'precipitation_probability_max'
-      ],
-      timezone: 'auto',
-      forecast_days: 3
+    const resp = await window.api.netFetch(
+      url,
+      { timeoutMs }
+    );
+    logger.info('[WeatherApi] request:end', {
+      requestId,
+      provider: 'open-meteo',
+      method: 'GET',
+      url,
+      status: resp.status,
+      ok: resp.ok,
+      durationMs: Date.now() - startedAt,
+      responseSize: resp.body.length,
+      body: resp.body,
     });
 
-    const current = responses[0].current()!;
-    const temperature = Math.round(current.variables(0)!.value());
-    const weatherCode = current.variables(1)!.value();
-    const humidity = Math.round(current.variables(2)!.value());
-    const windSpeed = Math.round(current.variables(3)!.value());
+    if (!resp.ok) {
+      const isHtml = resp.body.trimStart().startsWith('<');
+      throw new Error(
+        isHtml
+          ? `Weather API HTTP ${resp.status}: 服务器返回了错误页面（可能是网关超时或服务不可用）`
+          : `Weather API HTTP ${resp.status}: ${resp.body.slice(0, 200)}`
+      );
+    }
+    if (resp.body.trimStart().startsWith('<')) {
+      throw new Error('Weather API 返回了非 JSON 内容，请检查网络环境');
+    }
 
-    const daily = responses[0].daily()!;
-
-    // daily indices: 0=温度最高, 1=温度最低, 2=天气码, 3=最大风速, 4=最大UV, 5=降水概率
-    // values(0)=今天, values(1)=明天, values(2)=后天
-
-    const makeForecast = (dayIndex: number) => ({
-      temperature: Math.round(daily.variables(0)!.values(dayIndex)!),
-      description: mapWeatherDescription(daily.variables(2)!.values(dayIndex)!),
-      temperatureMax: Math.round(daily.variables(0)!.values(dayIndex)!),
-      temperatureMin: Math.round(daily.variables(1)!.values(dayIndex)!),
-      windSpeed: Math.round(daily.variables(3)!.values(dayIndex)!),
-      uvIndex: Math.round(daily.variables(4)!.values(dayIndex)!),
-      precipitationProbability: Math.round(daily.variables(5)!.values(dayIndex)!),
-      iconCode: daily.variables(2)!.values(dayIndex)!,
-    });
-
-    const weather: WeatherData = {
-      temperature,
-      description: mapWeatherDescription(weatherCode),
-      humidity,
-      windSpeed,
-      uvIndex: Math.round(daily.variables(4)!.values(0)!),
-      iconCode: weatherCode,
-      forecast: [
-        makeForecast(1), // 明天
-        makeForecast(2), // 后天
-      ]
-    };
-
-    console.log('[Weather] 当前天气:', weather.description, weather.temperature + '°C', '| 图标编号:', weather.iconCode);
-    console.log('[Weather] 明日预报:', weather.forecast[0].description, weather.forecast[0].temperatureMax + '°C', '| 图标编号:', weather.forecast[0].iconCode);
-    console.log('[Weather] 后日预报:', weather.forecast[1].description, weather.forecast[1].temperatureMax + '°C', '| 图标编号:', weather.forecast[1].iconCode);
-
-    return { weather, location };
-  } catch (error) {
-    console.error('[Weather] 获取天气数据失败:', error);
-    throw error;
+    const data = JSON.parse(resp.body) as OpenMeteoResponse;
+    const weather = mapOpenMeteoToData(data);
+    logger.info('[WeatherApi] 天气获取成功:', weather.description, weather.temperature + '°C', { provider: 'open-meteo' });
+    return weather;
+  } catch (primaryError) {
+    logger.warn('[WeatherApi] open-meteo 失败，尝试 uapis 冗余源', { error: primaryError });
   }
+
+  const fallbackParams = new URLSearchParams({
+    forecast: 'true',
+    extended: 'true',
+    lang: 'zh',
+  });
+  const cachedLocation = loadLocationFromStorage();
+  if (cachedLocation?.city) fallbackParams.set('city', cachedLocation.city);
+  const fallbackUrl = `https://uapis.cn/api/v1/misc/weather?${fallbackParams.toString()}`;
+  const fallbackRequestId = `weather_fallback_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  const fallbackStartedAt = Date.now();
+  logger.info('[WeatherApi] request:start', {
+    requestId: fallbackRequestId,
+    provider: 'uapis',
+    method: 'GET',
+    url: fallbackUrl,
+    query: Object.fromEntries(fallbackParams.entries()),
+    headers: {},
+    body: '',
+    timeoutMs,
+  });
+
+  const fallbackResp = await window.api.netFetch(fallbackUrl, { timeoutMs });
+  logger.info('[WeatherApi] request:end', {
+    requestId: fallbackRequestId,
+    provider: 'uapis',
+    method: 'GET',
+    url: fallbackUrl,
+    status: fallbackResp.status,
+    ok: fallbackResp.ok,
+    durationMs: Date.now() - fallbackStartedAt,
+    responseSize: fallbackResp.body.length,
+    body: fallbackResp.body,
+  });
+
+  if (!fallbackResp.ok) {
+    throw new Error(`UAPI Weather HTTP ${fallbackResp.status}: ${fallbackResp.body.slice(0, 200)}`);
+  }
+  if (fallbackResp.body.trimStart().startsWith('<')) {
+    throw new Error('UAPI Weather 返回了非 JSON 内容，请检查网络环境');
+  }
+
+  const parsed = JSON.parse(fallbackResp.body) as Record<string, unknown>;
+  const payload = (
+    typeof parsed.data === 'object' && parsed.data !== null
+      ? parsed.data
+      : parsed
+  ) as UapiWeatherResponse;
+  const weather = mapUapiWeatherToData(payload);
+  logger.info('[WeatherApi] 天气获取成功:', weather.description, weather.temperature + '°C', { provider: 'uapis' });
+  return weather;
 }

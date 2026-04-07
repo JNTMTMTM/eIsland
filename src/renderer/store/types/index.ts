@@ -188,7 +188,7 @@ export interface WeatherSlice {
   weather: WeatherData;
   location: LocationInfo | null;
   setWeather: (data: WeatherData) => void;
-  fetchWeatherData: (config?: WeatherApiConfig) => Promise<void>;
+  fetchWeatherData: (config?: WeatherApiConfig, forceRefresh?: boolean) => Promise<void>;
 }
 
 /** 计时器 Slice */

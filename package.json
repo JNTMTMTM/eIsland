@@ -25,6 +25,7 @@
     "react-datepicker": "^9.1.0",
     "react-markdown": "^10.1.0",
     "remark-gfm": "^4.0.1",
+    "uapi-sdk-typescript": "^0.1.14",
     "zustand": "^5.0.4"
   },
   "devDependencies": {

@@ -30,6 +30,40 @@ import type { LocationInfo } from '../../api/locationApi';
 /** 本地存储 key */
 const WEATHER_STORAGE_KEY = 'island_weather';
 const LOCATION_STORAGE_KEY = 'island_location';
+const NETWORK_CONFIG_KEY = 'island_network_config';
+
+/** 默认网络请求超时（毫秒） */
+export const DEFAULT_NETWORK_TIMEOUT_MS = 10000;
+
+/** 网络配置类型 */
+export interface NetworkConfig {
+  timeoutMs: number;
+}
+
+/**
+ * 从本地存储加载网络配置
+ * @returns NetworkConfig 网络配置对象
+ */
+export function loadNetworkConfig(): NetworkConfig {
+  try {
+    const raw = localStorage.getItem(NETWORK_CONFIG_KEY);
+    if (raw) {
+      const data = JSON.parse(raw) as NetworkConfig;
+      if (typeof data.timeoutMs === 'number' && data.timeoutMs > 0) return data;
+    }
+  } catch { /* 忽略 */ }
+  return { timeoutMs: DEFAULT_NETWORK_TIMEOUT_MS };
+}
+
+/**
+ * 保存网络配置到本地存储
+ * @param config - 要保存的网络配置
+ */
+export function saveNetworkConfig(config: NetworkConfig): void {
+  try {
+    localStorage.setItem(NETWORK_CONFIG_KEY, JSON.stringify(config));
+  } catch { /* 忽略 */ }
+}
 
 /**
  * 从本地存储加载天气数据

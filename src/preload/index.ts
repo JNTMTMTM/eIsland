@@ -219,6 +219,7 @@ const api = {
     method?: string;
     headers?: Record<string, string>;
     body?: string;
+    timeoutMs?: number;
   }): Promise<{ ok: boolean; status: number; body: string }> => {
     return ipcRenderer.invoke('net:fetch', url, options);
   },
@@ -255,6 +256,15 @@ const api = {
    */
   hotkeySet: (accelerator: string): Promise<boolean> => {
     return ipcRenderer.invoke('hotkey:set', accelerator);
+  },
+  /** ===== 日志文件 API ===== */
+  /**
+   * 写入日志到文件
+   * @param level - 日志级别（info/warn/error）
+   * @param message - 日志内容
+   */
+  logWrite: (level: string, message: string): void => {
+    ipcRenderer.send('log:write', level, message);
   },
   /** ===== 歌曲设置 API ===== */
   /**
