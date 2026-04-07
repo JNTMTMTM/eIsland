@@ -66,16 +66,30 @@ function getWeatherSmallIconPath(iconCode: number, isDay: boolean): string {
 export function WeatherTab(): React.ReactElement {
   const weather = useIslandStore(s => s.weather);
   const location = useIslandStore(s => s.location);
+  const fetchWeatherData = useIslandStore(s => s.fetchWeatherData);
+  const [refreshing, setRefreshing] = React.useState(false);
   const hour = new Date().getHours();
   const isDay = hour >= 6 && hour < 18;
 
+  const handleRefresh = async (): Promise<void> => {
+    if (refreshing) return;
+    setRefreshing(true);
+    try {
+      await fetchWeatherData();
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   return (
     <div className="weather-tab">
-      {/* 左侧：当前天气大图标 */}
+      {/* 左侧：当前天气大图标（点击刷新） */}
       <img
         src={getWeatherIconPath(weather.iconCode, isDay)}
         alt={weather.description}
-        className="weather-tab-icon"
+        className={`weather-tab-icon weather-tab-icon-clickable${refreshing ? ' weather-tab-icon-spinning' : ''}`}
+        onClick={handleRefresh}
+        title="点击刷新天气"
       />
 
       {/* 左侧：今日天气标题 + 当前天气（垂直排列） + 位置信息 */}

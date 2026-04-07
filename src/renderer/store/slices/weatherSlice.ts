@@ -55,19 +55,29 @@ export const createWeatherSlice: StateCreator<
         cachedWeather.description ? `天气: ${cachedWeather.description} ${cachedWeather.temperature}°C` : '天气: 无缓存'
       );
 
-      // ② 获取位置信息
+      // ② 获取位置信息（失败则回退到缓存）
       let location;
       if (config) {
         console.log('[Weather] 使用手动配置坐标:', config.latitude, config.longitude);
         location = { latitude: config.latitude, longitude: config.longitude, city: '', regionName: '', country: '' };
       } else {
-        console.log('[Weather] 正在获取 IP 定位...');
-        location = await fetchLocation();
-        console.log('[Weather] 定位成功:', location.city, location.regionName, `(${location.latitude}, ${location.longitude})`);
+        try {
+          console.log('[Weather] 正在获取 IP 定位...');
+          location = await fetchLocation();
+          console.log('[Weather] 定位成功:', location.city, location.regionName, `(${location.latitude}, ${location.longitude})`);
+          saveLocationToStorage(location);
+          set({ location });
+          console.log('[Weather] 位置信息已写入缓存');
+        } catch (locError) {
+          console.warn('[Weather] 定位失败，回退使用缓存位置:', locError);
+          location = cachedLocation;
+        }
       }
-      saveLocationToStorage(location);
-      set({ location });
-      console.log('[Weather] 位置信息已写入缓存');
+
+      if (!location) {
+        console.error('[Weather] 无可用位置信息，跳过天气获取');
+        return;
+      }
 
       // ③ 获取天气数据
       console.log('[Weather] 正在获取天气数据...');

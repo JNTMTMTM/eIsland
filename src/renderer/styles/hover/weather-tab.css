@@ -35,6 +35,29 @@
   width: 36px;
   height: 36px;
   flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.weather-tab-icon-clickable {
+  cursor: pointer;
+  border-radius: 8px;
+}
+
+.weather-tab-icon-clickable:hover {
+  transform: scale(1.1);
+}
+
+.weather-tab-icon-clickable:active {
+  transform: scale(0.95);
+}
+
+.weather-tab-icon-spinning {
+  animation: weather-pulse 0.8s ease-in-out infinite;
+}
+
+@keyframes weather-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(0.7); }
 }
 
 .weather-tab-left {
