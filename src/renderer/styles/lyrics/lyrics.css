@@ -109,10 +109,25 @@
   40%           { transform: translateY(-5px); opacity: 0.8; }
 }
 
+.lyrics-intro-title-center {
+  position: absolute;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.55);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+  z-index: 0;
+}
+
 .lyrics-intro-icon {
-  width: 20px;
-  height: 20px;
-  opacity: 0.6;
+  width: 16px;
+  height: 16px;
+  opacity: 0.5;
   flex-shrink: 0;
   animation: lyricIntroFloat 2s ease-in-out infinite;
 }

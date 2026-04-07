@@ -70,6 +70,7 @@ export function LyricsContent(): ReactElement {
   const syncedLyrics = useIslandStore((s) => s.syncedLyrics);
   const lyricsLoading = useIslandStore((s) => s.lyricsLoading);
   const currentPositionMs = useIslandStore((s) => s.currentPositionMs);
+  const mediaInfo = useIslandStore((s) => s.mediaInfo);
   const setIdle = useIslandStore((s) => s.setIdle);
 
   const [r, g, b] = dominantColor;
@@ -129,7 +130,7 @@ export function LyricsContent(): ReactElement {
         />
       </div>
 
-      {/* 右侧：歌词 */}
+      {/* 右侧：歌词 / 前奏居中 */}
       <div className="lyrics-right">
         {lyricsLoading ? (
           <div className="lyrics-loading">
@@ -139,7 +140,10 @@ export function LyricsContent(): ReactElement {
             <span className="lyrics-loading-label">正在加载歌词</span>
           </div>
         ) : isIntro ? (
-          <img src={SvgIcon.MUSIC} alt="" className="lyrics-intro-icon" />
+          <>
+            <span className="lyrics-intro-title-center">{mediaInfo.title}</span>
+            <img src={SvgIcon.MUSIC} alt="" className="lyrics-intro-icon" />
+          </>
         ) : currentText ? (
           <span
             key={currentIdx}
