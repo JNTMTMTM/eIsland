@@ -387,16 +387,20 @@ function DynamicIsland(): React.JSX.Element {
 
       const config = STATE_CONFIGS[state];
 
+      if (state === 'notification') {
+        if (inWindow) {
+          window.api?.disableMousePassthrough();
+        }
+        if (!aborted) {
+          rafId = requestAnimationFrame(checkMousePosition);
+        }
+        return;
+      }
+
       if (inWindow) {
         if (leaveTimerRef.current !== null) {
           clearTimeout(leaveTimerRef.current);
           leaveTimerRef.current = null;
-        }
-
-        if (state === 'notification') {
-          window.api?.disableMousePassthrough();
-          setIdle();
-          return;
         }
 
         if (!isHoveringRef.current && enterTimerRef.current === null) {

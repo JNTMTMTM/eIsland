@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import React, { useEffect, useRef } from 'react';
+import type { ReactElement } from 'react';
 import useIslandStore from '../../../store/slices';
 import '../../../styles/notification/notification.css';
 
@@ -45,43 +45,50 @@ export function NotificationContent({
   title,
   body,
   icon,
-}: NotificationContentProps): React.ReactElement {
-  const { setIdle } = useIslandStore();
-  const contentRef = useRef<HTMLDivElement>(null);
+}: NotificationContentProps): ReactElement {
+  const { setIdle, setNotification } = useIslandStore();
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIdle();
-    }, 5000);
-    return () => clearTimeout(timer);
-  }, [setIdle]);
+  const handleSnooze = (minutes: number): void => {
+    window.setTimeout(() => {
+      setNotification({ title, body, icon });
+    }, minutes * 60 * 1000);
+    setIdle();
+  };
 
-  useEffect(() => {
-    const el = contentRef.current;
-    if (!el) return;
+  const handleComplete = (): void => {
+    setIdle();
+  };
 
-    const handleClick = (e: MouseEvent): void => {
-      const target = e.target as HTMLElement;
-      if (target.closest('.notification-close')) return;
-      setIdle();
-    };
-
-    el.addEventListener('click', handleClick);
-    return () => el.removeEventListener('click', handleClick);
-  }, [setIdle]);
+  const handleIgnore = (): void => {
+    setIdle();
+  };
 
   return (
-    <div className="notification-content" ref={contentRef}>
-      <div className="notification-icon">
-        {icon ? (
-          <img src={icon} alt="" className="notification-icon-img" />
-        ) : (
-          <div className="notification-icon-default" />
-        )}
+    <div className="notification-content">
+      <div className="notification-main-row">
+        <div className="notification-icon">
+          {icon ? (
+            <img src={icon} alt="" className="notification-icon-img" />
+          ) : (
+            <div className="notification-icon-default" />
+          )}
+        </div>
+        <div className="notification-info">
+          <span className="notification-title">{title}</span>
+          <span className="notification-body">{body}</span>
+        </div>
       </div>
-      <div className="notification-info">
-        <span className="notification-title">{title}</span>
-        <span className="notification-body">{body}</span>
+
+      <div className="notification-actions">
+        <div className="notification-snooze-actions">
+          <button type="button" className="notification-action-btn notification-action-snooze" onClick={() => handleSnooze(5)}>稍后 5m</button>
+          <button type="button" className="notification-action-btn notification-action-snooze" onClick={() => handleSnooze(15)}>稍后 15m</button>
+          <button type="button" className="notification-action-btn notification-action-snooze" onClick={() => handleSnooze(60)}>稍后 1h</button>
+        </div>
+        <div className="notification-decision-actions">
+          <button type="button" className="notification-action-btn notification-action-complete" onClick={handleComplete}>完成</button>
+          <button type="button" className="notification-action-btn notification-action-ignore" onClick={handleIgnore}>忽略</button>
+        </div>
       </div>
     </div>
   );

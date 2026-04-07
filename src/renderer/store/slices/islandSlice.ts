@@ -66,7 +66,7 @@ export const createIslandSlice: StateCreator<
   },
 
   setNotification: (data) => {
-    window.api?.expandWindow();
+    window.api?.expandWindowNotification();
     set({ state: 'notification', notification: data });
   },
 

@@ -25,12 +25,80 @@
 
 .notification-content {
   display: flex;
-  flex-direction: row;
-  align-items: center;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  gap: 8px;
   width: 100%;
   height: 100%;
-  padding: 0 16px;
+  padding: 8px 12px;
   animation: notificationEnter 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.notification-main-row {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.notification-actions {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.notification-snooze-actions,
+.notification-decision-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.notification-action-btn {
+  border: none;
+  border-radius: 8px;
+  padding: 5px 9px;
+  font-size: 11px;
+  line-height: 1;
+  white-space: nowrap;
+  color: #fff;
+  cursor: pointer;
+  transition: transform 0.15s ease, background-color 0.2s ease, opacity 0.2s ease;
+}
+
+.notification-action-btn:hover {
+  transform: translateY(-1px);
+}
+
+.notification-action-btn:active {
+  transform: translateY(0);
+}
+
+.notification-action-snooze {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.notification-action-snooze:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.notification-action-complete {
+  background: rgba(47, 211, 120, 0.34);
+}
+
+.notification-action-complete:hover {
+  background: rgba(47, 211, 120, 0.5);
+}
+
+.notification-action-ignore {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.notification-action-ignore:hover {
+  background: rgba(255, 255, 255, 0.18);
 }
 
 @keyframes notificationEnter {
