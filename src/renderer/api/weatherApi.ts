@@ -106,15 +106,42 @@ export async function fetchWeather(config: WeatherApiConfig): Promise<WeatherDat
 
   const { timeoutMs } = loadNetworkConfig();
   const url = `https://api.open-meteo.com/v1/forecast?${params.toString()}`;
+  const requestId = `weather_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  const startedAt = Date.now();
+  const query = {
+    latitude: config.latitude,
+    longitude: config.longitude,
+    current: params.get('current') ?? '',
+    daily: params.get('daily') ?? '',
+    timezone: params.get('timezone') ?? '',
+    forecast_days: params.get('forecast_days') ?? '',
+  };
   const requestHeaders: Record<string, string> = {};
   const requestBody = '';
-  logger.info('[WeatherApi] request', { url, headers: requestHeaders, body: requestBody, timeoutMs });
+  logger.info('[WeatherApi] request:start', {
+    requestId,
+    method: 'GET',
+    url,
+    query,
+    headers: requestHeaders,
+    body: requestBody,
+    timeoutMs,
+  });
 
   const resp = await window.api.netFetch(
     url,
     { timeoutMs }
   );
-  logger.info('[WeatherApi] response', { url, status: resp.status, ok: resp.ok, body: resp.body });
+  logger.info('[WeatherApi] request:end', {
+    requestId,
+    method: 'GET',
+    url,
+    status: resp.status,
+    ok: resp.ok,
+    durationMs: Date.now() - startedAt,
+    responseSize: resp.body.length,
+    body: resp.body,
+  });
 
   if (!resp.ok) {
     const isHtml = resp.body.trimStart().startsWith('<');
