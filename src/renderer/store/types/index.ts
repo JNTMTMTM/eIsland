@@ -147,6 +147,10 @@ export interface NotificationData {
   title: string;
   body: string;
   icon?: string;
+  /** 通知类型：默认通知 或 播放源切换请求 */
+  type?: 'default' | 'source-switch';
+  /** 请求切换到的播放源 ID（仅 source-switch 类型） */
+  sourceAppId?: string;
 }
 
 /** AI 配置数据 */

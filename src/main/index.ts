@@ -83,6 +83,33 @@ interface DetectedSourceEntry {
 /** SMTC 原始会话缓存（不受白名单限制），用于获取播放进程按钮 */
 const detectedSourceRuntime = new Map<string, DetectedSourceEntry>();
 
+/** SMTC 白名单内会话运行时缓存（模块级，供 IPC 处理器访问） */
+interface SmtcSessionRuntimeEntry {
+  payload: {
+    title: string;
+    artist: string;
+    album: string;
+    duration_ms: number;
+    position_ms: number;
+    isPlaying: boolean;
+    thumbnail: string | null;
+    canFastForward: boolean;
+    canSkip: boolean;
+    canLike: boolean;
+    canChangeVolume: boolean;
+    canSetOutput: boolean;
+    deviceId: string;
+  };
+  hasTitle: boolean;
+  isPlaying: boolean;
+  playStartedAt: number;
+}
+let smtcSessionRuntime: Map<string, SmtcSessionRuntimeEntry> | null = null;
+
+/** 待确认的播放源切换请求 */
+let pendingSourceSwitchId: string = '';
+let pendingSourceSwitchEntry: SmtcSessionRuntimeEntry | null = null;
+
 /**
  * 检查当前设备ID是否在白名单内
  */
@@ -548,6 +575,27 @@ function registerIpcHandlers(): void {
     sendMediaVirtualKey(0xB1);
   });
 
+  /** 接受切换播放源 */
+  ipcMain.handle('media:accept-source-switch', () => {
+    if (pendingSourceSwitchId && pendingSourceSwitchEntry) {
+      currentDeviceId = pendingSourceSwitchId;
+      pendingSourceSwitchId = '';
+      pendingSourceSwitchEntry = null;
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        const entry = smtcSessionRuntime?.get(currentDeviceId);
+        if (entry?.hasTitle) {
+          mainWindow.webContents.send('nowplaying:info', entry.payload);
+        }
+      }
+    }
+  });
+
+  /** 拒绝切换播放源 */
+  ipcMain.handle('media:reject-source-switch', () => {
+    pendingSourceSwitchId = '';
+    pendingSourceSwitchEntry = null;
+  });
+
   /**
    * 跳转到指定播放位置（SMTC 不支持，保留接口兼容性）
    * @param _event - IPC 事件
@@ -942,43 +990,8 @@ function registerIpcHandlers(): void {
  */
 function initSmtcWorker(win: BrowserWindow | null): void {
   try {
-    interface SessionRuntimeEntry {
-      payload: {
-        title: string;
-        artist: string;
-        album: string;
-        duration_ms: number;
-        position_ms: number;
-        isPlaying: boolean;
-        thumbnail: string | null;
-        canFastForward: boolean;
-        canSkip: boolean;
-        canLike: boolean;
-        canChangeVolume: boolean;
-        canSetOutput: boolean;
-        deviceId: string;
-      };
-      hasTitle: boolean;
-      isPlaying: boolean;
-      playStartedAt: number;
-    }
-
-    const sessionRuntime = new Map<string, SessionRuntimeEntry>();
-
-    const pickFirstComePlayingSource = (): string => {
-      let selectedSourceId = '';
-      let earliestStart = Number.POSITIVE_INFINITY;
-
-      sessionRuntime.forEach((entry, sourceId) => {
-        if (!entry.hasTitle || !entry.isPlaying || entry.playStartedAt <= 0) return;
-        if (entry.playStartedAt < earliestStart) {
-          earliestStart = entry.playStartedAt;
-          selectedSourceId = sourceId;
-        }
-      });
-
-      return selectedSourceId;
-    };
+    const sessionRuntime = new Map<string, SmtcSessionRuntimeEntry>();
+    smtcSessionRuntime = sessionRuntime;
 
     const emitCurrentSession = (): void => {
       if (!win || win.isDestroyed()) return;
@@ -988,6 +1001,12 @@ function initSmtcWorker(win: BrowserWindow | null): void {
       } else {
         win.webContents.send('nowplaying:info', null);
       }
+    };
+
+    /** 向渲染进程发送播放源切换请求通知 */
+    const emitSourceSwitchRequest = (sourceAppId: string, title: string, artist: string): void => {
+      if (!win || win.isDestroyed()) return;
+      win.webContents.send('media:source-switch-request', { sourceAppId, title, artist });
     };
 
     const workerPath = join(__dirname, 'smtcWorker.js');
@@ -1008,9 +1027,13 @@ function initSmtcWorker(win: BrowserWindow | null): void {
         if (msg.sourceAppId) {
           detectedSourceRuntime.delete(msg.sourceAppId);
           sessionRuntime.delete(msg.sourceAppId);
+          if (msg.sourceAppId === pendingSourceSwitchId) {
+            pendingSourceSwitchId = '';
+            pendingSourceSwitchEntry = null;
+          }
         }
         if (msg.sourceAppId === currentDeviceId) {
-          currentDeviceId = pickFirstComePlayingSource();
+          currentDeviceId = '';
           emitCurrentSession();
         }
         return;
@@ -1067,39 +1090,38 @@ function initSmtcWorker(win: BrowserWindow | null): void {
         playStartedAt,
       });
 
-      const currentEntry = currentDeviceId ? sessionRuntime.get(currentDeviceId) : undefined;
+      // ===== 播放源锁定逻辑 =====
 
-      if (currentEntry?.isPlaying) {
-        if (sourceAppId === currentDeviceId) {
+      // 尚未锁定任何播放源：第一个在播放且有标题的白名单源自动锁定
+      if (!currentDeviceId) {
+        if (isPlaying && hasTitle) {
+          currentDeviceId = sourceAppId;
           emitCurrentSession();
         }
         return;
       }
 
-      const nextPlayingSourceId = pickFirstComePlayingSource();
-      if (nextPlayingSourceId) {
-        currentDeviceId = nextPlayingSourceId;
-        emitCurrentSession();
-        return;
-      }
-
-      if (currentEntry?.hasTitle) {
-        if (sourceAppId === currentDeviceId) {
-          emitCurrentSession();
-        }
-        return;
-      }
-
-      if (hasTitle) {
-        currentDeviceId = sourceAppId;
-        emitCurrentSession();
-        return;
-      }
-
+      // 来自当前锁定源的更新：直接推送
       if (sourceAppId === currentDeviceId) {
-        currentDeviceId = '';
+        emitCurrentSession();
+        // 如果锁定源停止播放且无标题，解锁
+        if (!isPlaying && !hasTitle) {
+          currentDeviceId = '';
+        }
+        return;
       }
-      emitCurrentSession();
+
+      // 来自其他源的更新：如果它正在播放且有标题，发切换请求通知
+      if (isPlaying && hasTitle) {
+        // 避免对同一个待确认源重复弹通知
+        if (pendingSourceSwitchId === sourceAppId) {
+          pendingSourceSwitchEntry = sessionRuntime.get(sourceAppId) ?? null;
+          return;
+        }
+        pendingSourceSwitchId = sourceAppId;
+        pendingSourceSwitchEntry = sessionRuntime.get(sourceAppId) ?? null;
+        emitSourceSwitchRequest(sourceAppId, payload.title, payload.artist);
+      }
     });
 
     smtcWorker.on('error', (err) => {

@@ -374,6 +374,22 @@ function DynamicIsland(): React.JSX.Element {
     };
   }, []);
 
+  // 订阅播放源切换请求（主进程推送）
+  useEffect(() => {
+    const unsubSwitch = window.api?.onSourceSwitchRequest((data) => {
+      setNotificationRef.current({
+        title: '检测到其他播放源',
+        body: `${data.title} - ${data.artist}（${data.sourceAppId}）`,
+        icon: SvgIcon.MUSIC,
+        type: 'source-switch',
+        sourceAppId: data.sourceAppId,
+      });
+    });
+    return () => {
+      unsubSwitch?.();
+    };
+  }, []);
+
   // 必须放在 useEffect 之前，且 useCallback 依赖为空（所有依赖都是 ref/函数）
   const clearAllTimers = React.useCallback(() => {
     if (enterTimerRef.current !== null) {
@@ -513,6 +529,8 @@ function DynamicIsland(): React.JSX.Element {
           title={notification.title}
           body={notification.body}
           icon={notification.icon}
+          type={notification.type}
+          sourceAppId={notification.sourceAppId}
         />
       ),
     },
