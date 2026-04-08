@@ -21,6 +21,7 @@ jobs:
             const { owner, repo } = context.repo;
             const pr = context.payload.pull_request;
             const marker = '<!-- pr-auto-summary-comment -->';
+            const sanitizeMentions = (text) => String(text ?? '').replace(/@/g, '@\u200b');
 
             // ========== 1. 获取变更文件列表 ==========
             const files = await github.paginate(github.rest.pulls.listFiles, {
@@ -80,7 +81,7 @@ jobs:
             const recentCommits = commits.slice(-15);
             const commitSummary = recentCommits.map(c => {
               const sha = (c.sha || '').slice(0, 7);
-              const msg = (c.commit?.message || '').split('\n')[0] || '(no message)';
+              const msg = sanitizeMentions((c.commit?.message || '').split('\n')[0] || '(no message)');
               const date = (c.commit?.author?.date || '').slice(0, 10);
               return `| \`${sha}\` | ${date} | ${msg} |`;
             });
@@ -91,13 +92,18 @@ jobs:
               const lines = [];
               for (const f of groupFiles) {
                 const emoji = statusEmoji[f.status] || '⚪';
-                const name = f.filename || '';
+                const name = sanitizeMentions(f.filename || '');
                 const adds = f.additions || 0;
                 const dels = f.deletions || 0;
                 lines.push(`| ${emoji} ${f.status} | \`${name}\` | +${adds} / -${dels} |`);
               }
               return lines;
             };
+
+            const prTitle = sanitizeMentions(pr.title || '');
+            const headRef = sanitizeMentions(pr.head?.ref || '');
+            const baseRef = sanitizeMentions(pr.base?.ref || '');
+            const submitter = sanitizeMentions(pr.user?.login || 'unknown');
 
             // ========== 7. 组装评论正文 ==========
             const body = [];
@@ -111,9 +117,9 @@ jobs:
             body.push(`| 项目 | 内容 |`);
             body.push(`| --- | --- |`);
             body.push(`| **PR** | #${pr.number} |`);
-            body.push(`| **标题** | ${pr.title} |`);
-            body.push(`| **分支** | \`${pr.head.ref}\` → \`${pr.base.ref}\` |`);
-            body.push(`| **提交者** | @${pr.user.login} |`);
+            body.push(`| **标题** | ${prTitle} |`);
+            body.push(`| **分支** | \`${headRef}\` → \`${baseRef}\` |`);
+            body.push(`| **提交者** | @\u200b${submitter} |`);
             body.push(`| **提交数** | ${commits.length} |`);
             body.push(`| **变更文件数** | ${files.length} |`);
             body.push(`| **总行数变更** | **+${totalAdded}** / **-${totalDeleted}** |`);
@@ -169,7 +175,7 @@ jobs:
             body.push('');
 
             // PR 描述摘录
-            const prBody = (pr.body || '').trim();
+            const prBody = sanitizeMentions((pr.body || '').trim());
             if (prBody) {
               body.push('<details>');
               body.push('<summary><strong>📄 PR 描述原文</strong></summary>');
