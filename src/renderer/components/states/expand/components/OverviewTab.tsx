@@ -301,12 +301,18 @@ function _startPomodoroInterval(): void {
     if (current <= 1) {
       clearInterval(_pomodoroIntervalId!);
       _pomodoroIntervalId = null;
+      const finishedPhase = store.pomodoroPhase;
       const { nextPhase, nextCount } = _advancePomodoroPhase(store.pomodoroPhase, store.pomodoroCompletedCount);
       const nextRemaining = POMODORO_DURATIONS[nextPhase];
       store.setPomodoroRunning(false);
       store.setPomodoroPhase(nextPhase);
       store.setPomodoroRemaining(nextRemaining);
       store.setPomodoroCompletedCount(nextCount);
+      store.setNotification({
+        title: '番茄钟',
+        body: finishedPhase === 'work' ? '专注时间结束，开始休息吧' : '休息时间结束，开始专注吧',
+        icon: SvgIcon.POMODORO,
+      });
       _persistPomodoro(nextPhase, nextRemaining, nextCount);
     } else {
       store.setPomodoroRemaining(current - 1);
