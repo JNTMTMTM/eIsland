@@ -41,6 +41,9 @@ import { fetchLyrics } from '../api/lrcApi';
 /** 灵动岛状态类型 */
 export type IslandState = 'idle' | 'hover' | 'expanded' | 'notification' | 'maxExpand' | 'minimal' | 'lyrics';
 
+/** shell.css 中 morph/transition 主时长（0.4s） */
+const SHELL_MORPH_DURATION_MS = 400;
+
 /** 状态配置接口 */
 interface StateConfig {
   /** 状态名称 */
@@ -170,7 +173,7 @@ function DynamicIsland(): React.JSX.Element {
     setFromState(prevStateRef.current);
     prevStateRef.current = state;
     setMorphing(true);
-    const id = setTimeout(() => { setMorphing(false); setFromState(''); }, 450);
+    const id = setTimeout(() => { setMorphing(false); setFromState(''); }, SHELL_MORPH_DURATION_MS);
     return () => clearTimeout(id);
   }, [state]);
 
