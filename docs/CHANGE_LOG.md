@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-04-08T10:21:46.936Z
+> 生成时间：2026-04-08T14:53:18.072Z
 
 ## 26.1.1-beta.1
 
@@ -291,6 +291,21 @@
 
 ## Unreleased
 
+- 2026-04-08 | 168d1ff | 鸡哥 | Merge pull request #21 from JNTMTMTM/dev
+- 2026-04-08 | 6b83582 | 鸡哥 | feat: 添加切换播放源弹窗
+- 2026-04-08 | df19617 | 鸡哥 | fix: 修复 morph/transition 存在隐式耦合的问题
+- 2026-04-08 | 5b84977 | 鸡哥 | fix: 避免样式分散与优先级问题
+- 2026-04-08 | d912f40 | 鸡哥 | fix: 使用 detectedSourceRuntime 缓存获取SMTC进程
+- 2026-04-08 | 827d3ed | 鸡哥 | hotfix: 我他妈把test.tsx给当成依赖写进去了
+- 2026-04-08 | e82b897 | 鸡哥 | chore: 更新版本至V26.1.1-beta.2
+- 2026-04-08 | 5667129 | 鸡哥 | style: 优化白名单进程重复通知的样式
+- 2026-04-08 | 9ee3d12 | 鸡哥 | feat: 添加白名单进程重复通知
+- 2026-04-08 | 6e658d9 | 鸡哥 | feat: 添加白名单进程获取测试按钮
+- 2026-04-08 | 2f98d47 | 鸡哥 | fix: 修复同时启动多个smtc播放器会导致歌曲界面冲突的问题
+- 2026-04-08 | 3d051a6 | 鸡哥 | style: 动画速度全局加快
+- 2026-04-08 | a6dfc4f | 鸡哥 | feat: 在idle界面显示番茄钟倒计时
+- 2026-04-08 | d6fdc2b | 鸡哥 | feat: 番茄钟倒计时结束后显示通知
+- 2026-04-08 | 1259934 | github-actions[bot] | docs: auto update CHANGE_LOG.md for #20 by @JNTMTMTM [skip ci]
 - 2026-04-08 | f176ca2 | 鸡哥 | Merge pull request #20 from JNTMTMTM/dev
 - 2026-04-08 | 83574e2 | 鸡哥 | fix: 修复 hotkeyGet() 返回空字符串的问题
 - 2026-04-08 | b4d4acf | 鸡哥 | security: 清理工作流 mention 注入风险
