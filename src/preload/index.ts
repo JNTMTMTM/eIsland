@@ -271,6 +271,21 @@ const api = {
   hotkeySet: (accelerator: string): Promise<boolean> => {
     return ipcRenderer.invoke('hotkey:set', accelerator);
   },
+  /**
+   * 获取当前关闭灵动岛的快捷键
+   * @returns 当前快捷键字符串
+   */
+  quitHotkeyGet: (): Promise<string> => {
+    return ipcRenderer.invoke('quit-hotkey:get');
+  },
+  /**
+   * 设置关闭灵动岛的快捷键
+   * @param accelerator - Electron accelerator 字符串（如 "Alt+Q"）
+   * @returns 是否注册成功
+   */
+  quitHotkeySet: (accelerator: string): Promise<boolean> => {
+    return ipcRenderer.invoke('quit-hotkey:set', accelerator);
+  },
   /** ===== 日志文件 API ===== */
   /**
    * 写入日志到文件

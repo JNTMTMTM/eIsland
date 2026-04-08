@@ -172,6 +172,57 @@ function registerHideHotkey(accelerator: string): boolean {
   }
 }
 
+/** 当前注册的关闭快捷键 */
+let currentQuitHotkey: string = '';
+
+/** 关闭快捷键存储键名 */
+const QUIT_HOTKEY_STORE_KEY = 'quit-hotkey';
+
+/** 默认关闭快捷键（空表示默认不设置） */
+const DEFAULT_QUIT_HOTKEY = '';
+
+/**
+ * 读取关闭快捷键配置
+ * @returns 存储的快捷键字符串，不存在时返回默认值
+ */
+function readQuitHotkeyConfig(): string {
+  try {
+    const storeDir = join(app.getPath('userData'), 'eIsland_store');
+    const filePath = join(storeDir, `${QUIT_HOTKEY_STORE_KEY}.json`);
+    if (!existsSync(filePath)) return DEFAULT_QUIT_HOTKEY;
+    const raw = readFileSync(filePath, 'utf-8');
+    const data = JSON.parse(raw);
+    return typeof data === 'string' ? data : DEFAULT_QUIT_HOTKEY;
+  } catch {
+    return DEFAULT_QUIT_HOTKEY;
+  }
+}
+
+/**
+ * 注册关闭灵动岛的全局快捷键
+ * @param accelerator - Electron accelerator 字符串（如 "Alt+Q"）
+ */
+function registerQuitHotkey(accelerator: string): boolean {
+  // 先注销旧快捷键
+  if (currentQuitHotkey) {
+    try { globalShortcut.unregister(currentQuitHotkey); } catch { /* ignore */ }
+    currentQuitHotkey = '';
+  }
+  if (!accelerator) return true;
+  try {
+    const success = globalShortcut.register(accelerator, () => {
+      app.quit();
+    });
+    if (success) {
+      currentQuitHotkey = accelerator;
+    }
+    return success;
+  } catch (err) {
+    console.error('[QuitHotkey] register error:', err);
+    return false;
+  }
+}
+
 /** 记录窗口初始中心 X 坐标 */
 let initialCenterX = 0;
 
@@ -767,6 +818,35 @@ function registerIpcHandlers(): void {
     }
     return success;
   });
+
+  // ===== 关闭快捷键 IPC =====
+
+  /**
+   * 获取当前关闭快捷键配置
+   * @returns 当前快捷键字符串
+   */
+  ipcMain.handle('quit-hotkey:get', () => {
+    return currentQuitHotkey || readQuitHotkeyConfig();
+  });
+
+  /**
+   * 设置关闭快捷键并持久化
+   * @param _event - IPC 事件
+   * @param accelerator - 新的快捷键字符串
+   * @returns 是否注册成功
+   */
+  ipcMain.handle('quit-hotkey:set', (_event, accelerator: string) => {
+    const success = registerQuitHotkey(accelerator);
+    if (success) {
+      const filePath = join(storeDir, `${QUIT_HOTKEY_STORE_KEY}.json`);
+      try {
+        writeFileSync(filePath, JSON.stringify(accelerator, null, 2), 'utf-8');
+      } catch (err) {
+        console.error('[QuitHotkey] persist error:', err);
+      }
+    }
+    return success;
+  });
 }
 
 /**
@@ -911,6 +991,10 @@ app.whenReady().then(() => {
   // 读取持久化快捷键并注册
   const savedHotkey = readHotkeyConfig();
   registerHideHotkey(savedHotkey);
+
+  // 读取持久化关闭快捷键并注册
+  const savedQuitHotkey = readQuitHotkeyConfig();
+  if (savedQuitHotkey) registerQuitHotkey(savedQuitHotkey);
 
   app.on('activate', function () {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();

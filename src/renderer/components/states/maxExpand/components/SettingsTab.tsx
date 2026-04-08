@@ -384,6 +384,12 @@ export function SettingsTab(): ReactElement {
   const [hotkeyError, setHotkeyError] = useState<string>('');
   const hotkeyInputRef = useRef<HTMLInputElement>(null);
 
+  /** 关闭快捷键相关状态 */
+  const [quitHotkey, setQuitHotkey] = useState<string>('');
+  const [quitHotkeyRecording, setQuitHotkeyRecording] = useState(false);
+  const [quitHotkeyError, setQuitHotkeyError] = useState<string>('');
+  const quitHotkeyInputRef = useRef<HTMLInputElement>(null);
+
   /** 加载网络配置 */
   useEffect(() => {
     const cfg = loadNetworkConfig();
@@ -428,6 +434,10 @@ export function SettingsTab(): ReactElement {
     window.api.hotkeyGet().then((key) => {
       if (cancelled) return;
       if (key) setHideHotkey(key);
+    }).catch(() => {});
+    window.api.quitHotkeyGet().then((key) => {
+      if (cancelled) return;
+      setQuitHotkey(key || '');
     }).catch(() => {});
     return () => { cancelled = true; };
   }, []);
@@ -503,7 +513,7 @@ export function SettingsTab(): ReactElement {
   };
 
   /**
-   * 快捷键录入键盘事件处理
+   * 隐藏快捷键录入键盘事件处理
    * @param e - React 键盘事件
    */
   const handleHotkeyKeyDown = (e: KeyboardEvent): void => {
@@ -523,6 +533,30 @@ export function SettingsTab(): ReactElement {
       }
     }).catch(() => {
       setHotkeyError('快捷键注册失败');
+    });
+  };
+
+  /**
+   * 关闭快捷键录入键盘事件处理
+   * @param e - React 键盘事件
+   */
+  const handleQuitHotkeyKeyDown = (e: KeyboardEvent): void => {
+    e.preventDefault();
+    e.stopPropagation();
+    setQuitHotkeyError('');
+    const acc = keyEventToAccelerator(e);
+    if (!acc) return;
+
+    window.api.quitHotkeySet(acc).then((ok) => {
+      if (ok) {
+        setQuitHotkey(acc);
+        setQuitHotkeyRecording(false);
+        quitHotkeyInputRef.current?.blur();
+      } else {
+        setQuitHotkeyError('快捷键注册失败，请尝试其他组合');
+      }
+    }).catch(() => {
+      setQuitHotkeyError('快捷键注册失败');
     });
   };
 
@@ -741,6 +775,46 @@ export function SettingsTab(): ReactElement {
                 </div>
                 {hotkeyError && <div className="settings-hotkey-error">{hotkeyError}</div>}
                 <div className="settings-hotkey-hint">点击“修改”后按下组合键（如 Alt+X、Ctrl+Shift+H）</div>
+              </div>
+              <div className="settings-hotkey-section">
+                <div className="settings-hotkey-label">关闭灵动岛快捷键</div>
+                <div className="settings-hotkey-row">
+                  <input
+                    ref={quitHotkeyInputRef}
+                    className={`settings-hotkey-input ${quitHotkeyRecording ? 'recording' : ''}`}
+                    type="text"
+                    readOnly
+                    value={quitHotkeyRecording ? '请按下快捷键组合…' : (quitHotkey || '未设置')}
+                    onFocus={() => { setQuitHotkeyRecording(true); setQuitHotkeyError(''); }}
+                    onBlur={() => setQuitHotkeyRecording(false)}
+                    onKeyDown={handleQuitHotkeyKeyDown}
+                  />
+                  <button
+                    className="settings-hotkey-btn"
+                    type="button"
+                    onClick={() => {
+                      setQuitHotkeyRecording(true);
+                      quitHotkeyInputRef.current?.focus();
+                    }}
+                  >
+                    {quitHotkeyRecording ? '录入中' : '修改'}
+                  </button>
+                  {quitHotkey && (
+                    <button
+                      className="settings-hotkey-btn"
+                      type="button"
+                      onClick={() => {
+                        window.api.quitHotkeySet('').then((ok) => {
+                          if (ok) setQuitHotkey('');
+                        }).catch(() => {});
+                      }}
+                    >
+                      清除
+                    </button>
+                  )}
+                </div>
+                {quitHotkeyError && <div className="settings-hotkey-error">{quitHotkeyError}</div>}
+                <div className="settings-hotkey-hint">按下此快捷键将立即关闭灵动岛应用（如 Alt+Q、Ctrl+Shift+Q）</div>
               </div>
             </div>
           )}
