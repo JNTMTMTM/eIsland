@@ -170,7 +170,7 @@ function DynamicIsland(): React.JSX.Element {
     setFromState(prevStateRef.current);
     prevStateRef.current = state;
     setMorphing(true);
-    const id = setTimeout(() => { setMorphing(false); setFromState(''); }, 600);
+    const id = setTimeout(() => { setMorphing(false); setFromState(''); }, 450);
     return () => clearTimeout(id);
   }, [state]);
 
