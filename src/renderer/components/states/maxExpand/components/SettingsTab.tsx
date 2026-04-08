@@ -433,7 +433,7 @@ export function SettingsTab(): ReactElement {
     let cancelled = false;
     window.api.hotkeyGet().then((key) => {
       if (cancelled) return;
-      if (key) setHideHotkey(key);
+      setHideHotkey(key || '');
     }).catch(() => {});
     window.api.quitHotkeyGet().then((key) => {
       if (cancelled) return;
