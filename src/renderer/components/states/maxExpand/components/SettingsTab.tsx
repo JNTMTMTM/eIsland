@@ -371,6 +371,7 @@ export function SettingsTab(): ReactElement {
   /** 歌曲设置相关状态 */
   const [whitelist, setWhitelist] = useState<string[]>([]);
   const [whitelistDraft, setWhitelistDraft] = useState<string>('');
+  const [whitelistInputError, setWhitelistInputError] = useState<string>('');
   const [lyricsSource, setLyricsSource] = useState<string>('lrclib-first');
   const [detectingSourceAppId, setDetectingSourceAppId] = useState(false);
   const [sourceAppDetectMessage, setSourceAppDetectMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -598,6 +599,23 @@ export function SettingsTab(): ReactElement {
     } finally {
       setDetectingSourceAppId(false);
     }
+  };
+
+  const handleAddWhitelist = (): void => {
+    const nextItem = whitelistDraft.trim();
+    if (!nextItem) return;
+
+    const exists = whitelist.some((item) => item.toLowerCase() === nextItem.toLowerCase());
+    if (exists) {
+      setWhitelistInputError('已在白名单中');
+      return;
+    }
+
+    const next = [...whitelist, nextItem];
+    setWhitelist(next);
+    setWhitelistDraft('');
+    setWhitelistInputError('');
+    window.api.musicWhitelistSet(next).catch(() => {});
   };
 
   return (
@@ -924,34 +942,30 @@ export function SettingsTab(): ReactElement {
                 </div>
                 <div className="settings-whitelist-add-row">
                   <input
-                    className="settings-whitelist-input"
+                    className={`settings-whitelist-input${whitelistInputError ? ' error' : ''}`}
                     type="text"
                     placeholder="输入播放器进程名（如 Spotify.exe）"
                     value={whitelistDraft}
-                    onChange={(e) => setWhitelistDraft(e.target.value)}
+                    style={whitelistInputError ? { borderColor: '#ff6b6b' } : undefined}
+                    onChange={(e) => {
+                      setWhitelistDraft(e.target.value);
+                      if (whitelistInputError) setWhitelistInputError('');
+                    }}
                     onKeyDown={(e) => {
-                      if (e.key === 'Enter' && whitelistDraft.trim()) {
-                        const next = [...whitelist, whitelistDraft.trim()];
-                        setWhitelist(next);
-                        setWhitelistDraft('');
-                        window.api.musicWhitelistSet(next).catch(() => {});
-                      }
+                      if (e.key === 'Enter') handleAddWhitelist();
                     }}
                   />
                   <button
                     className="settings-whitelist-add-btn"
                     type="button"
                     onClick={() => {
-                      if (!whitelistDraft.trim()) return;
-                      const next = [...whitelist, whitelistDraft.trim()];
-                      setWhitelist(next);
-                      setWhitelistDraft('');
-                      window.api.musicWhitelistSet(next).catch(() => {});
+                      handleAddWhitelist();
                     }}
                   >
                     添加
                   </button>
                 </div>
+                {whitelistInputError && <div className="settings-music-hint" style={{ color: '#ff8b8b' }}>{whitelistInputError}</div>}
                 <div className="settings-whitelist-add-row" style={{ display: 'flex', alignItems: 'center' }}>
                   <button
                     className="settings-whitelist-add-btn"
@@ -963,23 +977,21 @@ export function SettingsTab(): ReactElement {
                   >
                     {detectingSourceAppId ? '获取中…' : '获取播放进程（测试）'}
                   </button>
-                  {sourceAppDetectMessage?.type === 'success' && (
+                  {sourceAppDetectMessage && (
                     <div
                       className="settings-music-hint"
-                      style={{ color: '#7df2a0', marginLeft: 10, marginBottom: 0, display: 'flex', alignItems: 'center' }}
+                      style={{
+                        color: sourceAppDetectMessage.type === 'success' ? '#7df2a0' : '#ff8b8b',
+                        marginLeft: 10,
+                        marginBottom: 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                      }}
                     >
                       {sourceAppDetectMessage.text}
                     </div>
                   )}
                 </div>
-                {sourceAppDetectMessage?.type === 'error' && (
-                  <div
-                    className="settings-music-hint"
-                    style={{ color: '#ff8b8b' }}
-                  >
-                    {sourceAppDetectMessage.text}
-                  </div>
-                )}
               </div>
 
               {/* 歌词源 */}
