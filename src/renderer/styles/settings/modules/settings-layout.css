@@ -700,6 +700,9 @@
 .settings-whitelist-input::placeholder {
   color: rgba(255, 255, 255, 0.25);
 }
+.settings-whitelist-input.error::placeholder {
+  color: #ff6b6b;
+}
 .settings-whitelist-input:focus {
   border-color: rgba(255, 255, 255, 0.3);
 }

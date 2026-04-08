@@ -607,6 +607,7 @@ export function SettingsTab(): ReactElement {
 
     const exists = whitelist.some((item) => item.toLowerCase() === nextItem.toLowerCase());
     if (exists) {
+      setWhitelistDraft('');
       setWhitelistInputError('已在白名单中');
       return;
     }
@@ -944,9 +945,12 @@ export function SettingsTab(): ReactElement {
                   <input
                     className={`settings-whitelist-input${whitelistInputError ? ' error' : ''}`}
                     type="text"
-                    placeholder="输入播放器进程名（如 Spotify.exe）"
+                    placeholder={whitelistInputError || '输入播放器进程名（如 Spotify.exe）'}
                     value={whitelistDraft}
                     style={whitelistInputError ? { borderColor: '#ff6b6b' } : undefined}
+                    onFocus={() => {
+                      if (whitelistInputError) setWhitelistInputError('');
+                    }}
                     onChange={(e) => {
                       setWhitelistDraft(e.target.value);
                       if (whitelistInputError) setWhitelistInputError('');
@@ -965,12 +969,12 @@ export function SettingsTab(): ReactElement {
                     添加
                   </button>
                 </div>
-                {whitelistInputError && <div className="settings-music-hint" style={{ color: '#ff8b8b' }}>{whitelistInputError}</div>}
                 <div className="settings-whitelist-add-row" style={{ display: 'flex', alignItems: 'center' }}>
                   <button
                     className="settings-whitelist-add-btn"
                     type="button"
                     onClick={() => {
+                      if (whitelistInputError) setWhitelistInputError('');
                       handleDetectSourceAppId().catch(() => {});
                     }}
                     disabled={detectingSourceAppId}
