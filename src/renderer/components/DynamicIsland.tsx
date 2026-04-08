@@ -154,7 +154,7 @@ interface StateRenderer {
  * @description 使用状态模式管理不同状态的 UI 渲染，通过 requestAnimationFrame 检测鼠标位置实现可靠的 hover 交互
  */
 function DynamicIsland(): React.JSX.Element {
-  const { state, weather, setHover, setIdle, setExpanded, setLyrics, timerData, setTimerData, notification, setNotification, handleNowPlayingUpdate, updateProgress, coverImage, isMusicPlaying, isPlaying, dominantColor, setDominantColor, setSyncedLyrics, setLyricsLoading } = useIslandStore();
+  const { state, weather, setHover, setIdle, setExpanded, setLyrics, timerData, setTimerData, notification, setNotification, handleNowPlayingUpdate, updateProgress, coverImage, isMusicPlaying, isPlaying, dominantColor, setDominantColor, setSyncedLyrics, setLyricsLoading, syncedLyrics, lyricsLoading } = useIslandStore();
   const prevStateRef = useRef(state);
   const [morphing, setMorphing] = useState(false);
   const [fromState, setFromState] = useState('');
@@ -292,6 +292,15 @@ function DynamicIsland(): React.JSX.Element {
       window.api?.enableMousePassthrough();
     }
   }, []);
+
+  // idle 状态下：正在播放且歌词已识别/加载中时，自动切到歌词态
+  useEffect(() => {
+    if (state !== 'idle') return;
+    if (timerData?.state !== 'idle') return;
+    if (isPlaying && ((syncedLyrics?.length ?? 0) > 0 || lyricsLoading)) {
+      setLyrics();
+    }
+  }, [state, timerData?.state, isPlaying, syncedLyrics, lyricsLoading, setLyrics]);
 
   // 全局订阅 NowPlaying 歌曲信息（主进程推送）
   // 在 DynamicIsland 层级订阅，确保应用启动时就开始监听
@@ -439,7 +448,7 @@ function DynamicIsland(): React.JSX.Element {
 
               isHoveringRef.current = false;
               const store = useIslandStore.getState();
-              if (store.isMusicPlaying && store.coverImage && store.timerData.state === 'idle' && (store.syncedLyrics?.length || store.lyricsLoading)) {
+              if (store.isPlaying && store.timerData.state === 'idle' && ((store.syncedLyrics?.length ?? 0) > 0 || store.lyricsLoading)) {
                 setLyrics();
               } else {
                 setIdle();

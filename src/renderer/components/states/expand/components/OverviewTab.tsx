@@ -388,14 +388,22 @@ function PomodoroWidget(): React.ReactElement {
   };
 
   const handleReset = (): void => {
+    const resetPhase: PomodoroPhase = 'work';
+    const resetRemaining = POMODORO_DURATIONS[resetPhase];
     setRunning(false);
-    setRemaining(POMODORO_DURATIONS[phase]);
-    _persistPomodoro(phase, POMODORO_DURATIONS[phase], completedCount);
+    setPhase(resetPhase);
+    setRemaining(resetRemaining);
+    _persistPomodoro(resetPhase, resetRemaining, completedCount);
   };
 
   const handleResetCount = (): void => {
+    const resetPhase: PomodoroPhase = 'work';
+    const resetRemaining = POMODORO_DURATIONS[resetPhase];
+    setRunning(false);
+    setPhase(resetPhase);
+    setRemaining(resetRemaining);
     setCompletedCount(0);
-    _persistPomodoro(phase, remaining, 0);
+    _persistPomodoro(resetPhase, resetRemaining, 0);
   };
 
   const handleSkip = (): void => {

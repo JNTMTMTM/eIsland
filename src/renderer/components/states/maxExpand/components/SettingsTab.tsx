@@ -384,6 +384,12 @@ export function SettingsTab(): ReactElement {
   const [hotkeyError, setHotkeyError] = useState<string>('');
   const hotkeyInputRef = useRef<HTMLInputElement>(null);
 
+  /** 关闭快捷键相关状态 */
+  const [quitHotkey, setQuitHotkey] = useState<string>('Alt+C');
+  const [quitHotkeyRecording, setQuitHotkeyRecording] = useState(false);
+  const [quitHotkeyError, setQuitHotkeyError] = useState<string>('');
+  const quitHotkeyInputRef = useRef<HTMLInputElement>(null);
+
   /** 加载网络配置 */
   useEffect(() => {
     const cfg = loadNetworkConfig();
@@ -427,9 +433,20 @@ export function SettingsTab(): ReactElement {
     let cancelled = false;
     window.api.hotkeyGet().then((key) => {
       if (cancelled) return;
-      if (key) setHideHotkey(key);
+      setHideHotkey(key || '');
+    }).catch(() => {});
+    window.api.quitHotkeyGet().then((key) => {
+      if (cancelled) return;
+      setQuitHotkey(key || '');
     }).catch(() => {});
     return () => { cancelled = true; };
+  }, []);
+
+  /** 组件卸载时兜底恢复快捷键响应 */
+  useEffect(() => {
+    return () => {
+      window.api.hotkeyResume().catch(() => {});
+    };
   }, []);
 
   const updateLayout = (side: 'left' | 'right', value: OverviewWidgetType): void => {
@@ -503,7 +520,7 @@ export function SettingsTab(): ReactElement {
   };
 
   /**
-   * 快捷键录入键盘事件处理
+   * 隐藏快捷键录入键盘事件处理
    * @param e - React 键盘事件
    */
   const handleHotkeyKeyDown = (e: KeyboardEvent): void => {
@@ -512,6 +529,12 @@ export function SettingsTab(): ReactElement {
     setHotkeyError('');
     const acc = keyEventToAccelerator(e);
     if (!acc) return;
+    if (quitHotkey && acc === quitHotkey) {
+      setHotkeyError('重复快捷键');
+      setHotkeyRecording(false);
+      hotkeyInputRef.current?.blur();
+      return;
+    }
 
     window.api.hotkeySet(acc).then((ok) => {
       if (ok) {
@@ -523,6 +546,36 @@ export function SettingsTab(): ReactElement {
       }
     }).catch(() => {
       setHotkeyError('快捷键注册失败');
+    });
+  };
+
+  /**
+   * 关闭快捷键录入键盘事件处理
+   * @param e - React 键盘事件
+   */
+  const handleQuitHotkeyKeyDown = (e: KeyboardEvent): void => {
+    e.preventDefault();
+    e.stopPropagation();
+    setQuitHotkeyError('');
+    const acc = keyEventToAccelerator(e);
+    if (!acc) return;
+    if (hideHotkey && acc === hideHotkey) {
+      setQuitHotkeyError('重复快捷键');
+      setQuitHotkeyRecording(false);
+      quitHotkeyInputRef.current?.blur();
+      return;
+    }
+
+    window.api.quitHotkeySet(acc).then((ok) => {
+      if (ok) {
+        setQuitHotkey(acc);
+        setQuitHotkeyRecording(false);
+        quitHotkeyInputRef.current?.blur();
+      } else {
+        setQuitHotkeyError('快捷键注册失败，请尝试其他组合');
+      }
+    }).catch(() => {
+      setQuitHotkeyError('快捷键注册失败');
     });
   };
 
@@ -720,12 +773,19 @@ export function SettingsTab(): ReactElement {
                 <div className="settings-hotkey-row">
                   <input
                     ref={hotkeyInputRef}
-                    className={`settings-hotkey-input ${hotkeyRecording ? 'recording' : ''}`}
+                    className={`settings-hotkey-input ${hotkeyRecording ? 'recording' : ''}${hotkeyError ? ' error' : ''}`}
                     type="text"
                     readOnly
-                    value={hotkeyRecording ? '请按下快捷键组合…' : hideHotkey}
-                    onFocus={() => { setHotkeyRecording(true); setHotkeyError(''); }}
-                    onBlur={() => setHotkeyRecording(false)}
+                    value={hotkeyRecording ? '请按下快捷键组合…' : (hideHotkey || '未设置')}
+                    onFocus={() => {
+                      setHotkeyRecording(true);
+                      setHotkeyError('');
+                      window.api.hotkeySuspend().catch(() => {});
+                    }}
+                    onBlur={() => {
+                      setHotkeyRecording(false);
+                      window.api.hotkeyResume().catch(() => {});
+                    }}
                     onKeyDown={handleHotkeyKeyDown}
                   />
                   <button
@@ -738,9 +798,79 @@ export function SettingsTab(): ReactElement {
                   >
                     {hotkeyRecording ? '录入中' : '修改'}
                   </button>
+                  {hideHotkey && (
+                    <button
+                      className="settings-hotkey-btn"
+                      type="button"
+                      onClick={() => {
+                        window.api.hotkeySet('').then((ok) => {
+                          if (ok) {
+                            setHideHotkey('');
+                            setHotkeyError('');
+                            setHotkeyRecording(false);
+                            hotkeyInputRef.current?.blur();
+                          }
+                        }).catch(() => {});
+                      }}
+                    >
+                      清除
+                    </button>
+                  )}
                 </div>
                 {hotkeyError && <div className="settings-hotkey-error">{hotkeyError}</div>}
                 <div className="settings-hotkey-hint">点击“修改”后按下组合键（如 Alt+X、Ctrl+Shift+H）</div>
+              </div>
+              <div className="settings-hotkey-section">
+                <div className="settings-hotkey-label">关闭灵动岛快捷键</div>
+                <div className="settings-hotkey-row">
+                  <input
+                    ref={quitHotkeyInputRef}
+                    className={`settings-hotkey-input ${quitHotkeyRecording ? 'recording' : ''}${quitHotkeyError ? ' error' : ''}`}
+                    type="text"
+                    readOnly
+                    value={quitHotkeyRecording ? '请按下快捷键组合…' : (quitHotkey || '未设置')}
+                    onFocus={() => {
+                      setQuitHotkeyRecording(true);
+                      setQuitHotkeyError('');
+                      window.api.hotkeySuspend().catch(() => {});
+                    }}
+                    onBlur={() => {
+                      setQuitHotkeyRecording(false);
+                      window.api.hotkeyResume().catch(() => {});
+                    }}
+                    onKeyDown={handleQuitHotkeyKeyDown}
+                  />
+                  <button
+                    className="settings-hotkey-btn"
+                    type="button"
+                    onClick={() => {
+                      setQuitHotkeyRecording(true);
+                      quitHotkeyInputRef.current?.focus();
+                    }}
+                  >
+                    {quitHotkeyRecording ? '录入中' : '修改'}
+                  </button>
+                  {quitHotkey && (
+                    <button
+                      className="settings-hotkey-btn"
+                      type="button"
+                      onClick={() => {
+                        window.api.quitHotkeySet('').then((ok) => {
+                          if (ok) {
+                            setQuitHotkey('');
+                            setQuitHotkeyError('');
+                            setQuitHotkeyRecording(false);
+                            quitHotkeyInputRef.current?.blur();
+                          }
+                        }).catch(() => {});
+                      }}
+                    >
+                      清除
+                    </button>
+                  )}
+                </div>
+                {quitHotkeyError && <div className="settings-hotkey-error">{quitHotkeyError}</div>}
+                <div className="settings-hotkey-hint">按下此快捷键将立即关闭灵动岛应用（如 Alt+Q、Ctrl+Shift+Q）</div>
               </div>
             </div>
           )}

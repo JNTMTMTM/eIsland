@@ -3,6 +3,7 @@
 /test.ts
 /test.tsx
 /desc.json
+/todo.md
 
 node_modules/
 dist/
