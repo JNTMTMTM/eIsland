@@ -337,6 +337,31 @@ const api = {
    */
   musicLyricsSourceSet: (source: string): Promise<boolean> => {
     return ipcRenderer.invoke('music:lyrics-source:set', source);
+  },
+  /**
+   * 运行测试脚本获取当前播放进程 sourceAppId
+   * @returns 获取结果，可能返回 null（无播放程序）
+   */
+  musicDetectSourceAppId: (): Promise<{ ok: boolean; sourceAppId: string | null; message: string }> => {
+    return ipcRenderer.invoke('music:detect-source-app-id');
+  },
+  /** 订阅播放源切换请求（主进程推送） */
+  onSourceSwitchRequest: (callback: (data: { sourceAppId: string; title: string; artist: string }) => void): (() => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, data: { sourceAppId: string; title: string; artist: string }) => {
+      callback(data);
+    };
+    ipcRenderer.on('media:source-switch-request', handler);
+    return () => {
+      ipcRenderer.removeListener('media:source-switch-request', handler);
+    };
+  },
+  /** 接受切换到新播放源 */
+  mediaAcceptSourceSwitch: (): Promise<void> => {
+    return ipcRenderer.invoke('media:accept-source-switch');
+  },
+  /** 拒绝切换播放源 */
+  mediaRejectSourceSwitch: (): Promise<void> => {
+    return ipcRenderer.invoke('media:reject-source-switch');
   }
 };
 

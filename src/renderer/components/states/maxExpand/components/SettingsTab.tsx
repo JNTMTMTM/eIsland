@@ -371,7 +371,10 @@ export function SettingsTab(): ReactElement {
   /** 歌曲设置相关状态 */
   const [whitelist, setWhitelist] = useState<string[]>([]);
   const [whitelistDraft, setWhitelistDraft] = useState<string>('');
+  const [whitelistInputError, setWhitelistInputError] = useState<string>('');
   const [lyricsSource, setLyricsSource] = useState<string>('lrclib-first');
+  const [detectingSourceAppId, setDetectingSourceAppId] = useState(false);
+  const [sourceAppDetectMessage, setSourceAppDetectMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   /** 网络配置相关状态 */
   const [networkTimeoutMs, setNetworkTimeoutMs] = useState<number>(DEFAULT_NETWORK_TIMEOUT_MS);
@@ -577,6 +580,43 @@ export function SettingsTab(): ReactElement {
     }).catch(() => {
       setQuitHotkeyError('快捷键注册失败');
     });
+  };
+
+  const handleDetectSourceAppId = async (): Promise<void> => {
+    if (detectingSourceAppId) return;
+    setDetectingSourceAppId(true);
+    setSourceAppDetectMessage(null);
+    try {
+      const result = await window.api.musicDetectSourceAppId();
+      if (result.ok && result.sourceAppId) {
+        setWhitelistDraft(result.sourceAppId);
+        setSourceAppDetectMessage({ type: 'success', text: `获取成功：${result.sourceAppId}` });
+      } else {
+        setSourceAppDetectMessage({ type: 'error', text: result.message || '获取失败' });
+      }
+    } catch {
+      setSourceAppDetectMessage({ type: 'error', text: '获取失败：脚本调用异常' });
+    } finally {
+      setDetectingSourceAppId(false);
+    }
+  };
+
+  const handleAddWhitelist = (): void => {
+    const nextItem = whitelistDraft.trim();
+    if (!nextItem) return;
+
+    const exists = whitelist.some((item) => item.toLowerCase() === nextItem.toLowerCase());
+    if (exists) {
+      setWhitelistDraft('');
+      setWhitelistInputError('已在白名单中');
+      return;
+    }
+
+    const next = [...whitelist, nextItem];
+    setWhitelist(next);
+    setWhitelistDraft('');
+    setWhitelistInputError('');
+    window.api.musicWhitelistSet(next).catch(() => {});
   };
 
   return (
@@ -903,33 +943,57 @@ export function SettingsTab(): ReactElement {
                 </div>
                 <div className="settings-whitelist-add-row">
                   <input
-                    className="settings-whitelist-input"
+                    className={`settings-whitelist-input${whitelistInputError ? ' error' : ''}`}
                     type="text"
-                    placeholder="输入播放器进程名（如 Spotify.exe）"
+                    placeholder={whitelistInputError || '输入播放器进程名（如 Spotify.exe）'}
                     value={whitelistDraft}
-                    onChange={(e) => setWhitelistDraft(e.target.value)}
+                    onFocus={() => {
+                      if (whitelistInputError) setWhitelistInputError('');
+                    }}
+                    onChange={(e) => {
+                      setWhitelistDraft(e.target.value);
+                      if (whitelistInputError) setWhitelistInputError('');
+                    }}
                     onKeyDown={(e) => {
-                      if (e.key === 'Enter' && whitelistDraft.trim()) {
-                        const next = [...whitelist, whitelistDraft.trim()];
-                        setWhitelist(next);
-                        setWhitelistDraft('');
-                        window.api.musicWhitelistSet(next).catch(() => {});
-                      }
+                      if (e.key === 'Enter') handleAddWhitelist();
                     }}
                   />
                   <button
                     className="settings-whitelist-add-btn"
                     type="button"
                     onClick={() => {
-                      if (!whitelistDraft.trim()) return;
-                      const next = [...whitelist, whitelistDraft.trim()];
-                      setWhitelist(next);
-                      setWhitelistDraft('');
-                      window.api.musicWhitelistSet(next).catch(() => {});
+                      handleAddWhitelist();
                     }}
                   >
                     添加
                   </button>
+                </div>
+                <div className="settings-whitelist-add-row" style={{ display: 'flex', alignItems: 'center' }}>
+                  <button
+                    className="settings-whitelist-add-btn"
+                    type="button"
+                    onClick={() => {
+                      if (whitelistInputError) setWhitelistInputError('');
+                      handleDetectSourceAppId().catch(() => {});
+                    }}
+                    disabled={detectingSourceAppId}
+                  >
+                    {detectingSourceAppId ? '获取中…' : '获取播放进程（测试）'}
+                  </button>
+                  {sourceAppDetectMessage && (
+                    <div
+                      className="settings-music-hint"
+                      style={{
+                        color: sourceAppDetectMessage.type === 'success' ? '#7df2a0' : '#ff8b8b',
+                        marginLeft: 10,
+                        marginBottom: 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                      }}
+                    >
+                      {sourceAppDetectMessage.text}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -1029,7 +1093,7 @@ export function SettingsTab(): ReactElement {
                     </a>
                     鸡哥 <span className="settings-about-id">JNTMTMTM</span>
                   </div>
-                  <div className="settings-about-version">eIsland v26.1.1-beta.1</div>
+                  <div className="settings-about-version">eIsland v26.1.1-beta.2</div>
                 </div>
               </div>
 

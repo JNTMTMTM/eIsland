@@ -101,6 +101,13 @@ declare global {
       musicWhitelistSet: (list: string[]) => Promise<boolean>;
       musicLyricsSourceGet: () => Promise<string>;
       musicLyricsSourceSet: (source: string) => Promise<boolean>;
+      musicDetectSourceAppId: () => Promise<{ ok: boolean; sourceAppId: string | null; message: string }>;
+      /** 订阅播放源切换请求（主进程推送） */
+      onSourceSwitchRequest: (callback: (data: { sourceAppId: string; title: string; artist: string }) => void) => () => void;
+      /** 接受切换到新播放源 */
+      mediaAcceptSourceSwitch: () => Promise<void>;
+      /** 拒绝切换播放源 */
+      mediaRejectSourceSwitch: () => Promise<void>;
     };
   }
 }

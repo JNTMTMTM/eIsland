@@ -41,6 +41,9 @@ import { fetchLyrics } from '../api/lrcApi';
 /** 灵动岛状态类型 */
 export type IslandState = 'idle' | 'hover' | 'expanded' | 'notification' | 'maxExpand' | 'minimal' | 'lyrics';
 
+/** shell.css 中 morph/transition 主时长（0.4s） */
+const SHELL_MORPH_DURATION_MS = 400;
+
 /** 状态配置接口 */
 interface StateConfig {
   /** 状态名称 */
@@ -154,7 +157,7 @@ interface StateRenderer {
  * @description 使用状态模式管理不同状态的 UI 渲染，通过 requestAnimationFrame 检测鼠标位置实现可靠的 hover 交互
  */
 function DynamicIsland(): React.JSX.Element {
-  const { state, weather, setHover, setIdle, setExpanded, setLyrics, timerData, setTimerData, notification, setNotification, handleNowPlayingUpdate, updateProgress, coverImage, isMusicPlaying, isPlaying, dominantColor, setDominantColor, setSyncedLyrics, setLyricsLoading, syncedLyrics, lyricsLoading } = useIslandStore();
+  const { state, weather, setHover, setIdle, setExpanded, setLyrics, timerData, setTimerData, notification, setNotification, handleNowPlayingUpdate, updateProgress, coverImage, isMusicPlaying, isPlaying, dominantColor, setDominantColor, setSyncedLyrics, setLyricsLoading, syncedLyrics, lyricsLoading, pomodoroRunning, pomodoroRemaining } = useIslandStore();
   const prevStateRef = useRef(state);
   const [morphing, setMorphing] = useState(false);
   const [fromState, setFromState] = useState('');
@@ -170,7 +173,7 @@ function DynamicIsland(): React.JSX.Element {
     setFromState(prevStateRef.current);
     prevStateRef.current = state;
     setMorphing(true);
-    const id = setTimeout(() => { setMorphing(false); setFromState(''); }, 600);
+    const id = setTimeout(() => { setMorphing(false); setFromState(''); }, SHELL_MORPH_DURATION_MS);
     return () => clearTimeout(id);
   }, [state]);
 
@@ -371,6 +374,22 @@ function DynamicIsland(): React.JSX.Element {
     };
   }, []);
 
+  // 订阅播放源切换请求（主进程推送）
+  useEffect(() => {
+    const unsubSwitch = window.api?.onSourceSwitchRequest((data) => {
+      setNotificationRef.current({
+        title: '检测到其他播放源',
+        body: `${data.title} - ${data.artist}（${data.sourceAppId}）`,
+        icon: SvgIcon.MUSIC,
+        type: 'source-switch',
+        sourceAppId: data.sourceAppId,
+      });
+    });
+    return () => {
+      unsubSwitch?.();
+    };
+  }, []);
+
   // 必须放在 useEffect 之前，且 useCallback 依赖为空（所有依赖都是 ref/函数）
   const clearAllTimers = React.useCallback(() => {
     if (enterTimerRef.current !== null) {
@@ -483,6 +502,8 @@ function DynamicIsland(): React.JSX.Element {
           weather={weather}
           timerState={timerData?.state ?? 'idle'}
           remainingSeconds={timerData?.remainingSeconds ?? 0}
+          pomodoroRunning={pomodoroRunning}
+          pomodoroRemaining={pomodoroRemaining}
         />
       ),
     },
@@ -508,6 +529,8 @@ function DynamicIsland(): React.JSX.Element {
           title={notification.title}
           body={notification.body}
           icon={notification.icon}
+          type={notification.type}
+          sourceAppId={notification.sourceAppId}
         />
       ),
     },

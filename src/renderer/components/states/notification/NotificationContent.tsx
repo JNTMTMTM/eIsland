@@ -35,6 +35,10 @@ interface NotificationContentProps {
   body: string;
   /** 通知图标（可选） */
   icon?: string;
+  /** 通知类型 */
+  type?: 'default' | 'source-switch';
+  /** 请求切换到的播放源 ID（仅 source-switch） */
+  sourceAppId?: string;
 }
 
 /**
@@ -45,6 +49,8 @@ export function NotificationContent({
   title,
   body,
   icon,
+  type,
+  sourceAppId: _sourceAppId,
 }: NotificationContentProps): ReactElement {
   const { setIdle, setLyrics, setNotification } = useIslandStore();
 
@@ -72,6 +78,16 @@ export function NotificationContent({
     dismiss();
   };
 
+  const handleAcceptSwitch = (): void => {
+    window.api?.mediaAcceptSourceSwitch();
+    dismiss();
+  };
+
+  const handleRejectSwitch = (): void => {
+    window.api?.mediaRejectSourceSwitch();
+    dismiss();
+  };
+
   return (
     <div className="notification-content">
       <div className="notification-main-row">
@@ -88,17 +104,26 @@ export function NotificationContent({
         </div>
       </div>
 
-      <div className="notification-actions">
-        <div className="notification-snooze-actions">
-          <button type="button" className="notification-action-btn notification-action-snooze" onClick={() => handleSnooze(5)}>稍后 5m</button>
-          <button type="button" className="notification-action-btn notification-action-snooze" onClick={() => handleSnooze(15)}>稍后 15m</button>
-          <button type="button" className="notification-action-btn notification-action-snooze" onClick={() => handleSnooze(60)}>稍后 1h</button>
+      {type === 'source-switch' ? (
+        <div className="notification-actions">
+          <div className="notification-decision-actions">
+            <button type="button" className="notification-action-btn notification-action-complete" onClick={handleAcceptSwitch}>切换</button>
+            <button type="button" className="notification-action-btn notification-action-ignore" onClick={handleRejectSwitch}>忽略</button>
+          </div>
         </div>
-        <div className="notification-decision-actions">
-          <button type="button" className="notification-action-btn notification-action-complete" onClick={handleComplete}>完成</button>
-          <button type="button" className="notification-action-btn notification-action-ignore" onClick={handleIgnore}>忽略</button>
+      ) : (
+        <div className="notification-actions">
+          <div className="notification-snooze-actions">
+            <button type="button" className="notification-action-btn notification-action-snooze" onClick={() => handleSnooze(5)}>稍后 5m</button>
+            <button type="button" className="notification-action-btn notification-action-snooze" onClick={() => handleSnooze(15)}>稍后 15m</button>
+            <button type="button" className="notification-action-btn notification-action-snooze" onClick={() => handleSnooze(60)}>稍后 1h</button>
+          </div>
+          <div className="notification-decision-actions">
+            <button type="button" className="notification-action-btn notification-action-complete" onClick={handleComplete}>完成</button>
+            <button type="button" className="notification-action-btn notification-action-ignore" onClick={handleIgnore}>忽略</button>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

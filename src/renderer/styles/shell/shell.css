@@ -36,8 +36,8 @@
   justify-content: center;
   cursor: default;
   user-select: none;
-  transition: width 0.55s cubic-bezier(0.22, 1, 0.36, 1),
-              height 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.02s,
+  transition: width 0.4s cubic-bezier(0.25, 1, 0.5, 1),
+              height 0.4s cubic-bezier(0.25, 1, 0.5, 1),
               border-radius 0.4s cubic-bezier(0.25, 1, 0.5, 1),
               background 0.35s ease,
               box-shadow 0.4s ease;
@@ -80,7 +80,7 @@
 
 /** 状态切换形变脉冲动画（通用兜底） */
 .island-shell.morphing {
-  animation: shellMorph 0.55s cubic-bezier(0.25, 1, 0.5, 1);
+  animation: shellMorph 0.4s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 @keyframes shellMorph {
@@ -93,7 +93,7 @@
 
 /** idle → hover：横向弹性膨胀 */
 .island-shell.hover.morphing.from-idle {
-  animation: shellExpandFromIdle 0.6s cubic-bezier(0.34, 1.3, 0.64, 1);
+  animation: shellExpandFromIdle 0.4s cubic-bezier(0.34, 1.1, 0.64, 1);
 }
 
 @keyframes shellExpandFromIdle {
@@ -106,7 +106,7 @@
 /** expanded / maxExpand → hover：收缩回弹 */
 .island-shell.hover.morphing.from-expanded,
 .island-shell.hover.morphing.from-maxExpand {
-  animation: shellContractToHover 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+  animation: shellContractToHover 0.4s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 @keyframes shellContractToHover {
@@ -118,7 +118,7 @@
 
 /** idle → notification：弹性横向膨胀 + 纵向伸展 */
 .island-shell.notification.morphing.from-idle {
-  animation: shellExpandToNotification 0.58s cubic-bezier(0.34, 1.18, 0.64, 1);
+  animation: shellExpandToNotification 0.4s cubic-bezier(0.34, 1.1, 0.64, 1);
 }
 
 @keyframes shellExpandToNotification {
@@ -154,12 +154,12 @@
 
 /** hover → idle：柔和收拢 */
 .island-shell.morphing.from-hover:not(.hover):not(.expanded):not(.maxExpand):not(.notification) {
-  animation: shellShrinkToIdle 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+  animation: shellShrinkToIdle 0.4s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 /** notification → idle：横向收拢 */
 .island-shell.morphing.from-notification:not(.hover):not(.expanded):not(.maxExpand):not(.notification) {
-  animation: shellShrinkFromNotification 0.48s cubic-bezier(0.25, 1, 0.5, 1);
+  animation: shellShrinkFromNotification 0.4s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 @keyframes shellShrinkFromNotification {
@@ -257,7 +257,7 @@
   background-repeat: no-repeat;
   flex-shrink: 0;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-  transition: box-shadow 0.8s ease;
+  transition: box-shadow 0.4s ease;
   animation: idle-vinyl-spin 8s linear infinite;
 }
 
@@ -306,12 +306,12 @@
   inset: -50%;
   background: radial-gradient(ellipse at 10% 50%, rgba(0, 0, 0, 0.2) 0%, transparent 50%);
   opacity: 0;
-  transition: background 0.8s ease, opacity 0.8s ease;
+  transition: background 0.5s ease, opacity 0.5s ease;
 }
 
 .idle-glow.active {
   opacity: 1;
-  transition: background 0.8s ease, opacity 0.8s ease;
+  transition: background 0.5s ease, opacity 0.5s ease;
   animation: idle-glow-pulse 3s ease-in-out infinite;
 }
 
