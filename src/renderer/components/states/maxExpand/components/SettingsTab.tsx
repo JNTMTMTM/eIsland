@@ -856,7 +856,12 @@ export function SettingsTab(): ReactElement {
                       type="button"
                       onClick={() => {
                         window.api.quitHotkeySet('').then((ok) => {
-                          if (ok) setQuitHotkey('');
+                          if (ok) {
+                            setQuitHotkey('');
+                            setQuitHotkeyError('');
+                            setQuitHotkeyRecording(false);
+                            quitHotkeyInputRef.current?.blur();
+                          }
                         }).catch(() => {});
                       }}
                     >
