@@ -337,6 +337,13 @@ const api = {
    */
   musicLyricsSourceSet: (source: string): Promise<boolean> => {
     return ipcRenderer.invoke('music:lyrics-source:set', source);
+  },
+  /**
+   * 运行测试脚本获取当前播放进程 sourceAppId
+   * @returns 获取结果，可能返回 null（无播放程序）
+   */
+  musicDetectSourceAppId: (): Promise<{ ok: boolean; sourceAppId: string | null; message: string }> => {
+    return ipcRenderer.invoke('music:detect-source-app-id');
   }
 };
 

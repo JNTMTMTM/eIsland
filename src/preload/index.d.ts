@@ -101,6 +101,7 @@ declare global {
       musicWhitelistSet: (list: string[]) => Promise<boolean>;
       musicLyricsSourceGet: () => Promise<string>;
       musicLyricsSourceSet: (source: string) => Promise<boolean>;
+      musicDetectSourceAppId: () => Promise<{ ok: boolean; sourceAppId: string | null; message: string }>;
     };
   }
 }

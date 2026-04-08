@@ -372,6 +372,8 @@ export function SettingsTab(): ReactElement {
   const [whitelist, setWhitelist] = useState<string[]>([]);
   const [whitelistDraft, setWhitelistDraft] = useState<string>('');
   const [lyricsSource, setLyricsSource] = useState<string>('lrclib-first');
+  const [detectingSourceAppId, setDetectingSourceAppId] = useState(false);
+  const [sourceAppDetectMessage, setSourceAppDetectMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   /** 网络配置相关状态 */
   const [networkTimeoutMs, setNetworkTimeoutMs] = useState<number>(DEFAULT_NETWORK_TIMEOUT_MS);
@@ -577,6 +579,25 @@ export function SettingsTab(): ReactElement {
     }).catch(() => {
       setQuitHotkeyError('快捷键注册失败');
     });
+  };
+
+  const handleDetectSourceAppId = async (): Promise<void> => {
+    if (detectingSourceAppId) return;
+    setDetectingSourceAppId(true);
+    setSourceAppDetectMessage(null);
+    try {
+      const result = await window.api.musicDetectSourceAppId();
+      if (result.ok && result.sourceAppId) {
+        setWhitelistDraft(result.sourceAppId);
+        setSourceAppDetectMessage({ type: 'success', text: `获取成功：${result.sourceAppId}` });
+      } else {
+        setSourceAppDetectMessage({ type: 'error', text: result.message || '获取失败' });
+      }
+    } catch {
+      setSourceAppDetectMessage({ type: 'error', text: '获取失败：脚本调用异常' });
+    } finally {
+      setDetectingSourceAppId(false);
+    }
   };
 
   return (
@@ -931,6 +952,34 @@ export function SettingsTab(): ReactElement {
                     添加
                   </button>
                 </div>
+                <div className="settings-whitelist-add-row" style={{ display: 'flex', alignItems: 'center' }}>
+                  <button
+                    className="settings-whitelist-add-btn"
+                    type="button"
+                    onClick={() => {
+                      handleDetectSourceAppId().catch(() => {});
+                    }}
+                    disabled={detectingSourceAppId}
+                  >
+                    {detectingSourceAppId ? '获取中…' : '获取播放进程（测试）'}
+                  </button>
+                  {sourceAppDetectMessage?.type === 'success' && (
+                    <div
+                      className="settings-music-hint"
+                      style={{ color: '#7df2a0', marginLeft: 10, marginBottom: 0, display: 'flex', alignItems: 'center' }}
+                    >
+                      {sourceAppDetectMessage.text}
+                    </div>
+                  )}
+                </div>
+                {sourceAppDetectMessage?.type === 'error' && (
+                  <div
+                    className="settings-music-hint"
+                    style={{ color: '#ff8b8b' }}
+                  >
+                    {sourceAppDetectMessage.text}
+                  </div>
+                )}
               </div>
 
               {/* 歌词源 */}
