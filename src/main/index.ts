@@ -180,7 +180,7 @@ let currentQuitHotkey: string = '';
 const QUIT_HOTKEY_STORE_KEY = 'quit-hotkey';
 
 /** 默认关闭快捷键（空表示默认不设置） */
-const DEFAULT_QUIT_HOTKEY = '';
+const DEFAULT_QUIT_HOTKEY = 'Alt+C';
 
 /**
  * 读取关闭快捷键配置

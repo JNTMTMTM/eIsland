@@ -385,7 +385,7 @@ export function SettingsTab(): ReactElement {
   const hotkeyInputRef = useRef<HTMLInputElement>(null);
 
   /** 关闭快捷键相关状态 */
-  const [quitHotkey, setQuitHotkey] = useState<string>('');
+  const [quitHotkey, setQuitHotkey] = useState<string>('Alt+C');
   const [quitHotkeyRecording, setQuitHotkeyRecording] = useState(false);
   const [quitHotkeyError, setQuitHotkeyError] = useState<string>('');
   const quitHotkeyInputRef = useRef<HTMLInputElement>(null);
