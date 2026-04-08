@@ -74,11 +74,40 @@ let nowPlayingWhitelist: string[] = [...DEFAULT_WHITELIST];
 /** 记录当前生效的设备ID（仅白名单内程序） */
 let currentDeviceId: string = nowPlayingWhitelist[0] || '';
 
+interface DetectedSourceEntry {
+  isPlaying: boolean;
+  hasTitle: boolean;
+  updatedAt: number;
+}
+
+/** SMTC 原始会话缓存（不受白名单限制），用于获取播放进程按钮 */
+const detectedSourceRuntime = new Map<string, DetectedSourceEntry>();
+
 /**
  * 检查当前设备ID是否在白名单内
  */
 function isWhitelisted(): boolean {
   return nowPlayingWhitelist.some(name => currentDeviceId.includes(name));
+}
+
+function pickDetectedSourceAppId(): string {
+  let bestPlaying = '';
+  let bestPlayingAt = 0;
+  let bestTitled = '';
+  let bestTitledAt = 0;
+
+  detectedSourceRuntime.forEach((entry, sourceAppId) => {
+    if (entry.isPlaying && entry.updatedAt >= bestPlayingAt) {
+      bestPlaying = sourceAppId;
+      bestPlayingAt = entry.updatedAt;
+    }
+    if (entry.hasTitle && entry.updatedAt >= bestTitledAt) {
+      bestTitled = sourceAppId;
+      bestTitledAt = entry.updatedAt;
+    }
+  });
+
+  return bestPlaying || bestTitled;
 }
 
 /**
@@ -816,47 +845,11 @@ function registerIpcHandlers(): void {
    */
   ipcMain.handle('music:detect-source-app-id', async () => {
     try {
-      const result = await new Promise<{ ok: boolean; sourceAppId: string | null; error?: string }>((resolve) => {
-        const detector = new Worker(`
-          const { parentPort } = require('worker_threads');
-          try {
-            const { SMTCMonitor } = require('@coooookies/windows-smtc-monitor');
-            const session = SMTCMonitor.getCurrentMediaSession();
-            const sourceAppId = typeof session?.sourceAppId === 'string' ? session.sourceAppId.trim() : '';
-            parentPort.postMessage({ ok: true, sourceAppId: sourceAppId || null });
-          } catch (error) {
-            parentPort.postMessage({ ok: false, sourceAppId: null, error: String(error?.message || error) });
-          }
-        `, { eval: true });
-
-        const timeout = setTimeout(() => {
-          detector.terminate().catch(() => {});
-          resolve({ ok: false, sourceAppId: null, error: 'timeout' });
-        }, 2000);
-
-        detector.once('message', (payload: { ok: boolean; sourceAppId: string | null; error?: string }) => {
-          clearTimeout(timeout);
-          detector.terminate().catch(() => {});
-          resolve(payload);
-        });
-
-        detector.once('error', (error) => {
-          clearTimeout(timeout);
-          detector.terminate().catch(() => {});
-          resolve({ ok: false, sourceAppId: null, error: String(error?.message || error) });
-        });
-      });
-
-      if (!result.ok) {
-        console.error('[Music] detect source app id failed:', result.error || 'unknown error');
-        return { ok: false, sourceAppId: null, message: '获取失败：读取会话异常' };
-      }
-
-      if (!result.sourceAppId) {
+      const sourceAppId = pickDetectedSourceAppId().trim();
+      if (!sourceAppId) {
         return { ok: false, sourceAppId: null, message: '获取失败：当前无播放程序' };
       }
-
-      return { ok: true, sourceAppId: result.sourceAppId, message: '获取成功' };
+      return { ok: true, sourceAppId, message: '获取成功' };
     } catch (error) {
       console.error('[Music] detect source app id failed:', error);
       return { ok: false, sourceAppId: null, message: '获取失败：读取会话异常' };
@@ -1013,6 +1006,7 @@ function initSmtcWorker(win: BrowserWindow | null): void {
 
       if (msg.type === 'session-removed') {
         if (msg.sourceAppId) {
+          detectedSourceRuntime.delete(msg.sourceAppId);
           sessionRuntime.delete(msg.sourceAppId);
         }
         if (msg.sourceAppId === currentDeviceId) {
@@ -1026,6 +1020,14 @@ function initSmtcWorker(win: BrowserWindow | null): void {
 
       const { sourceAppId = '', session } = msg;
       const { media, playback, timeline } = session ?? {};
+
+      if (sourceAppId) {
+        detectedSourceRuntime.set(sourceAppId, {
+          isPlaying: (playback?.playbackStatus ?? 0) === 4,
+          hasTitle: Boolean(media?.title),
+          updatedAt: Date.now(),
+        });
+      }
 
       if (!nowPlayingWhitelist.some(name => sourceAppId.includes(name))) return;
 
