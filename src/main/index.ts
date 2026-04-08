@@ -811,39 +811,56 @@ function registerIpcHandlers(): void {
   });
 
   /**
-   * 运行 test.tsx 脚本，获取当前播放进程 sourceAppId
+   * 获取当前播放进程 sourceAppId
    * @returns 获取结果（成功时返回 sourceAppId，失败时返回 null）
    */
   ipcMain.handle('music:detect-source-app-id', async () => {
-    const appPath = app.getAppPath();
-    const scriptPath = join(appPath, 'test.tsx');
-    const command = `npx tsx "${scriptPath}"`;
+    try {
+      const result = await new Promise<{ ok: boolean; sourceAppId: string | null; error?: string }>((resolve) => {
+        const detector = new Worker(`
+          const { parentPort } = require('worker_threads');
+          try {
+            const { SMTCMonitor } = require('@coooookies/windows-smtc-monitor');
+            const session = SMTCMonitor.getCurrentMediaSession();
+            const sourceAppId = typeof session?.sourceAppId === 'string' ? session.sourceAppId.trim() : '';
+            parentPort.postMessage({ ok: true, sourceAppId: sourceAppId || null });
+          } catch (error) {
+            parentPort.postMessage({ ok: false, sourceAppId: null, error: String(error?.message || error) });
+          }
+        `, { eval: true });
 
-    const result = await new Promise<{ ok: boolean; sourceAppId: string | null; message: string }>((resolve) => {
-      exec(command, { cwd: appPath }, (error, stdout, stderr) => {
-        if (error) {
-          console.error('[Music] detect source app id failed:', error, stderr);
-          resolve({ ok: false, sourceAppId: null, message: '获取失败：脚本执行失败' });
-          return;
-        }
+        const timeout = setTimeout(() => {
+          detector.terminate().catch(() => {});
+          resolve({ ok: false, sourceAppId: null, error: 'timeout' });
+        }, 2000);
 
-        const output = String(stdout ?? '').trim();
-        if (!output || output === 'null') {
-          resolve({ ok: false, sourceAppId: null, message: '获取失败：当前无播放程序' });
-          return;
-        }
+        detector.once('message', (payload: { ok: boolean; sourceAppId: string | null; error?: string }) => {
+          clearTimeout(timeout);
+          detector.terminate().catch(() => {});
+          resolve(payload);
+        });
 
-        const sourceAppIdMatch = output.match(/sourceAppId:\s*'([^']+)'/);
-        if (sourceAppIdMatch?.[1]) {
-          resolve({ ok: true, sourceAppId: sourceAppIdMatch[1], message: '获取成功' });
-          return;
-        }
-
-        resolve({ ok: false, sourceAppId: null, message: '获取失败：未解析到 sourceAppId' });
+        detector.once('error', (error) => {
+          clearTimeout(timeout);
+          detector.terminate().catch(() => {});
+          resolve({ ok: false, sourceAppId: null, error: String(error?.message || error) });
+        });
       });
-    });
 
-    return result;
+      if (!result.ok) {
+        console.error('[Music] detect source app id failed:', result.error || 'unknown error');
+        return { ok: false, sourceAppId: null, message: '获取失败：读取会话异常' };
+      }
+
+      if (!result.sourceAppId) {
+        return { ok: false, sourceAppId: null, message: '获取失败：当前无播放程序' };
+      }
+
+      return { ok: true, sourceAppId: result.sourceAppId, message: '获取成功' };
+    } catch (error) {
+      console.error('[Music] detect source app id failed:', error);
+      return { ok: false, sourceAppId: null, message: '获取失败：读取会话异常' };
+    }
   });
 
   // ===== 快捷键 IPC =====
