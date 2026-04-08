@@ -1,7 +1,73 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-04-08T14:53:18.072Z
+> 生成时间：2026-04-08T15:00:28.462Z
+
+## 26.1.1-beta.2
+
+- 2026-04-08 | c7ff2ce | github-actions[bot] | docs: auto update CHANGE_LOG.md for #21 by @JNTMTMTM [skip ci]
+- 2026-04-08 | 168d1ff | 鸡哥 | Merge pull request #21 from JNTMTMTM/dev
+- 2026-04-08 | 6b83582 | 鸡哥 | feat: 添加切换播放源弹窗
+- 2026-04-08 | df19617 | 鸡哥 | fix: 修复 morph/transition 存在隐式耦合的问题
+- 2026-04-08 | 5b84977 | 鸡哥 | fix: 避免样式分散与优先级问题
+- 2026-04-08 | d912f40 | 鸡哥 | fix: 使用 detectedSourceRuntime 缓存获取SMTC进程
+- 2026-04-08 | 827d3ed | 鸡哥 | hotfix: 我他妈把test.tsx给当成依赖写进去了
+- 2026-04-08 | e82b897 | 鸡哥 | chore: 更新版本至V26.1.1-beta.2
+- 2026-04-08 | 5667129 | 鸡哥 | style: 优化白名单进程重复通知的样式
+- 2026-04-08 | 9ee3d12 | 鸡哥 | feat: 添加白名单进程重复通知
+- 2026-04-08 | 6e658d9 | 鸡哥 | feat: 添加白名单进程获取测试按钮
+- 2026-04-08 | 2f98d47 | 鸡哥 | fix: 修复同时启动多个smtc播放器会导致歌曲界面冲突的问题
+- 2026-04-08 | 3d051a6 | 鸡哥 | style: 动画速度全局加快
+- 2026-04-08 | a6dfc4f | 鸡哥 | feat: 在idle界面显示番茄钟倒计时
+- 2026-04-08 | d6fdc2b | 鸡哥 | feat: 番茄钟倒计时结束后显示通知
+- 2026-04-08 | 1259934 | github-actions[bot] | docs: auto update CHANGE_LOG.md for #20 by @JNTMTMTM [skip ci]
+- 2026-04-08 | f176ca2 | 鸡哥 | Merge pull request #20 from JNTMTMTM/dev
+- 2026-04-08 | 83574e2 | 鸡哥 | fix: 修复 hotkeyGet() 返回空字符串的问题
+- 2026-04-08 | b4d4acf | 鸡哥 | security: 清理工作流 mention 注入风险
+- 2026-04-08 | 091c826 | 鸡哥 | fix: 修复未同步 quitHotkeyError 和 quitHotkeyRecording 的问题
+- 2026-04-08 | 30492b6 | 鸡哥 | fix: 修复idle状态无法直接跳转到歌词状态的问题
+- 2026-04-08 | 306928f | 鸡哥 | fix: 修复还原番茄钟后索引值异常的问题
+- 2026-04-08 | 9fcf48d | 鸡哥 | feat: 设置默认隐藏/关闭灵动岛快捷键
+- 2026-04-08 | d302278 | 鸡哥 | feat: 添加快捷键冲突提示
+- 2026-04-08 | a999c75 | 鸡哥 | fix: 修复主进程快捷键注册冲突问题
+- 2026-04-08 | ffda328 | 鸡哥 | feat: 添加一键关闭灵动岛功能
+- 2026-04-08 | 8d5f3f2 | 鸡哥 | ci: 添加pr自动总结工作流
+- 2026-04-08 | 9798bbf | 鸡哥 | chore: 更新.gitignore文件
+- 2026-04-07 | 9d90570 | github-actions[bot] | docs: auto update CHANGE_LOG.md for #18 by @JNTMTMTM [skip ci]
+- 2026-04-08 | 935c056 | 鸡哥 | Merge pull request #18 from JNTMTMTM/dev
+- 2026-04-07 | 6321b51 | 鸡哥 | feat: 添加前奏时歌曲名称显示
+- 2026-04-07 | 6804eea | 鸡哥 | fix: 修复通知界面关闭后无法正确切换到歌词界面的问题
+- 2026-04-07 | dc42581 | 鸡哥 | style: 调整歌词界面的大小
+- 2026-04-07 | ea4e376 | 鸡哥 | feat: 在没有歌词的情况下不显示歌词界面直接返回IDLE状态
+- 2026-04-07 | 252c6f7 | 鸡哥 | fix: 修复音符图标执行浮动动画时超出歌词容器范围
+- 2026-04-07 | 50f5b7d | 鸡哥 | style: 添加歌词扫光特效
+- 2026-04-07 | c3975fc | 鸡哥 | feat: 添加歌词idle界面
+- 2026-04-07 | 8f5876f | 鸡哥 | style: 美化通知界面展开动画
+- 2026-04-07 | de2a39c | 鸡哥 | refactor: 重写通知模式
+- 2026-04-07 | 86dbf54 | 鸡哥 | feat: 添加设置tab自定义天气数据源功能
+- 2026-04-07 | 7e7f091 | github-actions[bot] | docs: auto update CHANGE_LOG.md for #17 by @JNTMTMTM [skip ci]
+- 2026-04-07 | 2e2bd60 | 鸡哥 | Merge pull request #17 from JNTMTMTM/dev
+- 2026-04-07 | fd9cec8 | 鸡哥 | fix(ci): 修复git差异日志更新脚本
+- 2026-04-07 | a3f2988 | github-actions[bot] | docs: auto update CHANGE_LOG.md for #16 by @JNTMTMTM [skip ci]
+- 2026-04-07 | 0d677fd | 鸡哥 | Merge pull request #16 from JNTMTMTM/dev
+- 2026-04-07 | abf11f7 | 鸡哥 | fix: 修复uapi降水量和风速错误引用缓存的问题
+- 2026-04-07 | 927c232 | 鸡哥 | fix: 使代码符合前端代码质量规范
+- 2026-04-07 | 31d9f33 | 鸡哥 | feat: 使用uapi调取时自动转译图标代码至WMO标准
+- 2026-04-07 | e48a998 | 鸡哥 | feat: 添加冗余天气接口方案
+- 2026-04-07 | 6f8c8f7 | 鸡哥 | feat: 添加额外的天气请求日志记录项
+- 2026-04-07 | d7da19a | 鸡哥 | feat: 添加额外的歌词请求日志记录项
+- 2026-04-07 | 2151e0f | 鸡哥 | feat: 网络请求超时时间支持自定义
+- 2026-04-07 | f63f205 | 鸡哥 | feat: 设置界面添加网络配置tab
+- 2026-04-07 | a0c19fe | 鸡哥 | feat: 添加net代理网络请求超时控制
+- 2026-04-07 | 225683b | 鸡哥 | refactor: 不再使用天气sdk获取气象信息
+- 2026-04-07 | 45956e7 | 鸡哥 | feat: 添加日志系统
+- 2026-04-07 | bfbf396 | 鸡哥 | feat: 添加刷新天气按钮
+- 2026-04-07 | 42a7257 | 鸡哥 | fix: 修复地理位置缓存未正常写入的问题
+- 2026-04-07 | 289d69b | 鸡哥 | pref: 优化屏幕边界检测方案
+- 2026-04-07 | 7d2675b | 鸡哥 | pref: 优化歌词tab性能表现
+- 2026-04-06 | 47522d0 | 鸡哥 | fix: 修复设置tab未同步最新版本的问题
+- 2026-04-06 | 43eace5 | 鸡哥 | ci: 修复工作流在release时仍然存在unrelease的问题
+- 2026-04-06 | 0923d37 | github-actions[bot] | docs: auto update CHANGE_LOG.md for release 26.1.1-beta.1 by @JNTMTMTM [skip ci]
 
 ## 26.1.1-beta.1
 
@@ -288,68 +354,3 @@
 - 2026-03-30 | bb18a81 | 鸡哥 | feat: 初始化 eIsland 项目
 - 2026-03-30 | 044489f | 鸡哥 | chore: 更新 .gitignore 忽略 .claude 目录
 - 2026-03-30 | 1fc5faf | 鸡哥 | chore: 添加社区规范文档
-
-## Unreleased
-
-- 2026-04-08 | 168d1ff | 鸡哥 | Merge pull request #21 from JNTMTMTM/dev
-- 2026-04-08 | 6b83582 | 鸡哥 | feat: 添加切换播放源弹窗
-- 2026-04-08 | df19617 | 鸡哥 | fix: 修复 morph/transition 存在隐式耦合的问题
-- 2026-04-08 | 5b84977 | 鸡哥 | fix: 避免样式分散与优先级问题
-- 2026-04-08 | d912f40 | 鸡哥 | fix: 使用 detectedSourceRuntime 缓存获取SMTC进程
-- 2026-04-08 | 827d3ed | 鸡哥 | hotfix: 我他妈把test.tsx给当成依赖写进去了
-- 2026-04-08 | e82b897 | 鸡哥 | chore: 更新版本至V26.1.1-beta.2
-- 2026-04-08 | 5667129 | 鸡哥 | style: 优化白名单进程重复通知的样式
-- 2026-04-08 | 9ee3d12 | 鸡哥 | feat: 添加白名单进程重复通知
-- 2026-04-08 | 6e658d9 | 鸡哥 | feat: 添加白名单进程获取测试按钮
-- 2026-04-08 | 2f98d47 | 鸡哥 | fix: 修复同时启动多个smtc播放器会导致歌曲界面冲突的问题
-- 2026-04-08 | 3d051a6 | 鸡哥 | style: 动画速度全局加快
-- 2026-04-08 | a6dfc4f | 鸡哥 | feat: 在idle界面显示番茄钟倒计时
-- 2026-04-08 | d6fdc2b | 鸡哥 | feat: 番茄钟倒计时结束后显示通知
-- 2026-04-08 | 1259934 | github-actions[bot] | docs: auto update CHANGE_LOG.md for #20 by @JNTMTMTM [skip ci]
-- 2026-04-08 | f176ca2 | 鸡哥 | Merge pull request #20 from JNTMTMTM/dev
-- 2026-04-08 | 83574e2 | 鸡哥 | fix: 修复 hotkeyGet() 返回空字符串的问题
-- 2026-04-08 | b4d4acf | 鸡哥 | security: 清理工作流 mention 注入风险
-- 2026-04-08 | 091c826 | 鸡哥 | fix: 修复未同步 quitHotkeyError 和 quitHotkeyRecording 的问题
-- 2026-04-08 | 30492b6 | 鸡哥 | fix: 修复idle状态无法直接跳转到歌词状态的问题
-- 2026-04-08 | 306928f | 鸡哥 | fix: 修复还原番茄钟后索引值异常的问题
-- 2026-04-08 | 9fcf48d | 鸡哥 | feat: 设置默认隐藏/关闭灵动岛快捷键
-- 2026-04-08 | d302278 | 鸡哥 | feat: 添加快捷键冲突提示
-- 2026-04-08 | a999c75 | 鸡哥 | fix: 修复主进程快捷键注册冲突问题
-- 2026-04-08 | ffda328 | 鸡哥 | feat: 添加一键关闭灵动岛功能
-- 2026-04-08 | 8d5f3f2 | 鸡哥 | ci: 添加pr自动总结工作流
-- 2026-04-08 | 9798bbf | 鸡哥 | chore: 更新.gitignore文件
-- 2026-04-07 | 9d90570 | github-actions[bot] | docs: auto update CHANGE_LOG.md for #18 by @JNTMTMTM [skip ci]
-- 2026-04-08 | 935c056 | 鸡哥 | Merge pull request #18 from JNTMTMTM/dev
-- 2026-04-07 | 6321b51 | 鸡哥 | feat: 添加前奏时歌曲名称显示
-- 2026-04-07 | 6804eea | 鸡哥 | fix: 修复通知界面关闭后无法正确切换到歌词界面的问题
-- 2026-04-07 | dc42581 | 鸡哥 | style: 调整歌词界面的大小
-- 2026-04-07 | ea4e376 | 鸡哥 | feat: 在没有歌词的情况下不显示歌词界面直接返回IDLE状态
-- 2026-04-07 | 252c6f7 | 鸡哥 | fix: 修复音符图标执行浮动动画时超出歌词容器范围
-- 2026-04-07 | 50f5b7d | 鸡哥 | style: 添加歌词扫光特效
-- 2026-04-07 | c3975fc | 鸡哥 | feat: 添加歌词idle界面
-- 2026-04-07 | 8f5876f | 鸡哥 | style: 美化通知界面展开动画
-- 2026-04-07 | de2a39c | 鸡哥 | refactor: 重写通知模式
-- 2026-04-07 | 86dbf54 | 鸡哥 | feat: 添加设置tab自定义天气数据源功能
-- 2026-04-07 | 7e7f091 | github-actions[bot] | docs: auto update CHANGE_LOG.md for #17 by @JNTMTMTM [skip ci]
-- 2026-04-07 | 2e2bd60 | 鸡哥 | Merge pull request #17 from JNTMTMTM/dev
-- 2026-04-07 | fd9cec8 | 鸡哥 | fix(ci): 修复git差异日志更新脚本
-- 2026-04-07 | a3f2988 | github-actions[bot] | docs: auto update CHANGE_LOG.md for #16 by @JNTMTMTM [skip ci]
-- 2026-04-07 | 0d677fd | 鸡哥 | Merge pull request #16 from JNTMTMTM/dev
-- 2026-04-07 | abf11f7 | 鸡哥 | fix: 修复uapi降水量和风速错误引用缓存的问题
-- 2026-04-07 | 927c232 | 鸡哥 | fix: 使代码符合前端代码质量规范
-- 2026-04-07 | 31d9f33 | 鸡哥 | feat: 使用uapi调取时自动转译图标代码至WMO标准
-- 2026-04-07 | e48a998 | 鸡哥 | feat: 添加冗余天气接口方案
-- 2026-04-07 | 6f8c8f7 | 鸡哥 | feat: 添加额外的天气请求日志记录项
-- 2026-04-07 | d7da19a | 鸡哥 | feat: 添加额外的歌词请求日志记录项
-- 2026-04-07 | 2151e0f | 鸡哥 | feat: 网络请求超时时间支持自定义
-- 2026-04-07 | f63f205 | 鸡哥 | feat: 设置界面添加网络配置tab
-- 2026-04-07 | a0c19fe | 鸡哥 | feat: 添加net代理网络请求超时控制
-- 2026-04-07 | 225683b | 鸡哥 | refactor: 不再使用天气sdk获取气象信息
-- 2026-04-07 | 45956e7 | 鸡哥 | feat: 添加日志系统
-- 2026-04-07 | bfbf396 | 鸡哥 | feat: 添加刷新天气按钮
-- 2026-04-07 | 42a7257 | 鸡哥 | fix: 修复地理位置缓存未正常写入的问题
-- 2026-04-07 | 289d69b | 鸡哥 | pref: 优化屏幕边界检测方案
-- 2026-04-07 | 7d2675b | 鸡哥 | pref: 优化歌词tab性能表现
-- 2026-04-06 | 47522d0 | 鸡哥 | fix: 修复设置tab未同步最新版本的问题
-- 2026-04-06 | 43eace5 | 鸡哥 | ci: 修复工作流在release时仍然存在unrelease的问题
-- 2026-04-06 | 0923d37 | github-actions[bot] | docs: auto update CHANGE_LOG.md for release 26.1.1-beta.1 by @JNTMTMTM [skip ci]
