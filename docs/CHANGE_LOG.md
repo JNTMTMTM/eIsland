@@ -1,7 +1,15 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-04-08T15:43:21.406Z
+> 生成时间：2026-04-08T15:52:35.107Z
+
+## 26.1.1-beta.3
+
+- 2026-04-08 | b4967a9 | github-actions[bot] | docs: auto update CHANGE_LOG.md for #22 by @JNTMTMTM [skip ci]
+- 2026-04-08 | 9764e2a | 鸡哥 | Merge pull request #22 from JNTMTMTM/dev
+- 2026-04-08 | dcc3b32 | 鸡哥 | chore: 更新版本至V26.1.1-beta.3
+- 2026-04-08 | 105c069 | 鸡哥 | hotfix: 修复smtc回调状态重置问题
+- 2026-04-08 | e0133a5 | github-actions[bot] | docs: auto update CHANGE_LOG.md for release 26.1.1-beta.2 by @JNTMTMTM [skip ci]
 
 ## 26.1.1-beta.2
 
@@ -354,10 +362,3 @@
 - 2026-03-30 | bb18a81 | 鸡哥 | feat: 初始化 eIsland 项目
 - 2026-03-30 | 044489f | 鸡哥 | chore: 更新 .gitignore 忽略 .claude 目录
 - 2026-03-30 | 1fc5faf | 鸡哥 | chore: 添加社区规范文档
-
-## Unreleased
-
-- 2026-04-08 | 9764e2a | 鸡哥 | Merge pull request #22 from JNTMTMTM/dev
-- 2026-04-08 | dcc3b32 | 鸡哥 | chore: 更新版本至V26.1.1-beta.3
-- 2026-04-08 | 105c069 | 鸡哥 | hotfix: 修复smtc回调状态重置问题
-- 2026-04-08 | e0133a5 | github-actions[bot] | docs: auto update CHANGE_LOG.md for release 26.1.1-beta.2 by @JNTMTMTM [skip ci]
