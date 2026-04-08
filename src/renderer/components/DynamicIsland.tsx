@@ -154,7 +154,7 @@ interface StateRenderer {
  * @description 使用状态模式管理不同状态的 UI 渲染，通过 requestAnimationFrame 检测鼠标位置实现可靠的 hover 交互
  */
 function DynamicIsland(): React.JSX.Element {
-  const { state, weather, setHover, setIdle, setExpanded, setLyrics, timerData, setTimerData, notification, setNotification, handleNowPlayingUpdate, updateProgress, coverImage, isMusicPlaying, isPlaying, dominantColor, setDominantColor, setSyncedLyrics, setLyricsLoading, syncedLyrics, lyricsLoading } = useIslandStore();
+  const { state, weather, setHover, setIdle, setExpanded, setLyrics, timerData, setTimerData, notification, setNotification, handleNowPlayingUpdate, updateProgress, coverImage, isMusicPlaying, isPlaying, dominantColor, setDominantColor, setSyncedLyrics, setLyricsLoading, syncedLyrics, lyricsLoading, pomodoroRunning, pomodoroRemaining } = useIslandStore();
   const prevStateRef = useRef(state);
   const [morphing, setMorphing] = useState(false);
   const [fromState, setFromState] = useState('');
@@ -483,6 +483,8 @@ function DynamicIsland(): React.JSX.Element {
           weather={weather}
           timerState={timerData?.state ?? 'idle'}
           remainingSeconds={timerData?.remainingSeconds ?? 0}
+          pomodoroRunning={pomodoroRunning}
+          pomodoroRemaining={pomodoroRemaining}
         />
       ),
     },

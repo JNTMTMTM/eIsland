@@ -26,6 +26,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import useIslandStore from '../../../store/slices';
+import { SvgIcon } from '../../../utils/SvgIcon';
 import '../../../styles/shell/shell.css';
 
 type TimerState = 'idle' | 'running' | 'paused';
@@ -44,6 +45,10 @@ interface IdleContentProps {
   timerState: TimerState;
   /** 剩余秒数 */
   remainingSeconds: number;
+  /** 番茄钟是否运行中 */
+  pomodoroRunning: boolean;
+  /** 番茄钟剩余秒数 */
+  pomodoroRemaining: number;
 }
 
 function padZero(value: number): string {
@@ -60,9 +65,12 @@ export function IdleContent({
   weather,
   timerState,
   remainingSeconds,
+  pomodoroRunning,
+  pomodoroRemaining,
 }: IdleContentProps): React.ReactElement {
   const { isMusicPlaying, coverImage, isPlaying, handleNowPlayingUpdate, dominantColor } = useIslandStore();
   const isTimerActive = timerState === 'running' || timerState === 'paused';
+  const isPomodoroActive = pomodoroRunning;
 
   /** 检查未完成的 P0 待办数量 */
   const checkP0Count = useCallback((): number => {
@@ -93,6 +101,9 @@ export function IdleContent({
   const h = Math.floor(remainingSeconds / 3600);
   const m = Math.floor((remainingSeconds % 3600) / 60);
   const s = remainingSeconds % 60;
+
+  const pomodoroM = Math.floor(pomodoroRemaining / 60);
+  const pomodoroS = pomodoroRemaining % 60;
 
   const [r, g, b] = dominantColor;
 
@@ -130,6 +141,16 @@ export function IdleContent({
                 {padZero(h)}:{padZero(m)}:{padZero(s)}
               </span>
             </div>
+          ) : isPomodoroActive ? (
+            <div className="flex items-center gap-1.5">
+              <span className="flex items-center gap-1 text-xs text-white opacity-60">
+                <img src={SvgIcon.POMODORO} alt="番茄钟" style={{ width: 12, height: 12 }} />
+                番茄钟
+              </span>
+              <span className="text-sm text-white font-medium tabular-nums">
+                {padZero(pomodoroM)}:{padZero(pomodoroS)}
+              </span>
+            </div>
           ) : p0Count > 0 ? (
             <div className="flex items-center gap-1">
               <span className="text-xs font-medium" style={{ color: '#ff5252' }}>•</span>
@@ -163,6 +184,16 @@ export function IdleContent({
               <span className="text-xs text-white opacity-60">倒计时</span>
               <span className="text-sm text-white font-medium tabular-nums">
                 {padZero(h)}:{padZero(m)}:{padZero(s)}
+              </span>
+            </div>
+          ) : isPomodoroActive ? (
+            <div className="flex items-center gap-1.5">
+              <span className="flex items-center gap-1 text-xs text-white opacity-60">
+                <img src={SvgIcon.POMODORO} alt="番茄钟" style={{ width: 15, height: 15 }} />
+                番茄钟
+              </span>
+              <span className="text-sm text-white font-medium tabular-nums">
+                {padZero(pomodoroM)}:{padZero(pomodoroS)}
               </span>
             </div>
           ) : p0Count > 0 ? (
