@@ -1111,16 +1111,23 @@ function initSmtcWorker(win: BrowserWindow | null): void {
         return;
       }
 
-      // 来自其他源的更新：如果它正在播放且有标题，发切换请求通知
+      // 来自其他源的更新：如果它正在播放且有标题
       if (isPlaying && hasTitle) {
-        // 避免对同一个待确认源重复弹通知
-        if (pendingSourceSwitchId === sourceAppId) {
+        const lockedEntry = sessionRuntime.get(currentDeviceId);
+        if (lockedEntry?.isPlaying) {
+          // 锁定源正在播放 → 弹通知询问是否切换
+          if (pendingSourceSwitchId === sourceAppId) {
+            pendingSourceSwitchEntry = sessionRuntime.get(sourceAppId) ?? null;
+            return;
+          }
+          pendingSourceSwitchId = sourceAppId;
           pendingSourceSwitchEntry = sessionRuntime.get(sourceAppId) ?? null;
-          return;
+          emitSourceSwitchRequest(sourceAppId, payload.title, payload.artist);
+        } else {
+          // 锁定源未在播放 → 直接切换到新源，无需通知
+          currentDeviceId = sourceAppId;
+          emitCurrentSession();
         }
-        pendingSourceSwitchId = sourceAppId;
-        pendingSourceSwitchEntry = sessionRuntime.get(sourceAppId) ?? null;
-        emitSourceSwitchRequest(sourceAppId, payload.title, payload.artist);
       }
     });
 
