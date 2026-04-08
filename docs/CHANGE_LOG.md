@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-04-07T16:19:13.836Z
+> 生成时间：2026-04-08T10:21:46.936Z
 
 ## 26.1.1-beta.1
 
@@ -291,6 +291,19 @@
 
 ## Unreleased
 
+- 2026-04-08 | f176ca2 | 鸡哥 | Merge pull request #20 from JNTMTMTM/dev
+- 2026-04-08 | 83574e2 | 鸡哥 | fix: 修复 hotkeyGet() 返回空字符串的问题
+- 2026-04-08 | b4d4acf | 鸡哥 | security: 清理工作流 mention 注入风险
+- 2026-04-08 | 091c826 | 鸡哥 | fix: 修复未同步 quitHotkeyError 和 quitHotkeyRecording 的问题
+- 2026-04-08 | 30492b6 | 鸡哥 | fix: 修复idle状态无法直接跳转到歌词状态的问题
+- 2026-04-08 | 306928f | 鸡哥 | fix: 修复还原番茄钟后索引值异常的问题
+- 2026-04-08 | 9fcf48d | 鸡哥 | feat: 设置默认隐藏/关闭灵动岛快捷键
+- 2026-04-08 | d302278 | 鸡哥 | feat: 添加快捷键冲突提示
+- 2026-04-08 | a999c75 | 鸡哥 | fix: 修复主进程快捷键注册冲突问题
+- 2026-04-08 | ffda328 | 鸡哥 | feat: 添加一键关闭灵动岛功能
+- 2026-04-08 | 8d5f3f2 | 鸡哥 | ci: 添加pr自动总结工作流
+- 2026-04-08 | 9798bbf | 鸡哥 | chore: 更新.gitignore文件
+- 2026-04-07 | 9d90570 | github-actions[bot] | docs: auto update CHANGE_LOG.md for #18 by @JNTMTMTM [skip ci]
 - 2026-04-08 | 935c056 | 鸡哥 | Merge pull request #18 from JNTMTMTM/dev
 - 2026-04-07 | 6321b51 | 鸡哥 | feat: 添加前奏时歌曲名称显示
 - 2026-04-07 | 6804eea | 鸡哥 | fix: 修复通知界面关闭后无法正确切换到歌词界面的问题
