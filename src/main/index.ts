@@ -896,6 +896,54 @@ function registerIpcHandlers(): void {
  */
 function initSmtcWorker(win: BrowserWindow | null): void {
   try {
+    interface SessionRuntimeEntry {
+      payload: {
+        title: string;
+        artist: string;
+        album: string;
+        duration_ms: number;
+        position_ms: number;
+        isPlaying: boolean;
+        thumbnail: string | null;
+        canFastForward: boolean;
+        canSkip: boolean;
+        canLike: boolean;
+        canChangeVolume: boolean;
+        canSetOutput: boolean;
+        deviceId: string;
+      };
+      hasTitle: boolean;
+      isPlaying: boolean;
+      playStartedAt: number;
+    }
+
+    const sessionRuntime = new Map<string, SessionRuntimeEntry>();
+
+    const pickFirstComePlayingSource = (): string => {
+      let selectedSourceId = '';
+      let earliestStart = Number.POSITIVE_INFINITY;
+
+      sessionRuntime.forEach((entry, sourceId) => {
+        if (!entry.hasTitle || !entry.isPlaying || entry.playStartedAt <= 0) return;
+        if (entry.playStartedAt < earliestStart) {
+          earliestStart = entry.playStartedAt;
+          selectedSourceId = sourceId;
+        }
+      });
+
+      return selectedSourceId;
+    };
+
+    const emitCurrentSession = (): void => {
+      if (!win || win.isDestroyed()) return;
+      const currentEntry = currentDeviceId ? sessionRuntime.get(currentDeviceId) : undefined;
+      if (currentEntry?.hasTitle) {
+        win.webContents.send('nowplaying:info', currentEntry.payload);
+      } else {
+        win.webContents.send('nowplaying:info', null);
+      }
+    };
+
     const workerPath = join(__dirname, 'smtcWorker.js');
     smtcWorker = new Worker(workerPath);
 
@@ -911,9 +959,12 @@ function initSmtcWorker(win: BrowserWindow | null): void {
       if (!win || win.isDestroyed()) return;
 
       if (msg.type === 'session-removed') {
+        if (msg.sourceAppId) {
+          sessionRuntime.delete(msg.sourceAppId);
+        }
         if (msg.sourceAppId === currentDeviceId) {
-          currentDeviceId = '';
-          win.webContents.send('nowplaying:info', null);
+          currentDeviceId = pickFirstComePlayingSource();
+          emitCurrentSession();
         }
         return;
       }
@@ -925,21 +976,17 @@ function initSmtcWorker(win: BrowserWindow | null): void {
 
       if (!nowPlayingWhitelist.some(name => sourceAppId.includes(name))) return;
 
-      currentDeviceId = sourceAppId;
-
-      if (!media?.title) {
-        win.webContents.send('nowplaying:info', null);
-        return;
-      }
+      const hasTitle = Boolean(media?.title);
+      const isPlaying = (playback?.playbackStatus ?? 0) === 4;
 
       const payload = {
-        title: media.title,
-        artist: media.artist,
-        album: media.albumTitle,
+        title: media?.title ?? '',
+        artist: media?.artist ?? '',
+        album: media?.albumTitle ?? '',
         duration_ms: Math.round((timeline?.duration ?? 0) * 1000),
         position_ms: Math.round((timeline?.position ?? 0) * 1000),
-        isPlaying: (playback?.playbackStatus ?? 0) === 4,
-        thumbnail: media.thumbnail ?? null,
+        isPlaying,
+        thumbnail: media?.thumbnail ?? null,
         canFastForward: false,
         canSkip: false,
         canLike: false,
@@ -947,7 +994,57 @@ function initSmtcWorker(win: BrowserWindow | null): void {
         canSetOutput: false,
         deviceId: sourceAppId,
       };
-      win.webContents.send('nowplaying:info', payload);
+
+      const prevEntry = sessionRuntime.get(sourceAppId);
+      let playStartedAt = prevEntry?.playStartedAt ?? 0;
+      if (isPlaying) {
+        if (!prevEntry?.isPlaying || playStartedAt <= 0) {
+          playStartedAt = Date.now();
+        }
+      } else {
+        playStartedAt = 0;
+      }
+
+      sessionRuntime.set(sourceAppId, {
+        payload,
+        hasTitle,
+        isPlaying,
+        playStartedAt,
+      });
+
+      const currentEntry = currentDeviceId ? sessionRuntime.get(currentDeviceId) : undefined;
+
+      if (currentEntry?.isPlaying) {
+        if (sourceAppId === currentDeviceId) {
+          emitCurrentSession();
+        }
+        return;
+      }
+
+      const nextPlayingSourceId = pickFirstComePlayingSource();
+      if (nextPlayingSourceId) {
+        currentDeviceId = nextPlayingSourceId;
+        emitCurrentSession();
+        return;
+      }
+
+      if (currentEntry?.hasTitle) {
+        if (sourceAppId === currentDeviceId) {
+          emitCurrentSession();
+        }
+        return;
+      }
+
+      if (hasTitle) {
+        currentDeviceId = sourceAppId;
+        emitCurrentSession();
+        return;
+      }
+
+      if (sourceAppId === currentDeviceId) {
+        currentDeviceId = '';
+      }
+      emitCurrentSession();
     });
 
     smtcWorker.on('error', (err) => {
