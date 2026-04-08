@@ -147,11 +147,12 @@ function readHotkeyConfig(): string {
  */
 function registerHideHotkey(accelerator: string): boolean {
   // 先注销旧快捷键
-  if (currentHideHotkey) {
-    try { globalShortcut.unregister(currentHideHotkey); } catch { /* ignore */ }
-    currentHideHotkey = '';
+  const previousHotkey = currentHideHotkey || readHotkeyConfig();
+  if (previousHotkey) {
+    try { globalShortcut.unregister(previousHotkey); } catch { /* ignore */ }
   }
-  if (!accelerator) return false;
+  currentHideHotkey = '';
+  if (!accelerator) return true;
   try {
     const success = globalShortcut.register(accelerator, () => {
       if (!mainWindow) return;

@@ -757,7 +757,7 @@ export function SettingsTab(): ReactElement {
                     className={`settings-hotkey-input ${hotkeyRecording ? 'recording' : ''}`}
                     type="text"
                     readOnly
-                    value={hotkeyRecording ? '请按下快捷键组合…' : hideHotkey}
+                    value={hotkeyRecording ? '请按下快捷键组合…' : (hideHotkey || '未设置')}
                     onFocus={() => { setHotkeyRecording(true); setHotkeyError(''); }}
                     onBlur={() => setHotkeyRecording(false)}
                     onKeyDown={handleHotkeyKeyDown}
@@ -772,6 +772,24 @@ export function SettingsTab(): ReactElement {
                   >
                     {hotkeyRecording ? '录入中' : '修改'}
                   </button>
+                  {hideHotkey && (
+                    <button
+                      className="settings-hotkey-btn"
+                      type="button"
+                      onClick={() => {
+                        window.api.hotkeySet('').then((ok) => {
+                          if (ok) {
+                            setHideHotkey('');
+                            setHotkeyError('');
+                            setHotkeyRecording(false);
+                            hotkeyInputRef.current?.blur();
+                          }
+                        }).catch(() => {});
+                      }}
+                    >
+                      清除
+                    </button>
+                  )}
                 </div>
                 {hotkeyError && <div className="settings-hotkey-error">{hotkeyError}</div>}
                 <div className="settings-hotkey-hint">点击“修改”后按下组合键（如 Alt+X、Ctrl+Shift+H）</div>
