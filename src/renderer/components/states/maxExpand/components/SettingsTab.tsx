@@ -442,6 +442,13 @@ export function SettingsTab(): ReactElement {
     return () => { cancelled = true; };
   }, []);
 
+  /** 组件卸载时兜底恢复快捷键响应 */
+  useEffect(() => {
+    return () => {
+      window.api.hotkeyResume().catch(() => {});
+    };
+  }, []);
+
   const updateLayout = (side: 'left' | 'right', value: OverviewWidgetType): void => {
     const updated = { ...layoutConfig, [side]: value };
     setLayoutConfig(updated);
@@ -522,6 +529,12 @@ export function SettingsTab(): ReactElement {
     setHotkeyError('');
     const acc = keyEventToAccelerator(e);
     if (!acc) return;
+    if (quitHotkey && acc === quitHotkey) {
+      setHotkeyError('重复快捷键');
+      setHotkeyRecording(false);
+      hotkeyInputRef.current?.blur();
+      return;
+    }
 
     window.api.hotkeySet(acc).then((ok) => {
       if (ok) {
@@ -546,6 +559,12 @@ export function SettingsTab(): ReactElement {
     setQuitHotkeyError('');
     const acc = keyEventToAccelerator(e);
     if (!acc) return;
+    if (hideHotkey && acc === hideHotkey) {
+      setQuitHotkeyError('重复快捷键');
+      setQuitHotkeyRecording(false);
+      quitHotkeyInputRef.current?.blur();
+      return;
+    }
 
     window.api.quitHotkeySet(acc).then((ok) => {
       if (ok) {
@@ -754,12 +773,19 @@ export function SettingsTab(): ReactElement {
                 <div className="settings-hotkey-row">
                   <input
                     ref={hotkeyInputRef}
-                    className={`settings-hotkey-input ${hotkeyRecording ? 'recording' : ''}`}
+                    className={`settings-hotkey-input ${hotkeyRecording ? 'recording' : ''}${hotkeyError ? ' error' : ''}`}
                     type="text"
                     readOnly
                     value={hotkeyRecording ? '请按下快捷键组合…' : (hideHotkey || '未设置')}
-                    onFocus={() => { setHotkeyRecording(true); setHotkeyError(''); }}
-                    onBlur={() => setHotkeyRecording(false)}
+                    onFocus={() => {
+                      setHotkeyRecording(true);
+                      setHotkeyError('');
+                      window.api.hotkeySuspend().catch(() => {});
+                    }}
+                    onBlur={() => {
+                      setHotkeyRecording(false);
+                      window.api.hotkeyResume().catch(() => {});
+                    }}
                     onKeyDown={handleHotkeyKeyDown}
                   />
                   <button
@@ -799,12 +825,19 @@ export function SettingsTab(): ReactElement {
                 <div className="settings-hotkey-row">
                   <input
                     ref={quitHotkeyInputRef}
-                    className={`settings-hotkey-input ${quitHotkeyRecording ? 'recording' : ''}`}
+                    className={`settings-hotkey-input ${quitHotkeyRecording ? 'recording' : ''}${quitHotkeyError ? ' error' : ''}`}
                     type="text"
                     readOnly
                     value={quitHotkeyRecording ? '请按下快捷键组合…' : (quitHotkey || '未设置')}
-                    onFocus={() => { setQuitHotkeyRecording(true); setQuitHotkeyError(''); }}
-                    onBlur={() => setQuitHotkeyRecording(false)}
+                    onFocus={() => {
+                      setQuitHotkeyRecording(true);
+                      setQuitHotkeyError('');
+                      window.api.hotkeySuspend().catch(() => {});
+                    }}
+                    onBlur={() => {
+                      setQuitHotkeyRecording(false);
+                      window.api.hotkeyResume().catch(() => {});
+                    }}
                     onKeyDown={handleQuitHotkeyKeyDown}
                   />
                   <button

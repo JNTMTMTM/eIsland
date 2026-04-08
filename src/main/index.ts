@@ -224,6 +224,26 @@ function registerQuitHotkey(accelerator: string): boolean {
   }
 }
 
+/** 暂停所有灵动岛相关快捷键响应（仅解绑，不修改配置） */
+function suspendIslandHotkeys(): void {
+  const hideHotkey = currentHideHotkey || readHotkeyConfig();
+  const quitHotkey = currentQuitHotkey || readQuitHotkeyConfig();
+  if (hideHotkey) {
+    try { globalShortcut.unregister(hideHotkey); } catch { /* ignore */ }
+  }
+  if (quitHotkey) {
+    try { globalShortcut.unregister(quitHotkey); } catch { /* ignore */ }
+  }
+}
+
+/** 恢复所有灵动岛相关快捷键响应（按当前配置重新注册） */
+function resumeIslandHotkeys(): void {
+  const hideHotkey = currentHideHotkey || readHotkeyConfig();
+  const quitHotkey = currentQuitHotkey || readQuitHotkeyConfig();
+  if (hideHotkey) registerHideHotkey(hideHotkey);
+  if (quitHotkey) registerQuitHotkey(quitHotkey);
+}
+
 /** 记录窗口初始中心 X 坐标 */
 let initialCenterX = 0;
 
@@ -807,6 +827,10 @@ function registerIpcHandlers(): void {
    * @returns 是否注册成功
    */
   ipcMain.handle('hotkey:set', (_event, accelerator: string) => {
+    const currentQuit = currentQuitHotkey || readQuitHotkeyConfig();
+    if (accelerator && currentQuit && accelerator === currentQuit) {
+      return false;
+    }
     const success = registerHideHotkey(accelerator);
     if (success) {
       // 持久化到 store
@@ -837,6 +861,10 @@ function registerIpcHandlers(): void {
    * @returns 是否注册成功
    */
   ipcMain.handle('quit-hotkey:set', (_event, accelerator: string) => {
+    const currentHide = currentHideHotkey || readHotkeyConfig();
+    if (accelerator && currentHide && accelerator === currentHide) {
+      return false;
+    }
     const success = registerQuitHotkey(accelerator);
     if (success) {
       const filePath = join(storeDir, `${QUIT_HOTKEY_STORE_KEY}.json`);
@@ -847,6 +875,18 @@ function registerIpcHandlers(): void {
       }
     }
     return success;
+  });
+
+  /** 录入快捷键时暂停所有快捷键响应 */
+  ipcMain.handle('hotkey:suspend', () => {
+    suspendIslandHotkeys();
+    return true;
+  });
+
+  /** 录入结束后恢复快捷键响应 */
+  ipcMain.handle('hotkey:resume', () => {
+    resumeIslandHotkeys();
+    return true;
   });
 }
 
