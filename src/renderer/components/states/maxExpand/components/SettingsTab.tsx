@@ -947,7 +947,6 @@ export function SettingsTab(): ReactElement {
                     type="text"
                     placeholder={whitelistInputError || '输入播放器进程名（如 Spotify.exe）'}
                     value={whitelistDraft}
-                    style={whitelistInputError ? { borderColor: '#ff6b6b' } : undefined}
                     onFocus={() => {
                       if (whitelistInputError) setWhitelistInputError('');
                     }}
