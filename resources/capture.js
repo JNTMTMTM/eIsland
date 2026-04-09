@@ -72,7 +72,7 @@ let penLastY = 0;
 
 const HANDLE_SIZE = 5;
 const HANDLE_HIT = 8;
-const MAX_HISTORY = 20;
+const MAX_HISTORY = 10;
 const historyStack = [];
 let currentCaptureObjectUrl = '';
 
@@ -171,15 +171,27 @@ function restoreClip(ctx) {
   ctx.restore();
 }
 
+/**
+ * 保存当前绘制层的选区快照到历史栈
+ * @description 仅存储选区范围内的 ImageData，避免在高分辨率屏幕下整屏快照导致内存暴涨
+ */
 function pushHistory() {
-  historyStack.push(drawCtx.getImageData(0, 0, W, H));
+  if (selW < 1 || selH < 1) return;
+  historyStack.push({
+    data: drawCtx.getImageData(selX, selY, selW, selH),
+    x: selX,
+    y: selY,
+    w: selW,
+    h: selH,
+  });
   if (historyStack.length > MAX_HISTORY) historyStack.shift();
 }
 
 function redrawFromHistoryTop() {
   drawCtx.clearRect(0, 0, W, H);
   if (historyStack.length > 0) {
-    drawCtx.putImageData(historyStack[historyStack.length - 1], 0, 0);
+    const snap = historyStack[historyStack.length - 1];
+    drawCtx.putImageData(snap.data, snap.x, snap.y);
   }
 }
 
@@ -188,10 +200,10 @@ function undoLast() {
     drawCtx.clearRect(0, 0, W, H);
     return;
   }
-  const snapshot = historyStack.pop();
+  const snap = historyStack.pop();
   drawCtx.clearRect(0, 0, W, H);
-  if (snapshot) {
-    drawCtx.putImageData(snapshot, 0, 0);
+  if (snap) {
+    drawCtx.putImageData(snap.data, snap.x, snap.y);
   }
 }
 
