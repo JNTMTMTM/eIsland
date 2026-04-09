@@ -102,8 +102,8 @@ export function ToolsTab(): React.ReactElement {
     let hasInvalid = false;
     let hasValid = false;
     let hasDuplicate = false;
-    for (const file of files) {
-      const filePath = window.api.getPathForFile(file);
+    for (let i = 0; i < files.length; i++) {
+      const filePath = window.api.getPathForFile(files[i]);
       if (!filePath) continue;
       if (!filePath.toLowerCase().endsWith('.exe')) { hasInvalid = true; continue; }
       if (apps.some(a => a.path === filePath)) { hasDuplicate = true; continue; }
