@@ -1,0 +1,589 @@
+const { ipcRenderer } = require('electron');
+
+const bgCanvas = document.getElementById('bg-canvas');
+const drawCanvas = document.getElementById('draw-canvas');
+const tempCanvas = document.getElementById('temp-canvas');
+const maskCanvas = document.getElementById('mask-canvas');
+
+const bgCtx = bgCanvas.getContext('2d');
+const drawCtx = drawCanvas.getContext('2d');
+const tempCtx = tempCanvas.getContext('2d');
+const maskCtx = maskCanvas.getContext('2d');
+
+const sizeInfo = document.getElementById('size-info');
+const toolbar = document.getElementById('toolbar');
+const colorPicker = document.getElementById('colorPicker');
+const sizePicker = document.getElementById('sizePicker');
+const btnUndo = document.getElementById('btnUndo');
+
+let bgImage = null;
+let W = 0;
+let H = 0;
+let scaleFactor = 1;
+
+let selX = 0;
+let selY = 0;
+let selW = 0;
+let selH = 0;
+
+const STATE = { IDLE: 0, DRAWING: 1, SELECTED: 2, MOVING: 3, RESIZING: 4, ANNOTATING: 5 };
+let state = STATE.IDLE;
+
+let startX = 0;
+let startY = 0;
+let moveOffX = 0;
+let moveOffY = 0;
+let resizeHandle = '';
+let resizeAnchorX = 0;
+let resizeAnchorY = 0;
+
+let activeTool = 'select';
+let drawingColor = '#ff4d4f';
+let drawingSize = 4;
+let annotStartX = 0;
+let annotStartY = 0;
+let penLastX = 0;
+let penLastY = 0;
+
+const HANDLE_SIZE = 5;
+const HANDLE_HIT = 8;
+const MAX_HISTORY = 20;
+const historyStack = [];
+
+function initCanvases() {
+  W = window.innerWidth;
+  H = window.innerHeight;
+  for (const cv of [bgCanvas, drawCanvas, tempCanvas, maskCanvas]) {
+    cv.width = W;
+    cv.height = H;
+  }
+  drawBackground();
+  redrawFromHistoryTop();
+  drawMask();
+}
+
+function drawBackground() {
+  bgCtx.clearRect(0, 0, W, H);
+  if (bgImage) bgCtx.drawImage(bgImage, 0, 0, W, H);
+}
+
+function clearTemp() {
+  tempCtx.clearRect(0, 0, W, H);
+}
+
+function drawMask() {
+  maskCtx.clearRect(0, 0, W, H);
+  if (state === STATE.IDLE) {
+    maskCtx.fillStyle = 'rgba(0,0,0,0.35)';
+    maskCtx.fillRect(0, 0, W, H);
+    return;
+  }
+
+  maskCtx.fillStyle = 'rgba(0,0,0,0.46)';
+  maskCtx.fillRect(0, 0, W, selY);
+  maskCtx.fillRect(0, selY + selH, W, H - selY - selH);
+  maskCtx.fillRect(0, selY, selX, selH);
+  maskCtx.fillRect(selX + selW, selY, W - selX - selW, selH);
+
+  maskCtx.strokeStyle = '#409cff';
+  maskCtx.lineWidth = 1.5;
+  maskCtx.strokeRect(selX, selY, selW, selH);
+
+  if (activeTool === 'select' && (state === STATE.SELECTED || state === STATE.MOVING || state === STATE.RESIZING)) {
+    maskCtx.fillStyle = '#409cff';
+    const handles = getHandlePositions();
+    for (const key in handles) {
+      const p = handles[key];
+      maskCtx.fillRect(p[0] - HANDLE_SIZE, p[1] - HANDLE_SIZE, HANDLE_SIZE * 2, HANDLE_SIZE * 2);
+    }
+  }
+}
+
+function getHandlePositions() {
+  const cx = selX + selW / 2;
+  const cy = selY + selH / 2;
+  return {
+    tl: [selX, selY],
+    t: [cx, selY],
+    tr: [selX + selW, selY],
+    r: [selX + selW, cy],
+    br: [selX + selW, selY + selH],
+    b: [cx, selY + selH],
+    bl: [selX, selY + selH],
+    l: [selX, cy],
+  };
+}
+
+function hitTestHandle(mx, my) {
+  const handles = getHandlePositions();
+  for (const key in handles) {
+    const p = handles[key];
+    if (Math.abs(mx - p[0]) <= HANDLE_HIT && Math.abs(my - p[1]) <= HANDLE_HIT) return key;
+  }
+  return '';
+}
+
+function isInsideSelection(mx, my) {
+  return mx >= selX && mx <= selX + selW && my >= selY && my <= selY + selH;
+}
+
+function clipToSelection(ctx) {
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(selX, selY, selW, selH);
+  ctx.clip();
+}
+
+function restoreClip(ctx) {
+  ctx.restore();
+}
+
+function pushHistory() {
+  historyStack.push(drawCtx.getImageData(0, 0, W, H));
+  if (historyStack.length > MAX_HISTORY) historyStack.shift();
+}
+
+function redrawFromHistoryTop() {
+  drawCtx.clearRect(0, 0, W, H);
+  if (historyStack.length > 0) {
+    drawCtx.putImageData(historyStack[historyStack.length - 1], 0, 0);
+  }
+}
+
+function undoLast() {
+  if (historyStack.length === 0) {
+    drawCtx.clearRect(0, 0, W, H);
+    return;
+  }
+  const snapshot = historyStack.pop();
+  drawCtx.clearRect(0, 0, W, H);
+  if (snapshot) {
+    drawCtx.putImageData(snapshot, 0, 0);
+  }
+}
+
+function updateSizeInfo(mx, my) {
+  if (state === STATE.IDLE) {
+    sizeInfo.style.display = 'none';
+    return;
+  }
+  if (state === STATE.SELECTED || state === STATE.MOVING || state === STATE.RESIZING || state === STATE.ANNOTATING) {
+    sizeInfo.style.display = 'block';
+    sizeInfo.textContent = `${Math.round(selW * scaleFactor)} × ${Math.round(selH * scaleFactor)}`;
+    sizeInfo.style.left = `${selX}px`;
+    sizeInfo.style.top = `${Math.max(selY - 24, 0)}px`;
+    return;
+  }
+  sizeInfo.style.display = 'block';
+  sizeInfo.textContent = `${mx}, ${my}`;
+  sizeInfo.style.left = `${Math.min(mx + 12, W - 80)}px`;
+  sizeInfo.style.top = `${Math.min(my + 12, H - 28)}px`;
+}
+
+function showToolbar() {
+  toolbar.style.display = 'flex';
+  const tbW = toolbar.offsetWidth || 520;
+  const tbH = toolbar.offsetHeight || 40;
+  let tx = selX + selW - tbW;
+  if (tx < 6) tx = 6;
+  let ty = selY + selH + 8;
+  if (ty + tbH > H - 6) ty = selY - tbH - 8;
+  if (ty < 6) ty = 6;
+  toolbar.style.left = `${tx}px`;
+  toolbar.style.top = `${ty}px`;
+}
+
+function hideToolbar() {
+  toolbar.style.display = 'none';
+}
+
+function setTool(tool) {
+  activeTool = tool;
+  for (const btn of document.querySelectorAll('button.tool')) {
+    btn.classList.toggle('active', btn.dataset.tool === tool);
+  }
+  drawMask();
+}
+
+function getMergedCanvas() {
+  const merged = document.createElement('canvas');
+  merged.width = W;
+  merged.height = H;
+  const mctx = merged.getContext('2d');
+  mctx.drawImage(bgCanvas, 0, 0);
+  mctx.drawImage(drawCanvas, 0, 0);
+  return merged;
+}
+
+function applyMosaic(x1, y1, x2, y2) {
+  const x = Math.min(x1, x2);
+  const y = Math.min(y1, y2);
+  const w = Math.abs(x2 - x1);
+  const h = Math.abs(y2 - y1);
+  if (w < 2 || h < 2) return;
+
+  const rx = Math.max(selX, x);
+  const ry = Math.max(selY, y);
+  const rr = Math.min(selX + selW, x + w);
+  const rb = Math.min(selY + selH, y + h);
+  if (rr - rx < 2 || rb - ry < 2) return;
+
+  const rw = rr - rx;
+  const rh = rb - ry;
+  const block = Math.max(4, drawingSize * 2);
+
+  const merged = getMergedCanvas();
+  const srcCtx = merged.getContext('2d');
+  const imageData = srcCtx.getImageData(rx, ry, rw, rh);
+  const data = imageData.data;
+
+  for (let yy = 0; yy < rh; yy += block) {
+    for (let xx = 0; xx < rw; xx += block) {
+      const sx = Math.min(xx + Math.floor(block / 2), rw - 1);
+      const sy = Math.min(yy + Math.floor(block / 2), rh - 1);
+      const i = (sy * rw + sx) * 4;
+      const r = data[i];
+      const g = data[i + 1];
+      const b = data[i + 2];
+      const a = data[i + 3];
+      for (let by = yy; by < Math.min(yy + block, rh); by++) {
+        for (let bx = xx; bx < Math.min(xx + block, rw); bx++) {
+          const j = (by * rw + bx) * 4;
+          data[j] = r;
+          data[j + 1] = g;
+          data[j + 2] = b;
+          data[j + 3] = a;
+        }
+      }
+    }
+  }
+
+  drawCtx.putImageData(imageData, rx, ry);
+}
+
+function drawLine(ctx, x1, y1, x2, y2) {
+  ctx.strokeStyle = drawingColor;
+  ctx.lineWidth = drawingSize;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.beginPath();
+  ctx.moveTo(x1, y1);
+  ctx.lineTo(x2, y2);
+  ctx.stroke();
+}
+
+function drawRect(ctx, x1, y1, x2, y2) {
+  const x = Math.min(x1, x2);
+  const y = Math.min(y1, y2);
+  const w = Math.abs(x2 - x1);
+  const h = Math.abs(y2 - y1);
+  ctx.strokeStyle = drawingColor;
+  ctx.lineWidth = drawingSize;
+  ctx.strokeRect(x, y, w, h);
+}
+
+function finishSelection(mx, my) {
+  selX = Math.min(startX, mx);
+  selY = Math.min(startY, my);
+  selW = Math.abs(mx - startX);
+  selH = Math.abs(my - startY);
+  if (selW < 3 || selH < 3) {
+    state = STATE.IDLE;
+    selX = selY = selW = selH = 0;
+    drawCtx.clearRect(0, 0, W, H);
+    historyStack.length = 0;
+    hideToolbar();
+    drawMask();
+    updateSizeInfo(mx, my);
+    return;
+  }
+  state = STATE.SELECTED;
+  showToolbar();
+  drawMask();
+  updateSizeInfo(mx, my);
+}
+
+function cropSelectionWithAnnotations() {
+  if (!bgImage || selW < 2 || selH < 2) return null;
+
+  const imgW = bgImage.naturalWidth;
+  const imgH = bgImage.naturalHeight;
+  const scaleX = imgW / W;
+  const scaleY = imgH / H;
+
+  const sx = Math.round(selX * scaleX);
+  const sy = Math.round(selY * scaleY);
+  const sw = Math.round(selW * scaleX);
+  const sh = Math.round(selH * scaleY);
+
+  const outCanvas = document.createElement('canvas');
+  outCanvas.width = sw;
+  outCanvas.height = sh;
+  const outCtx = outCanvas.getContext('2d');
+
+  outCtx.drawImage(bgImage, sx, sy, sw, sh, 0, 0, sw, sh);
+
+  const scaledDraw = document.createElement('canvas');
+  scaledDraw.width = sw;
+  scaledDraw.height = sh;
+  const sctx = scaledDraw.getContext('2d');
+  sctx.drawImage(drawCanvas, selX, selY, selW, selH, 0, 0, sw, sh);
+  outCtx.drawImage(scaledDraw, 0, 0);
+
+  return outCanvas.toDataURL('image/png');
+}
+
+ipcRenderer.on('capture-image', (_e, data) => {
+  scaleFactor = data.scaleFactor || 1;
+  const img = new Image();
+  img.onload = () => {
+    bgImage = img;
+    initCanvases();
+  };
+  img.src = data.imageDataURL;
+});
+
+tempCanvas.addEventListener('mousedown', (e) => {
+  if (e.button !== 0) return;
+  const mx = e.clientX;
+  const my = e.clientY;
+
+  if (state === STATE.IDLE || state === STATE.DRAWING) {
+    state = STATE.DRAWING;
+    startX = mx;
+    startY = my;
+    hideToolbar();
+    drawMask();
+    return;
+  }
+
+  if (state === STATE.SELECTED && activeTool === 'select') {
+    const handle = hitTestHandle(mx, my);
+    if (handle) {
+      state = STATE.RESIZING;
+      resizeHandle = handle;
+      const anchors = {
+        tl: [selX + selW, selY + selH], t: [selX, selY + selH],
+        tr: [selX, selY + selH], r: [selX, selY],
+        br: [selX, selY], b: [selX, selY],
+        bl: [selX + selW, selY], l: [selX + selW, selY],
+      };
+      resizeAnchorX = anchors[handle][0];
+      resizeAnchorY = anchors[handle][1];
+      hideToolbar();
+      return;
+    }
+    if (isInsideSelection(mx, my)) {
+      state = STATE.MOVING;
+      moveOffX = mx - selX;
+      moveOffY = my - selY;
+      hideToolbar();
+      return;
+    }
+    state = STATE.DRAWING;
+    startX = mx;
+    startY = my;
+    hideToolbar();
+    drawMask();
+    return;
+  }
+
+  if (state === STATE.SELECTED && activeTool !== 'select' && isInsideSelection(mx, my)) {
+    state = STATE.ANNOTATING;
+    annotStartX = mx;
+    annotStartY = my;
+    penLastX = mx;
+    penLastY = my;
+    pushHistory();
+    hideToolbar();
+    if (activeTool === 'pen') {
+      clipToSelection(drawCtx);
+      drawLine(drawCtx, penLastX, penLastY, mx, my);
+      restoreClip(drawCtx);
+    }
+  }
+});
+
+tempCanvas.addEventListener('mousemove', (e) => {
+  const mx = e.clientX;
+  const my = e.clientY;
+
+  if (state === STATE.DRAWING) {
+    selX = Math.min(startX, mx);
+    selY = Math.min(startY, my);
+    selW = Math.abs(mx - startX);
+    selH = Math.abs(my - startY);
+    drawMask();
+    updateSizeInfo(mx, my);
+    return;
+  }
+
+  if (state === STATE.MOVING) {
+    selX = Math.max(0, Math.min(mx - moveOffX, W - selW));
+    selY = Math.max(0, Math.min(my - moveOffY, H - selH));
+    drawMask();
+    updateSizeInfo(mx, my);
+    return;
+  }
+
+  if (state === STATE.RESIZING) {
+    let newX = selX;
+    let newY = selY;
+    let newW = selW;
+    let newH = selH;
+    const h = resizeHandle;
+
+    if (h === 'tl' || h === 'l' || h === 'bl') { newX = Math.min(mx, resizeAnchorX); newW = Math.abs(resizeAnchorX - mx); }
+    else if (h === 'tr' || h === 'r' || h === 'br') { newX = Math.min(mx, resizeAnchorX); newW = Math.abs(mx - resizeAnchorX); }
+
+    if (h === 'tl' || h === 't' || h === 'tr') { newY = Math.min(my, resizeAnchorY); newH = Math.abs(resizeAnchorY - my); }
+    else if (h === 'bl' || h === 'b' || h === 'br') { newY = Math.min(my, resizeAnchorY); newH = Math.abs(my - resizeAnchorY); }
+
+    selX = newX;
+    selY = newY;
+    selW = newW;
+    selH = newH;
+    drawMask();
+    updateSizeInfo(mx, my);
+    return;
+  }
+
+  if (state === STATE.ANNOTATING) {
+    clearTemp();
+    if (activeTool === 'pen') {
+      clipToSelection(drawCtx);
+      drawLine(drawCtx, penLastX, penLastY, mx, my);
+      restoreClip(drawCtx);
+      penLastX = mx;
+      penLastY = my;
+    } else {
+      clipToSelection(tempCtx);
+      if (activeTool === 'line') {
+        drawLine(tempCtx, annotStartX, annotStartY, mx, my);
+      } else if (activeTool === 'rect') {
+        drawRect(tempCtx, annotStartX, annotStartY, mx, my);
+      } else if (activeTool === 'mosaic') {
+        tempCtx.strokeStyle = '#ffffff';
+        tempCtx.setLineDash([6, 3]);
+        tempCtx.lineWidth = 1;
+        tempCtx.strokeRect(Math.min(annotStartX, mx), Math.min(annotStartY, my), Math.abs(mx - annotStartX), Math.abs(my - annotStartY));
+        tempCtx.setLineDash([]);
+      }
+      restoreClip(tempCtx);
+    }
+    updateSizeInfo(mx, my);
+    return;
+  }
+
+  if (state === STATE.SELECTED && activeTool === 'select') {
+    const handle = hitTestHandle(mx, my);
+    if (handle) {
+      const map = { tl: 'nwse-resize', tr: 'nesw-resize', bl: 'nesw-resize', br: 'nwse-resize', t: 'ns-resize', b: 'ns-resize', l: 'ew-resize', r: 'ew-resize' };
+      document.body.style.cursor = map[handle] || 'crosshair';
+    } else if (isInsideSelection(mx, my)) {
+      document.body.style.cursor = 'move';
+    } else {
+      document.body.style.cursor = 'crosshair';
+    }
+    updateSizeInfo(mx, my);
+    return;
+  }
+
+  updateSizeInfo(mx, my);
+});
+
+tempCanvas.addEventListener('mouseup', (e) => {
+  const mx = e.clientX;
+  const my = e.clientY;
+
+  if (state === STATE.DRAWING) {
+    finishSelection(mx, my);
+    return;
+  }
+
+  if (state === STATE.MOVING || state === STATE.RESIZING) {
+    state = STATE.SELECTED;
+    showToolbar();
+    drawMask();
+    updateSizeInfo(mx, my);
+    return;
+  }
+
+  if (state === STATE.ANNOTATING) {
+    clearTemp();
+    clipToSelection(drawCtx);
+    if (activeTool === 'line') {
+      drawLine(drawCtx, annotStartX, annotStartY, mx, my);
+    } else if (activeTool === 'rect') {
+      drawRect(drawCtx, annotStartX, annotStartY, mx, my);
+    } else if (activeTool === 'mosaic') {
+      restoreClip(drawCtx);
+      applyMosaic(annotStartX, annotStartY, mx, my);
+      state = STATE.SELECTED;
+      showToolbar();
+      drawMask();
+      updateSizeInfo(mx, my);
+      return;
+    }
+    restoreClip(drawCtx);
+    state = STATE.SELECTED;
+    showToolbar();
+    drawMask();
+    updateSizeInfo(mx, my);
+  }
+});
+
+for (const btn of document.querySelectorAll('button.tool')) {
+  btn.addEventListener('click', () => {
+    if (state !== STATE.SELECTED) return;
+    setTool(btn.dataset.tool || 'select');
+  });
+}
+
+colorPicker.addEventListener('input', () => { drawingColor = colorPicker.value; });
+sizePicker.addEventListener('change', () => { drawingSize = Number(sizePicker.value || 4); });
+
+btnUndo.addEventListener('click', () => {
+  if (state !== STATE.SELECTED) return;
+  undoLast();
+});
+
+document.getElementById('btnCopy').addEventListener('click', () => {
+  const dataURL = cropSelectionWithAnnotations();
+  if (dataURL) ipcRenderer.send('capture-complete', { dataURL });
+});
+
+document.getElementById('btnSave').addEventListener('click', () => {
+  const dataURL = cropSelectionWithAnnotations();
+  if (dataURL) ipcRenderer.send('capture-save', { dataURL });
+});
+
+document.getElementById('btnCancel').addEventListener('click', () => {
+  ipcRenderer.send('capture-cancel');
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    ipcRenderer.send('capture-cancel');
+    return;
+  }
+  if (e.key === 'Enter' && state === STATE.SELECTED) {
+    const dataURL = cropSelectionWithAnnotations();
+    if (dataURL) ipcRenderer.send('capture-complete', { dataURL });
+    return;
+  }
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+    if (state === STATE.SELECTED) undoLast();
+  }
+});
+
+window.addEventListener('resize', () => {
+  initCanvases();
+  if (state !== STATE.IDLE) {
+    showToolbar();
+    updateSizeInfo(selX, selY);
+  } else {
+    sizeInfo.style.display = 'none';
+    hideToolbar();
+  }
+});

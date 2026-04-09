@@ -18,6 +18,14 @@
     {
       "from": "resources/capture.html",
       "to": "capture.html"
+    },
+    {
+      "from": "resources/capture.css",
+      "to": "capture.css"
+    },
+    {
+      "from": "resources/capture.js",
+      "to": "capture.js"
     }
   ],
   "win": {
