@@ -439,6 +439,9 @@ async function startRegionScreenshot(): Promise<void> {
     }
   } catch (err) {
     console.error('[Screenshot] start error:', err);
+    if (captureWindow && !captureWindow.isDestroyed()) {
+      captureWindow.destroy();
+    }
     captureWindow = null;
     if (mainWindow) { mainWindow.show(); mainWindow.setAlwaysOnTop(true, 'screen-saver'); }
   } finally {
