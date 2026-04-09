@@ -1,3 +1,28 @@
+/*
+ * eIsland - A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Electron.
+ * https://github.com/JNTMTMTM/eIsland
+ *
+ * Copyright (C) 2026 JNTMTMTM
+ * Copyright (C) 2026 pyisland.com
+ *
+ * Original author: JNTMTMTM[](https://github.com/JNTMTMTM)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+/**
+ * @file capture.js
+ * @description 截图选区与涂鸦交互逻辑，负责选区绘制、马赛克/线条/矩形/画笔标注及结果导出
+ * @author 鸡哥
+ */
+
 const { ipcRenderer } = require('electron');
 
 const bgCanvas = document.getElementById('bg-canvas');
@@ -50,13 +75,17 @@ const HANDLE_HIT = 8;
 const MAX_HISTORY = 20;
 const historyStack = [];
 
+/**
+ * 初始化各层画布尺寸
+ * @description 在窗口尺寸变化后同步四层画布，保证坐标系统一致
+ */
 function initCanvases() {
   W = window.innerWidth;
   H = window.innerHeight;
-  for (const cv of [bgCanvas, drawCanvas, tempCanvas, maskCanvas]) {
+  [bgCanvas, drawCanvas, tempCanvas, maskCanvas].forEach((cv) => {
     cv.width = W;
     cv.height = H;
-  }
+  });
   drawBackground();
   redrawFromHistoryTop();
   drawMask();
@@ -71,6 +100,10 @@ function clearTemp() {
   tempCtx.clearRect(0, 0, W, H);
 }
 
+/**
+ * 绘制遮罩层与选区边框
+ * @description 非选区区域使用半透明遮罩，便于用户聚焦当前操作区域
+ */
 function drawMask() {
   maskCtx.clearRect(0, 0, W, H);
   if (state === STATE.IDLE) {
@@ -92,10 +125,9 @@ function drawMask() {
   if (activeTool === 'select' && (state === STATE.SELECTED || state === STATE.MOVING || state === STATE.RESIZING)) {
     maskCtx.fillStyle = '#409cff';
     const handles = getHandlePositions();
-    for (const key in handles) {
-      const p = handles[key];
+    Object.values(handles).forEach((p) => {
       maskCtx.fillRect(p[0] - HANDLE_SIZE, p[1] - HANDLE_SIZE, HANDLE_SIZE * 2, HANDLE_SIZE * 2);
-    }
+    });
   }
 }
 
@@ -116,11 +148,11 @@ function getHandlePositions() {
 
 function hitTestHandle(mx, my) {
   const handles = getHandlePositions();
-  for (const key in handles) {
-    const p = handles[key];
-    if (Math.abs(mx - p[0]) <= HANDLE_HIT && Math.abs(my - p[1]) <= HANDLE_HIT) return key;
-  }
-  return '';
+  const matched = Object.entries(handles).find((entry) => {
+    const p = entry[1];
+    return Math.abs(mx - p[0]) <= HANDLE_HIT && Math.abs(my - p[1]) <= HANDLE_HIT;
+  });
+  return matched ? matched[0] : '';
 }
 
 function isInsideSelection(mx, my) {
@@ -199,9 +231,9 @@ function hideToolbar() {
 
 function setTool(tool) {
   activeTool = tool;
-  for (const btn of document.querySelectorAll('button.tool')) {
+  Array.from(document.querySelectorAll('button.tool')).forEach((btn) => {
     btn.classList.toggle('active', btn.dataset.tool === tool);
-  }
+  });
   drawMask();
 }
 
@@ -215,6 +247,13 @@ function getMergedCanvas() {
   return merged;
 }
 
+/**
+ * 对框选区域应用马赛克
+ * @param x1 - 起点 x 坐标
+ * @param y1 - 起点 y 坐标
+ * @param x2 - 终点 x 坐标
+ * @param y2 - 终点 y 坐标
+ */
 function applyMosaic(x1, y1, x2, y2) {
   const x = Math.min(x1, x2);
   const y = Math.min(y1, y2);
@@ -303,6 +342,10 @@ function finishSelection(mx, my) {
   updateSizeInfo(mx, my);
 }
 
+/**
+ * 裁剪选区并合并涂鸦图层
+ * @returns PNG dataURL，若选区无效则返回 null
+ */
 function cropSelectionWithAnnotations() {
   if (!bgImage || selW < 2 || selH < 2) return null;
 
@@ -533,12 +576,12 @@ tempCanvas.addEventListener('mouseup', (e) => {
   }
 });
 
-for (const btn of document.querySelectorAll('button.tool')) {
+Array.from(document.querySelectorAll('button.tool')).forEach((btn) => {
   btn.addEventListener('click', () => {
     if (state !== STATE.SELECTED) return;
     setTool(btn.dataset.tool || 'select');
   });
-}
+});
 
 colorPicker.addEventListener('input', () => { drawingColor = colorPicker.value; });
 sizePicker.addEventListener('change', () => { drawingSize = Number(sizePicker.value || 4); });

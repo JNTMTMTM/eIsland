@@ -1,31 +1,51 @@
-<!DOCTYPE html>
-<html>
+<!-- /*
+ * eIsland - A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Electron.
+ * https://github.com/JNTMTMTM/eIsland
+ *
+ * Copyright (C) 2026 JNTMTMTM
+ * Copyright (C) 2026 pyisland.com
+ *
+ * Original author: JNTMTMTM[](https://github.com/JNTMTMTM)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */ -->
+
+<!doctype html>
+<html lang="zh-CN">
 <head>
 <meta charset="utf-8">
 <title>eIsland Screenshot</title>
 <link rel="stylesheet" href="./capture.css">
 </head>
 <body>
-<canvas id="bg-canvas"></canvas>
-<canvas id="draw-canvas"></canvas>
-<canvas id="temp-canvas"></canvas>
-<canvas id="mask-canvas"></canvas>
+<canvas class="capture-canvas capture-bg-canvas" id="bg-canvas"></canvas>
+<canvas class="capture-canvas capture-draw-canvas" id="draw-canvas"></canvas>
+<canvas class="capture-canvas capture-temp-canvas" id="temp-canvas"></canvas>
+<canvas class="capture-canvas capture-mask-canvas" id="mask-canvas"></canvas>
 
-<div id="size-info"></div>
+<div class="capture-size-info" id="size-info"></div>
 
-<div id="toolbar">
+<div class="capture-toolbar" id="toolbar">
   <button class="tool active" data-tool="select">选区</button>
   <button class="tool" data-tool="mosaic">马赛克</button>
   <button class="tool" data-tool="line">直线</button>
   <button class="tool" data-tool="rect">矩形</button>
   <button class="tool" data-tool="pen">画笔</button>
-  <button id="btnUndo">撤销</button>
+  <button class="capture-btn-undo" id="btnUndo">撤销</button>
 
   <div class="sep"></div>
   <span class="label">颜色</span>
-  <input type="color" id="colorPicker" value="#ff4d4f" />
+  <input class="capture-color-picker" id="colorPicker" type="color" value="#ff4d4f">
   <span class="label">粗细</span>
-  <select id="sizePicker">
+  <select class="capture-size-picker" id="sizePicker">
     <option value="2">2px</option>
     <option value="4" selected>4px</option>
     <option value="6">6px</option>

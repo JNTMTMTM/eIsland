@@ -1,75 +1,126 @@
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body { overflow: hidden; cursor: crosshair; user-select: none; background: #000; }
-canvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; }
-#bg-canvas { z-index: 0; }
-#draw-canvas { z-index: 1; pointer-events: none; }
-#temp-canvas { z-index: 2; }
-#mask-canvas { z-index: 3; pointer-events: none; }
+/*
+ * eIsland - A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Electron.
+ * https://github.com/JNTMTMTM/eIsland
+ *
+ * Copyright (C) 2026 JNTMTMTM
+ * Copyright (C) 2026 pyisland.com
+ *
+ * Original author: JNTMTMTM[](https://github.com/JNTMTMTM)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
 
-#size-info {
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  overflow: hidden;
+  user-select: none;
+  cursor: crosshair;
+  background: #000;
+}
+
+.capture-canvas {
   position: fixed;
-  background: rgba(0,0,0,0.75);
-  color: #fff;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+}
+
+.capture-bg-canvas {
+  z-index: 0;
+}
+
+.capture-draw-canvas {
+  z-index: 1;
+  pointer-events: none;
+}
+
+.capture-temp-canvas {
+  z-index: 2;
+}
+
+.capture-mask-canvas {
+  z-index: 3;
+  pointer-events: none;
+}
+
+.capture-size-info {
+  position: fixed;
+  z-index: 20;
+  display: none;
   padding: 2px 8px;
   border-radius: 4px;
   font: 12px/1.5 monospace;
-  display: none;
-  pointer-events: none;
-  z-index: 20;
-  white-space: nowrap;
-}
-
-#toolbar {
-  position: fixed;
-  background: rgba(30,30,30,0.92);
-  border-radius: 8px;
-  padding: 6px;
-  display: none;
-  z-index: 20;
-  gap: 6px;
-  align-items: center;
-  box-shadow: 0 2px 14px rgba(0,0,0,0.5);
-  flex-wrap: wrap;
-  max-width: min(96vw, 900px);
-}
-
-#toolbar button,
-#toolbar select,
-#toolbar input[type="color"] {
-  background: rgba(255,255,255,0.12);
-  border: none;
   color: #fff;
+  white-space: nowrap;
+  pointer-events: none;
+  background: rgba(0, 0, 0, .75);
+}
+
+.capture-toolbar {
+  position: fixed;
+  z-index: 20;
+  display: none;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-width: min(96vw, 900px);
+  padding: 6px;
+  border-radius: 8px;
+  background: rgba(30, 30, 30, .92);
+  box-shadow: 0 2px 14px rgba(0, 0, 0, .5);
+}
+
+.capture-toolbar button,
+.capture-toolbar select,
+.capture-toolbar input[type="color"] {
   padding: 5px 10px;
+  border: none;
   border-radius: 5px;
-  cursor: pointer;
   font: 12px/1.4 system-ui, sans-serif;
+  color: #fff;
+  cursor: pointer;
+  background: rgba(255, 255, 255, .12);
 }
 
-#toolbar button:hover,
-#toolbar select:hover {
-  background: rgba(255,255,255,0.24);
+.capture-toolbar button:hover,
+.capture-toolbar select:hover {
+  background: rgba(255, 255, 255, .24);
 }
 
-#toolbar button.tool.active {
-  background: rgba(64,156,255,0.9);
+.capture-toolbar button.tool.active {
+  background: rgba(64, 156, 255, .9);
 }
 
-#toolbar .primary {
-  background: rgba(56,176,0,0.9);
+.capture-toolbar .primary {
+  background: rgba(56, 176, 0, .9);
 }
 
-#toolbar .danger {
-  background: rgba(220,53,69,0.85);
+.capture-toolbar .danger {
+  background: rgba(220, 53, 69, .85);
 }
 
-#toolbar .sep {
+.capture-toolbar .sep {
   width: 1px;
   height: 18px;
-  background: rgba(255,255,255,0.22);
   margin: 0 2px;
+  background: rgba(255, 255, 255, .22);
 }
 
-#toolbar .label {
+.capture-toolbar .label {
   font: 12px/1.2 system-ui, sans-serif;
-  color: rgba(255,255,255,0.85);
+  color: rgba(255, 255, 255, .85);
 }
