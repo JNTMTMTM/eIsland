@@ -24,6 +24,7 @@
  * @author 鸡哥
  */
 
+import { useRef, useEffect, useCallback } from 'react';
 import useIslandStore from '../../../../store/slices';
 import { SvgIcon } from '../../../../utils/SvgIcon';
 
@@ -46,6 +47,110 @@ function truncateByVisualWidth(text: string, maxWidth: number): string {
   return text.slice(0, finalEnd) + '…';
 }
 
+/** 波浪层配置 */
+interface WaveLayer {
+  amplitude: number;
+  frequency: number;
+  speed: number;
+  phase: number;
+  opacity: number;
+}
+
+const WAVE_LAYERS: WaveLayer[] = [
+  { amplitude: 6, frequency: 0.018, speed: 0.025, phase: 0, opacity: 0.35 },
+  { amplitude: 4.5, frequency: 0.024, speed: -0.018, phase: 2, opacity: 0.25 },
+  { amplitude: 3, frequency: 0.032, speed: 0.032, phase: 4, opacity: 0.15 },
+];
+
+/**
+ * Canvas 丝滑波浪组件
+ * @description 使用 requestAnimationFrame 绘制多层正弦波，实现 60fps 流畅动画
+ */
+function SilkyWave({
+  color,
+  playing,
+}: {
+  color: [number, number, number];
+  playing: boolean;
+}): React.ReactElement {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const rafRef = useRef<number>(0);
+  const timeRef = useRef<number>(0);
+  const ampRef = useRef<number>(0);
+
+  const draw = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    const w = rect.width;
+    const h = rect.height;
+
+    if (canvas.width !== w * dpr || canvas.height !== h * dpr) {
+      canvas.width = w * dpr;
+      canvas.height = h * dpr;
+      ctx.scale(dpr, dpr);
+    }
+
+    const targetAmp = playing ? 1 : 0;
+    ampRef.current += (targetAmp - ampRef.current) * 0.04;
+
+    timeRef.current += 1;
+    const t = timeRef.current;
+
+    ctx.clearRect(0, 0, w, h);
+
+    const [r, g, b] = color;
+
+    for (let i = WAVE_LAYERS.length - 1; i >= 0; i--) {
+      const layer = WAVE_LAYERS[i];
+      const amp = layer.amplitude * ampRef.current;
+
+      ctx.beginPath();
+      ctx.moveTo(0, h);
+
+      for (let x = 0; x <= w; x += 2) {
+        const y =
+          h -
+          amp *
+            (Math.sin(x * layer.frequency + t * layer.speed + layer.phase) *
+              0.6 +
+              Math.sin(
+                x * layer.frequency * 1.8 + t * layer.speed * 0.7 + layer.phase * 0.5,
+              ) *
+                0.4) -
+          amp * 0.5;
+        if (x === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+
+      ctx.lineTo(w, h);
+      ctx.lineTo(0, h);
+      ctx.closePath();
+
+      ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${layer.opacity * (0.5 + ampRef.current * 0.5)})`;
+      ctx.fill();
+    }
+
+    rafRef.current = requestAnimationFrame(draw);
+  }, [color, playing]);
+
+  useEffect(() => {
+    rafRef.current = requestAnimationFrame(draw);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [draw]);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      className="lrc-wave-canvas"
+    />
+  );
+}
+
 /**
  * 歌词 Tab 内容
  * @description 显示当前播放歌词、唱片封面和播放控制
@@ -65,8 +170,6 @@ export function LyricsTab(): React.ReactElement {
 
   const artistText = truncateByVisualWidth(mediaInfo.artist || '未知艺术家', 50);
   const albumText = truncateByVisualWidth(mediaInfo.title || '未知歌曲', 45);
-
-  const [r, g, b] = dominantColor;
 
   return (
     <div className={`lrc-tab-wrapper ${isPlaying ? 'playing' : ''}`}>
@@ -116,17 +219,8 @@ export function LyricsTab(): React.ReactElement {
         </button>
       </div>
 
-      <div
-        className="lrc-wave-container"
-        style={{
-          '--wave-color-1': `rgba(${r}, ${g}, ${b}, 0.3)`,
-          '--wave-color-2': `rgba(${r}, ${g}, ${b}, 0.2)`,
-          '--wave-color-3': `rgba(${r}, ${g}, ${b}, 0.1)`,
-        } as React.CSSProperties}
-      >
-        <div className="lrc-wave lrc-wave-1" />
-        <div className="lrc-wave lrc-wave-2" />
-        <div className="lrc-wave lrc-wave-3" />
+      <div className="lrc-wave-container">
+        <SilkyWave color={dominantColor} playing={isPlaying} />
       </div>
     </div>
   );
