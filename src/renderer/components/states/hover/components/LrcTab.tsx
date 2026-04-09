@@ -93,7 +93,7 @@ function SilkyWave({
     if (canvas.width !== w * dpr || canvas.height !== h * dpr) {
       canvas.width = w * dpr;
       canvas.height = h * dpr;
-      ctx.scale(dpr, dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
 
     const targetAmp = playing ? 1 : 0;
