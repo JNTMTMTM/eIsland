@@ -333,6 +333,33 @@ function closeCaptureWindow(): void {
 }
 
 /**
+ * 等待主窗口隐藏完成（短等待，避免固定延迟导致启动变慢）
+ * @param timeoutMs - 兜底超时时间（毫秒）
+ */
+async function waitForMainWindowHidden(timeoutMs: number = 80): Promise<void> {
+  const targetWindow = mainWindow;
+  if (!targetWindow || targetWindow.isDestroyed() || !targetWindow.isVisible()) {
+    return;
+  }
+
+  await new Promise<void>((resolve) => {
+    let settled = false;
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      if (!targetWindow.isDestroyed()) {
+        targetWindow.removeListener('hide', finish);
+      }
+      resolve();
+    };
+
+    targetWindow.once('hide', finish);
+    targetWindow.hide();
+    setTimeout(finish, timeoutMs);
+  });
+}
+
+/**
  * 启动选区截图流程
  * @description 捕获全屏图像 → 创建全屏透明窗口 → 发送图像到渲染进程 → 用户选区 → 裁剪回传
  */
@@ -344,32 +371,22 @@ async function startRegionScreenshot(): Promise<void> {
     const { width: sw, height: sh } = primaryDisplay.size;
     const sf = primaryDisplay.scaleFactor || 1;
 
-    // 隐藏灵动岛避免截入
-    if (mainWindow && mainWindow.isVisible()) {
-      mainWindow.hide();
-    }
+    // 先等待主窗口隐藏（事件驱动 + 短超时），避免固定 200ms 延迟
+    await waitForMainWindowHidden();
 
-    // 等待窗口隐藏完成
-    await new Promise((r) => setTimeout(r, 200));
-
-    // 捕获全屏截图
-    const sources = await desktopCapturer.getSources({
+    // 并行开始截图抓取与截图页加载，减少首屏等待
+    const sourcesPromise = desktopCapturer.getSources({
       types: ['screen'],
       thumbnailSize: { width: Math.round(sw * sf), height: Math.round(sh * sf) },
     });
-    if (sources.length === 0) {
-      if (mainWindow) { mainWindow.show(); mainWindow.setAlwaysOnTop(true, 'screen-saver'); }
-      return;
-    }
 
-    const screenshot = sources[0].thumbnail;
-
-    // 创建全屏透明无边框窗口
+    // 创建隐藏的截图窗口（加载完成后再显示）
     captureWindow = new BrowserWindow({
       width: sw,
       height: sh,
       x: primaryDisplay.bounds.x,
       y: primaryDisplay.bounds.y,
+      show: false,
       fullscreen: true,
       transparent: true,
       frame: false,
@@ -387,20 +404,6 @@ async function startRegionScreenshot(): Promise<void> {
 
     captureWindow.setAlwaysOnTop(true, 'screen-saver');
 
-    // 加载截图选区页面
-    captureWindow.loadFile(getCaptureHtmlPath());
-
-    // 页面加载完成后发送截图数据
-    captureWindow.webContents.once('did-finish-load', () => {
-      if (captureWindow && !captureWindow.isDestroyed()) {
-        captureWindow.webContents.send('capture-image', {
-          imageDataURL: screenshot.toDataURL(),
-          display: primaryDisplay,
-          scaleFactor: sf,
-        });
-      }
-    });
-
     captureWindow.on('closed', () => {
       captureWindow = null;
       // 恢复灵动岛
@@ -409,6 +412,31 @@ async function startRegionScreenshot(): Promise<void> {
         mainWindow.setAlwaysOnTop(true, 'screen-saver');
       }
     });
+
+    // 加载截图选区页面
+    const pageLoadPromise = captureWindow.loadFile(getCaptureHtmlPath());
+
+    const sources = await sourcesPromise;
+    if (sources.length === 0) {
+      closeCaptureWindow();
+      if (mainWindow) { mainWindow.show(); mainWindow.setAlwaysOnTop(true, 'screen-saver'); }
+      return;
+    }
+
+    const screenshot = sources[0].thumbnail;
+    const imageBytes = screenshot.toPNG();
+
+    await pageLoadPromise;
+
+    if (captureWindow && !captureWindow.isDestroyed()) {
+      captureWindow.webContents.send('capture-image', {
+        imageBytes,
+        display: primaryDisplay,
+        scaleFactor: sf,
+      });
+      captureWindow.show();
+      captureWindow.focus();
+    }
   } catch (err) {
     console.error('[Screenshot] start error:', err);
     captureWindow = null;

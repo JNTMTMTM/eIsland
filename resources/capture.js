@@ -74,6 +74,7 @@ const HANDLE_SIZE = 5;
 const HANDLE_HIT = 8;
 const MAX_HISTORY = 20;
 const historyStack = [];
+let currentCaptureObjectUrl = '';
 
 /**
  * 初始化各层画布尺寸
@@ -376,14 +377,63 @@ function cropSelectionWithAnnotations() {
   return outCanvas.toDataURL('image/png');
 }
 
+/**
+ * 释放截图页中的大对象资源
+ * @description 截图窗口销毁前主动释放 URL、位图与历史栈，降低内存峰值残留
+ */
+function releaseCaptureResources() {
+  if (currentCaptureObjectUrl) {
+    URL.revokeObjectURL(currentCaptureObjectUrl);
+    currentCaptureObjectUrl = '';
+  }
+
+  historyStack.length = 0;
+  bgImage = null;
+
+  [bgCanvas, drawCanvas, tempCanvas, maskCanvas].forEach((cv) => {
+    cv.width = 0;
+    cv.height = 0;
+  });
+}
+
 ipcRenderer.on('capture-image', (_e, data) => {
   scaleFactor = data.scaleFactor || 1;
+
+  if (currentCaptureObjectUrl) {
+    URL.revokeObjectURL(currentCaptureObjectUrl);
+    currentCaptureObjectUrl = '';
+  }
+
+  let imageSrc = data.imageDataURL || '';
+  if (data.imageBytes && data.imageBytes.length > 0) {
+    const blob = new Blob([data.imageBytes], { type: 'image/png' });
+    currentCaptureObjectUrl = URL.createObjectURL(blob);
+    imageSrc = currentCaptureObjectUrl;
+  }
+
+  if (!imageSrc) {
+    return;
+  }
+
   const img = new Image();
   img.onload = () => {
     bgImage = img;
     initCanvases();
+
+    if (currentCaptureObjectUrl) {
+      URL.revokeObjectURL(currentCaptureObjectUrl);
+      currentCaptureObjectUrl = '';
+    }
   };
-  img.src = data.imageDataURL;
+
+  img.onerror = () => {
+    if (currentCaptureObjectUrl) {
+      URL.revokeObjectURL(currentCaptureObjectUrl);
+      currentCaptureObjectUrl = '';
+    }
+  };
+
+  img.src = imageSrc;
 });
 
 tempCanvas.addEventListener('mousedown', (e) => {
@@ -629,4 +679,8 @@ window.addEventListener('resize', () => {
     sizeInfo.style.display = 'none';
     hideToolbar();
   }
+});
+
+window.addEventListener('beforeunload', () => {
+  releaseCaptureResources();
 });
