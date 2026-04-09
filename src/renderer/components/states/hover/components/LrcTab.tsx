@@ -35,14 +35,15 @@ import { SvgIcon } from '../../../../utils/SvgIcon';
 function truncateByVisualWidth(text: string, maxWidth: number): string {
   let finalWidth = 0;
   let finalEnd = 0;
-  for (const ch of text) {
+  Array.from(text).every((ch) => {
     const isEastAsianWide =
       /[\u4e00-\u9fff\u3400-\u4dbf\u3000-\u303f\uff00-\uffef\u3040-\u309f\u30a0-\u30ff\uac00-\ud7af\u1100-\u115f\u3130-\u318f]/.test(ch);
     const charWidth = isEastAsianWide ? 2 : 1;
-    if (finalWidth + charWidth > maxWidth - 1) break;
+    if (finalWidth + charWidth > maxWidth - 1) return false;
     finalWidth += charWidth;
     finalEnd++;
-  }
+    return true;
+  });
   if (finalEnd === text.length) return text;
   return text.slice(0, finalEnd) + '…';
 }

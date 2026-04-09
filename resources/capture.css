@@ -101,11 +101,6 @@ body {
   background: rgba(255, 255, 255, .24);
 }
 
-.capture-toolbar select {
-  color: #fff;
-  background: rgba(255, 255, 255, .12);
-}
-
 .capture-toolbar select option {
   color: #111;
   background: #fff;
