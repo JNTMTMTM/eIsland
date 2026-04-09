@@ -78,6 +78,7 @@ function SilkyWave({
   const rafRef = useRef<number>(0);
   const timeRef = useRef<number>(0);
   const ampRef = useRef<number>(0);
+  const runningRef = useRef<boolean>(false);
 
   const draw = useCallback(() => {
     const canvas = canvasRef.current;
@@ -136,12 +137,26 @@ function SilkyWave({
       ctx.fill();
     }
 
+    // 振幅已衰减到接近 0 且非播放状态时停止循环，节省 CPU
+    if (!playing && ampRef.current < 0.001) {
+      ampRef.current = 0;
+      ctx.clearRect(0, 0, w, h);
+      runningRef.current = false;
+      return;
+    }
+
     rafRef.current = requestAnimationFrame(draw);
   }, [color, playing]);
 
   useEffect(() => {
-    rafRef.current = requestAnimationFrame(draw);
-    return () => cancelAnimationFrame(rafRef.current);
+    if (!runningRef.current) {
+      runningRef.current = true;
+      rafRef.current = requestAnimationFrame(draw);
+    }
+    return () => {
+      cancelAnimationFrame(rafRef.current);
+      runningRef.current = false;
+    };
   }, [draw]);
 
   return (
