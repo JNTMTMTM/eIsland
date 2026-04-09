@@ -114,7 +114,8 @@ let pendingSourceSwitchEntry: SmtcSessionRuntimeEntry | null = null;
  * 检查当前设备ID是否在白名单内
  */
 function isWhitelisted(): boolean {
-  return nowPlayingWhitelist.some(name => currentDeviceId.includes(name));
+  const id = currentDeviceId.toLowerCase();
+  return nowPlayingWhitelist.some(name => id.includes(name.toLowerCase()));
 }
 
 function pickDetectedSourceAppId(): string {
@@ -1052,7 +1053,8 @@ function initSmtcWorker(win: BrowserWindow | null): void {
         });
       }
 
-      if (!nowPlayingWhitelist.some(name => sourceAppId.includes(name))) return;
+      const sourceAppIdLower = sourceAppId.toLowerCase();
+      if (!nowPlayingWhitelist.some(name => sourceAppIdLower.includes(name.toLowerCase()))) return;
 
       const hasTitle = Boolean(media?.title);
       const isPlaying = (playback?.playbackStatus ?? 0) === 4;
