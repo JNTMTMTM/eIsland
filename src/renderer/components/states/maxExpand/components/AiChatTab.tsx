@@ -77,8 +77,8 @@ async function streamChatCompletion(
     const lines = buffer.split('\n');
     buffer = lines.pop() || '';
 
-    for (const line of lines) {
-      const trimmed = line.trim();
+    for (let i = 0; i < lines.length; i++) {
+      const trimmed = lines[i].trim();
       if (!trimmed || !trimmed.startsWith('data: ')) continue;
       const data = trimmed.slice(6);
       if (data === '[DONE]') return;
@@ -144,9 +144,9 @@ export function AiChatTab(): React.ReactElement {
     if (aiConfig.systemPrompt) {
       apiMessages.push({ role: 'system', content: aiConfig.systemPrompt });
     }
-    for (const m of nextMessages) {
+    nextMessages.forEach((m) => {
       apiMessages.push({ role: m.role, content: m.content });
-    }
+    });
 
     // 添加占位 AI 消息
     updateMessages(prev => ([...prev, { role: 'assistant', content: '' }]));

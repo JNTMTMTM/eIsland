@@ -24,6 +24,7 @@
  * @author 鸡哥
  */
 
+import React, { useRef, useEffect, useCallback } from 'react';
 import useIslandStore from '../../../../store/slices';
 import { SvgIcon } from '../../../../utils/SvgIcon';
 
@@ -34,16 +35,136 @@ import { SvgIcon } from '../../../../utils/SvgIcon';
 function truncateByVisualWidth(text: string, maxWidth: number): string {
   let finalWidth = 0;
   let finalEnd = 0;
-  for (const ch of text) {
+  Array.from(text).every((ch) => {
     const isEastAsianWide =
       /[\u4e00-\u9fff\u3400-\u4dbf\u3000-\u303f\uff00-\uffef\u3040-\u309f\u30a0-\u30ff\uac00-\ud7af\u1100-\u115f\u3130-\u318f]/.test(ch);
     const charWidth = isEastAsianWide ? 2 : 1;
-    if (finalWidth + charWidth > maxWidth - 1) break;
+    if (finalWidth + charWidth > maxWidth - 1) return false;
     finalWidth += charWidth;
     finalEnd++;
-  }
+    return true;
+  });
   if (finalEnd === text.length) return text;
   return text.slice(0, finalEnd) + '…';
+}
+
+/** 波浪层配置 */
+interface WaveLayer {
+  amplitude: number;
+  frequency: number;
+  speed: number;
+  phase: number;
+  opacity: number;
+}
+
+const WAVE_LAYERS: WaveLayer[] = [
+  { amplitude: 6, frequency: 0.018, speed: 0.025, phase: 0, opacity: 0.35 },
+  { amplitude: 4.5, frequency: 0.024, speed: -0.018, phase: 2, opacity: 0.25 },
+  { amplitude: 3, frequency: 0.032, speed: 0.032, phase: 4, opacity: 0.15 },
+];
+
+/**
+ * Canvas 丝滑波浪组件
+ * @description 使用 requestAnimationFrame 绘制多层正弦波，实现 60fps 流畅动画
+ */
+function SilkyWave({
+  color,
+  playing,
+}: {
+  color: [number, number, number];
+  playing: boolean;
+}): React.ReactElement {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const rafRef = useRef<number>(0);
+  const timeRef = useRef<number>(0);
+  const ampRef = useRef<number>(0);
+  const runningRef = useRef<boolean>(false);
+
+  const draw = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    const w = rect.width;
+    const h = rect.height;
+
+    if (canvas.width !== w * dpr || canvas.height !== h * dpr) {
+      canvas.width = w * dpr;
+      canvas.height = h * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    const targetAmp = playing ? 1 : 0;
+    ampRef.current += (targetAmp - ampRef.current) * 0.04;
+
+    timeRef.current += 1;
+    const t = timeRef.current;
+
+    ctx.clearRect(0, 0, w, h);
+
+    const [r, g, b] = color;
+
+    for (let i = WAVE_LAYERS.length - 1; i >= 0; i--) {
+      const layer = WAVE_LAYERS[i];
+      const amp = layer.amplitude * ampRef.current;
+
+      ctx.beginPath();
+      ctx.moveTo(0, h);
+
+      for (let x = 0; x <= w; x += 2) {
+        const y =
+          h -
+          amp *
+            (Math.sin(x * layer.frequency + t * layer.speed + layer.phase) *
+              0.6 +
+              Math.sin(
+                x * layer.frequency * 1.8 + t * layer.speed * 0.7 + layer.phase * 0.5,
+              ) *
+                0.4) -
+          amp * 0.5;
+        if (x === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+
+      ctx.lineTo(w, h);
+      ctx.lineTo(0, h);
+      ctx.closePath();
+
+      ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${layer.opacity * (0.5 + ampRef.current * 0.5)})`;
+      ctx.fill();
+    }
+
+    // 振幅已衰减到接近 0 且非播放状态时停止循环，节省 CPU
+    if (!playing && ampRef.current < 0.001) {
+      ampRef.current = 0;
+      ctx.clearRect(0, 0, w, h);
+      runningRef.current = false;
+      return;
+    }
+
+    rafRef.current = requestAnimationFrame(draw);
+  }, [color, playing]);
+
+  useEffect(() => {
+    if (!runningRef.current) {
+      runningRef.current = true;
+      rafRef.current = requestAnimationFrame(draw);
+    }
+    return () => {
+      cancelAnimationFrame(rafRef.current);
+      runningRef.current = false;
+    };
+  }, [draw]);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      className="lrc-wave-canvas"
+    />
+  );
 }
 
 /**
@@ -65,8 +186,6 @@ export function LyricsTab(): React.ReactElement {
 
   const artistText = truncateByVisualWidth(mediaInfo.artist || '未知艺术家', 50);
   const albumText = truncateByVisualWidth(mediaInfo.title || '未知歌曲', 45);
-
-  const [r, g, b] = dominantColor;
 
   return (
     <div className={`lrc-tab-wrapper ${isPlaying ? 'playing' : ''}`}>
@@ -116,17 +235,8 @@ export function LyricsTab(): React.ReactElement {
         </button>
       </div>
 
-      <div
-        className="lrc-wave-container"
-        style={{
-          '--wave-color-1': `rgba(${r}, ${g}, ${b}, 0.3)`,
-          '--wave-color-2': `rgba(${r}, ${g}, ${b}, 0.2)`,
-          '--wave-color-3': `rgba(${r}, ${g}, ${b}, 0.1)`,
-        } as React.CSSProperties}
-      >
-        <div className="lrc-wave lrc-wave-1" />
-        <div className="lrc-wave lrc-wave-2" />
-        <div className="lrc-wave lrc-wave-3" />
+      <div className="lrc-wave-container">
+        <SilkyWave color={dominantColor} playing={isPlaying} />
       </div>
     </div>
   );
