@@ -393,6 +393,12 @@ export function SettingsTab(): ReactElement {
   const [quitHotkeyError, setQuitHotkeyError] = useState<string>('');
   const quitHotkeyInputRef = useRef<HTMLInputElement>(null);
 
+  /** 截图快捷键相关状态 */
+  const [screenshotHotkey, setScreenshotHotkey] = useState<string>('Alt+A');
+  const [screenshotHotkeyRecording, setScreenshotHotkeyRecording] = useState(false);
+  const [screenshotHotkeyError, setScreenshotHotkeyError] = useState<string>('');
+  const screenshotHotkeyInputRef = useRef<HTMLInputElement>(null);
+
   /** 加载网络配置 */
   useEffect(() => {
     const cfg = loadNetworkConfig();
@@ -441,6 +447,10 @@ export function SettingsTab(): ReactElement {
     window.api.quitHotkeyGet().then((key) => {
       if (cancelled) return;
       setQuitHotkey(key || '');
+    }).catch(() => {});
+    window.api.screenshotHotkeyGet().then((key) => {
+      if (cancelled) return;
+      setScreenshotHotkey(key || '');
     }).catch(() => {});
     return () => { cancelled = true; };
   }, []);
@@ -532,7 +542,7 @@ export function SettingsTab(): ReactElement {
     setHotkeyError('');
     const acc = keyEventToAccelerator(e);
     if (!acc) return;
-    if (quitHotkey && acc === quitHotkey) {
+    if ((quitHotkey && acc === quitHotkey) || (screenshotHotkey && acc === screenshotHotkey)) {
       setHotkeyError('重复快捷键');
       setHotkeyRecording(false);
       hotkeyInputRef.current?.blur();
@@ -562,7 +572,7 @@ export function SettingsTab(): ReactElement {
     setQuitHotkeyError('');
     const acc = keyEventToAccelerator(e);
     if (!acc) return;
-    if (hideHotkey && acc === hideHotkey) {
+    if ((hideHotkey && acc === hideHotkey) || (screenshotHotkey && acc === screenshotHotkey)) {
       setQuitHotkeyError('重复快捷键');
       setQuitHotkeyRecording(false);
       quitHotkeyInputRef.current?.blur();
@@ -579,6 +589,36 @@ export function SettingsTab(): ReactElement {
       }
     }).catch(() => {
       setQuitHotkeyError('快捷键注册失败');
+    });
+  };
+
+  /**
+   * 截图快捷键录入键盘事件处理
+   * @param e - React 键盘事件
+   */
+  const handleScreenshotHotkeyKeyDown = (e: KeyboardEvent): void => {
+    e.preventDefault();
+    e.stopPropagation();
+    setScreenshotHotkeyError('');
+    const acc = keyEventToAccelerator(e);
+    if (!acc) return;
+    if ((hideHotkey && acc === hideHotkey) || (quitHotkey && acc === quitHotkey)) {
+      setScreenshotHotkeyError('重复快捷键');
+      setScreenshotHotkeyRecording(false);
+      screenshotHotkeyInputRef.current?.blur();
+      return;
+    }
+
+    window.api.screenshotHotkeySet(acc).then((ok) => {
+      if (ok) {
+        setScreenshotHotkey(acc);
+        setScreenshotHotkeyRecording(false);
+        screenshotHotkeyInputRef.current?.blur();
+      } else {
+        setScreenshotHotkeyError('快捷键注册失败，请尝试其他组合');
+      }
+    }).catch(() => {
+      setScreenshotHotkeyError('快捷键注册失败');
     });
   };
 
@@ -911,6 +951,58 @@ export function SettingsTab(): ReactElement {
                 </div>
                 {quitHotkeyError && <div className="settings-hotkey-error">{quitHotkeyError}</div>}
                 <div className="settings-hotkey-hint">按下此快捷键将立即关闭灵动岛应用（如 Alt+Q、Ctrl+Shift+Q）</div>
+              </div>
+              <div className="settings-hotkey-section">
+                <div className="settings-hotkey-label">选区截图快捷键</div>
+                <div className="settings-hotkey-row">
+                  <input
+                    ref={screenshotHotkeyInputRef}
+                    className={`settings-hotkey-input ${screenshotHotkeyRecording ? 'recording' : ''}${screenshotHotkeyError ? ' error' : ''}`}
+                    type="text"
+                    readOnly
+                    value={screenshotHotkeyRecording ? '请按下快捷键组合…' : (screenshotHotkey || '未设置')}
+                    onFocus={() => {
+                      setScreenshotHotkeyRecording(true);
+                      setScreenshotHotkeyError('');
+                      window.api.hotkeySuspend().catch(() => {});
+                    }}
+                    onBlur={() => {
+                      setScreenshotHotkeyRecording(false);
+                      window.api.hotkeyResume().catch(() => {});
+                    }}
+                    onKeyDown={handleScreenshotHotkeyKeyDown}
+                  />
+                  <button
+                    className="settings-hotkey-btn"
+                    type="button"
+                    onClick={() => {
+                      setScreenshotHotkeyRecording(true);
+                      screenshotHotkeyInputRef.current?.focus();
+                    }}
+                  >
+                    {screenshotHotkeyRecording ? '录入中' : '修改'}
+                  </button>
+                  {screenshotHotkey && (
+                    <button
+                      className="settings-hotkey-btn"
+                      type="button"
+                      onClick={() => {
+                        window.api.screenshotHotkeySet('').then((ok) => {
+                          if (ok) {
+                            setScreenshotHotkey('');
+                            setScreenshotHotkeyError('');
+                            setScreenshotHotkeyRecording(false);
+                            screenshotHotkeyInputRef.current?.blur();
+                          }
+                        }).catch(() => {});
+                      }}
+                    >
+                      清除
+                    </button>
+                  )}
+                </div>
+                {screenshotHotkeyError && <div className="settings-hotkey-error">{screenshotHotkeyError}</div>}
+                <div className="settings-hotkey-hint">按下快捷键启动选区截图，框选后可复制到剪贴板或保存为文件（如 Alt+A、Ctrl+Shift+S）</div>
               </div>
             </div>
           )}

@@ -94,6 +94,9 @@ declare global {
       hotkeyResume: () => Promise<boolean>;
       quitHotkeyGet: () => Promise<string>;
       quitHotkeySet: (accelerator: string) => Promise<boolean>;
+      /** ===== 截图快捷键 API ===== */
+      screenshotHotkeyGet: () => Promise<string>;
+      screenshotHotkeySet: (accelerator: string) => Promise<boolean>;
       /** ===== 日志文件 API ===== */
       logWrite: (level: string, message: string) => void;
       /** ===== 歌曲设置 API ===== */

@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import { app, BrowserWindow, shell, screen, ipcMain, desktopCapturer, dialog, globalShortcut } from 'electron';
+import { app, BrowserWindow, shell, screen, ipcMain, desktopCapturer, dialog, globalShortcut, clipboard, nativeImage } from 'electron';
 import { join, basename } from 'path';
 import { readFileSync, writeFileSync, appendFileSync, mkdirSync, existsSync } from 'fs';
 import { exec } from 'child_process';
@@ -281,15 +281,176 @@ function registerQuitHotkey(accelerator: string): boolean {
   }
 }
 
+/** 当前注册的截图快捷键 */
+let currentScreenshotHotkey: string = '';
+
+/** 截图快捷键存储键名 */
+const SCREENSHOT_HOTKEY_STORE_KEY = 'screenshot-hotkey';
+
+/** 默认截图快捷键 */
+const DEFAULT_SCREENSHOT_HOTKEY = 'Alt+A';
+
+/**
+ * 读取截图快捷键配置
+ * @returns 存储的快捷键字符串，不存在时返回默认值
+ */
+function readScreenshotHotkeyConfig(): string {
+  try {
+    const storeDir = join(app.getPath('userData'), 'eIsland_store');
+    const filePath = join(storeDir, `${SCREENSHOT_HOTKEY_STORE_KEY}.json`);
+    if (!existsSync(filePath)) return DEFAULT_SCREENSHOT_HOTKEY;
+    const raw = readFileSync(filePath, 'utf-8');
+    const data = JSON.parse(raw);
+    return typeof data === 'string' ? data : DEFAULT_SCREENSHOT_HOTKEY;
+  } catch {
+    return DEFAULT_SCREENSHOT_HOTKEY;
+  }
+}
+
+/** 截图窗口引用 */
+let captureWindow: BrowserWindow | null = null;
+
+/**
+ * 获取 capture.html 的路径（兼容开发环境和打包环境）
+ */
+function getCaptureHtmlPath(): string {
+  if (is.dev) {
+    return join(__dirname, '../../resources/capture.html');
+  }
+  return join(process.resourcesPath, 'capture.html');
+}
+
+/**
+ * 关闭截图窗口并恢复灵动岛
+ */
+function closeCaptureWindow(): void {
+  if (captureWindow && !captureWindow.isDestroyed()) {
+    captureWindow.close();
+  }
+}
+
+/**
+ * 启动选区截图流程
+ * @description 捕获全屏图像 → 创建全屏透明窗口 → 发送图像到渲染进程 → 用户选区 → 裁剪回传
+ */
+async function startRegionScreenshot(): Promise<void> {
+  if (captureWindow) return;
+  try {
+    const primaryDisplay = screen.getPrimaryDisplay();
+    const { width: sw, height: sh } = primaryDisplay.size;
+    const sf = primaryDisplay.scaleFactor || 1;
+
+    // 隐藏灵动岛避免截入
+    if (mainWindow && mainWindow.isVisible()) {
+      mainWindow.hide();
+    }
+
+    // 等待窗口隐藏完成
+    await new Promise((r) => setTimeout(r, 200));
+
+    // 捕获全屏截图
+    const sources = await desktopCapturer.getSources({
+      types: ['screen'],
+      thumbnailSize: { width: Math.round(sw * sf), height: Math.round(sh * sf) },
+    });
+    if (sources.length === 0) {
+      if (mainWindow) { mainWindow.show(); mainWindow.setAlwaysOnTop(true, 'screen-saver'); }
+      return;
+    }
+
+    const screenshot = sources[0].thumbnail;
+
+    // 创建全屏透明无边框窗口
+    captureWindow = new BrowserWindow({
+      width: sw,
+      height: sh,
+      x: primaryDisplay.bounds.x,
+      y: primaryDisplay.bounds.y,
+      fullscreen: true,
+      transparent: true,
+      frame: false,
+      alwaysOnTop: true,
+      resizable: false,
+      movable: false,
+      hasShadow: false,
+      skipTaskbar: true,
+      backgroundColor: '#00000000',
+      webPreferences: {
+        nodeIntegration: true,
+        contextIsolation: false,
+      },
+    });
+
+    captureWindow.setAlwaysOnTop(true, 'screen-saver');
+
+    // 加载截图选区页面
+    captureWindow.loadFile(getCaptureHtmlPath());
+
+    // 页面加载完成后发送截图数据
+    captureWindow.webContents.once('did-finish-load', () => {
+      if (captureWindow && !captureWindow.isDestroyed()) {
+        captureWindow.webContents.send('capture-image', {
+          imageDataURL: screenshot.toDataURL(),
+          display: primaryDisplay,
+          scaleFactor: sf,
+        });
+      }
+    });
+
+    captureWindow.on('closed', () => {
+      captureWindow = null;
+      // 恢复灵动岛
+      if (mainWindow) {
+        mainWindow.show();
+        mainWindow.setAlwaysOnTop(true, 'screen-saver');
+      }
+    });
+  } catch (err) {
+    console.error('[Screenshot] start error:', err);
+    captureWindow = null;
+    if (mainWindow) { mainWindow.show(); mainWindow.setAlwaysOnTop(true, 'screen-saver'); }
+  }
+}
+
+/**
+ * 注册截图的全局快捷键
+ * @param accelerator - Electron accelerator 字符串（如 "Alt+A"）
+ */
+function registerScreenshotHotkey(accelerator: string): boolean {
+  if (currentScreenshotHotkey) {
+    try { globalShortcut.unregister(currentScreenshotHotkey); } catch { /* ignore */ }
+    currentScreenshotHotkey = '';
+  }
+  if (!accelerator) return true;
+  try {
+    const success = globalShortcut.register(accelerator, () => {
+      startRegionScreenshot().catch((err) => {
+        console.error('[Screenshot] hotkey trigger error:', err);
+      });
+    });
+    if (success) {
+      currentScreenshotHotkey = accelerator;
+    }
+    return success;
+  } catch (err) {
+    console.error('[ScreenshotHotkey] register error:', err);
+    return false;
+  }
+}
+
 /** 暂停所有灵动岛相关快捷键响应（仅解绑，不修改配置） */
 function suspendIslandHotkeys(): void {
   const hideHotkey = currentHideHotkey || readHotkeyConfig();
   const quitHotkey = currentQuitHotkey || readQuitHotkeyConfig();
+  const ssHotkey = currentScreenshotHotkey || readScreenshotHotkeyConfig();
   if (hideHotkey) {
     try { globalShortcut.unregister(hideHotkey); } catch { /* ignore */ }
   }
   if (quitHotkey) {
     try { globalShortcut.unregister(quitHotkey); } catch { /* ignore */ }
+  }
+  if (ssHotkey) {
+    try { globalShortcut.unregister(ssHotkey); } catch { /* ignore */ }
   }
 }
 
@@ -297,8 +458,10 @@ function suspendIslandHotkeys(): void {
 function resumeIslandHotkeys(): void {
   const hideHotkey = currentHideHotkey || readHotkeyConfig();
   const quitHotkey = currentQuitHotkey || readQuitHotkeyConfig();
+  const ssHotkey = currentScreenshotHotkey || readScreenshotHotkeyConfig();
   if (hideHotkey) registerHideHotkey(hideHotkey);
   if (quitHotkey) registerQuitHotkey(quitHotkey);
+  if (ssHotkey) registerScreenshotHotkey(ssHotkey);
 }
 
 /** 记录窗口初始中心 X 坐标 */
@@ -923,7 +1086,8 @@ function registerIpcHandlers(): void {
    */
   ipcMain.handle('hotkey:set', (_event, accelerator: string) => {
     const currentQuit = currentQuitHotkey || readQuitHotkeyConfig();
-    if (accelerator && currentQuit && accelerator === currentQuit) {
+    const currentSS = currentScreenshotHotkey || readScreenshotHotkeyConfig();
+    if (accelerator && ((currentQuit && accelerator === currentQuit) || (currentSS && accelerator === currentSS))) {
       return false;
     }
     const success = registerHideHotkey(accelerator);
@@ -957,7 +1121,8 @@ function registerIpcHandlers(): void {
    */
   ipcMain.handle('quit-hotkey:set', (_event, accelerator: string) => {
     const currentHide = currentHideHotkey || readHotkeyConfig();
-    if (accelerator && currentHide && accelerator === currentHide) {
+    const currentSS = currentScreenshotHotkey || readScreenshotHotkeyConfig();
+    if (accelerator && ((currentHide && accelerator === currentHide) || (currentSS && accelerator === currentSS))) {
       return false;
     }
     const success = registerQuitHotkey(accelerator);
@@ -982,6 +1147,82 @@ function registerIpcHandlers(): void {
   ipcMain.handle('hotkey:resume', () => {
     resumeIslandHotkeys();
     return true;
+  });
+
+  // ===== 截图快捷键 IPC =====
+
+  /**
+   * 获取当前截图快捷键配置
+   * @returns 当前快捷键字符串
+   */
+  ipcMain.handle('screenshot-hotkey:get', () => {
+    return currentScreenshotHotkey || readScreenshotHotkeyConfig();
+  });
+
+  /**
+   * 设置截图快捷键并持久化
+   * @param _event - IPC 事件
+   * @param accelerator - 新的快捷键字符串
+   * @returns 是否注册成功
+   */
+  ipcMain.handle('screenshot-hotkey:set', (_event, accelerator: string) => {
+    const currentHide = currentHideHotkey || readHotkeyConfig();
+    const currentQuit = currentQuitHotkey || readQuitHotkeyConfig();
+    if (accelerator && ((currentHide && accelerator === currentHide) || (currentQuit && accelerator === currentQuit))) {
+      return false;
+    }
+    const success = registerScreenshotHotkey(accelerator);
+    if (success) {
+      const filePath = join(storeDir, `${SCREENSHOT_HOTKEY_STORE_KEY}.json`);
+      try {
+        writeFileSync(filePath, JSON.stringify(accelerator, null, 2), 'utf-8');
+      } catch (err) {
+        console.error('[ScreenshotHotkey] persist error:', err);
+      }
+    }
+    return success;
+  });
+
+  // ===== 截图选区窗口 IPC =====
+
+  /** 用户完成选区 → 渲染进程已裁剪，复制到剪贴板 */
+  ipcMain.on('capture-complete', (_event, { dataURL }) => {
+    try {
+      const image = nativeImage.createFromDataURL(dataURL);
+      clipboard.writeImage(image);
+    } catch (err) {
+      console.error('[Screenshot] copy error:', err);
+    }
+    closeCaptureWindow();
+  });
+
+  /** 用户完成选区 → 渲染进程已裁剪，保存到文件 */
+  ipcMain.on('capture-save', async (_event, { dataURL }) => {
+    // 先隐藏截图窗口，避免 alwaysOnTop 遮挡文件保存对话框
+    if (captureWindow && !captureWindow.isDestroyed()) {
+      captureWindow.hide();
+    }
+    try {
+      const image = nativeImage.createFromDataURL(dataURL);
+      const pngBuffer = image.toPNG();
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+      const result = await dialog.showSaveDialog({
+        title: '保存截图',
+        defaultPath: join(app.getPath('pictures'), `eIsland_screenshot_${timestamp}.png`),
+        filters: [{ name: 'PNG', extensions: ['png'] }],
+      });
+      if (!result.canceled && result.filePath) {
+        writeFileSync(result.filePath, pngBuffer);
+      }
+    } catch (err) {
+      console.error('[Screenshot] save error:', err);
+    }
+    closeCaptureWindow();
+  });
+
+  /** 用户取消截图 */
+  ipcMain.on('capture-cancel', () => {
+    closeCaptureWindow();
   });
 }
 
@@ -1219,6 +1460,10 @@ app.whenReady().then(() => {
   // 读取持久化关闭快捷键并注册
   const savedQuitHotkey = readQuitHotkeyConfig();
   if (savedQuitHotkey) registerQuitHotkey(savedQuitHotkey);
+
+  // 读取持久化截图快捷键并注册
+  const savedScreenshotHotkey = readScreenshotHotkeyConfig();
+  if (savedScreenshotHotkey) registerScreenshotHotkey(savedScreenshotHotkey);
 
   app.on('activate', function () {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();

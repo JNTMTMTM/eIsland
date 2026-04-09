@@ -298,6 +298,21 @@ const api = {
   quitHotkeySet: (accelerator: string): Promise<boolean> => {
     return ipcRenderer.invoke('quit-hotkey:set', accelerator);
   },
+  /**
+   * 获取当前截图快捷键
+   * @returns 当前快捷键字符串
+   */
+  screenshotHotkeyGet: (): Promise<string> => {
+    return ipcRenderer.invoke('screenshot-hotkey:get');
+  },
+  /**
+   * 设置截图快捷键
+   * @param accelerator - Electron accelerator 字符串（如 "Alt+A"）
+   * @returns 是否注册成功
+   */
+  screenshotHotkeySet: (accelerator: string): Promise<boolean> => {
+    return ipcRenderer.invoke('screenshot-hotkey:set', accelerator);
+  },
   /** ===== 日志文件 API ===== */
   /**
    * 写入日志到文件

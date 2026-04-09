@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>eIsland Screenshot</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  overflow: hidden;
+  cursor: crosshair;
+  user-select: none;
+  background: #000;
+}
+canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+}
+#bg-canvas { z-index: 0; }
+#mask-canvas { z-index: 1; }
+
+#size-info {
+  position: fixed;
+  background: rgba(0,0,0,0.75);
+  color: #fff;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font: 12px/1.5 monospace;
+  display: none;
+  pointer-events: none;
+  z-index: 10;
+  white-space: nowrap;
+}
+
+#toolbar {
+  position: fixed;
+  background: rgba(30,30,30,0.9);
+  border-radius: 6px;
+  padding: 4px;
+  display: none;
+  z-index: 10;
+  gap: 4px;
+  align-items: center;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.5);
+}
+#toolbar button {
+  background: rgba(255,255,255,0.12);
+  border: none;
+  color: #fff;
+  padding: 5px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  font: 13px/1.4 system-ui, sans-serif;
+  transition: background 0.15s;
+}
+#toolbar button:hover { background: rgba(255,255,255,0.25); }
+#toolbar .primary { background: rgba(64,156,255,0.8); }
+#toolbar .primary:hover { background: rgba(64,156,255,1); }
+</style>
+</head>
+<body>
+<canvas id="bg-canvas"></canvas>
+<canvas id="mask-canvas"></canvas>
+<div id="size-info"></div>
+<div id="toolbar">
+  <button class="primary" id="btnCopy">&#x590D;&#x5236;</button>
+  <button id="btnSave">&#x4FDD;&#x5B58;</button>
+  <button id="btnCancel">&#x53D6;&#x6D88;</button>
+</div>
+
+<script>
+const { ipcRenderer } = require('electron');
+
+/* ======== DOM ======== */
+const bgCanvas   = document.getElementById('bg-canvas');
+const bgCtx      = bgCanvas.getContext('2d');
+const maskCanvas  = document.getElementById('mask-canvas');
+const maskCtx     = maskCanvas.getContext('2d');
+const sizeInfo    = document.getElementById('size-info');
+const toolbar     = document.getElementById('toolbar');
+
+/* ======== State ======== */
+let bgImage = null;          // Image element for the screenshot
+let scaleFactor = 1;         // display.scaleFactor
+let W = 0, H = 0;           // logical screen size (CSS pixels)
+let dpr = 1;                 // window.devicePixelRatio
+
+// Selection rect (logical CSS px)
+let selX = 0, selY = 0, selW = 0, selH = 0;
+
+// Interaction state machine
+const STATE = { IDLE: 0, DRAWING: 1, SELECTED: 2, MOVING: 3, RESIZING: 4 };
+let state = STATE.IDLE;
+
+// Drawing start
+let startX = 0, startY = 0;
+
+// Moving offset
+let moveOffX = 0, moveOffY = 0;
+
+// Resizing handle
+let resizeHandle = '';   // 'tl','t','tr','r','br','b','bl','l'
+let resizeAnchorX = 0, resizeAnchorY = 0;
+
+/* ======== Handle size constants ======== */
+const HANDLE_SIZE = 5;
+const HANDLE_HIT  = 8;  // hit-test area (slightly larger for easier grab)
+
+/* ======== Init ======== */
+function initCanvases() {
+  dpr = window.devicePixelRatio || 1;
+  W = window.innerWidth;
+  H = window.innerHeight;
+  bgCanvas.width   = W * dpr;
+  bgCanvas.height  = H * dpr;
+  maskCanvas.width  = W * dpr;
+  maskCanvas.height = H * dpr;
+  bgCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  maskCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+
+function drawBackground() {
+  bgCtx.clearRect(0, 0, W, H);
+  if (bgImage) {
+    bgCtx.drawImage(bgImage, 0, 0, W, H);
+  }
+}
+
+function drawMask() {
+  maskCtx.clearRect(0, 0, W, H);
+
+  if (state === STATE.IDLE) {
+    // Light dim overlay over the whole screen
+    maskCtx.fillStyle = 'rgba(0,0,0,0.35)';
+    maskCtx.fillRect(0, 0, W, H);
+    return;
+  }
+
+  // Dim outside selection
+  maskCtx.fillStyle = 'rgba(0,0,0,0.45)';
+  // Top
+  maskCtx.fillRect(0, 0, W, selY);
+  // Bottom
+  maskCtx.fillRect(0, selY + selH, W, H - selY - selH);
+  // Left
+  maskCtx.fillRect(0, selY, selX, selH);
+  // Right
+  maskCtx.fillRect(selX + selW, selY, W - selX - selW, selH);
+
+  // Selection border
+  maskCtx.strokeStyle = '#409cff';
+  maskCtx.lineWidth = 1.5;
+  maskCtx.strokeRect(selX, selY, selW, selH);
+
+  // Corner + edge handles
+  if (state === STATE.SELECTED || state === STATE.MOVING || state === STATE.RESIZING) {
+    maskCtx.fillStyle = '#409cff';
+    const hs = HANDLE_SIZE;
+    const handles = getHandlePositions();
+    for (const key in handles) {
+      const [hx, hy] = handles[key];
+      maskCtx.fillRect(hx - hs, hy - hs, hs * 2, hs * 2);
+    }
+  }
+}
+
+function getHandlePositions() {
+  const cx = selX + selW / 2;
+  const cy = selY + selH / 2;
+  return {
+    tl: [selX, selY],
+    t:  [cx, selY],
+    tr: [selX + selW, selY],
+    r:  [selX + selW, cy],
+    br: [selX + selW, selY + selH],
+    b:  [cx, selY + selH],
+    bl: [selX, selY + selH],
+    l:  [selX, cy],
+  };
+}
+
+function hitTestHandle(mx, my) {
+  if (state !== STATE.SELECTED) return '';
+  const handles = getHandlePositions();
+  for (const key in handles) {
+    const [hx, hy] = handles[key];
+    if (Math.abs(mx - hx) <= HANDLE_HIT && Math.abs(my - hy) <= HANDLE_HIT) {
+      return key;
+    }
+  }
+  return '';
+}
+
+function isInsideSelection(mx, my) {
+  return mx >= selX && mx <= selX + selW && my >= selY && my <= selY + selH;
+}
+
+function updateSizeInfo() {
+  if (state === STATE.IDLE) {
+    sizeInfo.style.display = 'none';
+    return;
+  }
+  // Show real pixel dimensions (accounting for scaleFactor)
+  const pw = Math.round(selW * scaleFactor);
+  const ph = Math.round(selH * scaleFactor);
+  if (pw < 1 || ph < 1) {
+    sizeInfo.style.display = 'none';
+    return;
+  }
+  sizeInfo.style.display = 'block';
+  sizeInfo.textContent = pw + ' \u00d7 ' + ph;
+  // Position above selection top-left
+  sizeInfo.style.left = selX + 'px';
+  sizeInfo.style.top = Math.max(selY - 24, 0) + 'px';
+}
+
+function showToolbar() {
+  toolbar.style.display = 'flex';
+  const tbW = toolbar.offsetWidth || 180;
+  const tbH = toolbar.offsetHeight || 36;
+  let tx = selX + selW - tbW;
+  if (tx < 0) tx = selX;
+  let ty = selY + selH + 8;
+  if (ty + tbH > H) ty = selY - tbH - 8;
+  if (ty < 0) ty = selY + selH + 8;
+  toolbar.style.left = tx + 'px';
+  toolbar.style.top = ty + 'px';
+}
+
+function hideToolbar() {
+  toolbar.style.display = 'none';
+}
+
+function getCursorForHandle(handle) {
+  const map = {
+    tl: 'nwse-resize', tr: 'nesw-resize', bl: 'nesw-resize', br: 'nwse-resize',
+    t: 'ns-resize', b: 'ns-resize', l: 'ew-resize', r: 'ew-resize',
+  };
+  return map[handle] || 'crosshair';
+}
+
+/* ======== Cropping (in renderer via Canvas) ======== */
+function cropSelection() {
+  if (!bgImage || selW < 2 || selH < 2) return null;
+
+  // Crop from the original image (which may be scaled by scaleFactor)
+  const imgW = bgImage.naturalWidth;
+  const imgH = bgImage.naturalHeight;
+  const scaleX = imgW / W;
+  const scaleY = imgH / H;
+
+  const sx = Math.round(selX * scaleX);
+  const sy = Math.round(selY * scaleY);
+  const sw = Math.round(selW * scaleX);
+  const sh = Math.round(selH * scaleY);
+
+  const cropCanvas = document.createElement('canvas');
+  cropCanvas.width = sw;
+  cropCanvas.height = sh;
+  const cropCtx = cropCanvas.getContext('2d');
+  cropCtx.drawImage(bgImage, sx, sy, sw, sh, 0, 0, sw, sh);
+
+  return cropCanvas.toDataURL('image/png');
+}
+
+/* ======== IPC: receive image ======== */
+ipcRenderer.on('capture-image', (_e, data) => {
+  scaleFactor = data.scaleFactor || 1;
+  const img = new Image();
+  img.onload = () => {
+    bgImage = img;
+    initCanvases();
+    drawBackground();
+    drawMask();
+  };
+  img.src = data.imageDataURL;
+});
+
+/* ======== Mouse events ======== */
+maskCanvas.addEventListener('mousedown', (e) => {
+  if (e.button !== 0) return;
+  const mx = e.clientX, my = e.clientY;
+
+  if (state === STATE.SELECTED) {
+    // Check handle first
+    const handle = hitTestHandle(mx, my);
+    if (handle) {
+      state = STATE.RESIZING;
+      resizeHandle = handle;
+      // Determine the anchor point (opposite corner/edge)
+      const anchors = {
+        tl: [selX + selW, selY + selH], t: [selX, selY + selH],
+        tr: [selX, selY + selH],        r: [selX, selY],
+        br: [selX, selY],               b: [selX, selY],
+        bl: [selX + selW, selY],        l: [selX + selW, selY],
+      };
+      [resizeAnchorX, resizeAnchorY] = anchors[handle];
+      hideToolbar();
+      return;
+    }
+
+    // Check if inside selection -> move
+    if (isInsideSelection(mx, my)) {
+      state = STATE.MOVING;
+      moveOffX = mx - selX;
+      moveOffY = my - selY;
+      hideToolbar();
+      document.body.style.cursor = 'move';
+      return;
+    }
+
+    // Click outside -> start new selection
+    state = STATE.DRAWING;
+    hideToolbar();
+    startX = mx; startY = my;
+    selX = mx; selY = my; selW = 0; selH = 0;
+    drawMask();
+    return;
+  }
+
+  // Start new selection
+  state = STATE.DRAWING;
+  hideToolbar();
+  startX = mx; startY = my;
+  selX = mx; selY = my; selW = 0; selH = 0;
+  document.body.style.cursor = 'crosshair';
+  drawMask();
+});
+
+maskCanvas.addEventListener('mousemove', (e) => {
+  const mx = e.clientX, my = e.clientY;
+
+  if (state === STATE.DRAWING) {
+    selX = Math.min(startX, mx);
+    selY = Math.min(startY, my);
+    selW = Math.abs(mx - startX);
+    selH = Math.abs(my - startY);
+    drawMask();
+    updateSizeInfo();
+    return;
+  }
+
+  if (state === STATE.MOVING) {
+    selX = Math.max(0, Math.min(mx - moveOffX, W - selW));
+    selY = Math.max(0, Math.min(my - moveOffY, H - selH));
+    drawMask();
+    updateSizeInfo();
+    return;
+  }
+
+  if (state === STATE.RESIZING) {
+    let newX, newY, newW, newH;
+    const h = resizeHandle;
+
+    if (h === 'tl' || h === 'l' || h === 'bl') {
+      newX = Math.min(mx, resizeAnchorX);
+      newW = Math.abs(resizeAnchorX - mx);
+    } else if (h === 'tr' || h === 'r' || h === 'br') {
+      newX = Math.min(mx, resizeAnchorX);
+      newW = Math.abs(mx - resizeAnchorX);
+    } else {
+      newX = selX;
+      newW = selW;
+    }
+
+    if (h === 'tl' || h === 't' || h === 'tr') {
+      newY = Math.min(my, resizeAnchorY);
+      newH = Math.abs(resizeAnchorY - my);
+    } else if (h === 'bl' || h === 'b' || h === 'br') {
+      newY = Math.min(my, resizeAnchorY);
+      newH = Math.abs(my - resizeAnchorY);
+    } else {
+      newY = selY;
+      newH = selH;
+    }
+
+    selX = newX; selY = newY; selW = newW; selH = newH;
+    drawMask();
+    updateSizeInfo();
+    return;
+  }
+
+  // IDLE or SELECTED: update cursor
+  if (state === STATE.SELECTED) {
+    const handle = hitTestHandle(mx, my);
+    if (handle) {
+      document.body.style.cursor = getCursorForHandle(handle);
+    } else if (isInsideSelection(mx, my)) {
+      document.body.style.cursor = 'move';
+    } else {
+      document.body.style.cursor = 'crosshair';
+    }
+  } else {
+    // In IDLE, show coordinate info
+    sizeInfo.style.display = 'block';
+    sizeInfo.textContent = mx + ', ' + my;
+    sizeInfo.style.left = Math.min(mx + 12, W - 80) + 'px';
+    sizeInfo.style.top = Math.min(my + 12, H - 28) + 'px';
+  }
+});
+
+maskCanvas.addEventListener('mouseup', (e) => {
+  if (state === STATE.DRAWING) {
+    const mx = e.clientX, my = e.clientY;
+    selX = Math.min(startX, mx);
+    selY = Math.min(startY, my);
+    selW = Math.abs(mx - startX);
+    selH = Math.abs(my - startY);
+
+    if (selW < 3 || selH < 3) {
+      // Selection too small, reset
+      state = STATE.IDLE;
+      selX = 0; selY = 0; selW = 0; selH = 0;
+      drawMask();
+      updateSizeInfo();
+      return;
+    }
+
+    state = STATE.SELECTED;
+    drawMask();
+    updateSizeInfo();
+    showToolbar();
+    return;
+  }
+
+  if (state === STATE.MOVING) {
+    state = STATE.SELECTED;
+    document.body.style.cursor = 'default';
+    drawMask();
+    showToolbar();
+    return;
+  }
+
+  if (state === STATE.RESIZING) {
+    state = STATE.SELECTED;
+    document.body.style.cursor = 'default';
+    drawMask();
+    updateSizeInfo();
+    showToolbar();
+    return;
+  }
+});
+
+/* ======== Keyboard ======== */
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    ipcRenderer.send('capture-cancel');
+  } else if (e.key === 'Enter' && state === STATE.SELECTED) {
+    const dataURL = cropSelection();
+    if (dataURL) ipcRenderer.send('capture-complete', { dataURL });
+  }
+});
+
+/* ======== Toolbar buttons ======== */
+document.getElementById('btnCopy').addEventListener('click', () => {
+  const dataURL = cropSelection();
+  if (dataURL) ipcRenderer.send('capture-complete', { dataURL });
+});
+
+document.getElementById('btnSave').addEventListener('click', () => {
+  const dataURL = cropSelection();
+  if (dataURL) ipcRenderer.send('capture-save', { dataURL });
+});
+
+document.getElementById('btnCancel').addEventListener('click', () => {
+  ipcRenderer.send('capture-cancel');
+});
+
+/* ======== Window resize ======== */
+window.addEventListener('resize', () => {
+  initCanvases();
+  drawBackground();
+  drawMask();
+});
+</script>
+</body>
+</html>
