@@ -310,6 +310,9 @@ function readScreenshotHotkeyConfig(): string {
 /** 截图窗口引用 */
 let captureWindow: BrowserWindow | null = null;
 
+/** 截图窗口启动中锁，防止高频热键并发创建多个窗口 */
+let isStartingCaptureWindow = false;
+
 /**
  * 获取 capture.html 的路径（兼容开发环境和打包环境）
  */
@@ -334,7 +337,8 @@ function closeCaptureWindow(): void {
  * @description 捕获全屏图像 → 创建全屏透明窗口 → 发送图像到渲染进程 → 用户选区 → 裁剪回传
  */
 async function startRegionScreenshot(): Promise<void> {
-  if (captureWindow) return;
+  if (captureWindow || isStartingCaptureWindow) return;
+  isStartingCaptureWindow = true;
   try {
     const primaryDisplay = screen.getPrimaryDisplay();
     const { width: sw, height: sh } = primaryDisplay.size;
@@ -409,6 +413,8 @@ async function startRegionScreenshot(): Promise<void> {
     console.error('[Screenshot] start error:', err);
     captureWindow = null;
     if (mainWindow) { mainWindow.show(); mainWindow.setAlwaysOnTop(true, 'screen-saver'); }
+  } finally {
+    isStartingCaptureWindow = false;
   }
 }
 
