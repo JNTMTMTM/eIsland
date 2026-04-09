@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import { useRef, useEffect, useCallback } from 'react';
+import React, { useRef, useEffect, useCallback } from 'react';
 import useIslandStore from '../../../../store/slices';
 import { SvgIcon } from '../../../../utils/SvgIcon';
 
