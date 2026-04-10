@@ -380,6 +380,7 @@ export function SettingsTab(): ReactElement {
   const activeTabRef = useRef(activeTab);
   activeTabRef.current = activeTab;
   const appSettingsPageRef = useRef(appSettingsPage);
+  const currentAppSettingsPageLabel = APP_SETTINGS_PAGES.find((page) => page.key === appSettingsPage)?.label || '总览';
   appSettingsPageRef.current = appSettingsPage;
   const [layoutConfig, setLayoutConfig] = useState<OverviewLayoutConfig>(DEFAULT_LAYOUT);
 
@@ -813,14 +814,13 @@ export function SettingsTab(): ReactElement {
         <div className="max-expand-settings-panel">
           {activeTab === 'app' && (
             <div className="max-expand-settings-section">
-              <div className="max-expand-settings-title">软件设置</div>
+              <div className="max-expand-settings-title settings-app-title-line">
+                <span>软件设置</span>
+                <span className="settings-app-title-sub">- {currentAppSettingsPageLabel}</span>
+              </div>
 
               <div className="settings-app-pages-layout">
                 <div className="settings-app-page-main">
-                  <div className="settings-app-page-title">
-                    {APP_SETTINGS_PAGES.find((page) => page.key === appSettingsPage)?.label || '软件设置'}
-                  </div>
-
                   {appSettingsPage === 'overview' && (
                     <div className="settings-app-overview">
                       <div className="settings-app-overview-card">

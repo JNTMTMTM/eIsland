@@ -169,6 +169,18 @@
   color: rgba(255, 255, 255, 0.9);
 }
 
+.settings-app-title-line {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.settings-app-title-sub {
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.52);
+}
+
 .max-expand-settings-desc {
   font-size: 13px;
   color: rgba(255, 255, 255, 0.55);
@@ -387,6 +399,7 @@
   display: flex;
   align-items: stretch;
   gap: 12px;
+  margin-top: 8px;
   min-height: 0;
   position: relative;
 }
@@ -452,13 +465,6 @@
 
 .settings-app-page-dot:hover::after {
   opacity: 1;
-}
-
-.settings-app-page-title {
-  text-align: center;
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.6);
-  margin-bottom: 2px;
 }
 
 .settings-app-overview {
