@@ -1435,9 +1435,19 @@ function registerIpcHandlers(): void {
   ipcMain.handle('hide-process-list:set', (_event, list: string[]) => {
     try {
       const next = sanitizeProcessNameList(Array.isArray(list) ? list : []);
+      const nextNormalized = new Set(next.map(normalizeProcessName));
+
+      // 删除项立即生效：运行时名单收敛到新配置子集
+      autoHideProcessList = autoHideProcessList.filter((name) => nextNormalized.has(normalizeProcessName(name)));
+
       configuredHideProcessList = next;
       const filePath = join(storeDir, `${HIDE_PROCESS_LIST_STORE_KEY}.json`);
       writeFileSync(filePath, JSON.stringify(next, null, 2), 'utf-8');
+
+      if (process.platform === 'win32') {
+        checkAutoHideProcessList().catch(() => {});
+      }
+
       return true;
     } catch (err) {
       console.error('[HideProcessList] persist error:', err);
