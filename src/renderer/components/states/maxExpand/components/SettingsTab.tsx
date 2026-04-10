@@ -934,7 +934,7 @@ export function SettingsTab(): ReactElement {
                   )}
                 </div>
 
-                <div className="settings-app-page-dots" role="tablist" aria-label="软件设置分页">
+                <div className="settings-app-page-dots" aria-label="软件设置分页">
                   {APP_SETTINGS_PAGES.map((page) => (
                     <button
                       key={page.key}
@@ -944,7 +944,6 @@ export function SettingsTab(): ReactElement {
                       onClick={() => setAppSettingsPage(page.key)}
                       title={page.label}
                       aria-label={page.label}
-                      aria-selected={appSettingsPage === page.key}
                     />
                   ))}
                 </div>
