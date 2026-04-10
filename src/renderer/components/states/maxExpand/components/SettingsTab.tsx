@@ -418,6 +418,8 @@ export function SettingsTab(): ReactElement {
   const [screenshotHotkeyError, setScreenshotHotkeyError] = useState<string>('');
   const screenshotHotkeyInputRef = useRef<HTMLInputElement>(null);
 
+  const hideProcessKeyword = hideProcessFilter.trim().toLowerCase();
+
   /** 加载网络配置 */
   useEffect(() => {
     const cfg = loadNetworkConfig();
@@ -902,7 +904,7 @@ export function SettingsTab(): ReactElement {
 
                       <div className="settings-hide-process-list">
                         {runningProcesses
-                          .filter((process) => process.name.toLowerCase().includes(hideProcessFilter.trim().toLowerCase()))
+                          .filter((process) => process.name.toLowerCase().includes(hideProcessKeyword))
                           .map((process) => {
                             const name = process.name;
                             const selected = hideProcessList.some((item) => item.trim().toLowerCase() === name.trim().toLowerCase());
