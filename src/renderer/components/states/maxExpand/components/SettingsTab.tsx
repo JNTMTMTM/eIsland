@@ -40,6 +40,7 @@ import {
   DEFAULT_WEATHER_PRIMARY_PROVIDER,
   type WeatherProvider,
 } from '../../../../store/utils/storage';
+import { fetchVersion } from '../../../../api/versionApi';
 
 /** 单行配置项 */
 function SettingsField({
@@ -399,6 +400,7 @@ export function SettingsTab(): ReactElement {
   const [hideProcessList, setHideProcessList] = useState<string[]>([]);
   const [hideProcessFilter, setHideProcessFilter] = useState<string>('');
   const [hideProcessLoading, setHideProcessLoading] = useState(false);
+  const [aboutVersion, setAboutVersion] = useState<string>('26.1.1-beta.3');
 
   /** 快捷键相关状态 */
   const [hideHotkey, setHideHotkey] = useState<string>('Alt+X');
@@ -419,6 +421,15 @@ export function SettingsTab(): ReactElement {
   const screenshotHotkeyInputRef = useRef<HTMLInputElement>(null);
 
   const hideProcessKeyword = hideProcessFilter.trim().toLowerCase();
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchVersion().then((info) => {
+      if (cancelled || !info) return;
+      setAboutVersion(info.version);
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
 
   /** 加载网络配置 */
   useEffect(() => {
@@ -1364,7 +1375,7 @@ export function SettingsTab(): ReactElement {
                     </a>
                     鸡哥 <span className="settings-about-id">JNTMTMTM</span>
                   </div>
-                  <div className="settings-about-version">eIsland v26.1.1-beta.3</div>
+                  <div className="settings-about-version">eIsland v{aboutVersion}</div>
                 </div>
               </div>
 
