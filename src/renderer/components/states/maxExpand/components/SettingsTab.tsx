@@ -866,7 +866,7 @@ export function SettingsTab(): ReactElement {
 
                   {appSettingsPage === 'hide-process-list' && (
                     <div className="settings-hide-processes">
-                      <div className="settings-music-hint">识别到以下进程运行时，将立即隐藏灵动岛。你可以勾选自定义名单。</div>
+                      <div className="settings-music-hint">识别到以下进程运行时，将立即隐藏灵动岛。你可以勾选自定义名单（新配置将在下次重启后生效）。</div>
                       <div className="settings-hide-process-toolbar">
                         <input
                           className="settings-whitelist-input"

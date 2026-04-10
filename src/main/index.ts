@@ -348,6 +348,9 @@ let nowPlayingWhitelist: string[] = [...DEFAULT_WHITELIST];
 /** 运行时隐藏进程名单（命中后立即隐藏灵动岛） */
 let autoHideProcessList: string[] = [...DEFAULT_HIDE_PROCESS_LIST];
 
+/** 设置界面配置的隐藏进程名单（下次重启生效） */
+let configuredHideProcessList: string[] = [...DEFAULT_HIDE_PROCESS_LIST];
+
 /** 隐藏进程名单轮询计时器 */
 let autoHideProcessWatcher: NodeJS.Timeout | null = null;
 
@@ -1423,17 +1426,16 @@ function registerIpcHandlers(): void {
 
   /** 获取隐藏进程名单 */
   ipcMain.handle('hide-process-list:get', () => {
-    return autoHideProcessList;
+    return configuredHideProcessList;
   });
 
   /** 设置隐藏进程名单并持久化 */
   ipcMain.handle('hide-process-list:set', (_event, list: string[]) => {
     try {
       const next = sanitizeProcessNameList(Array.isArray(list) ? list : []);
-      autoHideProcessList = next;
+      configuredHideProcessList = next;
       const filePath = join(storeDir, `${HIDE_PROCESS_LIST_STORE_KEY}.json`);
       writeFileSync(filePath, JSON.stringify(next, null, 2), 'utf-8');
-      checkAutoHideProcessList().catch(() => {});
       return true;
     } catch (err) {
       console.error('[HideProcessList] persist error:', err);
@@ -1865,6 +1867,7 @@ app.whenReady().then(() => {
 
   // 读取持久化隐藏进程名单并启动轮询
   autoHideProcessList = readHideProcessListConfig();
+  configuredHideProcessList = [...autoHideProcessList];
   startAutoHideProcessWatcher();
 
   // 读取持久化快捷键并注册
