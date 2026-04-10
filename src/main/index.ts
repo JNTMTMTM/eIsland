@@ -38,6 +38,134 @@ if (!gotTheLock) {
   app.quit();
 }
 
+function normalizeProcessName(name: string): string {
+  return name.trim().toLowerCase();
+}
+
+function isSystemProcessName(processName: string): boolean {
+  const name = normalizeProcessName(processName);
+  if (!name) return true;
+
+  if (name === 'system' || name === 'system idle process' || name === 'registry' || name === 'memory compression') {
+    return true;
+  }
+
+  return [
+    /^smss\.exe$/,
+    /^csrss\.exe$/,
+    /^wininit\.exe$/,
+    /^winlogon\.exe$/,
+    /^services\.exe$/,
+    /^lsass\.exe$/,
+    /^fontdrvhost\.exe$/,
+    /^svchost\.exe$/,
+    /^sihost\.exe$/,
+    /^dwm\.exe$/,
+    /^taskhostw\.exe$/,
+    /^runtimebroker\.exe$/,
+    /^startmenuexperiencehost\.exe$/,
+    /^shellexperiencehost\.exe$/,
+    /^searchhost\.exe$/,
+  ].some((pattern) => pattern.test(name));
+}
+
+function parseTaskListProcessNames(raw: string): string[] {
+  const names = new Set<string>();
+  const lines = raw.split(/\r?\n/);
+
+  for (const line of lines) {
+    const text = line.trim();
+    if (!text) continue;
+    const matched = text.match(/^"([^"]+)"/);
+    const processName = (matched?.[1] || text.split(',')[0] || '').trim();
+    if (!processName) continue;
+    names.add(processName);
+  }
+
+  return [...names].sort((a, b) => a.localeCompare(b, 'zh-CN'));
+}
+
+function queryRunningProcessNames(): Promise<string[]> {
+  return new Promise((resolve) => {
+    exec('tasklist /fo csv /nh', { windowsHide: true }, (err, stdout) => {
+      if (err) {
+        console.error('[Process] query running process failed:', err.message);
+        resolve([]);
+        return;
+      }
+      resolve(parseTaskListProcessNames(stdout));
+    });
+  });
+}
+
+async function queryRunningNonSystemProcessNames(): Promise<string[]> {
+  const all = await queryRunningProcessNames();
+  return all.filter((name) => !isSystemProcessName(name));
+}
+
+async function checkAutoHideProcessList(): Promise<void> {
+  if (!mainWindow || mainWindow.isDestroyed()) return;
+  if (!autoHideProcessList.length) return;
+
+  const running = await queryRunningProcessNames();
+  if (!running.length) return;
+
+  const runningSet = new Set(running.map(normalizeProcessName));
+  const shouldHide = autoHideProcessList.some((name) => runningSet.has(normalizeProcessName(name)));
+
+  if (shouldHide && mainWindow.isVisible()) {
+    mainWindow.hide();
+  }
+}
+
+function startAutoHideProcessWatcher(): void {
+  if (autoHideProcessWatcher) {
+    clearInterval(autoHideProcessWatcher);
+    autoHideProcessWatcher = null;
+  }
+
+  checkAutoHideProcessList().catch(() => {});
+  autoHideProcessWatcher = setInterval(() => {
+    checkAutoHideProcessList().catch(() => {});
+  }, 2500);
+}
+
+function stopAutoHideProcessWatcher(): void {
+  if (autoHideProcessWatcher) {
+    clearInterval(autoHideProcessWatcher);
+    autoHideProcessWatcher = null;
+  }
+}
+
+function sanitizeProcessNameList(list: string[]): string[] {
+  const normalizedSet = new Set<string>();
+  const sanitized: string[] = [];
+
+  list.forEach((item) => {
+    const text = item.trim();
+    if (!text) return;
+    const key = normalizeProcessName(text);
+    if (normalizedSet.has(key)) return;
+    normalizedSet.add(key);
+    sanitized.push(text);
+  });
+
+  return sanitized;
+}
+
+function readHideProcessListConfig(): string[] {
+  try {
+    const storeDir = join(app.getPath('userData'), 'eIsland_store');
+    const filePath = join(storeDir, `${HIDE_PROCESS_LIST_STORE_KEY}.json`);
+    if (!existsSync(filePath)) return DEFAULT_HIDE_PROCESS_LIST;
+    const raw = readFileSync(filePath, 'utf-8');
+    const data = JSON.parse(raw);
+    return Array.isArray(data) ? sanitizeProcessNameList(data.filter((x) => typeof x === 'string')) : DEFAULT_HIDE_PROCESS_LIST;
+  } catch {
+    return DEFAULT_HIDE_PROCESS_LIST;
+  }
+}
+
 let mainWindow: BrowserWindow | null = null;
 
 /** SMTC Worker 线程引用 */
@@ -68,8 +196,20 @@ const WHITELIST_STORE_KEY = 'music-whitelist';
 /** 歌词源存储键名 */
 const LYRICS_SOURCE_STORE_KEY = 'lyrics-source';
 
+/** 隐藏进程名单存储键名 */
+const HIDE_PROCESS_LIST_STORE_KEY = 'hide-process-list';
+
+/** 隐藏进程名单默认值 */
+const DEFAULT_HIDE_PROCESS_LIST: string[] = [];
+
 /** 运行时白名单（可被用户修改） */
 let nowPlayingWhitelist: string[] = [...DEFAULT_WHITELIST];
+
+/** 运行时隐藏进程名单（命中后立即隐藏灵动岛） */
+let autoHideProcessList: string[] = [...DEFAULT_HIDE_PROCESS_LIST];
+
+/** 隐藏进程名单轮询计时器 */
+let autoHideProcessWatcher: NodeJS.Timeout | null = null;
 
 /** 记录当前生效的设备ID（仅白名单内程序） */
 let currentDeviceId: string = nowPlayingWhitelist[0] || '';
@@ -1105,6 +1245,31 @@ function registerIpcHandlers(): void {
     }
   });
 
+  /** 获取当前运行的非系统进程列表 */
+  ipcMain.handle('system:running-processes:get', async () => {
+    return queryRunningNonSystemProcessNames();
+  });
+
+  /** 获取隐藏进程名单 */
+  ipcMain.handle('hide-process-list:get', () => {
+    return autoHideProcessList;
+  });
+
+  /** 设置隐藏进程名单并持久化 */
+  ipcMain.handle('hide-process-list:set', (_event, list: string[]) => {
+    try {
+      const next = sanitizeProcessNameList(Array.isArray(list) ? list : []);
+      autoHideProcessList = next;
+      const filePath = join(storeDir, `${HIDE_PROCESS_LIST_STORE_KEY}.json`);
+      writeFileSync(filePath, JSON.stringify(next, null, 2), 'utf-8');
+      checkAutoHideProcessList().catch(() => {});
+      return true;
+    } catch (err) {
+      console.error('[HideProcessList] persist error:', err);
+      return false;
+    }
+  });
+
   // ===== 快捷键 IPC =====
 
   /**
@@ -1490,6 +1655,10 @@ app.whenReady().then(() => {
   // 读取持久化白名单
   nowPlayingWhitelist = readWhitelistConfig();
 
+  // 读取持久化隐藏进程名单并启动轮询
+  autoHideProcessList = readHideProcessListConfig();
+  startAutoHideProcessWatcher();
+
   // 读取持久化快捷键并注册
   const savedHotkey = readHotkeyConfig();
   registerHideHotkey(savedHotkey);
@@ -1508,10 +1677,12 @@ app.whenReady().then(() => {
 });
 
 app.on('will-quit', () => {
+  stopAutoHideProcessWatcher();
   globalShortcut.unregisterAll();
 });
 
 app.on('window-all-closed', () => {
+  stopAutoHideProcessWatcher();
   cleanupSmtcWorker();
   destroyTray();
   if (process.platform !== 'darwin') {

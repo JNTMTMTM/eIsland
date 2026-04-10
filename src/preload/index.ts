@@ -360,6 +360,18 @@ const api = {
   musicDetectSourceAppId: (): Promise<{ ok: boolean; sourceAppId: string | null; message: string }> => {
     return ipcRenderer.invoke('music:detect-source-app-id');
   },
+  /** 获取当前运行中的非系统进程列表 */
+  getRunningNonSystemProcesses: (): Promise<string[]> => {
+    return ipcRenderer.invoke('system:running-processes:get');
+  },
+  /** 获取隐藏进程名单 */
+  hideProcessListGet: (): Promise<string[]> => {
+    return ipcRenderer.invoke('hide-process-list:get');
+  },
+  /** 设置隐藏进程名单 */
+  hideProcessListSet: (list: string[]): Promise<boolean> => {
+    return ipcRenderer.invoke('hide-process-list:set', list);
+  },
   /** 订阅播放源切换请求（主进程推送） */
   onSourceSwitchRequest: (callback: (data: { sourceAppId: string; title: string; artist: string }) => void): (() => void) => {
     const handler = (_event: Electron.IpcRendererEvent, data: { sourceAppId: string; title: string; artist: string }) => {

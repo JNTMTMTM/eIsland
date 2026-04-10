@@ -105,6 +105,9 @@ declare global {
       musicLyricsSourceGet: () => Promise<string>;
       musicLyricsSourceSet: (source: string) => Promise<boolean>;
       musicDetectSourceAppId: () => Promise<{ ok: boolean; sourceAppId: string | null; message: string }>;
+      getRunningNonSystemProcesses: () => Promise<string[]>;
+      hideProcessListGet: () => Promise<string[]>;
+      hideProcessListSet: (list: string[]) => Promise<boolean>;
       /** 订阅播放源切换请求（主进程推送） */
       onSourceSwitchRequest: (callback: (data: { sourceAppId: string; title: string; artist: string }) => void) => () => void;
       /** 接受切换到新播放源 */
