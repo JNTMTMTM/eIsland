@@ -618,8 +618,6 @@
   justify-content: center;
   overflow: hidden;
   flex-shrink: 0;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.14);
 }
 
 .settings-hide-process-icon img {
