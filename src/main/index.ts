@@ -73,14 +73,14 @@ function parseTaskListProcessNames(raw: string): string[] {
   const names = new Set<string>();
   const lines = raw.split(/\r?\n/);
 
-  for (const line of lines) {
+  lines.forEach((line) => {
     const text = line.trim();
-    if (!text) continue;
+    if (!text) return;
     const matched = text.match(/^"([^"]+)"/);
     const processName = (matched?.[1] || text.split(',')[0] || '').trim();
-    if (!processName) continue;
+    if (!processName) return;
     names.add(processName);
-  }
+  });
 
   return [...names].sort((a, b) => a.localeCompare(b, 'zh-CN'));
 }
