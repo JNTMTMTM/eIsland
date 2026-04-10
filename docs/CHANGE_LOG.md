@@ -1,7 +1,52 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-04-10T17:56:11.983Z
+> 生成时间：2026-04-10T18:00:09.160Z
+
+## 26.1.2
+
+- 2026-04-10 | f5499a2 | github-actions[bot] | docs: auto update CHANGE_LOG.md for #27 by @JNTMTMTM [skip ci]
+- 2026-04-11 | 3914999 | 鸡哥 | Merge pull request #27 from JNTMTMTM/dev
+- 2026-04-11 | 5197eef | 鸡哥 | feat: 关于软件界面的版本号改为使用api动态获取
+- 2026-04-10 | 71b4bdd | github-actions[bot] | docs: auto update CHANGE_LOG.md for #26 by @JNTMTMTM [skip ci]
+- 2026-04-11 | 595186f | 鸡哥 | Merge pull request #26 from JNTMTMTM/dev
+- 2026-04-11 | 42db610 | 鸡哥 | fix: 避免了在 .filter 回调里每个进程都重复做 trim().toLowerCase()
+- 2026-04-11 | 7dff6db | 鸡哥 | feat: 快速连续点击/批量操作也会基于最新状态原子更新
+- 2026-04-11 | aa09c58 | 鸡哥 | fix: 移除错误 tab 语义
+- 2026-04-11 | 11f4a64 | 鸡哥 | fix: 修复隐藏进程列表删除条目无法直接生效的问题
+- 2026-04-11 | 2ccf627 | 鸡哥 | feat: handler 加上平台守卫
+- 2026-04-11 | 437af3a | 鸡哥 | fix: 非 Windows 平台不会触发无效的tasklist/powershell.exe 轮询
+- 2026-04-11 | 89e640c | 鸡哥 | fix: 修复违反 no-for-in-of 规则的地方
+- 2026-04-11 | 9af4577 | 鸡哥 | chore: 更新版本至V26.1.2
+- 2026-04-11 | 2c895a5 | 鸡哥 | fix: 修复自动隐藏进程的逻辑错误
+- 2026-04-11 | 6ea4e19 | 鸡哥 | pref: 优化软件设置界面
+- 2026-04-11 | df5c757 | 鸡哥 | style: 优化软件设置界面次级标题位置
+- 2026-04-10 | cf677ad | 鸡哥 | style: 优化图标样式
+- 2026-04-10 | 6055c61 | 鸡哥 | feat: 进程列表显示进程图标
+- 2026-04-10 | 88ece5d | 鸡哥 | feat: 添加进程名单未命中自动显示灵动岛
+- 2026-04-10 | 12a93c4 | 鸡哥 | pref: 添加内存回收机制
+- 2026-04-10 | c63b0fa | 鸡哥 | style: 优化进程名单竖直滚动条样式
+- 2026-04-10 | 708995b | 鸡哥 | style: 优化进程名单配置界面样式
+- 2026-04-10 | 46699ea | 鸡哥 | feat: 添加隐藏进程列表配置界面
+- 2026-04-09 | 18f92a0 | github-actions[bot] | docs: auto update CHANGE_LOG.md for #25 by @JNTMTMTM [skip ci]
+- 2026-04-10 | 17d7776 | 鸡哥 | Merge pull request #25 from JNTMTMTM/dev
+- 2026-04-10 | b150226 | 鸡哥 | fix: 修复其余架构问题
+- 2026-04-10 | 2248b84 | 鸡哥 | refactor: 改用离屏 canvas 压缩存储 降低历史存储上限
+- 2026-04-10 | 5ce7da7 | 鸡哥 | fix: 避免异常路径下隐藏窗口残留
+- 2026-04-10 | 654caf2 | 鸡哥 | fix: 补充 ReactElement 导入类
+- 2026-04-10 | dcf8314 | 鸡哥 | fix: 修复 SilkyWave rAF 每帧都会重新计算的问题
+- 2026-04-10 | 2143714 | 鸡哥 | fix: 修复绘制坐标/清屏尺寸不一致的问题
+- 2026-04-10 | c11a1e1 | 鸡哥 | fix: 使用构造器优化循环
+- 2026-04-10 | e518f74 | 鸡哥 | fix: 修复字体粗细下拉框颜色和背景相同的问题
+- 2026-04-10 | 90c0a6e | 鸡哥 | pref: 优化截图画布启动性能
+- 2026-04-09 | 0ec5475 | 鸡哥 | fix: 修复不符合前端代码规范和注释规范的地方
+- 2026-04-09 | 834d774 | 鸡哥 | feat: 模块化截图功能
+- 2026-04-09 | e4cef41 | 鸡哥 | fix: 修复多截图窗口堆叠的问题
+- 2026-04-09 | f7bcd88 | 鸡哥 | feat: 添加截图后画板功能
+- 2026-04-09 | f9f22f9 | 鸡哥 | feat: 添加快捷键选区截图功能
+- 2026-04-09 | 372f47f | 鸡哥 | style: 重写 hover-lrctab 波浪动画
+- 2026-04-09 | 84aa3d7 | 鸡哥 | fix: 提高smtc识别命中率
+- 2026-04-08 | 9f80f6b | github-actions[bot] | docs: auto update CHANGE_LOG.md for release 26.1.1-beta.3 by @JNTMTMTM [skip ci]
 
 ## 26.1.1-beta.3
 
@@ -362,47 +407,3 @@
 - 2026-03-30 | bb18a81 | 鸡哥 | feat: 初始化 eIsland 项目
 - 2026-03-30 | 044489f | 鸡哥 | chore: 更新 .gitignore 忽略 .claude 目录
 - 2026-03-30 | 1fc5faf | 鸡哥 | chore: 添加社区规范文档
-
-## Unreleased
-
-- 2026-04-11 | 3914999 | 鸡哥 | Merge pull request #27 from JNTMTMTM/dev
-- 2026-04-11 | 5197eef | 鸡哥 | feat: 关于软件界面的版本号改为使用api动态获取
-- 2026-04-10 | 71b4bdd | github-actions[bot] | docs: auto update CHANGE_LOG.md for #26 by @JNTMTMTM [skip ci]
-- 2026-04-11 | 595186f | 鸡哥 | Merge pull request #26 from JNTMTMTM/dev
-- 2026-04-11 | 42db610 | 鸡哥 | fix: 避免了在 .filter 回调里每个进程都重复做 trim().toLowerCase()
-- 2026-04-11 | 7dff6db | 鸡哥 | feat: 快速连续点击/批量操作也会基于最新状态原子更新
-- 2026-04-11 | aa09c58 | 鸡哥 | fix: 移除错误 tab 语义
-- 2026-04-11 | 11f4a64 | 鸡哥 | fix: 修复隐藏进程列表删除条目无法直接生效的问题
-- 2026-04-11 | 2ccf627 | 鸡哥 | feat: handler 加上平台守卫
-- 2026-04-11 | 437af3a | 鸡哥 | fix: 非 Windows 平台不会触发无效的tasklist/powershell.exe 轮询
-- 2026-04-11 | 89e640c | 鸡哥 | fix: 修复违反 no-for-in-of 规则的地方
-- 2026-04-11 | 9af4577 | 鸡哥 | chore: 更新版本至V26.1.2
-- 2026-04-11 | 2c895a5 | 鸡哥 | fix: 修复自动隐藏进程的逻辑错误
-- 2026-04-11 | 6ea4e19 | 鸡哥 | pref: 优化软件设置界面
-- 2026-04-11 | df5c757 | 鸡哥 | style: 优化软件设置界面次级标题位置
-- 2026-04-10 | cf677ad | 鸡哥 | style: 优化图标样式
-- 2026-04-10 | 6055c61 | 鸡哥 | feat: 进程列表显示进程图标
-- 2026-04-10 | 88ece5d | 鸡哥 | feat: 添加进程名单未命中自动显示灵动岛
-- 2026-04-10 | 12a93c4 | 鸡哥 | pref: 添加内存回收机制
-- 2026-04-10 | c63b0fa | 鸡哥 | style: 优化进程名单竖直滚动条样式
-- 2026-04-10 | 708995b | 鸡哥 | style: 优化进程名单配置界面样式
-- 2026-04-10 | 46699ea | 鸡哥 | feat: 添加隐藏进程列表配置界面
-- 2026-04-09 | 18f92a0 | github-actions[bot] | docs: auto update CHANGE_LOG.md for #25 by @JNTMTMTM [skip ci]
-- 2026-04-10 | 17d7776 | 鸡哥 | Merge pull request #25 from JNTMTMTM/dev
-- 2026-04-10 | b150226 | 鸡哥 | fix: 修复其余架构问题
-- 2026-04-10 | 2248b84 | 鸡哥 | refactor: 改用离屏 canvas 压缩存储 降低历史存储上限
-- 2026-04-10 | 5ce7da7 | 鸡哥 | fix: 避免异常路径下隐藏窗口残留
-- 2026-04-10 | 654caf2 | 鸡哥 | fix: 补充 ReactElement 导入类
-- 2026-04-10 | dcf8314 | 鸡哥 | fix: 修复 SilkyWave rAF 每帧都会重新计算的问题
-- 2026-04-10 | 2143714 | 鸡哥 | fix: 修复绘制坐标/清屏尺寸不一致的问题
-- 2026-04-10 | c11a1e1 | 鸡哥 | fix: 使用构造器优化循环
-- 2026-04-10 | e518f74 | 鸡哥 | fix: 修复字体粗细下拉框颜色和背景相同的问题
-- 2026-04-10 | 90c0a6e | 鸡哥 | pref: 优化截图画布启动性能
-- 2026-04-09 | 0ec5475 | 鸡哥 | fix: 修复不符合前端代码规范和注释规范的地方
-- 2026-04-09 | 834d774 | 鸡哥 | feat: 模块化截图功能
-- 2026-04-09 | e4cef41 | 鸡哥 | fix: 修复多截图窗口堆叠的问题
-- 2026-04-09 | f7bcd88 | 鸡哥 | feat: 添加截图后画板功能
-- 2026-04-09 | f9f22f9 | 鸡哥 | feat: 添加快捷键选区截图功能
-- 2026-04-09 | 372f47f | 鸡哥 | style: 重写 hover-lrctab 波浪动画
-- 2026-04-09 | 84aa3d7 | 鸡哥 | fix: 提高smtc识别命中率
-- 2026-04-08 | 9f80f6b | github-actions[bot] | docs: auto update CHANGE_LOG.md for release 26.1.1-beta.3 by @JNTMTMTM [skip ci]
