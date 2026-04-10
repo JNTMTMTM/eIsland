@@ -110,18 +110,37 @@ async function queryRunningNonSystemProcessNames(): Promise<string[]> {
 async function checkAutoHideProcessList(): Promise<void> {
   if (autoHideCheckInFlight) return;
   if (!mainWindow || mainWindow.isDestroyed()) return;
-  if (!autoHideProcessList.length) return;
 
   autoHideCheckInFlight = true;
   try {
+    if (!autoHideProcessList.length) {
+      if (hiddenByAutoHideProcess && !mainWindow.isVisible()) {
+        mainWindow.show();
+        mainWindow.setAlwaysOnTop(true, 'screen-saver');
+      }
+      hiddenByAutoHideProcess = false;
+      return;
+    }
+
     const running = await queryRunningProcessNames();
-    if (!running.length) return;
 
     const runningSet = new Set(running.map(normalizeProcessName));
     const shouldHide = autoHideProcessList.some((name) => runningSet.has(normalizeProcessName(name)));
 
-    if (shouldHide && mainWindow.isVisible()) {
-      mainWindow.hide();
+    if (shouldHide) {
+      if (mainWindow.isVisible()) {
+        mainWindow.hide();
+      }
+      hiddenByAutoHideProcess = true;
+      return;
+    }
+
+    if (hiddenByAutoHideProcess) {
+      if (!mainWindow.isVisible()) {
+        mainWindow.show();
+        mainWindow.setAlwaysOnTop(true, 'screen-saver');
+      }
+      hiddenByAutoHideProcess = false;
     }
   } finally {
     autoHideCheckInFlight = false;
@@ -269,6 +288,9 @@ let smtcSessionRuntime: Map<string, SmtcSessionRuntimeEntry> | null = null;
 /** 进程隐藏轮询防重入标记 */
 let autoHideCheckInFlight = false;
 
+/** 当前隐藏是否由“隐藏进程命中”触发 */
+let hiddenByAutoHideProcess = false;
+
 /** SMTC 缓存上次回收时间 */
 let lastSmtcCleanupAt = 0;
 
@@ -380,8 +402,10 @@ function registerHideHotkey(accelerator: string): boolean {
     const success = globalShortcut.register(accelerator, () => {
       if (!mainWindow) return;
       if (mainWindow.isVisible()) {
+        hiddenByAutoHideProcess = false;
         mainWindow.hide();
       } else {
+        hiddenByAutoHideProcess = false;
         mainWindow.show();
         mainWindow.setAlwaysOnTop(true, 'screen-saver');
       }
@@ -895,6 +919,7 @@ function registerIpcHandlers(): void {
    */
   ipcMain.on('window:hide', () => {
     if (mainWindow) {
+      hiddenByAutoHideProcess = false;
       mainWindow.hide();
     }
   });
