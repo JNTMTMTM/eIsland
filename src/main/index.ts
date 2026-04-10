@@ -87,7 +87,11 @@ function parseTaskListProcessNames(raw: string): string[] {
 
 function queryRunningProcessNames(): Promise<string[]> {
   return new Promise((resolve) => {
-    exec('tasklist /fo csv /nh', { windowsHide: true }, (err, stdout) => {
+    exec('tasklist /fo csv /nh', {
+      windowsHide: true,
+      timeout: PROCESS_QUERY_TIMEOUT_MS,
+      maxBuffer: 1024 * 1024,
+    }, (err, stdout) => {
       if (err) {
         console.error('[Process] query running process failed:', err.message);
         resolve([]);
@@ -104,17 +108,23 @@ async function queryRunningNonSystemProcessNames(): Promise<string[]> {
 }
 
 async function checkAutoHideProcessList(): Promise<void> {
+  if (autoHideCheckInFlight) return;
   if (!mainWindow || mainWindow.isDestroyed()) return;
   if (!autoHideProcessList.length) return;
 
-  const running = await queryRunningProcessNames();
-  if (!running.length) return;
+  autoHideCheckInFlight = true;
+  try {
+    const running = await queryRunningProcessNames();
+    if (!running.length) return;
 
-  const runningSet = new Set(running.map(normalizeProcessName));
-  const shouldHide = autoHideProcessList.some((name) => runningSet.has(normalizeProcessName(name)));
+    const runningSet = new Set(running.map(normalizeProcessName));
+    const shouldHide = autoHideProcessList.some((name) => runningSet.has(normalizeProcessName(name)));
 
-  if (shouldHide && mainWindow.isVisible()) {
-    mainWindow.hide();
+    if (shouldHide && mainWindow.isVisible()) {
+      mainWindow.hide();
+    }
+  } finally {
+    autoHideCheckInFlight = false;
   }
 }
 
@@ -187,6 +197,15 @@ const EXPANDED_FULL_HEIGHT = 150;
 const SETTINGS_WIDTH = 860;
 const SETTINGS_HEIGHT = 400;
 
+/** 进程查询超时，避免挂起占用内存 */
+const PROCESS_QUERY_TIMEOUT_MS = 4000;
+
+/** SMTC 缓存条目最大存活时间 */
+const SMTC_RUNTIME_ENTRY_TTL_MS = 3 * 60 * 1000;
+
+/** SMTC 缓存清理最小间隔 */
+const SMTC_RUNTIME_CLEANUP_INTERVAL_MS = 30 * 1000;
+
 /** 播放程序白名单默认值 */
 const DEFAULT_WHITELIST = ['QQMusic.exe', 'cloudmusic.exe', '汽水音乐', 'kugou'];
 
@@ -243,8 +262,15 @@ interface SmtcSessionRuntimeEntry {
   hasTitle: boolean;
   isPlaying: boolean;
   playStartedAt: number;
+  updatedAt: number;
 }
 let smtcSessionRuntime: Map<string, SmtcSessionRuntimeEntry> | null = null;
+
+/** 进程隐藏轮询防重入标记 */
+let autoHideCheckInFlight = false;
+
+/** SMTC 缓存上次回收时间 */
+let lastSmtcCleanupAt = 0;
 
 /** 待确认的播放源切换请求 */
 let pendingSourceSwitchId: string = '';
@@ -1487,12 +1513,18 @@ function initSmtcWorker(win: BrowserWindow | null): void {
 
       const { sourceAppId = '', session } = msg;
       const { media, playback, timeline } = session ?? {};
+      const now = Date.now();
+
+      if (now - lastSmtcCleanupAt >= SMTC_RUNTIME_CLEANUP_INTERVAL_MS) {
+        cleanupStaleSmtcRuntime(sessionRuntime);
+        lastSmtcCleanupAt = now;
+      }
 
       if (sourceAppId) {
         detectedSourceRuntime.set(sourceAppId, {
           isPlaying: (playback?.playbackStatus ?? 0) === 4,
           hasTitle: Boolean(media?.title),
-          updatedAt: Date.now(),
+          updatedAt: now,
         });
       }
 
@@ -1533,6 +1565,7 @@ function initSmtcWorker(win: BrowserWindow | null): void {
         hasTitle,
         isPlaying,
         playStartedAt,
+        updatedAt: now,
       });
 
       // ===== 播放源锁定逻辑 =====
@@ -1596,6 +1629,36 @@ function cleanupSmtcWorker(): void {
     smtcWorker.terminate();
     smtcWorker = null;
   }
+  detectedSourceRuntime.clear();
+  smtcSessionRuntime?.clear();
+  smtcSessionRuntime = null;
+  pendingSourceSwitchId = '';
+  pendingSourceSwitchEntry = null;
+  currentDeviceId = '';
+  lastSmtcCleanupAt = 0;
+}
+
+function cleanupStaleSmtcRuntime(sessionRuntime: Map<string, SmtcSessionRuntimeEntry>): void {
+  const now = Date.now();
+
+  detectedSourceRuntime.forEach((entry, sourceAppId) => {
+    if (now - entry.updatedAt > SMTC_RUNTIME_ENTRY_TTL_MS) {
+      detectedSourceRuntime.delete(sourceAppId);
+    }
+  });
+
+  sessionRuntime.forEach((entry, sourceAppId) => {
+    if (now - entry.updatedAt > SMTC_RUNTIME_ENTRY_TTL_MS) {
+      sessionRuntime.delete(sourceAppId);
+      if (sourceAppId === pendingSourceSwitchId) {
+        pendingSourceSwitchId = '';
+        pendingSourceSwitchEntry = null;
+      }
+      if (sourceAppId === currentDeviceId) {
+        currentDeviceId = '';
+      }
+    }
+  });
 }
 
 /**
