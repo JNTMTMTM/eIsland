@@ -351,6 +351,17 @@ const NETWORK_TIMEOUT_OPTIONS = [
 
 const LAYOUT_STORE_KEY = 'overview-layout';
 const DEFAULT_LAYOUT: OverviewLayoutConfig = { left: 'shortcuts', right: 'todo' };
+const APP_SETTINGS_PAGES = [
+  { key: 'layout-preview', label: '布局预览' },
+  { key: 'hide-process-list', label: '隐藏进程名单' },
+] as const;
+
+type AppSettingsPageKey = (typeof APP_SETTINGS_PAGES)[number]['key'];
+
+interface RunningProcessItem {
+  name: string;
+  iconDataUrl: string | null;
+}
 
 /**
  * 渲染设置面板主视图
@@ -359,6 +370,7 @@ const DEFAULT_LAYOUT: OverviewLayoutConfig = { left: 'shortcuts', right: 'todo' 
  */
 export function SettingsTab(): ReactElement {
   const [activeTab, setActiveTab] = useState<'app' | 'network' | 'weather' | 'music' | 'ai' | 'shortcut' | 'about'>('app');
+  const [appSettingsPage, setAppSettingsPage] = useState<AppSettingsPageKey>('layout-preview');
   const { aiConfig, setAiConfig } = useIslandStore();
   const [editingPrompt, setEditingPrompt] = useState(false);
   const [promptDraft, setPromptDraft] = useState('');
@@ -366,6 +378,9 @@ export function SettingsTab(): ReactElement {
   const settingsRef = useRef<HTMLDivElement>(null);
   const activeTabRef = useRef(activeTab);
   activeTabRef.current = activeTab;
+  const appSettingsPageRef = useRef(appSettingsPage);
+  const currentAppSettingsPageLabel = APP_SETTINGS_PAGES.find((page) => page.key === appSettingsPage)?.label || '布局预览';
+  appSettingsPageRef.current = appSettingsPage;
   const [layoutConfig, setLayoutConfig] = useState<OverviewLayoutConfig>(DEFAULT_LAYOUT);
 
   /** 歌曲设置相关状态 */
@@ -380,6 +395,10 @@ export function SettingsTab(): ReactElement {
   const [networkTimeoutMs, setNetworkTimeoutMs] = useState<number>(DEFAULT_NETWORK_TIMEOUT_MS);
   const [customTimeoutInput, setCustomTimeoutInput] = useState<string>('');
   const [weatherPrimaryProvider, setWeatherPrimaryProvider] = useState<WeatherProvider>(DEFAULT_WEATHER_PRIMARY_PROVIDER);
+  const [runningProcesses, setRunningProcesses] = useState<RunningProcessItem[]>([]);
+  const [hideProcessList, setHideProcessList] = useState<string[]>([]);
+  const [hideProcessFilter, setHideProcessFilter] = useState<string>('');
+  const [hideProcessLoading, setHideProcessLoading] = useState(false);
 
   /** 快捷键相关状态 */
   const [hideHotkey, setHideHotkey] = useState<string>('Alt+X');
@@ -398,6 +417,8 @@ export function SettingsTab(): ReactElement {
   const [screenshotHotkeyRecording, setScreenshotHotkeyRecording] = useState(false);
   const [screenshotHotkeyError, setScreenshotHotkeyError] = useState<string>('');
   const screenshotHotkeyInputRef = useRef<HTMLInputElement>(null);
+
+  const hideProcessKeyword = hideProcessFilter.trim().toLowerCase();
 
   /** 加载网络配置 */
   useEffect(() => {
@@ -468,6 +489,51 @@ export function SettingsTab(): ReactElement {
     window.api.storeWrite(LAYOUT_STORE_KEY, updated).catch(() => {});
   };
 
+  const toggleHideProcess = (processName: string): void => {
+    const key = processName.trim().toLowerCase();
+    if (!key) return;
+
+    setHideProcessList((prev) => {
+      const exists = prev.some((name) => name.trim().toLowerCase() === key);
+      const next = exists
+        ? prev.filter((name) => name.trim().toLowerCase() !== key)
+        : [...prev, processName];
+      window.api.hideProcessListSet(next).catch(() => {});
+      return next;
+    });
+  };
+
+  const refreshRunningProcesses = async (): Promise<void> => {
+    setHideProcessLoading(true);
+    try {
+      const list = await window.api.getRunningNonSystemProcessesWithIcons();
+      setRunningProcesses(
+        Array.isArray(list)
+          ? list.filter((item): item is RunningProcessItem => Boolean(item && typeof item.name === 'string'))
+          : []
+      );
+    } catch {
+      setRunningProcesses([]);
+    } finally {
+      setHideProcessLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    let cancelled = false;
+    window.api.hideProcessListGet().then((list) => {
+      if (cancelled) return;
+      if (Array.isArray(list)) setHideProcessList(list);
+    }).catch(() => {});
+    window.api.getRunningNonSystemProcessesWithIcons().then((list) => {
+      if (cancelled) return;
+      if (Array.isArray(list)) {
+        setRunningProcesses(list.filter((item): item is RunningProcessItem => Boolean(item && typeof item.name === 'string')));
+      }
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+
   /** 滚轮切换设置侧边栏 Tab */
   useEffect(() => {
     const el = settingsRef.current;
@@ -476,7 +542,28 @@ export function SettingsTab(): ReactElement {
       const target = e.target as HTMLElement;
       if (target.closest('.settings-field-input')) return;
       if (target.closest('.settings-field-textarea')) return;
+      if (target.closest('.settings-whitelist-input')) return;
       if (target.closest('.settings-about')) return;
+
+      if (target.closest('.settings-hide-process-list')) return;
+
+      if (activeTabRef.current === 'app' && target.closest('.settings-app-pages-layout')) {
+        const pages = APP_SETTINGS_PAGES.map((p) => p.key);
+        const currentPage = appSettingsPageRef.current;
+        const currentIdx = pages.indexOf(currentPage);
+        if (currentIdx >= 0) {
+          const nextIdx = e.deltaY > 0
+            ? Math.min(currentIdx + 1, pages.length - 1)
+            : Math.max(currentIdx - 1, 0);
+          if (nextIdx !== currentIdx) {
+            setAppSettingsPage(pages[nextIdx]);
+          }
+          e.preventDefault();
+          e.stopPropagation();
+          return;
+        }
+      }
+
       e.preventDefault();
       e.stopPropagation();
       const cur = activeTabRef.current;
@@ -725,47 +812,139 @@ export function SettingsTab(): ReactElement {
         <div className="max-expand-settings-panel">
           {activeTab === 'app' && (
             <div className="max-expand-settings-section">
-              <div className="max-expand-settings-title">软件设置</div>
+              <div className="max-expand-settings-title settings-app-title-line">
+                <span>软件设置</span>
+                <span className="settings-app-title-sub">- {currentAppSettingsPageLabel}</span>
+              </div>
 
-              <div className="settings-island-preview-section">
-                <div className="settings-island-preview-label">总览布局预览</div>
-                <div className="settings-island-preview-wrap">
-                  <div className="settings-island-shell" key={`${layoutConfig.left}-${layoutConfig.right}`}>
-                    <OverviewPreview layoutConfig={layoutConfig} />
-                  </div>
+              <div className="settings-app-pages-layout">
+                <div className="settings-app-page-main">
+                  {appSettingsPage === 'layout-preview' && (
+                    <div className="settings-island-preview-section">
+                      <div className="settings-island-preview-label">总览布局预览</div>
+                      <div className="settings-island-preview-wrap">
+                        <div className="settings-island-shell" key={`${layoutConfig.left}-${layoutConfig.right}`}>
+                          <OverviewPreview layoutConfig={layoutConfig} />
+                        </div>
+                      </div>
+
+                      <div className="settings-layout-controls">
+                        <div className="settings-layout-control">
+                          <span className="settings-layout-control-label">左侧控件</span>
+                          <div className="settings-layout-options">
+                            {OVERVIEW_WIDGET_OPTIONS.map(opt => (
+                              <button
+                                key={opt.value}
+                                className={`settings-layout-btn ${layoutConfig.left === opt.value ? 'active' : ''}`}
+                                type="button"
+                                onClick={() => updateLayout('left', opt.value)}
+                              >
+                                {opt.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="settings-layout-control">
+                          <span className="settings-layout-control-label">右侧控件</span>
+                          <div className="settings-layout-options">
+                            {OVERVIEW_WIDGET_OPTIONS.map(opt => (
+                              <button
+                                key={opt.value}
+                                className={`settings-layout-btn ${layoutConfig.right === opt.value ? 'active' : ''}`}
+                                type="button"
+                                onClick={() => updateLayout('right', opt.value)}
+                              >
+                                {opt.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {appSettingsPage === 'hide-process-list' && (
+                    <div className="settings-hide-processes">
+                      <div className="settings-music-hint">识别到以下进程运行时，将立即隐藏灵动岛。新增进程下次重启生效，删除进程立即生效。</div>
+                      <div className="settings-hide-process-toolbar">
+                        <input
+                          className="settings-whitelist-input"
+                          type="text"
+                          placeholder="搜索进程名（如 WeChat.exe）"
+                          value={hideProcessFilter}
+                          onChange={(e) => setHideProcessFilter(e.target.value)}
+                        />
+                        <button
+                          className="settings-whitelist-add-btn"
+                          type="button"
+                          onClick={() => {
+                            refreshRunningProcesses().catch(() => {});
+                          }}
+                          disabled={hideProcessLoading}
+                        >
+                          {hideProcessLoading ? '刷新中…' : '刷新进程'}
+                        </button>
+                      </div>
+
+                      <div className="settings-hide-selected">
+                        {hideProcessList.length === 0 ? (
+                          <span className="settings-hide-selected-empty">暂无隐藏进程</span>
+                        ) : hideProcessList.map((name) => (
+                          <button
+                            key={name}
+                            className="settings-hide-selected-item"
+                            type="button"
+                            onClick={() => toggleHideProcess(name)}
+                            title="移除该进程"
+                          >
+                            {name} ×
+                          </button>
+                        ))}
+                      </div>
+
+                      <div className="settings-hide-process-list">
+                        {runningProcesses
+                          .filter((process) => process.name.toLowerCase().includes(hideProcessKeyword))
+                          .map((process) => {
+                            const name = process.name;
+                            const selected = hideProcessList.some((item) => item.trim().toLowerCase() === name.trim().toLowerCase());
+                            const fallbackText = name.charAt(0).toUpperCase();
+                            return (
+                              <button
+                                key={name}
+                                className={`settings-hide-process-item ${selected ? 'active' : ''}`}
+                                type="button"
+                                onClick={() => toggleHideProcess(name)}
+                              >
+                                <span className={`settings-hide-process-check ${selected ? 'active' : ''}`}>{selected ? '✓' : ''}</span>
+                                <span className="settings-hide-process-icon" aria-hidden="true">
+                                  {process.iconDataUrl ? (
+                                    <img src={process.iconDataUrl} alt="" />
+                                  ) : (
+                                    <span>{fallbackText || '•'}</span>
+                                  )}
+                                </span>
+                                <span className="settings-hide-process-name">{name}</span>
+                              </button>
+                            );
+                          })}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
-                <div className="settings-layout-controls">
-                  <div className="settings-layout-control">
-                    <span className="settings-layout-control-label">左侧控件</span>
-                    <div className="settings-layout-options">
-                      {OVERVIEW_WIDGET_OPTIONS.map(opt => (
-                        <button
-                          key={opt.value}
-                          className={`settings-layout-btn ${layoutConfig.left === opt.value ? 'active' : ''}`}
-                          type="button"
-                          onClick={() => updateLayout('left', opt.value)}
-                        >
-                          {opt.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="settings-layout-control">
-                    <span className="settings-layout-control-label">右侧控件</span>
-                    <div className="settings-layout-options">
-                      {OVERVIEW_WIDGET_OPTIONS.map(opt => (
-                        <button
-                          key={opt.value}
-                          className={`settings-layout-btn ${layoutConfig.right === opt.value ? 'active' : ''}`}
-                          type="button"
-                          onClick={() => updateLayout('right', opt.value)}
-                        >
-                          {opt.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
+                <div className="settings-app-page-dots" aria-label="软件设置分页">
+                  {APP_SETTINGS_PAGES.map((page) => (
+                    <button
+                      key={page.key}
+                      className={`settings-app-page-dot ${appSettingsPage === page.key ? 'active' : ''}`}
+                      data-label={page.label}
+                      type="button"
+                      onClick={() => setAppSettingsPage(page.key)}
+                      title={page.label}
+                      aria-label={page.label}
+                    />
+                  ))}
                 </div>
               </div>
             </div>

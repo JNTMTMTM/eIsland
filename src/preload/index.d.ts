@@ -42,6 +42,11 @@ export interface NowPlayingInfo {
   canSetOutput: boolean;
 }
 
+export interface RunningProcessInfo {
+  name: string;
+  iconDataUrl: string | null;
+}
+
 declare global {
   interface Window {
     electron: ElectronAPI;
@@ -105,6 +110,10 @@ declare global {
       musicLyricsSourceGet: () => Promise<string>;
       musicLyricsSourceSet: (source: string) => Promise<boolean>;
       musicDetectSourceAppId: () => Promise<{ ok: boolean; sourceAppId: string | null; message: string }>;
+      getRunningNonSystemProcesses: () => Promise<string[]>;
+      getRunningNonSystemProcessesWithIcons: () => Promise<RunningProcessInfo[]>;
+      hideProcessListGet: () => Promise<string[]>;
+      hideProcessListSet: (list: string[]) => Promise<boolean>;
       /** 订阅播放源切换请求（主进程推送） */
       onSourceSwitchRequest: (callback: (data: { sourceAppId: string; title: string; artist: string }) => void) => () => void;
       /** 接受切换到新播放源 */
