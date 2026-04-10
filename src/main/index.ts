@@ -107,6 +107,105 @@ async function queryRunningNonSystemProcessNames(): Promise<string[]> {
   return all.filter((name) => !isSystemProcessName(name));
 }
 
+interface RunningProcessInfo {
+  name: string;
+  iconDataUrl: string | null;
+}
+
+function parseRunningProcessPathMap(raw: string): Map<string, string> {
+  const pathMap = new Map<string, string>();
+  const text = raw.replace(/^\uFEFF/, '').trim();
+  if (!text || (text[0] !== '[' && text[0] !== '{')) return pathMap;
+
+  try {
+    const parsed = JSON.parse(text);
+    const rows = Array.isArray(parsed) ? parsed : [parsed];
+
+    rows.forEach((row) => {
+      if (!row || typeof row !== 'object') return;
+      const nameValue = (row as { Name?: unknown }).Name;
+      const pathValue = (row as { ExecutablePath?: unknown }).ExecutablePath;
+      const processName = typeof nameValue === 'string' ? nameValue.trim() : '';
+      const executablePath = typeof pathValue === 'string' ? pathValue.trim() : '';
+      if (!processName || !executablePath) return;
+      pathMap.set(normalizeProcessName(processName), executablePath);
+    });
+  } catch {
+    return pathMap;
+  }
+
+  return pathMap;
+}
+
+function queryRunningProcessExecutablePathMap(): Promise<Map<string, string>> {
+  return new Promise((resolve) => {
+    const cmd = 'powershell.exe -NoProfile -NonInteractive -Command "Get-CimInstance Win32_Process | Select-Object Name,ExecutablePath | ConvertTo-Json -Compress"';
+    exec(cmd, {
+      windowsHide: true,
+      timeout: PROCESS_QUERY_TIMEOUT_MS,
+      maxBuffer: 6 * 1024 * 1024,
+    }, (err, stdout) => {
+      if (err) {
+        resolve(new Map<string, string>());
+        return;
+      }
+      resolve(parseRunningProcessPathMap(stdout));
+    });
+  });
+}
+
+async function getProcessIconDataUrl(processName: string, pathMap: Map<string, string>): Promise<string | null> {
+  const normalized = normalizeProcessName(processName);
+  if (!normalized) return null;
+
+  if (processIconCache.has(normalized)) {
+    return processIconCache.get(normalized) ?? null;
+  }
+
+  const executablePath = pathMap.get(normalized);
+  if (!executablePath) {
+    setProcessIconCache(normalized, null);
+    return null;
+  }
+
+  try {
+    const iconFromApi = await app.getFileIcon(executablePath, { size: 'small' });
+    if (!iconFromApi.isEmpty()) {
+      const dataUrl = iconFromApi.resize({ width: 16, height: 16 }).toDataURL();
+      setProcessIconCache(normalized, dataUrl);
+      return dataUrl;
+    }
+  } catch {
+    // ignore and fallback
+  }
+
+  try {
+    const icon = nativeImage.createFromPath(executablePath);
+    if (!icon.isEmpty()) {
+      const dataUrl = icon.resize({ width: 16, height: 16 }).toDataURL();
+      setProcessIconCache(normalized, dataUrl);
+      return dataUrl;
+    }
+  } catch {
+    // ignore and fallback to null
+  }
+
+  setProcessIconCache(normalized, null);
+  return null;
+}
+
+async function queryRunningNonSystemProcessesWithIcons(): Promise<RunningProcessInfo[]> {
+  const names = await queryRunningNonSystemProcessNames();
+  if (!names.length) return [];
+
+  const pathMap = await queryRunningProcessExecutablePathMap();
+  const items = await Promise.all(names.map(async (name) => ({
+    name,
+    iconDataUrl: await getProcessIconDataUrl(name, pathMap),
+  })));
+  return items;
+}
+
 async function checkAutoHideProcessList(): Promise<void> {
   if (autoHideCheckInFlight) return;
   if (!mainWindow || mainWindow.isDestroyed()) return;
@@ -219,6 +318,9 @@ const SETTINGS_HEIGHT = 400;
 /** 进程查询超时，避免挂起占用内存 */
 const PROCESS_QUERY_TIMEOUT_MS = 4000;
 
+/** 运行进程图标缓存上限，避免长期增长 */
+const PROCESS_ICON_CACHE_MAX = 240;
+
 /** SMTC 缓存条目最大存活时间 */
 const SMTC_RUNTIME_ENTRY_TTL_MS = 3 * 60 * 1000;
 
@@ -248,6 +350,9 @@ let autoHideProcessList: string[] = [...DEFAULT_HIDE_PROCESS_LIST];
 
 /** 隐藏进程名单轮询计时器 */
 let autoHideProcessWatcher: NodeJS.Timeout | null = null;
+
+/** 运行进程图标缓存（key 为 normalize 后的进程名） */
+const processIconCache = new Map<string, string | null>();
 
 /** 记录当前生效的设备ID（仅白名单内程序） */
 let currentDeviceId: string = nowPlayingWhitelist[0] || '';
@@ -297,6 +402,16 @@ let lastSmtcCleanupAt = 0;
 /** 待确认的播放源切换请求 */
 let pendingSourceSwitchId: string = '';
 let pendingSourceSwitchEntry: SmtcSessionRuntimeEntry | null = null;
+
+function setProcessIconCache(key: string, value: string | null): void {
+  if (!processIconCache.has(key) && processIconCache.size >= PROCESS_ICON_CACHE_MAX) {
+    const oldestKey = processIconCache.keys().next().value;
+    if (typeof oldestKey === 'string') {
+      processIconCache.delete(oldestKey);
+    }
+  }
+  processIconCache.set(key, value);
+}
 
 /**
  * 检查当前设备ID是否在白名单内
@@ -1299,6 +1414,11 @@ function registerIpcHandlers(): void {
   /** 获取当前运行的非系统进程列表 */
   ipcMain.handle('system:running-processes:get', async () => {
     return queryRunningNonSystemProcessNames();
+  });
+
+  /** 获取当前运行的非系统进程列表（包含进程图标） */
+  ipcMain.handle('system:running-processes:with-icons:get', async () => {
+    return queryRunningNonSystemProcessesWithIcons();
   });
 
   /** 获取隐藏进程名单 */

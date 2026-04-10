@@ -359,6 +359,11 @@ const APP_SETTINGS_PAGES = [
 
 type AppSettingsPageKey = (typeof APP_SETTINGS_PAGES)[number]['key'];
 
+interface RunningProcessItem {
+  name: string;
+  iconDataUrl: string | null;
+}
+
 /**
  * 渲染设置面板主视图
  * @description 提供应用设置、AI 配置与关于软件三类设置入口
@@ -390,7 +395,7 @@ export function SettingsTab(): ReactElement {
   const [networkTimeoutMs, setNetworkTimeoutMs] = useState<number>(DEFAULT_NETWORK_TIMEOUT_MS);
   const [customTimeoutInput, setCustomTimeoutInput] = useState<string>('');
   const [weatherPrimaryProvider, setWeatherPrimaryProvider] = useState<WeatherProvider>(DEFAULT_WEATHER_PRIMARY_PROVIDER);
-  const [runningProcesses, setRunningProcesses] = useState<string[]>([]);
+  const [runningProcesses, setRunningProcesses] = useState<RunningProcessItem[]>([]);
   const [hideProcessList, setHideProcessList] = useState<string[]>([]);
   const [hideProcessFilter, setHideProcessFilter] = useState<string>('');
   const [hideProcessLoading, setHideProcessLoading] = useState(false);
@@ -502,8 +507,12 @@ export function SettingsTab(): ReactElement {
   const refreshRunningProcesses = async (): Promise<void> => {
     setHideProcessLoading(true);
     try {
-      const list = await window.api.getRunningNonSystemProcesses();
-      setRunningProcesses(Array.isArray(list) ? list : []);
+      const list = await window.api.getRunningNonSystemProcessesWithIcons();
+      setRunningProcesses(
+        Array.isArray(list)
+          ? list.filter((item): item is RunningProcessItem => Boolean(item && typeof item.name === 'string'))
+          : []
+      );
     } catch {
       setRunningProcesses([]);
     } finally {
@@ -517,9 +526,11 @@ export function SettingsTab(): ReactElement {
       if (cancelled) return;
       if (Array.isArray(list)) setHideProcessList(list);
     }).catch(() => {});
-    window.api.getRunningNonSystemProcesses().then((list) => {
+    window.api.getRunningNonSystemProcessesWithIcons().then((list) => {
       if (cancelled) return;
-      if (Array.isArray(list)) setRunningProcesses(list);
+      if (Array.isArray(list)) {
+        setRunningProcesses(list.filter((item): item is RunningProcessItem => Boolean(item && typeof item.name === 'string')));
+      }
     }).catch(() => {});
     return () => { cancelled = true; };
   }, []);
@@ -914,9 +925,11 @@ export function SettingsTab(): ReactElement {
 
                       <div className="settings-hide-process-list">
                         {runningProcesses
-                          .filter((name) => name.toLowerCase().includes(hideProcessFilter.trim().toLowerCase()))
-                          .map((name) => {
+                          .filter((process) => process.name.toLowerCase().includes(hideProcessFilter.trim().toLowerCase()))
+                          .map((process) => {
+                            const name = process.name;
                             const selected = hideProcessList.some((item) => item.trim().toLowerCase() === name.trim().toLowerCase());
+                            const fallbackText = name.charAt(0).toUpperCase();
                             return (
                               <button
                                 key={name}
@@ -925,6 +938,13 @@ export function SettingsTab(): ReactElement {
                                 onClick={() => toggleHideProcess(name)}
                               >
                                 <span className={`settings-hide-process-check ${selected ? 'active' : ''}`}>{selected ? '✓' : ''}</span>
+                                <span className="settings-hide-process-icon" aria-hidden="true">
+                                  {process.iconDataUrl ? (
+                                    <img src={process.iconDataUrl} alt="" />
+                                  ) : (
+                                    <span>{fallbackText || '•'}</span>
+                                  )}
+                                </span>
                                 <span className="settings-hide-process-name">{name}</span>
                               </button>
                             );

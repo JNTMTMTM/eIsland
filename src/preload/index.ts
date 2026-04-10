@@ -364,6 +364,10 @@ const api = {
   getRunningNonSystemProcesses: (): Promise<string[]> => {
     return ipcRenderer.invoke('system:running-processes:get');
   },
+  /** 获取当前运行中的非系统进程列表（包含图标） */
+  getRunningNonSystemProcessesWithIcons: (): Promise<Array<{ name: string; iconDataUrl: string | null }>> => {
+    return ipcRenderer.invoke('system:running-processes:with-icons:get');
+  },
   /** 获取隐藏进程名单 */
   hideProcessListGet: (): Promise<string[]> => {
     return ipcRenderer.invoke('hide-process-list:get');
