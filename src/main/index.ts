@@ -1865,10 +1865,12 @@ app.whenReady().then(() => {
   // 读取持久化白名单
   nowPlayingWhitelist = readWhitelistConfig();
 
-  // 读取持久化隐藏进程名单并启动轮询
+  // 读取持久化隐藏进程名单并启动轮询（仅 Windows）
   autoHideProcessList = readHideProcessListConfig();
   configuredHideProcessList = [...autoHideProcessList];
-  startAutoHideProcessWatcher();
+  if (process.platform === 'win32') {
+    startAutoHideProcessWatcher();
+  }
 
   // 读取持久化快捷键并注册
   const savedHotkey = readHotkeyConfig();
