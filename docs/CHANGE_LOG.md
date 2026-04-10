@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-04-10T17:47:15.027Z
+> 生成时间：2026-04-10T17:56:11.983Z
 
 ## 26.1.1-beta.3
 
@@ -365,6 +365,9 @@
 
 ## Unreleased
 
+- 2026-04-11 | 3914999 | 鸡哥 | Merge pull request #27 from JNTMTMTM/dev
+- 2026-04-11 | 5197eef | 鸡哥 | feat: 关于软件界面的版本号改为使用api动态获取
+- 2026-04-10 | 71b4bdd | github-actions[bot] | docs: auto update CHANGE_LOG.md for #26 by @JNTMTMTM [skip ci]
 - 2026-04-11 | 595186f | 鸡哥 | Merge pull request #26 from JNTMTMTM/dev
 - 2026-04-11 | 42db610 | 鸡哥 | fix: 避免了在 .filter 回调里每个进程都重复做 trim().toLowerCase()
 - 2026-04-11 | 7dff6db | 鸡哥 | feat: 快速连续点击/批量操作也会基于最新状态原子更新
