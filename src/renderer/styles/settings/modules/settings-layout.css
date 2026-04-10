@@ -467,43 +467,6 @@
   opacity: 1;
 }
 
-.settings-app-overview {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.settings-app-overview-card {
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.03);
-  padding: 10px 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.settings-app-overview-label {
-  font-size: 12px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.82);
-}
-
-.settings-app-overview-value {
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.7);
-}
-
-.settings-app-overview-hint {
-  font-size: 10px;
-  color: rgba(255, 255, 255, 0.38);
-}
-
-.settings-app-overview-actions {
-  display: flex;
-  gap: 8px;
-}
-
 .settings-hide-processes {
   display: flex;
   flex-direction: column;

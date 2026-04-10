@@ -352,7 +352,6 @@ const NETWORK_TIMEOUT_OPTIONS = [
 const LAYOUT_STORE_KEY = 'overview-layout';
 const DEFAULT_LAYOUT: OverviewLayoutConfig = { left: 'shortcuts', right: 'todo' };
 const APP_SETTINGS_PAGES = [
-  { key: 'overview', label: '总览' },
   { key: 'layout-preview', label: '布局预览' },
   { key: 'hide-process-list', label: '隐藏进程名单' },
 ] as const;
@@ -371,7 +370,7 @@ interface RunningProcessItem {
  */
 export function SettingsTab(): ReactElement {
   const [activeTab, setActiveTab] = useState<'app' | 'network' | 'weather' | 'music' | 'ai' | 'shortcut' | 'about'>('app');
-  const [appSettingsPage, setAppSettingsPage] = useState<AppSettingsPageKey>('overview');
+  const [appSettingsPage, setAppSettingsPage] = useState<AppSettingsPageKey>('layout-preview');
   const { aiConfig, setAiConfig } = useIslandStore();
   const [editingPrompt, setEditingPrompt] = useState(false);
   const [promptDraft, setPromptDraft] = useState('');
@@ -380,7 +379,7 @@ export function SettingsTab(): ReactElement {
   const activeTabRef = useRef(activeTab);
   activeTabRef.current = activeTab;
   const appSettingsPageRef = useRef(appSettingsPage);
-  const currentAppSettingsPageLabel = APP_SETTINGS_PAGES.find((page) => page.key === appSettingsPage)?.label || '总览';
+  const currentAppSettingsPageLabel = APP_SETTINGS_PAGES.find((page) => page.key === appSettingsPage)?.label || '布局预览';
   appSettingsPageRef.current = appSettingsPage;
   const [layoutConfig, setLayoutConfig] = useState<OverviewLayoutConfig>(DEFAULT_LAYOUT);
 
@@ -821,25 +820,6 @@ export function SettingsTab(): ReactElement {
 
               <div className="settings-app-pages-layout">
                 <div className="settings-app-page-main">
-                  {appSettingsPage === 'overview' && (
-                    <div className="settings-app-overview">
-                      <div className="settings-app-overview-card">
-                        <div className="settings-app-overview-label">当前总览布局</div>
-                        <div className="settings-app-overview-value">左侧：{OVERVIEW_WIDGET_OPTIONS.find((opt) => opt.value === layoutConfig.left)?.label || layoutConfig.left}</div>
-                        <div className="settings-app-overview-value">右侧：{OVERVIEW_WIDGET_OPTIONS.find((opt) => opt.value === layoutConfig.right)?.label || layoutConfig.right}</div>
-                      </div>
-                      <div className="settings-app-overview-card">
-                        <div className="settings-app-overview-label">自动隐藏规则</div>
-                        <div className="settings-app-overview-value">已配置 {hideProcessList.length} 个进程</div>
-                        <div className="settings-app-overview-hint">当名单中的进程启动时，灵动岛会立即隐藏。</div>
-                      </div>
-                      <div className="settings-app-overview-actions">
-                        <button className="settings-whitelist-add-btn" type="button" onClick={() => setAppSettingsPage('layout-preview')}>去调整布局</button>
-                        <button className="settings-whitelist-add-btn" type="button" onClick={() => setAppSettingsPage('hide-process-list')}>去配置隐藏进程</button>
-                      </div>
-                    </div>
-                  )}
-
                   {appSettingsPage === 'layout-preview' && (
                     <div className="settings-island-preview-section">
                       <div className="settings-island-preview-label">总览布局预览</div>
