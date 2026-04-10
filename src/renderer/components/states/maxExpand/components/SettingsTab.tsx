@@ -487,21 +487,18 @@ export function SettingsTab(): ReactElement {
     window.api.storeWrite(LAYOUT_STORE_KEY, updated).catch(() => {});
   };
 
-  const saveHideProcessList = (next: string[]): void => {
-    setHideProcessList(next);
-    window.api.hideProcessListSet(next).catch(() => {});
-  };
-
   const toggleHideProcess = (processName: string): void => {
     const key = processName.trim().toLowerCase();
     if (!key) return;
 
-    const exists = hideProcessList.some((name) => name.trim().toLowerCase() === key);
-    if (exists) {
-      saveHideProcessList(hideProcessList.filter((name) => name.trim().toLowerCase() !== key));
-      return;
-    }
-    saveHideProcessList([...hideProcessList, processName]);
+    setHideProcessList((prev) => {
+      const exists = prev.some((name) => name.trim().toLowerCase() === key);
+      const next = exists
+        ? prev.filter((name) => name.trim().toLowerCase() !== key)
+        : [...prev, processName];
+      window.api.hideProcessListSet(next).catch(() => {});
+      return next;
+    });
   };
 
   const refreshRunningProcesses = async (): Promise<void> => {
