@@ -542,6 +542,29 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: rgb(155, 150, 150) rgba(255, 255, 255, 0.05);
+}
+
+.settings-hide-process-list::-webkit-scrollbar {
+  width: 7px;
+}
+
+.settings-hide-process-list::-webkit-scrollbar-track {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+  border-radius: 999px;
+}
+
+.settings-hide-process-list::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: linear-gradient(180deg, rgba(150, 210, 255, 0.72), rgba(95, 165, 235, 0.72));
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18), 0 0 8px rgba(90, 160, 230, 0.28);
+}
+
+.settings-hide-process-list::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(175, 225, 255, 0.9), rgba(115, 185, 255, 0.9));
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.24), 0 0 10px rgba(105, 180, 255, 0.42);
 }
 
 .settings-hide-process-item {
