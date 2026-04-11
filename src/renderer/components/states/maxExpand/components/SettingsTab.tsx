@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import type { KeyboardEvent, ReactElement, ReactNode } from 'react';
 import useIslandStore from '../../../../store/slices';
 import avatarImg from '../../../../assets/avatar/T.jpg';
@@ -435,6 +435,36 @@ const MUSIC_SETTINGS_PAGE_LABELS: Record<MusicSettingsPageKey, string> = {
   smtc: 'SMTC',
 };
 
+interface NavCardDef {
+  id: string;
+  label: string;
+  desc: string;
+  icon?: string;
+  tab: SettingsSidebarTabKey;
+  appPage?: AppSettingsPageKey;
+  musicPage?: MusicSettingsPageKey;
+}
+
+const NAV_CARDS: NavCardDef[] = [
+  { id: 'layout-preview', label: SETTINGS_TAB_LABELS['layout-preview'], desc: SETTINGS_TAB_DESCRIPTIONS['layout-preview'], icon: SETTINGS_TAB_ICONS['layout-preview'], tab: 'app', appPage: 'layout-preview' },
+  { id: 'hide-process-list', label: SETTINGS_TAB_LABELS['hide-process-list'], desc: SETTINGS_TAB_DESCRIPTIONS['hide-process-list'], icon: SETTINGS_TAB_ICONS['hide-process-list'], tab: 'app', appPage: 'hide-process-list' },
+  { id: 'position', label: SETTINGS_TAB_LABELS.position, desc: SETTINGS_TAB_DESCRIPTIONS.position, icon: SETTINGS_TAB_ICONS.position, tab: 'app', appPage: 'position' },
+  { id: 'theme', label: SETTINGS_TAB_LABELS.theme, desc: SETTINGS_TAB_DESCRIPTIONS.theme, icon: SETTINGS_TAB_ICONS.theme, tab: 'app', appPage: 'theme' },
+  { id: 'behavior', label: SETTINGS_TAB_LABELS.behavior, desc: SETTINGS_TAB_DESCRIPTIONS.behavior, icon: SETTINGS_TAB_ICONS.behavior, tab: 'app', appPage: 'behavior' },
+  { id: 'autostart', label: SETTINGS_TAB_LABELS.autostart, desc: SETTINGS_TAB_DESCRIPTIONS.autostart, icon: SETTINGS_TAB_ICONS.autostart, tab: 'app', appPage: 'autostart' },
+  { id: 'network', label: SETTINGS_TAB_LABELS.network, desc: SETTINGS_TAB_DESCRIPTIONS.network, icon: SETTINGS_TAB_ICONS.network, tab: 'network' },
+  { id: 'weather', label: SETTINGS_TAB_LABELS.weather, desc: SETTINGS_TAB_DESCRIPTIONS.weather, icon: SETTINGS_TAB_ICONS.weather, tab: 'weather' },
+  { id: 'ai', label: SETTINGS_TAB_LABELS.ai, desc: SETTINGS_TAB_DESCRIPTIONS.ai, icon: SETTINGS_TAB_ICONS.ai, tab: 'ai' },
+  { id: 'shortcut', label: SETTINGS_TAB_LABELS.shortcut, desc: SETTINGS_TAB_DESCRIPTIONS.shortcut, icon: SETTINGS_TAB_ICONS.shortcut, tab: 'shortcut' },
+  { id: 'about', label: SETTINGS_TAB_LABELS.about, desc: SETTINGS_TAB_DESCRIPTIONS.about, icon: SETTINGS_TAB_ICONS.about, tab: 'about' },
+  { id: 'music-whitelist', label: '播放器白名单', desc: '配置允许接入灵动岛的播放器。', icon: SvgIcon.MUSIC, tab: 'music', musicPage: 'whitelist' },
+  { id: 'music-lyrics', label: '歌词源', desc: '选择歌词来源与显示模式。', icon: SvgIcon.LRC, tab: 'music', musicPage: 'lyrics' },
+  { id: 'music-smtc', label: 'SMTC', desc: '系统媒体传输控制相关配置。', icon: SvgIcon.LRC, tab: 'music', musicPage: 'smtc' },
+];
+
+const DEFAULT_NAV_ORDER: string[] = NAV_CARDS.map((c) => c.id);
+const NAV_CARDS_MAP = new Map(NAV_CARDS.map((c) => [c.id, c]));
+
 interface RunningProcessItem {
   name: string;
   iconDataUrl: string | null;
@@ -479,6 +509,10 @@ export function SettingsTab(): ReactElement {
   const [expandLeaveIdle, setExpandLeaveIdle] = useState<boolean>(false);
   const [maxExpandLeaveIdle, setMaxExpandLeaveIdle] = useState<boolean>(false);
   const [autostartMode, setAutostartMode] = useState<string>('disabled');
+  const [navOrder, setNavOrder] = useState<string[]>(DEFAULT_NAV_ORDER);
+  const [navEditMode, setNavEditMode] = useState(false);
+  const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
+  const dragIdxRef = useRef<number | null>(null);
   const [detectingSourceAppId, setDetectingSourceAppId] = useState(false);
   const [sourceAppDetectMessage, setSourceAppDetectMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [musicSmtcUnsubscribeInput, setMusicSmtcUnsubscribeInput] = useState<string>('5000');
@@ -503,6 +537,18 @@ export function SettingsTab(): ReactElement {
   const [islandPositionOffset, setIslandPositionOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [islandPositionInput, setIslandPositionInput] = useState<{ x: string; y: string }>({ x: '0', y: '0' });
   const [aboutVersion, setAboutVersion] = useState<string>('26.1.1-beta.3');
+
+  const sortedCards = useMemo(() => {
+    const ordered: NavCardDef[] = [];
+    for (const id of navOrder) {
+      const card = NAV_CARDS_MAP.get(id);
+      if (card) ordered.push(card);
+    }
+    for (const card of NAV_CARDS) {
+      if (!navOrder.includes(card.id)) ordered.push(card);
+    }
+    return ordered;
+  }, [navOrder]);
 
   /** 快捷键相关状态 */
   const [hideHotkey, setHideHotkey] = useState<string>('Alt+X');
@@ -626,6 +672,10 @@ export function SettingsTab(): ReactElement {
     window.api.autostartGet().then((mode) => {
       if (cancelled) return;
       setAutostartMode(mode);
+    }).catch(() => {});
+    window.api.navOrderGet().then((order) => {
+      if (cancelled) return;
+      if (order.length > 0) setNavOrder(order);
     }).catch(() => {});
     window.api.musicSmtcUnsubscribeMsGet().then((valueMs) => {
       if (cancelled) return;
@@ -1303,141 +1353,77 @@ export function SettingsTab(): ReactElement {
           {activeTab === 'index' && (
             <div className="max-expand-settings-section settings-index-section">
               <div className="settings-index-header">
-                <div className="max-expand-settings-title">快速导航</div>
-                <div className="settings-music-hint settings-index-hint">点击卡片可快速跳转到对应配置页。</div>
+                <div className="max-expand-settings-title">
+                  快速导航
+                  <button
+                    className={`settings-nav-edit-btn ${navEditMode ? 'active' : ''}`}
+                    type="button"
+                    onClick={() => {
+                      if (navEditMode) {
+                        window.api.navOrderSet(navOrder).catch(() => {});
+                      }
+                      setNavEditMode(!navEditMode);
+                    }}
+                  >
+                    {navEditMode ? '完成' : '编辑'}
+                  </button>
+                </div>
+                <div className="settings-music-hint settings-index-hint">
+                  {navEditMode ? '拖拽卡片可调整排列顺序，点击「完成」保存。' : '点击卡片可快速跳转到对应配置页。'}
+                </div>
               </div>
               <div className="settings-index-cards" aria-label="设置快速导航">
-                <button
-                  className="settings-index-card"
-                  type="button"
-                  onClick={() => {
-                    setAppSettingsPage('layout-preview');
-                    setActiveTab('app');
-                  }}
-                >
-                  <span className="settings-index-card-title">{SETTINGS_TAB_LABELS['layout-preview']}</span>
-                  <span className="settings-index-card-desc">{SETTINGS_TAB_DESCRIPTIONS['layout-preview']}</span>
-                  <img className="settings-index-card-layout-icon" src={SETTINGS_TAB_ICONS['layout-preview']} alt="" aria-hidden="true" />
-                </button>
-
-                <button
-                  className="settings-index-card"
-                  type="button"
-                  onClick={() => {
-                    setAppSettingsPage('hide-process-list');
-                    setActiveTab('app');
-                  }}
-                >
-                  <span className="settings-index-card-title">{SETTINGS_TAB_LABELS['hide-process-list']}</span>
-                  <span className="settings-index-card-desc">{SETTINGS_TAB_DESCRIPTIONS['hide-process-list']}</span>
-                  <img className="settings-index-card-layout-icon" src={SETTINGS_TAB_ICONS['hide-process-list']} alt="" aria-hidden="true" />
-                </button>
-
-                <button
-                  className="settings-index-card"
-                  type="button"
-                  onClick={() => {
-                    setAppSettingsPage('position');
-                    setActiveTab('app');
-                  }}
-                >
-                  <span className="settings-index-card-title">{SETTINGS_TAB_LABELS.position}</span>
-                  <span className="settings-index-card-desc">{SETTINGS_TAB_DESCRIPTIONS.position}</span>
-                  <img className="settings-index-card-layout-icon" src={SETTINGS_TAB_ICONS.position} alt="" aria-hidden="true" />
-                </button>
-
-                <button
-                  className="settings-index-card"
-                  type="button"
-                  onClick={() => {
-                    setAppSettingsPage('theme');
-                    setActiveTab('app');
-                  }}
-                >
-                  <span className="settings-index-card-title">{SETTINGS_TAB_LABELS.theme}</span>
-                  <span className="settings-index-card-desc">{SETTINGS_TAB_DESCRIPTIONS.theme}</span>
-                  <img className="settings-index-card-layout-icon" src={SETTINGS_TAB_ICONS.theme} alt="" aria-hidden="true" />
-                </button>
-
-                <button
-                  className="settings-index-card"
-                  type="button"
-                  onClick={() => {
-                    setAppSettingsPage('behavior');
-                    setActiveTab('app');
-                  }}
-                >
-                  <span className="settings-index-card-title">{SETTINGS_TAB_LABELS.behavior}</span>
-                  <span className="settings-index-card-desc">{SETTINGS_TAB_DESCRIPTIONS.behavior}</span>
-                  <img className="settings-index-card-layout-icon" src={SETTINGS_TAB_ICONS.behavior} alt="" aria-hidden="true" />
-                </button>
-
-                <button
-                  className="settings-index-card"
-                  type="button"
-                  onClick={() => {
-                    setAppSettingsPage('autostart');
-                    setActiveTab('app');
-                  }}
-                >
-                  <span className="settings-index-card-title">{SETTINGS_TAB_LABELS.autostart}</span>
-                  <span className="settings-index-card-desc">{SETTINGS_TAB_DESCRIPTIONS.autostart}</span>
-                  <img className="settings-index-card-layout-icon" src={SETTINGS_TAB_ICONS.autostart} alt="" aria-hidden="true" />
-                </button>
-
-                {SETTINGS_TABS.filter((tab) => tab !== 'index' && tab !== 'app' && tab !== 'music').map((tab) => (
+                {sortedCards.map((card, idx) => (
                   <button
-                    key={tab}
-                    className="settings-index-card"
+                    key={card.id}
+                    className={`settings-index-card${navEditMode ? ' editing' : ''}${dragOverIdx === idx ? ' drag-over' : ''}`}
                     type="button"
-                    onClick={() => setActiveTab(tab)}
+                    draggable={navEditMode}
+                    onClick={() => {
+                      if (navEditMode) return;
+                      if (card.appPage) {
+                        setAppSettingsPage(card.appPage);
+                        setActiveTab('app');
+                      } else if (card.musicPage) {
+                        setMusicSettingsPage(card.musicPage);
+                        setActiveTab('music');
+                      } else {
+                        setActiveTab(card.tab);
+                      }
+                    }}
+                    onDragStart={(e) => {
+                      dragIdxRef.current = idx;
+                      e.dataTransfer.effectAllowed = 'move';
+                    }}
+                    onDragOver={(e) => {
+                      if (!navEditMode) return;
+                      e.preventDefault();
+                      setDragOverIdx(idx);
+                    }}
+                    onDragLeave={() => setDragOverIdx(null)}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      setDragOverIdx(null);
+                      const from = dragIdxRef.current;
+                      if (from === null || from === idx) return;
+                      const newOrder = sortedCards.map((c) => c.id);
+                      const [moved] = newOrder.splice(from, 1);
+                      newOrder.splice(idx, 0, moved);
+                      setNavOrder(newOrder);
+                    }}
+                    onDragEnd={() => {
+                      dragIdxRef.current = null;
+                      setDragOverIdx(null);
+                    }}
                   >
-                    <span className="settings-index-card-title">{SETTINGS_TAB_LABELS[tab]}</span>
-                    <span className="settings-index-card-desc">{SETTINGS_TAB_DESCRIPTIONS[tab]}</span>
-                    {SETTINGS_TAB_ICONS[tab] && (
-                      <img className="settings-index-card-layout-icon" src={SETTINGS_TAB_ICONS[tab]} alt="" aria-hidden="true" />
+                    {navEditMode && <span className="settings-index-card-drag-handle">⠿</span>}
+                    <span className="settings-index-card-title">{card.label}</span>
+                    <span className="settings-index-card-desc">{card.desc}</span>
+                    {card.icon && (
+                      <img className="settings-index-card-layout-icon" src={card.icon} alt="" aria-hidden="true" />
                     )}
                   </button>
                 ))}
-
-                <button
-                  className="settings-index-card"
-                  type="button"
-                  onClick={() => {
-                    setMusicSettingsPage('whitelist');
-                    setActiveTab('music');
-                  }}
-                >
-                  <span className="settings-index-card-title">播放器白名单</span>
-                  <span className="settings-index-card-desc">配置允许接入灵动岛的播放器。</span>
-                  <img className="settings-index-card-layout-icon" src={SvgIcon.MUSIC} alt="" aria-hidden="true" />
-                </button>
-
-                <button
-                  className="settings-index-card"
-                  type="button"
-                  onClick={() => {
-                    setMusicSettingsPage('lyrics');
-                    setActiveTab('music');
-                  }}
-                >
-                  <span className="settings-index-card-title">歌词源</span>
-                  <span className="settings-index-card-desc">选择歌词来源与显示模式。</span>
-                  <img className="settings-index-card-layout-icon" src={SvgIcon.LRC} alt="" aria-hidden="true" />
-                </button>
-
-                <button
-                  className="settings-index-card"
-                  type="button"
-                  onClick={() => {
-                    setMusicSettingsPage('smtc');
-                    setActiveTab('music');
-                  }}
-                >
-                  <span className="settings-index-card-title">SMTC</span>
-                  <span className="settings-index-card-desc">系统媒体传输控制相关配置。</span>
-                  <img className="settings-index-card-layout-icon" src={SvgIcon.LRC} alt="" aria-hidden="true" />
-                </button>
               </div>
             </div>
           )}

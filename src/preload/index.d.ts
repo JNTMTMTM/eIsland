@@ -146,6 +146,9 @@ declare global {
       /** ===== 开机自启 API ===== */
       autostartGet: () => Promise<string>;
       autostartSet: (mode: string) => Promise<boolean>;
+      /** ===== 快速导航顺序 API ===== */
+      navOrderGet: () => Promise<string[]>;
+      navOrderSet: (order: string[]) => Promise<boolean>;
     };
   }
 }

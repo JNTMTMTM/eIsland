@@ -544,6 +544,18 @@ const api = {
    */
   autostartSet: (mode: string): Promise<boolean> => {
     return ipcRenderer.invoke('island:autostart:set', mode);
+  },
+  /**
+   * 获取快速导航卡片顺序
+   */
+  navOrderGet: (): Promise<string[]> => {
+    return ipcRenderer.invoke('island:nav-order:get');
+  },
+  /**
+   * 设置快速导航卡片顺序
+   */
+  navOrderSet: (order: string[]): Promise<boolean> => {
+    return ipcRenderer.invoke('island:nav-order:set', order);
   }
 };
 

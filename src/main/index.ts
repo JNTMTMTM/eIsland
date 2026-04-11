@@ -394,6 +394,9 @@ const MAXEXPAND_MOUSELEAVE_IDLE_STORE_KEY = 'maxexpand-mouseleave-idle';
 /** 开机自启模式存储键名 */
 const AUTOSTART_MODE_STORE_KEY = 'autostart-mode';
 
+/** 快速导航卡片顺序存储键名 */
+const NAV_ORDER_STORE_KEY = 'nav-order';
+
 /** 灵动岛位置偏移存储键名 */
 const ISLAND_POSITION_STORE_KEY = 'island-position-offset';
 
@@ -1855,6 +1858,37 @@ function registerIpcHandlers(): void {
       return true;
     } catch (err) {
       console.error('[Autostart] persist error:', err);
+      return false;
+    }
+  });
+
+  /**
+   * 获取快速导航卡片顺序
+   * @returns string[] 卡片 ID 数组，空数组表示使用默认顺序
+   */
+  ipcMain.handle('island:nav-order:get', () => {
+    try {
+      const filePath = join(storeDir, `${NAV_ORDER_STORE_KEY}.json`);
+      if (!existsSync(filePath)) return [];
+      const raw = readFileSync(filePath, 'utf-8');
+      const data = JSON.parse(raw);
+      return Array.isArray(data) ? data.filter((v: unknown) => typeof v === 'string') : [];
+    } catch {
+      return [];
+    }
+  });
+
+  /**
+   * 设置快速导航卡片顺序并持久化
+   */
+  ipcMain.handle('island:nav-order:set', (_event, order: string[]) => {
+    try {
+      const filePath = join(storeDir, `${NAV_ORDER_STORE_KEY}.json`);
+      const safe = Array.isArray(order) ? order.filter((v: unknown) => typeof v === 'string') : [];
+      writeFileSync(filePath, JSON.stringify(safe, null, 2), 'utf-8');
+      return true;
+    } catch (err) {
+      console.error('[NavOrder] persist error:', err);
       return false;
     }
   });
