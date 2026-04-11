@@ -457,6 +457,12 @@ export function SettingsTab(): ReactElement {
   const [screenshotHotkeyError, setScreenshotHotkeyError] = useState<string>('');
   const screenshotHotkeyInputRef = useRef<HTMLInputElement>(null);
 
+  /** 还原默认位置快捷键相关状态 */
+  const [resetPositionHotkey, setResetPositionHotkey] = useState<string>('');
+  const [resetPositionHotkeyRecording, setResetPositionHotkeyRecording] = useState(false);
+  const [resetPositionHotkeyError, setResetPositionHotkeyError] = useState<string>('');
+  const resetPositionHotkeyInputRef = useRef<HTMLInputElement>(null);
+
   const hideProcessKeyword = hideProcessFilter.trim().toLowerCase();
 
   useEffect(() => {
@@ -531,6 +537,10 @@ export function SettingsTab(): ReactElement {
     window.api.screenshotHotkeyGet().then((key) => {
       if (cancelled) return;
       setScreenshotHotkey(key || '');
+    }).catch(() => {});
+    window.api.resetPositionHotkeyGet().then((key) => {
+      if (cancelled) return;
+      setResetPositionHotkey(key || '');
     }).catch(() => {});
     return () => { cancelled = true; };
   }, []);
@@ -699,7 +709,7 @@ export function SettingsTab(): ReactElement {
     setHotkeyError('');
     const acc = keyEventToAccelerator(e);
     if (!acc) return;
-    if ((quitHotkey && acc === quitHotkey) || (screenshotHotkey && acc === screenshotHotkey)) {
+    if ((quitHotkey && acc === quitHotkey) || (screenshotHotkey && acc === screenshotHotkey) || (resetPositionHotkey && acc === resetPositionHotkey)) {
       setHotkeyError('重复快捷键');
       setHotkeyRecording(false);
       hotkeyInputRef.current?.blur();
@@ -729,7 +739,7 @@ export function SettingsTab(): ReactElement {
     setQuitHotkeyError('');
     const acc = keyEventToAccelerator(e);
     if (!acc) return;
-    if ((hideHotkey && acc === hideHotkey) || (screenshotHotkey && acc === screenshotHotkey)) {
+    if ((hideHotkey && acc === hideHotkey) || (screenshotHotkey && acc === screenshotHotkey) || (resetPositionHotkey && acc === resetPositionHotkey)) {
       setQuitHotkeyError('重复快捷键');
       setQuitHotkeyRecording(false);
       quitHotkeyInputRef.current?.blur();
@@ -759,7 +769,7 @@ export function SettingsTab(): ReactElement {
     setScreenshotHotkeyError('');
     const acc = keyEventToAccelerator(e);
     if (!acc) return;
-    if ((hideHotkey && acc === hideHotkey) || (quitHotkey && acc === quitHotkey)) {
+    if ((hideHotkey && acc === hideHotkey) || (quitHotkey && acc === quitHotkey) || (resetPositionHotkey && acc === resetPositionHotkey)) {
       setScreenshotHotkeyError('重复快捷键');
       setScreenshotHotkeyRecording(false);
       screenshotHotkeyInputRef.current?.blur();
@@ -776,6 +786,36 @@ export function SettingsTab(): ReactElement {
       }
     }).catch(() => {
       setScreenshotHotkeyError('快捷键注册失败');
+    });
+  };
+
+  /**
+   * 还原位置快捷键录入键盘事件处理
+   * @param e - React 键盘事件
+   */
+  const handleResetPositionHotkeyKeyDown = (e: KeyboardEvent): void => {
+    e.preventDefault();
+    e.stopPropagation();
+    setResetPositionHotkeyError('');
+    const acc = keyEventToAccelerator(e);
+    if (!acc) return;
+    if ((hideHotkey && acc === hideHotkey) || (quitHotkey && acc === quitHotkey) || (screenshotHotkey && acc === screenshotHotkey)) {
+      setResetPositionHotkeyError('重复快捷键');
+      setResetPositionHotkeyRecording(false);
+      resetPositionHotkeyInputRef.current?.blur();
+      return;
+    }
+
+    window.api.resetPositionHotkeySet(acc).then((ok) => {
+      if (ok) {
+        setResetPositionHotkey(acc);
+        setResetPositionHotkeyRecording(false);
+        resetPositionHotkeyInputRef.current?.blur();
+      } else {
+        setResetPositionHotkeyError('快捷键注册失败，请尝试其他组合');
+      }
+    }).catch(() => {
+      setResetPositionHotkeyError('快捷键注册失败');
     });
   };
 
@@ -1382,7 +1422,59 @@ export function SettingsTab(): ReactElement {
                   )}
                 </div>
                 {screenshotHotkeyError && <div className="settings-hotkey-error">{screenshotHotkeyError}</div>}
-                <div className="settings-hotkey-hint">按下快捷键启动选区截图，框选后可复制到剪贴板或保存为文件（如 Alt+A、Ctrl+Shift+S）</div>
+                <div className="settings-hotkey-hint">按下此快捷键将触发截图选区流程（如 Alt+A、Ctrl+Shift+A）</div>
+              </div>
+              <div className="settings-hotkey-section">
+                <div className="settings-hotkey-label">还原默认位置快捷键</div>
+                <div className="settings-hotkey-row">
+                  <input
+                    ref={resetPositionHotkeyInputRef}
+                    className={`settings-hotkey-input ${resetPositionHotkeyRecording ? 'recording' : ''}${resetPositionHotkeyError ? ' error' : ''}`}
+                    type="text"
+                    readOnly
+                    value={resetPositionHotkeyRecording ? '请按下快捷键组合…' : (resetPositionHotkey || '未设置')}
+                    onFocus={() => {
+                      setResetPositionHotkeyRecording(true);
+                      setResetPositionHotkeyError('');
+                      window.api.hotkeySuspend().catch(() => {});
+                    }}
+                    onBlur={() => {
+                      setResetPositionHotkeyRecording(false);
+                      window.api.hotkeyResume().catch(() => {});
+                    }}
+                    onKeyDown={handleResetPositionHotkeyKeyDown}
+                  />
+                  <button
+                    className="settings-hotkey-btn"
+                    type="button"
+                    onClick={() => {
+                      setResetPositionHotkeyRecording(true);
+                      resetPositionHotkeyInputRef.current?.focus();
+                    }}
+                  >
+                    {resetPositionHotkeyRecording ? '录入中' : '修改'}
+                  </button>
+                  {resetPositionHotkey && (
+                    <button
+                      className="settings-hotkey-btn"
+                      type="button"
+                      onClick={() => {
+                        window.api.resetPositionHotkeySet('').then((ok) => {
+                          if (ok) {
+                            setResetPositionHotkey('');
+                            setResetPositionHotkeyError('');
+                            setResetPositionHotkeyRecording(false);
+                            resetPositionHotkeyInputRef.current?.blur();
+                          }
+                        }).catch(() => {});
+                      }}
+                    >
+                      清除
+                    </button>
+                  )}
+                </div>
+                {resetPositionHotkeyError && <div className="settings-hotkey-error">{resetPositionHotkeyError}</div>}
+                <div className="settings-hotkey-hint">按下此快捷键将把灵动岛恢复到默认顶部居中位置</div>
               </div>
             </div>
           )}

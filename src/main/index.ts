@@ -38,6 +38,23 @@ if (!gotTheLock) {
   app.quit();
 }
 
+/**
+ * 读取还原位置快捷键配置
+ * @returns 存储的快捷键字符串，不存在时返回默认值
+ */
+function readResetPositionHotkeyConfig(): string {
+  try {
+    const storeDir = join(app.getPath('userData'), 'eIsland_store');
+    const filePath = join(storeDir, `${RESET_POSITION_HOTKEY_STORE_KEY}.json`);
+    if (!existsSync(filePath)) return DEFAULT_RESET_POSITION_HOTKEY;
+    const raw = readFileSync(filePath, 'utf-8');
+    const data = JSON.parse(raw);
+    return typeof data === 'string' ? data : DEFAULT_RESET_POSITION_HOTKEY;
+  } catch {
+    return DEFAULT_RESET_POSITION_HOTKEY;
+  }
+}
+
 function normalizeProcessName(name: string): string {
   return name.trim().toLowerCase();
 }
@@ -652,6 +669,15 @@ const SCREENSHOT_HOTKEY_STORE_KEY = 'screenshot-hotkey';
 /** 默认截图快捷键 */
 const DEFAULT_SCREENSHOT_HOTKEY = 'Alt+A';
 
+/** 当前注册的还原位置快捷键 */
+let currentResetPositionHotkey: string = '';
+
+/** 还原位置快捷键存储键名 */
+const RESET_POSITION_HOTKEY_STORE_KEY = 'reset-position-hotkey';
+
+/** 默认还原位置快捷键（空表示默认不设置） */
+const DEFAULT_RESET_POSITION_HOTKEY = '';
+
 /**
  * 读取截图快捷键配置
  * @returns 存储的快捷键字符串，不存在时返回默认值
@@ -837,11 +863,37 @@ function registerScreenshotHotkey(accelerator: string): boolean {
   }
 }
 
+/**
+ * 注册还原灵动岛默认位置的全局快捷键
+ * @param accelerator - Electron accelerator 字符串
+ */
+function registerResetPositionHotkey(accelerator: string): boolean {
+  if (currentResetPositionHotkey) {
+    try { globalShortcut.unregister(currentResetPositionHotkey); } catch { /* ignore */ }
+    currentResetPositionHotkey = '';
+  }
+  if (!accelerator) return true;
+  try {
+    const success = globalShortcut.register(accelerator, () => {
+      applyIslandPositionOffset(DEFAULT_ISLAND_POSITION_OFFSET);
+      writeIslandPositionOffsetConfig(DEFAULT_ISLAND_POSITION_OFFSET);
+    });
+    if (success) {
+      currentResetPositionHotkey = accelerator;
+    }
+    return success;
+  } catch (err) {
+    console.error('[ResetPositionHotkey] register error:', err);
+    return false;
+  }
+}
+
 /** 暂停所有灵动岛相关快捷键响应（仅解绑，不修改配置） */
 function suspendIslandHotkeys(): void {
   const hideHotkey = currentHideHotkey || readHotkeyConfig();
   const quitHotkey = currentQuitHotkey || readQuitHotkeyConfig();
   const ssHotkey = currentScreenshotHotkey || readScreenshotHotkeyConfig();
+  const resetPosHotkey = currentResetPositionHotkey || readResetPositionHotkeyConfig();
   if (hideHotkey) {
     try { globalShortcut.unregister(hideHotkey); } catch { /* ignore */ }
   }
@@ -851,6 +903,9 @@ function suspendIslandHotkeys(): void {
   if (ssHotkey) {
     try { globalShortcut.unregister(ssHotkey); } catch { /* ignore */ }
   }
+  if (resetPosHotkey) {
+    try { globalShortcut.unregister(resetPosHotkey); } catch { /* ignore */ }
+  }
 }
 
 /** 恢复所有灵动岛相关快捷键响应（按当前配置重新注册） */
@@ -858,9 +913,11 @@ function resumeIslandHotkeys(): void {
   const hideHotkey = currentHideHotkey || readHotkeyConfig();
   const quitHotkey = currentQuitHotkey || readQuitHotkeyConfig();
   const ssHotkey = currentScreenshotHotkey || readScreenshotHotkeyConfig();
+  const resetPosHotkey = currentResetPositionHotkey || readResetPositionHotkeyConfig();
   if (hideHotkey) registerHideHotkey(hideHotkey);
   if (quitHotkey) registerQuitHotkey(quitHotkey);
   if (ssHotkey) registerScreenshotHotkey(ssHotkey);
+  if (resetPosHotkey) registerResetPositionHotkey(resetPosHotkey);
 }
 
 /** 记录窗口初始中心 X 坐标 */
@@ -1557,7 +1614,8 @@ function registerIpcHandlers(): void {
   ipcMain.handle('hotkey:set', (_event, accelerator: string) => {
     const currentQuit = currentQuitHotkey || readQuitHotkeyConfig();
     const currentSS = currentScreenshotHotkey || readScreenshotHotkeyConfig();
-    if (accelerator && ((currentQuit && accelerator === currentQuit) || (currentSS && accelerator === currentSS))) {
+    const currentResetPos = currentResetPositionHotkey || readResetPositionHotkeyConfig();
+    if (accelerator && ((currentQuit && accelerator === currentQuit) || (currentSS && accelerator === currentSS) || (currentResetPos && accelerator === currentResetPos))) {
       return false;
     }
     const success = registerHideHotkey(accelerator);
@@ -1568,6 +1626,41 @@ function registerIpcHandlers(): void {
         writeFileSync(filePath, JSON.stringify(accelerator, null, 2), 'utf-8');
       } catch (err) {
         console.error('[Hotkey] persist error:', err);
+      }
+    }
+    return success;
+  });
+
+  // ===== 还原位置快捷键 IPC =====
+
+  /**
+   * 获取当前还原位置快捷键配置
+   * @returns 当前快捷键字符串
+   */
+  ipcMain.handle('reset-position-hotkey:get', () => {
+    return currentResetPositionHotkey || readResetPositionHotkeyConfig();
+  });
+
+  /**
+   * 设置还原位置快捷键并持久化
+   * @param _event - IPC 事件
+   * @param accelerator - 新的快捷键字符串
+   * @returns 是否注册成功
+   */
+  ipcMain.handle('reset-position-hotkey:set', (_event, accelerator: string) => {
+    const currentHide = currentHideHotkey || readHotkeyConfig();
+    const currentQuit = currentQuitHotkey || readQuitHotkeyConfig();
+    const currentSS = currentScreenshotHotkey || readScreenshotHotkeyConfig();
+    if (accelerator && ((currentHide && accelerator === currentHide) || (currentQuit && accelerator === currentQuit) || (currentSS && accelerator === currentSS))) {
+      return false;
+    }
+    const success = registerResetPositionHotkey(accelerator);
+    if (success) {
+      const filePath = join(storeDir, `${RESET_POSITION_HOTKEY_STORE_KEY}.json`);
+      try {
+        writeFileSync(filePath, JSON.stringify(accelerator, null, 2), 'utf-8');
+      } catch (err) {
+        console.error('[ResetPositionHotkey] persist error:', err);
       }
     }
     return success;
@@ -1592,7 +1685,8 @@ function registerIpcHandlers(): void {
   ipcMain.handle('quit-hotkey:set', (_event, accelerator: string) => {
     const currentHide = currentHideHotkey || readHotkeyConfig();
     const currentSS = currentScreenshotHotkey || readScreenshotHotkeyConfig();
-    if (accelerator && ((currentHide && accelerator === currentHide) || (currentSS && accelerator === currentSS))) {
+    const currentResetPos = currentResetPositionHotkey || readResetPositionHotkeyConfig();
+    if (accelerator && ((currentHide && accelerator === currentHide) || (currentSS && accelerator === currentSS) || (currentResetPos && accelerator === currentResetPos))) {
       return false;
     }
     const success = registerQuitHotkey(accelerator);
@@ -1638,7 +1732,8 @@ function registerIpcHandlers(): void {
   ipcMain.handle('screenshot-hotkey:set', (_event, accelerator: string) => {
     const currentHide = currentHideHotkey || readHotkeyConfig();
     const currentQuit = currentQuitHotkey || readQuitHotkeyConfig();
-    if (accelerator && ((currentHide && accelerator === currentHide) || (currentQuit && accelerator === currentQuit))) {
+    const currentResetPos = currentResetPositionHotkey || readResetPositionHotkeyConfig();
+    if (accelerator && ((currentHide && accelerator === currentHide) || (currentQuit && accelerator === currentQuit) || (currentResetPos && accelerator === currentResetPos))) {
       return false;
     }
     const success = registerScreenshotHotkey(accelerator);
@@ -1980,6 +2075,10 @@ app.whenReady().then(() => {
   // 读取持久化截图快捷键并注册
   const savedScreenshotHotkey = readScreenshotHotkeyConfig();
   if (savedScreenshotHotkey) registerScreenshotHotkey(savedScreenshotHotkey);
+
+  // 读取持久化还原位置快捷键并注册
+  const savedResetPositionHotkey = readResetPositionHotkeyConfig();
+  if (savedResetPositionHotkey) registerResetPositionHotkey(savedResetPositionHotkey);
 
   app.on('activate', function () {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();

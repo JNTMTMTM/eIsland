@@ -327,6 +327,21 @@ const api = {
   screenshotHotkeySet: (accelerator: string): Promise<boolean> => {
     return ipcRenderer.invoke('screenshot-hotkey:set', accelerator);
   },
+  /**
+   * 获取当前还原默认位置快捷键
+   * @returns 当前快捷键字符串
+   */
+  resetPositionHotkeyGet: (): Promise<string> => {
+    return ipcRenderer.invoke('reset-position-hotkey:get');
+  },
+  /**
+   * 设置还原默认位置快捷键
+   * @param accelerator - Electron accelerator 字符串
+   * @returns 是否注册成功
+   */
+  resetPositionHotkeySet: (accelerator: string): Promise<boolean> => {
+    return ipcRenderer.invoke('reset-position-hotkey:set', accelerator);
+  },
   /** ===== 日志文件 API ===== */
   /**
    * 写入日志到文件
