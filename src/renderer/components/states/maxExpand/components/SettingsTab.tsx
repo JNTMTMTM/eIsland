@@ -342,7 +342,7 @@ const WEATHER_PROVIDER_OPTIONS: Array<{ value: WeatherProvider; label: string }>
 /** 设置页侧边栏 Tab 顺序 */
 const SETTINGS_TABS: ('index' | 'app' | 'network' | 'weather' | 'music' | 'ai' | 'shortcut' | 'about')[] = ['index', 'app', 'network', 'weather', 'music', 'ai', 'shortcut', 'about'];
 type SettingsSidebarTabKey = (typeof SETTINGS_TABS)[number];
-type AppSettingsPageKey = 'layout-preview' | 'hide-process-list';
+type AppSettingsPageKey = 'layout-preview' | 'hide-process-list' | 'position';
 type SettingsTabLabelKey = SettingsSidebarTabKey | AppSettingsPageKey;
 
 const SETTINGS_TAB_LABELS: Record<SettingsTabLabelKey, string> = {
@@ -350,6 +350,7 @@ const SETTINGS_TAB_LABELS: Record<SettingsTabLabelKey, string> = {
   app: '软件设置',
   'layout-preview': '布局预览',
   'hide-process-list': '隐藏进程管理',
+  position: '位置校准',
   network: '网络配置',
   weather: '天气配置',
   music: '歌曲设置',
@@ -361,6 +362,7 @@ const SETTINGS_TAB_DESCRIPTIONS: Record<Exclude<SettingsTabLabelKey, 'index'>, s
   app: '布局预览与隐藏进程规则配置',
   'layout-preview': '进入布局预览并调整左右控件展示。',
   'hide-process-list': '管理隐藏进程名单与自动隐藏规则。',
+  position: '动态调整灵动岛位置并保存',
   network: '请求超时与网络行为设置',
   weather: '天气接口优先级设置',
   music: '播放器白名单与歌词来源',
@@ -389,7 +391,7 @@ const NETWORK_TIMEOUT_OPTIONS = [
 
 const LAYOUT_STORE_KEY = 'overview-layout';
 const DEFAULT_LAYOUT: OverviewLayoutConfig = { left: 'shortcuts', right: 'todo' };
-const APP_SETTINGS_PAGES: AppSettingsPageKey[] = ['layout-preview', 'hide-process-list'];
+const APP_SETTINGS_PAGES: AppSettingsPageKey[] = ['layout-preview', 'hide-process-list', 'position'];
 
 interface RunningProcessItem {
   name: string;
@@ -402,7 +404,7 @@ interface RunningProcessItem {
  * @returns 设置 Tab 组件
  */
 export function SettingsTab(): ReactElement {
-  const [activeTab, setActiveTab] = useState<'index' | 'app' | 'network' | 'weather' | 'music' | 'ai' | 'shortcut' | 'about'>('index');
+  const [activeTab, setActiveTab] = useState<SettingsSidebarTabKey>('index');
   const [appSettingsPage, setAppSettingsPage] = useState<AppSettingsPageKey>('layout-preview');
   const { aiConfig, setAiConfig } = useIslandStore();
   const [editingPrompt, setEditingPrompt] = useState(false);
@@ -433,6 +435,7 @@ export function SettingsTab(): ReactElement {
   const [hideProcessList, setHideProcessList] = useState<string[]>([]);
   const [hideProcessFilter, setHideProcessFilter] = useState<string>('');
   const [hideProcessLoading, setHideProcessLoading] = useState(false);
+  const [islandPositionOffset, setIslandPositionOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [aboutVersion, setAboutVersion] = useState<string>('26.1.1-beta.3');
 
   /** 快捷键相关状态 */
@@ -474,6 +477,17 @@ export function SettingsTab(): ReactElement {
   useEffect(() => {
     const cfg = loadWeatherProviderConfig();
     setWeatherPrimaryProvider(cfg.primaryProvider);
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    window.api.getIslandPositionOffset().then((offset) => {
+      if (cancelled || !offset) return;
+      const x = typeof offset.x === 'number' && Number.isFinite(offset.x) ? Math.round(offset.x) : 0;
+      const y = typeof offset.y === 'number' && Number.isFinite(offset.y) ? Math.round(offset.y) : 0;
+      setIslandPositionOffset({ x, y });
+    }).catch(() => {});
+    return () => { cancelled = true; };
   }, []);
 
   /** 加载歌曲设置 */
@@ -531,6 +545,15 @@ export function SettingsTab(): ReactElement {
     const updated = { ...layoutConfig, [side]: value };
     setLayoutConfig(updated);
     window.api.storeWrite(LAYOUT_STORE_KEY, updated).catch(() => {});
+  };
+
+  const applyIslandPositionOffset = (x: number, y: number): void => {
+    const next = {
+      x: Math.max(-2000, Math.min(2000, Math.round(x))),
+      y: Math.max(-1200, Math.min(1200, Math.round(y))),
+    };
+    setIslandPositionOffset(next);
+    window.api.setIslandPositionOffset(next).catch(() => {});
   };
 
   const toggleHideProcess = (processName: string): void => {
@@ -897,6 +920,18 @@ export function SettingsTab(): ReactElement {
                   <img className="settings-index-card-layout-icon" src={SETTINGS_TAB_ICONS['hide-process-list']} alt="" aria-hidden="true" />
                 </button>
 
+                <button
+                  className="settings-index-card"
+                  type="button"
+                  onClick={() => {
+                    setAppSettingsPage('position');
+                    setActiveTab('app');
+                  }}
+                >
+                  <span className="settings-index-card-title">{SETTINGS_TAB_LABELS.position}</span>
+                  <span className="settings-index-card-desc">{SETTINGS_TAB_DESCRIPTIONS.position}</span>
+                </button>
+
                 {SETTINGS_TABS.filter((tab) => tab !== 'index' && tab !== 'app').map((tab) => (
                   <button
                     key={tab}
@@ -1033,6 +1068,65 @@ export function SettingsTab(): ReactElement {
                               </button>
                             );
                           })}
+                      </div>
+                    </div>
+                  )}
+
+                  {appSettingsPage === 'position' && (
+                    <div className="max-expand-settings-section">
+                      <div className="settings-music-section">
+                        <div className="settings-music-label">灵动岛位置偏移</div>
+                        <div className="settings-music-hint">调整后立即生效并自动保存，重启后会按该位置校准。</div>
+
+                        <div className="settings-hotkey-row">
+                          <button className="settings-hotkey-btn" type="button" onClick={() => applyIslandPositionOffset(islandPositionOffset.x - 10, islandPositionOffset.y)}>左移 10</button>
+                          <button className="settings-hotkey-btn" type="button" onClick={() => applyIslandPositionOffset(islandPositionOffset.x + 10, islandPositionOffset.y)}>右移 10</button>
+                          <button className="settings-hotkey-btn" type="button" onClick={() => applyIslandPositionOffset(islandPositionOffset.x, islandPositionOffset.y - 10)}>上移 10</button>
+                          <button className="settings-hotkey-btn" type="button" onClick={() => applyIslandPositionOffset(islandPositionOffset.x, islandPositionOffset.y + 10)}>下移 10</button>
+                        </div>
+
+                        <div className="settings-hotkey-row">
+                          <label className="settings-field" style={{ flex: 1 }}>
+                            <span className="settings-field-label">水平偏移 X（px）</span>
+                            <input
+                              className="settings-field-input"
+                              type="number"
+                              min={-2000}
+                              max={2000}
+                              value={islandPositionOffset.x}
+                              onChange={(e) => {
+                                const nextX = Number(e.target.value);
+                                if (!Number.isFinite(nextX)) return;
+                                applyIslandPositionOffset(nextX, islandPositionOffset.y);
+                              }}
+                            />
+                          </label>
+                          <label className="settings-field" style={{ flex: 1 }}>
+                            <span className="settings-field-label">垂直偏移 Y（px）</span>
+                            <input
+                              className="settings-field-input"
+                              type="number"
+                              min={-1200}
+                              max={1200}
+                              value={islandPositionOffset.y}
+                              onChange={(e) => {
+                                const nextY = Number(e.target.value);
+                                if (!Number.isFinite(nextY)) return;
+                                applyIslandPositionOffset(islandPositionOffset.x, nextY);
+                              }}
+                            />
+                          </label>
+                        </div>
+
+                        <div className="settings-hotkey-row">
+                          <button
+                            className="settings-hotkey-btn"
+                            type="button"
+                            onClick={() => applyIslandPositionOffset(0, 0)}
+                          >
+                            重置为默认位置
+                          </button>
+                        </div>
                       </div>
                     </div>
                   )}

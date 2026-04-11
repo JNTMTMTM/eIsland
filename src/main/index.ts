@@ -42,6 +42,11 @@ function normalizeProcessName(name: string): string {
   return name.trim().toLowerCase();
 }
 
+interface IslandPositionOffset {
+  x: number;
+  y: number;
+}
+
 function isSystemProcessName(processName: string): boolean {
   const name = normalizeProcessName(processName);
   if (!name) return true;
@@ -339,8 +344,54 @@ const LYRICS_SOURCE_STORE_KEY = 'lyrics-source';
 /** 隐藏进程名单存储键名 */
 const HIDE_PROCESS_LIST_STORE_KEY = 'hide-process-list';
 
+/** 灵动岛位置偏移存储键名 */
+const ISLAND_POSITION_STORE_KEY = 'island-position-offset';
+
 /** 隐藏进程名单默认值 */
 const DEFAULT_HIDE_PROCESS_LIST: string[] = [];
+
+/** 灵动岛位置偏移默认值（相对主屏工作区顶部居中） */
+const DEFAULT_ISLAND_POSITION_OFFSET: IslandPositionOffset = { x: 0, y: 0 };
+
+function sanitizeIslandPositionOffset(raw: unknown): IslandPositionOffset {
+  if (!raw || typeof raw !== 'object') {
+    return { ...DEFAULT_ISLAND_POSITION_OFFSET };
+  }
+
+  const value = raw as { x?: unknown; y?: unknown };
+  const xNum = typeof value.x === 'number' && Number.isFinite(value.x) ? value.x : DEFAULT_ISLAND_POSITION_OFFSET.x;
+  const yNum = typeof value.y === 'number' && Number.isFinite(value.y) ? value.y : DEFAULT_ISLAND_POSITION_OFFSET.y;
+
+  return {
+    x: Math.max(-2000, Math.min(2000, Math.round(xNum))),
+    y: Math.max(-1200, Math.min(1200, Math.round(yNum))),
+  };
+}
+
+function readIslandPositionOffsetConfig(): IslandPositionOffset {
+  try {
+    const storeDir = join(app.getPath('userData'), 'eIsland_store');
+    const filePath = join(storeDir, `${ISLAND_POSITION_STORE_KEY}.json`);
+    if (!existsSync(filePath)) return { ...DEFAULT_ISLAND_POSITION_OFFSET };
+    const raw = readFileSync(filePath, 'utf-8');
+    return sanitizeIslandPositionOffset(JSON.parse(raw));
+  } catch {
+    return { ...DEFAULT_ISLAND_POSITION_OFFSET };
+  }
+}
+
+function writeIslandPositionOffsetConfig(offset: IslandPositionOffset): boolean {
+  try {
+    const storeDir = join(app.getPath('userData'), 'eIsland_store');
+    if (!existsSync(storeDir)) mkdirSync(storeDir, { recursive: true });
+    const filePath = join(storeDir, `${ISLAND_POSITION_STORE_KEY}.json`);
+    writeFileSync(filePath, JSON.stringify(offset, null, 2), 'utf-8');
+    return true;
+  } catch (err) {
+    console.error('[IslandPosition] persist error:', err);
+    return false;
+  }
+}
 
 /** 运行时白名单（可被用户修改） */
 let nowPlayingWhitelist: string[] = [...DEFAULT_WHITELIST];
@@ -350,6 +401,9 @@ let autoHideProcessList: string[] = [...DEFAULT_HIDE_PROCESS_LIST];
 
 /** 设置界面配置的隐藏进程名单（下次重启生效） */
 let configuredHideProcessList: string[] = [...DEFAULT_HIDE_PROCESS_LIST];
+
+/** 运行时灵动岛位置偏移 */
+let islandPositionOffset: IslandPositionOffset = { ...DEFAULT_ISLAND_POSITION_OFFSET };
 
 /** 隐藏进程名单轮询计时器 */
 let autoHideProcessWatcher: NodeJS.Timeout | null = null;
@@ -815,16 +869,35 @@ let initialCenterX = 0;
 /** 计算灵动岛默认窗口边界（主屏工作区顶部居中） */
 function getInitialIslandBounds(): Electron.Rectangle {
   const primaryDisplay = screen.getPrimaryDisplay();
-  const { width: screenWidth } = primaryDisplay.workAreaSize;
-  const { x: workX, y: workY } = primaryDisplay.workArea;
-  const x = Math.round(workX + (screenWidth - ISLAND_WIDTH) / 2);
-  const y = Math.round(workY);
+  const { x: workX, y: workY, width: workWidth, height: workHeight } = primaryDisplay.workArea;
+  const centeredX = Math.round(workX + (workWidth - ISLAND_WIDTH) / 2);
+  const minX = workX;
+  const maxX = workX + Math.max(0, workWidth - ISLAND_WIDTH);
+  const minY = workY;
+  const maxY = workY + Math.max(0, workHeight - ISLAND_HEIGHT);
+  const x = Math.max(minX, Math.min(maxX, centeredX + islandPositionOffset.x));
+  const y = Math.max(minY, Math.min(maxY, Math.round(workY + islandPositionOffset.y)));
   return {
     x,
     y,
     width: ISLAND_WIDTH,
     height: ISLAND_HEIGHT,
   };
+}
+
+function applyIslandPositionOffset(offset: IslandPositionOffset): void {
+  islandPositionOffset = sanitizeIslandPositionOffset(offset);
+  const nextBaseBounds = getInitialIslandBounds();
+  initialCenterX = nextBaseBounds.x + ISLAND_WIDTH / 2;
+
+  if (!mainWindow || mainWindow.isDestroyed()) return;
+  const bounds = mainWindow.getBounds();
+  mainWindow.setBounds({
+    x: Math.round(initialCenterX - bounds.width / 2),
+    y: nextBaseBounds.y,
+    width: bounds.width,
+    height: bounds.height,
+  });
 }
 
 /**
@@ -1060,6 +1133,16 @@ function registerIpcHandlers(): void {
       return mainWindow.getBounds();
     }
     return null;
+  });
+
+  ipcMain.handle('window:island-position:get', () => {
+    return { ...islandPositionOffset };
+  });
+
+  ipcMain.handle('window:island-position:set', (_event, offset: { x?: number; y?: number }) => {
+    const nextOffset = sanitizeIslandPositionOffset(offset);
+    applyIslandPositionOffset(nextOffset);
+    return writeIslandPositionOffsetConfig(nextOffset);
   });
 
   /**
@@ -1866,6 +1949,8 @@ app.whenReady().then(() => {
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window);
   });
+
+  islandPositionOffset = readIslandPositionOffsetConfig();
 
   createWindow();
   createTray(mainWindow);

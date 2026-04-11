@@ -106,6 +106,20 @@ const api = {
     return ipcRenderer.invoke('window:get-bounds');
   },
   /**
+   * 获取灵动岛位置偏移
+   * @returns 相对主屏工作区顶部居中的偏移
+   */
+  getIslandPositionOffset: (): Promise<{ x: number; y: number }> => {
+    return ipcRenderer.invoke('window:island-position:get');
+  },
+  /**
+   * 设置并保存灵动岛位置偏移
+   * @param offset - 相对主屏工作区顶部居中的偏移
+   */
+  setIslandPositionOffset: (offset: { x: number; y: number }): Promise<boolean> => {
+    return ipcRenderer.invoke('window:island-position:set', offset);
+  },
+  /**
    * 退出应用
    */
   quitApp: (): void => {
