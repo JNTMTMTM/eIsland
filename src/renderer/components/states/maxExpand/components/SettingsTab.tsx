@@ -590,6 +590,14 @@ export function SettingsTab(): ReactElement {
     window.api.navOrderSet({ visibleOrder, hiddenOrder }).catch(() => {});
   };
 
+  const resetNavConfig = (): void => {
+    const nextVisible = [...DEFAULT_NAV_ORDER];
+    const nextHidden: string[] = [];
+    setNavOrder(nextVisible);
+    setHiddenNavOrder(nextHidden);
+    persistNavConfig(nextVisible, nextHidden);
+  };
+
   /** 快捷键相关状态 */
   const [hideHotkey, setHideHotkey] = useState<string>('Alt+X');
   const [hotkeyRecording, setHotkeyRecording] = useState(false);
@@ -1403,9 +1411,19 @@ export function SettingsTab(): ReactElement {
                 <div className="max-expand-settings-title">
                   快速导航
                   <button
+                    className="settings-nav-edit-btn"
+                    type="button"
+                    onClick={resetNavConfig}
+                  >
+                    恢复默认
+                  </button>
+                  <button
                     className={`settings-nav-edit-btn ${navEditMode ? 'active' : ''}`}
                     type="button"
                     onClick={() => {
+                      if (navEditMode) {
+                        persistNavConfig(navOrder, hiddenNavOrder);
+                      }
                       setNavEditMode(!navEditMode);
                     }}
                   >
@@ -1413,7 +1431,7 @@ export function SettingsTab(): ReactElement {
                   </button>
                 </div>
                 <div className="settings-music-hint settings-index-hint">
-                  {navEditMode ? '拖拽卡片可调整排列顺序，删除/添加会自动保存。' : '点击卡片可快速跳转到对应配置页。'}
+                  {navEditMode ? '拖拽卡片可调整排列顺序，点击「完成」保存。' : '点击卡片可快速跳转到对应配置页。'}
                 </div>
               </div>
               <div className="settings-index-cards" aria-label="设置快速导航">
@@ -1454,7 +1472,6 @@ export function SettingsTab(): ReactElement {
                       const [moved] = newOrder.splice(from, 1);
                       newOrder.splice(idx, 0, moved);
                       setNavOrder(newOrder);
-                      persistNavConfig(newOrder, hiddenNavOrder);
                     }}
                     onDragEnd={() => {
                       dragIdxRef.current = null;
@@ -1473,7 +1490,6 @@ export function SettingsTab(): ReactElement {
                           const nextHidden = hiddenNavOrder.includes(card.id) ? hiddenNavOrder : [...hiddenNavOrder, card.id];
                           setNavOrder(nextVisible);
                           setHiddenNavOrder(nextHidden);
-                          persistNavConfig(nextVisible, nextHidden);
                         }}
                         onKeyDown={(e) => {
                           if (e.key === 'Enter' || e.key === ' ') {
@@ -1483,7 +1499,6 @@ export function SettingsTab(): ReactElement {
                             const nextHidden = hiddenNavOrder.includes(card.id) ? hiddenNavOrder : [...hiddenNavOrder, card.id];
                             setNavOrder(nextVisible);
                             setHiddenNavOrder(nextHidden);
-                            persistNavConfig(nextVisible, nextHidden);
                           }
                         }}
                         aria-label={`删除 ${card.label}`}
@@ -1516,7 +1531,6 @@ export function SettingsTab(): ReactElement {
                             const nextHidden = hiddenNavOrder.filter((id) => id !== card.id);
                             setNavOrder(nextVisible);
                             setHiddenNavOrder(nextHidden);
-                            persistNavConfig(nextVisible, nextHidden);
                           }}
                         >
                           <span>{card.label}</span>

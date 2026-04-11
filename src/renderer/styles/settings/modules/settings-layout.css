@@ -323,9 +323,38 @@
 .settings-nav-add-panel {
   margin-top: 10px;
   padding: 10px;
+  max-height: 50%;
+  overflow-y: auto;
   border-radius: 10px;
   border: 1px dashed rgba(var(--color-text-rgb), 0.14);
   background: rgba(var(--color-text-rgb), 0.03);
+}
+
+.settings-nav-add-panel::-webkit-scrollbar {
+  width: 6px;
+}
+
+.settings-nav-add-panel::-webkit-scrollbar-track {
+  background: rgba(var(--color-text-rgb), 0.04);
+  border-radius: 8px;
+}
+
+.settings-nav-add-panel::-webkit-scrollbar-thumb {
+  background: linear-gradient(
+    180deg,
+    rgba(var(--color-text-rgb), 0.22),
+    rgba(var(--color-text-rgb), 0.14)
+  );
+  border-radius: 8px;
+  border: 1px solid rgba(var(--color-text-rgb), 0.12);
+}
+
+.settings-nav-add-panel::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(
+    180deg,
+    rgba(var(--color-text-rgb), 0.3),
+    rgba(var(--color-text-rgb), 0.2)
+  );
 }
 
 .settings-nav-add-list {
