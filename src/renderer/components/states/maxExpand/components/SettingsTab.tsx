@@ -39,6 +39,10 @@ import {
   saveWeatherProviderConfig,
   DEFAULT_WEATHER_PRIMARY_PROVIDER,
   type WeatherProvider,
+  loadWeatherLocationConfig,
+  saveWeatherLocationConfig,
+  DEFAULT_WEATHER_LOCATION_PRIORITY,
+  type WeatherLocationPriority,
 } from '../../../../store/utils/storage';
 import { fetchVersion } from '../../../../api/versionApi';
 
@@ -339,10 +343,16 @@ const WEATHER_PROVIDER_OPTIONS: Array<{ value: WeatherProvider; label: string }>
   { value: 'uapi', label: 'UAPI 优先' },
 ];
 
+const WEATHER_LOCATION_PRIORITY_OPTIONS: Array<{ value: WeatherLocationPriority; label: string }> = [
+  { value: 'ip', label: 'IP 定位优先' },
+  { value: 'custom', label: '自定义位置优先' },
+];
+
 /** 设置页侧边栏 Tab 顺序 */
 const SETTINGS_TABS: ('index' | 'app' | 'network' | 'weather' | 'music' | 'ai' | 'shortcut' | 'about')[] = ['index', 'app', 'network', 'weather', 'music', 'ai', 'shortcut', 'about'];
 type SettingsSidebarTabKey = (typeof SETTINGS_TABS)[number];
 type AppSettingsPageKey = 'layout-preview' | 'hide-process-list' | 'position';
+type WeatherSettingsPageKey = 'location' | 'provider';
 type SettingsTabLabelKey = SettingsSidebarTabKey | AppSettingsPageKey;
 
 const SETTINGS_TAB_LABELS: Record<SettingsTabLabelKey, string> = {
@@ -393,6 +403,11 @@ const NETWORK_TIMEOUT_OPTIONS = [
 const LAYOUT_STORE_KEY = 'overview-layout';
 const DEFAULT_LAYOUT: OverviewLayoutConfig = { left: 'shortcuts', right: 'todo' };
 const APP_SETTINGS_PAGES: AppSettingsPageKey[] = ['layout-preview', 'hide-process-list', 'position'];
+const WEATHER_SETTINGS_PAGES: WeatherSettingsPageKey[] = ['location', 'provider'];
+const WEATHER_SETTINGS_PAGE_LABELS: Record<WeatherSettingsPageKey, string> = {
+  location: '定位配置',
+  provider: '接口配置',
+};
 
 interface RunningProcessItem {
   name: string;
@@ -407,7 +422,8 @@ interface RunningProcessItem {
 export function SettingsTab(): ReactElement {
   const [activeTab, setActiveTab] = useState<SettingsSidebarTabKey>('index');
   const [appSettingsPage, setAppSettingsPage] = useState<AppSettingsPageKey>('layout-preview');
-  const { aiConfig, setAiConfig } = useIslandStore();
+  const [weatherSettingsPage, setWeatherSettingsPage] = useState<WeatherSettingsPageKey>('location');
+  const { aiConfig, setAiConfig, fetchWeatherData } = useIslandStore();
   const [editingPrompt, setEditingPrompt] = useState(false);
   const [promptDraft, setPromptDraft] = useState('');
   const promptRef = useRef<HTMLTextAreaElement>(null);
@@ -417,6 +433,9 @@ export function SettingsTab(): ReactElement {
   const appSettingsPageRef = useRef(appSettingsPage);
   const currentAppSettingsPageLabel = SETTINGS_TAB_LABELS[appSettingsPage] || '布局预览';
   appSettingsPageRef.current = appSettingsPage;
+  const weatherSettingsPageRef = useRef(weatherSettingsPage);
+  const currentWeatherSettingsPageLabel = WEATHER_SETTINGS_PAGE_LABELS[weatherSettingsPage] || '定位配置';
+  weatherSettingsPageRef.current = weatherSettingsPage;
 
   const [layoutConfig, setLayoutConfig] = useState<OverviewLayoutConfig>(DEFAULT_LAYOUT);
 
@@ -432,6 +451,11 @@ export function SettingsTab(): ReactElement {
   const [networkTimeoutMs, setNetworkTimeoutMs] = useState<number>(DEFAULT_NETWORK_TIMEOUT_MS);
   const [customTimeoutInput, setCustomTimeoutInput] = useState<string>('');
   const [weatherPrimaryProvider, setWeatherPrimaryProvider] = useState<WeatherProvider>(DEFAULT_WEATHER_PRIMARY_PROVIDER);
+  const [weatherLocationPriority, setWeatherLocationPriority] = useState<WeatherLocationPriority>(DEFAULT_WEATHER_LOCATION_PRIORITY);
+  const [weatherCustomLocationInput, setWeatherCustomLocationInput] = useState<{ latitude: string; longitude: string; city: string }>({ latitude: '', longitude: '', city: '' });
+  const [weatherLocationConfigMessage, setWeatherLocationConfigMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [weatherCustomLocationTesting, setWeatherCustomLocationTesting] = useState(false);
+  const [weatherCustomLocationTestMessage, setWeatherCustomLocationTestMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [runningProcesses, setRunningProcesses] = useState<RunningProcessItem[]>([]);
   const [hideProcessList, setHideProcessList] = useState<string[]>([]);
   const [hideProcessFilter, setHideProcessFilter] = useState<string>('');
@@ -485,6 +509,16 @@ export function SettingsTab(): ReactElement {
   useEffect(() => {
     const cfg = loadWeatherProviderConfig();
     setWeatherPrimaryProvider(cfg.primaryProvider);
+  }, []);
+
+  useEffect(() => {
+    const cfg = loadWeatherLocationConfig();
+    setWeatherLocationPriority(cfg.priority);
+    setWeatherCustomLocationInput({
+      latitude: cfg.customLocation ? String(cfg.customLocation.latitude) : '',
+      longitude: cfg.customLocation ? String(cfg.customLocation.longitude) : '',
+      city: cfg.customLocation?.city || '',
+    });
   }, []);
 
   useEffect(() => {
@@ -610,6 +644,104 @@ export function SettingsTab(): ReactElement {
     islandPositionInput.x.trim() !== String(islandPositionOffset.x)
     || islandPositionInput.y.trim() !== String(islandPositionOffset.y);
 
+  const parseWeatherCustomLocationInput = (): { latitude: number; longitude: number; city: string } | null => {
+    const latitude = Number(weatherCustomLocationInput.latitude.trim());
+    const longitude = Number(weatherCustomLocationInput.longitude.trim());
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
+    if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) return null;
+    return {
+      latitude,
+      longitude,
+      city: weatherCustomLocationInput.city.trim(),
+    };
+  };
+
+  const saveWeatherLocationSettings = (): void => {
+    const custom = parseWeatherCustomLocationInput();
+    if (weatherLocationPriority === 'custom' && !custom) {
+      setWeatherLocationConfigMessage({ type: 'error', text: '请填写有效的经纬度（纬度 -90~90，经度 -180~180）' });
+      return;
+    }
+
+    saveWeatherLocationConfig({
+      priority: weatherLocationPriority,
+      customLocation: custom || null,
+    });
+    setWeatherLocationConfigMessage({ type: 'success', text: '天气定位配置已保存' });
+    setWeatherCustomLocationTestMessage(null);
+    fetchWeatherData(undefined, true).catch(() => {});
+  };
+
+  const testWeatherCustomLocation = async (): Promise<void> => {
+    const custom = parseWeatherCustomLocationInput();
+    if (!custom) {
+      setWeatherCustomLocationTestMessage({ type: 'error', text: '请先填写有效自定义位置后再测试' });
+      return;
+    }
+
+    setWeatherCustomLocationTesting(true);
+    setWeatherCustomLocationTestMessage(null);
+
+    const openMeteoParams = new URLSearchParams({
+      latitude: String(custom.latitude),
+      longitude: String(custom.longitude),
+      current: 'temperature_2m',
+      timezone: 'auto',
+    });
+    const openMeteoUrl = `https://api.open-meteo.com/v1/forecast?${openMeteoParams.toString()}`;
+
+    const uapiParams = new URLSearchParams({
+      forecast: 'true',
+      extended: 'true',
+      lang: 'zh',
+    });
+    if (custom.city) uapiParams.set('city', custom.city);
+    const uapiUrl = `https://uapis.cn/api/v1/misc/weather?${uapiParams.toString()}`;
+
+    const testProvider = async (name: string, url: string): Promise<string> => {
+      const resp = await window.api.netFetch(url, { timeoutMs: networkTimeoutMs });
+      if (!resp.ok) {
+        throw new Error(`${name} HTTP ${resp.status}`);
+      }
+      if (resp.body.trimStart().startsWith('<')) {
+        throw new Error(`${name} 返回了非 JSON`);
+      }
+      JSON.parse(resp.body);
+      return `${name} 可用`;
+    };
+
+    try {
+      const [openMeteoResult, uapiResult] = await Promise.allSettled([
+        testProvider('Open-Meteo', openMeteoUrl),
+        testProvider('UAPI', uapiUrl),
+      ]);
+
+      const messages: string[] = [];
+      let hasFailure = false;
+
+      if (openMeteoResult.status === 'fulfilled') {
+        messages.push(openMeteoResult.value);
+      } else {
+        hasFailure = true;
+        messages.push(`Open-Meteo 不可用：${openMeteoResult.reason instanceof Error ? openMeteoResult.reason.message : '未知错误'}`);
+      }
+
+      if (uapiResult.status === 'fulfilled') {
+        messages.push(uapiResult.value);
+      } else {
+        hasFailure = true;
+        messages.push(`UAPI 不可用：${uapiResult.reason instanceof Error ? uapiResult.reason.message : '未知错误'}`);
+      }
+
+      setWeatherCustomLocationTestMessage({
+        type: hasFailure ? 'error' : 'success',
+        text: messages.join('；'),
+      });
+    } finally {
+      setWeatherCustomLocationTesting(false);
+    }
+  };
+
   const toggleHideProcess = (processName: string): void => {
     const key = processName.trim().toLowerCase();
     if (!key) return;
@@ -680,6 +812,23 @@ export function SettingsTab(): ReactElement {
             : Math.max(currentIdx - 1, 0);
           if (nextIdx !== currentIdx) {
             setAppSettingsPage(pages[nextIdx]);
+          }
+          e.preventDefault();
+          e.stopPropagation();
+          return;
+        }
+      }
+
+      if (activeTabRef.current === 'weather' && target.closest('.settings-weather-pages-layout')) {
+        const pages = WEATHER_SETTINGS_PAGES;
+        const currentPage = weatherSettingsPageRef.current;
+        const currentIdx = pages.indexOf(currentPage);
+        if (currentIdx >= 0) {
+          const nextIdx = e.deltaY > 0
+            ? Math.min(currentIdx + 1, pages.length - 1)
+            : Math.max(currentIdx - 1, 0);
+          if (nextIdx !== currentIdx) {
+            setWeatherSettingsPage(pages[nextIdx]);
           }
           e.preventDefault();
           e.stopPropagation();
@@ -1255,6 +1404,7 @@ export function SettingsTab(): ReactElement {
                   ))}
                 </div>
               </div>
+
             </div>
           )}
           {activeTab === 'network' && (
@@ -1310,23 +1460,148 @@ export function SettingsTab(): ReactElement {
           )}
           {activeTab === 'weather' && (
             <div className="max-expand-settings-section">
-              <div className="max-expand-settings-title">天气配置</div>
-              <div className="settings-music-section">
-                <div className="settings-music-label">天气接口优先级</div>
-                <div className="settings-music-hint">可选择优先使用 Open-Meteo 或 UAPI，失败时自动切换到另一源</div>
-                <div className="settings-lyrics-source-options">
-                  {WEATHER_PROVIDER_OPTIONS.map((opt) => (
+              <div className="max-expand-settings-title settings-app-title-line">
+                <span>天气配置</span>
+                <span className="settings-app-title-sub">- {currentWeatherSettingsPageLabel}</span>
+              </div>
+
+              <div className="settings-app-pages-layout settings-weather-pages-layout">
+                <div className="settings-app-page-main">
+                  {weatherSettingsPage === 'location' && (
+                    <div className="settings-music-section">
+                      <div className="settings-music-label">定位来源优先级</div>
+                      <div className="settings-music-hint">选择天气定位优先使用 IP 自动定位或自定义位置</div>
+                      <div className="settings-lyrics-source-options">
+                        {WEATHER_LOCATION_PRIORITY_OPTIONS.map((opt) => (
+                          <button
+                            key={opt.value}
+                            className={`settings-lyrics-source-btn ${weatherLocationPriority === opt.value ? 'active' : ''}`}
+                            type="button"
+                            onClick={() => setWeatherLocationPriority(opt.value)}
+                          >
+                            {opt.label}
+                          </button>
+                        ))}
+                      </div>
+
+                      <div className="settings-hotkey-row">
+                        <label className="settings-field" style={{ flex: 1 }}>
+                          <span className="settings-field-label">自定义纬度</span>
+                          <input
+                            className="settings-field-input"
+                            type="number"
+                            min={-90}
+                            max={90}
+                            step="0.0001"
+                            value={weatherCustomLocationInput.latitude}
+                            onChange={(e) => {
+                              setWeatherCustomLocationInput((prev) => ({ ...prev, latitude: e.target.value }));
+                            }}
+                          />
+                        </label>
+                        <label className="settings-field" style={{ flex: 1 }}>
+                          <span className="settings-field-label">自定义经度</span>
+                          <input
+                            className="settings-field-input"
+                            type="number"
+                            min={-180}
+                            max={180}
+                            step="0.0001"
+                            value={weatherCustomLocationInput.longitude}
+                            onChange={(e) => {
+                              setWeatherCustomLocationInput((prev) => ({ ...prev, longitude: e.target.value }));
+                            }}
+                          />
+                        </label>
+                      </div>
+
+                      <div className="settings-hotkey-row">
+                        <label className="settings-field" style={{ flex: 1 }}>
+                          <span className="settings-field-label">城市名（可选，用于 UAPI）</span>
+                          <input
+                            className="settings-field-input"
+                            type="text"
+                            value={weatherCustomLocationInput.city}
+                            onChange={(e) => {
+                              setWeatherCustomLocationInput((prev) => ({ ...prev, city: e.target.value }));
+                            }}
+                          />
+                        </label>
+                      </div>
+
+                      <div className="settings-hotkey-row">
+                        <button
+                          className="settings-hotkey-btn"
+                          type="button"
+                          onClick={() => {
+                            testWeatherCustomLocation().catch((error) => {
+                              setWeatherCustomLocationTesting(false);
+                              setWeatherCustomLocationTestMessage({
+                                type: 'error',
+                                text: `测试失败：${error instanceof Error ? error.message : '未知错误'}`,
+                              });
+                            });
+                          }}
+                          disabled={weatherCustomLocationTesting}
+                        >
+                          {weatherCustomLocationTesting ? '测试中...' : '测试自定义位置（双接口）'}
+                        </button>
+                        <button
+                          className="settings-hotkey-btn"
+                          type="button"
+                          onClick={saveWeatherLocationSettings}
+                        >
+                          保存定位配置
+                        </button>
+                      </div>
+
+                      {weatherLocationConfigMessage && (
+                        <div className="settings-music-hint" style={{ color: weatherLocationConfigMessage.type === 'error' ? '#ff7f7f' : '#7be495' }}>
+                          {weatherLocationConfigMessage.text}
+                        </div>
+                      )}
+                      {weatherCustomLocationTestMessage && (
+                        <div className="settings-music-hint" style={{ color: weatherCustomLocationTestMessage.type === 'error' ? '#ff7f7f' : '#7be495' }}>
+                          {weatherCustomLocationTestMessage.text}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {weatherSettingsPage === 'provider' && (
+                    <div className="settings-music-section">
+                      <div className="settings-music-label">天气接口优先级</div>
+                      <div className="settings-music-hint">可选择优先使用 Open-Meteo 或 UAPI，失败时自动切换到另一源</div>
+                      <div className="settings-lyrics-source-options">
+                        {WEATHER_PROVIDER_OPTIONS.map((opt) => (
+                          <button
+                            key={opt.value}
+                            className={`settings-lyrics-source-btn ${weatherPrimaryProvider === opt.value ? 'active' : ''}`}
+                            type="button"
+                            onClick={() => {
+                              setWeatherPrimaryProvider(opt.value);
+                              saveWeatherProviderConfig({ primaryProvider: opt.value });
+                            }}
+                          >
+                            {opt.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="settings-app-page-dots" aria-label="天气配置分页">
+                  {WEATHER_SETTINGS_PAGES.map((page) => (
                     <button
-                      key={opt.value}
-                      className={`settings-lyrics-source-btn ${weatherPrimaryProvider === opt.value ? 'active' : ''}`}
+                      key={page}
+                      className={`settings-app-page-dot ${weatherSettingsPage === page ? 'active' : ''}`}
+                      data-label={WEATHER_SETTINGS_PAGE_LABELS[page]}
                       type="button"
-                      onClick={() => {
-                        setWeatherPrimaryProvider(opt.value);
-                        saveWeatherProviderConfig({ primaryProvider: opt.value });
-                      }}
-                    >
-                      {opt.label}
-                    </button>
+                      onClick={() => setWeatherSettingsPage(page)}
+                      title={WEATHER_SETTINGS_PAGE_LABELS[page]}
+                      aria-label={WEATHER_SETTINGS_PAGE_LABELS[page]}
+                    />
                   ))}
                 </div>
               </div>
