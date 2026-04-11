@@ -520,6 +520,7 @@ export function SettingsTab(): ReactElement {
   const [maxExpandLeaveIdle, setMaxExpandLeaveIdle] = useState<boolean>(false);
   const [autostartMode, setAutostartMode] = useState<string>('disabled');
   const [navOrder, setNavOrder] = useState<string[]>(DEFAULT_NAV_ORDER);
+  const [hiddenNavOrder, setHiddenNavOrder] = useState<string[]>([]);
   const [navEditMode, setNavEditMode] = useState(false);
   const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
   const dragIdxRef = useRef<number | null>(null);
@@ -548,17 +549,46 @@ export function SettingsTab(): ReactElement {
   const [islandPositionInput, setIslandPositionInput] = useState<{ x: string; y: string }>({ x: '0', y: '0' });
   const [aboutVersion, setAboutVersion] = useState<string>('26.1.1-beta.3');
 
-  const sortedCards = useMemo(() => {
+  const visibleCards = useMemo(() => {
     const ordered: NavCardDef[] = [];
+    const seen = new Set<string>();
     for (const id of navOrder) {
+      if (seen.has(id)) continue;
       const card = NAV_CARDS_MAP.get(id);
-      if (card) ordered.push(card);
-    }
-    for (const card of NAV_CARDS) {
-      if (!navOrder.includes(card.id)) ordered.push(card);
+      if (card) {
+        ordered.push(card);
+        seen.add(id);
+      }
     }
     return ordered;
   }, [navOrder]);
+
+  const hiddenCards = useMemo(() => {
+    const visibleSet = new Set(visibleCards.map((c) => c.id));
+    const ordered: NavCardDef[] = [];
+    const seen = new Set<string>();
+
+    for (const id of hiddenNavOrder) {
+      if (seen.has(id) || visibleSet.has(id)) continue;
+      const card = NAV_CARDS_MAP.get(id);
+      if (card) {
+        ordered.push(card);
+        seen.add(id);
+      }
+    }
+
+    for (const card of NAV_CARDS) {
+      if (!visibleSet.has(card.id) && !seen.has(card.id)) {
+        ordered.push(card);
+      }
+    }
+
+    return ordered;
+  }, [hiddenNavOrder, visibleCards]);
+
+  const persistNavConfig = (visibleOrder: string[], hiddenOrder: string[]): void => {
+    window.api.navOrderSet({ visibleOrder, hiddenOrder }).catch(() => {});
+  };
 
   /** 快捷键相关状态 */
   const [hideHotkey, setHideHotkey] = useState<string>('Alt+X');
@@ -683,9 +713,16 @@ export function SettingsTab(): ReactElement {
       if (cancelled) return;
       setAutostartMode(mode);
     }).catch(() => {});
-    window.api.navOrderGet().then((order) => {
+    window.api.navOrderGet().then((navConfig) => {
       if (cancelled) return;
-      if (order.length > 0) setNavOrder(order);
+      const visibleRaw = Array.isArray(navConfig.visibleOrder) ? navConfig.visibleOrder : [];
+      const hiddenRaw = Array.isArray(navConfig.hiddenOrder) ? navConfig.hiddenOrder : [];
+      if (visibleRaw.length > 0 || hiddenRaw.length > 0) {
+        const validVisible = visibleRaw.filter((id, idx) => NAV_CARDS_MAP.has(id) && visibleRaw.indexOf(id) === idx);
+        const validHidden = hiddenRaw.filter((id, idx) => NAV_CARDS_MAP.has(id) && hiddenRaw.indexOf(id) === idx && !validVisible.includes(id));
+        setNavOrder(validVisible);
+        setHiddenNavOrder(validHidden);
+      }
     }).catch(() => {});
     window.api.musicSmtcUnsubscribeMsGet().then((valueMs) => {
       if (cancelled) return;
@@ -1369,9 +1406,6 @@ export function SettingsTab(): ReactElement {
                     className={`settings-nav-edit-btn ${navEditMode ? 'active' : ''}`}
                     type="button"
                     onClick={() => {
-                      if (navEditMode) {
-                        window.api.navOrderSet(navOrder).catch(() => {});
-                      }
                       setNavEditMode(!navEditMode);
                     }}
                   >
@@ -1379,11 +1413,11 @@ export function SettingsTab(): ReactElement {
                   </button>
                 </div>
                 <div className="settings-music-hint settings-index-hint">
-                  {navEditMode ? '拖拽卡片可调整排列顺序，点击「完成」保存。' : '点击卡片可快速跳转到对应配置页。'}
+                  {navEditMode ? '拖拽卡片可调整排列顺序，删除/添加会自动保存。' : '点击卡片可快速跳转到对应配置页。'}
                 </div>
               </div>
               <div className="settings-index-cards" aria-label="设置快速导航">
-                {sortedCards.map((card, idx) => (
+                {visibleCards.map((card, idx) => (
                   <button
                     key={card.id}
                     className={`settings-index-card${navEditMode ? ' editing' : ''}${dragOverIdx === idx ? ' drag-over' : ''}`}
@@ -1416,10 +1450,11 @@ export function SettingsTab(): ReactElement {
                       setDragOverIdx(null);
                       const from = dragIdxRef.current;
                       if (from === null || from === idx) return;
-                      const newOrder = sortedCards.map((c) => c.id);
+                      const newOrder = visibleCards.map((c) => c.id);
                       const [moved] = newOrder.splice(from, 1);
                       newOrder.splice(idx, 0, moved);
                       setNavOrder(newOrder);
+                      persistNavConfig(newOrder, hiddenNavOrder);
                     }}
                     onDragEnd={() => {
                       dragIdxRef.current = null;
@@ -1427,6 +1462,35 @@ export function SettingsTab(): ReactElement {
                     }}
                   >
                     {navEditMode && <span className="settings-index-card-drag-handle">⠿</span>}
+                    {navEditMode && (
+                      <span
+                        className="settings-index-card-remove"
+                        role="button"
+                        tabIndex={0}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const nextVisible = navOrder.filter((id) => id !== card.id);
+                          const nextHidden = hiddenNavOrder.includes(card.id) ? hiddenNavOrder : [...hiddenNavOrder, card.id];
+                          setNavOrder(nextVisible);
+                          setHiddenNavOrder(nextHidden);
+                          persistNavConfig(nextVisible, nextHidden);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const nextVisible = navOrder.filter((id) => id !== card.id);
+                            const nextHidden = hiddenNavOrder.includes(card.id) ? hiddenNavOrder : [...hiddenNavOrder, card.id];
+                            setNavOrder(nextVisible);
+                            setHiddenNavOrder(nextHidden);
+                            persistNavConfig(nextVisible, nextHidden);
+                          }
+                        }}
+                        aria-label={`删除 ${card.label}`}
+                      >
+                        −
+                      </span>
+                    )}
                     <span className="settings-index-card-title">{card.label}</span>
                     <span className="settings-index-card-desc">{card.desc}</span>
                     {card.icon && (
@@ -1435,6 +1499,34 @@ export function SettingsTab(): ReactElement {
                   </button>
                 ))}
               </div>
+              {navEditMode && (
+                <div className="settings-nav-add-panel" aria-label="可添加导航卡片">
+                  <div className="settings-music-label">可添加卡片</div>
+                  {hiddenCards.length === 0 ? (
+                    <div className="settings-music-hint">当前没有可添加的卡片</div>
+                  ) : (
+                    <div className="settings-nav-add-list">
+                      {hiddenCards.map((card) => (
+                        <button
+                          key={card.id}
+                          className="settings-nav-add-item"
+                          type="button"
+                          onClick={() => {
+                            const nextVisible = navOrder.includes(card.id) ? navOrder : [...navOrder, card.id];
+                            const nextHidden = hiddenNavOrder.filter((id) => id !== card.id);
+                            setNavOrder(nextVisible);
+                            setHiddenNavOrder(nextHidden);
+                            persistNavConfig(nextVisible, nextHidden);
+                          }}
+                        >
+                          <span>{card.label}</span>
+                          <span className="settings-nav-add-plus">+</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
 

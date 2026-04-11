@@ -1863,28 +1863,43 @@ function registerIpcHandlers(): void {
   });
 
   /**
-   * 获取快速导航卡片顺序
-   * @returns string[] 卡片 ID 数组，空数组表示使用默认顺序
+   * 获取快速导航卡片配置
+   * @returns { visibleOrder: string[]; hiddenOrder: string[] }
    */
   ipcMain.handle('island:nav-order:get', () => {
     try {
       const filePath = join(storeDir, `${NAV_ORDER_STORE_KEY}.json`);
-      if (!existsSync(filePath)) return [];
+      if (!existsSync(filePath)) return { visibleOrder: [], hiddenOrder: [] };
       const raw = readFileSync(filePath, 'utf-8');
       const data = JSON.parse(raw);
-      return Array.isArray(data) ? data.filter((v: unknown) => typeof v === 'string') : [];
+
+      if (Array.isArray(data)) {
+        return {
+          visibleOrder: data.filter((v: unknown) => typeof v === 'string'),
+          hiddenOrder: []
+        };
+      }
+
+      const visibleRaw = (data as Record<string, unknown>)?.visibleOrder;
+      const hiddenRaw = (data as Record<string, unknown>)?.hiddenOrder;
+      return {
+        visibleOrder: Array.isArray(visibleRaw) ? visibleRaw.filter((v: unknown) => typeof v === 'string') : [],
+        hiddenOrder: Array.isArray(hiddenRaw) ? hiddenRaw.filter((v: unknown) => typeof v === 'string') : []
+      };
     } catch {
-      return [];
+      return { visibleOrder: [], hiddenOrder: [] };
     }
   });
 
   /**
-   * 设置快速导航卡片顺序并持久化
+   * 设置快速导航卡片配置并持久化
    */
-  ipcMain.handle('island:nav-order:set', (_event, order: string[]) => {
+  ipcMain.handle('island:nav-order:set', (_event, payload: { visibleOrder?: string[]; hiddenOrder?: string[] }) => {
     try {
       const filePath = join(storeDir, `${NAV_ORDER_STORE_KEY}.json`);
-      const safe = Array.isArray(order) ? order.filter((v: unknown) => typeof v === 'string') : [];
+      const visibleOrder = Array.isArray(payload?.visibleOrder) ? payload.visibleOrder.filter((v: unknown) => typeof v === 'string') : [];
+      const hiddenOrder = Array.isArray(payload?.hiddenOrder) ? payload.hiddenOrder.filter((v: unknown) => typeof v === 'string') : [];
+      const safe = { visibleOrder, hiddenOrder };
       writeFileSync(filePath, JSON.stringify(safe, null, 2), 'utf-8');
       return true;
     } catch (err) {

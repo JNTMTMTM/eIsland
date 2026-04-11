@@ -169,6 +169,7 @@
   overflow-y: auto;
   padding-right: 2px;
   padding-top: 12px;
+  padding-bottom: 18px;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
@@ -274,6 +275,34 @@
   line-height: 1;
 }
 
+.settings-index-card-remove {
+  position: absolute;
+  bottom: 6px;
+  left: 8px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  line-height: 1;
+  color: rgba(var(--color-text-rgb), 0.7);
+  background: rgba(var(--color-text-rgb), 0.08);
+  border: 1px solid rgba(var(--color-text-rgb), 0.12);
+  z-index: 2;
+}
+
+.settings-index-card-remove:hover {
+  background: rgba(var(--color-text-rgb), 0.14);
+  color: rgba(var(--color-text-rgb), 0.95);
+}
+
+.settings-index-card.editing:has(.settings-index-card-remove:hover) {
+  border-color: rgba(239, 68, 68, 0.85);
+  box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.4) inset;
+}
+
 /* 编辑模式卡片 */
 .settings-index-card.editing {
   cursor: grab;
@@ -289,6 +318,44 @@
   outline: 2px solid rgba(var(--color-text-rgb), 0.35);
   outline-offset: -2px;
   background: rgba(var(--color-text-rgb), 0.06);
+}
+
+.settings-nav-add-panel {
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px dashed rgba(var(--color-text-rgb), 0.14);
+  background: rgba(var(--color-text-rgb), 0.03);
+}
+
+.settings-nav-add-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.settings-nav-add-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid rgba(var(--color-text-rgb), 0.14);
+  border-radius: 8px;
+  background: rgba(var(--color-text-rgb), 0.04);
+  color: rgba(var(--color-text-rgb), 0.82);
+  padding: 7px 10px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.settings-nav-add-item:hover {
+  background: rgba(var(--color-text-rgb), 0.09);
+}
+
+.settings-nav-add-plus {
+  font-size: 15px;
+  line-height: 1;
+  color: rgba(var(--color-text-rgb), 0.65);
 }
 
 @media (max-width: 760px) {

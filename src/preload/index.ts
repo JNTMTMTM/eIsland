@@ -546,16 +546,16 @@ const api = {
     return ipcRenderer.invoke('island:autostart:set', mode);
   },
   /**
-   * 获取快速导航卡片顺序
+   * 获取快速导航卡片配置
    */
-  navOrderGet: (): Promise<string[]> => {
+  navOrderGet: (): Promise<{ visibleOrder: string[]; hiddenOrder: string[] }> => {
     return ipcRenderer.invoke('island:nav-order:get');
   },
   /**
-   * 设置快速导航卡片顺序
+   * 设置快速导航卡片配置
    */
-  navOrderSet: (order: string[]): Promise<boolean> => {
-    return ipcRenderer.invoke('island:nav-order:set', order);
+  navOrderSet: (payload: { visibleOrder: string[]; hiddenOrder: string[] }): Promise<boolean> => {
+    return ipcRenderer.invoke('island:nav-order:set', payload);
   }
 };
 

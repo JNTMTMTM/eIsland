@@ -147,8 +147,8 @@ declare global {
       autostartGet: () => Promise<string>;
       autostartSet: (mode: string) => Promise<boolean>;
       /** ===== 快速导航顺序 API ===== */
-      navOrderGet: () => Promise<string[]>;
-      navOrderSet: (order: string[]) => Promise<boolean>;
+      navOrderGet: () => Promise<{ visibleOrder: string[]; hiddenOrder: string[] }>;
+      navOrderSet: (payload: { visibleOrder: string[]; hiddenOrder: string[] }) => Promise<boolean>;
     };
   }
 }
