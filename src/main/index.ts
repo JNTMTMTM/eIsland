@@ -555,12 +555,12 @@ function readLyricsSourceConfig(): string {
   try {
     const storeDir = join(app.getPath('userData'), 'eIsland_store');
     const filePath = join(storeDir, `${LYRICS_SOURCE_STORE_KEY}.json`);
-    if (!existsSync(filePath)) return 'lrclib-first';
+    if (!existsSync(filePath)) return 'auto';
     const raw = readFileSync(filePath, 'utf-8');
     const data = JSON.parse(raw);
-    return typeof data === 'string' ? data : 'lrclib-first';
+    return typeof data === 'string' ? data : 'auto';
   } catch {
-    return 'lrclib-first';
+    return 'auto';
   }
 }
 

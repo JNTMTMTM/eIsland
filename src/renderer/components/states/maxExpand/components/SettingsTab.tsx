@@ -333,10 +333,12 @@ function OverviewPreview({ layoutConfig }: { layoutConfig: OverviewLayoutConfig 
  */
 /** 歌词源选项 */
 const LYRICS_SOURCE_OPTIONS = [
-  { value: 'lrclib-first', label: 'LRCLIB 优先' },
-  { value: 'netease-first', label: '网易云优先' },
-  { value: 'lrclib-only', label: '仅 LRCLIB' },
+  { value: 'auto', label: '自动（跟随播放器）' },
   { value: 'netease-only', label: '仅网易云' },
+  { value: 'qqmusic-only', label: '仅 QQ音乐' },
+  { value: 'kugou-only', label: '仅酷狗' },
+  { value: 'sodamusic-only', label: '仅汽水音乐' },
+  { value: 'lrclib-only', label: '仅 LRCLIB' },
 ];
 
 const WEATHER_PROVIDER_OPTIONS: Array<{ value: WeatherProvider; label: string }> = [
@@ -455,7 +457,7 @@ export function SettingsTab(): ReactElement {
   const [whitelist, setWhitelist] = useState<string[]>([]);
   const [whitelistDraft, setWhitelistDraft] = useState<string>('');
   const [whitelistInputError, setWhitelistInputError] = useState<string>('');
-  const [lyricsSource, setLyricsSource] = useState<string>('lrclib-first');
+  const [lyricsSource, setLyricsSource] = useState<string>('auto');
   const [detectingSourceAppId, setDetectingSourceAppId] = useState(false);
   const [sourceAppDetectMessage, setSourceAppDetectMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [musicSmtcUnsubscribeInput, setMusicSmtcUnsubscribeInput] = useState<string>('5000');
@@ -2021,7 +2023,7 @@ export function SettingsTab(): ReactElement {
                   {musicSettingsPage === 'lyrics' && (
                     <div className="settings-music-section">
                       <div className="settings-music-label">歌词源</div>
-                      <div className="settings-music-hint">选择歌词获取的优先顺序或唯一来源</div>
+                      <div className="settings-music-hint">自动模式根据 SMTC 检测到的播放器进程选择对应源，失败后依次尝试其他源，最后使用 LRCLIB 兜底</div>
                       <div className="settings-lyrics-source-options">
                         {LYRICS_SOURCE_OPTIONS.map((opt) => (
                           <button

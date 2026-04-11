@@ -59,11 +59,39 @@ async function tryProviders(
   return null;
 }
 
+const SOURCE_SETTING_TO_PROVIDER: Record<string, Provider> = {
+  'netease-only': 'netease',
+  'qqmusic-only': 'qqmusic',
+  'kugou-only': 'kugou',
+  'sodamusic-only': 'sodamusic',
+};
+
+async function readLyricsSourceSetting(): Promise<string> {
+  try {
+    return await window.api.musicLyricsSourceGet();
+  } catch {
+    return 'auto';
+  }
+}
+
 export async function fetchLyrics(
   title: string,
   artist: string,
   sourceAppId?: string,
 ): Promise<LyricLine[] | null> {
+  const setting = await readLyricsSourceSetting();
+
+  if (setting === 'lrclib-only') {
+    return fetchLyricsFromLrclib(title, artist);
+  }
+
+  const forced = SOURCE_SETTING_TO_PROVIDER[setting];
+  if (forced) {
+    const result = await tryProviders([forced], title, artist);
+    if (result) return result;
+    return fetchLyricsFromLrclib(title, artist);
+  }
+
   const appId = sourceAppId ?? await resolveSourceAppId();
   const primary = detectProviderFromProcess(appId);
 
