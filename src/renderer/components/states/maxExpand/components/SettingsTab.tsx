@@ -641,6 +641,44 @@ export function SettingsTab(): ReactElement {
     islandPositionInput.x.trim() !== String(islandPositionOffset.x)
     || islandPositionInput.y.trim() !== String(islandPositionOffset.y);
 
+  const applyWeatherLocationPriority = async (nextPriority: WeatherLocationPriority): Promise<void> => {
+    setWeatherLocationPriority(nextPriority);
+
+    try {
+      const city = weatherCustomCityInput.trim();
+      const existing = loadWeatherLocationConfig().customLocation;
+      let customLocation = existing;
+
+      if (city) {
+        const resolved = await resolveDistrictLocationByKeyword(city);
+        customLocation = {
+          latitude: resolved.latitude,
+          longitude: resolved.longitude,
+          city: resolved.city,
+        };
+      }
+
+      saveWeatherLocationConfig({
+        priority: nextPriority,
+        customLocation: customLocation || null,
+      });
+
+      setWeatherLocationConfigMessage({
+        type: nextPriority === 'custom' && !customLocation ? 'error' : 'success',
+        text: nextPriority === 'custom' && !customLocation
+          ? '已切换为自定义位置优先，但未配置城市，将自动回退到 IP 定位'
+          : '定位来源优先级已立即生效',
+      });
+      setWeatherCustomLocationTestMessage(null);
+      fetchWeatherData(undefined, true).catch(() => {});
+    } catch (error) {
+      setWeatherLocationConfigMessage({
+        type: 'error',
+        text: `切换优先级失败：${error instanceof Error ? error.message : '未知错误'}`,
+      });
+    }
+  };
+
   const saveWeatherLocationSettings = async (): Promise<void> => {
     const city = weatherCustomCityInput.trim();
     if (weatherLocationPriority === 'custom' && !city) {
@@ -1496,7 +1534,14 @@ export function SettingsTab(): ReactElement {
                             key={opt.value}
                             className={`settings-lyrics-source-btn ${weatherLocationPriority === opt.value ? 'active' : ''}`}
                             type="button"
-                            onClick={() => setWeatherLocationPriority(opt.value)}
+                            onClick={() => {
+                              applyWeatherLocationPriority(opt.value).catch((error) => {
+                                setWeatherLocationConfigMessage({
+                                  type: 'error',
+                                  text: `切换优先级失败：${error instanceof Error ? error.message : '未知错误'}`,
+                                });
+                              });
+                            }}
                           >
                             {opt.label}
                           </button>
