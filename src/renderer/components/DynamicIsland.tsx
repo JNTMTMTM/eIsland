@@ -325,7 +325,7 @@ function DynamicIsland(): React.JSX.Element {
         setSyncedLyricsRef.current(null);
         setLyricsLoadingRef.current(true);
         const capturedKey = newKey;
-        fetchLyrics(info!.title, info!.artist).then(result => {
+        fetchLyrics(info!.title, info!.artist, info!.deviceId).then(result => {
           if (songKeyRef.current !== capturedKey) return;
           console.log('[Lyrics] Fetched:', result ? `${result.length} lines` : 'null');
           setSyncedLyricsRef.current(result);

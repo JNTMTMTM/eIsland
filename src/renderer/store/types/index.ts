@@ -77,6 +77,7 @@ export type NowPlayingInfo = {
   canLike: boolean;
   canChangeVolume: boolean;
   canSetOutput: boolean;
+  deviceId?: string;
 };
 
 /** 歌词更新数据（后端推送的格式） */
