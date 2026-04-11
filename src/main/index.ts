@@ -343,8 +343,17 @@ const PROCESS_QUERY_TIMEOUT_MS = 4000;
 /** 运行进程图标缓存上限，避免长期增长 */
 const PROCESS_ICON_CACHE_MAX = 240;
 
-/** SMTC 缓存条目最大存活时间 */
-const SMTC_RUNTIME_ENTRY_TTL_MS = 3 * 60 * 1000;
+/** SMTC 取消订阅设为永不取消时的值 */
+const SMTC_UNSUBSCRIBE_NEVER = 0;
+
+/** SMTC 取消订阅默认时间（毫秒） */
+const DEFAULT_SMTC_UNSUBSCRIBE_MS = SMTC_UNSUBSCRIBE_NEVER;
+
+/** SMTC 取消订阅最小可配置值（毫秒） */
+const MIN_SMTC_UNSUBSCRIBE_MS = 1000;
+
+/** SMTC 取消订阅最大可配置值（毫秒） */
+const MAX_SMTC_UNSUBSCRIBE_MS = 30 * 60 * 1000;
 
 /** SMTC 缓存清理最小间隔 */
 const SMTC_RUNTIME_CLEANUP_INTERVAL_MS = 30 * 1000;
@@ -357,6 +366,9 @@ const WHITELIST_STORE_KEY = 'music-whitelist';
 
 /** 歌词源存储键名 */
 const LYRICS_SOURCE_STORE_KEY = 'lyrics-source';
+
+/** SMTC 取消订阅时间存储键名 */
+const SMTC_UNSUBSCRIBE_MS_STORE_KEY = 'music-smtc-unsubscribe-ms';
 
 /** 隐藏进程名单存储键名 */
 const HIDE_PROCESS_LIST_STORE_KEY = 'hide-process-list';
@@ -473,6 +485,9 @@ let hiddenByAutoHideProcess = false;
 /** SMTC 缓存上次回收时间 */
 let lastSmtcCleanupAt = 0;
 
+/** SMTC 自动取消订阅时间（毫秒），0 为永不取消 */
+let smtcUnsubscribeMs = DEFAULT_SMTC_UNSUBSCRIBE_MS;
+
 /** 待确认的播放源切换请求 */
 let pendingSourceSwitchId: string = '';
 let pendingSourceSwitchEntry: SmtcSessionRuntimeEntry | null = null;
@@ -546,6 +561,26 @@ function readLyricsSourceConfig(): string {
     return typeof data === 'string' ? data : 'lrclib-first';
   } catch {
     return 'lrclib-first';
+  }
+}
+
+function sanitizeSmtcUnsubscribeMs(value: unknown): number {
+  if (value === SMTC_UNSUBSCRIBE_NEVER) return SMTC_UNSUBSCRIBE_NEVER;
+  if (typeof value !== 'number' || !Number.isFinite(value)) return DEFAULT_SMTC_UNSUBSCRIBE_MS;
+  const rounded = Math.round(value);
+  if (rounded <= 0) return SMTC_UNSUBSCRIBE_NEVER;
+  return Math.min(MAX_SMTC_UNSUBSCRIBE_MS, Math.max(MIN_SMTC_UNSUBSCRIBE_MS, rounded));
+}
+
+function readSmtcUnsubscribeMsConfig(): number {
+  try {
+    const storeDir = join(app.getPath('userData'), 'eIsland_store');
+    const filePath = join(storeDir, `${SMTC_UNSUBSCRIBE_MS_STORE_KEY}.json`);
+    if (!existsSync(filePath)) return DEFAULT_SMTC_UNSUBSCRIBE_MS;
+    const raw = readFileSync(filePath, 'utf-8');
+    return sanitizeSmtcUnsubscribeMs(JSON.parse(raw));
+  } catch {
+    return DEFAULT_SMTC_UNSUBSCRIBE_MS;
   }
 }
 
@@ -1338,6 +1373,25 @@ function registerIpcHandlers(): void {
     }
   });
 
+  ipcMain.handle('music:smtc-unsubscribe-ms:get', () => {
+    return smtcUnsubscribeMs;
+  });
+
+  ipcMain.handle('music:smtc-unsubscribe-ms:set', (_event, valueMs: number) => {
+    try {
+      const next = sanitizeSmtcUnsubscribeMs(valueMs);
+      smtcUnsubscribeMs = next;
+      const localStoreDir = join(app.getPath('userData'), 'eIsland_store');
+      if (!existsSync(localStoreDir)) mkdirSync(localStoreDir, { recursive: true });
+      const filePath = join(localStoreDir, `${SMTC_UNSUBSCRIBE_MS_STORE_KEY}.json`);
+      writeFileSync(filePath, JSON.stringify(next, null, 2), 'utf-8');
+      return true;
+    } catch (err) {
+      console.error('[SMTCUnsubscribe] persist error:', err);
+      return false;
+    }
+  });
+
   /** 解析快捷方式 (.lnk) 的目标路径 */
   ipcMain.handle('app:resolve-shortcut', (_event, lnkPath: string) => {
     try {
@@ -1988,15 +2042,17 @@ function cleanupSmtcWorker(): void {
 
 function cleanupStaleSmtcRuntime(sessionRuntime: Map<string, SmtcSessionRuntimeEntry>): void {
   const now = Date.now();
+  const ttlMs = smtcUnsubscribeMs;
+  if (ttlMs === SMTC_UNSUBSCRIBE_NEVER) return;
 
   detectedSourceRuntime.forEach((entry, sourceAppId) => {
-    if (now - entry.updatedAt > SMTC_RUNTIME_ENTRY_TTL_MS) {
+    if (now - entry.updatedAt > ttlMs) {
       detectedSourceRuntime.delete(sourceAppId);
     }
   });
 
   sessionRuntime.forEach((entry, sourceAppId) => {
-    if (now - entry.updatedAt > SMTC_RUNTIME_ENTRY_TTL_MS) {
+    if (now - entry.updatedAt > ttlMs) {
       sessionRuntime.delete(sourceAppId);
       if (sourceAppId === pendingSourceSwitchId) {
         pendingSourceSwitchId = '';
@@ -2067,6 +2123,9 @@ app.whenReady().then(() => {
 
   // 读取持久化白名单
   nowPlayingWhitelist = readWhitelistConfig();
+
+  // 读取 SMTC 取消订阅时间配置
+  smtcUnsubscribeMs = readSmtcUnsubscribeMsConfig();
 
   // 读取持久化隐藏进程名单并启动轮询（仅 Windows）
   autoHideProcessList = readHideProcessListConfig();

@@ -397,6 +397,18 @@ const api = {
     return ipcRenderer.invoke('music:lyrics-source:set', source);
   },
   /**
+   * 获取 SMTC 自动取消订阅时间（毫秒），0 表示永不取消
+   */
+  musicSmtcUnsubscribeMsGet: (): Promise<number> => {
+    return ipcRenderer.invoke('music:smtc-unsubscribe-ms:get');
+  },
+  /**
+   * 设置 SMTC 自动取消订阅时间（毫秒），0 表示永不取消
+   */
+  musicSmtcUnsubscribeMsSet: (valueMs: number): Promise<boolean> => {
+    return ipcRenderer.invoke('music:smtc-unsubscribe-ms:set', valueMs);
+  },
+  /**
    * 运行测试脚本获取当前播放进程 sourceAppId
    * @returns 获取结果，可能返回 null（无播放程序）
    */

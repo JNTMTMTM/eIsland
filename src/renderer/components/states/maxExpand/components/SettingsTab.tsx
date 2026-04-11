@@ -447,6 +447,9 @@ export function SettingsTab(): ReactElement {
   const [lyricsSource, setLyricsSource] = useState<string>('lrclib-first');
   const [detectingSourceAppId, setDetectingSourceAppId] = useState(false);
   const [sourceAppDetectMessage, setSourceAppDetectMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [musicSmtcUnsubscribeInput, setMusicSmtcUnsubscribeInput] = useState<string>('5000');
+  const [musicSmtcNeverUnsubscribe, setMusicSmtcNeverUnsubscribe] = useState(true);
+  const [musicSmtcConfigMessage, setMusicSmtcConfigMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   /** 网络配置相关状态 */
   const [networkTimeoutMs, setNetworkTimeoutMs] = useState<number>(DEFAULT_NETWORK_TIMEOUT_MS);
@@ -556,6 +559,17 @@ export function SettingsTab(): ReactElement {
     window.api.musicLyricsSourceGet().then((src) => {
       if (cancelled) return;
       setLyricsSource(src);
+    }).catch(() => {});
+    window.api.musicSmtcUnsubscribeMsGet().then((valueMs) => {
+      if (cancelled) return;
+      const safeValue = typeof valueMs === 'number' && Number.isFinite(valueMs) ? Math.round(valueMs) : 0;
+      if (safeValue <= 0) {
+        setMusicSmtcNeverUnsubscribe(true);
+        setMusicSmtcUnsubscribeInput('5000');
+      } else {
+        setMusicSmtcNeverUnsubscribe(false);
+        setMusicSmtcUnsubscribeInput(String(safeValue));
+      }
     }).catch(() => {});
     return () => { cancelled = true; };
   }, []);
@@ -1105,6 +1119,30 @@ export function SettingsTab(): ReactElement {
     window.api.musicWhitelistSet(next).catch(() => {});
   };
 
+  const saveMusicSmtcUnsubscribeConfig = async (): Promise<void> => {
+    const valueMs = musicSmtcNeverUnsubscribe ? 0 : Number(musicSmtcUnsubscribeInput.trim());
+
+    if (!musicSmtcNeverUnsubscribe) {
+      if (!Number.isFinite(valueMs) || valueMs < 1000) {
+        setMusicSmtcConfigMessage({ type: 'error', text: '请输入有效毫秒值（>= 1000）或开启“永不取消订阅”' });
+        return;
+      }
+    }
+
+    const ok = await window.api.musicSmtcUnsubscribeMsSet(valueMs);
+    if (!ok) {
+      setMusicSmtcConfigMessage({ type: 'error', text: '保存失败，请稍后重试' });
+      return;
+    }
+
+    if (musicSmtcNeverUnsubscribe) {
+      setMusicSmtcConfigMessage({ type: 'success', text: '已保存：永不自动取消订阅' });
+      return;
+    }
+
+    setMusicSmtcConfigMessage({ type: 'success', text: `已保存：${Math.round(valueMs)} ms 自动取消订阅` });
+  };
+
   return (
     <div className="max-expand-settings" ref={settingsRef}>
       <div className="max-expand-settings-layout">
@@ -1513,6 +1551,7 @@ export function SettingsTab(): ReactElement {
                   </div>
                 </div>
               </div>
+
             </div>
           )}
           {activeTab === 'weather' && (
@@ -1646,6 +1685,7 @@ export function SettingsTab(): ReactElement {
                   ))}
                 </div>
               </div>
+
             </div>
           )}
           {activeTab === 'shortcut' && (
@@ -1963,6 +2003,60 @@ export function SettingsTab(): ReactElement {
                     </button>
                   ))}
                 </div>
+              </div>
+
+              <div className="settings-music-section">
+                <div className="settings-music-label">SMTC 自动取消订阅</div>
+                <div className="settings-music-hint">用于清理长时间无更新的播放会话，默认永不取消订阅</div>
+                <div className="settings-hotkey-row" style={{ alignItems: 'center' }}>
+                  <label className="settings-field" style={{ flex: 1 }}>
+                    <span className="settings-field-label">取消订阅时间（毫秒）</span>
+                    <input
+                      className="settings-field-input"
+                      type="number"
+                      min={1000}
+                      step={1000}
+                      value={musicSmtcUnsubscribeInput}
+                      disabled={musicSmtcNeverUnsubscribe}
+                      onChange={(e) => {
+                        setMusicSmtcUnsubscribeInput(e.target.value);
+                        if (musicSmtcConfigMessage) setMusicSmtcConfigMessage(null);
+                      }}
+                    />
+                  </label>
+                </div>
+                <div className="settings-hotkey-row" style={{ alignItems: 'center' }}>
+                  <label className="settings-music-hint" style={{ marginBottom: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <input
+                      type="checkbox"
+                      checked={musicSmtcNeverUnsubscribe}
+                      onChange={(e) => {
+                        setMusicSmtcNeverUnsubscribe(e.target.checked);
+                        if (musicSmtcConfigMessage) setMusicSmtcConfigMessage(null);
+                      }}
+                    />
+                    永不取消订阅
+                  </label>
+                  <button
+                    className="settings-hotkey-btn"
+                    type="button"
+                    onClick={() => {
+                      saveMusicSmtcUnsubscribeConfig().catch((error) => {
+                        setMusicSmtcConfigMessage({
+                          type: 'error',
+                          text: `保存失败：${error instanceof Error ? error.message : '未知错误'}`,
+                        });
+                      });
+                    }}
+                  >
+                    保存
+                  </button>
+                </div>
+                {musicSmtcConfigMessage && (
+                  <div className="settings-music-hint" style={{ color: musicSmtcConfigMessage.type === 'error' ? '#ff8b8b' : '#7df2a0' }}>
+                    {musicSmtcConfigMessage.text}
+                  </div>
+                )}
               </div>
             </div>
           )}
