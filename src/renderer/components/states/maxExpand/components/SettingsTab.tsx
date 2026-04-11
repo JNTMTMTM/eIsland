@@ -44,6 +44,7 @@ import {
   DEFAULT_WEATHER_LOCATION_PRIORITY,
   type WeatherLocationPriority,
 } from '../../../../store/utils/storage';
+import { resolveDistrictLocationByKeyword } from '../../../../api/adcodeApi';
 import { fetchVersion } from '../../../../api/versionApi';
 
 /** 单行配置项 */
@@ -452,7 +453,7 @@ export function SettingsTab(): ReactElement {
   const [customTimeoutInput, setCustomTimeoutInput] = useState<string>('');
   const [weatherPrimaryProvider, setWeatherPrimaryProvider] = useState<WeatherProvider>(DEFAULT_WEATHER_PRIMARY_PROVIDER);
   const [weatherLocationPriority, setWeatherLocationPriority] = useState<WeatherLocationPriority>(DEFAULT_WEATHER_LOCATION_PRIORITY);
-  const [weatherCustomLocationInput, setWeatherCustomLocationInput] = useState<{ latitude: string; longitude: string; city: string }>({ latitude: '', longitude: '', city: '' });
+  const [weatherCustomCityInput, setWeatherCustomCityInput] = useState<string>('');
   const [weatherLocationConfigMessage, setWeatherLocationConfigMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [weatherCustomLocationTesting, setWeatherCustomLocationTesting] = useState(false);
   const [weatherCustomLocationTestMessage, setWeatherCustomLocationTestMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -514,11 +515,7 @@ export function SettingsTab(): ReactElement {
   useEffect(() => {
     const cfg = loadWeatherLocationConfig();
     setWeatherLocationPriority(cfg.priority);
-    setWeatherCustomLocationInput({
-      latitude: cfg.customLocation ? String(cfg.customLocation.latitude) : '',
-      longitude: cfg.customLocation ? String(cfg.customLocation.longitude) : '',
-      city: cfg.customLocation?.city || '',
-    });
+    setWeatherCustomCityInput(cfg.customLocation?.city || '');
   }, []);
 
   useEffect(() => {
@@ -644,43 +641,65 @@ export function SettingsTab(): ReactElement {
     islandPositionInput.x.trim() !== String(islandPositionOffset.x)
     || islandPositionInput.y.trim() !== String(islandPositionOffset.y);
 
-  const parseWeatherCustomLocationInput = (): { latitude: number; longitude: number; city: string } | null => {
-    const latitude = Number(weatherCustomLocationInput.latitude.trim());
-    const longitude = Number(weatherCustomLocationInput.longitude.trim());
-    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
-    if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) return null;
-    return {
-      latitude,
-      longitude,
-      city: weatherCustomLocationInput.city.trim(),
-    };
-  };
-
-  const saveWeatherLocationSettings = (): void => {
-    const custom = parseWeatherCustomLocationInput();
-    if (weatherLocationPriority === 'custom' && !custom) {
-      setWeatherLocationConfigMessage({ type: 'error', text: '请填写有效的经纬度（纬度 -90~90，经度 -180~180）' });
+  const saveWeatherLocationSettings = async (): Promise<void> => {
+    const city = weatherCustomCityInput.trim();
+    if (weatherLocationPriority === 'custom' && !city) {
+      setWeatherLocationConfigMessage({ type: 'error', text: '请选择“自定义位置优先”时请先输入城市名称' });
       return;
     }
 
-    saveWeatherLocationConfig({
-      priority: weatherLocationPriority,
-      customLocation: custom || null,
-    });
-    setWeatherLocationConfigMessage({ type: 'success', text: '天气定位配置已保存' });
-    setWeatherCustomLocationTestMessage(null);
-    fetchWeatherData(undefined, true).catch(() => {});
+    try {
+      let customLocation: { latitude: number; longitude: number; city: string } | null = null;
+      if (city) {
+        const resolved = await resolveDistrictLocationByKeyword(city);
+        customLocation = {
+          latitude: resolved.latitude,
+          longitude: resolved.longitude,
+          city: resolved.city,
+        };
+      }
+
+      saveWeatherLocationConfig({
+        priority: weatherLocationPriority,
+        customLocation,
+      });
+      setWeatherLocationConfigMessage({
+        type: 'success',
+        text: customLocation
+          ? `天气定位配置已保存（${customLocation.city} ${customLocation.latitude.toFixed(4)}, ${customLocation.longitude.toFixed(4)}）`
+          : '天气定位配置已保存',
+      });
+      setWeatherCustomLocationTestMessage(null);
+      fetchWeatherData(undefined, true).catch(() => {});
+    } catch (error) {
+      setWeatherLocationConfigMessage({
+        type: 'error',
+        text: `城市解析失败：${error instanceof Error ? error.message : '未知错误'}`,
+      });
+    }
   };
 
   const testWeatherCustomLocation = async (): Promise<void> => {
-    const custom = parseWeatherCustomLocationInput();
-    if (!custom) {
-      setWeatherCustomLocationTestMessage({ type: 'error', text: '请先填写有效自定义位置后再测试' });
+    const city = weatherCustomCityInput.trim();
+    if (!city) {
+      setWeatherCustomLocationTestMessage({ type: 'error', text: '请先输入城市名称后再测试' });
       return;
     }
 
     setWeatherCustomLocationTesting(true);
     setWeatherCustomLocationTestMessage(null);
+
+    let custom: { latitude: number; longitude: number; city: string };
+    try {
+      custom = await resolveDistrictLocationByKeyword(city);
+    } catch (error) {
+      setWeatherCustomLocationTesting(false);
+      setWeatherCustomLocationTestMessage({
+        type: 'error',
+        text: `城市解析失败：${error instanceof Error ? error.message : '未知错误'}`,
+      });
+      return;
+    }
 
     const openMeteoParams = new URLSearchParams({
       latitude: String(custom.latitude),
@@ -735,7 +754,7 @@ export function SettingsTab(): ReactElement {
 
       setWeatherCustomLocationTestMessage({
         type: hasFailure ? 'error' : 'success',
-        text: messages.join('；'),
+        text: `${custom.city}（${custom.latitude.toFixed(4)}, ${custom.longitude.toFixed(4)}） - ${messages.join('；')}`,
       });
     } finally {
       setWeatherCustomLocationTesting(false);
@@ -1486,44 +1505,14 @@ export function SettingsTab(): ReactElement {
 
                       <div className="settings-hotkey-row">
                         <label className="settings-field" style={{ flex: 1 }}>
-                          <span className="settings-field-label">自定义纬度</span>
-                          <input
-                            className="settings-field-input"
-                            type="number"
-                            min={-90}
-                            max={90}
-                            step="0.0001"
-                            value={weatherCustomLocationInput.latitude}
-                            onChange={(e) => {
-                              setWeatherCustomLocationInput((prev) => ({ ...prev, latitude: e.target.value }));
-                            }}
-                          />
-                        </label>
-                        <label className="settings-field" style={{ flex: 1 }}>
-                          <span className="settings-field-label">自定义经度</span>
-                          <input
-                            className="settings-field-input"
-                            type="number"
-                            min={-180}
-                            max={180}
-                            step="0.0001"
-                            value={weatherCustomLocationInput.longitude}
-                            onChange={(e) => {
-                              setWeatherCustomLocationInput((prev) => ({ ...prev, longitude: e.target.value }));
-                            }}
-                          />
-                        </label>
-                      </div>
-
-                      <div className="settings-hotkey-row">
-                        <label className="settings-field" style={{ flex: 1 }}>
-                          <span className="settings-field-label">城市名（可选，用于 UAPI）</span>
+                          <span className="settings-field-label">城市名称</span>
                           <input
                             className="settings-field-input"
                             type="text"
-                            value={weatherCustomLocationInput.city}
+                            placeholder="例如：杭州 / Tokyo / New York"
+                            value={weatherCustomCityInput}
                             onChange={(e) => {
-                              setWeatherCustomLocationInput((prev) => ({ ...prev, city: e.target.value }));
+                              setWeatherCustomCityInput(e.target.value);
                             }}
                           />
                         </label>
@@ -1549,7 +1538,14 @@ export function SettingsTab(): ReactElement {
                         <button
                           className="settings-hotkey-btn"
                           type="button"
-                          onClick={saveWeatherLocationSettings}
+                          onClick={() => {
+                            saveWeatherLocationSettings().catch((error) => {
+                              setWeatherLocationConfigMessage({
+                                type: 'error',
+                                text: `保存失败：${error instanceof Error ? error.message : '未知错误'}`,
+                              });
+                            });
+                          }}
                         >
                           保存定位配置
                         </button>
