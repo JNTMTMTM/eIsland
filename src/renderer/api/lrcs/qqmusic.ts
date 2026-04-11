@@ -8,9 +8,11 @@ function resolveJsonpResponse(callback: string, raw: string): string {
   return json;
 }
 
-function base64Decode(encoded: string): string {
+function base64DecodeUtf8(encoded: string): string {
   try {
-    return atob(encoded);
+    const raw = atob(encoded);
+    const bytes = Uint8Array.from(raw, (ch) => ch.charCodeAt(0));
+    return new TextDecoder('utf-8').decode(bytes);
   } catch {
     return '';
   }
@@ -93,7 +95,7 @@ export async function fetchLyricsFromQQMusic(title: string, artist: string): Pro
       if (parsed) {
         const lyricB64 = typeof parsed.lyric === 'string' ? parsed.lyric : null;
         if (lyricB64) {
-          const decoded = base64Decode(lyricB64);
+          const decoded = base64DecodeUtf8(lyricB64);
           if (decoded) {
             const lines = parseSyncedLrc(decoded);
             if (lines.length > 0) return lines;
@@ -113,7 +115,7 @@ export async function fetchLyricsFromQQMusic(title: string, artist: string): Pro
     const lyricB64 = typeof parsed.lyric === 'string' ? parsed.lyric : null;
     if (!lyricB64) return null;
 
-    const decoded = base64Decode(lyricB64);
+    const decoded = base64DecodeUtf8(lyricB64);
     if (!decoded) return null;
 
     const lines = parseSyncedLrc(decoded);

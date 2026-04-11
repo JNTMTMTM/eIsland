@@ -48,7 +48,9 @@ export async function fetchLyricsFromKugou(title: string, artist: string): Promi
 
     let lrcText: string;
     try {
-      lrcText = atob(contentB64);
+      const raw = atob(contentB64);
+      const bytes = Uint8Array.from(raw, (ch) => ch.charCodeAt(0));
+      lrcText = new TextDecoder('utf-8').decode(bytes);
     } catch {
       return null;
     }
