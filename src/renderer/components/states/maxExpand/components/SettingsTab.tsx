@@ -361,7 +361,7 @@ const WEATHER_LOCATION_PRIORITY_OPTIONS: Array<{ value: WeatherLocationPriority;
 /** 设置页侧边栏 Tab 顺序 */
 const SETTINGS_TABS: ('index' | 'app' | 'network' | 'weather' | 'music' | 'ai' | 'shortcut' | 'about')[] = ['index', 'app', 'network', 'weather', 'music', 'ai', 'shortcut', 'about'];
 type SettingsSidebarTabKey = (typeof SETTINGS_TABS)[number];
-type AppSettingsPageKey = 'layout-preview' | 'hide-process-list' | 'position' | 'theme' | 'behavior';
+type AppSettingsPageKey = 'layout-preview' | 'hide-process-list' | 'position' | 'theme' | 'behavior' | 'autostart';
 type WeatherSettingsPageKey = 'location' | 'provider';
 type MusicSettingsPageKey = 'whitelist' | 'lyrics' | 'smtc';
 type SettingsTabLabelKey = SettingsSidebarTabKey | AppSettingsPageKey;
@@ -374,6 +374,7 @@ const SETTINGS_TAB_LABELS: Record<SettingsTabLabelKey, string> = {
   position: '位置校准',
   theme: '主题外观',
   behavior: '交互行为',
+  autostart: '开机自启',
   network: '网络配置',
   weather: '天气配置',
   music: '歌曲设置',
@@ -388,6 +389,7 @@ const SETTINGS_TAB_DESCRIPTIONS: Record<Exclude<SettingsTabLabelKey, 'index'>, s
   position: '动态调整灵动岛位置并保存',
   theme: '切换深色、浅色或跟随系统主题。',
   behavior: '配置鼠标移开后是否自动收回。',
+  autostart: '设置开机时是否自动启动灵动岛。',
   network: '请求超时与网络行为设置',
   weather: '天气接口优先级设置',
   music: '播放器白名单与歌词来源',
@@ -406,7 +408,8 @@ const SETTINGS_TAB_ICONS: Partial<Record<SettingsTabLabelKey, string>> = {
   shortcut: SvgIcon.SHORTCUT_KEY,
   about: SvgIcon.ABOUT,
   theme: SvgIcon.THEME,
-  behavior: SvgIcon.REVERT
+  behavior: SvgIcon.REVERT,
+  autostart: SvgIcon.CONTINUE
 };
 
 const NETWORK_TIMEOUT_OPTIONS = [
@@ -419,7 +422,7 @@ const NETWORK_TIMEOUT_OPTIONS = [
 
 const LAYOUT_STORE_KEY = 'overview-layout';
 const DEFAULT_LAYOUT: OverviewLayoutConfig = { left: 'shortcuts', right: 'todo' };
-const APP_SETTINGS_PAGES: AppSettingsPageKey[] = ['layout-preview', 'hide-process-list', 'position', 'theme', 'behavior'];
+const APP_SETTINGS_PAGES: AppSettingsPageKey[] = ['layout-preview', 'hide-process-list', 'position', 'theme', 'behavior', 'autostart'];
 const WEATHER_SETTINGS_PAGES: WeatherSettingsPageKey[] = ['location', 'provider'];
 const WEATHER_SETTINGS_PAGE_LABELS: Record<WeatherSettingsPageKey, string> = {
   location: '定位配置',
@@ -475,6 +478,7 @@ export function SettingsTab(): ReactElement {
   const [lyricsClock, setLyricsClock] = useState<boolean>(true);
   const [expandLeaveIdle, setExpandLeaveIdle] = useState<boolean>(false);
   const [maxExpandLeaveIdle, setMaxExpandLeaveIdle] = useState<boolean>(false);
+  const [autostartMode, setAutostartMode] = useState<string>('disabled');
   const [detectingSourceAppId, setDetectingSourceAppId] = useState(false);
   const [sourceAppDetectMessage, setSourceAppDetectMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [musicSmtcUnsubscribeInput, setMusicSmtcUnsubscribeInput] = useState<string>('5000');
@@ -618,6 +622,10 @@ export function SettingsTab(): ReactElement {
     window.api.maxexpandMouseleaveIdleGet().then((v) => {
       if (cancelled) return;
       setMaxExpandLeaveIdle(v);
+    }).catch(() => {});
+    window.api.autostartGet().then((mode) => {
+      if (cancelled) return;
+      setAutostartMode(mode);
     }).catch(() => {});
     window.api.musicSmtcUnsubscribeMsGet().then((valueMs) => {
       if (cancelled) return;
@@ -1351,7 +1359,33 @@ export function SettingsTab(): ReactElement {
                   <img className="settings-index-card-layout-icon" src={SETTINGS_TAB_ICONS.theme} alt="" aria-hidden="true" />
                 </button>
 
-                {SETTINGS_TABS.filter((tab) => tab !== 'index' && tab !== 'app').map((tab) => (
+                <button
+                  className="settings-index-card"
+                  type="button"
+                  onClick={() => {
+                    setAppSettingsPage('behavior');
+                    setActiveTab('app');
+                  }}
+                >
+                  <span className="settings-index-card-title">{SETTINGS_TAB_LABELS.behavior}</span>
+                  <span className="settings-index-card-desc">{SETTINGS_TAB_DESCRIPTIONS.behavior}</span>
+                  <img className="settings-index-card-layout-icon" src={SETTINGS_TAB_ICONS.behavior} alt="" aria-hidden="true" />
+                </button>
+
+                <button
+                  className="settings-index-card"
+                  type="button"
+                  onClick={() => {
+                    setAppSettingsPage('autostart');
+                    setActiveTab('app');
+                  }}
+                >
+                  <span className="settings-index-card-title">{SETTINGS_TAB_LABELS.autostart}</span>
+                  <span className="settings-index-card-desc">{SETTINGS_TAB_DESCRIPTIONS.autostart}</span>
+                  <img className="settings-index-card-layout-icon" src={SETTINGS_TAB_ICONS.autostart} alt="" aria-hidden="true" />
+                </button>
+
+                {SETTINGS_TABS.filter((tab) => tab !== 'index' && tab !== 'app' && tab !== 'music').map((tab) => (
                   <button
                     key={tab}
                     className="settings-index-card"
@@ -1365,6 +1399,45 @@ export function SettingsTab(): ReactElement {
                     )}
                   </button>
                 ))}
+
+                <button
+                  className="settings-index-card"
+                  type="button"
+                  onClick={() => {
+                    setMusicSettingsPage('whitelist');
+                    setActiveTab('music');
+                  }}
+                >
+                  <span className="settings-index-card-title">播放器白名单</span>
+                  <span className="settings-index-card-desc">配置允许接入灵动岛的播放器。</span>
+                  <img className="settings-index-card-layout-icon" src={SvgIcon.MUSIC} alt="" aria-hidden="true" />
+                </button>
+
+                <button
+                  className="settings-index-card"
+                  type="button"
+                  onClick={() => {
+                    setMusicSettingsPage('lyrics');
+                    setActiveTab('music');
+                  }}
+                >
+                  <span className="settings-index-card-title">歌词源</span>
+                  <span className="settings-index-card-desc">选择歌词来源与显示模式。</span>
+                  <img className="settings-index-card-layout-icon" src={SvgIcon.LRC} alt="" aria-hidden="true" />
+                </button>
+
+                <button
+                  className="settings-index-card"
+                  type="button"
+                  onClick={() => {
+                    setMusicSettingsPage('smtc');
+                    setActiveTab('music');
+                  }}
+                >
+                  <span className="settings-index-card-title">SMTC</span>
+                  <span className="settings-index-card-desc">系统媒体传输控制相关配置。</span>
+                  <img className="settings-index-card-layout-icon" src={SvgIcon.LRC} alt="" aria-hidden="true" />
+                </button>
               </div>
             </div>
           )}
@@ -1658,6 +1731,39 @@ export function SettingsTab(): ReactElement {
                             />
                             最大展开态（MaxExpand）鼠标移开后自动收回
                           </label>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {appSettingsPage === 'autostart' && (
+                    <div className="max-expand-settings-section">
+                      <div className="settings-music-section">
+                        <div className="settings-music-label">开机自启</div>
+                        <div className="settings-music-hint">设置系统启动时是否自动运行灵动岛</div>
+                        <div className="settings-lyrics-source-options" style={{ marginTop: 8 }}>
+                          {([
+                            { value: 'disabled', label: '禁用' },
+                            { value: 'enabled', label: '启用' },
+                            { value: 'high-priority', label: '高优先级' },
+                          ] as const).map((opt) => (
+                            <button
+                              key={opt.value}
+                              className={`settings-lyrics-source-btn ${autostartMode === opt.value ? 'active' : ''}`}
+                              type="button"
+                              onClick={() => {
+                                setAutostartMode(opt.value);
+                                window.api.autostartSet(opt.value).catch(() => {});
+                              }}
+                            >
+                              {opt.label}
+                            </button>
+                          ))}
+                        </div>
+                        <div className="settings-music-hint" style={{ marginTop: 8 }}>
+                          {autostartMode === 'disabled' && '当前已禁用开机自启。'}
+                          {autostartMode === 'enabled' && '系统登录后将自动启动灵动岛。'}
+                          {autostartMode === 'high-priority' && '以高优先级启动，更早完成加载。'}
                         </div>
                       </div>
                     </div>

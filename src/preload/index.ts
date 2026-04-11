@@ -532,6 +532,18 @@ const api = {
    */
   maxexpandMouseleaveIdleSet: (enabled: boolean): Promise<boolean> => {
     return ipcRenderer.invoke('island:maxexpand-mouseleave-idle:set', enabled);
+  },
+  /**
+   * 获取开机自启模式
+   */
+  autostartGet: (): Promise<string> => {
+    return ipcRenderer.invoke('island:autostart:get');
+  },
+  /**
+   * 设置开机自启模式
+   */
+  autostartSet: (mode: string): Promise<boolean> => {
+    return ipcRenderer.invoke('island:autostart:set', mode);
   }
 };
 

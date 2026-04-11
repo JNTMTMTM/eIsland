@@ -391,6 +391,9 @@ const EXPAND_MOUSELEAVE_IDLE_STORE_KEY = 'expand-mouseleave-idle';
 /** maxExpand 鼠标移开回 idle 开关存储键名 */
 const MAXEXPAND_MOUSELEAVE_IDLE_STORE_KEY = 'maxexpand-mouseleave-idle';
 
+/** 开机自启模式存储键名 */
+const AUTOSTART_MODE_STORE_KEY = 'autostart-mode';
+
 /** 灵动岛位置偏移存储键名 */
 const ISLAND_POSITION_STORE_KEY = 'island-position-offset';
 
@@ -1811,6 +1814,47 @@ function registerIpcHandlers(): void {
       return true;
     } catch (err) {
       console.error('[MaxExpandMouseleaveIdle] persist error:', err);
+      return false;
+    }
+  });
+
+  /**
+   * 获取开机自启模式
+   * @returns 'disabled' | 'enabled' | 'high-priority'
+   */
+  ipcMain.handle('island:autostart:get', () => {
+    try {
+      const filePath = join(storeDir, `${AUTOSTART_MODE_STORE_KEY}.json`);
+      if (!existsSync(filePath)) return 'disabled';
+      const raw = readFileSync(filePath, 'utf-8');
+      const data = JSON.parse(raw);
+      return ['disabled', 'enabled', 'high-priority'].includes(data) ? data : 'disabled';
+    } catch {
+      return 'disabled';
+    }
+  });
+
+  /**
+   * 设置开机自启模式并持久化
+   * @param mode - 'disabled' | 'enabled' | 'high-priority'
+   */
+  ipcMain.handle('island:autostart:set', (_event, mode: string) => {
+    try {
+      const safeMode = ['disabled', 'enabled', 'high-priority'].includes(mode) ? mode : 'disabled';
+      const filePath = join(storeDir, `${AUTOSTART_MODE_STORE_KEY}.json`);
+      writeFileSync(filePath, JSON.stringify(safeMode, null, 2), 'utf-8');
+
+      if (safeMode === 'disabled') {
+        app.setLoginItemSettings({ openAtLogin: false });
+      } else {
+        app.setLoginItemSettings({
+          openAtLogin: true,
+          args: safeMode === 'high-priority' ? ['--high-priority'] : []
+        });
+      }
+      return true;
+    } catch (err) {
+      console.error('[Autostart] persist error:', err);
       return false;
     }
   });
