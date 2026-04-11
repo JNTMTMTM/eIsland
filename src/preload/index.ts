@@ -508,6 +508,30 @@ const api = {
    */
   islandOpacitySet: (opacity: number): Promise<boolean> => {
     return ipcRenderer.invoke('island:opacity:set', opacity);
+  },
+  /**
+   * 获取 expand 鼠标移开回 idle 开关
+   */
+  expandMouseleaveIdleGet: (): Promise<boolean> => {
+    return ipcRenderer.invoke('island:expand-mouseleave-idle:get');
+  },
+  /**
+   * 设置 expand 鼠标移开回 idle 开关
+   */
+  expandMouseleaveIdleSet: (enabled: boolean): Promise<boolean> => {
+    return ipcRenderer.invoke('island:expand-mouseleave-idle:set', enabled);
+  },
+  /**
+   * 获取 maxExpand 鼠标移开回 idle 开关
+   */
+  maxexpandMouseleaveIdleGet: (): Promise<boolean> => {
+    return ipcRenderer.invoke('island:maxexpand-mouseleave-idle:get');
+  },
+  /**
+   * 设置 maxExpand 鼠标移开回 idle 开关
+   */
+  maxexpandMouseleaveIdleSet: (enabled: boolean): Promise<boolean> => {
+    return ipcRenderer.invoke('island:maxexpand-mouseleave-idle:set', enabled);
   }
 };
 

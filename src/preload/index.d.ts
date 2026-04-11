@@ -138,6 +138,11 @@ declare global {
       /** ===== 灵动岛透明度 API ===== */
       islandOpacityGet: () => Promise<number>;
       islandOpacitySet: (opacity: number) => Promise<boolean>;
+      /** ===== 鼠标移开行为配置 API ===== */
+      expandMouseleaveIdleGet: () => Promise<boolean>;
+      expandMouseleaveIdleSet: (enabled: boolean) => Promise<boolean>;
+      maxexpandMouseleaveIdleGet: () => Promise<boolean>;
+      maxexpandMouseleaveIdleSet: (enabled: boolean) => Promise<boolean>;
     };
   }
 }

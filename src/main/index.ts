@@ -385,6 +385,12 @@ const THEME_MODE_STORE_KEY = 'theme-mode';
 /** 灵动岛透明度存储键名 */
 const ISLAND_OPACITY_STORE_KEY = 'island-opacity';
 
+/** expand 鼠标移开回 idle 开关存储键名 */
+const EXPAND_MOUSELEAVE_IDLE_STORE_KEY = 'expand-mouseleave-idle';
+
+/** maxExpand 鼠标移开回 idle 开关存储键名 */
+const MAXEXPAND_MOUSELEAVE_IDLE_STORE_KEY = 'maxexpand-mouseleave-idle';
+
 /** 灵动岛位置偏移存储键名 */
 const ISLAND_POSITION_STORE_KEY = 'island-position-offset';
 
@@ -1745,6 +1751,66 @@ function registerIpcHandlers(): void {
       return true;
     } catch (err) {
       console.error('[Opacity] persist error:', err);
+      return false;
+    }
+  });
+
+  /**
+   * 获取 expand 鼠标移开回 idle 开关
+   * @returns 是否启用
+   */
+  ipcMain.handle('island:expand-mouseleave-idle:get', () => {
+    try {
+      const filePath = join(storeDir, `${EXPAND_MOUSELEAVE_IDLE_STORE_KEY}.json`);
+      if (!existsSync(filePath)) return false;
+      const raw = readFileSync(filePath, 'utf-8');
+      const data = JSON.parse(raw);
+      return typeof data === 'boolean' ? data : false;
+    } catch {
+      return false;
+    }
+  });
+
+  /**
+   * 设置 expand 鼠标移开回 idle 开关并持久化
+   */
+  ipcMain.handle('island:expand-mouseleave-idle:set', (_event, enabled: boolean) => {
+    try {
+      const filePath = join(storeDir, `${EXPAND_MOUSELEAVE_IDLE_STORE_KEY}.json`);
+      writeFileSync(filePath, JSON.stringify(enabled, null, 2), 'utf-8');
+      return true;
+    } catch (err) {
+      console.error('[ExpandMouseleaveIdle] persist error:', err);
+      return false;
+    }
+  });
+
+  /**
+   * 获取 maxExpand 鼠标移开回 idle 开关
+   * @returns 是否启用
+   */
+  ipcMain.handle('island:maxexpand-mouseleave-idle:get', () => {
+    try {
+      const filePath = join(storeDir, `${MAXEXPAND_MOUSELEAVE_IDLE_STORE_KEY}.json`);
+      if (!existsSync(filePath)) return false;
+      const raw = readFileSync(filePath, 'utf-8');
+      const data = JSON.parse(raw);
+      return typeof data === 'boolean' ? data : false;
+    } catch {
+      return false;
+    }
+  });
+
+  /**
+   * 设置 maxExpand 鼠标移开回 idle 开关并持久化
+   */
+  ipcMain.handle('island:maxexpand-mouseleave-idle:set', (_event, enabled: boolean) => {
+    try {
+      const filePath = join(storeDir, `${MAXEXPAND_MOUSELEAVE_IDLE_STORE_KEY}.json`);
+      writeFileSync(filePath, JSON.stringify(enabled, null, 2), 'utf-8');
+      return true;
+    } catch (err) {
+      console.error('[MaxExpandMouseleaveIdle] persist error:', err);
       return false;
     }
   });

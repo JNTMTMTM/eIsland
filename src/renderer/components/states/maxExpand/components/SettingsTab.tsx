@@ -361,7 +361,7 @@ const WEATHER_LOCATION_PRIORITY_OPTIONS: Array<{ value: WeatherLocationPriority;
 /** 设置页侧边栏 Tab 顺序 */
 const SETTINGS_TABS: ('index' | 'app' | 'network' | 'weather' | 'music' | 'ai' | 'shortcut' | 'about')[] = ['index', 'app', 'network', 'weather', 'music', 'ai', 'shortcut', 'about'];
 type SettingsSidebarTabKey = (typeof SETTINGS_TABS)[number];
-type AppSettingsPageKey = 'layout-preview' | 'hide-process-list' | 'position' | 'theme';
+type AppSettingsPageKey = 'layout-preview' | 'hide-process-list' | 'position' | 'theme' | 'behavior';
 type WeatherSettingsPageKey = 'location' | 'provider';
 type MusicSettingsPageKey = 'whitelist' | 'lyrics' | 'smtc';
 type SettingsTabLabelKey = SettingsSidebarTabKey | AppSettingsPageKey;
@@ -373,6 +373,7 @@ const SETTINGS_TAB_LABELS: Record<SettingsTabLabelKey, string> = {
   'hide-process-list': '隐藏进程管理',
   position: '位置校准',
   theme: '主题外观',
+  behavior: '交互行为',
   network: '网络配置',
   weather: '天气配置',
   music: '歌曲设置',
@@ -386,6 +387,7 @@ const SETTINGS_TAB_DESCRIPTIONS: Record<Exclude<SettingsTabLabelKey, 'index'>, s
   'hide-process-list': '管理隐藏进程名单与自动隐藏规则。',
   position: '动态调整灵动岛位置并保存',
   theme: '切换深色、浅色或跟随系统主题。',
+  behavior: '配置鼠标移开后是否自动收回。',
   network: '请求超时与网络行为设置',
   weather: '天气接口优先级设置',
   music: '播放器白名单与歌词来源',
@@ -403,7 +405,8 @@ const SETTINGS_TAB_ICONS: Partial<Record<SettingsTabLabelKey, string>> = {
   ai: SvgIcon.AI,
   shortcut: SvgIcon.SHORTCUT_KEY,
   about: SvgIcon.ABOUT,
-  theme: SvgIcon.THEME
+  theme: SvgIcon.THEME,
+  behavior: SvgIcon.REVERT
 };
 
 const NETWORK_TIMEOUT_OPTIONS = [
@@ -416,7 +419,7 @@ const NETWORK_TIMEOUT_OPTIONS = [
 
 const LAYOUT_STORE_KEY = 'overview-layout';
 const DEFAULT_LAYOUT: OverviewLayoutConfig = { left: 'shortcuts', right: 'todo' };
-const APP_SETTINGS_PAGES: AppSettingsPageKey[] = ['layout-preview', 'hide-process-list', 'position', 'theme'];
+const APP_SETTINGS_PAGES: AppSettingsPageKey[] = ['layout-preview', 'hide-process-list', 'position', 'theme', 'behavior'];
 const WEATHER_SETTINGS_PAGES: WeatherSettingsPageKey[] = ['location', 'provider'];
 const WEATHER_SETTINGS_PAGE_LABELS: Record<WeatherSettingsPageKey, string> = {
   location: '定位配置',
@@ -470,6 +473,8 @@ export function SettingsTab(): ReactElement {
   const [lyricsSource, setLyricsSource] = useState<string>('auto');
   const [lyricsKaraoke, setLyricsKaraoke] = useState<boolean>(false);
   const [lyricsClock, setLyricsClock] = useState<boolean>(true);
+  const [expandLeaveIdle, setExpandLeaveIdle] = useState<boolean>(false);
+  const [maxExpandLeaveIdle, setMaxExpandLeaveIdle] = useState<boolean>(false);
   const [detectingSourceAppId, setDetectingSourceAppId] = useState(false);
   const [sourceAppDetectMessage, setSourceAppDetectMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [musicSmtcUnsubscribeInput, setMusicSmtcUnsubscribeInput] = useState<string>('5000');
@@ -605,6 +610,14 @@ export function SettingsTab(): ReactElement {
     window.api.musicLyricsClockGet().then((enabled) => {
       if (cancelled) return;
       setLyricsClock(enabled);
+    }).catch(() => {});
+    window.api.expandMouseleaveIdleGet().then((v) => {
+      if (cancelled) return;
+      setExpandLeaveIdle(v);
+    }).catch(() => {});
+    window.api.maxexpandMouseleaveIdleGet().then((v) => {
+      if (cancelled) return;
+      setMaxExpandLeaveIdle(v);
     }).catch(() => {});
     window.api.musicSmtcUnsubscribeMsGet().then((valueMs) => {
       if (cancelled) return;
@@ -918,6 +931,7 @@ export function SettingsTab(): ReactElement {
       if (target.closest('.settings-index-cards')) return;
 
       if (target.closest('.settings-hide-process-list')) return;
+      if (target.closest('.settings-hotkey-section')) return;
 
       if (activeTabRef.current === 'app' && target.closest('.settings-app-pages-layout')) {
         const pages = APP_SETTINGS_PAGES;
@@ -1609,6 +1623,41 @@ export function SettingsTab(): ReactElement {
                             }}
                           />
                           <span className="settings-opacity-slider-value">{islandOpacity}%</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {appSettingsPage === 'behavior' && (
+                    <div className="max-expand-settings-section">
+                      <div className="settings-music-section">
+                        <div className="settings-music-label">鼠标移开自动收回</div>
+                        <div className="settings-music-hint">启用后，鼠标离开灵动岛时将自动回到空闲状态（若正在播放音乐则切到歌词态）</div>
+                        <div className="settings-hotkey-row" style={{ alignItems: 'center', marginTop: 8 }}>
+                          <label className="settings-music-hint" style={{ marginBottom: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <input
+                              type="checkbox"
+                              checked={expandLeaveIdle}
+                              onChange={(e) => {
+                                setExpandLeaveIdle(e.target.checked);
+                                window.api.expandMouseleaveIdleSet(e.target.checked).catch(() => {});
+                              }}
+                            />
+                            展开态（Expand）鼠标移开后自动收回
+                          </label>
+                        </div>
+                        <div className="settings-hotkey-row" style={{ alignItems: 'center', marginTop: 6 }}>
+                          <label className="settings-music-hint" style={{ marginBottom: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <input
+                              type="checkbox"
+                              checked={maxExpandLeaveIdle}
+                              onChange={(e) => {
+                                setMaxExpandLeaveIdle(e.target.checked);
+                                window.api.maxexpandMouseleaveIdleSet(e.target.checked).catch(() => {});
+                              }}
+                            />
+                            最大展开态（MaxExpand）鼠标移开后自动收回
+                          </label>
                         </div>
                       </div>
                     </div>

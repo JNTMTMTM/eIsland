@@ -40,8 +40,8 @@ export const createIslandSlice: StateCreator<
   maxExpandTab: 'todo',
   notification: emptyNotification,
 
-  setIdle: () => set((prev) => {
-    if (prev.state === 'expanded' || prev.state === 'maxExpand') return prev;
+  setIdle: (force?: boolean) => set((prev) => {
+    if (!force && (prev.state === 'expanded' || prev.state === 'maxExpand')) return prev;
     window.api?.collapseWindow();
     window.api?.enableMousePassthrough();
     return { state: 'idle' as const };
