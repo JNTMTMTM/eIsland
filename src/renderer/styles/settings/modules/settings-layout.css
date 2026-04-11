@@ -232,7 +232,7 @@
   width: 54px;
   height: 54px;
   opacity: 0.07;
-  filter: blur(0.5px);
+  filter: invert(calc(1 - var(--icon-invert))) blur(0.5px);
   z-index: 0;
   pointer-events: none;
 }
