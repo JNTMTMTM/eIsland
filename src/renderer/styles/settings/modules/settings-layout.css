@@ -144,6 +144,15 @@
 }
 
 .settings-index-section {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.settings-index-header {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
   gap: 10px;
 }
 
@@ -152,9 +161,23 @@
 }
 
 .settings-index-cards {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 2px;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
+  align-content: start;
+}
+
+.settings-index-cards::-webkit-scrollbar {
+  width: 4px;
+}
+
+.settings-index-cards::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.16);
+  border-radius: 2px;
 }
 
 .settings-index-card {

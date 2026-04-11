@@ -852,8 +852,10 @@ export function SettingsTab(): ReactElement {
         <div className="max-expand-settings-panel">
           {activeTab === 'index' && (
             <div className="max-expand-settings-section settings-index-section">
-              <div className="max-expand-settings-title">快速导航</div>
-              <div className="settings-music-hint settings-index-hint">点击卡片可快速跳转到对应配置页。</div>
+              <div className="settings-index-header">
+                <div className="max-expand-settings-title">快速导航</div>
+                <div className="settings-music-hint settings-index-hint">点击卡片可快速跳转到对应配置页。</div>
+              </div>
               <div className="settings-index-cards" aria-label="设置快速导航">
                 {SETTINGS_TABS.filter((tab) => tab !== 'index').map((tab) => (
                   <button
