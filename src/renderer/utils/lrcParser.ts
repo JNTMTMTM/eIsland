@@ -168,7 +168,7 @@ export function parseKrc(content: string): LyricLine[] {
 
     const textRaw = trimmed.slice(closeIdx + 1);
     const text = textRaw.replace(wordTagRe, '').trim();
-    if (text) {
+    if (text && !META_PREFIXES.some((prefix) => text.startsWith(prefix))) {
       lines.push({ time_ms: startMs, text });
     }
   }
