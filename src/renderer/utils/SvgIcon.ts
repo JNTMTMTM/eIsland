@@ -49,6 +49,8 @@ export const SvgIcon = {
   POMODORO: './svg/POMODORO.svg',
   /** 音符 */
   MUSIC: './svg/MUSIC.svg',
+  /** 布局预览 */
+  LAYOUT: './svg/LAYOUT.svg',
 } as const;
 
 export type SvgIconKey = keyof typeof SvgIcon;
