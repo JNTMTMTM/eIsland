@@ -41,6 +41,18 @@ jobs:
               })
               .map((item) => `${item.id} | ${item.label}`);
 
+            const detectViolationLine = (text, testFn) => {
+              const lines = text.split('\n');
+              for (let i = 0; i < lines.length; i += 1) {
+                try {
+                  if (testFn(lines[i])) return i + 1;
+                } catch {
+                  // 单行检测失败时继续尝试下一行
+                }
+              }
+              return 1;
+            };
+
             const rules = [
               {
                 id: 'no-var',
@@ -151,7 +163,8 @@ jobs:
               for (const rule of rules) {
                 if (!rule.applies.test(filename)) continue;
                 if (rule.test(text)) {
-                  violations.push(`${filename}:1 | ${rule.id} | ${rule.desc}`);
+                  const line = detectViolationLine(text, rule.test);
+                  violations.push(`${filename}:${line} | ${rule.id} | ${rule.desc}`);
                 }
               }
             }
