@@ -28,11 +28,8 @@ import type { LyricLine } from './types';
 import { cleanArtist, cleanTitle, parseSyncedLrc } from './helpers';
 import { requestJsonWithLog } from './request';
 
-export async function fetchLyricsFromKugou(title: string, artist: string): Promise<LyricLine[] | null> {
-  const cleanedTitle = cleanTitle(title);
-  const cleanedArtist = cleanArtist(artist);
-  const keyword = `${cleanedTitle} ${cleanedArtist}`;
-
+async function searchKugou(queryTitle: string, queryArtist: string): Promise<LyricLine[] | null> {
+  const keyword = `${queryTitle} ${queryArtist}`;
   try {
     const searchUrl =
       `http://mobilecdn.kugou.com/api/v3/search/song?format=json&keyword=${encodeURIComponent(keyword)}&page=1&pagesize=20&showtype=1`;
@@ -88,4 +85,16 @@ export async function fetchLyricsFromKugou(title: string, artist: string): Promi
   } catch {
     return null;
   }
+}
+
+export async function fetchLyricsFromKugou(title: string, artist: string): Promise<LyricLine[] | null> {
+  const raw = await searchKugou(title, artist);
+  if (raw) return raw;
+
+  const cleanedTitle = cleanTitle(title);
+  const cleanedArtist = cleanArtist(artist);
+  if (cleanedTitle !== title || cleanedArtist !== artist) {
+    return searchKugou(cleanedTitle, cleanedArtist);
+  }
+  return null;
 }

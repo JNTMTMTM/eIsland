@@ -44,11 +44,8 @@ function base64DecodeUtf8(encoded: string): string {
   }
 }
 
-export async function fetchLyricsFromQQMusic(title: string, artist: string): Promise<LyricLine[] | null> {
-  const cleanedTitle = cleanTitle(title);
-  const cleanedArtist = cleanArtist(artist);
-  const query = `${cleanedTitle} ${cleanedArtist}`;
-
+async function searchQQMusic(queryTitle: string, queryArtist: string): Promise<LyricLine[] | null> {
+  const query = `${queryTitle} ${queryArtist}`;
   try {
     const searchPayload = {
       req_1: {
@@ -134,4 +131,16 @@ export async function fetchLyricsFromQQMusic(title: string, artist: string): Pro
   } catch {
     return null;
   }
+}
+
+export async function fetchLyricsFromQQMusic(title: string, artist: string): Promise<LyricLine[] | null> {
+  const raw = await searchQQMusic(title, artist);
+  if (raw) return raw;
+
+  const cleanedTitle = cleanTitle(title);
+  const cleanedArtist = cleanArtist(artist);
+  if (cleanedTitle !== title || cleanedArtist !== artist) {
+    return searchQQMusic(cleanedTitle, cleanedArtist);
+  }
+  return null;
 }

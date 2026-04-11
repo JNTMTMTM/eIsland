@@ -34,11 +34,8 @@ const NETEASE_HEADERS = {
   'Content-Type': 'application/x-www-form-urlencoded',
 };
 
-export async function fetchLyricsFromNetease(title: string, artist: string): Promise<LyricLine[] | null> {
-  const cleanedTitle = cleanTitle(title);
-  const cleanedArtist = cleanArtist(artist);
-  const query = `${cleanedTitle} ${cleanedArtist}`;
-
+async function searchNetease(queryTitle: string, queryArtist: string): Promise<LyricLine[] | null> {
+  const query = `${queryTitle} ${queryArtist}`;
   try {
     const searchJson = await requestJsonWithLog<Record<string, unknown>>(
       'https://music.163.com/api/search/get/web',
@@ -86,4 +83,16 @@ export async function fetchLyricsFromNetease(title: string, artist: string): Pro
   } catch {
     return null;
   }
+}
+
+export async function fetchLyricsFromNetease(title: string, artist: string): Promise<LyricLine[] | null> {
+  const raw = await searchNetease(title, artist);
+  if (raw) return raw;
+
+  const cleanedTitle = cleanTitle(title);
+  const cleanedArtist = cleanArtist(artist);
+  if (cleanedTitle !== title || cleanedArtist !== artist) {
+    return searchNetease(cleanedTitle, cleanedArtist);
+  }
+  return null;
 }
