@@ -375,7 +375,7 @@ const SETTINGS_TAB_LABELS: Record<SettingsTabLabelKey, string> = {
   position: '位置校准',
   theme: '主题外观',
   behavior: '交互行为',
-  autostart: '开机自启',
+  autostart: '实用工具',
   network: '网络配置',
   weather: '天气配置',
   music: '歌曲设置',
@@ -393,7 +393,7 @@ const SETTINGS_TAB_DESCRIPTIONS: Record<Exclude<SettingsTabLabelKey, 'index'>, s
   position: '动态调整灵动岛位置并保存',
   theme: '切换深色、浅色或跟随系统主题。',
   behavior: '配置鼠标移开后是否自动收回。',
-  autostart: '设置开机时是否自动启动灵动岛。',
+  autostart: '应用控制、日志与开机启动配置。',
   network: '请求超时与网络行为设置',
   weather: '天气接口优先级设置',
   music: '播放器白名单与歌词来源',
@@ -1841,7 +1841,39 @@ export function SettingsTab(): ReactElement {
                   {appSettingsPage === 'autostart' && (
                     <div className="max-expand-settings-section">
                       <div className="settings-music-section">
-                        <div className="settings-music-label">开机自启</div>
+                        <div className="settings-music-label">实用工具</div>
+                        <div className="settings-music-hint">常用应用操作与日志工具</div>
+                        <div className="settings-hotkey-row" style={{ marginTop: 8, gap: 8 }}>
+                          <button
+                            className="settings-hotkey-btn"
+                            type="button"
+                            onClick={() => {
+                              window.api.quitApp();
+                            }}
+                          >
+                            关闭灵动岛
+                          </button>
+                          <button
+                            className="settings-hotkey-btn"
+                            type="button"
+                            onClick={() => {
+                              window.api.restartApp().catch(() => {});
+                            }}
+                          >
+                            重启灵动岛
+                          </button>
+                          <button
+                            className="settings-hotkey-btn"
+                            type="button"
+                            onClick={() => {
+                              window.api.openLogsFolder().catch(() => {});
+                            }}
+                          >
+                            打开日志文件夹
+                          </button>
+                        </div>
+
+                        <div className="settings-music-label" style={{ marginTop: 12 }}>开机自启</div>
                         <div className="settings-music-hint">设置系统启动时是否自动运行灵动岛</div>
                         <div className="settings-lyrics-source-options" style={{ marginTop: 8 }}>
                           {([

@@ -1279,6 +1279,37 @@ function registerIpcHandlers(): void {
     app.quit();
   });
 
+  /**
+   * 重启应用
+   */
+  ipcMain.handle('app:restart', () => {
+    try {
+      app.relaunch();
+      app.exit(0);
+      return true;
+    } catch (err) {
+      console.error('[App] restart error:', err);
+      return false;
+    }
+  });
+
+  /**
+   * 打开日志文件夹
+   */
+  ipcMain.handle('app:open-logs-folder', async () => {
+    try {
+      const logDir = join(app.getPath('userData'), 'logs');
+      if (!existsSync(logDir)) {
+        mkdirSync(logDir, { recursive: true });
+      }
+      const result = await shell.openPath(logDir);
+      return result === '';
+    } catch (err) {
+      console.error('[App] open logs folder error:', err);
+      return false;
+    }
+  });
+
   // ===== 音乐媒体控制 IPC 处理器 =====
   ipcMain.handle('media:play-pause', () => {
     if (!isWhitelisted()) return;

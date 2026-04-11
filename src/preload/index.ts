@@ -139,6 +139,18 @@ const api = {
   quitApp: (): void => {
     ipcRenderer.send('app:quit');
   },
+  /**
+   * 重启应用
+   */
+  restartApp: (): Promise<boolean> => {
+    return ipcRenderer.invoke('app:restart');
+  },
+  /**
+   * 打开日志文件夹
+   */
+  openLogsFolder: (): Promise<boolean> => {
+    return ipcRenderer.invoke('app:open-logs-folder');
+  },
   /** ===== 音乐相关 API ===== */
   /**
    * 播放/暂停

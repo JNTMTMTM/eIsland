@@ -66,6 +66,8 @@ declare global {
       setIslandPositionOffset: (offset: { x: number; y: number }) => Promise<boolean>;
       onIslandPositionOffsetChanged: (callback: (offset: { x: number; y: number }) => void) => () => void;
       quitApp: () => void;
+      restartApp: () => Promise<boolean>;
+      openLogsFolder: () => Promise<boolean>;
       /** ===== 音乐相关 API ===== */
       mediaPlayPause: () => Promise<void>;
       mediaNext: () => Promise<void>;
