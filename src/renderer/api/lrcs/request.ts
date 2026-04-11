@@ -39,7 +39,7 @@ export async function requestJsonWithLog<T>(url: string, options?: {
 
   logger.info('[LrcApi] request', { method, url, headers, body, timeoutMs });
   const resp = await window.api.netFetch(url, { method, headers, body, timeoutMs });
-  logger.info('[LrcApi] response', { method, url, status: resp.status, ok: resp.ok, body: resp.body });
+  logger.info('[LrcApi] response', { method, url, status: resp.status, ok: resp.ok, bodyLen: resp.body?.length });
   if (!resp.ok) return null;
 
   try {
@@ -49,7 +49,7 @@ export async function requestJsonWithLog<T>(url: string, options?: {
       method,
       url,
       error: String(error),
-      body: resp.body,
+      bodyPreview: resp.body?.slice(0, 200),
     });
     return null;
   }
