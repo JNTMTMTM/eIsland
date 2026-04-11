@@ -857,7 +857,31 @@ export function SettingsTab(): ReactElement {
                 <div className="settings-music-hint settings-index-hint">点击卡片可快速跳转到对应配置页。</div>
               </div>
               <div className="settings-index-cards" aria-label="设置快速导航">
-                {SETTINGS_TABS.filter((tab) => tab !== 'index').map((tab) => (
+                <button
+                  className="settings-index-card"
+                  type="button"
+                  onClick={() => {
+                    setAppSettingsPage('layout-preview');
+                    setActiveTab('app');
+                  }}
+                >
+                  <span className="settings-index-card-title">布局预览</span>
+                  <span className="settings-index-card-desc">进入布局预览并调整左右控件展示。</span>
+                </button>
+
+                <button
+                  className="settings-index-card"
+                  type="button"
+                  onClick={() => {
+                    setAppSettingsPage('hide-process-list');
+                    setActiveTab('app');
+                  }}
+                >
+                  <span className="settings-index-card-title">隐藏进程管理</span>
+                  <span className="settings-index-card-desc">管理隐藏进程名单与自动隐藏规则。</span>
+                </button>
+
+                {SETTINGS_TABS.filter((tab) => tab !== 'index' && tab !== 'app').map((tab) => (
                   <button
                     key={tab}
                     className="settings-index-card"
