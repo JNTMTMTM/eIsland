@@ -354,6 +354,7 @@ const SETTINGS_TABS: ('index' | 'app' | 'network' | 'weather' | 'music' | 'ai' |
 type SettingsSidebarTabKey = (typeof SETTINGS_TABS)[number];
 type AppSettingsPageKey = 'layout-preview' | 'hide-process-list' | 'position';
 type WeatherSettingsPageKey = 'location' | 'provider';
+type MusicSettingsPageKey = 'whitelist' | 'lyrics' | 'smtc';
 type SettingsTabLabelKey = SettingsSidebarTabKey | AppSettingsPageKey;
 
 const SETTINGS_TAB_LABELS: Record<SettingsTabLabelKey, string> = {
@@ -409,6 +410,12 @@ const WEATHER_SETTINGS_PAGE_LABELS: Record<WeatherSettingsPageKey, string> = {
   location: '定位配置',
   provider: '接口配置',
 };
+const MUSIC_SETTINGS_PAGES: MusicSettingsPageKey[] = ['whitelist', 'lyrics', 'smtc'];
+const MUSIC_SETTINGS_PAGE_LABELS: Record<MusicSettingsPageKey, string> = {
+  whitelist: '白名单',
+  lyrics: '歌词源',
+  smtc: 'SMTC',
+};
 
 interface RunningProcessItem {
   name: string;
@@ -424,6 +431,7 @@ export function SettingsTab(): ReactElement {
   const [activeTab, setActiveTab] = useState<SettingsSidebarTabKey>('index');
   const [appSettingsPage, setAppSettingsPage] = useState<AppSettingsPageKey>('layout-preview');
   const [weatherSettingsPage, setWeatherSettingsPage] = useState<WeatherSettingsPageKey>('location');
+  const [musicSettingsPage, setMusicSettingsPage] = useState<MusicSettingsPageKey>('whitelist');
   const { aiConfig, setAiConfig, fetchWeatherData } = useIslandStore();
   const [editingPrompt, setEditingPrompt] = useState(false);
   const [promptDraft, setPromptDraft] = useState('');
@@ -437,6 +445,9 @@ export function SettingsTab(): ReactElement {
   const weatherSettingsPageRef = useRef(weatherSettingsPage);
   const currentWeatherSettingsPageLabel = WEATHER_SETTINGS_PAGE_LABELS[weatherSettingsPage] || '定位配置';
   weatherSettingsPageRef.current = weatherSettingsPage;
+  const musicSettingsPageRef = useRef(musicSettingsPage);
+  const currentMusicSettingsPageLabel = MUSIC_SETTINGS_PAGE_LABELS[musicSettingsPage] || '白名单';
+  musicSettingsPageRef.current = musicSettingsPage;
 
   const [layoutConfig, setLayoutConfig] = useState<OverviewLayoutConfig>(DEFAULT_LAYOUT);
 
@@ -883,6 +894,23 @@ export function SettingsTab(): ReactElement {
             : Math.max(currentIdx - 1, 0);
           if (nextIdx !== currentIdx) {
             setAppSettingsPage(pages[nextIdx]);
+          }
+          e.preventDefault();
+          e.stopPropagation();
+          return;
+        }
+      }
+
+      if (activeTabRef.current === 'music' && target.closest('.settings-music-pages-layout')) {
+        const pages = MUSIC_SETTINGS_PAGES;
+        const currentPage = musicSettingsPageRef.current;
+        const currentIdx = pages.indexOf(currentPage);
+        if (currentIdx >= 0) {
+          const nextIdx = e.deltaY > 0
+            ? Math.min(currentIdx + 1, pages.length - 1)
+            : Math.max(currentIdx - 1, 0);
+          if (nextIdx !== currentIdx) {
+            setMusicSettingsPage(pages[nextIdx]);
           }
           e.preventDefault();
           e.stopPropagation();
@@ -1903,160 +1931,185 @@ export function SettingsTab(): ReactElement {
           )}
           {activeTab === 'music' && (
             <div className="max-expand-settings-section">
-              <div className="max-expand-settings-title">歌曲设置</div>
+              <div className="max-expand-settings-title settings-app-title-line">
+                <span>歌曲设置</span>
+                <span className="settings-app-title-sub">- {currentMusicSettingsPageLabel}</span>
+              </div>
 
-              {/* 播放器白名单 */}
-              <div className="settings-music-section">
-                <div className="settings-music-label">播放器白名单</div>
-                <div className="settings-music-hint">只有白名单内的播放器才会触发歌曲信息获取</div>
-                <div className="settings-whitelist-list">
-                  {whitelist.map((item, idx) => (
-                    <div className="settings-whitelist-item" key={idx}>
-                      <span className="settings-whitelist-name">{item}</span>
-                      <button
-                        className="settings-whitelist-remove"
-                        type="button"
-                        title="移除"
-                        onClick={() => {
-                          const next = whitelist.filter((_, i) => i !== idx);
-                          setWhitelist(next);
-                          window.api.musicWhitelistSet(next).catch(() => {});
-                        }}
-                      >
-                        ×
-                      </button>
+              <div className="settings-app-pages-layout settings-music-pages-layout">
+                <div className="settings-app-page-main">
+                  {musicSettingsPage === 'whitelist' && (
+                    <div className="settings-music-section">
+                      <div className="settings-music-label">播放器白名单</div>
+                      <div className="settings-music-hint">只有白名单内的播放器才会触发歌曲信息获取</div>
+                      <div className="settings-whitelist-list">
+                        {whitelist.map((item, idx) => (
+                          <div className="settings-whitelist-item" key={idx}>
+                            <span className="settings-whitelist-name">{item}</span>
+                            <button
+                              className="settings-whitelist-remove"
+                              type="button"
+                              title="移除"
+                              onClick={() => {
+                                const next = whitelist.filter((_, i) => i !== idx);
+                                setWhitelist(next);
+                                window.api.musicWhitelistSet(next).catch(() => {});
+                              }}
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="settings-whitelist-add-row">
+                        <input
+                          className={`settings-whitelist-input${whitelistInputError ? ' error' : ''}`}
+                          type="text"
+                          placeholder={whitelistInputError || '输入播放器进程名（如 Spotify.exe）'}
+                          value={whitelistDraft}
+                          onFocus={() => {
+                            if (whitelistInputError) setWhitelistInputError('');
+                          }}
+                          onChange={(e) => {
+                            setWhitelistDraft(e.target.value);
+                            if (whitelistInputError) setWhitelistInputError('');
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') handleAddWhitelist();
+                          }}
+                        />
+                        <button
+                          className="settings-whitelist-add-btn"
+                          type="button"
+                          onClick={() => {
+                            handleAddWhitelist();
+                          }}
+                        >
+                          添加
+                        </button>
+                      </div>
+                      <div className="settings-whitelist-add-row" style={{ display: 'flex', alignItems: 'center' }}>
+                        <button
+                          className="settings-whitelist-add-btn"
+                          type="button"
+                          onClick={() => {
+                            if (whitelistInputError) setWhitelistInputError('');
+                            handleDetectSourceAppId().catch(() => {});
+                          }}
+                          disabled={detectingSourceAppId}
+                        >
+                          {detectingSourceAppId ? '获取中…' : '获取播放进程（测试）'}
+                        </button>
+                        {sourceAppDetectMessage && (
+                          <div
+                            className="settings-music-hint"
+                            style={{
+                              color: sourceAppDetectMessage.type === 'success' ? '#7df2a0' : '#ff8b8b',
+                              marginLeft: 10,
+                              marginBottom: 0,
+                              display: 'flex',
+                              alignItems: 'center',
+                            }}
+                          >
+                            {sourceAppDetectMessage.text}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  ))}
-                </div>
-                <div className="settings-whitelist-add-row">
-                  <input
-                    className={`settings-whitelist-input${whitelistInputError ? ' error' : ''}`}
-                    type="text"
-                    placeholder={whitelistInputError || '输入播放器进程名（如 Spotify.exe）'}
-                    value={whitelistDraft}
-                    onFocus={() => {
-                      if (whitelistInputError) setWhitelistInputError('');
-                    }}
-                    onChange={(e) => {
-                      setWhitelistDraft(e.target.value);
-                      if (whitelistInputError) setWhitelistInputError('');
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') handleAddWhitelist();
-                    }}
-                  />
-                  <button
-                    className="settings-whitelist-add-btn"
-                    type="button"
-                    onClick={() => {
-                      handleAddWhitelist();
-                    }}
-                  >
-                    添加
-                  </button>
-                </div>
-                <div className="settings-whitelist-add-row" style={{ display: 'flex', alignItems: 'center' }}>
-                  <button
-                    className="settings-whitelist-add-btn"
-                    type="button"
-                    onClick={() => {
-                      if (whitelistInputError) setWhitelistInputError('');
-                      handleDetectSourceAppId().catch(() => {});
-                    }}
-                    disabled={detectingSourceAppId}
-                  >
-                    {detectingSourceAppId ? '获取中…' : '获取播放进程（测试）'}
-                  </button>
-                  {sourceAppDetectMessage && (
-                    <div
-                      className="settings-music-hint"
-                      style={{
-                        color: sourceAppDetectMessage.type === 'success' ? '#7df2a0' : '#ff8b8b',
-                        marginLeft: 10,
-                        marginBottom: 0,
-                        display: 'flex',
-                        alignItems: 'center',
-                      }}
-                    >
-                      {sourceAppDetectMessage.text}
+                  )}
+
+                  {musicSettingsPage === 'lyrics' && (
+                    <div className="settings-music-section">
+                      <div className="settings-music-label">歌词源</div>
+                      <div className="settings-music-hint">选择歌词获取的优先顺序或唯一来源</div>
+                      <div className="settings-lyrics-source-options">
+                        {LYRICS_SOURCE_OPTIONS.map((opt) => (
+                          <button
+                            key={opt.value}
+                            className={`settings-lyrics-source-btn ${lyricsSource === opt.value ? 'active' : ''}`}
+                            type="button"
+                            onClick={() => {
+                              setLyricsSource(opt.value);
+                              window.api.musicLyricsSourceSet(opt.value).catch(() => {});
+                            }}
+                          >
+                            {opt.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {musicSettingsPage === 'smtc' && (
+                    <div className="settings-music-section">
+                      <div className="settings-music-label">SMTC 自动取消订阅</div>
+                      <div className="settings-music-hint">用于清理长时间无更新的播放会话，默认永不取消订阅</div>
+                      <div className="settings-hotkey-row" style={{ alignItems: 'center' }}>
+                        <label className="settings-field" style={{ flex: 1 }}>
+                          <span className="settings-field-label">取消订阅时间（毫秒）</span>
+                          <input
+                            className="settings-field-input"
+                            type="number"
+                            min={1000}
+                            step={1000}
+                            value={musicSmtcUnsubscribeInput}
+                            disabled={musicSmtcNeverUnsubscribe}
+                            onChange={(e) => {
+                              setMusicSmtcUnsubscribeInput(e.target.value);
+                              if (musicSmtcConfigMessage) setMusicSmtcConfigMessage(null);
+                            }}
+                          />
+                        </label>
+                      </div>
+                      <div className="settings-hotkey-row" style={{ alignItems: 'center' }}>
+                        <label className="settings-music-hint" style={{ marginBottom: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <input
+                            type="checkbox"
+                            checked={musicSmtcNeverUnsubscribe}
+                            onChange={(e) => {
+                              setMusicSmtcNeverUnsubscribe(e.target.checked);
+                              if (musicSmtcConfigMessage) setMusicSmtcConfigMessage(null);
+                            }}
+                          />
+                          永不取消订阅
+                        </label>
+                        <button
+                          className="settings-hotkey-btn"
+                          type="button"
+                          onClick={() => {
+                            saveMusicSmtcUnsubscribeConfig().catch((error) => {
+                              setMusicSmtcConfigMessage({
+                                type: 'error',
+                                text: `保存失败：${error instanceof Error ? error.message : '未知错误'}`,
+                              });
+                            });
+                          }}
+                        >
+                          保存
+                        </button>
+                      </div>
+                      {musicSmtcConfigMessage && (
+                        <div className="settings-music-hint" style={{ color: musicSmtcConfigMessage.type === 'error' ? '#ff8b8b' : '#7df2a0' }}>
+                          {musicSmtcConfigMessage.text}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
-              </div>
 
-              {/* 歌词源 */}
-              <div className="settings-music-section">
-                <div className="settings-music-label">歌词源</div>
-                <div className="settings-music-hint">选择歌词获取的优先顺序或唯一来源</div>
-                <div className="settings-lyrics-source-options">
-                  {LYRICS_SOURCE_OPTIONS.map((opt) => (
+                <div className="settings-app-page-dots" aria-label="歌曲设置分页">
+                  {MUSIC_SETTINGS_PAGES.map((page) => (
                     <button
-                      key={opt.value}
-                      className={`settings-lyrics-source-btn ${lyricsSource === opt.value ? 'active' : ''}`}
+                      key={page}
+                      className={`settings-app-page-dot ${musicSettingsPage === page ? 'active' : ''}`}
+                      data-label={MUSIC_SETTINGS_PAGE_LABELS[page]}
                       type="button"
-                      onClick={() => {
-                        setLyricsSource(opt.value);
-                        window.api.musicLyricsSourceSet(opt.value).catch(() => {});
-                      }}
-                    >
-                      {opt.label}
-                    </button>
+                      onClick={() => setMusicSettingsPage(page)}
+                      title={MUSIC_SETTINGS_PAGE_LABELS[page]}
+                      aria-label={MUSIC_SETTINGS_PAGE_LABELS[page]}
+                    />
                   ))}
                 </div>
-              </div>
-
-              <div className="settings-music-section">
-                <div className="settings-music-label">SMTC 自动取消订阅</div>
-                <div className="settings-music-hint">用于清理长时间无更新的播放会话，默认永不取消订阅</div>
-                <div className="settings-hotkey-row" style={{ alignItems: 'center' }}>
-                  <label className="settings-field" style={{ flex: 1 }}>
-                    <span className="settings-field-label">取消订阅时间（毫秒）</span>
-                    <input
-                      className="settings-field-input"
-                      type="number"
-                      min={1000}
-                      step={1000}
-                      value={musicSmtcUnsubscribeInput}
-                      disabled={musicSmtcNeverUnsubscribe}
-                      onChange={(e) => {
-                        setMusicSmtcUnsubscribeInput(e.target.value);
-                        if (musicSmtcConfigMessage) setMusicSmtcConfigMessage(null);
-                      }}
-                    />
-                  </label>
-                </div>
-                <div className="settings-hotkey-row" style={{ alignItems: 'center' }}>
-                  <label className="settings-music-hint" style={{ marginBottom: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <input
-                      type="checkbox"
-                      checked={musicSmtcNeverUnsubscribe}
-                      onChange={(e) => {
-                        setMusicSmtcNeverUnsubscribe(e.target.checked);
-                        if (musicSmtcConfigMessage) setMusicSmtcConfigMessage(null);
-                      }}
-                    />
-                    永不取消订阅
-                  </label>
-                  <button
-                    className="settings-hotkey-btn"
-                    type="button"
-                    onClick={() => {
-                      saveMusicSmtcUnsubscribeConfig().catch((error) => {
-                        setMusicSmtcConfigMessage({
-                          type: 'error',
-                          text: `保存失败：${error instanceof Error ? error.message : '未知错误'}`,
-                        });
-                      });
-                    }}
-                  >
-                    保存
-                  </button>
-                </div>
-                {musicSmtcConfigMessage && (
-                  <div className="settings-music-hint" style={{ color: musicSmtcConfigMessage.type === 'error' ? '#ff8b8b' : '#7df2a0' }}>
-                    {musicSmtcConfigMessage.text}
-                  </div>
-                )}
               </div>
             </div>
           )}
