@@ -364,7 +364,8 @@ type SettingsSidebarTabKey = (typeof SETTINGS_TABS)[number];
 type AppSettingsPageKey = 'layout-preview' | 'hide-process-list' | 'position' | 'theme' | 'behavior' | 'autostart';
 type WeatherSettingsPageKey = 'location' | 'provider';
 type MusicSettingsPageKey = 'whitelist' | 'lyrics' | 'smtc';
-type SettingsTabLabelKey = SettingsSidebarTabKey | AppSettingsPageKey;
+type MusicNavCardKey = 'music-whitelist' | 'music-lyrics' | 'music-smtc';
+type SettingsTabLabelKey = SettingsSidebarTabKey | AppSettingsPageKey | MusicNavCardKey;
 
 const SETTINGS_TAB_LABELS: Record<SettingsTabLabelKey, string> = {
   index: '快速导航',
@@ -378,6 +379,9 @@ const SETTINGS_TAB_LABELS: Record<SettingsTabLabelKey, string> = {
   network: '网络配置',
   weather: '天气配置',
   music: '歌曲设置',
+  'music-whitelist': '播放器白名单',
+  'music-lyrics': '歌词源',
+  'music-smtc': 'SMTC',
   ai: 'AI Agent',
   shortcut: '快捷键',
   about: '关于软件',
@@ -393,6 +397,9 @@ const SETTINGS_TAB_DESCRIPTIONS: Record<Exclude<SettingsTabLabelKey, 'index'>, s
   network: '请求超时与网络行为设置',
   weather: '天气接口优先级设置',
   music: '播放器白名单与歌词来源',
+  'music-whitelist': '配置允许接入灵动岛的播放器。',
+  'music-lyrics': '选择歌词来源与显示模式。',
+  'music-smtc': '系统媒体传输控制相关配置。',
   ai: 'AI 服务与 Prompt 配置',
   shortcut: '隐藏、关闭、截图快捷键',
   about: '版本信息与项目链接',
@@ -404,12 +411,15 @@ const SETTINGS_TAB_ICONS: Partial<Record<SettingsTabLabelKey, string>> = {
   network: SvgIcon.NETWORK,
   weather: SvgIcon.WEATHER,
   music: SvgIcon.LRC,
+  'music-whitelist': SvgIcon.MUSIC,
+  'music-lyrics': SvgIcon.LRC,
+  'music-smtc': SvgIcon.SMTC,
   ai: SvgIcon.AI,
   shortcut: SvgIcon.SHORTCUT_KEY,
   about: SvgIcon.ABOUT,
   theme: SvgIcon.THEME,
-  behavior: SvgIcon.REVERT,
-  autostart: SvgIcon.CONTINUE
+  behavior: SvgIcon.INTERACTION,
+  autostart: SvgIcon.CONTINUE,
 };
 
 const NETWORK_TIMEOUT_OPTIONS = [
@@ -457,9 +467,9 @@ const NAV_CARDS: NavCardDef[] = [
   { id: 'ai', label: SETTINGS_TAB_LABELS.ai, desc: SETTINGS_TAB_DESCRIPTIONS.ai, icon: SETTINGS_TAB_ICONS.ai, tab: 'ai' },
   { id: 'shortcut', label: SETTINGS_TAB_LABELS.shortcut, desc: SETTINGS_TAB_DESCRIPTIONS.shortcut, icon: SETTINGS_TAB_ICONS.shortcut, tab: 'shortcut' },
   { id: 'about', label: SETTINGS_TAB_LABELS.about, desc: SETTINGS_TAB_DESCRIPTIONS.about, icon: SETTINGS_TAB_ICONS.about, tab: 'about' },
-  { id: 'music-whitelist', label: '播放器白名单', desc: '配置允许接入灵动岛的播放器。', icon: SvgIcon.MUSIC, tab: 'music', musicPage: 'whitelist' },
-  { id: 'music-lyrics', label: '歌词源', desc: '选择歌词来源与显示模式。', icon: SvgIcon.LRC, tab: 'music', musicPage: 'lyrics' },
-  { id: 'music-smtc', label: 'SMTC', desc: '系统媒体传输控制相关配置。', icon: SvgIcon.LRC, tab: 'music', musicPage: 'smtc' },
+  { id: 'music-whitelist', label: SETTINGS_TAB_LABELS['music-whitelist'], desc: SETTINGS_TAB_DESCRIPTIONS['music-whitelist'], icon: SETTINGS_TAB_ICONS['music-whitelist'], tab: 'music', musicPage: 'whitelist' },
+  { id: 'music-lyrics', label: SETTINGS_TAB_LABELS['music-lyrics'], desc: SETTINGS_TAB_DESCRIPTIONS['music-lyrics'], icon: SETTINGS_TAB_ICONS['music-lyrics'], tab: 'music', musicPage: 'lyrics' },
+  { id: 'music-smtc', label: SETTINGS_TAB_LABELS['music-smtc'], desc: SETTINGS_TAB_DESCRIPTIONS['music-smtc'], icon: SETTINGS_TAB_ICONS['music-smtc'], tab: 'music', musicPage: 'smtc' },
 ];
 
 const DEFAULT_NAV_ORDER: string[] = NAV_CARDS.map((c) => c.id);

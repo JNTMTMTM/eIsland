@@ -66,7 +66,11 @@ export const SvgIcon = {
   /** 移动 */
   MOVE: './svg/MOVE.svg',
   /** 主题 */
-  THEME: './svg/THEME.svg'
+  THEME: './svg/THEME.svg',
+  /** SMTC */
+  SMTC: './svg/SMTC.svg',
+  /** 交互 */
+  INTERACTION: './svg/INTERACTION.svg'
 } as const;
 
 export type SvgIconKey = keyof typeof SvgIcon;
