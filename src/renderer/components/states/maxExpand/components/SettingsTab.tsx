@@ -401,6 +401,7 @@ export function SettingsTab(): ReactElement {
   const appSettingsPageRef = useRef(appSettingsPage);
   const currentAppSettingsPageLabel = APP_SETTINGS_PAGES.find((page) => page.key === appSettingsPage)?.label || '布局预览';
   appSettingsPageRef.current = appSettingsPage;
+
   const [layoutConfig, setLayoutConfig] = useState<OverviewLayoutConfig>(DEFAULT_LAYOUT);
 
   /** 歌曲设置相关状态 */
