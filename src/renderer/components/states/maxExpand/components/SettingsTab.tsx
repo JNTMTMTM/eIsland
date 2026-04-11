@@ -341,9 +341,15 @@ const WEATHER_PROVIDER_OPTIONS: Array<{ value: WeatherProvider; label: string }>
 
 /** 设置页侧边栏 Tab 顺序 */
 const SETTINGS_TABS: ('index' | 'app' | 'network' | 'weather' | 'music' | 'ai' | 'shortcut' | 'about')[] = ['index', 'app', 'network', 'weather', 'music', 'ai', 'shortcut', 'about'];
-const SETTINGS_TAB_LABELS: Record<(typeof SETTINGS_TABS)[number], string> = {
+type SettingsSidebarTabKey = (typeof SETTINGS_TABS)[number];
+type AppSettingsPageKey = 'layout-preview' | 'hide-process-list';
+type SettingsTabLabelKey = SettingsSidebarTabKey | AppSettingsPageKey;
+
+const SETTINGS_TAB_LABELS: Record<SettingsTabLabelKey, string> = {
   index: '快速导航',
   app: '软件设置',
+  'layout-preview': '布局预览',
+  'hide-process-list': '隐藏进程管理',
   network: '网络配置',
   weather: '天气配置',
   music: '歌曲设置',
@@ -351,14 +357,21 @@ const SETTINGS_TAB_LABELS: Record<(typeof SETTINGS_TABS)[number], string> = {
   shortcut: '快捷键',
   about: '关于软件',
 };
-const SETTINGS_TAB_DESCRIPTIONS: Record<Exclude<(typeof SETTINGS_TABS)[number], 'index'>, string> = {
+const SETTINGS_TAB_DESCRIPTIONS: Record<Exclude<SettingsTabLabelKey, 'index'>, string> = {
   app: '布局预览与隐藏进程规则配置',
+  'layout-preview': '进入布局预览并调整左右控件展示。',
+  'hide-process-list': '管理隐藏进程名单与自动隐藏规则。',
   network: '请求超时与网络行为设置',
   weather: '天气接口优先级设置',
   music: '播放器白名单与歌词来源',
   ai: 'AI 服务与 Prompt 配置',
   shortcut: '隐藏、关闭、截图快捷键',
   about: '版本信息与项目链接',
+};
+const SETTINGS_TAB_ICONS: Partial<Record<SettingsTabLabelKey, string>> = {
+  'layout-preview': SvgIcon.LAYOUT,
+  'hide-process-list': SvgIcon.TASK_MANAGER,
+  network: SvgIcon.NETWORK,
 };
 
 const NETWORK_TIMEOUT_OPTIONS = [
@@ -371,12 +384,7 @@ const NETWORK_TIMEOUT_OPTIONS = [
 
 const LAYOUT_STORE_KEY = 'overview-layout';
 const DEFAULT_LAYOUT: OverviewLayoutConfig = { left: 'shortcuts', right: 'todo' };
-const APP_SETTINGS_PAGES = [
-  { key: 'layout-preview', label: '布局预览' },
-  { key: 'hide-process-list', label: '隐藏进程名单' },
-] as const;
-
-type AppSettingsPageKey = (typeof APP_SETTINGS_PAGES)[number]['key'];
+const APP_SETTINGS_PAGES: AppSettingsPageKey[] = ['layout-preview', 'hide-process-list'];
 
 interface RunningProcessItem {
   name: string;
@@ -399,7 +407,7 @@ export function SettingsTab(): ReactElement {
   const activeTabRef = useRef(activeTab);
   activeTabRef.current = activeTab;
   const appSettingsPageRef = useRef(appSettingsPage);
-  const currentAppSettingsPageLabel = APP_SETTINGS_PAGES.find((page) => page.key === appSettingsPage)?.label || '布局预览';
+  const currentAppSettingsPageLabel = SETTINGS_TAB_LABELS[appSettingsPage] || '布局预览';
   appSettingsPageRef.current = appSettingsPage;
 
   const [layoutConfig, setLayoutConfig] = useState<OverviewLayoutConfig>(DEFAULT_LAYOUT);
@@ -581,7 +589,7 @@ export function SettingsTab(): ReactElement {
       if (target.closest('.settings-hide-process-list')) return;
 
       if (activeTabRef.current === 'app' && target.closest('.settings-app-pages-layout')) {
-        const pages = APP_SETTINGS_PAGES.map((p) => p.key);
+        const pages = APP_SETTINGS_PAGES;
         const currentPage = appSettingsPageRef.current;
         const currentIdx = pages.indexOf(currentPage);
         if (currentIdx >= 0) {
@@ -790,7 +798,7 @@ export function SettingsTab(): ReactElement {
             type="button"
           >
             <span className="sidebar-dot" />
-            快速导航
+            {SETTINGS_TAB_LABELS.index}
           </button>
           <button
             className={`max-expand-settings-sidebar-item ${activeTab === 'app' ? 'active' : ''}`}
@@ -798,7 +806,7 @@ export function SettingsTab(): ReactElement {
             type="button"
           >
             <span className="sidebar-dot" />
-            软件设置
+            {SETTINGS_TAB_LABELS.app}
           </button>
           <button
             className={`max-expand-settings-sidebar-item ${activeTab === 'network' ? 'active' : ''}`}
@@ -806,7 +814,7 @@ export function SettingsTab(): ReactElement {
             type="button"
           >
             <span className="sidebar-dot" />
-            网络配置
+            {SETTINGS_TAB_LABELS.network}
           </button>
           <button
             className={`max-expand-settings-sidebar-item ${activeTab === 'weather' ? 'active' : ''}`}
@@ -814,7 +822,7 @@ export function SettingsTab(): ReactElement {
             type="button"
           >
             <span className="sidebar-dot" />
-            天气配置
+            {SETTINGS_TAB_LABELS.weather}
           </button>
           <button
             className={`max-expand-settings-sidebar-item ${activeTab === 'music' ? 'active' : ''}`}
@@ -822,7 +830,7 @@ export function SettingsTab(): ReactElement {
             type="button"
           >
             <span className="sidebar-dot" />
-            歌曲设置
+            {SETTINGS_TAB_LABELS.music}
           </button>
           <button
             className={`max-expand-settings-sidebar-item ${activeTab === 'ai' ? 'active' : ''}`}
@@ -830,7 +838,7 @@ export function SettingsTab(): ReactElement {
             type="button"
           >
             <span className="sidebar-dot" />
-            AI Agent
+            {SETTINGS_TAB_LABELS.ai}
           </button>
           <button
             className={`max-expand-settings-sidebar-item ${activeTab === 'shortcut' ? 'active' : ''}`}
@@ -838,7 +846,7 @@ export function SettingsTab(): ReactElement {
             type="button"
           >
             <span className="sidebar-dot" />
-            快捷键
+            {SETTINGS_TAB_LABELS.shortcut}
           </button>
           <button
             className={`max-expand-settings-sidebar-item ${activeTab === 'about' ? 'active' : ''}`}
@@ -846,7 +854,7 @@ export function SettingsTab(): ReactElement {
             type="button"
           >
             <span className="sidebar-dot" />
-            关于软件
+            {SETTINGS_TAB_LABELS.about}
           </button>
         </div>
 
@@ -866,9 +874,9 @@ export function SettingsTab(): ReactElement {
                     setActiveTab('app');
                   }}
                 >
-                  <span className="settings-index-card-title">布局预览</span>
-                  <span className="settings-index-card-desc">进入布局预览并调整左右控件展示。</span>
-                  <img className="settings-index-card-layout-icon" src={SvgIcon.LAYOUT} alt="" aria-hidden="true" />
+                  <span className="settings-index-card-title">{SETTINGS_TAB_LABELS['layout-preview']}</span>
+                  <span className="settings-index-card-desc">{SETTINGS_TAB_DESCRIPTIONS['layout-preview']}</span>
+                  <img className="settings-index-card-layout-icon" src={SETTINGS_TAB_ICONS['layout-preview']} alt="" aria-hidden="true" />
                 </button>
 
                 <button
@@ -879,8 +887,9 @@ export function SettingsTab(): ReactElement {
                     setActiveTab('app');
                   }}
                 >
-                  <span className="settings-index-card-title">隐藏进程管理</span>
-                  <span className="settings-index-card-desc">管理隐藏进程名单与自动隐藏规则。</span>
+                  <span className="settings-index-card-title">{SETTINGS_TAB_LABELS['hide-process-list']}</span>
+                  <span className="settings-index-card-desc">{SETTINGS_TAB_DESCRIPTIONS['hide-process-list']}</span>
+                  <img className="settings-index-card-layout-icon" src={SETTINGS_TAB_ICONS['hide-process-list']} alt="" aria-hidden="true" />
                 </button>
 
                 {SETTINGS_TABS.filter((tab) => tab !== 'index' && tab !== 'app').map((tab) => (
@@ -892,6 +901,9 @@ export function SettingsTab(): ReactElement {
                   >
                     <span className="settings-index-card-title">{SETTINGS_TAB_LABELS[tab]}</span>
                     <span className="settings-index-card-desc">{SETTINGS_TAB_DESCRIPTIONS[tab]}</span>
+                    {SETTINGS_TAB_ICONS[tab] && (
+                      <img className="settings-index-card-layout-icon" src={SETTINGS_TAB_ICONS[tab]} alt="" aria-hidden="true" />
+                    )}
                   </button>
                 ))}
               </div>
@@ -1024,13 +1036,13 @@ export function SettingsTab(): ReactElement {
                 <div className="settings-app-page-dots" aria-label="软件设置分页">
                   {APP_SETTINGS_PAGES.map((page) => (
                     <button
-                      key={page.key}
-                      className={`settings-app-page-dot ${appSettingsPage === page.key ? 'active' : ''}`}
-                      data-label={page.label}
+                      key={page}
+                      className={`settings-app-page-dot ${appSettingsPage === page ? 'active' : ''}`}
+                      data-label={SETTINGS_TAB_LABELS[page]}
                       type="button"
-                      onClick={() => setAppSettingsPage(page.key)}
-                      title={page.label}
-                      aria-label={page.label}
+                      onClick={() => setAppSettingsPage(page)}
+                      title={SETTINGS_TAB_LABELS[page]}
+                      aria-label={SETTINGS_TAB_LABELS[page]}
                     />
                   ))}
                 </div>

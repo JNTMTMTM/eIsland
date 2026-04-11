@@ -51,6 +51,8 @@ export const SvgIcon = {
   MUSIC: './svg/MUSIC.svg',
   /** 布局预览 */
   LAYOUT: './svg/LAYOUT.svg',
+  /** 网络 */
+  NETWORK: './svg/NETWORK.svg',
 } as const;
 
 export type SvgIconKey = keyof typeof SvgIcon;
