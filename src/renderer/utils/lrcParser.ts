@@ -228,7 +228,9 @@ export function cleanArtist(artist: string): string {
  */
 export function extractSyncedFromArray(json: unknown[]): LyricLine[] | null {
   const match = json
-    .map((item) => (item as Record<string, unknown>).syncedLyrics)
+    .map((item) => (item && typeof item === 'object'
+      ? (item as Record<string, unknown>).syncedLyrics
+      : null))
     .filter((value): value is string => typeof value === 'string' && value.length > 0)
     .map((synced) => parseSyncedLrc(synced))
     .find((lines) => lines.length > 0);
