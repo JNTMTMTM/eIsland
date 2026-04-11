@@ -63,7 +63,7 @@ body,
   margin: 0;
   padding: 0;
   overflow: hidden;
-  background: transparent !important;
+  background: transparent;
   color: var(--color-island-text);
   -webkit-app-region: no-drag;
 }

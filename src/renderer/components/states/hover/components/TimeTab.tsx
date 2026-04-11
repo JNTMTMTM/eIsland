@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import React from 'react';
+import type React from 'react';
 import { ActionButtons } from '../utils/ActionButtons';
 import { CountdownEdit } from '../utils/CountdownEdit';
 

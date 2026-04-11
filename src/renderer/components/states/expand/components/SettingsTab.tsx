@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import React from 'react';
+import type React from 'react';
 
 /**
  * 设置 Tab

@@ -550,40 +550,35 @@ export function SettingsTab(): ReactElement {
   const [aboutVersion, setAboutVersion] = useState<string>('26.1.1-beta.3');
 
   const visibleCards = useMemo(() => {
-    const ordered: NavCardDef[] = [];
     const seen = new Set<string>();
-    for (const id of navOrder) {
-      if (seen.has(id)) continue;
+    return navOrder.reduce<NavCardDef[]>((ordered, id) => {
+      if (seen.has(id)) return ordered;
       const card = NAV_CARDS_MAP.get(id);
       if (card) {
         ordered.push(card);
         seen.add(id);
       }
-    }
-    return ordered;
+      return ordered;
+    }, []);
   }, [navOrder]);
 
   const hiddenCards = useMemo(() => {
     const visibleSet = new Set(visibleCards.map((c) => c.id));
-    const ordered: NavCardDef[] = [];
     const seen = new Set<string>();
 
-    for (const id of hiddenNavOrder) {
-      if (seen.has(id) || visibleSet.has(id)) continue;
+    const fromHidden = hiddenNavOrder.reduce<NavCardDef[]>((acc, id) => {
+      if (seen.has(id) || visibleSet.has(id)) return acc;
       const card = NAV_CARDS_MAP.get(id);
       if (card) {
-        ordered.push(card);
+        acc.push(card);
         seen.add(id);
       }
-    }
+      return acc;
+    }, []);
 
-    for (const card of NAV_CARDS) {
-      if (!visibleSet.has(card.id) && !seen.has(card.id)) {
-        ordered.push(card);
-      }
-    }
+    const remaining = NAV_CARDS.filter((card) => !visibleSet.has(card.id) && !seen.has(card.id));
 
-    return ordered;
+    return [...fromHidden, ...remaining];
   }, [hiddenNavOrder, visibleCards]);
 
   const persistNavConfig = (visibleOrder: string[], hiddenOrder: string[]): void => {
