@@ -74,11 +74,38 @@ export function LyricsContent(): ReactElement {
   const setIdle = useIslandStore((s) => s.setIdle);
 
   const [karaokeEnabled, setKaraokeEnabled] = useState(false);
+  const [clockEnabled, setClockEnabled] = useState(true);
+  const [clockText, setClockText] = useState('');
 
   /** 加载逐字扫光配置 */
   useEffect(() => {
     window.api?.musicLyricsKaraokeGet().then(setKaraokeEnabled).catch(() => {});
+    window.api?.musicLyricsClockGet().then(setClockEnabled).catch(() => {});
   }, []);
+
+  /** 按分钟边界更新北京时间，避免每秒重渲染 */
+  useEffect(() => {
+    if (!clockEnabled) return;
+
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const tick = (): void => {
+      const now = new Date();
+      const beijing = new Date(now.getTime() + (now.getTimezoneOffset() + 480) * 60000);
+      const hh = String(beijing.getHours()).padStart(2, '0');
+      const mm = String(beijing.getMinutes()).padStart(2, '0');
+      const nextText = `${hh}:${mm}`;
+      setClockText((prev) => (prev === nextText ? prev : nextText));
+
+      const delayToNextMinute = 60000 - (beijing.getSeconds() * 1000 + beijing.getMilliseconds());
+      timer = setTimeout(tick, Math.max(50, delayToNextMinute));
+    };
+
+    tick();
+
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [clockEnabled]);
 
   const [r, g, b] = dominantColor;
 
@@ -136,6 +163,11 @@ export function LyricsContent(): ReactElement {
           }}
         />
       </div>
+
+      {/* 中间：当前北京时间 */}
+      {clockEnabled && clockText && (
+        <span className="lyrics-time">{clockText}</span>
+      )}
 
       {/* 右侧：歌词 / 前奏居中 */}
       <div className="lyrics-right">

@@ -370,11 +370,32 @@ const LYRICS_SOURCE_STORE_KEY = 'lyrics-source';
 /** 逐字扫光开关存储键名 */
 const LYRICS_KARAOKE_STORE_KEY = 'lyrics-karaoke';
 
+/** 歌词界面时钟开关存储键名 */
+const LYRICS_CLOCK_STORE_KEY = 'lyrics-clock';
+
 /** SMTC 取消订阅时间存储键名 */
 const SMTC_UNSUBSCRIBE_MS_STORE_KEY = 'music-smtc-unsubscribe-ms';
 
 /** 隐藏进程名单存储键名 */
 const HIDE_PROCESS_LIST_STORE_KEY = 'hide-process-list';
+
+/** 主题模式存储键名 */
+const THEME_MODE_STORE_KEY = 'theme-mode';
+
+/** 灵动岛透明度存储键名 */
+const ISLAND_OPACITY_STORE_KEY = 'island-opacity';
+
+/** expand 鼠标移开回 idle 开关存储键名 */
+const EXPAND_MOUSELEAVE_IDLE_STORE_KEY = 'expand-mouseleave-idle';
+
+/** maxExpand 鼠标移开回 idle 开关存储键名 */
+const MAXEXPAND_MOUSELEAVE_IDLE_STORE_KEY = 'maxexpand-mouseleave-idle';
+
+/** 开机自启模式存储键名 */
+const AUTOSTART_MODE_STORE_KEY = 'autostart-mode';
+
+/** 快速导航卡片顺序存储键名 */
+const NAV_ORDER_STORE_KEY = 'nav-order';
 
 /** 灵动岛位置偏移存储键名 */
 const ISLAND_POSITION_STORE_KEY = 'island-position-offset';
@@ -1258,6 +1279,37 @@ function registerIpcHandlers(): void {
     app.quit();
   });
 
+  /**
+   * 重启应用
+   */
+  ipcMain.handle('app:restart', () => {
+    try {
+      app.relaunch();
+      app.exit(0);
+      return true;
+    } catch (err) {
+      console.error('[App] restart error:', err);
+      return false;
+    }
+  });
+
+  /**
+   * 打开日志文件夹
+   */
+  ipcMain.handle('app:open-logs-folder', async () => {
+    try {
+      const logDir = join(app.getPath('userData'), 'logs');
+      if (!existsSync(logDir)) {
+        mkdirSync(logDir, { recursive: true });
+      }
+      const result = await shell.openPath(logDir);
+      return result === '';
+    } catch (err) {
+      console.error('[App] open logs folder error:', err);
+      return false;
+    }
+  });
+
   // ===== 音乐媒体控制 IPC 处理器 =====
   ipcMain.handle('media:play-pause', () => {
     if (!isWhitelisted()) return;
@@ -1634,6 +1686,255 @@ function registerIpcHandlers(): void {
       return true;
     } catch (err) {
       console.error('[LyricsKaraoke] persist error:', err);
+      return false;
+    }
+  });
+
+  /**
+   * 获取歌词界面时钟开关
+   * @returns 是否显示时钟
+   */
+  ipcMain.handle('music:lyrics-clock:get', () => {
+    try {
+      const filePath = join(storeDir, `${LYRICS_CLOCK_STORE_KEY}.json`);
+      if (!existsSync(filePath)) return true;
+      const raw = readFileSync(filePath, 'utf-8');
+      const data = JSON.parse(raw);
+      return typeof data === 'boolean' ? data : true;
+    } catch {
+      return true;
+    }
+  });
+
+  /**
+   * 设置歌词界面时钟开关并持久化
+   * @param _event - IPC 事件
+   * @param enabled - 是否显示时钟
+   * @returns 是否保存成功
+   */
+  ipcMain.handle('music:lyrics-clock:set', (_event, enabled: boolean) => {
+    try {
+      const filePath = join(storeDir, `${LYRICS_CLOCK_STORE_KEY}.json`);
+      writeFileSync(filePath, JSON.stringify(enabled, null, 2), 'utf-8');
+      return true;
+    } catch (err) {
+      console.error('[LyricsClock] persist error:', err);
+      return false;
+    }
+  });
+
+  /**
+   * 获取主题模式
+   * @returns 主题模式字符串 'dark' | 'light' | 'system'
+   */
+  ipcMain.handle('theme:mode:get', () => {
+    try {
+      const filePath = join(storeDir, `${THEME_MODE_STORE_KEY}.json`);
+      if (!existsSync(filePath)) return 'dark';
+      const raw = readFileSync(filePath, 'utf-8');
+      const data = JSON.parse(raw);
+      return data === 'dark' || data === 'light' || data === 'system' ? data : 'dark';
+    } catch {
+      return 'dark';
+    }
+  });
+
+  /**
+   * 设置主题模式并持久化
+   * @param _event - IPC 事件
+   * @param mode - 主题模式 'dark' | 'light' | 'system'
+   * @returns 是否保存成功
+   */
+  ipcMain.handle('theme:mode:set', (_event, mode: string) => {
+    try {
+      const safe = mode === 'dark' || mode === 'light' || mode === 'system' ? mode : 'dark';
+      const filePath = join(storeDir, `${THEME_MODE_STORE_KEY}.json`);
+      writeFileSync(filePath, JSON.stringify(safe, null, 2), 'utf-8');
+      return true;
+    } catch (err) {
+      console.error('[Theme] persist error:', err);
+      return false;
+    }
+  });
+
+  /**
+   * 获取灵动岛透明度
+   * @returns 透明度值 0-100（百分比）
+   */
+  ipcMain.handle('island:opacity:get', () => {
+    try {
+      const filePath = join(storeDir, `${ISLAND_OPACITY_STORE_KEY}.json`);
+      if (!existsSync(filePath)) return 100;
+      const raw = readFileSync(filePath, 'utf-8');
+      const data = JSON.parse(raw);
+      const val = typeof data === 'number' ? data : 100;
+      return Math.max(10, Math.min(100, Math.round(val)));
+    } catch {
+      return 100;
+    }
+  });
+
+  /**
+   * 设置灵动岛透明度并持久化
+   * @param _event - IPC 事件
+   * @param opacity - 透明度值 0-100（百分比）
+   * @returns 是否保存成功
+   */
+  ipcMain.handle('island:opacity:set', (_event, opacity: number) => {
+    try {
+      const safe = Math.max(10, Math.min(100, Math.round(opacity)));
+      const filePath = join(storeDir, `${ISLAND_OPACITY_STORE_KEY}.json`);
+      writeFileSync(filePath, JSON.stringify(safe, null, 2), 'utf-8');
+      return true;
+    } catch (err) {
+      console.error('[Opacity] persist error:', err);
+      return false;
+    }
+  });
+
+  /**
+   * 获取 expand 鼠标移开回 idle 开关
+   * @returns 是否启用
+   */
+  ipcMain.handle('island:expand-mouseleave-idle:get', () => {
+    try {
+      const filePath = join(storeDir, `${EXPAND_MOUSELEAVE_IDLE_STORE_KEY}.json`);
+      if (!existsSync(filePath)) return false;
+      const raw = readFileSync(filePath, 'utf-8');
+      const data = JSON.parse(raw);
+      return typeof data === 'boolean' ? data : false;
+    } catch {
+      return false;
+    }
+  });
+
+  /**
+   * 设置 expand 鼠标移开回 idle 开关并持久化
+   */
+  ipcMain.handle('island:expand-mouseleave-idle:set', (_event, enabled: boolean) => {
+    try {
+      const filePath = join(storeDir, `${EXPAND_MOUSELEAVE_IDLE_STORE_KEY}.json`);
+      writeFileSync(filePath, JSON.stringify(enabled, null, 2), 'utf-8');
+      return true;
+    } catch (err) {
+      console.error('[ExpandMouseleaveIdle] persist error:', err);
+      return false;
+    }
+  });
+
+  /**
+   * 获取 maxExpand 鼠标移开回 idle 开关
+   * @returns 是否启用
+   */
+  ipcMain.handle('island:maxexpand-mouseleave-idle:get', () => {
+    try {
+      const filePath = join(storeDir, `${MAXEXPAND_MOUSELEAVE_IDLE_STORE_KEY}.json`);
+      if (!existsSync(filePath)) return false;
+      const raw = readFileSync(filePath, 'utf-8');
+      const data = JSON.parse(raw);
+      return typeof data === 'boolean' ? data : false;
+    } catch {
+      return false;
+    }
+  });
+
+  /**
+   * 设置 maxExpand 鼠标移开回 idle 开关并持久化
+   */
+  ipcMain.handle('island:maxexpand-mouseleave-idle:set', (_event, enabled: boolean) => {
+    try {
+      const filePath = join(storeDir, `${MAXEXPAND_MOUSELEAVE_IDLE_STORE_KEY}.json`);
+      writeFileSync(filePath, JSON.stringify(enabled, null, 2), 'utf-8');
+      return true;
+    } catch (err) {
+      console.error('[MaxExpandMouseleaveIdle] persist error:', err);
+      return false;
+    }
+  });
+
+  /**
+   * 获取开机自启模式
+   * @returns 'disabled' | 'enabled' | 'high-priority'
+   */
+  ipcMain.handle('island:autostart:get', () => {
+    try {
+      const filePath = join(storeDir, `${AUTOSTART_MODE_STORE_KEY}.json`);
+      if (!existsSync(filePath)) return 'disabled';
+      const raw = readFileSync(filePath, 'utf-8');
+      const data = JSON.parse(raw);
+      return ['disabled', 'enabled', 'high-priority'].includes(data) ? data : 'disabled';
+    } catch {
+      return 'disabled';
+    }
+  });
+
+  /**
+   * 设置开机自启模式并持久化
+   * @param mode - 'disabled' | 'enabled' | 'high-priority'
+   */
+  ipcMain.handle('island:autostart:set', (_event, mode: string) => {
+    try {
+      const safeMode = ['disabled', 'enabled', 'high-priority'].includes(mode) ? mode : 'disabled';
+      const filePath = join(storeDir, `${AUTOSTART_MODE_STORE_KEY}.json`);
+      writeFileSync(filePath, JSON.stringify(safeMode, null, 2), 'utf-8');
+
+      if (safeMode === 'disabled') {
+        app.setLoginItemSettings({ openAtLogin: false });
+      } else {
+        app.setLoginItemSettings({
+          openAtLogin: true,
+          args: safeMode === 'high-priority' ? ['--high-priority'] : []
+        });
+      }
+      return true;
+    } catch (err) {
+      console.error('[Autostart] persist error:', err);
+      return false;
+    }
+  });
+
+  /**
+   * 获取快速导航卡片配置
+   * @returns { visibleOrder: string[]; hiddenOrder: string[] }
+   */
+  ipcMain.handle('island:nav-order:get', () => {
+    try {
+      const filePath = join(storeDir, `${NAV_ORDER_STORE_KEY}.json`);
+      if (!existsSync(filePath)) return { visibleOrder: [], hiddenOrder: [] };
+      const raw = readFileSync(filePath, 'utf-8');
+      const data = JSON.parse(raw);
+
+      if (Array.isArray(data)) {
+        return {
+          visibleOrder: data.filter((v: unknown) => typeof v === 'string'),
+          hiddenOrder: []
+        };
+      }
+
+      const visibleRaw = (data as Record<string, unknown>)?.visibleOrder;
+      const hiddenRaw = (data as Record<string, unknown>)?.hiddenOrder;
+      return {
+        visibleOrder: Array.isArray(visibleRaw) ? visibleRaw.filter((v: unknown) => typeof v === 'string') : [],
+        hiddenOrder: Array.isArray(hiddenRaw) ? hiddenRaw.filter((v: unknown) => typeof v === 'string') : []
+      };
+    } catch {
+      return { visibleOrder: [], hiddenOrder: [] };
+    }
+  });
+
+  /**
+   * 设置快速导航卡片配置并持久化
+   */
+  ipcMain.handle('island:nav-order:set', (_event, payload: { visibleOrder?: string[]; hiddenOrder?: string[] }) => {
+    try {
+      const filePath = join(storeDir, `${NAV_ORDER_STORE_KEY}.json`);
+      const visibleOrder = Array.isArray(payload?.visibleOrder) ? payload.visibleOrder.filter((v: unknown) => typeof v === 'string') : [];
+      const hiddenOrder = Array.isArray(payload?.hiddenOrder) ? payload.hiddenOrder.filter((v: unknown) => typeof v === 'string') : [];
+      const safe = { visibleOrder, hiddenOrder };
+      writeFileSync(filePath, JSON.stringify(safe, null, 2), 'utf-8');
+      return true;
+    } catch (err) {
+      console.error('[NavOrder] persist error:', err);
       return false;
     }
   });

@@ -130,9 +130,9 @@ export function CountdownEdit(): React.ReactElement {
       <div className="timer-main">
         <div className="timer-title-row">
           <div className="timer-title">
-            <span className="text-[10px] text-white leading-tight">倒计时</span>
+            <span className="text-[10px] text-[var(--color-island-text)] leading-tight">倒计时</span>
           </div>
-          <span className="text-[10px] text-white opacity-60 leading-tight ml-2">滚动滚轮编辑时间</span>
+          <span className="text-[10px] text-[var(--color-island-text)] opacity-60 leading-tight ml-2">滚动滚轮编辑时间</span>
         </div>
         <div className="timer-main-row">
           {isEditing ? (

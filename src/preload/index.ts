@@ -139,6 +139,18 @@ const api = {
   quitApp: (): void => {
     ipcRenderer.send('app:quit');
   },
+  /**
+   * 重启应用
+   */
+  restartApp: (): Promise<boolean> => {
+    return ipcRenderer.invoke('app:restart');
+  },
+  /**
+   * 打开日志文件夹
+   */
+  openLogsFolder: (): Promise<boolean> => {
+    return ipcRenderer.invoke('app:open-logs-folder');
+  },
   /** ===== 音乐相关 API ===== */
   /**
    * 播放/暂停
@@ -412,6 +424,21 @@ const api = {
     return ipcRenderer.invoke('music:lyrics-karaoke:set', enabled);
   },
   /**
+   * 获取歌词界面时钟开关
+   * @returns 是否显示时钟
+   */
+  musicLyricsClockGet: (): Promise<boolean> => {
+    return ipcRenderer.invoke('music:lyrics-clock:get');
+  },
+  /**
+   * 设置歌词界面时钟开关
+   * @param enabled - 是否显示
+   * @returns 是否保存成功
+   */
+  musicLyricsClockSet: (enabled: boolean): Promise<boolean> => {
+    return ipcRenderer.invoke('music:lyrics-clock:set', enabled);
+  },
+  /**
    * 获取 SMTC 自动取消订阅时间（毫秒），0 表示永不取消
    */
   musicSmtcUnsubscribeMsGet: (): Promise<number> => {
@@ -463,6 +490,84 @@ const api = {
   /** 拒绝切换播放源 */
   mediaRejectSourceSwitch: (): Promise<void> => {
     return ipcRenderer.invoke('media:reject-source-switch');
+  },
+  /**
+   * 获取主题模式
+   * @returns 'dark' | 'light' | 'system'
+   */
+  themeModeGet: (): Promise<string> => {
+    return ipcRenderer.invoke('theme:mode:get');
+  },
+  /**
+   * 设置主题模式
+   * @param mode - 'dark' | 'light' | 'system'
+   * @returns 是否保存成功
+   */
+  themeModeSet: (mode: string): Promise<boolean> => {
+    return ipcRenderer.invoke('theme:mode:set', mode);
+  },
+  /**
+   * 获取灵动岛透明度
+   * @returns 透明度值 10-100
+   */
+  islandOpacityGet: (): Promise<number> => {
+    return ipcRenderer.invoke('island:opacity:get');
+  },
+  /**
+   * 设置灵动岛透明度
+   * @param opacity - 透明度值 10-100
+   * @returns 是否保存成功
+   */
+  islandOpacitySet: (opacity: number): Promise<boolean> => {
+    return ipcRenderer.invoke('island:opacity:set', opacity);
+  },
+  /**
+   * 获取 expand 鼠标移开回 idle 开关
+   */
+  expandMouseleaveIdleGet: (): Promise<boolean> => {
+    return ipcRenderer.invoke('island:expand-mouseleave-idle:get');
+  },
+  /**
+   * 设置 expand 鼠标移开回 idle 开关
+   */
+  expandMouseleaveIdleSet: (enabled: boolean): Promise<boolean> => {
+    return ipcRenderer.invoke('island:expand-mouseleave-idle:set', enabled);
+  },
+  /**
+   * 获取 maxExpand 鼠标移开回 idle 开关
+   */
+  maxexpandMouseleaveIdleGet: (): Promise<boolean> => {
+    return ipcRenderer.invoke('island:maxexpand-mouseleave-idle:get');
+  },
+  /**
+   * 设置 maxExpand 鼠标移开回 idle 开关
+   */
+  maxexpandMouseleaveIdleSet: (enabled: boolean): Promise<boolean> => {
+    return ipcRenderer.invoke('island:maxexpand-mouseleave-idle:set', enabled);
+  },
+  /**
+   * 获取开机自启模式
+   */
+  autostartGet: (): Promise<string> => {
+    return ipcRenderer.invoke('island:autostart:get');
+  },
+  /**
+   * 设置开机自启模式
+   */
+  autostartSet: (mode: string): Promise<boolean> => {
+    return ipcRenderer.invoke('island:autostart:set', mode);
+  },
+  /**
+   * 获取快速导航卡片配置
+   */
+  navOrderGet: (): Promise<{ visibleOrder: string[]; hiddenOrder: string[] }> => {
+    return ipcRenderer.invoke('island:nav-order:get');
+  },
+  /**
+   * 设置快速导航卡片配置
+   */
+  navOrderSet: (payload: { visibleOrder: string[]; hiddenOrder: string[] }): Promise<boolean> => {
+    return ipcRenderer.invoke('island:nav-order:set', payload);
   }
 };
 

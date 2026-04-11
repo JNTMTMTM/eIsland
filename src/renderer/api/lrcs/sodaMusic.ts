@@ -28,11 +28,8 @@ import type { LyricLine } from './types';
 import { cleanArtist, cleanTitle, parseKrc } from './helpers';
 import { requestJsonWithLog } from './request';
 
-export async function fetchLyricsFromSodaMusic(title: string, artist: string): Promise<LyricLine[] | null> {
-  const cleanedTitle = cleanTitle(title);
-  const cleanedArtist = cleanArtist(artist);
-  const query = `${cleanedTitle} ${cleanedArtist}`;
-
+async function searchSodaMusic(queryTitle: string, queryArtist: string): Promise<LyricLine[] | null> {
+  const query = `${queryTitle} ${queryArtist}`;
   try {
     const searchUrl =
       `https://api.qishui.com/luna/pc/search/track?aid=386088&app_name=&region=&geo_region=&os_region=&sim_region=&device_id=&cdid=&iid=&version_name=&version_code=&channel=&build_mode=&network_carrier=&ac=&tz_name=&resolution=&device_platform=&device_type=&os_version=&fp=&q=${encodeURIComponent(query)}&cursor=&search_id=&search_method=input&debug_params=&from_search_id=&search_scene=`;
@@ -77,4 +74,16 @@ export async function fetchLyricsFromSodaMusic(title: string, artist: string): P
   } catch {
     return null;
   }
+}
+
+export async function fetchLyricsFromSodaMusic(title: string, artist: string): Promise<LyricLine[] | null> {
+  const raw = await searchSodaMusic(title, artist);
+  if (raw) return raw;
+
+  const cleanedTitle = cleanTitle(title);
+  const cleanedArtist = cleanArtist(artist);
+  if (cleanedTitle !== title || cleanedArtist !== artist) {
+    return searchSodaMusic(cleanedTitle, cleanedArtist);
+  }
+  return null;
 }

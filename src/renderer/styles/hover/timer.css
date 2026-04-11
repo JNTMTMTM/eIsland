@@ -50,7 +50,7 @@
 .time-tab-divider {
   width: 1px;
   height: 28px;
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(var(--color-text-rgb), 0.2);
   margin: 0 2px;
   flex-shrink: 0;
 }
@@ -92,8 +92,8 @@
   padding: 0;
   margin: 0;
   border: none;
-  background: rgba(255, 255, 255, 0.1);
-  color: #ffffff;
+  background: rgba(var(--color-text-rgb), 0.1);
+  color: var(--color-island-text);
   font-size: 18px;
   font-weight: 600;
   text-align: center;
@@ -103,8 +103,8 @@
 }
 
 .timer-input:focus {
-  background: rgba(255, 255, 255, 0.2);
-  box-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+  background: rgba(var(--color-text-rgb), 0.2);
+  box-shadow: 0 0 8px rgba(var(--color-text-rgb), 0.3);
 }
 
 .timer-input:hover {
@@ -114,7 +114,7 @@
 .timer-sep {
   font-size: 18px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(var(--color-text-rgb), 0.5);
 }
 
 /** 计时器显示模式 */
@@ -128,7 +128,7 @@
 .timer-value {
   font-size: 20px;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--color-island-text);
   font-variant-numeric: tabular-nums;
 }
 
@@ -162,7 +162,7 @@
 .timer-tools-divider {
   width: 1px;
   height: 28px;
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(var(--color-text-rgb), 0.2);
   margin: 0 4px;
 }
 
@@ -181,7 +181,7 @@
 }
 
 .timer-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(var(--color-text-rgb), 0.1);
 }
 
 .timer-btn:active {
@@ -198,7 +198,7 @@
 .timer-divider {
   width: 1px;
   height: 28px;
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(var(--color-text-rgb), 0.2);
   margin: 0 4px;
 }
 

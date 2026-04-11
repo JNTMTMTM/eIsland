@@ -66,6 +66,8 @@ declare global {
       setIslandPositionOffset: (offset: { x: number; y: number }) => Promise<boolean>;
       onIslandPositionOffsetChanged: (callback: (offset: { x: number; y: number }) => void) => () => void;
       quitApp: () => void;
+      restartApp: () => Promise<boolean>;
+      openLogsFolder: () => Promise<boolean>;
       /** ===== 音乐相关 API ===== */
       mediaPlayPause: () => Promise<void>;
       mediaNext: () => Promise<void>;
@@ -117,6 +119,8 @@ declare global {
       musicLyricsSourceSet: (source: string) => Promise<boolean>;
       musicLyricsKaraokeGet: () => Promise<boolean>;
       musicLyricsKaraokeSet: (enabled: boolean) => Promise<boolean>;
+      musicLyricsClockGet: () => Promise<boolean>;
+      musicLyricsClockSet: (enabled: boolean) => Promise<boolean>;
       musicSmtcUnsubscribeMsGet: () => Promise<number>;
       musicSmtcUnsubscribeMsSet: (valueMs: number) => Promise<boolean>;
       musicDetectSourceAppId: () => Promise<{ ok: boolean; sourceAppId: string | null; message: string }>;
@@ -130,6 +134,23 @@ declare global {
       mediaAcceptSourceSwitch: () => Promise<void>;
       /** 拒绝切换播放源 */
       mediaRejectSourceSwitch: () => Promise<void>;
+      /** ===== 主题 API ===== */
+      themeModeGet: () => Promise<string>;
+      themeModeSet: (mode: string) => Promise<boolean>;
+      /** ===== 灵动岛透明度 API ===== */
+      islandOpacityGet: () => Promise<number>;
+      islandOpacitySet: (opacity: number) => Promise<boolean>;
+      /** ===== 鼠标移开行为配置 API ===== */
+      expandMouseleaveIdleGet: () => Promise<boolean>;
+      expandMouseleaveIdleSet: (enabled: boolean) => Promise<boolean>;
+      maxexpandMouseleaveIdleGet: () => Promise<boolean>;
+      maxexpandMouseleaveIdleSet: (enabled: boolean) => Promise<boolean>;
+      /** ===== 开机自启 API ===== */
+      autostartGet: () => Promise<string>;
+      autostartSet: (mode: string) => Promise<boolean>;
+      /** ===== 快速导航顺序 API ===== */
+      navOrderGet: () => Promise<{ visibleOrder: string[]; hiddenOrder: string[] }>;
+      navOrderSet: (payload: { visibleOrder: string[]; hiddenOrder: string[] }) => Promise<boolean>;
     };
   }
 }

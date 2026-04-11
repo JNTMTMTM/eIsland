@@ -178,7 +178,7 @@ export interface IslandSlice {
   expandTab: ExpandTab;
   maxExpandTab: MaxExpandTab;
   notification: NotificationData;
-  setIdle: () => void;
+  setIdle: (force?: boolean) => void;
   setHover: () => void;
   setExpanded: () => void;
   setMaxExpand: () => void;

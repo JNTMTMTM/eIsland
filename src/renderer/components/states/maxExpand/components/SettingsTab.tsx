@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import type { KeyboardEvent, ReactElement, ReactNode } from 'react';
 import useIslandStore from '../../../../store/slices';
 import avatarImg from '../../../../assets/avatar/T.jpg';
@@ -35,17 +35,24 @@ import {
   loadNetworkConfig,
   saveNetworkConfig,
   DEFAULT_NETWORK_TIMEOUT_MS,
+  type WeatherProvider,
+  type WeatherLocationPriority,
+  DEFAULT_WEATHER_PRIMARY_PROVIDER,
+  DEFAULT_WEATHER_LOCATION_PRIORITY,
   loadWeatherProviderConfig,
   saveWeatherProviderConfig,
-  DEFAULT_WEATHER_PRIMARY_PROVIDER,
-  type WeatherProvider,
   loadWeatherLocationConfig,
   saveWeatherLocationConfig,
-  DEFAULT_WEATHER_LOCATION_PRIORITY,
-  type WeatherLocationPriority,
 } from '../../../../store/utils/storage';
+
 import { resolveDistrictLocationByKeyword } from '../../../../api/adcodeApi';
 import { fetchVersion } from '../../../../api/versionApi';
+import { setThemeMode as applyThemeMode, getThemeMode, type ThemeMode } from '../../../../utils/theme';
+
+function applyIslandOpacity(opacity: number): void {
+  const safe = Math.max(10, Math.min(100, Math.round(opacity)));
+  document.documentElement.style.setProperty('--island-opacity', String(safe));
+}
 
 /** 单行配置项 */
 function SettingsField({
@@ -170,7 +177,7 @@ function OverviewPreview({ layoutConfig }: { layoutConfig: OverviewLayoutConfig 
             </div>
             <div className="ov-dash-song-content">
               <div className="ov-dash-song-body">
-                <div className="ov-dash-song-cover" style={{ background: 'rgba(255,255,255,0.08)' }} />
+                <div className="ov-dash-song-cover" style={{ background: 'rgba(var(--color-text-rgb),0.08)' }} />
                 <div className="ov-dash-song-info">
                   <div className="ov-dash-song-title">示例歌曲</div>
                   <div className="ov-dash-song-artist">示例艺术家</div>
@@ -354,10 +361,11 @@ const WEATHER_LOCATION_PRIORITY_OPTIONS: Array<{ value: WeatherLocationPriority;
 /** 设置页侧边栏 Tab 顺序 */
 const SETTINGS_TABS: ('index' | 'app' | 'network' | 'weather' | 'music' | 'ai' | 'shortcut' | 'about')[] = ['index', 'app', 'network', 'weather', 'music', 'ai', 'shortcut', 'about'];
 type SettingsSidebarTabKey = (typeof SETTINGS_TABS)[number];
-type AppSettingsPageKey = 'layout-preview' | 'hide-process-list' | 'position';
+type AppSettingsPageKey = 'layout-preview' | 'hide-process-list' | 'position' | 'theme' | 'behavior' | 'autostart';
 type WeatherSettingsPageKey = 'location' | 'provider';
 type MusicSettingsPageKey = 'whitelist' | 'lyrics' | 'smtc';
-type SettingsTabLabelKey = SettingsSidebarTabKey | AppSettingsPageKey;
+type MusicNavCardKey = 'music-whitelist' | 'music-lyrics' | 'music-smtc';
+type SettingsTabLabelKey = SettingsSidebarTabKey | AppSettingsPageKey | MusicNavCardKey;
 
 const SETTINGS_TAB_LABELS: Record<SettingsTabLabelKey, string> = {
   index: '快速导航',
@@ -365,9 +373,15 @@ const SETTINGS_TAB_LABELS: Record<SettingsTabLabelKey, string> = {
   'layout-preview': '布局预览',
   'hide-process-list': '隐藏进程管理',
   position: '位置校准',
+  theme: '主题外观',
+  behavior: '交互行为',
+  autostart: '实用工具',
   network: '网络配置',
   weather: '天气配置',
   music: '歌曲设置',
+  'music-whitelist': '播放器白名单',
+  'music-lyrics': '歌词源',
+  'music-smtc': 'SMTC',
   ai: 'AI Agent',
   shortcut: '快捷键',
   about: '关于软件',
@@ -377,9 +391,15 @@ const SETTINGS_TAB_DESCRIPTIONS: Record<Exclude<SettingsTabLabelKey, 'index'>, s
   'layout-preview': '进入布局预览并调整左右控件展示。',
   'hide-process-list': '管理隐藏进程名单与自动隐藏规则。',
   position: '动态调整灵动岛位置并保存',
+  theme: '切换深色、浅色或跟随系统主题。',
+  behavior: '配置鼠标移开后是否自动收回。',
+  autostart: '应用控制、日志与开机启动配置。',
   network: '请求超时与网络行为设置',
   weather: '天气接口优先级设置',
   music: '播放器白名单与歌词来源',
+  'music-whitelist': '配置允许接入灵动岛的播放器。',
+  'music-lyrics': '选择歌词来源与显示模式。',
+  'music-smtc': '系统媒体传输控制相关配置。',
   ai: 'AI 服务与 Prompt 配置',
   shortcut: '隐藏、关闭、截图快捷键',
   about: '版本信息与项目链接',
@@ -391,9 +411,15 @@ const SETTINGS_TAB_ICONS: Partial<Record<SettingsTabLabelKey, string>> = {
   network: SvgIcon.NETWORK,
   weather: SvgIcon.WEATHER,
   music: SvgIcon.LRC,
+  'music-whitelist': SvgIcon.MUSIC,
+  'music-lyrics': SvgIcon.LRC,
+  'music-smtc': SvgIcon.SMTC,
   ai: SvgIcon.AI,
   shortcut: SvgIcon.SHORTCUT_KEY,
   about: SvgIcon.ABOUT,
+  theme: SvgIcon.THEME,
+  behavior: SvgIcon.INTERACTION,
+  autostart: SvgIcon.CONTINUE,
 };
 
 const NETWORK_TIMEOUT_OPTIONS = [
@@ -406,7 +432,7 @@ const NETWORK_TIMEOUT_OPTIONS = [
 
 const LAYOUT_STORE_KEY = 'overview-layout';
 const DEFAULT_LAYOUT: OverviewLayoutConfig = { left: 'shortcuts', right: 'todo' };
-const APP_SETTINGS_PAGES: AppSettingsPageKey[] = ['layout-preview', 'hide-process-list', 'position'];
+const APP_SETTINGS_PAGES: AppSettingsPageKey[] = ['layout-preview', 'hide-process-list', 'position', 'theme', 'behavior', 'autostart'];
 const WEATHER_SETTINGS_PAGES: WeatherSettingsPageKey[] = ['location', 'provider'];
 const WEATHER_SETTINGS_PAGE_LABELS: Record<WeatherSettingsPageKey, string> = {
   location: '定位配置',
@@ -419,6 +445,36 @@ const MUSIC_SETTINGS_PAGE_LABELS: Record<MusicSettingsPageKey, string> = {
   smtc: 'SMTC',
 };
 
+interface NavCardDef {
+  id: string;
+  label: string;
+  desc: string;
+  icon?: string;
+  tab: SettingsSidebarTabKey;
+  appPage?: AppSettingsPageKey;
+  musicPage?: MusicSettingsPageKey;
+}
+
+const NAV_CARDS: NavCardDef[] = [
+  { id: 'layout-preview', label: SETTINGS_TAB_LABELS['layout-preview'], desc: SETTINGS_TAB_DESCRIPTIONS['layout-preview'], icon: SETTINGS_TAB_ICONS['layout-preview'], tab: 'app', appPage: 'layout-preview' },
+  { id: 'hide-process-list', label: SETTINGS_TAB_LABELS['hide-process-list'], desc: SETTINGS_TAB_DESCRIPTIONS['hide-process-list'], icon: SETTINGS_TAB_ICONS['hide-process-list'], tab: 'app', appPage: 'hide-process-list' },
+  { id: 'position', label: SETTINGS_TAB_LABELS.position, desc: SETTINGS_TAB_DESCRIPTIONS.position, icon: SETTINGS_TAB_ICONS.position, tab: 'app', appPage: 'position' },
+  { id: 'theme', label: SETTINGS_TAB_LABELS.theme, desc: SETTINGS_TAB_DESCRIPTIONS.theme, icon: SETTINGS_TAB_ICONS.theme, tab: 'app', appPage: 'theme' },
+  { id: 'behavior', label: SETTINGS_TAB_LABELS.behavior, desc: SETTINGS_TAB_DESCRIPTIONS.behavior, icon: SETTINGS_TAB_ICONS.behavior, tab: 'app', appPage: 'behavior' },
+  { id: 'autostart', label: SETTINGS_TAB_LABELS.autostart, desc: SETTINGS_TAB_DESCRIPTIONS.autostart, icon: SETTINGS_TAB_ICONS.autostart, tab: 'app', appPage: 'autostart' },
+  { id: 'network', label: SETTINGS_TAB_LABELS.network, desc: SETTINGS_TAB_DESCRIPTIONS.network, icon: SETTINGS_TAB_ICONS.network, tab: 'network' },
+  { id: 'weather', label: SETTINGS_TAB_LABELS.weather, desc: SETTINGS_TAB_DESCRIPTIONS.weather, icon: SETTINGS_TAB_ICONS.weather, tab: 'weather' },
+  { id: 'ai', label: SETTINGS_TAB_LABELS.ai, desc: SETTINGS_TAB_DESCRIPTIONS.ai, icon: SETTINGS_TAB_ICONS.ai, tab: 'ai' },
+  { id: 'shortcut', label: SETTINGS_TAB_LABELS.shortcut, desc: SETTINGS_TAB_DESCRIPTIONS.shortcut, icon: SETTINGS_TAB_ICONS.shortcut, tab: 'shortcut' },
+  { id: 'about', label: SETTINGS_TAB_LABELS.about, desc: SETTINGS_TAB_DESCRIPTIONS.about, icon: SETTINGS_TAB_ICONS.about, tab: 'about' },
+  { id: 'music-whitelist', label: SETTINGS_TAB_LABELS['music-whitelist'], desc: SETTINGS_TAB_DESCRIPTIONS['music-whitelist'], icon: SETTINGS_TAB_ICONS['music-whitelist'], tab: 'music', musicPage: 'whitelist' },
+  { id: 'music-lyrics', label: SETTINGS_TAB_LABELS['music-lyrics'], desc: SETTINGS_TAB_DESCRIPTIONS['music-lyrics'], icon: SETTINGS_TAB_ICONS['music-lyrics'], tab: 'music', musicPage: 'lyrics' },
+  { id: 'music-smtc', label: SETTINGS_TAB_LABELS['music-smtc'], desc: SETTINGS_TAB_DESCRIPTIONS['music-smtc'], icon: SETTINGS_TAB_ICONS['music-smtc'], tab: 'music', musicPage: 'smtc' },
+];
+
+const DEFAULT_NAV_ORDER: string[] = NAV_CARDS.map((c) => c.id);
+const NAV_CARDS_MAP = new Map(NAV_CARDS.map((c) => [c.id, c]));
+
 interface RunningProcessItem {
   name: string;
   iconDataUrl: string | null;
@@ -430,6 +486,7 @@ interface RunningProcessItem {
  * @returns 设置 Tab 组件
  */
 export function SettingsTab(): ReactElement {
+  const opacitySaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [activeTab, setActiveTab] = useState<SettingsSidebarTabKey>('index');
   const [appSettingsPage, setAppSettingsPage] = useState<AppSettingsPageKey>('layout-preview');
   const [weatherSettingsPage, setWeatherSettingsPage] = useState<WeatherSettingsPageKey>('location');
@@ -459,6 +516,15 @@ export function SettingsTab(): ReactElement {
   const [whitelistInputError, setWhitelistInputError] = useState<string>('');
   const [lyricsSource, setLyricsSource] = useState<string>('auto');
   const [lyricsKaraoke, setLyricsKaraoke] = useState<boolean>(false);
+  const [lyricsClock, setLyricsClock] = useState<boolean>(true);
+  const [expandLeaveIdle, setExpandLeaveIdle] = useState<boolean>(false);
+  const [maxExpandLeaveIdle, setMaxExpandLeaveIdle] = useState<boolean>(false);
+  const [autostartMode, setAutostartMode] = useState<string>('disabled');
+  const [navOrder, setNavOrder] = useState<string[]>(DEFAULT_NAV_ORDER);
+  const [hiddenNavOrder, setHiddenNavOrder] = useState<string[]>([]);
+  const [navEditMode, setNavEditMode] = useState(false);
+  const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
+  const dragIdxRef = useRef<number | null>(null);
   const [detectingSourceAppId, setDetectingSourceAppId] = useState(false);
   const [sourceAppDetectMessage, setSourceAppDetectMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [musicSmtcUnsubscribeInput, setMusicSmtcUnsubscribeInput] = useState<string>('5000');
@@ -478,9 +544,59 @@ export function SettingsTab(): ReactElement {
   const [hideProcessList, setHideProcessList] = useState<string[]>([]);
   const [hideProcessFilter, setHideProcessFilter] = useState<string>('');
   const [hideProcessLoading, setHideProcessLoading] = useState(false);
+  const [themeMode, setThemeModeState] = useState<ThemeMode>(getThemeMode);
+  const [islandOpacity, setIslandOpacity] = useState<number>(100);
   const [islandPositionOffset, setIslandPositionOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [islandPositionInput, setIslandPositionInput] = useState<{ x: string; y: string }>({ x: '0', y: '0' });
   const [aboutVersion, setAboutVersion] = useState<string>('26.1.1-beta.3');
+
+  const persistIslandOpacity = (opacity: number): void => {
+    window.api.islandOpacitySet(opacity).catch(() => {});
+  };
+
+  const visibleCards = useMemo(() => {
+    const seen = new Set<string>();
+    return navOrder.reduce<NavCardDef[]>((ordered, id) => {
+      if (seen.has(id)) return ordered;
+      const card = NAV_CARDS_MAP.get(id);
+      if (card) {
+        ordered.push(card);
+        seen.add(id);
+      }
+      return ordered;
+    }, []);
+  }, [navOrder]);
+
+  const hiddenCards = useMemo(() => {
+    const visibleSet = new Set(visibleCards.map((c) => c.id));
+    const seen = new Set<string>();
+
+    const fromHidden = hiddenNavOrder.reduce<NavCardDef[]>((acc, id) => {
+      if (seen.has(id) || visibleSet.has(id)) return acc;
+      const card = NAV_CARDS_MAP.get(id);
+      if (card) {
+        acc.push(card);
+        seen.add(id);
+      }
+      return acc;
+    }, []);
+
+    const remaining = NAV_CARDS.filter((card) => !visibleSet.has(card.id) && !seen.has(card.id));
+
+    return [...fromHidden, ...remaining];
+  }, [hiddenNavOrder, visibleCards]);
+
+  const persistNavConfig = (visibleOrder: string[], hiddenOrder: string[]): void => {
+    window.api.navOrderSet({ visibleOrder, hiddenOrder }).catch(() => {});
+  };
+
+  const resetNavConfig = (): void => {
+    const nextVisible = [...DEFAULT_NAV_ORDER];
+    const nextHidden: string[] = [];
+    setNavOrder(nextVisible);
+    setHiddenNavOrder(nextHidden);
+    persistNavConfig(nextVisible, nextHidden);
+  };
 
   /** 快捷键相关状态 */
   const [hideHotkey, setHideHotkey] = useState<string>('Alt+X');
@@ -547,6 +663,26 @@ export function SettingsTab(): ReactElement {
   }, []);
 
   useEffect(() => {
+    let cancelled = false;
+    window.api.islandOpacityGet().then((val) => {
+      if (cancelled) return;
+      const safe = typeof val === 'number' ? Math.max(10, Math.min(100, Math.round(val))) : 100;
+      setIslandOpacity(safe);
+      applyIslandOpacity(safe);
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (opacitySaveTimerRef.current) {
+        clearTimeout(opacitySaveTimerRef.current);
+        opacitySaveTimerRef.current = null;
+      }
+    };
+  }, []);
+
+  useEffect(() => {
     const unsubscribe = window.api.onIslandPositionOffsetChanged((offset) => {
       if (!offset) return;
       const x = typeof offset.x === 'number' && Number.isFinite(offset.x) ? Math.round(offset.x) : 0;
@@ -577,6 +713,33 @@ export function SettingsTab(): ReactElement {
     window.api.musicLyricsKaraokeGet().then((enabled) => {
       if (cancelled) return;
       setLyricsKaraoke(enabled);
+    }).catch(() => {});
+    window.api.musicLyricsClockGet().then((enabled) => {
+      if (cancelled) return;
+      setLyricsClock(enabled);
+    }).catch(() => {});
+    window.api.expandMouseleaveIdleGet().then((v) => {
+      if (cancelled) return;
+      setExpandLeaveIdle(v);
+    }).catch(() => {});
+    window.api.maxexpandMouseleaveIdleGet().then((v) => {
+      if (cancelled) return;
+      setMaxExpandLeaveIdle(v);
+    }).catch(() => {});
+    window.api.autostartGet().then((mode) => {
+      if (cancelled) return;
+      setAutostartMode(mode);
+    }).catch(() => {});
+    window.api.navOrderGet().then((navConfig) => {
+      if (cancelled) return;
+      const visibleRaw = Array.isArray(navConfig.visibleOrder) ? navConfig.visibleOrder : [];
+      const hiddenRaw = Array.isArray(navConfig.hiddenOrder) ? navConfig.hiddenOrder : [];
+      if (visibleRaw.length > 0 || hiddenRaw.length > 0) {
+        const validVisible = visibleRaw.filter((id, idx) => NAV_CARDS_MAP.has(id) && visibleRaw.indexOf(id) === idx);
+        const validHidden = hiddenRaw.filter((id, idx) => NAV_CARDS_MAP.has(id) && hiddenRaw.indexOf(id) === idx && !validVisible.includes(id));
+        setNavOrder(validVisible);
+        setHiddenNavOrder(validHidden);
+      }
     }).catch(() => {});
     window.api.musicSmtcUnsubscribeMsGet().then((valueMs) => {
       if (cancelled) return;
@@ -890,6 +1053,7 @@ export function SettingsTab(): ReactElement {
       if (target.closest('.settings-index-cards')) return;
 
       if (target.closest('.settings-hide-process-list')) return;
+      if (target.closest('.settings-hotkey-section')) return;
 
       if (activeTabRef.current === 'app' && target.closest('.settings-app-pages-layout')) {
         const pages = APP_SETTINGS_PAGES;
@@ -1253,64 +1417,136 @@ export function SettingsTab(): ReactElement {
           {activeTab === 'index' && (
             <div className="max-expand-settings-section settings-index-section">
               <div className="settings-index-header">
-                <div className="max-expand-settings-title">快速导航</div>
-                <div className="settings-music-hint settings-index-hint">点击卡片可快速跳转到对应配置页。</div>
+                <div className="max-expand-settings-title">
+                  快速导航
+                  <button
+                    className="settings-nav-edit-btn"
+                    type="button"
+                    onClick={resetNavConfig}
+                  >
+                    恢复默认
+                  </button>
+                  <button
+                    className={`settings-nav-edit-btn ${navEditMode ? 'active' : ''}`}
+                    type="button"
+                    onClick={() => {
+                      if (navEditMode) {
+                        persistNavConfig(navOrder, hiddenNavOrder);
+                      }
+                      setNavEditMode(!navEditMode);
+                    }}
+                  >
+                    {navEditMode ? '完成' : '编辑'}
+                  </button>
+                </div>
+                <div className="settings-music-hint settings-index-hint">
+                  {navEditMode ? '拖拽卡片可调整排列顺序，点击「完成」保存。' : '点击卡片可快速跳转到对应配置页。'}
+                </div>
               </div>
               <div className="settings-index-cards" aria-label="设置快速导航">
-                <button
-                  className="settings-index-card"
-                  type="button"
-                  onClick={() => {
-                    setAppSettingsPage('layout-preview');
-                    setActiveTab('app');
-                  }}
-                >
-                  <span className="settings-index-card-title">{SETTINGS_TAB_LABELS['layout-preview']}</span>
-                  <span className="settings-index-card-desc">{SETTINGS_TAB_DESCRIPTIONS['layout-preview']}</span>
-                  <img className="settings-index-card-layout-icon" src={SETTINGS_TAB_ICONS['layout-preview']} alt="" aria-hidden="true" />
-                </button>
-
-                <button
-                  className="settings-index-card"
-                  type="button"
-                  onClick={() => {
-                    setAppSettingsPage('hide-process-list');
-                    setActiveTab('app');
-                  }}
-                >
-                  <span className="settings-index-card-title">{SETTINGS_TAB_LABELS['hide-process-list']}</span>
-                  <span className="settings-index-card-desc">{SETTINGS_TAB_DESCRIPTIONS['hide-process-list']}</span>
-                  <img className="settings-index-card-layout-icon" src={SETTINGS_TAB_ICONS['hide-process-list']} alt="" aria-hidden="true" />
-                </button>
-
-                <button
-                  className="settings-index-card"
-                  type="button"
-                  onClick={() => {
-                    setAppSettingsPage('position');
-                    setActiveTab('app');
-                  }}
-                >
-                  <span className="settings-index-card-title">{SETTINGS_TAB_LABELS.position}</span>
-                  <span className="settings-index-card-desc">{SETTINGS_TAB_DESCRIPTIONS.position}</span>
-                  <img className="settings-index-card-layout-icon" src={SETTINGS_TAB_ICONS.position} alt="" aria-hidden="true" />
-                </button>
-
-                {SETTINGS_TABS.filter((tab) => tab !== 'index' && tab !== 'app').map((tab) => (
-                  <button
-                    key={tab}
-                    className="settings-index-card"
-                    type="button"
-                    onClick={() => setActiveTab(tab)}
-                  >
-                    <span className="settings-index-card-title">{SETTINGS_TAB_LABELS[tab]}</span>
-                    <span className="settings-index-card-desc">{SETTINGS_TAB_DESCRIPTIONS[tab]}</span>
-                    {SETTINGS_TAB_ICONS[tab] && (
-                      <img className="settings-index-card-layout-icon" src={SETTINGS_TAB_ICONS[tab]} alt="" aria-hidden="true" />
-                    )}
-                  </button>
+                {visibleCards.map((card, idx) => (
+                  navEditMode ? (
+                    <div
+                      key={card.id}
+                      className={`settings-index-card editing${dragOverIdx === idx ? ' drag-over' : ''}`}
+                      draggable
+                      onDragStart={(e) => {
+                        dragIdxRef.current = idx;
+                        e.dataTransfer.effectAllowed = 'move';
+                      }}
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        setDragOverIdx(idx);
+                      }}
+                      onDragLeave={() => setDragOverIdx(null)}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        setDragOverIdx(null);
+                        const from = dragIdxRef.current;
+                        if (from === null || from === idx) return;
+                        const newOrder = visibleCards.map((c) => c.id);
+                        const [moved] = newOrder.splice(from, 1);
+                        newOrder.splice(idx, 0, moved);
+                        setNavOrder(newOrder);
+                      }}
+                      onDragEnd={() => {
+                        dragIdxRef.current = null;
+                        setDragOverIdx(null);
+                      }}
+                    >
+                      <span className="settings-index-card-drag-handle">⠿</span>
+                      <button
+                        className="settings-index-card-remove"
+                        type="button"
+                        onClick={() => {
+                          const nextVisible = navOrder.filter((id) => id !== card.id);
+                          const nextHidden = hiddenNavOrder.includes(card.id) ? hiddenNavOrder : [...hiddenNavOrder, card.id];
+                          setNavOrder(nextVisible);
+                          setHiddenNavOrder(nextHidden);
+                        }}
+                        aria-label={`删除 ${card.label}`}
+                      >
+                        −
+                      </button>
+                      <span className="settings-index-card-title">{card.label}</span>
+                      <span className="settings-index-card-desc">{card.desc}</span>
+                      {card.icon && (
+                        <img className="settings-index-card-layout-icon" src={card.icon} alt="" aria-hidden="true" />
+                      )}
+                    </div>
+                  ) : (
+                    <button
+                      key={card.id}
+                      className="settings-index-card"
+                      type="button"
+                      onClick={() => {
+                        if (card.appPage) {
+                          setAppSettingsPage(card.appPage);
+                          setActiveTab('app');
+                        } else if (card.musicPage) {
+                          setMusicSettingsPage(card.musicPage);
+                          setActiveTab('music');
+                        } else {
+                          setActiveTab(card.tab);
+                        }
+                      }}
+                    >
+                      <span className="settings-index-card-title">{card.label}</span>
+                      <span className="settings-index-card-desc">{card.desc}</span>
+                      {card.icon && (
+                        <img className="settings-index-card-layout-icon" src={card.icon} alt="" aria-hidden="true" />
+                      )}
+                    </button>
+                  )
                 ))}
               </div>
+              {navEditMode && (
+                <div className="settings-nav-add-panel" aria-label="可添加导航卡片">
+                  <div className="settings-music-label">可添加卡片</div>
+                  {hiddenCards.length === 0 ? (
+                    <div className="settings-music-hint">当前没有可添加的卡片</div>
+                  ) : (
+                    <div className="settings-nav-add-list">
+                      {hiddenCards.map((card) => (
+                        <button
+                          key={card.id}
+                          className="settings-nav-add-item"
+                          type="button"
+                          onClick={() => {
+                            const nextVisible = navOrder.includes(card.id) ? navOrder : [...navOrder, card.id];
+                            const nextHidden = hiddenNavOrder.filter((id) => id !== card.id);
+                            setNavOrder(nextVisible);
+                            setHiddenNavOrder(nextHidden);
+                          }}
+                        >
+                          <span>{card.label}</span>
+                          <span className="settings-nav-add-plus">+</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
 
@@ -1514,6 +1750,168 @@ export function SettingsTab(): ReactElement {
                           >
                             重置为默认位置
                           </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {appSettingsPage === 'theme' && (
+                    <div className="max-expand-settings-section">
+                      <div className="settings-music-section">
+                        <div className="settings-music-label">主题模式</div>
+                        <div className="settings-music-hint">选择深色、浅色或跟随系统主题，切换后立即生效</div>
+                        <div className="settings-lyrics-source-options">
+                          {([
+                            { value: 'dark' as ThemeMode, label: '深色模式' },
+                            { value: 'light' as ThemeMode, label: '浅色模式' },
+                            { value: 'system' as ThemeMode, label: '跟随系统' },
+                          ]).map((opt) => (
+                            <button
+                              key={opt.value}
+                              className={`settings-lyrics-source-btn ${themeMode === opt.value ? 'active' : ''}`}
+                              type="button"
+                              onClick={() => {
+                                setThemeModeState(opt.value);
+                                applyThemeMode(opt.value).catch(() => {});
+                              }}
+                            >
+                              {opt.label}
+                            </button>
+                          ))}
+                        </div>
+
+                        <div className="settings-music-label" style={{ marginTop: 14 }}>灵动岛透明度</div>
+                        <div className="settings-music-hint">数值越低越透明（10% - 100%），调整后立即生效</div>
+                        <div className="settings-opacity-slider-row">
+                          <input
+                            className="settings-opacity-slider"
+                            type="range"
+                            min={10}
+                            max={100}
+                            step={1}
+                            value={islandOpacity}
+                            onChange={(e) => {
+                              const v = Number(e.target.value);
+                              const safe = Number.isFinite(v) ? Math.max(10, Math.min(100, Math.round(v))) : 100;
+                              setIslandOpacity(safe);
+                              applyIslandOpacity(safe);
+                              if (opacitySaveTimerRef.current) {
+                                clearTimeout(opacitySaveTimerRef.current);
+                              }
+                              opacitySaveTimerRef.current = setTimeout(() => {
+                                persistIslandOpacity(safe);
+                                opacitySaveTimerRef.current = null;
+                              }, 220);
+                            }}
+                            onBlur={() => {
+                              if (opacitySaveTimerRef.current) {
+                                clearTimeout(opacitySaveTimerRef.current);
+                                opacitySaveTimerRef.current = null;
+                              }
+                              persistIslandOpacity(islandOpacity);
+                            }}
+                          />
+                          <span className="settings-opacity-slider-value">{islandOpacity}%</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {appSettingsPage === 'behavior' && (
+                    <div className="max-expand-settings-section">
+                      <div className="settings-music-section">
+                        <div className="settings-music-label">鼠标移开自动收回 (重启后生效)</div>
+                        <div className="settings-music-hint">启用后，鼠标离开灵动岛时将自动回到空闲状态（若正在播放音乐则切到歌词态）</div>
+                        <div className="settings-hotkey-row" style={{ alignItems: 'center', marginTop: 8 }}>
+                          <label className="settings-music-hint" style={{ marginBottom: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <input
+                              type="checkbox"
+                              checked={expandLeaveIdle}
+                              onChange={(e) => {
+                                setExpandLeaveIdle(e.target.checked);
+                                window.api.expandMouseleaveIdleSet(e.target.checked).catch(() => {});
+                              }}
+                            />
+                            展开态（Expand）鼠标移开后自动收回
+                          </label>
+                        </div>
+                        <div className="settings-hotkey-row" style={{ alignItems: 'center', marginTop: 6 }}>
+                          <label className="settings-music-hint" style={{ marginBottom: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <input
+                              type="checkbox"
+                              checked={maxExpandLeaveIdle}
+                              onChange={(e) => {
+                                setMaxExpandLeaveIdle(e.target.checked);
+                                window.api.maxexpandMouseleaveIdleSet(e.target.checked).catch(() => {});
+                              }}
+                            />
+                            最大展开态（MaxExpand）鼠标移开后自动收回
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {appSettingsPage === 'autostart' && (
+                    <div className="max-expand-settings-section">
+                      <div className="settings-music-section">
+                        <div className="settings-music-label">实用工具</div>
+                        <div className="settings-music-hint">常用应用操作与日志工具</div>
+                        <div className="settings-hotkey-row" style={{ marginTop: 8, gap: 8 }}>
+                          <button
+                            className="settings-hotkey-btn"
+                            type="button"
+                            onClick={() => {
+                              window.api.quitApp();
+                            }}
+                          >
+                            关闭灵动岛
+                          </button>
+                          <button
+                            className="settings-hotkey-btn"
+                            type="button"
+                            onClick={() => {
+                              window.api.restartApp().catch(() => {});
+                            }}
+                          >
+                            重启灵动岛
+                          </button>
+                          <button
+                            className="settings-hotkey-btn"
+                            type="button"
+                            onClick={() => {
+                              window.api.openLogsFolder().catch(() => {});
+                            }}
+                          >
+                            打开日志文件夹
+                          </button>
+                        </div>
+
+                        <div className="settings-music-label" style={{ marginTop: 12 }}>开机自启</div>
+                        <div className="settings-music-hint">设置系统启动时是否自动运行灵动岛</div>
+                        <div className="settings-lyrics-source-options" style={{ marginTop: 8 }}>
+                          {([
+                            { value: 'disabled', label: '禁用' },
+                            { value: 'enabled', label: '启用' },
+                            { value: 'high-priority', label: '高优先级' },
+                          ] as const).map((opt) => (
+                            <button
+                              key={opt.value}
+                              className={`settings-lyrics-source-btn ${autostartMode === opt.value ? 'active' : ''}`}
+                              type="button"
+                              onClick={() => {
+                                setAutostartMode(opt.value);
+                                window.api.autostartSet(opt.value).catch(() => {});
+                              }}
+                            >
+                              {opt.label}
+                            </button>
+                          ))}
+                        </div>
+                        <div className="settings-music-hint" style={{ marginTop: 8 }}>
+                          {autostartMode === 'disabled' && '当前已禁用开机自启。'}
+                          {autostartMode === 'enabled' && '系统登录后将自动启动灵动岛。'}
+                          {autostartMode === 'high-priority' && '以高优先级启动，更早完成加载。'}
                         </div>
                       </div>
                     </div>
@@ -2057,6 +2455,21 @@ export function SettingsTab(): ReactElement {
                             }}
                           />
                           启用逐字扫光效果
+                        </label>
+                      </div>
+                      <div className="settings-music-label" style={{ marginTop: 12 }}>歌词时钟</div>
+                      <div className="settings-music-hint">在歌词界面封面与歌词之间显示当前北京时间</div>
+                      <div className="settings-hotkey-row" style={{ alignItems: 'center' }}>
+                        <label className="settings-music-hint" style={{ marginBottom: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <input
+                            type="checkbox"
+                            checked={lyricsClock}
+                            onChange={(e) => {
+                              setLyricsClock(e.target.checked);
+                              window.api.musicLyricsClockSet(e.target.checked).catch(() => {});
+                            }}
+                          />
+                          显示当前时间
                         </label>
                       </div>
                     </div>

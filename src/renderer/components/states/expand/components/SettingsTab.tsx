@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import React from 'react';
+import type React from 'react';
 
 /**
  * 设置 Tab
@@ -33,7 +33,7 @@ import React from 'react';
 export function SettingsTab(): React.ReactElement {
   return (
     <div className="expand-tab-panel">
-      <span className="text-sm text-white opacity-40">设置</span>
+      <span className="text-sm text-[var(--color-island-text)] opacity-40">设置</span>
     </div>
   );
 }

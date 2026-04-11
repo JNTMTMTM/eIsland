@@ -201,6 +201,8 @@ function DynamicIsland(): React.JSX.Element {
   const leaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const timerIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const setNotificationRef = useRef(setNotification);
+  const expandLeaveIdleRef = useRef(false);
+  const maxExpandLeaveIdleRef = useRef(false);
 
   // 同步 ref 以在回调中使用最新函数
   useLayoutEffect(() => {
@@ -293,6 +295,8 @@ function DynamicIsland(): React.JSX.Element {
     if (!initRef.current) {
       initRef.current = true;
       window.api?.enableMousePassthrough();
+      window.api?.expandMouseleaveIdleGet?.().then((v) => { expandLeaveIdleRef.current = v; }).catch(() => {});
+      window.api?.maxexpandMouseleaveIdleGet?.().then((v) => { maxExpandLeaveIdleRef.current = v; }).catch(() => {});
     }
   }, []);
 
@@ -458,9 +462,12 @@ function DynamicIsland(): React.JSX.Element {
         }
 
         if (isHoveringRef.current && leaveTimerRef.current === null) {
-          if (state === 'expanded' || state === 'maxExpand') {
-            // expanded / maxExpand 状态下鼠标移出不回到 idle
-          } else {
+          const shouldLeave =
+            state === 'expanded' ? expandLeaveIdleRef.current :
+            state === 'maxExpand' ? maxExpandLeaveIdleRef.current :
+            true;
+
+          if (shouldLeave) {
             leaveTimerRef.current = setTimeout(() => {
               leaveTimerRef.current = null;
               if (aborted || !isHoveringRef.current) return;
@@ -470,7 +477,7 @@ function DynamicIsland(): React.JSX.Element {
               if (store.isPlaying && store.timerData.state === 'idle' && ((store.syncedLyrics?.length ?? 0) > 0 || store.lyricsLoading)) {
                 setLyrics();
               } else {
-                setIdle();
+                setIdle(true);
               }
             });
           }
