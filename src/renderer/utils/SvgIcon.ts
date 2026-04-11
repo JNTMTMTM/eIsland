@@ -60,7 +60,7 @@ export const SvgIcon = {
   /** AI */
   AI: './svg/AI.svg',
   /** 快捷键 */
-  SHOTCUT_KEY: './svg/SHOTCUT_KEY.svg',
+  SHORTCUT_KEY: './svg/SHORTCUT_KEY.svg',
   /** 关于 */
   ABOUT: './svg/ABOUT.svg',
   /** 移动 */

@@ -378,7 +378,7 @@ const SETTINGS_TAB_ICONS: Partial<Record<SettingsTabLabelKey, string>> = {
   weather: SvgIcon.WEATHER,
   music: SvgIcon.LRC,
   ai: SvgIcon.AI,
-  shortcut: SvgIcon.SHOTCUT_KEY,
+  shortcut: SvgIcon.SHORTCUT_KEY,
   about: SvgIcon.ABOUT,
 };
 
