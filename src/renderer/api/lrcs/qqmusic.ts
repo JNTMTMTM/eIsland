@@ -1,11 +1,11 @@
 import type { LyricLine } from './types';
 import { cleanArtist, cleanTitle, parseSyncedLrc } from './helpers';
-import { requestJsonWithLog } from './request';
+import { requestJsonWithLog, requestTextWithLog } from './request';
 
 function resolveJsonpResponse(callback: string, raw: string): string {
-  if (!raw.startsWith(callback)) return '';
-  const json = raw.replace(`${callback}(`, '').replace(/\)$/, '');
-  return json;
+  const prefix = `${callback}(`;
+  if (!raw.startsWith(prefix)) return '';
+  return raw.slice(prefix.length, raw.endsWith(')') ? raw.length - 1 : raw.length);
 }
 
 function base64DecodeUtf8(encoded: string): string {
@@ -76,7 +76,7 @@ export async function fetchLyricsFromQQMusic(title: string, artist: string): Pro
       needNewCode: '0',
     });
 
-    const lrcResp = await requestJsonWithLog<string>(
+    const rawText = await requestTextWithLog(
       `https://c.y.qq.com/lyric/fcgi-bin/fcg_query_lyric_new.fcg?${params.toString()}`,
       {
         headers: {
@@ -85,25 +85,10 @@ export async function fetchLyricsFromQQMusic(title: string, artist: string): Pro
         },
       },
     );
+    if (!rawText) return null;
 
-    if (!lrcResp) return null;
-
-    const rawStr = typeof lrcResp === 'string' ? lrcResp : JSON.stringify(lrcResp);
-    const jsonStr = resolveJsonpResponse(callback, rawStr);
-    if (!jsonStr) {
-      const parsed = typeof lrcResp === 'object' ? lrcResp as unknown as Record<string, unknown> : null;
-      if (parsed) {
-        const lyricB64 = typeof parsed.lyric === 'string' ? parsed.lyric : null;
-        if (lyricB64) {
-          const decoded = base64DecodeUtf8(lyricB64);
-          if (decoded) {
-            const lines = parseSyncedLrc(decoded);
-            if (lines.length > 0) return lines;
-          }
-        }
-      }
-      return null;
-    }
+    const jsonStr = resolveJsonpResponse(callback, rawText);
+    if (!jsonStr) return null;
 
     let parsed: Record<string, unknown>;
     try {
