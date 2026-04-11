@@ -372,6 +372,11 @@ const SETTINGS_TAB_ICONS: Partial<Record<SettingsTabLabelKey, string>> = {
   'layout-preview': SvgIcon.LAYOUT,
   'hide-process-list': SvgIcon.TASK_MANAGER,
   network: SvgIcon.NETWORK,
+  weather: SvgIcon.WEATHER,
+  music: SvgIcon.LRC,
+  ai: SvgIcon.AI,
+  shortcut: SvgIcon.SHOTCUT_KEY,
+  about: SvgIcon.ABOUT
 };
 
 const NETWORK_TIMEOUT_OPTIONS = [
