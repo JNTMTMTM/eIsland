@@ -340,7 +340,26 @@ const WEATHER_PROVIDER_OPTIONS: Array<{ value: WeatherProvider; label: string }>
 ];
 
 /** 设置页侧边栏 Tab 顺序 */
-const SETTINGS_TABS: ('app' | 'network' | 'weather' | 'music' | 'ai' | 'shortcut' | 'about')[] = ['app', 'network', 'weather', 'music', 'ai', 'shortcut', 'about'];
+const SETTINGS_TABS: ('index' | 'app' | 'network' | 'weather' | 'music' | 'ai' | 'shortcut' | 'about')[] = ['index', 'app', 'network', 'weather', 'music', 'ai', 'shortcut', 'about'];
+const SETTINGS_TAB_LABELS: Record<(typeof SETTINGS_TABS)[number], string> = {
+  index: '快速导航',
+  app: '软件设置',
+  network: '网络配置',
+  weather: '天气配置',
+  music: '歌曲设置',
+  ai: 'AI Agent',
+  shortcut: '快捷键',
+  about: '关于软件',
+};
+const SETTINGS_TAB_DESCRIPTIONS: Record<Exclude<(typeof SETTINGS_TABS)[number], 'index'>, string> = {
+  app: '布局预览与隐藏进程规则配置',
+  network: '请求超时与网络行为设置',
+  weather: '天气接口优先级设置',
+  music: '播放器白名单与歌词来源',
+  ai: 'AI 服务与 Prompt 配置',
+  shortcut: '隐藏、关闭、截图快捷键',
+  about: '版本信息与项目链接',
+};
 
 const NETWORK_TIMEOUT_OPTIONS = [
   { label: '5 秒', value: 5000 },
@@ -370,7 +389,7 @@ interface RunningProcessItem {
  * @returns 设置 Tab 组件
  */
 export function SettingsTab(): ReactElement {
-  const [activeTab, setActiveTab] = useState<'app' | 'network' | 'weather' | 'music' | 'ai' | 'shortcut' | 'about'>('app');
+  const [activeTab, setActiveTab] = useState<'index' | 'app' | 'network' | 'weather' | 'music' | 'ai' | 'shortcut' | 'about'>('index');
   const [appSettingsPage, setAppSettingsPage] = useState<AppSettingsPageKey>('layout-preview');
   const { aiConfig, setAiConfig } = useIslandStore();
   const [editingPrompt, setEditingPrompt] = useState(false);
@@ -555,6 +574,8 @@ export function SettingsTab(): ReactElement {
       if (target.closest('.settings-field-textarea')) return;
       if (target.closest('.settings-whitelist-input')) return;
       if (target.closest('.settings-about')) return;
+      if (target.closest('.settings-index-section')) return;
+      if (target.closest('.settings-index-cards')) return;
 
       if (target.closest('.settings-hide-process-list')) return;
 
@@ -763,6 +784,14 @@ export function SettingsTab(): ReactElement {
         <div className="max-expand-settings-sidebar">
           <div className="max-expand-settings-sidebar-title">设置</div>
           <button
+            className={`max-expand-settings-sidebar-item ${activeTab === 'index' ? 'active' : ''}`}
+            onClick={() => setActiveTab('index')}
+            type="button"
+          >
+            <span className="sidebar-dot" />
+            快速导航
+          </button>
+          <button
             className={`max-expand-settings-sidebar-item ${activeTab === 'app' ? 'active' : ''}`}
             onClick={() => setActiveTab('app')}
             type="button"
@@ -821,6 +850,26 @@ export function SettingsTab(): ReactElement {
         </div>
 
         <div className="max-expand-settings-panel">
+          {activeTab === 'index' && (
+            <div className="max-expand-settings-section settings-index-section">
+              <div className="max-expand-settings-title">快速导航</div>
+              <div className="settings-music-hint settings-index-hint">点击卡片可快速跳转到对应配置页。</div>
+              <div className="settings-index-cards" aria-label="设置快速导航">
+                {SETTINGS_TABS.filter((tab) => tab !== 'index').map((tab) => (
+                  <button
+                    key={tab}
+                    className="settings-index-card"
+                    type="button"
+                    onClick={() => setActiveTab(tab)}
+                  >
+                    <span className="settings-index-card-title">{SETTINGS_TAB_LABELS[tab]}</span>
+                    <span className="settings-index-card-desc">{SETTINGS_TAB_DESCRIPTIONS[tab]}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {activeTab === 'app' && (
             <div className="max-expand-settings-section">
               <div className="max-expand-settings-title settings-app-title-line">
