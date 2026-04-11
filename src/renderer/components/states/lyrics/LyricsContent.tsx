@@ -83,19 +83,28 @@ export function LyricsContent(): ReactElement {
     window.api?.musicLyricsClockGet().then(setClockEnabled).catch(() => {});
   }, []);
 
-  /** 每秒更新北京时间 */
+  /** 按分钟边界更新北京时间，避免每秒重渲染 */
   useEffect(() => {
     if (!clockEnabled) return;
+
+    let timer: ReturnType<typeof setTimeout> | null = null;
     const tick = (): void => {
       const now = new Date();
       const beijing = new Date(now.getTime() + (now.getTimezoneOffset() + 480) * 60000);
       const hh = String(beijing.getHours()).padStart(2, '0');
       const mm = String(beijing.getMinutes()).padStart(2, '0');
-      setClockText(`${hh}:${mm}`);
+      const nextText = `${hh}:${mm}`;
+      setClockText((prev) => (prev === nextText ? prev : nextText));
+
+      const delayToNextMinute = 60000 - (beijing.getSeconds() * 1000 + beijing.getMilliseconds());
+      timer = setTimeout(tick, Math.max(50, delayToNextMinute));
     };
+
     tick();
-    const id = setInterval(tick, 1000);
-    return () => clearInterval(id);
+
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
   }, [clockEnabled]);
 
   const [r, g, b] = dominantColor;
