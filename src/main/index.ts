@@ -953,9 +953,16 @@ function applyIslandPositionOffset(offset: IslandPositionOffset): void {
 
   if (!mainWindow || mainWindow.isDestroyed()) return;
   const bounds = mainWindow.getBounds();
+  const primaryDisplay = screen.getPrimaryDisplay();
+  const { x: workX, y: workY, width: workWidth, height: workHeight } = primaryDisplay.workArea;
+  const targetX = Math.round(initialCenterX - bounds.width / 2);
+  const minX = workX;
+  const maxX = workX + Math.max(0, workWidth - bounds.width);
+  const minY = workY;
+  const maxY = workY + Math.max(0, workHeight - bounds.height);
   mainWindow.setBounds({
-    x: Math.round(initialCenterX - bounds.width / 2),
-    y: nextBaseBounds.y,
+    x: Math.max(minX, Math.min(maxX, targetX)),
+    y: Math.max(minY, Math.min(maxY, nextBaseBounds.y)),
     width: bounds.width,
     height: bounds.height,
   });
