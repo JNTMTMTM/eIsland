@@ -1,3 +1,29 @@
+/*
+ * eIsland - A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Electron.
+ * https://github.com/JNTMTMTM/eIsland
+ *
+ * Copyright (C) 2026 JNTMTMTM
+ * Copyright (C) 2026 pyisland.com
+ *
+ * Original author: JNTMTMTM[](https://github.com/JNTMTMTM)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+/**
+ * @file index.ts
+ * @description 歌词拉取统一入口 — 按 SMTC 进程自动选源 + 多级回退 + LRCLIB 兜底
+ * @author 鸡哥
+ */
+
 import type { LyricLine } from './types';
 import { fetchLyricsFromLrclib } from './lrclib';
 import { fetchLyricsFromNetease } from './netease';
@@ -116,11 +142,23 @@ async function resolveSourceAppId(): Promise<string> {
   }
 }
 
+/**
+ * 获取当前播放位置对应的歌词行
+ * @param lyrics - 同步歌词行数组
+ * @param positionMs - 当前播放位置（毫秒）
+ * @returns 当前歌词行，无匹配时返回 null
+ */
 export function getCurrentLyric(lyrics: LyricLine[], positionMs: number): LyricLine | null {
   if (lyrics.length === 0) return null;
   return lyrics.reduce<LyricLine | null>((acc, line) => (line.time_ms <= positionMs ? line : acc), null);
 }
 
+/**
+ * 获取当前歌词行及其附近行（前2行 + 当前 + 后2行）
+ * @param lyrics - 同步歌词行数组
+ * @param positionMs - 当前播放位置（毫秒）
+ * @returns 附近歌词行数组，每项包含 text 和 isCurrent 标记
+ */
 export function getNearbyLyrics(
   lyrics: LyricLine[],
   positionMs: number,

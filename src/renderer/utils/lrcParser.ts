@@ -1,3 +1,29 @@
+/*
+ * eIsland - A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Electron.
+ * https://github.com/JNTMTMTM/eIsland
+ *
+ * Copyright (C) 2026 JNTMTMTM
+ * Copyright (C) 2026 pyisland.com
+ *
+ * Original author: JNTMTMTM[](https://github.com/JNTMTMTM)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+/**
+ * @file lrcParser.ts
+ * @description 歌词解析工具集 — LRC/YRC/KRC 格式解析、标题/艺术家清洗、同步歌词提取
+ * @author 鸡哥
+ */
+
 import type { LyricLine } from '../api/lrcs/types';
 
 const META_PREFIXES = [
@@ -5,6 +31,11 @@ const META_PREFIXES = [
   'Lyrics by', 'Composed by', 'Produced by', 'Arranged by',
 ];
 
+/**
+ * 解析 LRC 时间标签为毫秒数
+ * @param tag - 时间标签字符串，如 "01:23.45"
+ * @returns 毫秒数，解析失败返回 null
+ */
 export function parseLrcTime(tag: string): number | null {
   const parts = tag.split(':');
   if (parts.length !== 2) return null;
@@ -29,6 +60,11 @@ export function parseLrcTime(tag: string): number | null {
   return min * 60000 + sec * 1000 + ms;
 }
 
+/**
+ * 解析同步 LRC 歌词文本为歌词行数组
+ * @param lrc - LRC 格式歌词文本
+ * @returns 按时间排序的歌词行数组
+ */
 export function parseSyncedLrc(lrc: string): LyricLine[] {
   return lrc
     .split('\n')
@@ -155,6 +191,11 @@ function stripBrackets(s: string): string {
     .trim();
 }
 
+/**
+ * 清洗歌曲标题：去除括号内容、feat 后缀、版本标记等
+ * @param title - 原始标题
+ * @returns 清洗后的标题
+ */
 export function cleanTitle(title: string): string {
   let result = normalize(title);
   result = stripBrackets(result);
@@ -165,6 +206,11 @@ export function cleanTitle(title: string): string {
   return result || normalize(title);
 }
 
+/**
+ * 清洗艺术家名称：去除括号内容、feat 后缀，仅保留第一位艺术家
+ * @param artist - 原始艺术家名称
+ * @returns 清洗后的艺术家名称
+ */
 export function cleanArtist(artist: string): string {
   let result = normalize(artist);
   result = stripBrackets(result);
@@ -175,6 +221,11 @@ export function cleanArtist(artist: string): string {
   return result || normalize(artist);
 }
 
+/**
+ * 从 JSON 数组中提取首个有效的同步歌词
+ * @param json - 包含 syncedLyrics 字段的对象数组
+ * @returns 解析后的歌词行数组，无匹配时返回 null
+ */
 export function extractSyncedFromArray(json: unknown[]): LyricLine[] | null {
   const match = json
     .map((item) => (item as Record<string, unknown>).syncedLyrics)
@@ -184,6 +235,11 @@ export function extractSyncedFromArray(json: unknown[]): LyricLine[] | null {
   return match ?? null;
 }
 
+/**
+ * 从 JSON 对象中提取同步歌词
+ * @param json - 包含 syncedLyrics 字段的对象
+ * @returns 解析后的歌词行数组，无匹配时返回 null
+ */
 export function extractSyncedFromObject(json: Record<string, unknown>): LyricLine[] | null {
   const synced = typeof json.syncedLyrics === 'string' ? json.syncedLyrics : null;
   if (!synced || synced.length === 0) return null;
