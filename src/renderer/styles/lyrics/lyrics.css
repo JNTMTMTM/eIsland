@@ -30,7 +30,7 @@
   width: 100%;
   height: 100%;
   padding: 0 16px;
-  gap: 12px;
+  gap: 8px;
   animation: lyricsEnter 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
@@ -39,6 +39,17 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 1;
+}
+
+.lyrics-time {
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: rgba(var(--color-text-rgb), 0.4);
+  letter-spacing: 0.02em;
+  margin-left: 4px;
   z-index: 1;
 }
 

@@ -469,6 +469,7 @@ export function SettingsTab(): ReactElement {
   const [whitelistInputError, setWhitelistInputError] = useState<string>('');
   const [lyricsSource, setLyricsSource] = useState<string>('auto');
   const [lyricsKaraoke, setLyricsKaraoke] = useState<boolean>(false);
+  const [lyricsClock, setLyricsClock] = useState<boolean>(true);
   const [detectingSourceAppId, setDetectingSourceAppId] = useState(false);
   const [sourceAppDetectMessage, setSourceAppDetectMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [musicSmtcUnsubscribeInput, setMusicSmtcUnsubscribeInput] = useState<string>('5000');
@@ -600,6 +601,10 @@ export function SettingsTab(): ReactElement {
     window.api.musicLyricsKaraokeGet().then((enabled) => {
       if (cancelled) return;
       setLyricsKaraoke(enabled);
+    }).catch(() => {});
+    window.api.musicLyricsClockGet().then((enabled) => {
+      if (cancelled) return;
+      setLyricsClock(enabled);
     }).catch(() => {});
     window.api.musicSmtcUnsubscribeMsGet().then((valueMs) => {
       if (cancelled) return;
@@ -2147,6 +2152,21 @@ export function SettingsTab(): ReactElement {
                             }}
                           />
                           启用逐字扫光效果
+                        </label>
+                      </div>
+                      <div className="settings-music-label" style={{ marginTop: 12 }}>歌词时钟</div>
+                      <div className="settings-music-hint">在歌词界面封面与歌词之间显示当前北京时间</div>
+                      <div className="settings-hotkey-row" style={{ alignItems: 'center' }}>
+                        <label className="settings-music-hint" style={{ marginBottom: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <input
+                            type="checkbox"
+                            checked={lyricsClock}
+                            onChange={(e) => {
+                              setLyricsClock(e.target.checked);
+                              window.api.musicLyricsClockSet(e.target.checked).catch(() => {});
+                            }}
+                          />
+                          显示当前时间
                         </label>
                       </div>
                     </div>

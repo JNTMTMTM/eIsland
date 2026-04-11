@@ -370,6 +370,9 @@ const LYRICS_SOURCE_STORE_KEY = 'lyrics-source';
 /** 逐字扫光开关存储键名 */
 const LYRICS_KARAOKE_STORE_KEY = 'lyrics-karaoke';
 
+/** 歌词界面时钟开关存储键名 */
+const LYRICS_CLOCK_STORE_KEY = 'lyrics-clock';
+
 /** SMTC 取消订阅时间存储键名 */
 const SMTC_UNSUBSCRIBE_MS_STORE_KEY = 'music-smtc-unsubscribe-ms';
 
@@ -1640,6 +1643,39 @@ function registerIpcHandlers(): void {
       return true;
     } catch (err) {
       console.error('[LyricsKaraoke] persist error:', err);
+      return false;
+    }
+  });
+
+  /**
+   * 获取歌词界面时钟开关
+   * @returns 是否显示时钟
+   */
+  ipcMain.handle('music:lyrics-clock:get', () => {
+    try {
+      const filePath = join(storeDir, `${LYRICS_CLOCK_STORE_KEY}.json`);
+      if (!existsSync(filePath)) return true;
+      const raw = readFileSync(filePath, 'utf-8');
+      const data = JSON.parse(raw);
+      return typeof data === 'boolean' ? data : true;
+    } catch {
+      return true;
+    }
+  });
+
+  /**
+   * 设置歌词界面时钟开关并持久化
+   * @param _event - IPC 事件
+   * @param enabled - 是否显示时钟
+   * @returns 是否保存成功
+   */
+  ipcMain.handle('music:lyrics-clock:set', (_event, enabled: boolean) => {
+    try {
+      const filePath = join(storeDir, `${LYRICS_CLOCK_STORE_KEY}.json`);
+      writeFileSync(filePath, JSON.stringify(enabled, null, 2), 'utf-8');
+      return true;
+    } catch (err) {
+      console.error('[LyricsClock] persist error:', err);
       return false;
     }
   });
