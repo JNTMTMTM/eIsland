@@ -397,6 +397,33 @@ const api = {
     return ipcRenderer.invoke('music:lyrics-source:set', source);
   },
   /**
+   * 获取逐字扫光开关
+   * @returns 是否启用逐字扫光
+   */
+  musicLyricsKaraokeGet: (): Promise<boolean> => {
+    return ipcRenderer.invoke('music:lyrics-karaoke:get');
+  },
+  /**
+   * 设置逐字扫光开关
+   * @param enabled - 是否启用
+   * @returns 是否保存成功
+   */
+  musicLyricsKaraokeSet: (enabled: boolean): Promise<boolean> => {
+    return ipcRenderer.invoke('music:lyrics-karaoke:set', enabled);
+  },
+  /**
+   * 获取 SMTC 自动取消订阅时间（毫秒），0 表示永不取消
+   */
+  musicSmtcUnsubscribeMsGet: (): Promise<number> => {
+    return ipcRenderer.invoke('music:smtc-unsubscribe-ms:get');
+  },
+  /**
+   * 设置 SMTC 自动取消订阅时间（毫秒），0 表示永不取消
+   */
+  musicSmtcUnsubscribeMsSet: (valueMs: number): Promise<boolean> => {
+    return ipcRenderer.invoke('music:smtc-unsubscribe-ms:set', valueMs);
+  },
+  /**
    * 运行测试脚本获取当前播放进程 sourceAppId
    * @returns 获取结果，可能返回 null（无播放程序）
    */

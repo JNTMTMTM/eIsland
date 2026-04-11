@@ -19,20 +19,18 @@
  */
 
 /**
- * @file lrcApi.ts
- * @description 歌词获取接口模块（兼容导出层）
- * @reference Python-island/dynamic-island/src-tauri/src/lrc.rs
+ * @file helpers.ts
+ * @description 歌词解析辅助函数重导出层，转发 lrcParser.ts 中的解析逻辑
  * @author 鸡哥
  */
 
-export type { LyricLine } from './lrcs';
 export {
-  fetchLyricsFromLrclib,
-  fetchLyricsFromNetease,
-  fetchLyricsFromQQMusic,
-  fetchLyricsFromKugou,
-  fetchLyricsFromSodaMusic,
-  fetchLyrics,
-  getCurrentLyric,
-  getNearbyLyrics,
-} from './lrcs';
+  parseLrcTime,
+  parseSyncedLrc,
+  parseYrc,
+  parseKrc,
+  cleanTitle,
+  cleanArtist,
+  extractSyncedFromArray,
+  extractSyncedFromObject,
+} from '../../utils/lrcParser';

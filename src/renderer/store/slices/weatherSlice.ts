@@ -28,7 +28,13 @@ import type { StateCreator } from 'zustand';
 import type { WeatherSlice, WeatherApiConfig } from '../types';
 import { fetchWeather } from '../../api/weatherApi';
 import { fetchLocation } from '../../api/locationApi';
-import { loadWeatherFromStorage, saveWeatherToStorage, loadLocationFromStorage, saveLocationToStorage } from '../utils/storage';
+import {
+  loadWeatherFromStorage,
+  saveWeatherToStorage,
+  loadLocationFromStorage,
+  saveLocationToStorage,
+  loadWeatherLocationConfig,
+} from '../utils/storage';
 import { logger } from '../../utils/logger';
 
 export const createWeatherSlice: StateCreator<
@@ -46,6 +52,7 @@ export const createWeatherSlice: StateCreator<
   },
 
   fetchWeatherData: async (config?: WeatherApiConfig, forceRefresh?: boolean) => {
+
     try {
       // 读取缓存（强制刷新时跳过）
       if (!forceRefresh) {
@@ -66,20 +73,68 @@ export const createWeatherSlice: StateCreator<
         logger.info('[Weather] 使用手动配置坐标:', config.latitude, config.longitude);
         location = { latitude: config.latitude, longitude: config.longitude, city: '', regionName: '', country: '' };
       } else {
-        try {
+        const locationConfig = loadWeatherLocationConfig();
+        const customLocation = locationConfig.customLocation
+          && Number.isFinite(locationConfig.customLocation.latitude)
+          && Number.isFinite(locationConfig.customLocation.longitude)
+          ? {
+            latitude: locationConfig.customLocation.latitude,
+            longitude: locationConfig.customLocation.longitude,
+            city: locationConfig.customLocation.city || '自定义位置',
+            regionName: '',
+            country: '',
+          }
+          : null;
+
+        const resolveByIp = async () => {
           logger.info('[Weather] 正在获取 IP 定位...');
-          location = await fetchLocation();
-          logger.info('[Weather] 定位成功:', location.city, location.regionName, `(${location.latitude}, ${location.longitude})`);
+          const ipLocation = await fetchLocation();
+          logger.info('[Weather] 定位成功:', ipLocation.city, ipLocation.regionName, `(${ipLocation.latitude}, ${ipLocation.longitude})`);
+          return ipLocation;
+        };
+
+        const resolveByCustom = () => {
+          if (!customLocation) {
+            logger.warn('[Weather] 自定义位置未配置或配置无效');
+            return null;
+          }
+          logger.info('[Weather] 使用自定义位置:', customLocation.city, `(${customLocation.latitude}, ${customLocation.longitude})`);
+          return customLocation;
+        };
+
+        const order = locationConfig.priority === 'custom'
+          ? ['custom', 'ip'] as const
+          : ['ip', 'custom'] as const;
+
+        location = await order.reduce<Promise<typeof location>>(async (prevPromise, source) => {
+          const prev = await prevPromise;
+          if (prev) return prev;
+
+          if (source === 'custom') {
+            return resolveByCustom();
+          }
+
+          try {
+            return await resolveByIp();
+          } catch (locError) {
+            logger.warn('[Weather] IP 定位失败:', locError);
+            return null;
+          }
+        }, Promise.resolve(null));
+
+        if (location) {
           saveLocationToStorage(location);
           set({ location });
           logger.info('[Weather] 位置信息已写入缓存');
-        } catch (locError) {
+        }
+
+        if (!location) {
           if (forceRefresh) {
-            logger.warn('[Weather] 强制刷新：定位失败，跳过天气获取:', locError);
+            logger.warn('[Weather] 强制刷新：定位失败，跳过天气获取');
             return;
           }
           const cachedLocation = loadLocationFromStorage();
-          logger.warn('[Weather] 定位失败，回退使用缓存位置:', locError);
+          logger.warn('[Weather] 定位失败，回退使用缓存位置');
           location = cachedLocation;
         }
       }

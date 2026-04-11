@@ -115,6 +115,10 @@ declare global {
       musicWhitelistSet: (list: string[]) => Promise<boolean>;
       musicLyricsSourceGet: () => Promise<string>;
       musicLyricsSourceSet: (source: string) => Promise<boolean>;
+      musicLyricsKaraokeGet: () => Promise<boolean>;
+      musicLyricsKaraokeSet: (enabled: boolean) => Promise<boolean>;
+      musicSmtcUnsubscribeMsGet: () => Promise<number>;
+      musicSmtcUnsubscribeMsSet: (valueMs: number) => Promise<boolean>;
       musicDetectSourceAppId: () => Promise<{ ok: boolean; sourceAppId: string | null; message: string }>;
       getRunningNonSystemProcesses: () => Promise<string[]>;
       getRunningNonSystemProcessesWithIcons: () => Promise<RunningProcessInfo[]>;

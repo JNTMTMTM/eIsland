@@ -19,20 +19,12 @@
  */
 
 /**
- * @file lrcApi.ts
- * @description 歌词获取接口模块（兼容导出层）
- * @reference Python-island/dynamic-island/src-tauri/src/lrc.rs
+ * @file types.ts
+ * @description 歌词模块公共类型定义
  * @author 鸡哥
  */
 
-export type { LyricLine } from './lrcs';
-export {
-  fetchLyricsFromLrclib,
-  fetchLyricsFromNetease,
-  fetchLyricsFromQQMusic,
-  fetchLyricsFromKugou,
-  fetchLyricsFromSodaMusic,
-  fetchLyrics,
-  getCurrentLyric,
-  getNearbyLyrics,
-} from './lrcs';
+export interface LyricLine {
+  time_ms: number;
+  text: string;
+}

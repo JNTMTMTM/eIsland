@@ -39,7 +39,12 @@ import {
   saveWeatherProviderConfig,
   DEFAULT_WEATHER_PRIMARY_PROVIDER,
   type WeatherProvider,
+  loadWeatherLocationConfig,
+  saveWeatherLocationConfig,
+  DEFAULT_WEATHER_LOCATION_PRIORITY,
+  type WeatherLocationPriority,
 } from '../../../../store/utils/storage';
+import { resolveDistrictLocationByKeyword } from '../../../../api/adcodeApi';
 import { fetchVersion } from '../../../../api/versionApi';
 
 /** 单行配置项 */
@@ -328,10 +333,12 @@ function OverviewPreview({ layoutConfig }: { layoutConfig: OverviewLayoutConfig 
  */
 /** 歌词源选项 */
 const LYRICS_SOURCE_OPTIONS = [
-  { value: 'lrclib-first', label: 'LRCLIB 优先' },
-  { value: 'netease-first', label: '网易云优先' },
-  { value: 'lrclib-only', label: '仅 LRCLIB' },
+  { value: 'auto', label: '自动（跟随播放器）' },
   { value: 'netease-only', label: '仅网易云' },
+  { value: 'qqmusic-only', label: '仅 QQ音乐' },
+  { value: 'kugou-only', label: '仅酷狗' },
+  { value: 'sodamusic-only', label: '仅汽水音乐' },
+  { value: 'lrclib-only', label: '仅 LRCLIB' },
 ];
 
 const WEATHER_PROVIDER_OPTIONS: Array<{ value: WeatherProvider; label: string }> = [
@@ -339,10 +346,17 @@ const WEATHER_PROVIDER_OPTIONS: Array<{ value: WeatherProvider; label: string }>
   { value: 'uapi', label: 'UAPI 优先' },
 ];
 
+const WEATHER_LOCATION_PRIORITY_OPTIONS: Array<{ value: WeatherLocationPriority; label: string }> = [
+  { value: 'ip', label: 'IP 定位优先' },
+  { value: 'custom', label: '自定义位置优先' },
+];
+
 /** 设置页侧边栏 Tab 顺序 */
 const SETTINGS_TABS: ('index' | 'app' | 'network' | 'weather' | 'music' | 'ai' | 'shortcut' | 'about')[] = ['index', 'app', 'network', 'weather', 'music', 'ai', 'shortcut', 'about'];
 type SettingsSidebarTabKey = (typeof SETTINGS_TABS)[number];
 type AppSettingsPageKey = 'layout-preview' | 'hide-process-list' | 'position';
+type WeatherSettingsPageKey = 'location' | 'provider';
+type MusicSettingsPageKey = 'whitelist' | 'lyrics' | 'smtc';
 type SettingsTabLabelKey = SettingsSidebarTabKey | AppSettingsPageKey;
 
 const SETTINGS_TAB_LABELS: Record<SettingsTabLabelKey, string> = {
@@ -393,6 +407,17 @@ const NETWORK_TIMEOUT_OPTIONS = [
 const LAYOUT_STORE_KEY = 'overview-layout';
 const DEFAULT_LAYOUT: OverviewLayoutConfig = { left: 'shortcuts', right: 'todo' };
 const APP_SETTINGS_PAGES: AppSettingsPageKey[] = ['layout-preview', 'hide-process-list', 'position'];
+const WEATHER_SETTINGS_PAGES: WeatherSettingsPageKey[] = ['location', 'provider'];
+const WEATHER_SETTINGS_PAGE_LABELS: Record<WeatherSettingsPageKey, string> = {
+  location: '定位配置',
+  provider: '接口配置',
+};
+const MUSIC_SETTINGS_PAGES: MusicSettingsPageKey[] = ['whitelist', 'lyrics', 'smtc'];
+const MUSIC_SETTINGS_PAGE_LABELS: Record<MusicSettingsPageKey, string> = {
+  whitelist: '白名单',
+  lyrics: '歌词源',
+  smtc: 'SMTC',
+};
 
 interface RunningProcessItem {
   name: string;
@@ -407,7 +432,9 @@ interface RunningProcessItem {
 export function SettingsTab(): ReactElement {
   const [activeTab, setActiveTab] = useState<SettingsSidebarTabKey>('index');
   const [appSettingsPage, setAppSettingsPage] = useState<AppSettingsPageKey>('layout-preview');
-  const { aiConfig, setAiConfig } = useIslandStore();
+  const [weatherSettingsPage, setWeatherSettingsPage] = useState<WeatherSettingsPageKey>('location');
+  const [musicSettingsPage, setMusicSettingsPage] = useState<MusicSettingsPageKey>('whitelist');
+  const { aiConfig, setAiConfig, fetchWeatherData } = useIslandStore();
   const [editingPrompt, setEditingPrompt] = useState(false);
   const [promptDraft, setPromptDraft] = useState('');
   const promptRef = useRef<HTMLTextAreaElement>(null);
@@ -417,6 +444,12 @@ export function SettingsTab(): ReactElement {
   const appSettingsPageRef = useRef(appSettingsPage);
   const currentAppSettingsPageLabel = SETTINGS_TAB_LABELS[appSettingsPage] || '布局预览';
   appSettingsPageRef.current = appSettingsPage;
+  const weatherSettingsPageRef = useRef(weatherSettingsPage);
+  const currentWeatherSettingsPageLabel = WEATHER_SETTINGS_PAGE_LABELS[weatherSettingsPage] || '定位配置';
+  weatherSettingsPageRef.current = weatherSettingsPage;
+  const musicSettingsPageRef = useRef(musicSettingsPage);
+  const currentMusicSettingsPageLabel = MUSIC_SETTINGS_PAGE_LABELS[musicSettingsPage] || '白名单';
+  musicSettingsPageRef.current = musicSettingsPage;
 
   const [layoutConfig, setLayoutConfig] = useState<OverviewLayoutConfig>(DEFAULT_LAYOUT);
 
@@ -424,14 +457,23 @@ export function SettingsTab(): ReactElement {
   const [whitelist, setWhitelist] = useState<string[]>([]);
   const [whitelistDraft, setWhitelistDraft] = useState<string>('');
   const [whitelistInputError, setWhitelistInputError] = useState<string>('');
-  const [lyricsSource, setLyricsSource] = useState<string>('lrclib-first');
+  const [lyricsSource, setLyricsSource] = useState<string>('auto');
+  const [lyricsKaraoke, setLyricsKaraoke] = useState<boolean>(false);
   const [detectingSourceAppId, setDetectingSourceAppId] = useState(false);
   const [sourceAppDetectMessage, setSourceAppDetectMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [musicSmtcUnsubscribeInput, setMusicSmtcUnsubscribeInput] = useState<string>('5000');
+  const [musicSmtcNeverUnsubscribe, setMusicSmtcNeverUnsubscribe] = useState(true);
+  const [musicSmtcConfigMessage, setMusicSmtcConfigMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   /** 网络配置相关状态 */
   const [networkTimeoutMs, setNetworkTimeoutMs] = useState<number>(DEFAULT_NETWORK_TIMEOUT_MS);
   const [customTimeoutInput, setCustomTimeoutInput] = useState<string>('');
   const [weatherPrimaryProvider, setWeatherPrimaryProvider] = useState<WeatherProvider>(DEFAULT_WEATHER_PRIMARY_PROVIDER);
+  const [weatherLocationPriority, setWeatherLocationPriority] = useState<WeatherLocationPriority>(DEFAULT_WEATHER_LOCATION_PRIORITY);
+  const [weatherCustomCityInput, setWeatherCustomCityInput] = useState<string>('');
+  const [weatherLocationConfigMessage, setWeatherLocationConfigMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [weatherCustomLocationTesting, setWeatherCustomLocationTesting] = useState(false);
+  const [weatherCustomLocationTestMessage, setWeatherCustomLocationTestMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [runningProcesses, setRunningProcesses] = useState<RunningProcessItem[]>([]);
   const [hideProcessList, setHideProcessList] = useState<string[]>([]);
   const [hideProcessFilter, setHideProcessFilter] = useState<string>('');
@@ -488,6 +530,12 @@ export function SettingsTab(): ReactElement {
   }, []);
 
   useEffect(() => {
+    const cfg = loadWeatherLocationConfig();
+    setWeatherLocationPriority(cfg.priority);
+    setWeatherCustomCityInput(cfg.customLocation?.city || '');
+  }, []);
+
+  useEffect(() => {
     let cancelled = false;
     window.api.getIslandPositionOffset().then((offset) => {
       if (cancelled || !offset) return;
@@ -525,6 +573,21 @@ export function SettingsTab(): ReactElement {
     window.api.musicLyricsSourceGet().then((src) => {
       if (cancelled) return;
       setLyricsSource(src);
+    }).catch(() => {});
+    window.api.musicLyricsKaraokeGet().then((enabled) => {
+      if (cancelled) return;
+      setLyricsKaraoke(enabled);
+    }).catch(() => {});
+    window.api.musicSmtcUnsubscribeMsGet().then((valueMs) => {
+      if (cancelled) return;
+      const safeValue = typeof valueMs === 'number' && Number.isFinite(valueMs) ? Math.round(valueMs) : 0;
+      if (safeValue <= 0) {
+        setMusicSmtcNeverUnsubscribe(true);
+        setMusicSmtcUnsubscribeInput('5000');
+      } else {
+        setMusicSmtcNeverUnsubscribe(false);
+        setMusicSmtcUnsubscribeInput(String(safeValue));
+      }
     }).catch(() => {});
     return () => { cancelled = true; };
   }, []);
@@ -610,6 +673,164 @@ export function SettingsTab(): ReactElement {
     islandPositionInput.x.trim() !== String(islandPositionOffset.x)
     || islandPositionInput.y.trim() !== String(islandPositionOffset.y);
 
+  const applyWeatherLocationPriority = async (nextPriority: WeatherLocationPriority): Promise<void> => {
+    setWeatherLocationPriority(nextPriority);
+
+    try {
+      const city = weatherCustomCityInput.trim();
+      const existing = loadWeatherLocationConfig().customLocation;
+      let customLocation = existing;
+
+      if (city) {
+        const resolved = await resolveDistrictLocationByKeyword(city);
+        customLocation = {
+          latitude: resolved.latitude,
+          longitude: resolved.longitude,
+          city: resolved.city,
+        };
+      }
+
+      saveWeatherLocationConfig({
+        priority: nextPriority,
+        customLocation: customLocation || null,
+      });
+
+      setWeatherLocationConfigMessage({
+        type: nextPriority === 'custom' && !customLocation ? 'error' : 'success',
+        text: nextPriority === 'custom' && !customLocation
+          ? '已切换为自定义位置优先，但未配置城市，将自动回退到 IP 定位'
+          : '定位来源优先级已立即生效',
+      });
+      setWeatherCustomLocationTestMessage(null);
+      fetchWeatherData(undefined, true).catch(() => {});
+    } catch (error) {
+      setWeatherLocationConfigMessage({
+        type: 'error',
+        text: `切换优先级失败：${error instanceof Error ? error.message : '未知错误'}`,
+      });
+    }
+  };
+
+  const saveWeatherLocationSettings = async (): Promise<void> => {
+    const city = weatherCustomCityInput.trim();
+    if (weatherLocationPriority === 'custom' && !city) {
+      setWeatherLocationConfigMessage({ type: 'error', text: '请选择“自定义位置优先”时请先输入城市名称' });
+      return;
+    }
+
+    try {
+      let customLocation: { latitude: number; longitude: number; city: string } | null = null;
+      if (city) {
+        const resolved = await resolveDistrictLocationByKeyword(city);
+        customLocation = {
+          latitude: resolved.latitude,
+          longitude: resolved.longitude,
+          city: resolved.city,
+        };
+      }
+
+      saveWeatherLocationConfig({
+        priority: weatherLocationPriority,
+        customLocation,
+      });
+      setWeatherLocationConfigMessage({
+        type: 'success',
+        text: customLocation
+          ? `天气定位配置已保存（${customLocation.city} ${customLocation.latitude.toFixed(4)}, ${customLocation.longitude.toFixed(4)}）`
+          : '天气定位配置已保存',
+      });
+      setWeatherCustomLocationTestMessage(null);
+      fetchWeatherData(undefined, true).catch(() => {});
+    } catch (error) {
+      setWeatherLocationConfigMessage({
+        type: 'error',
+        text: `城市解析失败：${error instanceof Error ? error.message : '未知错误'}`,
+      });
+    }
+  };
+
+  const testWeatherCustomLocation = async (): Promise<void> => {
+    const city = weatherCustomCityInput.trim();
+    if (!city) {
+      setWeatherCustomLocationTestMessage({ type: 'error', text: '请先输入城市名称后再测试' });
+      return;
+    }
+
+    setWeatherCustomLocationTesting(true);
+    setWeatherCustomLocationTestMessage(null);
+
+    let custom: { latitude: number; longitude: number; city: string };
+    try {
+      custom = await resolveDistrictLocationByKeyword(city);
+    } catch (error) {
+      setWeatherCustomLocationTesting(false);
+      setWeatherCustomLocationTestMessage({
+        type: 'error',
+        text: `城市解析失败：${error instanceof Error ? error.message : '未知错误'}`,
+      });
+      return;
+    }
+
+    const openMeteoParams = new URLSearchParams({
+      latitude: String(custom.latitude),
+      longitude: String(custom.longitude),
+      current: 'temperature_2m',
+      timezone: 'auto',
+    });
+    const openMeteoUrl = `https://api.open-meteo.com/v1/forecast?${openMeteoParams.toString()}`;
+
+    const uapiParams = new URLSearchParams({
+      forecast: 'true',
+      extended: 'true',
+      lang: 'zh',
+    });
+    if (custom.city) uapiParams.set('city', custom.city);
+    const uapiUrl = `https://uapis.cn/api/v1/misc/weather?${uapiParams.toString()}`;
+
+    const testProvider = async (name: string, url: string): Promise<string> => {
+      const resp = await window.api.netFetch(url, { timeoutMs: networkTimeoutMs });
+      if (!resp.ok) {
+        throw new Error(`${name} HTTP ${resp.status}`);
+      }
+      if (resp.body.trimStart().startsWith('<')) {
+        throw new Error(`${name} 返回了非 JSON`);
+      }
+      JSON.parse(resp.body);
+      return `${name} 可用`;
+    };
+
+    try {
+      const [openMeteoResult, uapiResult] = await Promise.allSettled([
+        testProvider('Open-Meteo', openMeteoUrl),
+        testProvider('UAPI', uapiUrl),
+      ]);
+
+      const messages: string[] = [];
+      let hasFailure = false;
+
+      if (openMeteoResult.status === 'fulfilled') {
+        messages.push(openMeteoResult.value);
+      } else {
+        hasFailure = true;
+        messages.push(`Open-Meteo 不可用：${openMeteoResult.reason instanceof Error ? openMeteoResult.reason.message : '未知错误'}`);
+      }
+
+      if (uapiResult.status === 'fulfilled') {
+        messages.push(uapiResult.value);
+      } else {
+        hasFailure = true;
+        messages.push(`UAPI 不可用：${uapiResult.reason instanceof Error ? uapiResult.reason.message : '未知错误'}`);
+      }
+
+      setWeatherCustomLocationTestMessage({
+        type: hasFailure ? 'error' : 'success',
+        text: `${custom.city}（${custom.latitude.toFixed(4)}, ${custom.longitude.toFixed(4)}） - ${messages.join('；')}`,
+      });
+    } finally {
+      setWeatherCustomLocationTesting(false);
+    }
+  };
+
   const toggleHideProcess = (processName: string): void => {
     const key = processName.trim().toLowerCase();
     if (!key) return;
@@ -680,6 +901,40 @@ export function SettingsTab(): ReactElement {
             : Math.max(currentIdx - 1, 0);
           if (nextIdx !== currentIdx) {
             setAppSettingsPage(pages[nextIdx]);
+          }
+          e.preventDefault();
+          e.stopPropagation();
+          return;
+        }
+      }
+
+      if (activeTabRef.current === 'music' && target.closest('.settings-music-pages-layout')) {
+        const pages = MUSIC_SETTINGS_PAGES;
+        const currentPage = musicSettingsPageRef.current;
+        const currentIdx = pages.indexOf(currentPage);
+        if (currentIdx >= 0) {
+          const nextIdx = e.deltaY > 0
+            ? Math.min(currentIdx + 1, pages.length - 1)
+            : Math.max(currentIdx - 1, 0);
+          if (nextIdx !== currentIdx) {
+            setMusicSettingsPage(pages[nextIdx]);
+          }
+          e.preventDefault();
+          e.stopPropagation();
+          return;
+        }
+      }
+
+      if (activeTabRef.current === 'weather' && target.closest('.settings-weather-pages-layout')) {
+        const pages = WEATHER_SETTINGS_PAGES;
+        const currentPage = weatherSettingsPageRef.current;
+        const currentIdx = pages.indexOf(currentPage);
+        if (currentIdx >= 0) {
+          const nextIdx = e.deltaY > 0
+            ? Math.min(currentIdx + 1, pages.length - 1)
+            : Math.max(currentIdx - 1, 0);
+          if (nextIdx !== currentIdx) {
+            setWeatherSettingsPage(pages[nextIdx]);
           }
           e.preventDefault();
           e.stopPropagation();
@@ -897,6 +1152,30 @@ export function SettingsTab(): ReactElement {
     setWhitelistDraft('');
     setWhitelistInputError('');
     window.api.musicWhitelistSet(next).catch(() => {});
+  };
+
+  const saveMusicSmtcUnsubscribeConfig = async (): Promise<void> => {
+    const valueMs = musicSmtcNeverUnsubscribe ? 0 : Number(musicSmtcUnsubscribeInput.trim());
+
+    if (!musicSmtcNeverUnsubscribe) {
+      if (!Number.isFinite(valueMs) || valueMs < 1000) {
+        setMusicSmtcConfigMessage({ type: 'error', text: '请输入有效毫秒值（>= 1000）或开启“永不取消订阅”' });
+        return;
+      }
+    }
+
+    const ok = await window.api.musicSmtcUnsubscribeMsSet(valueMs);
+    if (!ok) {
+      setMusicSmtcConfigMessage({ type: 'error', text: '保存失败，请稍后重试' });
+      return;
+    }
+
+    if (musicSmtcNeverUnsubscribe) {
+      setMusicSmtcConfigMessage({ type: 'success', text: '已保存：永不自动取消订阅' });
+      return;
+    }
+
+    setMusicSmtcConfigMessage({ type: 'success', text: `已保存：${Math.round(valueMs)} ms 自动取消订阅` });
   };
 
   return (
@@ -1255,6 +1534,7 @@ export function SettingsTab(): ReactElement {
                   ))}
                 </div>
               </div>
+
             </div>
           )}
           {activeTab === 'network' && (
@@ -1306,30 +1586,141 @@ export function SettingsTab(): ReactElement {
                   </div>
                 </div>
               </div>
+
             </div>
           )}
           {activeTab === 'weather' && (
             <div className="max-expand-settings-section">
-              <div className="max-expand-settings-title">天气配置</div>
-              <div className="settings-music-section">
-                <div className="settings-music-label">天气接口优先级</div>
-                <div className="settings-music-hint">可选择优先使用 Open-Meteo 或 UAPI，失败时自动切换到另一源</div>
-                <div className="settings-lyrics-source-options">
-                  {WEATHER_PROVIDER_OPTIONS.map((opt) => (
+              <div className="max-expand-settings-title settings-app-title-line">
+                <span>天气配置</span>
+                <span className="settings-app-title-sub">- {currentWeatherSettingsPageLabel}</span>
+              </div>
+
+              <div className="settings-app-pages-layout settings-weather-pages-layout">
+                <div className="settings-app-page-main">
+                  {weatherSettingsPage === 'location' && (
+                    <div className="settings-music-section">
+                      <div className="settings-music-label">定位来源优先级</div>
+                      <div className="settings-music-hint">选择天气定位优先使用 IP 自动定位或自定义位置</div>
+                      <div className="settings-lyrics-source-options">
+                        {WEATHER_LOCATION_PRIORITY_OPTIONS.map((opt) => (
+                          <button
+                            key={opt.value}
+                            className={`settings-lyrics-source-btn ${weatherLocationPriority === opt.value ? 'active' : ''}`}
+                            type="button"
+                            onClick={() => {
+                              applyWeatherLocationPriority(opt.value).catch((error) => {
+                                setWeatherLocationConfigMessage({
+                                  type: 'error',
+                                  text: `切换优先级失败：${error instanceof Error ? error.message : '未知错误'}`,
+                                });
+                              });
+                            }}
+                          >
+                            {opt.label}
+                          </button>
+                        ))}
+                      </div>
+
+                      <div className="settings-hotkey-row">
+                        <label className="settings-field" style={{ flex: 1 }}>
+                          <span className="settings-field-label">城市名称</span>
+                          <input
+                            className="settings-field-input"
+                            type="text"
+                            placeholder="例如：杭州 / Tokyo / New York"
+                            value={weatherCustomCityInput}
+                            onChange={(e) => {
+                              setWeatherCustomCityInput(e.target.value);
+                            }}
+                          />
+                        </label>
+                      </div>
+
+                      <div className="settings-hotkey-row">
+                        <button
+                          className="settings-hotkey-btn"
+                          type="button"
+                          onClick={() => {
+                            testWeatherCustomLocation().catch((error) => {
+                              setWeatherCustomLocationTesting(false);
+                              setWeatherCustomLocationTestMessage({
+                                type: 'error',
+                                text: `测试失败：${error instanceof Error ? error.message : '未知错误'}`,
+                              });
+                            });
+                          }}
+                          disabled={weatherCustomLocationTesting}
+                        >
+                          {weatherCustomLocationTesting ? '测试中...' : '测试自定义位置（双接口）'}
+                        </button>
+                        <button
+                          className="settings-hotkey-btn"
+                          type="button"
+                          onClick={() => {
+                            saveWeatherLocationSettings().catch((error) => {
+                              setWeatherLocationConfigMessage({
+                                type: 'error',
+                                text: `保存失败：${error instanceof Error ? error.message : '未知错误'}`,
+                              });
+                            });
+                          }}
+                        >
+                          保存定位配置
+                        </button>
+                      </div>
+
+                      {weatherLocationConfigMessage && (
+                        <div className="settings-music-hint" style={{ color: weatherLocationConfigMessage.type === 'error' ? '#ff7f7f' : '#7be495' }}>
+                          {weatherLocationConfigMessage.text}
+                        </div>
+                      )}
+                      {weatherCustomLocationTestMessage && (
+                        <div className="settings-music-hint" style={{ color: weatherCustomLocationTestMessage.type === 'error' ? '#ff7f7f' : '#7be495' }}>
+                          {weatherCustomLocationTestMessage.text}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {weatherSettingsPage === 'provider' && (
+                    <div className="settings-music-section">
+                      <div className="settings-music-label">天气接口优先级</div>
+                      <div className="settings-music-hint">可选择优先使用 Open-Meteo 或 UAPI，失败时自动切换到另一源</div>
+                      <div className="settings-lyrics-source-options">
+                        {WEATHER_PROVIDER_OPTIONS.map((opt) => (
+                          <button
+                            key={opt.value}
+                            className={`settings-lyrics-source-btn ${weatherPrimaryProvider === opt.value ? 'active' : ''}`}
+                            type="button"
+                            onClick={() => {
+                              setWeatherPrimaryProvider(opt.value);
+                              saveWeatherProviderConfig({ primaryProvider: opt.value });
+                            }}
+                          >
+                            {opt.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="settings-app-page-dots" aria-label="天气配置分页">
+                  {WEATHER_SETTINGS_PAGES.map((page) => (
                     <button
-                      key={opt.value}
-                      className={`settings-lyrics-source-btn ${weatherPrimaryProvider === opt.value ? 'active' : ''}`}
+                      key={page}
+                      className={`settings-app-page-dot ${weatherSettingsPage === page ? 'active' : ''}`}
+                      data-label={WEATHER_SETTINGS_PAGE_LABELS[page]}
                       type="button"
-                      onClick={() => {
-                        setWeatherPrimaryProvider(opt.value);
-                        saveWeatherProviderConfig({ primaryProvider: opt.value });
-                      }}
-                    >
-                      {opt.label}
-                    </button>
+                      onClick={() => setWeatherSettingsPage(page)}
+                      title={WEATHER_SETTINGS_PAGE_LABELS[page]}
+                      aria-label={WEATHER_SETTINGS_PAGE_LABELS[page]}
+                    />
                   ))}
                 </div>
               </div>
+
             </div>
           )}
           {activeTab === 'shortcut' && (
@@ -1547,104 +1938,198 @@ export function SettingsTab(): ReactElement {
           )}
           {activeTab === 'music' && (
             <div className="max-expand-settings-section">
-              <div className="max-expand-settings-title">歌曲设置</div>
+              <div className="max-expand-settings-title settings-app-title-line">
+                <span>歌曲设置</span>
+                <span className="settings-app-title-sub">- {currentMusicSettingsPageLabel}</span>
+              </div>
 
-              {/* 播放器白名单 */}
-              <div className="settings-music-section">
-                <div className="settings-music-label">播放器白名单</div>
-                <div className="settings-music-hint">只有白名单内的播放器才会触发歌曲信息获取</div>
-                <div className="settings-whitelist-list">
-                  {whitelist.map((item, idx) => (
-                    <div className="settings-whitelist-item" key={idx}>
-                      <span className="settings-whitelist-name">{item}</span>
-                      <button
-                        className="settings-whitelist-remove"
-                        type="button"
-                        title="移除"
-                        onClick={() => {
-                          const next = whitelist.filter((_, i) => i !== idx);
-                          setWhitelist(next);
-                          window.api.musicWhitelistSet(next).catch(() => {});
-                        }}
-                      >
-                        ×
-                      </button>
+              <div className="settings-app-pages-layout settings-music-pages-layout">
+                <div className="settings-app-page-main">
+                  {musicSettingsPage === 'whitelist' && (
+                    <div className="settings-music-section">
+                      <div className="settings-music-label">播放器白名单</div>
+                      <div className="settings-music-hint">只有白名单内的播放器才会触发歌曲信息获取</div>
+                      <div className="settings-whitelist-list">
+                        {whitelist.map((item, idx) => (
+                          <div className="settings-whitelist-item" key={idx}>
+                            <span className="settings-whitelist-name">{item}</span>
+                            <button
+                              className="settings-whitelist-remove"
+                              type="button"
+                              title="移除"
+                              onClick={() => {
+                                const next = whitelist.filter((_, i) => i !== idx);
+                                setWhitelist(next);
+                                window.api.musicWhitelistSet(next).catch(() => {});
+                              }}
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="settings-whitelist-add-row">
+                        <input
+                          className={`settings-whitelist-input${whitelistInputError ? ' error' : ''}`}
+                          type="text"
+                          placeholder={whitelistInputError || '输入播放器进程名（如 Spotify.exe）'}
+                          value={whitelistDraft}
+                          onFocus={() => {
+                            if (whitelistInputError) setWhitelistInputError('');
+                          }}
+                          onChange={(e) => {
+                            setWhitelistDraft(e.target.value);
+                            if (whitelistInputError) setWhitelistInputError('');
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') handleAddWhitelist();
+                          }}
+                        />
+                        <button
+                          className="settings-whitelist-add-btn"
+                          type="button"
+                          onClick={() => {
+                            handleAddWhitelist();
+                          }}
+                        >
+                          添加
+                        </button>
+                      </div>
+                      <div className="settings-whitelist-add-row" style={{ display: 'flex', alignItems: 'center' }}>
+                        <button
+                          className="settings-whitelist-add-btn"
+                          type="button"
+                          onClick={() => {
+                            if (whitelistInputError) setWhitelistInputError('');
+                            handleDetectSourceAppId().catch(() => {});
+                          }}
+                          disabled={detectingSourceAppId}
+                        >
+                          {detectingSourceAppId ? '获取中…' : '获取播放进程（测试）'}
+                        </button>
+                        {sourceAppDetectMessage && (
+                          <div
+                            className="settings-music-hint"
+                            style={{
+                              color: sourceAppDetectMessage.type === 'success' ? '#7df2a0' : '#ff8b8b',
+                              marginLeft: 10,
+                              marginBottom: 0,
+                              display: 'flex',
+                              alignItems: 'center',
+                            }}
+                          >
+                            {sourceAppDetectMessage.text}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  ))}
-                </div>
-                <div className="settings-whitelist-add-row">
-                  <input
-                    className={`settings-whitelist-input${whitelistInputError ? ' error' : ''}`}
-                    type="text"
-                    placeholder={whitelistInputError || '输入播放器进程名（如 Spotify.exe）'}
-                    value={whitelistDraft}
-                    onFocus={() => {
-                      if (whitelistInputError) setWhitelistInputError('');
-                    }}
-                    onChange={(e) => {
-                      setWhitelistDraft(e.target.value);
-                      if (whitelistInputError) setWhitelistInputError('');
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') handleAddWhitelist();
-                    }}
-                  />
-                  <button
-                    className="settings-whitelist-add-btn"
-                    type="button"
-                    onClick={() => {
-                      handleAddWhitelist();
-                    }}
-                  >
-                    添加
-                  </button>
-                </div>
-                <div className="settings-whitelist-add-row" style={{ display: 'flex', alignItems: 'center' }}>
-                  <button
-                    className="settings-whitelist-add-btn"
-                    type="button"
-                    onClick={() => {
-                      if (whitelistInputError) setWhitelistInputError('');
-                      handleDetectSourceAppId().catch(() => {});
-                    }}
-                    disabled={detectingSourceAppId}
-                  >
-                    {detectingSourceAppId ? '获取中…' : '获取播放进程（测试）'}
-                  </button>
-                  {sourceAppDetectMessage && (
-                    <div
-                      className="settings-music-hint"
-                      style={{
-                        color: sourceAppDetectMessage.type === 'success' ? '#7df2a0' : '#ff8b8b',
-                        marginLeft: 10,
-                        marginBottom: 0,
-                        display: 'flex',
-                        alignItems: 'center',
-                      }}
-                    >
-                      {sourceAppDetectMessage.text}
+                  )}
+
+                  {musicSettingsPage === 'lyrics' && (
+                    <div className="settings-music-section">
+                      <div className="settings-music-label">歌词源</div>
+                      <div className="settings-music-hint">自动模式根据 SMTC 检测到的播放器进程选择对应源，失败后依次尝试其他源，最后使用 LRCLIB 兜底</div>
+                      <div className="settings-lyrics-source-options">
+                        {LYRICS_SOURCE_OPTIONS.map((opt) => (
+                          <button
+                            key={opt.value}
+                            className={`settings-lyrics-source-btn ${lyricsSource === opt.value ? 'active' : ''}`}
+                            type="button"
+                            onClick={() => {
+                              setLyricsSource(opt.value);
+                              window.api.musicLyricsSourceSet(opt.value).catch(() => {});
+                            }}
+                          >
+                            {opt.label}
+                          </button>
+                        ))}
+                      </div>
+                      <div className="settings-music-label" style={{ marginTop: 12 }}>逐字扫光</div>
+                      <div className="settings-music-hint">启用后歌词将以逐字高亮方式显示</div>
+                      <div className="settings-hotkey-row" style={{ alignItems: 'center' }}>
+                        <label className="settings-music-hint" style={{ marginBottom: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <input
+                            type="checkbox"
+                            checked={lyricsKaraoke}
+                            onChange={(e) => {
+                              setLyricsKaraoke(e.target.checked);
+                              window.api.musicLyricsKaraokeSet(e.target.checked).catch(() => {});
+                            }}
+                          />
+                          启用逐字扫光效果
+                        </label>
+                      </div>
+                    </div>
+                  )}
+
+                  {musicSettingsPage === 'smtc' && (
+                    <div className="settings-music-section">
+                      <div className="settings-music-label">SMTC 自动取消订阅</div>
+                      <div className="settings-music-hint">用于清理长时间无更新的播放会话，默认永不取消订阅</div>
+                      <div className="settings-hotkey-row" style={{ alignItems: 'center' }}>
+                        <label className="settings-field" style={{ flex: 1 }}>
+                          <span className="settings-field-label">取消订阅时间（毫秒）</span>
+                          <input
+                            className="settings-field-input"
+                            type="number"
+                            min={1000}
+                            step={1000}
+                            value={musicSmtcUnsubscribeInput}
+                            disabled={musicSmtcNeverUnsubscribe}
+                            onChange={(e) => {
+                              setMusicSmtcUnsubscribeInput(e.target.value);
+                              if (musicSmtcConfigMessage) setMusicSmtcConfigMessage(null);
+                            }}
+                          />
+                        </label>
+                      </div>
+                      <div className="settings-hotkey-row" style={{ alignItems: 'center' }}>
+                        <label className="settings-music-hint" style={{ marginBottom: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <input
+                            type="checkbox"
+                            checked={musicSmtcNeverUnsubscribe}
+                            onChange={(e) => {
+                              setMusicSmtcNeverUnsubscribe(e.target.checked);
+                              if (musicSmtcConfigMessage) setMusicSmtcConfigMessage(null);
+                            }}
+                          />
+                          永不取消订阅
+                        </label>
+                        <button
+                          className="settings-hotkey-btn"
+                          type="button"
+                          onClick={() => {
+                            saveMusicSmtcUnsubscribeConfig().catch((error) => {
+                              setMusicSmtcConfigMessage({
+                                type: 'error',
+                                text: `保存失败：${error instanceof Error ? error.message : '未知错误'}`,
+                              });
+                            });
+                          }}
+                        >
+                          保存
+                        </button>
+                      </div>
+                      {musicSmtcConfigMessage && (
+                        <div className="settings-music-hint" style={{ color: musicSmtcConfigMessage.type === 'error' ? '#ff8b8b' : '#7df2a0' }}>
+                          {musicSmtcConfigMessage.text}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
-              </div>
 
-              {/* 歌词源 */}
-              <div className="settings-music-section">
-                <div className="settings-music-label">歌词源</div>
-                <div className="settings-music-hint">选择歌词获取的优先顺序或唯一来源</div>
-                <div className="settings-lyrics-source-options">
-                  {LYRICS_SOURCE_OPTIONS.map((opt) => (
+                <div className="settings-app-page-dots" aria-label="歌曲设置分页">
+                  {MUSIC_SETTINGS_PAGES.map((page) => (
                     <button
-                      key={opt.value}
-                      className={`settings-lyrics-source-btn ${lyricsSource === opt.value ? 'active' : ''}`}
+                      key={page}
+                      className={`settings-app-page-dot ${musicSettingsPage === page ? 'active' : ''}`}
+                      data-label={MUSIC_SETTINGS_PAGE_LABELS[page]}
                       type="button"
-                      onClick={() => {
-                        setLyricsSource(opt.value);
-                        window.api.musicLyricsSourceSet(opt.value).catch(() => {});
-                      }}
-                    >
-                      {opt.label}
-                    </button>
+                      onClick={() => setMusicSettingsPage(page)}
+                      title={MUSIC_SETTINGS_PAGE_LABELS[page]}
+                      aria-label={MUSIC_SETTINGS_PAGE_LABELS[page]}
+                    />
                   ))}
                 </div>
               </div>

@@ -32,10 +32,12 @@ const WEATHER_STORAGE_KEY = 'island_weather';
 const LOCATION_STORAGE_KEY = 'island_location';
 const NETWORK_CONFIG_KEY = 'island_network_config';
 const WEATHER_PROVIDER_CONFIG_KEY = 'island_weather_provider_config';
+const WEATHER_LOCATION_CONFIG_KEY = 'island_weather_location_config';
 
 /** 默认网络请求超时（毫秒） */
 export const DEFAULT_NETWORK_TIMEOUT_MS = 10000;
 export const DEFAULT_WEATHER_PRIMARY_PROVIDER: WeatherProvider = 'open-meteo';
+export const DEFAULT_WEATHER_LOCATION_PRIORITY: WeatherLocationPriority = 'ip';
 
 /** 网络配置类型 */
 export interface NetworkConfig {
@@ -43,9 +45,21 @@ export interface NetworkConfig {
 }
 
 export type WeatherProvider = 'open-meteo' | 'uapi';
+export type WeatherLocationPriority = 'ip' | 'custom';
 
 export interface WeatherProviderConfig {
   primaryProvider: WeatherProvider;
+}
+
+export interface WeatherCustomLocationConfig {
+  latitude: number;
+  longitude: number;
+  city?: string;
+}
+
+export interface WeatherLocationConfig {
+  priority: WeatherLocationPriority;
+  customLocation: WeatherCustomLocationConfig | null;
 }
 
 /**
@@ -97,6 +111,47 @@ export function loadWeatherProviderConfig(): WeatherProviderConfig {
 export function saveWeatherProviderConfig(config: WeatherProviderConfig): void {
   try {
     localStorage.setItem(WEATHER_PROVIDER_CONFIG_KEY, JSON.stringify(config));
+  } catch { /* 忽略 */ }
+}
+
+/**
+ * 从本地存储加载天气定位策略配置
+ * @returns WeatherLocationConfig 天气定位策略配置对象
+ */
+export function loadWeatherLocationConfig(): WeatherLocationConfig {
+  try {
+    const raw = localStorage.getItem(WEATHER_LOCATION_CONFIG_KEY);
+    if (raw) {
+      const data = JSON.parse(raw) as WeatherLocationConfig;
+      const priority = data.priority === 'custom' ? 'custom' : 'ip';
+      const custom = data.customLocation;
+      const validCustom = custom
+        && typeof custom.latitude === 'number'
+        && Number.isFinite(custom.latitude)
+        && typeof custom.longitude === 'number'
+        && Number.isFinite(custom.longitude)
+        ? {
+          latitude: custom.latitude,
+          longitude: custom.longitude,
+          city: typeof custom.city === 'string' ? custom.city : '',
+        }
+        : null;
+      return { priority, customLocation: validCustom };
+    }
+  } catch { /* 忽略 */ }
+  return {
+    priority: DEFAULT_WEATHER_LOCATION_PRIORITY,
+    customLocation: null,
+  };
+}
+
+/**
+ * 保存天气定位策略配置到本地存储
+ * @param config - 要保存的天气定位策略配置
+ */
+export function saveWeatherLocationConfig(config: WeatherLocationConfig): void {
+  try {
+    localStorage.setItem(WEATHER_LOCATION_CONFIG_KEY, JSON.stringify(config));
   } catch { /* 忽略 */ }
 }
 
