@@ -59,9 +59,12 @@ export const SvgIcon = {
   LRC: './svg/LRC.svg',
   /** AI */
   AI: './svg/AI.svg',
-  /** SHOTCUT_KEY */
-  SHOTCUT_KEY : './svg/SHOTCUT_KEY.svg',
-  ABOUT: './svg/ABOUT.svg'
+  /** 快捷键 */
+  SHOTCUT_KEY: './svg/SHOTCUT_KEY.svg',
+  /** 关于 */
+  ABOUT: './svg/ABOUT.svg',
+  /** 移动 */
+  MOVE: './svg/MOVE.svg'
 } as const;
 
 export type SvgIconKey = keyof typeof SvgIcon;

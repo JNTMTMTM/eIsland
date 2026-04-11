@@ -373,12 +373,13 @@ const SETTINGS_TAB_DESCRIPTIONS: Record<Exclude<SettingsTabLabelKey, 'index'>, s
 const SETTINGS_TAB_ICONS: Partial<Record<SettingsTabLabelKey, string>> = {
   'layout-preview': SvgIcon.LAYOUT,
   'hide-process-list': SvgIcon.TASK_MANAGER,
+  position: SvgIcon.MOVE,
   network: SvgIcon.NETWORK,
   weather: SvgIcon.WEATHER,
   music: SvgIcon.LRC,
   ai: SvgIcon.AI,
   shortcut: SvgIcon.SHOTCUT_KEY,
-  about: SvgIcon.ABOUT
+  about: SvgIcon.ABOUT,
 };
 
 const NETWORK_TIMEOUT_OPTIONS = [
@@ -930,6 +931,7 @@ export function SettingsTab(): ReactElement {
                 >
                   <span className="settings-index-card-title">{SETTINGS_TAB_LABELS.position}</span>
                   <span className="settings-index-card-desc">{SETTINGS_TAB_DESCRIPTIONS.position}</span>
+                  <img className="settings-index-card-layout-icon" src={SETTINGS_TAB_ICONS.position} alt="" aria-hidden="true" />
                 </button>
 
                 {SETTINGS_TABS.filter((tab) => tab !== 'index' && tab !== 'app').map((tab) => (
