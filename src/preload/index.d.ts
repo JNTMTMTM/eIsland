@@ -64,6 +64,7 @@ declare global {
       getWindowBounds: () => Promise<{ x: number; y: number; width: number; height: number }>;
       getIslandPositionOffset: () => Promise<{ x: number; y: number }>;
       setIslandPositionOffset: (offset: { x: number; y: number }) => Promise<boolean>;
+      onIslandPositionOffsetChanged: (callback: (offset: { x: number; y: number }) => void) => () => void;
       quitApp: () => void;
       /** ===== 音乐相关 API ===== */
       mediaPlayPause: () => Promise<void>;

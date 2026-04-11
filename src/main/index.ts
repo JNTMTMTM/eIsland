@@ -947,6 +947,10 @@ function applyIslandPositionOffset(offset: IslandPositionOffset): void {
   const nextBaseBounds = getInitialIslandBounds();
   initialCenterX = nextBaseBounds.x + ISLAND_WIDTH / 2;
 
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('window:island-position:changed', { ...islandPositionOffset });
+  }
+
   if (!mainWindow || mainWindow.isDestroyed()) return;
   const bounds = mainWindow.getBounds();
   mainWindow.setBounds({

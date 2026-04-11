@@ -120,6 +120,20 @@ const api = {
     return ipcRenderer.invoke('window:island-position:set', offset);
   },
   /**
+   * 订阅灵动岛位置偏移变更
+   * @param callback - 回调函数
+   * @returns 取消订阅函数
+   */
+  onIslandPositionOffsetChanged: (callback: (offset: { x: number; y: number }) => void): (() => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, offset: { x: number; y: number }) => {
+      callback(offset);
+    };
+    ipcRenderer.on('window:island-position:changed', handler);
+    return () => {
+      ipcRenderer.removeListener('window:island-position:changed', handler);
+    };
+  },
+  /**
    * 退出应用
    */
   quitApp: (): void => {

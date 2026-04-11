@@ -497,6 +497,16 @@ export function SettingsTab(): ReactElement {
     return () => { cancelled = true; };
   }, []);
 
+  useEffect(() => {
+    const unsubscribe = window.api.onIslandPositionOffsetChanged((offset) => {
+      if (!offset) return;
+      const x = typeof offset.x === 'number' && Number.isFinite(offset.x) ? Math.round(offset.x) : 0;
+      const y = typeof offset.y === 'number' && Number.isFinite(offset.y) ? Math.round(offset.y) : 0;
+      setIslandPositionOffset({ x, y });
+    });
+    return unsubscribe;
+  }, []);
+
   /** 加载歌曲设置 */
   useEffect(() => {
     let cancelled = false;
