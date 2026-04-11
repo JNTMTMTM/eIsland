@@ -260,7 +260,7 @@ export function SongTab(): React.ReactElement {
   const currentPositionMs = useIslandStore((state) => state.currentPositionMs);
 
   const [now, setNow] = useState(new Date());
-  const [karaokeEnabled, setKaraokeEnabled] = useState(true);
+  const [karaokeEnabled, setKaraokeEnabled] = useState(false);
 
   /** 加载逐字扫光配置 */
   useEffect(() => {

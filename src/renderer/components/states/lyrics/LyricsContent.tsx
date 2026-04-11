@@ -73,7 +73,7 @@ export function LyricsContent(): ReactElement {
   const mediaInfo = useIslandStore((s) => s.mediaInfo);
   const setIdle = useIslandStore((s) => s.setIdle);
 
-  const [karaokeEnabled, setKaraokeEnabled] = useState(true);
+  const [karaokeEnabled, setKaraokeEnabled] = useState(false);
 
   /** 加载逐字扫光配置 */
   useEffect(() => {
