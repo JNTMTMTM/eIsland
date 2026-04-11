@@ -458,6 +458,7 @@ export function SettingsTab(): ReactElement {
   const [whitelistDraft, setWhitelistDraft] = useState<string>('');
   const [whitelistInputError, setWhitelistInputError] = useState<string>('');
   const [lyricsSource, setLyricsSource] = useState<string>('auto');
+  const [lyricsKaraoke, setLyricsKaraoke] = useState<boolean>(false);
   const [detectingSourceAppId, setDetectingSourceAppId] = useState(false);
   const [sourceAppDetectMessage, setSourceAppDetectMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [musicSmtcUnsubscribeInput, setMusicSmtcUnsubscribeInput] = useState<string>('5000');
@@ -572,6 +573,10 @@ export function SettingsTab(): ReactElement {
     window.api.musicLyricsSourceGet().then((src) => {
       if (cancelled) return;
       setLyricsSource(src);
+    }).catch(() => {});
+    window.api.musicLyricsKaraokeGet().then((enabled) => {
+      if (cancelled) return;
+      setLyricsKaraoke(enabled);
     }).catch(() => {});
     window.api.musicSmtcUnsubscribeMsGet().then((valueMs) => {
       if (cancelled) return;
@@ -2038,6 +2043,21 @@ export function SettingsTab(): ReactElement {
                             {opt.label}
                           </button>
                         ))}
+                      </div>
+                      <div className="settings-music-label" style={{ marginTop: 12 }}>逐字扫光</div>
+                      <div className="settings-music-hint">启用后歌词将以逐字高亮方式显示</div>
+                      <div className="settings-hotkey-row" style={{ alignItems: 'center' }}>
+                        <label className="settings-music-hint" style={{ marginBottom: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <input
+                            type="checkbox"
+                            checked={lyricsKaraoke}
+                            onChange={(e) => {
+                              setLyricsKaraoke(e.target.checked);
+                              window.api.musicLyricsKaraokeSet(e.target.checked).catch(() => {});
+                            }}
+                          />
+                          启用逐字扫光效果
+                        </label>
                       </div>
                     </div>
                   )}

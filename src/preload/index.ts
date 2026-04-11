@@ -397,6 +397,21 @@ const api = {
     return ipcRenderer.invoke('music:lyrics-source:set', source);
   },
   /**
+   * 获取逐字扫光开关
+   * @returns 是否启用逐字扫光
+   */
+  musicLyricsKaraokeGet: (): Promise<boolean> => {
+    return ipcRenderer.invoke('music:lyrics-karaoke:get');
+  },
+  /**
+   * 设置逐字扫光开关
+   * @param enabled - 是否启用
+   * @returns 是否保存成功
+   */
+  musicLyricsKaraokeSet: (enabled: boolean): Promise<boolean> => {
+    return ipcRenderer.invoke('music:lyrics-karaoke:set', enabled);
+  },
+  /**
    * 获取 SMTC 自动取消订阅时间（毫秒），0 表示永不取消
    */
   musicSmtcUnsubscribeMsGet: (): Promise<number> => {

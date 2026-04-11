@@ -216,6 +216,12 @@ export function SongTab(): React.ReactElement {
   const currentPositionMs = useIslandStore((state) => state.currentPositionMs);
 
   const [now, setNow] = useState(new Date());
+  const [karaokeEnabled, setKaraokeEnabled] = useState(true);
+
+  /** 加载逐字扫光配置 */
+  useEffect(() => {
+    window.api?.musicLyricsKaraokeGet().then(setKaraokeEnabled).catch(() => {});
+  }, []);
 
   /** 时钟 + 倒计时刷新 */
   useEffect(() => {
@@ -321,7 +327,7 @@ export function SongTab(): React.ReactElement {
                 key={line.key}
                 className={`ov-lrc-line ${line.isCurrent ? 'current' : ''}`}
               >
-                {line.isCurrent ? (
+                {line.isCurrent && karaokeEnabled ? (
                   <LyricLineChars text={line.text} lineProgress={lineProgress} />
                 ) : (
                   line.text
