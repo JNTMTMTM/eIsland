@@ -51,10 +51,10 @@ export function parseLrcTime(tag: string): number | null {
 
   let ms = 0;
   if (secParts.length > 1) {
-    const frac = secParts[1];
+    const frac = secParts[1].slice(0, 3);
     const val = parseInt(frac, 10);
     if (isNaN(val)) return null;
-    ms = frac.length === 2 ? val * 10 : val;
+    ms = frac.length === 1 ? val * 100 : frac.length === 2 ? val * 10 : val;
   }
 
   return min * 60000 + sec * 1000 + ms;
