@@ -62,6 +62,9 @@ declare global {
       hideWindow: () => void;
       getMousePosition: () => Promise<{ x: number; y: number }>;
       getWindowBounds: () => Promise<{ x: number; y: number; width: number; height: number }>;
+      getIslandPositionOffset: () => Promise<{ x: number; y: number }>;
+      setIslandPositionOffset: (offset: { x: number; y: number }) => Promise<boolean>;
+      onIslandPositionOffsetChanged: (callback: (offset: { x: number; y: number }) => void) => () => void;
       quitApp: () => void;
       /** ===== 音乐相关 API ===== */
       mediaPlayPause: () => Promise<void>;
@@ -102,6 +105,9 @@ declare global {
       /** ===== 截图快捷键 API ===== */
       screenshotHotkeyGet: () => Promise<string>;
       screenshotHotkeySet: (accelerator: string) => Promise<boolean>;
+      /** ===== 还原位置快捷键 API ===== */
+      resetPositionHotkeyGet: () => Promise<string>;
+      resetPositionHotkeySet: (accelerator: string) => Promise<boolean>;
       /** ===== 日志文件 API ===== */
       logWrite: (level: string, message: string) => void;
       /** ===== 歌曲设置 API ===== */

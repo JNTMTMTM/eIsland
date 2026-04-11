@@ -106,6 +106,34 @@ const api = {
     return ipcRenderer.invoke('window:get-bounds');
   },
   /**
+   * 获取灵动岛位置偏移
+   * @returns 相对主屏工作区顶部居中的偏移
+   */
+  getIslandPositionOffset: (): Promise<{ x: number; y: number }> => {
+    return ipcRenderer.invoke('window:island-position:get');
+  },
+  /**
+   * 设置并保存灵动岛位置偏移
+   * @param offset - 相对主屏工作区顶部居中的偏移
+   */
+  setIslandPositionOffset: (offset: { x: number; y: number }): Promise<boolean> => {
+    return ipcRenderer.invoke('window:island-position:set', offset);
+  },
+  /**
+   * 订阅灵动岛位置偏移变更
+   * @param callback - 回调函数
+   * @returns 取消订阅函数
+   */
+  onIslandPositionOffsetChanged: (callback: (offset: { x: number; y: number }) => void): (() => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, offset: { x: number; y: number }) => {
+      callback(offset);
+    };
+    ipcRenderer.on('window:island-position:changed', handler);
+    return () => {
+      ipcRenderer.removeListener('window:island-position:changed', handler);
+    };
+  },
+  /**
    * 退出应用
    */
   quitApp: (): void => {
@@ -312,6 +340,21 @@ const api = {
    */
   screenshotHotkeySet: (accelerator: string): Promise<boolean> => {
     return ipcRenderer.invoke('screenshot-hotkey:set', accelerator);
+  },
+  /**
+   * 获取当前还原默认位置快捷键
+   * @returns 当前快捷键字符串
+   */
+  resetPositionHotkeyGet: (): Promise<string> => {
+    return ipcRenderer.invoke('reset-position-hotkey:get');
+  },
+  /**
+   * 设置还原默认位置快捷键
+   * @param accelerator - Electron accelerator 字符串
+   * @returns 是否注册成功
+   */
+  resetPositionHotkeySet: (accelerator: string): Promise<boolean> => {
+    return ipcRenderer.invoke('reset-position-hotkey:set', accelerator);
   },
   /** ===== 日志文件 API ===== */
   /**

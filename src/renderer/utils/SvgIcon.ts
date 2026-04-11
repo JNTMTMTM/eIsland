@@ -49,6 +49,22 @@ export const SvgIcon = {
   POMODORO: './svg/POMODORO.svg',
   /** 音符 */
   MUSIC: './svg/MUSIC.svg',
+  /** 布局预览 */
+  LAYOUT: './svg/LAYOUT.svg',
+  /** 网络 */
+  NETWORK: './svg/NETWORK.svg',
+  /** 天气 */
+  WEATHER: './svg/WEATHER.svg',
+  /** 歌词 */
+  LRC: './svg/LRC.svg',
+  /** AI */
+  AI: './svg/AI.svg',
+  /** 快捷键 */
+  SHORTCUT_KEY: './svg/SHORTCUT_KEY.svg',
+  /** 关于 */
+  ABOUT: './svg/ABOUT.svg',
+  /** 移动 */
+  MOVE: './svg/MOVE.svg'
 } as const;
 
 export type SvgIconKey = keyof typeof SvgIcon;

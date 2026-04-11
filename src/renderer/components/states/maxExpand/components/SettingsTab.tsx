@@ -340,7 +340,47 @@ const WEATHER_PROVIDER_OPTIONS: Array<{ value: WeatherProvider; label: string }>
 ];
 
 /** 设置页侧边栏 Tab 顺序 */
-const SETTINGS_TABS: ('app' | 'network' | 'weather' | 'music' | 'ai' | 'shortcut' | 'about')[] = ['app', 'network', 'weather', 'music', 'ai', 'shortcut', 'about'];
+const SETTINGS_TABS: ('index' | 'app' | 'network' | 'weather' | 'music' | 'ai' | 'shortcut' | 'about')[] = ['index', 'app', 'network', 'weather', 'music', 'ai', 'shortcut', 'about'];
+type SettingsSidebarTabKey = (typeof SETTINGS_TABS)[number];
+type AppSettingsPageKey = 'layout-preview' | 'hide-process-list' | 'position';
+type SettingsTabLabelKey = SettingsSidebarTabKey | AppSettingsPageKey;
+
+const SETTINGS_TAB_LABELS: Record<SettingsTabLabelKey, string> = {
+  index: '快速导航',
+  app: '软件设置',
+  'layout-preview': '布局预览',
+  'hide-process-list': '隐藏进程管理',
+  position: '位置校准',
+  network: '网络配置',
+  weather: '天气配置',
+  music: '歌曲设置',
+  ai: 'AI Agent',
+  shortcut: '快捷键',
+  about: '关于软件',
+};
+const SETTINGS_TAB_DESCRIPTIONS: Record<Exclude<SettingsTabLabelKey, 'index'>, string> = {
+  app: '布局预览与隐藏进程规则配置',
+  'layout-preview': '进入布局预览并调整左右控件展示。',
+  'hide-process-list': '管理隐藏进程名单与自动隐藏规则。',
+  position: '动态调整灵动岛位置并保存',
+  network: '请求超时与网络行为设置',
+  weather: '天气接口优先级设置',
+  music: '播放器白名单与歌词来源',
+  ai: 'AI 服务与 Prompt 配置',
+  shortcut: '隐藏、关闭、截图快捷键',
+  about: '版本信息与项目链接',
+};
+const SETTINGS_TAB_ICONS: Partial<Record<SettingsTabLabelKey, string>> = {
+  'layout-preview': SvgIcon.LAYOUT,
+  'hide-process-list': SvgIcon.TASK_MANAGER,
+  position: SvgIcon.MOVE,
+  network: SvgIcon.NETWORK,
+  weather: SvgIcon.WEATHER,
+  music: SvgIcon.LRC,
+  ai: SvgIcon.AI,
+  shortcut: SvgIcon.SHORTCUT_KEY,
+  about: SvgIcon.ABOUT,
+};
 
 const NETWORK_TIMEOUT_OPTIONS = [
   { label: '5 秒', value: 5000 },
@@ -352,12 +392,7 @@ const NETWORK_TIMEOUT_OPTIONS = [
 
 const LAYOUT_STORE_KEY = 'overview-layout';
 const DEFAULT_LAYOUT: OverviewLayoutConfig = { left: 'shortcuts', right: 'todo' };
-const APP_SETTINGS_PAGES = [
-  { key: 'layout-preview', label: '布局预览' },
-  { key: 'hide-process-list', label: '隐藏进程名单' },
-] as const;
-
-type AppSettingsPageKey = (typeof APP_SETTINGS_PAGES)[number]['key'];
+const APP_SETTINGS_PAGES: AppSettingsPageKey[] = ['layout-preview', 'hide-process-list', 'position'];
 
 interface RunningProcessItem {
   name: string;
@@ -370,7 +405,7 @@ interface RunningProcessItem {
  * @returns 设置 Tab 组件
  */
 export function SettingsTab(): ReactElement {
-  const [activeTab, setActiveTab] = useState<'app' | 'network' | 'weather' | 'music' | 'ai' | 'shortcut' | 'about'>('app');
+  const [activeTab, setActiveTab] = useState<SettingsSidebarTabKey>('index');
   const [appSettingsPage, setAppSettingsPage] = useState<AppSettingsPageKey>('layout-preview');
   const { aiConfig, setAiConfig } = useIslandStore();
   const [editingPrompt, setEditingPrompt] = useState(false);
@@ -380,8 +415,9 @@ export function SettingsTab(): ReactElement {
   const activeTabRef = useRef(activeTab);
   activeTabRef.current = activeTab;
   const appSettingsPageRef = useRef(appSettingsPage);
-  const currentAppSettingsPageLabel = APP_SETTINGS_PAGES.find((page) => page.key === appSettingsPage)?.label || '布局预览';
+  const currentAppSettingsPageLabel = SETTINGS_TAB_LABELS[appSettingsPage] || '布局预览';
   appSettingsPageRef.current = appSettingsPage;
+
   const [layoutConfig, setLayoutConfig] = useState<OverviewLayoutConfig>(DEFAULT_LAYOUT);
 
   /** 歌曲设置相关状态 */
@@ -400,6 +436,8 @@ export function SettingsTab(): ReactElement {
   const [hideProcessList, setHideProcessList] = useState<string[]>([]);
   const [hideProcessFilter, setHideProcessFilter] = useState<string>('');
   const [hideProcessLoading, setHideProcessLoading] = useState(false);
+  const [islandPositionOffset, setIslandPositionOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [islandPositionInput, setIslandPositionInput] = useState<{ x: string; y: string }>({ x: '0', y: '0' });
   const [aboutVersion, setAboutVersion] = useState<string>('26.1.1-beta.3');
 
   /** 快捷键相关状态 */
@@ -419,6 +457,12 @@ export function SettingsTab(): ReactElement {
   const [screenshotHotkeyRecording, setScreenshotHotkeyRecording] = useState(false);
   const [screenshotHotkeyError, setScreenshotHotkeyError] = useState<string>('');
   const screenshotHotkeyInputRef = useRef<HTMLInputElement>(null);
+
+  /** 还原默认位置快捷键相关状态 */
+  const [resetPositionHotkey, setResetPositionHotkey] = useState<string>('');
+  const [resetPositionHotkeyRecording, setResetPositionHotkeyRecording] = useState(false);
+  const [resetPositionHotkeyError, setResetPositionHotkeyError] = useState<string>('');
+  const resetPositionHotkeyInputRef = useRef<HTMLInputElement>(null);
 
   const hideProcessKeyword = hideProcessFilter.trim().toLowerCase();
 
@@ -442,6 +486,34 @@ export function SettingsTab(): ReactElement {
     const cfg = loadWeatherProviderConfig();
     setWeatherPrimaryProvider(cfg.primaryProvider);
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    window.api.getIslandPositionOffset().then((offset) => {
+      if (cancelled || !offset) return;
+      const x = typeof offset.x === 'number' && Number.isFinite(offset.x) ? Math.round(offset.x) : 0;
+      const y = typeof offset.y === 'number' && Number.isFinite(offset.y) ? Math.round(offset.y) : 0;
+      setIslandPositionOffset({ x, y });
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    const unsubscribe = window.api.onIslandPositionOffsetChanged((offset) => {
+      if (!offset) return;
+      const x = typeof offset.x === 'number' && Number.isFinite(offset.x) ? Math.round(offset.x) : 0;
+      const y = typeof offset.y === 'number' && Number.isFinite(offset.y) ? Math.round(offset.y) : 0;
+      setIslandPositionOffset({ x, y });
+    });
+    return unsubscribe;
+  }, []);
+
+  useEffect(() => {
+    setIslandPositionInput({
+      x: String(islandPositionOffset.x),
+      y: String(islandPositionOffset.y),
+    });
+  }, [islandPositionOffset.x, islandPositionOffset.y]);
 
   /** 加载歌曲设置 */
   useEffect(() => {
@@ -484,6 +556,10 @@ export function SettingsTab(): ReactElement {
       if (cancelled) return;
       setScreenshotHotkey(key || '');
     }).catch(() => {});
+    window.api.resetPositionHotkeyGet().then((key) => {
+      if (cancelled) return;
+      setResetPositionHotkey(key || '');
+    }).catch(() => {});
     return () => { cancelled = true; };
   }, []);
 
@@ -499,6 +575,40 @@ export function SettingsTab(): ReactElement {
     setLayoutConfig(updated);
     window.api.storeWrite(LAYOUT_STORE_KEY, updated).catch(() => {});
   };
+
+  const applyIslandPositionOffset = (x: number, y: number): void => {
+    const next = {
+      x: Math.max(-2000, Math.min(2000, Math.round(x))),
+      y: Math.max(-1200, Math.min(1200, Math.round(y))),
+    };
+    setIslandPositionOffset(next);
+    window.api.setIslandPositionOffset(next).catch(() => {});
+  };
+
+  const applyIslandPositionInput = (): void => {
+    const parsedX = Number(islandPositionInput.x.trim());
+    const parsedY = Number(islandPositionInput.y.trim());
+    if (!Number.isFinite(parsedX) || !Number.isFinite(parsedY)) {
+      setIslandPositionInput({
+        x: String(islandPositionOffset.x),
+        y: String(islandPositionOffset.y),
+      });
+      return;
+    }
+
+    applyIslandPositionOffset(parsedX, parsedY);
+  };
+
+  const cancelIslandPositionInput = (): void => {
+    setIslandPositionInput({
+      x: String(islandPositionOffset.x),
+      y: String(islandPositionOffset.y),
+    });
+  };
+
+  const islandPositionInputChanged =
+    islandPositionInput.x.trim() !== String(islandPositionOffset.x)
+    || islandPositionInput.y.trim() !== String(islandPositionOffset.y);
 
   const toggleHideProcess = (processName: string): void => {
     const key = processName.trim().toLowerCase();
@@ -555,11 +665,13 @@ export function SettingsTab(): ReactElement {
       if (target.closest('.settings-field-textarea')) return;
       if (target.closest('.settings-whitelist-input')) return;
       if (target.closest('.settings-about')) return;
+      if (target.closest('.settings-index-section')) return;
+      if (target.closest('.settings-index-cards')) return;
 
       if (target.closest('.settings-hide-process-list')) return;
 
       if (activeTabRef.current === 'app' && target.closest('.settings-app-pages-layout')) {
-        const pages = APP_SETTINGS_PAGES.map((p) => p.key);
+        const pages = APP_SETTINGS_PAGES;
         const currentPage = appSettingsPageRef.current;
         const currentIdx = pages.indexOf(currentPage);
         if (currentIdx >= 0) {
@@ -640,7 +752,7 @@ export function SettingsTab(): ReactElement {
     setHotkeyError('');
     const acc = keyEventToAccelerator(e);
     if (!acc) return;
-    if ((quitHotkey && acc === quitHotkey) || (screenshotHotkey && acc === screenshotHotkey)) {
+    if ((quitHotkey && acc === quitHotkey) || (screenshotHotkey && acc === screenshotHotkey) || (resetPositionHotkey && acc === resetPositionHotkey)) {
       setHotkeyError('重复快捷键');
       setHotkeyRecording(false);
       hotkeyInputRef.current?.blur();
@@ -670,7 +782,7 @@ export function SettingsTab(): ReactElement {
     setQuitHotkeyError('');
     const acc = keyEventToAccelerator(e);
     if (!acc) return;
-    if ((hideHotkey && acc === hideHotkey) || (screenshotHotkey && acc === screenshotHotkey)) {
+    if ((hideHotkey && acc === hideHotkey) || (screenshotHotkey && acc === screenshotHotkey) || (resetPositionHotkey && acc === resetPositionHotkey)) {
       setQuitHotkeyError('重复快捷键');
       setQuitHotkeyRecording(false);
       quitHotkeyInputRef.current?.blur();
@@ -700,7 +812,7 @@ export function SettingsTab(): ReactElement {
     setScreenshotHotkeyError('');
     const acc = keyEventToAccelerator(e);
     if (!acc) return;
-    if ((hideHotkey && acc === hideHotkey) || (quitHotkey && acc === quitHotkey)) {
+    if ((hideHotkey && acc === hideHotkey) || (quitHotkey && acc === quitHotkey) || (resetPositionHotkey && acc === resetPositionHotkey)) {
       setScreenshotHotkeyError('重复快捷键');
       setScreenshotHotkeyRecording(false);
       screenshotHotkeyInputRef.current?.blur();
@@ -717,6 +829,36 @@ export function SettingsTab(): ReactElement {
       }
     }).catch(() => {
       setScreenshotHotkeyError('快捷键注册失败');
+    });
+  };
+
+  /**
+   * 还原位置快捷键录入键盘事件处理
+   * @param e - React 键盘事件
+   */
+  const handleResetPositionHotkeyKeyDown = (e: KeyboardEvent): void => {
+    e.preventDefault();
+    e.stopPropagation();
+    setResetPositionHotkeyError('');
+    const acc = keyEventToAccelerator(e);
+    if (!acc) return;
+    if ((hideHotkey && acc === hideHotkey) || (quitHotkey && acc === quitHotkey) || (screenshotHotkey && acc === screenshotHotkey)) {
+      setResetPositionHotkeyError('重复快捷键');
+      setResetPositionHotkeyRecording(false);
+      resetPositionHotkeyInputRef.current?.blur();
+      return;
+    }
+
+    window.api.resetPositionHotkeySet(acc).then((ok) => {
+      if (ok) {
+        setResetPositionHotkey(acc);
+        setResetPositionHotkeyRecording(false);
+        resetPositionHotkeyInputRef.current?.blur();
+      } else {
+        setResetPositionHotkeyError('快捷键注册失败，请尝试其他组合');
+      }
+    }).catch(() => {
+      setResetPositionHotkeyError('快捷键注册失败');
     });
   };
 
@@ -763,12 +905,20 @@ export function SettingsTab(): ReactElement {
         <div className="max-expand-settings-sidebar">
           <div className="max-expand-settings-sidebar-title">设置</div>
           <button
+            className={`max-expand-settings-sidebar-item ${activeTab === 'index' ? 'active' : ''}`}
+            onClick={() => setActiveTab('index')}
+            type="button"
+          >
+            <span className="sidebar-dot" />
+            {SETTINGS_TAB_LABELS.index}
+          </button>
+          <button
             className={`max-expand-settings-sidebar-item ${activeTab === 'app' ? 'active' : ''}`}
             onClick={() => setActiveTab('app')}
             type="button"
           >
             <span className="sidebar-dot" />
-            软件设置
+            {SETTINGS_TAB_LABELS.app}
           </button>
           <button
             className={`max-expand-settings-sidebar-item ${activeTab === 'network' ? 'active' : ''}`}
@@ -776,7 +926,7 @@ export function SettingsTab(): ReactElement {
             type="button"
           >
             <span className="sidebar-dot" />
-            网络配置
+            {SETTINGS_TAB_LABELS.network}
           </button>
           <button
             className={`max-expand-settings-sidebar-item ${activeTab === 'weather' ? 'active' : ''}`}
@@ -784,7 +934,7 @@ export function SettingsTab(): ReactElement {
             type="button"
           >
             <span className="sidebar-dot" />
-            天气配置
+            {SETTINGS_TAB_LABELS.weather}
           </button>
           <button
             className={`max-expand-settings-sidebar-item ${activeTab === 'music' ? 'active' : ''}`}
@@ -792,7 +942,7 @@ export function SettingsTab(): ReactElement {
             type="button"
           >
             <span className="sidebar-dot" />
-            歌曲设置
+            {SETTINGS_TAB_LABELS.music}
           </button>
           <button
             className={`max-expand-settings-sidebar-item ${activeTab === 'ai' ? 'active' : ''}`}
@@ -800,7 +950,7 @@ export function SettingsTab(): ReactElement {
             type="button"
           >
             <span className="sidebar-dot" />
-            AI Agent
+            {SETTINGS_TAB_LABELS.ai}
           </button>
           <button
             className={`max-expand-settings-sidebar-item ${activeTab === 'shortcut' ? 'active' : ''}`}
@@ -808,7 +958,7 @@ export function SettingsTab(): ReactElement {
             type="button"
           >
             <span className="sidebar-dot" />
-            快捷键
+            {SETTINGS_TAB_LABELS.shortcut}
           </button>
           <button
             className={`max-expand-settings-sidebar-item ${activeTab === 'about' ? 'active' : ''}`}
@@ -816,11 +966,75 @@ export function SettingsTab(): ReactElement {
             type="button"
           >
             <span className="sidebar-dot" />
-            关于软件
+            {SETTINGS_TAB_LABELS.about}
           </button>
         </div>
 
         <div className="max-expand-settings-panel">
+          {activeTab === 'index' && (
+            <div className="max-expand-settings-section settings-index-section">
+              <div className="settings-index-header">
+                <div className="max-expand-settings-title">快速导航</div>
+                <div className="settings-music-hint settings-index-hint">点击卡片可快速跳转到对应配置页。</div>
+              </div>
+              <div className="settings-index-cards" aria-label="设置快速导航">
+                <button
+                  className="settings-index-card"
+                  type="button"
+                  onClick={() => {
+                    setAppSettingsPage('layout-preview');
+                    setActiveTab('app');
+                  }}
+                >
+                  <span className="settings-index-card-title">{SETTINGS_TAB_LABELS['layout-preview']}</span>
+                  <span className="settings-index-card-desc">{SETTINGS_TAB_DESCRIPTIONS['layout-preview']}</span>
+                  <img className="settings-index-card-layout-icon" src={SETTINGS_TAB_ICONS['layout-preview']} alt="" aria-hidden="true" />
+                </button>
+
+                <button
+                  className="settings-index-card"
+                  type="button"
+                  onClick={() => {
+                    setAppSettingsPage('hide-process-list');
+                    setActiveTab('app');
+                  }}
+                >
+                  <span className="settings-index-card-title">{SETTINGS_TAB_LABELS['hide-process-list']}</span>
+                  <span className="settings-index-card-desc">{SETTINGS_TAB_DESCRIPTIONS['hide-process-list']}</span>
+                  <img className="settings-index-card-layout-icon" src={SETTINGS_TAB_ICONS['hide-process-list']} alt="" aria-hidden="true" />
+                </button>
+
+                <button
+                  className="settings-index-card"
+                  type="button"
+                  onClick={() => {
+                    setAppSettingsPage('position');
+                    setActiveTab('app');
+                  }}
+                >
+                  <span className="settings-index-card-title">{SETTINGS_TAB_LABELS.position}</span>
+                  <span className="settings-index-card-desc">{SETTINGS_TAB_DESCRIPTIONS.position}</span>
+                  <img className="settings-index-card-layout-icon" src={SETTINGS_TAB_ICONS.position} alt="" aria-hidden="true" />
+                </button>
+
+                {SETTINGS_TABS.filter((tab) => tab !== 'index' && tab !== 'app').map((tab) => (
+                  <button
+                    key={tab}
+                    className="settings-index-card"
+                    type="button"
+                    onClick={() => setActiveTab(tab)}
+                  >
+                    <span className="settings-index-card-title">{SETTINGS_TAB_LABELS[tab]}</span>
+                    <span className="settings-index-card-desc">{SETTINGS_TAB_DESCRIPTIONS[tab]}</span>
+                    {SETTINGS_TAB_ICONS[tab] && (
+                      <img className="settings-index-card-layout-icon" src={SETTINGS_TAB_ICONS[tab]} alt="" aria-hidden="true" />
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {activeTab === 'app' && (
             <div className="max-expand-settings-section">
               <div className="max-expand-settings-title settings-app-title-line">
@@ -942,18 +1156,101 @@ export function SettingsTab(): ReactElement {
                       </div>
                     </div>
                   )}
+
+                  {appSettingsPage === 'position' && (
+                    <div className="max-expand-settings-section">
+                      <div className="settings-music-section">
+                        <div className="settings-music-label">灵动岛位置偏移</div>
+                        <div className="settings-music-hint">调整后立即生效并自动保存，重启后会按该位置校准。</div>
+
+                        <div className="settings-hotkey-row">
+                          <button className="settings-hotkey-btn" type="button" onClick={() => applyIslandPositionOffset(islandPositionOffset.x - 10, islandPositionOffset.y)}>左移 10</button>
+                          <button className="settings-hotkey-btn" type="button" onClick={() => applyIslandPositionOffset(islandPositionOffset.x + 10, islandPositionOffset.y)}>右移 10</button>
+                          <button className="settings-hotkey-btn" type="button" onClick={() => applyIslandPositionOffset(islandPositionOffset.x, islandPositionOffset.y - 10)}>上移 10</button>
+                          <button className="settings-hotkey-btn" type="button" onClick={() => applyIslandPositionOffset(islandPositionOffset.x, islandPositionOffset.y + 10)}>下移 10</button>
+                        </div>
+
+                        <div className="settings-hotkey-row">
+                          <label className="settings-field" style={{ flex: 1 }}>
+                            <span className="settings-field-label">水平偏移 X（px）</span>
+                            <input
+                              className="settings-field-input"
+                              type="number"
+                              min={-2000}
+                              max={2000}
+                              value={islandPositionInput.x}
+                              onChange={(e) => {
+                                setIslandPositionInput((prev) => ({ ...prev, x: e.target.value }));
+                              }}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  applyIslandPositionInput();
+                                }
+                              }}
+                            />
+                          </label>
+                          <label className="settings-field" style={{ flex: 1 }}>
+                            <span className="settings-field-label">垂直偏移 Y（px）</span>
+                            <input
+                              className="settings-field-input"
+                              type="number"
+                              min={-1200}
+                              max={1200}
+                              value={islandPositionInput.y}
+                              onChange={(e) => {
+                                setIslandPositionInput((prev) => ({ ...prev, y: e.target.value }));
+                              }}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  applyIslandPositionInput();
+                                }
+                              }}
+                            />
+                          </label>
+                        </div>
+
+                        <div className="settings-hotkey-row">
+                          <button
+                            className="settings-hotkey-btn"
+                            type="button"
+                            onClick={applyIslandPositionInput}
+                            disabled={!islandPositionInputChanged}
+                          >
+                            应用
+                          </button>
+                          <button
+                            className="settings-hotkey-btn"
+                            type="button"
+                            onClick={cancelIslandPositionInput}
+                            disabled={!islandPositionInputChanged}
+                          >
+                            取消
+                          </button>
+                          <button
+                            className="settings-hotkey-btn"
+                            type="button"
+                            onClick={() => applyIslandPositionOffset(0, 0)}
+                          >
+                            重置为默认位置
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="settings-app-page-dots" aria-label="软件设置分页">
                   {APP_SETTINGS_PAGES.map((page) => (
                     <button
-                      key={page.key}
-                      className={`settings-app-page-dot ${appSettingsPage === page.key ? 'active' : ''}`}
-                      data-label={page.label}
+                      key={page}
+                      className={`settings-app-page-dot ${appSettingsPage === page ? 'active' : ''}`}
+                      data-label={SETTINGS_TAB_LABELS[page]}
                       type="button"
-                      onClick={() => setAppSettingsPage(page.key)}
-                      title={page.label}
-                      aria-label={page.label}
+                      onClick={() => setAppSettingsPage(page)}
+                      title={SETTINGS_TAB_LABELS[page]}
+                      aria-label={SETTINGS_TAB_LABELS[page]}
                     />
                   ))}
                 </div>
@@ -1192,7 +1489,59 @@ export function SettingsTab(): ReactElement {
                   )}
                 </div>
                 {screenshotHotkeyError && <div className="settings-hotkey-error">{screenshotHotkeyError}</div>}
-                <div className="settings-hotkey-hint">按下快捷键启动选区截图，框选后可复制到剪贴板或保存为文件（如 Alt+A、Ctrl+Shift+S）</div>
+                <div className="settings-hotkey-hint">按下此快捷键将触发截图选区流程（如 Alt+A、Ctrl+Shift+A）</div>
+              </div>
+              <div className="settings-hotkey-section">
+                <div className="settings-hotkey-label">还原默认位置快捷键</div>
+                <div className="settings-hotkey-row">
+                  <input
+                    ref={resetPositionHotkeyInputRef}
+                    className={`settings-hotkey-input ${resetPositionHotkeyRecording ? 'recording' : ''}${resetPositionHotkeyError ? ' error' : ''}`}
+                    type="text"
+                    readOnly
+                    value={resetPositionHotkeyRecording ? '请按下快捷键组合…' : (resetPositionHotkey || '未设置')}
+                    onFocus={() => {
+                      setResetPositionHotkeyRecording(true);
+                      setResetPositionHotkeyError('');
+                      window.api.hotkeySuspend().catch(() => {});
+                    }}
+                    onBlur={() => {
+                      setResetPositionHotkeyRecording(false);
+                      window.api.hotkeyResume().catch(() => {});
+                    }}
+                    onKeyDown={handleResetPositionHotkeyKeyDown}
+                  />
+                  <button
+                    className="settings-hotkey-btn"
+                    type="button"
+                    onClick={() => {
+                      setResetPositionHotkeyRecording(true);
+                      resetPositionHotkeyInputRef.current?.focus();
+                    }}
+                  >
+                    {resetPositionHotkeyRecording ? '录入中' : '修改'}
+                  </button>
+                  {resetPositionHotkey && (
+                    <button
+                      className="settings-hotkey-btn"
+                      type="button"
+                      onClick={() => {
+                        window.api.resetPositionHotkeySet('').then((ok) => {
+                          if (ok) {
+                            setResetPositionHotkey('');
+                            setResetPositionHotkeyError('');
+                            setResetPositionHotkeyRecording(false);
+                            resetPositionHotkeyInputRef.current?.blur();
+                          }
+                        }).catch(() => {});
+                      }}
+                    >
+                      清除
+                    </button>
+                  )}
+                </div>
+                {resetPositionHotkeyError && <div className="settings-hotkey-error">{resetPositionHotkeyError}</div>}
+                <div className="settings-hotkey-hint">按下此快捷键将把灵动岛恢复到默认顶部居中位置</div>
               </div>
             </div>
           )}

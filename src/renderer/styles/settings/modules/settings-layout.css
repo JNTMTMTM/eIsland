@@ -64,7 +64,7 @@
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 6px;
   padding: 6px 0;
 }
@@ -85,11 +85,13 @@
   align-items: center;
   gap: 8px;
   padding: 6px 8px;
+  min-height: 30px;
   color: rgba(255, 255, 255, 0.35);
   font-size: 12px;
-  font-weight: 400;
+  font-weight: 500;
   cursor: pointer;
-  transition: color 0.3s ease, font-size 0.3s cubic-bezier(0.25, 1, 0.5, 1), font-weight 0.3s ease, transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+  border-radius: 6px;
+  transition: color 0.2s ease;
 }
 
 .max-expand-settings-sidebar-item:hover {
@@ -97,30 +99,31 @@
 }
 
 .max-expand-settings-sidebar-item.active {
-  color: #fff;
-  font-size: 14px;
-  font-weight: 600;
-  transform: translateX(2px);
+  color: rgba(255, 255, 255, 0.95);
 }
 
 /** 导航点 */
 .sidebar-dot {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.2);
+  width: 3px;
+  height: 12px;
+  border-radius: 2px;
+  background: transparent;
   flex-shrink: 0;
-  transition: background 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+  transition: background 0.2s ease, transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.2s ease;
+  transform: scaleY(0.4);
+  opacity: 0;
 }
 
 .max-expand-settings-sidebar-item:hover .sidebar-dot {
-  background: rgba(255, 255, 255, 0.45);
+  background: rgba(255, 255, 255, 0.3);
+  transform: scaleY(0.8);
+  opacity: 1;
 }
 
 .max-expand-settings-sidebar-item.active .sidebar-dot {
   background: #fff;
-  box-shadow: 0 0 6px rgba(255, 255, 255, 0.5);
-  transform: scale(1.2);
+  transform: scaleY(1);
+  opacity: 1;
 }
 
 .max-expand-settings-panel {
@@ -141,6 +144,103 @@
 .max-expand-settings-panel::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.12);
   border-radius: 2px;
+}
+
+.settings-index-section {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.settings-index-header {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  gap: 10px;
+}
+
+.settings-index-hint {
+  margin-bottom: 4px;
+}
+
+.settings-index-cards {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 2px;
+  padding-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  align-content: start;
+}
+
+.settings-index-cards::-webkit-scrollbar {
+  width: 4px;
+}
+
+.settings-index-cards::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.16);
+  border-radius: 2px;
+}
+
+.settings-index-card {
+  appearance: none;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.04));
+  color: rgba(255, 255, 255, 0.92);
+  position: relative;
+  overflow: hidden;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 72px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: border-color 0.22s ease, background 0.22s ease, transform 0.22s ease, box-shadow 0.22s ease;
+}
+
+.settings-index-card:hover {
+  border-color: rgba(255, 255, 255, 0.28);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.07));
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18);
+}
+
+.settings-index-card-title {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.2;
+  position: relative;
+  z-index: 1;
+}
+
+.settings-index-card-desc {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.62);
+  line-height: 1.35;
+  position: relative;
+  z-index: 1;
+}
+
+.settings-index-card-layout-icon {
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  width: 54px;
+  height: 54px;
+  opacity: 0.07;
+  filter: blur(0.5px);
+  z-index: 0;
+  pointer-events: none;
+}
+
+@media (max-width: 760px) {
+  .settings-index-cards {
+    grid-template-columns: 1fr;
+  }
 }
 
 .max-expand-settings-section {
