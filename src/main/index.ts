@@ -379,6 +379,9 @@ const HIDE_PROCESS_LIST_STORE_KEY = 'hide-process-list';
 /** 主题模式存储键名 */
 const THEME_MODE_STORE_KEY = 'theme-mode';
 
+/** 灵动岛透明度存储键名 */
+const ISLAND_OPACITY_STORE_KEY = 'island-opacity';
+
 /** 灵动岛位置偏移存储键名 */
 const ISLAND_POSITION_STORE_KEY = 'island-position-offset';
 
@@ -1671,6 +1674,41 @@ function registerIpcHandlers(): void {
       return true;
     } catch (err) {
       console.error('[Theme] persist error:', err);
+      return false;
+    }
+  });
+
+  /**
+   * 获取灵动岛透明度
+   * @returns 透明度值 0-100（百分比）
+   */
+  ipcMain.handle('island:opacity:get', () => {
+    try {
+      const filePath = join(storeDir, `${ISLAND_OPACITY_STORE_KEY}.json`);
+      if (!existsSync(filePath)) return 100;
+      const raw = readFileSync(filePath, 'utf-8');
+      const data = JSON.parse(raw);
+      const val = typeof data === 'number' ? data : 100;
+      return Math.max(10, Math.min(100, Math.round(val)));
+    } catch {
+      return 100;
+    }
+  });
+
+  /**
+   * 设置灵动岛透明度并持久化
+   * @param _event - IPC 事件
+   * @param opacity - 透明度值 0-100（百分比）
+   * @returns 是否保存成功
+   */
+  ipcMain.handle('island:opacity:set', (_event, opacity: number) => {
+    try {
+      const safe = Math.max(10, Math.min(100, Math.round(opacity)));
+      const filePath = join(storeDir, `${ISLAND_OPACITY_STORE_KEY}.json`);
+      writeFileSync(filePath, JSON.stringify(safe, null, 2), 'utf-8');
+      return true;
+    } catch (err) {
+      console.error('[Opacity] persist error:', err);
       return false;
     }
   });

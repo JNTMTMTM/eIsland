@@ -35,18 +35,24 @@ import {
   loadNetworkConfig,
   saveNetworkConfig,
   DEFAULT_NETWORK_TIMEOUT_MS,
+  type WeatherProvider,
+  type WeatherLocationPriority,
+  DEFAULT_WEATHER_PRIMARY_PROVIDER,
+  DEFAULT_WEATHER_LOCATION_PRIORITY,
   loadWeatherProviderConfig,
   saveWeatherProviderConfig,
-  DEFAULT_WEATHER_PRIMARY_PROVIDER,
-  type WeatherProvider,
   loadWeatherLocationConfig,
   saveWeatherLocationConfig,
-  DEFAULT_WEATHER_LOCATION_PRIORITY,
-  type WeatherLocationPriority,
 } from '../../../../store/utils/storage';
+
 import { resolveDistrictLocationByKeyword } from '../../../../api/adcodeApi';
 import { fetchVersion } from '../../../../api/versionApi';
 import { setThemeMode as applyThemeMode, getThemeMode, type ThemeMode } from '../../../../utils/theme';
+
+function applyIslandOpacity(opacity: number): void {
+  const safe = Math.max(10, Math.min(100, Math.round(opacity)));
+  document.documentElement.style.setProperty('--island-opacity', String(safe));
+}
 
 /** 单行配置项 */
 function SettingsField({
@@ -483,6 +489,7 @@ export function SettingsTab(): ReactElement {
   const [hideProcessFilter, setHideProcessFilter] = useState<string>('');
   const [hideProcessLoading, setHideProcessLoading] = useState(false);
   const [themeMode, setThemeModeState] = useState<ThemeMode>(getThemeMode);
+  const [islandOpacity, setIslandOpacity] = useState<number>(100);
   const [islandPositionOffset, setIslandPositionOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [islandPositionInput, setIslandPositionInput] = useState<{ x: string; y: string }>({ x: '0', y: '0' });
   const [aboutVersion, setAboutVersion] = useState<string>('26.1.1-beta.3');
@@ -547,6 +554,17 @@ export function SettingsTab(): ReactElement {
       const x = typeof offset.x === 'number' && Number.isFinite(offset.x) ? Math.round(offset.x) : 0;
       const y = typeof offset.y === 'number' && Number.isFinite(offset.y) ? Math.round(offset.y) : 0;
       setIslandPositionOffset({ x, y });
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    window.api.islandOpacityGet().then((val) => {
+      if (cancelled) return;
+      const safe = typeof val === 'number' ? Math.max(10, Math.min(100, Math.round(val))) : 100;
+      setIslandOpacity(safe);
+      applyIslandOpacity(safe);
     }).catch(() => {});
     return () => { cancelled = true; };
   }, []);
@@ -1560,6 +1578,32 @@ export function SettingsTab(): ReactElement {
                               {opt.label}
                             </button>
                           ))}
+                        </div>
+
+                        <div className="settings-music-label" style={{ marginTop: 14 }}>灵动岛透明度</div>
+                        <div className="settings-music-hint">数值越低越透明（10% - 100%），调整后立即生效</div>
+                        <div className="settings-opacity-slider-row">
+                          <input
+                            className="settings-opacity-slider"
+                            type="range"
+                            min={10}
+                            max={100}
+                            step={1}
+                            value={islandOpacity}
+                            onChange={(e) => {
+                              const v = Number(e.target.value);
+                              const safe = Number.isFinite(v) ? Math.max(10, Math.min(100, Math.round(v))) : 100;
+                              setIslandOpacity(safe);
+                              applyIslandOpacity(safe);
+                            }}
+                            onMouseUp={() => {
+                              window.api.islandOpacitySet(islandOpacity).catch(() => {});
+                            }}
+                            onTouchEnd={() => {
+                              window.api.islandOpacitySet(islandOpacity).catch(() => {});
+                            }}
+                          />
+                          <span className="settings-opacity-slider-value">{islandOpacity}%</span>
                         </div>
                       </div>
                     </div>

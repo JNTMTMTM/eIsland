@@ -43,7 +43,7 @@
 /** ===== 浅色主题覆盖 ===== */
 [data-theme="light"] {
   --color-text-rgb: 0, 0, 0;
-  --color-island-bg: rgba(245, 245, 247, 0.92);
+  --color-island-bg: #f5f5f7;
   --color-island-text: #1d1d1f;
   --color-shadow-rgb: 0, 0, 0;
   --icon-invert: 0;

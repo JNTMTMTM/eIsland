@@ -1140,3 +1140,66 @@
 .settings-network-custom.active .settings-network-custom-unit {
   color: rgba(var(--color-text-rgb), 0.8);
 }
+
+/** ========== 透明度滑块 ========== */
+.settings-opacity-slider-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.settings-opacity-slider-value {
+  min-width: 42px;
+  text-align: right;
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: rgba(var(--color-text-rgb), 0.8);
+}
+
+.settings-opacity-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(var(--color-text-rgb), 0.1);
+  outline: none;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.settings-opacity-slider:hover {
+  background: rgba(var(--color-text-rgb), 0.15);
+}
+
+.settings-opacity-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  margin-top: -6px;
+  border-radius: 50%;
+  background: var(--color-island-text);
+  border: 2px solid rgba(var(--color-text-rgb), 0.2);
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.25);
+  cursor: grab;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.settings-opacity-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+}
+
+.settings-opacity-slider::-webkit-slider-thumb:active {
+  cursor: grabbing;
+  transform: scale(1.05);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+.settings-opacity-slider::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 3px;
+}

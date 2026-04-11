@@ -30,6 +30,7 @@
   width: 260px;
   height: 42px;
   background: var(--color-island-bg);
+  opacity: calc(var(--island-opacity, 100) / 100);
   border-radius: 0 0 22px 22px;
   display: flex;
   align-items: center;

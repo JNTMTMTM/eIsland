@@ -133,6 +133,9 @@ declare global {
       /** ===== 主题 API ===== */
       themeModeGet: () => Promise<string>;
       themeModeSet: (mode: string) => Promise<boolean>;
+      /** ===== 灵动岛透明度 API ===== */
+      islandOpacityGet: () => Promise<number>;
+      islandOpacitySet: (opacity: number) => Promise<boolean>;
     };
   }
 }

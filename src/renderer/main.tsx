@@ -31,6 +31,11 @@ import DynamicIsland from './components/DynamicIsland';
 import useIslandStore from './store/slices';
 import { initTheme } from './utils/theme';
 
+function applyIslandOpacity(opacity: number): void {
+  const safe = Math.max(10, Math.min(100, Math.round(opacity)));
+  document.documentElement.style.setProperty('--island-opacity', String(safe));
+}
+
 const root = document.getElementById('root');
 if (!root) {
   throw new Error('[Renderer] 未找到 #root 挂载节点');
@@ -38,6 +43,13 @@ if (!root) {
 
 /** 启动时初始化主题（读取持久化设置并应用 data-theme，在 React 挂载前执行避免闪烁） */
 initTheme();
+
+/** 启动时初始化灵动岛透明度（在 React 挂载前设置，避免首次渲染闪烁） */
+window.api?.islandOpacityGet?.().then((val) => {
+  applyIslandOpacity(typeof val === 'number' ? val : 100);
+}).catch(() => {
+  applyIslandOpacity(100);
+});
 
 /** 启动时拉取最新天气数据（内部流程：读缓存 → 获取定位 → 获取天气 → 写缓存） */
 useIslandStore.getState().fetchWeatherData();

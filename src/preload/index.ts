@@ -478,6 +478,21 @@ const api = {
    */
   themeModeSet: (mode: string): Promise<boolean> => {
     return ipcRenderer.invoke('theme:mode:set', mode);
+  },
+  /**
+   * 获取灵动岛透明度
+   * @returns 透明度值 10-100
+   */
+  islandOpacityGet: (): Promise<number> => {
+    return ipcRenderer.invoke('island:opacity:get');
+  },
+  /**
+   * 设置灵动岛透明度
+   * @param opacity - 透明度值 10-100
+   * @returns 是否保存成功
+   */
+  islandOpacitySet: (opacity: number): Promise<boolean> => {
+    return ipcRenderer.invoke('island:opacity:set', opacity);
   }
 };
 
