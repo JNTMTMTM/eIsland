@@ -90,6 +90,38 @@ function formatCountdownRemaining(targetDate: string): string {
   return `${m}分`;
 }
 
+// ===================== 歌词文本轮播组件 =====================
+
+/**
+ * 歌词文本轮播
+ * @description 文本超出容器时自动从右向左滚动，停顿后循环
+ */
+function MarqueeLyricText({ children }: { children: React.ReactNode }): React.ReactElement {
+  const outerRef = useRef<HTMLDivElement>(null);
+  const innerRef = useRef<HTMLSpanElement>(null);
+  const [overflow, setOverflow] = useState(0);
+
+  useEffect(() => {
+    const outer = outerRef.current;
+    const inner = innerRef.current;
+    if (!outer || !inner) { setOverflow(0); return; }
+    const diff = inner.scrollWidth - outer.clientWidth;
+    setOverflow(diff > 1 ? diff : 0);
+  });
+
+  return (
+    <div ref={outerRef} className="ov-lrc-marquee-wrap">
+      <span
+        ref={innerRef}
+        className={overflow > 0 ? 'ov-lrc-marquee-inner scrolling' : 'ov-lrc-marquee-inner'}
+        style={overflow > 0 ? { '--marquee-dist': `${-overflow}px`, '--marquee-dur': `${Math.max(3, overflow / 30)}s` } as React.CSSProperties : undefined}
+      >
+        {children}
+      </span>
+    </div>
+  );
+}
+
 // ===================== 歌词渐变扫光组件 =====================
 
 /**
@@ -327,11 +359,13 @@ export function SongTab(): React.ReactElement {
                 key={line.key}
                 className={`ov-lrc-line ${line.isCurrent ? 'current' : ''}`}
               >
-                {line.isCurrent && karaokeEnabled ? (
-                  <LyricLineChars text={line.text} lineProgress={lineProgress} />
-                ) : (
-                  line.text
-                )}
+                <MarqueeLyricText>
+                  {line.isCurrent && karaokeEnabled ? (
+                    <LyricLineChars text={line.text} lineProgress={lineProgress} />
+                  ) : (
+                    line.text
+                  )}
+                </MarqueeLyricText>
               </div>
             ))}
           </div>

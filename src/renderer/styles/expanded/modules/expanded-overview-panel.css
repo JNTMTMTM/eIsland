@@ -353,7 +353,6 @@
   text-align: center;
   max-width: 100%;
   overflow: hidden;
-  text-overflow: ellipsis;
   white-space: nowrap;
   transition: color 0.3s ease, opacity 0.3s ease, transform 0.3s ease;
   opacity: 0.75;
@@ -387,6 +386,33 @@
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
+}
+
+/* ---- 歌词行：轮播滚动 ---- */
+.ov-lrc-marquee-wrap {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  vertical-align: bottom;
+  box-sizing: border-box;
+  padding: 0 5px;
+}
+
+.ov-lrc-marquee-inner {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.ov-lrc-marquee-inner.scrolling {
+  animation: ovLrcMarquee var(--marquee-dur, 4s) linear 0.8s infinite;
+}
+
+@keyframes ovLrcMarquee {
+  0%    { transform: translateX(0); }
+  15%   { transform: translateX(0); }
+  85%   { transform: translateX(var(--marquee-dist, -50px)); }
+  100%  { transform: translateX(var(--marquee-dist, -50px)); }
 }
 
 @keyframes ovLrcIn {
