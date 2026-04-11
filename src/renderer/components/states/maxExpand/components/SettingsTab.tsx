@@ -437,6 +437,7 @@ export function SettingsTab(): ReactElement {
   const [hideProcessFilter, setHideProcessFilter] = useState<string>('');
   const [hideProcessLoading, setHideProcessLoading] = useState(false);
   const [islandPositionOffset, setIslandPositionOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [islandPositionInput, setIslandPositionInput] = useState<{ x: string; y: string }>({ x: '0', y: '0' });
   const [aboutVersion, setAboutVersion] = useState<string>('26.1.1-beta.3');
 
   /** 快捷键相关状态 */
@@ -507,6 +508,13 @@ export function SettingsTab(): ReactElement {
     return unsubscribe;
   }, []);
 
+  useEffect(() => {
+    setIslandPositionInput({
+      x: String(islandPositionOffset.x),
+      y: String(islandPositionOffset.y),
+    });
+  }, [islandPositionOffset.x, islandPositionOffset.y]);
+
   /** 加载歌曲设置 */
   useEffect(() => {
     let cancelled = false;
@@ -576,6 +584,31 @@ export function SettingsTab(): ReactElement {
     setIslandPositionOffset(next);
     window.api.setIslandPositionOffset(next).catch(() => {});
   };
+
+  const applyIslandPositionInput = (): void => {
+    const parsedX = Number(islandPositionInput.x.trim());
+    const parsedY = Number(islandPositionInput.y.trim());
+    if (!Number.isFinite(parsedX) || !Number.isFinite(parsedY)) {
+      setIslandPositionInput({
+        x: String(islandPositionOffset.x),
+        y: String(islandPositionOffset.y),
+      });
+      return;
+    }
+
+    applyIslandPositionOffset(parsedX, parsedY);
+  };
+
+  const cancelIslandPositionInput = (): void => {
+    setIslandPositionInput({
+      x: String(islandPositionOffset.x),
+      y: String(islandPositionOffset.y),
+    });
+  };
+
+  const islandPositionInputChanged =
+    islandPositionInput.x.trim() !== String(islandPositionOffset.x)
+    || islandPositionInput.y.trim() !== String(islandPositionOffset.y);
 
   const toggleHideProcess = (processName: string): void => {
     const key = processName.trim().toLowerCase();
@@ -1145,11 +1178,15 @@ export function SettingsTab(): ReactElement {
                               type="number"
                               min={-2000}
                               max={2000}
-                              value={islandPositionOffset.x}
+                              value={islandPositionInput.x}
                               onChange={(e) => {
-                                const nextX = Number(e.target.value);
-                                if (!Number.isFinite(nextX)) return;
-                                applyIslandPositionOffset(nextX, islandPositionOffset.y);
+                                setIslandPositionInput((prev) => ({ ...prev, x: e.target.value }));
+                              }}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  applyIslandPositionInput();
+                                }
                               }}
                             />
                           </label>
@@ -1160,17 +1197,37 @@ export function SettingsTab(): ReactElement {
                               type="number"
                               min={-1200}
                               max={1200}
-                              value={islandPositionOffset.y}
+                              value={islandPositionInput.y}
                               onChange={(e) => {
-                                const nextY = Number(e.target.value);
-                                if (!Number.isFinite(nextY)) return;
-                                applyIslandPositionOffset(islandPositionOffset.x, nextY);
+                                setIslandPositionInput((prev) => ({ ...prev, y: e.target.value }));
+                              }}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  applyIslandPositionInput();
+                                }
                               }}
                             />
                           </label>
                         </div>
 
                         <div className="settings-hotkey-row">
+                          <button
+                            className="settings-hotkey-btn"
+                            type="button"
+                            onClick={applyIslandPositionInput}
+                            disabled={!islandPositionInputChanged}
+                          >
+                            应用
+                          </button>
+                          <button
+                            className="settings-hotkey-btn"
+                            type="button"
+                            onClick={cancelIslandPositionInput}
+                            disabled={!islandPositionInputChanged}
+                          >
+                            取消
+                          </button>
                           <button
                             className="settings-hotkey-btn"
                             type="button"
