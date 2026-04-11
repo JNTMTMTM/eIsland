@@ -486,6 +486,7 @@ interface RunningProcessItem {
  * @returns 设置 Tab 组件
  */
 export function SettingsTab(): ReactElement {
+  const opacitySaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [activeTab, setActiveTab] = useState<SettingsSidebarTabKey>('index');
   const [appSettingsPage, setAppSettingsPage] = useState<AppSettingsPageKey>('layout-preview');
   const [weatherSettingsPage, setWeatherSettingsPage] = useState<WeatherSettingsPageKey>('location');
@@ -548,6 +549,10 @@ export function SettingsTab(): ReactElement {
   const [islandPositionOffset, setIslandPositionOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [islandPositionInput, setIslandPositionInput] = useState<{ x: string; y: string }>({ x: '0', y: '0' });
   const [aboutVersion, setAboutVersion] = useState<string>('26.1.1-beta.3');
+
+  const persistIslandOpacity = (opacity: number): void => {
+    window.api.islandOpacitySet(opacity).catch(() => {});
+  };
 
   const visibleCards = useMemo(() => {
     const seen = new Set<string>();
@@ -666,6 +671,15 @@ export function SettingsTab(): ReactElement {
       applyIslandOpacity(safe);
     }).catch(() => {});
     return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (opacitySaveTimerRef.current) {
+        clearTimeout(opacitySaveTimerRef.current);
+        opacitySaveTimerRef.current = null;
+      }
+    };
   }, []);
 
   useEffect(() => {
@@ -1781,12 +1795,20 @@ export function SettingsTab(): ReactElement {
                               const safe = Number.isFinite(v) ? Math.max(10, Math.min(100, Math.round(v))) : 100;
                               setIslandOpacity(safe);
                               applyIslandOpacity(safe);
+                              if (opacitySaveTimerRef.current) {
+                                clearTimeout(opacitySaveTimerRef.current);
+                              }
+                              opacitySaveTimerRef.current = setTimeout(() => {
+                                persistIslandOpacity(safe);
+                                opacitySaveTimerRef.current = null;
+                              }, 220);
                             }}
-                            onMouseUp={() => {
-                              window.api.islandOpacitySet(islandOpacity).catch(() => {});
-                            }}
-                            onTouchEnd={() => {
-                              window.api.islandOpacitySet(islandOpacity).catch(() => {});
+                            onBlur={() => {
+                              if (opacitySaveTimerRef.current) {
+                                clearTimeout(opacitySaveTimerRef.current);
+                                opacitySaveTimerRef.current = null;
+                              }
+                              persistIslandOpacity(islandOpacity);
                             }}
                           />
                           <span className="settings-opacity-slider-value">{islandOpacity}%</span>
