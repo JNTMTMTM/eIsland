@@ -63,10 +63,8 @@ const PROCESS_TO_PROVIDER: Array<{ pattern: RegExp; provider: Provider }> = [
 function detectProviderFromProcess(sourceAppId: string): Provider | null {
   if (!sourceAppId) return null;
   const lower = sourceAppId.toLowerCase();
-  for (const { pattern, provider } of PROCESS_TO_PROVIDER) {
-    if (pattern.test(lower)) return provider;
-  }
-  return null;
+  const matched = PROCESS_TO_PROVIDER.find(({ pattern }) => pattern.test(lower));
+  return matched?.provider ?? null;
 }
 
 async function tryProviders(
@@ -74,15 +72,16 @@ async function tryProviders(
   title: string,
   artist: string,
 ): Promise<LyricLine[] | null> {
-  for (const p of providers) {
+  return providers.reduce<Promise<LyricLine[] | null>>(async (prevPromise, provider) => {
+    const prev = await prevPromise;
+    if (prev) return prev;
     try {
-      const result = await PROVIDER_MAP[p](title, artist);
-      if (result && result.length > 0) return result;
+      const result = await PROVIDER_MAP[provider](title, artist);
+      return result && result.length > 0 ? result : null;
     } catch {
-      // continue to next provider
+      return null;
     }
-  }
-  return null;
+  }, Promise.resolve(null));
 }
 
 const SOURCE_SETTING_TO_PROVIDER: Record<string, Provider> = {

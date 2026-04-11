@@ -106,24 +106,21 @@ export const createWeatherSlice: StateCreator<
           ? ['custom', 'ip'] as const
           : ['ip', 'custom'] as const;
 
-        for (const source of order) {
+        location = await order.reduce<Promise<typeof location>>(async (prevPromise, source) => {
+          const prev = await prevPromise;
+          if (prev) return prev;
+
           if (source === 'custom') {
-            const custom = resolveByCustom();
-            if (custom) {
-              location = custom;
-              break;
-            }
-            continue;
+            return resolveByCustom();
           }
 
           try {
-            const ip = await resolveByIp();
-            location = ip;
-            break;
+            return await resolveByIp();
           } catch (locError) {
             logger.warn('[Weather] IP 定位失败:', locError);
+            return null;
           }
-        }
+        }, Promise.resolve(null));
 
         if (location) {
           saveLocationToStorage(location);

@@ -43,22 +43,22 @@ export async function fetchLyricsFromSodaMusic(title: string, artist: string): P
     const resultGroups = searchJson.result_groups as unknown[] | undefined;
     if (!resultGroups || resultGroups.length === 0) return null;
 
-    let trackId: string | null = null;
-    for (const group of resultGroups) {
+    const trackId = resultGroups.reduce<string | null>((acc, group) => {
+      if (acc) return acc;
       const g = group as Record<string, unknown>;
       const items = g.data as unknown[] | undefined;
-      if (!items) continue;
-      for (const item of items) {
+      if (!items) return null;
+      const matchedItem = items.find((item) => {
         const it = item as Record<string, unknown>;
         const entity = it.entity as Record<string, unknown> | undefined;
         const track = entity?.track as Record<string, unknown> | undefined;
-        if (track?.id) {
-          trackId = typeof track.id === 'number' ? String(track.id) : String(track.id);
-          break;
-        }
-      }
-      if (trackId) break;
-    }
+        return Boolean(track?.id);
+      }) as Record<string, unknown> | undefined;
+      if (!matchedItem) return null;
+      const entity = matchedItem.entity as Record<string, unknown> | undefined;
+      const track = entity?.track as Record<string, unknown> | undefined;
+      return track?.id ? String(track.id) : null;
+    }, null);
 
     if (!trackId) return null;
 

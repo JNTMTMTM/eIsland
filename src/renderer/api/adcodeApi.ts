@@ -78,7 +78,7 @@ function parseCoordinateObject(value: unknown): { latitude: number; longitude: n
   const obj = value as Record<string, unknown>;
   const latitude = toFiniteNumber(obj.lat) ?? toFiniteNumber(obj.latitude);
   const longitude = toFiniteNumber(obj.lng) ?? toFiniteNumber(obj.lon) ?? toFiniteNumber(obj.longitude);
-  if (latitude == null || longitude == null) return null;
+  if (latitude === null || longitude === null) return null;
   return { latitude, longitude };
 }
 
@@ -88,7 +88,7 @@ function parseCoordinateText(value: unknown): { latitude: number; longitude: num
   if (parts.length < 2) return null;
   const first = toFiniteNumber(parts[0]);
   const second = toFiniteNumber(parts[1]);
-  if (first == null || second == null) return null;
+  if (first === null || second === null) return null;
 
   if (Math.abs(first) <= 90 && Math.abs(second) <= 180) {
     return { latitude: first, longitude: second };
@@ -114,7 +114,7 @@ function extractDistrictItems(result: DistrictQueryResult): DistrictItem[] {
 function resolveDistrictCoordinates(item: DistrictItem): { latitude: number; longitude: number } | null {
   const latitude = toFiniteNumber(item.lat) ?? toFiniteNumber(item.latitude);
   const longitude = toFiniteNumber(item.lng) ?? toFiniteNumber(item.lon) ?? toFiniteNumber(item.longitude);
-  if (latitude != null && longitude != null) return { latitude, longitude };
+  if (latitude !== null && longitude !== null) return { latitude, longitude };
 
   const fromCenter = parseCoordinateText(item.center);
   if (fromCenter) return fromCenter;

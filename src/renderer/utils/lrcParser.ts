@@ -90,30 +90,31 @@ export function parseSyncedLrc(lrc: string): LyricLine[] {
  * 退化为逐行：取每行的起始时间 + 拼接所有字级文本
  */
 export function parseYrc(yrc: string): LyricLine[] {
-  const lines: LyricLine[] = [];
   const wordTagRe = /\(\d+,\d+,\d+\)/g;
 
-  for (const raw of yrc.split('\n')) {
-    const trimmed = raw.trim();
-    if (!trimmed.startsWith('[')) continue;
-    const closeIdx = trimmed.indexOf(']');
-    if (closeIdx === -1) continue;
+  return yrc
+    .split('\n')
+    .reduce<LyricLine[]>((acc, raw) => {
+      const trimmed = raw.trim();
+      if (!trimmed.startsWith('[')) return acc;
+      const closeIdx = trimmed.indexOf(']');
+      if (closeIdx === -1) return acc;
 
-    const inner = trimmed.slice(1, closeIdx);
-    const commaIdx = inner.indexOf(',');
-    if (commaIdx === -1) continue;
+      const inner = trimmed.slice(1, closeIdx);
+      const commaIdx = inner.indexOf(',');
+      if (commaIdx === -1) return acc;
 
-    const startMs = parseInt(inner.slice(0, commaIdx), 10);
-    if (isNaN(startMs)) continue;
+      const startMs = parseInt(inner.slice(0, commaIdx), 10);
+      if (isNaN(startMs)) return acc;
 
-    const textRaw = trimmed.slice(closeIdx + 1);
-    const text = textRaw.replace(wordTagRe, '').trim();
-    if (text && !META_PREFIXES.some((prefix) => text.startsWith(prefix))) {
-      lines.push({ time_ms: startMs, text });
-    }
-  }
-
-  return lines.sort((a, b) => a.time_ms - b.time_ms);
+      const textRaw = trimmed.slice(closeIdx + 1);
+      const text = textRaw.replace(wordTagRe, '').trim();
+      if (text && !META_PREFIXES.some((prefix) => text.startsWith(prefix))) {
+        acc.push({ time_ms: startMs, text });
+      }
+      return acc;
+    }, [])
+    .sort((a, b) => a.time_ms - b.time_ms);
 }
 
 /**
@@ -140,40 +141,41 @@ export function parseKrc(content: string): LyricLine[] {
   }
 
   const wordTagRe = /<\d+,\d+,\d+>/g;
-  const lines: LyricLine[] = [];
 
-  for (const raw of content.split('\n')) {
-    const trimmed = raw.trim();
-    if (!trimmed || !trimmed.startsWith('[')) continue;
+  return content
+    .split('\n')
+    .reduce<LyricLine[]>((acc, raw) => {
+      const trimmed = raw.trim();
+      if (!trimmed || !trimmed.startsWith('[')) return acc;
 
-    const closeIdx = trimmed.indexOf(']');
-    if (closeIdx === -1) continue;
+      const closeIdx = trimmed.indexOf(']');
+      if (closeIdx === -1) return acc;
 
-    const inner = trimmed.slice(1, closeIdx);
-    const commaIdx = inner.indexOf(',');
-    if (commaIdx === -1) continue;
+      const inner = trimmed.slice(1, closeIdx);
+      const commaIdx = inner.indexOf(',');
+      if (commaIdx === -1) return acc;
 
-    const startPart = inner.slice(0, commaIdx);
-    const durPart = inner.slice(commaIdx + 1);
+      const startPart = inner.slice(0, commaIdx);
+      const durPart = inner.slice(commaIdx + 1);
 
-    if (
-      !startPart.split('').every((ch) => ch >= '0' && ch <= '9') ||
-      !durPart.split('').every((ch) => ch >= '0' && ch <= '9')
-    ) {
-      continue;
-    }
+      if (
+        !startPart.split('').every((ch) => ch >= '0' && ch <= '9') ||
+        !durPart.split('').every((ch) => ch >= '0' && ch <= '9')
+      ) {
+        return acc;
+      }
 
-    const startMs = parseInt(startPart, 10);
-    if (isNaN(startMs)) continue;
+      const startMs = parseInt(startPart, 10);
+      if (isNaN(startMs)) return acc;
 
-    const textRaw = trimmed.slice(closeIdx + 1);
-    const text = textRaw.replace(wordTagRe, '').trim();
-    if (text && !META_PREFIXES.some((prefix) => text.startsWith(prefix))) {
-      lines.push({ time_ms: startMs, text });
-    }
-  }
-
-  return lines.sort((a, b) => a.time_ms - b.time_ms);
+      const textRaw = trimmed.slice(closeIdx + 1);
+      const text = textRaw.replace(wordTagRe, '').trim();
+      if (text && !META_PREFIXES.some((prefix) => text.startsWith(prefix))) {
+        acc.push({ time_ms: startMs, text });
+      }
+      return acc;
+    }, [])
+    .sort((a, b) => a.time_ms - b.time_ms);
 }
 
 function normalize(s: string): string {
