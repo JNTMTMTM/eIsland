@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-04-11T08:24:44.816Z
+> 生成时间：2026-04-11T11:06:11.706Z
 
 ## 26.1.2
 
@@ -410,6 +410,29 @@
 
 ## Unreleased
 
+- 2026-04-11 | 68fd571 | 鸡哥 | Merge pull request #29 from JNTMTMTM/dev
+- 2026-04-11 | 63f74cf | 鸡哥 | refactor: 优先使用高级语法替换循环
+- 2026-04-11 | 37d74b5 | 鸡哥 | feat(setting): karaokeEnabled 初始值都从 true 改为 false
+- 2026-04-11 | 7301c98 | 鸡哥 | pref: measure 函数用 useCallback 缓存 避免重复创建
+- 2026-04-11 | 1179738 | 鸡哥 | fix: 不再在日志中记录完整的歌词响应体
+- 2026-04-11 | a05c370 | 鸡哥 | feat: 增加了对歌词异常输入的容错
+- 2026-04-11 | a5a484b | 鸡哥 | fix: 修复 parseKrc 过滤metadata错误的问题
+- 2026-04-11 | 9badf67 | 鸡哥 | fix: 修复parseLrcTime小数点截断问题
+- 2026-04-11 | 8c3a4d6 | 鸡哥 | fix: 修复不符合注释规范的地方
+- 2026-04-11 | ec70631 | 鸡哥 | fix: 修复LyricContent状态未收到配置项制约的问题
+- 2026-04-11 | 4ac11ad | 鸡哥 | feat: 添加超长歌词句轮播功能
+- 2026-04-11 | 50fca2a | 鸡哥 | feat(setting): 添加逐字扫光动态效果配置项
+- 2026-04-11 | d2b0dcd | 鸡哥 | feat: 更新歌曲界面歌词源配置项
+- 2026-04-11 | 82c9ce7 | 鸡哥 | fix: 修复错误使用json解密JSONP数据问题
+- 2026-04-11 | 3e62ea3 | 鸡哥 | feat: 添加酷狗音乐QQ音乐歌词解密算法
+- 2026-04-11 | e83b13d | 鸡哥 | refactor: 精准匹配歌词源 提高命中率
+- 2026-04-11 | 693c130 | 鸡哥 | feat: 修改歌曲配置界面布局
+- 2026-04-11 | c28fa1c | 鸡哥 | feat: 添加SMTC取消订阅配置项
+- 2026-04-11 | 4cb3f63 | 鸡哥 | fix: 修复天气配置无法立即生效的问题
+- 2026-04-11 | 9ff80c4 | 鸡哥 | feat: 优化天气定位配置项
+- 2026-04-11 | a966550 | 鸡哥 | feat: 添加 Adcode 国内外行政区域查询接口
+- 2026-04-11 | 2ba9260 | 鸡哥 | feat: 添加更多的天气配置界面配置项
+- 2026-04-11 | 6c8d9d6 | github-actions[bot] | docs: auto update CHANGE_LOG.md for #28 by @JNTMTMTM [skip ci]
 - 2026-04-11 | 717ef31 | 鸡哥 | Merge pull request #28 from JNTMTMTM/dev
 - 2026-04-11 | de98b86 | 鸡哥 | fix: 修复展开态窗口可能被推到屏幕外的问题
 - 2026-04-11 | ae8e979 | 鸡哥 | fix: 修复 applyIslandPositionOffset  高频IPC IO问题
