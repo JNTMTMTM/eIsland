@@ -27,10 +27,31 @@
 @import "tailwindcss";
 
 @theme {
-  --color-island-bg: #000000;
-  --color-island-text: #ffffff;
   --color-island-accent: oklch(0.7 0.15 250);
   --color-island-pill: oklch(0.65 0.12 250);
+}
+
+/** ===== 主题变量（dark 默认） ===== */
+:root {
+  --color-text-rgb: 255, 255, 255;
+  --color-island-bg: #000000;
+  --color-island-text: #ffffff;
+  --color-shadow-rgb: 0, 0, 0;
+  --icon-invert: 1;
+}
+
+/** ===== 浅色主题覆盖 ===== */
+[data-theme="light"] {
+  --color-text-rgb: 0, 0, 0;
+  --color-island-bg: rgba(245, 245, 247, 0.92);
+  --color-island-text: #1d1d1f;
+  --color-shadow-rgb: 0, 0, 0;
+  --icon-invert: 0;
+}
+
+/** 浅色主题下灵动岛添加微妙边框与阴影以提升可见性 */
+[data-theme="light"] .island-shell {
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.06);
 }
 
 /** 强制根元素透明，使 Electron 透明窗口生效 */
@@ -43,6 +64,7 @@ body,
   padding: 0;
   overflow: hidden;
   background: transparent !important;
+  color: var(--color-island-text);
   -webkit-app-region: no-drag;
 }
 

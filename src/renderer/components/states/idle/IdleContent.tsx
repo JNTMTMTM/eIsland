@@ -126,28 +126,28 @@ export function IdleContent({
               }}
             />
             <div className="flex items-center gap-1">
-              <span className="text-sm text-white font-medium tabular-nums">
+              <span className="text-sm text-[var(--color-island-text)] font-medium tabular-nums">
                 {timeStr}
               </span>
-              <span className="text-xs text-white opacity-50">
+              <span className="text-xs text-[var(--color-island-text)] opacity-50">
                 {dayStr}
               </span>
             </div>
           </div>
           {isTimerActive ? (
             <div className="flex items-center gap-1.5">
-              <span className="text-xs text-white opacity-60">倒计时</span>
-              <span className="text-sm text-white font-medium tabular-nums">
+              <span className="text-xs text-[var(--color-island-text)] opacity-60">倒计时</span>
+              <span className="text-sm text-[var(--color-island-text)] font-medium tabular-nums">
                 {padZero(h)}:{padZero(m)}:{padZero(s)}
               </span>
             </div>
           ) : isPomodoroActive ? (
             <div className="flex items-center gap-1.5">
-              <span className="flex items-center gap-1 text-xs text-white opacity-60">
+              <span className="flex items-center gap-1 text-xs text-[var(--color-island-text)] opacity-60">
                 <img src={SvgIcon.POMODORO} alt="番茄钟" style={{ width: 12, height: 12 }} />
                 番茄钟
               </span>
-              <span className="text-sm text-white font-medium tabular-nums">
+              <span className="text-sm text-[var(--color-island-text)] font-medium tabular-nums">
                 {padZero(pomodoroM)}:{padZero(pomodoroS)}
               </span>
             </div>
@@ -159,10 +159,10 @@ export function IdleContent({
             </div>
           ) : (
             <div className="flex items-center gap-1.5">
-              <span className="text-xs text-white opacity-60">
+              <span className="text-xs text-[var(--color-island-text)] opacity-60">
                 {weather.description || '—'}
               </span>
-              <span className="text-sm text-white font-medium tabular-nums">
+              <span className="text-sm text-[var(--color-island-text)] font-medium tabular-nums">
                 {weather.temperature > 0 ? `${weather.temperature}°` : '--°'}
               </span>
             </div>
@@ -171,28 +171,28 @@ export function IdleContent({
       ) : (
         <>
           <div className="flex items-center gap-2">
-            <span className="text-sm text-white font-medium tabular-nums">
+            <span className="text-sm text-[var(--color-island-text)] font-medium tabular-nums">
               {timeStr}
             </span>
-            <span className="text-xs text-white opacity-50">
+            <span className="text-xs text-[var(--color-island-text)] opacity-50">
               {dayStr}
             </span>
           </div>
 
           {isTimerActive ? (
             <div className="flex items-center gap-1.5">
-              <span className="text-xs text-white opacity-60">倒计时</span>
-              <span className="text-sm text-white font-medium tabular-nums">
+              <span className="text-xs text-[var(--color-island-text)] opacity-60">倒计时</span>
+              <span className="text-sm text-[var(--color-island-text)] font-medium tabular-nums">
                 {padZero(h)}:{padZero(m)}:{padZero(s)}
               </span>
             </div>
           ) : isPomodoroActive ? (
             <div className="flex items-center gap-1.5">
-              <span className="flex items-center gap-1 text-xs text-white opacity-60">
+              <span className="flex items-center gap-1 text-xs text-[var(--color-island-text)] opacity-60">
                 <img src={SvgIcon.POMODORO} alt="番茄钟" style={{ width: 15, height: 15 }} />
                 番茄钟
               </span>
-              <span className="text-sm text-white font-medium tabular-nums">
+              <span className="text-sm text-[var(--color-island-text)] font-medium tabular-nums">
                 {padZero(pomodoroM)}:{padZero(pomodoroS)}
               </span>
             </div>
@@ -204,10 +204,10 @@ export function IdleContent({
             </div>
           ) : (
             <div className="flex items-center gap-1.5">
-              <span className="text-xs text-white opacity-60">
+              <span className="text-xs text-[var(--color-island-text)] opacity-60">
                 {weather.description || '—'}
               </span>
-              <span className="text-sm text-white font-medium tabular-nums">
+              <span className="text-sm text-[var(--color-island-text)] font-medium tabular-nums">
                 {weather.temperature > 0 ? `${weather.temperature}°` : '--°'}
               </span>
             </div>

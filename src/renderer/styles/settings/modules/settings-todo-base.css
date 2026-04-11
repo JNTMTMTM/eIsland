@@ -46,7 +46,7 @@
 .expand-todo-title {
   font-size: 13px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(var(--color-text-rgb), 0.9);
   letter-spacing: 0.5px;
 }
 
@@ -77,8 +77,8 @@
 }
 
 .expand-todo-stat.undone {
-  background: rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.45);
+  background: rgba(var(--color-text-rgb), 0.08);
+  color: rgba(var(--color-text-rgb), 0.45);
 }
 
 .expand-todo-stat.p0 {
@@ -106,23 +106,23 @@
 
 .expand-todo-input {
   flex: 1;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(var(--color-text-rgb), 0.06);
+  border: 1px solid rgba(var(--color-text-rgb), 0.08);
   border-radius: 8px;
   padding: 4px 10px;
-  color: #fff;
+  color: var(--color-island-text);
   font-size: 12px;
   outline: none;
   transition: border-color 0.2s ease, background 0.2s ease;
 }
 
 .expand-todo-input::placeholder {
-  color: rgba(255, 255, 255, 0.25);
+  color: rgba(var(--color-text-rgb), 0.25);
 }
 
 .expand-todo-input:focus {
-  border-color: rgba(255, 255, 255, 0.2);
-  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(var(--color-text-rgb), 0.2);
+  background: rgba(var(--color-text-rgb), 0.08);
 }
 
 /** 选择器组（紧急程度 / 大小） */
@@ -133,7 +133,7 @@
   flex-shrink: 0;
   padding: 2px;
   border-radius: 6px;
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(var(--color-text-rgb), 0.04);
 }
 
 .expand-todo-tag {
@@ -143,7 +143,7 @@
   border: none;
   border-radius: 4px;
   background: transparent;
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(var(--color-text-rgb), 0.3);
   font-size: 9px;
   font-weight: 600;
   letter-spacing: 0.3px;
@@ -153,19 +153,19 @@
 }
 
 .expand-todo-tag:hover {
-  color: rgba(255, 255, 255, 0.6);
-  background: rgba(255, 255, 255, 0.06);
+  color: rgba(var(--color-text-rgb), 0.6);
+  background: rgba(var(--color-text-rgb), 0.06);
   transform: scale(1.05);
 }
 
 .expand-todo-tag.active {
-  color: var(--tag-color, rgba(255, 255, 255, 0.9));
+  color: var(--tag-color, rgba(var(--color-text-rgb), 0.9));
   background: color-mix(in srgb, var(--tag-color, #fff) 18%, transparent);
   box-shadow: 0 0 8px color-mix(in srgb, var(--tag-color, #fff) 25%, transparent);
 }
 
 .expand-todo-tag.size.active {
-  color: var(--tag-color, rgba(255, 255, 255, 0.9));
+  color: var(--tag-color, rgba(var(--color-text-rgb), 0.9));
   background: color-mix(in srgb, var(--tag-color, #fff) 18%, transparent);
   box-shadow: 0 0 8px color-mix(in srgb, var(--tag-color, #fff) 25%, transparent);
 }
@@ -189,7 +189,7 @@
   font-weight: 600;
   padding: 1px 4px;
   border-radius: 3px;
-  color: var(--tag-color, rgba(255, 255, 255, 0.5));
+  color: var(--tag-color, rgba(var(--color-text-rgb), 0.5));
   background: color-mix(in srgb, var(--tag-color, #fff) 15%, transparent);
   line-height: 1.3;
 }
@@ -199,8 +199,8 @@
   height: 24px;
   border-radius: 6px;
   border: none;
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.6);
+  background: rgba(var(--color-text-rgb), 0.1);
+  color: rgba(var(--color-text-rgb), 0.6);
   font-size: 14px;
   line-height: 1;
   cursor: pointer;
@@ -209,8 +209,8 @@
 }
 
 .expand-todo-add:hover {
-  background: rgba(255, 255, 255, 0.18);
-  color: #fff;
+  background: rgba(var(--color-text-rgb), 0.18);
+  color: var(--color-island-text);
 }
 
 /** 列表 */
@@ -227,7 +227,7 @@
 }
 
 .expand-todo-list::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(var(--color-text-rgb), 0.1);
   border-radius: 2px;
 }
 
@@ -260,12 +260,12 @@
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  border: 2px solid rgba(255, 255, 255, 0.08);
+  border: 2px solid rgba(var(--color-text-rgb), 0.08);
   animation: onboardingPulse 2.5s ease-in-out infinite;
 }
 
 @keyframes onboardingPulse {
-  0%, 100% { transform: scale(1); border-color: rgba(255, 255, 255, 0.08); }
+  0%, 100% { transform: scale(1); border-color: rgba(var(--color-text-rgb), 0.08); }
   50% { transform: scale(1.12); border-color: rgba(120, 220, 140, 0.25); }
 }
 
@@ -288,13 +288,13 @@
 .expand-todo-onboarding-title {
   font-size: 18px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(var(--color-text-rgb), 0.6);
   letter-spacing: 0.5px;
 }
 
 .expand-todo-onboarding-desc {
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(var(--color-text-rgb), 0.3);
   text-align: center;
   line-height: 1.4;
 }
@@ -311,7 +311,7 @@
   align-items: center;
   gap: 6px;
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.35);
+  color: rgba(var(--color-text-rgb), 0.35);
   animation: onboardingFeatureIn 0.4s ease both;
 }
 
@@ -335,7 +335,7 @@
 .expand-todo-onboarding-hint {
   margin-top: 8px;
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.2);
+  color: rgba(var(--color-text-rgb), 0.2);
   animation: onboardingHintPulse 2s ease-in-out infinite;
 }
 
@@ -353,7 +353,7 @@
 }
 
 .expand-todo-item.expanded {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(var(--color-text-rgb), 0.03);
 }
 
 /** 标题行（可点击展开） */
@@ -368,13 +368,13 @@
 }
 
 .expand-todo-row:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(var(--color-text-rgb), 0.05);
 }
 
 /** 展开箭头 */
 .expand-todo-arrow {
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.2);
+  color: rgba(var(--color-text-rgb), 0.2);
   flex-shrink: 0;
   transition: transform 0.2s ease, color 0.2s ease;
   transform: rotate(0deg);
@@ -382,7 +382,7 @@
 
 .expand-todo-arrow.open {
   transform: rotate(90deg);
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(var(--color-text-rgb), 0.5);
 }
 
 /** 待办内容区域（文本 + 时间） */
@@ -396,7 +396,7 @@
 
 .expand-todo-text {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(var(--color-text-rgb), 0.85);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -405,12 +405,12 @@
 
 .expand-todo-item.done .expand-todo-text {
   text-decoration: line-through;
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(var(--color-text-rgb), 0.3);
 }
 
 .expand-todo-time {
   font-size: 9px;
-  color: rgba(255, 255, 255, 0.2);
+  color: rgba(var(--color-text-rgb), 0.2);
   white-space: nowrap;
   flex-shrink: 0;
 }
@@ -420,7 +420,7 @@
   height: 16px;
   border: none;
   background: none;
-  color: rgba(255, 255, 255, 0.35);
+  color: rgba(var(--color-text-rgb), 0.35);
   font-size: 11px;
   cursor: pointer;
   padding: 0;
@@ -441,7 +441,7 @@
   height: 14px;
   border: none;
   background: none;
-  color: rgba(255, 255, 255, 0.12);
+  color: rgba(var(--color-text-rgb), 0.12);
   font-size: 12px;
   cursor: pointer;
   padding: 0;
@@ -465,18 +465,18 @@
   justify-content: space-between;
   flex-shrink: 0;
   padding-top: 2px;
-  border-top: 1px solid rgba(255, 255, 255, 0.04);
+  border-top: 1px solid rgba(var(--color-text-rgb), 0.04);
 }
 
 .expand-todo-count {
   font-size: 10px;
-  color: rgba(255, 255, 255, 0.25);
+  color: rgba(var(--color-text-rgb), 0.25);
 }
 
 .expand-todo-clear {
   border: none;
   background: none;
-  color: rgba(255, 255, 255, 0.25);
+  color: rgba(var(--color-text-rgb), 0.25);
   font-size: 10px;
   cursor: pointer;
   padding: 0;
@@ -484,7 +484,7 @@
 }
 
 .expand-todo-clear:hover {
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(var(--color-text-rgb), 0.6);
 }
 
 /** 进度条包裹 */
@@ -499,7 +499,7 @@
   width: 32px;
   height: 4px;
   border-radius: 2px;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(var(--color-text-rgb), 0.08);
   overflow: hidden;
 }
 
@@ -514,7 +514,7 @@
 .expand-todo-progress-label {
   font-size: 8px;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(var(--color-text-rgb), 0.3);
   line-height: 1;
 }
 
@@ -524,7 +524,7 @@
   min-width: 0;
   max-width: 80px;
   font-size: 9px;
-  color: rgba(255, 255, 255, 0.2);
+  color: rgba(var(--color-text-rgb), 0.2);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

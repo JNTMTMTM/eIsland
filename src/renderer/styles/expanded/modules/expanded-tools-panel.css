@@ -41,7 +41,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1.5px dashed rgba(255, 255, 255, 0.12);
+  border: 1.5px dashed rgba(var(--color-text-rgb), 0.12);
   border-radius: 10px;
   transition: border-color 0.2s ease, background 0.2s ease;
   cursor: default;
@@ -62,7 +62,7 @@
 .tools-drop-zone-icon {
   font-size: 26px;
   font-weight: 300;
-  color: rgba(255, 255, 255, 0.15);
+  color: rgba(var(--color-text-rgb), 0.15);
   line-height: 1;
 }
 
@@ -72,7 +72,7 @@
 
 .tools-drop-zone-hint {
   font-size: 9px;
-  color: rgba(255, 255, 255, 0.2);
+  color: rgba(var(--color-text-rgb), 0.2);
 }
 
 .tools-drop-zone-hint.active {
@@ -118,12 +118,12 @@
 .tools-app-list-title {
   font-size: 11px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.55);
+  color: rgba(var(--color-text-rgb), 0.55);
 }
 
 .tools-app-list-count {
   font-size: 9px;
-  color: rgba(255, 255, 255, 0.2);
+  color: rgba(var(--color-text-rgb), 0.2);
 }
 
 .tools-app-list-body {
@@ -140,7 +140,7 @@
 }
 
 .tools-app-list-body::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(var(--color-text-rgb), 0.1);
   border-radius: 2px;
 }
 
@@ -150,7 +150,7 @@
   justify-content: center;
   height: 100%;
   font-size: 10px;
-  color: rgba(255, 255, 255, 0.15);
+  color: rgba(var(--color-text-rgb), 0.15);
 }
 
 /** 单条应用行 */
@@ -164,7 +164,7 @@
 }
 
 .tools-app-row:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(var(--color-text-rgb), 0.05);
 }
 
 .tools-app-icon-wrap {
@@ -190,7 +190,7 @@
 
 .tools-app-name {
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(var(--color-text-rgb), 0.7);
   min-width: 50px;
   max-width: 90px;
   overflow: hidden;
@@ -202,8 +202,8 @@
 
 .tools-app-edit-input {
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.9);
-  background: rgba(255, 255, 255, 0.08);
+  color: rgba(var(--color-text-rgb), 0.9);
+  background: rgba(var(--color-text-rgb), 0.08);
   border: 1px solid rgba(120, 200, 255, 0.4);
   border-radius: 4px;
   padding: 1px 4px;
@@ -215,7 +215,7 @@
 
 .tools-app-path {
   font-size: 9px;
-  color: rgba(255, 255, 255, 0.2);
+  color: rgba(var(--color-text-rgb), 0.2);
   flex: 1;
   min-width: 0;
   overflow: hidden;

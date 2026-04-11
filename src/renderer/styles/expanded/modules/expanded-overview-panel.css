@@ -104,7 +104,7 @@
 .ov-meta-title {
   font-size: 11px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.88);
+  color: rgba(var(--color-text-rgb), 0.88);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -112,7 +112,7 @@
 
 .ov-meta-artist {
   font-size: 9px;
-  color: rgba(255, 255, 255, 0.50);
+  color: rgba(var(--color-text-rgb), 0.50);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -120,7 +120,7 @@
 
 .ov-meta-album {
   font-size: 9px;
-  color: rgba(255, 255, 255, 0.30);
+  color: rgba(var(--color-text-rgb), 0.30);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -138,7 +138,7 @@
   width: 22px;
   height: 22px;
   border: none;
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(var(--color-text-rgb), 0.06);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -148,21 +148,21 @@
   padding: 0;
 }
 
-.ov-ctrl-btn:hover { background: rgba(255, 255, 255, 0.15); }
+.ov-ctrl-btn:hover { background: rgba(var(--color-text-rgb), 0.15); }
 .ov-ctrl-btn:active { transform: scale(0.9); }
 .ov-ctrl-btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; }
 
 .ov-ctrl-play {
   width: 24px;
   height: 24px;
-  background: rgba(255, 255, 255, 0.10);
+  background: rgba(var(--color-text-rgb), 0.10);
 }
 
 .ov-ctrl-icon {
   width: 12px;
   height: 12px;
   object-fit: contain;
-  filter: brightness(0) invert(1);
+  filter: brightness(0) invert(var(--icon-invert));
   opacity: 0.85;
 }
 
@@ -210,7 +210,7 @@
   width: 4px;
   height: 4px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.6);
+  background: rgba(var(--color-text-rgb), 0.6);
   animation: ov-lrc-dot-bounce 1.2s ease-in-out infinite;
 }
 
@@ -220,14 +220,14 @@
 
 .ov-lrc-loading-label {
   font-size: 10px;
-  color: rgba(255, 255, 255, 0.28);
+  color: rgba(var(--color-text-rgb), 0.28);
   margin-left: 4px;
   letter-spacing: 0.02em;
 }
 
 .ov-lrc-hint {
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.18);
+  color: rgba(var(--color-text-rgb), 0.18);
   z-index: 1;
 }
 
@@ -258,7 +258,7 @@
 
 .ov-onboarding-note {
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.35);
+  color: rgba(var(--color-text-rgb), 0.35);
   z-index: 1;
   animation: ovNoteFloat 2.5s ease-in-out infinite;
 }
@@ -272,7 +272,7 @@
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  border: 1.5px solid rgba(var(--color-text-rgb), 0.12);
   animation: ovRingPulse 2.5s ease-in-out infinite;
 }
 
@@ -284,13 +284,13 @@
 .ov-onboarding-title {
   font-size: 14px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.65);
+  color: rgba(var(--color-text-rgb), 0.65);
   letter-spacing: 0.5px;
 }
 
 .ov-onboarding-desc {
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.38);
+  color: rgba(var(--color-text-rgb), 0.38);
 }
 
 .ov-onboarding-features {
@@ -305,21 +305,21 @@
   align-items: center;
   gap: 5px;
   font-size: 10px;
-  color: rgba(255, 255, 255, 0.32);
+  color: rgba(var(--color-text-rgb), 0.32);
 }
 
 .ov-onboarding-dot {
   width: 3px;
   height: 3px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.20);
+  background: rgba(var(--color-text-rgb), 0.20);
   flex-shrink: 0;
 }
 
 .ov-onboarding-hint {
   margin-top: 3px;
   font-size: 10px;
-  color: rgba(255, 255, 255, 0.25);
+  color: rgba(var(--color-text-rgb), 0.25);
 }
 
 @keyframes ov-lrc-intro-pulse {
@@ -331,7 +331,7 @@
   width: 22px;
   height: 22px;
   object-fit: contain;
-  filter: brightness(0) invert(1);
+  filter: brightness(0) invert(var(--icon-invert));
   animation: ov-lrc-intro-pulse 1.6s ease-in-out infinite;
   margin-bottom: 6px;
 }
@@ -349,7 +349,7 @@
 .ov-lrc-line {
   font-size: 10px;
   line-height: 1.5;
-  color: rgba(255, 255, 255, 0.40);
+  color: rgba(var(--color-text-rgb), 0.40);
   text-align: center;
   max-width: 100%;
   overflow: hidden;
@@ -360,7 +360,7 @@
 }
 
 .ov-lrc-line.current {
-  color: rgba(255, 255, 255, 0.95);
+  color: rgba(var(--color-text-rgb), 0.95);
   font-size: 12px;
   font-weight: 600;
   opacity: 1;
@@ -380,8 +380,8 @@
   transition: --lrc-prog 0.15s linear;
   background: linear-gradient(
     to right,
-    rgba(255, 255, 255, 0.95) var(--lrc-prog),
-    rgba(255, 255, 255, 0.28) var(--lrc-prog)
+    rgba(var(--color-text-rgb), 0.95) var(--lrc-prog),
+    rgba(var(--color-text-rgb), 0.28) var(--lrc-prog)
   );
   -webkit-background-clip: text;
   background-clip: text;
@@ -447,13 +447,13 @@
 .ov-time-clock {
   font-size: 14px;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.80);
+  color: rgba(var(--color-text-rgb), 0.80);
   letter-spacing: 0.5px;
 }
 
 .ov-time-day {
   font-size: 9px;
-  color: rgba(255, 255, 255, 0.35);
+  color: rgba(var(--color-text-rgb), 0.35);
 }
 
 .ov-weather {
@@ -465,12 +465,12 @@
 .ov-weather-temp {
   font-size: 12px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.65);
+  color: rgba(var(--color-text-rgb), 0.65);
 }
 
 .ov-weather-desc {
   font-size: 9px;
-  color: rgba(255, 255, 255, 0.35);
+  color: rgba(var(--color-text-rgb), 0.35);
 }
 
 .ov-countdown {
@@ -481,13 +481,13 @@
 
 .ov-countdown-label {
   font-size: 9px;
-  color: rgba(255, 255, 255, 0.30);
+  color: rgba(var(--color-text-rgb), 0.30);
 }
 
 .ov-countdown-value {
   font-size: 10px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.55);
+  color: rgba(var(--color-text-rgb), 0.55);
 }
 
 .ov-timer {
@@ -498,6 +498,6 @@
 .ov-timer-value {
   font-size: 11px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.60);
+  color: rgba(var(--color-text-rgb), 0.60);
   font-variant-numeric: tabular-nums;
 }

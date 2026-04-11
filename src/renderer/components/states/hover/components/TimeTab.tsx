@@ -50,10 +50,10 @@ export function TimeTab({
       <CountdownEdit />
       <div className="time-tab-divider" />
       <div className="flex flex-col gap-1 text-right">
-        <span className="text-sm text-white font-medium tabular-nums">
+        <span className="text-sm text-[var(--color-island-text)] font-medium tabular-nums">
           {fullTimeStr}
         </span>
-        <span className="text-xs text-white opacity-60">
+        <span className="text-xs text-[var(--color-island-text)] opacity-60">
           农历 {lunarStr}
         </span>
       </div>

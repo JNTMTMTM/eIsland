@@ -376,6 +376,9 @@ const SMTC_UNSUBSCRIBE_MS_STORE_KEY = 'music-smtc-unsubscribe-ms';
 /** 隐藏进程名单存储键名 */
 const HIDE_PROCESS_LIST_STORE_KEY = 'hide-process-list';
 
+/** 主题模式存储键名 */
+const THEME_MODE_STORE_KEY = 'theme-mode';
+
 /** 灵动岛位置偏移存储键名 */
 const ISLAND_POSITION_STORE_KEY = 'island-position-offset';
 
@@ -1634,6 +1637,40 @@ function registerIpcHandlers(): void {
       return true;
     } catch (err) {
       console.error('[LyricsKaraoke] persist error:', err);
+      return false;
+    }
+  });
+
+  /**
+   * 获取主题模式
+   * @returns 主题模式字符串 'dark' | 'light' | 'system'
+   */
+  ipcMain.handle('theme:mode:get', () => {
+    try {
+      const filePath = join(storeDir, `${THEME_MODE_STORE_KEY}.json`);
+      if (!existsSync(filePath)) return 'dark';
+      const raw = readFileSync(filePath, 'utf-8');
+      const data = JSON.parse(raw);
+      return data === 'dark' || data === 'light' || data === 'system' ? data : 'dark';
+    } catch {
+      return 'dark';
+    }
+  });
+
+  /**
+   * 设置主题模式并持久化
+   * @param _event - IPC 事件
+   * @param mode - 主题模式 'dark' | 'light' | 'system'
+   * @returns 是否保存成功
+   */
+  ipcMain.handle('theme:mode:set', (_event, mode: string) => {
+    try {
+      const safe = mode === 'dark' || mode === 'light' || mode === 'system' ? mode : 'dark';
+      const filePath = join(storeDir, `${THEME_MODE_STORE_KEY}.json`);
+      writeFileSync(filePath, JSON.stringify(safe, null, 2), 'utf-8');
+      return true;
+    } catch (err) {
+      console.error('[Theme] persist error:', err);
       return false;
     }
   });

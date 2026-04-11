@@ -41,7 +41,7 @@
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.25);
+  background: rgba(var(--color-text-rgb), 0.25);
   border: none;
   padding: 0;
   cursor: pointer;
@@ -51,12 +51,12 @@
 }
 
 .hover-nav-dot:hover {
-  background: rgba(255, 255, 255, 0.5);
+  background: rgba(var(--color-text-rgb), 0.5);
   transform: scale(1.3);
 }
 
 .hover-nav-dot.active {
-  background: #ffffff;
+  background: var(--color-island-text);
   transform: scale(1.2);
-  box-shadow: 0 0 6px rgba(255, 255, 255, 0.5);
+  box-shadow: 0 0 6px rgba(var(--color-text-rgb), 0.5);
 }

@@ -57,7 +57,7 @@
   border-radius: inherit;
   background: linear-gradient(
     135deg,
-    rgba(255, 255, 255, 0.05) 0%,
+    rgba(var(--color-text-rgb), 0.05) 0%,
     transparent 50%,
     rgba(0, 0, 0, 0.1) 100%
   );
@@ -244,7 +244,7 @@
 .divider {
   width: 1px;
   height: 24px;
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(var(--color-text-rgb), 0.15);
   margin: 0 8px;
 }
 

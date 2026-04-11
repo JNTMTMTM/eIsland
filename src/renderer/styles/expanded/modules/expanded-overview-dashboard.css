@@ -65,7 +65,7 @@
 .ov-dash-apps-title {
   font-size: 11px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.55);
+  color: rgba(var(--color-text-rgb), 0.55);
   letter-spacing: 0.5px;
 }
 
@@ -75,12 +75,12 @@
 }
 
 .ov-dash-apps-title.clickable:hover {
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(var(--color-text-rgb), 0.85);
 }
 
 .ov-dash-apps-count {
   font-size: 9px;
-  color: rgba(255, 255, 255, 0.25);
+  color: rgba(var(--color-text-rgb), 0.25);
 }
 
 /** 应用快速启动网格（只读展示） */
@@ -102,7 +102,7 @@
 }
 
 .ov-dash-apps::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(var(--color-text-rgb), 0.1);
   border-radius: 2px;
 }
 
@@ -112,7 +112,7 @@
   justify-content: center;
   height: 100%;
   font-size: 9px;
-  color: rgba(255, 255, 255, 0.15);
+  color: rgba(var(--color-text-rgb), 0.15);
 }
 
 .ov-dash-app-item {
@@ -128,7 +128,7 @@
 }
 
 .ov-dash-app-item:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(var(--color-text-rgb), 0.08);
 }
 
 .ov-dash-app-item:active {
@@ -140,8 +140,8 @@
 }
 
 .ov-dash-app-item.drag-over {
-  background: rgba(255, 255, 255, 0.12);
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.2);
+  background: rgba(var(--color-text-rgb), 0.12);
+  box-shadow: 0 0 0 1px rgba(var(--color-text-rgb), 0.2);
 }
 
 .ov-dash-app-icon {
@@ -164,7 +164,7 @@
 
 .ov-dash-app-name {
   font-size: 8px;
-  color: rgba(255, 255, 255, 0.55);
+  color: rgba(var(--color-text-rgb), 0.55);
   text-align: center;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -176,7 +176,7 @@
 .ov-dash-clock {
   font-size: 32px;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.92);
+  color: rgba(var(--color-text-rgb), 0.92);
   letter-spacing: 2px;
   font-variant-numeric: tabular-nums;
   line-height: 1.15;
@@ -184,14 +184,14 @@
 
 .ov-dash-date {
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.45);
+  color: rgba(var(--color-text-rgb), 0.45);
   margin-bottom: 2px;
   letter-spacing: 0.5px;
 }
 
 .ov-dash-lunar {
   font-size: 10px;
-  color: rgba(255, 255, 255, 0.28);
+  color: rgba(var(--color-text-rgb), 0.28);
   margin-top: 2px;
 }
 
@@ -233,7 +233,7 @@
 
 .ov-dash-yiji-items {
   font-size: 9px;
-  color: rgba(255, 255, 255, 0.32);
+  color: rgba(var(--color-text-rgb), 0.32);
 }
 
 /** 右区：待办事项 */
@@ -256,7 +256,7 @@
 .ov-dash-todo-title {
   font-size: 11px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.55);
+  color: rgba(var(--color-text-rgb), 0.55);
   letter-spacing: 0.5px;
 }
 
@@ -266,7 +266,7 @@
 }
 
 .ov-dash-todo-title.clickable:hover {
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(var(--color-text-rgb), 0.85);
 }
 
 .ov-dash-todo-stats {
@@ -278,7 +278,7 @@
 .ov-dash-todo-stat {
   font-size: 9px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.30);
+  color: rgba(var(--color-text-rgb), 0.30);
 }
 
 .ov-dash-todo-stat.done {
@@ -286,7 +286,7 @@
 }
 
 .ov-dash-todo-stat.undone {
-  color: rgba(255, 255, 255, 0.35);
+  color: rgba(var(--color-text-rgb), 0.35);
 }
 
 .ov-dash-todo-stat.p0 {
@@ -321,23 +321,23 @@
   justify-content: center;
   height: 100%;
   font-size: 10px;
-  color: rgba(255, 255, 255, 0.18);
+  color: rgba(var(--color-text-rgb), 0.18);
 }
 
 .ov-dash-todo-item {
   display: flex;
   flex-direction: column;
   border-radius: 6px;
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(var(--color-text-rgb), 0.03);
   transition: background 0.2s ease;
 }
 
 .ov-dash-todo-item:hover {
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(var(--color-text-rgb), 0.06);
 }
 
 .ov-dash-todo-item.expanded {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(var(--color-text-rgb), 0.05);
 }
 
 .ov-dash-todo-row {
@@ -354,7 +354,7 @@
   height: 16px;
   border: none;
   background: none;
-  color: rgba(255, 255, 255, 0.35);
+  color: rgba(var(--color-text-rgb), 0.35);
   font-size: 11px;
   cursor: pointer;
   padding: 0;
@@ -372,14 +372,14 @@
 
 .ov-dash-todo-item.done .ov-dash-todo-text {
   text-decoration: line-through;
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(var(--color-text-rgb), 0.3);
 }
 
 .ov-dash-todo-divider {
   font-size: 9px;
-  color: rgba(255, 255, 255, 0.2);
+  color: rgba(var(--color-text-rgb), 0.2);
   padding: 4px 8px 2px;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-top: 1px solid rgba(var(--color-text-rgb), 0.05);
   margin-top: 2px;
 }
 
@@ -396,7 +396,7 @@
 
 .ov-dash-todo-text {
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.75);
+  color: rgba(var(--color-text-rgb), 0.75);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -409,7 +409,7 @@
   height: 14px;
   border: none;
   background: none;
-  color: rgba(255, 255, 255, 0.12);
+  color: rgba(var(--color-text-rgb), 0.12);
   font-size: 12px;
   cursor: pointer;
   padding: 0;
@@ -428,7 +428,7 @@
 
 .ov-dash-todo-arrow {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.25);
+  color: rgba(var(--color-text-rgb), 0.25);
   flex-shrink: 0;
   transition: transform 0.2s ease;
   line-height: 1;
@@ -440,7 +440,7 @@
 
 .ov-dash-todo-desc {
   font-size: 10px;
-  color: rgba(255, 255, 255, 0.35);
+  color: rgba(var(--color-text-rgb), 0.35);
   padding: 0 8px 6px 8px;
   line-height: 1.5;
   white-space: pre-wrap;
@@ -467,7 +467,7 @@
   border: none;
   background: none;
   font-size: 9px;
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(var(--color-text-rgb), 0.3);
   cursor: pointer;
   padding: 0;
   flex-shrink: 0;
@@ -476,12 +476,12 @@
 }
 
 .ov-dash-todo-sub-check:hover {
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(var(--color-text-rgb), 0.6);
 }
 
 .ov-dash-todo-sub-text {
   font-size: 10px;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(var(--color-text-rgb), 0.5);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -493,7 +493,7 @@
 
 .ov-dash-todo-sub.done .ov-dash-todo-sub-text {
   text-decoration: line-through;
-  color: rgba(255, 255, 255, 0.2);
+  color: rgba(var(--color-text-rgb), 0.2);
 }
 
 @keyframes ovTodoDescIn {
@@ -509,11 +509,11 @@
   overflow: hidden;
 }
 .ov-dash-slot-left {
-  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  border-right: 1px solid rgba(var(--color-text-rgb), 0.06);
   padding-right: 12px;
 }
 .ov-dash-slot-right {
-  border-left: 1px solid rgba(255, 255, 255, 0.06);
+  border-left: 1px solid rgba(var(--color-text-rgb), 0.06);
   padding-left: 12px;
 }
 
@@ -534,7 +534,7 @@
 .ov-dash-widget-title {
   font-size: 11px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.55);
+  color: rgba(var(--color-text-rgb), 0.55);
   letter-spacing: 0.5px;
 }
 .ov-dash-widget-title--link {
@@ -542,7 +542,7 @@
   transition: color 0.15s ease;
 }
 .ov-dash-widget-title--link:hover {
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(var(--color-text-rgb), 0.85);
 }
 
 /** 歌曲控件 */
@@ -587,7 +587,7 @@
   width: 50px;
   height: 50px;
   border-radius: 6px;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(var(--color-text-rgb), 0.08);
   background-size: cover;
   background-position: center;
   flex-shrink: 0;
@@ -614,7 +614,7 @@
 .ov-dash-song-title {
   font-size: 12px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(var(--color-text-rgb), 0.9);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -622,7 +622,7 @@
 }
 .ov-dash-song-artist {
   font-size: 10px;
-  color: rgba(255, 255, 255, 0.55);
+  color: rgba(var(--color-text-rgb), 0.55);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -630,7 +630,7 @@
 }
 .ov-dash-song-album {
   font-size: 9px;
-  color: rgba(255, 255, 255, 0.35);
+  color: rgba(var(--color-text-rgb), 0.35);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -648,7 +648,7 @@
 .ov-dash-song-btn {
   appearance: none;
   border: none;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(var(--color-text-rgb), 0.08);
   width: 28px;
   height: 28px;
   border-radius: 50%;
@@ -660,7 +660,7 @@
   padding: 0;
 }
 .ov-dash-song-btn:hover {
-  background: rgba(255, 255, 255, 0.16);
+  background: rgba(var(--color-text-rgb), 0.16);
 }
 .ov-dash-song-btn-play {
   width: 32px;
@@ -685,7 +685,7 @@
   align-items: center;
   justify-content: center;
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.18);
+  color: rgba(var(--color-text-rgb), 0.18);
 }
 
 /** 倒数日控件 */
@@ -727,7 +727,7 @@
   align-items: center;
   justify-content: center;
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.18);
+  color: rgba(var(--color-text-rgb), 0.18);
 }
 
 /** ========== 番茄钟控件 ========== */
@@ -741,7 +741,7 @@
 }
 .ov-dash-pomodoro-count {
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.45);
+  color: rgba(var(--color-text-rgb), 0.45);
   white-space: nowrap;
   display: inline-flex;
   align-items: center;
@@ -773,7 +773,7 @@
   width: 11px;
   height: 11px;
   object-fit: contain;
-  filter: brightness(0) invert(1);
+  filter: brightness(0) invert(var(--icon-invert));
 }
 .ov-dash-pomodoro-body {
   flex: 1;
@@ -798,7 +798,7 @@
 }
 .ov-dash-pomodoro-ring-bg {
   fill: none;
-  stroke: rgba(255, 255, 255, 0.06);
+  stroke: rgba(var(--color-text-rgb), 0.06);
   stroke-width: 4;
 }
 .ov-dash-pomodoro-ring-progress {
@@ -819,7 +819,7 @@
 .ov-dash-pomodoro-time {
   font-size: 18px;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.92);
+  color: rgba(var(--color-text-rgb), 0.92);
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.5px;
   line-height: 1;
@@ -859,7 +859,7 @@
   top: 12px;
   bottom: 12px;
   width: 1px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(var(--color-text-rgb), 0.1);
   z-index: 0;
 }
 .ov-dash-pomodoro-tl-item {
@@ -880,7 +880,7 @@
   height: 8px;
   border-radius: 50%;
   flex-shrink: 0;
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(var(--color-text-rgb), 0.12);
   position: relative;
   z-index: 1;
 }
@@ -897,20 +897,20 @@
 }
 .ov-dash-pomodoro-tl-name {
   font-size: 10px;
-  color: rgba(255, 255, 255, 0.28);
+  color: rgba(var(--color-text-rgb), 0.28);
   white-space: nowrap;
   line-height: 1.2;
 }
 .ov-dash-pomodoro-tl-dur {
   font-size: 9px;
-  color: rgba(255, 255, 255, 0.16);
+  color: rgba(var(--color-text-rgb), 0.16);
   font-variant-numeric: tabular-nums;
   line-height: 1.2;
 }
 .ov-dash-pomodoro-tl-name--current {
   font-size: 12px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(var(--color-text-rgb), 0.9);
 }
 .ov-dash-pomodoro-tl-dur--current {
   font-size: 10px;
@@ -931,7 +931,7 @@
   height: 26px;
   border-radius: 50%;
   border: none;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(var(--color-text-rgb), 0.08);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -941,15 +941,15 @@
   flex-shrink: 0;
 }
 .ov-dash-pomodoro-btn:hover {
-  background: rgba(255, 255, 255, 0.16);
+  background: rgba(var(--color-text-rgb), 0.16);
 }
 .ov-dash-pomodoro-btn-icon {
   width: 13px;
   height: 13px;
   object-fit: contain;
-  filter: brightness(0) invert(0.7);
+  filter: brightness(0) invert(calc(var(--icon-invert) * 0.7));
   transition: filter 0.15s;
 }
 .ov-dash-pomodoro-btn:hover .ov-dash-pomodoro-btn-icon {
-  filter: brightness(0) invert(1);
+  filter: brightness(0) invert(var(--icon-invert));
 }

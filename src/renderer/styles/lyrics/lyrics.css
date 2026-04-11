@@ -56,7 +56,7 @@
 .lyrics-current-line {
   font-size: 13px;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(var(--color-text-rgb), 0.9);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -68,8 +68,8 @@
   transition: --lrc-prog 0.15s linear;
   background: linear-gradient(
     to right,
-    rgba(255, 255, 255, 0.95) var(--lrc-prog),
-    rgba(255, 255, 255, 0.28) var(--lrc-prog)
+    rgba(var(--color-text-rgb), 0.95) var(--lrc-prog),
+    rgba(var(--color-text-rgb), 0.28) var(--lrc-prog)
   );
   -webkit-background-clip: text;
   background-clip: text;
@@ -89,7 +89,7 @@
   width: 4px;
   height: 4px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.6);
+  background: rgba(var(--color-text-rgb), 0.6);
   animation: lyrics-dot-bounce 1.2s ease-in-out infinite;
 }
 
@@ -99,7 +99,7 @@
 
 .lyrics-loading-label {
   font-size: 10px;
-  color: rgba(255, 255, 255, 0.28);
+  color: rgba(var(--color-text-rgb), 0.28);
   margin-left: 4px;
   letter-spacing: 0.02em;
 }
@@ -116,7 +116,7 @@
   text-align: center;
   font-size: 12px;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.55);
+  color: rgba(var(--color-text-rgb), 0.55);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -134,7 +134,7 @@
 
 .lyrics-empty {
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.35);
+  color: rgba(var(--color-text-rgb), 0.35);
 }
 
 @keyframes lyricsEnter {

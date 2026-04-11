@@ -65,7 +65,7 @@
   font-size: 11px;
   line-height: 1;
   white-space: nowrap;
-  color: #fff;
+  color: var(--color-island-text);
   cursor: pointer;
   transition: transform 0.15s ease, background-color 0.2s ease, opacity 0.2s ease;
 }
@@ -79,11 +79,11 @@
 }
 
 .notification-action-snooze {
-  background: rgba(255, 255, 255, 0.14);
+  background: rgba(var(--color-text-rgb), 0.14);
 }
 
 .notification-action-snooze:hover {
-  background: rgba(255, 255, 255, 0.22);
+  background: rgba(var(--color-text-rgb), 0.22);
 }
 
 .notification-action-complete {
@@ -95,11 +95,11 @@
 }
 
 .notification-action-ignore {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(var(--color-text-rgb), 0.1);
 }
 
 .notification-action-ignore:hover {
-  background: rgba(255, 255, 255, 0.18);
+  background: rgba(var(--color-text-rgb), 0.18);
 }
 
 @keyframes notifRowEnter {

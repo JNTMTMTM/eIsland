@@ -46,6 +46,7 @@ import {
 } from '../../../../store/utils/storage';
 import { resolveDistrictLocationByKeyword } from '../../../../api/adcodeApi';
 import { fetchVersion } from '../../../../api/versionApi';
+import { setThemeMode as applyThemeMode, getThemeMode, type ThemeMode } from '../../../../utils/theme';
 
 /** 单行配置项 */
 function SettingsField({
@@ -170,7 +171,7 @@ function OverviewPreview({ layoutConfig }: { layoutConfig: OverviewLayoutConfig 
             </div>
             <div className="ov-dash-song-content">
               <div className="ov-dash-song-body">
-                <div className="ov-dash-song-cover" style={{ background: 'rgba(255,255,255,0.08)' }} />
+                <div className="ov-dash-song-cover" style={{ background: 'rgba(var(--color-text-rgb),0.08)' }} />
                 <div className="ov-dash-song-info">
                   <div className="ov-dash-song-title">示例歌曲</div>
                   <div className="ov-dash-song-artist">示例艺术家</div>
@@ -354,7 +355,7 @@ const WEATHER_LOCATION_PRIORITY_OPTIONS: Array<{ value: WeatherLocationPriority;
 /** 设置页侧边栏 Tab 顺序 */
 const SETTINGS_TABS: ('index' | 'app' | 'network' | 'weather' | 'music' | 'ai' | 'shortcut' | 'about')[] = ['index', 'app', 'network', 'weather', 'music', 'ai', 'shortcut', 'about'];
 type SettingsSidebarTabKey = (typeof SETTINGS_TABS)[number];
-type AppSettingsPageKey = 'layout-preview' | 'hide-process-list' | 'position';
+type AppSettingsPageKey = 'layout-preview' | 'hide-process-list' | 'position' | 'theme';
 type WeatherSettingsPageKey = 'location' | 'provider';
 type MusicSettingsPageKey = 'whitelist' | 'lyrics' | 'smtc';
 type SettingsTabLabelKey = SettingsSidebarTabKey | AppSettingsPageKey;
@@ -365,6 +366,7 @@ const SETTINGS_TAB_LABELS: Record<SettingsTabLabelKey, string> = {
   'layout-preview': '布局预览',
   'hide-process-list': '隐藏进程管理',
   position: '位置校准',
+  theme: '主题外观',
   network: '网络配置',
   weather: '天气配置',
   music: '歌曲设置',
@@ -377,6 +379,7 @@ const SETTINGS_TAB_DESCRIPTIONS: Record<Exclude<SettingsTabLabelKey, 'index'>, s
   'layout-preview': '进入布局预览并调整左右控件展示。',
   'hide-process-list': '管理隐藏进程名单与自动隐藏规则。',
   position: '动态调整灵动岛位置并保存',
+  theme: '切换深色、浅色或跟随系统主题。',
   network: '请求超时与网络行为设置',
   weather: '天气接口优先级设置',
   music: '播放器白名单与歌词来源',
@@ -406,7 +409,7 @@ const NETWORK_TIMEOUT_OPTIONS = [
 
 const LAYOUT_STORE_KEY = 'overview-layout';
 const DEFAULT_LAYOUT: OverviewLayoutConfig = { left: 'shortcuts', right: 'todo' };
-const APP_SETTINGS_PAGES: AppSettingsPageKey[] = ['layout-preview', 'hide-process-list', 'position'];
+const APP_SETTINGS_PAGES: AppSettingsPageKey[] = ['layout-preview', 'hide-process-list', 'position', 'theme'];
 const WEATHER_SETTINGS_PAGES: WeatherSettingsPageKey[] = ['location', 'provider'];
 const WEATHER_SETTINGS_PAGE_LABELS: Record<WeatherSettingsPageKey, string> = {
   location: '定位配置',
@@ -478,6 +481,7 @@ export function SettingsTab(): ReactElement {
   const [hideProcessList, setHideProcessList] = useState<string[]>([]);
   const [hideProcessFilter, setHideProcessFilter] = useState<string>('');
   const [hideProcessLoading, setHideProcessLoading] = useState(false);
+  const [themeMode, setThemeModeState] = useState<ThemeMode>(getThemeMode);
   const [islandPositionOffset, setIslandPositionOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [islandPositionInput, setIslandPositionInput] = useState<{ x: string; y: string }>({ x: '0', y: '0' });
   const [aboutVersion, setAboutVersion] = useState<string>('26.1.1-beta.3');
@@ -1296,6 +1300,18 @@ export function SettingsTab(): ReactElement {
                   <img className="settings-index-card-layout-icon" src={SETTINGS_TAB_ICONS.position} alt="" aria-hidden="true" />
                 </button>
 
+                <button
+                  className="settings-index-card"
+                  type="button"
+                  onClick={() => {
+                    setAppSettingsPage('theme');
+                    setActiveTab('app');
+                  }}
+                >
+                  <span className="settings-index-card-title">{SETTINGS_TAB_LABELS.theme}</span>
+                  <span className="settings-index-card-desc">{SETTINGS_TAB_DESCRIPTIONS.theme}</span>
+                </button>
+
                 {SETTINGS_TABS.filter((tab) => tab !== 'index' && tab !== 'app').map((tab) => (
                   <button
                     key={tab}
@@ -1514,6 +1530,34 @@ export function SettingsTab(): ReactElement {
                           >
                             重置为默认位置
                           </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {appSettingsPage === 'theme' && (
+                    <div className="max-expand-settings-section">
+                      <div className="settings-music-section">
+                        <div className="settings-music-label">主题模式</div>
+                        <div className="settings-music-hint">选择深色、浅色或跟随系统主题，切换后立即生效</div>
+                        <div className="settings-lyrics-source-options">
+                          {([
+                            { value: 'dark' as ThemeMode, label: '深色模式' },
+                            { value: 'light' as ThemeMode, label: '浅色模式' },
+                            { value: 'system' as ThemeMode, label: '跟随系统' },
+                          ]).map((opt) => (
+                            <button
+                              key={opt.value}
+                              className={`settings-lyrics-source-btn ${themeMode === opt.value ? 'active' : ''}`}
+                              type="button"
+                              onClick={() => {
+                                setThemeModeState(opt.value);
+                                applyThemeMode(opt.value).catch(() => {});
+                              }}
+                            >
+                              {opt.label}
+                            </button>
+                          ))}
                         </div>
                       </div>
                     </div>

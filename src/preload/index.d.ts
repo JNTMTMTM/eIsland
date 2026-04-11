@@ -130,6 +130,9 @@ declare global {
       mediaAcceptSourceSwitch: () => Promise<void>;
       /** 拒绝切换播放源 */
       mediaRejectSourceSwitch: () => Promise<void>;
+      /** ===== 主题 API ===== */
+      themeModeGet: () => Promise<string>;
+      themeModeSet: (mode: string) => Promise<boolean>;
     };
   }
 }

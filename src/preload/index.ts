@@ -463,6 +463,21 @@ const api = {
   /** 拒绝切换播放源 */
   mediaRejectSourceSwitch: (): Promise<void> => {
     return ipcRenderer.invoke('media:reject-source-switch');
+  },
+  /**
+   * 获取主题模式
+   * @returns 'dark' | 'light' | 'system'
+   */
+  themeModeGet: (): Promise<string> => {
+    return ipcRenderer.invoke('theme:mode:get');
+  },
+  /**
+   * 设置主题模式
+   * @param mode - 'dark' | 'light' | 'system'
+   * @returns 是否保存成功
+   */
+  themeModeSet: (mode: string): Promise<boolean> => {
+    return ipcRenderer.invoke('theme:mode:set', mode);
   }
 };
 
