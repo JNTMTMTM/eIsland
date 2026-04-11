@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { ReactElement } from 'react';
 import useIslandStore from '../../../store/slices';
 import type { SyncedLyricLine } from '../../../store/types';
@@ -72,6 +72,13 @@ export function LyricsContent(): ReactElement {
   const currentPositionMs = useIslandStore((s) => s.currentPositionMs);
   const mediaInfo = useIslandStore((s) => s.mediaInfo);
   const setIdle = useIslandStore((s) => s.setIdle);
+
+  const [karaokeEnabled, setKaraokeEnabled] = useState(true);
+
+  /** 加载逐字扫光配置 */
+  useEffect(() => {
+    window.api?.musicLyricsKaraokeGet().then(setKaraokeEnabled).catch(() => {});
+  }, []);
 
   const [r, g, b] = dominantColor;
 
@@ -147,8 +154,8 @@ export function LyricsContent(): ReactElement {
         ) : currentText ? (
           <span
             key={currentIdx}
-            className="lyrics-current-line lyrics-sweep"
-            style={{ '--lrc-prog': `${(lineProgress * 100).toFixed(2)}%` } as React.CSSProperties}
+            className={`lyrics-current-line${karaokeEnabled ? ' lyrics-sweep' : ''}`}
+            style={karaokeEnabled ? { '--lrc-prog': `${(lineProgress * 100).toFixed(2)}%` } as React.CSSProperties : undefined}
           >
             {currentText}
           </span>
