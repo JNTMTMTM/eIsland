@@ -1431,82 +1431,79 @@ export function SettingsTab(): ReactElement {
               </div>
               <div className="settings-index-cards" aria-label="设置快速导航">
                 {visibleCards.map((card, idx) => (
-                  <button
-                    key={card.id}
-                    className={`settings-index-card${navEditMode ? ' editing' : ''}${dragOverIdx === idx ? ' drag-over' : ''}`}
-                    type="button"
-                    draggable={navEditMode}
-                    onClick={() => {
-                      if (navEditMode) return;
-                      if (card.appPage) {
-                        setAppSettingsPage(card.appPage);
-                        setActiveTab('app');
-                      } else if (card.musicPage) {
-                        setMusicSettingsPage(card.musicPage);
-                        setActiveTab('music');
-                      } else {
-                        setActiveTab(card.tab);
-                      }
-                    }}
-                    onDragStart={(e) => {
-                      dragIdxRef.current = idx;
-                      e.dataTransfer.effectAllowed = 'move';
-                    }}
-                    onDragOver={(e) => {
-                      if (!navEditMode) return;
-                      e.preventDefault();
-                      setDragOverIdx(idx);
-                    }}
-                    onDragLeave={() => setDragOverIdx(null)}
-                    onDrop={(e) => {
-                      e.preventDefault();
-                      setDragOverIdx(null);
-                      const from = dragIdxRef.current;
-                      if (from === null || from === idx) return;
-                      const newOrder = visibleCards.map((c) => c.id);
-                      const [moved] = newOrder.splice(from, 1);
-                      newOrder.splice(idx, 0, moved);
-                      setNavOrder(newOrder);
-                    }}
-                    onDragEnd={() => {
-                      dragIdxRef.current = null;
-                      setDragOverIdx(null);
-                    }}
-                  >
-                    {navEditMode && <span className="settings-index-card-drag-handle">⠿</span>}
-                    {navEditMode && (
-                      <span
+                  navEditMode ? (
+                    <div
+                      key={card.id}
+                      className={`settings-index-card editing${dragOverIdx === idx ? ' drag-over' : ''}`}
+                      draggable
+                      onDragStart={(e) => {
+                        dragIdxRef.current = idx;
+                        e.dataTransfer.effectAllowed = 'move';
+                      }}
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        setDragOverIdx(idx);
+                      }}
+                      onDragLeave={() => setDragOverIdx(null)}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        setDragOverIdx(null);
+                        const from = dragIdxRef.current;
+                        if (from === null || from === idx) return;
+                        const newOrder = visibleCards.map((c) => c.id);
+                        const [moved] = newOrder.splice(from, 1);
+                        newOrder.splice(idx, 0, moved);
+                        setNavOrder(newOrder);
+                      }}
+                      onDragEnd={() => {
+                        dragIdxRef.current = null;
+                        setDragOverIdx(null);
+                      }}
+                    >
+                      <span className="settings-index-card-drag-handle">⠿</span>
+                      <button
                         className="settings-index-card-remove"
-                        role="button"
-                        tabIndex={0}
-                        onClick={(e) => {
-                          e.stopPropagation();
+                        type="button"
+                        onClick={() => {
                           const nextVisible = navOrder.filter((id) => id !== card.id);
                           const nextHidden = hiddenNavOrder.includes(card.id) ? hiddenNavOrder : [...hiddenNavOrder, card.id];
                           setNavOrder(nextVisible);
                           setHiddenNavOrder(nextHidden);
                         }}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' || e.key === ' ') {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            const nextVisible = navOrder.filter((id) => id !== card.id);
-                            const nextHidden = hiddenNavOrder.includes(card.id) ? hiddenNavOrder : [...hiddenNavOrder, card.id];
-                            setNavOrder(nextVisible);
-                            setHiddenNavOrder(nextHidden);
-                          }
-                        }}
                         aria-label={`删除 ${card.label}`}
                       >
                         −
-                      </span>
-                    )}
-                    <span className="settings-index-card-title">{card.label}</span>
-                    <span className="settings-index-card-desc">{card.desc}</span>
-                    {card.icon && (
-                      <img className="settings-index-card-layout-icon" src={card.icon} alt="" aria-hidden="true" />
-                    )}
-                  </button>
+                      </button>
+                      <span className="settings-index-card-title">{card.label}</span>
+                      <span className="settings-index-card-desc">{card.desc}</span>
+                      {card.icon && (
+                        <img className="settings-index-card-layout-icon" src={card.icon} alt="" aria-hidden="true" />
+                      )}
+                    </div>
+                  ) : (
+                    <button
+                      key={card.id}
+                      className="settings-index-card"
+                      type="button"
+                      onClick={() => {
+                        if (card.appPage) {
+                          setAppSettingsPage(card.appPage);
+                          setActiveTab('app');
+                        } else if (card.musicPage) {
+                          setMusicSettingsPage(card.musicPage);
+                          setActiveTab('music');
+                        } else {
+                          setActiveTab(card.tab);
+                        }
+                      }}
+                    >
+                      <span className="settings-index-card-title">{card.label}</span>
+                      <span className="settings-index-card-desc">{card.desc}</span>
+                      {card.icon && (
+                        <img className="settings-index-card-layout-icon" src={card.icon} alt="" aria-hidden="true" />
+                      )}
+                    </button>
+                  )
                 ))}
               </div>
               {navEditMode && (
