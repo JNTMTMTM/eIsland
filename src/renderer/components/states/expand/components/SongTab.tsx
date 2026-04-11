@@ -101,13 +101,25 @@ function MarqueeLyricText({ children }: { children: React.ReactNode }): React.Re
   const innerRef = useRef<HTMLSpanElement>(null);
   const [overflow, setOverflow] = useState(0);
 
-  useEffect(() => {
+  const measure = useCallback(() => {
     const outer = outerRef.current;
     const inner = innerRef.current;
     if (!outer || !inner) { setOverflow(0); return; }
     const diff = inner.scrollWidth - outer.clientWidth;
     setOverflow(diff > 1 ? diff : 0);
-  });
+  }, []);
+
+  useEffect(() => {
+    measure();
+  }, [children, measure]);
+
+  useEffect(() => {
+    const outer = outerRef.current;
+    if (!outer) return;
+    const ro = new ResizeObserver(measure);
+    ro.observe(outer);
+    return () => ro.disconnect();
+  }, [measure]);
 
   return (
     <div ref={outerRef} className="ov-lrc-marquee-wrap">
