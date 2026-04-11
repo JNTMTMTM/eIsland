@@ -397,6 +397,7 @@ const SETTINGS_TAB_ICONS: Partial<Record<SettingsTabLabelKey, string>> = {
   ai: SvgIcon.AI,
   shortcut: SvgIcon.SHORTCUT_KEY,
   about: SvgIcon.ABOUT,
+  theme: SvgIcon.THEME
 };
 
 const NETWORK_TIMEOUT_OPTIONS = [
@@ -1310,6 +1311,7 @@ export function SettingsTab(): ReactElement {
                 >
                   <span className="settings-index-card-title">{SETTINGS_TAB_LABELS.theme}</span>
                   <span className="settings-index-card-desc">{SETTINGS_TAB_DESCRIPTIONS.theme}</span>
+                  <img className="settings-index-card-layout-icon" src={SETTINGS_TAB_ICONS.theme} alt="" aria-hidden="true" />
                 </button>
 
                 {SETTINGS_TABS.filter((tab) => tab !== 'index' && tab !== 'app').map((tab) => (

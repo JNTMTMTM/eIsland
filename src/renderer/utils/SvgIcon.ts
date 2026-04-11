@@ -64,7 +64,9 @@ export const SvgIcon = {
   /** 关于 */
   ABOUT: './svg/ABOUT.svg',
   /** 移动 */
-  MOVE: './svg/MOVE.svg'
+  MOVE: './svg/MOVE.svg',
+  /** 主题 */
+  THEME: './svg/THEME.svg'
 } as const;
 
 export type SvgIconKey = keyof typeof SvgIcon;
