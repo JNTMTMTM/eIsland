@@ -1631,7 +1631,7 @@ export function SettingsTab(): ReactElement {
                   {appSettingsPage === 'behavior' && (
                     <div className="max-expand-settings-section">
                       <div className="settings-music-section">
-                        <div className="settings-music-label">鼠标移开自动收回</div>
+                        <div className="settings-music-label">鼠标移开自动收回 (重启后生效)</div>
                         <div className="settings-music-hint">启用后，鼠标离开灵动岛时将自动回到空闲状态（若正在播放音乐则切到歌词态）</div>
                         <div className="settings-hotkey-row" style={{ alignItems: 'center', marginTop: 8 }}>
                           <label className="settings-music-hint" style={{ marginBottom: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
