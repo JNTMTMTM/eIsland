@@ -868,6 +868,7 @@ export function SettingsTab(): ReactElement {
                 >
                   <span className="settings-index-card-title">布局预览</span>
                   <span className="settings-index-card-desc">进入布局预览并调整左右控件展示。</span>
+                  <img className="settings-index-card-layout-icon" src="./svg/LAYOUT.svg" alt="" aria-hidden="true" />
                 </button>
 
                 <button

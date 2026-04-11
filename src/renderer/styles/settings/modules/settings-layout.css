@@ -189,6 +189,8 @@
   border: 1px solid rgba(255, 255, 255, 0.12);
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.04));
   color: rgba(255, 255, 255, 0.92);
+  position: relative;
+  overflow: hidden;
   text-align: left;
   display: flex;
   flex-direction: column;
@@ -211,12 +213,28 @@
   font-size: 13px;
   font-weight: 600;
   line-height: 1.2;
+  position: relative;
+  z-index: 1;
 }
 
 .settings-index-card-desc {
   font-size: 11px;
   color: rgba(255, 255, 255, 0.62);
   line-height: 1.35;
+  position: relative;
+  z-index: 1;
+}
+
+.settings-index-card-layout-icon {
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  width: 54px;
+  height: 54px;
+  opacity: 0.07;
+  filter: blur(1px);
+  z-index: 0;
+  pointer-events: none;
 }
 
 @media (max-width: 760px) {
