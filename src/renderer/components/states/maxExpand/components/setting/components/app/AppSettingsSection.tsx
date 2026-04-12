@@ -25,14 +25,81 @@
  */
 
 import { useState } from 'react';
-import type { ReactElement } from 'react';
+import type { Dispatch, ReactElement, SetStateAction } from 'react';
+import type { AppSettingsPageKey } from '../../utils/settingsConfig';
+
+interface AppOverviewLayoutConfig {
+  left: string;
+  right: string;
+}
+
+interface AppOverviewWidgetOption {
+  value: string;
+  label: string;
+}
+
+interface AppRunningProcess {
+  name: string;
+  iconDataUrl?: string;
+}
+
+interface AppPositionOffset {
+  x: number;
+  y: number;
+}
+
+interface AppPositionInput {
+  x: string;
+  y: string;
+}
+
+interface AppSettingsSectionProps {
+  currentAppSettingsPageLabel: string;
+  appSettingsPage: AppSettingsPageKey;
+  layoutConfig: AppOverviewLayoutConfig;
+  OverviewPreviewComponent: ({ layoutConfig }: { layoutConfig: AppOverviewLayoutConfig }) => ReactElement;
+  overviewWidgetOptions: AppOverviewWidgetOption[];
+  updateLayout: (side: 'left' | 'right', value: string) => void;
+  hideProcessFilter: string;
+  setHideProcessFilter: (value: string) => void;
+  refreshRunningProcesses: () => Promise<void>;
+  hideProcessLoading: boolean;
+  hideProcessList: string[];
+  toggleHideProcess: (name: string) => void;
+  runningProcesses: AppRunningProcess[];
+  hideProcessKeyword: string;
+  islandPositionOffset: AppPositionOffset;
+  applyIslandPositionOffset: (x: number, y: number) => void;
+  islandPositionInput: AppPositionInput;
+  setIslandPositionInput: Dispatch<SetStateAction<AppPositionInput>>;
+  applyIslandPositionInput: () => void;
+  islandPositionInputChanged: boolean;
+  cancelIslandPositionInput: () => void;
+  themeMode: 'dark' | 'light' | 'system';
+  setThemeModeState: (mode: 'dark' | 'light' | 'system') => void;
+  applyThemeMode: (mode: 'dark' | 'light' | 'system') => Promise<void>;
+  islandOpacity: number;
+  applyIslandOpacity: (value: number) => void;
+  opacitySaveTimerRef: { current: ReturnType<typeof setTimeout> | null };
+  setIslandOpacity: (value: number) => void;
+  persistIslandOpacity: (value: number) => void;
+  expandLeaveIdle: boolean;
+  setExpandLeaveIdle: (value: boolean) => void;
+  maxExpandLeaveIdle: boolean;
+  setMaxExpandLeaveIdle: (value: boolean) => void;
+  autostartMode: 'disabled' | 'enabled' | 'high-priority';
+  setAutostartMode: (mode: 'disabled' | 'enabled' | 'high-priority') => void;
+  appSettingsPages: AppSettingsPageKey[];
+  settingsTabLabels: Record<string, string>;
+  setAppSettingsPage: (page: AppSettingsPageKey) => void;
+}
 
 /**
  * 渲染应用设置区块
  * @param props - 应用设置区域所需参数
  * @returns 应用设置区域
  */
-export function AppSettingsSection(props: any): ReactElement {
+export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement {
   const {
     currentAppSettingsPageLabel,
     appSettingsPage,
@@ -105,7 +172,7 @@ export function AppSettingsSection(props: any): ReactElement {
                 <div className="settings-layout-control">
                   <span className="settings-layout-control-label">左侧控件</span>
                   <div className="settings-layout-options">
-                    {overviewWidgetOptions.map((opt: any) => (
+                    {overviewWidgetOptions.map((opt) => (
                       <button
                         key={opt.value}
                         className={`settings-layout-btn ${layoutConfig.left === opt.value ? 'active' : ''}`}
@@ -120,7 +187,7 @@ export function AppSettingsSection(props: any): ReactElement {
                 <div className="settings-layout-control">
                   <span className="settings-layout-control-label">右侧控件</span>
                   <div className="settings-layout-options">
-                    {overviewWidgetOptions.map((opt: any) => (
+                    {overviewWidgetOptions.map((opt) => (
                       <button
                         key={opt.value}
                         className={`settings-layout-btn ${layoutConfig.right === opt.value ? 'active' : ''}`}
@@ -177,8 +244,8 @@ export function AppSettingsSection(props: any): ReactElement {
 
               <div className="settings-hide-process-list">
                 {runningProcesses
-                  .filter((process: any) => process.name.toLowerCase().includes(hideProcessKeyword))
-                  .map((process: any) => {
+                  .filter((process) => process.name.toLowerCase().includes(hideProcessKeyword))
+                  .map((process) => {
                     const name = process.name;
                     const selected = hideProcessList.some((item: string) => item.trim().toLowerCase() === name.trim().toLowerCase());
                     const fallbackText = name.charAt(0).toUpperCase();
@@ -228,7 +295,7 @@ export function AppSettingsSection(props: any): ReactElement {
                       max={2000}
                       value={islandPositionInput.x}
                       onChange={(e) => {
-                        setIslandPositionInput((prev: any) => ({ ...prev, x: e.target.value }));
+                        setIslandPositionInput((prev) => ({ ...prev, x: e.target.value }));
                       }}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter') {
@@ -247,7 +314,7 @@ export function AppSettingsSection(props: any): ReactElement {
                       max={1200}
                       value={islandPositionInput.y}
                       onChange={(e) => {
-                        setIslandPositionInput((prev: any) => ({ ...prev, y: e.target.value }));
+                        setIslandPositionInput((prev) => ({ ...prev, y: e.target.value }));
                       }}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter') {
@@ -278,7 +345,7 @@ export function AppSettingsSection(props: any): ReactElement {
                     { value: 'dark', label: '深色模式' },
                     { value: 'light', label: '浅色模式' },
                     { value: 'system', label: '跟随系统' },
-                  ]).map((opt: any) => (
+                  ] as Array<{ value: 'dark' | 'light' | 'system'; label: string }>).map((opt) => (
                     <button
                       key={opt.value}
                       className={`settings-lyrics-source-btn ${themeMode === opt.value ? 'active' : ''}`}
@@ -405,7 +472,7 @@ export function AppSettingsSection(props: any): ReactElement {
                     { value: 'disabled', label: '禁用' },
                     { value: 'enabled', label: '启用' },
                     { value: 'high-priority', label: '高优先级' },
-                  ]).map((opt: any) => (
+                  ] as Array<{ value: 'disabled' | 'enabled' | 'high-priority'; label: string }>).map((opt) => (
                     <button
                       key={opt.value}
                       className={`settings-lyrics-source-btn ${autostartMode === opt.value ? 'active' : ''}`}
@@ -430,7 +497,7 @@ export function AppSettingsSection(props: any): ReactElement {
         </div>
 
         <div className="settings-app-page-dots" aria-label="软件设置分页">
-          {appSettingsPages.map((page: any) => (
+          {appSettingsPages.map((page) => (
             <button
               key={page}
               className={`settings-app-page-dot ${appSettingsPage === page ? 'active' : ''}`}

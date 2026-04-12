@@ -24,14 +24,49 @@
  * @author 鸡哥
  */
 
-import type { ReactElement } from 'react';
+import type { KeyboardEvent as ReactKeyboardEvent, ReactElement, RefObject } from 'react';
+
+interface ShortcutSettingsSectionProps {
+  hotkeyInputRef: RefObject<HTMLInputElement | null>;
+  hotkeyRecording: boolean;
+  hotkeyError: string;
+  hideHotkey: string;
+  setHotkeyRecording: (value: boolean) => void;
+  setHotkeyError: (value: string) => void;
+  handleHotkeyKeyDown: (event: ReactKeyboardEvent<HTMLInputElement>) => void;
+  setHideHotkey: (value: string) => void;
+  quitHotkeyInputRef: RefObject<HTMLInputElement | null>;
+  quitHotkeyRecording: boolean;
+  quitHotkeyError: string;
+  quitHotkey: string;
+  setQuitHotkeyRecording: (value: boolean) => void;
+  setQuitHotkeyError: (value: string) => void;
+  handleQuitHotkeyKeyDown: (event: ReactKeyboardEvent<HTMLInputElement>) => void;
+  setQuitHotkey: (value: string) => void;
+  screenshotHotkeyInputRef: RefObject<HTMLInputElement | null>;
+  screenshotHotkeyRecording: boolean;
+  screenshotHotkeyError: string;
+  screenshotHotkey: string;
+  setScreenshotHotkeyRecording: (value: boolean) => void;
+  setScreenshotHotkeyError: (value: string) => void;
+  handleScreenshotHotkeyKeyDown: (event: ReactKeyboardEvent<HTMLInputElement>) => void;
+  setScreenshotHotkey: (value: string) => void;
+  resetPositionHotkeyInputRef: RefObject<HTMLInputElement | null>;
+  resetPositionHotkeyRecording: boolean;
+  resetPositionHotkeyError: string;
+  resetPositionHotkey: string;
+  setResetPositionHotkeyRecording: (value: boolean) => void;
+  setResetPositionHotkeyError: (value: string) => void;
+  handleResetPositionHotkeyKeyDown: (event: ReactKeyboardEvent<HTMLInputElement>) => void;
+  setResetPositionHotkey: (value: string) => void;
+}
 
 /**
  * 渲染快捷键设置区块
  * @param props - 快捷键设置区域所需参数
  * @returns 快捷键设置区域
  */
-export function ShortcutSettingsSection(props: any): ReactElement {
+export function ShortcutSettingsSection(props: ShortcutSettingsSectionProps): ReactElement {
   const {
     hotkeyInputRef,
     hotkeyRecording,

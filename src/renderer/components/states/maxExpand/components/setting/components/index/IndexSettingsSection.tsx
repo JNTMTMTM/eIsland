@@ -25,9 +25,20 @@
  */
 
 import type { MutableRefObject, ReactElement } from 'react';
+import type { AppSettingsPageKey, MusicSettingsPageKey, SettingsSidebarTabKey } from '../../utils/settingsConfig';
+
+interface IndexNavCard {
+  id: string;
+  label: string;
+  desc: string;
+  icon?: string;
+  tab: SettingsSidebarTabKey;
+  appPage?: AppSettingsPageKey;
+  musicPage?: MusicSettingsPageKey;
+}
 
 interface IndexSettingsSectionProps {
-  visibleCards: Array<{ id: string; label: string; desc: string; icon?: string; tab: string; appPage?: string; musicPage?: string }>;
+  visibleCards: IndexNavCard[];
   hiddenCards: Array<{ id: string; label: string }>;
   navEditMode: boolean;
   dragOverIdx: number | null;
@@ -40,9 +51,9 @@ interface IndexSettingsSectionProps {
   setNavEditMode: (value: boolean) => void;
   resetNavConfig: () => void;
   persistNavConfig: (visible: string[], hidden: string[]) => void;
-  setAppSettingsPage: (page: any) => void;
-  setMusicSettingsPage: (page: any) => void;
-  setActiveTab: (tab: any) => void;
+  setAppSettingsPage: (page: AppSettingsPageKey) => void;
+  setMusicSettingsPage: (page: MusicSettingsPageKey) => void;
+  setActiveTab: (tab: SettingsSidebarTabKey) => void;
 }
 
 /**

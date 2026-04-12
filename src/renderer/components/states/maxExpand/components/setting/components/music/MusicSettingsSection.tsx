@@ -25,13 +25,56 @@
  */
 
 import type { ReactElement } from 'react';
+import type { MusicSettingsPageKey } from '../../utils/settingsConfig';
+
+interface MusicSourceOption {
+  value: string;
+  label: string;
+}
+
+interface MusicConfigMessage {
+  type: 'error' | 'success';
+  text: string;
+}
+
+interface MusicSettingsSectionProps {
+  currentMusicSettingsPageLabel: string;
+  musicSettingsPage: MusicSettingsPageKey;
+  whitelist: string[];
+  setWhitelist: (list: string[]) => void;
+  whitelistInputError: string;
+  setWhitelistInputError: (value: string) => void;
+  whitelistDraft: string;
+  setWhitelistDraft: (value: string) => void;
+  handleAddWhitelist: () => void;
+  handleDetectSourceAppId: () => Promise<void>;
+  detectingSourceAppId: boolean;
+  sourceAppDetectMessage: MusicConfigMessage | null;
+  lyricsSourceOptions: MusicSourceOption[];
+  lyricsSource: string;
+  setLyricsSource: (value: string) => void;
+  lyricsKaraoke: boolean;
+  setLyricsKaraoke: (value: boolean) => void;
+  lyricsClock: boolean;
+  setLyricsClock: (value: boolean) => void;
+  musicSmtcUnsubscribeInput: string;
+  setMusicSmtcUnsubscribeInput: (value: string) => void;
+  musicSmtcNeverUnsubscribe: boolean;
+  setMusicSmtcNeverUnsubscribe: (value: boolean) => void;
+  saveMusicSmtcUnsubscribeConfig: () => Promise<void>;
+  setMusicSmtcConfigMessage: (message: MusicConfigMessage | null) => void;
+  musicSmtcConfigMessage: MusicConfigMessage | null;
+  musicSettingsPages: MusicSettingsPageKey[];
+  musicSettingsPageLabels: Record<MusicSettingsPageKey, string>;
+  setMusicSettingsPage: (page: MusicSettingsPageKey) => void;
+}
 
 /**
  * 渲染音乐设置区块
  * @param props - 音乐设置区域所需参数
  * @returns 音乐设置区域
  */
-export function MusicSettingsSection(props: any): ReactElement {
+export function MusicSettingsSection(props: MusicSettingsSectionProps): ReactElement {
   const {
     currentMusicSettingsPageLabel,
     musicSettingsPage,
@@ -86,7 +129,7 @@ export function MusicSettingsSection(props: any): ReactElement {
                       type="button"
                       title="移除"
                       onClick={() => {
-                        const next = whitelist.filter((_: any, i: number) => i !== idx);
+                        const next = whitelist.filter((_, i) => i !== idx);
                         setWhitelist(next);
                         window.api.musicWhitelistSet(next).catch(() => {});
                       }}
@@ -139,7 +182,7 @@ export function MusicSettingsSection(props: any): ReactElement {
               <div className="settings-music-label">歌词源</div>
               <div className="settings-music-hint">自动模式根据 SMTC 检测到的播放器进程选择对应源，失败后依次尝试其他源，最后使用 LRCLIB 兜底</div>
               <div className="settings-lyrics-source-options">
-                {lyricsSourceOptions.map((opt: any) => (
+                {lyricsSourceOptions.map((opt) => (
                   <button
                     key={opt.value}
                     className={`settings-lyrics-source-btn ${lyricsSource === opt.value ? 'active' : ''}`}
@@ -223,7 +266,7 @@ export function MusicSettingsSection(props: any): ReactElement {
                   className="settings-hotkey-btn"
                   type="button"
                   onClick={() => {
-                    saveMusicSmtcUnsubscribeConfig().catch((error: any) => {
+                    saveMusicSmtcUnsubscribeConfig().catch((error: unknown) => {
                       setMusicSmtcConfigMessage({
                         type: 'error',
                         text: `保存失败：${error instanceof Error ? error.message : '未知错误'}`,
@@ -244,7 +287,7 @@ export function MusicSettingsSection(props: any): ReactElement {
         </div>
 
         <div className="settings-app-page-dots" aria-label="歌曲设置分页">
-          {musicSettingsPages.map((page: any) => (
+          {musicSettingsPages.map((page) => (
             <button
               key={page}
               className={`settings-app-page-dot ${musicSettingsPage === page ? 'active' : ''}`}

@@ -37,7 +37,7 @@ interface AiSettingsSectionProps {
   editingPrompt: boolean;
   promptDraft: string;
   promptRef: RefObject<HTMLTextAreaElement | null>;
-  setAiConfig: (config: any) => void;
+  setAiConfig: (config: Partial<AiSettingsSectionProps['aiConfig']>) => void;
   setPromptDraft: (v: string) => void;
   savePrompt: () => void;
   startEditPrompt: () => void;

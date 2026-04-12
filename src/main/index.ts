@@ -1320,7 +1320,7 @@ function registerIpcHandlers(): void {
       if (!existsSync(logDir)) return { success: true, freedBytes: 0 };
       const files = readdirSync(logDir);
       let freedBytes = 0;
-      for (const file of files) {
+      files.forEach((file) => {
         const filePath = join(logDir, file);
         try {
           const stat = statSync(filePath);
@@ -1331,7 +1331,7 @@ function registerIpcHandlers(): void {
         } catch (_) {
           /* skip files in use */
         }
-      }
+      });
       console.log(`[App] cleared logs cache: ${files.length} files, ${(freedBytes / 1024).toFixed(1)} KB freed`);
       return { success: true, freedBytes };
     } catch (err) {

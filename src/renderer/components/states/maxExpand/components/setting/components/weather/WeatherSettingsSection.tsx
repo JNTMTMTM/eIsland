@@ -25,13 +25,49 @@
  */
 
 import type { ReactElement } from 'react';
+import type { WeatherSettingsPageKey } from '../../utils/settingsConfig';
+
+interface WeatherOption {
+  value: string;
+  label: string;
+}
+
+interface WeatherMessage {
+  type: 'error' | 'success';
+  text: string;
+}
+
+interface WeatherSettingsSectionProps {
+  currentWeatherSettingsPageLabel: string;
+  weatherSettingsPage: WeatherSettingsPageKey;
+  weatherLocationPriorityOptions: WeatherOption[];
+  weatherLocationPriority: string;
+  applyWeatherLocationPriority: (value: string) => Promise<void>;
+  setWeatherLocationConfigMessage: (message: WeatherMessage | null) => void;
+  weatherCustomCityInput: string;
+  setWeatherCustomCityInput: (value: string) => void;
+  testWeatherCustomLocation: () => Promise<void>;
+  setWeatherCustomLocationTesting: (value: boolean) => void;
+  setWeatherCustomLocationTestMessage: (message: WeatherMessage | null) => void;
+  weatherCustomLocationTesting: boolean;
+  saveWeatherLocationSettings: () => Promise<void>;
+  weatherLocationConfigMessage: WeatherMessage | null;
+  weatherCustomLocationTestMessage: WeatherMessage | null;
+  weatherProviderOptions: WeatherOption[];
+  weatherPrimaryProvider: string;
+  setWeatherPrimaryProvider: (value: string) => void;
+  saveWeatherProviderConfig: (payload: { primaryProvider: string }) => void;
+  weatherSettingsPages: WeatherSettingsPageKey[];
+  weatherSettingsPageLabels: Record<WeatherSettingsPageKey, string>;
+  setWeatherSettingsPage: (page: WeatherSettingsPageKey) => void;
+}
 
 /**
  * 渲染天气设置区块
  * @param props - 天气设置区域所需参数
  * @returns 天气设置区域
  */
-export function WeatherSettingsSection(props: any): ReactElement {
+export function WeatherSettingsSection(props: WeatherSettingsSectionProps): ReactElement {
   const {
     currentWeatherSettingsPageLabel,
     weatherSettingsPage,
@@ -71,13 +107,13 @@ export function WeatherSettingsSection(props: any): ReactElement {
               <div className="settings-music-label">定位来源优先级</div>
               <div className="settings-music-hint">选择天气定位优先使用 IP 自动定位或自定义位置</div>
               <div className="settings-lyrics-source-options">
-                {weatherLocationPriorityOptions.map((opt: any) => (
+                {weatherLocationPriorityOptions.map((opt) => (
                   <button
                     key={opt.value}
                     className={`settings-lyrics-source-btn ${weatherLocationPriority === opt.value ? 'active' : ''}`}
                     type="button"
                     onClick={() => {
-                      applyWeatherLocationPriority(opt.value).catch((error: any) => {
+                      applyWeatherLocationPriority(opt.value).catch((error: unknown) => {
                         setWeatherLocationConfigMessage({
                           type: 'error',
                           text: `切换优先级失败：${error instanceof Error ? error.message : '未知错误'}`,
@@ -110,7 +146,7 @@ export function WeatherSettingsSection(props: any): ReactElement {
                   className="settings-hotkey-btn"
                   type="button"
                   onClick={() => {
-                    testWeatherCustomLocation().catch((error: any) => {
+                    testWeatherCustomLocation().catch((error: unknown) => {
                       setWeatherCustomLocationTesting(false);
                       setWeatherCustomLocationTestMessage({
                         type: 'error',
@@ -126,7 +162,7 @@ export function WeatherSettingsSection(props: any): ReactElement {
                   className="settings-hotkey-btn"
                   type="button"
                   onClick={() => {
-                    saveWeatherLocationSettings().catch((error: any) => {
+                    saveWeatherLocationSettings().catch((error: unknown) => {
                       setWeatherLocationConfigMessage({
                         type: 'error',
                         text: `保存失败：${error instanceof Error ? error.message : '未知错误'}`,
@@ -156,7 +192,7 @@ export function WeatherSettingsSection(props: any): ReactElement {
               <div className="settings-music-label">天气接口优先级</div>
               <div className="settings-music-hint">可选择优先使用 Open-Meteo 或 UAPI，失败时自动切换到另一源</div>
               <div className="settings-lyrics-source-options">
-                {weatherProviderOptions.map((opt: any) => (
+                {weatherProviderOptions.map((opt) => (
                   <button
                     key={opt.value}
                     className={`settings-lyrics-source-btn ${weatherPrimaryProvider === opt.value ? 'active' : ''}`}
@@ -175,7 +211,7 @@ export function WeatherSettingsSection(props: any): ReactElement {
         </div>
 
         <div className="settings-app-page-dots" aria-label="天气配置分页">
-          {weatherSettingsPages.map((page: any) => (
+          {weatherSettingsPages.map((page) => (
             <button
               key={page}
               className={`settings-app-page-dot ${weatherSettingsPage === page ? 'active' : ''}`}
