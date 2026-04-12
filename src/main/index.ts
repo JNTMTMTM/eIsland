@@ -26,7 +26,7 @@
 
 import { app, BrowserWindow, shell, screen, ipcMain, desktopCapturer, dialog, globalShortcut, clipboard, nativeImage } from 'electron';
 import { join, basename } from 'path';
-import { readFileSync, writeFileSync, appendFileSync, mkdirSync, existsSync } from 'fs';
+import { readFileSync, writeFileSync, appendFileSync, mkdirSync, existsSync, readdirSync, statSync, unlinkSync } from 'fs';
 import { exec } from 'child_process';
 import { Worker } from 'worker_threads';
 import { electronApp, optimizer, is } from '@electron-toolkit/utils';
@@ -1308,6 +1308,35 @@ function registerIpcHandlers(): void {
     } catch (err) {
       console.error('[App] open logs folder error:', err);
       return false;
+    }
+  });
+
+  /**
+   * 清理日志缓存
+   */
+  ipcMain.handle('app:clear-logs-cache', async () => {
+    try {
+      const logDir = join(app.getPath('userData'), 'logs');
+      if (!existsSync(logDir)) return { success: true, freedBytes: 0 };
+      const files = readdirSync(logDir);
+      let freedBytes = 0;
+      for (const file of files) {
+        const filePath = join(logDir, file);
+        try {
+          const stat = statSync(filePath);
+          if (stat.isFile()) {
+            freedBytes += stat.size;
+            unlinkSync(filePath);
+          }
+        } catch (_) {
+          /* skip files in use */
+        }
+      }
+      console.log(`[App] cleared logs cache: ${files.length} files, ${(freedBytes / 1024).toFixed(1)} KB freed`);
+      return { success: true, freedBytes };
+    } catch (err) {
+      console.error('[App] clear logs cache error:', err);
+      return { success: false, freedBytes: 0 };
     }
   });
 

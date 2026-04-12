@@ -24,6 +24,7 @@
  * @author 鸡哥
  */
 
+import { useState } from 'react';
 import type { ReactElement } from 'react';
 
 /**
@@ -80,6 +81,7 @@ export function AppSettingsSection(props: any): ReactElement {
   } = props;
 
   const OverviewPreview = OverviewPreviewComponent;
+  const [clearLogsStatus, setClearLogsStatus] = useState<'idle' | 'clearing' | string>('idle');
 
   return (
     <div className="max-expand-settings-section">
@@ -372,6 +374,28 @@ export function AppSettingsSection(props: any): ReactElement {
                   <button className="settings-hotkey-btn" type="button" onClick={() => { window.api.quitApp(); }}>关闭灵动岛</button>
                   <button className="settings-hotkey-btn" type="button" onClick={() => { window.api.restartApp().catch(() => {}); }}>重启灵动岛</button>
                   <button className="settings-hotkey-btn" type="button" onClick={() => { window.api.openLogsFolder().catch(() => {}); }}>打开日志文件夹</button>
+                  <button
+                    className="settings-hotkey-btn"
+                    type="button"
+                    disabled={clearLogsStatus === 'clearing'}
+                    onClick={() => {
+                      setClearLogsStatus('clearing');
+                      window.api.clearLogsCache().then((res) => {
+                        if (res.success) {
+                          const kb = (res.freedBytes / 1024).toFixed(1);
+                          setClearLogsStatus(`已清理 ${kb} KB`);
+                        } else {
+                          setClearLogsStatus('清理失败');
+                        }
+                        setTimeout(() => setClearLogsStatus('idle'), 3000);
+                      }).catch(() => {
+                        setClearLogsStatus('清理失败');
+                        setTimeout(() => setClearLogsStatus('idle'), 3000);
+                      });
+                    }}
+                  >
+                    {clearLogsStatus === 'clearing' ? '清理中…' : clearLogsStatus === 'idle' ? '清理日志缓存' : clearLogsStatus}
+                  </button>
                 </div>
 
                 <div className="settings-music-label" style={{ marginTop: 12 }}>开机自启</div>

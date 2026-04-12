@@ -151,6 +151,12 @@ const api = {
   openLogsFolder: (): Promise<boolean> => {
     return ipcRenderer.invoke('app:open-logs-folder');
   },
+  /**
+   * 清理日志缓存
+   */
+  clearLogsCache: (): Promise<{ success: boolean; freedBytes: number }> => {
+    return ipcRenderer.invoke('app:clear-logs-cache');
+  },
   /** ===== 音乐相关 API ===== */
   /**
    * 播放/暂停

@@ -68,6 +68,7 @@ declare global {
       quitApp: () => void;
       restartApp: () => Promise<boolean>;
       openLogsFolder: () => Promise<boolean>;
+      clearLogsCache: () => Promise<{ success: boolean; freedBytes: number }>;
       /** ===== 音乐相关 API ===== */
       mediaPlayPause: () => Promise<void>;
       mediaNext: () => Promise<void>;
