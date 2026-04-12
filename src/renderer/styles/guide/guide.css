@@ -345,6 +345,75 @@
   height: 60px;
 }
 
+/* ─── Mini music island ─── */
+
+.mini-music-idle {
+  width: 120px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.mini-music-hover {
+  width: 230px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.mini-music-text {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-island-bg);
+  white-space: nowrap;
+  letter-spacing: -0.1px;
+}
+
+.mini-music-fade {
+  animation: miniMusicFade 0.4s ease;
+}
+
+@keyframes miniMusicFade {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.mini-music-karaoke {
+  position: relative;
+  color: transparent;
+}
+
+.mini-music-karaoke::before {
+  content: attr(data-text);
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: var(--color-island-bg);
+  opacity: 0.3;
+}
+
+.mini-music-karaoke::after {
+  content: attr(data-text);
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: #0071e3;
+  overflow: hidden;
+  white-space: nowrap;
+  width: 0%;
+  animation: karaokeHighlight 3s linear infinite;
+}
+
+@keyframes karaokeHighlight {
+  0%   { width: 0%; }
+  80%  { width: 100%; }
+  100% { width: 100%; }
+}
+
 /* Card slide animations */
 .guide-slide-up {
   animation: guideSlideUp 0.3s cubic-bezier(0.22, 1, 0.36, 1);

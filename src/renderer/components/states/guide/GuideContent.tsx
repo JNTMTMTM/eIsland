@@ -33,7 +33,7 @@ import { SvgIcon } from '../../../utils/SvgIcon';
 interface GuidePage {
   icon?: string;
   imageSrc?: string;
-  interactive?: boolean;
+  interactive?: 'basic' | 'music';
   title: string;
   desc: string;
   tips?: { icon: string; text: string }[];
@@ -49,6 +49,41 @@ interface InteractionCard {
   desc: string;
   demo: MiniIslandDemo;
 }
+
+/** 迷你音乐岛演示模式 */
+type MiniMusicDemo = 'smtc' | 'lyrics' | 'karaoke';
+
+/** 音乐卡片配置 */
+interface MusicCard {
+  iconSrc: string;
+  title: string;
+  desc: string;
+  demo: MiniMusicDemo;
+}
+
+const SAMPLE_LYRICS = ['这是一句歌词示例', '音乐在空中飘荡', '旋律轻轻回响'];
+
+/** 音乐引导卡片数据 */
+const MUSIC_CARDS: MusicCard[] = [
+  {
+    iconSrc: SvgIcon.SMTC,
+    title: 'SMTC 自动检测',
+    desc: '自动识别正在播放的音乐源，实时同步播放信息。',
+    demo: 'smtc',
+  },
+  {
+    iconSrc: SvgIcon.LRC,
+    title: '歌词匹配与同步',
+    desc: '多源歌词自动匹配，实时滚动显示当前歌词。',
+    demo: 'lyrics',
+  },
+  {
+    iconSrc: SvgIcon.MUSIC,
+    title: '逐字扫光模式',
+    desc: '支持逐字高亮的卡拉 OK 歌词显示模式。',
+    demo: 'karaoke',
+  },
+];
 
 /** 交互引导卡片数据 */
 const INTERACTION_CARDS: InteractionCard[] = [
@@ -86,19 +121,14 @@ const GUIDE_PAGES: GuidePage[] = [
     desc: '一款灵感来自 Apple 灵动岛的 Windows 桌面浮窗小组件，\n让你的桌面更加灵动、高效。',
   },
   {
-    interactive: true,
+    interactive: 'basic',
     title: '基本交互',
     desc: '通过鼠标与灵动岛进行交互，解锁不同状态。',
   },
   {
-    icon: '🎵',
+    interactive: 'music',
     title: '音乐与歌词',
     desc: '自动识别正在播放的音乐，实时显示同步歌词。',
-    tips: [
-      { icon: '🎶', text: '自动检测 SMTC 播放源' },
-      { icon: '📝', text: '多源歌词匹配与同步' },
-      { icon: '🎤', text: '支持卡拉 OK 逐字模式' },
-    ],
   },
   {
     icon: '🛠️',
@@ -123,6 +153,53 @@ const GUIDE_PAGES: GuidePage[] = [
     ],
   },
 ];
+
+/** 迷你音乐岛演示组件 */
+function MiniMusicIsland({ demo }: { demo: MiniMusicDemo }): React.ReactElement {
+  const [state, setState] = useState<'idle' | 'hover'>(demo === 'smtc' ? 'idle' : 'hover');
+  const [lyricIdx, setLyricIdx] = useState(0);
+
+  useEffect(() => {
+    if (demo === 'smtc') {
+      let expanded = false;
+      const id = setInterval(() => {
+        expanded = !expanded;
+        setState(expanded ? 'hover' : 'idle');
+      }, 1500);
+      return () => clearInterval(id);
+    }
+    if (demo === 'lyrics' || demo === 'karaoke') setState('hover');
+    return undefined;
+  }, [demo]);
+
+  useEffect(() => {
+    if (demo !== 'lyrics') return;
+    const id = setInterval(() => {
+      setLyricIdx((prev) => (prev + 1) % SAMPLE_LYRICS.length);
+    }, 2000);
+    return () => clearInterval(id);
+  }, [demo]);
+
+  return (
+    <div className="mini-island-wrapper">
+      <div className={`mini-island mini-music-${state}`}>
+        {demo === 'smtc' && state === 'hover' && (
+          <span className="mini-music-text mini-music-fade">♪ 正在播放</span>
+        )}
+        {demo === 'lyrics' && (
+          <span className="mini-music-text mini-music-fade" key={lyricIdx}>
+            {SAMPLE_LYRICS[lyricIdx]}
+          </span>
+        )}
+        {demo === 'karaoke' && (
+          <span className="mini-music-text mini-music-karaoke" data-text="这是一句歌词">
+            这是一句歌词
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
 
 /** 迷你灵动岛演示组件 */
 function MiniIsland({ demo }: { demo: MiniIslandDemo }): React.ReactElement {
@@ -191,7 +268,15 @@ export function GuideContent(): React.ReactElement {
 
   const isLast = page === GUIDE_PAGES.length - 1;
 
-  useEffect(() => { setCardIndex(0); }, [page]);
+  const cardCountRef = useRef(INTERACTION_CARDS.length);
+
+  useEffect(() => {
+    const p = GUIDE_PAGES[page];
+    if (p.interactive === 'basic') cardCountRef.current = INTERACTION_CARDS.length;
+    else if (p.interactive === 'music') cardCountRef.current = MUSIC_CARDS.length;
+    else cardCountRef.current = 0;
+    setCardIndex(0);
+  }, [page]);
 
   const handleCardWheel = useCallback((e: React.WheelEvent) => {
     e.stopPropagation();
@@ -200,7 +285,7 @@ export function GuideContent(): React.ReactElement {
     setTimeout(() => { wheelCooldownRef.current = false; }, 400);
     if (e.deltaY > 0) {
       animDirRef.current = 'down';
-      setCardIndex((prev) => Math.min(prev + 1, INTERACTION_CARDS.length - 1));
+      setCardIndex((prev) => Math.min(prev + 1, cardCountRef.current - 1));
     } else if (e.deltaY < 0) {
       animDirRef.current = 'up';
       setCardIndex((prev) => Math.max(prev - 1, 0));
@@ -230,33 +315,46 @@ export function GuideContent(): React.ReactElement {
 
   return (
     <div className="guide-content" onClick={(e) => e.stopPropagation()}>
-      {current.interactive ? (
-        <div className="guide-page guide-page-interactive" key={`page-${page}`}>
-          <div className="guide-interact-zone" onWheel={handleCardWheel}>
-            <span className="guide-interact-hint">在此区域附近滚动滚轮可切换灵动岛状态</span>
-            <div className="guide-interact-dots">
-              {INTERACTION_CARDS.map((_, i) => (
-                <span
-                  key={i}
-                  className={`guide-interact-dot${cardIndex === i ? ' active' : ''}`}
-                />
-              ))}
+      {current.interactive ? (() => {
+        const isBasic = current.interactive === 'basic';
+        const cards: Array<{ iconSrc: string; title: string; desc: string }> =
+          isBasic ? INTERACTION_CARDS : MUSIC_CARDS;
+        const safeIdx = Math.min(cardIndex, cards.length - 1);
+        const card = cards[safeIdx];
+        const hint = isBasic
+          ? '在此区域附近滚动滚轮可切换灵动岛状态'
+          : '滚动查看更多音乐功能';
+        return (
+          <div className="guide-page guide-page-interactive" key={`page-${page}`}>
+            <div className="guide-interact-zone" onWheel={handleCardWheel}>
+              <span className="guide-interact-hint">{hint}</span>
+              <div className="guide-interact-dots">
+                {cards.map((_, i) => (
+                  <span
+                    key={i}
+                    className={`guide-interact-dot${cardIndex === i ? ' active' : ''}`}
+                  />
+                ))}
+              </div>
             </div>
-          </div>
 
-          <div
-            className={`guide-interact-card ${animDirRef.current === 'down' ? 'guide-slide-up' : 'guide-slide-down'}`}
-            key={`card-${cardIndex}`}
-          >
-            <div className="guide-interact-card-text">
-              <img className="guide-interact-icon" src={INTERACTION_CARDS[cardIndex].iconSrc} alt="" aria-hidden="true" />
-              <div className="guide-title">{INTERACTION_CARDS[cardIndex].title}</div>
-              <div className="guide-desc">{INTERACTION_CARDS[cardIndex].desc}</div>
+            <div
+              className={`guide-interact-card ${animDirRef.current === 'down' ? 'guide-slide-up' : 'guide-slide-down'}`}
+              key={`card-${cardIndex}`}
+            >
+              <div className="guide-interact-card-text">
+                <img className="guide-interact-icon" src={card.iconSrc} alt="" aria-hidden="true" />
+                <div className="guide-title">{card.title}</div>
+                <div className="guide-desc">{card.desc}</div>
+              </div>
+              {isBasic
+                ? <MiniIsland demo={INTERACTION_CARDS[safeIdx].demo} />
+                : <MiniMusicIsland demo={MUSIC_CARDS[safeIdx].demo} />
+              }
             </div>
-            <MiniIsland demo={INTERACTION_CARDS[cardIndex].demo} />
           </div>
-        </div>
-      ) : (
+        );
+      })() : (
         <div className={`guide-page${page === 0 ? ' guide-page-welcome' : ''}`} key={page}>
           <div className="guide-hero">
             {current.imageSrc
