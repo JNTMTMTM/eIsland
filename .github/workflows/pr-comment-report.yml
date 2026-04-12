@@ -45,8 +45,34 @@ jobs:
               return null;
             };
 
+            const getTopCopyrightBlock = (content) => {
+              const top = content.slice(0, 3000);
+              const match = top.match(/^\s*\/\*(?!\*)([\s\S]*?)\*\//);
+              if (!match) return null;
+              return match[0];
+            };
+
             const checkOneFile = (relPath, content) => {
               const violations = [];
+
+              const copyrightBlock = getTopCopyrightBlock(content);
+              if (!copyrightBlock) {
+                violations.push(`${relPath}:1 | copyright_header | 缺少文件顶部版权声明注释块（/* ... */）`);
+              } else {
+                if (!copyrightBlock.includes('eIsland')) {
+                  violations.push(`${relPath}:1 | copyright_header | 版权声明缺少项目名称（eIsland）`);
+                }
+                if (!copyrightBlock.includes('https://github.com/JNTMTMTM/eIsland')) {
+                  violations.push(`${relPath}:1 | copyright_header | 版权声明缺少项目仓库地址`);
+                }
+                if (!copyrightBlock.includes('Copyright (C)')) {
+                  violations.push(`${relPath}:1 | copyright_header | 版权声明缺少 Copyright (C) 行`);
+                }
+                if (!copyrightBlock.includes('GNU General Public License')) {
+                  violations.push(`${relPath}:1 | copyright_header | 版权声明缺少 GPL 许可证声明`);
+                }
+              }
+
               const header = getFileHeaderJsdoc(content);
               if (!header) {
                 violations.push(`${relPath}:1 | file_header | 缺少文件级 JSDoc（需包含 @file / @description / @author）`);
