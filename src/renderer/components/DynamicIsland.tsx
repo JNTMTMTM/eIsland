@@ -400,6 +400,7 @@ function DynamicIsland(): React.JSX.Element {
       setNotificationRef.current({
         title: '更新就绪',
         body: `新版本 v${data.version} 已下载完成，是否立即安装？`,
+        icon: SvgIcon.UPDATE,
         type: 'update-ready',
         updateVersion: data.version,
       });

@@ -70,7 +70,9 @@ export const SvgIcon = {
   /** SMTC */
   SMTC: './svg/SMTC.svg',
   /** 交互 */
-  INTERACTION: './svg/INTERACTION.svg'
+  INTERACTION: './svg/INTERACTION.svg',
+  /** 交互 */
+  UPDATE: './svg/UPDATE.svg'
 } as const;
 
 export type SvgIconKey = keyof typeof SvgIcon;
