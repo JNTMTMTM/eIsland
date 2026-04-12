@@ -1,0 +1,143 @@
+import type { OverviewLayoutConfig } from '../../../../expand/components/OverviewTab';
+import { SvgIcon } from '../../../../../../utils/SvgIcon';
+import type { WeatherProvider, WeatherLocationPriority } from '../../../../../../store/utils/storage';
+
+export const LYRICS_SOURCE_OPTIONS = [
+  { value: 'auto', label: '自动（跟随播放器）' },
+  { value: 'netease-only', label: '仅网易云' },
+  { value: 'qqmusic-only', label: '仅 QQ音乐' },
+  { value: 'kugou-only', label: '仅酷狗' },
+  { value: 'sodamusic-only', label: '仅汽水音乐' },
+  { value: 'lrclib-only', label: '仅 LRCLIB' },
+];
+
+export const WEATHER_PROVIDER_OPTIONS: Array<{ value: WeatherProvider; label: string }> = [
+  { value: 'open-meteo', label: 'Open-Meteo 优先' },
+  { value: 'uapi', label: 'UAPI 优先' },
+];
+
+export const WEATHER_LOCATION_PRIORITY_OPTIONS: Array<{ value: WeatherLocationPriority; label: string }> = [
+  { value: 'ip', label: 'IP 定位优先' },
+  { value: 'custom', label: '自定义位置优先' },
+];
+
+export const SETTINGS_TABS = ['index', 'app', 'network', 'weather', 'music', 'ai', 'shortcut', 'update', 'about'] as const;
+export type SettingsSidebarTabKey = (typeof SETTINGS_TABS)[number];
+export type AppSettingsPageKey = 'layout-preview' | 'hide-process-list' | 'position' | 'theme' | 'behavior' | 'autostart';
+export type WeatherSettingsPageKey = 'location' | 'provider';
+export type MusicSettingsPageKey = 'whitelist' | 'lyrics' | 'smtc';
+export type MusicNavCardKey = 'music-whitelist' | 'music-lyrics' | 'music-smtc';
+export type SettingsTabLabelKey = SettingsSidebarTabKey | AppSettingsPageKey | MusicNavCardKey;
+
+export const SETTINGS_TAB_LABELS: Record<SettingsTabLabelKey, string> = {
+  index: '快速导航',
+  app: '软件设置',
+  'layout-preview': '布局预览',
+  'hide-process-list': '隐藏进程管理',
+  position: '位置校准',
+  theme: '主题外观',
+  behavior: '交互行为',
+  autostart: '实用工具',
+  network: '网络配置',
+  weather: '天气配置',
+  music: '歌曲设置',
+  'music-whitelist': '播放器白名单',
+  'music-lyrics': '歌词源',
+  'music-smtc': 'SMTC',
+  ai: 'AI Agent',
+  shortcut: '快捷键',
+  update: '更新设置',
+  about: '关于软件',
+};
+
+export const SETTINGS_TAB_DESCRIPTIONS: Record<Exclude<SettingsTabLabelKey, 'index'>, string> = {
+  app: '布局预览与隐藏进程规则配置',
+  'layout-preview': '进入布局预览并调整左右控件展示。',
+  'hide-process-list': '管理隐藏进程名单与自动隐藏规则。',
+  position: '动态调整灵动岛位置并保存',
+  theme: '切换深色、浅色或跟随系统主题。',
+  behavior: '配置鼠标移开后是否自动收回。',
+  autostart: '应用控制、日志与开机启动配置。',
+  network: '请求超时与网络行为设置',
+  weather: '天气接口优先级设置',
+  music: '播放器白名单与歌词来源',
+  'music-whitelist': '配置允许接入灵动岛的播放器。',
+  'music-lyrics': '选择歌词来源与显示模式。',
+  'music-smtc': '系统媒体传输控制相关配置。',
+  ai: 'AI 服务与 Prompt 配置',
+  shortcut: '隐藏、关闭、截图快捷键',
+  update: '检查与下载软件更新',
+  about: '版本信息与项目链接',
+};
+
+export const SETTINGS_TAB_ICONS: Partial<Record<SettingsTabLabelKey, string>> = {
+  'layout-preview': SvgIcon.LAYOUT,
+  'hide-process-list': SvgIcon.TASK_MANAGER,
+  position: SvgIcon.MOVE,
+  network: SvgIcon.NETWORK,
+  weather: SvgIcon.WEATHER,
+  music: SvgIcon.LRC,
+  'music-whitelist': SvgIcon.MUSIC,
+  'music-lyrics': SvgIcon.LRC,
+  'music-smtc': SvgIcon.SMTC,
+  ai: SvgIcon.AI,
+  shortcut: SvgIcon.SHORTCUT_KEY,
+  update: SvgIcon.REVERT,
+  about: SvgIcon.ABOUT,
+  theme: SvgIcon.THEME,
+  behavior: SvgIcon.INTERACTION,
+  autostart: SvgIcon.CONTINUE,
+};
+
+export const NETWORK_TIMEOUT_OPTIONS = [
+  { label: '5 秒', value: 5000 },
+  { label: '10 秒（默认）', value: 10000 },
+  { label: '15 秒', value: 15000 },
+  { label: '20 秒', value: 20000 },
+  { label: '30 秒', value: 30000 },
+];
+
+export const LAYOUT_STORE_KEY = 'overview-layout';
+export const DEFAULT_LAYOUT: OverviewLayoutConfig = { left: 'shortcuts', right: 'todo' };
+export const APP_SETTINGS_PAGES: AppSettingsPageKey[] = ['layout-preview', 'hide-process-list', 'position', 'theme', 'behavior', 'autostart'];
+export const WEATHER_SETTINGS_PAGES: WeatherSettingsPageKey[] = ['location', 'provider'];
+export const WEATHER_SETTINGS_PAGE_LABELS: Record<WeatherSettingsPageKey, string> = {
+  location: '定位配置',
+  provider: '接口配置',
+};
+export const MUSIC_SETTINGS_PAGES: MusicSettingsPageKey[] = ['whitelist', 'lyrics', 'smtc'];
+export const MUSIC_SETTINGS_PAGE_LABELS: Record<MusicSettingsPageKey, string> = {
+  whitelist: '白名单',
+  lyrics: '歌词源',
+  smtc: 'SMTC',
+};
+
+export interface NavCardDef {
+  id: string;
+  label: string;
+  desc: string;
+  icon?: string;
+  tab: SettingsSidebarTabKey;
+  appPage?: AppSettingsPageKey;
+  musicPage?: MusicSettingsPageKey;
+}
+
+export const NAV_CARDS: NavCardDef[] = [
+  { id: 'layout-preview', label: SETTINGS_TAB_LABELS['layout-preview'], desc: SETTINGS_TAB_DESCRIPTIONS['layout-preview'], icon: SETTINGS_TAB_ICONS['layout-preview'], tab: 'app', appPage: 'layout-preview' },
+  { id: 'hide-process-list', label: SETTINGS_TAB_LABELS['hide-process-list'], desc: SETTINGS_TAB_DESCRIPTIONS['hide-process-list'], icon: SETTINGS_TAB_ICONS['hide-process-list'], tab: 'app', appPage: 'hide-process-list' },
+  { id: 'position', label: SETTINGS_TAB_LABELS.position, desc: SETTINGS_TAB_DESCRIPTIONS.position, icon: SETTINGS_TAB_ICONS.position, tab: 'app', appPage: 'position' },
+  { id: 'theme', label: SETTINGS_TAB_LABELS.theme, desc: SETTINGS_TAB_DESCRIPTIONS.theme, icon: SETTINGS_TAB_ICONS.theme, tab: 'app', appPage: 'theme' },
+  { id: 'behavior', label: SETTINGS_TAB_LABELS.behavior, desc: SETTINGS_TAB_DESCRIPTIONS.behavior, icon: SETTINGS_TAB_ICONS.behavior, tab: 'app', appPage: 'behavior' },
+  { id: 'autostart', label: SETTINGS_TAB_LABELS.autostart, desc: SETTINGS_TAB_DESCRIPTIONS.autostart, icon: SETTINGS_TAB_ICONS.autostart, tab: 'app', appPage: 'autostart' },
+  { id: 'network', label: SETTINGS_TAB_LABELS.network, desc: SETTINGS_TAB_DESCRIPTIONS.network, icon: SETTINGS_TAB_ICONS.network, tab: 'network' },
+  { id: 'weather', label: SETTINGS_TAB_LABELS.weather, desc: SETTINGS_TAB_DESCRIPTIONS.weather, icon: SETTINGS_TAB_ICONS.weather, tab: 'weather' },
+  { id: 'ai', label: SETTINGS_TAB_LABELS.ai, desc: SETTINGS_TAB_DESCRIPTIONS.ai, icon: SETTINGS_TAB_ICONS.ai, tab: 'ai' },
+  { id: 'shortcut', label: SETTINGS_TAB_LABELS.shortcut, desc: SETTINGS_TAB_DESCRIPTIONS.shortcut, icon: SETTINGS_TAB_ICONS.shortcut, tab: 'shortcut' },
+  { id: 'about', label: SETTINGS_TAB_LABELS.about, desc: SETTINGS_TAB_DESCRIPTIONS.about, icon: SETTINGS_TAB_ICONS.about, tab: 'about' },
+  { id: 'music-whitelist', label: SETTINGS_TAB_LABELS['music-whitelist'], desc: SETTINGS_TAB_DESCRIPTIONS['music-whitelist'], icon: SETTINGS_TAB_ICONS['music-whitelist'], tab: 'music', musicPage: 'whitelist' },
+  { id: 'music-lyrics', label: SETTINGS_TAB_LABELS['music-lyrics'], desc: SETTINGS_TAB_DESCRIPTIONS['music-lyrics'], icon: SETTINGS_TAB_ICONS['music-lyrics'], tab: 'music', musicPage: 'lyrics' },
+  { id: 'music-smtc', label: SETTINGS_TAB_LABELS['music-smtc'], desc: SETTINGS_TAB_DESCRIPTIONS['music-smtc'], icon: SETTINGS_TAB_ICONS['music-smtc'], tab: 'music', musicPage: 'smtc' },
+];
+
+export const DEFAULT_NAV_ORDER: string[] = NAV_CARDS.map((c) => c.id);
+export const NAV_CARDS_MAP = new Map(NAV_CARDS.map((c) => [c.id, c]));
