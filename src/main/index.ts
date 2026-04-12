@@ -2214,9 +2214,10 @@ function registerIpcHandlers(): void {
     }
   });
 
-  /** 下载更新 */
+  /** 下载更新（自动先 check 再 download） */
   ipcMain.handle('updater:download', async () => {
     try {
+      await autoUpdater.checkForUpdates();
       await autoUpdater.downloadUpdate();
       return true;
     } catch (err) {
@@ -2532,10 +2533,25 @@ app.whenReady().then(() => {
   if (savedResetPositionHotkey) registerResetPositionHotkey(savedResetPositionHotkey);
 
   // ===== 自动更新初始化 =====
+  autoUpdater.setFeedURL({
+    provider: 'generic',
+    url: 'https://pub-4c1e73c3c2004901aecd6ca014cb16bd.r2.dev',
+  });
   autoUpdater.autoDownload = false;
   autoUpdater.autoInstallOnAppQuit = false;
   autoUpdater.logger = null;
+
+  autoUpdater.on('checking-for-update', () => {
+    console.log('[Updater] checking-for-update...');
+  });
+  autoUpdater.on('update-available', (info) => {
+    console.log('[Updater] update-available:', info.version);
+  });
+  autoUpdater.on('update-not-available', (info) => {
+    console.log('[Updater] update-not-available, current:', info.version);
+  });
   autoUpdater.on('download-progress', (progress) => {
+    console.log(`[Updater] download-progress: ${progress.percent.toFixed(1)}%  ${(progress.bytesPerSecond / 1024 / 1024).toFixed(1)} MB/s  ${progress.transferred}/${progress.total}`);
     if (mainWindow && !mainWindow.isDestroyed()) {
       mainWindow.webContents.send('updater:download-progress', {
         percent: progress.percent,
@@ -2544,6 +2560,12 @@ app.whenReady().then(() => {
         bytesPerSecond: progress.bytesPerSecond,
       });
     }
+  });
+  autoUpdater.on('update-downloaded', (info) => {
+    console.log('[Updater] update-downloaded:', info.version);
+  });
+  autoUpdater.on('error', (err) => {
+    console.error('[Updater] error:', err.message);
   });
 
   app.on('activate', function () {
