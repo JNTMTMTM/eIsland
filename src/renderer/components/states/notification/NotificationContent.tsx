@@ -121,14 +121,14 @@ export function NotificationContent({
       </div>
 
       {type === 'update-ready' ? (
-        <div className="notification-actions">
+        <div className="notification-actions notification-actions--right">
           <div className="notification-decision-actions">
             <button type="button" className="notification-action-btn notification-action-complete" onClick={handleInstallUpdate}>安装并重启</button>
             <button type="button" className="notification-action-btn notification-action-ignore" onClick={handleDismissUpdate}>稍后</button>
           </div>
         </div>
       ) : type === 'update-available' ? (
-        <div className="notification-actions">
+        <div className="notification-actions notification-actions--right">
           <div className="notification-decision-actions">
             <button type="button" className="notification-action-btn notification-action-complete" onClick={handleGoToUpdate}>下载更新</button>
             <button type="button" className="notification-action-btn notification-action-ignore" onClick={handleDismissUpdate}>稍后</button>
