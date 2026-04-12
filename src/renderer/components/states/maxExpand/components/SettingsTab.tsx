@@ -550,6 +550,12 @@ export function SettingsTab(): ReactElement {
   const [islandPositionInput, setIslandPositionInput] = useState<{ x: string; y: string }>({ x: '0', y: '0' });
   const [aboutVersion, setAboutVersion] = useState<string>('26.1.1-beta.3');
 
+  /** 自动更新相关状态 */
+  const [updateStatus, setUpdateStatus] = useState<'idle' | 'checking' | 'available' | 'downloading' | 'ready' | 'error' | 'latest'>('idle');
+  const [updateVersion, setUpdateVersion] = useState<string>('');
+  const [updateError, setUpdateError] = useState<string>('');
+  const [downloadProgress, setDownloadProgress] = useState<{ percent: number; transferred: number; total: number; bytesPerSecond: number } | null>(null);
+
   const persistIslandOpacity = (opacity: number): void => {
     window.api.islandOpacitySet(opacity).catch(() => {});
   };
@@ -795,6 +801,59 @@ export function SettingsTab(): ReactElement {
       window.api.hotkeyResume().catch(() => {});
     };
   }, []);
+
+  /** 监听下载进度 */
+  useEffect(() => {
+    const unsub = window.api.onUpdaterProgress?.((progress) => {
+      setDownloadProgress(progress);
+    });
+    return () => { unsub?.(); };
+  }, []);
+
+  /** 检查更新 */
+  const handleCheckUpdate = async (): Promise<void> => {
+    setUpdateStatus('checking');
+    setUpdateError('');
+    setDownloadProgress(null);
+    try {
+      const result = await window.api.updaterCheck();
+      if (result.error) {
+        setUpdateStatus('error');
+        setUpdateError(result.error);
+      } else if (result.available && result.version) {
+        setUpdateStatus('available');
+        setUpdateVersion(result.version);
+      } else {
+        setUpdateStatus('latest');
+      }
+    } catch {
+      setUpdateStatus('error');
+      setUpdateError('检查更新失败，请检查网络连接');
+    }
+  };
+
+  /** 下载更新 */
+  const handleDownloadUpdate = async (): Promise<void> => {
+    setUpdateStatus('downloading');
+    setDownloadProgress(null);
+    try {
+      const ok = await window.api.updaterDownload();
+      if (ok) {
+        setUpdateStatus('ready');
+      } else {
+        setUpdateStatus('error');
+        setUpdateError('下载失败，请稍后重试');
+      }
+    } catch {
+      setUpdateStatus('error');
+      setUpdateError('下载失败，请检查网络连接');
+    }
+  };
+
+  /** 安装更新 */
+  const handleInstallUpdate = (): void => {
+    window.api.updaterInstall().catch(() => {});
+  };
 
   const updateLayout = (side: 'left' | 'right', value: OverviewWidgetType): void => {
     const updated = { ...layoutConfig, [side]: value };
@@ -2623,6 +2682,50 @@ export function SettingsTab(): ReactElement {
                     鸡哥 <span className="settings-about-id">JNTMTMTM</span>
                   </div>
                   <div className="settings-about-version">eIsland v{aboutVersion}</div>
+                </div>
+              </div>
+
+              {/* 软件更新 */}
+              <div className="settings-about-update">
+                <div className="settings-about-update-row">
+                  {updateStatus === 'idle' && (
+                    <button className="settings-about-update-btn" type="button" onClick={handleCheckUpdate}>检查更新</button>
+                  )}
+                  {updateStatus === 'checking' && (
+                    <button className="settings-about-update-btn" type="button" disabled>检查中…</button>
+                  )}
+                  {updateStatus === 'latest' && (
+                    <button className="settings-about-update-btn" type="button" onClick={handleCheckUpdate}>已是最新版本</button>
+                  )}
+                  {updateStatus === 'available' && (
+                    <button className="settings-about-update-btn update-available" type="button" onClick={handleDownloadUpdate}>
+                      发现新版本 v{updateVersion}，点击下载
+                    </button>
+                  )}
+                  {updateStatus === 'downloading' && (
+                    <div className="settings-about-update-progress">
+                      <div className="settings-about-update-progress-bar">
+                        <div
+                          className="settings-about-update-progress-fill"
+                          style={{ width: `${downloadProgress?.percent ?? 0}%` }}
+                        />
+                      </div>
+                      <span className="settings-about-update-progress-text">
+                        {downloadProgress ? `${Math.round(downloadProgress.percent)}% · ${(downloadProgress.bytesPerSecond / 1024 / 1024).toFixed(1)} MB/s` : '准备下载…'}
+                      </span>
+                    </div>
+                  )}
+                  {updateStatus === 'ready' && (
+                    <button className="settings-about-update-btn update-ready" type="button" onClick={handleInstallUpdate}>
+                      下载完成，点击安装并重启
+                    </button>
+                  )}
+                  {updateStatus === 'error' && (
+                    <div className="settings-about-update-error-row">
+                      <span className="settings-about-update-error">{updateError}</span>
+                      <button className="settings-about-update-btn" type="button" onClick={handleCheckUpdate}>重试</button>
+                    </div>
+                  )}
                 </div>
               </div>
 

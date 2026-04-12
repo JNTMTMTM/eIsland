@@ -30,6 +30,7 @@ import { readFileSync, writeFileSync, appendFileSync, mkdirSync, existsSync } fr
 import { exec } from 'child_process';
 import { Worker } from 'worker_threads';
 import { electronApp, optimizer, is } from '@electron-toolkit/utils';
+import { autoUpdater } from 'electron-updater';
 import { createTray, destroyTray } from './tray';
 
 /** 防止 Electron 创建多个实例 */
@@ -2191,6 +2192,49 @@ function registerIpcHandlers(): void {
   ipcMain.on('capture-cancel', () => {
     closeCaptureWindow();
   });
+
+  // ===== 自动更新 IPC =====
+
+  /** 检查更新 */
+  ipcMain.handle('updater:check', async () => {
+    try {
+      const result = await autoUpdater.checkForUpdates();
+      if (!result || !result.updateInfo) return { available: false };
+      const latest = result.updateInfo.version;
+      const current = app.getVersion();
+      return {
+        available: latest !== current,
+        version: latest,
+        releaseNotes: result.updateInfo.releaseNotes || '',
+        currentVersion: current,
+      };
+    } catch (err) {
+      console.error('[Updater] check error:', err);
+      return { available: false, error: String(err) };
+    }
+  });
+
+  /** 下载更新 */
+  ipcMain.handle('updater:download', async () => {
+    try {
+      await autoUpdater.downloadUpdate();
+      return true;
+    } catch (err) {
+      console.error('[Updater] download error:', err);
+      return false;
+    }
+  });
+
+  /** 安装更新并重启 */
+  ipcMain.handle('updater:install', () => {
+    autoUpdater.quitAndInstall(false, true);
+    return true;
+  });
+
+  /** 获取当前版本 */
+  ipcMain.handle('updater:version', () => {
+    return app.getVersion();
+  });
 }
 
 /**
@@ -2486,6 +2530,21 @@ app.whenReady().then(() => {
   // 读取持久化还原位置快捷键并注册
   const savedResetPositionHotkey = readResetPositionHotkeyConfig();
   if (savedResetPositionHotkey) registerResetPositionHotkey(savedResetPositionHotkey);
+
+  // ===== 自动更新初始化 =====
+  autoUpdater.autoDownload = false;
+  autoUpdater.autoInstallOnAppQuit = false;
+  autoUpdater.logger = null;
+  autoUpdater.on('download-progress', (progress) => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('updater:download-progress', {
+        percent: progress.percent,
+        transferred: progress.transferred,
+        total: progress.total,
+        bytesPerSecond: progress.bytesPerSecond,
+      });
+    }
+  });
 
   app.on('activate', function () {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();

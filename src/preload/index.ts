@@ -568,6 +568,49 @@ const api = {
    */
   navOrderSet: (payload: { visibleOrder: string[]; hiddenOrder: string[] }): Promise<boolean> => {
     return ipcRenderer.invoke('island:nav-order:set', payload);
+  },
+
+  // ===== 自动更新 =====
+
+  /**
+   * 检查更新
+   * @returns 更新信息（是否有新版、版本号等）
+   */
+  updaterCheck: (): Promise<{ available: boolean; version?: string; releaseNotes?: string; currentVersion?: string; error?: string }> => {
+    return ipcRenderer.invoke('updater:check');
+  },
+  /**
+   * 下载更新
+   * @returns 是否成功开始下载
+   */
+  updaterDownload: (): Promise<boolean> => {
+    return ipcRenderer.invoke('updater:download');
+  },
+  /**
+   * 安装更新并重启
+   */
+  updaterInstall: (): Promise<boolean> => {
+    return ipcRenderer.invoke('updater:install');
+  },
+  /**
+   * 获取当前版本号
+   */
+  updaterVersion: (): Promise<string> => {
+    return ipcRenderer.invoke('updater:version');
+  },
+  /**
+   * 监听下载进度
+   * @param callback - 下载进度回调
+   * @returns 取消监听函数
+   */
+  onUpdaterProgress: (callback: (progress: { percent: number; transferred: number; total: number; bytesPerSecond: number }) => void): (() => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, data: { percent: number; transferred: number; total: number; bytesPerSecond: number }): void => {
+      callback(data);
+    };
+    ipcRenderer.on('updater:download-progress', handler);
+    return () => {
+      ipcRenderer.removeListener('updater:download-progress', handler);
+    };
   }
 };
 

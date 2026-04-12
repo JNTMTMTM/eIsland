@@ -151,6 +151,12 @@ declare global {
       /** ===== 快速导航顺序 API ===== */
       navOrderGet: () => Promise<{ visibleOrder: string[]; hiddenOrder: string[] }>;
       navOrderSet: (payload: { visibleOrder: string[]; hiddenOrder: string[] }) => Promise<boolean>;
+      /** ===== 自动更新 API ===== */
+      updaterCheck: () => Promise<{ available: boolean; version?: string; releaseNotes?: string; currentVersion?: string; error?: string }>;
+      updaterDownload: () => Promise<boolean>;
+      updaterInstall: () => Promise<boolean>;
+      updaterVersion: () => Promise<string>;
+      onUpdaterProgress: (callback: (progress: { percent: number; transferred: number; total: number; bytesPerSecond: number }) => void) => () => void;
     };
   }
 }

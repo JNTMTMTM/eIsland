@@ -1,6 +1,6 @@
 {
   "name": "eisland",
-  "version": "26.2.0",
+  "version": "26.2.0-beta.1",
   "description": "A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Electron.",
   "main": "./out/main/index.js",
   "author": "JNTMTMTM",
@@ -19,6 +19,7 @@
     "@coooookies/windows-smtc-monitor": "^1.0.12",
     "@tailwindcss/vite": "^4.2.2",
     "colorthief": "^3.3.1",
+    "electron-updater": "^6.8.3",
     "lunar-javascript": "^1.7.7",
     "lyric-resolver": "^0.1.6",
     "openmeteo": "^1.2.3",

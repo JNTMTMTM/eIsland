@@ -44,5 +44,9 @@
     "allowToChangeInstallationDirectory": true,
     "allowElevation": true,
     "deleteAppDataOnUninstall": false
+  },
+  "publish": {
+    "provider": "generic",
+    "url": "https://pub-4c1e73c3c2004901aecd6ca014cb16bd.r2.dev"
   }
 }
