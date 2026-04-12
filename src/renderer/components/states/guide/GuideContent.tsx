@@ -284,10 +284,9 @@ function MiniSettingIsland({ demo }: { demo: MiniSettingDemo }): React.ReactElem
     });
   };
 
-  const handleAutostart = () => {
-    const next = autostart === 'enabled' ? 'disabled' : 'enabled';
-    setAutostart(next);
-    window.api.autostartSet(next).catch(() => {});
+  const handleAutostart = (mode: string) => {
+    setAutostart(mode);
+    window.api.autostartSet(mode).catch(() => {});
   };
 
   const renderDemo = () => {
@@ -324,13 +323,16 @@ function MiniSettingIsland({ demo }: { demo: MiniSettingDemo }): React.ReactElem
             <span className="ms-position-val">x:{offset.x} y:{offset.y}</span>
           </div>
         );
-      case 'autostart':
+      case 'autostart': {
+        const label = autostart === 'enabled' ? '已开启' : autostart === 'enabled-elevated' ? '高优先级' : '已关闭';
+        const isOn = autostart !== 'disabled';
         return (
           <div className="ms-autostart">
-            <div className={`ms-autostart-indicator${autostart === 'enabled' ? ' on' : ''}`} />
-            <span className="ms-autostart-label">{autostart === 'enabled' ? '已启用' : '已关闭'}</span>
+            <div className={`ms-autostart-indicator${isOn ? ' on' : ''}${autostart === 'enabled-elevated' ? ' elevated' : ''}`} />
+            <span className="ms-autostart-label">{label}</span>
           </div>
         );
+      }
     }
   };
 
@@ -362,19 +364,25 @@ function MiniSettingIsland({ demo }: { demo: MiniSettingDemo }): React.ReactElem
       case 'position':
         return (
           <div className="ms-controls ms-controls-grid">
-            <button className="ms-ctrl-btn" onClick={() => handleOffset(0, -1)}>↑</button>
-            <button className="ms-ctrl-btn" onClick={() => handleOffset(-1, 0)}>←</button>
+            <button className="ms-ctrl-btn" onClick={() => handleOffset(0, -10)}>↑</button>
+            <button className="ms-ctrl-btn" onClick={() => handleOffset(-10, 0)}>←</button>
             <button className="ms-ctrl-btn ms-ctrl-reset" onClick={() => handleOffset(-offset.x, -offset.y)}>●</button>
-            <button className="ms-ctrl-btn" onClick={() => handleOffset(1, 0)}>→</button>
-            <button className="ms-ctrl-btn" onClick={() => handleOffset(0, 1)}>↓</button>
+            <button className="ms-ctrl-btn" onClick={() => handleOffset(10, 0)}>→</button>
+            <button className="ms-ctrl-btn" onClick={() => handleOffset(0, 10)}>↓</button>
           </div>
         );
       case 'autostart':
         return (
           <div className="ms-controls">
-            <button className={`ms-ctrl-toggle${autostart === 'enabled' ? ' on' : ''}`} onClick={handleAutostart}>
-              <span className="ms-ctrl-toggle-knob" />
-            </button>
+            {(['disabled', 'enabled', 'enabled-elevated'] as string[]).map((m) => (
+              <button
+                key={m}
+                className={`ms-ctrl-btn${autostart === m ? ' active' : ''}`}
+                onClick={() => handleAutostart(m)}
+              >
+                {m === 'disabled' ? '关闭' : m === 'enabled' ? '开启' : '高优先级'}
+              </button>
+            ))}
           </div>
         );
     }
