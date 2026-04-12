@@ -37,6 +37,7 @@ import { LyricsContent } from './states/lyrics/LyricsContent';
 import { SvgIcon } from '../utils/SvgIcon';
 import type { NowPlayingInfo } from '../store/isLandStore';
 import { fetchLyrics } from '../api/lrcApi';
+import { fetchVersion } from '../api/versionApi';
 
 /** 灵动岛状态类型 */
 export type IslandState = 'idle' | 'hover' | 'expanded' | 'notification' | 'maxExpand' | 'minimal' | 'lyrics';
@@ -394,15 +395,29 @@ function DynamicIsland(): React.JSX.Element {
     };
   }, []);
 
-  // 订阅有新版本可用事件（启动时自动检查推送）
+  // 订阅有新版本可用事件（启动时自动检查推送，仅首次弹出通知）
+  const updateNotifiedRef = useRef(false);
   useEffect(() => {
     const unsubAvailable = window.api?.onUpdaterAvailable?.((data) => {
-      setNotificationRef.current({
-        title: '发现新版本',
-        body: `v${data.version} 已发布，是否立即下载？`,
-        icon: SvgIcon.UPDATE,
-        type: 'update-available',
-        updateVersion: data.version,
+      if (updateNotifiedRef.current) return;
+      updateNotifiedRef.current = true;
+      fetchVersion().then((info) => {
+        const desc = (info?.description ?? '').trim();
+        setNotificationRef.current({
+          title: '发现新版本',
+          body: desc || '是否立即下载？',
+          icon: SvgIcon.UPDATE,
+          type: 'update-available',
+          updateVersion: data.version,
+        });
+      }).catch(() => {
+        setNotificationRef.current({
+          title: '发现新版本',
+          body: '是否立即下载？',
+          icon: SvgIcon.UPDATE,
+          type: 'update-available',
+          updateVersion: data.version,
+        });
       });
     });
     return () => {
@@ -570,6 +585,7 @@ function DynamicIsland(): React.JSX.Element {
           icon={notification.icon}
           type={notification.type}
           sourceAppId={notification.sourceAppId}
+          updateVersion={notification.updateVersion}
         />
       ),
     },

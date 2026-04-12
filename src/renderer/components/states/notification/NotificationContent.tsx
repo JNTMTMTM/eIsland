@@ -53,7 +53,7 @@ export function NotificationContent({
   icon,
   type,
   sourceAppId: _sourceAppId,
-  updateVersion: _updateVersion,
+  updateVersion,
 }: NotificationContentProps): ReactElement {
   const { setIdle, setLyrics, setNotification } = useIslandStore();
 
@@ -116,7 +116,12 @@ export function NotificationContent({
           )}
         </div>
         <div className="notification-info">
-          <span className="notification-title">{title}</span>
+          <span className="notification-title">
+            {title}
+            {(type === 'update-available' || type === 'update-ready') && updateVersion && (
+              <span className="notification-update-version"> v{updateVersion}</span>
+            )}
+          </span>
           <span className="notification-body">{body}</span>
         </div>
       </div>
