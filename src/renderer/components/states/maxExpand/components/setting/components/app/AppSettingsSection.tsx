@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Dispatch, ReactElement, SetStateAction } from 'react';
 import type { AppSettingsPageKey } from '../../utils/settingsConfig';
 
@@ -149,6 +149,26 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
 
   const OverviewPreview = OverviewPreviewComponent;
   const [clearLogsStatus, setClearLogsStatus] = useState<'idle' | 'clearing' | string>('idle');
+  const clearLogsResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (clearLogsResetTimerRef.current) {
+        clearTimeout(clearLogsResetTimerRef.current);
+        clearLogsResetTimerRef.current = null;
+      }
+    };
+  }, []);
+
+  const scheduleClearLogsStatusReset = (): void => {
+    if (clearLogsResetTimerRef.current) {
+      clearTimeout(clearLogsResetTimerRef.current);
+    }
+    clearLogsResetTimerRef.current = setTimeout(() => {
+      setClearLogsStatus('idle');
+      clearLogsResetTimerRef.current = null;
+    }, 3000);
+  };
 
   return (
     <div className="max-expand-settings-section">
@@ -454,10 +474,10 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
                         } else {
                           setClearLogsStatus('清理失败');
                         }
-                        setTimeout(() => setClearLogsStatus('idle'), 3000);
+                        scheduleClearLogsStatusReset();
                       }).catch(() => {
                         setClearLogsStatus('清理失败');
-                        setTimeout(() => setClearLogsStatus('idle'), 3000);
+                        scheduleClearLogsStatusReset();
                       });
                     }}
                   >
