@@ -558,6 +558,11 @@ export function SettingsTab(): ReactElement {
   const [updateVersion, setUpdateVersion] = useState<string>('');
   const [updateError, setUpdateError] = useState<string>('');
   const [downloadProgress, setDownloadProgress] = useState<{ percent: number; transferred: number; total: number; bytesPerSecond: number } | null>(null);
+  const [updateSource, setUpdateSource] = useState<string>('cloudflare-r2');
+  const UPDATE_SOURCES: { key: string; label: string }[] = [
+    { key: 'cloudflare-r2', label: 'Cloudflare R2' },
+  ];
+  const currentSourceLabel = UPDATE_SOURCES.find((s) => s.key === updateSource)?.label ?? updateSource;
 
   const persistIslandOpacity = (opacity: number): void => {
     window.api.islandOpacitySet(opacity).catch(() => {});
@@ -2682,7 +2687,33 @@ export function SettingsTab(): ReactElement {
             <div className="max-expand-settings-section settings-update">
               <div className="max-expand-settings-title">更新设置</div>
 
-              <div className="settings-about-version" style={{ marginBottom: 12 }}>当前版本：eIsland v{aboutVersion}</div>
+              <div className="settings-update-info-grid" style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 0, fontSize: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+                  <span><span style={{ opacity: 0.6 }}>当前版本</span> <span style={{ fontWeight: 500 }}>eIsland v{aboutVersion || '…'}</span></span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <span style={{ opacity: 0.6 }}>更新源</span>
+                    {UPDATE_SOURCES.map((s) => (
+                      <label key={s.key} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, cursor: 'pointer', marginLeft: 4 }}>
+                        <input
+                          type="radio"
+                          name="update-source"
+                          value={s.key}
+                          checked={updateSource === s.key}
+                          onChange={() => setUpdateSource(s.key)}
+                          style={{ margin: 0 }}
+                        />
+                        <span>{s.label}</span>
+                      </label>
+                    ))}
+                  </span>
+                </div>
+                {(updateStatus === 'available' || updateStatus === 'downloading' || updateStatus === 'ready') && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ opacity: 0.6 }}>最新版本</span>
+                    <span style={{ fontWeight: 500, color: 'var(--accent-color, #4fc3f7)' }}>v{updateVersion}</span>
+                  </div>
+                )}
+              </div>
 
               <div className="settings-about-update">
                 <div className="settings-about-update-row">
@@ -2697,11 +2728,12 @@ export function SettingsTab(): ReactElement {
                   )}
                   {updateStatus === 'available' && (
                     <button className="settings-about-update-btn update-available" type="button" onClick={handleDownloadUpdate}>
-                      发现新版本 v{updateVersion}，点击下载
+                      下载更新
                     </button>
                   )}
                   {updateStatus === 'downloading' && (
                     <div className="settings-about-update-progress">
+                      <div style={{ marginBottom: 4, fontSize: 12, opacity: 0.7 }}>正在从 {currentSourceLabel} 下载更新…</div>
                       <div className="settings-about-update-progress-bar">
                         <div
                           className="settings-about-update-progress-fill"
@@ -2715,7 +2747,7 @@ export function SettingsTab(): ReactElement {
                   )}
                   {updateStatus === 'ready' && (
                     <button className="settings-about-update-btn update-ready" type="button" onClick={handleInstallUpdate}>
-                      下载完成，点击安装并重启
+                      安装并重启
                     </button>
                   )}
                   {updateStatus === 'error' && (
