@@ -1058,14 +1058,14 @@
   font-size: 11px;
 }
 
-.ms-ctrl-reset {
-  color: rgba(var(--color-text-rgb), 0.3) !important;
-  font-size: 8px !important;
+.ms-controls .ms-ctrl-btn.ms-ctrl-reset {
+  color: rgba(var(--color-text-rgb), 0.3);
+  font-size: 8px;
 }
 
-.ms-ctrl-reset:hover {
-  color: rgba(255, 100, 100, 0.7) !important;
-  border-color: rgba(255, 100, 100, 0.3) !important;
+.ms-controls .ms-ctrl-btn.ms-ctrl-reset:hover {
+  color: rgba(255, 100, 100, 0.7);
+  border-color: rgba(255, 100, 100, 0.3);
 }
 
 /* 开机自启：iOS 风格开关 */
