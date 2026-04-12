@@ -30,7 +30,8 @@ import '../../../styles/guide/guide.css';
 
 /** 单个引导页配置 */
 interface GuidePage {
-  icon: string;
+  icon?: string;
+  imageSrc?: string;
   title: string;
   desc: string;
   tips?: { icon: string; text: string }[];
@@ -39,7 +40,7 @@ interface GuidePage {
 /** 引导页数据 */
 const GUIDE_PAGES: GuidePage[] = [
   {
-    icon: '👋',
+    imageSrc: './svg/eisland.svg',
     title: '欢迎使用 eIsland',
     desc: '一款灵感来自 Apple 灵动岛的 Windows 桌面浮窗小组件，\n让你的桌面更加灵动、高效。',
   },
@@ -121,9 +122,12 @@ export function GuideContent(): React.ReactElement {
 
   return (
     <div className="guide-content" onClick={(e) => e.stopPropagation()}>
-      <div className="guide-page" key={page}>
+      <div className={`guide-page${page === 0 ? ' guide-page-welcome' : ''}`} key={page}>
         <div className="guide-hero">
-          <div className="guide-page-icon" aria-hidden="true">{current.icon}</div>
+          {current.imageSrc
+            ? <img className="guide-page-logo" src={current.imageSrc} alt="" aria-hidden="true" />
+            : <div className="guide-page-icon" aria-hidden="true">{current.icon}</div>
+          }
           <div className="guide-title">{current.title}</div>
         </div>
         <div className="guide-desc">{current.desc}</div>
@@ -141,7 +145,6 @@ export function GuideContent(): React.ReactElement {
       </div>
 
       <div className="guide-footer">
-        <div className="guide-step">{page + 1} / {GUIDE_PAGES.length}</div>
         <div className="guide-nav-dots">
           {GUIDE_PAGES.map((_, i) => (
             <button

@@ -56,6 +56,36 @@
   margin-top: -2px;
 }
 
+.guide-page-welcome {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.guide-page-welcome .guide-hero {
+  flex-direction: column;
+  gap: 18px;
+}
+
+.guide-page-welcome .guide-page-icon {
+  font-size: 56px;
+}
+
+.guide-page-logo {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+}
+
+.guide-page-welcome .guide-page-logo {
+  width: 80px;
+  height: 80px;
+}
+
+.guide-page-welcome .guide-title {
+  font-size: 28px;
+}
+
 .guide-hero {
   display: flex;
   align-items: center;
@@ -78,12 +108,6 @@
   white-space: pre-line;
 }
 
-.guide-step {
-  font-size: 12px;
-  line-height: 1.33;
-  opacity: 0.55;
-  letter-spacing: -0.12px;
-}
 
 .guide-tips {
   display: grid;
@@ -134,13 +158,6 @@
   position: relative;
 }
 
-.guide-footer .guide-step {
-  position: absolute;
-  left: 50%;
-  bottom: -2px;
-  transform: translateX(-50%);
-  pointer-events: none;
-}
 
 .guide-nav-dots {
   display: flex;
