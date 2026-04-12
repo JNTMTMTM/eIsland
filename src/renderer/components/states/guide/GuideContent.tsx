@@ -122,16 +122,18 @@ export function GuideContent(): React.ReactElement {
   return (
     <div className="guide-content" onClick={(e) => e.stopPropagation()}>
       <div className="guide-page" key={page}>
-        <div className="guide-page-icon">{current.icon}</div>
-        <div className="guide-page-title">{current.title}</div>
-        <div className="guide-page-desc">{current.desc}</div>
+        <div className="guide-hero">
+          <div className="guide-page-icon" aria-hidden="true">{current.icon}</div>
+          <div className="guide-title">{current.title}</div>
+        </div>
+        <div className="guide-desc">{current.desc}</div>
 
         {current.tips && (
-          <div className="guide-page-tips">
+          <div className="guide-tips" aria-label="要点">
             {current.tips.map((tip, i) => (
               <div className="guide-tip" key={i}>
-                <span className="guide-tip-icon">{tip.icon}</span>
-                <span>{tip.text}</span>
+                <span className="guide-tip-icon" aria-hidden="true">{tip.icon}</span>
+                <span className="guide-tip-text">{tip.text}</span>
               </div>
             ))}
           </div>
@@ -139,12 +141,7 @@ export function GuideContent(): React.ReactElement {
       </div>
 
       <div className="guide-footer">
-        {page > 0 && (
-          <button type="button" className="guide-btn guide-btn-secondary" onClick={handlePrev}>
-            上一步
-          </button>
-        )}
-
+        <div className="guide-step">{page + 1} / {GUIDE_PAGES.length}</div>
         <div className="guide-nav-dots">
           {GUIDE_PAGES.map((_, i) => (
             <button
@@ -156,9 +153,17 @@ export function GuideContent(): React.ReactElement {
           ))}
         </div>
 
-        <button type="button" className="guide-btn guide-btn-primary" onClick={handleNext}>
-          {isLast ? '开始使用' : '下一步'}
-        </button>
+        <div className="guide-actions">
+          {page > 0 && (
+            <button type="button" className="guide-btn guide-btn-secondary" onClick={handlePrev}>
+              上一步
+            </button>
+          )}
+
+          <button type="button" className="guide-btn guide-btn-primary" onClick={handleNext}>
+            {isLast ? '开始使用' : '下一步'}
+          </button>
+        </div>
       </div>
     </div>
   );

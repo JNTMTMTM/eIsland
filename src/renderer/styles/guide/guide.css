@@ -28,7 +28,7 @@
   flex-direction: column;
   width: 100%;
   height: 100%;
-  padding: 24px 32px 16px;
+  padding: 26px 34px 18px;
   color: var(--color-island-text);
   user-select: none;
   overflow: hidden;
@@ -37,10 +37,10 @@
 .guide-page {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  align-items: stretch;
+  justify-content: flex-start;
   flex: 1;
-  gap: 16px;
+  gap: 14px;
   min-height: 0;
   animation: guidePageFadeIn 0.35s cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -51,55 +51,95 @@
 }
 
 .guide-page-icon {
-  font-size: 48px;
+  font-size: 46px;
   line-height: 1;
-  margin-bottom: 4px;
+  margin-top: -2px;
 }
 
-.guide-page-title {
+.guide-hero {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-top: 2px;
+}
+
+.guide-title {
   font-size: 22px;
   font-weight: 700;
-  text-align: center;
+  line-height: 1.19;
+  letter-spacing: 0.231px;
 }
 
-.guide-page-desc {
-  font-size: 13px;
-  line-height: 1.7;
-  text-align: center;
-  opacity: 0.75;
-  max-width: 520px;
+.guide-desc {
+  font-size: 14px;
+  line-height: 1.47;
+  letter-spacing: -0.224px;
+  opacity: 0.78;
+  white-space: pre-line;
 }
 
-.guide-page-tips {
-  display: flex;
-  flex-wrap: wrap;
+.guide-step {
+  font-size: 12px;
+  line-height: 1.33;
+  opacity: 0.55;
+  letter-spacing: -0.12px;
+}
+
+.guide-tips {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
-  justify-content: center;
-  margin-top: 4px;
+  padding: 0 2px;
+  min-height: 0;
 }
 
 .guide-tip {
   display: flex;
   align-items: center;
-  gap: 6px;
-  background: rgba(var(--color-text-rgb), 0.08);
-  border-radius: 10px;
-  padding: 8px 14px;
-  font-size: 12px;
-  line-height: 1.4;
+  gap: 10px;
+  background: rgba(var(--color-text-rgb), 0.055);
+  border-radius: 8px;
+  padding: 12px 14px;
+  min-width: 0;
 }
 
 .guide-tip-icon {
   flex-shrink: 0;
-  font-size: 18px;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(var(--color-text-rgb), 0.08);
+  font-size: 16px;
+}
+
+.guide-tip-text {
+  font-size: 14px;
+  line-height: 1.29;
+  letter-spacing: -0.224px;
+  opacity: 0.9;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .guide-footer {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 16px;
-  padding-top: 12px;
+  justify-content: space-between;
+  gap: 14px;
+  padding-top: 14px;
+  position: relative;
+}
+
+.guide-footer .guide-step {
+  position: absolute;
+  left: 50%;
+  bottom: -2px;
+  transform: translateX(-50%);
+  pointer-events: none;
 }
 
 .guide-nav-dots {
@@ -120,7 +160,7 @@
 }
 
 .guide-nav-dot.active {
-  background: var(--accent-color, #4fc3f7);
+  background: #0071e3;
   transform: scale(1.25);
 }
 
@@ -129,11 +169,12 @@
 }
 
 .guide-btn {
-  border: none;
-  border-radius: 10px;
-  padding: 7px 20px;
-  font-size: 13px;
-  font-weight: 600;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 8px 15px;
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: -0.224px;
   cursor: pointer;
   color: var(--color-island-text);
   transition: background 0.2s ease, transform 0.15s ease;
@@ -148,17 +189,25 @@
 }
 
 .guide-btn-primary {
-  background: rgba(47, 211, 120, 0.34);
+  background: #0071e3;
+  color: #ffffff;
 }
 
 .guide-btn-primary:hover {
-  background: rgba(47, 211, 120, 0.5);
+  background: #0a7ff0;
 }
 
 .guide-btn-secondary {
-  background: rgba(var(--color-text-rgb), 0.1);
+  background: transparent;
+  border-color: rgba(var(--color-text-rgb), 0.28);
 }
 
 .guide-btn-secondary:hover {
-  background: rgba(var(--color-text-rgb), 0.18);
+  background: rgba(var(--color-text-rgb), 0.06);
+}
+
+.guide-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
