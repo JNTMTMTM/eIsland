@@ -36,7 +36,7 @@ interface NotificationContentProps {
   /** 通知图标（可选） */
   icon?: string;
   /** 通知类型 */
-  type?: 'default' | 'source-switch' | 'update-ready';
+  type?: 'default' | 'source-switch' | 'update-available' | 'update-ready';
   /** 请求切换到的播放源 ID（仅 source-switch） */
   sourceAppId?: string;
   /** 更新版本号（仅 update-ready） */
@@ -95,6 +95,11 @@ export function NotificationContent({
     window.api?.updaterInstall();
   };
 
+  const handleGoToUpdate = (): void => {
+    window.api?.updaterDownload().catch(() => {});
+    dismiss();
+  };
+
   const handleDismissUpdate = (): void => {
     dismiss();
   };
@@ -119,6 +124,13 @@ export function NotificationContent({
         <div className="notification-actions">
           <div className="notification-decision-actions">
             <button type="button" className="notification-action-btn notification-action-complete" onClick={handleInstallUpdate}>安装并重启</button>
+            <button type="button" className="notification-action-btn notification-action-ignore" onClick={handleDismissUpdate}>稍后</button>
+          </div>
+        </div>
+      ) : type === 'update-available' ? (
+        <div className="notification-actions">
+          <div className="notification-decision-actions">
+            <button type="button" className="notification-action-btn notification-action-complete" onClick={handleGoToUpdate}>下载更新</button>
             <button type="button" className="notification-action-btn notification-action-ignore" onClick={handleDismissUpdate}>稍后</button>
           </div>
         </div>

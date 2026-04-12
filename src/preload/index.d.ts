@@ -159,6 +159,7 @@ declare global {
       updaterVersion: () => Promise<string>;
       onUpdaterProgress: (callback: (progress: { percent: number; transferred: number; total: number; bytesPerSecond: number }) => void) => () => void;
       onUpdaterDownloaded: (callback: (data: { version: string }) => void) => () => void;
+      onUpdaterAvailable: (callback: (data: { version: string; releaseNotes: string }) => void) => () => void;
     };
   }
 }

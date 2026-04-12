@@ -2600,6 +2600,12 @@ app.whenReady().then(() => {
   });
   autoUpdater.on('update-available', (info) => {
     console.log('[Updater] update-available:', info.version);
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('updater:update-available', {
+        version: info.version,
+        releaseNotes: typeof info.releaseNotes === 'string' ? info.releaseNotes : '',
+      });
+    }
   });
   autoUpdater.on('update-not-available', (info) => {
     console.log('[Updater] update-not-available, current:', info.version);
@@ -2624,6 +2630,14 @@ app.whenReady().then(() => {
   autoUpdater.on('error', (err) => {
     console.error('[Updater] error:', err.message);
   });
+
+  // 启动后自动检查更新，延迟确保渲染进程就绪
+  setTimeout(() => {
+    console.log('[Updater] auto-checking for updates on startup...');
+    autoUpdater.checkForUpdates().catch((err) => {
+      console.error('[Updater] auto-check error:', err);
+    });
+  }, 5000);
 
   app.on('activate', function () {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();

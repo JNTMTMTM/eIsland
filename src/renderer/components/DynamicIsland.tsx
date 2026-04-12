@@ -394,6 +394,22 @@ function DynamicIsland(): React.JSX.Element {
     };
   }, []);
 
+  // 订阅有新版本可用事件（启动时自动检查推送）
+  useEffect(() => {
+    const unsubAvailable = window.api?.onUpdaterAvailable?.((data) => {
+      setNotificationRef.current({
+        title: '发现新版本',
+        body: `v${data.version} 已发布，是否立即下载？`,
+        icon: SvgIcon.UPDATE,
+        type: 'update-available',
+        updateVersion: data.version,
+      });
+    });
+    return () => {
+      unsubAvailable?.();
+    };
+  }, []);
+
   // 订阅更新下载完成事件（主进程推送）
   useEffect(() => {
     const unsubUpdate = window.api?.onUpdaterDownloaded?.((data) => {
