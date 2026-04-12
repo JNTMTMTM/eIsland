@@ -551,7 +551,7 @@ export function SettingsTab(): ReactElement {
   const [islandOpacity, setIslandOpacity] = useState<number>(100);
   const [islandPositionOffset, setIslandPositionOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [islandPositionInput, setIslandPositionInput] = useState<{ x: string; y: string }>({ x: '0', y: '0' });
-  const aboutVersion = '26.2.1';
+  const [aboutVersion, setAboutVersion] = useState<string>('');
 
   /** 自动更新相关状态 */
   const [updateStatus, setUpdateStatus] = useState<'idle' | 'checking' | 'available' | 'downloading' | 'ready' | 'error' | 'latest'>('idle');
@@ -795,6 +795,13 @@ export function SettingsTab(): ReactElement {
     return () => {
       window.api.hotkeyResume().catch(() => {});
     };
+  }, []);
+
+  /** 获取当前版本号 */
+  useEffect(() => {
+    window.api.updaterVersion?.().then((v) => {
+      if (v) setAboutVersion(v);
+    }).catch(() => {});
   }, []);
 
   /** 监听下载进度 */
