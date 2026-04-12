@@ -24,18 +24,56 @@
  * @author 鸡哥
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import useIslandStore from '../../../store/slices';
 import '../../../styles/guide/guide.css';
+import { SvgIcon } from '../../../utils/SvgIcon';
 
 /** 单个引导页配置 */
 interface GuidePage {
   icon?: string;
   imageSrc?: string;
+  interactive?: boolean;
   title: string;
   desc: string;
   tips?: { icon: string; text: string }[];
 }
+
+/** 交互卡片配置 */
+interface InteractionCard {
+  iconSrc: string;
+  title: string;
+  desc: string;
+}
+
+/** 交互引导卡片数据 */
+const INTERACTION_CARDS: InteractionCard[] = [
+  {
+    iconSrc: SvgIcon.INTERACTION,
+    title: '基本交互',
+    desc: '在灵动岛顶部滚动鼠标滚轮，切换灵动岛状态。',
+  },
+  {
+    iconSrc: SvgIcon.LAYOUT,
+    title: '悬停展开',
+    desc: '将鼠标悬停在灵动岛上方，即可展开预览面板。',
+  },
+  {
+    iconSrc: SvgIcon.SCREENSHOT,
+    title: '单击操作',
+    desc: '单击灵动岛，打开完整的操作面板。',
+  },
+  {
+    iconSrc: SvgIcon.MOVE,
+    title: '滚轮扩展',
+    desc: '在灵动岛上向上滚动滚轮，进入最大扩展面板。',
+  },
+  {
+    iconSrc: SvgIcon.HIDE,
+    title: '自动收回',
+    desc: '将鼠标移开灵动岛，自动收回至待机状态。',
+  },
+];
 
 /** 引导页数据 */
 const GUIDE_PAGES: GuidePage[] = [
@@ -45,15 +83,9 @@ const GUIDE_PAGES: GuidePage[] = [
     desc: '一款灵感来自 Apple 灵动岛的 Windows 桌面浮窗小组件，\n让你的桌面更加灵动、高效。',
   },
   {
-    icon: '🖱️',
+    interactive: true,
     title: '基本交互',
     desc: '通过鼠标与灵动岛进行交互，解锁不同状态。',
-    tips: [
-      { icon: '👆', text: '悬停 — 展开预览信息' },
-      { icon: '🖱️', text: '单击 — 打开操作面板' },
-      { icon: '⬆️', text: '向上滚轮 — 进入扩展面板' },
-      { icon: '🔙', text: '移开鼠标 — 自动收回' },
-    ],
   },
   {
     icon: '🎵',
@@ -95,9 +127,28 @@ const GUIDE_PAGES: GuidePage[] = [
  */
 export function GuideContent(): React.ReactElement {
   const [page, setPage] = useState(0);
+  const [cardIndex, setCardIndex] = useState(0);
+  const animDirRef = useRef<'up' | 'down'>('down');
+  const wheelCooldownRef = useRef(false);
   const { setIdle } = useIslandStore();
 
   const isLast = page === GUIDE_PAGES.length - 1;
+
+  useEffect(() => { setCardIndex(0); }, [page]);
+
+  const handleCardWheel = useCallback((e: React.WheelEvent) => {
+    e.stopPropagation();
+    if (wheelCooldownRef.current) return;
+    wheelCooldownRef.current = true;
+    setTimeout(() => { wheelCooldownRef.current = false; }, 400);
+    if (e.deltaY > 0) {
+      animDirRef.current = 'down';
+      setCardIndex((prev) => Math.min(prev + 1, INTERACTION_CARDS.length - 1));
+    } else if (e.deltaY < 0) {
+      animDirRef.current = 'up';
+      setCardIndex((prev) => Math.max(prev - 1, 0));
+    }
+  }, []);
 
   const handleFinish = useCallback(() => {
     window.api?.updaterVersion?.().then((v) => {
@@ -122,27 +173,52 @@ export function GuideContent(): React.ReactElement {
 
   return (
     <div className="guide-content" onClick={(e) => e.stopPropagation()}>
-      <div className={`guide-page${page === 0 ? ' guide-page-welcome' : ''}`} key={page}>
-        <div className="guide-hero">
-          {current.imageSrc
-            ? <img className="guide-page-logo" src={current.imageSrc} alt="" aria-hidden="true" />
-            : <div className="guide-page-icon" aria-hidden="true">{current.icon}</div>
-          }
-          <div className="guide-title">{current.title}</div>
-        </div>
-        <div className="guide-desc">{current.desc}</div>
-
-        {current.tips && (
-          <div className="guide-tips" aria-label="要点">
-            {current.tips.map((tip, i) => (
-              <div className="guide-tip" key={i}>
-                <span className="guide-tip-icon" aria-hidden="true">{tip.icon}</span>
-                <span className="guide-tip-text">{tip.text}</span>
-              </div>
-            ))}
+      {current.interactive ? (
+        <div className="guide-page guide-page-interactive" key={`page-${page}`}>
+          <div className="guide-interact-zone" onWheel={handleCardWheel}>
+            <span className="guide-interact-hint">您可以在此区域尝试</span>
+            <div className="guide-interact-dots">
+              {INTERACTION_CARDS.map((_, i) => (
+                <span
+                  key={i}
+                  className={`guide-interact-dot${cardIndex === i ? ' active' : ''}`}
+                />
+              ))}
+            </div>
           </div>
-        )}
-      </div>
+
+          <div
+            className={`guide-interact-card ${animDirRef.current === 'down' ? 'guide-slide-up' : 'guide-slide-down'}`}
+            key={`card-${cardIndex}`}
+          >
+            <img className="guide-interact-icon" src={INTERACTION_CARDS[cardIndex].iconSrc} alt="" aria-hidden="true" />
+            <div className="guide-title">{INTERACTION_CARDS[cardIndex].title}</div>
+            <div className="guide-desc">{INTERACTION_CARDS[cardIndex].desc}</div>
+          </div>
+        </div>
+      ) : (
+        <div className={`guide-page${page === 0 ? ' guide-page-welcome' : ''}`} key={page}>
+          <div className="guide-hero">
+            {current.imageSrc
+              ? <img className="guide-page-logo" src={current.imageSrc} alt="" aria-hidden="true" />
+              : <div className="guide-page-icon" aria-hidden="true">{current.icon}</div>
+            }
+            <div className="guide-title">{current.title}</div>
+          </div>
+          <div className="guide-desc">{current.desc}</div>
+
+          {current.tips && (
+            <div className="guide-tips" aria-label="要点">
+              {current.tips.map((tip, i) => (
+                <div className="guide-tip" key={i}>
+                  <span className="guide-tip-icon" aria-hidden="true">{tip.icon}</span>
+                  <span className="guide-tip-text">{tip.text}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="guide-footer">
         <div className="guide-nav-dots">
