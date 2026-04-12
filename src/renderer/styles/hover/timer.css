@@ -192,6 +192,7 @@
   width: 18px;
   height: 18px;
   object-fit: contain;
+  filter: brightness(0) invert(var(--icon-invert));
 }
 
 /** 时间与计时器分割线 */

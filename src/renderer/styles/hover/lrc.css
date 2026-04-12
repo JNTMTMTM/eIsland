@@ -189,6 +189,7 @@
   width: 16px;
   height: 16px;
   object-fit: contain;
+  filter: brightness(0) invert(var(--icon-invert));
 }
 
 .lrc-media-btn-icon--sm {
