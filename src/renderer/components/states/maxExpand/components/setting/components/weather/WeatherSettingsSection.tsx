@@ -26,11 +26,7 @@
 
 import type { ReactElement } from 'react';
 import type { WeatherSettingsPageKey } from '../../utils/settingsConfig';
-
-interface WeatherOption {
-  value: string;
-  label: string;
-}
+import type { WeatherLocationPriority, WeatherProvider } from '../../../../../../../store/utils/storage';
 
 interface WeatherMessage {
   type: 'error' | 'success';
@@ -40,9 +36,9 @@ interface WeatherMessage {
 interface WeatherSettingsSectionProps {
   currentWeatherSettingsPageLabel: string;
   weatherSettingsPage: WeatherSettingsPageKey;
-  weatherLocationPriorityOptions: WeatherOption[];
-  weatherLocationPriority: string;
-  applyWeatherLocationPriority: (value: string) => Promise<void>;
+  weatherLocationPriorityOptions: Array<{ value: WeatherLocationPriority; label: string }>;
+  weatherLocationPriority: WeatherLocationPriority;
+  applyWeatherLocationPriority: (value: WeatherLocationPriority) => Promise<void>;
   setWeatherLocationConfigMessage: (message: WeatherMessage | null) => void;
   weatherCustomCityInput: string;
   setWeatherCustomCityInput: (value: string) => void;
@@ -53,10 +49,10 @@ interface WeatherSettingsSectionProps {
   saveWeatherLocationSettings: () => Promise<void>;
   weatherLocationConfigMessage: WeatherMessage | null;
   weatherCustomLocationTestMessage: WeatherMessage | null;
-  weatherProviderOptions: WeatherOption[];
-  weatherPrimaryProvider: string;
-  setWeatherPrimaryProvider: (value: string) => void;
-  saveWeatherProviderConfig: (payload: { primaryProvider: string }) => void;
+  weatherProviderOptions: Array<{ value: WeatherProvider; label: string }>;
+  weatherPrimaryProvider: WeatherProvider;
+  setWeatherPrimaryProvider: (value: WeatherProvider) => void;
+  saveWeatherProviderConfig: (payload: { primaryProvider: WeatherProvider }) => void;
   weatherSettingsPages: WeatherSettingsPageKey[];
   weatherSettingsPageLabels: Record<WeatherSettingsPageKey, string>;
   setWeatherSettingsPage: (page: WeatherSettingsPageKey) => void;

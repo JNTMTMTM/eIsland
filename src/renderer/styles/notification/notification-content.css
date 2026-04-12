@@ -48,6 +48,7 @@
   flex-wrap: wrap;
   gap: 8px;
   animation: notifActionsEnter 0.42s cubic-bezier(0.22, 1, 0.36, 1) 0.16s both;
+  min-width: 0;
 }
 
 .notification-actions--right {
@@ -60,6 +61,12 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 6px;
+  min-width: 0;
+}
+
+.notification-actions--right .notification-decision-actions {
+  width: 100%;
+  justify-content: flex-end;
 }
 
 .notification-action-btn {
@@ -72,6 +79,8 @@
   color: var(--color-island-text);
   cursor: pointer;
   transition: transform 0.15s ease, background-color 0.2s ease, opacity 0.2s ease;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .notification-action-btn:hover {

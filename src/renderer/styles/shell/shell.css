@@ -106,7 +106,8 @@
 
 /** expanded / maxExpand → hover：收缩回弹 */
 .island-shell.hover.morphing.from-expanded,
-.island-shell.hover.morphing.from-maxExpand {
+.island-shell.hover.morphing.from-maxExpand,
+.island-shell.hover.morphing.from-guide {
   animation: shellContractToHover 0.4s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
@@ -154,12 +155,12 @@
 }
 
 /** hover → idle：柔和收拢 */
-.island-shell.morphing.from-hover:not(.hover):not(.expanded):not(.maxExpand):not(.notification) {
+.island-shell.morphing.from-hover:not(.hover):not(.expanded):not(.maxExpand):not(.notification):not(.guide) {
   animation: shellShrinkToIdle 0.4s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 /** notification → idle：横向收拢 */
-.island-shell.morphing.from-notification:not(.hover):not(.expanded):not(.maxExpand):not(.notification) {
+.island-shell.morphing.from-notification:not(.hover):not(.expanded):not(.maxExpand):not(.notification):not(.guide) {
   animation: shellShrinkFromNotification 0.4s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
@@ -225,6 +226,20 @@
 }
 
 .island-shell.maxExpand::before {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/** 引导模式 - 与 maxExpand 同尺寸（860x400） */
+.island-shell.guide {
+  width: 860px;
+  height: 400px;
+  background: var(--color-island-bg);
+  border-radius: 0 0 22px 22px;
+  box-shadow: none;
+}
+
+.island-shell.guide::before {
   opacity: 0;
   pointer-events: none;
 }

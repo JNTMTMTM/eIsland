@@ -65,6 +65,7 @@ async function bootstrap(): Promise<void> {
       <DynamicIsland />
     </StrictMode>
   );
+
 }
 
 void bootstrap();

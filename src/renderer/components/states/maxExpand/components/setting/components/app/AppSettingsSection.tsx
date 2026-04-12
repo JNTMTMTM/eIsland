@@ -27,20 +27,11 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Dispatch, ReactElement, SetStateAction } from 'react';
 import type { AppSettingsPageKey } from '../../utils/settingsConfig';
-
-interface AppOverviewLayoutConfig {
-  left: string;
-  right: string;
-}
-
-interface AppOverviewWidgetOption {
-  value: string;
-  label: string;
-}
+import type { OverviewLayoutConfig, OverviewWidgetType } from '../../../../../expand/components/OverviewTab';
 
 interface AppRunningProcess {
   name: string;
-  iconDataUrl?: string;
+  iconDataUrl: string | null;
 }
 
 interface AppPositionOffset {
@@ -56,10 +47,10 @@ interface AppPositionInput {
 interface AppSettingsSectionProps {
   currentAppSettingsPageLabel: string;
   appSettingsPage: AppSettingsPageKey;
-  layoutConfig: AppOverviewLayoutConfig;
-  OverviewPreviewComponent: ({ layoutConfig }: { layoutConfig: AppOverviewLayoutConfig }) => ReactElement;
-  overviewWidgetOptions: AppOverviewWidgetOption[];
-  updateLayout: (side: 'left' | 'right', value: string) => void;
+  layoutConfig: OverviewLayoutConfig;
+  OverviewPreviewComponent: ({ layoutConfig }: { layoutConfig: OverviewLayoutConfig }) => ReactElement;
+  overviewWidgetOptions: { value: OverviewWidgetType; label: string }[];
+  updateLayout: (side: 'left' | 'right', value: OverviewWidgetType) => void;
   hideProcessFilter: string;
   setHideProcessFilter: (value: string) => void;
   refreshRunningProcesses: () => Promise<void>;
