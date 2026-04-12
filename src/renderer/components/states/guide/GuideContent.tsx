@@ -324,11 +324,11 @@ function MiniSettingIsland({ demo }: { demo: MiniSettingDemo }): React.ReactElem
           </div>
         );
       case 'autostart': {
-        const label = autostart === 'enabled' ? '已开启' : autostart === 'enabled-elevated' ? '高优先级' : '已关闭';
+        const label = autostart === 'enabled' ? '已开启' : autostart === 'high-priority' ? '高优先级' : '已关闭';
         const isOn = autostart !== 'disabled';
         return (
           <div className="ms-autostart">
-            <div className={`ms-autostart-indicator${isOn ? ' on' : ''}${autostart === 'enabled-elevated' ? ' elevated' : ''}`} />
+            <div className={`ms-autostart-indicator${isOn ? ' on' : ''}${autostart === 'high-priority' ? ' elevated' : ''}`} />
             <span className="ms-autostart-label">{label}</span>
           </div>
         );
@@ -374,7 +374,7 @@ function MiniSettingIsland({ demo }: { demo: MiniSettingDemo }): React.ReactElem
       case 'autostart':
         return (
           <div className="ms-controls">
-            {(['disabled', 'enabled', 'enabled-elevated'] as string[]).map((m) => (
+            {(['disabled', 'enabled', 'high-priority'] as string[]).map((m) => (
               <button
                 key={m}
                 className={`ms-ctrl-btn${autostart === m ? ' active' : ''}`}
