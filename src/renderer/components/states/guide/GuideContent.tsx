@@ -52,7 +52,7 @@ function extractDominantColor(src: string): Promise<[number, number, number]> {
 interface GuidePage {
   icon?: string;
   imageSrc?: string;
-  interactive?: 'basic' | 'music';
+  interactive?: 'basic' | 'music' | 'tools';
   title: string;
   desc: string;
   tips?: { icon: string; text: string }[];
@@ -81,6 +81,45 @@ interface MusicCard {
 }
 
 const SAMPLE_LYRICS = ['这是一句歌词示例', '音乐在空中飘荡', '旋律轻轻回响'];
+
+/** 迷你工具岛演示模式 */
+type MiniToolDemo = 'todo' | 'ai' | 'timer' | 'pomodoro';
+
+/** 工具卡片配置 */
+interface ToolCard {
+  iconSrc: string;
+  title: string;
+  desc: string;
+  demo: MiniToolDemo;
+}
+
+/** 工具引导卡片数据 */
+const TOOL_CARDS: ToolCard[] = [
+  {
+    iconSrc: SvgIcon.TASK_MANAGER,
+    title: '待办事项',
+    desc: '在扩展面板中管理你的待办任务清单。',
+    demo: 'todo',
+  },
+  {
+    iconSrc: SvgIcon.AI,
+    title: 'AI 对话助手',
+    desc: '内置 AI 对话，随时获取智能回答与建议。',
+    demo: 'ai',
+  },
+  {
+    iconSrc: SvgIcon.TIMER,
+    title: '倒数日与计时器',
+    desc: '设置倒计时或倒数日，精准跟踪重要时刻。',
+    demo: 'timer',
+  },
+  {
+    iconSrc: SvgIcon.POMODORO,
+    title: '番茄钟专注',
+    desc: '番茄工作法，帮助你保持高效专注。',
+    demo: 'pomodoro',
+  },
+];
 
 /** 音乐引导卡片数据 */
 const MUSIC_CARDS: MusicCard[] = [
@@ -150,15 +189,9 @@ const GUIDE_PAGES: GuidePage[] = [
     desc: '自动识别正在播放的音乐，实时显示同步歌词。',
   },
   {
-    icon: '🛠️',
+    interactive: 'tools',
     title: '实用工具',
     desc: '扩展面板中集成了多种实用功能。',
-    tips: [
-      { icon: '✅', text: '待办事项管理' },
-      { icon: '🤖', text: 'AI 对话助手' },
-      { icon: '📅', text: '倒数日与计时器' },
-      { icon: '🍅', text: '番茄钟专注模式' },
-    ],
   },
   {
     icon: '⚙️',
@@ -172,6 +205,134 @@ const GUIDE_PAGES: GuidePage[] = [
     ],
   },
 ];
+
+/** 迷你工具岛演示组件 — 布局与样式参照各实际功能面板 */
+function MiniToolIsland({ demo }: { demo: MiniToolDemo }): React.ReactElement {
+  const [tick, setTick] = useState(0);
+
+  useEffect(() => {
+    const id = setInterval(() => setTick((t) => t + 1), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  const renderContent = () => {
+    switch (demo) {
+      /* ── 待办事项：参照 TodoTab / ov-dash-todo ── */
+      case 'todo': {
+        const items: { text: string; priority?: string; pColor?: string; done?: boolean }[] = [
+          { text: '完成设计稿', priority: 'P0', pColor: '#ff5252' },
+          { text: '发送周报邮件', priority: 'P1', pColor: '#ffab40' },
+          { text: '整理项目笔记', priority: 'P2', pColor: '#69c0ff' },
+        ];
+        return (
+          <div className="mt-todo">
+            <div className="mt-todo-header">
+              <span className="mt-todo-title">待办事项</span>
+              <span className="mt-todo-stats">
+                <span className="mt-todo-stat done">✓ {tick % 4}</span>
+                <span className="mt-todo-stat undone">○ {3 - (tick % 4)}</span>
+              </span>
+            </div>
+            <div className="mt-todo-list">
+              {items.map((item, i) => {
+                const checked = tick % 4 > i;
+                return (
+                  <div key={i} className={`mt-todo-item${checked ? ' done' : ''}`}>
+                    <span className="mt-todo-check">{checked ? '✓' : '○'}</span>
+                    <span className="mt-todo-text">{item.text}</span>
+                    {item.priority && (
+                      <span className="mt-todo-badge" style={{ background: item.pColor }}>{item.priority}</span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      }
+      /* ── AI 对话：参照 AiChatTab 消息气泡 ── */
+      case 'ai':
+        return (
+          <div className="mt-chat">
+            <div className="mt-chat-header">AI 对话</div>
+            <div className="mt-chat-messages">
+              <div className="mt-chat-bubble user">你好</div>
+              <div className="mt-chat-bubble ai">
+                <span className="mt-chat-dot" />
+                <span className="mt-chat-dot" />
+                <span className="mt-chat-dot" />
+              </div>
+            </div>
+          </div>
+        );
+      /* ── 倒数日：参照 CountdownTab 卡片 ── */
+      case 'timer': {
+        const days = 42 - (tick % 30);
+        return (
+          <div className="mt-countdown">
+            <div className="mt-cd-card">
+              <div className="mt-cd-overlay" />
+              <div className="mt-cd-content">
+                <span className="mt-cd-badge">倒数日</span>
+                <span className="mt-cd-name">重要截止日</span>
+                <div className="mt-cd-bottom">
+                  <span className="mt-cd-date">2026-05-01</span>
+                  <span className="mt-cd-days" style={{ color: '#69c0ff' }}>
+                    {days > 0 ? `${days}天` : '已到期'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      }
+      /* ── 番茄钟：参照 PomodoroWidget 环形进度 ── */
+      case 'pomodoro': {
+        const total = 25 * 60;
+        const remaining = total - (tick % total);
+        const progress = 1 - remaining / total;
+        const r = 16;
+        const circ = 2 * Math.PI * r;
+        const offset = circ * (1 - progress);
+        const mm = String(Math.floor(remaining / 60)).padStart(2, '0');
+        const ss = String(remaining % 60).padStart(2, '0');
+        const phaseColor = '#ff6b6b';
+        return (
+          <div className="mt-pomo">
+            <div className="mt-pomo-ring-wrap">
+              <svg className="mt-pomo-ring" viewBox="0 0 36 36">
+                <circle className="mt-pomo-ring-bg" cx="18" cy="18" r={r} />
+                <circle
+                  className="mt-pomo-ring-progress"
+                  cx="18" cy="18" r={r}
+                  style={{ stroke: phaseColor, strokeDasharray: circ, strokeDashoffset: offset }}
+                />
+              </svg>
+              <div className="mt-pomo-inner">
+                <span className="mt-pomo-time">{mm}:{ss}</span>
+                <span className="mt-pomo-phase" style={{ color: phaseColor }}>专注中</span>
+              </div>
+            </div>
+            <div className="mt-pomo-info">
+              <img src={SvgIcon.POMODORO} alt="" className="mt-pomo-icon" />
+              <span className="mt-pomo-count">× 0</span>
+            </div>
+          </div>
+        );
+      }
+    }
+  };
+
+  return (
+    <div className="mini-island-wrapper">
+      <div className="mini-marquee-frame marquee-active">
+        <div className="mini-island mini-tool-expanded">
+          {renderContent()}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 /** 迷你音乐岛演示组件 — 布局与样式完全参照 LyricsContent */
 function MiniMusicIsland({ demo }: { demo: MiniMusicDemo }): React.ReactElement {
@@ -342,6 +503,7 @@ export function GuideContent(): React.ReactElement {
     const p = GUIDE_PAGES[page];
     if (p.interactive === 'basic') cardCountRef.current = INTERACTION_CARDS.length;
     else if (p.interactive === 'music') cardCountRef.current = MUSIC_CARDS.length;
+    else if (p.interactive === 'tools') cardCountRef.current = TOOL_CARDS.length;
     else cardCountRef.current = 0;
     setCardIndex(0);
   }, [page]);
@@ -385,13 +547,16 @@ export function GuideContent(): React.ReactElement {
     <div className="guide-content" onClick={(e) => e.stopPropagation()}>
       {current.interactive ? (() => {
         const isBasic = current.interactive === 'basic';
+        const isMusic = current.interactive === 'music';
+        const isTools = current.interactive === 'tools';
         const cards: Array<{ iconSrc: string; title: string; desc: string }> =
-          isBasic ? INTERACTION_CARDS : MUSIC_CARDS;
+          isBasic ? INTERACTION_CARDS : isMusic ? MUSIC_CARDS : TOOL_CARDS;
         const safeIdx = Math.min(cardIndex, cards.length - 1);
         const card = cards[safeIdx];
         const hint = isBasic
           ? '在此区域附近滚动滚轮可切换灵动岛状态'
-          : '滚动查看更多音乐功能';
+          : isMusic ? '滚动查看更多音乐功能'
+          : '滚动查看更多实用工具';
         return (
           <div className="guide-page guide-page-interactive" key={`page-${page}`}>
             <div className="guide-interact-zone" onWheel={handleCardWheel}>
@@ -415,10 +580,9 @@ export function GuideContent(): React.ReactElement {
                 <div className="guide-title">{card.title}</div>
                 <div className="guide-desc">{card.desc}</div>
               </div>
-              {isBasic
-                ? <MiniIsland demo={INTERACTION_CARDS[safeIdx].demo} />
-                : <MiniMusicIsland demo={MUSIC_CARDS[safeIdx].demo} />
-              }
+              {isBasic && <MiniIsland demo={INTERACTION_CARDS[safeIdx].demo} />}
+              {isMusic && <MiniMusicIsland demo={MUSIC_CARDS[safeIdx].demo} />}
+              {isTools && <MiniToolIsland demo={TOOL_CARDS[safeIdx].demo} />}
             </div>
           </div>
         );
