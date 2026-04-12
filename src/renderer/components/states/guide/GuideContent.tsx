@@ -233,7 +233,7 @@ export function GuideContent(): React.ReactElement {
       {current.interactive ? (
         <div className="guide-page guide-page-interactive" key={`page-${page}`}>
           <div className="guide-interact-zone" onWheel={handleCardWheel}>
-            <span className="guide-interact-hint">您可以在此区域尝试</span>
+            <span className="guide-interact-hint">在此区域附近滚动滚轮可切换灵动岛状态</span>
             <div className="guide-interact-dots">
               {INTERACTION_CARDS.map((_, i) => (
                 <span
