@@ -71,7 +71,7 @@ export const SvgIcon = {
   SMTC: './svg/SMTC.svg',
   /** 交互 */
   INTERACTION: './svg/INTERACTION.svg',
-  /** 交互 */
+  /** 更新 */
   UPDATE: './svg/UPDATE.svg'
 } as const;
 
