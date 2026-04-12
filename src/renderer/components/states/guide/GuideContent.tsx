@@ -29,6 +29,7 @@ import useIslandStore from '../../../store/slices';
 import '../../../styles/guide/guide.css';
 import { SvgIcon } from '../../../utils/SvgIcon';
 import albumArt from '../../../assets/avatar/T.jpg';
+import { setThemeMode as applyThemeMode, getThemeMode, type ThemeMode } from '../../../utils/theme';
 
 /** 从图片提取主题色（canvas 1×1 缩放取均值） */
 function extractDominantColor(src: string): Promise<[number, number, number]> {
@@ -52,7 +53,7 @@ function extractDominantColor(src: string): Promise<[number, number, number]> {
 interface GuidePage {
   icon?: string;
   imageSrc?: string;
-  interactive?: 'basic' | 'music' | 'tools';
+  interactive?: 'basic' | 'music' | 'tools' | 'settings';
   title: string;
   desc: string;
   tips?: { icon: string; text: string }[];
@@ -92,6 +93,45 @@ interface ToolCard {
   desc: string;
   demo: MiniToolDemo;
 }
+
+/** 迷你设置岛演示模式 */
+type MiniSettingDemo = 'theme' | 'opacity' | 'position' | 'autostart';
+
+/** 设置卡片配置 */
+interface SettingCard {
+  iconSrc: string;
+  title: string;
+  desc: string;
+  demo: MiniSettingDemo;
+}
+
+/** 设置引导卡片数据 */
+const SETTING_CARDS: SettingCard[] = [
+  {
+    iconSrc: SvgIcon.THEME,
+    title: '主题切换',
+    desc: '在深色、浅色和跟随系统之间自由切换。',
+    demo: 'theme',
+  },
+  {
+    iconSrc: SvgIcon.LAYOUT,
+    title: '透明度调整',
+    desc: '自定义灵动岛的背景透明度。',
+    demo: 'opacity',
+  },
+  {
+    iconSrc: SvgIcon.MOVE,
+    title: '位置微调',
+    desc: '微调灵动岛在屏幕顶部的水平与垂直偏移。',
+    demo: 'position',
+  },
+  {
+    iconSrc: SvgIcon.SHORTCUT_KEY,
+    title: '开机自启',
+    desc: '设置灵动岛是否随系统启动自动运行。',
+    demo: 'autostart',
+  },
+];
 
 /** 工具引导卡片数据 */
 const TOOL_CARDS: ToolCard[] = [
@@ -194,17 +234,163 @@ const GUIDE_PAGES: GuidePage[] = [
     desc: '扩展面板中集成了多种实用功能。',
   },
   {
-    icon: '⚙️',
+    interactive: 'settings',
     title: '个性化设置',
     desc: '在扩展面板的设置中自定义你的灵动岛体验。',
-    tips: [
-      { icon: '🎨', text: '主题切换 / 透明度调整' },
-      { icon: '📌', text: '位置微调 / 隐藏进程名单' },
-      { icon: '⌨️', text: '自定义全局快捷键' },
-      { icon: '🔄', text: '自动检查更新' },
-    ],
   },
 ];
+
+/** 迷你设置岛演示组件 — 带实际生效的设置切换按钮 */
+function MiniSettingIsland({ demo }: { demo: MiniSettingDemo }): React.ReactElement {
+  const [themeMode, setThemeMode] = useState<ThemeMode>(getThemeMode);
+  const [opacity, setOpacity] = useState(100);
+  const [offset, setOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [autostart, setAutostart] = useState<string>('disabled');
+
+  useEffect(() => {
+    if (demo === 'opacity') {
+      window.api.islandOpacityGet().then((v) => {
+        const safe = typeof v === 'number' ? Math.max(10, Math.min(100, Math.round(v))) : 100;
+        setOpacity(safe);
+      }).catch(() => {});
+    }
+    if (demo === 'position') {
+      window.api.getIslandPositionOffset().then(setOffset).catch(() => {});
+    }
+    if (demo === 'autostart') {
+      window.api.autostartGet().then((v) => setAutostart(v || 'disabled')).catch(() => {});
+    }
+  }, [demo]);
+
+  const handleTheme = (mode: ThemeMode) => {
+    setThemeMode(mode);
+    applyThemeMode(mode);
+  };
+
+  const handleOpacity = (delta: number) => {
+    setOpacity((prev) => {
+      const next = Math.max(10, Math.min(100, prev + delta));
+      document.documentElement.style.setProperty('--island-opacity', String(next));
+      window.api.islandOpacitySet(next).catch(() => {});
+      return next;
+    });
+  };
+
+  const handleOffset = (dx: number, dy: number) => {
+    setOffset((prev) => {
+      const next = { x: prev.x + dx, y: prev.y + dy };
+      window.api.setIslandPositionOffset(next).catch(() => {});
+      return next;
+    });
+  };
+
+  const handleAutostart = () => {
+    const next = autostart === 'enabled' ? 'disabled' : 'enabled';
+    setAutostart(next);
+    window.api.autostartSet(next).catch(() => {});
+  };
+
+  const renderDemo = () => {
+    switch (demo) {
+      case 'theme': {
+        const visual = themeMode === 'system' ? 'auto' : themeMode;
+        return (
+          <div className="ms-theme">
+            <div className={`ms-theme-preview ms-theme-${visual}`}>
+              <div className="ms-theme-island" />
+              <div className="ms-theme-label">{visual === 'dark' ? '深色' : visual === 'light' ? '浅色' : '自动'}</div>
+            </div>
+          </div>
+        );
+      }
+      case 'opacity':
+        return (
+          <div className="ms-opacity">
+            <div className="ms-opacity-preview" style={{ opacity: opacity / 100 }}>
+              <div className="ms-opacity-island" />
+            </div>
+            <span className="ms-opacity-val">{opacity}%</span>
+          </div>
+        );
+      case 'position':
+        return (
+          <div className="ms-position">
+            <div className="ms-position-preview">
+              <div
+                className="ms-position-island"
+                style={{ transform: `translate(${offset.x * 0.3}px, ${offset.y * 0.3}px)` }}
+              />
+            </div>
+            <span className="ms-position-val">x:{offset.x} y:{offset.y}</span>
+          </div>
+        );
+      case 'autostart':
+        return (
+          <div className="ms-autostart">
+            <div className={`ms-autostart-indicator${autostart === 'enabled' ? ' on' : ''}`} />
+            <span className="ms-autostart-label">{autostart === 'enabled' ? '已启用' : '已关闭'}</span>
+          </div>
+        );
+    }
+  };
+
+  const renderControls = () => {
+    switch (demo) {
+      case 'theme':
+        return (
+          <div className="ms-controls">
+            {(['dark', 'light', 'system'] as ThemeMode[]).map((m) => (
+              <button
+                key={m}
+                className={`ms-ctrl-btn${themeMode === m ? ' active' : ''}`}
+                onClick={() => handleTheme(m)}
+              >
+                {m === 'dark' ? '深色' : m === 'light' ? '浅色' : '系统'}
+              </button>
+            ))}
+          </div>
+        );
+      case 'opacity':
+        return (
+          <div className="ms-controls">
+            <button className="ms-ctrl-btn" onClick={() => handleOpacity(-10)}>−10</button>
+            <button className="ms-ctrl-btn" onClick={() => handleOpacity(-5)}>−5</button>
+            <button className="ms-ctrl-btn" onClick={() => handleOpacity(5)}>+5</button>
+            <button className="ms-ctrl-btn" onClick={() => handleOpacity(10)}>+10</button>
+          </div>
+        );
+      case 'position':
+        return (
+          <div className="ms-controls ms-controls-grid">
+            <button className="ms-ctrl-btn" onClick={() => handleOffset(0, -1)}>↑</button>
+            <button className="ms-ctrl-btn" onClick={() => handleOffset(-1, 0)}>←</button>
+            <button className="ms-ctrl-btn ms-ctrl-reset" onClick={() => handleOffset(-offset.x, -offset.y)}>●</button>
+            <button className="ms-ctrl-btn" onClick={() => handleOffset(1, 0)}>→</button>
+            <button className="ms-ctrl-btn" onClick={() => handleOffset(0, 1)}>↓</button>
+          </div>
+        );
+      case 'autostart':
+        return (
+          <div className="ms-controls">
+            <button className={`ms-ctrl-toggle${autostart === 'enabled' ? ' on' : ''}`} onClick={handleAutostart}>
+              <span className="ms-ctrl-toggle-knob" />
+            </button>
+          </div>
+        );
+    }
+  };
+
+  return (
+    <div className="mini-island-wrapper">
+      <div className="mini-marquee-frame marquee-active">
+        <div className="mini-island mini-setting-expanded">
+          {renderDemo()}
+        </div>
+      </div>
+      {renderControls()}
+    </div>
+  );
+}
 
 /** 迷你工具岛演示组件 — 布局与样式参照各实际功能面板 */
 function MiniToolIsland({ demo }: { demo: MiniToolDemo }): React.ReactElement {
@@ -504,6 +690,7 @@ export function GuideContent(): React.ReactElement {
     if (p.interactive === 'basic') cardCountRef.current = INTERACTION_CARDS.length;
     else if (p.interactive === 'music') cardCountRef.current = MUSIC_CARDS.length;
     else if (p.interactive === 'tools') cardCountRef.current = TOOL_CARDS.length;
+    else if (p.interactive === 'settings') cardCountRef.current = SETTING_CARDS.length;
     else cardCountRef.current = 0;
     setCardIndex(0);
   }, [page]);
@@ -549,14 +736,16 @@ export function GuideContent(): React.ReactElement {
         const isBasic = current.interactive === 'basic';
         const isMusic = current.interactive === 'music';
         const isTools = current.interactive === 'tools';
+        const isSettings = current.interactive === 'settings';
         const cards: Array<{ iconSrc: string; title: string; desc: string }> =
-          isBasic ? INTERACTION_CARDS : isMusic ? MUSIC_CARDS : TOOL_CARDS;
+          isBasic ? INTERACTION_CARDS : isMusic ? MUSIC_CARDS : isTools ? TOOL_CARDS : SETTING_CARDS;
         const safeIdx = Math.min(cardIndex, cards.length - 1);
         const card = cards[safeIdx];
         const hint = isBasic
           ? '在此区域附近滚动滚轮可切换灵动岛状态'
           : isMusic ? '滚动查看更多音乐功能'
-          : '滚动查看更多实用工具';
+          : isTools ? '滚动查看更多实用工具'
+          : '滚动查看个性化设置';
         return (
           <div className="guide-page guide-page-interactive" key={`page-${page}`}>
             <div className="guide-interact-zone" onWheel={handleCardWheel}>
@@ -583,6 +772,7 @@ export function GuideContent(): React.ReactElement {
               {isBasic && <MiniIsland demo={INTERACTION_CARDS[safeIdx].demo} />}
               {isMusic && <MiniMusicIsland demo={MUSIC_CARDS[safeIdx].demo} />}
               {isTools && <MiniToolIsland demo={TOOL_CARDS[safeIdx].demo} />}
+              {isSettings && <MiniSettingIsland demo={SETTING_CARDS[safeIdx].demo} />}
             </div>
           </div>
         );
