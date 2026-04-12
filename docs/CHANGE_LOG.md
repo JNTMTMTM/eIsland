@@ -1,10 +1,49 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-04-12T07:27:05.780Z
+> 生成时间：2026-04-12T11:28:09.314Z
+
+## 26.2.3
+
+- 2026-04-12 | f8680dd | 鸡哥 | fix: 修复关于软件版本号仍然是静态获取的问题
+
+## 26.2.2
+
+- 2026-04-12 | eec7f0c | 鸡哥 | chore: 更新版本至 V26.2.2
+- 2026-04-12 | f611d1f | 鸡哥 | feat: 优化更新错误信息展示设置
+
+## 26.2.1
+
+- 2026-04-12 | 515695c | 鸡哥 | feat: stable release v26.2.1 with auto-updater improvements
+- 2026-04-12 | 056469e | 鸡哥 | ci: replace docker s3-sync with aws cli for windows runner
+- 2026-04-12 | c38ae4a | 鸡哥 | fix: remove leading empty line in release workflow
+- 2026-04-12 | c45a118 | github-actions[bot] | docs: auto update CHANGE_LOG.md for #32 by @JNTMTMTM [skip ci]
+- 2026-04-12 | 7ff1258 | 鸡哥 | Merge pull request #32 from JNTMTMTM/dev
+- 2026-04-12 | efec2e3 | 鸡哥 | feat: 添加更多的更新日志记录
+- 2026-04-12 | cb41323 | 鸡哥 | feat: 独立出更新设置界面
+- 2026-04-12 | 511935b | 鸡哥 | refactor: 重构版本号获取逻辑
+- 2026-04-12 | f50e132 | github-actions[bot] | docs: auto update CHANGE_LOG.md for #31 by @JNTMTMTM [skip ci]
+- 2026-04-12 | d49cd33 | 鸡哥 | Merge pull request #31 from JNTMTMTM/dev
+- 2026-04-12 | c5672d0 | 鸡哥 | feat: 添加自动更新功能
+- 2026-04-11 | 16ea1c9 | github-actions[bot] | docs: auto update CHANGE_LOG.md for release 26.2.0 by @JNTMTMTM [skip ci]
 
 ## 26.2.0
 
+- No commits found.
+
+## 26.2.0-beta.2
+
+- 2026-04-12 | 056469e | 鸡哥 | ci: replace docker s3-sync with aws cli for windows runner
+- 2026-04-12 | c38ae4a | 鸡哥 | fix: remove leading empty line in release workflow
+- 2026-04-12 | c45a118 | github-actions[bot] | docs: auto update CHANGE_LOG.md for #32 by @JNTMTMTM [skip ci]
+- 2026-04-12 | 7ff1258 | 鸡哥 | Merge pull request #32 from JNTMTMTM/dev
+- 2026-04-12 | efec2e3 | 鸡哥 | feat: 添加更多的更新日志记录
+- 2026-04-12 | cb41323 | 鸡哥 | feat: 独立出更新设置界面
+- 2026-04-12 | 511935b | 鸡哥 | refactor: 重构版本号获取逻辑
+- 2026-04-12 | f50e132 | github-actions[bot] | docs: auto update CHANGE_LOG.md for #31 by @JNTMTMTM [skip ci]
+- 2026-04-12 | d49cd33 | 鸡哥 | Merge pull request #31 from JNTMTMTM/dev
+- 2026-04-12 | c5672d0 | 鸡哥 | feat: 添加自动更新功能
+- 2026-04-11 | 16ea1c9 | github-actions[bot] | docs: auto update CHANGE_LOG.md for release 26.2.0 by @JNTMTMTM [skip ci]
 - 2026-04-11 | b4bf4d5 | github-actions[bot] | docs: auto update CHANGE_LOG.md for #30 by @JNTMTMTM [skip ci]
 - 2026-04-11 | 67dbc21 | 鸡哥 | Merge pull request #30 from JNTMTMTM/dev
 - 2026-04-11 | 54ecc63 | 鸡哥 | pref: 减少歌词显示界面不必要的渲染
@@ -480,11 +519,23 @@
 
 ## Unreleased
 
-- 2026-04-12 | 7ff1258 | 鸡哥 | Merge pull request #32 from JNTMTMTM/dev
-- 2026-04-12 | efec2e3 | 鸡哥 | feat: 添加更多的更新日志记录
-- 2026-04-12 | cb41323 | 鸡哥 | feat: 独立出更新设置界面
-- 2026-04-12 | 511935b | 鸡哥 | refactor: 重构版本号获取逻辑
-- 2026-04-12 | f50e132 | github-actions[bot] | docs: auto update CHANGE_LOG.md for #31 by @JNTMTMTM [skip ci]
-- 2026-04-12 | d49cd33 | 鸡哥 | Merge pull request #31 from JNTMTMTM/dev
-- 2026-04-12 | c5672d0 | 鸡哥 | feat: 添加自动更新功能
-- 2026-04-11 | 16ea1c9 | github-actions[bot] | docs: auto update CHANGE_LOG.md for release 26.2.0 by @JNTMTMTM [skip ci]
+- 2026-04-12 | 6169dff | 鸡哥 | Merge pull request #33 from JNTMTMTM/dev
+- 2026-04-12 | 5419847 | 鸡哥 | fix: 修复在切换 settings tab 导致组件卸载的情况下可能触发卸载后 setState 的 React 警告的问题
+- 2026-04-12 | 728016e | 鸡哥 | fix: 修复 unlink 失败时未回滚累加的问题
+- 2026-04-12 | dc95088 | 鸡哥 | fix: updaterInstall() 改成显式处理 Promise
+- 2026-04-12 | 09c2e29 | 鸡哥 | docs: 修复通知组件注释错误
+- 2026-04-12 | a388917 | 鸡哥 | fix: 修复矢量图标枚举类命名错误
+- 2026-04-12 | beda27a | 鸡哥 | fix: 修复一些架构错误
+- 2026-04-12 | 0fecb02 | 鸡哥 | chore: 更新版本至V26.2.4
+- 2026-04-12 | 53b2365 | 鸡哥 | style: 优化更新相关弹窗的样式
+- 2026-04-12 | b487b17 | 鸡哥 | feat: 灵动岛启动后自动检查更新
+- 2026-04-12 | b6a448c | 鸡哥 | refactor: 优化日志存储数据结构并分块
+- 2026-04-12 | 0dd35f7 | 鸡哥 | feat: 添加清理日志缓存功能
+- 2026-04-12 | d273beb | 鸡哥 | docs: 修复不符合注释规范的地方
+- 2026-04-12 | 795dc76 | 鸡哥 | docs: 添加版权头信息
+- 2026-04-12 | 1a74461 | 鸡哥 | docs: 更新注释规范文档
+- 2026-04-12 | 6c5035d | 鸡哥 | refactor: 模块化overall界面preview区域
+- 2026-04-12 | c4572ca | 鸡哥 | refactor: 精简设置界面文件体积
+- 2026-04-12 | 442efb2 | 鸡哥 | feat: 添加更新灵动岛通知图标
+- 2026-04-12 | 53951a5 | 鸡哥 | feat: 更新后触发灵动岛通知
+- 2026-04-12 | 7595221 | 鸡哥 | style: 优化更新设置界面样式
