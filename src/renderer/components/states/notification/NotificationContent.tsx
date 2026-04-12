@@ -39,7 +39,7 @@ interface NotificationContentProps {
   type?: 'default' | 'source-switch' | 'update-available' | 'update-ready';
   /** 请求切换到的播放源 ID（仅 source-switch） */
   sourceAppId?: string;
-   /** 更新版本号（用于 update-available / update-ready） */
+  /** 更新版本号（用于 update-available / update-ready） */
   updateVersion?: string;
 }
 

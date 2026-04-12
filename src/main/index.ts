@@ -275,9 +275,9 @@ function startAutoHideProcessWatcher(): void {
     autoHideProcessWatcher = null;
   }
 
-  checkAutoHideProcessList().catch(() => {});
+  checkAutoHideProcessList().catch(() => { });
   autoHideProcessWatcher = setInterval(() => {
-    checkAutoHideProcessList().catch(() => {});
+    checkAutoHideProcessList().catch(() => { });
   }, 2500);
 }
 
@@ -1325,8 +1325,8 @@ function registerIpcHandlers(): void {
         try {
           const stat = statSync(filePath);
           if (stat.isFile()) {
-            freedBytes += stat.size;
             unlinkSync(filePath);
+            freedBytes += stat.size;
           }
         } catch (_) {
           /* skip files in use */
@@ -2021,7 +2021,7 @@ function registerIpcHandlers(): void {
       writeFileSync(filePath, JSON.stringify(next, null, 2), 'utf-8');
 
       if (process.platform === 'win32') {
-        checkAutoHideProcessList().catch(() => {});
+        checkAutoHideProcessList().catch(() => { });
       }
 
       return true;
