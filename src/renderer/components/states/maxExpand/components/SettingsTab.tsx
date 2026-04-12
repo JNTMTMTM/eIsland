@@ -134,7 +134,7 @@ export function SettingsTab(): ReactElement {
   const [appSettingsPage, setAppSettingsPage] = useState<AppSettingsPageKey>('layout-preview');
   const [weatherSettingsPage, setWeatherSettingsPage] = useState<WeatherSettingsPageKey>('location');
   const [musicSettingsPage, setMusicSettingsPage] = useState<MusicSettingsPageKey>('whitelist');
-  const { aiConfig, setAiConfig, fetchWeatherData } = useIslandStore();
+  const { aiConfig, setAiConfig, fetchWeatherData, setGuide } = useIslandStore();
   const [editingPrompt, setEditingPrompt] = useState(false);
   const [promptDraft, setPromptDraft] = useState('');
   const promptRef = useRef<HTMLTextAreaElement>(null);
@@ -162,7 +162,7 @@ export function SettingsTab(): ReactElement {
   const [lyricsClock, setLyricsClock] = useState<boolean>(true);
   const [expandLeaveIdle, setExpandLeaveIdle] = useState<boolean>(false);
   const [maxExpandLeaveIdle, setMaxExpandLeaveIdle] = useState<boolean>(false);
-  const [autostartMode, setAutostartMode] = useState<string>('disabled');
+  const [autostartMode, setAutostartMode] = useState<'disabled' | 'enabled' | 'high-priority'>('disabled');
   const [navOrder, setNavOrder] = useState<string[]>(DEFAULT_NAV_ORDER);
   const [hiddenNavOrder, setHiddenNavOrder] = useState<string[]>([]);
   const [navEditMode, setNavEditMode] = useState(false);
@@ -374,7 +374,7 @@ export function SettingsTab(): ReactElement {
     }).catch(() => {});
     window.api.autostartGet().then((mode) => {
       if (cancelled) return;
-      setAutostartMode(mode);
+      setAutostartMode(mode as 'disabled' | 'enabled' | 'high-priority');
     }).catch(() => {});
     window.api.navOrderGet().then((navConfig) => {
       if (cancelled) return;
@@ -1147,6 +1147,9 @@ export function SettingsTab(): ReactElement {
               setAppSettingsPage={setAppSettingsPage}
               setMusicSettingsPage={setMusicSettingsPage}
               setActiveTab={setActiveTab}
+              onAction={(actionId) => {
+                if (actionId === 'guide') setGuide();
+              }}
             />
           )}
 

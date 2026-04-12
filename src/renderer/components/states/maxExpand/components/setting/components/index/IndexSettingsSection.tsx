@@ -35,6 +35,7 @@ interface IndexNavCard {
   tab: SettingsSidebarTabKey;
   appPage?: AppSettingsPageKey;
   musicPage?: MusicSettingsPageKey;
+  actionId?: string;
 }
 
 interface IndexSettingsSectionProps {
@@ -54,6 +55,7 @@ interface IndexSettingsSectionProps {
   setAppSettingsPage: (page: AppSettingsPageKey) => void;
   setMusicSettingsPage: (page: MusicSettingsPageKey) => void;
   setActiveTab: (tab: SettingsSidebarTabKey) => void;
+  onAction?: (actionId: string) => void;
 }
 
 /**
@@ -78,6 +80,7 @@ export function IndexSettingsSection({
   setAppSettingsPage,
   setMusicSettingsPage,
   setActiveTab,
+  onAction,
 }: IndexSettingsSectionProps): ReactElement {
   return (
     <div className="max-expand-settings-section settings-index-section">
@@ -157,7 +160,9 @@ export function IndexSettingsSection({
               className="settings-index-card"
               type="button"
               onClick={() => {
-                if (card.appPage) {
+                if (card.actionId && onAction) {
+                  onAction(card.actionId);
+                } else if (card.appPage) {
                   setAppSettingsPage(card.appPage);
                   setActiveTab('app');
                 } else if (card.musicPage) {
