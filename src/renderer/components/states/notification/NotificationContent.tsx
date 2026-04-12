@@ -92,7 +92,8 @@ export function NotificationContent({
   };
 
   const handleInstallUpdate = (): void => {
-    window.api?.updaterInstall();
+    void window.api?.updaterInstall().catch(() => {});
+    dismiss();
   };
 
   const handleGoToUpdate = (): void => {
