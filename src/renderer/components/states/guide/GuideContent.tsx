@@ -28,6 +28,25 @@ import React, { useState, useCallback, useRef, useEffect } from 'react';
 import useIslandStore from '../../../store/slices';
 import '../../../styles/guide/guide.css';
 import { SvgIcon } from '../../../utils/SvgIcon';
+import albumArt from '../../../assets/avatar/T.jpg';
+
+/** 从图片提取主题色（canvas 1×1 缩放取均值） */
+function extractDominantColor(src: string): Promise<[number, number, number]> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const c = document.createElement('canvas');
+      c.width = c.height = 1;
+      const ctx = c.getContext('2d');
+      if (!ctx) { resolve([100, 100, 100]); return; }
+      ctx.drawImage(img, 0, 0, 1, 1);
+      const d = ctx.getImageData(0, 0, 1, 1).data;
+      resolve([d[0], d[1], d[2]]);
+    };
+    img.onerror = () => resolve([100, 100, 100]);
+    img.src = src;
+  });
+}
 
 /** 单个引导页配置 */
 interface GuidePage {
@@ -154,10 +173,14 @@ const GUIDE_PAGES: GuidePage[] = [
   },
 ];
 
-/** 迷你音乐岛演示组件 */
+/** 迷你音乐岛演示组件 — 布局与样式完全参照 LyricsContent */
 function MiniMusicIsland({ demo }: { demo: MiniMusicDemo }): React.ReactElement {
   const [state, setState] = useState<'idle' | 'hover'>(demo === 'smtc' ? 'idle' : 'hover');
   const [lyricIdx, setLyricIdx] = useState(0);
+  const [rgb, setRgb] = useState<[number, number, number]>([100, 100, 100]);
+  const [sweepProg, setSweepProg] = useState(0);
+
+  useEffect(() => { extractDominantColor(albumArt).then(setRgb); }, []);
 
   useEffect(() => {
     if (demo === 'smtc') {
@@ -180,22 +203,65 @@ function MiniMusicIsland({ demo }: { demo: MiniMusicDemo }): React.ReactElement 
     return () => clearInterval(id);
   }, [demo]);
 
+  useEffect(() => {
+    if (demo !== 'karaoke') return;
+    let raf: number;
+    const duration = 3000;
+    const start = performance.now();
+    const tick = (now: number) => {
+      const elapsed = (now - start) % duration;
+      setSweepProg((elapsed / duration) * 100);
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [demo]);
+
+  const [r, g, b] = rgb;
+
   return (
     <div className="mini-island-wrapper">
-      <div className={`mini-island mini-music-${state}`}>
-        {demo === 'smtc' && state === 'hover' && (
-          <span className="mini-music-text mini-music-fade">♪ 正在播放</span>
-        )}
-        {demo === 'lyrics' && (
-          <span className="mini-music-text mini-music-fade" key={lyricIdx}>
-            {SAMPLE_LYRICS[lyricIdx]}
-          </span>
-        )}
-        {demo === 'karaoke' && (
-          <span className="mini-music-text mini-music-karaoke" data-text="这是一句歌词">
-            这是一句歌词
-          </span>
-        )}
+      <div className={`mini-marquee-frame${state === 'hover' ? ' marquee-active' : ''}`} style={{ '--marquee-rgb': `${r}, ${g}, ${b}` } as React.CSSProperties}>
+        <div className={`mini-island mini-music-${state}`}>
+          {/* 背景光晕 — 与 idle-glow 一致 */}
+          <div
+            className={`mini-music-glow${state === 'hover' ? ' active' : ''}`}
+            style={{ background: `radial-gradient(ellipse at 10% 50%, rgba(${r}, ${g}, ${b}, 0.35) 0%, transparent 60%)` }}
+          />
+
+          {/* 左侧：专辑封面（仅播放状态显示） */}
+          {state === 'hover' && (
+            <div
+              className="mini-music-cover"
+              style={{
+                backgroundImage: `url(${albumArt})`,
+                boxShadow: `0 0 8px 2px rgba(${r}, ${g}, ${b}, 0.5)`,
+              }}
+            />
+          )}
+
+          {/* 右侧：歌词区 */}
+          {state === 'hover' && (
+            <div className="mini-music-lyrics">
+              {demo === 'smtc' && (
+                <span className="mini-music-text mini-music-fade">♪ 正在播放</span>
+              )}
+              {demo === 'lyrics' && (
+                <span className="mini-music-text mini-music-fade" key={lyricIdx}>
+                  {SAMPLE_LYRICS[lyricIdx]}
+                </span>
+              )}
+              {demo === 'karaoke' && (
+                <span
+                  className="mini-music-text mini-music-sweep"
+                  style={{ '--lrc-prog': `${sweepProg.toFixed(1)}%` } as React.CSSProperties}
+                >
+                  这是一句歌词
+                </span>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -245,12 +311,14 @@ function MiniIsland({ demo }: { demo: MiniIslandDemo }): React.ReactElement {
 
   return (
     <div className="mini-island-wrapper">
-      <div
-        className={`mini-island mini-island-${state}`}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
-        onClick={handleClick}
-      />
+      <div className="mini-marquee-frame marquee-active">
+        <div
+          className={`mini-island mini-island-${state}`}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+          onClick={handleClick}
+        />
+      </div>
     </div>
   );
 }

@@ -330,6 +330,46 @@
   cursor: pointer;
 }
 
+/* 跑马灯光带 — 外层 frame 包裹岛体，用旋转圆 + overflow 裁剪实现 */
+.mini-marquee-frame {
+  position: relative;
+  display: inline-flex;
+  padding: 2px;
+  border-radius: 0 0 16px 16px;
+  overflow: hidden;
+}
+
+.mini-marquee-frame.marquee-active::before {
+  content: '';
+  position: absolute;
+  width: 300%;
+  aspect-ratio: 1;
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
+  border-radius: 50%;
+  z-index: 0;
+  background: conic-gradient(
+    transparent 0deg,
+    transparent 200deg,
+    rgba(var(--marquee-rgb, 0, 113, 227), 0.65) 260deg,
+    transparent 320deg,
+    transparent 360deg
+  );
+  animation: miniMarqueeSpin 2.2s linear infinite;
+  pointer-events: none;
+}
+
+.mini-marquee-frame > .mini-island {
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes miniMarqueeSpin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
 .mini-island-idle {
   width: 120px;
   height: 20px;
@@ -345,73 +385,101 @@
   height: 60px;
 }
 
-/* ─── Mini music island ─── */
+/* ─── Mini music island (matches real lyrics island) ─── */
+
+.mini-music-idle,
+.mini-music-hover {
+  position: relative;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  background: var(--color-island-text);
+  padding: 0 8px;
+  gap: 6px;
+}
 
 .mini-music-idle {
   width: 120px;
   height: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
 }
 
 .mini-music-hover {
   width: 230px;
   height: 32px;
+}
+
+/* 背景光晕 — 与 idle-glow 一致 */
+.mini-music-glow {
+  position: absolute;
+  pointer-events: none;
+  z-index: 0;
+  inset: -50%;
+  opacity: 0;
+  transition: background 0.5s ease, opacity 0.5s ease;
+}
+
+.mini-music-glow.active {
+  opacity: 1;
+  animation: idle-glow-pulse 3s ease-in-out infinite;
+}
+
+/* 专辑封面 — 与 idle-album-cover 一致 */
+.mini-music-cover {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  flex-shrink: 0;
+  z-index: 1;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  transition: box-shadow 0.4s ease;
+  animation: idle-vinyl-spin 8s linear infinite;
+}
+
+.mini-music-cover.paused {
+  animation-play-state: paused;
+}
+
+/* 歌词区 */
+.mini-music-lyrics {
+  flex: 1;
+  min-width: 0;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-end;
+  text-align: right;
   overflow: hidden;
+  z-index: 1;
 }
 
 .mini-music-text {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 500;
-  color: var(--color-island-bg);
+  color: rgba(var(--color-shadow-rgb), 0.85);
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   letter-spacing: -0.1px;
 }
 
 .mini-music-fade {
-  animation: miniMusicFade 0.4s ease;
+  animation: lyricFadeSwap 0.35s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-@keyframes miniMusicFade {
-  from { opacity: 0; transform: translateY(4px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-.mini-music-karaoke {
-  position: relative;
+/* 逐字扫光 — 与 lyrics-sweep 一致 */
+.mini-music-sweep {
+  display: inline;
+  background: linear-gradient(
+    to right,
+    rgba(var(--color-shadow-rgb), 0.9) var(--lrc-prog, 0%),
+    rgba(var(--color-shadow-rgb), 0.25) var(--lrc-prog, 0%)
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
   color: transparent;
-}
-
-.mini-music-karaoke::before {
-  content: attr(data-text);
-  position: absolute;
-  left: 0;
-  top: 0;
-  color: var(--color-island-bg);
-  opacity: 0.3;
-}
-
-.mini-music-karaoke::after {
-  content: attr(data-text);
-  position: absolute;
-  left: 0;
-  top: 0;
-  color: #0071e3;
-  overflow: hidden;
-  white-space: nowrap;
-  width: 0%;
-  animation: karaokeHighlight 3s linear infinite;
-}
-
-@keyframes karaokeHighlight {
-  0%   { width: 0%; }
-  80%  { width: 100%; }
-  100% { width: 100%; }
 }
 
 /* Card slide animations */
