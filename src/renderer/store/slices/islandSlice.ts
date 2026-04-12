@@ -41,7 +41,7 @@ export const createIslandSlice: StateCreator<
   notification: emptyNotification,
 
   setIdle: (force?: boolean) => set((prev) => {
-    if (!force && (prev.state === 'expanded' || prev.state === 'maxExpand')) return prev;
+    if (!force && (prev.state === 'expanded' || prev.state === 'maxExpand' || prev.state === 'guide')) return prev;
     window.api?.collapseWindow();
     window.api?.enableMousePassthrough();
     return { state: 'idle' as const };
@@ -74,6 +74,12 @@ export const createIslandSlice: StateCreator<
   setNotification: (data) => {
     window.api?.expandWindowNotification();
     set({ state: 'notification', notification: data });
+  },
+
+  setGuide: () => {
+    window.api?.expandWindowSettings();
+    window.api?.disableMousePassthrough();
+    set({ state: 'guide' as const });
   },
 
   setHoverTab: (tab) => set({ hoverTab: tab }),

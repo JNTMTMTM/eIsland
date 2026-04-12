@@ -28,3 +28,4 @@ export { IdleContent } from './idle/IdleContent';
 export { HoverContent } from './hover/HoverContent';
 export { ExpandedContent } from './expand/ExpandedContent';
 export { MaxExpandContent } from './maxExpand/MaxExpandContent';
+export { GuideContent } from './guide/GuideContent';

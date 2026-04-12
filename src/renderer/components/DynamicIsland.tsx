@@ -34,13 +34,14 @@ import { NotificationContent } from './states/notification/NotificationContent';
 import { ExpandedContent } from './states/expand/ExpandedContent';
 import { MaxExpandContent } from './states/maxExpand/MaxExpandContent';
 import { LyricsContent } from './states/lyrics/LyricsContent';
+import { GuideContent } from './states/guide/GuideContent';
 import { SvgIcon } from '../utils/SvgIcon';
 import type { NowPlayingInfo } from '../store/isLandStore';
 import { fetchLyrics } from '../api/lrcApi';
 import { fetchVersion } from '../api/versionApi';
 
 /** 灵动岛状态类型 */
-export type IslandState = 'idle' | 'hover' | 'expanded' | 'notification' | 'maxExpand' | 'minimal' | 'lyrics';
+export type IslandState = 'idle' | 'hover' | 'expanded' | 'notification' | 'maxExpand' | 'minimal' | 'lyrics' | 'guide';
 
 /** shell.css 中 morph/transition 主时长（0.4s） */
 const SHELL_MORPH_DURATION_MS = 400;
@@ -110,6 +111,13 @@ export const STATE_CONFIGS: Record<IslandState, StateConfig> = {
     enterDelay: 50,
     leaveDelay: 0,
   },
+  guide: {
+    name: 'guide',
+    mousePassthrough: false,
+    expanded: true,
+    enterDelay: 0,
+    leaveDelay: 0,
+  },
 };
 
 /**
@@ -158,7 +166,7 @@ interface StateRenderer {
  * @description 使用状态模式管理不同状态的 UI 渲染，通过 requestAnimationFrame 检测鼠标位置实现可靠的 hover 交互
  */
 function DynamicIsland(): React.JSX.Element {
-  const { state, weather, setHover, setIdle, setExpanded, setLyrics, timerData, setTimerData, notification, setNotification, handleNowPlayingUpdate, updateProgress, coverImage, isMusicPlaying, isPlaying, dominantColor, setDominantColor, setSyncedLyrics, setLyricsLoading, syncedLyrics, lyricsLoading, pomodoroRunning, pomodoroRemaining } = useIslandStore();
+  const { state, weather, setHover, setIdle, setExpanded, setLyrics, setGuide, timerData, setTimerData, notification, setNotification, handleNowPlayingUpdate, updateProgress, coverImage, isMusicPlaying, isPlaying, dominantColor, setDominantColor, setSyncedLyrics, setLyricsLoading, syncedLyrics, lyricsLoading, pomodoroRunning, pomodoroRemaining } = useIslandStore();
   const prevStateRef = useRef(state);
   const [morphing, setMorphing] = useState(false);
   const [fromState, setFromState] = useState('');
@@ -298,6 +306,16 @@ function DynamicIsland(): React.JSX.Element {
       window.api?.enableMousePassthrough();
       window.api?.expandMouseleaveIdleGet?.().then((v) => { expandLeaveIdleRef.current = v; }).catch(() => {});
       window.api?.maxexpandMouseleaveIdleGet?.().then((v) => { maxExpandLeaveIdleRef.current = v; }).catch(() => {});
+
+      // 首次启动或更新后显示引导页
+      Promise.all([
+        window.api?.storeRead?.('guide-shown-version') as Promise<string | null>,
+        window.api?.updaterVersion?.(),
+      ]).then(([shownVersion, currentVersion]) => {
+        if (currentVersion && shownVersion !== currentVersion) {
+          setTimeout(() => setGuide(), 800);
+        }
+      }).catch(() => {});
     }
   }, []);
 
@@ -474,7 +492,7 @@ function DynamicIsland(): React.JSX.Element {
 
       const config = STATE_CONFIGS[state];
 
-      if (state === 'notification') {
+      if (state === 'notification' || state === 'guide') {
         if (inWindow) {
           window.api?.disableMousePassthrough();
         }
@@ -599,6 +617,12 @@ function DynamicIsland(): React.JSX.Element {
       state: 'lyrics',
       render: () => (
         <LyricsContent />
+      ),
+    },
+    {
+      state: 'guide',
+      render: () => (
+        <GuideContent />
       ),
     },
   ];
