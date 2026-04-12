@@ -18,8 +18,19 @@
  * GNU General Public License for more details.
  */
 
+/**
+ * @file WeatherSettingsSection.tsx
+ * @description 设置页面 - 天气设置区块
+ * @author 鸡哥
+ */
+
 import type { ReactElement } from 'react';
 
+/**
+ * 渲染天气设置区块
+ * @param props - 天气设置区域所需参数
+ * @returns 天气设置区域
+ */
 export function WeatherSettingsSection(props: any): ReactElement {
   const {
     currentWeatherSettingsPageLabel,

@@ -18,8 +18,19 @@
  * GNU General Public License for more details.
  */
 
+/**
+ * @file ShortcutSettingsSection.tsx
+ * @description 设置页面 - 快捷键设置区块
+ * @author 鸡哥
+ */
+
 import type { ReactElement } from 'react';
 
+/**
+ * 渲染快捷键设置区块
+ * @param props - 快捷键设置区域所需参数
+ * @returns 快捷键设置区域
+ */
 export function ShortcutSettingsSection(props: any): ReactElement {
   const {
     hotkeyInputRef,

@@ -18,8 +18,19 @@
  * GNU General Public License for more details.
  */
 
+/**
+ * @file AppSettingsSection.tsx
+ * @description 设置页面 - 应用设置区块
+ * @author 鸡哥
+ */
+
 import type { ReactElement } from 'react';
 
+/**
+ * 渲染应用设置区块
+ * @param props - 应用设置区域所需参数
+ * @returns 应用设置区域
+ */
 export function AppSettingsSection(props: any): ReactElement {
   const {
     currentAppSettingsPageLabel,

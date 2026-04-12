@@ -18,6 +18,12 @@
  * GNU General Public License for more details.
  */
 
+/**
+ * @file NetworkSettingsSection.tsx
+ * @description 设置页面 - 网络配置区块
+ * @author 鸡哥
+ */
+
 import type { ReactElement } from 'react';
 
 interface NetworkSettingsSectionProps {
@@ -29,6 +35,11 @@ interface NetworkSettingsSectionProps {
   saveNetworkConfig: (config: { timeoutMs: number }) => void;
 }
 
+/**
+ * 渲染网络设置区块
+ * @param props - 网络配置参数
+ * @returns 网络设置区域
+ */
 export function NetworkSettingsSection({
   networkTimeoutMs,
   customTimeoutInput,

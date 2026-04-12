@@ -18,6 +18,12 @@
  * GNU General Public License for more details.
  */
 
+/**
+ * @file AboutSettingsSection.tsx
+ * @description 设置页面 - 关于软件配置区块
+ * @author 鸡哥
+ */
+
 import type { ReactElement } from 'react';
 import avatarImg from '../../../../../../../assets/avatar/T.jpg';
 
@@ -25,6 +31,11 @@ interface AboutSettingsSectionProps {
   aboutVersion: string;
 }
 
+/**
+ * 渲染关于软件设置区块
+ * @param aboutVersion - 当前软件版本号
+ * @returns 关于软件设置区域
+ */
 export function AboutSettingsSection({ aboutVersion }: AboutSettingsSectionProps): ReactElement {
   return (
     <div className="max-expand-settings-section settings-about">

@@ -18,6 +18,12 @@
  * GNU General Public License for more details.
  */
 
+/**
+ * @file OverviewPreview.tsx
+ * @description 设置页面 - 灵动岛总览静态预览组件
+ * @author 鸡哥
+ */
+
 import { useEffect, useState } from 'react';
 import type { ReactElement, ReactNode } from 'react';
 import type { OverviewLayoutConfig, OverviewWidgetType } from '../../../../../../expand/components/OverviewTab';
@@ -49,6 +55,11 @@ function previewDiffDays(targetStr: string): number {
   return Math.ceil((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 }
 
+/**
+ * 渲染灵动岛总览静态预览
+ * @param layoutConfig - 总览左右卡片布局配置
+ * @returns 灵动岛预览区域
+ */
 export function OverviewPreview({ layoutConfig }: { layoutConfig: OverviewLayoutConfig }): ReactElement {
   const [cdItems, setCdItems] = useState<PreviewCountdownItem[]>([]);
 

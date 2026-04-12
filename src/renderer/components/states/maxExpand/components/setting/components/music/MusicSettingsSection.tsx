@@ -18,8 +18,19 @@
  * GNU General Public License for more details.
  */
 
+/**
+ * @file MusicSettingsSection.tsx
+ * @description 设置页面 - 音乐设置区块
+ * @author 鸡哥
+ */
+
 import type { ReactElement } from 'react';
 
+/**
+ * 渲染音乐设置区块
+ * @param props - 音乐设置区域所需参数
+ * @returns 音乐设置区域
+ */
 export function MusicSettingsSection(props: any): ReactElement {
   const {
     currentMusicSettingsPageLabel,

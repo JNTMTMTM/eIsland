@@ -18,6 +18,12 @@
  * GNU General Public License for more details.
  */
 
+/**
+ * @file IndexSettingsSection.tsx
+ * @description 设置页面 - 总览导航配置区块
+ * @author 鸡哥
+ */
+
 import type { MutableRefObject, ReactElement } from 'react';
 
 interface IndexSettingsSectionProps {
@@ -39,6 +45,11 @@ interface IndexSettingsSectionProps {
   setActiveTab: (tab: any) => void;
 }
 
+/**
+ * 渲染设置总览导航区块
+ * @param props - 总览导航配置参数
+ * @returns 总览导航设置区域
+ */
 export function IndexSettingsSection({
   visibleCards,
   hiddenCards,

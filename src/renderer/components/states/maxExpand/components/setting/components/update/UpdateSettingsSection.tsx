@@ -18,6 +18,12 @@
  * GNU General Public License for more details.
  */
 
+/**
+ * @file UpdateSettingsSection.tsx
+ * @description 设置页面 - 更新设置区块
+ * @author 鸡哥
+ */
+
 import type { ReactElement } from 'react';
 
 type UpdateStatus = 'idle' | 'checking' | 'available' | 'downloading' | 'ready' | 'error' | 'latest';
@@ -49,6 +55,11 @@ interface UpdateSettingsSectionProps {
   onInstallUpdate: () => void;
 }
 
+/**
+ * 渲染更新设置区块
+ * @param props - 更新检查与下载配置参数
+ * @returns 更新设置区域
+ */
 export function UpdateSettingsSection({
   aboutVersion,
   updateSource,

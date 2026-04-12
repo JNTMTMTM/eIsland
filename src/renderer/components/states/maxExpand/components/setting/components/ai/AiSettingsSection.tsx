@@ -18,6 +18,12 @@
  * GNU General Public License for more details.
  */
 
+/**
+ * @file AiSettingsSection.tsx
+ * @description 设置页面 - AI 配置区块
+ * @author 鸡哥
+ */
+
 import type { ReactElement, RefObject } from 'react';
 
 interface AiSettingsSectionProps {
@@ -44,6 +50,11 @@ interface AiSettingsSectionProps {
   }) => ReactElement;
 }
 
+/**
+ * 渲染 AI 设置区块
+ * @param props - AI 配置和交互参数
+ * @returns AI 设置区域
+ */
 export function AiSettingsSection({
   aiConfig,
   editingPrompt,
