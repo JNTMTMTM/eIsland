@@ -39,11 +39,15 @@ interface GuidePage {
   tips?: { icon: string; text: string }[];
 }
 
+/** 迷你灵动岛演示模式 */
+type MiniIslandDemo = 'scroll' | 'hover' | 'click' | 'retract';
+
 /** 交互卡片配置 */
 interface InteractionCard {
   iconSrc: string;
   title: string;
   desc: string;
+  demo: MiniIslandDemo;
 }
 
 /** 交互引导卡片数据 */
@@ -52,26 +56,25 @@ const INTERACTION_CARDS: InteractionCard[] = [
     iconSrc: SvgIcon.INTERACTION,
     title: '基本交互',
     desc: '在灵动岛顶部滚动鼠标滚轮，切换灵动岛状态。',
+    demo: 'scroll',
   },
   {
     iconSrc: SvgIcon.LAYOUT,
     title: '悬停展开',
     desc: '将鼠标悬停在灵动岛上方，即可展开预览面板。',
+    demo: 'hover',
   },
   {
     iconSrc: SvgIcon.SCREENSHOT,
     title: '单击操作',
     desc: '单击灵动岛，打开完整的操作面板。',
-  },
-  {
-    iconSrc: SvgIcon.MOVE,
-    title: '滚轮扩展',
-    desc: '在灵动岛上向上滚动滚轮，进入最大扩展面板。',
+    demo: 'click',
   },
   {
     iconSrc: SvgIcon.HIDE,
     title: '自动收回',
     desc: '将鼠标移开灵动岛，自动收回至待机状态。',
+    demo: 'retract',
   },
 ];
 
@@ -120,6 +123,60 @@ const GUIDE_PAGES: GuidePage[] = [
     ],
   },
 ];
+
+/** 迷你灵动岛演示组件 */
+function MiniIsland({ demo }: { demo: MiniIslandDemo }): React.ReactElement {
+  const initState = demo === 'retract' ? 'expanded' : demo === 'click' ? 'hover' : 'idle';
+  const [state, setState] = useState<'idle' | 'hover' | 'expanded'>(initState);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
+  }, []);
+
+  useEffect(() => {
+    if (demo !== 'scroll') return;
+    const seq: Array<'idle' | 'hover' | 'expanded'> = ['idle', 'hover', 'expanded'];
+    let idx = 0;
+    const id = setInterval(() => {
+      idx = (idx + 1) % seq.length;
+      setState(seq[idx]);
+    }, 1200);
+    return () => clearInterval(id);
+  }, [demo]);
+
+  const handleMouseEnter = () => {
+    if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null; }
+    if (demo === 'hover') setState('hover');
+    if (demo === 'retract') setState('expanded');
+  };
+
+  const handleMouseLeave = () => {
+    if (demo === 'hover') setState('idle');
+    if (demo === 'retract') {
+      timerRef.current = setTimeout(() => setState('idle'), 600);
+    }
+  };
+
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (demo === 'click') {
+      setState('expanded');
+      timerRef.current = setTimeout(() => setState('hover'), 1500);
+    }
+  };
+
+  return (
+    <div className="mini-island-wrapper">
+      <div
+        className={`mini-island mini-island-${state}`}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        onClick={handleClick}
+      />
+    </div>
+  );
+}
 
 /**
  * 引导页内容组件
@@ -191,9 +248,12 @@ export function GuideContent(): React.ReactElement {
             className={`guide-interact-card ${animDirRef.current === 'down' ? 'guide-slide-up' : 'guide-slide-down'}`}
             key={`card-${cardIndex}`}
           >
-            <img className="guide-interact-icon" src={INTERACTION_CARDS[cardIndex].iconSrc} alt="" aria-hidden="true" />
-            <div className="guide-title">{INTERACTION_CARDS[cardIndex].title}</div>
-            <div className="guide-desc">{INTERACTION_CARDS[cardIndex].desc}</div>
+            <div className="guide-interact-card-text">
+              <img className="guide-interact-icon" src={INTERACTION_CARDS[cardIndex].iconSrc} alt="" aria-hidden="true" />
+              <div className="guide-title">{INTERACTION_CARDS[cardIndex].title}</div>
+              <div className="guide-desc">{INTERACTION_CARDS[cardIndex].desc}</div>
+            </div>
+            <MiniIsland demo={INTERACTION_CARDS[cardIndex].demo} />
           </div>
         </div>
       ) : (

@@ -284,20 +284,65 @@
 
 .guide-interact-card {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  width: 360px;
+  gap: 36px;
+  width: 100%;
+  max-width: 620px;
   min-height: 130px;
   margin-top: 24px;
 }
 
+.guide-interact-card-text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
 .guide-interact-icon {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   object-fit: contain;
   opacity: 0.85;
+}
+
+/* ─── Mini island demo ─── */
+
+.mini-island-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  width: 280px;
+  min-height: 80px;
+  flex-shrink: 0;
+}
+
+.mini-island {
+  background: var(--color-island-text);
+  border-radius: 0 0 14px 14px;
+  transition: width 0.4s cubic-bezier(0.25, 1, 0.5, 1),
+              height 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+  transform-origin: top center;
+  cursor: pointer;
+}
+
+.mini-island-idle {
+  width: 120px;
+  height: 20px;
+}
+
+.mini-island-hover {
+  width: 220px;
+  height: 30px;
+}
+
+.mini-island-expanded {
+  width: 270px;
+  height: 60px;
 }
 
 /* Card slide animations */
