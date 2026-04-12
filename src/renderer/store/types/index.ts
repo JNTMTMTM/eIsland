@@ -152,7 +152,7 @@ export interface NotificationData {
   type?: 'default' | 'source-switch' | 'update-available' | 'update-ready';
   /** 请求切换到的播放源 ID（仅 source-switch 类型） */
   sourceAppId?: string;
-  /** 更新版本号（仅 update-ready 类型） */
+  /** 更新版本号（用于 update-available 与 update-ready 类型） */
   updateVersion?: string;
 }
 
