@@ -611,6 +611,20 @@ const api = {
     return () => {
       ipcRenderer.removeListener('updater:download-progress', handler);
     };
+  },
+  /**
+   * 监听更新下载完成事件
+   * @param callback - 回调函数，接收版本号
+   * @returns 取消监听函数
+   */
+  onUpdaterDownloaded: (callback: (data: { version: string }) => void): (() => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, data: { version: string }): void => {
+      callback(data);
+    };
+    ipcRenderer.on('updater:update-downloaded', handler);
+    return () => {
+      ipcRenderer.removeListener('updater:update-downloaded', handler);
+    };
   }
 };
 

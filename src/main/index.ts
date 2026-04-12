@@ -2584,6 +2584,9 @@ app.whenReady().then(() => {
   });
   autoUpdater.on('update-downloaded', (info) => {
     console.log('[Updater] update-downloaded:', info.version);
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('updater:update-downloaded', { version: info.version });
+    }
   });
   autoUpdater.on('error', (err) => {
     console.error('[Updater] error:', err.message);

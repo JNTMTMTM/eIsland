@@ -157,6 +157,7 @@ declare global {
       updaterInstall: () => Promise<boolean>;
       updaterVersion: () => Promise<string>;
       onUpdaterProgress: (callback: (progress: { percent: number; transferred: number; total: number; bytesPerSecond: number }) => void) => () => void;
+      onUpdaterDownloaded: (callback: (data: { version: string }) => void) => () => void;
     };
   }
 }
