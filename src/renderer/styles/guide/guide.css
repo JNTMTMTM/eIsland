@@ -42,12 +42,12 @@
   flex: 1;
   gap: 14px;
   min-height: 0;
-  animation: guidePageFadeIn 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  animation: guidePageFadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @keyframes guidePageFadeIn {
-  0%   { opacity: 0; transform: translateX(20px); }
-  100% { opacity: 1; transform: translateX(0); }
+  0%   { opacity: 0; transform: translateX(24px) scale(0.97); filter: blur(4px); }
+  100% { opacity: 1; transform: translateX(0) scale(1); filter: blur(0); }
 }
 
 .guide-page-icon {
@@ -173,12 +173,15 @@
   background: rgba(var(--color-text-rgb), 0.2);
   cursor: pointer;
   padding: 0;
-  transition: background 0.2s ease, transform 0.2s ease;
+  transition: background 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.3s ease;
 }
 
 .guide-nav-dot.active {
   background: #0071e3;
-  transform: scale(1.25);
+  transform: scale(1.3);
+  box-shadow: 0 0 6px rgba(0, 113, 227, 0.35);
 }
 
 .guide-nav-dot:hover:not(.active) {
@@ -194,15 +197,19 @@
   letter-spacing: -0.224px;
   cursor: pointer;
   color: var(--color-island-text);
-  transition: background 0.2s ease, transform 0.15s ease;
+  transition: background 0.2s ease,
+              transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.2s ease;
 }
 
 .guide-btn:hover {
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
 }
 
 .guide-btn:active {
-  transform: translateY(0);
+  transform: translateY(0) scale(0.97);
+  box-shadow: none;
 }
 
 .guide-btn-primary {
@@ -237,6 +244,19 @@
   text-align: center;
   gap: 16px;
   padding-bottom: 60px;
+}
+
+.guide-page-interactive .guide-interact-zone {
+  animation: guideStaggerIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.05s both;
+}
+
+.guide-page-interactive .guide-interact-card {
+  animation: guideStaggerIn 0.55s cubic-bezier(0.16, 1, 0.3, 1) 0.12s both;
+}
+
+@keyframes guideStaggerIn {
+  0%   { opacity: 0; transform: translateY(16px) scale(0.96); filter: blur(3px); }
+  100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
 }
 
 .guide-interact-zone {
@@ -274,12 +294,15 @@
   height: 6px;
   border-radius: 50%;
   background: rgba(var(--color-text-rgb), 0.18);
-  transition: background 0.25s ease, transform 0.25s ease;
+  transition: background 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.3s ease;
 }
 
 .guide-interact-dot.active {
   background: #0071e3;
-  transform: scale(1.3);
+  transform: scale(1.35);
+  box-shadow: 0 0 6px rgba(0, 113, 227, 0.4);
 }
 
 .guide-interact-card {
@@ -292,6 +315,7 @@
   max-width: 620px;
   min-height: 130px;
   margin-top: 24px;
+  will-change: transform, opacity;
 }
 
 .guide-interact-card-text {
@@ -1081,19 +1105,19 @@
 
 /* Card slide animations */
 .guide-slide-up {
-  animation: guideSlideUp 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  animation: guideSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .guide-slide-down {
-  animation: guideSlideDown 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  animation: guideSlideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @keyframes guideSlideUp {
-  from { opacity: 0; transform: translateY(18px); }
-  to   { opacity: 1; transform: translateY(0); }
+  0%   { opacity: 0; transform: translateY(22px) scale(0.95); filter: blur(3px); }
+  100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
 }
 
 @keyframes guideSlideDown {
-  from { opacity: 0; transform: translateY(-18px); }
-  to   { opacity: 1; transform: translateY(0); }
+  0%   { opacity: 0; transform: translateY(-22px) scale(0.95); filter: blur(3px); }
+  100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
 }
