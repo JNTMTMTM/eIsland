@@ -548,7 +548,7 @@ export function SettingsTab(): ReactElement {
   const [islandOpacity, setIslandOpacity] = useState<number>(100);
   const [islandPositionOffset, setIslandPositionOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [islandPositionInput, setIslandPositionInput] = useState<{ x: string; y: string }>({ x: '0', y: '0' });
-  const [aboutVersion, setAboutVersion] = useState<string>('26.1.1-beta.3');
+  const aboutVersion = '26.2.0-beta.1';
 
   /** 自动更新相关状态 */
   const [updateStatus, setUpdateStatus] = useState<'idle' | 'checking' | 'available' | 'downloading' | 'ready' | 'error' | 'latest'>('idle');
@@ -630,14 +630,6 @@ export function SettingsTab(): ReactElement {
 
   const hideProcessKeyword = hideProcessFilter.trim().toLowerCase();
 
-  useEffect(() => {
-    let cancelled = false;
-    fetchVersion().then((info) => {
-      if (cancelled || !info) return;
-      setAboutVersion(info.version);
-    }).catch(() => {});
-    return () => { cancelled = true; };
-  }, []);
 
   /** 加载网络配置 */
   useEffect(() => {
@@ -810,19 +802,21 @@ export function SettingsTab(): ReactElement {
     return () => { unsub?.(); };
   }, []);
 
-  /** 检查更新 */
+  /** 检查更新（通过 versionApi 获取远程最新版本并与本地版本比对） */
   const handleCheckUpdate = async (): Promise<void> => {
     setUpdateStatus('checking');
     setUpdateError('');
     setDownloadProgress(null);
     try {
-      const result = await window.api.updaterCheck();
-      if (result.error) {
+      const info = await fetchVersion();
+      if (!info) {
         setUpdateStatus('error');
-        setUpdateError(result.error);
-      } else if (result.available && result.version) {
+        setUpdateError('无法获取版本信息，请检查网络连接');
+        return;
+      }
+      if (info.version !== aboutVersion) {
         setUpdateStatus('available');
-        setUpdateVersion(result.version);
+        setUpdateVersion(info.version);
       } else {
         setUpdateStatus('latest');
       }
