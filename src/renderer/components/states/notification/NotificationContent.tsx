@@ -36,9 +36,11 @@ interface NotificationContentProps {
   /** 通知图标（可选） */
   icon?: string;
   /** 通知类型 */
-  type?: 'default' | 'source-switch';
+  type?: 'default' | 'source-switch' | 'update-available' | 'update-ready';
   /** 请求切换到的播放源 ID（仅 source-switch） */
   sourceAppId?: string;
+  /** 更新版本号（用于 update-available / update-ready） */
+  updateVersion?: string;
 }
 
 /**
@@ -51,6 +53,7 @@ export function NotificationContent({
   icon,
   type,
   sourceAppId: _sourceAppId,
+  updateVersion: _updateVersion,
 }: NotificationContentProps): ReactElement {
   const { setIdle, setLyrics, setNotification } = useIslandStore();
 
@@ -88,6 +91,20 @@ export function NotificationContent({
     dismiss();
   };
 
+  const handleInstallUpdate = (): void => {
+    void window.api?.updaterInstall().catch(() => {});
+    dismiss();
+  };
+
+  const handleGoToUpdate = (): void => {
+    window.api?.updaterDownload().catch(() => {});
+    dismiss();
+  };
+
+  const handleDismissUpdate = (): void => {
+    dismiss();
+  };
+
   return (
     <div className="notification-content">
       <div className="notification-main-row">
@@ -104,7 +121,21 @@ export function NotificationContent({
         </div>
       </div>
 
-      {type === 'source-switch' ? (
+      {type === 'update-ready' ? (
+        <div className="notification-actions notification-actions--right">
+          <div className="notification-decision-actions">
+            <button type="button" className="notification-action-btn notification-action-complete" onClick={handleInstallUpdate}>安装并重启</button>
+            <button type="button" className="notification-action-btn notification-action-ignore" onClick={handleDismissUpdate}>稍后</button>
+          </div>
+        </div>
+      ) : type === 'update-available' ? (
+        <div className="notification-actions notification-actions--right">
+          <div className="notification-decision-actions">
+            <button type="button" className="notification-action-btn notification-action-complete" onClick={handleGoToUpdate}>下载更新</button>
+            <button type="button" className="notification-action-btn notification-action-ignore" onClick={handleDismissUpdate}>稍后</button>
+          </div>
+        </div>
+      ) : type === 'source-switch' ? (
         <div className="notification-actions">
           <div className="notification-decision-actions">
             <button type="button" className="notification-action-btn notification-action-complete" onClick={handleAcceptSwitch}>切换</button>

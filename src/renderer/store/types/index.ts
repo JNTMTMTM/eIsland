@@ -148,10 +148,12 @@ export interface NotificationData {
   title: string;
   body: string;
   icon?: string;
-  /** 通知类型：默认通知 或 播放源切换请求 */
-  type?: 'default' | 'source-switch';
+  /** 通知类型：默认通知 / 播放源切换请求 / 有新版本 / 更新就绪 */
+  type?: 'default' | 'source-switch' | 'update-available' | 'update-ready';
   /** 请求切换到的播放源 ID（仅 source-switch 类型） */
   sourceAppId?: string;
+  /** 更新版本号（用于 update-available 与 update-ready 类型） */
+  updateVersion?: string;
 }
 
 /** AI 配置数据 */

@@ -26,7 +26,7 @@
 
 import { app, BrowserWindow, shell, screen, ipcMain, desktopCapturer, dialog, globalShortcut, clipboard, nativeImage } from 'electron';
 import { join, basename } from 'path';
-import { readFileSync, writeFileSync, appendFileSync, mkdirSync, existsSync } from 'fs';
+import { readFileSync, writeFileSync, appendFileSync, mkdirSync, existsSync, readdirSync, statSync, unlinkSync } from 'fs';
 import { exec } from 'child_process';
 import { Worker } from 'worker_threads';
 import { electronApp, optimizer, is } from '@electron-toolkit/utils';
@@ -275,9 +275,9 @@ function startAutoHideProcessWatcher(): void {
     autoHideProcessWatcher = null;
   }
 
-  checkAutoHideProcessList().catch(() => {});
+  checkAutoHideProcessList().catch(() => { });
   autoHideProcessWatcher = setInterval(() => {
-    checkAutoHideProcessList().catch(() => {});
+    checkAutoHideProcessList().catch(() => { });
   }, 2500);
 }
 
@@ -1311,6 +1311,35 @@ function registerIpcHandlers(): void {
     }
   });
 
+  /**
+   * 清理日志缓存
+   */
+  ipcMain.handle('app:clear-logs-cache', async () => {
+    try {
+      const logDir = join(app.getPath('userData'), 'logs');
+      if (!existsSync(logDir)) return { success: true, freedBytes: 0 };
+      const files = readdirSync(logDir);
+      let freedBytes = 0;
+      files.forEach((file) => {
+        const filePath = join(logDir, file);
+        try {
+          const stat = statSync(filePath);
+          if (stat.isFile()) {
+            unlinkSync(filePath);
+            freedBytes += stat.size;
+          }
+        } catch (_) {
+          /* skip files in use */
+        }
+      });
+      console.log(`[App] cleared logs cache: ${files.length} files, ${(freedBytes / 1024).toFixed(1)} KB freed`);
+      return { success: true, freedBytes };
+    } catch (err) {
+      console.error('[App] clear logs cache error:', err);
+      return { success: false, freedBytes: 0 };
+    }
+  });
+
   // ===== 音乐媒体控制 IPC 处理器 =====
   ipcMain.handle('media:play-pause', () => {
     if (!isWhitelisted()) return;
@@ -1492,14 +1521,18 @@ function registerIpcHandlers(): void {
     mkdirSync(logDir, { recursive: true });
   }
 
+  const sessionStart = new Date();
+  const pad2 = (n: number): string => String(n).padStart(2, '0');
+  const sessionLogFileName = `${sessionStart.getFullYear()}-${pad2(sessionStart.getMonth() + 1)}-${pad2(sessionStart.getDate())}_${pad2(sessionStart.getHours())}-${pad2(sessionStart.getMinutes())}-${pad2(sessionStart.getSeconds())}_${sessionStart.getTime()}.log`;
+  const sessionLogFile = join(logDir, sessionLogFileName);
+
   const writeMainLog = (level: 'info' | 'warn' | 'error', message: string): void => {
     try {
       const now = new Date();
       const date = now.toISOString().slice(0, 10);
       const time = now.toISOString().slice(11, 23);
       const line = `[${date} ${time}] [${level.toUpperCase()}] ${message}\n`;
-      const logFile = join(logDir, `${date}.log`);
-      appendFileSync(logFile, line, 'utf-8');
+      appendFileSync(sessionLogFile, line, 'utf-8');
     } catch {
       /* 日志写入失败不影响主流程 */
     }
@@ -1988,7 +2021,7 @@ function registerIpcHandlers(): void {
       writeFileSync(filePath, JSON.stringify(next, null, 2), 'utf-8');
 
       if (process.platform === 'win32') {
-        checkAutoHideProcessList().catch(() => {});
+        checkAutoHideProcessList().catch(() => { });
       }
 
       return true;
@@ -2567,6 +2600,12 @@ app.whenReady().then(() => {
   });
   autoUpdater.on('update-available', (info) => {
     console.log('[Updater] update-available:', info.version);
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('updater:update-available', {
+        version: info.version,
+        releaseNotes: typeof info.releaseNotes === 'string' ? info.releaseNotes : '',
+      });
+    }
   });
   autoUpdater.on('update-not-available', (info) => {
     console.log('[Updater] update-not-available, current:', info.version);
@@ -2584,10 +2623,21 @@ app.whenReady().then(() => {
   });
   autoUpdater.on('update-downloaded', (info) => {
     console.log('[Updater] update-downloaded:', info.version);
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('updater:update-downloaded', { version: info.version });
+    }
   });
   autoUpdater.on('error', (err) => {
     console.error('[Updater] error:', err.message);
   });
+
+  // 启动后自动检查更新，延迟确保渲染进程就绪
+  setTimeout(() => {
+    console.log('[Updater] auto-checking for updates on startup...');
+    autoUpdater.checkForUpdates().catch((err) => {
+      console.error('[Updater] auto-check error:', err);
+    });
+  }, 5000);
 
   app.on('activate', function () {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();

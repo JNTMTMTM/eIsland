@@ -8,7 +8,28 @@
 
 每个 TypeScript/TSX 文件开头必须包含文件级注释，使用 `@file`、`@description`、`@author` 标签：
 
+并且在文件最顶部必须包含版权声明注释块（`/* ... */`），至少应包含：
+
+- 项目名称与仓库地址
+- `Copyright (C)` 版权行
+- 许可证声明（GPL-3.0）
+
 ```typescript
+/*
+ * eIsland - A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Electron.
+ * https://github.com/JNTMTMTM/eIsland
+ *
+ * Copyright (C) 2026 JNTMTMTM
+ * Copyright (C) 2026 pyisland.com
+ *
+ * Original author: JNTMTMTM[](https://github.com/JNTMTMTM)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ */
+
 /**
  * @file effects.ts
  * @description Three.js 动画效果辅助函数
@@ -23,6 +44,7 @@
 - `@description` 可以有多行，用于详细描述文件功能
 - `@author` 标注文件作者
 - 文件级注释是**必须**的
+- 版权声明注释块是**必须**的，且应位于文件最顶部
 
 ---
 
@@ -113,6 +135,21 @@ export function getBreathFactor(
 ### 文件开头模板
 
 ```typescript
+/*
+ * eIsland - A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Electron.
+ * https://github.com/JNTMTMTM/eIsland
+ *
+ * Copyright (C) 2026 JNTMTMTM
+ * Copyright (C) 2026 pyisland.com
+ *
+ * Original author: JNTMTMTM[](https://github.com/JNTMTMTM)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ */
+
 /**
  * @file [filename].ts
  * @description [文件功能描述]
@@ -139,7 +176,9 @@ export function [functionName](...): [ReturnType] {
 ## 5. 违规示例
 
 ```typescript
-// ❌ 错误：缺少文件级注释
+// ❌ 错误：缺少版权声明注释块
+
+// ❌ 错误：缺少文件级 JSDoc
 
 // ❌ 错误：参数无说明
 export function lerp(a, b, t) { }

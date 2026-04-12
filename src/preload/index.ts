@@ -151,6 +151,12 @@ const api = {
   openLogsFolder: (): Promise<boolean> => {
     return ipcRenderer.invoke('app:open-logs-folder');
   },
+  /**
+   * 清理日志缓存
+   */
+  clearLogsCache: (): Promise<{ success: boolean; freedBytes: number }> => {
+    return ipcRenderer.invoke('app:clear-logs-cache');
+  },
   /** ===== 音乐相关 API ===== */
   /**
    * 播放/暂停
@@ -610,6 +616,34 @@ const api = {
     ipcRenderer.on('updater:download-progress', handler);
     return () => {
       ipcRenderer.removeListener('updater:download-progress', handler);
+    };
+  },
+  /**
+   * 监听更新下载完成事件
+   * @param callback - 回调函数，接收版本号
+   * @returns 取消监听函数
+   */
+  onUpdaterDownloaded: (callback: (data: { version: string }) => void): (() => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, data: { version: string }): void => {
+      callback(data);
+    };
+    ipcRenderer.on('updater:update-downloaded', handler);
+    return () => {
+      ipcRenderer.removeListener('updater:update-downloaded', handler);
+    };
+  },
+  /**
+   * 监听有新版本可用事件
+   * @param callback - 回调函数，接收版本号和更新说明
+   * @returns 取消监听函数
+   */
+  onUpdaterAvailable: (callback: (data: { version: string; releaseNotes: string }) => void): (() => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, data: { version: string; releaseNotes: string }): void => {
+      callback(data);
+    };
+    ipcRenderer.on('updater:update-available', handler);
+    return () => {
+      ipcRenderer.removeListener('updater:update-available', handler);
     };
   }
 };

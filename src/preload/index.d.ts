@@ -68,6 +68,7 @@ declare global {
       quitApp: () => void;
       restartApp: () => Promise<boolean>;
       openLogsFolder: () => Promise<boolean>;
+      clearLogsCache: () => Promise<{ success: boolean; freedBytes: number }>;
       /** ===== 音乐相关 API ===== */
       mediaPlayPause: () => Promise<void>;
       mediaNext: () => Promise<void>;
@@ -157,6 +158,8 @@ declare global {
       updaterInstall: () => Promise<boolean>;
       updaterVersion: () => Promise<string>;
       onUpdaterProgress: (callback: (progress: { percent: number; transferred: number; total: number; bytesPerSecond: number }) => void) => () => void;
+      onUpdaterDownloaded: (callback: (data: { version: string }) => void) => () => void;
+      onUpdaterAvailable: (callback: (data: { version: string; releaseNotes: string }) => void) => () => void;
     };
   }
 }
