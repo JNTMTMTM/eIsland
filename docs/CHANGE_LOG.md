@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-04-11T15:29:33.918Z
+> 生成时间：2026-04-12T06:50:53.396Z
 
 ## 26.2.0
 
@@ -477,3 +477,9 @@
 - 2026-03-30 | bb18a81 | 鸡哥 | feat: 初始化 eIsland 项目
 - 2026-03-30 | 044489f | 鸡哥 | chore: 更新 .gitignore 忽略 .claude 目录
 - 2026-03-30 | 1fc5faf | 鸡哥 | chore: 添加社区规范文档
+
+## Unreleased
+
+- 2026-04-12 | d49cd33 | 鸡哥 | Merge pull request #31 from JNTMTMTM/dev
+- 2026-04-12 | c5672d0 | 鸡哥 | feat: 添加自动更新功能
+- 2026-04-11 | 16ea1c9 | github-actions[bot] | docs: auto update CHANGE_LOG.md for release 26.2.0 by @JNTMTMTM [skip ci]
