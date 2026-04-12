@@ -812,6 +812,7 @@ export function GuideContent(): React.ReactElement {
         <div className="guide-nav-dots">
           {GUIDE_PAGES.map((_, i) => (
             <button
+              type="button"
               key={i}
               className={`guide-nav-dot ${page === i ? 'active' : ''}`}
               onClick={() => setPage(i)}
