@@ -1103,6 +1103,7 @@ export function SettingsTab(): ReactElement {
       if (target.closest('.settings-field-textarea')) return;
       if (target.closest('.settings-whitelist-input')) return;
       if (target.closest('.settings-about')) return;
+      if (target.closest('.settings-update')) return;
       if (target.closest('.settings-index-section')) return;
       if (target.closest('.settings-index-cards')) return;
 
@@ -2711,12 +2712,12 @@ export function SettingsTab(): ReactElement {
                     </button>
                   )}
                   {updateStatus === 'error' && (
-                    <div className="settings-about-update-error-row">
-                      <span className="settings-about-update-error">{updateError}</span>
-                      <button className="settings-about-update-btn" type="button" onClick={handleCheckUpdate}>重试</button>
-                    </div>
+                    <button className="settings-about-update-btn" type="button" onClick={handleCheckUpdate}>重试</button>
                   )}
                 </div>
+                {updateStatus === 'error' && updateError && (
+                  <div className="settings-about-update-error" style={{ marginTop: 8, whiteSpace: 'pre-wrap' }}>{updateError.replace(/\\n/g, '\n')}</div>
+                )}
               </div>
             </div>
           )}
