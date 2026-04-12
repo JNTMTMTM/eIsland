@@ -1521,14 +1521,18 @@ function registerIpcHandlers(): void {
     mkdirSync(logDir, { recursive: true });
   }
 
+  const sessionStart = new Date();
+  const pad2 = (n: number): string => String(n).padStart(2, '0');
+  const sessionLogFileName = `${sessionStart.getFullYear()}-${pad2(sessionStart.getMonth() + 1)}-${pad2(sessionStart.getDate())}_${pad2(sessionStart.getHours())}-${pad2(sessionStart.getMinutes())}-${pad2(sessionStart.getSeconds())}_${sessionStart.getTime()}.log`;
+  const sessionLogFile = join(logDir, sessionLogFileName);
+
   const writeMainLog = (level: 'info' | 'warn' | 'error', message: string): void => {
     try {
       const now = new Date();
       const date = now.toISOString().slice(0, 10);
       const time = now.toISOString().slice(11, 23);
       const line = `[${date} ${time}] [${level.toUpperCase()}] ${message}\n`;
-      const logFile = join(logDir, `${date}.log`);
-      appendFileSync(logFile, line, 'utf-8');
+      appendFileSync(sessionLogFile, line, 'utf-8');
     } catch {
       /* 日志写入失败不影响主流程 */
     }
