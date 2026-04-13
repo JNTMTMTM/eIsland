@@ -83,6 +83,8 @@ interface AppSettingsSectionProps {
   setClipboardUrlMonitorEnabled: (value: boolean) => void;
   clipboardUrlDetectMode: 'https-only' | 'http-https' | 'domain-only';
   setClipboardUrlDetectMode: (value: 'https-only' | 'http-https' | 'domain-only') => void;
+  clipboardUrlBlacklist: string[];
+  setClipboardUrlBlacklist: (value: string[]) => void;
   autostartMode: 'disabled' | 'enabled' | 'high-priority';
   setAutostartMode: (mode: 'disabled' | 'enabled' | 'high-priority') => void;
   bgImage: string | null;
@@ -147,6 +149,8 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
     setClipboardUrlMonitorEnabled,
     clipboardUrlDetectMode,
     setClipboardUrlDetectMode,
+    clipboardUrlBlacklist,
+    setClipboardUrlBlacklist,
 
     autostartMode,
     setAutostartMode,
@@ -167,7 +171,20 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
 
   const OverviewPreview = OverviewPreviewComponent;
   const [clearLogsStatus, setClearLogsStatus] = useState<'idle' | 'clearing' | string>('idle');
+  const [clipboardBlacklistDraft, setClipboardBlacklistDraft] = useState<string>('');
+  const [clipboardBlacklistError, setClipboardBlacklistError] = useState<string>('');
   const clearLogsResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const normalizeBlacklistDomain = (raw: string): string => {
+    const trimmed = raw.trim().toLowerCase();
+    if (!trimmed) return '';
+    try {
+      const withScheme = /^[a-z][a-z0-9+.-]*:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+      return new URL(withScheme).hostname.toLowerCase().replace(/\.$/, '');
+    } catch {
+      return '';
+    }
+  };
 
   useEffect(() => {
     return () => {
@@ -536,8 +553,12 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
                   </label>
                 </div>
               </div>
+            </div>
+          )}
 
-              <div className="settings-music-section" style={{ marginTop: 14 }}>
+          {appSettingsPage === 'url-parser' && (
+            <div className="max-expand-settings-section">
+              <div className="settings-music-section">
                 <div className="settings-music-label">剪贴板 URL 监听</div>
                 <div className="settings-music-hint">启用后，检测到剪贴板含链接时会弹出询问通知</div>
                 <div className="settings-hotkey-row" style={{ alignItems: 'center', marginTop: 8 }}>
@@ -556,6 +577,7 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
                     启用剪贴板 URL 监听
                   </label>
                 </div>
+
                 <div className="settings-music-hint" style={{ marginTop: 8 }}>识别项目</div>
                 <div className="settings-lyrics-source-options" style={{ marginTop: 8 }}>
                   {([
@@ -573,6 +595,92 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
                       }}
                     >
                       {opt.label}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="settings-music-label" style={{ marginTop: 14 }}>URL 黑名单（按域名）</div>
+                <div className="settings-music-hint">命中黑名单域名时：单个链接不弹窗，多链接自动剔除</div>
+                <div className="settings-hotkey-row" style={{ marginTop: 8, gap: 8 }}>
+                  <input
+                    className="settings-whitelist-input"
+                    type="text"
+                    placeholder="输入域名，如 example.com"
+                    value={clipboardBlacklistDraft}
+                    onChange={(e) => {
+                      setClipboardBlacklistDraft(e.target.value);
+                      setClipboardBlacklistError('');
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key !== 'Enter') return;
+                      e.preventDefault();
+                      const domain = normalizeBlacklistDomain(clipboardBlacklistDraft);
+                      if (!domain) {
+                        setClipboardBlacklistError('请输入有效域名');
+                        return;
+                      }
+                      const exists = clipboardUrlBlacklist.some((item) => item === domain);
+                      if (exists) {
+                        setClipboardBlacklistError('该域名已在黑名单中');
+                        return;
+                      }
+                      const next = [...clipboardUrlBlacklist, domain];
+                      setClipboardUrlBlacklist(next);
+                      setClipboardBlacklistDraft('');
+                      window.api.clipboardUrlBlacklistSet(next).catch(() => {
+                        setClipboardUrlBlacklist(clipboardUrlBlacklist);
+                        setClipboardBlacklistError('保存失败，请稍后重试');
+                      });
+                    }}
+                  />
+                  <button
+                    className="settings-whitelist-add-btn"
+                    type="button"
+                    onClick={() => {
+                      const domain = normalizeBlacklistDomain(clipboardBlacklistDraft);
+                      if (!domain) {
+                        setClipboardBlacklistError('请输入有效域名');
+                        return;
+                      }
+                      const exists = clipboardUrlBlacklist.some((item) => item === domain);
+                      if (exists) {
+                        setClipboardBlacklistError('该域名已在黑名单中');
+                        return;
+                      }
+                      const next = [...clipboardUrlBlacklist, domain];
+                      setClipboardUrlBlacklist(next);
+                      setClipboardBlacklistDraft('');
+                      window.api.clipboardUrlBlacklistSet(next).catch(() => {
+                        setClipboardUrlBlacklist(clipboardUrlBlacklist);
+                        setClipboardBlacklistError('保存失败，请稍后重试');
+                      });
+                    }}
+                  >
+                    添加域名
+                  </button>
+                </div>
+                {clipboardBlacklistError && <div className="settings-hotkey-error">{clipboardBlacklistError}</div>}
+
+                <div className="settings-hide-selected" style={{ marginTop: 10 }}>
+                  {clipboardUrlBlacklist.length === 0 ? (
+                    <span className="settings-hide-selected-empty">暂无黑名单域名</span>
+                  ) : clipboardUrlBlacklist.map((domain) => (
+                    <button
+                      key={domain}
+                      className="settings-hide-selected-item"
+                      type="button"
+                      onClick={() => {
+                        const next = clipboardUrlBlacklist.filter((item) => item !== domain);
+                        const prev = clipboardUrlBlacklist;
+                        setClipboardUrlBlacklist(next);
+                        window.api.clipboardUrlBlacklistSet(next).catch(() => {
+                          setClipboardUrlBlacklist(prev);
+                          setClipboardBlacklistError('保存失败，请稍后重试');
+                        });
+                      }}
+                      title="移除该域名"
+                    >
+                      {domain} ×
                     </button>
                   ))}
                 </div>

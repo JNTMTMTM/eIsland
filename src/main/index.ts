@@ -56,6 +56,18 @@ function readNextSongHotkeyConfig(): string {
   }
 }
 
+function readClipboardUrlBlacklistConfig(): string[] {
+  try {
+    const storeDir = join(app.getPath('userData'), 'eIsland_store');
+    const filePath = join(storeDir, `${CLIPBOARD_URL_BLACKLIST_STORE_KEY}.json`);
+    if (!existsSync(filePath)) return DEFAULT_CLIPBOARD_URL_BLACKLIST;
+    const raw = readFileSync(filePath, 'utf-8');
+    return sanitizeClipboardUrlBlacklist(JSON.parse(raw));
+  } catch {
+    return DEFAULT_CLIPBOARD_URL_BLACKLIST;
+  }
+}
+
 /**
  * 读取暂停/播放快捷键配置
  * @returns 存储的快捷键字符串，不存在时返回默认值
@@ -91,6 +103,29 @@ function normalizeClipboardUrlDetectMode(mode: unknown): ClipboardUrlDetectMode 
     return mode;
   }
   return DEFAULT_CLIPBOARD_URL_DETECT_MODE;
+}
+
+function normalizeClipboardUrlBlacklistDomain(domain: string): string {
+  const trimmed = domain.trim().toLowerCase();
+  if (!trimmed) return '';
+  try {
+    const withScheme = /^[a-z][a-z0-9+.-]*:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+    const hostname = new URL(withScheme).hostname.toLowerCase().replace(/\.$/, '');
+    return hostname;
+  } catch {
+    return '';
+  }
+}
+
+function sanitizeClipboardUrlBlacklist(raw: unknown): string[] {
+  if (!Array.isArray(raw)) return [];
+  const unique = new Set<string>();
+  for (const item of raw) {
+    if (typeof item !== 'string') continue;
+    const normalized = normalizeClipboardUrlBlacklistDomain(item);
+    if (normalized) unique.add(normalized);
+  }
+  return [...unique.values()];
 }
 
 function readClipboardUrlDetectModeConfig(): ClipboardUrlDetectMode {
@@ -466,6 +501,9 @@ type ClipboardUrlDetectMode = 'https-only' | 'http-https' | 'domain-only';
 /** 剪贴板 URL 识别模式存储键名 */
 const CLIPBOARD_URL_DETECT_MODE_STORE_KEY = 'clipboard-url-detect-mode';
 
+/** 剪贴板 URL 黑名单存储键名（按域名） */
+const CLIPBOARD_URL_BLACKLIST_STORE_KEY = 'clipboard-url-blacklist';
+
 /** 开机自启模式存储键名 */
 const AUTOSTART_MODE_STORE_KEY = 'autostart-mode';
 
@@ -483,6 +521,9 @@ const DEFAULT_CLIPBOARD_URL_MONITOR_ENABLED = true;
 
 /** 剪贴板 URL 识别模式默认值 */
 const DEFAULT_CLIPBOARD_URL_DETECT_MODE: ClipboardUrlDetectMode = 'http-https';
+
+/** 剪贴板 URL 黑名单默认值 */
+const DEFAULT_CLIPBOARD_URL_BLACKLIST: string[] = [];
 
 /** 灵动岛位置偏移默认值（相对主屏工作区顶部居中） */
 const DEFAULT_ISLAND_POSITION_OFFSET: IslandPositionOffset = { x: 0, y: 0 };
@@ -1452,6 +1493,42 @@ function registerIpcHandlers(): void {
       return true;
     } catch (err) {
       console.error('[App] restart error:', err);
+      return false;
+    }
+  });
+
+  /** 获取剪贴板 URL 黑名单（域名） */
+  ipcMain.handle('clipboard:url-blacklist:get', () => {
+    return clipboardUrlBlacklist;
+  });
+
+  /** 设置剪贴板 URL 黑名单并持久化 */
+  ipcMain.handle('clipboard:url-blacklist:set', (_event, list: string[]) => {
+    try {
+      const next = sanitizeClipboardUrlBlacklist(list);
+      const filePath = join(storeDir, `${CLIPBOARD_URL_BLACKLIST_STORE_KEY}.json`);
+      clipboardUrlBlacklist = next;
+      writeFileSync(filePath, JSON.stringify(clipboardUrlBlacklist, null, 2), 'utf-8');
+      return true;
+    } catch (err) {
+      console.error('[ClipboardUrlBlacklist] persist error:', err);
+      return false;
+    }
+  });
+
+  /** 追加单个域名到剪贴板 URL 黑名单 */
+  ipcMain.handle('clipboard:url-blacklist:add-domain', (_event, domain: string) => {
+    try {
+      const normalized = normalizeClipboardUrlBlacklistDomain(domain);
+      if (!normalized) return false;
+      const alreadyExists = clipboardUrlBlacklist.some((item) => item === normalized);
+      const next = alreadyExists ? clipboardUrlBlacklist : [...clipboardUrlBlacklist, normalized];
+      const filePath = join(storeDir, `${CLIPBOARD_URL_BLACKLIST_STORE_KEY}.json`);
+      clipboardUrlBlacklist = next;
+      writeFileSync(filePath, JSON.stringify(clipboardUrlBlacklist, null, 2), 'utf-8');
+      return true;
+    } catch (err) {
+      console.error('[ClipboardUrlBlacklist] add domain error:', err);
       return false;
     }
   });
@@ -2842,6 +2919,9 @@ let clipboardUrlMonitorEnabled = DEFAULT_CLIPBOARD_URL_MONITOR_ENABLED;
 /** 剪贴板 URL 识别模式 */
 let clipboardUrlDetectMode: ClipboardUrlDetectMode = DEFAULT_CLIPBOARD_URL_DETECT_MODE;
 
+/** 剪贴板 URL 黑名单（域名） */
+let clipboardUrlBlacklist: string[] = [...DEFAULT_CLIPBOARD_URL_BLACKLIST];
+
 /** 仅识别 https:// URL */
 const URL_REGEX_HTTPS_ONLY = /https:\/\/[^\s<>"{}|\\^`\[\]]+/gi;
 
@@ -2882,6 +2962,16 @@ function extractUrls(text: string, mode: ClipboardUrlDetectMode): string[] {
     if (!unique.has(key)) unique.set(key, item);
   }
   return [...unique.values()];
+}
+
+function isUrlBlacklisted(url: string): boolean {
+  if (clipboardUrlBlacklist.length === 0) return false;
+  try {
+    const hostname = new URL(url).hostname.toLowerCase();
+    return clipboardUrlBlacklist.some((domain) => hostname === domain || hostname.endsWith(`.${domain}`));
+  } catch {
+    return false;
+  }
 }
 
 /**
@@ -2930,10 +3020,11 @@ function startClipboardUrlWatcher(win: BrowserWindow | null): void {
     lastClipboardText = current;
 
     const urls = extractUrls(current, clipboardUrlDetectMode);
-    if (urls.length > 0) {
-      fetchPageTitle(urls[0]).then((title) => {
+    const filteredUrls = urls.filter((url) => !isUrlBlacklisted(url));
+    if (filteredUrls.length > 0) {
+      fetchPageTitle(filteredUrls[0]).then((title) => {
         if (!win || win.isDestroyed()) return;
-        win.webContents.send('clipboard:urls-detected', { urls, title });
+        win.webContents.send('clipboard:urls-detected', { urls: filteredUrls, title });
       });
     }
   }, 1000);
@@ -2999,6 +3090,7 @@ app.whenReady().then(() => {
   islandPositionOffset = readIslandPositionOffsetConfig();
   clipboardUrlMonitorEnabled = readClipboardUrlMonitorEnabledConfig();
   clipboardUrlDetectMode = readClipboardUrlDetectModeConfig();
+  clipboardUrlBlacklist = readClipboardUrlBlacklistConfig();
 
   createWindow();
   createTray(mainWindow);

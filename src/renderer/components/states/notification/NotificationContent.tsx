@@ -72,6 +72,15 @@ export function NotificationContent({
       return icon;
     }
   })();
+
+  const currentClipboardDomain = (() => {
+    if (type !== 'clipboard-url' || !currentClipboardUrl) return '';
+    try {
+      return new URL(currentClipboardUrl).hostname.toLowerCase();
+    } catch {
+      return '';
+    }
+  })();
   const displayBody = (() => {
     if (type !== 'clipboard-url' || !currentClipboardUrl) return body;
     if (currentUrlIndex === 0 && body) return body;
@@ -159,6 +168,13 @@ export function NotificationContent({
 
   const handleDismissUrl = (): void => {
     dismiss();
+  };
+
+  const handleAddDomainToBlacklist = (): void => {
+    if (!currentClipboardDomain) return;
+    window.api?.clipboardUrlBlacklistAddDomain(currentClipboardDomain).finally(() => {
+      dismiss();
+    });
   };
 
   const handlePrevUrl = (): void => {
@@ -266,6 +282,15 @@ export function NotificationContent({
             >
               {hasMultipleClipboardUrls ? '打开全部链接' : '打开链接'}
             </button>
+            {currentClipboardDomain && (
+              <button
+                type="button"
+                className="notification-action-btn notification-action-snooze"
+                onClick={handleAddDomainToBlacklist}
+              >
+                加入黑名单
+              </button>
+            )}
             <button type="button" className="notification-action-btn notification-action-ignore" onClick={handleDismissUrl}>忽略</button>
           </div>
         </div>

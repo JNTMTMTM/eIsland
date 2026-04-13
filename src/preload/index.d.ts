@@ -156,6 +156,9 @@ declare global {
       clipboardUrlMonitorSet: (enabled: boolean) => Promise<boolean>;
       clipboardUrlDetectModeGet: () => Promise<'https-only' | 'http-https' | 'domain-only'>;
       clipboardUrlDetectModeSet: (mode: 'https-only' | 'http-https' | 'domain-only') => Promise<boolean>;
+      clipboardUrlBlacklistGet: () => Promise<string[]>;
+      clipboardUrlBlacklistSet: (list: string[]) => Promise<boolean>;
+      clipboardUrlBlacklistAddDomain: (domain: string) => Promise<boolean>;
       /** ===== 开机自启 API ===== */
       autostartGet: () => Promise<string>;
       autostartSet: (mode: string) => Promise<boolean>;

@@ -614,6 +614,24 @@ const api = {
     return ipcRenderer.invoke('clipboard:url-detect-mode:set', mode);
   },
   /**
+   * 获取剪贴板 URL 黑名单（域名）
+   */
+  clipboardUrlBlacklistGet: (): Promise<string[]> => {
+    return ipcRenderer.invoke('clipboard:url-blacklist:get');
+  },
+  /**
+   * 设置剪贴板 URL 黑名单（域名）
+   */
+  clipboardUrlBlacklistSet: (list: string[]): Promise<boolean> => {
+    return ipcRenderer.invoke('clipboard:url-blacklist:set', list);
+  },
+  /**
+   * 追加单个域名到剪贴板 URL 黑名单
+   */
+  clipboardUrlBlacklistAddDomain: (domain: string): Promise<boolean> => {
+    return ipcRenderer.invoke('clipboard:url-blacklist:add-domain', domain);
+  },
+  /**
    * 获取开机自启模式
    */
   autostartGet: (): Promise<string> => {
