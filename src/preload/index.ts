@@ -566,6 +566,18 @@ const api = {
     return ipcRenderer.invoke('island:maxexpand-mouseleave-idle:set', enabled);
   },
   /**
+   * 获取剪贴板 URL 监听开关
+   */
+  clipboardUrlMonitorGet: (): Promise<boolean> => {
+    return ipcRenderer.invoke('clipboard:url-monitor:get');
+  },
+  /**
+   * 设置剪贴板 URL 监听开关
+   */
+  clipboardUrlMonitorSet: (enabled: boolean): Promise<boolean> => {
+    return ipcRenderer.invoke('clipboard:url-monitor:set', enabled);
+  },
+  /**
    * 获取开机自启模式
    */
   autostartGet: (): Promise<string> => {

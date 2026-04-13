@@ -148,6 +148,8 @@ declare global {
       expandMouseleaveIdleSet: (enabled: boolean) => Promise<boolean>;
       maxexpandMouseleaveIdleGet: () => Promise<boolean>;
       maxexpandMouseleaveIdleSet: (enabled: boolean) => Promise<boolean>;
+      clipboardUrlMonitorGet: () => Promise<boolean>;
+      clipboardUrlMonitorSet: (enabled: boolean) => Promise<boolean>;
       /** ===== 开机自启 API ===== */
       autostartGet: () => Promise<string>;
       autostartSet: (mode: string) => Promise<boolean>;

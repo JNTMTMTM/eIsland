@@ -162,6 +162,7 @@ export function SettingsTab(): ReactElement {
   const [lyricsClock, setLyricsClock] = useState<boolean>(true);
   const [expandLeaveIdle, setExpandLeaveIdle] = useState<boolean>(false);
   const [maxExpandLeaveIdle, setMaxExpandLeaveIdle] = useState<boolean>(false);
+  const [clipboardUrlMonitorEnabled, setClipboardUrlMonitorEnabled] = useState<boolean>(true);
   const [autostartMode, setAutostartMode] = useState<'disabled' | 'enabled' | 'high-priority'>('disabled');
   const [navOrder, setNavOrder] = useState<string[]>(DEFAULT_NAV_ORDER);
   const [hiddenNavOrder, setHiddenNavOrder] = useState<string[]>([]);
@@ -449,6 +450,10 @@ export function SettingsTab(): ReactElement {
     window.api.maxexpandMouseleaveIdleGet().then((v) => {
       if (cancelled) return;
       setMaxExpandLeaveIdle(v);
+    }).catch(() => {});
+    window.api.clipboardUrlMonitorGet().then((v) => {
+      if (cancelled) return;
+      setClipboardUrlMonitorEnabled(v);
     }).catch(() => {});
     window.api.autostartGet().then((mode) => {
       if (cancelled) return;
@@ -1268,6 +1273,8 @@ export function SettingsTab(): ReactElement {
               setExpandLeaveIdle={setExpandLeaveIdle}
               maxExpandLeaveIdle={maxExpandLeaveIdle}
               setMaxExpandLeaveIdle={setMaxExpandLeaveIdle}
+              clipboardUrlMonitorEnabled={clipboardUrlMonitorEnabled}
+              setClipboardUrlMonitorEnabled={setClipboardUrlMonitorEnabled}
               autostartMode={autostartMode}
               setAutostartMode={setAutostartMode}
               bgImage={bgImage}

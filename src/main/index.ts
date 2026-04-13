@@ -39,6 +39,19 @@ if (!gotTheLock) {
   app.quit();
 }
 
+function readClipboardUrlMonitorEnabledConfig(): boolean {
+  try {
+    const storeDir = join(app.getPath('userData'), 'eIsland_store');
+    const filePath = join(storeDir, `${CLIPBOARD_URL_MONITOR_ENABLED_STORE_KEY}.json`);
+    if (!existsSync(filePath)) return DEFAULT_CLIPBOARD_URL_MONITOR_ENABLED;
+    const raw = readFileSync(filePath, 'utf-8');
+    const data = JSON.parse(raw);
+    return typeof data === 'boolean' ? data : DEFAULT_CLIPBOARD_URL_MONITOR_ENABLED;
+  } catch {
+    return DEFAULT_CLIPBOARD_URL_MONITOR_ENABLED;
+  }
+}
+
 /**
  * 读取还原位置快捷键配置
  * @returns 存储的快捷键字符串，不存在时返回默认值
@@ -392,6 +405,9 @@ const EXPAND_MOUSELEAVE_IDLE_STORE_KEY = 'expand-mouseleave-idle';
 /** maxExpand 鼠标移开回 idle 开关存储键名 */
 const MAXEXPAND_MOUSELEAVE_IDLE_STORE_KEY = 'maxexpand-mouseleave-idle';
 
+/** 剪贴板 URL 监听开关存储键名 */
+const CLIPBOARD_URL_MONITOR_ENABLED_STORE_KEY = 'clipboard-url-monitor-enabled';
+
 /** 开机自启模式存储键名 */
 const AUTOSTART_MODE_STORE_KEY = 'autostart-mode';
 
@@ -403,6 +419,9 @@ const ISLAND_POSITION_STORE_KEY = 'island-position-offset';
 
 /** 隐藏进程名单默认值 */
 const DEFAULT_HIDE_PROCESS_LIST: string[] = [];
+
+/** 剪贴板 URL 监听开关默认值 */
+const DEFAULT_CLIPBOARD_URL_MONITOR_ENABLED = true;
 
 /** 灵动岛位置偏移默认值（相对主屏工作区顶部居中） */
 const DEFAULT_ISLAND_POSITION_OFFSET: IslandPositionOffset = { x: 0, y: 0 };
@@ -1921,6 +1940,29 @@ function registerIpcHandlers(): void {
     }
   });
 
+  /** 获取剪贴板 URL 监听开关 */
+  ipcMain.handle('clipboard:url-monitor:get', () => {
+    return clipboardUrlMonitorEnabled;
+  });
+
+  /** 设置剪贴板 URL 监听开关并持久化 */
+  ipcMain.handle('clipboard:url-monitor:set', (_event, enabled: boolean) => {
+    try {
+      const filePath = join(storeDir, `${CLIPBOARD_URL_MONITOR_ENABLED_STORE_KEY}.json`);
+      clipboardUrlMonitorEnabled = Boolean(enabled);
+      writeFileSync(filePath, JSON.stringify(clipboardUrlMonitorEnabled, null, 2), 'utf-8');
+      if (clipboardUrlMonitorEnabled) {
+        startClipboardUrlWatcher(mainWindow);
+      } else {
+        stopClipboardUrlWatcher();
+      }
+      return true;
+    } catch (err) {
+      console.error('[ClipboardUrlMonitor] persist error:', err);
+      return false;
+    }
+  });
+
   /**
    * 获取开机自启模式
    * @returns 'disabled' | 'enabled' | 'high-priority'
@@ -2553,6 +2595,8 @@ function cleanupStaleSmtcRuntime(sessionRuntime: Map<string, SmtcSessionRuntimeE
 let lastClipboardText = '';
 /** 剪贴板轮询定时器 */
 let clipboardPollTimer: ReturnType<typeof setInterval> | null = null;
+/** 剪贴板 URL 监听是否启用 */
+let clipboardUrlMonitorEnabled = DEFAULT_CLIPBOARD_URL_MONITOR_ENABLED;
 
 /** URL 正则 */
 const URL_REGEX = /https?:\/\/[^\s<>"{}|\\^`\[\]]+/gi;
@@ -2604,7 +2648,7 @@ async function fetchPageTitle(url: string, timeoutMs = 3000): Promise<string> {
  * @param win - 主窗口引用
  */
 function startClipboardUrlWatcher(win: BrowserWindow | null): void {
-  if (clipboardPollTimer) return;
+  if (!clipboardUrlMonitorEnabled || clipboardPollTimer) return;
   lastClipboardText = clipboard.readText() || '';
 
   clipboardPollTimer = setInterval(() => {
@@ -2681,6 +2725,7 @@ app.whenReady().then(() => {
   });
 
   islandPositionOffset = readIslandPositionOffsetConfig();
+  clipboardUrlMonitorEnabled = readClipboardUrlMonitorEnabledConfig();
 
   createWindow();
   createTray(mainWindow);
