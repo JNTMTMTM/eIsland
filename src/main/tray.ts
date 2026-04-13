@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import { Tray, Menu, nativeImage, BrowserWindow, app } from 'electron';
+import { Tray, Menu, nativeImage, BrowserWindow, app, shell } from 'electron';
 import { join } from 'path';
 import { is } from '@electron-toolkit/utils';
 
@@ -45,6 +45,7 @@ const TRAY_ICON_PATH = is.dev
 function createTray(mainWindow: BrowserWindow | null): Tray {
   const icon = nativeImage.createFromPath(TRAY_ICON_PATH);
   tray = new Tray(icon);
+  const logDir = join(app.getPath('userData'), 'logs');
 
   const contextMenu = Menu.buildFromTemplate([
     {
@@ -60,6 +61,30 @@ function createTray(mainWindow: BrowserWindow | null): Tray {
       }
     },
     {
+      label: '窗口置顶',
+      type: 'checkbox',
+      checked: mainWindow?.isAlwaysOnTop() ?? false,
+      click: (menuItem) => {
+        if (!mainWindow || mainWindow.isDestroyed()) return;
+        mainWindow.setAlwaysOnTop(Boolean(menuItem.checked));
+      }
+    },
+    { type: 'separator' },
+    {
+      label: '打开日志文件夹',
+      click: async () => {
+        await shell.openPath(logDir);
+      }
+    },
+    {
+      label: '重启灵动岛',
+      click: () => {
+        app.relaunch();
+        app.quit();
+      }
+    },
+    { type: 'separator' },
+    {
       label: '退出',
       click: () => {
         app.quit();
@@ -71,7 +96,12 @@ function createTray(mainWindow: BrowserWindow | null): Tray {
   tray.setContextMenu(contextMenu);
 
   tray.on('click', () => {
-    mainWindow?.show();
+    if (!mainWindow || mainWindow.isDestroyed()) return;
+    if (mainWindow.isVisible()) {
+      mainWindow.hide();
+    } else {
+      mainWindow.show();
+    }
   });
 
   return tray;
