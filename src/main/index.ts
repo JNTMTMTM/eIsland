@@ -45,6 +45,7 @@ import { registerAppIpcHandlers } from './ipc/app';
 import { registerSystemIpcHandlers } from './ipc/system';
 import { registerUpdaterIpcHandlers } from './ipc/updater';
 import { registerWallpaperIpcHandlers } from './ipc/wallpaper';
+import { registerNetIpcHandlers } from './ipc/net';
 
 /** 防止 Electron 创建多个实例 */
 const gotTheLock = app.requestSingleInstanceLock();
@@ -1540,52 +1541,7 @@ function registerIpcHandlers(): void {
 
   const writeMainLog = createSessionMainLogger();
 
-  // ===== HTTP 代理 IPC（绕过 CORS） =====
-  ipcMain.handle('net:fetch', async (_event, url: string, options?: {
-    method?: string;
-    headers?: Record<string, string>;
-    body?: string;
-    timeoutMs?: number;
-  }) => {
-    const method = options?.method || 'GET';
-    const headers = options?.headers || {};
-    const body = options?.body;
-    const allowsBody = method.toUpperCase() !== 'GET' && method.toUpperCase() !== 'HEAD';
-    const timeoutMs = typeof options?.timeoutMs === 'number' ? options?.timeoutMs : 10000;
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), timeoutMs);
-    writeMainLog('info', `[Net] request ${JSON.stringify({ method, url, headers, body: body ?? '', timeoutMs })}`);
-    try {
-      const { net } = require('electron');
-      const fetchOptions: {
-        method: string;
-        headers: Record<string, string>;
-        signal: AbortSignal;
-        body?: string;
-      } = {
-        method,
-        headers,
-        signal: controller.signal,
-      };
-      if (allowsBody && typeof body === 'string') {
-        fetchOptions.body = body;
-      }
-      const resp = await net.fetch(url, fetchOptions);
-      const text = await resp.text();
-      writeMainLog('info', `[Net] response ${JSON.stringify({ method, url, status: resp.status, ok: resp.ok, body: text })}`);
-      return { ok: resp.ok, status: resp.status, body: text };
-    } catch (err) {
-      if (err && typeof err === 'object' && 'name' in err && err.name === 'AbortError') {
-        writeMainLog('warn', `[Net] timeout ${JSON.stringify({ method, url, headers, body: body ?? '', timeoutMs })}`);
-        return { ok: false, status: 408, body: 'timeout' };
-      }
-      console.error('[Net] fetch proxy error:', err);
-      writeMainLog('error', `[Net] error ${JSON.stringify({ method, url, headers, body: body ?? '', timeoutMs, error: String(err) })}`);
-      return { ok: false, status: 0, body: '' };
-    } finally {
-      clearTimeout(timeout);
-    }
-  });
+  registerNetIpcHandlers({ writeMainLog });
 
   // ===== 文件存储 IPC =====
   const storeDir = join(app.getPath('userData'), 'eIsland_store');
