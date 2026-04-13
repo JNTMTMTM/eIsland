@@ -46,6 +46,7 @@ import { registerSystemIpcHandlers } from './ipc/system';
 import { registerUpdaterIpcHandlers } from './ipc/updater';
 import { registerWallpaperIpcHandlers } from './ipc/wallpaper';
 import { registerNetIpcHandlers } from './ipc/net';
+import { registerStoreIpcHandlers } from './ipc/store';
 
 /** 防止 Electron 创建多个实例 */
 const gotTheLock = app.requestSingleInstanceLock();
@@ -1580,41 +1581,7 @@ function registerIpcHandlers(): void {
     },
   });
 
-  /**
-   * 读取 JSON 文件
-   * @param _event - IPC 事件
-   * @param key - 存储键名（对应文件名）
-   * @returns 解析后的数据，不存在时返回 null
-   */
-  ipcMain.handle('store:read', (_event, key: string) => {
-    try {
-      const filePath = join(storeDir, `${key}.json`);
-      if (!existsSync(filePath)) return null;
-      const raw = readFileSync(filePath, 'utf-8');
-      return JSON.parse(raw);
-    } catch (err) {
-      console.error(`[Store] read '${key}' error:`, err);
-      return null;
-    }
-  });
-
-  /**
-   * 写入 JSON 文件
-   * @param _event - IPC 事件
-   * @param key - 存储键名（对应文件名）
-   * @param data - 要存储的数据
-   * @returns 是否写入成功
-   */
-  ipcMain.handle('store:write', (_event, key: string, data: unknown) => {
-    try {
-      const filePath = join(storeDir, `${key}.json`);
-      writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8');
-      return true;
-    } catch (err) {
-      console.error(`[Store] write '${key}' error:`, err);
-      return false;
-    }
-  });
+  registerStoreIpcHandlers({ storeDir });
 
   // ===== 日志文件 IPC =====
   /**
