@@ -1,3 +1,30 @@
+/*
+ * eIsland - A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Electron.
+ * https://github.com/JNTMTMTM/eIsland
+ *
+ * Copyright (C) 2026 JNTMTMTM
+ * Copyright (C) 2026 pyisland.com
+ *
+ * Original author: JNTMTMTM[](https://github.com/JNTMTMTM)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+/**
+ * @file autoHideWatcher.ts
+ * @description 自动隐藏监听器模块
+ * @description 监控指定进程列表，当检测到进程运行时自动隐藏灵动岛
+ * @author 鸡哥
+ */
+
 import { BrowserWindow } from 'electron';
 import { hasAnyRunningProcess } from './runningProcesses';
 
@@ -19,6 +46,12 @@ interface AutoHideWatcherService {
   setHiddenByAutoHideProcess: (hidden: boolean) => void;
 }
 
+/**
+ * 创建自动隐藏监听器服务
+ * @description 初始化并返回自动隐藏监控服务，根据进程列表控制窗口显示/隐藏
+ * @param options - 服务配置选项，包含窗口获取和进程列表配置
+ * @returns 自动隐藏监听器服务对象
+ */
 export function createAutoHideWatcher(options: CreateAutoHideWatcherOptions): AutoHideWatcherService {
   const pollIntervalMs = options.pollIntervalMs ?? 2500;
 

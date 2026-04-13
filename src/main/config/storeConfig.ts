@@ -1,3 +1,30 @@
+/*
+ * eIsland - A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Electron.
+ * https://github.com/JNTMTMTM/eIsland
+ *
+ * Copyright (C) 2026 JNTMTMTM
+ * Copyright (C) 2026 pyisland.com
+ *
+ * Original author: JNTMTMTM[](https://github.com/JNTMTMTM)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+/**
+ * @file storeConfig.ts
+ * @description 应用配置存储模块
+ * @description 定义常量、类型和读写配置的辅助函数
+ * @author 鸡哥
+ */
+
 import { app } from 'electron';
 import { join } from 'path';
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
@@ -174,6 +201,11 @@ function readJsonFile(storeKey: string): unknown | undefined {
 
 // ===== Sanitize =====
 
+/**
+ * 规范化灵动岛位置偏移配置
+ * @param raw - 原始配置数据
+ * @returns 规范化后的位置偏移对象
+ */
 export function sanitizeIslandPositionOffset(raw: unknown): IslandPositionOffset {
   if (!raw || typeof raw !== 'object') {
     return { ...DEFAULT_ISLAND_POSITION_OFFSET };
@@ -189,6 +221,11 @@ export function sanitizeIslandPositionOffset(raw: unknown): IslandPositionOffset
   };
 }
 
+/**
+ * 规范化 SMTC 取消订阅时间配置
+ * @param value - 原始配置值
+ * @returns 规范化后的毫秒数
+ */
 export function sanitizeSmtcUnsubscribeMs(value: unknown): number {
   if (value === SMTC_UNSUBSCRIBE_NEVER) return SMTC_UNSUBSCRIBE_NEVER;
   if (typeof value !== 'number' || !Number.isFinite(value)) return DEFAULT_SMTC_UNSUBSCRIBE_MS;
@@ -199,61 +236,110 @@ export function sanitizeSmtcUnsubscribeMs(value: unknown): number {
 
 // ===== Read =====
 
+/**
+ * 读取隐藏快捷键配置
+ * @returns 快捷键字符串
+ */
 export function readHotkeyConfig(): string {
   const data = readJsonFile(HOTKEY_STORE_KEY);
   return typeof data === 'string' ? data : DEFAULT_HIDE_HOTKEY;
 }
 
+/**
+ * 读取退出快捷键配置
+ * @returns 快捷键字符串
+ */
 export function readQuitHotkeyConfig(): string {
   const data = readJsonFile(QUIT_HOTKEY_STORE_KEY);
   return typeof data === 'string' ? data : DEFAULT_QUIT_HOTKEY;
 }
 
+/**
+ * 读取截图快捷键配置
+ * @returns 快捷键字符串
+ */
 export function readScreenshotHotkeyConfig(): string {
   const data = readJsonFile(SCREENSHOT_HOTKEY_STORE_KEY);
   return typeof data === 'string' ? data : DEFAULT_SCREENSHOT_HOTKEY;
 }
 
+/**
+ * 读取下一首快捷键配置
+ * @returns 快捷键字符串
+ */
 export function readNextSongHotkeyConfig(): string {
   const data = readJsonFile(NEXT_SONG_HOTKEY_STORE_KEY);
   return typeof data === 'string' ? data : DEFAULT_NEXT_SONG_HOTKEY;
 }
 
+/**
+ * 读取播放/暂停快捷键配置
+ * @returns 快捷键字符串
+ */
 export function readPlayPauseSongHotkeyConfig(): string {
   const data = readJsonFile(PLAY_PAUSE_SONG_HOTKEY_STORE_KEY);
   return typeof data === 'string' ? data : DEFAULT_PLAY_PAUSE_SONG_HOTKEY;
 }
 
+/**
+ * 读取还原位置快捷键配置
+ * @returns 快捷键字符串
+ */
 export function readResetPositionHotkeyConfig(): string {
   const data = readJsonFile(RESET_POSITION_HOTKEY_STORE_KEY);
   return typeof data === 'string' ? data : DEFAULT_RESET_POSITION_HOTKEY;
 }
 
+/**
+ * 读取播放器白名单配置
+ * @returns 播放器名称数组
+ */
 export function readWhitelistConfig(): string[] {
   const data = readJsonFile(WHITELIST_STORE_KEY);
   return Array.isArray(data) ? data : DEFAULT_WHITELIST;
 }
 
+/**
+ * 读取歌词源配置
+ * @returns 歌词源字符串
+ */
 export function readLyricsSourceConfig(): string {
   const data = readJsonFile(LYRICS_SOURCE_STORE_KEY);
   return typeof data === 'string' ? data : 'auto';
 }
 
+/**
+ * 读取 SMTC 取消订阅时间配置
+ * @returns 毫秒数
+ */
 export function readSmtcUnsubscribeMsConfig(): number {
   const data = readJsonFile(SMTC_UNSUBSCRIBE_MS_STORE_KEY);
   return data !== undefined ? sanitizeSmtcUnsubscribeMs(data) : DEFAULT_SMTC_UNSUBSCRIBE_MS;
 }
 
+/**
+ * 读取隐藏进程名单配置
+ * @returns 进程名称数组
+ */
 export function readHideProcessListConfig(): string[] {
   const data = readJsonFile(HIDE_PROCESS_LIST_STORE_KEY);
   return Array.isArray(data) ? sanitizeProcessNameList(data.filter((x) => typeof x === 'string')) : DEFAULT_HIDE_PROCESS_LIST;
 }
 
+/**
+ * 读取灵动岛位置偏移配置
+ * @returns 位置偏移对象
+ */
 export function readIslandPositionOffsetConfig(): IslandPositionOffset {
   const data = readJsonFile(ISLAND_POSITION_STORE_KEY);
   return data !== undefined ? sanitizeIslandPositionOffset(data) : { ...DEFAULT_ISLAND_POSITION_OFFSET };
 }
 
+/**
+ * 写入灵动岛位置偏移配置
+ * @param offset - 位置偏移对象
+ * @returns 是否写入成功
+ */
 export function writeIslandPositionOffsetConfig(offset: IslandPositionOffset): boolean {
   try {
     const storeDir = getStoreDir();
@@ -267,17 +353,29 @@ export function writeIslandPositionOffsetConfig(offset: IslandPositionOffset): b
   }
 }
 
+/**
+ * 读取剪贴板 URL 监听开关配置
+ * @returns 是否启用监听
+ */
 export function readClipboardUrlMonitorEnabledConfig(): boolean {
   const data = readJsonFile(CLIPBOARD_URL_MONITOR_ENABLED_STORE_KEY);
   return typeof data === 'boolean' ? data : DEFAULT_CLIPBOARD_URL_MONITOR_ENABLED;
 }
 
+/**
+ * 读取剪贴板 URL 检测模式配置
+ * @returns 检测模式字符串
+ */
 export function readClipboardUrlDetectModeConfig(): ClipboardUrlDetectMode {
   const data = readJsonFile(CLIPBOARD_URL_DETECT_MODE_STORE_KEY);
   const normalized = normalizeClipboardUrlDetectMode(data);
   return normalized || DEFAULT_CLIPBOARD_URL_DETECT_MODE;
 }
 
+/**
+ * 读取剪贴板 URL 黑名单配置
+ * @returns 域名数组
+ */
 export function readClipboardUrlBlacklistConfig(): string[] {
   const data = readJsonFile(CLIPBOARD_URL_BLACKLIST_STORE_KEY);
   return data !== undefined ? sanitizeClipboardUrlBlacklist(data) : DEFAULT_CLIPBOARD_URL_BLACKLIST;

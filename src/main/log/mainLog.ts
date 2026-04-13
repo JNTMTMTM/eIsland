@@ -1,9 +1,41 @@
+/*
+ * eIsland - A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Electron.
+ * https://github.com/JNTMTMTM/eIsland
+ *
+ * Copyright (C) 2026 JNTMTMTM
+ * Copyright (C) 2026 pyisland.com
+ *
+ * Original author: JNTMTMTM[](https://github.com/JNTMTMTM)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+/**
+ * @file mainLog.ts
+ * @description 主进程日志模块
+ * @description 提供日志目录管理、日志清理和会话日志记录功能
+ * @author 鸡哥
+ */
+
 import { app } from 'electron';
 import { appendFileSync, existsSync, mkdirSync, readdirSync, statSync, unlinkSync } from 'fs';
 import { join } from 'path';
 
 export type MainLogLevel = 'info' | 'warn' | 'error';
 
+/**
+ * 确保日志目录存在
+ * @description 创建日志目录（如不存在），返回目录路径
+ * @returns 日志目录绝对路径
+ */
 export function ensureLogsDir(): string {
   const logDir = join(app.getPath('userData'), 'logs');
   if (!existsSync(logDir)) {
@@ -12,6 +44,11 @@ export function ensureLogsDir(): string {
   return logDir;
 }
 
+/**
+ * 清理日志缓存文件
+ * @description 删除日志目录下的所有文件，释放磁盘空间
+ * @returns 清理结果，包含是否成功、释放字节数和删除文件数
+ */
 export function clearLogsCacheFiles(): { success: boolean; freedBytes: number; fileCount: number } {
   try {
     const logDir = ensureLogsDir();
@@ -36,6 +73,11 @@ export function clearLogsCacheFiles(): { success: boolean; freedBytes: number; f
   }
 }
 
+/**
+ * 创建会话日志记录器
+ * @description 创建一个新的会话日志文件，返回日志写入函数
+ * @returns 日志写入函数，接受日志级别和消息
+ */
 export function createSessionMainLogger(): (level: MainLogLevel, message: string) => void {
   const logDir = ensureLogsDir();
   const sessionStart = new Date();

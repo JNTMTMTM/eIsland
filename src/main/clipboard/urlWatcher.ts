@@ -1,3 +1,30 @@
+/*
+ * eIsland - A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Electron.
+ * https://github.com/JNTMTMTM/eIsland
+ *
+ * Copyright (C) 2026 JNTMTMTM
+ * Copyright (C) 2026 pyisland.com
+ *
+ * Original author: JNTMTMTM[](https://github.com/JNTMTMTM)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+/**
+ * @file urlWatcher.ts
+ * @description 剪贴板 URL 监听器模块
+ * @description 监控剪贴板内容变化，检测 URL 并获取页面标题
+ * @author 鸡哥
+ */
+
 import { BrowserWindow, clipboard, net } from 'electron';
 import { extractUrls, isUrlBlacklisted, type ClipboardUrlDetectMode } from '../utils/clipboardUrl';
 
@@ -33,6 +60,11 @@ async function fetchPageTitle(url: string, timeoutMs = 3000): Promise<string> {
   }
 }
 
+/**
+ * 启动剪贴板 URL 监听器
+ * @description 开始监控剪贴板变化，当检测到新 URL 时获取页面标题并通知渲染进程
+ * @param options - 监听器配置选项，包含窗口获取函数和状态获取函数
+ */
 export function startClipboardUrlWatcher(options: ClipboardUrlWatcherOptions): void {
   if (!options.getEnabled() || clipboardPollTimer) return;
   lastClipboardText = clipboard.readText() || '';
@@ -57,6 +89,10 @@ export function startClipboardUrlWatcher(options: ClipboardUrlWatcherOptions): v
   }, 1000);
 }
 
+/**
+ * 停止剪贴板 URL 监听器
+ * @description 停止剪贴板监控定时器，清理监听状态
+ */
 export function stopClipboardUrlWatcher(): void {
   if (!clipboardPollTimer) return;
   clearInterval(clipboardPollTimer);

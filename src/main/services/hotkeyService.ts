@@ -1,3 +1,25 @@
+/*
+ * eIsland - A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Electron.
+ * https://github.com/JNTMTMTM/eIsland
+ *
+ * Copyright (C) 2026 JNTMTMTM
+ * Copyright (C) 2026 pyisland.com
+ *
+ * Original author: JNTMTMTM[](https://github.com/JNTMTMTM)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ */
+
+/**
+ * @file hotkeyService.ts
+ * @description 全局快捷键服务模块
+ * @description 管理应用全局快捷键的注册、注销和冲突检测
+ * @author 鸡哥
+ */
+
 import { app, BrowserWindow, globalShortcut } from 'electron';
 
 interface CreateHotkeyServiceOptions {
@@ -32,6 +54,12 @@ interface HotkeyService {
   resumeIslandHotkeys: () => void;
 }
 
+/**
+ * 创建全局快捷键服务
+ * @description 初始化并返回全局快捷键管理服务
+ * @param options - 服务配置选项，包含窗口获取和回调函数
+ * @returns 快捷键服务对象，包含注册和管理方法
+ */
 export function createHotkeyService(options: CreateHotkeyServiceOptions): HotkeyService {
   let currentHideHotkey = '';
   let currentQuitHotkey = '';

@@ -1,3 +1,30 @@
+/*
+ * eIsland - A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Electron.
+ * https://github.com/JNTMTMTM/eIsland
+ *
+ * Copyright (C) 2026 JNTMTMTM
+ * Copyright (C) 2026 pyisland.com
+ *
+ * Original author: JNTMTMTM[](https://github.com/JNTMTMTM)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+/**
+ * @file smtcService.ts
+ * @description SMTC (System Media Transport Controls) 服务模块
+ * @description 管理 Windows 系统媒体会话，处理播放状态和音源切换
+ * @author 鸡哥
+ */
+
 import { BrowserWindow } from 'electron';
 import { Worker } from 'worker_threads';
 import { join } from 'path';
@@ -57,6 +84,12 @@ interface SmtcService {
   getSmtcSessionRuntime: () => Map<string, PublicSessionRuntimeEntry> | null;
 }
 
+/**
+ * 创建 SMTC 服务实例
+ * @description 初始化 SMTC 监控服务，管理媒体会话和音源切换
+ * @param options - 服务配置选项，包含窗口获取和白名单配置
+ * @returns SMTC 服务对象，包含初始化和清理方法
+ */
 export function createSmtcService(options: CreateSmtcServiceOptions): SmtcService {
   let smtcWorker: Worker | null = null;
   let currentDeviceId = options.getWhitelist()[0] || '';

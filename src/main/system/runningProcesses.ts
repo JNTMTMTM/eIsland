@@ -1,3 +1,30 @@
+/*
+ * eIsland - A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Electron.
+ * https://github.com/JNTMTMTM/eIsland
+ *
+ * Copyright (C) 2026 JNTMTMTM
+ * Copyright (C) 2026 pyisland.com
+ *
+ * Original author: JNTMTMTM[](https://github.com/JNTMTMTM)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+/**
+ * @file runningProcesses.ts
+ * @description 运行进程查询模块
+ * @description 查询 Windows 运行中的非系统进程，支持获取进程图标
+ * @author 鸡哥
+ */
+
 import { app, nativeImage } from 'electron';
 import { exec } from 'child_process';
 
@@ -11,6 +38,12 @@ export interface RunningProcessInfo {
   iconDataUrl: string | null;
 }
 
+/**
+ * 规范化进程名称
+ * @description 将进程名称转换为小写并去除首尾空格
+ * @param name - 原始进程名称
+ * @returns 规范化后的进程名称
+ */
 export function normalizeProcessName(name: string): string {
   return name.trim().toLowerCase();
 }
@@ -79,6 +112,11 @@ function queryRunningProcessNames(): Promise<string[]> {
   });
 }
 
+/**
+ * 查询运行中的非系统进程名称列表
+ * @description 获取当前运行的非系统进程名称列表
+ * @returns 进程名称数组
+ */
 export async function queryRunningNonSystemProcessNames(): Promise<string[]> {
   const all = await queryRunningProcessNames();
   return all.filter((name) => !isSystemProcessName(name));
@@ -182,6 +220,11 @@ async function getProcessIconDataUrl(processName: string, pathMap: Map<string, s
   return null;
 }
 
+/**
+ * 查询运行中的非系统进程（包含图标）
+ * @description 获取当前运行的非系统进程信息，包括进程图标
+ * @returns 进程信息数组，包含名称和图标数据
+ */
 export async function queryRunningNonSystemProcessesWithIcons(): Promise<RunningProcessInfo[]> {
   const names = await queryRunningNonSystemProcessNames();
   if (!names.length) return [];
@@ -197,6 +240,12 @@ export async function queryRunningNonSystemProcessesWithIcons(): Promise<Running
   return items;
 }
 
+/**
+ * 检查是否有指定进程正在运行
+ * @description 检查给定进程名称列表中是否有任意进程正在运行
+ * @param names - 要检查的进程名称数组
+ * @returns 是否有进程正在运行
+ */
 export async function hasAnyRunningProcess(names: string[]): Promise<boolean> {
   if (!names.length) return false;
 
@@ -205,6 +254,12 @@ export async function hasAnyRunningProcess(names: string[]): Promise<boolean> {
   return names.some((name) => runningSet.has(normalizeProcessName(name)));
 }
 
+/**
+ * 清理进程名称列表
+ * @description 去除重复项和空项，返回规范化后的进程名称列表
+ * @param list - 原始进程名称数组
+ * @returns 清理后的进程名称数组
+ */
 export function sanitizeProcessNameList(list: string[]): string[] {
   const normalizedSet = new Set<string>();
   const sanitized: string[] = [];

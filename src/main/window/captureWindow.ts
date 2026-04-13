@@ -1,3 +1,30 @@
+/*
+ * eIsland - A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Electron.
+ * https://github.com/JNTMTMTM/eIsland
+ *
+ * Copyright (C) 2026 JNTMTMTM
+ * Copyright (C) 2026 pyisland.com
+ *
+ * Original author: JNTMTMTM[](https://github.com/JNTMTMTM)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+/**
+ * @file captureWindow.ts
+ * @description 截图窗口服务模块
+ * @description 管理截图窗口的创建、屏幕捕获和区域选择功能
+ * @author 鸡哥
+ */
+
 import { app, BrowserWindow, desktopCapturer, screen } from 'electron';
 import { join } from 'path';
 import { existsSync } from 'fs';
@@ -13,6 +40,12 @@ interface CaptureWindowService {
   startRegionScreenshot: () => Promise<void>;
 }
 
+/**
+ * 创建截图窗口服务
+ * @description 初始化并返回截图窗口管理服务，支持区域截图功能
+ * @param options - 服务配置选项，包含主窗口获取函数
+ * @returns 截图窗口服务对象
+ */
 export function createCaptureWindowService(options: CreateCaptureWindowServiceOptions): CaptureWindowService {
   let captureWindow: BrowserWindow | null = null;
   let isStartingCaptureWindow = false;
