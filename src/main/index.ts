@@ -34,11 +34,11 @@ import { autoUpdater } from 'electron-updater';
 import { createTray, destroyTray } from './tray';
 import { clearLogsCacheFiles, createSessionMainLogger, ensureLogsDir } from './log/mainLog';
 import {
-  normalizeClipboardUrlBlacklistDomain,
   normalizeClipboardUrlDetectMode,
   sanitizeClipboardUrlBlacklist,
 } from './utils/clipboardUrl';
 import { startClipboardUrlWatcher, stopClipboardUrlWatcher } from './clipboard/urlWatcher';
+import { registerClipboardIpcHandlers } from './ipc/clipboard';
 
 /** 防止 Electron 创建多个实例 */
 const gotTheLock = app.requestSingleInstanceLock();
@@ -1475,60 +1475,6 @@ function registerIpcHandlers(): void {
     }
   });
 
-  /** 获取剪贴板 URL 黑名单（域名） */
-  ipcMain.handle('clipboard:url-blacklist:get', () => {
-    return clipboardUrlBlacklist;
-  });
-
-  /** 设置剪贴板 URL 黑名单并持久化 */
-  ipcMain.handle('clipboard:url-blacklist:set', (_event, list: string[]) => {
-    try {
-      const next = sanitizeClipboardUrlBlacklist(list);
-      const filePath = join(storeDir, `${CLIPBOARD_URL_BLACKLIST_STORE_KEY}.json`);
-      clipboardUrlBlacklist = next;
-      writeFileSync(filePath, JSON.stringify(clipboardUrlBlacklist, null, 2), 'utf-8');
-      return true;
-    } catch (err) {
-      console.error('[ClipboardUrlBlacklist] persist error:', err);
-      return false;
-    }
-  });
-
-  /** 追加单个域名到剪贴板 URL 黑名单 */
-  ipcMain.handle('clipboard:url-blacklist:add-domain', (_event, domain: string) => {
-    try {
-      const normalized = normalizeClipboardUrlBlacklistDomain(domain);
-      if (!normalized) return false;
-      const alreadyExists = clipboardUrlBlacklist.some((item) => item === normalized);
-      const next = alreadyExists ? clipboardUrlBlacklist : [...clipboardUrlBlacklist, normalized];
-      const filePath = join(storeDir, `${CLIPBOARD_URL_BLACKLIST_STORE_KEY}.json`);
-      clipboardUrlBlacklist = next;
-      writeFileSync(filePath, JSON.stringify(clipboardUrlBlacklist, null, 2), 'utf-8');
-      return true;
-    } catch (err) {
-      console.error('[ClipboardUrlBlacklist] add domain error:', err);
-      return false;
-    }
-  });
-
-  /** 获取剪贴板 URL 识别模式 */
-  ipcMain.handle('clipboard:url-detect-mode:get', () => {
-    return clipboardUrlDetectMode;
-  });
-
-  /** 设置剪贴板 URL 识别模式并持久化 */
-  ipcMain.handle('clipboard:url-detect-mode:set', (_event, mode: ClipboardUrlDetectMode) => {
-    try {
-      const filePath = join(storeDir, `${CLIPBOARD_URL_DETECT_MODE_STORE_KEY}.json`);
-      clipboardUrlDetectMode = normalizeClipboardUrlDetectMode(mode) || DEFAULT_CLIPBOARD_URL_DETECT_MODE;
-      writeFileSync(filePath, JSON.stringify(clipboardUrlDetectMode, null, 2), 'utf-8');
-      return true;
-    } catch (err) {
-      console.error('[ClipboardUrlDetectMode] persist error:', err);
-      return false;
-    }
-  });
-
   /**
    * 打开日志文件夹
    */
@@ -1822,6 +1768,37 @@ function registerIpcHandlers(): void {
     mkdirSync(storeDir, { recursive: true });
   }
 
+  registerClipboardIpcHandlers({
+    storeDir,
+    monitorEnabledStoreKey: CLIPBOARD_URL_MONITOR_ENABLED_STORE_KEY,
+    detectModeStoreKey: CLIPBOARD_URL_DETECT_MODE_STORE_KEY,
+    blacklistStoreKey: CLIPBOARD_URL_BLACKLIST_STORE_KEY,
+    defaultDetectMode: DEFAULT_CLIPBOARD_URL_DETECT_MODE,
+    getMonitorEnabled: () => clipboardUrlMonitorEnabled,
+    setMonitorEnabled: (enabled) => {
+      clipboardUrlMonitorEnabled = enabled;
+    },
+    getDetectMode: () => clipboardUrlDetectMode,
+    setDetectMode: (mode) => {
+      clipboardUrlDetectMode = mode;
+    },
+    getBlacklist: () => clipboardUrlBlacklist,
+    setBlacklist: (list) => {
+      clipboardUrlBlacklist = list;
+    },
+    startWatcher: () => {
+      startClipboardUrlWatcher({
+        getWindow: () => mainWindow,
+        getEnabled: () => clipboardUrlMonitorEnabled,
+        getDetectMode: () => clipboardUrlDetectMode,
+        getBlacklist: () => clipboardUrlBlacklist,
+      });
+    },
+    stopWatcher: () => {
+      stopClipboardUrlWatcher();
+    },
+  });
+
   /**
    * 读取 JSON 文件
    * @param _event - IPC 事件
@@ -2113,34 +2090,6 @@ function registerIpcHandlers(): void {
       return true;
     } catch (err) {
       console.error('[MaxExpandMouseleaveIdle] persist error:', err);
-      return false;
-    }
-  });
-
-  /** 获取剪贴板 URL 监听开关 */
-  ipcMain.handle('clipboard:url-monitor:get', () => {
-    return clipboardUrlMonitorEnabled;
-  });
-
-  /** 设置剪贴板 URL 监听开关并持久化 */
-  ipcMain.handle('clipboard:url-monitor:set', (_event, enabled: boolean) => {
-    try {
-      const filePath = join(storeDir, `${CLIPBOARD_URL_MONITOR_ENABLED_STORE_KEY}.json`);
-      clipboardUrlMonitorEnabled = Boolean(enabled);
-      writeFileSync(filePath, JSON.stringify(clipboardUrlMonitorEnabled, null, 2), 'utf-8');
-      if (clipboardUrlMonitorEnabled) {
-        startClipboardUrlWatcher({
-          getWindow: () => mainWindow,
-          getEnabled: () => clipboardUrlMonitorEnabled,
-          getDetectMode: () => clipboardUrlDetectMode,
-          getBlacklist: () => clipboardUrlBlacklist,
-        });
-      } else {
-        stopClipboardUrlWatcher();
-      }
-      return true;
-    } catch (err) {
-      console.error('[ClipboardUrlMonitor] persist error:', err);
       return false;
     }
   });
@@ -2567,18 +2516,6 @@ function registerIpcHandlers(): void {
   /** 用户取消截图 */
   ipcMain.on('capture-cancel', () => {
     closeCaptureWindow();
-  });
-
-  // ===== 剪贴板 URL IPC =====
-
-  /** 用外部浏览器打开指定 URL */
-  ipcMain.handle('clipboard:open-url', (_event, url: string) => {
-    try {
-      shell.openExternal(url);
-      return true;
-    } catch {
-      return false;
-    }
   });
 
   // ===== 自动更新 IPC =====
