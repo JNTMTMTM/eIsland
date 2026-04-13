@@ -46,7 +46,6 @@ import {
   LYRICS_SOURCE_OPTIONS,
   WEATHER_PROVIDER_OPTIONS,
   WEATHER_LOCATION_PRIORITY_OPTIONS,
-  SETTINGS_TABS,
   SETTINGS_TAB_LABELS,
   NETWORK_TIMEOUT_OPTIONS,
   LAYOUT_STORE_KEY,
@@ -162,6 +161,9 @@ export function SettingsTab(): ReactElement {
   const [lyricsClock, setLyricsClock] = useState<boolean>(true);
   const [expandLeaveIdle, setExpandLeaveIdle] = useState<boolean>(false);
   const [maxExpandLeaveIdle, setMaxExpandLeaveIdle] = useState<boolean>(false);
+  const [clipboardUrlMonitorEnabled, setClipboardUrlMonitorEnabled] = useState<boolean>(true);
+  const [clipboardUrlDetectMode, setClipboardUrlDetectMode] = useState<'https-only' | 'http-https' | 'domain-only'>('http-https');
+  const [clipboardUrlBlacklist, setClipboardUrlBlacklist] = useState<string[]>([]);
   const [autostartMode, setAutostartMode] = useState<'disabled' | 'enabled' | 'high-priority'>('disabled');
   const [navOrder, setNavOrder] = useState<string[]>(DEFAULT_NAV_ORDER);
   const [hiddenNavOrder, setHiddenNavOrder] = useState<string[]>([]);
@@ -327,6 +329,18 @@ export function SettingsTab(): ReactElement {
   const [screenshotHotkeyError, setScreenshotHotkeyError] = useState<string>('');
   const screenshotHotkeyInputRef = useRef<HTMLInputElement>(null);
 
+  /** 切歌快捷键相关状态 */
+  const [nextSongHotkey, setNextSongHotkey] = useState<string>('');
+  const [nextSongHotkeyRecording, setNextSongHotkeyRecording] = useState(false);
+  const [nextSongHotkeyError, setNextSongHotkeyError] = useState<string>('');
+  const nextSongHotkeyInputRef = useRef<HTMLInputElement>(null);
+
+  /** 暂停/播放快捷键相关状态 */
+  const [playPauseSongHotkey, setPlayPauseSongHotkey] = useState<string>('');
+  const [playPauseSongHotkeyRecording, setPlayPauseSongHotkeyRecording] = useState(false);
+  const [playPauseSongHotkeyError, setPlayPauseSongHotkeyError] = useState<string>('');
+  const playPauseSongHotkeyInputRef = useRef<HTMLInputElement>(null);
+
   /** 还原默认位置快捷键相关状态 */
   const [resetPositionHotkey, setResetPositionHotkey] = useState<string>('');
   const [resetPositionHotkeyRecording, setResetPositionHotkeyRecording] = useState(false);
@@ -450,6 +464,18 @@ export function SettingsTab(): ReactElement {
       if (cancelled) return;
       setMaxExpandLeaveIdle(v);
     }).catch(() => {});
+    window.api.clipboardUrlMonitorGet().then((v) => {
+      if (cancelled) return;
+      setClipboardUrlMonitorEnabled(v);
+    }).catch(() => {});
+    window.api.clipboardUrlDetectModeGet().then((mode) => {
+      if (cancelled) return;
+      setClipboardUrlDetectMode(mode);
+    }).catch(() => {});
+    window.api.clipboardUrlBlacklistGet().then((list) => {
+      if (cancelled) return;
+      setClipboardUrlBlacklist(Array.isArray(list) ? list : []);
+    }).catch(() => {});
     window.api.autostartGet().then((mode) => {
       if (cancelled) return;
       setAutostartMode(mode as 'disabled' | 'enabled' | 'high-priority');
@@ -505,6 +531,14 @@ export function SettingsTab(): ReactElement {
     window.api.screenshotHotkeyGet().then((key) => {
       if (cancelled) return;
       setScreenshotHotkey(key || '');
+    }).catch(() => {});
+    window.api.nextSongHotkeyGet().then((key) => {
+      if (cancelled) return;
+      setNextSongHotkey(key || '');
+    }).catch(() => {});
+    window.api.playPauseSongHotkeyGet().then((key) => {
+      if (cancelled) return;
+      setPlayPauseSongHotkey(key || '');
     }).catch(() => {});
     window.api.resetPositionHotkeyGet().then((key) => {
       if (cancelled) return;
@@ -823,7 +857,7 @@ export function SettingsTab(): ReactElement {
     return () => { cancelled = true; };
   }, []);
 
-  /** 滚轮切换设置侧边栏 Tab */
+  /** 滚轮处理设置页内部分页（禁用跨设置 Tab 滚轮切换） */
   useEffect(() => {
     const el = settingsRef.current;
     if (!el) return;
@@ -893,17 +927,7 @@ export function SettingsTab(): ReactElement {
         }
       }
 
-      e.preventDefault();
-      e.stopPropagation();
-      const cur = activeTabRef.current;
-      const idx = SETTINGS_TABS.indexOf(cur);
-      let nextIdx: number;
-      if (e.deltaY > 0) {
-        nextIdx = Math.min(idx + 1, SETTINGS_TABS.length - 1);
-      } else {
-        nextIdx = Math.max(idx - 1, 0);
-      }
-      if (nextIdx !== idx) setActiveTab(SETTINGS_TABS[nextIdx]);
+      return;
     };
     el.addEventListener('wheel', handleWheel, { passive: false });
     return () => el.removeEventListener('wheel', handleWheel);
@@ -948,6 +972,18 @@ export function SettingsTab(): ReactElement {
     return parts.length >= 2 ? parts.join('+') : '';
   };
 
+  const isDuplicateHotkey = (acc: string, exclude: 'hide' | 'quit' | 'screenshot' | 'next-song' | 'play-pause-song' | 'reset-position'): boolean => {
+    const pairs: Array<{ key: 'hide' | 'quit' | 'screenshot' | 'next-song' | 'play-pause-song' | 'reset-position'; value: string }> = [
+      { key: 'hide', value: hideHotkey },
+      { key: 'quit', value: quitHotkey },
+      { key: 'screenshot', value: screenshotHotkey },
+      { key: 'next-song', value: nextSongHotkey },
+      { key: 'play-pause-song', value: playPauseSongHotkey },
+      { key: 'reset-position', value: resetPositionHotkey },
+    ];
+    return pairs.some((item) => item.key !== exclude && item.value && item.value === acc);
+  };
+
   /**
    * 隐藏快捷键录入键盘事件处理
    * @param e - React 键盘事件
@@ -958,7 +994,7 @@ export function SettingsTab(): ReactElement {
     setHotkeyError('');
     const acc = keyEventToAccelerator(e);
     if (!acc) return;
-    if ((quitHotkey && acc === quitHotkey) || (screenshotHotkey && acc === screenshotHotkey) || (resetPositionHotkey && acc === resetPositionHotkey)) {
+    if (isDuplicateHotkey(acc, 'hide')) {
       setHotkeyError('重复快捷键');
       setHotkeyRecording(false);
       hotkeyInputRef.current?.blur();
@@ -988,7 +1024,7 @@ export function SettingsTab(): ReactElement {
     setQuitHotkeyError('');
     const acc = keyEventToAccelerator(e);
     if (!acc) return;
-    if ((hideHotkey && acc === hideHotkey) || (screenshotHotkey && acc === screenshotHotkey) || (resetPositionHotkey && acc === resetPositionHotkey)) {
+    if (isDuplicateHotkey(acc, 'quit')) {
       setQuitHotkeyError('重复快捷键');
       setQuitHotkeyRecording(false);
       quitHotkeyInputRef.current?.blur();
@@ -1018,7 +1054,7 @@ export function SettingsTab(): ReactElement {
     setScreenshotHotkeyError('');
     const acc = keyEventToAccelerator(e);
     if (!acc) return;
-    if ((hideHotkey && acc === hideHotkey) || (quitHotkey && acc === quitHotkey) || (resetPositionHotkey && acc === resetPositionHotkey)) {
+    if (isDuplicateHotkey(acc, 'screenshot')) {
       setScreenshotHotkeyError('重复快捷键');
       setScreenshotHotkeyRecording(false);
       screenshotHotkeyInputRef.current?.blur();
@@ -1048,7 +1084,7 @@ export function SettingsTab(): ReactElement {
     setResetPositionHotkeyError('');
     const acc = keyEventToAccelerator(e);
     if (!acc) return;
-    if ((hideHotkey && acc === hideHotkey) || (quitHotkey && acc === quitHotkey) || (screenshotHotkey && acc === screenshotHotkey)) {
+    if (isDuplicateHotkey(acc, 'reset-position')) {
       setResetPositionHotkeyError('重复快捷键');
       setResetPositionHotkeyRecording(false);
       resetPositionHotkeyInputRef.current?.blur();
@@ -1065,6 +1101,58 @@ export function SettingsTab(): ReactElement {
       }
     }).catch(() => {
       setResetPositionHotkeyError('快捷键注册失败');
+    });
+  };
+
+  const handleNextSongHotkeyKeyDown = (e: KeyboardEvent): void => {
+    e.preventDefault();
+    e.stopPropagation();
+    setNextSongHotkeyError('');
+    const acc = keyEventToAccelerator(e);
+    if (!acc) return;
+    if (isDuplicateHotkey(acc, 'next-song')) {
+      setNextSongHotkeyError('重复快捷键');
+      setNextSongHotkeyRecording(false);
+      nextSongHotkeyInputRef.current?.blur();
+      return;
+    }
+
+    window.api.nextSongHotkeySet(acc).then((ok) => {
+      if (ok) {
+        setNextSongHotkey(acc);
+        setNextSongHotkeyRecording(false);
+        nextSongHotkeyInputRef.current?.blur();
+      } else {
+        setNextSongHotkeyError('快捷键注册失败，请尝试其他组合');
+      }
+    }).catch(() => {
+      setNextSongHotkeyError('快捷键注册失败');
+    });
+  };
+
+  const handlePlayPauseSongHotkeyKeyDown = (e: KeyboardEvent): void => {
+    e.preventDefault();
+    e.stopPropagation();
+    setPlayPauseSongHotkeyError('');
+    const acc = keyEventToAccelerator(e);
+    if (!acc) return;
+    if (isDuplicateHotkey(acc, 'play-pause-song')) {
+      setPlayPauseSongHotkeyError('重复快捷键');
+      setPlayPauseSongHotkeyRecording(false);
+      playPauseSongHotkeyInputRef.current?.blur();
+      return;
+    }
+
+    window.api.playPauseSongHotkeySet(acc).then((ok) => {
+      if (ok) {
+        setPlayPauseSongHotkey(acc);
+        setPlayPauseSongHotkeyRecording(false);
+        playPauseSongHotkeyInputRef.current?.blur();
+      } else {
+        setPlayPauseSongHotkeyError('快捷键注册失败，请尝试其他组合');
+      }
+    }).catch(() => {
+      setPlayPauseSongHotkeyError('快捷键注册失败');
     });
   };
 
@@ -1268,6 +1356,12 @@ export function SettingsTab(): ReactElement {
               setExpandLeaveIdle={setExpandLeaveIdle}
               maxExpandLeaveIdle={maxExpandLeaveIdle}
               setMaxExpandLeaveIdle={setMaxExpandLeaveIdle}
+              clipboardUrlMonitorEnabled={clipboardUrlMonitorEnabled}
+              setClipboardUrlMonitorEnabled={setClipboardUrlMonitorEnabled}
+              clipboardUrlDetectMode={clipboardUrlDetectMode}
+              setClipboardUrlDetectMode={setClipboardUrlDetectMode}
+              clipboardUrlBlacklist={clipboardUrlBlacklist}
+              setClipboardUrlBlacklist={setClipboardUrlBlacklist}
               autostartMode={autostartMode}
               setAutostartMode={setAutostartMode}
               bgImage={bgImage}
@@ -1349,6 +1443,22 @@ export function SettingsTab(): ReactElement {
               setScreenshotHotkeyError={setScreenshotHotkeyError}
               handleScreenshotHotkeyKeyDown={handleScreenshotHotkeyKeyDown}
               setScreenshotHotkey={setScreenshotHotkey}
+              nextSongHotkeyInputRef={nextSongHotkeyInputRef}
+              nextSongHotkeyRecording={nextSongHotkeyRecording}
+              nextSongHotkeyError={nextSongHotkeyError}
+              nextSongHotkey={nextSongHotkey}
+              setNextSongHotkeyRecording={setNextSongHotkeyRecording}
+              setNextSongHotkeyError={setNextSongHotkeyError}
+              handleNextSongHotkeyKeyDown={handleNextSongHotkeyKeyDown}
+              setNextSongHotkey={setNextSongHotkey}
+              playPauseSongHotkeyInputRef={playPauseSongHotkeyInputRef}
+              playPauseSongHotkeyRecording={playPauseSongHotkeyRecording}
+              playPauseSongHotkeyError={playPauseSongHotkeyError}
+              playPauseSongHotkey={playPauseSongHotkey}
+              setPlayPauseSongHotkeyRecording={setPlayPauseSongHotkeyRecording}
+              setPlayPauseSongHotkeyError={setPlayPauseSongHotkeyError}
+              handlePlayPauseSongHotkeyKeyDown={handlePlayPauseSongHotkeyKeyDown}
+              setPlayPauseSongHotkey={setPlayPauseSongHotkey}
               resetPositionHotkeyInputRef={resetPositionHotkeyInputRef}
               resetPositionHotkeyRecording={resetPositionHotkeyRecording}
               resetPositionHotkeyError={resetPositionHotkeyError}

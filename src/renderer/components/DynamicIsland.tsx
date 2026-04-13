@@ -43,8 +43,20 @@ import { fetchVersion } from '../api/versionApi';
 /** 灵动岛状态类型 */
 export type IslandState = 'idle' | 'hover' | 'expanded' | 'notification' | 'maxExpand' | 'minimal' | 'lyrics' | 'guide';
 
-/** shell.css 中 morph/transition 主时长（0.4s） */
-const SHELL_MORPH_DURATION_MS = 400;
+/** shell.css 中 morph/transition 主时长（0.55s） */
+const SHELL_MORPH_DURATION_MS = 550;
+
+/** 各状态对应的窗口面积（宽×高），用于判断状态切换是放大还是缩小 */
+const STATE_AREA: Record<string, number> = {
+  idle: 260 * 42,
+  minimal: 260 * 42,
+  lyrics: 500 * 42,
+  hover: 500 * 60,
+  notification: 500 * 88,
+  expanded: 860 * 150,
+  maxExpand: 860 * 400,
+  guide: 860 * 400,
+};
 
 /** 状态配置接口 */
 interface StateConfig {
@@ -176,7 +188,6 @@ function DynamicIsland(): React.JSX.Element {
   const setLyricsLoadingRef = useRef(setLyricsLoading);
   /** 当前歌曲标识，用于检测切歌 */
   const songKeyRef = useRef('');
-
   useEffect(() => {
     if (prevStateRef.current === state) return;
     setFromState(prevStateRef.current);
@@ -478,6 +489,29 @@ function DynamicIsland(): React.JSX.Element {
     };
   }, []);
 
+  // 订阅剪贴板 URL 检测事件（主进程推送）
+  useEffect(() => {
+    const unsubClipboard = window.api?.onClipboardUrlsDetected?.(({ urls, title }) => {
+      let faviconUrl: string | undefined;
+      let hostname = '';
+      try {
+        const parsed = new URL(urls[0]);
+        faviconUrl = `${parsed.origin}/favicon.ico`;
+        hostname = parsed.hostname;
+      } catch { /* ignore */ }
+      setNotificationRef.current({
+        title: '检测到链接',
+        body: title || hostname || urls[0],
+        icon: faviconUrl || SvgIcon.LINK,
+        type: 'clipboard-url',
+        urls,
+      });
+    });
+    return () => {
+      unsubClipboard?.();
+    };
+  }, []);
+
   // 必须放在 useEffect 之前，且 useCallback 依赖为空（所有依赖都是 ref/函数）
   const clearAllTimers = React.useCallback(() => {
     if (enterTimerRef.current !== null) {
@@ -623,6 +657,7 @@ function DynamicIsland(): React.JSX.Element {
           type={notification.type}
           sourceAppId={notification.sourceAppId}
           updateVersion={notification.updateVersion}
+          urls={notification.urls}
         />
       ),
     },
@@ -663,7 +698,7 @@ function DynamicIsland(): React.JSX.Element {
 
   return (
     <div
-      className={`island-shell ${getStateClassName(state)}${morphing ? ' morphing' : ''}${fromState ? ` from-${fromState}` : ''}${showGlow ? ' music-glow' : ''}${showGlow && !isPlaying ? ' music-paused' : ''}`}
+      className={`island-shell ${getStateClassName(state)}${morphing ? ' morphing' : ''}${fromState ? ` from-${fromState}` : ''}${morphing && fromState && (STATE_AREA[fromState] ?? 0) > (STATE_AREA[state] ?? 0) ? ' instant-resize' : ''}${showGlow ? ' music-glow' : ''}${showGlow && !isPlaying ? ' music-paused' : ''}`}
       onClick={handleIslandClick}
       style={showGlow ? {
         '--glow-r': r,

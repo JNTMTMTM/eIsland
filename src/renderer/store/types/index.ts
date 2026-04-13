@@ -148,12 +148,14 @@ export interface NotificationData {
   title: string;
   body: string;
   icon?: string;
-  /** 通知类型：默认通知 / 播放源切换请求 / 有新版本 / 更新就绪 */
-  type?: 'default' | 'source-switch' | 'update-available' | 'update-ready';
+  /** 通知类型：默认通知 / 播放源切换请求 / 有新版本 / 更新就绪 / 剪贴板URL */
+  type?: 'default' | 'source-switch' | 'update-available' | 'update-ready' | 'clipboard-url';
   /** 请求切换到的播放源 ID（仅 source-switch 类型） */
   sourceAppId?: string;
   /** 更新版本号（用于 update-available 与 update-ready 类型） */
   updateVersion?: string;
+  /** 检测到的 URL 列表（仅 clipboard-url 类型） */
+  urls?: string[];
 }
 
 /** AI 配置数据 */

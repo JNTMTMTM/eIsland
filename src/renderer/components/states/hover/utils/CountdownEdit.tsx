@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import useIslandStore from '../../../../store/slices';
 import { SvgIcon } from '../../../../utils/SvgIcon';
 import { ToolButtons } from './ToolButtons';
@@ -62,20 +62,34 @@ export function CountdownEdit(): React.ReactElement {
     setTimerData({ [setter]: newValue });
   }, [timerData, setTimerData]);
 
-  const handleWheelChange = useCallback((
-    e: React.WheelEvent<HTMLInputElement>,
-    setter: 'inputHours' | 'inputMinutes' | 'inputSeconds',
-    max: number
-  ) => {
-    e.preventDefault();
-    const delta = e.deltaY < 0 ? 1 : -1;
-    const currentStr = timerData?.[setter] ?? '00';
-    const current = parseInt(currentStr, 10) || 0;
-    let next = current + delta;
-    if (next < 0) next = max;
-    if (next > max) next = 0;
-    setTimerData({ [setter]: padZero(next) });
-  }, [timerData, setTimerData]);
+  const timerDataRef = useRef(timerData);
+  timerDataRef.current = timerData;
+  const setTimerDataRef = useRef(setTimerData);
+  setTimerDataRef.current = setTimerData;
+  const timerInputsRef = useRef<HTMLDivElement>(null);
+  const isEditing = timerState === 'idle';
+
+  useEffect(() => {
+    const el = timerInputsRef.current;
+    if (!el) return;
+    const handleWheel = (e: WheelEvent): void => {
+      const target = e.target as HTMLElement;
+      const setter = target.getAttribute('data-setter') as 'inputHours' | 'inputMinutes' | 'inputSeconds' | null;
+      const maxStr = target.getAttribute('data-max');
+      if (!setter || !maxStr) return;
+      e.preventDefault();
+      const max = parseInt(maxStr, 10);
+      const delta = e.deltaY < 0 ? 1 : -1;
+      const currentStr = timerDataRef.current?.[setter] ?? '00';
+      const current = parseInt(currentStr, 10) || 0;
+      let next = current + delta;
+      if (next < 0) next = max;
+      if (next > max) next = 0;
+      setTimerDataRef.current({ [setter]: padZero(next) });
+    };
+    el.addEventListener('wheel', handleWheel, { passive: false });
+    return () => el.removeEventListener('wheel', handleWheel);
+  }, [isEditing]);
 
   const handleStart = useCallback(() => {
     const h = parseInt(inputHours, 10) || 0;
@@ -119,7 +133,6 @@ export function CountdownEdit(): React.ReactElement {
   };
 
   const { h, m, s } = getTimeParts(remainingSeconds);
-  const isEditing = timerState === 'idle';
 
   return (
     <div className="timer-container">
@@ -136,13 +149,14 @@ export function CountdownEdit(): React.ReactElement {
         </div>
         <div className="timer-main-row">
           {isEditing ? (
-            <div className="timer-inputs">
+            <div className="timer-inputs" ref={timerInputsRef}>
             <input
               type="text"
               className="timer-input"
               value={inputHours}
               onChange={(e) => handleInputChange(e.target.value, 'inputHours', 23)}
-              onWheel={(e) => handleWheelChange(e, 'inputHours', 23)}
+              data-setter="inputHours"
+              data-max="23"
               maxLength={2}
             />
             <span className="timer-sep">:</span>
@@ -151,7 +165,8 @@ export function CountdownEdit(): React.ReactElement {
               className="timer-input"
               value={inputMinutes}
               onChange={(e) => handleInputChange(e.target.value, 'inputMinutes', 59)}
-              onWheel={(e) => handleWheelChange(e, 'inputMinutes', 59)}
+              data-setter="inputMinutes"
+              data-max="59"
               maxLength={2}
             />
             <span className="timer-sep">:</span>
@@ -160,7 +175,8 @@ export function CountdownEdit(): React.ReactElement {
               className="timer-input"
               value={inputSeconds}
               onChange={(e) => handleInputChange(e.target.value, 'inputSeconds', 59)}
-              onWheel={(e) => handleWheelChange(e, 'inputSeconds', 59)}
+              data-setter="inputSeconds"
+              data-max="59"
               maxLength={2}
             />
           </div>

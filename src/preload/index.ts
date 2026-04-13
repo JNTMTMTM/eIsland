@@ -374,6 +374,30 @@ const api = {
     return ipcRenderer.invoke('screenshot-hotkey:set', accelerator);
   },
   /**
+   * 获取当前切歌快捷键
+   */
+  nextSongHotkeyGet: (): Promise<string> => {
+    return ipcRenderer.invoke('next-song-hotkey:get');
+  },
+  /**
+   * 设置切歌快捷键
+   */
+  nextSongHotkeySet: (accelerator: string): Promise<boolean> => {
+    return ipcRenderer.invoke('next-song-hotkey:set', accelerator);
+  },
+  /**
+   * 获取当前暂停/播放快捷键
+   */
+  playPauseSongHotkeyGet: (): Promise<string> => {
+    return ipcRenderer.invoke('play-pause-song-hotkey:get');
+  },
+  /**
+   * 设置暂停/播放快捷键
+   */
+  playPauseSongHotkeySet: (accelerator: string): Promise<boolean> => {
+    return ipcRenderer.invoke('play-pause-song-hotkey:set', accelerator);
+  },
+  /**
    * 获取当前还原默认位置快捷键
    * @returns 当前快捷键字符串
    */
@@ -566,6 +590,48 @@ const api = {
     return ipcRenderer.invoke('island:maxexpand-mouseleave-idle:set', enabled);
   },
   /**
+   * 获取剪贴板 URL 监听开关
+   */
+  clipboardUrlMonitorGet: (): Promise<boolean> => {
+    return ipcRenderer.invoke('clipboard:url-monitor:get');
+  },
+  /**
+   * 设置剪贴板 URL 监听开关
+   */
+  clipboardUrlMonitorSet: (enabled: boolean): Promise<boolean> => {
+    return ipcRenderer.invoke('clipboard:url-monitor:set', enabled);
+  },
+  /**
+   * 获取剪贴板 URL 识别模式
+   */
+  clipboardUrlDetectModeGet: (): Promise<'https-only' | 'http-https' | 'domain-only'> => {
+    return ipcRenderer.invoke('clipboard:url-detect-mode:get');
+  },
+  /**
+   * 设置剪贴板 URL 识别模式
+   */
+  clipboardUrlDetectModeSet: (mode: 'https-only' | 'http-https' | 'domain-only'): Promise<boolean> => {
+    return ipcRenderer.invoke('clipboard:url-detect-mode:set', mode);
+  },
+  /**
+   * 获取剪贴板 URL 黑名单（域名）
+   */
+  clipboardUrlBlacklistGet: (): Promise<string[]> => {
+    return ipcRenderer.invoke('clipboard:url-blacklist:get');
+  },
+  /**
+   * 设置剪贴板 URL 黑名单（域名）
+   */
+  clipboardUrlBlacklistSet: (list: string[]): Promise<boolean> => {
+    return ipcRenderer.invoke('clipboard:url-blacklist:set', list);
+  },
+  /**
+   * 追加单个域名到剪贴板 URL 黑名单
+   */
+  clipboardUrlBlacklistAddDomain: (domain: string): Promise<boolean> => {
+    return ipcRenderer.invoke('clipboard:url-blacklist:add-domain', domain);
+  },
+  /**
    * 获取开机自启模式
    */
   autostartGet: (): Promise<string> => {
@@ -659,6 +725,29 @@ const api = {
     return () => {
       ipcRenderer.removeListener('updater:update-available', handler);
     };
+  },
+  /** ===== 剪贴板 URL 监听 API ===== */
+  /**
+   * 监听剪贴板中检测到的 URL
+   * @param callback - 回调函数，接收 URL 数组
+   * @returns 取消监听函数
+   */
+  onClipboardUrlsDetected: (callback: (data: { urls: string[]; title: string }) => void): (() => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, data: { urls: string[]; title: string }): void => {
+      callback(data);
+    };
+    ipcRenderer.on('clipboard:urls-detected', handler);
+    return () => {
+      ipcRenderer.removeListener('clipboard:urls-detected', handler);
+    };
+  },
+  /**
+   * 用外部浏览器打开指定 URL
+   * @param url - 要打开的 URL
+   * @returns 是否成功
+   */
+  clipboardOpenUrl: (url: string): Promise<boolean> => {
+    return ipcRenderer.invoke('clipboard:open-url', url);
   }
 };
 

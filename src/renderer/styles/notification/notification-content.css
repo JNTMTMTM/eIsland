@@ -115,6 +115,81 @@
   background: rgba(var(--color-text-rgb), 0.18);
 }
 
+/** ---- 剪贴板 URL 通知变体 ---- */
+.notification-actions--clipboard-url {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  animation: notifActionsEnter 0.42s cubic-bezier(0.22, 1, 0.36, 1) 0.16s both;
+  min-width: 0;
+}
+
+.notification-url-nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.notification-url-nav-btn {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.notification-url-nav-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.notification-url-nav-btn-icon {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+}
+
+.notification-url-index {
+  font-size: 11px;
+  color: rgba(var(--color-text-rgb), 0.7);
+  min-width: 34px;
+  text-align: center;
+}
+
+.notification-url-list {
+  display: flex;
+  flex-wrap: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.notification-action-url {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(59, 130, 246, 0.18);
+  color: rgba(var(--color-text-rgb), 0.9);
+  font-size: 10px;
+  padding: 4px 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+.notification-url-favicon {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+  border-radius: 2px;
+  object-fit: contain;
+}
+
+.notification-action-url:hover {
+  background: rgba(59, 130, 246, 0.32);
+}
+
 @keyframes notifRowEnter {
   0%   { opacity: 0; transform: translateY(7px) scale(0.97); }
   55%  { opacity: 1; }
