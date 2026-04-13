@@ -150,6 +150,8 @@ declare global {
       maxexpandMouseleaveIdleSet: (enabled: boolean) => Promise<boolean>;
       clipboardUrlMonitorGet: () => Promise<boolean>;
       clipboardUrlMonitorSet: (enabled: boolean) => Promise<boolean>;
+      clipboardUrlDetectModeGet: () => Promise<'https-only' | 'http-https' | 'domain-only'>;
+      clipboardUrlDetectModeSet: (mode: 'https-only' | 'http-https' | 'domain-only') => Promise<boolean>;
       /** ===== 开机自启 API ===== */
       autostartGet: () => Promise<string>;
       autostartSet: (mode: string) => Promise<boolean>;

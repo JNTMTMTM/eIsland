@@ -52,6 +52,25 @@ function readClipboardUrlMonitorEnabledConfig(): boolean {
   }
 }
 
+function normalizeClipboardUrlDetectMode(mode: unknown): ClipboardUrlDetectMode {
+  if (mode === 'https-only' || mode === 'http-https' || mode === 'domain-only') {
+    return mode;
+  }
+  return DEFAULT_CLIPBOARD_URL_DETECT_MODE;
+}
+
+function readClipboardUrlDetectModeConfig(): ClipboardUrlDetectMode {
+  try {
+    const storeDir = join(app.getPath('userData'), 'eIsland_store');
+    const filePath = join(storeDir, `${CLIPBOARD_URL_DETECT_MODE_STORE_KEY}.json`);
+    if (!existsSync(filePath)) return DEFAULT_CLIPBOARD_URL_DETECT_MODE;
+    const raw = readFileSync(filePath, 'utf-8');
+    return normalizeClipboardUrlDetectMode(JSON.parse(raw));
+  } catch {
+    return DEFAULT_CLIPBOARD_URL_DETECT_MODE;
+  }
+}
+
 /**
  * 读取还原位置快捷键配置
  * @returns 存储的快捷键字符串，不存在时返回默认值
@@ -408,6 +427,11 @@ const MAXEXPAND_MOUSELEAVE_IDLE_STORE_KEY = 'maxexpand-mouseleave-idle';
 /** 剪贴板 URL 监听开关存储键名 */
 const CLIPBOARD_URL_MONITOR_ENABLED_STORE_KEY = 'clipboard-url-monitor-enabled';
 
+type ClipboardUrlDetectMode = 'https-only' | 'http-https' | 'domain-only';
+
+/** 剪贴板 URL 识别模式存储键名 */
+const CLIPBOARD_URL_DETECT_MODE_STORE_KEY = 'clipboard-url-detect-mode';
+
 /** 开机自启模式存储键名 */
 const AUTOSTART_MODE_STORE_KEY = 'autostart-mode';
 
@@ -422,6 +446,9 @@ const DEFAULT_HIDE_PROCESS_LIST: string[] = [];
 
 /** 剪贴板 URL 监听开关默认值 */
 const DEFAULT_CLIPBOARD_URL_MONITOR_ENABLED = true;
+
+/** 剪贴板 URL 识别模式默认值 */
+const DEFAULT_CLIPBOARD_URL_DETECT_MODE: ClipboardUrlDetectMode = 'http-https';
 
 /** 灵动岛位置偏移默认值（相对主屏工作区顶部居中） */
 const DEFAULT_ISLAND_POSITION_OFFSET: IslandPositionOffset = { x: 0, y: 0 };
@@ -1312,6 +1339,24 @@ function registerIpcHandlers(): void {
       return true;
     } catch (err) {
       console.error('[App] restart error:', err);
+      return false;
+    }
+  });
+
+  /** 获取剪贴板 URL 识别模式 */
+  ipcMain.handle('clipboard:url-detect-mode:get', () => {
+    return clipboardUrlDetectMode;
+  });
+
+  /** 设置剪贴板 URL 识别模式并持久化 */
+  ipcMain.handle('clipboard:url-detect-mode:set', (_event, mode: ClipboardUrlDetectMode) => {
+    try {
+      const filePath = join(storeDir, `${CLIPBOARD_URL_DETECT_MODE_STORE_KEY}.json`);
+      clipboardUrlDetectMode = normalizeClipboardUrlDetectMode(mode);
+      writeFileSync(filePath, JSON.stringify(clipboardUrlDetectMode, null, 2), 'utf-8');
+      return true;
+    } catch (err) {
+      console.error('[ClipboardUrlDetectMode] persist error:', err);
       return false;
     }
   });
@@ -2598,18 +2643,49 @@ let clipboardPollTimer: ReturnType<typeof setInterval> | null = null;
 /** 剪贴板 URL 监听是否启用 */
 let clipboardUrlMonitorEnabled = DEFAULT_CLIPBOARD_URL_MONITOR_ENABLED;
 
-/** URL 正则 */
-const URL_REGEX = /https?:\/\/[^\s<>"{}|\\^`\[\]]+/gi;
+/** 剪贴板 URL 识别模式 */
+let clipboardUrlDetectMode: ClipboardUrlDetectMode = DEFAULT_CLIPBOARD_URL_DETECT_MODE;
+
+/** 仅识别 https:// URL */
+const URL_REGEX_HTTPS_ONLY = /https:\/\/[^\s<>"{}|\\^`\[\]]+/gi;
+
+/** 识别 http:// 与 https:// URL */
+const URL_REGEX_HTTP_HTTPS = /https?:\/\/[^\s<>"{}|\\^`\[\]]+/gi;
+
+/** 仅识别域名（可含路径） */
+const URL_REGEX_DOMAIN_ONLY = /\b(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}(?:\/[^\s<>"{}|\\^`\[\]]*)?/gi;
+
+function normalizeDomainOnlyUrl(url: string): string {
+  const trimmed = url.replace(/[),.;!?]+$/g, '');
+  if (!trimmed) return '';
+  return /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+}
 
 /**
  * 从文本中提取所有 URL（去重）
  * @param text - 剪贴板文本
+ * @param mode - URL 识别模式
  * @returns 去重后的 URL 数组
  */
-function extractUrls(text: string): string[] {
-  const matches = text.match(URL_REGEX);
-  if (!matches) return [];
-  return [...new Set(matches)];
+function extractUrls(text: string, mode: ClipboardUrlDetectMode): string[] {
+  let matches: string[] = [];
+
+  if (mode === 'https-only') {
+    matches = text.match(URL_REGEX_HTTPS_ONLY) || [];
+  } else if (mode === 'domain-only') {
+    matches = (text.match(URL_REGEX_DOMAIN_ONLY) || []).map(normalizeDomainOnlyUrl).filter(Boolean);
+  } else {
+    matches = text.match(URL_REGEX_HTTP_HTTPS) || [];
+  }
+
+  if (matches.length === 0) return [];
+
+  const unique = new Map<string, string>();
+  for (const item of matches) {
+    const key = item.toLowerCase();
+    if (!unique.has(key)) unique.set(key, item);
+  }
+  return [...unique.values()];
 }
 
 /**
@@ -2657,7 +2733,7 @@ function startClipboardUrlWatcher(win: BrowserWindow | null): void {
     if (current === lastClipboardText) return;
     lastClipboardText = current;
 
-    const urls = extractUrls(current);
+    const urls = extractUrls(current, clipboardUrlDetectMode);
     if (urls.length > 0) {
       fetchPageTitle(urls[0]).then((title) => {
         if (!win || win.isDestroyed()) return;
@@ -2726,6 +2802,7 @@ app.whenReady().then(() => {
 
   islandPositionOffset = readIslandPositionOffsetConfig();
   clipboardUrlMonitorEnabled = readClipboardUrlMonitorEnabledConfig();
+  clipboardUrlDetectMode = readClipboardUrlDetectModeConfig();
 
   createWindow();
   createTray(mainWindow);

@@ -578,6 +578,18 @@ const api = {
     return ipcRenderer.invoke('clipboard:url-monitor:set', enabled);
   },
   /**
+   * 获取剪贴板 URL 识别模式
+   */
+  clipboardUrlDetectModeGet: (): Promise<'https-only' | 'http-https' | 'domain-only'> => {
+    return ipcRenderer.invoke('clipboard:url-detect-mode:get');
+  },
+  /**
+   * 设置剪贴板 URL 识别模式
+   */
+  clipboardUrlDetectModeSet: (mode: 'https-only' | 'http-https' | 'domain-only'): Promise<boolean> => {
+    return ipcRenderer.invoke('clipboard:url-detect-mode:set', mode);
+  },
+  /**
    * 获取开机自启模式
    */
   autostartGet: (): Promise<string> => {

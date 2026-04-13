@@ -163,6 +163,7 @@ export function SettingsTab(): ReactElement {
   const [expandLeaveIdle, setExpandLeaveIdle] = useState<boolean>(false);
   const [maxExpandLeaveIdle, setMaxExpandLeaveIdle] = useState<boolean>(false);
   const [clipboardUrlMonitorEnabled, setClipboardUrlMonitorEnabled] = useState<boolean>(true);
+  const [clipboardUrlDetectMode, setClipboardUrlDetectMode] = useState<'https-only' | 'http-https' | 'domain-only'>('http-https');
   const [autostartMode, setAutostartMode] = useState<'disabled' | 'enabled' | 'high-priority'>('disabled');
   const [navOrder, setNavOrder] = useState<string[]>(DEFAULT_NAV_ORDER);
   const [hiddenNavOrder, setHiddenNavOrder] = useState<string[]>([]);
@@ -454,6 +455,10 @@ export function SettingsTab(): ReactElement {
     window.api.clipboardUrlMonitorGet().then((v) => {
       if (cancelled) return;
       setClipboardUrlMonitorEnabled(v);
+    }).catch(() => {});
+    window.api.clipboardUrlDetectModeGet().then((mode) => {
+      if (cancelled) return;
+      setClipboardUrlDetectMode(mode);
     }).catch(() => {});
     window.api.autostartGet().then((mode) => {
       if (cancelled) return;
@@ -1275,6 +1280,8 @@ export function SettingsTab(): ReactElement {
               setMaxExpandLeaveIdle={setMaxExpandLeaveIdle}
               clipboardUrlMonitorEnabled={clipboardUrlMonitorEnabled}
               setClipboardUrlMonitorEnabled={setClipboardUrlMonitorEnabled}
+              clipboardUrlDetectMode={clipboardUrlDetectMode}
+              setClipboardUrlDetectMode={setClipboardUrlDetectMode}
               autostartMode={autostartMode}
               setAutostartMode={setAutostartMode}
               bgImage={bgImage}

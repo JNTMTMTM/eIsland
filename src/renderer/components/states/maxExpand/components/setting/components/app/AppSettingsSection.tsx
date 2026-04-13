@@ -81,6 +81,8 @@ interface AppSettingsSectionProps {
   setMaxExpandLeaveIdle: (value: boolean) => void;
   clipboardUrlMonitorEnabled: boolean;
   setClipboardUrlMonitorEnabled: (value: boolean) => void;
+  clipboardUrlDetectMode: 'https-only' | 'http-https' | 'domain-only';
+  setClipboardUrlDetectMode: (value: 'https-only' | 'http-https' | 'domain-only') => void;
   autostartMode: 'disabled' | 'enabled' | 'high-priority';
   setAutostartMode: (mode: 'disabled' | 'enabled' | 'high-priority') => void;
   bgImage: string | null;
@@ -143,6 +145,8 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
     setMaxExpandLeaveIdle,
     clipboardUrlMonitorEnabled,
     setClipboardUrlMonitorEnabled,
+    clipboardUrlDetectMode,
+    setClipboardUrlDetectMode,
 
     autostartMode,
     setAutostartMode,
@@ -551,6 +555,26 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
                     />
                     启用剪贴板 URL 监听
                   </label>
+                </div>
+                <div className="settings-music-hint" style={{ marginTop: 8 }}>识别项目</div>
+                <div className="settings-lyrics-source-options" style={{ marginTop: 8 }}>
+                  {([
+                    { value: 'https-only', label: '强制包含 https 头' },
+                    { value: 'http-https', label: '包含 http 头' },
+                    { value: 'domain-only', label: '仅含有域名' },
+                  ] as Array<{ value: 'https-only' | 'http-https' | 'domain-only'; label: string }>).map((opt) => (
+                    <button
+                      key={opt.value}
+                      className={`settings-lyrics-source-btn ${clipboardUrlDetectMode === opt.value ? 'active' : ''}`}
+                      type="button"
+                      onClick={() => {
+                        setClipboardUrlDetectMode(opt.value);
+                        window.api.clipboardUrlDetectModeSet(opt.value).catch(() => {});
+                      }}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
                 </div>
               </div>
             </div>
