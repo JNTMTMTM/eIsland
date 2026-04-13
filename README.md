@@ -48,6 +48,11 @@ Windows 灵动岛桌面应用，基于 Electron + React + TypeScript 构建。
   - 由 Artemis II 任务宇航员使用 NIKON Z9 35mm f/2 拍摄
   - 原始链接：https://images.nasa.gov/details/art002e004441
 
+- `Thinking of You, Earth (art002e008486~orig.jpg)` 图像
+  - 来源：[NASA](https://www.nasa.gov/)
+  - 由 Artemis II 任务宇航员使用 iPhone 17 Pro Max 拍摄
+  - 原始链接：https://images.nasa.gov/details/art002e008486
+
 本仓库中所有 NASA 图像均按照 NASA 的图像使用政策使用。不暗示 NASA 对本项目的任何认可。
 
 更多 Artemis II 图像可访问：
