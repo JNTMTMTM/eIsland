@@ -59,6 +59,15 @@ export function NotificationContent({
   urls,
 }: NotificationContentProps): ReactElement {
   const { setIdle, setLyrics, setNotification } = useIslandStore();
+  const isOfficialSite = (() => {
+    if (type !== 'clipboard-url' || !urls?.length) return false;
+    try {
+      const hostname = new URL(urls[0]).hostname.toLowerCase();
+      return hostname === 'pyisland.com' || hostname.endsWith('.pyisland.com');
+    } catch {
+      return false;
+    }
+  })();
 
   const dismiss = (): void => {
     const store = useIslandStore.getState();
@@ -144,7 +153,10 @@ export function NotificationContent({
               <span className="notification-update-version"> v{updateVersion}</span>
             )}
           </span>
-          <span className={type === 'clipboard-url' ? 'notification-body notification-body--single-line' : 'notification-body'}>{body}</span>
+          <div className="notification-body-row">
+            <span className={type === 'clipboard-url' ? 'notification-body notification-body--single-line' : 'notification-body'}>{body}</span>
+            {isOfficialSite && <span className="notification-official-badge">官网</span>}
+          </div>
         </div>
       </div>
 
