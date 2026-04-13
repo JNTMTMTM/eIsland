@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import { app, BrowserWindow, shell, screen, ipcMain, desktopCapturer, dialog, globalShortcut, clipboard, nativeImage } from 'electron';
+import { app, BrowserWindow, shell, screen, ipcMain, desktopCapturer, dialog, globalShortcut, nativeImage } from 'electron';
 import { join, basename } from 'path';
 import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync, unlinkSync, copyFileSync } from 'fs';
 import { exec } from 'child_process';
@@ -39,6 +39,7 @@ import {
 } from './utils/clipboardUrl';
 import { startClipboardUrlWatcher, stopClipboardUrlWatcher } from './clipboard/urlWatcher';
 import { registerClipboardIpcHandlers } from './ipc/clipboard';
+import { registerCaptureIpcHandlers } from './ipc/capture';
 import { registerUpdaterIpcHandlers } from './ipc/updater';
 
 /** 防止 Electron 创建多个实例 */
@@ -2477,46 +2478,9 @@ function registerIpcHandlers(): void {
     return success;
   });
 
-  // ===== 截图选区窗口 IPC =====
-
-  /** 用户完成选区 → 渲染进程已裁剪，复制到剪贴板 */
-  ipcMain.on('capture-complete', (_event, { dataURL }) => {
-    try {
-      const image = nativeImage.createFromDataURL(dataURL);
-      clipboard.writeImage(image);
-    } catch (err) {
-      console.error('[Screenshot] copy error:', err);
-    }
-    closeCaptureWindow();
-  });
-
-  /** 用户完成选区 → 渲染进程已裁剪，保存到文件 */
-  ipcMain.on('capture-save', async (_event, { dataURL }) => {
-    // 先隐藏截图窗口，避免 alwaysOnTop 遮挡文件保存对话框
-    if (captureWindow && !captureWindow.isDestroyed()) {
-      captureWindow.hide();
-    }
-    try {
-      const image = nativeImage.createFromDataURL(dataURL);
-      const pngBuffer = image.toPNG();
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-      const result = await dialog.showSaveDialog({
-        title: '保存截图',
-        defaultPath: join(app.getPath('pictures'), `eIsland_screenshot_${timestamp}.png`),
-        filters: [{ name: 'PNG', extensions: ['png'] }],
-      });
-      if (!result.canceled && result.filePath) {
-        writeFileSync(result.filePath, pngBuffer);
-      }
-    } catch (err) {
-      console.error('[Screenshot] save error:', err);
-    }
-    closeCaptureWindow();
-  });
-
-  /** 用户取消截图 */
-  ipcMain.on('capture-cancel', () => {
-    closeCaptureWindow();
+  registerCaptureIpcHandlers({
+    getCaptureWindow: () => captureWindow,
+    closeCaptureWindow,
   });
 
   registerUpdaterIpcHandlers({
