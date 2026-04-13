@@ -144,7 +144,7 @@ export function NotificationContent({
               <span className="notification-update-version"> v{updateVersion}</span>
             )}
           </span>
-          <span className="notification-body">{body}</span>
+          <span className={type === 'clipboard-url' ? 'notification-body notification-body--single-line' : 'notification-body'}>{body}</span>
         </div>
       </div>
 

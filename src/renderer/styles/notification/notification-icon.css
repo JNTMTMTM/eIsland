@@ -74,8 +74,16 @@
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
+  line-clamp: 2;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
+}
+
+.notification-body--single-line {
+  line-clamp: 1;
+  -webkit-line-clamp: 1;
+  white-space: nowrap;
+  display: block;
 }
 
 .notification-update-version {
