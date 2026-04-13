@@ -45,7 +45,7 @@ export function initUpdaterService(options: InitUpdaterServiceOptions): void {
   updater.forceDevUpdateConfig = true;
   updater.logger = console;
 
-  console.log('[Updater] initialized, allowPrerelease=true, forceDevUpdateConfig=true');
+  console.log(`[Updater] initialized, allowPrerelease=${updater.allowPrerelease}, forceDevUpdateConfig=${updater.forceDevUpdateConfig}`);
   console.log('[Updater] appPath:', options.getAppPath());
   console.log('[Updater] isPackaged:', options.isPackaged());
 
