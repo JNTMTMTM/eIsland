@@ -46,6 +46,18 @@ export type IslandState = 'idle' | 'hover' | 'expanded' | 'notification' | 'maxE
 /** shell.css 中 morph/transition 主时长（0.4s） */
 const SHELL_MORPH_DURATION_MS = 400;
 
+/** 各状态对应的窗口面积（宽×高），用于判断状态切换是放大还是缩小 */
+const STATE_AREA: Record<string, number> = {
+  idle: 260 * 42,
+  minimal: 260 * 42,
+  lyrics: 500 * 42,
+  hover: 500 * 60,
+  notification: 500 * 88,
+  expanded: 860 * 150,
+  maxExpand: 860 * 400,
+  guide: 860 * 400,
+};
+
 /** 状态配置接口 */
 interface StateConfig {
   /** 状态名称 */
@@ -176,7 +188,6 @@ function DynamicIsland(): React.JSX.Element {
   const setLyricsLoadingRef = useRef(setLyricsLoading);
   /** 当前歌曲标识，用于检测切歌 */
   const songKeyRef = useRef('');
-
   useEffect(() => {
     if (prevStateRef.current === state) return;
     setFromState(prevStateRef.current);
@@ -685,7 +696,7 @@ function DynamicIsland(): React.JSX.Element {
 
   return (
     <div
-      className={`island-shell ${getStateClassName(state)}${morphing ? ' morphing' : ''}${fromState ? ` from-${fromState}` : ''}${showGlow ? ' music-glow' : ''}${showGlow && !isPlaying ? ' music-paused' : ''}`}
+      className={`island-shell ${getStateClassName(state)}${morphing ? ' morphing' : ''}${fromState ? ` from-${fromState}` : ''}${morphing && fromState && (STATE_AREA[fromState] ?? 0) > (STATE_AREA[state] ?? 0) ? ' instant-resize' : ''}${showGlow ? ' music-glow' : ''}${showGlow && !isPlaying ? ' music-paused' : ''}`}
       onClick={handleIslandClick}
       style={showGlow ? {
         '--glow-r': r,

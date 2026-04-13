@@ -92,6 +92,10 @@
   pointer-events: none;
 }
 
+.island-shell.instant-resize {
+  transition-property: border-radius, background, box-shadow;
+}
+
 /** 状态切换形变脉冲动画（通用兜底） */
 .island-shell.morphing {
   animation: shellMorph 0.4s cubic-bezier(0.25, 1, 0.5, 1);
@@ -178,16 +182,16 @@
 }
 
 @keyframes shellShrinkFromNotification {
-  0%   { transform: scaleX(1.04) scaleY(0.96); }
-  38%  { transform: scaleX(0.979) scaleY(1.015); }
-  68%  { transform: scaleX(1.003) scaleY(0.999); }
+  0%   { transform: scaleX(0.92) scaleY(1.04); }
+  38%  { transform: scaleX(1.015) scaleY(0.99); }
+  68%  { transform: scaleX(0.998) scaleY(1.002); }
   100% { transform: scale(1); }
 }
 
 @keyframes shellShrinkToIdle {
-  0%   { transform: scaleX(1.04) scaleY(0.97); }
-  40%  { transform: scaleX(0.98) scaleY(1.01); }
-  70%  { transform: scaleX(1.003) scaleY(0.999); }
+  0%   { transform: scaleX(0.92) scaleY(1.04); }
+  40%  { transform: scaleX(1.015) scaleY(0.99); }
+  70%  { transform: scaleX(0.998) scaleY(1.002); }
   100% { transform: scale(1); }
 }
 

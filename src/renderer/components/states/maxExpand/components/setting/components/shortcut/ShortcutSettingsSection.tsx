@@ -24,8 +24,8 @@
  * @author 鸡哥
  */
 
-import { useState } from 'react';
-import type { KeyboardEvent as ReactKeyboardEvent, ReactElement, RefObject, WheelEvent as ReactWheelEvent } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import type { KeyboardEvent as ReactKeyboardEvent, ReactElement, RefObject } from 'react';
 
 interface ShortcutSettingsSectionProps {
   hotkeyInputRef: RefObject<HTMLInputElement | null>;
@@ -148,25 +148,32 @@ export function ShortcutSettingsSection(props: ShortcutSettingsSectionProps): Re
     media: '音乐控制',
   };
   const [shortcutPage, setShortcutPage] = useState<ShortcutSettingsPageKey>('window');
+  const shortcutPageRef = useRef(shortcutPage);
+  shortcutPageRef.current = shortcutPage;
+  const shortcutPagesLayoutRef = useRef<HTMLDivElement>(null);
 
-  const handleShortcutPagesWheel = (e: ReactWheelEvent<HTMLDivElement>): void => {
-    e.stopPropagation();
-    const mainEl = e.currentTarget.querySelector('.settings-app-page-main') as HTMLElement | null;
-    if (mainEl && mainEl.scrollHeight > mainEl.clientHeight) {
-      return;
-    }
+  useEffect(() => {
+    const el = shortcutPagesLayoutRef.current;
+    if (!el) return;
+    const handleWheel = (e: WheelEvent): void => {
+      e.stopPropagation();
+      const mainEl = el.querySelector('.settings-app-page-main') as HTMLElement | null;
+      if (mainEl && mainEl.scrollHeight > mainEl.clientHeight) return;
 
-    const currentIdx = pages.indexOf(shortcutPage);
-    if (currentIdx < 0) return;
-    const nextIdx = e.deltaY > 0
-      ? Math.min(currentIdx + 1, pages.length - 1)
-      : Math.max(currentIdx - 1, 0);
+      const currentIdx = pages.indexOf(shortcutPageRef.current);
+      if (currentIdx < 0) return;
+      const nextIdx = e.deltaY > 0
+        ? Math.min(currentIdx + 1, pages.length - 1)
+        : Math.max(currentIdx - 1, 0);
 
-    if (nextIdx !== currentIdx) {
-      e.preventDefault();
-      setShortcutPage(pages[nextIdx]);
-    }
-  };
+      if (nextIdx !== currentIdx) {
+        e.preventDefault();
+        setShortcutPage(pages[nextIdx]);
+      }
+    };
+    el.addEventListener('wheel', handleWheel, { passive: false });
+    return () => el.removeEventListener('wheel', handleWheel);
+  }, []);
 
   return (
     <div className="max-expand-settings-section">
@@ -174,7 +181,7 @@ export function ShortcutSettingsSection(props: ShortcutSettingsSectionProps): Re
         <span>快捷键</span>
         <span className="settings-app-title-sub">- {pageLabels[shortcutPage]}</span>
       </div>
-      <div className="settings-app-pages-layout settings-shortcut-pages-layout" onWheelCapture={handleShortcutPagesWheel}>
+      <div className="settings-app-pages-layout settings-shortcut-pages-layout" ref={shortcutPagesLayoutRef}>
         <div className="settings-app-page-main">
           {shortcutPage === 'window' && (
             <>
