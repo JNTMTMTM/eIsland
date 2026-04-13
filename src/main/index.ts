@@ -48,6 +48,7 @@ import { registerWallpaperIpcHandlers } from './ipc/wallpaper';
 import { registerNetIpcHandlers } from './ipc/net';
 import { registerStoreIpcHandlers } from './ipc/store';
 import { registerLogIpcHandlers } from './ipc/log';
+import { registerMusicIpcHandlers } from './ipc/music';
 
 /** 防止 Electron 创建多个实例 */
 const gotTheLock = app.requestSingleInstanceLock();
@@ -1586,58 +1587,18 @@ function registerIpcHandlers(): void {
 
   registerLogIpcHandlers({ writeMainLog });
 
-  // ===== 歌曲设置 IPC =====
-
-  /**
-   * 获取当前播放器白名单
-   * @returns 白名单数组
-   */
-  ipcMain.handle('music:whitelist:get', () => {
-    return nowPlayingWhitelist;
-  });
-
-  /**
-   * 设置播放器白名单并持久化
-   * @param _event - IPC 事件
-   * @param list - 新的白名单数组
-   * @returns 是否保存成功
-   */
-  ipcMain.handle('music:whitelist:set', (_event, list: string[]) => {
-    try {
+  registerMusicIpcHandlers({
+    storeDir,
+    whitelistStoreKey: WHITELIST_STORE_KEY,
+    lyricsSourceStoreKey: LYRICS_SOURCE_STORE_KEY,
+    getWhitelist: () => nowPlayingWhitelist,
+    setWhitelist: (list) => {
       nowPlayingWhitelist = list;
-      const filePath = join(storeDir, `${WHITELIST_STORE_KEY}.json`);
-      writeFileSync(filePath, JSON.stringify(list, null, 2), 'utf-8');
-      return true;
-    } catch (err) {
-      console.error('[Whitelist] persist error:', err);
-      return false;
-    }
+    },
+    readLyricsSourceConfig,
   });
 
-  /**
-   * 获取歌词源配置
-   * @returns 歌词源标识字符串
-   */
-  ipcMain.handle('music:lyrics-source:get', () => {
-    return readLyricsSourceConfig();
-  });
-
-  /**
-   * 设置歌词源并持久化
-   * @param _event - IPC 事件
-   * @param source - 歌词源标识
-   * @returns 是否保存成功
-   */
-  ipcMain.handle('music:lyrics-source:set', (_event, source: string) => {
-    try {
-      const filePath = join(storeDir, `${LYRICS_SOURCE_STORE_KEY}.json`);
-      writeFileSync(filePath, JSON.stringify(source, null, 2), 'utf-8');
-      return true;
-    } catch (err) {
-      console.error('[LyricsSource] persist error:', err);
-      return false;
-    }
-  });
+  // ===== 歌曲设置 IPC =====
 
   /**
    * 获取逐字扫光开关
