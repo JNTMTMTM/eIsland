@@ -42,3 +42,18 @@ Windows 灵动岛桌面应用，基于 Electron + React + TypeScript 构建。
 - Copyright (C) 2026-present pyisland.com (https://pyisland.com)
 
 详细完整条款（包括标准 GPLv3 文本和附加条款）请参见仓库根目录的 `LICENSE` 文件。
+
+## Image Credits / 图像致谢
+
+本项目中使用的以下图像来自 Artemis II 任务：
+
+- `art002e008487~orig.jpg` 图像
+  - 来源：NASA (National Aeronautics and Space Administration)
+  - 由 Artemis II 任务宇航员使用 iPhone 17 Pro Max 拍摄
+  - 原始链接：https://images.nasa.gov/details/art002e008487
+
+本仓库中所有 NASA 图像均按照 NASA 的图像使用政策使用。不暗示 NASA 对本项目的任何认可（No endorsement by NASA is implied）。
+
+更多 Artemis II 图像可访问：
+- https://images.nasa.gov/
+- https://www.nasa.gov/artemis-ii-mobile-wallpapers/
