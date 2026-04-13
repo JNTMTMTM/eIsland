@@ -399,6 +399,10 @@ export function SettingsTab(): ReactElement {
         clearTimeout(opacitySaveTimerRef.current);
         opacitySaveTimerRef.current = null;
       }
+      if (bgOpacitySaveTimerRef.current) {
+        clearTimeout(bgOpacitySaveTimerRef.current);
+        bgOpacitySaveTimerRef.current = null;
+      }
     };
   }, []);
 
