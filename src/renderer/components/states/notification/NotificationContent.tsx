@@ -221,27 +221,27 @@ export function NotificationContent({
         </div>
       ) : type === 'clipboard-url' && urls?.length ? (
         <div className="notification-actions notification-actions--clipboard-url">
-          <div className="notification-url-nav">
-            <button
-              type="button"
-              className="notification-action-btn notification-action-snooze notification-url-nav-btn"
-              onClick={handlePrevUrl}
-              disabled={clipboardUrls.length <= 1}
-              aria-label="上一个链接"
-            >
-              <img src={SvgIcon.PREVIOUS} alt="" className="notification-url-nav-btn-icon" />
-            </button>
-            <span className="notification-url-index">{currentUrlIndex + 1}/{clipboardUrls.length}</span>
-            <button
-              type="button"
-              className="notification-action-btn notification-action-snooze notification-url-nav-btn"
-              onClick={handleNextUrl}
-              disabled={clipboardUrls.length <= 1}
-              aria-label="下一个链接"
-            >
-              <img src={SvgIcon.NEXT} alt="" className="notification-url-nav-btn-icon" />
-            </button>
-          </div>
+          {hasMultipleClipboardUrls && (
+            <div className="notification-url-nav">
+              <button
+                type="button"
+                className="notification-action-btn notification-action-snooze notification-url-nav-btn"
+                onClick={handlePrevUrl}
+                aria-label="上一个链接"
+              >
+                <img src={SvgIcon.PREVIOUS} alt="" className="notification-url-nav-btn-icon" />
+              </button>
+              <span className="notification-url-index">{currentUrlIndex + 1}/{clipboardUrls.length}</span>
+              <button
+                type="button"
+                className="notification-action-btn notification-action-snooze notification-url-nav-btn"
+                onClick={handleNextUrl}
+                aria-label="下一个链接"
+              >
+                <img src={SvgIcon.NEXT} alt="" className="notification-url-nav-btn-icon" />
+              </button>
+            </div>
+          )}
           <div className="notification-url-list">
             <button
               type="button"
