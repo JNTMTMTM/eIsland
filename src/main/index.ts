@@ -40,6 +40,7 @@ import {
 import { startClipboardUrlWatcher, stopClipboardUrlWatcher } from './clipboard/urlWatcher';
 import { registerClipboardIpcHandlers } from './ipc/clipboard';
 import { registerCaptureIpcHandlers } from './ipc/capture';
+import { registerScreenshotHotkeyIpcHandlers } from './ipc/screenshotHotkey';
 import { registerUpdaterIpcHandlers } from './ipc/updater';
 
 /** 防止 Electron 创建多个实例 */
@@ -2437,45 +2438,20 @@ function registerIpcHandlers(): void {
     return true;
   });
 
-  // ===== 截图快捷键 IPC =====
-
-  /**
-   * 获取当前截图快捷键配置
-   * @returns 当前快捷键字符串
-   */
-  ipcMain.handle('screenshot-hotkey:get', () => {
-    return currentScreenshotHotkey || readScreenshotHotkeyConfig();
-  });
-
-  /**
-   * 设置截图快捷键并持久化
-   * @param _event - IPC 事件
-   * @param accelerator - 新的快捷键字符串
-   * @returns 是否注册成功
-   */
-  ipcMain.handle('screenshot-hotkey:set', (_event, accelerator: string) => {
-    const currentHide = currentHideHotkey || readHotkeyConfig();
-    const currentQuit = currentQuitHotkey || readQuitHotkeyConfig();
-    const currentNextSong = currentNextSongHotkey || readNextSongHotkeyConfig();
-    const currentPlayPauseSong = currentPlayPauseSongHotkey || readPlayPauseSongHotkeyConfig();
-    const currentResetPos = currentResetPositionHotkey || readResetPositionHotkeyConfig();
-    if (accelerator && ((currentHide && accelerator === currentHide)
-      || (currentQuit && accelerator === currentQuit)
-      || (currentNextSong && accelerator === currentNextSong)
-      || (currentPlayPauseSong && accelerator === currentPlayPauseSong)
-      || (currentResetPos && accelerator === currentResetPos))) {
-      return false;
-    }
-    const success = registerScreenshotHotkey(accelerator);
-    if (success) {
-      const filePath = join(storeDir, `${SCREENSHOT_HOTKEY_STORE_KEY}.json`);
-      try {
-        writeFileSync(filePath, JSON.stringify(accelerator, null, 2), 'utf-8');
-      } catch (err) {
-        console.error('[ScreenshotHotkey] persist error:', err);
-      }
-    }
-    return success;
+  registerScreenshotHotkeyIpcHandlers({
+    storeDir,
+    screenshotHotkeyStoreKey: SCREENSHOT_HOTKEY_STORE_KEY,
+    getCurrentScreenshotHotkey: () => currentScreenshotHotkey,
+    readScreenshotHotkeyConfig,
+    getReservedHotkeys: () => {
+      const currentHide = currentHideHotkey || readHotkeyConfig();
+      const currentQuit = currentQuitHotkey || readQuitHotkeyConfig();
+      const currentNextSong = currentNextSongHotkey || readNextSongHotkeyConfig();
+      const currentPlayPauseSong = currentPlayPauseSongHotkey || readPlayPauseSongHotkeyConfig();
+      const currentResetPos = currentResetPositionHotkey || readResetPositionHotkeyConfig();
+      return [currentHide, currentQuit, currentNextSong, currentPlayPauseSong, currentResetPos];
+    },
+    registerScreenshotHotkey,
   });
 
   registerCaptureIpcHandlers({
