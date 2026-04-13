@@ -25,14 +25,14 @@
  */
 
 import { app, BrowserWindow, shell, screen, ipcMain, desktopCapturer, dialog, globalShortcut, nativeImage } from 'electron';
-import { join, basename } from 'path';
+import { join } from 'path';
 import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync, unlinkSync, copyFileSync } from 'fs';
 import { exec } from 'child_process';
 import { Worker } from 'worker_threads';
 import { electronApp, optimizer, is } from '@electron-toolkit/utils';
 import { autoUpdater } from 'electron-updater';
 import { createTray, destroyTray } from './tray';
-import { clearLogsCacheFiles, createSessionMainLogger, ensureLogsDir } from './log/mainLog';
+import { createSessionMainLogger } from './log/mainLog';
 import {
   normalizeClipboardUrlDetectMode,
   sanitizeClipboardUrlBlacklist,
@@ -1459,58 +1459,6 @@ function registerIpcHandlers(): void {
     return writeIslandPositionOffsetConfig(nextOffset);
   });
 
-  /**
-   * 退出应用
-   */
-  ipcMain.on('app:quit', () => {
-    app.quit();
-  });
-
-  /**
-   * 重启应用
-   */
-  ipcMain.handle('app:restart', () => {
-    try {
-      app.relaunch();
-      app.exit(0);
-      return true;
-    } catch (err) {
-      console.error('[App] restart error:', err);
-      return false;
-    }
-  });
-
-  /**
-   * 打开日志文件夹
-   */
-  ipcMain.handle('app:open-logs-folder', async () => {
-    try {
-      const logDir = ensureLogsDir();
-      const result = await shell.openPath(logDir);
-      return result === '';
-    } catch (err) {
-      console.error('[App] open logs folder error:', err);
-      return false;
-    }
-  });
-
-  /**
-   * 清理日志缓存
-   */
-  ipcMain.handle('app:clear-logs-cache', async () => {
-    try {
-      const result = clearLogsCacheFiles();
-      if (!result.success) {
-        return { success: false, freedBytes: 0 };
-      }
-      console.log(`[App] cleared logs cache: ${result.fileCount} files, ${(result.freedBytes / 1024).toFixed(1)} KB freed`);
-      return { success: true, freedBytes: result.freedBytes };
-    } catch (err) {
-      console.error('[App] clear logs cache error:', err);
-      return { success: false, freedBytes: 0 };
-    }
-  });
-
   // ===== 音乐媒体控制 IPC 处理器 =====
   ipcMain.handle('media:play-pause', () => {
     sendMediaVirtualKey(0xB3);
@@ -1586,20 +1534,6 @@ function registerIpcHandlers(): void {
     } catch (err) {
       console.error('[SMTCUnsubscribe] persist error:', err);
       return false;
-    }
-  });
-
-  /** 解析快捷方式 (.lnk) 的目标路径 */
-  ipcMain.handle('app:resolve-shortcut', (_event, lnkPath: string) => {
-    try {
-      if (process.platform === 'win32') {
-        const result = shell.readShortcutLink(lnkPath);
-        return { target: result.target, name: basename(lnkPath, '.lnk') };
-      }
-      return null;
-    } catch (err) {
-      console.error('[App] resolve-shortcut error:', err);
-      return null;
     }
   });
 
