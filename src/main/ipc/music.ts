@@ -1,14 +1,22 @@
 import { ipcMain } from 'electron';
 import { join } from 'path';
-import { writeFileSync } from 'fs';
+import { existsSync, readFileSync, writeFileSync } from 'fs';
 
 interface RegisterMusicIpcHandlersOptions {
   storeDir: string;
   whitelistStoreKey: string;
   lyricsSourceStoreKey: string;
+  lyricsKaraokeStoreKey: string;
+  lyricsClockStoreKey: string;
+  smtcUnsubscribeStoreKey: string;
+  defaultLyricsKaraoke: boolean;
+  defaultLyricsClock: boolean;
   getWhitelist: () => string[];
   setWhitelist: (list: string[]) => void;
   readLyricsSourceConfig: () => string;
+  getSmtcUnsubscribeMs: () => number;
+  setSmtcUnsubscribeMs: (value: number) => void;
+  sanitizeSmtcUnsubscribeMs: (value: unknown) => number;
 }
 
 export function registerMusicIpcHandlers(options: RegisterMusicIpcHandlersOptions): void {
@@ -39,6 +47,69 @@ export function registerMusicIpcHandlers(options: RegisterMusicIpcHandlersOption
       return true;
     } catch (err) {
       console.error('[LyricsSource] persist error:', err);
+      return false;
+    }
+  });
+
+  ipcMain.handle('music:lyrics-karaoke:get', () => {
+    try {
+      const filePath = join(options.storeDir, `${options.lyricsKaraokeStoreKey}.json`);
+      if (!existsSync(filePath)) return options.defaultLyricsKaraoke;
+      const raw = readFileSync(filePath, 'utf-8');
+      const data = JSON.parse(raw);
+      return typeof data === 'boolean' ? data : options.defaultLyricsKaraoke;
+    } catch {
+      return options.defaultLyricsKaraoke;
+    }
+  });
+
+  ipcMain.handle('music:lyrics-karaoke:set', (_event, enabled: boolean) => {
+    try {
+      const filePath = join(options.storeDir, `${options.lyricsKaraokeStoreKey}.json`);
+      writeFileSync(filePath, JSON.stringify(enabled, null, 2), 'utf-8');
+      return true;
+    } catch (err) {
+      console.error('[LyricsKaraoke] persist error:', err);
+      return false;
+    }
+  });
+
+  ipcMain.handle('music:lyrics-clock:get', () => {
+    try {
+      const filePath = join(options.storeDir, `${options.lyricsClockStoreKey}.json`);
+      if (!existsSync(filePath)) return options.defaultLyricsClock;
+      const raw = readFileSync(filePath, 'utf-8');
+      const data = JSON.parse(raw);
+      return typeof data === 'boolean' ? data : options.defaultLyricsClock;
+    } catch {
+      return options.defaultLyricsClock;
+    }
+  });
+
+  ipcMain.handle('music:lyrics-clock:set', (_event, enabled: boolean) => {
+    try {
+      const filePath = join(options.storeDir, `${options.lyricsClockStoreKey}.json`);
+      writeFileSync(filePath, JSON.stringify(enabled, null, 2), 'utf-8');
+      return true;
+    } catch (err) {
+      console.error('[LyricsClock] persist error:', err);
+      return false;
+    }
+  });
+
+  ipcMain.handle('music:smtc-unsubscribe-ms:get', () => {
+    return options.getSmtcUnsubscribeMs();
+  });
+
+  ipcMain.handle('music:smtc-unsubscribe-ms:set', (_event, valueMs: number) => {
+    try {
+      const next = options.sanitizeSmtcUnsubscribeMs(valueMs);
+      options.setSmtcUnsubscribeMs(next);
+      const filePath = join(options.storeDir, `${options.smtcUnsubscribeStoreKey}.json`);
+      writeFileSync(filePath, JSON.stringify(next, null, 2), 'utf-8');
+      return true;
+    } catch (err) {
+      console.error('[SMTCUnsubscribe] persist error:', err);
       return false;
     }
   });

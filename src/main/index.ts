@@ -1523,25 +1523,6 @@ function registerIpcHandlers(): void {
     // SMTCMonitor 暂不支持设置音量
   });
 
-  ipcMain.handle('music:smtc-unsubscribe-ms:get', () => {
-    return smtcUnsubscribeMs;
-  });
-
-  ipcMain.handle('music:smtc-unsubscribe-ms:set', (_event, valueMs: number) => {
-    try {
-      const next = sanitizeSmtcUnsubscribeMs(valueMs);
-      smtcUnsubscribeMs = next;
-      const localStoreDir = join(app.getPath('userData'), 'eIsland_store');
-      if (!existsSync(localStoreDir)) mkdirSync(localStoreDir, { recursive: true });
-      const filePath = join(localStoreDir, `${SMTC_UNSUBSCRIBE_MS_STORE_KEY}.json`);
-      writeFileSync(filePath, JSON.stringify(next, null, 2), 'utf-8');
-      return true;
-    } catch (err) {
-      console.error('[SMTCUnsubscribe] persist error:', err);
-      return false;
-    }
-  });
-
   const writeMainLog = createSessionMainLogger();
 
   registerNetIpcHandlers({ writeMainLog });
@@ -1591,80 +1572,24 @@ function registerIpcHandlers(): void {
     storeDir,
     whitelistStoreKey: WHITELIST_STORE_KEY,
     lyricsSourceStoreKey: LYRICS_SOURCE_STORE_KEY,
+    lyricsKaraokeStoreKey: LYRICS_KARAOKE_STORE_KEY,
+    lyricsClockStoreKey: LYRICS_CLOCK_STORE_KEY,
+    smtcUnsubscribeStoreKey: SMTC_UNSUBSCRIBE_MS_STORE_KEY,
+    defaultLyricsKaraoke: false,
+    defaultLyricsClock: true,
     getWhitelist: () => nowPlayingWhitelist,
     setWhitelist: (list) => {
       nowPlayingWhitelist = list;
     },
     readLyricsSourceConfig,
+    getSmtcUnsubscribeMs: () => smtcUnsubscribeMs,
+    setSmtcUnsubscribeMs: (value) => {
+      smtcUnsubscribeMs = value;
+    },
+    sanitizeSmtcUnsubscribeMs,
   });
 
   // ===== 歌曲设置 IPC =====
-
-  /**
-   * 获取逐字扫光开关
-   * @returns 是否启用逐字扫光
-   */
-  ipcMain.handle('music:lyrics-karaoke:get', () => {
-    try {
-      const filePath = join(storeDir, `${LYRICS_KARAOKE_STORE_KEY}.json`);
-      if (!existsSync(filePath)) return false;
-      const raw = readFileSync(filePath, 'utf-8');
-      const data = JSON.parse(raw);
-      return typeof data === 'boolean' ? data : false;
-    } catch {
-      return false;
-    }
-  });
-
-  /**
-   * 设置逐字扫光开关并持久化
-   * @param _event - IPC 事件
-   * @param enabled - 是否启用
-   * @returns 是否保存成功
-   */
-  ipcMain.handle('music:lyrics-karaoke:set', (_event, enabled: boolean) => {
-    try {
-      const filePath = join(storeDir, `${LYRICS_KARAOKE_STORE_KEY}.json`);
-      writeFileSync(filePath, JSON.stringify(enabled, null, 2), 'utf-8');
-      return true;
-    } catch (err) {
-      console.error('[LyricsKaraoke] persist error:', err);
-      return false;
-    }
-  });
-
-  /**
-   * 获取歌词界面时钟开关
-   * @returns 是否显示时钟
-   */
-  ipcMain.handle('music:lyrics-clock:get', () => {
-    try {
-      const filePath = join(storeDir, `${LYRICS_CLOCK_STORE_KEY}.json`);
-      if (!existsSync(filePath)) return true;
-      const raw = readFileSync(filePath, 'utf-8');
-      const data = JSON.parse(raw);
-      return typeof data === 'boolean' ? data : true;
-    } catch {
-      return true;
-    }
-  });
-
-  /**
-   * 设置歌词界面时钟开关并持久化
-   * @param _event - IPC 事件
-   * @param enabled - 是否显示时钟
-   * @returns 是否保存成功
-   */
-  ipcMain.handle('music:lyrics-clock:set', (_event, enabled: boolean) => {
-    try {
-      const filePath = join(storeDir, `${LYRICS_CLOCK_STORE_KEY}.json`);
-      writeFileSync(filePath, JSON.stringify(enabled, null, 2), 'utf-8');
-      return true;
-    } catch (err) {
-      console.error('[LyricsClock] persist error:', err);
-      return false;
-    }
-  });
 
   /**
    * 获取主题模式
