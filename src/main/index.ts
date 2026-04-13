@@ -51,6 +51,7 @@ import { registerLogIpcHandlers } from './ipc/log';
 import { registerMusicIpcHandlers } from './ipc/music';
 import { registerHotkeyIpcHandlers } from './ipc/hotkey';
 import { registerIslandIpcHandlers } from './ipc/island';
+import { registerHideProcessIpcHandlers } from './ipc/hideProcess';
 
 /** 防止 Electron 创建多个实例 */
 const gotTheLock = app.requestSingleInstanceLock();
@@ -1637,33 +1638,20 @@ function registerIpcHandlers(): void {
     navOrderStoreKey: NAV_ORDER_STORE_KEY,
   });
 
-  /** 获取隐藏进程名单 */
-  ipcMain.handle('hide-process-list:get', () => {
-    return configuredHideProcessList;
-  });
-
-  /** 设置隐藏进程名单并持久化 */
-  ipcMain.handle('hide-process-list:set', (_event, list: string[]) => {
-    try {
-      const next = sanitizeProcessNameList(Array.isArray(list) ? list : []);
-      const nextNormalized = new Set(next.map(normalizeProcessName));
-
-      // 删除项立即生效：运行时名单收敛到新配置子集
-      autoHideProcessList = autoHideProcessList.filter((name) => nextNormalized.has(normalizeProcessName(name)));
-
-      configuredHideProcessList = next;
-      const filePath = join(storeDir, `${HIDE_PROCESS_LIST_STORE_KEY}.json`);
-      writeFileSync(filePath, JSON.stringify(next, null, 2), 'utf-8');
-
-      if (process.platform === 'win32') {
-        checkAutoHideProcessList().catch(() => { });
-      }
-
-      return true;
-    } catch (err) {
-      console.error('[HideProcessList] persist error:', err);
-      return false;
-    }
+  registerHideProcessIpcHandlers({
+    storeDir,
+    hideProcessListStoreKey: HIDE_PROCESS_LIST_STORE_KEY,
+    getConfiguredHideProcessList: () => configuredHideProcessList,
+    setConfiguredHideProcessList: (list) => {
+      configuredHideProcessList = list;
+    },
+    getAutoHideProcessList: () => autoHideProcessList,
+    setAutoHideProcessList: (list) => {
+      autoHideProcessList = list;
+    },
+    sanitizeProcessNameList,
+    normalizeProcessName,
+    checkAutoHideProcessList,
   });
 
   registerHotkeyIpcHandlers({
