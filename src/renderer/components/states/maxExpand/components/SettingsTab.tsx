@@ -813,6 +813,8 @@ export function SettingsTab(): ReactElement {
       if (target.closest('.settings-hotkey-section')) return;
 
       if (activeTabRef.current === 'app' && target.closest('.settings-app-pages-layout')) {
+        const mainEl = target.closest('.settings-app-page-main') as HTMLElement | null;
+        if (mainEl && mainEl.scrollHeight > mainEl.clientHeight) return;
         const pages = APP_SETTINGS_PAGES;
         const currentPage = appSettingsPageRef.current;
         const currentIdx = pages.indexOf(currentPage);

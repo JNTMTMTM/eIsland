@@ -652,12 +652,30 @@
   gap: 12px;
   margin-top: 8px;
   min-height: 0;
+  flex: 1;
+  position: relative;
+  overflow: hidden;
 }
 
 .settings-app-page-main {
   flex: 1;
   min-width: 0;
+  min-height: 0;
   padding-right: 30px;
+  overflow-y: auto;
+}
+
+.settings-app-page-main::-webkit-scrollbar {
+  width: 3px;
+}
+
+.settings-app-page-main::-webkit-scrollbar-thumb {
+  background: rgba(var(--color-text-rgb), 0.1);
+  border-radius: 2px;
+}
+
+.settings-app-page-main::-webkit-scrollbar-thumb:hover {
+  background: rgba(var(--color-text-rgb), 0.2);
 }
 
 .settings-app-page-dots {
