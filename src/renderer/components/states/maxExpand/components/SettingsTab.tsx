@@ -190,7 +190,6 @@ export function SettingsTab(): ReactElement {
   const [themeMode, setThemeModeState] = useState<ThemeMode>(getThemeMode);
   const [islandOpacity, setIslandOpacity] = useState<number>(100);
   const [bgImage, setBgImage] = useState<string | null>(null);
-  const [bgImagePath, setBgImagePath] = useState<string | null>(null);
   const [bgImageOpacity, setBgImageOpacity] = useState<number>(30);
   const bgOpacitySaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [islandPositionOffset, setIslandPositionOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -243,14 +242,12 @@ export function SettingsTab(): ReactElement {
     const dataUrl = await window.api.loadWallpaperFile(filePath);
     if (!dataUrl) return;
     setBgImage(dataUrl);
-    setBgImagePath(filePath);
     applyBgImage(dataUrl);
     persistBgImage(filePath);
   };
 
   const handleClearBgImage = (): void => {
     setBgImage(null);
-    setBgImagePath(null);
     applyBgImage(null);
     persistBgImage(null);
     window.api.clearWallpaperCache?.().catch(() => {});
@@ -258,7 +255,6 @@ export function SettingsTab(): ReactElement {
 
   const handleSelectBuiltinBgImage = (src: string, defaultOpacity: number): void => {
     setBgImage(src);
-    setBgImagePath(src);
     setBgImageOpacity(defaultOpacity);
     const el = document.getElementById('island-bg-layer');
     if (el) {
@@ -384,7 +380,6 @@ export function SettingsTab(): ReactElement {
       if (cancelled) return;
       if (typeof opacity === 'number' && Number.isFinite(opacity)) setBgImageOpacity(Math.max(0, Math.min(100, Math.round(opacity))));
       if (img && typeof img === 'string') {
-        setBgImagePath(img);
         if (img.startsWith('data:') || img.startsWith('/') || img.startsWith('http')) {
           // Legacy data URL or Vite asset URL (built-in wallpaper)
           setBgImage(img);
