@@ -1,4 +1,4 @@
-import { app, clipboard, dialog, ipcMain, nativeImage, type BrowserWindow } from 'electron';
+import { app, clipboard, desktopCapturer, dialog, ipcMain, nativeImage, type BrowserWindow } from 'electron';
 import { join } from 'path';
 import { writeFileSync } from 'fs';
 
@@ -8,6 +8,22 @@ interface RegisterCaptureIpcHandlersOptions {
 }
 
 export function registerCaptureIpcHandlers(options: RegisterCaptureIpcHandlersOptions): void {
+  ipcMain.handle('system:screenshot', async () => {
+    try {
+      const sources = await desktopCapturer.getSources({
+        types: ['screen'],
+        thumbnailSize: { width: 1920, height: 1080 },
+      });
+      if (sources.length > 0) {
+        const screenshot = sources[0].thumbnail.toPNG();
+        return screenshot.toString('base64');
+      }
+    } catch (err) {
+      console.error('[System] screenshot error:', err);
+    }
+    return null;
+  });
+
   ipcMain.on('capture-complete', (_event, { dataURL }: { dataURL: string }) => {
     try {
       const image = nativeImage.createFromDataURL(dataURL);

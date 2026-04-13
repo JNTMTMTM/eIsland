@@ -1568,23 +1568,6 @@ function registerIpcHandlers(): void {
     // SMTCMonitor 暂不支持设置音量
   });
 
-  /** 截图并返回 base64（PNG） */
-  ipcMain.handle('system:screenshot', async () => {
-    try {
-      const sources = await desktopCapturer.getSources({
-        types: ['screen'],
-        thumbnailSize: { width: 1920, height: 1080 },
-      });
-      if (sources.length > 0) {
-        const screenshot = sources[0].thumbnail.toPNG();
-        return screenshot.toString('base64');
-      }
-    } catch (err) {
-      console.error('[System] screenshot error:', err);
-    }
-    return null;
-  });
-
   /** 打开任务管理器 */
   ipcMain.on('system:open-task-manager', () => {
     try {
