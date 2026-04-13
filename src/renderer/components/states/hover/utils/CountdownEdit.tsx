@@ -67,6 +67,7 @@ export function CountdownEdit(): React.ReactElement {
   const setTimerDataRef = useRef(setTimerData);
   setTimerDataRef.current = setTimerData;
   const timerInputsRef = useRef<HTMLDivElement>(null);
+  const isEditing = timerState === 'idle';
 
   useEffect(() => {
     const el = timerInputsRef.current;
@@ -88,7 +89,7 @@ export function CountdownEdit(): React.ReactElement {
     };
     el.addEventListener('wheel', handleWheel, { passive: false });
     return () => el.removeEventListener('wheel', handleWheel);
-  }, []);
+  }, [isEditing]);
 
   const handleStart = useCallback(() => {
     const h = parseInt(inputHours, 10) || 0;
@@ -132,7 +133,6 @@ export function CountdownEdit(): React.ReactElement {
   };
 
   const { h, m, s } = getTimeParts(remainingSeconds);
-  const isEditing = timerState === 'idle';
 
   return (
     <div className="timer-container">
