@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import { app, BrowserWindow, shell, screen, ipcMain, desktopCapturer, dialog, globalShortcut, clipboard, nativeImage, net } from 'electron';
+import { app, BrowserWindow, shell, screen, ipcMain, desktopCapturer, dialog, globalShortcut, clipboard, nativeImage } from 'electron';
 import { join, basename } from 'path';
 import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync, unlinkSync, copyFileSync } from 'fs';
 import { exec } from 'child_process';
@@ -34,12 +34,11 @@ import { autoUpdater } from 'electron-updater';
 import { createTray, destroyTray } from './tray';
 import { clearLogsCacheFiles, createSessionMainLogger, ensureLogsDir } from './log/mainLog';
 import {
-  extractUrls,
-  isUrlBlacklisted,
   normalizeClipboardUrlBlacklistDomain,
   normalizeClipboardUrlDetectMode,
   sanitizeClipboardUrlBlacklist,
 } from './utils/clipboardUrl';
+import { startClipboardUrlWatcher, stopClipboardUrlWatcher } from './clipboard/urlWatcher';
 
 /** 防止 Electron 创建多个实例 */
 const gotTheLock = app.requestSingleInstanceLock();
@@ -2130,7 +2129,12 @@ function registerIpcHandlers(): void {
       clipboardUrlMonitorEnabled = Boolean(enabled);
       writeFileSync(filePath, JSON.stringify(clipboardUrlMonitorEnabled, null, 2), 'utf-8');
       if (clipboardUrlMonitorEnabled) {
-        startClipboardUrlWatcher(mainWindow);
+        startClipboardUrlWatcher({
+          getWindow: () => mainWindow,
+          getEnabled: () => clipboardUrlMonitorEnabled,
+          getDetectMode: () => clipboardUrlDetectMode,
+          getBlacklist: () => clipboardUrlBlacklist,
+        });
       } else {
         stopClipboardUrlWatcher();
       }
@@ -2853,10 +2857,6 @@ function cleanupStaleSmtcRuntime(sessionRuntime: Map<string, SmtcSessionRuntimeE
 
 // ===== 剪贴板 URL 监听 =====
 
-/** 上一次剪贴板文本 */
-let lastClipboardText = '';
-/** 剪贴板轮询定时器 */
-let clipboardPollTimer: ReturnType<typeof setInterval> | null = null;
 /** 剪贴板 URL 监听是否启用 */
 let clipboardUrlMonitorEnabled = DEFAULT_CLIPBOARD_URL_MONITOR_ENABLED;
 
@@ -2865,72 +2865,6 @@ let clipboardUrlDetectMode: ClipboardUrlDetectMode = DEFAULT_CLIPBOARD_URL_DETEC
 
 /** 剪贴板 URL 黑名单（域名） */
 let clipboardUrlBlacklist: string[] = [...DEFAULT_CLIPBOARD_URL_BLACKLIST];
-
-/**
- * 从 HTML 中提取 <title> 标签内容
- */
-function extractHtmlTitle(html: string): string {
-  const m = html.match(/<title[^>]*>([^<]*)<\/title>/i);
-  return m ? m[1].trim() : '';
-}
-
-/**
- * 获取 URL 对应页面的标题（带超时）
- * @param url - 目标 URL
- * @param timeoutMs - 超时毫秒数
- * @returns 页面标题，失败返回空字符串
- */
-async function fetchPageTitle(url: string, timeoutMs = 3000): Promise<string> {
-  try {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), timeoutMs);
-    const resp = await net.fetch(url, {
-      signal: controller.signal as never,
-      headers: { 'User-Agent': 'Mozilla/5.0' },
-    });
-    clearTimeout(timer);
-    if (!resp.ok) return '';
-    const html = await resp.text();
-    return extractHtmlTitle(html);
-  } catch {
-    return '';
-  }
-}
-
-/**
- * 启动剪贴板 URL 监听轮询
- * @param win - 主窗口引用
- */
-function startClipboardUrlWatcher(win: BrowserWindow | null): void {
-  if (!clipboardUrlMonitorEnabled || clipboardPollTimer) return;
-  lastClipboardText = clipboard.readText() || '';
-
-  clipboardPollTimer = setInterval(() => {
-    if (!win || win.isDestroyed()) return;
-    const current = clipboard.readText() || '';
-    if (current === lastClipboardText) return;
-    lastClipboardText = current;
-
-    const urls = extractUrls(current, clipboardUrlDetectMode);
-    const filteredUrls = urls.filter((url) => !isUrlBlacklisted(url, clipboardUrlBlacklist));
-    if (filteredUrls.length > 0) {
-      fetchPageTitle(filteredUrls[0]).then((title) => {
-        if (!win || win.isDestroyed()) return;
-        win.webContents.send('clipboard:urls-detected', { urls: filteredUrls, title });
-      });
-    }
-  }, 1000);
-}
-
-/**
- * 停止剪贴板 URL 监听轮询
- */
-function stopClipboardUrlWatcher(): void {
-  if (clipboardPollTimer) {
-    clearInterval(clipboardPollTimer);
-    clipboardPollTimer = null;
-  }
-}
 
 /**
  * Chromium 性能优化：禁用不需要的内核功能以降低内存和 CPU 占用
@@ -2988,7 +2922,12 @@ app.whenReady().then(() => {
   createTray(mainWindow);
 
   initSmtcWorker(mainWindow);
-  startClipboardUrlWatcher(mainWindow);
+  startClipboardUrlWatcher({
+    getWindow: () => mainWindow,
+    getEnabled: () => clipboardUrlMonitorEnabled,
+    getDetectMode: () => clipboardUrlDetectMode,
+    getBlacklist: () => clipboardUrlBlacklist,
+  });
 
   registerIpcHandlers();
 
