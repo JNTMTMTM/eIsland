@@ -1,4 +1,4 @@
-import { BrowserWindow, desktopCapturer, screen } from 'electron';
+import { app, BrowserWindow, desktopCapturer, screen } from 'electron';
 import { join } from 'path';
 import { is } from '@electron-toolkit/utils';
 
@@ -18,7 +18,7 @@ export function createCaptureWindowService(options: CreateCaptureWindowServiceOp
 
   function getCaptureHtmlPath(): string {
     if (is.dev) {
-      return join(__dirname, '../../../resources/capture.html');
+      return join(app.getAppPath(), 'resources', 'capture.html');
     }
     return join(process.resourcesPath, 'capture.html');
   }
