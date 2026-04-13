@@ -24,12 +24,12 @@
  * @author 鸡哥
  */
 
-import { app, BrowserWindow, shell, screen, globalShortcut } from 'electron';
+import { app, BrowserWindow, globalShortcut } from 'electron';
 import { join } from 'path';
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
 import { exec } from 'child_process';
 import { Worker } from 'worker_threads';
-import { electronApp, optimizer, is } from '@electron-toolkit/utils';
+import { electronApp, optimizer } from '@electron-toolkit/utils';
 import { autoUpdater } from 'electron-updater';
 import { createTray, destroyTray } from './tray';
 import { createSessionMainLogger } from './log/mainLog';
@@ -60,6 +60,7 @@ import { applyChromiumPerformanceFlags } from './services/chromiumFlags';
 import { createHotkeyService } from './services/hotkeyService';
 import { initUpdaterService } from './services/updaterService';
 import { createCaptureWindowService } from './window/captureWindow';
+import { createMainWindowService } from './window/mainWindow';
 import {
   hasAnyRunningProcess,
   normalizeProcessName,
@@ -396,6 +397,22 @@ let configuredHideProcessList: string[] = [...DEFAULT_HIDE_PROCESS_LIST];
 /** 运行时灵动岛位置偏移 */
 let islandPositionOffset: IslandPositionOffset = { ...DEFAULT_ISLAND_POSITION_OFFSET };
 
+const mainWindowService = createMainWindowService({
+  getMainWindow: () => mainWindow,
+  setMainWindow: (window) => {
+    mainWindow = window;
+  },
+  getIslandPositionOffset: () => islandPositionOffset,
+  setIslandPositionOffset: (offset) => {
+    islandPositionOffset = offset;
+  },
+  sanitizeIslandPositionOffset,
+  sizes: {
+    islandWidth: ISLAND_WIDTH,
+    islandHeight: ISLAND_HEIGHT,
+  },
+});
+
 /** 隐藏进程名单轮询计时器 */
 let autoHideProcessWatcher: NodeJS.Timeout | null = null;
 
@@ -620,135 +637,6 @@ function readScreenshotHotkeyConfig(): string {
   }
 }
 
-/** 记录窗口初始中心 X 坐标 */
-let initialCenterX = 0;
-
-/** 计算灵动岛默认窗口边界（主屏工作区顶部居中） */
-function getInitialIslandBounds(): Electron.Rectangle {
-  const primaryDisplay = screen.getPrimaryDisplay();
-  const { x: workX, y: workY, width: workWidth, height: workHeight } = primaryDisplay.workArea;
-  const centeredX = Math.round(workX + (workWidth - ISLAND_WIDTH) / 2);
-  const minX = workX;
-  const maxX = workX + Math.max(0, workWidth - ISLAND_WIDTH);
-  const minY = workY;
-  const maxY = workY + Math.max(0, workHeight - ISLAND_HEIGHT);
-  const x = Math.max(minX, Math.min(maxX, centeredX + islandPositionOffset.x));
-  const y = Math.max(minY, Math.min(maxY, Math.round(workY + islandPositionOffset.y)));
-  return {
-    x,
-    y,
-    width: ISLAND_WIDTH,
-    height: ISLAND_HEIGHT,
-  };
-}
-
-function applyIslandPositionOffset(offset: IslandPositionOffset): void {
-  islandPositionOffset = sanitizeIslandPositionOffset(offset);
-  const nextBaseBounds = getInitialIslandBounds();
-  initialCenterX = nextBaseBounds.x + ISLAND_WIDTH / 2;
-
-  if (mainWindow && !mainWindow.isDestroyed()) {
-    mainWindow.webContents.send('window:island-position:changed', { ...islandPositionOffset });
-  }
-
-  if (!mainWindow || mainWindow.isDestroyed()) return;
-  const bounds = mainWindow.getBounds();
-  const primaryDisplay = screen.getPrimaryDisplay();
-  const { x: workX, y: workY, width: workWidth, height: workHeight } = primaryDisplay.workArea;
-  const targetX = Math.round(initialCenterX - bounds.width / 2);
-  const minX = workX;
-  const maxX = workX + Math.max(0, workWidth - bounds.width);
-  const minY = workY;
-  const maxY = workY + Math.max(0, workHeight - bounds.height);
-  mainWindow.setBounds({
-    x: Math.max(minX, Math.min(maxX, targetX)),
-    y: Math.max(minY, Math.min(maxY, nextBaseBounds.y)),
-    width: bounds.width,
-    height: bounds.height,
-  });
-}
-
-/**
- * 创建 Electron BrowserWindow 实例，配置透明无边框灵动岛窗口
- * @description 窗口固定尺寸、始终置顶、跳过任务栏，并初始化鼠标穿透行为
- */
-function createWindow(): void {
-  const initialBounds = getInitialIslandBounds();
-
-  /** 计算初始中心 X 坐标，用于展开/收缩时保持居中 */
-  initialCenterX = initialBounds.x + ISLAND_WIDTH / 2;
-
-  mainWindow = new BrowserWindow({
-    width: ISLAND_WIDTH,
-    height: ISLAND_HEIGHT,
-    x: initialBounds.x,
-    y: initialBounds.y,
-    show: false,
-    frame: false,
-    transparent: true,
-    backgroundColor: '#00000000',
-    resizable: false,
-    alwaysOnTop: true,
-    skipTaskbar: true,
-    hasShadow: false,
-    icon: is.dev
-      ? join(__dirname, '../../resources/icon/eisland_256x256.ico')
-      : join(process.resourcesPath, 'icon/eisland_256x256.ico'),
-    webPreferences: {
-      preload: join(__dirname, '../preload/index.js'),
-      sandbox: false,
-      contextIsolation: true,
-      nodeIntegration: false,
-      spellcheck: false,
-      enableWebSQL: false,
-      v8CacheOptions: 'bypassHeatCheck'
-    }
-  });
-
-  /**
-   * 初始化：透明像素区域设为可穿透，使鼠标事件传递到下层窗口
-   * forward: true 仍转发鼠标事件，但不会阻塞（实际由渲染进程按需控制）
-   */
-  mainWindow.setIgnoreMouseEvents(true, { forward: true });
-
-  /** 使用最高级别置顶，确保不被全屏应用或其他置顶窗口覆盖 */
-  mainWindow.setAlwaysOnTop(true, 'screen-saver');
-
-  // 某些 Windows 版本/打包环境下，首次显示前可能回退到系统默认居中，显式重置一次边界
-  mainWindow.setBounds(initialBounds, false);
-
-  mainWindow.on('ready-to-show', () => {
-    // 再次确保首次展示位置稳定在主屏顶部居中
-    mainWindow?.setBounds(initialBounds, false);
-    mainWindow?.show();
-    mainWindow?.setAlwaysOnTop(true, 'screen-saver');
-  });
-
-  /**
-   * 窗口失焦时强制背景重绘，防止 Windows DWM 缓存白色回退背景
-   */
-  mainWindow.on('blur', () => {
-    if (mainWindow) {
-      mainWindow.setBackgroundColor('#00000000');
-      mainWindow.webContents.executeJavaScript(`
-        document.body.style.background = 'transparent';
-        document.documentElement.style.background = 'transparent';
-      `);
-    }
-  });
-
-  mainWindow.webContents.setWindowOpenHandler((details) => {
-    shell.openExternal(details.url);
-    return { action: 'deny' };
-  });
-
-  if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
-    mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL']);
-  } else {
-    mainWindow.loadFile(join(__dirname, '../renderer/index.html'));
-  }
-}
-
 /**
  * 通过 PowerShell P/Invoke 向系统发送媒体虚拟按键
  * 使用 -EncodedCommand 传递 Base64(UTF-16LE) 编码脚本，避免内联引号转义问题
@@ -797,7 +685,7 @@ const hotkeyService = createHotkeyService({
     sendMediaVirtualKey(0xB3);
   },
   onResetPositionHotkey: () => {
-    applyIslandPositionOffset(DEFAULT_ISLAND_POSITION_OFFSET);
+    mainWindowService.applyIslandPositionOffset(DEFAULT_ISLAND_POSITION_OFFSET);
     writeIslandPositionOffsetConfig(DEFAULT_ISLAND_POSITION_OFFSET);
   },
 });
@@ -806,13 +694,13 @@ const hotkeyService = createHotkeyService({
 function registerIpcHandlers(): void {
   registerWindowIpcHandlers({
     getMainWindow: () => mainWindow,
-    getInitialCenterX: () => initialCenterX,
+    getInitialCenterX: mainWindowService.getInitialCenterX,
     setHiddenByAutoHideProcess: (hidden) => {
       hiddenByAutoHideProcess = hidden;
     },
     getIslandPositionOffset: () => islandPositionOffset,
     sanitizeIslandPositionOffset,
-    applyIslandPositionOffset,
+    applyIslandPositionOffset: mainWindowService.applyIslandPositionOffset,
     writeIslandPositionOffsetConfig,
     sizes: {
       expandedWidth: EXPANDED_WIDTH,
@@ -1272,7 +1160,7 @@ app.whenReady().then(() => {
   clipboardUrlDetectMode = readClipboardUrlDetectModeConfig();
   clipboardUrlBlacklist = readClipboardUrlBlacklistConfig();
 
-  createWindow();
+  mainWindowService.createWindow();
   createTray(mainWindow);
 
   initSmtcWorker(mainWindow);
@@ -1331,7 +1219,7 @@ app.whenReady().then(() => {
   });
 
   app.on('activate', function () {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow();
+    if (BrowserWindow.getAllWindows().length === 0) mainWindowService.createWindow();
   });
 });
 
