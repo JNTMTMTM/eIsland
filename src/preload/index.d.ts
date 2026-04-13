@@ -110,6 +110,10 @@ declare global {
       /** ===== 截图快捷键 API ===== */
       screenshotHotkeyGet: () => Promise<string>;
       screenshotHotkeySet: (accelerator: string) => Promise<boolean>;
+      nextSongHotkeyGet: () => Promise<string>;
+      nextSongHotkeySet: (accelerator: string) => Promise<boolean>;
+      playPauseSongHotkeyGet: () => Promise<string>;
+      playPauseSongHotkeySet: (accelerator: string) => Promise<boolean>;
       /** ===== 还原位置快捷键 API ===== */
       resetPositionHotkeyGet: () => Promise<string>;
       resetPositionHotkeySet: (accelerator: string) => Promise<boolean>;

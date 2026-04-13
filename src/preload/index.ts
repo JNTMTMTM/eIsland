@@ -374,6 +374,30 @@ const api = {
     return ipcRenderer.invoke('screenshot-hotkey:set', accelerator);
   },
   /**
+   * 获取当前切歌快捷键
+   */
+  nextSongHotkeyGet: (): Promise<string> => {
+    return ipcRenderer.invoke('next-song-hotkey:get');
+  },
+  /**
+   * 设置切歌快捷键
+   */
+  nextSongHotkeySet: (accelerator: string): Promise<boolean> => {
+    return ipcRenderer.invoke('next-song-hotkey:set', accelerator);
+  },
+  /**
+   * 获取当前暂停/播放快捷键
+   */
+  playPauseSongHotkeyGet: (): Promise<string> => {
+    return ipcRenderer.invoke('play-pause-song-hotkey:get');
+  },
+  /**
+   * 设置暂停/播放快捷键
+   */
+  playPauseSongHotkeySet: (accelerator: string): Promise<boolean> => {
+    return ipcRenderer.invoke('play-pause-song-hotkey:set', accelerator);
+  },
+  /**
    * 获取当前还原默认位置快捷键
    * @returns 当前快捷键字符串
    */

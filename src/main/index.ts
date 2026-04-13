@@ -39,6 +39,40 @@ if (!gotTheLock) {
   app.quit();
 }
 
+/**
+ * 读取切歌快捷键配置
+ * @returns 存储的快捷键字符串，不存在时返回默认值
+ */
+function readNextSongHotkeyConfig(): string {
+  try {
+    const storeDir = join(app.getPath('userData'), 'eIsland_store');
+    const filePath = join(storeDir, `${NEXT_SONG_HOTKEY_STORE_KEY}.json`);
+    if (!existsSync(filePath)) return DEFAULT_NEXT_SONG_HOTKEY;
+    const raw = readFileSync(filePath, 'utf-8');
+    const data = JSON.parse(raw);
+    return typeof data === 'string' ? data : DEFAULT_NEXT_SONG_HOTKEY;
+  } catch {
+    return DEFAULT_NEXT_SONG_HOTKEY;
+  }
+}
+
+/**
+ * 读取暂停/播放快捷键配置
+ * @returns 存储的快捷键字符串，不存在时返回默认值
+ */
+function readPlayPauseSongHotkeyConfig(): string {
+  try {
+    const storeDir = join(app.getPath('userData'), 'eIsland_store');
+    const filePath = join(storeDir, `${PLAY_PAUSE_SONG_HOTKEY_STORE_KEY}.json`);
+    if (!existsSync(filePath)) return DEFAULT_PLAY_PAUSE_SONG_HOTKEY;
+    const raw = readFileSync(filePath, 'utf-8');
+    const data = JSON.parse(raw);
+    return typeof data === 'string' ? data : DEFAULT_PLAY_PAUSE_SONG_HOTKEY;
+  } catch {
+    return DEFAULT_PLAY_PAUSE_SONG_HOTKEY;
+  }
+}
+
 function readClipboardUrlMonitorEnabledConfig(): boolean {
   try {
     const storeDir = join(app.getPath('userData'), 'eIsland_store');
@@ -775,6 +809,24 @@ const SCREENSHOT_HOTKEY_STORE_KEY = 'screenshot-hotkey';
 /** 默认截图快捷键 */
 const DEFAULT_SCREENSHOT_HOTKEY = 'Alt+A';
 
+/** 当前注册的切歌快捷键 */
+let currentNextSongHotkey: string = '';
+
+/** 切歌快捷键存储键名 */
+const NEXT_SONG_HOTKEY_STORE_KEY = 'next-song-hotkey';
+
+/** 默认切歌快捷键（空表示默认不设置） */
+const DEFAULT_NEXT_SONG_HOTKEY = '';
+
+/** 当前注册的暂停/播放快捷键 */
+let currentPlayPauseSongHotkey: string = '';
+
+/** 暂停/播放快捷键存储键名 */
+const PLAY_PAUSE_SONG_HOTKEY_STORE_KEY = 'play-pause-song-hotkey';
+
+/** 默认暂停/播放快捷键（空表示默认不设置） */
+const DEFAULT_PLAY_PAUSE_SONG_HOTKEY = '';
+
 /** 当前注册的还原位置快捷键 */
 let currentResetPositionHotkey: string = '';
 
@@ -970,6 +1022,56 @@ function registerScreenshotHotkey(accelerator: string): boolean {
 }
 
 /**
+ * 注册切歌的全局快捷键
+ * @param accelerator - Electron accelerator 字符串
+ */
+function registerNextSongHotkey(accelerator: string): boolean {
+  if (currentNextSongHotkey) {
+    try { globalShortcut.unregister(currentNextSongHotkey); } catch { /* ignore */ }
+    currentNextSongHotkey = '';
+  }
+  if (!accelerator) return true;
+  try {
+    const success = globalShortcut.register(accelerator, () => {
+      if (!isWhitelisted()) return;
+      sendMediaVirtualKey(0xB0);
+    });
+    if (success) {
+      currentNextSongHotkey = accelerator;
+    }
+    return success;
+  } catch (err) {
+    console.error('[NextSongHotkey] register error:', err);
+    return false;
+  }
+}
+
+/**
+ * 注册暂停/播放的全局快捷键
+ * @param accelerator - Electron accelerator 字符串
+ */
+function registerPlayPauseSongHotkey(accelerator: string): boolean {
+  if (currentPlayPauseSongHotkey) {
+    try { globalShortcut.unregister(currentPlayPauseSongHotkey); } catch { /* ignore */ }
+    currentPlayPauseSongHotkey = '';
+  }
+  if (!accelerator) return true;
+  try {
+    const success = globalShortcut.register(accelerator, () => {
+      if (!isWhitelisted()) return;
+      sendMediaVirtualKey(0xB3);
+    });
+    if (success) {
+      currentPlayPauseSongHotkey = accelerator;
+    }
+    return success;
+  } catch (err) {
+    console.error('[PlayPauseSongHotkey] register error:', err);
+    return false;
+  }
+}
+
+/**
  * 注册还原灵动岛默认位置的全局快捷键
  * @param accelerator - Electron accelerator 字符串
  */
@@ -999,6 +1101,8 @@ function suspendIslandHotkeys(): void {
   const hideHotkey = currentHideHotkey || readHotkeyConfig();
   const quitHotkey = currentQuitHotkey || readQuitHotkeyConfig();
   const ssHotkey = currentScreenshotHotkey || readScreenshotHotkeyConfig();
+  const nextSongHotkey = currentNextSongHotkey || readNextSongHotkeyConfig();
+  const playPauseSongHotkey = currentPlayPauseSongHotkey || readPlayPauseSongHotkeyConfig();
   const resetPosHotkey = currentResetPositionHotkey || readResetPositionHotkeyConfig();
   if (hideHotkey) {
     try { globalShortcut.unregister(hideHotkey); } catch { /* ignore */ }
@@ -1008,6 +1112,12 @@ function suspendIslandHotkeys(): void {
   }
   if (ssHotkey) {
     try { globalShortcut.unregister(ssHotkey); } catch { /* ignore */ }
+  }
+  if (nextSongHotkey) {
+    try { globalShortcut.unregister(nextSongHotkey); } catch { /* ignore */ }
+  }
+  if (playPauseSongHotkey) {
+    try { globalShortcut.unregister(playPauseSongHotkey); } catch { /* ignore */ }
   }
   if (resetPosHotkey) {
     try { globalShortcut.unregister(resetPosHotkey); } catch { /* ignore */ }
@@ -1019,10 +1129,14 @@ function resumeIslandHotkeys(): void {
   const hideHotkey = currentHideHotkey || readHotkeyConfig();
   const quitHotkey = currentQuitHotkey || readQuitHotkeyConfig();
   const ssHotkey = currentScreenshotHotkey || readScreenshotHotkeyConfig();
+  const nextSongHotkey = currentNextSongHotkey || readNextSongHotkeyConfig();
+  const playPauseSongHotkey = currentPlayPauseSongHotkey || readPlayPauseSongHotkeyConfig();
   const resetPosHotkey = currentResetPositionHotkey || readResetPositionHotkeyConfig();
   if (hideHotkey) registerHideHotkey(hideHotkey);
   if (quitHotkey) registerQuitHotkey(quitHotkey);
   if (ssHotkey) registerScreenshotHotkey(ssHotkey);
+  if (nextSongHotkey) registerNextSongHotkey(nextSongHotkey);
+  if (playPauseSongHotkey) registerPlayPauseSongHotkey(playPauseSongHotkey);
   if (resetPosHotkey) registerResetPositionHotkey(resetPosHotkey);
 }
 
@@ -2172,8 +2286,14 @@ function registerIpcHandlers(): void {
   ipcMain.handle('hotkey:set', (_event, accelerator: string) => {
     const currentQuit = currentQuitHotkey || readQuitHotkeyConfig();
     const currentSS = currentScreenshotHotkey || readScreenshotHotkeyConfig();
+    const currentNextSong = currentNextSongHotkey || readNextSongHotkeyConfig();
+    const currentPlayPauseSong = currentPlayPauseSongHotkey || readPlayPauseSongHotkeyConfig();
     const currentResetPos = currentResetPositionHotkey || readResetPositionHotkeyConfig();
-    if (accelerator && ((currentQuit && accelerator === currentQuit) || (currentSS && accelerator === currentSS) || (currentResetPos && accelerator === currentResetPos))) {
+    if (accelerator && ((currentQuit && accelerator === currentQuit)
+      || (currentSS && accelerator === currentSS)
+      || (currentNextSong && accelerator === currentNextSong)
+      || (currentPlayPauseSong && accelerator === currentPlayPauseSong)
+      || (currentResetPos && accelerator === currentResetPos))) {
       return false;
     }
     const success = registerHideHotkey(accelerator);
@@ -2184,6 +2304,66 @@ function registerIpcHandlers(): void {
         writeFileSync(filePath, JSON.stringify(accelerator, null, 2), 'utf-8');
       } catch (err) {
         console.error('[Hotkey] persist error:', err);
+      }
+    }
+    return success;
+  });
+
+  // ===== 音乐控制快捷键 IPC =====
+
+  ipcMain.handle('next-song-hotkey:get', () => {
+    return currentNextSongHotkey || readNextSongHotkeyConfig();
+  });
+
+  ipcMain.handle('next-song-hotkey:set', (_event, accelerator: string) => {
+    const currentHide = currentHideHotkey || readHotkeyConfig();
+    const currentQuit = currentQuitHotkey || readQuitHotkeyConfig();
+    const currentSS = currentScreenshotHotkey || readScreenshotHotkeyConfig();
+    const currentResetPos = currentResetPositionHotkey || readResetPositionHotkeyConfig();
+    const currentPlayPauseSong = currentPlayPauseSongHotkey || readPlayPauseSongHotkeyConfig();
+    if (accelerator && ((currentHide && accelerator === currentHide)
+      || (currentQuit && accelerator === currentQuit)
+      || (currentSS && accelerator === currentSS)
+      || (currentResetPos && accelerator === currentResetPos)
+      || (currentPlayPauseSong && accelerator === currentPlayPauseSong))) {
+      return false;
+    }
+    const success = registerNextSongHotkey(accelerator);
+    if (success) {
+      const filePath = join(storeDir, `${NEXT_SONG_HOTKEY_STORE_KEY}.json`);
+      try {
+        writeFileSync(filePath, JSON.stringify(accelerator, null, 2), 'utf-8');
+      } catch (err) {
+        console.error('[NextSongHotkey] persist error:', err);
+      }
+    }
+    return success;
+  });
+
+  ipcMain.handle('play-pause-song-hotkey:get', () => {
+    return currentPlayPauseSongHotkey || readPlayPauseSongHotkeyConfig();
+  });
+
+  ipcMain.handle('play-pause-song-hotkey:set', (_event, accelerator: string) => {
+    const currentHide = currentHideHotkey || readHotkeyConfig();
+    const currentQuit = currentQuitHotkey || readQuitHotkeyConfig();
+    const currentSS = currentScreenshotHotkey || readScreenshotHotkeyConfig();
+    const currentResetPos = currentResetPositionHotkey || readResetPositionHotkeyConfig();
+    const currentNextSong = currentNextSongHotkey || readNextSongHotkeyConfig();
+    if (accelerator && ((currentHide && accelerator === currentHide)
+      || (currentQuit && accelerator === currentQuit)
+      || (currentSS && accelerator === currentSS)
+      || (currentResetPos && accelerator === currentResetPos)
+      || (currentNextSong && accelerator === currentNextSong))) {
+      return false;
+    }
+    const success = registerPlayPauseSongHotkey(accelerator);
+    if (success) {
+      const filePath = join(storeDir, `${PLAY_PAUSE_SONG_HOTKEY_STORE_KEY}.json`);
+      try {
+        writeFileSync(filePath, JSON.stringify(accelerator, null, 2), 'utf-8');
+      } catch (err) {
+        console.error('[PlayPauseSongHotkey] persist error:', err);
       }
     }
     return success;
@@ -2209,7 +2389,13 @@ function registerIpcHandlers(): void {
     const currentHide = currentHideHotkey || readHotkeyConfig();
     const currentQuit = currentQuitHotkey || readQuitHotkeyConfig();
     const currentSS = currentScreenshotHotkey || readScreenshotHotkeyConfig();
-    if (accelerator && ((currentHide && accelerator === currentHide) || (currentQuit && accelerator === currentQuit) || (currentSS && accelerator === currentSS))) {
+    const currentNextSong = currentNextSongHotkey || readNextSongHotkeyConfig();
+    const currentPlayPauseSong = currentPlayPauseSongHotkey || readPlayPauseSongHotkeyConfig();
+    if (accelerator && ((currentHide && accelerator === currentHide)
+      || (currentQuit && accelerator === currentQuit)
+      || (currentSS && accelerator === currentSS)
+      || (currentNextSong && accelerator === currentNextSong)
+      || (currentPlayPauseSong && accelerator === currentPlayPauseSong))) {
       return false;
     }
     const success = registerResetPositionHotkey(accelerator);
@@ -2243,8 +2429,14 @@ function registerIpcHandlers(): void {
   ipcMain.handle('quit-hotkey:set', (_event, accelerator: string) => {
     const currentHide = currentHideHotkey || readHotkeyConfig();
     const currentSS = currentScreenshotHotkey || readScreenshotHotkeyConfig();
+    const currentNextSong = currentNextSongHotkey || readNextSongHotkeyConfig();
+    const currentPlayPauseSong = currentPlayPauseSongHotkey || readPlayPauseSongHotkeyConfig();
     const currentResetPos = currentResetPositionHotkey || readResetPositionHotkeyConfig();
-    if (accelerator && ((currentHide && accelerator === currentHide) || (currentSS && accelerator === currentSS) || (currentResetPos && accelerator === currentResetPos))) {
+    if (accelerator && ((currentHide && accelerator === currentHide)
+      || (currentSS && accelerator === currentSS)
+      || (currentNextSong && accelerator === currentNextSong)
+      || (currentPlayPauseSong && accelerator === currentPlayPauseSong)
+      || (currentResetPos && accelerator === currentResetPos))) {
       return false;
     }
     const success = registerQuitHotkey(accelerator);
@@ -2290,8 +2482,14 @@ function registerIpcHandlers(): void {
   ipcMain.handle('screenshot-hotkey:set', (_event, accelerator: string) => {
     const currentHide = currentHideHotkey || readHotkeyConfig();
     const currentQuit = currentQuitHotkey || readQuitHotkeyConfig();
+    const currentNextSong = currentNextSongHotkey || readNextSongHotkeyConfig();
+    const currentPlayPauseSong = currentPlayPauseSongHotkey || readPlayPauseSongHotkeyConfig();
     const currentResetPos = currentResetPositionHotkey || readResetPositionHotkeyConfig();
-    if (accelerator && ((currentHide && accelerator === currentHide) || (currentQuit && accelerator === currentQuit) || (currentResetPos && accelerator === currentResetPos))) {
+    if (accelerator && ((currentHide && accelerator === currentHide)
+      || (currentQuit && accelerator === currentQuit)
+      || (currentNextSong && accelerator === currentNextSong)
+      || (currentPlayPauseSong && accelerator === currentPlayPauseSong)
+      || (currentResetPos && accelerator === currentResetPos))) {
       return false;
     }
     const success = registerScreenshotHotkey(accelerator);
@@ -2836,6 +3034,14 @@ app.whenReady().then(() => {
   // 读取持久化截图快捷键并注册
   const savedScreenshotHotkey = readScreenshotHotkeyConfig();
   if (savedScreenshotHotkey) registerScreenshotHotkey(savedScreenshotHotkey);
+
+  // 读取持久化切歌快捷键并注册
+  const savedNextSongHotkey = readNextSongHotkeyConfig();
+  if (savedNextSongHotkey) registerNextSongHotkey(savedNextSongHotkey);
+
+  // 读取持久化暂停/播放快捷键并注册
+  const savedPlayPauseSongHotkey = readPlayPauseSongHotkeyConfig();
+  if (savedPlayPauseSongHotkey) registerPlayPauseSongHotkey(savedPlayPauseSongHotkey);
 
   // 读取持久化还原位置快捷键并注册
   const savedResetPositionHotkey = readResetPositionHotkeyConfig();
