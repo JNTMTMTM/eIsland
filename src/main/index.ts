@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import { app, BrowserWindow, shell, screen, desktopCapturer, globalShortcut } from 'electron';
+import { app, BrowserWindow, shell, screen, globalShortcut } from 'electron';
 import { join } from 'path';
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
 import { exec } from 'child_process';
@@ -55,7 +55,9 @@ import { registerHideProcessIpcHandlers } from './ipc/hideProcess';
 import { registerThemeIpcHandlers } from './ipc/theme';
 import { registerWindowIpcHandlers } from './ipc/window';
 import { registerMediaIpcHandlers } from './ipc/media';
+import { applyChromiumPerformanceFlags } from './services/chromiumFlags';
 import { initUpdaterService } from './services/updaterService';
+import { createCaptureWindowService } from './window/captureWindow';
 import {
   hasAnyRunningProcess,
   normalizeProcessName,
@@ -234,6 +236,9 @@ function readHideProcessListConfig(): string[] {
 }
 
 let mainWindow: BrowserWindow | null = null;
+const captureWindowService = createCaptureWindowService({
+  getMainWindow: () => mainWindow,
+});
 
 /** SMTC Worker 线程引用 */
 let smtcWorker: Worker | null = null;
@@ -690,148 +695,6 @@ function readScreenshotHotkeyConfig(): string {
   }
 }
 
-/** 截图窗口引用 */
-let captureWindow: BrowserWindow | null = null;
-
-/** 截图窗口启动中锁，防止高频热键并发创建多个窗口 */
-let isStartingCaptureWindow = false;
-
-/**
- * 获取 capture.html 的路径（兼容开发环境和打包环境）
- */
-function getCaptureHtmlPath(): string {
-  if (is.dev) {
-    return join(__dirname, '../../resources/capture.html');
-  }
-  return join(process.resourcesPath, 'capture.html');
-}
-
-/**
- * 关闭截图窗口并恢复灵动岛
- */
-function closeCaptureWindow(): void {
-  if (captureWindow && !captureWindow.isDestroyed()) {
-    captureWindow.close();
-  }
-}
-
-/**
- * 等待主窗口隐藏完成（短等待，避免固定延迟导致启动变慢）
- * @param timeoutMs - 兜底超时时间（毫秒）
- */
-async function waitForMainWindowHidden(timeoutMs: number = 80): Promise<void> {
-  const targetWindow = mainWindow;
-  if (!targetWindow || targetWindow.isDestroyed() || !targetWindow.isVisible()) {
-    return;
-  }
-
-  await new Promise<void>((resolve) => {
-    let settled = false;
-    const finish = () => {
-      if (settled) return;
-      settled = true;
-      if (!targetWindow.isDestroyed()) {
-        targetWindow.removeListener('hide', finish);
-      }
-      resolve();
-    };
-
-    targetWindow.once('hide', finish);
-    targetWindow.hide();
-    setTimeout(finish, timeoutMs);
-  });
-}
-
-/**
- * 启动选区截图流程
- * @description 捕获全屏图像 → 创建全屏透明窗口 → 发送图像到渲染进程 → 用户选区 → 裁剪回传
- */
-async function startRegionScreenshot(): Promise<void> {
-  if (captureWindow || isStartingCaptureWindow) return;
-  isStartingCaptureWindow = true;
-  try {
-    const primaryDisplay = screen.getPrimaryDisplay();
-    const { width: sw, height: sh } = primaryDisplay.size;
-    const sf = primaryDisplay.scaleFactor || 1;
-
-    // 先等待主窗口隐藏（事件驱动 + 短超时），避免固定 200ms 延迟
-    await waitForMainWindowHidden();
-
-    // 并行开始截图抓取与截图页加载，减少首屏等待
-    const sourcesPromise = desktopCapturer.getSources({
-      types: ['screen'],
-      thumbnailSize: { width: Math.round(sw * sf), height: Math.round(sh * sf) },
-    });
-
-    // 创建隐藏的截图窗口（加载完成后再显示）
-    captureWindow = new BrowserWindow({
-      width: sw,
-      height: sh,
-      x: primaryDisplay.bounds.x,
-      y: primaryDisplay.bounds.y,
-      show: false,
-      fullscreen: true,
-      transparent: true,
-      frame: false,
-      alwaysOnTop: true,
-      resizable: false,
-      movable: false,
-      hasShadow: false,
-      skipTaskbar: true,
-      backgroundColor: '#00000000',
-      webPreferences: {
-        nodeIntegration: true,
-        contextIsolation: false,
-      },
-    });
-
-    captureWindow.setAlwaysOnTop(true, 'screen-saver');
-
-    captureWindow.on('closed', () => {
-      captureWindow = null;
-      // 恢复灵动岛
-      if (mainWindow) {
-        mainWindow.show();
-        mainWindow.setAlwaysOnTop(true, 'screen-saver');
-      }
-    });
-
-    // 加载截图选区页面
-    const pageLoadPromise = captureWindow.loadFile(getCaptureHtmlPath());
-
-    const sources = await sourcesPromise;
-    if (sources.length === 0) {
-      closeCaptureWindow();
-      if (mainWindow) { mainWindow.show(); mainWindow.setAlwaysOnTop(true, 'screen-saver'); }
-      return;
-    }
-
-    const screenshot = sources[0].thumbnail;
-    const imageBytes = screenshot.toPNG();
-
-    await pageLoadPromise;
-
-    if (captureWindow && !captureWindow.isDestroyed()) {
-      captureWindow.webContents.send('capture-image', {
-        imageBytes,
-        display: primaryDisplay,
-        scaleFactor: sf,
-      });
-      captureWindow.show();
-      captureWindow.focus();
-    }
-  } catch (err) {
-    console.error('[Screenshot] start error:', err);
-    if (captureWindow && !captureWindow.isDestroyed()) {
-      captureWindow.destroy();
-    }
-    captureWindow = null;
-    if (mainWindow) { mainWindow.show(); mainWindow.setAlwaysOnTop(true, 'screen-saver'); }
-  } finally {
-    isStartingCaptureWindow = false;
-  }
-}
-
 /**
  * 注册截图的全局快捷键
  * @param accelerator - Electron accelerator 字符串（如 "Alt+A"）
@@ -844,7 +707,7 @@ function registerScreenshotHotkey(accelerator: string): boolean {
   if (!accelerator) return true;
   try {
     const success = globalShortcut.register(accelerator, () => {
-      startRegionScreenshot().catch((err) => {
+      captureWindowService.startRegionScreenshot().catch((err) => {
         console.error('[Screenshot] hotkey trigger error:', err);
       });
     });
@@ -1320,8 +1183,8 @@ function registerIpcHandlers(): void {
   });
 
   registerCaptureIpcHandlers({
-    getCaptureWindow: () => captureWindow,
-    closeCaptureWindow,
+    getCaptureWindow: captureWindowService.getCaptureWindow,
+    closeCaptureWindow: captureWindowService.closeCaptureWindow,
   });
 
   registerWallpaperIpcHandlers();
@@ -1564,30 +1427,7 @@ let clipboardUrlBlacklist: string[] = [...DEFAULT_CLIPBOARD_URL_BLACKLIST];
  * Chromium 性能优化：禁用不需要的内核功能以降低内存和 CPU 占用
  * @description 必须在 app.whenReady() 之前调用
  */
-app.commandLine.appendSwitch('disable-software-rasterizer');
-app.commandLine.appendSwitch('disable-gpu-shader-disk-cache');
-app.commandLine.appendSwitch('disable-backgrounding-occluded-windows');
-app.commandLine.appendSwitch('disable-renderer-backgrounding');
-app.commandLine.appendSwitch('disable-background-timer-throttling');
-app.commandLine.appendSwitch('disable-features',
-  [
-    'SpareRendererForSitePerProcess',
-    'HardwareMediaKeyHandling',
-    'MediaSessionService',
-    'WebRtcHideLocalIpsWithMdns',
-    'CalculateNativeWinOcclusion',
-    'WinRetrieveSuggestionsOnlyOnDemand',
-  ].join(',')
-);
-app.commandLine.appendSwitch('enable-features', 'BackForwardCache');
-app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
-app.commandLine.appendSwitch('disable-speech-api');
-app.commandLine.appendSwitch('disable-print-preview');
-app.commandLine.appendSwitch('disable-component-update');
-app.commandLine.appendSwitch('disable-breakpad');
-app.commandLine.appendSwitch('disable-domain-reliability');
-app.commandLine.appendSwitch('js-flags', '--max-old-space-size=128 --lite-mode');
-app.commandLine.appendSwitch('disable-dev-shm-usage');
+applyChromiumPerformanceFlags(app);
 
 /** 单实例锁回调 */
 app.on('second-instance', () => {
