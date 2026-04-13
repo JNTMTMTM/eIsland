@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import { app, BrowserWindow, shell, screen, desktopCapturer, globalShortcut, nativeImage } from 'electron';
+import { app, BrowserWindow, shell, screen, desktopCapturer, globalShortcut } from 'electron';
 import { join } from 'path';
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
 import { exec } from 'child_process';
@@ -55,6 +55,14 @@ import { registerHideProcessIpcHandlers } from './ipc/hideProcess';
 import { registerThemeIpcHandlers } from './ipc/theme';
 import { registerWindowIpcHandlers } from './ipc/window';
 import { registerMediaIpcHandlers } from './ipc/media';
+import { initUpdaterService } from './services/updaterService';
+import {
+  hasAnyRunningProcess,
+  normalizeProcessName,
+  queryRunningNonSystemProcessNames,
+  queryRunningNonSystemProcessesWithIcons,
+  sanitizeProcessNameList,
+} from './system/runningProcesses';
 
 /** 防止 Electron 创建多个实例 */
 const gotTheLock = app.requestSingleInstanceLock();
@@ -151,177 +159,9 @@ function readResetPositionHotkeyConfig(): string {
   }
 }
 
-function normalizeProcessName(name: string): string {
-  return name.trim().toLowerCase();
-}
-
 interface IslandPositionOffset {
   x: number;
   y: number;
-}
-
-function isSystemProcessName(processName: string): boolean {
-  const name = normalizeProcessName(processName);
-  if (!name) return true;
-
-  if (name === 'system' || name === 'system idle process' || name === 'registry' || name === 'memory compression') {
-    return true;
-  }
-
-  return [
-    /^smss\.exe$/,
-    /^csrss\.exe$/,
-    /^wininit\.exe$/,
-    /^winlogon\.exe$/,
-    /^services\.exe$/,
-    /^lsass\.exe$/,
-    /^fontdrvhost\.exe$/,
-    /^svchost\.exe$/,
-    /^sihost\.exe$/,
-    /^dwm\.exe$/,
-    /^taskhostw\.exe$/,
-    /^runtimebroker\.exe$/,
-    /^startmenuexperiencehost\.exe$/,
-    /^shellexperiencehost\.exe$/,
-    /^searchhost\.exe$/,
-  ].some((pattern) => pattern.test(name));
-}
-
-function parseTaskListProcessNames(raw: string): string[] {
-  const names = new Set<string>();
-  const lines = raw.split(/\r?\n/);
-
-  lines.forEach((line) => {
-    const text = line.trim();
-    if (!text) return;
-    const matched = text.match(/^"([^"]+)"/);
-    const processName = (matched?.[1] || text.split(',')[0] || '').trim();
-    if (!processName) return;
-    names.add(processName);
-  });
-
-  return [...names].sort((a, b) => a.localeCompare(b, 'zh-CN'));
-}
-
-function queryRunningProcessNames(): Promise<string[]> {
-  return new Promise((resolve) => {
-    exec('tasklist /fo csv /nh', {
-      windowsHide: true,
-      timeout: PROCESS_QUERY_TIMEOUT_MS,
-      maxBuffer: 1024 * 1024,
-    }, (err, stdout) => {
-      if (err) {
-        console.error('[Process] query running process failed:', err.message);
-        resolve([]);
-        return;
-      }
-      resolve(parseTaskListProcessNames(stdout));
-    });
-  });
-}
-
-async function queryRunningNonSystemProcessNames(): Promise<string[]> {
-  const all = await queryRunningProcessNames();
-  return all.filter((name) => !isSystemProcessName(name));
-}
-
-interface RunningProcessInfo {
-  name: string;
-  iconDataUrl: string | null;
-}
-
-function parseRunningProcessPathMap(raw: string): Map<string, string> {
-  const pathMap = new Map<string, string>();
-  const text = raw.replace(/^\uFEFF/, '').trim();
-  if (!text || (text[0] !== '[' && text[0] !== '{')) return pathMap;
-
-  try {
-    const parsed = JSON.parse(text);
-    const rows = Array.isArray(parsed) ? parsed : [parsed];
-
-    rows.forEach((row) => {
-      if (!row || typeof row !== 'object') return;
-      const nameValue = (row as { Name?: unknown }).Name;
-      const pathValue = (row as { ExecutablePath?: unknown }).ExecutablePath;
-      const processName = typeof nameValue === 'string' ? nameValue.trim() : '';
-      const executablePath = typeof pathValue === 'string' ? pathValue.trim() : '';
-      if (!processName || !executablePath) return;
-      pathMap.set(normalizeProcessName(processName), executablePath);
-    });
-  } catch {
-    return pathMap;
-  }
-
-  return pathMap;
-}
-
-function queryRunningProcessExecutablePathMap(): Promise<Map<string, string>> {
-  return new Promise((resolve) => {
-    const cmd = 'powershell.exe -NoProfile -NonInteractive -Command "Get-CimInstance Win32_Process | Select-Object Name,ExecutablePath | ConvertTo-Json -Compress"';
-    exec(cmd, {
-      windowsHide: true,
-      timeout: PROCESS_QUERY_TIMEOUT_MS,
-      maxBuffer: 6 * 1024 * 1024,
-    }, (err, stdout) => {
-      if (err) {
-        resolve(new Map<string, string>());
-        return;
-      }
-      resolve(parseRunningProcessPathMap(stdout));
-    });
-  });
-}
-
-async function getProcessIconDataUrl(processName: string, pathMap: Map<string, string>): Promise<string | null> {
-  const normalized = normalizeProcessName(processName);
-  if (!normalized) return null;
-
-  if (processIconCache.has(normalized)) {
-    return processIconCache.get(normalized) ?? null;
-  }
-
-  const executablePath = pathMap.get(normalized);
-  if (!executablePath) {
-    setProcessIconCache(normalized, null);
-    return null;
-  }
-
-  try {
-    const iconFromApi = await app.getFileIcon(executablePath, { size: 'small' });
-    if (!iconFromApi.isEmpty()) {
-      const dataUrl = iconFromApi.resize({ width: 16, height: 16 }).toDataURL();
-      setProcessIconCache(normalized, dataUrl);
-      return dataUrl;
-    }
-  } catch {
-    // ignore and fallback
-  }
-
-  try {
-    const icon = nativeImage.createFromPath(executablePath);
-    if (!icon.isEmpty()) {
-      const dataUrl = icon.resize({ width: 16, height: 16 }).toDataURL();
-      setProcessIconCache(normalized, dataUrl);
-      return dataUrl;
-    }
-  } catch {
-    // ignore and fallback to null
-  }
-
-  setProcessIconCache(normalized, null);
-  return null;
-}
-
-async function queryRunningNonSystemProcessesWithIcons(): Promise<RunningProcessInfo[]> {
-  const names = await queryRunningNonSystemProcessNames();
-  if (!names.length) return [];
-
-  const pathMap = await queryRunningProcessExecutablePathMap();
-  const items = await Promise.all(names.map(async (name) => ({
-    name,
-    iconDataUrl: await getProcessIconDataUrl(name, pathMap),
-  })));
-  return items;
 }
 
 async function checkAutoHideProcessList(): Promise<void> {
@@ -339,10 +179,7 @@ async function checkAutoHideProcessList(): Promise<void> {
       return;
     }
 
-    const running = await queryRunningProcessNames();
-
-    const runningSet = new Set(running.map(normalizeProcessName));
-    const shouldHide = autoHideProcessList.some((name) => runningSet.has(normalizeProcessName(name)));
+    const shouldHide = await hasAnyRunningProcess(autoHideProcessList);
 
     if (shouldHide) {
       if (mainWindow.isVisible()) {
@@ -383,22 +220,6 @@ function stopAutoHideProcessWatcher(): void {
   }
 }
 
-function sanitizeProcessNameList(list: string[]): string[] {
-  const normalizedSet = new Set<string>();
-  const sanitized: string[] = [];
-
-  list.forEach((item) => {
-    const text = item.trim();
-    if (!text) return;
-    const key = normalizeProcessName(text);
-    if (normalizedSet.has(key)) return;
-    normalizedSet.add(key);
-    sanitized.push(text);
-  });
-
-  return sanitized;
-}
-
 function readHideProcessListConfig(): string[] {
   try {
     const storeDir = join(app.getPath('userData'), 'eIsland_store');
@@ -432,12 +253,6 @@ const EXPANDED_FULL_HEIGHT = 150;
 /** 设置面板尺寸 */
 const SETTINGS_WIDTH = 860;
 const SETTINGS_HEIGHT = 400;
-
-/** 进程查询超时，避免挂起占用内存 */
-const PROCESS_QUERY_TIMEOUT_MS = 4000;
-
-/** 运行进程图标缓存上限，避免长期增长 */
-const PROCESS_ICON_CACHE_MAX = 240;
 
 /** SMTC 取消订阅设为永不取消时的值 */
 const SMTC_UNSUBSCRIBE_NEVER = 0;
@@ -577,9 +392,6 @@ let islandPositionOffset: IslandPositionOffset = { ...DEFAULT_ISLAND_POSITION_OF
 /** 隐藏进程名单轮询计时器 */
 let autoHideProcessWatcher: NodeJS.Timeout | null = null;
 
-/** 运行进程图标缓存（key 为 normalize 后的进程名） */
-const processIconCache = new Map<string, string | null>();
-
 /** 记录当前生效的设备ID（仅白名单内程序） */
 let currentDeviceId: string = nowPlayingWhitelist[0] || '';
 
@@ -631,16 +443,6 @@ let smtcUnsubscribeMs = DEFAULT_SMTC_UNSUBSCRIBE_MS;
 /** 待确认的播放源切换请求 */
 let pendingSourceSwitchId: string = '';
 let pendingSourceSwitchEntry: SmtcSessionRuntimeEntry | null = null;
-
-function setProcessIconCache(key: string, value: string | null): void {
-  if (!processIconCache.has(key) && processIconCache.size >= PROCESS_ICON_CACHE_MAX) {
-    const oldestKey = processIconCache.keys().next().value;
-    if (typeof oldestKey === 'string') {
-      processIconCache.delete(oldestKey);
-    }
-  }
-  processIconCache.set(key, value);
-}
 
 /**
  * 检查当前设备ID是否在白名单内
@@ -1860,59 +1662,13 @@ app.whenReady().then(() => {
   const savedResetPositionHotkey = readResetPositionHotkeyConfig();
   if (savedResetPositionHotkey) registerResetPositionHotkey(savedResetPositionHotkey);
 
-  // ===== 自动更新初始化 =====
-  autoUpdater.autoDownload = false;
-  autoUpdater.autoInstallOnAppQuit = false;
-  autoUpdater.allowPrerelease = false;
-  autoUpdater.forceDevUpdateConfig = true;
-  autoUpdater.logger = console;
-  console.log('[Updater] initialized, allowPrerelease=true, forceDevUpdateConfig=true');
-  console.log('[Updater] appPath:', app.getAppPath());
-  console.log('[Updater] isPackaged:', app.isPackaged);
-
-  autoUpdater.on('checking-for-update', () => {
-    console.log('[Updater] checking-for-update...');
+  initUpdaterService({
+    updater: autoUpdater,
+    getMainWindow: () => mainWindow,
+    getAppPath: () => app.getAppPath(),
+    isPackaged: () => app.isPackaged,
+    autoCheckDelayMs: 5000,
   });
-  autoUpdater.on('update-available', (info) => {
-    console.log('[Updater] update-available:', info.version);
-    if (mainWindow && !mainWindow.isDestroyed()) {
-      mainWindow.webContents.send('updater:update-available', {
-        version: info.version,
-        releaseNotes: typeof info.releaseNotes === 'string' ? info.releaseNotes : '',
-      });
-    }
-  });
-  autoUpdater.on('update-not-available', (info) => {
-    console.log('[Updater] update-not-available, current:', info.version);
-  });
-  autoUpdater.on('download-progress', (progress) => {
-    console.log(`[Updater] download-progress: ${progress.percent.toFixed(1)}%  ${(progress.bytesPerSecond / 1024 / 1024).toFixed(1)} MB/s  ${progress.transferred}/${progress.total}`);
-    if (mainWindow && !mainWindow.isDestroyed()) {
-      mainWindow.webContents.send('updater:download-progress', {
-        percent: progress.percent,
-        transferred: progress.transferred,
-        total: progress.total,
-        bytesPerSecond: progress.bytesPerSecond,
-      });
-    }
-  });
-  autoUpdater.on('update-downloaded', (info) => {
-    console.log('[Updater] update-downloaded:', info.version);
-    if (mainWindow && !mainWindow.isDestroyed()) {
-      mainWindow.webContents.send('updater:update-downloaded', { version: info.version });
-    }
-  });
-  autoUpdater.on('error', (err) => {
-    console.error('[Updater] error:', err.message);
-  });
-
-  // 启动后自动检查更新，延迟确保渲染进程就绪
-  setTimeout(() => {
-    console.log('[Updater] auto-checking for updates on startup...');
-    autoUpdater.checkForUpdates().catch((err) => {
-      console.error('[Updater] auto-check error:', err);
-    });
-  }, 5000);
 
   app.on('activate', function () {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
