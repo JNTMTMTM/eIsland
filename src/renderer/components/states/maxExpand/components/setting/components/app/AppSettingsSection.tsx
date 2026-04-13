@@ -624,11 +624,12 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
                         setClipboardBlacklistError('该域名已在黑名单中');
                         return;
                       }
-                      const next = [...clipboardUrlBlacklist, domain];
+                      const prev = clipboardUrlBlacklist;
+                      const next = [...prev, domain];
                       setClipboardUrlBlacklist(next);
                       setClipboardBlacklistDraft('');
                       window.api.clipboardUrlBlacklistSet(next).catch(() => {
-                        setClipboardUrlBlacklist(clipboardUrlBlacklist);
+                        setClipboardUrlBlacklist(prev);
                         setClipboardBlacklistError('保存失败，请稍后重试');
                       });
                     }}
@@ -647,11 +648,12 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
                         setClipboardBlacklistError('该域名已在黑名单中');
                         return;
                       }
-                      const next = [...clipboardUrlBlacklist, domain];
+                      const prev = clipboardUrlBlacklist;
+                      const next = [...prev, domain];
                       setClipboardUrlBlacklist(next);
                       setClipboardBlacklistDraft('');
                       window.api.clipboardUrlBlacklistSet(next).catch(() => {
-                        setClipboardUrlBlacklist(clipboardUrlBlacklist);
+                        setClipboardUrlBlacklist(prev);
                         setClipboardBlacklistError('保存失败，请稍后重试');
                       });
                     }}
