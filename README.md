@@ -12,21 +12,17 @@ Windows 灵动岛桌面应用，基于 Electron + React + TypeScript 构建。
 
 ![总览界面](assets/1.png)
 
-### 2. 歌曲界面
+### 2. 天气界面
 
-![歌曲界面](assets/2.png)
+![天气界面](assets/2.png)
 
-### 3. 快捷启动编辑界面
+### 3. 歌词界面
 
-![快捷启动编辑界面](assets/3.png)
+![歌词界面](assets/3.png)
 
-### 4. 倒数日编辑界面
+### 4. 设置界面
 
-![倒数日编辑界面](assets/4.png)
-
-### 5. 设置界面
-
-![设置界面](assets/5.png)
+![设置界面](assets/4.png)
 
 ---
 
