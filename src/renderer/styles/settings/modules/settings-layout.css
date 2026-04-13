@@ -1440,3 +1440,21 @@
   height: 6px;
   border-radius: 3px;
 }
+
+/** ========== 背景图片预览 ========== */
+.settings-bg-preview {
+  width: 100%;
+  max-width: 200px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(var(--color-text-rgb), 0.12);
+}
+
+.settings-bg-preview-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 100px;
+  object-fit: cover;
+  border-radius: 8px;
+}

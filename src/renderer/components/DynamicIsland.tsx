@@ -307,6 +307,20 @@ function DynamicIsland(): React.JSX.Element {
       window.api?.expandMouseleaveIdleGet?.().then((v) => { expandLeaveIdleRef.current = v; }).catch(() => {});
       window.api?.maxexpandMouseleaveIdleGet?.().then((v) => { maxExpandLeaveIdleRef.current = v; }).catch(() => {});
 
+      Promise.all([
+        window.api?.storeRead?.('island-bg-image') as Promise<string | null>,
+        window.api?.storeRead?.('island-bg-opacity') as Promise<number | null>,
+      ]).then(([bgImage, bgOpacity]) => {
+        const el = document.getElementById('island-bg-layer');
+        if (!el) return;
+        if (bgImage && typeof bgImage === 'string') {
+          el.style.backgroundImage = `url(${bgImage})`;
+        }
+        if (typeof bgOpacity === 'number' && Number.isFinite(bgOpacity)) {
+          el.style.opacity = String(Math.max(0, Math.min(100, bgOpacity)) / 100);
+        }
+      }).catch(() => {});
+
       // 首次启动或更新后显示引导页
       Promise.all([
         window.api?.storeRead?.('guide-shown-version') as Promise<string | null>,
@@ -652,6 +666,7 @@ function DynamicIsland(): React.JSX.Element {
         '--glow-b': b,
       } as React.CSSProperties : undefined}
     >
+      <div className="island-bg-layer" id="island-bg-layer" />
       {stateRenderers
         .filter(renderer => renderer.state === state)
         .map(renderer => (

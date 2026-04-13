@@ -80,6 +80,14 @@ interface AppSettingsSectionProps {
   setMaxExpandLeaveIdle: (value: boolean) => void;
   autostartMode: 'disabled' | 'enabled' | 'high-priority';
   setAutostartMode: (mode: 'disabled' | 'enabled' | 'high-priority') => void;
+  bgImage: string | null;
+  bgImageOpacity: number;
+  setBgImageOpacity: (value: number) => void;
+  applyBgOpacity: (value: number) => void;
+  persistBgOpacity: (value: number) => void;
+  bgOpacitySaveTimerRef: { current: ReturnType<typeof setTimeout> | null };
+  handleSelectBgImage: () => Promise<void>;
+  handleClearBgImage: () => void;
   appSettingsPages: AppSettingsPageKey[];
   settingsTabLabels: Record<string, string>;
   setAppSettingsPage: (page: AppSettingsPageKey) => void;
@@ -133,6 +141,14 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
     autostartMode,
     setAutostartMode,
 
+    bgImage,
+    bgImageOpacity,
+    setBgImageOpacity,
+    applyBgOpacity,
+    persistBgOpacity,
+    bgOpacitySaveTimerRef,
+    handleSelectBgImage,
+    handleClearBgImage,
     appSettingsPages,
     settingsTabLabels,
     setAppSettingsPage,
@@ -370,6 +386,58 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
                     </button>
                   ))}
                 </div>
+
+                <div className="settings-music-label" style={{ marginTop: 14 }}>背景图片</div>
+                <div className="settings-music-hint">为灵动岛设置自定义背景图片，支持 jpg / png / gif / webp</div>
+                <div className="settings-hotkey-row" style={{ marginTop: 8, gap: 8, alignItems: 'center' }}>
+                  <button className="settings-hotkey-btn" type="button" onClick={() => { handleSelectBgImage().catch(() => {}); }}>
+                    {bgImage ? '更换图片' : '选择图片'}
+                  </button>
+                  {bgImage && (
+                    <button className="settings-hotkey-btn" type="button" onClick={handleClearBgImage}>
+                      清除图片
+                    </button>
+                  )}
+                </div>
+                {bgImage && (
+                  <>
+                    <div className="settings-bg-preview" style={{ marginTop: 8 }}>
+                      <img src={bgImage} alt="背景预览" className="settings-bg-preview-img" />
+                    </div>
+                    <div className="settings-music-hint" style={{ marginTop: 8 }}>背景图片透明度（0% - 100%），数值越高图片越明显</div>
+                    <div className="settings-opacity-slider-row">
+                      <input
+                        className="settings-opacity-slider"
+                        type="range"
+                        min={0}
+                        max={100}
+                        step={1}
+                        value={bgImageOpacity}
+                        onChange={(e) => {
+                          const v = Number(e.target.value);
+                          const safe = Number.isFinite(v) ? Math.max(0, Math.min(100, Math.round(v))) : 30;
+                          setBgImageOpacity(safe);
+                          applyBgOpacity(safe);
+                          if (bgOpacitySaveTimerRef.current) {
+                            clearTimeout(bgOpacitySaveTimerRef.current);
+                          }
+                          bgOpacitySaveTimerRef.current = setTimeout(() => {
+                            persistBgOpacity(safe);
+                            bgOpacitySaveTimerRef.current = null;
+                          }, 220);
+                        }}
+                        onBlur={() => {
+                          if (bgOpacitySaveTimerRef.current) {
+                            clearTimeout(bgOpacitySaveTimerRef.current);
+                            bgOpacitySaveTimerRef.current = null;
+                          }
+                          persistBgOpacity(bgImageOpacity);
+                        }}
+                      />
+                      <span className="settings-opacity-slider-value">{bgImageOpacity}%</span>
+                    </div>
+                  </>
+                )}
 
                 <div className="settings-music-label" style={{ marginTop: 14 }}>灵动岛透明度</div>
                 <div className="settings-music-hint">数值越低越透明（10% - 100%），调整后立即生效</div>

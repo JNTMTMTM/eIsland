@@ -189,6 +189,9 @@ export function SettingsTab(): ReactElement {
   const [hideProcessLoading, setHideProcessLoading] = useState(false);
   const [themeMode, setThemeModeState] = useState<ThemeMode>(getThemeMode);
   const [islandOpacity, setIslandOpacity] = useState<number>(100);
+  const [bgImage, setBgImage] = useState<string | null>(null);
+  const [bgImageOpacity, setBgImageOpacity] = useState<number>(30);
+  const bgOpacitySaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [islandPositionOffset, setIslandPositionOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [islandPositionInput, setIslandPositionInput] = useState<{ x: string; y: string }>({ x: '0', y: '0' });
   const [aboutVersion, setAboutVersion] = useState<string>('');
@@ -206,6 +209,45 @@ export function SettingsTab(): ReactElement {
 
   const persistIslandOpacity = (opacity: number): void => {
     window.api.islandOpacitySet(opacity).catch(() => {});
+  };
+
+  const applyBgImage = (dataUrl: string | null): void => {
+    const el = document.getElementById('island-bg-layer');
+    if (!el) return;
+    if (dataUrl) {
+      el.style.backgroundImage = `url(${dataUrl})`;
+      el.style.opacity = String(bgImageOpacity / 100);
+    } else {
+      el.style.backgroundImage = '';
+      el.style.opacity = '0';
+    }
+  };
+
+  const applyBgOpacity = (value: number): void => {
+    const el = document.getElementById('island-bg-layer');
+    if (el) el.style.opacity = String(value / 100);
+  };
+
+  const persistBgImage = (dataUrl: string | null): void => {
+    window.api.storeWrite('island-bg-image', dataUrl).catch(() => {});
+  };
+
+  const persistBgOpacity = (value: number): void => {
+    window.api.storeWrite('island-bg-opacity', value).catch(() => {});
+  };
+
+  const handleSelectBgImage = async (): Promise<void> => {
+    const dataUrl = await window.api.openImageDialog();
+    if (!dataUrl) return;
+    setBgImage(dataUrl);
+    applyBgImage(dataUrl);
+    persistBgImage(dataUrl);
+  };
+
+  const handleClearBgImage = (): void => {
+    setBgImage(null);
+    applyBgImage(null);
+    persistBgImage(null);
   };
 
   const visibleCards = useMemo(() => {
@@ -315,6 +357,14 @@ export function SettingsTab(): ReactElement {
       const safe = typeof val === 'number' ? Math.max(10, Math.min(100, Math.round(val))) : 100;
       setIslandOpacity(safe);
       applyIslandOpacity(safe);
+    }).catch(() => {});
+    Promise.all([
+      window.api.storeRead('island-bg-image') as Promise<string | null>,
+      window.api.storeRead('island-bg-opacity') as Promise<number | null>,
+    ]).then(([img, opacity]) => {
+      if (cancelled) return;
+      if (img && typeof img === 'string') setBgImage(img);
+      if (typeof opacity === 'number' && Number.isFinite(opacity)) setBgImageOpacity(Math.max(0, Math.min(100, Math.round(opacity))));
     }).catch(() => {});
     return () => { cancelled = true; };
   }, []);
@@ -1190,6 +1240,14 @@ export function SettingsTab(): ReactElement {
               setMaxExpandLeaveIdle={setMaxExpandLeaveIdle}
               autostartMode={autostartMode}
               setAutostartMode={setAutostartMode}
+              bgImage={bgImage}
+              bgImageOpacity={bgImageOpacity}
+              setBgImageOpacity={setBgImageOpacity}
+              applyBgOpacity={applyBgOpacity}
+              persistBgOpacity={persistBgOpacity}
+              bgOpacitySaveTimerRef={bgOpacitySaveTimerRef}
+              handleSelectBgImage={handleSelectBgImage}
+              handleClearBgImage={handleClearBgImage}
               appSettingsPages={APP_SETTINGS_PAGES}
               settingsTabLabels={SETTINGS_TAB_LABELS}
               setAppSettingsPage={setAppSettingsPage}
