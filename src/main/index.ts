@@ -41,6 +41,7 @@ import { startClipboardUrlWatcher, stopClipboardUrlWatcher } from './clipboard/u
 import { registerClipboardIpcHandlers } from './ipc/clipboard';
 import { registerCaptureIpcHandlers } from './ipc/capture';
 import { registerScreenshotHotkeyIpcHandlers } from './ipc/screenshotHotkey';
+import { registerAppIpcHandlers } from './ipc/app';
 import { registerSystemIpcHandlers } from './ipc/system';
 import { registerUpdaterIpcHandlers } from './ipc/updater';
 
@@ -1569,36 +1570,6 @@ function registerIpcHandlers(): void {
     // SMTCMonitor 暂不支持设置音量
   });
 
-  /** 获取文件图标（base64 PNG） */
-  ipcMain.handle('app:get-file-icon', async (_event, filePath: string) => {
-    try {
-      let iconPath = filePath;
-      // .lnk 文件先解析目标，从目标获取图标
-      if (process.platform === 'win32' && filePath.toLowerCase().endsWith('.lnk')) {
-        try {
-          const result = shell.readShortcutLink(filePath);
-          if (result.target) iconPath = result.target;
-        } catch { /* 解析失败则用原路径 */ }
-      }
-      const icon = await app.getFileIcon(iconPath, { size: 'large' });
-      return icon.toPNG().toString('base64');
-    } catch (err) {
-      console.error('[App] get-file-icon error:', err);
-      return null;
-    }
-  });
-
-  /** 打开文件/应用 */
-  ipcMain.handle('app:open-file', async (_event, filePath: string) => {
-    try {
-      await shell.openPath(filePath);
-      return true;
-    } catch (err) {
-      console.error('[App] open-file error:', err);
-      return false;
-    }
-  });
-
   ipcMain.handle('music:smtc-unsubscribe-ms:get', () => {
     return smtcUnsubscribeMs;
   });
@@ -2431,6 +2402,8 @@ function registerIpcHandlers(): void {
     getCaptureWindow: () => captureWindow,
     closeCaptureWindow,
   });
+
+  registerAppIpcHandlers();
 
   registerSystemIpcHandlers();
 
