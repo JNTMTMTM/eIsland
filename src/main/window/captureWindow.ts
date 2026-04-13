@@ -1,5 +1,6 @@
 import { app, BrowserWindow, desktopCapturer, screen } from 'electron';
 import { join } from 'path';
+import { existsSync } from 'fs';
 import { is } from '@electron-toolkit/utils';
 
 interface CreateCaptureWindowServiceOptions {
@@ -18,7 +19,19 @@ export function createCaptureWindowService(options: CreateCaptureWindowServiceOp
 
   function getCaptureHtmlPath(): string {
     if (is.dev) {
-      return join(app.getAppPath(), 'resources', 'capture.html');
+      const candidates = [
+        join(process.cwd(), 'resources', 'capture.html'),
+        join(app.getAppPath(), 'resources', 'capture.html'),
+        join(__dirname, '../../../resources/capture.html'),
+      ];
+
+      for (const candidate of candidates) {
+        if (existsSync(candidate)) {
+          return candidate;
+        }
+      }
+
+      return candidates[0];
     }
     return join(process.resourcesPath, 'capture.html');
   }
