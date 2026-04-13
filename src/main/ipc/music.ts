@@ -17,6 +17,7 @@ interface RegisterMusicIpcHandlersOptions {
   getSmtcUnsubscribeMs: () => number;
   setSmtcUnsubscribeMs: (value: number) => void;
   sanitizeSmtcUnsubscribeMs: (value: unknown) => number;
+  detectSourceAppId: () => string;
 }
 
 export function registerMusicIpcHandlers(options: RegisterMusicIpcHandlersOptions): void {
@@ -111,6 +112,19 @@ export function registerMusicIpcHandlers(options: RegisterMusicIpcHandlersOption
     } catch (err) {
       console.error('[SMTCUnsubscribe] persist error:', err);
       return false;
+    }
+  });
+
+  ipcMain.handle('music:detect-source-app-id', async () => {
+    try {
+      const sourceAppId = options.detectSourceAppId().trim();
+      if (!sourceAppId) {
+        return { ok: false, sourceAppId: null, message: '获取失败：当前无播放程序' };
+      }
+      return { ok: true, sourceAppId, message: '获取成功' };
+    } catch (error) {
+      console.error('[Music] detect source app id failed:', error);
+      return { ok: false, sourceAppId: null, message: '获取失败：读取会话异常' };
     }
   });
 }

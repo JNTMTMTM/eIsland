@@ -1587,6 +1587,7 @@ function registerIpcHandlers(): void {
       smtcUnsubscribeMs = value;
     },
     sanitizeSmtcUnsubscribeMs,
+    detectSourceAppId: () => pickDetectedSourceAppId(),
   });
 
   // ===== 歌曲设置 IPC =====
@@ -1804,23 +1805,6 @@ function registerIpcHandlers(): void {
     } catch (err) {
       console.error('[NavOrder] persist error:', err);
       return false;
-    }
-  });
-
-  /**
-   * 获取当前播放进程 sourceAppId
-   * @returns 获取结果（成功时返回 sourceAppId，失败时返回 null）
-   */
-  ipcMain.handle('music:detect-source-app-id', async () => {
-    try {
-      const sourceAppId = pickDetectedSourceAppId().trim();
-      if (!sourceAppId) {
-        return { ok: false, sourceAppId: null, message: '获取失败：当前无播放程序' };
-      }
-      return { ok: true, sourceAppId, message: '获取成功' };
-    } catch (error) {
-      console.error('[Music] detect source app id failed:', error);
-      return { ok: false, sourceAppId: null, message: '获取失败：读取会话异常' };
     }
   });
 
