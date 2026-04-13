@@ -478,6 +478,27 @@ function DynamicIsland(): React.JSX.Element {
     };
   }, []);
 
+  // 订阅剪贴板 URL 检测事件（主进程推送）
+  useEffect(() => {
+    const unsubClipboard = window.api?.onClipboardUrlsDetected?.((urls) => {
+      let faviconUrl: string | undefined;
+      try {
+        const origin = new URL(urls[0]).origin;
+        faviconUrl = `${origin}/favicon.ico`;
+      } catch { /* ignore */ }
+      setNotificationRef.current({
+        title: '检测到链接',
+        body: urls.length > 1 ? `剪贴板中包含 ${urls.length} 个链接` : urls[0],
+        icon: faviconUrl || SvgIcon.LINK,
+        type: 'clipboard-url',
+        urls,
+      });
+    });
+    return () => {
+      unsubClipboard?.();
+    };
+  }, []);
+
   // 必须放在 useEffect 之前，且 useCallback 依赖为空（所有依赖都是 ref/函数）
   const clearAllTimers = React.useCallback(() => {
     if (enterTimerRef.current !== null) {
@@ -623,6 +644,7 @@ function DynamicIsland(): React.JSX.Element {
           type={notification.type}
           sourceAppId={notification.sourceAppId}
           updateVersion={notification.updateVersion}
+          urls={notification.urls}
         />
       ),
     },

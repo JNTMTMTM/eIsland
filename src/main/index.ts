@@ -2261,6 +2261,18 @@ function registerIpcHandlers(): void {
     closeCaptureWindow();
   });
 
+  // ===== 剪贴板 URL IPC =====
+
+  /** 用外部浏览器打开指定 URL */
+  ipcMain.handle('clipboard:open-url', (_event, url: string) => {
+    try {
+      shell.openExternal(url);
+      return true;
+    } catch {
+      return false;
+    }
+  });
+
   // ===== 自动更新 IPC =====
 
   /** 检查更新 */
@@ -2535,6 +2547,58 @@ function cleanupStaleSmtcRuntime(sessionRuntime: Map<string, SmtcSessionRuntimeE
   });
 }
 
+// ===== 剪贴板 URL 监听 =====
+
+/** 上一次剪贴板文本 */
+let lastClipboardText = '';
+/** 剪贴板轮询定时器 */
+let clipboardPollTimer: ReturnType<typeof setInterval> | null = null;
+
+/** URL 正则 */
+const URL_REGEX = /https?:\/\/[^\s<>"{}|\\^`\[\]]+/gi;
+
+/**
+ * 从文本中提取所有 URL（去重）
+ * @param text - 剪贴板文本
+ * @returns 去重后的 URL 数组
+ */
+function extractUrls(text: string): string[] {
+  const matches = text.match(URL_REGEX);
+  if (!matches) return [];
+  return [...new Set(matches)];
+}
+
+/**
+ * 启动剪贴板 URL 监听轮询
+ * @param win - 主窗口引用
+ */
+function startClipboardUrlWatcher(win: BrowserWindow | null): void {
+  if (clipboardPollTimer) return;
+  lastClipboardText = clipboard.readText() || '';
+
+  clipboardPollTimer = setInterval(() => {
+    if (!win || win.isDestroyed()) return;
+    const current = clipboard.readText() || '';
+    if (current === lastClipboardText) return;
+    lastClipboardText = current;
+
+    const urls = extractUrls(current);
+    if (urls.length > 0) {
+      win.webContents.send('clipboard:urls-detected', urls);
+    }
+  }, 1000);
+}
+
+/**
+ * 停止剪贴板 URL 监听轮询
+ */
+function stopClipboardUrlWatcher(): void {
+  if (clipboardPollTimer) {
+    clearInterval(clipboardPollTimer);
+    clipboardPollTimer = null;
+  }
+}
+
 /**
  * Chromium 性能优化：禁用不需要的内核功能以降低内存和 CPU 占用
  * @description 必须在 app.whenReady() 之前调用
@@ -2588,6 +2652,7 @@ app.whenReady().then(() => {
   createTray(mainWindow);
 
   initSmtcWorker(mainWindow);
+  startClipboardUrlWatcher(mainWindow);
 
   registerIpcHandlers();
 
@@ -2681,6 +2746,7 @@ app.whenReady().then(() => {
 
 app.on('will-quit', () => {
   stopAutoHideProcessWatcher();
+  stopClipboardUrlWatcher();
   globalShortcut.unregisterAll();
 });
 

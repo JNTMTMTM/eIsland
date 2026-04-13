@@ -74,7 +74,9 @@ export const SvgIcon = {
   /** 更新 */
   UPDATE: './svg/UPDATE.svg',
   /** 教程 */
-  GUIDE: './svg/GUIDE.svg'
+  GUIDE: './svg/GUIDE.svg',
+  /** 链接 */
+  LINK: './svg/LINK.svg'
 } as const;
 
 export type SvgIconKey = keyof typeof SvgIcon;

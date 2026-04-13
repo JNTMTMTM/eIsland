@@ -162,6 +162,9 @@ declare global {
       onUpdaterProgress: (callback: (progress: { percent: number; transferred: number; total: number; bytesPerSecond: number }) => void) => () => void;
       onUpdaterDownloaded: (callback: (data: { version: string }) => void) => () => void;
       onUpdaterAvailable: (callback: (data: { version: string; releaseNotes: string }) => void) => () => void;
+      /** ===== 剪贴板 URL 监听 API ===== */
+      onClipboardUrlsDetected: (callback: (urls: string[]) => void) => () => void;
+      clipboardOpenUrl: (url: string) => Promise<boolean>;
     };
   }
 }

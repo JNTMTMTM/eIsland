@@ -659,6 +659,29 @@ const api = {
     return () => {
       ipcRenderer.removeListener('updater:update-available', handler);
     };
+  },
+  /** ===== 剪贴板 URL 监听 API ===== */
+  /**
+   * 监听剪贴板中检测到的 URL
+   * @param callback - 回调函数，接收 URL 数组
+   * @returns 取消监听函数
+   */
+  onClipboardUrlsDetected: (callback: (urls: string[]) => void): (() => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, urls: string[]): void => {
+      callback(urls);
+    };
+    ipcRenderer.on('clipboard:urls-detected', handler);
+    return () => {
+      ipcRenderer.removeListener('clipboard:urls-detected', handler);
+    };
+  },
+  /**
+   * 用外部浏览器打开指定 URL
+   * @param url - 要打开的 URL
+   * @returns 是否成功
+   */
+  clipboardOpenUrl: (url: string): Promise<boolean> => {
+    return ipcRenderer.invoke('clipboard:open-url', url);
   }
 };
 
