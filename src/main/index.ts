@@ -49,6 +49,7 @@ import { registerNetIpcHandlers } from './ipc/net';
 import { registerStoreIpcHandlers } from './ipc/store';
 import { registerLogIpcHandlers } from './ipc/log';
 import { registerMusicIpcHandlers } from './ipc/music';
+import { registerHotkeyIpcHandlers } from './ipc/hotkey';
 
 /** 防止 Electron 创建多个实例 */
 const gotTheLock = app.requestSingleInstanceLock();
@@ -1849,200 +1850,32 @@ function registerIpcHandlers(): void {
     }
   });
 
-  // ===== 快捷键 IPC =====
-
-  /**
-   * 获取当前隐藏快捷键配置
-   * @returns 当前快捷键字符串
-   */
-  ipcMain.handle('hotkey:get', () => {
-    return currentHideHotkey || readHotkeyConfig();
-  });
-
-  /**
-   * 设置隐藏快捷键并持久化
-   * @param _event - IPC 事件
-   * @param accelerator - 新的快捷键字符串
-   * @returns 是否注册成功
-   */
-  ipcMain.handle('hotkey:set', (_event, accelerator: string) => {
-    const currentQuit = currentQuitHotkey || readQuitHotkeyConfig();
-    const currentSS = currentScreenshotHotkey || readScreenshotHotkeyConfig();
-    const currentNextSong = currentNextSongHotkey || readNextSongHotkeyConfig();
-    const currentPlayPauseSong = currentPlayPauseSongHotkey || readPlayPauseSongHotkeyConfig();
-    const currentResetPos = currentResetPositionHotkey || readResetPositionHotkeyConfig();
-    if (accelerator && ((currentQuit && accelerator === currentQuit)
-      || (currentSS && accelerator === currentSS)
-      || (currentNextSong && accelerator === currentNextSong)
-      || (currentPlayPauseSong && accelerator === currentPlayPauseSong)
-      || (currentResetPos && accelerator === currentResetPos))) {
-      return false;
-    }
-    const success = registerHideHotkey(accelerator);
-    if (success) {
-      // 持久化到 store
-      const filePath = join(storeDir, `${HOTKEY_STORE_KEY}.json`);
-      try {
-        writeFileSync(filePath, JSON.stringify(accelerator, null, 2), 'utf-8');
-      } catch (err) {
-        console.error('[Hotkey] persist error:', err);
-      }
-    }
-    return success;
-  });
-
-  // ===== 音乐控制快捷键 IPC =====
-
-  ipcMain.handle('next-song-hotkey:get', () => {
-    return currentNextSongHotkey || readNextSongHotkeyConfig();
-  });
-
-  ipcMain.handle('next-song-hotkey:set', (_event, accelerator: string) => {
-    const currentHide = currentHideHotkey || readHotkeyConfig();
-    const currentQuit = currentQuitHotkey || readQuitHotkeyConfig();
-    const currentSS = currentScreenshotHotkey || readScreenshotHotkeyConfig();
-    const currentResetPos = currentResetPositionHotkey || readResetPositionHotkeyConfig();
-    const currentPlayPauseSong = currentPlayPauseSongHotkey || readPlayPauseSongHotkeyConfig();
-    if (accelerator && ((currentHide && accelerator === currentHide)
-      || (currentQuit && accelerator === currentQuit)
-      || (currentSS && accelerator === currentSS)
-      || (currentResetPos && accelerator === currentResetPos)
-      || (currentPlayPauseSong && accelerator === currentPlayPauseSong))) {
-      return false;
-    }
-    const success = registerNextSongHotkey(accelerator);
-    if (success) {
-      const filePath = join(storeDir, `${NEXT_SONG_HOTKEY_STORE_KEY}.json`);
-      try {
-        writeFileSync(filePath, JSON.stringify(accelerator, null, 2), 'utf-8');
-      } catch (err) {
-        console.error('[NextSongHotkey] persist error:', err);
-      }
-    }
-    return success;
-  });
-
-  ipcMain.handle('play-pause-song-hotkey:get', () => {
-    return currentPlayPauseSongHotkey || readPlayPauseSongHotkeyConfig();
-  });
-
-  ipcMain.handle('play-pause-song-hotkey:set', (_event, accelerator: string) => {
-    const currentHide = currentHideHotkey || readHotkeyConfig();
-    const currentQuit = currentQuitHotkey || readQuitHotkeyConfig();
-    const currentSS = currentScreenshotHotkey || readScreenshotHotkeyConfig();
-    const currentResetPos = currentResetPositionHotkey || readResetPositionHotkeyConfig();
-    const currentNextSong = currentNextSongHotkey || readNextSongHotkeyConfig();
-    if (accelerator && ((currentHide && accelerator === currentHide)
-      || (currentQuit && accelerator === currentQuit)
-      || (currentSS && accelerator === currentSS)
-      || (currentResetPos && accelerator === currentResetPos)
-      || (currentNextSong && accelerator === currentNextSong))) {
-      return false;
-    }
-    const success = registerPlayPauseSongHotkey(accelerator);
-    if (success) {
-      const filePath = join(storeDir, `${PLAY_PAUSE_SONG_HOTKEY_STORE_KEY}.json`);
-      try {
-        writeFileSync(filePath, JSON.stringify(accelerator, null, 2), 'utf-8');
-      } catch (err) {
-        console.error('[PlayPauseSongHotkey] persist error:', err);
-      }
-    }
-    return success;
-  });
-
-  // ===== 还原位置快捷键 IPC =====
-
-  /**
-   * 获取当前还原位置快捷键配置
-   * @returns 当前快捷键字符串
-   */
-  ipcMain.handle('reset-position-hotkey:get', () => {
-    return currentResetPositionHotkey || readResetPositionHotkeyConfig();
-  });
-
-  /**
-   * 设置还原位置快捷键并持久化
-   * @param _event - IPC 事件
-   * @param accelerator - 新的快捷键字符串
-   * @returns 是否注册成功
-   */
-  ipcMain.handle('reset-position-hotkey:set', (_event, accelerator: string) => {
-    const currentHide = currentHideHotkey || readHotkeyConfig();
-    const currentQuit = currentQuitHotkey || readQuitHotkeyConfig();
-    const currentSS = currentScreenshotHotkey || readScreenshotHotkeyConfig();
-    const currentNextSong = currentNextSongHotkey || readNextSongHotkeyConfig();
-    const currentPlayPauseSong = currentPlayPauseSongHotkey || readPlayPauseSongHotkeyConfig();
-    if (accelerator && ((currentHide && accelerator === currentHide)
-      || (currentQuit && accelerator === currentQuit)
-      || (currentSS && accelerator === currentSS)
-      || (currentNextSong && accelerator === currentNextSong)
-      || (currentPlayPauseSong && accelerator === currentPlayPauseSong))) {
-      return false;
-    }
-    const success = registerResetPositionHotkey(accelerator);
-    if (success) {
-      const filePath = join(storeDir, `${RESET_POSITION_HOTKEY_STORE_KEY}.json`);
-      try {
-        writeFileSync(filePath, JSON.stringify(accelerator, null, 2), 'utf-8');
-      } catch (err) {
-        console.error('[ResetPositionHotkey] persist error:', err);
-      }
-    }
-    return success;
-  });
-
-  // ===== 关闭快捷键 IPC =====
-
-  /**
-   * 获取当前关闭快捷键配置
-   * @returns 当前快捷键字符串
-   */
-  ipcMain.handle('quit-hotkey:get', () => {
-    return currentQuitHotkey || readQuitHotkeyConfig();
-  });
-
-  /**
-   * 设置关闭快捷键并持久化
-   * @param _event - IPC 事件
-   * @param accelerator - 新的快捷键字符串
-   * @returns 是否注册成功
-   */
-  ipcMain.handle('quit-hotkey:set', (_event, accelerator: string) => {
-    const currentHide = currentHideHotkey || readHotkeyConfig();
-    const currentSS = currentScreenshotHotkey || readScreenshotHotkeyConfig();
-    const currentNextSong = currentNextSongHotkey || readNextSongHotkeyConfig();
-    const currentPlayPauseSong = currentPlayPauseSongHotkey || readPlayPauseSongHotkeyConfig();
-    const currentResetPos = currentResetPositionHotkey || readResetPositionHotkeyConfig();
-    if (accelerator && ((currentHide && accelerator === currentHide)
-      || (currentSS && accelerator === currentSS)
-      || (currentNextSong && accelerator === currentNextSong)
-      || (currentPlayPauseSong && accelerator === currentPlayPauseSong)
-      || (currentResetPos && accelerator === currentResetPos))) {
-      return false;
-    }
-    const success = registerQuitHotkey(accelerator);
-    if (success) {
-      const filePath = join(storeDir, `${QUIT_HOTKEY_STORE_KEY}.json`);
-      try {
-        writeFileSync(filePath, JSON.stringify(accelerator, null, 2), 'utf-8');
-      } catch (err) {
-        console.error('[QuitHotkey] persist error:', err);
-      }
-    }
-    return success;
-  });
-
-  /** 录入快捷键时暂停所有快捷键响应 */
-  ipcMain.handle('hotkey:suspend', () => {
-    suspendIslandHotkeys();
-    return true;
-  });
-
-  /** 录入结束后恢复快捷键响应 */
-  ipcMain.handle('hotkey:resume', () => {
-    resumeIslandHotkeys();
-    return true;
+  registerHotkeyIpcHandlers({
+    storeDir,
+    hideHotkeyStoreKey: HOTKEY_STORE_KEY,
+    quitHotkeyStoreKey: QUIT_HOTKEY_STORE_KEY,
+    nextSongHotkeyStoreKey: NEXT_SONG_HOTKEY_STORE_KEY,
+    playPauseSongHotkeyStoreKey: PLAY_PAUSE_SONG_HOTKEY_STORE_KEY,
+    resetPositionHotkeyStoreKey: RESET_POSITION_HOTKEY_STORE_KEY,
+    getCurrentHideHotkey: () => currentHideHotkey,
+    getCurrentQuitHotkey: () => currentQuitHotkey,
+    getCurrentScreenshotHotkey: () => currentScreenshotHotkey,
+    getCurrentNextSongHotkey: () => currentNextSongHotkey,
+    getCurrentPlayPauseSongHotkey: () => currentPlayPauseSongHotkey,
+    getCurrentResetPositionHotkey: () => currentResetPositionHotkey,
+    readHideHotkeyConfig: readHotkeyConfig,
+    readQuitHotkeyConfig,
+    readScreenshotHotkeyConfig,
+    readNextSongHotkeyConfig,
+    readPlayPauseSongHotkeyConfig,
+    readResetPositionHotkeyConfig,
+    registerHideHotkey,
+    registerQuitHotkey,
+    registerNextSongHotkey,
+    registerPlayPauseSongHotkey,
+    registerResetPositionHotkey,
+    suspendIslandHotkeys,
+    resumeIslandHotkeys,
   });
 
   registerScreenshotHotkeyIpcHandlers({
