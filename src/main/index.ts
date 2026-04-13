@@ -41,6 +41,7 @@ import { startClipboardUrlWatcher, stopClipboardUrlWatcher } from './clipboard/u
 import { registerClipboardIpcHandlers } from './ipc/clipboard';
 import { registerCaptureIpcHandlers } from './ipc/capture';
 import { registerScreenshotHotkeyIpcHandlers } from './ipc/screenshotHotkey';
+import { registerSystemIpcHandlers } from './ipc/system';
 import { registerUpdaterIpcHandlers } from './ipc/updater';
 
 /** 防止 Electron 创建多个实例 */
@@ -1568,17 +1569,6 @@ function registerIpcHandlers(): void {
     // SMTCMonitor 暂不支持设置音量
   });
 
-  /** 打开任务管理器 */
-  ipcMain.on('system:open-task-manager', () => {
-    try {
-      if (process.platform === 'win32') {
-        require('child_process').exec('taskmgr');
-      }
-    } catch (err) {
-      console.error('[System] open-task-manager error:', err);
-    }
-  });
-
   /** 获取文件图标（base64 PNG） */
   ipcMain.handle('app:get-file-icon', async (_event, filePath: string) => {
     try {
@@ -2441,6 +2431,8 @@ function registerIpcHandlers(): void {
     getCaptureWindow: () => captureWindow,
     closeCaptureWindow,
   });
+
+  registerSystemIpcHandlers();
 
   registerUpdaterIpcHandlers({
     updater: autoUpdater,
