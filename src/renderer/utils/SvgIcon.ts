@@ -76,7 +76,11 @@ export const SvgIcon = {
   /** 教程 */
   GUIDE: './svg/GUIDE.svg',
   /** 链接 */
-  LINK: './svg/LINK.svg'
+  LINK: './svg/LINK.svg',
+  /** 下一个 */
+  NEXT: './svg/NEXT.svg',
+  /** 上一个 */
+  PREVIOUS: './svg/PREVIOUS.svg'
 } as const;
 
 export type SvgIconKey = keyof typeof SvgIcon;

@@ -26,6 +26,7 @@
 
 import { useEffect, useState, type ReactElement } from 'react';
 import useIslandStore from '../../../store/slices';
+import { SvgIcon } from '../../../utils/SvgIcon';
 import '../../../styles/notification/notification.css';
 
 interface NotificationContentProps {
@@ -223,20 +224,22 @@ export function NotificationContent({
           <div className="notification-url-nav">
             <button
               type="button"
-              className="notification-action-btn notification-action-snooze"
+              className="notification-action-btn notification-action-snooze notification-url-nav-btn"
               onClick={handlePrevUrl}
               disabled={clipboardUrls.length <= 1}
+              aria-label="上一个链接"
             >
-              上一个
+              <img src={SvgIcon.PREVIOUS} alt="" className="notification-url-nav-btn-icon" />
             </button>
             <span className="notification-url-index">{currentUrlIndex + 1}/{clipboardUrls.length}</span>
             <button
               type="button"
-              className="notification-action-btn notification-action-snooze"
+              className="notification-action-btn notification-action-snooze notification-url-nav-btn"
               onClick={handleNextUrl}
               disabled={clipboardUrls.length <= 1}
+              aria-label="下一个链接"
             >
-              下一个
+              <img src={SvgIcon.NEXT} alt="" className="notification-url-nav-btn-icon" />
             </button>
           </div>
           <div className="notification-url-list">

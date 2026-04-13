@@ -131,6 +131,26 @@
   gap: 6px;
 }
 
+.notification-url-nav-btn {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.notification-url-nav-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.notification-url-nav-btn-icon {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+}
+
 .notification-url-index {
   font-size: 11px;
   color: rgba(var(--color-text-rgb), 0.7);
