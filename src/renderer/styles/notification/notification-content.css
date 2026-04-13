@@ -118,22 +118,31 @@
 /** ---- 剪贴板 URL 通知变体 ---- */
 .notification-actions--clipboard-url {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
+  flex-wrap: wrap;
   gap: 6px;
   animation: notifActionsEnter 0.42s cubic-bezier(0.22, 1, 0.36, 1) 0.16s both;
   min-width: 0;
 }
 
+.notification-url-nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.notification-url-index {
+  font-size: 11px;
+  color: rgba(var(--color-text-rgb), 0.7);
+  min-width: 34px;
+  text-align: center;
+}
+
 .notification-url-list {
   display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
+  flex-wrap: nowrap;
   flex: 1;
   min-width: 0;
-  max-height: 52px;
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(var(--color-text-rgb), 0.15) transparent;
 }
 
 .notification-action-url {
@@ -146,7 +155,7 @@
   padding: 4px 8px;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 100%;
+  width: 100%;
 }
 
 .notification-url-favicon {

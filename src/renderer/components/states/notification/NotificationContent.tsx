@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import type { ReactElement } from 'react';
+import { useEffect, useState, type ReactElement } from 'react';
 import useIslandStore from '../../../store/slices';
 import '../../../styles/notification/notification.css';
 
@@ -59,10 +59,36 @@ export function NotificationContent({
   urls,
 }: NotificationContentProps): ReactElement {
   const { setIdle, setLyrics, setNotification } = useIslandStore();
-  const isOfficialSite = (() => {
-    if (type !== 'clipboard-url' || !urls?.length) return false;
+  const [currentUrlIndex, setCurrentUrlIndex] = useState(0);
+  const clipboardUrls = type === 'clipboard-url' ? (urls ?? []) : [];
+  const hasMultipleClipboardUrls = clipboardUrls.length > 1;
+  const currentClipboardUrl = clipboardUrls[currentUrlIndex] ?? '';
+  const displayIcon = (() => {
+    if (type !== 'clipboard-url' || !currentClipboardUrl) return icon;
     try {
-      const hostname = new URL(urls[0]).hostname.toLowerCase();
+      return `${new URL(currentClipboardUrl).origin}/favicon.ico`;
+    } catch {
+      return icon;
+    }
+  })();
+  const displayBody = (() => {
+    if (type !== 'clipboard-url' || !currentClipboardUrl) return body;
+    if (currentUrlIndex === 0 && body) return body;
+    try {
+      return new URL(currentClipboardUrl).hostname;
+    } catch {
+      return currentClipboardUrl;
+    }
+  })();
+
+  useEffect(() => {
+    setCurrentUrlIndex(0);
+  }, [type, urls]);
+
+  const isOfficialSite = (() => {
+    if (type !== 'clipboard-url' || !currentClipboardUrl) return false;
+    try {
+      const hostname = new URL(currentClipboardUrl).hostname.toLowerCase();
       return hostname === 'pyisland.com' || hostname.endsWith('.pyisland.com');
     } catch {
       return false;
@@ -122,17 +148,35 @@ export function NotificationContent({
     dismiss();
   };
 
+  const handleOpenAllUrls = (): void => {
+    if (!urls?.length) return;
+    urls.forEach((url) => {
+      window.api?.clipboardOpenUrl(url);
+    });
+    dismiss();
+  };
+
   const handleDismissUrl = (): void => {
     dismiss();
+  };
+
+  const handlePrevUrl = (): void => {
+    if (clipboardUrls.length <= 1) return;
+    setCurrentUrlIndex((prev) => (prev - 1 + clipboardUrls.length) % clipboardUrls.length);
+  };
+
+  const handleNextUrl = (): void => {
+    if (clipboardUrls.length <= 1) return;
+    setCurrentUrlIndex((prev) => (prev + 1) % clipboardUrls.length);
   };
 
   return (
     <div className="notification-content">
       <div className="notification-main-row">
         <div className="notification-icon">
-          {icon ? (
+          {displayIcon ? (
             <img
-              src={icon}
+              src={displayIcon}
               alt=""
               className="notification-icon-img"
               onError={(e) => {
@@ -154,7 +198,7 @@ export function NotificationContent({
             )}
           </span>
           <div className="notification-body-row">
-            <span className={type === 'clipboard-url' ? 'notification-body notification-body--single-line' : 'notification-body'}>{body}</span>
+            <span className={type === 'clipboard-url' ? 'notification-body notification-body--single-line' : 'notification-body'}>{displayBody}</span>
             {isOfficialSite && <span className="notification-official-badge">官网</span>}
           </div>
         </div>
@@ -176,26 +220,49 @@ export function NotificationContent({
         </div>
       ) : type === 'clipboard-url' && urls?.length ? (
         <div className="notification-actions notification-actions--clipboard-url">
+          <div className="notification-url-nav">
+            <button
+              type="button"
+              className="notification-action-btn notification-action-snooze"
+              onClick={handlePrevUrl}
+              disabled={clipboardUrls.length <= 1}
+            >
+              上一个
+            </button>
+            <span className="notification-url-index">{currentUrlIndex + 1}/{clipboardUrls.length}</span>
+            <button
+              type="button"
+              className="notification-action-btn notification-action-snooze"
+              onClick={handleNextUrl}
+              disabled={clipboardUrls.length <= 1}
+            >
+              下一个
+            </button>
+          </div>
           <div className="notification-url-list">
-            {urls.map((url, i) => (
-              <button
-                key={i}
-                type="button"
-                className="notification-action-btn notification-action-url"
-                onClick={() => handleOpenUrl(url)}
-                title={url}
-              >
-                <img
-                  src={(() => { try { return new URL(url).origin + '/favicon.ico'; } catch { return ''; } })()}
-                  alt=""
-                  className="notification-url-favicon"
-                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                />
-                {url.length > 36 ? url.slice(0, 36) + '…' : url}
-              </button>
-            ))}
+            <button
+              type="button"
+              className="notification-action-btn notification-action-url"
+              onClick={() => handleOpenUrl(currentClipboardUrl)}
+              title={currentClipboardUrl}
+            >
+              <img
+                src={(() => { try { return new URL(currentClipboardUrl).origin + '/favicon.ico'; } catch { return ''; } })()}
+                alt=""
+                className="notification-url-favicon"
+                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+              />
+              {currentClipboardUrl.length > 48 ? currentClipboardUrl.slice(0, 48) + '…' : currentClipboardUrl}
+            </button>
           </div>
           <div className="notification-decision-actions">
+            <button
+              type="button"
+              className="notification-action-btn notification-action-complete"
+              onClick={hasMultipleClipboardUrls ? handleOpenAllUrls : () => handleOpenUrl(currentClipboardUrl)}
+            >
+              {hasMultipleClipboardUrls ? '打开全部链接' : '打开链接'}
+            </button>
             <button type="button" className="notification-action-btn notification-action-ignore" onClick={handleDismissUrl}>忽略</button>
           </div>
         </div>
