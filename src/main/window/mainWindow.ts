@@ -1,3 +1,30 @@
+/*
+ * eIsland - A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Electron.
+ * https://github.com/JNTMTMTM/eIsland
+ *
+ * Copyright (C) 2026 JNTMTMTM
+ * Copyright (C) 2026 pyisland.com
+ *
+ * Original author: JNTMTMTM[](https://github.com/JNTMTMTM)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+/**
+ * @file mainWindow.ts
+ * @description 主窗口服务模块
+ * @description 管理灵动岛主窗口的创建、位置控制和事件处理
+ * @author 鸡哥
+ */
+
 import { BrowserWindow, screen, shell } from 'electron';
 import { join } from 'path';
 import { is } from '@electron-toolkit/utils';
@@ -22,6 +49,12 @@ interface MainWindowService {
   applyIslandPositionOffset: (offset: { x: number; y: number }) => void;
 }
 
+/**
+ * 创建主窗口服务
+ * @description 初始化并返回主窗口管理服务，负责窗口创建、位置控制和生命周期管理
+ * @param options - 服务配置选项，包含主窗口获取/设置函数、位置偏移管理、尺寸配置
+ * @returns 主窗口服务对象，包含 createWindow、getInitialCenterX、applyIslandPositionOffset 方法
+ */
 export function createMainWindowService(options: CreateMainWindowServiceOptions): MainWindowService {
   let initialCenterX = 0;
 
