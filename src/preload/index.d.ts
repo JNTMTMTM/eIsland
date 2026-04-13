@@ -69,57 +69,45 @@ declare global {
       restartApp: () => Promise<boolean>;
       openLogsFolder: () => Promise<boolean>;
       clearLogsCache: () => Promise<{ success: boolean; freedBytes: number }>;
-      /** ===== 音乐相关 API ===== */
       mediaPlayPause: () => Promise<void>;
       mediaNext: () => Promise<void>;
       mediaPrev: () => Promise<void>;
       mediaSeek: (positionMs: number) => Promise<void>;
       mediaGetVolume: () => Promise<number>;
       mediaSetVolume: (volume: number) => Promise<void>;
-      /** ===== 歌曲信息监听 API ===== */
       onNowPlayingInfo: (callback: (info: NowPlayingInfo | null) => void) => () => void;
-      /** ===== 系统工具 API ===== */
       screenshot: () => Promise<string | null>;
       openTaskManager: () => void;
       getPathForFile: (file: File) => string;
-      /** ===== 应用快捷方式 API ===== */
       getFileIcon: (filePath: string) => Promise<string | null>;
       openFile: (filePath: string) => Promise<boolean>;
       resolveShortcut: (lnkPath: string) => Promise<{ target: string; name: string } | null>;
-      /** ===== 文件选择对话框 API ===== */
       openImageDialog: () => Promise<string | null>;
       loadWallpaperFile: (filePath: string) => Promise<string | null>;
       clearWallpaperCache: () => Promise<void>;
-      /** ===== HTTP 代理 API ===== */
       netFetch: (url: string, options?: {
         method?: string;
         headers?: Record<string, string>;
         body?: string;
         timeoutMs?: number;
       }) => Promise<{ ok: boolean; status: number; body: string }>;
-      /** ===== 文件存储 API ===== */
       storeRead: (key: string) => Promise<unknown>;
       storeWrite: (key: string, data: unknown) => Promise<boolean>;
-      /** ===== 快捷键 API ===== */
       hotkeyGet: () => Promise<string>;
       hotkeySet: (accelerator: string) => Promise<boolean>;
       hotkeySuspend: () => Promise<boolean>;
       hotkeyResume: () => Promise<boolean>;
       quitHotkeyGet: () => Promise<string>;
       quitHotkeySet: (accelerator: string) => Promise<boolean>;
-      /** ===== 截图快捷键 API ===== */
       screenshotHotkeyGet: () => Promise<string>;
       screenshotHotkeySet: (accelerator: string) => Promise<boolean>;
       nextSongHotkeyGet: () => Promise<string>;
       nextSongHotkeySet: (accelerator: string) => Promise<boolean>;
       playPauseSongHotkeyGet: () => Promise<string>;
       playPauseSongHotkeySet: (accelerator: string) => Promise<boolean>;
-      /** ===== 还原位置快捷键 API ===== */
       resetPositionHotkeyGet: () => Promise<string>;
       resetPositionHotkeySet: (accelerator: string) => Promise<boolean>;
-      /** ===== 日志文件 API ===== */
       logWrite: (level: string, message: string) => void;
-      /** ===== 歌曲设置 API ===== */
       musicWhitelistGet: () => Promise<string[]>;
       musicWhitelistSet: (list: string[]) => Promise<boolean>;
       musicLyricsSourceGet: () => Promise<string>;
@@ -135,19 +123,13 @@ declare global {
       getRunningNonSystemProcessesWithIcons: () => Promise<RunningProcessInfo[]>;
       hideProcessListGet: () => Promise<string[]>;
       hideProcessListSet: (list: string[]) => Promise<boolean>;
-      /** 订阅播放源切换请求（主进程推送） */
       onSourceSwitchRequest: (callback: (data: { sourceAppId: string; title: string; artist: string }) => void) => () => void;
-      /** 接受切换到新播放源 */
       mediaAcceptSourceSwitch: () => Promise<void>;
-      /** 拒绝切换播放源 */
       mediaRejectSourceSwitch: () => Promise<void>;
-      /** ===== 主题 API ===== */
       themeModeGet: () => Promise<string>;
       themeModeSet: (mode: string) => Promise<boolean>;
-      /** ===== 灵动岛透明度 API ===== */
       islandOpacityGet: () => Promise<number>;
       islandOpacitySet: (opacity: number) => Promise<boolean>;
-      /** ===== 鼠标移开行为配置 API ===== */
       expandMouseleaveIdleGet: () => Promise<boolean>;
       expandMouseleaveIdleSet: (enabled: boolean) => Promise<boolean>;
       maxexpandMouseleaveIdleGet: () => Promise<boolean>;
@@ -159,13 +141,10 @@ declare global {
       clipboardUrlBlacklistGet: () => Promise<string[]>;
       clipboardUrlBlacklistSet: (list: string[]) => Promise<boolean>;
       clipboardUrlBlacklistAddDomain: (domain: string) => Promise<boolean>;
-      /** ===== 开机自启 API ===== */
       autostartGet: () => Promise<string>;
       autostartSet: (mode: string) => Promise<boolean>;
-      /** ===== 快速导航顺序 API ===== */
       navOrderGet: () => Promise<{ visibleOrder: string[]; hiddenOrder: string[] }>;
       navOrderSet: (payload: { visibleOrder: string[]; hiddenOrder: string[] }) => Promise<boolean>;
-      /** ===== 自动更新 API ===== */
       updaterCheck: () => Promise<{ available: boolean; version?: string; releaseNotes?: string; currentVersion?: string; error?: string }>;
       updaterDownload: () => Promise<boolean>;
       updaterInstall: () => Promise<boolean>;
@@ -173,7 +152,6 @@ declare global {
       onUpdaterProgress: (callback: (progress: { percent: number; transferred: number; total: number; bytesPerSecond: number }) => void) => () => void;
       onUpdaterDownloaded: (callback: (data: { version: string }) => void) => () => void;
       onUpdaterAvailable: (callback: (data: { version: string; releaseNotes: string }) => void) => () => void;
-      /** ===== 剪贴板 URL 监听 API ===== */
       onClipboardUrlsDetected: (callback: (data: { urls: string[]; title: string }) => void) => () => void;
       clipboardOpenUrl: (url: string) => Promise<boolean>;
     };

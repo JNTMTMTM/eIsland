@@ -61,8 +61,8 @@ import { initUpdaterService } from './services/updaterService';
 import { createCaptureWindowService } from './window/captureWindow';
 import { createMainWindowService } from './window/mainWindow';
 import { createSmtcService } from './music/smtcService';
+import { createAutoHideWatcher } from './system/autoHideWatcher';
 import {
-  hasAnyRunningProcess,
   normalizeProcessName,
   queryRunningNonSystemProcessNames,
   queryRunningNonSystemProcessesWithIcons,
@@ -167,62 +167,6 @@ function readResetPositionHotkeyConfig(): string {
 interface IslandPositionOffset {
   x: number;
   y: number;
-}
-
-async function checkAutoHideProcessList(): Promise<void> {
-  if (autoHideCheckInFlight) return;
-  if (!mainWindow || mainWindow.isDestroyed()) return;
-
-  autoHideCheckInFlight = true;
-  try {
-    if (!autoHideProcessList.length) {
-      if (hiddenByAutoHideProcess && !mainWindow.isVisible()) {
-        mainWindow.show();
-        mainWindow.setAlwaysOnTop(true, 'screen-saver');
-      }
-      hiddenByAutoHideProcess = false;
-      return;
-    }
-
-    const shouldHide = await hasAnyRunningProcess(autoHideProcessList);
-
-    if (shouldHide) {
-      if (mainWindow.isVisible()) {
-        mainWindow.hide();
-      }
-      hiddenByAutoHideProcess = true;
-      return;
-    }
-
-    if (hiddenByAutoHideProcess) {
-      if (!mainWindow.isVisible()) {
-        mainWindow.show();
-        mainWindow.setAlwaysOnTop(true, 'screen-saver');
-      }
-      hiddenByAutoHideProcess = false;
-    }
-  } finally {
-    autoHideCheckInFlight = false;
-  }
-}
-
-function startAutoHideProcessWatcher(): void {
-  if (autoHideProcessWatcher) {
-    clearInterval(autoHideProcessWatcher);
-    autoHideProcessWatcher = null;
-  }
-
-  checkAutoHideProcessList().catch(() => { });
-  autoHideProcessWatcher = setInterval(() => {
-    checkAutoHideProcessList().catch(() => { });
-  }, 2500);
-}
-
-function stopAutoHideProcessWatcher(): void {
-  if (autoHideProcessWatcher) {
-    clearInterval(autoHideProcessWatcher);
-    autoHideProcessWatcher = null;
-  }
 }
 
 function readHideProcessListConfig(): string[] {
@@ -385,11 +329,6 @@ function writeIslandPositionOffsetConfig(offset: IslandPositionOffset): boolean 
 /** 运行时白名单（可被用户修改） */
 let nowPlayingWhitelist: string[] = [...DEFAULT_WHITELIST];
 
-/** 运行时隐藏进程名单（命中后立即隐藏灵动岛） */
-let autoHideProcessList: string[] = [...DEFAULT_HIDE_PROCESS_LIST];
-
-/** 设置界面配置的隐藏进程名单（下次重启生效） */
-let configuredHideProcessList: string[] = [...DEFAULT_HIDE_PROCESS_LIST];
 
 /** 运行时灵动岛位置偏移 */
 let islandPositionOffset: IslandPositionOffset = { ...DEFAULT_ISLAND_POSITION_OFFSET };
@@ -410,14 +349,10 @@ const mainWindowService = createMainWindowService({
   },
 });
 
-/** 隐藏进程名单轮询计时器 */
-let autoHideProcessWatcher: NodeJS.Timeout | null = null;
-
-/** 进程隐藏轮询防重入标记 */
-let autoHideCheckInFlight = false;
-
-/** 当前隐藏是否由“隐藏进程命中”触发 */
-let hiddenByAutoHideProcess = false;
+const autoHideWatcher = createAutoHideWatcher({
+  getMainWindow: () => mainWindow,
+  defaultProcessList: DEFAULT_HIDE_PROCESS_LIST,
+});
 
 /** SMTC 自动取消订阅时间（毫秒），0 为永不取消 */
 let smtcUnsubscribeMs = DEFAULT_SMTC_UNSUBSCRIBE_MS;
@@ -597,9 +532,7 @@ function sendMediaVirtualKey(vkCode: number): void {
 
 const hotkeyService = createHotkeyService({
   getMainWindow: () => mainWindow,
-  setHiddenByAutoHideProcess: (hidden) => {
-    hiddenByAutoHideProcess = hidden;
-  },
+  setHiddenByAutoHideProcess: autoHideWatcher.setHiddenByAutoHideProcess,
   readHideHotkeyConfig: readHotkeyConfig,
   readQuitHotkeyConfig,
   readScreenshotHotkeyConfig,
@@ -629,9 +562,7 @@ function registerIpcHandlers(): void {
   registerWindowIpcHandlers({
     getMainWindow: () => mainWindow,
     getInitialCenterX: mainWindowService.getInitialCenterX,
-    setHiddenByAutoHideProcess: (hidden) => {
-      hiddenByAutoHideProcess = hidden;
-    },
+    setHiddenByAutoHideProcess: autoHideWatcher.setHiddenByAutoHideProcess,
     getIslandPositionOffset: () => islandPositionOffset,
     sanitizeIslandPositionOffset,
     applyIslandPositionOffset: mainWindowService.applyIslandPositionOffset,
@@ -751,17 +682,13 @@ function registerIpcHandlers(): void {
   registerHideProcessIpcHandlers({
     storeDir,
     hideProcessListStoreKey: HIDE_PROCESS_LIST_STORE_KEY,
-    getConfiguredHideProcessList: () => configuredHideProcessList,
-    setConfiguredHideProcessList: (list) => {
-      configuredHideProcessList = list;
-    },
-    getAutoHideProcessList: () => autoHideProcessList,
-    setAutoHideProcessList: (list) => {
-      autoHideProcessList = list;
-    },
+    getConfiguredHideProcessList: autoHideWatcher.getConfiguredHideProcessList,
+    setConfiguredHideProcessList: autoHideWatcher.setConfiguredHideProcessList,
+    getAutoHideProcessList: autoHideWatcher.getAutoHideProcessList,
+    setAutoHideProcessList: autoHideWatcher.setAutoHideProcessList,
     sanitizeProcessNameList,
     normalizeProcessName,
-    checkAutoHideProcessList,
+    checkAutoHideProcessList: autoHideWatcher.checkNow,
   });
 
   registerHotkeyIpcHandlers({
@@ -850,12 +777,12 @@ applyChromiumPerformanceFlags(app);
 registerAppLifecycleHandlers({
   getMainWindow: () => mainWindow,
   onWillQuit: () => {
-    stopAutoHideProcessWatcher();
+    autoHideWatcher.stop();
     stopClipboardUrlWatcher();
     globalShortcut.unregisterAll();
   },
   onWindowAllClosed: () => {
-    stopAutoHideProcessWatcher();
+    autoHideWatcher.stop();
     smtcService.cleanupWorker();
     destroyTray();
     if (process.platform !== 'darwin') {
@@ -899,10 +826,11 @@ app.whenReady().then(() => {
   smtcUnsubscribeMs = readSmtcUnsubscribeMsConfig();
 
   // 读取持久化隐藏进程名单并启动轮询（仅 Windows）
-  autoHideProcessList = readHideProcessListConfig();
-  configuredHideProcessList = [...autoHideProcessList];
+  const savedHideProcessList = readHideProcessListConfig();
+  autoHideWatcher.setAutoHideProcessList(savedHideProcessList);
+  autoHideWatcher.setConfiguredHideProcessList([...savedHideProcessList]);
   if (process.platform === 'win32') {
-    startAutoHideProcessWatcher();
+    autoHideWatcher.start();
   }
 
   // 读取持久化快捷键并注册
