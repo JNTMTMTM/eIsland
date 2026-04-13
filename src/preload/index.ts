@@ -268,6 +268,20 @@ const api = {
   openImageDialog: (): Promise<string | null> => {
     return ipcRenderer.invoke('dialog:open-image');
   },
+  /**
+   * 读取缓存的壁纸文件并返回 base64 data URL
+   * @param filePath - 壁纸文件绝对路径
+   * @returns data URL 字符串，失败返回 null
+   */
+  loadWallpaperFile: (filePath: string): Promise<string | null> => {
+    return ipcRenderer.invoke('wallpaper:load-file', filePath);
+  },
+  /**
+   * 清理 userData/wallpapers/ 下的自定义壁纸缓存
+   */
+  clearWallpaperCache: (): Promise<void> => {
+    return ipcRenderer.invoke('wallpaper:clear-cache');
+  },
   /** ===== HTTP 代理 API（绕过 CORS） ===== */
   /**
    * 通过主进程代理 HTTP 请求（绕过浏览器 CORS 限制）

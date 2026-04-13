@@ -88,6 +88,8 @@ declare global {
       resolveShortcut: (lnkPath: string) => Promise<{ target: string; name: string } | null>;
       /** ===== 文件选择对话框 API ===== */
       openImageDialog: () => Promise<string | null>;
+      loadWallpaperFile: (filePath: string) => Promise<string | null>;
+      clearWallpaperCache: () => Promise<void>;
       /** ===== HTTP 代理 API ===== */
       netFetch: (url: string, options?: {
         method?: string;

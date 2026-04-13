@@ -310,11 +310,16 @@ function DynamicIsland(): React.JSX.Element {
       Promise.all([
         window.api?.storeRead?.('island-bg-image') as Promise<string | null>,
         window.api?.storeRead?.('island-bg-opacity') as Promise<number | null>,
-      ]).then(([bgImage, bgOpacity]) => {
+      ]).then(async ([bgImage, bgOpacity]) => {
         const el = document.getElementById('island-bg-layer');
         if (!el) return;
         if (bgImage && typeof bgImage === 'string') {
-          el.style.backgroundImage = `url(${bgImage})`;
+          let url = bgImage;
+          if (!bgImage.startsWith('data:') && !bgImage.startsWith('/') && !bgImage.startsWith('http')) {
+            const dataUrl = await window.api?.loadWallpaperFile?.(bgImage);
+            if (dataUrl) url = dataUrl; else return;
+          }
+          el.style.backgroundImage = `url(${url})`;
         }
         if (typeof bgOpacity === 'number' && Number.isFinite(bgOpacity)) {
           el.style.opacity = String(Math.max(0, Math.min(100, bgOpacity)) / 100);

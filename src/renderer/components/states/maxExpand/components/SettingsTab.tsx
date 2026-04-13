@@ -190,6 +190,7 @@ export function SettingsTab(): ReactElement {
   const [themeMode, setThemeModeState] = useState<ThemeMode>(getThemeMode);
   const [islandOpacity, setIslandOpacity] = useState<number>(100);
   const [bgImage, setBgImage] = useState<string | null>(null);
+  const [bgImagePath, setBgImagePath] = useState<string | null>(null);
   const [bgImageOpacity, setBgImageOpacity] = useState<number>(30);
   const bgOpacitySaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [islandPositionOffset, setIslandPositionOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -228,8 +229,8 @@ export function SettingsTab(): ReactElement {
     if (el) el.style.opacity = String(value / 100);
   };
 
-  const persistBgImage = (dataUrl: string | null): void => {
-    window.api.storeWrite('island-bg-image', dataUrl).catch(() => {});
+  const persistBgImage = (path: string | null): void => {
+    window.api.storeWrite('island-bg-image', path).catch(() => {});
   };
 
   const persistBgOpacity = (value: number): void => {
@@ -237,21 +238,27 @@ export function SettingsTab(): ReactElement {
   };
 
   const handleSelectBgImage = async (): Promise<void> => {
-    const dataUrl = await window.api.openImageDialog();
+    const filePath = await window.api.openImageDialog();
+    if (!filePath) return;
+    const dataUrl = await window.api.loadWallpaperFile(filePath);
     if (!dataUrl) return;
     setBgImage(dataUrl);
+    setBgImagePath(filePath);
     applyBgImage(dataUrl);
-    persistBgImage(dataUrl);
+    persistBgImage(filePath);
   };
 
   const handleClearBgImage = (): void => {
     setBgImage(null);
+    setBgImagePath(null);
     applyBgImage(null);
     persistBgImage(null);
+    window.api.clearWallpaperCache?.().catch(() => {});
   };
 
   const handleSelectBuiltinBgImage = (src: string, defaultOpacity: number): void => {
     setBgImage(src);
+    setBgImagePath(src);
     setBgImageOpacity(defaultOpacity);
     const el = document.getElementById('island-bg-layer');
     if (el) {
@@ -373,10 +380,20 @@ export function SettingsTab(): ReactElement {
     Promise.all([
       window.api.storeRead('island-bg-image') as Promise<string | null>,
       window.api.storeRead('island-bg-opacity') as Promise<number | null>,
-    ]).then(([img, opacity]) => {
+    ]).then(async ([img, opacity]) => {
       if (cancelled) return;
-      if (img && typeof img === 'string') setBgImage(img);
       if (typeof opacity === 'number' && Number.isFinite(opacity)) setBgImageOpacity(Math.max(0, Math.min(100, Math.round(opacity))));
+      if (img && typeof img === 'string') {
+        setBgImagePath(img);
+        if (img.startsWith('data:') || img.startsWith('/') || img.startsWith('http')) {
+          // Legacy data URL or Vite asset URL (built-in wallpaper)
+          setBgImage(img);
+        } else {
+          // File path — load via IPC
+          const dataUrl = await window.api.loadWallpaperFile?.(img);
+          if (!cancelled && dataUrl) setBgImage(dataUrl);
+        }
+      }
     }).catch(() => {});
     return () => { cancelled = true; };
   }, []);

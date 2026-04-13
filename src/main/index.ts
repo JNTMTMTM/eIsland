@@ -26,7 +26,7 @@
 
 import { app, BrowserWindow, shell, screen, ipcMain, desktopCapturer, dialog, globalShortcut, clipboard, nativeImage } from 'electron';
 import { join, basename } from 'path';
-import { readFileSync, writeFileSync, appendFileSync, mkdirSync, existsSync, readdirSync, statSync, unlinkSync } from 'fs';
+import { readFileSync, writeFileSync, appendFileSync, mkdirSync, existsSync, readdirSync, statSync, unlinkSync, copyFileSync } from 'fs';
 import { exec } from 'child_process';
 import { Worker } from 'worker_threads';
 import { electronApp, optimizer, is } from '@electron-toolkit/utils';
@@ -1495,6 +1495,8 @@ function registerIpcHandlers(): void {
   });
 
   // ===== 文件选择对话框 IPC =====
+  const wallpaperCacheDir = join(app.getPath('userData'), 'wallpapers');
+
   ipcMain.handle('dialog:open-image', async () => {
     const win = BrowserWindow.getFocusedWindow();
     if (!win) return null;
@@ -1506,6 +1508,28 @@ function registerIpcHandlers(): void {
     if (result.canceled || result.filePaths.length === 0) return null;
     const filePath = result.filePaths[0];
     try {
+      if (!existsSync(wallpaperCacheDir)) mkdirSync(wallpaperCacheDir, { recursive: true });
+      const ext = filePath.split('.').pop()?.toLowerCase() || 'png';
+      const destName = `custom-bg-${Date.now()}.${ext}`;
+      const destPath = join(wallpaperCacheDir, destName);
+      // 清理旧的自定义壁纸缓存
+      try {
+        const existing = readdirSync(wallpaperCacheDir);
+        for (const f of existing) {
+          if (f.startsWith('custom-bg-')) unlinkSync(join(wallpaperCacheDir, f));
+        }
+      } catch { /* ignore */ }
+      copyFileSync(filePath, destPath);
+      return destPath;
+    } catch {
+      return null;
+    }
+  });
+
+  ipcMain.handle('wallpaper:load-file', async (_event, filePath: string) => {
+    try {
+      if (!filePath || typeof filePath !== 'string') return null;
+      if (!existsSync(filePath)) return null;
       const ext = filePath.split('.').pop()?.toLowerCase() || 'png';
       const mimeMap: Record<string, string> = {
         jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png',
@@ -1517,6 +1541,16 @@ function registerIpcHandlers(): void {
     } catch {
       return null;
     }
+  });
+
+  ipcMain.handle('wallpaper:clear-cache', async () => {
+    try {
+      if (!existsSync(wallpaperCacheDir)) return;
+      const files = readdirSync(wallpaperCacheDir);
+      for (const f of files) {
+        if (f.startsWith('custom-bg-')) unlinkSync(join(wallpaperCacheDir, f));
+      }
+    } catch { /* ignore */ }
   });
 
   const logDir = join(app.getPath('userData'), 'logs');
