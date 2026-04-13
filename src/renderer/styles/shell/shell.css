@@ -37,11 +37,11 @@
   justify-content: center;
   cursor: default;
   user-select: none;
-  transition: width 0.4s cubic-bezier(0.25, 1, 0.5, 1),
-              height 0.4s cubic-bezier(0.25, 1, 0.5, 1),
-              border-radius 0.4s cubic-bezier(0.25, 1, 0.5, 1),
-              background 0.35s ease,
-              box-shadow 0.4s ease;
+  transition: width 0.55s cubic-bezier(0.25, 1, 0.5, 1),
+              height 0.55s cubic-bezier(0.25, 1, 0.5, 1),
+              border-radius 0.55s cubic-bezier(0.25, 1, 0.5, 1),
+              background 0.45s ease,
+              box-shadow 0.55s ease;
   overflow: hidden;
   box-shadow: 0 0 0 rgba(0, 0, 0, 0);
   margin: 0 auto;
@@ -98,7 +98,7 @@
 
 /** 状态切换形变脉冲动画（通用兜底） */
 .island-shell.morphing {
-  animation: shellMorph 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+  animation: shellMorph 0.55s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 @keyframes shellMorph {
@@ -111,7 +111,7 @@
 
 /** idle → hover：横向弹性膨胀 */
 .island-shell.hover.morphing.from-idle {
-  animation: shellExpandFromIdle 0.4s cubic-bezier(0.34, 1.1, 0.64, 1);
+  animation: shellExpandFromIdle 0.55s cubic-bezier(0.34, 1.1, 0.64, 1);
 }
 
 @keyframes shellExpandFromIdle {
@@ -125,7 +125,7 @@
 .island-shell.hover.morphing.from-expanded,
 .island-shell.hover.morphing.from-maxExpand,
 .island-shell.hover.morphing.from-guide {
-  animation: shellContractToHover 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+  animation: shellContractToHover 0.55s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 @keyframes shellContractToHover {
@@ -137,7 +137,7 @@
 
 /** idle → notification：弹性横向膨胀 + 纵向伸展 */
 .island-shell.notification.morphing.from-idle {
-  animation: shellExpandToNotification 0.4s cubic-bezier(0.34, 1.1, 0.64, 1);
+  animation: shellExpandToNotification 0.55s cubic-bezier(0.34, 1.1, 0.64, 1);
 }
 
 @keyframes shellExpandToNotification {
@@ -150,7 +150,7 @@
 
 /** hover → notification：小幅纵向伸展 */
 .island-shell.notification.morphing.from-hover {
-  animation: shellExpandNotifFromHover 0.48s cubic-bezier(0.34, 1.2, 0.64, 1);
+  animation: shellExpandNotifFromHover 0.6s cubic-bezier(0.34, 1.2, 0.64, 1);
 }
 
 @keyframes shellExpandNotifFromHover {
@@ -162,7 +162,7 @@
 
 /** notification → hover：同尺寸，微妙呼吸 */
 .island-shell.hover.morphing.from-notification {
-  animation: shellCrossfade 0.45s cubic-bezier(0.25, 1, 0.5, 1);
+  animation: shellCrossfade 0.55s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 @keyframes shellCrossfade {
@@ -173,12 +173,12 @@
 
 /** hover → idle：柔和收拢 */
 .island-shell.morphing.from-hover:not(.hover):not(.expanded):not(.maxExpand):not(.notification):not(.guide) {
-  animation: shellShrinkToIdle 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+  animation: shellShrinkToIdle 0.55s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 /** notification → idle：横向收拢 */
 .island-shell.morphing.from-notification:not(.hover):not(.expanded):not(.maxExpand):not(.notification):not(.guide) {
-  animation: shellShrinkFromNotification 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+  animation: shellShrinkFromNotification 0.55s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 @keyframes shellShrinkFromNotification {
@@ -205,7 +205,7 @@
   padding: 0 16px;
   z-index: 1;
   white-space: nowrap;
-  animation: contentFadeIn 0.35s cubic-bezier(0.25, 1, 0.5, 1);
+  animation: contentFadeIn 0.45s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 @keyframes contentFadeIn {

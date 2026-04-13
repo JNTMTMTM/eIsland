@@ -43,8 +43,8 @@ import { fetchVersion } from '../api/versionApi';
 /** 灵动岛状态类型 */
 export type IslandState = 'idle' | 'hover' | 'expanded' | 'notification' | 'maxExpand' | 'minimal' | 'lyrics' | 'guide';
 
-/** shell.css 中 morph/transition 主时长（0.4s） */
-const SHELL_MORPH_DURATION_MS = 400;
+/** shell.css 中 morph/transition 主时长（0.5s） */
+const SHELL_MORPH_DURATION_MS = 500;
 
 /** 各状态对应的窗口面积（宽×高），用于判断状态切换是放大还是缩小 */
 const STATE_AREA: Record<string, number> = {
