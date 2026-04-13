@@ -55,6 +55,7 @@ import { registerHideProcessIpcHandlers } from './ipc/hideProcess';
 import { registerThemeIpcHandlers } from './ipc/theme';
 import { registerWindowIpcHandlers } from './ipc/window';
 import { registerMediaIpcHandlers } from './ipc/media';
+import { registerAppLifecycleHandlers } from './services/appLifecycle';
 import { applyChromiumPerformanceFlags } from './services/chromiumFlags';
 import { initUpdaterService } from './services/updaterService';
 import { createCaptureWindowService } from './window/captureWindow';
@@ -1429,12 +1430,21 @@ let clipboardUrlBlacklist: string[] = [...DEFAULT_CLIPBOARD_URL_BLACKLIST];
  */
 applyChromiumPerformanceFlags(app);
 
-/** 单实例锁回调 */
-app.on('second-instance', () => {
-  if (mainWindow) {
-    if (mainWindow.isMinimized()) mainWindow.restore();
-    mainWindow.focus();
-  }
+registerAppLifecycleHandlers({
+  getMainWindow: () => mainWindow,
+  onWillQuit: () => {
+    stopAutoHideProcessWatcher();
+    stopClipboardUrlWatcher();
+    globalShortcut.unregisterAll();
+  },
+  onWindowAllClosed: () => {
+    stopAutoHideProcessWatcher();
+    cleanupSmtcWorker();
+    destroyTray();
+    if (process.platform !== 'darwin') {
+      app.quit();
+    }
+  },
 });
 
 /**
@@ -1515,17 +1525,3 @@ app.whenReady().then(() => {
   });
 });
 
-app.on('will-quit', () => {
-  stopAutoHideProcessWatcher();
-  stopClipboardUrlWatcher();
-  globalShortcut.unregisterAll();
-});
-
-app.on('window-all-closed', () => {
-  stopAutoHideProcessWatcher();
-  cleanupSmtcWorker();
-  destroyTray();
-  if (process.platform !== 'darwin') {
-    app.quit();
-  }
-});
