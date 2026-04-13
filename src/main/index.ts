@@ -53,6 +53,7 @@ import { registerHotkeyIpcHandlers } from './ipc/hotkey';
 import { registerIslandIpcHandlers } from './ipc/island';
 import { registerHideProcessIpcHandlers } from './ipc/hideProcess';
 import { registerThemeIpcHandlers } from './ipc/theme';
+import { registerWindowIpcHandlers } from './ipc/window';
 
 /** 防止 Electron 创建多个实例 */
 const gotTheLock = app.requestSingleInstanceLock();
@@ -1327,145 +1328,30 @@ function sendMediaVirtualKey(vkCode: number): void {
 
 /** 注册 IPC 处理器，供渲染进程动态切换鼠标穿透状态及调整窗口大小 */
 function registerIpcHandlers(): void {
-  ipcMain.on('window:enable-mouse-passthrough', () => {
-    if (mainWindow) {
-      mainWindow.setIgnoreMouseEvents(true, { forward: true });
-    }
-  });
-
-  ipcMain.on('window:disable-mouse-passthrough', () => {
-    if (mainWindow) {
-      mainWindow.setIgnoreMouseEvents(false);
-    }
-  });
-
-  /**
-   * 展开窗口 - 基于初始中心点，向两边均匀扩展
-   * @description 窗口宽度从 180px 扩展到 320px，高度从 42px 扩展到 120px
-   */
-  ipcMain.on('window:expand', () => {
-    if (mainWindow) {
-      mainWindow.setBounds({
-        x: Math.round(initialCenterX - EXPANDED_WIDTH / 2),
-        y: mainWindow.getBounds().y,
-        width: EXPANDED_WIDTH,
-        height: EXPANDED_HEIGHT
-      });
-    }
-  });
-
-  /**
-   * 展开通知窗口 - 使用通知专用尺寸
-   * @description 宽度 500，高度 88，基于初始中心点左右均匀扩展
-   */
-  ipcMain.on('window:expand-notification', () => {
-    if (mainWindow) {
-      mainWindow.setBounds({
-        x: Math.round(initialCenterX - NOTIFICATION_WIDTH / 2),
-        y: mainWindow.getBounds().y,
-        width: NOTIFICATION_WIDTH,
-        height: NOTIFICATION_HEIGHT
-      });
-    }
-  });
-
-  /**
-   * 展开歌词窗口 - 宽度 500，高度与 idle 一致（42）
-   */
-  ipcMain.on('window:expand-lyrics', () => {
-    if (mainWindow) {
-      mainWindow.setBounds({
-        x: Math.round(initialCenterX - LYRICS_WIDTH / 2),
-        y: mainWindow.getBounds().y,
-        width: LYRICS_WIDTH,
-        height: LYRICS_HEIGHT
-      });
-    }
-  });
-
-  /**
-   * 完整展开窗口 - 单击灵动岛后展开为完整操作面板
-   * @description 窗口从 hover 尺寸扩展到 560x200，基于初始中心点左右均匀扩展
-   */
-  ipcMain.on('window:expand-full', () => {
-    if (mainWindow) {
-      mainWindow.setBounds({
-        x: Math.round(initialCenterX - EXPANDED_FULL_WIDTH / 2),
-        y: mainWindow.getBounds().y,
-        width: EXPANDED_FULL_WIDTH,
-        height: EXPANDED_FULL_HEIGHT
-      });
-    }
-  });
-
-  /**
-   * 展开设置面板 - 比 expanded 更大的独立设置界面
-   * @description 窗口扩展到 860x400，基于初始中心点左右均匀扩展
-   */
-  ipcMain.on('window:expand-settings', () => {
-    if (mainWindow) {
-      mainWindow.setBounds({
-        x: Math.round(initialCenterX - SETTINGS_WIDTH / 2),
-        y: mainWindow.getBounds().y,
-        width: SETTINGS_WIDTH,
-        height: SETTINGS_HEIGHT
-      });
-    }
-  });
-
-  /**
-   * 收缩窗口 - 基于初始中心点，收缩回原始尺寸
-   * @description 窗口恢复到 180x42 的 idle 状态
-   */
-  ipcMain.on('window:collapse', () => {
-    if (mainWindow) {
-      mainWindow.setBounds({
-        x: Math.round(initialCenterX - ISLAND_WIDTH / 2),
-        y: mainWindow.getBounds().y,
-        width: ISLAND_WIDTH,
-        height: ISLAND_HEIGHT
-      });
-    }
-  });
-
-  /**
-   * 隐藏窗口
-   */
-  ipcMain.on('window:hide', () => {
-    if (mainWindow) {
-      hiddenByAutoHideProcess = false;
-      mainWindow.hide();
-    }
-  });
-
-  /**
-   * 获取鼠标当前位置（屏幕坐标）
-   * @returns 包含 x、y 坐标的对象
-   */
-  ipcMain.handle('window:get-mouse-position', () => {
-    const point = screen.getCursorScreenPoint();
-    return { x: point.x, y: point.y };
-  });
-
-  /**
-   * 获取窗口边界信息
-   * @returns 窗口边界对象，包含 x、y、width、height
-   */
-  ipcMain.handle('window:get-bounds', () => {
-    if (mainWindow) {
-      return mainWindow.getBounds();
-    }
-    return null;
-  });
-
-  ipcMain.handle('window:island-position:get', () => {
-    return { ...islandPositionOffset };
-  });
-
-  ipcMain.handle('window:island-position:set', (_event, offset: { x?: number; y?: number }) => {
-    const nextOffset = sanitizeIslandPositionOffset(offset);
-    applyIslandPositionOffset(nextOffset);
-    return writeIslandPositionOffsetConfig(nextOffset);
+  registerWindowIpcHandlers({
+    getMainWindow: () => mainWindow,
+    getInitialCenterX: () => initialCenterX,
+    setHiddenByAutoHideProcess: (hidden) => {
+      hiddenByAutoHideProcess = hidden;
+    },
+    getIslandPositionOffset: () => islandPositionOffset,
+    sanitizeIslandPositionOffset,
+    applyIslandPositionOffset,
+    writeIslandPositionOffsetConfig,
+    sizes: {
+      expandedWidth: EXPANDED_WIDTH,
+      expandedHeight: EXPANDED_HEIGHT,
+      notificationWidth: NOTIFICATION_WIDTH,
+      notificationHeight: NOTIFICATION_HEIGHT,
+      lyricsWidth: LYRICS_WIDTH,
+      lyricsHeight: LYRICS_HEIGHT,
+      expandedFullWidth: EXPANDED_FULL_WIDTH,
+      expandedFullHeight: EXPANDED_FULL_HEIGHT,
+      settingsWidth: SETTINGS_WIDTH,
+      settingsHeight: SETTINGS_HEIGHT,
+      islandWidth: ISLAND_WIDTH,
+      islandHeight: ISLAND_HEIGHT,
+    },
   });
 
   // ===== 音乐媒体控制 IPC 处理器 =====
