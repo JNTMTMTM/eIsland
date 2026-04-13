@@ -1637,18 +1637,6 @@ function registerIpcHandlers(): void {
     navOrderStoreKey: NAV_ORDER_STORE_KEY,
   });
 
-  /** 获取当前运行的非系统进程列表 */
-  ipcMain.handle('system:running-processes:get', async () => {
-    if (process.platform !== 'win32') return [];
-    return queryRunningNonSystemProcessNames();
-  });
-
-  /** 获取当前运行的非系统进程列表（包含进程图标） */
-  ipcMain.handle('system:running-processes:with-icons:get', async () => {
-    if (process.platform !== 'win32') return [];
-    return queryRunningNonSystemProcessesWithIcons();
-  });
-
   /** 获取隐藏进程名单 */
   ipcMain.handle('hide-process-list:get', () => {
     return configuredHideProcessList;
@@ -1731,7 +1719,10 @@ function registerIpcHandlers(): void {
 
   registerAppIpcHandlers();
 
-  registerSystemIpcHandlers();
+  registerSystemIpcHandlers({
+    queryRunningNonSystemProcessNames,
+    queryRunningNonSystemProcessesWithIcons,
+  });
 
   registerUpdaterIpcHandlers({
     updater: autoUpdater,
