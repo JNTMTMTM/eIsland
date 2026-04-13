@@ -43,17 +43,41 @@ function extractHtmlTitle(html: string): string {
   return m ? m[1].trim() : '';
 }
 
+/** 限制最大字节数防止大文件 OOM */
+const TITLE_FETCH_MAX_BYTES = 8192;
+
 async function fetchPageTitle(url: string, timeoutMs = 3000): Promise<string> {
   try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return '';
+
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
-    const resp = await net.fetch(url, {
+    const resp = await net.fetch(parsed.href, {
       signal: controller.signal as never,
-      headers: { 'User-Agent': 'Mozilla/5.0' },
+      headers: { 'User-Agent': 'Mozilla/5.0', Range: 'bytes=0-8191' },
+      redirect: 'follow',
     });
     clearTimeout(timer);
-    if (!resp.ok) return '';
-    const html = await resp.text();
+    if (!resp.ok && resp.status !== 206) return '';
+
+    const contentType = resp.headers.get('content-type') ?? '';
+    if (!contentType.includes('text/html') && !contentType.includes('text/plain')) return '';
+
+    const reader = resp.body?.getReader();
+    if (!reader) return '';
+    let received = 0;
+    const chunks: Uint8Array[] = [];
+    while (received < TITLE_FETCH_MAX_BYTES) {
+      const { done, value } = await reader.read();
+      if (done || !value) break;
+      chunks.push(value);
+      received += value.byteLength;
+    }
+    reader.cancel().catch(() => {});
+
+    const decoder = new TextDecoder('utf-8', { fatal: false });
+    const html = chunks.reduce((acc, chunk) => acc + decoder.decode(chunk, { stream: true }), '');
     return extractHtmlTitle(html);
   } catch {
     return '';
