@@ -122,32 +122,32 @@ function printHelpAndExit(code: number): never {
 }
 
 /**
- * 解析增量日志的起始 Tag
+ * 解析增量日志的起止引用
  * @description
- * 若显式指定 `fromTag` 则直接使用；否则自动查找与目标引用相关的最近 Tag。
- * 当目标引用本身就是 Tag 时，会回退到其前一个 Tag，避免空区间。
+ * 当目标引用恰好在某个 Tag 上时，将其替换为 Tag 名作为终点，
+ * 并回退到前一个 Tag 作为起点，生成 `previousTag..currentTag` 范围。
+ * 当目标引用不在 Tag 上时，以最近的 Tag 为起点，目标引用为终点。
  * @param toRef - 终点引用（默认 HEAD）
  * @param explicitFromTag - 显式指定的起始 Tag
- * @returns 起始 Tag；若仓库无 Tag 则返回 null
+ * @returns 起止引用对 { from, to }
  */
-function resolveStartTag(toRef: string, explicitFromTag?: string): string | null {
-  if (explicitFromTag) {
-    return explicitFromTag;
-  }
-
+function resolveRange(toRef: string, explicitFromTag?: string): { from: string | null; to: string } {
   const hasAnyTag = tryRunGit('git tag --list');
   if (!hasAnyTag) {
-    return null;
+    return { from: explicitFromTag ?? null, to: toRef };
   }
 
-  const exactTagOnToRef = tryRunGit(`git describe --tags --exact-match ${toRef}`);
+  const exactTag = tryRunGit(`git describe --tags --exact-match ${toRef}`);
 
-  if (exactTagOnToRef) {
-    const previous = tryRunGit(`git describe --tags --abbrev=0 ${toRef}^`);
-    return previous;
+  if (exactTag) {
+    // toRef 恰好在 Tag 上 → 用 Tag 名替代 HEAD，回退到前一个 Tag
+    const from = explicitFromTag ?? tryRunGit(`git describe --tags --abbrev=0 ${toRef}^`);
+    return { from, to: exactTag };
   }
 
-  return tryRunGit(`git describe --tags --abbrev=0 ${toRef}`);
+  // toRef 不在 Tag 上 → 最近可达 Tag 作为起点
+  const from = explicitFromTag ?? tryRunGit(`git describe --tags --abbrev=0 ${toRef}`);
+  return { from, to: toRef };
 }
 
 /**
@@ -222,15 +222,15 @@ function buildLogMarkdown(startTag: string | null, toRef: string, includeFiles: 
 function main(): void {
   const options = parseArgs(process.argv.slice(2));
 
-  const startTag = resolveStartTag(options.toRef, options.fromTag);
-  const markdown = buildLogMarkdown(startTag, options.toRef, options.includeFiles);
+  const { from: startTag, to: effectiveToRef } = resolveRange(options.toRef, options.fromTag);
+  const markdown = buildLogMarkdown(startTag, effectiveToRef, options.includeFiles);
 
   const outputPath = resolve(process.cwd(), options.output);
   mkdirSync(dirname(outputPath), { recursive: true });
   writeFileSync(outputPath, markdown, 'utf8');
 
   console.log(`Generated: ${outputPath}`);
-  console.log(`Range: ${startTag ? `${startTag}..${options.toRef}` : options.toRef}`);
+  console.log(`Range: ${startTag ? `${startTag}..${effectiveToRef}` : effectiveToRef}`);
 }
 
 main();
