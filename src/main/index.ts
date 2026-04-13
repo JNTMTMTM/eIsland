@@ -52,6 +52,7 @@ import { registerMusicIpcHandlers } from './ipc/music';
 import { registerHotkeyIpcHandlers } from './ipc/hotkey';
 import { registerIslandIpcHandlers } from './ipc/island';
 import { registerHideProcessIpcHandlers } from './ipc/hideProcess';
+import { registerThemeIpcHandlers } from './ipc/theme';
 
 /** 防止 Electron 创建多个实例 */
 const gotTheLock = app.requestSingleInstanceLock();
@@ -1595,38 +1596,9 @@ function registerIpcHandlers(): void {
 
   // ===== 歌曲设置 IPC =====
 
-  /**
-   * 获取主题模式
-   * @returns 主题模式字符串 'dark' | 'light' | 'system'
-   */
-  ipcMain.handle('theme:mode:get', () => {
-    try {
-      const filePath = join(storeDir, `${THEME_MODE_STORE_KEY}.json`);
-      if (!existsSync(filePath)) return 'dark';
-      const raw = readFileSync(filePath, 'utf-8');
-      const data = JSON.parse(raw);
-      return data === 'dark' || data === 'light' || data === 'system' ? data : 'dark';
-    } catch {
-      return 'dark';
-    }
-  });
-
-  /**
-   * 设置主题模式并持久化
-   * @param _event - IPC 事件
-   * @param mode - 主题模式 'dark' | 'light' | 'system'
-   * @returns 是否保存成功
-   */
-  ipcMain.handle('theme:mode:set', (_event, mode: string) => {
-    try {
-      const safe = mode === 'dark' || mode === 'light' || mode === 'system' ? mode : 'dark';
-      const filePath = join(storeDir, `${THEME_MODE_STORE_KEY}.json`);
-      writeFileSync(filePath, JSON.stringify(safe, null, 2), 'utf-8');
-      return true;
-    } catch (err) {
-      console.error('[Theme] persist error:', err);
-      return false;
-    }
+  registerThemeIpcHandlers({
+    storeDir,
+    themeModeStoreKey: THEME_MODE_STORE_KEY,
   });
 
   registerIslandIpcHandlers({
