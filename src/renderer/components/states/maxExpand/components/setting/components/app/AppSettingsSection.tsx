@@ -28,6 +28,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { Dispatch, ReactElement, SetStateAction } from 'react';
 import type { AppSettingsPageKey } from '../../utils/settingsConfig';
 import type { OverviewLayoutConfig, OverviewWidgetType } from '../../../../../expand/components/OverviewTab';
+import { BUILTIN_WALLPAPERS } from '../../../../../../../assets/wallpaper/builtinWallpapers';
 
 interface AppRunningProcess {
   name: string;
@@ -88,6 +89,7 @@ interface AppSettingsSectionProps {
   bgOpacitySaveTimerRef: { current: ReturnType<typeof setTimeout> | null };
   handleSelectBgImage: () => Promise<void>;
   handleClearBgImage: () => void;
+  handleSelectBuiltinBgImage: (src: string, defaultOpacity: number) => void;
   appSettingsPages: AppSettingsPageKey[];
   settingsTabLabels: Record<string, string>;
   setAppSettingsPage: (page: AppSettingsPageKey) => void;
@@ -149,6 +151,7 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
     bgOpacitySaveTimerRef,
     handleSelectBgImage,
     handleClearBgImage,
+    handleSelectBuiltinBgImage,
     appSettingsPages,
     settingsTabLabels,
     setAppSettingsPage,
@@ -387,15 +390,32 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
                   ))}
                 </div>
 
-                <div className="settings-music-label" style={{ marginTop: 14 }}>背景图片</div>
-                <div className="settings-music-hint">为灵动岛设置自定义背景图片，支持 jpg / png / gif / webp</div>
+                <div className="settings-music-label" style={{ marginTop: 14 }}>内置壁纸</div>
+                <div className="settings-music-hint">选择一张内置壁纸作为灵动岛背景</div>
+                <div className="settings-bg-gallery">
+                  {BUILTIN_WALLPAPERS.map((wp) => (
+                    <button
+                      key={wp.id}
+                      className={`settings-bg-gallery-item ${bgImage === wp.src ? 'active' : ''}`}
+                      type="button"
+                      onClick={() => handleSelectBuiltinBgImage(wp.src, wp.defaultOpacity)}
+                      title={`${wp.name}（默认透明度 ${wp.defaultOpacity}%）`}
+                    >
+                      <img src={wp.src} alt={wp.name} className="settings-bg-gallery-img" />
+                      <span className="settings-bg-gallery-name">{wp.name}</span>
+                    </button>
+                  ))}
+                </div>
+
+                <div className="settings-music-label" style={{ marginTop: 14 }}>自定义图片</div>
+                <div className="settings-music-hint">从本地选择图片，支持 jpg / png / gif / webp</div>
                 <div className="settings-hotkey-row" style={{ marginTop: 8, gap: 8, alignItems: 'center' }}>
                   <button className="settings-hotkey-btn" type="button" onClick={() => { handleSelectBgImage().catch(() => {}); }}>
                     {bgImage ? '更换图片' : '选择图片'}
                   </button>
                   {bgImage && (
                     <button className="settings-hotkey-btn" type="button" onClick={handleClearBgImage}>
-                      清除图片
+                      清除背景
                     </button>
                   )}
                 </div>

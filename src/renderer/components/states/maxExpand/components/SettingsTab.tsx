@@ -250,6 +250,18 @@ export function SettingsTab(): ReactElement {
     persistBgImage(null);
   };
 
+  const handleSelectBuiltinBgImage = (src: string, defaultOpacity: number): void => {
+    setBgImage(src);
+    setBgImageOpacity(defaultOpacity);
+    const el = document.getElementById('island-bg-layer');
+    if (el) {
+      el.style.backgroundImage = `url(${src})`;
+      el.style.opacity = String(defaultOpacity / 100);
+    }
+    persistBgImage(src);
+    persistBgOpacity(defaultOpacity);
+  };
+
   const visibleCards = useMemo(() => {
     const seen = new Set<string>();
     return navOrder.reduce<NavCardDef[]>((ordered, id) => {
@@ -1250,6 +1262,7 @@ export function SettingsTab(): ReactElement {
               bgOpacitySaveTimerRef={bgOpacitySaveTimerRef}
               handleSelectBgImage={handleSelectBgImage}
               handleClearBgImage={handleClearBgImage}
+              handleSelectBuiltinBgImage={handleSelectBuiltinBgImage}
               appSettingsPages={APP_SETTINGS_PAGES}
               settingsTabLabels={SETTINGS_TAB_LABELS}
               setAppSettingsPage={setAppSettingsPage}

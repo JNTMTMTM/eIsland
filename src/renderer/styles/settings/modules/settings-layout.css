@@ -1459,6 +1459,57 @@
   border-radius: 3px;
 }
 
+/** ========== 内置壁纸画廊 ========== */
+.settings-bg-gallery {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.settings-bg-gallery-item {
+  position: relative;
+  width: 80px;
+  height: 50px;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 2px solid rgba(var(--color-text-rgb), 0.1);
+  background: rgba(var(--color-text-rgb), 0.04);
+  cursor: pointer;
+  padding: 0;
+  transition: border-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+}
+
+.settings-bg-gallery-item:hover {
+  border-color: rgba(var(--color-text-rgb), 0.3);
+}
+
+.settings-bg-gallery-item.active {
+  border-color: var(--color-island-text);
+  box-shadow: 0 0 0 1px var(--color-island-text);
+}
+
+.settings-bg-gallery-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.settings-bg-gallery-name {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  font-size: 9px;
+  color: #fff;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.6));
+  padding: 6px 3px 2px;
+  text-align: center;
+  line-height: 1;
+  pointer-events: none;
+}
+
 /** ========== 背景图片预览 ========== */
 .settings-bg-preview {
   width: 100%;
