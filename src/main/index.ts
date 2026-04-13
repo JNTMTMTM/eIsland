@@ -1051,7 +1051,9 @@ function createWindow(): void {
     alwaysOnTop: true,
     skipTaskbar: true,
     hasShadow: false,
-    icon: join(__dirname, '../../resources/icon/eisland_256x256.ico'),
+    icon: is.dev
+      ? join(__dirname, '../../resources/icon/eisland_256x256.ico')
+      : join(process.resourcesPath, 'icon/eisland_256x256.ico'),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false,
