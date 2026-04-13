@@ -39,6 +39,7 @@ import {
 } from './utils/clipboardUrl';
 import { startClipboardUrlWatcher, stopClipboardUrlWatcher } from './clipboard/urlWatcher';
 import { registerClipboardIpcHandlers } from './ipc/clipboard';
+import { registerUpdaterIpcHandlers } from './ipc/updater';
 
 /** 防止 Electron 创建多个实例 */
 const gotTheLock = app.requestSingleInstanceLock();
@@ -2518,68 +2519,10 @@ function registerIpcHandlers(): void {
     closeCaptureWindow();
   });
 
-  // ===== 自动更新 IPC =====
-
-  /** 检查更新 */
-  ipcMain.handle('updater:check', async () => {
-    try {
-      const current = app.getVersion();
-      console.log('[Updater:check] currentVersion:', current);
-      console.log('[Updater:check] app.isPackaged:', app.isPackaged);
-      console.log('[Updater:check] calling checkForUpdates...');
-      const result = await autoUpdater.checkForUpdates();
-      console.log('[Updater:check] result:', JSON.stringify(result?.updateInfo ?? null));
-      if (!result || !result.updateInfo) {
-        console.log('[Updater:check] no updateInfo returned');
-        return { available: false };
-      }
-      const latest = result.updateInfo.version;
-      console.log(`[Updater:check] latest=${latest} current=${current} available=${latest !== current}`);
-      return {
-        available: latest !== current,
-        version: latest,
-        releaseNotes: result.updateInfo.releaseNotes || '',
-        currentVersion: current,
-      };
-    } catch (err: unknown) {
-      const e = err instanceof Error ? err : new Error(String(err));
-      console.error('[Updater:check] ERROR:', e.message);
-      console.error('[Updater:check] stack:', e.stack);
-      return { available: false, error: e.message };
-    }
-  });
-
-  /** 下载更新（自动先 check 再 download） */
-  ipcMain.handle('updater:download', async () => {
-    try {
-      console.log('[Updater:download] step 1 - checkForUpdates...');
-      const checkResult = await autoUpdater.checkForUpdates();
-      console.log('[Updater:download] checkResult:', JSON.stringify(checkResult?.updateInfo ?? null));
-      if (!checkResult || !checkResult.updateInfo) {
-        console.error('[Updater:download] checkForUpdates returned no info, aborting download');
-        return false;
-      }
-      console.log('[Updater:download] step 2 - downloadUpdate...');
-      await autoUpdater.downloadUpdate();
-      console.log('[Updater:download] download finished successfully');
-      return true;
-    } catch (err: unknown) {
-      const e = err instanceof Error ? err : new Error(String(err));
-      console.error('[Updater:download] ERROR:', e.message);
-      console.error('[Updater:download] stack:', e.stack);
-      return false;
-    }
-  });
-
-  /** 安装更新并重启 */
-  ipcMain.handle('updater:install', () => {
-    autoUpdater.quitAndInstall(false, true);
-    return true;
-  });
-
-  /** 获取当前版本 */
-  ipcMain.handle('updater:version', () => {
-    return app.getVersion();
+  registerUpdaterIpcHandlers({
+    updater: autoUpdater,
+    getVersion: () => app.getVersion(),
+    isPackaged: () => app.isPackaged,
   });
 }
 
