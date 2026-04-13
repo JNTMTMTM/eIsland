@@ -493,13 +493,15 @@ function DynamicIsland(): React.JSX.Element {
   useEffect(() => {
     const unsubClipboard = window.api?.onClipboardUrlsDetected?.(({ urls, title }) => {
       let faviconUrl: string | undefined;
+      let hostname = '';
       try {
-        const origin = new URL(urls[0]).origin;
-        faviconUrl = `${origin}/favicon.ico`;
+        const parsed = new URL(urls[0]);
+        faviconUrl = `${parsed.origin}/favicon.ico`;
+        hostname = parsed.hostname;
       } catch { /* ignore */ }
       setNotificationRef.current({
         title: '检测到链接',
-        body: title || new URL(urls[0]).hostname,
+        body: title || hostname || urls[0],
         icon: faviconUrl || SvgIcon.LINK,
         type: 'clipboard-url',
         urls,
