@@ -1514,10 +1514,9 @@ function registerIpcHandlers(): void {
       const destPath = join(wallpaperCacheDir, destName);
       // 清理旧的自定义壁纸缓存
       try {
-        const existing = readdirSync(wallpaperCacheDir);
-        for (const f of existing) {
-          if (f.startsWith('custom-bg-')) unlinkSync(join(wallpaperCacheDir, f));
-        }
+        readdirSync(wallpaperCacheDir)
+          .filter((f) => f.startsWith('custom-bg-'))
+          .forEach((f) => unlinkSync(join(wallpaperCacheDir, f)));
       } catch { /* ignore */ }
       copyFileSync(filePath, destPath);
       return destPath;
@@ -1546,10 +1545,9 @@ function registerIpcHandlers(): void {
   ipcMain.handle('wallpaper:clear-cache', async () => {
     try {
       if (!existsSync(wallpaperCacheDir)) return;
-      const files = readdirSync(wallpaperCacheDir);
-      for (const f of files) {
-        if (f.startsWith('custom-bg-')) unlinkSync(join(wallpaperCacheDir, f));
-      }
+      readdirSync(wallpaperCacheDir)
+        .filter((f) => f.startsWith('custom-bg-'))
+        .forEach((f) => unlinkSync(join(wallpaperCacheDir, f)));
     } catch { /* ignore */ }
   });
 
