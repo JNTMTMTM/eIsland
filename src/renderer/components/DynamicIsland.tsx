@@ -480,7 +480,7 @@ function DynamicIsland(): React.JSX.Element {
 
   // 订阅剪贴板 URL 检测事件（主进程推送）
   useEffect(() => {
-    const unsubClipboard = window.api?.onClipboardUrlsDetected?.((urls) => {
+    const unsubClipboard = window.api?.onClipboardUrlsDetected?.(({ urls, title }) => {
       let faviconUrl: string | undefined;
       try {
         const origin = new URL(urls[0]).origin;
@@ -488,7 +488,7 @@ function DynamicIsland(): React.JSX.Element {
       } catch { /* ignore */ }
       setNotificationRef.current({
         title: '检测到链接',
-        body: urls.length > 1 ? `剪贴板中包含 ${urls.length} 个链接` : urls[0],
+        body: title || new URL(urls[0]).hostname,
         icon: faviconUrl || SvgIcon.LINK,
         type: 'clipboard-url',
         urls,

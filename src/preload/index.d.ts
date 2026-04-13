@@ -163,7 +163,7 @@ declare global {
       onUpdaterDownloaded: (callback: (data: { version: string }) => void) => () => void;
       onUpdaterAvailable: (callback: (data: { version: string; releaseNotes: string }) => void) => () => void;
       /** ===== 剪贴板 URL 监听 API ===== */
-      onClipboardUrlsDetected: (callback: (urls: string[]) => void) => () => void;
+      onClipboardUrlsDetected: (callback: (data: { urls: string[]; title: string }) => void) => () => void;
       clipboardOpenUrl: (url: string) => Promise<boolean>;
     };
   }

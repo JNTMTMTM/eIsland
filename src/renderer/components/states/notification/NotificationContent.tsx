@@ -122,7 +122,17 @@ export function NotificationContent({
       <div className="notification-main-row">
         <div className="notification-icon">
           {icon ? (
-            <img src={icon} alt="" className="notification-icon-img" />
+            <img
+              src={icon}
+              alt=""
+              className="notification-icon-img"
+              onError={(e) => {
+                if (type === 'clipboard-url') {
+                  (e.target as HTMLImageElement).src = './svg/LINK.svg';
+                  (e.target as HTMLImageElement).onerror = null;
+                }
+              }}
+            />
           ) : (
             <div className="notification-icon-default" />
           )}

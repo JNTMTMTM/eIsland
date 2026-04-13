@@ -666,9 +666,9 @@ const api = {
    * @param callback - 回调函数，接收 URL 数组
    * @returns 取消监听函数
    */
-  onClipboardUrlsDetected: (callback: (urls: string[]) => void): (() => void) => {
-    const handler = (_event: Electron.IpcRendererEvent, urls: string[]): void => {
-      callback(urls);
+  onClipboardUrlsDetected: (callback: (data: { urls: string[]; title: string }) => void): (() => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, data: { urls: string[]; title: string }): void => {
+      callback(data);
     };
     ipcRenderer.on('clipboard:urls-detected', handler);
     return () => {

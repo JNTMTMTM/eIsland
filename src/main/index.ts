@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import { app, BrowserWindow, shell, screen, ipcMain, desktopCapturer, dialog, globalShortcut, clipboard, nativeImage } from 'electron';
+import { app, BrowserWindow, shell, screen, ipcMain, desktopCapturer, dialog, globalShortcut, clipboard, nativeImage, net } from 'electron';
 import { join, basename } from 'path';
 import { readFileSync, writeFileSync, appendFileSync, mkdirSync, existsSync, readdirSync, statSync, unlinkSync, copyFileSync } from 'fs';
 import { exec } from 'child_process';
@@ -2569,6 +2569,37 @@ function extractUrls(text: string): string[] {
 }
 
 /**
+ * 从 HTML 中提取 <title> 标签内容
+ */
+function extractHtmlTitle(html: string): string {
+  const m = html.match(/<title[^>]*>([^<]*)<\/title>/i);
+  return m ? m[1].trim() : '';
+}
+
+/**
+ * 获取 URL 对应页面的标题（带超时）
+ * @param url - 目标 URL
+ * @param timeoutMs - 超时毫秒数
+ * @returns 页面标题，失败返回空字符串
+ */
+async function fetchPageTitle(url: string, timeoutMs = 3000): Promise<string> {
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    const resp = await net.fetch(url, {
+      signal: controller.signal as never,
+      headers: { 'User-Agent': 'Mozilla/5.0' },
+    });
+    clearTimeout(timer);
+    if (!resp.ok) return '';
+    const html = await resp.text();
+    return extractHtmlTitle(html);
+  } catch {
+    return '';
+  }
+}
+
+/**
  * 启动剪贴板 URL 监听轮询
  * @param win - 主窗口引用
  */
@@ -2584,7 +2615,10 @@ function startClipboardUrlWatcher(win: BrowserWindow | null): void {
 
     const urls = extractUrls(current);
     if (urls.length > 0) {
-      win.webContents.send('clipboard:urls-detected', urls);
+      fetchPageTitle(urls[0]).then((title) => {
+        if (!win || win.isDestroyed()) return;
+        win.webContents.send('clipboard:urls-detected', { urls, title });
+      });
     }
   }, 1000);
 }
