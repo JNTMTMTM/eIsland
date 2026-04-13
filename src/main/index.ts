@@ -26,12 +26,20 @@
 
 import { app, BrowserWindow, shell, screen, ipcMain, desktopCapturer, dialog, globalShortcut, clipboard, nativeImage, net } from 'electron';
 import { join, basename } from 'path';
-import { readFileSync, writeFileSync, appendFileSync, mkdirSync, existsSync, readdirSync, statSync, unlinkSync, copyFileSync } from 'fs';
+import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync, unlinkSync, copyFileSync } from 'fs';
 import { exec } from 'child_process';
 import { Worker } from 'worker_threads';
 import { electronApp, optimizer, is } from '@electron-toolkit/utils';
 import { autoUpdater } from 'electron-updater';
 import { createTray, destroyTray } from './tray';
+import { clearLogsCacheFiles, createSessionMainLogger, ensureLogsDir } from './log/mainLog';
+import {
+  extractUrls,
+  isUrlBlacklisted,
+  normalizeClipboardUrlBlacklistDomain,
+  normalizeClipboardUrlDetectMode,
+  sanitizeClipboardUrlBlacklist,
+} from './utils/clipboardUrl';
 
 /** 防止 Electron 创建多个实例 */
 const gotTheLock = app.requestSingleInstanceLock();
@@ -98,43 +106,14 @@ function readClipboardUrlMonitorEnabledConfig(): boolean {
   }
 }
 
-function normalizeClipboardUrlDetectMode(mode: unknown): ClipboardUrlDetectMode {
-  if (mode === 'https-only' || mode === 'http-https' || mode === 'domain-only') {
-    return mode;
-  }
-  return DEFAULT_CLIPBOARD_URL_DETECT_MODE;
-}
-
-function normalizeClipboardUrlBlacklistDomain(domain: string): string {
-  const trimmed = domain.trim().toLowerCase();
-  if (!trimmed) return '';
-  try {
-    const withScheme = /^[a-z][a-z0-9+.-]*:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
-    const hostname = new URL(withScheme).hostname.toLowerCase().replace(/\.$/, '');
-    return hostname;
-  } catch {
-    return '';
-  }
-}
-
-function sanitizeClipboardUrlBlacklist(raw: unknown): string[] {
-  if (!Array.isArray(raw)) return [];
-  const unique = new Set<string>();
-  for (const item of raw) {
-    if (typeof item !== 'string') continue;
-    const normalized = normalizeClipboardUrlBlacklistDomain(item);
-    if (normalized) unique.add(normalized);
-  }
-  return [...unique.values()];
-}
-
 function readClipboardUrlDetectModeConfig(): ClipboardUrlDetectMode {
   try {
     const storeDir = join(app.getPath('userData'), 'eIsland_store');
     const filePath = join(storeDir, `${CLIPBOARD_URL_DETECT_MODE_STORE_KEY}.json`);
     if (!existsSync(filePath)) return DEFAULT_CLIPBOARD_URL_DETECT_MODE;
     const raw = readFileSync(filePath, 'utf-8');
-    return normalizeClipboardUrlDetectMode(JSON.parse(raw));
+    const normalized = normalizeClipboardUrlDetectMode(JSON.parse(raw));
+    return normalized || DEFAULT_CLIPBOARD_URL_DETECT_MODE;
   } catch {
     return DEFAULT_CLIPBOARD_URL_DETECT_MODE;
   }
@@ -1542,7 +1521,7 @@ function registerIpcHandlers(): void {
   ipcMain.handle('clipboard:url-detect-mode:set', (_event, mode: ClipboardUrlDetectMode) => {
     try {
       const filePath = join(storeDir, `${CLIPBOARD_URL_DETECT_MODE_STORE_KEY}.json`);
-      clipboardUrlDetectMode = normalizeClipboardUrlDetectMode(mode);
+      clipboardUrlDetectMode = normalizeClipboardUrlDetectMode(mode) || DEFAULT_CLIPBOARD_URL_DETECT_MODE;
       writeFileSync(filePath, JSON.stringify(clipboardUrlDetectMode, null, 2), 'utf-8');
       return true;
     } catch (err) {
@@ -1556,10 +1535,7 @@ function registerIpcHandlers(): void {
    */
   ipcMain.handle('app:open-logs-folder', async () => {
     try {
-      const logDir = join(app.getPath('userData'), 'logs');
-      if (!existsSync(logDir)) {
-        mkdirSync(logDir, { recursive: true });
-      }
+      const logDir = ensureLogsDir();
       const result = await shell.openPath(logDir);
       return result === '';
     } catch (err) {
@@ -1573,24 +1549,12 @@ function registerIpcHandlers(): void {
    */
   ipcMain.handle('app:clear-logs-cache', async () => {
     try {
-      const logDir = join(app.getPath('userData'), 'logs');
-      if (!existsSync(logDir)) return { success: true, freedBytes: 0 };
-      const files = readdirSync(logDir);
-      let freedBytes = 0;
-      files.forEach((file) => {
-        const filePath = join(logDir, file);
-        try {
-          const stat = statSync(filePath);
-          if (stat.isFile()) {
-            unlinkSync(filePath);
-            freedBytes += stat.size;
-          }
-        } catch (_) {
-          /* skip files in use */
-        }
-      });
-      console.log(`[App] cleared logs cache: ${files.length} files, ${(freedBytes / 1024).toFixed(1)} KB freed`);
-      return { success: true, freedBytes };
+      const result = clearLogsCacheFiles();
+      if (!result.success) {
+        return { success: false, freedBytes: 0 };
+      }
+      console.log(`[App] cleared logs cache: ${result.fileCount} files, ${(result.freedBytes / 1024).toFixed(1)} KB freed`);
+      return { success: true, freedBytes: result.freedBytes };
     } catch (err) {
       console.error('[App] clear logs cache error:', err);
       return { success: false, freedBytes: 0 };
@@ -1804,27 +1768,7 @@ function registerIpcHandlers(): void {
     } catch { /* ignore */ }
   });
 
-  const logDir = join(app.getPath('userData'), 'logs');
-  if (!existsSync(logDir)) {
-    mkdirSync(logDir, { recursive: true });
-  }
-
-  const sessionStart = new Date();
-  const pad2 = (n: number): string => String(n).padStart(2, '0');
-  const sessionLogFileName = `${sessionStart.getFullYear()}-${pad2(sessionStart.getMonth() + 1)}-${pad2(sessionStart.getDate())}_${pad2(sessionStart.getHours())}-${pad2(sessionStart.getMinutes())}-${pad2(sessionStart.getSeconds())}_${sessionStart.getTime()}.log`;
-  const sessionLogFile = join(logDir, sessionLogFileName);
-
-  const writeMainLog = (level: 'info' | 'warn' | 'error', message: string): void => {
-    try {
-      const now = new Date();
-      const date = now.toISOString().slice(0, 10);
-      const time = now.toISOString().slice(11, 23);
-      const line = `[${date} ${time}] [${level.toUpperCase()}] ${message}\n`;
-      appendFileSync(sessionLogFile, line, 'utf-8');
-    } catch {
-      /* 日志写入失败不影响主流程 */
-    }
-  };
+  const writeMainLog = createSessionMainLogger();
 
   // ===== HTTP 代理 IPC（绕过 CORS） =====
   ipcMain.handle('net:fetch', async (_event, url: string, options?: {
@@ -2922,58 +2866,6 @@ let clipboardUrlDetectMode: ClipboardUrlDetectMode = DEFAULT_CLIPBOARD_URL_DETEC
 /** 剪贴板 URL 黑名单（域名） */
 let clipboardUrlBlacklist: string[] = [...DEFAULT_CLIPBOARD_URL_BLACKLIST];
 
-/** 仅识别 https:// URL */
-const URL_REGEX_HTTPS_ONLY = /https:\/\/[^\s<>"{}|\\^`\[\]]+/gi;
-
-/** 识别 http:// 与 https:// URL */
-const URL_REGEX_HTTP_HTTPS = /https?:\/\/[^\s<>"{}|\\^`\[\]]+/gi;
-
-/** 仅识别域名（可含路径） */
-const URL_REGEX_DOMAIN_ONLY = /\b(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}(?:\/[^\s<>"{}|\\^`\[\]]*)?/gi;
-
-function normalizeDomainOnlyUrl(url: string): string {
-  const trimmed = url.replace(/[),.;!?]+$/g, '');
-  if (!trimmed) return '';
-  return /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
-}
-
-/**
- * 从文本中提取所有 URL（去重）
- * @param text - 剪贴板文本
- * @param mode - URL 识别模式
- * @returns 去重后的 URL 数组
- */
-function extractUrls(text: string, mode: ClipboardUrlDetectMode): string[] {
-  let matches: string[] = [];
-
-  if (mode === 'https-only') {
-    matches = text.match(URL_REGEX_HTTPS_ONLY) || [];
-  } else if (mode === 'domain-only') {
-    matches = (text.match(URL_REGEX_DOMAIN_ONLY) || []).map(normalizeDomainOnlyUrl).filter(Boolean);
-  } else {
-    matches = text.match(URL_REGEX_HTTP_HTTPS) || [];
-  }
-
-  if (matches.length === 0) return [];
-
-  const unique = new Map<string, string>();
-  for (const item of matches) {
-    const key = item.toLowerCase();
-    if (!unique.has(key)) unique.set(key, item);
-  }
-  return [...unique.values()];
-}
-
-function isUrlBlacklisted(url: string): boolean {
-  if (clipboardUrlBlacklist.length === 0) return false;
-  try {
-    const hostname = new URL(url).hostname.toLowerCase();
-    return clipboardUrlBlacklist.some((domain) => hostname === domain || hostname.endsWith(`.${domain}`));
-  } catch {
-    return false;
-  }
-}
-
 /**
  * 从 HTML 中提取 <title> 标签内容
  */
@@ -3020,7 +2912,7 @@ function startClipboardUrlWatcher(win: BrowserWindow | null): void {
     lastClipboardText = current;
 
     const urls = extractUrls(current, clipboardUrlDetectMode);
-    const filteredUrls = urls.filter((url) => !isUrlBlacklisted(url));
+    const filteredUrls = urls.filter((url) => !isUrlBlacklisted(url, clipboardUrlBlacklist));
     if (filteredUrls.length > 0) {
       fetchPageTitle(filteredUrls[0]).then((title) => {
         if (!win || win.isDestroyed()) return;
