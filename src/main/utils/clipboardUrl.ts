@@ -25,12 +25,12 @@ export function normalizeClipboardUrlBlacklistDomain(domain: string): string {
 
 export function sanitizeClipboardUrlBlacklist(raw: unknown): string[] {
   if (!Array.isArray(raw)) return [];
-  const unique = new Set<string>();
-  for (const item of raw) {
-    if (typeof item !== 'string') continue;
+  const unique = (raw as unknown[]).reduce<Set<string>>((acc, item) => {
+    if (typeof item !== 'string') return acc;
     const normalized = normalizeClipboardUrlBlacklistDomain(item);
-    if (normalized) unique.add(normalized);
-  }
+    if (normalized) acc.add(normalized);
+    return acc;
+  }, new Set<string>());
   return [...unique.values()];
 }
 
@@ -53,11 +53,11 @@ export function extractUrls(text: string, mode: ClipboardUrlDetectMode): string[
 
   if (matches.length === 0) return [];
 
-  const unique = new Map<string, string>();
-  for (const item of matches) {
+  const unique = matches.reduce<Map<string, string>>((acc, item) => {
     const key = item.toLowerCase();
-    if (!unique.has(key)) unique.set(key, item);
-  }
+    if (!acc.has(key)) acc.set(key, item);
+    return acc;
+  }, new Map<string, string>());
   return [...unique.values()];
 }
 

@@ -25,13 +25,7 @@ export function createCaptureWindowService(options: CreateCaptureWindowServiceOp
         join(__dirname, '../../../resources/capture.html'),
       ];
 
-      for (const candidate of candidates) {
-        if (existsSync(candidate)) {
-          return candidate;
-        }
-      }
-
-      return candidates[0];
+      return candidates.find((c) => existsSync(c)) ?? candidates[0];
     }
     return join(process.resourcesPath, 'capture.html');
   }
