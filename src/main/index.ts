@@ -1058,7 +1058,6 @@ function registerPlayPauseSongHotkey(accelerator: string): boolean {
   if (!accelerator) return true;
   try {
     const success = globalShortcut.register(accelerator, () => {
-      if (!isWhitelisted()) return;
       sendMediaVirtualKey(0xB3);
     });
     if (success) {
@@ -1523,7 +1522,6 @@ function registerIpcHandlers(): void {
 
   // ===== 音乐媒体控制 IPC 处理器 =====
   ipcMain.handle('media:play-pause', () => {
-    if (!isWhitelisted()) return;
     sendMediaVirtualKey(0xB3);
   });
 

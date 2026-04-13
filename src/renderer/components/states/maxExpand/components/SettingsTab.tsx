@@ -46,7 +46,6 @@ import {
   LYRICS_SOURCE_OPTIONS,
   WEATHER_PROVIDER_OPTIONS,
   WEATHER_LOCATION_PRIORITY_OPTIONS,
-  SETTINGS_TABS,
   SETTINGS_TAB_LABELS,
   NETWORK_TIMEOUT_OPTIONS,
   LAYOUT_STORE_KEY,
@@ -853,7 +852,7 @@ export function SettingsTab(): ReactElement {
     return () => { cancelled = true; };
   }, []);
 
-  /** 滚轮切换设置侧边栏 Tab */
+  /** 滚轮处理设置页内部分页（禁用跨设置 Tab 滚轮切换） */
   useEffect(() => {
     const el = settingsRef.current;
     if (!el) return;
@@ -923,17 +922,7 @@ export function SettingsTab(): ReactElement {
         }
       }
 
-      e.preventDefault();
-      e.stopPropagation();
-      const cur = activeTabRef.current;
-      const idx = SETTINGS_TABS.indexOf(cur);
-      let nextIdx: number;
-      if (e.deltaY > 0) {
-        nextIdx = Math.min(idx + 1, SETTINGS_TABS.length - 1);
-      } else {
-        nextIdx = Math.max(idx - 1, 0);
-      }
-      if (nextIdx !== idx) setActiveTab(SETTINGS_TABS[nextIdx]);
+      return;
     };
     el.addEventListener('wheel', handleWheel, { passive: false });
     return () => el.removeEventListener('wheel', handleWheel);
