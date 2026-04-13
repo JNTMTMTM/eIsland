@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import { app, BrowserWindow, shell, screen, ipcMain, desktopCapturer, globalShortcut, nativeImage } from 'electron';
+import { app, BrowserWindow, shell, screen, desktopCapturer, globalShortcut, nativeImage } from 'electron';
 import { join } from 'path';
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
 import { exec } from 'child_process';
@@ -54,6 +54,7 @@ import { registerIslandIpcHandlers } from './ipc/island';
 import { registerHideProcessIpcHandlers } from './ipc/hideProcess';
 import { registerThemeIpcHandlers } from './ipc/theme';
 import { registerWindowIpcHandlers } from './ipc/window';
+import { registerMediaIpcHandlers } from './ipc/media';
 
 /** 防止 Electron 创建多个实例 */
 const gotTheLock = app.requestSingleInstanceLock();
@@ -1354,63 +1355,23 @@ function registerIpcHandlers(): void {
     },
   });
 
-  // ===== 音乐媒体控制 IPC 处理器 =====
-  ipcMain.handle('media:play-pause', () => {
-    sendMediaVirtualKey(0xB3);
-  });
-
-  ipcMain.handle('media:next', () => {
-    if (!isWhitelisted()) return;
-    sendMediaVirtualKey(0xB0);
-  });
-
-  ipcMain.handle('media:prev', () => {
-    if (!isWhitelisted()) return;
-    sendMediaVirtualKey(0xB1);
-  });
-
-  /** 接受切换播放源 */
-  ipcMain.handle('media:accept-source-switch', () => {
-    if (pendingSourceSwitchId && pendingSourceSwitchEntry) {
-      currentDeviceId = pendingSourceSwitchId;
-      pendingSourceSwitchId = '';
+  registerMediaIpcHandlers({
+    getMainWindow: () => mainWindow,
+    sendMediaVirtualKey,
+    isWhitelisted,
+    getPendingSourceSwitchId: () => pendingSourceSwitchId,
+    setPendingSourceSwitchId: (id) => {
+      pendingSourceSwitchId = id;
+    },
+    getPendingSourceSwitchEntry: () => pendingSourceSwitchEntry,
+    clearPendingSourceSwitchEntry: () => {
       pendingSourceSwitchEntry = null;
-      if (mainWindow && !mainWindow.isDestroyed()) {
-        const entry = smtcSessionRuntime?.get(currentDeviceId);
-        if (entry?.hasTitle) {
-          mainWindow.webContents.send('nowplaying:info', entry.payload);
-        }
-      }
-    }
-  });
-
-  /** 拒绝切换播放源 */
-  ipcMain.handle('media:reject-source-switch', () => {
-    pendingSourceSwitchId = '';
-    pendingSourceSwitchEntry = null;
-  });
-
-  /**
-   * 跳转到指定播放位置（SMTC 不支持，保留接口兼容性）
-   * @param _event - IPC 事件
-   * @param _positionMs - 目标位置（毫秒，暂未实现）
-   */
-  ipcMain.handle('media:seek', (_event, _positionMs: number) => {
-    // SMTCMonitor 暂不支持 seek 操作
-  });
-
-  /**
-   * 获取系统音量（固定返回 0.5，SMTC 不提供音量查询接口）
-   */
-  ipcMain.handle('media:get-volume', () => 0.5);
-
-  /**
-   * 设置系统音量（SMTC 不支持，保留接口兼容性）
-   * @param _event - IPC 事件
-   * @param _volume - 目标音量（0.0 ~ 1.0，暂未实现）
-   */
-  ipcMain.handle('media:set-volume', (_event, _volume: number) => {
-    // SMTCMonitor 暂不支持设置音量
+    },
+    getCurrentDeviceId: () => currentDeviceId,
+    setCurrentDeviceId: (id) => {
+      currentDeviceId = id;
+    },
+    getSmtcSessionRuntime: () => smtcSessionRuntime,
   });
 
   const writeMainLog = createSessionMainLogger();
