@@ -24,9 +24,9 @@
  * @author 鸡哥
  */
 
-import { app, BrowserWindow, shell, screen, ipcMain, desktopCapturer, dialog, globalShortcut, nativeImage } from 'electron';
+import { app, BrowserWindow, shell, screen, ipcMain, desktopCapturer, globalShortcut, nativeImage } from 'electron';
 import { join } from 'path';
-import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync, unlinkSync, copyFileSync } from 'fs';
+import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
 import { exec } from 'child_process';
 import { Worker } from 'worker_threads';
 import { electronApp, optimizer, is } from '@electron-toolkit/utils';
@@ -44,6 +44,7 @@ import { registerScreenshotHotkeyIpcHandlers } from './ipc/screenshotHotkey';
 import { registerAppIpcHandlers } from './ipc/app';
 import { registerSystemIpcHandlers } from './ipc/system';
 import { registerUpdaterIpcHandlers } from './ipc/updater';
+import { registerWallpaperIpcHandlers } from './ipc/wallpaper';
 
 /** 防止 Electron 创建多个实例 */
 const gotTheLock = app.requestSingleInstanceLock();
@@ -1537,63 +1538,6 @@ function registerIpcHandlers(): void {
     }
   });
 
-  // ===== 文件选择对话框 IPC =====
-  const wallpaperCacheDir = join(app.getPath('userData'), 'wallpapers');
-
-  ipcMain.handle('dialog:open-image', async () => {
-    const win = BrowserWindow.getFocusedWindow();
-    if (!win) return null;
-    const result = await dialog.showOpenDialog(win, {
-      title: '选择图片',
-      filters: [{ name: '图片', extensions: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg'] }],
-      properties: ['openFile'],
-    });
-    if (result.canceled || result.filePaths.length === 0) return null;
-    const filePath = result.filePaths[0];
-    try {
-      if (!existsSync(wallpaperCacheDir)) mkdirSync(wallpaperCacheDir, { recursive: true });
-      const ext = filePath.split('.').pop()?.toLowerCase() || 'png';
-      const destName = `custom-bg-${Date.now()}.${ext}`;
-      const destPath = join(wallpaperCacheDir, destName);
-      // 清理旧的自定义壁纸缓存
-      try {
-        readdirSync(wallpaperCacheDir)
-          .filter((f) => f.startsWith('custom-bg-'))
-          .forEach((f) => unlinkSync(join(wallpaperCacheDir, f)));
-      } catch { /* ignore */ }
-      copyFileSync(filePath, destPath);
-      return destPath;
-    } catch {
-      return null;
-    }
-  });
-
-  ipcMain.handle('wallpaper:load-file', async (_event, filePath: string) => {
-    try {
-      if (!filePath || typeof filePath !== 'string') return null;
-      if (!existsSync(filePath)) return null;
-      const ext = filePath.split('.').pop()?.toLowerCase() || 'png';
-      const mimeMap: Record<string, string> = {
-        jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png',
-        gif: 'image/gif', webp: 'image/webp', bmp: 'image/bmp', svg: 'image/svg+xml',
-      };
-      const mime = mimeMap[ext] || 'image/png';
-      const buf = readFileSync(filePath);
-      return `data:${mime};base64,${buf.toString('base64')}`;
-    } catch {
-      return null;
-    }
-  });
-
-  ipcMain.handle('wallpaper:clear-cache', async () => {
-    try {
-      if (!existsSync(wallpaperCacheDir)) return;
-      readdirSync(wallpaperCacheDir)
-        .filter((f) => f.startsWith('custom-bg-'))
-        .forEach((f) => unlinkSync(join(wallpaperCacheDir, f)));
-    } catch { /* ignore */ }
-  });
-
   const writeMainLog = createSessionMainLogger();
 
   // ===== HTTP 代理 IPC（绕过 CORS） =====
@@ -2336,6 +2280,8 @@ function registerIpcHandlers(): void {
     getCaptureWindow: () => captureWindow,
     closeCaptureWindow,
   });
+
+  registerWallpaperIpcHandlers();
 
   registerAppIpcHandlers();
 
