@@ -26,17 +26,13 @@
 
 import { app, BrowserWindow, globalShortcut } from 'electron';
 import { join } from 'path';
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
-import { exec } from 'child_process';
+import { mkdirSync, existsSync } from 'fs';
 import { electronApp, optimizer } from '@electron-toolkit/utils';
 import { autoUpdater } from 'electron-updater';
 import { createTray, destroyTray } from './tray';
 import { createSessionMainLogger } from './log/mainLog';
-import {
-  normalizeClipboardUrlDetectMode,
-  sanitizeClipboardUrlBlacklist,
-} from './utils/clipboardUrl';
 import { startClipboardUrlWatcher, stopClipboardUrlWatcher } from './clipboard/urlWatcher';
+import { createClipboardUrlState } from './clipboard/clipboardUrlState';
 import { registerClipboardIpcHandlers } from './ipc/clipboard';
 import { registerCaptureIpcHandlers } from './ipc/capture';
 import { registerScreenshotHotkeyIpcHandlers } from './ipc/screenshotHotkey';
@@ -62,12 +58,44 @@ import { createCaptureWindowService } from './window/captureWindow';
 import { createMainWindowService } from './window/mainWindow';
 import { createSmtcService } from './music/smtcService';
 import { createAutoHideWatcher } from './system/autoHideWatcher';
+import { sendMediaVirtualKey } from './system/mediaKey';
 import {
   normalizeProcessName,
   queryRunningNonSystemProcessNames,
   queryRunningNonSystemProcessesWithIcons,
   sanitizeProcessNameList,
 } from './system/runningProcesses';
+import {
+  ISLAND_WIDTH, ISLAND_HEIGHT,
+  EXPANDED_WIDTH, EXPANDED_HEIGHT,
+  NOTIFICATION_WIDTH, NOTIFICATION_HEIGHT,
+  LYRICS_WIDTH, LYRICS_HEIGHT,
+  EXPANDED_FULL_WIDTH, EXPANDED_FULL_HEIGHT,
+  SETTINGS_WIDTH, SETTINGS_HEIGHT,
+  SMTC_UNSUBSCRIBE_NEVER, DEFAULT_SMTC_UNSUBSCRIBE_MS,
+  SMTC_RUNTIME_CLEANUP_INTERVAL_MS,
+  DEFAULT_WHITELIST, DEFAULT_HIDE_PROCESS_LIST,
+  DEFAULT_CLIPBOARD_URL_DETECT_MODE,
+  DEFAULT_ISLAND_POSITION_OFFSET,
+  WHITELIST_STORE_KEY, LYRICS_SOURCE_STORE_KEY,
+  LYRICS_KARAOKE_STORE_KEY, LYRICS_CLOCK_STORE_KEY,
+  SMTC_UNSUBSCRIBE_MS_STORE_KEY, HIDE_PROCESS_LIST_STORE_KEY,
+  THEME_MODE_STORE_KEY, ISLAND_OPACITY_STORE_KEY,
+  EXPAND_MOUSELEAVE_IDLE_STORE_KEY, MAXEXPAND_MOUSELEAVE_IDLE_STORE_KEY,
+  CLIPBOARD_URL_MONITOR_ENABLED_STORE_KEY,
+  CLIPBOARD_URL_DETECT_MODE_STORE_KEY, CLIPBOARD_URL_BLACKLIST_STORE_KEY,
+  AUTOSTART_MODE_STORE_KEY, NAV_ORDER_STORE_KEY,
+  HOTKEY_STORE_KEY, QUIT_HOTKEY_STORE_KEY,
+  SCREENSHOT_HOTKEY_STORE_KEY, NEXT_SONG_HOTKEY_STORE_KEY,
+  PLAY_PAUSE_SONG_HOTKEY_STORE_KEY, RESET_POSITION_HOTKEY_STORE_KEY,
+  sanitizeIslandPositionOffset, sanitizeSmtcUnsubscribeMs,
+  readHotkeyConfig, readQuitHotkeyConfig, readScreenshotHotkeyConfig,
+  readNextSongHotkeyConfig, readPlayPauseSongHotkeyConfig, readResetPositionHotkeyConfig,
+  readWhitelistConfig, readLyricsSourceConfig, readSmtcUnsubscribeMsConfig,
+  readHideProcessListConfig, readIslandPositionOffsetConfig, writeIslandPositionOffsetConfig,
+  readClipboardUrlMonitorEnabledConfig, readClipboardUrlDetectModeConfig, readClipboardUrlBlacklistConfig,
+} from './config/storeConfig';
+import type { IslandPositionOffset } from './config/storeConfig';
 
 /** 防止 Electron 创建多个实例 */
 const gotTheLock = app.requestSingleInstanceLock();
@@ -75,260 +103,13 @@ if (!gotTheLock) {
   app.quit();
 }
 
-/**
- * 读取切歌快捷键配置
- * @returns 存储的快捷键字符串，不存在时返回默认值
- */
-function readNextSongHotkeyConfig(): string {
-  try {
-    const storeDir = join(app.getPath('userData'), 'eIsland_store');
-    const filePath = join(storeDir, `${NEXT_SONG_HOTKEY_STORE_KEY}.json`);
-    if (!existsSync(filePath)) return DEFAULT_NEXT_SONG_HOTKEY;
-    const raw = readFileSync(filePath, 'utf-8');
-    const data = JSON.parse(raw);
-    return typeof data === 'string' ? data : DEFAULT_NEXT_SONG_HOTKEY;
-  } catch {
-    return DEFAULT_NEXT_SONG_HOTKEY;
-  }
-}
-
-function readClipboardUrlBlacklistConfig(): string[] {
-  try {
-    const storeDir = join(app.getPath('userData'), 'eIsland_store');
-    const filePath = join(storeDir, `${CLIPBOARD_URL_BLACKLIST_STORE_KEY}.json`);
-    if (!existsSync(filePath)) return DEFAULT_CLIPBOARD_URL_BLACKLIST;
-    const raw = readFileSync(filePath, 'utf-8');
-    return sanitizeClipboardUrlBlacklist(JSON.parse(raw));
-  } catch {
-    return DEFAULT_CLIPBOARD_URL_BLACKLIST;
-  }
-}
-
-/**
- * 读取暂停/播放快捷键配置
- * @returns 存储的快捷键字符串，不存在时返回默认值
- */
-function readPlayPauseSongHotkeyConfig(): string {
-  try {
-    const storeDir = join(app.getPath('userData'), 'eIsland_store');
-    const filePath = join(storeDir, `${PLAY_PAUSE_SONG_HOTKEY_STORE_KEY}.json`);
-    if (!existsSync(filePath)) return DEFAULT_PLAY_PAUSE_SONG_HOTKEY;
-    const raw = readFileSync(filePath, 'utf-8');
-    const data = JSON.parse(raw);
-    return typeof data === 'string' ? data : DEFAULT_PLAY_PAUSE_SONG_HOTKEY;
-  } catch {
-    return DEFAULT_PLAY_PAUSE_SONG_HOTKEY;
-  }
-}
-
-function readClipboardUrlMonitorEnabledConfig(): boolean {
-  try {
-    const storeDir = join(app.getPath('userData'), 'eIsland_store');
-    const filePath = join(storeDir, `${CLIPBOARD_URL_MONITOR_ENABLED_STORE_KEY}.json`);
-    if (!existsSync(filePath)) return DEFAULT_CLIPBOARD_URL_MONITOR_ENABLED;
-    const raw = readFileSync(filePath, 'utf-8');
-    const data = JSON.parse(raw);
-    return typeof data === 'boolean' ? data : DEFAULT_CLIPBOARD_URL_MONITOR_ENABLED;
-  } catch {
-    return DEFAULT_CLIPBOARD_URL_MONITOR_ENABLED;
-  }
-}
-
-function readClipboardUrlDetectModeConfig(): ClipboardUrlDetectMode {
-  try {
-    const storeDir = join(app.getPath('userData'), 'eIsland_store');
-    const filePath = join(storeDir, `${CLIPBOARD_URL_DETECT_MODE_STORE_KEY}.json`);
-    if (!existsSync(filePath)) return DEFAULT_CLIPBOARD_URL_DETECT_MODE;
-    const raw = readFileSync(filePath, 'utf-8');
-    const normalized = normalizeClipboardUrlDetectMode(JSON.parse(raw));
-    return normalized || DEFAULT_CLIPBOARD_URL_DETECT_MODE;
-  } catch {
-    return DEFAULT_CLIPBOARD_URL_DETECT_MODE;
-  }
-}
-
-/**
- * 读取还原位置快捷键配置
- * @returns 存储的快捷键字符串，不存在时返回默认值
- */
-function readResetPositionHotkeyConfig(): string {
-  try {
-    const storeDir = join(app.getPath('userData'), 'eIsland_store');
-    const filePath = join(storeDir, `${RESET_POSITION_HOTKEY_STORE_KEY}.json`);
-    if (!existsSync(filePath)) return DEFAULT_RESET_POSITION_HOTKEY;
-    const raw = readFileSync(filePath, 'utf-8');
-    const data = JSON.parse(raw);
-    return typeof data === 'string' ? data : DEFAULT_RESET_POSITION_HOTKEY;
-  } catch {
-    return DEFAULT_RESET_POSITION_HOTKEY;
-  }
-}
-
-interface IslandPositionOffset {
-  x: number;
-  y: number;
-}
-
-function readHideProcessListConfig(): string[] {
-  try {
-    const storeDir = join(app.getPath('userData'), 'eIsland_store');
-    const filePath = join(storeDir, `${HIDE_PROCESS_LIST_STORE_KEY}.json`);
-    if (!existsSync(filePath)) return DEFAULT_HIDE_PROCESS_LIST;
-    const raw = readFileSync(filePath, 'utf-8');
-    const data = JSON.parse(raw);
-    return Array.isArray(data) ? sanitizeProcessNameList(data.filter((x) => typeof x === 'string')) : DEFAULT_HIDE_PROCESS_LIST;
-  } catch {
-    return DEFAULT_HIDE_PROCESS_LIST;
-  }
-}
-
 let mainWindow: BrowserWindow | null = null;
 const captureWindowService = createCaptureWindowService({
   getMainWindow: () => mainWindow,
 });
 
-/** 灵动岛尺寸常量 */
-const ISLAND_WIDTH = 260;
-const ISLAND_HEIGHT = 42;
-const EXPANDED_WIDTH = 500;
-const EXPANDED_HEIGHT = 60;
-const NOTIFICATION_WIDTH = 500;
-const NOTIFICATION_HEIGHT = 88;
-const LYRICS_WIDTH = 500;
-const LYRICS_HEIGHT = 42;
-/** 单击展开后的完整面板尺寸 */
-const EXPANDED_FULL_WIDTH = 860;
-const EXPANDED_FULL_HEIGHT = 150;
-/** 设置面板尺寸 */
-const SETTINGS_WIDTH = 860;
-const SETTINGS_HEIGHT = 400;
-
-/** SMTC 取消订阅设为永不取消时的值 */
-const SMTC_UNSUBSCRIBE_NEVER = 0;
-
-/** SMTC 取消订阅默认时间（毫秒） */
-const DEFAULT_SMTC_UNSUBSCRIBE_MS = SMTC_UNSUBSCRIBE_NEVER;
-
-/** SMTC 取消订阅最小可配置值（毫秒） */
-const MIN_SMTC_UNSUBSCRIBE_MS = 1000;
-
-/** SMTC 取消订阅最大可配置值（毫秒） */
-const MAX_SMTC_UNSUBSCRIBE_MS = 30 * 60 * 1000;
-
-/** SMTC 缓存清理最小间隔 */
-const SMTC_RUNTIME_CLEANUP_INTERVAL_MS = 30 * 1000;
-
-/** 播放程序白名单默认值 */
-const DEFAULT_WHITELIST = ['QQMusic.exe', 'cloudmusic.exe', '汽水音乐', 'kugou'];
-
-/** 白名单存储键名 */
-const WHITELIST_STORE_KEY = 'music-whitelist';
-
-/** 歌词源存储键名 */
-const LYRICS_SOURCE_STORE_KEY = 'lyrics-source';
-
-/** 逐字扫光开关存储键名 */
-const LYRICS_KARAOKE_STORE_KEY = 'lyrics-karaoke';
-
-/** 歌词界面时钟开关存储键名 */
-const LYRICS_CLOCK_STORE_KEY = 'lyrics-clock';
-
-/** SMTC 取消订阅时间存储键名 */
-const SMTC_UNSUBSCRIBE_MS_STORE_KEY = 'music-smtc-unsubscribe-ms';
-
-/** 隐藏进程名单存储键名 */
-const HIDE_PROCESS_LIST_STORE_KEY = 'hide-process-list';
-
-/** 主题模式存储键名 */
-const THEME_MODE_STORE_KEY = 'theme-mode';
-
-/** 灵动岛透明度存储键名 */
-const ISLAND_OPACITY_STORE_KEY = 'island-opacity';
-
-/** expand 鼠标移开回 idle 开关存储键名 */
-const EXPAND_MOUSELEAVE_IDLE_STORE_KEY = 'expand-mouseleave-idle';
-
-/** maxExpand 鼠标移开回 idle 开关存储键名 */
-const MAXEXPAND_MOUSELEAVE_IDLE_STORE_KEY = 'maxexpand-mouseleave-idle';
-
-/** 剪贴板 URL 监听开关存储键名 */
-const CLIPBOARD_URL_MONITOR_ENABLED_STORE_KEY = 'clipboard-url-monitor-enabled';
-
-type ClipboardUrlDetectMode = 'https-only' | 'http-https' | 'domain-only';
-
-/** 剪贴板 URL 识别模式存储键名 */
-const CLIPBOARD_URL_DETECT_MODE_STORE_KEY = 'clipboard-url-detect-mode';
-
-/** 剪贴板 URL 黑名单存储键名（按域名） */
-const CLIPBOARD_URL_BLACKLIST_STORE_KEY = 'clipboard-url-blacklist';
-
-/** 开机自启模式存储键名 */
-const AUTOSTART_MODE_STORE_KEY = 'autostart-mode';
-
-/** 快速导航卡片顺序存储键名 */
-const NAV_ORDER_STORE_KEY = 'nav-order';
-
-/** 灵动岛位置偏移存储键名 */
-const ISLAND_POSITION_STORE_KEY = 'island-position-offset';
-
-/** 隐藏进程名单默认值 */
-const DEFAULT_HIDE_PROCESS_LIST: string[] = [];
-
-/** 剪贴板 URL 监听开关默认值 */
-const DEFAULT_CLIPBOARD_URL_MONITOR_ENABLED = true;
-
-/** 剪贴板 URL 识别模式默认值 */
-const DEFAULT_CLIPBOARD_URL_DETECT_MODE: ClipboardUrlDetectMode = 'http-https';
-
-/** 剪贴板 URL 黑名单默认值 */
-const DEFAULT_CLIPBOARD_URL_BLACKLIST: string[] = [];
-
-/** 灵动岛位置偏移默认值（相对主屏工作区顶部居中） */
-const DEFAULT_ISLAND_POSITION_OFFSET: IslandPositionOffset = { x: 0, y: 0 };
-
-function sanitizeIslandPositionOffset(raw: unknown): IslandPositionOffset {
-  if (!raw || typeof raw !== 'object') {
-    return { ...DEFAULT_ISLAND_POSITION_OFFSET };
-  }
-
-  const value = raw as { x?: unknown; y?: unknown };
-  const xNum = typeof value.x === 'number' && Number.isFinite(value.x) ? value.x : DEFAULT_ISLAND_POSITION_OFFSET.x;
-  const yNum = typeof value.y === 'number' && Number.isFinite(value.y) ? value.y : DEFAULT_ISLAND_POSITION_OFFSET.y;
-
-  return {
-    x: Math.max(-2000, Math.min(2000, Math.round(xNum))),
-    y: Math.max(-1200, Math.min(1200, Math.round(yNum))),
-  };
-}
-
-function readIslandPositionOffsetConfig(): IslandPositionOffset {
-  try {
-    const storeDir = join(app.getPath('userData'), 'eIsland_store');
-    const filePath = join(storeDir, `${ISLAND_POSITION_STORE_KEY}.json`);
-    if (!existsSync(filePath)) return { ...DEFAULT_ISLAND_POSITION_OFFSET };
-    const raw = readFileSync(filePath, 'utf-8');
-    return sanitizeIslandPositionOffset(JSON.parse(raw));
-  } catch {
-    return { ...DEFAULT_ISLAND_POSITION_OFFSET };
-  }
-}
-
-function writeIslandPositionOffsetConfig(offset: IslandPositionOffset): boolean {
-  try {
-    const storeDir = join(app.getPath('userData'), 'eIsland_store');
-    if (!existsSync(storeDir)) mkdirSync(storeDir, { recursive: true });
-    const filePath = join(storeDir, `${ISLAND_POSITION_STORE_KEY}.json`);
-    writeFileSync(filePath, JSON.stringify(offset, null, 2), 'utf-8');
-    return true;
-  } catch (err) {
-    console.error('[IslandPosition] persist error:', err);
-    return false;
-  }
-}
-
 /** 运行时白名单（可被用户修改） */
 let nowPlayingWhitelist: string[] = [...DEFAULT_WHITELIST];
-
 
 /** 运行时灵动岛位置偏移 */
 let islandPositionOffset: IslandPositionOffset = { ...DEFAULT_ISLAND_POSITION_OFFSET };
@@ -365,171 +146,6 @@ const smtcService = createSmtcService({
   cleanupIntervalMs: SMTC_RUNTIME_CLEANUP_INTERVAL_MS,
 });
 
-/**
- * 读取持久化的白名单配置
- * @returns 白名单数组
- */
-function readWhitelistConfig(): string[] {
-  try {
-    const storeDir = join(app.getPath('userData'), 'eIsland_store');
-    const filePath = join(storeDir, `${WHITELIST_STORE_KEY}.json`);
-    if (!existsSync(filePath)) return DEFAULT_WHITELIST;
-    const raw = readFileSync(filePath, 'utf-8');
-    const data = JSON.parse(raw);
-    return Array.isArray(data) ? data : DEFAULT_WHITELIST;
-  } catch {
-    return DEFAULT_WHITELIST;
-  }
-}
-
-/**
- * 读取持久化的歌词源配置
- * @returns 歌词源标识字符串
- */
-function readLyricsSourceConfig(): string {
-  try {
-    const storeDir = join(app.getPath('userData'), 'eIsland_store');
-    const filePath = join(storeDir, `${LYRICS_SOURCE_STORE_KEY}.json`);
-    if (!existsSync(filePath)) return 'auto';
-    const raw = readFileSync(filePath, 'utf-8');
-    const data = JSON.parse(raw);
-    return typeof data === 'string' ? data : 'auto';
-  } catch {
-    return 'auto';
-  }
-}
-
-function sanitizeSmtcUnsubscribeMs(value: unknown): number {
-  if (value === SMTC_UNSUBSCRIBE_NEVER) return SMTC_UNSUBSCRIBE_NEVER;
-  if (typeof value !== 'number' || !Number.isFinite(value)) return DEFAULT_SMTC_UNSUBSCRIBE_MS;
-  const rounded = Math.round(value);
-  if (rounded <= 0) return SMTC_UNSUBSCRIBE_NEVER;
-  return Math.min(MAX_SMTC_UNSUBSCRIBE_MS, Math.max(MIN_SMTC_UNSUBSCRIBE_MS, rounded));
-}
-
-function readSmtcUnsubscribeMsConfig(): number {
-  try {
-    const storeDir = join(app.getPath('userData'), 'eIsland_store');
-    const filePath = join(storeDir, `${SMTC_UNSUBSCRIBE_MS_STORE_KEY}.json`);
-    if (!existsSync(filePath)) return DEFAULT_SMTC_UNSUBSCRIBE_MS;
-    const raw = readFileSync(filePath, 'utf-8');
-    return sanitizeSmtcUnsubscribeMs(JSON.parse(raw));
-  } catch {
-    return DEFAULT_SMTC_UNSUBSCRIBE_MS;
-  }
-}
-
-/** 隐藏快捷键存储键名 */
-const HOTKEY_STORE_KEY = 'hide-hotkey';
-
-/** 默认隐藏快捷键 */
-const DEFAULT_HIDE_HOTKEY = 'Alt+X';
-
-/**
- * 读取快捷键配置
- * @returns 存储的快捷键字符串，不存在时返回默认值
- */
-function readHotkeyConfig(): string {
-  try {
-    const storeDir = join(app.getPath('userData'), 'eIsland_store');
-    const filePath = join(storeDir, `${HOTKEY_STORE_KEY}.json`);
-    if (!existsSync(filePath)) return DEFAULT_HIDE_HOTKEY;
-    const raw = readFileSync(filePath, 'utf-8');
-    const data = JSON.parse(raw);
-    return typeof data === 'string' ? data : DEFAULT_HIDE_HOTKEY;
-  } catch {
-    return DEFAULT_HIDE_HOTKEY;
-  }
-}
-
-/** 关闭快捷键存储键名 */
-const QUIT_HOTKEY_STORE_KEY = 'quit-hotkey';
-
-/** 默认关闭快捷键（空表示默认不设置） */
-const DEFAULT_QUIT_HOTKEY = 'Alt+C';
-
-/**
- * 读取关闭快捷键配置
- * @returns 存储的快捷键字符串，不存在时返回默认值
- */
-function readQuitHotkeyConfig(): string {
-  try {
-    const storeDir = join(app.getPath('userData'), 'eIsland_store');
-    const filePath = join(storeDir, `${QUIT_HOTKEY_STORE_KEY}.json`);
-    if (!existsSync(filePath)) return DEFAULT_QUIT_HOTKEY;
-    const raw = readFileSync(filePath, 'utf-8');
-    const data = JSON.parse(raw);
-    return typeof data === 'string' ? data : DEFAULT_QUIT_HOTKEY;
-  } catch {
-    return DEFAULT_QUIT_HOTKEY;
-  }
-}
-
-/** 截图快捷键存储键名 */
-const SCREENSHOT_HOTKEY_STORE_KEY = 'screenshot-hotkey';
-
-/** 默认截图快捷键 */
-const DEFAULT_SCREENSHOT_HOTKEY = 'Alt+A';
-
-/** 切歌快捷键存储键名 */
-const NEXT_SONG_HOTKEY_STORE_KEY = 'next-song-hotkey';
-
-/** 默认切歌快捷键（空表示默认不设置） */
-const DEFAULT_NEXT_SONG_HOTKEY = '';
-
-/** 暂停/播放快捷键存储键名 */
-const PLAY_PAUSE_SONG_HOTKEY_STORE_KEY = 'play-pause-song-hotkey';
-
-/** 默认暂停/播放快捷键（空表示默认不设置） */
-const DEFAULT_PLAY_PAUSE_SONG_HOTKEY = '';
-
-/** 还原位置快捷键存储键名 */
-const RESET_POSITION_HOTKEY_STORE_KEY = 'reset-position-hotkey';
-
-/** 默认还原位置快捷键（空表示默认不设置） */
-const DEFAULT_RESET_POSITION_HOTKEY = '';
-
-/**
- * 读取截图快捷键配置
- * @returns 存储的快捷键字符串，不存在时返回默认值
- */
-function readScreenshotHotkeyConfig(): string {
-  try {
-    const storeDir = join(app.getPath('userData'), 'eIsland_store');
-    const filePath = join(storeDir, `${SCREENSHOT_HOTKEY_STORE_KEY}.json`);
-    if (!existsSync(filePath)) return DEFAULT_SCREENSHOT_HOTKEY;
-    const raw = readFileSync(filePath, 'utf-8');
-    const data = JSON.parse(raw);
-    return typeof data === 'string' ? data : DEFAULT_SCREENSHOT_HOTKEY;
-  } catch {
-    return DEFAULT_SCREENSHOT_HOTKEY;
-  }
-}
-
-/**
- * 通过 PowerShell P/Invoke 向系统发送媒体虚拟按键
- * 使用 -EncodedCommand 传递 Base64(UTF-16LE) 编码脚本，避免内联引号转义问题
- * @param vkCode - Windows 虚拟键代码（VK_MEDIA_*）
- */
-function sendMediaVirtualKey(vkCode: number): void {
-  const script = [
-    'Add-Type -TypeDefinition @"',
-    'using System;',
-    'using System.Runtime.InteropServices;',
-    'public class MediaKey {',
-    '    [DllImport("user32.dll")]',
-    '    public static extern void keybd_event(byte vk, byte scan, uint flags, IntPtr extra);',
-    '}',
-    '"@',
-    `[MediaKey]::keybd_event(${vkCode}, 0, 0, [IntPtr]::Zero)`,
-    `[MediaKey]::keybd_event(${vkCode}, 0, 2, [IntPtr]::Zero)`,
-  ].join('\n');
-  const encoded = Buffer.from(script, 'utf16le').toString('base64');
-  exec(`powershell.exe -NonInteractive -NoProfile -EncodedCommand ${encoded}`, (err) => {
-    if (err) console.error('[Media] virtual key error:', err.message);
-  });
-}
-
 const hotkeyService = createHotkeyService({
   getMainWindow: () => mainWindow,
   setHiddenByAutoHideProcess: autoHideWatcher.setHiddenByAutoHideProcess,
@@ -557,7 +173,7 @@ const hotkeyService = createHotkeyService({
   },
 });
 
-/** 注册 IPC 处理器，供渲染进程动态切换鼠标穿透状态及调整窗口大小 */
+/** 注册 IPC 处理器 */
 function registerIpcHandlers(): void {
   registerWindowIpcHandlers({
     getMainWindow: () => mainWindow,
@@ -612,24 +228,18 @@ function registerIpcHandlers(): void {
     detectModeStoreKey: CLIPBOARD_URL_DETECT_MODE_STORE_KEY,
     blacklistStoreKey: CLIPBOARD_URL_BLACKLIST_STORE_KEY,
     defaultDetectMode: DEFAULT_CLIPBOARD_URL_DETECT_MODE,
-    getMonitorEnabled: () => clipboardUrlMonitorEnabled,
-    setMonitorEnabled: (enabled) => {
-      clipboardUrlMonitorEnabled = enabled;
-    },
-    getDetectMode: () => clipboardUrlDetectMode,
-    setDetectMode: (mode) => {
-      clipboardUrlDetectMode = mode;
-    },
-    getBlacklist: () => clipboardUrlBlacklist,
-    setBlacklist: (list) => {
-      clipboardUrlBlacklist = list;
-    },
+    getMonitorEnabled: clipboardUrlState.getMonitorEnabled,
+    setMonitorEnabled: clipboardUrlState.setMonitorEnabled,
+    getDetectMode: clipboardUrlState.getDetectMode,
+    setDetectMode: clipboardUrlState.setDetectMode,
+    getBlacklist: clipboardUrlState.getBlacklist,
+    setBlacklist: clipboardUrlState.setBlacklist,
     startWatcher: () => {
       startClipboardUrlWatcher({
         getWindow: () => mainWindow,
-        getEnabled: () => clipboardUrlMonitorEnabled,
-        getDetectMode: () => clipboardUrlDetectMode,
-        getBlacklist: () => clipboardUrlBlacklist,
+        getEnabled: clipboardUrlState.getMonitorEnabled,
+        getDetectMode: clipboardUrlState.getDetectMode,
+        getBlacklist: clipboardUrlState.getBlacklist,
       });
     },
     stopWatcher: () => {
@@ -759,14 +369,7 @@ function registerIpcHandlers(): void {
 
 // ===== 剪贴板 URL 监听 =====
 
-/** 剪贴板 URL 监听是否启用 */
-let clipboardUrlMonitorEnabled = DEFAULT_CLIPBOARD_URL_MONITOR_ENABLED;
-
-/** 剪贴板 URL 识别模式 */
-let clipboardUrlDetectMode: ClipboardUrlDetectMode = DEFAULT_CLIPBOARD_URL_DETECT_MODE;
-
-/** 剪贴板 URL 黑名单（域名） */
-let clipboardUrlBlacklist: string[] = [...DEFAULT_CLIPBOARD_URL_BLACKLIST];
+const clipboardUrlState = createClipboardUrlState();
 
 /**
  * Chromium 性能优化：禁用不需要的内核功能以降低内存和 CPU 占用
@@ -802,9 +405,9 @@ app.whenReady().then(() => {
   });
 
   islandPositionOffset = readIslandPositionOffsetConfig();
-  clipboardUrlMonitorEnabled = readClipboardUrlMonitorEnabledConfig();
-  clipboardUrlDetectMode = readClipboardUrlDetectModeConfig();
-  clipboardUrlBlacklist = readClipboardUrlBlacklistConfig();
+  clipboardUrlState.setMonitorEnabled(readClipboardUrlMonitorEnabledConfig());
+  clipboardUrlState.setDetectMode(readClipboardUrlDetectModeConfig());
+  clipboardUrlState.setBlacklist(readClipboardUrlBlacklistConfig());
 
   mainWindowService.createWindow();
   createTray(mainWindow);
@@ -812,9 +415,9 @@ app.whenReady().then(() => {
   smtcService.initWorker();
   startClipboardUrlWatcher({
     getWindow: () => mainWindow,
-    getEnabled: () => clipboardUrlMonitorEnabled,
-    getDetectMode: () => clipboardUrlDetectMode,
-    getBlacklist: () => clipboardUrlBlacklist,
+    getEnabled: clipboardUrlState.getMonitorEnabled,
+    getDetectMode: clipboardUrlState.getDetectMode,
+    getBlacklist: clipboardUrlState.getBlacklist,
   });
 
   registerIpcHandlers();
