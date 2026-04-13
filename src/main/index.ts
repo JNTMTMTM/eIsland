@@ -50,6 +50,7 @@ import { registerStoreIpcHandlers } from './ipc/store';
 import { registerLogIpcHandlers } from './ipc/log';
 import { registerMusicIpcHandlers } from './ipc/music';
 import { registerHotkeyIpcHandlers } from './ipc/hotkey';
+import { registerIslandIpcHandlers } from './ipc/island';
 
 /** 防止 Electron 创建多个实例 */
 const gotTheLock = app.requestSingleInstanceLock();
@@ -1627,186 +1628,13 @@ function registerIpcHandlers(): void {
     }
   });
 
-  /**
-   * 获取灵动岛透明度
-   * @returns 透明度值 0-100（百分比）
-   */
-  ipcMain.handle('island:opacity:get', () => {
-    try {
-      const filePath = join(storeDir, `${ISLAND_OPACITY_STORE_KEY}.json`);
-      if (!existsSync(filePath)) return 100;
-      const raw = readFileSync(filePath, 'utf-8');
-      const data = JSON.parse(raw);
-      const val = typeof data === 'number' ? data : 100;
-      return Math.max(10, Math.min(100, Math.round(val)));
-    } catch {
-      return 100;
-    }
-  });
-
-  /**
-   * 设置灵动岛透明度并持久化
-   * @param _event - IPC 事件
-   * @param opacity - 透明度值 0-100（百分比）
-   * @returns 是否保存成功
-   */
-  ipcMain.handle('island:opacity:set', (_event, opacity: number) => {
-    try {
-      const safe = Math.max(10, Math.min(100, Math.round(opacity)));
-      const filePath = join(storeDir, `${ISLAND_OPACITY_STORE_KEY}.json`);
-      writeFileSync(filePath, JSON.stringify(safe, null, 2), 'utf-8');
-      return true;
-    } catch (err) {
-      console.error('[Opacity] persist error:', err);
-      return false;
-    }
-  });
-
-  /**
-   * 获取 expand 鼠标移开回 idle 开关
-   * @returns 是否启用
-   */
-  ipcMain.handle('island:expand-mouseleave-idle:get', () => {
-    try {
-      const filePath = join(storeDir, `${EXPAND_MOUSELEAVE_IDLE_STORE_KEY}.json`);
-      if (!existsSync(filePath)) return false;
-      const raw = readFileSync(filePath, 'utf-8');
-      const data = JSON.parse(raw);
-      return typeof data === 'boolean' ? data : false;
-    } catch {
-      return false;
-    }
-  });
-
-  /**
-   * 设置 expand 鼠标移开回 idle 开关并持久化
-   */
-  ipcMain.handle('island:expand-mouseleave-idle:set', (_event, enabled: boolean) => {
-    try {
-      const filePath = join(storeDir, `${EXPAND_MOUSELEAVE_IDLE_STORE_KEY}.json`);
-      writeFileSync(filePath, JSON.stringify(enabled, null, 2), 'utf-8');
-      return true;
-    } catch (err) {
-      console.error('[ExpandMouseleaveIdle] persist error:', err);
-      return false;
-    }
-  });
-
-  /**
-   * 获取 maxExpand 鼠标移开回 idle 开关
-   * @returns 是否启用
-   */
-  ipcMain.handle('island:maxexpand-mouseleave-idle:get', () => {
-    try {
-      const filePath = join(storeDir, `${MAXEXPAND_MOUSELEAVE_IDLE_STORE_KEY}.json`);
-      if (!existsSync(filePath)) return false;
-      const raw = readFileSync(filePath, 'utf-8');
-      const data = JSON.parse(raw);
-      return typeof data === 'boolean' ? data : false;
-    } catch {
-      return false;
-    }
-  });
-
-  /**
-   * 设置 maxExpand 鼠标移开回 idle 开关并持久化
-   */
-  ipcMain.handle('island:maxexpand-mouseleave-idle:set', (_event, enabled: boolean) => {
-    try {
-      const filePath = join(storeDir, `${MAXEXPAND_MOUSELEAVE_IDLE_STORE_KEY}.json`);
-      writeFileSync(filePath, JSON.stringify(enabled, null, 2), 'utf-8');
-      return true;
-    } catch (err) {
-      console.error('[MaxExpandMouseleaveIdle] persist error:', err);
-      return false;
-    }
-  });
-
-  /**
-   * 获取开机自启模式
-   * @returns 'disabled' | 'enabled' | 'high-priority'
-   */
-  ipcMain.handle('island:autostart:get', () => {
-    try {
-      const filePath = join(storeDir, `${AUTOSTART_MODE_STORE_KEY}.json`);
-      if (!existsSync(filePath)) return 'disabled';
-      const raw = readFileSync(filePath, 'utf-8');
-      const data = JSON.parse(raw);
-      return ['disabled', 'enabled', 'high-priority'].includes(data) ? data : 'disabled';
-    } catch {
-      return 'disabled';
-    }
-  });
-
-  /**
-   * 设置开机自启模式并持久化
-   * @param mode - 'disabled' | 'enabled' | 'high-priority'
-   */
-  ipcMain.handle('island:autostart:set', (_event, mode: string) => {
-    try {
-      const safeMode = ['disabled', 'enabled', 'high-priority'].includes(mode) ? mode : 'disabled';
-      const filePath = join(storeDir, `${AUTOSTART_MODE_STORE_KEY}.json`);
-      writeFileSync(filePath, JSON.stringify(safeMode, null, 2), 'utf-8');
-
-      if (safeMode === 'disabled') {
-        app.setLoginItemSettings({ openAtLogin: false });
-      } else {
-        app.setLoginItemSettings({
-          openAtLogin: true,
-          args: safeMode === 'high-priority' ? ['--high-priority'] : []
-        });
-      }
-      return true;
-    } catch (err) {
-      console.error('[Autostart] persist error:', err);
-      return false;
-    }
-  });
-
-  /**
-   * 获取快速导航卡片配置
-   * @returns { visibleOrder: string[]; hiddenOrder: string[] }
-   */
-  ipcMain.handle('island:nav-order:get', () => {
-    try {
-      const filePath = join(storeDir, `${NAV_ORDER_STORE_KEY}.json`);
-      if (!existsSync(filePath)) return { visibleOrder: [], hiddenOrder: [] };
-      const raw = readFileSync(filePath, 'utf-8');
-      const data = JSON.parse(raw);
-
-      if (Array.isArray(data)) {
-        return {
-          visibleOrder: data.filter((v: unknown) => typeof v === 'string'),
-          hiddenOrder: []
-        };
-      }
-
-      const visibleRaw = (data as Record<string, unknown>)?.visibleOrder;
-      const hiddenRaw = (data as Record<string, unknown>)?.hiddenOrder;
-      return {
-        visibleOrder: Array.isArray(visibleRaw) ? visibleRaw.filter((v: unknown) => typeof v === 'string') : [],
-        hiddenOrder: Array.isArray(hiddenRaw) ? hiddenRaw.filter((v: unknown) => typeof v === 'string') : []
-      };
-    } catch {
-      return { visibleOrder: [], hiddenOrder: [] };
-    }
-  });
-
-  /**
-   * 设置快速导航卡片配置并持久化
-   */
-  ipcMain.handle('island:nav-order:set', (_event, payload: { visibleOrder?: string[]; hiddenOrder?: string[] }) => {
-    try {
-      const filePath = join(storeDir, `${NAV_ORDER_STORE_KEY}.json`);
-      const visibleOrder = Array.isArray(payload?.visibleOrder) ? payload.visibleOrder.filter((v: unknown) => typeof v === 'string') : [];
-      const hiddenOrder = Array.isArray(payload?.hiddenOrder) ? payload.hiddenOrder.filter((v: unknown) => typeof v === 'string') : [];
-      const safe = { visibleOrder, hiddenOrder };
-      writeFileSync(filePath, JSON.stringify(safe, null, 2), 'utf-8');
-      return true;
-    } catch (err) {
-      console.error('[NavOrder] persist error:', err);
-      return false;
-    }
+  registerIslandIpcHandlers({
+    storeDir,
+    islandOpacityStoreKey: ISLAND_OPACITY_STORE_KEY,
+    expandMouseleaveIdleStoreKey: EXPAND_MOUSELEAVE_IDLE_STORE_KEY,
+    maxExpandMouseleaveIdleStoreKey: MAXEXPAND_MOUSELEAVE_IDLE_STORE_KEY,
+    autostartModeStoreKey: AUTOSTART_MODE_STORE_KEY,
+    navOrderStoreKey: NAV_ORDER_STORE_KEY,
   });
 
   /** 获取当前运行的非系统进程列表 */
