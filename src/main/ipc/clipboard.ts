@@ -130,9 +130,16 @@ export function registerClipboardIpcHandlers(options: RegisterClipboardIpcHandle
     }
   });
 
-  ipcMain.handle('clipboard:open-url', (_event, url: string) => {
+  ipcMain.handle('clipboard:open-url', async (_event, url: string) => {
     try {
-      shell.openExternal(url);
+      if (typeof url !== 'string') {
+        return false;
+      }
+      const parsedUrl = new URL(url);
+      if (parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:') {
+        return false;
+      }
+      await shell.openExternal(parsedUrl.toString());
       return true;
     } catch {
       return false;
