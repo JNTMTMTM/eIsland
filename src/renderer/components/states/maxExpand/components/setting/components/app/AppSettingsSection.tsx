@@ -531,7 +531,12 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
                     最大展开态（MaxExpand）鼠标移开后自动收回
                   </label>
                 </div>
-                <div className="settings-hotkey-row" style={{ alignItems: 'center', marginTop: 6 }}>
+              </div>
+
+              <div className="settings-music-section" style={{ marginTop: 14 }}>
+                <div className="settings-music-label">剪贴板 URL 监听</div>
+                <div className="settings-music-hint">启用后，检测到剪贴板含链接时会弹出询问通知</div>
+                <div className="settings-hotkey-row" style={{ alignItems: 'center', marginTop: 8 }}>
                   <label className="settings-music-hint" style={{ marginBottom: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
                     <input
                       type="checkbox"
@@ -544,7 +549,7 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
                         });
                       }}
                     />
-                    监听剪贴板中的 URL 并弹窗询问
+                    启用剪贴板 URL 监听
                   </label>
                 </div>
               </div>
