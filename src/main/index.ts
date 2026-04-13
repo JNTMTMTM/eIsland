@@ -47,6 +47,7 @@ import { registerUpdaterIpcHandlers } from './ipc/updater';
 import { registerWallpaperIpcHandlers } from './ipc/wallpaper';
 import { registerNetIpcHandlers } from './ipc/net';
 import { registerStoreIpcHandlers } from './ipc/store';
+import { registerLogIpcHandlers } from './ipc/log';
 
 /** 防止 Electron 创建多个实例 */
 const gotTheLock = app.requestSingleInstanceLock();
@@ -1583,16 +1584,7 @@ function registerIpcHandlers(): void {
 
   registerStoreIpcHandlers({ storeDir });
 
-  // ===== 日志文件 IPC =====
-  /**
-   * 写入日志到文件
-   * @param _event - IPC 事件
-   * @param level - 日志级别（info/warn/error）
-   * @param message - 日志内容
-   */
-  ipcMain.on('log:write', (_event, level: string, message: string) => {
-    writeMainLog(level === 'warn' ? 'warn' : level === 'error' ? 'error' : 'info', message);
-  });
+  registerLogIpcHandlers({ writeMainLog });
 
   // ===== 歌曲设置 IPC =====
 
