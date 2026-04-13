@@ -189,6 +189,9 @@ export function SettingsTab(): ReactElement {
   const [hideProcessLoading, setHideProcessLoading] = useState(false);
   const [themeMode, setThemeModeState] = useState<ThemeMode>(getThemeMode);
   const [islandOpacity, setIslandOpacity] = useState<number>(100);
+  const [bgImage, setBgImage] = useState<string | null>(null);
+  const [bgImageOpacity, setBgImageOpacity] = useState<number>(30);
+  const bgOpacitySaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [islandPositionOffset, setIslandPositionOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [islandPositionInput, setIslandPositionInput] = useState<{ x: string; y: string }>({ x: '0', y: '0' });
   const [aboutVersion, setAboutVersion] = useState<string>('');
@@ -206,6 +209,60 @@ export function SettingsTab(): ReactElement {
 
   const persistIslandOpacity = (opacity: number): void => {
     window.api.islandOpacitySet(opacity).catch(() => {});
+  };
+
+  const applyBgImage = (dataUrl: string | null): void => {
+    const el = document.getElementById('island-bg-layer');
+    if (!el) return;
+    if (dataUrl) {
+      el.style.backgroundImage = `url(${dataUrl})`;
+      el.style.opacity = String(bgImageOpacity / 100);
+    } else {
+      el.style.backgroundImage = '';
+      el.style.opacity = '0';
+    }
+  };
+
+  const applyBgOpacity = (value: number): void => {
+    const el = document.getElementById('island-bg-layer');
+    if (el) el.style.opacity = String(value / 100);
+  };
+
+  const persistBgImage = (path: string | null): void => {
+    window.api.storeWrite('island-bg-image', path).catch(() => {});
+  };
+
+  const persistBgOpacity = (value: number): void => {
+    window.api.storeWrite('island-bg-opacity', value).catch(() => {});
+  };
+
+  const handleSelectBgImage = async (): Promise<void> => {
+    const filePath = await window.api.openImageDialog();
+    if (!filePath) return;
+    const dataUrl = await window.api.loadWallpaperFile(filePath);
+    if (!dataUrl) return;
+    setBgImage(dataUrl);
+    applyBgImage(dataUrl);
+    persistBgImage(filePath);
+  };
+
+  const handleClearBgImage = (): void => {
+    setBgImage(null);
+    applyBgImage(null);
+    persistBgImage(null);
+    window.api.clearWallpaperCache?.().catch(() => {});
+  };
+
+  const handleSelectBuiltinBgImage = (src: string, defaultOpacity: number): void => {
+    setBgImage(src);
+    setBgImageOpacity(defaultOpacity);
+    const el = document.getElementById('island-bg-layer');
+    if (el) {
+      el.style.backgroundImage = `url(${src})`;
+      el.style.opacity = String(defaultOpacity / 100);
+    }
+    persistBgImage(src);
+    persistBgOpacity(defaultOpacity);
   };
 
   const visibleCards = useMemo(() => {
@@ -316,6 +373,23 @@ export function SettingsTab(): ReactElement {
       setIslandOpacity(safe);
       applyIslandOpacity(safe);
     }).catch(() => {});
+    Promise.all([
+      window.api.storeRead('island-bg-image') as Promise<string | null>,
+      window.api.storeRead('island-bg-opacity') as Promise<number | null>,
+    ]).then(async ([img, opacity]) => {
+      if (cancelled) return;
+      if (typeof opacity === 'number' && Number.isFinite(opacity)) setBgImageOpacity(Math.max(0, Math.min(100, Math.round(opacity))));
+      if (img && typeof img === 'string') {
+        if (img.startsWith('data:') || img.startsWith('/') || img.startsWith('http')) {
+          // Legacy data URL or Vite asset URL (built-in wallpaper)
+          setBgImage(img);
+        } else {
+          // File path — load via IPC
+          const dataUrl = await window.api.loadWallpaperFile?.(img);
+          if (!cancelled && dataUrl) setBgImage(dataUrl);
+        }
+      }
+    }).catch(() => {});
     return () => { cancelled = true; };
   }, []);
 
@@ -324,6 +398,10 @@ export function SettingsTab(): ReactElement {
       if (opacitySaveTimerRef.current) {
         clearTimeout(opacitySaveTimerRef.current);
         opacitySaveTimerRef.current = null;
+      }
+      if (bgOpacitySaveTimerRef.current) {
+        clearTimeout(bgOpacitySaveTimerRef.current);
+        bgOpacitySaveTimerRef.current = null;
       }
     };
   }, []);
@@ -763,6 +841,8 @@ export function SettingsTab(): ReactElement {
       if (target.closest('.settings-hotkey-section')) return;
 
       if (activeTabRef.current === 'app' && target.closest('.settings-app-pages-layout')) {
+        const mainEl = target.closest('.settings-app-page-main') as HTMLElement | null;
+        if (mainEl && mainEl.scrollHeight > mainEl.clientHeight) return;
         const pages = APP_SETTINGS_PAGES;
         const currentPage = appSettingsPageRef.current;
         const currentIdx = pages.indexOf(currentPage);
@@ -1190,6 +1270,15 @@ export function SettingsTab(): ReactElement {
               setMaxExpandLeaveIdle={setMaxExpandLeaveIdle}
               autostartMode={autostartMode}
               setAutostartMode={setAutostartMode}
+              bgImage={bgImage}
+              bgImageOpacity={bgImageOpacity}
+              setBgImageOpacity={setBgImageOpacity}
+              applyBgOpacity={applyBgOpacity}
+              persistBgOpacity={persistBgOpacity}
+              bgOpacitySaveTimerRef={bgOpacitySaveTimerRef}
+              handleSelectBgImage={handleSelectBgImage}
+              handleClearBgImage={handleClearBgImage}
+              handleSelectBuiltinBgImage={handleSelectBuiltinBgImage}
               appSettingsPages={APP_SETTINGS_PAGES}
               settingsTabLabels={SETTINGS_TAB_LABELS}
               setAppSettingsPage={setAppSettingsPage}

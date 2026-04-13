@@ -66,6 +66,19 @@
   transition: opacity 0.35s ease;
 }
 
+.island-bg-layer {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0;
+  z-index: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+
 .island-shell.hover {
   width: 500px;
   height: 60px;

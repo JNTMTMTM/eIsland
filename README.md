@@ -12,25 +12,48 @@ Windows 灵动岛桌面应用，基于 Electron + React + TypeScript 构建。
 
 ![总览界面](assets/1.png)
 
-### 2. 歌曲界面
+### 2. 天气界面
 
-![歌曲界面](assets/2.png)
+![天气界面](assets/2.png)
 
-### 3. 快捷启动编辑界面
+### 3. 歌词界面
 
-![快捷启动编辑界面](assets/3.png)
+![歌词界面](assets/3.png)
 
-### 4. 倒数日编辑界面
+### 4. 设置界面
 
-![倒数日编辑界面](assets/4.png)
+![设置界面](assets/4.png)
 
-### 5. 设置界面
-
-![设置界面](assets/5.png)
+---
 
 ## 图标来源
 
 本软件使用的所有图标均来源于 [iconfont](https://www.iconfont.cn/)。
+
+## Image Credits / 图像致谢
+
+本项目中使用的以下图像来自 Artemis II 任务：
+
+- `Spaceship Earth (art002e008487~orig.jpg)` 图像
+  - 来源：[NASA](https://www.nasa.gov/)
+  - 由 Artemis II 任务宇航员使用 iPhone 17 Pro Max 拍摄
+  - 原始链接：https://images.nasa.gov/details/art002e008487
+
+- `A Crescent Earth (art002e004441~orig.jpg)` 图像
+  - 来源：[NASA](https://www.nasa.gov/)
+  - 由 Artemis II 任务宇航员使用 NIKON Z9 35mm f/2 拍摄
+  - 原始链接：https://images.nasa.gov/details/art002e004441
+
+- `Thinking of You, Earth (art002e008486~orig.jpg)` 图像
+  - 来源：[NASA](https://www.nasa.gov/)
+  - 由 Artemis II 任务宇航员使用 iPhone 17 Pro Max 拍摄
+  - 原始链接：https://images.nasa.gov/details/art002e008486
+
+本仓库中所有 NASA 图像均按照 NASA 的图像使用政策使用。不暗示 NASA 对本项目的任何认可。
+
+更多 Artemis II 图像可访问：
+- https://images.nasa.gov/
+- https://www.nasa.gov/artemis-ii-mobile-wallpapers/
 
 ## 许可证 (License)
 

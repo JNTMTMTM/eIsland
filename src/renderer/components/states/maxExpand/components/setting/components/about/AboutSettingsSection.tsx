@@ -66,6 +66,28 @@ export function AboutSettingsSection({ aboutVersion }: AboutSettingsSectionProps
           <span className="settings-about-dep">Electron</span><span className="settings-about-dep">React</span><span className="settings-about-dep">React DOM</span><span className="settings-about-dep">TypeScript</span><span className="settings-about-dep">Zustand</span><span className="settings-about-dep">Tailwind CSS</span><span className="settings-about-dep">Vite</span><span className="settings-about-dep">electron-vite</span><span className="settings-about-dep">electron-builder</span><span className="settings-about-dep">react-markdown</span><span className="settings-about-dep">react-datepicker</span><span className="settings-about-dep">remark-gfm</span><span className="settings-about-dep">@coooookies/windows-smtc-monitor</span><span className="settings-about-dep">openmeteo</span><span className="settings-about-dep">lunar-javascript</span><span className="settings-about-dep">lyric-resolver</span><span className="settings-about-dep">colorthief</span><span className="settings-about-dep">lucide-react</span><span className="settings-about-dep">@electron-toolkit/preload</span><span className="settings-about-dep">@electron-toolkit/utils</span><span className="settings-about-dep">@electron-toolkit/tsconfig</span><span className="settings-about-dep">@tailwindcss/vite</span><span className="settings-about-dep">@vitejs/plugin-react</span><span className="settings-about-dep">PostCSS</span><span className="settings-about-dep">Autoprefixer</span>
         </div>
       </div>
+      <div className="settings-about-deps">
+        <div className="settings-about-deps-title">壁纸素材</div>
+        <div className="settings-about-wallpaper-list">
+          <div className="settings-about-row"><span className="settings-about-label">Spaceship Earth</span><span className="settings-about-value">art002e008487~orig.jpg</span></div>
+          <div className="settings-about-row"><span className="settings-about-label">来源</span><span className="settings-about-value">NASA</span></div>
+          <div className="settings-about-row"><span className="settings-about-label">拍摄</span><span className="settings-about-value">Artemis II / iPhone 17 Pro Max</span></div>
+          <div className="settings-about-row"><span className="settings-about-label">原始链接</span><a className="settings-about-link" href="https://images.nasa.gov/details/art002e008487" target="_blank" rel="noreferrer">images.nasa.gov/details/art002e008487</a></div>
+        </div>
+        <div className="settings-about-wallpaper-list" style={{ marginTop: 6 }}>
+          <div className="settings-about-row"><span className="settings-about-label">A Crescent Earth</span><span className="settings-about-value">art002e004441~orig.jpg</span></div>
+          <div className="settings-about-row"><span className="settings-about-label">来源</span><span className="settings-about-value">NASA</span></div>
+          <div className="settings-about-row"><span className="settings-about-label">拍摄</span><span className="settings-about-value">Artemis II / NIKON Z9 35mm f/2</span></div>
+          <div className="settings-about-row"><span className="settings-about-label">原始链接</span><a className="settings-about-link" href="https://images.nasa.gov/details/art002e004441" target="_blank" rel="noreferrer">images.nasa.gov/details/art002e004441</a></div>
+        </div>
+        <div className="settings-about-wallpaper-list" style={{ marginTop: 6 }}>
+          <div className="settings-about-row"><span className="settings-about-label">Thinking of You, Earth</span><span className="settings-about-value">art002e008486~orig.jpg</span></div>
+          <div className="settings-about-row"><span className="settings-about-label">来源</span><span className="settings-about-value">NASA</span></div>
+          <div className="settings-about-row"><span className="settings-about-label">拍摄</span><span className="settings-about-value">Artemis II / iPhone 17 Pro Max</span></div>
+          <div className="settings-about-row"><span className="settings-about-label">原始链接</span><a className="settings-about-link" href="https://images.nasa.gov/details/art002e008486" target="_blank" rel="noreferrer">images.nasa.gov/details/art002e008486</a></div>
+        </div>
+        <div className="settings-about-notice" style={{ marginTop: 6, fontSize: 11 }}>所有 NASA 图像均按照 NASA 图像使用政策使用，不暗示 NASA 对本项目的任何认可。</div>
+      </div>
       <div className="settings-about-footer">
         <div className="settings-about-copyright">© JNTMTMTM, pyisland.com 版权所有</div>
         <div className="settings-about-slogan">算法诠释一切 质疑即是认可</div>
