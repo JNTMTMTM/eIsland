@@ -4,6 +4,7 @@
 /test.tsx
 /desc.json
 /todo.md
+/RELEASE_NOTES_SINCE_LAST_TAG.md
 
 node_modules/
 dist/
