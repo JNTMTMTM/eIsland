@@ -1,0 +1,157 @@
+/*
+ * eIsland - A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Electron.
+ * https://github.com/JNTMTMTM/eIsland
+ *
+ * Copyright (C) 2026 JNTMTMTM
+ * Copyright (C) 2026 pyisland.com
+ *
+ * Original author: JNTMTMTM[](https://github.com/JNTMTMTM)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+/**
+ * @file settings-url-favorites.css
+ * @description 最大展开 URL 收藏模块样式
+ */
+
+.url-favorites {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  gap: 8px;
+}
+
+.url-favorites-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2px 0;
+}
+
+.url-favorites-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(var(--color-text-rgb), 0.9);
+}
+
+.url-favorites-count {
+  font-size: 11px;
+  color: rgba(var(--color-text-rgb), 0.4);
+}
+
+.url-favorites-input-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.url-favorites-input {
+  flex: 1;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid rgba(var(--color-text-rgb), 0.1);
+  background: rgba(var(--color-text-rgb), 0.05);
+  color: rgba(var(--color-text-rgb), 0.86);
+  padding: 0 10px;
+  font-size: 12px;
+  outline: none;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.url-favorites-input:focus {
+  border-color: rgba(var(--color-text-rgb), 0.24);
+  background: rgba(var(--color-text-rgb), 0.08);
+}
+
+.url-favorites-input::placeholder {
+  color: rgba(var(--color-text-rgb), 0.3);
+}
+
+.url-favorites-add {
+  height: 30px;
+  border: none;
+  border-radius: 8px;
+  padding: 0 12px;
+  font-size: 12px;
+  color: rgba(var(--color-text-rgb), 0.82);
+  background: rgba(var(--color-text-rgb), 0.12);
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.url-favorites-add:hover {
+  background: rgba(var(--color-text-rgb), 0.2);
+  color: var(--color-island-text);
+}
+
+.url-favorites-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-right: 4px;
+}
+
+.url-favorites-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 8px;
+  background: rgba(var(--color-text-rgb), 0.04);
+  border: 1px solid rgba(var(--color-text-rgb), 0.06);
+  padding: 6px 8px;
+}
+
+.url-favorites-link {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  border: none;
+  background: transparent;
+  color: rgba(var(--color-text-rgb), 0.82);
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.url-favorites-link:hover {
+  color: var(--color-island-text);
+  text-decoration: underline;
+}
+
+.url-favorites-remove {
+  width: 20px;
+  height: 20px;
+  border: none;
+  border-radius: 6px;
+  background: rgba(255, 90, 90, 0.14);
+  color: rgba(255, 105, 105, 0.9);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.url-favorites-remove:hover {
+  background: rgba(255, 90, 90, 0.22);
+}
+
+.url-favorites-empty {
+  margin-top: 10px;
+  font-size: 12px;
+  color: rgba(var(--color-text-rgb), 0.4);
+  text-align: center;
+}
