@@ -33,6 +33,41 @@ interface RegisterNetIpcHandlersOptions {
   writeMainLog: MainLogWriter;
 }
 
+function sanitizeHeaderName(name: string): string {
+  return name.trim();
+}
+
+function sanitizeHeaderValue(value: string): string {
+  let out = '';
+  for (let i = 0; i < value.length; i += 1) {
+    const code = value.charCodeAt(i);
+    if (code <= 255) {
+      out += value[i];
+    }
+  }
+  return out;
+}
+
+function sanitizeRequestHeaders(headers: Record<string, string>, writeMainLog: MainLogWriter): Record<string, string> {
+  const safeHeaders: Record<string, string> = {};
+  Object.entries(headers).forEach(([rawName, rawValue]) => {
+    if (typeof rawName !== 'string') return;
+    const name = sanitizeHeaderName(rawName);
+    if (!name) return;
+    if (!/^[!#$%&'*+.^_`|~0-9A-Za-z-]+$/.test(name)) {
+      writeMainLog('warn', `[Net] drop invalid header name: ${rawName}`);
+      return;
+    }
+
+    const value = sanitizeHeaderValue(String(rawValue ?? ''));
+    if (value.length !== String(rawValue ?? '').length) {
+      writeMainLog('warn', `[Net] sanitize non-ByteString header value for: ${name}`);
+    }
+    safeHeaders[name] = value;
+  });
+  return safeHeaders;
+}
+
 /**
  * 注册网络请求相关 IPC 处理器
  * @description 注册网络请求代理的 IPC 事件处理器，支持自定义方法和超时
@@ -46,42 +81,74 @@ export function registerNetIpcHandlers(options: RegisterNetIpcHandlersOptions): 
     timeoutMs?: number;
   }) => {
     const method = requestOptions?.method || 'GET';
-    const headers = requestOptions?.headers || {};
+    const headers = sanitizeRequestHeaders(requestOptions?.headers || {}, options.writeMainLog);
     const body = requestOptions?.body;
     const allowsBody = method.toUpperCase() !== 'GET' && method.toUpperCase() !== 'HEAD';
     const timeoutMs = typeof requestOptions?.timeoutMs === 'number' ? requestOptions.timeoutMs : 10000;
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), timeoutMs);
     options.writeMainLog('info', `[Net] request ${JSON.stringify({ method, url, headers, body: body ?? '', timeoutMs })}`);
 
     try {
-      const fetchOptions: {
-        method: string;
-        headers: Record<string, string>;
-        signal: AbortSignal;
-        body?: string;
-      } = {
-        method,
-        headers,
-        signal: controller.signal,
-      };
-      if (allowsBody && typeof body === 'string') {
-        fetchOptions.body = body;
-      }
-      const resp = await net.fetch(url, fetchOptions);
-      const text = await resp.text();
-      options.writeMainLog('info', `[Net] response ${JSON.stringify({ method, url, status: resp.status, ok: resp.ok, body: text })}`);
-      return { ok: resp.ok, status: resp.status, body: text };
+      const result = await new Promise<{ ok: boolean; status: number; body: string }>((resolve) => {
+        let settled = false;
+        const finish = (value: { ok: boolean; status: number; body: string }): void => {
+          if (settled) return;
+          settled = true;
+          resolve(value);
+        };
+
+        const request = net.request({ method, url });
+        Object.entries(headers).forEach(([name, value]) => {
+          try {
+            request.setHeader(name, value);
+          } catch (error) {
+            options.writeMainLog('warn', `[Net] drop header on setHeader failure: ${name}, error=${String(error)}`);
+          }
+        });
+
+        const timeout = setTimeout(() => {
+          options.writeMainLog('warn', `[Net] timeout ${JSON.stringify({ method, url, headers, body: body ?? '', timeoutMs })}`);
+          try {
+            request.abort();
+          } catch {}
+          finish({ ok: false, status: 408, body: 'timeout' });
+        }, timeoutMs);
+
+        request.on('response', (response) => {
+          const chunks: Buffer[] = [];
+          response.on('data', (chunk: Buffer | string) => {
+            chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+          });
+          response.on('end', () => {
+            clearTimeout(timeout);
+            const text = Buffer.concat(chunks).toString('utf-8');
+            const status = response.statusCode ?? 0;
+            finish({ ok: status >= 200 && status < 300, status, body: text });
+          });
+          response.on('error', (error) => {
+            clearTimeout(timeout);
+            options.writeMainLog('error', `[Net] response stream error ${JSON.stringify({ method, url, error: String(error) })}`);
+            finish({ ok: false, status: 0, body: '' });
+          });
+        });
+
+        request.on('error', (error) => {
+          clearTimeout(timeout);
+          options.writeMainLog('error', `[Net] request error ${JSON.stringify({ method, url, error: String(error) })}`);
+          finish({ ok: false, status: 0, body: '' });
+        });
+
+        if (allowsBody && typeof body === 'string') {
+          request.write(body);
+        }
+        request.end();
+      });
+
+      options.writeMainLog('info', `[Net] response ${JSON.stringify({ method, url, status: result.status, ok: result.ok, body: result.body })}`);
+      return result;
     } catch (err) {
-      if (err && typeof err === 'object' && 'name' in err && err.name === 'AbortError') {
-        options.writeMainLog('warn', `[Net] timeout ${JSON.stringify({ method, url, headers, body: body ?? '', timeoutMs })}`);
-        return { ok: false, status: 408, body: 'timeout' };
-      }
       console.error('[Net] fetch proxy error:', err);
       options.writeMainLog('error', `[Net] error ${JSON.stringify({ method, url, headers, body: body ?? '', timeoutMs, error: String(err) })}`);
       return { ok: false, status: 0, body: '' };
-    } finally {
-      clearTimeout(timeout);
     }
   });
 }
