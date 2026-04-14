@@ -24,12 +24,13 @@
  * @author 鸡哥
  */
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 interface UrlFavoriteItem {
   id: number;
   url: string;
   title: string;
+  note: string;
   createdAt: number;
 }
 
@@ -42,6 +43,43 @@ function normalizeUrl(raw: string): string {
   return `https://${text}`;
 }
 
+function getFaviconUrl(url: string): string {
+  try {
+    const parsed = new URL(url);
+    return `https://www.google.com/s2/favicons?sz=64&domain_url=${encodeURIComponent(parsed.origin)}`;
+  } catch {
+    return '';
+  }
+}
+
+function parseHtmlTitle(html: string): string {
+  const matched = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
+  if (!matched || !matched[1]) return '';
+  return matched[1]
+    .replace(/\s+/g, ' ')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .trim();
+}
+
+async function resolvePageTitle(url: string): Promise<string> {
+  try {
+    const resp = await window.api.netFetch(url, {
+      method: 'GET',
+      timeoutMs: 8000,
+      headers: {
+        Accept: 'text/html,application/xhtml+xml',
+      },
+    });
+    if (!resp.ok || !resp.body) return '';
+    return parseHtmlTitle(resp.body);
+  } catch {
+    return '';
+  }
+}
+
 function sanitizeFavorites(data: unknown): UrlFavoriteItem[] {
   if (!Array.isArray(data)) return [];
   return data
@@ -50,12 +88,14 @@ function sanitizeFavorites(data: unknown): UrlFavoriteItem[] {
       const url = typeof row.url === 'string' ? normalizeUrl(row.url) : '';
       if (!url) return null;
       const title = typeof row.title === 'string' ? row.title.trim() : '';
+      const noteValue = typeof row.note === 'string' ? row.note.trim() : '';
       const createdAt = typeof row.createdAt === 'number' && Number.isFinite(row.createdAt) ? row.createdAt : Date.now();
       const id = typeof row.id === 'number' && Number.isFinite(row.id) ? row.id : createdAt;
       return {
         id,
         url,
         title: title || url,
+        note: noteValue || (title && title !== url ? title : ''),
         createdAt,
       };
     })
@@ -71,6 +111,10 @@ export function UrlFavoritesTab(): React.ReactElement {
   const [favorites, setFavorites] = useState<UrlFavoriteItem[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [urlInput, setUrlInput] = useState('');
+  const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [editUrlInput, setEditUrlInput] = useState('');
+  const [editNoteInput, setEditNoteInput] = useState('');
+  const titleResolvingIdsRef = useRef<Set<number>>(new Set());
 
   useEffect(() => {
     let cancelled = false;
@@ -105,6 +149,34 @@ export function UrlFavoritesTab(): React.ReactElement {
     persistFavorites(favorites);
   }, [favorites, loaded]);
 
+  useEffect(() => {
+    if (!loaded || favorites.length === 0) return;
+
+    const pendingItems = favorites.filter((item) => {
+      const hasResolvedTitle = item.title.trim() && item.title.trim() !== item.url;
+      return !hasResolvedTitle && !titleResolvingIdsRef.current.has(item.id);
+    });
+
+    if (pendingItems.length === 0) return;
+
+    pendingItems.forEach((item) => {
+      titleResolvingIdsRef.current.add(item.id);
+      resolvePageTitle(item.url)
+        .then((title) => {
+          const nextTitle = title.trim();
+          if (!nextTitle) return;
+          setFavorites((prev) => prev.map((row) => (
+            row.id === item.id
+              ? { ...row, title: nextTitle }
+              : row
+          )));
+        })
+        .finally(() => {
+          titleResolvingIdsRef.current.delete(item.id);
+        });
+    });
+  }, [favorites, loaded]);
+
   const handleAdd = (): void => {
     const normalizedUrl = normalizeUrl(urlInput);
     if (!normalizedUrl) return;
@@ -120,7 +192,7 @@ export function UrlFavoritesTab(): React.ReactElement {
       const exists = prev.some((item) => item.url.toLowerCase() === normalizedUrl.toLowerCase());
       if (exists) return prev;
       const now = Date.now();
-      return [{ id: now, url: normalizedUrl, title: normalizedUrl, createdAt: now }, ...prev];
+      return [{ id: now, url: normalizedUrl, title: normalizedUrl, note: '', createdAt: now }, ...prev];
     });
     setUrlInput('');
   };
@@ -129,8 +201,51 @@ export function UrlFavoritesTab(): React.ReactElement {
     window.api.clipboardOpenUrl(url).catch(() => {});
   };
 
+  const handleToggleExpand = (item: UrlFavoriteItem): void => {
+    if (expandedId === item.id) {
+      setExpandedId(null);
+      setEditUrlInput('');
+      setEditNoteInput('');
+      return;
+    }
+    setExpandedId(item.id);
+    setEditUrlInput(item.url);
+    setEditNoteInput(item.note);
+  };
+
+  const handleSaveEdit = (id: number): void => {
+    const normalizedUrl = normalizeUrl(editUrlInput);
+    if (!normalizedUrl) return;
+
+    try {
+      const parsed = new URL(normalizedUrl);
+      if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return;
+    } catch {
+      return;
+    }
+
+    setFavorites((prev) => {
+      const duplicated = prev.some((item) => item.id !== id && item.url.toLowerCase() === normalizedUrl.toLowerCase());
+      if (duplicated) return prev;
+      const nextNote = editNoteInput.trim();
+      return prev.map((item) => (
+        item.id === id
+          ? { ...item, url: normalizedUrl, title: normalizedUrl, note: nextNote }
+          : item
+      ));
+    });
+    setExpandedId(null);
+    setEditUrlInput('');
+    setEditNoteInput('');
+  };
+
   const handleRemove = (id: number): void => {
     setFavorites((prev) => prev.filter((item) => item.id !== id));
+    if (expandedId === id) {
+      setExpandedId(null);
+      setEditUrlInput('');
+      setEditNoteInput('');
+    }
   };
 
   const totalCount = favorites.length;
@@ -169,10 +284,47 @@ export function UrlFavoritesTab(): React.ReactElement {
           <div className="url-favorites-empty">还没有收藏，先添加一个 URL 吧。</div>
         ) : favorites.map((item) => (
           <div key={item.id} className="url-favorites-item">
-            <button className="url-favorites-link" type="button" onClick={() => handleOpen(item.url)} title={item.url}>
-              {item.title}
+            <button
+              className="url-favorites-summary"
+              type="button"
+              onClick={() => handleToggleExpand(item)}
+              title={item.url}
+            >
+              <img className="url-favorites-favicon" src={getFaviconUrl(item.url)} alt="" aria-hidden="true" />
+              <span className="url-favorites-site-name">{item.title && item.title !== item.url ? item.title : '读取网页名称中…'}</span>
+              <span className="url-favorites-note" title={item.note || '未备注'}>{item.note || '未备注'}</span>
+              <span className="url-favorites-expand-indicator">{expandedId === item.id ? '收起' : '展开'}</span>
             </button>
-            <button className="url-favorites-remove" type="button" onClick={() => handleRemove(item.id)} aria-label="删除 URL 收藏">×</button>
+
+            {expandedId === item.id ? (
+              <div className="url-favorites-editor">
+                <input
+                  className="url-favorites-url-input"
+                  type="text"
+                  value={editUrlInput}
+                  onChange={(e) => setEditUrlInput(e.target.value)}
+                  placeholder="编辑 URL"
+                />
+                <input
+                  className="url-favorites-note-input"
+                  type="text"
+                  value={editNoteInput}
+                  onChange={(e) => setEditNoteInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleSaveEdit(item.id);
+                    }
+                  }}
+                  placeholder="输入备注"
+                />
+                <div className="url-favorites-editor-actions">
+                  <button className="url-favorites-open" type="button" onClick={() => handleOpen(item.url)}>打开</button>
+                  <button className="url-favorites-save" type="button" onClick={() => handleSaveEdit(item.id)}>保存</button>
+                  <button className="url-favorites-remove" type="button" onClick={() => handleRemove(item.id)} aria-label="删除 URL 收藏">×</button>
+                </div>
+              </div>
+            ) : null}
           </div>
         ))}
       </div>
