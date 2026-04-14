@@ -115,6 +115,11 @@
   padding: 6px 8px;
 }
 
+.url-favorites-item--focused {
+  border-color: rgba(59, 130, 246, 0.44);
+  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.24) inset;
+}
+
 .url-favorites-summary {
   width: 100%;
   border: none;

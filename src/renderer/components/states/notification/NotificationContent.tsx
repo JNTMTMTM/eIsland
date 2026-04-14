@@ -29,6 +29,51 @@ import useIslandStore from '../../../store/slices';
 import { SvgIcon } from '../../../utils/SvgIcon';
 import '../../../styles/notification/notification.css';
 
+interface UrlFavoriteItem {
+  id: number;
+  url: string;
+  title: string;
+  note: string;
+  createdAt: number;
+}
+
+const URL_FAVORITES_STORE_KEY = 'url-favorites';
+const URL_FAVORITES_FOCUS_KEY = 'url-favorites-focus-url';
+
+function normalizeUrl(raw: string): string {
+  const text = raw.trim();
+  if (!text) return '';
+  if (/^https?:\/\//i.test(text)) return text;
+  return `https://${text}`;
+}
+
+function sanitizeFavorites(data: unknown): UrlFavoriteItem[] {
+  if (!Array.isArray(data)) return [];
+  return data
+    .map((item) => {
+      const row = item as Partial<UrlFavoriteItem>;
+      const url = typeof row.url === 'string' ? normalizeUrl(row.url) : '';
+      if (!url) return null;
+      const title = typeof row.title === 'string' ? row.title.trim() : '';
+      const note = typeof row.note === 'string' ? row.note.trim() : '';
+      const createdAt = typeof row.createdAt === 'number' && Number.isFinite(row.createdAt) ? row.createdAt : Date.now();
+      const id = typeof row.id === 'number' && Number.isFinite(row.id) ? row.id : createdAt;
+      return {
+        id,
+        url,
+        title: title || url,
+        note,
+        createdAt,
+      };
+    })
+    .filter((item): item is UrlFavoriteItem => Boolean(item));
+}
+
+function persistFavorites(items: UrlFavoriteItem[]): void {
+  try { localStorage.setItem('eIsland_url_favorites', JSON.stringify(items)); } catch { /* noop */ }
+  window.api.storeWrite(URL_FAVORITES_STORE_KEY, items).catch(() => {});
+}
+
 interface NotificationContentProps {
   /** 通知标题 */
   title: string;
@@ -59,8 +104,9 @@ export function NotificationContent({
   updateVersion,
   urls,
 }: NotificationContentProps): ReactElement {
-  const { setIdle, setLyrics, setNotification } = useIslandStore();
+  const { setIdle, setLyrics, setNotification, setMaxExpand, setMaxExpandTab } = useIslandStore();
   const [currentUrlIndex, setCurrentUrlIndex] = useState(0);
+  const [favoriteUrlSet, setFavoriteUrlSet] = useState<Set<string>>(new Set());
   const clipboardUrls = type === 'clipboard-url' ? (urls ?? []) : [];
   const hasMultipleClipboardUrls = clipboardUrls.length > 1;
   const currentClipboardUrl = clipboardUrls[currentUrlIndex] ?? '';
@@ -95,6 +141,38 @@ export function NotificationContent({
     setCurrentUrlIndex(0);
   }, [type, urls]);
 
+  useEffect(() => {
+    if (type !== 'clipboard-url') return;
+    let cancelled = false;
+    window.api.storeRead(URL_FAVORITES_STORE_KEY).then((data) => {
+      if (cancelled) return;
+      const items = sanitizeFavorites(data);
+      if (items.length > 0) {
+        setFavoriteUrlSet(new Set(items.map(item => item.url.toLowerCase())));
+        return;
+      }
+      try {
+        const raw = localStorage.getItem('eIsland_url_favorites');
+        const fallbackItems = raw ? sanitizeFavorites(JSON.parse(raw) as unknown[]) : [];
+        setFavoriteUrlSet(new Set(fallbackItems.map(item => item.url.toLowerCase())));
+      } catch {
+        setFavoriteUrlSet(new Set());
+      }
+    }).catch(() => {
+      try {
+        const raw = localStorage.getItem('eIsland_url_favorites');
+        const fallbackItems = raw ? sanitizeFavorites(JSON.parse(raw) as unknown[]) : [];
+        if (!cancelled) setFavoriteUrlSet(new Set(fallbackItems.map(item => item.url.toLowerCase())));
+      } catch {
+        if (!cancelled) setFavoriteUrlSet(new Set());
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [type, urls]);
+
   const isOfficialSite = (() => {
     if (type !== 'clipboard-url' || !currentClipboardUrl) return false;
     try {
@@ -112,6 +190,75 @@ export function NotificationContent({
     } else {
       setIdle();
     }
+  };
+
+  const handleFavoriteCurrentUrl = (): void => {
+    if (!currentClipboardUrl) return;
+    const normalized = normalizeUrl(currentClipboardUrl);
+    if (!normalized) return;
+
+    const key = normalized.toLowerCase();
+    if (favoriteUrlSet.has(key)) return;
+
+    const now = Date.now();
+    const titleText = (displayBody || '').trim();
+    const nextItem: UrlFavoriteItem = {
+      id: now,
+      url: normalized,
+      title: titleText && titleText !== normalized ? titleText : normalized,
+      note: '',
+      createdAt: now,
+    };
+
+    window.api.storeRead(URL_FAVORITES_STORE_KEY).then((data) => {
+      const existing = sanitizeFavorites(data);
+      const duplicated = existing.some((item) => item.url.toLowerCase() === key);
+      if (duplicated) {
+        setFavoriteUrlSet((prev) => {
+          const next = new Set(prev);
+          next.add(key);
+          return next;
+        });
+        return;
+      }
+      const next = [nextItem, ...existing];
+      persistFavorites(next);
+      setFavoriteUrlSet(new Set(next.map((item) => item.url.toLowerCase())));
+    }).catch(() => {
+      try {
+        const raw = localStorage.getItem('eIsland_url_favorites');
+        const existing = raw ? sanitizeFavorites(JSON.parse(raw) as unknown[]) : [];
+        const duplicated = existing.some((item) => item.url.toLowerCase() === key);
+        if (duplicated) {
+          setFavoriteUrlSet((prev) => {
+            const next = new Set(prev);
+            next.add(key);
+            return next;
+          });
+          return;
+        }
+        const next = [nextItem, ...existing];
+        persistFavorites(next);
+        setFavoriteUrlSet(new Set(next.map((item) => item.url.toLowerCase())));
+      } catch {
+        setFavoriteUrlSet((prev) => {
+          const next = new Set(prev);
+          next.add(key);
+          return next;
+        });
+      }
+    });
+  };
+
+  const handleJumpToFavorite = (): void => {
+    if (!currentClipboardUrl) return;
+    const normalized = normalizeUrl(currentClipboardUrl);
+    if (!normalized) return;
+    try {
+      localStorage.setItem(URL_FAVORITES_FOCUS_KEY, normalized);
+    } catch { /* noop */ }
+    setMaxExpandTab('urlFavorites');
+    setMaxExpand();
   };
 
   const handleSnooze = (minutes: number): void => {
@@ -186,6 +333,12 @@ export function NotificationContent({
     if (clipboardUrls.length <= 1) return;
     setCurrentUrlIndex((prev) => (prev + 1) % clipboardUrls.length);
   };
+
+  const isCurrentUrlFavorited = (() => {
+    if (type !== 'clipboard-url' || !currentClipboardUrl) return false;
+    const normalized = normalizeUrl(currentClipboardUrl).toLowerCase();
+    return favoriteUrlSet.has(normalized);
+  })();
 
   return (
     <div className="notification-content">
@@ -282,6 +435,24 @@ export function NotificationContent({
             >
               {hasMultipleClipboardUrls ? '打开全部链接' : '打开链接'}
             </button>
+            {isCurrentUrlFavorited ? (
+              <button
+                type="button"
+                className="notification-favorited-badge"
+                onClick={handleJumpToFavorite}
+                title="前往 URL 收藏"
+              >
+                已收藏
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="notification-action-btn notification-action-favorite"
+                onClick={handleFavoriteCurrentUrl}
+              >
+                收藏
+              </button>
+            )}
             {currentClipboardDomain && (
               <button
                 type="button"

@@ -35,6 +35,7 @@ interface UrlFavoriteItem {
 }
 
 const STORE_KEY = 'url-favorites';
+const FOCUS_KEY = 'url-favorites-focus-url';
 
 function normalizeUrl(raw: string): string {
   const text = raw.trim();
@@ -112,6 +113,7 @@ export function UrlFavoritesTab(): React.ReactElement {
   const [loaded, setLoaded] = useState(false);
   const [urlInput, setUrlInput] = useState('');
   const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [focusedId, setFocusedId] = useState<number | null>(null);
   const [editUrlInput, setEditUrlInput] = useState('');
   const [editNoteInput, setEditNoteInput] = useState('');
   const titleResolvingIdsRef = useRef<Set<number>>(new Set());
@@ -148,6 +150,38 @@ export function UrlFavoritesTab(): React.ReactElement {
     if (!loaded) return;
     persistFavorites(favorites);
   }, [favorites, loaded]);
+
+  useEffect(() => {
+    if (!loaded || favorites.length === 0) return;
+    let targetUrl = '';
+    try {
+      const raw = localStorage.getItem(FOCUS_KEY) ?? '';
+      targetUrl = normalizeUrl(raw);
+    } catch {
+      targetUrl = '';
+    }
+    if (!targetUrl) return;
+
+    const matched = favorites.find((item) => item.url.toLowerCase() === targetUrl.toLowerCase());
+    if (!matched) return;
+
+    setExpandedId(matched.id);
+    setEditUrlInput(matched.url);
+    setEditNoteInput(matched.note);
+    setFocusedId(matched.id);
+    window.setTimeout(() => {
+      setFocusedId((prev) => (prev === matched.id ? null : prev));
+    }, 1800);
+
+    try {
+      localStorage.removeItem(FOCUS_KEY);
+    } catch { /* noop */ }
+
+    window.requestAnimationFrame(() => {
+      const el = document.querySelector<HTMLElement>(`[data-url-favorite-id="${matched.id}"]`);
+      el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+  }, [loaded, favorites]);
 
   useEffect(() => {
     if (!loaded || favorites.length === 0) return;
@@ -283,7 +317,11 @@ export function UrlFavoritesTab(): React.ReactElement {
         {favorites.length === 0 ? (
           <div className="url-favorites-empty">还没有收藏，先添加一个 URL 吧。</div>
         ) : favorites.map((item) => (
-          <div key={item.id} className="url-favorites-item">
+          <div
+            key={item.id}
+            className={`url-favorites-item${focusedId === item.id ? ' url-favorites-item--focused' : ''}`}
+            data-url-favorite-id={item.id}
+          >
             <button
               className="url-favorites-summary"
               type="button"
