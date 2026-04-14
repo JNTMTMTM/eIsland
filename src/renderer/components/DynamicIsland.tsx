@@ -530,6 +530,10 @@ function DynamicIsland(): React.JSX.Element {
     let lastCheckTime = 0;
     const CHECK_INTERVAL = 16; // ~60fps throttle
 
+    if (state === 'maxExpand' || state === 'expanded') {
+      isHoveringRef.current = true;
+    }
+
     const checkMousePosition = async (): Promise<void> => {
       if (aborted) return;
 
