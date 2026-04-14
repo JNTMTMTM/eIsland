@@ -115,9 +115,13 @@ export function UrlFavoritesTab(): React.ReactElement {
   const [urlInput, setUrlInput] = useState('');
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [focusedId, setFocusedId] = useState<number | null>(null);
+  const [draggingId, setDraggingId] = useState<number | null>(null);
+  const [dragOverId, setDragOverId] = useState<number | null>(null);
   const [editUrlInput, setEditUrlInput] = useState('');
   const [editNoteInput, setEditNoteInput] = useState('');
   const titleResolvingIdsRef = useRef<Set<number>>(new Set());
+  const dragFromIdRef = useRef<number | null>(null);
+  const dragMovedRef = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -283,6 +287,53 @@ export function UrlFavoritesTab(): React.ReactElement {
     }
   };
 
+  const resetDragState = (): void => {
+    dragFromIdRef.current = null;
+    setDraggingId(null);
+    setDragOverId(null);
+    window.setTimeout(() => {
+      dragMovedRef.current = false;
+    }, 0);
+  };
+
+  const handleDragStart = (e: React.DragEvent<HTMLButtonElement>, id: number): void => {
+    dragFromIdRef.current = id;
+    dragMovedRef.current = false;
+    setDraggingId(id);
+    setDragOverId(id);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', String(id));
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>, id: number): void => {
+    if (dragFromIdRef.current === null) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (dragFromIdRef.current !== id) dragMovedRef.current = true;
+    setDragOverId(id);
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>, id: number): void => {
+    e.preventDefault();
+    const fromId = dragFromIdRef.current;
+    if (fromId === null || fromId === id) {
+      resetDragState();
+      return;
+    }
+
+    setFavorites((prev) => {
+      const fromIndex = prev.findIndex((item) => item.id === fromId);
+      const toIndex = prev.findIndex((item) => item.id === id);
+      if (fromIndex < 0 || toIndex < 0 || fromIndex === toIndex) return prev;
+      const next = [...prev];
+      const [moved] = next.splice(fromIndex, 1);
+      next.splice(toIndex, 0, moved);
+      return next;
+    });
+
+    resetDragState();
+  };
+
   const totalCount = favorites.length;
 
   const placeholder = useMemo(
@@ -325,13 +376,21 @@ export function UrlFavoritesTab(): React.ReactElement {
         ) : favorites.map((item) => (
           <div
             key={item.id}
-            className={`url-favorites-item${focusedId === item.id ? ' url-favorites-item--focused' : ''}`}
+            className={`url-favorites-item${focusedId === item.id ? ' url-favorites-item--focused' : ''}${dragOverId === item.id ? ' url-favorites-item--drag-over' : ''}${draggingId === item.id ? ' url-favorites-item--dragging' : ''}`}
             data-url-favorite-id={item.id}
+            onDragOver={(e) => handleDragOver(e, item.id)}
+            onDrop={(e) => handleDrop(e, item.id)}
           >
             <button
               className="url-favorites-summary"
               type="button"
-              onClick={() => handleToggleExpand(item)}
+              draggable
+              onDragStart={(e) => handleDragStart(e, item.id)}
+              onDragEnd={resetDragState}
+              onClick={() => {
+                if (dragMovedRef.current) return;
+                handleToggleExpand(item);
+              }}
               title={item.url}
             >
               <img className="url-favorites-favicon" src={getFaviconUrl(item.url)} alt="" aria-hidden="true" onError={(e) => { (e.target as HTMLImageElement).src = SvgIcon.LINK; }} />

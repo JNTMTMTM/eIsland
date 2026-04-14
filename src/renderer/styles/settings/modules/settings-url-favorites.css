@@ -52,7 +52,7 @@
 .url-favorites-input-bar {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
 }
 
 .url-favorites-input {
@@ -137,6 +137,15 @@
   padding: 6px 8px;
 }
 
+.url-favorites-item--drag-over {
+  border-color: rgba(var(--color-text-rgb), 0.22);
+  background: rgba(var(--color-text-rgb), 0.08);
+}
+
+.url-favorites-item--dragging {
+  opacity: 0.56;
+}
+
 .url-favorites-item--focused {
   border-color: rgba(59, 130, 246, 0.44);
   box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.24) inset;
@@ -151,7 +160,11 @@
   grid-template-columns: 16px fit-content(320px) minmax(0, 1fr) 28px;
   align-items: center;
   gap: 8px;
-  cursor: pointer;
+  cursor: grab;
+}
+
+.url-favorites-summary:active {
+  cursor: grabbing;
 }
 
 .url-favorites-favicon {
