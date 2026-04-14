@@ -28,6 +28,7 @@ import React, { useEffect, useState, useCallback, useRef } from 'react';
 import useIslandStore from '../../../../store/slices';
 import { getDayName, getDayJi, getDayYi, getLunarDate } from '../../../../utils/timeUtils';
 import { SvgIcon } from '../../../../utils/SvgIcon';
+import { getWebsiteFaviconUrl } from '../../../../api/siteMetaApi';
 
 /** 紧急程度 */
 type Priority = 'P0' | 'P1' | 'P2';
@@ -512,15 +513,6 @@ interface UrlFavoriteItem {
   createdAt: number;
 }
 
-function getFaviconUrl(url: string): string {
-  try {
-    const parsed = new URL(url);
-    return `${parsed.origin}/favicon.ico`;
-  } catch {
-    return '';
-  }
-}
-
 /** URL 收藏控件 */
 function UrlFavoritesWidget(): React.ReactElement {
   const { setMaxExpand, setMaxExpandTab } = useIslandStore();
@@ -568,7 +560,7 @@ function UrlFavoritesWidget(): React.ReactElement {
               onClick={() => handleOpen(item.url)}
               title={item.url}
             >
-              <img className="ov-dash-url-favorites-favicon" src={getFaviconUrl(item.url)} alt="" onError={(e) => { (e.target as HTMLImageElement).src = SvgIcon.LINK; }} />
+              <img className="ov-dash-url-favorites-favicon" src={getWebsiteFaviconUrl(item.url)} alt="" onError={(e) => { (e.target as HTMLImageElement).src = SvgIcon.LINK; }} />
               <span className="ov-dash-url-favorites-name">
                 {item.title && item.title !== item.url ? item.title : item.url}
               </span>

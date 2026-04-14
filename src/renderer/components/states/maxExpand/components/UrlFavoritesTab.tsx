@@ -26,6 +26,7 @@
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { SvgIcon } from '../../../../utils/SvgIcon';
+import { fetchWebsiteTitle, getWebsiteFaviconUrl } from '../../../../api/siteMetaApi';
 
 interface UrlFavoriteItem {
   id: number;
@@ -43,43 +44,6 @@ function normalizeUrl(raw: string): string {
   if (!text) return '';
   if (/^https?:\/\//i.test(text)) return text;
   return `https://${text}`;
-}
-
-function getFaviconUrl(url: string): string {
-  try {
-    const parsed = new URL(url);
-    return `https://www.google.com/s2/favicons?sz=64&domain_url=${encodeURIComponent(parsed.origin)}`;
-  } catch {
-    return '';
-  }
-}
-
-function parseHtmlTitle(html: string): string {
-  const matched = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
-  if (!matched || !matched[1]) return '';
-  return matched[1]
-    .replace(/\s+/g, ' ')
-    .replace(/&nbsp;/gi, ' ')
-    .replace(/&amp;/gi, '&')
-    .replace(/&lt;/gi, '<')
-    .replace(/&gt;/gi, '>')
-    .trim();
-}
-
-async function resolvePageTitle(url: string): Promise<string> {
-  try {
-    const resp = await window.api.netFetch(url, {
-      method: 'GET',
-      timeoutMs: 8000,
-      headers: {
-        Accept: 'text/html,application/xhtml+xml',
-      },
-    });
-    if (!resp.ok || !resp.body) return '';
-    return parseHtmlTitle(resp.body);
-  } catch {
-    return '';
-  }
 }
 
 function sanitizeFavorites(data: unknown): UrlFavoriteItem[] {
@@ -200,7 +164,7 @@ export function UrlFavoritesTab(): React.ReactElement {
 
     pendingItems.forEach((item) => {
       titleResolvingIdsRef.current.add(item.id);
-      resolvePageTitle(item.url)
+      fetchWebsiteTitle(item.url)
         .then((title) => {
           const nextTitle = title.trim();
           if (!nextTitle) return;
@@ -393,7 +357,7 @@ export function UrlFavoritesTab(): React.ReactElement {
               }}
               title={item.url}
             >
-              <img className="url-favorites-favicon" src={getFaviconUrl(item.url)} alt="" aria-hidden="true" onError={(e) => { (e.target as HTMLImageElement).src = SvgIcon.LINK; }} />
+              <img className="url-favorites-favicon" src={getWebsiteFaviconUrl(item.url)} alt="" aria-hidden="true" onError={(e) => { (e.target as HTMLImageElement).src = SvgIcon.LINK; }} />
               <span
                 className="url-favorites-site-name"
                 onClick={(e) => {

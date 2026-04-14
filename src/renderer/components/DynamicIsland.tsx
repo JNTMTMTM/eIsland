@@ -39,6 +39,7 @@ import { SvgIcon } from '../utils/SvgIcon';
 import type { NowPlayingInfo } from '../store/isLandStore';
 import { fetchLyrics } from '../api/lrcApi';
 import { fetchVersion } from '../api/versionApi';
+import { getWebsiteFaviconUrl, getWebsiteHostname } from '../api/siteMetaApi';
 
 /** 灵动岛状态类型 */
 export type IslandState = 'idle' | 'hover' | 'expanded' | 'notification' | 'maxExpand' | 'minimal' | 'lyrics' | 'guide';
@@ -503,13 +504,8 @@ function DynamicIsland(): React.JSX.Element {
       const store = useIslandStore.getState();
       if (suppressInFavorites && store.state === 'maxExpand' && store.maxExpandTab === 'urlFavorites') return;
 
-      let faviconUrl: string | undefined;
-      let hostname = '';
-      try {
-        const parsed = new URL(urls[0]);
-        faviconUrl = `${parsed.origin}/favicon.ico`;
-        hostname = parsed.hostname;
-      } catch { /* ignore */ }
+      const faviconUrl = getWebsiteFaviconUrl(urls[0]);
+      const hostname = getWebsiteHostname(urls[0]);
       setNotificationRef.current({
         title: '检测到链接',
         body: title || hostname || urls[0],

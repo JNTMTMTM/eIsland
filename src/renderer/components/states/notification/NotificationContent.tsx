@@ -27,6 +27,7 @@
 import { useEffect, useState, type ReactElement } from 'react';
 import useIslandStore from '../../../store/slices';
 import { SvgIcon } from '../../../utils/SvgIcon';
+import { getWebsiteFaviconUrl, getWebsiteHostname } from '../../../api/siteMetaApi';
 import '../../../styles/notification/notification.css';
 
 interface UrlFavoriteItem {
@@ -112,29 +113,18 @@ export function NotificationContent({
   const currentClipboardUrl = clipboardUrls[currentUrlIndex] ?? '';
   const displayIcon = (() => {
     if (type !== 'clipboard-url' || !currentClipboardUrl) return icon;
-    try {
-      return `${new URL(currentClipboardUrl).origin}/favicon.ico`;
-    } catch {
-      return icon;
-    }
+    const faviconUrl = getWebsiteFaviconUrl(currentClipboardUrl);
+    return faviconUrl || icon;
   })();
 
   const currentClipboardDomain = (() => {
     if (type !== 'clipboard-url' || !currentClipboardUrl) return '';
-    try {
-      return new URL(currentClipboardUrl).hostname.toLowerCase();
-    } catch {
-      return '';
-    }
+    return getWebsiteHostname(currentClipboardUrl).toLowerCase();
   })();
   const displayBody = (() => {
     if (type !== 'clipboard-url' || !currentClipboardUrl) return body;
     if (currentUrlIndex === 0 && body) return body;
-    try {
-      return new URL(currentClipboardUrl).hostname;
-    } catch {
-      return currentClipboardUrl;
-    }
+    return getWebsiteHostname(currentClipboardUrl) || currentClipboardUrl;
   })();
 
   useEffect(() => {
@@ -175,12 +165,8 @@ export function NotificationContent({
 
   const isOfficialSite = (() => {
     if (type !== 'clipboard-url' || !currentClipboardUrl) return false;
-    try {
-      const hostname = new URL(currentClipboardUrl).hostname.toLowerCase();
-      return hostname === 'pyisland.com' || hostname.endsWith('.pyisland.com');
-    } catch {
-      return false;
-    }
+    const hostname = getWebsiteHostname(currentClipboardUrl).toLowerCase();
+    return hostname === 'pyisland.com' || hostname.endsWith('.pyisland.com');
   })();
 
   const dismiss = (): void => {
@@ -419,7 +405,7 @@ export function NotificationContent({
               title={currentClipboardUrl}
             >
               <img
-                src={(() => { try { return new URL(currentClipboardUrl).origin + '/favicon.ico'; } catch { return ''; } })()}
+                src={getWebsiteFaviconUrl(currentClipboardUrl)}
                 alt=""
                 className="notification-url-favicon"
                 onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
