@@ -38,7 +38,7 @@ import { GuideContent } from './states/guide/GuideContent';
 import { SvgIcon } from '../utils/SvgIcon';
 import type { NowPlayingInfo } from '../store/isLandStore';
 import { fetchLyrics } from '../api/lrcApi';
-import { fetchVersion } from '../api/versionApi';
+import { fetchVersion, reportUpdateDownloadCount } from '../api/versionApi';
 import { getWebsiteFaviconUrl, getWebsiteHostname } from '../api/siteMetaApi';
 
 /** 灵动岛状态类型 */
@@ -478,6 +478,7 @@ function DynamicIsland(): React.JSX.Element {
   // 订阅更新下载完成事件（主进程推送）
   useEffect(() => {
     const unsubUpdate = window.api?.onUpdaterDownloaded?.((data) => {
+      reportUpdateDownloadCount(data.version).catch(() => {});
       setNotificationRef.current({
         title: '更新就绪',
         body: `新版本 v${data.version} 已下载完成，是否立即安装？`,
