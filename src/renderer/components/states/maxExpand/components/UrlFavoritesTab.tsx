@@ -346,28 +346,33 @@ export function UrlFavoritesTab(): React.ReactElement {
 
             {expandedId === item.id ? (
               <div className="url-favorites-editor">
-                <input
-                  className="url-favorites-url-input"
-                  type="text"
-                  value={editUrlInput}
-                  onChange={(e) => setEditUrlInput(e.target.value)}
-                  placeholder="编辑 URL"
-                />
-                <input
-                  className="url-favorites-note-input"
-                  type="text"
-                  value={editNoteInput}
-                  onChange={(e) => setEditNoteInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      handleSaveEdit(item.id);
-                    }
-                  }}
-                  placeholder="输入备注"
-                />
+                <div className="url-favorites-editor-row">
+                  <span className="url-favorites-editor-label">URL</span>
+                  <input
+                    className="url-favorites-url-input"
+                    type="text"
+                    value={editUrlInput}
+                    onChange={(e) => setEditUrlInput(e.target.value)}
+                    placeholder="编辑 URL"
+                  />
+                </div>
+                <div className="url-favorites-editor-row">
+                  <span className="url-favorites-editor-label">备注</span>
+                  <input
+                    className="url-favorites-note-input"
+                    type="text"
+                    value={editNoteInput}
+                    onChange={(e) => setEditNoteInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleSaveEdit(item.id);
+                      }
+                    }}
+                    placeholder="输入备注"
+                  />
+                </div>
                 <div className="url-favorites-editor-actions">
-                  <button className="url-favorites-open" type="button" onClick={() => handleOpen(item.url)}>打开</button>
                   <button className="url-favorites-save" type="button" onClick={() => handleSaveEdit(item.id)}>保存</button>
                   <button className="url-favorites-remove" type="button" onClick={() => handleRemove(item.id)} aria-label="删除 URL 收藏">×</button>
                 </div>

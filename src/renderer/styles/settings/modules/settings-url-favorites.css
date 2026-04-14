@@ -126,7 +126,7 @@
   background: transparent;
   padding: 0;
   display: grid;
-  grid-template-columns: 16px minmax(0, 1fr) 190px 28px;
+  grid-template-columns: 16px fit-content(320px) minmax(0, 1fr) 28px;
   align-items: center;
   gap: 8px;
   cursor: pointer;
@@ -140,8 +140,9 @@
 }
 
 .url-favorites-site-name {
-  flex: 1;
-  min-width: 0;
+  min-width: 24px;
+  max-width: 320px;
+  justify-self: start;
   font-size: 12px;
   font-weight: 600;
   color: rgba(var(--color-text-rgb), 0.86);
@@ -193,6 +194,20 @@
   padding-top: 2px;
 }
 
+.url-favorites-editor-row {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  align-items: center;
+  gap: 6px;
+}
+
+.url-favorites-editor-label {
+  font-size: 11px;
+  color: rgba(var(--color-text-rgb), 0.6);
+  text-align: left;
+  user-select: none;
+}
+
 .url-favorites-url-input,
 .url-favorites-note-input {
   width: 100%;
@@ -222,7 +237,6 @@
   gap: 6px;
 }
 
-.url-favorites-open,
 .url-favorites-save {
   height: 22px;
   border: none;
@@ -235,7 +249,6 @@
   flex: 0 0 auto;
 }
 
-.url-favorites-open:hover,
 .url-favorites-save:hover {
   background: rgba(var(--color-text-rgb), 0.2);
 }
