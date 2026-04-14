@@ -30,8 +30,12 @@ import type { AppSettingsPageKey } from '../../utils/settingsConfig';
 import type { OverviewLayoutConfig, OverviewWidgetType } from '../../../../../expand/components/OverviewTab';
 import { BUILTIN_WALLPAPERS } from '../../../../../../../assets/wallpaper/builtinWallpapers';
 
-interface AppRunningProcess {
-  name: string;
+interface AppRunningWindow {
+  id: string;
+  title: string;
+  processName: string;
+  processPath: string | null;
+  processId: number | null;
   iconDataUrl: string | null;
 }
 
@@ -58,7 +62,7 @@ interface AppSettingsSectionProps {
   hideProcessLoading: boolean;
   hideProcessList: string[];
   toggleHideProcess: (name: string) => void;
-  runningProcesses: AppRunningProcess[];
+  runningProcesses: AppRunningWindow[];
   hideProcessKeyword: string;
   islandPositionOffset: AppPositionOffset;
   applyIslandPositionOffset: (x: number, y: number) => void;
@@ -260,12 +264,12 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
 
           {appSettingsPage === 'hide-process-list' && (
             <div className="settings-hide-processes">
-              <div className="settings-music-hint">识别到以下进程运行时，将立即隐藏灵动岛。新增进程下次重启生效，删除进程立即生效。</div>
+              <div className="settings-music-hint">当下方黑名单进程对应窗口处于焦点状态时，将立即隐藏灵动岛；失去焦点后自动显示。</div>
               <div className="settings-hide-process-toolbar">
                 <input
                   className="settings-whitelist-input"
                   type="text"
-                  placeholder="搜索进程名（如 WeChat.exe）"
+                  placeholder="搜索进程名"
                   value={hideProcessFilter}
                   onChange={(e) => setHideProcessFilter(e.target.value)}
                 />
@@ -277,20 +281,20 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
                   }}
                   disabled={hideProcessLoading}
                 >
-                  {hideProcessLoading ? '刷新中…' : '刷新进程'}
+                  {hideProcessLoading ? '刷新中…' : '刷新窗口'}
                 </button>
               </div>
 
               <div className="settings-hide-selected">
                 {hideProcessList.length === 0 ? (
-                  <span className="settings-hide-selected-empty">暂无隐藏进程</span>
+                  <span className="settings-hide-selected-empty">暂无隐藏窗口</span>
                 ) : hideProcessList.map((name: string) => (
                   <button
                     key={name}
                     className="settings-hide-selected-item"
                     type="button"
                     onClick={() => toggleHideProcess(name)}
-                    title="移除该进程"
+                    title="移除该窗口"
                   >
                     {name} ×
                   </button>
@@ -299,14 +303,15 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
 
               <div className="settings-hide-process-list">
                 {runningProcesses
-                  .filter((process) => process.name.toLowerCase().includes(hideProcessKeyword))
+                  .filter((win) => win.processName.toLowerCase().includes(hideProcessKeyword))
                   .map((process) => {
-                    const name = process.name;
+                    const name = process.processName;
+                    if (!name) return null;
                     const selected = hideProcessList.some((item: string) => item.trim().toLowerCase() === name.trim().toLowerCase());
-                    const fallbackText = name.charAt(0).toUpperCase();
+                    const fallbackText = (process.processName || process.title).charAt(0).toUpperCase();
                     return (
                       <button
-                        key={name}
+                        key={`${process.id}-${name}-${process.title}`}
                         className={`settings-hide-process-item ${selected ? 'active' : ''}`}
                         type="button"
                         onClick={() => toggleHideProcess(name)}
@@ -320,6 +325,11 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
                           )}
                         </span>
                         <span className="settings-hide-process-name">{name}</span>
+                        {process.title && (
+                          <span style={{ marginLeft: 8, fontSize: 11, opacity: 0.6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {process.title}
+                          </span>
+                        )}
                       </button>
                     );
                   })}

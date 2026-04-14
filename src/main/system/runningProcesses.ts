@@ -27,6 +27,7 @@
 
 import { app, nativeImage } from 'electron';
 import { exec } from 'child_process';
+import { activeWindow, openWindows } from 'get-windows';
 
 const PROCESS_QUERY_TIMEOUT_MS = 4000;
 const PROCESS_ICON_CACHE_MAX = 240;
@@ -38,6 +39,25 @@ export interface RunningProcessInfo {
   iconDataUrl: string | null;
 }
 
+export interface RunningWindowInfo {
+  id: string;
+  title: string;
+  processName: string;
+  processPath: string | null;
+  processId: number | null;
+  iconDataUrl: string | null;
+}
+
+interface RawWindowInfo {
+  id?: unknown;
+  title?: unknown;
+  owner?: {
+    name?: unknown;
+    path?: unknown;
+    processId?: unknown;
+  };
+}
+
 /**
  * 规范化进程名称
  * @description 将进程名称转换为小写并去除首尾空格
@@ -46,6 +66,19 @@ export interface RunningProcessInfo {
  */
 export function normalizeProcessName(name: string): string {
   return name.trim().toLowerCase();
+}
+
+function normalizeWindowTitle(title: string): string {
+  return title.trim().toLowerCase();
+}
+
+function normalizeProcessVariants(processName: string): string[] {
+  const normalized = normalizeProcessName(processName);
+  if (!normalized) return [];
+  if (normalized.endsWith('.exe')) {
+    return [normalized, normalized.slice(0, -4)];
+  }
+  return [normalized, `${normalized}.exe`];
 }
 
 function isSystemProcessName(processName: string): boolean {
@@ -220,6 +253,64 @@ async function getProcessIconDataUrl(processName: string, pathMap: Map<string, s
   return null;
 }
 
+async function getWindowIconDataUrl(processPath: string | null, processName: string, windowTitle: string): Promise<string | null> {
+  const cacheKey = normalizeProcessName(processPath || processName || windowTitle);
+  if (!cacheKey) return null;
+
+  if (processIconCache.has(cacheKey)) {
+    return processIconCache.get(cacheKey) ?? null;
+  }
+
+  if (!processPath) {
+    setProcessIconCache(cacheKey, null);
+    return null;
+  }
+
+  try {
+    const iconFromApi = await app.getFileIcon(processPath, { size: 'small' });
+    if (!iconFromApi.isEmpty()) {
+      const dataUrl = iconFromApi.resize({ width: 16, height: 16 }).toDataURL();
+      setProcessIconCache(cacheKey, dataUrl);
+      return dataUrl;
+    }
+  } catch {
+    // ignore and fallback
+  }
+
+  try {
+    const icon = nativeImage.createFromPath(processPath);
+    if (!icon.isEmpty()) {
+      const dataUrl = icon.resize({ width: 16, height: 16 }).toDataURL();
+      setProcessIconCache(cacheKey, dataUrl);
+      return dataUrl;
+    }
+  } catch {
+    // ignore and fallback to null
+  }
+
+  setProcessIconCache(cacheKey, null);
+  return null;
+}
+
+function toRunningWindowInfo(windowInfo: RawWindowInfo, iconDataUrl: string | null): RunningWindowInfo | null {
+  const title = typeof windowInfo.title === 'string' ? windowInfo.title.trim() : '';
+  if (!title) return null;
+
+  const processName = typeof windowInfo.owner?.name === 'string' ? windowInfo.owner.name.trim() : '';
+  const processPath = typeof windowInfo.owner?.path === 'string' ? windowInfo.owner.path.trim() : '';
+  const processIdRaw = windowInfo.owner?.processId;
+  const processId = typeof processIdRaw === 'number' && Number.isFinite(processIdRaw) ? processIdRaw : null;
+
+  return {
+    id: String(windowInfo.id ?? `${title}-${processName}-${processId ?? '0'}`),
+    title,
+    processName,
+    processPath: processPath || null,
+    processId,
+    iconDataUrl,
+  };
+}
+
 /**
  * 查询运行中的非系统进程（包含图标）
  * @description 获取当前运行的非系统进程信息，包括进程图标
@@ -238,6 +329,89 @@ export async function queryRunningNonSystemProcessesWithIcons(): Promise<Running
   );
 
   return items;
+}
+
+/**
+ * 查询当前打开的窗口（包含图标）
+ * @description 获取当前系统可见窗口列表，返回窗口标题和所属进程信息
+ * @returns 窗口信息数组
+ */
+export async function queryOpenWindowsWithIcons(): Promise<RunningWindowInfo[]> {
+  if (process.platform !== 'win32') return [];
+
+  let windows: RawWindowInfo[] = [];
+  try {
+    const list = await openWindows();
+    windows = Array.isArray(list) ? list as RawWindowInfo[] : [];
+  } catch (err) {
+    console.error('[Window] query open windows failed:', err);
+    return [];
+  }
+
+  const items = await Promise.all(
+    windows.map(async (windowInfo) => {
+      const title = typeof windowInfo.title === 'string' ? windowInfo.title.trim() : '';
+      if (!title) return null;
+      const processName = typeof windowInfo.owner?.name === 'string' ? windowInfo.owner.name.trim() : '';
+      const processPath = typeof windowInfo.owner?.path === 'string' ? windowInfo.owner.path.trim() : '';
+      const iconDataUrl = await getWindowIconDataUrl(processPath || null, processName, title);
+      return toRunningWindowInfo(windowInfo, iconDataUrl);
+    }),
+  );
+
+  return items
+    .filter((item): item is RunningWindowInfo => Boolean(item && item.title))
+    .sort((a, b) => a.title.localeCompare(b.title, 'zh-CN'));
+}
+
+/**
+ * 查询当前前台焦点窗口
+ * @description 获取当前处于焦点状态的窗口信息
+ * @returns 焦点窗口信息，未命中时返回 null
+ */
+export async function queryFocusedWindow(): Promise<RunningWindowInfo | null> {
+  if (process.platform !== 'win32') return null;
+
+  try {
+    const focused = await activeWindow();
+    if (!focused) return null;
+
+    const rawInfo = focused as unknown as RawWindowInfo;
+    const title = typeof rawInfo.title === 'string' ? rawInfo.title.trim() : '';
+    if (!title) return null;
+
+    const processName = typeof rawInfo.owner?.name === 'string' ? rawInfo.owner.name.trim() : '';
+    const processPath = typeof rawInfo.owner?.path === 'string' ? rawInfo.owner.path.trim() : '';
+    const iconDataUrl = await getWindowIconDataUrl(processPath || null, processName, title);
+    return toRunningWindowInfo(rawInfo, iconDataUrl);
+  } catch (err) {
+    console.error('[Window] query focused window failed:', err);
+    return null;
+  }
+}
+
+/**
+ * 检查焦点窗口进程名是否命中名单
+ * @description 仅当名单中的进程名与当前焦点窗口进程名精确匹配时返回 true
+ * @param processNames - 需要匹配的进程名列表
+ * @returns 是否命中焦点窗口进程
+ */
+export async function hasAnyFocusedWindowTitle(processNames: string[]): Promise<boolean> {
+  if (!processNames.length) return false;
+
+  const focusedWindow = await queryFocusedWindow();
+  if (!focusedWindow?.processName) return false;
+
+  const targetSet = new Set<string>();
+  processNames.forEach((name) => {
+    normalizeProcessVariants(name).forEach((variant) => {
+      if (variant) targetSet.add(variant);
+    });
+  });
+  if (!targetSet.size) return false;
+
+  const focusedVariants = normalizeProcessVariants(focusedWindow.processName);
+  return focusedVariants.some((variant) => targetSet.has(variant));
 }
 
 /**
@@ -268,6 +442,28 @@ export function sanitizeProcessNameList(list: string[]): string[] {
     const text = item.trim();
     if (!text) return;
     const key = normalizeProcessName(text);
+    if (normalizedSet.has(key)) return;
+    normalizedSet.add(key);
+    sanitized.push(text);
+  });
+
+  return sanitized;
+}
+
+/**
+ * 清理窗口标题名单
+ * @description 去除重复项和空项，返回清理后的窗口标题列表
+ * @param list - 原始窗口标题数组
+ * @returns 清理后的窗口标题数组
+ */
+export function sanitizeWindowTitleList(list: string[]): string[] {
+  const normalizedSet = new Set<string>();
+  const sanitized: string[] = [];
+
+  list.forEach((item) => {
+    const text = item.trim();
+    if (!text) return;
+    const key = normalizeWindowTitle(text);
     if (normalizedSet.has(key)) return;
     normalizedSet.add(key);
     sanitized.push(text);

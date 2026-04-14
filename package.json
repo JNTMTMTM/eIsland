@@ -20,6 +20,8 @@
     "@tailwindcss/vite": "^4.2.2",
     "colorthief": "^3.3.1",
     "electron-updater": "^6.8.3",
+    "get-app-icon": "github:zxch3n/get-app-icon",
+    "get-windows": "^9.3.0",
     "lunar-javascript": "^1.7.7",
     "lyric-resolver": "^0.1.6",
     "openmeteo": "^1.2.3",

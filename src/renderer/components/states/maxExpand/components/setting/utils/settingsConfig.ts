@@ -59,7 +59,7 @@ export const SETTINGS_TAB_LABELS: Record<SettingsTabLabelKey, string> = {
   index: '快速导航',
   app: '软件设置',
   'layout-preview': '布局预览',
-  'hide-process-list': '隐藏进程管理',
+  'hide-process-list': '隐藏窗口管理',
   position: '位置校准',
   theme: '主题外观',
   behavior: '交互行为',
@@ -80,7 +80,7 @@ export const SETTINGS_TAB_LABELS: Record<SettingsTabLabelKey, string> = {
 export const SETTINGS_TAB_DESCRIPTIONS: Record<Exclude<SettingsTabLabelKey, 'index'>, string> = {
   app: '布局预览与隐藏进程规则配置',
   'layout-preview': '进入布局预览并调整左右控件展示。',
-  'hide-process-list': '管理隐藏进程名单与自动隐藏规则。',
+  'hide-process-list': '管理隐藏窗口名单与自动隐藏规则。',
   position: '动态调整灵动岛位置并保存',
   theme: '切换深色、浅色或跟随系统主题。',
   behavior: '配置鼠标移开后是否自动收回。',

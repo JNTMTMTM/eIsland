@@ -47,6 +47,15 @@ export interface RunningProcessInfo {
   iconDataUrl: string | null;
 }
 
+export interface RunningWindowInfo {
+  id: string;
+  title: string;
+  processName: string;
+  processPath: string | null;
+  processId: number | null;
+  iconDataUrl: string | null;
+}
+
 declare global {
   interface Window {
     electron: ElectronAPI;
@@ -121,6 +130,8 @@ declare global {
       musicDetectSourceAppId: () => Promise<{ ok: boolean; sourceAppId: string | null; message: string }>;
       getRunningNonSystemProcesses: () => Promise<string[]>;
       getRunningNonSystemProcessesWithIcons: () => Promise<RunningProcessInfo[]>;
+      getOpenWindowsWithIcons: () => Promise<RunningWindowInfo[]>;
+      getFocusedWindow: () => Promise<RunningWindowInfo | null>;
       hideProcessListGet: () => Promise<string[]>;
       hideProcessListSet: (list: string[]) => Promise<boolean>;
       onSourceSwitchRequest: (callback: (data: { sourceAppId: string; title: string; artist: string }) => void) => () => void;

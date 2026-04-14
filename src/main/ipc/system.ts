@@ -33,9 +33,20 @@ interface RunningProcessInfo {
   iconDataUrl: string | null;
 }
 
+interface RunningWindowInfo {
+  id: string;
+  title: string;
+  processName: string;
+  processPath: string | null;
+  processId: number | null;
+  iconDataUrl: string | null;
+}
+
 interface RegisterSystemIpcHandlersOptions {
   queryRunningNonSystemProcessNames: () => Promise<string[]>;
   queryRunningNonSystemProcessesWithIcons: () => Promise<RunningProcessInfo[]>;
+  queryOpenWindowsWithIcons: () => Promise<RunningWindowInfo[]>;
+  queryFocusedWindow: () => Promise<RunningWindowInfo | null>;
 }
 
 /**
@@ -62,5 +73,15 @@ export function registerSystemIpcHandlers(options: RegisterSystemIpcHandlersOpti
   ipcMain.handle('system:running-processes:with-icons:get', async () => {
     if (process.platform !== 'win32') return [];
     return options.queryRunningNonSystemProcessesWithIcons();
+  });
+
+  ipcMain.handle('system:open-windows:with-icons:get', async () => {
+    if (process.platform !== 'win32') return [];
+    return options.queryOpenWindowsWithIcons();
+  });
+
+  ipcMain.handle('system:focused-window:get', async () => {
+    if (process.platform !== 'win32') return null;
+    return options.queryFocusedWindow();
   });
 }

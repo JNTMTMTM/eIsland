@@ -117,8 +117,12 @@ function SettingsField({
  * @description 最大展开模式下的设置面板
  */
 
-interface RunningProcessItem {
-  name: string;
+interface RunningWindowItem {
+  id: string;
+  title: string;
+  processName: string;
+  processPath: string | null;
+  processId: number | null;
   iconDataUrl: string | null;
 }
 
@@ -185,7 +189,7 @@ export function SettingsTab(): ReactElement {
   const [weatherLocationConfigMessage, setWeatherLocationConfigMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [weatherCustomLocationTesting, setWeatherCustomLocationTesting] = useState(false);
   const [weatherCustomLocationTestMessage, setWeatherCustomLocationTestMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-  const [runningProcesses, setRunningProcesses] = useState<RunningProcessItem[]>([]);
+  const [runningProcesses, setRunningProcesses] = useState<RunningWindowItem[]>([]);
   const [hideProcessList, setHideProcessList] = useState<string[]>([]);
   const [hideProcessFilter, setHideProcessFilter] = useState<string>('');
   const [hideProcessLoading, setHideProcessLoading] = useState(false);
@@ -829,10 +833,10 @@ export function SettingsTab(): ReactElement {
   const refreshRunningProcesses = async (): Promise<void> => {
     setHideProcessLoading(true);
     try {
-      const list = await window.api.getRunningNonSystemProcessesWithIcons();
+      const list = await window.api.getOpenWindowsWithIcons();
       setRunningProcesses(
         Array.isArray(list)
-          ? list.filter((item): item is RunningProcessItem => Boolean(item && typeof item.name === 'string'))
+          ? list.filter((item): item is RunningWindowItem => Boolean(item && typeof item.title === 'string'))
           : []
       );
     } catch {
@@ -848,10 +852,10 @@ export function SettingsTab(): ReactElement {
       if (cancelled) return;
       if (Array.isArray(list)) setHideProcessList(list);
     }).catch(() => {});
-    window.api.getRunningNonSystemProcessesWithIcons().then((list) => {
+    window.api.getOpenWindowsWithIcons().then((list) => {
       if (cancelled) return;
       if (Array.isArray(list)) {
-        setRunningProcesses(list.filter((item): item is RunningProcessItem => Boolean(item && typeof item.name === 'string')));
+        setRunningProcesses(list.filter((item): item is RunningWindowItem => Boolean(item && typeof item.title === 'string')));
       }
     }).catch(() => {});
     return () => { cancelled = true; };

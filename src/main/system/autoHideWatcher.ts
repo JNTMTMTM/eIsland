@@ -21,16 +21,16 @@
 /**
  * @file autoHideWatcher.ts
  * @description 自动隐藏监听器模块
- * @description 监控指定进程列表，当检测到进程运行时自动隐藏灵动岛
+ * @description 监控指定窗口标题名单，仅焦点窗口命中时自动隐藏灵动岛
  * @author 鸡哥
  */
 
 import { BrowserWindow } from 'electron';
-import { hasAnyRunningProcess } from './runningProcesses';
+import { hasAnyFocusedWindowTitle } from './runningProcesses';
 
 interface CreateAutoHideWatcherOptions {
   getMainWindow: () => BrowserWindow | null;
-  defaultProcessList: string[];
+  defaultWindowTitleList: string[];
   pollIntervalMs?: number;
 }
 
@@ -38,10 +38,10 @@ interface AutoHideWatcherService {
   start: () => void;
   stop: () => void;
   checkNow: () => Promise<void>;
-  getAutoHideProcessList: () => string[];
-  setAutoHideProcessList: (list: string[]) => void;
-  getConfiguredHideProcessList: () => string[];
-  setConfiguredHideProcessList: (list: string[]) => void;
+  getAutoHideWindowTitleList: () => string[];
+  setAutoHideWindowTitleList: (list: string[]) => void;
+  getConfiguredHideWindowTitleList: () => string[];
+  setConfiguredHideWindowTitleList: (list: string[]) => void;
   getHiddenByAutoHideProcess: () => boolean;
   setHiddenByAutoHideProcess: (hidden: boolean) => void;
 }
@@ -55,8 +55,8 @@ interface AutoHideWatcherService {
 export function createAutoHideWatcher(options: CreateAutoHideWatcherOptions): AutoHideWatcherService {
   const pollIntervalMs = options.pollIntervalMs ?? 2500;
 
-  let autoHideProcessList: string[] = [...options.defaultProcessList];
-  let configuredHideProcessList: string[] = [...options.defaultProcessList];
+  let autoHideWindowTitleList: string[] = [...options.defaultWindowTitleList];
+  let configuredHideWindowTitleList: string[] = [...options.defaultWindowTitleList];
   let watcherTimer: NodeJS.Timeout | null = null;
   let checkInFlight = false;
   let hiddenByAutoHideProcess = false;
@@ -68,7 +68,7 @@ export function createAutoHideWatcher(options: CreateAutoHideWatcherOptions): Au
 
     checkInFlight = true;
     try {
-      if (!autoHideProcessList.length) {
+      if (!autoHideWindowTitleList.length) {
         if (hiddenByAutoHideProcess && !mainWindow.isVisible()) {
           mainWindow.show();
           mainWindow.setAlwaysOnTop(true, 'screen-saver');
@@ -77,7 +77,7 @@ export function createAutoHideWatcher(options: CreateAutoHideWatcherOptions): Au
         return;
       }
 
-      const shouldHide = await hasAnyRunningProcess(autoHideProcessList);
+      const shouldHide = await hasAnyFocusedWindowTitle(autoHideWindowTitleList);
 
       if (shouldHide) {
         if (mainWindow.isVisible()) {
@@ -122,13 +122,13 @@ export function createAutoHideWatcher(options: CreateAutoHideWatcherOptions): Au
     start,
     stop,
     checkNow,
-    getAutoHideProcessList: () => autoHideProcessList,
-    setAutoHideProcessList: (list) => {
-      autoHideProcessList = list;
+    getAutoHideWindowTitleList: () => autoHideWindowTitleList,
+    setAutoHideWindowTitleList: (list) => {
+      autoHideWindowTitleList = list;
     },
-    getConfiguredHideProcessList: () => configuredHideProcessList,
-    setConfiguredHideProcessList: (list) => {
-      configuredHideProcessList = list;
+    getConfiguredHideWindowTitleList: () => configuredHideWindowTitleList,
+    setConfiguredHideWindowTitleList: (list) => {
+      configuredHideWindowTitleList = list;
     },
     getHiddenByAutoHideProcess: () => hiddenByAutoHideProcess,
     setHiddenByAutoHideProcess: (hidden) => {
