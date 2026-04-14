@@ -1,7 +1,76 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-04-13T17:45:12.231Z
+> 生成时间：2026-04-14T15:12:05.355Z
+
+## 26.2.7
+
+- 2026-04-14 | a17f2d4 | 鸡哥 | chore: 更新版本至 V26.2.7
+- 2026-04-13 | b823b83 | github-actions[bot] | docs: auto update CHANGE_LOG.md for #37 by @JNTMTMTM [skip ci]
+- 2026-04-14 | 437efa7 | 鸡哥 | Merge pull request #37 from JNTMTMTM/dev
+- 2026-04-14 | b564e55 | 鸡哥 | fix: 修复不符合注释规范的地方
+- 2026-04-14 | 41a9d88 | 鸡哥 | fix: 日志 allowPrerelease=true 硬编码改为读取 updater.allowPrerelease 实际值
+- 2026-04-14 | 226268c | 鸡哥 | fix: 加固 fetchPageTitle
+- 2026-04-14 | a3b8cb7 | 鸡哥 | fix: useEffect 依赖从 null 改为 [isEditing]，确保 .timer-inputs 在 idle↔running 切换后重新挂载时 wheel 监听器能重新绑定
+- 2026-04-14 | baee8de | 鸡哥 | style: 修改 morph/transition 主时长
+- 2026-04-14 | be77ae9 | 鸡哥 | fix: 在乐观更新前用 const prev = clipboardUrlBlacklist 捕获当前值，rollback 用 prev 而非闭包中可能过期的 clipboardUrlBlacklist
+- 2026-04-14 | 6413d69 | 鸡哥 | refactor: 将剪贴板通知中的 new URL().hostname 移入 try/catch
+- 2026-04-14 | 4b5b24b | 鸡哥 | pref: 优化剪贴板IPC安全性
+- 2026-04-14 | 71a7b0f | 鸡哥 | fix: 修复所有不符合注释规范的地方
+- 2026-04-14 | 5280021 | 鸡哥 | fix: 修复两处架构问题
+- 2026-04-14 | becad07 | 鸡哥 | style: 优化hover界面控件布局
+- 2026-04-14 | c51e570 | 鸡哥 | style: 提高灵动岛动画速度
+- 2026-04-14 | ce81450 | 鸡哥 | fix: 修复electron窗口裁剪灵动岛问题
+- 2026-04-14 | 996b3bc | 鸡哥 | refactor: 完全重构electron入口引导
+- 2026-04-14 | 5b6669d | 鸡哥 | refactor: 重构全局接口声明和自动隐藏进程监听服务
+- 2026-04-14 | 64218dc | 鸡哥 | refactor: 重构SMTC服务入口
+- 2026-04-14 | 6f9c5db | 鸡哥 | refactor: 重构electron主窗口服务
+- 2026-04-14 | 0327181 | 鸡哥 | refactor: 重构全局热键响应服务
+- 2026-04-14 | c8c64ee | 鸡哥 | refactor: 重构electron程序生命周期服务
+- 2026-04-13 | 65de1b6 | 鸡哥 | fix: 添加截图静态资源获取冗余方案
+- 2026-04-13 | 16ae327 | 鸡哥 | fix: 修复截图静态资源丢失问题
+- 2026-04-13 | cd6a820 | 鸡哥 | refactor: 重构windows截图服务
+- 2026-04-13 | 52097ed | 鸡哥 | refactor: 重构 Chromium 内核配置命令行参数
+- 2026-04-13 | d5f52b9 | 鸡哥 | refactor: 重构 windows 活动进程获取接口和自动更新服务
+- 2026-04-13 | 3b18600 | 鸡哥 | refactor: 重构SMTC媒体控制相关接口
+- 2026-04-13 | a0b1b29 | 鸡哥 | refactor: 重构electron窗口相关接口
+- 2026-04-13 | 9d59269 | 鸡哥 | refactor: 重构灵动岛主题切换接口
+- 2026-04-13 | 789ad41 | 鸡哥 | refactor: 重构隐藏进程管理相关接口
+- 2026-04-13 | 674a1f1 | 鸡哥 | refactor: 重构系统核心进程获取接口
+- 2026-04-13 | a484f52 | 鸡哥 | refactor: 重构灵动岛窗口状态核心接口
+- 2026-04-13 | 1c079ed | 鸡哥 | refactor: 重构热键注册和识别接口
+- 2026-04-13 | 0f0e197 | 鸡哥 | refactor: 重构识别SMTC播放进程相关接口
+- 2026-04-13 | e3c6e32 | 鸡哥 | refactor: 重构SMTC订阅相关接口
+- 2026-04-13 | d8f717e | 鸡哥 | refactor: 重构音乐操作相关接口
+- 2026-04-13 | aac5bdf | 鸡哥 | refactor: 重构日志操作接口
+- 2026-04-13 | ba1ab4f | 鸡哥 | refactor: 重构本地存储IO接口
+- 2026-04-13 | d6463ac | 鸡哥 | refactor: 重构反CORS请求接口
+- 2026-04-13 | 4e51a74 | 鸡哥 | refactor: 重构系统资源管理器相关接口
+- 2026-04-13 | e936417 | 鸡哥 | refactor: 继续模块化灵动岛生命周期接口
+- 2026-04-13 | 7d67e41 | 鸡哥 | refactor: 重构进程图标和软件相关接口
+- 2026-04-13 | 5b6b23c | 鸡哥 | refactor: 重构系统相关功能接口
+- 2026-04-13 | 9743464 | 鸡哥 | refactor: 整合全屏截图功能到ipc中
+- 2026-04-13 | e9d3a90 | 鸡哥 | refactor: 重构截图快捷键
+- 2026-04-13 | 31c46bc | 鸡哥 | refactor: 重构截图功能
+- 2026-04-13 | 6eeb5c5 | 鸡哥 | refactor: 重构更新IPC总线
+- 2026-04-13 | 277f36b | 鸡哥 | refactor: 重构剪贴板IPC总线
+- 2026-04-13 | 557da4b | 鸡哥 | refactor: 重构URL监听器
+- 2026-04-13 | 392e1fe | 鸡哥 | refactor: 重构 electron 入口文件
+- 2026-04-13 | 77167a7 | 鸡哥 | feat: 添加URL黑名单功能
+- 2026-04-13 | 483ca78 | 鸡哥 | pref: 优化设置界面用户体验
+- 2026-04-13 | 6246e76 | 鸡哥 | feat: 优化快捷键设置界面并添加歌曲控制快捷键
+- 2026-04-13 | 05542df | 鸡哥 | feat: 添加url识别正则配置
+- 2026-04-13 | fbfe001 | 鸡哥 | fix: 仅在多url时显示切换按钮图标
+- 2026-04-13 | d12648f | 鸡哥 | style: 替换url监听通知界面图标
+- 2026-04-13 | 37b6ae7 | 鸡哥 | style: 优化url监听通知界面布局
+- 2026-04-13 | 0df5d9a | 鸡哥 | feat: 添加了更多的托盘配置项
+- 2026-04-13 | c79c653 | 鸡哥 | feat: 添加url监听官网标签
+- 2026-04-13 | 6276a6e | 鸡哥 | feat: 添加剪贴板界面独立设置组
+- 2026-04-13 | 45681f0 | 鸡哥 | feat: 添加剪切板监听设置配置项目
+- 2026-04-13 | e7dffa8 | 鸡哥 | style: 优化网站名称布局样式
+- 2026-04-13 | 40c4ba9 | 鸡哥 | style: 优化url监听提示样式
+- 2026-04-13 | 4a90fc2 | 鸡哥 | feat: 添加监听剪切板url功能
+- 2026-04-13 | 07376f2 | 鸡哥 | ci: 修复 release note 无法获取全部 commits 的问题
 
 ## 26.2.6
 
@@ -591,67 +660,19 @@
 
 ## Unreleased
 
-- 2026-04-14 | 437efa7 | 鸡哥 | Merge pull request #37 from JNTMTMTM/dev
-- 2026-04-14 | b564e55 | 鸡哥 | fix: 修复不符合注释规范的地方
-- 2026-04-14 | 41a9d88 | 鸡哥 | fix: 日志 allowPrerelease=true 硬编码改为读取 updater.allowPrerelease 实际值
-- 2026-04-14 | 226268c | 鸡哥 | fix: 加固 fetchPageTitle
-- 2026-04-14 | a3b8cb7 | 鸡哥 | fix: useEffect 依赖从 null 改为 [isEditing]，确保 .timer-inputs 在 idle↔running 切换后重新挂载时 wheel 监听器能重新绑定
-- 2026-04-14 | baee8de | 鸡哥 | style: 修改 morph/transition 主时长
-- 2026-04-14 | be77ae9 | 鸡哥 | fix: 在乐观更新前用 const prev = clipboardUrlBlacklist 捕获当前值，rollback 用 prev 而非闭包中可能过期的 clipboardUrlBlacklist
-- 2026-04-14 | 6413d69 | 鸡哥 | refactor: 将剪贴板通知中的 new URL().hostname 移入 try/catch
-- 2026-04-14 | 4b5b24b | 鸡哥 | pref: 优化剪贴板IPC安全性
-- 2026-04-14 | 71a7b0f | 鸡哥 | fix: 修复所有不符合注释规范的地方
-- 2026-04-14 | 5280021 | 鸡哥 | fix: 修复两处架构问题
-- 2026-04-14 | becad07 | 鸡哥 | style: 优化hover界面控件布局
-- 2026-04-14 | c51e570 | 鸡哥 | style: 提高灵动岛动画速度
-- 2026-04-14 | ce81450 | 鸡哥 | fix: 修复electron窗口裁剪灵动岛问题
-- 2026-04-14 | 996b3bc | 鸡哥 | refactor: 完全重构electron入口引导
-- 2026-04-14 | 5b6669d | 鸡哥 | refactor: 重构全局接口声明和自动隐藏进程监听服务
-- 2026-04-14 | 64218dc | 鸡哥 | refactor: 重构SMTC服务入口
-- 2026-04-14 | 6f9c5db | 鸡哥 | refactor: 重构electron主窗口服务
-- 2026-04-14 | 0327181 | 鸡哥 | refactor: 重构全局热键响应服务
-- 2026-04-14 | c8c64ee | 鸡哥 | refactor: 重构electron程序生命周期服务
-- 2026-04-13 | 65de1b6 | 鸡哥 | fix: 添加截图静态资源获取冗余方案
-- 2026-04-13 | 16ae327 | 鸡哥 | fix: 修复截图静态资源丢失问题
-- 2026-04-13 | cd6a820 | 鸡哥 | refactor: 重构windows截图服务
-- 2026-04-13 | 52097ed | 鸡哥 | refactor: 重构 Chromium 内核配置命令行参数
-- 2026-04-13 | d5f52b9 | 鸡哥 | refactor: 重构 windows 活动进程获取接口和自动更新服务
-- 2026-04-13 | 3b18600 | 鸡哥 | refactor: 重构SMTC媒体控制相关接口
-- 2026-04-13 | a0b1b29 | 鸡哥 | refactor: 重构electron窗口相关接口
-- 2026-04-13 | 9d59269 | 鸡哥 | refactor: 重构灵动岛主题切换接口
-- 2026-04-13 | 789ad41 | 鸡哥 | refactor: 重构隐藏进程管理相关接口
-- 2026-04-13 | 674a1f1 | 鸡哥 | refactor: 重构系统核心进程获取接口
-- 2026-04-13 | a484f52 | 鸡哥 | refactor: 重构灵动岛窗口状态核心接口
-- 2026-04-13 | 1c079ed | 鸡哥 | refactor: 重构热键注册和识别接口
-- 2026-04-13 | 0f0e197 | 鸡哥 | refactor: 重构识别SMTC播放进程相关接口
-- 2026-04-13 | e3c6e32 | 鸡哥 | refactor: 重构SMTC订阅相关接口
-- 2026-04-13 | d8f717e | 鸡哥 | refactor: 重构音乐操作相关接口
-- 2026-04-13 | aac5bdf | 鸡哥 | refactor: 重构日志操作接口
-- 2026-04-13 | ba1ab4f | 鸡哥 | refactor: 重构本地存储IO接口
-- 2026-04-13 | d6463ac | 鸡哥 | refactor: 重构反CORS请求接口
-- 2026-04-13 | 4e51a74 | 鸡哥 | refactor: 重构系统资源管理器相关接口
-- 2026-04-13 | e936417 | 鸡哥 | refactor: 继续模块化灵动岛生命周期接口
-- 2026-04-13 | 7d67e41 | 鸡哥 | refactor: 重构进程图标和软件相关接口
-- 2026-04-13 | 5b6b23c | 鸡哥 | refactor: 重构系统相关功能接口
-- 2026-04-13 | 9743464 | 鸡哥 | refactor: 整合全屏截图功能到ipc中
-- 2026-04-13 | e9d3a90 | 鸡哥 | refactor: 重构截图快捷键
-- 2026-04-13 | 31c46bc | 鸡哥 | refactor: 重构截图功能
-- 2026-04-13 | 6eeb5c5 | 鸡哥 | refactor: 重构更新IPC总线
-- 2026-04-13 | 277f36b | 鸡哥 | refactor: 重构剪贴板IPC总线
-- 2026-04-13 | 557da4b | 鸡哥 | refactor: 重构URL监听器
-- 2026-04-13 | 392e1fe | 鸡哥 | refactor: 重构 electron 入口文件
-- 2026-04-13 | 77167a7 | 鸡哥 | feat: 添加URL黑名单功能
-- 2026-04-13 | 483ca78 | 鸡哥 | pref: 优化设置界面用户体验
-- 2026-04-13 | 6246e76 | 鸡哥 | feat: 优化快捷键设置界面并添加歌曲控制快捷键
-- 2026-04-13 | 05542df | 鸡哥 | feat: 添加url识别正则配置
-- 2026-04-13 | fbfe001 | 鸡哥 | fix: 仅在多url时显示切换按钮图标
-- 2026-04-13 | d12648f | 鸡哥 | style: 替换url监听通知界面图标
-- 2026-04-13 | 37b6ae7 | 鸡哥 | style: 优化url监听通知界面布局
-- 2026-04-13 | 0df5d9a | 鸡哥 | feat: 添加了更多的托盘配置项
-- 2026-04-13 | c79c653 | 鸡哥 | feat: 添加url监听官网标签
-- 2026-04-13 | 6276a6e | 鸡哥 | feat: 添加剪贴板界面独立设置组
-- 2026-04-13 | 45681f0 | 鸡哥 | feat: 添加剪切板监听设置配置项目
-- 2026-04-13 | e7dffa8 | 鸡哥 | style: 优化网站名称布局样式
-- 2026-04-13 | 40c4ba9 | 鸡哥 | style: 优化url监听提示样式
-- 2026-04-13 | 4a90fc2 | 鸡哥 | feat: 添加监听剪切板url功能
-- 2026-04-13 | 07376f2 | 鸡哥 | ci: 修复 release note 无法获取全部 commits 的问题
+- 2026-04-14 | 2da26ec | 鸡哥 | Merge pull request #38 from JNTMTMTM/dev
+- 2026-04-14 | 7823930 | 鸡哥 | fix: 修复遗漏的JSDoc注释
+- 2026-04-14 | 0f54f7a | 鸡哥 | feat: 对接更新数量统计接口
+- 2026-04-14 | 88496cd | 鸡哥 | refactor: 统一网站元数据获取接口
+- 2026-04-14 | 034c356 | 鸡哥 | feat: URL收藏界面可通过拖动调换位置
+- 2026-04-14 | 0957a06 | 鸡哥 | feat: 优化overall界面URL收藏卡片样式
+- 2026-04-14 | a3b4780 | 鸡哥 | feat: 添加URL收藏界面取消剪贴板URL监听功能
+- 2026-04-14 | 2194e26 | 鸡哥 | style: 优化URL收藏界面URL记录行的样式
+- 2026-04-14 | be74699 | 鸡哥 | fix: 修复notification 状态下鼠标追踪逻辑 early-return从不更新 isHoveringRef 的问题
+- 2026-04-14 | 2e2e0c8 | 鸡哥 | feat: 添加URL识别通知一键收藏功能
+- 2026-04-14 | 1bd1b00 | 鸡哥 | style: 优化URL收藏界面布局
+- 2026-04-14 | d50666f | 鸡哥 | feat: 优化url收藏界面用户体验
+- 2026-04-14 | 6d41cbf | 鸡哥 | feat: 添加url收藏界面
+- 2026-04-14 | dbfc429 | 鸡哥 | refactor: 重构并加固网络请求IPC控制器
+- 2026-04-14 | 5e778a9 | 鸡哥 | chore: 移除不需要的依赖项
+- 2026-04-14 | d14ef79 | 鸡哥 | refactor: 重写自动隐藏进程功能改为自动隐藏焦点窗口
