@@ -291,7 +291,17 @@ export function UrlFavoritesTab(): React.ReactElement {
               title={item.url}
             >
               <img className="url-favorites-favicon" src={getFaviconUrl(item.url)} alt="" aria-hidden="true" />
-              <span className="url-favorites-site-name">{item.title && item.title !== item.url ? item.title : '读取网页名称中…'}</span>
+              <span
+                className="url-favorites-site-name"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleOpen(item.url);
+                }}
+                title="点击打开网站"
+              >
+                {item.title && item.title !== item.url ? item.title : '读取网页名称中…'}
+              </span>
               <span className="url-favorites-note" title={item.note || '未备注'}>{item.note || '未备注'}</span>
               <span className="url-favorites-expand-indicator">{expandedId === item.id ? '收起' : '展开'}</span>
             </button>
