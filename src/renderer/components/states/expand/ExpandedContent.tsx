@@ -63,6 +63,7 @@ export function ExpandedContent(): React.ReactElement {
       const target = e.target as HTMLElement;
       if (target.closest('.ov-dash-todo-list')) return;
       if (target.closest('.ov-dash-apps')) return;
+      if (target.closest('.ov-dash-url-favorites-list')) return;
       if (target.closest('.tools-app-list-body')) return;
       e.preventDefault();
       const cur = expandTabRef.current;

@@ -60,7 +60,8 @@ import { createSmtcService } from './music/smtcService';
 import { createAutoHideWatcher } from './system/autoHideWatcher';
 import { sendMediaVirtualKey } from './system/mediaKey';
 import {
-  normalizeProcessName,
+  queryFocusedWindow,
+  queryOpenWindowsWithIcons,
   queryRunningNonSystemProcessNames,
   queryRunningNonSystemProcessesWithIcons,
   sanitizeProcessNameList,
@@ -132,7 +133,7 @@ const mainWindowService = createMainWindowService({
 
 const autoHideWatcher = createAutoHideWatcher({
   getMainWindow: () => mainWindow,
-  defaultProcessList: DEFAULT_HIDE_PROCESS_LIST,
+  defaultWindowTitleList: DEFAULT_HIDE_PROCESS_LIST,
 });
 
 /** SMTC 自动取消订阅时间（毫秒），0 为永不取消 */
@@ -292,12 +293,10 @@ function registerIpcHandlers(): void {
   registerHideProcessIpcHandlers({
     storeDir,
     hideProcessListStoreKey: HIDE_PROCESS_LIST_STORE_KEY,
-    getConfiguredHideProcessList: autoHideWatcher.getConfiguredHideProcessList,
-    setConfiguredHideProcessList: autoHideWatcher.setConfiguredHideProcessList,
-    getAutoHideProcessList: autoHideWatcher.getAutoHideProcessList,
-    setAutoHideProcessList: autoHideWatcher.setAutoHideProcessList,
+    getConfiguredHideProcessList: autoHideWatcher.getConfiguredHideWindowTitleList,
+    setConfiguredHideProcessList: autoHideWatcher.setConfiguredHideWindowTitleList,
+    setAutoHideProcessList: autoHideWatcher.setAutoHideWindowTitleList,
     sanitizeProcessNameList,
-    normalizeProcessName,
     checkAutoHideProcessList: autoHideWatcher.checkNow,
   });
 
@@ -358,6 +357,8 @@ function registerIpcHandlers(): void {
   registerSystemIpcHandlers({
     queryRunningNonSystemProcessNames,
     queryRunningNonSystemProcessesWithIcons,
+    queryOpenWindowsWithIcons,
+    queryFocusedWindow,
   });
 
   registerUpdaterIpcHandlers({
@@ -428,10 +429,10 @@ app.whenReady().then(() => {
   // 读取 SMTC 取消订阅时间配置
   smtcUnsubscribeMs = readSmtcUnsubscribeMsConfig();
 
-  // 读取持久化隐藏进程名单并启动轮询（仅 Windows）
+  // 读取持久化隐藏窗口名单并启动轮询（仅 Windows）
   const savedHideProcessList = readHideProcessListConfig();
-  autoHideWatcher.setAutoHideProcessList(savedHideProcessList);
-  autoHideWatcher.setConfiguredHideProcessList([...savedHideProcessList]);
+  autoHideWatcher.setAutoHideWindowTitleList(savedHideProcessList);
+  autoHideWatcher.setConfiguredHideWindowTitleList([...savedHideProcessList]);
   if (process.platform === 'win32') {
     autoHideWatcher.start();
   }

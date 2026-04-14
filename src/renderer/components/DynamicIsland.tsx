@@ -38,13 +38,15 @@ import { GuideContent } from './states/guide/GuideContent';
 import { SvgIcon } from '../utils/SvgIcon';
 import type { NowPlayingInfo } from '../store/isLandStore';
 import { fetchLyrics } from '../api/lrcApi';
-import { fetchVersion } from '../api/versionApi';
+import { fetchVersion, reportUpdateDownloadCount } from '../api/versionApi';
+import { getWebsiteFaviconUrl, getWebsiteHostname } from '../api/siteMetaApi';
 
 /** 灵动岛状态类型 */
 export type IslandState = 'idle' | 'hover' | 'expanded' | 'notification' | 'maxExpand' | 'minimal' | 'lyrics' | 'guide';
 
 /** shell.css 中 morph/transition 主时长（0.55s） */
 const SHELL_MORPH_DURATION_MS = 550;
+const CLIPBOARD_URL_SUPPRESS_IN_FAVORITES_KEY = 'clipboard-url-suppress-in-url-favorites';
 
 /** 各状态对应的窗口面积（宽×高），用于判断状态切换是放大还是缩小 */
 const STATE_AREA: Record<string, number> = {
@@ -476,6 +478,7 @@ function DynamicIsland(): React.JSX.Element {
   // 订阅更新下载完成事件（主进程推送）
   useEffect(() => {
     const unsubUpdate = window.api?.onUpdaterDownloaded?.((data) => {
+      reportUpdateDownloadCount(data.version).catch(() => {});
       setNotificationRef.current({
         title: '更新就绪',
         body: `新版本 v${data.version} 已下载完成，是否立即安装？`,
@@ -492,13 +495,18 @@ function DynamicIsland(): React.JSX.Element {
   // 订阅剪贴板 URL 检测事件（主进程推送）
   useEffect(() => {
     const unsubClipboard = window.api?.onClipboardUrlsDetected?.(({ urls, title }) => {
-      let faviconUrl: string | undefined;
-      let hostname = '';
+      let suppressInFavorites = true;
       try {
-        const parsed = new URL(urls[0]);
-        faviconUrl = `${parsed.origin}/favicon.ico`;
-        hostname = parsed.hostname;
-      } catch { /* ignore */ }
+        const raw = localStorage.getItem(CLIPBOARD_URL_SUPPRESS_IN_FAVORITES_KEY);
+        if (raw === '0') suppressInFavorites = false;
+        if (raw === '1') suppressInFavorites = true;
+      } catch { /* noop */ }
+
+      const store = useIslandStore.getState();
+      if (suppressInFavorites && store.state === 'maxExpand' && store.maxExpandTab === 'urlFavorites') return;
+
+      const faviconUrl = getWebsiteFaviconUrl(urls[0]);
+      const hostname = getWebsiteHostname(urls[0]);
       setNotificationRef.current({
         title: '检测到链接',
         body: title || hostname || urls[0],
@@ -529,6 +537,10 @@ function DynamicIsland(): React.JSX.Element {
     let aborted = false;
     let lastCheckTime = 0;
     const CHECK_INTERVAL = 16; // ~60fps throttle
+
+    if (state === 'maxExpand' || state === 'expanded') {
+      isHoveringRef.current = true;
+    }
 
     const checkMousePosition = async (): Promise<void> => {
       if (aborted) return;

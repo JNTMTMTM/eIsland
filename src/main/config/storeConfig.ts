@@ -82,7 +82,7 @@ export const SMTC_RUNTIME_CLEANUP_INTERVAL_MS = 30 * 1000;
 /** 播放程序白名单默认值 */
 export const DEFAULT_WHITELIST = ['QQMusic.exe', 'cloudmusic.exe', '汽水音乐', 'kugou'];
 
-/** 隐藏进程名单默认值 */
+/** 隐藏窗口名单默认值 */
 export const DEFAULT_HIDE_PROCESS_LIST: string[] = [];
 
 /** 剪贴板 URL 监听开关默认值 */

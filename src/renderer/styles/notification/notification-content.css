@@ -115,6 +115,27 @@
   background: rgba(var(--color-text-rgb), 0.18);
 }
 
+.notification-action-favorite {
+  background: rgba(59, 130, 246, 0.24);
+}
+
+.notification-action-favorite:hover {
+  background: rgba(59, 130, 246, 0.38);
+}
+
+.notification-favorited-badge {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  border-radius: 999px;
+  padding: 0 9px;
+  font-size: 11px;
+  line-height: 1;
+  color: rgba(47, 211, 120, 0.96);
+  background: rgba(47, 211, 120, 0.16);
+  border: 1px solid rgba(47, 211, 120, 0.3);
+}
+
 /** ---- 剪贴板 URL 通知变体 ---- */
 .notification-actions--clipboard-url {
   display: flex;

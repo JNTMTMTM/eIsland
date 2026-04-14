@@ -34,6 +34,9 @@ export interface VersionInfo {
   updatedAt: string;
 }
 
+const UPDATE_COUNT_ENDPOINT = 'https://server.pyisland.com/api/v1/version/update-count';
+const UPDATE_COUNT_APP_NAME = 'eisland';
+
 /**
  * 获取远程最新版本信息
  * @returns VersionInfo，请求失败时返回 null
@@ -52,5 +55,33 @@ export async function fetchVersion(): Promise<VersionInfo | null> {
     return null;
   } catch {
     return null;
+  }
+}
+
+/**
+ * 上报版本下载成功次数
+ * @param version - 下载成功的版本号
+ * @returns 是否上报成功
+ */
+export async function reportUpdateDownloadCount(version: string): Promise<boolean> {
+  const versionText = version.trim();
+  if (!versionText) return false;
+  try {
+    const res = await window.api.netFetch(UPDATE_COUNT_ENDPOINT, {
+      method: 'POST',
+      timeoutMs: 5000,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        appName: UPDATE_COUNT_APP_NAME,
+        version: versionText,
+      }),
+    });
+    if (!res.ok) return false;
+    const payload = JSON.parse(res.body) as { code?: number };
+    return payload?.code === 200;
+  } catch {
+    return false;
   }
 }

@@ -509,6 +509,14 @@ const api = {
   getRunningNonSystemProcessesWithIcons: (): Promise<Array<{ name: string; iconDataUrl: string | null }>> => {
     return ipcRenderer.invoke('system:running-processes:with-icons:get');
   },
+  /** 获取当前打开窗口列表（包含图标） */
+  getOpenWindowsWithIcons: (): Promise<Array<{ id: string; title: string; processName: string; processPath: string | null; processId: number | null; iconDataUrl: string | null }>> => {
+    return ipcRenderer.invoke('system:open-windows:with-icons:get');
+  },
+  /** 获取当前焦点窗口 */
+  getFocusedWindow: (): Promise<{ id: string; title: string; processName: string; processPath: string | null; processId: number | null; iconDataUrl: string | null } | null> => {
+    return ipcRenderer.invoke('system:focused-window:get');
+  },
   /** 获取隐藏进程名单 */
   hideProcessListGet: (): Promise<string[]> => {
     return ipcRenderer.invoke('hide-process-list:get');

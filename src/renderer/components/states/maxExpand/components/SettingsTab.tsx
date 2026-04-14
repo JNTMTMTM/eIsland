@@ -79,6 +79,8 @@ import { resolveDistrictLocationByKeyword } from '../../../../api/adcodeApi';
 
 import { setThemeMode as applyThemeMode, getThemeMode, type ThemeMode } from '../../../../utils/theme';
 
+const CLIPBOARD_URL_SUPPRESS_IN_FAVORITES_KEY = 'clipboard-url-suppress-in-url-favorites';
+
 function applyIslandOpacity(opacity: number): void {
   const safe = Math.max(10, Math.min(100, Math.round(opacity)));
   document.documentElement.style.setProperty('--island-opacity', String(safe));
@@ -117,8 +119,12 @@ function SettingsField({
  * @description 最大展开模式下的设置面板
  */
 
-interface RunningProcessItem {
-  name: string;
+interface RunningWindowItem {
+  id: string;
+  title: string;
+  processName: string;
+  processPath: string | null;
+  processId: number | null;
   iconDataUrl: string | null;
 }
 
@@ -164,6 +170,7 @@ export function SettingsTab(): ReactElement {
   const [clipboardUrlMonitorEnabled, setClipboardUrlMonitorEnabled] = useState<boolean>(true);
   const [clipboardUrlDetectMode, setClipboardUrlDetectMode] = useState<'https-only' | 'http-https' | 'domain-only'>('http-https');
   const [clipboardUrlBlacklist, setClipboardUrlBlacklist] = useState<string[]>([]);
+  const [clipboardUrlSuppressInFavorites, setClipboardUrlSuppressInFavorites] = useState<boolean>(true);
   const [autostartMode, setAutostartMode] = useState<'disabled' | 'enabled' | 'high-priority'>('disabled');
   const [navOrder, setNavOrder] = useState<string[]>(DEFAULT_NAV_ORDER);
   const [hiddenNavOrder, setHiddenNavOrder] = useState<string[]>([]);
@@ -185,7 +192,7 @@ export function SettingsTab(): ReactElement {
   const [weatherLocationConfigMessage, setWeatherLocationConfigMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [weatherCustomLocationTesting, setWeatherCustomLocationTesting] = useState(false);
   const [weatherCustomLocationTestMessage, setWeatherCustomLocationTestMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-  const [runningProcesses, setRunningProcesses] = useState<RunningProcessItem[]>([]);
+  const [runningProcesses, setRunningProcesses] = useState<RunningWindowItem[]>([]);
   const [hideProcessList, setHideProcessList] = useState<string[]>([]);
   const [hideProcessFilter, setHideProcessFilter] = useState<string>('');
   const [hideProcessLoading, setHideProcessLoading] = useState(false);
@@ -476,6 +483,26 @@ export function SettingsTab(): ReactElement {
       if (cancelled) return;
       setClipboardUrlBlacklist(Array.isArray(list) ? list : []);
     }).catch(() => {});
+    window.api.storeRead(CLIPBOARD_URL_SUPPRESS_IN_FAVORITES_KEY).then((value) => {
+      if (cancelled) return;
+      if (typeof value === 'boolean') {
+        setClipboardUrlSuppressInFavorites(value);
+        try {
+          localStorage.setItem(CLIPBOARD_URL_SUPPRESS_IN_FAVORITES_KEY, value ? '1' : '0');
+        } catch { /* noop */ }
+        return;
+      }
+      setClipboardUrlSuppressInFavorites(true);
+      try {
+        localStorage.setItem(CLIPBOARD_URL_SUPPRESS_IN_FAVORITES_KEY, '1');
+      } catch { /* noop */ }
+    }).catch(() => {
+      if (cancelled) return;
+      setClipboardUrlSuppressInFavorites(true);
+      try {
+        localStorage.setItem(CLIPBOARD_URL_SUPPRESS_IN_FAVORITES_KEY, '1');
+      } catch { /* noop */ }
+    });
     window.api.autostartGet().then((mode) => {
       if (cancelled) return;
       setAutostartMode(mode as 'disabled' | 'enabled' | 'high-priority');
@@ -829,10 +856,10 @@ export function SettingsTab(): ReactElement {
   const refreshRunningProcesses = async (): Promise<void> => {
     setHideProcessLoading(true);
     try {
-      const list = await window.api.getRunningNonSystemProcessesWithIcons();
+      const list = await window.api.getOpenWindowsWithIcons();
       setRunningProcesses(
         Array.isArray(list)
-          ? list.filter((item): item is RunningProcessItem => Boolean(item && typeof item.name === 'string'))
+          ? list.filter((item): item is RunningWindowItem => Boolean(item && typeof item.title === 'string'))
           : []
       );
     } catch {
@@ -848,10 +875,10 @@ export function SettingsTab(): ReactElement {
       if (cancelled) return;
       if (Array.isArray(list)) setHideProcessList(list);
     }).catch(() => {});
-    window.api.getRunningNonSystemProcessesWithIcons().then((list) => {
+    window.api.getOpenWindowsWithIcons().then((list) => {
       if (cancelled) return;
       if (Array.isArray(list)) {
-        setRunningProcesses(list.filter((item): item is RunningProcessItem => Boolean(item && typeof item.name === 'string')));
+        setRunningProcesses(list.filter((item): item is RunningWindowItem => Boolean(item && typeof item.title === 'string')));
       }
     }).catch(() => {});
     return () => { cancelled = true; };
@@ -1362,6 +1389,8 @@ export function SettingsTab(): ReactElement {
               setClipboardUrlDetectMode={setClipboardUrlDetectMode}
               clipboardUrlBlacklist={clipboardUrlBlacklist}
               setClipboardUrlBlacklist={setClipboardUrlBlacklist}
+              clipboardUrlSuppressInFavorites={clipboardUrlSuppressInFavorites}
+              setClipboardUrlSuppressInFavorites={setClipboardUrlSuppressInFavorites}
               autostartMode={autostartMode}
               setAutostartMode={setAutostartMode}
               bgImage={bgImage}

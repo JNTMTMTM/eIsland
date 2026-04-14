@@ -34,10 +34,8 @@ interface RegisterHideProcessIpcHandlersOptions {
   hideProcessListStoreKey: string;
   getConfiguredHideProcessList: () => string[];
   setConfiguredHideProcessList: (list: string[]) => void;
-  getAutoHideProcessList: () => string[];
   setAutoHideProcessList: (list: string[]) => void;
   sanitizeProcessNameList: (list: string[]) => string[];
-  normalizeProcessName: (name: string) => string;
   checkAutoHideProcessList: () => Promise<void>;
 }
 
@@ -54,11 +52,7 @@ export function registerHideProcessIpcHandlers(options: RegisterHideProcessIpcHa
   ipcMain.handle('hide-process-list:set', async (_event, list: string[]) => {
     try {
       const next = options.sanitizeProcessNameList(Array.isArray(list) ? list : []);
-      const nextNormalized = new Set(next.map(options.normalizeProcessName));
-
-      const currentRuntime = options.getAutoHideProcessList();
-      const nextRuntime = currentRuntime.filter((name) => nextNormalized.has(options.normalizeProcessName(name)));
-      options.setAutoHideProcessList(nextRuntime);
+      options.setAutoHideProcessList([...next]);
 
       options.setConfiguredHideProcessList(next);
       const filePath = join(options.storeDir, `${options.hideProcessListStoreKey}.json`);

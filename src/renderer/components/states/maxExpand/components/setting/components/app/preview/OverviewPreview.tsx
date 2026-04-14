@@ -252,6 +252,30 @@ export function OverviewPreview({ layoutConfig }: { layoutConfig: OverviewLayout
             </div>
           </div>
         );
+      case 'urlFavorites': {
+        const sampleItems = [
+          { name: 'GitHub', note: '代码托管' },
+          { name: 'Google', note: '' },
+          { name: 'Stack Overflow', note: '技术问答' },
+        ];
+        return (
+          <div className="ov-dash-widget ov-dash-url-favorites-widget">
+            <div className="ov-dash-widget-header">
+              <span className="ov-dash-widget-title">URL 收藏</span>
+              <span className="ov-dash-url-favorites-count">3 条</span>
+            </div>
+            <div className="ov-dash-url-favorites-list">
+              {sampleItems.map((item) => (
+                <div key={item.name} className="ov-dash-url-favorites-item" style={{ cursor: 'default' }}>
+                  <div className="ov-dash-url-favorites-favicon-placeholder" />
+                  <span className="ov-dash-url-favorites-name">{item.name}</span>
+                  {item.note && <span className="ov-dash-url-favorites-note">{item.note}</span>}
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
       default:
         return null;
     }

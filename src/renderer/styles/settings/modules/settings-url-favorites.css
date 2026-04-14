@@ -1,0 +1,312 @@
+/*
+ * eIsland - A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Electron.
+ * https://github.com/JNTMTMTM/eIsland
+ *
+ * Copyright (C) 2026 JNTMTMTM
+ * Copyright (C) 2026 pyisland.com
+ *
+ * Original author: JNTMTMTM[](https://github.com/JNTMTMTM)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+/**
+ * @file settings-url-favorites.css
+ * @description 最大展开 URL 收藏模块样式
+ */
+
+.url-favorites {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  gap: 8px;
+}
+
+.url-favorites-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2px 0;
+}
+
+.url-favorites-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(var(--color-text-rgb), 0.9);
+}
+
+.url-favorites-count {
+  font-size: 11px;
+  color: rgba(var(--color-text-rgb), 0.4);
+}
+
+.url-favorites-input-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.url-favorites-input {
+  flex: 1;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid rgba(var(--color-text-rgb), 0.1);
+  background: rgba(var(--color-text-rgb), 0.05);
+  color: rgba(var(--color-text-rgb), 0.86);
+  padding: 0 10px;
+  font-size: 12px;
+  outline: none;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.url-favorites-input:focus {
+  border-color: rgba(var(--color-text-rgb), 0.24);
+  background: rgba(var(--color-text-rgb), 0.08);
+}
+
+.url-favorites-input::placeholder {
+  color: rgba(var(--color-text-rgb), 0.3);
+}
+
+.url-favorites-add {
+  height: 30px;
+  border: none;
+  border-radius: 8px;
+  padding: 0 12px;
+  font-size: 12px;
+  color: rgba(var(--color-text-rgb), 0.82);
+  background: rgba(var(--color-text-rgb), 0.12);
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.url-favorites-add:hover {
+  background: rgba(var(--color-text-rgb), 0.2);
+  color: var(--color-island-text);
+}
+
+.url-favorites-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-right: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(var(--color-text-rgb), 0.18) rgba(var(--color-text-rgb), 0.04);
+}
+
+.url-favorites-list::-webkit-scrollbar {
+  width: 7px;
+}
+
+.url-favorites-list::-webkit-scrollbar-track {
+  background: linear-gradient(180deg, rgba(var(--color-text-rgb), 0.05), rgba(var(--color-text-rgb), 0.02));
+  border-radius: 999px;
+}
+
+.url-favorites-list::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  border: 1px solid rgba(var(--color-text-rgb), 0.12);
+  background: rgba(var(--color-text-rgb), 0.14);
+  box-shadow: none;
+}
+
+.url-favorites-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(var(--color-text-rgb), 0.22);
+}
+
+.url-favorites-item {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  border-radius: 8px;
+  background: rgba(var(--color-text-rgb), 0.04);
+  border: 1px solid rgba(var(--color-text-rgb), 0.06);
+  padding: 6px 8px;
+}
+
+.url-favorites-item--drag-over {
+  border-color: rgba(var(--color-text-rgb), 0.22);
+  background: rgba(var(--color-text-rgb), 0.08);
+}
+
+.url-favorites-item--dragging {
+  opacity: 0.56;
+}
+
+.url-favorites-item--focused {
+  border-color: rgba(59, 130, 246, 0.44);
+  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.24) inset;
+}
+
+.url-favorites-summary {
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 16px fit-content(320px) minmax(0, 1fr) 28px;
+  align-items: center;
+  gap: 8px;
+  cursor: grab;
+}
+
+.url-favorites-summary:active {
+  cursor: grabbing;
+}
+
+.url-favorites-favicon {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  flex: 0 0 auto;
+}
+
+.url-favorites-site-name {
+  min-width: 24px;
+  max-width: 320px;
+  justify-self: start;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(var(--color-text-rgb), 0.86);
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: left;
+}
+
+.url-favorites-site-name:hover {
+  color: var(--color-island-text);
+  text-decoration: underline;
+}
+
+.url-favorites-link-text {
+  min-width: 0;
+  color: rgba(var(--color-text-rgb), 0.42);
+  font-size: 11px;
+  font-weight: 400;
+  padding-left: 56px;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.url-favorites-note {
+  min-width: 0;
+  font-size: 11px;
+  color: rgba(var(--color-text-rgb), 0.68);
+  padding-right: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: right;
+}
+
+.url-favorites-expand-indicator {
+  font-size: 11px;
+  color: rgba(var(--color-text-rgb), 0.46);
+  justify-self: end;
+}
+
+.url-favorites-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 2px;
+}
+
+.url-favorites-editor-row {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  align-items: center;
+  gap: 6px;
+}
+
+.url-favorites-editor-label {
+  font-size: 11px;
+  color: rgba(var(--color-text-rgb), 0.6);
+  text-align: left;
+  user-select: none;
+}
+
+.url-favorites-url-input,
+.url-favorites-note-input {
+  width: 100%;
+  height: 24px;
+  border-radius: 6px;
+  border: 1px solid rgba(var(--color-text-rgb), 0.14);
+  background: rgba(var(--color-text-rgb), 0.06);
+  color: rgba(var(--color-text-rgb), 0.86);
+  padding: 0 8px;
+  font-size: 11px;
+  outline: none;
+}
+
+.url-favorites-note-input {
+  margin-bottom: 1px;
+}
+
+.url-favorites-url-input:focus,
+.url-favorites-note-input:focus {
+  border-color: rgba(var(--color-text-rgb), 0.26);
+}
+
+.url-favorites-editor-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 6px;
+}
+
+.url-favorites-save {
+  height: 22px;
+  border: none;
+  border-radius: 6px;
+  padding: 0 8px;
+  font-size: 11px;
+  color: rgba(var(--color-text-rgb), 0.8);
+  background: rgba(var(--color-text-rgb), 0.12);
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+
+.url-favorites-save:hover {
+  background: rgba(var(--color-text-rgb), 0.2);
+}
+
+.url-favorites-remove {
+  width: 20px;
+  height: 20px;
+  border: none;
+  border-radius: 6px;
+  background: rgba(255, 90, 90, 0.14);
+  color: rgba(255, 105, 105, 0.9);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.url-favorites-remove:hover {
+  background: rgba(255, 90, 90, 0.22);
+}
+
+.url-favorites-empty {
+  margin-top: 10px;
+  font-size: 12px;
+  color: rgba(var(--color-text-rgb), 0.4);
+  text-align: center;
+}

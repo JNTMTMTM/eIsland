@@ -30,6 +30,7 @@ import type { MaxExpandTab } from '../../../store/types';
 import '../../../styles/settings/settings.css';
 import { AiChatTab } from './components/AiChatTab';
 import { TodoTab } from './components/TodoTab';
+import { UrlFavoritesTab } from './components/UrlFavoritesTab';
 import { SettingsTab } from './components/SettingsTab';
 import { CountdownTab } from './components/CountdownTab';
 
@@ -40,6 +41,7 @@ type NavDotId = MaxExpandTab | 'expanded';
 const NAV_DOTS: { id: NavDotId; label: string }[] = [
   { id: 'expanded', label: '返回' },
   { id: 'todo', label: '待办' },
+  { id: 'urlFavorites', label: 'URL 收藏' },
   { id: 'aiChat', label: 'AI 对话' },
   { id: 'countdown', label: '倒数日' },
   { id: 'settings', label: '设置' },
@@ -63,6 +65,8 @@ export function MaxExpandContent(): React.ReactElement {
     const handleWheel = (e: WheelEvent): void => {
       const target = e.target as HTMLElement;
       if (target.closest('.expand-todo-list')) return;
+      if (target.closest('.url-favorites-list')) return;
+      if (target.closest('.url-favorites-input')) return;
       if (target.closest('.max-expand-settings')) return;
       if (target.closest('.countdown-calendar-wrap')) return;
       if (target.closest('.cd-cards-wrap')) return;
@@ -102,6 +106,7 @@ export function MaxExpandContent(): React.ReactElement {
       <div className="max-expand-tab-content" onClick={(e) => e.stopPropagation()}>
         {activeTab === 'aiChat' && <AiChatTab />}
         {activeTab === 'todo' && <TodoTab />}
+        {activeTab === 'urlFavorites' && <UrlFavoritesTab />}
         {activeTab === 'countdown' && <CountdownTab />}
         {activeTab === 'settings' && <SettingsTab />}
       </div>

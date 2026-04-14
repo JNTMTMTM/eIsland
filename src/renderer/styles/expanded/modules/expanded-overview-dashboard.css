@@ -953,3 +953,107 @@
 .ov-dash-pomodoro-btn:hover .ov-dash-pomodoro-btn-icon {
   filter: brightness(0) invert(var(--icon-invert));
 }
+
+/** ========== URL 收藏控件 ========== */
+.ov-dash-url-favorites-count {
+  margin-left: auto;
+  font-size: 10px;
+  color: rgba(var(--color-text-rgb), 0.4);
+}
+.ov-dash-url-favorites-list {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(var(--color-text-rgb), 0.18) rgba(var(--color-text-rgb), 0.04);
+}
+
+.ov-dash-url-favorites-list::-webkit-scrollbar {
+  width: 7px;
+}
+
+.ov-dash-url-favorites-list::-webkit-scrollbar-track {
+  background: linear-gradient(180deg, rgba(var(--color-text-rgb), 0.05), rgba(var(--color-text-rgb), 0.02));
+  border-radius: 999px;
+}
+
+.ov-dash-url-favorites-list::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  border: 1px solid rgba(var(--color-text-rgb), 0.12);
+  background: rgba(var(--color-text-rgb), 0.14);
+  box-shadow: none;
+}
+
+.ov-dash-url-favorites-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(var(--color-text-rgb), 0.22);
+}
+
+.ov-dash-url-favorites-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 6px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s;
+  min-width: 0;
+}
+.ov-dash-url-favorites-item:hover {
+  background: rgba(var(--color-text-rgb), 0.06);
+}
+.ov-dash-url-favorites-favicon {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  object-fit: contain;
+}
+.ov-dash-url-favorites-favicon-placeholder {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  background: rgba(var(--color-text-rgb), 0.1);
+}
+.ov-dash-url-favorites-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 11px;
+  color: rgba(var(--color-text-rgb), 0.82);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ov-dash-url-favorites-note {
+  flex-shrink: 0;
+  font-size: 10px;
+  color: rgba(var(--color-text-rgb), 0.4);
+  max-width: 80px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ov-dash-url-favorites-empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: rgba(var(--color-text-rgb), 0.35);
+}
+.ov-dash-url-favorites-more {
+  text-align: center;
+  font-size: 10px;
+  color: rgba(var(--color-text-rgb), 0.45);
+  padding: 3px 0;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background 0.15s, color 0.15s;
+}
+.ov-dash-url-favorites-more:hover {
+  background: rgba(var(--color-text-rgb), 0.06);
+  color: rgba(var(--color-text-rgb), 0.7);
+}
