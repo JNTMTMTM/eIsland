@@ -25,6 +25,7 @@
  */
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { SvgIcon } from '../../../../utils/SvgIcon';
 
 interface UrlFavoriteItem {
   id: number;
@@ -313,7 +314,12 @@ export function UrlFavoritesTab(): React.ReactElement {
         <button className="url-favorites-add" type="button" onClick={handleAdd}>添加</button>
       </div>
 
-      <div className="url-favorites-list">
+      <div
+        className="url-favorites-list"
+        onWheelCapture={(e) => {
+          e.stopPropagation();
+        }}
+      >
         {favorites.length === 0 ? (
           <div className="url-favorites-empty">还没有收藏，先添加一个 URL 吧。</div>
         ) : favorites.map((item) => (
@@ -328,7 +334,7 @@ export function UrlFavoritesTab(): React.ReactElement {
               onClick={() => handleToggleExpand(item)}
               title={item.url}
             >
-              <img className="url-favorites-favicon" src={getFaviconUrl(item.url)} alt="" aria-hidden="true" />
+              <img className="url-favorites-favicon" src={getFaviconUrl(item.url)} alt="" aria-hidden="true" onError={(e) => { (e.target as HTMLImageElement).src = SvgIcon.LINK; }} />
               <span
                 className="url-favorites-site-name"
                 onClick={(e) => {
