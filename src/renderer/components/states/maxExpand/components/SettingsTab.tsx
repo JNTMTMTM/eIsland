@@ -79,6 +79,8 @@ import { resolveDistrictLocationByKeyword } from '../../../../api/adcodeApi';
 
 import { setThemeMode as applyThemeMode, getThemeMode, type ThemeMode } from '../../../../utils/theme';
 
+const CLIPBOARD_URL_SUPPRESS_IN_FAVORITES_KEY = 'clipboard-url-suppress-in-url-favorites';
+
 function applyIslandOpacity(opacity: number): void {
   const safe = Math.max(10, Math.min(100, Math.round(opacity)));
   document.documentElement.style.setProperty('--island-opacity', String(safe));
@@ -168,6 +170,7 @@ export function SettingsTab(): ReactElement {
   const [clipboardUrlMonitorEnabled, setClipboardUrlMonitorEnabled] = useState<boolean>(true);
   const [clipboardUrlDetectMode, setClipboardUrlDetectMode] = useState<'https-only' | 'http-https' | 'domain-only'>('http-https');
   const [clipboardUrlBlacklist, setClipboardUrlBlacklist] = useState<string[]>([]);
+  const [clipboardUrlSuppressInFavorites, setClipboardUrlSuppressInFavorites] = useState<boolean>(true);
   const [autostartMode, setAutostartMode] = useState<'disabled' | 'enabled' | 'high-priority'>('disabled');
   const [navOrder, setNavOrder] = useState<string[]>(DEFAULT_NAV_ORDER);
   const [hiddenNavOrder, setHiddenNavOrder] = useState<string[]>([]);
@@ -480,6 +483,26 @@ export function SettingsTab(): ReactElement {
       if (cancelled) return;
       setClipboardUrlBlacklist(Array.isArray(list) ? list : []);
     }).catch(() => {});
+    window.api.storeRead(CLIPBOARD_URL_SUPPRESS_IN_FAVORITES_KEY).then((value) => {
+      if (cancelled) return;
+      if (typeof value === 'boolean') {
+        setClipboardUrlSuppressInFavorites(value);
+        try {
+          localStorage.setItem(CLIPBOARD_URL_SUPPRESS_IN_FAVORITES_KEY, value ? '1' : '0');
+        } catch { /* noop */ }
+        return;
+      }
+      setClipboardUrlSuppressInFavorites(true);
+      try {
+        localStorage.setItem(CLIPBOARD_URL_SUPPRESS_IN_FAVORITES_KEY, '1');
+      } catch { /* noop */ }
+    }).catch(() => {
+      if (cancelled) return;
+      setClipboardUrlSuppressInFavorites(true);
+      try {
+        localStorage.setItem(CLIPBOARD_URL_SUPPRESS_IN_FAVORITES_KEY, '1');
+      } catch { /* noop */ }
+    });
     window.api.autostartGet().then((mode) => {
       if (cancelled) return;
       setAutostartMode(mode as 'disabled' | 'enabled' | 'high-priority');
@@ -1366,6 +1389,8 @@ export function SettingsTab(): ReactElement {
               setClipboardUrlDetectMode={setClipboardUrlDetectMode}
               clipboardUrlBlacklist={clipboardUrlBlacklist}
               setClipboardUrlBlacklist={setClipboardUrlBlacklist}
+              clipboardUrlSuppressInFavorites={clipboardUrlSuppressInFavorites}
+              setClipboardUrlSuppressInFavorites={setClipboardUrlSuppressInFavorites}
               autostartMode={autostartMode}
               setAutostartMode={setAutostartMode}
               bgImage={bgImage}

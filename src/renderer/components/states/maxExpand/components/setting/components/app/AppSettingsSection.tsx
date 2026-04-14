@@ -89,6 +89,8 @@ interface AppSettingsSectionProps {
   setClipboardUrlDetectMode: (value: 'https-only' | 'http-https' | 'domain-only') => void;
   clipboardUrlBlacklist: string[];
   setClipboardUrlBlacklist: (value: string[]) => void;
+  clipboardUrlSuppressInFavorites: boolean;
+  setClipboardUrlSuppressInFavorites: (value: boolean) => void;
   autostartMode: 'disabled' | 'enabled' | 'high-priority';
   setAutostartMode: (mode: 'disabled' | 'enabled' | 'high-priority') => void;
   bgImage: string | null;
@@ -155,6 +157,8 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
     setClipboardUrlDetectMode,
     clipboardUrlBlacklist,
     setClipboardUrlBlacklist,
+    clipboardUrlSuppressInFavorites,
+    setClipboardUrlSuppressInFavorites,
 
     autostartMode,
     setAutostartMode,
@@ -607,6 +611,30 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
                       {opt.label}
                     </button>
                   ))}
+                </div>
+
+                <div className="settings-hotkey-row" style={{ alignItems: 'center', marginTop: 10 }}>
+                  <label className="settings-music-hint" style={{ marginBottom: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <input
+                      type="checkbox"
+                      checked={clipboardUrlSuppressInFavorites}
+                      onChange={(e) => {
+                        const next = e.target.checked;
+                        const prev = clipboardUrlSuppressInFavorites;
+                        setClipboardUrlSuppressInFavorites(next);
+                        try {
+                          localStorage.setItem('clipboard-url-suppress-in-url-favorites', next ? '1' : '0');
+                        } catch { /* noop */ }
+                        window.api.storeWrite('clipboard-url-suppress-in-url-favorites', next).catch(() => {
+                          setClipboardUrlSuppressInFavorites(prev);
+                          try {
+                            localStorage.setItem('clipboard-url-suppress-in-url-favorites', prev ? '1' : '0');
+                          } catch { /* noop */ }
+                        });
+                      }}
+                    />
+                    在 URL 收藏界面时不弹通知
+                  </label>
                 </div>
 
                 <div className="settings-music-label" style={{ marginTop: 14 }}>URL 黑名单（按域名）</div>

@@ -45,6 +45,7 @@ export type IslandState = 'idle' | 'hover' | 'expanded' | 'notification' | 'maxE
 
 /** shell.css 中 morph/transition 主时长（0.55s） */
 const SHELL_MORPH_DURATION_MS = 550;
+const CLIPBOARD_URL_SUPPRESS_IN_FAVORITES_KEY = 'clipboard-url-suppress-in-url-favorites';
 
 /** 各状态对应的窗口面积（宽×高），用于判断状态切换是放大还是缩小 */
 const STATE_AREA: Record<string, number> = {
@@ -492,6 +493,16 @@ function DynamicIsland(): React.JSX.Element {
   // 订阅剪贴板 URL 检测事件（主进程推送）
   useEffect(() => {
     const unsubClipboard = window.api?.onClipboardUrlsDetected?.(({ urls, title }) => {
+      let suppressInFavorites = true;
+      try {
+        const raw = localStorage.getItem(CLIPBOARD_URL_SUPPRESS_IN_FAVORITES_KEY);
+        if (raw === '0') suppressInFavorites = false;
+        if (raw === '1') suppressInFavorites = true;
+      } catch { /* noop */ }
+
+      const store = useIslandStore.getState();
+      if (suppressInFavorites && store.state === 'maxExpand' && store.maxExpandTab === 'urlFavorites') return;
+
       let faviconUrl: string | undefined;
       let hostname = '';
       try {
