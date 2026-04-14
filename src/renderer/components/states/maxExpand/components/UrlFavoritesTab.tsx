@@ -73,6 +73,10 @@ function persistFavorites(items: UrlFavoriteItem[]): void {
   window.api.storeWrite(STORE_KEY, items).catch(() => {});
 }
 
+/**
+ * URL 收藏页
+ * @description 最大展开状态下的 URL 收藏管理与编辑面板
+ */
 export function UrlFavoritesTab(): React.ReactElement {
   const [favorites, setFavorites] = useState<UrlFavoriteItem[]>([]);
   const [loaded, setLoaded] = useState(false);
