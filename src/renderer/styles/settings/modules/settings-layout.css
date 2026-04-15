@@ -1088,6 +1088,22 @@
   gap: 6px;
 }
 
+.settings-about-wallpaper-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.settings-about-wallpaper-card {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(var(--color-text-rgb), 0.08);
+  background: rgba(var(--color-text-rgb), 0.03);
+}
+
 .settings-about-dep {
   font-size: 11px;
   padding: 2px 8px;

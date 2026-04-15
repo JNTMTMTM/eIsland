@@ -27,6 +27,30 @@
 import type { ReactElement } from 'react';
 import avatarImg from '../../../../../../../assets/avatar/T.jpg';
 
+const WALLPAPER_SOURCES = [
+  {
+    name: 'Spaceship Earth',
+    fileName: 'art002e008487~orig.jpg',
+    source: 'NASA',
+    capture: 'Artemis II / iPhone 17 Pro Max',
+    link: 'https://images.nasa.gov/details/art002e008487',
+  },
+  {
+    name: 'A Crescent Earth',
+    fileName: 'art002e004441~orig.jpg',
+    source: 'NASA',
+    capture: 'Artemis II / NIKON Z9 35mm f/2',
+    link: 'https://images.nasa.gov/details/art002e004441',
+  },
+  {
+    name: 'Thinking of You, Earth',
+    fileName: 'art002e008486~orig.jpg',
+    source: 'NASA',
+    capture: 'Artemis II / iPhone 17 Pro Max',
+    link: 'https://images.nasa.gov/details/art002e008486',
+  },
+] as const;
+
 interface AboutSettingsSectionProps {
   aboutVersion: string;
 }
@@ -68,23 +92,15 @@ export function AboutSettingsSection({ aboutVersion }: AboutSettingsSectionProps
       </div>
       <div className="settings-about-deps">
         <div className="settings-about-deps-title">壁纸素材</div>
-        <div className="settings-about-wallpaper-list">
-          <div className="settings-about-row"><span className="settings-about-label">Spaceship Earth</span><span className="settings-about-value">art002e008487~orig.jpg</span></div>
-          <div className="settings-about-row"><span className="settings-about-label">来源</span><span className="settings-about-value">NASA</span></div>
-          <div className="settings-about-row"><span className="settings-about-label">拍摄</span><span className="settings-about-value">Artemis II / iPhone 17 Pro Max</span></div>
-          <div className="settings-about-row"><span className="settings-about-label">原始链接</span><a className="settings-about-link" href="https://images.nasa.gov/details/art002e008487" target="_blank" rel="noreferrer">images.nasa.gov/details/art002e008487</a></div>
-        </div>
-        <div className="settings-about-wallpaper-list" style={{ marginTop: 6 }}>
-          <div className="settings-about-row"><span className="settings-about-label">A Crescent Earth</span><span className="settings-about-value">art002e004441~orig.jpg</span></div>
-          <div className="settings-about-row"><span className="settings-about-label">来源</span><span className="settings-about-value">NASA</span></div>
-          <div className="settings-about-row"><span className="settings-about-label">拍摄</span><span className="settings-about-value">Artemis II / NIKON Z9 35mm f/2</span></div>
-          <div className="settings-about-row"><span className="settings-about-label">原始链接</span><a className="settings-about-link" href="https://images.nasa.gov/details/art002e004441" target="_blank" rel="noreferrer">images.nasa.gov/details/art002e004441</a></div>
-        </div>
-        <div className="settings-about-wallpaper-list" style={{ marginTop: 6 }}>
-          <div className="settings-about-row"><span className="settings-about-label">Thinking of You, Earth</span><span className="settings-about-value">art002e008486~orig.jpg</span></div>
-          <div className="settings-about-row"><span className="settings-about-label">来源</span><span className="settings-about-value">NASA</span></div>
-          <div className="settings-about-row"><span className="settings-about-label">拍摄</span><span className="settings-about-value">Artemis II / iPhone 17 Pro Max</span></div>
-          <div className="settings-about-row"><span className="settings-about-label">原始链接</span><a className="settings-about-link" href="https://images.nasa.gov/details/art002e008486" target="_blank" rel="noreferrer">images.nasa.gov/details/art002e008486</a></div>
+        <div className="settings-about-wallpaper-cards">
+          {WALLPAPER_SOURCES.map((item) => (
+            <div className="settings-about-wallpaper-card" key={item.fileName}>
+              <div className="settings-about-row"><span className="settings-about-label">{item.name}</span><span className="settings-about-value">{item.fileName}</span></div>
+              <div className="settings-about-row"><span className="settings-about-label">来源</span><span className="settings-about-value">{item.source}</span></div>
+              <div className="settings-about-row"><span className="settings-about-label">拍摄</span><span className="settings-about-value">{item.capture}</span></div>
+              <div className="settings-about-row"><span className="settings-about-label">原始链接</span><a className="settings-about-link" href={item.link} target="_blank" rel="noreferrer">{item.link.replace('https://', '')}</a></div>
+            </div>
+          ))}
         </div>
         <div className="settings-about-notice" style={{ marginTop: 6, fontSize: 11 }}>所有 NASA 图像均按照 NASA 图像使用政策使用，不暗示 NASA 对本项目的任何认可。</div>
       </div>
