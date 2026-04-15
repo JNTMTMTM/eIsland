@@ -115,7 +115,21 @@ const smtcAny = smtc as unknown as {
 smtcAny.on('session-added', (sourceAppId: unknown, mediaProps: unknown) => {
   const appId = sourceAppId as string;
   const props = mediaProps as MediaProps;
-  sessionCache.set(appId, { media: props, playback: null, timeline: null });
+  const entry: CacheEntry = { media: props, playback: null, timeline: null };
+
+  /**
+   * 刷新 playback / timeline，避免自动连播时缓存的播放状态过期（fix #41）
+   * @docs https://github.com/JNTMTMTM/eIsland/issues/41
+   */
+  try {
+    const sessions = SMTCMonitor.getMediaSessions() as RawSession[];
+    const fresh = sessions.find((s) => s.sourceAppId === appId);
+    if (fresh) {
+      entry.playback = fresh.playback;
+      entry.timeline = fresh.timeline;
+    }
+  } catch { /* 忽略 */ }
+  sessionCache.set(appId, entry);
   postSessionUpdate(appId);
 });
 
@@ -128,7 +142,21 @@ smtcAny.on('session-removed', (sourceAppId: unknown) => {
 smtcAny.on('session-media-changed', (sourceAppId: unknown, mediaProps: unknown) => {
   const appId = sourceAppId as string;
   const existing = sessionCache.get(appId) ?? { media: null, playback: null, timeline: null };
-  sessionCache.set(appId, { ...existing, media: mediaProps as MediaProps });
+  const updated: CacheEntry = { ...existing, media: mediaProps as MediaProps };
+
+  /**
+   * 刷新 playback / timeline，避免自动连播时缓存的播放状态过期（fix #41）
+   * @docs https://github.com/JNTMTMTM/eIsland/issues/41
+   */
+  try {
+    const sessions = SMTCMonitor.getMediaSessions() as RawSession[];
+    const fresh = sessions.find((s) => s.sourceAppId === appId);
+    if (fresh) {
+      updated.playback = fresh.playback;
+      updated.timeline = fresh.timeline;
+    }
+  } catch { /* 忽略 */ }
+  sessionCache.set(appId, updated);
   postSessionUpdate(appId);
 });
 
