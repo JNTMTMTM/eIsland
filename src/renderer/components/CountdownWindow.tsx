@@ -29,6 +29,7 @@ import type { ReactElement } from 'react';
 import { TodoTab } from './states/maxExpand/components/TodoTab';
 import { CountdownTab } from './states/maxExpand/components/CountdownTab';
 import { SettingsTab } from './states/maxExpand/components/SettingsTab';
+import windowIcon from '../../../resources/icon/eisland.svg';
 
 type WindowTab = 'todo' | 'countdown' | 'settings';
 const ACTIVE_TAB_STORE_KEY = 'countdown-window-active-tab';
@@ -75,6 +76,7 @@ export function CountdownWindow(): ReactElement {
     <div className="cw-root">
       {/* 顶部栏：浏览器风格 Tab + 窗口控制 */}
       <div className="cw-chrome">
+        <img className="cw-window-icon" src={windowIcon} alt="eIsland" />
         <div className="cw-tabs">
           {TAB_LIST.map((tab) => (
             <button

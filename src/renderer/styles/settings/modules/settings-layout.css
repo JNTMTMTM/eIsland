@@ -102,6 +102,24 @@
   color: rgba(var(--color-text-rgb), 0.95);
 }
 
+.sidebar-tab-icon {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+  opacity: 0.65;
+  object-fit: contain;
+  filter: brightness(0) invert(var(--icon-invert));
+  transition: opacity 0.2s ease;
+}
+
+.max-expand-settings-sidebar-item:hover .sidebar-tab-icon {
+  opacity: 0.85;
+}
+
+.max-expand-settings-sidebar-item.active .sidebar-tab-icon {
+  opacity: 1;
+}
+
 /** 导航点 */
 .sidebar-dot {
   width: 3px;

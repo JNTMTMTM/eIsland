@@ -60,8 +60,21 @@
   display: flex;
   align-items: flex-end;
   height: 100%;
-  padding-left: 8px;
+  padding-left: 6px;
   gap: 1px;
+  -webkit-app-region: no-drag;
+}
+
+.cw-window-icon {
+  width: 16px;
+  height: 16px;
+  margin-left: 12px;
+  margin-right: 6px;
+  opacity: 0.9;
+  flex-shrink: 0;
+  object-fit: contain;
+  align-self: center;
+  transform: translateY(3px);
   -webkit-app-region: no-drag;
 }
 
