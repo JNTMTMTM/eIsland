@@ -604,7 +604,17 @@ export function OverviewTab(): React.ReactElement {
         setLayoutConfig(data as OverviewLayoutConfig);
       }
     }).catch(() => {});
-    return () => { cancelled = true; };
+
+    const unsub = window.api.onSettingsChanged((channel: string, value: unknown) => {
+      if (cancelled) return;
+      if (channel === `store:${LAYOUT_STORE_KEY}`) {
+        if (value && typeof value === 'object' && 'left' in (value as object) && 'right' in (value as object)) {
+          setLayoutConfig(value as OverviewLayoutConfig);
+        }
+      }
+    });
+
+    return () => { cancelled = true; unsub(); };
   }, []);
 
   /** 加载应用快捷方式（只读） */
