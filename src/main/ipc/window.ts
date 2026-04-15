@@ -62,8 +62,15 @@ interface RegisterWindowIpcHandlersOptions {
 export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOptions): void {
   const withWindow = (fn: (win: BrowserWindow) => void): void => {
     const win = options.getMainWindow();
-    if (!win) return;
-    fn(win);
+    if (!win || win.isDestroyed()) return;
+    try {
+      fn(win);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      if (!message.includes('Object has been destroyed')) {
+        console.error('[WindowIPC] handler error:', err);
+      }
+    }
   };
 
   ipcMain.on('window:enable-mouse-passthrough', () => {
@@ -158,7 +165,7 @@ export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOpti
 
   ipcMain.handle('window:get-bounds', () => {
     const win = options.getMainWindow();
-    if (win) {
+    if (win && !win.isDestroyed()) {
       return win.getBounds();
     }
     return null;
