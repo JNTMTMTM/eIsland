@@ -31,10 +31,12 @@ interface CreateHotkeyServiceOptions {
   readNextSongHotkeyConfig: () => string;
   readPlayPauseSongHotkeyConfig: () => string;
   readResetPositionHotkeyConfig: () => string;
+  readToggleTrayHotkeyConfig: () => string;
   onScreenshotHotkey: () => void;
   onNextSongHotkey: () => void;
   onPlayPauseSongHotkey: () => void;
   onResetPositionHotkey: () => void;
+  onToggleTrayHotkey: () => void;
 }
 
 interface HotkeyService {
@@ -44,12 +46,14 @@ interface HotkeyService {
   getCurrentNextSongHotkey: () => string;
   getCurrentPlayPauseSongHotkey: () => string;
   getCurrentResetPositionHotkey: () => string;
+  getCurrentToggleTrayHotkey: () => string;
   registerHideHotkey: (accelerator: string) => boolean;
   registerQuitHotkey: (accelerator: string) => boolean;
   registerScreenshotHotkey: (accelerator: string) => boolean;
   registerNextSongHotkey: (accelerator: string) => boolean;
   registerPlayPauseSongHotkey: (accelerator: string) => boolean;
   registerResetPositionHotkey: (accelerator: string) => boolean;
+  registerToggleTrayHotkey: (accelerator: string) => boolean;
   suspendIslandHotkeys: () => void;
   resumeIslandHotkeys: () => void;
 }
@@ -67,6 +71,7 @@ export function createHotkeyService(options: CreateHotkeyServiceOptions): Hotkey
   let currentNextSongHotkey = '';
   let currentPlayPauseSongHotkey = '';
   let currentResetPositionHotkey = '';
+  let currentToggleTrayHotkey = '';
 
   function registerHideHotkey(accelerator: string): boolean {
     const previousHotkey = currentHideHotkey || options.readHideHotkeyConfig();
@@ -240,6 +245,33 @@ export function createHotkeyService(options: CreateHotkeyServiceOptions): Hotkey
     }
   }
 
+  function registerToggleTrayHotkey(accelerator: string): boolean {
+    if (currentToggleTrayHotkey) {
+      try {
+        globalShortcut.unregister(currentToggleTrayHotkey);
+      } catch {
+        // ignore
+      }
+      currentToggleTrayHotkey = '';
+    }
+
+    if (!accelerator) return true;
+
+    try {
+      const success = globalShortcut.register(accelerator, () => {
+        options.onToggleTrayHotkey();
+      });
+
+      if (success) {
+        currentToggleTrayHotkey = accelerator;
+      }
+      return success;
+    } catch (err) {
+      console.error('[ToggleTrayHotkey] register error:', err);
+      return false;
+    }
+  }
+
   function suspendIslandHotkeys(): void {
     const hideHotkey = currentHideHotkey || options.readHideHotkeyConfig();
     const quitHotkey = currentQuitHotkey || options.readQuitHotkeyConfig();
@@ -249,6 +281,8 @@ export function createHotkeyService(options: CreateHotkeyServiceOptions): Hotkey
       currentPlayPauseSongHotkey || options.readPlayPauseSongHotkeyConfig();
     const resetPositionHotkey =
       currentResetPositionHotkey || options.readResetPositionHotkeyConfig();
+    const toggleTrayHotkey =
+      currentToggleTrayHotkey || options.readToggleTrayHotkeyConfig();
 
     [
       hideHotkey,
@@ -257,6 +291,7 @@ export function createHotkeyService(options: CreateHotkeyServiceOptions): Hotkey
       nextSongHotkey,
       playPauseSongHotkey,
       resetPositionHotkey,
+      toggleTrayHotkey,
     ].forEach((hotkey) => {
       if (!hotkey) return;
       try {
@@ -283,6 +318,9 @@ export function createHotkeyService(options: CreateHotkeyServiceOptions): Hotkey
     if (nextSongHotkey) registerNextSongHotkey(nextSongHotkey);
     if (playPauseSongHotkey) registerPlayPauseSongHotkey(playPauseSongHotkey);
     if (resetPositionHotkey) registerResetPositionHotkey(resetPositionHotkey);
+    const toggleTrayHotkey =
+      currentToggleTrayHotkey || options.readToggleTrayHotkeyConfig();
+    if (toggleTrayHotkey) registerToggleTrayHotkey(toggleTrayHotkey);
   }
 
   return {
@@ -292,12 +330,14 @@ export function createHotkeyService(options: CreateHotkeyServiceOptions): Hotkey
     getCurrentNextSongHotkey: () => currentNextSongHotkey,
     getCurrentPlayPauseSongHotkey: () => currentPlayPauseSongHotkey,
     getCurrentResetPositionHotkey: () => currentResetPositionHotkey,
+    getCurrentToggleTrayHotkey: () => currentToggleTrayHotkey,
     registerHideHotkey,
     registerQuitHotkey,
     registerScreenshotHotkey,
     registerNextSongHotkey,
     registerPlayPauseSongHotkey,
     registerResetPositionHotkey,
+    registerToggleTrayHotkey,
     suspendIslandHotkeys,
     resumeIslandHotkeys,
   };

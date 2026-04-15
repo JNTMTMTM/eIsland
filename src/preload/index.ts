@@ -412,6 +412,21 @@ const api = {
   resetPositionHotkeySet: (accelerator: string): Promise<boolean> => {
     return ipcRenderer.invoke('reset-position-hotkey:set', accelerator);
   },
+  /**
+   * 获取当前切换托盘图标快捷键
+   * @returns 当前快捷键字符串
+   */
+  toggleTrayHotkeyGet: (): Promise<string> => {
+    return ipcRenderer.invoke('toggle-tray-hotkey:get');
+  },
+  /**
+   * 设置切换托盘图标快捷键
+   * @param accelerator - Electron accelerator 字符串
+   * @returns 是否注册成功
+   */
+  toggleTrayHotkeySet: (accelerator: string): Promise<boolean> => {
+    return ipcRenderer.invoke('toggle-tray-hotkey:set', accelerator);
+  },
   /** ===== 日志文件 API ===== */
   /**
    * 写入日志到文件

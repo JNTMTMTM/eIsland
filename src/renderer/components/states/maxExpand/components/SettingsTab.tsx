@@ -354,6 +354,12 @@ export function SettingsTab(): ReactElement {
   const [resetPositionHotkeyError, setResetPositionHotkeyError] = useState<string>('');
   const resetPositionHotkeyInputRef = useRef<HTMLInputElement>(null);
 
+  /** 切换托盘图标快捷键相关状态 */
+  const [toggleTrayHotkey, setToggleTrayHotkey] = useState<string>('');
+  const [toggleTrayHotkeyRecording, setToggleTrayHotkeyRecording] = useState(false);
+  const [toggleTrayHotkeyError, setToggleTrayHotkeyError] = useState<string>('');
+  const toggleTrayHotkeyInputRef = useRef<HTMLInputElement>(null);
+
   const hideProcessKeyword = hideProcessFilter.trim().toLowerCase();
 
 
@@ -570,6 +576,10 @@ export function SettingsTab(): ReactElement {
     window.api.resetPositionHotkeyGet().then((key) => {
       if (cancelled) return;
       setResetPositionHotkey(key || '');
+    }).catch(() => {});
+    window.api.toggleTrayHotkeyGet().then((key) => {
+      if (cancelled) return;
+      setToggleTrayHotkey(key || '');
     }).catch(() => {});
     return () => { cancelled = true; };
   }, []);
@@ -999,14 +1009,15 @@ export function SettingsTab(): ReactElement {
     return parts.length >= 2 ? parts.join('+') : '';
   };
 
-  const isDuplicateHotkey = (acc: string, exclude: 'hide' | 'quit' | 'screenshot' | 'next-song' | 'play-pause-song' | 'reset-position'): boolean => {
-    const pairs: Array<{ key: 'hide' | 'quit' | 'screenshot' | 'next-song' | 'play-pause-song' | 'reset-position'; value: string }> = [
+  const isDuplicateHotkey = (acc: string, exclude: 'hide' | 'quit' | 'screenshot' | 'next-song' | 'play-pause-song' | 'reset-position' | 'toggle-tray'): boolean => {
+    const pairs: Array<{ key: 'hide' | 'quit' | 'screenshot' | 'next-song' | 'play-pause-song' | 'reset-position' | 'toggle-tray'; value: string }> = [
       { key: 'hide', value: hideHotkey },
       { key: 'quit', value: quitHotkey },
       { key: 'screenshot', value: screenshotHotkey },
       { key: 'next-song', value: nextSongHotkey },
       { key: 'play-pause-song', value: playPauseSongHotkey },
       { key: 'reset-position', value: resetPositionHotkey },
+      { key: 'toggle-tray', value: toggleTrayHotkey },
     ];
     return pairs.some((item) => item.key !== exclude && item.value && item.value === acc);
   };
@@ -1128,6 +1139,36 @@ export function SettingsTab(): ReactElement {
       }
     }).catch(() => {
       setResetPositionHotkeyError('快捷键注册失败');
+    });
+  };
+
+  /**
+   * 切换托盘图标快捷键录入键盘事件处理
+   * @param e - React 键盘事件
+   */
+  const handleToggleTrayHotkeyKeyDown = (e: KeyboardEvent): void => {
+    e.preventDefault();
+    e.stopPropagation();
+    setToggleTrayHotkeyError('');
+    const acc = keyEventToAccelerator(e);
+    if (!acc) return;
+    if (isDuplicateHotkey(acc, 'toggle-tray')) {
+      setToggleTrayHotkeyError('重复快捷键');
+      setToggleTrayHotkeyRecording(false);
+      toggleTrayHotkeyInputRef.current?.blur();
+      return;
+    }
+
+    window.api.toggleTrayHotkeySet(acc).then((ok) => {
+      if (ok) {
+        setToggleTrayHotkey(acc);
+        setToggleTrayHotkeyRecording(false);
+        toggleTrayHotkeyInputRef.current?.blur();
+      } else {
+        setToggleTrayHotkeyError('快捷键注册失败，请尝试其他组合');
+      }
+    }).catch(() => {
+      setToggleTrayHotkeyError('快捷键注册失败');
     });
   };
 
@@ -1490,6 +1531,14 @@ export function SettingsTab(): ReactElement {
               setResetPositionHotkeyError={setResetPositionHotkeyError}
               handleResetPositionHotkeyKeyDown={handleResetPositionHotkeyKeyDown}
               setResetPositionHotkey={setResetPositionHotkey}
+              toggleTrayHotkeyInputRef={toggleTrayHotkeyInputRef}
+              toggleTrayHotkeyRecording={toggleTrayHotkeyRecording}
+              toggleTrayHotkeyError={toggleTrayHotkeyError}
+              toggleTrayHotkey={toggleTrayHotkey}
+              setToggleTrayHotkeyRecording={setToggleTrayHotkeyRecording}
+              setToggleTrayHotkeyError={setToggleTrayHotkeyError}
+              handleToggleTrayHotkeyKeyDown={handleToggleTrayHotkeyKeyDown}
+              setToggleTrayHotkey={setToggleTrayHotkey}
             />
           )}
 

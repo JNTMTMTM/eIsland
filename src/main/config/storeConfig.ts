@@ -115,6 +115,9 @@ export const DEFAULT_PLAY_PAUSE_SONG_HOTKEY = '';
 /** 默认还原位置快捷键（空表示默认不设置） */
 export const DEFAULT_RESET_POSITION_HOTKEY = '';
 
+/** 默认切换托盘图标快捷键（空表示默认不设置） */
+export const DEFAULT_TOGGLE_TRAY_HOTKEY = '';
+
 // ===== Store 键名 =====
 
 /** 白名单存储键名 */
@@ -182,6 +185,9 @@ export const PLAY_PAUSE_SONG_HOTKEY_STORE_KEY = 'play-pause-song-hotkey';
 
 /** 还原位置快捷键存储键名 */
 export const RESET_POSITION_HOTKEY_STORE_KEY = 'reset-position-hotkey';
+
+/** 切换托盘图标快捷键存储键名 */
+export const TOGGLE_TRAY_HOTKEY_STORE_KEY = 'toggle-tray-hotkey';
 
 // ===== Helper =====
 
@@ -288,6 +294,15 @@ export function readPlayPauseSongHotkeyConfig(): string {
 export function readResetPositionHotkeyConfig(): string {
   const data = readJsonFile(RESET_POSITION_HOTKEY_STORE_KEY);
   return typeof data === 'string' ? data : DEFAULT_RESET_POSITION_HOTKEY;
+}
+
+/**
+ * 读取切换托盘图标快捷键配置
+ * @returns 快捷键字符串
+ */
+export function readToggleTrayHotkeyConfig(): string {
+  const data = readJsonFile(TOGGLE_TRAY_HOTKEY_STORE_KEY);
+  return typeof data === 'string' ? data : DEFAULT_TOGGLE_TRAY_HOTKEY;
 }
 
 /**
