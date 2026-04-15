@@ -1102,6 +1102,18 @@
   border-radius: 10px;
   border: 1px solid rgba(var(--color-text-rgb), 0.08);
   background: rgba(var(--color-text-rgb), 0.03);
+  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.settings-about-wallpaper-card:hover {
+  border-color: rgba(100, 180, 255, 0.28);
+  background: rgba(100, 180, 255, 0.06);
+  box-shadow: 0 6px 18px rgba(60, 130, 200, 0.14);
+}
+
+.settings-about-wallpaper-card .settings-about-link {
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .settings-about-dep {
