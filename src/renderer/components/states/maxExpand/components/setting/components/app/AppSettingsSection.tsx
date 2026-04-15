@@ -488,6 +488,7 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
                           const safe = Number.isFinite(v) ? Math.max(0, Math.min(100, Math.round(v))) : 30;
                           setBgImageOpacity(safe);
                           applyBgOpacity(safe);
+                          window.api.settingsPreview('store:island-bg-opacity', safe).catch(() => {});
                           if (bgOpacitySaveTimerRef.current) {
                             clearTimeout(bgOpacitySaveTimerRef.current);
                           }
@@ -524,6 +525,7 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
                       const safe = Number.isFinite(v) ? Math.max(10, Math.min(100, Math.round(v))) : 100;
                       setIslandOpacity(safe);
                       applyIslandOpacity(safe);
+                      window.api.settingsPreview('island:opacity', safe).catch(() => {});
                       if (opacitySaveTimerRef.current) {
                         clearTimeout(opacitySaveTimerRef.current);
                       }

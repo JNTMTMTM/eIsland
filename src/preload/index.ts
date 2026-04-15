@@ -604,10 +604,13 @@ const api = {
     return ipcRenderer.invoke('theme:mode:set', mode);
   },
   /**
-   * 监听来自其他窗口的设置变更广播（通用）
-   * @param callback - 接收 (channel, value) 设置变更
-   * @returns 取消监听函数
+   * 实时预览广播（不持久化），用于拖动条等场景
+   * @param channel - 设置频道标识
+   * @param value - 预览值
    */
+  settingsPreview: (channel: string, value: unknown): Promise<boolean> => {
+    return ipcRenderer.invoke('settings:preview', channel, value);
+  },
   onSettingsChanged: (callback: (channel: string, value: unknown) => void): (() => void) => {
     const handler = (_event: Electron.IpcRendererEvent, channel: string, value: unknown): void => {
       callback(channel, value);

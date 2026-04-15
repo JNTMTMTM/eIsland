@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import { BrowserWindow } from 'electron';
+import { BrowserWindow, ipcMain } from 'electron';
 
 /**
  * 向除发送者以外的所有窗口广播设置变更
@@ -38,4 +38,15 @@ export function broadcastSettingChange(senderWebContentsId: number, channel: str
       win.webContents.send('settings:changed', channel, value);
     }
   }
+}
+
+/**
+ * 注册 settings:preview IPC 处理器
+ * @description 仅广播不持久化，用于拖动条等实时预览场景
+ */
+export function registerSettingsPreviewHandler(): void {
+  ipcMain.handle('settings:preview', (event, channel: string, value: unknown) => {
+    broadcastSettingChange(event.sender.id, channel, value);
+    return true;
+  });
 }

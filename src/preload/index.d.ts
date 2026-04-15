@@ -146,6 +146,7 @@ declare global {
       mediaRejectSourceSwitch: () => Promise<void>;
       themeModeGet: () => Promise<string>;
       themeModeSet: (mode: string) => Promise<boolean>;
+      settingsPreview: (channel: string, value: unknown) => Promise<boolean>;
       onSettingsChanged: (callback: (channel: string, value: unknown) => void) => () => void;
       islandOpacityGet: () => Promise<number>;
       islandOpacitySet: (opacity: number) => Promise<boolean>;

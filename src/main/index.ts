@@ -50,6 +50,7 @@ import { registerHideProcessIpcHandlers } from './ipc/hideProcess';
 import { registerThemeIpcHandlers } from './ipc/theme';
 import { registerWindowIpcHandlers } from './ipc/window';
 import { registerMediaIpcHandlers } from './ipc/media';
+import { registerSettingsPreviewHandler } from './utils/broadcast';
 import { registerAppLifecycleHandlers } from './services/appLifecycle';
 import { applyChromiumPerformanceFlags } from './services/chromiumFlags';
 import { createHotkeyService } from './services/hotkeyService';
@@ -255,6 +256,7 @@ function registerIpcHandlers(): void {
   });
 
   registerStoreIpcHandlers({ storeDir });
+  registerSettingsPreviewHandler();
 
   registerLogIpcHandlers({ writeMainLog });
 
