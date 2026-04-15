@@ -95,7 +95,7 @@ interface ToolCard {
 }
 
 /** 迷你设置岛演示模式 */
-type MiniSettingDemo = 'theme' | 'opacity' | 'position' | 'autostart';
+type MiniSettingDemo = 'theme' | 'opacity' | 'position' | 'autostart' | 'shortcut';
 
 /** 设置卡片配置 */
 interface SettingCard {
@@ -130,6 +130,12 @@ const SETTING_CARDS: SettingCard[] = [
     title: '开机自启',
     desc: '设置灵动岛是否随系统启动自动运行。',
     demo: 'autostart',
+  },
+  {
+    iconSrc: SvgIcon.SHORTCUT_KEY,
+    title: '快捷键',
+    desc: '通过全局快捷键快速控制灵动岛。',
+    demo: 'shortcut',
   },
 ];
 
@@ -333,6 +339,33 @@ function MiniSettingIsland({ demo }: { demo: MiniSettingDemo }): React.ReactElem
           </div>
         );
       }
+      case 'shortcut':
+        return (
+          <div className="ms-shortcut">
+            <div className="ms-shortcut-list">
+              <div className="ms-shortcut-row">
+                <span className="ms-shortcut-label">隐藏/显示</span>
+                <span className="ms-shortcut-keys"><kbd>Alt</kbd><span className="ms-shortcut-plus">+</span><kbd>X</kbd></span>
+              </div>
+              <div className="ms-shortcut-row">
+                <span className="ms-shortcut-label">关闭灵动岛</span>
+                <span className="ms-shortcut-keys"><kbd>Alt</kbd><span className="ms-shortcut-plus">+</span><kbd>C</kbd></span>
+              </div>
+              <div className="ms-shortcut-row">
+                <span className="ms-shortcut-label">还原默认位置快捷键</span>
+                <span className="ms-shortcut-keys"><kbd>Alt</kbd><span className="ms-shortcut-plus">+</span><kbd>B</kbd></span>
+              </div>
+              <div className="ms-shortcut-row">
+                <span className="ms-shortcut-label">选区截图</span>
+                <span className="ms-shortcut-keys"><kbd>Alt</kbd><span className="ms-shortcut-plus">+</span><kbd>V</kbd></span>
+              </div>
+              <div className="ms-shortcut-row">
+                <span className="ms-shortcut-label">切换歌曲</span>
+                <span className="ms-shortcut-keys"><kbd>Alt</kbd><span className="ms-shortcut-plus">+</span><kbd>S</kbd></span>
+              </div>
+            </div>
+          </div>
+        );
     }
   };
 
@@ -385,6 +418,8 @@ function MiniSettingIsland({ demo }: { demo: MiniSettingDemo }): React.ReactElem
             ))}
           </div>
         );
+      case 'shortcut':
+        return null;
     }
   };
 

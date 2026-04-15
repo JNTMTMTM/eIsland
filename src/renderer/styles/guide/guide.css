@@ -1010,6 +1010,71 @@
   color: rgba(var(--color-shadow-rgb), 0.6);
 }
 
+/* ── 快捷键介绍 ── */
+.ms-shortcut {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  z-index: 1;
+}
+
+.mini-setting-expanded:has(.ms-shortcut) {
+  height: 180px;
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding-top: 10px;
+}
+
+.ms-shortcut-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  padding: 0 6px;
+}
+
+.ms-shortcut-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 2px 0;
+}
+
+.ms-shortcut-label {
+  font-size: 8px;
+  font-weight: 500;
+  color: rgba(var(--color-shadow-rgb), 0.65);
+  white-space: nowrap;
+}
+
+.ms-shortcut-keys {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.ms-shortcut-keys kbd {
+  font-family: inherit;
+  font-size: 7px;
+  font-weight: 600;
+  color: rgba(var(--color-shadow-rgb), 0.85);
+  background: rgba(var(--color-shadow-rgb), 0.08);
+  border: 1px solid rgba(var(--color-shadow-rgb), 0.12);
+  border-radius: 3px;
+  padding: 1px 4px;
+  line-height: 1.4;
+  min-width: 16px;
+  text-align: center;
+}
+
+.ms-shortcut-plus {
+  font-size: 7px;
+  color: rgba(var(--color-shadow-rgb), 0.3);
+}
+
 /* ── 控制按钮区域 ── */
 .ms-controls {
   display: flex;
