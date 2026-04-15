@@ -76,6 +76,14 @@ interface ShortcutSettingsSectionProps {
   setResetPositionHotkeyError: (value: string) => void;
   handleResetPositionHotkeyKeyDown: (event: ReactKeyboardEvent<HTMLInputElement>) => void;
   setResetPositionHotkey: (value: string) => void;
+  toggleTrayHotkeyInputRef: RefObject<HTMLInputElement | null>;
+  toggleTrayHotkeyRecording: boolean;
+  toggleTrayHotkeyError: string;
+  toggleTrayHotkey: string;
+  setToggleTrayHotkeyRecording: (value: boolean) => void;
+  setToggleTrayHotkeyError: (value: string) => void;
+  handleToggleTrayHotkeyKeyDown: (event: ReactKeyboardEvent<HTMLInputElement>) => void;
+  setToggleTrayHotkey: (value: string) => void;
 }
 
 /**
@@ -138,6 +146,15 @@ export function ShortcutSettingsSection(props: ShortcutSettingsSectionProps): Re
     setResetPositionHotkeyError,
     handleResetPositionHotkeyKeyDown,
     setResetPositionHotkey,
+
+    toggleTrayHotkeyInputRef,
+    toggleTrayHotkeyRecording,
+    toggleTrayHotkeyError,
+    toggleTrayHotkey,
+    setToggleTrayHotkeyRecording,
+    setToggleTrayHotkeyError,
+    handleToggleTrayHotkeyKeyDown,
+    setToggleTrayHotkey,
   } = props;
 
   type ShortcutSettingsPageKey = 'window' | 'capture' | 'media';
@@ -276,6 +293,37 @@ export function ShortcutSettingsSection(props: ShortcutSettingsSectionProps): Re
                 </div>
                 {resetPositionHotkeyError && <div className="settings-hotkey-error">{resetPositionHotkeyError}</div>}
                 <div className="settings-hotkey-hint">按下此快捷键将把灵动岛恢复到默认顶部居中位置</div>
+              </div>
+
+              <div className="settings-hotkey-section">
+                <div className="settings-hotkey-label">隐藏/显示托盘图标快捷键</div>
+                <div className="settings-hotkey-row">
+                  <input
+                    ref={toggleTrayHotkeyInputRef}
+                    className={`settings-hotkey-input ${toggleTrayHotkeyRecording ? 'recording' : ''}${toggleTrayHotkeyError ? ' error' : ''}`}
+                    type="text"
+                    readOnly
+                    value={toggleTrayHotkeyRecording ? '请按下快捷键组合…' : (toggleTrayHotkey || '未设置')}
+                    onFocus={() => { setToggleTrayHotkeyRecording(true); setToggleTrayHotkeyError(''); window.api.hotkeySuspend().catch(() => {}); }}
+                    onBlur={() => { setToggleTrayHotkeyRecording(false); window.api.hotkeyResume().catch(() => {}); }}
+                    onKeyDown={handleToggleTrayHotkeyKeyDown}
+                  />
+                  <button className="settings-hotkey-btn" type="button" onClick={() => { setToggleTrayHotkeyRecording(true); toggleTrayHotkeyInputRef.current?.focus(); }}>{toggleTrayHotkeyRecording ? '录入中' : '修改'}</button>
+                  {toggleTrayHotkey && (
+                    <button className="settings-hotkey-btn" type="button" onClick={() => {
+                      window.api.toggleTrayHotkeySet('').then((ok) => {
+                        if (ok) {
+                          setToggleTrayHotkey('');
+                          setToggleTrayHotkeyError('');
+                          setToggleTrayHotkeyRecording(false);
+                          toggleTrayHotkeyInputRef.current?.blur();
+                        }
+                      }).catch(() => {});
+                    }}>清除</button>
+                  )}
+                </div>
+                {toggleTrayHotkeyError && <div className="settings-hotkey-error">{toggleTrayHotkeyError}</div>}
+                <div className="settings-hotkey-hint">按下此快捷键将隐藏或显示系统托盘中的灵动岛图标</div>
               </div>
             </>
           )}

@@ -102,6 +102,24 @@
   color: rgba(var(--color-text-rgb), 0.95);
 }
 
+.sidebar-tab-icon {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+  opacity: 0.65;
+  object-fit: contain;
+  filter: brightness(0) invert(var(--icon-invert));
+  transition: opacity 0.2s ease;
+}
+
+.max-expand-settings-sidebar-item:hover .sidebar-tab-icon {
+  opacity: 0.85;
+}
+
+.max-expand-settings-sidebar-item.active .sidebar-tab-icon {
+  opacity: 1;
+}
+
 /** 导航点 */
 .sidebar-dot {
   width: 3px;
@@ -1070,6 +1088,34 @@
   gap: 6px;
 }
 
+.settings-about-wallpaper-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.settings-about-wallpaper-card {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(var(--color-text-rgb), 0.08);
+  background: rgba(var(--color-text-rgb), 0.03);
+  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.settings-about-wallpaper-card:hover {
+  border-color: rgba(100, 180, 255, 0.28);
+  background: rgba(100, 180, 255, 0.06);
+  box-shadow: 0 6px 18px rgba(60, 130, 200, 0.14);
+}
+
+.settings-about-wallpaper-card .settings-about-link {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 .settings-about-dep {
   font-size: 11px;
   padding: 2px 8px;
@@ -1309,6 +1355,42 @@
 .settings-whitelist-add-btn:hover {
   background: rgba(var(--color-text-rgb), 0.18);
   color: var(--color-island-text);
+}
+
+/* 检测到的播放源列表 */
+.settings-whitelist-detected-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 6px;
+}
+.settings-whitelist-detected-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px;
+  border-radius: 6px;
+  background: rgba(var(--color-text-rgb), 0.06);
+  font-size: 11px;
+  color: rgba(var(--color-text-rgb), 0.75);
+}
+.settings-whitelist-detected-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 3px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.settings-whitelist-detected-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.settings-whitelist-detected-badge {
+  font-size: 10px;
+  color: rgba(var(--color-text-rgb), 0.35);
+  flex-shrink: 0;
 }
 
 /* 歌词源选择 */

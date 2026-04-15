@@ -178,7 +178,7 @@ export function SettingsTab(): ReactElement {
   const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
   const dragIdxRef = useRef<number | null>(null);
   const [detectingSourceAppId, setDetectingSourceAppId] = useState(false);
-  const [sourceAppDetectMessage, setSourceAppDetectMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [detectedSources, setDetectedSources] = useState<Array<{ sourceAppId: string; isPlaying: boolean; hasTitle: boolean; thumbnail: string | null }>>([]);
   const [musicSmtcUnsubscribeInput, setMusicSmtcUnsubscribeInput] = useState<string>('5000');
   const [musicSmtcNeverUnsubscribe, setMusicSmtcNeverUnsubscribe] = useState(true);
   const [musicSmtcConfigMessage, setMusicSmtcConfigMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -354,6 +354,12 @@ export function SettingsTab(): ReactElement {
   const [resetPositionHotkeyError, setResetPositionHotkeyError] = useState<string>('');
   const resetPositionHotkeyInputRef = useRef<HTMLInputElement>(null);
 
+  /** 切换托盘图标快捷键相关状态 */
+  const [toggleTrayHotkey, setToggleTrayHotkey] = useState<string>('');
+  const [toggleTrayHotkeyRecording, setToggleTrayHotkeyRecording] = useState(false);
+  const [toggleTrayHotkeyError, setToggleTrayHotkeyError] = useState<string>('');
+  const toggleTrayHotkeyInputRef = useRef<HTMLInputElement>(null);
+
   const hideProcessKeyword = hideProcessFilter.trim().toLowerCase();
 
 
@@ -471,6 +477,10 @@ export function SettingsTab(): ReactElement {
       if (cancelled) return;
       setMaxExpandLeaveIdle(v);
     }).catch(() => {});
+    window.api.springAnimationGet().then((v) => {
+      if (cancelled) return;
+      useIslandStore.getState().setSpringAnimation(v);
+    }).catch(() => {});
     window.api.clipboardUrlMonitorGet().then((v) => {
       if (cancelled) return;
       setClipboardUrlMonitorEnabled(v);
@@ -570,6 +580,10 @@ export function SettingsTab(): ReactElement {
     window.api.resetPositionHotkeyGet().then((key) => {
       if (cancelled) return;
       setResetPositionHotkey(key || '');
+    }).catch(() => {});
+    window.api.toggleTrayHotkeyGet().then((key) => {
+      if (cancelled) return;
+      setToggleTrayHotkey(key || '');
     }).catch(() => {});
     return () => { cancelled = true; };
   }, []);
@@ -999,14 +1013,15 @@ export function SettingsTab(): ReactElement {
     return parts.length >= 2 ? parts.join('+') : '';
   };
 
-  const isDuplicateHotkey = (acc: string, exclude: 'hide' | 'quit' | 'screenshot' | 'next-song' | 'play-pause-song' | 'reset-position'): boolean => {
-    const pairs: Array<{ key: 'hide' | 'quit' | 'screenshot' | 'next-song' | 'play-pause-song' | 'reset-position'; value: string }> = [
+  const isDuplicateHotkey = (acc: string, exclude: 'hide' | 'quit' | 'screenshot' | 'next-song' | 'play-pause-song' | 'reset-position' | 'toggle-tray'): boolean => {
+    const pairs: Array<{ key: 'hide' | 'quit' | 'screenshot' | 'next-song' | 'play-pause-song' | 'reset-position' | 'toggle-tray'; value: string }> = [
       { key: 'hide', value: hideHotkey },
       { key: 'quit', value: quitHotkey },
       { key: 'screenshot', value: screenshotHotkey },
       { key: 'next-song', value: nextSongHotkey },
       { key: 'play-pause-song', value: playPauseSongHotkey },
       { key: 'reset-position', value: resetPositionHotkey },
+      { key: 'toggle-tray', value: toggleTrayHotkey },
     ];
     return pairs.some((item) => item.key !== exclude && item.value && item.value === acc);
   };
@@ -1131,6 +1146,36 @@ export function SettingsTab(): ReactElement {
     });
   };
 
+  /**
+   * 切换托盘图标快捷键录入键盘事件处理
+   * @param e - React 键盘事件
+   */
+  const handleToggleTrayHotkeyKeyDown = (e: KeyboardEvent): void => {
+    e.preventDefault();
+    e.stopPropagation();
+    setToggleTrayHotkeyError('');
+    const acc = keyEventToAccelerator(e);
+    if (!acc) return;
+    if (isDuplicateHotkey(acc, 'toggle-tray')) {
+      setToggleTrayHotkeyError('重复快捷键');
+      setToggleTrayHotkeyRecording(false);
+      toggleTrayHotkeyInputRef.current?.blur();
+      return;
+    }
+
+    window.api.toggleTrayHotkeySet(acc).then((ok) => {
+      if (ok) {
+        setToggleTrayHotkey(acc);
+        setToggleTrayHotkeyRecording(false);
+        toggleTrayHotkeyInputRef.current?.blur();
+      } else {
+        setToggleTrayHotkeyError('快捷键注册失败，请尝试其他组合');
+      }
+    }).catch(() => {
+      setToggleTrayHotkeyError('快捷键注册失败');
+    });
+  };
+
   const handleNextSongHotkeyKeyDown = (e: KeyboardEvent): void => {
     e.preventDefault();
     e.stopPropagation();
@@ -1186,20 +1231,14 @@ export function SettingsTab(): ReactElement {
   const handleDetectSourceAppId = async (): Promise<void> => {
     if (detectingSourceAppId) return;
     setDetectingSourceAppId(true);
-    setSourceAppDetectMessage(null);
+    setDetectedSources([]);
     try {
       const result = await window.api.musicDetectSourceAppId();
-      if (result.ok && result.sourceAppId) {
-        setWhitelistDraft(result.sourceAppId);
-        setSourceAppDetectMessage({ type: 'success', text: `获取成功：${result.sourceAppId}` });
-      } else {
-        setSourceAppDetectMessage({ type: 'error', text: result.message || '获取失败' });
+      if (result.ok && result.sources.length > 0) {
+        setDetectedSources(result.sources);
       }
-    } catch {
-      setSourceAppDetectMessage({ type: 'error', text: '获取失败：脚本调用异常' });
-    } finally {
-      setDetectingSourceAppId(false);
-    }
+    } catch { /* ignore */ }
+    setDetectingSourceAppId(false);
   };
 
   const handleAddWhitelist = (): void => {
@@ -1343,7 +1382,10 @@ export function SettingsTab(): ReactElement {
               setMusicSettingsPage={setMusicSettingsPage}
               setActiveTab={setActiveTab}
               onAction={(actionId) => {
-                if (actionId === 'guide') setGuide();
+                if (actionId === 'guide') {
+                  setGuide();
+                  window.api.settingsPreview('guide:show', true).catch(() => {});
+                }
               }}
             />
           )}
@@ -1496,6 +1538,14 @@ export function SettingsTab(): ReactElement {
               setResetPositionHotkeyError={setResetPositionHotkeyError}
               handleResetPositionHotkeyKeyDown={handleResetPositionHotkeyKeyDown}
               setResetPositionHotkey={setResetPositionHotkey}
+              toggleTrayHotkeyInputRef={toggleTrayHotkeyInputRef}
+              toggleTrayHotkeyRecording={toggleTrayHotkeyRecording}
+              toggleTrayHotkeyError={toggleTrayHotkeyError}
+              toggleTrayHotkey={toggleTrayHotkey}
+              setToggleTrayHotkeyRecording={setToggleTrayHotkeyRecording}
+              setToggleTrayHotkeyError={setToggleTrayHotkeyError}
+              handleToggleTrayHotkeyKeyDown={handleToggleTrayHotkeyKeyDown}
+              setToggleTrayHotkey={setToggleTrayHotkey}
             />
           )}
 
@@ -1512,7 +1562,7 @@ export function SettingsTab(): ReactElement {
               handleAddWhitelist={handleAddWhitelist}
               handleDetectSourceAppId={handleDetectSourceAppId}
               detectingSourceAppId={detectingSourceAppId}
-              sourceAppDetectMessage={sourceAppDetectMessage}
+              detectedSources={detectedSources}
               lyricsSourceOptions={LYRICS_SOURCE_OPTIONS}
               lyricsSource={lyricsSource}
               setLyricsSource={setLyricsSource}

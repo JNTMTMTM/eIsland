@@ -1,0 +1,353 @@
+/*
+ * eIsland - A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Electron.
+ * https://github.com/JNTMTMTM/eIsland
+ *
+ * Copyright (C) 2026 JNTMTMTM
+ * Copyright (C) 2026 pyisland.com
+ *
+ * Original author: JNTMTMTM[](https://github.com/JNTMTMTM)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+/**
+ * @file standalone-window.css
+ * @description 倒数日/TODOs/设置 独立窗口样式
+ * @author 鸡哥
+ */
+
+/* =====================================================
+   独立窗口 — 暗色主题（默认）
+   Apple Design System · SF Pro · #000 背景
+   ===================================================== */
+
+/* ===== 根容器 ===== */
+.cw-root {
+  display: flex;
+  flex-direction: column;
+  width: 100vw;
+  height: 100vh;
+  background: #000;
+  color: #fff;
+  font-family: 'SF Pro Display', 'SF Pro Text', 'Microsoft YaHei', 'PingFang SC', -apple-system, sans-serif;
+  overflow: hidden;
+  letter-spacing: -0.12px;
+}
+
+/* ===== 顶部 Chrome 栏（浏览器风格） ===== */
+.cw-chrome {
+  display: flex;
+  align-items: flex-end;
+  height: 40px;
+  min-height: 40px;
+  background: #1d1d1f;
+  -webkit-app-region: drag;
+  user-select: none;
+  position: relative;
+  z-index: 100;
+}
+
+/* — Tab 容器 — */
+.cw-tabs {
+  display: flex;
+  align-items: flex-end;
+  height: 100%;
+  padding-left: 6px;
+  gap: 1px;
+  -webkit-app-region: no-drag;
+}
+
+.cw-window-icon {
+  width: 16px;
+  height: 16px;
+  margin-left: 12px;
+  margin-right: 6px;
+  opacity: 0.9;
+  flex-shrink: 0;
+  object-fit: contain;
+  align-self: center;
+  transform: translateY(3px);
+  -webkit-app-region: no-drag;
+}
+
+/* — 单个 Tab — */
+.cw-tab {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 32px;
+  padding: 0 20px;
+  border: none;
+  border-radius: 8px 8px 0 0;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.48);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: -0.12px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.cw-tab:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.cw-tab--active {
+  background: #000;
+  color: #fff;
+  font-weight: 600;
+}
+
+.cw-tab--active:hover {
+  background: #000;
+  color: #fff;
+}
+
+.cw-tab__label {
+  position: relative;
+  z-index: 1;
+}
+
+/* — 拖拽区域填充 — */
+.cw-chrome__drag {
+  flex: 1;
+  height: 100%;
+}
+
+/* — 窗口控制按钮 — */
+.cw-chrome__controls {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  -webkit-app-region: no-drag;
+}
+
+.cw-ctrl {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 100%;
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.55);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+
+.cw-ctrl:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+.cw-ctrl--close:hover {
+  background: #e81123;
+  color: #fff;
+}
+
+/* ===== 视口 / 内容区 ===== */
+.cw-viewport {
+  flex: 1;
+  overflow: auto;
+  position: relative;
+  -webkit-app-region: no-drag;
+  background: #000;
+}
+
+/* 独立窗口内：隐藏窗口管理列表增加可视高度 */
+.cw-root .settings-hide-process-list {
+  max-height: 440px;
+}
+
+/* ===== 独立窗口模式下组件样式适配 ===== */
+
+.cw-viewport .expand-todo {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  border-radius: 0;
+  padding: 24px 32px;
+  box-sizing: border-box;
+}
+
+.cw-viewport .countdown-panel-v2 {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  border-radius: 0;
+  padding: 24px 32px;
+  box-sizing: border-box;
+}
+
+.cw-viewport .cd-top {
+  gap: 20px;
+}
+
+.cw-viewport .max-expand-settings-container {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  border-radius: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* 独立窗口中隐藏弹出按钮 */
+.cw-viewport .cd-popout-btn,
+.cw-viewport .expand-todo-popout-btn {
+  display: none;
+}
+
+/* ===== 滚动条 ===== */
+.cw-viewport::-webkit-scrollbar {
+  width: 6px;
+}
+
+.cw-viewport::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.cw-viewport::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+.cw-viewport::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* ===== 弹出按钮（灵动岛内使用） ===== */
+.cd-popout-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 10;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.12s, color 0.12s;
+}
+
+.cd-popout-btn:hover {
+  background: rgba(0, 113, 227, 0.18);
+  color: #2997ff;
+}
+
+.expand-todo-popout-btn {
+  border: none;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 13px;
+  width: 26px;
+  height: 26px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 6px;
+  transition: background 0.12s, color 0.12s;
+}
+
+.expand-todo-popout-btn:hover {
+  background: rgba(0, 113, 227, 0.18);
+  color: #2997ff;
+}
+
+/* =====================================================
+   亮色主题
+   Apple Design System · #f5f5f7 背景
+   ===================================================== */
+
+[data-theme='light'] .cw-root {
+  background: #f5f5f7;
+  color: #1d1d1f;
+}
+
+[data-theme='light'] .cw-chrome {
+  background: #e8e8ed;
+}
+
+[data-theme='light'] .cw-tab {
+  color: rgba(0, 0, 0, 0.48);
+}
+
+[data-theme='light'] .cw-tab:hover {
+  background: rgba(0, 0, 0, 0.04);
+  color: rgba(0, 0, 0, 0.72);
+}
+
+[data-theme='light'] .cw-tab--active {
+  background: #f5f5f7;
+  color: #1d1d1f;
+}
+
+[data-theme='light'] .cw-tab--active:hover {
+  background: #f5f5f7;
+  color: #1d1d1f;
+}
+
+[data-theme='light'] .cw-ctrl {
+  color: rgba(0, 0, 0, 0.5);
+}
+
+[data-theme='light'] .cw-ctrl:hover {
+  background: rgba(0, 0, 0, 0.06);
+  color: #1d1d1f;
+}
+
+[data-theme='light'] .cw-ctrl--close:hover {
+  background: #e81123;
+  color: #fff;
+}
+
+[data-theme='light'] .cw-viewport {
+  background: #f5f5f7;
+}
+
+[data-theme='light'] .cw-viewport::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+[data-theme='light'] .cw-viewport::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.15);
+}
+
+[data-theme='light'] .cd-popout-btn {
+  background: rgba(0, 0, 0, 0.04);
+  color: rgba(0, 0, 0, 0.4);
+}
+
+[data-theme='light'] .cd-popout-btn:hover {
+  background: rgba(0, 113, 227, 0.1);
+  color: #0071e3;
+}
+
+[data-theme='light'] .expand-todo-popout-btn {
+  background: rgba(0, 0, 0, 0.04);
+  color: rgba(0, 0, 0, 0.4);
+}
+
+[data-theme='light'] .expand-todo-popout-btn:hover {
+  background: rgba(0, 113, 227, 0.1);
+  color: #0071e3;
+}

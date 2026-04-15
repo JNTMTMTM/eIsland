@@ -26,9 +26,12 @@
 
 import { Tray, Menu, nativeImage, BrowserWindow, app, shell } from 'electron';
 import { join } from 'path';
+import { existsSync, readFileSync } from 'fs';
 import { is } from '@electron-toolkit/utils';
+import { openStandaloneWindow } from './window/standaloneWindow';
 
 let tray: Tray | null = null;
+let cachedMainWindow: BrowserWindow | null = null;
 
 /**
  * 托盘图标路径常量
@@ -43,11 +46,24 @@ const TRAY_ICON_PATH = is.dev
  * @description 初始化托盘图标、右键菜单，提供退出和显示窗口功能
  */
 function createTray(mainWindow: BrowserWindow | null): Tray {
+  cachedMainWindow = mainWindow;
   const icon = nativeImage.createFromPath(TRAY_ICON_PATH);
   tray = new Tray(icon);
   const logDir = join(app.getPath('userData'), 'logs');
 
-  const contextMenu = Menu.buildFromTemplate([
+  let isStandaloneMode = false;
+  try {
+    const storeDir = join(app.getPath('userData'), 'eIsland_store');
+    const cfgPath = join(storeDir, 'standalone-window-mode.json');
+    const legacyCfgPath = join(storeDir, 'countdown-window-mode.json');
+    const modePath = existsSync(cfgPath) ? cfgPath : legacyCfgPath;
+    if (existsSync(modePath)) {
+      const raw = readFileSync(modePath, 'utf-8');
+      isStandaloneMode = JSON.parse(raw) === 'standalone';
+    }
+  } catch { /* ignore */ }
+
+  const menuItems: Electron.MenuItemConstructorOptions[] = [
     {
       label: '显示灵动岛',
       click: () => {
@@ -60,6 +76,18 @@ function createTray(mainWindow: BrowserWindow | null): Tray {
         mainWindow?.hide();
       }
     },
+  ];
+
+  if (isStandaloneMode) {
+    menuItems.push({
+      label: '打开配置界面',
+      click: () => {
+        openStandaloneWindow();
+      }
+    });
+  }
+
+  menuItems.push(
     {
       label: '窗口置顶',
       type: 'checkbox',
@@ -90,8 +118,9 @@ function createTray(mainWindow: BrowserWindow | null): Tray {
         app.quit();
       }
     }
-  ]);
+  );
 
+  const contextMenu = Menu.buildFromTemplate(menuItems);
   tray.setToolTip('eIsland');
   tray.setContextMenu(contextMenu);
 
@@ -118,4 +147,17 @@ function destroyTray(): void {
   }
 }
 
-export { createTray, destroyTray };
+/**
+ * 切换系统托盘图标显示/隐藏
+ * @description 隐藏时销毁托盘；显示时重建托盘
+ */
+function toggleTray(): void {
+  if (tray) {
+    tray.destroy();
+    tray = null;
+  } else {
+    createTray(cachedMainWindow);
+  }
+}
+
+export { createTray, destroyTray, toggleTray };

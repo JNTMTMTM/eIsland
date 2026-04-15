@@ -148,8 +148,8 @@ export interface NotificationData {
   title: string;
   body: string;
   icon?: string;
-  /** 通知类型：默认通知 / 播放源切换请求 / 有新版本 / 更新就绪 / 剪贴板URL */
-  type?: 'default' | 'source-switch' | 'update-available' | 'update-ready' | 'clipboard-url';
+  /** 通知类型：默认通知 / 播放源切换请求 / 有新版本 / 更新就绪 / 剪贴板URL / 重启确认 */
+  type?: 'default' | 'source-switch' | 'update-available' | 'update-ready' | 'clipboard-url' | 'restart-required';
   /** 请求切换到的播放源 ID（仅 source-switch 类型） */
   sourceAppId?: string;
   /** 更新版本号（用于 update-available 与 update-ready 类型） */
@@ -182,6 +182,7 @@ export interface IslandSlice {
   expandTab: ExpandTab;
   maxExpandTab: MaxExpandTab;
   notification: NotificationData;
+  springAnimation: boolean;
   setIdle: (force?: boolean) => void;
   setHover: () => void;
   setExpanded: () => void;
@@ -192,6 +193,7 @@ export interface IslandSlice {
   setHoverTab: (tab: HoverTab) => void;
   setExpandTab: (tab: ExpandTab) => void;
   setMaxExpandTab: (tab: MaxExpandTab) => void;
+  setSpringAnimation: (enabled: boolean) => void;
 }
 
 /** 天气 Slice */

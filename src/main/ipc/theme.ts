@@ -28,6 +28,7 @@
 import { ipcMain } from 'electron';
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
+import { broadcastSettingChange } from '../utils/broadcast';
 
 interface RegisterThemeIpcHandlersOptions {
   storeDir: string;
@@ -52,11 +53,12 @@ export function registerThemeIpcHandlers(options: RegisterThemeIpcHandlersOption
     }
   });
 
-  ipcMain.handle('theme:mode:set', (_event, mode: string) => {
+  ipcMain.handle('theme:mode:set', (event, mode: string) => {
     try {
       const safe = mode === 'dark' || mode === 'light' || mode === 'system' ? mode : 'dark';
       const filePath = join(options.storeDir, `${options.themeModeStoreKey}.json`);
       writeFileSync(filePath, JSON.stringify(safe, null, 2), 'utf-8');
+      broadcastSettingChange(event.sender.id, 'theme:mode', safe);
       return true;
     } catch (err) {
       console.error('[Theme] persist error:', err);

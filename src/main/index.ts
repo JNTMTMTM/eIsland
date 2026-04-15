@@ -29,7 +29,7 @@ import { join } from 'path';
 import { mkdirSync, existsSync } from 'fs';
 import { electronApp, optimizer } from '@electron-toolkit/utils';
 import { autoUpdater } from 'electron-updater';
-import { createTray, destroyTray } from './tray';
+import { createTray, destroyTray, toggleTray } from './tray';
 import { createSessionMainLogger } from './log/mainLog';
 import { startClipboardUrlWatcher, stopClipboardUrlWatcher } from './clipboard/urlWatcher';
 import { createClipboardUrlState } from './clipboard/clipboardUrlState';
@@ -50,6 +50,7 @@ import { registerHideProcessIpcHandlers } from './ipc/hideProcess';
 import { registerThemeIpcHandlers } from './ipc/theme';
 import { registerWindowIpcHandlers } from './ipc/window';
 import { registerMediaIpcHandlers } from './ipc/media';
+import { registerSettingsPreviewHandler } from './utils/broadcast';
 import { registerAppLifecycleHandlers } from './services/appLifecycle';
 import { applyChromiumPerformanceFlags } from './services/chromiumFlags';
 import { createHotkeyService } from './services/hotkeyService';
@@ -89,9 +90,11 @@ import {
   HOTKEY_STORE_KEY, QUIT_HOTKEY_STORE_KEY,
   SCREENSHOT_HOTKEY_STORE_KEY, NEXT_SONG_HOTKEY_STORE_KEY,
   PLAY_PAUSE_SONG_HOTKEY_STORE_KEY, RESET_POSITION_HOTKEY_STORE_KEY,
+  TOGGLE_TRAY_HOTKEY_STORE_KEY,
   sanitizeIslandPositionOffset, sanitizeSmtcUnsubscribeMs,
   readHotkeyConfig, readQuitHotkeyConfig, readScreenshotHotkeyConfig,
   readNextSongHotkeyConfig, readPlayPauseSongHotkeyConfig, readResetPositionHotkeyConfig,
+  readToggleTrayHotkeyConfig,
   readWhitelistConfig, readLyricsSourceConfig, readSmtcUnsubscribeMsConfig,
   readHideProcessListConfig, readIslandPositionOffsetConfig, writeIslandPositionOffsetConfig,
   readClipboardUrlMonitorEnabledConfig, readClipboardUrlDetectModeConfig, readClipboardUrlBlacklistConfig,
@@ -156,6 +159,7 @@ const hotkeyService = createHotkeyService({
   readNextSongHotkeyConfig,
   readPlayPauseSongHotkeyConfig,
   readResetPositionHotkeyConfig,
+  readToggleTrayHotkeyConfig,
   onScreenshotHotkey: () => {
     captureWindowService.startRegionScreenshot().catch((err) => {
       console.error('[Screenshot] hotkey trigger error:', err);
@@ -171,6 +175,9 @@ const hotkeyService = createHotkeyService({
   onResetPositionHotkey: () => {
     mainWindowService.applyIslandPositionOffset(DEFAULT_ISLAND_POSITION_OFFSET);
     writeIslandPositionOffsetConfig(DEFAULT_ISLAND_POSITION_OFFSET);
+  },
+  onToggleTrayHotkey: () => {
+    toggleTray();
   },
 });
 
@@ -249,6 +256,7 @@ function registerIpcHandlers(): void {
   });
 
   registerStoreIpcHandlers({ storeDir });
+  registerSettingsPreviewHandler();
 
   registerLogIpcHandlers({ writeMainLog });
 
@@ -271,7 +279,7 @@ function registerIpcHandlers(): void {
       smtcUnsubscribeMs = value;
     },
     sanitizeSmtcUnsubscribeMs,
-    detectSourceAppId: smtcService.pickDetectedSourceAppId,
+    detectAllSources: smtcService.detectAllSources,
   });
 
   // ===== 歌曲设置 IPC =====
@@ -307,23 +315,27 @@ function registerIpcHandlers(): void {
     nextSongHotkeyStoreKey: NEXT_SONG_HOTKEY_STORE_KEY,
     playPauseSongHotkeyStoreKey: PLAY_PAUSE_SONG_HOTKEY_STORE_KEY,
     resetPositionHotkeyStoreKey: RESET_POSITION_HOTKEY_STORE_KEY,
+    toggleTrayHotkeyStoreKey: TOGGLE_TRAY_HOTKEY_STORE_KEY,
     getCurrentHideHotkey: hotkeyService.getCurrentHideHotkey,
     getCurrentQuitHotkey: hotkeyService.getCurrentQuitHotkey,
     getCurrentScreenshotHotkey: hotkeyService.getCurrentScreenshotHotkey,
     getCurrentNextSongHotkey: hotkeyService.getCurrentNextSongHotkey,
     getCurrentPlayPauseSongHotkey: hotkeyService.getCurrentPlayPauseSongHotkey,
     getCurrentResetPositionHotkey: hotkeyService.getCurrentResetPositionHotkey,
+    getCurrentToggleTrayHotkey: hotkeyService.getCurrentToggleTrayHotkey,
     readHideHotkeyConfig: readHotkeyConfig,
     readQuitHotkeyConfig,
     readScreenshotHotkeyConfig,
     readNextSongHotkeyConfig,
     readPlayPauseSongHotkeyConfig,
     readResetPositionHotkeyConfig,
+    readToggleTrayHotkeyConfig,
     registerHideHotkey: hotkeyService.registerHideHotkey,
     registerQuitHotkey: hotkeyService.registerQuitHotkey,
     registerNextSongHotkey: hotkeyService.registerNextSongHotkey,
     registerPlayPauseSongHotkey: hotkeyService.registerPlayPauseSongHotkey,
     registerResetPositionHotkey: hotkeyService.registerResetPositionHotkey,
+    registerToggleTrayHotkey: hotkeyService.registerToggleTrayHotkey,
     suspendIslandHotkeys: hotkeyService.suspendIslandHotkeys,
     resumeIslandHotkeys: hotkeyService.resumeIslandHotkeys,
   });
@@ -460,6 +472,10 @@ app.whenReady().then(() => {
   // 读取持久化还原位置快捷键并注册
   const savedResetPositionHotkey = readResetPositionHotkeyConfig();
   if (savedResetPositionHotkey) hotkeyService.registerResetPositionHotkey(savedResetPositionHotkey);
+
+  // 读取持久化切换托盘图标快捷键并注册
+  const savedToggleTrayHotkey = readToggleTrayHotkeyConfig();
+  if (savedToggleTrayHotkey) hotkeyService.registerToggleTrayHotkey(savedToggleTrayHotkey);
 
   initUpdaterService({
     updater: autoUpdater,

@@ -54,6 +54,22 @@ interface CountdownItem {
 
 const STORE_KEY = 'countdown-dates';
 
+function isRenderableImageSource(src: string): boolean {
+  return src.startsWith('data:')
+    || src.startsWith('http://')
+    || src.startsWith('https://')
+    || src.startsWith('file://')
+    || src.startsWith('blob:')
+    || src.startsWith('/');
+}
+
+async function normalizeImageSource(src: string | undefined): Promise<string | undefined> {
+  if (!src) return undefined;
+  if (isRenderableImageSource(src)) return src;
+  const dataUrl = await window.api.loadWallpaperFile(src).catch(() => null);
+  return dataUrl || src;
+}
+
 function toLocalDateStr(d: Date): string {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, '0');
@@ -94,6 +110,7 @@ export function CountdownTab(): React.ReactElement {
   const [editBgImage, setEditBgImage] = useState<string | undefined>(undefined);
   const [editBgOpacity, setEditBgOpacity] = useState(0.5);
   const coverImage = useIslandStore((s) => s.coverImage);
+  const [resolvedCoverImage, setResolvedCoverImage] = useState<string | null>(null);
   const editCustomColorRef = useRef<HTMLInputElement>(null);
   const addCustomColorRef = useRef<HTMLInputElement>(null);
   const cardsRef = useRef<HTMLDivElement>(null);
@@ -108,6 +125,18 @@ export function CountdownTab(): React.ReactElement {
     });
   }, []);
 
+  useEffect(() => {
+    let cancelled = false;
+    normalizeImageSource(coverImage ?? undefined).then((resolved) => {
+      if (cancelled) return;
+      setResolvedCoverImage(resolved ?? null);
+    }).catch(() => {
+      if (cancelled) return;
+      setResolvedCoverImage(null);
+    });
+    return () => { cancelled = true; };
+  }, [coverImage]);
+
   const handleAddColorInput = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const v = e.target.value;
     if (colorRafRef.current !== null) cancelAnimationFrame(colorRafRef.current);
@@ -120,9 +149,15 @@ export function CountdownTab(): React.ReactElement {
   /** 加载 */
   useEffect(() => {
     let cancelled = false;
-    window.api.storeRead(STORE_KEY).then((data) => {
+    window.api.storeRead(STORE_KEY).then(async (data) => {
       if (cancelled) return;
-      if (Array.isArray(data)) setItems(data as CountdownItem[]);
+      if (Array.isArray(data)) {
+        const normalized = await Promise.all((data as CountdownItem[]).map(async (item) => ({
+          ...item,
+          backgroundImage: await normalizeImageSource(item.backgroundImage),
+        })));
+        if (!cancelled) setItems(normalized);
+      }
       setLoaded(true);
     }).catch(() => { if (!cancelled) setLoaded(true); });
     return () => { cancelled = true; };
@@ -211,6 +246,12 @@ export function CountdownTab(): React.ReactElement {
 
   return (
     <div className="max-expand-tab-panel countdown-panel-v2">
+      <button
+        className="cd-popout-btn"
+        type="button"
+        title="在独立窗口中打开"
+        onClick={() => { window.api.openStandaloneWindow().catch(() => {}); }}
+      >⧉</button>
       {/* ===== 上部区域 ===== */}
       <div className="cd-top">
         {/* 左上：日历 */}
@@ -291,14 +332,14 @@ export function CountdownTab(): React.ReactElement {
               <span className="cd-form-label">背景</span>
               <div className="cd-bg-row">
                 <button
-                  className={`cd-bg-btn ${editBgImage && coverImage && editBgImage === coverImage ? 'active' : ''}`}
+                  className={`cd-bg-btn ${editBgImage && resolvedCoverImage && editBgImage === resolvedCoverImage ? 'active' : ''}`}
                   type="button"
-                  title={coverImage ? '使用当前专辑封面' : '暂无正在播放的歌曲'}
-                  disabled={!coverImage}
-                  onClick={() => { if (coverImage) setEditBgImage(coverImage); }}
+                  title={resolvedCoverImage ? '使用当前专辑封面' : '暂无正在播放的歌曲'}
+                  disabled={!resolvedCoverImage}
+                  onClick={() => { if (resolvedCoverImage) setEditBgImage(resolvedCoverImage); }}
                 >
-                  {coverImage ? (
-                    <img src={coverImage} className="cd-bg-btn-thumb" alt="" />
+                  {resolvedCoverImage ? (
+                    <img src={resolvedCoverImage} className="cd-bg-btn-thumb" alt="" />
                   ) : (
                     <span className="cd-bg-btn-icon">♪</span>
                   )}
@@ -310,7 +351,10 @@ export function CountdownTab(): React.ReactElement {
                   title="从文件选择图片"
                   onClick={async () => {
                     const path = await window.api.openImageDialog();
-                    if (path) setEditBgImage(path);
+                    if (path) {
+                      const normalized = await normalizeImageSource(path);
+                      if (normalized) setEditBgImage(normalized);
+                    }
                   }}
                 >
                   <span className="cd-bg-btn-icon">…</span>
@@ -415,14 +459,14 @@ export function CountdownTab(): React.ReactElement {
               <span className="cd-form-label">背景</span>
               <div className="cd-bg-row">
                 <button
-                  className={`cd-bg-btn ${newBgImage && coverImage && newBgImage === coverImage ? 'active' : ''}`}
+                  className={`cd-bg-btn ${newBgImage && resolvedCoverImage && newBgImage === resolvedCoverImage ? 'active' : ''}`}
                   type="button"
-                  title={coverImage ? '使用当前专辑封面' : '暂无正在播放的歌曲'}
-                  disabled={!coverImage}
-                  onClick={() => { if (coverImage) setNewBgImage(coverImage); }}
+                  title={resolvedCoverImage ? '使用当前专辑封面' : '暂无正在播放的歌曲'}
+                  disabled={!resolvedCoverImage}
+                  onClick={() => { if (resolvedCoverImage) setNewBgImage(resolvedCoverImage); }}
                 >
-                  {coverImage ? (
-                    <img src={coverImage} className="cd-bg-btn-thumb" alt="" />
+                  {resolvedCoverImage ? (
+                    <img src={resolvedCoverImage} className="cd-bg-btn-thumb" alt="" />
                   ) : (
                     <span className="cd-bg-btn-icon">♪</span>
                   )}
@@ -434,7 +478,10 @@ export function CountdownTab(): React.ReactElement {
                   title="从文件选择图片"
                   onClick={async () => {
                     const path = await window.api.openImageDialog();
-                    if (path) setNewBgImage(path);
+                    if (path) {
+                      const normalized = await normalizeImageSource(path);
+                      if (normalized) setNewBgImage(normalized);
+                    }
                   }}
                 >
                   <span className="cd-bg-btn-icon">…</span>

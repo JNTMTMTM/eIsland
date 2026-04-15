@@ -180,7 +180,7 @@ interface StateRenderer {
  * @description 使用状态模式管理不同状态的 UI 渲染，通过 requestAnimationFrame 检测鼠标位置实现可靠的 hover 交互
  */
 function DynamicIsland(): React.JSX.Element {
-  const { state, weather, setHover, setIdle, setExpanded, setLyrics, setGuide, timerData, setTimerData, notification, setNotification, handleNowPlayingUpdate, updateProgress, coverImage, isMusicPlaying, isPlaying, dominantColor, setDominantColor, setSyncedLyrics, setLyricsLoading, syncedLyrics, lyricsLoading, pomodoroRunning, pomodoroRemaining } = useIslandStore();
+  const { state, weather, setHover, setIdle, setExpanded, setLyrics, setGuide, timerData, setTimerData, notification, setNotification, handleNowPlayingUpdate, updateProgress, coverImage, isMusicPlaying, isPlaying, dominantColor, setDominantColor, setSyncedLyrics, setLyricsLoading, syncedLyrics, lyricsLoading, pomodoroRunning, pomodoroRemaining, springAnimation } = useIslandStore();
   const prevStateRef = useRef(state);
   const [morphing, setMorphing] = useState(false);
   const [fromState, setFromState] = useState('');
@@ -348,6 +348,64 @@ function DynamicIsland(): React.JSX.Element {
           setTimeout(() => setGuide(), 800);
         }
       }).catch(() => {});
+
+      // 跨窗口设置同步
+      window.api?.onSettingsChanged?.((channel: string, value: unknown) => {
+        if (channel === 'notification:show') {
+          if (value && typeof value === 'object' && 'title' in (value as object) && 'body' in (value as object)) {
+            setNotificationRef.current(value as {
+              title: string;
+              body: string;
+              icon?: string;
+              type?: 'default' | 'source-switch' | 'update-available' | 'update-ready' | 'clipboard-url' | 'restart-required';
+              sourceAppId?: string;
+              updateVersion?: string;
+              urls?: string[];
+            });
+          }
+        }
+        if (channel === 'guide:show') {
+          setGuide();
+        }
+        if (channel === 'island:opacity') {
+          const v = typeof value === 'number' ? Math.max(10, Math.min(100, Math.round(value))) : 100;
+          document.documentElement.style.setProperty('--island-opacity', String(v));
+        }
+        if (channel === 'island:expand-mouseleave-idle') {
+          expandLeaveIdleRef.current = Boolean(value);
+        }
+        if (channel === 'island:maxexpand-mouseleave-idle') {
+          maxExpandLeaveIdleRef.current = Boolean(value);
+        }
+        if (channel === 'store:island-bg-image') {
+          const el = document.getElementById('island-bg-layer');
+          if (!el) return;
+          const bgImage = value as string | null;
+          if (bgImage && typeof bgImage === 'string') {
+            if (!bgImage.startsWith('data:') && !bgImage.startsWith('/') && !bgImage.startsWith('http')) {
+              window.api?.loadWallpaperFile?.(bgImage).then((dataUrl) => {
+                if (dataUrl) el.style.backgroundImage = `url(${dataUrl})`;
+              }).catch(() => {});
+            } else {
+              el.style.backgroundImage = `url(${bgImage})`;
+            }
+          } else {
+            el.style.backgroundImage = '';
+          }
+        }
+        if (channel === 'store:island-bg-opacity') {
+          const el = document.getElementById('island-bg-layer');
+          if (!el) return;
+          const v = typeof value === 'number' && Number.isFinite(value) ? value : 100;
+          el.style.opacity = String(Math.max(0, Math.min(100, v)) / 100);
+        }
+        if (channel === 'island:position') {
+          const offset = value as { x: number; y: number };
+          if (offset && typeof offset.x === 'number' && typeof offset.y === 'number') {
+            window.api?.setIslandPositionOffset?.(offset).catch(() => {});
+          }
+        }
+      });
     }
   }, []);
 
@@ -710,7 +768,7 @@ function DynamicIsland(): React.JSX.Element {
 
   return (
     <div
-      className={`island-shell ${getStateClassName(state)}${morphing ? ' morphing' : ''}${fromState ? ` from-${fromState}` : ''}${morphing && fromState && (STATE_AREA[fromState] ?? 0) > (STATE_AREA[state] ?? 0) ? ' instant-resize' : ''}${showGlow ? ' music-glow' : ''}${showGlow && !isPlaying ? ' music-paused' : ''}`}
+      className={`island-shell ${getStateClassName(state)}${morphing ? ' morphing' : ''}${fromState ? ` from-${fromState}` : ''}${morphing && fromState && (STATE_AREA[fromState] ?? 0) > (STATE_AREA[state] ?? 0) ? ' instant-resize' : ''}${showGlow ? ' music-glow' : ''}${showGlow && !isPlaying ? ' music-paused' : ''}${springAnimation ? ' spring-animation' : ''}`}
       onClick={handleIslandClick}
       style={showGlow ? {
         '--glow-r': r,

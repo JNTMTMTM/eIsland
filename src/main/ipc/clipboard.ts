@@ -28,6 +28,7 @@
 import { ipcMain, shell } from 'electron';
 import { join } from 'path';
 import { writeFileSync } from 'fs';
+import { broadcastSettingChange } from '../utils/broadcast';
 import {
   normalizeClipboardUrlBlacklistDomain,
   normalizeClipboardUrlDetectMode,
@@ -61,12 +62,13 @@ export function registerClipboardIpcHandlers(options: RegisterClipboardIpcHandle
     return options.getBlacklist();
   });
 
-  ipcMain.handle('clipboard:url-blacklist:set', (_event, list: string[]) => {
+  ipcMain.handle('clipboard:url-blacklist:set', (event, list: string[]) => {
     try {
       const next = sanitizeClipboardUrlBlacklist(list);
       const filePath = join(options.storeDir, `${options.blacklistStoreKey}.json`);
       options.setBlacklist(next);
       writeFileSync(filePath, JSON.stringify(next, null, 2), 'utf-8');
+      broadcastSettingChange(event.sender.id, 'clipboard:url-blacklist', next);
       return true;
     } catch (err) {
       console.error('[ClipboardUrlBlacklist] persist error:', err);
@@ -95,12 +97,13 @@ export function registerClipboardIpcHandlers(options: RegisterClipboardIpcHandle
     return options.getDetectMode();
   });
 
-  ipcMain.handle('clipboard:url-detect-mode:set', (_event, mode: ClipboardUrlDetectMode) => {
+  ipcMain.handle('clipboard:url-detect-mode:set', (event, mode: ClipboardUrlDetectMode) => {
     try {
       const filePath = join(options.storeDir, `${options.detectModeStoreKey}.json`);
       const normalized = normalizeClipboardUrlDetectMode(mode) || options.defaultDetectMode;
       options.setDetectMode(normalized);
       writeFileSync(filePath, JSON.stringify(normalized, null, 2), 'utf-8');
+      broadcastSettingChange(event.sender.id, 'clipboard:url-detect-mode', normalized);
       return true;
     } catch (err) {
       console.error('[ClipboardUrlDetectMode] persist error:', err);
@@ -112,7 +115,7 @@ export function registerClipboardIpcHandlers(options: RegisterClipboardIpcHandle
     return options.getMonitorEnabled();
   });
 
-  ipcMain.handle('clipboard:url-monitor:set', (_event, enabled: boolean) => {
+  ipcMain.handle('clipboard:url-monitor:set', (event, enabled: boolean) => {
     try {
       const next = Boolean(enabled);
       const filePath = join(options.storeDir, `${options.monitorEnabledStoreKey}.json`);
@@ -123,6 +126,7 @@ export function registerClipboardIpcHandlers(options: RegisterClipboardIpcHandle
       } else {
         options.stopWatcher();
       }
+      broadcastSettingChange(event.sender.id, 'clipboard:url-monitor', next);
       return true;
     } catch (err) {
       console.error('[ClipboardUrlMonitor] persist error:', err);

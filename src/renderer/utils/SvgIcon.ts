@@ -80,7 +80,9 @@ export const SvgIcon = {
   /** 下一个 */
   NEXT: './svg/NEXT.svg',
   /** 上一个 */
-  PREVIOUS: './svg/PREVIOUS.svg'
+  PREVIOUS: './svg/PREVIOUS.svg',
+  /** 设置 */
+  SETTING: './svg/SETTING.svg'
 } as const;
 
 export type SvgIconKey = keyof typeof SvgIcon;

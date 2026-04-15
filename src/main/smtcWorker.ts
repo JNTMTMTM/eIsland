@@ -115,7 +115,21 @@ const smtcAny = smtc as unknown as {
 smtcAny.on('session-added', (sourceAppId: unknown, mediaProps: unknown) => {
   const appId = sourceAppId as string;
   const props = mediaProps as MediaProps;
-  sessionCache.set(appId, { media: props, playback: null, timeline: null });
+  const entry: CacheEntry = { media: props, playback: null, timeline: null };
+
+  /**
+   * 刷新 playback / timeline，避免自动连播时缓存的播放状态过期（fix #41）
+   * @docs https://github.com/JNTMTMTM/eIsland/issues/41
+   */
+  try {
+    const sessions = SMTCMonitor.getMediaSessions() as RawSession[];
+    const fresh = sessions.find((s) => s.sourceAppId === appId);
+    if (fresh) {
+      entry.playback = fresh.playback;
+      entry.timeline = fresh.timeline;
+    }
+  } catch { /* 忽略 */ }
+  sessionCache.set(appId, entry);
   postSessionUpdate(appId);
 });
 
@@ -128,7 +142,21 @@ smtcAny.on('session-removed', (sourceAppId: unknown) => {
 smtcAny.on('session-media-changed', (sourceAppId: unknown, mediaProps: unknown) => {
   const appId = sourceAppId as string;
   const existing = sessionCache.get(appId) ?? { media: null, playback: null, timeline: null };
-  sessionCache.set(appId, { ...existing, media: mediaProps as MediaProps });
+  const updated: CacheEntry = { ...existing, media: mediaProps as MediaProps };
+
+  /**
+   * 刷新 playback / timeline，避免自动连播时缓存的播放状态过期（fix #41）
+   * @docs https://github.com/JNTMTMTM/eIsland/issues/41
+   */
+  try {
+    const sessions = SMTCMonitor.getMediaSessions() as RawSession[];
+    const fresh = sessions.find((s) => s.sourceAppId === appId);
+    if (fresh) {
+      updated.playback = fresh.playback;
+      updated.timeline = fresh.timeline;
+    }
+  } catch { /* 忽略 */ }
+  sessionCache.set(appId, updated);
   postSessionUpdate(appId);
 });
 
@@ -144,6 +172,30 @@ smtcAny.on('session-timeline-changed', (sourceAppId: unknown, timelineProps: unk
   const existing = sessionCache.get(appId) ?? { media: null, playback: null, timeline: null };
   sessionCache.set(appId, { ...existing, timeline: timelineProps as TimelineProps });
   postSessionUpdate(appId);
+});
+
+/** 接收主进程请求：主动查询当前所有 SMTC 会话（用于播放源检测按钮） */
+parentPort.on('message', (msg: { type: string }) => {
+  if (msg.type === 'detect-sources') {
+    try {
+      const sessions = SMTCMonitor.getMediaSessions() as RawSession[];
+      parentPort!.postMessage({
+        type: 'detect-sources-result',
+        sources: sessions.map((s) => {
+          const cached = sessionCache.get(s.sourceAppId);
+          const thumb = cached?.media?.thumbnail ?? s.media?.thumbnail ?? null;
+          return {
+            sourceAppId: s.sourceAppId,
+            isPlaying: (s.playback?.playbackStatus ?? 0) === 4,
+            hasTitle: Boolean(s.media?.title),
+            thumbnail: thumbnailToDataUrl(thumb),
+          };
+        }),
+      });
+    } catch {
+      parentPort!.postMessage({ type: 'detect-sources-result', sources: [] });
+    }
+  }
 });
 
 /** 初始化：读取当前已存在的会话并推送快照 */

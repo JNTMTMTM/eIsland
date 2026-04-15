@@ -62,6 +62,15 @@ export async function initTheme(): Promise<void> {
   }
   applyVisualTheme(currentMode);
   darkMq.addEventListener('change', onSystemThemeChange);
+
+  window.api.onSettingsChanged((channel: string, value: unknown) => {
+    if (channel === 'theme:mode') {
+      const mode = value as string;
+      const safe: ThemeMode = mode === 'dark' || mode === 'light' || mode === 'system' ? mode : 'dark';
+      currentMode = safe;
+      applyVisualTheme(safe);
+    }
+  });
 }
 
 /**

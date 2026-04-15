@@ -157,6 +157,36 @@ const api = {
   clearLogsCache: (): Promise<{ success: boolean; freedBytes: number }> => {
     return ipcRenderer.invoke('app:clear-logs-cache');
   },
+  /**
+   * 最小化当前窗口
+   */
+  windowMinimize: (): void => {
+    ipcRenderer.send('window:minimize');
+  },
+  /**
+   * 最大化/还原当前窗口
+   */
+  windowMaximize: (): void => {
+    ipcRenderer.send('window:maximize');
+  },
+  /**
+   * 关闭当前窗口
+   */
+  windowClose: (): void => {
+    ipcRenderer.send('window:close');
+  },
+  /**
+   * 打开倒数日/TODOs 独立窗口
+   */
+  openStandaloneWindow: (): Promise<boolean> => {
+    return ipcRenderer.invoke('app:open-standalone-window');
+  },
+  /**
+   * 关闭倒数日/TODOs 独立窗口
+   */
+  closeStandaloneWindow: (): Promise<boolean> => {
+    return ipcRenderer.invoke('app:close-standalone-window');
+  },
   /** ===== 音乐相关 API ===== */
   /**
    * 播放/暂停
@@ -196,6 +226,12 @@ const api = {
    */
   mediaSetVolume: (volume: number): Promise<void> => {
     return ipcRenderer.invoke('media:set-volume', volume);
+  },
+  /**
+   * 获取当前正在播放歌曲信息（用于初始化）
+   */
+  mediaCurrentInfoGet: (): Promise<NowPlayingInfo | null> => {
+    return ipcRenderer.invoke('media:current-info:get');
   },
   /** ===== 歌曲信息监听 API ===== */
   /**
@@ -412,6 +448,21 @@ const api = {
   resetPositionHotkeySet: (accelerator: string): Promise<boolean> => {
     return ipcRenderer.invoke('reset-position-hotkey:set', accelerator);
   },
+  /**
+   * 获取当前切换托盘图标快捷键
+   * @returns 当前快捷键字符串
+   */
+  toggleTrayHotkeyGet: (): Promise<string> => {
+    return ipcRenderer.invoke('toggle-tray-hotkey:get');
+  },
+  /**
+   * 设置切换托盘图标快捷键
+   * @param accelerator - Electron accelerator 字符串
+   * @returns 是否注册成功
+   */
+  toggleTrayHotkeySet: (accelerator: string): Promise<boolean> => {
+    return ipcRenderer.invoke('toggle-tray-hotkey:set', accelerator);
+  },
   /** ===== 日志文件 API ===== */
   /**
    * 写入日志到文件
@@ -495,10 +546,10 @@ const api = {
     return ipcRenderer.invoke('music:smtc-unsubscribe-ms:set', valueMs);
   },
   /**
-   * 运行测试脚本获取当前播放进程 sourceAppId
-   * @returns 获取结果，可能返回 null（无播放程序）
+   * 查询当前所有 SMTC 媒体会话播放源
+   * @returns 检测到的播放源列表
    */
-  musicDetectSourceAppId: (): Promise<{ ok: boolean; sourceAppId: string | null; message: string }> => {
+  musicDetectSourceAppId: (): Promise<{ ok: boolean; sources: Array<{ sourceAppId: string; isPlaying: boolean; hasTitle: boolean; thumbnail: string | null }>; message: string }> => {
     return ipcRenderer.invoke('music:detect-source-app-id');
   },
   /** 获取当前运行中的非系统进程列表 */
@@ -559,6 +610,23 @@ const api = {
     return ipcRenderer.invoke('theme:mode:set', mode);
   },
   /**
+   * 实时预览广播（不持久化），用于拖动条等场景
+   * @param channel - 设置频道标识
+   * @param value - 预览值
+   */
+  settingsPreview: (channel: string, value: unknown): Promise<boolean> => {
+    return ipcRenderer.invoke('settings:preview', channel, value);
+  },
+  onSettingsChanged: (callback: (channel: string, value: unknown) => void): (() => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, channel: string, value: unknown): void => {
+      callback(channel, value);
+    };
+    ipcRenderer.on('settings:changed', handler);
+    return () => {
+      ipcRenderer.removeListener('settings:changed', handler);
+    };
+  },
+  /**
    * 获取灵动岛透明度
    * @returns 透明度值 10-100
    */
@@ -596,6 +664,18 @@ const api = {
    */
   maxexpandMouseleaveIdleSet: (enabled: boolean): Promise<boolean> => {
     return ipcRenderer.invoke('island:maxexpand-mouseleave-idle:set', enabled);
+  },
+  /**
+   * 获取是否启用弹性动画
+   */
+  springAnimationGet: (): Promise<boolean> => {
+    return ipcRenderer.invoke('island:spring-animation:get');
+  },
+  /**
+   * 设置是否启用弹性动画
+   */
+  springAnimationSet: (enabled: boolean): Promise<boolean> => {
+    return ipcRenderer.invoke('island:spring-animation:set', enabled);
   },
   /**
    * 获取剪贴板 URL 监听开关

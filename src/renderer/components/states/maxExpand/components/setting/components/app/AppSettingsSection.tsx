@@ -28,6 +28,8 @@ import { useEffect, useRef, useState } from 'react';
 import type { Dispatch, ReactElement, SetStateAction } from 'react';
 import type { AppSettingsPageKey } from '../../utils/settingsConfig';
 import type { OverviewLayoutConfig, OverviewWidgetType } from '../../../../../expand/components/OverviewTab';
+import useIslandStore from '../../../../../../../store/slices';
+import { SvgIcon } from '../../../../../../../utils/SvgIcon';
 import { BUILTIN_WALLPAPERS } from '../../../../../../../assets/wallpaper/builtinWallpapers';
 
 interface AppRunningWindow {
@@ -182,6 +184,40 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
   const [clipboardBlacklistDraft, setClipboardBlacklistDraft] = useState<string>('');
   const [clipboardBlacklistError, setClipboardBlacklistError] = useState<string>('');
   const clearLogsResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const setNotification = useIslandStore((s) => s.setNotification);
+
+  /** 倒数日/TODOs 独立窗口模式 */
+  const [standaloneWindowMode, setStandaloneWindowMode] = useState<'integrated' | 'standalone'>('integrated');
+  useEffect(() => {
+    let cancelled = false;
+    window.api.storeRead('standalone-window-mode').then((data) => {
+      if (cancelled) return;
+      if (data === 'standalone') {
+        setStandaloneWindowMode('standalone');
+        return;
+      }
+      window.api.storeRead('countdown-window-mode').then((legacyData) => {
+        if (cancelled) return;
+        if (legacyData === 'standalone') setStandaloneWindowMode('standalone');
+      }).catch(() => {});
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+
+  const handleStandaloneWindowModeChange = (mode: 'integrated' | 'standalone'): void => {
+    setStandaloneWindowMode(mode);
+    window.api.storeWrite('standalone-window-mode', mode).catch(() => {});
+
+    const restartRequiredNotification = {
+      title: '配置变更',
+      body: '待办事项/倒数日/设置打开方式已变更，是否立即重启生效？',
+      icon: SvgIcon.SETTING,
+      type: 'restart-required',
+    } as const;
+
+    setNotification(restartRequiredNotification);
+    window.api.settingsPreview('notification:show', restartRequiredNotification).catch(() => {});
+  };
 
   const normalizeBlacklistDomain = (raw: string): string => {
     const trimmed = raw.trim().toLowerCase();
@@ -477,6 +513,7 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
                           const safe = Number.isFinite(v) ? Math.max(0, Math.min(100, Math.round(v))) : 30;
                           setBgImageOpacity(safe);
                           applyBgOpacity(safe);
+                          window.api.settingsPreview('store:island-bg-opacity', safe).catch(() => {});
                           if (bgOpacitySaveTimerRef.current) {
                             clearTimeout(bgOpacitySaveTimerRef.current);
                           }
@@ -513,6 +550,7 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
                       const safe = Number.isFinite(v) ? Math.max(10, Math.min(100, Math.round(v))) : 100;
                       setIslandOpacity(safe);
                       applyIslandOpacity(safe);
+                      window.api.settingsPreview('island:opacity', safe).catch(() => {});
                       if (opacitySaveTimerRef.current) {
                         clearTimeout(opacitySaveTimerRef.current);
                       }
@@ -538,6 +576,25 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
           {appSettingsPage === 'behavior' && (
             <div className="max-expand-settings-section">
               <div className="settings-music-section">
+                <div className="settings-music-label">灵动岛弹性动画 (立即生效)</div>
+                <div className="settings-music-hint">关闭后，展开和收起动画将变得更加平滑内敛，消除弹跳感</div>
+                <div className="settings-hotkey-row" style={{ alignItems: 'center', marginTop: 8 }}>
+                  <label className="settings-music-hint" style={{ marginBottom: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <input
+                      type="checkbox"
+                      checked={useIslandStore.getState().springAnimation}
+                      onChange={(e) => {
+                        const next = e.target.checked;
+                        useIslandStore.getState().setSpringAnimation(next);
+                        window.api.springAnimationSet(next).catch(() => {});
+                      }}
+                    />
+                    启用弹性动画
+                  </label>
+                </div>
+              </div>
+
+              <div className="settings-music-section" style={{ marginTop: 16 }}>
                 <div className="settings-music-label">鼠标移开自动收回 (重启后生效)</div>
                 <div className="settings-music-hint">启用后，鼠标离开灵动岛时将自动回到空闲状态（若正在播放音乐则切到歌词态）</div>
                 <div className="settings-hotkey-row" style={{ alignItems: 'center', marginTop: 8 }}>
@@ -564,6 +621,35 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
                       }}
                     />
                     最大展开态（MaxExpand）鼠标移开后自动收回
+                  </label>
+                </div>
+              </div>
+
+              <div className="settings-music-section" style={{ marginTop: 16 }}>
+                <div className="settings-music-label">待办事项 / 倒数日 / 设置 打开方式</div>
+                <div className="settings-music-hint">选择点击导航时，在灵动岛内显示还是打开独立窗口（重启后生效）</div>
+                <div className="settings-hotkey-row" style={{ alignItems: 'center', marginTop: 8, gap: 12 }}>
+                  <label className="settings-music-hint" style={{ marginBottom: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <input
+                      type="radio"
+                      name="standalone-window-mode"
+                      checked={standaloneWindowMode === 'integrated'}
+                      onChange={() => {
+                        handleStandaloneWindowModeChange('integrated');
+                      }}
+                    />
+                    集成在灵动岛中
+                  </label>
+                  <label className="settings-music-hint" style={{ marginBottom: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <input
+                      type="radio"
+                      name="standalone-window-mode"
+                      checked={standaloneWindowMode === 'standalone'}
+                      onChange={() => {
+                        handleStandaloneWindowModeChange('standalone');
+                      }}
+                    />
+                    独立窗口
                   </label>
                 </div>
               </div>
