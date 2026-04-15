@@ -79,11 +79,11 @@ export function registerMediaIpcHandlers(options: RegisterMediaIpcHandlersOption
       options.clearPendingSourceSwitchEntry();
       const entry = options.getSmtcSessionRuntime()?.get(options.getCurrentDeviceId());
       const payload = entry?.hasTitle ? entry.payload : null;
-      for (const win of BrowserWindow.getAllWindows()) {
+      BrowserWindow.getAllWindows().forEach((win) => {
         if (!win.isDestroyed()) {
           win.webContents.send('nowplaying:info', payload);
         }
-      }
+      });
     }
   });
 

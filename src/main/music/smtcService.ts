@@ -159,11 +159,11 @@ export function createSmtcService(options: CreateSmtcServiceOptions): SmtcServic
       const emitCurrentSession = (): void => {
         const currentEntry = currentDeviceId ? sessionRuntime.get(currentDeviceId) : undefined;
         const payload = currentEntry?.hasTitle ? currentEntry.payload : null;
-        for (const win of BrowserWindow.getAllWindows()) {
+        BrowserWindow.getAllWindows().forEach((win) => {
           if (!win.isDestroyed()) {
             win.webContents.send('nowplaying:info', payload);
           }
-        }
+        });
       };
 
       const emitSourceSwitchRequest = (sourceAppId: string, title: string, artist: string): void => {
@@ -328,13 +328,13 @@ export function createSmtcService(options: CreateSmtcServiceOptions): SmtcServic
       pendingDetectResolve = (sources) => {
         clearTimeout(timeout);
         const now = Date.now();
-        for (const s of sources) {
+        sources.forEach((s) => {
           detectedSourceRuntime.set(s.sourceAppId, {
             isPlaying: s.isPlaying,
             hasTitle: s.hasTitle,
             updatedAt: now,
           });
-        }
+        });
         resolve(sources);
       };
 

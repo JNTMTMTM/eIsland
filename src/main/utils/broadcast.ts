@@ -33,11 +33,11 @@ import { BrowserWindow, ipcMain } from 'electron';
  * @param value - 新值
  */
 export function broadcastSettingChange(senderWebContentsId: number, channel: string, value: unknown): void {
-  for (const win of BrowserWindow.getAllWindows()) {
+  BrowserWindow.getAllWindows().forEach((win) => {
     if (!win.isDestroyed() && win.webContents.id !== senderWebContentsId) {
       win.webContents.send('settings:changed', channel, value);
     }
-  }
+  });
 }
 
 /**
