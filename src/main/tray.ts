@@ -26,6 +26,7 @@
 
 import { Tray, Menu, nativeImage, BrowserWindow, app, shell } from 'electron';
 import { join } from 'path';
+import { existsSync, readFileSync } from 'fs';
 import { is } from '@electron-toolkit/utils';
 import { openCountdownWindow } from './window/countdownWindow';
 
@@ -50,7 +51,16 @@ function createTray(mainWindow: BrowserWindow | null): Tray {
   tray = new Tray(icon);
   const logDir = join(app.getPath('userData'), 'logs');
 
-  const contextMenu = Menu.buildFromTemplate([
+  let isStandaloneMode = false;
+  try {
+    const cfgPath = join(app.getPath('userData'), 'eIsland_store', 'countdown-window-mode.json');
+    if (existsSync(cfgPath)) {
+      const raw = readFileSync(cfgPath, 'utf-8');
+      isStandaloneMode = JSON.parse(raw) === 'standalone';
+    }
+  } catch { /* ignore */ }
+
+  const menuItems: Electron.MenuItemConstructorOptions[] = [
     {
       label: '显示灵动岛',
       click: () => {
@@ -63,12 +73,18 @@ function createTray(mainWindow: BrowserWindow | null): Tray {
         mainWindow?.hide();
       }
     },
-    {
+  ];
+
+  if (isStandaloneMode) {
+    menuItems.push({
       label: '打开配置界面',
       click: () => {
         openCountdownWindow();
       }
-    },
+    });
+  }
+
+  menuItems.push(
     {
       label: '窗口置顶',
       type: 'checkbox',
@@ -99,8 +115,9 @@ function createTray(mainWindow: BrowserWindow | null): Tray {
         app.quit();
       }
     }
-  ]);
+  );
 
+  const contextMenu = Menu.buildFromTemplate(menuItems);
   tray.setToolTip('eIsland');
   tray.setContextMenu(contextMenu);
 

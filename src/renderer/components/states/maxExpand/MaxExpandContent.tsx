@@ -54,39 +54,34 @@ const NAV_DOTS: { id: NavDotId; label: string }[] = [
 /** 独立窗口模式下从灵动岛中移除的 Tab */
 const STANDALONE_HIDDEN_TABS: Set<NavDotId> = new Set(['todo', 'countdown', 'settings']);
 
+/** 启动时读取一次，整个生命周期内不再变化（重启后生效） */
+let _startupMode: 'integrated' | 'standalone' = 'integrated';
+let _startupModeResolved = false;
+const _startupModeReady: Promise<void> = (window.api?.storeRead?.('countdown-window-mode') ?? Promise.resolve(null))
+  .then((data: unknown) => { if (data === 'standalone') _startupMode = 'standalone'; })
+  .catch(() => {})
+  .finally(() => { _startupModeResolved = true; });
+
 export function MaxExpandContent(): React.ReactElement {
   const { setExpanded, maxExpandTab: activeTab, setMaxExpandTab: setActiveTab } = useIslandStore();
   const contentRef = useRef<HTMLDivElement>(null);
   const activeTabRef = useRef(activeTab);
   activeTabRef.current = activeTab;
 
-  /** 倒数日/TODOs 打开模式偏好 */
-  const [countdownMode, setCountdownMode] = useState<'integrated' | 'standalone'>('integrated');
+  const [countdownMode, setCountdownMode] = useState<'integrated' | 'standalone'>(
+    _startupModeResolved ? _startupMode : 'integrated'
+  );
 
   useEffect(() => {
     let cancelled = false;
-    window.api.storeRead('countdown-window-mode').then((data) => {
+    _startupModeReady.then(() => {
       if (cancelled) return;
-      if (data === 'standalone') {
-        setCountdownMode('standalone');
-        if (STANDALONE_HIDDEN_TABS.has(activeTabRef.current)) {
-          setActiveTab('urlFavorites');
-        }
-      }
-    }).catch(() => {});
-
-    const unsub = window.api.onSettingsChanged((channel: string, value: unknown) => {
-      if (cancelled) return;
-      if (channel === 'store:countdown-window-mode') {
-        const mode = value === 'standalone' ? 'standalone' : 'integrated';
-        setCountdownMode(mode);
-        if (mode === 'standalone' && STANDALONE_HIDDEN_TABS.has(activeTabRef.current)) {
-          setActiveTab('urlFavorites');
-        }
+      setCountdownMode(_startupMode);
+      if (_startupMode === 'standalone' && STANDALONE_HIDDEN_TABS.has(activeTabRef.current)) {
+        setActiveTab('urlFavorites');
       }
     });
-
-    return () => { cancelled = true; unsub(); };
+    return () => { cancelled = true; };
   }, [setActiveTab]);
 
   /** 独立窗口模式下过滤掉的导航点 */

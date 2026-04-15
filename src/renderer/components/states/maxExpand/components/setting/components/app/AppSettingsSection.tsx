@@ -582,8 +582,8 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
               </div>
 
               <div className="settings-music-section" style={{ marginTop: 16 }}>
-                <div className="settings-music-label">待办事项 / 倒数日 打开方式</div>
-                <div className="settings-music-hint">选择点击导航时，在灵动岛内显示还是打开独立窗口</div>
+                <div className="settings-music-label">待办事项 / 倒数日 / 设置 打开方式</div>
+                <div className="settings-music-hint">选择点击导航时，在灵动岛内显示还是打开独立窗口（重启后生效）</div>
                 <div className="settings-hotkey-row" style={{ alignItems: 'center', marginTop: 8, gap: 12 }}>
                   <label className="settings-music-hint" style={{ marginBottom: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
                     <input
