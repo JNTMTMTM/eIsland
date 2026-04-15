@@ -477,6 +477,10 @@ export function SettingsTab(): ReactElement {
       if (cancelled) return;
       setMaxExpandLeaveIdle(v);
     }).catch(() => {});
+    window.api.springAnimationGet().then((v) => {
+      if (cancelled) return;
+      useIslandStore.getState().setSpringAnimation(v);
+    }).catch(() => {});
     window.api.clipboardUrlMonitorGet().then((v) => {
       if (cancelled) return;
       setClipboardUrlMonitorEnabled(v);

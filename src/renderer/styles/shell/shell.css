@@ -37,11 +37,11 @@
   justify-content: center;
   cursor: default;
   user-select: none;
-  transition: width 0.55s cubic-bezier(0.25, 1, 0.5, 1),
-              height 0.55s cubic-bezier(0.25, 1, 0.5, 1),
-              border-radius 0.55s cubic-bezier(0.25, 1, 0.5, 1),
-              background 0.45s ease,
-              box-shadow 0.55s ease;
+  transition: width 0.4s ease,
+              height 0.4s ease,
+              border-radius 0.4s ease,
+              background 0.4s ease,
+              box-shadow 0.4s ease;
   overflow: hidden;
   box-shadow: 0 0 0 rgba(0, 0, 0, 0);
   margin: 0 auto;
@@ -49,6 +49,14 @@
   transform-origin: top center;
   mask-image: radial-gradient(white, white);
   -webkit-mask-image: -webkit-radial-gradient(white, white);
+}
+
+.island-shell.spring-animation {
+  transition: width 0.68s cubic-bezier(0.22, 1, 0.36, 1),
+              height 0.68s cubic-bezier(0.22, 1, 0.36, 1),
+              border-radius 0.68s cubic-bezier(0.22, 1, 0.36, 1),
+              background 0.45s ease,
+              box-shadow 0.68s ease;
 }
 
 .island-shell::before {
@@ -110,8 +118,8 @@
 }
 
 /** idle → hover：横向弹性膨胀 */
-.island-shell.hover.morphing.from-idle {
-  animation: shellExpandFromIdle 0.55s cubic-bezier(0.34, 1.1, 0.64, 1);
+.island-shell.spring-animation.hover.morphing.from-idle {
+  animation: shellExpandFromIdle 0.68s cubic-bezier(0.25, 1.06, 0.45, 1);
 }
 
 @keyframes shellExpandFromIdle {
@@ -122,10 +130,10 @@
 }
 
 /** expanded / maxExpand → hover：收缩回弹 */
-.island-shell.hover.morphing.from-expanded,
-.island-shell.hover.morphing.from-maxExpand,
-.island-shell.hover.morphing.from-guide {
-  animation: shellContractToHover 0.55s cubic-bezier(0.25, 1, 0.5, 1);
+.island-shell.spring-animation.hover.morphing.from-expanded,
+.island-shell.spring-animation.hover.morphing.from-maxExpand,
+.island-shell.spring-animation.hover.morphing.from-guide {
+  animation: shellContractToHover 0.68s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @keyframes shellContractToHover {
@@ -136,8 +144,8 @@
 }
 
 /** idle → notification：弹性横向膨胀 + 纵向伸展 */
-.island-shell.notification.morphing.from-idle {
-  animation: shellExpandToNotification 0.55s cubic-bezier(0.34, 1.1, 0.64, 1);
+.island-shell.spring-animation.notification.morphing.from-idle {
+  animation: shellExpandToNotification 0.68s cubic-bezier(0.25, 1.06, 0.45, 1);
 }
 
 @keyframes shellExpandToNotification {
@@ -149,8 +157,8 @@
 }
 
 /** hover → notification：小幅纵向伸展 */
-.island-shell.notification.morphing.from-hover {
-  animation: shellExpandNotifFromHover 0.6s cubic-bezier(0.34, 1.2, 0.64, 1);
+.island-shell.spring-animation.notification.morphing.from-hover {
+  animation: shellExpandNotifFromHover 0.72s cubic-bezier(0.25, 1.08, 0.45, 1);
 }
 
 @keyframes shellExpandNotifFromHover {
@@ -161,8 +169,8 @@
 }
 
 /** notification → hover：同尺寸，微妙呼吸 */
-.island-shell.hover.morphing.from-notification {
-  animation: shellCrossfade 0.55s cubic-bezier(0.25, 1, 0.5, 1);
+.island-shell.spring-animation.hover.morphing.from-notification {
+  animation: shellCrossfade 0.68s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @keyframes shellCrossfade {
@@ -172,13 +180,13 @@
 }
 
 /** hover → idle：柔和收拢 */
-.island-shell.morphing.from-hover:not(.hover):not(.expanded):not(.maxExpand):not(.notification):not(.guide) {
-  animation: shellShrinkToIdle 0.55s cubic-bezier(0.25, 1, 0.5, 1);
+.island-shell.spring-animation.morphing.from-hover:not(.hover):not(.expanded):not(.maxExpand):not(.notification):not(.guide) {
+  animation: shellShrinkToIdle 0.68s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 /** notification → idle：横向收拢 */
-.island-shell.morphing.from-notification:not(.hover):not(.expanded):not(.maxExpand):not(.notification):not(.guide) {
-  animation: shellShrinkFromNotification 0.55s cubic-bezier(0.25, 1, 0.5, 1);
+.island-shell.spring-animation.morphing.from-notification:not(.hover):not(.expanded):not(.maxExpand):not(.notification):not(.guide) {
+  animation: shellShrinkFromNotification 0.68s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @keyframes shellShrinkFromNotification {

@@ -576,6 +576,25 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
           {appSettingsPage === 'behavior' && (
             <div className="max-expand-settings-section">
               <div className="settings-music-section">
+                <div className="settings-music-label">灵动岛弹性动画 (立即生效)</div>
+                <div className="settings-music-hint">关闭后，展开和收起动画将变得更加平滑内敛，消除弹跳感</div>
+                <div className="settings-hotkey-row" style={{ alignItems: 'center', marginTop: 8 }}>
+                  <label className="settings-music-hint" style={{ marginBottom: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <input
+                      type="checkbox"
+                      checked={useIslandStore.getState().springAnimation}
+                      onChange={(e) => {
+                        const next = e.target.checked;
+                        useIslandStore.getState().setSpringAnimation(next);
+                        window.api.springAnimationSet(next).catch(() => {});
+                      }}
+                    />
+                    启用弹性动画
+                  </label>
+                </div>
+              </div>
+
+              <div className="settings-music-section" style={{ marginTop: 16 }}>
                 <div className="settings-music-label">鼠标移开自动收回 (重启后生效)</div>
                 <div className="settings-music-hint">启用后，鼠标离开灵动岛时将自动回到空闲状态（若正在播放音乐则切到歌词态）</div>
                 <div className="settings-hotkey-row" style={{ alignItems: 'center', marginTop: 8 }}>

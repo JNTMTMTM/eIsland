@@ -39,6 +39,7 @@ export const createIslandSlice: StateCreator<
   expandTab: 'overview',
   maxExpandTab: 'todo',
   notification: emptyNotification,
+  springAnimation: true,
 
   setIdle: (force?: boolean) => set((prev) => {
     if (!force && (prev.state === 'expanded' || prev.state === 'maxExpand' || prev.state === 'guide')) return prev;
@@ -85,4 +86,5 @@ export const createIslandSlice: StateCreator<
   setHoverTab: (tab) => set({ hoverTab: tab }),
   setExpandTab: (tab) => set({ expandTab: tab }),
   setMaxExpandTab: (tab) => set({ maxExpandTab: tab }),
+  setSpringAnimation: (enabled) => set({ springAnimation: enabled }),
 });

@@ -119,6 +119,30 @@ export function registerIslandIpcHandlers(options: RegisterIslandIpcHandlersOpti
     }
   });
 
+  ipcMain.handle('island:spring-animation:get', () => {
+    try {
+      const filePath = join(options.storeDir, 'spring-animation.json');
+      if (!existsSync(filePath)) return true; // Default to true
+      const raw = readFileSync(filePath, 'utf-8');
+      const data = JSON.parse(raw);
+      return typeof data === 'boolean' ? data : true;
+    } catch {
+      return true;
+    }
+  });
+
+  ipcMain.handle('island:spring-animation:set', (event, enabled: boolean) => {
+    try {
+      const filePath = join(options.storeDir, 'spring-animation.json');
+      writeFileSync(filePath, JSON.stringify(enabled, null, 2), 'utf-8');
+      broadcastSettingChange(event.sender.id, 'island:spring-animation', enabled);
+      return true;
+    } catch (err) {
+      console.error('[SpringAnimation] persist error:', err);
+      return false;
+    }
+  });
+
   ipcMain.handle('island:autostart:get', () => {
     try {
       const filePath = join(options.storeDir, `${options.autostartModeStoreKey}.json`);

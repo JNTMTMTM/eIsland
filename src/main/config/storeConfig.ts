@@ -150,6 +150,9 @@ export const EXPAND_MOUSELEAVE_IDLE_STORE_KEY = 'expand-mouseleave-idle';
 /** maxExpand 鼠标移开回 idle 开关存储键名 */
 export const MAXEXPAND_MOUSELEAVE_IDLE_STORE_KEY = 'maxexpand-mouseleave-idle';
 
+/** 灵动岛弹性动画开关存储键名 */
+export const SPRING_ANIMATION_STORE_KEY = 'spring-animation';
+
 /** 剪贴板 URL 监听开关存储键名 */
 export const CLIPBOARD_URL_MONITOR_ENABLED_STORE_KEY = 'clipboard-url-monitor-enabled';
 

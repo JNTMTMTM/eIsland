@@ -155,6 +155,8 @@ declare global {
       expandMouseleaveIdleSet: (enabled: boolean) => Promise<boolean>;
       maxexpandMouseleaveIdleGet: () => Promise<boolean>;
       maxexpandMouseleaveIdleSet: (enabled: boolean) => Promise<boolean>;
+      springAnimationGet: () => Promise<boolean>;
+      springAnimationSet: (enabled: boolean) => Promise<boolean>;
       clipboardUrlMonitorGet: () => Promise<boolean>;
       clipboardUrlMonitorSet: (enabled: boolean) => Promise<boolean>;
       clipboardUrlDetectModeGet: () => Promise<'https-only' | 'http-https' | 'domain-only'>;

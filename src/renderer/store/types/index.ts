@@ -182,6 +182,7 @@ export interface IslandSlice {
   expandTab: ExpandTab;
   maxExpandTab: MaxExpandTab;
   notification: NotificationData;
+  springAnimation: boolean;
   setIdle: (force?: boolean) => void;
   setHover: () => void;
   setExpanded: () => void;
@@ -192,6 +193,7 @@ export interface IslandSlice {
   setHoverTab: (tab: HoverTab) => void;
   setExpandTab: (tab: ExpandTab) => void;
   setMaxExpandTab: (tab: MaxExpandTab) => void;
+  setSpringAnimation: (enabled: boolean) => void;
 }
 
 /** 天气 Slice */

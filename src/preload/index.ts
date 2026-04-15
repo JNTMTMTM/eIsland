@@ -666,6 +666,18 @@ const api = {
     return ipcRenderer.invoke('island:maxexpand-mouseleave-idle:set', enabled);
   },
   /**
+   * 获取是否启用弹性动画
+   */
+  springAnimationGet: (): Promise<boolean> => {
+    return ipcRenderer.invoke('island:spring-animation:get');
+  },
+  /**
+   * 设置是否启用弹性动画
+   */
+  springAnimationSet: (enabled: boolean): Promise<boolean> => {
+    return ipcRenderer.invoke('island:spring-animation:set', enabled);
+  },
+  /**
    * 获取剪贴板 URL 监听开关
    */
   clipboardUrlMonitorGet: (): Promise<boolean> => {
