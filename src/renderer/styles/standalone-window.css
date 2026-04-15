@@ -165,6 +165,11 @@
   background: #000;
 }
 
+/* 独立窗口内：隐藏窗口管理列表增加可视高度 */
+.cw-root .settings-hide-process-list {
+  max-height: 440px;
+}
+
 /* ===== 独立窗口模式下组件样式适配 ===== */
 
 .cw-viewport .expand-todo {
