@@ -89,6 +89,7 @@ declare global {
       mediaSeek: (positionMs: number) => Promise<void>;
       mediaGetVolume: () => Promise<number>;
       mediaSetVolume: (volume: number) => Promise<void>;
+      mediaCurrentInfoGet: () => Promise<NowPlayingInfo | null>;
       onNowPlayingInfo: (callback: (info: NowPlayingInfo | null) => void) => () => void;
       screenshot: () => Promise<string | null>;
       openTaskManager: () => void;

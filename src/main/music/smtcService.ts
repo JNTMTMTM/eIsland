@@ -157,13 +157,12 @@ export function createSmtcService(options: CreateSmtcServiceOptions): SmtcServic
       smtcSessionRuntime = sessionRuntime;
 
       const emitCurrentSession = (): void => {
-        const mainWindow = options.getMainWindow();
-        if (!mainWindow || mainWindow.isDestroyed()) return;
         const currentEntry = currentDeviceId ? sessionRuntime.get(currentDeviceId) : undefined;
-        if (currentEntry?.hasTitle) {
-          mainWindow.webContents.send('nowplaying:info', currentEntry.payload);
-        } else {
-          mainWindow.webContents.send('nowplaying:info', null);
+        const payload = currentEntry?.hasTitle ? currentEntry.payload : null;
+        for (const win of BrowserWindow.getAllWindows()) {
+          if (!win.isDestroyed()) {
+            win.webContents.send('nowplaying:info', payload);
+          }
         }
       };
 

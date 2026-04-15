@@ -31,6 +31,8 @@ import './styles/settings/settings.css';
 import './styles/countdown-window.css';
 import { CountdownWindow } from './components/CountdownWindow';
 import { initTheme } from './utils/theme';
+import useIslandStore from './store/slices';
+import type { NowPlayingInfo } from './store/types';
 
 const root = document.getElementById('root');
 if (!root) {
@@ -40,6 +42,13 @@ const rootEl = root;
 
 async function bootstrap(): Promise<void> {
   await initTheme();
+
+  const handleNowPlayingUpdate = useIslandStore.getState().handleNowPlayingUpdate;
+  const initialInfo = await window.api.mediaCurrentInfoGet().catch(() => null);
+  handleNowPlayingUpdate(initialInfo as NowPlayingInfo | null);
+  window.api.onNowPlayingInfo((info: NowPlayingInfo | null) => {
+    handleNowPlayingUpdate(info);
+  });
 
   createRoot(rootEl).render(
     <StrictMode>

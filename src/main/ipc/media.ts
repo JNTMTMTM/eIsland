@@ -51,6 +51,11 @@ interface RegisterMediaIpcHandlersOptions {
  * @param options - 配置选项，包含窗口获取和媒体控制函数
  */
 export function registerMediaIpcHandlers(options: RegisterMediaIpcHandlersOptions): void {
+  ipcMain.handle('media:current-info:get', () => {
+    const entry = options.getSmtcSessionRuntime()?.get(options.getCurrentDeviceId());
+    return entry?.hasTitle ? entry.payload : null;
+  });
+
   ipcMain.handle('media:play-pause', () => {
     options.sendMediaVirtualKey(0xB3);
   });
@@ -72,11 +77,11 @@ export function registerMediaIpcHandlers(options: RegisterMediaIpcHandlersOption
       options.setCurrentDeviceId(pendingSourceSwitchId);
       options.setPendingSourceSwitchId('');
       options.clearPendingSourceSwitchEntry();
-      const mainWindow = options.getMainWindow();
-      if (mainWindow && !mainWindow.isDestroyed()) {
-        const entry = options.getSmtcSessionRuntime()?.get(options.getCurrentDeviceId());
-        if (entry?.hasTitle) {
-          mainWindow.webContents.send('nowplaying:info', entry.payload);
+      const entry = options.getSmtcSessionRuntime()?.get(options.getCurrentDeviceId());
+      const payload = entry?.hasTitle ? entry.payload : null;
+      for (const win of BrowserWindow.getAllWindows()) {
+        if (!win.isDestroyed()) {
+          win.webContents.send('nowplaying:info', payload);
         }
       }
     }

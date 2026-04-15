@@ -227,6 +227,12 @@ const api = {
   mediaSetVolume: (volume: number): Promise<void> => {
     return ipcRenderer.invoke('media:set-volume', volume);
   },
+  /**
+   * 获取当前正在播放歌曲信息（用于初始化）
+   */
+  mediaCurrentInfoGet: (): Promise<NowPlayingInfo | null> => {
+    return ipcRenderer.invoke('media:current-info:get');
+  },
   /** ===== 歌曲信息监听 API ===== */
   /**
    * 订阅歌曲信息变更事件
