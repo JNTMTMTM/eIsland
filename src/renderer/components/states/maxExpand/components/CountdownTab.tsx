@@ -250,7 +250,7 @@ export function CountdownTab(): React.ReactElement {
         className="cd-popout-btn"
         type="button"
         title="在独立窗口中打开"
-        onClick={() => { window.api.openCountdownWindow().catch(() => {}); }}
+        onClick={() => { window.api.openStandaloneWindow().catch(() => {}); }}
       >⧉</button>
       {/* ===== 上部区域 ===== */}
       <div className="cd-top">

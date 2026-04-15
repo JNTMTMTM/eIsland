@@ -57,8 +57,16 @@ const STANDALONE_HIDDEN_TABS: Set<NavDotId> = new Set(['todo', 'countdown', 'set
 /** 启动时读取一次，整个生命周期内不再变化（重启后生效） */
 let _startupMode: 'integrated' | 'standalone' = 'integrated';
 let _startupModeResolved = false;
-const _startupModeReady: Promise<void> = (window.api?.storeRead?.('countdown-window-mode') ?? Promise.resolve(null))
-  .then((data: unknown) => { if (data === 'standalone') _startupMode = 'standalone'; })
+const _startupModeReady: Promise<void> = (window.api?.storeRead?.('standalone-window-mode') ?? Promise.resolve(null))
+  .then((data: unknown) => {
+    if (data === 'standalone') {
+      _startupMode = 'standalone';
+      return;
+    }
+    return window.api?.storeRead?.('countdown-window-mode').then((legacyMode: unknown) => {
+      if (legacyMode === 'standalone') _startupMode = 'standalone';
+    }).catch(() => {});
+  })
   .catch(() => {})
   .finally(() => { _startupModeResolved = true; });
 

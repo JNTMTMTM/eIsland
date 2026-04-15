@@ -67,8 +67,9 @@ interface TodoItem {
 const STORE_KEY = 'todos';
 const APPS_STORE_KEY = 'app-shortcuts';
 const URL_FAVORITES_STORE_KEY = 'url-favorites';
-const COUNTDOWN_WINDOW_MODE_STORE_KEY = 'countdown-window-mode';
-const COUNTDOWN_WINDOW_ACTIVE_TAB_STORE_KEY = 'countdown-window-active-tab';
+const STANDALONE_WINDOW_MODE_STORE_KEY = 'standalone-window-mode';
+const LEGACY_COUNTDOWN_WINDOW_MODE_STORE_KEY = 'countdown-window-mode';
+const STANDALONE_WINDOW_ACTIVE_TAB_STORE_KEY = 'standalone-window-active-tab';
 
 /** 应用快捷方式 */
 interface AppShortcut {
@@ -604,10 +605,13 @@ export function OverviewTab(): React.ReactElement {
   const [layoutConfig, setLayoutConfig] = useState<OverviewLayoutConfig>(DEFAULT_LAYOUT);
 
   const openTargetPage = useCallback((target: 'todo' | 'countdown' | 'settings'): void => {
-    window.api.storeRead(COUNTDOWN_WINDOW_MODE_STORE_KEY).then((mode) => {
+    window.api.storeRead(STANDALONE_WINDOW_MODE_STORE_KEY).then((mode) => {
+      if (mode === 'standalone' || mode === 'integrated') return mode;
+      return window.api.storeRead(LEGACY_COUNTDOWN_WINDOW_MODE_STORE_KEY).catch(() => null);
+    }).then((mode) => {
       if (mode === 'standalone') {
-        window.api.storeWrite(COUNTDOWN_WINDOW_ACTIVE_TAB_STORE_KEY, target).catch(() => {});
-        window.api.openCountdownWindow().catch(() => {});
+        window.api.storeWrite(STANDALONE_WINDOW_ACTIVE_TAB_STORE_KEY, target).catch(() => {});
+        window.api.openStandaloneWindow().catch(() => {});
       } else {
         setMaxExpandTab(target);
         setMaxExpand();

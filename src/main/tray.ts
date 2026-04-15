@@ -28,7 +28,7 @@ import { Tray, Menu, nativeImage, BrowserWindow, app, shell } from 'electron';
 import { join } from 'path';
 import { existsSync, readFileSync } from 'fs';
 import { is } from '@electron-toolkit/utils';
-import { openCountdownWindow } from './window/countdownWindow';
+import { openStandaloneWindow } from './window/standaloneWindow';
 
 let tray: Tray | null = null;
 let cachedMainWindow: BrowserWindow | null = null;
@@ -53,9 +53,12 @@ function createTray(mainWindow: BrowserWindow | null): Tray {
 
   let isStandaloneMode = false;
   try {
-    const cfgPath = join(app.getPath('userData'), 'eIsland_store', 'countdown-window-mode.json');
-    if (existsSync(cfgPath)) {
-      const raw = readFileSync(cfgPath, 'utf-8');
+    const storeDir = join(app.getPath('userData'), 'eIsland_store');
+    const cfgPath = join(storeDir, 'standalone-window-mode.json');
+    const legacyCfgPath = join(storeDir, 'countdown-window-mode.json');
+    const modePath = existsSync(cfgPath) ? cfgPath : legacyCfgPath;
+    if (existsSync(modePath)) {
+      const raw = readFileSync(modePath, 'utf-8');
       isStandaloneMode = JSON.parse(raw) === 'standalone';
     }
   } catch { /* ignore */ }
@@ -79,7 +82,7 @@ function createTray(mainWindow: BrowserWindow | null): Tray {
     menuItems.push({
       label: '打开配置界面',
       click: () => {
-        openCountdownWindow();
+        openStandaloneWindow();
       }
     });
   }

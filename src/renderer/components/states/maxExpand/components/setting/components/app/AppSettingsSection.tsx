@@ -187,19 +187,26 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
   const setNotification = useIslandStore((s) => s.setNotification);
 
   /** 倒数日/TODOs 独立窗口模式 */
-  const [countdownWindowMode, setCountdownWindowMode] = useState<'integrated' | 'standalone'>('integrated');
+  const [standaloneWindowMode, setStandaloneWindowMode] = useState<'integrated' | 'standalone'>('integrated');
   useEffect(() => {
     let cancelled = false;
-    window.api.storeRead('countdown-window-mode').then((data) => {
+    window.api.storeRead('standalone-window-mode').then((data) => {
       if (cancelled) return;
-      if (data === 'standalone') setCountdownWindowMode('standalone');
+      if (data === 'standalone') {
+        setStandaloneWindowMode('standalone');
+        return;
+      }
+      window.api.storeRead('countdown-window-mode').then((legacyData) => {
+        if (cancelled) return;
+        if (legacyData === 'standalone') setStandaloneWindowMode('standalone');
+      }).catch(() => {});
     }).catch(() => {});
     return () => { cancelled = true; };
   }, []);
 
-  const handleCountdownWindowModeChange = (mode: 'integrated' | 'standalone'): void => {
-    setCountdownWindowMode(mode);
-    window.api.storeWrite('countdown-window-mode', mode).catch(() => {});
+  const handleStandaloneWindowModeChange = (mode: 'integrated' | 'standalone'): void => {
+    setStandaloneWindowMode(mode);
+    window.api.storeWrite('standalone-window-mode', mode).catch(() => {});
 
     const restartRequiredNotification = {
       title: '配置变更',
@@ -606,10 +613,10 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
                   <label className="settings-music-hint" style={{ marginBottom: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
                     <input
                       type="radio"
-                      name="countdown-window-mode"
-                      checked={countdownWindowMode === 'integrated'}
+                      name="standalone-window-mode"
+                      checked={standaloneWindowMode === 'integrated'}
                       onChange={() => {
-                        handleCountdownWindowModeChange('integrated');
+                        handleStandaloneWindowModeChange('integrated');
                       }}
                     />
                     集成在灵动岛中
@@ -617,10 +624,10 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
                   <label className="settings-music-hint" style={{ marginBottom: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
                     <input
                       type="radio"
-                      name="countdown-window-mode"
-                      checked={countdownWindowMode === 'standalone'}
+                      name="standalone-window-mode"
+                      checked={standaloneWindowMode === 'standalone'}
                       onChange={() => {
-                        handleCountdownWindowModeChange('standalone');
+                        handleStandaloneWindowModeChange('standalone');
                       }}
                     />
                     独立窗口

@@ -19,7 +19,7 @@
  */
 
 /**
- * @file countdownWindow.ts
+ * @file standaloneWindow.ts
  * @description 倒数日/TODOs/设置 独立窗口服务模块
  * @author 鸡哥
  */
@@ -28,18 +28,18 @@ import { BrowserWindow, shell } from 'electron';
 import { join } from 'path';
 import { is } from '@electron-toolkit/utils';
 
-let countdownWindow: BrowserWindow | null = null;
+let standaloneWindow: BrowserWindow | null = null;
 
 /**
- * 打开倒数日独立窗口（若已打开则聚焦）
+ * 打开独立窗口（若已打开则聚焦）
  */
-function openCountdownWindow(): void {
-  if (countdownWindow && !countdownWindow.isDestroyed()) {
-    countdownWindow.focus();
+function openStandaloneWindow(): void {
+  if (standaloneWindow && !standaloneWindow.isDestroyed()) {
+    standaloneWindow.focus();
     return;
   }
 
-  countdownWindow = new BrowserWindow({
+  standaloneWindow = new BrowserWindow({
     width: 960,
     height: 640,
     minWidth: 720,
@@ -61,40 +61,40 @@ function openCountdownWindow(): void {
     },
   });
 
-  countdownWindow.on('ready-to-show', () => {
-    countdownWindow?.show();
+  standaloneWindow.on('ready-to-show', () => {
+    standaloneWindow?.show();
   });
 
-  countdownWindow.on('closed', () => {
-    countdownWindow = null;
+  standaloneWindow.on('closed', () => {
+    standaloneWindow = null;
   });
 
-  countdownWindow.webContents.setWindowOpenHandler((details) => {
+  standaloneWindow.webContents.setWindowOpenHandler((details) => {
     shell.openExternal(details.url);
     return { action: 'deny' };
   });
 
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
-    countdownWindow.loadURL(process.env['ELECTRON_RENDERER_URL'] + '/countdown.html');
+    standaloneWindow.loadURL(process.env['ELECTRON_RENDERER_URL'] + '/standalone.html');
   } else {
-    countdownWindow.loadFile(join(__dirname, '../renderer/countdown.html'));
+    standaloneWindow.loadFile(join(__dirname, '../renderer/standalone.html'));
   }
 }
 
 /**
- * 关闭倒数日独立窗口
+ * 关闭独立窗口
  */
-function closeCountdownWindow(): void {
-  if (countdownWindow && !countdownWindow.isDestroyed()) {
-    countdownWindow.close();
+function closeStandaloneWindow(): void {
+  if (standaloneWindow && !standaloneWindow.isDestroyed()) {
+    standaloneWindow.close();
   }
 }
 
 /**
- * 获取倒数日独立窗口实例
+ * 获取独立窗口实例
  */
-function getCountdownWindow(): BrowserWindow | null {
-  return countdownWindow;
+function getStandaloneWindow(): BrowserWindow | null {
+  return standaloneWindow;
 }
 
-export { openCountdownWindow, closeCountdownWindow, getCountdownWindow };
+export { openStandaloneWindow, closeStandaloneWindow, getStandaloneWindow };

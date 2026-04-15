@@ -28,7 +28,7 @@
 import { app, BrowserWindow, ipcMain, shell } from 'electron';
 import { basename } from 'path';
 import { clearLogsCacheFiles, ensureLogsDir } from '../log/mainLog';
-import { openCountdownWindow, closeCountdownWindow } from '../window/countdownWindow';
+import { openStandaloneWindow, closeStandaloneWindow } from '../window/standaloneWindow';
 
 /**
  * 注册应用相关 IPC 处理器
@@ -117,22 +117,22 @@ export function registerAppIpcHandlers(): void {
     }
   });
 
-  ipcMain.handle('app:open-countdown-window', () => {
+  ipcMain.handle('app:open-standalone-window', () => {
     try {
-      openCountdownWindow();
+      openStandaloneWindow();
       return true;
     } catch (err) {
-      console.error('[App] open-countdown-window error:', err);
+      console.error('[App] open-standalone-window error:', err);
       return false;
     }
   });
 
-  ipcMain.handle('app:close-countdown-window', () => {
+  ipcMain.handle('app:close-standalone-window', () => {
     try {
-      closeCountdownWindow();
+      closeStandaloneWindow();
       return true;
     } catch (err) {
-      console.error('[App] close-countdown-window error:', err);
+      console.error('[App] close-standalone-window error:', err);
       return false;
     }
   });

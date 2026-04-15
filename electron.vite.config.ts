@@ -61,7 +61,7 @@ export default defineConfig({
       rollupOptions: {
         input: {
           index: resolve(__dirname, 'src/renderer/index.html'),
-          countdown: resolve(__dirname, 'src/renderer/countdown.html')
+          standalone: resolve(__dirname, 'src/renderer/standalone.html')
         }
       },
     },

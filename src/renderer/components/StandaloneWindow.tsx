@@ -19,7 +19,7 @@
  */
 
 /**
- * @file CountdownWindow.tsx
+ * @file StandaloneWindow.tsx
  * @description 倒数日/TODOs/设置 独立窗口根组件 — 浏览器风格顶部 Tab 切换
  * @author 鸡哥
  */
@@ -32,7 +32,8 @@ import { SettingsTab } from './states/maxExpand/components/SettingsTab';
 import windowIcon from '../../../resources/icon/eisland.svg';
 
 type WindowTab = 'todo' | 'countdown' | 'settings';
-const ACTIVE_TAB_STORE_KEY = 'countdown-window-active-tab';
+const ACTIVE_TAB_STORE_KEY = 'standalone-window-active-tab';
+const LEGACY_ACTIVE_TAB_STORE_KEY = 'countdown-window-active-tab';
 
 const TAB_LIST: { key: WindowTab; label: string }[] = [
   { key: 'todo', label: '待办事项' },
@@ -40,7 +41,7 @@ const TAB_LIST: { key: WindowTab; label: string }[] = [
   { key: 'settings', label: '设置' },
 ];
 
-export function CountdownWindow(): ReactElement {
+export function StandaloneWindow(): ReactElement {
   const [activeTab, setActiveTab] = useState<WindowTab>('todo');
 
   useEffect(() => {
@@ -49,7 +50,14 @@ export function CountdownWindow(): ReactElement {
       if (cancelled) return;
       if (tab === 'todo' || tab === 'countdown' || tab === 'settings') {
         setActiveTab(tab);
+        return;
       }
+      window.api.storeRead(LEGACY_ACTIVE_TAB_STORE_KEY).then((legacyTab) => {
+        if (cancelled) return;
+        if (legacyTab === 'todo' || legacyTab === 'countdown' || legacyTab === 'settings') {
+          setActiveTab(legacyTab);
+        }
+      }).catch(() => {});
     }).catch(() => {});
 
     const unsub = window.api.onSettingsChanged((channel: string, value: unknown) => {

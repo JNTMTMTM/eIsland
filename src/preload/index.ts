@@ -178,14 +178,14 @@ const api = {
   /**
    * 打开倒数日/TODOs 独立窗口
    */
-  openCountdownWindow: (): Promise<boolean> => {
-    return ipcRenderer.invoke('app:open-countdown-window');
+  openStandaloneWindow: (): Promise<boolean> => {
+    return ipcRenderer.invoke('app:open-standalone-window');
   },
   /**
    * 关闭倒数日/TODOs 独立窗口
    */
-  closeCountdownWindow: (): Promise<boolean> => {
-    return ipcRenderer.invoke('app:close-countdown-window');
+  closeStandaloneWindow: (): Promise<boolean> => {
+    return ipcRenderer.invoke('app:close-standalone-window');
   },
   /** ===== 音乐相关 API ===== */
   /**

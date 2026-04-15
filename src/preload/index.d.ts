@@ -81,8 +81,8 @@ declare global {
       windowMinimize: () => void;
       windowMaximize: () => void;
       windowClose: () => void;
-      openCountdownWindow: () => Promise<boolean>;
-      closeCountdownWindow: () => Promise<boolean>;
+      openStandaloneWindow: () => Promise<boolean>;
+      closeStandaloneWindow: () => Promise<boolean>;
       mediaPlayPause: () => Promise<void>;
       mediaNext: () => Promise<void>;
       mediaPrev: () => Promise<void>;

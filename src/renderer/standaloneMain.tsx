@@ -19,7 +19,7 @@
  */
 
 /**
- * @file countdownMain.tsx
+ * @file standaloneMain.tsx
  * @description 倒数日/TODOs 独立窗口渲染入口
  * @author 鸡哥
  */
@@ -28,15 +28,15 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import './styles/index.css';
 import './styles/settings/settings.css';
-import './styles/countdown-window.css';
-import { CountdownWindow } from './components/CountdownWindow';
+import './styles/standalone-window.css';
+import { StandaloneWindow } from './components/StandaloneWindow';
 import { initTheme } from './utils/theme';
 import useIslandStore from './store/slices';
 import type { NowPlayingInfo } from './store/types';
 
 const root = document.getElementById('root');
 if (!root) {
-  throw new Error('[CountdownRenderer] 未找到 #root 挂载节点');
+  throw new Error('[StandaloneRenderer] 未找到 #root 挂载节点');
 }
 const rootEl = root;
 
@@ -52,7 +52,7 @@ async function bootstrap(): Promise<void> {
 
   createRoot(rootEl).render(
     <StrictMode>
-      <CountdownWindow />
+      <StandaloneWindow />
     </StrictMode>
   );
 }
