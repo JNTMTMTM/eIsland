@@ -348,6 +348,48 @@ function DynamicIsland(): React.JSX.Element {
           setTimeout(() => setGuide(), 800);
         }
       }).catch(() => {});
+
+      // 跨窗口设置同步
+      window.api?.onSettingsChanged?.((channel: string, value: unknown) => {
+        if (channel === 'island:opacity') {
+          const v = typeof value === 'number' ? Math.max(10, Math.min(100, Math.round(value))) : 100;
+          document.documentElement.style.setProperty('--island-opacity', String(v));
+        }
+        if (channel === 'island:expand-mouseleave-idle') {
+          expandLeaveIdleRef.current = Boolean(value);
+        }
+        if (channel === 'island:maxexpand-mouseleave-idle') {
+          maxExpandLeaveIdleRef.current = Boolean(value);
+        }
+        if (channel === 'store:island-bg-image') {
+          const el = document.getElementById('island-bg-layer');
+          if (!el) return;
+          const bgImage = value as string | null;
+          if (bgImage && typeof bgImage === 'string') {
+            if (!bgImage.startsWith('data:') && !bgImage.startsWith('/') && !bgImage.startsWith('http')) {
+              window.api?.loadWallpaperFile?.(bgImage).then((dataUrl) => {
+                if (dataUrl) el.style.backgroundImage = `url(${dataUrl})`;
+              }).catch(() => {});
+            } else {
+              el.style.backgroundImage = `url(${bgImage})`;
+            }
+          } else {
+            el.style.backgroundImage = '';
+          }
+        }
+        if (channel === 'store:island-bg-opacity') {
+          const el = document.getElementById('island-bg-layer');
+          if (!el) return;
+          const v = typeof value === 'number' && Number.isFinite(value) ? value : 100;
+          el.style.opacity = String(Math.max(0, Math.min(100, v)) / 100);
+        }
+        if (channel === 'island:position') {
+          const offset = value as { x: number; y: number };
+          if (offset && typeof offset.x === 'number' && typeof offset.y === 'number') {
+            window.api?.setIslandPositionOffset?.(offset).catch(() => {});
+          }
+        }
+      });
     }
   }, []);
 

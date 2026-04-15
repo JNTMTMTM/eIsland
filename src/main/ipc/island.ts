@@ -28,6 +28,7 @@
 import { app, ipcMain } from 'electron';
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
+import { broadcastSettingChange } from '../utils/broadcast';
 
 interface RegisterIslandIpcHandlersOptions {
   storeDir: string;
@@ -57,11 +58,12 @@ export function registerIslandIpcHandlers(options: RegisterIslandIpcHandlersOpti
     }
   });
 
-  ipcMain.handle('island:opacity:set', (_event, opacity: number) => {
+  ipcMain.handle('island:opacity:set', (event, opacity: number) => {
     try {
       const safe = Math.max(10, Math.min(100, Math.round(opacity)));
       const filePath = join(options.storeDir, `${options.islandOpacityStoreKey}.json`);
       writeFileSync(filePath, JSON.stringify(safe, null, 2), 'utf-8');
+      broadcastSettingChange(event.sender.id, 'island:opacity', safe);
       return true;
     } catch (err) {
       console.error('[Opacity] persist error:', err);
@@ -81,10 +83,11 @@ export function registerIslandIpcHandlers(options: RegisterIslandIpcHandlersOpti
     }
   });
 
-  ipcMain.handle('island:expand-mouseleave-idle:set', (_event, enabled: boolean) => {
+  ipcMain.handle('island:expand-mouseleave-idle:set', (event, enabled: boolean) => {
     try {
       const filePath = join(options.storeDir, `${options.expandMouseleaveIdleStoreKey}.json`);
       writeFileSync(filePath, JSON.stringify(enabled, null, 2), 'utf-8');
+      broadcastSettingChange(event.sender.id, 'island:expand-mouseleave-idle', enabled);
       return true;
     } catch (err) {
       console.error('[ExpandMouseleaveIdle] persist error:', err);
@@ -104,10 +107,11 @@ export function registerIslandIpcHandlers(options: RegisterIslandIpcHandlersOpti
     }
   });
 
-  ipcMain.handle('island:maxexpand-mouseleave-idle:set', (_event, enabled: boolean) => {
+  ipcMain.handle('island:maxexpand-mouseleave-idle:set', (event, enabled: boolean) => {
     try {
       const filePath = join(options.storeDir, `${options.maxExpandMouseleaveIdleStoreKey}.json`);
       writeFileSync(filePath, JSON.stringify(enabled, null, 2), 'utf-8');
+      broadcastSettingChange(event.sender.id, 'island:maxexpand-mouseleave-idle', enabled);
       return true;
     } catch (err) {
       console.error('[MaxExpandMouseleaveIdle] persist error:', err);
@@ -127,7 +131,7 @@ export function registerIslandIpcHandlers(options: RegisterIslandIpcHandlersOpti
     }
   });
 
-  ipcMain.handle('island:autostart:set', (_event, mode: string) => {
+  ipcMain.handle('island:autostart:set', (event, mode: string) => {
     try {
       const safeMode = ['disabled', 'enabled', 'high-priority'].includes(mode) ? mode : 'disabled';
       const filePath = join(options.storeDir, `${options.autostartModeStoreKey}.json`);
@@ -141,6 +145,7 @@ export function registerIslandIpcHandlers(options: RegisterIslandIpcHandlersOpti
           args: safeMode === 'high-priority' ? ['--high-priority'] : [],
         });
       }
+      broadcastSettingChange(event.sender.id, 'island:autostart', safeMode);
       return true;
     } catch (err) {
       console.error('[Autostart] persist error:', err);

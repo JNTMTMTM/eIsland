@@ -67,10 +67,27 @@ export function MaxExpandContent(): React.ReactElement {
     let cancelled = false;
     window.api.storeRead('countdown-window-mode').then((data) => {
       if (cancelled) return;
-      if (data === 'standalone') setCountdownMode('standalone');
+      if (data === 'standalone') {
+        setCountdownMode('standalone');
+        if (STANDALONE_HIDDEN_TABS.has(activeTabRef.current)) {
+          setActiveTab('urlFavorites');
+        }
+      }
     }).catch(() => {});
-    return () => { cancelled = true; };
-  }, []);
+
+    const unsub = window.api.onSettingsChanged((channel: string, value: unknown) => {
+      if (cancelled) return;
+      if (channel === 'store:countdown-window-mode') {
+        const mode = value === 'standalone' ? 'standalone' : 'integrated';
+        setCountdownMode(mode);
+        if (mode === 'standalone' && STANDALONE_HIDDEN_TABS.has(activeTabRef.current)) {
+          setActiveTab('urlFavorites');
+        }
+      }
+    });
+
+    return () => { cancelled = true; unsub(); };
+  }, [setActiveTab]);
 
   /** 独立窗口模式下过滤掉的导航点 */
   const filteredNavDots = useMemo(() => {

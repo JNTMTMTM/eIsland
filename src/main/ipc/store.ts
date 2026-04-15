@@ -28,6 +28,7 @@
 import { ipcMain } from 'electron';
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
+import { broadcastSettingChange } from '../utils/broadcast';
 
 interface RegisterStoreIpcHandlersOptions {
   storeDir: string;
@@ -51,10 +52,11 @@ export function registerStoreIpcHandlers(options: RegisterStoreIpcHandlersOption
     }
   });
 
-  ipcMain.handle('store:write', (_event, key: string, data: unknown) => {
+  ipcMain.handle('store:write', (event, key: string, data: unknown) => {
     try {
       const filePath = join(options.storeDir, `${key}.json`);
       writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8');
+      broadcastSettingChange(event.sender.id, `store:${key}`, data);
       return true;
     } catch (err) {
       console.error(`[Store] write '${key}' error:`, err);

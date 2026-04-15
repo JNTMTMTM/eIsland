@@ -604,6 +604,20 @@ const api = {
     return ipcRenderer.invoke('theme:mode:set', mode);
   },
   /**
+   * 监听来自其他窗口的设置变更广播（通用）
+   * @param callback - 接收 (channel, value) 设置变更
+   * @returns 取消监听函数
+   */
+  onSettingsChanged: (callback: (channel: string, value: unknown) => void): (() => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, channel: string, value: unknown): void => {
+      callback(channel, value);
+    };
+    ipcRenderer.on('settings:changed', handler);
+    return () => {
+      ipcRenderer.removeListener('settings:changed', handler);
+    };
+  },
+  /**
    * 获取灵动岛透明度
    * @returns 透明度值 10-100
    */

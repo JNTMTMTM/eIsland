@@ -26,6 +26,7 @@
  */
 
 import { BrowserWindow, ipcMain, screen } from 'electron';
+import { broadcastSettingChange } from '../utils/broadcast';
 
 interface WindowIpcSizeOptions {
   expandedWidth: number;
@@ -167,9 +168,11 @@ export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOpti
     return { ...options.getIslandPositionOffset() };
   });
 
-  ipcMain.handle('window:island-position:set', (_event, offset: { x?: number; y?: number }) => {
+  ipcMain.handle('window:island-position:set', (event, offset: { x?: number; y?: number }) => {
     const nextOffset = options.sanitizeIslandPositionOffset(offset);
     options.applyIslandPositionOffset(nextOffset);
-    return options.writeIslandPositionOffsetConfig(nextOffset);
+    const result = options.writeIslandPositionOffsetConfig(nextOffset);
+    broadcastSettingChange(event.sender.id, 'island:position', nextOffset);
+    return result;
   });
 }
