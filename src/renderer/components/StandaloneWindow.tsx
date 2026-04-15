@@ -41,6 +41,10 @@ const TAB_LIST: { key: WindowTab; label: string }[] = [
   { key: 'settings', label: '设置' },
 ];
 
+/**
+ * 独立窗口根组件
+ * @description 提供待办、倒数日与设置三个页签的窗口化视图
+ */
 export function StandaloneWindow(): ReactElement {
   const [activeTab, setActiveTab] = useState<WindowTab>('todo');
 

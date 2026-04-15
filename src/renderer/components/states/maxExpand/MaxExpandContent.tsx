@@ -70,6 +70,10 @@ const _startupModeReady: Promise<void> = (window.api?.storeRead?.('standalone-wi
   .catch(() => {})
   .finally(() => { _startupModeResolved = true; });
 
+/**
+ * 最大展开模式内容组件
+ * @description 渲染最大展开态的 Tab 内容与底部导航点
+ */
 export function MaxExpandContent(): React.ReactElement {
   const { setExpanded, maxExpandTab: activeTab, setMaxExpandTab: setActiveTab } = useIslandStore();
   const contentRef = useRef<HTMLDivElement>(null);
