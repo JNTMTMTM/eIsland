@@ -28,6 +28,8 @@ import { useEffect, useRef, useState } from 'react';
 import type { Dispatch, ReactElement, SetStateAction } from 'react';
 import type { AppSettingsPageKey } from '../../utils/settingsConfig';
 import type { OverviewLayoutConfig, OverviewWidgetType } from '../../../../../expand/components/OverviewTab';
+import useIslandStore from '../../../../../../../store/slices';
+import { SvgIcon } from '../../../../../../../utils/SvgIcon';
 import { BUILTIN_WALLPAPERS } from '../../../../../../../assets/wallpaper/builtinWallpapers';
 
 interface AppRunningWindow {
@@ -182,6 +184,7 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
   const [clipboardBlacklistDraft, setClipboardBlacklistDraft] = useState<string>('');
   const [clipboardBlacklistError, setClipboardBlacklistError] = useState<string>('');
   const clearLogsResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const setNotification = useIslandStore((s) => s.setNotification);
 
   /** 倒数日/TODOs 独立窗口模式 */
   const [countdownWindowMode, setCountdownWindowMode] = useState<'integrated' | 'standalone'>('integrated');
@@ -193,6 +196,21 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
     }).catch(() => {});
     return () => { cancelled = true; };
   }, []);
+
+  const handleCountdownWindowModeChange = (mode: 'integrated' | 'standalone'): void => {
+    setCountdownWindowMode(mode);
+    window.api.storeWrite('countdown-window-mode', mode).catch(() => {});
+
+    const restartRequiredNotification = {
+      title: '配置变更',
+      body: '待办事项/倒数日/设置打开方式已变更，是否立即重启生效？',
+      icon: SvgIcon.SETTING,
+      type: 'restart-required',
+    } as const;
+
+    setNotification(restartRequiredNotification);
+    window.api.settingsPreview('notification:show', restartRequiredNotification).catch(() => {});
+  };
 
   const normalizeBlacklistDomain = (raw: string): string => {
     const trimmed = raw.trim().toLowerCase();
@@ -591,8 +609,7 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
                       name="countdown-window-mode"
                       checked={countdownWindowMode === 'integrated'}
                       onChange={() => {
-                        setCountdownWindowMode('integrated');
-                        window.api.storeWrite('countdown-window-mode', 'integrated').catch(() => {});
+                        handleCountdownWindowModeChange('integrated');
                       }}
                     />
                     集成在灵动岛中
@@ -603,8 +620,7 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
                       name="countdown-window-mode"
                       checked={countdownWindowMode === 'standalone'}
                       onChange={() => {
-                        setCountdownWindowMode('standalone');
-                        window.api.storeWrite('countdown-window-mode', 'standalone').catch(() => {});
+                        handleCountdownWindowModeChange('standalone');
                       }}
                     />
                     独立窗口

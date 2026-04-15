@@ -351,6 +351,19 @@ function DynamicIsland(): React.JSX.Element {
 
       // 跨窗口设置同步
       window.api?.onSettingsChanged?.((channel: string, value: unknown) => {
+        if (channel === 'notification:show') {
+          if (value && typeof value === 'object' && 'title' in (value as object) && 'body' in (value as object)) {
+            setNotificationRef.current(value as {
+              title: string;
+              body: string;
+              icon?: string;
+              type?: 'default' | 'source-switch' | 'update-available' | 'update-ready' | 'clipboard-url' | 'restart-required';
+              sourceAppId?: string;
+              updateVersion?: string;
+              urls?: string[];
+            });
+          }
+        }
         if (channel === 'island:opacity') {
           const v = typeof value === 'number' ? Math.max(10, Math.min(100, Math.round(value))) : 100;
           document.documentElement.style.setProperty('--island-opacity', String(v));
