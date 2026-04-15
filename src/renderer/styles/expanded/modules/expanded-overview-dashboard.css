@@ -695,22 +695,37 @@
   gap: 6px;
   min-height: 0;
   align-items: stretch;
+  justify-content: space-between;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+}
+.ov-dash-countdown-cards.single {
+  justify-content: center;
 }
 .ov-cd-card {
-  flex: 1;
-  width: auto;
-  height: auto;
-  min-height: 0;
+  flex: 0 1 calc(50% - 3px);
+  width: calc(50% - 3px);
+  height: 82px;
+  min-height: 82px;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+}
+.ov-dash-countdown-cards.single .ov-cd-card {
+  flex-basis: 62%;
+  width: 62%;
+  max-width: 220px;
 }
 .ov-cd-card .cd-card-content {
-  padding: 5px 7px;
+  padding: 4px 6px;
 }
 .ov-cd-card .cd-card-type-badge {
-  font-size: 8px;
+  font-size: 7px;
   padding: 1px 4px;
 }
 .ov-cd-card .cd-card-name {
-  font-size: 13px;
+  font-size: 11px;
 }
 .ov-cd-card .cd-card-desc {
   font-size: 7px;
@@ -719,7 +734,7 @@
   font-size: 7px;
 }
 .ov-cd-card .cd-card-days {
-  font-size: 12px;
+  font-size: 11px;
 }
 .ov-dash-countdown-empty {
   flex: 1;

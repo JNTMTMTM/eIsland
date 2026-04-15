@@ -67,6 +67,8 @@ interface TodoItem {
 const STORE_KEY = 'todos';
 const APPS_STORE_KEY = 'app-shortcuts';
 const URL_FAVORITES_STORE_KEY = 'url-favorites';
+const COUNTDOWN_WINDOW_MODE_STORE_KEY = 'countdown-window-mode';
+const COUNTDOWN_WINDOW_ACTIVE_TAB_STORE_KEY = 'countdown-window-active-tab';
 
 /** 应用快捷方式 */
 interface AppShortcut {
@@ -181,16 +183,28 @@ function SongWidget(): React.ReactElement {
 }
 
 /** 倒数日控件 */
-function CountdownWidget(): React.ReactElement {
-  const { setMaxExpand, setMaxExpandTab } = useIslandStore();
+function CountdownWidget({ openTargetPage }: { openTargetPage: (target: 'todo' | 'countdown' | 'settings') => void }): React.ReactElement {
   const [cdItems, setCdItems] = useState<CountdownDateItem[]>([]);
   useEffect(() => {
     let cancelled = false;
+    const applyCountdownData = (data: unknown): void => {
+      if (!Array.isArray(data)) return;
+      setCdItems(data as CountdownDateItem[]);
+    };
+
     window.api.storeRead('countdown-dates').then((data) => {
       if (cancelled) return;
-      if (Array.isArray(data)) setCdItems(data as CountdownDateItem[]);
+      applyCountdownData(data);
     }).catch(() => {});
-    return () => { cancelled = true; };
+
+    const unsub = window.api.onSettingsChanged((channel: string, value: unknown) => {
+      if (cancelled) return;
+      if (channel === 'store:countdown-dates') {
+        applyCountdownData(value);
+      }
+    });
+
+    return () => { cancelled = true; unsub(); };
   }, []);
 
   const sorted = [...cdItems].sort((a, b) => {
@@ -200,8 +214,7 @@ function CountdownWidget(): React.ReactElement {
   }).slice(0, 2);
 
   const goToCountdown = (): void => {
-    setMaxExpandTab('countdown');
-    setMaxExpand();
+    openTargetPage('countdown');
   };
 
   return (
@@ -212,7 +225,7 @@ function CountdownWidget(): React.ReactElement {
       {sorted.length === 0 ? (
         <div className="ov-dash-countdown-empty">暂无倒数日</div>
       ) : (
-        <div className="ov-dash-countdown-cards">
+        <div className={`ov-dash-countdown-cards ${sorted.length === 1 ? 'single' : ''}`}>
           {sorted.map(item => {
             const days = cdDiffDays(item.date);
             const typeLabel = CD_TYPE_LABELS[item.type] || item.type;
@@ -583,12 +596,27 @@ function UrlFavoritesWidget(): React.ReactElement {
  * @description 展开状态下仪表盘式概览面板
  */
 export function OverviewTab(): React.ReactElement {
-  const { setMaxExpand, setExpandTab } = useIslandStore();
+  const { setMaxExpand, setMaxExpandTab, setExpandTab } = useIslandStore();
   const [now, setNow] = useState(new Date());
   const [todos, setTodos] = useState<TodoItem[]>([]);
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [apps, setApps] = useState<AppShortcut[]>([]);
   const [layoutConfig, setLayoutConfig] = useState<OverviewLayoutConfig>(DEFAULT_LAYOUT);
+
+  const openTargetPage = useCallback((target: 'todo' | 'countdown' | 'settings'): void => {
+    window.api.storeRead(COUNTDOWN_WINDOW_MODE_STORE_KEY).then((mode) => {
+      if (mode === 'standalone') {
+        window.api.storeWrite(COUNTDOWN_WINDOW_ACTIVE_TAB_STORE_KEY, target).catch(() => {});
+        window.api.openCountdownWindow().catch(() => {});
+      } else {
+        setMaxExpandTab(target);
+        setMaxExpand();
+      }
+    }).catch(() => {
+      setMaxExpandTab(target);
+      setMaxExpand();
+    });
+  }, [setMaxExpand, setMaxExpandTab]);
 
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 1000);
@@ -784,7 +812,7 @@ export function OverviewTab(): React.ReactElement {
         return (
           <div className="ov-dash-todo">
             <div className="ov-dash-todo-header">
-              <span className="ov-dash-todo-title clickable" onClick={() => setMaxExpand()} title="前往待办事项">待办事项</span>
+              <span className="ov-dash-todo-title clickable" onClick={() => openTargetPage('todo')} title="前往待办事项页面">待办事项</span>
               <div className="ov-dash-todo-stats">
                 <span className="ov-dash-todo-stat done">✓ {doneTodos.length}</span>
                 <span className="ov-dash-todo-stat undone">○ {undoneTodos.length}</span>
@@ -900,7 +928,7 @@ export function OverviewTab(): React.ReactElement {
       case 'song':
         return <SongWidget />;
       case 'countdown':
-        return <CountdownWidget />;
+        return <CountdownWidget openTargetPage={openTargetPage} />;
       case 'pomodoro':
         return <PomodoroWidget />;
       case 'urlFavorites':

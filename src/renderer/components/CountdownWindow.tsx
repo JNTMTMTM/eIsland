@@ -24,13 +24,14 @@
  * @author 鸡哥
  */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { ReactElement } from 'react';
 import { TodoTab } from './states/maxExpand/components/TodoTab';
 import { CountdownTab } from './states/maxExpand/components/CountdownTab';
 import { SettingsTab } from './states/maxExpand/components/SettingsTab';
 
 type WindowTab = 'todo' | 'countdown' | 'settings';
+const ACTIVE_TAB_STORE_KEY = 'countdown-window-active-tab';
 
 const TAB_LIST: { key: WindowTab; label: string }[] = [
   { key: 'todo', label: '待办事项' },
@@ -41,6 +42,35 @@ const TAB_LIST: { key: WindowTab; label: string }[] = [
 export function CountdownWindow(): ReactElement {
   const [activeTab, setActiveTab] = useState<WindowTab>('todo');
 
+  useEffect(() => {
+    let cancelled = false;
+    window.api.storeRead(ACTIVE_TAB_STORE_KEY).then((tab) => {
+      if (cancelled) return;
+      if (tab === 'todo' || tab === 'countdown' || tab === 'settings') {
+        setActiveTab(tab);
+      }
+    }).catch(() => {});
+
+    const unsub = window.api.onSettingsChanged((channel: string, value: unknown) => {
+      if (cancelled) return;
+      if (channel === `store:${ACTIVE_TAB_STORE_KEY}`) {
+        if (value === 'todo' || value === 'countdown' || value === 'settings') {
+          setActiveTab(value);
+        }
+      }
+    });
+
+    return () => {
+      cancelled = true;
+      unsub();
+    };
+  }, []);
+
+  const switchTab = (tab: WindowTab): void => {
+    setActiveTab(tab);
+    window.api.storeWrite(ACTIVE_TAB_STORE_KEY, tab).catch(() => {});
+  };
+
   return (
     <div className="cw-root">
       {/* 顶部栏：浏览器风格 Tab + 窗口控制 */}
@@ -50,7 +80,7 @@ export function CountdownWindow(): ReactElement {
             <button
               key={tab.key}
               className={`cw-tab ${activeTab === tab.key ? 'cw-tab--active' : ''}`}
-              onClick={() => setActiveTab(tab.key)}
+              onClick={() => switchTab(tab.key)}
               type="button"
             >
               <span className="cw-tab__label">{tab.label}</span>
