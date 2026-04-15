@@ -495,10 +495,10 @@ const api = {
     return ipcRenderer.invoke('music:smtc-unsubscribe-ms:set', valueMs);
   },
   /**
-   * 运行测试脚本获取当前播放进程 sourceAppId
-   * @returns 获取结果，可能返回 null（无播放程序）
+   * 查询当前所有 SMTC 媒体会话播放源
+   * @returns 检测到的播放源列表
    */
-  musicDetectSourceAppId: (): Promise<{ ok: boolean; sourceAppId: string | null; message: string }> => {
+  musicDetectSourceAppId: (): Promise<{ ok: boolean; sources: Array<{ sourceAppId: string; isPlaying: boolean; hasTitle: boolean }>; message: string }> => {
     return ipcRenderer.invoke('music:detect-source-app-id');
   },
   /** 获取当前运行中的非系统进程列表 */

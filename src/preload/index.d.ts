@@ -127,7 +127,7 @@ declare global {
       musicLyricsClockSet: (enabled: boolean) => Promise<boolean>;
       musicSmtcUnsubscribeMsGet: () => Promise<number>;
       musicSmtcUnsubscribeMsSet: (valueMs: number) => Promise<boolean>;
-      musicDetectSourceAppId: () => Promise<{ ok: boolean; sourceAppId: string | null; message: string }>;
+      musicDetectSourceAppId: () => Promise<{ ok: boolean; sources: Array<{ sourceAppId: string; isPlaying: boolean; hasTitle: boolean }>; message: string }>;
       getRunningNonSystemProcesses: () => Promise<string[]>;
       getRunningNonSystemProcessesWithIcons: () => Promise<RunningProcessInfo[]>;
       getOpenWindowsWithIcons: () => Promise<RunningWindowInfo[]>;

@@ -271,7 +271,7 @@ function registerIpcHandlers(): void {
       smtcUnsubscribeMs = value;
     },
     sanitizeSmtcUnsubscribeMs,
-    detectSourceAppId: smtcService.pickDetectedSourceAppId,
+    detectAllSources: smtcService.detectAllSources,
   });
 
   // ===== 歌曲设置 IPC =====

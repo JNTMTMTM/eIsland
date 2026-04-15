@@ -1311,6 +1311,39 @@
   color: var(--color-island-text);
 }
 
+/* 检测到的播放源列表 */
+.settings-whitelist-detected-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 6px;
+}
+.settings-whitelist-detected-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px;
+  border-radius: 6px;
+  background: rgba(var(--color-text-rgb), 0.06);
+  font-size: 11px;
+  color: rgba(var(--color-text-rgb), 0.75);
+}
+.settings-whitelist-detected-status {
+  font-size: 10px;
+  flex-shrink: 0;
+}
+.settings-whitelist-detected-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.settings-whitelist-detected-badge {
+  font-size: 10px;
+  color: rgba(var(--color-text-rgb), 0.35);
+  flex-shrink: 0;
+}
+
 /* 歌词源选择 */
 .settings-lyrics-source-options {
   display: flex;

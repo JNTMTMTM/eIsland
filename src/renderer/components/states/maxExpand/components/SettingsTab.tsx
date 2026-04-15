@@ -178,7 +178,7 @@ export function SettingsTab(): ReactElement {
   const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
   const dragIdxRef = useRef<number | null>(null);
   const [detectingSourceAppId, setDetectingSourceAppId] = useState(false);
-  const [sourceAppDetectMessage, setSourceAppDetectMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [detectedSources, setDetectedSources] = useState<Array<{ sourceAppId: string; isPlaying: boolean; hasTitle: boolean }>>([]);
   const [musicSmtcUnsubscribeInput, setMusicSmtcUnsubscribeInput] = useState<string>('5000');
   const [musicSmtcNeverUnsubscribe, setMusicSmtcNeverUnsubscribe] = useState(true);
   const [musicSmtcConfigMessage, setMusicSmtcConfigMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -1186,20 +1186,14 @@ export function SettingsTab(): ReactElement {
   const handleDetectSourceAppId = async (): Promise<void> => {
     if (detectingSourceAppId) return;
     setDetectingSourceAppId(true);
-    setSourceAppDetectMessage(null);
+    setDetectedSources([]);
     try {
       const result = await window.api.musicDetectSourceAppId();
-      if (result.ok && result.sourceAppId) {
-        setWhitelistDraft(result.sourceAppId);
-        setSourceAppDetectMessage({ type: 'success', text: `获取成功：${result.sourceAppId}` });
-      } else {
-        setSourceAppDetectMessage({ type: 'error', text: result.message || '获取失败' });
+      if (result.ok && result.sources.length > 0) {
+        setDetectedSources(result.sources);
       }
-    } catch {
-      setSourceAppDetectMessage({ type: 'error', text: '获取失败：脚本调用异常' });
-    } finally {
-      setDetectingSourceAppId(false);
-    }
+    } catch { /* ignore */ }
+    setDetectingSourceAppId(false);
   };
 
   const handleAddWhitelist = (): void => {
@@ -1512,7 +1506,7 @@ export function SettingsTab(): ReactElement {
               handleAddWhitelist={handleAddWhitelist}
               handleDetectSourceAppId={handleDetectSourceAppId}
               detectingSourceAppId={detectingSourceAppId}
-              sourceAppDetectMessage={sourceAppDetectMessage}
+              detectedSources={detectedSources}
               lyricsSourceOptions={LYRICS_SOURCE_OPTIONS}
               lyricsSource={lyricsSource}
               setLyricsSource={setLyricsSource}

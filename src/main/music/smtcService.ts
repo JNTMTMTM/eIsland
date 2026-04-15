@@ -74,7 +74,8 @@ interface SmtcService {
   initWorker: () => void;
   cleanupWorker: () => void;
   isWhitelisted: () => boolean;
-  pickDetectedSourceAppId: () => string;
+  pickDetectedSourceAppId: () => Promise<string>;
+  detectAllSources: () => Promise<Array<{ sourceAppId: string; isPlaying: boolean; hasTitle: boolean }>>;
   getPendingSourceSwitchId: () => string;
   setPendingSourceSwitchId: (id: string) => void;
   getPendingSourceSwitchEntry: () => unknown;
@@ -98,6 +99,7 @@ export function createSmtcService(options: CreateSmtcServiceOptions): SmtcServic
   let pendingSourceSwitchId = '';
   let pendingSourceSwitchEntry: SmtcSessionRuntimeEntry | null = null;
   let lastSmtcCleanupAt = 0;
+  let pendingDetectResolve: ((sources: Array<{ sourceAppId: string; isPlaying: boolean; hasTitle: boolean }>) => void) | null = null;
 
   function isWhitelisted(): boolean {
     const id = currentDeviceId.toLowerCase();
@@ -182,7 +184,16 @@ export function createSmtcService(options: CreateSmtcServiceOptions): SmtcServic
           playback: { playbackStatus: number; playbackType: number } | null;
           timeline: { position: number; duration: number } | null;
         };
+        sources?: Array<{ sourceAppId: string; isPlaying: boolean; hasTitle: boolean }>;
       }) => {
+        if (msg.type === 'detect-sources-result') {
+          if (pendingDetectResolve) {
+            pendingDetectResolve(msg.sources ?? []);
+            pendingDetectResolve = null;
+          }
+          return;
+        }
+
         const mainWindow = options.getMainWindow();
         if (!mainWindow || mainWindow.isDestroyed()) return;
 
@@ -306,7 +317,47 @@ export function createSmtcService(options: CreateSmtcServiceOptions): SmtcServic
     }
   }
 
+  function requestFreshSources(): Promise<Array<{ sourceAppId: string; isPlaying: boolean; hasTitle: boolean }>> {
+    if (!smtcWorker) return Promise.resolve([]);
+
+    return new Promise((resolve) => {
+      const timeout = setTimeout(() => {
+        pendingDetectResolve = null;
+        resolve([]);
+      }, 3000);
+
+      pendingDetectResolve = (sources) => {
+        clearTimeout(timeout);
+        const now = Date.now();
+        for (const s of sources) {
+          detectedSourceRuntime.set(s.sourceAppId, {
+            isPlaying: s.isPlaying,
+            hasTitle: s.hasTitle,
+            updatedAt: now,
+          });
+        }
+        resolve(sources);
+      };
+
+      smtcWorker!.postMessage({ type: 'detect-sources' });
+    });
+  }
+
+  function pickDetectedSourceAppIdAsync(): Promise<string> {
+    const syncResult = pickDetectedSourceAppId();
+    if (syncResult) return Promise.resolve(syncResult);
+    return requestFreshSources().then(() => pickDetectedSourceAppId());
+  }
+
+  function detectAllSources(): Promise<Array<{ sourceAppId: string; isPlaying: boolean; hasTitle: boolean }>> {
+    return requestFreshSources();
+  }
+
   function cleanupWorker(): void {
+    if (pendingDetectResolve) {
+      pendingDetectResolve([]);
+      pendingDetectResolve = null;
+    }
     if (smtcWorker) {
       smtcWorker.terminate();
       smtcWorker = null;
@@ -324,7 +375,8 @@ export function createSmtcService(options: CreateSmtcServiceOptions): SmtcServic
     initWorker,
     cleanupWorker,
     isWhitelisted,
-    pickDetectedSourceAppId,
+    pickDetectedSourceAppId: pickDetectedSourceAppIdAsync,
+    detectAllSources,
     getPendingSourceSwitchId: () => pendingSourceSwitchId,
     setPendingSourceSwitchId: (id) => {
       pendingSourceSwitchId = id;

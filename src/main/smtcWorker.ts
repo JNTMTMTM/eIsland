@@ -174,6 +174,25 @@ smtcAny.on('session-timeline-changed', (sourceAppId: unknown, timelineProps: unk
   postSessionUpdate(appId);
 });
 
+/** 接收主进程请求：主动查询当前所有 SMTC 会话（用于播放源检测按钮） */
+parentPort.on('message', (msg: { type: string }) => {
+  if (msg.type === 'detect-sources') {
+    try {
+      const sessions = SMTCMonitor.getMediaSessions() as RawSession[];
+      parentPort!.postMessage({
+        type: 'detect-sources-result',
+        sources: sessions.map((s) => ({
+          sourceAppId: s.sourceAppId,
+          isPlaying: (s.playback?.playbackStatus ?? 0) === 4,
+          hasTitle: Boolean(s.media?.title),
+        })),
+      });
+    } catch {
+      parentPort!.postMessage({ type: 'detect-sources-result', sources: [] });
+    }
+  }
+});
+
 /** 初始化：读取当前已存在的会话并推送快照 */
 try {
   const initialSessions = SMTCMonitor.getMediaSessions() as RawSession[];

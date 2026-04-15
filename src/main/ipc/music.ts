@@ -44,7 +44,7 @@ interface RegisterMusicIpcHandlersOptions {
   getSmtcUnsubscribeMs: () => number;
   setSmtcUnsubscribeMs: (value: number) => void;
   sanitizeSmtcUnsubscribeMs: (value: unknown) => number;
-  detectSourceAppId: () => string;
+  detectAllSources: () => Promise<Array<{ sourceAppId: string; isPlaying: boolean; hasTitle: boolean }>>;
 }
 
 /**
@@ -149,14 +149,14 @@ export function registerMusicIpcHandlers(options: RegisterMusicIpcHandlersOption
 
   ipcMain.handle('music:detect-source-app-id', async () => {
     try {
-      const sourceAppId = options.detectSourceAppId().trim();
-      if (!sourceAppId) {
-        return { ok: false, sourceAppId: null, message: '获取失败：当前无播放程序' };
+      const sources = await options.detectAllSources();
+      if (!sources.length) {
+        return { ok: false, sources: [], message: '当前无播放程序' };
       }
-      return { ok: true, sourceAppId, message: '获取成功' };
+      return { ok: true, sources, message: '' };
     } catch (error) {
-      console.error('[Music] detect source app id failed:', error);
-      return { ok: false, sourceAppId: null, message: '获取失败：读取会话异常' };
+      console.error('[Music] detect sources failed:', error);
+      return { ok: false, sources: [], message: '读取会话异常' };
     }
   });
 }

@@ -49,7 +49,7 @@ interface MusicSettingsSectionProps {
   handleAddWhitelist: () => void;
   handleDetectSourceAppId: () => Promise<void>;
   detectingSourceAppId: boolean;
-  sourceAppDetectMessage: MusicConfigMessage | null;
+  detectedSources: Array<{ sourceAppId: string; isPlaying: boolean; hasTitle: boolean }>;
   lyricsSourceOptions: MusicSourceOption[];
   lyricsSource: string;
   setLyricsSource: (value: string) => void;
@@ -87,7 +87,7 @@ export function MusicSettingsSection(props: MusicSettingsSectionProps): ReactEle
     handleAddWhitelist,
     handleDetectSourceAppId,
     detectingSourceAppId,
-    sourceAppDetectMessage,
+    detectedSources,
     lyricsSourceOptions,
     lyricsSource,
     setLyricsSource,
@@ -166,14 +166,39 @@ export function MusicSettingsSection(props: MusicSettingsSectionProps): ReactEle
                   }}
                   disabled={detectingSourceAppId}
                 >
-                  {detectingSourceAppId ? '获取中…' : '获取播放进程（测试）'}
+                  {detectingSourceAppId ? '获取中…' : '获取播放进程'}
                 </button>
-                {sourceAppDetectMessage && (
-                  <div className="settings-music-hint" style={{ color: sourceAppDetectMessage.type === 'success' ? '#7df2a0' : '#ff8b8b', marginLeft: 10, marginBottom: 0, display: 'flex', alignItems: 'center' }}>
-                    {sourceAppDetectMessage.text}
-                  </div>
-                )}
               </div>
+              {detectedSources.length > 0 && (
+                <div className="settings-whitelist-detected-list">
+                  {detectedSources.map((source) => {
+                    const alreadyAdded = whitelist.some((w) => w.toLowerCase() === source.sourceAppId.toLowerCase());
+                    return (
+                      <div className="settings-whitelist-detected-item" key={source.sourceAppId}>
+                        <span className="settings-whitelist-detected-status" title={source.isPlaying ? '播放中' : '已暂停'}>
+                          {source.isPlaying ? '▶' : '⏸'}
+                        </span>
+                        <span className="settings-whitelist-detected-name">{source.sourceAppId}</span>
+                        {alreadyAdded ? (
+                          <span className="settings-whitelist-detected-badge">已添加</span>
+                        ) : (
+                          <button
+                            className="settings-whitelist-add-btn"
+                            type="button"
+                            onClick={() => {
+                              const next = [...whitelist, source.sourceAppId];
+                              setWhitelist(next);
+                              window.api.musicWhitelistSet(next).catch(() => {});
+                            }}
+                          >
+                            添加
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
 
