@@ -81,6 +81,18 @@ import { setThemeMode as applyThemeMode, getThemeMode, type ThemeMode } from '..
 
 const CLIPBOARD_URL_SUPPRESS_IN_FAVORITES_KEY = 'clipboard-url-suppress-in-url-favorites';
 
+function isDirectBgImageUrl(image: string): boolean {
+  return image.startsWith('data:')
+    || image.startsWith('http://')
+    || image.startsWith('https://')
+    || image.startsWith('blob:')
+    || image.startsWith('file:')
+    || image.startsWith('/')
+    || image.startsWith('./')
+    || image.startsWith('../')
+    || image.startsWith('assets/');
+}
+
 function applyIslandOpacity(opacity: number): void {
   const safe = Math.max(10, Math.min(100, Math.round(opacity)));
   document.documentElement.style.setProperty('--island-opacity', String(safe));
@@ -407,7 +419,7 @@ export function SettingsTab(): ReactElement {
       if (cancelled) return;
       if (typeof opacity === 'number' && Number.isFinite(opacity)) setBgImageOpacity(Math.max(0, Math.min(100, Math.round(opacity))));
       if (img && typeof img === 'string') {
-        if (img.startsWith('data:') || img.startsWith('/') || img.startsWith('http')) {
+        if (isDirectBgImageUrl(img)) {
           // Legacy data URL or Vite asset URL (built-in wallpaper)
           setBgImage(img);
         } else {

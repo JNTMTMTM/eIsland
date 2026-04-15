@@ -48,6 +48,18 @@ export type IslandState = 'idle' | 'hover' | 'expanded' | 'notification' | 'maxE
 const SHELL_MORPH_DURATION_MS = 550;
 const CLIPBOARD_URL_SUPPRESS_IN_FAVORITES_KEY = 'clipboard-url-suppress-in-url-favorites';
 
+function isDirectBgImageUrl(image: string): boolean {
+  return image.startsWith('data:')
+    || image.startsWith('http://')
+    || image.startsWith('https://')
+    || image.startsWith('blob:')
+    || image.startsWith('file:')
+    || image.startsWith('/')
+    || image.startsWith('./')
+    || image.startsWith('../')
+    || image.startsWith('assets/');
+}
+
 /** 各状态对应的窗口面积（宽×高），用于判断状态切换是放大还是缩小 */
 const STATE_AREA: Record<string, number> = {
   idle: 260 * 42,
@@ -328,7 +340,7 @@ function DynamicIsland(): React.JSX.Element {
         if (!el) return;
         if (bgImage && typeof bgImage === 'string') {
           let url = bgImage;
-          if (!bgImage.startsWith('data:') && !bgImage.startsWith('/') && !bgImage.startsWith('http')) {
+          if (!isDirectBgImageUrl(bgImage)) {
             const dataUrl = await window.api?.loadWallpaperFile?.(bgImage);
             if (dataUrl) url = dataUrl; else return;
           }
@@ -382,7 +394,7 @@ function DynamicIsland(): React.JSX.Element {
           if (!el) return;
           const bgImage = value as string | null;
           if (bgImage && typeof bgImage === 'string') {
-            if (!bgImage.startsWith('data:') && !bgImage.startsWith('/') && !bgImage.startsWith('http')) {
+            if (!isDirectBgImageUrl(bgImage)) {
               window.api?.loadWallpaperFile?.(bgImage).then((dataUrl) => {
                 if (dataUrl) el.style.backgroundImage = `url(${dataUrl})`;
               }).catch(() => {});
