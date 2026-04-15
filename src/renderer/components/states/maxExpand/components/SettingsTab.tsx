@@ -1382,7 +1382,10 @@ export function SettingsTab(): ReactElement {
               setMusicSettingsPage={setMusicSettingsPage}
               setActiveTab={setActiveTab}
               onAction={(actionId) => {
-                if (actionId === 'guide') setGuide();
+                if (actionId === 'guide') {
+                  setGuide();
+                  window.api.settingsPreview('guide:show', true).catch(() => {});
+                }
               }}
             />
           )}

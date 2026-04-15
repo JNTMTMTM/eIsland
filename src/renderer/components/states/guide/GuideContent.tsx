@@ -773,7 +773,7 @@ export function GuideContent(): React.ReactElement {
               key={`card-${cardIndex}`}
             >
               <div className="guide-interact-card-text">
-                <img className="guide-interact-icon" src={card.iconSrc} alt="" aria-hidden="true" />
+                <img className={`guide-interact-icon${card.iconSrc === SvgIcon.POMODORO ? ' no-invert' : ''}`} src={card.iconSrc} alt="" aria-hidden="true" />
                 <div className="guide-title">{card.title}</div>
                 <div className="guide-desc">{card.desc}</div>
               </div>

@@ -364,6 +364,9 @@ function DynamicIsland(): React.JSX.Element {
             });
           }
         }
+        if (channel === 'guide:show') {
+          setGuide();
+        }
         if (channel === 'island:opacity') {
           const v = typeof value === 'number' ? Math.max(10, Math.min(100, Math.round(value))) : 100;
           document.documentElement.style.setProperty('--island-opacity', String(v));

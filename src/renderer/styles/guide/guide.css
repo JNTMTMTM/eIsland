@@ -335,6 +335,10 @@
   filter: brightness(0) invert(var(--icon-invert));
 }
 
+.guide-interact-icon.no-invert {
+  filter: none;
+}
+
 /* ─── Mini island demo ─── */
 
 .mini-island-wrapper {
@@ -835,7 +839,6 @@
   width: 14px;
   height: 14px;
   object-fit: contain;
-  filter: brightness(0) invert(var(--icon-invert));
 }
 
 .mt-pomo-count {
