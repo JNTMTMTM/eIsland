@@ -50,9 +50,17 @@ export function initUpdaterService(options: InitUpdaterServiceOptions): void {
   console.log('[Updater] isPackaged:', options.isPackaged());
 
   const emitToRenderer = (channel: string, payload: unknown): void => {
-    const mainWindow = options.getMainWindow();
-    if (!mainWindow || mainWindow.isDestroyed()) return;
-    mainWindow.webContents.send(channel, payload);
+    BrowserWindow.getAllWindows().forEach((win) => {
+      if (win.isDestroyed()) return;
+      try {
+        win.webContents.send(channel, payload);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        if (!message.includes('Object has been destroyed')) {
+          console.error('[Updater] renderer emit error:', err);
+        }
+      }
+    });
   };
 
   updater.on('checking-for-update', () => {
