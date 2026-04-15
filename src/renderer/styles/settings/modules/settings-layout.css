@@ -1328,8 +1328,11 @@
   font-size: 11px;
   color: rgba(var(--color-text-rgb), 0.75);
 }
-.settings-whitelist-detected-status {
-  font-size: 10px;
+.settings-whitelist-detected-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 3px;
+  object-fit: cover;
   flex-shrink: 0;
 }
 .settings-whitelist-detected-name {

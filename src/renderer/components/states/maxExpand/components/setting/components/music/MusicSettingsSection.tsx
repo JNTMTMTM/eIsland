@@ -49,7 +49,7 @@ interface MusicSettingsSectionProps {
   handleAddWhitelist: () => void;
   handleDetectSourceAppId: () => Promise<void>;
   detectingSourceAppId: boolean;
-  detectedSources: Array<{ sourceAppId: string; isPlaying: boolean; hasTitle: boolean }>;
+  detectedSources: Array<{ sourceAppId: string; isPlaying: boolean; hasTitle: boolean; thumbnail: string | null }>;
   lyricsSourceOptions: MusicSourceOption[];
   lyricsSource: string;
   setLyricsSource: (value: string) => void;
@@ -175,9 +175,13 @@ export function MusicSettingsSection(props: MusicSettingsSectionProps): ReactEle
                     const alreadyAdded = whitelist.some((w) => w.toLowerCase() === source.sourceAppId.toLowerCase());
                     return (
                       <div className="settings-whitelist-detected-item" key={source.sourceAppId}>
-                        <span className="settings-whitelist-detected-status" title={source.isPlaying ? '播放中' : '已暂停'}>
-                          {source.isPlaying ? '▶' : '⏸'}
-                        </span>
+                        {source.thumbnail && (
+                          <img
+                            className="settings-whitelist-detected-thumb"
+                            src={source.thumbnail}
+                            alt=""
+                          />
+                        )}
                         <span className="settings-whitelist-detected-name">{source.sourceAppId}</span>
                         {alreadyAdded ? (
                           <span className="settings-whitelist-detected-badge">已添加</span>

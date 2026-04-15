@@ -498,7 +498,7 @@ const api = {
    * 查询当前所有 SMTC 媒体会话播放源
    * @returns 检测到的播放源列表
    */
-  musicDetectSourceAppId: (): Promise<{ ok: boolean; sources: Array<{ sourceAppId: string; isPlaying: boolean; hasTitle: boolean }>; message: string }> => {
+  musicDetectSourceAppId: (): Promise<{ ok: boolean; sources: Array<{ sourceAppId: string; isPlaying: boolean; hasTitle: boolean; thumbnail: string | null }>; message: string }> => {
     return ipcRenderer.invoke('music:detect-source-app-id');
   },
   /** 获取当前运行中的非系统进程列表 */

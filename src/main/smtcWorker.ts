@@ -181,11 +181,16 @@ parentPort.on('message', (msg: { type: string }) => {
       const sessions = SMTCMonitor.getMediaSessions() as RawSession[];
       parentPort!.postMessage({
         type: 'detect-sources-result',
-        sources: sessions.map((s) => ({
-          sourceAppId: s.sourceAppId,
-          isPlaying: (s.playback?.playbackStatus ?? 0) === 4,
-          hasTitle: Boolean(s.media?.title),
-        })),
+        sources: sessions.map((s) => {
+          const cached = sessionCache.get(s.sourceAppId);
+          const thumb = cached?.media?.thumbnail ?? s.media?.thumbnail ?? null;
+          return {
+            sourceAppId: s.sourceAppId,
+            isPlaying: (s.playback?.playbackStatus ?? 0) === 4,
+            hasTitle: Boolean(s.media?.title),
+            thumbnail: thumbnailToDataUrl(thumb),
+          };
+        }),
       });
     } catch {
       parentPort!.postMessage({ type: 'detect-sources-result', sources: [] });

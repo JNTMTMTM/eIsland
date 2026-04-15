@@ -44,7 +44,7 @@ interface RegisterMusicIpcHandlersOptions {
   getSmtcUnsubscribeMs: () => number;
   setSmtcUnsubscribeMs: (value: number) => void;
   sanitizeSmtcUnsubscribeMs: (value: unknown) => number;
-  detectAllSources: () => Promise<Array<{ sourceAppId: string; isPlaying: boolean; hasTitle: boolean }>>;
+  detectAllSources: () => Promise<Array<{ sourceAppId: string; isPlaying: boolean; hasTitle: boolean; thumbnail: string | null }>>;
 }
 
 /**

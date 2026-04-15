@@ -75,7 +75,7 @@ interface SmtcService {
   cleanupWorker: () => void;
   isWhitelisted: () => boolean;
   pickDetectedSourceAppId: () => Promise<string>;
-  detectAllSources: () => Promise<Array<{ sourceAppId: string; isPlaying: boolean; hasTitle: boolean }>>;
+  detectAllSources: () => Promise<Array<{ sourceAppId: string; isPlaying: boolean; hasTitle: boolean; thumbnail: string | null }>>;
   getPendingSourceSwitchId: () => string;
   setPendingSourceSwitchId: (id: string) => void;
   getPendingSourceSwitchEntry: () => unknown;
@@ -99,7 +99,7 @@ export function createSmtcService(options: CreateSmtcServiceOptions): SmtcServic
   let pendingSourceSwitchId = '';
   let pendingSourceSwitchEntry: SmtcSessionRuntimeEntry | null = null;
   let lastSmtcCleanupAt = 0;
-  let pendingDetectResolve: ((sources: Array<{ sourceAppId: string; isPlaying: boolean; hasTitle: boolean }>) => void) | null = null;
+  let pendingDetectResolve: ((sources: Array<{ sourceAppId: string; isPlaying: boolean; hasTitle: boolean; thumbnail: string | null }>) => void) | null = null;
 
   function isWhitelisted(): boolean {
     const id = currentDeviceId.toLowerCase();
@@ -184,7 +184,7 @@ export function createSmtcService(options: CreateSmtcServiceOptions): SmtcServic
           playback: { playbackStatus: number; playbackType: number } | null;
           timeline: { position: number; duration: number } | null;
         };
-        sources?: Array<{ sourceAppId: string; isPlaying: boolean; hasTitle: boolean }>;
+        sources?: Array<{ sourceAppId: string; isPlaying: boolean; hasTitle: boolean; thumbnail: string | null }>;
       }) => {
         if (msg.type === 'detect-sources-result') {
           if (pendingDetectResolve) {
@@ -317,7 +317,7 @@ export function createSmtcService(options: CreateSmtcServiceOptions): SmtcServic
     }
   }
 
-  function requestFreshSources(): Promise<Array<{ sourceAppId: string; isPlaying: boolean; hasTitle: boolean }>> {
+  function requestFreshSources(): Promise<Array<{ sourceAppId: string; isPlaying: boolean; hasTitle: boolean; thumbnail: string | null }>> {
     if (!smtcWorker) return Promise.resolve([]);
 
     return new Promise((resolve) => {
@@ -349,7 +349,7 @@ export function createSmtcService(options: CreateSmtcServiceOptions): SmtcServic
     return requestFreshSources().then(() => pickDetectedSourceAppId());
   }
 
-  function detectAllSources(): Promise<Array<{ sourceAppId: string; isPlaying: boolean; hasTitle: boolean }>> {
+  function detectAllSources(): Promise<Array<{ sourceAppId: string; isPlaying: boolean; hasTitle: boolean; thumbnail: string | null }>> {
     return requestFreshSources();
   }
 
