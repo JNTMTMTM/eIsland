@@ -699,10 +699,15 @@ export function OverviewTab(): React.ReactElement {
   /** 加载待办数据 */
   useEffect(() => {
     let cancelled = false;
+    const applyTodos = (data: unknown): void => {
+      if (!Array.isArray(data)) return;
+      setTodos(data as TodoItem[]);
+    };
+
     window.api.storeRead(STORE_KEY).then((data) => {
       if (cancelled) return;
       if (Array.isArray(data) && data.length > 0) {
-        setTodos(data as TodoItem[]);
+        applyTodos(data);
       } else {
         try {
           const raw = localStorage.getItem('eIsland_todos');
@@ -715,7 +720,18 @@ export function OverviewTab(): React.ReactElement {
         if (raw) setTodos(JSON.parse(raw) as TodoItem[]);
       } catch { /* noop */ }
     });
-    return () => { cancelled = true; };
+
+    const unsub = window.api.onSettingsChanged((channel: string, value: unknown) => {
+      if (cancelled) return;
+      if (channel === `store:${STORE_KEY}`) {
+        applyTodos(value);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+      unsub();
+    };
   }, []);
 
   const hh = now.getHours().toString().padStart(2, '0');

@@ -118,6 +118,7 @@ export function TodoTab(): React.ReactElement {
   const [subSize, setSubSize] = useState<Size | undefined>(undefined);
   const [editingDescId, setEditingDescId] = useState<number | null>(null);
   const [descDraft, setDescDraft] = useState('');
+  const skipPersistOnceRef = useRef(false);
   const descRef = useRef<HTMLTextAreaElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
@@ -126,6 +127,12 @@ export function TodoTab(): React.ReactElement {
   /** 启动时从文件加载（回退到 localStorage） */
   useEffect(() => {
     let cancelled = false;
+    const applyTodos = (data: unknown): void => {
+      if (!Array.isArray(data)) return;
+      skipPersistOnceRef.current = true;
+      setTodos(normalizeTodos(data as TodoItem[]));
+    };
+
     window.api.storeRead(STORE_KEY).then((data) => {
       if (cancelled) return;
       if (Array.isArray(data) && data.length > 0) {
@@ -150,12 +157,27 @@ export function TodoTab(): React.ReactElement {
       } catch { /* noop */ }
       if (!cancelled) setLoaded(true);
     });
-    return () => { cancelled = true; };
+
+    const unsub = window.api.onSettingsChanged((channel: string, value: unknown) => {
+      if (cancelled) return;
+      if (channel === `store:${STORE_KEY}`) {
+        applyTodos(value);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+      unsub();
+    };
   }, []);
 
   /** todos 变化时持久化（跳过初始空状态） */
   useEffect(() => {
     if (!loaded) return;
+    if (skipPersistOnceRef.current) {
+      skipPersistOnceRef.current = false;
+      return;
+    }
     persistTodos(todos);
   }, [todos, loaded]);
 
