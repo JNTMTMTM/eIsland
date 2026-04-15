@@ -183,6 +183,17 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
   const [clipboardBlacklistError, setClipboardBlacklistError] = useState<string>('');
   const clearLogsResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  /** 倒数日/TODOs 独立窗口模式 */
+  const [countdownWindowMode, setCountdownWindowMode] = useState<'integrated' | 'standalone'>('integrated');
+  useEffect(() => {
+    let cancelled = false;
+    window.api.storeRead('countdown-window-mode').then((data) => {
+      if (cancelled) return;
+      if (data === 'standalone') setCountdownWindowMode('standalone');
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+
   const normalizeBlacklistDomain = (raw: string): string => {
     const trimmed = raw.trim().toLowerCase();
     if (!trimmed) return '';
@@ -564,6 +575,37 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
                       }}
                     />
                     最大展开态（MaxExpand）鼠标移开后自动收回
+                  </label>
+                </div>
+              </div>
+
+              <div className="settings-music-section" style={{ marginTop: 16 }}>
+                <div className="settings-music-label">待办事项 / 倒数日 打开方式</div>
+                <div className="settings-music-hint">选择点击导航时，在灵动岛内显示还是打开独立窗口</div>
+                <div className="settings-hotkey-row" style={{ alignItems: 'center', marginTop: 8, gap: 12 }}>
+                  <label className="settings-music-hint" style={{ marginBottom: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <input
+                      type="radio"
+                      name="countdown-window-mode"
+                      checked={countdownWindowMode === 'integrated'}
+                      onChange={() => {
+                        setCountdownWindowMode('integrated');
+                        window.api.storeWrite('countdown-window-mode', 'integrated').catch(() => {});
+                      }}
+                    />
+                    集成在灵动岛中
+                  </label>
+                  <label className="settings-music-hint" style={{ marginBottom: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <input
+                      type="radio"
+                      name="countdown-window-mode"
+                      checked={countdownWindowMode === 'standalone'}
+                      onChange={() => {
+                        setCountdownWindowMode('standalone');
+                        window.api.storeWrite('countdown-window-mode', 'standalone').catch(() => {});
+                      }}
+                    />
+                    独立窗口
                   </label>
                 </div>
               </div>

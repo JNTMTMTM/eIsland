@@ -211,6 +211,12 @@ export function CountdownTab(): React.ReactElement {
 
   return (
     <div className="max-expand-tab-panel countdown-panel-v2">
+      <button
+        className="cd-popout-btn"
+        type="button"
+        title="在独立窗口中打开"
+        onClick={() => { window.api.openCountdownWindow().catch(() => {}); }}
+      >⧉</button>
       {/* ===== 上部区域 ===== */}
       <div className="cd-top">
         {/* 左上：日历 */}

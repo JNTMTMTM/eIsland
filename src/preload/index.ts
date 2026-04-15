@@ -157,6 +157,36 @@ const api = {
   clearLogsCache: (): Promise<{ success: boolean; freedBytes: number }> => {
     return ipcRenderer.invoke('app:clear-logs-cache');
   },
+  /**
+   * 最小化当前窗口
+   */
+  windowMinimize: (): void => {
+    ipcRenderer.send('window:minimize');
+  },
+  /**
+   * 最大化/还原当前窗口
+   */
+  windowMaximize: (): void => {
+    ipcRenderer.send('window:maximize');
+  },
+  /**
+   * 关闭当前窗口
+   */
+  windowClose: (): void => {
+    ipcRenderer.send('window:close');
+  },
+  /**
+   * 打开倒数日/TODOs 独立窗口
+   */
+  openCountdownWindow: (): Promise<boolean> => {
+    return ipcRenderer.invoke('app:open-countdown-window');
+  },
+  /**
+   * 关闭倒数日/TODOs 独立窗口
+   */
+  closeCountdownWindow: (): Promise<boolean> => {
+    return ipcRenderer.invoke('app:close-countdown-window');
+  },
   /** ===== 音乐相关 API ===== */
   /**
    * 播放/暂停

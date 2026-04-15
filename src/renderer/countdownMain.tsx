@@ -19,15 +19,33 @@
  */
 
 /**
- * @file index.css
- * @description 全局样式入口，模块化导入各功能样式文件
+ * @file countdownMain.tsx
+ * @description 倒数日/TODOs 独立窗口渲染入口
  * @author 鸡哥
  */
 
-@import "./reset/reset.css";
-@import "./shell/shell.css";
-@import "./hover/hover.css";
-@import "./expanded/expanded.css";
-@import "./notification/notification.css";
-@import "./guide/guide.css";
-@import "./countdown-window.css";
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import './styles/index.css';
+import './styles/settings/settings.css';
+import './styles/countdown-window.css';
+import { CountdownWindow } from './components/CountdownWindow';
+import { initTheme } from './utils/theme';
+
+const root = document.getElementById('root');
+if (!root) {
+  throw new Error('[CountdownRenderer] 未找到 #root 挂载节点');
+}
+const rootEl = root;
+
+async function bootstrap(): Promise<void> {
+  await initTheme();
+
+  createRoot(rootEl).render(
+    <StrictMode>
+      <CountdownWindow />
+    </StrictMode>
+  );
+}
+
+void bootstrap();

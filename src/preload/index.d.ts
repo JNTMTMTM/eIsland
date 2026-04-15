@@ -78,6 +78,11 @@ declare global {
       restartApp: () => Promise<boolean>;
       openLogsFolder: () => Promise<boolean>;
       clearLogsCache: () => Promise<{ success: boolean; freedBytes: number }>;
+      windowMinimize: () => void;
+      windowMaximize: () => void;
+      windowClose: () => void;
+      openCountdownWindow: () => Promise<boolean>;
+      closeCountdownWindow: () => Promise<boolean>;
       mediaPlayPause: () => Promise<void>;
       mediaNext: () => Promise<void>;
       mediaPrev: () => Promise<void>;

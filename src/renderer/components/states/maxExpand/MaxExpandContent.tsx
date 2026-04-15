@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import React, { useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import useIslandStore from '../../../store/slices';
 import type { MaxExpandTab } from '../../../store/types';
 import '../../../styles/settings/settings.css';
@@ -51,11 +51,42 @@ const NAV_DOTS: { id: NavDotId; label: string }[] = [
  * 最大展开模式内容组件
  * @description 包含 AI 对话窗口和设置面板，底部导航点切换 Tab 或返回 expanded
  */
+/** 独立窗口模式下从灵动岛中移除的 Tab */
+const STANDALONE_HIDDEN_TABS: Set<NavDotId> = new Set(['todo', 'countdown', 'settings']);
+
 export function MaxExpandContent(): React.ReactElement {
   const { setExpanded, maxExpandTab: activeTab, setMaxExpandTab: setActiveTab } = useIslandStore();
   const contentRef = useRef<HTMLDivElement>(null);
   const activeTabRef = useRef(activeTab);
   activeTabRef.current = activeTab;
+
+  /** 倒数日/TODOs 打开模式偏好 */
+  const [countdownMode, setCountdownMode] = useState<'integrated' | 'standalone'>('integrated');
+
+  useEffect(() => {
+    let cancelled = false;
+    window.api.storeRead('countdown-window-mode').then((data) => {
+      if (cancelled) return;
+      if (data === 'standalone') setCountdownMode('standalone');
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+
+  /** 独立窗口模式下过滤掉的导航点 */
+  const filteredNavDots = useMemo(() => {
+    if (countdownMode === 'standalone') {
+      return NAV_DOTS.filter(d => !STANDALONE_HIDDEN_TABS.has(d.id));
+    }
+    return NAV_DOTS;
+  }, [countdownMode]);
+  const filteredNavDotsRef = useRef(filteredNavDots);
+  filteredNavDotsRef.current = filteredNavDots;
+
+  /** 切换 Tab */
+  const navigateTab = useCallback((id: NavDotId): void => {
+    if (id === 'expanded') { setExpanded(); return; }
+    setActiveTab(id);
+  }, [setExpanded, setActiveTab]);
 
   /** 滚轮切换 Tab */
   useEffect(() => {
@@ -78,16 +109,16 @@ export function MaxExpandContent(): React.ReactElement {
       if (target.closest('.settings-field-textarea')) return;
       e.preventDefault();
 
+      const dots = filteredNavDotsRef.current;
       const cur = activeTabRef.current;
-      const currentIndex = NAV_DOTS.findIndex(d => d.id === cur);
+      const currentIndex = dots.findIndex(d => d.id === cur);
       let nextId: NavDotId;
       if (e.deltaY > 0) {
-        nextId = NAV_DOTS[(currentIndex + 1) % NAV_DOTS.length].id;
+        nextId = dots[(currentIndex + 1) % dots.length].id;
       } else {
-        nextId = NAV_DOTS[(currentIndex - 1 + NAV_DOTS.length) % NAV_DOTS.length].id;
+        nextId = dots[(currentIndex - 1 + dots.length) % dots.length].id;
       }
-      if (nextId === 'expanded') { setExpanded(); return; }
-      setActiveTab(nextId);
+      navigateTab(nextId);
     };
 
     el.addEventListener('wheel', handleWheel, { passive: false });
@@ -96,8 +127,7 @@ export function MaxExpandContent(): React.ReactElement {
 
   /** 导航点点击 */
   const handleNavClick = (id: NavDotId): void => {
-    if (id === 'expanded') { setExpanded(); return; }
-    setActiveTab(id);
+    navigateTab(id);
   };
 
   return (
@@ -105,15 +135,15 @@ export function MaxExpandContent(): React.ReactElement {
       {/* Tab 内容区域 */}
       <div className="max-expand-tab-content" onClick={(e) => e.stopPropagation()}>
         {activeTab === 'aiChat' && <AiChatTab />}
-        {activeTab === 'todo' && <TodoTab />}
+        {countdownMode === 'integrated' && activeTab === 'todo' && <TodoTab />}
         {activeTab === 'urlFavorites' && <UrlFavoritesTab />}
-        {activeTab === 'countdown' && <CountdownTab />}
-        {activeTab === 'settings' && <SettingsTab />}
+        {countdownMode === 'integrated' && activeTab === 'countdown' && <CountdownTab />}
+        {countdownMode === 'integrated' && activeTab === 'settings' && <SettingsTab />}
       </div>
 
       {/* 底部导航点 */}
       <div className="settings-nav-dots" onClick={(e) => e.stopPropagation()}>
-        {NAV_DOTS.map(({ id, label }) => (
+        {filteredNavDots.map(({ id, label }) => (
           <button
             key={id}
             className={`settings-nav-dot ${activeTab === id ? 'active' : ''}`}

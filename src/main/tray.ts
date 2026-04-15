@@ -27,6 +27,7 @@
 import { Tray, Menu, nativeImage, BrowserWindow, app, shell } from 'electron';
 import { join } from 'path';
 import { is } from '@electron-toolkit/utils';
+import { openCountdownWindow } from './window/countdownWindow';
 
 let tray: Tray | null = null;
 let cachedMainWindow: BrowserWindow | null = null;
@@ -60,6 +61,12 @@ function createTray(mainWindow: BrowserWindow | null): Tray {
       label: '隐藏灵动岛',
       click: () => {
         mainWindow?.hide();
+      }
+    },
+    {
+      label: '打开配置界面',
+      click: () => {
+        openCountdownWindow();
       }
     },
     {

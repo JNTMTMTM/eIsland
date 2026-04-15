@@ -257,6 +257,12 @@ export function TodoTab(): React.ReactElement {
       {/* 标题栏 */}
       <div className="expand-todo-header">
         <span className="expand-todo-title">待办事项</span>
+        <button
+          className="expand-todo-popout-btn"
+          type="button"
+          title="在独立窗口中打开"
+          onClick={() => { window.api.openCountdownWindow().catch(() => {}); }}
+        >⧉</button>
         <div className="expand-todo-stats">
           <span className="expand-todo-stat done">✓ {doneCount}</span>
           <span className="expand-todo-stat undone">○ {undoneCount}</span>
