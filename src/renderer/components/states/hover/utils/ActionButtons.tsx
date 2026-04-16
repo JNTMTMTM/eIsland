@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import React from 'react';
+import { type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SvgIcon } from '../../../../utils/SvgIcon';
 
@@ -42,7 +42,7 @@ interface ActionButtonsProps {
 export function ActionButtons({
   hideIcon = SvgIcon.HIDE,
   powerOffIcon = SvgIcon.POWER_OFF,
-}: ActionButtonsProps): React.ReactElement {
+}: ActionButtonsProps): ReactElement {
   const { t } = useTranslation();
 
   const handleHide = (): void => {
