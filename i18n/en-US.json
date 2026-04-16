@@ -121,6 +121,77 @@
       "switchToPage": "Switch to {{label}} page"
     }
   },
+  "toolsTab": {
+    "defaultAppName": "App",
+    "title": "Quick Launch",
+    "count": "{{count}} items",
+    "empty": "No quick launch items",
+    "launchTitle": "Click to launch",
+    "editNameByDoubleClick": "Double-click to edit name",
+    "editName": "Edit name",
+    "delete": "Delete",
+    "drop": {
+      "releaseToAdd": "Release to add",
+      "onlyExe": "Only .exe files are supported",
+      "duplicate": "App already exists",
+      "dragExe": "Drag .exe here"
+    }
+  },
+  "overview": {
+    "song": {
+      "nowPlaying": "Now Playing",
+      "unknownTitle": "Unknown title",
+      "unknownArtist": "Unknown artist",
+      "prev": "Previous",
+      "pause": "Pause",
+      "play": "Play",
+      "next": "Next",
+      "empty": "No music playing"
+    },
+    "countdown": {
+      "title": "Countdown",
+      "empty": "No countdown events"
+    },
+    "pomodoro": {
+      "title": "Pomodoro",
+      "completedTitle": "Completed pomodoros",
+      "tomato": "Tomato",
+      "resetCount": "Reset count",
+      "reset": "Reset",
+      "start": "Start",
+      "pause": "Pause",
+      "skip": "Skip",
+      "phases": {
+        "work": "Focus",
+        "shortBreak": "Short Break",
+        "longBreak": "Long Break"
+      }
+    },
+    "urlFavorites": {
+      "title": "URL Favorites",
+      "count": "{{count}} items",
+      "empty": "No favorites",
+      "viewAll": "View all {{count}} favorites"
+    },
+    "shortcuts": {
+      "title": "Quick Launch",
+      "editTitle": "Edit quick launch",
+      "count": "{{count}} items",
+      "emptyHint": "Add apps in Tools"
+    },
+    "todo": {
+      "title": "Todo",
+      "goToPage": "Go to todo page",
+      "empty": "No todos",
+      "delete": "Delete",
+      "completed": "Completed {{count}}"
+    },
+    "time": {
+      "date": "{{yyyy}}-{{month}}-{{day}} {{dayName}}",
+      "yi": "P",
+      "ji": "C"
+    }
+  },
   "settings": {
     "sidebar": {
       "title": "Settings"

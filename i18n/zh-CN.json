@@ -121,6 +121,77 @@
       "switchToPage": "切换到{{label}}页面"
     }
   },
+  "toolsTab": {
+    "defaultAppName": "应用",
+    "title": "快捷启动",
+    "count": "{{count}} 项",
+    "empty": "暂无快捷启动项",
+    "launchTitle": "点击启动",
+    "editNameByDoubleClick": "双击编辑名称",
+    "editName": "编辑名称",
+    "delete": "删除",
+    "drop": {
+      "releaseToAdd": "松开添加",
+      "onlyExe": "仅支持 .exe 文件",
+      "duplicate": "已存在该应用",
+      "dragExe": "拖入 .exe"
+    }
+  },
+  "overview": {
+    "song": {
+      "nowPlaying": "正在播放",
+      "unknownTitle": "未知歌曲",
+      "unknownArtist": "未知艺术家",
+      "prev": "上一首",
+      "pause": "暂停",
+      "play": "播放",
+      "next": "下一首",
+      "empty": "暂无播放中的歌曲"
+    },
+    "countdown": {
+      "title": "倒数日",
+      "empty": "暂无倒数日"
+    },
+    "pomodoro": {
+      "title": "番茄钟",
+      "completedTitle": "已完成番茄数",
+      "tomato": "番茄",
+      "resetCount": "重置计数",
+      "reset": "重置",
+      "start": "开始",
+      "pause": "暂停",
+      "skip": "跳过",
+      "phases": {
+        "work": "专注中",
+        "shortBreak": "短休息",
+        "longBreak": "长休息"
+      }
+    },
+    "urlFavorites": {
+      "title": "URL 收藏",
+      "count": "{{count}} 条",
+      "empty": "暂无收藏",
+      "viewAll": "查看全部 {{count}} 条收藏"
+    },
+    "shortcuts": {
+      "title": "快捷启动",
+      "editTitle": "编辑快捷启动",
+      "count": "{{count}} 项",
+      "emptyHint": "在系统工具中添加"
+    },
+    "todo": {
+      "title": "待办事项",
+      "goToPage": "前往待办事项页面",
+      "empty": "暂无待办",
+      "delete": "删除",
+      "completed": "已完成 {{count}}"
+    },
+    "time": {
+      "date": "{{yyyy}}年{{month}}月{{day}}日 {{dayName}}",
+      "yi": "宜",
+      "ji": "忌"
+    }
+  },
   "settings": {
     "sidebar": {
       "title": "设置"

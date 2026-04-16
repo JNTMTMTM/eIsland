@@ -25,6 +25,7 @@
  */
 
 import React, { useEffect, useState, useCallback, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../../store/slices';
 import { getDayName, getDayJi, getDayYi, getLunarDate } from '../../../../utils/timeUtils';
 import { SvgIcon } from '../../../../utils/SvgIcon';
@@ -130,13 +131,14 @@ function cdDiffDays(targetStr: string): number {
 
 /** 歌曲控件 */
 function SongWidget(): React.ReactElement {
+  const { t } = useTranslation();
   const { mediaInfo, coverImage, isPlaying, isMusicPlaying, dominantColor, setExpandTab } = useIslandStore();
   const [r, g, b] = dominantColor;
 
   return (
     <div className="ov-dash-widget ov-dash-song-widget">
       <div className="ov-dash-widget-header">
-        <span className="ov-dash-widget-title ov-dash-widget-title--link" onClick={() => setExpandTab('song')}>正在播放</span>
+        <span className="ov-dash-widget-title ov-dash-widget-title--link" onClick={() => setExpandTab('song')}>{t('overview.song.nowPlaying', { defaultValue: '正在播放' })}</span>
       </div>
       {isMusicPlaying ? (
         <div
@@ -155,29 +157,29 @@ function SongWidget(): React.ReactElement {
               style={coverImage ? { backgroundImage: `url(${coverImage})` } : undefined}
             />
             <div className="ov-dash-song-info">
-              <div className="ov-dash-song-title">{mediaInfo.title || '未知歌曲'}</div>
-              <div className="ov-dash-song-artist">{mediaInfo.artist || '未知艺术家'}</div>
+              <div className="ov-dash-song-title">{mediaInfo.title || t('overview.song.unknownTitle', { defaultValue: '未知歌曲' })}</div>
+              <div className="ov-dash-song-artist">{mediaInfo.artist || t('overview.song.unknownArtist', { defaultValue: '未知艺术家' })}</div>
               {mediaInfo.album && <div className="ov-dash-song-album">{mediaInfo.album}</div>}
             </div>
           </div>
           <div className="ov-dash-song-controls">
-            <button className="ov-dash-song-btn" onClick={() => window.api.mediaPrev()} type="button" title="上一首">
-              <img src={SvgIcon.PREVIOUS_SONG} alt="上一首" className="ov-dash-song-btn-icon ov-dash-song-btn-icon--sm" />
+            <button className="ov-dash-song-btn" onClick={() => window.api.mediaPrev()} type="button" title={t('overview.song.prev', { defaultValue: '上一首' })}>
+              <img src={SvgIcon.PREVIOUS_SONG} alt={t('overview.song.prev', { defaultValue: '上一首' })} className="ov-dash-song-btn-icon ov-dash-song-btn-icon--sm" />
             </button>
-            <button className="ov-dash-song-btn ov-dash-song-btn-play" onClick={() => window.api.mediaPlayPause()} type="button" title={isPlaying ? '暂停' : '播放'}>
+            <button className="ov-dash-song-btn ov-dash-song-btn-play" onClick={() => window.api.mediaPlayPause()} type="button" title={isPlaying ? t('overview.song.pause', { defaultValue: '暂停' }) : t('overview.song.play', { defaultValue: '播放' })}>
               {isPlaying ? (
-                <img src={SvgIcon.PAUSE} alt="暂停" className="ov-dash-song-btn-icon" />
+                <img src={SvgIcon.PAUSE} alt={t('overview.song.pause', { defaultValue: '暂停' })} className="ov-dash-song-btn-icon" />
               ) : (
-                <img src={SvgIcon.CONTINUE} alt="播放" className="ov-dash-song-btn-icon" />
+                <img src={SvgIcon.CONTINUE} alt={t('overview.song.play', { defaultValue: '播放' })} className="ov-dash-song-btn-icon" />
               )}
             </button>
-            <button className="ov-dash-song-btn" onClick={() => window.api.mediaNext()} type="button" title="下一首">
-              <img src={SvgIcon.NEXT_SONG} alt="下一首" className="ov-dash-song-btn-icon ov-dash-song-btn-icon--sm" />
+            <button className="ov-dash-song-btn" onClick={() => window.api.mediaNext()} type="button" title={t('overview.song.next', { defaultValue: '下一首' })}>
+              <img src={SvgIcon.NEXT_SONG} alt={t('overview.song.next', { defaultValue: '下一首' })} className="ov-dash-song-btn-icon ov-dash-song-btn-icon--sm" />
             </button>
           </div>
         </div>
       ) : (
-        <div className="ov-dash-song-empty">暂无播放中的歌曲</div>
+        <div className="ov-dash-song-empty">{t('overview.song.empty', { defaultValue: '暂无播放中的歌曲' })}</div>
       )}
     </div>
   );
@@ -185,6 +187,7 @@ function SongWidget(): React.ReactElement {
 
 /** 倒数日控件 */
 function CountdownWidget({ openTargetPage }: { openTargetPage: (target: 'todo' | 'countdown' | 'settings') => void }): React.ReactElement {
+  const { t } = useTranslation();
   const [cdItems, setCdItems] = useState<CountdownDateItem[]>([]);
   useEffect(() => {
     let cancelled = false;
@@ -221,15 +224,15 @@ function CountdownWidget({ openTargetPage }: { openTargetPage: (target: 'todo' |
   return (
     <div className="ov-dash-widget ov-dash-countdown-widget">
       <div className="ov-dash-widget-header">
-        <span className="ov-dash-widget-title ov-dash-widget-title--link" onClick={goToCountdown}>倒数日</span>
+        <span className="ov-dash-widget-title ov-dash-widget-title--link" onClick={goToCountdown}>{t('overview.countdown.title', { defaultValue: '倒数日' })}</span>
       </div>
       {sorted.length === 0 ? (
-        <div className="ov-dash-countdown-empty">暂无倒数日</div>
+        <div className="ov-dash-countdown-empty">{t('overview.countdown.empty', { defaultValue: '暂无倒数日' })}</div>
       ) : (
         <div className={`ov-dash-countdown-cards ${sorted.length === 1 ? 'single' : ''}`}>
           {sorted.map(item => {
             const days = cdDiffDays(item.date);
-            const typeLabel = CD_TYPE_LABELS[item.type] || item.type;
+            const typeLabel = t(`countdown.types.${item.type}`, { defaultValue: CD_TYPE_LABELS[item.type] || item.type });
             return (
               <div
                 key={item.id}
@@ -249,7 +252,11 @@ function CountdownWidget({ openTargetPage }: { openTargetPage: (target: 'todo' |
                   <div className="cd-card-bottom">
                     <span className="cd-card-date">{item.date}</span>
                     <span className="cd-card-days" style={{ color: item.color }}>
-                      {days > 0 ? `${days} 天后` : days === 0 ? '就是今天' : `${Math.abs(days)} 天前`}
+                      {days > 0
+                        ? t('countdown.days.after', { defaultValue: '{{days}} 天后', days })
+                        : days === 0
+                          ? t('countdown.days.today', { defaultValue: '就是今天' })
+                          : t('countdown.days.before', { defaultValue: '{{days}} 天前', days: Math.abs(days) })}
                     </span>
                   </div>
                 </div>
@@ -377,6 +384,7 @@ function fmtPomodoroTime(seconds: number): string {
 
 /** 番茄钟控件（仅负责显示和控制，计时逻辑在模块级） */
 function PomodoroWidget(): React.ReactElement {
+  const { t } = useTranslation();
   const {
     pomodoroPhase: phase,
     pomodoroRemaining: remaining,
@@ -445,13 +453,13 @@ function PomodoroWidget(): React.ReactElement {
   return (
     <div className="ov-dash-widget ov-dash-pomodoro-widget">
       <div className="ov-dash-widget-header">
-        <span className="ov-dash-widget-title">番茄钟</span>
-        <span className="ov-dash-pomodoro-count" title="已完成番茄数">
-          <img src={SvgIcon.POMODORO} alt="番茄" className="ov-dash-pomodoro-icon" />
+        <span className="ov-dash-widget-title">{t('overview.pomodoro.title', { defaultValue: '番茄钟' })}</span>
+        <span className="ov-dash-pomodoro-count" title={t('overview.pomodoro.completedTitle', { defaultValue: '已完成番茄数' })}>
+          <img src={SvgIcon.POMODORO} alt={t('overview.pomodoro.tomato', { defaultValue: '番茄' })} className="ov-dash-pomodoro-icon" />
           {completedCount}
           {completedCount > 0 && (
-            <button className="ov-dash-pomodoro-count-reset" onClick={handleResetCount} type="button" title="重置计数">
-              <img src={SvgIcon.REVERT} alt="重置" className="ov-dash-pomodoro-count-reset-icon" />
+            <button className="ov-dash-pomodoro-count-reset" onClick={handleResetCount} type="button" title={t('overview.pomodoro.resetCount', { defaultValue: '重置计数' })}>
+              <img src={SvgIcon.REVERT} alt={t('overview.pomodoro.reset', { defaultValue: '重置' })} className="ov-dash-pomodoro-count-reset-icon" />
             </button>
           )}
         </span>
@@ -469,7 +477,7 @@ function PomodoroWidget(): React.ReactElement {
           </svg>
           <div className="ov-dash-pomodoro-ring-inner">
             <div className="ov-dash-pomodoro-time">{fmtPomodoroTime(remaining)}</div>
-            <div className="ov-dash-pomodoro-phase" style={{ color: phaseColor }}>{POMODORO_LABELS[phase]}</div>
+            <div className="ov-dash-pomodoro-phase" style={{ color: phaseColor }}>{t(`overview.pomodoro.phases.${phase}`, { defaultValue: POMODORO_LABELS[phase] })}</div>
           </div>
         </div>
 
@@ -480,7 +488,7 @@ function PomodoroWidget(): React.ReactElement {
               <>
                 <div className="ov-dash-pomodoro-tl-dot" />
                 <div className="ov-dash-pomodoro-tl-info">
-                  <span className="ov-dash-pomodoro-tl-name">{POMODORO_LABELS[prevPhase]}</span>
+                  <span className="ov-dash-pomodoro-tl-name">{t(`overview.pomodoro.phases.${prevPhase}`, { defaultValue: POMODORO_LABELS[prevPhase] })}</span>
                   <span className="ov-dash-pomodoro-tl-dur">{POMODORO_DURATIONS[prevPhase] / 60}m</span>
                 </div>
               </>
@@ -489,28 +497,28 @@ function PomodoroWidget(): React.ReactElement {
           <div className="ov-dash-pomodoro-tl-item ov-dash-pomodoro-tl-item--current">
             <div className="ov-dash-pomodoro-tl-dot ov-dash-pomodoro-tl-dot--current" style={{ background: phaseColor, boxShadow: `0 0 5px ${phaseColor}99` }} />
             <div className="ov-dash-pomodoro-tl-info">
-              <span className="ov-dash-pomodoro-tl-name ov-dash-pomodoro-tl-name--current">{POMODORO_LABELS[phase]}</span>
+              <span className="ov-dash-pomodoro-tl-name ov-dash-pomodoro-tl-name--current">{t(`overview.pomodoro.phases.${phase}`, { defaultValue: POMODORO_LABELS[phase] })}</span>
               <span className="ov-dash-pomodoro-tl-dur ov-dash-pomodoro-tl-dur--current" style={{ color: phaseColor }}>{fmtPomodoroTime(remaining)}</span>
             </div>
           </div>
           <div className="ov-dash-pomodoro-tl-item">
             <div className="ov-dash-pomodoro-tl-dot" />
             <div className="ov-dash-pomodoro-tl-info">
-              <span className="ov-dash-pomodoro-tl-name">{POMODORO_LABELS[nextPhase]}</span>
+              <span className="ov-dash-pomodoro-tl-name">{t(`overview.pomodoro.phases.${nextPhase}`, { defaultValue: POMODORO_LABELS[nextPhase] })}</span>
               <span className="ov-dash-pomodoro-tl-dur">{POMODORO_DURATIONS[nextPhase] / 60}m</span>
             </div>
           </div>
         </div>
         {/* 控制按钮（横排） */}
         <div className="ov-dash-pomodoro-controls">
-          <button className="ov-dash-pomodoro-btn" onClick={handleStartPause} type="button" title={running ? '暂停' : '开始'}>
-            <img src={running ? SvgIcon.PAUSE : SvgIcon.CONTINUE} alt={running ? '暂停' : '开始'} className="ov-dash-pomodoro-btn-icon" />
+          <button className="ov-dash-pomodoro-btn" onClick={handleStartPause} type="button" title={running ? t('overview.pomodoro.pause', { defaultValue: '暂停' }) : t('overview.pomodoro.start', { defaultValue: '开始' })}>
+            <img src={running ? SvgIcon.PAUSE : SvgIcon.CONTINUE} alt={running ? t('overview.pomodoro.pause', { defaultValue: '暂停' }) : t('overview.pomodoro.start', { defaultValue: '开始' })} className="ov-dash-pomodoro-btn-icon" />
           </button>
-          <button className="ov-dash-pomodoro-btn" onClick={handleReset} type="button" title="重置">
-            <img src={SvgIcon.REVERT} alt="重置" className="ov-dash-pomodoro-btn-icon" />
+          <button className="ov-dash-pomodoro-btn" onClick={handleReset} type="button" title={t('overview.pomodoro.reset', { defaultValue: '重置' })}>
+            <img src={SvgIcon.REVERT} alt={t('overview.pomodoro.reset', { defaultValue: '重置' })} className="ov-dash-pomodoro-btn-icon" />
           </button>
-          <button className="ov-dash-pomodoro-btn" onClick={handleSkip} type="button" title="跳过">
-            <img src={SvgIcon.NEXT_SONG} alt="跳过" className="ov-dash-pomodoro-btn-icon" />
+          <button className="ov-dash-pomodoro-btn" onClick={handleSkip} type="button" title={t('overview.pomodoro.skip', { defaultValue: '跳过' })}>
+            <img src={SvgIcon.NEXT_SONG} alt={t('overview.pomodoro.skip', { defaultValue: '跳过' })} className="ov-dash-pomodoro-btn-icon" />
           </button>
         </div>
       </div>
@@ -529,6 +537,7 @@ interface UrlFavoriteItem {
 
 /** URL 收藏控件 */
 function UrlFavoritesWidget(): React.ReactElement {
+  const { t } = useTranslation();
   const { setMaxExpand, setMaxExpandTab } = useIslandStore();
   const [favorites, setFavorites] = useState<UrlFavoriteItem[]>([]);
 
@@ -560,11 +569,11 @@ function UrlFavoritesWidget(): React.ReactElement {
   return (
     <div className="ov-dash-widget ov-dash-url-favorites-widget">
       <div className="ov-dash-widget-header">
-        <span className="ov-dash-widget-title ov-dash-widget-title--link" onClick={goToUrlFavorites}>URL 收藏</span>
-        <span className="ov-dash-url-favorites-count">{favorites.length} 条</span>
+        <span className="ov-dash-widget-title ov-dash-widget-title--link" onClick={goToUrlFavorites}>{t('overview.urlFavorites.title', { defaultValue: 'URL 收藏' })}</span>
+        <span className="ov-dash-url-favorites-count">{t('overview.urlFavorites.count', { defaultValue: '{{count}} 条', count: favorites.length })}</span>
       </div>
       {shown.length === 0 ? (
-        <div className="ov-dash-url-favorites-empty">暂无收藏</div>
+        <div className="ov-dash-url-favorites-empty">{t('overview.urlFavorites.empty', { defaultValue: '暂无收藏' })}</div>
       ) : (
         <div className="ov-dash-url-favorites-list">
           {shown.map((item) => (
@@ -583,7 +592,7 @@ function UrlFavoritesWidget(): React.ReactElement {
           ))}
           {favorites.length > 5 && (
             <div className="ov-dash-url-favorites-more" onClick={goToUrlFavorites}>
-              查看全部 {favorites.length} 条收藏
+              {t('overview.urlFavorites.viewAll', { defaultValue: '查看全部 {{count}} 条收藏', count: favorites.length })}
             </div>
           )}
         </div>
@@ -597,6 +606,7 @@ function UrlFavoritesWidget(): React.ReactElement {
  * @description 展开状态下仪表盘式概览面板
  */
 export function OverviewTab(): React.ReactElement {
+  const { t } = useTranslation();
   const { setMaxExpand, setMaxExpandTab, setExpandTab } = useIslandStore();
   const [now, setNow] = useState(new Date());
   const [todos, setTodos] = useState<TodoItem[]>([]);
@@ -798,12 +808,12 @@ export function OverviewTab(): React.ReactElement {
         return (
           <div className="ov-dash-apps-wrap">
             <div className="ov-dash-apps-header">
-              <span className="ov-dash-apps-title clickable" onClick={() => setExpandTab('tools')} title="编辑快捷启动">快捷启动</span>
-              <span className="ov-dash-apps-count">{apps.length} 项</span>
+              <span className="ov-dash-apps-title clickable" onClick={() => setExpandTab('tools')} title={t('overview.shortcuts.editTitle', { defaultValue: '编辑快捷启动' })}>{t('overview.shortcuts.title', { defaultValue: '快捷启动' })}</span>
+              <span className="ov-dash-apps-count">{t('overview.shortcuts.count', { defaultValue: '{{count}} 项', count: apps.length })}</span>
             </div>
             <div className="ov-dash-apps">
               {apps.length === 0 && (
-                <div className="ov-dash-apps-empty">在系统工具中添加</div>
+                <div className="ov-dash-apps-empty">{t('overview.shortcuts.emptyHint', { defaultValue: '在系统工具中添加' })}</div>
               )}
               {apps.map((app, index) => (
                 <div
@@ -832,7 +842,7 @@ export function OverviewTab(): React.ReactElement {
         return (
           <div className="ov-dash-todo">
             <div className="ov-dash-todo-header">
-              <span className="ov-dash-todo-title clickable" onClick={() => openTargetPage('todo')} title="前往待办事项页面">待办事项</span>
+              <span className="ov-dash-todo-title clickable" onClick={() => openTargetPage('todo')} title={t('overview.todo.goToPage', { defaultValue: '前往待办事项页面' })}>{t('overview.todo.title', { defaultValue: '待办事项' })}</span>
               <div className="ov-dash-todo-stats">
                 <span className="ov-dash-todo-stat done">✓ {doneTodos.length}</span>
                 <span className="ov-dash-todo-stat undone">○ {undoneTodos.length}</span>
@@ -843,7 +853,7 @@ export function OverviewTab(): React.ReactElement {
             </div>
             <div className="ov-dash-todo-list">
               {todos.length === 0 ? (
-                <div className="ov-dash-todo-empty">暂无待办</div>
+                <div className="ov-dash-todo-empty">{t('overview.todo.empty', { defaultValue: '暂无待办' })}</div>
               ) : (
                 <>
                   {undoneTodos.map(todo => {
@@ -879,7 +889,7 @@ export function OverviewTab(): React.ReactElement {
                           <button
                             className="ov-dash-todo-delete"
                             onClick={(e) => { e.stopPropagation(); removeTodo(todo.id); }}
-                            aria-label="删除"
+                            aria-label={t('overview.todo.delete', { defaultValue: '删除' })}
                           >
                             ×
                           </button>
@@ -917,7 +927,7 @@ export function OverviewTab(): React.ReactElement {
                   })}
                   {doneTodos.length > 0 && (
                     <>
-                      <div className="ov-dash-todo-divider">已完成 {doneTodos.length}</div>
+                      <div className="ov-dash-todo-divider">{t('overview.todo.completed', { defaultValue: '已完成 {{count}}', count: doneTodos.length })}</div>
                       {doneTodos.map(todo => (
                         <div key={todo.id} className="ov-dash-todo-item done">
                           <div className="ov-dash-todo-row">
@@ -931,7 +941,7 @@ export function OverviewTab(): React.ReactElement {
                             <button
                               className="ov-dash-todo-delete"
                               onClick={(e) => { e.stopPropagation(); removeTodo(todo.id); }}
-                              aria-label="删除"
+                              aria-label={t('overview.todo.delete', { defaultValue: '删除' })}
                             >
                               ×
                             </button>
@@ -967,16 +977,16 @@ export function OverviewTab(): React.ReactElement {
 
       {/* ========== 中区：时间（始终居中） ========== */}
       <div className="ov-dash-time">
-        <span className="ov-dash-date">{yyyy}年{month}月{day}日 {dayName}</span>
+        <span className="ov-dash-date">{t('overview.time.date', { defaultValue: '{{yyyy}}年{{month}}月{{day}}日 {{dayName}}', yyyy, month, day, dayName })}</span>
         <span className="ov-dash-clock">{hh}:{mm}:{ss}</span>
         <span className="ov-dash-lunar">{getLunarDate(now)}</span>
         <div className="ov-dash-yiji">
           <div className="ov-dash-yiji-row">
-            <span className="ov-dash-yiji-label yi">宜</span>
+            <span className="ov-dash-yiji-label yi">{t('overview.time.yi', { defaultValue: '宜' })}</span>
             <span className="ov-dash-yiji-items">{getDayYi(now).slice(0, 3).join(' · ')}</span>
           </div>
           <div className="ov-dash-yiji-row">
-            <span className="ov-dash-yiji-label ji">忌</span>
+            <span className="ov-dash-yiji-label ji">{t('overview.time.ji', { defaultValue: '忌' })}</span>
             <span className="ov-dash-yiji-items">{getDayJi(now).slice(0, 3).join(' · ')}</span>
           </div>
         </div>

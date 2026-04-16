@@ -25,6 +25,7 @@
  */
 
 import React, { useEffect, useState, useCallback, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 
 /** 应用快捷方式 */
 interface AppShortcut {
@@ -44,6 +45,7 @@ const MAX_APPS = 18;
  * @description 展开状态下的快捷启动管理面板
  */
 export function ToolsTab(): React.ReactElement {
+  const { t } = useTranslation();
   const [apps, setApps] = useState<AppShortcut[]>([]);
   const [appsLoaded, setAppsLoaded] = useState(false);
   const [dragOver, setDragOver] = useState(false);
@@ -109,7 +111,7 @@ export function ToolsTab(): React.ReactElement {
       if (apps.some(a => a.path === filePath)) { hasDuplicate = true; continue; }
       if (apps.length >= MAX_APPS) break;
       hasValid = true;
-      const name = filePath.split('\\').pop()?.replace(/\.exe$/i, '') || 'App';
+      const name = filePath.split('\\').pop()?.replace(/\.exe$/i, '') || t('toolsTab.defaultAppName', { defaultValue: 'App' });
       try {
         const iconBase64 = await window.api.getFileIcon(filePath);
         setApps(prev => [...prev, { id: Date.now() + Math.random(), name, path: filePath, iconBase64 }]);
@@ -185,15 +187,15 @@ export function ToolsTab(): React.ReactElement {
       >
         <div className="tools-drop-zone-inner">
           {dragOver ? (
-            <span className="tools-drop-zone-hint active">松开添加</span>
+            <span className="tools-drop-zone-hint active">{t('toolsTab.drop.releaseToAdd', { defaultValue: '松开添加' })}</span>
           ) : dropError ? (
-            <span className="tools-drop-zone-hint error">仅支持 .exe 文件</span>
+            <span className="tools-drop-zone-hint error">{t('toolsTab.drop.onlyExe', { defaultValue: '仅支持 .exe 文件' })}</span>
           ) : dropDuplicate ? (
-            <span className="tools-drop-zone-hint duplicate">已存在该应用</span>
+            <span className="tools-drop-zone-hint duplicate">{t('toolsTab.drop.duplicate', { defaultValue: '已存在该应用' })}</span>
           ) : (
             <>
               <span className="tools-drop-zone-icon">+</span>
-              <span className="tools-drop-zone-hint">拖入 .exe</span>
+              <span className="tools-drop-zone-hint">{t('toolsTab.drop.dragExe', { defaultValue: '拖入 .exe' })}</span>
             </>
           )}
         </div>
@@ -202,16 +204,16 @@ export function ToolsTab(): React.ReactElement {
       {/* ===== 右侧：快捷启动列表 ===== */}
       <div className="tools-app-list">
         <div className="tools-app-list-header">
-          <span className="tools-app-list-title">快捷启动</span>
-          <span className="tools-app-list-count">{apps.length} 项</span>
+          <span className="tools-app-list-title">{t('toolsTab.title', { defaultValue: '快捷启动' })}</span>
+          <span className="tools-app-list-count">{t('toolsTab.count', { defaultValue: '{{count}} 项', count: apps.length })}</span>
         </div>
         <div className="tools-app-list-body">
           {apps.length === 0 ? (
-            <div className="tools-app-list-empty">暂无快捷启动项</div>
+            <div className="tools-app-list-empty">{t('toolsTab.empty', { defaultValue: '暂无快捷启动项' })}</div>
           ) : (
             apps.map(app => (
               <div key={app.id} className="tools-app-row">
-                <div className="tools-app-icon-wrap" onClick={() => openApp(app.path)} title="点击启动">
+                <div className="tools-app-icon-wrap" onClick={() => openApp(app.path)} title={t('toolsTab.launchTitle', { defaultValue: '点击启动' })}>
                   {app.iconBase64 ? (
                     <img className="tools-app-icon" src={`data:image/png;base64,${app.iconBase64}`} alt={app.name} />
                   ) : (
@@ -231,13 +233,13 @@ export function ToolsTab(): React.ReactElement {
                     }}
                   />
                 ) : (
-                  <span className="tools-app-name" onDoubleClick={() => startEdit(app)} title="双击编辑名称">
+                  <span className="tools-app-name" onDoubleClick={() => startEdit(app)} title={t('toolsTab.editNameByDoubleClick', { defaultValue: '双击编辑名称' })}>
                     {app.name}
                   </span>
                 )}
                 <span className="tools-app-path" title={app.path}>{app.path}</span>
-                <button className="tools-app-edit" onClick={() => startEdit(app)} title="编辑名称">✎</button>
-                <button className="tools-app-delete" onClick={() => removeApp(app.id)} title="删除">×</button>
+                <button className="tools-app-edit" onClick={() => startEdit(app)} title={t('toolsTab.editName', { defaultValue: '编辑名称' })}>✎</button>
+                <button className="tools-app-delete" onClick={() => removeApp(app.id)} title={t('toolsTab.delete', { defaultValue: '删除' })}>×</button>
               </div>
             ))
           )}
