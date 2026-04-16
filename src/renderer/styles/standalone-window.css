@@ -36,10 +36,21 @@
   width: 100vw;
   height: 100vh;
   background: #000;
+  position: relative;
   color: #fff;
   font-family: 'SF Pro Display', 'SF Pro Text', 'Microsoft YaHei', 'PingFang SC', -apple-system, sans-serif;
   overflow: hidden;
   letter-spacing: -0.12px;
+}
+
+.cw-bg-layer {
+  position: absolute;
+  inset: 0;
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  pointer-events: none;
+  z-index: 0;
 }
 
 /* ===== 顶部 Chrome 栏（浏览器风格） ===== */
@@ -162,7 +173,8 @@
   overflow: auto;
   position: relative;
   -webkit-app-region: no-drag;
-  background: #000;
+  z-index: 1;
+  background: transparent;
 }
 
 /* 独立窗口内：隐藏窗口管理列表增加可视高度 */

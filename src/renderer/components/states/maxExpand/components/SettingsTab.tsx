@@ -83,6 +83,7 @@ import { setThemeMode as applyThemeMode, getThemeMode, type ThemeMode } from '..
 import { getLanguage, setLanguage, type AppLanguage } from '../../../../i18n';
 
 const CLIPBOARD_URL_SUPPRESS_IN_FAVORITES_KEY = 'clipboard-url-suppress-in-url-favorites';
+const LOCAL_ISLAND_BG_SYNC_EVENT = 'island-bg-local-sync';
 
 function isDirectBgImageUrl(image: string): boolean {
   return image.startsWith('data:')
@@ -261,19 +262,26 @@ export function SettingsTab(): ReactElement {
 
   const applyBgImage = (dataUrl: string | null): void => {
     const el = document.getElementById('island-bg-layer');
-    if (!el) return;
-    if (dataUrl) {
-      el.style.backgroundImage = `url(${dataUrl})`;
-      el.style.opacity = String(bgImageOpacity / 100);
-    } else {
-      el.style.backgroundImage = '';
-      el.style.opacity = '0';
+    if (el) {
+      if (dataUrl) {
+        el.style.backgroundImage = `url(${dataUrl})`;
+        el.style.opacity = String(bgImageOpacity / 100);
+      } else {
+        el.style.backgroundImage = '';
+        el.style.opacity = '0';
+      }
     }
+    window.dispatchEvent(new CustomEvent(LOCAL_ISLAND_BG_SYNC_EVENT, {
+      detail: { image: dataUrl },
+    }));
   };
 
   const applyBgOpacity = (value: number): void => {
     const el = document.getElementById('island-bg-layer');
     if (el) el.style.opacity = String(value / 100);
+    window.dispatchEvent(new CustomEvent(LOCAL_ISLAND_BG_SYNC_EVENT, {
+      detail: { opacity: value },
+    }));
   };
 
   const persistBgImage = (path: string | null): void => {
@@ -304,11 +312,8 @@ export function SettingsTab(): ReactElement {
   const handleSelectBuiltinBgImage = (src: string, defaultOpacity: number): void => {
     setBgImage(src);
     setBgImageOpacity(defaultOpacity);
-    const el = document.getElementById('island-bg-layer');
-    if (el) {
-      el.style.backgroundImage = `url(${src})`;
-      el.style.opacity = String(defaultOpacity / 100);
-    }
+    applyBgImage(src);
+    applyBgOpacity(defaultOpacity);
     persistBgImage(src);
     persistBgOpacity(defaultOpacity);
   };
@@ -489,12 +494,37 @@ export function SettingsTab(): ReactElement {
   }, []);
 
   useEffect(() => {
+    let cancelled = false;
     const unsub = window.api.onSettingsChanged((channel: string, value: unknown) => {
       if (channel === 'i18n:language' && (value === 'zh-CN' || value === 'en-US')) {
         setAppLanguage(value);
       }
+      if (channel === 'store:island-bg-opacity') {
+        const safe = typeof value === 'number' && Number.isFinite(value)
+          ? Math.max(0, Math.min(100, Math.round(value)))
+          : 30;
+        setBgImageOpacity(safe);
+      }
+      if (channel === 'store:island-bg-image') {
+        const image = typeof value === 'string' ? value : null;
+        if (!image) {
+          setBgImage(null);
+          return;
+        }
+        if (isDirectBgImageUrl(image)) {
+          setBgImage(image);
+          return;
+        }
+        window.api.loadWallpaperFile?.(image).then((dataUrl) => {
+          if (cancelled) return;
+          if (dataUrl) setBgImage(dataUrl);
+        }).catch(() => {});
+      }
     });
-    return unsub;
+    return () => {
+      cancelled = true;
+      unsub();
+    };
   }, []);
 
   useEffect(() => {
