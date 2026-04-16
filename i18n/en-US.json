@@ -1,0 +1,24 @@
+{
+  "common": {
+    "appName": "eIsland"
+  },
+  "standalone": {
+    "tabs": {
+      "todo": "Todo",
+      "countdown": "Countdown",
+      "settings": "Settings"
+    },
+    "controls": {
+      "minimize": "Minimize",
+      "maximize": "Maximize",
+      "close": "Close"
+    }
+  },
+  "guide": {
+    "actions": {
+      "prev": "Previous",
+      "next": "Next",
+      "start": "Get Started"
+    }
+  }
+}

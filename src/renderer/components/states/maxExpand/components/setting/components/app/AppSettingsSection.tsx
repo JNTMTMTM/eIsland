@@ -76,6 +76,8 @@ interface AppSettingsSectionProps {
   themeMode: 'dark' | 'light' | 'system';
   setThemeModeState: (mode: 'dark' | 'light' | 'system') => void;
   applyThemeMode: (mode: 'dark' | 'light' | 'system') => Promise<void>;
+  appLanguage: 'zh-CN' | 'en-US';
+  applyAppLanguage: (language: 'zh-CN' | 'en-US') => void;
   islandOpacity: number;
   applyIslandOpacity: (value: number) => void;
   opacitySaveTimerRef: { current: ReturnType<typeof setTimeout> | null };
@@ -143,6 +145,8 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
     themeMode,
     setThemeModeState,
     applyThemeMode,
+    appLanguage,
+    applyAppLanguage,
     islandOpacity,
     applyIslandOpacity,
     opacitySaveTimerRef,
@@ -651,6 +655,33 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
                     />
                     独立窗口
                   </label>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {appSettingsPage === 'language' && (
+            <div className="max-expand-settings-section">
+              <div className="settings-music-section">
+                <div className="settings-music-label">显示语言</div>
+                <div className="settings-music-hint">切换后将立即应用到支持多语言的界面文案</div>
+                <div className="settings-lyrics-source-options" style={{ marginTop: 8 }}>
+                  {([
+                    { value: 'zh-CN', label: '简体中文' },
+                    { value: 'en-US', label: 'English' },
+                  ] as Array<{ value: 'zh-CN' | 'en-US'; label: string }>).map((opt) => (
+                    <button
+                      key={opt.value}
+                      className={`settings-lyrics-source-btn ${appLanguage === opt.value ? 'active' : ''}`}
+                      type="button"
+                      onClick={() => applyAppLanguage(opt.value)}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+                <div className="settings-music-hint" style={{ marginTop: 8 }}>
+                  {appLanguage === 'zh-CN' ? '当前语言：简体中文' : 'Current language: English'}
                 </div>
               </div>
             </div>

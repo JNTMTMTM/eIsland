@@ -1,0 +1,24 @@
+{
+  "common": {
+    "appName": "eIsland"
+  },
+  "standalone": {
+    "tabs": {
+      "todo": "待办事项",
+      "countdown": "倒数日",
+      "settings": "设置"
+    },
+    "controls": {
+      "minimize": "最小化",
+      "maximize": "最大化",
+      "close": "关闭"
+    }
+  },
+  "guide": {
+    "actions": {
+      "prev": "上一步",
+      "next": "下一步",
+      "start": "开始使用"
+    }
+  }
+}

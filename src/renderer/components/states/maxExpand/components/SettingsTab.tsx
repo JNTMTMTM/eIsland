@@ -78,6 +78,7 @@ import { OverviewPreview } from './setting/components/app/preview/OverviewPrevie
 import { resolveDistrictLocationByKeyword } from '../../../../api/adcodeApi';
 
 import { setThemeMode as applyThemeMode, getThemeMode, type ThemeMode } from '../../../../utils/theme';
+import { getLanguage, setLanguage, type AppLanguage } from '../../../../i18n';
 
 const CLIPBOARD_URL_SUPPRESS_IN_FAVORITES_KEY = 'clipboard-url-suppress-in-url-favorites';
 
@@ -209,6 +210,7 @@ export function SettingsTab(): ReactElement {
   const [hideProcessFilter, setHideProcessFilter] = useState<string>('');
   const [hideProcessLoading, setHideProcessLoading] = useState(false);
   const [themeMode, setThemeModeState] = useState<ThemeMode>(getThemeMode);
+  const [appLanguage, setAppLanguage] = useState<AppLanguage>(getLanguage);
   const [islandOpacity, setIslandOpacity] = useState<number>(100);
   const [bgImage, setBgImage] = useState<string | null>(null);
   const [bgImageOpacity, setBgImageOpacity] = useState<number>(30);
@@ -317,6 +319,12 @@ export function SettingsTab(): ReactElement {
 
     return [...fromHidden, ...remaining];
   }, [hiddenNavOrder, visibleCards]);
+
+  const applyAppLanguage = (language: AppLanguage): void => {
+    setAppLanguage(language);
+    setLanguage(language).catch(() => {});
+    window.api.settingsPreview('i18n:language', language).catch(() => {});
+  };
 
   const persistNavConfig = (visibleOrder: string[], hiddenOrder: string[]): void => {
     window.api.navOrderSet({ visibleOrder, hiddenOrder }).catch(() => {});
@@ -453,6 +461,15 @@ export function SettingsTab(): ReactElement {
       setIslandPositionOffset({ x, y });
     });
     return unsubscribe;
+  }, []);
+
+  useEffect(() => {
+    const unsub = window.api.onSettingsChanged((channel: string, value: unknown) => {
+      if (channel === 'i18n:language' && (value === 'zh-CN' || value === 'en-US')) {
+        setAppLanguage(value);
+      }
+    });
+    return unsub;
   }, []);
 
   useEffect(() => {
@@ -1428,6 +1445,8 @@ export function SettingsTab(): ReactElement {
               themeMode={themeMode}
               setThemeModeState={setThemeModeState}
               applyThemeMode={applyThemeMode}
+              appLanguage={appLanguage}
+              applyAppLanguage={applyAppLanguage}
               islandOpacity={islandOpacity}
               applyIslandOpacity={applyIslandOpacity}
               opacitySaveTimerRef={opacitySaveTimerRef}

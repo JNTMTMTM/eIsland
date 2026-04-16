@@ -25,6 +25,7 @@
  */
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../store/slices';
 import '../../../styles/guide/guide.css';
 import { SvgIcon } from '../../../utils/SvgIcon';
@@ -718,6 +719,7 @@ function MiniIsland({ demo }: { demo: MiniIslandDemo }): React.ReactElement {
  * @description 分页导航点展示，完成后标记当前版本并切回 idle
  */
 export function GuideContent(): React.ReactElement {
+  const { t } = useTranslation();
   const [page, setPage] = useState(0);
   const [cardIndex, setCardIndex] = useState(0);
   const animDirRef = useRef<'up' | 'down'>('down');
@@ -859,12 +861,12 @@ export function GuideContent(): React.ReactElement {
         <div className="guide-actions">
           {page > 0 && (
             <button type="button" className="guide-btn guide-btn-secondary" onClick={handlePrev}>
-              上一步
+              {t('guide.actions.prev')}
             </button>
           )}
 
           <button type="button" className="guide-btn guide-btn-primary" onClick={handleNext}>
-            {isLast ? '开始使用' : '下一步'}
+            {isLast ? t('guide.actions.start') : t('guide.actions.next')}
           </button>
         </div>
       </div>
