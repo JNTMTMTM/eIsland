@@ -26,6 +26,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import type { Dispatch, ReactElement, SetStateAction } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { AppSettingsPageKey } from '../../utils/settingsConfig';
 import type { OverviewLayoutConfig, OverviewWidgetType } from '../../../../../expand/components/OverviewTab';
 import useIslandStore from '../../../../../../../store/slices';
@@ -117,6 +118,7 @@ interface AppSettingsSectionProps {
  * @returns 应用设置区域
  */
 export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement {
+  const { t } = useTranslation();
   const {
     currentAppSettingsPageLabel,
     appSettingsPage,
@@ -256,7 +258,7 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
   return (
     <div className="max-expand-settings-section">
       <div className="max-expand-settings-title settings-app-title-line">
-        <span>软件设置</span>
+        <span>{t('settings.labels.app', { defaultValue: '软件设置' })}</span>
         <span className="settings-app-title-sub">- {currentAppSettingsPageLabel}</span>
       </div>
 
@@ -663,12 +665,12 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
           {appSettingsPage === 'language' && (
             <div className="max-expand-settings-section">
               <div className="settings-music-section">
-                <div className="settings-music-label">显示语言</div>
-                <div className="settings-music-hint">切换后将立即应用到支持多语言的界面文案</div>
+                <div className="settings-music-label">{t('settings.language.title', { defaultValue: '显示语言' })}</div>
+                <div className="settings-music-hint">{t('settings.language.hint', { defaultValue: '切换后将立即应用到支持多语言的界面文案' })}</div>
                 <div className="settings-lyrics-source-options" style={{ marginTop: 8 }}>
                   {([
-                    { value: 'zh-CN', label: '简体中文' },
-                    { value: 'en-US', label: 'English' },
+                    { value: 'zh-CN', label: t('settings.language.options.zh-CN', { defaultValue: '简体中文' }) },
+                    { value: 'en-US', label: t('settings.language.options.en-US', { defaultValue: 'English' }) },
                   ] as Array<{ value: 'zh-CN' | 'en-US'; label: string }>).map((opt) => (
                     <button
                       key={opt.value}
@@ -681,7 +683,9 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
                   ))}
                 </div>
                 <div className="settings-music-hint" style={{ marginTop: 8 }}>
-                  {appLanguage === 'zh-CN' ? '当前语言：简体中文' : 'Current language: English'}
+                  {appLanguage === 'zh-CN'
+                    ? t('settings.language.current.zh-CN', { defaultValue: '当前语言：简体中文' })
+                    : t('settings.language.current.en-US', { defaultValue: 'Current language: English' })}
                 </div>
               </div>
             </div>
@@ -909,7 +913,7 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
           )}
         </div>
 
-        <div className="settings-app-page-dots" aria-label="软件设置分页">
+        <div className="settings-app-page-dots" aria-label={t('settings.app.pagination', { defaultValue: '软件设置分页' })}>
           {appSettingsPages.map((page) => (
             <button
               key={page}

@@ -20,5 +20,139 @@
       "next": "下一步",
       "start": "开始使用"
     }
+  },
+  "settings": {
+    "sidebar": {
+      "title": "设置"
+    },
+    "labels": {
+      "index": "快速导航",
+      "app": "软件设置",
+      "layout-preview": "布局预览",
+      "hide-process-list": "隐藏窗口管理",
+      "position": "位置校准",
+      "theme": "主题外观",
+      "language": "语言切换",
+      "behavior": "交互行为",
+      "url-parser": "URL解析",
+      "autostart": "实用工具",
+      "network": "网络配置",
+      "weather": "天气配置",
+      "music": "歌曲设置",
+      "music-whitelist": "播放器白名单",
+      "music-lyrics": "歌词源",
+      "music-smtc": "SMTC",
+      "ai": "AI Agent",
+      "shortcut": "快捷键",
+      "update": "更新设置",
+      "about": "关于软件"
+    },
+    "weatherPages": {
+      "location": "定位配置",
+      "provider": "接口配置"
+    },
+    "musicPages": {
+      "whitelist": "白名单",
+      "lyrics": "歌词源",
+      "smtc": "SMTC"
+    },
+    "index": {
+      "title": "快速导航",
+      "reset": "恢复默认",
+      "done": "完成",
+      "edit": "编辑",
+      "hintEdit": "拖拽卡片可调整排列顺序，点击「完成」保存。",
+      "hintView": "点击卡片可快速跳转到对应配置页。",
+      "ariaNav": "设置快速导航",
+      "removeCard": "删除 {{label}}",
+      "ariaAddPanel": "可添加导航卡片",
+      "addableTitle": "可添加卡片",
+      "emptyAddable": "当前没有可添加的卡片"
+    },
+    "language": {
+      "title": "显示语言",
+      "hint": "切换后将立即应用到支持多语言的界面文案",
+      "options": {
+        "zh-CN": "简体中文",
+        "en-US": "English"
+      },
+      "current": {
+        "zh-CN": "当前语言：简体中文",
+        "en-US": "Current language: English"
+      }
+    },
+    "app": {
+      "pagination": "软件设置分页"
+    },
+    "nav": {
+      "guide": {
+        "label": "使用教程",
+        "desc": "查看灵动岛功能引导与操作说明。"
+      },
+      "layout-preview": {
+        "label": "布局预览",
+        "desc": "进入布局预览并调整左右控件展示。"
+      },
+      "hide-process-list": {
+        "label": "隐藏窗口管理",
+        "desc": "管理隐藏窗口名单与自动隐藏规则。"
+      },
+      "position": {
+        "label": "位置校准",
+        "desc": "动态调整灵动岛位置并保存"
+      },
+      "theme": {
+        "label": "主题外观",
+        "desc": "切换深色、浅色或跟随系统主题。"
+      },
+      "language": {
+        "label": "语言切换",
+        "desc": "切换应用显示语言并即时生效。"
+      },
+      "behavior": {
+        "label": "交互行为",
+        "desc": "配置鼠标移开后是否自动收回。"
+      },
+      "url-parser": {
+        "label": "URL解析",
+        "desc": "配置剪贴板 URL 识别模式与黑名单。"
+      },
+      "autostart": {
+        "label": "实用工具",
+        "desc": "应用控制、日志与开机启动配置。"
+      },
+      "network": {
+        "label": "网络配置",
+        "desc": "请求超时与网络行为设置"
+      },
+      "weather": {
+        "label": "天气配置",
+        "desc": "天气接口优先级设置"
+      },
+      "ai": {
+        "label": "AI Agent",
+        "desc": "AI 服务与 Prompt 配置"
+      },
+      "shortcut": {
+        "label": "快捷键",
+        "desc": "隐藏、关闭、截图快捷键"
+      },
+      "about": {
+        "label": "关于软件",
+        "desc": "版本信息与项目链接"
+      },
+      "music-whitelist": {
+        "label": "播放器白名单",
+        "desc": "配置允许接入灵动岛的播放器。"
+      },
+      "music-lyrics": {
+        "label": "歌词源",
+        "desc": "选择歌词来源与显示模式。"
+      },
+      "music-smtc": {
+        "label": "SMTC",
+        "desc": "系统媒体传输控制相关配置。"
+      }
+    }
   }
 }

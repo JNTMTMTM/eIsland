@@ -20,5 +20,139 @@
       "next": "Next",
       "start": "Get Started"
     }
+  },
+  "settings": {
+    "sidebar": {
+      "title": "Settings"
+    },
+    "labels": {
+      "index": "Navigation",
+      "app": "App Settings",
+      "layout-preview": "Layout Preview",
+      "hide-process-list": "Hidden Window List",
+      "position": "Position Calibration",
+      "theme": "Theme",
+      "language": "Language",
+      "behavior": "Interaction",
+      "url-parser": "URL Parser",
+      "autostart": "Utilities",
+      "network": "Network",
+      "weather": "Weather",
+      "music": "Music",
+      "music-whitelist": "Player Whitelist",
+      "music-lyrics": "Lyrics Source",
+      "music-smtc": "SMTC",
+      "ai": "AI Agent",
+      "shortcut": "Shortcuts",
+      "update": "Updates",
+      "about": "About"
+    },
+    "weatherPages": {
+      "location": "Location",
+      "provider": "Provider"
+    },
+    "musicPages": {
+      "whitelist": "Whitelist",
+      "lyrics": "Lyrics",
+      "smtc": "SMTC"
+    },
+    "index": {
+      "title": "Quick Navigation",
+      "reset": "Reset",
+      "done": "Done",
+      "edit": "Edit",
+      "hintEdit": "Drag cards to reorder, then click Done to save.",
+      "hintView": "Click a card to jump to its settings page.",
+      "ariaNav": "Settings quick navigation",
+      "removeCard": "Remove {{label}}",
+      "ariaAddPanel": "Addable navigation cards",
+      "addableTitle": "Addable Cards",
+      "emptyAddable": "No cards available to add"
+    },
+    "language": {
+      "title": "Display Language",
+      "hint": "Changes apply immediately to localized UI text",
+      "options": {
+        "zh-CN": "Simplified Chinese",
+        "en-US": "English"
+      },
+      "current": {
+        "zh-CN": "Current language: Simplified Chinese",
+        "en-US": "Current language: English"
+      }
+    },
+    "app": {
+      "pagination": "App settings pagination"
+    },
+    "nav": {
+      "guide": {
+        "label": "Guide",
+        "desc": "View feature guides and usage instructions."
+      },
+      "layout-preview": {
+        "label": "Layout Preview",
+        "desc": "Adjust left and right widgets in layout preview."
+      },
+      "hide-process-list": {
+        "label": "Hidden Window List",
+        "desc": "Manage hidden windows and auto-hide rules."
+      },
+      "position": {
+        "label": "Position Calibration",
+        "desc": "Adjust and save Dynamic Island position."
+      },
+      "theme": {
+        "label": "Theme",
+        "desc": "Switch dark, light, or follow system theme."
+      },
+      "language": {
+        "label": "Language",
+        "desc": "Switch app display language instantly."
+      },
+      "behavior": {
+        "label": "Interaction",
+        "desc": "Configure auto-collapse when mouse leaves."
+      },
+      "url-parser": {
+        "label": "URL Parser",
+        "desc": "Configure clipboard URL detection and blacklist."
+      },
+      "autostart": {
+        "label": "Utilities",
+        "desc": "App controls, logs, and startup options."
+      },
+      "network": {
+        "label": "Network",
+        "desc": "Request timeout and network behavior settings"
+      },
+      "weather": {
+        "label": "Weather",
+        "desc": "Weather provider priority settings"
+      },
+      "ai": {
+        "label": "AI Agent",
+        "desc": "AI service and prompt settings"
+      },
+      "shortcut": {
+        "label": "Shortcuts",
+        "desc": "Hide, quit, and screenshot hotkeys"
+      },
+      "about": {
+        "label": "About",
+        "desc": "Version information and project links"
+      },
+      "music-whitelist": {
+        "label": "Player Whitelist",
+        "desc": "Configure players allowed to connect."
+      },
+      "music-lyrics": {
+        "label": "Lyrics Source",
+        "desc": "Choose lyrics source and display mode."
+      },
+      "music-smtc": {
+        "label": "SMTC",
+        "desc": "System Media Transport Controls settings."
+      }
+    }
   }
 }
