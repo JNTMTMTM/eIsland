@@ -1413,7 +1413,6 @@ export function SettingsTab(): ReactElement {
     <div className="max-expand-settings" ref={settingsRef}>
       <div className="max-expand-settings-layout">
         <div className="max-expand-settings-sidebar">
-          <div className="max-expand-settings-sidebar-title">{t('settings.sidebar.title', { defaultValue: '设置' })}</div>
           <button
             className={`max-expand-settings-sidebar-item ${activeTab === 'index' ? 'active' : ''}`}
             onClick={() => setActiveTab('index')}
