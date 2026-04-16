@@ -161,6 +161,50 @@
     "sunny": "晴",
     "unknown": "未知"
   },
+  "notification": {
+    "timer": {
+      "title": "计时器",
+      "finished": "倒计时已结束"
+    },
+    "sourceSwitch": {
+      "title": "检测到其他播放源"
+    },
+    "update": {
+      "availableTitle": "发现新版本",
+      "availableBody": "是否立即下载？",
+      "readyTitle": "更新就绪",
+      "readyBody": "新版本 v{{version}} 已下载完成，是否立即安装？"
+    },
+    "clipboard": {
+      "detectedTitle": "检测到链接",
+      "officialBadge": "官网",
+      "prevUrl": "上一个链接",
+      "nextUrl": "下一个链接",
+      "jumpToFavorites": "前往 URL 收藏"
+    },
+    "pomodoro": {
+      "title": "番茄钟",
+      "workFinished": "专注时间结束，开始休息吧",
+      "breakFinished": "休息时间结束，开始专注吧"
+    },
+    "actions": {
+      "installRestart": "安装并重启",
+      "later": "稍后",
+      "downloadUpdate": "下载更新",
+      "restartNow": "立即重启",
+      "openAllLinks": "打开全部链接",
+      "openLink": "打开链接",
+      "favorited": "已收藏",
+      "favorite": "收藏",
+      "addBlacklist": "加入黑名单",
+      "ignore": "忽略",
+      "switch": "切换",
+      "snooze5m": "稍后 5m",
+      "snooze15m": "稍后 15m",
+      "snooze1h": "稍后 1h",
+      "complete": "完成"
+    }
+  },
   "expanded": {
     "nav": {
       "hover": "返回",

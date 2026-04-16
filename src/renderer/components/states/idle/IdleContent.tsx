@@ -139,7 +139,7 @@ export function IdleContent({
           </div>
           {isTimerActive ? (
             <div className="flex items-center gap-1.5">
-              <span className="text-xs text-[var(--color-island-text)] opacity-60">倒计时</span>
+              <span className="text-xs text-[var(--color-island-text)] opacity-60">{t('hover.timer.title', { defaultValue: '倒计时' })}</span>
               <span className="text-sm text-[var(--color-island-text)] font-medium tabular-nums">
                 {padZero(h)}:{padZero(m)}:{padZero(s)}
               </span>
@@ -184,7 +184,7 @@ export function IdleContent({
 
           {isTimerActive ? (
             <div className="flex items-center gap-1.5">
-              <span className="text-xs text-[var(--color-island-text)] opacity-60">倒计时</span>
+              <span className="text-xs text-[var(--color-island-text)] opacity-60">{t('hover.timer.title', { defaultValue: '倒计时' })}</span>
               <span className="text-sm text-[var(--color-island-text)] font-medium tabular-nums">
                 {padZero(h)}:{padZero(m)}:{padZero(s)}
               </span>

@@ -26,6 +26,7 @@
 
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import i18n from '../../../../i18n';
 import useIslandStore from '../../../../store/slices';
 import { getDayName, getDayJi, getDayYi, getLunarDate } from '../../../../utils/timeUtils';
 import { SvgIcon } from '../../../../utils/SvgIcon';
@@ -333,8 +334,10 @@ function _startPomodoroInterval(): void {
       store.setPomodoroRemaining(nextRemaining);
       store.setPomodoroCompletedCount(nextCount);
       store.setNotification({
-        title: '番茄钟',
-        body: finishedPhase === 'work' ? '专注时间结束，开始休息吧' : '休息时间结束，开始专注吧',
+        title: i18n.t('notification.pomodoro.title', { defaultValue: '番茄钟' }),
+        body: finishedPhase === 'work'
+          ? i18n.t('notification.pomodoro.workFinished', { defaultValue: '专注时间结束，开始休息吧' })
+          : i18n.t('notification.pomodoro.breakFinished', { defaultValue: '休息时间结束，开始专注吧' }),
         icon: SvgIcon.POMODORO,
       });
       _persistPomodoro(nextPhase, nextRemaining, nextCount);

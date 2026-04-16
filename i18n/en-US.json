@@ -161,6 +161,50 @@
     "sunny": "Clr",
     "unknown": "N/A"
   },
+  "notification": {
+    "timer": {
+      "title": "Timer",
+      "finished": "Countdown finished"
+    },
+    "sourceSwitch": {
+      "title": "Other playback source detected"
+    },
+    "update": {
+      "availableTitle": "New version available",
+      "availableBody": "Download now?",
+      "readyTitle": "Update ready",
+      "readyBody": "Version v{{version}} has been downloaded. Install now?"
+    },
+    "clipboard": {
+      "detectedTitle": "Link detected",
+      "officialBadge": "Official",
+      "prevUrl": "Previous link",
+      "nextUrl": "Next link",
+      "jumpToFavorites": "Go to URL Favorites"
+    },
+    "pomodoro": {
+      "title": "Pomodoro",
+      "workFinished": "Focus session finished, take a break",
+      "breakFinished": "Break finished, back to focus"
+    },
+    "actions": {
+      "installRestart": "Install & Restart",
+      "later": "Later",
+      "downloadUpdate": "Download Update",
+      "restartNow": "Restart Now",
+      "openAllLinks": "Open All Links",
+      "openLink": "Open Link",
+      "favorited": "Favorited",
+      "favorite": "Favorite",
+      "addBlacklist": "Add to Blacklist",
+      "ignore": "Ignore",
+      "switch": "Switch",
+      "snooze5m": "Later 5m",
+      "snooze15m": "Later 15m",
+      "snooze1h": "Later 1h",
+      "complete": "Complete"
+    }
+  },
   "expanded": {
     "nav": {
       "hover": "Back",
