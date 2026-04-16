@@ -485,11 +485,11 @@ export function CountdownTab(): React.ReactElement {
                     <span className="cd-bg-btn-icon">♪</span>
                   )}
                 </button>
-                <span className="cd-bg-label">专辑背景</span>
+                <span className="cd-bg-label">{t('countdown.form.albumBackground', { defaultValue: '专辑背景' })}</span>
                 <button
                   className="cd-bg-btn"
                   type="button"
-                  title="从文件选择图片"
+                  title={t('countdown.form.selectImageFile', { defaultValue: '从文件选择图片' })}
                   onClick={async () => {
                     const path = await window.api.openImageDialog();
                     if (path) {

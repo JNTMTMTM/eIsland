@@ -21,6 +21,73 @@
       "start": "Get Started"
     }
   },
+  "todo": {
+    "title": "Todo",
+    "addPlaceholder": "Add todo...",
+    "addSubPlaceholder": "Add subtask...",
+    "priorityTitle": "Priority {{label}}",
+    "sizeTitle": "Size {{label}}",
+    "markDone": "Mark done",
+    "markUndone": "Mark not done",
+    "delete": "Delete",
+    "descPlaceholder": "Add detailed description...",
+    "saveTitle": "Save (Ctrl+Enter)",
+    "save": "Save",
+    "noDesc": "No description",
+    "editDescTitle": "Edit description",
+    "edit": "Edit",
+    "subtasks": "Subtasks",
+    "onboarding": {
+      "title": "Todo",
+      "desc": "Manage your tasks here and stay organized.",
+      "feature1": "Create todos and set priority and size",
+      "feature2": "Click to expand details and add descriptions",
+      "feature3": "Break down subtasks and track progress",
+      "hint": "Add your first todo in the input above ↑"
+    }
+  },
+  "countdown": {
+    "editTitle": "Edit Event",
+    "newTitleWithDate": "New Event - {{date}}",
+    "newTitlePlaceholder": "< Select a date to add event",
+    "namePlaceholder": "Event name",
+    "descPlaceholder": "Description (optional)",
+    "preview": "Preview",
+    "empty": "Select a date and add an event",
+    "datePlaceholder": "YYYY-MM-DD",
+    "days": {
+      "after": "In {{days}} days",
+      "today": "Today",
+      "before": "{{days}} days ago",
+      "placeholder": "-- days"
+    },
+    "types": {
+      "countdown": "Countdown",
+      "anniversary": "Anniversary",
+      "birthday": "Birthday",
+      "holiday": "Holiday",
+      "exam": "Exam"
+    },
+    "form": {
+      "type": "Type",
+      "color": "Color",
+      "customColor": "Custom color",
+      "background": "Background",
+      "useAlbumCover": "Use current album cover",
+      "noPlayingSong": "No song is playing",
+      "albumBackground": "Album",
+      "selectImageFile": "Select image from file",
+      "customBackground": "Custom",
+      "clearBackground": "Clear background",
+      "opacity": "Opacity"
+    },
+    "actions": {
+      "add": "Add",
+      "save": "Save",
+      "cancel": "Cancel",
+      "delete": "Delete"
+    }
+  },
   "settings": {
     "sidebar": {
       "title": "Settings"

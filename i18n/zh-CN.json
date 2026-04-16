@@ -21,6 +21,73 @@
       "start": "开始使用"
     }
   },
+  "todo": {
+    "title": "待办事项",
+    "addPlaceholder": "添加待办...",
+    "addSubPlaceholder": "添加子任务...",
+    "priorityTitle": "紧急程度 {{label}}",
+    "sizeTitle": "事件大小 {{label}}",
+    "markDone": "标记完成",
+    "markUndone": "标记未完成",
+    "delete": "删除",
+    "descPlaceholder": "添加详细描述...",
+    "saveTitle": "保存 (Ctrl+Enter)",
+    "save": "保存",
+    "noDesc": "暂无描述",
+    "editDescTitle": "编辑描述",
+    "edit": "编辑",
+    "subtasks": "子任务",
+    "onboarding": {
+      "title": "待办事项",
+      "desc": "在这里管理你的任务，保持高效有序",
+      "feature1": "创建待办并设置紧急程度与大小",
+      "feature2": "点击展开查看详情，添加描述",
+      "feature3": "拆分子任务，追踪完成进度",
+      "hint": "在上方输入框添加你的第一个待办 ↑"
+    }
+  },
+  "countdown": {
+    "editTitle": "编辑事件",
+    "newTitleWithDate": "新建事件 - {{date}}",
+    "newTitlePlaceholder": "< 选择日期以添加事件",
+    "namePlaceholder": "事件名称",
+    "descPlaceholder": "描述（可选）",
+    "preview": "预览",
+    "empty": "选择日期并添加事件",
+    "datePlaceholder": "YYYY-MM-DD",
+    "days": {
+      "after": "{{days}} 天后",
+      "today": "就是今天",
+      "before": "{{days}} 天前",
+      "placeholder": "-- 天"
+    },
+    "types": {
+      "countdown": "倒数日",
+      "anniversary": "纪念日",
+      "birthday": "生日",
+      "holiday": "节日",
+      "exam": "考试"
+    },
+    "form": {
+      "type": "类型",
+      "color": "颜色",
+      "customColor": "自定义颜色",
+      "background": "背景",
+      "useAlbumCover": "使用当前专辑封面",
+      "noPlayingSong": "暂无正在播放的歌曲",
+      "albumBackground": "专辑背景",
+      "selectImageFile": "从文件选择图片",
+      "customBackground": "自定义背景",
+      "clearBackground": "清除背景",
+      "opacity": "透明度"
+    },
+    "actions": {
+      "add": "添加",
+      "save": "保存",
+      "cancel": "取消",
+      "delete": "删除"
+    }
+  },
   "settings": {
     "sidebar": {
       "title": "设置"
