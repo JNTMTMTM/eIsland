@@ -26,6 +26,7 @@
 
 import React, { useEffect, useRef, useState, useLayoutEffect } from 'react';
 import { getColor } from 'colorthief';
+import { useTranslation } from 'react-i18next';
 import useIslandStore from '../store/isLandStore';
 import { formatTime, formatFullTime, getDayName, getLunarDate } from '../utils/timeUtils';
 import { IdleContent } from './states/idle/IdleContent';
@@ -192,6 +193,7 @@ interface StateRenderer {
  * @description 使用状态模式管理不同状态的 UI 渲染，通过 requestAnimationFrame 检测鼠标位置实现可靠的 hover 交互
  */
 function DynamicIsland(): React.JSX.Element {
+  const { t, i18n } = useTranslation();
   const { state, weather, setHover, setIdle, setExpanded, setLyrics, setGuide, timerData, setTimerData, notification, setNotification, handleNowPlayingUpdate, updateProgress, coverImage, isMusicPlaying, isPlaying, dominantColor, setDominantColor, setSyncedLyrics, setLyricsLoading, syncedLyrics, lyricsLoading, pomodoroRunning, pomodoroRemaining, springAnimation } = useIslandStore();
   const prevStateRef = useRef(state);
   const [morphing, setMorphing] = useState(false);
@@ -272,8 +274,10 @@ function DynamicIsland(): React.JSX.Element {
     };
   }, [coverImage, setDominantColor]);
 
+  const formatWeekday = (date: Date): string => t(`overview.time.weekdays.${date.getDay()}`, { defaultValue: getDayName(date) });
+
   const [timeStr, setTimeStr] = useState(() => formatTime(new Date()));
-  const [dayStr, setDayStr] = useState(() => getDayName(new Date()));
+  const [dayStr, setDayStr] = useState(() => formatWeekday(new Date()));
   const [fullTimeStr, setFullTimeStr] = useState(() => formatFullTime(new Date()));
   const [lunarStr, setLunarStr] = useState(() => getLunarDate(new Date()));
 
@@ -295,8 +299,8 @@ function DynamicIsland(): React.JSX.Element {
             inputSeconds: '00',
           });
           setNotificationRef.current({
-            title: '计时器',
-            body: '倒计时已结束',
+            title: t('notification.timer.title', { defaultValue: '计时器' }),
+            body: t('notification.timer.finished', { defaultValue: '倒计时已结束' }),
             icon: SvgIcon.TIMER
           });
         } else {
@@ -311,19 +315,20 @@ function DynamicIsland(): React.JSX.Element {
         timerIntervalRef.current = null;
       }
     };
-  }, [timerData?.state, timerData?.remainingSeconds, setTimerData]);
+  }, [timerData?.state, timerData?.remainingSeconds, setTimerData, i18n.resolvedLanguage]);
 
   useEffect(() => {
     const update = (): void => {
       const now = new Date();
       setTimeStr(formatTime(now));
-      setDayStr(getDayName(now));
+      setDayStr(formatWeekday(now));
       setFullTimeStr(formatFullTime(now));
       setLunarStr(getLunarDate(now));
     };
+    update();
     const timer = setInterval(update, 1000);
     return () => clearInterval(timer);
-  }, []);
+  }, [i18n.resolvedLanguage]);
 
   useEffect(() => {
     if (!initRef.current) {
@@ -419,7 +424,7 @@ function DynamicIsland(): React.JSX.Element {
         }
       });
     }
-  }, []);
+  }, [i18n.resolvedLanguage]);
 
   // idle 状态下：正在播放且歌词已识别/加载中时，自动切到歌词态
   useEffect(() => {
@@ -503,7 +508,7 @@ function DynamicIsland(): React.JSX.Element {
   useEffect(() => {
     const unsubSwitch = window.api?.onSourceSwitchRequest((data) => {
       setNotificationRef.current({
-        title: '检测到其他播放源',
+        title: t('notification.sourceSwitch.title', { defaultValue: '检测到其他播放源' }),
         body: `${data.title} - ${data.artist}（${data.sourceAppId}）`,
         icon: SvgIcon.MUSIC,
         type: 'source-switch',
@@ -513,7 +518,7 @@ function DynamicIsland(): React.JSX.Element {
     return () => {
       unsubSwitch?.();
     };
-  }, []);
+  }, [i18n.resolvedLanguage]);
 
   // 订阅有新版本可用事件（启动时自动检查推送，仅首次弹出通知）
   const updateNotifiedRef = useRef(false);
@@ -524,16 +529,16 @@ function DynamicIsland(): React.JSX.Element {
       fetchVersion().then((info) => {
         const desc = (info?.description ?? '').trim();
         setNotificationRef.current({
-          title: '发现新版本',
-          body: desc || '是否立即下载？',
+          title: t('notification.update.availableTitle', { defaultValue: '发现新版本' }),
+          body: desc || t('notification.update.availableBody', { defaultValue: '是否立即下载？' }),
           icon: SvgIcon.UPDATE,
           type: 'update-available',
           updateVersion: data.version,
         });
       }).catch(() => {
         setNotificationRef.current({
-          title: '发现新版本',
-          body: '是否立即下载？',
+          title: t('notification.update.availableTitle', { defaultValue: '发现新版本' }),
+          body: t('notification.update.availableBody', { defaultValue: '是否立即下载？' }),
           icon: SvgIcon.UPDATE,
           type: 'update-available',
           updateVersion: data.version,
@@ -543,15 +548,18 @@ function DynamicIsland(): React.JSX.Element {
     return () => {
       unsubAvailable?.();
     };
-  }, []);
+  }, [i18n.resolvedLanguage]);
 
   // 订阅更新下载完成事件（主进程推送）
   useEffect(() => {
     const unsubUpdate = window.api?.onUpdaterDownloaded?.((data) => {
       reportUpdateDownloadCount(data.version).catch(() => {});
       setNotificationRef.current({
-        title: '更新就绪',
-        body: `新版本 v${data.version} 已下载完成，是否立即安装？`,
+        title: t('notification.update.readyTitle', { defaultValue: '更新就绪' }),
+        body: t('notification.update.readyBody', {
+          defaultValue: '新版本 v{{version}} 已下载完成，是否立即安装？',
+          version: data.version,
+        }),
         icon: SvgIcon.UPDATE,
         type: 'update-ready',
         updateVersion: data.version,
@@ -560,7 +568,7 @@ function DynamicIsland(): React.JSX.Element {
     return () => {
       unsubUpdate?.();
     };
-  }, []);
+  }, [i18n.resolvedLanguage]);
 
   // 订阅剪贴板 URL 检测事件（主进程推送）
   useEffect(() => {
@@ -578,7 +586,7 @@ function DynamicIsland(): React.JSX.Element {
       const faviconUrl = getWebsiteFaviconUrl(urls[0]);
       const hostname = getWebsiteHostname(urls[0]);
       setNotificationRef.current({
-        title: '检测到链接',
+        title: t('notification.clipboard.detectedTitle', { defaultValue: '检测到链接' }),
         body: title || hostname || urls[0],
         icon: faviconUrl || SvgIcon.LINK,
         type: 'clipboard-url',
@@ -588,7 +596,7 @@ function DynamicIsland(): React.JSX.Element {
     return () => {
       unsubClipboard?.();
     };
-  }, []);
+  }, [i18n.resolvedLanguage]);
 
   // 必须放在 useEffect 之前，且 useCallback 依赖为空（所有依赖都是 ref/函数）
   const clearAllTimers = React.useCallback(() => {

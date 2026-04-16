@@ -26,6 +26,7 @@
 
 import { useState, useRef, useEffect, useMemo } from 'react';
 import type { KeyboardEvent, ReactElement } from 'react';
+import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../../store/slices';
 import type { OverviewWidgetType, OverviewLayoutConfig } from '../../expand/components/OverviewTab';
 import { OVERVIEW_WIDGET_OPTIONS } from '../../expand/components/OverviewTab';
@@ -62,6 +63,7 @@ import {
   type AppSettingsPageKey,
   type WeatherSettingsPageKey,
   type MusicSettingsPageKey,
+  type SettingsTabLabelKey,
   type NavCardDef,
 } from './setting/utils/settingsConfig';
 import { UpdateSettingsSection } from './setting/components/update/UpdateSettingsSection';
@@ -78,6 +80,7 @@ import { OverviewPreview } from './setting/components/app/preview/OverviewPrevie
 import { resolveDistrictLocationByKeyword } from '../../../../api/adcodeApi';
 
 import { setThemeMode as applyThemeMode, getThemeMode, type ThemeMode } from '../../../../utils/theme';
+import { getLanguage, setLanguage, type AppLanguage } from '../../../../i18n';
 
 const CLIPBOARD_URL_SUPPRESS_IN_FAVORITES_KEY = 'clipboard-url-suppress-in-url-favorites';
 
@@ -146,6 +149,7 @@ interface RunningWindowItem {
  * @returns 设置 Tab 组件
  */
 export function SettingsTab(): ReactElement {
+  const { t } = useTranslation();
   const opacitySaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [activeTab, setActiveTab] = useState<SettingsSidebarTabKey>('index');
   const [appSettingsPage, setAppSettingsPage] = useState<AppSettingsPageKey>('layout-preview');
@@ -158,15 +162,37 @@ export function SettingsTab(): ReactElement {
   const settingsRef = useRef<HTMLDivElement>(null);
   const activeTabRef = useRef(activeTab);
   activeTabRef.current = activeTab;
+  const getSettingsLabel = (key: SettingsTabLabelKey): string => {
+    return t(`settings.labels.${key}`, { defaultValue: SETTINGS_TAB_LABELS[key] });
+  };
   const appSettingsPageRef = useRef(appSettingsPage);
-  const currentAppSettingsPageLabel = SETTINGS_TAB_LABELS[appSettingsPage] || '布局预览';
+  const currentAppSettingsPageLabel = getSettingsLabel(appSettingsPage);
   appSettingsPageRef.current = appSettingsPage;
   const weatherSettingsPageRef = useRef(weatherSettingsPage);
-  const currentWeatherSettingsPageLabel = WEATHER_SETTINGS_PAGE_LABELS[weatherSettingsPage] || '定位配置';
+  const currentWeatherSettingsPageLabel = t(`settings.weatherPages.${weatherSettingsPage}`, { defaultValue: WEATHER_SETTINGS_PAGE_LABELS[weatherSettingsPage] || '定位配置' });
   weatherSettingsPageRef.current = weatherSettingsPage;
   const musicSettingsPageRef = useRef(musicSettingsPage);
-  const currentMusicSettingsPageLabel = MUSIC_SETTINGS_PAGE_LABELS[musicSettingsPage] || '白名单';
+  const currentMusicSettingsPageLabel = t(`settings.musicPages.${musicSettingsPage}`, { defaultValue: MUSIC_SETTINGS_PAGE_LABELS[musicSettingsPage] || '白名单' });
   musicSettingsPageRef.current = musicSettingsPage;
+
+  const translatedSettingsTabLabels = useMemo<Record<string, string>>(() => {
+    const next: Record<string, string> = {};
+    (Object.keys(SETTINGS_TAB_LABELS) as SettingsTabLabelKey[]).forEach((key) => {
+      next[key] = getSettingsLabel(key);
+    });
+    return next;
+  }, [t]);
+
+  const translatedWeatherSettingsPageLabels = useMemo<Record<WeatherSettingsPageKey, string>>(() => ({
+    location: t('settings.weatherPages.location', { defaultValue: WEATHER_SETTINGS_PAGE_LABELS.location }),
+    provider: t('settings.weatherPages.provider', { defaultValue: WEATHER_SETTINGS_PAGE_LABELS.provider }),
+  }), [t]);
+
+  const translatedMusicSettingsPageLabels = useMemo<Record<MusicSettingsPageKey, string>>(() => ({
+    whitelist: t('settings.musicPages.whitelist', { defaultValue: MUSIC_SETTINGS_PAGE_LABELS.whitelist }),
+    lyrics: t('settings.musicPages.lyrics', { defaultValue: MUSIC_SETTINGS_PAGE_LABELS.lyrics }),
+    smtc: t('settings.musicPages.smtc', { defaultValue: MUSIC_SETTINGS_PAGE_LABELS.smtc }),
+  }), [t]);
 
   const [layoutConfig, setLayoutConfig] = useState<OverviewLayoutConfig>(DEFAULT_LAYOUT);
 
@@ -209,6 +235,7 @@ export function SettingsTab(): ReactElement {
   const [hideProcessFilter, setHideProcessFilter] = useState<string>('');
   const [hideProcessLoading, setHideProcessLoading] = useState(false);
   const [themeMode, setThemeModeState] = useState<ThemeMode>(getThemeMode);
+  const [appLanguage, setAppLanguage] = useState<AppLanguage>(getLanguage);
   const [islandOpacity, setIslandOpacity] = useState<number>(100);
   const [bgImage, setBgImage] = useState<string | null>(null);
   const [bgImageOpacity, setBgImageOpacity] = useState<number>(30);
@@ -317,6 +344,12 @@ export function SettingsTab(): ReactElement {
 
     return [...fromHidden, ...remaining];
   }, [hiddenNavOrder, visibleCards]);
+
+  const applyAppLanguage = (language: AppLanguage): void => {
+    setAppLanguage(language);
+    setLanguage(language).catch(() => {});
+    window.api.settingsPreview('i18n:language', language).catch(() => {});
+  };
 
   const persistNavConfig = (visibleOrder: string[], hiddenOrder: string[]): void => {
     window.api.navOrderSet({ visibleOrder, hiddenOrder }).catch(() => {});
@@ -453,6 +486,15 @@ export function SettingsTab(): ReactElement {
       setIslandPositionOffset({ x, y });
     });
     return unsubscribe;
+  }, []);
+
+  useEffect(() => {
+    const unsub = window.api.onSettingsChanged((channel: string, value: unknown) => {
+      if (channel === 'i18n:language' && (value === 'zh-CN' || value === 'en-US')) {
+        setAppLanguage(value);
+      }
+    });
+    return unsub;
   }, []);
 
   useEffect(() => {
@@ -1299,14 +1341,14 @@ export function SettingsTab(): ReactElement {
     <div className="max-expand-settings" ref={settingsRef}>
       <div className="max-expand-settings-layout">
         <div className="max-expand-settings-sidebar">
-          <div className="max-expand-settings-sidebar-title">设置</div>
+          <div className="max-expand-settings-sidebar-title">{t('settings.sidebar.title', { defaultValue: '设置' })}</div>
           <button
             className={`max-expand-settings-sidebar-item ${activeTab === 'index' ? 'active' : ''}`}
             onClick={() => setActiveTab('index')}
             type="button"
           >
             <span className="sidebar-dot" />
-            {SETTINGS_TAB_LABELS.index}
+            {getSettingsLabel('index')}
           </button>
           <button
             className={`max-expand-settings-sidebar-item ${activeTab === 'app' ? 'active' : ''}`}
@@ -1314,7 +1356,7 @@ export function SettingsTab(): ReactElement {
             type="button"
           >
             <span className="sidebar-dot" />
-            {SETTINGS_TAB_LABELS.app}
+            {getSettingsLabel('app')}
           </button>
           <button
             className={`max-expand-settings-sidebar-item ${activeTab === 'network' ? 'active' : ''}`}
@@ -1322,7 +1364,7 @@ export function SettingsTab(): ReactElement {
             type="button"
           >
             <span className="sidebar-dot" />
-            {SETTINGS_TAB_LABELS.network}
+            {getSettingsLabel('network')}
           </button>
           <button
             className={`max-expand-settings-sidebar-item ${activeTab === 'weather' ? 'active' : ''}`}
@@ -1330,7 +1372,7 @@ export function SettingsTab(): ReactElement {
             type="button"
           >
             <span className="sidebar-dot" />
-            {SETTINGS_TAB_LABELS.weather}
+            {getSettingsLabel('weather')}
           </button>
           <button
             className={`max-expand-settings-sidebar-item ${activeTab === 'music' ? 'active' : ''}`}
@@ -1338,7 +1380,7 @@ export function SettingsTab(): ReactElement {
             type="button"
           >
             <span className="sidebar-dot" />
-            {SETTINGS_TAB_LABELS.music}
+            {getSettingsLabel('music')}
           </button>
           <button
             className={`max-expand-settings-sidebar-item ${activeTab === 'ai' ? 'active' : ''}`}
@@ -1346,7 +1388,7 @@ export function SettingsTab(): ReactElement {
             type="button"
           >
             <span className="sidebar-dot" />
-            {SETTINGS_TAB_LABELS.ai}
+            {getSettingsLabel('ai')}
           </button>
           <button
             className={`max-expand-settings-sidebar-item ${activeTab === 'shortcut' ? 'active' : ''}`}
@@ -1354,7 +1396,7 @@ export function SettingsTab(): ReactElement {
             type="button"
           >
             <span className="sidebar-dot" />
-            {SETTINGS_TAB_LABELS.shortcut}
+            {getSettingsLabel('shortcut')}
           </button>
           <button
             className={`max-expand-settings-sidebar-item ${activeTab === 'update' ? 'active' : ''}`}
@@ -1362,7 +1404,7 @@ export function SettingsTab(): ReactElement {
             type="button"
           >
             <span className="sidebar-dot" />
-            {SETTINGS_TAB_LABELS.update}
+            {getSettingsLabel('update')}
           </button>
           <button
             className={`max-expand-settings-sidebar-item ${activeTab === 'about' ? 'active' : ''}`}
@@ -1370,7 +1412,7 @@ export function SettingsTab(): ReactElement {
             type="button"
           >
             <span className="sidebar-dot" />
-            {SETTINGS_TAB_LABELS.about}
+            {getSettingsLabel('about')}
           </button>
         </div>
 
@@ -1428,6 +1470,8 @@ export function SettingsTab(): ReactElement {
               themeMode={themeMode}
               setThemeModeState={setThemeModeState}
               applyThemeMode={applyThemeMode}
+              appLanguage={appLanguage}
+              applyAppLanguage={applyAppLanguage}
               islandOpacity={islandOpacity}
               applyIslandOpacity={applyIslandOpacity}
               opacitySaveTimerRef={opacitySaveTimerRef}
@@ -1457,7 +1501,7 @@ export function SettingsTab(): ReactElement {
               handleClearBgImage={handleClearBgImage}
               handleSelectBuiltinBgImage={handleSelectBuiltinBgImage}
               appSettingsPages={APP_SETTINGS_PAGES}
-              settingsTabLabels={SETTINGS_TAB_LABELS}
+              settingsTabLabels={translatedSettingsTabLabels}
               setAppSettingsPage={setAppSettingsPage}
             />
           )}
@@ -1495,7 +1539,7 @@ export function SettingsTab(): ReactElement {
               setWeatherPrimaryProvider={setWeatherPrimaryProvider}
               saveWeatherProviderConfig={saveWeatherProviderConfig}
               weatherSettingsPages={WEATHER_SETTINGS_PAGES}
-              weatherSettingsPageLabels={WEATHER_SETTINGS_PAGE_LABELS}
+              weatherSettingsPageLabels={translatedWeatherSettingsPageLabels}
               setWeatherSettingsPage={setWeatherSettingsPage}
             />
           )}
@@ -1590,7 +1634,7 @@ export function SettingsTab(): ReactElement {
               setMusicSmtcConfigMessage={setMusicSmtcConfigMessage}
               musicSmtcConfigMessage={musicSmtcConfigMessage}
               musicSettingsPages={MUSIC_SETTINGS_PAGES}
-              musicSettingsPageLabels={MUSIC_SETTINGS_PAGE_LABELS}
+              musicSettingsPageLabels={translatedMusicSettingsPageLabels}
               setMusicSettingsPage={setMusicSettingsPage}
             />
           )}

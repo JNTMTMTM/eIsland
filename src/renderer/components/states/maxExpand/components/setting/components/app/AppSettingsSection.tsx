@@ -26,6 +26,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import type { Dispatch, ReactElement, SetStateAction } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { AppSettingsPageKey } from '../../utils/settingsConfig';
 import type { OverviewLayoutConfig, OverviewWidgetType } from '../../../../../expand/components/OverviewTab';
 import useIslandStore from '../../../../../../../store/slices';
@@ -76,6 +77,8 @@ interface AppSettingsSectionProps {
   themeMode: 'dark' | 'light' | 'system';
   setThemeModeState: (mode: 'dark' | 'light' | 'system') => void;
   applyThemeMode: (mode: 'dark' | 'light' | 'system') => Promise<void>;
+  appLanguage: 'zh-CN' | 'en-US';
+  applyAppLanguage: (language: 'zh-CN' | 'en-US') => void;
   islandOpacity: number;
   applyIslandOpacity: (value: number) => void;
   opacitySaveTimerRef: { current: ReturnType<typeof setTimeout> | null };
@@ -115,6 +118,7 @@ interface AppSettingsSectionProps {
  * @returns 应用设置区域
  */
 export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement {
+  const { t } = useTranslation();
   const {
     currentAppSettingsPageLabel,
     appSettingsPage,
@@ -143,6 +147,8 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
     themeMode,
     setThemeModeState,
     applyThemeMode,
+    appLanguage,
+    applyAppLanguage,
     islandOpacity,
     applyIslandOpacity,
     opacitySaveTimerRef,
@@ -209,8 +215,8 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
     window.api.storeWrite('standalone-window-mode', mode).catch(() => {});
 
     const restartRequiredNotification = {
-      title: '配置变更',
-      body: '待办事项/倒数日/设置打开方式已变更，是否立即重启生效？',
+      title: t('settings.app.notifications.configChanged.title', { defaultValue: '配置变更' }),
+      body: t('settings.app.notifications.configChanged.body', { defaultValue: '待办事项/倒数日/设置打开方式已变更，是否立即重启生效？' }),
       icon: SvgIcon.SETTING,
       type: 'restart-required',
     } as const;
@@ -252,7 +258,7 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
   return (
     <div className="max-expand-settings-section">
       <div className="max-expand-settings-title settings-app-title-line">
-        <span>软件设置</span>
+        <span>{t('settings.labels.app', { defaultValue: '软件设置' })}</span>
         <span className="settings-app-title-sub">- {currentAppSettingsPageLabel}</span>
       </div>
 
@@ -260,7 +266,7 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
         <div className="settings-app-page-main">
           {appSettingsPage === 'layout-preview' && (
             <div className="settings-island-preview-section">
-              <div className="settings-island-preview-label">总览布局预览</div>
+              <div className="settings-island-preview-label">{t('settings.app.layout.previewTitle', { defaultValue: '总览布局预览' })}</div>
               <div className="settings-island-preview-wrap">
                 <div className="settings-island-shell" key={`${layoutConfig.left}-${layoutConfig.right}`}>
                   <OverviewPreview layoutConfig={layoutConfig} />
@@ -269,7 +275,7 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
 
               <div className="settings-layout-controls">
                 <div className="settings-layout-control">
-                  <span className="settings-layout-control-label">左侧控件</span>
+                  <span className="settings-layout-control-label">{t('settings.app.layout.leftWidget', { defaultValue: '左侧控件' })}</span>
                   <div className="settings-layout-options">
                     {overviewWidgetOptions.map((opt) => (
                       <button
@@ -284,7 +290,7 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
                   </div>
                 </div>
                 <div className="settings-layout-control">
-                  <span className="settings-layout-control-label">右侧控件</span>
+                  <span className="settings-layout-control-label">{t('settings.app.layout.rightWidget', { defaultValue: '右侧控件' })}</span>
                   <div className="settings-layout-options">
                     {overviewWidgetOptions.map((opt) => (
                       <button
@@ -304,12 +310,12 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
 
           {appSettingsPage === 'hide-process-list' && (
             <div className="settings-hide-processes">
-              <div className="settings-music-hint">当下方黑名单进程对应窗口处于焦点状态时，将立即隐藏灵动岛；失去焦点后自动显示。</div>
+              <div className="settings-music-hint">{t('settings.app.hideProcess.hint', { defaultValue: '当下方黑名单进程对应窗口处于焦点状态时，将立即隐藏灵动岛；失去焦点后自动显示。' })}</div>
               <div className="settings-hide-process-toolbar">
                 <input
                   className="settings-whitelist-input"
                   type="text"
-                  placeholder="搜索进程名"
+                  placeholder={t('settings.app.hideProcess.searchPlaceholder', { defaultValue: '搜索进程名' })}
                   value={hideProcessFilter}
                   onChange={(e) => setHideProcessFilter(e.target.value)}
                 />
@@ -321,20 +327,22 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
                   }}
                   disabled={hideProcessLoading}
                 >
-                  {hideProcessLoading ? '刷新中…' : '刷新窗口'}
+                  {hideProcessLoading
+                    ? t('settings.app.hideProcess.refreshing', { defaultValue: '刷新中…' })
+                    : t('settings.app.hideProcess.refresh', { defaultValue: '刷新窗口' })}
                 </button>
               </div>
 
               <div className="settings-hide-selected">
                 {hideProcessList.length === 0 ? (
-                  <span className="settings-hide-selected-empty">暂无隐藏窗口</span>
+                  <span className="settings-hide-selected-empty">{t('settings.app.hideProcess.empty', { defaultValue: '暂无隐藏窗口' })}</span>
                 ) : hideProcessList.map((name: string) => (
                   <button
                     key={name}
                     className="settings-hide-selected-item"
                     type="button"
                     onClick={() => toggleHideProcess(name)}
-                    title="移除该窗口"
+                    title={t('settings.app.hideProcess.removeWindow', { defaultValue: '移除该窗口' })}
                   >
                     {name} ×
                   </button>
@@ -380,19 +388,19 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
           {appSettingsPage === 'position' && (
             <div className="max-expand-settings-section">
               <div className="settings-music-section">
-                <div className="settings-music-label">灵动岛位置偏移</div>
-                <div className="settings-music-hint">调整后立即生效并自动保存，重启后会按该位置校准。</div>
+                <div className="settings-music-label">{t('settings.app.position.title', { defaultValue: '灵动岛位置偏移' })}</div>
+                <div className="settings-music-hint">{t('settings.app.position.hint', { defaultValue: '调整后立即生效并自动保存，重启后会按该位置校准。' })}</div>
 
                 <div className="settings-hotkey-row">
-                  <button className="settings-hotkey-btn" type="button" onClick={() => applyIslandPositionOffset(islandPositionOffset.x - 10, islandPositionOffset.y)}>左移 10</button>
-                  <button className="settings-hotkey-btn" type="button" onClick={() => applyIslandPositionOffset(islandPositionOffset.x + 10, islandPositionOffset.y)}>右移 10</button>
-                  <button className="settings-hotkey-btn" type="button" onClick={() => applyIslandPositionOffset(islandPositionOffset.x, islandPositionOffset.y - 10)}>上移 10</button>
-                  <button className="settings-hotkey-btn" type="button" onClick={() => applyIslandPositionOffset(islandPositionOffset.x, islandPositionOffset.y + 10)}>下移 10</button>
+                  <button className="settings-hotkey-btn" type="button" onClick={() => applyIslandPositionOffset(islandPositionOffset.x - 10, islandPositionOffset.y)}>{t('settings.app.position.moveLeft', { defaultValue: '左移 10' })}</button>
+                  <button className="settings-hotkey-btn" type="button" onClick={() => applyIslandPositionOffset(islandPositionOffset.x + 10, islandPositionOffset.y)}>{t('settings.app.position.moveRight', { defaultValue: '右移 10' })}</button>
+                  <button className="settings-hotkey-btn" type="button" onClick={() => applyIslandPositionOffset(islandPositionOffset.x, islandPositionOffset.y - 10)}>{t('settings.app.position.moveUp', { defaultValue: '上移 10' })}</button>
+                  <button className="settings-hotkey-btn" type="button" onClick={() => applyIslandPositionOffset(islandPositionOffset.x, islandPositionOffset.y + 10)}>{t('settings.app.position.moveDown', { defaultValue: '下移 10' })}</button>
                 </div>
 
                 <div className="settings-hotkey-row">
                   <label className="settings-field" style={{ flex: 1 }}>
-                    <span className="settings-field-label">水平偏移 X（px）</span>
+                    <span className="settings-field-label">{t('settings.app.position.xLabel', { defaultValue: '水平偏移 X（px）' })}</span>
                     <input
                       className="settings-field-input"
                       type="number"
@@ -411,7 +419,7 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
                     />
                   </label>
                   <label className="settings-field" style={{ flex: 1 }}>
-                    <span className="settings-field-label">垂直偏移 Y（px）</span>
+                    <span className="settings-field-label">{t('settings.app.position.yLabel', { defaultValue: '垂直偏移 Y（px）' })}</span>
                     <input
                       className="settings-field-input"
                       type="number"
@@ -432,9 +440,9 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
                 </div>
 
                 <div className="settings-hotkey-row">
-                  <button className="settings-hotkey-btn" type="button" onClick={applyIslandPositionInput} disabled={!islandPositionInputChanged}>应用</button>
-                  <button className="settings-hotkey-btn" type="button" onClick={cancelIslandPositionInput} disabled={!islandPositionInputChanged}>取消</button>
-                  <button className="settings-hotkey-btn" type="button" onClick={() => applyIslandPositionOffset(0, 0)}>重置为默认位置</button>
+                  <button className="settings-hotkey-btn" type="button" onClick={applyIslandPositionInput} disabled={!islandPositionInputChanged}>{t('settings.app.position.apply', { defaultValue: '应用' })}</button>
+                  <button className="settings-hotkey-btn" type="button" onClick={cancelIslandPositionInput} disabled={!islandPositionInputChanged}>{t('settings.app.position.cancel', { defaultValue: '取消' })}</button>
+                  <button className="settings-hotkey-btn" type="button" onClick={() => applyIslandPositionOffset(0, 0)}>{t('settings.app.position.resetDefault', { defaultValue: '重置为默认位置' })}</button>
                 </div>
               </div>
             </div>
@@ -443,13 +451,13 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
           {appSettingsPage === 'theme' && (
             <div className="max-expand-settings-section">
               <div className="settings-music-section">
-                <div className="settings-music-label">主题模式</div>
-                <div className="settings-music-hint">选择深色、浅色或跟随系统主题，切换后立即生效</div>
+                <div className="settings-music-label">{t('settings.app.theme.title', { defaultValue: '主题模式' })}</div>
+                <div className="settings-music-hint">{t('settings.app.theme.hint', { defaultValue: '选择深色、浅色或跟随系统主题，切换后立即生效' })}</div>
                 <div className="settings-lyrics-source-options">
                   {([
-                    { value: 'dark', label: '深色模式' },
-                    { value: 'light', label: '浅色模式' },
-                    { value: 'system', label: '跟随系统' },
+                    { value: 'dark', label: t('settings.app.theme.dark', { defaultValue: '深色模式' }) },
+                    { value: 'light', label: t('settings.app.theme.light', { defaultValue: '浅色模式' }) },
+                    { value: 'system', label: t('settings.app.theme.system', { defaultValue: '跟随系统' }) },
                   ] as Array<{ value: 'dark' | 'light' | 'system'; label: string }>).map((opt) => (
                     <button
                       key={opt.value}
@@ -465,8 +473,8 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
                   ))}
                 </div>
 
-                <div className="settings-music-label" style={{ marginTop: 14 }}>内置壁纸</div>
-                <div className="settings-music-hint">选择一张内置壁纸作为灵动岛背景</div>
+                <div className="settings-music-label" style={{ marginTop: 14 }}>{t('settings.app.theme.builtinWallpaper', { defaultValue: '内置壁纸' })}</div>
+                <div className="settings-music-hint">{t('settings.app.theme.builtinWallpaperHint', { defaultValue: '选择一张内置壁纸作为灵动岛背景' })}</div>
                 <div className="settings-bg-gallery">
                   {BUILTIN_WALLPAPERS.map((wp) => (
                     <button
@@ -482,24 +490,26 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
                   ))}
                 </div>
 
-                <div className="settings-music-label" style={{ marginTop: 14 }}>自定义图片</div>
-                <div className="settings-music-hint">从本地选择图片，支持 jpg / png / gif / webp</div>
+                <div className="settings-music-label" style={{ marginTop: 14 }}>{t('settings.app.theme.customImage', { defaultValue: '自定义图片' })}</div>
+                <div className="settings-music-hint">{t('settings.app.theme.customImageHint', { defaultValue: '从本地选择图片，支持 jpg / png / gif / webp' })}</div>
                 <div className="settings-hotkey-row" style={{ marginTop: 8, gap: 8, alignItems: 'center' }}>
                   <button className="settings-hotkey-btn" type="button" onClick={() => { handleSelectBgImage().catch(() => {}); }}>
-                    {bgImage ? '更换图片' : '选择图片'}
+                    {bgImage
+                      ? t('settings.app.theme.changeImage', { defaultValue: '更换图片' })
+                      : t('settings.app.theme.selectImage', { defaultValue: '选择图片' })}
                   </button>
                   {bgImage && (
                     <button className="settings-hotkey-btn" type="button" onClick={handleClearBgImage}>
-                      清除背景
+                      {t('settings.app.theme.clearBackground', { defaultValue: '清除背景' })}
                     </button>
                   )}
                 </div>
                 {bgImage && (
                   <>
                     <div className="settings-bg-preview" style={{ marginTop: 8 }}>
-                      <img src={bgImage} alt="背景预览" className="settings-bg-preview-img" />
+                      <img src={bgImage} alt={t('settings.app.theme.previewAlt', { defaultValue: '背景预览' })} className="settings-bg-preview-img" />
                     </div>
-                    <div className="settings-music-hint" style={{ marginTop: 8 }}>背景图片透明度（0% - 100%），数值越高图片越明显</div>
+                    <div className="settings-music-hint" style={{ marginTop: 8 }}>{t('settings.app.theme.imageOpacityHint', { defaultValue: '背景图片透明度（0% - 100%），数值越高图片越明显' })}</div>
                     <div className="settings-opacity-slider-row">
                       <input
                         className="settings-opacity-slider"
@@ -535,8 +545,8 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
                   </>
                 )}
 
-                <div className="settings-music-label" style={{ marginTop: 14 }}>灵动岛透明度</div>
-                <div className="settings-music-hint">数值越低越透明（10% - 100%），调整后立即生效</div>
+                <div className="settings-music-label" style={{ marginTop: 14 }}>{t('settings.app.theme.islandOpacityTitle', { defaultValue: '灵动岛透明度' })}</div>
+                <div className="settings-music-hint">{t('settings.app.theme.islandOpacityHint', { defaultValue: '数值越低越透明（10% - 100%），调整后立即生效' })}</div>
                 <div className="settings-opacity-slider-row">
                   <input
                     className="settings-opacity-slider"
@@ -576,8 +586,8 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
           {appSettingsPage === 'behavior' && (
             <div className="max-expand-settings-section">
               <div className="settings-music-section">
-                <div className="settings-music-label">灵动岛弹性动画 (立即生效)</div>
-                <div className="settings-music-hint">关闭后，展开和收起动画将变得更加平滑内敛，消除弹跳感</div>
+                <div className="settings-music-label">{t('settings.app.behavior.springTitle', { defaultValue: '灵动岛弹性动画 (立即生效)' })}</div>
+                <div className="settings-music-hint">{t('settings.app.behavior.springHint', { defaultValue: '关闭后，展开和收起动画将变得更加平滑内敛，消除弹跳感' })}</div>
                 <div className="settings-hotkey-row" style={{ alignItems: 'center', marginTop: 8 }}>
                   <label className="settings-music-hint" style={{ marginBottom: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
                     <input
@@ -589,14 +599,14 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
                         window.api.springAnimationSet(next).catch(() => {});
                       }}
                     />
-                    启用弹性动画
+                    {t('settings.app.behavior.springToggle', { defaultValue: '启用弹性动画' })}
                   </label>
                 </div>
               </div>
 
               <div className="settings-music-section" style={{ marginTop: 16 }}>
-                <div className="settings-music-label">鼠标移开自动收回 (重启后生效)</div>
-                <div className="settings-music-hint">启用后，鼠标离开灵动岛时将自动回到空闲状态（若正在播放音乐则切到歌词态）</div>
+                <div className="settings-music-label">{t('settings.app.behavior.mouseLeaveTitle', { defaultValue: '鼠标移开自动收回 (重启后生效)' })}</div>
+                <div className="settings-music-hint">{t('settings.app.behavior.mouseLeaveHint', { defaultValue: '启用后，鼠标离开灵动岛时将自动回到空闲状态（若正在播放音乐则切到歌词态）' })}</div>
                 <div className="settings-hotkey-row" style={{ alignItems: 'center', marginTop: 8 }}>
                   <label className="settings-music-hint" style={{ marginBottom: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
                     <input
@@ -607,7 +617,7 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
                         window.api.expandMouseleaveIdleSet(e.target.checked).catch(() => {});
                       }}
                     />
-                    展开态（Expand）鼠标移开后自动收回
+                    {t('settings.app.behavior.expandLeaveToggle', { defaultValue: '展开态（Expand）鼠标移开后自动收回' })}
                   </label>
                 </div>
                 <div className="settings-hotkey-row" style={{ alignItems: 'center', marginTop: 6 }}>
@@ -620,14 +630,14 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
                         window.api.maxexpandMouseleaveIdleSet(e.target.checked).catch(() => {});
                       }}
                     />
-                    最大展开态（MaxExpand）鼠标移开后自动收回
+                    {t('settings.app.behavior.maxExpandLeaveToggle', { defaultValue: '最大展开态（MaxExpand）鼠标移开后自动收回' })}
                   </label>
                 </div>
               </div>
 
               <div className="settings-music-section" style={{ marginTop: 16 }}>
-                <div className="settings-music-label">待办事项 / 倒数日 / 设置 打开方式</div>
-                <div className="settings-music-hint">选择点击导航时，在灵动岛内显示还是打开独立窗口（重启后生效）</div>
+                <div className="settings-music-label">{t('settings.app.behavior.windowModeTitle', { defaultValue: '待办事项 / 倒数日 / 设置 打开方式' })}</div>
+                <div className="settings-music-hint">{t('settings.app.behavior.windowModeHint', { defaultValue: '选择点击导航时，在灵动岛内显示还是打开独立窗口（重启后生效）' })}</div>
                 <div className="settings-hotkey-row" style={{ alignItems: 'center', marginTop: 8, gap: 12 }}>
                   <label className="settings-music-hint" style={{ marginBottom: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
                     <input
@@ -638,7 +648,7 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
                         handleStandaloneWindowModeChange('integrated');
                       }}
                     />
-                    集成在灵动岛中
+                    {t('settings.app.behavior.integratedMode', { defaultValue: '集成在灵动岛中' })}
                   </label>
                   <label className="settings-music-hint" style={{ marginBottom: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
                     <input
@@ -649,8 +659,37 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
                         handleStandaloneWindowModeChange('standalone');
                       }}
                     />
-                    独立窗口
+                    {t('settings.app.behavior.standaloneMode', { defaultValue: '独立窗口' })}
                   </label>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {appSettingsPage === 'language' && (
+            <div className="max-expand-settings-section">
+              <div className="settings-music-section">
+                <div className="settings-music-label">{t('settings.language.title', { defaultValue: '显示语言' })}</div>
+                <div className="settings-music-hint">{t('settings.language.hint', { defaultValue: '切换后将立即应用到支持多语言的界面文案' })}</div>
+                <div className="settings-lyrics-source-options" style={{ marginTop: 8 }}>
+                  {([
+                    { value: 'zh-CN', label: t('settings.language.options.zh-CN', { defaultValue: '简体中文' }) },
+                    { value: 'en-US', label: t('settings.language.options.en-US', { defaultValue: 'English' }) },
+                  ] as Array<{ value: 'zh-CN' | 'en-US'; label: string }>).map((opt) => (
+                    <button
+                      key={opt.value}
+                      className={`settings-lyrics-source-btn ${appLanguage === opt.value ? 'active' : ''}`}
+                      type="button"
+                      onClick={() => applyAppLanguage(opt.value)}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+                <div className="settings-music-hint" style={{ marginTop: 8 }}>
+                  {appLanguage === 'zh-CN'
+                    ? t('settings.language.current.zh-CN', { defaultValue: '当前语言：简体中文' })
+                    : t('settings.language.current.en-US', { defaultValue: 'Current language: English' })}
                 </div>
               </div>
             </div>
@@ -659,8 +698,8 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
           {appSettingsPage === 'url-parser' && (
             <div className="max-expand-settings-section">
               <div className="settings-music-section">
-                <div className="settings-music-label">剪贴板 URL 监听</div>
-                <div className="settings-music-hint">启用后，检测到剪贴板含链接时会弹出询问通知</div>
+                <div className="settings-music-label">{t('settings.app.urlParser.title', { defaultValue: '剪贴板 URL 监听' })}</div>
+                <div className="settings-music-hint">{t('settings.app.urlParser.hint', { defaultValue: '启用后，检测到剪贴板含链接时会弹出询问通知' })}</div>
                 <div className="settings-hotkey-row" style={{ alignItems: 'center', marginTop: 8 }}>
                   <label className="settings-music-hint" style={{ marginBottom: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
                     <input
@@ -674,16 +713,16 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
                         });
                       }}
                     />
-                    启用剪贴板 URL 监听
+                    {t('settings.app.urlParser.enableToggle', { defaultValue: '启用剪贴板 URL 监听' })}
                   </label>
                 </div>
 
-                <div className="settings-music-hint" style={{ marginTop: 8 }}>识别项目</div>
+                <div className="settings-music-hint" style={{ marginTop: 8 }}>{t('settings.app.urlParser.detectModes', { defaultValue: '识别项目' })}</div>
                 <div className="settings-lyrics-source-options" style={{ marginTop: 8 }}>
                   {([
-                    { value: 'https-only', label: '强制包含 https 头' },
-                    { value: 'http-https', label: '包含 http 头' },
-                    { value: 'domain-only', label: '仅含有域名' },
+                    { value: 'https-only', label: t('settings.app.urlParser.modeHttpsOnly', { defaultValue: '强制包含 https 头' }) },
+                    { value: 'http-https', label: t('settings.app.urlParser.modeHttpHttps', { defaultValue: '包含 http 头' }) },
+                    { value: 'domain-only', label: t('settings.app.urlParser.modeDomainOnly', { defaultValue: '仅含有域名' }) },
                   ] as Array<{ value: 'https-only' | 'http-https' | 'domain-only'; label: string }>).map((opt) => (
                     <button
                       key={opt.value}
@@ -719,17 +758,17 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
                         });
                       }}
                     />
-                    在 URL 收藏界面时不弹通知
+                    {t('settings.app.urlParser.suppressInFavorites', { defaultValue: '在 URL 收藏界面时不弹通知' })}
                   </label>
                 </div>
 
-                <div className="settings-music-label" style={{ marginTop: 14 }}>URL 黑名单（按域名）</div>
-                <div className="settings-music-hint">命中黑名单域名时：单个链接不弹窗，多链接自动剔除</div>
+                <div className="settings-music-label" style={{ marginTop: 14 }}>{t('settings.app.urlParser.blacklistTitle', { defaultValue: 'URL 黑名单（按域名）' })}</div>
+                <div className="settings-music-hint">{t('settings.app.urlParser.blacklistHint', { defaultValue: '命中黑名单域名时：单个链接不弹窗，多链接自动剔除' })}</div>
                 <div className="settings-hotkey-row" style={{ marginTop: 8, gap: 8 }}>
                   <input
                     className="settings-whitelist-input"
                     type="text"
-                    placeholder="输入域名，如 example.com"
+                    placeholder={t('settings.app.urlParser.blacklistPlaceholder', { defaultValue: '输入域名，如 example.com' })}
                     value={clipboardBlacklistDraft}
                     onChange={(e) => {
                       setClipboardBlacklistDraft(e.target.value);
@@ -740,12 +779,12 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
                       e.preventDefault();
                       const domain = normalizeBlacklistDomain(clipboardBlacklistDraft);
                       if (!domain) {
-                        setClipboardBlacklistError('请输入有效域名');
+                        setClipboardBlacklistError(t('settings.app.urlParser.errors.invalidDomain', { defaultValue: '请输入有效域名' }));
                         return;
                       }
                       const exists = clipboardUrlBlacklist.some((item) => item === domain);
                       if (exists) {
-                        setClipboardBlacklistError('该域名已在黑名单中');
+                        setClipboardBlacklistError(t('settings.app.urlParser.errors.domainExists', { defaultValue: '该域名已在黑名单中' }));
                         return;
                       }
                       const prev = clipboardUrlBlacklist;
@@ -754,7 +793,7 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
                       setClipboardBlacklistDraft('');
                       window.api.clipboardUrlBlacklistSet(next).catch(() => {
                         setClipboardUrlBlacklist(prev);
-                        setClipboardBlacklistError('保存失败，请稍后重试');
+                        setClipboardBlacklistError(t('settings.app.urlParser.errors.saveFailed', { defaultValue: '保存失败，请稍后重试' }));
                       });
                     }}
                   />
@@ -764,12 +803,12 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
                     onClick={() => {
                       const domain = normalizeBlacklistDomain(clipboardBlacklistDraft);
                       if (!domain) {
-                        setClipboardBlacklistError('请输入有效域名');
+                        setClipboardBlacklistError(t('settings.app.urlParser.errors.invalidDomain', { defaultValue: '请输入有效域名' }));
                         return;
                       }
                       const exists = clipboardUrlBlacklist.some((item) => item === domain);
                       if (exists) {
-                        setClipboardBlacklistError('该域名已在黑名单中');
+                        setClipboardBlacklistError(t('settings.app.urlParser.errors.domainExists', { defaultValue: '该域名已在黑名单中' }));
                         return;
                       }
                       const prev = clipboardUrlBlacklist;
@@ -778,18 +817,18 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
                       setClipboardBlacklistDraft('');
                       window.api.clipboardUrlBlacklistSet(next).catch(() => {
                         setClipboardUrlBlacklist(prev);
-                        setClipboardBlacklistError('保存失败，请稍后重试');
+                        setClipboardBlacklistError(t('settings.app.urlParser.errors.saveFailed', { defaultValue: '保存失败，请稍后重试' }));
                       });
                     }}
                   >
-                    添加域名
+                    {t('settings.app.urlParser.addDomain', { defaultValue: '添加域名' })}
                   </button>
                 </div>
                 {clipboardBlacklistError && <div className="settings-hotkey-error">{clipboardBlacklistError}</div>}
 
                 <div className="settings-hide-selected" style={{ marginTop: 10 }}>
                   {clipboardUrlBlacklist.length === 0 ? (
-                    <span className="settings-hide-selected-empty">暂无黑名单域名</span>
+                    <span className="settings-hide-selected-empty">{t('settings.app.urlParser.emptyBlacklist', { defaultValue: '暂无黑名单域名' })}</span>
                   ) : clipboardUrlBlacklist.map((domain) => (
                     <button
                       key={domain}
@@ -801,10 +840,10 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
                         setClipboardUrlBlacklist(next);
                         window.api.clipboardUrlBlacklistSet(next).catch(() => {
                           setClipboardUrlBlacklist(prev);
-                          setClipboardBlacklistError('保存失败，请稍后重试');
+                          setClipboardBlacklistError(t('settings.app.urlParser.errors.saveFailed', { defaultValue: '保存失败，请稍后重试' }));
                         });
                       }}
-                      title="移除该域名"
+                      title={t('settings.app.urlParser.removeDomain', { defaultValue: '移除该域名' })}
                     >
                       {domain} ×
                     </button>
@@ -817,12 +856,12 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
           {appSettingsPage === 'autostart' && (
             <div className="max-expand-settings-section">
               <div className="settings-music-section">
-                <div className="settings-music-label">实用工具</div>
-                <div className="settings-music-hint">常用应用操作与日志工具</div>
+                <div className="settings-music-label">{t('settings.labels.autostart', { defaultValue: '实用工具' })}</div>
+                <div className="settings-music-hint">{t('settings.app.autostart.toolsHint', { defaultValue: '常用应用操作与日志工具' })}</div>
                 <div className="settings-hotkey-row" style={{ marginTop: 8, gap: 8 }}>
-                  <button className="settings-hotkey-btn" type="button" onClick={() => { window.api.quitApp(); }}>关闭灵动岛</button>
-                  <button className="settings-hotkey-btn" type="button" onClick={() => { window.api.restartApp().catch(() => {}); }}>重启灵动岛</button>
-                  <button className="settings-hotkey-btn" type="button" onClick={() => { window.api.openLogsFolder().catch(() => {}); }}>打开日志文件夹</button>
+                  <button className="settings-hotkey-btn" type="button" onClick={() => { window.api.quitApp(); }}>{t('settings.app.autostart.quit', { defaultValue: '关闭灵动岛' })}</button>
+                  <button className="settings-hotkey-btn" type="button" onClick={() => { window.api.restartApp().catch(() => {}); }}>{t('settings.app.autostart.restart', { defaultValue: '重启灵动岛' })}</button>
+                  <button className="settings-hotkey-btn" type="button" onClick={() => { window.api.openLogsFolder().catch(() => {}); }}>{t('settings.app.autostart.openLogs', { defaultValue: '打开日志文件夹' })}</button>
                   <button
                     className="settings-hotkey-btn"
                     type="button"
@@ -832,28 +871,32 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
                       window.api.clearLogsCache().then((res) => {
                         if (res.success) {
                           const kb = (res.freedBytes / 1024).toFixed(1);
-                          setClearLogsStatus(`已清理 ${kb} KB`);
+                          setClearLogsStatus(t('settings.app.autostart.logsCleared', { defaultValue: '已清理 {{kb}} KB', kb }));
                         } else {
-                          setClearLogsStatus('清理失败');
+                          setClearLogsStatus(t('settings.app.autostart.logsClearFailed', { defaultValue: '清理失败' }));
                         }
                         scheduleClearLogsStatusReset();
                       }).catch(() => {
-                        setClearLogsStatus('清理失败');
+                        setClearLogsStatus(t('settings.app.autostart.logsClearFailed', { defaultValue: '清理失败' }));
                         scheduleClearLogsStatusReset();
                       });
                     }}
                   >
-                    {clearLogsStatus === 'clearing' ? '清理中…' : clearLogsStatus === 'idle' ? '清理日志缓存' : clearLogsStatus}
+                    {clearLogsStatus === 'clearing'
+                      ? t('settings.app.autostart.logsClearing', { defaultValue: '清理中…' })
+                      : clearLogsStatus === 'idle'
+                        ? t('settings.app.autostart.clearLogs', { defaultValue: '清理日志缓存' })
+                        : clearLogsStatus}
                   </button>
                 </div>
 
-                <div className="settings-music-label" style={{ marginTop: 12 }}>开机自启</div>
-                <div className="settings-music-hint">设置系统启动时是否自动运行灵动岛</div>
+                <div className="settings-music-label" style={{ marginTop: 12 }}>{t('settings.app.autostart.title', { defaultValue: '开机自启' })}</div>
+                <div className="settings-music-hint">{t('settings.app.autostart.hint', { defaultValue: '设置系统启动时是否自动运行灵动岛' })}</div>
                 <div className="settings-lyrics-source-options" style={{ marginTop: 8 }}>
                   {([
-                    { value: 'disabled', label: '禁用' },
-                    { value: 'enabled', label: '启用' },
-                    { value: 'high-priority', label: '高优先级' },
+                    { value: 'disabled', label: t('settings.app.autostart.options.disabled', { defaultValue: '禁用' }) },
+                    { value: 'enabled', label: t('settings.app.autostart.options.enabled', { defaultValue: '启用' }) },
+                    { value: 'high-priority', label: t('settings.app.autostart.options.highPriority', { defaultValue: '高优先级' }) },
                   ] as Array<{ value: 'disabled' | 'enabled' | 'high-priority'; label: string }>).map((opt) => (
                     <button
                       key={opt.value}
@@ -869,16 +912,16 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
                   ))}
                 </div>
                 <div className="settings-music-hint" style={{ marginTop: 8 }}>
-                  {autostartMode === 'disabled' && '当前已禁用开机自启。'}
-                  {autostartMode === 'enabled' && '系统登录后将自动启动灵动岛。'}
-                  {autostartMode === 'high-priority' && '以高优先级启动，更早完成加载。'}
+                  {autostartMode === 'disabled' && t('settings.app.autostart.status.disabled', { defaultValue: '当前已禁用开机自启。' })}
+                  {autostartMode === 'enabled' && t('settings.app.autostart.status.enabled', { defaultValue: '系统登录后将自动启动灵动岛。' })}
+                  {autostartMode === 'high-priority' && t('settings.app.autostart.status.highPriority', { defaultValue: '以高优先级启动，更早完成加载。' })}
                 </div>
               </div>
             </div>
           )}
         </div>
 
-        <div className="settings-app-page-dots" aria-label="软件设置分页">
+        <div className="settings-app-page-dots" aria-label={t('settings.app.pagination', { defaultValue: '软件设置分页' })}>
           {appSettingsPages.map((page) => (
             <button
               key={page}

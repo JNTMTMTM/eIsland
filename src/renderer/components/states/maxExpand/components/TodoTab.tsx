@@ -25,6 +25,7 @@
  */
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 
 /** 紧急程度 */
 type Priority = 'P0' | 'P1' | 'P2';
@@ -107,6 +108,7 @@ function persistTodos(items: TodoItem[]): void {
  * @description 最大展开模式下的待办事项面板
  */
 export function TodoTab(): React.ReactElement {
+  const { t } = useTranslation();
   const [todos, setTodos] = useState<TodoItem[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [input, setInput] = useState('');
@@ -278,13 +280,7 @@ export function TodoTab(): React.ReactElement {
     <div className="expand-todo">
       {/* 标题栏 */}
       <div className="expand-todo-header">
-        <span className="expand-todo-title">待办事项</span>
-        <button
-          className="expand-todo-popout-btn"
-          type="button"
-          title="在独立窗口中打开"
-          onClick={() => { window.api.openStandaloneWindow().catch(() => {}); }}
-        >⧉</button>
+        <span className="expand-todo-title">{t('todo.title', { defaultValue: '待办事项' })}</span>
         <div className="expand-todo-stats">
           <span className="expand-todo-stat done">✓ {doneCount}</span>
           <span className="expand-todo-stat undone">○ {undoneCount}</span>
@@ -300,7 +296,7 @@ export function TodoTab(): React.ReactElement {
           ref={inputRef}
           className="expand-todo-input"
           type="text"
-          placeholder="添加待办..."
+          placeholder={t('todo.addPlaceholder', { defaultValue: '添加待办...' })}
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
@@ -313,7 +309,7 @@ export function TodoTab(): React.ReactElement {
               className={`expand-todo-tag ${priority === p.value ? 'active' : ''}`}
               style={{ '--tag-color': p.color } as React.CSSProperties}
               onClick={() => setPriority(priority === p.value ? undefined : p.value)}
-              title={`紧急程度 ${p.label}`}
+              title={t('todo.priorityTitle', { defaultValue: '紧急程度 {{label}}', label: p.label })}
             >
               {p.label}
             </button>
@@ -327,7 +323,7 @@ export function TodoTab(): React.ReactElement {
               className={`expand-todo-tag size ${size === s.value ? 'active' : ''}`}
               style={{ '--tag-color': s.color } as React.CSSProperties}
               onClick={() => setSize(size === s.value ? undefined : s.value)}
-              title={`事件大小 ${s.label}`}
+              title={t('todo.sizeTitle', { defaultValue: '事件大小 {{label}}', label: s.label })}
             >
               {s.label}
             </button>
@@ -344,25 +340,25 @@ export function TodoTab(): React.ReactElement {
               <span className="onboarding-check">✓</span>
               <span className="onboarding-circle" />
             </div>
-            <div className="expand-todo-onboarding-title">待办事项</div>
+            <div className="expand-todo-onboarding-title">{t('todo.onboarding.title', { defaultValue: '待办事项' })}</div>
             <div className="expand-todo-onboarding-desc">
-              在这里管理你的任务，保持高效有序
+              {t('todo.onboarding.desc', { defaultValue: '在这里管理你的任务，保持高效有序' })}
             </div>
             <div className="expand-todo-onboarding-features">
               <div className="onboarding-feature">
                 <span className="onboarding-feature-dot" />
-                <span>创建待办并设置紧急程度与大小</span>
+                <span>{t('todo.onboarding.feature1', { defaultValue: '创建待办并设置紧急程度与大小' })}</span>
               </div>
               <div className="onboarding-feature">
                 <span className="onboarding-feature-dot" />
-                <span>点击展开查看详情，添加描述</span>
+                <span>{t('todo.onboarding.feature2', { defaultValue: '点击展开查看详情，添加描述' })}</span>
               </div>
               <div className="onboarding-feature">
                 <span className="onboarding-feature-dot" />
-                <span>拆分子任务，追踪完成进度</span>
+                <span>{t('todo.onboarding.feature3', { defaultValue: '拆分子任务，追踪完成进度' })}</span>
               </div>
             </div>
-            <div className="expand-todo-onboarding-hint">在上方输入框添加你的第一个待办 ↑</div>
+            <div className="expand-todo-onboarding-hint">{t('todo.onboarding.hint', { defaultValue: '在上方输入框添加你的第一个待办 ↑' })}</div>
           </div>
         )}
         {todos.map(todo => {
@@ -376,7 +372,9 @@ export function TodoTab(): React.ReactElement {
                 <button
                   className="expand-todo-check"
                   onClick={(e) => { e.stopPropagation(); toggleDone(todo.id); }}
-                  aria-label={todo.done ? '标记未完成' : '标记完成'}
+                  aria-label={todo.done
+                    ? t('todo.markUndone', { defaultValue: '标记未完成' })
+                    : t('todo.markDone', { defaultValue: '标记完成' })}
                 >
                   {todo.done ? '✓' : '○'}
                 </button>
@@ -415,7 +413,7 @@ export function TodoTab(): React.ReactElement {
                 <button
                   className="expand-todo-delete"
                   onClick={(e) => { e.stopPropagation(); removeTodo(todo.id); }}
-                  aria-label="删除"
+                  aria-label={t('todo.delete', { defaultValue: '删除' })}
                 >
                   ×
                 </button>
@@ -431,7 +429,7 @@ export function TodoTab(): React.ReactElement {
                         <textarea
                           ref={descRef}
                           className="expand-todo-desc"
-                          placeholder="添加详细描述..."
+                          placeholder={t('todo.descPlaceholder', { defaultValue: '添加详细描述...' })}
                           value={descDraft}
                           onChange={(e) => setDescDraft(e.target.value)}
                           onKeyDown={(e) => {
@@ -439,14 +437,14 @@ export function TodoTab(): React.ReactElement {
                           }}
                           rows={3}
                         />
-                        <button className="expand-todo-desc-btn save" onClick={() => saveDesc(todo.id)} title="保存 (Ctrl+Enter)">保存</button>
+                        <button className="expand-todo-desc-btn save" onClick={() => saveDesc(todo.id)} title={t('todo.saveTitle', { defaultValue: '保存 (Ctrl+Enter)' })}>{t('todo.save', { defaultValue: '保存' })}</button>
                       </>
                     ) : (
                       <>
                         <div className="expand-todo-desc-text">
-                          {todo.description ? todo.description : <span className="expand-todo-desc-empty">暂无描述</span>}
+                          {todo.description ? todo.description : <span className="expand-todo-desc-empty">{t('todo.noDesc', { defaultValue: '暂无描述' })}</span>}
                         </div>
-                        <button className="expand-todo-desc-btn edit" onClick={() => startEditDesc(todo)} title="编辑描述">编辑</button>
+                        <button className="expand-todo-desc-btn edit" onClick={() => startEditDesc(todo)} title={t('todo.editDescTitle', { defaultValue: '编辑描述' })}>{t('todo.edit', { defaultValue: '编辑' })}</button>
                       </>
                     )}
                   </div>
@@ -454,7 +452,7 @@ export function TodoTab(): React.ReactElement {
                   {/* 子待办列表 */}
                   <div className="expand-todo-subs">
                     <div className="expand-todo-subs-header">
-                      <span className="expand-todo-subs-title">子任务</span>
+                      <span className="expand-todo-subs-title">{t('todo.subtasks', { defaultValue: '子任务' })}</span>
                       {subs.length > 0 && <span className="expand-todo-subs-progress">{subDone}/{subs.length}</span>}
                     </div>
                     {subs.map(sub => (
@@ -496,7 +494,7 @@ export function TodoTab(): React.ReactElement {
                         ref={subInputRef}
                         className="expand-todo-sub-input"
                         type="text"
-                        placeholder="添加子任务..."
+                        placeholder={t('todo.addSubPlaceholder', { defaultValue: '添加子任务...' })}
                         value={subInput}
                         onChange={(e) => setSubInput(e.target.value)}
                         onKeyDown={(e) => {

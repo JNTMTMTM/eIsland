@@ -25,6 +25,7 @@
  */
 
 import type React from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActionButtons } from '../utils/ActionButtons';
 import { CountdownEdit } from '../utils/CountdownEdit';
 
@@ -43,6 +44,8 @@ export function TimeTab({
   fullTimeStr,
   lunarStr
 }: TimeTabProps): React.ReactElement {
+  const { t } = useTranslation();
+
   return (
     <div className="time-tab-wrapper">
       <ActionButtons />
@@ -54,7 +57,7 @@ export function TimeTab({
           {fullTimeStr}
         </span>
         <span className="text-xs text-[var(--color-island-text)] opacity-60">
-          农历 {lunarStr}
+          {t('hover.time.lunarPrefix', { defaultValue: '农历' })} {lunarStr}
         </span>
       </div>
     </div>

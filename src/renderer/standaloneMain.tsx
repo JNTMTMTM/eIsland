@@ -33,6 +33,7 @@ import { StandaloneWindow } from './components/StandaloneWindow';
 import { initTheme } from './utils/theme';
 import useIslandStore from './store/slices';
 import type { NowPlayingInfo } from './store/types';
+import './i18n';
 
 const root = document.getElementById('root');
 if (!root) {

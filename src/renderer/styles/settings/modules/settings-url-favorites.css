@@ -157,7 +157,7 @@
   background: transparent;
   padding: 0;
   display: grid;
-  grid-template-columns: 16px fit-content(320px) minmax(0, 1fr) 28px;
+  grid-template-columns: 16px fit-content(320px) minmax(0, 1fr) 40px;
   align-items: center;
   gap: 8px;
   cursor: grab;
@@ -209,7 +209,7 @@
   min-width: 0;
   font-size: 11px;
   color: rgba(var(--color-text-rgb), 0.68);
-  padding-right: 8px;
+  padding-right: 14px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

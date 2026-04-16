@@ -25,6 +25,7 @@
  */
 
 import { useEffect, useState, type ReactElement } from 'react';
+import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../store/slices';
 import { SvgIcon } from '../../../utils/SvgIcon';
 import { getWebsiteFaviconUrl, getWebsiteHostname } from '../../../api/siteMetaApi';
@@ -105,6 +106,7 @@ export function NotificationContent({
   updateVersion,
   urls,
 }: NotificationContentProps): ReactElement {
+  const { t } = useTranslation();
   const { setIdle, setLyrics, setNotification, setMaxExpand, setMaxExpandTab } = useIslandStore();
   const [currentUrlIndex, setCurrentUrlIndex] = useState(0);
   const [favoriteUrlSet, setFavoriteUrlSet] = useState<Set<string>>(new Set());
@@ -364,7 +366,7 @@ export function NotificationContent({
           </span>
           <div className="notification-body-row">
             <span className={type === 'clipboard-url' ? 'notification-body notification-body--single-line' : 'notification-body'}>{displayBody}</span>
-            {isOfficialSite && <span className="notification-official-badge">官网</span>}
+            {isOfficialSite && <span className="notification-official-badge">{t('notification.clipboard.officialBadge', { defaultValue: '官网' })}</span>}
           </div>
         </div>
       </div>
@@ -372,22 +374,22 @@ export function NotificationContent({
       {type === 'update-ready' ? (
         <div className="notification-actions notification-actions--right">
           <div className="notification-decision-actions">
-            <button type="button" className="notification-action-btn notification-action-complete" onClick={handleInstallUpdate}>安装并重启</button>
-            <button type="button" className="notification-action-btn notification-action-ignore" onClick={handleDismissUpdate}>稍后</button>
+            <button type="button" className="notification-action-btn notification-action-complete" onClick={handleInstallUpdate}>{t('notification.actions.installRestart', { defaultValue: '安装并重启' })}</button>
+            <button type="button" className="notification-action-btn notification-action-ignore" onClick={handleDismissUpdate}>{t('notification.actions.later', { defaultValue: '稍后' })}</button>
           </div>
         </div>
       ) : type === 'update-available' ? (
         <div className="notification-actions notification-actions--right">
           <div className="notification-decision-actions">
-            <button type="button" className="notification-action-btn notification-action-complete" onClick={handleGoToUpdate}>下载更新</button>
-            <button type="button" className="notification-action-btn notification-action-ignore" onClick={handleDismissUpdate}>稍后</button>
+            <button type="button" className="notification-action-btn notification-action-complete" onClick={handleGoToUpdate}>{t('notification.actions.downloadUpdate', { defaultValue: '下载更新' })}</button>
+            <button type="button" className="notification-action-btn notification-action-ignore" onClick={handleDismissUpdate}>{t('notification.actions.later', { defaultValue: '稍后' })}</button>
           </div>
         </div>
       ) : type === 'restart-required' ? (
         <div className="notification-actions notification-actions--right">
           <div className="notification-decision-actions">
-            <button type="button" className="notification-action-btn notification-action-complete" onClick={handleRestartNow}>立即重启</button>
-            <button type="button" className="notification-action-btn notification-action-ignore" onClick={handleRestartLater}>稍后</button>
+            <button type="button" className="notification-action-btn notification-action-complete" onClick={handleRestartNow}>{t('notification.actions.restartNow', { defaultValue: '立即重启' })}</button>
+            <button type="button" className="notification-action-btn notification-action-ignore" onClick={handleRestartLater}>{t('notification.actions.later', { defaultValue: '稍后' })}</button>
           </div>
         </div>
       ) : type === 'clipboard-url' && urls?.length ? (
@@ -398,7 +400,7 @@ export function NotificationContent({
                 type="button"
                 className="notification-action-btn notification-action-snooze notification-url-nav-btn"
                 onClick={handlePrevUrl}
-                aria-label="上一个链接"
+                aria-label={t('notification.clipboard.prevUrl', { defaultValue: '上一个链接' })}
               >
                 <img src={SvgIcon.PREVIOUS} alt="" className="notification-url-nav-btn-icon" />
               </button>
@@ -407,7 +409,7 @@ export function NotificationContent({
                 type="button"
                 className="notification-action-btn notification-action-snooze notification-url-nav-btn"
                 onClick={handleNextUrl}
-                aria-label="下一个链接"
+                aria-label={t('notification.clipboard.nextUrl', { defaultValue: '下一个链接' })}
               >
                 <img src={SvgIcon.NEXT} alt="" className="notification-url-nav-btn-icon" />
               </button>
@@ -435,16 +437,18 @@ export function NotificationContent({
               className="notification-action-btn notification-action-complete"
               onClick={hasMultipleClipboardUrls ? handleOpenAllUrls : () => handleOpenUrl(currentClipboardUrl)}
             >
-              {hasMultipleClipboardUrls ? '打开全部链接' : '打开链接'}
+              {hasMultipleClipboardUrls
+                ? t('notification.actions.openAllLinks', { defaultValue: '打开全部链接' })
+                : t('notification.actions.openLink', { defaultValue: '打开链接' })}
             </button>
             {isCurrentUrlFavorited ? (
               <button
                 type="button"
                 className="notification-favorited-badge"
                 onClick={handleJumpToFavorite}
-                title="前往 URL 收藏"
+                title={t('notification.clipboard.jumpToFavorites', { defaultValue: '前往 URL 收藏' })}
               >
-                已收藏
+                {t('notification.actions.favorited', { defaultValue: '已收藏' })}
               </button>
             ) : (
               <button
@@ -452,7 +456,7 @@ export function NotificationContent({
                 className="notification-action-btn notification-action-favorite"
                 onClick={handleFavoriteCurrentUrl}
               >
-                收藏
+                {t('notification.actions.favorite', { defaultValue: '收藏' })}
               </button>
             )}
             {currentClipboardDomain && (
@@ -461,29 +465,29 @@ export function NotificationContent({
                 className="notification-action-btn notification-action-snooze"
                 onClick={handleAddDomainToBlacklist}
               >
-                加入黑名单
+                {t('notification.actions.addBlacklist', { defaultValue: '加入黑名单' })}
               </button>
             )}
-            <button type="button" className="notification-action-btn notification-action-ignore" onClick={handleDismissUrl}>忽略</button>
+            <button type="button" className="notification-action-btn notification-action-ignore" onClick={handleDismissUrl}>{t('notification.actions.ignore', { defaultValue: '忽略' })}</button>
           </div>
         </div>
       ) : type === 'source-switch' ? (
         <div className="notification-actions">
           <div className="notification-decision-actions">
-            <button type="button" className="notification-action-btn notification-action-complete" onClick={handleAcceptSwitch}>切换</button>
-            <button type="button" className="notification-action-btn notification-action-ignore" onClick={handleRejectSwitch}>忽略</button>
+            <button type="button" className="notification-action-btn notification-action-complete" onClick={handleAcceptSwitch}>{t('notification.actions.switch', { defaultValue: '切换' })}</button>
+            <button type="button" className="notification-action-btn notification-action-ignore" onClick={handleRejectSwitch}>{t('notification.actions.ignore', { defaultValue: '忽略' })}</button>
           </div>
         </div>
       ) : (
         <div className="notification-actions">
           <div className="notification-snooze-actions">
-            <button type="button" className="notification-action-btn notification-action-snooze" onClick={() => handleSnooze(5)}>稍后 5m</button>
-            <button type="button" className="notification-action-btn notification-action-snooze" onClick={() => handleSnooze(15)}>稍后 15m</button>
-            <button type="button" className="notification-action-btn notification-action-snooze" onClick={() => handleSnooze(60)}>稍后 1h</button>
+            <button type="button" className="notification-action-btn notification-action-snooze" onClick={() => handleSnooze(5)}>{t('notification.actions.snooze5m', { defaultValue: '稍后 5m' })}</button>
+            <button type="button" className="notification-action-btn notification-action-snooze" onClick={() => handleSnooze(15)}>{t('notification.actions.snooze15m', { defaultValue: '稍后 15m' })}</button>
+            <button type="button" className="notification-action-btn notification-action-snooze" onClick={() => handleSnooze(60)}>{t('notification.actions.snooze1h', { defaultValue: '稍后 1h' })}</button>
           </div>
           <div className="notification-decision-actions">
-            <button type="button" className="notification-action-btn notification-action-complete" onClick={handleComplete}>完成</button>
-            <button type="button" className="notification-action-btn notification-action-ignore" onClick={handleIgnore}>忽略</button>
+            <button type="button" className="notification-action-btn notification-action-complete" onClick={handleComplete}>{t('notification.actions.complete', { defaultValue: '完成' })}</button>
+            <button type="button" className="notification-action-btn notification-action-ignore" onClick={handleIgnore}>{t('notification.actions.ignore', { defaultValue: '忽略' })}</button>
           </div>
         </div>
       )}

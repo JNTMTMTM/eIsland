@@ -49,7 +49,7 @@ export const WEATHER_LOCATION_PRIORITY_OPTIONS: Array<{ value: WeatherLocationPr
 
 export const SETTINGS_TABS = ['index', 'app', 'network', 'weather', 'music', 'ai', 'shortcut', 'update', 'about'] as const;
 export type SettingsSidebarTabKey = (typeof SETTINGS_TABS)[number];
-export type AppSettingsPageKey = 'layout-preview' | 'hide-process-list' | 'position' | 'theme' | 'behavior' | 'url-parser' | 'autostart';
+export type AppSettingsPageKey = 'layout-preview' | 'hide-process-list' | 'position' | 'theme' | 'language' | 'behavior' | 'url-parser' | 'autostart';
 export type WeatherSettingsPageKey = 'location' | 'provider';
 export type MusicSettingsPageKey = 'whitelist' | 'lyrics' | 'smtc';
 export type MusicNavCardKey = 'music-whitelist' | 'music-lyrics' | 'music-smtc';
@@ -62,6 +62,7 @@ export const SETTINGS_TAB_LABELS: Record<SettingsTabLabelKey, string> = {
   'hide-process-list': '隐藏窗口管理',
   position: '位置校准',
   theme: '主题外观',
+  language: '语言切换',
   behavior: '交互行为',
   'url-parser': 'URL解析',
   autostart: '实用工具',
@@ -83,6 +84,7 @@ export const SETTINGS_TAB_DESCRIPTIONS: Record<Exclude<SettingsTabLabelKey, 'ind
   'hide-process-list': '管理隐藏窗口名单与自动隐藏规则。',
   position: '动态调整灵动岛位置并保存',
   theme: '切换深色、浅色或跟随系统主题。',
+  language: '切换应用显示语言并即时生效。',
   behavior: '配置鼠标移开后是否自动收回。',
   'url-parser': '配置剪贴板 URL 识别模式与黑名单。',
   autostart: '应用控制、日志与开机启动配置。',
@@ -113,6 +115,7 @@ export const SETTINGS_TAB_ICONS: Partial<Record<SettingsTabLabelKey, string>> = 
   update: SvgIcon.REVERT,
   about: SvgIcon.ABOUT,
   theme: SvgIcon.THEME,
+  language: SvgIcon.LANGUAGE,
   behavior: SvgIcon.INTERACTION,
   'url-parser': SvgIcon.LINK,
   autostart: SvgIcon.CONTINUE,
@@ -128,7 +131,7 @@ export const NETWORK_TIMEOUT_OPTIONS = [
 
 export const LAYOUT_STORE_KEY = 'overview-layout';
 export const DEFAULT_LAYOUT: OverviewLayoutConfig = { left: 'shortcuts', right: 'todo' };
-export const APP_SETTINGS_PAGES: AppSettingsPageKey[] = ['layout-preview', 'hide-process-list', 'position', 'theme', 'behavior', 'url-parser', 'autostart'];
+export const APP_SETTINGS_PAGES: AppSettingsPageKey[] = ['layout-preview', 'hide-process-list', 'position', 'theme', 'language', 'behavior', 'url-parser', 'autostart'];
 export const WEATHER_SETTINGS_PAGES: WeatherSettingsPageKey[] = ['location', 'provider'];
 export const WEATHER_SETTINGS_PAGE_LABELS: Record<WeatherSettingsPageKey, string> = {
   location: '定位配置',
@@ -158,6 +161,7 @@ export const NAV_CARDS: NavCardDef[] = [
   { id: 'hide-process-list', label: SETTINGS_TAB_LABELS['hide-process-list'], desc: SETTINGS_TAB_DESCRIPTIONS['hide-process-list'], icon: SETTINGS_TAB_ICONS['hide-process-list'], tab: 'app', appPage: 'hide-process-list' },
   { id: 'position', label: SETTINGS_TAB_LABELS.position, desc: SETTINGS_TAB_DESCRIPTIONS.position, icon: SETTINGS_TAB_ICONS.position, tab: 'app', appPage: 'position' },
   { id: 'theme', label: SETTINGS_TAB_LABELS.theme, desc: SETTINGS_TAB_DESCRIPTIONS.theme, icon: SETTINGS_TAB_ICONS.theme, tab: 'app', appPage: 'theme' },
+  { id: 'language', label: SETTINGS_TAB_LABELS.language, desc: SETTINGS_TAB_DESCRIPTIONS.language, icon: SETTINGS_TAB_ICONS.language, tab: 'app', appPage: 'language' },
   { id: 'behavior', label: SETTINGS_TAB_LABELS.behavior, desc: SETTINGS_TAB_DESCRIPTIONS.behavior, icon: SETTINGS_TAB_ICONS.behavior, tab: 'app', appPage: 'behavior' },
   { id: 'url-parser', label: SETTINGS_TAB_LABELS['url-parser'], desc: SETTINGS_TAB_DESCRIPTIONS['url-parser'], icon: SETTINGS_TAB_ICONS['url-parser'], tab: 'app', appPage: 'url-parser' },
   { id: 'autostart', label: SETTINGS_TAB_LABELS.autostart, desc: SETTINGS_TAB_DESCRIPTIONS.autostart, icon: SETTINGS_TAB_ICONS.autostart, tab: 'app', appPage: 'autostart' },

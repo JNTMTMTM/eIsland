@@ -26,19 +26,14 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import DatePicker from 'react-datepicker';
+import { useTranslation } from 'react-i18next';
 import 'react-datepicker/dist/react-datepicker.css';
 import useIslandStore from '../../../../store/slices';
 
 /** 事件类型 */
 type EventType = 'countdown' | 'anniversary' | 'birthday' | 'holiday' | 'exam';
 
-const EVENT_TYPES: { value: EventType; label: string }[] = [
-  { value: 'countdown', label: '倒数日' },
-  { value: 'anniversary', label: '纪念日' },
-  { value: 'birthday', label: '生日' },
-  { value: 'holiday', label: '节日' },
-  { value: 'exam', label: '考试' },
-];
+const EVENT_TYPES: EventType[] = ['countdown', 'anniversary', 'birthday', 'holiday', 'exam'];
 
 /** 倒数日数据 */
 interface CountdownItem {
@@ -96,6 +91,7 @@ const COLOR_PRESETS = [
  * @returns 倒数日 Tab 组件
  */
 export function CountdownTab(): React.ReactElement {
+  const { t } = useTranslation();
   const [items, setItems] = useState<CountdownItem[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -240,18 +236,30 @@ export function CountdownTab(): React.ReactElement {
     }
   }, []);
 
-  const typeInfo = (t: EventType) => EVENT_TYPES.find(et => et.value === t) || EVENT_TYPES[0];
+  const getEventTypeLabel = (type: EventType): string => {
+    return t(`countdown.types.${type}`, {
+      defaultValue: type === 'countdown'
+        ? '倒数日'
+        : type === 'anniversary'
+          ? '纪念日'
+          : type === 'birthday'
+            ? '生日'
+            : type === 'holiday'
+              ? '节日'
+              : '考试',
+    });
+  };
+
+  const formatDayText = (days: number): string => {
+    if (days > 0) return t('countdown.days.after', { defaultValue: '{{days}} 天后', days });
+    if (days === 0) return t('countdown.days.today', { defaultValue: '就是今天' });
+    return t('countdown.days.before', { defaultValue: '{{days}} 天前', days: Math.abs(days) });
+  };
 
   const editItem = editingId !== null ? items.find(i => i.id === editingId) : null;
 
   return (
     <div className="max-expand-tab-panel countdown-panel-v2">
-      <button
-        className="cd-popout-btn"
-        type="button"
-        title="在独立窗口中打开"
-        onClick={() => { window.api.openStandaloneWindow().catch(() => {}); }}
-      >⧉</button>
       {/* ===== 上部区域 ===== */}
       <div className="cd-top">
         {/* 左上：日历 */}
@@ -268,38 +276,38 @@ export function CountdownTab(): React.ReactElement {
         {/* 中：编辑表单 */}
         {editItem ? (
           <div className="cd-editor-form">
-            <div className="cd-editor-title">编辑事件</div>
+            <div className="cd-editor-title">{t('countdown.editTitle', { defaultValue: '编辑事件' })}</div>
             <input
               className="cd-input"
               value={editData.name || ''}
               onChange={(e) => setEditData(prev => ({ ...prev, name: e.target.value }))}
-              placeholder="事件名称"
+              placeholder={t('countdown.namePlaceholder', { defaultValue: '事件名称' })}
             />
             <textarea
               className="cd-textarea"
               value={editData.description || ''}
               onChange={(e) => setEditData(prev => ({ ...prev, description: e.target.value }))}
-              placeholder="描述（可选）"
+              placeholder={t('countdown.descPlaceholder', { defaultValue: '描述（可选）' })}
               rows={2}
             />
             <div className="cd-form-row">
-              <span className="cd-form-label">类型</span>
+              <span className="cd-form-label">{t('countdown.form.type', { defaultValue: '类型' })}</span>
               <div className="cd-type-selector">
-                {EVENT_TYPES.map(t => (
+                {EVENT_TYPES.map(type => (
                   <button
-                    key={t.value}
-                    className={`cd-type-btn ${editData.type === t.value ? 'active' : ''}`}
-                    onClick={() => setEditData(prev => ({ ...prev, type: t.value }))}
+                    key={type}
+                    className={`cd-type-btn ${editData.type === type ? 'active' : ''}`}
+                    onClick={() => setEditData(prev => ({ ...prev, type }))}
                     type="button"
-                    title={t.label}
+                    title={getEventTypeLabel(type)}
                   >
-                    <span className="cd-type-label">{t.label}</span>
+                    <span className="cd-type-label">{getEventTypeLabel(type)}</span>
                   </button>
                 ))}
               </div>
             </div>
             <div className="cd-form-row">
-              <span className="cd-form-label">颜色</span>
+              <span className="cd-form-label">{t('countdown.form.color', { defaultValue: '颜色' })}</span>
               <div className="cd-color-row">
                 {COLOR_PRESETS.map(c => (
                   <button
@@ -315,7 +323,7 @@ export function CountdownTab(): React.ReactElement {
                   style={{ background: COLOR_PRESETS.includes(editData.color || '') ? undefined : editData.color }}
                   onClick={() => editCustomColorRef.current?.click()}
                   type="button"
-                  title="自定义颜色"
+                  title={t('countdown.form.customColor', { defaultValue: '自定义颜色' })}
                 >
                   <span className="cd-color-custom-icon">+</span>
                 </button>
@@ -329,12 +337,14 @@ export function CountdownTab(): React.ReactElement {
               </div>
             </div>
             <div className="cd-form-row">
-              <span className="cd-form-label">背景</span>
+              <span className="cd-form-label">{t('countdown.form.background', { defaultValue: '背景' })}</span>
               <div className="cd-bg-row">
                 <button
                   className={`cd-bg-btn ${editBgImage && resolvedCoverImage && editBgImage === resolvedCoverImage ? 'active' : ''}`}
                   type="button"
-                  title={resolvedCoverImage ? '使用当前专辑封面' : '暂无正在播放的歌曲'}
+                  title={resolvedCoverImage
+                    ? t('countdown.form.useAlbumCover', { defaultValue: '使用当前专辑封面' })
+                    : t('countdown.form.noPlayingSong', { defaultValue: '暂无正在播放的歌曲' })}
                   disabled={!resolvedCoverImage}
                   onClick={() => { if (resolvedCoverImage) setEditBgImage(resolvedCoverImage); }}
                 >
@@ -344,11 +354,11 @@ export function CountdownTab(): React.ReactElement {
                     <span className="cd-bg-btn-icon">♪</span>
                   )}
                 </button>
-                <span className="cd-bg-label">专辑背景</span>
+                <span className="cd-bg-label">{t('countdown.form.albumBackground', { defaultValue: '专辑背景' })}</span>
                 <button
                   className="cd-bg-btn"
                   type="button"
-                  title="从文件选择图片"
+                  title={t('countdown.form.selectImageFile', { defaultValue: '从文件选择图片' })}
                   onClick={async () => {
                     const path = await window.api.openImageDialog();
                     if (path) {
@@ -359,12 +369,12 @@ export function CountdownTab(): React.ReactElement {
                 >
                   <span className="cd-bg-btn-icon">…</span>
                 </button>
-                <span className="cd-bg-label">自定义背景</span>
+                <span className="cd-bg-label">{t('countdown.form.customBackground', { defaultValue: '自定义背景' })}</span>
                 {editBgImage && (
                   <button
                     className="cd-bg-btn cd-bg-btn-clear"
                     type="button"
-                    title="清除背景"
+                    title={t('countdown.form.clearBackground', { defaultValue: '清除背景' })}
                     onClick={() => setEditBgImage(undefined)}
                   >
                     <span className="cd-bg-btn-icon">x</span>
@@ -374,7 +384,7 @@ export function CountdownTab(): React.ReactElement {
             </div>
             {editBgImage && (
               <div className="cd-form-row">
-                <span className="cd-form-label">透明度</span>
+                <span className="cd-form-label">{t('countdown.form.opacity', { defaultValue: '透明度' })}</span>
                 <input
                   type="range"
                   className="cd-opacity-slider"
@@ -386,47 +396,49 @@ export function CountdownTab(): React.ReactElement {
               </div>
             )}
             <div className="cd-form-actions">
-              <button className="cd-btn save" onClick={saveEdit} type="button">保存</button>
-              <button className="cd-btn cancel" onClick={() => setEditingId(null)} type="button">取消</button>
+              <button className="cd-btn save" onClick={saveEdit} type="button">{t('countdown.actions.save', { defaultValue: '保存' })}</button>
+              <button className="cd-btn cancel" onClick={() => setEditingId(null)} type="button">{t('countdown.actions.cancel', { defaultValue: '取消' })}</button>
             </div>
           </div>
         ) : (
           <div className="cd-editor-form">
             <div className="cd-editor-title">
-              {selectedDate ? `新建事件 - ${toLocalDateStr(selectedDate)}` : '< 选择日期以添加事件'}
+              {selectedDate
+                ? t('countdown.newTitleWithDate', { defaultValue: '新建事件 - {{date}}', date: toLocalDateStr(selectedDate) })
+                : t('countdown.newTitlePlaceholder', { defaultValue: '< 选择日期以添加事件' })}
             </div>
             <input
               className="cd-input"
-              placeholder="事件名称"
+              placeholder={t('countdown.namePlaceholder', { defaultValue: '事件名称' })}
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter') addItem(); }}
             />
             <textarea
               className="cd-textarea"
-              placeholder="描述（可选）"
+              placeholder={t('countdown.descPlaceholder', { defaultValue: '描述（可选）' })}
               value={newDesc}
               onChange={(e) => setNewDesc(e.target.value)}
               rows={2}
             />
             <div className="cd-form-row">
-              <span className="cd-form-label">类型</span>
+              <span className="cd-form-label">{t('countdown.form.type', { defaultValue: '类型' })}</span>
               <div className="cd-type-selector">
-                {EVENT_TYPES.map(t => (
+                {EVENT_TYPES.map(type => (
                   <button
-                    key={t.value}
-                    className={`cd-type-btn ${newType === t.value ? 'active' : ''}`}
-                    onClick={() => setNewType(t.value)}
+                    key={type}
+                    className={`cd-type-btn ${newType === type ? 'active' : ''}`}
+                    onClick={() => setNewType(type)}
                     type="button"
-                    title={t.label}
+                    title={getEventTypeLabel(type)}
                   >
-                    <span className="cd-type-label">{t.label}</span>
+                    <span className="cd-type-label">{getEventTypeLabel(type)}</span>
                   </button>
                 ))}
               </div>
             </div>
             <div className="cd-form-row">
-              <span className="cd-form-label">颜色</span>
+              <span className="cd-form-label">{t('countdown.form.color', { defaultValue: '颜色' })}</span>
               <div className="cd-color-row">
                 {COLOR_PRESETS.map(c => (
                   <button
@@ -442,7 +454,7 @@ export function CountdownTab(): React.ReactElement {
                   style={{ background: COLOR_PRESETS.includes(newColor) ? undefined : newColor }}
                   onClick={() => addCustomColorRef.current?.click()}
                   type="button"
-                  title="自定义颜色"
+                  title={t('countdown.form.customColor', { defaultValue: '自定义颜色' })}
                 >
                   <span className="cd-color-custom-icon">+</span>
                 </button>
@@ -456,12 +468,14 @@ export function CountdownTab(): React.ReactElement {
               </div>
             </div>
             <div className="cd-form-row">
-              <span className="cd-form-label">背景</span>
+              <span className="cd-form-label">{t('countdown.form.background', { defaultValue: '背景' })}</span>
               <div className="cd-bg-row">
                 <button
                   className={`cd-bg-btn ${newBgImage && resolvedCoverImage && newBgImage === resolvedCoverImage ? 'active' : ''}`}
                   type="button"
-                  title={resolvedCoverImage ? '使用当前专辑封面' : '暂无正在播放的歌曲'}
+                  title={resolvedCoverImage
+                    ? t('countdown.form.useAlbumCover', { defaultValue: '使用当前专辑封面' })
+                    : t('countdown.form.noPlayingSong', { defaultValue: '暂无正在播放的歌曲' })}
                   disabled={!resolvedCoverImage}
                   onClick={() => { if (resolvedCoverImage) setNewBgImage(resolvedCoverImage); }}
                 >
@@ -471,11 +485,11 @@ export function CountdownTab(): React.ReactElement {
                     <span className="cd-bg-btn-icon">♪</span>
                   )}
                 </button>
-                <span className="cd-bg-label">专辑背景</span>
+                <span className="cd-bg-label">{t('countdown.form.albumBackground', { defaultValue: '专辑背景' })}</span>
                 <button
                   className="cd-bg-btn"
                   type="button"
-                  title="从文件选择图片"
+                  title={t('countdown.form.selectImageFile', { defaultValue: '从文件选择图片' })}
                   onClick={async () => {
                     const path = await window.api.openImageDialog();
                     if (path) {
@@ -486,12 +500,12 @@ export function CountdownTab(): React.ReactElement {
                 >
                   <span className="cd-bg-btn-icon">…</span>
                 </button>
-                <span className="cd-bg-label">自定义背景</span>
+                <span className="cd-bg-label">{t('countdown.form.customBackground', { defaultValue: '自定义背景' })}</span>
                 {newBgImage && (
                   <button
                     className="cd-bg-btn cd-bg-btn-clear"
                     type="button"
-                    title="清除背景"
+                    title={t('countdown.form.clearBackground', { defaultValue: '清除背景' })}
                     onClick={() => setNewBgImage(undefined)}
                   >
                     <span className="cd-bg-btn-icon">x</span>
@@ -501,7 +515,7 @@ export function CountdownTab(): React.ReactElement {
             </div>
             {newBgImage && (
               <div className="cd-form-row">
-                <span className="cd-form-label">透明度</span>
+                <span className="cd-form-label">{t('countdown.form.opacity', { defaultValue: '透明度' })}</span>
                 <input
                   type="range"
                   className="cd-opacity-slider"
@@ -519,7 +533,7 @@ export function CountdownTab(): React.ReactElement {
                 disabled={!selectedDate || !newName.trim()}
                 type="button"
               >
-                添加
+                {t('countdown.actions.add', { defaultValue: '添加' })}
               </button>
             </div>
           </div>
@@ -527,7 +541,7 @@ export function CountdownTab(): React.ReactElement {
 
         {/* 右：卡片预览 */}
         <div className="cd-preview">
-          <div className="cd-preview-label">预览</div>
+          <div className="cd-preview-label">{t('countdown.preview', { defaultValue: '预览' })}</div>
           {editItem ? (
             <div
               className={`cd-card cd-card-${editData.type || editItem.type}`}
@@ -537,14 +551,14 @@ export function CountdownTab(): React.ReactElement {
               <div className="cd-card-overlay" style={{ background: `linear-gradient(135deg, ${editData.color || editItem.color}30, ${editData.color || editItem.color}10)` }} />
               <div className="cd-card-content">
                 <div className="cd-card-top-row">
-                  <span className="cd-card-type-badge" style={{ background: `${editData.color || editItem.color}50`, color: '#fff' }}>{typeInfo(editData.type || editItem.type).label}</span>
+                  <span className="cd-card-type-badge" style={{ background: `${editData.color || editItem.color}50`, color: '#fff' }}>{getEventTypeLabel(editData.type || editItem.type)}</span>
                 </div>
                 <div className="cd-card-name">{(editData.name || '').trim() || editItem.name}</div>
                 {(editData.description || '').trim() && <div className="cd-card-desc">{(editData.description || '').trim()}</div>}
                 <div className="cd-card-bottom">
                   <span className="cd-card-date">{editItem.date}</span>
                   <span className="cd-card-days" style={{ color: editData.color || editItem.color }}>
-                    {(() => { const d = diffDays(editItem.date); return d > 0 ? `${d} 天后` : d === 0 ? '就是今天' : `${Math.abs(d)} 天前`; })()}
+                    {(() => { const d = diffDays(editItem.date); return formatDayText(d); })()}
                   </span>
                 </div>
               </div>
@@ -558,14 +572,14 @@ export function CountdownTab(): React.ReactElement {
               <div className="cd-card-overlay" style={{ background: `linear-gradient(135deg, ${newColor}30, ${newColor}10)` }} />
               <div className="cd-card-content">
                 <div className="cd-card-top-row">
-                  <span className="cd-card-type-badge" style={{ background: `${newColor}50`, color: '#fff' }}>{typeInfo(newType).label}</span>
+                  <span className="cd-card-type-badge" style={{ background: `${newColor}50`, color: '#fff' }}>{getEventTypeLabel(newType)}</span>
                 </div>
-                <div className="cd-card-name">{newName.trim() || '事件名称'}</div>
+                <div className="cd-card-name">{newName.trim() || t('countdown.namePlaceholder', { defaultValue: '事件名称' })}</div>
                 {newDesc.trim() && <div className="cd-card-desc">{newDesc.trim()}</div>}
                 <div className="cd-card-bottom">
-                  <span className="cd-card-date">{selectedDate ? toLocalDateStr(selectedDate) : 'YYYY-MM-DD'}</span>
+                  <span className="cd-card-date">{selectedDate ? toLocalDateStr(selectedDate) : t('countdown.datePlaceholder', { defaultValue: 'YYYY-MM-DD' })}</span>
                   <span className="cd-card-days" style={{ color: newColor }}>
-                    {selectedDate ? (() => { const d = diffDays(toLocalDateStr(selectedDate)); return d > 0 ? `${d} 天后` : d === 0 ? '就是今天' : `${Math.abs(d)} 天前`; })() : '-- 天'}
+                    {selectedDate ? (() => { const d = diffDays(toLocalDateStr(selectedDate)); return formatDayText(d); })() : t('countdown.days.placeholder', { defaultValue: '-- 天' })}
                   </span>
                 </div>
               </div>
@@ -577,11 +591,10 @@ export function CountdownTab(): React.ReactElement {
       {/* ===== 下部：卡片水平列表 ===== */}
       <div className="cd-cards-wrap" ref={cardsRef} onWheel={handleCardsWheel}>
         {sorted.length === 0 ? (
-          <div className="cd-cards-empty">选择日期并添加事件</div>
+          <div className="cd-cards-empty">{t('countdown.empty', { defaultValue: '选择日期并添加事件' })}</div>
         ) : (
           sorted.map(item => {
             const days = diffDays(item.date);
-            const info = typeInfo(item.type);
             return (
               <div
                 key={item.id}
@@ -593,12 +606,12 @@ export function CountdownTab(): React.ReactElement {
                 <div className="cd-card-overlay" style={{ background: `linear-gradient(135deg, ${item.color}30, ${item.color}10)` }} />
                 <div className="cd-card-content">
                   <div className="cd-card-top-row">
-                    <span className="cd-card-type-badge" style={{ background: `${item.color}50`, color: '#fff' }}>{info.label}</span>
+                    <span className="cd-card-type-badge" style={{ background: `${item.color}50`, color: '#fff' }}>{getEventTypeLabel(item.type)}</span>
                     <button
                       className="cd-card-delete"
                       onClick={(e) => { e.stopPropagation(); removeItem(item.id); }}
                       type="button"
-                      title="删除"
+                      title={t('countdown.actions.delete', { defaultValue: '删除' })}
                     >x</button>
                   </div>
                   <div className="cd-card-name">{item.name}</div>
@@ -606,7 +619,7 @@ export function CountdownTab(): React.ReactElement {
                   <div className="cd-card-bottom">
                     <span className="cd-card-date">{item.date}</span>
                     <span className="cd-card-days" style={{ color: item.color }}>
-                      {days > 0 ? `${days} 天后` : days === 0 ? '就是今天' : `${Math.abs(days)} 天前`}
+                      {formatDayText(days)}
                     </span>
                   </div>
                 </div>

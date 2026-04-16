@@ -1,0 +1,804 @@
+{
+  "common": {
+    "appName": "eIsland"
+  },
+  "standalone": {
+    "tabs": {
+      "todo": "Todo",
+      "countdown": "Countdown",
+      "settings": "Settings"
+    },
+    "controls": {
+      "minimize": "Minimize",
+      "maximize": "Maximize",
+      "close": "Close"
+    }
+  },
+  "guide": {
+    "actions": {
+      "prev": "Previous",
+      "next": "Next",
+      "start": "Get Started"
+    }
+  },
+  "todo": {
+    "title": "Todo",
+    "addPlaceholder": "Add todo...",
+    "addSubPlaceholder": "Add subtask...",
+    "priorityTitle": "Priority {{label}}",
+    "sizeTitle": "Size {{label}}",
+    "markDone": "Mark done",
+    "markUndone": "Mark not done",
+    "delete": "Delete",
+    "descPlaceholder": "Add detailed description...",
+    "saveTitle": "Save (Ctrl+Enter)",
+    "save": "Save",
+    "noDesc": "No description",
+    "editDescTitle": "Edit description",
+    "edit": "Edit",
+    "subtasks": "Subtasks",
+    "onboarding": {
+      "title": "Todo",
+      "desc": "Manage your tasks here and stay organized.",
+      "feature1": "Create todos and set priority and size",
+      "feature2": "Click to expand details and add descriptions",
+      "feature3": "Break down subtasks and track progress",
+      "hint": "Add your first todo in the input above ↑"
+    }
+  },
+  "countdown": {
+    "editTitle": "Edit Event",
+    "newTitleWithDate": "New Event - {{date}}",
+    "newTitlePlaceholder": "< Select a date to add event",
+    "namePlaceholder": "Event name",
+    "descPlaceholder": "Description (optional)",
+    "preview": "Preview",
+    "empty": "Select a date and add an event",
+    "datePlaceholder": "YYYY-MM-DD",
+    "days": {
+      "after": "In {{days}} days",
+      "today": "Today",
+      "before": "{{days}} days ago",
+      "placeholder": "-- days"
+    },
+    "types": {
+      "countdown": "Countdown",
+      "anniversary": "Anniversary",
+      "birthday": "Birthday",
+      "holiday": "Holiday",
+      "exam": "Exam"
+    },
+    "form": {
+      "type": "Type",
+      "color": "Color",
+      "customColor": "Custom color",
+      "background": "Background",
+      "useAlbumCover": "Use current album cover",
+      "noPlayingSong": "No song is playing",
+      "albumBackground": "Album",
+      "selectImageFile": "Select image from file",
+      "customBackground": "Custom",
+      "clearBackground": "Clear background",
+      "opacity": "Opacity"
+    },
+    "actions": {
+      "add": "Add",
+      "save": "Save",
+      "cancel": "Cancel",
+      "delete": "Delete"
+    }
+  },
+  "hover": {
+    "nav": {
+      "time": "Tools",
+      "o3ics": "Music",
+      "weather": "Weather",
+      "expand": "Expand",
+      "switchToPage": "Switch to {{label}} page"
+    },
+    "actions": {
+      "hideIsland": "Hide Dynamic Island",
+      "hide": "Hide",
+      "quitIsland": "Quit Dynamic Island",
+      "quit": "Quit"
+    },
+    "tools": {
+      "screenshot": "Screenshot",
+      "taskManager": "Task Manager"
+    },
+    "timer": {
+      "title": "Countdown",
+      "editHint": "Scroll wheel to edit time",
+      "actions": {
+        "start": "Start",
+        "pause": "Pause",
+        "resume": "Resume",
+        "reset": "Reset"
+      }
+    },
+    "music": {
+      "unknownArtist": "Unknown artist",
+      "unknownTitle": "Unknown title",
+      "prev": "Previous",
+      "pause": "Pause",
+      "play": "Play",
+      "next": "Next"
+    },
+    "time": {
+      "lunarPrefix": "Lunar"
+    },
+    "weather": {
+      "refreshTitle": "Click to refresh weather",
+      "today": "Tdy",
+      "unknownCity": "N/A",
+      "na": "N/A",
+      "week": {
+        "tomorrow": "Tmr",
+        "dayAfterTomorrow": "D+2"
+      },
+      "rainPrefix": "R",
+      "windPrefix": "W"
+    }
+  },
+  "weatherAbbr": {
+    "thunder": "T",
+    "snow": "S",
+    "hail": "H",
+    "sleet": "Sl",
+    "freezingRain": "FR",
+    "heavyRain": "HR",
+    "shower": "Sh",
+    "drizzle": "Dr",
+    "rain": "R",
+    "sandstorm": "Sd",
+    "haze": "Hz",
+    "fog": "F",
+    "wind": "Wn",
+    "hot": "Hot",
+    "cold": "Cold",
+    "overcast": "O",
+    "cloudy": "C",
+    "sunny": "Clr",
+    "unknown": "N/A"
+  },
+  "notification": {
+    "timer": {
+      "title": "Timer",
+      "finished": "Countdown finished"
+    },
+    "sourceSwitch": {
+      "title": "Other playback source detected"
+    },
+    "update": {
+      "availableTitle": "New version available",
+      "availableBody": "Download now?",
+      "readyTitle": "Update ready",
+      "readyBody": "Version v{{version}} has been downloaded. Install now?"
+    },
+    "clipboard": {
+      "detectedTitle": "Link detected",
+      "officialBadge": "Official",
+      "prevUrl": "Previous link",
+      "nextUrl": "Next link",
+      "jumpToFavorites": "Go to URL Favorites"
+    },
+    "pomodoro": {
+      "title": "Pomodoro",
+      "workFinished": "Focus session finished, take a break",
+      "breakFinished": "Break finished, back to focus"
+    },
+    "actions": {
+      "installRestart": "Install & Restart",
+      "later": "Later",
+      "downloadUpdate": "Download Update",
+      "restartNow": "Restart Now",
+      "openAllLinks": "Open All Links",
+      "openLink": "Open Link",
+      "favorited": "Favorited",
+      "favorite": "Favorite",
+      "addBlacklist": "Add to Blacklist",
+      "ignore": "Ignore",
+      "switch": "Switch",
+      "snooze5m": "Later 5m",
+      "snooze15m": "Later 15m",
+      "snooze1h": "Later 1h",
+      "complete": "Complete"
+    }
+  },
+  "expanded": {
+    "nav": {
+      "hover": "Back",
+      "overview": "Overview",
+      "song": "Music",
+      "tools": "Tools",
+      "maxExpand": "Max Expand",
+      "switchToPage": "Switch to {{label}} page"
+    }
+  },
+  "toolsTab": {
+    "defaultAppName": "App",
+    "title": "Quick Launch",
+    "count": "{{count}} items",
+    "empty": "No quick launch items",
+    "launchTitle": "Click to launch",
+    "editNameByDoubleClick": "Double-click to edit name",
+    "editName": "Edit name",
+    "delete": "Delete",
+    "drop": {
+      "releaseToAdd": "Release to add",
+      "onlyExe": "Only .exe files are supported",
+      "duplicate": "App already exists",
+      "dragExe": "Drag .exe here"
+    }
+  },
+  "overview": {
+    "song": {
+      "nowPlaying": "Now Playing",
+      "unknownTitle": "Unknown title",
+      "unknownArtist": "Unknown artist",
+      "prev": "Previous",
+      "pause": "Pause",
+      "play": "Play",
+      "next": "Next",
+      "empty": "No music playing"
+    },
+    "countdown": {
+      "title": "Countdown",
+      "empty": "No countdown events"
+    },
+    "pomodoro": {
+      "title": "Pomodoro",
+      "completedTitle": "Completed pomodoros",
+      "tomato": "Tomato",
+      "resetCount": "Reset count",
+      "reset": "Reset",
+      "start": "Start",
+      "pause": "Pause",
+      "skip": "Skip",
+      "phases": {
+        "work": "Focus",
+        "shortBreak": "Short Break",
+        "longBreak": "Long Break"
+      }
+    },
+    "urlFavorites": {
+      "title": "URL Favorites",
+      "count": "{{count}} items",
+      "empty": "No favorites",
+      "viewAll": "View all {{count}} favorites"
+    },
+    "shortcuts": {
+      "title": "Quick Launch",
+      "editTitle": "Edit quick launch",
+      "count": "{{count}} items",
+      "emptyHint": "Add apps in Tools"
+    },
+    "todo": {
+      "title": "Todo",
+      "goToPage": "Go to todo page",
+      "empty": "No todos",
+      "delete": "Delete",
+      "completed": "Completed {{count}}"
+    },
+    "time": {
+      "date": "{{yyyy}}-{{month}}-{{day}} {{dayName}}",
+      "weekdays": {
+        "0": "Sun",
+        "1": "Mon",
+        "2": "Tue",
+        "3": "Wed",
+        "4": "Thu",
+        "5": "Fri",
+        "6": "Sat"
+      },
+      "yi": "P",
+      "ji": "C"
+    }
+  },
+  "songTab": {
+    "meta": {
+      "notPlaying": "Not playing"
+    },
+    "controls": {
+      "prev": "Previous",
+      "pause": "Pause",
+      "play": "Play",
+      "next": "Next"
+    },
+    "lyrics": {
+      "loading": "Loading lyrics",
+      "empty": "No lyrics"
+    },
+    "onboarding": {
+      "title": "Music Overview",
+      "desc": "Once music starts, real-time info appears here",
+      "feature1": "Cover disc, live lyrics, and waveform animation",
+      "feature2": "Time, weather, and countdown at a glance",
+      "hint": "Play any song to begin"
+    },
+    "time": {
+      "weekdays": {
+        "0": "Sun",
+        "1": "Mon",
+        "2": "Tue",
+        "3": "Wed",
+        "4": "Thu",
+        "5": "Fri",
+        "6": "Sat"
+      }
+    },
+    "countdown": {
+      "expired": "Expired",
+      "dayHour": "{{days}}d {{hours}}h",
+      "hourMinute": "{{hours}}h {{minutes}}m",
+      "minute": "{{minutes}}m"
+    }
+  },
+  "aiChat": {
+    "title": "AI Chat",
+    "notConfigured": "Not configured",
+    "actions": {
+      "clear": "Clear",
+      "stop": "Stop",
+      "send": "Send"
+    },
+    "messages": {
+      "missingApiKeyWarn": "⚠️ Please fill in API Key in Settings → AI Config first.",
+      "unknownError": "Unknown error",
+      "emptyWithApiKey": "How can I help you?",
+      "emptyWithoutApiKey": "Please fill in API Key in Settings → AI Config first"
+    },
+    "input": {
+      "generatingPlaceholder": "Generating...",
+      "placeholder": "Type a message..."
+    }
+  },
+  "urlFavoritesTab": {
+    "title": "URL Favorites",
+    "count": "{{count}} items",
+    "empty": "No favorites yet, add a URL first.",
+    "openWebsiteTitle": "Click to open website",
+    "resolvingTitle": "Resolving website title…",
+    "noNote": "No note",
+    "input": {
+      "placeholderWithItems": "Type and add a new URL favorite",
+      "placeholderEmpty": "Enter URL, e.g. github.com"
+    },
+    "actions": {
+      "add": "Add",
+      "save": "Save",
+      "expand": "Expand",
+      "collapse": "Collapse",
+      "removeAria": "Remove URL favorite"
+    },
+    "editor": {
+      "urlLabel": "URL",
+      "urlPlaceholder": "Edit URL",
+      "noteLabel": "Note",
+      "notePlaceholder": "Enter note"
+    }
+  },
+  "settings": {
+    "sidebar": {
+      "title": "Settings"
+    },
+    "labels": {
+      "index": "Navigation",
+      "app": "App Settings",
+      "layout-preview": "Layout Preview",
+      "hide-process-list": "Hidden Window List",
+      "position": "Position Calibration",
+      "theme": "Theme",
+      "language": "Language",
+      "behavior": "Interaction",
+      "url-parser": "URL Parser",
+      "autostart": "Utilities",
+      "network": "Network",
+      "weather": "Weather",
+      "music": "Music",
+      "music-whitelist": "Player Whitelist",
+      "music-lyrics": "Lyrics Source",
+      "music-smtc": "SMTC",
+      "ai": "AI Agent",
+      "shortcut": "Shortcuts",
+      "update": "Updates",
+      "about": "About"
+    },
+    "weatherPages": {
+      "location": "Location",
+      "provider": "Provider"
+    },
+    "musicPages": {
+      "whitelist": "Whitelist",
+      "lyrics": "Lyrics",
+      "smtc": "SMTC"
+    },
+    "index": {
+      "title": "Quick Navigation",
+      "reset": "Reset",
+      "done": "Done",
+      "edit": "Edit",
+      "hintEdit": "Drag cards to reorder, then click Done to save.",
+      "hintView": "Click a card to jump to its settings page.",
+      "ariaNav": "Settings quick navigation",
+      "removeCard": "Remove {{label}}",
+      "ariaAddPanel": "Addable navigation cards",
+      "addableTitle": "Addable Cards",
+      "emptyAddable": "No cards available to add"
+    },
+    "language": {
+      "title": "Display Language",
+      "hint": "Changes apply immediately to localized UI text",
+      "options": {
+        "zh-CN": "Simplified Chinese",
+        "en-US": "English"
+      },
+      "current": {
+        "zh-CN": "Current language: Simplified Chinese",
+        "en-US": "Current language: English"
+      }
+    },
+    "app": {
+      "pagination": "App settings pagination",
+      "notifications": {
+        "configChanged": {
+          "title": "Configuration Changed",
+          "body": "Todo/Countdown/Settings open mode changed. Restart now to apply?"
+        }
+      },
+      "layout": {
+        "previewTitle": "Overview Layout Preview",
+        "leftWidget": "Left Widget",
+        "rightWidget": "Right Widget"
+      },
+      "hideProcess": {
+        "hint": "When blacklisted process windows are focused, Dynamic Island hides automatically.",
+        "searchPlaceholder": "Search process name",
+        "refreshing": "Refreshing...",
+        "refresh": "Refresh windows",
+        "empty": "No hidden windows",
+        "removeWindow": "Remove this window"
+      },
+      "position": {
+        "title": "Dynamic Island Offset",
+        "hint": "Applies and saves immediately.",
+        "moveLeft": "Left 10",
+        "moveRight": "Right 10",
+        "moveUp": "Up 10",
+        "moveDown": "Down 10",
+        "xLabel": "Horizontal X (px)",
+        "yLabel": "Vertical Y (px)",
+        "apply": "Apply",
+        "cancel": "Cancel",
+        "resetDefault": "Reset default position"
+      },
+      "theme": {
+        "title": "Theme Mode",
+        "hint": "Switch dark/light/system and apply instantly",
+        "dark": "Dark",
+        "light": "Light",
+        "system": "System",
+        "builtinWallpaper": "Built-in Wallpapers",
+        "builtinWallpaperHint": "Choose a built-in image as island background",
+        "customImage": "Custom Image",
+        "customImageHint": "Select local image: jpg / png / gif / webp",
+        "changeImage": "Change image",
+        "selectImage": "Select image",
+        "clearBackground": "Clear background",
+        "previewAlt": "Background preview",
+        "imageOpacityHint": "Background opacity (0% - 100%)",
+        "islandOpacityTitle": "Island Opacity",
+        "islandOpacityHint": "Lower value = more transparent (10% - 100%)"
+      },
+      "behavior": {
+        "springTitle": "Spring Animation (Instant)",
+        "springHint": "Disable to reduce bounce and make transitions smoother",
+        "springToggle": "Enable spring animation",
+        "mouseLeaveTitle": "Auto collapse on mouse leave (Restart required)",
+        "mouseLeaveHint": "Collapse when cursor leaves island area",
+        "expandLeaveToggle": "Collapse from Expand state on mouse leave",
+        "maxExpandLeaveToggle": "Collapse from MaxExpand state on mouse leave",
+        "windowModeTitle": "Todo / Countdown / Settings open mode",
+        "windowModeHint": "Choose embedded in island or standalone window",
+        "integratedMode": "Embedded in Dynamic Island",
+        "standaloneMode": "Standalone window"
+      },
+      "urlParser": {
+        "title": "Clipboard URL Monitor",
+        "hint": "Show prompt when URL is detected in clipboard",
+        "enableToggle": "Enable clipboard URL monitor",
+        "detectModes": "Detection mode",
+        "modeHttpsOnly": "Require https prefix",
+        "modeHttpHttps": "Allow http/https",
+        "modeDomainOnly": "Allow domain-only",
+        "suppressInFavorites": "Do not notify in favorites view",
+        "blacklistTitle": "URL Blacklist (by domain)",
+        "blacklistHint": "Blocked domains are filtered from notifications",
+        "blacklistPlaceholder": "Enter domain, e.g. example.com",
+        "addDomain": "Add domain",
+        "emptyBlacklist": "No blacklisted domains",
+        "removeDomain": "Remove domain",
+        "errors": {
+          "invalidDomain": "Please enter a valid domain",
+          "domainExists": "Domain already exists in blacklist",
+          "saveFailed": "Save failed, please retry"
+        }
+      },
+      "autostart": {
+        "toolsHint": "Common app actions and log tools",
+        "quit": "Quit eIsland",
+        "restart": "Restart eIsland",
+        "openLogs": "Open logs folder",
+        "clearLogs": "Clear log cache",
+        "logsClearing": "Clearing...",
+        "logsCleared": "Cleared {{kb}} KB",
+        "logsClearFailed": "Clear failed",
+        "title": "Auto Start",
+        "hint": "Configure startup behavior on system login",
+        "options": {
+          "disabled": "Disabled",
+          "enabled": "Enabled",
+          "highPriority": "High Priority"
+        },
+        "status": {
+          "disabled": "Auto start is disabled.",
+          "enabled": "eIsland will start on login.",
+          "highPriority": "Starts with higher priority for faster load."
+        }
+      }
+    },
+    "common": {
+      "add": "Add",
+      "remove": "Remove",
+      "save": "Save",
+      "saveFailed": "Save failed: {{error}}",
+      "unknownError": "Unknown error"
+    },
+    "network": {
+      "timeout": {
+        "title": "Request Timeout",
+        "hint": "Set the maximum wait time for network requests",
+        "unitSecond": "s",
+        "options": {
+          "ms5000": "5s",
+          "ms10000": "10s (Default)",
+          "ms15000": "15s",
+          "ms20000": "20s",
+          "ms30000": "30s"
+        }
+      }
+    },
+    "weather": {
+      "locationPriority": {
+        "title": "Location Priority",
+        "hint": "Prefer IP-based auto location or custom location"
+      },
+      "cityName": "City Name",
+      "cityPlaceholder": "e.g. Hangzhou / Tokyo / New York",
+      "testing": "Testing...",
+      "testCustomLocation": "Test Custom Location (Dual APIs)",
+      "saveLocation": "Save Location Settings",
+      "providerPriority": {
+        "title": "Weather Provider Priority",
+        "hint": "Prefer Open-Meteo or UAPI, then auto-fallback"
+      },
+      "options": {
+        "locationPriority": {
+          "ip": "IP Location First",
+          "custom": "Custom Location First"
+        },
+        "providerPriority": {
+          "openMeteo": "Open-Meteo First",
+          "uapi": "UAPI First"
+        }
+      },
+      "messages": {
+        "switchPriorityFailed": "Failed to switch priority: {{error}}",
+        "testFailed": "Test failed: {{error}}"
+      },
+      "pagination": "Weather settings pagination"
+    },
+    "music": {
+      "whitelist": {
+        "title": "Player Whitelist",
+        "hint": "Only whitelisted players can trigger music metadata",
+        "placeholder": "Enter player process name (e.g. Spotify.exe)",
+        "fetching": "Fetching...",
+        "fetchSourceProcess": "Fetch Playing Process",
+        "added": "Added"
+      },
+      "lyrics": {
+        "title": "Lyrics Source",
+        "hint": "Auto mode selects source by detected SMTC player and falls back to LRCLIB",
+        "sourceOptions": {
+          "auto": "Auto (Follow Player)",
+          "neteaseOnly": "NetEase Only",
+          "qqmusicOnly": "QQ Music Only",
+          "kugouOnly": "KuGou Only",
+          "sodamusicOnly": "Soda Music Only",
+          "lrclibOnly": "LRCLIB Only"
+        },
+        "karaokeTitle": "Karaoke Highlight",
+        "karaokeHint": "Enable word-by-word highlight effects",
+        "karaokeToggle": "Enable karaoke highlight",
+        "clockTitle": "Lyrics Clock",
+        "clockHint": "Show current Beijing time between cover and lyrics",
+        "clockToggle": "Show current time"
+      },
+      "smtc": {
+        "title": "SMTC Auto Unsubscribe",
+        "hint": "Clean stale sessions with no updates for long periods",
+        "unsubscribeMs": "Unsubscribe timeout (ms)",
+        "neverUnsubscribe": "Never unsubscribe"
+      },
+      "pagination": "Music settings pagination"
+    },
+    "shortcut": {
+      "pages": {
+        "window": "Window Control",
+        "capture": "Capture",
+        "media": "Media Control"
+      },
+      "common": {
+        "recordingValue": "Press a shortcut combination...",
+        "notSetValue": "Not set",
+        "recordingBtn": "Recording",
+        "editBtn": "Edit",
+        "clearBtn": "Clear"
+      },
+      "window": {
+        "toggleIsland": {
+          "title": "Show/Hide Island Shortcut",
+          "hint": "Click Edit and press keys (e.g. Alt+X, Ctrl+Shift+H)"
+        },
+        "quitApp": {
+          "title": "Quit eIsland Shortcut",
+          "hint": "Press to quit eIsland immediately"
+        },
+        "resetPosition": {
+          "title": "Reset Position Shortcut",
+          "hint": "Press to reset island to top-center default position"
+        },
+        "toggleTray": {
+          "title": "Show/Hide Tray Icon Shortcut",
+          "hint": "Press to toggle the tray icon visibility"
+        }
+      },
+      "capture": {
+        "screenshot": {
+          "title": "Area Screenshot Shortcut",
+          "hint": "Press to start area screenshot flow"
+        }
+      },
+      "media": {
+        "nextSong": {
+          "title": "Next Song Shortcut",
+          "hint": "Trigger system next-track media key"
+        },
+        "playPause": {
+          "title": "Play/Pause Shortcut",
+          "hint": "Trigger system play/pause media key"
+        }
+      },
+      "pagination": "Shortcut settings pagination"
+    },
+    "update": {
+      "currentVersion": "Current Version",
+      "source": "Update Source",
+      "latestVersion": "Latest Version",
+      "downloadingFrom": "Downloading update from {{source}}...",
+      "preparingDownload": "Preparing download...",
+      "actions": {
+        "check": "Check for Updates",
+        "checking": "Checking...",
+        "latest": "Already Latest",
+        "download": "Download Update",
+        "installRestart": "Install & Restart",
+        "retry": "Retry"
+      }
+    },
+    "ai": {
+      "apiKey": "API Key",
+      "apiEndpoint": "API Endpoint",
+      "model": "Model",
+      "mcpEndpoint": "MCP Endpoint",
+      "mcpPlaceholder": "http://localhost:3000/mcp (optional)",
+      "systemPrompt": "System Prompt",
+      "promptPlaceholder": "You are a helpful assistant.",
+      "saveTitle": "Save (Ctrl+Enter)",
+      "editPromptTitle": "Edit Prompt"
+    },
+    "about": {
+      "authorAvatarAlt": "Author avatar",
+      "githubHome": "GitHub Home",
+      "notice": "This software is open-source and free. If you paid for it anywhere, request a refund immediately.",
+      "links": {
+        "website": "Website",
+        "docs": "Docs",
+        "sourceCode": "Source Code",
+        "license": "License",
+        "iconLibrary": "Icon Library"
+      },
+      "depsTitle": "Open Source Frameworks & Dependencies",
+      "wallpaperTitle": "Wallpaper Sources",
+      "wallpaper": {
+        "source": "Source",
+        "capture": "Captured by",
+        "link": "Original Link",
+        "notice": "NASA images are used under NASA image policy and do not imply NASA endorsement."
+      },
+      "copyright": "© JNTMTMTM, pyisland.com. All rights reserved.",
+      "slogan": "Algorithms explain everything"
+    },
+    "nav": {
+      "guide": {
+        "label": "Guide",
+        "desc": "View feature guides and usage instructions."
+      },
+      "layout-preview": {
+        "label": "Layout Preview",
+        "desc": "Adjust left and right widgets in layout preview."
+      },
+      "hide-process-list": {
+        "label": "Hidden Window List",
+        "desc": "Manage hidden windows and auto-hide rules."
+      },
+      "position": {
+        "label": "Position Calibration",
+        "desc": "Adjust and save Dynamic Island position."
+      },
+      "theme": {
+        "label": "Theme",
+        "desc": "Switch dark, light, or follow system theme."
+      },
+      "language": {
+        "label": "Language",
+        "desc": "Switch app display language instantly."
+      },
+      "behavior": {
+        "label": "Interaction",
+        "desc": "Configure auto-collapse when mouse leaves."
+      },
+      "url-parser": {
+        "label": "URL Parser",
+        "desc": "Configure clipboard URL detection and blacklist."
+      },
+      "autostart": {
+        "label": "Utilities",
+        "desc": "App controls, logs, and startup options."
+      },
+      "network": {
+        "label": "Network",
+        "desc": "Request timeout and network behavior settings"
+      },
+      "weather": {
+        "label": "Weather",
+        "desc": "Weather provider priority settings"
+      },
+      "ai": {
+        "label": "AI Agent",
+        "desc": "AI service and prompt settings"
+      },
+      "shortcut": {
+        "label": "Shortcuts",
+        "desc": "Hide, quit, and screenshot hotkeys"
+      },
+      "about": {
+        "label": "About",
+        "desc": "Version information and project links"
+      },
+      "music-whitelist": {
+        "label": "Player Whitelist",
+        "desc": "Configure players allowed to connect."
+      },
+      "music-lyrics": {
+        "label": "Lyrics Source",
+        "desc": "Choose lyrics source and display mode."
+      },
+      "music-smtc": {
+        "label": "SMTC",
+        "desc": "System Media Transport Controls settings."
+      }
+    }
+  }
+}

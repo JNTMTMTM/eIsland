@@ -25,6 +25,7 @@
  */
 
 import type { ReactElement } from 'react';
+import { useTranslation } from 'react-i18next';
 
 type UpdateStatus = 'idle' | 'checking' | 'available' | 'downloading' | 'ready' | 'error' | 'latest';
 
@@ -74,15 +75,17 @@ export function UpdateSettingsSection({
   onDownloadUpdate,
   onInstallUpdate,
 }: UpdateSettingsSectionProps): ReactElement {
+  const { t } = useTranslation();
+
   return (
     <div className="max-expand-settings-section settings-update">
-      <div className="max-expand-settings-title">更新设置</div>
+      <div className="max-expand-settings-title">{t('settings.labels.update', { defaultValue: '更新设置' })}</div>
 
       <div className="settings-update-info-grid" style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 0, fontSize: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
-          <span><span style={{ opacity: 0.6 }}>当前版本</span> <span style={{ fontWeight: 500 }}>eIsland v{aboutVersion || '…'}</span></span>
+          <span><span style={{ opacity: 0.6 }}>{t('settings.update.currentVersion', { defaultValue: '当前版本' })}</span> <span style={{ fontWeight: 500 }}>eIsland v{aboutVersion || '…'}</span></span>
           <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-            <span style={{ opacity: 0.6 }}>更新源</span>
+            <span style={{ opacity: 0.6 }}>{t('settings.update.source', { defaultValue: '更新源' })}</span>
             {updateSources.map((s) => (
               <label key={s.key} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, cursor: 'pointer', marginLeft: 4 }}>
                 <input
@@ -100,7 +103,7 @@ export function UpdateSettingsSection({
         </div>
         {(updateStatus === 'available' || updateStatus === 'downloading' || updateStatus === 'ready') && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ opacity: 0.6 }}>最新版本</span>
+            <span style={{ opacity: 0.6 }}>{t('settings.update.latestVersion', { defaultValue: '最新版本' })}</span>
             <span style={{ fontWeight: 500, color: 'var(--accent-color, #4fc3f7)' }}>v{updateVersion}</span>
           </div>
         )}
@@ -109,22 +112,24 @@ export function UpdateSettingsSection({
       <div className="settings-about-update">
         <div className="settings-about-update-row">
           {updateStatus === 'idle' && (
-            <button className="settings-about-update-btn" type="button" onClick={onCheckUpdate}>检查更新</button>
+            <button className="settings-about-update-btn" type="button" onClick={onCheckUpdate}>{t('settings.update.actions.check', { defaultValue: '检查更新' })}</button>
           )}
           {updateStatus === 'checking' && (
-            <button className="settings-about-update-btn" type="button" disabled>检查中…</button>
+            <button className="settings-about-update-btn" type="button" disabled>{t('settings.update.actions.checking', { defaultValue: '检查中…' })}</button>
           )}
           {updateStatus === 'latest' && (
-            <button className="settings-about-update-btn" type="button" onClick={onCheckUpdate}>已是最新版本</button>
+            <button className="settings-about-update-btn" type="button" onClick={onCheckUpdate}>{t('settings.update.actions.latest', { defaultValue: '已是最新版本' })}</button>
           )}
           {updateStatus === 'available' && (
             <button className="settings-about-update-btn update-available" type="button" onClick={onDownloadUpdate}>
-              下载更新
+              {t('settings.update.actions.download', { defaultValue: '下载更新' })}
             </button>
           )}
           {updateStatus === 'downloading' && (
             <div className="settings-about-update-progress">
-              <div style={{ marginBottom: 4, fontSize: 12, opacity: 0.7 }}>正在从 {currentSourceLabel} 下载更新…</div>
+              <div style={{ marginBottom: 4, fontSize: 12, opacity: 0.7 }}>
+                {t('settings.update.downloadingFrom', { defaultValue: '正在从 {{source}} 下载更新…', source: currentSourceLabel })}
+              </div>
               <div className="settings-about-update-progress-bar">
                 <div
                   className="settings-about-update-progress-fill"
@@ -132,17 +137,19 @@ export function UpdateSettingsSection({
                 />
               </div>
               <span className="settings-about-update-progress-text">
-                {downloadProgress ? `${Math.round(downloadProgress.percent)}% · ${(downloadProgress.bytesPerSecond / 1024 / 1024).toFixed(1)} MB/s` : '准备下载…'}
+                {downloadProgress
+                  ? `${Math.round(downloadProgress.percent)}% · ${(downloadProgress.bytesPerSecond / 1024 / 1024).toFixed(1)} MB/s`
+                  : t('settings.update.preparingDownload', { defaultValue: '准备下载…' })}
               </span>
             </div>
           )}
           {updateStatus === 'ready' && (
             <button className="settings-about-update-btn update-ready" type="button" onClick={onInstallUpdate}>
-              安装并重启
+              {t('settings.update.actions.installRestart', { defaultValue: '安装并重启' })}
             </button>
           )}
           {updateStatus === 'error' && (
-            <button className="settings-about-update-btn" type="button" onClick={onCheckUpdate}>重试</button>
+            <button className="settings-about-update-btn" type="button" onClick={onCheckUpdate}>{t('settings.update.actions.retry', { defaultValue: '重试' })}</button>
           )}
         </div>
         {updateStatus === 'error' && updateError && (

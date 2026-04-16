@@ -25,6 +25,7 @@
  */
 
 import type { ReactElement } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface NetworkSettingsSectionProps {
   networkTimeoutMs: number;
@@ -48,12 +49,21 @@ export function NetworkSettingsSection({
   setCustomTimeoutInput,
   saveNetworkConfig,
 }: NetworkSettingsSectionProps): ReactElement {
+  const { t } = useTranslation();
+  const timeoutOptionKeyMap: Record<number, string> = {
+    5000: 'settings.network.timeout.options.ms5000',
+    10000: 'settings.network.timeout.options.ms10000',
+    15000: 'settings.network.timeout.options.ms15000',
+    20000: 'settings.network.timeout.options.ms20000',
+    30000: 'settings.network.timeout.options.ms30000',
+  };
+
   return (
     <div className="max-expand-settings-section">
-      <div className="max-expand-settings-title">网络配置</div>
+      <div className="max-expand-settings-title">{t('settings.labels.network', { defaultValue: '网络配置' })}</div>
       <div className="settings-music-section">
-        <div className="settings-music-label">请求超时时间</div>
-        <div className="settings-music-hint">设置网络请求的最长等待时间，网络较差时可适当增大</div>
+        <div className="settings-music-label">{t('settings.network.timeout.title', { defaultValue: '请求超时时间' })}</div>
+        <div className="settings-music-hint">{t('settings.network.timeout.hint', { defaultValue: '设置网络请求的最长等待时间，网络较差时可适当增大' })}</div>
         <div className="settings-network-timeout-row">
           <div className="settings-lyrics-source-options">
             {networkTimeoutOptions.map((opt) => (
@@ -67,7 +77,7 @@ export function NetworkSettingsSection({
                   saveNetworkConfig({ timeoutMs: opt.value });
                 }}
               >
-                {opt.label}
+                {t(timeoutOptionKeyMap[opt.value] || '', { defaultValue: opt.label })}
               </button>
             ))}
           </div>
@@ -93,7 +103,7 @@ export function NetworkSettingsSection({
                 if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
               }}
             />
-            <span className="settings-network-custom-unit">秒</span>
+            <span className="settings-network-custom-unit">{t('settings.network.timeout.unitSecond', { defaultValue: '秒' })}</span>
           </div>
         </div>
       </div>

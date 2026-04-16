@@ -30,6 +30,7 @@ import './styles/index.css';
 import DynamicIsland from './components/DynamicIsland';
 import useIslandStore from './store/slices';
 import { initTheme } from './utils/theme';
+import './i18n';
 
 function applyIslandOpacity(opacity: number): void {
   const safe = Math.max(10, Math.min(100, Math.round(opacity)));

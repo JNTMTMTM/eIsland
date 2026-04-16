@@ -26,6 +26,7 @@
 
 import { useEffect, useState } from 'react';
 import type { ReactElement } from 'react';
+import { useTranslation } from 'react-i18next';
 import { TodoTab } from './states/maxExpand/components/TodoTab';
 import { CountdownTab } from './states/maxExpand/components/CountdownTab';
 import { SettingsTab } from './states/maxExpand/components/SettingsTab';
@@ -35,10 +36,10 @@ type WindowTab = 'todo' | 'countdown' | 'settings';
 const ACTIVE_TAB_STORE_KEY = 'standalone-window-active-tab';
 const LEGACY_ACTIVE_TAB_STORE_KEY = 'countdown-window-active-tab';
 
-const TAB_LIST: { key: WindowTab; label: string }[] = [
-  { key: 'todo', label: '待办事项' },
-  { key: 'countdown', label: '倒数日' },
-  { key: 'settings', label: '设置' },
+const TAB_LIST: { key: WindowTab; labelKey: string }[] = [
+  { key: 'todo', labelKey: 'standalone.tabs.todo' },
+  { key: 'countdown', labelKey: 'standalone.tabs.countdown' },
+  { key: 'settings', labelKey: 'standalone.tabs.settings' },
 ];
 
 /**
@@ -46,6 +47,7 @@ const TAB_LIST: { key: WindowTab; label: string }[] = [
  * @description 提供待办、倒数日与设置三个页签的窗口化视图
  */
 export function StandaloneWindow(): ReactElement {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<WindowTab>('todo');
 
   useEffect(() => {
@@ -97,19 +99,19 @@ export function StandaloneWindow(): ReactElement {
               onClick={() => switchTab(tab.key)}
               type="button"
             >
-              <span className="cw-tab__label">{tab.label}</span>
+              <span className="cw-tab__label">{t(tab.labelKey)}</span>
             </button>
           ))}
         </div>
         <div className="cw-chrome__drag" />
         <div className="cw-chrome__controls">
-          <button className="cw-ctrl" type="button" title="最小化" onClick={() => window.api.windowMinimize()}>
+          <button className="cw-ctrl" type="button" title={t('standalone.controls.minimize')} onClick={() => window.api.windowMinimize()}>
             <svg width="10" height="1" viewBox="0 0 10 1"><rect width="10" height="1" fill="currentColor"/></svg>
           </button>
-          <button className="cw-ctrl" type="button" title="最大化" onClick={() => window.api.windowMaximize()}>
+          <button className="cw-ctrl" type="button" title={t('standalone.controls.maximize')} onClick={() => window.api.windowMaximize()}>
             <svg width="10" height="10" viewBox="0 0 10 10"><rect x="0.5" y="0.5" width="9" height="9" rx="1" fill="none" stroke="currentColor" strokeWidth="1"/></svg>
           </button>
-          <button className="cw-ctrl cw-ctrl--close" type="button" title="关闭" onClick={() => window.api.windowClose()}>
+          <button className="cw-ctrl cw-ctrl--close" type="button" title={t('standalone.controls.close')} onClick={() => window.api.windowClose()}>
             <svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 1L9 9M9 1L1 9" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/></svg>
           </button>
         </div>

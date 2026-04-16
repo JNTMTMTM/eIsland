@@ -25,6 +25,7 @@
  */
 
 import type { ReactElement } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { MusicSettingsPageKey } from '../../utils/settingsConfig';
 
 interface MusicSourceOption {
@@ -75,6 +76,15 @@ interface MusicSettingsSectionProps {
  * @returns 音乐设置区域
  */
 export function MusicSettingsSection(props: MusicSettingsSectionProps): ReactElement {
+  const { t } = useTranslation();
+  const lyricsSourceOptionKeyMap: Record<string, string> = {
+    auto: 'settings.music.lyrics.sourceOptions.auto',
+    'netease-only': 'settings.music.lyrics.sourceOptions.neteaseOnly',
+    'qqmusic-only': 'settings.music.lyrics.sourceOptions.qqmusicOnly',
+    'kugou-only': 'settings.music.lyrics.sourceOptions.kugouOnly',
+    'sodamusic-only': 'settings.music.lyrics.sourceOptions.sodamusicOnly',
+    'lrclib-only': 'settings.music.lyrics.sourceOptions.lrclibOnly',
+  };
   const {
     currentMusicSettingsPageLabel,
     musicSettingsPage,
@@ -110,7 +120,7 @@ export function MusicSettingsSection(props: MusicSettingsSectionProps): ReactEle
   return (
     <div className="max-expand-settings-section">
       <div className="max-expand-settings-title settings-app-title-line">
-        <span>歌曲设置</span>
+        <span>{t('settings.labels.music', { defaultValue: '歌曲设置' })}</span>
         <span className="settings-app-title-sub">- {currentMusicSettingsPageLabel}</span>
       </div>
 
@@ -118,8 +128,8 @@ export function MusicSettingsSection(props: MusicSettingsSectionProps): ReactEle
         <div className="settings-app-page-main">
           {musicSettingsPage === 'whitelist' && (
             <div className="settings-music-section">
-              <div className="settings-music-label">播放器白名单</div>
-              <div className="settings-music-hint">只有白名单内的播放器才会触发歌曲信息获取</div>
+              <div className="settings-music-label">{t('settings.music.whitelist.title', { defaultValue: '播放器白名单' })}</div>
+              <div className="settings-music-hint">{t('settings.music.whitelist.hint', { defaultValue: '只有白名单内的播放器才会触发歌曲信息获取' })}</div>
               <div className="settings-whitelist-list">
                 {whitelist.map((item: string, idx: number) => (
                   <div className="settings-whitelist-item" key={idx}>
@@ -127,7 +137,7 @@ export function MusicSettingsSection(props: MusicSettingsSectionProps): ReactEle
                     <button
                       className="settings-whitelist-remove"
                       type="button"
-                      title="移除"
+                      title={t('settings.common.remove', { defaultValue: '移除' })}
                       onClick={() => {
                         const next = whitelist.filter((_, i) => i !== idx);
                         setWhitelist(next);
@@ -143,7 +153,7 @@ export function MusicSettingsSection(props: MusicSettingsSectionProps): ReactEle
                 <input
                   className={`settings-whitelist-input${whitelistInputError ? ' error' : ''}`}
                   type="text"
-                  placeholder={whitelistInputError || '输入播放器进程名（如 Spotify.exe）'}
+                  placeholder={whitelistInputError || t('settings.music.whitelist.placeholder', { defaultValue: '输入播放器进程名（如 Spotify.exe）' })}
                   value={whitelistDraft}
                   onFocus={() => { if (whitelistInputError) setWhitelistInputError(''); }}
                   onChange={(e) => {
@@ -154,7 +164,7 @@ export function MusicSettingsSection(props: MusicSettingsSectionProps): ReactEle
                     if (e.key === 'Enter') handleAddWhitelist();
                   }}
                 />
-                <button className="settings-whitelist-add-btn" type="button" onClick={() => { handleAddWhitelist(); }}>添加</button>
+                <button className="settings-whitelist-add-btn" type="button" onClick={() => { handleAddWhitelist(); }}>{t('settings.common.add', { defaultValue: '添加' })}</button>
               </div>
               <div className="settings-whitelist-add-row" style={{ display: 'flex', alignItems: 'center' }}>
                 <button
@@ -166,7 +176,9 @@ export function MusicSettingsSection(props: MusicSettingsSectionProps): ReactEle
                   }}
                   disabled={detectingSourceAppId}
                 >
-                  {detectingSourceAppId ? '获取中…' : '获取播放进程'}
+                  {detectingSourceAppId
+                    ? t('settings.music.whitelist.fetching', { defaultValue: '获取中…' })
+                    : t('settings.music.whitelist.fetchSourceProcess', { defaultValue: '获取播放进程' })}
                 </button>
               </div>
               {detectedSources.length > 0 && (
@@ -184,7 +196,7 @@ export function MusicSettingsSection(props: MusicSettingsSectionProps): ReactEle
                         )}
                         <span className="settings-whitelist-detected-name">{source.sourceAppId}</span>
                         {alreadyAdded ? (
-                          <span className="settings-whitelist-detected-badge">已添加</span>
+                          <span className="settings-whitelist-detected-badge">{t('settings.music.whitelist.added', { defaultValue: '已添加' })}</span>
                         ) : (
                           <button
                             className="settings-whitelist-add-btn"
@@ -195,7 +207,7 @@ export function MusicSettingsSection(props: MusicSettingsSectionProps): ReactEle
                               window.api.musicWhitelistSet(next).catch(() => {});
                             }}
                           >
-                            添加
+                            {t('settings.common.add', { defaultValue: '添加' })}
                           </button>
                         )}
                       </div>
@@ -208,8 +220,8 @@ export function MusicSettingsSection(props: MusicSettingsSectionProps): ReactEle
 
           {musicSettingsPage === 'lyrics' && (
             <div className="settings-music-section">
-              <div className="settings-music-label">歌词源</div>
-              <div className="settings-music-hint">自动模式根据 SMTC 检测到的播放器进程选择对应源，失败后依次尝试其他源，最后使用 LRCLIB 兜底</div>
+              <div className="settings-music-label">{t('settings.music.lyrics.title', { defaultValue: '歌词源' })}</div>
+              <div className="settings-music-hint">{t('settings.music.lyrics.hint', { defaultValue: '自动模式根据 SMTC 检测到的播放器进程选择对应源，失败后依次尝试其他源，最后使用 LRCLIB 兜底' })}</div>
               <div className="settings-lyrics-source-options">
                 {lyricsSourceOptions.map((opt) => (
                   <button
@@ -221,12 +233,12 @@ export function MusicSettingsSection(props: MusicSettingsSectionProps): ReactEle
                       window.api.musicLyricsSourceSet(opt.value).catch(() => {});
                     }}
                   >
-                    {opt.label}
+                    {t(lyricsSourceOptionKeyMap[opt.value] || '', { defaultValue: opt.label })}
                   </button>
                 ))}
               </div>
-              <div className="settings-music-label" style={{ marginTop: 12 }}>逐字扫光</div>
-              <div className="settings-music-hint">启用后歌词将以逐字高亮方式显示</div>
+              <div className="settings-music-label" style={{ marginTop: 12 }}>{t('settings.music.lyrics.karaokeTitle', { defaultValue: '逐字扫光' })}</div>
+              <div className="settings-music-hint">{t('settings.music.lyrics.karaokeHint', { defaultValue: '启用后歌词将以逐字高亮方式显示' })}</div>
               <div className="settings-hotkey-row" style={{ alignItems: 'center' }}>
                 <label className="settings-music-hint" style={{ marginBottom: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
                   <input
@@ -237,11 +249,11 @@ export function MusicSettingsSection(props: MusicSettingsSectionProps): ReactEle
                       window.api.musicLyricsKaraokeSet(e.target.checked).catch(() => {});
                     }}
                   />
-                  启用逐字扫光效果
+                  {t('settings.music.lyrics.karaokeToggle', { defaultValue: '启用逐字扫光效果' })}
                 </label>
               </div>
-              <div className="settings-music-label" style={{ marginTop: 12 }}>歌词时钟</div>
-              <div className="settings-music-hint">在歌词界面封面与歌词之间显示当前北京时间</div>
+              <div className="settings-music-label" style={{ marginTop: 12 }}>{t('settings.music.lyrics.clockTitle', { defaultValue: '歌词时钟' })}</div>
+              <div className="settings-music-hint">{t('settings.music.lyrics.clockHint', { defaultValue: '在歌词界面封面与歌词之间显示当前北京时间' })}</div>
               <div className="settings-hotkey-row" style={{ alignItems: 'center' }}>
                 <label className="settings-music-hint" style={{ marginBottom: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
                   <input
@@ -252,7 +264,7 @@ export function MusicSettingsSection(props: MusicSettingsSectionProps): ReactEle
                       window.api.musicLyricsClockSet(e.target.checked).catch(() => {});
                     }}
                   />
-                  显示当前时间
+                  {t('settings.music.lyrics.clockToggle', { defaultValue: '显示当前时间' })}
                 </label>
               </div>
             </div>
@@ -260,11 +272,11 @@ export function MusicSettingsSection(props: MusicSettingsSectionProps): ReactEle
 
           {musicSettingsPage === 'smtc' && (
             <div className="settings-music-section">
-              <div className="settings-music-label">SMTC 自动取消订阅</div>
-              <div className="settings-music-hint">用于清理长时间无更新的播放会话，默认永不取消订阅</div>
+              <div className="settings-music-label">{t('settings.music.smtc.title', { defaultValue: 'SMTC 自动取消订阅' })}</div>
+              <div className="settings-music-hint">{t('settings.music.smtc.hint', { defaultValue: '用于清理长时间无更新的播放会话，默认永不取消订阅' })}</div>
               <div className="settings-hotkey-row" style={{ alignItems: 'center' }}>
                 <label className="settings-field" style={{ flex: 1 }}>
-                  <span className="settings-field-label">取消订阅时间（毫秒）</span>
+                  <span className="settings-field-label">{t('settings.music.smtc.unsubscribeMs', { defaultValue: '取消订阅时间（毫秒）' })}</span>
                   <input
                     className="settings-field-input"
                     type="number"
@@ -289,7 +301,7 @@ export function MusicSettingsSection(props: MusicSettingsSectionProps): ReactEle
                       if (musicSmtcConfigMessage) setMusicSmtcConfigMessage(null);
                     }}
                   />
-                  永不取消订阅
+                  {t('settings.music.smtc.neverUnsubscribe', { defaultValue: '永不取消订阅' })}
                 </label>
                 <button
                   className="settings-hotkey-btn"
@@ -298,12 +310,15 @@ export function MusicSettingsSection(props: MusicSettingsSectionProps): ReactEle
                     saveMusicSmtcUnsubscribeConfig().catch((error: unknown) => {
                       setMusicSmtcConfigMessage({
                         type: 'error',
-                        text: `保存失败：${error instanceof Error ? error.message : '未知错误'}`,
+                        text: t('settings.common.saveFailed', {
+                          defaultValue: '保存失败：{{error}}',
+                          error: error instanceof Error ? error.message : t('settings.common.unknownError', { defaultValue: '未知错误' }),
+                        }),
                       });
                     });
                   }}
                 >
-                  保存
+                  {t('settings.common.save', { defaultValue: '保存' })}
                 </button>
               </div>
               {musicSmtcConfigMessage && (
@@ -315,7 +330,7 @@ export function MusicSettingsSection(props: MusicSettingsSectionProps): ReactEle
           )}
         </div>
 
-        <div className="settings-app-page-dots" aria-label="歌曲设置分页">
+        <div className="settings-app-page-dots" aria-label={t('settings.music.pagination', { defaultValue: '歌曲设置分页' })}>
           {musicSettingsPages.map((page) => (
             <button
               key={page}

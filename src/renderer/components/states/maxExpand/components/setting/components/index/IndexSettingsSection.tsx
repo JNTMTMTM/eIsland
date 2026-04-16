@@ -25,6 +25,7 @@
  */
 
 import type { MutableRefObject, ReactElement } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { AppSettingsPageKey, MusicSettingsPageKey, SettingsSidebarTabKey } from '../../utils/settingsConfig';
 
 interface IndexNavCard {
@@ -82,12 +83,16 @@ export function IndexSettingsSection({
   setActiveTab,
   onAction,
 }: IndexSettingsSectionProps): ReactElement {
+  const { t } = useTranslation();
+  const getCardLabel = (card: IndexNavCard): string => t(`settings.nav.${card.id}.label`, { defaultValue: card.label });
+  const getCardDesc = (card: IndexNavCard): string => t(`settings.nav.${card.id}.desc`, { defaultValue: card.desc });
+
   return (
     <div className="max-expand-settings-section settings-index-section">
       <div className="settings-index-header">
         <div className="max-expand-settings-title">
-          快速导航
-          <button className="settings-nav-edit-btn" type="button" onClick={resetNavConfig}>恢复默认</button>
+          {t('settings.index.title', { defaultValue: '快速导航' })}
+          <button className="settings-nav-edit-btn" type="button" onClick={resetNavConfig}>{t('settings.index.reset', { defaultValue: '恢复默认' })}</button>
           <button
             className={`settings-nav-edit-btn ${navEditMode ? 'active' : ''}`}
             type="button"
@@ -98,14 +103,18 @@ export function IndexSettingsSection({
               setNavEditMode(!navEditMode);
             }}
           >
-            {navEditMode ? '完成' : '编辑'}
+            {navEditMode
+              ? t('settings.index.done', { defaultValue: '完成' })
+              : t('settings.index.edit', { defaultValue: '编辑' })}
           </button>
         </div>
         <div className="settings-music-hint settings-index-hint">
-          {navEditMode ? '拖拽卡片可调整排列顺序，点击「完成」保存。' : '点击卡片可快速跳转到对应配置页。'}
+          {navEditMode
+            ? t('settings.index.hintEdit', { defaultValue: '拖拽卡片可调整排列顺序，点击「完成」保存。' })
+            : t('settings.index.hintView', { defaultValue: '点击卡片可快速跳转到对应配置页。' })}
         </div>
       </div>
-      <div className="settings-index-cards" aria-label="设置快速导航">
+      <div className="settings-index-cards" aria-label={t('settings.index.ariaNav', { defaultValue: '设置快速导航' })}>
         {visibleCards.map((card, idx) => (
           navEditMode ? (
             <div
@@ -146,12 +155,12 @@ export function IndexSettingsSection({
                   setNavOrder(nextVisible);
                   setHiddenNavOrder(nextHidden);
                 }}
-                aria-label={`删除 ${card.label}`}
+                aria-label={t('settings.index.removeCard', { defaultValue: '删除 {{label}}', label: getCardLabel(card) })}
               >
                 −
               </button>
-              <span className="settings-index-card-title">{card.label}</span>
-              <span className="settings-index-card-desc">{card.desc}</span>
+              <span className="settings-index-card-title">{getCardLabel(card)}</span>
+              <span className="settings-index-card-desc">{getCardDesc(card)}</span>
               {card.icon && <img className="settings-index-card-layout-icon" src={card.icon} alt="" aria-hidden="true" />}
             </div>
           ) : (
@@ -173,18 +182,18 @@ export function IndexSettingsSection({
                 }
               }}
             >
-              <span className="settings-index-card-title">{card.label}</span>
-              <span className="settings-index-card-desc">{card.desc}</span>
+              <span className="settings-index-card-title">{getCardLabel(card)}</span>
+              <span className="settings-index-card-desc">{getCardDesc(card)}</span>
               {card.icon && <img className="settings-index-card-layout-icon" src={card.icon} alt="" aria-hidden="true" />}
             </button>
           )
         ))}
       </div>
       {navEditMode && (
-        <div className="settings-nav-add-panel" aria-label="可添加导航卡片">
-          <div className="settings-music-label">可添加卡片</div>
+        <div className="settings-nav-add-panel" aria-label={t('settings.index.ariaAddPanel', { defaultValue: '可添加导航卡片' })}>
+          <div className="settings-music-label">{t('settings.index.addableTitle', { defaultValue: '可添加卡片' })}</div>
           {hiddenCards.length === 0 ? (
-            <div className="settings-music-hint">当前没有可添加的卡片</div>
+            <div className="settings-music-hint">{t('settings.index.emptyAddable', { defaultValue: '当前没有可添加的卡片' })}</div>
           ) : (
             <div className="settings-nav-add-list">
               {hiddenCards.map((card) => (
@@ -199,7 +208,7 @@ export function IndexSettingsSection({
                     setHiddenNavOrder(nextHidden);
                   }}
                 >
-                  <span>{card.label}</span>
+                  <span>{t(`settings.nav.${card.id}.label`, { defaultValue: card.label })}</span>
                   <span className="settings-nav-add-plus">+</span>
                 </button>
               ))}

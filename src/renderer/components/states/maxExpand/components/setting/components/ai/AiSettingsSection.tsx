@@ -25,6 +25,7 @@
  */
 
 import type { ReactElement, RefObject } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface AiSettingsSectionProps {
   aiConfig: {
@@ -66,24 +67,41 @@ export function AiSettingsSection({
   startEditPrompt,
   SettingsFieldComponent,
 }: AiSettingsSectionProps): ReactElement {
+  const { t } = useTranslation();
   const SettingsField = SettingsFieldComponent;
   return (
     <div className="max-expand-settings-section">
-      <div className="max-expand-settings-title">AI Agent</div>
+      <div className="max-expand-settings-title">{t('settings.labels.ai', { defaultValue: 'AI Agent' })}</div>
       <div className="settings-field-group">
-        <SettingsField label="API Key" value={aiConfig.apiKey} placeholder="sk-..." type="password" onChange={(v) => setAiConfig({ apiKey: v })} />
-        <SettingsField label="API Endpoint" value={aiConfig.endpoint} placeholder="https://api.openai.com/v1" onChange={(v) => setAiConfig({ endpoint: v })} />
-        <SettingsField label="模型" value={aiConfig.model} placeholder="gpt-4o-mini" onChange={(v) => setAiConfig({ model: v })} />
-        <SettingsField label="MCP Endpoint" value={aiConfig.mcpEndpoint} placeholder="http://localhost:3000/mcp (可选)" onChange={(v) => setAiConfig({ mcpEndpoint: v })} />
+        <SettingsField
+          label={t('settings.ai.apiKey', { defaultValue: 'API Key' })}
+          value={aiConfig.apiKey}
+          placeholder="sk-..."
+          type="password"
+          onChange={(v) => setAiConfig({ apiKey: v })}
+        />
+        <SettingsField
+          label={t('settings.ai.apiEndpoint', { defaultValue: 'API Endpoint' })}
+          value={aiConfig.endpoint}
+          placeholder="https://api.openai.com/v1"
+          onChange={(v) => setAiConfig({ endpoint: v })}
+        />
+        <SettingsField label={t('settings.ai.model', { defaultValue: '模型' })} value={aiConfig.model} placeholder="gpt-4o-mini" onChange={(v) => setAiConfig({ model: v })} />
+        <SettingsField
+          label={t('settings.ai.mcpEndpoint', { defaultValue: 'MCP Endpoint' })}
+          value={aiConfig.mcpEndpoint}
+          placeholder={t('settings.ai.mcpPlaceholder', { defaultValue: 'http://localhost:3000/mcp (可选)' })}
+          onChange={(v) => setAiConfig({ mcpEndpoint: v })}
+        />
         <div className="settings-field">
-          <span className="settings-field-label">System Prompt</span>
+          <span className="settings-field-label">{t('settings.ai.systemPrompt', { defaultValue: 'System Prompt' })}</span>
           <div className="settings-prompt-area">
             {editingPrompt ? (
               <>
                 <textarea
                   ref={promptRef}
                   className="settings-field-textarea"
-                  placeholder="你是一个有用的助手。"
+                  placeholder={t('settings.ai.promptPlaceholder', { defaultValue: '你是一个有用的助手。' })}
                   value={promptDraft}
                   onChange={(e) => setPromptDraft(e.target.value)}
                   onKeyDown={(e) => {
@@ -91,12 +109,12 @@ export function AiSettingsSection({
                   }}
                   rows={3}
                 />
-                <button className="settings-prompt-btn save" onClick={savePrompt} type="button" title="保存 (Ctrl+Enter)">保存</button>
+                <button className="settings-prompt-btn save" onClick={savePrompt} type="button" title={t('settings.ai.saveTitle', { defaultValue: '保存 (Ctrl+Enter)' })}>{t('settings.common.save', { defaultValue: '保存' })}</button>
               </>
             ) : (
               <>
-                <div className="settings-prompt-text">{aiConfig.systemPrompt || <span className="settings-prompt-empty">未设置</span>}</div>
-                <button className="settings-prompt-btn edit" onClick={startEditPrompt} type="button" title="编辑 Prompt">编辑</button>
+                <div className="settings-prompt-text">{aiConfig.systemPrompt || <span className="settings-prompt-empty">{t('settings.shortcut.common.notSetValue', { defaultValue: '未设置' })}</span>}</div>
+                <button className="settings-prompt-btn edit" onClick={startEditPrompt} type="button" title={t('settings.ai.editPromptTitle', { defaultValue: '编辑 Prompt' })}>{t('settings.index.edit', { defaultValue: '编辑' })}</button>
               </>
             )}
           </div>

@@ -25,6 +25,7 @@
  */
 
 import type { ReactElement } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { WeatherSettingsPageKey } from '../../utils/settingsConfig';
 import type { WeatherLocationPriority, WeatherProvider } from '../../../../../../../store/utils/storage';
 
@@ -64,6 +65,15 @@ interface WeatherSettingsSectionProps {
  * @returns 天气设置区域
  */
 export function WeatherSettingsSection(props: WeatherSettingsSectionProps): ReactElement {
+  const { t } = useTranslation();
+  const locationPriorityKeyMap: Record<WeatherLocationPriority, string> = {
+    ip: 'settings.weather.options.locationPriority.ip',
+    custom: 'settings.weather.options.locationPriority.custom',
+  };
+  const providerPriorityKeyMap: Record<WeatherProvider, string> = {
+    'open-meteo': 'settings.weather.options.providerPriority.openMeteo',
+    uapi: 'settings.weather.options.providerPriority.uapi',
+  };
   const {
     currentWeatherSettingsPageLabel,
     weatherSettingsPage,
@@ -92,7 +102,7 @@ export function WeatherSettingsSection(props: WeatherSettingsSectionProps): Reac
   return (
     <div className="max-expand-settings-section">
       <div className="max-expand-settings-title settings-app-title-line">
-        <span>天气配置</span>
+        <span>{t('settings.labels.weather', { defaultValue: '天气配置' })}</span>
         <span className="settings-app-title-sub">- {currentWeatherSettingsPageLabel}</span>
       </div>
 
@@ -100,8 +110,8 @@ export function WeatherSettingsSection(props: WeatherSettingsSectionProps): Reac
         <div className="settings-app-page-main">
           {weatherSettingsPage === 'location' && (
             <div className="settings-music-section">
-              <div className="settings-music-label">定位来源优先级</div>
-              <div className="settings-music-hint">选择天气定位优先使用 IP 自动定位或自定义位置</div>
+              <div className="settings-music-label">{t('settings.weather.locationPriority.title', { defaultValue: '定位来源优先级' })}</div>
+              <div className="settings-music-hint">{t('settings.weather.locationPriority.hint', { defaultValue: '选择天气定位优先使用 IP 自动定位或自定义位置' })}</div>
               <div className="settings-lyrics-source-options">
                 {weatherLocationPriorityOptions.map((opt) => (
                   <button
@@ -112,23 +122,26 @@ export function WeatherSettingsSection(props: WeatherSettingsSectionProps): Reac
                       applyWeatherLocationPriority(opt.value).catch((error: unknown) => {
                         setWeatherLocationConfigMessage({
                           type: 'error',
-                          text: `切换优先级失败：${error instanceof Error ? error.message : '未知错误'}`,
+                          text: t('settings.weather.messages.switchPriorityFailed', {
+                            defaultValue: '切换优先级失败：{{error}}',
+                            error: error instanceof Error ? error.message : t('settings.common.unknownError', { defaultValue: '未知错误' }),
+                          }),
                         });
                       });
                     }}
                   >
-                    {opt.label}
+                    {t(locationPriorityKeyMap[opt.value], { defaultValue: opt.label })}
                   </button>
                 ))}
               </div>
 
               <div className="settings-hotkey-row">
                 <label className="settings-field" style={{ flex: 1 }}>
-                  <span className="settings-field-label">城市名称</span>
+                  <span className="settings-field-label">{t('settings.weather.cityName', { defaultValue: '城市名称' })}</span>
                   <input
                     className="settings-field-input"
                     type="text"
-                    placeholder="例如：杭州 / Tokyo / New York"
+                    placeholder={t('settings.weather.cityPlaceholder', { defaultValue: '例如：杭州 / Tokyo / New York' })}
                     value={weatherCustomCityInput}
                     onChange={(e) => {
                       setWeatherCustomCityInput(e.target.value);
@@ -146,13 +159,18 @@ export function WeatherSettingsSection(props: WeatherSettingsSectionProps): Reac
                       setWeatherCustomLocationTesting(false);
                       setWeatherCustomLocationTestMessage({
                         type: 'error',
-                        text: `测试失败：${error instanceof Error ? error.message : '未知错误'}`,
+                        text: t('settings.weather.messages.testFailed', {
+                          defaultValue: '测试失败：{{error}}',
+                          error: error instanceof Error ? error.message : t('settings.common.unknownError', { defaultValue: '未知错误' }),
+                        }),
                       });
                     });
                   }}
                   disabled={weatherCustomLocationTesting}
                 >
-                  {weatherCustomLocationTesting ? '测试中...' : '测试自定义位置（双接口）'}
+                  {weatherCustomLocationTesting
+                    ? t('settings.weather.testing', { defaultValue: '测试中...' })
+                    : t('settings.weather.testCustomLocation', { defaultValue: '测试自定义位置（双接口）' })}
                 </button>
                 <button
                   className="settings-hotkey-btn"
@@ -161,12 +179,15 @@ export function WeatherSettingsSection(props: WeatherSettingsSectionProps): Reac
                     saveWeatherLocationSettings().catch((error: unknown) => {
                       setWeatherLocationConfigMessage({
                         type: 'error',
-                        text: `保存失败：${error instanceof Error ? error.message : '未知错误'}`,
+                        text: t('settings.common.saveFailed', {
+                          defaultValue: '保存失败：{{error}}',
+                          error: error instanceof Error ? error.message : t('settings.common.unknownError', { defaultValue: '未知错误' }),
+                        }),
                       });
                     });
                   }}
                 >
-                  保存定位配置
+                  {t('settings.weather.saveLocation', { defaultValue: '保存定位配置' })}
                 </button>
               </div>
 
@@ -185,8 +206,8 @@ export function WeatherSettingsSection(props: WeatherSettingsSectionProps): Reac
 
           {weatherSettingsPage === 'provider' && (
             <div className="settings-music-section">
-              <div className="settings-music-label">天气接口优先级</div>
-              <div className="settings-music-hint">可选择优先使用 Open-Meteo 或 UAPI，失败时自动切换到另一源</div>
+              <div className="settings-music-label">{t('settings.weather.providerPriority.title', { defaultValue: '天气接口优先级' })}</div>
+              <div className="settings-music-hint">{t('settings.weather.providerPriority.hint', { defaultValue: '可选择优先使用 Open-Meteo 或 UAPI，失败时自动切换到另一源' })}</div>
               <div className="settings-lyrics-source-options">
                 {weatherProviderOptions.map((opt) => (
                   <button
@@ -198,7 +219,7 @@ export function WeatherSettingsSection(props: WeatherSettingsSectionProps): Reac
                       saveWeatherProviderConfig({ primaryProvider: opt.value });
                     }}
                   >
-                    {opt.label}
+                    {t(providerPriorityKeyMap[opt.value], { defaultValue: opt.label })}
                   </button>
                 ))}
               </div>
@@ -206,7 +227,7 @@ export function WeatherSettingsSection(props: WeatherSettingsSectionProps): Reac
           )}
         </div>
 
-        <div className="settings-app-page-dots" aria-label="天气配置分页">
+        <div className="settings-app-page-dots" aria-label={t('settings.weather.pagination', { defaultValue: '天气配置分页' })}>
           {weatherSettingsPages.map((page) => (
             <button
               key={page}
