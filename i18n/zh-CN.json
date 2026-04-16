@@ -140,6 +140,16 @@
       "windPrefix": "风"
     }
   },
+  "weatherAbbr": {
+    "thunder": "雷",
+    "snow": "雪",
+    "freezingRain": "冻雨",
+    "rain": "雨",
+    "fog": "雾",
+    "overcast": "阴",
+    "cloudy": "云",
+    "sunny": "晴"
+  },
   "expanded": {
     "nav": {
       "hover": "返回",

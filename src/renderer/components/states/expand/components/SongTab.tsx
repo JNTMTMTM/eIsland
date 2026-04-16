@@ -30,6 +30,7 @@ import useIslandStore from '../../../../store/slices';
 import type { SyncedLyricLine } from '../../../../store/types';
 import { SvgIcon } from '../../../../utils/SvgIcon';
 import { formatTime, getDayName } from '../../../../utils/timeUtils';
+import { abbreviateWeatherDescription } from '../../../../utils/weatherText';
 
 /** 显示歌词行数 */
 const VISIBLE_LINES = 5;
@@ -396,7 +397,7 @@ export function SongTab(): React.ReactElement {
         {weather && (
           <div className="ov-weather">
             <span className="ov-weather-temp">{Math.round(weather.temperature)}°</span>
-            <span className="ov-weather-desc">{weather.description}</span>
+            <span className="ov-weather-desc">{abbreviateWeatherDescription(weather.description, t)}</span>
           </div>
         )}
         {countdown.enabled && (

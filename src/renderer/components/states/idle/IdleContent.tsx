@@ -25,8 +25,10 @@
  */
 
 import { useEffect, useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../store/slices';
 import { SvgIcon } from '../../../utils/SvgIcon';
+import { abbreviateWeatherDescription } from '../../../utils/weatherText';
 import '../../../styles/shell/shell.css';
 
 type TimerState = 'idle' | 'running' | 'paused';
@@ -68,6 +70,7 @@ export function IdleContent({
   pomodoroRunning,
   pomodoroRemaining,
 }: IdleContentProps): React.ReactElement {
+  const { t } = useTranslation();
   const { isMusicPlaying, coverImage, isPlaying, handleNowPlayingUpdate, dominantColor } = useIslandStore();
   const isTimerActive = timerState === 'running' || timerState === 'paused';
   const isPomodoroActive = pomodoroRunning;
@@ -160,7 +163,7 @@ export function IdleContent({
           ) : (
             <div className="flex items-center gap-1.5">
               <span className="text-xs text-[var(--color-island-text)] opacity-60">
-                {weather.description || '—'}
+                {abbreviateWeatherDescription(weather.description, t) || '—'}
               </span>
               <span className="text-sm text-[var(--color-island-text)] font-medium tabular-nums">
                 {weather.temperature > 0 ? `${weather.temperature}°` : '--°'}
@@ -205,7 +208,7 @@ export function IdleContent({
           ) : (
             <div className="flex items-center gap-1.5">
               <span className="text-xs text-[var(--color-island-text)] opacity-60">
-                {weather.description || '—'}
+                {abbreviateWeatherDescription(weather.description, t) || '—'}
               </span>
               <span className="text-sm text-[var(--color-island-text)] font-medium tabular-nums">
                 {weather.temperature > 0 ? `${weather.temperature}°` : '--°'}

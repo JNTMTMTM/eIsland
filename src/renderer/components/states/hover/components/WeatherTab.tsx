@@ -27,6 +27,7 @@
 import { type SyntheticEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../../store/slices';
+import { abbreviateWeatherDescription } from '../../../../utils/weatherText';
 import '../../../../styles/hover/weather-tab.css';
 
 const FALLBACK_WEATHER_ICON = './svg/NA.svg';
@@ -84,6 +85,7 @@ export function WeatherTab(): React.ReactElement {
   const [refreshing, setRefreshing] = useState(false);
   const hour = new Date().getHours();
   const isDay = hour >= 6 && hour < 18;
+  const currentWeatherDesc = abbreviateWeatherDescription(weather.description, t);
 
   const handleIconError = (event: SyntheticEvent<HTMLImageElement>): void => {
     event.currentTarget.onerror = null;
@@ -105,7 +107,7 @@ export function WeatherTab(): React.ReactElement {
       {/* 左侧：当前天气大图标（点击刷新） */}
       <img
         src={getWeatherIconPath(weather.iconCode, isDay)}
-        alt={weather.description}
+        alt={currentWeatherDesc}
         className={`weather-tab-icon weather-tab-icon-clickable${refreshing ? ' weather-tab-icon-spinning' : ''}`}
         onClick={handleRefresh}
         onError={handleIconError}
@@ -121,7 +123,7 @@ export function WeatherTab(): React.ReactElement {
               {weather.temperature}°
             </span>
             <span className="text-[10px] opacity-60 leading-tight">
-              {weather.description}
+              {currentWeatherDesc}
             </span>
           </div>
         </div>
@@ -145,11 +147,11 @@ export function WeatherTab(): React.ReactElement {
             <span className="text-xs opacity-60 w-6 leading-none">{getWeekLabel(index, t)}</span>
             <img
               src={getWeatherSmallIconPath(day.iconCode, isDay)}
-              alt={day.description}
+              alt={abbreviateWeatherDescription(day.description, t)}
               className="weather-tab-forecast-icon"
               onError={handleIconError}
             />
-            <span className="text-xs leading-none">{day.description}</span>
+            <span className="text-xs leading-none">{abbreviateWeatherDescription(day.description, t)}</span>
             <span className="text-[10px] opacity-40 leading-none">{t('hover.weather.rainPrefix', { defaultValue: '雨' })}{formatPrecipitationText(day.precipitationProbability, t)}</span>
             <span className="text-[10px] opacity-40 leading-none">{t('hover.weather.windPrefix', { defaultValue: '风' })}{formatWindText(day.windSpeed, t)}</span>
             <span className="text-xs tabular-nums leading-none">

@@ -140,6 +140,16 @@
       "windPrefix": "W"
     }
   },
+  "weatherAbbr": {
+    "thunder": "T",
+    "snow": "S",
+    "freezingRain": "FR",
+    "rain": "R",
+    "fog": "F",
+    "overcast": "O",
+    "cloudy": "C",
+    "sunny": "Clr"
+  },
   "expanded": {
     "nav": {
       "hover": "Back",
