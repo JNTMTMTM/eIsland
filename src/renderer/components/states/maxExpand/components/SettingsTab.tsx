@@ -74,6 +74,7 @@ import { WeatherSettingsSection } from './setting/components/weather/WeatherSett
 import { ShortcutSettingsSection } from './setting/components/shortcut/ShortcutSettingsSection';
 import { MusicSettingsSection } from './setting/components/music/MusicSettingsSection';
 import { AiSettingsSection } from './setting/components/ai/AiSettingsSection';
+import { UserSettingsSection } from './setting/components/user/UserSettingsSection';
 import { AboutSettingsSection } from './setting/components/about/AboutSettingsSection';
 import { OverviewPreview } from './setting/components/app/preview/OverviewPreview';
 
@@ -1470,6 +1471,14 @@ export function SettingsTab(): ReactElement {
             {getSettingsLabel('shortcut')}
           </button>
           <button
+            className={`max-expand-settings-sidebar-item ${activeTab === 'user' ? 'active' : ''}`}
+            onClick={() => setActiveTab('user')}
+            type="button"
+          >
+            <span className="sidebar-dot" />
+            {getSettingsLabel('user')}
+          </button>
+          <button
             className={`max-expand-settings-sidebar-item ${activeTab === 'update' ? 'active' : ''}`}
             onClick={() => setActiveTab('update')}
             type="button"
@@ -1748,6 +1757,8 @@ export function SettingsTab(): ReactElement {
               onInstallUpdate={handleInstallUpdate}
             />
           )}
+
+          {activeTab === 'user' && <UserSettingsSection />}
 
           {activeTab === 'about' && <AboutSettingsSection aboutVersion={aboutVersion} />}
         </div>

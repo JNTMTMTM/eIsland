@@ -566,6 +566,7 @@
       "music-smtc": "SMTC",
       "ai": "AI Agent",
       "shortcut": "Shortcuts",
+      "user": "Account",
       "update": "Updates",
       "about": "About"
     },
@@ -895,6 +896,88 @@
       "copyright": "© JNTMTMTM, pyisland.com. All rights reserved.",
       "slogan": "Algorithms explain everything"
     },
+    "user": {
+      "auth": {
+        "login": "Sign In",
+        "register": "Sign Up",
+        "loginBtn": "Sign In",
+        "registerBtn": "Create account",
+        "hint": "Accounts are provided by pyisland-admin. Login state is stored only on this device."
+      },
+      "fields": {
+        "username": "Username",
+        "usernamePlaceholder": "2-32 chars, letters (incl. CJK) / digits / underscore",
+        "email": "Email",
+        "password": "Password",
+        "passwordPlaceholder": "At least 8 chars with letters and digits",
+        "avatarUrlPlaceholder": "Or paste avatar URL directly",
+        "gender": "Gender",
+        "genderCustom": "Custom gender",
+        "genderCustomPlaceholder": "Up to 64 characters",
+        "birthday": "Birthday",
+        "newPassword": "New password",
+        "newPasswordPlaceholder": "Leave blank to keep; at least 8 chars with letters and digits",
+        "currentPassword": "Current password",
+        "currentPasswordPlaceholder": "Enter current password to confirm"
+      },
+      "sections": {
+        "avatar": "Avatar",
+        "profile": "Profile",
+        "password": "Change password (optional)",
+        "danger": "Danger Zone"
+      },
+      "card": {
+        "memberSince": "Member since"
+      },
+      "gender": {
+        "male": "Male",
+        "female": "Female",
+        "custom": "Custom",
+        "undisclosed": "Prefer not to say"
+      },
+      "actions": {
+        "refresh": "Refresh profile",
+        "refreshing": "Refreshing…",
+        "chooseAvatar": "Upload image",
+        "uploading": "Uploading…",
+        "saveProfile": "Save profile",
+        "saving": "Saving…",
+        "logout": "Sign out",
+        "loggingOut": "Signing out…",
+        "unregister": "Delete account",
+        "confirmUnregister": "Confirm delete",
+        "unregistering": "Deleting…",
+        "cancel": "Cancel"
+      },
+      "danger": {
+        "hint": "Deleting your account removes associated data immediately and cannot be undone. Proceed with care."
+      },
+      "feedback": {
+        "submitting": "Processing…",
+        "loadingProfile": "Loading account profile…",
+        "loadFailed": "Failed to load profile",
+        "sessionExpired": "Session expired. Please sign in again.",
+        "usernameRequired": "Username is required",
+        "passwordRequired": "Password is required",
+        "emailRequired": "Email is required",
+        "operationFailed": "Operation failed",
+        "loginSuccess": "Signed in",
+        "registerSuccess": "Account created and signed in",
+        "avatarTooLarge": "Avatar must be under 5MB",
+        "avatarNotImage": "Only image files are accepted",
+        "avatarUploaded": "Avatar uploaded. Save profile to apply.",
+        "avatarUploadFailed": "Avatar upload failed",
+        "passwordTooShort": "Password must be at least 8 chars with letters and digits",
+        "birthdayInvalid": "Birthday must be in yyyy-MM-dd format",
+        "saveFailed": "Save failed",
+        "saveSuccess": "Profile updated",
+        "logoutSuccess": "Signed out",
+        "logoutLocalOnly": "Server response error; signed out locally only",
+        "unregisterPasswordRequired": "Enter your current password to confirm",
+        "unregisterFailed": "Account deletion failed",
+        "unregisterSuccess": "Account deleted"
+      }
+    },
     "nav": {
       "guide": {
         "label": "Guide",
@@ -947,6 +1030,10 @@
       "shortcut": {
         "label": "Shortcuts",
         "desc": "Hide, quit, and screenshot hotkeys"
+      },
+      "user": {
+        "label": "Account",
+        "desc": "Sign in, profile, and account deletion"
       },
       "about": {
         "label": "About",
