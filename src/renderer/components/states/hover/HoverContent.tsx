@@ -25,6 +25,7 @@
  */
 
 import React, { useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../store/slices';
 import type { HoverTab } from '../../../store/types';
 import '../../../styles/hover/hover.css';
@@ -40,12 +41,7 @@ interface HoverContentProps {
 }
 
 /** 导航点配置 */
-const NAV_DOTS: { tab: HoverTab; label: string }[] = [
-  { tab: 'time', label: '工具' },
-  { tab: 'o3ics', label: '歌曲' },
-  { tab: 'weather', label: '天气' },
-  { tab: 'expand', label: '展开' },
-];
+const NAV_DOTS: HoverTab[] = ['time', 'o3ics', 'weather', 'expand'];
 
 /**
  * Hover 状态内容组件
@@ -55,8 +51,13 @@ export function HoverContent({
   fullTimeStr,
   lunarStr
 }: HoverContentProps): React.ReactElement {
+  const { t } = useTranslation();
   const { hoverTab, setHoverTab, setExpanded } = useIslandStore();
   const contentRef = useRef<HTMLDivElement>(null);
+
+  const getDotLabel = (tab: HoverTab): string => t(`hover.nav.${tab}`, {
+    defaultValue: tab === 'time' ? '工具' : tab === 'o3ics' ? '歌曲' : tab === 'weather' ? '天气' : '展开',
+  });
 
   useEffect(() => {
     const el = contentRef.current;
@@ -66,12 +67,12 @@ export function HoverContent({
       const target = e.target as HTMLElement;
       if (hoverTab === 'time' && target.closest('.timer-inputs')) return;
       e.preventDefault();
-      const currentIndex = NAV_DOTS.findIndex(d => d.tab === hoverTab);
+      const currentIndex = NAV_DOTS.findIndex(d => d === hoverTab);
       let nextTab: HoverTab;
       if (e.deltaY > 0) {
-        nextTab = NAV_DOTS[(currentIndex + 1) % NAV_DOTS.length].tab;
+        nextTab = NAV_DOTS[(currentIndex + 1) % NAV_DOTS.length];
       } else {
-        nextTab = NAV_DOTS[(currentIndex - 1 + NAV_DOTS.length) % NAV_DOTS.length].tab;
+        nextTab = NAV_DOTS[(currentIndex - 1 + NAV_DOTS.length) % NAV_DOTS.length];
       }
       if (nextTab === 'expand') {
         setExpanded();
@@ -87,13 +88,13 @@ export function HoverContent({
   return (
     <div className="hover-content" ref={contentRef}>
       <div className="hover-nav-dots">
-        {NAV_DOTS.map(({ tab, label }) => (
+        {NAV_DOTS.map((tab) => (
           <button
             key={tab}
             className={`hover-nav-dot ${hoverTab === tab ? 'active' : ''}`}
             onClick={(e) => { e.stopPropagation(); if (tab === 'expand') { setExpanded(); } else { setHoverTab(tab); } }}
-            title={label}
-            aria-label={`切换到${label}页面`}
+            title={getDotLabel(tab)}
+            aria-label={t('hover.nav.switchToPage', { defaultValue: '切换到{{label}}页面', label: getDotLabel(tab) })}
           />
         ))}
       </div>

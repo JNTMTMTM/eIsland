@@ -201,7 +201,14 @@
       "timeout": {
         "title": "Request Timeout",
         "hint": "Set the maximum wait time for network requests",
-        "unitSecond": "s"
+        "unitSecond": "s",
+        "options": {
+          "ms5000": "5s",
+          "ms10000": "10s (Default)",
+          "ms15000": "15s",
+          "ms20000": "20s",
+          "ms30000": "30s"
+        }
       }
     },
     "weather": {
@@ -217,6 +224,16 @@
       "providerPriority": {
         "title": "Weather Provider Priority",
         "hint": "Prefer Open-Meteo or UAPI, then auto-fallback"
+      },
+      "options": {
+        "locationPriority": {
+          "ip": "IP Location First",
+          "custom": "Custom Location First"
+        },
+        "providerPriority": {
+          "openMeteo": "Open-Meteo First",
+          "uapi": "UAPI First"
+        }
       },
       "messages": {
         "switchPriorityFailed": "Failed to switch priority: {{error}}",
@@ -236,6 +253,14 @@
       "lyrics": {
         "title": "Lyrics Source",
         "hint": "Auto mode selects source by detected SMTC player and falls back to LRCLIB",
+        "sourceOptions": {
+          "auto": "Auto (Follow Player)",
+          "neteaseOnly": "NetEase Only",
+          "qqmusicOnly": "QQ Music Only",
+          "kugouOnly": "KuGou Only",
+          "sodamusicOnly": "Soda Music Only",
+          "lrclibOnly": "LRCLIB Only"
+        },
         "karaokeTitle": "Karaoke Highlight",
         "karaokeHint": "Enable word-by-word highlight effects",
         "karaokeToggle": "Enable karaoke highlight",
@@ -316,8 +341,12 @@
       }
     },
     "ai": {
+      "apiKey": "API Key",
+      "apiEndpoint": "API Endpoint",
       "model": "Model",
+      "mcpEndpoint": "MCP Endpoint",
       "mcpPlaceholder": "http://localhost:3000/mcp (optional)",
+      "systemPrompt": "System Prompt",
       "promptPlaceholder": "You are a helpful assistant.",
       "saveTitle": "Save (Ctrl+Enter)",
       "editPromptTitle": "Edit Prompt"

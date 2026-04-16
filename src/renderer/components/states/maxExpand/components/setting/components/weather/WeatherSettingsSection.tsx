@@ -66,6 +66,14 @@ interface WeatherSettingsSectionProps {
  */
 export function WeatherSettingsSection(props: WeatherSettingsSectionProps): ReactElement {
   const { t } = useTranslation();
+  const locationPriorityKeyMap: Record<WeatherLocationPriority, string> = {
+    ip: 'settings.weather.options.locationPriority.ip',
+    custom: 'settings.weather.options.locationPriority.custom',
+  };
+  const providerPriorityKeyMap: Record<WeatherProvider, string> = {
+    'open-meteo': 'settings.weather.options.providerPriority.openMeteo',
+    uapi: 'settings.weather.options.providerPriority.uapi',
+  };
   const {
     currentWeatherSettingsPageLabel,
     weatherSettingsPage,
@@ -122,7 +130,7 @@ export function WeatherSettingsSection(props: WeatherSettingsSectionProps): Reac
                       });
                     }}
                   >
-                    {opt.label}
+                    {t(locationPriorityKeyMap[opt.value], { defaultValue: opt.label })}
                   </button>
                 ))}
               </div>
@@ -211,7 +219,7 @@ export function WeatherSettingsSection(props: WeatherSettingsSectionProps): Reac
                       saveWeatherProviderConfig({ primaryProvider: opt.value });
                     }}
                   >
-                    {opt.label}
+                    {t(providerPriorityKeyMap[opt.value], { defaultValue: opt.label })}
                   </button>
                 ))}
               </div>

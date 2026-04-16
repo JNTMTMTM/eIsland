@@ -25,6 +25,7 @@
  */
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../store/slices';
 import type { MaxExpandTab } from '../../../store/types';
 import '../../../styles/settings/settings.css';
@@ -38,14 +39,7 @@ import { CountdownTab } from './components/CountdownTab';
 type NavDotId = MaxExpandTab | 'expanded';
 
 /** 导航点配置 */
-const NAV_DOTS: { id: NavDotId; label: string }[] = [
-  { id: 'expanded', label: '返回' },
-  { id: 'todo', label: '待办' },
-  { id: 'urlFavorites', label: 'URL 收藏' },
-  { id: 'aiChat', label: 'AI 对话' },
-  { id: 'countdown', label: '倒数日' },
-  { id: 'settings', label: '设置' },
-];
+const NAV_DOTS: NavDotId[] = ['expanded', 'todo', 'urlFavorites', 'aiChat', 'countdown', 'settings'];
 
 /**
  * 最大展开模式内容组件
@@ -75,6 +69,7 @@ const _startupModeReady: Promise<void> = (window.api?.storeRead?.('standalone-wi
  * @description 渲染最大展开态的 Tab 内容与底部导航点
  */
 export function MaxExpandContent(): React.ReactElement {
+  const { t } = useTranslation();
   const { setExpanded, maxExpandTab: activeTab, setMaxExpandTab: setActiveTab } = useIslandStore();
   const contentRef = useRef<HTMLDivElement>(null);
   const activeTabRef = useRef(activeTab);
@@ -98,11 +93,24 @@ export function MaxExpandContent(): React.ReactElement {
 
   /** 独立窗口模式下过滤掉的导航点 */
   const filteredNavDots = useMemo(() => {
+    const getNavLabel = (id: NavDotId): string => t(`maxExpand.nav.${id}`, {
+      defaultValue: id === 'expanded'
+        ? '返回'
+        : id === 'todo'
+          ? '待办'
+          : id === 'urlFavorites'
+            ? 'URL 收藏'
+            : id === 'aiChat'
+              ? 'AI 对话'
+              : id === 'countdown'
+                ? '倒数日'
+                : '设置',
+    });
     if (countdownMode === 'standalone') {
-      return NAV_DOTS.filter(d => !STANDALONE_HIDDEN_TABS.has(d.id));
+      return NAV_DOTS.filter(d => !STANDALONE_HIDDEN_TABS.has(d)).map((id) => ({ id, label: getNavLabel(id) }));
     }
-    return NAV_DOTS;
-  }, [countdownMode]);
+    return NAV_DOTS.map((id) => ({ id, label: getNavLabel(id) }));
+  }, [countdownMode, t]);
   const filteredNavDotsRef = useRef(filteredNavDots);
   filteredNavDotsRef.current = filteredNavDots;
 
@@ -173,7 +181,7 @@ export function MaxExpandContent(): React.ReactElement {
             className={`settings-nav-dot ${activeTab === id ? 'active' : ''}`}
             onClick={() => handleNavClick(id)}
             title={label}
-            aria-label={`切换到${label}`}
+            aria-label={t('maxExpand.nav.switchTo', { defaultValue: '切换到{{label}}', label })}
           />
         ))}
       </div>

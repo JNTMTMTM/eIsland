@@ -50,6 +50,13 @@ export function NetworkSettingsSection({
   saveNetworkConfig,
 }: NetworkSettingsSectionProps): ReactElement {
   const { t } = useTranslation();
+  const timeoutOptionKeyMap: Record<number, string> = {
+    5000: 'settings.network.timeout.options.ms5000',
+    10000: 'settings.network.timeout.options.ms10000',
+    15000: 'settings.network.timeout.options.ms15000',
+    20000: 'settings.network.timeout.options.ms20000',
+    30000: 'settings.network.timeout.options.ms30000',
+  };
 
   return (
     <div className="max-expand-settings-section">
@@ -70,7 +77,7 @@ export function NetworkSettingsSection({
                   saveNetworkConfig({ timeoutMs: opt.value });
                 }}
               >
-                {opt.label}
+                {t(timeoutOptionKeyMap[opt.value] || '', { defaultValue: opt.label })}
               </button>
             ))}
           </div>

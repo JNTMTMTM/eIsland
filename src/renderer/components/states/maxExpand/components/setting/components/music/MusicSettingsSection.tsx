@@ -77,6 +77,14 @@ interface MusicSettingsSectionProps {
  */
 export function MusicSettingsSection(props: MusicSettingsSectionProps): ReactElement {
   const { t } = useTranslation();
+  const lyricsSourceOptionKeyMap: Record<string, string> = {
+    auto: 'settings.music.lyrics.sourceOptions.auto',
+    'netease-only': 'settings.music.lyrics.sourceOptions.neteaseOnly',
+    'qqmusic-only': 'settings.music.lyrics.sourceOptions.qqmusicOnly',
+    'kugou-only': 'settings.music.lyrics.sourceOptions.kugouOnly',
+    'sodamusic-only': 'settings.music.lyrics.sourceOptions.sodamusicOnly',
+    'lrclib-only': 'settings.music.lyrics.sourceOptions.lrclibOnly',
+  };
   const {
     currentMusicSettingsPageLabel,
     musicSettingsPage,
@@ -225,7 +233,7 @@ export function MusicSettingsSection(props: MusicSettingsSectionProps): ReactEle
                       window.api.musicLyricsSourceSet(opt.value).catch(() => {});
                     }}
                   >
-                    {opt.label}
+                    {t(lyricsSourceOptionKeyMap[opt.value] || '', { defaultValue: opt.label })}
                   </button>
                 ))}
               </div>

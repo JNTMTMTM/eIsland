@@ -73,12 +73,28 @@ export function AiSettingsSection({
     <div className="max-expand-settings-section">
       <div className="max-expand-settings-title">{t('settings.labels.ai', { defaultValue: 'AI Agent' })}</div>
       <div className="settings-field-group">
-        <SettingsField label="API Key" value={aiConfig.apiKey} placeholder="sk-..." type="password" onChange={(v) => setAiConfig({ apiKey: v })} />
-        <SettingsField label="API Endpoint" value={aiConfig.endpoint} placeholder="https://api.openai.com/v1" onChange={(v) => setAiConfig({ endpoint: v })} />
+        <SettingsField
+          label={t('settings.ai.apiKey', { defaultValue: 'API Key' })}
+          value={aiConfig.apiKey}
+          placeholder="sk-..."
+          type="password"
+          onChange={(v) => setAiConfig({ apiKey: v })}
+        />
+        <SettingsField
+          label={t('settings.ai.apiEndpoint', { defaultValue: 'API Endpoint' })}
+          value={aiConfig.endpoint}
+          placeholder="https://api.openai.com/v1"
+          onChange={(v) => setAiConfig({ endpoint: v })}
+        />
         <SettingsField label={t('settings.ai.model', { defaultValue: '模型' })} value={aiConfig.model} placeholder="gpt-4o-mini" onChange={(v) => setAiConfig({ model: v })} />
-        <SettingsField label="MCP Endpoint" value={aiConfig.mcpEndpoint} placeholder={t('settings.ai.mcpPlaceholder', { defaultValue: 'http://localhost:3000/mcp (可选)' })} onChange={(v) => setAiConfig({ mcpEndpoint: v })} />
+        <SettingsField
+          label={t('settings.ai.mcpEndpoint', { defaultValue: 'MCP Endpoint' })}
+          value={aiConfig.mcpEndpoint}
+          placeholder={t('settings.ai.mcpPlaceholder', { defaultValue: 'http://localhost:3000/mcp (可选)' })}
+          onChange={(v) => setAiConfig({ mcpEndpoint: v })}
+        />
         <div className="settings-field">
-          <span className="settings-field-label">System Prompt</span>
+          <span className="settings-field-label">{t('settings.ai.systemPrompt', { defaultValue: 'System Prompt' })}</span>
           <div className="settings-prompt-area">
             {editingPrompt ? (
               <>

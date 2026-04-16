@@ -201,7 +201,14 @@
       "timeout": {
         "title": "请求超时时间",
         "hint": "设置网络请求的最长等待时间，网络较差时可适当增大",
-        "unitSecond": "秒"
+        "unitSecond": "秒",
+        "options": {
+          "ms5000": "5 秒",
+          "ms10000": "10 秒（默认）",
+          "ms15000": "15 秒",
+          "ms20000": "20 秒",
+          "ms30000": "30 秒"
+        }
       }
     },
     "weather": {
@@ -217,6 +224,16 @@
       "providerPriority": {
         "title": "天气接口优先级",
         "hint": "可选择优先使用 Open-Meteo 或 UAPI，失败时自动切换到另一源"
+      },
+      "options": {
+        "locationPriority": {
+          "ip": "IP 定位优先",
+          "custom": "自定义位置优先"
+        },
+        "providerPriority": {
+          "openMeteo": "Open-Meteo 优先",
+          "uapi": "UAPI 优先"
+        }
       },
       "messages": {
         "switchPriorityFailed": "切换优先级失败：{{error}}",
@@ -236,6 +253,14 @@
       "lyrics": {
         "title": "歌词源",
         "hint": "自动模式根据 SMTC 检测到的播放器进程选择对应源，失败后依次尝试其他源，最后使用 LRCLIB 兜底",
+        "sourceOptions": {
+          "auto": "自动（跟随播放器）",
+          "neteaseOnly": "仅网易云",
+          "qqmusicOnly": "仅 QQ音乐",
+          "kugouOnly": "仅酷狗",
+          "sodamusicOnly": "仅汽水音乐",
+          "lrclibOnly": "仅 LRCLIB"
+        },
         "karaokeTitle": "逐字扫光",
         "karaokeHint": "启用后歌词将以逐字高亮方式显示",
         "karaokeToggle": "启用逐字扫光效果",
@@ -316,8 +341,12 @@
       }
     },
     "ai": {
+      "apiKey": "API Key",
+      "apiEndpoint": "API Endpoint",
       "model": "模型",
+      "mcpEndpoint": "MCP Endpoint",
       "mcpPlaceholder": "http://localhost:3000/mcp (可选)",
+      "systemPrompt": "System Prompt",
       "promptPlaceholder": "你是一个有用的助手。",
       "saveTitle": "保存 (Ctrl+Enter)",
       "editPromptTitle": "编辑 Prompt"
