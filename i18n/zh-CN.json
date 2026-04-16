@@ -192,6 +192,25 @@
       "ji": "忌"
     }
   },
+  "aiChat": {
+    "title": "AI 对话",
+    "notConfigured": "未配置",
+    "actions": {
+      "clear": "清空",
+      "stop": "停止",
+      "send": "发送"
+    },
+    "messages": {
+      "missingApiKeyWarn": "⚠️ 请先在「设置 → AI配置」中填写 API Key。",
+      "unknownError": "未知错误",
+      "emptyWithApiKey": "有什么可以帮你的？",
+      "emptyWithoutApiKey": "请先在「设置 → AI配置」中填写 API Key"
+    },
+    "input": {
+      "generatingPlaceholder": "生成中...",
+      "placeholder": "输入消息..."
+    }
+  },
   "settings": {
     "sidebar": {
       "title": "设置"

@@ -192,6 +192,25 @@
       "ji": "C"
     }
   },
+  "aiChat": {
+    "title": "AI Chat",
+    "notConfigured": "Not configured",
+    "actions": {
+      "clear": "Clear",
+      "stop": "Stop",
+      "send": "Send"
+    },
+    "messages": {
+      "missingApiKeyWarn": "⚠️ Please fill in API Key in Settings → AI Config first.",
+      "unknownError": "Unknown error",
+      "emptyWithApiKey": "How can I help you?",
+      "emptyWithoutApiKey": "Please fill in API Key in Settings → AI Config first"
+    },
+    "input": {
+      "generatingPlaceholder": "Generating...",
+      "placeholder": "Type a message..."
+    }
+  },
   "settings": {
     "sidebar": {
       "title": "Settings"

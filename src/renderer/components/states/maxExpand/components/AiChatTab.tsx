@@ -27,6 +27,7 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../../store/slices';
 
 /** 单条消息 */
@@ -96,6 +97,7 @@ async function streamChatCompletion(
  * @description 包含消息列表和输入栏的聊天界面，调用 OpenAI 兼容 API
  */
 export function AiChatTab(): React.ReactElement {
+  const { t } = useTranslation();
   const chatEndRef = useRef<HTMLDivElement>(null);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -127,7 +129,12 @@ export function AiChatTab(): React.ReactElement {
       updateMessages(prev => ([
         ...prev,
         { role: 'user', content: text },
-        { role: 'assistant', content: '⚠️ 请先在「设置 → AI配置」中填写 API Key。' },
+        {
+          role: 'assistant',
+          content: t('aiChat.messages.missingApiKeyWarn', {
+            defaultValue: '⚠️ 请先在「设置 → AI配置」中填写 API Key。',
+          }),
+        },
       ]));
       setInput('');
       return;
@@ -174,7 +181,9 @@ export function AiChatTab(): React.ReactElement {
       );
     } catch (err: unknown) {
       if ((err as Error).name === 'AbortError') return;
-      const errMsg = err instanceof Error ? err.message : '未知错误';
+      const errMsg = err instanceof Error
+        ? err.message
+        : t('aiChat.messages.unknownError', { defaultValue: '未知错误' });
       updateMessages(prev => {
         const copy = [...prev];
         const last = copy[copy.length - 1];
@@ -189,7 +198,7 @@ export function AiChatTab(): React.ReactElement {
       abortRef.current = null;
       setLoading(false);
     }
-  }, [input, loading, aiChatMessages, aiConfig, setAiChatMessages, updateMessages]);
+  }, [input, loading, aiChatMessages, aiConfig, setAiChatMessages, updateMessages, t]);
 
   /** 回车发送 */
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>): void => {
@@ -215,11 +224,13 @@ export function AiChatTab(): React.ReactElement {
     <div className="max-expand-chat">
       {/* 标题 */}
       <div className="max-expand-chat-header">
-        <span className="max-expand-chat-header-title">AI 对话</span>
+        <span className="max-expand-chat-header-title">{t('aiChat.title', { defaultValue: 'AI 对话' })}</span>
         <div className="max-expand-chat-header-actions">
-          <span className="max-expand-chat-header-model">{aiConfig.model || '未配置'}</span>
+          <span className="max-expand-chat-header-model">{aiConfig.model || t('aiChat.notConfigured', { defaultValue: '未配置' })}</span>
           {aiChatMessages.length > 0 && (
-            <button className="max-expand-chat-clear" onClick={handleClear} type="button">清空</button>
+            <button className="max-expand-chat-clear" onClick={handleClear} type="button">
+              {t('aiChat.actions.clear', { defaultValue: '清空' })}
+            </button>
           )}
         </div>
       </div>
@@ -227,7 +238,9 @@ export function AiChatTab(): React.ReactElement {
       <div className="max-expand-chat-messages">
         {aiChatMessages.length === 0 && (
           <div className="max-expand-chat-empty">
-            {aiConfig.apiKey ? '有什么可以帮你的？' : '请先在「设置 → AI配置」中填写 API Key'}
+            {aiConfig.apiKey
+              ? t('aiChat.messages.emptyWithApiKey', { defaultValue: '有什么可以帮你的？' })
+              : t('aiChat.messages.emptyWithoutApiKey', { defaultValue: '请先在「设置 → AI配置」中填写 API Key' })}
           </div>
         )}
         {aiChatMessages.map((msg, i) => (
@@ -252,16 +265,22 @@ export function AiChatTab(): React.ReactElement {
         <input
           className="max-expand-chat-input"
           type="text"
-          placeholder={loading ? '生成中...' : '输入消息...'}
+          placeholder={loading
+            ? t('aiChat.input.generatingPlaceholder', { defaultValue: '生成中...' })
+            : t('aiChat.input.placeholder', { defaultValue: '输入消息...' })}
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
           disabled={loading}
         />
         {loading ? (
-          <button className="max-expand-chat-send" onClick={handleStop}>停止</button>
+          <button className="max-expand-chat-send" onClick={handleStop}>
+            {t('aiChat.actions.stop', { defaultValue: '停止' })}
+          </button>
         ) : (
-          <button className="max-expand-chat-send" onClick={handleSend}>发送</button>
+          <button className="max-expand-chat-send" onClick={handleSend}>
+            {t('aiChat.actions.send', { defaultValue: '发送' })}
+          </button>
         )}
       </div>
     </div>
