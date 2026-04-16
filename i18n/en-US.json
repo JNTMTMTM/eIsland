@@ -143,12 +143,23 @@
   "weatherAbbr": {
     "thunder": "T",
     "snow": "S",
+    "hail": "H",
+    "sleet": "Sl",
     "freezingRain": "FR",
+    "heavyRain": "HR",
+    "shower": "Sh",
+    "drizzle": "Dr",
     "rain": "R",
+    "sandstorm": "Sd",
+    "haze": "Hz",
     "fog": "F",
+    "wind": "Wn",
+    "hot": "Hot",
+    "cold": "Cold",
     "overcast": "O",
     "cloudy": "C",
-    "sunny": "Clr"
+    "sunny": "Clr",
+    "unknown": "N/A"
   },
   "expanded": {
     "nav": {

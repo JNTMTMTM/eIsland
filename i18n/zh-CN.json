@@ -143,12 +143,23 @@
   "weatherAbbr": {
     "thunder": "雷",
     "snow": "雪",
+    "hail": "雹",
+    "sleet": "雨雪",
     "freezingRain": "冻雨",
+    "heavyRain": "暴",
+    "shower": "阵",
+    "drizzle": "毛",
     "rain": "雨",
+    "sandstorm": "沙",
+    "haze": "霾",
     "fog": "雾",
+    "wind": "风",
+    "hot": "热",
+    "cold": "冷",
     "overcast": "阴",
     "cloudy": "云",
-    "sunny": "晴"
+    "sunny": "晴",
+    "unknown": "未知"
   },
   "expanded": {
     "nav": {
