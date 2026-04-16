@@ -26,6 +26,7 @@
 
 import React, { useEffect, useRef, useState, useLayoutEffect } from 'react';
 import { getColor } from 'colorthief';
+import { useTranslation } from 'react-i18next';
 import useIslandStore from '../store/isLandStore';
 import { formatTime, formatFullTime, getDayName, getLunarDate } from '../utils/timeUtils';
 import { IdleContent } from './states/idle/IdleContent';
@@ -192,6 +193,7 @@ interface StateRenderer {
  * @description 使用状态模式管理不同状态的 UI 渲染，通过 requestAnimationFrame 检测鼠标位置实现可靠的 hover 交互
  */
 function DynamicIsland(): React.JSX.Element {
+  const { t, i18n } = useTranslation();
   const { state, weather, setHover, setIdle, setExpanded, setLyrics, setGuide, timerData, setTimerData, notification, setNotification, handleNowPlayingUpdate, updateProgress, coverImage, isMusicPlaying, isPlaying, dominantColor, setDominantColor, setSyncedLyrics, setLyricsLoading, syncedLyrics, lyricsLoading, pomodoroRunning, pomodoroRemaining, springAnimation } = useIslandStore();
   const prevStateRef = useRef(state);
   const [morphing, setMorphing] = useState(false);
@@ -272,8 +274,10 @@ function DynamicIsland(): React.JSX.Element {
     };
   }, [coverImage, setDominantColor]);
 
+  const formatWeekday = (date: Date): string => t(`overview.time.weekdays.${date.getDay()}`, { defaultValue: getDayName(date) });
+
   const [timeStr, setTimeStr] = useState(() => formatTime(new Date()));
-  const [dayStr, setDayStr] = useState(() => getDayName(new Date()));
+  const [dayStr, setDayStr] = useState(() => formatWeekday(new Date()));
   const [fullTimeStr, setFullTimeStr] = useState(() => formatFullTime(new Date()));
   const [lunarStr, setLunarStr] = useState(() => getLunarDate(new Date()));
 
@@ -317,13 +321,14 @@ function DynamicIsland(): React.JSX.Element {
     const update = (): void => {
       const now = new Date();
       setTimeStr(formatTime(now));
-      setDayStr(getDayName(now));
+      setDayStr(formatWeekday(now));
       setFullTimeStr(formatFullTime(now));
       setLunarStr(getLunarDate(now));
     };
+    update();
     const timer = setInterval(update, 1000);
     return () => clearInterval(timer);
-  }, []);
+  }, [i18n.resolvedLanguage]);
 
   useEffect(() => {
     if (!initRef.current) {
