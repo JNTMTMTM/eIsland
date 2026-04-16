@@ -25,6 +25,7 @@
  */
 
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { SvgIcon } from '../../../../utils/SvgIcon';
 
 interface ActionButtonsProps {
@@ -42,6 +43,8 @@ export function ActionButtons({
   hideIcon = SvgIcon.HIDE,
   powerOffIcon = SvgIcon.POWER_OFF,
 }: ActionButtonsProps): React.ReactElement {
+  const { t } = useTranslation();
+
   const handleHide = (): void => {
     window.api.collapseWindow();
     window.api?.hideWindow();
@@ -56,18 +59,18 @@ export function ActionButtons({
       <button
         className="action-btn"
         onClick={handleHide}
-        title="隐藏灵动岛"
-        aria-label="隐藏灵动岛"
+        title={t('hover.actions.hideIsland', { defaultValue: '隐藏灵动岛' })}
+        aria-label={t('hover.actions.hideIsland', { defaultValue: '隐藏灵动岛' })}
       >
-        <img src={hideIcon} alt="隐藏" className="action-btn-icon" />
+        <img src={hideIcon} alt={t('hover.actions.hide', { defaultValue: '隐藏' })} className="action-btn-icon" />
       </button>
       <button
         className="action-btn"
         onClick={handleQuit}
-        title="退出灵动岛"
-        aria-label="退出灵动岛"
+        title={t('hover.actions.quitIsland', { defaultValue: '退出灵动岛' })}
+        aria-label={t('hover.actions.quitIsland', { defaultValue: '退出灵动岛' })}
       >
-        <img src={powerOffIcon} alt="退出" className="action-btn-icon" />
+        <img src={powerOffIcon} alt={t('hover.actions.quit', { defaultValue: '退出' })} className="action-btn-icon" />
       </button>
     </div>
   );

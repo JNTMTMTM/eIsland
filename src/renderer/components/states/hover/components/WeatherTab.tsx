@@ -64,12 +64,12 @@ function getWeatherSmallIconPath(iconCode: number, isDay: boolean): string {
   return `./icon/${iconCode}${suffix}.png`;
 }
 
-function formatPrecipitationText(value: number): string {
-  return value < 0 ? ' N/A' : `${value}%`;
+function formatPrecipitationText(value: number, t: (key: string, options?: Record<string, unknown>) => string): string {
+  return value < 0 ? ` ${t('hover.weather.na', { defaultValue: 'N/A' })}` : `${value}%`;
 }
 
-function formatWindText(value: number): string {
-  return value < 0 ? ' N/A' : `${value}m/s`;
+function formatWindText(value: number, t: (key: string, options?: Record<string, unknown>) => string): string {
+  return value < 0 ? ` ${t('hover.weather.na', { defaultValue: 'N/A' })}` : `${value}m/s`;
 }
 
 /**
@@ -150,8 +150,8 @@ export function WeatherTab(): React.ReactElement {
               onError={handleIconError}
             />
             <span className="text-xs leading-none">{day.description}</span>
-            <span className="text-[10px] opacity-40 leading-none">{t('hover.weather.rainPrefix', { defaultValue: '雨' })}{formatPrecipitationText(day.precipitationProbability)}</span>
-            <span className="text-[10px] opacity-40 leading-none">{t('hover.weather.windPrefix', { defaultValue: '风' })}{formatWindText(day.windSpeed)}</span>
+            <span className="text-[10px] opacity-40 leading-none">{t('hover.weather.rainPrefix', { defaultValue: '雨' })}{formatPrecipitationText(day.precipitationProbability, t)}</span>
+            <span className="text-[10px] opacity-40 leading-none">{t('hover.weather.windPrefix', { defaultValue: '风' })}{formatWindText(day.windSpeed, t)}</span>
             <span className="text-xs tabular-nums leading-none">
               {(day.temperatureMin + day.temperatureMax) / 2}℃
             </span>

@@ -96,6 +96,34 @@
       "expand": "Expand",
       "switchToPage": "Switch to {{label}} page"
     },
+    "actions": {
+      "hideIsland": "Hide Dynamic Island",
+      "hide": "Hide",
+      "quitIsland": "Quit Dynamic Island",
+      "quit": "Quit"
+    },
+    "tools": {
+      "screenshot": "Screenshot",
+      "taskManager": "Task Manager"
+    },
+    "timer": {
+      "title": "Countdown",
+      "editHint": "Scroll wheel to edit time",
+      "actions": {
+        "start": "Start",
+        "pause": "Pause",
+        "resume": "Resume",
+        "reset": "Reset"
+      }
+    },
+    "music": {
+      "unknownArtist": "Unknown artist",
+      "unknownTitle": "Unknown title",
+      "prev": "Previous",
+      "pause": "Pause",
+      "play": "Play",
+      "next": "Next"
+    },
     "time": {
       "lunarPrefix": "Lunar"
     },
@@ -103,6 +131,7 @@
       "refreshTitle": "Click to refresh weather",
       "today": "Tdy",
       "unknownCity": "N/A",
+      "na": "N/A",
       "week": {
         "tomorrow": "Tmr",
         "dayAfterTomorrow": "D+2"

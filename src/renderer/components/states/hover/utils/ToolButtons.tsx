@@ -25,6 +25,7 @@
  */
 
 import React, { useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { SvgIcon } from '../../../../utils/SvgIcon';
 
 /**
@@ -32,6 +33,8 @@ import { SvgIcon } from '../../../../utils/SvgIcon';
  * @description 提供截图和打开任务管理器两个功能按钮
  */
 export function ToolButtons(): React.ReactElement {
+  const { t } = useTranslation();
+
   const handleScreenshot = useCallback(async () => {
     try {
       const base64 = await window.api.screenshot();
@@ -52,11 +55,11 @@ export function ToolButtons(): React.ReactElement {
 
   return (
     <div className="timer-tools">
-      <button className="action-btn" onClick={handleScreenshot} title="截图">
-        <img src={SvgIcon.SCREENSHOT} alt="截图" className="action-btn-icon" />
+      <button className="action-btn" onClick={handleScreenshot} title={t('hover.tools.screenshot', { defaultValue: '截图' })}>
+        <img src={SvgIcon.SCREENSHOT} alt={t('hover.tools.screenshot', { defaultValue: '截图' })} className="action-btn-icon" />
       </button>
-      <button className="action-btn" onClick={handleTaskManager} title="任务管理器">
-        <img src={SvgIcon.TASK_MANAGER} alt="任务管理器" className="action-btn-icon" />
+      <button className="action-btn" onClick={handleTaskManager} title={t('hover.tools.taskManager', { defaultValue: '任务管理器' })}>
+        <img src={SvgIcon.TASK_MANAGER} alt={t('hover.tools.taskManager', { defaultValue: '任务管理器' })} className="action-btn-icon" />
       </button>
     </div>
   );

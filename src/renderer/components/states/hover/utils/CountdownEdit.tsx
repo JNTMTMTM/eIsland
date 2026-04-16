@@ -25,6 +25,7 @@
  */
 
 import React, { useCallback, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../../store/slices';
 import { SvgIcon } from '../../../../utils/SvgIcon';
 import { ToolButtons } from './ToolButtons';
@@ -41,6 +42,7 @@ function padZero(value: number): string {
  * 倒计时逻辑由 DynamicIsland 全局管理，此组件仅负责 UI 展示和用户交互
  */
 export function CountdownEdit(): React.ReactElement {
+  const { t } = useTranslation();
   const { timerData, setTimerData } = useIslandStore();
 
   const timerState: TimerState = timerData?.state ?? 'idle';
@@ -143,9 +145,9 @@ export function CountdownEdit(): React.ReactElement {
       <div className="timer-main">
         <div className="timer-title-row">
           <div className="timer-title">
-            <span className="text-[10px] text-[var(--color-island-text)] leading-tight">倒计时</span>
+            <span className="text-[10px] text-[var(--color-island-text)] leading-tight">{t('hover.timer.title', { defaultValue: '倒计时' })}</span>
           </div>
-          <span className="text-[10px] text-[var(--color-island-text)] opacity-60 leading-tight ml-2">滚动滚轮编辑时间</span>
+          <span className="text-[10px] text-[var(--color-island-text)] opacity-60 leading-tight ml-2">{t('hover.timer.editHint', { defaultValue: '滚动滚轮编辑时间' })}</span>
         </div>
         <div className="timer-main-row">
           {isEditing ? (
@@ -192,20 +194,20 @@ export function CountdownEdit(): React.ReactElement {
 
         <div className="timer-controls">
           {timerState === 'running' ? (
-            <button className="timer-btn timer-btn-pause" onClick={handlePause} title="暂停">
-              <img src={SvgIcon.PAUSE} alt="暂停" className="timer-btn-icon" />
+            <button className="timer-btn timer-btn-pause" onClick={handlePause} title={t('hover.timer.actions.pause', { defaultValue: '暂停' })}>
+              <img src={SvgIcon.PAUSE} alt={t('hover.timer.actions.pause', { defaultValue: '暂停' })} className="timer-btn-icon" />
             </button>
           ) : timerState === 'paused' ? (
-            <button className="timer-btn timer-btn-start" onClick={handleResume} title="继续">
-              <img src={SvgIcon.CONTINUE} alt="继续" className="timer-btn-icon" />
+            <button className="timer-btn timer-btn-start" onClick={handleResume} title={t('hover.timer.actions.resume', { defaultValue: '继续' })}>
+              <img src={SvgIcon.CONTINUE} alt={t('hover.timer.actions.resume', { defaultValue: '继续' })} className="timer-btn-icon" />
             </button>
           ) : (
-            <button className="timer-btn timer-btn-start" onClick={handleStart} title="开始">
-              <img src={SvgIcon.CONTINUE} alt="开始" className="timer-btn-icon" />
+            <button className="timer-btn timer-btn-start" onClick={handleStart} title={t('hover.timer.actions.start', { defaultValue: '开始' })}>
+              <img src={SvgIcon.CONTINUE} alt={t('hover.timer.actions.start', { defaultValue: '开始' })} className="timer-btn-icon" />
             </button>
           )}
-          <button className="timer-btn timer-btn-reset" onClick={handleReset} title="重置">
-            <img src={SvgIcon.REVERT} alt="重置" className="timer-btn-icon" />
+          <button className="timer-btn timer-btn-reset" onClick={handleReset} title={t('hover.timer.actions.reset', { defaultValue: '重置' })}>
+            <img src={SvgIcon.REVERT} alt={t('hover.timer.actions.reset', { defaultValue: '重置' })} className="timer-btn-icon" />
           </button>
         </div>
         </div>

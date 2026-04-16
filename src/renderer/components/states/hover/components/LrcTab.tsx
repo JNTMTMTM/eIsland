@@ -25,6 +25,7 @@
  */
 
 import React, { useRef, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../../store/slices';
 import { SvgIcon } from '../../../../utils/SvgIcon';
 
@@ -172,6 +173,7 @@ function SilkyWave({
  * @description 显示当前播放歌词、唱片封面和播放控制
  */
 export function LyricsTab(): React.ReactElement {
+  const { t } = useTranslation();
   const {
     isMusicPlaying,
     isPlaying,
@@ -184,8 +186,8 @@ export function LyricsTab(): React.ReactElement {
   const handlePrev = () => window.api?.mediaPrev();
   const handleNext = () => window.api?.mediaNext();
 
-  const artistText = truncateByVisualWidth(mediaInfo.artist || '未知艺术家', 50);
-  const albumText = truncateByVisualWidth(mediaInfo.title || '未知歌曲', 45);
+  const artistText = truncateByVisualWidth(mediaInfo.artist || t('hover.music.unknownArtist', { defaultValue: '未知艺术家' }), 50);
+  const albumText = truncateByVisualWidth(mediaInfo.title || t('hover.music.unknownTitle', { defaultValue: '未知歌曲' }), 45);
 
   return (
     <div className={`lrc-tab-wrapper ${isPlaying ? 'playing' : ''}`}>
@@ -208,30 +210,30 @@ export function LyricsTab(): React.ReactElement {
         <button
           className="lrc-media-btn"
           onClick={(e) => { e.stopPropagation(); handlePrev(); }}
-          title="上一曲"
+          title={t('hover.music.prev', { defaultValue: '上一曲' })}
           disabled={!isMusicPlaying}
         >
-          <img src={SvgIcon.PREVIOUS_SONG} alt="上一曲" className="lrc-media-btn-icon lrc-media-btn-icon--sm" />
+          <img src={SvgIcon.PREVIOUS_SONG} alt={t('hover.music.prev', { defaultValue: '上一曲' })} className="lrc-media-btn-icon lrc-media-btn-icon--sm" />
         </button>
         <button
           className="lrc-media-btn lrc-play-btn"
           onClick={(e) => { e.stopPropagation(); handlePlayPause(); }}
-          title={isPlaying ? '暂停' : '播放'}
+          title={isPlaying ? t('hover.music.pause', { defaultValue: '暂停' }) : t('hover.music.play', { defaultValue: '播放' })}
           disabled={!isMusicPlaying}
         >
           {isPlaying ? (
-            <img src={SvgIcon.PAUSE} alt="暂停" className="lrc-media-btn-icon" />
+            <img src={SvgIcon.PAUSE} alt={t('hover.music.pause', { defaultValue: '暂停' })} className="lrc-media-btn-icon" />
           ) : (
-            <img src={SvgIcon.CONTINUE} alt="播放" className="lrc-media-btn-icon" />
+            <img src={SvgIcon.CONTINUE} alt={t('hover.music.play', { defaultValue: '播放' })} className="lrc-media-btn-icon" />
           )}
         </button>
         <button
           className="lrc-media-btn"
           onClick={(e) => { e.stopPropagation(); handleNext(); }}
-          title="下一曲"
+          title={t('hover.music.next', { defaultValue: '下一曲' })}
           disabled={!isMusicPlaying}
         >
-          <img src={SvgIcon.NEXT_SONG} alt="下一曲" className="lrc-media-btn-icon lrc-media-btn-icon--sm" />
+          <img src={SvgIcon.NEXT_SONG} alt={t('hover.music.next', { defaultValue: '下一曲' })} className="lrc-media-btn-icon lrc-media-btn-icon--sm" />
         </button>
       </div>
 

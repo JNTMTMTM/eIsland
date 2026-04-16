@@ -96,6 +96,34 @@
       "expand": "展开",
       "switchToPage": "切换到{{label}}页面"
     },
+    "actions": {
+      "hideIsland": "隐藏灵动岛",
+      "hide": "隐藏",
+      "quitIsland": "退出灵动岛",
+      "quit": "退出"
+    },
+    "tools": {
+      "screenshot": "截图",
+      "taskManager": "任务管理器"
+    },
+    "timer": {
+      "title": "倒计时",
+      "editHint": "滚动滚轮编辑时间",
+      "actions": {
+        "start": "开始",
+        "pause": "暂停",
+        "resume": "继续",
+        "reset": "重置"
+      }
+    },
+    "music": {
+      "unknownArtist": "未知艺术家",
+      "unknownTitle": "未知歌曲",
+      "prev": "上一曲",
+      "pause": "暂停",
+      "play": "播放",
+      "next": "下一曲"
+    },
     "time": {
       "lunarPrefix": "农历"
     },
@@ -103,6 +131,7 @@
       "refreshTitle": "点击刷新天气",
       "today": "今天",
       "unknownCity": "未知",
+      "na": "N/A",
       "week": {
         "tomorrow": "明",
         "dayAfterTomorrow": "后"
