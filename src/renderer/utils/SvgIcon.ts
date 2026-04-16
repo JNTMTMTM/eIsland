@@ -82,7 +82,9 @@ export const SvgIcon = {
   /** 上一个 */
   PREVIOUS: './svg/PREVIOUS.svg',
   /** 设置 */
-  SETTING: './svg/SETTING.svg'
+  SETTING: './svg/SETTING.svg',
+  /** 语言 */
+  LANGUAGE: './svg/LANGUAGE.svg'
 } as const;
 
 export type SvgIconKey = keyof typeof SvgIcon;

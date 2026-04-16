@@ -115,7 +115,7 @@ export const SETTINGS_TAB_ICONS: Partial<Record<SettingsTabLabelKey, string>> = 
   update: SvgIcon.REVERT,
   about: SvgIcon.ABOUT,
   theme: SvgIcon.THEME,
-  language: SvgIcon.THEME,
+  language: SvgIcon.LANGUAGE,
   behavior: SvgIcon.INTERACTION,
   'url-parser': SvgIcon.LINK,
   autostart: SvgIcon.CONTINUE,
