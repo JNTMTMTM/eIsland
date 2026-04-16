@@ -37,6 +37,7 @@ interface RegisterHotkeyIpcHandlersOptions {
   playPauseSongHotkeyStoreKey: string;
   resetPositionHotkeyStoreKey: string;
   toggleTrayHotkeyStoreKey: string;
+  showSettingsWindowHotkeyStoreKey: string;
   getCurrentHideHotkey: () => string;
   getCurrentQuitHotkey: () => string;
   getCurrentScreenshotHotkey: () => string;
@@ -44,6 +45,7 @@ interface RegisterHotkeyIpcHandlersOptions {
   getCurrentPlayPauseSongHotkey: () => string;
   getCurrentResetPositionHotkey: () => string;
   getCurrentToggleTrayHotkey: () => string;
+  getCurrentShowSettingsWindowHotkey: () => string;
   readHideHotkeyConfig: () => string;
   readQuitHotkeyConfig: () => string;
   readScreenshotHotkeyConfig: () => string;
@@ -51,12 +53,14 @@ interface RegisterHotkeyIpcHandlersOptions {
   readPlayPauseSongHotkeyConfig: () => string;
   readResetPositionHotkeyConfig: () => string;
   readToggleTrayHotkeyConfig: () => string;
+  readShowSettingsWindowHotkeyConfig: () => string;
   registerHideHotkey: (accelerator: string) => boolean;
   registerQuitHotkey: (accelerator: string) => boolean;
   registerNextSongHotkey: (accelerator: string) => boolean;
   registerPlayPauseSongHotkey: (accelerator: string) => boolean;
   registerResetPositionHotkey: (accelerator: string) => boolean;
   registerToggleTrayHotkey: (accelerator: string) => boolean;
+  registerShowSettingsWindowHotkey: (accelerator: string) => boolean;
   suspendIslandHotkeys: () => void;
   resumeIslandHotkeys: () => void;
 }
@@ -90,18 +94,52 @@ export function registerHotkeyIpcHandlers(options: RegisterHotkeyIpcHandlersOpti
     const currentNextSong = currentOrStored(options.getCurrentNextSongHotkey, options.readNextSongHotkeyConfig);
     const currentPlayPauseSong = currentOrStored(options.getCurrentPlayPauseSongHotkey, options.readPlayPauseSongHotkeyConfig);
     const currentResetPos = currentOrStored(options.getCurrentResetPositionHotkey, options.readResetPositionHotkeyConfig);
+    const currentToggleTray = currentOrStored(options.getCurrentToggleTrayHotkey, options.readToggleTrayHotkeyConfig);
+    const currentShowSettings = currentOrStored(options.getCurrentShowSettingsWindowHotkey, options.readShowSettingsWindowHotkeyConfig);
 
     if (accelerator && ((currentQuit && accelerator === currentQuit)
       || (currentSS && accelerator === currentSS)
       || (currentNextSong && accelerator === currentNextSong)
       || (currentPlayPauseSong && accelerator === currentPlayPauseSong)
-      || (currentResetPos && accelerator === currentResetPos))) {
+      || (currentResetPos && accelerator === currentResetPos)
+      || (currentToggleTray && accelerator === currentToggleTray)
+      || (currentShowSettings && accelerator === currentShowSettings))) {
       return false;
     }
 
     const success = options.registerHideHotkey(accelerator);
     if (success) {
       persistHotkey(options.storeDir, options.hideHotkeyStoreKey, accelerator, 'Hotkey');
+    }
+    return success;
+  });
+
+  ipcMain.handle('show-settings-window-hotkey:get', () => {
+    return currentOrStored(options.getCurrentShowSettingsWindowHotkey, options.readShowSettingsWindowHotkeyConfig);
+  });
+
+  ipcMain.handle('show-settings-window-hotkey:set', (_event, accelerator: string) => {
+    const currentHide = currentOrStored(options.getCurrentHideHotkey, options.readHideHotkeyConfig);
+    const currentQuit = currentOrStored(options.getCurrentQuitHotkey, options.readQuitHotkeyConfig);
+    const currentSS = currentOrStored(options.getCurrentScreenshotHotkey, options.readScreenshotHotkeyConfig);
+    const currentNextSong = currentOrStored(options.getCurrentNextSongHotkey, options.readNextSongHotkeyConfig);
+    const currentPlayPauseSong = currentOrStored(options.getCurrentPlayPauseSongHotkey, options.readPlayPauseSongHotkeyConfig);
+    const currentResetPos = currentOrStored(options.getCurrentResetPositionHotkey, options.readResetPositionHotkeyConfig);
+    const currentToggleTray = currentOrStored(options.getCurrentToggleTrayHotkey, options.readToggleTrayHotkeyConfig);
+
+    if (accelerator && ((currentHide && accelerator === currentHide)
+      || (currentQuit && accelerator === currentQuit)
+      || (currentSS && accelerator === currentSS)
+      || (currentNextSong && accelerator === currentNextSong)
+      || (currentPlayPauseSong && accelerator === currentPlayPauseSong)
+      || (currentResetPos && accelerator === currentResetPos)
+      || (currentToggleTray && accelerator === currentToggleTray))) {
+      return false;
+    }
+
+    const success = options.registerShowSettingsWindowHotkey(accelerator);
+    if (success) {
+      persistHotkey(options.storeDir, options.showSettingsWindowHotkeyStoreKey, accelerator, 'ShowSettingsWindowHotkey');
     }
     return success;
   });
@@ -116,12 +154,16 @@ export function registerHotkeyIpcHandlers(options: RegisterHotkeyIpcHandlersOpti
     const currentSS = currentOrStored(options.getCurrentScreenshotHotkey, options.readScreenshotHotkeyConfig);
     const currentResetPos = currentOrStored(options.getCurrentResetPositionHotkey, options.readResetPositionHotkeyConfig);
     const currentPlayPauseSong = currentOrStored(options.getCurrentPlayPauseSongHotkey, options.readPlayPauseSongHotkeyConfig);
+    const currentToggleTray = currentOrStored(options.getCurrentToggleTrayHotkey, options.readToggleTrayHotkeyConfig);
+    const currentShowSettings = currentOrStored(options.getCurrentShowSettingsWindowHotkey, options.readShowSettingsWindowHotkeyConfig);
 
     if (accelerator && ((currentHide && accelerator === currentHide)
       || (currentQuit && accelerator === currentQuit)
       || (currentSS && accelerator === currentSS)
       || (currentResetPos && accelerator === currentResetPos)
-      || (currentPlayPauseSong && accelerator === currentPlayPauseSong))) {
+      || (currentPlayPauseSong && accelerator === currentPlayPauseSong)
+      || (currentToggleTray && accelerator === currentToggleTray)
+      || (currentShowSettings && accelerator === currentShowSettings))) {
       return false;
     }
 
@@ -142,12 +184,16 @@ export function registerHotkeyIpcHandlers(options: RegisterHotkeyIpcHandlersOpti
     const currentSS = currentOrStored(options.getCurrentScreenshotHotkey, options.readScreenshotHotkeyConfig);
     const currentResetPos = currentOrStored(options.getCurrentResetPositionHotkey, options.readResetPositionHotkeyConfig);
     const currentNextSong = currentOrStored(options.getCurrentNextSongHotkey, options.readNextSongHotkeyConfig);
+    const currentToggleTray = currentOrStored(options.getCurrentToggleTrayHotkey, options.readToggleTrayHotkeyConfig);
+    const currentShowSettings = currentOrStored(options.getCurrentShowSettingsWindowHotkey, options.readShowSettingsWindowHotkeyConfig);
 
     if (accelerator && ((currentHide && accelerator === currentHide)
       || (currentQuit && accelerator === currentQuit)
       || (currentSS && accelerator === currentSS)
       || (currentResetPos && accelerator === currentResetPos)
-      || (currentNextSong && accelerator === currentNextSong))) {
+      || (currentNextSong && accelerator === currentNextSong)
+      || (currentToggleTray && accelerator === currentToggleTray)
+      || (currentShowSettings && accelerator === currentShowSettings))) {
       return false;
     }
 
@@ -168,12 +214,16 @@ export function registerHotkeyIpcHandlers(options: RegisterHotkeyIpcHandlersOpti
     const currentSS = currentOrStored(options.getCurrentScreenshotHotkey, options.readScreenshotHotkeyConfig);
     const currentNextSong = currentOrStored(options.getCurrentNextSongHotkey, options.readNextSongHotkeyConfig);
     const currentPlayPauseSong = currentOrStored(options.getCurrentPlayPauseSongHotkey, options.readPlayPauseSongHotkeyConfig);
+    const currentToggleTray = currentOrStored(options.getCurrentToggleTrayHotkey, options.readToggleTrayHotkeyConfig);
+    const currentShowSettings = currentOrStored(options.getCurrentShowSettingsWindowHotkey, options.readShowSettingsWindowHotkeyConfig);
 
     if (accelerator && ((currentHide && accelerator === currentHide)
       || (currentQuit && accelerator === currentQuit)
       || (currentSS && accelerator === currentSS)
       || (currentNextSong && accelerator === currentNextSong)
-      || (currentPlayPauseSong && accelerator === currentPlayPauseSong))) {
+      || (currentPlayPauseSong && accelerator === currentPlayPauseSong)
+      || (currentToggleTray && accelerator === currentToggleTray)
+      || (currentShowSettings && accelerator === currentShowSettings))) {
       return false;
     }
 
@@ -194,12 +244,16 @@ export function registerHotkeyIpcHandlers(options: RegisterHotkeyIpcHandlersOpti
     const currentNextSong = currentOrStored(options.getCurrentNextSongHotkey, options.readNextSongHotkeyConfig);
     const currentPlayPauseSong = currentOrStored(options.getCurrentPlayPauseSongHotkey, options.readPlayPauseSongHotkeyConfig);
     const currentResetPos = currentOrStored(options.getCurrentResetPositionHotkey, options.readResetPositionHotkeyConfig);
+    const currentToggleTray = currentOrStored(options.getCurrentToggleTrayHotkey, options.readToggleTrayHotkeyConfig);
+    const currentShowSettings = currentOrStored(options.getCurrentShowSettingsWindowHotkey, options.readShowSettingsWindowHotkeyConfig);
 
     if (accelerator && ((currentHide && accelerator === currentHide)
       || (currentSS && accelerator === currentSS)
       || (currentNextSong && accelerator === currentNextSong)
       || (currentPlayPauseSong && accelerator === currentPlayPauseSong)
-      || (currentResetPos && accelerator === currentResetPos))) {
+      || (currentResetPos && accelerator === currentResetPos)
+      || (currentToggleTray && accelerator === currentToggleTray)
+      || (currentShowSettings && accelerator === currentShowSettings))) {
       return false;
     }
 
@@ -221,13 +275,15 @@ export function registerHotkeyIpcHandlers(options: RegisterHotkeyIpcHandlersOpti
     const currentNextSong = currentOrStored(options.getCurrentNextSongHotkey, options.readNextSongHotkeyConfig);
     const currentPlayPauseSong = currentOrStored(options.getCurrentPlayPauseSongHotkey, options.readPlayPauseSongHotkeyConfig);
     const currentResetPos = currentOrStored(options.getCurrentResetPositionHotkey, options.readResetPositionHotkeyConfig);
+    const currentShowSettings = currentOrStored(options.getCurrentShowSettingsWindowHotkey, options.readShowSettingsWindowHotkeyConfig);
 
     if (accelerator && ((currentHide && accelerator === currentHide)
       || (currentQuit && accelerator === currentQuit)
       || (currentSS && accelerator === currentSS)
       || (currentNextSong && accelerator === currentNextSong)
       || (currentPlayPauseSong && accelerator === currentPlayPauseSong)
-      || (currentResetPos && accelerator === currentResetPos))) {
+      || (currentResetPos && accelerator === currentResetPos)
+      || (currentShowSettings && accelerator === currentShowSettings))) {
       return false;
     }
 

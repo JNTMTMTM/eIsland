@@ -32,11 +32,13 @@ interface CreateHotkeyServiceOptions {
   readPlayPauseSongHotkeyConfig: () => string;
   readResetPositionHotkeyConfig: () => string;
   readToggleTrayHotkeyConfig: () => string;
+  readShowSettingsWindowHotkeyConfig: () => string;
   onScreenshotHotkey: () => void;
   onNextSongHotkey: () => void;
   onPlayPauseSongHotkey: () => void;
   onResetPositionHotkey: () => void;
   onToggleTrayHotkey: () => void;
+  onShowSettingsWindowHotkey: () => void;
 }
 
 interface HotkeyService {
@@ -47,6 +49,7 @@ interface HotkeyService {
   getCurrentPlayPauseSongHotkey: () => string;
   getCurrentResetPositionHotkey: () => string;
   getCurrentToggleTrayHotkey: () => string;
+  getCurrentShowSettingsWindowHotkey: () => string;
   registerHideHotkey: (accelerator: string) => boolean;
   registerQuitHotkey: (accelerator: string) => boolean;
   registerScreenshotHotkey: (accelerator: string) => boolean;
@@ -54,6 +57,7 @@ interface HotkeyService {
   registerPlayPauseSongHotkey: (accelerator: string) => boolean;
   registerResetPositionHotkey: (accelerator: string) => boolean;
   registerToggleTrayHotkey: (accelerator: string) => boolean;
+  registerShowSettingsWindowHotkey: (accelerator: string) => boolean;
   suspendIslandHotkeys: () => void;
   resumeIslandHotkeys: () => void;
 }
@@ -72,6 +76,7 @@ export function createHotkeyService(options: CreateHotkeyServiceOptions): Hotkey
   let currentPlayPauseSongHotkey = '';
   let currentResetPositionHotkey = '';
   let currentToggleTrayHotkey = '';
+  let currentShowSettingsWindowHotkey = '';
 
   function registerHideHotkey(accelerator: string): boolean {
     const previousHotkey = currentHideHotkey || options.readHideHotkeyConfig();
@@ -106,6 +111,33 @@ export function createHotkeyService(options: CreateHotkeyServiceOptions): Hotkey
       return success;
     } catch (err) {
       console.error('[Hotkey] register error:', err);
+      return false;
+    }
+  }
+
+  function registerShowSettingsWindowHotkey(accelerator: string): boolean {
+    if (currentShowSettingsWindowHotkey) {
+      try {
+        globalShortcut.unregister(currentShowSettingsWindowHotkey);
+      } catch {
+        // ignore
+      }
+      currentShowSettingsWindowHotkey = '';
+    }
+
+    if (!accelerator) return true;
+
+    try {
+      const success = globalShortcut.register(accelerator, () => {
+        options.onShowSettingsWindowHotkey();
+      });
+
+      if (success) {
+        currentShowSettingsWindowHotkey = accelerator;
+      }
+      return success;
+    } catch (err) {
+      console.error('[ShowSettingsWindowHotkey] register error:', err);
       return false;
     }
   }
@@ -283,6 +315,8 @@ export function createHotkeyService(options: CreateHotkeyServiceOptions): Hotkey
       currentResetPositionHotkey || options.readResetPositionHotkeyConfig();
     const toggleTrayHotkey =
       currentToggleTrayHotkey || options.readToggleTrayHotkeyConfig();
+    const showSettingsWindowHotkey =
+      currentShowSettingsWindowHotkey || options.readShowSettingsWindowHotkeyConfig();
 
     [
       hideHotkey,
@@ -292,6 +326,7 @@ export function createHotkeyService(options: CreateHotkeyServiceOptions): Hotkey
       playPauseSongHotkey,
       resetPositionHotkey,
       toggleTrayHotkey,
+      showSettingsWindowHotkey,
     ].forEach((hotkey) => {
       if (!hotkey) return;
       try {
@@ -320,7 +355,10 @@ export function createHotkeyService(options: CreateHotkeyServiceOptions): Hotkey
     if (resetPositionHotkey) registerResetPositionHotkey(resetPositionHotkey);
     const toggleTrayHotkey =
       currentToggleTrayHotkey || options.readToggleTrayHotkeyConfig();
+    const showSettingsWindowHotkey =
+      currentShowSettingsWindowHotkey || options.readShowSettingsWindowHotkeyConfig();
     if (toggleTrayHotkey) registerToggleTrayHotkey(toggleTrayHotkey);
+    if (showSettingsWindowHotkey) registerShowSettingsWindowHotkey(showSettingsWindowHotkey);
   }
 
   return {
@@ -331,6 +369,7 @@ export function createHotkeyService(options: CreateHotkeyServiceOptions): Hotkey
     getCurrentPlayPauseSongHotkey: () => currentPlayPauseSongHotkey,
     getCurrentResetPositionHotkey: () => currentResetPositionHotkey,
     getCurrentToggleTrayHotkey: () => currentToggleTrayHotkey,
+    getCurrentShowSettingsWindowHotkey: () => currentShowSettingsWindowHotkey,
     registerHideHotkey,
     registerQuitHotkey,
     registerScreenshotHotkey,
@@ -338,6 +377,7 @@ export function createHotkeyService(options: CreateHotkeyServiceOptions): Hotkey
     registerPlayPauseSongHotkey,
     registerResetPositionHotkey,
     registerToggleTrayHotkey,
+    registerShowSettingsWindowHotkey,
     suspendIslandHotkeys,
     resumeIslandHotkeys,
   };

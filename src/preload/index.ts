@@ -463,6 +463,21 @@ const api = {
   toggleTrayHotkeySet: (accelerator: string): Promise<boolean> => {
     return ipcRenderer.invoke('toggle-tray-hotkey:set', accelerator);
   },
+  /**
+   * 获取当前显示配置窗口快捷键
+   * @returns 当前快捷键字符串
+   */
+  showSettingsWindowHotkeyGet: (): Promise<string> => {
+    return ipcRenderer.invoke('show-settings-window-hotkey:get');
+  },
+  /**
+   * 设置显示配置窗口快捷键
+   * @param accelerator - Electron accelerator 字符串
+   * @returns 是否注册成功
+   */
+  showSettingsWindowHotkeySet: (accelerator: string): Promise<boolean> => {
+    return ipcRenderer.invoke('show-settings-window-hotkey:set', accelerator);
+  },
   /** ===== 日志文件 API ===== */
   /**
    * 写入日志到文件

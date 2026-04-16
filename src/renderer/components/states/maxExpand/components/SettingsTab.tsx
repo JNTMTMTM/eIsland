@@ -410,6 +410,12 @@ export function SettingsTab(): ReactElement {
   const [toggleTrayHotkeyError, setToggleTrayHotkeyError] = useState<string>('');
   const toggleTrayHotkeyInputRef = useRef<HTMLInputElement>(null);
 
+  /** 显示配置窗口快捷键相关状态 */
+  const [showSettingsWindowHotkey, setShowSettingsWindowHotkey] = useState<string>('');
+  const [showSettingsWindowHotkeyRecording, setShowSettingsWindowHotkeyRecording] = useState(false);
+  const [showSettingsWindowHotkeyError, setShowSettingsWindowHotkeyError] = useState<string>('');
+  const showSettingsWindowHotkeyInputRef = useRef<HTMLInputElement>(null);
+
   const hideProcessKeyword = hideProcessFilter.trim().toLowerCase();
 
 
@@ -668,6 +674,10 @@ export function SettingsTab(): ReactElement {
     window.api.toggleTrayHotkeyGet().then((key) => {
       if (cancelled) return;
       setToggleTrayHotkey(key || '');
+    }).catch(() => {});
+    window.api.showSettingsWindowHotkeyGet().then((key) => {
+      if (cancelled) return;
+      setShowSettingsWindowHotkey(key || '');
     }).catch(() => {});
     return () => { cancelled = true; };
   }, []);
@@ -1097,8 +1107,8 @@ export function SettingsTab(): ReactElement {
     return parts.length >= 2 ? parts.join('+') : '';
   };
 
-  const isDuplicateHotkey = (acc: string, exclude: 'hide' | 'quit' | 'screenshot' | 'next-song' | 'play-pause-song' | 'reset-position' | 'toggle-tray'): boolean => {
-    const pairs: Array<{ key: 'hide' | 'quit' | 'screenshot' | 'next-song' | 'play-pause-song' | 'reset-position' | 'toggle-tray'; value: string }> = [
+  const isDuplicateHotkey = (acc: string, exclude: 'hide' | 'quit' | 'screenshot' | 'next-song' | 'play-pause-song' | 'reset-position' | 'toggle-tray' | 'show-settings-window'): boolean => {
+    const pairs: Array<{ key: 'hide' | 'quit' | 'screenshot' | 'next-song' | 'play-pause-song' | 'reset-position' | 'toggle-tray' | 'show-settings-window'; value: string }> = [
       { key: 'hide', value: hideHotkey },
       { key: 'quit', value: quitHotkey },
       { key: 'screenshot', value: screenshotHotkey },
@@ -1106,6 +1116,7 @@ export function SettingsTab(): ReactElement {
       { key: 'play-pause-song', value: playPauseSongHotkey },
       { key: 'reset-position', value: resetPositionHotkey },
       { key: 'toggle-tray', value: toggleTrayHotkey },
+      { key: 'show-settings-window', value: showSettingsWindowHotkey },
     ];
     return pairs.some((item) => item.key !== exclude && item.value && item.value === acc);
   };
@@ -1257,6 +1268,36 @@ export function SettingsTab(): ReactElement {
       }
     }).catch(() => {
       setToggleTrayHotkeyError('快捷键注册失败');
+    });
+  };
+
+  /**
+   * 显示配置窗口快捷键录入键盘事件处理
+   * @param e - React 键盘事件
+   */
+  const handleShowSettingsWindowHotkeyKeyDown = (e: KeyboardEvent): void => {
+    e.preventDefault();
+    e.stopPropagation();
+    setShowSettingsWindowHotkeyError('');
+    const acc = keyEventToAccelerator(e);
+    if (!acc) return;
+    if (isDuplicateHotkey(acc, 'show-settings-window')) {
+      setShowSettingsWindowHotkeyError('重复快捷键');
+      setShowSettingsWindowHotkeyRecording(false);
+      showSettingsWindowHotkeyInputRef.current?.blur();
+      return;
+    }
+
+    window.api.showSettingsWindowHotkeySet(acc).then((ok) => {
+      if (ok) {
+        setShowSettingsWindowHotkey(acc);
+        setShowSettingsWindowHotkeyRecording(false);
+        showSettingsWindowHotkeyInputRef.current?.blur();
+      } else {
+        setShowSettingsWindowHotkeyError('快捷键注册失败，请尝试其他组合');
+      }
+    }).catch(() => {
+      setShowSettingsWindowHotkeyError('快捷键注册失败');
     });
   };
 
@@ -1632,6 +1673,14 @@ export function SettingsTab(): ReactElement {
               setToggleTrayHotkeyError={setToggleTrayHotkeyError}
               handleToggleTrayHotkeyKeyDown={handleToggleTrayHotkeyKeyDown}
               setToggleTrayHotkey={setToggleTrayHotkey}
+              showSettingsWindowHotkeyInputRef={showSettingsWindowHotkeyInputRef}
+              showSettingsWindowHotkeyRecording={showSettingsWindowHotkeyRecording}
+              showSettingsWindowHotkeyError={showSettingsWindowHotkeyError}
+              showSettingsWindowHotkey={showSettingsWindowHotkey}
+              setShowSettingsWindowHotkeyRecording={setShowSettingsWindowHotkeyRecording}
+              setShowSettingsWindowHotkeyError={setShowSettingsWindowHotkeyError}
+              handleShowSettingsWindowHotkeyKeyDown={handleShowSettingsWindowHotkeyKeyDown}
+              setShowSettingsWindowHotkey={setShowSettingsWindowHotkey}
             />
           )}
 
