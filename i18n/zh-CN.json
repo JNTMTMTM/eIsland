@@ -211,6 +211,31 @@
       "placeholder": "输入消息..."
     }
   },
+  "urlFavoritesTab": {
+    "title": "URL 收藏",
+    "count": "{{count}} 条",
+    "empty": "还没有收藏，先添加一个 URL 吧。",
+    "openWebsiteTitle": "点击打开网站",
+    "resolvingTitle": "读取网页名称中…",
+    "noNote": "未备注",
+    "input": {
+      "placeholderWithItems": "输入并添加新的 URL 收藏",
+      "placeholderEmpty": "输入 URL，例如 github.com"
+    },
+    "actions": {
+      "add": "添加",
+      "save": "保存",
+      "expand": "展开",
+      "collapse": "收起",
+      "removeAria": "删除 URL 收藏"
+    },
+    "editor": {
+      "urlLabel": "URL",
+      "urlPlaceholder": "编辑 URL",
+      "noteLabel": "备注",
+      "notePlaceholder": "输入备注"
+    }
+  },
   "settings": {
     "sidebar": {
       "title": "设置"

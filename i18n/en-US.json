@@ -211,6 +211,31 @@
       "placeholder": "Type a message..."
     }
   },
+  "urlFavoritesTab": {
+    "title": "URL Favorites",
+    "count": "{{count}} items",
+    "empty": "No favorites yet, add a URL first.",
+    "openWebsiteTitle": "Click to open website",
+    "resolvingTitle": "Resolving website title…",
+    "noNote": "No note",
+    "input": {
+      "placeholderWithItems": "Type and add a new URL favorite",
+      "placeholderEmpty": "Enter URL, e.g. github.com"
+    },
+    "actions": {
+      "add": "Add",
+      "save": "Save",
+      "expand": "Expand",
+      "collapse": "Collapse",
+      "removeAria": "Remove URL favorite"
+    },
+    "editor": {
+      "urlLabel": "URL",
+      "urlPlaceholder": "Edit URL",
+      "noteLabel": "Note",
+      "notePlaceholder": "Enter note"
+    }
+  },
   "settings": {
     "sidebar": {
       "title": "Settings"

@@ -25,6 +25,7 @@
  */
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { SvgIcon } from '../../../../utils/SvgIcon';
 import { fetchWebsiteTitle, getWebsiteFaviconUrl } from '../../../../api/siteMetaApi';
 
@@ -78,6 +79,7 @@ function persistFavorites(items: UrlFavoriteItem[]): void {
  * @description 最大展开状态下的 URL 收藏管理与编辑面板
  */
 export function UrlFavoritesTab(): React.ReactElement {
+  const { t } = useTranslation();
   const [favorites, setFavorites] = useState<UrlFavoriteItem[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [urlInput, setUrlInput] = useState('');
@@ -305,15 +307,17 @@ export function UrlFavoritesTab(): React.ReactElement {
   const totalCount = favorites.length;
 
   const placeholder = useMemo(
-    () => (totalCount > 0 ? '输入并添加新的 URL 收藏' : '输入 URL，例如 github.com'),
-    [totalCount],
+    () => (totalCount > 0
+      ? t('urlFavoritesTab.input.placeholderWithItems', { defaultValue: '输入并添加新的 URL 收藏' })
+      : t('urlFavoritesTab.input.placeholderEmpty', { defaultValue: '输入 URL，例如 github.com' })),
+    [totalCount, t],
   );
 
   return (
     <div className="url-favorites">
       <div className="url-favorites-header">
-        <span className="url-favorites-title">URL 收藏</span>
-        <span className="url-favorites-count">{totalCount} 条</span>
+        <span className="url-favorites-title">{t('urlFavoritesTab.title', { defaultValue: 'URL 收藏' })}</span>
+        <span className="url-favorites-count">{t('urlFavoritesTab.count', { defaultValue: '{{count}} 条', count: totalCount })}</span>
       </div>
 
       <div className="url-favorites-input-bar">
@@ -330,7 +334,9 @@ export function UrlFavoritesTab(): React.ReactElement {
             }
           }}
         />
-        <button className="url-favorites-add" type="button" onClick={handleAdd}>添加</button>
+        <button className="url-favorites-add" type="button" onClick={handleAdd}>
+          {t('urlFavoritesTab.actions.add', { defaultValue: '添加' })}
+        </button>
       </div>
 
       <div
@@ -340,7 +346,7 @@ export function UrlFavoritesTab(): React.ReactElement {
         }}
       >
         {favorites.length === 0 ? (
-          <div className="url-favorites-empty">还没有收藏，先添加一个 URL 吧。</div>
+          <div className="url-favorites-empty">{t('urlFavoritesTab.empty', { defaultValue: '还没有收藏，先添加一个 URL 吧。' })}</div>
         ) : favorites.map((item) => (
           <div
             key={item.id}
@@ -369,28 +375,32 @@ export function UrlFavoritesTab(): React.ReactElement {
                   e.stopPropagation();
                   handleOpen(item.url);
                 }}
-                title="点击打开网站"
+                title={t('urlFavoritesTab.openWebsiteTitle', { defaultValue: '点击打开网站' })}
               >
-                {item.title && item.title !== item.url ? item.title : '读取网页名称中…'}
+                {item.title && item.title !== item.url ? item.title : t('urlFavoritesTab.resolvingTitle', { defaultValue: '读取网页名称中…' })}
               </span>
-              <span className="url-favorites-note" title={item.note || '未备注'}>{item.note || '未备注'}</span>
-              <span className="url-favorites-expand-indicator">{expandedId === item.id ? '收起' : '展开'}</span>
+              <span className="url-favorites-note" title={item.note || t('urlFavoritesTab.noNote', { defaultValue: '未备注' })}>{item.note || t('urlFavoritesTab.noNote', { defaultValue: '未备注' })}</span>
+              <span className="url-favorites-expand-indicator">
+                {expandedId === item.id
+                  ? t('urlFavoritesTab.actions.collapse', { defaultValue: '收起' })
+                  : t('urlFavoritesTab.actions.expand', { defaultValue: '展开' })}
+              </span>
             </button>
 
             {expandedId === item.id ? (
               <div className="url-favorites-editor">
                 <div className="url-favorites-editor-row">
-                  <span className="url-favorites-editor-label">URL</span>
+                  <span className="url-favorites-editor-label">{t('urlFavoritesTab.editor.urlLabel', { defaultValue: 'URL' })}</span>
                   <input
                     className="url-favorites-url-input"
                     type="text"
                     value={editUrlInput}
                     onChange={(e) => setEditUrlInput(e.target.value)}
-                    placeholder="编辑 URL"
+                    placeholder={t('urlFavoritesTab.editor.urlPlaceholder', { defaultValue: '编辑 URL' })}
                   />
                 </div>
                 <div className="url-favorites-editor-row">
-                  <span className="url-favorites-editor-label">备注</span>
+                  <span className="url-favorites-editor-label">{t('urlFavoritesTab.editor.noteLabel', { defaultValue: '备注' })}</span>
                   <input
                     className="url-favorites-note-input"
                     type="text"
@@ -402,12 +412,21 @@ export function UrlFavoritesTab(): React.ReactElement {
                         handleSaveEdit(item.id);
                       }
                     }}
-                    placeholder="输入备注"
+                    placeholder={t('urlFavoritesTab.editor.notePlaceholder', { defaultValue: '输入备注' })}
                   />
                 </div>
                 <div className="url-favorites-editor-actions">
-                  <button className="url-favorites-save" type="button" onClick={() => handleSaveEdit(item.id)}>保存</button>
-                  <button className="url-favorites-remove" type="button" onClick={() => handleRemove(item.id)} aria-label="删除 URL 收藏">×</button>
+                  <button className="url-favorites-save" type="button" onClick={() => handleSaveEdit(item.id)}>
+                    {t('urlFavoritesTab.actions.save', { defaultValue: '保存' })}
+                  </button>
+                  <button
+                    className="url-favorites-remove"
+                    type="button"
+                    onClick={() => handleRemove(item.id)}
+                    aria-label={t('urlFavoritesTab.actions.removeAria', { defaultValue: '删除 URL 收藏' })}
+                  >
+                    ×
+                  </button>
                 </div>
               </div>
             ) : null}
