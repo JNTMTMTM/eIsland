@@ -25,12 +25,14 @@
  */
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
+import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../store/slices';
 import '../../../styles/guide/guide.css';
 import { SvgIcon } from '../../../utils/SvgIcon';
 import albumArt from '../../../assets/avatar/T.jpg';
 import { setThemeMode as applyThemeMode, getThemeMode, type ThemeMode } from '../../../utils/theme';
+import i18n from '../../../i18n';
 
 /** 从图片提取主题色（canvas 1×1 缩放取均值） */
 function extractDominantColor(src: string): Promise<[number, number, number]> {
@@ -82,7 +84,13 @@ interface MusicCard {
   demo: MiniMusicDemo;
 }
 
-const SAMPLE_LYRICS = ['这是一句歌词示例', '音乐在空中飘荡', '旋律轻轻回响'];
+function getSampleLyrics(t: TFunction): string[] {
+  return [
+    t('guide.mini.music.sampleLyrics.0', { defaultValue: '这是一句歌词示例' }),
+    t('guide.mini.music.sampleLyrics.1', { defaultValue: '音乐在空中飘荡' }),
+    t('guide.mini.music.sampleLyrics.2', { defaultValue: '旋律轻轻回响' }),
+  ];
+}
 
 /** 迷你工具岛演示模式 */
 type MiniToolDemo = 'todo' | 'ai' | 'timer' | 'pomodoro';
@@ -106,149 +114,157 @@ interface SettingCard {
   demo: MiniSettingDemo;
 }
 
-/** 设置引导卡片数据 */
-const SETTING_CARDS: SettingCard[] = [
-  {
-    iconSrc: SvgIcon.THEME,
-    title: '主题切换',
-    desc: '在深色、浅色和跟随系统之间自由切换。',
-    demo: 'theme',
-  },
-  {
-    iconSrc: SvgIcon.LAYOUT,
-    title: '透明度调整',
-    desc: '自定义灵动岛的背景透明度。',
-    demo: 'opacity',
-  },
-  {
-    iconSrc: SvgIcon.MOVE,
-    title: '位置微调',
-    desc: '微调灵动岛在屏幕顶部的水平与垂直偏移。',
-    demo: 'position',
-  },
-  {
-    iconSrc: SvgIcon.SHORTCUT_KEY,
-    title: '开机自启',
-    desc: '设置灵动岛是否随系统启动自动运行。',
-    demo: 'autostart',
-  },
-  {
-    iconSrc: SvgIcon.SHORTCUT_KEY,
-    title: '快捷键',
-    desc: '通过全局快捷键快速控制灵动岛。',
-    demo: 'shortcut',
-  },
-];
+function getSettingCards(t: TFunction): SettingCard[] {
+  return [
+    {
+      iconSrc: SvgIcon.THEME,
+      title: t('guide.settingCards.theme.title', { defaultValue: '主题切换' }),
+      desc: t('guide.settingCards.theme.desc', { defaultValue: '在深色、浅色和跟随系统之间自由切换。' }),
+      demo: 'theme',
+    },
+    {
+      iconSrc: SvgIcon.LAYOUT,
+      title: t('guide.settingCards.opacity.title', { defaultValue: '透明度调整' }),
+      desc: t('guide.settingCards.opacity.desc', { defaultValue: '自定义灵动岛的背景透明度。' }),
+      demo: 'opacity',
+    },
+    {
+      iconSrc: SvgIcon.MOVE,
+      title: t('guide.settingCards.position.title', { defaultValue: '位置微调' }),
+      desc: t('guide.settingCards.position.desc', { defaultValue: '微调灵动岛在屏幕顶部的水平与垂直偏移。' }),
+      demo: 'position',
+    },
+    {
+      iconSrc: SvgIcon.SHORTCUT_KEY,
+      title: t('guide.settingCards.autostart.title', { defaultValue: '开机自启' }),
+      desc: t('guide.settingCards.autostart.desc', { defaultValue: '设置灵动岛是否随系统启动自动运行。' }),
+      demo: 'autostart',
+    },
+    {
+      iconSrc: SvgIcon.SHORTCUT_KEY,
+      title: t('guide.settingCards.shortcut.title', { defaultValue: '快捷键' }),
+      desc: t('guide.settingCards.shortcut.desc', { defaultValue: '通过全局快捷键快速控制灵动岛。' }),
+      demo: 'shortcut',
+    },
+  ];
+}
 
-/** 工具引导卡片数据 */
-const TOOL_CARDS: ToolCard[] = [
-  {
-    iconSrc: SvgIcon.TASK_MANAGER,
-    title: '待办事项',
-    desc: '在扩展面板中管理你的待办任务清单。',
-    demo: 'todo',
-  },
-  {
-    iconSrc: SvgIcon.AI,
-    title: 'AI 对话助手',
-    desc: '内置 AI 对话，随时获取智能回答与建议。',
-    demo: 'ai',
-  },
-  {
-    iconSrc: SvgIcon.TIMER,
-    title: '倒数日与计时器',
-    desc: '设置倒计时或倒数日，精准跟踪重要时刻。',
-    demo: 'timer',
-  },
-  {
-    iconSrc: SvgIcon.POMODORO,
-    title: '番茄钟专注',
-    desc: '番茄工作法，帮助你保持高效专注。',
-    demo: 'pomodoro',
-  },
-];
+function getToolCards(t: TFunction): ToolCard[] {
+  return [
+    {
+      iconSrc: SvgIcon.TASK_MANAGER,
+      title: t('guide.toolCards.todo.title', { defaultValue: '待办事项' }),
+      desc: t('guide.toolCards.todo.desc', { defaultValue: '在扩展面板中管理你的待办任务清单。' }),
+      demo: 'todo',
+    },
+    {
+      iconSrc: SvgIcon.AI,
+      title: t('guide.toolCards.ai.title', { defaultValue: 'AI 对话助手' }),
+      desc: t('guide.toolCards.ai.desc', { defaultValue: '内置 AI 对话，随时获取智能回答与建议。' }),
+      demo: 'ai',
+    },
+    {
+      iconSrc: SvgIcon.TIMER,
+      title: t('guide.toolCards.timer.title', { defaultValue: '倒数日与计时器' }),
+      desc: t('guide.toolCards.timer.desc', { defaultValue: '设置倒计时或倒数日，精准跟踪重要时刻。' }),
+      demo: 'timer',
+    },
+    {
+      iconSrc: SvgIcon.POMODORO,
+      title: t('guide.toolCards.pomodoro.title', { defaultValue: '番茄钟专注' }),
+      desc: t('guide.toolCards.pomodoro.desc', { defaultValue: '番茄工作法，帮助你保持高效专注。' }),
+      demo: 'pomodoro',
+    },
+  ];
+}
 
-/** 音乐引导卡片数据 */
-const MUSIC_CARDS: MusicCard[] = [
-  {
-    iconSrc: SvgIcon.SMTC,
-    title: 'SMTC 自动检测',
-    desc: '自动识别正在播放的音乐源，实时同步播放信息。',
-    demo: 'smtc',
-  },
-  {
-    iconSrc: SvgIcon.LRC,
-    title: '歌词匹配与同步',
-    desc: '多源歌词自动匹配，实时滚动显示当前歌词。',
-    demo: 'lyrics',
-  },
-  {
-    iconSrc: SvgIcon.MUSIC,
-    title: '逐字扫光模式',
-    desc: '支持逐字高亮的卡拉 OK 歌词显示模式。',
-    demo: 'karaoke',
-  },
-];
+function getMusicCards(t: TFunction): MusicCard[] {
+  return [
+    {
+      iconSrc: SvgIcon.SMTC,
+      title: t('guide.musicCards.smtc.title', { defaultValue: 'SMTC 自动检测' }),
+      desc: t('guide.musicCards.smtc.desc', { defaultValue: '自动识别正在播放的音乐源，实时同步播放信息。' }),
+      demo: 'smtc',
+    },
+    {
+      iconSrc: SvgIcon.LRC,
+      title: t('guide.musicCards.lyrics.title', { defaultValue: '歌词匹配与同步' }),
+      desc: t('guide.musicCards.lyrics.desc', { defaultValue: '多源歌词自动匹配，实时滚动显示当前歌词。' }),
+      demo: 'lyrics',
+    },
+    {
+      iconSrc: SvgIcon.MUSIC,
+      title: t('guide.musicCards.karaoke.title', { defaultValue: '逐字扫光模式' }),
+      desc: t('guide.musicCards.karaoke.desc', { defaultValue: '支持逐字高亮的卡拉 OK 歌词显示模式。' }),
+      demo: 'karaoke',
+    },
+  ];
+}
 
-/** 交互引导卡片数据 */
-const INTERACTION_CARDS: InteractionCard[] = [
-  {
-    iconSrc: SvgIcon.INTERACTION,
-    title: '基本交互',
-    desc: '在灵动岛顶部滚动鼠标滚轮，切换灵动岛状态。',
-    demo: 'scroll',
-  },
-  {
-    iconSrc: SvgIcon.LAYOUT,
-    title: '悬停展开',
-    desc: '将鼠标悬停在灵动岛上方，即可展开预览面板。',
-    demo: 'hover',
-  },
-  {
-    iconSrc: SvgIcon.SCREENSHOT,
-    title: '单击操作',
-    desc: '单击灵动岛，打开完整的操作面板。',
-    demo: 'click',
-  },
-  {
-    iconSrc: SvgIcon.HIDE,
-    title: '自动收回',
-    desc: '将鼠标移开灵动岛，自动收回至待机状态。',
-    demo: 'retract',
-  },
-];
+function getInteractionCards(t: TFunction): InteractionCard[] {
+  return [
+    {
+      iconSrc: SvgIcon.INTERACTION,
+      title: t('guide.interactionCards.scroll.title', { defaultValue: '基本交互' }),
+      desc: t('guide.interactionCards.scroll.desc', { defaultValue: '在灵动岛顶部滚动鼠标滚轮，切换灵动岛状态。' }),
+      demo: 'scroll',
+    },
+    {
+      iconSrc: SvgIcon.LAYOUT,
+      title: t('guide.interactionCards.hover.title', { defaultValue: '悬停展开' }),
+      desc: t('guide.interactionCards.hover.desc', { defaultValue: '将鼠标悬停在灵动岛上方，即可展开预览面板。' }),
+      demo: 'hover',
+    },
+    {
+      iconSrc: SvgIcon.SCREENSHOT,
+      title: t('guide.interactionCards.click.title', { defaultValue: '单击操作' }),
+      desc: t('guide.interactionCards.click.desc', { defaultValue: '单击灵动岛，打开完整的操作面板。' }),
+      demo: 'click',
+    },
+    {
+      iconSrc: SvgIcon.HIDE,
+      title: t('guide.interactionCards.retract.title', { defaultValue: '自动收回' }),
+      desc: t('guide.interactionCards.retract.desc', { defaultValue: '将鼠标移开灵动岛，自动收回至待机状态。' }),
+      demo: 'retract',
+    },
+  ];
+}
 
-/** 引导页数据 */
-const GUIDE_PAGES: GuidePage[] = [
-  {
-    imageSrc: './svg/eisland.svg',
-    title: '欢迎使用 eIsland',
-    desc: '一款灵感来自 Apple 灵动岛的 Windows 桌面浮窗小组件，\n让你的桌面更加灵动、高效。',
-  },
-  {
-    interactive: 'basic',
-    title: '基本交互',
-    desc: '通过鼠标与灵动岛进行交互，解锁不同状态。',
-  },
-  {
-    interactive: 'music',
-    title: '音乐与歌词',
-    desc: '自动识别正在播放的音乐，实时显示同步歌词。',
-  },
-  {
-    interactive: 'tools',
-    title: '实用工具',
-    desc: '扩展面板中集成了多种实用功能。',
-  },
-  {
-    interactive: 'settings',
-    title: '个性化设置',
-    desc: '在扩展面板的设置中自定义你的灵动岛体验。',
-  },
-];
+function getGuidePages(t: TFunction): GuidePage[] {
+  return [
+    {
+      imageSrc: './svg/eisland.svg',
+      title: t('guide.welcome.title', { defaultValue: '欢迎使用 eIsland' }),
+      desc: t('guide.welcome.desc', {
+        defaultValue: '一款灵感来自 Apple 灵动岛的 Windows 桌面浮窗小组件，\n让你的桌面更加灵动、高效。',
+      }),
+    },
+    {
+      interactive: 'basic',
+      title: t('guide.sections.basic.title', { defaultValue: '基本交互' }),
+      desc: t('guide.sections.basic.desc', { defaultValue: '通过鼠标与灵动岛进行交互，解锁不同状态。' }),
+    },
+    {
+      interactive: 'music',
+      title: t('guide.sections.music.title', { defaultValue: '音乐与歌词' }),
+      desc: t('guide.sections.music.desc', { defaultValue: '自动识别正在播放的音乐，实时显示同步歌词。' }),
+    },
+    {
+      interactive: 'tools',
+      title: t('guide.sections.tools.title', { defaultValue: '实用工具' }),
+      desc: t('guide.sections.tools.desc', { defaultValue: '扩展面板中集成了多种实用功能。' }),
+    },
+    {
+      interactive: 'settings',
+      title: t('guide.sections.settings.title', { defaultValue: '个性化设置' }),
+      desc: t('guide.sections.settings.desc', { defaultValue: '在扩展面板的设置中自定义你的灵动岛体验。' }),
+    },
+  ];
+}
 
 /** 迷你设置岛演示组件 — 带实际生效的设置切换按钮 */
 function MiniSettingIsland({ demo }: { demo: MiniSettingDemo }): React.ReactElement {
+  const tr = (key: string, fallback: string): string => i18n.t(key, { defaultValue: fallback });
   const [themeMode, setThemeMode] = useState<ThemeMode>(getThemeMode);
   const [opacity, setOpacity] = useState(100);
   const [offset, setOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -304,7 +320,7 @@ function MiniSettingIsland({ demo }: { demo: MiniSettingDemo }): React.ReactElem
           <div className="ms-theme">
             <div className={`ms-theme-preview ms-theme-${visual}`}>
               <div className="ms-theme-island" />
-              <div className="ms-theme-label">{visual === 'dark' ? '深色' : visual === 'light' ? '浅色' : '自动'}</div>
+              <div className="ms-theme-label">{visual === 'dark' ? tr('guide.mini.setting.theme.dark', '深色') : visual === 'light' ? tr('guide.mini.setting.theme.light', '浅色') : tr('guide.mini.setting.theme.auto', '自动')}</div>
             </div>
           </div>
         );
@@ -331,7 +347,11 @@ function MiniSettingIsland({ demo }: { demo: MiniSettingDemo }): React.ReactElem
           </div>
         );
       case 'autostart': {
-        const label = autostart === 'enabled' ? '已开启' : autostart === 'high-priority' ? '高优先级' : '已关闭';
+        const label = autostart === 'enabled'
+          ? tr('guide.mini.setting.autostart.on', '已开启')
+          : autostart === 'high-priority'
+            ? tr('guide.mini.setting.autostart.highPriority', '高优先级')
+            : tr('guide.mini.setting.autostart.off', '已关闭');
         const isOn = autostart !== 'disabled';
         return (
           <div className="ms-autostart">
@@ -345,23 +365,23 @@ function MiniSettingIsland({ demo }: { demo: MiniSettingDemo }): React.ReactElem
           <div className="ms-shortcut">
             <div className="ms-shortcut-list">
               <div className="ms-shortcut-row">
-                <span className="ms-shortcut-label">隐藏/显示</span>
+                <span className="ms-shortcut-label">{tr('guide.mini.setting.shortcut.toggleIsland', '隐藏/显示')}</span>
                 <span className="ms-shortcut-keys"><kbd>Alt</kbd><span className="ms-shortcut-plus">+</span><kbd>X</kbd></span>
               </div>
               <div className="ms-shortcut-row">
-                <span className="ms-shortcut-label">关闭灵动岛</span>
+                <span className="ms-shortcut-label">{tr('guide.mini.setting.shortcut.quitIsland', '关闭灵动岛')}</span>
                 <span className="ms-shortcut-keys"><kbd>Alt</kbd><span className="ms-shortcut-plus">+</span><kbd>C</kbd></span>
               </div>
               <div className="ms-shortcut-row">
-                <span className="ms-shortcut-label">还原默认位置快捷键</span>
+                <span className="ms-shortcut-label">{tr('guide.mini.setting.shortcut.resetPosition', '还原默认位置快捷键')}</span>
                 <span className="ms-shortcut-keys"><kbd>Alt</kbd><span className="ms-shortcut-plus">+</span><kbd>B</kbd></span>
               </div>
               <div className="ms-shortcut-row">
-                <span className="ms-shortcut-label">选区截图</span>
+                <span className="ms-shortcut-label">{tr('guide.mini.setting.shortcut.screenshot', '选区截图')}</span>
                 <span className="ms-shortcut-keys"><kbd>Alt</kbd><span className="ms-shortcut-plus">+</span><kbd>V</kbd></span>
               </div>
               <div className="ms-shortcut-row">
-                <span className="ms-shortcut-label">切换歌曲</span>
+                <span className="ms-shortcut-label">{tr('guide.mini.setting.shortcut.switchSong', '切换歌曲')}</span>
                 <span className="ms-shortcut-keys"><kbd>Alt</kbd><span className="ms-shortcut-plus">+</span><kbd>S</kbd></span>
               </div>
             </div>
@@ -381,7 +401,7 @@ function MiniSettingIsland({ demo }: { demo: MiniSettingDemo }): React.ReactElem
                 className={`ms-ctrl-btn${themeMode === m ? ' active' : ''}`}
                 onClick={() => handleTheme(m)}
               >
-                {m === 'dark' ? '深色' : m === 'light' ? '浅色' : '系统'}
+                {m === 'dark' ? tr('guide.mini.setting.theme.dark', '深色') : m === 'light' ? tr('guide.mini.setting.theme.light', '浅色') : tr('guide.mini.setting.theme.system', '系统')}
               </button>
             ))}
           </div>
@@ -414,7 +434,11 @@ function MiniSettingIsland({ demo }: { demo: MiniSettingDemo }): React.ReactElem
                 className={`ms-ctrl-btn${autostart === m ? ' active' : ''}`}
                 onClick={() => handleAutostart(m)}
               >
-                {m === 'disabled' ? '关闭' : m === 'enabled' ? '开启' : '高优先级'}
+                {m === 'disabled'
+                  ? tr('guide.mini.setting.controls.autostart.disabled', '关闭')
+                  : m === 'enabled'
+                    ? tr('guide.mini.setting.controls.autostart.enabled', '开启')
+                    : tr('guide.mini.setting.controls.autostart.highPriority', '高优先级')}
               </button>
             ))}
           </div>
@@ -438,6 +462,7 @@ function MiniSettingIsland({ demo }: { demo: MiniSettingDemo }): React.ReactElem
 
 /** 迷你工具岛演示组件 — 布局与样式参照各实际功能面板 */
 function MiniToolIsland({ demo }: { demo: MiniToolDemo }): React.ReactElement {
+  const tr = (key: string, fallback: string, options?: Record<string, unknown>): string => i18n.t(key, { defaultValue: fallback, ...(options ?? {}) });
   const [tick, setTick] = useState(0);
 
   useEffect(() => {
@@ -450,14 +475,14 @@ function MiniToolIsland({ demo }: { demo: MiniToolDemo }): React.ReactElement {
       /* ── 待办事项：参照 TodoTab / ov-dash-todo ── */
       case 'todo': {
         const items: { text: string; priority?: string; pColor?: string; done?: boolean }[] = [
-          { text: '完成设计稿', priority: 'P0', pColor: '#ff5252' },
-          { text: '发送周报邮件', priority: 'P1', pColor: '#ffab40' },
-          { text: '整理项目笔记', priority: 'P2', pColor: '#69c0ff' },
+          { text: tr('guide.mini.tool.todo.items.design', '完成设计稿'), priority: 'P0', pColor: '#ff5252' },
+          { text: tr('guide.mini.tool.todo.items.weeklyReport', '发送周报邮件'), priority: 'P1', pColor: '#ffab40' },
+          { text: tr('guide.mini.tool.todo.items.notes', '整理项目笔记'), priority: 'P2', pColor: '#69c0ff' },
         ];
         return (
           <div className="mt-todo">
             <div className="mt-todo-header">
-              <span className="mt-todo-title">待办事项</span>
+              <span className="mt-todo-title">{tr('guide.mini.tool.todo.title', '待办事项')}</span>
               <span className="mt-todo-stats">
                 <span className="mt-todo-stat done">✓ {tick % 4}</span>
                 <span className="mt-todo-stat undone">○ {3 - (tick % 4)}</span>
@@ -484,9 +509,9 @@ function MiniToolIsland({ demo }: { demo: MiniToolDemo }): React.ReactElement {
       case 'ai':
         return (
           <div className="mt-chat">
-            <div className="mt-chat-header">AI 对话</div>
+            <div className="mt-chat-header">{tr('guide.mini.tool.ai.title', 'AI 对话')}</div>
             <div className="mt-chat-messages">
-              <div className="mt-chat-bubble user">你好</div>
+              <div className="mt-chat-bubble user">{tr('guide.mini.tool.ai.hello', '你好')}</div>
               <div className="mt-chat-bubble ai">
                 <span className="mt-chat-dot" />
                 <span className="mt-chat-dot" />
@@ -503,12 +528,14 @@ function MiniToolIsland({ demo }: { demo: MiniToolDemo }): React.ReactElement {
             <div className="mt-cd-card">
               <div className="mt-cd-overlay" />
               <div className="mt-cd-content">
-                <span className="mt-cd-badge">倒数日</span>
-                <span className="mt-cd-name">重要截止日</span>
+                <span className="mt-cd-badge">{tr('guide.mini.tool.timer.badge', '倒数日')}</span>
+                <span className="mt-cd-name">{tr('guide.mini.tool.timer.name', '重要截止日')}</span>
                 <div className="mt-cd-bottom">
                   <span className="mt-cd-date">2026-05-01</span>
                   <span className="mt-cd-days" style={{ color: '#69c0ff' }}>
-                    {days > 0 ? `${days}天` : '已到期'}
+                    {days > 0
+                      ? tr('guide.mini.tool.timer.days', '{{days}}天', { days })
+                      : tr('guide.mini.tool.timer.expired', '已到期')}
                   </span>
                 </div>
               </div>
@@ -540,7 +567,7 @@ function MiniToolIsland({ demo }: { demo: MiniToolDemo }): React.ReactElement {
               </svg>
               <div className="mt-pomo-inner">
                 <span className="mt-pomo-time">{mm}:{ss}</span>
-                <span className="mt-pomo-phase" style={{ color: phaseColor }}>专注中</span>
+                <span className="mt-pomo-phase" style={{ color: phaseColor }}>{tr('guide.mini.tool.pomodoro.focusing', '专注中')}</span>
               </div>
             </div>
             <div className="mt-pomo-info">
@@ -566,6 +593,8 @@ function MiniToolIsland({ demo }: { demo: MiniToolDemo }): React.ReactElement {
 
 /** 迷你音乐岛演示组件 — 布局与样式完全参照 LyricsContent */
 function MiniMusicIsland({ demo }: { demo: MiniMusicDemo }): React.ReactElement {
+  const tr = (key: string, fallback: string): string => i18n.t(key, { defaultValue: fallback });
+  const sampleLyrics = getSampleLyrics(i18n.t.bind(i18n));
   const [state, setState] = useState<'idle' | 'hover'>(demo === 'smtc' ? 'idle' : 'hover');
   const [lyricIdx, setLyricIdx] = useState(0);
   const [rgb, setRgb] = useState<[number, number, number]>([100, 100, 100]);
@@ -589,10 +618,10 @@ function MiniMusicIsland({ demo }: { demo: MiniMusicDemo }): React.ReactElement 
   useEffect(() => {
     if (demo !== 'lyrics') return;
     const id = setInterval(() => {
-      setLyricIdx((prev) => (prev + 1) % SAMPLE_LYRICS.length);
+      setLyricIdx((prev) => (prev + 1) % sampleLyrics.length);
     }, 2000);
     return () => clearInterval(id);
-  }, [demo]);
+  }, [demo, sampleLyrics.length]);
 
   useEffect(() => {
     if (demo !== 'karaoke') return;
@@ -635,11 +664,11 @@ function MiniMusicIsland({ demo }: { demo: MiniMusicDemo }): React.ReactElement 
           {state === 'hover' && (
             <div className="mini-music-lyrics">
               {demo === 'smtc' && (
-                <span className="mini-music-text mini-music-fade">♪ 正在播放</span>
+                <span className="mini-music-text mini-music-fade">♪ {tr('guide.mini.music.playing', '正在播放')}</span>
               )}
               {demo === 'lyrics' && (
                 <span className="mini-music-text mini-music-fade" key={lyricIdx}>
-                  {SAMPLE_LYRICS[lyricIdx]}
+                  {sampleLyrics[lyricIdx]}
                 </span>
               )}
               {demo === 'karaoke' && (
@@ -647,7 +676,7 @@ function MiniMusicIsland({ demo }: { demo: MiniMusicDemo }): React.ReactElement 
                   className="mini-music-text mini-music-sweep"
                   style={{ '--lrc-prog': `${sweepProg.toFixed(1)}%` } as React.CSSProperties}
                 >
-                  这是一句歌词
+                  {tr('guide.mini.music.karaokeSample', '这是一句歌词')}
                 </span>
               )}
             </div>
@@ -720,22 +749,27 @@ function MiniIsland({ demo }: { demo: MiniIslandDemo }): React.ReactElement {
  */
 export function GuideContent(): React.ReactElement {
   const { t } = useTranslation();
+  const interactionCards = getInteractionCards(t);
+  const musicCards = getMusicCards(t);
+  const toolCards = getToolCards(t);
+  const settingCards = getSettingCards(t);
+  const guidePages = getGuidePages(t);
   const [page, setPage] = useState(0);
   const [cardIndex, setCardIndex] = useState(0);
   const animDirRef = useRef<'up' | 'down'>('down');
   const wheelCooldownRef = useRef(false);
   const { setIdle } = useIslandStore();
 
-  const isLast = page === GUIDE_PAGES.length - 1;
+  const isLast = page === guidePages.length - 1;
 
-  const cardCountRef = useRef(INTERACTION_CARDS.length);
+  const cardCountRef = useRef(interactionCards.length);
 
   useEffect(() => {
-    const p = GUIDE_PAGES[page];
-    if (p.interactive === 'basic') cardCountRef.current = INTERACTION_CARDS.length;
-    else if (p.interactive === 'music') cardCountRef.current = MUSIC_CARDS.length;
-    else if (p.interactive === 'tools') cardCountRef.current = TOOL_CARDS.length;
-    else if (p.interactive === 'settings') cardCountRef.current = SETTING_CARDS.length;
+    const p = guidePages[page];
+    if (p.interactive === 'basic') cardCountRef.current = interactionCards.length;
+    else if (p.interactive === 'music') cardCountRef.current = musicCards.length;
+    else if (p.interactive === 'tools') cardCountRef.current = toolCards.length;
+    else if (p.interactive === 'settings') cardCountRef.current = settingCards.length;
     else cardCountRef.current = 0;
     setCardIndex(0);
   }, [page]);
@@ -773,7 +807,7 @@ export function GuideContent(): React.ReactElement {
     setPage((p) => Math.max(0, p - 1));
   }, []);
 
-  const current = GUIDE_PAGES[page];
+  const current = guidePages[page];
 
   return (
     <div className="guide-content" onClick={(e) => e.stopPropagation()}>
@@ -783,14 +817,16 @@ export function GuideContent(): React.ReactElement {
         const isTools = current.interactive === 'tools';
         const isSettings = current.interactive === 'settings';
         const cards: Array<{ iconSrc: string; title: string; desc: string }> =
-          isBasic ? INTERACTION_CARDS : isMusic ? MUSIC_CARDS : isTools ? TOOL_CARDS : SETTING_CARDS;
+          isBasic ? interactionCards : isMusic ? musicCards : isTools ? toolCards : settingCards;
         const safeIdx = Math.min(cardIndex, cards.length - 1);
         const card = cards[safeIdx];
         const hint = isBasic
-          ? '在此区域附近滚动滚轮可切换灵动岛状态'
-          : isMusic ? '滚动查看更多音乐功能'
-          : isTools ? '滚动查看更多实用工具'
-          : '滚动查看个性化设置';
+          ? t('guide.hints.basicWheel', { defaultValue: '在此区域附近滚动滚轮可切换灵动岛状态' })
+          : isMusic
+            ? t('guide.hints.musicWheel', { defaultValue: '滚动查看更多音乐功能' })
+            : isTools
+              ? t('guide.hints.toolsWheel', { defaultValue: '滚动查看更多实用工具' })
+              : t('guide.hints.settingsWheel', { defaultValue: '滚动查看个性化设置' });
         return (
           <div className="guide-page guide-page-interactive" key={`page-${page}`}>
             <div className="guide-interact-zone" onWheel={handleCardWheel}>
@@ -814,10 +850,10 @@ export function GuideContent(): React.ReactElement {
                 <div className="guide-title">{card.title}</div>
                 <div className="guide-desc">{card.desc}</div>
               </div>
-              {isBasic && <MiniIsland demo={INTERACTION_CARDS[safeIdx].demo} />}
-              {isMusic && <MiniMusicIsland demo={MUSIC_CARDS[safeIdx].demo} />}
-              {isTools && <MiniToolIsland demo={TOOL_CARDS[safeIdx].demo} />}
-              {isSettings && <MiniSettingIsland demo={SETTING_CARDS[safeIdx].demo} />}
+              {isBasic && <MiniIsland demo={interactionCards[safeIdx].demo} />}
+              {isMusic && <MiniMusicIsland demo={musicCards[safeIdx].demo} />}
+              {isTools && <MiniToolIsland demo={toolCards[safeIdx].demo} />}
+              {isSettings && <MiniSettingIsland demo={settingCards[safeIdx].demo} />}
             </div>
           </div>
         );
@@ -833,7 +869,7 @@ export function GuideContent(): React.ReactElement {
           <div className="guide-desc">{current.desc}</div>
 
           {current.tips && (
-            <div className="guide-tips" aria-label="要点">
+            <div className="guide-tips" aria-label={t('guide.tipsAria', { defaultValue: '要点' })}>
               {current.tips.map((tip, i) => (
                 <div className="guide-tip" key={i}>
                   <span className="guide-tip-icon" aria-hidden="true">{tip.icon}</span>
@@ -847,13 +883,13 @@ export function GuideContent(): React.ReactElement {
 
       <div className="guide-footer">
         <div className="guide-nav-dots">
-          {GUIDE_PAGES.map((_, i) => (
+          {guidePages.map((_, i) => (
             <button
               type="button"
               key={i}
               className={`guide-nav-dot ${page === i ? 'active' : ''}`}
               onClick={() => setPage(i)}
-              aria-label={`第 ${i + 1} 页`}
+              aria-label={t('guide.nav.pageAria', { defaultValue: '第 {{index}} 页', index: i + 1 })}
             />
           ))}
         </div>

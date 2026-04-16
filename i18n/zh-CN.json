@@ -19,6 +19,171 @@
       "prev": "上一步",
       "next": "下一步",
       "start": "开始使用"
+    },
+    "welcome": {
+      "title": "欢迎使用 eIsland",
+      "desc": "一款灵感来自 Apple 灵动岛的 Windows 桌面浮窗小组件，\n让你的桌面更加灵动、高效。"
+    },
+    "sections": {
+      "basic": {
+        "title": "基本交互",
+        "desc": "通过鼠标与灵动岛进行交互，解锁不同状态。"
+      },
+      "music": {
+        "title": "音乐与歌词",
+        "desc": "自动识别正在播放的音乐，实时显示同步歌词。"
+      },
+      "tools": {
+        "title": "实用工具",
+        "desc": "扩展面板中集成了多种实用功能。"
+      },
+      "settings": {
+        "title": "个性化设置",
+        "desc": "在扩展面板的设置中自定义你的灵动岛体验。"
+      }
+    },
+    "interactionCards": {
+      "scroll": {
+        "title": "基本交互",
+        "desc": "在灵动岛顶部滚动鼠标滚轮，切换灵动岛状态。"
+      },
+      "hover": {
+        "title": "悬停展开",
+        "desc": "将鼠标悬停在灵动岛上方，即可展开预览面板。"
+      },
+      "click": {
+        "title": "单击操作",
+        "desc": "单击灵动岛，打开完整的操作面板。"
+      },
+      "retract": {
+        "title": "自动收回",
+        "desc": "将鼠标移开灵动岛，自动收回至待机状态。"
+      }
+    },
+    "musicCards": {
+      "smtc": {
+        "title": "SMTC 自动检测",
+        "desc": "自动识别正在播放的音乐源，实时同步播放信息。"
+      },
+      "lyrics": {
+        "title": "歌词匹配与同步",
+        "desc": "多源歌词自动匹配，实时滚动显示当前歌词。"
+      },
+      "karaoke": {
+        "title": "逐字扫光模式",
+        "desc": "支持逐字高亮的卡拉 OK 歌词显示模式。"
+      }
+    },
+    "toolCards": {
+      "todo": {
+        "title": "待办事项",
+        "desc": "在扩展面板中管理你的待办任务清单。"
+      },
+      "ai": {
+        "title": "AI 对话助手",
+        "desc": "内置 AI 对话，随时获取智能回答与建议。"
+      },
+      "timer": {
+        "title": "倒数日与计时器",
+        "desc": "设置倒计时或倒数日，精准跟踪重要时刻。"
+      },
+      "pomodoro": {
+        "title": "番茄钟专注",
+        "desc": "番茄工作法，帮助你保持高效专注。"
+      }
+    },
+    "settingCards": {
+      "theme": {
+        "title": "主题切换",
+        "desc": "在深色、浅色和跟随系统之间自由切换。"
+      },
+      "opacity": {
+        "title": "透明度调整",
+        "desc": "自定义灵动岛的背景透明度。"
+      },
+      "position": {
+        "title": "位置微调",
+        "desc": "微调灵动岛在屏幕顶部的水平与垂直偏移。"
+      },
+      "autostart": {
+        "title": "开机自启",
+        "desc": "设置灵动岛是否随系统启动自动运行。"
+      },
+      "shortcut": {
+        "title": "快捷键",
+        "desc": "通过全局快捷键快速控制灵动岛。"
+      }
+    },
+    "hints": {
+      "basicWheel": "在此区域附近滚动滚轮可切换灵动岛状态",
+      "musicWheel": "滚动查看更多音乐功能",
+      "toolsWheel": "滚动查看更多实用工具",
+      "settingsWheel": "滚动查看个性化设置"
+    },
+    "tipsAria": "要点",
+    "nav": {
+      "pageAria": "第 {{index}} 页"
+    },
+    "mini": {
+      "music": {
+        "playing": "正在播放",
+        "karaokeSample": "这是一句歌词",
+        "sampleLyrics": {
+          "0": "这是一句歌词示例",
+          "1": "音乐在空中飘荡",
+          "2": "旋律轻轻回响"
+        }
+      },
+      "tool": {
+        "todo": {
+          "title": "待办事项",
+          "items": {
+            "design": "完成设计稿",
+            "weeklyReport": "发送周报邮件",
+            "notes": "整理项目笔记"
+          }
+        },
+        "ai": {
+          "title": "AI 对话",
+          "hello": "你好"
+        },
+        "timer": {
+          "badge": "倒数日",
+          "name": "重要截止日",
+          "days": "{{days}}天",
+          "expired": "已到期"
+        },
+        "pomodoro": {
+          "focusing": "专注中"
+        }
+      },
+      "setting": {
+        "theme": {
+          "dark": "深色",
+          "light": "浅色",
+          "system": "系统",
+          "auto": "自动"
+        },
+        "autostart": {
+          "on": "已开启",
+          "highPriority": "高优先级",
+          "off": "已关闭"
+        },
+        "controls": {
+          "autostart": {
+            "disabled": "关闭",
+            "enabled": "开启",
+            "highPriority": "高优先级"
+          }
+        },
+        "shortcut": {
+          "toggleIsland": "隐藏/显示",
+          "quitIsland": "关闭灵动岛",
+          "resetPosition": "还原默认位置快捷键",
+          "screenshot": "选区截图",
+          "switchSong": "切换歌曲"
+        }
+      }
     }
   },
   "todo": {

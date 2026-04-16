@@ -19,6 +19,171 @@
       "prev": "Previous",
       "next": "Next",
       "start": "Get Started"
+    },
+    "welcome": {
+      "title": "Welcome to eIsland",
+      "desc": "A Windows desktop floating widget inspired by Apple Dynamic Island,\nmaking your desktop more vivid and productive."
+    },
+    "sections": {
+      "basic": {
+        "title": "Basic Interaction",
+        "desc": "Use your mouse to interact with Dynamic Island and unlock different states."
+      },
+      "music": {
+        "title": "Music & Lyrics",
+        "desc": "Automatically detects playing music and shows synced lyrics in real time."
+      },
+      "tools": {
+        "title": "Useful Tools",
+        "desc": "A variety of practical features are integrated in the expanded panel."
+      },
+      "settings": {
+        "title": "Personalization",
+        "desc": "Customize your Dynamic Island experience in settings."
+      }
+    },
+    "interactionCards": {
+      "scroll": {
+        "title": "Basic Interaction",
+        "desc": "Scroll the mouse wheel over Dynamic Island to switch states."
+      },
+      "hover": {
+        "title": "Hover to Expand",
+        "desc": "Hover over Dynamic Island to expand the preview panel."
+      },
+      "click": {
+        "title": "Click Action",
+        "desc": "Click Dynamic Island to open the full control panel."
+      },
+      "retract": {
+        "title": "Auto Retract",
+        "desc": "Move cursor away from Dynamic Island to retract to idle state."
+      }
+    },
+    "musicCards": {
+      "smtc": {
+        "title": "SMTC Auto Detection",
+        "desc": "Automatically identifies active music source and syncs playback info."
+      },
+      "lyrics": {
+        "title": "Lyrics Matching & Sync",
+        "desc": "Auto-matches multi-source lyrics and scrolls current lines in real time."
+      },
+      "karaoke": {
+        "title": "Karaoke Sweep Mode",
+        "desc": "Supports word-by-word highlight karaoke lyric display."
+      }
+    },
+    "toolCards": {
+      "todo": {
+        "title": "Todo",
+        "desc": "Manage your todo list in the expanded panel."
+      },
+      "ai": {
+        "title": "AI Assistant",
+        "desc": "Built-in AI chat for instant smart answers and suggestions."
+      },
+      "timer": {
+        "title": "Countdown & Timer",
+        "desc": "Set countdowns or events and track important moments precisely."
+      },
+      "pomodoro": {
+        "title": "Pomodoro Focus",
+        "desc": "Stay productive with Pomodoro focus sessions."
+      }
+    },
+    "settingCards": {
+      "theme": {
+        "title": "Theme Switch",
+        "desc": "Freely switch between dark, light, and system theme."
+      },
+      "opacity": {
+        "title": "Opacity Adjustment",
+        "desc": "Customize the background opacity of Dynamic Island."
+      },
+      "position": {
+        "title": "Position Fine-tune",
+        "desc": "Adjust horizontal and vertical offset at screen top."
+      },
+      "autostart": {
+        "title": "Auto Start",
+        "desc": "Set whether Dynamic Island starts automatically with system."
+      },
+      "shortcut": {
+        "title": "Shortcuts",
+        "desc": "Control Dynamic Island quickly with global shortcuts."
+      }
+    },
+    "hints": {
+      "basicWheel": "Scroll in this area to switch Dynamic Island states",
+      "musicWheel": "Scroll to view more music features",
+      "toolsWheel": "Scroll to view more practical tools",
+      "settingsWheel": "Scroll to view personalization settings"
+    },
+    "tipsAria": "Key points",
+    "nav": {
+      "pageAria": "Page {{index}}"
+    },
+    "mini": {
+      "music": {
+        "playing": "Now Playing",
+        "karaokeSample": "This is a sample lyric line",
+        "sampleLyrics": {
+          "0": "This is a sample lyric line",
+          "1": "Music is floating in the air",
+          "2": "The melody gently echoes"
+        }
+      },
+      "tool": {
+        "todo": {
+          "title": "Todo",
+          "items": {
+            "design": "Finish design draft",
+            "weeklyReport": "Send weekly report email",
+            "notes": "Organize project notes"
+          }
+        },
+        "ai": {
+          "title": "AI Chat",
+          "hello": "Hi"
+        },
+        "timer": {
+          "badge": "Countdown",
+          "name": "Important Deadline",
+          "days": "{{days}} days",
+          "expired": "Expired"
+        },
+        "pomodoro": {
+          "focusing": "Focusing"
+        }
+      },
+      "setting": {
+        "theme": {
+          "dark": "Dark",
+          "light": "Light",
+          "system": "System",
+          "auto": "Auto"
+        },
+        "autostart": {
+          "on": "Enabled",
+          "highPriority": "High Priority",
+          "off": "Disabled"
+        },
+        "controls": {
+          "autostart": {
+            "disabled": "Off",
+            "enabled": "On",
+            "highPriority": "High Priority"
+          }
+        },
+        "shortcut": {
+          "toggleIsland": "Hide/Show",
+          "quitIsland": "Quit eIsland",
+          "resetPosition": "Reset position shortcut",
+          "screenshot": "Area screenshot",
+          "switchSong": "Switch song"
+        }
+      }
     }
   },
   "todo": {
