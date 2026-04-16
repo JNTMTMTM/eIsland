@@ -1,5 +1,34 @@
+/*
+ * eIsland - A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Electron.
+ * https://github.com/JNTMTMTM/eIsland
+ *
+ * Copyright (C) 2026 JNTMTMTM
+ * Copyright (C) 2026 pyisland.com
+ *
+ * Original author: JNTMTMTM[](https://github.com/JNTMTMTM)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+/**
+ * @file weatherText.ts
+ * @description 天气描述文案工具：将天气描述映射为短文本，并支持 i18n 翻译回退
+ * @author 鸡哥
+ */
+
 type TranslateFn = (key: string, options?: Record<string, unknown>) => string;
 
+/**
+ * 将天气描述压缩为更短的显示文本（优先使用 i18n 词条）。
+ */
 export function abbreviateWeatherDescription(description?: string, t?: TranslateFn): string {
   const text = (description ?? '').trim();
   if (!text) return '';

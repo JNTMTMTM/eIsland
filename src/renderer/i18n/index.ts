@@ -55,6 +55,9 @@ function getStoredLanguage(): AppLanguage | null {
   }
 }
 
+/**
+ * 获取当前生效的应用语言。
+ */
 export function getLanguage(): AppLanguage {
   return normalizeLanguage(i18n.language);
 }
@@ -65,6 +68,9 @@ function getInitialLanguage(): AppLanguage {
   return normalizeLanguage(navigator.language);
 }
 
+/**
+ * 设置应用语言并持久化到本地存储。
+ */
 export async function setLanguage(language: AppLanguage): Promise<void> {
   const safeLanguage = normalizeLanguage(language);
   await i18n.changeLanguage(safeLanguage);
