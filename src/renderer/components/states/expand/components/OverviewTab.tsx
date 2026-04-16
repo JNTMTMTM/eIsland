@@ -755,7 +755,7 @@ export function OverviewTab(): React.ReactElement {
   const yyyy = now.getFullYear();
   const month = (now.getMonth() + 1).toString().padStart(2, '0');
   const day = now.getDate().toString().padStart(2, '0');
-  const dayName = getDayName(now);
+  const dayName = t(`overview.time.weekdays.${now.getDay()}`, { defaultValue: getDayName(now) });
 
   const toggleExpand = (id: number): void => {
     setExpandedId(prev => prev === id ? null : id);
