@@ -82,7 +82,267 @@
       }
     },
     "app": {
-      "pagination": "App settings pagination"
+      "pagination": "App settings pagination",
+      "notifications": {
+        "configChanged": {
+          "title": "Configuration Changed",
+          "body": "Todo/Countdown/Settings open mode changed. Restart now to apply?"
+        }
+      },
+      "layout": {
+        "previewTitle": "Overview Layout Preview",
+        "leftWidget": "Left Widget",
+        "rightWidget": "Right Widget"
+      },
+      "hideProcess": {
+        "hint": "When blacklisted process windows are focused, Dynamic Island hides automatically.",
+        "searchPlaceholder": "Search process name",
+        "refreshing": "Refreshing...",
+        "refresh": "Refresh windows",
+        "empty": "No hidden windows",
+        "removeWindow": "Remove this window"
+      },
+      "position": {
+        "title": "Dynamic Island Offset",
+        "hint": "Applies and saves immediately.",
+        "moveLeft": "Left 10",
+        "moveRight": "Right 10",
+        "moveUp": "Up 10",
+        "moveDown": "Down 10",
+        "xLabel": "Horizontal X (px)",
+        "yLabel": "Vertical Y (px)",
+        "apply": "Apply",
+        "cancel": "Cancel",
+        "resetDefault": "Reset default position"
+      },
+      "theme": {
+        "title": "Theme Mode",
+        "hint": "Switch dark/light/system and apply instantly",
+        "dark": "Dark",
+        "light": "Light",
+        "system": "System",
+        "builtinWallpaper": "Built-in Wallpapers",
+        "builtinWallpaperHint": "Choose a built-in image as island background",
+        "customImage": "Custom Image",
+        "customImageHint": "Select local image: jpg / png / gif / webp",
+        "changeImage": "Change image",
+        "selectImage": "Select image",
+        "clearBackground": "Clear background",
+        "previewAlt": "Background preview",
+        "imageOpacityHint": "Background opacity (0% - 100%)",
+        "islandOpacityTitle": "Island Opacity",
+        "islandOpacityHint": "Lower value = more transparent (10% - 100%)"
+      },
+      "behavior": {
+        "springTitle": "Spring Animation (Instant)",
+        "springHint": "Disable to reduce bounce and make transitions smoother",
+        "springToggle": "Enable spring animation",
+        "mouseLeaveTitle": "Auto collapse on mouse leave (Restart required)",
+        "mouseLeaveHint": "Collapse when cursor leaves island area",
+        "expandLeaveToggle": "Collapse from Expand state on mouse leave",
+        "maxExpandLeaveToggle": "Collapse from MaxExpand state on mouse leave",
+        "windowModeTitle": "Todo / Countdown / Settings open mode",
+        "windowModeHint": "Choose embedded in island or standalone window",
+        "integratedMode": "Embedded in Dynamic Island",
+        "standaloneMode": "Standalone window"
+      },
+      "urlParser": {
+        "title": "Clipboard URL Monitor",
+        "hint": "Show prompt when URL is detected in clipboard",
+        "enableToggle": "Enable clipboard URL monitor",
+        "detectModes": "Detection mode",
+        "modeHttpsOnly": "Require https prefix",
+        "modeHttpHttps": "Allow http/https",
+        "modeDomainOnly": "Allow domain-only",
+        "suppressInFavorites": "Do not notify in favorites view",
+        "blacklistTitle": "URL Blacklist (by domain)",
+        "blacklistHint": "Blocked domains are filtered from notifications",
+        "blacklistPlaceholder": "Enter domain, e.g. example.com",
+        "addDomain": "Add domain",
+        "emptyBlacklist": "No blacklisted domains",
+        "removeDomain": "Remove domain",
+        "errors": {
+          "invalidDomain": "Please enter a valid domain",
+          "domainExists": "Domain already exists in blacklist",
+          "saveFailed": "Save failed, please retry"
+        }
+      },
+      "autostart": {
+        "toolsHint": "Common app actions and log tools",
+        "quit": "Quit eIsland",
+        "restart": "Restart eIsland",
+        "openLogs": "Open logs folder",
+        "clearLogs": "Clear log cache",
+        "logsClearing": "Clearing...",
+        "logsCleared": "Cleared {{kb}} KB",
+        "logsClearFailed": "Clear failed",
+        "title": "Auto Start",
+        "hint": "Configure startup behavior on system login",
+        "options": {
+          "disabled": "Disabled",
+          "enabled": "Enabled",
+          "highPriority": "High Priority"
+        },
+        "status": {
+          "disabled": "Auto start is disabled.",
+          "enabled": "eIsland will start on login.",
+          "highPriority": "Starts with higher priority for faster load."
+        }
+      }
+    },
+    "common": {
+      "add": "Add",
+      "remove": "Remove",
+      "save": "Save",
+      "saveFailed": "Save failed: {{error}}",
+      "unknownError": "Unknown error"
+    },
+    "network": {
+      "timeout": {
+        "title": "Request Timeout",
+        "hint": "Set the maximum wait time for network requests",
+        "unitSecond": "s"
+      }
+    },
+    "weather": {
+      "locationPriority": {
+        "title": "Location Priority",
+        "hint": "Prefer IP-based auto location or custom location"
+      },
+      "cityName": "City Name",
+      "cityPlaceholder": "e.g. Hangzhou / Tokyo / New York",
+      "testing": "Testing...",
+      "testCustomLocation": "Test Custom Location (Dual APIs)",
+      "saveLocation": "Save Location Settings",
+      "providerPriority": {
+        "title": "Weather Provider Priority",
+        "hint": "Prefer Open-Meteo or UAPI, then auto-fallback"
+      },
+      "messages": {
+        "switchPriorityFailed": "Failed to switch priority: {{error}}",
+        "testFailed": "Test failed: {{error}}"
+      },
+      "pagination": "Weather settings pagination"
+    },
+    "music": {
+      "whitelist": {
+        "title": "Player Whitelist",
+        "hint": "Only whitelisted players can trigger music metadata",
+        "placeholder": "Enter player process name (e.g. Spotify.exe)",
+        "fetching": "Fetching...",
+        "fetchSourceProcess": "Fetch Playing Process",
+        "added": "Added"
+      },
+      "lyrics": {
+        "title": "Lyrics Source",
+        "hint": "Auto mode selects source by detected SMTC player and falls back to LRCLIB",
+        "karaokeTitle": "Karaoke Highlight",
+        "karaokeHint": "Enable word-by-word highlight effects",
+        "karaokeToggle": "Enable karaoke highlight",
+        "clockTitle": "Lyrics Clock",
+        "clockHint": "Show current Beijing time between cover and lyrics",
+        "clockToggle": "Show current time"
+      },
+      "smtc": {
+        "title": "SMTC Auto Unsubscribe",
+        "hint": "Clean stale sessions with no updates for long periods",
+        "unsubscribeMs": "Unsubscribe timeout (ms)",
+        "neverUnsubscribe": "Never unsubscribe"
+      },
+      "pagination": "Music settings pagination"
+    },
+    "shortcut": {
+      "pages": {
+        "window": "Window Control",
+        "capture": "Capture",
+        "media": "Media Control"
+      },
+      "common": {
+        "recordingValue": "Press a shortcut combination...",
+        "notSetValue": "Not set",
+        "recordingBtn": "Recording",
+        "editBtn": "Edit",
+        "clearBtn": "Clear"
+      },
+      "window": {
+        "toggleIsland": {
+          "title": "Show/Hide Island Shortcut",
+          "hint": "Click Edit and press keys (e.g. Alt+X, Ctrl+Shift+H)"
+        },
+        "quitApp": {
+          "title": "Quit eIsland Shortcut",
+          "hint": "Press to quit eIsland immediately"
+        },
+        "resetPosition": {
+          "title": "Reset Position Shortcut",
+          "hint": "Press to reset island to top-center default position"
+        },
+        "toggleTray": {
+          "title": "Show/Hide Tray Icon Shortcut",
+          "hint": "Press to toggle the tray icon visibility"
+        }
+      },
+      "capture": {
+        "screenshot": {
+          "title": "Area Screenshot Shortcut",
+          "hint": "Press to start area screenshot flow"
+        }
+      },
+      "media": {
+        "nextSong": {
+          "title": "Next Song Shortcut",
+          "hint": "Trigger system next-track media key"
+        },
+        "playPause": {
+          "title": "Play/Pause Shortcut",
+          "hint": "Trigger system play/pause media key"
+        }
+      },
+      "pagination": "Shortcut settings pagination"
+    },
+    "update": {
+      "currentVersion": "Current Version",
+      "source": "Update Source",
+      "latestVersion": "Latest Version",
+      "downloadingFrom": "Downloading update from {{source}}...",
+      "preparingDownload": "Preparing download...",
+      "actions": {
+        "check": "Check for Updates",
+        "checking": "Checking...",
+        "latest": "Already Latest",
+        "download": "Download Update",
+        "installRestart": "Install & Restart",
+        "retry": "Retry"
+      }
+    },
+    "ai": {
+      "model": "Model",
+      "mcpPlaceholder": "http://localhost:3000/mcp (optional)",
+      "promptPlaceholder": "You are a helpful assistant.",
+      "saveTitle": "Save (Ctrl+Enter)",
+      "editPromptTitle": "Edit Prompt"
+    },
+    "about": {
+      "authorAvatarAlt": "Author avatar",
+      "githubHome": "GitHub Home",
+      "notice": "This software is open-source and free. If you paid for it anywhere, request a refund immediately.",
+      "links": {
+        "website": "Website",
+        "docs": "Docs",
+        "sourceCode": "Source Code",
+        "license": "License",
+        "iconLibrary": "Icon Library"
+      },
+      "depsTitle": "Open Source Frameworks & Dependencies",
+      "wallpaperTitle": "Wallpaper Sources",
+      "wallpaper": {
+        "source": "Source",
+        "capture": "Captured by",
+        "link": "Original Link",
+        "notice": "NASA images are used under NASA image policy and do not imply NASA endorsement."
+      },
+      "copyright": "© JNTMTMTM, pyisland.com. All rights reserved.",
+      "slogan": "Algorithms explain everything"
     },
     "nav": {
       "guide": {

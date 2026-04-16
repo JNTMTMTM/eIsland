@@ -82,7 +82,267 @@
       }
     },
     "app": {
-      "pagination": "软件设置分页"
+      "pagination": "软件设置分页",
+      "notifications": {
+        "configChanged": {
+          "title": "配置变更",
+          "body": "待办事项/倒数日/设置打开方式已变更，是否立即重启生效？"
+        }
+      },
+      "layout": {
+        "previewTitle": "总览布局预览",
+        "leftWidget": "左侧控件",
+        "rightWidget": "右侧控件"
+      },
+      "hideProcess": {
+        "hint": "当下方黑名单进程对应窗口处于焦点状态时，将立即隐藏灵动岛；失去焦点后自动显示。",
+        "searchPlaceholder": "搜索进程名",
+        "refreshing": "刷新中…",
+        "refresh": "刷新窗口",
+        "empty": "暂无隐藏窗口",
+        "removeWindow": "移除该窗口"
+      },
+      "position": {
+        "title": "灵动岛位置偏移",
+        "hint": "调整后立即生效并自动保存，重启后会按该位置校准。",
+        "moveLeft": "左移 10",
+        "moveRight": "右移 10",
+        "moveUp": "上移 10",
+        "moveDown": "下移 10",
+        "xLabel": "水平偏移 X（px）",
+        "yLabel": "垂直偏移 Y（px）",
+        "apply": "应用",
+        "cancel": "取消",
+        "resetDefault": "重置为默认位置"
+      },
+      "theme": {
+        "title": "主题模式",
+        "hint": "选择深色、浅色或跟随系统主题，切换后立即生效",
+        "dark": "深色模式",
+        "light": "浅色模式",
+        "system": "跟随系统",
+        "builtinWallpaper": "内置壁纸",
+        "builtinWallpaperHint": "选择一张内置壁纸作为灵动岛背景",
+        "customImage": "自定义图片",
+        "customImageHint": "从本地选择图片，支持 jpg / png / gif / webp",
+        "changeImage": "更换图片",
+        "selectImage": "选择图片",
+        "clearBackground": "清除背景",
+        "previewAlt": "背景预览",
+        "imageOpacityHint": "背景图片透明度（0% - 100%），数值越高图片越明显",
+        "islandOpacityTitle": "灵动岛透明度",
+        "islandOpacityHint": "数值越低越透明（10% - 100%），调整后立即生效"
+      },
+      "behavior": {
+        "springTitle": "灵动岛弹性动画 (立即生效)",
+        "springHint": "关闭后，展开和收起动画将变得更加平滑内敛，消除弹跳感",
+        "springToggle": "启用弹性动画",
+        "mouseLeaveTitle": "鼠标移开自动收回 (重启后生效)",
+        "mouseLeaveHint": "启用后，鼠标离开灵动岛时将自动回到空闲状态（若正在播放音乐则切到歌词态）",
+        "expandLeaveToggle": "展开态（Expand）鼠标移开后自动收回",
+        "maxExpandLeaveToggle": "最大展开态（MaxExpand）鼠标移开后自动收回",
+        "windowModeTitle": "待办事项 / 倒数日 / 设置 打开方式",
+        "windowModeHint": "选择点击导航时，在灵动岛内显示还是打开独立窗口（重启后生效）",
+        "integratedMode": "集成在灵动岛中",
+        "standaloneMode": "独立窗口"
+      },
+      "urlParser": {
+        "title": "剪贴板 URL 监听",
+        "hint": "启用后，检测到剪贴板含链接时会弹出询问通知",
+        "enableToggle": "启用剪贴板 URL 监听",
+        "detectModes": "识别项目",
+        "modeHttpsOnly": "强制包含 https 头",
+        "modeHttpHttps": "包含 http 头",
+        "modeDomainOnly": "仅含有域名",
+        "suppressInFavorites": "在 URL 收藏界面时不弹通知",
+        "blacklistTitle": "URL 黑名单（按域名）",
+        "blacklistHint": "命中黑名单域名时：单个链接不弹窗，多链接自动剔除",
+        "blacklistPlaceholder": "输入域名，如 example.com",
+        "addDomain": "添加域名",
+        "emptyBlacklist": "暂无黑名单域名",
+        "removeDomain": "移除该域名",
+        "errors": {
+          "invalidDomain": "请输入有效域名",
+          "domainExists": "该域名已在黑名单中",
+          "saveFailed": "保存失败，请稍后重试"
+        }
+      },
+      "autostart": {
+        "toolsHint": "常用应用操作与日志工具",
+        "quit": "关闭灵动岛",
+        "restart": "重启灵动岛",
+        "openLogs": "打开日志文件夹",
+        "clearLogs": "清理日志缓存",
+        "logsClearing": "清理中…",
+        "logsCleared": "已清理 {{kb}} KB",
+        "logsClearFailed": "清理失败",
+        "title": "开机自启",
+        "hint": "设置系统启动时是否自动运行灵动岛",
+        "options": {
+          "disabled": "禁用",
+          "enabled": "启用",
+          "highPriority": "高优先级"
+        },
+        "status": {
+          "disabled": "当前已禁用开机自启。",
+          "enabled": "系统登录后将自动启动灵动岛。",
+          "highPriority": "以高优先级启动，更早完成加载。"
+        }
+      }
+    },
+    "common": {
+      "add": "添加",
+      "remove": "移除",
+      "save": "保存",
+      "saveFailed": "保存失败：{{error}}",
+      "unknownError": "未知错误"
+    },
+    "network": {
+      "timeout": {
+        "title": "请求超时时间",
+        "hint": "设置网络请求的最长等待时间，网络较差时可适当增大",
+        "unitSecond": "秒"
+      }
+    },
+    "weather": {
+      "locationPriority": {
+        "title": "定位来源优先级",
+        "hint": "选择天气定位优先使用 IP 自动定位或自定义位置"
+      },
+      "cityName": "城市名称",
+      "cityPlaceholder": "例如：杭州 / Tokyo / New York",
+      "testing": "测试中...",
+      "testCustomLocation": "测试自定义位置（双接口）",
+      "saveLocation": "保存定位配置",
+      "providerPriority": {
+        "title": "天气接口优先级",
+        "hint": "可选择优先使用 Open-Meteo 或 UAPI，失败时自动切换到另一源"
+      },
+      "messages": {
+        "switchPriorityFailed": "切换优先级失败：{{error}}",
+        "testFailed": "测试失败：{{error}}"
+      },
+      "pagination": "天气配置分页"
+    },
+    "music": {
+      "whitelist": {
+        "title": "播放器白名单",
+        "hint": "只有白名单内的播放器才会触发歌曲信息获取",
+        "placeholder": "输入播放器进程名（如 Spotify.exe）",
+        "fetching": "获取中…",
+        "fetchSourceProcess": "获取播放进程",
+        "added": "已添加"
+      },
+      "lyrics": {
+        "title": "歌词源",
+        "hint": "自动模式根据 SMTC 检测到的播放器进程选择对应源，失败后依次尝试其他源，最后使用 LRCLIB 兜底",
+        "karaokeTitle": "逐字扫光",
+        "karaokeHint": "启用后歌词将以逐字高亮方式显示",
+        "karaokeToggle": "启用逐字扫光效果",
+        "clockTitle": "歌词时钟",
+        "clockHint": "在歌词界面封面与歌词之间显示当前北京时间",
+        "clockToggle": "显示当前时间"
+      },
+      "smtc": {
+        "title": "SMTC 自动取消订阅",
+        "hint": "用于清理长时间无更新的播放会话，默认永不取消订阅",
+        "unsubscribeMs": "取消订阅时间（毫秒）",
+        "neverUnsubscribe": "永不取消订阅"
+      },
+      "pagination": "歌曲设置分页"
+    },
+    "shortcut": {
+      "pages": {
+        "window": "窗口控制",
+        "capture": "截图",
+        "media": "音乐控制"
+      },
+      "common": {
+        "recordingValue": "请按下快捷键组合…",
+        "notSetValue": "未设置",
+        "recordingBtn": "录入中",
+        "editBtn": "修改",
+        "clearBtn": "清除"
+      },
+      "window": {
+        "toggleIsland": {
+          "title": "隐藏/显示快捷键",
+          "hint": "点击“修改”后按下组合键（如 Alt+X、Ctrl+Shift+H）"
+        },
+        "quitApp": {
+          "title": "关闭灵动岛快捷键",
+          "hint": "按下此快捷键将立即关闭灵动岛应用（如 Alt+Q、Ctrl+Shift+Q）"
+        },
+        "resetPosition": {
+          "title": "还原默认位置快捷键",
+          "hint": "按下此快捷键将把灵动岛恢复到默认顶部居中位置"
+        },
+        "toggleTray": {
+          "title": "隐藏/显示托盘图标快捷键",
+          "hint": "按下此快捷键将隐藏或显示系统托盘中的灵动岛图标"
+        }
+      },
+      "capture": {
+        "screenshot": {
+          "title": "选区截图快捷键",
+          "hint": "按下此快捷键将触发截图选区流程（如 Alt+A、Ctrl+Shift+A）"
+        }
+      },
+      "media": {
+        "nextSong": {
+          "title": "快速切换歌曲快捷键",
+          "hint": "按下后触发系统下一曲媒体按键（仅白名单播放器生效）"
+        },
+        "playPause": {
+          "title": "暂停/播放歌曲快捷键",
+          "hint": "按下后触发系统播放/暂停媒体按键（仅白名单播放器生效）"
+        }
+      },
+      "pagination": "快捷键设置分页"
+    },
+    "update": {
+      "currentVersion": "当前版本",
+      "source": "更新源",
+      "latestVersion": "最新版本",
+      "downloadingFrom": "正在从 {{source}} 下载更新…",
+      "preparingDownload": "准备下载…",
+      "actions": {
+        "check": "检查更新",
+        "checking": "检查中…",
+        "latest": "已是最新版本",
+        "download": "下载更新",
+        "installRestart": "安装并重启",
+        "retry": "重试"
+      }
+    },
+    "ai": {
+      "model": "模型",
+      "mcpPlaceholder": "http://localhost:3000/mcp (可选)",
+      "promptPlaceholder": "你是一个有用的助手。",
+      "saveTitle": "保存 (Ctrl+Enter)",
+      "editPromptTitle": "编辑 Prompt"
+    },
+    "about": {
+      "authorAvatarAlt": "作者头像",
+      "githubHome": "GitHub 主页",
+      "notice": "本软件开源免费，如果你在任何地方付费购买了本软件，请立即退款并给差评。",
+      "links": {
+        "website": "官网",
+        "docs": "文档站",
+        "sourceCode": "开源代码",
+        "license": "开源协议",
+        "iconLibrary": "图标库"
+      },
+      "depsTitle": "开源框架 & 依赖",
+      "wallpaperTitle": "壁纸素材",
+      "wallpaper": {
+        "source": "来源",
+        "capture": "拍摄",
+        "link": "原始链接",
+        "notice": "所有 NASA 图像均按照 NASA 图像使用政策使用，不暗示 NASA 对本项目的任何认可。"
+      },
+      "copyright": "© JNTMTMTM, pyisland.com 版权所有",
+      "slogan": "算法诠释一切 质疑即是认可"
     },
     "nav": {
       "guide": {
