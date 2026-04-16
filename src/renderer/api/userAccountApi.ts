@@ -20,31 +20,21 @@
 
 /**
  * @file userAccountApi.ts
- * @description 用户账号接口模块（对接 pyisland-admin /auth/user 与 /v1/user/*）
+ * @description 用户账号网络接口（对接 pyisland-admin /auth/user 与 /v1/user/*）。
+ *              本文件只负责 HTTP 请求；本地会话与 localStorage 管理见
+ *              `renderer/utils/userAccount.ts`。
  * @author 鸡哥
  */
 
+import type {
+  UserAccountGender,
+  UserAccountProfile,
+} from '../utils/userAccount';
+
+export type { UserAccountGender, UserAccountProfile } from '../utils/userAccount';
+
 /** pyisland-admin 服务根地址 */
 export const USER_ACCOUNT_API_BASE = 'https://server.pyisland.com/api';
-
-/** 本地 token 存储键 */
-export const USER_ACCOUNT_TOKEN_STORAGE_KEY = 'user-account-token';
-/** 本地缓存账号资料键 */
-export const USER_ACCOUNT_PROFILE_STORAGE_KEY = 'user-account-profile';
-
-/** 账号性别枚举 */
-export type UserAccountGender = 'male' | 'female' | 'custom' | 'undisclosed';
-
-/** 账号资料 */
-export interface UserAccountProfile {
-  username: string;
-  email: string;
-  avatar: string | null;
-  gender: UserAccountGender;
-  genderCustom: string | null;
-  birthday: string | null;
-  createdAt: string;
-}
 
 /** 通用 API 返回值 */
 export interface UserAccountResult<T = unknown> {
@@ -109,65 +99,6 @@ async function request<T>(path: string, init: InternalRequestInit = {}): Promise
     return parsed;
   } catch (err) {
     return { ok: false, code: -1, message: err instanceof Error ? err.message : '网络请求失败' };
-  }
-}
-
-/**
- * 获取本地保存的 token。
- * @returns 本地保存的 token，未登录时返回 null。
- */
-export function readLocalToken(): string | null {
-  try {
-    const raw = localStorage.getItem(USER_ACCOUNT_TOKEN_STORAGE_KEY);
-    return raw && raw.length > 0 ? raw : null;
-  } catch {
-    return null;
-  }
-}
-
-/**
- * 将 token 写入本地存储。
- * @param token 新 token；传入 null 表示清除登录态。
- */
-export function writeLocalToken(token: string | null): void {
-  try {
-    if (token && token.length > 0) {
-      localStorage.setItem(USER_ACCOUNT_TOKEN_STORAGE_KEY, token);
-    } else {
-      localStorage.removeItem(USER_ACCOUNT_TOKEN_STORAGE_KEY);
-    }
-  } catch {
-    // ignore storage errors
-  }
-}
-
-/**
- * 获取本地缓存的账号资料。
- * @returns 最近一次拉取到的资料；无缓存时返回 null。
- */
-export function readLocalProfile(): UserAccountProfile | null {
-  try {
-    const raw = localStorage.getItem(USER_ACCOUNT_PROFILE_STORAGE_KEY);
-    if (!raw) return null;
-    return JSON.parse(raw) as UserAccountProfile;
-  } catch {
-    return null;
-  }
-}
-
-/**
- * 将账号资料写入本地缓存。
- * @param profile 资料；传入 null 表示清除缓存。
- */
-export function writeLocalProfile(profile: UserAccountProfile | null): void {
-  try {
-    if (profile) {
-      localStorage.setItem(USER_ACCOUNT_PROFILE_STORAGE_KEY, JSON.stringify(profile));
-    } else {
-      localStorage.removeItem(USER_ACCOUNT_PROFILE_STORAGE_KEY);
-    }
-  } catch {
-    // ignore storage errors
   }
 }
 

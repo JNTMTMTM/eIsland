@@ -31,17 +31,20 @@ import {
   fetchUserProfile,
   loginUser,
   logoutUser,
-  readLocalProfile,
-  readLocalToken,
   registerUser,
   unregisterUser,
   updateUserProfile,
   uploadUserAvatar,
+} from '../../../../../../../api/userAccountApi';
+import {
+  clearLocalAccount,
+  readLocalProfile,
+  readLocalToken,
   writeLocalProfile,
   writeLocalToken,
   type UserAccountGender,
   type UserAccountProfile,
-} from '../../../../../../../api/userAccountApi';
+} from '../../../../../../../utils/userAccount';
 
 type Mode = 'login' | 'register';
 type FeedbackType = 'success' | 'error' | 'info';
@@ -104,8 +107,7 @@ export function UserSettingsSection(): ReactElement {
     setLoadingProfile(false);
     if (!result.ok || !result.data) {
       if (result.code === 401 || result.code === 4011) {
-        writeLocalToken(null);
-        writeLocalProfile(null);
+        clearLocalAccount();
         setToken(null);
         setProfile(null);
         setProfileError(t('settings.user.feedback.sessionExpired', { defaultValue: '登录已过期，请重新登录' }));
@@ -225,8 +227,7 @@ export function UserSettingsSection(): ReactElement {
     if (!result.ok) {
       setSavingProfile(false);
       if (result.code === 401 || result.code === 4011) {
-        writeLocalToken(null);
-        writeLocalProfile(null);
+        clearLocalAccount();
         setToken(null);
         setProfile(null);
         setProfileFeedback({ type: 'error', text: t('settings.user.feedback.sessionExpired', { defaultValue: '登录已过期，请重新登录' }) });
@@ -245,8 +246,7 @@ export function UserSettingsSection(): ReactElement {
     if (!token || logoutSubmitting) return;
     setLogoutSubmitting(true);
     const result = await logoutUser(token);
-    writeLocalToken(null);
-    writeLocalProfile(null);
+    clearLocalAccount();
     setToken(null);
     setProfile(null);
     setAuthFeedback({
@@ -284,8 +284,7 @@ export function UserSettingsSection(): ReactElement {
       setUnregisterFeedback({ type: 'error', text: result.message || t('settings.user.feedback.unregisterFailed', { defaultValue: '注销失败' }) });
       return;
     }
-    writeLocalToken(null);
-    writeLocalProfile(null);
+    clearLocalAccount();
     setToken(null);
     setProfile(null);
     setUnregisterConfirmVisible(false);
