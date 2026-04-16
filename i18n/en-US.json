@@ -88,6 +88,39 @@
       "delete": "Delete"
     }
   },
+  "hover": {
+    "nav": {
+      "time": "Tools",
+      "o3ics": "Music",
+      "weather": "Weather",
+      "expand": "Expand",
+      "switchToPage": "Switch to {{label}} page"
+    },
+    "time": {
+      "lunarPrefix": "Lunar"
+    },
+    "weather": {
+      "refreshTitle": "Click to refresh weather",
+      "today": "Tdy",
+      "unknownCity": "N/A",
+      "week": {
+        "tomorrow": "Tmr",
+        "dayAfterTomorrow": "D+2"
+      },
+      "rainPrefix": "R",
+      "windPrefix": "W"
+    }
+  },
+  "expanded": {
+    "nav": {
+      "hover": "Back",
+      "overview": "Overview",
+      "song": "Music",
+      "tools": "Tools",
+      "maxExpand": "Max Expand",
+      "switchToPage": "Switch to {{label}} page"
+    }
+  },
   "settings": {
     "sidebar": {
       "title": "Settings"

@@ -88,6 +88,39 @@
       "delete": "删除"
     }
   },
+  "hover": {
+    "nav": {
+      "time": "工具",
+      "o3ics": "歌曲",
+      "weather": "天气",
+      "expand": "展开",
+      "switchToPage": "切换到{{label}}页面"
+    },
+    "time": {
+      "lunarPrefix": "农历"
+    },
+    "weather": {
+      "refreshTitle": "点击刷新天气",
+      "today": "今天",
+      "unknownCity": "未知",
+      "week": {
+        "tomorrow": "明",
+        "dayAfterTomorrow": "后"
+      },
+      "rainPrefix": "雨",
+      "windPrefix": "风"
+    }
+  },
+  "expanded": {
+    "nav": {
+      "hover": "返回",
+      "overview": "总览",
+      "song": "歌曲",
+      "tools": "工具",
+      "maxExpand": "最大展开",
+      "switchToPage": "切换到{{label}}页面"
+    }
+  },
   "settings": {
     "sidebar": {
       "title": "设置"

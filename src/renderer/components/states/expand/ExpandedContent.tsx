@@ -25,6 +25,7 @@
  */
 
 import React, { useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../store/slices';
 import type { ExpandTab } from '../../../store/types';
 import '../../../styles/expanded/expanded.css';
@@ -36,23 +37,29 @@ import { ToolsTab } from './components/ToolsTab';
 type NavDotId = ExpandTab | 'maxExpand';
 
 /** 导航点配置 */
-const EXPAND_NAV_DOTS: { tab: NavDotId; label: string }[] = [
-  { tab: 'hover', label: '返回' },
-  { tab: 'overview', label: '总览' },
-  { tab: 'song', label: '歌曲' },
-  { tab: 'tools', label: '工具' },
-  { tab: 'maxExpand', label: '最大展开' },
-];
+const EXPAND_NAV_DOTS: NavDotId[] = ['hover', 'overview', 'song', 'tools', 'maxExpand'];
 
 /**
  * Expanded 状态内容组件
  * @description 扩展状态下的完整功能面板，底部正中间导航点切换 Tab
  */
 export function ExpandedContent(): React.ReactElement {
+  const { t } = useTranslation();
   const { expandTab, setExpandTab, setHover, setMaxExpand } = useIslandStore();
   const contentRef = useRef<HTMLDivElement>(null);
   const expandTabRef = useRef(expandTab);
   expandTabRef.current = expandTab;
+  const getNavLabel = (tab: NavDotId): string => t(`expanded.nav.${tab}`, {
+    defaultValue: tab === 'hover'
+      ? '返回'
+      : tab === 'overview'
+        ? '总览'
+        : tab === 'song'
+          ? '歌曲'
+          : tab === 'tools'
+            ? '工具'
+            : '最大展开',
+  });
 
   /** 滚轮切换 Tab */
   useEffect(() => {
@@ -67,12 +74,12 @@ export function ExpandedContent(): React.ReactElement {
       if (target.closest('.tools-app-list-body')) return;
       e.preventDefault();
       const cur = expandTabRef.current;
-      const currentIndex = EXPAND_NAV_DOTS.findIndex(d => d.tab === cur);
+      const currentIndex = EXPAND_NAV_DOTS.findIndex(d => d === cur);
       let nextId: NavDotId;
       if (e.deltaY > 0) {
-        nextId = EXPAND_NAV_DOTS[(currentIndex + 1) % EXPAND_NAV_DOTS.length].tab;
+        nextId = EXPAND_NAV_DOTS[(currentIndex + 1) % EXPAND_NAV_DOTS.length];
       } else {
-        nextId = EXPAND_NAV_DOTS[(currentIndex - 1 + EXPAND_NAV_DOTS.length) % EXPAND_NAV_DOTS.length].tab;
+        nextId = EXPAND_NAV_DOTS[(currentIndex - 1 + EXPAND_NAV_DOTS.length) % EXPAND_NAV_DOTS.length];
       }
       if (nextId === 'hover') { setHover(); return; }
       if (nextId === 'maxExpand') { setMaxExpand(); return; }
@@ -94,7 +101,7 @@ export function ExpandedContent(): React.ReactElement {
 
       {/* 底部导航点 */}
       <div className="expand-nav-dots" onClick={(e) => e.stopPropagation()}>
-        {EXPAND_NAV_DOTS.map(({ tab, label }) => (
+        {EXPAND_NAV_DOTS.map((tab) => (
           <button
             key={tab}
             className={`expand-nav-dot ${expandTab === tab ? 'active' : ''}`}
@@ -103,8 +110,8 @@ export function ExpandedContent(): React.ReactElement {
               else if (tab === 'maxExpand') { setMaxExpand(); }
               else { setExpandTab(tab); }
             }}
-            title={label}
-            aria-label={`切换到${label}页面`}
+            title={getNavLabel(tab)}
+            aria-label={t('expanded.nav.switchToPage', { defaultValue: '切换到{{label}}页面', label: getNavLabel(tab) })}
           />
         ))}
       </div>
