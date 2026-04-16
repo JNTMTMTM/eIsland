@@ -25,6 +25,7 @@
  */
 
 import React, { useEffect, useRef, useCallback, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../../store/slices';
 import type { SyncedLyricLine } from '../../../../store/types';
 import { SvgIcon } from '../../../../utils/SvgIcon';
@@ -79,15 +80,15 @@ function calcLineProgress(
 }
 
 /** 格式化倒计时剩余 */
-function formatCountdownRemaining(targetDate: string): string {
+function formatCountdownRemaining(targetDate: string, t: (key: string, options?: Record<string, unknown>) => string): string {
   const diff = new Date(targetDate).getTime() - Date.now();
-  if (diff <= 0) return '已到期';
+  if (diff <= 0) return t('songTab.countdown.expired', { defaultValue: '已到期' });
   const d = Math.floor(diff / 86400000);
   const h = Math.floor((diff % 86400000) / 3600000);
   const m = Math.floor((diff % 3600000) / 60000);
-  if (d > 0) return `${d}天${h}时`;
-  if (h > 0) return `${h}时${m}分`;
-  return `${m}分`;
+  if (d > 0) return t('songTab.countdown.dayHour', { defaultValue: '{{days}}天{{hours}}时', days: d, hours: h });
+  if (h > 0) return t('songTab.countdown.hourMinute', { defaultValue: '{{hours}}时{{minutes}}分', hours: h, minutes: m });
+  return t('songTab.countdown.minute', { defaultValue: '{{minutes}}分', minutes: m });
 }
 
 // ===================== 歌词文本轮播组件 =====================
@@ -247,6 +248,7 @@ function WaveCanvas({ color, playing }: { color: [number, number, number]; playi
  * @description 展开状态下三栏布局歌曲面板
  */
 export function SongTab(): React.ReactElement {
+  const { t } = useTranslation();
   const isMusicPlaying = useIslandStore((state) => state.isMusicPlaying);
   const isPlaying = useIslandStore((state) => state.isPlaying);
   const mediaInfo = useIslandStore((state) => state.mediaInfo);
@@ -288,6 +290,7 @@ export function SongTab(): React.ReactElement {
   const timerRunning = timerData.state === 'running' || timerData.state === 'paused';
   const timerMM = Math.floor(timerData.remainingSeconds / 60).toString().padStart(2, '0');
   const timerSS = (timerData.remainingSeconds % 60).toString().padStart(2, '0');
+  const dayName = t(`songTab.time.weekdays.${now.getDay()}`, { defaultValue: getDayName(now) });
 
   /** 歌词切片 */
   const hasLyrics = syncedLyrics && syncedLyrics.length > 0 && !lyricsLoading;
@@ -315,18 +318,18 @@ export function SongTab(): React.ReactElement {
           />
         </div>
         <div className="ov-meta">
-          <span className="ov-meta-title">{mediaInfo.title || '未在播放'}</span>
+          <span className="ov-meta-title">{mediaInfo.title || t('songTab.meta.notPlaying', { defaultValue: '未在播放' })}</span>
           <span className="ov-meta-artist">{mediaInfo.artist || ''}</span>
           {mediaInfo.album && <span className="ov-meta-album">{mediaInfo.album}</span>}
           <div className="ov-controls">
-            <button className="ov-ctrl-btn" onClick={(e) => { e.stopPropagation(); handlePrev(); }} disabled={!isMusicPlaying} title="上一曲">
-              <img src={SvgIcon.PREVIOUS_SONG} alt="" className="ov-ctrl-icon ov-ctrl-icon--sm" />
+            <button className="ov-ctrl-btn" onClick={(e) => { e.stopPropagation(); handlePrev(); }} disabled={!isMusicPlaying} title={t('songTab.controls.prev', { defaultValue: '上一曲' })}>
+              <img src={SvgIcon.PREVIOUS_SONG} alt={t('songTab.controls.prev', { defaultValue: '上一曲' })} className="ov-ctrl-icon ov-ctrl-icon--sm" />
             </button>
-            <button className="ov-ctrl-btn ov-ctrl-play" onClick={(e) => { e.stopPropagation(); handlePlayPause(); }} disabled={!isMusicPlaying} title={isPlaying ? '暂停' : '播放'}>
-              <img src={isPlaying ? SvgIcon.PAUSE : SvgIcon.CONTINUE} alt="" className="ov-ctrl-icon" />
+            <button className="ov-ctrl-btn ov-ctrl-play" onClick={(e) => { e.stopPropagation(); handlePlayPause(); }} disabled={!isMusicPlaying} title={isPlaying ? t('songTab.controls.pause', { defaultValue: '暂停' }) : t('songTab.controls.play', { defaultValue: '播放' })}>
+              <img src={isPlaying ? SvgIcon.PAUSE : SvgIcon.CONTINUE} alt={isPlaying ? t('songTab.controls.pause', { defaultValue: '暂停' }) : t('songTab.controls.play', { defaultValue: '播放' })} className="ov-ctrl-icon" />
             </button>
-            <button className="ov-ctrl-btn" onClick={(e) => { e.stopPropagation(); handleNext(); }} disabled={!isMusicPlaying} title="下一曲">
-              <img src={SvgIcon.NEXT_SONG} alt="" className="ov-ctrl-icon ov-ctrl-icon--sm" />
+            <button className="ov-ctrl-btn" onClick={(e) => { e.stopPropagation(); handleNext(); }} disabled={!isMusicPlaying} title={t('songTab.controls.next', { defaultValue: '下一曲' })}>
+              <img src={SvgIcon.NEXT_SONG} alt={t('songTab.controls.next', { defaultValue: '下一曲' })} className="ov-ctrl-icon ov-ctrl-icon--sm" />
             </button>
           </div>
         </div>
@@ -339,19 +342,19 @@ export function SongTab(): React.ReactElement {
             <span className="ov-lrc-loading-dot" />
             <span className="ov-lrc-loading-dot" />
             <span className="ov-lrc-loading-dot" />
-            <span className="ov-lrc-loading-label">正在加载歌词</span>
+            <span className="ov-lrc-loading-label">{t('songTab.lyrics.loading', { defaultValue: '正在加载歌词' })}</span>
           </div>
         )}
-        {!lyricsLoading && !hasLyrics && isMusicPlaying && <span className="ov-lrc-hint">暂无歌词</span>}
+        {!lyricsLoading && !hasLyrics && isMusicPlaying && <span className="ov-lrc-hint">{t('songTab.lyrics.empty', { defaultValue: '暂无歌词' })}</span>}
         {!isMusicPlaying && (
           <div className="ov-onboarding">
-            <div className="ov-onboarding-title">音乐总览</div>
-            <div className="ov-onboarding-desc">播放音乐后，这里将展示实时信息</div>
+            <div className="ov-onboarding-title">{t('songTab.onboarding.title', { defaultValue: '音乐总览' })}</div>
+            <div className="ov-onboarding-desc">{t('songTab.onboarding.desc', { defaultValue: '播放音乐后，这里将展示实时信息' })}</div>
             <div className="ov-onboarding-features">
-              <div className="ov-onboarding-feat"><span className="ov-onboarding-dot" /><span>封面碟片、实时歌词与频谱动画</span></div>
-              <div className="ov-onboarding-feat"><span className="ov-onboarding-dot" /><span>时间、天气与倒计时一览</span></div>
+              <div className="ov-onboarding-feat"><span className="ov-onboarding-dot" /><span>{t('songTab.onboarding.feature1', { defaultValue: '封面碟片、实时歌词与频谱动画' })}</span></div>
+              <div className="ov-onboarding-feat"><span className="ov-onboarding-dot" /><span>{t('songTab.onboarding.feature2', { defaultValue: '时间、天气与倒计时一览' })}</span></div>
             </div>
-            <div className="ov-onboarding-hint">播放任意歌曲即可开始</div>
+            <div className="ov-onboarding-hint">{t('songTab.onboarding.hint', { defaultValue: '播放任意歌曲即可开始' })}</div>
           </div>
         )}
         {isIntro && (
@@ -388,7 +391,7 @@ export function SongTab(): React.ReactElement {
       <div className="ov-right">
         <div className="ov-time">
           <span className="ov-time-clock">{formatTime(now)}</span>
-          <span className="ov-time-day">{getDayName(now)}</span>
+          <span className="ov-time-day">{dayName}</span>
         </div>
         {weather && (
           <div className="ov-weather">
@@ -399,7 +402,7 @@ export function SongTab(): React.ReactElement {
         {countdown.enabled && (
           <div className="ov-countdown">
             <span className="ov-countdown-label">{countdown.label}</span>
-            <span className="ov-countdown-value">{formatCountdownRemaining(countdown.targetDate)}</span>
+            <span className="ov-countdown-value">{formatCountdownRemaining(countdown.targetDate, t)}</span>
           </div>
         )}
         {timerRunning && (

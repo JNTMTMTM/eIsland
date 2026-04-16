@@ -230,6 +230,45 @@
       "ji": "C"
     }
   },
+  "songTab": {
+    "meta": {
+      "notPlaying": "Not playing"
+    },
+    "controls": {
+      "prev": "Previous",
+      "pause": "Pause",
+      "play": "Play",
+      "next": "Next"
+    },
+    "lyrics": {
+      "loading": "Loading lyrics",
+      "empty": "No lyrics"
+    },
+    "onboarding": {
+      "title": "Music Overview",
+      "desc": "Once music starts, real-time info appears here",
+      "feature1": "Cover disc, live lyrics, and waveform animation",
+      "feature2": "Time, weather, and countdown at a glance",
+      "hint": "Play any song to begin"
+    },
+    "time": {
+      "weekdays": {
+        "0": "Sun",
+        "1": "Mon",
+        "2": "Tue",
+        "3": "Wed",
+        "4": "Thu",
+        "5": "Fri",
+        "6": "Sat"
+      }
+    },
+    "countdown": {
+      "expired": "Expired",
+      "dayHour": "{{days}}d {{hours}}h",
+      "hourMinute": "{{hours}}h {{minutes}}m",
+      "minute": "{{minutes}}m"
+    }
+  },
   "aiChat": {
     "title": "AI Chat",
     "notConfigured": "Not configured",

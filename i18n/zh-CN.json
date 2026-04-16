@@ -230,6 +230,45 @@
       "ji": "忌"
     }
   },
+  "songTab": {
+    "meta": {
+      "notPlaying": "未在播放"
+    },
+    "controls": {
+      "prev": "上一曲",
+      "pause": "暂停",
+      "play": "播放",
+      "next": "下一曲"
+    },
+    "lyrics": {
+      "loading": "正在加载歌词",
+      "empty": "暂无歌词"
+    },
+    "onboarding": {
+      "title": "音乐总览",
+      "desc": "播放音乐后，这里将展示实时信息",
+      "feature1": "封面碟片、实时歌词与频谱动画",
+      "feature2": "时间、天气与倒计时一览",
+      "hint": "播放任意歌曲即可开始"
+    },
+    "time": {
+      "weekdays": {
+        "0": "周日",
+        "1": "周一",
+        "2": "周二",
+        "3": "周三",
+        "4": "周四",
+        "5": "周五",
+        "6": "周六"
+      }
+    },
+    "countdown": {
+      "expired": "已到期",
+      "dayHour": "{{days}}天{{hours}}时",
+      "hourMinute": "{{hours}}时{{minutes}}分",
+      "minute": "{{minutes}}分"
+    }
+  },
   "aiChat": {
     "title": "AI 对话",
     "notConfigured": "未配置",
