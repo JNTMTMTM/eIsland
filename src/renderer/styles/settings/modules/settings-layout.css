@@ -1735,6 +1735,36 @@
   color: rgba(var(--color-text-rgb), 0.64);
 }
 
+.settings-user-password-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.settings-user-password-input-wrap .settings-field-input {
+  flex: 1;
+}
+
+.settings-user-password-toggle {
+  appearance: none;
+  border: 1px solid rgba(var(--color-text-rgb), 0.16);
+  background: rgba(var(--color-text-rgb), 0.08);
+  color: rgba(var(--color-text-rgb), 0.82);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.18s ease, border-color 0.18s ease;
+  white-space: nowrap;
+}
+
+.settings-user-password-toggle:hover {
+  background: rgba(var(--color-text-rgb), 0.14);
+  border-color: rgba(var(--color-text-rgb), 0.24);
+}
+
 .settings-user-actions-row--adaptive {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

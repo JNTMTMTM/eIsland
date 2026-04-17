@@ -74,11 +74,15 @@ export function UserSettingsSection(): ReactElement {
   const [editGenderCustom, setEditGenderCustom] = useState('');
   const [editBirthday, setEditBirthday] = useState('');
   const [editNewPassword, setEditNewPassword] = useState('');
+  const [editConfirmPassword, setEditConfirmPassword] = useState('');
+  const [editNewPasswordVisible, setEditNewPasswordVisible] = useState(false);
+  const [editConfirmPasswordVisible, setEditConfirmPasswordVisible] = useState(false);
   const [profileFeedback, setProfileFeedback] = useState<Feedback | null>(null);
   const [savingProfile, setSavingProfile] = useState(false);
   const [avatarUploading, setAvatarUploading] = useState(false);
 
   const [unregisterPassword, setUnregisterPassword] = useState('');
+  const [unregisterPasswordVisible, setUnregisterPasswordVisible] = useState(false);
   const [unregisterConfirmVisible, setUnregisterConfirmVisible] = useState(false);
   const [unregisterSubmitting, setUnregisterSubmitting] = useState(false);
   const [unregisterFeedback, setUnregisterFeedback] = useState<Feedback | null>(null);
@@ -97,6 +101,9 @@ export function UserSettingsSection(): ReactElement {
     setEditGenderCustom(p.genderCustom ?? '');
     setEditBirthday(p.birthday ?? '');
     setEditNewPassword('');
+    setEditConfirmPassword('');
+    setEditNewPasswordVisible(false);
+    setEditConfirmPasswordVisible(false);
   }, []);
 
   const loadRemoteProfile = useCallback(async (currentToken: string): Promise<void> => {
@@ -190,6 +197,18 @@ export function UserSettingsSection(): ReactElement {
       setProfileFeedback({ type: 'error', text: t('settings.user.feedback.passwordTooShort', { defaultValue: '密码至少 8 位且包含字母与数字' }) });
       return;
     }
+    if (!editNewPassword && editConfirmPassword) {
+      setProfileFeedback({ type: 'error', text: t('settings.user.feedback.passwordConfirmNeedsPassword', { defaultValue: '请先输入新密码' }) });
+      return;
+    }
+    if (editNewPassword && !editConfirmPassword) {
+      setProfileFeedback({ type: 'error', text: t('settings.user.feedback.passwordConfirmRequired', { defaultValue: '请再次输入新密码进行确认' }) });
+      return;
+    }
+    if (editNewPassword && editNewPassword !== editConfirmPassword) {
+      setProfileFeedback({ type: 'error', text: t('settings.user.feedback.passwordConfirmMismatch', { defaultValue: '两次输入的新密码不一致' }) });
+      return;
+    }
     if (editBirthday && !/^\d{4}-\d{2}-\d{2}$/.test(editBirthday)) {
       setProfileFeedback({ type: 'error', text: t('settings.user.feedback.birthdayInvalid', { defaultValue: '生日格式应为 yyyy-MM-dd' }) });
       return;
@@ -218,6 +237,9 @@ export function UserSettingsSection(): ReactElement {
     }
     await loadRemoteProfile(token);
     setEditNewPassword('');
+    setEditConfirmPassword('');
+    setEditNewPasswordVisible(false);
+    setEditConfirmPasswordVisible(false);
     setSavingProfile(false);
     setProfileFeedback({ type: 'success', text: t('settings.user.feedback.saveSuccess', { defaultValue: '资料已更新' }) });
   };
@@ -242,12 +264,14 @@ export function UserSettingsSection(): ReactElement {
   const requestUnregister = (): void => {
     setUnregisterFeedback(null);
     setUnregisterPassword('');
+    setUnregisterPasswordVisible(false);
     setUnregisterConfirmVisible(true);
   };
 
   const cancelUnregister = (): void => {
     setUnregisterConfirmVisible(false);
     setUnregisterPassword('');
+    setUnregisterPasswordVisible(false);
     setUnregisterFeedback(null);
   };
 
@@ -270,6 +294,7 @@ export function UserSettingsSection(): ReactElement {
     setProfile(null);
     setUnregisterConfirmVisible(false);
     setUnregisterPassword('');
+    setUnregisterPasswordVisible(false);
     setAuthFeedback(null);
   };
 
@@ -396,13 +421,6 @@ export function UserSettingsSection(): ReactElement {
                   style={{ display: 'none' }}
                   onChange={(e) => void handleAvatarSelect(e)}
                 />
-                <input
-                  className="settings-field-input"
-                  type="text"
-                  value={editAvatar ?? ''}
-                  onChange={(e) => setEditAvatar(e.target.value)}
-                  placeholder={t('settings.user.fields.avatarUrlPlaceholder', { defaultValue: '或直接粘贴头像 URL' })}
-                />
               </div>
             </div>
           </div>
@@ -457,13 +475,51 @@ export function UserSettingsSection(): ReactElement {
             </div>
             <label className="settings-field">
               <span className="settings-field-label">{t('settings.user.fields.newPassword', { defaultValue: '新密码' })}</span>
-              <input
-                className="settings-field-input"
-                type="password"
-                value={editNewPassword}
-                onChange={(e) => setEditNewPassword(e.target.value)}
-                placeholder={t('settings.user.fields.newPasswordPlaceholder', { defaultValue: '留空则不修改，至少 8 位含字母数字' })}
-              />
+              <div className="settings-user-password-input-wrap">
+                <input
+                  className="settings-field-input"
+                  type={editNewPasswordVisible ? 'text' : 'password'}
+                  value={editNewPassword}
+                  onChange={(e) => setEditNewPassword(e.target.value)}
+                  placeholder={t('settings.user.fields.newPasswordPlaceholder', { defaultValue: '留空则不修改，至少 8 位含字母数字' })}
+                />
+                <button
+                  type="button"
+                  className="settings-user-password-toggle"
+                  onClick={() => setEditNewPasswordVisible((v) => !v)}
+                  aria-label={editNewPasswordVisible
+                    ? t('settings.user.actions.hidePassword', { defaultValue: '隐藏密码' })
+                    : t('settings.user.actions.showPassword', { defaultValue: '显示密码' })}
+                >
+                  {editNewPasswordVisible
+                    ? t('settings.user.actions.hide', { defaultValue: '隐藏' })
+                    : t('settings.user.actions.show', { defaultValue: '显示' })}
+                </button>
+              </div>
+            </label>
+            <label className="settings-field">
+              <span className="settings-field-label">{t('settings.user.fields.confirmPassword', { defaultValue: '确认新密码' })}</span>
+              <div className="settings-user-password-input-wrap">
+                <input
+                  className="settings-field-input"
+                  type={editConfirmPasswordVisible ? 'text' : 'password'}
+                  value={editConfirmPassword}
+                  onChange={(e) => setEditConfirmPassword(e.target.value)}
+                  placeholder={t('settings.user.fields.confirmPasswordPlaceholder', { defaultValue: '请再次输入新密码' })}
+                />
+                <button
+                  type="button"
+                  className="settings-user-password-toggle"
+                  onClick={() => setEditConfirmPasswordVisible((v) => !v)}
+                  aria-label={editConfirmPasswordVisible
+                    ? t('settings.user.actions.hidePassword', { defaultValue: '隐藏密码' })
+                    : t('settings.user.actions.showPassword', { defaultValue: '显示密码' })}
+                >
+                  {editConfirmPasswordVisible
+                    ? t('settings.user.actions.hide', { defaultValue: '隐藏' })
+                    : t('settings.user.actions.show', { defaultValue: '显示' })}
+                </button>
+              </div>
             </label>
           </div>
 
@@ -530,13 +586,27 @@ export function UserSettingsSection(): ReactElement {
             <div className="settings-user-unregister-confirm">
               <label className="settings-field">
                 <span className="settings-field-label">{t('settings.user.fields.currentPassword', { defaultValue: '当前密码' })}</span>
-                <input
-                  className="settings-field-input"
-                  type="password"
-                  value={unregisterPassword}
-                  onChange={(e) => setUnregisterPassword(e.target.value)}
-                  placeholder={t('settings.user.fields.currentPasswordPlaceholder', { defaultValue: '输入当前密码进行确认' })}
-                />
+                <div className="settings-user-password-input-wrap">
+                  <input
+                    className="settings-field-input"
+                    type={unregisterPasswordVisible ? 'text' : 'password'}
+                    value={unregisterPassword}
+                    onChange={(e) => setUnregisterPassword(e.target.value)}
+                    placeholder={t('settings.user.fields.currentPasswordPlaceholder', { defaultValue: '输入当前密码进行确认' })}
+                  />
+                  <button
+                    type="button"
+                    className="settings-user-password-toggle"
+                    onClick={() => setUnregisterPasswordVisible((v) => !v)}
+                    aria-label={unregisterPasswordVisible
+                      ? t('settings.user.actions.hidePassword', { defaultValue: '隐藏密码' })
+                      : t('settings.user.actions.showPassword', { defaultValue: '显示密码' })}
+                  >
+                    {unregisterPasswordVisible
+                      ? t('settings.user.actions.hide', { defaultValue: '隐藏' })
+                      : t('settings.user.actions.show', { defaultValue: '显示' })}
+                  </button>
+                </div>
               </label>
               {renderFeedback(unregisterFeedback)}
               <div className="settings-user-actions-row">
