@@ -103,16 +103,41 @@ async function request<T>(path: string, init: InternalRequestInit = {}): Promise
 }
 
 /**
- * 用户登录。
+ * 用户账户登录（用户名）。
+ * @param username 用户名。
+ * @param password 密码。
+ * @returns 登录结果。
+ */
+export function loginUserByAccount(username: string, password: string): Promise<UserAccountResult<UserAccountLoginData>> {
+  return request<UserAccountLoginData>('/auth/user/login/account', {
+    method: 'POST',
+    body: { username, password },
+  });
+}
+
+/**
+ * 用户邮箱登录。
+ * @param email 邮箱。
+ * @param password 密码。
+ * @returns 登录结果。
+ */
+export function loginUserByEmail(email: string, password: string): Promise<UserAccountResult<UserAccountLoginData>> {
+  return request<UserAccountLoginData>('/auth/user/login/email', {
+    method: 'POST',
+    body: { email, password },
+  });
+}
+
+/**
+ * 用户登录兼容入口（根据账号形态自动选择账户登录或邮箱登录）。
  * @param account 登录账号（用户名或邮箱）。
  * @param password 密码。
  * @returns 登录结果。
  */
 export function loginUser(account: string, password: string): Promise<UserAccountResult<UserAccountLoginData>> {
-  return request<UserAccountLoginData>('/auth/user/login', {
-    method: 'POST',
-    body: { username: account, password },
-  });
+  return account.includes('@')
+    ? loginUserByEmail(account, password)
+    : loginUserByAccount(account, password);
 }
 
 /**
