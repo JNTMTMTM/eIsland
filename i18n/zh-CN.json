@@ -929,8 +929,11 @@
       },
       "sections": {
         "avatar": "头像",
+        "avatarHint": "上传新头像",
         "profile": "基本资料",
+        "profileHint": "完善公开资料信息，便于账号识别",
         "password": "修改密码（可选）",
+        "passwordHint": "留空则保持当前密码不变",
         "danger": "危险操作"
       },
       "card": {
@@ -965,7 +968,8 @@
         "unregister": "注销账号",
         "confirmUnregister": "确认注销",
         "unregistering": "注销中…",
-        "cancel": "取消"
+        "cancel": "取消",
+        "cancelChanges": "取消更改"
       },
       "danger": {
         "hint": "注销后账号与关联资料将被立即删除，无法恢复，请谨慎操作。"
@@ -990,6 +994,9 @@
         "avatarUploaded": "头像已上传，保存资料生效",
         "avatarUploadFailed": "头像上传失败",
         "passwordTooShort": "密码至少 8 位且包含字母与数字",
+        "passwordConfirmNeedsPassword": "请先输入新密码",
+        "passwordConfirmRequired": "请再次输入新密码进行确认",
+        "passwordConfirmMismatch": "两次输入的新密码不一致",
         "birthdayInvalid": "生日格式应为 yyyy-MM-dd",
         "saveFailed": "保存失败",
         "saveSuccess": "资料已更新",

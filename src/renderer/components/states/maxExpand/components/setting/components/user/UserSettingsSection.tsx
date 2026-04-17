@@ -60,7 +60,7 @@ const USER_PROFILE_PAGES: UserProfilePage[] = ['info', 'edit', 'account'];
  * @returns 用户中心设置面板。
  */
 export function UserSettingsSection(): ReactElement {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { setLogin, setRegister } = useIslandStore();
   const [token, setToken] = useState<string | null>(() => readLocalToken());
   const [profile, setProfile] = useState<UserAccountProfile | null>(() => readLocalProfile());
@@ -462,6 +462,7 @@ export function UserSettingsSection(): ReactElement {
               <input
                 className="settings-field-input"
                 type="date"
+                lang={i18n.resolvedLanguage || i18n.language}
                 value={editBirthday}
                 onChange={(e) => setEditBirthday(e.target.value)}
               />

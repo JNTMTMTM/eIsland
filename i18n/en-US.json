@@ -929,8 +929,11 @@
       },
       "sections": {
         "avatar": "Avatar",
+        "avatarHint": "Upload a new avatar",
         "profile": "Profile",
+        "profileHint": "Complete public profile details for easier account recognition",
         "password": "Change password (optional)",
+        "passwordHint": "Leave blank to keep your current password",
         "danger": "Danger Zone"
       },
       "card": {
@@ -965,7 +968,8 @@
         "unregister": "Delete account",
         "confirmUnregister": "Confirm delete",
         "unregistering": "Deleting…",
-        "cancel": "Cancel"
+        "cancel": "Cancel",
+        "cancelChanges": "Discard changes"
       },
       "danger": {
         "hint": "Deleting your account removes associated data immediately and cannot be undone. Proceed with care."
@@ -990,6 +994,9 @@
         "avatarUploaded": "Avatar uploaded. Save profile to apply.",
         "avatarUploadFailed": "Avatar upload failed",
         "passwordTooShort": "Password must be at least 8 chars with letters and digits",
+        "passwordConfirmNeedsPassword": "Please enter a new password first",
+        "passwordConfirmRequired": "Please confirm your new password",
+        "passwordConfirmMismatch": "The two new passwords do not match",
         "birthdayInvalid": "Birthday must be in yyyy-MM-dd format",
         "saveFailed": "Save failed",
         "saveSuccess": "Profile updated",
