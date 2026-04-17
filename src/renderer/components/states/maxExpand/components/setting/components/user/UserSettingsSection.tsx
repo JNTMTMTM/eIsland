@@ -140,11 +140,7 @@ export function UserSettingsSection(): ReactElement {
       const mainEl = el.querySelector('.settings-user-profile-main') as HTMLElement | null;
       if (!mainEl) return;
       if (mainEl.scrollHeight > mainEl.clientHeight) {
-        const atTop = mainEl.scrollTop <= 0;
-        const atBottom = mainEl.scrollTop + mainEl.clientHeight >= mainEl.scrollHeight - 1;
-        if ((e.deltaY > 0 && !atBottom) || (e.deltaY < 0 && !atTop)) {
-          return;
-        }
+        return;
       }
       const currentIndex = USER_PROFILE_PAGES.indexOf(userProfilePageRef.current);
       if (currentIndex < 0) return;
