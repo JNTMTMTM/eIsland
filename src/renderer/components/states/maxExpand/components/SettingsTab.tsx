@@ -1490,6 +1490,14 @@ export function SettingsTab(): ReactElement {
             {getSettingsLabel('update')}
           </button>
           <button
+            className={`max-expand-settings-sidebar-item ${activeTab === 'pluginMarket' ? 'active' : ''}`}
+            onClick={() => setActiveTab('pluginMarket')}
+            type="button"
+          >
+            <span className="sidebar-dot" />
+            {getSettingsLabel('pluginMarket')}
+          </button>
+          <button
             className={`max-expand-settings-sidebar-item ${activeTab === 'about' ? 'active' : ''}`}
             onClick={() => setActiveTab('about')}
             type="button"
@@ -1759,6 +1767,12 @@ export function SettingsTab(): ReactElement {
               onDownloadUpdate={handleDownloadUpdate}
               onInstallUpdate={handleInstallUpdate}
             />
+          )}
+
+          {activeTab === 'pluginMarket' && (
+            <div className="max-expand-settings-section">
+              <div className="max-expand-settings-title">{t('settings.labels.pluginMarket', { defaultValue: '插件市场' })}</div>
+            </div>
           )}
 
           {activeTab === 'user' && <UserSettingsSection />}

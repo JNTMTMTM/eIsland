@@ -47,7 +47,7 @@ export const WEATHER_LOCATION_PRIORITY_OPTIONS: Array<{ value: WeatherLocationPr
   { value: 'custom', label: '自定义位置优先' },
 ];
 
-export const SETTINGS_TABS = ['index', 'app', 'network', 'weather', 'music', 'ai', 'shortcut', 'user', 'update', 'about'] as const;
+export const SETTINGS_TABS = ['index', 'app', 'network', 'weather', 'music', 'ai', 'shortcut', 'user', 'update', 'pluginMarket', 'about'] as const;
 export type SettingsSidebarTabKey = (typeof SETTINGS_TABS)[number];
 export type AppSettingsPageKey = 'layout-preview' | 'hide-process-list' | 'position' | 'theme' | 'language' | 'behavior' | 'url-parser' | 'autostart';
 export type WeatherSettingsPageKey = 'location' | 'provider';
@@ -76,6 +76,7 @@ export const SETTINGS_TAB_LABELS: Record<SettingsTabLabelKey, string> = {
   shortcut: '快捷键',
   user: '用户中心',
   update: '更新设置',
+  pluginMarket: '插件市场',
   about: '关于软件',
 };
 
@@ -99,6 +100,7 @@ export const SETTINGS_TAB_DESCRIPTIONS: Record<Exclude<SettingsTabLabelKey, 'ind
   shortcut: '隐藏、关闭、截图快捷键',
   user: '登录、资料、注销等账号操作',
   update: '检查与下载软件更新',
+  pluginMarket: '插件市场入口与安装管理（开发中）',
   about: '版本信息与项目链接',
 };
 

@@ -102,7 +102,7 @@
   align-items: center;
   gap: 8px;
   padding: 6px 8px;
-  min-height: 30px;
+  min-height: 26px;
   color: rgba(var(--color-text-rgb), 0.35);
   font-size: 12px;
   font-weight: 500;
