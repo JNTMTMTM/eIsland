@@ -74,13 +74,25 @@
   animation: lyricFadeSwap 0.35s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.lyrics-sweep {
+/* 逐字扫光 — 激活态容器: 未高亮的文字用暗色占位, 由内部 .lyrics-syllable 覆盖渲染 */
+.lyrics-current-line.lyrics-karaoke {
+  color: rgba(var(--color-text-rgb), 0.28);
+}
+
+/* 逐字扫光 — 每个音节以 `--syl-prog` 控制渐变进度 */
+@property --syl-prog {
+  syntax: '<percentage>';
+  inherits: false;
+  initial-value: 0%;
+}
+
+.lyrics-syllable {
   display: inline;
-  transition: --lrc-prog 0.15s linear;
+  transition: --syl-prog 0.08s linear;
   background: linear-gradient(
     to right,
-    rgba(var(--color-text-rgb), 0.95) var(--lrc-prog),
-    rgba(var(--color-text-rgb), 0.28) var(--lrc-prog)
+    rgba(var(--color-text-rgb), 0.95) var(--syl-prog),
+    rgba(var(--color-text-rgb), 0.28) var(--syl-prog)
   );
   -webkit-background-clip: text;
   background-clip: text;

@@ -85,6 +85,14 @@ interface ShortcutSettingsSectionProps {
   setToggleTrayHotkeyError: (value: string) => void;
   handleToggleTrayHotkeyKeyDown: (event: ReactKeyboardEvent<HTMLInputElement>) => void;
   setToggleTrayHotkey: (value: string) => void;
+  showSettingsWindowHotkeyInputRef: RefObject<HTMLInputElement | null>;
+  showSettingsWindowHotkeyRecording: boolean;
+  showSettingsWindowHotkeyError: string;
+  showSettingsWindowHotkey: string;
+  setShowSettingsWindowHotkeyRecording: (value: boolean) => void;
+  setShowSettingsWindowHotkeyError: (value: string) => void;
+  handleShowSettingsWindowHotkeyKeyDown: (event: ReactKeyboardEvent<HTMLInputElement>) => void;
+  setShowSettingsWindowHotkey: (value: string) => void;
 }
 
 /**
@@ -157,6 +165,15 @@ export function ShortcutSettingsSection(props: ShortcutSettingsSectionProps): Re
     setToggleTrayHotkeyError,
     handleToggleTrayHotkeyKeyDown,
     setToggleTrayHotkey,
+
+    showSettingsWindowHotkeyInputRef,
+    showSettingsWindowHotkeyRecording,
+    showSettingsWindowHotkeyError,
+    showSettingsWindowHotkey,
+    setShowSettingsWindowHotkeyRecording,
+    setShowSettingsWindowHotkeyError,
+    handleShowSettingsWindowHotkeyKeyDown,
+    setShowSettingsWindowHotkey,
   } = props;
 
   type ShortcutSettingsPageKey = 'window' | 'capture' | 'media';
@@ -331,6 +348,37 @@ export function ShortcutSettingsSection(props: ShortcutSettingsSectionProps): Re
                 </div>
                 {toggleTrayHotkeyError && <div className="settings-hotkey-error">{toggleTrayHotkeyError}</div>}
                 <div className="settings-hotkey-hint">{t('settings.shortcut.window.toggleTray.hint', { defaultValue: '按下此快捷键将隐藏或显示系统托盘中的灵动岛图标' })}</div>
+              </div>
+
+              <div className="settings-hotkey-section">
+                <div className="settings-hotkey-label">{t('settings.shortcut.window.showConfig.title', { defaultValue: '显示配置窗口快捷键' })}</div>
+                <div className="settings-hotkey-row">
+                  <input
+                    ref={showSettingsWindowHotkeyInputRef}
+                    className={`settings-hotkey-input ${showSettingsWindowHotkeyRecording ? 'recording' : ''}${showSettingsWindowHotkeyError ? ' error' : ''}`}
+                    type="text"
+                    readOnly
+                    value={showSettingsWindowHotkeyRecording ? recordingValue : (showSettingsWindowHotkey || notSetValue)}
+                    onFocus={() => { setShowSettingsWindowHotkeyRecording(true); setShowSettingsWindowHotkeyError(''); window.api.hotkeySuspend().catch(() => {}); }}
+                    onBlur={() => { setShowSettingsWindowHotkeyRecording(false); window.api.hotkeyResume().catch(() => {}); }}
+                    onKeyDown={handleShowSettingsWindowHotkeyKeyDown}
+                  />
+                  <button className="settings-hotkey-btn" type="button" onClick={() => { setShowSettingsWindowHotkeyRecording(true); showSettingsWindowHotkeyInputRef.current?.focus(); }}>{showSettingsWindowHotkeyRecording ? recordingBtn : editBtn}</button>
+                  {showSettingsWindowHotkey && (
+                    <button className="settings-hotkey-btn" type="button" onClick={() => {
+                      window.api.showSettingsWindowHotkeySet('').then((ok) => {
+                        if (ok) {
+                          setShowSettingsWindowHotkey('');
+                          setShowSettingsWindowHotkeyError('');
+                          setShowSettingsWindowHotkeyRecording(false);
+                          showSettingsWindowHotkeyInputRef.current?.blur();
+                        }
+                      }).catch(() => {});
+                    }}>{clearBtn}</button>
+                  )}
+                </div>
+                {showSettingsWindowHotkeyError && <div className="settings-hotkey-error">{showSettingsWindowHotkeyError}</div>}
+                <div className="settings-hotkey-hint">{t('settings.shortcut.window.showConfig.hint', { defaultValue: '仅在独立窗口模式下生效：按下后将打开独立配置窗口并切换到设置页' })}</div>
               </div>
             </>
           )}

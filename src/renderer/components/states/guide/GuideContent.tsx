@@ -33,6 +33,7 @@ import { SvgIcon } from '../../../utils/SvgIcon';
 import albumArt from '../../../assets/avatar/T.jpg';
 import { setThemeMode as applyThemeMode, getThemeMode, type ThemeMode } from '../../../utils/theme';
 import i18n from '../../../i18n';
+import { readLocalToken } from '../../../utils/userAccount';
 
 /** 从图片提取主题色（canvas 1×1 缩放取均值） */
 function extractDominantColor(src: string): Promise<[number, number, number]> {
@@ -57,9 +58,33 @@ interface GuidePage {
   icon?: string;
   imageSrc?: string;
   interactive?: 'basic' | 'music' | 'tools' | 'settings';
+  actionPrompt?: 'auth';
   title: string;
   desc: string;
-  tips?: { icon: string; text: string }[];
+  tips?: { text: string }[];
+}
+
+const STANDALONE_WINDOW_MODE_STORE_KEY = 'standalone-window-mode';
+const LEGACY_COUNTDOWN_WINDOW_MODE_STORE_KEY = 'countdown-window-mode';
+const STANDALONE_WINDOW_ACTIVE_TAB_STORE_KEY = 'standalone-window-active-tab';
+const STANDALONE_WINDOW_AUTH_INTENT_STORE_KEY = 'standalone-window-auth-intent';
+let _lastGuidePage = 0;
+
+async function readStandaloneWindowMode(): Promise<'integrated' | 'standalone'> {
+  try {
+    const mode = await window.api.storeRead(STANDALONE_WINDOW_MODE_STORE_KEY);
+    if (mode === 'standalone') return 'standalone';
+    if (mode === 'integrated') return 'integrated';
+  } catch {
+    // ignore
+  }
+  try {
+    const legacyMode = await window.api.storeRead(LEGACY_COUNTDOWN_WINDOW_MODE_STORE_KEY);
+    if (legacyMode === 'standalone') return 'standalone';
+  } catch {
+    // ignore
+  }
+  return 'integrated';
 }
 
 /** 迷你灵动岛演示模式 */
@@ -230,8 +255,8 @@ function getInteractionCards(t: TFunction): InteractionCard[] {
   ];
 }
 
-function getGuidePages(t: TFunction): GuidePage[] {
-  return [
+function getGuidePages(t: TFunction, showAuthPrompt: boolean): GuidePage[] {
+  const pages: GuidePage[] = [
     {
       imageSrc: './svg/eisland.svg',
       title: t('guide.welcome.title', { defaultValue: '欢迎使用 eIsland' }),
@@ -259,7 +284,21 @@ function getGuidePages(t: TFunction): GuidePage[] {
       title: t('guide.sections.settings.title', { defaultValue: '个性化设置' }),
       desc: t('guide.sections.settings.desc', { defaultValue: '在扩展面板的设置中自定义你的灵动岛体验。' }),
     },
+    {
+      actionPrompt: 'auth',
+      icon: SvgIcon.USER,
+      title: t('guide.sections.auth.title', { defaultValue: '账号服务' }),
+      desc: t('guide.sections.auth.desc', { defaultValue: '现在就登录或注册，开启跨设备同步与账号管理。' }),
+      tips: [
+        { text: t('guide.sections.auth.tipSync', { defaultValue: '登录后可同步账号资料。' }) },
+        { text: t('guide.sections.auth.tipMode', { defaultValue: '可使用插件市场和壁纸市场功能。' }) },
+      ],
+    },
   ];
+  if (!showAuthPrompt) {
+    return pages.filter((page) => page.actionPrompt !== 'auth');
+  }
+  return pages;
 }
 
 /** 迷你设置岛演示组件 — 带实际生效的设置切换按钮 */
@@ -749,20 +788,30 @@ function MiniIsland({ demo }: { demo: MiniIslandDemo }): React.ReactElement {
  */
 export function GuideContent(): React.ReactElement {
   const { t } = useTranslation();
+  const isLoggedIn = !!readLocalToken();
   const interactionCards = getInteractionCards(t);
   const musicCards = getMusicCards(t);
   const toolCards = getToolCards(t);
   const settingCards = getSettingCards(t);
-  const guidePages = getGuidePages(t);
-  const [page, setPage] = useState(0);
+  const guidePages = getGuidePages(t, !isLoggedIn);
+  const [page, setPage] = useState(() => _lastGuidePage);
   const [cardIndex, setCardIndex] = useState(0);
   const animDirRef = useRef<'up' | 'down'>('down');
   const wheelCooldownRef = useRef(false);
-  const { setIdle } = useIslandStore();
+  const { setIdle, setLogin, setRegister } = useIslandStore();
 
   const isLast = page === guidePages.length - 1;
 
   const cardCountRef = useRef(interactionCards.length);
+
+  useEffect(() => {
+    _lastGuidePage = page;
+  }, [page]);
+
+  useEffect(() => {
+    if (page <= guidePages.length - 1) return;
+    setPage(Math.max(guidePages.length - 1, 0));
+  }, [guidePages.length, page]);
 
   useEffect(() => {
     const p = guidePages[page];
@@ -789,6 +838,7 @@ export function GuideContent(): React.ReactElement {
   }, []);
 
   const handleFinish = useCallback(() => {
+    _lastGuidePage = 0;
     window.api?.updaterVersion?.().then((v) => {
       if (v) window.api?.storeWrite?.('guide-shown-version', v);
     }).catch(() => {});
@@ -806,6 +856,21 @@ export function GuideContent(): React.ReactElement {
   const handlePrev = useCallback(() => {
     setPage((p) => Math.max(0, p - 1));
   }, []);
+
+  const openAuthFromGuide = useCallback(async (target: 'login' | 'register'): Promise<void> => {
+    const mode = await readStandaloneWindowMode();
+    if (mode === 'standalone') {
+      await window.api.storeWrite(STANDALONE_WINDOW_ACTIVE_TAB_STORE_KEY, 'settings').catch(() => {});
+      await window.api.storeWrite(STANDALONE_WINDOW_AUTH_INTENT_STORE_KEY, target).catch(() => {});
+      await window.api.openStandaloneWindow().catch(() => {});
+      return;
+    }
+    if (target === 'login') {
+      setLogin();
+      return;
+    }
+    setRegister();
+  }, [setLogin, setRegister]);
 
   const current = guidePages[page];
 
@@ -858,11 +923,13 @@ export function GuideContent(): React.ReactElement {
           </div>
         );
       })() : (
-        <div className={`guide-page${page === 0 ? ' guide-page-welcome' : ''}`} key={page}>
+        <div className={`guide-page${page === 0 ? ' guide-page-welcome' : ''}${current.actionPrompt === 'auth' ? ' guide-page-auth' : ''}`} key={page}>
           <div className="guide-hero">
             {current.imageSrc
               ? <img className="guide-page-logo" src={current.imageSrc} alt="" aria-hidden="true" />
-              : <div className="guide-page-icon" aria-hidden="true">{current.icon}</div>
+              : current.actionPrompt === 'auth'
+                ? <img className="guide-page-auth-icon" src={SvgIcon.USER} alt="" aria-hidden="true" />
+                : <div className="guide-page-icon" aria-hidden="true">{current.icon}</div>
             }
             <div className="guide-title">{current.title}</div>
           </div>
@@ -872,10 +939,28 @@ export function GuideContent(): React.ReactElement {
             <div className="guide-tips" aria-label={t('guide.tipsAria', { defaultValue: '要点' })}>
               {current.tips.map((tip, i) => (
                 <div className="guide-tip" key={i}>
-                  <span className="guide-tip-icon" aria-hidden="true">{tip.icon}</span>
                   <span className="guide-tip-text">{tip.text}</span>
                 </div>
               ))}
+            </div>
+          )}
+
+          {current.actionPrompt === 'auth' && (
+            <div className="guide-auth-actions">
+              <button
+                type="button"
+                className="guide-btn guide-btn-primary"
+                onClick={() => void openAuthFromGuide('login')}
+              >
+                {t('guide.actions.loginNow', { defaultValue: '立即登录' })}
+              </button>
+              <button
+                type="button"
+                className="guide-btn guide-btn-secondary"
+                onClick={() => void openAuthFromGuide('register')}
+              >
+                {t('guide.actions.registerNow', { defaultValue: '立即注册' })}
+              </button>
             </div>
           )}
         </div>

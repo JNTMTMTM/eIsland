@@ -31,6 +31,7 @@ import './styles/settings/settings.css';
 import './styles/standalone-window.css';
 import { StandaloneWindow } from './components/StandaloneWindow';
 import { initTheme } from './utils/theme';
+import { bootstrapAuthSession } from './utils/authSession';
 import useIslandStore from './store/slices';
 import type { NowPlayingInfo } from './store/types';
 import './i18n';
@@ -43,6 +44,7 @@ const rootEl = root;
 
 async function bootstrap(): Promise<void> {
   await initTheme();
+  await bootstrapAuthSession();
 
   const handleNowPlayingUpdate = useIslandStore.getState().handleNowPlayingUpdate;
   const initialInfo = await window.api.mediaCurrentInfoGet().catch(() => null);

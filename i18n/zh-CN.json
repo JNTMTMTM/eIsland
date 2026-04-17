@@ -18,7 +18,9 @@
     "actions": {
       "prev": "上一步",
       "next": "下一步",
-      "start": "开始使用"
+      "start": "开始使用",
+      "loginNow": "立即登录",
+      "registerNow": "立即注册"
     },
     "welcome": {
       "title": "欢迎使用 eIsland",
@@ -40,6 +42,12 @@
       "settings": {
         "title": "个性化设置",
         "desc": "在扩展面板的设置中自定义你的灵动岛体验。"
+      },
+      "auth": {
+        "title": "账号服务",
+        "desc": "现在就登录或注册，开启跨设备同步与账号管理。",
+        "tipSync": "登录后可同步账号资料。",
+        "tipMode": "可使用插件市场和壁纸市场功能。"
       }
     },
     "interactionCards": {
@@ -566,6 +574,7 @@
       "music-smtc": "SMTC",
       "ai": "AI Agent",
       "shortcut": "快捷键",
+      "user": "用户中心",
       "update": "更新设置",
       "about": "关于软件"
     },
@@ -895,6 +904,117 @@
       "copyright": "© JNTMTMTM, pyisland.com 版权所有",
       "slogan": "算法诠释一切 质疑即是认可"
     },
+    "user": {
+      "auth": {
+        "login": "登录",
+        "register": "注册",
+        "loginBtn": "登录",
+        "registerBtn": "注册并登录",
+        "hint": "登录注册服务由 eIsland server 提供",
+        "entryTitle": "登录后可管理头像、资料与账号安全设置",
+        "gotoLogin": "前往登录",
+        "gotoRegister": "前往注册"
+      },
+      "fields": {
+        "username": "用户名",
+        "usernamePlaceholder": "2-32 位，支持中英文 / 数字 / 下划线",
+        "account": "用户名或邮箱",
+        "accountPlaceholder": "请输入用户名或邮箱",
+        "email": "邮箱",
+        "password": "密码",
+        "passwordPlaceholder": "至少 8 位，含字母与数字",
+        "confirmPassword": "确认密码",
+        "confirmPasswordPlaceholder": "请再次输入密码",
+        "avatarUrlPlaceholder": "或直接粘贴头像 URL",
+        "gender": "性别",
+        "genderCustom": "自定义性别",
+        "genderCustomPlaceholder": "最长 64 个字符",
+        "birthday": "生日",
+        "newPassword": "新密码",
+        "newPasswordPlaceholder": "留空则不修改，至少 8 位含字母数字",
+        "currentPassword": "当前密码",
+        "currentPasswordPlaceholder": "输入当前密码进行确认"
+      },
+      "sections": {
+        "avatar": "头像",
+        "avatarHint": "上传新头像",
+        "profile": "基本资料",
+        "profileHint": "完善公开资料信息，便于账号识别",
+        "password": "修改密码（可选）",
+        "passwordHint": "留空则保持当前密码不变",
+        "danger": "危险操作"
+      },
+      "card": {
+        "memberSince": "加入时间"
+      },
+      "pages": {
+        "info": "用户信息",
+        "edit": "修改信息",
+        "account": "关于账户",
+        "switchTo": "切换到{{label}}"
+      },
+      "gender": {
+        "male": "男",
+        "female": "女",
+        "custom": "自定义",
+        "undisclosed": "不愿透露"
+      },
+      "actions": {
+        "refresh": "刷新资料",
+        "refreshing": "刷新中…",
+        "chooseAvatar": "选择图片上传",
+        "uploading": "上传中…",
+        "show": "显示",
+        "hide": "隐藏",
+        "showPassword": "显示密码",
+        "hidePassword": "隐藏密码",
+        "saveProfile": "保存资料",
+        "saving": "保存中…",
+        "logout": "退出登录",
+        "loggingOut": "登出中…",
+        "backToCenter": "返回上一页",
+        "unregister": "注销账号",
+        "confirmUnregister": "确认注销",
+        "unregistering": "注销中…",
+        "cancel": "取消",
+        "cancelChanges": "取消更改"
+      },
+      "danger": {
+        "hint": "注销后账号与关联资料将被立即删除，无法恢复，请谨慎操作。"
+      },
+      "feedback": {
+        "submitting": "处理中…",
+        "loadingProfile": "加载账号资料中…",
+        "loadFailed": "加载资料失败",
+        "sessionExpired": "登录已过期，请重新登录",
+        "usernameRequired": "请输入用户名",
+        "usernameFormatInvalid": "用户名仅支持中文、英文和数字",
+        "accountRequired": "请输入用户名或邮箱",
+        "passwordRequired": "请输入密码",
+        "confirmPasswordRequired": "请再次输入密码",
+        "passwordNotMatch": "两次输入的密码不一致",
+        "emailRequired": "请输入邮箱",
+        "operationFailed": "操作失败",
+        "loginSuccess": "登录成功",
+        "registerSuccess": "注册成功，已自动登录",
+        "avatarTooLarge": "头像文件不能超过 5MB",
+        "avatarNotImage": "仅支持上传图片文件",
+        "avatarUploaded": "头像已上传，保存资料生效",
+        "avatarUploadFailed": "头像上传失败",
+        "passwordTooShort": "密码至少 8 位且包含字母与数字",
+        "passwordConfirmNeedsPassword": "请先输入新密码",
+        "passwordConfirmRequired": "请再次输入新密码进行确认",
+        "passwordConfirmMismatch": "两次输入的新密码不一致",
+        "birthdayInvalid": "生日格式应为 yyyy-MM-dd",
+        "saveFailed": "保存失败",
+        "saveSuccess": "资料已更新",
+        "logoutSuccess": "已退出登录",
+        "logoutLocalOnly": "服务端响应异常，已在本地清除登录态",
+        "unregisterPasswordRequired": "请输入当前密码以确认注销",
+        "unregisterFailed": "注销失败",
+        "unregisterSuccess": "账号已注销"
+      }
+    },
     "nav": {
       "guide": {
         "label": "使用教程",
@@ -947,6 +1067,10 @@
       "shortcut": {
         "label": "快捷键",
         "desc": "隐藏、关闭、截图快捷键"
+      },
+      "user": {
+        "label": "用户中心",
+        "desc": "登录、注册、修改、注销等账号操作"
       },
       "about": {
         "label": "关于软件",

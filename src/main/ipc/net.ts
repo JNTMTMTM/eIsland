@@ -33,6 +33,87 @@ interface RegisterNetIpcHandlersOptions {
   writeMainLog: MainLogWriter;
 }
 
+const SENSITIVE_HEADER_NAMES = new Set([
+  'authorization',
+  'cookie',
+  'set-cookie',
+  'proxy-authorization',
+  'x-api-key',
+]);
+
+const SENSITIVE_BODY_KEYS = new Set([
+  'password',
+  'token',
+  'accessToken',
+  'refreshToken',
+  'authorization',
+  'oldPassword',
+  'newPassword',
+  'confirmPassword',
+]);
+
+function isTrustedSenderUrl(url: string): boolean {
+  if (!url) return false;
+  return url.startsWith('file://')
+    || url.startsWith('http://localhost:')
+    || url.startsWith('http://127.0.0.1:')
+    || url.startsWith('https://localhost:')
+    || url.startsWith('https://127.0.0.1:')
+    || url.startsWith('app://');
+}
+
+function ensureHttpUrl(raw: string): URL | null {
+  try {
+    const parsed = new URL(raw);
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+      return null;
+    }
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function redactHeadersForLog(headers: Record<string, string>): Record<string, string> {
+  const out: Record<string, string> = {};
+  Object.entries(headers).forEach(([name, value]) => {
+    if (SENSITIVE_HEADER_NAMES.has(name.toLowerCase())) {
+      out[name] = '[REDACTED]';
+      return;
+    }
+    out[name] = value;
+  });
+  return out;
+}
+
+function redactValueDeep(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map((item) => redactValueDeep(item));
+  }
+  if (value && typeof value === 'object') {
+    const out: Record<string, unknown> = {};
+    Object.entries(value as Record<string, unknown>).forEach(([key, val]) => {
+      if (SENSITIVE_BODY_KEYS.has(key)) {
+        out[key] = '[REDACTED]';
+      } else {
+        out[key] = redactValueDeep(val);
+      }
+    });
+    return out;
+  }
+  return value;
+}
+
+function redactBodyForLog(body: string | undefined): string {
+  if (!body) return '';
+  try {
+    const parsed = JSON.parse(body) as unknown;
+    return JSON.stringify(redactValueDeep(parsed));
+  } catch {
+    return `[REDACTED_NON_JSON_BODY length=${body.length}]`;
+  }
+}
+
 function sanitizeHeaderName(name: string): string {
   return name.trim();
 }
@@ -74,18 +155,33 @@ function sanitizeRequestHeaders(headers: Record<string, string>, writeMainLog: M
  * @param options - 配置选项，包含日志写入函数
  */
 export function registerNetIpcHandlers(options: RegisterNetIpcHandlersOptions): void {
-  ipcMain.handle('net:fetch', async (_event, url: string, requestOptions?: {
+  ipcMain.handle('net:fetch', async (event, url: string, requestOptions?: {
     method?: string;
     headers?: Record<string, string>;
     body?: string;
     timeoutMs?: number;
   }) => {
+    const senderUrl = event.senderFrame?.url ?? '';
+    if (!isTrustedSenderUrl(senderUrl)) {
+      options.writeMainLog('warn', `[Net] blocked request from untrusted sender: ${senderUrl || 'unknown'}`);
+      return { ok: false, status: 403, body: '' };
+    }
+
+    const parsedUrl = ensureHttpUrl(url);
+    if (!parsedUrl) {
+      options.writeMainLog('warn', `[Net] blocked non-http(s) url: ${url}`);
+      return { ok: false, status: 400, body: '' };
+    }
+
     const method = requestOptions?.method || 'GET';
     const headers = sanitizeRequestHeaders(requestOptions?.headers || {}, options.writeMainLog);
     const body = requestOptions?.body;
     const allowsBody = method.toUpperCase() !== 'GET' && method.toUpperCase() !== 'HEAD';
     const timeoutMs = typeof requestOptions?.timeoutMs === 'number' ? requestOptions.timeoutMs : 10000;
-    options.writeMainLog('info', `[Net] request ${JSON.stringify({ method, url, headers, body: body ?? '', timeoutMs })}`);
+    const safeLogUrl = `${parsedUrl.origin}${parsedUrl.pathname}`;
+    const safeLogHeaders = redactHeadersForLog(headers);
+    const safeLogBody = redactBodyForLog(body);
+    options.writeMainLog('info', `[Net] request ${JSON.stringify({ method, url: safeLogUrl, headers: safeLogHeaders, body: safeLogBody, timeoutMs })}`);
 
     try {
       const result = await new Promise<{ ok: boolean; status: number; body: string }>((resolve) => {
@@ -96,7 +192,7 @@ export function registerNetIpcHandlers(options: RegisterNetIpcHandlersOptions): 
           resolve(value);
         };
 
-        const request = net.request({ method, url });
+        const request = net.request({ method, url: parsedUrl.toString() });
         Object.entries(headers).forEach(([name, value]) => {
           try {
             request.setHeader(name, value);
@@ -106,7 +202,7 @@ export function registerNetIpcHandlers(options: RegisterNetIpcHandlersOptions): 
         });
 
         const timeout = setTimeout(() => {
-          options.writeMainLog('warn', `[Net] timeout ${JSON.stringify({ method, url, headers, body: body ?? '', timeoutMs })}`);
+          options.writeMainLog('warn', `[Net] timeout ${JSON.stringify({ method, url: safeLogUrl, headers: safeLogHeaders, body: safeLogBody, timeoutMs })}`);
           try {
             request.abort();
           } catch {}
@@ -126,14 +222,14 @@ export function registerNetIpcHandlers(options: RegisterNetIpcHandlersOptions): 
           });
           response.on('error', (error) => {
             clearTimeout(timeout);
-            options.writeMainLog('error', `[Net] response stream error ${JSON.stringify({ method, url, error: String(error) })}`);
+            options.writeMainLog('error', `[Net] response stream error ${JSON.stringify({ method, url: safeLogUrl, error: String(error) })}`);
             finish({ ok: false, status: 0, body: '' });
           });
         });
 
         request.on('error', (error) => {
           clearTimeout(timeout);
-          options.writeMainLog('error', `[Net] request error ${JSON.stringify({ method, url, error: String(error) })}`);
+          options.writeMainLog('error', `[Net] request error ${JSON.stringify({ method, url: safeLogUrl, error: String(error) })}`);
           finish({ ok: false, status: 0, body: '' });
         });
 
@@ -143,11 +239,11 @@ export function registerNetIpcHandlers(options: RegisterNetIpcHandlersOptions): 
         request.end();
       });
 
-      options.writeMainLog('info', `[Net] response ${JSON.stringify({ method, url, status: result.status, ok: result.ok, body: result.body })}`);
+      options.writeMainLog('info', `[Net] response ${JSON.stringify({ method, url: safeLogUrl, status: result.status, ok: result.ok, bodyLen: result.body?.length ?? 0 })}`);
       return result;
     } catch (err) {
       console.error('[Net] fetch proxy error:', err);
-      options.writeMainLog('error', `[Net] error ${JSON.stringify({ method, url, headers, body: body ?? '', timeoutMs, error: String(err) })}`);
+      options.writeMainLog('error', `[Net] error ${JSON.stringify({ method, url: safeLogUrl, headers: safeLogHeaders, body: safeLogBody, timeoutMs, error: String(err) })}`);
       return { ok: false, status: 0, body: '' };
     }
   });

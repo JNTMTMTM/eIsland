@@ -74,6 +74,7 @@ import { WeatherSettingsSection } from './setting/components/weather/WeatherSett
 import { ShortcutSettingsSection } from './setting/components/shortcut/ShortcutSettingsSection';
 import { MusicSettingsSection } from './setting/components/music/MusicSettingsSection';
 import { AiSettingsSection } from './setting/components/ai/AiSettingsSection';
+import { UserSettingsSection } from './setting/components/user/UserSettingsSection';
 import { AboutSettingsSection } from './setting/components/about/AboutSettingsSection';
 import { OverviewPreview } from './setting/components/app/preview/OverviewPreview';
 
@@ -83,6 +84,8 @@ import { setThemeMode as applyThemeMode, getThemeMode, type ThemeMode } from '..
 import { getLanguage, setLanguage, type AppLanguage } from '../../../../i18n';
 
 const CLIPBOARD_URL_SUPPRESS_IN_FAVORITES_KEY = 'clipboard-url-suppress-in-url-favorites';
+const LOCAL_ISLAND_BG_SYNC_EVENT = 'island-bg-local-sync';
+let _lastSettingsSidebarTab: SettingsSidebarTabKey = 'index';
 
 function isDirectBgImageUrl(image: string): boolean {
   return image.startsWith('data:')
@@ -151,7 +154,7 @@ interface RunningWindowItem {
 export function SettingsTab(): ReactElement {
   const { t } = useTranslation();
   const opacitySaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [activeTab, setActiveTab] = useState<SettingsSidebarTabKey>('index');
+  const [activeTab, setActiveTab] = useState<SettingsSidebarTabKey>(() => _lastSettingsSidebarTab);
   const [appSettingsPage, setAppSettingsPage] = useState<AppSettingsPageKey>('layout-preview');
   const [weatherSettingsPage, setWeatherSettingsPage] = useState<WeatherSettingsPageKey>('location');
   const [musicSettingsPage, setMusicSettingsPage] = useState<MusicSettingsPageKey>('whitelist');
@@ -162,6 +165,9 @@ export function SettingsTab(): ReactElement {
   const settingsRef = useRef<HTMLDivElement>(null);
   const activeTabRef = useRef(activeTab);
   activeTabRef.current = activeTab;
+  useEffect(() => {
+    _lastSettingsSidebarTab = activeTab;
+  }, [activeTab]);
   const getSettingsLabel = (key: SettingsTabLabelKey): string => {
     return t(`settings.labels.${key}`, { defaultValue: SETTINGS_TAB_LABELS[key] });
   };
@@ -261,19 +267,26 @@ export function SettingsTab(): ReactElement {
 
   const applyBgImage = (dataUrl: string | null): void => {
     const el = document.getElementById('island-bg-layer');
-    if (!el) return;
-    if (dataUrl) {
-      el.style.backgroundImage = `url(${dataUrl})`;
-      el.style.opacity = String(bgImageOpacity / 100);
-    } else {
-      el.style.backgroundImage = '';
-      el.style.opacity = '0';
+    if (el) {
+      if (dataUrl) {
+        el.style.backgroundImage = `url(${dataUrl})`;
+        el.style.opacity = String(bgImageOpacity / 100);
+      } else {
+        el.style.backgroundImage = '';
+        el.style.opacity = '0';
+      }
     }
+    window.dispatchEvent(new CustomEvent(LOCAL_ISLAND_BG_SYNC_EVENT, {
+      detail: { image: dataUrl },
+    }));
   };
 
   const applyBgOpacity = (value: number): void => {
     const el = document.getElementById('island-bg-layer');
     if (el) el.style.opacity = String(value / 100);
+    window.dispatchEvent(new CustomEvent(LOCAL_ISLAND_BG_SYNC_EVENT, {
+      detail: { opacity: value },
+    }));
   };
 
   const persistBgImage = (path: string | null): void => {
@@ -304,11 +317,8 @@ export function SettingsTab(): ReactElement {
   const handleSelectBuiltinBgImage = (src: string, defaultOpacity: number): void => {
     setBgImage(src);
     setBgImageOpacity(defaultOpacity);
-    const el = document.getElementById('island-bg-layer');
-    if (el) {
-      el.style.backgroundImage = `url(${src})`;
-      el.style.opacity = String(defaultOpacity / 100);
-    }
+    applyBgImage(src);
+    applyBgOpacity(defaultOpacity);
     persistBgImage(src);
     persistBgOpacity(defaultOpacity);
   };
@@ -405,6 +415,12 @@ export function SettingsTab(): ReactElement {
   const [toggleTrayHotkeyError, setToggleTrayHotkeyError] = useState<string>('');
   const toggleTrayHotkeyInputRef = useRef<HTMLInputElement>(null);
 
+  /** 显示配置窗口快捷键相关状态 */
+  const [showSettingsWindowHotkey, setShowSettingsWindowHotkey] = useState<string>('');
+  const [showSettingsWindowHotkeyRecording, setShowSettingsWindowHotkeyRecording] = useState(false);
+  const [showSettingsWindowHotkeyError, setShowSettingsWindowHotkeyError] = useState<string>('');
+  const showSettingsWindowHotkeyInputRef = useRef<HTMLInputElement>(null);
+
   const hideProcessKeyword = hideProcessFilter.trim().toLowerCase();
 
 
@@ -489,12 +505,37 @@ export function SettingsTab(): ReactElement {
   }, []);
 
   useEffect(() => {
+    let cancelled = false;
     const unsub = window.api.onSettingsChanged((channel: string, value: unknown) => {
       if (channel === 'i18n:language' && (value === 'zh-CN' || value === 'en-US')) {
         setAppLanguage(value);
       }
+      if (channel === 'store:island-bg-opacity') {
+        const safe = typeof value === 'number' && Number.isFinite(value)
+          ? Math.max(0, Math.min(100, Math.round(value)))
+          : 30;
+        setBgImageOpacity(safe);
+      }
+      if (channel === 'store:island-bg-image') {
+        const image = typeof value === 'string' ? value : null;
+        if (!image) {
+          setBgImage(null);
+          return;
+        }
+        if (isDirectBgImageUrl(image)) {
+          setBgImage(image);
+          return;
+        }
+        window.api.loadWallpaperFile?.(image).then((dataUrl) => {
+          if (cancelled) return;
+          if (dataUrl) setBgImage(dataUrl);
+        }).catch(() => {});
+      }
     });
-    return unsub;
+    return () => {
+      cancelled = true;
+      unsub();
+    };
   }, []);
 
   useEffect(() => {
@@ -638,6 +679,10 @@ export function SettingsTab(): ReactElement {
     window.api.toggleTrayHotkeyGet().then((key) => {
       if (cancelled) return;
       setToggleTrayHotkey(key || '');
+    }).catch(() => {});
+    window.api.showSettingsWindowHotkeyGet().then((key) => {
+      if (cancelled) return;
+      setShowSettingsWindowHotkey(key || '');
     }).catch(() => {});
     return () => { cancelled = true; };
   }, []);
@@ -1067,8 +1112,8 @@ export function SettingsTab(): ReactElement {
     return parts.length >= 2 ? parts.join('+') : '';
   };
 
-  const isDuplicateHotkey = (acc: string, exclude: 'hide' | 'quit' | 'screenshot' | 'next-song' | 'play-pause-song' | 'reset-position' | 'toggle-tray'): boolean => {
-    const pairs: Array<{ key: 'hide' | 'quit' | 'screenshot' | 'next-song' | 'play-pause-song' | 'reset-position' | 'toggle-tray'; value: string }> = [
+  const isDuplicateHotkey = (acc: string, exclude: 'hide' | 'quit' | 'screenshot' | 'next-song' | 'play-pause-song' | 'reset-position' | 'toggle-tray' | 'show-settings-window'): boolean => {
+    const pairs: Array<{ key: 'hide' | 'quit' | 'screenshot' | 'next-song' | 'play-pause-song' | 'reset-position' | 'toggle-tray' | 'show-settings-window'; value: string }> = [
       { key: 'hide', value: hideHotkey },
       { key: 'quit', value: quitHotkey },
       { key: 'screenshot', value: screenshotHotkey },
@@ -1076,6 +1121,7 @@ export function SettingsTab(): ReactElement {
       { key: 'play-pause-song', value: playPauseSongHotkey },
       { key: 'reset-position', value: resetPositionHotkey },
       { key: 'toggle-tray', value: toggleTrayHotkey },
+      { key: 'show-settings-window', value: showSettingsWindowHotkey },
     ];
     return pairs.some((item) => item.key !== exclude && item.value && item.value === acc);
   };
@@ -1230,6 +1276,36 @@ export function SettingsTab(): ReactElement {
     });
   };
 
+  /**
+   * 显示配置窗口快捷键录入键盘事件处理
+   * @param e - React 键盘事件
+   */
+  const handleShowSettingsWindowHotkeyKeyDown = (e: KeyboardEvent): void => {
+    e.preventDefault();
+    e.stopPropagation();
+    setShowSettingsWindowHotkeyError('');
+    const acc = keyEventToAccelerator(e);
+    if (!acc) return;
+    if (isDuplicateHotkey(acc, 'show-settings-window')) {
+      setShowSettingsWindowHotkeyError('重复快捷键');
+      setShowSettingsWindowHotkeyRecording(false);
+      showSettingsWindowHotkeyInputRef.current?.blur();
+      return;
+    }
+
+    window.api.showSettingsWindowHotkeySet(acc).then((ok) => {
+      if (ok) {
+        setShowSettingsWindowHotkey(acc);
+        setShowSettingsWindowHotkeyRecording(false);
+        showSettingsWindowHotkeyInputRef.current?.blur();
+      } else {
+        setShowSettingsWindowHotkeyError('快捷键注册失败，请尝试其他组合');
+      }
+    }).catch(() => {
+      setShowSettingsWindowHotkeyError('快捷键注册失败');
+    });
+  };
+
   const handleNextSongHotkeyKeyDown = (e: KeyboardEvent): void => {
     e.preventDefault();
     e.stopPropagation();
@@ -1341,7 +1417,6 @@ export function SettingsTab(): ReactElement {
     <div className="max-expand-settings" ref={settingsRef}>
       <div className="max-expand-settings-layout">
         <div className="max-expand-settings-sidebar">
-          <div className="max-expand-settings-sidebar-title">{t('settings.sidebar.title', { defaultValue: '设置' })}</div>
           <button
             className={`max-expand-settings-sidebar-item ${activeTab === 'index' ? 'active' : ''}`}
             onClick={() => setActiveTab('index')}
@@ -1397,6 +1472,14 @@ export function SettingsTab(): ReactElement {
           >
             <span className="sidebar-dot" />
             {getSettingsLabel('shortcut')}
+          </button>
+          <button
+            className={`max-expand-settings-sidebar-item ${activeTab === 'user' ? 'active' : ''}`}
+            onClick={() => setActiveTab('user')}
+            type="button"
+          >
+            <span className="sidebar-dot" />
+            {getSettingsLabel('user')}
           </button>
           <button
             className={`max-expand-settings-sidebar-item ${activeTab === 'update' ? 'active' : ''}`}
@@ -1602,6 +1685,14 @@ export function SettingsTab(): ReactElement {
               setToggleTrayHotkeyError={setToggleTrayHotkeyError}
               handleToggleTrayHotkeyKeyDown={handleToggleTrayHotkeyKeyDown}
               setToggleTrayHotkey={setToggleTrayHotkey}
+              showSettingsWindowHotkeyInputRef={showSettingsWindowHotkeyInputRef}
+              showSettingsWindowHotkeyRecording={showSettingsWindowHotkeyRecording}
+              showSettingsWindowHotkeyError={showSettingsWindowHotkeyError}
+              showSettingsWindowHotkey={showSettingsWindowHotkey}
+              setShowSettingsWindowHotkeyRecording={setShowSettingsWindowHotkeyRecording}
+              setShowSettingsWindowHotkeyError={setShowSettingsWindowHotkeyError}
+              handleShowSettingsWindowHotkeyKeyDown={handleShowSettingsWindowHotkeyKeyDown}
+              setShowSettingsWindowHotkey={setShowSettingsWindowHotkey}
             />
           )}
 
@@ -1669,6 +1760,8 @@ export function SettingsTab(): ReactElement {
               onInstallUpdate={handleInstallUpdate}
             />
           )}
+
+          {activeTab === 'user' && <UserSettingsSection />}
 
           {activeTab === 'about' && <AboutSettingsSection aboutVersion={aboutVersion} />}
         </div>

@@ -29,7 +29,7 @@ import type { WeatherApiConfig } from '../../api/weatherApi';
 export type { WeatherApiConfig };
 
 /** 灵动岛 UI 状态枚举 */
-export type IslandState = 'idle' | 'hover' | 'expanded' | 'notification' | 'maxExpand' | 'lyrics' | 'guide';
+export type IslandState = 'idle' | 'hover' | 'expanded' | 'notification' | 'maxExpand' | 'lyrics' | 'guide' | 'login' | 'register';
 
 /** Hover 状态下的子标签页类型 */
 export type HoverTab = 'time' | 'o3ics' | 'weather' | 'expand';
@@ -49,10 +49,24 @@ export interface LyricLine {
   is_current: boolean;
 }
 
-/** 同步歌词行（来自 lrcApi） */
+/** 逐字音节(可选), 由 karaoke 歌词源产出 */
+export interface SyncedLyricSyllable {
+  /** 相对于行首的起始偏移(毫秒) */
+  start_offset_ms: number;
+  /** 音节持续时长(毫秒) */
+  duration_ms: number;
+  /** 音节文本 */
+  text: string;
+}
+
+/** 同步歌词行(来自 lrcApi / karaoke) */
 export interface SyncedLyricLine {
   time_ms: number;
   text: string;
+  /** 行持续时长(毫秒), 0 或缺省表示未知 */
+  duration_ms?: number;
+  /** 逐字音节数组, 存在且非空则启用逐字扫光渲染 */
+  syllables?: SyncedLyricSyllable[];
 }
 
 /** 媒体信息数据类型 */
@@ -178,17 +192,23 @@ export interface AiChatMessage {
 /** 岛屿状态 Slice */
 export interface IslandSlice {
   state: IslandState;
+  authReturnState: IslandState | null;
   hoverTab: HoverTab;
   expandTab: ExpandTab;
   maxExpandTab: MaxExpandTab;
   notification: NotificationData;
+
   springAnimation: boolean;
   setIdle: (force?: boolean) => void;
   setHover: () => void;
   setExpanded: () => void;
   setMaxExpand: () => void;
+  setLogin: () => void;
+  setRegister: () => void;
+  returnFromAuth: () => void;
   setLyrics: () => void;
   setNotification: (data: NotificationData) => void;
+
   setGuide: () => void;
   setHoverTab: (tab: HoverTab) => void;
   setExpandTab: (tab: ExpandTab) => void;

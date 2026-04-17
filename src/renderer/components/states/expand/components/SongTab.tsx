@@ -27,7 +27,7 @@
 import React, { useEffect, useRef, useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../../store/slices';
-import type { SyncedLyricLine } from '../../../../store/types';
+import type { SyncedLyricLine, SyncedLyricSyllable } from '../../../../store/types';
 import { SvgIcon } from '../../../../utils/SvgIcon';
 import { formatTime, getDayName } from '../../../../utils/timeUtils';
 import { abbreviateWeatherDescription } from '../../../../utils/weatherText';
@@ -64,20 +64,6 @@ function sliceNearby(
     }
   }
   return result;
-}
-
-/** 计算当前行在本行时间区间内的播放进度（0~1） */
-function calcLineProgress(
-  lyrics: SyncedLyricLine[],
-  idx: number,
-  posMs: number,
-): number {
-  if (idx < 0 || idx >= lyrics.length) return 0;
-  const lineStart = lyrics[idx].time_ms;
-  const lineEnd = idx + 1 < lyrics.length ? lyrics[idx + 1].time_ms : lineStart + 5000;
-  const duration = lineEnd - lineStart;
-  if (duration <= 0) return 0;
-  return Math.min(1, Math.max(0, (posMs - lineStart) / duration));
 }
 
 /** 格式化倒计时剩余 */
@@ -136,28 +122,45 @@ function MarqueeLyricText({ children }: { children: React.ReactNode }): React.Re
   );
 }
 
-// ===================== 歌词渐变扫光组件 =====================
+// ===================== 逐字扫光组件 =====================
 
 /**
- * 当前歌词行渐变扫光渲染
- * @description 以 CSS background-clip:text 渐变实现播放进度扫光，@property 使百分比可 CSS 过渡
- * @param text - 歌词文本
- * @param lineProgress - 当前行播放进度（0~1）
+ * 当前行逐字扫光渲染 — 按音节真实 start/duration 计算每个音节独立进度
+ * @description 移植自 lyricify-lyrics-provider-rs 的音节时间模型,每个音节以 `--syl-prog` 控制渐变
+ * @param syllables - 音节数组(相对偏移 + 持续时长)
+ * @param lineStartMs - 行起始绝对毫秒
+ * @param posMs - 当前播放位置(绝对毫秒)
  */
-function LyricLineChars({
-  text,
-  lineProgress,
+function KaraokeSyllableLine({
+  syllables,
+  lineStartMs,
+  posMs,
 }: {
-  text: string;
-  lineProgress: number;
+  syllables: SyncedLyricSyllable[];
+  lineStartMs: number;
+  posMs: number;
 }): React.ReactElement {
   return (
-    <span
-      className="ov-lrc-progress-text"
-      style={{ '--lrc-prog': `${(lineProgress * 100).toFixed(2)}%` } as React.CSSProperties}
-    >
-      {text}
-    </span>
+    <>
+      {syllables.map((syl, i) => {
+        const sylStart = lineStartMs + syl.start_offset_ms;
+        const sylEnd = sylStart + syl.duration_ms;
+        let prog = 0;
+        if (posMs >= sylEnd) prog = 1;
+        else if (posMs > sylStart && syl.duration_ms > 0) {
+          prog = (posMs - sylStart) / syl.duration_ms;
+        }
+        return (
+          <span
+            key={i}
+            className="ov-lrc-syllable"
+            style={{ '--syl-prog': `${(prog * 100).toFixed(2)}%` } as React.CSSProperties}
+          >
+            {syl.text}
+          </span>
+        );
+      })}
+    </>
   );
 }
 
@@ -300,9 +303,14 @@ export function SongTab(): React.ReactElement {
     () => (hasLyrics && !isIntro ? sliceNearby(syncedLyrics!, currentIdx) : []),
     [hasLyrics, isIntro, syncedLyrics, currentIdx],
   );
-  const lineProgress = (hasLyrics && !isIntro && currentIdx >= 0)
-    ? calcLineProgress(syncedLyrics!, currentIdx, currentPositionMs)
-    : 0;
+  /** 当前行对象,用于读取 text 与 syllables */
+  const currentLine = useMemo(
+    () => (hasLyrics && !isIntro && currentIdx >= 0 && syncedLyrics ? syncedLyrics[currentIdx] : null),
+    [hasLyrics, isIntro, currentIdx, syncedLyrics],
+  );
+  const hasSyllables = Boolean(
+    currentLine && currentLine.syllables && currentLine.syllables.length > 0,
+  );
 
   return (
     <div className="expand-tab-panel ov-panel">
@@ -376,8 +384,12 @@ export function SongTab(): React.ReactElement {
                 className={`ov-lrc-line ${line.isCurrent ? 'current' : ''}`}
               >
                 <MarqueeLyricText>
-                  {line.isCurrent && karaokeEnabled ? (
-                    <LyricLineChars text={line.text} lineProgress={lineProgress} />
+                  {line.isCurrent && karaokeEnabled && hasSyllables && currentLine ? (
+                    <KaraokeSyllableLine
+                      syllables={currentLine.syllables!}
+                      lineStartMs={currentLine.time_ms}
+                      posMs={currentPositionMs}
+                    />
                   ) : (
                     line.text
                   )}

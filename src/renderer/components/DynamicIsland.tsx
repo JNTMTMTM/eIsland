@@ -36,14 +36,19 @@ import { ExpandedContent } from './states/expand/ExpandedContent';
 import { MaxExpandContent } from './states/maxExpand/MaxExpandContent';
 import { LyricsContent } from './states/lyrics/LyricsContent';
 import { GuideContent } from './states/guide/GuideContent';
+import { LoginContent } from './states/login/LoginContent';
+import { RegisterContent } from './states/register/RegisterContent';
 import { SvgIcon } from '../utils/SvgIcon';
 import type { NowPlayingInfo } from '../store/isLandStore';
 import { fetchLyrics } from '../api/lrcApi';
+import { fetchKaraokeLyrics } from '../api/lrcs/karaoke';
+import type { KaraokeLine } from '../api/lrcs/karaoke';
+import type { SyncedLyricLine } from '../store/types';
 import { fetchVersion, reportUpdateDownloadCount } from '../api/versionApi';
 import { getWebsiteFaviconUrl, getWebsiteHostname } from '../api/siteMetaApi';
 
 /** 灵动岛状态类型 */
-export type IslandState = 'idle' | 'hover' | 'expanded' | 'notification' | 'maxExpand' | 'minimal' | 'lyrics' | 'guide';
+export type IslandState = 'idle' | 'hover' | 'expanded' | 'notification' | 'maxExpand' | 'minimal' | 'lyrics' | 'guide' | 'login' | 'register';
 
 /** shell.css 中 morph/transition 主时长（0.55s） */
 const SHELL_MORPH_DURATION_MS = 550;
@@ -71,6 +76,8 @@ const STATE_AREA: Record<string, number> = {
   expanded: 860 * 150,
   maxExpand: 860 * 400,
   guide: 860 * 400,
+  login: 860 * 400,
+  register: 860 * 400,
 };
 
 /** 状态配置接口 */
@@ -140,6 +147,20 @@ export const STATE_CONFIGS: Record<IslandState, StateConfig> = {
   },
   guide: {
     name: 'guide',
+    mousePassthrough: false,
+    expanded: true,
+    enterDelay: 0,
+    leaveDelay: 0,
+  },
+  login: {
+    name: 'login',
+    mousePassthrough: false,
+    expanded: true,
+    enterDelay: 0,
+    leaveDelay: 0,
+  },
+  register: {
+    name: 'register',
     mousePassthrough: false,
     expanded: true,
     enterDelay: 0,
@@ -455,14 +476,55 @@ function DynamicIsland(): React.JSX.Element {
         setSyncedLyricsRef.current(null);
         setLyricsLoadingRef.current(true);
         const capturedKey = newKey;
-        fetchLyrics(info!.title, info!.artist, info!.deviceId).then(result => {
-          if (songKeyRef.current !== capturedKey) return;
-          console.log('[Lyrics] Fetched:', result ? `${result.length} lines` : 'null');
-          setSyncedLyricsRef.current(result);
-        }).catch((err) => {
-          console.error('[Lyrics] Fetch error:', err);
-          if (songKeyRef.current === capturedKey) setSyncedLyricsRef.current(null);
-        });
+        const title = info!.title;
+        const artist = info!.artist;
+        const deviceId = info!.deviceId;
+
+        /**
+         * 逐字优先流程: 开关开启 → 先拉 YRC/QRC/KRC 等逐字歌词源,
+         * 任何一源命中则渲染逐字扫光; 全部失败则走原逐行链路。
+         */
+        const loadLyrics = async (): Promise<void> => {
+          let karaokeEnabled = false;
+          try {
+            karaokeEnabled = await window.api.musicLyricsKaraokeGet();
+          } catch {
+            karaokeEnabled = false;
+          }
+
+          if (karaokeEnabled) {
+            try {
+              const karaoke = await fetchKaraokeLyrics(title, artist, deviceId);
+              if (songKeyRef.current !== capturedKey) return;
+              if (karaoke && karaoke.length > 0) {
+                const mapped: SyncedLyricLine[] = karaoke.map((l: KaraokeLine) => ({
+                  time_ms: l.time_ms,
+                  text: l.text,
+                  duration_ms: l.duration_ms,
+                  syllables: l.syllables,
+                }));
+                console.log('[Lyrics] Karaoke fetched:', mapped.length, 'lines');
+                setSyncedLyricsRef.current(mapped);
+                return;
+              }
+            } catch (err) {
+              console.warn('[Lyrics] Karaoke fetch failed, falling back:', err);
+            }
+            if (songKeyRef.current !== capturedKey) return;
+          }
+
+          try {
+            const result = await fetchLyrics(title, artist, deviceId);
+            if (songKeyRef.current !== capturedKey) return;
+            console.log('[Lyrics] Fetched:', result ? `${result.length} lines` : 'null');
+            setSyncedLyricsRef.current(result);
+          } catch (err) {
+            console.error('[Lyrics] Fetch error:', err);
+            if (songKeyRef.current === capturedKey) setSyncedLyricsRef.current(null);
+          }
+        };
+
+        loadLyrics();
       } else if (!newKey) {
         songKeyRef.current = '';
         setSyncedLyricsRef.current(null);
@@ -635,7 +697,7 @@ function DynamicIsland(): React.JSX.Element {
 
       const config = STATE_CONFIGS[state];
 
-      if (state === 'notification' || state === 'guide') {
+      if (state === 'notification' || state === 'guide' || state === 'login' || state === 'register') {
         if (inWindow) {
           window.api?.disableMousePassthrough();
         }
@@ -767,6 +829,18 @@ function DynamicIsland(): React.JSX.Element {
       state: 'guide',
       render: () => (
         <GuideContent />
+      ),
+    },
+    {
+      state: 'login',
+      render: () => (
+        <LoginContent />
+      ),
+    },
+    {
+      state: 'register',
+      render: () => (
+        <RegisterContent />
       ),
     },
   ];

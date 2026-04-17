@@ -368,24 +368,33 @@
   animation: ovLrcCurrentIn 0.35s ease both;
 }
 
-/* ---- 歌词行：渐变扫光进度 ---- */
+/* ---- 歌词行：逐字扫光 ---- */
+/* 保留 --lrc-prog 以兼容其它模块(例如 guide demo); 展开页真实数据改用 --syl-prog */
 @property --lrc-prog {
   syntax: '<percentage>';
   inherits: false;
   initial-value: 0%;
 }
 
-.ov-lrc-progress-text {
+@property --syl-prog {
+  syntax: '<percentage>';
+  inherits: false;
+  initial-value: 0%;
+}
+
+/* 每个音节: 按真实 start_offset_ms / duration_ms 驱动渐变进度 */
+.ov-lrc-syllable {
   display: inline;
-  transition: --lrc-prog 0.15s linear;
+  transition: --syl-prog 0.08s linear;
   background: linear-gradient(
     to right,
-    rgba(var(--color-text-rgb), 0.95) var(--lrc-prog),
-    rgba(var(--color-text-rgb), 0.28) var(--lrc-prog)
+    rgba(var(--color-text-rgb), 0.95) var(--syl-prog),
+    rgba(var(--color-text-rgb), 0.28) var(--syl-prog)
   );
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
+  color: transparent;
 }
 
 /* ---- 歌词行：轮播滚动 ---- */

@@ -18,7 +18,9 @@
     "actions": {
       "prev": "Previous",
       "next": "Next",
-      "start": "Get Started"
+      "start": "Get Started",
+      "loginNow": "Log In Now",
+      "registerNow": "Register Now"
     },
     "welcome": {
       "title": "Welcome to eIsland",
@@ -40,6 +42,12 @@
       "settings": {
         "title": "Personalization",
         "desc": "Customize your Dynamic Island experience in settings."
+      },
+      "auth": {
+        "title": "Account Service",
+        "desc": "Log in or register now to enable cross-device sync and account management.",
+        "tipSync": "After login, your profile can be synced.",
+        "tipMode": "You can use the Plugin Market and Wallpaper Market features."
       }
     },
     "interactionCards": {
@@ -566,6 +574,7 @@
       "music-smtc": "SMTC",
       "ai": "AI Agent",
       "shortcut": "Shortcuts",
+      "user": "Account",
       "update": "Updates",
       "about": "About"
     },
@@ -895,6 +904,117 @@
       "copyright": "© JNTMTMTM, pyisland.com. All rights reserved.",
       "slogan": "Algorithms explain everything"
     },
+    "user": {
+      "auth": {
+        "login": "Sign In",
+        "register": "Sign Up",
+        "loginBtn": "Sign In",
+        "registerBtn": "Create account",
+        "hint": "Sign in and registration are powered by eIsland server",
+        "entryTitle": "Sign in to manage avatar, profile, and account security settings",
+        "gotoLogin": "Go to Sign In",
+        "gotoRegister": "Go to Sign Up"
+      },
+      "fields": {
+        "username": "Username",
+        "usernamePlaceholder": "2-32 chars, letters (incl. CJK) / digits / underscore",
+        "account": "Username or Email",
+        "accountPlaceholder": "Enter username or email",
+        "email": "Email",
+        "password": "Password",
+        "passwordPlaceholder": "At least 8 chars with letters and digits",
+        "confirmPassword": "Confirm Password",
+        "confirmPasswordPlaceholder": "Enter password again",
+        "avatarUrlPlaceholder": "Or paste avatar URL directly",
+        "gender": "Gender",
+        "genderCustom": "Custom gender",
+        "genderCustomPlaceholder": "Up to 64 characters",
+        "birthday": "Birthday",
+        "newPassword": "New password",
+        "newPasswordPlaceholder": "Leave blank to keep; at least 8 chars with letters and digits",
+        "currentPassword": "Current password",
+        "currentPasswordPlaceholder": "Enter current password to confirm"
+      },
+      "sections": {
+        "avatar": "Avatar",
+        "avatarHint": "Upload a new avatar",
+        "profile": "Profile",
+        "profileHint": "Complete public profile details for easier account recognition",
+        "password": "Change password (optional)",
+        "passwordHint": "Leave blank to keep your current password",
+        "danger": "Danger Zone"
+      },
+      "card": {
+        "memberSince": "Member since"
+      },
+      "pages": {
+        "info": "User Info",
+        "edit": "Edit Info",
+        "account": "Account",
+        "switchTo": "Switch to {{label}}"
+      },
+      "gender": {
+        "male": "Male",
+        "female": "Female",
+        "custom": "Custom",
+        "undisclosed": "Prefer not to say"
+      },
+      "actions": {
+        "refresh": "Refresh profile",
+        "refreshing": "Refreshing…",
+        "chooseAvatar": "Upload image",
+        "uploading": "Uploading…",
+        "show": "Show",
+        "hide": "Hide",
+        "showPassword": "Show password",
+        "hidePassword": "Hide password",
+        "saveProfile": "Save profile",
+        "saving": "Saving…",
+        "logout": "Sign out",
+        "loggingOut": "Signing out…",
+        "backToCenter": "Back to Previous Page",
+        "unregister": "Delete account",
+        "confirmUnregister": "Confirm delete",
+        "unregistering": "Deleting…",
+        "cancel": "Cancel",
+        "cancelChanges": "Discard changes"
+      },
+      "danger": {
+        "hint": "Deleting your account removes associated data immediately and cannot be undone. Proceed with care."
+      },
+      "feedback": {
+        "submitting": "Processing…",
+        "loadingProfile": "Loading account profile…",
+        "loadFailed": "Failed to load profile",
+        "sessionExpired": "Session expired. Please sign in again.",
+        "usernameRequired": "Username is required",
+        "usernameFormatInvalid": "Username can only contain Chinese, English letters, and numbers",
+        "accountRequired": "Username or email is required",
+        "passwordRequired": "Password is required",
+        "confirmPasswordRequired": "Please confirm your password",
+        "passwordNotMatch": "Passwords do not match",
+        "emailRequired": "Email is required",
+        "operationFailed": "Operation failed",
+        "loginSuccess": "Signed in",
+        "registerSuccess": "Account created and signed in",
+        "avatarTooLarge": "Avatar must be under 5MB",
+        "avatarNotImage": "Only image files are accepted",
+        "avatarUploaded": "Avatar uploaded. Save profile to apply.",
+        "avatarUploadFailed": "Avatar upload failed",
+        "passwordTooShort": "Password must be at least 8 chars with letters and digits",
+        "passwordConfirmNeedsPassword": "Please enter a new password first",
+        "passwordConfirmRequired": "Please confirm your new password",
+        "passwordConfirmMismatch": "The two new passwords do not match",
+        "birthdayInvalid": "Birthday must be in yyyy-MM-dd format",
+        "saveFailed": "Save failed",
+        "saveSuccess": "Profile updated",
+        "logoutSuccess": "Signed out",
+        "logoutLocalOnly": "Server response error; signed out locally only",
+        "unregisterPasswordRequired": "Enter your current password to confirm",
+        "unregisterFailed": "Account deletion failed",
+        "unregisterSuccess": "Account deleted"
+      }
+    },
     "nav": {
       "guide": {
         "label": "Guide",
@@ -947,6 +1067,10 @@
       "shortcut": {
         "label": "Shortcuts",
         "desc": "Hide, quit, and screenshot hotkeys"
+      },
+      "user": {
+        "label": "Account",
+        "desc": "Sign in, profile, and account deletion"
       },
       "about": {
         "label": "About",

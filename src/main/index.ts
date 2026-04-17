@@ -26,7 +26,7 @@
 
 import { app, BrowserWindow, globalShortcut } from 'electron';
 import { join } from 'path';
-import { mkdirSync, existsSync } from 'fs';
+import { mkdirSync, existsSync, readFileSync, writeFileSync } from 'fs';
 import { electronApp, optimizer } from '@electron-toolkit/utils';
 import { autoUpdater } from 'electron-updater';
 import { createTray, destroyTray, toggleTray } from './tray';
@@ -50,13 +50,14 @@ import { registerHideProcessIpcHandlers } from './ipc/hideProcess';
 import { registerThemeIpcHandlers } from './ipc/theme';
 import { registerWindowIpcHandlers } from './ipc/window';
 import { registerMediaIpcHandlers } from './ipc/media';
-import { registerSettingsPreviewHandler } from './utils/broadcast';
+import { broadcastSettingChange, registerSettingsPreviewHandler } from './utils/broadcast';
 import { registerAppLifecycleHandlers } from './services/appLifecycle';
 import { applyChromiumPerformanceFlags } from './services/chromiumFlags';
 import { createHotkeyService } from './services/hotkeyService';
 import { initUpdaterService } from './services/updaterService';
 import { createCaptureWindowService } from './window/captureWindow';
 import { createMainWindowService } from './window/mainWindow';
+import { openStandaloneWindow } from './window/standaloneWindow';
 import { createSmtcService } from './music/smtcService';
 import { createAutoHideWatcher } from './system/autoHideWatcher';
 import { sendMediaVirtualKey } from './system/mediaKey';
@@ -90,11 +91,11 @@ import {
   HOTKEY_STORE_KEY, QUIT_HOTKEY_STORE_KEY,
   SCREENSHOT_HOTKEY_STORE_KEY, NEXT_SONG_HOTKEY_STORE_KEY,
   PLAY_PAUSE_SONG_HOTKEY_STORE_KEY, RESET_POSITION_HOTKEY_STORE_KEY,
-  TOGGLE_TRAY_HOTKEY_STORE_KEY,
+  TOGGLE_TRAY_HOTKEY_STORE_KEY, SHOW_SETTINGS_WINDOW_HOTKEY_STORE_KEY,
   sanitizeIslandPositionOffset, sanitizeSmtcUnsubscribeMs,
   readHotkeyConfig, readQuitHotkeyConfig, readScreenshotHotkeyConfig,
   readNextSongHotkeyConfig, readPlayPauseSongHotkeyConfig, readResetPositionHotkeyConfig,
-  readToggleTrayHotkeyConfig,
+  readToggleTrayHotkeyConfig, readShowSettingsWindowHotkeyConfig,
   readWhitelistConfig, readLyricsSourceConfig, readSmtcUnsubscribeMsConfig,
   readHideProcessListConfig, readIslandPositionOffsetConfig, writeIslandPositionOffsetConfig,
   readClipboardUrlMonitorEnabledConfig, readClipboardUrlDetectModeConfig, readClipboardUrlBlacklistConfig,
@@ -160,6 +161,7 @@ const hotkeyService = createHotkeyService({
   readPlayPauseSongHotkeyConfig,
   readResetPositionHotkeyConfig,
   readToggleTrayHotkeyConfig,
+  readShowSettingsWindowHotkeyConfig,
   onScreenshotHotkey: () => {
     captureWindowService.startRegionScreenshot().catch((err) => {
       console.error('[Screenshot] hotkey trigger error:', err);
@@ -178,6 +180,33 @@ const hotkeyService = createHotkeyService({
   },
   onToggleTrayHotkey: () => {
     toggleTray();
+  },
+  onShowSettingsWindowHotkey: () => {
+    const storeDir = join(app.getPath('userData'), 'eIsland_store');
+    const readMode = (key: string): string | null => {
+      try {
+        const filePath = join(storeDir, `${key}.json`);
+        if (!existsSync(filePath)) return null;
+        const parsed = JSON.parse(readFileSync(filePath, 'utf-8'));
+        return typeof parsed === 'string' ? parsed : null;
+      } catch {
+        return null;
+      }
+    };
+    const mode = readMode('standalone-window-mode') ?? readMode('countdown-window-mode');
+    if (mode !== 'standalone') return;
+
+    if (!existsSync(storeDir)) {
+      mkdirSync(storeDir, { recursive: true });
+    }
+    try {
+      writeFileSync(join(storeDir, 'standalone-window-active-tab.json'), JSON.stringify('settings', null, 2), 'utf-8');
+    } catch {
+      // ignore
+    }
+
+    openStandaloneWindow();
+    broadcastSettingChange(-1, 'store:standalone-window-active-tab', 'settings');
   },
 });
 
@@ -316,6 +345,7 @@ function registerIpcHandlers(): void {
     playPauseSongHotkeyStoreKey: PLAY_PAUSE_SONG_HOTKEY_STORE_KEY,
     resetPositionHotkeyStoreKey: RESET_POSITION_HOTKEY_STORE_KEY,
     toggleTrayHotkeyStoreKey: TOGGLE_TRAY_HOTKEY_STORE_KEY,
+    showSettingsWindowHotkeyStoreKey: SHOW_SETTINGS_WINDOW_HOTKEY_STORE_KEY,
     getCurrentHideHotkey: hotkeyService.getCurrentHideHotkey,
     getCurrentQuitHotkey: hotkeyService.getCurrentQuitHotkey,
     getCurrentScreenshotHotkey: hotkeyService.getCurrentScreenshotHotkey,
@@ -323,6 +353,7 @@ function registerIpcHandlers(): void {
     getCurrentPlayPauseSongHotkey: hotkeyService.getCurrentPlayPauseSongHotkey,
     getCurrentResetPositionHotkey: hotkeyService.getCurrentResetPositionHotkey,
     getCurrentToggleTrayHotkey: hotkeyService.getCurrentToggleTrayHotkey,
+    getCurrentShowSettingsWindowHotkey: hotkeyService.getCurrentShowSettingsWindowHotkey,
     readHideHotkeyConfig: readHotkeyConfig,
     readQuitHotkeyConfig,
     readScreenshotHotkeyConfig,
@@ -330,12 +361,14 @@ function registerIpcHandlers(): void {
     readPlayPauseSongHotkeyConfig,
     readResetPositionHotkeyConfig,
     readToggleTrayHotkeyConfig,
+    readShowSettingsWindowHotkeyConfig,
     registerHideHotkey: hotkeyService.registerHideHotkey,
     registerQuitHotkey: hotkeyService.registerQuitHotkey,
     registerNextSongHotkey: hotkeyService.registerNextSongHotkey,
     registerPlayPauseSongHotkey: hotkeyService.registerPlayPauseSongHotkey,
     registerResetPositionHotkey: hotkeyService.registerResetPositionHotkey,
     registerToggleTrayHotkey: hotkeyService.registerToggleTrayHotkey,
+    registerShowSettingsWindowHotkey: hotkeyService.registerShowSettingsWindowHotkey,
     suspendIslandHotkeys: hotkeyService.suspendIslandHotkeys,
     resumeIslandHotkeys: hotkeyService.resumeIslandHotkeys,
   });
@@ -352,7 +385,9 @@ function registerIpcHandlers(): void {
       const currentPlayPauseSong =
         hotkeyService.getCurrentPlayPauseSongHotkey() || readPlayPauseSongHotkeyConfig();
       const currentResetPos = hotkeyService.getCurrentResetPositionHotkey() || readResetPositionHotkeyConfig();
-      return [currentHide, currentQuit, currentNextSong, currentPlayPauseSong, currentResetPos];
+      const currentToggleTray = hotkeyService.getCurrentToggleTrayHotkey() || readToggleTrayHotkeyConfig();
+      const currentShowSettings = hotkeyService.getCurrentShowSettingsWindowHotkey() || readShowSettingsWindowHotkeyConfig();
+      return [currentHide, currentQuit, currentNextSong, currentPlayPauseSong, currentResetPos, currentToggleTray, currentShowSettings];
     },
     registerScreenshotHotkey: hotkeyService.registerScreenshotHotkey,
   });
@@ -476,6 +511,10 @@ app.whenReady().then(() => {
   // 读取持久化切换托盘图标快捷键并注册
   const savedToggleTrayHotkey = readToggleTrayHotkeyConfig();
   if (savedToggleTrayHotkey) hotkeyService.registerToggleTrayHotkey(savedToggleTrayHotkey);
+
+  // 读取持久化显示配置窗口快捷键并注册（仅独立窗口模式下会生效）
+  const savedShowSettingsWindowHotkey = readShowSettingsWindowHotkeyConfig();
+  if (savedShowSettingsWindowHotkey) hotkeyService.registerShowSettingsWindowHotkey(savedShowSettingsWindowHotkey);
 
   initUpdaterService({
     updater: autoUpdater,

@@ -35,6 +35,7 @@ export const createIslandSlice: StateCreator<
   IslandSlice
 > = (set) => ({
   state: 'idle',
+  authReturnState: null,
   hoverTab: 'time',
   expandTab: 'overview',
   maxExpandTab: 'todo',
@@ -42,45 +43,87 @@ export const createIslandSlice: StateCreator<
   springAnimation: true,
 
   setIdle: (force?: boolean) => set((prev) => {
-    if (!force && (prev.state === 'expanded' || prev.state === 'maxExpand' || prev.state === 'guide')) return prev;
+    if (!force && (prev.state === 'expanded' || prev.state === 'maxExpand' || prev.state === 'guide' || prev.state === 'login' || prev.state === 'register')) return prev;
     window.api?.collapseWindow();
     window.api?.enableMousePassthrough();
-    return { state: 'idle' as const };
+    return { state: 'idle' as const, authReturnState: null };
   }),
 
   setHover: () => {
     window.api?.expandWindow();
     window.api?.disableMousePassthrough();
-    set({ state: 'hover' });
+    set({ state: 'hover', authReturnState: null });
   },
 
   setExpanded: () => {
     window.api?.expandWindowFull();
     window.api?.disableMousePassthrough();
-    set({ state: 'expanded' });
+    set({ state: 'expanded', authReturnState: null });
   },
 
   setMaxExpand: () => {
     window.api?.expandWindowSettings();
     window.api?.disableMousePassthrough();
-    set({ state: 'maxExpand' });
+    set({ state: 'maxExpand', authReturnState: null });
   },
+
+  setLogin: () => set((prev) => {
+    window.api?.expandWindowSettings();
+    window.api?.disableMousePassthrough();
+    const nextAuthReturnState = (prev.state === 'login' || prev.state === 'register')
+      ? prev.authReturnState
+      : prev.state;
+    return { state: 'login', authReturnState: nextAuthReturnState };
+  }),
+
+  setRegister: () => set((prev) => {
+    window.api?.expandWindowSettings();
+    window.api?.disableMousePassthrough();
+    const nextAuthReturnState = (prev.state === 'login' || prev.state === 'register')
+      ? prev.authReturnState
+      : prev.state;
+    return { state: 'register', authReturnState: nextAuthReturnState };
+  }),
+
+  returnFromAuth: () => set((prev) => {
+    const target = prev.authReturnState ?? 'maxExpand';
+    if (target === 'idle') {
+      window.api?.collapseWindow();
+      window.api?.enableMousePassthrough();
+    } else if (target === 'hover') {
+      window.api?.expandWindow();
+      window.api?.disableMousePassthrough();
+    } else if (target === 'expanded') {
+      window.api?.expandWindowFull();
+      window.api?.disableMousePassthrough();
+    } else if (target === 'maxExpand' || target === 'guide' || target === 'login' || target === 'register') {
+      window.api?.expandWindowSettings();
+      window.api?.disableMousePassthrough();
+    } else if (target === 'lyrics') {
+      window.api?.expandWindowLyrics();
+      window.api?.enableMousePassthrough();
+    } else if (target === 'notification') {
+      window.api?.expandWindowNotification();
+      window.api?.disableMousePassthrough();
+    }
+    return { state: target === 'login' || target === 'register' ? 'maxExpand' : target, authReturnState: null };
+  }),
 
   setLyrics: () => {
     window.api?.expandWindowLyrics();
     window.api?.enableMousePassthrough();
-    set({ state: 'lyrics' });
+    set({ state: 'lyrics', authReturnState: null });
   },
 
   setNotification: (data) => {
     window.api?.expandWindowNotification();
-    set({ state: 'notification', notification: data });
+    set({ state: 'notification', notification: data, authReturnState: null });
   },
 
   setGuide: () => {
     window.api?.expandWindowSettings();
     window.api?.disableMousePassthrough();
-    set({ state: 'guide' as const });
+    set({ state: 'guide' as const, authReturnState: null });
   },
 
   setHoverTab: (tab) => set({ hoverTab: tab }),

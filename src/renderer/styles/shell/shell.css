@@ -269,6 +269,21 @@
   pointer-events: none;
 }
 
+.island-shell.login,
+.island-shell.register {
+  width: 860px;
+  height: 400px;
+  background: var(--color-island-bg);
+  border-radius: 0 0 22px 22px;
+  box-shadow: none;
+}
+
+.island-shell.login::before,
+.island-shell.register::before {
+  opacity: 0;
+  pointer-events: none;
+}
+
 .island-shell.notification {
   width: 500px;
   height: 88px;

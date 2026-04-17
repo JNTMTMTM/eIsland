@@ -118,6 +118,9 @@ export const DEFAULT_RESET_POSITION_HOTKEY = '';
 /** 默认切换托盘图标快捷键（空表示默认不设置） */
 export const DEFAULT_TOGGLE_TRAY_HOTKEY = '';
 
+/** 默认显示配置窗口快捷键（空表示默认不设置） */
+export const DEFAULT_SHOW_SETTINGS_WINDOW_HOTKEY = '';
+
 // ===== Store 键名 =====
 
 /** 白名单存储键名 */
@@ -191,6 +194,9 @@ export const RESET_POSITION_HOTKEY_STORE_KEY = 'reset-position-hotkey';
 
 /** 切换托盘图标快捷键存储键名 */
 export const TOGGLE_TRAY_HOTKEY_STORE_KEY = 'toggle-tray-hotkey';
+
+/** 显示配置窗口快捷键存储键名 */
+export const SHOW_SETTINGS_WINDOW_HOTKEY_STORE_KEY = 'show-settings-window-hotkey';
 
 // ===== Helper =====
 
@@ -306,6 +312,15 @@ export function readResetPositionHotkeyConfig(): string {
 export function readToggleTrayHotkeyConfig(): string {
   const data = readJsonFile(TOGGLE_TRAY_HOTKEY_STORE_KEY);
   return typeof data === 'string' ? data : DEFAULT_TOGGLE_TRAY_HOTKEY;
+}
+
+/**
+ * 读取显示配置窗口快捷键配置
+ * @returns 快捷键字符串
+ */
+export function readShowSettingsWindowHotkeyConfig(): string {
+  const data = readJsonFile(SHOW_SETTINGS_WINDOW_HOTKEY_STORE_KEY);
+  return typeof data === 'string' ? data : DEFAULT_SHOW_SETTINGS_WINDOW_HOTKEY;
 }
 
 /**

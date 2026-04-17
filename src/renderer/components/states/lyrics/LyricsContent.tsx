@@ -27,7 +27,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { ReactElement } from 'react';
 import useIslandStore from '../../../store/slices';
-import type { SyncedLyricLine } from '../../../store/types';
+import type { SyncedLyricLine, SyncedLyricSyllable } from '../../../store/types';
 import { SvgIcon } from '../../../utils/SvgIcon';
 import '../../../styles/lyrics/lyrics.css';
 
@@ -44,18 +44,43 @@ function findCurrentIndex(lyrics: SyncedLyricLine[], posMs: number): number {
   return lo;
 }
 
-/** 计算当前行在本行时间区间内的播放进度（0~1） */
-function calcLineProgress(
-  lyrics: SyncedLyricLine[],
-  idx: number,
-  posMs: number,
-): number {
-  if (idx < 0 || idx >= lyrics.length) return 0;
-  const lineStart = lyrics[idx].time_ms;
-  const lineEnd = idx + 1 < lyrics.length ? lyrics[idx + 1].time_ms : lineStart + 5000;
-  const duration = lineEnd - lineStart;
-  if (duration <= 0) return 0;
-  return Math.min(1, Math.max(0, (posMs - lineStart) / duration));
+/**
+ * 逐字扫光行渲染: 按音节真实 start/duration 计算每个音节的独立进度
+ * @param syllables - 音节数组(相对偏移 + 持续时长)
+ * @param lineStartMs - 行起始绝对毫秒
+ * @param posMs - 当前播放位置(绝对毫秒)
+ */
+function KaraokeSyllableLine({
+  syllables,
+  lineStartMs,
+  posMs,
+}: {
+  syllables: SyncedLyricSyllable[];
+  lineStartMs: number;
+  posMs: number;
+}): ReactElement {
+  return (
+    <>
+      {syllables.map((syl, i) => {
+        const sylStart = lineStartMs + syl.start_offset_ms;
+        const sylEnd = sylStart + syl.duration_ms;
+        let prog = 0;
+        if (posMs >= sylEnd) prog = 1;
+        else if (posMs > sylStart && syl.duration_ms > 0) {
+          prog = (posMs - sylStart) / syl.duration_ms;
+        }
+        return (
+          <span
+            key={i}
+            className="lyrics-syllable"
+            style={{ '--syl-prog': `${(prog * 100).toFixed(2)}%` } as React.CSSProperties}
+          >
+            {syl.text}
+          </span>
+        );
+      })}
+    </>
+  );
 }
 
 /**
@@ -129,19 +154,22 @@ export function LyricsContent(): ReactElement {
   const hasLyrics = syncedLyrics && syncedLyrics.length > 0 && !lyricsLoading;
   const isIntro = hasLyrics && currentIdx < 0;
 
-  /** 当前歌词文本 */
-  const currentText = useMemo(() => {
-    if (!hasLyrics || isIntro) return '';
+  /** 当前行对象, 便于读取 text 与 syllables */
+  const currentLine = useMemo(() => {
+    if (!hasLyrics || isIntro) return null;
     if (currentIdx >= 0 && syncedLyrics && currentIdx < syncedLyrics.length) {
-      return syncedLyrics[currentIdx].text;
+      return syncedLyrics[currentIdx];
     }
-    return '';
+    return null;
   }, [hasLyrics, isIntro, currentIdx, syncedLyrics]);
 
-  /** 当前行扫光进度 */
-  const lineProgress = (hasLyrics && !isIntro && currentIdx >= 0 && syncedLyrics)
-    ? calcLineProgress(syncedLyrics, currentIdx, currentPositionMs)
-    : 0;
+  /** 当前行文本(未启用逐字时直接渲染) */
+  const currentText = currentLine?.text ?? '';
+
+  /** 当前行是否具备真实逐字音节数据 */
+  const hasSyllables = Boolean(
+    currentLine && currentLine.syllables && currentLine.syllables.length > 0,
+  );
 
   return (
     <div className="lyrics-content">
@@ -186,10 +214,17 @@ export function LyricsContent(): ReactElement {
         ) : currentText ? (
           <span
             key={currentIdx}
-            className={`lyrics-current-line${karaokeEnabled ? ' lyrics-sweep' : ''}`}
-            style={karaokeEnabled ? { '--lrc-prog': `${(lineProgress * 100).toFixed(2)}%` } as React.CSSProperties : undefined}
+            className={`lyrics-current-line${karaokeEnabled && hasSyllables ? ' lyrics-karaoke' : ''}`}
           >
-            {currentText}
+            {karaokeEnabled && hasSyllables && currentLine ? (
+              <KaraokeSyllableLine
+                syllables={currentLine.syllables!}
+                lineStartMs={currentLine.time_ms}
+                posMs={currentPositionMs}
+              />
+            ) : (
+              currentText
+            )}
           </span>
         ) : (
           <span className="lyrics-empty">暂无歌词 享受音乐</span>

@@ -56,6 +56,14 @@
   margin-top: -2px;
 }
 
+.guide-page-auth-icon {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+  opacity: 0.95;
+  filter: drop-shadow(0 2px 10px rgba(0, 113, 227, 0.22));
+}
+
 .guide-page-welcome {
   align-items: center;
   justify-content: center;
@@ -120,22 +128,11 @@
 .guide-tip {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   background: rgba(var(--color-text-rgb), 0.055);
   border-radius: 8px;
   padding: 12px 14px;
   min-width: 0;
-}
-
-.guide-tip-icon {
-  flex-shrink: 0;
-  width: 28px;
-  height: 28px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  background: rgba(var(--color-text-rgb), 0.08);
-  font-size: 16px;
 }
 
 .guide-tip-text {
@@ -147,6 +144,49 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.guide-page-auth {
+  max-width: 640px;
+  margin: 0 auto;
+  gap: 16px;
+  justify-content: center;
+}
+
+.guide-page-auth .guide-hero {
+  justify-content: center;
+  gap: 10px;
+}
+
+.guide-page-auth .guide-title {
+  font-size: 24px;
+}
+
+.guide-page-auth .guide-desc {
+  text-align: center;
+  opacity: 0.82;
+}
+
+.guide-page-auth .guide-tips {
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+.guide-page-auth .guide-tip {
+  justify-content: center;
+  border: 1px solid rgba(var(--color-text-rgb), 0.1);
+  background: rgba(var(--color-text-rgb), 0.035);
+}
+
+.guide-page-auth .guide-tip-text {
+  text-align: center;
+}
+
+.guide-auth-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 6px;
+  justify-content: center;
 }
 
 .guide-footer {

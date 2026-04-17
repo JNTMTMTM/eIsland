@@ -84,7 +84,9 @@ export const SvgIcon = {
   /** 设置 */
   SETTING: './svg/SETTING.svg',
   /** 语言 */
-  LANGUAGE: './svg/LANGUAGE.svg'
+  LANGUAGE: './svg/LANGUAGE.svg',
+  /** 用户 */
+  USER: './svg/USER.svg'
 } as const;
 
 export type SvgIconKey = keyof typeof SvgIcon;

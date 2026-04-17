@@ -30,6 +30,7 @@ import './styles/index.css';
 import DynamicIsland from './components/DynamicIsland';
 import useIslandStore from './store/slices';
 import { initTheme } from './utils/theme';
+import { bootstrapAuthSession } from './utils/authSession';
 import './i18n';
 
 function applyIslandOpacity(opacity: number): void {
@@ -46,6 +47,7 @@ const rootEl = root;
 /** 启动时初始化主题（读取持久化设置并应用 data-theme，在 React 挂载前执行避免闪烁） */
 async function bootstrap(): Promise<void> {
   await initTheme();
+  await bootstrapAuthSession();
 
   /** 启动时初始化灵动岛透明度（在 React 挂载前设置，避免首次渲染闪烁） */
   window.api?.islandOpacityGet?.().then((val) => {

@@ -30,11 +30,44 @@ import { useTranslation } from 'react-i18next';
 import { TodoTab } from './states/maxExpand/components/TodoTab';
 import { CountdownTab } from './states/maxExpand/components/CountdownTab';
 import { SettingsTab } from './states/maxExpand/components/SettingsTab';
+import { LoginContent } from './states/login/LoginContent';
+import { RegisterContent } from './states/register/RegisterContent';
+import useIslandStore from '../store/slices';
 import windowIcon from '../../../resources/icon/eisland.svg';
 
 type WindowTab = 'todo' | 'countdown' | 'settings';
 const ACTIVE_TAB_STORE_KEY = 'standalone-window-active-tab';
 const LEGACY_ACTIVE_TAB_STORE_KEY = 'countdown-window-active-tab';
+const AUTH_INTENT_STORE_KEY = 'standalone-window-auth-intent';
+const ISLAND_BG_IMAGE_STORE_KEY = 'island-bg-image';
+const ISLAND_BG_OPACITY_STORE_KEY = 'island-bg-opacity';
+const LOCAL_ISLAND_BG_SYNC_EVENT = 'island-bg-local-sync';
+
+function applyAuthIntent(intent: unknown): void {
+  if (intent === 'login') {
+    useIslandStore.setState({ state: 'login' });
+    return;
+  }
+  if (intent === 'register') {
+    useIslandStore.setState({ state: 'register' });
+    return;
+  }
+  if (intent === null || intent === '' || intent === 'none') {
+    useIslandStore.setState({ state: 'maxExpand' });
+  }
+}
+
+function isDirectBgImageUrl(image: string): boolean {
+  return image.startsWith('data:')
+    || image.startsWith('http://')
+    || image.startsWith('https://')
+    || image.startsWith('blob:')
+    || image.startsWith('file:')
+    || image.startsWith('/')
+    || image.startsWith('./')
+    || image.startsWith('../')
+    || image.startsWith('assets/');
+}
 
 const TAB_LIST: { key: WindowTab; labelKey: string }[] = [
   { key: 'todo', labelKey: 'standalone.tabs.todo' },
@@ -48,10 +81,36 @@ const TAB_LIST: { key: WindowTab; labelKey: string }[] = [
  */
 export function StandaloneWindow(): ReactElement {
   const { t } = useTranslation();
+  const state = useIslandStore((s) => s.state);
   const [activeTab, setActiveTab] = useState<WindowTab>('todo');
+  const [bgImageUrl, setBgImageUrl] = useState<string | null>(null);
+  const [bgImageOpacity, setBgImageOpacity] = useState<number>(30);
 
   useEffect(() => {
     let cancelled = false;
+    const applyBgImage = (imageValue: unknown): void => {
+      const image = typeof imageValue === 'string' ? imageValue : null;
+      if (!image) {
+        setBgImageUrl(null);
+        return;
+      }
+      if (isDirectBgImageUrl(image)) {
+        setBgImageUrl(image);
+        return;
+      }
+      window.api.loadWallpaperFile?.(image).then((dataUrl) => {
+        if (cancelled) return;
+        setBgImageUrl(dataUrl ?? null);
+      }).catch(() => {});
+    };
+
+    const applyBgOpacity = (opacityValue: unknown): void => {
+      const safe = typeof opacityValue === 'number' && Number.isFinite(opacityValue)
+        ? Math.max(0, Math.min(100, Math.round(opacityValue)))
+        : 30;
+      setBgImageOpacity(safe);
+    };
+
     window.api.storeRead(ACTIVE_TAB_STORE_KEY).then((tab) => {
       if (cancelled) return;
       if (tab === 'todo' || tab === 'countdown' || tab === 'settings') {
@@ -66,6 +125,25 @@ export function StandaloneWindow(): ReactElement {
       }).catch(() => {});
     }).catch(() => {});
 
+    window.api.storeRead(AUTH_INTENT_STORE_KEY).then((intent) => {
+      if (cancelled) return;
+      if (intent === 'login' || intent === 'register') {
+        setActiveTab('settings');
+        applyAuthIntent(intent);
+        window.api.storeWrite(AUTH_INTENT_STORE_KEY, null).catch(() => {});
+      }
+    }).catch(() => {});
+
+    window.api.storeRead(ISLAND_BG_IMAGE_STORE_KEY).then((image) => {
+      if (cancelled) return;
+      applyBgImage(image);
+    }).catch(() => {});
+
+    window.api.storeRead(ISLAND_BG_OPACITY_STORE_KEY).then((opacity) => {
+      if (cancelled) return;
+      applyBgOpacity(opacity);
+    }).catch(() => {});
+
     const unsub = window.api.onSettingsChanged((channel: string, value: unknown) => {
       if (cancelled) return;
       if (channel === `store:${ACTIVE_TAB_STORE_KEY}`) {
@@ -73,11 +151,38 @@ export function StandaloneWindow(): ReactElement {
           setActiveTab(value);
         }
       }
+      if (channel === `store:${AUTH_INTENT_STORE_KEY}`) {
+        if (value === 'login' || value === 'register') {
+          setActiveTab('settings');
+          applyAuthIntent(value);
+          window.api.storeWrite(AUTH_INTENT_STORE_KEY, null).catch(() => {});
+        }
+      }
+      if (channel === `store:${ISLAND_BG_IMAGE_STORE_KEY}`) {
+        applyBgImage(value);
+      }
+      if (channel === `store:${ISLAND_BG_OPACITY_STORE_KEY}`) {
+        applyBgOpacity(value);
+      }
     });
+
+    const localBgSyncHandler = (event: Event): void => {
+      const customEvent = event as CustomEvent<{ image?: string | null; opacity?: number }>;
+      const detail = customEvent.detail;
+      if (!detail || typeof detail !== 'object') return;
+      if ('image' in detail) {
+        applyBgImage(detail.image ?? null);
+      }
+      if ('opacity' in detail) {
+        applyBgOpacity(detail.opacity);
+      }
+    };
+    window.addEventListener(LOCAL_ISLAND_BG_SYNC_EVENT, localBgSyncHandler as EventListener);
 
     return () => {
       cancelled = true;
       unsub();
+      window.removeEventListener(LOCAL_ISLAND_BG_SYNC_EVENT, localBgSyncHandler as EventListener);
     };
   }, []);
 
@@ -88,6 +193,13 @@ export function StandaloneWindow(): ReactElement {
 
   return (
     <div className="cw-root">
+      <div
+        className="cw-bg-layer"
+        style={{
+          backgroundImage: bgImageUrl ? `url(${bgImageUrl})` : 'none',
+          opacity: bgImageUrl ? bgImageOpacity / 100 : 0,
+        }}
+      />
       {/* 顶部栏：浏览器风格 Tab + 窗口控制 */}
       <div className="cw-chrome">
         <img className="cw-window-icon" src={windowIcon} alt="eIsland" />
@@ -121,7 +233,9 @@ export function StandaloneWindow(): ReactElement {
       <div className="cw-viewport">
         {activeTab === 'todo' && <TodoTab />}
         {activeTab === 'countdown' && <CountdownTab />}
-        {activeTab === 'settings' && <SettingsTab />}
+        {activeTab === 'settings' && state === 'login' && <LoginContent />}
+        {activeTab === 'settings' && state === 'register' && <RegisterContent />}
+        {activeTab === 'settings' && state !== 'login' && state !== 'register' && <SettingsTab />}
       </div>
     </div>
   );
