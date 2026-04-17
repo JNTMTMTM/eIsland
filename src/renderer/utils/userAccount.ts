@@ -48,6 +48,9 @@ export interface UserAccountProfile {
   createdAt: string;
 }
 
+/**
+ * 触发登录态变更事件，通知页面中依赖会话状态的组件刷新。
+ */
 export function emitUserAccountSessionChanged(): void {
   try {
     window.dispatchEvent(new Event(USER_ACCOUNT_SESSION_CHANGED_EVENT));
@@ -56,6 +59,11 @@ export function emitUserAccountSessionChanged(): void {
   }
 }
 
+/**
+ * 订阅登录态变更事件。
+ * @param listener 登录态变化时执行的回调。
+ * @returns 取消订阅函数。
+ */
 export function subscribeUserAccountSessionChanged(listener: () => void): () => void {
   window.addEventListener(USER_ACCOUNT_SESSION_CHANGED_EVENT, listener);
   return () => {
