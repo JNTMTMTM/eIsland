@@ -83,3 +83,30 @@
   flex: 1;
   text-align: left;
 }
+
+.auth-panel .auth-password-input-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.auth-panel .auth-password-toggle {
+  appearance: none;
+  border: 1px solid rgba(var(--color-text-rgb), 0.16);
+  background: rgba(var(--color-text-rgb), 0.08);
+  color: rgba(var(--color-text-rgb), 0.82);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.18s ease, border-color 0.18s ease;
+  white-space: nowrap;
+}
+
+.auth-panel .auth-password-toggle:hover {
+  background: rgba(var(--color-text-rgb), 0.14);
+  border-color: rgba(var(--color-text-rgb), 0.24);
+}

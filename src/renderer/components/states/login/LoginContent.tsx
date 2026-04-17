@@ -46,6 +46,7 @@ export function LoginContent(): ReactElement {
   const { setRegister, setMaxExpand, setMaxExpandTab } = useIslandStore();
   const [account, setAccount] = useState('');
   const [password, setPassword] = useState('');
+  const [passwordVisible, setPasswordVisible] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
 
@@ -105,13 +106,27 @@ export function LoginContent(): ReactElement {
 
         <label className="settings-field">
           <span className="settings-field-label">{t('settings.user.fields.password', { defaultValue: '密码' })}</span>
-          <input
-            className="settings-field-input"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder={t('settings.user.fields.passwordPlaceholder', { defaultValue: '至少 8 位，含字母与数字' })}
-          />
+          <div className="auth-password-input-wrap">
+            <input
+              className="settings-field-input"
+              type={passwordVisible ? 'text' : 'password'}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder={t('settings.user.fields.passwordPlaceholder', { defaultValue: '至少 8 位，含字母与数字' })}
+            />
+            <button
+              type="button"
+              className="auth-password-toggle"
+              onClick={() => setPasswordVisible((v) => !v)}
+              aria-label={passwordVisible
+                ? t('settings.user.actions.hidePassword', { defaultValue: '隐藏密码' })
+                : t('settings.user.actions.showPassword', { defaultValue: '显示密码' })}
+            >
+              {passwordVisible
+                ? t('settings.user.actions.hide', { defaultValue: '隐藏' })
+                : t('settings.user.actions.show', { defaultValue: '显示' })}
+            </button>
+          </div>
         </label>
 
         {renderFeedback()}
