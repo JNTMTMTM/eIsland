@@ -873,6 +873,12 @@
       }
     },
     "pluginMarket": {
+      "auth": {
+        "entryTitle": "Sign in to access plugin market content",
+        "gotoLogin": "Go to Sign In",
+        "gotoRegister": "Go to Sign Up",
+        "hint": "Sign in to browse wallpapers and plugins."
+      },
       "pages": {
         "wallpaper": "Wallpapers",
         "plugin": "Plugins"

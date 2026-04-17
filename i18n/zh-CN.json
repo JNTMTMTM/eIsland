@@ -873,6 +873,12 @@
       }
     },
     "pluginMarket": {
+      "auth": {
+        "entryTitle": "登录后即可访问插件市场内容",
+        "gotoLogin": "前往登录",
+        "gotoRegister": "前往注册",
+        "hint": "登录后可浏览壁纸与插件内容。"
+      },
       "pages": {
         "wallpaper": "壁纸",
         "plugin": "插件"
