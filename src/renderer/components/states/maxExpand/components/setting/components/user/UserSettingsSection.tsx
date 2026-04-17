@@ -88,6 +88,10 @@ export function UserSettingsSection(): ReactElement {
   const [logoutSubmitting, setLogoutSubmitting] = useState(false);
   const [userProfilePage, setUserProfilePage] = useState<UserProfilePage>('info');
 
+  const currentUserProfilePageLabel = t(`settings.user.pages.${userProfilePage}`, {
+    defaultValue: userProfilePage === 'info' ? '用户信息' : userProfilePage === 'edit' ? '修改信息' : '关于账户',
+  });
+
   const avatarInputRef = useRef<HTMLInputElement | null>(null);
   const userProfilePageRef = useRef<UserProfilePage>('info');
   const profilePagesLayoutRef = useRef<HTMLDivElement | null>(null);
@@ -664,7 +668,10 @@ export function UserSettingsSection(): ReactElement {
 
   return (
     <div className="max-expand-settings-section settings-user">
-      <div className="max-expand-settings-title">{t('settings.labels.user', { defaultValue: '用户中心' })}</div>
+      <div className="max-expand-settings-title settings-app-title-line">
+        <span>{t('settings.labels.user', { defaultValue: '用户中心' })}</span>
+        {token && profile && <span className="settings-app-title-sub">- {currentUserProfilePageLabel}</span>}
+      </div>
       {token && profile ? renderProfileEditor() : token ? (
         <div className="settings-user-loading">
           {loadingProfile

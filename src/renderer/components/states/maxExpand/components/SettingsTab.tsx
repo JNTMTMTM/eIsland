@@ -146,6 +146,8 @@ interface RunningWindowItem {
   iconDataUrl: string | null;
 }
 
+type PluginMarketPageKey = 'wallpaper' | 'plugin';
+
 /**
  * 渲染设置面板主视图
  * @description 提供应用设置、AI 配置与关于软件三类设置入口
@@ -158,6 +160,7 @@ export function SettingsTab(): ReactElement {
   const [appSettingsPage, setAppSettingsPage] = useState<AppSettingsPageKey>('layout-preview');
   const [weatherSettingsPage, setWeatherSettingsPage] = useState<WeatherSettingsPageKey>('location');
   const [musicSettingsPage, setMusicSettingsPage] = useState<MusicSettingsPageKey>('whitelist');
+  const [pluginMarketPage, setPluginMarketPage] = useState<PluginMarketPageKey>('wallpaper');
   const { aiConfig, setAiConfig, fetchWeatherData, setGuide } = useIslandStore();
   const [editingPrompt, setEditingPrompt] = useState(false);
   const [promptDraft, setPromptDraft] = useState('');
@@ -180,6 +183,9 @@ export function SettingsTab(): ReactElement {
   const musicSettingsPageRef = useRef(musicSettingsPage);
   const currentMusicSettingsPageLabel = t(`settings.musicPages.${musicSettingsPage}`, { defaultValue: MUSIC_SETTINGS_PAGE_LABELS[musicSettingsPage] || '白名单' });
   musicSettingsPageRef.current = musicSettingsPage;
+  const currentPluginMarketPageLabel = t(`settings.pluginMarket.pages.${pluginMarketPage}`, {
+    defaultValue: pluginMarketPage === 'wallpaper' ? '壁纸' : '插件',
+  });
 
   const translatedSettingsTabLabels = useMemo<Record<string, string>>(() => {
     const next: Record<string, string> = {};
@@ -1771,7 +1777,36 @@ export function SettingsTab(): ReactElement {
 
           {activeTab === 'pluginMarket' && (
             <div className="max-expand-settings-section">
-              <div className="max-expand-settings-title">{t('settings.labels.pluginMarket', { defaultValue: '插件市场' })}</div>
+              <div className="max-expand-settings-title settings-app-title-line">
+                <span>{t('settings.labels.pluginMarket', { defaultValue: '插件市场' })}</span>
+                <span className="settings-app-title-sub">- {currentPluginMarketPageLabel}</span>
+              </div>
+              <div className="settings-app-pages-layout" style={{ marginTop: 0 }}>
+                <div className="settings-app-page-main">
+                  {pluginMarketPage === 'wallpaper' && (
+                    <div className="max-expand-settings-section" />
+                  )}
+                  {pluginMarketPage === 'plugin' && (
+                    <div className="max-expand-settings-section" />
+                  )}
+                </div>
+                <div className="settings-app-page-dots">
+                  <button
+                    className={`settings-app-page-dot ${pluginMarketPage === 'wallpaper' ? 'active' : ''}`}
+                    data-label={t('settings.pluginMarket.pages.wallpaper', { defaultValue: '壁纸' })}
+                    onClick={() => setPluginMarketPage('wallpaper')}
+                    title={t('settings.pluginMarket.pages.wallpaper', { defaultValue: '壁纸' })}
+                    aria-label={t('settings.pluginMarket.pages.wallpaper', { defaultValue: '壁纸' })}
+                  />
+                  <button
+                    className={`settings-app-page-dot ${pluginMarketPage === 'plugin' ? 'active' : ''}`}
+                    data-label={t('settings.pluginMarket.pages.plugin', { defaultValue: '插件' })}
+                    onClick={() => setPluginMarketPage('plugin')}
+                    title={t('settings.pluginMarket.pages.plugin', { defaultValue: '插件' })}
+                    aria-label={t('settings.pluginMarket.pages.plugin', { defaultValue: '插件' })}
+                  />
+                </div>
+              </div>
             </div>
           )}
 
