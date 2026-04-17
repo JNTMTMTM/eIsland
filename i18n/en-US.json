@@ -46,8 +46,8 @@
       "auth": {
         "title": "Account Service",
         "desc": "Log in or register now to enable cross-device sync and account management.",
-        "tipSync": "After login, you can manage avatar, profile, and account security settings.",
-        "tipMode": "If standalone window mode is enabled, the corresponding window page will open automatically."
+        "tipSync": "After login, your profile can be synced.",
+        "tipMode": "You can use the Plugin Market and Wallpaper Market features."
       }
     },
     "interactionCards": {

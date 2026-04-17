@@ -60,7 +60,7 @@ interface GuidePage {
   actionPrompt?: 'auth';
   title: string;
   desc: string;
-  tips?: { icon: string; text: string }[];
+  tips?: { text: string }[];
 }
 
 const STANDALONE_WINDOW_MODE_STORE_KEY = 'standalone-window-mode';
@@ -284,12 +284,12 @@ function getGuidePages(t: TFunction): GuidePage[] {
     },
     {
       actionPrompt: 'auth',
-      icon: '🔐',
+      icon: SvgIcon.USER,
       title: t('guide.sections.auth.title', { defaultValue: '账号服务' }),
       desc: t('guide.sections.auth.desc', { defaultValue: '现在就登录或注册，开启跨设备同步与账号管理。' }),
       tips: [
-        { icon: '🧩', text: t('guide.sections.auth.tipSync', { defaultValue: '登录后可管理头像、资料与账号安全设置。' }) },
-        { icon: '🪟', text: t('guide.sections.auth.tipMode', { defaultValue: '若已开启独立窗口模式，将自动打开对应窗口页面。' }) },
+        { text: t('guide.sections.auth.tipSync', { defaultValue: '登录后可同步账号资料。' }) },
+        { text: t('guide.sections.auth.tipMode', { defaultValue: '可使用插件市场和壁纸市场功能。' }) },
       ],
     },
   ];
@@ -906,11 +906,13 @@ export function GuideContent(): React.ReactElement {
           </div>
         );
       })() : (
-        <div className={`guide-page${page === 0 ? ' guide-page-welcome' : ''}`} key={page}>
+        <div className={`guide-page${page === 0 ? ' guide-page-welcome' : ''}${current.actionPrompt === 'auth' ? ' guide-page-auth' : ''}`} key={page}>
           <div className="guide-hero">
             {current.imageSrc
               ? <img className="guide-page-logo" src={current.imageSrc} alt="" aria-hidden="true" />
-              : <div className="guide-page-icon" aria-hidden="true">{current.icon}</div>
+              : current.actionPrompt === 'auth'
+                ? <img className="guide-page-auth-icon" src={SvgIcon.USER} alt="" aria-hidden="true" />
+                : <div className="guide-page-icon" aria-hidden="true">{current.icon}</div>
             }
             <div className="guide-title">{current.title}</div>
           </div>
@@ -920,7 +922,6 @@ export function GuideContent(): React.ReactElement {
             <div className="guide-tips" aria-label={t('guide.tipsAria', { defaultValue: '要点' })}>
               {current.tips.map((tip, i) => (
                 <div className="guide-tip" key={i}>
-                  <span className="guide-tip-icon" aria-hidden="true">{tip.icon}</span>
                   <span className="guide-tip-text">{tip.text}</span>
                 </div>
               ))}
@@ -928,7 +929,7 @@ export function GuideContent(): React.ReactElement {
           )}
 
           {current.actionPrompt === 'auth' && (
-            <div style={{ display: 'flex', gap: 10, marginTop: 14, justifyContent: 'center' }}>
+            <div className="guide-auth-actions">
               <button
                 type="button"
                 className="guide-btn guide-btn-primary"
