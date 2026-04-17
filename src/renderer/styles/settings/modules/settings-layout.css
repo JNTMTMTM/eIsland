@@ -1808,6 +1808,107 @@
   gap: 14px;
 }
 
+.settings-user-profile-paged {
+  position: relative;
+  padding-right: 26px;
+  min-height: 300px;
+}
+
+.settings-user-profile-main {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.settings-user-page-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.settings-user-page-dots {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 20px;
+  flex-shrink: 0;
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+}
+
+.settings-user-page-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(var(--color-text-rgb), 0.2);
+  cursor: pointer;
+  position: relative;
+  transition: background 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+}
+
+.settings-user-page-dot:hover {
+  background: rgba(var(--color-text-rgb), 0.45);
+}
+
+.settings-user-page-dot.active {
+  background: var(--color-island-text);
+  box-shadow: 0 0 6px rgba(var(--color-text-rgb), 0.5);
+  transform: scale(1.2);
+}
+
+.settings-user-page-dot::after {
+  content: attr(data-label);
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  opacity: 0;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(0, 0, 0, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 6px;
+  padding: 2px 6px;
+  white-space: nowrap;
+  transition: opacity 0.15s ease;
+}
+
+.settings-user-page-dot:hover::after {
+  opacity: 1;
+}
+
+.settings-user-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.settings-user-overview-item {
+  border: 1px solid rgba(var(--color-text-rgb), 0.08);
+  border-radius: 10px;
+  padding: 8px 10px;
+  background: rgba(var(--color-text-rgb), 0.03);
+}
+
+.settings-user-overview-label {
+  font-size: 10px;
+  color: rgba(var(--color-text-rgb), 0.5);
+  margin-bottom: 4px;
+}
+
+.settings-user-overview-value {
+  font-size: 12px;
+  color: rgba(var(--color-text-rgb), 0.88);
+  word-break: break-all;
+}
+
 .settings-user-card {
   border: 1px solid rgba(var(--color-text-rgb), 0.1);
   background: linear-gradient(135deg, rgba(var(--color-text-rgb), 0.08), rgba(var(--color-text-rgb), 0.03));

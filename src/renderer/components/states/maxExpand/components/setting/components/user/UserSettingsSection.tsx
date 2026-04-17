@@ -45,6 +45,7 @@ import {
 } from '../../../../../../../utils/userAccount';
 
 type FeedbackType = 'success' | 'error' | 'info';
+type UserProfilePage = 'info' | 'edit' | 'account';
 
 interface Feedback {
   type: FeedbackType;
@@ -82,8 +83,10 @@ export function UserSettingsSection(): ReactElement {
   const [unregisterFeedback, setUnregisterFeedback] = useState<Feedback | null>(null);
 
   const [logoutSubmitting, setLogoutSubmitting] = useState(false);
+  const [userProfilePage, setUserProfilePage] = useState<UserProfilePage>('info');
 
   const avatarInputRef = useRef<HTMLInputElement | null>(null);
+  const profilePageWheelLockRef = useRef(false);
 
   const applyProfileToEditor = useCallback((p: UserAccountProfile): void => {
     setEditAvatar(p.avatar ?? null);
@@ -270,8 +273,43 @@ export function UserSettingsSection(): ReactElement {
 
   const renderProfileEditor = (): ReactElement => {
     const displayAvatar = editAvatar || profile?.avatar || '';
-    return (
-      <div className="settings-user-profile">
+    const profilePageItems: Array<{ id: UserProfilePage; label: string }> = [
+      { id: 'info', label: t('settings.user.pages.info', { defaultValue: '用户信息' }) },
+      { id: 'edit', label: t('settings.user.pages.edit', { defaultValue: '修改信息' }) },
+      { id: 'account', label: t('settings.user.pages.account', { defaultValue: '关于账户' }) },
+    ];
+    const profilePageIds: UserProfilePage[] = profilePageItems.map((item) => item.id);
+
+    const handleProfilePageWheel = (e: React.WheelEvent<HTMLDivElement>): void => {
+      const target = e.target as HTMLElement;
+      if (target.closest('input, textarea, select, button')) {
+        return;
+      }
+      if (profilePageWheelLockRef.current) {
+        return;
+      }
+      profilePageWheelLockRef.current = true;
+      setTimeout(() => {
+        profilePageWheelLockRef.current = false;
+      }, 220);
+
+      e.preventDefault();
+      const currentIndex = profilePageIds.indexOf(userProfilePage);
+      if (currentIndex < 0) {
+        setUserProfilePage('info');
+        return;
+      }
+      if (e.deltaY > 0) {
+        setUserProfilePage(profilePageIds[(currentIndex + 1) % profilePageIds.length]);
+        return;
+      }
+      if (e.deltaY < 0) {
+        setUserProfilePage(profilePageIds[(currentIndex - 1 + profilePageIds.length) % profilePageIds.length]);
+      }
+    };
+
+    const renderInfoPage = (): ReactElement => (
+      <div className="settings-user-page-panel">
         <div className="settings-user-card">
           <div className="settings-user-card-head">
             <div className="settings-user-card-avatar">
@@ -296,6 +334,30 @@ export function UserSettingsSection(): ReactElement {
           {profileError && <div className="settings-user-feedback settings-user-feedback--error">{profileError}</div>}
         </div>
 
+        <div className="settings-user-overview-grid">
+          <div className="settings-user-overview-item">
+            <div className="settings-user-overview-label">{t('settings.user.fields.username', { defaultValue: '用户名' })}</div>
+            <div className="settings-user-overview-value">{profile?.username ?? '—'}</div>
+          </div>
+          <div className="settings-user-overview-item">
+            <div className="settings-user-overview-label">{t('settings.user.fields.email', { defaultValue: '邮箱' })}</div>
+            <div className="settings-user-overview-value">{profile?.email ?? '—'}</div>
+          </div>
+          <div className="settings-user-overview-item">
+            <div className="settings-user-overview-label">{t('settings.user.fields.gender', { defaultValue: '性别' })}</div>
+            <div className="settings-user-overview-value">{t(`settings.user.gender.${profile?.gender ?? 'undisclosed'}`, { defaultValue: profile?.gender ?? 'undisclosed' })}</div>
+          </div>
+          <div className="settings-user-overview-item">
+            <div className="settings-user-overview-label">{t('settings.user.fields.birthday', { defaultValue: '生日' })}</div>
+            <div className="settings-user-overview-value">{profile?.birthday ?? '—'}</div>
+          </div>
+        </div>
+      </div>
+    );
+
+    const renderEditPage = (): ReactElement => (
+      <div className="settings-user-page-panel">
+        {profileError && <div className="settings-user-feedback settings-user-feedback--error">{profileError}</div>}
         <div className="settings-user-form">
           <div className="settings-user-form-title">{t('settings.user.sections.avatar', { defaultValue: '头像' })}</div>
           <div className="settings-user-avatar-row">
@@ -390,6 +452,19 @@ export function UserSettingsSection(): ReactElement {
             >
               {savingProfile ? t('settings.user.actions.saving', { defaultValue: '保存中…' }) : t('settings.user.actions.saveProfile', { defaultValue: '保存资料' })}
             </button>
+          </div>
+        </div>
+      </div>
+    );
+
+    const renderAccountPage = (): ReactElement => (
+      <div className="settings-user-page-panel">
+        <div className="settings-user-card">
+          <div className="settings-user-form-title">{t('settings.user.pages.account', { defaultValue: '关于账户' })}</div>
+          <div className="settings-user-auth-hint">
+            {t('settings.user.auth.hint', { defaultValue: '登录注册服务由 eIsland server 提供' })}
+          </div>
+          <div className="settings-user-actions-row">
             <button
               type="button"
               className="settings-user-secondary-btn"
@@ -447,6 +522,29 @@ export function UserSettingsSection(): ReactElement {
               </div>
             </div>
           )}
+        </div>
+      </div>
+    );
+
+    return (
+      <div className="settings-user-profile settings-user-profile-paged" onWheel={handleProfilePageWheel}>
+        <div className="settings-user-profile-main">
+          {userProfilePage === 'info' && renderInfoPage()}
+          {userProfilePage === 'edit' && renderEditPage()}
+          {userProfilePage === 'account' && renderAccountPage()}
+        </div>
+
+        <div className="settings-user-page-dots">
+          {profilePageItems.map((item) => (
+            <button
+              key={item.id}
+              className={`settings-user-page-dot ${userProfilePage === item.id ? 'active' : ''}`}
+              data-label={item.label}
+              onClick={() => setUserProfilePage(item.id)}
+              title={item.label}
+              aria-label={t('settings.user.pages.switchTo', { defaultValue: '切换到{{label}}', label: item.label })}
+            />
+          ))}
         </div>
       </div>
     );

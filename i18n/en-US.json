@@ -936,6 +936,12 @@
       "card": {
         "memberSince": "Member since"
       },
+      "pages": {
+        "info": "User Info",
+        "edit": "Edit Info",
+        "account": "Account",
+        "switchTo": "Switch to {{label}}"
+      },
       "gender": {
         "male": "Male",
         "female": "Female",
