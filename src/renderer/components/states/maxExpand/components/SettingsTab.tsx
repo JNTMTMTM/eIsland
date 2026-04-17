@@ -85,6 +85,7 @@ import { getLanguage, setLanguage, type AppLanguage } from '../../../../i18n';
 
 const CLIPBOARD_URL_SUPPRESS_IN_FAVORITES_KEY = 'clipboard-url-suppress-in-url-favorites';
 const LOCAL_ISLAND_BG_SYNC_EVENT = 'island-bg-local-sync';
+let _lastSettingsSidebarTab: SettingsSidebarTabKey = 'index';
 
 function isDirectBgImageUrl(image: string): boolean {
   return image.startsWith('data:')
@@ -153,7 +154,7 @@ interface RunningWindowItem {
 export function SettingsTab(): ReactElement {
   const { t } = useTranslation();
   const opacitySaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [activeTab, setActiveTab] = useState<SettingsSidebarTabKey>('index');
+  const [activeTab, setActiveTab] = useState<SettingsSidebarTabKey>(() => _lastSettingsSidebarTab);
   const [appSettingsPage, setAppSettingsPage] = useState<AppSettingsPageKey>('layout-preview');
   const [weatherSettingsPage, setWeatherSettingsPage] = useState<WeatherSettingsPageKey>('location');
   const [musicSettingsPage, setMusicSettingsPage] = useState<MusicSettingsPageKey>('whitelist');
@@ -164,6 +165,9 @@ export function SettingsTab(): ReactElement {
   const settingsRef = useRef<HTMLDivElement>(null);
   const activeTabRef = useRef(activeTab);
   activeTabRef.current = activeTab;
+  useEffect(() => {
+    _lastSettingsSidebarTab = activeTab;
+  }, [activeTab]);
   const getSettingsLabel = (key: SettingsTabLabelKey): string => {
     return t(`settings.labels.${key}`, { defaultValue: SETTINGS_TAB_LABELS[key] });
   };

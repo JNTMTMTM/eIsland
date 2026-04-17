@@ -67,6 +67,7 @@ const STANDALONE_WINDOW_MODE_STORE_KEY = 'standalone-window-mode';
 const LEGACY_COUNTDOWN_WINDOW_MODE_STORE_KEY = 'countdown-window-mode';
 const STANDALONE_WINDOW_ACTIVE_TAB_STORE_KEY = 'standalone-window-active-tab';
 const STANDALONE_WINDOW_AUTH_INTENT_STORE_KEY = 'standalone-window-auth-intent';
+let _lastGuidePage = 0;
 
 async function readStandaloneWindowMode(): Promise<'integrated' | 'standalone'> {
   try {
@@ -787,7 +788,7 @@ export function GuideContent(): React.ReactElement {
   const toolCards = getToolCards(t);
   const settingCards = getSettingCards(t);
   const guidePages = getGuidePages(t);
-  const [page, setPage] = useState(0);
+  const [page, setPage] = useState(() => _lastGuidePage);
   const [cardIndex, setCardIndex] = useState(0);
   const animDirRef = useRef<'up' | 'down'>('down');
   const wheelCooldownRef = useRef(false);
@@ -796,6 +797,10 @@ export function GuideContent(): React.ReactElement {
   const isLast = page === guidePages.length - 1;
 
   const cardCountRef = useRef(interactionCards.length);
+
+  useEffect(() => {
+    _lastGuidePage = page;
+  }, [page]);
 
   useEffect(() => {
     const p = guidePages[page];
@@ -822,6 +827,7 @@ export function GuideContent(): React.ReactElement {
   }, []);
 
   const handleFinish = useCallback(() => {
+    _lastGuidePage = 0;
     window.api?.updaterVersion?.().then((v) => {
       if (v) window.api?.storeWrite?.('guide-shown-version', v);
     }).catch(() => {});
