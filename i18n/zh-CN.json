@@ -902,7 +902,10 @@
         "register": "注册",
         "loginBtn": "登录",
         "registerBtn": "注册并登录",
-        "hint": "登录注册服务由 eIsland server 提供"
+        "hint": "登录注册服务由 eIsland server 提供",
+        "entryTitle": "登录后可管理头像、资料与账号安全设置",
+        "gotoLogin": "前往登录",
+        "gotoRegister": "前往注册"
       },
       "fields": {
         "username": "用户名",
@@ -952,6 +955,7 @@
         "saving": "保存中…",
         "logout": "退出登录",
         "loggingOut": "登出中…",
+        "backToCenter": "返回用户中心",
         "unregister": "注销账号",
         "confirmUnregister": "确认注销",
         "unregistering": "注销中…",

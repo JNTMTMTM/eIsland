@@ -902,7 +902,10 @@
         "register": "Sign Up",
         "loginBtn": "Sign In",
         "registerBtn": "Create account",
-        "hint": "Accounts are provided by pyisland-admin. Login state is stored only on this device."
+        "hint": "Sign in and registration are powered by eIsland server",
+        "entryTitle": "Sign in to manage avatar, profile, and account security settings",
+        "gotoLogin": "Go to Sign In",
+        "gotoRegister": "Go to Sign Up"
       },
       "fields": {
         "username": "Username",
@@ -952,6 +955,7 @@
         "saving": "Saving…",
         "logout": "Sign out",
         "loggingOut": "Signing out…",
+        "backToCenter": "Back to Account Center",
         "unregister": "Delete account",
         "confirmUnregister": "Confirm delete",
         "unregistering": "Deleting…",
