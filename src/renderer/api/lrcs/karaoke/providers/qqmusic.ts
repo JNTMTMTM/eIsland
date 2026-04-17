@@ -26,12 +26,15 @@
 
 import { cleanArtist, cleanTitle } from '../../helpers';
 import { requestJsonWithLog, requestTextWithLog } from '../../request';
+import { logger } from '../../../../utils/logger';
 import { decryptQRC } from '../decrypt/qrc';
 import { parseSyncedLines } from '../parsers';
 import type { KaraokeLine } from '../types';
 
 /** 从接口返回的 XML 中提取 `CDATA[...]` 内的 hex 密文 */
 const CDATA_RE = /CDATA\[([0-9A-F]+)\]/i;
+
+const LOG_TAG = '[KaraokeQQMusic]';
 
 /**
  * 根据关键字在 QQ 音乐搜索并下载 QRC 密文,解密为明文逐字歌词
@@ -41,6 +44,7 @@ const CDATA_RE = /CDATA\[([0-9A-F]+)\]/i;
  */
 async function searchKaraokeQQMusic(queryTitle: string, queryArtist: string): Promise<KaraokeLine[] | null> {
   const query = `${queryTitle} ${queryArtist}`.trim();
+  logger.info(`${LOG_TAG} 开始获取 QRC, query="${query}"`);
   try {
     const searchJson = await requestJsonWithLog<Record<string, unknown>>(
       'https://u.y.qq.com/cgi-bin/musicu.fcg',
@@ -56,18 +60,27 @@ async function searchKaraokeQQMusic(queryTitle: string, queryArtist: string): Pr
         }),
       },
     );
-    if (!searchJson) return null;
+    if (!searchJson) {
+      logger.warn(`${LOG_TAG} 搜索接口返回空, query="${query}"`);
+      return null;
+    }
 
     const req1 = searchJson.req_1 as Record<string, unknown> | undefined;
     const data = req1?.data as Record<string, unknown> | undefined;
     const body = data?.body as Record<string, unknown> | undefined;
     const songList = body?.song as Record<string, unknown> | undefined;
     const songs = songList?.list as unknown[] | undefined;
-    if (!songs || songs.length === 0) return null;
+    if (!songs || songs.length === 0) {
+      logger.warn(`${LOG_TAG} 搜索无结果, query="${query}"`);
+      return null;
+    }
 
     const first = songs[0] as Record<string, unknown>;
     const id = typeof first.id === 'number' ? String(first.id) : String(first.id ?? '');
-    if (!id) return null;
+    if (!id) {
+      logger.warn(`${LOG_TAG} 首条结果缺少歌曲 id, query="${query}"`);
+      return null;
+    }
 
     const form = `version=15&miniversion=82&lrctype=4&musicid=${encodeURIComponent(id)}`;
     const qrcXml = await requestTextWithLog('https://c.y.qq.com/qqmusic/fcgi-bin/lyric_download.fcg', {
@@ -78,16 +91,36 @@ async function searchKaraokeQQMusic(queryTitle: string, queryArtist: string): Pr
       },
       body: form,
     });
-    if (!qrcXml) return null;
+    if (!qrcXml) {
+      logger.warn(`${LOG_TAG} QRC 下载接口返回空, id=${id}`);
+      return null;
+    }
 
     const m = CDATA_RE.exec(qrcXml);
-    if (!m) return null;
+    if (!m) {
+      logger.warn(`${LOG_TAG} 未在返回 XML 中找到 CDATA 密文, id=${id}, xml 前 300 字=`, qrcXml.slice(0, 300));
+      return null;
+    }
 
-    const plaintext = await decryptQRC(m[1]);
+    let plaintext: string;
+    try {
+      plaintext = await decryptQRC(m[1]);
+    } catch (err) {
+      // 绝大多数情况为此歌曲在 QQ 侧没有 QRC(服务端返回占位密文),按"无逐字"处理
+      logger.warn(`${LOG_TAG} 此曲无 QRC 逐字歌词, id=${id}: ${(err as Error).message}`);
+      return null;
+    }
+
     const lines = parseSyncedLines(plaintext, 'suffix', 'absolute');
     const withSyllables = lines.filter((l) => l.syllables.length > 0);
-    return withSyllables.length > 0 ? withSyllables : null;
-  } catch {
+    if (withSyllables.length === 0) {
+      logger.warn(`${LOG_TAG} 解密成功但解析出 0 行逐字, id=${id}, 明文长度=${plaintext.length}, 前 200 字=`, plaintext.slice(0, 200));
+      return null;
+    }
+    logger.info(`${LOG_TAG} 获取成功, id=${id}, 行数=${withSyllables.length}`);
+    return withSyllables;
+  } catch (err) {
+    logger.error(`${LOG_TAG} 未预期异常, query="${query}":`, err);
     return null;
   }
 }

@@ -30,12 +30,25 @@ import { inflateAuto } from './inflate';
 
 /**
  * 将 QQ 音乐接口返回的 QRC 密文解密为明文逐字歌词
+ *
+ * 注意: QQ 接口对「无 QRC 可用」的歌曲,会返回占位密文(长度通常很短 ≤ 128 字节);
+ * 该占位解密后并非 zlib/deflate 数据,此处 `inflateAuto` 会抛错 —— 调用方应将
+ * 错误视作"此曲无逐字歌词",而非真正的故障。
+ *
  * @param hexCipher - XML `CDATA[...]` 中的大写 hex 字符串
  * @returns 解密后的 UTF-8 逐字歌词文本
- * @throws 密文长度非法 / 3DES 失败 / inflate 失败 时抛出
+ * @throws 密文长度非法 / 3DES 失败 / inflate 失败(通常=无 QRC) 时抛出
  */
 export async function decryptQRC(hexCipher: string): Promise<string> {
   const decrypted = qrcTripleDesDecrypt(hexCipher);
-  const inflated = await inflateAuto(decrypted);
-  return new TextDecoder('utf-8').decode(inflated);
+  try {
+    const inflated = await inflateAuto(decrypted);
+    return new TextDecoder('utf-8').decode(inflated);
+  } catch (err) {
+    const head = Array.from(decrypted.subarray(0, Math.min(8, decrypted.length)))
+      .map((b) => b.toString(16).padStart(2, '0')).join(' ');
+    throw new Error(
+      `QRC inflate 失败(通常=此曲无逐字歌词); ciphertext 长度=${hexCipher.length / 2}B, 解密头8字节=[${head}]: ${(err as Error).message}`,
+    );
+  }
 }
