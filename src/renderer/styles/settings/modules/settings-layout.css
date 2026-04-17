@@ -2002,6 +2002,20 @@
   gap: 10px;
 }
 
+.settings-user-card-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.settings-user-card-title-hint {
+  font-size: 11px;
+  color: rgba(var(--color-text-rgb), 0.42);
+  line-height: 1.4;
+  text-align: right;
+}
+
 .settings-user-card-head {
   display: flex;
   align-items: center;

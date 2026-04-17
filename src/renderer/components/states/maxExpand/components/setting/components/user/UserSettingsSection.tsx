@@ -495,9 +495,11 @@ export function UserSettingsSection(): ReactElement {
     const renderAccountPage = (): ReactElement => (
       <div className="settings-user-page-panel">
         <div className="settings-user-card">
-          <div className="settings-user-form-title">{t('settings.user.pages.account', { defaultValue: '关于账户' })}</div>
-          <div className="settings-user-auth-hint">
-            {t('settings.user.auth.hint', { defaultValue: '登录注册服务由 eIsland server 提供' })}
+          <div className="settings-user-card-title-row">
+            <div className="settings-user-form-title">{t('settings.user.pages.account', { defaultValue: '关于账户' })}</div>
+            <div className="settings-user-card-title-hint">
+              {t('settings.user.auth.hint', { defaultValue: '登录注册服务由 eIsland server 提供' })}
+            </div>
           </div>
           <div className="settings-user-actions-row">
             <button
