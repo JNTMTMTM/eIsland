@@ -135,7 +135,9 @@ export async function fetchLyrics(
 async function resolveSourceAppId(): Promise<string> {
   try {
     const resp = await window.api.musicDetectSourceAppId();
-    return resp?.ok && resp.sourceAppId ? resp.sourceAppId : '';
+    if (!resp?.ok || !resp.sources || resp.sources.length === 0) return '';
+    const playing = resp.sources.find((s) => s.isPlaying && s.hasTitle);
+    return (playing ?? resp.sources[0]).sourceAppId ?? '';
   } catch {
     return '';
   }

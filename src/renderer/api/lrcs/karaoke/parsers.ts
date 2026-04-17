@@ -39,22 +39,22 @@ const SUFFIX_RE = /(?<t>[^\n)>\]]+)[(<](?<s>\d+),(?<d>\d+)(?:,[^)>]+)?[)>]/g;
 /** 前缀式音节: `(s,d)text` 或 `<s,d>text`(YRC/汽水用) */
 const PREFIX_RE = /[(<](?<s>\d+),(?<d>\d+)(?:,[^)>]+)?[)>](?<t>[^\n(<]+)/g;
 
-/** 音节时间戳位置 */
-export type SyllableMode = 'prefix' | 'suffix';
+/** 音节时间戳位置; `auto` 表示由解析器同时尝试 prefix / suffix 选文本更长者 */
+export type SyllableMode = 'prefix' | 'suffix' | 'auto';
 
 /** 音节时间戳含义: absolute=绝对毫秒(需减行首),relative=已是行内偏移 */
 export type OffsetKind = 'absolute' | 'relative';
 
 /**
- * 解析同步逐字歌词文本为歌词行数组
+ * 内部: 使用指定模式解析同步歌词
  * @param lyrics - 解密/明文后的同步歌词文本
- * @param mode - `prefix` 音节时间戳在文本前(YRC/汽水); `suffix` 时间戳在文本后(QRC/KRC)
- * @param offsetKind - `absolute` 音节时间戳为绝对毫秒; `relative` 已是行内偏移
- * @returns 解析后的逐字歌词行数组, 已按时间排序
+ * @param mode - `prefix` 音节时间戳在文本前; `suffix` 时间戳在文本后
+ * @param offsetKind - 时间戳含义
+ * @returns 解析后的逐字歌词行数组
  */
-export function parseSyncedLines(
+function parseWithMode(
   lyrics: string,
-  mode: SyllableMode,
+  mode: 'prefix' | 'suffix',
   offsetKind: OffsetKind,
 ): KaraokeLine[] {
   const out: KaraokeLine[] = [];
@@ -88,6 +88,34 @@ export function parseSyncedLines(
   }
   out.sort((a, b) => a.time_ms - b.time_ms);
   return out;
+}
+
+/**
+ * 解析同步逐字歌词文本为歌词行数组
+ *
+ * `mode='auto'` 会同时以 prefix 与 suffix 两种文法各跑一遍,
+ * 并选择「捕获音节文本总长度更大」的那一路返回 —— 这是为了兼容
+ * 同一来源(如酷狗)在不同歌曲/版本中交替出现 `text<s,d>` 与 `<s,d>text`
+ * 两种布局, 避免误用 suffix 时末字被挤到无匹配尾段而丢失。
+ *
+ * @param lyrics - 解密/明文后的同步歌词文本
+ * @param mode - `prefix` / `suffix` / `auto`
+ * @param offsetKind - `absolute` 音节时间戳为绝对毫秒; `relative` 已是行内偏移
+ * @returns 解析后的逐字歌词行数组, 已按时间排序
+ */
+export function parseSyncedLines(
+  lyrics: string,
+  mode: SyllableMode,
+  offsetKind: OffsetKind,
+): KaraokeLine[] {
+  if (mode !== 'auto') {
+    return parseWithMode(lyrics, mode, offsetKind);
+  }
+  const suffix = parseWithMode(lyrics, 'suffix', offsetKind);
+  const prefix = parseWithMode(lyrics, 'prefix', offsetKind);
+  const suffixChars = suffix.reduce((sum, l) => sum + l.text.length, 0);
+  const prefixChars = prefix.reduce((sum, l) => sum + l.text.length, 0);
+  return prefixChars > suffixChars ? prefix : suffix;
 }
 
 /**
