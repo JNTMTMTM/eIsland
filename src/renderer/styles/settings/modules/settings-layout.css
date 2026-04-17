@@ -1630,7 +1630,8 @@
 /** ========== 用户中心 ========== */
 .settings-user {
   gap: 12px;
-  overflow-y: auto;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .settings-user-auth {
@@ -1806,24 +1807,56 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
+  min-height: 0;
+  flex: 1;
 }
 
 .settings-user-profile-paged {
+  display: flex;
+  align-items: stretch;
+  gap: 12px;
+  margin-top: 8px;
   position: relative;
-  padding-right: 26px;
-  min-height: 300px;
+  min-height: 0;
+  flex: 1;
+  overflow: hidden;
 }
 
 .settings-user-profile-main {
+  min-height: 0;
+  min-width: 0;
+  flex: 1;
+  height: 100%;
   display: flex;
   flex-direction: column;
   gap: 14px;
+  overflow-y: auto;
+  padding-right: 30px;
+}
+
+.settings-user-profile-main::-webkit-scrollbar {
+  width: 3px;
+}
+
+.settings-user-profile-main::-webkit-scrollbar-thumb {
+  background: rgba(var(--color-text-rgb), 0.1);
+  border-radius: 2px;
+}
+
+.settings-user-profile-main::-webkit-scrollbar-thumb:hover {
+  background: rgba(var(--color-text-rgb), 0.2);
 }
 
 .settings-user-page-panel {
   display: flex;
   flex-direction: column;
   gap: 14px;
+  min-height: 100%;
+}
+
+.settings-user-edit-scroll {
+  overflow: visible;
+  padding-right: 0;
 }
 
 .settings-user-page-dots {

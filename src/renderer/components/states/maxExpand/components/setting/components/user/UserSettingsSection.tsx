@@ -53,6 +53,7 @@ interface Feedback {
 }
 
 const GENDER_VALUES: UserAccountGender[] = ['male', 'female', 'custom', 'undisclosed'];
+const USER_PROFILE_PAGES: UserProfilePage[] = ['info', 'edit', 'account'];
 
 /**
  * 用户中心设置区块。未登录时显示登录/注册；登录后显示资料修改、登出、注销操作。
@@ -86,7 +87,9 @@ export function UserSettingsSection(): ReactElement {
   const [userProfilePage, setUserProfilePage] = useState<UserProfilePage>('info');
 
   const avatarInputRef = useRef<HTMLInputElement | null>(null);
-  const profilePageWheelLockRef = useRef(false);
+  const userProfilePageRef = useRef<UserProfilePage>('info');
+  const profilePagesLayoutRef = useRef<HTMLDivElement | null>(null);
+  userProfilePageRef.current = userProfilePage;
 
   const applyProfileToEditor = useCallback((p: UserAccountProfile): void => {
     setEditAvatar(p.avatar ?? null);
@@ -124,6 +127,40 @@ export function UserSettingsSection(): ReactElement {
     }
     void loadRemoteProfile(token);
   }, [token, loadRemoteProfile, applyProfileToEditor]);
+
+  useEffect(() => {
+    const el = profilePagesLayoutRef.current;
+    if (!el) return;
+    const handleWheel = (e: WheelEvent): void => {
+      e.stopPropagation();
+      const target = e.target as HTMLElement | null;
+      if (target?.closest('input, textarea, select, button')) {
+        return;
+      }
+      const mainEl = el.querySelector('.settings-user-profile-main') as HTMLElement | null;
+      if (!mainEl) return;
+      if (mainEl.scrollHeight > mainEl.clientHeight) {
+        const atTop = mainEl.scrollTop <= 0;
+        const atBottom = mainEl.scrollTop + mainEl.clientHeight >= mainEl.scrollHeight - 1;
+        if ((e.deltaY > 0 && !atBottom) || (e.deltaY < 0 && !atTop)) {
+          return;
+        }
+      }
+      const currentIndex = USER_PROFILE_PAGES.indexOf(userProfilePageRef.current);
+      if (currentIndex < 0) return;
+      const nextIndex = e.deltaY > 0
+        ? Math.min(currentIndex + 1, USER_PROFILE_PAGES.length - 1)
+        : Math.max(currentIndex - 1, 0);
+      if (nextIndex !== currentIndex) {
+        e.preventDefault();
+        setUserProfilePage(USER_PROFILE_PAGES[nextIndex]);
+      }
+    };
+    el.addEventListener('wheel', handleWheel, { passive: false });
+    return () => {
+      el.removeEventListener('wheel', handleWheel);
+    };
+  }, []);
 
   const handleAvatarSelect = async (event: ChangeEvent<HTMLInputElement>): Promise<void> => {
     const file = event.target.files?.[0];
@@ -278,35 +315,6 @@ export function UserSettingsSection(): ReactElement {
       { id: 'edit', label: t('settings.user.pages.edit', { defaultValue: '修改信息' }) },
       { id: 'account', label: t('settings.user.pages.account', { defaultValue: '关于账户' }) },
     ];
-    const profilePageIds: UserProfilePage[] = profilePageItems.map((item) => item.id);
-
-    const handleProfilePageWheel = (e: React.WheelEvent<HTMLDivElement>): void => {
-      const target = e.target as HTMLElement;
-      if (target.closest('input, textarea, select, button')) {
-        return;
-      }
-      if (profilePageWheelLockRef.current) {
-        return;
-      }
-      profilePageWheelLockRef.current = true;
-      setTimeout(() => {
-        profilePageWheelLockRef.current = false;
-      }, 220);
-
-      e.preventDefault();
-      const currentIndex = profilePageIds.indexOf(userProfilePage);
-      if (currentIndex < 0) {
-        setUserProfilePage('info');
-        return;
-      }
-      if (e.deltaY > 0) {
-        setUserProfilePage(profilePageIds[(currentIndex + 1) % profilePageIds.length]);
-        return;
-      }
-      if (e.deltaY < 0) {
-        setUserProfilePage(profilePageIds[(currentIndex - 1 + profilePageIds.length) % profilePageIds.length]);
-      }
-    };
 
     const renderInfoPage = (): ReactElement => (
       <div className="settings-user-page-panel">
@@ -356,7 +364,7 @@ export function UserSettingsSection(): ReactElement {
     );
 
     const renderEditPage = (): ReactElement => (
-      <div className="settings-user-page-panel">
+      <div className="settings-user-page-panel settings-user-edit-scroll">
         {profileError && <div className="settings-user-feedback settings-user-feedback--error">{profileError}</div>}
         <div className="settings-user-form">
           <div className="settings-user-form-title">{t('settings.user.sections.avatar', { defaultValue: '头像' })}</div>
@@ -527,7 +535,7 @@ export function UserSettingsSection(): ReactElement {
     );
 
     return (
-      <div className="settings-user-profile settings-user-profile-paged" onWheel={handleProfilePageWheel}>
+      <div className="settings-user-profile settings-user-profile-paged" ref={profilePagesLayoutRef}>
         <div className="settings-user-profile-main">
           {userProfilePage === 'info' && renderInfoPage()}
           {userProfilePage === 'edit' && renderEditPage()}
