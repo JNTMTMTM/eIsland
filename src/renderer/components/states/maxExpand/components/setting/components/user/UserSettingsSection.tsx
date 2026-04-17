@@ -189,16 +189,11 @@ export function UserSettingsSection(): ReactElement {
   const handleLogout = async (): Promise<void> => {
     if (!token || logoutSubmitting) return;
     setLogoutSubmitting(true);
-    const result = await logoutUser(token);
+    await logoutUser(token);
     clearLocalAccount();
     setToken(null);
     setProfile(null);
-    setAuthFeedback({
-      type: result.ok ? 'success' : 'info',
-      text: result.ok
-        ? t('settings.user.feedback.logoutSuccess', { defaultValue: '已退出登录' })
-        : t('settings.user.feedback.logoutLocalOnly', { defaultValue: '服务端响应异常，已在本地清除登录态' }),
-    });
+    setAuthFeedback(null);
     setLogoutSubmitting(false);
   };
 
@@ -233,7 +228,7 @@ export function UserSettingsSection(): ReactElement {
     setProfile(null);
     setUnregisterConfirmVisible(false);
     setUnregisterPassword('');
-    setAuthFeedback({ type: 'success', text: t('settings.user.feedback.unregisterSuccess', { defaultValue: '账号已注销' }) });
+    setAuthFeedback(null);
   };
 
   const renderFeedback = (feedback: Feedback | null): ReactElement | null => {

@@ -44,7 +44,7 @@ interface Feedback {
 export function LoginContent(): ReactElement {
   const { t } = useTranslation();
   const { setRegister, setMaxExpand, setMaxExpandTab } = useIslandStore();
-  const [username, setUsername] = useState('');
+  const [account, setAccount] = useState('');
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
@@ -61,9 +61,9 @@ export function LoginContent(): ReactElement {
 
   const handleSubmit = async (): Promise<void> => {
     if (submitting) return;
-    const cleanUsername = username.trim();
-    if (!cleanUsername) {
-      setFeedback({ type: 'error', text: t('settings.user.feedback.usernameRequired', { defaultValue: '请输入用户名' }) });
+    const cleanAccount = account.trim();
+    if (!cleanAccount) {
+      setFeedback({ type: 'error', text: t('settings.user.feedback.accountRequired', { defaultValue: '请输入用户名或邮箱' }) });
       return;
     }
     if (!password) {
@@ -73,7 +73,7 @@ export function LoginContent(): ReactElement {
 
     setSubmitting(true);
     setFeedback(null);
-    const result = await loginUser(cleanUsername, password);
+    const result = await loginUser(cleanAccount, password);
     setSubmitting(false);
     if (!result.ok || !result.data) {
       setFeedback({ type: 'error', text: result.message || t('settings.user.feedback.operationFailed', { defaultValue: '操作失败' }) });
@@ -94,12 +94,12 @@ export function LoginContent(): ReactElement {
         </div>
 
         <label className="settings-field">
-          <span className="settings-field-label">{t('settings.user.fields.username', { defaultValue: '用户名' })}</span>
+          <span className="settings-field-label">{t('settings.user.fields.account', { defaultValue: '用户名或邮箱' })}</span>
           <input
             className="settings-field-input"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            placeholder={t('settings.user.fields.usernamePlaceholder', { defaultValue: '2-32 位，支持中英文 / 数字 / 下划线' })}
+            value={account}
+            onChange={(e) => setAccount(e.target.value)}
+            placeholder={t('settings.user.fields.accountPlaceholder', { defaultValue: '请输入用户名或邮箱' })}
           />
         </label>
 

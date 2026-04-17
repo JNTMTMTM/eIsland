@@ -104,14 +104,14 @@ async function request<T>(path: string, init: InternalRequestInit = {}): Promise
 
 /**
  * 用户登录。
- * @param username 用户名。
+ * @param account 登录账号（用户名或邮箱）。
  * @param password 密码。
  * @returns 登录结果。
  */
-export function loginUser(username: string, password: string): Promise<UserAccountResult<UserAccountLoginData>> {
+export function loginUser(account: string, password: string): Promise<UserAccountResult<UserAccountLoginData>> {
   return request<UserAccountLoginData>('/auth/user/login', {
     method: 'POST',
-    body: { username, password },
+    body: { username: account, password },
   });
 }
 

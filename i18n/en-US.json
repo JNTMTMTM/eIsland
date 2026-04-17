@@ -907,6 +907,8 @@
       "fields": {
         "username": "Username",
         "usernamePlaceholder": "2-32 chars, letters (incl. CJK) / digits / underscore",
+        "account": "Username or Email",
+        "accountPlaceholder": "Enter username or email",
         "email": "Email",
         "password": "Password",
         "passwordPlaceholder": "At least 8 chars with letters and digits",
@@ -958,6 +960,7 @@
         "loadFailed": "Failed to load profile",
         "sessionExpired": "Session expired. Please sign in again.",
         "usernameRequired": "Username is required",
+        "accountRequired": "Username or email is required",
         "passwordRequired": "Password is required",
         "emailRequired": "Email is required",
         "operationFailed": "Operation failed",

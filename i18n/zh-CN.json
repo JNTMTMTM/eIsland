@@ -907,6 +907,8 @@
       "fields": {
         "username": "用户名",
         "usernamePlaceholder": "2-32 位，支持中英文 / 数字 / 下划线",
+        "account": "用户名或邮箱",
+        "accountPlaceholder": "请输入用户名或邮箱",
         "email": "邮箱",
         "password": "密码",
         "passwordPlaceholder": "至少 8 位，含字母与数字",
@@ -958,6 +960,7 @@
         "loadFailed": "加载资料失败",
         "sessionExpired": "登录已过期，请重新登录",
         "usernameRequired": "请输入用户名",
+        "accountRequired": "请输入用户名或邮箱",
         "passwordRequired": "请输入密码",
         "emailRequired": "请输入邮箱",
         "operationFailed": "操作失败",
