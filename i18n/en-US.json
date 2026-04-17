@@ -966,6 +966,7 @@
         "loadFailed": "Failed to load profile",
         "sessionExpired": "Session expired. Please sign in again.",
         "usernameRequired": "Username is required",
+        "usernameFormatInvalid": "Username can only contain Chinese, English letters, and numbers",
         "accountRequired": "Username or email is required",
         "passwordRequired": "Password is required",
         "confirmPasswordRequired": "Please confirm your password",

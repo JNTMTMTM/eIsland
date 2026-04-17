@@ -966,6 +966,7 @@
         "loadFailed": "加载资料失败",
         "sessionExpired": "登录已过期，请重新登录",
         "usernameRequired": "请输入用户名",
+        "usernameFormatInvalid": "用户名仅支持中文、英文和数字",
         "accountRequired": "请输入用户名或邮箱",
         "passwordRequired": "请输入密码",
         "confirmPasswordRequired": "请再次输入密码",

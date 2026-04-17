@@ -40,6 +40,8 @@ interface Feedback {
   text: string;
 }
 
+const USERNAME_ALLOWED_PATTERN = /^[A-Za-z0-9\u4E00-\u9FFF]+$/;
+
 /** 独立注册状态内容 */
 export function RegisterContent(): ReactElement {
   const { t } = useTranslation();
@@ -69,6 +71,10 @@ export function RegisterContent(): ReactElement {
     const cleanEmail = email.trim();
     if (!cleanUsername) {
       setFeedback({ type: 'error', text: t('settings.user.feedback.usernameRequired', { defaultValue: '请输入用户名' }) });
+      return;
+    }
+    if (!USERNAME_ALLOWED_PATTERN.test(cleanUsername)) {
+      setFeedback({ type: 'error', text: t('settings.user.feedback.usernameFormatInvalid', { defaultValue: '用户名仅支持中文、英文和数字' }) });
       return;
     }
     if (!cleanEmail) {
@@ -116,7 +122,7 @@ export function RegisterContent(): ReactElement {
             className="settings-field-input"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            placeholder={t('settings.user.fields.usernamePlaceholder', { defaultValue: '2-32 位，支持中英文 / 数字 / 下划线' })}
+            placeholder={t('settings.user.fields.usernamePlaceholder', { defaultValue: '2-32 位，仅支持中文 / 英文 / 数字' })}
           />
         </label>
 
