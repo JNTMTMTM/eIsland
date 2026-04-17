@@ -91,15 +91,17 @@ async function tryProviders(
   title: string,
   artist: string,
 ): Promise<KaraokeLine[] | null> {
-  for (const p of providers) {
+  return providers.reduce<Promise<KaraokeLine[] | null>>(async (prevPromise, p) => {
+    const prev = await prevPromise;
+    if (prev && prev.length > 0) return prev;
     try {
       const result = await PROVIDER_MAP[p](title, artist);
       if (result && result.length > 0) return result;
     } catch {
       // 单源失败继续下一个
     }
-  }
-  return null;
+    return null;
+  }, Promise.resolve(null));
 }
 
 /** 读取歌词源设置, 失败退回 'auto' */

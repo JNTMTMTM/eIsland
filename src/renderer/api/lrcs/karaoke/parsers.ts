@@ -61,14 +61,14 @@ function parseWithMode(
   const out: KaraokeLine[] = [];
   const syllableRe = mode === 'prefix' ? PREFIX_RE : SUFFIX_RE;
 
-  for (const lineMatch of lyrics.matchAll(LINE_RE)) {
+  Array.from(lyrics.matchAll(LINE_RE)).forEach((lineMatch) => {
     const lineStart = parseInt(lineMatch[1], 10);
     const lineDur = parseInt(lineMatch[2], 10);
     const segment = lineMatch[3];
 
     const syllables: KaraokeSyllable[] = [];
     let fullText = '';
-    for (const sm of segment.matchAll(syllableRe)) {
+    Array.from(segment.matchAll(syllableRe)).forEach((sm) => {
       const s = parseInt(sm.groups!.s, 10);
       const d = parseInt(sm.groups!.d, 10);
       const t = sm.groups!.t;
@@ -78,7 +78,7 @@ function parseWithMode(
         duration_ms: d,
         text: t,
       });
-    }
+    });
 
     out.push({
       time_ms: lineStart,
@@ -86,7 +86,7 @@ function parseWithMode(
       text: fullText || segment.trim(),
       syllables,
     });
-  }
+  });
   out.sort((a, b) => a.time_ms - b.time_ms);
   return out;
 }
@@ -126,19 +126,19 @@ export function parseSyncedLines(
  */
 export function parseLRCAsKaraoke(lyrics: string): KaraokeLine[] {
   const out: KaraokeLine[] = [];
-  for (const caps of lyrics.matchAll(LRC_LINE_RE)) {
+  Array.from(lyrics.matchAll(LRC_LINE_RE)).forEach((caps) => {
     const mm = parseInt(caps[1], 10);
     const ss = parseInt(caps[2], 10);
     const xx = parseInt(caps[3], 10);
     const text = caps[4].trim();
-    if (!text) continue;
+    if (!text) return;
     out.push({
       time_ms: mm * 60000 + ss * 1000 + xx * 10,
       duration_ms: 0,
       text,
       syllables: [],
     });
-  }
+  });
   out.sort((a, b) => a.time_ms - b.time_ms);
   return out;
 }
