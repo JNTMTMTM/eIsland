@@ -222,6 +222,12 @@ export function UserSettingsSection(): ReactElement {
     setProfileFeedback({ type: 'success', text: t('settings.user.feedback.saveSuccess', { defaultValue: '资料已更新' }) });
   };
 
+  const handleCancelProfileChanges = (): void => {
+    if (!profile) return;
+    applyProfileToEditor(profile);
+    setProfileFeedback(null);
+  };
+
   const handleLogout = async (): Promise<void> => {
     if (!token || logoutSubmitting) return;
     setLogoutSubmitting(true);
@@ -362,100 +368,125 @@ export function UserSettingsSection(): ReactElement {
     const renderEditPage = (): ReactElement => (
       <div className="settings-user-page-panel settings-user-edit-scroll">
         {profileError && <div className="settings-user-feedback settings-user-feedback--error">{profileError}</div>}
-        <div className="settings-user-form">
-          <div className="settings-user-form-title">{t('settings.user.sections.avatar', { defaultValue: '头像' })}</div>
-          <div className="settings-user-avatar-row">
-            <div className="settings-user-avatar-preview">
-              {displayAvatar
-                ? <img src={displayAvatar} alt="avatar preview" />
-                : <span className="settings-user-card-avatar-placeholder">?</span>}
+        <div className="settings-user-form settings-user-edit-cards">
+          <div className="settings-user-edit-card">
+            <div className="settings-user-edit-card-head">
+              <div className="settings-user-form-title">{t('settings.user.sections.avatar', { defaultValue: '头像' })}</div>
+              <div className="settings-user-edit-card-subtitle">{t('settings.user.sections.avatarHint', { defaultValue: '上传新头像或粘贴图片链接' })}</div>
             </div>
-            <div className="settings-user-avatar-actions">
-              <button
-                type="button"
-                className="settings-user-secondary-btn"
-                onClick={() => avatarInputRef.current?.click()}
-                disabled={avatarUploading}
-              >
-                {avatarUploading ? t('settings.user.actions.uploading', { defaultValue: '上传中…' }) : t('settings.user.actions.chooseAvatar', { defaultValue: '选择图片上传' })}
-              </button>
-              <input
-                ref={avatarInputRef}
-                type="file"
-                accept="image/*"
-                style={{ display: 'none' }}
-                onChange={(e) => void handleAvatarSelect(e)}
-              />
-              <input
-                className="settings-field-input"
-                type="text"
-                value={editAvatar ?? ''}
-                onChange={(e) => setEditAvatar(e.target.value)}
-                placeholder={t('settings.user.fields.avatarUrlPlaceholder', { defaultValue: '或直接粘贴头像 URL' })}
-              />
+            <div className="settings-user-avatar-row">
+              <div className="settings-user-avatar-preview">
+                {displayAvatar
+                  ? <img src={displayAvatar} alt="avatar preview" />
+                  : <span className="settings-user-card-avatar-placeholder">?</span>}
+              </div>
+              <div className="settings-user-avatar-actions">
+                <button
+                  type="button"
+                  className="settings-user-secondary-btn"
+                  onClick={() => avatarInputRef.current?.click()}
+                  disabled={avatarUploading}
+                >
+                  {avatarUploading ? t('settings.user.actions.uploading', { defaultValue: '上传中…' }) : t('settings.user.actions.chooseAvatar', { defaultValue: '选择图片上传' })}
+                </button>
+                <input
+                  ref={avatarInputRef}
+                  type="file"
+                  accept="image/*"
+                  style={{ display: 'none' }}
+                  onChange={(e) => void handleAvatarSelect(e)}
+                />
+                <input
+                  className="settings-field-input"
+                  type="text"
+                  value={editAvatar ?? ''}
+                  onChange={(e) => setEditAvatar(e.target.value)}
+                  placeholder={t('settings.user.fields.avatarUrlPlaceholder', { defaultValue: '或直接粘贴头像 URL' })}
+                />
+              </div>
             </div>
           </div>
 
-          <div className="settings-user-form-title">{t('settings.user.sections.profile', { defaultValue: '基本资料' })}</div>
-          <label className="settings-field">
-            <span className="settings-field-label">{t('settings.user.fields.gender', { defaultValue: '性别' })}</span>
-            <div className="settings-user-gender-options">
-              {GENDER_VALUES.map((value) => (
-                <button
-                  key={value}
-                  type="button"
-                  className={`settings-user-gender-btn${editGender === value ? ' active' : ''}`}
-                  onClick={() => setEditGender(value)}
-                >
-                  {t(`settings.user.gender.${value}`, { defaultValue: value })}
-                </button>
-              ))}
+          <div className="settings-user-edit-card">
+            <div className="settings-user-edit-card-head">
+              <div className="settings-user-form-title">{t('settings.user.sections.profile', { defaultValue: '基本资料' })}</div>
+              <div className="settings-user-edit-card-subtitle">{t('settings.user.sections.profileHint', { defaultValue: '完善公开资料信息，便于账号识别' })}</div>
             </div>
-          </label>
-          {editGender === 'custom' && (
             <label className="settings-field">
-              <span className="settings-field-label">{t('settings.user.fields.genderCustom', { defaultValue: '自定义性别' })}</span>
+              <span className="settings-field-label">{t('settings.user.fields.gender', { defaultValue: '性别' })}</span>
+              <div className="settings-user-gender-options">
+                {GENDER_VALUES.map((value) => (
+                  <button
+                    key={value}
+                    type="button"
+                    className={`settings-user-gender-btn${editGender === value ? ' active' : ''}`}
+                    onClick={() => setEditGender(value)}
+                  >
+                    {t(`settings.user.gender.${value}`, { defaultValue: value })}
+                  </button>
+                ))}
+              </div>
+            </label>
+            {editGender === 'custom' && (
+              <label className="settings-field">
+                <span className="settings-field-label">{t('settings.user.fields.genderCustom', { defaultValue: '自定义性别' })}</span>
+                <input
+                  className="settings-field-input"
+                  value={editGenderCustom}
+                  onChange={(e) => setEditGenderCustom(e.target.value)}
+                  placeholder={t('settings.user.fields.genderCustomPlaceholder', { defaultValue: '最长 64 个字符' })}
+                  maxLength={64}
+                />
+              </label>
+            )}
+            <label className="settings-field">
+              <span className="settings-field-label">{t('settings.user.fields.birthday', { defaultValue: '生日' })}</span>
               <input
                 className="settings-field-input"
-                value={editGenderCustom}
-                onChange={(e) => setEditGenderCustom(e.target.value)}
-                placeholder={t('settings.user.fields.genderCustomPlaceholder', { defaultValue: '最长 64 个字符' })}
-                maxLength={64}
+                type="date"
+                value={editBirthday}
+                onChange={(e) => setEditBirthday(e.target.value)}
               />
             </label>
-          )}
-          <label className="settings-field">
-            <span className="settings-field-label">{t('settings.user.fields.birthday', { defaultValue: '生日' })}</span>
-            <input
-              className="settings-field-input"
-              type="date"
-              value={editBirthday}
-              onChange={(e) => setEditBirthday(e.target.value)}
-            />
-          </label>
+          </div>
 
-          <div className="settings-user-form-title">{t('settings.user.sections.password', { defaultValue: '修改密码（可选）' })}</div>
-          <label className="settings-field">
-            <span className="settings-field-label">{t('settings.user.fields.newPassword', { defaultValue: '新密码' })}</span>
-            <input
-              className="settings-field-input"
-              type="password"
-              value={editNewPassword}
-              onChange={(e) => setEditNewPassword(e.target.value)}
-              placeholder={t('settings.user.fields.newPasswordPlaceholder', { defaultValue: '留空则不修改，至少 8 位含字母数字' })}
-            />
-          </label>
+          <div className="settings-user-edit-card">
+            <div className="settings-user-edit-card-head">
+              <div className="settings-user-form-title">{t('settings.user.sections.password', { defaultValue: '修改密码（可选）' })}</div>
+              <div className="settings-user-edit-card-subtitle">{t('settings.user.sections.passwordHint', { defaultValue: '留空则保持当前密码不变' })}</div>
+            </div>
+            <label className="settings-field">
+              <span className="settings-field-label">{t('settings.user.fields.newPassword', { defaultValue: '新密码' })}</span>
+              <input
+                className="settings-field-input"
+                type="password"
+                value={editNewPassword}
+                onChange={(e) => setEditNewPassword(e.target.value)}
+                placeholder={t('settings.user.fields.newPasswordPlaceholder', { defaultValue: '留空则不修改，至少 8 位含字母数字' })}
+              />
+            </label>
+          </div>
 
-          {renderFeedback(profileFeedback)}
-          <div className="settings-user-actions-row">
-            <button
-              type="button"
-              className="settings-user-primary-btn"
-              onClick={() => void handleSaveProfile()}
-              disabled={savingProfile || loadingProfile}
-            >
-              {savingProfile ? t('settings.user.actions.saving', { defaultValue: '保存中…' }) : t('settings.user.actions.saveProfile', { defaultValue: '保存资料' })}
-            </button>
+          <div className="settings-user-edit-actions">
+            {renderFeedback(profileFeedback)}
+            <div className="settings-user-actions-row settings-user-actions-row--adaptive">
+              <button
+                type="button"
+                className="settings-user-primary-btn"
+                onClick={() => void handleSaveProfile()}
+                disabled={savingProfile || loadingProfile}
+              >
+                {savingProfile ? t('settings.user.actions.saving', { defaultValue: '保存中…' }) : t('settings.user.actions.saveProfile', { defaultValue: '保存资料' })}
+              </button>
+              <button
+                type="button"
+                className="settings-user-secondary-btn settings-user-cancel-mark"
+                onClick={handleCancelProfileChanges}
+                disabled={savingProfile || loadingProfile}
+              >
+                {t('settings.user.actions.cancelChanges', { defaultValue: '取消更改' })}
+              </button>
+            </div>
           </div>
         </div>
       </div>

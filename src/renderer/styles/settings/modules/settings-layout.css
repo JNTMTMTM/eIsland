@@ -1698,6 +1698,56 @@
   width: 100%;
 }
 
+.settings-user-edit-cards {
+  gap: 12px;
+}
+
+.settings-user-edit-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(var(--color-text-rgb), 0.08);
+  background: linear-gradient(140deg, rgba(var(--color-text-rgb), 0.08), rgba(var(--color-text-rgb), 0.035));
+  box-shadow: inset 0 1px 0 rgba(var(--color-text-rgb), 0.04);
+}
+
+.settings-user-edit-card-head {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.settings-user-edit-card-subtitle {
+  font-size: 11px;
+  color: rgba(var(--color-text-rgb), 0.48);
+  line-height: 1.4;
+}
+
+.settings-user-edit-actions {
+  padding-top: 10px;
+  border-top: 1px dashed rgba(var(--color-text-rgb), 0.12);
+}
+
+.settings-user-cancel-mark {
+  border-style: dashed;
+  color: rgba(var(--color-text-rgb), 0.64);
+}
+
+.settings-user-actions-row--adaptive {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.settings-user-actions-row--adaptive .settings-user-primary-btn,
+.settings-user-actions-row--adaptive .settings-user-secondary-btn,
+.settings-user-actions-row--adaptive .settings-user-danger-btn {
+  width: 100%;
+  justify-content: center;
+}
+
 .settings-user-auth .settings-field-label,
 .settings-user-auth-hint,
 .settings-user-auth .settings-user-feedback {
@@ -1708,7 +1758,7 @@
   font-size: 12px;
   font-weight: 600;
   color: rgba(var(--color-text-rgb), 0.72);
-  padding-top: 6px;
+  padding-top: 0;
 }
 
 .settings-user-form-title.danger {
