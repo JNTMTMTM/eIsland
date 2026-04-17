@@ -1637,6 +1637,8 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+  flex: 1;
+  justify-content: center;
   max-width: 380px;
   width: 100%;
   margin: 0 auto;

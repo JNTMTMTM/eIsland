@@ -902,7 +902,7 @@
         "register": "注册",
         "loginBtn": "登录",
         "registerBtn": "注册并登录",
-        "hint": "账号体系由 pyisland-admin 提供，登录状态仅存储在本机。"
+        "hint": "登录注册服务由 eIsland server 提供"
       },
       "fields": {
         "username": "用户名",

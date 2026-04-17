@@ -11,6 +11,11 @@
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  */
 
 /**
@@ -91,7 +96,7 @@ export function RegisterContent(): ReactElement {
       <div className="auth-panel">
         <div className="auth-panel-title">{t('settings.user.auth.register', { defaultValue: '注册' })}</div>
         <div className="auth-panel-subtitle">
-          {t('settings.user.auth.hint', { defaultValue: '账号体系由 pyisland-admin 提供，登录状态仅存储在本机。' })}
+          {t('settings.user.auth.hint', { defaultValue: '登录注册服务由 eIsland server 提供' })}
         </div>
 
         <label className="settings-field">
