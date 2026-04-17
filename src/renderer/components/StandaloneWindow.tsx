@@ -30,6 +30,9 @@ import { useTranslation } from 'react-i18next';
 import { TodoTab } from './states/maxExpand/components/TodoTab';
 import { CountdownTab } from './states/maxExpand/components/CountdownTab';
 import { SettingsTab } from './states/maxExpand/components/SettingsTab';
+import { LoginContent } from './states/login/LoginContent';
+import { RegisterContent } from './states/register/RegisterContent';
+import useIslandStore from '../store/slices';
 import windowIcon from '../../../resources/icon/eisland.svg';
 
 type WindowTab = 'todo' | 'countdown' | 'settings';
@@ -63,6 +66,7 @@ const TAB_LIST: { key: WindowTab; labelKey: string }[] = [
  */
 export function StandaloneWindow(): ReactElement {
   const { t } = useTranslation();
+  const state = useIslandStore((s) => s.state);
   const [activeTab, setActiveTab] = useState<WindowTab>('todo');
   const [bgImageUrl, setBgImageUrl] = useState<string | null>(null);
   const [bgImageOpacity, setBgImageOpacity] = useState<number>(30);
@@ -198,7 +202,9 @@ export function StandaloneWindow(): ReactElement {
       <div className="cw-viewport">
         {activeTab === 'todo' && <TodoTab />}
         {activeTab === 'countdown' && <CountdownTab />}
-        {activeTab === 'settings' && <SettingsTab />}
+        {activeTab === 'settings' && state === 'login' && <LoginContent />}
+        {activeTab === 'settings' && state === 'register' && <RegisterContent />}
+        {activeTab === 'settings' && state !== 'login' && state !== 'register' && <SettingsTab />}
       </div>
     </div>
   );

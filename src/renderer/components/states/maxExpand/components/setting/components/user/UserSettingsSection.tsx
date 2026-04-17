@@ -67,8 +67,6 @@ export function UserSettingsSection(): ReactElement {
   const [loadingProfile, setLoadingProfile] = useState(false);
   const [profileError, setProfileError] = useState<string>('');
 
-  const [authFeedback, setAuthFeedback] = useState<Feedback | null>(null);
-
   const [editAvatar, setEditAvatar] = useState<string | null>(null);
   const [editGender, setEditGender] = useState<UserAccountGender>('undisclosed');
   const [editGenderCustom, setEditGenderCustom] = useState('');
@@ -85,7 +83,6 @@ export function UserSettingsSection(): ReactElement {
   const [unregisterPasswordVisible, setUnregisterPasswordVisible] = useState(false);
   const [unregisterConfirmVisible, setUnregisterConfirmVisible] = useState(false);
   const [unregisterSubmitting, setUnregisterSubmitting] = useState(false);
-  const [unregisterFeedback, setUnregisterFeedback] = useState<Feedback | null>(null);
 
   const [logoutSubmitting, setLogoutSubmitting] = useState(false);
   const [userProfilePage, setUserProfilePage] = useState<UserProfilePage>('info');
@@ -253,16 +250,19 @@ export function UserSettingsSection(): ReactElement {
   const handleLogout = async (): Promise<void> => {
     if (!token || logoutSubmitting) return;
     setLogoutSubmitting(true);
-    await logoutUser(token);
-    clearLocalAccount();
-    setToken(null);
-    setProfile(null);
-    setAuthFeedback(null);
-    setLogoutSubmitting(false);
+    try {
+      await logoutUser(token);
+    } catch {
+      // ignore network errors, local cleanup still runs
+    } finally {
+      clearLocalAccount();
+      setToken(null);
+      setProfile(null);
+      setLogoutSubmitting(false);
+    }
   };
 
   const requestUnregister = (): void => {
-    setUnregisterFeedback(null);
     setUnregisterPassword('');
     setUnregisterPasswordVisible(false);
     setUnregisterConfirmVisible(true);
@@ -272,21 +272,26 @@ export function UserSettingsSection(): ReactElement {
     setUnregisterConfirmVisible(false);
     setUnregisterPassword('');
     setUnregisterPasswordVisible(false);
-    setUnregisterFeedback(null);
   };
 
   const handleUnregister = async (): Promise<void> => {
     if (!token || unregisterSubmitting) return;
-    if (!unregisterPassword) {
-      setUnregisterFeedback({ type: 'error', text: t('settings.user.feedback.unregisterPasswordRequired', { defaultValue: '请输入当前密码以确认注销' }) });
+    if (!unregisterPassword.trim()) {
       return;
     }
     setUnregisterSubmitting(true);
-    setUnregisterFeedback(null);
     const result = await unregisterUser(token, unregisterPassword);
     setUnregisterSubmitting(false);
     if (!result.ok) {
-      setUnregisterFeedback({ type: 'error', text: result.message || t('settings.user.feedback.unregisterFailed', { defaultValue: '注销失败' }) });
+      if (result.code === 401 || result.code === 4011) {
+        clearLocalAccount();
+        setToken(null);
+        setProfile(null);
+        setUnregisterConfirmVisible(false);
+        setUnregisterPassword('');
+        setUnregisterPasswordVisible(false);
+        return;
+      }
       return;
     }
     clearLocalAccount();
@@ -295,7 +300,6 @@ export function UserSettingsSection(): ReactElement {
     setUnregisterConfirmVisible(false);
     setUnregisterPassword('');
     setUnregisterPasswordVisible(false);
-    setAuthFeedback(null);
   };
 
   const renderFeedback = (feedback: Feedback | null): ReactElement | null => {
@@ -311,7 +315,6 @@ export function UserSettingsSection(): ReactElement {
         <div className="settings-user-auth-entry-title">
           {t('settings.user.auth.entryTitle', { defaultValue: '登录后可管理头像、资料与账号安全设置' })}
         </div>
-        {authFeedback && renderFeedback(authFeedback)}
         <div className="settings-user-auth-entry-actions">
           <button
             type="button"
@@ -609,13 +612,12 @@ export function UserSettingsSection(): ReactElement {
                   </button>
                 </div>
               </label>
-              {renderFeedback(unregisterFeedback)}
               <div className="settings-user-actions-row">
                 <button
                   type="button"
                   className="settings-user-danger-btn"
                   onClick={() => void handleUnregister()}
-                  disabled={unregisterSubmitting}
+                  disabled={unregisterSubmitting || !unregisterPassword.trim()}
                 >
                   {unregisterSubmitting ? t('settings.user.actions.unregistering', { defaultValue: '注销中…' }) : t('settings.user.actions.confirmUnregister', { defaultValue: '确认注销' })}
                 </button>
