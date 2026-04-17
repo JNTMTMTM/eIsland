@@ -576,6 +576,7 @@
       "shortcut": "Shortcuts",
       "user": "Account",
       "update": "Updates",
+      "pluginMarket": "Plugin Market",
       "about": "About"
     },
     "weatherPages": {
@@ -869,6 +870,12 @@
         "download": "Download Update",
         "installRestart": "Install & Restart",
         "retry": "Retry"
+      }
+    },
+    "pluginMarket": {
+      "pages": {
+        "wallpaper": "Wallpapers",
+        "plugin": "Plugins"
       }
     },
     "ai": {

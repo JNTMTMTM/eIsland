@@ -576,6 +576,7 @@
       "shortcut": "快捷键",
       "user": "用户中心",
       "update": "更新设置",
+      "pluginMarket": "插件市场",
       "about": "关于软件"
     },
     "weatherPages": {
@@ -869,6 +870,12 @@
         "download": "下载更新",
         "installRestart": "安装并重启",
         "retry": "重试"
+      }
+    },
+    "pluginMarket": {
+      "pages": {
+        "wallpaper": "壁纸",
+        "plugin": "插件"
       }
     },
     "ai": {
