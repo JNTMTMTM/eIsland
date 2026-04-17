@@ -45,7 +45,7 @@ const USERNAME_ALLOWED_PATTERN = /^[A-Za-z0-9\u4E00-\u9FFF]+$/;
 /** 独立注册状态内容 */
 export function RegisterContent(): ReactElement {
   const { t } = useTranslation();
-  const { setLogin, setMaxExpand, setMaxExpandTab } = useIslandStore();
+  const { setLogin, setMaxExpand, setMaxExpandTab, returnFromAuth } = useIslandStore();
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -211,7 +211,7 @@ export function RegisterContent(): ReactElement {
           <button
             type="button"
             className="settings-user-secondary-btn"
-            onClick={navigateToUserCenter}
+            onClick={returnFromAuth}
             disabled={submitting}
           >
             {t('settings.user.actions.backToCenter', { defaultValue: '返回用户中心' })}

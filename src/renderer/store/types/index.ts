@@ -192,10 +192,12 @@ export interface AiChatMessage {
 /** 岛屿状态 Slice */
 export interface IslandSlice {
   state: IslandState;
+  authReturnState: IslandState | null;
   hoverTab: HoverTab;
   expandTab: ExpandTab;
   maxExpandTab: MaxExpandTab;
   notification: NotificationData;
+
   springAnimation: boolean;
   setIdle: (force?: boolean) => void;
   setHover: () => void;
@@ -203,8 +205,10 @@ export interface IslandSlice {
   setMaxExpand: () => void;
   setLogin: () => void;
   setRegister: () => void;
+  returnFromAuth: () => void;
   setLyrics: () => void;
   setNotification: (data: NotificationData) => void;
+
   setGuide: () => void;
   setHoverTab: (tab: HoverTab) => void;
   setExpandTab: (tab: ExpandTab) => void;

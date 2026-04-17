@@ -43,7 +43,7 @@ interface Feedback {
 /** 独立登录状态内容 */
 export function LoginContent(): ReactElement {
   const { t } = useTranslation();
-  const { setRegister, setMaxExpand, setMaxExpandTab } = useIslandStore();
+  const { setRegister, setMaxExpand, setMaxExpandTab, returnFromAuth } = useIslandStore();
   const [account, setAccount] = useState('');
   const [password, setPassword] = useState('');
   const [passwordVisible, setPasswordVisible] = useState(false);
@@ -153,7 +153,7 @@ export function LoginContent(): ReactElement {
           <button
             type="button"
             className="settings-user-secondary-btn"
-            onClick={navigateToUserCenter}
+            onClick={returnFromAuth}
             disabled={submitting}
           >
             {t('settings.user.actions.backToCenter', { defaultValue: '返回用户中心' })}
