@@ -33,6 +33,9 @@ import { updateSessionToken } from '../../../utils/authSession';
 import '../../../styles/settings/settings.css';
 import '../../../styles/auth/auth.css';
 
+const STANDALONE_WINDOW_MODE_STORE_KEY = 'standalone-window-mode';
+const LEGACY_COUNTDOWN_WINDOW_MODE_STORE_KEY = 'countdown-window-mode';
+
 type FeedbackType = 'success' | 'error' | 'info';
 
 interface Feedback {
@@ -41,6 +44,23 @@ interface Feedback {
 }
 
 const USERNAME_ALLOWED_PATTERN = /^[A-Za-z0-9\u4E00-\u9FFF]+$/;
+
+async function readStandaloneWindowMode(): Promise<'integrated' | 'standalone'> {
+  try {
+    const mode = await window.api.storeRead(STANDALONE_WINDOW_MODE_STORE_KEY);
+    if (mode === 'standalone') return 'standalone';
+    if (mode === 'integrated') return 'integrated';
+  } catch {
+    // ignore
+  }
+  try {
+    const legacyMode = await window.api.storeRead(LEGACY_COUNTDOWN_WINDOW_MODE_STORE_KEY);
+    if (legacyMode === 'standalone') return 'standalone';
+  } catch {
+    // ignore
+  }
+  return 'integrated';
+}
 
 /** 独立注册状态内容 */
 export function RegisterContent(): ReactElement {
@@ -60,7 +80,13 @@ export function RegisterContent(): ReactElement {
     return <div className={`settings-user-feedback settings-user-feedback--${feedback.type}`}>{feedback.text}</div>;
   };
 
-  const navigateToUserCenter = (): void => {
+  const navigateToUserCenter = async (): Promise<void> => {
+    const mode = await readStandaloneWindowMode();
+    if (mode === 'standalone') {
+      setMaxExpandTab('settings');
+      useIslandStore.setState({ state: 'maxExpand', authReturnState: null });
+      return;
+    }
     setMaxExpand();
     setMaxExpandTab('settings');
   };
@@ -105,7 +131,7 @@ export function RegisterContent(): ReactElement {
 
     updateSessionToken(result.data.token);
     setFeedback({ type: 'success', text: t('settings.user.feedback.registerSuccess', { defaultValue: '注册成功，已自动登录' }) });
-    navigateToUserCenter();
+    await navigateToUserCenter();
   };
 
   return (
