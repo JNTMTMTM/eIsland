@@ -38,9 +38,24 @@ import windowIcon from '../../../resources/icon/eisland.svg';
 type WindowTab = 'todo' | 'countdown' | 'settings';
 const ACTIVE_TAB_STORE_KEY = 'standalone-window-active-tab';
 const LEGACY_ACTIVE_TAB_STORE_KEY = 'countdown-window-active-tab';
+const AUTH_INTENT_STORE_KEY = 'standalone-window-auth-intent';
 const ISLAND_BG_IMAGE_STORE_KEY = 'island-bg-image';
 const ISLAND_BG_OPACITY_STORE_KEY = 'island-bg-opacity';
 const LOCAL_ISLAND_BG_SYNC_EVENT = 'island-bg-local-sync';
+
+function applyAuthIntent(intent: unknown): void {
+  if (intent === 'login') {
+    useIslandStore.setState({ state: 'login' });
+    return;
+  }
+  if (intent === 'register') {
+    useIslandStore.setState({ state: 'register' });
+    return;
+  }
+  if (intent === null || intent === '' || intent === 'none') {
+    useIslandStore.setState({ state: 'maxExpand' });
+  }
+}
 
 function isDirectBgImageUrl(image: string): boolean {
   return image.startsWith('data:')
@@ -110,6 +125,15 @@ export function StandaloneWindow(): ReactElement {
       }).catch(() => {});
     }).catch(() => {});
 
+    window.api.storeRead(AUTH_INTENT_STORE_KEY).then((intent) => {
+      if (cancelled) return;
+      if (intent === 'login' || intent === 'register') {
+        setActiveTab('settings');
+        applyAuthIntent(intent);
+        window.api.storeWrite(AUTH_INTENT_STORE_KEY, null).catch(() => {});
+      }
+    }).catch(() => {});
+
     window.api.storeRead(ISLAND_BG_IMAGE_STORE_KEY).then((image) => {
       if (cancelled) return;
       applyBgImage(image);
@@ -125,6 +149,13 @@ export function StandaloneWindow(): ReactElement {
       if (channel === `store:${ACTIVE_TAB_STORE_KEY}`) {
         if (value === 'todo' || value === 'countdown' || value === 'settings') {
           setActiveTab(value);
+        }
+      }
+      if (channel === `store:${AUTH_INTENT_STORE_KEY}`) {
+        if (value === 'login' || value === 'register') {
+          setActiveTab('settings');
+          applyAuthIntent(value);
+          window.api.storeWrite(AUTH_INTENT_STORE_KEY, null).catch(() => {});
         }
       }
       if (channel === `store:${ISLAND_BG_IMAGE_STORE_KEY}`) {

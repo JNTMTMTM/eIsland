@@ -18,7 +18,9 @@
     "actions": {
       "prev": "Previous",
       "next": "Next",
-      "start": "Get Started"
+      "start": "Get Started",
+      "loginNow": "Log In Now",
+      "registerNow": "Register Now"
     },
     "welcome": {
       "title": "Welcome to eIsland",
@@ -40,6 +42,12 @@
       "settings": {
         "title": "Personalization",
         "desc": "Customize your Dynamic Island experience in settings."
+      },
+      "auth": {
+        "title": "Account Service",
+        "desc": "Log in or register now to enable cross-device sync and account management.",
+        "tipSync": "After login, you can manage avatar, profile, and account security settings.",
+        "tipMode": "If standalone window mode is enabled, the corresponding window page will open automatically."
       }
     },
     "interactionCards": {

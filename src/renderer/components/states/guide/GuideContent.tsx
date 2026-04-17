@@ -57,9 +57,32 @@ interface GuidePage {
   icon?: string;
   imageSrc?: string;
   interactive?: 'basic' | 'music' | 'tools' | 'settings';
+  actionPrompt?: 'auth';
   title: string;
   desc: string;
   tips?: { icon: string; text: string }[];
+}
+
+const STANDALONE_WINDOW_MODE_STORE_KEY = 'standalone-window-mode';
+const LEGACY_COUNTDOWN_WINDOW_MODE_STORE_KEY = 'countdown-window-mode';
+const STANDALONE_WINDOW_ACTIVE_TAB_STORE_KEY = 'standalone-window-active-tab';
+const STANDALONE_WINDOW_AUTH_INTENT_STORE_KEY = 'standalone-window-auth-intent';
+
+async function readStandaloneWindowMode(): Promise<'integrated' | 'standalone'> {
+  try {
+    const mode = await window.api.storeRead(STANDALONE_WINDOW_MODE_STORE_KEY);
+    if (mode === 'standalone') return 'standalone';
+    if (mode === 'integrated') return 'integrated';
+  } catch {
+    // ignore
+  }
+  try {
+    const legacyMode = await window.api.storeRead(LEGACY_COUNTDOWN_WINDOW_MODE_STORE_KEY);
+    if (legacyMode === 'standalone') return 'standalone';
+  } catch {
+    // ignore
+  }
+  return 'integrated';
 }
 
 /** 迷你灵动岛演示模式 */
@@ -258,6 +281,16 @@ function getGuidePages(t: TFunction): GuidePage[] {
       interactive: 'settings',
       title: t('guide.sections.settings.title', { defaultValue: '个性化设置' }),
       desc: t('guide.sections.settings.desc', { defaultValue: '在扩展面板的设置中自定义你的灵动岛体验。' }),
+    },
+    {
+      actionPrompt: 'auth',
+      icon: '🔐',
+      title: t('guide.sections.auth.title', { defaultValue: '账号服务' }),
+      desc: t('guide.sections.auth.desc', { defaultValue: '现在就登录或注册，开启跨设备同步与账号管理。' }),
+      tips: [
+        { icon: '🧩', text: t('guide.sections.auth.tipSync', { defaultValue: '登录后可管理头像、资料与账号安全设置。' }) },
+        { icon: '🪟', text: t('guide.sections.auth.tipMode', { defaultValue: '若已开启独立窗口模式，将自动打开对应窗口页面。' }) },
+      ],
     },
   ];
 }
@@ -758,7 +791,7 @@ export function GuideContent(): React.ReactElement {
   const [cardIndex, setCardIndex] = useState(0);
   const animDirRef = useRef<'up' | 'down'>('down');
   const wheelCooldownRef = useRef(false);
-  const { setIdle } = useIslandStore();
+  const { setIdle, setLogin, setRegister } = useIslandStore();
 
   const isLast = page === guidePages.length - 1;
 
@@ -806,6 +839,21 @@ export function GuideContent(): React.ReactElement {
   const handlePrev = useCallback(() => {
     setPage((p) => Math.max(0, p - 1));
   }, []);
+
+  const openAuthFromGuide = useCallback(async (target: 'login' | 'register'): Promise<void> => {
+    const mode = await readStandaloneWindowMode();
+    if (mode === 'standalone') {
+      await window.api.storeWrite(STANDALONE_WINDOW_ACTIVE_TAB_STORE_KEY, 'settings').catch(() => {});
+      await window.api.storeWrite(STANDALONE_WINDOW_AUTH_INTENT_STORE_KEY, target).catch(() => {});
+      await window.api.openStandaloneWindow().catch(() => {});
+      return;
+    }
+    if (target === 'login') {
+      setLogin();
+      return;
+    }
+    setRegister();
+  }, [setLogin, setRegister]);
 
   const current = guidePages[page];
 
@@ -876,6 +924,25 @@ export function GuideContent(): React.ReactElement {
                   <span className="guide-tip-text">{tip.text}</span>
                 </div>
               ))}
+            </div>
+          )}
+
+          {current.actionPrompt === 'auth' && (
+            <div style={{ display: 'flex', gap: 10, marginTop: 14, justifyContent: 'center' }}>
+              <button
+                type="button"
+                className="guide-btn guide-btn-primary"
+                onClick={() => void openAuthFromGuide('login')}
+              >
+                {t('guide.actions.loginNow', { defaultValue: '立即登录' })}
+              </button>
+              <button
+                type="button"
+                className="guide-btn guide-btn-secondary"
+                onClick={() => void openAuthFromGuide('register')}
+              >
+                {t('guide.actions.registerNow', { defaultValue: '立即注册' })}
+              </button>
             </div>
           )}
         </div>
