@@ -22,6 +22,7 @@
  * @file qqmusic.ts
  * @description QQ 音乐逐字歌词(QRC)拉取 — 搜索 → `lyric_download.fcg` 取密文 → TripleDES+inflate → 后缀式音节 + 绝对偏移解析
  * @author 鸡哥
+ * @docs https://github.com/cXp1r/lyricify-lyrics-provider-rs
  */
 
 import { cleanArtist, cleanTitle } from '../../helpers';
@@ -35,6 +36,54 @@ import type { KaraokeLine } from '../types';
 const CDATA_RE = /CDATA\[([0-9A-F]+)\]/i;
 
 const LOG_TAG = '[KaraokeQQMusic]';
+const QQ_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36';
+const QQ_REFERER = 'https://c.y.qq.com/';
+const MAX_QRC_CANDIDATES = 6;
+
+function resolveSongId(song: unknown): string {
+  const s = song as Record<string, unknown>;
+  return typeof s.id === 'number' ? String(s.id) : String(s.id ?? '');
+}
+
+async function fetchQrcBySongId(id: string): Promise<KaraokeLine[] | null> {
+  const form = `version=15&miniversion=82&lrctype=4&musicid=${encodeURIComponent(id)}`;
+  const qrcXml = await requestTextWithLog('https://c.y.qq.com/qqmusic/fcgi-bin/lyric_download.fcg', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      Referer: QQ_REFERER,
+      'User-Agent': QQ_USER_AGENT,
+    },
+    body: form,
+  });
+  if (!qrcXml) {
+    logger.warn(`${LOG_TAG} QRC 下载接口返回空, id=${id}`);
+    return null;
+  }
+
+  const m = CDATA_RE.exec(qrcXml);
+  if (!m) {
+    logger.warn(`${LOG_TAG} 未在返回 XML 中找到 CDATA 密文, id=${id}, xml 前 300 字=`, qrcXml.slice(0, 300));
+    return null;
+  }
+
+  let plaintext: string;
+  try {
+    plaintext = await decryptQRC(m[1]);
+  } catch (err) {
+    logger.warn(`${LOG_TAG} QRC 解密/inflate 失败, id=${id}: ${(err as Error).message}`);
+    return null;
+  }
+
+  const lines = parseSyncedLines(plaintext, 'suffix', 'absolute');
+  const withSyllables = lines.filter((l) => l.syllables.length > 0);
+  if (withSyllables.length === 0) {
+    logger.warn(`${LOG_TAG} 解密成功但解析出 0 行逐字, id=${id}, 明文长度=${plaintext.length}, 前 200 字=`, plaintext.slice(0, 200));
+    return null;
+  }
+  logger.info(`${LOG_TAG} 获取成功, id=${id}, 行数=${withSyllables.length}`);
+  return withSyllables;
+}
 
 /**
  * 根据关键字在 QQ 音乐搜索并下载 QRC 密文,解密为明文逐字歌词
@@ -50,7 +99,11 @@ async function searchKaraokeQQMusic(queryTitle: string, queryArtist: string): Pr
       'https://u.y.qq.com/cgi-bin/musicu.fcg',
       {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Referer: QQ_REFERER,
+          'User-Agent': QQ_USER_AGENT,
+        },
         body: JSON.stringify({
           req_1: {
             method: 'DoSearchForQQMusicDesktop',
@@ -75,50 +128,22 @@ async function searchKaraokeQQMusic(queryTitle: string, queryArtist: string): Pr
       return null;
     }
 
-    const first = songs[0] as Record<string, unknown>;
-    const id = typeof first.id === 'number' ? String(first.id) : String(first.id ?? '');
-    if (!id) {
-      logger.warn(`${LOG_TAG} 首条结果缺少歌曲 id, query="${query}"`);
-      return null;
+    const candidates = songs.slice(0, MAX_QRC_CANDIDATES);
+    for (let i = 0; i < candidates.length; i += 1) {
+      const id = resolveSongId(candidates[i]);
+      if (!id) {
+        logger.warn(`${LOG_TAG} 候选 ${i + 1}/${candidates.length} 缺少歌曲 id, query="${query}"`);
+        continue;
+      }
+      const lines = await fetchQrcBySongId(id);
+      if (lines && lines.length > 0) {
+        logger.info(`${LOG_TAG} 命中候选 ${i + 1}/${candidates.length}, id=${id}`);
+        return lines;
+      }
     }
 
-    const form = `version=15&miniversion=82&lrctype=4&musicid=${encodeURIComponent(id)}`;
-    const qrcXml = await requestTextWithLog('https://c.y.qq.com/qqmusic/fcgi-bin/lyric_download.fcg', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        Referer: 'https://c.y.qq.com/',
-      },
-      body: form,
-    });
-    if (!qrcXml) {
-      logger.warn(`${LOG_TAG} QRC 下载接口返回空, id=${id}`);
-      return null;
-    }
-
-    const m = CDATA_RE.exec(qrcXml);
-    if (!m) {
-      logger.warn(`${LOG_TAG} 未在返回 XML 中找到 CDATA 密文, id=${id}, xml 前 300 字=`, qrcXml.slice(0, 300));
-      return null;
-    }
-
-    let plaintext: string;
-    try {
-      plaintext = await decryptQRC(m[1]);
-    } catch (err) {
-      // 绝大多数情况为此歌曲在 QQ 侧没有 QRC(服务端返回占位密文),按"无逐字"处理
-      logger.warn(`${LOG_TAG} 此曲无 QRC 逐字歌词, id=${id}: ${(err as Error).message}`);
-      return null;
-    }
-
-    const lines = parseSyncedLines(plaintext, 'suffix', 'absolute');
-    const withSyllables = lines.filter((l) => l.syllables.length > 0);
-    if (withSyllables.length === 0) {
-      logger.warn(`${LOG_TAG} 解密成功但解析出 0 行逐字, id=${id}, 明文长度=${plaintext.length}, 前 200 字=`, plaintext.slice(0, 200));
-      return null;
-    }
-    logger.info(`${LOG_TAG} 获取成功, id=${id}, 行数=${withSyllables.length}`);
-    return withSyllables;
+    logger.warn(`${LOG_TAG} 候选前 ${candidates.length} 首均未拿到可用 QRC, query="${query}"`);
+    return null;
   } catch (err) {
     logger.error(`${LOG_TAG} 未预期异常, query="${query}":`, err);
     return null;

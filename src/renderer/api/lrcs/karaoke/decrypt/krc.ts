@@ -23,6 +23,7 @@
  * @description 酷狗 KRC 逐字歌词解密流程 — base64 → 跳过 4 字节头 → 循环 XOR → inflate → 跳过 BOM/首字节 → UTF-8
  *              对齐 lyricify-lyrics-provider-rs::parsers/decrypt/krc.rs::krc_decrypt
  * @author 鸡哥
+ * @docs https://github.com/cXp1r/lyricify-lyrics-provider-rs
  */
 
 import { inflateAuto } from './inflate';

@@ -22,6 +22,7 @@
  * @file sodaMusic.ts
  * @description 汽水音乐逐字歌词拉取 — 搜歌 → 详情接口 `lyric.content` 已是明文 KRC 风格(无需解密) → 前缀式音节 + 相对偏移解析
  * @author 鸡哥
+ * @docs https://github.com/cXp1r/lyricify-lyrics-provider-rs
  */
 
 import { cleanArtist, cleanTitle } from '../../helpers';

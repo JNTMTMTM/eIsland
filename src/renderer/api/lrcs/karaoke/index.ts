@@ -23,6 +23,7 @@
  * @description 逐字歌词拉取统一入口 — 按 SMTC 进程/设置源优先,多源回退
  *              与非逐字 `fetchLyrics` 的选源逻辑对齐(去除 LRCLIB 兜底,因为 LRCLIB 无逐字数据)
  * @author 鸡哥
+ * @docs https://github.com/cXp1r/lyricify-lyrics-provider-rs
  */
 
 import type { KaraokeLine } from './types';

@@ -24,6 +24,7 @@
  *              对齐 lyricify-lyrics-provider-rs::parsers/decrypt/qrc.rs::inflate_bytes 行为
  *              (优先 zlib header,失败回退 raw deflate)
  * @author 鸡哥
+ * @docs https://github.com/cXp1r/lyricify-lyrics-provider-rs
  */
 
 async function decompress(data: Uint8Array, format: 'deflate' | 'deflate-raw'): Promise<Uint8Array> {
@@ -34,6 +35,35 @@ async function decompress(data: Uint8Array, format: 'deflate' | 'deflate-raw'): 
   return new Uint8Array(buffer);
 }
 
+const MAX_TAIL_TRIM_BYTES = 16;
+
+/**
+ * 兼容性解压: 先按原长度尝试,失败时容忍少量尾部垃圾字节并逐字节裁剪重试。
+ *
+ * Rust `flate2` 在部分场景可容忍流尾残留字节; 浏览器 `DecompressionStream`
+ * 更严格,会直接抛错("Failed to fetch")。这里通过小范围 tail-trim 行为贴近 Rust。
+ */
+async function decompressWithTailTrim(
+  data: Uint8Array,
+  format: 'deflate' | 'deflate-raw',
+): Promise<Uint8Array> {
+  let lastErr: unknown = null;
+
+  const maxTrim = Math.min(MAX_TAIL_TRIM_BYTES, Math.max(0, data.length - 1));
+  for (let trim = 0; trim <= maxTrim; trim += 1) {
+    const payload = trim === 0 ? data : data.subarray(0, data.length - trim);
+    try {
+      const out = await decompress(payload, format);
+      if (out.byteLength > 0) return out;
+      lastErr = new Error(`Inflate: ${format} produced empty output (trim=${trim})`);
+    } catch (err) {
+      lastErr = err;
+    }
+  }
+
+  throw lastErr ?? new Error(`Inflate: ${format} failed`);
+}
+
 /**
  * 尝试 zlib 解压，失败时回退到 raw deflate
  * @param data - 待解压字节（可能是 zlib 流或裸 deflate 流）
@@ -42,14 +72,11 @@ async function decompress(data: Uint8Array, format: 'deflate' | 'deflate-raw'): 
  */
 export async function inflateAuto(data: Uint8Array): Promise<Uint8Array> {
   try {
-    const out = await decompress(data, 'deflate');
-    if (out.byteLength > 0) return out;
+    return await decompressWithTailTrim(data, 'deflate');
   } catch { /* fallthrough to raw deflate */ }
 
   try {
-    const out = await decompress(data, 'deflate-raw');
-    if (out.byteLength > 0) return out;
-    throw new Error('Inflate: raw deflate produced empty output');
+    return await decompressWithTailTrim(data, 'deflate-raw');
   } catch (err) {
     throw new Error(`Inflate: both zlib and raw deflate failed (${(err as Error).message})`);
   }

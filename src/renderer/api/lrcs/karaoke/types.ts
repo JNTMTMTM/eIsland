@@ -22,6 +22,7 @@
  * @file types.ts
  * @description 逐字歌词（Karaoke）模块公共类型定义 — 对齐 lyricify-lyrics-provider-rs 的 LineInfo/TextInfo 结构
  * @author 鸡哥
+ * @docs https://github.com/cXp1r/lyricify-lyrics-provider-rs
  */
 
 /** 单个音节（逐字单元）信息 */

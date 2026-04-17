@@ -22,6 +22,7 @@
  * @file kugou.ts
  * @description 酷狗音乐逐字歌词(KRC)拉取 — 搜歌 → 搜歌词 → 下载 KRC 密文 → XOR+inflate → 后缀式音节 + 相对偏移解析
  * @author 鸡哥
+ * @docs https://github.com/cXp1r/lyricify-lyrics-provider-rs
  */
 
 import { cleanArtist, cleanTitle } from '../../helpers';

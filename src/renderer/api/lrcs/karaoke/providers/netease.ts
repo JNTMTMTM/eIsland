@@ -22,6 +22,7 @@
  * @file netease.ts
  * @description 网易云音乐逐字歌词(YRC)拉取 — 搜索歌曲 → v1 歌词接口取 `yrc.lyric` → 前缀式音节 + 绝对偏移解析
  * @author 鸡哥
+ * @docs https://github.com/cXp1r/lyricify-lyrics-provider-rs
  */
 
 import { cleanArtist, cleanTitle } from '../../helpers';

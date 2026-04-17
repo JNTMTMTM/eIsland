@@ -23,6 +23,7 @@
  * @description QQ 音乐 QRC 逐字歌词解密流程 — hex → TripleDES → zlib/inflate → UTF-8
  *              对齐 lyricify-lyrics-provider-rs::parsers/decrypt/qrc.rs::qrc_decrypt
  * @author 鸡哥
+ * @docs https://github.com/cXp1r/lyricify-lyrics-provider-rs
  */
 
 import { qrcTripleDesDecrypt } from './qrcDes';
@@ -45,10 +46,14 @@ export async function decryptQRC(hexCipher: string): Promise<string> {
     const inflated = await inflateAuto(decrypted);
     return new TextDecoder('utf-8').decode(inflated);
   } catch (err) {
+    const cipherLen = hexCipher.length / 2;
     const head = Array.from(decrypted.subarray(0, Math.min(8, decrypted.length)))
       .map((b) => b.toString(16).padStart(2, '0')).join(' ');
+    const hint = cipherLen <= 128
+      ? '可能是此曲无 QRC(服务端占位密文)'
+      : '更可能是解压兼容差异或密文不匹配';
     throw new Error(
-      `QRC inflate 失败(通常=此曲无逐字歌词); ciphertext 长度=${hexCipher.length / 2}B, 解密头8字节=[${head}]: ${(err as Error).message}`,
+      `QRC inflate 失败(${hint}); ciphertext 长度=${cipherLen}B, 解密头8字节=[${head}]: ${(err as Error).message}`,
     );
   }
 }
