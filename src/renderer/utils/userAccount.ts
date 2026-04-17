@@ -29,6 +29,10 @@
 export const USER_ACCOUNT_TOKEN_STORAGE_KEY = 'user-account-token';
 /** 本地缓存账号资料键 */
 export const USER_ACCOUNT_PROFILE_STORAGE_KEY = 'user-account-profile';
+/** 显式退出登录标记（用于阻止启动时从持久化 store 恢复旧 token） */
+export const USER_ACCOUNT_LOGOUT_MARKER_KEY = 'user-account-logout-marker';
+/** 登录态变更事件 */
+export const USER_ACCOUNT_SESSION_CHANGED_EVENT = 'user-account-session-changed';
 
 /** 账号性别枚举 */
 export type UserAccountGender = 'male' | 'female' | 'custom' | 'undisclosed';
@@ -42,6 +46,21 @@ export interface UserAccountProfile {
   genderCustom: string | null;
   birthday: string | null;
   createdAt: string;
+}
+
+export function emitUserAccountSessionChanged(): void {
+  try {
+    window.dispatchEvent(new Event(USER_ACCOUNT_SESSION_CHANGED_EVENT));
+  } catch {
+    // ignore
+  }
+}
+
+export function subscribeUserAccountSessionChanged(listener: () => void): () => void {
+  window.addEventListener(USER_ACCOUNT_SESSION_CHANGED_EVENT, listener);
+  return () => {
+    window.removeEventListener(USER_ACCOUNT_SESSION_CHANGED_EVENT, listener);
+  };
 }
 
 /**
@@ -71,6 +90,14 @@ export function writeLocalToken(token: string | null): void {
   } catch {
     // ignore storage errors
   }
+  if (token && token.length > 0) {
+    window.api?.storeWrite?.(USER_ACCOUNT_TOKEN_STORAGE_KEY, token).catch(() => {});
+    window.api?.storeWrite?.(USER_ACCOUNT_LOGOUT_MARKER_KEY, false).catch(() => {});
+  } else {
+    window.api?.storeWrite?.(USER_ACCOUNT_TOKEN_STORAGE_KEY, '').catch(() => {});
+    window.api?.storeWrite?.(USER_ACCOUNT_LOGOUT_MARKER_KEY, true).catch(() => {});
+  }
+  emitUserAccountSessionChanged();
 }
 
 /**
@@ -101,10 +128,16 @@ export function writeLocalProfile(profile: UserAccountProfile | null): void {
   } catch {
     // ignore storage errors
   }
+  if (profile) {
+    window.api?.storeWrite?.(USER_ACCOUNT_PROFILE_STORAGE_KEY, profile).catch(() => {});
+  } else {
+    window.api?.storeWrite?.(USER_ACCOUNT_PROFILE_STORAGE_KEY, '').catch(() => {});
+  }
+  emitUserAccountSessionChanged();
 }
 
 /**
- * 清空当前设备上的登录态（token + 资料缓存），用于登出 / 注销 / token 失效兜底。
+ * 清空当前设备上的登录态（token + 资料缓存），用于显式退出登录 / 注销。
  */
 export function clearLocalAccount(): void {
   writeLocalToken(null);

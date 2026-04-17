@@ -33,6 +33,7 @@ import { SvgIcon } from '../../../utils/SvgIcon';
 import albumArt from '../../../assets/avatar/T.jpg';
 import { setThemeMode as applyThemeMode, getThemeMode, type ThemeMode } from '../../../utils/theme';
 import i18n from '../../../i18n';
+import { readLocalToken } from '../../../utils/userAccount';
 
 /** 从图片提取主题色（canvas 1×1 缩放取均值） */
 function extractDominantColor(src: string): Promise<[number, number, number]> {
@@ -254,8 +255,8 @@ function getInteractionCards(t: TFunction): InteractionCard[] {
   ];
 }
 
-function getGuidePages(t: TFunction): GuidePage[] {
-  return [
+function getGuidePages(t: TFunction, showAuthPrompt: boolean): GuidePage[] {
+  const pages: GuidePage[] = [
     {
       imageSrc: './svg/eisland.svg',
       title: t('guide.welcome.title', { defaultValue: '欢迎使用 eIsland' }),
@@ -294,6 +295,10 @@ function getGuidePages(t: TFunction): GuidePage[] {
       ],
     },
   ];
+  if (!showAuthPrompt) {
+    return pages.filter((page) => page.actionPrompt !== 'auth');
+  }
+  return pages;
 }
 
 /** 迷你设置岛演示组件 — 带实际生效的设置切换按钮 */
@@ -783,11 +788,12 @@ function MiniIsland({ demo }: { demo: MiniIslandDemo }): React.ReactElement {
  */
 export function GuideContent(): React.ReactElement {
   const { t } = useTranslation();
+  const isLoggedIn = !!readLocalToken();
   const interactionCards = getInteractionCards(t);
   const musicCards = getMusicCards(t);
   const toolCards = getToolCards(t);
   const settingCards = getSettingCards(t);
-  const guidePages = getGuidePages(t);
+  const guidePages = getGuidePages(t, !isLoggedIn);
   const [page, setPage] = useState(() => _lastGuidePage);
   const [cardIndex, setCardIndex] = useState(0);
   const animDirRef = useRef<'up' | 'down'>('down');
@@ -801,6 +807,11 @@ export function GuideContent(): React.ReactElement {
   useEffect(() => {
     _lastGuidePage = page;
   }, [page]);
+
+  useEffect(() => {
+    if (page <= guidePages.length - 1) return;
+    setPage(Math.max(guidePages.length - 1, 0));
+  }, [guidePages.length, page]);
 
   useEffect(() => {
     const p = guidePages[page];

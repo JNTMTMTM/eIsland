@@ -29,7 +29,7 @@ import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../store/slices';
 import { registerUser } from '../../../api/userAccountApi';
-import { writeLocalToken } from '../../../utils/userAccount';
+import { updateSessionToken } from '../../../utils/authSession';
 import '../../../styles/settings/settings.css';
 import '../../../styles/auth/auth.css';
 
@@ -103,7 +103,7 @@ export function RegisterContent(): ReactElement {
       return;
     }
 
-    writeLocalToken(result.data.token);
+    updateSessionToken(result.data.token);
     setFeedback({ type: 'success', text: t('settings.user.feedback.registerSuccess', { defaultValue: '注册成功，已自动登录' }) });
     navigateToUserCenter();
   };

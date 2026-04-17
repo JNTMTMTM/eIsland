@@ -39,6 +39,7 @@ import {
   clearLocalAccount,
   readLocalProfile,
   readLocalToken,
+  subscribeUserAccountSessionChanged,
   writeLocalProfile,
   type UserAccountGender,
   type UserAccountProfile,
@@ -110,9 +111,6 @@ export function UserSettingsSection(): ReactElement {
     setLoadingProfile(false);
     if (!result.ok || !result.data) {
       if (result.code === 401 || result.code === 4011) {
-        clearLocalAccount();
-        setToken(null);
-        setProfile(null);
         setProfileError(t('settings.user.feedback.sessionExpired', { defaultValue: '登录已过期，请重新登录' }));
         return;
       }
@@ -123,6 +121,15 @@ export function UserSettingsSection(): ReactElement {
     writeLocalProfile(result.data);
     applyProfileToEditor(result.data);
   }, [applyProfileToEditor, t]);
+
+  useEffect(() => {
+    const syncSession = (): void => {
+      setToken(readLocalToken());
+      setProfile(readLocalProfile());
+    };
+    syncSession();
+    return subscribeUserAccountSessionChanged(syncSession);
+  }, []);
 
   useEffect(() => {
     if (!token) return;
@@ -223,9 +230,6 @@ export function UserSettingsSection(): ReactElement {
     if (!result.ok) {
       setSavingProfile(false);
       if (result.code === 401 || result.code === 4011) {
-        clearLocalAccount();
-        setToken(null);
-        setProfile(null);
         setProfileFeedback({ type: 'error', text: t('settings.user.feedback.sessionExpired', { defaultValue: '登录已过期，请重新登录' }) });
         return;
       }
@@ -249,15 +253,18 @@ export function UserSettingsSection(): ReactElement {
 
   const handleLogout = async (): Promise<void> => {
     if (!token || logoutSubmitting) return;
+    const currentToken = token;
     setLogoutSubmitting(true);
+    clearLocalAccount();
+    setToken(null);
+    setProfile(null);
+    setProfileError('');
+    setProfileFeedback(null);
     try {
-      await logoutUser(token);
+      await logoutUser(currentToken);
     } catch {
-      // ignore network errors, local cleanup still runs
+      // ignore network errors, local cleanup already applied
     } finally {
-      clearLocalAccount();
-      setToken(null);
-      setProfile(null);
       setLogoutSubmitting(false);
     }
   };
@@ -284,12 +291,7 @@ export function UserSettingsSection(): ReactElement {
     setUnregisterSubmitting(false);
     if (!result.ok) {
       if (result.code === 401 || result.code === 4011) {
-        clearLocalAccount();
-        setToken(null);
-        setProfile(null);
-        setUnregisterConfirmVisible(false);
-        setUnregisterPassword('');
-        setUnregisterPasswordVisible(false);
+        setProfileFeedback({ type: 'error', text: t('settings.user.feedback.sessionExpired', { defaultValue: '登录已过期，请重新登录' }) });
         return;
       }
       return;
