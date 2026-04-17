@@ -42,7 +42,7 @@ export const createIslandSlice: StateCreator<
   springAnimation: true,
 
   setIdle: (force?: boolean) => set((prev) => {
-    if (!force && (prev.state === 'expanded' || prev.state === 'maxExpand' || prev.state === 'guide')) return prev;
+    if (!force && (prev.state === 'expanded' || prev.state === 'maxExpand' || prev.state === 'guide' || prev.state === 'login' || prev.state === 'register')) return prev;
     window.api?.collapseWindow();
     window.api?.enableMousePassthrough();
     return { state: 'idle' as const };
@@ -64,6 +64,18 @@ export const createIslandSlice: StateCreator<
     window.api?.expandWindowSettings();
     window.api?.disableMousePassthrough();
     set({ state: 'maxExpand' });
+  },
+
+  setLogin: () => {
+    window.api?.expandWindowSettings();
+    window.api?.disableMousePassthrough();
+    set({ state: 'login' });
+  },
+
+  setRegister: () => {
+    window.api?.expandWindowSettings();
+    window.api?.disableMousePassthrough();
+    set({ state: 'register' });
   },
 
   setLyrics: () => {

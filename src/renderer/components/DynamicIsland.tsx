@@ -36,6 +36,8 @@ import { ExpandedContent } from './states/expand/ExpandedContent';
 import { MaxExpandContent } from './states/maxExpand/MaxExpandContent';
 import { LyricsContent } from './states/lyrics/LyricsContent';
 import { GuideContent } from './states/guide/GuideContent';
+import { LoginContent } from './states/login/LoginContent';
+import { RegisterContent } from './states/register/RegisterContent';
 import { SvgIcon } from '../utils/SvgIcon';
 import type { NowPlayingInfo } from '../store/isLandStore';
 import { fetchLyrics } from '../api/lrcApi';
@@ -46,7 +48,7 @@ import { fetchVersion, reportUpdateDownloadCount } from '../api/versionApi';
 import { getWebsiteFaviconUrl, getWebsiteHostname } from '../api/siteMetaApi';
 
 /** 灵动岛状态类型 */
-export type IslandState = 'idle' | 'hover' | 'expanded' | 'notification' | 'maxExpand' | 'minimal' | 'lyrics' | 'guide';
+export type IslandState = 'idle' | 'hover' | 'expanded' | 'notification' | 'maxExpand' | 'minimal' | 'lyrics' | 'guide' | 'login' | 'register';
 
 /** shell.css 中 morph/transition 主时长（0.55s） */
 const SHELL_MORPH_DURATION_MS = 550;
@@ -74,6 +76,8 @@ const STATE_AREA: Record<string, number> = {
   expanded: 860 * 150,
   maxExpand: 860 * 400,
   guide: 860 * 400,
+  login: 860 * 400,
+  register: 860 * 400,
 };
 
 /** 状态配置接口 */
@@ -143,6 +147,20 @@ export const STATE_CONFIGS: Record<IslandState, StateConfig> = {
   },
   guide: {
     name: 'guide',
+    mousePassthrough: false,
+    expanded: true,
+    enterDelay: 0,
+    leaveDelay: 0,
+  },
+  login: {
+    name: 'login',
+    mousePassthrough: false,
+    expanded: true,
+    enterDelay: 0,
+    leaveDelay: 0,
+  },
+  register: {
+    name: 'register',
     mousePassthrough: false,
     expanded: true,
     enterDelay: 0,
@@ -679,7 +697,7 @@ function DynamicIsland(): React.JSX.Element {
 
       const config = STATE_CONFIGS[state];
 
-      if (state === 'notification' || state === 'guide') {
+      if (state === 'notification' || state === 'guide' || state === 'login' || state === 'register') {
         if (inWindow) {
           window.api?.disableMousePassthrough();
         }
@@ -811,6 +829,18 @@ function DynamicIsland(): React.JSX.Element {
       state: 'guide',
       render: () => (
         <GuideContent />
+      ),
+    },
+    {
+      state: 'login',
+      render: () => (
+        <LoginContent />
+      ),
+    },
+    {
+      state: 'register',
+      render: () => (
+        <RegisterContent />
       ),
     },
   ];

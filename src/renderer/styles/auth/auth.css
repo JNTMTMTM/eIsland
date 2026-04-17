@@ -1,0 +1,74 @@
+/*
+ * eIsland - A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Electron.
+ * https://github.com/JNTMTMTM/eIsland
+ *
+ * Copyright (C) 2026 JNTMTMTM
+ * Copyright (C) 2026 pyisland.com
+ *
+ * Original author: JNTMTMTM[](https://github.com/JNTMTMTM)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ */
+
+/**
+ * @file auth.css
+ * @description 登录/注册独立状态界面样式（参考 guide 视觉风格）
+ * @author 鸡哥
+ */
+
+.auth-state-content {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 26px;
+  background:
+    radial-gradient(120% 90% at 10% 0%, rgba(92, 126, 255, 0.18) 0%, rgba(92, 126, 255, 0) 55%),
+    radial-gradient(90% 90% at 90% 100%, rgba(107, 228, 184, 0.14) 0%, rgba(107, 228, 184, 0) 60%);
+}
+
+.auth-panel {
+  width: min(100%, 430px);
+  padding: 20px;
+  border-radius: 14px;
+  border: 1px solid rgba(var(--color-text-rgb), 0.1);
+  background: rgba(var(--color-text-rgb), 0.04);
+  backdrop-filter: blur(12px);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.auth-panel-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: rgba(var(--color-text-rgb), 0.96);
+  text-align: center;
+}
+
+.auth-panel-subtitle {
+  font-size: 12px;
+  line-height: 1.5;
+  color: rgba(var(--color-text-rgb), 0.62);
+  text-align: center;
+}
+
+.auth-panel-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.auth-panel .settings-field-label,
+.auth-panel .settings-user-feedback {
+  text-align: center;
+}
+
+.auth-panel .settings-field-input {
+  text-align: center;
+}

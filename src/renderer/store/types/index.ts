@@ -29,7 +29,7 @@ import type { WeatherApiConfig } from '../../api/weatherApi';
 export type { WeatherApiConfig };
 
 /** 灵动岛 UI 状态枚举 */
-export type IslandState = 'idle' | 'hover' | 'expanded' | 'notification' | 'maxExpand' | 'lyrics' | 'guide';
+export type IslandState = 'idle' | 'hover' | 'expanded' | 'notification' | 'maxExpand' | 'lyrics' | 'guide' | 'login' | 'register';
 
 /** Hover 状态下的子标签页类型 */
 export type HoverTab = 'time' | 'o3ics' | 'weather' | 'expand';
@@ -201,6 +201,8 @@ export interface IslandSlice {
   setHover: () => void;
   setExpanded: () => void;
   setMaxExpand: () => void;
+  setLogin: () => void;
+  setRegister: () => void;
   setLyrics: () => void;
   setNotification: (data: NotificationData) => void;
   setGuide: () => void;

@@ -1674,6 +1674,20 @@
   color: rgba(var(--color-text-rgb), 0.95);
 }
 
+.settings-user-auth-entry-title {
+  font-size: 12px;
+  line-height: 1.45;
+  color: rgba(var(--color-text-rgb), 0.74);
+  text-align: center;
+}
+
+.settings-user-auth-entry-actions {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 .settings-user-form {
   display: flex;
   flex-direction: column;

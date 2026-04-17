@@ -29,24 +29,21 @@ import type { ChangeEvent, ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   fetchUserProfile,
-  loginUser,
   logoutUser,
-  registerUser,
   unregisterUser,
   updateUserProfile,
   uploadUserAvatar,
 } from '../../../../../../../api/userAccountApi';
+import useIslandStore from '../../../../../../../store/slices';
 import {
   clearLocalAccount,
   readLocalProfile,
   readLocalToken,
   writeLocalProfile,
-  writeLocalToken,
   type UserAccountGender,
   type UserAccountProfile,
 } from '../../../../../../../utils/userAccount';
 
-type Mode = 'login' | 'register';
 type FeedbackType = 'success' | 'error' | 'info';
 
 interface Feedback {
@@ -62,16 +59,12 @@ const GENDER_VALUES: UserAccountGender[] = ['male', 'female', 'custom', 'undiscl
  */
 export function UserSettingsSection(): ReactElement {
   const { t } = useTranslation();
+  const { setLogin, setRegister } = useIslandStore();
   const [token, setToken] = useState<string | null>(() => readLocalToken());
   const [profile, setProfile] = useState<UserAccountProfile | null>(() => readLocalProfile());
   const [loadingProfile, setLoadingProfile] = useState(false);
   const [profileError, setProfileError] = useState<string>('');
 
-  const [mode, setMode] = useState<Mode>('login');
-  const [authUsername, setAuthUsername] = useState('');
-  const [authEmail, setAuthEmail] = useState('');
-  const [authPassword, setAuthPassword] = useState('');
-  const [authSubmitting, setAuthSubmitting] = useState(false);
   const [authFeedback, setAuthFeedback] = useState<Feedback | null>(null);
 
   const [editAvatar, setEditAvatar] = useState<string | null>(null);
@@ -128,55 +121,6 @@ export function UserSettingsSection(): ReactElement {
     }
     void loadRemoteProfile(token);
   }, [token, loadRemoteProfile, applyProfileToEditor]);
-
-  const switchMode = (next: Mode): void => {
-    setMode(next);
-    setAuthFeedback(null);
-  };
-
-  const resetAuthForm = (): void => {
-    setAuthUsername('');
-    setAuthEmail('');
-    setAuthPassword('');
-  };
-
-  const handleAuthSubmit = async (): Promise<void> => {
-    if (authSubmitting) return;
-    const username = authUsername.trim();
-    const email = authEmail.trim();
-    const password = authPassword;
-    if (!username) {
-      setAuthFeedback({ type: 'error', text: t('settings.user.feedback.usernameRequired', { defaultValue: '请输入用户名' }) });
-      return;
-    }
-    if (!password) {
-      setAuthFeedback({ type: 'error', text: t('settings.user.feedback.passwordRequired', { defaultValue: '请输入密码' }) });
-      return;
-    }
-    if (mode === 'register' && !email) {
-      setAuthFeedback({ type: 'error', text: t('settings.user.feedback.emailRequired', { defaultValue: '请输入邮箱' }) });
-      return;
-    }
-    setAuthSubmitting(true);
-    setAuthFeedback(null);
-    const result = mode === 'login'
-      ? await loginUser(username, password)
-      : await registerUser(username, email, password);
-    setAuthSubmitting(false);
-    if (!result.ok || !result.data) {
-      setAuthFeedback({ type: 'error', text: result.message || t('settings.user.feedback.operationFailed', { defaultValue: '操作失败' }) });
-      return;
-    }
-    writeLocalToken(result.data.token);
-    setToken(result.data.token);
-    setAuthFeedback({
-      type: 'success',
-      text: mode === 'login'
-        ? t('settings.user.feedback.loginSuccess', { defaultValue: '登录成功' })
-        : t('settings.user.feedback.registerSuccess', { defaultValue: '注册成功，已自动登录' }),
-    });
-    resetAuthForm();
-  };
 
   const handleAvatarSelect = async (event: ChangeEvent<HTMLInputElement>): Promise<void> => {
     const file = event.target.files?.[0];
@@ -299,73 +243,31 @@ export function UserSettingsSection(): ReactElement {
     );
   };
 
-  const renderAuth = (): ReactElement => {
+  const renderAuthEntry = (): ReactElement => {
     return (
       <div className="settings-user-auth">
-        <div className="settings-user-auth-tabs">
-          <button
-            type="button"
-            className={`settings-user-auth-tab${mode === 'login' ? ' active' : ''}`}
-            onClick={() => switchMode('login')}
-          >
-            {t('settings.user.auth.login', { defaultValue: '登录' })}
-          </button>
-          <button
-            type="button"
-            className={`settings-user-auth-tab${mode === 'register' ? ' active' : ''}`}
-            onClick={() => switchMode('register')}
-          >
-            {t('settings.user.auth.register', { defaultValue: '注册' })}
-          </button>
+        <div className="settings-user-auth-entry-title">
+          {t('settings.user.auth.entryTitle', { defaultValue: '登录后可管理头像、资料与账号安全设置' })}
         </div>
-        <div className="settings-user-form">
-          <label className="settings-field">
-            <span className="settings-field-label">{t('settings.user.fields.username', { defaultValue: '用户名' })}</span>
-            <input
-              className="settings-field-input"
-              value={authUsername}
-              onChange={(e) => setAuthUsername(e.target.value)}
-              placeholder={t('settings.user.fields.usernamePlaceholder', { defaultValue: '2-32 位，支持中英文 / 数字 / 下划线' })}
-            />
-          </label>
-          {mode === 'register' && (
-            <label className="settings-field">
-              <span className="settings-field-label">{t('settings.user.fields.email', { defaultValue: '邮箱' })}</span>
-              <input
-                className="settings-field-input"
-                type="email"
-                value={authEmail}
-                onChange={(e) => setAuthEmail(e.target.value)}
-                placeholder="user@example.com"
-              />
-            </label>
-          )}
-          <label className="settings-field">
-            <span className="settings-field-label">{t('settings.user.fields.password', { defaultValue: '密码' })}</span>
-            <input
-              className="settings-field-input"
-              type="password"
-              value={authPassword}
-              onChange={(e) => setAuthPassword(e.target.value)}
-              placeholder={t('settings.user.fields.passwordPlaceholder', { defaultValue: '至少 8 位，含字母与数字' })}
-            />
-          </label>
+        {authFeedback && renderFeedback(authFeedback)}
+        <div className="settings-user-auth-entry-actions">
           <button
             type="button"
             className="settings-user-primary-btn"
-            onClick={() => void handleAuthSubmit()}
-            disabled={authSubmitting}
+            onClick={() => setLogin()}
           >
-            {authSubmitting
-              ? t('settings.user.feedback.submitting', { defaultValue: '处理中…' })
-              : mode === 'login'
-                ? t('settings.user.auth.loginBtn', { defaultValue: '登录' })
-                : t('settings.user.auth.registerBtn', { defaultValue: '注册并登录' })}
+            {t('settings.user.auth.gotoLogin', { defaultValue: '前往登录' })}
           </button>
-          {renderFeedback(authFeedback)}
-          <div className="settings-user-auth-hint">
-            {t('settings.user.auth.hint', { defaultValue: '账号体系由 pyisland-admin 提供，登录状态仅存储在本机。' })}
-          </div>
+          <button
+            type="button"
+            className="settings-user-secondary-btn"
+            onClick={() => setRegister()}
+          >
+            {t('settings.user.auth.gotoRegister', { defaultValue: '前往注册' })}
+          </button>
+        </div>
+        <div className="settings-user-auth-hint">
+          {t('settings.user.auth.hint', { defaultValue: '账号体系由 pyisland-admin 提供，登录状态仅存储在本机。' })}
         </div>
       </div>
     );
@@ -383,7 +285,7 @@ export function UserSettingsSection(): ReactElement {
                 : <span className="settings-user-card-avatar-placeholder">{(profile?.username || '?').slice(0, 1)}</span>}
             </div>
             <div className="settings-user-card-meta">
-              <div className="settings-user-card-name">{profile?.username ?? authUsername}</div>
+              <div className="settings-user-card-name">{profile?.username ?? ''}</div>
               <div className="settings-user-card-sub">{profile?.email ?? ''}</div>
               <div className="settings-user-card-sub">{t('settings.user.card.memberSince', { defaultValue: '加入时间' })}：{profile?.createdAt ? profile.createdAt.replace('T', ' ') : '—'}</div>
             </div>
@@ -565,7 +467,7 @@ export function UserSettingsSection(): ReactElement {
             : t('settings.user.feedback.loadFailed', { defaultValue: '加载资料失败' })}
           {profileError && <div className="settings-user-feedback settings-user-feedback--error">{profileError}</div>}
         </div>
-      ) : renderAuth()}
+      ) : renderAuthEntry()}
     </div>
   );
 }
