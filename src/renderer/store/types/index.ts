@@ -49,10 +49,24 @@ export interface LyricLine {
   is_current: boolean;
 }
 
-/** 同步歌词行（来自 lrcApi） */
+/** 逐字音节(可选), 由 karaoke 歌词源产出 */
+export interface SyncedLyricSyllable {
+  /** 相对于行首的起始偏移(毫秒) */
+  start_offset_ms: number;
+  /** 音节持续时长(毫秒) */
+  duration_ms: number;
+  /** 音节文本 */
+  text: string;
+}
+
+/** 同步歌词行(来自 lrcApi / karaoke) */
 export interface SyncedLyricLine {
   time_ms: number;
   text: string;
+  /** 行持续时长(毫秒), 0 或缺省表示未知 */
+  duration_ms?: number;
+  /** 逐字音节数组, 存在且非空则启用逐字扫光渲染 */
+  syllables?: SyncedLyricSyllable[];
 }
 
 /** 媒体信息数据类型 */
