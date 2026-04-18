@@ -100,10 +100,15 @@ interface AppSettingsSectionProps {
   setAutostartMode: (mode: 'disabled' | 'enabled' | 'high-priority') => void;
   bgImage: string | null;
   bgImageOpacity: number;
+  bgImageBlur: number;
   setBgImageOpacity: (value: number) => void;
+  setBgImageBlur: (value: number) => void;
   applyBgOpacity: (value: number) => void;
+  applyBgBlur: (value: number) => void;
   persistBgOpacity: (value: number) => void;
+  persistBgBlur: (value: number) => void;
   bgOpacitySaveTimerRef: { current: ReturnType<typeof setTimeout> | null };
+  bgBlurSaveTimerRef: { current: ReturnType<typeof setTimeout> | null };
   handleSelectBgImage: () => Promise<void>;
   handleClearBgImage: () => void;
   handleSelectBuiltinBgImage: (src: string, defaultOpacity: number) => void;
@@ -173,10 +178,15 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
 
     bgImage,
     bgImageOpacity,
+    bgImageBlur,
     setBgImageOpacity,
+    setBgImageBlur,
     applyBgOpacity,
+    applyBgBlur,
     persistBgOpacity,
+    persistBgBlur,
     bgOpacitySaveTimerRef,
+    bgBlurSaveTimerRef,
     handleSelectBgImage,
     handleClearBgImage,
     handleSelectBuiltinBgImage,
@@ -541,6 +551,41 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
                         }}
                       />
                       <span className="settings-opacity-slider-value">{bgImageOpacity}%</span>
+                    </div>
+                    <div className="settings-music-hint" style={{ marginTop: 8 }}>
+                      {t('settings.app.theme.imageBlurHint', { defaultValue: '背景图片模糊度（0px - 20px），数值越高越模糊' })}
+                    </div>
+                    <div className="settings-opacity-slider-row">
+                      <input
+                        className="settings-opacity-slider"
+                        type="range"
+                        min={0}
+                        max={20}
+                        step={1}
+                        value={bgImageBlur}
+                        onChange={(e) => {
+                          const v = Number(e.target.value);
+                          const safe = Number.isFinite(v) ? Math.max(0, Math.min(20, Math.round(v))) : 0;
+                          setBgImageBlur(safe);
+                          applyBgBlur(safe);
+                          window.api.settingsPreview('store:island-bg-blur', safe).catch(() => {});
+                          if (bgBlurSaveTimerRef.current) {
+                            clearTimeout(bgBlurSaveTimerRef.current);
+                          }
+                          bgBlurSaveTimerRef.current = setTimeout(() => {
+                            persistBgBlur(safe);
+                            bgBlurSaveTimerRef.current = null;
+                          }, 220);
+                        }}
+                        onBlur={() => {
+                          if (bgBlurSaveTimerRef.current) {
+                            clearTimeout(bgBlurSaveTimerRef.current);
+                            bgBlurSaveTimerRef.current = null;
+                          }
+                          persistBgBlur(bgImageBlur);
+                        }}
+                      />
+                      <span className="settings-opacity-slider-value">{bgImageBlur}px</span>
                     </div>
                   </>
                 )}

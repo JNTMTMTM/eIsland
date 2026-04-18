@@ -662,6 +662,7 @@
         "clearBackground": "Clear background",
         "previewAlt": "Background preview",
         "imageOpacityHint": "Background opacity (0% - 100%)",
+        "imageBlurHint": "Background blur (0px - 20px)",
         "islandOpacityTitle": "Island Opacity",
         "islandOpacityHint": "Lower value = more transparent (10% - 100%)"
       },

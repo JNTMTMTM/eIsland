@@ -361,7 +361,8 @@ function DynamicIsland(): React.JSX.Element {
       Promise.all([
         window.api?.storeRead?.('island-bg-image') as Promise<string | null>,
         window.api?.storeRead?.('island-bg-opacity') as Promise<number | null>,
-      ]).then(async ([bgImage, bgOpacity]) => {
+        window.api?.storeRead?.('island-bg-blur') as Promise<number | null>,
+      ]).then(async ([bgImage, bgOpacity, bgBlur]) => {
         const el = document.getElementById('island-bg-layer');
         if (!el) return;
         if (bgImage && typeof bgImage === 'string') {
@@ -374,6 +375,10 @@ function DynamicIsland(): React.JSX.Element {
         }
         if (typeof bgOpacity === 'number' && Number.isFinite(bgOpacity)) {
           el.style.opacity = String(Math.max(0, Math.min(100, bgOpacity)) / 100);
+        }
+        if (typeof bgBlur === 'number' && Number.isFinite(bgBlur)) {
+          const safeBlur = Math.max(0, Math.min(20, Math.round(bgBlur)));
+          el.style.filter = safeBlur > 0 ? `blur(${safeBlur}px)` : 'none';
         }
       }).catch(() => {});
 
@@ -436,6 +441,13 @@ function DynamicIsland(): React.JSX.Element {
           if (!el) return;
           const v = typeof value === 'number' && Number.isFinite(value) ? value : 100;
           el.style.opacity = String(Math.max(0, Math.min(100, v)) / 100);
+        }
+        if (channel === 'store:island-bg-blur') {
+          const el = document.getElementById('island-bg-layer');
+          if (!el) return;
+          const v = typeof value === 'number' && Number.isFinite(value) ? value : 0;
+          const safeBlur = Math.max(0, Math.min(20, Math.round(v)));
+          el.style.filter = safeBlur > 0 ? `blur(${safeBlur}px)` : 'none';
         }
         if (channel === 'island:position') {
           const offset = value as { x: number; y: number };

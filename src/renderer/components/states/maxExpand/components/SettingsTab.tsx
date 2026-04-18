@@ -273,7 +273,9 @@ export function SettingsTab(): ReactElement {
   const [islandOpacity, setIslandOpacity] = useState<number>(100);
   const [bgImage, setBgImage] = useState<string | null>(null);
   const [bgImageOpacity, setBgImageOpacity] = useState<number>(30);
+  const [bgImageBlur, setBgImageBlur] = useState<number>(0);
   const bgOpacitySaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const bgBlurSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [islandPositionOffset, setIslandPositionOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [islandPositionInput, setIslandPositionInput] = useState<{ x: string; y: string }>({ x: '0', y: '0' });
   const [aboutVersion, setAboutVersion] = useState<string>('');
@@ -299,9 +301,11 @@ export function SettingsTab(): ReactElement {
       if (dataUrl) {
         el.style.backgroundImage = `url(${dataUrl})`;
         el.style.opacity = String(bgImageOpacity / 100);
+        el.style.filter = `blur(${bgImageBlur}px)`;
       } else {
         el.style.backgroundImage = '';
         el.style.opacity = '0';
+        el.style.filter = 'none';
       }
     }
     window.dispatchEvent(new CustomEvent(LOCAL_ISLAND_BG_SYNC_EVENT, {
@@ -317,12 +321,26 @@ export function SettingsTab(): ReactElement {
     }));
   };
 
+  const applyBgBlur = (value: number): void => {
+    const el = document.getElementById('island-bg-layer');
+    if (el) {
+      el.style.filter = value > 0 ? `blur(${value}px)` : 'none';
+    }
+    window.dispatchEvent(new CustomEvent(LOCAL_ISLAND_BG_SYNC_EVENT, {
+      detail: { blur: value },
+    }));
+  };
+
   const persistBgImage = (path: string | null): void => {
     window.api.storeWrite('island-bg-image', path).catch(() => {});
   };
 
   const persistBgOpacity = (value: number): void => {
     window.api.storeWrite('island-bg-opacity', value).catch(() => {});
+  };
+
+  const persistBgBlur = (value: number): void => {
+    window.api.storeWrite('island-bg-blur', value).catch(() => {});
   };
 
   const handleSelectBgImage = async (): Promise<void> => {
@@ -500,9 +518,11 @@ export function SettingsTab(): ReactElement {
     Promise.all([
       window.api.storeRead('island-bg-image') as Promise<string | null>,
       window.api.storeRead('island-bg-opacity') as Promise<number | null>,
-    ]).then(async ([img, opacity]) => {
+      window.api.storeRead('island-bg-blur') as Promise<number | null>,
+    ]).then(async ([img, opacity, blur]) => {
       if (cancelled) return;
       if (typeof opacity === 'number' && Number.isFinite(opacity)) setBgImageOpacity(Math.max(0, Math.min(100, Math.round(opacity))));
+      if (typeof blur === 'number' && Number.isFinite(blur)) setBgImageBlur(Math.max(0, Math.min(20, Math.round(blur))));
       if (img && typeof img === 'string') {
         if (isDirectBgImageUrl(img)) {
           // Legacy data URL or Vite asset URL (built-in wallpaper)
@@ -526,6 +546,10 @@ export function SettingsTab(): ReactElement {
       if (bgOpacitySaveTimerRef.current) {
         clearTimeout(bgOpacitySaveTimerRef.current);
         bgOpacitySaveTimerRef.current = null;
+      }
+      if (bgBlurSaveTimerRef.current) {
+        clearTimeout(bgBlurSaveTimerRef.current);
+        bgBlurSaveTimerRef.current = null;
       }
     };
   }, []);
@@ -551,6 +575,12 @@ export function SettingsTab(): ReactElement {
           ? Math.max(0, Math.min(100, Math.round(value)))
           : 30;
         setBgImageOpacity(safe);
+      }
+      if (channel === 'store:island-bg-blur') {
+        const safe = typeof value === 'number' && Number.isFinite(value)
+          ? Math.max(0, Math.min(20, Math.round(value)))
+          : 0;
+        setBgImageBlur(safe);
       }
       if (channel === 'store:island-bg-image') {
         const image = typeof value === 'string' ? value : null;
@@ -1620,10 +1650,15 @@ export function SettingsTab(): ReactElement {
               setAutostartMode={setAutostartMode}
               bgImage={bgImage}
               bgImageOpacity={bgImageOpacity}
+              bgImageBlur={bgImageBlur}
               setBgImageOpacity={setBgImageOpacity}
+              setBgImageBlur={setBgImageBlur}
               applyBgOpacity={applyBgOpacity}
+              applyBgBlur={applyBgBlur}
               persistBgOpacity={persistBgOpacity}
+              persistBgBlur={persistBgBlur}
               bgOpacitySaveTimerRef={bgOpacitySaveTimerRef}
+              bgBlurSaveTimerRef={bgBlurSaveTimerRef}
               handleSelectBgImage={handleSelectBgImage}
               handleClearBgImage={handleClearBgImage}
               handleSelectBuiltinBgImage={handleSelectBuiltinBgImage}

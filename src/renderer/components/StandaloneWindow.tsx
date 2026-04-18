@@ -41,6 +41,7 @@ const LEGACY_ACTIVE_TAB_STORE_KEY = 'countdown-window-active-tab';
 const AUTH_INTENT_STORE_KEY = 'standalone-window-auth-intent';
 const ISLAND_BG_IMAGE_STORE_KEY = 'island-bg-image';
 const ISLAND_BG_OPACITY_STORE_KEY = 'island-bg-opacity';
+const ISLAND_BG_BLUR_STORE_KEY = 'island-bg-blur';
 const LOCAL_ISLAND_BG_SYNC_EVENT = 'island-bg-local-sync';
 
 function applyAuthIntent(intent: unknown): void {
@@ -85,6 +86,7 @@ export function StandaloneWindow(): ReactElement {
   const [activeTab, setActiveTab] = useState<WindowTab>('todo');
   const [bgImageUrl, setBgImageUrl] = useState<string | null>(null);
   const [bgImageOpacity, setBgImageOpacity] = useState<number>(30);
+  const [bgImageBlur, setBgImageBlur] = useState<number>(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -109,6 +111,13 @@ export function StandaloneWindow(): ReactElement {
         ? Math.max(0, Math.min(100, Math.round(opacityValue)))
         : 30;
       setBgImageOpacity(safe);
+    };
+
+    const applyBgBlur = (blurValue: unknown): void => {
+      const safe = typeof blurValue === 'number' && Number.isFinite(blurValue)
+        ? Math.max(0, Math.min(20, Math.round(blurValue)))
+        : 0;
+      setBgImageBlur(safe);
     };
 
     window.api.storeRead(ACTIVE_TAB_STORE_KEY).then((tab) => {
@@ -144,6 +153,11 @@ export function StandaloneWindow(): ReactElement {
       applyBgOpacity(opacity);
     }).catch(() => {});
 
+    window.api.storeRead(ISLAND_BG_BLUR_STORE_KEY).then((blur) => {
+      if (cancelled) return;
+      applyBgBlur(blur);
+    }).catch(() => {});
+
     const unsub = window.api.onSettingsChanged((channel: string, value: unknown) => {
       if (cancelled) return;
       if (channel === `store:${ACTIVE_TAB_STORE_KEY}`) {
@@ -164,10 +178,13 @@ export function StandaloneWindow(): ReactElement {
       if (channel === `store:${ISLAND_BG_OPACITY_STORE_KEY}`) {
         applyBgOpacity(value);
       }
+      if (channel === `store:${ISLAND_BG_BLUR_STORE_KEY}`) {
+        applyBgBlur(value);
+      }
     });
 
     const localBgSyncHandler = (event: Event): void => {
-      const customEvent = event as CustomEvent<{ image?: string | null; opacity?: number }>;
+      const customEvent = event as CustomEvent<{ image?: string | null; opacity?: number; blur?: number }>;
       const detail = customEvent.detail;
       if (!detail || typeof detail !== 'object') return;
       if ('image' in detail) {
@@ -175,6 +192,9 @@ export function StandaloneWindow(): ReactElement {
       }
       if ('opacity' in detail) {
         applyBgOpacity(detail.opacity);
+      }
+      if ('blur' in detail) {
+        applyBgBlur(detail.blur);
       }
     };
     window.addEventListener(LOCAL_ISLAND_BG_SYNC_EVENT, localBgSyncHandler as EventListener);
@@ -198,6 +218,7 @@ export function StandaloneWindow(): ReactElement {
         style={{
           backgroundImage: bgImageUrl ? `url(${bgImageUrl})` : 'none',
           opacity: bgImageUrl ? bgImageOpacity / 100 : 0,
+          filter: bgImageUrl && bgImageBlur > 0 ? `blur(${bgImageBlur}px)` : 'none',
         }}
       />
       {/* 顶部栏：浏览器风格 Tab + 窗口控制 */}

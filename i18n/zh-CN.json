@@ -662,6 +662,7 @@
         "clearBackground": "清除背景",
         "previewAlt": "背景预览",
         "imageOpacityHint": "背景图片透明度（0% - 100%），数值越高图片越明显",
+        "imageBlurHint": "背景图片模糊度（0px - 20px），数值越高越模糊",
         "islandOpacityTitle": "灵动岛透明度",
         "islandOpacityHint": "数值越低越透明（10% - 100%），调整后立即生效"
       },
