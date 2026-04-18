@@ -1810,7 +1810,7 @@ export function SettingsTab(): ReactElement {
               <div className="max-expand-settings-title settings-app-title-line">
                 <span>{t('settings.labels.pluginMarket', { defaultValue: '插件市场' })}</span>
                 {hasLoginSession && <span className="settings-app-title-sub">- {currentPluginMarketPageLabel}</span>}
-                {hasLoginSession && pluginMarketPage === 'wallpaper' && (
+                {hasLoginSession && (pluginMarketPage === 'wallpaper' || pluginMarketPage === 'edit') && (
                   <button
                     className="settings-app-title-refresh-btn"
                     type="button"
@@ -1839,7 +1839,10 @@ export function SettingsTab(): ReactElement {
                       <WallpaperContributionSection onGoWallpaper={() => setPluginMarketPage('wallpaper')} />
                     )}
                     {pluginMarketPage === 'edit' && (
-                      <WallpaperEditSection onGoWallpaper={() => setPluginMarketPage('wallpaper')} />
+                      <WallpaperEditSection
+                        key={wallpaperMarketRefreshKey}
+                        onGoWallpaper={() => setPluginMarketPage('wallpaper')}
+                      />
                     )}
                   </div>
                   <div className="settings-app-page-dots">

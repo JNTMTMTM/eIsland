@@ -15,12 +15,16 @@ interface WallpaperEditSectionProps {
   onGoWallpaper: () => void;
 }
 
+const MARKET_PAGE_SIZE = 6;
+
 export function WallpaperEditSection({ onGoWallpaper }: WallpaperEditSectionProps) {
   const { t } = useTranslation();
   const [list, setList] = useState<WallpaperMarketItem[]>([]);
   const [selected, setSelected] = useState<WallpaperMarketItem | null>(null);
   const [loading, setLoading] = useState(false);
   const [keyword, setKeyword] = useState('');
+  const [page, setPage] = useState(1);
+  const [hasNextPage, setHasNextPage] = useState(false);
   const [searchExpanded, setSearchExpanded] = useState(false);
   const [message, setMessage] = useState('');
   const [editingMetadata, setEditingMetadata] = useState(false);
@@ -35,22 +39,25 @@ export function WallpaperEditSection({ onGoWallpaper }: WallpaperEditSectionProp
     selected?.thumb1280Url || selected?.thumb720Url || selected?.thumb320Url || selected?.originalUrl || ''
   ), [selected]);
 
-  const loadList = async (): Promise<void> => {
+  const loadList = async (targetPage: number = page): Promise<void> => {
     const token = readLocalToken();
     if (!token) {
       setList([]);
       setSelected(null);
+      setHasNextPage(false);
       return;
     }
     setLoading(true);
     try {
       const result = await listMyUserWallpapers(token, {
         keyword: keyword.trim() || undefined,
-        page: 1,
-        pageSize: 100,
+        page: targetPage,
+        pageSize: MARKET_PAGE_SIZE,
       });
       if (result.ok && Array.isArray(result.data)) {
+        setPage(targetPage);
         setList(result.data);
+        setHasNextPage(result.data.length >= MARKET_PAGE_SIZE);
         if (result.data.length === 0) {
           setSelected(null);
         } else if (!selected || !result.data.find((w) => w.id === selected.id)) {
@@ -61,6 +68,7 @@ export function WallpaperEditSection({ onGoWallpaper }: WallpaperEditSectionProp
         }
         return;
       }
+      setHasNextPage(false);
       setMessage(result.message || t('settings.pluginMarket.wallpaper.feedback.loadFailed', { defaultValue: '加载失败' }));
     } finally {
       setLoading(false);
@@ -82,7 +90,7 @@ export function WallpaperEditSection({ onGoWallpaper }: WallpaperEditSectionProp
   };
 
   useEffect(() => {
-    loadList().catch(() => {});
+    loadList(1).catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -91,7 +99,17 @@ export function WallpaperEditSection({ onGoWallpaper }: WallpaperEditSectionProp
   }, [selected?.id]);
 
   const handleSearch = (): void => {
-    loadList().catch(() => {});
+    loadList(1).catch(() => {});
+  };
+
+  const handlePrevPage = (): void => {
+    if (loading || page <= 1) return;
+    loadList(page - 1).catch(() => {});
+  };
+
+  const handleNextPage = (): void => {
+    if (loading || !hasNextPage) return;
+    loadList(page + 1).catch(() => {});
   };
 
   const handleDelete = async (): Promise<void> => {
@@ -108,7 +126,7 @@ export function WallpaperEditSection({ onGoWallpaper }: WallpaperEditSectionProp
       setSelected(null);
       setDeleteConfirming(false);
       setMessage(t('settings.pluginMarket.wallpaper.feedback.deleteSuccess', { defaultValue: '删除成功' }));
-      await loadList();
+      await loadList(1);
     } finally {
       setDeleting(false);
     }
@@ -134,7 +152,7 @@ export function WallpaperEditSection({ onGoWallpaper }: WallpaperEditSectionProp
       setEditingMetadata(false);
       setMessage(t('settings.pluginMarket.wallpaper.feedback.updateSuccess', { defaultValue: '已保存，等待审核' }));
       await loadDetail(selected.id);
-      await loadList();
+      await loadList(page);
     } finally {
       setSavingMetadata(false);
     }
@@ -145,32 +163,55 @@ export function WallpaperEditSection({ onGoWallpaper }: WallpaperEditSectionProp
       {message && <div className="settings-plugin-market-message">{message}</div>}
 
       <div className="settings-plugin-market-layout">
-        <div className="settings-plugin-market-list">
-          {loading ? (
-            <div className="settings-plugin-market-empty">{t('settings.pluginMarket.wallpaper.feedback.loading', { defaultValue: '加载中…' })}</div>
-          ) : list.length === 0 ? (
-            <div className="settings-plugin-market-empty">{t('settings.pluginMarket.edit.feedback.emptyMine', { defaultValue: '你还没有上传过壁纸' })}</div>
-          ) : (
-            list.map((item) => {
-              const preview = item.thumb320Url || item.thumb720Url || item.thumb1280Url || item.originalUrl || '';
-              return (
-                <button
-                  key={item.id}
-                  type="button"
-                  className={`settings-plugin-market-card ${selected?.id === item.id ? 'active' : ''}`}
-                  onClick={() => { loadDetail(item.id).catch(() => {}); }}
-                >
-                  {preview ? <img src={preview} alt={item.title} className="settings-plugin-market-card-img" /> : null}
-                  <div className="settings-plugin-market-card-body">
-                    <div className="settings-plugin-market-card-title">{item.title}</div>
-                    <div className="settings-plugin-market-card-meta">
-                      {t(`settings.pluginMarket.edit.status.${item.status}`, { defaultValue: item.status })}
+        <div className="settings-plugin-market-list-panel">
+          <div className="settings-plugin-market-list">
+            {loading ? (
+              <div className="settings-plugin-market-empty">{t('settings.pluginMarket.wallpaper.feedback.loading', { defaultValue: '加载中…' })}</div>
+            ) : list.length === 0 ? (
+              <div className="settings-plugin-market-empty">{t('settings.pluginMarket.edit.feedback.emptyMine', { defaultValue: '你还没有上传过壁纸' })}</div>
+            ) : (
+              list.map((item) => {
+                const preview = item.thumb320Url || item.thumb720Url || item.thumb1280Url || item.originalUrl || '';
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    className={`settings-plugin-market-card ${selected?.id === item.id ? 'active' : ''}`}
+                    onClick={() => { loadDetail(item.id).catch(() => {}); }}
+                  >
+                    {preview ? <img src={preview} alt={item.title} className="settings-plugin-market-card-img" /> : null}
+                    <div className="settings-plugin-market-card-body">
+                      <div className="settings-plugin-market-card-title">{item.title}</div>
+                      <div className="settings-plugin-market-card-meta">
+                        {t(`settings.pluginMarket.edit.status.${item.status}`, { defaultValue: item.status })}
+                      </div>
                     </div>
-                  </div>
-                </button>
-              );
-            })
-          )}
+                  </button>
+                );
+              })
+            )}
+          </div>
+          <div className="settings-plugin-market-pagination">
+            <button
+              className="settings-hotkey-btn"
+              type="button"
+              onClick={handlePrevPage}
+              disabled={loading || page <= 1}
+            >
+              {t('settings.pluginMarket.wallpaper.actions.prevPage', { defaultValue: '上一页' })}
+            </button>
+            <span className="settings-plugin-market-pagination-text">
+              {t('settings.pluginMarket.wallpaper.pagination.page', { defaultValue: '第 {{page}} 页', page })}
+            </span>
+            <button
+              className="settings-hotkey-btn"
+              type="button"
+              onClick={handleNextPage}
+              disabled={loading || !hasNextPage}
+            >
+              {t('settings.pluginMarket.wallpaper.actions.nextPage', { defaultValue: '下一页' })}
+            </button>
+          </div>
         </div>
 
         <div className="settings-plugin-market-detail">
