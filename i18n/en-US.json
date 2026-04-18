@@ -929,6 +929,7 @@
           "descriptionPlaceholder": "Description",
           "chooseFile": "Choose image file",
           "noFile": "No file selected",
+          "progress": "Upload progress",
           "copyright": "I confirm I own the copyright or have authorization",
           "previewGenerating": "Generating previews..."
         },

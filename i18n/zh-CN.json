@@ -929,6 +929,7 @@
           "descriptionPlaceholder": "描述",
           "chooseFile": "选择图片文件",
           "noFile": "未选择文件",
+          "progress": "上传进度",
           "copyright": "我确认拥有该图片版权或已获授权",
           "previewGenerating": "正在生成预览…"
         },
