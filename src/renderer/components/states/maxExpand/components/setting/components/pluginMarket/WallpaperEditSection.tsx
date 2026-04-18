@@ -28,6 +28,7 @@ export function WallpaperEditSection({ onGoWallpaper }: WallpaperEditSectionProp
   const [editTags, setEditTags] = useState('');
   const [deleting, setDeleting] = useState(false);
   const [savingMetadata, setSavingMetadata] = useState(false);
+  const [deleteConfirming, setDeleteConfirming] = useState(false);
 
   const selectedPreviewUrl = useMemo(() => (
     selected?.thumb1280Url || selected?.thumb720Url || selected?.thumb320Url || selected?.originalUrl || ''
@@ -84,6 +85,10 @@ export function WallpaperEditSection({ onGoWallpaper }: WallpaperEditSectionProp
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    setDeleteConfirming(false);
+  }, [selected?.id]);
+
   const handleSearch = (): void => {
     loadList().catch(() => {});
   };
@@ -91,8 +96,6 @@ export function WallpaperEditSection({ onGoWallpaper }: WallpaperEditSectionProp
   const handleDelete = async (): Promise<void> => {
     const token = readLocalToken();
     if (!token || !selected || deleting) return;
-    const confirmText = t('settings.pluginMarket.wallpaper.actions.confirmDelete', { defaultValue: '确认删除该壁纸？' });
-    if (!window.confirm(confirmText)) return;
     setDeleting(true);
     setMessage(t('settings.pluginMarket.wallpaper.feedback.deleting', { defaultValue: '删除中…' }));
     try {
@@ -102,6 +105,7 @@ export function WallpaperEditSection({ onGoWallpaper }: WallpaperEditSectionProp
         return;
       }
       setSelected(null);
+      setDeleteConfirming(false);
       setMessage(t('settings.pluginMarket.wallpaper.feedback.deleteSuccess', { defaultValue: '删除成功' }));
       await loadList();
     } finally {
@@ -232,16 +236,39 @@ export function WallpaperEditSection({ onGoWallpaper }: WallpaperEditSectionProp
                       ? t('settings.pluginMarket.wallpaper.actions.cancelEdit', { defaultValue: '取消编辑' })
                       : t('settings.pluginMarket.wallpaper.actions.editMetadata', { defaultValue: '编辑元数据' })}
                   </button>
-                  <button
-                    className="settings-hotkey-btn"
-                    type="button"
-                    onClick={() => { handleDelete().catch(() => {}); }}
-                    disabled={deleting}
-                  >
-                    {deleting
-                      ? t('settings.pluginMarket.wallpaper.actions.deleting', { defaultValue: '删除中…' })
-                      : t('settings.pluginMarket.wallpaper.actions.delete', { defaultValue: '删除壁纸' })}
-                  </button>
+                  {!deleteConfirming ? (
+                    <button
+                      className="settings-hotkey-btn"
+                      type="button"
+                      onClick={() => setDeleteConfirming(true)}
+                      disabled={deleting}
+                    >
+                      {deleting
+                        ? t('settings.pluginMarket.wallpaper.actions.deleting', { defaultValue: '删除中…' })
+                        : t('settings.pluginMarket.wallpaper.actions.delete', { defaultValue: '删除壁纸' })}
+                    </button>
+                  ) : (
+                    <div className="settings-plugin-market-delete-confirm">
+                      <button
+                        className="settings-hotkey-btn settings-plugin-market-btn-danger"
+                        type="button"
+                        onClick={() => { handleDelete().catch(() => {}); }}
+                        disabled={deleting}
+                      >
+                        {deleting
+                          ? t('settings.pluginMarket.wallpaper.actions.deleting', { defaultValue: '删除中…' })
+                          : t('settings.pluginMarket.wallpaper.actions.confirmDeleteBtn', { defaultValue: '确认删除' })}
+                      </button>
+                      <button
+                        className="settings-hotkey-btn"
+                        type="button"
+                        onClick={() => setDeleteConfirming(false)}
+                        disabled={deleting}
+                      >
+                        {t('settings.pluginMarket.wallpaper.actions.cancelDelete', { defaultValue: '取消' })}
+                      </button>
+                    </div>
+                  )}
 
                   {editingMetadata && (
                     <div className="settings-plugin-market-edit-box">

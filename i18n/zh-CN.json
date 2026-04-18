@@ -959,7 +959,9 @@
           "savingMetadata": "保存中…",
           "delete": "删除壁纸",
           "deleting": "删除中…",
-          "confirmDelete": "确认删除该壁纸？"
+          "confirmDelete": "确认删除该壁纸？",
+          "confirmDeleteBtn": "确认删除",
+          "cancelDelete": "取消"
         },
         "feedback": {
           "loading": "加载中…",

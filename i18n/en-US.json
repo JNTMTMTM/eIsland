@@ -959,7 +959,9 @@
           "savingMetadata": "Saving...",
           "delete": "Delete Wallpaper",
           "deleting": "Deleting...",
-          "confirmDelete": "Delete this wallpaper?"
+          "confirmDelete": "Delete this wallpaper?",
+          "confirmDeleteBtn": "Confirm Delete",
+          "cancelDelete": "Cancel"
         },
         "feedback": {
           "loading": "Loading...",

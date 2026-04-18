@@ -249,6 +249,28 @@
   gap: 8px;
 }
 
+.settings-plugin-market-delete-confirm {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+}
+
+.settings-plugin-market-btn-danger {
+  background: rgba(255, 69, 58, 0.16);
+  border-color: rgba(255, 69, 58, 0.5);
+  color: #ff9c95;
+}
+
+.settings-plugin-market-btn-danger:hover:not(:disabled) {
+  background: rgba(255, 69, 58, 0.28);
+  border-color: rgba(255, 69, 58, 0.8);
+  color: #ffcfcb;
+}
+
+.settings-plugin-market-btn-danger:disabled {
+  opacity: 0.6;
+}
+
 .settings-plugin-market-rating-row,
 .settings-plugin-market-report-row {
   display: grid;
