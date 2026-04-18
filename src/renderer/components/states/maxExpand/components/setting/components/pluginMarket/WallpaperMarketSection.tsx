@@ -173,40 +173,6 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
 
   return (
     <div className="settings-plugin-market-wallpaper">
-      <div className="settings-plugin-market-top-actions">
-        <button className="settings-hotkey-btn" type="button" onClick={() => setSearchExpanded((prev) => !prev)}>
-          {searchExpanded
-            ? t('settings.pluginMarket.wallpaper.actions.collapseSearch', { defaultValue: '收起搜索' })
-            : t('settings.pluginMarket.wallpaper.actions.expandSearch', { defaultValue: '展开搜索' })}
-        </button>
-        <button className="settings-hotkey-btn" type="button" onClick={onGoContribution}>
-          {t('settings.pluginMarket.wallpaper.actions.goContribution', { defaultValue: '前往贡献' })}
-        </button>
-      </div>
-
-      {searchExpanded && (
-        <div className="settings-plugin-market-toolbar">
-          <input
-            className="settings-field-input"
-            value={keyword}
-            onChange={(e) => setKeyword(e.target.value)}
-            placeholder={t('settings.pluginMarket.wallpaper.searchPlaceholder', { defaultValue: '搜索标题/作者/描述/标签' })}
-          />
-          <select
-            className="settings-field-input"
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as 'newest' | 'rating' | 'apply')}
-          >
-            <option value="newest">{t('settings.pluginMarket.wallpaper.sort.newest', { defaultValue: '最新' })}</option>
-            <option value="rating">{t('settings.pluginMarket.wallpaper.sort.rating', { defaultValue: '评分最高' })}</option>
-            <option value="apply">{t('settings.pluginMarket.wallpaper.sort.apply', { defaultValue: '应用最多' })}</option>
-          </select>
-          <button className="settings-hotkey-btn" type="button" onClick={handleSearch}>
-            {t('settings.pluginMarket.wallpaper.actions.search', { defaultValue: '搜索' })}
-          </button>
-        </div>
-      )}
-
       {message && <div className="settings-plugin-market-message">{message}</div>}
 
       <div className="settings-plugin-market-layout">
@@ -240,95 +206,134 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
         </div>
 
         <div className="settings-plugin-market-detail">
+          <div className="settings-plugin-market-top-actions">
+            <button className="settings-hotkey-btn" type="button" onClick={() => setSearchExpanded((prev) => !prev)}>
+              {searchExpanded
+                ? t('settings.pluginMarket.wallpaper.actions.collapseSearch', { defaultValue: '收起搜索' })
+                : t('settings.pluginMarket.wallpaper.actions.expandSearch', { defaultValue: '展开搜索' })}
+            </button>
+            <button className="settings-hotkey-btn" type="button" onClick={onGoContribution}>
+              {t('settings.pluginMarket.wallpaper.actions.goContribution', { defaultValue: '前往贡献' })}
+            </button>
+          </div>
+
+          {searchExpanded && (
+            <div className="settings-plugin-market-toolbar">
+              <input
+                className="settings-field-input"
+                value={keyword}
+                onChange={(e) => setKeyword(e.target.value)}
+                placeholder={t('settings.pluginMarket.wallpaper.searchPlaceholder', { defaultValue: '搜索标题/作者/描述/标签' })}
+              />
+              <select
+                className="settings-field-input"
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as 'newest' | 'rating' | 'apply')}
+              >
+                <option value="newest">{t('settings.pluginMarket.wallpaper.sort.newest', { defaultValue: '最新' })}</option>
+                <option value="rating">{t('settings.pluginMarket.wallpaper.sort.rating', { defaultValue: '评分最高' })}</option>
+                <option value="apply">{t('settings.pluginMarket.wallpaper.sort.apply', { defaultValue: '应用最多' })}</option>
+              </select>
+              <button className="settings-hotkey-btn" type="button" onClick={handleSearch}>
+                {t('settings.pluginMarket.wallpaper.actions.search', { defaultValue: '搜索' })}
+              </button>
+            </div>
+          )}
+
           {!selected ? (
             <div className="settings-plugin-market-empty">{t('settings.pluginMarket.wallpaper.feedback.selectHint', { defaultValue: '请选择左侧壁纸查看详情' })}</div>
           ) : (
-            <>
-              {selectedPreviewUrl ? <img src={selectedPreviewUrl} alt={selected.title} className="settings-plugin-market-detail-img" /> : null}
-              <div className="settings-plugin-market-detail-title">{selected.title}</div>
-              <div className="settings-plugin-market-detail-meta">@{selected.ownerUsername}</div>
-              <div className="settings-plugin-market-detail-meta">{selected.description || '-'}</div>
-              <div className="settings-plugin-market-detail-meta">{selected.tagsText || '-'}</div>
-              <div className="settings-plugin-market-detail-meta">
-                {t('settings.pluginMarket.wallpaper.meta.rating', { defaultValue: '评分' })}: {Number(selected.ratingAvg ?? 0).toFixed(1)} ({selected.ratingCount ?? 0})
-              </div>
-              <div className="settings-plugin-market-detail-meta">
-                {t('settings.pluginMarket.wallpaper.meta.apply', { defaultValue: '应用次数' })}: {selected.applyCount ?? 0}
+            <div className="settings-plugin-market-detail-content">
+              <div className="settings-plugin-market-detail-preview">
+                {selectedPreviewUrl ? <img src={selectedPreviewUrl} alt={selected.title} className="settings-plugin-market-detail-img" /> : null}
               </div>
 
-              <div className="settings-plugin-market-actions">
-                <button className="settings-hotkey-btn" type="button" onClick={() => { handleApply().catch(() => {}); }}>
-                  {t('settings.pluginMarket.wallpaper.actions.apply', { defaultValue: '应用为背景' })}
-                </button>
-                <div className="settings-plugin-market-rating-row">
-                  <select
-                    className="settings-field-input"
-                    value={ratingScore}
-                    onChange={(e) => setRatingScore(Math.max(1, Math.min(5, Number(e.target.value) || 5)))}
-                  >
-                    {[1, 2, 3, 4, 5].map((score) => (
-                      <option key={score} value={score}>{score}</option>
-                    ))}
-                  </select>
-                  <button className="settings-hotkey-btn" type="button" onClick={() => { handleRate().catch(() => {}); }}>
-                    {t('settings.pluginMarket.wallpaper.actions.rate', { defaultValue: '评分' })}
-                  </button>
+              <div className="settings-plugin-market-detail-meta-panel">
+                <div className="settings-plugin-market-detail-title">{selected.title}</div>
+                <div className="settings-plugin-market-detail-meta">@{selected.ownerUsername}</div>
+                <div className="settings-plugin-market-detail-meta">{selected.description || '-'}</div>
+                <div className="settings-plugin-market-detail-meta">{selected.tagsText || '-'}</div>
+                <div className="settings-plugin-market-detail-meta">
+                  {t('settings.pluginMarket.wallpaper.meta.rating', { defaultValue: '评分' })}: {Number(selected.ratingAvg ?? 0).toFixed(1)} ({selected.ratingCount ?? 0})
                 </div>
-                <div className="settings-plugin-market-report-row">
-                  <select
-                    className="settings-field-input"
-                    value={reportReasonType}
-                    onChange={(e) => setReportReasonType(e.target.value)}
-                  >
-                    <option value="copyright">{t('settings.pluginMarket.wallpaper.report.copyright', { defaultValue: '版权问题' })}</option>
-                    <option value="illegal">{t('settings.pluginMarket.wallpaper.report.illegal', { defaultValue: '违规内容' })}</option>
-                    <option value="other">{t('settings.pluginMarket.wallpaper.report.other', { defaultValue: '其他' })}</option>
-                  </select>
-                  <input
-                    className="settings-field-input"
-                    value={reportReasonDetail}
-                    onChange={(e) => setReportReasonDetail(e.target.value)}
-                    placeholder={t('settings.pluginMarket.wallpaper.report.detailPlaceholder', { defaultValue: '举报补充说明（可选）' })}
-                  />
-                  <button className="settings-hotkey-btn" type="button" onClick={() => { handleReport().catch(() => {}); }}>
-                    {t('settings.pluginMarket.wallpaper.actions.report', { defaultValue: '举报' })}
-                  </button>
+                <div className="settings-plugin-market-detail-meta">
+                  {t('settings.pluginMarket.wallpaper.meta.apply', { defaultValue: '应用次数' })}: {selected.applyCount ?? 0}
                 </div>
+
+                <div className="settings-plugin-market-actions">
+                  <button className="settings-hotkey-btn" type="button" onClick={() => { handleApply().catch(() => {}); }}>
+                    {t('settings.pluginMarket.wallpaper.actions.apply', { defaultValue: '应用为背景' })}
+                  </button>
+                  <div className="settings-plugin-market-rating-row">
+                    <select
+                      className="settings-field-input"
+                      value={ratingScore}
+                      onChange={(e) => setRatingScore(Math.max(1, Math.min(5, Number(e.target.value) || 5)))}
+                    >
+                      {[1, 2, 3, 4, 5].map((score) => (
+                        <option key={score} value={score}>{score}</option>
+                      ))}
+                    </select>
+                    <button className="settings-hotkey-btn" type="button" onClick={() => { handleRate().catch(() => {}); }}>
+                      {t('settings.pluginMarket.wallpaper.actions.rate', { defaultValue: '评分' })}
+                    </button>
+                  </div>
+                  <div className="settings-plugin-market-report-row">
+                    <select
+                      className="settings-field-input"
+                      value={reportReasonType}
+                      onChange={(e) => setReportReasonType(e.target.value)}
+                    >
+                      <option value="copyright">{t('settings.pluginMarket.wallpaper.report.copyright', { defaultValue: '版权问题' })}</option>
+                      <option value="illegal">{t('settings.pluginMarket.wallpaper.report.illegal', { defaultValue: '违规内容' })}</option>
+                      <option value="other">{t('settings.pluginMarket.wallpaper.report.other', { defaultValue: '其他' })}</option>
+                    </select>
+                    <input
+                      className="settings-field-input"
+                      value={reportReasonDetail}
+                      onChange={(e) => setReportReasonDetail(e.target.value)}
+                      placeholder={t('settings.pluginMarket.wallpaper.report.detailPlaceholder', { defaultValue: '举报补充说明（可选）' })}
+                    />
+                    <button className="settings-hotkey-btn" type="button" onClick={() => { handleReport().catch(() => {}); }}>
+                      {t('settings.pluginMarket.wallpaper.actions.report', { defaultValue: '举报' })}
+                    </button>
+                  </div>
+                </div>
+
+                {selected.ownerUsername === currentUsername && (
+                  <div className="settings-plugin-market-owner-tools">
+                    <button
+                      className="settings-hotkey-btn"
+                      type="button"
+                      onClick={() => {
+                        setEditingMetadata((prev) => !prev);
+                        setEditTitle(selected.title || '');
+                        setEditDescription(selected.description || '');
+                        setEditTags(selected.tagsText || '');
+                      }}
+                    >
+                      {editingMetadata
+                        ? t('settings.pluginMarket.wallpaper.actions.cancelEdit', { defaultValue: '取消编辑' })
+                        : t('settings.pluginMarket.wallpaper.actions.editMetadata', { defaultValue: '编辑元数据' })}
+                    </button>
+                    <button className="settings-hotkey-btn" type="button" onClick={() => { handleDelete().catch(() => {}); }}>
+                      {t('settings.pluginMarket.wallpaper.actions.delete', { defaultValue: '删除壁纸' })}
+                    </button>
+
+                    {editingMetadata && (
+                      <div className="settings-plugin-market-edit-box">
+                        <input className="settings-field-input" value={editTitle} onChange={(e) => setEditTitle(e.target.value)} />
+                        <textarea className="settings-field-input" value={editDescription} onChange={(e) => setEditDescription(e.target.value)} />
+                        <input className="settings-field-input" value={editTags} onChange={(e) => setEditTags(e.target.value)} />
+                        <button className="settings-hotkey-btn" type="button" onClick={() => { handleSaveMetadata().catch(() => {}); }}>
+                          {t('settings.pluginMarket.wallpaper.actions.saveMetadata', { defaultValue: '保存元数据' })}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
-
-              {selected.ownerUsername === currentUsername && (
-                <div className="settings-plugin-market-owner-tools">
-                  <button
-                    className="settings-hotkey-btn"
-                    type="button"
-                    onClick={() => {
-                      setEditingMetadata((prev) => !prev);
-                      setEditTitle(selected.title || '');
-                      setEditDescription(selected.description || '');
-                      setEditTags(selected.tagsText || '');
-                    }}
-                  >
-                    {editingMetadata
-                      ? t('settings.pluginMarket.wallpaper.actions.cancelEdit', { defaultValue: '取消编辑' })
-                      : t('settings.pluginMarket.wallpaper.actions.editMetadata', { defaultValue: '编辑元数据' })}
-                  </button>
-                  <button className="settings-hotkey-btn" type="button" onClick={() => { handleDelete().catch(() => {}); }}>
-                    {t('settings.pluginMarket.wallpaper.actions.delete', { defaultValue: '删除壁纸' })}
-                  </button>
-
-                  {editingMetadata && (
-                    <div className="settings-plugin-market-edit-box">
-                      <input className="settings-field-input" value={editTitle} onChange={(e) => setEditTitle(e.target.value)} />
-                      <textarea className="settings-field-input" value={editDescription} onChange={(e) => setEditDescription(e.target.value)} />
-                      <input className="settings-field-input" value={editTags} onChange={(e) => setEditTags(e.target.value)} />
-                      <button className="settings-hotkey-btn" type="button" onClick={() => { handleSaveMetadata().catch(() => {}); }}>
-                        {t('settings.pluginMarket.wallpaper.actions.saveMetadata', { defaultValue: '保存元数据' })}
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
-            </>
+            </div>
           )}
         </div>
       </div>

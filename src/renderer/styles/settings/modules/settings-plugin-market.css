@@ -60,14 +60,14 @@
 
 .settings-plugin-market-layout {
   display: grid;
-  grid-template-columns: 1.1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) 300px;
   gap: 12px;
   min-height: 300px;
 }
 
 .settings-plugin-market-list {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   gap: 8px;
   align-content: start;
   max-height: 520px;
@@ -91,7 +91,7 @@
 
 .settings-plugin-market-card-img {
   width: 100%;
-  height: 92px;
+  height: 84px;
   object-fit: cover;
   display: block;
 }
@@ -124,9 +124,36 @@
   gap: 8px;
 }
 
+.settings-plugin-market-detail .settings-plugin-market-top-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.settings-plugin-market-detail .settings-plugin-market-toolbar {
+  grid-template-columns: 1fr;
+}
+
+.settings-plugin-market-detail-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.settings-plugin-market-detail-preview {
+  min-width: 0;
+}
+
+.settings-plugin-market-detail-meta-panel {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .settings-plugin-market-detail-img {
   width: 100%;
-  height: 160px;
+  height: 140px;
   object-fit: cover;
   border-radius: 8px;
 }
@@ -163,26 +190,41 @@
   font-size: 12px;
 }
 
-@media (max-width: 1080px) {
+@media (max-width: 960px) {
   .settings-plugin-market-layout {
+    grid-template-columns: minmax(0, 1fr) 260px;
+  }
+
+  .settings-plugin-market-card-img {
+    height: 72px;
+  }
+
+  .settings-plugin-market-detail-img {
+    height: 120px;
+  }
+
+  .settings-plugin-market-rating-row,
+  .settings-plugin-market-report-row {
     grid-template-columns: 1fr;
   }
+}
 
-  .settings-plugin-market-list {
-    max-height: 280px;
+@media (max-width: 720px) {
+  .settings-plugin-market-layout {
+    grid-template-columns: minmax(0, 1fr) 220px;
   }
 
+  .settings-plugin-market-detail .settings-plugin-market-top-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
   .settings-plugin-market-upload-grid {
     grid-template-columns: 1fr;
   }
 
   .settings-plugin-market-top-actions {
     flex-direction: column;
-  }
-
-  .settings-plugin-market-rating-row,
-  .settings-plugin-market-report-row,
-  .settings-plugin-market-toolbar {
-    grid-template-columns: 1fr;
   }
 }
