@@ -436,8 +436,9 @@ export function WallpaperContributionSection({ onGoWallpaper }: WallpaperContrib
         <div className="settings-plugin-market-upload-grid">
           <div className="settings-plugin-market-top-actions" style={{ gridColumn: '1 / -1' }}>
             <button
-              className="settings-hotkey-btn"
+              className={`settings-hotkey-btn${uploadType === 'image' ? ' settings-hotkey-btn-active' : ''}`}
               type="button"
+              aria-pressed={uploadType === 'image'}
               onClick={() => {
                 if (uploading || previewBusy) return;
                 setUploadType('image');
@@ -451,8 +452,9 @@ export function WallpaperContributionSection({ onGoWallpaper }: WallpaperContrib
               {t('settings.pluginMarket.wallpaper.upload.typeImage', { defaultValue: '图片' })}
             </button>
             <button
-              className="settings-hotkey-btn"
+              className={`settings-hotkey-btn${uploadType === 'video' ? ' settings-hotkey-btn-active' : ''}`}
               type="button"
+              aria-pressed={uploadType === 'video'}
               onClick={() => {
                 if (uploading || previewBusy) return;
                 setUploadType('video');

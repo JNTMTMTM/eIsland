@@ -697,6 +697,14 @@
   color: rgba(var(--color-text-rgb), 0.8);
 }
 
+.settings-hotkey-btn-active,
+.settings-hotkey-btn-active:hover {
+  background: rgba(var(--color-accent-rgb, var(--color-text-rgb)), 0.18);
+  border-color: rgba(var(--color-accent-rgb, var(--color-text-rgb)), 0.45);
+  color: rgba(var(--color-text-rgb), 0.95);
+  box-shadow: inset 0 0 0 1px rgba(var(--color-accent-rgb, var(--color-text-rgb)), 0.25);
+}
+
 .settings-hotkey-error {
   font-size: 11px;
   color: rgba(255, 100, 100, 0.85);
