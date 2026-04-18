@@ -236,6 +236,75 @@
   gap: 8px;
 }
 
+.settings-plugin-market-rating-row {
+  grid-template-columns: 1fr auto;
+  align-items: center;
+}
+
+.settings-plugin-market-star-picker {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.settings-plugin-market-star-btn {
+  background: transparent;
+  border: none;
+  padding: 2px;
+  cursor: pointer;
+  line-height: 0;
+  border-radius: 4px;
+  transition: transform 0.15s ease;
+}
+
+.settings-plugin-market-star-btn:hover {
+  transform: scale(1.08);
+}
+
+.settings-plugin-market-star-icon {
+  width: 20px;
+  height: 20px;
+  display: block;
+  opacity: 0.28;
+  filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.3));
+  transition: opacity 0.15s ease;
+}
+
+.settings-plugin-market-star-btn.active .settings-plugin-market-star-icon,
+.settings-plugin-market-star-btn:hover .settings-plugin-market-star-icon {
+  opacity: 1;
+}
+
+.settings-plugin-market-star-inline {
+  width: 12px;
+  height: 12px;
+  display: inline-block;
+  vertical-align: -2px;
+  opacity: 0.28;
+}
+
+.settings-plugin-market-star-inline.active {
+  opacity: 1;
+}
+
+.settings-plugin-market-star-display {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.settings-plugin-market-card-rating,
+.settings-plugin-market-detail-rating {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.settings-plugin-market-card-rating-sep {
+  opacity: 0.5;
+}
+
 .settings-plugin-market-empty {
   color: rgba(255, 255, 255, 0.56);
   font-size: 12px;

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   applyUserWallpaper,
@@ -11,6 +11,7 @@ import {
   type WallpaperMarketItem,
 } from '../../../../../../../api/userAccountApi';
 import { readLocalProfile, readLocalToken } from '../../../../../../../utils/userAccount';
+import { SvgIcon } from '../../../../../../../utils/SvgIcon';
 
 interface WallpaperMarketSectionProps {
   onApplyBackground: (imageUrl: string) => void;
@@ -41,6 +42,22 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
   const selectedPreviewUrl = useMemo(() => (
     selected?.thumb1280Url || selected?.thumb720Url || selected?.thumb320Url || selected?.originalUrl || ''
   ), [selected]);
+
+  const renderStars = (avg: number): ReactElement => {
+    const filled = Math.max(0, Math.min(5, Math.round(Number(avg) || 0)));
+    return (
+      <span className="settings-plugin-market-star-display">
+        {[1, 2, 3, 4, 5].map((i) => (
+          <img
+            key={i}
+            src={SvgIcon.STAR}
+            alt=""
+            className={`settings-plugin-market-star-inline ${i <= filled ? 'active' : ''}`}
+          />
+        ))}
+      </span>
+    );
+  };
 
   const loadList = async (): Promise<void> => {
     const token = readLocalToken();
@@ -197,8 +214,11 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
                   <div className="settings-plugin-market-card-body">
                     <div className="settings-plugin-market-card-title">{item.title}</div>
                     <div className="settings-plugin-market-card-meta">@{item.ownerUsername}</div>
-                    <div className="settings-plugin-market-card-meta">
-                      ★ {Number(item.ratingAvg ?? 0).toFixed(1)} · {item.applyCount ?? 0}
+                    <div className="settings-plugin-market-card-meta settings-plugin-market-card-rating">
+                      {renderStars(Number(item.ratingAvg ?? 0))}
+                      <span>{Number(item.ratingAvg ?? 0).toFixed(1)}</span>
+                      <span className="settings-plugin-market-card-rating-sep">·</span>
+                      <span>{item.applyCount ?? 0}</span>
                     </div>
                   </div>
                 </button>
@@ -255,8 +275,11 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
                 <div className="settings-plugin-market-detail-meta">@{selected.ownerUsername}</div>
                 <div className="settings-plugin-market-detail-meta">{selected.description || '-'}</div>
                 <div className="settings-plugin-market-detail-meta">{selected.tagsText || '-'}</div>
-                <div className="settings-plugin-market-detail-meta">
-                  {t('settings.pluginMarket.wallpaper.meta.rating', { defaultValue: '评分' })}: {Number(selected.ratingAvg ?? 0).toFixed(1)} ({selected.ratingCount ?? 0})
+                <div className="settings-plugin-market-detail-meta settings-plugin-market-detail-rating">
+                  <span>{t('settings.pluginMarket.wallpaper.meta.rating', { defaultValue: '评分' })}:</span>
+                  {renderStars(Number(selected.ratingAvg ?? 0))}
+                  <span>{Number(selected.ratingAvg ?? 0).toFixed(1)}</span>
+                  <span>({selected.ratingCount ?? 0})</span>
                 </div>
                 <div className="settings-plugin-market-detail-meta">
                   {t('settings.pluginMarket.wallpaper.meta.apply', { defaultValue: '应用次数' })}: {selected.applyCount ?? 0}
@@ -277,15 +300,25 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
                   </button>
                   {ratingExpanded && (
                     <div className="settings-plugin-market-rating-row">
-                      <select
-                        className="settings-field-input"
-                        value={ratingScore}
-                        onChange={(e) => setRatingScore(Math.max(1, Math.min(5, Number(e.target.value) || 5)))}
+                      <div
+                        className="settings-plugin-market-star-picker"
+                        role="radiogroup"
+                        aria-label={t('settings.pluginMarket.wallpaper.actions.expandRate', { defaultValue: '评分' })}
                       >
                         {[1, 2, 3, 4, 5].map((score) => (
-                          <option key={score} value={score}>{score}</option>
+                          <button
+                            key={score}
+                            type="button"
+                            className={`settings-plugin-market-star-btn ${score <= ratingScore ? 'active' : ''}`}
+                            onClick={() => setRatingScore(score)}
+                            aria-label={`${score}`}
+                            aria-checked={score === ratingScore}
+                            role="radio"
+                          >
+                            <img src={SvgIcon.STAR} alt="" className="settings-plugin-market-star-icon" />
+                          </button>
                         ))}
-                      </select>
+                      </div>
                       <button className="settings-hotkey-btn" type="button" onClick={() => { handleRate().catch(() => {}); }}>
                         {t('settings.pluginMarket.wallpaper.actions.rate', { defaultValue: '提交评分' })}
                       </button>

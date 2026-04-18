@@ -511,6 +511,12 @@
   border-color: rgba(var(--color-text-rgb), 0.3);
 }
 
+.settings-field-input option,
+.settings-field-input optgroup {
+  background-color: #1f1f22;
+  color: #fff;
+}
+
 .settings-field-textarea {
   background: rgba(var(--color-text-rgb), 0.06);
   border: 1px solid rgba(var(--color-text-rgb), 0.1);
