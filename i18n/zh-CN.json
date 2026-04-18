@@ -882,12 +882,33 @@
       "pages": {
         "wallpaper": "壁纸",
         "plugin": "插件",
-        "contribution": "贡献"
+        "contribution": "贡献",
+        "edit": "修改壁纸"
       },
       "contribution": {
         "title": "贡献你的壁纸",
         "actions": {
           "backToWallpaper": "返回壁纸市场"
+        }
+      },
+      "edit": {
+        "searchPlaceholder": "搜索自己的壁纸",
+        "actions": {
+          "backToMarket": "返回壁纸市场"
+        },
+        "feedback": {
+          "emptyMine": "你还没有上传过壁纸",
+          "selectHint": "请选择左侧壁纸查看元数据"
+        },
+        "meta": {
+          "status": "状态"
+        },
+        "status": {
+          "published": "已发布",
+          "pending": "待审核",
+          "rejected": "已拒绝",
+          "delisted": "已下架",
+          "deleted": "已删除"
         }
       },
       "wallpaper": {

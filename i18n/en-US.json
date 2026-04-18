@@ -875,19 +875,40 @@
     "pluginMarket": {
       "auth": {
         "entryTitle": "Sign in to access plugin market content",
-        "gotoLogin": "Go to Sign In",
-        "gotoRegister": "Go to Sign Up",
+        "gotoLogin": "Go to Login",
+        "gotoRegister": "Go to Register",
         "hint": "Sign in to browse wallpapers and plugins."
       },
       "pages": {
-        "wallpaper": "Wallpapers",
-        "plugin": "Plugins",
-        "contribution": "Contribution"
+        "wallpaper": "Wallpaper",
+        "plugin": "Plugin",
+        "contribution": "Contribution",
+        "edit": "Edit Wallpapers"
       },
       "contribution": {
         "title": "Contribute Your Wallpaper",
         "actions": {
-          "backToWallpaper": "Back to Wallpapers"
+          "backToWallpaper": "Back to Wallpaper Market"
+        }
+      },
+      "edit": {
+        "searchPlaceholder": "Search your wallpapers",
+        "actions": {
+          "backToMarket": "Back to Wallpaper Market"
+        },
+        "feedback": {
+          "emptyMine": "You haven't uploaded any wallpapers yet",
+          "selectHint": "Select a wallpaper from the left to view metadata"
+        },
+        "meta": {
+          "status": "Status"
+        },
+        "status": {
+          "published": "Published",
+          "pending": "Pending Review",
+          "rejected": "Rejected",
+          "delisted": "Delisted",
+          "deleted": "Deleted"
         }
       },
       "wallpaper": {

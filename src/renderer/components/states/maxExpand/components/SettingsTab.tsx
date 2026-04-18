@@ -79,6 +79,7 @@ import { AboutSettingsSection } from './setting/components/about/AboutSettingsSe
 import { OverviewPreview } from './setting/components/app/preview/OverviewPreview';
 import { WallpaperMarketSection } from './setting/components/pluginMarket/WallpaperMarketSection';
 import { WallpaperContributionSection } from './setting/components/pluginMarket/WallpaperContributionSection';
+import { WallpaperEditSection } from './setting/components/pluginMarket/WallpaperEditSection';
 
 import { resolveDistrictLocationByKeyword } from '../../../../api/adcodeApi';
 
@@ -149,7 +150,7 @@ interface RunningWindowItem {
   iconDataUrl: string | null;
 }
 
-type PluginMarketPageKey = 'wallpaper' | 'plugin' | 'contribution';
+type PluginMarketPageKey = 'wallpaper' | 'plugin' | 'contribution' | 'edit';
 
 /**
  * 渲染设置面板主视图
@@ -201,7 +202,9 @@ export function SettingsTab(): ReactElement {
       ? '壁纸'
       : pluginMarketPage === 'plugin'
         ? '插件'
-        : '贡献',
+        : pluginMarketPage === 'edit'
+          ? '修改壁纸'
+          : '贡献',
   });
 
   const translatedSettingsTabLabels = useMemo<Record<string, string>>(() => {
@@ -1821,6 +1824,9 @@ export function SettingsTab(): ReactElement {
                     {pluginMarketPage === 'contribution' && (
                       <WallpaperContributionSection onGoWallpaper={() => setPluginMarketPage('wallpaper')} />
                     )}
+                    {pluginMarketPage === 'edit' && (
+                      <WallpaperEditSection onGoWallpaper={() => setPluginMarketPage('wallpaper')} />
+                    )}
                   </div>
                   <div className="settings-app-page-dots">
                     <button
@@ -1843,6 +1849,13 @@ export function SettingsTab(): ReactElement {
                       onClick={() => setPluginMarketPage('contribution')}
                       title={t('settings.pluginMarket.pages.contribution', { defaultValue: '贡献' })}
                       aria-label={t('settings.pluginMarket.pages.contribution', { defaultValue: '贡献' })}
+                    />
+                    <button
+                      className={`settings-app-page-dot ${pluginMarketPage === 'edit' ? 'active' : ''}`}
+                      data-label={t('settings.pluginMarket.pages.edit', { defaultValue: '修改壁纸' })}
+                      onClick={() => setPluginMarketPage('edit')}
+                      title={t('settings.pluginMarket.pages.edit', { defaultValue: '修改壁纸' })}
+                      aria-label={t('settings.pluginMarket.pages.edit', { defaultValue: '修改壁纸' })}
                     />
                   </div>
                 </div>

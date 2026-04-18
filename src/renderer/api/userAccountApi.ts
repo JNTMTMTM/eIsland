@@ -380,6 +380,29 @@ export function listUserWallpapers(
 }
 
 /**
+ * 查询当前用户上传的壁纸列表（包含 pending/rejected 等所有状态）。
+ * @param token 用户 token。
+ * @param params 查询参数。
+ * @returns 壁纸列表。
+ */
+export function listMyUserWallpapers(
+  token: string,
+  params: { keyword?: string; type?: 'image' | 'video'; sort?: 'newest' | 'rating' | 'apply'; page?: number; pageSize?: number } = {},
+): Promise<UserAccountResult<WallpaperMarketItem[]>> {
+  const search = new URLSearchParams();
+  if (params.keyword) search.set('keyword', params.keyword);
+  if (params.type) search.set('type', params.type);
+  if (params.sort) search.set('sort', params.sort);
+  if (params.page) search.set('page', String(params.page));
+  if (params.pageSize) search.set('pageSize', String(params.pageSize));
+  const suffix = search.toString();
+  return request<WallpaperMarketItem[]>(`/v1/user/wallpapers/mine${suffix ? `?${suffix}` : ''}`, {
+    method: 'GET',
+    auth: token,
+  });
+}
+
+/**
  * 查询壁纸详情。
  * @param token 用户 token。
  * @param id 壁纸 ID。

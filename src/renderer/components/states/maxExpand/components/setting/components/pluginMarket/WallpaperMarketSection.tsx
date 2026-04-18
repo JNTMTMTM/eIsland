@@ -2,15 +2,13 @@ import { useEffect, useMemo, useState, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   applyUserWallpaper,
-  deleteUserWallpaper,
   getUserWallpaperDetail,
   listUserWallpapers,
   rateUserWallpaper,
   reportUserWallpaper,
-  updateUserWallpaperMetadata,
   type WallpaperMarketItem,
 } from '../../../../../../../api/userAccountApi';
-import { readLocalProfile, readLocalToken } from '../../../../../../../utils/userAccount';
+import { readLocalToken } from '../../../../../../../utils/userAccount';
 import { SvgIcon } from '../../../../../../../utils/SvgIcon';
 
 interface WallpaperMarketSectionProps {
@@ -32,17 +30,9 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
   const [reportReasonType, setReportReasonType] = useState('copyright');
   const [reportReasonDetail, setReportReasonDetail] = useState('');
   const [reportExpanded, setReportExpanded] = useState(false);
-  const [editingMetadata, setEditingMetadata] = useState(false);
-  const [editTitle, setEditTitle] = useState('');
-  const [editDescription, setEditDescription] = useState('');
-  const [editTags, setEditTags] = useState('');
   const [applying, setApplying] = useState(false);
   const [submittingRate, setSubmittingRate] = useState(false);
   const [submittingReport, setSubmittingReport] = useState(false);
-  const [deleting, setDeleting] = useState(false);
-  const [savingMetadata, setSavingMetadata] = useState(false);
-
-  const currentUsername = readLocalProfile()?.username || '';
 
   const selectedPreviewUrl = useMemo(() => (
     selected?.thumb1280Url || selected?.thumb720Url || selected?.thumb320Url || selected?.originalUrl || ''
@@ -100,9 +90,6 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
     const result = await getUserWallpaperDetail(token, id);
     if (result.ok && result.data) {
       setSelected(result.data);
-      setEditTitle(result.data.title || '');
-      setEditDescription(result.data.description || '');
-      setEditTags(result.data.tagsText || '');
       return;
     }
     setMessage(result.message || t('settings.pluginMarket.wallpaper.feedback.detailFailed', { defaultValue: '加载详情失败' }));
@@ -175,53 +162,6 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
       setMessage(t('settings.pluginMarket.wallpaper.feedback.reportSuccess', { defaultValue: '举报已提交' }));
     } finally {
       setSubmittingReport(false);
-    }
-  };
-
-  const handleDelete = async (): Promise<void> => {
-    const token = readLocalToken();
-    if (!token || !selected || deleting) return;
-    const confirmText = t('settings.pluginMarket.wallpaper.actions.confirmDelete', { defaultValue: '确认删除该壁纸？' });
-    if (!window.confirm(confirmText)) return;
-    setDeleting(true);
-    setMessage(t('settings.pluginMarket.wallpaper.feedback.deleting', { defaultValue: '删除中…' }));
-    try {
-      const result = await deleteUserWallpaper(token, selected.id);
-      if (!result.ok) {
-        setMessage(result.message || t('settings.pluginMarket.wallpaper.feedback.deleteFailed', { defaultValue: '删除失败' }));
-        return;
-      }
-      setSelected(null);
-      setMessage(t('settings.pluginMarket.wallpaper.feedback.deleteSuccess', { defaultValue: '删除成功' }));
-      await loadList();
-    } finally {
-      setDeleting(false);
-    }
-  };
-
-  const handleSaveMetadata = async (): Promise<void> => {
-    const token = readLocalToken();
-    if (!token || !selected || savingMetadata) return;
-    setSavingMetadata(true);
-    setMessage(t('settings.pluginMarket.wallpaper.feedback.saving', { defaultValue: '保存中…' }));
-    try {
-      const result = await updateUserWallpaperMetadata(token, {
-        id: selected.id,
-        title: editTitle,
-        description: editDescription,
-        tags: editTags,
-        type: 'image',
-      });
-      if (!result.ok) {
-        setMessage(result.message || t('settings.pluginMarket.wallpaper.feedback.updateFailed', { defaultValue: '保存失败' }));
-        return;
-      }
-      setEditingMetadata(false);
-      setMessage(t('settings.pluginMarket.wallpaper.feedback.updateSuccess', { defaultValue: '已保存，等待审核' }));
-      await loadDetail(selected.id);
-      await loadList();
-    } finally {
-      setSavingMetadata(false);
     }
   };
 
@@ -423,52 +363,6 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
                   )}
                 </div>
 
-                {selected.ownerUsername === currentUsername && (
-                  <div className="settings-plugin-market-owner-tools">
-                    <button
-                      className="settings-hotkey-btn"
-                      type="button"
-                      onClick={() => {
-                        setEditingMetadata((prev) => !prev);
-                        setEditTitle(selected.title || '');
-                        setEditDescription(selected.description || '');
-                        setEditTags(selected.tagsText || '');
-                      }}
-                    >
-                      {editingMetadata
-                        ? t('settings.pluginMarket.wallpaper.actions.cancelEdit', { defaultValue: '取消编辑' })
-                        : t('settings.pluginMarket.wallpaper.actions.editMetadata', { defaultValue: '编辑元数据' })}
-                    </button>
-                    <button
-                      className="settings-hotkey-btn"
-                      type="button"
-                      onClick={() => { handleDelete().catch(() => {}); }}
-                      disabled={deleting}
-                    >
-                      {deleting
-                        ? t('settings.pluginMarket.wallpaper.actions.deleting', { defaultValue: '删除中…' })
-                        : t('settings.pluginMarket.wallpaper.actions.delete', { defaultValue: '删除壁纸' })}
-                    </button>
-
-                    {editingMetadata && (
-                      <div className="settings-plugin-market-edit-box">
-                        <input className="settings-field-input" value={editTitle} onChange={(e) => setEditTitle(e.target.value)} />
-                        <textarea className="settings-field-input" value={editDescription} onChange={(e) => setEditDescription(e.target.value)} />
-                        <input className="settings-field-input" value={editTags} onChange={(e) => setEditTags(e.target.value)} />
-                        <button
-                          className="settings-hotkey-btn"
-                          type="button"
-                          onClick={() => { handleSaveMetadata().catch(() => {}); }}
-                          disabled={savingMetadata}
-                        >
-                          {savingMetadata
-                            ? t('settings.pluginMarket.wallpaper.actions.savingMetadata', { defaultValue: '保存中…' })
-                            : t('settings.pluginMarket.wallpaper.actions.saveMetadata', { defaultValue: '保存元数据' })}
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                )}
               </div>
             </div>
           )}
