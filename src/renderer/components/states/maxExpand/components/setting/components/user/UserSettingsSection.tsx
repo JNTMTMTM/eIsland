@@ -97,6 +97,17 @@ export function UserSettingsSection(): ReactElement {
   const profilePagesLayoutRef = useRef<HTMLDivElement | null>(null);
   userProfilePageRef.current = userProfilePage;
 
+  const resetToLoggedOut = useCallback((): void => {
+    clearLocalAccount();
+    setToken(null);
+    setProfile(null);
+    setProfileError('');
+    setProfileFeedback(null);
+    setUnregisterConfirmVisible(false);
+    setUnregisterPassword('');
+    setUnregisterPasswordVisible(false);
+  }, []);
+
   const applyProfileToEditor = useCallback((p: UserAccountProfile): void => {
     setEditAvatar(p.avatar ?? null);
     setEditGender(p.gender ?? 'undisclosed');
@@ -115,7 +126,7 @@ export function UserSettingsSection(): ReactElement {
     setLoadingProfile(false);
     if (!result.ok || !result.data) {
       if (result.code === 401 || result.code === 4011) {
-        setProfileError(t('settings.user.feedback.sessionExpired', { defaultValue: '登录已过期，请重新登录' }));
+        resetToLoggedOut();
         return;
       }
       setProfileError(result.message || t('settings.user.feedback.loadFailed', { defaultValue: '加载资料失败' }));
@@ -124,7 +135,7 @@ export function UserSettingsSection(): ReactElement {
     setProfile(result.data);
     writeLocalProfile(result.data);
     applyProfileToEditor(result.data);
-  }, [applyProfileToEditor, t]);
+  }, [applyProfileToEditor, resetToLoggedOut, t]);
 
   useEffect(() => {
     const syncSession = (): void => {
@@ -234,7 +245,7 @@ export function UserSettingsSection(): ReactElement {
     if (!result.ok) {
       setSavingProfile(false);
       if (result.code === 401 || result.code === 4011) {
-        setProfileFeedback({ type: 'error', text: t('settings.user.feedback.sessionExpired', { defaultValue: '登录已过期，请重新登录' }) });
+        resetToLoggedOut();
         return;
       }
       setProfileFeedback({ type: 'error', text: result.message || t('settings.user.feedback.saveFailed', { defaultValue: '保存失败' }) });
@@ -295,7 +306,7 @@ export function UserSettingsSection(): ReactElement {
     setUnregisterSubmitting(false);
     if (!result.ok) {
       if (result.code === 401 || result.code === 4011) {
-        setProfileFeedback({ type: 'error', text: t('settings.user.feedback.sessionExpired', { defaultValue: '登录已过期，请重新登录' }) });
+        resetToLoggedOut();
         return;
       }
       return;
