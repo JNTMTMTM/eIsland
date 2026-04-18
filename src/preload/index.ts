@@ -326,78 +326,7 @@ const api = {
     return ipcRenderer.invoke('wallpaper:clear-cache');
   },
   /**
-   * 探测本地视频元数据（基于系统 ffprobe）
-   * @param sourcePath - 视频文件绝对路径
-   * @returns 视频元数据；若 ffprobe 不可用或失败则返回 null
-   */
-  wallpaperVideoProbe: (sourcePath: string): Promise<{
-    width: number;
-    height: number;
-    durationMs: number;
-    frameRate: number | null;
-    videoCodec: string | null;
-    audioCodec: string | null;
-    container: string | null;
-  } | null> => {
-    return ipcRenderer.invoke('wallpaper:video:probe', sourcePath);
-  },
-  /**
-   * 客户端 remux/转码视频壁纸并生成封面
-   * @param options - 预处理参数；progressChannel 订阅进度事件
-   */
-  wallpaperVideoPrepare: (options: {
-    sourcePath: string;
-    preferRemux?: boolean;
-    progressChannel?: string;
-  }): Promise<{
-    ok: boolean;
-    playbackPath: string | null;
-    coverPath: string | null;
-    width: number;
-    height: number;
-    durationMs: number;
-    frameRate: number | null;
-    videoCodec: string | null;
-    audioCodec: string | null;
-    container: string | null;
-    mode: 'remux' | 'transcode' | 'copy';
-    ffmpegAvailable: boolean;
-    message?: string;
-  }> => {
-    return ipcRenderer.invoke('wallpaper:video:prepare', options);
-  },
-  /**
-   * 订阅视频预处理进度事件
-   * @param channel - 与 wallpaperVideoPrepare 传入的 progressChannel 一致
-   * @param callback - 进度事件回调
-   * @returns 取消订阅函数
-   */
-  onWallpaperVideoProgress: (
-    channel: string,
-    callback: (payload: { stage: string; percent?: number; frame?: number; speed?: number; message?: string; mode?: string }) => void,
-  ): (() => void) => {
-    const handler = (_event: Electron.IpcRendererEvent, payload: { stage: string; percent?: number; frame?: number; speed?: number; message?: string; mode?: string }): void => {
-      callback(payload);
-    };
-    ipcRenderer.on(channel, handler);
-    return () => {
-      ipcRenderer.removeListener(channel, handler);
-    };
-  },
-  /**
-   * 抽取视频首帧封面；失败返回 null
-   */
-  wallpaperVideoCover: (sourcePath: string): Promise<string | null> => {
-    return ipcRenderer.invoke('wallpaper:video:cover', sourcePath);
-  },
-  /**
-   * 清理视频缓存目录
-   */
-  wallpaperVideoClearCache: (): Promise<void> => {
-    return ipcRenderer.invoke('wallpaper:video:clear-cache');
-  },
-  /**
-   * 读取本地文件并以 Blob/Uint8Array 形式返回（供渲染端上传）
+   * 读取本地文件并以 Blob/Uint8Array 形式返回（保留以供其它功能使用）
    * @param filePath - 文件绝对路径
    */
   readLocalFileAsBuffer: (filePath: string): Promise<Uint8Array | null> => {

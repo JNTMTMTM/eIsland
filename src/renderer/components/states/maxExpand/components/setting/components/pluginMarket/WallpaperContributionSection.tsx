@@ -43,9 +43,6 @@ interface VideoMeta {
   frameRate: number | null;
   width: number;
   height: number;
-  videoCodec?: string | null;
-  audioCodec?: string | null;
-  mode?: 'remux' | 'transcode' | 'copy';
 }
 
 interface WallpaperContributionSectionProps {
@@ -102,17 +99,88 @@ async function createThumbnailFromImageElement(img: HTMLImageElement, maxWidth: 
   return new File([blob], `thumb-${maxWidth}.jpg`, { type: 'image/jpeg' });
 }
 
+/**
+ * 基于浏览器 HTMLVideoElement 测量实际帧率
+ *
+ * 使用 requestVideoFrameCallback 在短时间静音试播内采样若干帧，
+ * 以 mediaTime 差作为分母计算 fps。若浏览器不支持则返回 null。
+ */
+async function measureFrameRate(video: HTMLVideoElement): Promise<number | null> {
+  interface VideoFrameCallbackMeta {
+    mediaTime: number;
+    expectedDisplayTime: number;
+    presentationTime: number;
+  }
+  type RequestVideoFrameCallback = (cb: (now: number, meta: VideoFrameCallbackMeta) => void) => number;
+  const rvfc = (video as HTMLVideoElement & { requestVideoFrameCallback?: RequestVideoFrameCallback }).requestVideoFrameCallback;
+  if (typeof rvfc !== 'function') return null;
+
+  return new Promise<number | null>((resolve) => {
+    let settled = false;
+    let firstMedia = 0;
+    let lastMedia = 0;
+    let firstTime = 0;
+    let count = 0;
+    const MAX_WALL_MS = 1500;
+    const TARGET_FRAMES = 20;
+    const finish = (): void => {
+      if (settled) return;
+      settled = true;
+      try { video.pause(); } catch { /* ignore */ }
+      const mediaElapsed = lastMedia - firstMedia;
+      if (count >= 2 && mediaElapsed > 0) {
+        const fps = (count - 1) / mediaElapsed;
+        resolve(Number.isFinite(fps) && fps > 0 ? Number(fps.toFixed(2)) : null);
+      } else {
+        resolve(null);
+      }
+    };
+    const fallbackTimer = window.setTimeout(finish, MAX_WALL_MS + 200);
+    const tick = (now: number, meta: VideoFrameCallbackMeta): void => {
+      if (settled) return;
+      if (count === 0) {
+        firstTime = now;
+        firstMedia = meta.mediaTime;
+      }
+      lastMedia = meta.mediaTime;
+      count += 1;
+      if (count >= TARGET_FRAMES || now - firstTime >= MAX_WALL_MS) {
+        window.clearTimeout(fallbackTimer);
+        finish();
+        return;
+      }
+      rvfc.call(video, tick);
+    };
+    try {
+      video.muted = true;
+      video.currentTime = 0;
+      const playPromise = video.play();
+      if (playPromise && typeof playPromise.catch === 'function') {
+        playPromise.catch(() => {
+          window.clearTimeout(fallbackTimer);
+          finish();
+        });
+      }
+      rvfc.call(video, tick);
+    } catch {
+      window.clearTimeout(fallbackTimer);
+      resolve(null);
+    }
+  });
+}
+
 async function createVideoPosterAndMeta(file: File): Promise<{ poster: File; width: number; height: number; durationMs: number; frameRate: number | null }> {
   const url = URL.createObjectURL(file);
   try {
     const video = document.createElement('video');
-    video.preload = 'metadata';
+    video.preload = 'auto';
     video.muted = true;
     video.playsInline = true;
+    video.crossOrigin = 'anonymous';
 
     await new Promise<void>((resolve, reject) => {
-      const onLoaded = () => resolve();
-      const onError = () => reject(new Error('video load failed'));
+      const onLoaded = (): void => resolve();
+      const onError = (): void => reject(new Error('video load failed'));
       video.addEventListener('loadedmetadata', onLoaded, { once: true });
       video.addEventListener('error', onError, { once: true });
       video.src = url;
@@ -124,7 +192,7 @@ async function createVideoPosterAndMeta(file: File): Promise<{ poster: File; wid
     const seekTarget = Math.min(Math.max(0.05, video.duration * 0.05), Math.max(0.05, video.duration - 0.05));
 
     await new Promise<void>((resolve) => {
-      const onSeeked = () => resolve();
+      const onSeeked = (): void => resolve();
       video.addEventListener('seeked', onSeeked, { once: true });
       try {
         video.currentTime = Number.isFinite(seekTarget) ? seekTarget : 0;
@@ -147,28 +215,11 @@ async function createVideoPosterAndMeta(file: File): Promise<{ poster: File; wid
     });
     const poster = new File([posterBlob], 'video-poster.jpg', { type: 'image/jpeg' });
 
-    const quality = video.getVideoPlaybackQuality?.();
-    const frameRate = quality && quality.totalVideoFrames > 0 && video.duration > 0
-      ? Number((quality.totalVideoFrames / video.duration).toFixed(3))
-      : null;
+    const frameRate = await measureFrameRate(video);
 
     return { poster, width, height, durationMs, frameRate };
   } finally {
     URL.revokeObjectURL(url);
-  }
-}
-
-/**
- * 把主进程转码/remux 后的本地视频路径读回渲染端并包装成 File
- */
-async function readLocalFileAsFile(filePath: string, filename: string, mime: string): Promise<File | null> {
-  try {
-    const buf = await window.api.readLocalFileAsBuffer?.(filePath);
-    if (!buf) return null;
-    const blob = new Blob([buf], { type: mime });
-    return new File([blob], filename, { type: mime });
-  } catch {
-    return null;
   }
 }
 
@@ -189,11 +240,8 @@ export function WallpaperContributionSection({ onGoWallpaper }: WallpaperContrib
   const [copyrightDeclared, setCopyrightDeclared] = useState(false);
   const [previews, setPreviews] = useState<PreviewEntry[]>([]);
   const [previewBusy, setPreviewBusy] = useState(false);
-  const [transcodePercent, setTranscodePercent] = useState<number | null>(null);
-  const [transcodeMode, setTranscodeMode] = useState<'remux' | 'transcode' | 'copy' | null>(null);
   const previewsRef = useRef<PreviewEntry[]>([]);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const prepareSessionRef = useRef(0);
 
   useEffect(() => { previewsRef.current = previews; }, [previews]);
   useEffect(() => () => {
@@ -228,93 +276,16 @@ export function WallpaperContributionSection({ onGoWallpaper }: WallpaperContrib
     })
   );
 
-  const runNativeVideoPrepare = async (file: File): Promise<{ processedFile: File; cover: File; meta: VideoMeta } | null> => {
-    const getPathFn = window.api.getPathForFile;
-    if (typeof getPathFn !== 'function') return null;
-    const localPath = getPathFn(file);
-    if (!localPath) return null;
-    if (typeof window.api.wallpaperVideoPrepare !== 'function') return null;
-
-    const sessionId = ++prepareSessionRef.current;
-    const channel = `wallpaper:video:progress:${sessionId}`;
-    setTranscodePercent(0);
-    setTranscodeMode(null);
-
-    let unsub: (() => void) | null = null;
-    if (typeof window.api.onWallpaperVideoProgress === 'function') {
-      unsub = window.api.onWallpaperVideoProgress(channel, (payload) => {
-        if (prepareSessionRef.current !== sessionId) return;
-        if (payload.stage === 'start' && (payload.mode === 'remux' || payload.mode === 'transcode')) {
-          setTranscodeMode(payload.mode as 'remux' | 'transcode');
-        }
-        if (typeof payload.percent === 'number') {
-          setTranscodePercent(Math.max(0, Math.min(100, Math.round(payload.percent))));
-        }
-        if (payload.stage === 'done') {
-          setTranscodePercent(100);
-        }
-      });
-    }
-
-    try {
-      const prepared = await window.api.wallpaperVideoPrepare({
-        sourcePath: localPath,
-        preferRemux: true,
-        progressChannel: channel,
-      });
-      if (prepareSessionRef.current !== sessionId) return null;
-      if (!prepared.ok || !prepared.playbackPath) return null;
-
-      setTranscodeMode(prepared.mode);
-      const extMatch = prepared.playbackPath.match(/\.([^.\\/]+)$/);
-      const ext = (extMatch ? extMatch[1] : 'mp4').toLowerCase();
-      const mime = ext === 'mov' ? 'video/quicktime' : 'video/mp4';
-      const processedFile = await readLocalFileAsFile(prepared.playbackPath, `wallpaper-${Date.now()}.${ext}`, mime);
-      if (!processedFile) return null;
-
-      let cover: File | null = null;
-      if (prepared.coverPath) {
-        cover = await readLocalFileAsFile(prepared.coverPath, 'cover.jpg', 'image/jpeg');
-      }
-      if (!cover) {
-        const fallback = await createVideoPosterAndMeta(processedFile);
-        cover = fallback.poster;
-      }
-
-      return {
-        processedFile,
-        cover,
-        meta: {
-          durationMs: prepared.durationMs || 0,
-          frameRate: prepared.frameRate ?? null,
-          width: prepared.width || 0,
-          height: prepared.height || 0,
-          videoCodec: prepared.videoCodec,
-          audioCodec: prepared.audioCodec,
-          mode: prepared.mode,
-        },
-      };
-    } catch {
-      return null;
-    } finally {
-      if (unsub) {
-        try { unsub(); } catch { /* ignore */ }
-      }
-    }
-  };
-
   const handleFilePick = async (file: File | null): Promise<void> => {
     clearPreviews();
     setUploadFile(file);
     setUploadVideoMeta(null);
-    setTranscodePercent(null);
-    setTranscodeMode(null);
     if (!file) return;
 
     if (uploadType === 'video') {
       const lowerName = file.name.toLowerCase();
-      if (!lowerName.endsWith('.mp4') && !lowerName.endsWith('.mov')) {
-        setMessage(t('settings.pluginMarket.wallpaper.feedback.videoTypeInvalid', { defaultValue: '仅支持 mp4/mov 视频文件' }));
+      if (!lowerName.endsWith('.mp4')) {
+        setMessage(t('settings.pluginMarket.wallpaper.feedback.videoTypeInvalid', { defaultValue: '仅支持 mp4 视频文件' }));
         return;
       }
       if (file.size > MAX_VIDEO_SIZE) {
@@ -329,37 +300,8 @@ export function WallpaperContributionSection({ onGoWallpaper }: WallpaperContrib
     setPreviewBusy(true);
     try {
       if (uploadType === 'video') {
-        let posterFile: File | null = null;
-        let finalFile: File = file;
-        let width = 0;
-        let height = 0;
-        let durationMs = 0;
-        let frameRate: number | null = null;
-        let mode: VideoMeta['mode'] = 'copy';
-
-        const nativeResult = await runNativeVideoPrepare(file);
-        if (nativeResult) {
-          finalFile = nativeResult.processedFile;
-          posterFile = nativeResult.cover;
-          width = nativeResult.meta.width;
-          height = nativeResult.meta.height;
-          durationMs = nativeResult.meta.durationMs;
-          frameRate = nativeResult.meta.frameRate;
-          mode = nativeResult.meta.mode ?? 'copy';
-          if (finalFile.size > MAX_VIDEO_SIZE) {
-            setMessage(t('settings.pluginMarket.wallpaper.feedback.videoTooLarge', { defaultValue: '视频不能超过 100MB' }));
-            return;
-          }
-        }
-
-        if (!posterFile || width <= 0 || height <= 0 || durationMs <= 0) {
-          const info = await createVideoPosterAndMeta(finalFile);
-          posterFile = info.poster;
-          width = width || info.width;
-          height = height || info.height;
-          durationMs = durationMs || info.durationMs;
-          frameRate = frameRate ?? info.frameRate;
-        }
+        const info = await createVideoPosterAndMeta(file);
+        const { poster: posterFile, width, height, durationMs, frameRate } = info;
 
         const posterUrl = URL.createObjectURL(posterFile);
         const img = await new Promise<HTMLImageElement>((resolve, reject) => {
@@ -378,8 +320,7 @@ export function WallpaperContributionSection({ onGoWallpaper }: WallpaperContrib
           { label: '1280w', url: URL.createObjectURL(thumb1280), width: 1280, height: Math.round(height * 1280 / Math.max(1, width)), file: thumb1280 },
           { label: `${width}w`, url: posterUrl, width, height },
         ];
-        setUploadFile(finalFile);
-        setUploadVideoMeta({ durationMs, frameRate, width, height, mode });
+        setUploadVideoMeta({ durationMs, frameRate, width, height });
         setPreviews(next);
       } else {
         const dimensions = await loadImageDimensions(file);
@@ -469,8 +410,6 @@ export function WallpaperContributionSection({ onGoWallpaper }: WallpaperContrib
       setUploadFile(null);
       setUploadVideoMeta(null);
       setCopyrightDeclared(false);
-      setTranscodePercent(null);
-      setTranscodeMode(null);
       clearPreviews();
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
@@ -504,8 +443,6 @@ export function WallpaperContributionSection({ onGoWallpaper }: WallpaperContrib
                 setUploadType('image');
                 setUploadFile(null);
                 setUploadVideoMeta(null);
-                setTranscodePercent(null);
-                setTranscodeMode(null);
                 clearPreviews();
                 if (fileInputRef.current) fileInputRef.current.value = '';
               }}
@@ -521,8 +458,6 @@ export function WallpaperContributionSection({ onGoWallpaper }: WallpaperContrib
                 setUploadType('video');
                 setUploadFile(null);
                 setUploadVideoMeta(null);
-                setTranscodePercent(null);
-                setTranscodeMode(null);
                 clearPreviews();
                 if (fileInputRef.current) fileInputRef.current.value = '';
               }}
@@ -554,7 +489,7 @@ export function WallpaperContributionSection({ onGoWallpaper }: WallpaperContrib
               ref={fileInputRef}
               className="settings-plugin-market-upload-file-input"
               type="file"
-              accept={uploadType === 'video' ? 'video/mp4,video/quicktime,.mp4,.mov' : 'image/jpeg,image/png,image/webp'}
+              accept={uploadType === 'video' ? 'video/mp4,.mp4' : 'image/jpeg,image/png,image/webp'}
               onChange={(e) => { handleFilePick(e.target.files?.[0] || null).catch(() => {}); }}
             />
             <button
@@ -571,25 +506,6 @@ export function WallpaperContributionSection({ onGoWallpaper }: WallpaperContrib
               {uploadFile?.name || t('settings.pluginMarket.wallpaper.upload.noFile', { defaultValue: '未选择文件' })}
             </span>
           </div>
-          {uploadType === 'video' && transcodePercent !== null && (
-            <div className="settings-plugin-market-upload-transcode">
-              <div className="settings-plugin-market-upload-progress-text">
-                {transcodeMode === 'remux'
-                  ? t('settings.pluginMarket.wallpaper.upload.transcodeRemux', { defaultValue: '原生规格兼容，正在快速封装…' })
-                  : transcodeMode === 'transcode'
-                    ? t('settings.pluginMarket.wallpaper.upload.transcodeEncoding', { defaultValue: '正在本地转码视频（libx264 / aac）…' })
-                    : t('settings.pluginMarket.wallpaper.upload.transcodePreparing', { defaultValue: '正在准备视频…' })}
-                {' '}
-                {Math.max(0, Math.min(100, transcodePercent))}%
-              </div>
-              <div className="settings-plugin-market-upload-progress-track">
-                <div
-                  className="settings-plugin-market-upload-progress-fill"
-                  style={{ width: `${Math.max(0, Math.min(100, transcodePercent))}%` }}
-                />
-              </div>
-            </div>
-          )}
           {uploadType === 'video' && uploadVideoMeta && (
             <div className="settings-plugin-market-upload-previews-hint">
               {t('settings.pluginMarket.wallpaper.upload.videoMeta', {
@@ -599,7 +515,6 @@ export function WallpaperContributionSection({ onGoWallpaper }: WallpaperContrib
                 width: uploadVideoMeta.width,
                 height: uploadVideoMeta.height,
               })}
-              {uploadVideoMeta.mode ? ` · ${t(`settings.pluginMarket.wallpaper.upload.transcodeMode.${uploadVideoMeta.mode}`, { defaultValue: uploadVideoMeta.mode })}` : ''}
             </div>
           )}
           {previewBusy && (

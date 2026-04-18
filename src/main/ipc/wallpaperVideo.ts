@@ -29,7 +29,7 @@
  * @author 鸡哥
  */
 
-import { app, BrowserWindow, ipcMain, WebContents } from 'electron';
+import { app, ipcMain, WebContents } from 'electron';
 import { spawn } from 'child_process';
 import { copyFileSync, existsSync, mkdirSync, readdirSync, statSync, unlinkSync } from 'fs';
 import { basename, join, resolve as resolvePath } from 'path';
@@ -251,7 +251,7 @@ export function registerWallpaperVideoIpcHandlers(): void {
    *              options.progressChannel 存在则持续发送进度事件
    */
   ipcMain.handle('wallpaper:video:prepare', async (event, options: VideoPrepareOptions & { progressChannel?: string }): Promise<VideoPrepareResult> => {
-    const sender = BrowserWindow.fromWebContents(event.sender)?.webContents;
+    const sender: WebContents | undefined = event.sender;
     const progressChannel = typeof options?.progressChannel === 'string' ? options.progressChannel : undefined;
 
     const fail = (message: string, ffmpegAvailable: boolean): VideoPrepareResult => ({
@@ -288,11 +288,14 @@ export function registerWallpaperVideoIpcHandlers(): void {
 
     // 如果探测失败（多半是没装 ffmpeg），降级为复制并放弃封面
     if (!probe) {
+      emitProgress(sender, progressChannel, { stage: 'start', mode: 'copy' });
       try {
         copyFileSync(sourcePath, playbackPath);
       } catch (err) {
+        emitProgress(sender, progressChannel, { stage: 'error', message: err instanceof Error ? err.message : 'copy failed' });
         return fail(err instanceof Error ? err.message : 'copy failed', false);
       }
+      emitProgress(sender, progressChannel, { stage: 'done', percent: 100 });
       return {
         ok: true,
         playbackPath,

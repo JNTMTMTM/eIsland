@@ -101,40 +101,6 @@ declare global {
       openVideoDialog: () => Promise<string | null>;
       loadWallpaperFile: (filePath: string) => Promise<string | null>;
       clearWallpaperCache: () => Promise<void>;
-      wallpaperVideoProbe: (sourcePath: string) => Promise<{
-        width: number;
-        height: number;
-        durationMs: number;
-        frameRate: number | null;
-        videoCodec: string | null;
-        audioCodec: string | null;
-        container: string | null;
-      } | null>;
-      wallpaperVideoPrepare: (options: {
-        sourcePath: string;
-        preferRemux?: boolean;
-        progressChannel?: string;
-      }) => Promise<{
-        ok: boolean;
-        playbackPath: string | null;
-        coverPath: string | null;
-        width: number;
-        height: number;
-        durationMs: number;
-        frameRate: number | null;
-        videoCodec: string | null;
-        audioCodec: string | null;
-        container: string | null;
-        mode: 'remux' | 'transcode' | 'copy';
-        ffmpegAvailable: boolean;
-        message?: string;
-      }>;
-      onWallpaperVideoProgress: (
-        channel: string,
-        callback: (payload: { stage: string; percent?: number; frame?: number; speed?: number; message?: string; mode?: string }) => void,
-      ) => () => void;
-      wallpaperVideoCover: (sourcePath: string) => Promise<string | null>;
-      wallpaperVideoClearCache: () => Promise<void>;
       readLocalFileAsBuffer: (filePath: string) => Promise<Uint8Array | null>;
       netFetch: (url: string, options?: {
         method?: string;

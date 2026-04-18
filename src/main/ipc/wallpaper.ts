@@ -73,7 +73,7 @@ export function registerWallpaperIpcHandlers(): void {
     if (!win) return null;
     const result = await dialog.showOpenDialog(win, {
       title: '选择视频',
-      filters: [{ name: '视频', extensions: ['mp4', 'webm', 'mov', 'm4v', 'avi', 'mkv'] }],
+      filters: [{ name: '视频', extensions: ['mp4'] }],
       properties: ['openFile'],
     });
     if (result.canceled || result.filePaths.length === 0) return null;
