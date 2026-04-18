@@ -36,6 +36,11 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
   const [editTitle, setEditTitle] = useState('');
   const [editDescription, setEditDescription] = useState('');
   const [editTags, setEditTags] = useState('');
+  const [applying, setApplying] = useState(false);
+  const [submittingRate, setSubmittingRate] = useState(false);
+  const [submittingReport, setSubmittingReport] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [savingMetadata, setSavingMetadata] = useState(false);
 
   const currentUsername = readLocalProfile()?.username || '';
 
@@ -114,80 +119,110 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
 
   const handleApply = async (): Promise<void> => {
     const token = readLocalToken();
-    if (!token || !selected) return;
-    const result = await applyUserWallpaper(token, selected.id);
-    if (!result.ok) {
-      setMessage(result.message || t('settings.pluginMarket.wallpaper.feedback.applyFailed', { defaultValue: '应用失败' }));
-      return;
+    if (!token || !selected || applying) return;
+    setApplying(true);
+    setMessage(t('settings.pluginMarket.wallpaper.feedback.applying', { defaultValue: '应用中…' }));
+    try {
+      const result = await applyUserWallpaper(token, selected.id);
+      if (!result.ok) {
+        setMessage(result.message || t('settings.pluginMarket.wallpaper.feedback.applyFailed', { defaultValue: '应用失败' }));
+        return;
+      }
+      if (selectedPreviewUrl) {
+        onApplyBackground(selectedPreviewUrl);
+      }
+      setMessage(t('settings.pluginMarket.wallpaper.feedback.applySuccess', { defaultValue: '已应用壁纸背景' }));
+      await loadDetail(selected.id);
+    } finally {
+      setApplying(false);
     }
-    if (selectedPreviewUrl) {
-      onApplyBackground(selectedPreviewUrl);
-    }
-    setMessage(t('settings.pluginMarket.wallpaper.feedback.applySuccess', { defaultValue: '已应用壁纸背景' }));
-    await loadDetail(selected.id);
   };
 
   const handleRate = async (): Promise<void> => {
     const token = readLocalToken();
-    if (!token || !selected) return;
-    const result = await rateUserWallpaper(token, selected.id, ratingScore);
-    if (!result.ok) {
-      setMessage(result.message || t('settings.pluginMarket.wallpaper.feedback.rateFailed', { defaultValue: '评分失败' }));
-      return;
+    if (!token || !selected || submittingRate) return;
+    setSubmittingRate(true);
+    setMessage(t('settings.pluginMarket.wallpaper.feedback.rating', { defaultValue: '评分提交中…' }));
+    try {
+      const result = await rateUserWallpaper(token, selected.id, ratingScore);
+      if (!result.ok) {
+        setMessage(result.message || t('settings.pluginMarket.wallpaper.feedback.rateFailed', { defaultValue: '评分失败' }));
+        return;
+      }
+      setMessage(t('settings.pluginMarket.wallpaper.feedback.rateSuccess', { defaultValue: '评分成功' }));
+      await loadDetail(selected.id);
+    } finally {
+      setSubmittingRate(false);
     }
-    setMessage(t('settings.pluginMarket.wallpaper.feedback.rateSuccess', { defaultValue: '评分成功' }));
-    await loadDetail(selected.id);
   };
 
   const handleReport = async (): Promise<void> => {
     const token = readLocalToken();
-    if (!token || !selected) return;
-    const result = await reportUserWallpaper(token, {
-      id: selected.id,
-      reasonType: reportReasonType,
-      reasonDetail: reportReasonDetail,
-    });
-    if (!result.ok) {
-      setMessage(result.message || t('settings.pluginMarket.wallpaper.feedback.reportFailed', { defaultValue: '举报失败' }));
-      return;
+    if (!token || !selected || submittingReport) return;
+    setSubmittingReport(true);
+    setMessage(t('settings.pluginMarket.wallpaper.feedback.reporting', { defaultValue: '举报提交中…' }));
+    try {
+      const result = await reportUserWallpaper(token, {
+        id: selected.id,
+        reasonType: reportReasonType,
+        reasonDetail: reportReasonDetail,
+      });
+      if (!result.ok) {
+        setMessage(result.message || t('settings.pluginMarket.wallpaper.feedback.reportFailed', { defaultValue: '举报失败' }));
+        return;
+      }
+      setReportReasonDetail('');
+      setMessage(t('settings.pluginMarket.wallpaper.feedback.reportSuccess', { defaultValue: '举报已提交' }));
+    } finally {
+      setSubmittingReport(false);
     }
-    setReportReasonDetail('');
-    setMessage(t('settings.pluginMarket.wallpaper.feedback.reportSuccess', { defaultValue: '举报已提交' }));
   };
 
   const handleDelete = async (): Promise<void> => {
     const token = readLocalToken();
-    if (!token || !selected) return;
+    if (!token || !selected || deleting) return;
     const confirmText = t('settings.pluginMarket.wallpaper.actions.confirmDelete', { defaultValue: '确认删除该壁纸？' });
     if (!window.confirm(confirmText)) return;
-    const result = await deleteUserWallpaper(token, selected.id);
-    if (!result.ok) {
-      setMessage(result.message || t('settings.pluginMarket.wallpaper.feedback.deleteFailed', { defaultValue: '删除失败' }));
-      return;
+    setDeleting(true);
+    setMessage(t('settings.pluginMarket.wallpaper.feedback.deleting', { defaultValue: '删除中…' }));
+    try {
+      const result = await deleteUserWallpaper(token, selected.id);
+      if (!result.ok) {
+        setMessage(result.message || t('settings.pluginMarket.wallpaper.feedback.deleteFailed', { defaultValue: '删除失败' }));
+        return;
+      }
+      setSelected(null);
+      setMessage(t('settings.pluginMarket.wallpaper.feedback.deleteSuccess', { defaultValue: '删除成功' }));
+      await loadList();
+    } finally {
+      setDeleting(false);
     }
-    setSelected(null);
-    setMessage(t('settings.pluginMarket.wallpaper.feedback.deleteSuccess', { defaultValue: '删除成功' }));
-    await loadList();
   };
 
   const handleSaveMetadata = async (): Promise<void> => {
     const token = readLocalToken();
-    if (!token || !selected) return;
-    const result = await updateUserWallpaperMetadata(token, {
-      id: selected.id,
-      title: editTitle,
-      description: editDescription,
-      tags: editTags,
-      type: 'image',
-    });
-    if (!result.ok) {
-      setMessage(result.message || t('settings.pluginMarket.wallpaper.feedback.updateFailed', { defaultValue: '保存失败' }));
-      return;
+    if (!token || !selected || savingMetadata) return;
+    setSavingMetadata(true);
+    setMessage(t('settings.pluginMarket.wallpaper.feedback.saving', { defaultValue: '保存中…' }));
+    try {
+      const result = await updateUserWallpaperMetadata(token, {
+        id: selected.id,
+        title: editTitle,
+        description: editDescription,
+        tags: editTags,
+        type: 'image',
+      });
+      if (!result.ok) {
+        setMessage(result.message || t('settings.pluginMarket.wallpaper.feedback.updateFailed', { defaultValue: '保存失败' }));
+        return;
+      }
+      setEditingMetadata(false);
+      setMessage(t('settings.pluginMarket.wallpaper.feedback.updateSuccess', { defaultValue: '已保存，等待审核' }));
+      await loadDetail(selected.id);
+      await loadList();
+    } finally {
+      setSavingMetadata(false);
     }
-    setEditingMetadata(false);
-    setMessage(t('settings.pluginMarket.wallpaper.feedback.updateSuccess', { defaultValue: '已保存，等待审核' }));
-    await loadDetail(selected.id);
-    await loadList();
   };
 
   return (
@@ -296,8 +331,15 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
                 </div>
 
                 <div className="settings-plugin-market-actions">
-                  <button className="settings-hotkey-btn" type="button" onClick={() => { handleApply().catch(() => {}); }}>
-                    {t('settings.pluginMarket.wallpaper.actions.apply', { defaultValue: '应用为背景' })}
+                  <button
+                    className="settings-hotkey-btn"
+                    type="button"
+                    onClick={() => { handleApply().catch(() => {}); }}
+                    disabled={applying}
+                  >
+                    {applying
+                      ? t('settings.pluginMarket.wallpaper.actions.applying', { defaultValue: '应用中…' })
+                      : t('settings.pluginMarket.wallpaper.actions.apply', { defaultValue: '应用为背景' })}
                   </button>
                   <button
                     className="settings-hotkey-btn"
@@ -329,8 +371,15 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
                           </button>
                         ))}
                       </div>
-                      <button className="settings-hotkey-btn" type="button" onClick={() => { handleRate().catch(() => {}); }}>
-                        {t('settings.pluginMarket.wallpaper.actions.rate', { defaultValue: '提交评分' })}
+                      <button
+                        className="settings-hotkey-btn"
+                        type="button"
+                        onClick={() => { handleRate().catch(() => {}); }}
+                        disabled={submittingRate}
+                      >
+                        {submittingRate
+                          ? t('settings.pluginMarket.wallpaper.actions.rating', { defaultValue: '提交中…' })
+                          : t('settings.pluginMarket.wallpaper.actions.rate', { defaultValue: '提交评分' })}
                       </button>
                     </div>
                   )}
@@ -360,8 +409,15 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
                         onChange={(e) => setReportReasonDetail(e.target.value)}
                         placeholder={t('settings.pluginMarket.wallpaper.report.detailPlaceholder', { defaultValue: '举报补充说明（可选）' })}
                       />
-                      <button className="settings-hotkey-btn" type="button" onClick={() => { handleReport().catch(() => {}); }}>
-                        {t('settings.pluginMarket.wallpaper.actions.submitReport', { defaultValue: '提交举报' })}
+                      <button
+                        className="settings-hotkey-btn"
+                        type="button"
+                        onClick={() => { handleReport().catch(() => {}); }}
+                        disabled={submittingReport}
+                      >
+                        {submittingReport
+                          ? t('settings.pluginMarket.wallpaper.actions.reporting', { defaultValue: '提交中…' })
+                          : t('settings.pluginMarket.wallpaper.actions.submitReport', { defaultValue: '提交举报' })}
                       </button>
                     </div>
                   )}
@@ -383,8 +439,15 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
                         ? t('settings.pluginMarket.wallpaper.actions.cancelEdit', { defaultValue: '取消编辑' })
                         : t('settings.pluginMarket.wallpaper.actions.editMetadata', { defaultValue: '编辑元数据' })}
                     </button>
-                    <button className="settings-hotkey-btn" type="button" onClick={() => { handleDelete().catch(() => {}); }}>
-                      {t('settings.pluginMarket.wallpaper.actions.delete', { defaultValue: '删除壁纸' })}
+                    <button
+                      className="settings-hotkey-btn"
+                      type="button"
+                      onClick={() => { handleDelete().catch(() => {}); }}
+                      disabled={deleting}
+                    >
+                      {deleting
+                        ? t('settings.pluginMarket.wallpaper.actions.deleting', { defaultValue: '删除中…' })
+                        : t('settings.pluginMarket.wallpaper.actions.delete', { defaultValue: '删除壁纸' })}
                     </button>
 
                     {editingMetadata && (
@@ -392,8 +455,15 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
                         <input className="settings-field-input" value={editTitle} onChange={(e) => setEditTitle(e.target.value)} />
                         <textarea className="settings-field-input" value={editDescription} onChange={(e) => setEditDescription(e.target.value)} />
                         <input className="settings-field-input" value={editTags} onChange={(e) => setEditTags(e.target.value)} />
-                        <button className="settings-hotkey-btn" type="button" onClick={() => { handleSaveMetadata().catch(() => {}); }}>
-                          {t('settings.pluginMarket.wallpaper.actions.saveMetadata', { defaultValue: '保存元数据' })}
+                        <button
+                          className="settings-hotkey-btn"
+                          type="button"
+                          onClick={() => { handleSaveMetadata().catch(() => {}); }}
+                          disabled={savingMetadata}
+                        >
+                          {savingMetadata
+                            ? t('settings.pluginMarket.wallpaper.actions.savingMetadata', { defaultValue: '保存中…' })
+                            : t('settings.pluginMarket.wallpaper.actions.saveMetadata', { defaultValue: '保存元数据' })}
                         </button>
                       </div>
                     )}

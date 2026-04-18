@@ -231,14 +231,17 @@ export function WallpaperContributionSection({ onGoWallpaper }: WallpaperContrib
               ))}
             </div>
           )}
-          <label className="settings-plugin-market-checkbox">
-            <input
-              type="checkbox"
-              checked={copyrightDeclared}
-              onChange={(e) => setCopyrightDeclared(e.target.checked)}
-            />
-            <span>{t('settings.pluginMarket.wallpaper.upload.copyright', { defaultValue: '我确认拥有该图片版权或已获授权' })}</span>
-          </label>
+          <div className="settings-plugin-market-copyright-row">
+            <label className="settings-plugin-market-checkbox">
+              <input
+                type="checkbox"
+                checked={copyrightDeclared}
+                onChange={(e) => setCopyrightDeclared(e.target.checked)}
+              />
+              <span>{t('settings.pluginMarket.wallpaper.upload.copyright', { defaultValue: '我确认拥有该图片版权或已获授权' })}</span>
+            </label>
+            {message && <div className="settings-plugin-market-message">{message}</div>}
+          </div>
           <button
             className="settings-hotkey-btn settings-plugin-market-upload-btn"
             type="button"
@@ -251,8 +254,6 @@ export function WallpaperContributionSection({ onGoWallpaper }: WallpaperContrib
           </button>
         </div>
       </div>
-
-      {message && <div className="settings-plugin-market-message">{message}</div>}
     </div>
   );
 }
