@@ -662,6 +662,7 @@
         "clearBackground": "清除背景",
         "previewAlt": "背景预览",
         "imageOpacityHint": "背景图片透明度（0% - 100%），数值越高图片越明显",
+        "imageBlurHint": "背景图片模糊度（0px - 20px），数值越高越模糊",
         "islandOpacityTitle": "灵动岛透明度",
         "islandOpacityHint": "数值越低越透明（10% - 100%），调整后立即生效"
       },
@@ -881,7 +882,130 @@
       },
       "pages": {
         "wallpaper": "壁纸",
-        "plugin": "插件"
+        "plugin": "插件",
+        "contribution": "贡献",
+        "edit": "修改壁纸"
+      },
+      "tag": {
+        "placeholder": "输入标签后回车或逗号确认",
+        "createNew": "创建新标签",
+        "removeTag": "移除标签"
+      },
+      "contribution": {
+        "title": "贡献你的壁纸",
+        "actions": {
+          "backToWallpaper": "返回壁纸市场"
+        }
+      },
+      "edit": {
+        "searchPlaceholder": "搜索自己的壁纸",
+        "actions": {
+          "backToMarket": "返回壁纸市场"
+        },
+        "feedback": {
+          "emptyMine": "你还没有上传过壁纸",
+          "selectHint": "请选择左侧壁纸查看元数据"
+        },
+        "meta": {
+          "status": "状态"
+        },
+        "status": {
+          "published": "已发布",
+          "pending": "待审核",
+          "rejected": "已拒绝",
+          "delisted": "已下架",
+          "deleted": "已删除"
+        }
+      },
+      "wallpaper": {
+        "searchPlaceholder": "搜索标题/作者/描述/标签",
+        "sort": {
+          "newest": "最新",
+          "rating": "评分最高",
+          "apply": "应用最多"
+        },
+        "upload": {
+          "titlePlaceholder": "标题",
+          "tagsPlaceholder": "标签（逗号分隔）",
+          "descriptionPlaceholder": "描述",
+          "chooseFile": "选择图片文件",
+          "noFile": "未选择文件",
+          "progress": "上传进度",
+          "copyright": "我确认拥有该图片版权或已获授权",
+          "previewGenerating": "正在生成预览…"
+        },
+        "meta": {
+          "rating": "评分",
+          "apply": "应用次数"
+        },
+        "report": {
+          "copyright": "版权问题",
+          "illegal": "违规内容",
+          "other": "其他",
+          "detailPlaceholder": "举报补充说明（可选）"
+        },
+        "actions": {
+          "search": "搜索",
+          "refresh": "刷新壁纸列表",
+          "expandSearch": "展开搜索",
+          "collapseSearch": "收起搜索",
+          "goContribution": "前往贡献",
+          "prevPage": "上一页",
+          "nextPage": "下一页",
+          "upload": "上传壁纸",
+          "uploading": "上传中…",
+          "apply": "应用为背景",
+          "applying": "应用中…",
+          "rate": "提交评分",
+          "rating": "提交中…",
+          "report": "举报",
+          "reporting": "提交中…",
+          "expandRate": "评分",
+          "collapseRate": "收起评分",
+          "expandReport": "举报",
+          "collapseReport": "收起举报",
+          "submitReport": "提交举报",
+          "editMetadata": "编辑元数据",
+          "cancelEdit": "取消编辑",
+          "saveMetadata": "保存元数据",
+          "savingMetadata": "保存中…",
+          "delete": "删除壁纸",
+          "deleting": "删除中…",
+          "confirmDelete": "确认删除该壁纸？",
+          "confirmDeleteBtn": "确认删除",
+          "cancelDelete": "取消"
+        },
+        "feedback": {
+          "loading": "加载中…",
+          "empty": "暂无壁纸",
+          "selectHint": "请选择左侧壁纸查看详情",
+          "loadFailed": "加载失败",
+          "detailFailed": "加载详情失败",
+          "titleRequired": "请填写标题",
+          "fileRequired": "请选择图片文件",
+          "copyrightRequired": "请先勾选版权声明",
+          "fileTooLarge": "图片不能超过 20MB",
+          "uploadFailed": "上传失败",
+          "uploadSuccess": "上传成功，等待审核",
+          "applying": "应用中…",
+          "applyFailed": "应用失败",
+          "applySuccess": "已应用壁纸背景",
+          "rating": "评分提交中…",
+          "rateFailed": "评分失败",
+          "rateSuccess": "评分成功",
+          "reporting": "举报提交中…",
+          "reportFailed": "举报失败",
+          "reportSuccess": "举报已提交",
+          "deleting": "删除中…",
+          "deleteFailed": "删除失败",
+          "deleteSuccess": "删除成功",
+          "saving": "保存中…",
+          "updateFailed": "保存失败",
+          "updateSuccess": "已保存，等待审核"
+        },
+        "pagination": {
+          "page": "第 {{page}} 页"
+        }
       }
     },
     "ai": {

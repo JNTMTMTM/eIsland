@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../store/slices';
@@ -75,6 +75,16 @@ export function LoginContent(): ReactElement {
   const [sendCooldownSeconds, setSendCooldownSeconds] = useState(0);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
 
+  useEffect(() => {
+    if (sendCooldownSeconds <= 0) return;
+    const timer = window.setTimeout(() => {
+      setSendCooldownSeconds((v) => (v > 0 ? v - 1 : 0));
+    }, 1000);
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [sendCooldownSeconds]);
+
   const isEmailAccount = account.includes('@');
 
   const handleSendCode = async (): Promise<void> => {
@@ -94,9 +104,6 @@ export function LoginContent(): ReactElement {
     const cooldown = Math.max(0, Number(result.data?.retryAfterSeconds || 60));
     if (cooldown > 0) {
       setSendCooldownSeconds(cooldown);
-      window.setTimeout(() => {
-        setSendCooldownSeconds((v) => (v > 0 ? v - 1 : 0));
-      }, 1000);
     }
     setFeedback({ type: 'success', text: t('settings.user.feedback.emailCodeSent', { defaultValue: '验证码已发送，请查收邮箱' }) });
   };

@@ -77,12 +77,16 @@ import { AiSettingsSection } from './setting/components/ai/AiSettingsSection';
 import { UserSettingsSection } from './setting/components/user/UserSettingsSection';
 import { AboutSettingsSection } from './setting/components/about/AboutSettingsSection';
 import { OverviewPreview } from './setting/components/app/preview/OverviewPreview';
+import { WallpaperMarketSection } from './setting/components/pluginMarket/WallpaperMarketSection';
+import { WallpaperContributionSection } from './setting/components/pluginMarket/WallpaperContributionSection';
+import { WallpaperEditSection } from './setting/components/pluginMarket/WallpaperEditSection';
 
 import { resolveDistrictLocationByKeyword } from '../../../../api/adcodeApi';
 
 import { setThemeMode as applyThemeMode, getThemeMode, type ThemeMode } from '../../../../utils/theme';
 import { getLanguage, setLanguage, type AppLanguage } from '../../../../i18n';
 import { readLocalToken, subscribeUserAccountSessionChanged } from '../../../../utils/userAccount';
+import { SvgIcon } from '../../../../utils/SvgIcon';
 
 const CLIPBOARD_URL_SUPPRESS_IN_FAVORITES_KEY = 'clipboard-url-suppress-in-url-favorites';
 const LOCAL_ISLAND_BG_SYNC_EVENT = 'island-bg-local-sync';
@@ -147,7 +151,7 @@ interface RunningWindowItem {
   iconDataUrl: string | null;
 }
 
-type PluginMarketPageKey = 'wallpaper' | 'plugin';
+type PluginMarketPageKey = 'wallpaper' | 'plugin' | 'contribution' | 'edit';
 
 /**
  * 渲染设置面板主视图
@@ -163,6 +167,7 @@ export function SettingsTab(): ReactElement {
   const [weatherSettingsPage, setWeatherSettingsPage] = useState<WeatherSettingsPageKey>('location');
   const [musicSettingsPage, setMusicSettingsPage] = useState<MusicSettingsPageKey>('whitelist');
   const [pluginMarketPage, setPluginMarketPage] = useState<PluginMarketPageKey>('wallpaper');
+  const [wallpaperMarketRefreshKey, setWallpaperMarketRefreshKey] = useState(0);
   const { aiConfig, setAiConfig, fetchWeatherData, setGuide, setLogin, setRegister } = useIslandStore();
   const [editingPrompt, setEditingPrompt] = useState(false);
   const [promptDraft, setPromptDraft] = useState('');
@@ -195,7 +200,13 @@ export function SettingsTab(): ReactElement {
   const currentMusicSettingsPageLabel = t(`settings.musicPages.${musicSettingsPage}`, { defaultValue: MUSIC_SETTINGS_PAGE_LABELS[musicSettingsPage] || '白名单' });
   musicSettingsPageRef.current = musicSettingsPage;
   const currentPluginMarketPageLabel = t(`settings.pluginMarket.pages.${pluginMarketPage}`, {
-    defaultValue: pluginMarketPage === 'wallpaper' ? '壁纸' : '插件',
+    defaultValue: pluginMarketPage === 'wallpaper'
+      ? '壁纸'
+      : pluginMarketPage === 'plugin'
+        ? '插件'
+        : pluginMarketPage === 'edit'
+          ? '修改壁纸'
+          : '贡献',
   });
 
   const translatedSettingsTabLabels = useMemo<Record<string, string>>(() => {
@@ -262,7 +273,9 @@ export function SettingsTab(): ReactElement {
   const [islandOpacity, setIslandOpacity] = useState<number>(100);
   const [bgImage, setBgImage] = useState<string | null>(null);
   const [bgImageOpacity, setBgImageOpacity] = useState<number>(30);
+  const [bgImageBlur, setBgImageBlur] = useState<number>(0);
   const bgOpacitySaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const bgBlurSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [islandPositionOffset, setIslandPositionOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [islandPositionInput, setIslandPositionInput] = useState<{ x: string; y: string }>({ x: '0', y: '0' });
   const [aboutVersion, setAboutVersion] = useState<string>('');
@@ -288,9 +301,11 @@ export function SettingsTab(): ReactElement {
       if (dataUrl) {
         el.style.backgroundImage = `url(${dataUrl})`;
         el.style.opacity = String(bgImageOpacity / 100);
+        el.style.filter = `blur(${bgImageBlur}px)`;
       } else {
         el.style.backgroundImage = '';
         el.style.opacity = '0';
+        el.style.filter = 'none';
       }
     }
     window.dispatchEvent(new CustomEvent(LOCAL_ISLAND_BG_SYNC_EVENT, {
@@ -306,12 +321,26 @@ export function SettingsTab(): ReactElement {
     }));
   };
 
+  const applyBgBlur = (value: number): void => {
+    const el = document.getElementById('island-bg-layer');
+    if (el) {
+      el.style.filter = value > 0 ? `blur(${value}px)` : 'none';
+    }
+    window.dispatchEvent(new CustomEvent(LOCAL_ISLAND_BG_SYNC_EVENT, {
+      detail: { blur: value },
+    }));
+  };
+
   const persistBgImage = (path: string | null): void => {
     window.api.storeWrite('island-bg-image', path).catch(() => {});
   };
 
   const persistBgOpacity = (value: number): void => {
     window.api.storeWrite('island-bg-opacity', value).catch(() => {});
+  };
+
+  const persistBgBlur = (value: number): void => {
+    window.api.storeWrite('island-bg-blur', value).catch(() => {});
   };
 
   const handleSelectBgImage = async (): Promise<void> => {
@@ -338,6 +367,14 @@ export function SettingsTab(): ReactElement {
     applyBgOpacity(defaultOpacity);
     persistBgImage(src);
     persistBgOpacity(defaultOpacity);
+  };
+
+  const handleApplyMarketplaceWallpaper = (imageUrl: string): void => {
+    if (!imageUrl) return;
+    setBgImage(imageUrl);
+    applyBgImage(imageUrl);
+    persistBgImage(imageUrl);
+    window.api.settingsPreview('store:island-bg-image', imageUrl).catch(() => {});
   };
 
   const visibleCards = useMemo(() => {
@@ -481,9 +518,11 @@ export function SettingsTab(): ReactElement {
     Promise.all([
       window.api.storeRead('island-bg-image') as Promise<string | null>,
       window.api.storeRead('island-bg-opacity') as Promise<number | null>,
-    ]).then(async ([img, opacity]) => {
+      window.api.storeRead('island-bg-blur') as Promise<number | null>,
+    ]).then(async ([img, opacity, blur]) => {
       if (cancelled) return;
       if (typeof opacity === 'number' && Number.isFinite(opacity)) setBgImageOpacity(Math.max(0, Math.min(100, Math.round(opacity))));
+      if (typeof blur === 'number' && Number.isFinite(blur)) setBgImageBlur(Math.max(0, Math.min(20, Math.round(blur))));
       if (img && typeof img === 'string') {
         if (isDirectBgImageUrl(img)) {
           // Legacy data URL or Vite asset URL (built-in wallpaper)
@@ -507,6 +546,10 @@ export function SettingsTab(): ReactElement {
       if (bgOpacitySaveTimerRef.current) {
         clearTimeout(bgOpacitySaveTimerRef.current);
         bgOpacitySaveTimerRef.current = null;
+      }
+      if (bgBlurSaveTimerRef.current) {
+        clearTimeout(bgBlurSaveTimerRef.current);
+        bgBlurSaveTimerRef.current = null;
       }
     };
   }, []);
@@ -532,6 +575,12 @@ export function SettingsTab(): ReactElement {
           ? Math.max(0, Math.min(100, Math.round(value)))
           : 30;
         setBgImageOpacity(safe);
+      }
+      if (channel === 'store:island-bg-blur') {
+        const safe = typeof value === 'number' && Number.isFinite(value)
+          ? Math.max(0, Math.min(20, Math.round(value)))
+          : 0;
+        setBgImageBlur(safe);
       }
       if (channel === 'store:island-bg-image') {
         const image = typeof value === 'string' ? value : null;
@@ -1601,10 +1650,15 @@ export function SettingsTab(): ReactElement {
               setAutostartMode={setAutostartMode}
               bgImage={bgImage}
               bgImageOpacity={bgImageOpacity}
+              bgImageBlur={bgImageBlur}
               setBgImageOpacity={setBgImageOpacity}
+              setBgImageBlur={setBgImageBlur}
               applyBgOpacity={applyBgOpacity}
+              applyBgBlur={applyBgBlur}
               persistBgOpacity={persistBgOpacity}
+              persistBgBlur={persistBgBlur}
               bgOpacitySaveTimerRef={bgOpacitySaveTimerRef}
+              bgBlurSaveTimerRef={bgBlurSaveTimerRef}
               handleSelectBgImage={handleSelectBgImage}
               handleClearBgImage={handleClearBgImage}
               handleSelectBuiltinBgImage={handleSelectBuiltinBgImage}
@@ -1791,15 +1845,39 @@ export function SettingsTab(): ReactElement {
               <div className="max-expand-settings-title settings-app-title-line">
                 <span>{t('settings.labels.pluginMarket', { defaultValue: '插件市场' })}</span>
                 {hasLoginSession && <span className="settings-app-title-sub">- {currentPluginMarketPageLabel}</span>}
+                {hasLoginSession && (pluginMarketPage === 'wallpaper' || pluginMarketPage === 'edit') && (
+                  <button
+                    className="settings-app-title-refresh-btn"
+                    type="button"
+                    onClick={() => setWallpaperMarketRefreshKey((prev) => prev + 1)}
+                    title={t('settings.pluginMarket.wallpaper.actions.refresh', { defaultValue: '刷新壁纸列表' })}
+                    aria-label={t('settings.pluginMarket.wallpaper.actions.refresh', { defaultValue: '刷新壁纸列表' })}
+                  >
+                    <img src={SvgIcon.REVERT} alt="" className="settings-app-title-refresh-icon" />
+                  </button>
+                )}
               </div>
               {hasLoginSession ? (
                 <div className="settings-app-pages-layout" style={{ marginTop: 0 }}>
                   <div className="settings-app-page-main">
                     {pluginMarketPage === 'wallpaper' && (
-                      <div className="max-expand-settings-section" />
+                      <WallpaperMarketSection
+                        key={wallpaperMarketRefreshKey}
+                        onApplyBackground={handleApplyMarketplaceWallpaper}
+                        onGoContribution={() => setPluginMarketPage('contribution')}
+                      />
                     )}
                     {pluginMarketPage === 'plugin' && (
                       <div className="max-expand-settings-section" />
+                    )}
+                    {pluginMarketPage === 'contribution' && (
+                      <WallpaperContributionSection onGoWallpaper={() => setPluginMarketPage('wallpaper')} />
+                    )}
+                    {pluginMarketPage === 'edit' && (
+                      <WallpaperEditSection
+                        key={wallpaperMarketRefreshKey}
+                        onGoWallpaper={() => setPluginMarketPage('wallpaper')}
+                      />
                     )}
                   </div>
                   <div className="settings-app-page-dots">
@@ -1816,6 +1894,20 @@ export function SettingsTab(): ReactElement {
                       onClick={() => setPluginMarketPage('plugin')}
                       title={t('settings.pluginMarket.pages.plugin', { defaultValue: '插件' })}
                       aria-label={t('settings.pluginMarket.pages.plugin', { defaultValue: '插件' })}
+                    />
+                    <button
+                      className={`settings-app-page-dot ${pluginMarketPage === 'contribution' ? 'active' : ''}`}
+                      data-label={t('settings.pluginMarket.pages.contribution', { defaultValue: '贡献' })}
+                      onClick={() => setPluginMarketPage('contribution')}
+                      title={t('settings.pluginMarket.pages.contribution', { defaultValue: '贡献' })}
+                      aria-label={t('settings.pluginMarket.pages.contribution', { defaultValue: '贡献' })}
+                    />
+                    <button
+                      className={`settings-app-page-dot ${pluginMarketPage === 'edit' ? 'active' : ''}`}
+                      data-label={t('settings.pluginMarket.pages.edit', { defaultValue: '修改壁纸' })}
+                      onClick={() => setPluginMarketPage('edit')}
+                      title={t('settings.pluginMarket.pages.edit', { defaultValue: '修改壁纸' })}
+                      aria-label={t('settings.pluginMarket.pages.edit', { defaultValue: '修改壁纸' })}
                     />
                   </div>
                 </div>

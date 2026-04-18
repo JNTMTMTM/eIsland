@@ -662,6 +662,7 @@
         "clearBackground": "Clear background",
         "previewAlt": "Background preview",
         "imageOpacityHint": "Background opacity (0% - 100%)",
+        "imageBlurHint": "Background blur (0px - 20px)",
         "islandOpacityTitle": "Island Opacity",
         "islandOpacityHint": "Lower value = more transparent (10% - 100%)"
       },
@@ -875,13 +876,136 @@
     "pluginMarket": {
       "auth": {
         "entryTitle": "Sign in to access plugin market content",
-        "gotoLogin": "Go to Sign In",
-        "gotoRegister": "Go to Sign Up",
+        "gotoLogin": "Go to Login",
+        "gotoRegister": "Go to Register",
         "hint": "Sign in to browse wallpapers and plugins."
       },
       "pages": {
-        "wallpaper": "Wallpapers",
-        "plugin": "Plugins"
+        "wallpaper": "Wallpaper",
+        "plugin": "Plugin",
+        "contribution": "Contribution",
+        "edit": "Edit Wallpapers"
+      },
+      "tag": {
+        "placeholder": "Type a tag then press Enter or comma",
+        "createNew": "Create new tag",
+        "removeTag": "Remove tag"
+      },
+      "contribution": {
+        "title": "Contribute Your Wallpaper",
+        "actions": {
+          "backToWallpaper": "Back to Wallpaper Market"
+        }
+      },
+      "edit": {
+        "searchPlaceholder": "Search your wallpapers",
+        "actions": {
+          "backToMarket": "Back to Wallpaper Market"
+        },
+        "feedback": {
+          "emptyMine": "You haven't uploaded any wallpapers yet",
+          "selectHint": "Select a wallpaper from the left to view metadata"
+        },
+        "meta": {
+          "status": "Status"
+        },
+        "status": {
+          "published": "Published",
+          "pending": "Pending Review",
+          "rejected": "Rejected",
+          "delisted": "Delisted",
+          "deleted": "Deleted"
+        }
+      },
+      "wallpaper": {
+        "searchPlaceholder": "Search title/author/description/tags",
+        "sort": {
+          "newest": "Newest",
+          "rating": "Top Rated",
+          "apply": "Most Applied"
+        },
+        "upload": {
+          "titlePlaceholder": "Title",
+          "tagsPlaceholder": "Tags (comma separated)",
+          "descriptionPlaceholder": "Description",
+          "chooseFile": "Choose image file",
+          "noFile": "No file selected",
+          "progress": "Upload progress",
+          "copyright": "I confirm I own the copyright or have authorization",
+          "previewGenerating": "Generating previews..."
+        },
+        "meta": {
+          "rating": "Rating",
+          "apply": "Apply Count"
+        },
+        "report": {
+          "copyright": "Copyright",
+          "illegal": "Illegal Content",
+          "other": "Other",
+          "detailPlaceholder": "Optional report details"
+        },
+        "actions": {
+          "search": "Search",
+          "refresh": "Refresh wallpaper list",
+          "expandSearch": "Expand Search",
+          "collapseSearch": "Collapse Search",
+          "goContribution": "Go to Contribution",
+          "prevPage": "Previous",
+          "nextPage": "Next",
+          "upload": "Upload Wallpaper",
+          "uploading": "Uploading...",
+          "apply": "Apply as Background",
+          "applying": "Applying...",
+          "rate": "Submit Rating",
+          "rating": "Submitting...",
+          "report": "Report",
+          "reporting": "Submitting...",
+          "expandRate": "Rate",
+          "collapseRate": "Collapse Rating",
+          "expandReport": "Report",
+          "collapseReport": "Collapse Report",
+          "submitReport": "Submit Report",
+          "editMetadata": "Edit Metadata",
+          "cancelEdit": "Cancel Edit",
+          "saveMetadata": "Save Metadata",
+          "savingMetadata": "Saving...",
+          "delete": "Delete Wallpaper",
+          "deleting": "Deleting...",
+          "confirmDelete": "Delete this wallpaper?",
+          "confirmDeleteBtn": "Confirm Delete",
+          "cancelDelete": "Cancel"
+        },
+        "feedback": {
+          "loading": "Loading...",
+          "empty": "No wallpapers yet",
+          "selectHint": "Select a wallpaper from the left list",
+          "loadFailed": "Failed to load wallpapers",
+          "detailFailed": "Failed to load details",
+          "titleRequired": "Title is required",
+          "fileRequired": "Please select an image file",
+          "copyrightRequired": "Please confirm copyright declaration",
+          "fileTooLarge": "Image must be <= 20MB",
+          "uploadFailed": "Upload failed",
+          "uploadSuccess": "Uploaded. Waiting for review",
+          "applying": "Applying...",
+          "applyFailed": "Failed to apply wallpaper",
+          "applySuccess": "Wallpaper applied",
+          "rating": "Submitting rating...",
+          "rateFailed": "Rating failed",
+          "rateSuccess": "Rating submitted",
+          "reporting": "Submitting report...",
+          "reportFailed": "Report failed",
+          "reportSuccess": "Report submitted",
+          "deleting": "Deleting...",
+          "deleteFailed": "Delete failed",
+          "deleteSuccess": "Deleted",
+          "saving": "Saving...",
+          "updateFailed": "Save failed",
+          "updateSuccess": "Saved and pending review"
+        },
+        "pagination": {
+          "page": "Page {{page}}"
+        }
       }
     },
     "ai": {
