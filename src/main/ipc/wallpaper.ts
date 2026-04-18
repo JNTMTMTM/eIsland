@@ -35,9 +35,12 @@ import { join } from 'path';
  */
 export function registerWallpaperIpcHandlers(): void {
   const wallpaperCacheDir = join(app.getPath('userData'), 'wallpapers');
+  const resolveDialogWindow = (event: Electron.IpcMainInvokeEvent): BrowserWindow | null => {
+    return BrowserWindow.fromWebContents(event.sender) ?? BrowserWindow.getFocusedWindow();
+  };
 
-  ipcMain.handle('dialog:open-image', async () => {
-    const win = BrowserWindow.getFocusedWindow();
+  ipcMain.handle('dialog:open-image', async (event) => {
+    const win = resolveDialogWindow(event);
     if (!win) return null;
     const result = await dialog.showOpenDialog(win, {
       title: '选择图片',
@@ -49,6 +52,35 @@ export function registerWallpaperIpcHandlers(): void {
     try {
       if (!existsSync(wallpaperCacheDir)) mkdirSync(wallpaperCacheDir, { recursive: true });
       const ext = filePath.split('.').pop()?.toLowerCase() || 'png';
+      const destName = `custom-bg-${Date.now()}.${ext}`;
+      const destPath = join(wallpaperCacheDir, destName);
+      try {
+        readdirSync(wallpaperCacheDir)
+          .filter((f) => f.startsWith('custom-bg-'))
+          .forEach((f) => unlinkSync(join(wallpaperCacheDir, f)));
+      } catch {
+        // ignore
+      }
+      copyFileSync(filePath, destPath);
+      return destPath;
+    } catch {
+      return null;
+    }
+  });
+
+  ipcMain.handle('dialog:open-video', async (event) => {
+    const win = resolveDialogWindow(event);
+    if (!win) return null;
+    const result = await dialog.showOpenDialog(win, {
+      title: '选择视频',
+      filters: [{ name: '视频', extensions: ['mp4', 'webm', 'mov', 'm4v', 'avi', 'mkv'] }],
+      properties: ['openFile'],
+    });
+    if (result.canceled || result.filePaths.length === 0) return null;
+    const filePath = result.filePaths[0];
+    try {
+      if (!existsSync(wallpaperCacheDir)) mkdirSync(wallpaperCacheDir, { recursive: true });
+      const ext = filePath.split('.').pop()?.toLowerCase() || 'mp4';
       const destName = `custom-bg-${Date.now()}.${ext}`;
       const destPath = join(wallpaperCacheDir, destName);
       try {

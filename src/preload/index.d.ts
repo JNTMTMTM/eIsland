@@ -98,6 +98,7 @@ declare global {
       openFile: (filePath: string) => Promise<boolean>;
       resolveShortcut: (lnkPath: string) => Promise<{ target: string; name: string } | null>;
       openImageDialog: () => Promise<string | null>;
+      openVideoDialog: () => Promise<string | null>;
       loadWallpaperFile: (filePath: string) => Promise<string | null>;
       clearWallpaperCache: () => Promise<void>;
       netFetch: (url: string, options?: {

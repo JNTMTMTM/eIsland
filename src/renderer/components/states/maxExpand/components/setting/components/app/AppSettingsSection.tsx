@@ -111,6 +111,7 @@ interface AppSettingsSectionProps {
   bgOpacitySaveTimerRef: { current: ReturnType<typeof setTimeout> | null };
   bgBlurSaveTimerRef: { current: ReturnType<typeof setTimeout> | null };
   handleSelectBgImage: () => Promise<void>;
+  handleSelectBgVideo: () => Promise<void>;
   handleClearBgImage: () => void;
   handleSelectBuiltinBgImage: (src: string, defaultOpacity: number) => void;
   appSettingsPages: AppSettingsPageKey[];
@@ -190,6 +191,7 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
     bgOpacitySaveTimerRef,
     bgBlurSaveTimerRef,
     handleSelectBgImage,
+    handleSelectBgVideo,
     handleClearBgImage,
     handleSelectBuiltinBgImage,
     appSettingsPages,
@@ -516,17 +518,38 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
                     </button>
                   )}
                 </div>
+
+                <div className="settings-music-label" style={{ marginTop: 14 }}>{t('settings.app.theme.customVideo', { defaultValue: '自定义视频' })}</div>
+                <div className="settings-music-hint">{t('settings.app.theme.customVideoHint', { defaultValue: '从本地选择视频，支持 mp4 / webm / mov / m4v / avi / mkv' })}</div>
+                <div className="settings-hotkey-row" style={{ marginTop: 8, gap: 8, alignItems: 'center' }}>
+                  <button className="settings-hotkey-btn" type="button" onClick={() => { handleSelectBgVideo().catch(() => {}); }}>
+                    {bgMediaType === 'video' && bgMediaPreviewUrl
+                      ? t('settings.app.theme.changeVideo', { defaultValue: '更换视频' })
+                      : t('settings.app.theme.selectVideo', { defaultValue: '选择视频' })}
+                  </button>
+                  {(bgMediaType === 'image' || bgMediaType === 'video') && (
+                    <button className="settings-hotkey-btn" type="button" onClick={handleClearBgImage}>
+                      {t('settings.app.theme.clearBackground', { defaultValue: '清除背景' })}
+                    </button>
+                  )}
+                </div>
+
                 {bgMediaType && bgMediaPreviewUrl && (
                   <>
                     <div className="settings-bg-preview" style={{ marginTop: 8 }}>
                       {bgMediaType === 'video' ? (
                         <video
+                          key={bgMediaPreviewUrl}
                           src={bgMediaPreviewUrl}
                           className="settings-bg-preview-img"
                           autoPlay
                           muted
                           loop
                           playsInline
+                          preload="auto"
+                          onCanPlay={(event) => {
+                            event.currentTarget.play().catch(() => {});
+                          }}
                         />
                       ) : (
                         <img src={bgMediaPreviewUrl} alt={t('settings.app.theme.previewAlt', { defaultValue: '背景预览' })} className="settings-bg-preview-img" />

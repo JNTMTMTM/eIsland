@@ -305,6 +305,13 @@ const api = {
     return ipcRenderer.invoke('dialog:open-image');
   },
   /**
+   * 打开视频文件选择对话框
+   * @returns 文件路径，取消返回 null
+   */
+  openVideoDialog: (): Promise<string | null> => {
+    return ipcRenderer.invoke('dialog:open-video');
+  },
+  /**
    * 读取缓存的壁纸文件并返回 base64 data URL
    * @param filePath - 壁纸文件绝对路径
    * @returns data URL 字符串，失败返回 null

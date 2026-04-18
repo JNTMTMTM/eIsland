@@ -24,8 +24,9 @@
  * @author 鸡哥
  */
 
-import { app, BrowserWindow, globalShortcut } from 'electron';
-import { join } from 'path';
+import { app, BrowserWindow, globalShortcut, protocol, net } from 'electron';
+import { join, resolve as resolvePath } from 'path';
+import { pathToFileURL } from 'url';
 import { mkdirSync, existsSync, readFileSync, writeFileSync } from 'fs';
 import { electronApp, optimizer } from '@electron-toolkit/utils';
 import { autoUpdater } from 'electron-updater';
@@ -425,6 +426,26 @@ const clipboardUrlState = createClipboardUrlState();
  */
 applyChromiumPerformanceFlags(app);
 
+/**
+ * 注册自定义媒体协议
+ * @description 必须在 app.whenReady() 之前调用，用于在渲染进程中安全加载
+ *   userData/wallpapers 下的本地媒体文件（例如自定义背景视频），
+ *   避免 <video> 直连 file:// 被 webSecurity 阻断
+ */
+protocol.registerSchemesAsPrivileged([
+  {
+    scheme: 'eisland-media',
+    privileges: {
+      standard: true,
+      secure: true,
+      supportFetchAPI: true,
+      stream: true,
+      corsEnabled: true,
+      bypassCSP: true,
+    },
+  },
+]);
+
 registerAppLifecycleHandlers({
   getMainWindow: () => mainWindow,
   onWillQuit: () => {
@@ -450,6 +471,57 @@ app.whenReady().then(() => {
 
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window);
+  });
+
+  /**
+   * eisland-media:// 协议处理器
+   * @description 将形如 eisland-media://local/<encoded-abs-path> 的请求代理到本地文件，
+   *   限制只能读取 userData/wallpapers 目录，保证渲染进程无法越权访问磁盘。
+   *   使用纯字符串切片解析以避免 Node URL 解析对非内置 scheme 的差异。
+   */
+  const wallpaperCacheDir = resolvePath(join(app.getPath('userData'), 'wallpapers'));
+  protocol.handle('eisland-media', (request) => {
+    try {
+      const raw = request.url;
+      const schemePrefix = 'eisland-media://';
+      if (!raw.startsWith(schemePrefix)) {
+        return new Response('Bad Request', { status: 400 });
+      }
+      let rest = raw.slice(schemePrefix.length);
+      if (rest.startsWith('/')) {
+        // eisland-media:///<encoded>
+        rest = rest.slice(1);
+      } else {
+        // eisland-media://<host>/<encoded>
+        const firstSlash = rest.indexOf('/');
+        if (firstSlash < 0) {
+          return new Response('Bad Request', { status: 400 });
+        }
+        rest = rest.slice(firstSlash + 1);
+      }
+      // 忽略可能的查询串/片段
+      const qIdx = rest.search(/[?#]/);
+      if (qIdx >= 0) rest = rest.slice(0, qIdx);
+      const rawPath = decodeURIComponent(rest);
+      const absPath = resolvePath(rawPath);
+      const allowedPrefix = wallpaperCacheDir.endsWith('\\') || wallpaperCacheDir.endsWith('/')
+        ? wallpaperCacheDir
+        : `${wallpaperCacheDir}${process.platform === 'win32' ? '\\' : '/'}`;
+      const normalizedAbs = process.platform === 'win32' ? absPath.toLowerCase() : absPath;
+      const normalizedPrefix = process.platform === 'win32' ? allowedPrefix.toLowerCase() : allowedPrefix;
+      if (!normalizedAbs.startsWith(normalizedPrefix)) {
+        console.warn('[eisland-media] forbidden path:', absPath);
+        return new Response('Forbidden', { status: 403 });
+      }
+      if (!existsSync(absPath)) {
+        console.warn('[eisland-media] not found:', absPath);
+        return new Response('Not Found', { status: 404 });
+      }
+      return net.fetch(pathToFileURL(absPath).toString());
+    } catch (err) {
+      console.error('[eisland-media] handler error:', err);
+      return new Response('Bad Request', { status: 400 });
+    }
   });
 
   islandPositionOffset = readIslandPositionOffsetConfig();

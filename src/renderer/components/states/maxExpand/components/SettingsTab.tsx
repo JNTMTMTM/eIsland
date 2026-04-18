@@ -113,16 +113,9 @@ function isDirectBgMediaUrl(source: string): boolean {
     || source.startsWith('assets/');
 }
 
-function toFileUrl(path: string): string {
-  if (path.startsWith('file://')) return path;
+function toMediaUrl(path: string): string {
   const normalized = path.replace(/\\/g, '/');
-  if (/^[a-zA-Z]:\//.test(normalized)) {
-    return `file:///${normalized}`;
-  }
-  if (normalized.startsWith('//')) {
-    return `file:${normalized}`;
-  }
-  return `file://${normalized}`;
+  return `eisland-media://local/${encodeURIComponent(normalized)}`;
 }
 
 function normalizeBgMediaConfig(value: unknown): IslandBgMediaConfig | null {
@@ -157,7 +150,7 @@ async function resolveBgMediaPreviewUrl(media: IslandBgMediaConfig): Promise<str
     return window.api.loadWallpaperFile?.(media.source) ?? null;
   }
   if (isDirectBgMediaUrl(media.source)) return media.source;
-  return toFileUrl(media.source);
+  return toMediaUrl(media.source);
 }
 
 function applyIslandOpacity(opacity: number): void {
@@ -359,6 +352,10 @@ export function SettingsTab(): ReactElement {
         el.style.backgroundImage = `url(${previewUrl})`;
         el.style.opacity = String(bgImageOpacity / 100);
         el.style.filter = `blur(${bgImageBlur}px)`;
+      } else if (media?.type === 'video' && previewUrl) {
+        el.style.backgroundImage = '';
+        el.style.opacity = String(bgImageOpacity / 100);
+        el.style.filter = `blur(${bgImageBlur}px)`;
       } else {
         el.style.backgroundImage = '';
         el.style.opacity = '0';
@@ -415,6 +412,16 @@ export function SettingsTab(): ReactElement {
     if (!dataUrl) return;
     const media: IslandBgMediaConfig = { type: 'image', source: filePath };
     applyBgMedia(media, dataUrl);
+    persistBgMedia(media);
+  };
+
+  const handleSelectBgVideo = async (): Promise<void> => {
+    const filePath = await window.api.openVideoDialog();
+    if (!filePath) return;
+    const media: IslandBgMediaConfig = { type: 'video', source: filePath };
+    const previewUrl = await resolveBgMediaPreviewUrl(media);
+    if (!previewUrl) return;
+    applyBgMedia(media, previewUrl);
     persistBgMedia(media);
   };
 
@@ -1756,6 +1763,7 @@ export function SettingsTab(): ReactElement {
               bgOpacitySaveTimerRef={bgOpacitySaveTimerRef}
               bgBlurSaveTimerRef={bgBlurSaveTimerRef}
               handleSelectBgImage={handleSelectBgImage}
+              handleSelectBgVideo={handleSelectBgVideo}
               handleClearBgImage={handleClearBgImage}
               handleSelectBuiltinBgImage={handleSelectBuiltinBgImage}
               appSettingsPages={APP_SETTINGS_PAGES}

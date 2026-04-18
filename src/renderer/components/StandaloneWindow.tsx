@@ -78,16 +78,9 @@ function isDirectBgMediaUrl(source: string): boolean {
     || source.startsWith('assets/');
 }
 
-function toFileUrl(path: string): string {
-  if (path.startsWith('file://')) return path;
+function toMediaUrl(path: string): string {
   const normalized = path.replace(/\\/g, '/');
-  if (/^[a-zA-Z]:\//.test(normalized)) {
-    return `file:///${normalized}`;
-  }
-  if (normalized.startsWith('//')) {
-    return `file:${normalized}`;
-  }
-  return `file://${normalized}`;
+  return `eisland-media://local/${encodeURIComponent(normalized)}`;
 }
 
 function normalizeBgMediaConfig(value: unknown): IslandBgMediaConfig | null {
@@ -122,7 +115,7 @@ async function resolveBgMediaPreviewUrl(media: IslandBgMediaConfig): Promise<str
     return window.api.loadWallpaperFile?.(media.source) ?? null;
   }
   if (isDirectBgMediaUrl(media.source)) return media.source;
-  return toFileUrl(media.source);
+  return toMediaUrl(media.source);
 }
 
 const TAB_LIST: { key: WindowTab; labelKey: string }[] = [
@@ -307,12 +300,17 @@ export function StandaloneWindow(): ReactElement {
       >
         {bgMedia?.type === 'video' && (
           <video
+            key={bgMedia.previewUrl}
             className="cw-bg-video"
             src={bgMedia.previewUrl}
             autoPlay
             muted
             loop
             playsInline
+            preload="auto"
+            onCanPlay={(event) => {
+              event.currentTarget.play().catch(() => {});
+            }}
           />
         )}
       </div>

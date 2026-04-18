@@ -55,6 +55,7 @@ const SHELL_MORPH_DURATION_MS = 550;
 const CLIPBOARD_URL_SUPPRESS_IN_FAVORITES_KEY = 'clipboard-url-suppress-in-url-favorites';
 const ISLAND_BG_MEDIA_STORE_KEY = 'island-bg-media';
 const ISLAND_BG_IMAGE_STORE_KEY = 'island-bg-image';
+const LOCAL_ISLAND_BG_SYNC_EVENT = 'island-bg-local-sync';
 
 type IslandBgMediaType = 'image' | 'video';
 
@@ -75,16 +76,9 @@ function isDirectBgMediaUrl(source: string): boolean {
     || source.startsWith('assets/');
 }
 
-function toFileUrl(path: string): string {
-  if (path.startsWith('file://')) return path;
+function toMediaUrl(path: string): string {
   const normalized = path.replace(/\\/g, '/');
-  if (/^[a-zA-Z]:\//.test(normalized)) {
-    return `file:///${normalized}`;
-  }
-  if (normalized.startsWith('//')) {
-    return `file:${normalized}`;
-  }
-  return `file://${normalized}`;
+  return `eisland-media://local/${encodeURIComponent(normalized)}`;
 }
 
 function normalizeBgMediaConfig(value: unknown): IslandBgMediaConfig | null {
@@ -119,7 +113,7 @@ async function resolveBgMediaPreviewUrl(media: IslandBgMediaConfig): Promise<str
     return window.api?.loadWallpaperFile?.(media.source) ?? null;
   }
   if (isDirectBgMediaUrl(media.source)) return media.source;
-  return toFileUrl(media.source);
+  return toMediaUrl(media.source);
 }
 
 /** 各状态对应的窗口面积（宽×高），用于判断状态切换是放大还是缩小 */
@@ -316,21 +310,32 @@ function DynamicIsland(): React.JSX.Element {
   const setNotificationRef = useRef(setNotification);
   const expandLeaveIdleRef = useRef(false);
   const maxExpandLeaveIdleRef = useRef(false);
+  const bgOpacityRef = useRef<number>(30);
+  const bgBlurRef = useRef<number>(0);
   const [bgMedia, setBgMedia] = useState<{ type: IslandBgMediaType; previewUrl: string } | null>(null);
 
   const applyBgMedia = (media: IslandBgMediaConfig | null, previewUrl: string | null): void => {
     const el = document.getElementById('island-bg-layer');
     if (!el) return;
+    const applyLayerVisibility = (): void => {
+      el.style.opacity = String(Math.max(0, Math.min(100, bgOpacityRef.current)) / 100);
+      const safeBlur = Math.max(0, Math.min(20, Math.round(bgBlurRef.current)));
+      el.style.filter = safeBlur > 0 ? `blur(${safeBlur}px)` : 'none';
+    };
     if (media?.type === 'image' && previewUrl) {
       el.style.backgroundImage = `url(${previewUrl})`;
+      applyLayerVisibility();
       setBgMedia(null);
       return;
     }
     el.style.backgroundImage = '';
     if (media?.type === 'video' && previewUrl) {
+      applyLayerVisibility();
       setBgMedia({ type: 'video', previewUrl });
       return;
     }
+    el.style.opacity = '0';
+    el.style.filter = 'none';
     setBgMedia(null);
   };
 
@@ -439,6 +444,12 @@ function DynamicIsland(): React.JSX.Element {
       ]).then(async ([mediaRaw, legacyImage, bgOpacity, bgBlur]) => {
         const el = document.getElementById('island-bg-layer');
         if (!el) return;
+        if (typeof bgOpacity === 'number' && Number.isFinite(bgOpacity)) {
+          bgOpacityRef.current = Math.max(0, Math.min(100, bgOpacity));
+        }
+        if (typeof bgBlur === 'number' && Number.isFinite(bgBlur)) {
+          bgBlurRef.current = Math.max(0, Math.min(20, Math.round(bgBlur)));
+        }
         const media = normalizeBgMediaConfig(mediaRaw)
           ?? (typeof legacyImage === 'string' ? normalizeBgMediaConfig(legacyImage) : null);
         if (media) {
@@ -446,12 +457,9 @@ function DynamicIsland(): React.JSX.Element {
           if (previewUrl) {
             applyBgMedia(media, previewUrl);
           }
-        }
-        if (typeof bgOpacity === 'number' && Number.isFinite(bgOpacity)) {
-          el.style.opacity = String(Math.max(0, Math.min(100, bgOpacity)) / 100);
-        }
-        if (typeof bgBlur === 'number' && Number.isFinite(bgBlur)) {
-          const safeBlur = Math.max(0, Math.min(20, Math.round(bgBlur)));
+        } else {
+          el.style.opacity = String(bgOpacityRef.current / 100);
+          const safeBlur = bgBlurRef.current;
           el.style.filter = safeBlur > 0 ? `blur(${safeBlur}px)` : 'none';
         }
       }).catch(() => {});
@@ -526,14 +534,15 @@ function DynamicIsland(): React.JSX.Element {
           const el = document.getElementById('island-bg-layer');
           if (!el) return;
           const v = typeof value === 'number' && Number.isFinite(value) ? value : 100;
-          el.style.opacity = String(Math.max(0, Math.min(100, v)) / 100);
+          bgOpacityRef.current = Math.max(0, Math.min(100, v));
+          el.style.opacity = String(bgOpacityRef.current / 100);
         }
         if (channel === 'store:island-bg-blur') {
           const el = document.getElementById('island-bg-layer');
           if (!el) return;
           const v = typeof value === 'number' && Number.isFinite(value) ? value : 0;
-          const safeBlur = Math.max(0, Math.min(20, Math.round(v)));
-          el.style.filter = safeBlur > 0 ? `blur(${safeBlur}px)` : 'none';
+          bgBlurRef.current = Math.max(0, Math.min(20, Math.round(v)));
+          el.style.filter = bgBlurRef.current > 0 ? `blur(${bgBlurRef.current}px)` : 'none';
         }
         if (channel === 'island:position') {
           const offset = value as { x: number; y: number };
@@ -542,6 +551,17 @@ function DynamicIsland(): React.JSX.Element {
           }
         }
       });
+
+      // 同窗口内（集成模式）背景媒体同步：设置页直接 DOM 操作 + 本地事件
+      const localBgSyncHandler = (event: Event): void => {
+        const customEvent = event as CustomEvent<{ media?: IslandBgMediaConfig | null; previewUrl?: string | null; opacity?: number; blur?: number }>;
+        const detail = customEvent.detail;
+        if (!detail || typeof detail !== 'object') return;
+        if ('media' in detail || 'previewUrl' in detail) {
+          applyBgMedia(detail.media ?? null, detail.previewUrl ?? null);
+        }
+      };
+      window.addEventListener(LOCAL_ISLAND_BG_SYNC_EVENT, localBgSyncHandler as EventListener);
     }
   }, [i18n.resolvedLanguage]);
 
@@ -971,12 +991,17 @@ function DynamicIsland(): React.JSX.Element {
       <div className="island-bg-layer" id="island-bg-layer">
         {bgMedia?.type === 'video' && (
           <video
+            key={bgMedia.previewUrl}
             className="island-bg-video"
             src={bgMedia.previewUrl}
             autoPlay
             muted
             loop
             playsInline
+            preload="auto"
+            onCanPlay={(event) => {
+              event.currentTarget.play().catch(() => {});
+            }}
           />
         )}
       </div>
