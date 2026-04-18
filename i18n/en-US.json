@@ -927,6 +927,8 @@
           "titlePlaceholder": "Title",
           "tagsPlaceholder": "Tags (comma separated)",
           "descriptionPlaceholder": "Description",
+          "chooseFile": "Choose image file",
+          "noFile": "No file selected",
           "copyright": "I confirm I own the copyright or have authorization",
           "previewGenerating": "Generating previews..."
         },

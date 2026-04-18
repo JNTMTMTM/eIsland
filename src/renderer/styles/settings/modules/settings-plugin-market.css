@@ -42,6 +42,35 @@
   grid-column: 1 / -1;
 }
 
+.settings-plugin-market-upload-file-row {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.settings-plugin-market-upload-file-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.settings-plugin-market-upload-file-btn {
+  flex-shrink: 0;
+}
+
+.settings-plugin-market-upload-file-name {
+  min-width: 0;
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .settings-plugin-market-upload-previews {
   grid-column: 1 / -1;
   display: flex;

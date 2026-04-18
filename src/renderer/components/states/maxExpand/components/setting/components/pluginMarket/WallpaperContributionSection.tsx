@@ -60,6 +60,7 @@ export function WallpaperContributionSection({ onGoWallpaper }: WallpaperContrib
   const [previews, setPreviews] = useState<PreviewEntry[]>([]);
   const [previewBusy, setPreviewBusy] = useState(false);
   const previewsRef = useRef<PreviewEntry[]>([]);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => { previewsRef.current = previews; }, [previews]);
   useEffect(() => () => {
@@ -69,6 +70,13 @@ export function WallpaperContributionSection({ onGoWallpaper }: WallpaperContrib
   const clearPreviews = (): void => {
     previewsRef.current.forEach((p) => URL.revokeObjectURL(p.url));
     setPreviews([]);
+  };
+
+  const handleOpenFilePicker = (): void => {
+    if (uploading || previewBusy) {
+      return;
+    }
+    fileInputRef.current?.click();
   };
 
   const loadImageDimensions = (file: File): Promise<{ width: number; height: number }> => (
@@ -176,6 +184,9 @@ export function WallpaperContributionSection({ onGoWallpaper }: WallpaperContrib
       setUploadFile(null);
       setCopyrightDeclared(false);
       clearPreviews();
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     } catch (err) {
       setMessage(err instanceof Error ? err.message : t('settings.pluginMarket.wallpaper.feedback.uploadFailed', { defaultValue: '上传失败' }));
     } finally {
@@ -214,12 +225,26 @@ export function WallpaperContributionSection({ onGoWallpaper }: WallpaperContrib
             onChange={(e) => setUploadDescription(e.target.value)}
             placeholder={t('settings.pluginMarket.wallpaper.upload.descriptionPlaceholder', { defaultValue: '描述' })}
           />
-          <input
-            className="settings-field-input settings-plugin-market-upload-file"
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            onChange={(e) => { handleFilePick(e.target.files?.[0] || null).catch(() => {}); }}
-          />
+          <div className="settings-plugin-market-upload-file-row">
+            <input
+              ref={fileInputRef}
+              className="settings-plugin-market-upload-file-input"
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              onChange={(e) => { handleFilePick(e.target.files?.[0] || null).catch(() => {}); }}
+            />
+            <button
+              className="settings-hotkey-btn settings-plugin-market-upload-file-btn"
+              type="button"
+              onClick={handleOpenFilePicker}
+              disabled={uploading || previewBusy}
+            >
+              {t('settings.pluginMarket.wallpaper.upload.chooseFile', { defaultValue: '选择图片文件' })}
+            </button>
+            <span className="settings-plugin-market-upload-file-name">
+              {uploadFile?.name || t('settings.pluginMarket.wallpaper.upload.noFile', { defaultValue: '未选择文件' })}
+            </span>
+          </div>
           {previewBusy && (
             <div className="settings-plugin-market-upload-previews-hint">
               {t('settings.pluginMarket.wallpaper.upload.previewGenerating', { defaultValue: '正在生成预览…' })}
