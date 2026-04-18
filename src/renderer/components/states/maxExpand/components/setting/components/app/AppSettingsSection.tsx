@@ -106,6 +106,12 @@ interface AppSettingsSectionProps {
   setBgVideoMuted: (value: boolean) => void;
   bgVideoLoop: boolean;
   setBgVideoLoop: (value: boolean) => void;
+  bgVideoVolume: number;
+  setBgVideoVolume: (value: number) => void;
+  bgVideoRate: number;
+  setBgVideoRate: (value: number) => void;
+  bgVideoHwDecode: boolean;
+  setBgVideoHwDecode: (value: boolean) => void;
   bgImageOpacity: number;
   bgImageBlur: number;
   setBgImageOpacity: (value: number) => void;
@@ -115,11 +121,17 @@ interface AppSettingsSectionProps {
   applyBgVideoFit: (value: 'cover' | 'contain') => void;
   applyBgVideoMuted: (value: boolean) => void;
   applyBgVideoLoop: (value: boolean) => void;
+  applyBgVideoVolume: (value: number) => void;
+  applyBgVideoRate: (value: number) => void;
+  applyBgVideoHwDecode: (value: boolean) => void;
   persistBgOpacity: (value: number) => void;
   persistBgBlur: (value: number) => void;
   persistBgVideoFit: (value: 'cover' | 'contain') => void;
   persistBgVideoMuted: (value: boolean) => void;
   persistBgVideoLoop: (value: boolean) => void;
+  persistBgVideoVolume: (value: number) => void;
+  persistBgVideoRate: (value: number) => void;
+  persistBgVideoHwDecode: (value: boolean) => void;
   bgOpacitySaveTimerRef: { current: ReturnType<typeof setTimeout> | null };
   bgBlurSaveTimerRef: { current: ReturnType<typeof setTimeout> | null };
   handleSelectBgImage: () => Promise<void>;
@@ -198,6 +210,12 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
     setBgVideoMuted,
     bgVideoLoop,
     setBgVideoLoop,
+    bgVideoVolume,
+    setBgVideoVolume,
+    bgVideoRate,
+    setBgVideoRate,
+    bgVideoHwDecode,
+    setBgVideoHwDecode,
     bgImageOpacity,
     bgImageBlur,
     setBgImageOpacity,
@@ -207,11 +225,17 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
     applyBgVideoFit,
     applyBgVideoMuted,
     applyBgVideoLoop,
+    applyBgVideoVolume,
+    applyBgVideoRate,
+    applyBgVideoHwDecode,
     persistBgOpacity,
     persistBgBlur,
     persistBgVideoFit,
     persistBgVideoMuted,
     persistBgVideoLoop,
+    persistBgVideoVolume,
+    persistBgVideoRate,
+    persistBgVideoHwDecode,
     bgOpacitySaveTimerRef,
     bgBlurSaveTimerRef,
     handleSelectBgImage,
@@ -610,6 +634,78 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
                           }}
                         />
                         {t('settings.app.theme.videoLoopToggle', { defaultValue: '循环播放视频' })}
+                      </label>
+                    </div>
+                    <div className="settings-music-hint" style={{ marginTop: 8 }}>
+                      {t('settings.app.theme.videoVolumeHint', { defaultValue: '背景视频音量（0 - 100%），取消静音后生效' })}
+                    </div>
+                    <div className="settings-opacity-slider-row">
+                      <input
+                        className="settings-opacity-slider"
+                        type="range"
+                        min={0}
+                        max={100}
+                        step={1}
+                        value={Math.round(bgVideoVolume * 100)}
+                        onChange={(event) => {
+                          const raw = Number(event.target.value);
+                          const safe = Number.isFinite(raw) ? Math.max(0, Math.min(1, raw / 100)) : 0.6;
+                          setBgVideoVolume(safe);
+                          applyBgVideoVolume(safe);
+                          persistBgVideoVolume(safe);
+                          window.api.settingsPreview('store:island-bg-video-volume', safe).catch(() => {});
+                          if (safe > 0 && bgVideoMuted) {
+                            setBgVideoMuted(false);
+                            applyBgVideoMuted(false);
+                            persistBgVideoMuted(false);
+                            window.api.settingsPreview('store:island-bg-video-muted', false).catch(() => {});
+                          }
+                        }}
+                      />
+                      <span className="settings-opacity-slider-value">{Math.round(bgVideoVolume * 100)}%</span>
+                    </div>
+                    <div className="settings-music-hint" style={{ marginTop: 8 }}>
+                      {t('settings.app.theme.videoRateHint', { defaultValue: '播放速度' })}
+                    </div>
+                    <div className="settings-lyrics-source-options" style={{ marginTop: 6 }}>
+                      {([
+                        { value: 0.5, label: '0.5x' },
+                        { value: 0.75, label: '0.75x' },
+                        { value: 1, label: '1.0x' },
+                        { value: 1.25, label: '1.25x' },
+                        { value: 1.5, label: '1.5x' },
+                        { value: 2, label: '2.0x' },
+                      ] as Array<{ value: number; label: string }>).map((opt) => (
+                        <button
+                          key={opt.value}
+                          className={`settings-lyrics-source-btn ${Math.abs(bgVideoRate - opt.value) < 1e-3 ? 'active' : ''}`}
+                          type="button"
+                          onClick={() => {
+                            const safe = Math.max(0.25, Math.min(3, opt.value));
+                            setBgVideoRate(safe);
+                            applyBgVideoRate(safe);
+                            persistBgVideoRate(safe);
+                            window.api.settingsPreview('store:island-bg-video-rate', safe).catch(() => {});
+                          }}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="settings-hotkey-row" style={{ alignItems: 'center', marginTop: 8 }}>
+                      <label className="settings-music-hint" style={{ marginBottom: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <input
+                          type="checkbox"
+                          checked={bgVideoHwDecode}
+                          onChange={(event) => {
+                            const next = event.target.checked;
+                            setBgVideoHwDecode(next);
+                            applyBgVideoHwDecode(next);
+                            persistBgVideoHwDecode(next);
+                            window.api.settingsPreview('store:island-bg-video-hw-decode', next).catch(() => {});
+                          }}
+                        />
+                        {t('settings.app.theme.videoHwDecodeToggle', { defaultValue: '启用硬件解码（重启后生效）' })}
                       </label>
                     </div>
                   </>

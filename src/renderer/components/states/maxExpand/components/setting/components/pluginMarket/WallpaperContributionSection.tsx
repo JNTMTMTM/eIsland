@@ -20,7 +20,7 @@
 
 /**
  * @file WallpaperContributionSection.tsx
- * @description 插件市场壁纸贡献组件
+ * @description 插件市场壁纸贡献组件，支持图片与视频壁纸
  * @author 鸡哥
  */
 
@@ -41,6 +41,11 @@ interface PreviewEntry {
 interface VideoMeta {
   durationMs: number;
   frameRate: number | null;
+  width: number;
+  height: number;
+  videoCodec?: string | null;
+  audioCodec?: string | null;
+  mode?: 'remux' | 'transcode' | 'copy';
 }
 
 interface WallpaperContributionSectionProps {
@@ -154,6 +159,20 @@ async function createVideoPosterAndMeta(file: File): Promise<{ poster: File; wid
 }
 
 /**
+ * 把主进程转码/remux 后的本地视频路径读回渲染端并包装成 File
+ */
+async function readLocalFileAsFile(filePath: string, filename: string, mime: string): Promise<File | null> {
+  try {
+    const buf = await window.api.readLocalFileAsBuffer?.(filePath);
+    if (!buf) return null;
+    const blob = new Blob([buf], { type: mime });
+    return new File([blob], filename, { type: mime });
+  } catch {
+    return null;
+  }
+}
+
+/**
  * 壁纸贡献内容区
  */
 export function WallpaperContributionSection({ onGoWallpaper }: WallpaperContributionSectionProps) {
@@ -170,8 +189,11 @@ export function WallpaperContributionSection({ onGoWallpaper }: WallpaperContrib
   const [copyrightDeclared, setCopyrightDeclared] = useState(false);
   const [previews, setPreviews] = useState<PreviewEntry[]>([]);
   const [previewBusy, setPreviewBusy] = useState(false);
+  const [transcodePercent, setTranscodePercent] = useState<number | null>(null);
+  const [transcodeMode, setTranscodeMode] = useState<'remux' | 'transcode' | 'copy' | null>(null);
   const previewsRef = useRef<PreviewEntry[]>([]);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const prepareSessionRef = useRef(0);
 
   useEffect(() => { previewsRef.current = previews; }, [previews]);
   useEffect(() => () => {
@@ -206,10 +228,87 @@ export function WallpaperContributionSection({ onGoWallpaper }: WallpaperContrib
     })
   );
 
+  const runNativeVideoPrepare = async (file: File): Promise<{ processedFile: File; cover: File; meta: VideoMeta } | null> => {
+    const getPathFn = window.api.getPathForFile;
+    if (typeof getPathFn !== 'function') return null;
+    const localPath = getPathFn(file);
+    if (!localPath) return null;
+    if (typeof window.api.wallpaperVideoPrepare !== 'function') return null;
+
+    const sessionId = ++prepareSessionRef.current;
+    const channel = `wallpaper:video:progress:${sessionId}`;
+    setTranscodePercent(0);
+    setTranscodeMode(null);
+
+    let unsub: (() => void) | null = null;
+    if (typeof window.api.onWallpaperVideoProgress === 'function') {
+      unsub = window.api.onWallpaperVideoProgress(channel, (payload) => {
+        if (prepareSessionRef.current !== sessionId) return;
+        if (payload.stage === 'start' && (payload.mode === 'remux' || payload.mode === 'transcode')) {
+          setTranscodeMode(payload.mode as 'remux' | 'transcode');
+        }
+        if (typeof payload.percent === 'number') {
+          setTranscodePercent(Math.max(0, Math.min(100, Math.round(payload.percent))));
+        }
+        if (payload.stage === 'done') {
+          setTranscodePercent(100);
+        }
+      });
+    }
+
+    try {
+      const prepared = await window.api.wallpaperVideoPrepare({
+        sourcePath: localPath,
+        preferRemux: true,
+        progressChannel: channel,
+      });
+      if (prepareSessionRef.current !== sessionId) return null;
+      if (!prepared.ok || !prepared.playbackPath) return null;
+
+      setTranscodeMode(prepared.mode);
+      const extMatch = prepared.playbackPath.match(/\.([^.\\/]+)$/);
+      const ext = (extMatch ? extMatch[1] : 'mp4').toLowerCase();
+      const mime = ext === 'mov' ? 'video/quicktime' : 'video/mp4';
+      const processedFile = await readLocalFileAsFile(prepared.playbackPath, `wallpaper-${Date.now()}.${ext}`, mime);
+      if (!processedFile) return null;
+
+      let cover: File | null = null;
+      if (prepared.coverPath) {
+        cover = await readLocalFileAsFile(prepared.coverPath, 'cover.jpg', 'image/jpeg');
+      }
+      if (!cover) {
+        const fallback = await createVideoPosterAndMeta(processedFile);
+        cover = fallback.poster;
+      }
+
+      return {
+        processedFile,
+        cover,
+        meta: {
+          durationMs: prepared.durationMs || 0,
+          frameRate: prepared.frameRate ?? null,
+          width: prepared.width || 0,
+          height: prepared.height || 0,
+          videoCodec: prepared.videoCodec,
+          audioCodec: prepared.audioCodec,
+          mode: prepared.mode,
+        },
+      };
+    } catch {
+      return null;
+    } finally {
+      if (unsub) {
+        try { unsub(); } catch { /* ignore */ }
+      }
+    }
+  };
+
   const handleFilePick = async (file: File | null): Promise<void> => {
     clearPreviews();
     setUploadFile(file);
     setUploadVideoMeta(null);
+    setTranscodePercent(null);
+    setTranscodeMode(null);
     if (!file) return;
 
     if (uploadType === 'video') {
@@ -230,24 +329,57 @@ export function WallpaperContributionSection({ onGoWallpaper }: WallpaperContrib
     setPreviewBusy(true);
     try {
       if (uploadType === 'video') {
-        const info = await createVideoPosterAndMeta(file);
-        const posterUrl = URL.createObjectURL(info.poster);
+        let posterFile: File | null = null;
+        let finalFile: File = file;
+        let width = 0;
+        let height = 0;
+        let durationMs = 0;
+        let frameRate: number | null = null;
+        let mode: VideoMeta['mode'] = 'copy';
+
+        const nativeResult = await runNativeVideoPrepare(file);
+        if (nativeResult) {
+          finalFile = nativeResult.processedFile;
+          posterFile = nativeResult.cover;
+          width = nativeResult.meta.width;
+          height = nativeResult.meta.height;
+          durationMs = nativeResult.meta.durationMs;
+          frameRate = nativeResult.meta.frameRate;
+          mode = nativeResult.meta.mode ?? 'copy';
+          if (finalFile.size > MAX_VIDEO_SIZE) {
+            setMessage(t('settings.pluginMarket.wallpaper.feedback.videoTooLarge', { defaultValue: '视频不能超过 100MB' }));
+            return;
+          }
+        }
+
+        if (!posterFile || width <= 0 || height <= 0 || durationMs <= 0) {
+          const info = await createVideoPosterAndMeta(finalFile);
+          posterFile = info.poster;
+          width = width || info.width;
+          height = height || info.height;
+          durationMs = durationMs || info.durationMs;
+          frameRate = frameRate ?? info.frameRate;
+        }
+
+        const posterUrl = URL.createObjectURL(posterFile);
         const img = await new Promise<HTMLImageElement>((resolve, reject) => {
           const image = new Image();
           image.onload = () => resolve(image);
           image.onerror = () => reject(new Error('poster load failed'));
           image.src = posterUrl;
         });
+
         const thumb320 = await createThumbnailFromImageElement(img, 320);
         const thumb720 = await createThumbnailFromImageElement(img, 720);
         const thumb1280 = await createThumbnailFromImageElement(img, 1280);
         const next: PreviewEntry[] = [
-          { label: '320w', url: URL.createObjectURL(thumb320), width: 320, height: Math.round(info.height * 320 / info.width), file: thumb320 },
-          { label: '720w', url: URL.createObjectURL(thumb720), width: 720, height: Math.round(info.height * 720 / info.width), file: thumb720 },
-          { label: '1280w', url: URL.createObjectURL(thumb1280), width: 1280, height: Math.round(info.height * 1280 / info.width), file: thumb1280 },
-          { label: `${info.width}w`, url: posterUrl, width: info.width, height: info.height },
+          { label: '320w', url: URL.createObjectURL(thumb320), width: 320, height: Math.round(height * 320 / Math.max(1, width)), file: thumb320 },
+          { label: '720w', url: URL.createObjectURL(thumb720), width: 720, height: Math.round(height * 720 / Math.max(1, width)), file: thumb720 },
+          { label: '1280w', url: URL.createObjectURL(thumb1280), width: 1280, height: Math.round(height * 1280 / Math.max(1, width)), file: thumb1280 },
+          { label: `${width}w`, url: posterUrl, width, height },
         ];
-        setUploadVideoMeta({ durationMs: info.durationMs, frameRate: info.frameRate });
+        setUploadFile(finalFile);
+        setUploadVideoMeta({ durationMs, frameRate, width, height, mode });
         setPreviews(next);
       } else {
         const dimensions = await loadImageDimensions(file);
@@ -337,6 +469,8 @@ export function WallpaperContributionSection({ onGoWallpaper }: WallpaperContrib
       setUploadFile(null);
       setUploadVideoMeta(null);
       setCopyrightDeclared(false);
+      setTranscodePercent(null);
+      setTranscodeMode(null);
       clearPreviews();
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
@@ -370,6 +504,8 @@ export function WallpaperContributionSection({ onGoWallpaper }: WallpaperContrib
                 setUploadType('image');
                 setUploadFile(null);
                 setUploadVideoMeta(null);
+                setTranscodePercent(null);
+                setTranscodeMode(null);
                 clearPreviews();
                 if (fileInputRef.current) fileInputRef.current.value = '';
               }}
@@ -385,6 +521,8 @@ export function WallpaperContributionSection({ onGoWallpaper }: WallpaperContrib
                 setUploadType('video');
                 setUploadFile(null);
                 setUploadVideoMeta(null);
+                setTranscodePercent(null);
+                setTranscodeMode(null);
                 clearPreviews();
                 if (fileInputRef.current) fileInputRef.current.value = '';
               }}
@@ -433,11 +571,35 @@ export function WallpaperContributionSection({ onGoWallpaper }: WallpaperContrib
               {uploadFile?.name || t('settings.pluginMarket.wallpaper.upload.noFile', { defaultValue: '未选择文件' })}
             </span>
           </div>
+          {uploadType === 'video' && transcodePercent !== null && (
+            <div className="settings-plugin-market-upload-transcode">
+              <div className="settings-plugin-market-upload-progress-text">
+                {transcodeMode === 'remux'
+                  ? t('settings.pluginMarket.wallpaper.upload.transcodeRemux', { defaultValue: '原生规格兼容，正在快速封装…' })
+                  : transcodeMode === 'transcode'
+                    ? t('settings.pluginMarket.wallpaper.upload.transcodeEncoding', { defaultValue: '正在本地转码视频（libx264 / aac）…' })
+                    : t('settings.pluginMarket.wallpaper.upload.transcodePreparing', { defaultValue: '正在准备视频…' })}
+                {' '}
+                {Math.max(0, Math.min(100, transcodePercent))}%
+              </div>
+              <div className="settings-plugin-market-upload-progress-track">
+                <div
+                  className="settings-plugin-market-upload-progress-fill"
+                  style={{ width: `${Math.max(0, Math.min(100, transcodePercent))}%` }}
+                />
+              </div>
+            </div>
+          )}
           {uploadType === 'video' && uploadVideoMeta && (
             <div className="settings-plugin-market-upload-previews-hint">
               {t('settings.pluginMarket.wallpaper.upload.videoMeta', {
-                defaultValue: `时长 ${Math.max(1, Math.round(uploadVideoMeta.durationMs / 1000))}s / 帧率 ${uploadVideoMeta.frameRate ? uploadVideoMeta.frameRate.toFixed(2) : '-'} fps`,
+                defaultValue: `时长 ${Math.max(1, Math.round(uploadVideoMeta.durationMs / 1000))}s / 帧率 ${uploadVideoMeta.frameRate ? uploadVideoMeta.frameRate.toFixed(2) : '-'} fps / 分辨率 ${uploadVideoMeta.width}x${uploadVideoMeta.height}`,
+                seconds: Math.max(1, Math.round(uploadVideoMeta.durationMs / 1000)),
+                fps: uploadVideoMeta.frameRate ? uploadVideoMeta.frameRate.toFixed(2) : '-',
+                width: uploadVideoMeta.width,
+                height: uploadVideoMeta.height,
               })}
+              {uploadVideoMeta.mode ? ` · ${t(`settings.pluginMarket.wallpaper.upload.transcodeMode.${uploadVideoMeta.mode}`, { defaultValue: uploadVideoMeta.mode })}` : ''}
             </div>
           )}
           {previewBusy && (

@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TodoTab } from './states/maxExpand/components/TodoTab';
@@ -44,6 +44,9 @@ const ISLAND_BG_IMAGE_STORE_KEY = 'island-bg-image';
 const ISLAND_BG_VIDEO_FIT_STORE_KEY = 'island-bg-video-fit';
 const ISLAND_BG_VIDEO_MUTED_STORE_KEY = 'island-bg-video-muted';
 const ISLAND_BG_VIDEO_LOOP_STORE_KEY = 'island-bg-video-loop';
+const ISLAND_BG_VIDEO_VOLUME_STORE_KEY = 'island-bg-video-volume';
+const ISLAND_BG_VIDEO_RATE_STORE_KEY = 'island-bg-video-rate';
+const ISLAND_BG_VIDEO_HW_DECODE_STORE_KEY = 'island-bg-video-hw-decode';
 const ISLAND_BG_OPACITY_STORE_KEY = 'island-bg-opacity';
 const ISLAND_BG_BLUR_STORE_KEY = 'island-bg-blur';
 const LOCAL_ISLAND_BG_SYNC_EVENT = 'island-bg-local-sync';
@@ -139,6 +142,10 @@ export function StandaloneWindow(): ReactElement {
   const [bgVideoFit, setBgVideoFit] = useState<'cover' | 'contain'>('cover');
   const [bgVideoMuted, setBgVideoMuted] = useState<boolean>(true);
   const [bgVideoLoop, setBgVideoLoop] = useState<boolean>(true);
+  const [bgVideoVolume, setBgVideoVolume] = useState<number>(0.6);
+  const [bgVideoRate, setBgVideoRate] = useState<number>(1);
+  const [bgVideoHwDecode, setBgVideoHwDecode] = useState<boolean>(true);
+  const bgVideoElementRef = useRef<HTMLVideoElement | null>(null);
   const [bgImageOpacity, setBgImageOpacity] = useState<number>(30);
   const [bgImageBlur, setBgImageBlur] = useState<number>(0);
 
@@ -195,7 +202,10 @@ export function StandaloneWindow(): ReactElement {
       window.api.storeRead(ISLAND_BG_VIDEO_FIT_STORE_KEY) as Promise<'cover' | 'contain' | null>,
       window.api.storeRead(ISLAND_BG_VIDEO_MUTED_STORE_KEY) as Promise<boolean | null>,
       window.api.storeRead(ISLAND_BG_VIDEO_LOOP_STORE_KEY) as Promise<boolean | null>,
-    ]).then(async ([mediaRaw, legacyImage, videoFit, videoMuted, videoLoop]) => {
+      window.api.storeRead(ISLAND_BG_VIDEO_VOLUME_STORE_KEY) as Promise<number | null>,
+      window.api.storeRead(ISLAND_BG_VIDEO_RATE_STORE_KEY) as Promise<number | null>,
+      window.api.storeRead(ISLAND_BG_VIDEO_HW_DECODE_STORE_KEY) as Promise<boolean | null>,
+    ]).then(async ([mediaRaw, legacyImage, videoFit, videoMuted, videoLoop, videoVolume, videoRate, videoHwDecode]) => {
       if (cancelled) return;
       if (videoFit === 'cover' || videoFit === 'contain') {
         setBgVideoFit(videoFit);
@@ -205,6 +215,15 @@ export function StandaloneWindow(): ReactElement {
       }
       if (typeof videoLoop === 'boolean') {
         setBgVideoLoop(videoLoop);
+      }
+      if (typeof videoVolume === 'number' && Number.isFinite(videoVolume)) {
+        setBgVideoVolume(Math.max(0, Math.min(1, videoVolume)));
+      }
+      if (typeof videoRate === 'number' && Number.isFinite(videoRate)) {
+        setBgVideoRate(Math.max(0.25, Math.min(3, videoRate)));
+      }
+      if (typeof videoHwDecode === 'boolean') {
+        setBgVideoHwDecode(videoHwDecode);
       }
       const media = normalizeBgMediaConfig(mediaRaw)
         ?? (typeof legacyImage === 'string' ? normalizeBgMediaConfig(legacyImage) : null);
@@ -273,10 +292,25 @@ export function StandaloneWindow(): ReactElement {
           setBgVideoLoop(value);
         }
       }
+      if (channel === `store:${ISLAND_BG_VIDEO_VOLUME_STORE_KEY}`) {
+        if (typeof value === 'number' && Number.isFinite(value)) {
+          setBgVideoVolume(Math.max(0, Math.min(1, value)));
+        }
+      }
+      if (channel === `store:${ISLAND_BG_VIDEO_RATE_STORE_KEY}`) {
+        if (typeof value === 'number' && Number.isFinite(value)) {
+          setBgVideoRate(Math.max(0.25, Math.min(3, value)));
+        }
+      }
+      if (channel === `store:${ISLAND_BG_VIDEO_HW_DECODE_STORE_KEY}`) {
+        if (typeof value === 'boolean') {
+          setBgVideoHwDecode(value);
+        }
+      }
     });
 
     const localBgSyncHandler = (event: Event): void => {
-      const customEvent = event as CustomEvent<{ media?: IslandBgMediaConfig | null; previewUrl?: string | null; image?: string | null; opacity?: number; blur?: number; videoFit?: 'cover' | 'contain'; videoMuted?: boolean; videoLoop?: boolean }>;
+      const customEvent = event as CustomEvent<{ media?: IslandBgMediaConfig | null; previewUrl?: string | null; image?: string | null; opacity?: number; blur?: number; videoFit?: 'cover' | 'contain'; videoMuted?: boolean; videoLoop?: boolean; videoVolume?: number; videoRate?: number; videoHwDecode?: boolean }>;
       const detail = customEvent.detail;
       if (!detail || typeof detail !== 'object') return;
       const hasMediaPayload = 'media' in detail || 'previewUrl' in detail;
@@ -304,6 +338,15 @@ export function StandaloneWindow(): ReactElement {
       if (typeof detail.videoLoop === 'boolean') {
         setBgVideoLoop(detail.videoLoop);
       }
+      if (typeof detail.videoVolume === 'number' && Number.isFinite(detail.videoVolume)) {
+        setBgVideoVolume(Math.max(0, Math.min(1, detail.videoVolume)));
+      }
+      if (typeof detail.videoRate === 'number' && Number.isFinite(detail.videoRate)) {
+        setBgVideoRate(Math.max(0.25, Math.min(3, detail.videoRate)));
+      }
+      if (typeof detail.videoHwDecode === 'boolean') {
+        setBgVideoHwDecode(detail.videoHwDecode);
+      }
     };
     window.addEventListener(LOCAL_ISLAND_BG_SYNC_EVENT, localBgSyncHandler as EventListener);
 
@@ -313,6 +356,13 @@ export function StandaloneWindow(): ReactElement {
       window.removeEventListener(LOCAL_ISLAND_BG_SYNC_EVENT, localBgSyncHandler as EventListener);
     };
   }, []);
+
+  useEffect(() => {
+    const el = bgVideoElementRef.current;
+    if (!el) return;
+    el.volume = Math.max(0, Math.min(1, bgVideoVolume));
+    el.playbackRate = Math.max(0.25, Math.min(3, bgVideoRate));
+  }, [bgVideoVolume, bgVideoRate]);
 
   const switchTab = (tab: WindowTab): void => {
     setActiveTab(tab);
@@ -331,7 +381,8 @@ export function StandaloneWindow(): ReactElement {
       >
         {bgMedia?.type === 'video' && (
           <video
-            key={bgMedia.previewUrl}
+            key={`${bgMedia.previewUrl}-${bgVideoHwDecode ? 'hw' : 'sw'}`}
+            ref={bgVideoElementRef}
             className="cw-bg-video"
             src={bgMedia.previewUrl}
             autoPlay
@@ -339,8 +390,15 @@ export function StandaloneWindow(): ReactElement {
             loop={bgVideoLoop}
             playsInline
             preload="auto"
-            style={{ objectFit: bgVideoFit }}
+            disableRemotePlayback
+            style={{ objectFit: bgVideoFit, imageRendering: bgVideoHwDecode ? undefined : 'auto' }}
+            onLoadedMetadata={(event) => {
+              event.currentTarget.volume = Math.max(0, Math.min(1, bgVideoVolume));
+              event.currentTarget.playbackRate = Math.max(0.25, Math.min(3, bgVideoRate));
+            }}
             onCanPlay={(event) => {
+              event.currentTarget.volume = Math.max(0, Math.min(1, bgVideoVolume));
+              event.currentTarget.playbackRate = Math.max(0.25, Math.min(3, bgVideoRate));
               event.currentTarget.play().catch(() => {});
             }}
           />

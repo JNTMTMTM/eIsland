@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import { useEffect, useMemo, useState, type ReactElement } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   applyUserWallpaper,
@@ -38,11 +38,19 @@ import { readLocalToken } from '../../../../../../../utils/userAccount';
 import { SvgIcon } from '../../../../../../../utils/SvgIcon';
 
 interface WallpaperMarketSectionProps {
-  onApplyBackground: (imageUrl: string) => void;
+  onApplyBackground: (imageUrl: string, options?: { type?: 'image' | 'video' }) => void;
   onGoContribution: () => void;
 }
 
 const MARKET_PAGE_SIZE = 6;
+
+function formatDuration(durationMs: number | undefined): string {
+  if (!durationMs || !Number.isFinite(durationMs) || durationMs <= 0) return '--:--';
+  const totalSec = Math.round(durationMs / 1000);
+  const minutes = Math.floor(totalSec / 60);
+  const seconds = totalSec % 60;
+  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+}
 
 /**
  * 壁纸市场内容区
@@ -73,10 +81,57 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
   const [applying, setApplying] = useState(false);
   const [submittingRate, setSubmittingRate] = useState(false);
   const [submittingReport, setSubmittingReport] = useState(false);
+  const [hoverVideoId, setHoverVideoId] = useState<number | null>(null);
+  const [detailVideoMuted, setDetailVideoMuted] = useState<boolean>(true);
+  const [detailVideoPlaybackRate, setDetailVideoPlaybackRate] = useState<number>(1);
+  const [detailVideoVolume, setDetailVideoVolume] = useState<number>(0.6);
+  const [detailVideoPlaying, setDetailVideoPlaying] = useState<boolean>(true);
+  const detailVideoRef = useRef<HTMLVideoElement | null>(null);
 
   const selectedPreviewUrl = useMemo(() => (
     selected?.thumb1280Url || selected?.thumb720Url || selected?.thumb320Url || selected?.originalUrl || ''
   ), [selected]);
+  const selectedCoverUrl = useMemo(() => (
+    selected?.thumb1280Url || selected?.thumb720Url || selected?.thumb320Url || ''
+  ), [selected]);
+  const selectedOriginalUrl = selected?.originalUrl || '';
+  const selectedIsVideo = selected?.type === 'video';
+
+  const handleHoverCard = useCallback((item: WallpaperMarketItem): void => {
+    if (item.type === 'video' && item.originalUrl) {
+      setHoverVideoId(item.id);
+    } else {
+      setHoverVideoId(null);
+    }
+  }, []);
+
+  const handleLeaveCard = useCallback((): void => {
+    setHoverVideoId(null);
+  }, []);
+
+  useEffect(() => {
+    // 切换选中项时，重置详情视频状态
+    setDetailVideoPlaying(true);
+    setDetailVideoPlaybackRate(1);
+  }, [selected?.id]);
+
+  useEffect(() => {
+    const video = detailVideoRef.current;
+    if (!video) return;
+    video.muted = detailVideoMuted;
+    video.volume = Math.max(0, Math.min(1, detailVideoVolume));
+    video.playbackRate = detailVideoPlaybackRate;
+  }, [detailVideoMuted, detailVideoVolume, detailVideoPlaybackRate]);
+
+  useEffect(() => {
+    const video = detailVideoRef.current;
+    if (!video) return;
+    if (detailVideoPlaying) {
+      video.play().catch(() => {});
+    } else {
+      video.pause();
+    }
+  }, [detailVideoPlaying, selectedOriginalUrl]);
 
   const renderStars = (avg: number): ReactElement => {
     const filled = Math.max(0, Math.min(5, Math.round(Number(avg) || 0)));
@@ -169,8 +224,11 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
         setMessage(result.message || t('settings.pluginMarket.wallpaper.feedback.applyFailed', { defaultValue: '应用失败' }));
         return;
       }
-      if (selectedPreviewUrl) {
-        onApplyBackground(selectedPreviewUrl);
+      const applyUrl = selectedIsVideo
+        ? (selectedOriginalUrl || selectedPreviewUrl)
+        : selectedPreviewUrl;
+      if (applyUrl) {
+        onApplyBackground(applyUrl, { type: selectedIsVideo ? 'video' : 'image' });
       }
       setMessage(t('settings.pluginMarket.wallpaper.feedback.applySuccess', { defaultValue: '已应用壁纸背景' }));
       await loadDetail(selected.id);
@@ -233,14 +291,41 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
             ) : (
               list.map((item) => {
                 const preview = item.thumb320Url || item.thumb720Url || item.thumb1280Url || item.originalUrl || '';
+                const isVideoCard = item.type === 'video';
+                const showHoverVideo = isVideoCard && hoverVideoId === item.id && !!item.originalUrl;
                 return (
                   <button
                     key={item.id}
                     type="button"
                     className={`settings-plugin-market-card ${selected?.id === item.id ? 'active' : ''}`}
                     onClick={() => { loadDetail(item.id).catch(() => {}); }}
+                    onMouseEnter={() => handleHoverCard(item)}
+                    onMouseLeave={handleLeaveCard}
+                    onFocus={() => handleHoverCard(item)}
+                    onBlur={handleLeaveCard}
                   >
-                    {preview ? <img src={preview} alt={item.title} className="settings-plugin-market-card-img" /> : null}
+                    <div className="settings-plugin-market-card-media">
+                      {preview ? <img src={preview} alt={item.title} className="settings-plugin-market-card-img" /> : null}
+                      {showHoverVideo && item.originalUrl && (
+                        <video
+                          key={`hover-${item.id}`}
+                          className="settings-plugin-market-card-video"
+                          src={item.originalUrl}
+                          autoPlay
+                          muted
+                          loop
+                          playsInline
+                          preload="metadata"
+                          onCanPlay={(event) => { event.currentTarget.play().catch(() => {}); }}
+                        />
+                      )}
+                      {isVideoCard && (
+                        <span className="settings-plugin-market-card-badge">
+                          {t('settings.pluginMarket.wallpaper.badges.video', { defaultValue: '视频' })}
+                          {item.durationMs ? ` · ${formatDuration(item.durationMs)}` : ''}
+                        </span>
+                      )}
+                    </div>
                     <div className="settings-plugin-market-card-body">
                       <div className="settings-plugin-market-card-title">{item.title}</div>
                       <div className="settings-plugin-market-card-meta settings-plugin-market-owner-row">
@@ -326,7 +411,81 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
           ) : (
             <div className="settings-plugin-market-detail-content">
               <div className="settings-plugin-market-detail-preview">
-                {selectedPreviewUrl ? <img src={selectedPreviewUrl} alt={selected.title} className="settings-plugin-market-detail-img" /> : null}
+                {selectedIsVideo && selectedOriginalUrl ? (
+                  <>
+                    <video
+                      ref={detailVideoRef}
+                      key={selectedOriginalUrl}
+                      className="settings-plugin-market-detail-video"
+                      src={selectedOriginalUrl}
+                      poster={selectedCoverUrl || undefined}
+                      autoPlay
+                      loop
+                      playsInline
+                      controls={false}
+                      onEnded={() => setDetailVideoPlaying(true)}
+                      onPlay={() => setDetailVideoPlaying(true)}
+                      onPause={() => setDetailVideoPlaying(false)}
+                    />
+                    <div className="settings-plugin-market-detail-video-controls">
+                      <button
+                        className="settings-hotkey-btn"
+                        type="button"
+                        onClick={() => setDetailVideoPlaying((prev) => !prev)}
+                      >
+                        {detailVideoPlaying
+                          ? t('settings.pluginMarket.wallpaper.videoControls.pause', { defaultValue: '暂停' })
+                          : t('settings.pluginMarket.wallpaper.videoControls.play', { defaultValue: '播放' })}
+                      </button>
+                      <button
+                        className="settings-hotkey-btn"
+                        type="button"
+                        onClick={() => setDetailVideoMuted((prev) => !prev)}
+                      >
+                        {detailVideoMuted
+                          ? t('settings.pluginMarket.wallpaper.videoControls.unmute', { defaultValue: '取消静音' })
+                          : t('settings.pluginMarket.wallpaper.videoControls.mute', { defaultValue: '静音' })}
+                      </button>
+                      <label className="settings-plugin-market-detail-video-slider">
+                        <span>{t('settings.pluginMarket.wallpaper.videoControls.volume', { defaultValue: '音量' })}</span>
+                        <input
+                          type="range"
+                          min={0}
+                          max={1}
+                          step={0.05}
+                          value={detailVideoVolume}
+                          onChange={(event) => {
+                            const value = parseFloat(event.target.value);
+                            if (Number.isFinite(value)) {
+                              setDetailVideoVolume(Math.max(0, Math.min(1, value)));
+                              if (value > 0) setDetailVideoMuted(false);
+                            }
+                          }}
+                        />
+                      </label>
+                      <label className="settings-plugin-market-detail-video-slider">
+                        <span>{t('settings.pluginMarket.wallpaper.videoControls.rate', { defaultValue: '速度' })}</span>
+                        <select
+                          className="settings-field-input"
+                          value={detailVideoPlaybackRate}
+                          onChange={(event) => {
+                            const value = parseFloat(event.target.value);
+                            if (Number.isFinite(value) && value > 0) setDetailVideoPlaybackRate(value);
+                          }}
+                        >
+                          <option value={0.5}>0.5x</option>
+                          <option value={0.75}>0.75x</option>
+                          <option value={1}>1.0x</option>
+                          <option value={1.25}>1.25x</option>
+                          <option value={1.5}>1.5x</option>
+                          <option value={2}>2.0x</option>
+                        </select>
+                      </label>
+                    </div>
+                  </>
+                ) : selectedPreviewUrl ? (
+                  <img src={selectedPreviewUrl} alt={selected.title} className="settings-plugin-market-detail-img" />
+                ) : null}
               </div>
 
               <div className="settings-plugin-market-detail-meta-panel">

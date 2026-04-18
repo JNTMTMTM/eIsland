@@ -124,4 +124,19 @@ export function registerWallpaperIpcHandlers(): void {
       // ignore
     }
   });
+
+  /**
+   * 读取本地文件的二进制内容
+   * @description 限定在 userData/wallpapers 下，用于渲染端把转码后的视频文件重新封装成 File
+   */
+  ipcMain.handle('wallpaper:read-file-buffer', async (_event, filePath: string): Promise<Uint8Array | null> => {
+    try {
+      if (!filePath || typeof filePath !== 'string') return null;
+      if (!existsSync(filePath)) return null;
+      const buf = readFileSync(filePath);
+      return new Uint8Array(buf);
+    } catch {
+      return null;
+    }
+  });
 }

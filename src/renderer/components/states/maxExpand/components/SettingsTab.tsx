@@ -95,6 +95,9 @@ const ISLAND_BG_IMAGE_STORE_KEY = 'island-bg-image';
 const ISLAND_BG_VIDEO_FIT_STORE_KEY = 'island-bg-video-fit';
 const ISLAND_BG_VIDEO_MUTED_STORE_KEY = 'island-bg-video-muted';
 const ISLAND_BG_VIDEO_LOOP_STORE_KEY = 'island-bg-video-loop';
+const ISLAND_BG_VIDEO_VOLUME_STORE_KEY = 'island-bg-video-volume';
+const ISLAND_BG_VIDEO_RATE_STORE_KEY = 'island-bg-video-rate';
+const ISLAND_BG_VIDEO_HW_DECODE_STORE_KEY = 'island-bg-video-hw-decode';
 let _lastSettingsSidebarTab: SettingsSidebarTabKey = 'index';
 
 type IslandBgMediaType = 'image' | 'video';
@@ -328,6 +331,9 @@ export function SettingsTab(): ReactElement {
   const [bgVideoFit, setBgVideoFit] = useState<'cover' | 'contain'>('cover');
   const [bgVideoMuted, setBgVideoMuted] = useState<boolean>(true);
   const [bgVideoLoop, setBgVideoLoop] = useState<boolean>(true);
+  const [bgVideoVolume, setBgVideoVolume] = useState<number>(0.6);
+  const [bgVideoRate, setBgVideoRate] = useState<number>(1);
+  const [bgVideoHwDecode, setBgVideoHwDecode] = useState<boolean>(true);
   const [bgImageOpacity, setBgImageOpacity] = useState<number>(30);
   const [bgImageBlur, setBgImageBlur] = useState<number>(0);
   const bgOpacitySaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -415,6 +421,26 @@ export function SettingsTab(): ReactElement {
     }));
   };
 
+  const applyBgVideoVolume = (value: number): void => {
+    const safe = Math.max(0, Math.min(1, value));
+    window.dispatchEvent(new CustomEvent(LOCAL_ISLAND_BG_SYNC_EVENT, {
+      detail: { videoVolume: safe },
+    }));
+  };
+
+  const applyBgVideoRate = (value: number): void => {
+    const safe = Math.max(0.25, Math.min(3, value));
+    window.dispatchEvent(new CustomEvent(LOCAL_ISLAND_BG_SYNC_EVENT, {
+      detail: { videoRate: safe },
+    }));
+  };
+
+  const applyBgVideoHwDecode = (value: boolean): void => {
+    window.dispatchEvent(new CustomEvent(LOCAL_ISLAND_BG_SYNC_EVENT, {
+      detail: { videoHwDecode: value },
+    }));
+  };
+
   const persistBgMedia = (media: IslandBgMediaConfig | null): void => {
     window.api.storeWrite(ISLAND_BG_MEDIA_STORE_KEY, media).catch(() => {});
     const legacyImage = media?.type === 'image' ? media.source : null;
@@ -431,6 +457,20 @@ export function SettingsTab(): ReactElement {
 
   const persistBgVideoLoop = (value: boolean): void => {
     window.api.storeWrite(ISLAND_BG_VIDEO_LOOP_STORE_KEY, value).catch(() => {});
+  };
+
+  const persistBgVideoVolume = (value: number): void => {
+    const safe = Math.max(0, Math.min(1, value));
+    window.api.storeWrite(ISLAND_BG_VIDEO_VOLUME_STORE_KEY, safe).catch(() => {});
+  };
+
+  const persistBgVideoRate = (value: number): void => {
+    const safe = Math.max(0.25, Math.min(3, value));
+    window.api.storeWrite(ISLAND_BG_VIDEO_RATE_STORE_KEY, safe).catch(() => {});
+  };
+
+  const persistBgVideoHwDecode = (value: boolean): void => {
+    window.api.storeWrite(ISLAND_BG_VIDEO_HW_DECODE_STORE_KEY, value).catch(() => {});
   };
 
   const persistBgOpacity = (value: number): void => {
@@ -476,12 +516,15 @@ export function SettingsTab(): ReactElement {
     persistBgOpacity(defaultOpacity);
   };
 
-  const handleApplyMarketplaceWallpaper = (imageUrl: string): void => {
-    if (!imageUrl) return;
-    const media: IslandBgMediaConfig = { type: 'image', source: imageUrl };
-    applyBgMedia(media, imageUrl);
+  const handleApplyMarketplaceWallpaper = (mediaUrl: string, options?: { type?: 'image' | 'video' }): void => {
+    if (!mediaUrl) return;
+    const mediaType: 'image' | 'video' = options?.type === 'video' ? 'video' : 'image';
+    const media: IslandBgMediaConfig = { type: mediaType, source: mediaUrl };
+    applyBgMedia(media, mediaUrl);
     persistBgMedia(media);
-    window.api.settingsPreview('store:island-bg-image', imageUrl).catch(() => {});
+    if (mediaType === 'image') {
+      window.api.settingsPreview('store:island-bg-image', mediaUrl).catch(() => {});
+    }
     window.api.settingsPreview('store:island-bg-media', media).catch(() => {});
   };
 
@@ -631,7 +674,10 @@ export function SettingsTab(): ReactElement {
       window.api.storeRead(ISLAND_BG_VIDEO_LOOP_STORE_KEY) as Promise<boolean | null>,
       window.api.storeRead('island-bg-opacity') as Promise<number | null>,
       window.api.storeRead('island-bg-blur') as Promise<number | null>,
-    ]).then(async ([mediaRaw, legacyImage, videoFit, videoMuted, videoLoop, opacity, blur]) => {
+      window.api.storeRead(ISLAND_BG_VIDEO_VOLUME_STORE_KEY) as Promise<number | null>,
+      window.api.storeRead(ISLAND_BG_VIDEO_RATE_STORE_KEY) as Promise<number | null>,
+      window.api.storeRead(ISLAND_BG_VIDEO_HW_DECODE_STORE_KEY) as Promise<boolean | null>,
+    ]).then(async ([mediaRaw, legacyImage, videoFit, videoMuted, videoLoop, opacity, blur, videoVolume, videoRate, videoHwDecode]) => {
       if (cancelled) return;
       if (videoFit === 'cover' || videoFit === 'contain') {
         setBgVideoFit(videoFit);
@@ -641,6 +687,15 @@ export function SettingsTab(): ReactElement {
       }
       if (typeof videoLoop === 'boolean') {
         setBgVideoLoop(videoLoop);
+      }
+      if (typeof videoVolume === 'number' && Number.isFinite(videoVolume)) {
+        setBgVideoVolume(Math.max(0, Math.min(1, videoVolume)));
+      }
+      if (typeof videoRate === 'number' && Number.isFinite(videoRate)) {
+        setBgVideoRate(Math.max(0.25, Math.min(3, videoRate)));
+      }
+      if (typeof videoHwDecode === 'boolean') {
+        setBgVideoHwDecode(videoHwDecode);
       }
       if (typeof opacity === 'number' && Number.isFinite(opacity)) setBgImageOpacity(Math.max(0, Math.min(100, Math.round(opacity))));
       if (typeof blur === 'number' && Number.isFinite(blur)) setBgImageBlur(Math.max(0, Math.min(20, Math.round(blur))));
@@ -740,6 +795,21 @@ export function SettingsTab(): ReactElement {
       if (channel === `store:${ISLAND_BG_VIDEO_LOOP_STORE_KEY}`) {
         if (typeof value === 'boolean') {
           setBgVideoLoop(value);
+        }
+      }
+      if (channel === `store:${ISLAND_BG_VIDEO_VOLUME_STORE_KEY}`) {
+        if (typeof value === 'number' && Number.isFinite(value)) {
+          setBgVideoVolume(Math.max(0, Math.min(1, value)));
+        }
+      }
+      if (channel === `store:${ISLAND_BG_VIDEO_RATE_STORE_KEY}`) {
+        if (typeof value === 'number' && Number.isFinite(value)) {
+          setBgVideoRate(Math.max(0.25, Math.min(3, value)));
+        }
+      }
+      if (channel === `store:${ISLAND_BG_VIDEO_HW_DECODE_STORE_KEY}`) {
+        if (typeof value === 'boolean') {
+          setBgVideoHwDecode(value);
         }
       }
     });
@@ -1801,6 +1871,12 @@ export function SettingsTab(): ReactElement {
               setBgVideoMuted={setBgVideoMuted}
               bgVideoLoop={bgVideoLoop}
               setBgVideoLoop={setBgVideoLoop}
+              bgVideoVolume={bgVideoVolume}
+              setBgVideoVolume={setBgVideoVolume}
+              bgVideoRate={bgVideoRate}
+              setBgVideoRate={setBgVideoRate}
+              bgVideoHwDecode={bgVideoHwDecode}
+              setBgVideoHwDecode={setBgVideoHwDecode}
               bgImageOpacity={bgImageOpacity}
               bgImageBlur={bgImageBlur}
               setBgImageOpacity={setBgImageOpacity}
@@ -1810,11 +1886,17 @@ export function SettingsTab(): ReactElement {
               applyBgVideoFit={applyBgVideoFit}
               applyBgVideoMuted={applyBgVideoMuted}
               applyBgVideoLoop={applyBgVideoLoop}
+              applyBgVideoVolume={applyBgVideoVolume}
+              applyBgVideoRate={applyBgVideoRate}
+              applyBgVideoHwDecode={applyBgVideoHwDecode}
               persistBgOpacity={persistBgOpacity}
               persistBgBlur={persistBgBlur}
               persistBgVideoFit={persistBgVideoFit}
               persistBgVideoMuted={persistBgVideoMuted}
               persistBgVideoLoop={persistBgVideoLoop}
+              persistBgVideoVolume={persistBgVideoVolume}
+              persistBgVideoRate={persistBgVideoRate}
+              persistBgVideoHwDecode={persistBgVideoHwDecode}
               bgOpacitySaveTimerRef={bgOpacitySaveTimerRef}
               bgBlurSaveTimerRef={bgBlurSaveTimerRef}
               handleSelectBgImage={handleSelectBgImage}

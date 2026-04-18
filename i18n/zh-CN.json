@@ -668,6 +668,9 @@
         "videoFitContain": "完整（留边）",
         "videoMutedToggle": "静音播放视频",
         "videoLoopToggle": "循环播放视频",
+        "videoVolumeHint": "背景视频音量（0 - 100%），取消静音后生效",
+        "videoRateHint": "播放速度",
+        "videoHwDecodeToggle": "启用硬件解码（重启后生效）",
         "clearBackground": "清除背景",
         "previewAlt": "背景预览",
         "imageOpacityHint": "背景图片透明度（0% - 100%），数值越高图片越明显",
@@ -933,6 +936,28 @@
           "rating": "评分最高",
           "apply": "应用最多"
         },
+        "badges": {
+          "video": "视频"
+        },
+        "videoControls": {
+          "play": "播放",
+          "pause": "暂停",
+          "mute": "静音",
+          "unmute": "取消静音",
+          "volume": "音量",
+          "rate": "速度"
+        },
+        "ratingLevels": {
+          "1": "很差",
+          "2": "较差",
+          "3": "一般",
+          "4": "不错",
+          "5": "超赞"
+        },
+        "rating": {
+          "current": "当前评分",
+          "help": "点击星星选择分数，5 分表示最喜欢"
+        },
         "upload": {
           "titlePlaceholder": "标题",
           "tagsPlaceholder": "标签（逗号分隔）",
@@ -943,7 +968,15 @@
           "chooseVideoFile": "选择视频文件",
           "noFile": "未选择文件",
           "progress": "上传进度",
-          "videoMeta": "时长 {{durationSec}}s / 帧率 {{frameRate}} fps",
+          "videoMeta": "时长 {{seconds}}s / 帧率 {{fps}} fps / 分辨率 {{width}}x{{height}}",
+          "transcodePreparing": "正在准备视频…",
+          "transcodeRemux": "原生规格兼容，正在快速封装…",
+          "transcodeEncoding": "正在本地转码视频（libx264 / aac）…",
+          "transcodeMode": {
+            "remux": "已快速封装",
+            "transcode": "已本地转码",
+            "copy": "已直接复制"
+          },
           "copyright": "我确认拥有该图片版权或已获授权",
           "previewGenerating": "正在生成预览…"
         },

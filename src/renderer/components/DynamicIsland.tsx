@@ -58,6 +58,9 @@ const ISLAND_BG_IMAGE_STORE_KEY = 'island-bg-image';
 const ISLAND_BG_VIDEO_FIT_STORE_KEY = 'island-bg-video-fit';
 const ISLAND_BG_VIDEO_MUTED_STORE_KEY = 'island-bg-video-muted';
 const ISLAND_BG_VIDEO_LOOP_STORE_KEY = 'island-bg-video-loop';
+const ISLAND_BG_VIDEO_VOLUME_STORE_KEY = 'island-bg-video-volume';
+const ISLAND_BG_VIDEO_RATE_STORE_KEY = 'island-bg-video-rate';
+const ISLAND_BG_VIDEO_HW_DECODE_STORE_KEY = 'island-bg-video-hw-decode';
 const LOCAL_ISLAND_BG_SYNC_EVENT = 'island-bg-local-sync';
 
 type IslandBgMediaType = 'image' | 'video';
@@ -318,6 +321,10 @@ function DynamicIsland(): React.JSX.Element {
   const [bgVideoFit, setBgVideoFit] = useState<'cover' | 'contain'>('cover');
   const [bgVideoMuted, setBgVideoMuted] = useState<boolean>(true);
   const [bgVideoLoop, setBgVideoLoop] = useState<boolean>(true);
+  const [bgVideoVolume, setBgVideoVolume] = useState<number>(0.6);
+  const [bgVideoRate, setBgVideoRate] = useState<number>(1);
+  const [bgVideoHwDecode, setBgVideoHwDecode] = useState<boolean>(true);
+  const bgVideoElementRef = useRef<HTMLVideoElement | null>(null);
   const [bgMedia, setBgMedia] = useState<{ type: IslandBgMediaType; previewUrl: string } | null>(null);
 
   const applyBgMedia = (media: IslandBgMediaConfig | null, previewUrl: string | null): void => {
@@ -450,7 +457,10 @@ function DynamicIsland(): React.JSX.Element {
         window.api?.storeRead?.(ISLAND_BG_VIDEO_LOOP_STORE_KEY) as Promise<boolean | null>,
         window.api?.storeRead?.('island-bg-opacity') as Promise<number | null>,
         window.api?.storeRead?.('island-bg-blur') as Promise<number | null>,
-      ]).then(async ([mediaRaw, legacyImage, videoFit, videoMuted, videoLoop, bgOpacity, bgBlur]) => {
+        window.api?.storeRead?.(ISLAND_BG_VIDEO_VOLUME_STORE_KEY) as Promise<number | null>,
+        window.api?.storeRead?.(ISLAND_BG_VIDEO_RATE_STORE_KEY) as Promise<number | null>,
+        window.api?.storeRead?.(ISLAND_BG_VIDEO_HW_DECODE_STORE_KEY) as Promise<boolean | null>,
+      ]).then(async ([mediaRaw, legacyImage, videoFit, videoMuted, videoLoop, bgOpacity, bgBlur, videoVolume, videoRate, videoHwDecode]) => {
         const el = document.getElementById('island-bg-layer');
         if (!el) return;
         if (videoFit === 'cover' || videoFit === 'contain') {
@@ -461,6 +471,15 @@ function DynamicIsland(): React.JSX.Element {
         }
         if (typeof videoLoop === 'boolean') {
           setBgVideoLoop(videoLoop);
+        }
+        if (typeof videoVolume === 'number' && Number.isFinite(videoVolume)) {
+          setBgVideoVolume(Math.max(0, Math.min(1, videoVolume)));
+        }
+        if (typeof videoRate === 'number' && Number.isFinite(videoRate)) {
+          setBgVideoRate(Math.max(0.25, Math.min(3, videoRate)));
+        }
+        if (typeof videoHwDecode === 'boolean') {
+          setBgVideoHwDecode(videoHwDecode);
         }
         if (typeof bgOpacity === 'number' && Number.isFinite(bgOpacity)) {
           bgOpacityRef.current = Math.max(0, Math.min(100, bgOpacity));
@@ -563,6 +582,21 @@ function DynamicIsland(): React.JSX.Element {
             setBgVideoLoop(value);
           }
         }
+        if (channel === `store:${ISLAND_BG_VIDEO_VOLUME_STORE_KEY}`) {
+          if (typeof value === 'number' && Number.isFinite(value)) {
+            setBgVideoVolume(Math.max(0, Math.min(1, value)));
+          }
+        }
+        if (channel === `store:${ISLAND_BG_VIDEO_RATE_STORE_KEY}`) {
+          if (typeof value === 'number' && Number.isFinite(value)) {
+            setBgVideoRate(Math.max(0.25, Math.min(3, value)));
+          }
+        }
+        if (channel === `store:${ISLAND_BG_VIDEO_HW_DECODE_STORE_KEY}`) {
+          if (typeof value === 'boolean') {
+            setBgVideoHwDecode(value);
+          }
+        }
         if (channel === 'island:position') {
           const offset = value as { x: number; y: number };
           if (offset && typeof offset.x === 'number' && typeof offset.y === 'number') {
@@ -573,7 +607,7 @@ function DynamicIsland(): React.JSX.Element {
 
       // 同窗口内（集成模式）背景媒体同步：设置页直接 DOM 操作 + 本地事件
       const localBgSyncHandler = (event: Event): void => {
-        const customEvent = event as CustomEvent<{ media?: IslandBgMediaConfig | null; previewUrl?: string | null; opacity?: number; blur?: number; videoFit?: 'cover' | 'contain'; videoMuted?: boolean; videoLoop?: boolean }>;
+        const customEvent = event as CustomEvent<{ media?: IslandBgMediaConfig | null; previewUrl?: string | null; opacity?: number; blur?: number; videoFit?: 'cover' | 'contain'; videoMuted?: boolean; videoLoop?: boolean; videoVolume?: number; videoRate?: number; videoHwDecode?: boolean }>;
         const detail = customEvent.detail;
         if (!detail || typeof detail !== 'object') return;
         if ('media' in detail || 'previewUrl' in detail) {
@@ -588,6 +622,15 @@ function DynamicIsland(): React.JSX.Element {
         if (typeof detail.videoLoop === 'boolean') {
           setBgVideoLoop(detail.videoLoop);
         }
+        if (typeof detail.videoVolume === 'number' && Number.isFinite(detail.videoVolume)) {
+          setBgVideoVolume(Math.max(0, Math.min(1, detail.videoVolume)));
+        }
+        if (typeof detail.videoRate === 'number' && Number.isFinite(detail.videoRate)) {
+          setBgVideoRate(Math.max(0.25, Math.min(3, detail.videoRate)));
+        }
+        if (typeof detail.videoHwDecode === 'boolean') {
+          setBgVideoHwDecode(detail.videoHwDecode);
+        }
       };
       window.addEventListener(LOCAL_ISLAND_BG_SYNC_EVENT, localBgSyncHandler as EventListener);
     }
@@ -601,6 +644,14 @@ function DynamicIsland(): React.JSX.Element {
       setLyrics();
     }
   }, [state, timerData?.state, isPlaying, syncedLyrics, lyricsLoading, setLyrics]);
+
+  // 背景视频的音量 / 速度随设置变更即时生效，避免重建 <video>
+  useEffect(() => {
+    const el = bgVideoElementRef.current;
+    if (!el) return;
+    el.volume = Math.max(0, Math.min(1, bgVideoVolume));
+    el.playbackRate = Math.max(0.25, Math.min(3, bgVideoRate));
+  }, [bgVideoVolume, bgVideoRate]);
 
   // 全局订阅 NowPlaying 歌曲信息（主进程推送）
   // 在 DynamicIsland 层级订阅，确保应用启动时就开始监听
@@ -1019,7 +1070,8 @@ function DynamicIsland(): React.JSX.Element {
       <div className="island-bg-layer" id="island-bg-layer">
         {bgMedia?.type === 'video' && (
           <video
-            key={bgMedia.previewUrl}
+            key={`${bgMedia.previewUrl}-${bgVideoHwDecode ? 'hw' : 'sw'}`}
+            ref={bgVideoElementRef}
             className="island-bg-video"
             src={bgMedia.previewUrl}
             autoPlay
@@ -1027,8 +1079,15 @@ function DynamicIsland(): React.JSX.Element {
             loop={bgVideoLoop}
             playsInline
             preload="auto"
-            style={{ objectFit: bgVideoFit }}
+            disableRemotePlayback
+            style={{ objectFit: bgVideoFit, imageRendering: bgVideoHwDecode ? undefined : 'auto' }}
+            onLoadedMetadata={(event) => {
+              event.currentTarget.volume = Math.max(0, Math.min(1, bgVideoVolume));
+              event.currentTarget.playbackRate = Math.max(0.25, Math.min(3, bgVideoRate));
+            }}
             onCanPlay={(event) => {
+              event.currentTarget.volume = Math.max(0, Math.min(1, bgVideoVolume));
+              event.currentTarget.playbackRate = Math.max(0.25, Math.min(3, bgVideoRate));
               event.currentTarget.play().catch(() => {});
             }}
           />

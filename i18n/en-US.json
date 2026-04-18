@@ -668,6 +668,9 @@
         "videoFitContain": "Contain (Letterbox)",
         "videoMutedToggle": "Mute video playback",
         "videoLoopToggle": "Loop video playback",
+        "videoVolumeHint": "Background video volume (0 - 100%). Requires unmute to take effect.",
+        "videoRateHint": "Playback speed",
+        "videoHwDecodeToggle": "Enable hardware decoding (takes effect after restart)",
         "clearBackground": "Clear background",
         "previewAlt": "Background preview",
         "imageOpacityHint": "Background opacity (0% - 100%)",
@@ -928,6 +931,28 @@
       },
       "wallpaper": {
         "searchPlaceholder": "Search title/author/description/tags",
+        "badges": {
+          "video": "Video"
+        },
+        "videoControls": {
+          "play": "Play",
+          "pause": "Pause",
+          "mute": "Mute",
+          "unmute": "Unmute",
+          "volume": "Volume",
+          "rate": "Speed"
+        },
+        "ratingLevels": {
+          "1": "Terrible",
+          "2": "Poor",
+          "3": "Okay",
+          "4": "Good",
+          "5": "Amazing"
+        },
+        "rating": {
+          "current": "Current rating",
+          "help": "Click a star to rate. 5 stars means you love it."
+        },
         "sort": {
           "newest": "Newest",
           "rating": "Top Rated",
@@ -937,13 +962,21 @@
           "titlePlaceholder": "Title",
           "tagsPlaceholder": "Tags (comma separated)",
           "descriptionPlaceholder": "Description",
+          "transcodePreparing": "Preparing video…",
+          "transcodeRemux": "Already a compatible codec, remuxing in fast path…",
+          "transcodeEncoding": "Transcoding locally (libx264 / aac)…",
+          "transcodeMode": {
+            "remux": "Fast remux",
+            "transcode": "Local transcode",
+            "copy": "Direct copy"
+          },
           "typeImage": "Image",
           "typeVideo": "Video",
           "chooseFile": "Choose image file",
           "chooseVideoFile": "Choose video file",
           "noFile": "No file selected",
           "progress": "Upload progress",
-          "videoMeta": "Duration {{durationSec}}s / Frame rate {{frameRate}} fps",
+          "videoMeta": "Duration {{seconds}}s / Frame rate {{fps}} fps / Resolution {{width}}x{{height}}",
           "copyright": "I confirm I own the copyright or have authorization",
           "previewGenerating": "Generating previews..."
         },

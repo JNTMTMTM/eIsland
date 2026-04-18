@@ -37,6 +37,14 @@ import { readLocalToken } from '../../../../../../../utils/userAccount';
 import { SvgIcon } from '../../../../../../../utils/SvgIcon';
 import { TagInput } from './TagInput';
 
+function formatDuration(durationMs: number | undefined): string {
+  if (!durationMs || !Number.isFinite(durationMs) || durationMs <= 0) return '--:--';
+  const totalSec = Math.round(durationMs / 1000);
+  const minutes = Math.floor(totalSec / 60);
+  const seconds = totalSec % 60;
+  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+}
+
 interface WallpaperEditSectionProps {
   onGoWallpaper: () => void;
 }
@@ -67,6 +75,11 @@ export function WallpaperEditSection({ onGoWallpaper }: WallpaperEditSectionProp
   const selectedPreviewUrl = useMemo(() => (
     selected?.thumb1280Url || selected?.thumb720Url || selected?.thumb320Url || selected?.originalUrl || ''
   ), [selected]);
+  const selectedCoverUrl = useMemo(() => (
+    selected?.thumb1280Url || selected?.thumb720Url || selected?.thumb320Url || ''
+  ), [selected]);
+  const selectedOriginalUrl = selected?.originalUrl || '';
+  const selectedIsVideo = selected?.type === 'video';
 
   const loadList = async (targetPage: number = page): Promise<void> => {
     const token = readLocalToken();
@@ -172,7 +185,7 @@ export function WallpaperEditSection({ onGoWallpaper }: WallpaperEditSectionProp
         title: editTitle,
         description: editDescription,
         tags: editTags,
-        type: 'image',
+        type: selected.type === 'video' ? 'video' : 'image',
       });
       if (!result.ok) {
         setMessage(result.message || t('settings.pluginMarket.wallpaper.feedback.updateFailed', { defaultValue: '保存失败' }));
@@ -201,6 +214,7 @@ export function WallpaperEditSection({ onGoWallpaper }: WallpaperEditSectionProp
             ) : (
               list.map((item) => {
                 const preview = item.thumb320Url || item.thumb720Url || item.thumb1280Url || item.originalUrl || '';
+                const isVideoCard = item.type === 'video';
                 return (
                   <button
                     key={item.id}
@@ -208,7 +222,15 @@ export function WallpaperEditSection({ onGoWallpaper }: WallpaperEditSectionProp
                     className={`settings-plugin-market-card ${selected?.id === item.id ? 'active' : ''}`}
                     onClick={() => { loadDetail(item.id).catch(() => {}); }}
                   >
-                    {preview ? <img src={preview} alt={item.title} className="settings-plugin-market-card-img" /> : null}
+                    <div className="settings-plugin-market-card-media">
+                      {preview ? <img src={preview} alt={item.title} className="settings-plugin-market-card-img" /> : null}
+                      {isVideoCard && (
+                        <span className="settings-plugin-market-card-badge">
+                          {t('settings.pluginMarket.wallpaper.badges.video', { defaultValue: '视频' })}
+                          {item.durationMs ? ` · ${formatDuration(item.durationMs)}` : ''}
+                        </span>
+                      )}
+                    </div>
                     <div className="settings-plugin-market-card-body">
                       <div className="settings-plugin-market-card-title">{item.title}</div>
                       <div className="settings-plugin-market-card-meta">
@@ -274,7 +296,21 @@ export function WallpaperEditSection({ onGoWallpaper }: WallpaperEditSectionProp
           ) : (
             <div className="settings-plugin-market-detail-content">
               <div className="settings-plugin-market-detail-preview">
-                {selectedPreviewUrl ? <img src={selectedPreviewUrl} alt={selected.title} className="settings-plugin-market-detail-img" /> : null}
+                {selectedIsVideo && selectedOriginalUrl ? (
+                  <video
+                    key={selectedOriginalUrl}
+                    className="settings-plugin-market-detail-video"
+                    src={selectedOriginalUrl}
+                    poster={selectedCoverUrl || undefined}
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    controls
+                  />
+                ) : selectedPreviewUrl ? (
+                  <img src={selectedPreviewUrl} alt={selected.title} className="settings-plugin-market-detail-img" />
+                ) : null}
               </div>
 
               <div className="settings-plugin-market-detail-meta-panel">
