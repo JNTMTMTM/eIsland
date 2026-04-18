@@ -57,6 +57,7 @@ export type UserEmailCodeScene = 'REGISTER' | 'LOGIN' | 'RESET_PASSWORD' | 'CHAN
 export interface WallpaperMarketItem {
   id: number;
   ownerUsername: string;
+  ownerAvatar?: string;
   title: string;
   description: string;
   type: 'image' | 'video';

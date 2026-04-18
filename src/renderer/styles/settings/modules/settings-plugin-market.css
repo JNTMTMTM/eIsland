@@ -301,6 +301,38 @@
   flex-wrap: wrap;
 }
 
+.settings-plugin-market-owner-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.settings-plugin-market-owner-row > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.settings-plugin-market-owner-avatar {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
+}
+
+.settings-plugin-market-owner-avatar.large {
+  width: 22px;
+  height: 22px;
+}
+
+.settings-plugin-market-owner-avatar.placeholder {
+  padding: 2px;
+  opacity: 0.6;
+}
+
 .settings-plugin-market-card-rating-sep {
   opacity: 0.5;
 }

@@ -213,7 +213,12 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
                   {preview ? <img src={preview} alt={item.title} className="settings-plugin-market-card-img" /> : null}
                   <div className="settings-plugin-market-card-body">
                     <div className="settings-plugin-market-card-title">{item.title}</div>
-                    <div className="settings-plugin-market-card-meta">@{item.ownerUsername}</div>
+                    <div className="settings-plugin-market-card-meta settings-plugin-market-owner-row">
+                      {item.ownerAvatar
+                        ? <img src={item.ownerAvatar} alt="" className="settings-plugin-market-owner-avatar" />
+                        : <img src={SvgIcon.USER} alt="" className="settings-plugin-market-owner-avatar placeholder" />}
+                      <span>@{item.ownerUsername}</span>
+                    </div>
                     <div className="settings-plugin-market-card-meta settings-plugin-market-card-rating">
                       {renderStars(Number(item.ratingAvg ?? 0))}
                       <span>{Number(item.ratingAvg ?? 0).toFixed(1)}</span>
@@ -272,7 +277,12 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
 
               <div className="settings-plugin-market-detail-meta-panel">
                 <div className="settings-plugin-market-detail-title">{selected.title}</div>
-                <div className="settings-plugin-market-detail-meta">@{selected.ownerUsername}</div>
+                <div className="settings-plugin-market-detail-meta settings-plugin-market-owner-row">
+                  {selected.ownerAvatar
+                    ? <img src={selected.ownerAvatar} alt="" className="settings-plugin-market-owner-avatar large" />
+                    : <img src={SvgIcon.USER} alt="" className="settings-plugin-market-owner-avatar large placeholder" />}
+                  <span>@{selected.ownerUsername}</span>
+                </div>
                 <div className="settings-plugin-market-detail-meta">{selected.description || '-'}</div>
                 <div className="settings-plugin-market-detail-meta">{selected.tagsText || '-'}</div>
                 <div className="settings-plugin-market-detail-meta settings-plugin-market-detail-rating">
