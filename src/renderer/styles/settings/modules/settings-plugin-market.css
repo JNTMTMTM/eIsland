@@ -91,7 +91,7 @@
 
 .settings-plugin-market-card-img {
   width: 100%;
-  height: 84px;
+  height: 140px;
   object-fit: cover;
   display: block;
 }
@@ -153,9 +153,11 @@
 
 .settings-plugin-market-detail-img {
   width: 100%;
-  height: 140px;
-  object-fit: cover;
+  max-height: 200px;
+  object-fit: contain;
   border-radius: 8px;
+  background: rgba(0, 0, 0, 0.25);
+  display: block;
 }
 
 .settings-plugin-market-detail-title {
@@ -196,11 +198,11 @@
   }
 
   .settings-plugin-market-card-img {
-    height: 72px;
+    height: 110px;
   }
 
   .settings-plugin-market-detail-img {
-    height: 120px;
+    max-height: 160px;
   }
 
   .settings-plugin-market-rating-row,
