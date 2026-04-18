@@ -252,7 +252,16 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
   const [clipboardBlacklistDraft, setClipboardBlacklistDraft] = useState<string>('');
   const [clipboardBlacklistError, setClipboardBlacklistError] = useState<string>('');
   const clearLogsResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const bgPreviewVideoRef = useRef<HTMLVideoElement | null>(null);
   const setNotification = useIslandStore((s) => s.setNotification);
+
+  // 背景视频预览的音量/速度需要与设置实时同步，避免滑块调到 0 后仍能听到声音
+  useEffect(() => {
+    const el = bgPreviewVideoRef.current;
+    if (!el) return;
+    el.volume = Math.max(0, Math.min(1, bgVideoVolume));
+    el.playbackRate = Math.max(0.25, Math.min(3, bgVideoRate));
+  }, [bgVideoVolume, bgVideoRate]);
 
   /** 倒数日/TODOs 独立窗口模式 */
   const [standaloneWindowMode, setStandaloneWindowMode] = useState<'integrated' | 'standalone'>('integrated');
@@ -717,15 +726,22 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
                       {bgMediaType === 'video' ? (
                         <video
                           key={bgMediaPreviewUrl}
+                          ref={bgPreviewVideoRef}
                           src={bgMediaPreviewUrl}
                           className="settings-bg-preview-img"
                           autoPlay
-                          muted={bgVideoMuted}
+                          muted={bgVideoMuted || bgVideoVolume <= 0}
                           loop={bgVideoLoop}
                           playsInline
                           preload="auto"
                           style={{ objectFit: bgVideoFit }}
+                          onLoadedMetadata={(event) => {
+                            event.currentTarget.volume = Math.max(0, Math.min(1, bgVideoVolume));
+                            event.currentTarget.playbackRate = Math.max(0.25, Math.min(3, bgVideoRate));
+                          }}
                           onCanPlay={(event) => {
+                            event.currentTarget.volume = Math.max(0, Math.min(1, bgVideoVolume));
+                            event.currentTarget.playbackRate = Math.max(0.25, Math.min(3, bgVideoRate));
                             event.currentTarget.play().catch(() => {});
                           }}
                         />

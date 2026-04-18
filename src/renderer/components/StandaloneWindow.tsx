@@ -386,7 +386,7 @@ export function StandaloneWindow(): ReactElement {
             className="cw-bg-video"
             src={bgMedia.previewUrl}
             autoPlay
-            muted={bgVideoMuted}
+            muted={bgVideoMuted || bgVideoVolume <= 0}
             loop={bgVideoLoop}
             playsInline
             preload="auto"

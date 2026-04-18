@@ -1075,7 +1075,7 @@ function DynamicIsland(): React.JSX.Element {
             className="island-bg-video"
             src={bgMedia.previewUrl}
             autoPlay
-            muted={bgVideoMuted}
+            muted={bgVideoMuted || bgVideoVolume <= 0}
             loop={bgVideoLoop}
             playsInline
             preload="auto"
