@@ -263,6 +263,47 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
     el.playbackRate = Math.max(0.25, Math.min(3, bgVideoRate));
   }, [bgVideoVolume, bgVideoRate]);
 
+  const bgPreviewVideoLoopRef = useRef<boolean>(bgVideoLoop);
+  useEffect(() => { bgPreviewVideoLoopRef.current = bgVideoLoop; }, [bgVideoLoop]);
+
+  // 预览视频自定义循环：直接用 DOM 事件监听，绕开 Chromium 原生 loop 的偶发失效
+  useEffect(() => {
+    if (bgMediaType !== 'video' || !bgMediaPreviewUrl) return;
+    const el = bgPreviewVideoRef.current;
+    if (!el) return;
+    el.loop = false;
+    const restart = (): void => {
+      if (!bgPreviewVideoLoopRef.current) return;
+      try { el.currentTime = 0; } catch { /* ignore */ }
+      el.play().catch(() => {});
+    };
+    const onEnded = (): void => { restart(); };
+    const onTimeUpdate = (): void => {
+      if (!bgPreviewVideoLoopRef.current) return;
+      const duration = el.duration;
+      if (!Number.isFinite(duration) || duration <= 0) return;
+      if (duration - el.currentTime <= 0.12) {
+        restart();
+      }
+    };
+    el.addEventListener('ended', onEnded);
+    el.addEventListener('timeupdate', onTimeUpdate);
+    return () => {
+      el.removeEventListener('ended', onEnded);
+      el.removeEventListener('timeupdate', onTimeUpdate);
+    };
+  }, [bgMediaType, bgMediaPreviewUrl]);
+
+  useEffect(() => {
+    if (!bgVideoLoop) return;
+    const el = bgPreviewVideoRef.current;
+    if (!el) return;
+    if (el.ended) {
+      try { el.currentTime = 0; } catch { /* ignore */ }
+      el.play().catch(() => {});
+    }
+  }, [bgVideoLoop]);
+
   /** 倒数日/TODOs 独立窗口模式 */
   const [standaloneWindowMode, setStandaloneWindowMode] = useState<'integrated' | 'standalone'>('integrated');
   useEffect(() => {
@@ -731,15 +772,16 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
                           className="settings-bg-preview-img"
                           autoPlay
                           muted={bgVideoMuted || bgVideoVolume <= 0}
-                          loop={bgVideoLoop}
                           playsInline
                           preload="auto"
                           style={{ objectFit: bgVideoFit }}
                           onLoadedMetadata={(event) => {
+                            event.currentTarget.loop = false;
                             event.currentTarget.volume = Math.max(0, Math.min(1, bgVideoVolume));
                             event.currentTarget.playbackRate = Math.max(0.25, Math.min(3, bgVideoRate));
                           }}
                           onCanPlay={(event) => {
+                            event.currentTarget.loop = false;
                             event.currentTarget.volume = Math.max(0, Math.min(1, bgVideoVolume));
                             event.currentTarget.playbackRate = Math.max(0.25, Math.min(3, bgVideoRate));
                             event.currentTarget.play().catch(() => {});

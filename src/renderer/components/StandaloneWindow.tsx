@@ -357,6 +357,47 @@ export function StandaloneWindow(): ReactElement {
     };
   }, []);
 
+  const bgVideoLoopRef = useRef<boolean>(bgVideoLoop);
+  useEffect(() => { bgVideoLoopRef.current = bgVideoLoop; }, [bgVideoLoop]);
+
+  // 自定义背景视频循环：绕开 React 合成事件与 Chromium 原生 loop 的偶发失效
+  useEffect(() => {
+    if (bgMedia?.type !== 'video') return;
+    const el = bgVideoElementRef.current;
+    if (!el) return;
+    el.loop = false;
+    const restart = (): void => {
+      if (!bgVideoLoopRef.current) return;
+      try { el.currentTime = 0; } catch { /* ignore */ }
+      el.play().catch(() => {});
+    };
+    const onEnded = (): void => { restart(); };
+    const onTimeUpdate = (): void => {
+      if (!bgVideoLoopRef.current) return;
+      const duration = el.duration;
+      if (!Number.isFinite(duration) || duration <= 0) return;
+      if (duration - el.currentTime <= 0.12) {
+        restart();
+      }
+    };
+    el.addEventListener('ended', onEnded);
+    el.addEventListener('timeupdate', onTimeUpdate);
+    return () => {
+      el.removeEventListener('ended', onEnded);
+      el.removeEventListener('timeupdate', onTimeUpdate);
+    };
+  }, [bgMedia?.previewUrl, bgMedia?.type, bgVideoHwDecode]);
+
+  useEffect(() => {
+    if (!bgVideoLoop) return;
+    const el = bgVideoElementRef.current;
+    if (!el) return;
+    if (el.ended) {
+      try { el.currentTime = 0; } catch { /* ignore */ }
+      el.play().catch(() => {});
+    }
+  }, [bgVideoLoop]);
+
   useEffect(() => {
     const el = bgVideoElementRef.current;
     if (!el) return;
@@ -387,16 +428,17 @@ export function StandaloneWindow(): ReactElement {
             src={bgMedia.previewUrl}
             autoPlay
             muted={bgVideoMuted || bgVideoVolume <= 0}
-            loop={bgVideoLoop}
             playsInline
             preload="auto"
             disableRemotePlayback
             style={{ objectFit: bgVideoFit, imageRendering: bgVideoHwDecode ? undefined : 'auto' }}
             onLoadedMetadata={(event) => {
+              event.currentTarget.loop = false;
               event.currentTarget.volume = Math.max(0, Math.min(1, bgVideoVolume));
               event.currentTarget.playbackRate = Math.max(0.25, Math.min(3, bgVideoRate));
             }}
             onCanPlay={(event) => {
+              event.currentTarget.loop = false;
               event.currentTarget.volume = Math.max(0, Math.min(1, bgVideoVolume));
               event.currentTarget.playbackRate = Math.max(0.25, Math.min(3, bgVideoRate));
               event.currentTarget.play().catch(() => {});
