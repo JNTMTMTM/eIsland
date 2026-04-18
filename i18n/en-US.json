@@ -885,6 +885,11 @@
         "contribution": "Contribution",
         "edit": "Edit Wallpapers"
       },
+      "tag": {
+        "placeholder": "Type a tag then press Enter or comma",
+        "createNew": "Create new tag",
+        "removeTag": "Remove tag"
+      },
       "contribution": {
         "title": "Contribute Your Wallpaper",
         "actions": {

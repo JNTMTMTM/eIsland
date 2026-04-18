@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { uploadUserWallpaper } from '../../../../../../../api/userAccountApi';
 import { readLocalToken } from '../../../../../../../utils/userAccount';
+import { TagInput } from './TagInput';
 
 interface PreviewEntry {
   label: string;
@@ -194,11 +195,11 @@ export function WallpaperContributionSection({ onGoWallpaper }: WallpaperContrib
             onChange={(e) => setUploadTitle(e.target.value)}
             placeholder={t('settings.pluginMarket.wallpaper.upload.titlePlaceholder', { defaultValue: '标题' })}
           />
-          <input
-            className="settings-field-input"
+          <TagInput
             value={uploadTags}
-            onChange={(e) => setUploadTags(e.target.value)}
+            onChange={setUploadTags}
             placeholder={t('settings.pluginMarket.wallpaper.upload.tagsPlaceholder', { defaultValue: '标签（逗号分隔）' })}
+            disabled={uploading}
           />
           <textarea
             className="settings-field-input"

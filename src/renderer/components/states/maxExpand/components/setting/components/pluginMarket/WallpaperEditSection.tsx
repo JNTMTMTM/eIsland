@@ -9,6 +9,7 @@ import {
 } from '../../../../../../../api/userAccountApi';
 import { readLocalToken } from '../../../../../../../utils/userAccount';
 import { SvgIcon } from '../../../../../../../utils/SvgIcon';
+import { TagInput } from './TagInput';
 
 interface WallpaperEditSectionProps {
   onGoWallpaper: () => void;
@@ -284,11 +285,11 @@ export function WallpaperEditSection({ onGoWallpaper }: WallpaperEditSectionProp
                         onChange={(e) => setEditDescription(e.target.value)}
                         placeholder={t('settings.pluginMarket.wallpaper.upload.descriptionPlaceholder', { defaultValue: '描述' })}
                       />
-                      <input
-                        className="settings-field-input"
+                      <TagInput
                         value={editTags}
-                        onChange={(e) => setEditTags(e.target.value)}
+                        onChange={setEditTags}
                         placeholder={t('settings.pluginMarket.wallpaper.upload.tagsPlaceholder', { defaultValue: '标签（逗号分隔）' })}
+                        disabled={savingMetadata}
                       />
                       <button
                         className="settings-hotkey-btn"

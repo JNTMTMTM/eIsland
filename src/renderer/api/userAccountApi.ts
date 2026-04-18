@@ -89,6 +89,13 @@ export interface UploadWallpaperPayload {
   thumb1280: File;
 }
 
+export interface WallpaperTagItem {
+  id: number;
+  name: string;
+  slug: string;
+  usageCount?: number;
+}
+
 /** 超时时间（毫秒） */
 const DEFAULT_TIMEOUT_MS = 10000;
 
@@ -397,6 +404,27 @@ export function listMyUserWallpapers(
   if (params.pageSize) search.set('pageSize', String(params.pageSize));
   const suffix = search.toString();
   return request<WallpaperMarketItem[]>(`/v1/user/wallpapers/mine${suffix ? `?${suffix}` : ''}`, {
+    method: 'GET',
+    auth: token,
+  });
+}
+
+/**
+ * 搜索壁纸标签（用于自动补全）。
+ * @param token 用户 token。
+ * @param keyword 关键词；空字符串返回热门标签。
+ * @param limit 返回条数。
+ * @returns 标签列表。
+ */
+export function searchUserTags(
+  token: string,
+  keyword: string,
+  limit: number = 15,
+): Promise<UserAccountResult<WallpaperTagItem[]>> {
+  const search = new URLSearchParams();
+  if (keyword) search.set('keyword', keyword);
+  search.set('limit', String(limit));
+  return request<WallpaperTagItem[]>(`/v1/user/tags/search?${search.toString()}`, {
     method: 'GET',
     auth: token,
   });

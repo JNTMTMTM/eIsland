@@ -885,6 +885,11 @@
         "contribution": "贡献",
         "edit": "修改壁纸"
       },
+      "tag": {
+        "placeholder": "输入标签后回车或逗号确认",
+        "createNew": "创建新标签",
+        "removeTag": "移除标签"
+      },
       "contribution": {
         "title": "贡献你的壁纸",
         "actions": {
