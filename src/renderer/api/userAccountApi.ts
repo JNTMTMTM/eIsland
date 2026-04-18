@@ -52,6 +52,8 @@ export interface UserAccountLoginData {
   role: string;
 }
 
+export type UserEmailCodeScene = 'REGISTER' | 'LOGIN' | 'RESET_PASSWORD' | 'CHANGE_EMAIL';
+
 /** 超时时间（毫秒） */
 const DEFAULT_TIMEOUT_MS = 10000;
 
@@ -124,7 +126,18 @@ export function loginUserByAccount(username: string, password: string): Promise<
 export function loginUserByEmail(email: string, password: string): Promise<UserAccountResult<UserAccountLoginData>> {
   return request<UserAccountLoginData>('/auth/user/login/email', {
     method: 'POST',
-    body: { email, password },
+    body: { email, password, emailCode: '' },
+  });
+}
+
+export function loginUserByEmailWithCode(
+  email: string,
+  password: string,
+  emailCode: string,
+): Promise<UserAccountResult<UserAccountLoginData>> {
+  return request<UserAccountLoginData>('/auth/user/login/email', {
+    method: 'POST',
+    body: { email, password, emailCode },
   });
 }
 
@@ -136,7 +149,7 @@ export function loginUserByEmail(email: string, password: string): Promise<UserA
  */
 export function loginUser(account: string, password: string): Promise<UserAccountResult<UserAccountLoginData>> {
   return account.includes('@')
-    ? loginUserByEmail(account, password)
+    ? loginUserByEmailWithCode(account, password, '')
     : loginUserByAccount(account, password);
 }
 
@@ -150,7 +163,41 @@ export function loginUser(account: string, password: string): Promise<UserAccoun
 export function registerUser(username: string, email: string, password: string): Promise<UserAccountResult<UserAccountLoginData>> {
   return request<UserAccountLoginData>('/auth/user/register', {
     method: 'POST',
-    body: { username, email, password },
+    body: { username, email, password, emailCode: '' },
+  });
+}
+
+export function registerUserWithCode(
+  username: string,
+  email: string,
+  password: string,
+  emailCode: string,
+): Promise<UserAccountResult<UserAccountLoginData>> {
+  return request<UserAccountLoginData>('/auth/user/register', {
+    method: 'POST',
+    body: { username, email, password, emailCode },
+  });
+}
+
+export function sendUserEmailCode(
+  email: string,
+  scene: UserEmailCodeScene,
+): Promise<UserAccountResult<{ retryAfterSeconds?: number }>> {
+  return request<{ retryAfterSeconds?: number }>('/auth/user/email-code/send', {
+    method: 'POST',
+    body: { email, scene },
+  });
+}
+
+export function verifyUserEmailCode(
+  email: string,
+  scene: UserEmailCodeScene,
+  code: string,
+  consume = true,
+): Promise<UserAccountResult<unknown>> {
+  return request('/auth/user/email-code/verify', {
+    method: 'POST',
+    body: { email, scene, code, consume },
   });
 }
 
