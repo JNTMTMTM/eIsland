@@ -881,7 +881,14 @@
       },
       "pages": {
         "wallpaper": "壁纸",
-        "plugin": "插件"
+        "plugin": "插件",
+        "contribution": "贡献"
+      },
+      "contribution": {
+        "title": "贡献你的壁纸",
+        "actions": {
+          "backToWallpaper": "返回壁纸市场"
+        }
       },
       "wallpaper": {
         "searchPlaceholder": "搜索标题/作者/描述/标签",
@@ -908,6 +915,9 @@
         },
         "actions": {
           "search": "搜索",
+          "expandSearch": "展开搜索",
+          "collapseSearch": "收起搜索",
+          "goContribution": "前往贡献",
           "upload": "上传壁纸",
           "uploading": "上传中…",
           "apply": "应用为背景",

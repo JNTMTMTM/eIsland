@@ -8,6 +8,11 @@
   gap: 12px;
 }
 
+.settings-plugin-market-top-actions {
+  display: flex;
+  gap: 8px;
+}
+
 .settings-plugin-market-toolbar {
   display: grid;
   grid-template-columns: 1fr 140px auto;
@@ -30,6 +35,13 @@
 .settings-plugin-market-upload-grid textarea {
   min-height: 72px;
   resize: vertical;
+}
+
+.settings-plugin-market-contribution-title {
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 10px;
 }
 
 .settings-plugin-market-checkbox {
@@ -162,6 +174,10 @@
 
   .settings-plugin-market-upload-grid {
     grid-template-columns: 1fr;
+  }
+
+  .settings-plugin-market-top-actions {
+    flex-direction: column;
   }
 
   .settings-plugin-market-rating-row,

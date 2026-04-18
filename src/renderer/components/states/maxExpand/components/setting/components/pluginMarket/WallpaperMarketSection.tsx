@@ -8,60 +8,24 @@ import {
   rateUserWallpaper,
   reportUserWallpaper,
   updateUserWallpaperMetadata,
-  uploadUserWallpaper,
   type WallpaperMarketItem,
 } from '../../../../../../../api/userAccountApi';
 import { readLocalProfile, readLocalToken } from '../../../../../../../utils/userAccount';
 
 interface WallpaperMarketSectionProps {
   onApplyBackground: (imageUrl: string) => void;
+  onGoContribution: () => void;
 }
 
-const MAX_IMAGE_SIZE = 20 * 1024 * 1024;
-
-async function createThumbnailFile(sourceFile: File, maxWidth: number): Promise<File> {
-  const imageUrl = URL.createObjectURL(sourceFile);
-  try {
-    const img = await new Promise<HTMLImageElement>((resolve, reject) => {
-      const image = new Image();
-      image.onload = () => resolve(image);
-      image.onerror = () => reject(new Error('image load failed'));
-      image.src = imageUrl;
-    });
-    const targetWidth = Math.max(1, Math.min(maxWidth, img.width));
-    const targetHeight = Math.max(1, Math.round((img.height * targetWidth) / img.width));
-    const canvas = document.createElement('canvas');
-    canvas.width = targetWidth;
-    canvas.height = targetHeight;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) throw new Error('canvas context unavailable');
-    ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
-    const blob = await new Promise<Blob>((resolve, reject) => {
-      canvas.toBlob((b) => {
-        if (b) resolve(b);
-        else reject(new Error('thumbnail encode failed'));
-      }, 'image/jpeg', 0.9);
-    });
-    return new File([blob], `thumb-${maxWidth}.jpg`, { type: 'image/jpeg' });
-  } finally {
-    URL.revokeObjectURL(imageUrl);
-  }
-}
-
-export function WallpaperMarketSection({ onApplyBackground }: WallpaperMarketSectionProps) {
+export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: WallpaperMarketSectionProps) {
   const { t } = useTranslation();
   const [list, setList] = useState<WallpaperMarketItem[]>([]);
   const [selected, setSelected] = useState<WallpaperMarketItem | null>(null);
   const [loading, setLoading] = useState(false);
   const [keyword, setKeyword] = useState('');
   const [sortBy, setSortBy] = useState<'newest' | 'rating' | 'apply'>('newest');
+  const [searchExpanded, setSearchExpanded] = useState(false);
   const [message, setMessage] = useState('');
-  const [uploading, setUploading] = useState(false);
-  const [uploadTitle, setUploadTitle] = useState('');
-  const [uploadDescription, setUploadDescription] = useState('');
-  const [uploadTags, setUploadTags] = useState('');
-  const [uploadFile, setUploadFile] = useState<File | null>(null);
-  const [copyrightDeclared, setCopyrightDeclared] = useState(false);
   const [ratingScore, setRatingScore] = useState(5);
   const [reportReasonType, setReportReasonType] = useState('copyright');
   const [reportReasonDetail, setReportReasonDetail] = useState('');
@@ -127,78 +91,6 @@ export function WallpaperMarketSection({ onApplyBackground }: WallpaperMarketSec
 
   const handleSearch = (): void => {
     loadList().catch(() => {});
-  };
-
-  const handleUpload = async (): Promise<void> => {
-    const token = readLocalToken();
-    if (!token) return;
-    if (!uploadTitle.trim()) {
-      setMessage(t('settings.pluginMarket.wallpaper.feedback.titleRequired', { defaultValue: '请填写标题' }));
-      return;
-    }
-    if (!uploadFile) {
-      setMessage(t('settings.pluginMarket.wallpaper.feedback.fileRequired', { defaultValue: '请选择图片文件' }));
-      return;
-    }
-    if (!copyrightDeclared) {
-      setMessage(t('settings.pluginMarket.wallpaper.feedback.copyrightRequired', { defaultValue: '请先勾选版权声明' }));
-      return;
-    }
-    if (uploadFile.size > MAX_IMAGE_SIZE) {
-      setMessage(t('settings.pluginMarket.wallpaper.feedback.fileTooLarge', { defaultValue: '图片不能超过 20MB' }));
-      return;
-    }
-    setUploading(true);
-    try {
-      const thumb320 = await createThumbnailFile(uploadFile, 320);
-      const thumb720 = await createThumbnailFile(uploadFile, 720);
-      const thumb1280 = await createThumbnailFile(uploadFile, 1280);
-
-      const dimensions = await new Promise<{ width: number; height: number }>((resolve, reject) => {
-        const url = URL.createObjectURL(uploadFile);
-        const image = new Image();
-        image.onload = () => {
-          resolve({ width: image.width, height: image.height });
-          URL.revokeObjectURL(url);
-        };
-        image.onerror = () => {
-          URL.revokeObjectURL(url);
-          reject(new Error('无法读取图片尺寸'));
-        };
-        image.src = url;
-      });
-
-      const result = await uploadUserWallpaper(token, {
-        title: uploadTitle.trim(),
-        description: uploadDescription.trim(),
-        tags: uploadTags.trim(),
-        type: 'image',
-        copyrightDeclared,
-        width: dimensions.width,
-        height: dimensions.height,
-        original: uploadFile,
-        thumb320,
-        thumb720,
-        thumb1280,
-      });
-
-      if (!result.ok) {
-        setMessage(result.message || t('settings.pluginMarket.wallpaper.feedback.uploadFailed', { defaultValue: '上传失败' }));
-        return;
-      }
-
-      setMessage(t('settings.pluginMarket.wallpaper.feedback.uploadSuccess', { defaultValue: '上传成功，等待审核' }));
-      setUploadTitle('');
-      setUploadDescription('');
-      setUploadTags('');
-      setUploadFile(null);
-      setCopyrightDeclared(false);
-      await loadList();
-    } catch (err) {
-      setMessage(err instanceof Error ? err.message : t('settings.pluginMarket.wallpaper.feedback.uploadFailed', { defaultValue: '上传失败' }));
-    } finally {
-      setUploading(false);
-    }
   };
 
   const handleApply = async (): Promise<void> => {
@@ -281,68 +173,39 @@ export function WallpaperMarketSection({ onApplyBackground }: WallpaperMarketSec
 
   return (
     <div className="settings-plugin-market-wallpaper">
-      <div className="settings-plugin-market-toolbar">
-        <input
-          className="settings-field-input"
-          value={keyword}
-          onChange={(e) => setKeyword(e.target.value)}
-          placeholder={t('settings.pluginMarket.wallpaper.searchPlaceholder', { defaultValue: '搜索标题/作者/描述/标签' })}
-        />
-        <select
-          className="settings-field-input"
-          value={sortBy}
-          onChange={(e) => setSortBy(e.target.value as 'newest' | 'rating' | 'apply')}
-        >
-          <option value="newest">{t('settings.pluginMarket.wallpaper.sort.newest', { defaultValue: '最新' })}</option>
-          <option value="rating">{t('settings.pluginMarket.wallpaper.sort.rating', { defaultValue: '评分最高' })}</option>
-          <option value="apply">{t('settings.pluginMarket.wallpaper.sort.apply', { defaultValue: '应用最多' })}</option>
-        </select>
-        <button className="settings-hotkey-btn" type="button" onClick={handleSearch}>
-          {t('settings.pluginMarket.wallpaper.actions.search', { defaultValue: '搜索' })}
+      <div className="settings-plugin-market-top-actions">
+        <button className="settings-hotkey-btn" type="button" onClick={() => setSearchExpanded((prev) => !prev)}>
+          {searchExpanded
+            ? t('settings.pluginMarket.wallpaper.actions.collapseSearch', { defaultValue: '收起搜索' })
+            : t('settings.pluginMarket.wallpaper.actions.expandSearch', { defaultValue: '展开搜索' })}
+        </button>
+        <button className="settings-hotkey-btn" type="button" onClick={onGoContribution}>
+          {t('settings.pluginMarket.wallpaper.actions.goContribution', { defaultValue: '前往贡献' })}
         </button>
       </div>
 
-      <div className="settings-plugin-market-upload">
-        <div className="settings-plugin-market-upload-grid">
+      {searchExpanded && (
+        <div className="settings-plugin-market-toolbar">
           <input
             className="settings-field-input"
-            value={uploadTitle}
-            onChange={(e) => setUploadTitle(e.target.value)}
-            placeholder={t('settings.pluginMarket.wallpaper.upload.titlePlaceholder', { defaultValue: '标题' })}
+            value={keyword}
+            onChange={(e) => setKeyword(e.target.value)}
+            placeholder={t('settings.pluginMarket.wallpaper.searchPlaceholder', { defaultValue: '搜索标题/作者/描述/标签' })}
           />
-          <input
+          <select
             className="settings-field-input"
-            value={uploadTags}
-            onChange={(e) => setUploadTags(e.target.value)}
-            placeholder={t('settings.pluginMarket.wallpaper.upload.tagsPlaceholder', { defaultValue: '标签（逗号分隔）' })}
-          />
-          <textarea
-            className="settings-field-input"
-            value={uploadDescription}
-            onChange={(e) => setUploadDescription(e.target.value)}
-            placeholder={t('settings.pluginMarket.wallpaper.upload.descriptionPlaceholder', { defaultValue: '描述' })}
-          />
-          <input
-            className="settings-field-input"
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
-          />
-          <label className="settings-plugin-market-checkbox">
-            <input
-              type="checkbox"
-              checked={copyrightDeclared}
-              onChange={(e) => setCopyrightDeclared(e.target.checked)}
-            />
-            <span>{t('settings.pluginMarket.wallpaper.upload.copyright', { defaultValue: '我确认拥有该图片版权或已获授权' })}</span>
-          </label>
-          <button className="settings-hotkey-btn" type="button" onClick={() => { handleUpload().catch(() => {}); }} disabled={uploading}>
-            {uploading
-              ? t('settings.pluginMarket.wallpaper.actions.uploading', { defaultValue: '上传中…' })
-              : t('settings.pluginMarket.wallpaper.actions.upload', { defaultValue: '上传壁纸' })}
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as 'newest' | 'rating' | 'apply')}
+          >
+            <option value="newest">{t('settings.pluginMarket.wallpaper.sort.newest', { defaultValue: '最新' })}</option>
+            <option value="rating">{t('settings.pluginMarket.wallpaper.sort.rating', { defaultValue: '评分最高' })}</option>
+            <option value="apply">{t('settings.pluginMarket.wallpaper.sort.apply', { defaultValue: '应用最多' })}</option>
+          </select>
+          <button className="settings-hotkey-btn" type="button" onClick={handleSearch}>
+            {t('settings.pluginMarket.wallpaper.actions.search', { defaultValue: '搜索' })}
           </button>
         </div>
-      </div>
+      )}
 
       {message && <div className="settings-plugin-market-message">{message}</div>}
 

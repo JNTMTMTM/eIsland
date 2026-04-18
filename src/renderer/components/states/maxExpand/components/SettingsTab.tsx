@@ -78,6 +78,7 @@ import { UserSettingsSection } from './setting/components/user/UserSettingsSecti
 import { AboutSettingsSection } from './setting/components/about/AboutSettingsSection';
 import { OverviewPreview } from './setting/components/app/preview/OverviewPreview';
 import { WallpaperMarketSection } from './setting/components/pluginMarket/WallpaperMarketSection';
+import { WallpaperContributionSection } from './setting/components/pluginMarket/WallpaperContributionSection';
 
 import { resolveDistrictLocationByKeyword } from '../../../../api/adcodeApi';
 
@@ -148,7 +149,7 @@ interface RunningWindowItem {
   iconDataUrl: string | null;
 }
 
-type PluginMarketPageKey = 'wallpaper' | 'plugin';
+type PluginMarketPageKey = 'wallpaper' | 'plugin' | 'contribution';
 
 /**
  * 渲染设置面板主视图
@@ -196,7 +197,11 @@ export function SettingsTab(): ReactElement {
   const currentMusicSettingsPageLabel = t(`settings.musicPages.${musicSettingsPage}`, { defaultValue: MUSIC_SETTINGS_PAGE_LABELS[musicSettingsPage] || '白名单' });
   musicSettingsPageRef.current = musicSettingsPage;
   const currentPluginMarketPageLabel = t(`settings.pluginMarket.pages.${pluginMarketPage}`, {
-    defaultValue: pluginMarketPage === 'wallpaper' ? '壁纸' : '插件',
+    defaultValue: pluginMarketPage === 'wallpaper'
+      ? '壁纸'
+      : pluginMarketPage === 'plugin'
+        ? '插件'
+        : '贡献',
   });
 
   const translatedSettingsTabLabels = useMemo<Record<string, string>>(() => {
@@ -1805,10 +1810,16 @@ export function SettingsTab(): ReactElement {
                 <div className="settings-app-pages-layout" style={{ marginTop: 0 }}>
                   <div className="settings-app-page-main">
                     {pluginMarketPage === 'wallpaper' && (
-                      <WallpaperMarketSection onApplyBackground={handleApplyMarketplaceWallpaper} />
+                      <WallpaperMarketSection
+                        onApplyBackground={handleApplyMarketplaceWallpaper}
+                        onGoContribution={() => setPluginMarketPage('contribution')}
+                      />
                     )}
                     {pluginMarketPage === 'plugin' && (
                       <div className="max-expand-settings-section" />
+                    )}
+                    {pluginMarketPage === 'contribution' && (
+                      <WallpaperContributionSection onGoWallpaper={() => setPluginMarketPage('wallpaper')} />
                     )}
                   </div>
                   <div className="settings-app-page-dots">
@@ -1825,6 +1836,13 @@ export function SettingsTab(): ReactElement {
                       onClick={() => setPluginMarketPage('plugin')}
                       title={t('settings.pluginMarket.pages.plugin', { defaultValue: '插件' })}
                       aria-label={t('settings.pluginMarket.pages.plugin', { defaultValue: '插件' })}
+                    />
+                    <button
+                      className={`settings-app-page-dot ${pluginMarketPage === 'contribution' ? 'active' : ''}`}
+                      data-label={t('settings.pluginMarket.pages.contribution', { defaultValue: '贡献' })}
+                      onClick={() => setPluginMarketPage('contribution')}
+                      title={t('settings.pluginMarket.pages.contribution', { defaultValue: '贡献' })}
+                      aria-label={t('settings.pluginMarket.pages.contribution', { defaultValue: '贡献' })}
                     />
                   </div>
                 </div>

@@ -881,7 +881,14 @@
       },
       "pages": {
         "wallpaper": "Wallpapers",
-        "plugin": "Plugins"
+        "plugin": "Plugins",
+        "contribution": "Contribution"
+      },
+      "contribution": {
+        "title": "Contribute Your Wallpaper",
+        "actions": {
+          "backToWallpaper": "Back to Wallpapers"
+        }
       },
       "wallpaper": {
         "searchPlaceholder": "Search title/author/description/tags",
@@ -908,6 +915,9 @@
         },
         "actions": {
           "search": "Search",
+          "expandSearch": "Expand Search",
+          "collapseSearch": "Collapse Search",
+          "goContribution": "Go to Contribution",
           "upload": "Upload Wallpaper",
           "uploading": "Uploading...",
           "apply": "Apply as Background",
