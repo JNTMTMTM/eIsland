@@ -161,15 +161,20 @@
   grid-template-columns: minmax(0, 1fr) 300px;
   gap: 12px;
   min-height: 300px;
+  max-height: 520px;
 }
 
 .settings-plugin-market-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  grid-auto-rows: max-content;
   gap: 8px;
+  align-items: start;
   align-content: start;
-  max-height: 520px;
-  overflow: auto;
+  min-height: 0;
+  max-height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
   padding-right: 4px;
 }
 
@@ -180,6 +185,8 @@
   overflow: hidden;
   text-align: left;
   padding: 0;
+  display: flex;
+  flex-direction: column;
   cursor: pointer;
 }
 
@@ -203,6 +210,11 @@
   font-size: 13px;
   font-weight: 600;
   line-height: 1.3;
+  display: -webkit-box;
+  line-clamp: 2;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .settings-plugin-market-card-meta {
@@ -220,6 +232,26 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+  min-height: 0;
+  max-height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.settings-plugin-market-list::-webkit-scrollbar,
+.settings-plugin-market-detail::-webkit-scrollbar {
+  width: 3px;
+}
+
+.settings-plugin-market-list::-webkit-scrollbar-thumb,
+.settings-plugin-market-detail::-webkit-scrollbar-thumb {
+  background: rgba(var(--color-text-rgb), 0.1);
+  border-radius: 2px;
+}
+
+.settings-plugin-market-list::-webkit-scrollbar-thumb:hover,
+.settings-plugin-market-detail::-webkit-scrollbar-thumb:hover {
+  background: rgba(var(--color-text-rgb), 0.2);
 }
 
 .settings-plugin-market-detail .settings-plugin-market-top-actions {
