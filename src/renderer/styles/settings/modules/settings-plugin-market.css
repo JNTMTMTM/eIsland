@@ -402,20 +402,25 @@
   gap: 6px;
   color: rgba(255, 255, 255, 0.72);
   font-size: 12px;
-  flex: 1 1 120px;
+  flex: 1 1 160px;
   min-width: 0;
+}
+
+.settings-plugin-market-detail-video-slider > span {
+  flex: 0 0 auto;
+  white-space: nowrap;
 }
 
 .settings-plugin-market-detail-video-slider input[type="range"] {
   flex: 1 1 auto;
   min-width: 0;
-  width: 100%;
+  width: auto;
 }
 
 .settings-plugin-market-detail-video-slider select.settings-field-input {
   flex: 1 1 auto;
   min-width: 0;
-  width: 100%;
+  width: auto;
 }
 
 .settings-plugin-market-upload-transcode {

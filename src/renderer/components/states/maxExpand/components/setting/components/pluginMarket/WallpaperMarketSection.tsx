@@ -172,7 +172,12 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
         if (result.data.length === 0) {
           setSelected(null);
         } else if (!selected || !result.data.some((item) => item.id === selected.id)) {
-          setSelected(result.data[0]);
+          const next = result.data[0];
+          setSelected(next);
+          // 列表项若是视频，拉一次详情补齐 originalUrl / 封面等字段，保证视频预览能正常进入
+          if (next.type === 'video') {
+            loadDetail(next.id).catch(() => {});
+          }
         }
         return;
       }
