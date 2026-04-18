@@ -197,8 +197,10 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
                     <div className="settings-plugin-market-card-meta settings-plugin-market-card-rating">
                       {renderStars(Number(item.ratingAvg ?? 0))}
                       <span>{Number(item.ratingAvg ?? 0).toFixed(1)}</span>
-                      <span className="settings-plugin-market-card-rating-sep">·</span>
-                      <span>{item.applyCount ?? 0}</span>
+                      <span className="settings-plugin-market-card-apply">
+                        <img src={SvgIcon.DOWNLOAD} alt="" className="settings-plugin-market-apply-icon" />
+                        <span>{item.applyCount ?? 0}</span>
+                      </span>
                     </div>
                   </div>
                 </button>
@@ -265,9 +267,10 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
                   {renderStars(Number(selected.ratingAvg ?? 0))}
                   <span>{Number(selected.ratingAvg ?? 0).toFixed(1)}</span>
                   <span>({selected.ratingCount ?? 0})</span>
-                </div>
-                <div className="settings-plugin-market-detail-meta">
-                  {t('settings.pluginMarket.wallpaper.meta.apply', { defaultValue: '应用次数' })}: {selected.applyCount ?? 0}
+                  <span className="settings-plugin-market-detail-apply">
+                    <img src={SvgIcon.DOWNLOAD} alt="" className="settings-plugin-market-apply-icon" />
+                    <span>{selected.applyCount ?? 0}</span>
+                  </span>
                 </div>
 
                 <div className="settings-plugin-market-actions">

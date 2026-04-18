@@ -88,7 +88,9 @@ export const SvgIcon = {
   /** 用户 */
   USER: './svg/USER.svg',
   /** 星星 */
-  STAR: './svg/STAR.svg'
+  STAR: './svg/STAR.svg',
+  /** 下载 */
+  DOWNLOAD: './svg/DOWNLOAD.svg'
 } as const;
 
 export type SvgIconKey = keyof typeof SvgIcon;

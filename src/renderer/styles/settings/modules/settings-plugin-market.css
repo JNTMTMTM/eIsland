@@ -379,6 +379,30 @@
   opacity: 0.5;
 }
 
+.settings-plugin-market-card-apply {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+  opacity: 0.85;
+}
+
+.settings-plugin-market-detail-apply {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+  opacity: 0.85;
+}
+
+.settings-plugin-market-apply-icon {
+  width: 15px;
+  height: 15px;
+  display: inline-block;
+  vertical-align: -2px;
+  opacity: 0.8;
+}
+
 .settings-plugin-market-empty {
   color: rgba(255, 255, 255, 0.56);
   font-size: 12px;
