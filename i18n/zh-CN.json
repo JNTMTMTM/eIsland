@@ -901,7 +901,8 @@
           "titlePlaceholder": "标题",
           "tagsPlaceholder": "标签（逗号分隔）",
           "descriptionPlaceholder": "描述",
-          "copyright": "我确认拥有该图片版权或已获授权"
+          "copyright": "我确认拥有该图片版权或已获授权",
+          "previewGenerating": "正在生成预览…"
         },
         "meta": {
           "rating": "评分",

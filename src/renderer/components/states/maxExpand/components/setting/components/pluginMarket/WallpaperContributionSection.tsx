@@ -1,7 +1,15 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { uploadUserWallpaper } from '../../../../../../../api/userAccountApi';
 import { readLocalToken } from '../../../../../../../utils/userAccount';
+
+interface PreviewEntry {
+  label: string;
+  url: string;
+  width: number;
+  height: number;
+  file?: File;
+}
 
 interface WallpaperContributionSectionProps {
   onGoWallpaper: () => void;
@@ -47,6 +55,63 @@ export function WallpaperContributionSection({ onGoWallpaper }: WallpaperContrib
   const [uploadTags, setUploadTags] = useState('');
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [copyrightDeclared, setCopyrightDeclared] = useState(false);
+  const [previews, setPreviews] = useState<PreviewEntry[]>([]);
+  const [previewBusy, setPreviewBusy] = useState(false);
+  const previewsRef = useRef<PreviewEntry[]>([]);
+
+  useEffect(() => { previewsRef.current = previews; }, [previews]);
+  useEffect(() => () => {
+    previewsRef.current.forEach((p) => URL.revokeObjectURL(p.url));
+  }, []);
+
+  const clearPreviews = (): void => {
+    previewsRef.current.forEach((p) => URL.revokeObjectURL(p.url));
+    setPreviews([]);
+  };
+
+  const loadImageDimensions = (file: File): Promise<{ width: number; height: number }> => (
+    new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(file);
+      const image = new Image();
+      image.onload = () => {
+        resolve({ width: image.width, height: image.height });
+        URL.revokeObjectURL(url);
+      };
+      image.onerror = () => {
+        URL.revokeObjectURL(url);
+        reject(new Error('无法读取图片尺寸'));
+      };
+      image.src = url;
+    })
+  );
+
+  const handleFilePick = async (file: File | null): Promise<void> => {
+    clearPreviews();
+    setUploadFile(file);
+    if (!file) return;
+    if (file.size > MAX_IMAGE_SIZE) {
+      setMessage(t('settings.pluginMarket.wallpaper.feedback.fileTooLarge', { defaultValue: '图片不能超过 20MB' }));
+      return;
+    }
+    setPreviewBusy(true);
+    try {
+      const dimensions = await loadImageDimensions(file);
+      const thumb320 = await createThumbnailFile(file, 320);
+      const thumb720 = await createThumbnailFile(file, 720);
+      const thumb1280 = await createThumbnailFile(file, 1280);
+      const next: PreviewEntry[] = [
+        { label: '320w', url: URL.createObjectURL(thumb320), width: 320, height: Math.round(dimensions.height * 320 / dimensions.width), file: thumb320 },
+        { label: '720w', url: URL.createObjectURL(thumb720), width: 720, height: Math.round(dimensions.height * 720 / dimensions.width), file: thumb720 },
+        { label: '1280w', url: URL.createObjectURL(thumb1280), width: 1280, height: Math.round(dimensions.height * 1280 / dimensions.width), file: thumb1280 },
+        { label: `${dimensions.width}w`, url: URL.createObjectURL(file), width: dimensions.width, height: dimensions.height },
+      ];
+      setPreviews(next);
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : t('settings.pluginMarket.wallpaper.feedback.uploadFailed', { defaultValue: '上传失败' }));
+    } finally {
+      setPreviewBusy(false);
+    }
+  };
 
   const handleUpload = async (): Promise<void> => {
     const token = readLocalToken();
@@ -67,34 +132,24 @@ export function WallpaperContributionSection({ onGoWallpaper }: WallpaperContrib
       setMessage(t('settings.pluginMarket.wallpaper.feedback.fileTooLarge', { defaultValue: '图片不能超过 20MB' }));
       return;
     }
+    const thumb320 = previews[0]?.file;
+    const thumb720 = previews[1]?.file;
+    const thumb1280 = previews[2]?.file;
+    const originalPreview = previews[3];
+    if (!thumb320 || !thumb720 || !thumb1280 || !originalPreview) {
+      setMessage(t('settings.pluginMarket.wallpaper.feedback.uploadFailed', { defaultValue: '上传失败' }));
+      return;
+    }
     setUploading(true);
     try {
-      const thumb320 = await createThumbnailFile(uploadFile, 320);
-      const thumb720 = await createThumbnailFile(uploadFile, 720);
-      const thumb1280 = await createThumbnailFile(uploadFile, 1280);
-
-      const dimensions = await new Promise<{ width: number; height: number }>((resolve, reject) => {
-        const url = URL.createObjectURL(uploadFile);
-        const image = new Image();
-        image.onload = () => {
-          resolve({ width: image.width, height: image.height });
-          URL.revokeObjectURL(url);
-        };
-        image.onerror = () => {
-          URL.revokeObjectURL(url);
-          reject(new Error('无法读取图片尺寸'));
-        };
-        image.src = url;
-      });
-
       const result = await uploadUserWallpaper(token, {
         title: uploadTitle.trim(),
         description: uploadDescription.trim(),
         tags: uploadTags.trim(),
         type: 'image',
         copyrightDeclared,
-        width: dimensions.width,
-        height: dimensions.height,
+        width: originalPreview.width,
+        height: originalPreview.height,
         original: uploadFile,
         thumb320,
         thumb720,
@@ -112,6 +167,7 @@ export function WallpaperContributionSection({ onGoWallpaper }: WallpaperContrib
       setUploadTags('');
       setUploadFile(null);
       setCopyrightDeclared(false);
+      clearPreviews();
     } catch (err) {
       setMessage(err instanceof Error ? err.message : t('settings.pluginMarket.wallpaper.feedback.uploadFailed', { defaultValue: '上传失败' }));
     } finally {
@@ -151,11 +207,30 @@ export function WallpaperContributionSection({ onGoWallpaper }: WallpaperContrib
             placeholder={t('settings.pluginMarket.wallpaper.upload.descriptionPlaceholder', { defaultValue: '描述' })}
           />
           <input
-            className="settings-field-input"
+            className="settings-field-input settings-plugin-market-upload-file"
             type="file"
             accept="image/jpeg,image/png,image/webp"
-            onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
+            onChange={(e) => { handleFilePick(e.target.files?.[0] || null).catch(() => {}); }}
           />
+          {previewBusy && (
+            <div className="settings-plugin-market-upload-previews-hint">
+              {t('settings.pluginMarket.wallpaper.upload.previewGenerating', { defaultValue: '正在生成预览…' })}
+            </div>
+          )}
+          {previews.length > 0 && (
+            <div className="settings-plugin-market-upload-previews">
+              {previews.map((p) => (
+                <div
+                  key={p.label}
+                  className="settings-plugin-market-upload-preview"
+                  style={{ flex: `${p.width} 1 0%` }}
+                >
+                  <img src={p.url} alt={p.label} className="settings-plugin-market-upload-preview-img" />
+                  <div className="settings-plugin-market-upload-preview-label">{p.label}</div>
+                </div>
+              ))}
+            </div>
+          )}
           <label className="settings-plugin-market-checkbox">
             <input
               type="checkbox"
@@ -164,7 +239,12 @@ export function WallpaperContributionSection({ onGoWallpaper }: WallpaperContrib
             />
             <span>{t('settings.pluginMarket.wallpaper.upload.copyright', { defaultValue: '我确认拥有该图片版权或已获授权' })}</span>
           </label>
-          <button className="settings-hotkey-btn" type="button" onClick={() => { handleUpload().catch(() => {}); }} disabled={uploading}>
+          <button
+            className="settings-hotkey-btn settings-plugin-market-upload-btn"
+            type="button"
+            onClick={() => { handleUpload().catch(() => {}); }}
+            disabled={uploading || previewBusy}
+          >
             {uploading
               ? t('settings.pluginMarket.wallpaper.actions.uploading', { defaultValue: '上传中…' })
               : t('settings.pluginMarket.wallpaper.actions.upload', { defaultValue: '上传壁纸' })}

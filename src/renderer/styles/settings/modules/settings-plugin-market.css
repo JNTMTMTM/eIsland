@@ -33,8 +33,57 @@
 }
 
 .settings-plugin-market-upload-grid textarea {
+  grid-column: 1 / -1;
   min-height: 72px;
   resize: vertical;
+}
+
+.settings-plugin-market-upload-file {
+  grid-column: 1 / -1;
+}
+
+.settings-plugin-market-upload-previews {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: flex-end;
+  gap: 6px;
+  width: 100%;
+}
+
+.settings-plugin-market-upload-preview {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: stretch;
+}
+
+.settings-plugin-market-upload-preview-img {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.25);
+  display: block;
+}
+
+.settings-plugin-market-upload-preview-label {
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 11px;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.settings-plugin-market-upload-previews-hint {
+  grid-column: 1 / -1;
+  color: rgba(255, 255, 255, 0.56);
+  font-size: 12px;
+}
+
+.settings-plugin-market-upload-btn {
+  grid-column: 1 / -1;
+  width: 100%;
 }
 
 .settings-plugin-market-contribution-title {

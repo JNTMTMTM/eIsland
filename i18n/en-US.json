@@ -901,7 +901,8 @@
           "titlePlaceholder": "Title",
           "tagsPlaceholder": "Tags (comma separated)",
           "descriptionPlaceholder": "Description",
-          "copyright": "I confirm I own the copyright or have authorization"
+          "copyright": "I confirm I own the copyright or have authorization",
+          "previewGenerating": "Generating previews..."
         },
         "meta": {
           "rating": "Rating",
