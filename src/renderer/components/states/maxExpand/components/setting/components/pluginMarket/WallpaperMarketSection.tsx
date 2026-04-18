@@ -18,6 +18,13 @@ interface WallpaperMarketSectionProps {
 
 export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: WallpaperMarketSectionProps) {
   const { t } = useTranslation();
+  const ratingDescriptions = [
+    t('settings.pluginMarket.wallpaper.ratingLevels.1', { defaultValue: '很差' }),
+    t('settings.pluginMarket.wallpaper.ratingLevels.2', { defaultValue: '较差' }),
+    t('settings.pluginMarket.wallpaper.ratingLevels.3', { defaultValue: '一般' }),
+    t('settings.pluginMarket.wallpaper.ratingLevels.4', { defaultValue: '不错' }),
+    t('settings.pluginMarket.wallpaper.ratingLevels.5', { defaultValue: '超赞' }),
+  ];
   const [list, setList] = useState<WallpaperMarketItem[]>([]);
   const [selected, setSelected] = useState<WallpaperMarketItem | null>(null);
   const [loading, setLoading] = useState(false);
@@ -308,24 +315,34 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
                   </button>
                   {ratingExpanded && (
                     <div className="settings-plugin-market-rating-row">
-                      <div
-                        className="settings-plugin-market-star-picker"
-                        role="radiogroup"
-                        aria-label={t('settings.pluginMarket.wallpaper.actions.expandRate', { defaultValue: '评分' })}
-                      >
-                        {[1, 2, 3, 4, 5].map((score) => (
-                          <button
-                            key={score}
-                            type="button"
-                            className={`settings-plugin-market-star-btn ${score <= ratingScore ? 'active' : ''}`}
-                            onClick={() => setRatingScore(score)}
-                            aria-label={`${score}`}
-                            aria-checked={score === ratingScore}
-                            role="radio"
-                          >
-                            <img src={SvgIcon.STAR} alt="" className="settings-plugin-market-star-icon" />
-                          </button>
-                        ))}
+                      <div className="settings-plugin-market-rating-picker-group">
+                        <div
+                          className="settings-plugin-market-star-picker"
+                          role="radiogroup"
+                          aria-label={t('settings.pluginMarket.wallpaper.actions.expandRate', { defaultValue: '评分' })}
+                        >
+                          {[1, 2, 3, 4, 5].map((score) => (
+                            <button
+                              key={score}
+                              type="button"
+                              className={`settings-plugin-market-star-btn ${score <= ratingScore ? 'active' : ''}`}
+                              onClick={() => setRatingScore(score)}
+                              aria-label={`${score} ${ratingDescriptions[score - 1]}`}
+                              aria-checked={score === ratingScore}
+                              role="radio"
+                            >
+                              <img src={SvgIcon.STAR} alt="" className="settings-plugin-market-star-icon" />
+                            </button>
+                          ))}
+                        </div>
+                        <div className="settings-plugin-market-rating-hint">
+                          <span className="settings-plugin-market-rating-current">
+                            {t('settings.pluginMarket.wallpaper.rating.current', { defaultValue: '当前评分' })}: {ratingScore} · {ratingDescriptions[ratingScore - 1]}
+                          </span>
+                          <span className="settings-plugin-market-rating-help">
+                            {t('settings.pluginMarket.wallpaper.rating.help', { defaultValue: '点击星星选择分数，5 分表示最喜欢' })}
+                          </span>
+                        </div>
                       </div>
                       <button
                         className="settings-hotkey-btn"

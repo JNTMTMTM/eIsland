@@ -281,7 +281,13 @@
 
 .settings-plugin-market-rating-row {
   grid-template-columns: 1fr auto;
-  align-items: center;
+  align-items: start;
+}
+
+.settings-plugin-market-rating-picker-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .settings-plugin-market-star-picker {
@@ -291,17 +297,25 @@
 }
 
 .settings-plugin-market-star-btn {
-  background: transparent;
-  border: none;
-  padding: 2px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  padding: 4px;
   cursor: pointer;
   line-height: 0;
-  border-radius: 4px;
-  transition: transform 0.15s ease;
+  border-radius: 6px;
+  transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
 }
 
 .settings-plugin-market-star-btn:hover {
   transform: scale(1.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.settings-plugin-market-star-btn.active {
+  background: rgba(255, 196, 77, 0.14);
+  border-color: rgba(255, 196, 77, 0.4);
 }
 
 .settings-plugin-market-star-icon {
@@ -316,6 +330,22 @@
 .settings-plugin-market-star-btn.active .settings-plugin-market-star-icon,
 .settings-plugin-market-star-btn:hover .settings-plugin-market-star-icon {
   opacity: 1;
+}
+
+.settings-plugin-market-rating-hint {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.settings-plugin-market-rating-current {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.settings-plugin-market-rating-help {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.55);
 }
 
 .settings-plugin-market-star-inline {
