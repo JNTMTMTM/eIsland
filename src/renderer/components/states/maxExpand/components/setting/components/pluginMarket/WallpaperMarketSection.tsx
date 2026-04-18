@@ -27,8 +27,10 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
   const [searchExpanded, setSearchExpanded] = useState(false);
   const [message, setMessage] = useState('');
   const [ratingScore, setRatingScore] = useState(5);
+  const [ratingExpanded, setRatingExpanded] = useState(false);
   const [reportReasonType, setReportReasonType] = useState('copyright');
   const [reportReasonDetail, setReportReasonDetail] = useState('');
+  const [reportExpanded, setReportExpanded] = useState(false);
   const [editingMetadata, setEditingMetadata] = useState(false);
   const [editTitle, setEditTitle] = useState('');
   const [editDescription, setEditDescription] = useState('');
@@ -264,40 +266,62 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
                   <button className="settings-hotkey-btn" type="button" onClick={() => { handleApply().catch(() => {}); }}>
                     {t('settings.pluginMarket.wallpaper.actions.apply', { defaultValue: '应用为背景' })}
                   </button>
-                  <div className="settings-plugin-market-rating-row">
-                    <select
-                      className="settings-field-input"
-                      value={ratingScore}
-                      onChange={(e) => setRatingScore(Math.max(1, Math.min(5, Number(e.target.value) || 5)))}
-                    >
-                      {[1, 2, 3, 4, 5].map((score) => (
-                        <option key={score} value={score}>{score}</option>
-                      ))}
-                    </select>
-                    <button className="settings-hotkey-btn" type="button" onClick={() => { handleRate().catch(() => {}); }}>
-                      {t('settings.pluginMarket.wallpaper.actions.rate', { defaultValue: '评分' })}
-                    </button>
-                  </div>
-                  <div className="settings-plugin-market-report-row">
-                    <select
-                      className="settings-field-input"
-                      value={reportReasonType}
-                      onChange={(e) => setReportReasonType(e.target.value)}
-                    >
-                      <option value="copyright">{t('settings.pluginMarket.wallpaper.report.copyright', { defaultValue: '版权问题' })}</option>
-                      <option value="illegal">{t('settings.pluginMarket.wallpaper.report.illegal', { defaultValue: '违规内容' })}</option>
-                      <option value="other">{t('settings.pluginMarket.wallpaper.report.other', { defaultValue: '其他' })}</option>
-                    </select>
-                    <input
-                      className="settings-field-input"
-                      value={reportReasonDetail}
-                      onChange={(e) => setReportReasonDetail(e.target.value)}
-                      placeholder={t('settings.pluginMarket.wallpaper.report.detailPlaceholder', { defaultValue: '举报补充说明（可选）' })}
-                    />
-                    <button className="settings-hotkey-btn" type="button" onClick={() => { handleReport().catch(() => {}); }}>
-                      {t('settings.pluginMarket.wallpaper.actions.report', { defaultValue: '举报' })}
-                    </button>
-                  </div>
+                  <button
+                    className="settings-hotkey-btn"
+                    type="button"
+                    onClick={() => setRatingExpanded((prev) => !prev)}
+                  >
+                    {ratingExpanded
+                      ? t('settings.pluginMarket.wallpaper.actions.collapseRate', { defaultValue: '收起评分' })
+                      : t('settings.pluginMarket.wallpaper.actions.expandRate', { defaultValue: '评分' })}
+                  </button>
+                  {ratingExpanded && (
+                    <div className="settings-plugin-market-rating-row">
+                      <select
+                        className="settings-field-input"
+                        value={ratingScore}
+                        onChange={(e) => setRatingScore(Math.max(1, Math.min(5, Number(e.target.value) || 5)))}
+                      >
+                        {[1, 2, 3, 4, 5].map((score) => (
+                          <option key={score} value={score}>{score}</option>
+                        ))}
+                      </select>
+                      <button className="settings-hotkey-btn" type="button" onClick={() => { handleRate().catch(() => {}); }}>
+                        {t('settings.pluginMarket.wallpaper.actions.rate', { defaultValue: '提交评分' })}
+                      </button>
+                    </div>
+                  )}
+                  <button
+                    className="settings-hotkey-btn"
+                    type="button"
+                    onClick={() => setReportExpanded((prev) => !prev)}
+                  >
+                    {reportExpanded
+                      ? t('settings.pluginMarket.wallpaper.actions.collapseReport', { defaultValue: '收起举报' })
+                      : t('settings.pluginMarket.wallpaper.actions.expandReport', { defaultValue: '举报' })}
+                  </button>
+                  {reportExpanded && (
+                    <div className="settings-plugin-market-report-row">
+                      <select
+                        className="settings-field-input"
+                        value={reportReasonType}
+                        onChange={(e) => setReportReasonType(e.target.value)}
+                      >
+                        <option value="copyright">{t('settings.pluginMarket.wallpaper.report.copyright', { defaultValue: '版权问题' })}</option>
+                        <option value="illegal">{t('settings.pluginMarket.wallpaper.report.illegal', { defaultValue: '违规内容' })}</option>
+                        <option value="other">{t('settings.pluginMarket.wallpaper.report.other', { defaultValue: '其他' })}</option>
+                      </select>
+                      <input
+                        className="settings-field-input"
+                        value={reportReasonDetail}
+                        onChange={(e) => setReportReasonDetail(e.target.value)}
+                        placeholder={t('settings.pluginMarket.wallpaper.report.detailPlaceholder', { defaultValue: '举报补充说明（可选）' })}
+                      />
+                      <button className="settings-hotkey-btn" type="button" onClick={() => { handleReport().catch(() => {}); }}>
+                        {t('settings.pluginMarket.wallpaper.actions.submitReport', { defaultValue: '提交举报' })}
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 {selected.ownerUsername === currentUsername && (
