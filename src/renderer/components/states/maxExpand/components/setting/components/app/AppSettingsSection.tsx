@@ -704,12 +704,6 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
                           applyBgVideoVolume(safe);
                           persistBgVideoVolume(safe);
                           window.api.settingsPreview('store:island-bg-video-volume', safe).catch(() => {});
-                          if (safe > 0 && bgVideoMuted) {
-                            setBgVideoMuted(false);
-                            applyBgVideoMuted(false);
-                            persistBgVideoMuted(false);
-                            window.api.settingsPreview('store:island-bg-video-muted', false).catch(() => {});
-                          }
                         }}
                       />
                       <span className="settings-opacity-slider-value">{Math.round(bgVideoVolume * 100)}%</span>

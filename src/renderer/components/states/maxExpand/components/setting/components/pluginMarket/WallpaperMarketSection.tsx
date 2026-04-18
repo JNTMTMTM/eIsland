@@ -427,6 +427,7 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
                       autoPlay
                       loop
                       playsInline
+                      muted={detailVideoMuted}
                       controls={false}
                       onEnded={() => setDetailVideoPlaying(true)}
                       onPlay={() => setDetailVideoPlaying(true)}
@@ -463,7 +464,6 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
                             const value = parseFloat(event.target.value);
                             if (Number.isFinite(value)) {
                               setDetailVideoVolume(Math.max(0, Math.min(1, value)));
-                              if (value > 0) setDetailVideoMuted(false);
                             }
                           }}
                         />
