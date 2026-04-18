@@ -254,7 +254,7 @@
 
 .settings-plugin-market-card-img {
   width: 100%;
-  height: 140px;
+  height: 100%;
   object-fit: cover;
   display: block;
 }
@@ -755,7 +755,7 @@
     grid-template-columns: minmax(0, 1fr) 260px;
   }
 
-  .settings-plugin-market-card-img {
+  .settings-plugin-market-card-media {
     height: 110px;
   }
 
