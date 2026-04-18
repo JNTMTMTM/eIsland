@@ -576,6 +576,7 @@
       "shortcut": "快捷键",
       "user": "用户中心",
       "update": "更新设置",
+      "pluginMarket": "插件市场",
       "about": "关于软件"
     },
     "weatherPages": {
@@ -871,6 +872,18 @@
         "retry": "重试"
       }
     },
+    "pluginMarket": {
+      "auth": {
+        "entryTitle": "登录后即可访问插件市场内容",
+        "gotoLogin": "前往登录",
+        "gotoRegister": "前往注册",
+        "hint": "登录后可浏览壁纸与插件内容。"
+      },
+      "pages": {
+        "wallpaper": "壁纸",
+        "plugin": "插件"
+      }
+    },
     "ai": {
       "apiKey": "API Key",
       "apiEndpoint": "API Endpoint",
@@ -921,6 +934,8 @@
         "account": "用户名或邮箱",
         "accountPlaceholder": "请输入用户名或邮箱",
         "email": "邮箱",
+        "emailCode": "邮箱验证码",
+        "emailCodePlaceholder": "请输入邮箱验证码",
         "password": "密码",
         "passwordPlaceholder": "至少 8 位，含字母与数字",
         "confirmPassword": "确认密码",
@@ -977,7 +992,9 @@
         "confirmUnregister": "确认注销",
         "unregistering": "注销中…",
         "cancel": "取消",
-        "cancelChanges": "取消更改"
+        "cancelChanges": "取消更改",
+        "sendCode": "发送验证码",
+        "sendCodeCooldown": "{{seconds}}s后重试"
       },
       "danger": {
         "hint": "注销后账号与关联资料将被立即删除，无法恢复，请谨慎操作。"
@@ -994,6 +1011,11 @@
         "confirmPasswordRequired": "请再次输入密码",
         "passwordNotMatch": "两次输入的密码不一致",
         "emailRequired": "请输入邮箱",
+        "emailInvalid": "请输入有效邮箱地址",
+        "emailCodeRequired": "请输入邮箱验证码",
+        "emailCodeSending": "发送中…",
+        "emailCodeSent": "验证码已发送，请查收邮箱",
+        "emailCodeSendFailed": "验证码发送失败",
         "operationFailed": "操作失败",
         "loginSuccess": "登录成功",
         "registerSuccess": "注册成功，已自动登录",

@@ -88,10 +88,25 @@ export function UserSettingsSection(): ReactElement {
   const [logoutSubmitting, setLogoutSubmitting] = useState(false);
   const [userProfilePage, setUserProfilePage] = useState<UserProfilePage>('info');
 
+  const currentUserProfilePageLabel = t(`settings.user.pages.${userProfilePage}`, {
+    defaultValue: userProfilePage === 'info' ? '用户信息' : userProfilePage === 'edit' ? '修改信息' : '关于账户',
+  });
+
   const avatarInputRef = useRef<HTMLInputElement | null>(null);
   const userProfilePageRef = useRef<UserProfilePage>('info');
   const profilePagesLayoutRef = useRef<HTMLDivElement | null>(null);
   userProfilePageRef.current = userProfilePage;
+
+  const resetToLoggedOut = useCallback((): void => {
+    clearLocalAccount();
+    setToken(null);
+    setProfile(null);
+    setProfileError('');
+    setProfileFeedback(null);
+    setUnregisterConfirmVisible(false);
+    setUnregisterPassword('');
+    setUnregisterPasswordVisible(false);
+  }, []);
 
   const applyProfileToEditor = useCallback((p: UserAccountProfile): void => {
     setEditAvatar(p.avatar ?? null);
@@ -111,7 +126,7 @@ export function UserSettingsSection(): ReactElement {
     setLoadingProfile(false);
     if (!result.ok || !result.data) {
       if (result.code === 401 || result.code === 4011) {
-        setProfileError(t('settings.user.feedback.sessionExpired', { defaultValue: '登录已过期，请重新登录' }));
+        resetToLoggedOut();
         return;
       }
       setProfileError(result.message || t('settings.user.feedback.loadFailed', { defaultValue: '加载资料失败' }));
@@ -120,7 +135,7 @@ export function UserSettingsSection(): ReactElement {
     setProfile(result.data);
     writeLocalProfile(result.data);
     applyProfileToEditor(result.data);
-  }, [applyProfileToEditor, t]);
+  }, [applyProfileToEditor, resetToLoggedOut, t]);
 
   useEffect(() => {
     const syncSession = (): void => {
@@ -230,7 +245,7 @@ export function UserSettingsSection(): ReactElement {
     if (!result.ok) {
       setSavingProfile(false);
       if (result.code === 401 || result.code === 4011) {
-        setProfileFeedback({ type: 'error', text: t('settings.user.feedback.sessionExpired', { defaultValue: '登录已过期，请重新登录' }) });
+        resetToLoggedOut();
         return;
       }
       setProfileFeedback({ type: 'error', text: result.message || t('settings.user.feedback.saveFailed', { defaultValue: '保存失败' }) });
@@ -291,9 +306,10 @@ export function UserSettingsSection(): ReactElement {
     setUnregisterSubmitting(false);
     if (!result.ok) {
       if (result.code === 401 || result.code === 4011) {
-        setProfileFeedback({ type: 'error', text: t('settings.user.feedback.sessionExpired', { defaultValue: '登录已过期，请重新登录' }) });
+        resetToLoggedOut();
         return;
       }
+      setProfileFeedback({ type: 'error', text: result.message || t('settings.user.feedback.operationFailed', { defaultValue: '操作失败' }) });
       return;
     }
     clearLocalAccount();
@@ -563,6 +579,7 @@ export function UserSettingsSection(): ReactElement {
               {t('settings.user.auth.hint', { defaultValue: '登录注册服务由 eIsland server 提供' })}
             </div>
           </div>
+          {renderFeedback(profileFeedback)}
           <div className="settings-user-actions-row">
             <button
               type="button"
@@ -664,13 +681,34 @@ export function UserSettingsSection(): ReactElement {
 
   return (
     <div className="max-expand-settings-section settings-user">
-      <div className="max-expand-settings-title">{t('settings.labels.user', { defaultValue: '用户中心' })}</div>
+      <div className="max-expand-settings-title settings-app-title-line">
+        <span>{t('settings.labels.user', { defaultValue: '用户中心' })}</span>
+        {token && profile && <span className="settings-app-title-sub">- {currentUserProfilePageLabel}</span>}
+      </div>
       {token && profile ? renderProfileEditor() : token ? (
         <div className="settings-user-loading">
           {loadingProfile
             ? t('settings.user.feedback.loadingProfile', { defaultValue: '加载账号资料中…' })
             : t('settings.user.feedback.loadFailed', { defaultValue: '加载资料失败' })}
           {profileError && <div className="settings-user-feedback settings-user-feedback--error">{profileError}</div>}
+          {!loadingProfile && (
+            <div className="settings-user-actions-row settings-user-actions-row--adaptive">
+              <button
+                type="button"
+                className="settings-user-primary-btn"
+                onClick={() => token && void loadRemoteProfile(token)}
+              >
+                {t('settings.user.actions.refresh', { defaultValue: '刷新资料' })}
+              </button>
+              <button
+                type="button"
+                className="settings-user-secondary-btn"
+                onClick={resetToLoggedOut}
+              >
+                {t('settings.user.actions.logout', { defaultValue: '退出登录' })}
+              </button>
+            </div>
+          )}
         </div>
       ) : renderAuthEntry()}
     </div>

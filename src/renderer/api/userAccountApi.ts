@@ -52,6 +52,8 @@ export interface UserAccountLoginData {
   role: string;
 }
 
+export type UserEmailCodeScene = 'REGISTER' | 'LOGIN' | 'RESET_PASSWORD' | 'CHANGE_EMAIL';
+
 /** 超时时间（毫秒） */
 const DEFAULT_TIMEOUT_MS = 10000;
 
@@ -124,7 +126,25 @@ export function loginUserByAccount(username: string, password: string): Promise<
 export function loginUserByEmail(email: string, password: string): Promise<UserAccountResult<UserAccountLoginData>> {
   return request<UserAccountLoginData>('/auth/user/login/email', {
     method: 'POST',
-    body: { email, password },
+    body: { email, password, emailCode: '' },
+  });
+}
+
+/**
+ * 用户邮箱登录（带验证码）。
+ * @param email 邮箱。
+ * @param password 密码。
+ * @param emailCode 邮箱验证码。
+ * @returns 登录结果。
+ */
+export function loginUserByEmailWithCode(
+  email: string,
+  password: string,
+  emailCode: string,
+): Promise<UserAccountResult<UserAccountLoginData>> {
+  return request<UserAccountLoginData>('/auth/user/login/email', {
+    method: 'POST',
+    body: { email, password, emailCode },
   });
 }
 
@@ -136,7 +156,7 @@ export function loginUserByEmail(email: string, password: string): Promise<UserA
  */
 export function loginUser(account: string, password: string): Promise<UserAccountResult<UserAccountLoginData>> {
   return account.includes('@')
-    ? loginUserByEmail(account, password)
+    ? loginUserByEmailWithCode(account, password, '')
     : loginUserByAccount(account, password);
 }
 
@@ -150,7 +170,63 @@ export function loginUser(account: string, password: string): Promise<UserAccoun
 export function registerUser(username: string, email: string, password: string): Promise<UserAccountResult<UserAccountLoginData>> {
   return request<UserAccountLoginData>('/auth/user/register', {
     method: 'POST',
-    body: { username, email, password },
+    body: { username, email, password, emailCode: '' },
+  });
+}
+
+/**
+ * 用户注册（带验证码）。
+ * @param username 用户名。
+ * @param email 邮箱。
+ * @param password 密码。
+ * @param emailCode 邮箱验证码。
+ * @returns 注册结果。
+ */
+export function registerUserWithCode(
+  username: string,
+  email: string,
+  password: string,
+  emailCode: string,
+): Promise<UserAccountResult<UserAccountLoginData>> {
+  return request<UserAccountLoginData>('/auth/user/register', {
+    method: 'POST',
+    body: { username, email, password, emailCode },
+  });
+}
+
+/**
+ * 发送邮箱验证码。
+ * @param email 邮箱。
+ * @param scene 验证码使用场景。
+ * @returns 发送结果（可能包含重试等待秒数）。
+ */
+export function sendUserEmailCode(
+  email: string,
+  scene: UserEmailCodeScene,
+): Promise<UserAccountResult<{ retryAfterSeconds?: number }>> {
+  return request<{ retryAfterSeconds?: number }>('/auth/user/email-code/send', {
+    method: 'POST',
+    body: { email, scene },
+  });
+}
+
+/**
+ * 校验邮箱验证码。
+ * @param email 邮箱。
+ * @param scene 验证码使用场景。
+ * @param code 邮箱验证码。
+ * @param consume 是否消费验证码（默认 true）。
+ * @returns 校验结果。
+ */
+export function verifyUserEmailCode(
+  email: string,
+  scene: UserEmailCodeScene,
+  code: string,
+  consume = true,
+): Promise<UserAccountResult<unknown>> {
+  return request('/auth/user/email-code/verify', {
+    method: 'POST',
+    body: { email, scene, code, consume },
   });
 }
 

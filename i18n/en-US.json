@@ -576,6 +576,7 @@
       "shortcut": "Shortcuts",
       "user": "Account",
       "update": "Updates",
+      "pluginMarket": "Plugin Market",
       "about": "About"
     },
     "weatherPages": {
@@ -871,6 +872,18 @@
         "retry": "Retry"
       }
     },
+    "pluginMarket": {
+      "auth": {
+        "entryTitle": "Sign in to access plugin market content",
+        "gotoLogin": "Go to Sign In",
+        "gotoRegister": "Go to Sign Up",
+        "hint": "Sign in to browse wallpapers and plugins."
+      },
+      "pages": {
+        "wallpaper": "Wallpapers",
+        "plugin": "Plugins"
+      }
+    },
     "ai": {
       "apiKey": "API Key",
       "apiEndpoint": "API Endpoint",
@@ -921,6 +934,8 @@
         "account": "Username or Email",
         "accountPlaceholder": "Enter username or email",
         "email": "Email",
+        "emailCode": "Email Code",
+        "emailCodePlaceholder": "Enter email code",
         "password": "Password",
         "passwordPlaceholder": "At least 8 chars with letters and digits",
         "confirmPassword": "Confirm Password",
@@ -977,7 +992,9 @@
         "confirmUnregister": "Confirm delete",
         "unregistering": "Deleting…",
         "cancel": "Cancel",
-        "cancelChanges": "Discard changes"
+        "cancelChanges": "Discard changes",
+        "sendCode": "Send Code",
+        "sendCodeCooldown": "Retry in {{seconds}}s"
       },
       "danger": {
         "hint": "Deleting your account removes associated data immediately and cannot be undone. Proceed with care."
@@ -994,6 +1011,11 @@
         "confirmPasswordRequired": "Please confirm your password",
         "passwordNotMatch": "Passwords do not match",
         "emailRequired": "Email is required",
+        "emailInvalid": "Please enter a valid email address",
+        "emailCodeRequired": "Email code is required",
+        "emailCodeSending": "Sending…",
+        "emailCodeSent": "Code sent. Check your inbox",
+        "emailCodeSendFailed": "Failed to send code",
         "operationFailed": "Operation failed",
         "loginSuccess": "Signed in",
         "registerSuccess": "Account created and signed in",

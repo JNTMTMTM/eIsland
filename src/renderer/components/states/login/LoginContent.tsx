@@ -28,10 +28,13 @@ import { useState } from 'react';
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../store/slices';
-import { loginUser } from '../../../api/userAccountApi';
+import { loginUserByAccount, loginUserByEmailWithCode, sendUserEmailCode } from '../../../api/userAccountApi';
 import { updateSessionToken } from '../../../utils/authSession';
 import '../../../styles/settings/settings.css';
 import '../../../styles/auth/auth.css';
+
+const STANDALONE_WINDOW_MODE_STORE_KEY = 'standalone-window-mode';
+const LEGACY_COUNTDOWN_WINDOW_MODE_STORE_KEY = 'countdown-window-mode';
 
 type FeedbackType = 'success' | 'error' | 'info';
 
@@ -40,22 +43,76 @@ interface Feedback {
   text: string;
 }
 
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+async function readStandaloneWindowMode(): Promise<'integrated' | 'standalone'> {
+  try {
+    const mode = await window.api.storeRead(STANDALONE_WINDOW_MODE_STORE_KEY);
+    if (mode === 'standalone') return 'standalone';
+    if (mode === 'integrated') return 'integrated';
+  } catch {
+    // ignore
+  }
+  try {
+    const legacyMode = await window.api.storeRead(LEGACY_COUNTDOWN_WINDOW_MODE_STORE_KEY);
+    if (legacyMode === 'standalone') return 'standalone';
+  } catch {
+    // ignore
+  }
+  return 'integrated';
+}
+
 /** 独立登录状态内容 */
 export function LoginContent(): ReactElement {
   const { t } = useTranslation();
   const { setRegister, setMaxExpand, setMaxExpandTab, returnFromAuth } = useIslandStore();
   const [account, setAccount] = useState('');
+  const [emailCode, setEmailCode] = useState('');
   const [password, setPassword] = useState('');
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [sendingCode, setSendingCode] = useState(false);
+  const [sendCooldownSeconds, setSendCooldownSeconds] = useState(0);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
+
+  const isEmailAccount = account.includes('@');
+
+  const handleSendCode = async (): Promise<void> => {
+    if (sendingCode || sendCooldownSeconds > 0) return;
+    const email = account.trim().toLowerCase();
+    if (!EMAIL_PATTERN.test(email)) {
+      setFeedback({ type: 'error', text: t('settings.user.feedback.emailInvalid', { defaultValue: '请输入有效邮箱地址' }) });
+      return;
+    }
+    setSendingCode(true);
+    const result = await sendUserEmailCode(email, 'LOGIN');
+    setSendingCode(false);
+    if (!result.ok) {
+      setFeedback({ type: 'error', text: result.message || t('settings.user.feedback.emailCodeSendFailed', { defaultValue: '验证码发送失败' }) });
+      return;
+    }
+    const cooldown = Math.max(0, Number(result.data?.retryAfterSeconds || 60));
+    if (cooldown > 0) {
+      setSendCooldownSeconds(cooldown);
+      window.setTimeout(() => {
+        setSendCooldownSeconds((v) => (v > 0 ? v - 1 : 0));
+      }, 1000);
+    }
+    setFeedback({ type: 'success', text: t('settings.user.feedback.emailCodeSent', { defaultValue: '验证码已发送，请查收邮箱' }) });
+  };
 
   const renderFeedback = (): ReactElement | null => {
     if (!feedback) return null;
     return <div className={`settings-user-feedback settings-user-feedback--${feedback.type}`}>{feedback.text}</div>;
   };
 
-  const navigateToUserCenter = (): void => {
+  const navigateToUserCenter = async (): Promise<void> => {
+    const mode = await readStandaloneWindowMode();
+    if (mode === 'standalone') {
+      setMaxExpandTab('settings');
+      useIslandStore.setState({ state: 'maxExpand', authReturnState: null });
+      return;
+    }
     setMaxExpand();
     setMaxExpandTab('settings');
   };
@@ -71,10 +128,16 @@ export function LoginContent(): ReactElement {
       setFeedback({ type: 'error', text: t('settings.user.feedback.passwordRequired', { defaultValue: '请输入密码' }) });
       return;
     }
+    if (isEmailAccount && !emailCode.trim()) {
+      setFeedback({ type: 'error', text: t('settings.user.feedback.emailCodeRequired', { defaultValue: '请输入邮箱验证码' }) });
+      return;
+    }
 
     setSubmitting(true);
     setFeedback(null);
-    const result = await loginUser(cleanAccount, password);
+    const result = isEmailAccount
+      ? await loginUserByEmailWithCode(cleanAccount.toLowerCase(), password, emailCode.trim())
+      : await loginUserByAccount(cleanAccount, password);
     setSubmitting(false);
     if (!result.ok || !result.data) {
       setFeedback({ type: 'error', text: result.message || t('settings.user.feedback.operationFailed', { defaultValue: '操作失败' }) });
@@ -83,7 +146,7 @@ export function LoginContent(): ReactElement {
 
     updateSessionToken(result.data.token);
     setFeedback({ type: 'success', text: t('settings.user.feedback.loginSuccess', { defaultValue: '登录成功' }) });
-    navigateToUserCenter();
+    await navigateToUserCenter();
   };
 
   return (
@@ -128,6 +191,32 @@ export function LoginContent(): ReactElement {
             </button>
           </div>
         </label>
+
+        {isEmailAccount && (
+          <label className="settings-field">
+            <span className="settings-field-label">{t('settings.user.fields.emailCode', { defaultValue: '邮箱验证码' })}</span>
+            <div className="auth-password-input-wrap">
+              <input
+                className="settings-field-input"
+                value={emailCode}
+                onChange={(e) => setEmailCode(e.target.value)}
+                placeholder={t('settings.user.fields.emailCodePlaceholder', { defaultValue: '请输入邮箱验证码' })}
+              />
+              <button
+                type="button"
+                className="auth-password-toggle"
+                onClick={() => void handleSendCode()}
+                disabled={sendingCode || sendCooldownSeconds > 0}
+              >
+                {sendingCode
+                  ? t('settings.user.feedback.emailCodeSending', { defaultValue: '发送中…' })
+                  : sendCooldownSeconds > 0
+                    ? t('settings.user.actions.sendCodeCooldown', { defaultValue: '{{seconds}}s后重试', seconds: sendCooldownSeconds })
+                    : t('settings.user.actions.sendCode', { defaultValue: '发送验证码' })}
+              </button>
+            </div>
+          </label>
+        )}
 
         {renderFeedback()}
 

@@ -82,6 +82,7 @@ import { resolveDistrictLocationByKeyword } from '../../../../api/adcodeApi';
 
 import { setThemeMode as applyThemeMode, getThemeMode, type ThemeMode } from '../../../../utils/theme';
 import { getLanguage, setLanguage, type AppLanguage } from '../../../../i18n';
+import { readLocalToken, subscribeUserAccountSessionChanged } from '../../../../utils/userAccount';
 
 const CLIPBOARD_URL_SUPPRESS_IN_FAVORITES_KEY = 'clipboard-url-suppress-in-url-favorites';
 const LOCAL_ISLAND_BG_SYNC_EVENT = 'island-bg-local-sync';
@@ -146,6 +147,8 @@ interface RunningWindowItem {
   iconDataUrl: string | null;
 }
 
+type PluginMarketPageKey = 'wallpaper' | 'plugin';
+
 /**
  * 渲染设置面板主视图
  * @description 提供应用设置、AI 配置与关于软件三类设置入口
@@ -155,10 +158,12 @@ export function SettingsTab(): ReactElement {
   const { t } = useTranslation();
   const opacitySaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [activeTab, setActiveTab] = useState<SettingsSidebarTabKey>(() => _lastSettingsSidebarTab);
+  const [hasLoginSession, setHasLoginSession] = useState<boolean>(() => Boolean(readLocalToken()));
   const [appSettingsPage, setAppSettingsPage] = useState<AppSettingsPageKey>('layout-preview');
   const [weatherSettingsPage, setWeatherSettingsPage] = useState<WeatherSettingsPageKey>('location');
   const [musicSettingsPage, setMusicSettingsPage] = useState<MusicSettingsPageKey>('whitelist');
-  const { aiConfig, setAiConfig, fetchWeatherData, setGuide } = useIslandStore();
+  const [pluginMarketPage, setPluginMarketPage] = useState<PluginMarketPageKey>('wallpaper');
+  const { aiConfig, setAiConfig, fetchWeatherData, setGuide, setLogin, setRegister } = useIslandStore();
   const [editingPrompt, setEditingPrompt] = useState(false);
   const [promptDraft, setPromptDraft] = useState('');
   const promptRef = useRef<HTMLTextAreaElement>(null);
@@ -168,6 +173,15 @@ export function SettingsTab(): ReactElement {
   useEffect(() => {
     _lastSettingsSidebarTab = activeTab;
   }, [activeTab]);
+
+  useEffect(() => {
+    const applySession = (): void => {
+      setHasLoginSession(Boolean(readLocalToken()));
+    };
+    applySession();
+    return subscribeUserAccountSessionChanged(applySession);
+  }, []);
+
   const getSettingsLabel = (key: SettingsTabLabelKey): string => {
     return t(`settings.labels.${key}`, { defaultValue: SETTINGS_TAB_LABELS[key] });
   };
@@ -180,6 +194,9 @@ export function SettingsTab(): ReactElement {
   const musicSettingsPageRef = useRef(musicSettingsPage);
   const currentMusicSettingsPageLabel = t(`settings.musicPages.${musicSettingsPage}`, { defaultValue: MUSIC_SETTINGS_PAGE_LABELS[musicSettingsPage] || '白名单' });
   musicSettingsPageRef.current = musicSettingsPage;
+  const currentPluginMarketPageLabel = t(`settings.pluginMarket.pages.${pluginMarketPage}`, {
+    defaultValue: pluginMarketPage === 'wallpaper' ? '壁纸' : '插件',
+  });
 
   const translatedSettingsTabLabels = useMemo<Record<string, string>>(() => {
     const next: Record<string, string> = {};
@@ -1490,6 +1507,14 @@ export function SettingsTab(): ReactElement {
             {getSettingsLabel('update')}
           </button>
           <button
+            className={`max-expand-settings-sidebar-item ${activeTab === 'pluginMarket' ? 'active' : ''}`}
+            onClick={() => setActiveTab('pluginMarket')}
+            type="button"
+          >
+            <span className="sidebar-dot" />
+            {getSettingsLabel('pluginMarket')}
+          </button>
+          <button
             className={`max-expand-settings-sidebar-item ${activeTab === 'about' ? 'active' : ''}`}
             onClick={() => setActiveTab('about')}
             type="button"
@@ -1759,6 +1784,68 @@ export function SettingsTab(): ReactElement {
               onDownloadUpdate={handleDownloadUpdate}
               onInstallUpdate={handleInstallUpdate}
             />
+          )}
+
+          {activeTab === 'pluginMarket' && (
+            <div className="max-expand-settings-section">
+              <div className="max-expand-settings-title settings-app-title-line">
+                <span>{t('settings.labels.pluginMarket', { defaultValue: '插件市场' })}</span>
+                {hasLoginSession && <span className="settings-app-title-sub">- {currentPluginMarketPageLabel}</span>}
+              </div>
+              {hasLoginSession ? (
+                <div className="settings-app-pages-layout" style={{ marginTop: 0 }}>
+                  <div className="settings-app-page-main">
+                    {pluginMarketPage === 'wallpaper' && (
+                      <div className="max-expand-settings-section" />
+                    )}
+                    {pluginMarketPage === 'plugin' && (
+                      <div className="max-expand-settings-section" />
+                    )}
+                  </div>
+                  <div className="settings-app-page-dots">
+                    <button
+                      className={`settings-app-page-dot ${pluginMarketPage === 'wallpaper' ? 'active' : ''}`}
+                      data-label={t('settings.pluginMarket.pages.wallpaper', { defaultValue: '壁纸' })}
+                      onClick={() => setPluginMarketPage('wallpaper')}
+                      title={t('settings.pluginMarket.pages.wallpaper', { defaultValue: '壁纸' })}
+                      aria-label={t('settings.pluginMarket.pages.wallpaper', { defaultValue: '壁纸' })}
+                    />
+                    <button
+                      className={`settings-app-page-dot ${pluginMarketPage === 'plugin' ? 'active' : ''}`}
+                      data-label={t('settings.pluginMarket.pages.plugin', { defaultValue: '插件' })}
+                      onClick={() => setPluginMarketPage('plugin')}
+                      title={t('settings.pluginMarket.pages.plugin', { defaultValue: '插件' })}
+                      aria-label={t('settings.pluginMarket.pages.plugin', { defaultValue: '插件' })}
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div className="settings-user-auth">
+                  <div className="settings-user-auth-entry-title">
+                    {t('settings.pluginMarket.auth.entryTitle', { defaultValue: '登录后即可访问插件市场内容' })}
+                  </div>
+                  <div className="settings-user-auth-entry-actions">
+                    <button
+                      type="button"
+                      className="settings-user-primary-btn"
+                      onClick={() => setLogin()}
+                    >
+                      {t('settings.pluginMarket.auth.gotoLogin', { defaultValue: '前往登录' })}
+                    </button>
+                    <button
+                      type="button"
+                      className="settings-user-secondary-btn"
+                      onClick={() => setRegister()}
+                    >
+                      {t('settings.pluginMarket.auth.gotoRegister', { defaultValue: '前往注册' })}
+                    </button>
+                  </div>
+                  <div className="settings-user-auth-hint">
+                    {t('settings.pluginMarket.auth.hint', { defaultValue: '登录后可浏览壁纸与插件内容。' })}
+                  </div>
+                </div>
+              )}
+            </div>
           )}
 
           {activeTab === 'user' && <UserSettingsSection />}
