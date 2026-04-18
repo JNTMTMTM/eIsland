@@ -906,13 +906,13 @@
       "contribution": {
         "title": "Contribute Your Wallpaper",
         "actions": {
-          "backToWallpaper": "Back to Wallpaper Market"
+          "backToWallpaper": "Back to Market"
         }
       },
       "edit": {
         "searchPlaceholder": "Search your wallpapers",
         "actions": {
-          "backToMarket": "Back to Wallpaper Market"
+          "backToMarket": "Back to Market"
         },
         "feedback": {
           "emptyMine": "You haven't uploaded any wallpapers yet",

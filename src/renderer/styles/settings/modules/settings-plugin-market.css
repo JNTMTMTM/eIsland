@@ -387,6 +387,8 @@
   flex-wrap: wrap;
   gap: 8px;
   align-items: center;
+  width: 100%;
+  box-sizing: border-box;
   margin-top: 6px;
   padding: 6px 8px;
   background: rgba(255, 255, 255, 0.04);
@@ -400,10 +402,20 @@
   gap: 6px;
   color: rgba(255, 255, 255, 0.72);
   font-size: 12px;
+  flex: 1 1 120px;
+  min-width: 0;
 }
 
 .settings-plugin-market-detail-video-slider input[type="range"] {
-  width: 120px;
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100%;
+}
+
+.settings-plugin-market-detail-video-slider select.settings-field-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100%;
 }
 
 .settings-plugin-market-upload-transcode {
