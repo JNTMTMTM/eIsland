@@ -66,6 +66,8 @@ export interface WallpaperMarketItem {
   thumb320Url?: string;
   thumb720Url?: string;
   thumb1280Url?: string;
+  durationMs?: number;
+  frameRate?: number;
   tagsText?: string;
   ratingAvg?: number;
   ratingCount?: number;
@@ -83,6 +85,8 @@ export interface UploadWallpaperPayload {
   copyrightDeclared: boolean;
   width?: number;
   height?: number;
+  durationMs?: number;
+  frameRate?: number;
   original: File;
   thumb320: File;
   thumb720: File;
@@ -466,6 +470,12 @@ export async function uploadUserWallpaper(
   formData.append('copyrightDeclared', payload.copyrightDeclared ? 'true' : 'false');
   if (typeof payload.width === 'number' && Number.isFinite(payload.width)) formData.append('width', String(Math.round(payload.width)));
   if (typeof payload.height === 'number' && Number.isFinite(payload.height)) formData.append('height', String(Math.round(payload.height)));
+  if (typeof payload.durationMs === 'number' && Number.isFinite(payload.durationMs) && payload.durationMs > 0) {
+    formData.append('durationMs', String(Math.round(payload.durationMs)));
+  }
+  if (typeof payload.frameRate === 'number' && Number.isFinite(payload.frameRate) && payload.frameRate > 0) {
+    formData.append('frameRate', String(payload.frameRate));
+  }
   formData.append('original', payload.original);
   formData.append('thumb320', payload.thumb320);
   formData.append('thumb720', payload.thumb720);
