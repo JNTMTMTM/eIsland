@@ -261,7 +261,20 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
                   <span>@{selected.ownerUsername}</span>
                 </div>
                 <div className="settings-plugin-market-detail-meta">{selected.description || '-'}</div>
-                <div className="settings-plugin-market-detail-meta">{selected.tagsText || '-'}</div>
+                <div className="settings-plugin-market-detail-meta settings-plugin-market-detail-tags">
+                  {(() => {
+                    const chips = (selected.tagsText || '')
+                      .split(/[,，]/)
+                      .map((s) => s.trim())
+                      .filter(Boolean);
+                    if (chips.length === 0) return <span className="settings-plugin-market-detail-tags-empty">-</span>;
+                    return chips.map((chip, idx) => (
+                      <span key={`${chip}-${idx}`} className="settings-plugin-market-tag-chip readonly">
+                        {chip}
+                      </span>
+                    ));
+                  })()}
+                </div>
                 <div className="settings-plugin-market-detail-meta settings-plugin-market-detail-rating">
                   <span>{t('settings.pluginMarket.wallpaper.meta.rating', { defaultValue: '评分' })}:</span>
                   {renderStars(Number(selected.ratingAvg ?? 0))}

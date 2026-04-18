@@ -220,7 +220,20 @@ export function WallpaperEditSection({ onGoWallpaper }: WallpaperEditSectionProp
                   {t(`settings.pluginMarket.edit.status.${selected.status}`, { defaultValue: selected.status })}
                 </div>
                 <div className="settings-plugin-market-detail-meta">{selected.description || '-'}</div>
-                <div className="settings-plugin-market-detail-meta">{selected.tagsText || '-'}</div>
+                <div className="settings-plugin-market-detail-meta settings-plugin-market-detail-tags">
+                  {(() => {
+                    const chips = (selected.tagsText || '')
+                      .split(/[,，]/)
+                      .map((s) => s.trim())
+                      .filter(Boolean);
+                    if (chips.length === 0) return <span className="settings-plugin-market-detail-tags-empty">-</span>;
+                    return chips.map((chip, idx) => (
+                      <span key={`${chip}-${idx}`} className="settings-plugin-market-tag-chip readonly">
+                        {chip}
+                      </span>
+                    ));
+                  })()}
+                </div>
 
                 <div className="settings-plugin-market-owner-tools">
                   <button

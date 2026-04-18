@@ -460,6 +460,21 @@
   line-height: 1.4;
 }
 
+.settings-plugin-market-tag-chip.readonly {
+  padding: 1px 8px;
+}
+
+.settings-plugin-market-detail-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+
+.settings-plugin-market-detail-tags-empty {
+  color: rgba(255, 255, 255, 0.48);
+}
+
 .settings-plugin-market-tag-chip-remove {
   background: transparent;
   border: none;
