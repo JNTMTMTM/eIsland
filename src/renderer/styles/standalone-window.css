@@ -53,6 +53,13 @@
   z-index: 0;
 }
 
+.cw-bg-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
 /* ===== 顶部 Chrome 栏（浏览器风格） ===== */
 .cw-chrome {
   display: flex;

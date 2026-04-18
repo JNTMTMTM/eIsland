@@ -90,18 +90,74 @@ import { SvgIcon } from '../../../../utils/SvgIcon';
 
 const CLIPBOARD_URL_SUPPRESS_IN_FAVORITES_KEY = 'clipboard-url-suppress-in-url-favorites';
 const LOCAL_ISLAND_BG_SYNC_EVENT = 'island-bg-local-sync';
+const ISLAND_BG_MEDIA_STORE_KEY = 'island-bg-media';
+const ISLAND_BG_IMAGE_STORE_KEY = 'island-bg-image';
 let _lastSettingsSidebarTab: SettingsSidebarTabKey = 'index';
 
-function isDirectBgImageUrl(image: string): boolean {
-  return image.startsWith('data:')
-    || image.startsWith('http://')
-    || image.startsWith('https://')
-    || image.startsWith('blob:')
-    || image.startsWith('file:')
-    || image.startsWith('/')
-    || image.startsWith('./')
-    || image.startsWith('../')
-    || image.startsWith('assets/');
+type IslandBgMediaType = 'image' | 'video';
+
+interface IslandBgMediaConfig {
+  type: IslandBgMediaType;
+  source: string;
+}
+
+function isDirectBgMediaUrl(source: string): boolean {
+  return source.startsWith('data:')
+    || source.startsWith('http://')
+    || source.startsWith('https://')
+    || source.startsWith('blob:')
+    || source.startsWith('file:')
+    || source.startsWith('/')
+    || source.startsWith('./')
+    || source.startsWith('../')
+    || source.startsWith('assets/');
+}
+
+function toFileUrl(path: string): string {
+  if (path.startsWith('file://')) return path;
+  const normalized = path.replace(/\\/g, '/');
+  if (/^[a-zA-Z]:\//.test(normalized)) {
+    return `file:///${normalized}`;
+  }
+  if (normalized.startsWith('//')) {
+    return `file:${normalized}`;
+  }
+  return `file://${normalized}`;
+}
+
+function normalizeBgMediaConfig(value: unknown): IslandBgMediaConfig | null {
+  if (typeof value === 'string') {
+    const source = value.trim();
+    return source ? { type: 'image', source } : null;
+  }
+  if (!value || typeof value !== 'object') return null;
+
+  const candidate = value as { type?: unknown; source?: unknown; image?: unknown; url?: unknown };
+  const sourceRaw = typeof candidate.source === 'string'
+    ? candidate.source
+    : typeof candidate.image === 'string'
+      ? candidate.image
+      : typeof candidate.url === 'string'
+        ? candidate.url
+        : null;
+  if (!sourceRaw) return null;
+
+  const source = sourceRaw.trim();
+  if (!source) return null;
+
+  if (candidate.type === 'video') {
+    return { type: 'video', source };
+  }
+  return { type: 'image', source };
+}
+
+async function resolveBgMediaPreviewUrl(media: IslandBgMediaConfig): Promise<string | null> {
+  if (media.type === 'image') {
+    if (isDirectBgMediaUrl(media.source)) return media.source;
+    return window.api.loadWallpaperFile?.(media.source) ?? null;
+  }
+  if (isDirectBgMediaUrl(media.source)) return media.source;
+  return toFileUrl(media.source);
 }
 
 function applyIslandOpacity(opacity: number): void {
@@ -271,7 +327,8 @@ export function SettingsTab(): ReactElement {
   const [themeMode, setThemeModeState] = useState<ThemeMode>(getThemeMode);
   const [appLanguage, setAppLanguage] = useState<AppLanguage>(getLanguage);
   const [islandOpacity, setIslandOpacity] = useState<number>(100);
-  const [bgImage, setBgImage] = useState<string | null>(null);
+  const [bgMedia, setBgMedia] = useState<IslandBgMediaConfig | null>(null);
+  const [bgMediaPreviewUrl, setBgMediaPreviewUrl] = useState<string | null>(null);
   const [bgImageOpacity, setBgImageOpacity] = useState<number>(30);
   const [bgImageBlur, setBgImageBlur] = useState<number>(0);
   const bgOpacitySaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -295,11 +352,11 @@ export function SettingsTab(): ReactElement {
     window.api.islandOpacitySet(opacity).catch(() => {});
   };
 
-  const applyBgImage = (dataUrl: string | null): void => {
+  const applyBgMedia = (media: IslandBgMediaConfig | null, previewUrl: string | null): void => {
     const el = document.getElementById('island-bg-layer');
     if (el) {
-      if (dataUrl) {
-        el.style.backgroundImage = `url(${dataUrl})`;
+      if (media?.type === 'image' && previewUrl) {
+        el.style.backgroundImage = `url(${previewUrl})`;
         el.style.opacity = String(bgImageOpacity / 100);
         el.style.filter = `blur(${bgImageBlur}px)`;
       } else {
@@ -308,8 +365,14 @@ export function SettingsTab(): ReactElement {
         el.style.filter = 'none';
       }
     }
+    setBgMedia(media);
+    setBgMediaPreviewUrl(previewUrl);
     window.dispatchEvent(new CustomEvent(LOCAL_ISLAND_BG_SYNC_EVENT, {
-      detail: { image: dataUrl },
+      detail: {
+        media,
+        previewUrl,
+        image: media?.type === 'image' ? previewUrl : null,
+      },
     }));
   };
 
@@ -331,8 +394,10 @@ export function SettingsTab(): ReactElement {
     }));
   };
 
-  const persistBgImage = (path: string | null): void => {
-    window.api.storeWrite('island-bg-image', path).catch(() => {});
+  const persistBgMedia = (media: IslandBgMediaConfig | null): void => {
+    window.api.storeWrite(ISLAND_BG_MEDIA_STORE_KEY, media).catch(() => {});
+    const legacyImage = media?.type === 'image' ? media.source : null;
+    window.api.storeWrite(ISLAND_BG_IMAGE_STORE_KEY, legacyImage).catch(() => {});
   };
 
   const persistBgOpacity = (value: number): void => {
@@ -348,33 +413,33 @@ export function SettingsTab(): ReactElement {
     if (!filePath) return;
     const dataUrl = await window.api.loadWallpaperFile(filePath);
     if (!dataUrl) return;
-    setBgImage(dataUrl);
-    applyBgImage(dataUrl);
-    persistBgImage(filePath);
+    const media: IslandBgMediaConfig = { type: 'image', source: filePath };
+    applyBgMedia(media, dataUrl);
+    persistBgMedia(media);
   };
 
   const handleClearBgImage = (): void => {
-    setBgImage(null);
-    applyBgImage(null);
-    persistBgImage(null);
+    applyBgMedia(null, null);
+    persistBgMedia(null);
     window.api.clearWallpaperCache?.().catch(() => {});
   };
 
   const handleSelectBuiltinBgImage = (src: string, defaultOpacity: number): void => {
-    setBgImage(src);
+    const media: IslandBgMediaConfig = { type: 'image', source: src };
     setBgImageOpacity(defaultOpacity);
-    applyBgImage(src);
+    applyBgMedia(media, src);
     applyBgOpacity(defaultOpacity);
-    persistBgImage(src);
+    persistBgMedia(media);
     persistBgOpacity(defaultOpacity);
   };
 
   const handleApplyMarketplaceWallpaper = (imageUrl: string): void => {
     if (!imageUrl) return;
-    setBgImage(imageUrl);
-    applyBgImage(imageUrl);
-    persistBgImage(imageUrl);
+    const media: IslandBgMediaConfig = { type: 'image', source: imageUrl };
+    applyBgMedia(media, imageUrl);
+    persistBgMedia(media);
     window.api.settingsPreview('store:island-bg-image', imageUrl).catch(() => {});
+    window.api.settingsPreview('store:island-bg-media', media).catch(() => {});
   };
 
   const visibleCards = useMemo(() => {
@@ -516,23 +581,30 @@ export function SettingsTab(): ReactElement {
       applyIslandOpacity(safe);
     }).catch(() => {});
     Promise.all([
-      window.api.storeRead('island-bg-image') as Promise<string | null>,
+      window.api.storeRead(ISLAND_BG_MEDIA_STORE_KEY),
+      window.api.storeRead(ISLAND_BG_IMAGE_STORE_KEY) as Promise<string | null>,
       window.api.storeRead('island-bg-opacity') as Promise<number | null>,
       window.api.storeRead('island-bg-blur') as Promise<number | null>,
-    ]).then(async ([img, opacity, blur]) => {
+    ]).then(async ([mediaRaw, legacyImage, opacity, blur]) => {
       if (cancelled) return;
       if (typeof opacity === 'number' && Number.isFinite(opacity)) setBgImageOpacity(Math.max(0, Math.min(100, Math.round(opacity))));
       if (typeof blur === 'number' && Number.isFinite(blur)) setBgImageBlur(Math.max(0, Math.min(20, Math.round(blur))));
-      if (img && typeof img === 'string') {
-        if (isDirectBgImageUrl(img)) {
-          // Legacy data URL or Vite asset URL (built-in wallpaper)
-          setBgImage(img);
-        } else {
-          // File path — load via IPC
-          const dataUrl = await window.api.loadWallpaperFile?.(img);
-          if (!cancelled && dataUrl) setBgImage(dataUrl);
-        }
+      const media = normalizeBgMediaConfig(mediaRaw)
+        ?? (typeof legacyImage === 'string' ? normalizeBgMediaConfig(legacyImage) : null);
+      if (!media) {
+        setBgMedia(null);
+        setBgMediaPreviewUrl(null);
+        return;
       }
+      const previewUrl = await resolveBgMediaPreviewUrl(media);
+      if (cancelled) return;
+      if (!previewUrl) {
+        setBgMedia(null);
+        setBgMediaPreviewUrl(null);
+        return;
+      }
+      setBgMedia(media);
+      setBgMediaPreviewUrl(previewUrl);
     }).catch(() => {});
     return () => { cancelled = true; };
   }, []);
@@ -583,18 +655,41 @@ export function SettingsTab(): ReactElement {
         setBgImageBlur(safe);
       }
       if (channel === 'store:island-bg-image') {
-        const image = typeof value === 'string' ? value : null;
-        if (!image) {
-          setBgImage(null);
+        const legacyMedia = typeof value === 'string'
+          ? normalizeBgMediaConfig(value)
+          : null;
+        if (!legacyMedia) {
+          setBgMedia(null);
+          setBgMediaPreviewUrl(null);
           return;
         }
-        if (isDirectBgImageUrl(image)) {
-          setBgImage(image);
-          return;
-        }
-        window.api.loadWallpaperFile?.(image).then((dataUrl) => {
+        resolveBgMediaPreviewUrl(legacyMedia).then((previewUrl) => {
           if (cancelled) return;
-          if (dataUrl) setBgImage(dataUrl);
+          if (!previewUrl) {
+            setBgMedia(null);
+            setBgMediaPreviewUrl(null);
+            return;
+          }
+          setBgMedia(legacyMedia);
+          setBgMediaPreviewUrl(previewUrl);
+        }).catch(() => {});
+      }
+      if (channel === 'store:island-bg-media') {
+        const media = normalizeBgMediaConfig(value);
+        if (!media) {
+          setBgMedia(null);
+          setBgMediaPreviewUrl(null);
+          return;
+        }
+        resolveBgMediaPreviewUrl(media).then((previewUrl) => {
+          if (cancelled) return;
+          if (!previewUrl) {
+            setBgMedia(null);
+            setBgMediaPreviewUrl(null);
+            return;
+          }
+          setBgMedia(media);
+          setBgMediaPreviewUrl(previewUrl);
         }).catch(() => {});
       }
     });
@@ -1648,7 +1743,8 @@ export function SettingsTab(): ReactElement {
               setClipboardUrlSuppressInFavorites={setClipboardUrlSuppressInFavorites}
               autostartMode={autostartMode}
               setAutostartMode={setAutostartMode}
-              bgImage={bgImage}
+              bgMediaType={bgMedia?.type ?? null}
+              bgMediaPreviewUrl={bgMediaPreviewUrl}
               bgImageOpacity={bgImageOpacity}
               bgImageBlur={bgImageBlur}
               setBgImageOpacity={setBgImageOpacity}

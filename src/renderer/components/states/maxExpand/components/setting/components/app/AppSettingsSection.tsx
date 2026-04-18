@@ -98,7 +98,8 @@ interface AppSettingsSectionProps {
   setClipboardUrlSuppressInFavorites: (value: boolean) => void;
   autostartMode: 'disabled' | 'enabled' | 'high-priority';
   setAutostartMode: (mode: 'disabled' | 'enabled' | 'high-priority') => void;
-  bgImage: string | null;
+  bgMediaType: 'image' | 'video' | null;
+  bgMediaPreviewUrl: string | null;
   bgImageOpacity: number;
   bgImageBlur: number;
   setBgImageOpacity: (value: number) => void;
@@ -176,7 +177,8 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
     autostartMode,
     setAutostartMode,
 
-    bgImage,
+    bgMediaType,
+    bgMediaPreviewUrl,
     bgImageOpacity,
     bgImageBlur,
     setBgImageOpacity,
@@ -489,7 +491,7 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
                   {BUILTIN_WALLPAPERS.map((wp) => (
                     <button
                       key={wp.id}
-                      className={`settings-bg-gallery-item ${bgImage === wp.src ? 'active' : ''}`}
+                      className={`settings-bg-gallery-item ${bgMediaType === 'image' && bgMediaPreviewUrl === wp.src ? 'active' : ''}`}
                       type="button"
                       onClick={() => handleSelectBuiltinBgImage(wp.src, wp.defaultOpacity)}
                       title={`${wp.name}（默认透明度 ${wp.defaultOpacity}%）`}
@@ -504,20 +506,31 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
                 <div className="settings-music-hint">{t('settings.app.theme.customImageHint', { defaultValue: '从本地选择图片，支持 jpg / png / gif / webp' })}</div>
                 <div className="settings-hotkey-row" style={{ marginTop: 8, gap: 8, alignItems: 'center' }}>
                   <button className="settings-hotkey-btn" type="button" onClick={() => { handleSelectBgImage().catch(() => {}); }}>
-                    {bgImage
+                    {bgMediaType === 'image' && bgMediaPreviewUrl
                       ? t('settings.app.theme.changeImage', { defaultValue: '更换图片' })
                       : t('settings.app.theme.selectImage', { defaultValue: '选择图片' })}
                   </button>
-                  {bgImage && (
+                  {(bgMediaType === 'image' || bgMediaType === 'video') && (
                     <button className="settings-hotkey-btn" type="button" onClick={handleClearBgImage}>
                       {t('settings.app.theme.clearBackground', { defaultValue: '清除背景' })}
                     </button>
                   )}
                 </div>
-                {bgImage && (
+                {bgMediaType && bgMediaPreviewUrl && (
                   <>
                     <div className="settings-bg-preview" style={{ marginTop: 8 }}>
-                      <img src={bgImage} alt={t('settings.app.theme.previewAlt', { defaultValue: '背景预览' })} className="settings-bg-preview-img" />
+                      {bgMediaType === 'video' ? (
+                        <video
+                          src={bgMediaPreviewUrl}
+                          className="settings-bg-preview-img"
+                          autoPlay
+                          muted
+                          loop
+                          playsInline
+                        />
+                      ) : (
+                        <img src={bgMediaPreviewUrl} alt={t('settings.app.theme.previewAlt', { defaultValue: '背景预览' })} className="settings-bg-preview-img" />
+                      )}
                     </div>
                     <div className="settings-music-hint" style={{ marginTop: 8 }}>{t('settings.app.theme.imageOpacityHint', { defaultValue: '背景图片透明度（0% - 100%），数值越高图片越明显' })}</div>
                     <div className="settings-opacity-slider-row">

@@ -53,17 +53,73 @@ export type IslandState = 'idle' | 'hover' | 'expanded' | 'notification' | 'maxE
 /** shell.css 中 morph/transition 主时长（0.55s） */
 const SHELL_MORPH_DURATION_MS = 550;
 const CLIPBOARD_URL_SUPPRESS_IN_FAVORITES_KEY = 'clipboard-url-suppress-in-url-favorites';
+const ISLAND_BG_MEDIA_STORE_KEY = 'island-bg-media';
+const ISLAND_BG_IMAGE_STORE_KEY = 'island-bg-image';
 
-function isDirectBgImageUrl(image: string): boolean {
-  return image.startsWith('data:')
-    || image.startsWith('http://')
-    || image.startsWith('https://')
-    || image.startsWith('blob:')
-    || image.startsWith('file:')
-    || image.startsWith('/')
-    || image.startsWith('./')
-    || image.startsWith('../')
-    || image.startsWith('assets/');
+type IslandBgMediaType = 'image' | 'video';
+
+interface IslandBgMediaConfig {
+  type: IslandBgMediaType;
+  source: string;
+}
+
+function isDirectBgMediaUrl(source: string): boolean {
+  return source.startsWith('data:')
+    || source.startsWith('http://')
+    || source.startsWith('https://')
+    || source.startsWith('blob:')
+    || source.startsWith('file:')
+    || source.startsWith('/')
+    || source.startsWith('./')
+    || source.startsWith('../')
+    || source.startsWith('assets/');
+}
+
+function toFileUrl(path: string): string {
+  if (path.startsWith('file://')) return path;
+  const normalized = path.replace(/\\/g, '/');
+  if (/^[a-zA-Z]:\//.test(normalized)) {
+    return `file:///${normalized}`;
+  }
+  if (normalized.startsWith('//')) {
+    return `file:${normalized}`;
+  }
+  return `file://${normalized}`;
+}
+
+function normalizeBgMediaConfig(value: unknown): IslandBgMediaConfig | null {
+  if (typeof value === 'string') {
+    const source = value.trim();
+    return source ? { type: 'image', source } : null;
+  }
+  if (!value || typeof value !== 'object') return null;
+
+  const candidate = value as { type?: unknown; source?: unknown; image?: unknown; url?: unknown };
+  const sourceRaw = typeof candidate.source === 'string'
+    ? candidate.source
+    : typeof candidate.image === 'string'
+      ? candidate.image
+      : typeof candidate.url === 'string'
+        ? candidate.url
+        : null;
+  if (!sourceRaw) return null;
+
+  const source = sourceRaw.trim();
+  if (!source) return null;
+
+  if (candidate.type === 'video') {
+    return { type: 'video', source };
+  }
+  return { type: 'image', source };
+}
+
+async function resolveBgMediaPreviewUrl(media: IslandBgMediaConfig): Promise<string | null> {
+  if (media.type === 'image') {
+    if (isDirectBgMediaUrl(media.source)) return media.source;
+    return window.api?.loadWallpaperFile?.(media.source) ?? null;
+  }
+  if (isDirectBgMediaUrl(media.source)) return media.source;
+  return toFileUrl(media.source);
 }
 
 /** 各状态对应的窗口面积（宽×高），用于判断状态切换是放大还是缩小 */
@@ -260,6 +316,23 @@ function DynamicIsland(): React.JSX.Element {
   const setNotificationRef = useRef(setNotification);
   const expandLeaveIdleRef = useRef(false);
   const maxExpandLeaveIdleRef = useRef(false);
+  const [bgMedia, setBgMedia] = useState<{ type: IslandBgMediaType; previewUrl: string } | null>(null);
+
+  const applyBgMedia = (media: IslandBgMediaConfig | null, previewUrl: string | null): void => {
+    const el = document.getElementById('island-bg-layer');
+    if (!el) return;
+    if (media?.type === 'image' && previewUrl) {
+      el.style.backgroundImage = `url(${previewUrl})`;
+      setBgMedia(null);
+      return;
+    }
+    el.style.backgroundImage = '';
+    if (media?.type === 'video' && previewUrl) {
+      setBgMedia({ type: 'video', previewUrl });
+      return;
+    }
+    setBgMedia(null);
+  };
 
   // 同步 ref 以在回调中使用最新函数
   useLayoutEffect(() => {
@@ -359,19 +432,20 @@ function DynamicIsland(): React.JSX.Element {
       window.api?.maxexpandMouseleaveIdleGet?.().then((v) => { maxExpandLeaveIdleRef.current = v; }).catch(() => {});
 
       Promise.all([
-        window.api?.storeRead?.('island-bg-image') as Promise<string | null>,
+        window.api?.storeRead?.(ISLAND_BG_MEDIA_STORE_KEY),
+        window.api?.storeRead?.(ISLAND_BG_IMAGE_STORE_KEY) as Promise<string | null>,
         window.api?.storeRead?.('island-bg-opacity') as Promise<number | null>,
         window.api?.storeRead?.('island-bg-blur') as Promise<number | null>,
-      ]).then(async ([bgImage, bgOpacity, bgBlur]) => {
+      ]).then(async ([mediaRaw, legacyImage, bgOpacity, bgBlur]) => {
         const el = document.getElementById('island-bg-layer');
         if (!el) return;
-        if (bgImage && typeof bgImage === 'string') {
-          let url = bgImage;
-          if (!isDirectBgImageUrl(bgImage)) {
-            const dataUrl = await window.api?.loadWallpaperFile?.(bgImage);
-            if (dataUrl) url = dataUrl; else return;
+        const media = normalizeBgMediaConfig(mediaRaw)
+          ?? (typeof legacyImage === 'string' ? normalizeBgMediaConfig(legacyImage) : null);
+        if (media) {
+          const previewUrl = await resolveBgMediaPreviewUrl(media);
+          if (previewUrl) {
+            applyBgMedia(media, previewUrl);
           }
-          el.style.backgroundImage = `url(${url})`;
         }
         if (typeof bgOpacity === 'number' && Number.isFinite(bgOpacity)) {
           el.style.opacity = String(Math.max(0, Math.min(100, bgOpacity)) / 100);
@@ -421,20 +495,32 @@ function DynamicIsland(): React.JSX.Element {
           maxExpandLeaveIdleRef.current = Boolean(value);
         }
         if (channel === 'store:island-bg-image') {
-          const el = document.getElementById('island-bg-layer');
-          if (!el) return;
-          const bgImage = value as string | null;
-          if (bgImage && typeof bgImage === 'string') {
-            if (!isDirectBgImageUrl(bgImage)) {
-              window.api?.loadWallpaperFile?.(bgImage).then((dataUrl) => {
-                if (dataUrl) el.style.backgroundImage = `url(${dataUrl})`;
-              }).catch(() => {});
-            } else {
-              el.style.backgroundImage = `url(${bgImage})`;
-            }
-          } else {
-            el.style.backgroundImage = '';
+          const media = typeof value === 'string' ? normalizeBgMediaConfig(value) : null;
+          if (!media) {
+            applyBgMedia(null, null);
+            return;
           }
+          resolveBgMediaPreviewUrl(media).then((previewUrl) => {
+            if (!previewUrl) {
+              applyBgMedia(null, null);
+              return;
+            }
+            applyBgMedia(media, previewUrl);
+          }).catch(() => {});
+        }
+        if (channel === 'store:island-bg-media') {
+          const media = normalizeBgMediaConfig(value);
+          if (!media) {
+            applyBgMedia(null, null);
+            return;
+          }
+          resolveBgMediaPreviewUrl(media).then((previewUrl) => {
+            if (!previewUrl) {
+              applyBgMedia(null, null);
+              return;
+            }
+            applyBgMedia(media, previewUrl);
+          }).catch(() => {});
         }
         if (channel === 'store:island-bg-opacity') {
           const el = document.getElementById('island-bg-layer');
@@ -882,7 +968,18 @@ function DynamicIsland(): React.JSX.Element {
         '--glow-b': b,
       } as React.CSSProperties : undefined}
     >
-      <div className="island-bg-layer" id="island-bg-layer" />
+      <div className="island-bg-layer" id="island-bg-layer">
+        {bgMedia?.type === 'video' && (
+          <video
+            className="island-bg-video"
+            src={bgMedia.previewUrl}
+            autoPlay
+            muted
+            loop
+            playsInline
+          />
+        )}
+      </div>
       {stateRenderers
         .filter(renderer => renderer.state === state)
         .map(renderer => (
