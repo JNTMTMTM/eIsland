@@ -16,6 +16,8 @@ interface WallpaperMarketSectionProps {
   onGoContribution: () => void;
 }
 
+const MARKET_PAGE_SIZE = 6;
+
 export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: WallpaperMarketSectionProps) {
   const { t } = useTranslation();
   const ratingDescriptions = [
@@ -30,6 +32,8 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
   const [loading, setLoading] = useState(false);
   const [keyword, setKeyword] = useState('');
   const [sortBy, setSortBy] = useState<'newest' | 'rating' | 'apply'>('newest');
+  const [page, setPage] = useState(1);
+  const [hasNextPage, setHasNextPage] = useState(false);
   const [searchExpanded, setSearchExpanded] = useState(false);
   const [message, setMessage] = useState('');
   const [ratingScore, setRatingScore] = useState(5);
@@ -61,11 +65,12 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
     );
   };
 
-  const loadList = async (): Promise<void> => {
+  const loadList = async (targetPage: number = page): Promise<void> => {
     const token = readLocalToken();
     if (!token) {
       setList([]);
       setSelected(null);
+      setHasNextPage(false);
       return;
     }
     setLoading(true);
@@ -73,18 +78,21 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
       const result = await listUserWallpapers(token, {
         keyword: keyword.trim() || undefined,
         sort: sortBy,
-        page: 1,
-        pageSize: 50,
+        page: targetPage,
+        pageSize: MARKET_PAGE_SIZE,
       });
       if (result.ok && Array.isArray(result.data)) {
+        setPage(targetPage);
         setList(result.data);
+        setHasNextPage(result.data.length >= MARKET_PAGE_SIZE);
         if (result.data.length === 0) {
           setSelected(null);
-        } else if (!selected) {
+        } else if (!selected || !result.data.some((item) => item.id === selected.id)) {
           setSelected(result.data[0]);
         }
         return;
       }
+      setHasNextPage(false);
       setMessage(result.message || t('settings.pluginMarket.wallpaper.feedback.loadFailed', { defaultValue: '加载失败' }));
     } finally {
       setLoading(false);
@@ -103,12 +111,22 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
   };
 
   useEffect(() => {
-    loadList().catch(() => {});
+    loadList(1).catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sortBy]);
 
   const handleSearch = (): void => {
-    loadList().catch(() => {});
+    loadList(1).catch(() => {});
+  };
+
+  const handlePrevPage = (): void => {
+    if (loading || page <= 1) return;
+    loadList(page - 1).catch(() => {});
+  };
+
+  const handleNextPage = (): void => {
+    if (loading || !hasNextPage) return;
+    loadList(page + 1).catch(() => {});
   };
 
   const handleApply = async (): Promise<void> => {
@@ -177,43 +195,66 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
       {message && <div className="settings-plugin-market-message">{message}</div>}
 
       <div className="settings-plugin-market-layout">
-        <div className="settings-plugin-market-list">
-          {loading ? (
-            <div className="settings-plugin-market-empty">{t('settings.pluginMarket.wallpaper.feedback.loading', { defaultValue: '加载中…' })}</div>
-          ) : list.length === 0 ? (
-            <div className="settings-plugin-market-empty">{t('settings.pluginMarket.wallpaper.feedback.empty', { defaultValue: '暂无壁纸' })}</div>
-          ) : (
-            list.map((item) => {
-              const preview = item.thumb320Url || item.thumb720Url || item.thumb1280Url || item.originalUrl || '';
-              return (
-                <button
-                  key={item.id}
-                  type="button"
-                  className={`settings-plugin-market-card ${selected?.id === item.id ? 'active' : ''}`}
-                  onClick={() => { loadDetail(item.id).catch(() => {}); }}
-                >
-                  {preview ? <img src={preview} alt={item.title} className="settings-plugin-market-card-img" /> : null}
-                  <div className="settings-plugin-market-card-body">
-                    <div className="settings-plugin-market-card-title">{item.title}</div>
-                    <div className="settings-plugin-market-card-meta settings-plugin-market-owner-row">
-                      {item.ownerAvatar
-                        ? <img src={item.ownerAvatar} alt="" className="settings-plugin-market-owner-avatar" />
-                        : <img src={SvgIcon.USER} alt="" className="settings-plugin-market-owner-avatar placeholder" />}
-                      <span>@{item.ownerUsername}</span>
+        <div className="settings-plugin-market-list-panel">
+          <div className="settings-plugin-market-list">
+            {loading ? (
+              <div className="settings-plugin-market-empty">{t('settings.pluginMarket.wallpaper.feedback.loading', { defaultValue: '加载中…' })}</div>
+            ) : list.length === 0 ? (
+              <div className="settings-plugin-market-empty">{t('settings.pluginMarket.wallpaper.feedback.empty', { defaultValue: '暂无壁纸' })}</div>
+            ) : (
+              list.map((item) => {
+                const preview = item.thumb320Url || item.thumb720Url || item.thumb1280Url || item.originalUrl || '';
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    className={`settings-plugin-market-card ${selected?.id === item.id ? 'active' : ''}`}
+                    onClick={() => { loadDetail(item.id).catch(() => {}); }}
+                  >
+                    {preview ? <img src={preview} alt={item.title} className="settings-plugin-market-card-img" /> : null}
+                    <div className="settings-plugin-market-card-body">
+                      <div className="settings-plugin-market-card-title">{item.title}</div>
+                      <div className="settings-plugin-market-card-meta settings-plugin-market-owner-row">
+                        {item.ownerAvatar
+                          ? <img src={item.ownerAvatar} alt="" className="settings-plugin-market-owner-avatar" />
+                          : <img src={SvgIcon.USER} alt="" className="settings-plugin-market-owner-avatar placeholder" />}
+                        <span>@{item.ownerUsername}</span>
+                      </div>
+                      <div className="settings-plugin-market-card-meta settings-plugin-market-card-rating">
+                        {renderStars(Number(item.ratingAvg ?? 0))}
+                        <span>{Number(item.ratingAvg ?? 0).toFixed(1)}</span>
+                        <span className="settings-plugin-market-card-apply">
+                          <img src={SvgIcon.DOWNLOAD} alt="" className="settings-plugin-market-apply-icon" />
+                          <span>{item.applyCount ?? 0}</span>
+                        </span>
+                      </div>
                     </div>
-                    <div className="settings-plugin-market-card-meta settings-plugin-market-card-rating">
-                      {renderStars(Number(item.ratingAvg ?? 0))}
-                      <span>{Number(item.ratingAvg ?? 0).toFixed(1)}</span>
-                      <span className="settings-plugin-market-card-apply">
-                        <img src={SvgIcon.DOWNLOAD} alt="" className="settings-plugin-market-apply-icon" />
-                        <span>{item.applyCount ?? 0}</span>
-                      </span>
-                    </div>
-                  </div>
-                </button>
-              );
-            })
-          )}
+                  </button>
+                );
+              })
+            )}
+          </div>
+          <div className="settings-plugin-market-pagination">
+            <button
+              className="settings-hotkey-btn"
+              type="button"
+              onClick={handlePrevPage}
+              disabled={loading || page <= 1}
+            >
+              {t('settings.pluginMarket.wallpaper.actions.prevPage', { defaultValue: '上一页' })}
+            </button>
+            <span className="settings-plugin-market-pagination-text">
+              {t('settings.pluginMarket.wallpaper.pagination.page', { defaultValue: '第 {{page}} 页', page })}
+            </span>
+            <button
+              className="settings-hotkey-btn"
+              type="button"
+              onClick={handleNextPage}
+              disabled={loading || !hasNextPage}
+            >
+              {t('settings.pluginMarket.wallpaper.actions.nextPage', { defaultValue: '下一页' })}
+            </button>
+          </div>
         </div>
 
         <div className="settings-plugin-market-detail">

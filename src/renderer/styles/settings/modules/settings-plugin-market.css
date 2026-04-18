@@ -164,10 +164,19 @@
   max-height: 520px;
 }
 
+.settings-plugin-market-list-panel {
+  min-height: 0;
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .settings-plugin-market-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   grid-auto-rows: max-content;
+  flex: 1 1 auto;
   gap: 8px;
   align-items: start;
   align-content: start;
@@ -176,6 +185,19 @@
   overflow-y: auto;
   overflow-x: hidden;
   padding-right: 4px;
+}
+
+.settings-plugin-market-pagination {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.settings-plugin-market-pagination-text {
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 12px;
+  text-align: center;
 }
 
 .settings-plugin-market-card {
