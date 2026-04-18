@@ -86,6 +86,7 @@ import { resolveDistrictLocationByKeyword } from '../../../../api/adcodeApi';
 import { setThemeMode as applyThemeMode, getThemeMode, type ThemeMode } from '../../../../utils/theme';
 import { getLanguage, setLanguage, type AppLanguage } from '../../../../i18n';
 import { readLocalToken, subscribeUserAccountSessionChanged } from '../../../../utils/userAccount';
+import { SvgIcon } from '../../../../utils/SvgIcon';
 
 const CLIPBOARD_URL_SUPPRESS_IN_FAVORITES_KEY = 'clipboard-url-suppress-in-url-favorites';
 const LOCAL_ISLAND_BG_SYNC_EVENT = 'island-bg-local-sync';
@@ -166,6 +167,7 @@ export function SettingsTab(): ReactElement {
   const [weatherSettingsPage, setWeatherSettingsPage] = useState<WeatherSettingsPageKey>('location');
   const [musicSettingsPage, setMusicSettingsPage] = useState<MusicSettingsPageKey>('whitelist');
   const [pluginMarketPage, setPluginMarketPage] = useState<PluginMarketPageKey>('wallpaper');
+  const [wallpaperMarketRefreshKey, setWallpaperMarketRefreshKey] = useState(0);
   const { aiConfig, setAiConfig, fetchWeatherData, setGuide, setLogin, setRegister } = useIslandStore();
   const [editingPrompt, setEditingPrompt] = useState(false);
   const [promptDraft, setPromptDraft] = useState('');
@@ -1808,12 +1810,24 @@ export function SettingsTab(): ReactElement {
               <div className="max-expand-settings-title settings-app-title-line">
                 <span>{t('settings.labels.pluginMarket', { defaultValue: '插件市场' })}</span>
                 {hasLoginSession && <span className="settings-app-title-sub">- {currentPluginMarketPageLabel}</span>}
+                {hasLoginSession && pluginMarketPage === 'wallpaper' && (
+                  <button
+                    className="settings-app-title-refresh-btn"
+                    type="button"
+                    onClick={() => setWallpaperMarketRefreshKey((prev) => prev + 1)}
+                    title={t('settings.pluginMarket.wallpaper.actions.refresh', { defaultValue: '刷新壁纸列表' })}
+                    aria-label={t('settings.pluginMarket.wallpaper.actions.refresh', { defaultValue: '刷新壁纸列表' })}
+                  >
+                    <img src={SvgIcon.REVERT} alt="" className="settings-app-title-refresh-icon" />
+                  </button>
+                )}
               </div>
               {hasLoginSession ? (
                 <div className="settings-app-pages-layout" style={{ marginTop: 0 }}>
                   <div className="settings-app-page-main">
                     {pluginMarketPage === 'wallpaper' && (
                       <WallpaperMarketSection
+                        key={wallpaperMarketRefreshKey}
                         onApplyBackground={handleApplyMarketplaceWallpaper}
                         onGoContribution={() => setPluginMarketPage('contribution')}
                       />
