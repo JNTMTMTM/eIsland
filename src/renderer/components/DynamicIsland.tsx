@@ -502,20 +502,6 @@ function DynamicIsland(): React.JSX.Element {
         if (channel === 'island:maxexpand-mouseleave-idle') {
           maxExpandLeaveIdleRef.current = Boolean(value);
         }
-        if (channel === 'store:island-bg-image') {
-          const media = typeof value === 'string' ? normalizeBgMediaConfig(value) : null;
-          if (!media) {
-            applyBgMedia(null, null);
-            return;
-          }
-          resolveBgMediaPreviewUrl(media).then((previewUrl) => {
-            if (!previewUrl) {
-              applyBgMedia(null, null);
-              return;
-            }
-            applyBgMedia(media, previewUrl);
-          }).catch(() => {});
-        }
         if (channel === 'store:island-bg-media') {
           const media = normalizeBgMediaConfig(value);
           if (!media) {

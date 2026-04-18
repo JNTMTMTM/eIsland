@@ -661,26 +661,6 @@ export function SettingsTab(): ReactElement {
           : 0;
         setBgImageBlur(safe);
       }
-      if (channel === 'store:island-bg-image') {
-        const legacyMedia = typeof value === 'string'
-          ? normalizeBgMediaConfig(value)
-          : null;
-        if (!legacyMedia) {
-          setBgMedia(null);
-          setBgMediaPreviewUrl(null);
-          return;
-        }
-        resolveBgMediaPreviewUrl(legacyMedia).then((previewUrl) => {
-          if (cancelled) return;
-          if (!previewUrl) {
-            setBgMedia(null);
-            setBgMediaPreviewUrl(null);
-            return;
-          }
-          setBgMedia(legacyMedia);
-          setBgMediaPreviewUrl(previewUrl);
-        }).catch(() => {});
-      }
       if (channel === 'store:island-bg-media') {
         const media = normalizeBgMediaConfig(value);
         if (!media) {

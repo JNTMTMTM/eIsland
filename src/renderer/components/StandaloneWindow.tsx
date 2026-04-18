@@ -223,17 +223,6 @@ export function StandaloneWindow(): ReactElement {
           window.api.storeWrite(AUTH_INTENT_STORE_KEY, null).catch(() => {});
         }
       }
-      if (channel === `store:${ISLAND_BG_IMAGE_STORE_KEY}`) {
-        const media = typeof value === 'string' ? normalizeBgMediaConfig(value) : null;
-        if (!media) {
-          applyBgMedia(null, null);
-          return;
-        }
-        resolveBgMediaPreviewUrl(media).then((previewUrl) => {
-          if (cancelled) return;
-          applyBgMedia(media, previewUrl);
-        }).catch(() => {});
-      }
       if (channel === `store:${ISLAND_BG_MEDIA_STORE_KEY}`) {
         const media = normalizeBgMediaConfig(value);
         if (!media) {
