@@ -1,3 +1,29 @@
+/*
+ * eIsland - A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Electron.
+ * https://github.com/JNTMTMTM/eIsland
+ *
+ * Copyright (C) 2026 JNTMTMTM
+ * Copyright (C) 2026 pyisland.com
+ *
+ * Original author: JNTMTMTM[](https://github.com/JNTMTMTM)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+/**
+ * @file WallpaperContributionSection.tsx
+ * @description 插件市场壁纸贡献组件
+ * @author 鸡哥
+ */
+
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { uploadUserWallpaper } from '../../../../../../../api/userAccountApi';
@@ -47,6 +73,9 @@ async function createThumbnailFile(sourceFile: File, maxWidth: number): Promise<
   }
 }
 
+/**
+ * 壁纸贡献内容区
+ */
 export function WallpaperContributionSection({ onGoWallpaper }: WallpaperContributionSectionProps) {
   const { t } = useTranslation();
   const [message, setMessage] = useState('');
