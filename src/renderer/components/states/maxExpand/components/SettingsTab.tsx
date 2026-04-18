@@ -93,6 +93,8 @@ const LOCAL_ISLAND_BG_SYNC_EVENT = 'island-bg-local-sync';
 const ISLAND_BG_MEDIA_STORE_KEY = 'island-bg-media';
 const ISLAND_BG_IMAGE_STORE_KEY = 'island-bg-image';
 const ISLAND_BG_VIDEO_FIT_STORE_KEY = 'island-bg-video-fit';
+const ISLAND_BG_VIDEO_MUTED_STORE_KEY = 'island-bg-video-muted';
+const ISLAND_BG_VIDEO_LOOP_STORE_KEY = 'island-bg-video-loop';
 let _lastSettingsSidebarTab: SettingsSidebarTabKey = 'index';
 
 type IslandBgMediaType = 'image' | 'video';
@@ -324,6 +326,8 @@ export function SettingsTab(): ReactElement {
   const [bgMedia, setBgMedia] = useState<IslandBgMediaConfig | null>(null);
   const [bgMediaPreviewUrl, setBgMediaPreviewUrl] = useState<string | null>(null);
   const [bgVideoFit, setBgVideoFit] = useState<'cover' | 'contain'>('cover');
+  const [bgVideoMuted, setBgVideoMuted] = useState<boolean>(true);
+  const [bgVideoLoop, setBgVideoLoop] = useState<boolean>(true);
   const [bgImageOpacity, setBgImageOpacity] = useState<number>(30);
   const [bgImageBlur, setBgImageBlur] = useState<number>(0);
   const bgOpacitySaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -399,6 +403,18 @@ export function SettingsTab(): ReactElement {
     }));
   };
 
+  const applyBgVideoMuted = (value: boolean): void => {
+    window.dispatchEvent(new CustomEvent(LOCAL_ISLAND_BG_SYNC_EVENT, {
+      detail: { videoMuted: value },
+    }));
+  };
+
+  const applyBgVideoLoop = (value: boolean): void => {
+    window.dispatchEvent(new CustomEvent(LOCAL_ISLAND_BG_SYNC_EVENT, {
+      detail: { videoLoop: value },
+    }));
+  };
+
   const persistBgMedia = (media: IslandBgMediaConfig | null): void => {
     window.api.storeWrite(ISLAND_BG_MEDIA_STORE_KEY, media).catch(() => {});
     const legacyImage = media?.type === 'image' ? media.source : null;
@@ -407,6 +423,14 @@ export function SettingsTab(): ReactElement {
 
   const persistBgVideoFit = (value: 'cover' | 'contain'): void => {
     window.api.storeWrite(ISLAND_BG_VIDEO_FIT_STORE_KEY, value).catch(() => {});
+  };
+
+  const persistBgVideoMuted = (value: boolean): void => {
+    window.api.storeWrite(ISLAND_BG_VIDEO_MUTED_STORE_KEY, value).catch(() => {});
+  };
+
+  const persistBgVideoLoop = (value: boolean): void => {
+    window.api.storeWrite(ISLAND_BG_VIDEO_LOOP_STORE_KEY, value).catch(() => {});
   };
 
   const persistBgOpacity = (value: number): void => {
@@ -603,12 +627,20 @@ export function SettingsTab(): ReactElement {
       window.api.storeRead(ISLAND_BG_MEDIA_STORE_KEY),
       window.api.storeRead(ISLAND_BG_IMAGE_STORE_KEY) as Promise<string | null>,
       window.api.storeRead(ISLAND_BG_VIDEO_FIT_STORE_KEY) as Promise<'cover' | 'contain' | null>,
+      window.api.storeRead(ISLAND_BG_VIDEO_MUTED_STORE_KEY) as Promise<boolean | null>,
+      window.api.storeRead(ISLAND_BG_VIDEO_LOOP_STORE_KEY) as Promise<boolean | null>,
       window.api.storeRead('island-bg-opacity') as Promise<number | null>,
       window.api.storeRead('island-bg-blur') as Promise<number | null>,
-    ]).then(async ([mediaRaw, legacyImage, videoFit, opacity, blur]) => {
+    ]).then(async ([mediaRaw, legacyImage, videoFit, videoMuted, videoLoop, opacity, blur]) => {
       if (cancelled) return;
       if (videoFit === 'cover' || videoFit === 'contain') {
         setBgVideoFit(videoFit);
+      }
+      if (typeof videoMuted === 'boolean') {
+        setBgVideoMuted(videoMuted);
+      }
+      if (typeof videoLoop === 'boolean') {
+        setBgVideoLoop(videoLoop);
       }
       if (typeof opacity === 'number' && Number.isFinite(opacity)) setBgImageOpacity(Math.max(0, Math.min(100, Math.round(opacity))));
       if (typeof blur === 'number' && Number.isFinite(blur)) setBgImageBlur(Math.max(0, Math.min(20, Math.round(blur))));
@@ -698,6 +730,16 @@ export function SettingsTab(): ReactElement {
       if (channel === `store:${ISLAND_BG_VIDEO_FIT_STORE_KEY}`) {
         if (value === 'cover' || value === 'contain') {
           setBgVideoFit(value);
+        }
+      }
+      if (channel === `store:${ISLAND_BG_VIDEO_MUTED_STORE_KEY}`) {
+        if (typeof value === 'boolean') {
+          setBgVideoMuted(value);
+        }
+      }
+      if (channel === `store:${ISLAND_BG_VIDEO_LOOP_STORE_KEY}`) {
+        if (typeof value === 'boolean') {
+          setBgVideoLoop(value);
         }
       }
     });
@@ -1755,6 +1797,10 @@ export function SettingsTab(): ReactElement {
               bgMediaPreviewUrl={bgMediaPreviewUrl}
               bgVideoFit={bgVideoFit}
               setBgVideoFit={setBgVideoFit}
+              bgVideoMuted={bgVideoMuted}
+              setBgVideoMuted={setBgVideoMuted}
+              bgVideoLoop={bgVideoLoop}
+              setBgVideoLoop={setBgVideoLoop}
               bgImageOpacity={bgImageOpacity}
               bgImageBlur={bgImageBlur}
               setBgImageOpacity={setBgImageOpacity}
@@ -1762,9 +1808,13 @@ export function SettingsTab(): ReactElement {
               applyBgOpacity={applyBgOpacity}
               applyBgBlur={applyBgBlur}
               applyBgVideoFit={applyBgVideoFit}
+              applyBgVideoMuted={applyBgVideoMuted}
+              applyBgVideoLoop={applyBgVideoLoop}
               persistBgOpacity={persistBgOpacity}
               persistBgBlur={persistBgBlur}
               persistBgVideoFit={persistBgVideoFit}
+              persistBgVideoMuted={persistBgVideoMuted}
+              persistBgVideoLoop={persistBgVideoLoop}
               bgOpacitySaveTimerRef={bgOpacitySaveTimerRef}
               bgBlurSaveTimerRef={bgBlurSaveTimerRef}
               handleSelectBgImage={handleSelectBgImage}

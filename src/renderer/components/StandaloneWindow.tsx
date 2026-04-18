@@ -42,6 +42,8 @@ const AUTH_INTENT_STORE_KEY = 'standalone-window-auth-intent';
 const ISLAND_BG_MEDIA_STORE_KEY = 'island-bg-media';
 const ISLAND_BG_IMAGE_STORE_KEY = 'island-bg-image';
 const ISLAND_BG_VIDEO_FIT_STORE_KEY = 'island-bg-video-fit';
+const ISLAND_BG_VIDEO_MUTED_STORE_KEY = 'island-bg-video-muted';
+const ISLAND_BG_VIDEO_LOOP_STORE_KEY = 'island-bg-video-loop';
 const ISLAND_BG_OPACITY_STORE_KEY = 'island-bg-opacity';
 const ISLAND_BG_BLUR_STORE_KEY = 'island-bg-blur';
 const LOCAL_ISLAND_BG_SYNC_EVENT = 'island-bg-local-sync';
@@ -135,6 +137,8 @@ export function StandaloneWindow(): ReactElement {
   const [activeTab, setActiveTab] = useState<WindowTab>('todo');
   const [bgMedia, setBgMedia] = useState<{ type: IslandBgMediaType; previewUrl: string } | null>(null);
   const [bgVideoFit, setBgVideoFit] = useState<'cover' | 'contain'>('cover');
+  const [bgVideoMuted, setBgVideoMuted] = useState<boolean>(true);
+  const [bgVideoLoop, setBgVideoLoop] = useState<boolean>(true);
   const [bgImageOpacity, setBgImageOpacity] = useState<number>(30);
   const [bgImageBlur, setBgImageBlur] = useState<number>(0);
 
@@ -189,10 +193,18 @@ export function StandaloneWindow(): ReactElement {
       window.api.storeRead(ISLAND_BG_MEDIA_STORE_KEY),
       window.api.storeRead(ISLAND_BG_IMAGE_STORE_KEY) as Promise<string | null>,
       window.api.storeRead(ISLAND_BG_VIDEO_FIT_STORE_KEY) as Promise<'cover' | 'contain' | null>,
-    ]).then(async ([mediaRaw, legacyImage, videoFit]) => {
+      window.api.storeRead(ISLAND_BG_VIDEO_MUTED_STORE_KEY) as Promise<boolean | null>,
+      window.api.storeRead(ISLAND_BG_VIDEO_LOOP_STORE_KEY) as Promise<boolean | null>,
+    ]).then(async ([mediaRaw, legacyImage, videoFit, videoMuted, videoLoop]) => {
       if (cancelled) return;
       if (videoFit === 'cover' || videoFit === 'contain') {
         setBgVideoFit(videoFit);
+      }
+      if (typeof videoMuted === 'boolean') {
+        setBgVideoMuted(videoMuted);
+      }
+      if (typeof videoLoop === 'boolean') {
+        setBgVideoLoop(videoLoop);
       }
       const media = normalizeBgMediaConfig(mediaRaw)
         ?? (typeof legacyImage === 'string' ? normalizeBgMediaConfig(legacyImage) : null);
@@ -251,10 +263,20 @@ export function StandaloneWindow(): ReactElement {
           setBgVideoFit(value);
         }
       }
+      if (channel === `store:${ISLAND_BG_VIDEO_MUTED_STORE_KEY}`) {
+        if (typeof value === 'boolean') {
+          setBgVideoMuted(value);
+        }
+      }
+      if (channel === `store:${ISLAND_BG_VIDEO_LOOP_STORE_KEY}`) {
+        if (typeof value === 'boolean') {
+          setBgVideoLoop(value);
+        }
+      }
     });
 
     const localBgSyncHandler = (event: Event): void => {
-      const customEvent = event as CustomEvent<{ media?: IslandBgMediaConfig | null; previewUrl?: string | null; image?: string | null; opacity?: number; blur?: number; videoFit?: 'cover' | 'contain' }>;
+      const customEvent = event as CustomEvent<{ media?: IslandBgMediaConfig | null; previewUrl?: string | null; image?: string | null; opacity?: number; blur?: number; videoFit?: 'cover' | 'contain'; videoMuted?: boolean; videoLoop?: boolean }>;
       const detail = customEvent.detail;
       if (!detail || typeof detail !== 'object') return;
       const hasMediaPayload = 'media' in detail || 'previewUrl' in detail;
@@ -275,6 +297,12 @@ export function StandaloneWindow(): ReactElement {
       }
       if (detail.videoFit === 'cover' || detail.videoFit === 'contain') {
         setBgVideoFit(detail.videoFit);
+      }
+      if (typeof detail.videoMuted === 'boolean') {
+        setBgVideoMuted(detail.videoMuted);
+      }
+      if (typeof detail.videoLoop === 'boolean') {
+        setBgVideoLoop(detail.videoLoop);
       }
     };
     window.addEventListener(LOCAL_ISLAND_BG_SYNC_EVENT, localBgSyncHandler as EventListener);
@@ -307,8 +335,8 @@ export function StandaloneWindow(): ReactElement {
             className="cw-bg-video"
             src={bgMedia.previewUrl}
             autoPlay
-            muted
-            loop
+            muted={bgVideoMuted}
+            loop={bgVideoLoop}
             playsInline
             preload="auto"
             style={{ objectFit: bgVideoFit }}

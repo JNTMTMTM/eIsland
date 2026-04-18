@@ -56,6 +56,8 @@ const CLIPBOARD_URL_SUPPRESS_IN_FAVORITES_KEY = 'clipboard-url-suppress-in-url-f
 const ISLAND_BG_MEDIA_STORE_KEY = 'island-bg-media';
 const ISLAND_BG_IMAGE_STORE_KEY = 'island-bg-image';
 const ISLAND_BG_VIDEO_FIT_STORE_KEY = 'island-bg-video-fit';
+const ISLAND_BG_VIDEO_MUTED_STORE_KEY = 'island-bg-video-muted';
+const ISLAND_BG_VIDEO_LOOP_STORE_KEY = 'island-bg-video-loop';
 const LOCAL_ISLAND_BG_SYNC_EVENT = 'island-bg-local-sync';
 
 type IslandBgMediaType = 'image' | 'video';
@@ -314,6 +316,8 @@ function DynamicIsland(): React.JSX.Element {
   const bgOpacityRef = useRef<number>(30);
   const bgBlurRef = useRef<number>(0);
   const [bgVideoFit, setBgVideoFit] = useState<'cover' | 'contain'>('cover');
+  const [bgVideoMuted, setBgVideoMuted] = useState<boolean>(true);
+  const [bgVideoLoop, setBgVideoLoop] = useState<boolean>(true);
   const [bgMedia, setBgMedia] = useState<{ type: IslandBgMediaType; previewUrl: string } | null>(null);
 
   const applyBgMedia = (media: IslandBgMediaConfig | null, previewUrl: string | null): void => {
@@ -442,13 +446,21 @@ function DynamicIsland(): React.JSX.Element {
         window.api?.storeRead?.(ISLAND_BG_MEDIA_STORE_KEY),
         window.api?.storeRead?.(ISLAND_BG_IMAGE_STORE_KEY) as Promise<string | null>,
         window.api?.storeRead?.(ISLAND_BG_VIDEO_FIT_STORE_KEY) as Promise<'cover' | 'contain' | null>,
+        window.api?.storeRead?.(ISLAND_BG_VIDEO_MUTED_STORE_KEY) as Promise<boolean | null>,
+        window.api?.storeRead?.(ISLAND_BG_VIDEO_LOOP_STORE_KEY) as Promise<boolean | null>,
         window.api?.storeRead?.('island-bg-opacity') as Promise<number | null>,
         window.api?.storeRead?.('island-bg-blur') as Promise<number | null>,
-      ]).then(async ([mediaRaw, legacyImage, videoFit, bgOpacity, bgBlur]) => {
+      ]).then(async ([mediaRaw, legacyImage, videoFit, videoMuted, videoLoop, bgOpacity, bgBlur]) => {
         const el = document.getElementById('island-bg-layer');
         if (!el) return;
         if (videoFit === 'cover' || videoFit === 'contain') {
           setBgVideoFit(videoFit);
+        }
+        if (typeof videoMuted === 'boolean') {
+          setBgVideoMuted(videoMuted);
+        }
+        if (typeof videoLoop === 'boolean') {
+          setBgVideoLoop(videoLoop);
         }
         if (typeof bgOpacity === 'number' && Number.isFinite(bgOpacity)) {
           bgOpacityRef.current = Math.max(0, Math.min(100, bgOpacity));
@@ -541,6 +553,16 @@ function DynamicIsland(): React.JSX.Element {
             setBgVideoFit(value);
           }
         }
+        if (channel === `store:${ISLAND_BG_VIDEO_MUTED_STORE_KEY}`) {
+          if (typeof value === 'boolean') {
+            setBgVideoMuted(value);
+          }
+        }
+        if (channel === `store:${ISLAND_BG_VIDEO_LOOP_STORE_KEY}`) {
+          if (typeof value === 'boolean') {
+            setBgVideoLoop(value);
+          }
+        }
         if (channel === 'island:position') {
           const offset = value as { x: number; y: number };
           if (offset && typeof offset.x === 'number' && typeof offset.y === 'number') {
@@ -551,7 +573,7 @@ function DynamicIsland(): React.JSX.Element {
 
       // 同窗口内（集成模式）背景媒体同步：设置页直接 DOM 操作 + 本地事件
       const localBgSyncHandler = (event: Event): void => {
-        const customEvent = event as CustomEvent<{ media?: IslandBgMediaConfig | null; previewUrl?: string | null; opacity?: number; blur?: number; videoFit?: 'cover' | 'contain' }>;
+        const customEvent = event as CustomEvent<{ media?: IslandBgMediaConfig | null; previewUrl?: string | null; opacity?: number; blur?: number; videoFit?: 'cover' | 'contain'; videoMuted?: boolean; videoLoop?: boolean }>;
         const detail = customEvent.detail;
         if (!detail || typeof detail !== 'object') return;
         if ('media' in detail || 'previewUrl' in detail) {
@@ -559,6 +581,12 @@ function DynamicIsland(): React.JSX.Element {
         }
         if (detail.videoFit === 'cover' || detail.videoFit === 'contain') {
           setBgVideoFit(detail.videoFit);
+        }
+        if (typeof detail.videoMuted === 'boolean') {
+          setBgVideoMuted(detail.videoMuted);
+        }
+        if (typeof detail.videoLoop === 'boolean') {
+          setBgVideoLoop(detail.videoLoop);
         }
       };
       window.addEventListener(LOCAL_ISLAND_BG_SYNC_EVENT, localBgSyncHandler as EventListener);
@@ -995,8 +1023,8 @@ function DynamicIsland(): React.JSX.Element {
             className="island-bg-video"
             src={bgMedia.previewUrl}
             autoPlay
-            muted
-            loop
+            muted={bgVideoMuted}
+            loop={bgVideoLoop}
             playsInline
             preload="auto"
             style={{ objectFit: bgVideoFit }}

@@ -666,6 +666,8 @@
         "videoFitHint": "Video Fit Mode",
         "videoFitCover": "Cover (Crop)",
         "videoFitContain": "Contain (Letterbox)",
+        "videoMutedToggle": "Mute video playback",
+        "videoLoopToggle": "Loop video playback",
         "clearBackground": "Clear background",
         "previewAlt": "Background preview",
         "imageOpacityHint": "Background opacity (0% - 100%)",

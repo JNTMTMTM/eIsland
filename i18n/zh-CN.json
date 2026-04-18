@@ -666,6 +666,8 @@
         "videoFitHint": "视频填充模式",
         "videoFitCover": "覆盖（裁切）",
         "videoFitContain": "完整（留边）",
+        "videoMutedToggle": "静音播放视频",
+        "videoLoopToggle": "循环播放视频",
         "clearBackground": "清除背景",
         "previewAlt": "背景预览",
         "imageOpacityHint": "背景图片透明度（0% - 100%），数值越高图片越明显",

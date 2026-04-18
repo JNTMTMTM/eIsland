@@ -102,6 +102,10 @@ interface AppSettingsSectionProps {
   bgMediaPreviewUrl: string | null;
   bgVideoFit: 'cover' | 'contain';
   setBgVideoFit: (value: 'cover' | 'contain') => void;
+  bgVideoMuted: boolean;
+  setBgVideoMuted: (value: boolean) => void;
+  bgVideoLoop: boolean;
+  setBgVideoLoop: (value: boolean) => void;
   bgImageOpacity: number;
   bgImageBlur: number;
   setBgImageOpacity: (value: number) => void;
@@ -109,9 +113,13 @@ interface AppSettingsSectionProps {
   applyBgOpacity: (value: number) => void;
   applyBgBlur: (value: number) => void;
   applyBgVideoFit: (value: 'cover' | 'contain') => void;
+  applyBgVideoMuted: (value: boolean) => void;
+  applyBgVideoLoop: (value: boolean) => void;
   persistBgOpacity: (value: number) => void;
   persistBgBlur: (value: number) => void;
   persistBgVideoFit: (value: 'cover' | 'contain') => void;
+  persistBgVideoMuted: (value: boolean) => void;
+  persistBgVideoLoop: (value: boolean) => void;
   bgOpacitySaveTimerRef: { current: ReturnType<typeof setTimeout> | null };
   bgBlurSaveTimerRef: { current: ReturnType<typeof setTimeout> | null };
   handleSelectBgImage: () => Promise<void>;
@@ -186,6 +194,10 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
     bgMediaPreviewUrl,
     bgVideoFit,
     setBgVideoFit,
+    bgVideoMuted,
+    setBgVideoMuted,
+    bgVideoLoop,
+    setBgVideoLoop,
     bgImageOpacity,
     bgImageBlur,
     setBgImageOpacity,
@@ -193,9 +205,13 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
     applyBgOpacity,
     applyBgBlur,
     applyBgVideoFit,
+    applyBgVideoMuted,
+    applyBgVideoLoop,
     persistBgOpacity,
     persistBgBlur,
     persistBgVideoFit,
+    persistBgVideoMuted,
+    persistBgVideoLoop,
     bgOpacitySaveTimerRef,
     bgBlurSaveTimerRef,
     handleSelectBgImage,
@@ -564,6 +580,38 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
                         </button>
                       ))}
                     </div>
+                    <div className="settings-hotkey-row" style={{ alignItems: 'center', marginTop: 8 }}>
+                      <label className="settings-music-hint" style={{ marginBottom: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <input
+                          type="checkbox"
+                          checked={bgVideoMuted}
+                          onChange={(event) => {
+                            const next = event.target.checked;
+                            setBgVideoMuted(next);
+                            applyBgVideoMuted(next);
+                            persistBgVideoMuted(next);
+                            window.api.settingsPreview('store:island-bg-video-muted', next).catch(() => {});
+                          }}
+                        />
+                        {t('settings.app.theme.videoMutedToggle', { defaultValue: '静音播放视频' })}
+                      </label>
+                    </div>
+                    <div className="settings-hotkey-row" style={{ alignItems: 'center', marginTop: 6 }}>
+                      <label className="settings-music-hint" style={{ marginBottom: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <input
+                          type="checkbox"
+                          checked={bgVideoLoop}
+                          onChange={(event) => {
+                            const next = event.target.checked;
+                            setBgVideoLoop(next);
+                            applyBgVideoLoop(next);
+                            persistBgVideoLoop(next);
+                            window.api.settingsPreview('store:island-bg-video-loop', next).catch(() => {});
+                          }}
+                        />
+                        {t('settings.app.theme.videoLoopToggle', { defaultValue: '循环播放视频' })}
+                      </label>
+                    </div>
                   </>
                 )}
 
@@ -576,8 +624,8 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
                           src={bgMediaPreviewUrl}
                           className="settings-bg-preview-img"
                           autoPlay
-                          muted
-                          loop
+                          muted={bgVideoMuted}
+                          loop={bgVideoLoop}
                           playsInline
                           preload="auto"
                           style={{ objectFit: bgVideoFit }}
