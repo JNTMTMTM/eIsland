@@ -82,5 +82,10 @@ export async function bootstrapAuthSession(): Promise<void> {
   const profileResult = await fetchUserProfile(token);
   if (profileResult.ok && profileResult.data) {
     writeLocalProfile(profileResult.data);
+    return;
+  }
+  if (profileResult.code === 401 || profileResult.code === 4011) {
+    writeLocalToken(null);
+    writeLocalProfile(null);
   }
 }

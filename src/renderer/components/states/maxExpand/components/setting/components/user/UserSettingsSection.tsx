@@ -309,6 +309,7 @@ export function UserSettingsSection(): ReactElement {
         resetToLoggedOut();
         return;
       }
+      setProfileFeedback({ type: 'error', text: result.message || t('settings.user.feedback.operationFailed', { defaultValue: '操作失败' }) });
       return;
     }
     clearLocalAccount();
@@ -578,6 +579,7 @@ export function UserSettingsSection(): ReactElement {
               {t('settings.user.auth.hint', { defaultValue: '登录注册服务由 eIsland server 提供' })}
             </div>
           </div>
+          {renderFeedback(profileFeedback)}
           <div className="settings-user-actions-row">
             <button
               type="button"
@@ -689,6 +691,24 @@ export function UserSettingsSection(): ReactElement {
             ? t('settings.user.feedback.loadingProfile', { defaultValue: '加载账号资料中…' })
             : t('settings.user.feedback.loadFailed', { defaultValue: '加载资料失败' })}
           {profileError && <div className="settings-user-feedback settings-user-feedback--error">{profileError}</div>}
+          {!loadingProfile && (
+            <div className="settings-user-actions-row settings-user-actions-row--adaptive">
+              <button
+                type="button"
+                className="settings-user-primary-btn"
+                onClick={() => token && void loadRemoteProfile(token)}
+              >
+                {t('settings.user.actions.refresh', { defaultValue: '刷新资料' })}
+              </button>
+              <button
+                type="button"
+                className="settings-user-secondary-btn"
+                onClick={resetToLoggedOut}
+              >
+                {t('settings.user.actions.logout', { defaultValue: '退出登录' })}
+              </button>
+            </div>
+          )}
         </div>
       ) : renderAuthEntry()}
     </div>
