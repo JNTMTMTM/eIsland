@@ -942,9 +942,12 @@
         },
         "actions": {
           "search": "Search",
+          "refresh": "Refresh wallpaper list",
           "expandSearch": "Expand Search",
           "collapseSearch": "Collapse Search",
           "goContribution": "Go to Contribution",
+          "prevPage": "Previous",
+          "nextPage": "Next",
           "upload": "Upload Wallpaper",
           "uploading": "Uploading...",
           "apply": "Apply as Background",
@@ -995,6 +998,9 @@
           "saving": "Saving...",
           "updateFailed": "Save failed",
           "updateSuccess": "Saved and pending review"
+        },
+        "pagination": {
+          "page": "Page {{page}}"
         }
       }
     },

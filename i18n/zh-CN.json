@@ -942,9 +942,12 @@
         },
         "actions": {
           "search": "搜索",
+          "refresh": "刷新壁纸列表",
           "expandSearch": "展开搜索",
           "collapseSearch": "收起搜索",
           "goContribution": "前往贡献",
+          "prevPage": "上一页",
+          "nextPage": "下一页",
           "upload": "上传壁纸",
           "uploading": "上传中…",
           "apply": "应用为背景",
@@ -995,6 +998,9 @@
           "saving": "保存中…",
           "updateFailed": "保存失败",
           "updateSuccess": "已保存，等待审核"
+        },
+        "pagination": {
+          "page": "第 {{page}} 页"
         }
       }
     },
