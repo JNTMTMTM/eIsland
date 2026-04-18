@@ -882,6 +882,66 @@
       "pages": {
         "wallpaper": "Wallpapers",
         "plugin": "Plugins"
+      },
+      "wallpaper": {
+        "searchPlaceholder": "Search title/author/description/tags",
+        "sort": {
+          "newest": "Newest",
+          "rating": "Top Rated",
+          "apply": "Most Applied"
+        },
+        "upload": {
+          "titlePlaceholder": "Title",
+          "tagsPlaceholder": "Tags (comma separated)",
+          "descriptionPlaceholder": "Description",
+          "copyright": "I confirm I own the copyright or have authorization"
+        },
+        "meta": {
+          "rating": "Rating",
+          "apply": "Apply Count"
+        },
+        "report": {
+          "copyright": "Copyright",
+          "illegal": "Illegal Content",
+          "other": "Other",
+          "detailPlaceholder": "Optional report details"
+        },
+        "actions": {
+          "search": "Search",
+          "upload": "Upload Wallpaper",
+          "uploading": "Uploading...",
+          "apply": "Apply as Background",
+          "rate": "Rate",
+          "report": "Report",
+          "editMetadata": "Edit Metadata",
+          "cancelEdit": "Cancel Edit",
+          "saveMetadata": "Save Metadata",
+          "delete": "Delete Wallpaper",
+          "confirmDelete": "Delete this wallpaper?"
+        },
+        "feedback": {
+          "loading": "Loading...",
+          "empty": "No wallpapers yet",
+          "selectHint": "Select a wallpaper from the left list",
+          "loadFailed": "Failed to load wallpapers",
+          "detailFailed": "Failed to load details",
+          "titleRequired": "Title is required",
+          "fileRequired": "Please select an image file",
+          "copyrightRequired": "Please confirm copyright declaration",
+          "fileTooLarge": "Image must be <= 20MB",
+          "uploadFailed": "Upload failed",
+          "uploadSuccess": "Uploaded. Waiting for review",
+          "applyFailed": "Failed to apply wallpaper",
+          "applySuccess": "Wallpaper applied",
+          "rateFailed": "Rating failed",
+          "rateSuccess": "Rating submitted",
+          "reportFailed": "Report failed",
+          "reportSuccess": "Report submitted",
+          "deleteFailed": "Delete failed",
+          "deleteSuccess": "Deleted",
+          "updateFailed": "Save failed",
+          "updateSuccess": "Saved and pending review"
+        }
       }
     },
     "ai": {

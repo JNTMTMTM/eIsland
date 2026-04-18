@@ -1,0 +1,172 @@
+/*
+ * 插件市场（壁纸）样式
+ */
+
+.settings-plugin-market-wallpaper {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.settings-plugin-market-toolbar {
+  display: grid;
+  grid-template-columns: 1fr 140px auto;
+  gap: 8px;
+}
+
+.settings-plugin-market-upload {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.settings-plugin-market-upload-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.settings-plugin-market-upload-grid textarea {
+  min-height: 72px;
+  resize: vertical;
+}
+
+.settings-plugin-market-checkbox {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.settings-plugin-market-message {
+  font-size: 12px;
+  color: var(--apple-link-dark);
+}
+
+.settings-plugin-market-layout {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 12px;
+  min-height: 300px;
+}
+
+.settings-plugin-market-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  align-content: start;
+  max-height: 520px;
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.settings-plugin-market-card {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  overflow: hidden;
+  text-align: left;
+  padding: 0;
+  cursor: pointer;
+}
+
+.settings-plugin-market-card.active {
+  border-color: var(--apple-link-dark);
+}
+
+.settings-plugin-market-card-img {
+  width: 100%;
+  height: 92px;
+  object-fit: cover;
+  display: block;
+}
+
+.settings-plugin-market-card-body {
+  padding: 8px;
+}
+
+.settings-plugin-market-card-title {
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.settings-plugin-market-card-meta {
+  margin-top: 4px;
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+.settings-plugin-market-detail {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.settings-plugin-market-detail-img {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.settings-plugin-market-detail-title {
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.settings-plugin-market-detail-meta {
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.settings-plugin-market-actions,
+.settings-plugin-market-owner-tools,
+.settings-plugin-market-edit-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.settings-plugin-market-rating-row,
+.settings-plugin-market-report-row {
+  display: grid;
+  grid-template-columns: 90px 1fr auto;
+  gap: 8px;
+}
+
+.settings-plugin-market-empty {
+  color: rgba(255, 255, 255, 0.56);
+  font-size: 12px;
+}
+
+@media (max-width: 1080px) {
+  .settings-plugin-market-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .settings-plugin-market-list {
+    max-height: 280px;
+  }
+
+  .settings-plugin-market-upload-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .settings-plugin-market-rating-row,
+  .settings-plugin-market-report-row,
+  .settings-plugin-market-toolbar {
+    grid-template-columns: 1fr;
+  }
+}

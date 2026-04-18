@@ -77,6 +77,7 @@ import { AiSettingsSection } from './setting/components/ai/AiSettingsSection';
 import { UserSettingsSection } from './setting/components/user/UserSettingsSection';
 import { AboutSettingsSection } from './setting/components/about/AboutSettingsSection';
 import { OverviewPreview } from './setting/components/app/preview/OverviewPreview';
+import { WallpaperMarketSection } from './setting/components/pluginMarket/WallpaperMarketSection';
 
 import { resolveDistrictLocationByKeyword } from '../../../../api/adcodeApi';
 
@@ -338,6 +339,14 @@ export function SettingsTab(): ReactElement {
     applyBgOpacity(defaultOpacity);
     persistBgImage(src);
     persistBgOpacity(defaultOpacity);
+  };
+
+  const handleApplyMarketplaceWallpaper = (imageUrl: string): void => {
+    if (!imageUrl) return;
+    setBgImage(imageUrl);
+    applyBgImage(imageUrl);
+    persistBgImage(imageUrl);
+    window.api.settingsPreview('store:island-bg-image', imageUrl).catch(() => {});
   };
 
   const visibleCards = useMemo(() => {
@@ -1796,7 +1805,7 @@ export function SettingsTab(): ReactElement {
                 <div className="settings-app-pages-layout" style={{ marginTop: 0 }}>
                   <div className="settings-app-page-main">
                     {pluginMarketPage === 'wallpaper' && (
-                      <div className="max-expand-settings-section" />
+                      <WallpaperMarketSection onApplyBackground={handleApplyMarketplaceWallpaper} />
                     )}
                     {pluginMarketPage === 'plugin' && (
                       <div className="max-expand-settings-section" />

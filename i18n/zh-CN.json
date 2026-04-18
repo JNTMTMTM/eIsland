@@ -882,6 +882,66 @@
       "pages": {
         "wallpaper": "壁纸",
         "plugin": "插件"
+      },
+      "wallpaper": {
+        "searchPlaceholder": "搜索标题/作者/描述/标签",
+        "sort": {
+          "newest": "最新",
+          "rating": "评分最高",
+          "apply": "应用最多"
+        },
+        "upload": {
+          "titlePlaceholder": "标题",
+          "tagsPlaceholder": "标签（逗号分隔）",
+          "descriptionPlaceholder": "描述",
+          "copyright": "我确认拥有该图片版权或已获授权"
+        },
+        "meta": {
+          "rating": "评分",
+          "apply": "应用次数"
+        },
+        "report": {
+          "copyright": "版权问题",
+          "illegal": "违规内容",
+          "other": "其他",
+          "detailPlaceholder": "举报补充说明（可选）"
+        },
+        "actions": {
+          "search": "搜索",
+          "upload": "上传壁纸",
+          "uploading": "上传中…",
+          "apply": "应用为背景",
+          "rate": "评分",
+          "report": "举报",
+          "editMetadata": "编辑元数据",
+          "cancelEdit": "取消编辑",
+          "saveMetadata": "保存元数据",
+          "delete": "删除壁纸",
+          "confirmDelete": "确认删除该壁纸？"
+        },
+        "feedback": {
+          "loading": "加载中…",
+          "empty": "暂无壁纸",
+          "selectHint": "请选择左侧壁纸查看详情",
+          "loadFailed": "加载失败",
+          "detailFailed": "加载详情失败",
+          "titleRequired": "请填写标题",
+          "fileRequired": "请选择图片文件",
+          "copyrightRequired": "请先勾选版权声明",
+          "fileTooLarge": "图片不能超过 20MB",
+          "uploadFailed": "上传失败",
+          "uploadSuccess": "上传成功，等待审核",
+          "applyFailed": "应用失败",
+          "applySuccess": "已应用壁纸背景",
+          "rateFailed": "评分失败",
+          "rateSuccess": "评分成功",
+          "reportFailed": "举报失败",
+          "reportSuccess": "举报已提交",
+          "deleteFailed": "删除失败",
+          "deleteSuccess": "删除成功",
+          "updateFailed": "保存失败",
+          "updateSuccess": "已保存，等待审核"
+        }
       }
     },
     "ai": {

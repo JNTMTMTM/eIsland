@@ -54,6 +54,40 @@ export interface UserAccountLoginData {
 
 export type UserEmailCodeScene = 'REGISTER' | 'LOGIN' | 'RESET_PASSWORD' | 'CHANGE_EMAIL';
 
+export interface WallpaperMarketItem {
+  id: number;
+  ownerUsername: string;
+  title: string;
+  description: string;
+  type: 'image' | 'video';
+  status: string;
+  originalUrl?: string;
+  thumb320Url?: string;
+  thumb720Url?: string;
+  thumb1280Url?: string;
+  tagsText?: string;
+  ratingAvg?: number;
+  ratingCount?: number;
+  downloadCount?: number;
+  applyCount?: number;
+  createdAt?: string;
+  publishedAt?: string;
+}
+
+export interface UploadWallpaperPayload {
+  title: string;
+  description?: string;
+  tags?: string;
+  type?: 'image' | 'video';
+  copyrightDeclared: boolean;
+  width?: number;
+  height?: number;
+  original: File;
+  thumb320: File;
+  thumb720: File;
+  thumb1280: File;
+}
+
 /** 超时时间（毫秒） */
 const DEFAULT_TIMEOUT_MS = 10000;
 
@@ -319,4 +353,168 @@ export async function uploadUserAvatar(file: File): Promise<string> {
     throw new Error(payload?.message || '上传失败');
   }
   return payload.data;
+}
+
+/**
+ * 查询壁纸市场列表。
+ * @param token 用户 token。
+ * @param params 查询参数。
+ * @returns 壁纸列表。
+ */
+export function listUserWallpapers(
+  token: string,
+  params: { keyword?: string; type?: 'image' | 'video'; sort?: 'newest' | 'rating' | 'apply'; page?: number; pageSize?: number } = {},
+): Promise<UserAccountResult<WallpaperMarketItem[]>> {
+  const search = new URLSearchParams();
+  if (params.keyword) search.set('keyword', params.keyword);
+  if (params.type) search.set('type', params.type);
+  if (params.sort) search.set('sort', params.sort);
+  if (params.page) search.set('page', String(params.page));
+  if (params.pageSize) search.set('pageSize', String(params.pageSize));
+  const suffix = search.toString();
+  return request<WallpaperMarketItem[]>(`/v1/user/wallpapers/list${suffix ? `?${suffix}` : ''}`, {
+    method: 'GET',
+    auth: token,
+  });
+}
+
+/**
+ * 查询壁纸详情。
+ * @param token 用户 token。
+ * @param id 壁纸 ID。
+ * @returns 壁纸详情。
+ */
+export function getUserWallpaperDetail(token: string, id: number): Promise<UserAccountResult<WallpaperMarketItem>> {
+  return request<WallpaperMarketItem>(`/v1/user/wallpapers/detail?id=${encodeURIComponent(String(id))}`, {
+    method: 'GET',
+    auth: token,
+  });
+}
+
+/**
+ * 上传壁纸。
+ * @param token 用户 token。
+ * @param payload 上传参数。
+ * @returns 上传结果。
+ */
+export async function uploadUserWallpaper(
+  token: string,
+  payload: UploadWallpaperPayload,
+): Promise<UserAccountResult<{ id: number }>> {
+  const formData = new FormData();
+  formData.append('title', payload.title);
+  if (payload.description) formData.append('description', payload.description);
+  if (payload.tags) formData.append('tags', payload.tags);
+  formData.append('type', payload.type ?? 'image');
+  formData.append('copyrightDeclared', payload.copyrightDeclared ? 'true' : 'false');
+  if (typeof payload.width === 'number' && Number.isFinite(payload.width)) formData.append('width', String(Math.round(payload.width)));
+  if (typeof payload.height === 'number' && Number.isFinite(payload.height)) formData.append('height', String(Math.round(payload.height)));
+  formData.append('original', payload.original);
+  formData.append('thumb320', payload.thumb320);
+  formData.append('thumb720', payload.thumb720);
+  formData.append('thumb1280', payload.thumb1280);
+
+  const headers: Record<string, string> = {};
+  if (token) headers.Authorization = `Bearer ${token}`;
+  try {
+    const resp = await fetch(`${USER_ACCOUNT_API_BASE}/v1/user/wallpapers/upload`, {
+      method: 'POST',
+      headers,
+      body: formData,
+    });
+    const bodyText = await resp.text();
+    const parsed = parsePayload<{ id: number }>(bodyText);
+    if (!resp.ok && parsed.code === 0) {
+      return { ok: false, code: resp.status, message: `HTTP ${resp.status}` };
+    }
+    return parsed;
+  } catch (err) {
+    return { ok: false, code: -1, message: err instanceof Error ? err.message : '网络请求失败' };
+  }
+}
+
+/**
+ * 修改壁纸元数据。
+ * @param token 用户 token。
+ * @param payload 修改参数。
+ * @returns 修改结果。
+ */
+export function updateUserWallpaperMetadata(
+  token: string,
+  payload: { id: number; title: string; description?: string; type?: 'image' | 'video'; tags?: string },
+): Promise<UserAccountResult<unknown>> {
+  return request('/v1/user/wallpapers/metadata', {
+    method: 'PUT',
+    auth: token,
+    body: {
+      id: payload.id,
+      title: payload.title,
+      description: payload.description ?? '',
+      type: payload.type ?? 'image',
+      tags: payload.tags ?? '',
+    },
+  });
+}
+
+/**
+ * 删除用户壁纸。
+ * @param token 用户 token。
+ * @param id 壁纸 ID。
+ * @returns 删除结果。
+ */
+export function deleteUserWallpaper(token: string, id: number): Promise<UserAccountResult<unknown>> {
+  return request(`/v1/user/wallpapers/delete?id=${encodeURIComponent(String(id))}`, {
+    method: 'DELETE',
+    auth: token,
+  });
+}
+
+/**
+ * 应用壁纸并计数。
+ * @param token 用户 token。
+ * @param id 壁纸 ID。
+ * @returns 应用结果。
+ */
+export function applyUserWallpaper(token: string, id: number): Promise<UserAccountResult<unknown>> {
+  return request('/v1/user/wallpapers/apply', {
+    method: 'POST',
+    auth: token,
+    body: { id },
+  });
+}
+
+/**
+ * 评分壁纸。
+ * @param token 用户 token。
+ * @param id 壁纸 ID。
+ * @param score 分数（1-5）。
+ * @returns 评分结果。
+ */
+export function rateUserWallpaper(token: string, id: number, score: number): Promise<UserAccountResult<unknown>> {
+  return request('/v1/user/wallpapers/rate', {
+    method: 'POST',
+    auth: token,
+    body: { id, score },
+  });
+}
+
+/**
+ * 举报壁纸。
+ * @param token 用户 token。
+ * @param payload 举报参数。
+ * @returns 举报结果。
+ */
+export function reportUserWallpaper(
+  token: string,
+  payload: { id: number; reasonType: string; reasonDetail?: string },
+): Promise<UserAccountResult<unknown>> {
+  return request('/v1/user/wallpapers/report', {
+    method: 'POST',
+    auth: token,
+    body: {
+      id: payload.id,
+      reasonType: payload.reasonType,
+      reasonDetail: payload.reasonDetail ?? '',
+    },
+  });
 }
