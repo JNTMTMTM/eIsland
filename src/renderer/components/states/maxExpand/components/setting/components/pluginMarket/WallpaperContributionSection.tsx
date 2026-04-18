@@ -51,6 +51,7 @@ export function WallpaperContributionSection({ onGoWallpaper }: WallpaperContrib
   const { t } = useTranslation();
   const [message, setMessage] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadTitle, setUploadTitle] = useState('');
   const [uploadDescription, setUploadDescription] = useState('');
   const [uploadTags, setUploadTags] = useState('');
@@ -141,6 +142,8 @@ export function WallpaperContributionSection({ onGoWallpaper }: WallpaperContrib
       setMessage(t('settings.pluginMarket.wallpaper.feedback.uploadFailed', { defaultValue: '上传失败' }));
       return;
     }
+    setMessage('');
+    setUploadProgress(0);
     setUploading(true);
     try {
       const result = await uploadUserWallpaper(token, {
@@ -155,6 +158,10 @@ export function WallpaperContributionSection({ onGoWallpaper }: WallpaperContrib
         thumb320,
         thumb720,
         thumb1280,
+      }, {
+        onUploadProgress: (percent) => {
+          setUploadProgress(percent);
+        },
       });
 
       if (!result.ok) {
@@ -230,6 +237,21 @@ export function WallpaperContributionSection({ onGoWallpaper }: WallpaperContrib
                   <div className="settings-plugin-market-upload-preview-label">{p.label}</div>
                 </div>
               ))}
+            </div>
+          )}
+          {uploading && (
+            <div className="settings-plugin-market-upload-progress">
+              <div className="settings-plugin-market-upload-progress-text">
+                {t('settings.pluginMarket.wallpaper.upload.progress', { defaultValue: '上传进度' })}
+                {' '}
+                {Math.max(0, Math.min(100, uploadProgress))}%
+              </div>
+              <div className="settings-plugin-market-upload-progress-track">
+                <div
+                  className="settings-plugin-market-upload-progress-fill"
+                  style={{ width: `${Math.max(0, Math.min(100, uploadProgress))}%` }}
+                />
+              </div>
             </div>
           )}
           <div className="settings-plugin-market-copyright-row">

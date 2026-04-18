@@ -89,6 +89,10 @@ export interface UploadWallpaperPayload {
   thumb1280: File;
 }
 
+export interface UploadWallpaperOptions {
+  onUploadProgress?: (percent: number) => void;
+}
+
 export interface WallpaperTagItem {
   id: number;
   name: string;
@@ -452,6 +456,7 @@ export function getUserWallpaperDetail(token: string, id: number): Promise<UserA
 export async function uploadUserWallpaper(
   token: string,
   payload: UploadWallpaperPayload,
+  options: UploadWallpaperOptions = {},
 ): Promise<UserAccountResult<{ id: number }>> {
   const formData = new FormData();
   formData.append('title', payload.title);
@@ -468,21 +473,39 @@ export async function uploadUserWallpaper(
 
   const headers: Record<string, string> = {};
   if (token) headers.Authorization = `Bearer ${token}`;
-  try {
-    const resp = await fetch(`${USER_ACCOUNT_API_BASE}/v1/user/wallpapers/upload`, {
-      method: 'POST',
-      headers,
-      body: formData,
+  return new Promise((resolve) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', `${USER_ACCOUNT_API_BASE}/v1/user/wallpapers/upload`, true);
+    Object.entries(headers).forEach(([key, value]) => {
+      xhr.setRequestHeader(key, value);
     });
-    const bodyText = await resp.text();
-    const parsed = parsePayload<{ id: number }>(bodyText);
-    if (!resp.ok && parsed.code === 0) {
-      return { ok: false, code: resp.status, message: `HTTP ${resp.status}` };
-    }
-    return parsed;
-  } catch (err) {
-    return { ok: false, code: -1, message: err instanceof Error ? err.message : '网络请求失败' };
-  }
+
+    xhr.upload.onprogress = (event) => {
+      if (!options.onUploadProgress || !event.lengthComputable) {
+        return;
+      }
+      const percent = Math.max(0, Math.min(100, Math.round((event.loaded / event.total) * 100)));
+      options.onUploadProgress(percent);
+    };
+
+    xhr.onerror = () => {
+      resolve({ ok: false, code: -1, message: '网络请求失败' });
+    };
+    xhr.onabort = () => {
+      resolve({ ok: false, code: -1, message: '网络请求失败' });
+    };
+    xhr.onload = () => {
+      const bodyText = typeof xhr.responseText === 'string' ? xhr.responseText : '';
+      const parsed = parsePayload<{ id: number }>(bodyText);
+      if ((xhr.status < 200 || xhr.status >= 300) && parsed.code === 0) {
+        resolve({ ok: false, code: xhr.status, message: `HTTP ${xhr.status}` });
+        return;
+      }
+      resolve(parsed);
+    };
+
+    xhr.send(formData);
+  });
 }
 
 /**
