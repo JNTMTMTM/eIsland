@@ -100,14 +100,18 @@ interface AppSettingsSectionProps {
   setAutostartMode: (mode: 'disabled' | 'enabled' | 'high-priority') => void;
   bgMediaType: 'image' | 'video' | null;
   bgMediaPreviewUrl: string | null;
+  bgVideoFit: 'cover' | 'contain';
+  setBgVideoFit: (value: 'cover' | 'contain') => void;
   bgImageOpacity: number;
   bgImageBlur: number;
   setBgImageOpacity: (value: number) => void;
   setBgImageBlur: (value: number) => void;
   applyBgOpacity: (value: number) => void;
   applyBgBlur: (value: number) => void;
+  applyBgVideoFit: (value: 'cover' | 'contain') => void;
   persistBgOpacity: (value: number) => void;
   persistBgBlur: (value: number) => void;
+  persistBgVideoFit: (value: 'cover' | 'contain') => void;
   bgOpacitySaveTimerRef: { current: ReturnType<typeof setTimeout> | null };
   bgBlurSaveTimerRef: { current: ReturnType<typeof setTimeout> | null };
   handleSelectBgImage: () => Promise<void>;
@@ -180,14 +184,18 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
 
     bgMediaType,
     bgMediaPreviewUrl,
+    bgVideoFit,
+    setBgVideoFit,
     bgImageOpacity,
     bgImageBlur,
     setBgImageOpacity,
     setBgImageBlur,
     applyBgOpacity,
     applyBgBlur,
+    applyBgVideoFit,
     persistBgOpacity,
     persistBgBlur,
+    persistBgVideoFit,
     bgOpacitySaveTimerRef,
     bgBlurSaveTimerRef,
     handleSelectBgImage,
@@ -533,6 +541,31 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
                     </button>
                   )}
                 </div>
+                {bgMediaType === 'video' && bgMediaPreviewUrl && (
+                  <>
+                    <div className="settings-music-hint" style={{ marginTop: 8 }}>{t('settings.app.theme.videoFitHint', { defaultValue: '视频填充模式' })}</div>
+                    <div className="settings-lyrics-source-options" style={{ marginTop: 6 }}>
+                      {([
+                        { value: 'cover', label: t('settings.app.theme.videoFitCover', { defaultValue: '覆盖（裁切）' }) },
+                        { value: 'contain', label: t('settings.app.theme.videoFitContain', { defaultValue: '完整（留边）' }) },
+                      ] as Array<{ value: 'cover' | 'contain'; label: string }>).map((opt) => (
+                        <button
+                          key={opt.value}
+                          className={`settings-lyrics-source-btn ${bgVideoFit === opt.value ? 'active' : ''}`}
+                          type="button"
+                          onClick={() => {
+                            setBgVideoFit(opt.value);
+                            applyBgVideoFit(opt.value);
+                            persistBgVideoFit(opt.value);
+                            window.api.settingsPreview('store:island-bg-video-fit', opt.value).catch(() => {});
+                          }}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
 
                 {bgMediaType && bgMediaPreviewUrl && (
                   <>
@@ -547,6 +580,7 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
                           loop
                           playsInline
                           preload="auto"
+                          style={{ objectFit: bgVideoFit }}
                           onCanPlay={(event) => {
                             event.currentTarget.play().catch(() => {});
                           }}

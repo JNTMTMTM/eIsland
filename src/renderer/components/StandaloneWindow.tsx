@@ -41,6 +41,7 @@ const LEGACY_ACTIVE_TAB_STORE_KEY = 'countdown-window-active-tab';
 const AUTH_INTENT_STORE_KEY = 'standalone-window-auth-intent';
 const ISLAND_BG_MEDIA_STORE_KEY = 'island-bg-media';
 const ISLAND_BG_IMAGE_STORE_KEY = 'island-bg-image';
+const ISLAND_BG_VIDEO_FIT_STORE_KEY = 'island-bg-video-fit';
 const ISLAND_BG_OPACITY_STORE_KEY = 'island-bg-opacity';
 const ISLAND_BG_BLUR_STORE_KEY = 'island-bg-blur';
 const LOCAL_ISLAND_BG_SYNC_EVENT = 'island-bg-local-sync';
@@ -133,6 +134,7 @@ export function StandaloneWindow(): ReactElement {
   const state = useIslandStore((s) => s.state);
   const [activeTab, setActiveTab] = useState<WindowTab>('todo');
   const [bgMedia, setBgMedia] = useState<{ type: IslandBgMediaType; previewUrl: string } | null>(null);
+  const [bgVideoFit, setBgVideoFit] = useState<'cover' | 'contain'>('cover');
   const [bgImageOpacity, setBgImageOpacity] = useState<number>(30);
   const [bgImageBlur, setBgImageBlur] = useState<number>(0);
 
@@ -186,8 +188,12 @@ export function StandaloneWindow(): ReactElement {
     Promise.all([
       window.api.storeRead(ISLAND_BG_MEDIA_STORE_KEY),
       window.api.storeRead(ISLAND_BG_IMAGE_STORE_KEY) as Promise<string | null>,
-    ]).then(async ([mediaRaw, legacyImage]) => {
+      window.api.storeRead(ISLAND_BG_VIDEO_FIT_STORE_KEY) as Promise<'cover' | 'contain' | null>,
+    ]).then(async ([mediaRaw, legacyImage, videoFit]) => {
       if (cancelled) return;
+      if (videoFit === 'cover' || videoFit === 'contain') {
+        setBgVideoFit(videoFit);
+      }
       const media = normalizeBgMediaConfig(mediaRaw)
         ?? (typeof legacyImage === 'string' ? normalizeBgMediaConfig(legacyImage) : null);
       if (!media) {
@@ -240,10 +246,15 @@ export function StandaloneWindow(): ReactElement {
       if (channel === `store:${ISLAND_BG_BLUR_STORE_KEY}`) {
         applyBgBlur(value);
       }
+      if (channel === `store:${ISLAND_BG_VIDEO_FIT_STORE_KEY}`) {
+        if (value === 'cover' || value === 'contain') {
+          setBgVideoFit(value);
+        }
+      }
     });
 
     const localBgSyncHandler = (event: Event): void => {
-      const customEvent = event as CustomEvent<{ media?: IslandBgMediaConfig | null; previewUrl?: string | null; image?: string | null; opacity?: number; blur?: number }>;
+      const customEvent = event as CustomEvent<{ media?: IslandBgMediaConfig | null; previewUrl?: string | null; image?: string | null; opacity?: number; blur?: number; videoFit?: 'cover' | 'contain' }>;
       const detail = customEvent.detail;
       if (!detail || typeof detail !== 'object') return;
       const hasMediaPayload = 'media' in detail || 'previewUrl' in detail;
@@ -261,6 +272,9 @@ export function StandaloneWindow(): ReactElement {
       }
       if ('blur' in detail) {
         applyBgBlur(detail.blur);
+      }
+      if (detail.videoFit === 'cover' || detail.videoFit === 'contain') {
+        setBgVideoFit(detail.videoFit);
       }
     };
     window.addEventListener(LOCAL_ISLAND_BG_SYNC_EVENT, localBgSyncHandler as EventListener);
@@ -297,6 +311,7 @@ export function StandaloneWindow(): ReactElement {
             loop
             playsInline
             preload="auto"
+            style={{ objectFit: bgVideoFit }}
             onCanPlay={(event) => {
               event.currentTarget.play().catch(() => {});
             }}

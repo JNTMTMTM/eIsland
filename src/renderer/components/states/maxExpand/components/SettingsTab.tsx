@@ -92,6 +92,7 @@ const CLIPBOARD_URL_SUPPRESS_IN_FAVORITES_KEY = 'clipboard-url-suppress-in-url-f
 const LOCAL_ISLAND_BG_SYNC_EVENT = 'island-bg-local-sync';
 const ISLAND_BG_MEDIA_STORE_KEY = 'island-bg-media';
 const ISLAND_BG_IMAGE_STORE_KEY = 'island-bg-image';
+const ISLAND_BG_VIDEO_FIT_STORE_KEY = 'island-bg-video-fit';
 let _lastSettingsSidebarTab: SettingsSidebarTabKey = 'index';
 
 type IslandBgMediaType = 'image' | 'video';
@@ -322,6 +323,7 @@ export function SettingsTab(): ReactElement {
   const [islandOpacity, setIslandOpacity] = useState<number>(100);
   const [bgMedia, setBgMedia] = useState<IslandBgMediaConfig | null>(null);
   const [bgMediaPreviewUrl, setBgMediaPreviewUrl] = useState<string | null>(null);
+  const [bgVideoFit, setBgVideoFit] = useState<'cover' | 'contain'>('cover');
   const [bgImageOpacity, setBgImageOpacity] = useState<number>(30);
   const [bgImageBlur, setBgImageBlur] = useState<number>(0);
   const bgOpacitySaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -391,10 +393,20 @@ export function SettingsTab(): ReactElement {
     }));
   };
 
+  const applyBgVideoFit = (value: 'cover' | 'contain'): void => {
+    window.dispatchEvent(new CustomEvent(LOCAL_ISLAND_BG_SYNC_EVENT, {
+      detail: { videoFit: value },
+    }));
+  };
+
   const persistBgMedia = (media: IslandBgMediaConfig | null): void => {
     window.api.storeWrite(ISLAND_BG_MEDIA_STORE_KEY, media).catch(() => {});
     const legacyImage = media?.type === 'image' ? media.source : null;
     window.api.storeWrite(ISLAND_BG_IMAGE_STORE_KEY, legacyImage).catch(() => {});
+  };
+
+  const persistBgVideoFit = (value: 'cover' | 'contain'): void => {
+    window.api.storeWrite(ISLAND_BG_VIDEO_FIT_STORE_KEY, value).catch(() => {});
   };
 
   const persistBgOpacity = (value: number): void => {
@@ -590,10 +602,14 @@ export function SettingsTab(): ReactElement {
     Promise.all([
       window.api.storeRead(ISLAND_BG_MEDIA_STORE_KEY),
       window.api.storeRead(ISLAND_BG_IMAGE_STORE_KEY) as Promise<string | null>,
+      window.api.storeRead(ISLAND_BG_VIDEO_FIT_STORE_KEY) as Promise<'cover' | 'contain' | null>,
       window.api.storeRead('island-bg-opacity') as Promise<number | null>,
       window.api.storeRead('island-bg-blur') as Promise<number | null>,
-    ]).then(async ([mediaRaw, legacyImage, opacity, blur]) => {
+    ]).then(async ([mediaRaw, legacyImage, videoFit, opacity, blur]) => {
       if (cancelled) return;
+      if (videoFit === 'cover' || videoFit === 'contain') {
+        setBgVideoFit(videoFit);
+      }
       if (typeof opacity === 'number' && Number.isFinite(opacity)) setBgImageOpacity(Math.max(0, Math.min(100, Math.round(opacity))));
       if (typeof blur === 'number' && Number.isFinite(blur)) setBgImageBlur(Math.max(0, Math.min(20, Math.round(blur))));
       const media = normalizeBgMediaConfig(mediaRaw)
@@ -678,6 +694,11 @@ export function SettingsTab(): ReactElement {
           setBgMedia(media);
           setBgMediaPreviewUrl(previewUrl);
         }).catch(() => {});
+      }
+      if (channel === `store:${ISLAND_BG_VIDEO_FIT_STORE_KEY}`) {
+        if (value === 'cover' || value === 'contain') {
+          setBgVideoFit(value);
+        }
       }
     });
     return () => {
@@ -1732,14 +1753,18 @@ export function SettingsTab(): ReactElement {
               setAutostartMode={setAutostartMode}
               bgMediaType={bgMedia?.type ?? null}
               bgMediaPreviewUrl={bgMediaPreviewUrl}
+              bgVideoFit={bgVideoFit}
+              setBgVideoFit={setBgVideoFit}
               bgImageOpacity={bgImageOpacity}
               bgImageBlur={bgImageBlur}
               setBgImageOpacity={setBgImageOpacity}
               setBgImageBlur={setBgImageBlur}
               applyBgOpacity={applyBgOpacity}
               applyBgBlur={applyBgBlur}
+              applyBgVideoFit={applyBgVideoFit}
               persistBgOpacity={persistBgOpacity}
               persistBgBlur={persistBgBlur}
+              persistBgVideoFit={persistBgVideoFit}
               bgOpacitySaveTimerRef={bgOpacitySaveTimerRef}
               bgBlurSaveTimerRef={bgBlurSaveTimerRef}
               handleSelectBgImage={handleSelectBgImage}
