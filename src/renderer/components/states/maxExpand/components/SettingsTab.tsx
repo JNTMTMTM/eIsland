@@ -207,6 +207,7 @@ interface RunningWindowItem {
 }
 
 type PluginMarketPageKey = 'wallpaper' | 'plugin' | 'contribution' | 'edit';
+const PLUGIN_MARKET_PAGES: PluginMarketPageKey[] = ['wallpaper', 'plugin', 'contribution', 'edit'];
 
 /**
  * 渲染设置面板主视图
@@ -254,6 +255,8 @@ export function SettingsTab(): ReactElement {
   const musicSettingsPageRef = useRef(musicSettingsPage);
   const currentMusicSettingsPageLabel = t(`settings.musicPages.${musicSettingsPage}`, { defaultValue: MUSIC_SETTINGS_PAGE_LABELS[musicSettingsPage] || '白名单' });
   musicSettingsPageRef.current = musicSettingsPage;
+  const pluginMarketPageRef = useRef(pluginMarketPage);
+  pluginMarketPageRef.current = pluginMarketPage;
   const currentPluginMarketPageLabel = t(`settings.pluginMarket.pages.${pluginMarketPage}`, {
     defaultValue: pluginMarketPage === 'wallpaper'
       ? '壁纸'
@@ -1387,6 +1390,23 @@ export function SettingsTab(): ReactElement {
             : Math.max(currentIdx - 1, 0);
           if (nextIdx !== currentIdx) {
             setWeatherSettingsPage(pages[nextIdx]);
+          }
+          e.preventDefault();
+          e.stopPropagation();
+          return;
+        }
+      }
+
+      if (activeTabRef.current === 'pluginMarket' && target.closest('.settings-app-page-dots')) {
+        const pages = PLUGIN_MARKET_PAGES;
+        const currentPage = pluginMarketPageRef.current;
+        const currentIdx = pages.indexOf(currentPage);
+        if (currentIdx >= 0) {
+          const nextIdx = e.deltaY > 0
+            ? Math.min(currentIdx + 1, pages.length - 1)
+            : Math.max(currentIdx - 1, 0);
+          if (nextIdx !== currentIdx) {
+            setPluginMarketPage(pages[nextIdx]);
           }
           e.preventDefault();
           e.stopPropagation();
