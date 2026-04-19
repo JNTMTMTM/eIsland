@@ -1,3 +1,29 @@
+/*
+ * eIsland - A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Electron.
+ * https://github.com/JNTMTMTM/eIsland
+ *
+ * Copyright (C) 2026 JNTMTMTM
+ * Copyright (C) 2026 pyisland.com
+ *
+ * Original author: JNTMTMTM[](https://github.com/JNTMTMTM)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+/**
+ * @file PositionSettingsPage.tsx
+ * @description 设置页面 - 软件设置位置偏移子界面
+ * @author 鸡哥
+ */
+
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { AppSettingsSectionProps } from './types';
@@ -13,17 +39,27 @@ type PositionSettingsPageProps = Pick<
   | 'cancelIslandPositionInput'
 >;
 
-export function PositionSettingsPage(props: PositionSettingsPageProps): ReactElement {
+/**
+ * 渲染灵动岛位置设置页面
+ * @param islandPositionOffset - 当前灵动岛偏移量
+ * @param applyIslandPositionOffset - 按偏移量立即应用位置
+ * @param islandPositionInput - 输入框中的偏移量草稿
+ * @param setIslandPositionInput - 更新偏移量草稿方法
+ * @param applyIslandPositionInput - 应用输入框偏移量
+ * @param islandPositionInputChanged - 输入是否有未保存变更
+ * @param cancelIslandPositionInput - 取消输入变更
+ * @returns 位置设置页面
+ */
+export function PositionSettingsPage({
+  islandPositionOffset,
+  applyIslandPositionOffset,
+  islandPositionInput,
+  setIslandPositionInput,
+  applyIslandPositionInput,
+  islandPositionInputChanged,
+  cancelIslandPositionInput,
+}: PositionSettingsPageProps): ReactElement {
   const { t } = useTranslation();
-  const {
-    islandPositionOffset,
-    applyIslandPositionOffset,
-    islandPositionInput,
-    setIslandPositionInput,
-    applyIslandPositionInput,
-    islandPositionInputChanged,
-    cancelIslandPositionInput,
-  } = props;
 
   return (
     <div className="max-expand-settings-section">

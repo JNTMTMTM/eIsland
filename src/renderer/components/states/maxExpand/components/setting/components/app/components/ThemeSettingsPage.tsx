@@ -1,3 +1,29 @@
+/*
+ * eIsland - A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Electron.
+ * https://github.com/JNTMTMTM/eIsland
+ *
+ * Copyright (C) 2026 JNTMTMTM
+ * Copyright (C) 2026 pyisland.com
+ *
+ * Original author: JNTMTMTM[](https://github.com/JNTMTMTM)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+/**
+ * @file ThemeSettingsPage.tsx
+ * @description 设置页面 - 软件设置主题与背景子界面
+ * @author 鸡哥
+ */
+
 import { useEffect, useRef } from 'react';
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -56,58 +82,62 @@ type ThemeSettingsPageProps = Pick<
   | 'opacitySaveTimerRef'
 >;
 
-export function ThemeSettingsPage(props: ThemeSettingsPageProps): ReactElement {
+/**
+ * 渲染软件主题与背景设置页面
+ * @param props - 主题与背景设置所需状态与操作集合
+ * @returns 主题与背景设置页面
+ */
+export function ThemeSettingsPage({
+  themeMode,
+  setThemeModeState,
+  applyThemeMode,
+  bgMediaType,
+  bgMediaPreviewUrl,
+  bgVideoFit,
+  setBgVideoFit,
+  bgVideoMuted,
+  setBgVideoMuted,
+  bgVideoLoop,
+  setBgVideoLoop,
+  bgVideoVolume,
+  setBgVideoVolume,
+  bgVideoRate,
+  setBgVideoRate,
+  bgVideoHwDecode,
+  setBgVideoHwDecode,
+  bgImageOpacity,
+  bgImageBlur,
+  setBgImageOpacity,
+  setBgImageBlur,
+  applyBgOpacity,
+  applyBgBlur,
+  applyBgVideoFit,
+  applyBgVideoMuted,
+  applyBgVideoLoop,
+  applyBgVideoVolume,
+  applyBgVideoRate,
+  applyBgVideoHwDecode,
+  persistBgOpacity,
+  persistBgBlur,
+  persistBgVideoFit,
+  persistBgVideoMuted,
+  persistBgVideoLoop,
+  persistBgVideoVolume,
+  persistBgVideoRate,
+  persistBgVideoHwDecode,
+  bgOpacitySaveTimerRef,
+  bgBlurSaveTimerRef,
+  handleSelectBgImage,
+  handleSelectBgVideo,
+  handleClearBgImage,
+  handleSelectBuiltinBgImage,
+  islandOpacity,
+  setIslandOpacity,
+  applyIslandOpacity,
+  persistIslandOpacity,
+  opacitySaveTimerRef,
+}: ThemeSettingsPageProps): ReactElement {
   const { t } = useTranslation();
-  const {
-    themeMode,
-    setThemeModeState,
-    applyThemeMode,
-    bgMediaType,
-    bgMediaPreviewUrl,
-    bgVideoFit,
-    setBgVideoFit,
-    bgVideoMuted,
-    setBgVideoMuted,
-    bgVideoLoop,
-    setBgVideoLoop,
-    bgVideoVolume,
-    setBgVideoVolume,
-    bgVideoRate,
-    setBgVideoRate,
-    bgVideoHwDecode,
-    setBgVideoHwDecode,
-    bgImageOpacity,
-    bgImageBlur,
-    setBgImageOpacity,
-    setBgImageBlur,
-    applyBgOpacity,
-    applyBgBlur,
-    applyBgVideoFit,
-    applyBgVideoMuted,
-    applyBgVideoLoop,
-    applyBgVideoVolume,
-    applyBgVideoRate,
-    applyBgVideoHwDecode,
-    persistBgOpacity,
-    persistBgBlur,
-    persistBgVideoFit,
-    persistBgVideoMuted,
-    persistBgVideoLoop,
-    persistBgVideoVolume,
-    persistBgVideoRate,
-    persistBgVideoHwDecode,
-    bgOpacitySaveTimerRef,
-    bgBlurSaveTimerRef,
-    handleSelectBgImage,
-    handleSelectBgVideo,
-    handleClearBgImage,
-    handleSelectBuiltinBgImage,
-    islandOpacity,
-    setIslandOpacity,
-    applyIslandOpacity,
-    persistIslandOpacity,
-    opacitySaveTimerRef,
-  } = props;
 
   const bgPreviewVideoRef = useRef<HTMLVideoElement | null>(null);
   const bgPreviewVideoLoopRef = useRef<boolean>(bgVideoLoop);

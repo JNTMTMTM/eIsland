@@ -1,3 +1,29 @@
+/*
+ * eIsland - A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Electron.
+ * https://github.com/JNTMTMTM/eIsland
+ *
+ * Copyright (C) 2026 JNTMTMTM
+ * Copyright (C) 2026 pyisland.com
+ *
+ * Original author: JNTMTMTM[](https://github.com/JNTMTMTM)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+/**
+ * @file AutostartSettingsPage.tsx
+ * @description 设置页面 - 软件设置实用工具与开机自启子界面
+ * @author 鸡哥
+ */
+
 import { useEffect, useRef, useState } from 'react';
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -5,9 +31,14 @@ import type { AppSettingsSectionProps } from './types';
 
 type AutostartSettingsPageProps = Pick<AppSettingsSectionProps, 'autostartMode' | 'setAutostartMode'>;
 
-export function AutostartSettingsPage(props: AutostartSettingsPageProps): ReactElement {
+/**
+ * 渲染实用工具与开机自启设置页面
+ * @param autostartMode - 当前开机自启模式
+ * @param setAutostartMode - 更新开机自启模式方法
+ * @returns 实用工具与开机自启设置页面
+ */
+export function AutostartSettingsPage({ autostartMode, setAutostartMode }: AutostartSettingsPageProps): ReactElement {
   const { t } = useTranslation();
-  const { autostartMode, setAutostartMode } = props;
   const [clearLogsStatus, setClearLogsStatus] = useState<'idle' | 'clearing' | string>('idle');
   const clearLogsResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 

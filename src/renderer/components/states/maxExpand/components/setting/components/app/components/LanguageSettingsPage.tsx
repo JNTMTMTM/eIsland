@@ -1,12 +1,43 @@
+/*
+ * eIsland - A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Electron.
+ * https://github.com/JNTMTMTM/eIsland
+ *
+ * Copyright (C) 2026 JNTMTMTM
+ * Copyright (C) 2026 pyisland.com
+ *
+ * Original author: JNTMTMTM[](https://github.com/JNTMTMTM)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+/**
+ * @file LanguageSettingsPage.tsx
+ * @description 设置页面 - 软件设置语言切换子界面
+ * @author 鸡哥
+ */
+
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { AppSettingsSectionProps } from './types';
 
 type LanguageSettingsPageProps = Pick<AppSettingsSectionProps, 'appLanguage' | 'applyAppLanguage'>;
 
-export function LanguageSettingsPage(props: LanguageSettingsPageProps): ReactElement {
+/**
+ * 渲染软件显示语言设置页面
+ * @param appLanguage - 当前应用语言
+ * @param applyAppLanguage - 应用语言的方法
+ * @returns 语言设置页面
+ */
+export function LanguageSettingsPage({ appLanguage, applyAppLanguage }: LanguageSettingsPageProps): ReactElement {
   const { t } = useTranslation();
-  const { appLanguage, applyAppLanguage } = props;
 
   return (
     <div className="max-expand-settings-section">

@@ -1,7 +1,36 @@
+/*
+ * eIsland - A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Electron.
+ * https://github.com/JNTMTMTM/eIsland
+ *
+ * Copyright (C) 2026 JNTMTMTM
+ * Copyright (C) 2026 pyisland.com
+ *
+ * Original author: JNTMTMTM[](https://github.com/JNTMTMTM)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+/**
+ * @file types.ts
+ * @description 设置页面 - 软件设置模块共享类型定义
+ * @author 鸡哥
+ */
+
 import type { Dispatch, ReactElement, SetStateAction } from 'react';
 import type { AppSettingsPageKey } from '../../../utils/settingsConfig';
 import type { OverviewLayoutConfig, OverviewWidgetType } from '../../../../../../expand/components/OverviewTab';
 
+/**
+ * 运行中窗口信息
+ */
 export interface AppRunningWindow {
   id: string;
   title: string;
@@ -11,16 +40,26 @@ export interface AppRunningWindow {
   iconDataUrl: string | null;
 }
 
+/**
+ * 灵动岛位置偏移量
+ */
 export interface AppPositionOffset {
   x: number;
   y: number;
 }
 
+/**
+ * 灵动岛位置输入框内容
+ */
 export interface AppPositionInput {
   x: string;
   y: string;
 }
 
+/**
+ * 应用设置主组件参数
+ * @description 汇总软件设置所有子页面所需的状态和操作函数，用于入口组件分发
+ */
 export interface AppSettingsSectionProps {
   currentAppSettingsPageLabel: string;
   appSettingsPage: AppSettingsPageKey;

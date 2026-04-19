@@ -1,3 +1,29 @@
+/*
+ * eIsland - A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Electron.
+ * https://github.com/JNTMTMTM/eIsland
+ *
+ * Copyright (C) 2026 JNTMTMTM
+ * Copyright (C) 2026 pyisland.com
+ *
+ * Original author: JNTMTMTM[](https://github.com/JNTMTMTM)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+/**
+ * @file HideProcessSettingsPage.tsx
+ * @description 设置页面 - 软件设置隐藏窗口管理子界面
+ * @author 鸡哥
+ */
+
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { AppSettingsSectionProps } from './types';
@@ -14,18 +40,29 @@ type HideProcessSettingsPageProps = Pick<
   | 'hideProcessKeyword'
 >;
 
-export function HideProcessSettingsPage(props: HideProcessSettingsPageProps): ReactElement {
+/**
+ * 渲染隐藏窗口管理页面
+ * @param hideProcessFilter - 进程名搜索关键字
+ * @param setHideProcessFilter - 更新搜索关键字方法
+ * @param refreshRunningProcesses - 刷新运行中窗口列表
+ * @param hideProcessLoading - 运行窗口刷新状态
+ * @param hideProcessList - 已加入隐藏名单的进程
+ * @param toggleHideProcess - 切换进程隐藏状态
+ * @param runningProcesses - 当前运行窗口列表
+ * @param hideProcessKeyword - 处理后的匹配关键字
+ * @returns 隐藏窗口管理页面
+ */
+export function HideProcessSettingsPage({
+  hideProcessFilter,
+  setHideProcessFilter,
+  refreshRunningProcesses,
+  hideProcessLoading,
+  hideProcessList,
+  toggleHideProcess,
+  runningProcesses,
+  hideProcessKeyword,
+}: HideProcessSettingsPageProps): ReactElement {
   const { t } = useTranslation();
-  const {
-    hideProcessFilter,
-    setHideProcessFilter,
-    refreshRunningProcesses,
-    hideProcessLoading,
-    hideProcessList,
-    toggleHideProcess,
-    runningProcesses,
-    hideProcessKeyword,
-  } = props;
 
   return (
     <div className="max-expand-settings-section">

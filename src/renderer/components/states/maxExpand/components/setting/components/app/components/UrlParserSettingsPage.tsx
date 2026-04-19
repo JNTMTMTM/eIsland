@@ -1,3 +1,29 @@
+/*
+ * eIsland - A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Electron.
+ * https://github.com/JNTMTMTM/eIsland
+ *
+ * Copyright (C) 2026 JNTMTMTM
+ * Copyright (C) 2026 pyisland.com
+ *
+ * Original author: JNTMTMTM[](https://github.com/JNTMTMTM)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+/**
+ * @file UrlParserSettingsPage.tsx
+ * @description 设置页面 - 软件设置剪贴板 URL 识别子界面
+ * @author 鸡哥
+ */
+
 import { useState } from 'react';
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -26,18 +52,29 @@ const normalizeBlacklistDomain = (raw: string): string => {
   }
 };
 
-export function UrlParserSettingsPage(props: UrlParserSettingsPageProps): ReactElement {
+/**
+ * 渲染剪贴板 URL 识别设置页面
+ * @param clipboardUrlMonitorEnabled - URL 监听开关
+ * @param setClipboardUrlMonitorEnabled - 更新 URL 监听开关方法
+ * @param clipboardUrlDetectMode - URL 识别模式
+ * @param setClipboardUrlDetectMode - 更新识别模式方法
+ * @param clipboardUrlBlacklist - URL 域名黑名单
+ * @param setClipboardUrlBlacklist - 更新 URL 域名黑名单方法
+ * @param clipboardUrlSuppressInFavorites - 收藏界面抑制通知开关
+ * @param setClipboardUrlSuppressInFavorites - 更新收藏界面抑制通知开关方法
+ * @returns URL 识别设置页面
+ */
+export function UrlParserSettingsPage({
+  clipboardUrlMonitorEnabled,
+  setClipboardUrlMonitorEnabled,
+  clipboardUrlDetectMode,
+  setClipboardUrlDetectMode,
+  clipboardUrlBlacklist,
+  setClipboardUrlBlacklist,
+  clipboardUrlSuppressInFavorites,
+  setClipboardUrlSuppressInFavorites,
+}: UrlParserSettingsPageProps): ReactElement {
   const { t } = useTranslation();
-  const {
-    clipboardUrlMonitorEnabled,
-    setClipboardUrlMonitorEnabled,
-    clipboardUrlDetectMode,
-    setClipboardUrlDetectMode,
-    clipboardUrlBlacklist,
-    setClipboardUrlBlacklist,
-    clipboardUrlSuppressInFavorites,
-    setClipboardUrlSuppressInFavorites,
-  } = props;
   const [clipboardBlacklistDraft, setClipboardBlacklistDraft] = useState<string>('');
   const [clipboardBlacklistError, setClipboardBlacklistError] = useState<string>('');
 
