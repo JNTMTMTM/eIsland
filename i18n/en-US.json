@@ -1120,7 +1120,12 @@
       "systemPrompt": "System Prompt",
       "promptPlaceholder": "You are a helpful assistant.",
       "saveTitle": "Save (Ctrl+Enter)",
-      "editPromptTitle": "Edit Prompt"
+      "editPromptTitle": "Edit Prompt",
+      "credentialsTitle": "Model Credentials",
+      "credentialsHint": "OpenAI-compatible protocol. Fill in your API Key, Endpoint and model name.",
+      "mcpTitle": "MCP Tooling",
+      "mcpHint": "Optional. Once an MCP endpoint is configured, the Agent can call external tools through it.",
+      "systemPromptHint": "Constrains the Agent's role and style. Leave empty to use the default prompt."
     },
     "about": {
       "authorAvatarAlt": "Author avatar",

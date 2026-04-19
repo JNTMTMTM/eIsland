@@ -1120,7 +1120,12 @@
       "systemPrompt": "System Prompt",
       "promptPlaceholder": "你是一个有用的助手。",
       "saveTitle": "保存 (Ctrl+Enter)",
-      "editPromptTitle": "编辑 Prompt"
+      "editPromptTitle": "编辑 Prompt",
+      "credentialsTitle": "模型凭据",
+      "credentialsHint": "兼容 OpenAI 接口协议，填写你的 API Key、Endpoint 与模型名称",
+      "mcpTitle": "MCP 工具接入",
+      "mcpHint": "可选，配置 MCP 服务端点后 Agent 可调用对接的外部工具",
+      "systemPromptHint": "用于限定 Agent 的角色与风格，留空则使用默认提示词"
     },
     "about": {
       "authorAvatarAlt": "作者头像",
