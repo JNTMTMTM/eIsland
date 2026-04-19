@@ -377,198 +377,243 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
       <div className="settings-app-pages-layout">
         <div className="settings-app-page-main">
           {appSettingsPage === 'layout-preview' && (
-            <div className="settings-island-preview-section">
-              <div className="settings-island-preview-label">{t('settings.app.layout.previewTitle', { defaultValue: '总览布局预览' })}</div>
-              <div className="settings-island-preview-wrap">
-                <div className="settings-island-shell" key={`${layoutConfig.left}-${layoutConfig.right}`}>
-                  <OverviewPreview layoutConfig={layoutConfig} />
-                </div>
-              </div>
+            <div className="max-expand-settings-section">
+              <div className="settings-cards">
 
-              <div className="settings-layout-controls">
-                <div className="settings-layout-control">
-                  <span className="settings-layout-control-label">{t('settings.app.layout.leftWidget', { defaultValue: '左侧控件' })}</span>
-                  <div className="settings-layout-options">
-                    {overviewWidgetOptions.map((opt) => (
-                      <button
-                        key={opt.value}
-                        className={`settings-layout-btn ${layoutConfig.left === opt.value ? 'active' : ''}`}
-                        type="button"
-                        onClick={() => updateLayout('left', opt.value)}
-                      >
-                        {opt.label}
-                      </button>
-                    ))}
+                {/* 卡片 1：预览 */}
+                <div className="settings-card">
+                  <div className="settings-card-header">
+                    <div className="settings-card-title">{t('settings.app.layout.previewTitle', { defaultValue: '总览布局预览' })}</div>
+                    <div className="settings-card-subtitle">{t('settings.app.layout.previewHint', { defaultValue: '实时显示左右控件组合后的 Expand 态灵动岛样式，切换下方控件可即时预览。' })}</div>
+                  </div>
+                  <div className="settings-island-preview-wrap">
+                    <div className="settings-island-shell" key={`${layoutConfig.left}-${layoutConfig.right}`}>
+                      <OverviewPreview layoutConfig={layoutConfig} />
+                    </div>
                   </div>
                 </div>
-                <div className="settings-layout-control">
-                  <span className="settings-layout-control-label">{t('settings.app.layout.rightWidget', { defaultValue: '右侧控件' })}</span>
-                  <div className="settings-layout-options">
-                    {overviewWidgetOptions.map((opt) => (
-                      <button
-                        key={opt.value}
-                        className={`settings-layout-btn ${layoutConfig.right === opt.value ? 'active' : ''}`}
-                        type="button"
-                        onClick={() => updateLayout('right', opt.value)}
-                      >
-                        {opt.label}
-                      </button>
-                    ))}
+
+                {/* 卡片 2：控件组合 */}
+                <div className="settings-card">
+                  <div className="settings-card-header">
+                    <div className="settings-card-title">{t('settings.app.layout.widgetPickerTitle', { defaultValue: '控件组合' })}</div>
+                    <div className="settings-card-subtitle">{t('settings.app.layout.widgetPickerHint', { defaultValue: '分别选择左右两侧展示的控件，切换后立即生效并自动保存。' })}</div>
+                  </div>
+                  <div className="settings-layout-controls">
+                    <div className="settings-layout-control">
+                      <span className="settings-layout-control-label">{t('settings.app.layout.leftWidget', { defaultValue: '左侧控件' })}</span>
+                      <div className="settings-layout-options">
+                        {overviewWidgetOptions.map((opt) => (
+                          <button
+                            key={opt.value}
+                            className={`settings-layout-btn ${layoutConfig.left === opt.value ? 'active' : ''}`}
+                            type="button"
+                            onClick={() => updateLayout('left', opt.value)}
+                          >
+                            {opt.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="settings-layout-control">
+                      <span className="settings-layout-control-label">{t('settings.app.layout.rightWidget', { defaultValue: '右侧控件' })}</span>
+                      <div className="settings-layout-options">
+                        {overviewWidgetOptions.map((opt) => (
+                          <button
+                            key={opt.value}
+                            className={`settings-layout-btn ${layoutConfig.right === opt.value ? 'active' : ''}`}
+                            type="button"
+                            onClick={() => updateLayout('right', opt.value)}
+                          >
+                            {opt.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 </div>
+
               </div>
             </div>
           )}
 
           {appSettingsPage === 'hide-process-list' && (
-            <div className="settings-hide-processes">
-              <div className="settings-music-hint">{t('settings.app.hideProcess.hint', { defaultValue: '当下方黑名单进程对应窗口处于焦点状态时，将立即隐藏灵动岛；失去焦点后自动显示。' })}</div>
-              <div className="settings-hide-process-toolbar">
-                <input
-                  className="settings-whitelist-input"
-                  type="text"
-                  placeholder={t('settings.app.hideProcess.searchPlaceholder', { defaultValue: '搜索进程名' })}
-                  value={hideProcessFilter}
-                  onChange={(e) => setHideProcessFilter(e.target.value)}
-                />
-                <button
-                  className="settings-whitelist-add-btn"
-                  type="button"
-                  onClick={() => {
-                    refreshRunningProcesses().catch(() => {});
-                  }}
-                  disabled={hideProcessLoading}
-                >
-                  {hideProcessLoading
-                    ? t('settings.app.hideProcess.refreshing', { defaultValue: '刷新中…' })
-                    : t('settings.app.hideProcess.refresh', { defaultValue: '刷新窗口' })}
-                </button>
-              </div>
+            <div className="max-expand-settings-section">
+              <div className="settings-cards">
 
-              <div className="settings-hide-selected">
-                {hideProcessList.length === 0 ? (
-                  <span className="settings-hide-selected-empty">{t('settings.app.hideProcess.empty', { defaultValue: '暂无隐藏窗口' })}</span>
-                ) : hideProcessList.map((name: string) => (
-                  <button
-                    key={name}
-                    className="settings-hide-selected-item"
-                    type="button"
-                    onClick={() => toggleHideProcess(name)}
-                    title={t('settings.app.hideProcess.removeWindow', { defaultValue: '移除该窗口' })}
-                  >
-                    {name} ×
-                  </button>
-                ))}
-              </div>
-
-              <div className="settings-hide-process-list">
-                {runningProcesses
-                  .filter((win) => win.processName.toLowerCase().includes(hideProcessKeyword))
-                  .map((process) => {
-                    const name = process.processName;
-                    if (!name) return null;
-                    const selected = hideProcessList.some((item: string) => item.trim().toLowerCase() === name.trim().toLowerCase());
-                    const fallbackText = (process.processName || process.title).charAt(0).toUpperCase();
-                    return (
+                {/* 卡片 1：已加入黑名单的窗口 */}
+                <div className="settings-card">
+                  <div className="settings-card-header">
+                    <div className="settings-card-title">{t('settings.app.hideProcess.title', { defaultValue: '隐藏窗口管理' })}</div>
+                    <div className="settings-card-subtitle">{t('settings.app.hideProcess.hint', { defaultValue: '当下方黑名单进程对应窗口处于焦点状态时，将立即隐藏灵动岛；失去焦点后自动显示。' })}</div>
+                  </div>
+                  <div className="settings-hide-selected">
+                    {hideProcessList.length === 0 ? (
+                      <span className="settings-hide-selected-empty">{t('settings.app.hideProcess.empty', { defaultValue: '暂无隐藏窗口' })}</span>
+                    ) : hideProcessList.map((name: string) => (
                       <button
-                        key={`${process.id}-${name}-${process.title}`}
-                        className={`settings-hide-process-item ${selected ? 'active' : ''}`}
+                        key={name}
+                        className="settings-hide-selected-item"
                         type="button"
                         onClick={() => toggleHideProcess(name)}
+                        title={t('settings.app.hideProcess.removeWindow', { defaultValue: '移除该窗口' })}
                       >
-                        <span className={`settings-hide-process-check ${selected ? 'active' : ''}`}>{selected ? '✓' : ''}</span>
-                        <span className="settings-hide-process-icon" aria-hidden="true">
-                          {process.iconDataUrl ? (
-                            <img src={process.iconDataUrl} alt="" />
-                          ) : (
-                            <span>{fallbackText || '•'}</span>
-                          )}
-                        </span>
-                        <span className="settings-hide-process-name">{name}</span>
-                        {process.title && (
-                          <span style={{ marginLeft: 8, fontSize: 11, opacity: 0.6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            {process.title}
-                          </span>
-                        )}
+                        {name} ×
                       </button>
-                    );
-                  })}
+                    ))}
+                  </div>
+                </div>
+
+                {/* 卡片 2：当前运行的进程选择 */}
+                <div className="settings-card">
+                  <div className="settings-card-header">
+                    <div className="settings-card-title">{t('settings.app.hideProcess.runningTitle', { defaultValue: '当前运行的窗口' })}</div>
+                    <div className="settings-card-subtitle">{t('settings.app.hideProcess.runningHint', { defaultValue: '在列表中点击可将窗口加入 / 移出黑名单，支持按进程名搜索。' })}</div>
+                  </div>
+                  <div className="settings-hide-process-toolbar">
+                    <input
+                      className="settings-whitelist-input"
+                      type="text"
+                      placeholder={t('settings.app.hideProcess.searchPlaceholder', { defaultValue: '搜索进程名' })}
+                      value={hideProcessFilter}
+                      onChange={(e) => setHideProcessFilter(e.target.value)}
+                    />
+                    <button
+                      className="settings-whitelist-add-btn"
+                      type="button"
+                      onClick={() => {
+                        refreshRunningProcesses().catch(() => {});
+                      }}
+                      disabled={hideProcessLoading}
+                    >
+                      {hideProcessLoading
+                        ? t('settings.app.hideProcess.refreshing', { defaultValue: '刷新中…' })
+                        : t('settings.app.hideProcess.refresh', { defaultValue: '刷新窗口' })}
+                    </button>
+                  </div>
+                  <div className="settings-hide-process-list">
+                    {runningProcesses
+                      .filter((win) => win.processName.toLowerCase().includes(hideProcessKeyword))
+                      .map((process) => {
+                        const name = process.processName;
+                        if (!name) return null;
+                        const selected = hideProcessList.some((item: string) => item.trim().toLowerCase() === name.trim().toLowerCase());
+                        const fallbackText = (process.processName || process.title).charAt(0).toUpperCase();
+                        return (
+                          <button
+                            key={`${process.id}-${name}-${process.title}`}
+                            className={`settings-hide-process-item ${selected ? 'active' : ''}`}
+                            type="button"
+                            onClick={() => toggleHideProcess(name)}
+                          >
+                            <span className={`settings-hide-process-check ${selected ? 'active' : ''}`}>{selected ? '✓' : ''}</span>
+                            <span className="settings-hide-process-icon" aria-hidden="true">
+                              {process.iconDataUrl ? (
+                                <img src={process.iconDataUrl} alt="" />
+                              ) : (
+                                <span>{fallbackText || '•'}</span>
+                              )}
+                            </span>
+                            <span className="settings-hide-process-name">{name}</span>
+                            {process.title && (
+                              <span style={{ marginLeft: 8, fontSize: 11, opacity: 0.6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                {process.title}
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
+                  </div>
+                </div>
+
               </div>
             </div>
           )}
 
           {appSettingsPage === 'position' && (
             <div className="max-expand-settings-section">
-              <div className="settings-music-section">
-                <div className="settings-music-label">{t('settings.app.position.title', { defaultValue: '灵动岛位置偏移' })}</div>
-                <div className="settings-music-hint">{t('settings.app.position.hint', { defaultValue: '调整后立即生效并自动保存，重启后会按该位置校准。' })}</div>
+              <div className="settings-cards">
 
-                <div className="settings-hotkey-row">
-                  <button className="settings-hotkey-btn" type="button" onClick={() => applyIslandPositionOffset(islandPositionOffset.x - 10, islandPositionOffset.y)}>{t('settings.app.position.moveLeft', { defaultValue: '左移 10' })}</button>
-                  <button className="settings-hotkey-btn" type="button" onClick={() => applyIslandPositionOffset(islandPositionOffset.x + 10, islandPositionOffset.y)}>{t('settings.app.position.moveRight', { defaultValue: '右移 10' })}</button>
-                  <button className="settings-hotkey-btn" type="button" onClick={() => applyIslandPositionOffset(islandPositionOffset.x, islandPositionOffset.y - 10)}>{t('settings.app.position.moveUp', { defaultValue: '上移 10' })}</button>
-                  <button className="settings-hotkey-btn" type="button" onClick={() => applyIslandPositionOffset(islandPositionOffset.x, islandPositionOffset.y + 10)}>{t('settings.app.position.moveDown', { defaultValue: '下移 10' })}</button>
+                {/* 卡片 1：快速微调 */}
+                <div className="settings-card">
+                  <div className="settings-card-header">
+                    <div className="settings-card-title">{t('settings.app.position.quickAdjustTitle', { defaultValue: '快速微调' })}</div>
+                    <div className="settings-card-subtitle">{t('settings.app.position.quickAdjustHint', { defaultValue: '每次按钮点击以 10px 步进移动灵动岛位置，立即生效并自动保存。' })}</div>
+                  </div>
+                  <div className="settings-hotkey-row">
+                    <button className="settings-hotkey-btn" type="button" onClick={() => applyIslandPositionOffset(islandPositionOffset.x - 10, islandPositionOffset.y)}>{t('settings.app.position.moveLeft', { defaultValue: '左移 10' })}</button>
+                    <button className="settings-hotkey-btn" type="button" onClick={() => applyIslandPositionOffset(islandPositionOffset.x + 10, islandPositionOffset.y)}>{t('settings.app.position.moveRight', { defaultValue: '右移 10' })}</button>
+                    <button className="settings-hotkey-btn" type="button" onClick={() => applyIslandPositionOffset(islandPositionOffset.x, islandPositionOffset.y - 10)}>{t('settings.app.position.moveUp', { defaultValue: '上移 10' })}</button>
+                    <button className="settings-hotkey-btn" type="button" onClick={() => applyIslandPositionOffset(islandPositionOffset.x, islandPositionOffset.y + 10)}>{t('settings.app.position.moveDown', { defaultValue: '下移 10' })}</button>
+                  </div>
                 </div>
 
-                <div className="settings-hotkey-row">
-                  <label className="settings-field" style={{ flex: 1 }}>
-                    <span className="settings-field-label">{t('settings.app.position.xLabel', { defaultValue: '水平偏移 X（px）' })}</span>
-                    <input
-                      className="settings-field-input"
-                      type="number"
-                      min={-2000}
-                      max={2000}
-                      value={islandPositionInput.x}
-                      onChange={(e) => {
-                        setIslandPositionInput((prev) => ({ ...prev, x: e.target.value }));
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          applyIslandPositionInput();
-                        }
-                      }}
-                    />
-                  </label>
-                  <label className="settings-field" style={{ flex: 1 }}>
-                    <span className="settings-field-label">{t('settings.app.position.yLabel', { defaultValue: '垂直偏移 Y（px）' })}</span>
-                    <input
-                      className="settings-field-input"
-                      type="number"
-                      min={-1200}
-                      max={1200}
-                      value={islandPositionInput.y}
-                      onChange={(e) => {
-                        setIslandPositionInput((prev) => ({ ...prev, y: e.target.value }));
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          applyIslandPositionInput();
-                        }
-                      }}
-                    />
-                  </label>
+                {/* 卡片 2：精确偏移 */}
+                <div className="settings-card">
+                  <div className="settings-card-header">
+                    <div className="settings-card-title">{t('settings.app.position.preciseTitle', { defaultValue: '精确偏移' })}</div>
+                    <div className="settings-card-subtitle">{t('settings.app.position.preciseHint', { defaultValue: '手动输入水平 / 垂直偏移量（单位 px），回车或点击“应用”后生效。' })}</div>
+                  </div>
+                  <div className="settings-hotkey-row">
+                    <label className="settings-field" style={{ flex: 1 }}>
+                      <span className="settings-field-label">{t('settings.app.position.xLabel', { defaultValue: '水平偏移 X（px）' })}</span>
+                      <input
+                        className="settings-field-input"
+                        type="number"
+                        min={-2000}
+                        max={2000}
+                        value={islandPositionInput.x}
+                        onChange={(e) => {
+                          setIslandPositionInput((prev) => ({ ...prev, x: e.target.value }));
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            applyIslandPositionInput();
+                          }
+                        }}
+                      />
+                    </label>
+                    <label className="settings-field" style={{ flex: 1 }}>
+                      <span className="settings-field-label">{t('settings.app.position.yLabel', { defaultValue: '垂直偏移 Y（px）' })}</span>
+                      <input
+                        className="settings-field-input"
+                        type="number"
+                        min={-1200}
+                        max={1200}
+                        value={islandPositionInput.y}
+                        onChange={(e) => {
+                          setIslandPositionInput((prev) => ({ ...prev, y: e.target.value }));
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            applyIslandPositionInput();
+                          }
+                        }}
+                      />
+                    </label>
+                  </div>
+                  <div className="settings-hotkey-row">
+                    <button className="settings-hotkey-btn" type="button" onClick={applyIslandPositionInput} disabled={!islandPositionInputChanged}>{t('settings.app.position.apply', { defaultValue: '应用' })}</button>
+                    <button className="settings-hotkey-btn" type="button" onClick={cancelIslandPositionInput} disabled={!islandPositionInputChanged}>{t('settings.app.position.cancel', { defaultValue: '取消' })}</button>
+                    <button className="settings-hotkey-btn" type="button" onClick={() => applyIslandPositionOffset(0, 0)}>{t('settings.app.position.resetDefault', { defaultValue: '重置为默认位置' })}</button>
+                  </div>
                 </div>
 
-                <div className="settings-hotkey-row">
-                  <button className="settings-hotkey-btn" type="button" onClick={applyIslandPositionInput} disabled={!islandPositionInputChanged}>{t('settings.app.position.apply', { defaultValue: '应用' })}</button>
-                  <button className="settings-hotkey-btn" type="button" onClick={cancelIslandPositionInput} disabled={!islandPositionInputChanged}>{t('settings.app.position.cancel', { defaultValue: '取消' })}</button>
-                  <button className="settings-hotkey-btn" type="button" onClick={() => applyIslandPositionOffset(0, 0)}>{t('settings.app.position.resetDefault', { defaultValue: '重置为默认位置' })}</button>
-                </div>
               </div>
             </div>
           )}
 
           {appSettingsPage === 'theme' && (
             <div className="max-expand-settings-section">
-              <div className="settings-theme-cards">
+              <div className="settings-cards">
 
                 {/* 卡片 1：主题模式 */}
-                <div className="settings-theme-card">
-                  <div className="settings-theme-card-header">
-                    <div className="settings-theme-card-title">{t('settings.app.theme.title', { defaultValue: '主题模式' })}</div>
-                    <div className="settings-theme-card-subtitle">{t('settings.app.theme.hint', { defaultValue: '选择深色、浅色或跟随系统主题，切换后立即生效' })}</div>
+                <div className="settings-card">
+                  <div className="settings-card-header">
+                    <div className="settings-card-title">{t('settings.app.theme.title', { defaultValue: '主题模式' })}</div>
+                    <div className="settings-card-subtitle">{t('settings.app.theme.hint', { defaultValue: '选择深色、浅色或跟随系统主题，切换后立即生效' })}</div>
                   </div>
                   <div className="settings-lyrics-source-options">
                     {([
@@ -592,14 +637,14 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
                 </div>
 
                 {/* 卡片 2：壁纸背景 */}
-                <div className="settings-theme-card">
-                  <div className="settings-theme-card-header">
-                    <div className="settings-theme-card-title">{t('settings.app.theme.bgCardTitle', { defaultValue: '壁纸背景' })}</div>
-                    <div className="settings-theme-card-subtitle">{t('settings.app.theme.bgCardSubtitle', { defaultValue: '选择内置壁纸，或从本地导入图片 / 视频作为灵动岛背景' })}</div>
+                <div className="settings-card">
+                  <div className="settings-card-header">
+                    <div className="settings-card-title">{t('settings.app.theme.bgCardTitle', { defaultValue: '壁纸背景' })}</div>
+                    <div className="settings-card-subtitle">{t('settings.app.theme.bgCardSubtitle', { defaultValue: '选择内置壁纸，或从本地导入图片 / 视频作为灵动岛背景' })}</div>
                   </div>
 
-                  <div className="settings-theme-card-subgroup">
-                    <div className="settings-theme-card-subgroup-title">{t('settings.app.theme.builtinWallpaper', { defaultValue: '内置壁纸' })}</div>
+                  <div className="settings-card-subgroup">
+                    <div className="settings-card-subgroup-title">{t('settings.app.theme.builtinWallpaper', { defaultValue: '内置壁纸' })}</div>
                     <div className="settings-music-hint">{t('settings.app.theme.builtinWallpaperHint', { defaultValue: '选择一张内置壁纸作为灵动岛背景' })}</div>
                     <div className="settings-bg-gallery">
                       {BUILTIN_WALLPAPERS.map((wp) => (
@@ -617,8 +662,8 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
                     </div>
                   </div>
 
-                  <div className="settings-theme-card-subgroup">
-                    <div className="settings-theme-card-subgroup-title">{t('settings.app.theme.customImage', { defaultValue: '自定义图片' })}</div>
+                  <div className="settings-card-subgroup">
+                    <div className="settings-card-subgroup-title">{t('settings.app.theme.customImage', { defaultValue: '自定义图片' })}</div>
                     <div className="settings-music-hint">{t('settings.app.theme.customImageHint', { defaultValue: '从本地选择图片，支持 jpg / png / gif / webp' })}</div>
                     <div className="settings-hotkey-row" style={{ gap: 8, alignItems: 'center' }}>
                       <button className="settings-hotkey-btn" type="button" onClick={() => { handleSelectBgImage().catch(() => {}); }}>
@@ -634,8 +679,8 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
                     </div>
                   </div>
 
-                  <div className="settings-theme-card-subgroup">
-                    <div className="settings-theme-card-subgroup-title">{t('settings.app.theme.customVideo', { defaultValue: '自定义视频' })}</div>
+                  <div className="settings-card-subgroup">
+                    <div className="settings-card-subgroup-title">{t('settings.app.theme.customVideo', { defaultValue: '自定义视频' })}</div>
                     <div className="settings-music-hint">{t('settings.app.theme.customVideoHint', { defaultValue: '从本地选择视频，支持 mp4 / webm / mov / m4v / avi / mkv' })}</div>
                     <div className="settings-hotkey-row" style={{ gap: 8, alignItems: 'center' }}>
                       <button className="settings-hotkey-btn" type="button" onClick={() => { handleSelectBgVideo().catch(() => {}); }}>
@@ -652,8 +697,8 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
                   </div>
 
                   {bgMediaType && bgMediaPreviewUrl && (
-                    <div className="settings-theme-card-subgroup">
-                      <div className="settings-theme-card-subgroup-title">{t('settings.app.theme.previewLabel', { defaultValue: '实时预览' })}</div>
+                    <div className="settings-card-subgroup">
+                      <div className="settings-card-subgroup-title">{t('settings.app.theme.previewLabel', { defaultValue: '实时预览' })}</div>
                       <div className="settings-bg-preview">
                         {bgMediaType === 'video' ? (
                           <video
@@ -688,14 +733,14 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
 
                 {/* 卡片 3：背景显示效果（仅在有背景时显示） */}
                 {bgMediaType && bgMediaPreviewUrl && (
-                  <div className="settings-theme-card">
-                    <div className="settings-theme-card-header">
-                      <div className="settings-theme-card-title">{t('settings.app.theme.effectCardTitle', { defaultValue: '背景显示效果' })}</div>
-                      <div className="settings-theme-card-subtitle">{t('settings.app.theme.effectCardSubtitle', { defaultValue: '调整背景的透明度与模糊度' })}</div>
+                  <div className="settings-card">
+                    <div className="settings-card-header">
+                      <div className="settings-card-title">{t('settings.app.theme.effectCardTitle', { defaultValue: '背景显示效果' })}</div>
+                      <div className="settings-card-subtitle">{t('settings.app.theme.effectCardSubtitle', { defaultValue: '调整背景的透明度与模糊度' })}</div>
                     </div>
 
-                    <div className="settings-theme-card-subgroup">
-                      <div className="settings-theme-card-subgroup-title">{t('settings.app.theme.opacityTitle', { defaultValue: '背景透明度' })}</div>
+                    <div className="settings-card-subgroup">
+                      <div className="settings-card-subgroup-title">{t('settings.app.theme.opacityTitle', { defaultValue: '背景透明度' })}</div>
                       <div className="settings-music-hint">{t('settings.app.theme.imageOpacityHint', { defaultValue: '背景图片透明度（0% - 100%），数值越高图片越明显' })}</div>
                       <div className="settings-opacity-slider-row">
                         <input
@@ -731,8 +776,8 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
                       </div>
                     </div>
 
-                    <div className="settings-theme-card-subgroup">
-                      <div className="settings-theme-card-subgroup-title">{t('settings.app.theme.blurTitle', { defaultValue: '背景模糊度' })}</div>
+                    <div className="settings-card-subgroup">
+                      <div className="settings-card-subgroup-title">{t('settings.app.theme.blurTitle', { defaultValue: '背景模糊度' })}</div>
                       <div className="settings-music-hint">{t('settings.app.theme.imageBlurHint', { defaultValue: '背景图片模糊度（0px - 20px），数值越高越模糊' })}</div>
                       <div className="settings-opacity-slider-row">
                         <input
@@ -772,14 +817,14 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
 
                 {/* 卡片 4：视频播放（仅在视频背景时显示） */}
                 {bgMediaType === 'video' && bgMediaPreviewUrl && (
-                  <div className="settings-theme-card">
-                    <div className="settings-theme-card-header">
-                      <div className="settings-theme-card-title">{t('settings.app.theme.videoCardTitle', { defaultValue: '视频播放' })}</div>
-                      <div className="settings-theme-card-subtitle">{t('settings.app.theme.videoCardSubtitle', { defaultValue: '背景视频的填充、声音与播放控制' })}</div>
+                  <div className="settings-card">
+                    <div className="settings-card-header">
+                      <div className="settings-card-title">{t('settings.app.theme.videoCardTitle', { defaultValue: '视频播放' })}</div>
+                      <div className="settings-card-subtitle">{t('settings.app.theme.videoCardSubtitle', { defaultValue: '背景视频的填充、声音与播放控制' })}</div>
                     </div>
 
-                    <div className="settings-theme-card-subgroup">
-                      <div className="settings-theme-card-subgroup-title">{t('settings.app.theme.videoFitHint', { defaultValue: '视频填充模式' })}</div>
+                    <div className="settings-card-subgroup">
+                      <div className="settings-card-subgroup-title">{t('settings.app.theme.videoFitHint', { defaultValue: '视频填充模式' })}</div>
                       <div className="settings-lyrics-source-options">
                         {([
                           { value: 'cover', label: t('settings.app.theme.videoFitCover', { defaultValue: '覆盖（裁切）' }) },
@@ -802,10 +847,10 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
                       </div>
                     </div>
 
-                    <div className="settings-theme-card-subgroup">
-                      <div className="settings-theme-card-subgroup-title">{t('settings.app.theme.videoAudioTitle', { defaultValue: '声音与循环' })}</div>
-                      <div className="settings-theme-card-inline-row">
-                        <label className="settings-theme-card-check">
+                    <div className="settings-card-subgroup">
+                      <div className="settings-card-subgroup-title">{t('settings.app.theme.videoAudioTitle', { defaultValue: '声音与循环' })}</div>
+                      <div className="settings-card-inline-row">
+                        <label className="settings-card-check">
                           <input
                             type="checkbox"
                             checked={bgVideoMuted}
@@ -819,7 +864,7 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
                           />
                           {t('settings.app.theme.videoMutedToggle', { defaultValue: '静音播放视频' })}
                         </label>
-                        <label className="settings-theme-card-check">
+                        <label className="settings-card-check">
                           <input
                             type="checkbox"
                             checked={bgVideoLoop}
@@ -858,8 +903,8 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
                       </div>
                     </div>
 
-                    <div className="settings-theme-card-subgroup">
-                      <div className="settings-theme-card-subgroup-title">{t('settings.app.theme.videoRateHint', { defaultValue: '播放速度' })}</div>
+                    <div className="settings-card-subgroup">
+                      <div className="settings-card-subgroup-title">{t('settings.app.theme.videoRateHint', { defaultValue: '播放速度' })}</div>
                       <div className="settings-lyrics-source-options">
                         {([
                           { value: 0.5, label: '0.5x' },
@@ -887,10 +932,10 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
                       </div>
                     </div>
 
-                    <div className="settings-theme-card-subgroup">
-                      <div className="settings-theme-card-subgroup-title">{t('settings.app.theme.videoPerfTitle', { defaultValue: '性能' })}</div>
-                      <div className="settings-theme-card-inline-row">
-                        <label className="settings-theme-card-check">
+                    <div className="settings-card-subgroup">
+                      <div className="settings-card-subgroup-title">{t('settings.app.theme.videoPerfTitle', { defaultValue: '性能' })}</div>
+                      <div className="settings-card-inline-row">
+                        <label className="settings-card-check">
                           <input
                             type="checkbox"
                             checked={bgVideoHwDecode}
@@ -910,10 +955,10 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
                 )}
 
                 {/* 卡片 5：灵动岛透明度 */}
-                <div className="settings-theme-card">
-                  <div className="settings-theme-card-header">
-                    <div className="settings-theme-card-title">{t('settings.app.theme.islandOpacityTitle', { defaultValue: '灵动岛透明度' })}</div>
-                    <div className="settings-theme-card-subtitle">{t('settings.app.theme.islandOpacityHint', { defaultValue: '数值越低越透明（10% - 100%），调整后立即生效' })}</div>
+                <div className="settings-card">
+                  <div className="settings-card-header">
+                    <div className="settings-card-title">{t('settings.app.theme.islandOpacityTitle', { defaultValue: '灵动岛透明度' })}</div>
+                    <div className="settings-card-subtitle">{t('settings.app.theme.islandOpacityHint', { defaultValue: '数值越低越透明（10% - 100%），调整后立即生效' })}</div>
                   </div>
                   <div className="settings-opacity-slider-row">
                     <input
@@ -955,337 +1000,384 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
 
           {appSettingsPage === 'behavior' && (
             <div className="max-expand-settings-section">
-              <div className="settings-music-section">
-                <div className="settings-music-label">{t('settings.app.behavior.springTitle', { defaultValue: '灵动岛弹性动画 (立即生效)' })}</div>
-                <div className="settings-music-hint">{t('settings.app.behavior.springHint', { defaultValue: '关闭后，展开和收起动画将变得更加平滑内敛，消除弹跳感' })}</div>
-                <div className="settings-hotkey-row" style={{ alignItems: 'center', marginTop: 8 }}>
-                  <label className="settings-music-hint" style={{ marginBottom: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <input
-                      type="checkbox"
-                      checked={useIslandStore.getState().springAnimation}
-                      onChange={(e) => {
-                        const next = e.target.checked;
-                        useIslandStore.getState().setSpringAnimation(next);
-                        window.api.springAnimationSet(next).catch(() => {});
-                      }}
-                    />
-                    {t('settings.app.behavior.springToggle', { defaultValue: '启用弹性动画' })}
-                  </label>
-                </div>
-              </div>
+              <div className="settings-cards">
 
-              <div className="settings-music-section" style={{ marginTop: 16 }}>
-                <div className="settings-music-label">{t('settings.app.behavior.mouseLeaveTitle', { defaultValue: '鼠标移开自动收回 (重启后生效)' })}</div>
-                <div className="settings-music-hint">{t('settings.app.behavior.mouseLeaveHint', { defaultValue: '启用后，鼠标离开灵动岛时将自动回到空闲状态（若正在播放音乐则切到歌词态）' })}</div>
-                <div className="settings-hotkey-row" style={{ alignItems: 'center', marginTop: 8 }}>
-                  <label className="settings-music-hint" style={{ marginBottom: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <input
-                      type="checkbox"
-                      checked={expandLeaveIdle}
-                      onChange={(e) => {
-                        setExpandLeaveIdle(e.target.checked);
-                        window.api.expandMouseleaveIdleSet(e.target.checked).catch(() => {});
-                      }}
-                    />
-                    {t('settings.app.behavior.expandLeaveToggle', { defaultValue: '展开态（Expand）鼠标移开后自动收回' })}
-                  </label>
+                {/* 卡片 1：弹性动画 */}
+                <div className="settings-card">
+                  <div className="settings-card-header">
+                    <div className="settings-card-title">{t('settings.app.behavior.springTitle', { defaultValue: '灵动岛弹性动画 (立即生效)' })}</div>
+                    <div className="settings-card-subtitle">{t('settings.app.behavior.springHint', { defaultValue: '关闭后，展开和收起动画将变得更加平滑内敛，消除弹跳感' })}</div>
+                  </div>
+                  <div className="settings-card-inline-row">
+                    <label className="settings-card-check">
+                      <input
+                        type="checkbox"
+                        checked={useIslandStore.getState().springAnimation}
+                        onChange={(e) => {
+                          const next = e.target.checked;
+                          useIslandStore.getState().setSpringAnimation(next);
+                          window.api.springAnimationSet(next).catch(() => {});
+                        }}
+                      />
+                      {t('settings.app.behavior.springToggle', { defaultValue: '启用弹性动画' })}
+                    </label>
+                  </div>
                 </div>
-                <div className="settings-hotkey-row" style={{ alignItems: 'center', marginTop: 6 }}>
-                  <label className="settings-music-hint" style={{ marginBottom: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <input
-                      type="checkbox"
-                      checked={maxExpandLeaveIdle}
-                      onChange={(e) => {
-                        setMaxExpandLeaveIdle(e.target.checked);
-                        window.api.maxexpandMouseleaveIdleSet(e.target.checked).catch(() => {});
-                      }}
-                    />
-                    {t('settings.app.behavior.maxExpandLeaveToggle', { defaultValue: '最大展开态（MaxExpand）鼠标移开后自动收回' })}
-                  </label>
-                </div>
-              </div>
 
-              <div className="settings-music-section" style={{ marginTop: 16 }}>
-                <div className="settings-music-label">{t('settings.app.behavior.windowModeTitle', { defaultValue: '待办事项 / 倒数日 / 设置 打开方式' })}</div>
-                <div className="settings-music-hint">{t('settings.app.behavior.windowModeHint', { defaultValue: '选择点击导航时，在灵动岛内显示还是打开独立窗口（重启后生效）' })}</div>
-                <div className="settings-hotkey-row" style={{ alignItems: 'center', marginTop: 8, gap: 12 }}>
-                  <label className="settings-music-hint" style={{ marginBottom: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <input
-                      type="radio"
-                      name="standalone-window-mode"
-                      checked={standaloneWindowMode === 'integrated'}
-                      onChange={() => {
-                        handleStandaloneWindowModeChange('integrated');
-                      }}
-                    />
-                    {t('settings.app.behavior.integratedMode', { defaultValue: '集成在灵动岛中' })}
-                  </label>
-                  <label className="settings-music-hint" style={{ marginBottom: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <input
-                      type="radio"
-                      name="standalone-window-mode"
-                      checked={standaloneWindowMode === 'standalone'}
-                      onChange={() => {
-                        handleStandaloneWindowModeChange('standalone');
-                      }}
-                    />
-                    {t('settings.app.behavior.standaloneMode', { defaultValue: '独立窗口' })}
-                  </label>
+                {/* 卡片 2：鼠标移开自动收回 */}
+                <div className="settings-card">
+                  <div className="settings-card-header">
+                    <div className="settings-card-title">{t('settings.app.behavior.mouseLeaveTitle', { defaultValue: '鼠标移开自动收回 (重启后生效)' })}</div>
+                    <div className="settings-card-subtitle">{t('settings.app.behavior.mouseLeaveHint', { defaultValue: '启用后，鼠标离开灵动岛时将自动回到空闲状态（若正在播放音乐则切到歌词态）' })}</div>
+                  </div>
+                  <div className="settings-card-inline-row">
+                    <label className="settings-card-check">
+                      <input
+                        type="checkbox"
+                        checked={expandLeaveIdle}
+                        onChange={(e) => {
+                          setExpandLeaveIdle(e.target.checked);
+                          window.api.expandMouseleaveIdleSet(e.target.checked).catch(() => {});
+                        }}
+                      />
+                      {t('settings.app.behavior.expandLeaveToggle', { defaultValue: '展开态（Expand）鼠标移开后自动收回' })}
+                    </label>
+                    <label className="settings-card-check">
+                      <input
+                        type="checkbox"
+                        checked={maxExpandLeaveIdle}
+                        onChange={(e) => {
+                          setMaxExpandLeaveIdle(e.target.checked);
+                          window.api.maxexpandMouseleaveIdleSet(e.target.checked).catch(() => {});
+                        }}
+                      />
+                      {t('settings.app.behavior.maxExpandLeaveToggle', { defaultValue: '最大展开态（MaxExpand）鼠标移开后自动收回' })}
+                    </label>
+                  </div>
                 </div>
+
+                {/* 卡片 3：打开方式 */}
+                <div className="settings-card">
+                  <div className="settings-card-header">
+                    <div className="settings-card-title">{t('settings.app.behavior.windowModeTitle', { defaultValue: '待办事项 / 倒数日 / 设置 打开方式' })}</div>
+                    <div className="settings-card-subtitle">{t('settings.app.behavior.windowModeHint', { defaultValue: '选择点击导航时，在灵动岛内显示还是打开独立窗口（重启后生效）' })}</div>
+                  </div>
+                  <div className="settings-card-inline-row">
+                    <label className="settings-card-check">
+                      <input
+                        type="radio"
+                        name="standalone-window-mode"
+                        checked={standaloneWindowMode === 'integrated'}
+                        onChange={() => {
+                          handleStandaloneWindowModeChange('integrated');
+                        }}
+                      />
+                      {t('settings.app.behavior.integratedMode', { defaultValue: '集成在灵动岛中' })}
+                    </label>
+                    <label className="settings-card-check">
+                      <input
+                        type="radio"
+                        name="standalone-window-mode"
+                        checked={standaloneWindowMode === 'standalone'}
+                        onChange={() => {
+                          handleStandaloneWindowModeChange('standalone');
+                        }}
+                      />
+                      {t('settings.app.behavior.standaloneMode', { defaultValue: '独立窗口' })}
+                    </label>
+                  </div>
+                </div>
+
               </div>
             </div>
           )}
 
           {appSettingsPage === 'language' && (
             <div className="max-expand-settings-section">
-              <div className="settings-music-section">
-                <div className="settings-music-label">{t('settings.language.title', { defaultValue: '显示语言' })}</div>
-                <div className="settings-music-hint">{t('settings.language.hint', { defaultValue: '切换后将立即应用到支持多语言的界面文案' })}</div>
-                <div className="settings-lyrics-source-options" style={{ marginTop: 8 }}>
-                  {([
-                    { value: 'zh-CN', label: t('settings.language.options.zh-CN', { defaultValue: '简体中文' }) },
-                    { value: 'en-US', label: t('settings.language.options.en-US', { defaultValue: 'English' }) },
-                  ] as Array<{ value: 'zh-CN' | 'en-US'; label: string }>).map((opt) => (
-                    <button
-                      key={opt.value}
-                      className={`settings-lyrics-source-btn ${appLanguage === opt.value ? 'active' : ''}`}
-                      type="button"
-                      onClick={() => applyAppLanguage(opt.value)}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
+              <div className="settings-cards">
+
+                {/* 卡片：显示语言 */}
+                <div className="settings-card">
+                  <div className="settings-card-header">
+                    <div className="settings-card-title">{t('settings.language.title', { defaultValue: '显示语言' })}</div>
+                    <div className="settings-card-subtitle">{t('settings.language.hint', { defaultValue: '切换后将立即应用到支持多语言的界面文案' })}</div>
+                  </div>
+                  <div className="settings-lyrics-source-options">
+                    {([
+                      { value: 'zh-CN', label: t('settings.language.options.zh-CN', { defaultValue: '简体中文' }) },
+                      { value: 'en-US', label: t('settings.language.options.en-US', { defaultValue: 'English' }) },
+                    ] as Array<{ value: 'zh-CN' | 'en-US'; label: string }>).map((opt) => (
+                      <button
+                        key={opt.value}
+                        className={`settings-lyrics-source-btn ${appLanguage === opt.value ? 'active' : ''}`}
+                        type="button"
+                        onClick={() => applyAppLanguage(opt.value)}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="settings-music-hint">
+                    {appLanguage === 'zh-CN'
+                      ? t('settings.language.current.zh-CN', { defaultValue: '当前语言：简体中文' })
+                      : t('settings.language.current.en-US', { defaultValue: 'Current language: English' })}
+                  </div>
                 </div>
-                <div className="settings-music-hint" style={{ marginTop: 8 }}>
-                  {appLanguage === 'zh-CN'
-                    ? t('settings.language.current.zh-CN', { defaultValue: '当前语言：简体中文' })
-                    : t('settings.language.current.en-US', { defaultValue: 'Current language: English' })}
-                </div>
+
               </div>
             </div>
           )}
 
           {appSettingsPage === 'url-parser' && (
             <div className="max-expand-settings-section">
-              <div className="settings-music-section">
-                <div className="settings-music-label">{t('settings.app.urlParser.title', { defaultValue: '剪贴板 URL 监听' })}</div>
-                <div className="settings-music-hint">{t('settings.app.urlParser.hint', { defaultValue: '启用后，检测到剪贴板含链接时会弹出询问通知' })}</div>
-                <div className="settings-hotkey-row" style={{ alignItems: 'center', marginTop: 8 }}>
-                  <label className="settings-music-hint" style={{ marginBottom: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <input
-                      type="checkbox"
-                      checked={clipboardUrlMonitorEnabled}
-                      onChange={(e) => {
-                        const next = e.target.checked;
-                        setClipboardUrlMonitorEnabled(next);
-                        window.api.clipboardUrlMonitorSet(next).catch(() => {
-                          setClipboardUrlMonitorEnabled(!next);
-                        });
-                      }}
-                    />
-                    {t('settings.app.urlParser.enableToggle', { defaultValue: '启用剪贴板 URL 监听' })}
-                  </label>
+              <div className="settings-cards">
+
+                {/* 卡片 1：监听开关 */}
+                <div className="settings-card">
+                  <div className="settings-card-header">
+                    <div className="settings-card-title">{t('settings.app.urlParser.title', { defaultValue: '剪贴板 URL 监听' })}</div>
+                    <div className="settings-card-subtitle">{t('settings.app.urlParser.hint', { defaultValue: '启用后，检测到剪贴板含链接时会弹出询问通知' })}</div>
+                  </div>
+                  <div className="settings-card-inline-row">
+                    <label className="settings-card-check">
+                      <input
+                        type="checkbox"
+                        checked={clipboardUrlMonitorEnabled}
+                        onChange={(e) => {
+                          const next = e.target.checked;
+                          setClipboardUrlMonitorEnabled(next);
+                          window.api.clipboardUrlMonitorSet(next).catch(() => {
+                            setClipboardUrlMonitorEnabled(!next);
+                          });
+                        }}
+                      />
+                      {t('settings.app.urlParser.enableToggle', { defaultValue: '启用剪贴板 URL 监听' })}
+                    </label>
+                  </div>
                 </div>
 
-                <div className="settings-music-hint" style={{ marginTop: 8 }}>{t('settings.app.urlParser.detectModes', { defaultValue: '识别项目' })}</div>
-                <div className="settings-lyrics-source-options" style={{ marginTop: 8 }}>
-                  {([
-                    { value: 'https-only', label: t('settings.app.urlParser.modeHttpsOnly', { defaultValue: '强制包含 https 头' }) },
-                    { value: 'http-https', label: t('settings.app.urlParser.modeHttpHttps', { defaultValue: '包含 http 头' }) },
-                    { value: 'domain-only', label: t('settings.app.urlParser.modeDomainOnly', { defaultValue: '仅含有域名' }) },
-                  ] as Array<{ value: 'https-only' | 'http-https' | 'domain-only'; label: string }>).map((opt) => (
-                    <button
-                      key={opt.value}
-                      className={`settings-lyrics-source-btn ${clipboardUrlDetectMode === opt.value ? 'active' : ''}`}
-                      type="button"
-                      onClick={() => {
-                        setClipboardUrlDetectMode(opt.value);
-                        window.api.clipboardUrlDetectModeSet(opt.value).catch(() => {});
-                      }}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-
-                <div className="settings-hotkey-row" style={{ alignItems: 'center', marginTop: 10 }}>
-                  <label className="settings-music-hint" style={{ marginBottom: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <input
-                      type="checkbox"
-                      checked={clipboardUrlSuppressInFavorites}
-                      onChange={(e) => {
-                        const next = e.target.checked;
-                        const prev = clipboardUrlSuppressInFavorites;
-                        setClipboardUrlSuppressInFavorites(next);
-                        try {
-                          localStorage.setItem('clipboard-url-suppress-in-url-favorites', next ? '1' : '0');
-                        } catch { /* noop */ }
-                        window.api.storeWrite('clipboard-url-suppress-in-url-favorites', next).catch(() => {
-                          setClipboardUrlSuppressInFavorites(prev);
+                {/* 卡片 2：识别规则 */}
+                <div className="settings-card">
+                  <div className="settings-card-header">
+                    <div className="settings-card-title">{t('settings.app.urlParser.detectModes', { defaultValue: '识别项目' })}</div>
+                    <div className="settings-card-subtitle">{t('settings.app.urlParser.detectModesHint', { defaultValue: '选择剪贴板中被识别为 URL 的匹配范围，并可在收藏界面临时静音通知。' })}</div>
+                  </div>
+                  <div className="settings-lyrics-source-options">
+                    {([
+                      { value: 'https-only', label: t('settings.app.urlParser.modeHttpsOnly', { defaultValue: '强制包含 https 头' }) },
+                      { value: 'http-https', label: t('settings.app.urlParser.modeHttpHttps', { defaultValue: '包含 http 头' }) },
+                      { value: 'domain-only', label: t('settings.app.urlParser.modeDomainOnly', { defaultValue: '仅含有域名' }) },
+                    ] as Array<{ value: 'https-only' | 'http-https' | 'domain-only'; label: string }>).map((opt) => (
+                      <button
+                        key={opt.value}
+                        className={`settings-lyrics-source-btn ${clipboardUrlDetectMode === opt.value ? 'active' : ''}`}
+                        type="button"
+                        onClick={() => {
+                          setClipboardUrlDetectMode(opt.value);
+                          window.api.clipboardUrlDetectModeSet(opt.value).catch(() => {});
+                        }}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="settings-card-inline-row">
+                    <label className="settings-card-check">
+                      <input
+                        type="checkbox"
+                        checked={clipboardUrlSuppressInFavorites}
+                        onChange={(e) => {
+                          const next = e.target.checked;
+                          const prev = clipboardUrlSuppressInFavorites;
+                          setClipboardUrlSuppressInFavorites(next);
                           try {
-                            localStorage.setItem('clipboard-url-suppress-in-url-favorites', prev ? '1' : '0');
+                            localStorage.setItem('clipboard-url-suppress-in-url-favorites', next ? '1' : '0');
                           } catch { /* noop */ }
-                        });
+                          window.api.storeWrite('clipboard-url-suppress-in-url-favorites', next).catch(() => {
+                            setClipboardUrlSuppressInFavorites(prev);
+                            try {
+                              localStorage.setItem('clipboard-url-suppress-in-url-favorites', prev ? '1' : '0');
+                            } catch { /* noop */ }
+                          });
+                        }}
+                      />
+                      {t('settings.app.urlParser.suppressInFavorites', { defaultValue: '在 URL 收藏界面时不弹通知' })}
+                    </label>
+                  </div>
+                </div>
+
+                {/* 卡片 3：域名黑名单 */}
+                <div className="settings-card">
+                  <div className="settings-card-header">
+                    <div className="settings-card-title">{t('settings.app.urlParser.blacklistTitle', { defaultValue: 'URL 黑名单（按域名）' })}</div>
+                    <div className="settings-card-subtitle">{t('settings.app.urlParser.blacklistHint', { defaultValue: '命中黑名单域名时：单个链接不弹窗，多链接自动剔除' })}</div>
+                  </div>
+                  <div className="settings-hotkey-row" style={{ gap: 8 }}>
+                    <input
+                      className="settings-whitelist-input"
+                      type="text"
+                      placeholder={t('settings.app.urlParser.blacklistPlaceholder', { defaultValue: '输入域名，如 example.com' })}
+                      value={clipboardBlacklistDraft}
+                      onChange={(e) => {
+                        setClipboardBlacklistDraft(e.target.value);
+                        setClipboardBlacklistError('');
                       }}
-                    />
-                    {t('settings.app.urlParser.suppressInFavorites', { defaultValue: '在 URL 收藏界面时不弹通知' })}
-                  </label>
-                </div>
-
-                <div className="settings-music-label" style={{ marginTop: 14 }}>{t('settings.app.urlParser.blacklistTitle', { defaultValue: 'URL 黑名单（按域名）' })}</div>
-                <div className="settings-music-hint">{t('settings.app.urlParser.blacklistHint', { defaultValue: '命中黑名单域名时：单个链接不弹窗，多链接自动剔除' })}</div>
-                <div className="settings-hotkey-row" style={{ marginTop: 8, gap: 8 }}>
-                  <input
-                    className="settings-whitelist-input"
-                    type="text"
-                    placeholder={t('settings.app.urlParser.blacklistPlaceholder', { defaultValue: '输入域名，如 example.com' })}
-                    value={clipboardBlacklistDraft}
-                    onChange={(e) => {
-                      setClipboardBlacklistDraft(e.target.value);
-                      setClipboardBlacklistError('');
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key !== 'Enter') return;
-                      e.preventDefault();
-                      const domain = normalizeBlacklistDomain(clipboardBlacklistDraft);
-                      if (!domain) {
-                        setClipboardBlacklistError(t('settings.app.urlParser.errors.invalidDomain', { defaultValue: '请输入有效域名' }));
-                        return;
-                      }
-                      const exists = clipboardUrlBlacklist.some((item) => item === domain);
-                      if (exists) {
-                        setClipboardBlacklistError(t('settings.app.urlParser.errors.domainExists', { defaultValue: '该域名已在黑名单中' }));
-                        return;
-                      }
-                      const prev = clipboardUrlBlacklist;
-                      const next = [...prev, domain];
-                      setClipboardUrlBlacklist(next);
-                      setClipboardBlacklistDraft('');
-                      window.api.clipboardUrlBlacklistSet(next).catch(() => {
-                        setClipboardUrlBlacklist(prev);
-                        setClipboardBlacklistError(t('settings.app.urlParser.errors.saveFailed', { defaultValue: '保存失败，请稍后重试' }));
-                      });
-                    }}
-                  />
-                  <button
-                    className="settings-whitelist-add-btn"
-                    type="button"
-                    onClick={() => {
-                      const domain = normalizeBlacklistDomain(clipboardBlacklistDraft);
-                      if (!domain) {
-                        setClipboardBlacklistError(t('settings.app.urlParser.errors.invalidDomain', { defaultValue: '请输入有效域名' }));
-                        return;
-                      }
-                      const exists = clipboardUrlBlacklist.some((item) => item === domain);
-                      if (exists) {
-                        setClipboardBlacklistError(t('settings.app.urlParser.errors.domainExists', { defaultValue: '该域名已在黑名单中' }));
-                        return;
-                      }
-                      const prev = clipboardUrlBlacklist;
-                      const next = [...prev, domain];
-                      setClipboardUrlBlacklist(next);
-                      setClipboardBlacklistDraft('');
-                      window.api.clipboardUrlBlacklistSet(next).catch(() => {
-                        setClipboardUrlBlacklist(prev);
-                        setClipboardBlacklistError(t('settings.app.urlParser.errors.saveFailed', { defaultValue: '保存失败，请稍后重试' }));
-                      });
-                    }}
-                  >
-                    {t('settings.app.urlParser.addDomain', { defaultValue: '添加域名' })}
-                  </button>
-                </div>
-                {clipboardBlacklistError && <div className="settings-hotkey-error">{clipboardBlacklistError}</div>}
-
-                <div className="settings-hide-selected" style={{ marginTop: 10 }}>
-                  {clipboardUrlBlacklist.length === 0 ? (
-                    <span className="settings-hide-selected-empty">{t('settings.app.urlParser.emptyBlacklist', { defaultValue: '暂无黑名单域名' })}</span>
-                  ) : clipboardUrlBlacklist.map((domain) => (
-                    <button
-                      key={domain}
-                      className="settings-hide-selected-item"
-                      type="button"
-                      onClick={() => {
-                        const next = clipboardUrlBlacklist.filter((item) => item !== domain);
+                      onKeyDown={(e) => {
+                        if (e.key !== 'Enter') return;
+                        e.preventDefault();
+                        const domain = normalizeBlacklistDomain(clipboardBlacklistDraft);
+                        if (!domain) {
+                          setClipboardBlacklistError(t('settings.app.urlParser.errors.invalidDomain', { defaultValue: '请输入有效域名' }));
+                          return;
+                        }
+                        const exists = clipboardUrlBlacklist.some((item) => item === domain);
+                        if (exists) {
+                          setClipboardBlacklistError(t('settings.app.urlParser.errors.domainExists', { defaultValue: '该域名已在黑名单中' }));
+                          return;
+                        }
                         const prev = clipboardUrlBlacklist;
+                        const next = [...prev, domain];
                         setClipboardUrlBlacklist(next);
+                        setClipboardBlacklistDraft('');
                         window.api.clipboardUrlBlacklistSet(next).catch(() => {
                           setClipboardUrlBlacklist(prev);
                           setClipboardBlacklistError(t('settings.app.urlParser.errors.saveFailed', { defaultValue: '保存失败，请稍后重试' }));
                         });
                       }}
-                      title={t('settings.app.urlParser.removeDomain', { defaultValue: '移除该域名' })}
+                    />
+                    <button
+                      className="settings-whitelist-add-btn"
+                      type="button"
+                      onClick={() => {
+                        const domain = normalizeBlacklistDomain(clipboardBlacklistDraft);
+                        if (!domain) {
+                          setClipboardBlacklistError(t('settings.app.urlParser.errors.invalidDomain', { defaultValue: '请输入有效域名' }));
+                          return;
+                        }
+                        const exists = clipboardUrlBlacklist.some((item) => item === domain);
+                        if (exists) {
+                          setClipboardBlacklistError(t('settings.app.urlParser.errors.domainExists', { defaultValue: '该域名已在黑名单中' }));
+                          return;
+                        }
+                        const prev = clipboardUrlBlacklist;
+                        const next = [...prev, domain];
+                        setClipboardUrlBlacklist(next);
+                        setClipboardBlacklistDraft('');
+                        window.api.clipboardUrlBlacklistSet(next).catch(() => {
+                          setClipboardUrlBlacklist(prev);
+                          setClipboardBlacklistError(t('settings.app.urlParser.errors.saveFailed', { defaultValue: '保存失败，请稍后重试' }));
+                        });
+                      }}
                     >
-                      {domain} ×
+                      {t('settings.app.urlParser.addDomain', { defaultValue: '添加域名' })}
                     </button>
-                  ))}
+                  </div>
+                  {clipboardBlacklistError && <div className="settings-hotkey-error">{clipboardBlacklistError}</div>}
+
+                  <div className="settings-hide-selected">
+                    {clipboardUrlBlacklist.length === 0 ? (
+                      <span className="settings-hide-selected-empty">{t('settings.app.urlParser.emptyBlacklist', { defaultValue: '暂无黑名单域名' })}</span>
+                    ) : clipboardUrlBlacklist.map((domain) => (
+                      <button
+                        key={domain}
+                        className="settings-hide-selected-item"
+                        type="button"
+                        onClick={() => {
+                          const next = clipboardUrlBlacklist.filter((item) => item !== domain);
+                          const prev = clipboardUrlBlacklist;
+                          setClipboardUrlBlacklist(next);
+                          window.api.clipboardUrlBlacklistSet(next).catch(() => {
+                            setClipboardUrlBlacklist(prev);
+                            setClipboardBlacklistError(t('settings.app.urlParser.errors.saveFailed', { defaultValue: '保存失败，请稍后重试' }));
+                          });
+                        }}
+                        title={t('settings.app.urlParser.removeDomain', { defaultValue: '移除该域名' })}
+                      >
+                        {domain} ×
+                      </button>
+                    ))}
+                  </div>
                 </div>
+
               </div>
             </div>
           )}
 
           {appSettingsPage === 'autostart' && (
             <div className="max-expand-settings-section">
-              <div className="settings-music-section">
-                <div className="settings-music-label">{t('settings.labels.autostart', { defaultValue: '实用工具' })}</div>
-                <div className="settings-music-hint">{t('settings.app.autostart.toolsHint', { defaultValue: '常用应用操作与日志工具' })}</div>
-                <div className="settings-hotkey-row" style={{ marginTop: 8, gap: 8 }}>
-                  <button className="settings-hotkey-btn" type="button" onClick={() => { window.api.quitApp(); }}>{t('settings.app.autostart.quit', { defaultValue: '关闭灵动岛' })}</button>
-                  <button className="settings-hotkey-btn" type="button" onClick={() => { window.api.restartApp().catch(() => {}); }}>{t('settings.app.autostart.restart', { defaultValue: '重启灵动岛' })}</button>
-                  <button className="settings-hotkey-btn" type="button" onClick={() => { window.api.openLogsFolder().catch(() => {}); }}>{t('settings.app.autostart.openLogs', { defaultValue: '打开日志文件夹' })}</button>
-                  <button
-                    className="settings-hotkey-btn"
-                    type="button"
-                    disabled={clearLogsStatus === 'clearing'}
-                    onClick={() => {
-                      setClearLogsStatus('clearing');
-                      window.api.clearLogsCache().then((res) => {
-                        if (res.success) {
-                          const kb = (res.freedBytes / 1024).toFixed(1);
-                          setClearLogsStatus(t('settings.app.autostart.logsCleared', { defaultValue: '已清理 {{kb}} KB', kb }));
-                        } else {
-                          setClearLogsStatus(t('settings.app.autostart.logsClearFailed', { defaultValue: '清理失败' }));
-                        }
-                        scheduleClearLogsStatusReset();
-                      }).catch(() => {
-                        setClearLogsStatus(t('settings.app.autostart.logsClearFailed', { defaultValue: '清理失败' }));
-                        scheduleClearLogsStatusReset();
-                      });
-                    }}
-                  >
-                    {clearLogsStatus === 'clearing'
-                      ? t('settings.app.autostart.logsClearing', { defaultValue: '清理中…' })
-                      : clearLogsStatus === 'idle'
-                        ? t('settings.app.autostart.clearLogs', { defaultValue: '清理日志缓存' })
-                        : clearLogsStatus}
-                  </button>
-                </div>
+              <div className="settings-cards">
 
-                <div className="settings-music-label" style={{ marginTop: 12 }}>{t('settings.app.autostart.title', { defaultValue: '开机自启' })}</div>
-                <div className="settings-music-hint">{t('settings.app.autostart.hint', { defaultValue: '设置系统启动时是否自动运行灵动岛' })}</div>
-                <div className="settings-lyrics-source-options" style={{ marginTop: 8 }}>
-                  {([
-                    { value: 'disabled', label: t('settings.app.autostart.options.disabled', { defaultValue: '禁用' }) },
-                    { value: 'enabled', label: t('settings.app.autostart.options.enabled', { defaultValue: '启用' }) },
-                    { value: 'high-priority', label: t('settings.app.autostart.options.highPriority', { defaultValue: '高优先级' }) },
-                  ] as Array<{ value: 'disabled' | 'enabled' | 'high-priority'; label: string }>).map((opt) => (
+                {/* 卡片 1：实用工具 */}
+                <div className="settings-card">
+                  <div className="settings-card-header">
+                    <div className="settings-card-title">{t('settings.labels.autostart', { defaultValue: '实用工具' })}</div>
+                    <div className="settings-card-subtitle">{t('settings.app.autostart.toolsHint', { defaultValue: '常用应用操作与日志工具' })}</div>
+                  </div>
+                  <div className="settings-hotkey-row" style={{ gap: 8 }}>
+                    <button className="settings-hotkey-btn" type="button" onClick={() => { window.api.quitApp(); }}>{t('settings.app.autostart.quit', { defaultValue: '关闭灵动岛' })}</button>
+                    <button className="settings-hotkey-btn" type="button" onClick={() => { window.api.restartApp().catch(() => {}); }}>{t('settings.app.autostart.restart', { defaultValue: '重启灵动岛' })}</button>
+                    <button className="settings-hotkey-btn" type="button" onClick={() => { window.api.openLogsFolder().catch(() => {}); }}>{t('settings.app.autostart.openLogs', { defaultValue: '打开日志文件夹' })}</button>
                     <button
-                      key={opt.value}
-                      className={`settings-lyrics-source-btn ${autostartMode === opt.value ? 'active' : ''}`}
+                      className="settings-hotkey-btn"
                       type="button"
+                      disabled={clearLogsStatus === 'clearing'}
                       onClick={() => {
-                        setAutostartMode(opt.value);
-                        window.api.autostartSet(opt.value).catch(() => {});
+                        setClearLogsStatus('clearing');
+                        window.api.clearLogsCache().then((res) => {
+                          if (res.success) {
+                            const kb = (res.freedBytes / 1024).toFixed(1);
+                            setClearLogsStatus(t('settings.app.autostart.logsCleared', { defaultValue: '已清理 {{kb}} KB', kb }));
+                          } else {
+                            setClearLogsStatus(t('settings.app.autostart.logsClearFailed', { defaultValue: '清理失败' }));
+                          }
+                          scheduleClearLogsStatusReset();
+                        }).catch(() => {
+                          setClearLogsStatus(t('settings.app.autostart.logsClearFailed', { defaultValue: '清理失败' }));
+                          scheduleClearLogsStatusReset();
+                        });
                       }}
                     >
-                      {opt.label}
+                      {clearLogsStatus === 'clearing'
+                        ? t('settings.app.autostart.logsClearing', { defaultValue: '清理中…' })
+                        : clearLogsStatus === 'idle'
+                          ? t('settings.app.autostart.clearLogs', { defaultValue: '清理日志缓存' })
+                          : clearLogsStatus}
                     </button>
-                  ))}
+                  </div>
                 </div>
-                <div className="settings-music-hint" style={{ marginTop: 8 }}>
-                  {autostartMode === 'disabled' && t('settings.app.autostart.status.disabled', { defaultValue: '当前已禁用开机自启。' })}
-                  {autostartMode === 'enabled' && t('settings.app.autostart.status.enabled', { defaultValue: '系统登录后将自动启动灵动岛。' })}
-                  {autostartMode === 'high-priority' && t('settings.app.autostart.status.highPriority', { defaultValue: '以高优先级启动，更早完成加载。' })}
+
+                {/* 卡片 2：开机自启 */}
+                <div className="settings-card">
+                  <div className="settings-card-header">
+                    <div className="settings-card-title">{t('settings.app.autostart.title', { defaultValue: '开机自启' })}</div>
+                    <div className="settings-card-subtitle">{t('settings.app.autostart.hint', { defaultValue: '设置系统启动时是否自动运行灵动岛' })}</div>
+                  </div>
+                  <div className="settings-lyrics-source-options">
+                    {([
+                      { value: 'disabled', label: t('settings.app.autostart.options.disabled', { defaultValue: '禁用' }) },
+                      { value: 'enabled', label: t('settings.app.autostart.options.enabled', { defaultValue: '启用' }) },
+                      { value: 'high-priority', label: t('settings.app.autostart.options.highPriority', { defaultValue: '高优先级' }) },
+                    ] as Array<{ value: 'disabled' | 'enabled' | 'high-priority'; label: string }>).map((opt) => (
+                      <button
+                        key={opt.value}
+                        className={`settings-lyrics-source-btn ${autostartMode === opt.value ? 'active' : ''}`}
+                        type="button"
+                        onClick={() => {
+                          setAutostartMode(opt.value);
+                          window.api.autostartSet(opt.value).catch(() => {});
+                        }}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="settings-music-hint">
+                    {autostartMode === 'disabled' && t('settings.app.autostart.status.disabled', { defaultValue: '当前已禁用开机自启。' })}
+                    {autostartMode === 'enabled' && t('settings.app.autostart.status.enabled', { defaultValue: '系统登录后将自动启动灵动岛。' })}
+                    {autostartMode === 'high-priority' && t('settings.app.autostart.status.highPriority', { defaultValue: '以高优先级启动，更早完成加载。' })}
+                  </div>
                 </div>
+
               </div>
             </div>
           )}

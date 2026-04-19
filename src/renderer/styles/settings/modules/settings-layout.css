@@ -1661,14 +1661,14 @@
   border-radius: 8px;
 }
 
-/** ========== 主题外观卡片模块 ========== */
-.settings-theme-cards {
+/** ========== 软件设置卡片模块（主题外观 / 位置 / 行为 / 语言 / URL 解析 / 实用工具 等通用） ========== */
+.settings-cards {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.settings-theme-card {
+.settings-card {
   background: rgba(var(--color-text-rgb), 0.04);
   border: 1px solid rgba(var(--color-text-rgb), 0.08);
   border-radius: 12px;
@@ -1679,60 +1679,60 @@
   transition: border-color 0.2s ease, background 0.2s ease;
 }
 
-.settings-theme-card:hover {
+.settings-card:hover {
   border-color: rgba(var(--color-text-rgb), 0.12);
 }
 
-.settings-theme-card-header {
+.settings-card-header {
   display: flex;
   flex-direction: column;
   gap: 3px;
 }
 
-.settings-theme-card-title {
+.settings-card-title {
   font-size: 14px;
   font-weight: 600;
   color: rgba(var(--color-text-rgb), 0.92);
   letter-spacing: 0.1px;
 }
 
-.settings-theme-card-subtitle {
+.settings-card-subtitle {
   font-size: 11px;
   color: rgba(var(--color-text-rgb), 0.42);
   line-height: 1.5;
 }
 
-.settings-theme-card-body {
+.settings-card-body {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-.settings-theme-card-subgroup {
+.settings-card-subgroup {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
-.settings-theme-card-subgroup + .settings-theme-card-subgroup {
+.settings-card-subgroup + .settings-card-subgroup {
   padding-top: 10px;
   border-top: 1px dashed rgba(var(--color-text-rgb), 0.08);
 }
 
-.settings-theme-card-subgroup-title {
+.settings-card-subgroup-title {
   font-size: 12px;
   font-weight: 500;
   color: rgba(var(--color-text-rgb), 0.78);
 }
 
-.settings-theme-card-inline-row {
+.settings-card-inline-row {
   display: flex;
   flex-wrap: wrap;
   gap: 10px 18px;
   align-items: center;
 }
 
-.settings-theme-card-check {
+.settings-card-check {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -1742,7 +1742,8 @@
   user-select: none;
 }
 
-.settings-theme-card-check input[type="checkbox"] {
+.settings-card-check input[type="checkbox"],
+.settings-card-check input[type="radio"] {
   accent-color: var(--color-island-text);
 }
 
