@@ -135,8 +135,10 @@ export interface WallpaperTagItem {
 
 /** 超时时间（毫秒） */
 const DEFAULT_TIMEOUT_MS = 10000;
+const CLIENT_VERSION_HEADER = 'X-Client-Version';
 const REPLAY_TIMESTAMP_HEADER = 'X-Timestamp';
 const REPLAY_NONCE_HEADER = 'X-Nonce';
+let cachedClientVersion: string | null = null;
 
 interface InternalRequestInit {
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
@@ -171,6 +173,21 @@ function shouldAttachReplayHeaders(path: string, method: InternalRequestInit['me
   return path.startsWith('/v1/user/') || path === '/v1/upload/user-avatar';
 }
 
+async function resolveClientVersion(): Promise<string | null> {
+  if (cachedClientVersion && cachedClientVersion.length > 0) {
+    return cachedClientVersion;
+  }
+  try {
+    const version = await window.api.updaterVersion();
+    const normalized = typeof version === 'string' ? version.trim() : '';
+    if (!normalized) return null;
+    cachedClientVersion = normalized;
+    return normalized;
+  } catch {
+    return null;
+  }
+}
+
 function parsePayload<T>(body: string): UserAccountResult<T> {
   try {
     const payload = JSON.parse(body) as { code?: number; message?: string; data?: T };
@@ -188,6 +205,10 @@ async function request<T>(path: string, init: InternalRequestInit = {}): Promise
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
   };
+  const clientVersion = await resolveClientVersion();
+  if (clientVersion) {
+    headers[CLIENT_VERSION_HEADER] = clientVersion;
+  }
   if (init.auth) {
     headers['Authorization'] = `Bearer ${init.auth}`;
   }
@@ -419,12 +440,14 @@ export async function uploadUserAvatar(file: File, token: string): Promise<strin
   if (!token || token.trim().length === 0) {
     throw new Error('未登录');
   }
+  const clientVersion = await resolveClientVersion();
   const replayHeaders = buildReplayHeaders();
   const formData = new FormData();
   formData.append('file', file);
   const resp = await fetch(`${USER_ACCOUNT_API_BASE}/v1/upload/user-avatar`, {
     method: 'POST',
     headers: {
+      ...(clientVersion ? { [CLIENT_VERSION_HEADER]: clientVersion } : {}),
       Authorization: `Bearer ${token}`,
       ...replayHeaders,
     },
@@ -531,6 +554,7 @@ export async function uploadUserWallpaper(
   payload: UploadWallpaperPayload,
   options: UploadWallpaperOptions = {},
 ): Promise<UserAccountResult<{ id: number }>> {
+  const clientVersion = await resolveClientVersion();
   const formData = new FormData();
   formData.append('title', payload.title);
   if (payload.description) formData.append('description', payload.description);
@@ -552,6 +576,9 @@ export async function uploadUserWallpaper(
   formData.append('thumb1280', payload.thumb1280);
 
   const headers: Record<string, string> = {};
+  if (clientVersion) {
+    headers[CLIENT_VERSION_HEADER] = clientVersion;
+  }
   if (token) {
     headers.Authorization = `Bearer ${token}`;
     Object.assign(headers, buildReplayHeaders());
