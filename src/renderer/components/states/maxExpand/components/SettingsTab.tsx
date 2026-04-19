@@ -1078,6 +1078,7 @@ export function SettingsTab(): ReactElement {
   const applyWeatherLocationPriority = async (nextPriority: WeatherLocationPriority): Promise<void> => {
     setWeatherLocationPriority(nextPriority);
 
+    const unknownError = t('settings.common.unknownError', { defaultValue: '未知错误' });
     try {
       const city = weatherCustomCityInput.trim();
       const existing = loadWeatherLocationConfig().customLocation;
@@ -1100,23 +1101,34 @@ export function SettingsTab(): ReactElement {
       setWeatherLocationConfigMessage({
         type: nextPriority === 'custom' && !customLocation ? 'error' : 'success',
         text: nextPriority === 'custom' && !customLocation
-          ? '已切换为自定义位置优先，但未配置城市，将自动回退到 IP 定位'
-          : '定位来源优先级已立即生效',
+          ? t('settings.weather.messages.customMissingFallback', {
+              defaultValue: '已切换为自定义位置优先，但未配置城市，将自动回退到 IP 定位',
+            })
+          : t('settings.weather.messages.priorityApplied', {
+              defaultValue: '定位来源优先级已立即生效',
+            }),
       });
       setWeatherCustomLocationTestMessage(null);
       fetchWeatherData(undefined, true).catch(() => {});
     } catch (error) {
       setWeatherLocationConfigMessage({
         type: 'error',
-        text: `切换优先级失败：${error instanceof Error ? error.message : '未知错误'}`,
+        text: t('settings.weather.messages.switchPriorityFailed', {
+          defaultValue: '切换优先级失败：{{error}}',
+          error: error instanceof Error ? error.message : unknownError,
+        }),
       });
     }
   };
 
   const saveWeatherLocationSettings = async (): Promise<void> => {
     const city = weatherCustomCityInput.trim();
+    const unknownError = t('settings.common.unknownError', { defaultValue: '未知错误' });
     if (weatherLocationPriority === 'custom' && !city) {
-      setWeatherLocationConfigMessage({ type: 'error', text: '请选择“自定义位置优先”时请先输入城市名称' });
+      setWeatherLocationConfigMessage({
+        type: 'error',
+        text: t('settings.weather.messages.customNeedsCity', { defaultValue: '选择“自定义位置优先”时请先输入城市名称' }),
+      });
       return;
     }
 
@@ -1138,23 +1150,35 @@ export function SettingsTab(): ReactElement {
       setWeatherLocationConfigMessage({
         type: 'success',
         text: customLocation
-          ? `天气定位配置已保存（${customLocation.city} ${customLocation.latitude.toFixed(4)}, ${customLocation.longitude.toFixed(4)}）`
-          : '天气定位配置已保存',
+          ? t('settings.weather.messages.configSavedWithCity', {
+              defaultValue: '天气定位配置已保存（{{city}} {{lat}}, {{lng}}）',
+              city: customLocation.city,
+              lat: customLocation.latitude.toFixed(4),
+              lng: customLocation.longitude.toFixed(4),
+            })
+          : t('settings.weather.messages.configSaved', { defaultValue: '天气定位配置已保存' }),
       });
       setWeatherCustomLocationTestMessage(null);
       fetchWeatherData(undefined, true).catch(() => {});
     } catch (error) {
       setWeatherLocationConfigMessage({
         type: 'error',
-        text: `城市解析失败：${error instanceof Error ? error.message : '未知错误'}`,
+        text: t('settings.weather.messages.cityResolveFailed', {
+          defaultValue: '城市解析失败：{{error}}',
+          error: error instanceof Error ? error.message : unknownError,
+        }),
       });
     }
   };
 
   const testWeatherCustomLocation = async (): Promise<void> => {
     const city = weatherCustomCityInput.trim();
+    const unknownError = t('settings.common.unknownError', { defaultValue: '未知错误' });
     if (!city) {
-      setWeatherCustomLocationTestMessage({ type: 'error', text: '请先输入城市名称后再测试' });
+      setWeatherCustomLocationTestMessage({
+        type: 'error',
+        text: t('settings.weather.messages.cityRequired', { defaultValue: '请先输入城市名称后再测试' }),
+      });
       return;
     }
 
@@ -1168,7 +1192,10 @@ export function SettingsTab(): ReactElement {
       setWeatherCustomLocationTesting(false);
       setWeatherCustomLocationTestMessage({
         type: 'error',
-        text: `城市解析失败：${error instanceof Error ? error.message : '未知错误'}`,
+        text: t('settings.weather.messages.cityResolveFailed', {
+          defaultValue: '城市解析失败：{{error}}',
+          error: error instanceof Error ? error.message : unknownError,
+        }),
       });
       return;
     }
@@ -1195,10 +1222,10 @@ export function SettingsTab(): ReactElement {
         throw new Error(`${name} HTTP ${resp.status}`);
       }
       if (resp.body.trimStart().startsWith('<')) {
-        throw new Error(`${name} 返回了非 JSON`);
+        throw new Error(t('settings.weather.messages.providerNonJson', { defaultValue: '{{name}} 返回了非 JSON', name }));
       }
       JSON.parse(resp.body);
-      return `${name} 可用`;
+      return t('settings.weather.messages.providerAvailable', { defaultValue: '{{name}} 可用', name });
     };
 
     try {
@@ -1214,19 +1241,34 @@ export function SettingsTab(): ReactElement {
         messages.push(openMeteoResult.value);
       } else {
         hasFailure = true;
-        messages.push(`Open-Meteo 不可用：${openMeteoResult.reason instanceof Error ? openMeteoResult.reason.message : '未知错误'}`);
+        messages.push(t('settings.weather.messages.providerUnavailable', {
+          defaultValue: '{{name}} 不可用：{{error}}',
+          name: 'Open-Meteo',
+          error: openMeteoResult.reason instanceof Error ? openMeteoResult.reason.message : unknownError,
+        }));
       }
 
       if (uapiResult.status === 'fulfilled') {
         messages.push(uapiResult.value);
       } else {
         hasFailure = true;
-        messages.push(`UAPI 不可用：${uapiResult.reason instanceof Error ? uapiResult.reason.message : '未知错误'}`);
+        messages.push(t('settings.weather.messages.providerUnavailable', {
+          defaultValue: '{{name}} 不可用：{{error}}',
+          name: 'UAPI',
+          error: uapiResult.reason instanceof Error ? uapiResult.reason.message : unknownError,
+        }));
       }
 
+      const separator = t('settings.weather.messages.detailSeparator', { defaultValue: '；' });
       setWeatherCustomLocationTestMessage({
         type: hasFailure ? 'error' : 'success',
-        text: `${custom.city}（${custom.latitude.toFixed(4)}, ${custom.longitude.toFixed(4)}） - ${messages.join('；')}`,
+        text: t('settings.weather.messages.testResult', {
+          defaultValue: '{{city}}（{{lat}}, {{lng}}） - {{details}}',
+          city: custom.city,
+          lat: custom.latitude.toFixed(4),
+          lng: custom.longitude.toFixed(4),
+          details: messages.join(separator),
+        }),
       });
     } finally {
       setWeatherCustomLocationTesting(false);

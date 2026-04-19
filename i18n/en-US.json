@@ -786,6 +786,8 @@
         "title": "Location Priority",
         "hint": "Prefer IP-based auto location or custom location"
       },
+      "customCityTitle": "Custom City",
+      "customCityHint": "Only used when 'Custom Location First' is active. Test before saving; Chinese / Pinyin / English are supported.",
       "cityName": "City Name",
       "cityPlaceholder": "e.g. Hangzhou / Tokyo / New York",
       "testing": "Testing...",
@@ -807,7 +809,28 @@
       },
       "messages": {
         "switchPriorityFailed": "Failed to switch priority: {{error}}",
-        "testFailed": "Test failed: {{error}}"
+        "testFailed": "Test failed: {{error}}",
+        "cityRequired": "Please enter a city name before testing",
+        "cityResolveFailed": "Failed to resolve city: {{error}}",
+        "providerNonJson": "{{name}} returned non-JSON",
+        "providerAvailable": "{{name}} available",
+        "providerUnavailable": "{{name}} unavailable: {{error}}",
+        "testResult": "{{city}} ({{lat}}, {{lng}}) - {{details}}",
+        "detailSeparator": "; ",
+        "customNeedsCity": "Please enter a city name before choosing 'Custom Location First'",
+        "priorityApplied": "Location priority applied immediately",
+        "customMissingFallback": "Switched to Custom Location First, but no city is configured; falling back to IP location",
+        "configSavedWithCity": "Weather location saved ({{city}} {{lat}}, {{lng}})",
+        "configSaved": "Weather location saved"
+      },
+      "adcode": {
+        "missingParams": "District API is missing query params (adcode or keyword)",
+        "httpError": "Adcode API HTTP {{status}}: {{body}}",
+        "nonJson": "Adcode API returned non-JSON content, please check your network",
+        "errorCode": "Adcode API returned error code {{code}}",
+        "emptyKeyword": "Please enter a city name",
+        "notFound": "No matching city found, try a more complete name",
+        "noCoords": "Query result is missing coordinates"
       },
       "pagination": "Weather settings pagination"
     },
