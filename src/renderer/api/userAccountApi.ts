@@ -378,16 +378,23 @@ export function unregisterUser(token: string, password: string): Promise<UserAcc
 }
 
 /**
- * 上传头像到 Cloudflare R2（经由后端公开头像接口）。
- * 由于需要发送 multipart/form-data，走浏览器原生 fetch；后端 CORS 允许所有来源。
+ * 上传头像到 Cloudflare R2（经由后端受鉴权保护的头像接口）。
+ * 由于需要发送 multipart/form-data，走浏览器原生 fetch。
  * @param file 头像文件。
+ * @param token 用户 token。
  * @returns 上传后的完整 URL；失败时抛出 Error。
  */
-export async function uploadUserAvatar(file: File): Promise<string> {
+export async function uploadUserAvatar(file: File, token: string): Promise<string> {
+  if (!token || token.trim().length === 0) {
+    throw new Error('未登录');
+  }
   const formData = new FormData();
   formData.append('file', file);
   const resp = await fetch(`${USER_ACCOUNT_API_BASE}/v1/upload/user-avatar`, {
     method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
     body: formData,
   });
   if (!resp.ok) {
