@@ -198,7 +198,8 @@ export function ShortcutSettingsSection(props: ShortcutSettingsSectionProps): Re
     if (!el) return;
     const handleWheel = (e: WheelEvent): void => {
       e.stopPropagation();
-      const mainEl = el.querySelector('.settings-app-page-main') as HTMLElement | null;
+      const target = e.target as HTMLElement | null;
+      const mainEl = target?.closest('.settings-app-page-main') as HTMLElement | null;
       if (mainEl && mainEl.scrollHeight > mainEl.clientHeight) return;
 
       const currentIdx = pages.indexOf(shortcutPageRef.current);
@@ -225,9 +226,12 @@ export function ShortcutSettingsSection(props: ShortcutSettingsSectionProps): Re
       <div className="settings-app-pages-layout settings-shortcut-pages-layout" ref={shortcutPagesLayoutRef}>
         <div className="settings-app-page-main">
           {shortcutPage === 'window' && (
-            <>
-              <div className="settings-hotkey-section">
-                <div className="settings-hotkey-label">{t('settings.shortcut.window.toggleIsland.title', { defaultValue: '隐藏/显示快捷键' })}</div>
+            <div className="settings-cards">
+              <div className="settings-card">
+                <div className="settings-card-header">
+                  <div className="settings-card-title">{t('settings.shortcut.window.toggleIsland.title', { defaultValue: '隐藏/显示快捷键' })}</div>
+                  <div className="settings-card-subtitle">{t('settings.shortcut.window.toggleIsland.hint', { defaultValue: '点击“修改”后按下组合键（如 Alt+X、Ctrl+Shift+H）' })}</div>
+                </div>
                 <div className="settings-hotkey-row">
                   <input
                     ref={hotkeyInputRef}
@@ -254,11 +258,13 @@ export function ShortcutSettingsSection(props: ShortcutSettingsSectionProps): Re
                   )}
                 </div>
                 {hotkeyError && <div className="settings-hotkey-error">{hotkeyError}</div>}
-                <div className="settings-hotkey-hint">{t('settings.shortcut.window.toggleIsland.hint', { defaultValue: '点击“修改”后按下组合键（如 Alt+X、Ctrl+Shift+H）' })}</div>
               </div>
 
-              <div className="settings-hotkey-section">
-                <div className="settings-hotkey-label">{t('settings.shortcut.window.quitApp.title', { defaultValue: '关闭灵动岛快捷键' })}</div>
+              <div className="settings-card">
+                <div className="settings-card-header">
+                  <div className="settings-card-title">{t('settings.shortcut.window.quitApp.title', { defaultValue: '关闭灵动岛快捷键' })}</div>
+                  <div className="settings-card-subtitle">{t('settings.shortcut.window.quitApp.hint', { defaultValue: '按下此快捷键将立即关闭灵动岛应用（如 Alt+Q、Ctrl+Shift+Q）' })}</div>
+                </div>
                 <div className="settings-hotkey-row">
                   <input
                     ref={quitHotkeyInputRef}
@@ -285,11 +291,13 @@ export function ShortcutSettingsSection(props: ShortcutSettingsSectionProps): Re
                   )}
                 </div>
                 {quitHotkeyError && <div className="settings-hotkey-error">{quitHotkeyError}</div>}
-                <div className="settings-hotkey-hint">{t('settings.shortcut.window.quitApp.hint', { defaultValue: '按下此快捷键将立即关闭灵动岛应用（如 Alt+Q、Ctrl+Shift+Q）' })}</div>
               </div>
 
-              <div className="settings-hotkey-section">
-                <div className="settings-hotkey-label">{t('settings.shortcut.window.resetPosition.title', { defaultValue: '还原默认位置快捷键' })}</div>
+              <div className="settings-card">
+                <div className="settings-card-header">
+                  <div className="settings-card-title">{t('settings.shortcut.window.resetPosition.title', { defaultValue: '还原默认位置快捷键' })}</div>
+                  <div className="settings-card-subtitle">{t('settings.shortcut.window.resetPosition.hint', { defaultValue: '按下此快捷键将把灵动岛恢复到默认顶部居中位置' })}</div>
+                </div>
                 <div className="settings-hotkey-row">
                   <input
                     ref={resetPositionHotkeyInputRef}
@@ -316,11 +324,13 @@ export function ShortcutSettingsSection(props: ShortcutSettingsSectionProps): Re
                   )}
                 </div>
                 {resetPositionHotkeyError && <div className="settings-hotkey-error">{resetPositionHotkeyError}</div>}
-                <div className="settings-hotkey-hint">{t('settings.shortcut.window.resetPosition.hint', { defaultValue: '按下此快捷键将把灵动岛恢复到默认顶部居中位置' })}</div>
               </div>
 
-              <div className="settings-hotkey-section">
-                <div className="settings-hotkey-label">{t('settings.shortcut.window.toggleTray.title', { defaultValue: '隐藏/显示托盘图标快捷键' })}</div>
+              <div className="settings-card">
+                <div className="settings-card-header">
+                  <div className="settings-card-title">{t('settings.shortcut.window.toggleTray.title', { defaultValue: '隐藏/显示托盘图标快捷键' })}</div>
+                  <div className="settings-card-subtitle">{t('settings.shortcut.window.toggleTray.hint', { defaultValue: '按下此快捷键将隐藏或显示系统托盘中的灵动岛图标' })}</div>
+                </div>
                 <div className="settings-hotkey-row">
                   <input
                     ref={toggleTrayHotkeyInputRef}
@@ -347,11 +357,13 @@ export function ShortcutSettingsSection(props: ShortcutSettingsSectionProps): Re
                   )}
                 </div>
                 {toggleTrayHotkeyError && <div className="settings-hotkey-error">{toggleTrayHotkeyError}</div>}
-                <div className="settings-hotkey-hint">{t('settings.shortcut.window.toggleTray.hint', { defaultValue: '按下此快捷键将隐藏或显示系统托盘中的灵动岛图标' })}</div>
               </div>
 
-              <div className="settings-hotkey-section">
-                <div className="settings-hotkey-label">{t('settings.shortcut.window.showConfig.title', { defaultValue: '显示配置窗口快捷键' })}</div>
+              <div className="settings-card">
+                <div className="settings-card-header">
+                  <div className="settings-card-title">{t('settings.shortcut.window.showConfig.title', { defaultValue: '显示配置窗口快捷键' })}</div>
+                  <div className="settings-card-subtitle">{t('settings.shortcut.window.showConfig.hint', { defaultValue: '仅在独立窗口模式下生效：按下后将打开独立配置窗口并切换到设置页' })}</div>
+                </div>
                 <div className="settings-hotkey-row">
                   <input
                     ref={showSettingsWindowHotkeyInputRef}
@@ -378,48 +390,54 @@ export function ShortcutSettingsSection(props: ShortcutSettingsSectionProps): Re
                   )}
                 </div>
                 {showSettingsWindowHotkeyError && <div className="settings-hotkey-error">{showSettingsWindowHotkeyError}</div>}
-                <div className="settings-hotkey-hint">{t('settings.shortcut.window.showConfig.hint', { defaultValue: '仅在独立窗口模式下生效：按下后将打开独立配置窗口并切换到设置页' })}</div>
               </div>
-            </>
+            </div>
           )}
 
           {shortcutPage === 'capture' && (
-            <div className="settings-hotkey-section">
-              <div className="settings-hotkey-label">{t('settings.shortcut.capture.screenshot.title', { defaultValue: '选区截图快捷键' })}</div>
-              <div className="settings-hotkey-row">
-                <input
-                  ref={screenshotHotkeyInputRef}
-                  className={`settings-hotkey-input ${screenshotHotkeyRecording ? 'recording' : ''}${screenshotHotkeyError ? ' error' : ''}`}
-                  type="text"
-                  readOnly
-                  value={screenshotHotkeyRecording ? recordingValue : (screenshotHotkey || notSetValue)}
-                  onFocus={() => { setScreenshotHotkeyRecording(true); setScreenshotHotkeyError(''); window.api.hotkeySuspend().catch(() => {}); }}
-                  onBlur={() => { setScreenshotHotkeyRecording(false); window.api.hotkeyResume().catch(() => {}); }}
-                  onKeyDown={handleScreenshotHotkeyKeyDown}
-                />
-                <button className="settings-hotkey-btn" type="button" onClick={() => { setScreenshotHotkeyRecording(true); screenshotHotkeyInputRef.current?.focus(); }}>{screenshotHotkeyRecording ? recordingBtn : editBtn}</button>
-                {screenshotHotkey && (
-                  <button className="settings-hotkey-btn" type="button" onClick={() => {
-                    window.api.screenshotHotkeySet('').then((ok) => {
-                      if (ok) {
-                        setScreenshotHotkey('');
-                        setScreenshotHotkeyError('');
-                        setScreenshotHotkeyRecording(false);
-                        screenshotHotkeyInputRef.current?.blur();
-                      }
-                    }).catch(() => {});
-                  }}>{clearBtn}</button>
-                )}
+            <div className="settings-cards">
+              <div className="settings-card">
+                <div className="settings-card-header">
+                  <div className="settings-card-title">{t('settings.shortcut.capture.screenshot.title', { defaultValue: '选区截图快捷键' })}</div>
+                  <div className="settings-card-subtitle">{t('settings.shortcut.capture.screenshot.hint', { defaultValue: '按下此快捷键将触发截图选区流程（如 Alt+A、Ctrl+Shift+A）' })}</div>
+                </div>
+                <div className="settings-hotkey-row">
+                  <input
+                    ref={screenshotHotkeyInputRef}
+                    className={`settings-hotkey-input ${screenshotHotkeyRecording ? 'recording' : ''}${screenshotHotkeyError ? ' error' : ''}`}
+                    type="text"
+                    readOnly
+                    value={screenshotHotkeyRecording ? recordingValue : (screenshotHotkey || notSetValue)}
+                    onFocus={() => { setScreenshotHotkeyRecording(true); setScreenshotHotkeyError(''); window.api.hotkeySuspend().catch(() => {}); }}
+                    onBlur={() => { setScreenshotHotkeyRecording(false); window.api.hotkeyResume().catch(() => {}); }}
+                    onKeyDown={handleScreenshotHotkeyKeyDown}
+                  />
+                  <button className="settings-hotkey-btn" type="button" onClick={() => { setScreenshotHotkeyRecording(true); screenshotHotkeyInputRef.current?.focus(); }}>{screenshotHotkeyRecording ? recordingBtn : editBtn}</button>
+                  {screenshotHotkey && (
+                    <button className="settings-hotkey-btn" type="button" onClick={() => {
+                      window.api.screenshotHotkeySet('').then((ok) => {
+                        if (ok) {
+                          setScreenshotHotkey('');
+                          setScreenshotHotkeyError('');
+                          setScreenshotHotkeyRecording(false);
+                          screenshotHotkeyInputRef.current?.blur();
+                        }
+                      }).catch(() => {});
+                    }}>{clearBtn}</button>
+                  )}
+                </div>
+                {screenshotHotkeyError && <div className="settings-hotkey-error">{screenshotHotkeyError}</div>}
               </div>
-              {screenshotHotkeyError && <div className="settings-hotkey-error">{screenshotHotkeyError}</div>}
-              <div className="settings-hotkey-hint">{t('settings.shortcut.capture.screenshot.hint', { defaultValue: '按下此快捷键将触发截图选区流程（如 Alt+A、Ctrl+Shift+A）' })}</div>
             </div>
           )}
 
           {shortcutPage === 'media' && (
-            <>
-              <div className="settings-hotkey-section">
-                <div className="settings-hotkey-label">{t('settings.shortcut.media.nextSong.title', { defaultValue: '快速切换歌曲快捷键' })}</div>
+            <div className="settings-cards">
+              <div className="settings-card">
+                <div className="settings-card-header">
+                  <div className="settings-card-title">{t('settings.shortcut.media.nextSong.title', { defaultValue: '快速切换歌曲快捷键' })}</div>
+                  <div className="settings-card-subtitle">{t('settings.shortcut.media.nextSong.hint', { defaultValue: '按下后触发系统下一曲媒体按键（仅白名单播放器生效）' })}</div>
+                </div>
                 <div className="settings-hotkey-row">
                   <input
                     ref={nextSongHotkeyInputRef}
@@ -446,11 +464,13 @@ export function ShortcutSettingsSection(props: ShortcutSettingsSectionProps): Re
                   )}
                 </div>
                 {nextSongHotkeyError && <div className="settings-hotkey-error">{nextSongHotkeyError}</div>}
-                <div className="settings-hotkey-hint">{t('settings.shortcut.media.nextSong.hint', { defaultValue: '按下后触发系统下一曲媒体按键（仅白名单播放器生效）' })}</div>
               </div>
 
-              <div className="settings-hotkey-section">
-                <div className="settings-hotkey-label">{t('settings.shortcut.media.playPause.title', { defaultValue: '暂停/播放歌曲快捷键' })}</div>
+              <div className="settings-card">
+                <div className="settings-card-header">
+                  <div className="settings-card-title">{t('settings.shortcut.media.playPause.title', { defaultValue: '暂停/播放歌曲快捷键' })}</div>
+                  <div className="settings-card-subtitle">{t('settings.shortcut.media.playPause.hint', { defaultValue: '按下后触发系统播放/暂停媒体按键（仅白名单播放器生效）' })}</div>
+                </div>
                 <div className="settings-hotkey-row">
                   <input
                     ref={playPauseSongHotkeyInputRef}
@@ -477,9 +497,8 @@ export function ShortcutSettingsSection(props: ShortcutSettingsSectionProps): Re
                   )}
                 </div>
                 {playPauseSongHotkeyError && <div className="settings-hotkey-error">{playPauseSongHotkeyError}</div>}
-                <div className="settings-hotkey-hint">{t('settings.shortcut.media.playPause.hint', { defaultValue: '按下后触发系统播放/暂停媒体按键（仅白名单播放器生效）' })}</div>
               </div>
-            </>
+            </div>
           )}
         </div>
 
