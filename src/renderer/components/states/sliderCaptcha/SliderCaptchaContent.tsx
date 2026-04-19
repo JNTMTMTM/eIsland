@@ -69,6 +69,14 @@ export function SliderCaptchaContent({ challenge, onCancel, onConfirm }: SliderC
     return `${left} - ${right}`;
   }, [challenge.challengeId, challenge.targetValue]);
 
+  const traceCode = useMemo(() => {
+    const challengeId = challenge.challengeId?.trim();
+    if (!challengeId) {
+      return '--';
+    }
+    return challengeId.toUpperCase();
+  }, [challenge.challengeId]);
+
   const closeWithAnimation = (handler: () => void): void => {
     if (closing) {
       return;
@@ -97,6 +105,9 @@ export function SliderCaptchaContent({ challenge, onCancel, onConfirm }: SliderC
           </div>
         </div>
         <div className="slider-captcha-hint">请先计算下方算式结果，再将滑块拖到对应值</div>
+        <div className="slider-captcha-subtitle slider-captcha-trace-code" title={challenge.challengeId || undefined}>
+          traceCode: {traceCode}
+        </div>
         <div className="slider-captcha-equation-row">
           <span className="slider-captcha-equation-label">算式挑战</span>
           <span className="slider-captcha-equation-value">{challengeExpression}</span>

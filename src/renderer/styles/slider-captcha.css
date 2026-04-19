@@ -138,6 +138,11 @@
   opacity: .9;
 }
 
+.slider-captcha-trace-code {
+  margin-top: -10px;
+  margin-bottom: 10px;
+}
+
 .slider-captcha-equation-row {
   display: flex;
   align-items: center;
