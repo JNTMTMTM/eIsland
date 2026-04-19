@@ -135,12 +135,40 @@ export interface WallpaperTagItem {
 
 /** 超时时间（毫秒） */
 const DEFAULT_TIMEOUT_MS = 10000;
+const REPLAY_TIMESTAMP_HEADER = 'X-Timestamp';
+const REPLAY_NONCE_HEADER = 'X-Nonce';
 
 interface InternalRequestInit {
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
   auth?: string | null;
   body?: Record<string, unknown> | null;
   timeoutMs?: number;
+}
+
+function createReplayNonce(): string {
+  const bytes = new Uint8Array(16);
+  if (typeof globalThis.crypto !== 'undefined' && typeof globalThis.crypto.getRandomValues === 'function') {
+    globalThis.crypto.getRandomValues(bytes);
+  } else {
+    for (let i = 0; i < bytes.length; i++) {
+      bytes[i] = Math.floor(Math.random() * 256);
+    }
+  }
+  return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+function buildReplayHeaders(): Record<string, string> {
+  return {
+    [REPLAY_TIMESTAMP_HEADER]: String(Date.now()),
+    [REPLAY_NONCE_HEADER]: createReplayNonce(),
+  };
+}
+
+function shouldAttachReplayHeaders(path: string, method: InternalRequestInit['method'], auth?: string | null): boolean {
+  if (!auth || auth.trim().length === 0) return false;
+  const actualMethod = method ?? 'GET';
+  if (actualMethod !== 'POST' && actualMethod !== 'PUT' && actualMethod !== 'DELETE') return false;
+  return path.startsWith('/v1/user/') || path === '/v1/upload/user-avatar';
 }
 
 function parsePayload<T>(body: string): UserAccountResult<T> {
@@ -162,6 +190,9 @@ async function request<T>(path: string, init: InternalRequestInit = {}): Promise
   };
   if (init.auth) {
     headers['Authorization'] = `Bearer ${init.auth}`;
+  }
+  if (shouldAttachReplayHeaders(path, init.method, init.auth)) {
+    Object.assign(headers, buildReplayHeaders());
   }
   try {
     const resp = await window.api.netFetch(`${USER_ACCOUNT_API_BASE}${path}`, {
@@ -388,12 +419,14 @@ export async function uploadUserAvatar(file: File, token: string): Promise<strin
   if (!token || token.trim().length === 0) {
     throw new Error('未登录');
   }
+  const replayHeaders = buildReplayHeaders();
   const formData = new FormData();
   formData.append('file', file);
   const resp = await fetch(`${USER_ACCOUNT_API_BASE}/v1/upload/user-avatar`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${token}`,
+      ...replayHeaders,
     },
     body: formData,
   });
@@ -519,7 +552,10 @@ export async function uploadUserWallpaper(
   formData.append('thumb1280', payload.thumb1280);
 
   const headers: Record<string, string> = {};
-  if (token) headers.Authorization = `Bearer ${token}`;
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+    Object.assign(headers, buildReplayHeaders());
+  }
   return new Promise((resolve) => {
     const xhr = new XMLHttpRequest();
     xhr.open('POST', `${USER_ACCOUNT_API_BASE}/v1/user/wallpapers/upload`, true);
