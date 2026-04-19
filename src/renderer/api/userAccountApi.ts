@@ -83,6 +83,11 @@ export interface WallpaperMarketListData {
   total?: number;
 }
 
+/**
+ * 统一壁纸市场列表返回结构。
+ * @param data 接口返回的列表数据（可能是旧数组格式或新对象格式）。
+ * @returns 规范化后的列表项与总数。
+ */
 export function normalizeWallpaperMarketListData(
   data: WallpaperMarketListData | WallpaperMarketItem[] | undefined,
 ): { items: WallpaperMarketItem[]; total: number | null } {
