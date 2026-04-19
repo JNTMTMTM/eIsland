@@ -69,21 +69,14 @@
   padding: 4px 4px 8px 0;
   min-height: 0;
   overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(var(--color-text-rgb), 0.18) transparent;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 .max-expand-settings-sidebar::-webkit-scrollbar {
-  width: 4px;
-}
-
-.max-expand-settings-sidebar::-webkit-scrollbar-thumb {
-  background: rgba(var(--color-text-rgb), 0.14);
-  border-radius: 2px;
-}
-
-.max-expand-settings-sidebar::-webkit-scrollbar-thumb:hover {
-  background: rgba(var(--color-text-rgb), 0.22);
+  width: 0;
+  height: 0;
+  display: none;
 }
 
 .max-expand-settings-sidebar-title {
