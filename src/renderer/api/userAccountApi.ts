@@ -133,8 +133,10 @@ export interface WallpaperTagItem {
   usageCount?: number;
 }
 
-/** 超时时间（毫秒） */
+/** 超时时间（ms） */
 const DEFAULT_TIMEOUT_MS = 10000;
+const APP_NAME_HEADER = 'X-App-Name';
+const APP_NAME_VALUE = 'eisland';
 const CLIENT_VERSION_HEADER = 'X-Client-Version';
 const REPLAY_TIMESTAMP_HEADER = 'X-Timestamp';
 const REPLAY_NONCE_HEADER = 'X-Nonce';
@@ -204,6 +206,7 @@ function parsePayload<T>(body: string): UserAccountResult<T> {
 async function request<T>(path: string, init: InternalRequestInit = {}): Promise<UserAccountResult<T>> {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
+    [APP_NAME_HEADER]: APP_NAME_VALUE,
   };
   const clientVersion = await resolveClientVersion();
   if (clientVersion) {
@@ -447,6 +450,7 @@ export async function uploadUserAvatar(file: File, token: string): Promise<strin
   const resp = await fetch(`${USER_ACCOUNT_API_BASE}/v1/upload/user-avatar`, {
     method: 'POST',
     headers: {
+      [APP_NAME_HEADER]: APP_NAME_VALUE,
       ...(clientVersion ? { [CLIENT_VERSION_HEADER]: clientVersion } : {}),
       Authorization: `Bearer ${token}`,
       ...replayHeaders,
@@ -576,6 +580,7 @@ export async function uploadUserWallpaper(
   formData.append('thumb1280', payload.thumb1280);
 
   const headers: Record<string, string> = {};
+  headers[APP_NAME_HEADER] = APP_NAME_VALUE;
   if (clientVersion) {
     headers[CLIENT_VERSION_HEADER] = clientVersion;
   }
