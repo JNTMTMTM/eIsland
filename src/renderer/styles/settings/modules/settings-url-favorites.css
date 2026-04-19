@@ -449,8 +449,8 @@
 
 .clipboard-history-content {
   margin: 0;
-  max-height: 140px;
-  overflow: auto;
+  max-height: none;
+  overflow-y: hidden;
   white-space: pre-wrap;
   word-break: break-word;
   border-radius: 6px;
@@ -460,11 +460,40 @@
   padding: 8px;
   font-size: 11px;
   line-height: 1.45;
+  resize: none;
+  min-height: 74px;
+  outline: none;
+  font-family: inherit;
+}
+
+.clipboard-history-content:focus {
+  border-color: rgba(var(--color-text-rgb), 0.26);
 }
 
 .clipboard-history-actions {
   display: flex;
   justify-content: flex-end;
+  gap: 6px;
+}
+
+.clipboard-history-save {
+  height: 22px;
+  border: none;
+  border-radius: 6px;
+  padding: 0 8px;
+  font-size: 11px;
+  color: rgba(var(--color-text-rgb), 0.8);
+  background: rgba(var(--color-text-rgb), 0.12);
+  cursor: pointer;
+}
+
+.clipboard-history-save:hover:not(:disabled) {
+  background: rgba(var(--color-text-rgb), 0.2);
+}
+
+.clipboard-history-save:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .clipboard-history-remove {

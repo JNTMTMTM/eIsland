@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 interface ClipboardHistoryItem {
@@ -77,6 +77,14 @@ export function ClipboardHistoryTab(): React.ReactElement {
   const [items, setItems] = useState<ClipboardHistoryItem[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [editText, setEditText] = useState('');
+  const editTextareaRef = useRef<HTMLTextAreaElement | null>(null);
+
+  const adjustTextareaHeight = useCallback((el: HTMLTextAreaElement | null): void => {
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = `${el.scrollHeight}px`;
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -167,12 +175,41 @@ export function ClipboardHistoryTab(): React.ReactElement {
   const handleClear = (): void => {
     setItems([]);
     setExpandedId(null);
+    setEditText('');
   };
 
   const handleRemove = (id: number): void => {
     setItems((prev) => prev.filter((item) => item.id !== id));
-    if (expandedId === id) setExpandedId(null);
+    if (expandedId === id) {
+      setExpandedId(null);
+      setEditText('');
+    }
   };
+
+  const handleToggleExpand = (item: ClipboardHistoryItem): void => {
+    if (expandedId === item.id) {
+      setExpandedId(null);
+      setEditText('');
+      return;
+    }
+    setExpandedId(item.id);
+    setEditText(item.text);
+  };
+
+  const handleSaveEdit = (id: number): void => {
+    const nextText = editText.replace(/\r\n/g, '\n').trim();
+    if (!nextText) return;
+    setItems((prev) => prev.map((item) => (
+      item.id === id
+        ? { ...item, text: nextText }
+        : item
+    )));
+  };
+
+  useEffect(() => {
+    if (expandedId === null) return;
+    adjustTextareaHeight(editTextareaRef.current);
+  }, [editText, expandedId, adjustTextareaHeight]);
 
   return (
     <div className="clipboard-history">
@@ -208,7 +245,7 @@ export function ClipboardHistoryTab(): React.ReactElement {
               <button
                 className="clipboard-history-summary"
                 type="button"
-                onClick={() => setExpandedId(expanded ? null : item.id)}
+                onClick={() => handleToggleExpand(item)}
                 title={item.text}
               >
                 <span className="clipboard-history-preview">{getPreviewText(item.text)}</span>
@@ -222,8 +259,30 @@ export function ClipboardHistoryTab(): React.ReactElement {
 
               {expanded ? (
                 <div className="clipboard-history-detail">
-                  <pre className="clipboard-history-content">{item.text}</pre>
+                  <textarea
+                    className="clipboard-history-content"
+                    value={editText}
+                    ref={editTextareaRef}
+                    onChange={(e) => {
+                      setEditText(e.target.value);
+                      adjustTextareaHeight(e.currentTarget);
+                    }}
+                    onKeyDown={(e) => {
+                      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                        e.preventDefault();
+                        handleSaveEdit(item.id);
+                      }
+                    }}
+                  />
                   <div className="clipboard-history-actions">
+                    <button
+                      className="clipboard-history-save"
+                      type="button"
+                      onClick={() => handleSaveEdit(item.id)}
+                      disabled={!editText.trim()}
+                    >
+                      {t('clipboardHistoryTab.actions.save', { defaultValue: '保存' })}
+                    </button>
                     <button
                       className="clipboard-history-remove"
                       type="button"

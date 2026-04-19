@@ -557,6 +557,7 @@
     "empty": "No records yet. Copy some text and it will appear here.",
     "actions": {
       "clear": "Clear",
+      "save": "Save",
       "expand": "Expand",
       "collapse": "Collapse",
       "removeAria": "Remove this clipboard record"
