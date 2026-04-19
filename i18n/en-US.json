@@ -604,6 +604,7 @@
       "language": "Language",
       "behavior": "Interaction",
       "url-parser": "URL Parser",
+      "clipboard-history": "Clipboard History",
       "autostart": "Utilities",
       "network": "Network",
       "weather": "Weather",
@@ -802,6 +803,32 @@
       "save": "Save",
       "saveFailed": "Save failed: {{error}}",
       "unknownError": "Unknown error"
+    },
+    "clipboardHistory": {
+      "enabled": {
+        "title": "History Recording",
+        "hint": "When disabled, no new clipboard records are added, while existing records are kept.",
+        "toggle": "Enable clipboard history"
+      },
+      "limit": {
+        "title": "Max Records",
+        "hint": "New records are stored using this rolling limit.",
+        "options": {
+          "10": "10 items",
+          "20": "20 items",
+          "30": "30 items",
+          "50": "50 items"
+        }
+      },
+      "actions": {
+        "title": "Data Management",
+        "hint": "You can clear all saved clipboard history at once.",
+        "clear": "Clear history"
+      },
+      "messages": {
+        "clearSuccess": "Clipboard history cleared",
+        "clearFailed": "Clear failed, please try again"
+      }
     },
     "network": {
       "timeout": {
@@ -1349,6 +1376,10 @@
       "url-parser": {
         "label": "URL Parser",
         "desc": "Configure clipboard URL detection and blacklist."
+      },
+      "clipboard-history": {
+        "label": "Clipboard History",
+        "desc": "Configure clipboard history behavior and retention limit."
       },
       "autostart": {
         "label": "Utilities",

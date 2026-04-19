@@ -604,6 +604,7 @@
       "language": "语言切换",
       "behavior": "交互行为",
       "url-parser": "URL解析",
+      "clipboard-history": "剪贴板历史",
       "autostart": "实用工具",
       "network": "网络配置",
       "weather": "天气配置",
@@ -802,6 +803,32 @@
       "save": "保存",
       "saveFailed": "保存失败：{{error}}",
       "unknownError": "未知错误"
+    },
+    "clipboardHistory": {
+      "enabled": {
+        "title": "历史记录开关",
+        "hint": "关闭后不再追加新的剪贴板记录，已有记录会保留。",
+        "toggle": "启用剪贴板历史记录"
+      },
+      "limit": {
+        "title": "最大保留条数",
+        "hint": "新记录会在前端按该条数滚动保存。",
+        "options": {
+          "10": "10 条",
+          "20": "20 条",
+          "30": "30 条",
+          "50": "50 条"
+        }
+      },
+      "actions": {
+        "title": "数据管理",
+        "hint": "可一键清空已保存的剪贴板历史记录。",
+        "clear": "清空历史记录"
+      },
+      "messages": {
+        "clearSuccess": "剪贴板历史已清空",
+        "clearFailed": "清空失败，请稍后重试"
+      }
     },
     "network": {
       "timeout": {
@@ -1349,6 +1376,10 @@
       "url-parser": {
         "label": "URL解析",
         "desc": "配置剪贴板 URL 识别模式与黑名单。"
+      },
+      "clipboard-history": {
+        "label": "剪贴板历史",
+        "desc": "配置剪贴板历史记录能力与条数。"
       },
       "autostart": {
         "label": "实用工具",

@@ -32,6 +32,7 @@ import type { OverviewLayoutConfig, OverviewWidgetType } from '../../../../../ex
 import useIslandStore from '../../../../../../../store/slices';
 import { SvgIcon } from '../../../../../../../utils/SvgIcon';
 import { BUILTIN_WALLPAPERS } from '../../../../../../../assets/wallpaper/builtinWallpapers';
+import { ClipboardHistorySettingsSection } from './ClipboardHistorySettingsSection';
 
 interface AppRunningWindow {
   id: string;
@@ -1302,6 +1303,8 @@ export function AppSettingsSection(props: AppSettingsSectionProps): ReactElement
               </div>
             </div>
           )}
+
+          {appSettingsPage === 'clipboard-history' && <ClipboardHistorySettingsSection />}
 
           {appSettingsPage === 'autostart' && (
             <div className="max-expand-settings-section">

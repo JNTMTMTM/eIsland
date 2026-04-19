@@ -36,14 +36,16 @@ interface ClipboardHistoryItem {
 
 const STORE_KEY = 'clipboard-history-recent';
 const LOCAL_STORAGE_KEY = 'eIsland_clipboard_history_recent';
-const HISTORY_LIMIT = 10;
+const HISTORY_ENABLED_STORE_KEY = 'clipboard-history-enabled';
+const HISTORY_LIMIT_STORE_KEY = 'clipboard-history-limit';
+const DEFAULT_HISTORY_LIMIT = 10;
 const POLL_INTERVAL_MS = 1000;
 
 function normalizeClipboardText(text: string): string {
   return text.replace(/\r\n/g, '\n').trim();
 }
 
-function sanitizeHistory(data: unknown): ClipboardHistoryItem[] {
+function sanitizeHistory(data: unknown, historyLimit: number): ClipboardHistoryItem[] {
   if (!Array.isArray(data)) return [];
   return data
     .map((item) => {
@@ -55,7 +57,7 @@ function sanitizeHistory(data: unknown): ClipboardHistoryItem[] {
       return { id, text, createdAt };
     })
     .filter((item): item is ClipboardHistoryItem => Boolean(item))
-    .slice(0, HISTORY_LIMIT);
+    .slice(0, historyLimit);
 }
 
 function persistHistory(items: ClipboardHistoryItem[]): void {
@@ -76,6 +78,8 @@ function getPreviewText(text: string): string {
 export function ClipboardHistoryTab(): React.ReactElement {
   const { t } = useTranslation();
   const [items, setItems] = useState<ClipboardHistoryItem[]>([]);
+  const [historyEnabled, setHistoryEnabled] = useState<boolean>(true);
+  const [historyLimit, setHistoryLimit] = useState<number>(DEFAULT_HISTORY_LIMIT);
   const [loaded, setLoaded] = useState(false);
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [editText, setEditText] = useState('');
@@ -90,15 +94,32 @@ export function ClipboardHistoryTab(): React.ReactElement {
   useEffect(() => {
     let cancelled = false;
 
+    Promise.all([
+      window.api.storeRead(HISTORY_ENABLED_STORE_KEY),
+      window.api.storeRead(HISTORY_LIMIT_STORE_KEY),
+    ]).then(([enabledRaw, limitRaw]) => {
+      if (cancelled) return;
+      const nextEnabled = typeof enabledRaw === 'boolean' ? enabledRaw : true;
+      const nextLimit = typeof limitRaw === 'number' && Number.isFinite(limitRaw)
+        ? Math.max(1, Math.min(50, Math.round(limitRaw)))
+        : DEFAULT_HISTORY_LIMIT;
+      setHistoryEnabled(nextEnabled);
+      setHistoryLimit(nextLimit);
+    }).catch(() => {
+      if (cancelled) return;
+      setHistoryEnabled(true);
+      setHistoryLimit(DEFAULT_HISTORY_LIMIT);
+    });
+
     window.api.storeRead(STORE_KEY).then((data) => {
       if (cancelled) return;
       if (Array.isArray(data) && data.length > 0) {
-        setItems(sanitizeHistory(data));
+        setItems(sanitizeHistory(data, DEFAULT_HISTORY_LIMIT));
       } else {
         try {
           const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
           if (raw) {
-            const parsed = sanitizeHistory(JSON.parse(raw) as unknown[]);
+            const parsed = sanitizeHistory(JSON.parse(raw) as unknown[], DEFAULT_HISTORY_LIMIT);
             setItems(parsed);
             window.api.storeWrite(STORE_KEY, parsed).catch(() => {});
           }
@@ -110,7 +131,7 @@ export function ClipboardHistoryTab(): React.ReactElement {
     }).catch(() => {
       try {
         const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
-        if (raw) setItems(sanitizeHistory(JSON.parse(raw) as unknown[]));
+        if (raw) setItems(sanitizeHistory(JSON.parse(raw) as unknown[], DEFAULT_HISTORY_LIMIT));
       } catch {
         // noop
       }
@@ -123,11 +144,16 @@ export function ClipboardHistoryTab(): React.ReactElement {
   }, []);
 
   useEffect(() => {
+    setItems((prev) => prev.slice(0, historyLimit));
+  }, [historyLimit]);
+
+  useEffect(() => {
     if (!loaded) return;
     persistHistory(items);
   }, [items, loaded]);
 
   useEffect(() => {
+    if (!historyEnabled) return;
     let timerId: number | null = null;
     let disposed = false;
     let lastText = '';
@@ -147,7 +173,7 @@ export function ClipboardHistoryTab(): React.ReactElement {
             text: normalized,
             createdAt: now,
           };
-          return [next, ...prev.filter((row) => row.text !== normalized)].slice(0, HISTORY_LIMIT);
+          return [next, ...prev.filter((row) => row.text !== normalized)].slice(0, historyLimit);
         });
       } catch {
         // noop
@@ -165,7 +191,7 @@ export function ClipboardHistoryTab(): React.ReactElement {
         window.clearInterval(timerId);
       }
     };
-  }, []);
+  }, [historyEnabled, historyLimit]);
 
   const totalCount = items.length;
   const countLabel = useMemo(

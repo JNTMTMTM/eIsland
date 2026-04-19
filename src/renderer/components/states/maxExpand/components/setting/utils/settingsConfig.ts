@@ -49,7 +49,7 @@ export const WEATHER_LOCATION_PRIORITY_OPTIONS: Array<{ value: WeatherLocationPr
 
 export const SETTINGS_TABS = ['index', 'app', 'network', 'weather', 'music', 'ai', 'shortcut', 'user', 'update', 'pluginMarket', 'about'] as const;
 export type SettingsSidebarTabKey = (typeof SETTINGS_TABS)[number];
-export type AppSettingsPageKey = 'layout-preview' | 'hide-process-list' | 'position' | 'theme' | 'language' | 'behavior' | 'url-parser' | 'autostart';
+export type AppSettingsPageKey = 'layout-preview' | 'hide-process-list' | 'position' | 'theme' | 'language' | 'behavior' | 'url-parser' | 'clipboard-history' | 'autostart';
 export type WeatherSettingsPageKey = 'location' | 'provider';
 export type MusicSettingsPageKey = 'whitelist' | 'lyrics' | 'smtc';
 export type MusicNavCardKey = 'music-whitelist' | 'music-lyrics' | 'music-smtc';
@@ -65,6 +65,7 @@ export const SETTINGS_TAB_LABELS: Record<SettingsTabLabelKey, string> = {
   language: '语言切换',
   behavior: '交互行为',
   'url-parser': 'URL解析',
+  'clipboard-history': '剪贴板历史',
   autostart: '实用工具',
   network: '网络配置',
   weather: '天气配置',
@@ -89,6 +90,7 @@ export const SETTINGS_TAB_DESCRIPTIONS: Record<Exclude<SettingsTabLabelKey, 'ind
   language: '切换应用显示语言并即时生效。',
   behavior: '配置鼠标移开后是否自动收回。',
   'url-parser': '配置剪贴板 URL 识别模式与黑名单。',
+  'clipboard-history': '配置剪贴板历史记录能力与条数。',
   autostart: '应用控制、日志与开机启动配置。',
   network: '请求超时与网络行为设置',
   weather: '天气接口优先级设置',
@@ -123,6 +125,7 @@ export const SETTINGS_TAB_ICONS: Partial<Record<SettingsTabLabelKey, string>> = 
   language: SvgIcon.LANGUAGE,
   behavior: SvgIcon.INTERACTION,
   'url-parser': SvgIcon.LINK,
+  'clipboard-history': SvgIcon.COPY,
   autostart: SvgIcon.CONTINUE,
 };
 
@@ -136,7 +139,7 @@ export const NETWORK_TIMEOUT_OPTIONS = [
 
 export const LAYOUT_STORE_KEY = 'overview-layout';
 export const DEFAULT_LAYOUT: OverviewLayoutConfig = { left: 'shortcuts', right: 'todo' };
-export const APP_SETTINGS_PAGES: AppSettingsPageKey[] = ['layout-preview', 'hide-process-list', 'position', 'theme', 'language', 'behavior', 'url-parser', 'autostart'];
+export const APP_SETTINGS_PAGES: AppSettingsPageKey[] = ['layout-preview', 'hide-process-list', 'position', 'theme', 'language', 'behavior', 'url-parser', 'clipboard-history', 'autostart'];
 export const WEATHER_SETTINGS_PAGES: WeatherSettingsPageKey[] = ['location', 'provider'];
 export const WEATHER_SETTINGS_PAGE_LABELS: Record<WeatherSettingsPageKey, string> = {
   location: '定位配置',
@@ -169,6 +172,7 @@ export const NAV_CARDS: NavCardDef[] = [
   { id: 'language', label: SETTINGS_TAB_LABELS.language, desc: SETTINGS_TAB_DESCRIPTIONS.language, icon: SETTINGS_TAB_ICONS.language, tab: 'app', appPage: 'language' },
   { id: 'behavior', label: SETTINGS_TAB_LABELS.behavior, desc: SETTINGS_TAB_DESCRIPTIONS.behavior, icon: SETTINGS_TAB_ICONS.behavior, tab: 'app', appPage: 'behavior' },
   { id: 'url-parser', label: SETTINGS_TAB_LABELS['url-parser'], desc: SETTINGS_TAB_DESCRIPTIONS['url-parser'], icon: SETTINGS_TAB_ICONS['url-parser'], tab: 'app', appPage: 'url-parser' },
+  { id: 'clipboard-history', label: SETTINGS_TAB_LABELS['clipboard-history'], desc: SETTINGS_TAB_DESCRIPTIONS['clipboard-history'], icon: SETTINGS_TAB_ICONS['clipboard-history'], tab: 'app', appPage: 'clipboard-history' },
   { id: 'autostart', label: SETTINGS_TAB_LABELS.autostart, desc: SETTINGS_TAB_DESCRIPTIONS.autostart, icon: SETTINGS_TAB_ICONS.autostart, tab: 'app', appPage: 'autostart' },
   { id: 'network', label: SETTINGS_TAB_LABELS.network, desc: SETTINGS_TAB_DESCRIPTIONS.network, icon: SETTINGS_TAB_ICONS.network, tab: 'network' },
   { id: 'weather', label: SETTINGS_TAB_LABELS.weather, desc: SETTINGS_TAB_DESCRIPTIONS.weather, icon: SETTINGS_TAB_ICONS.weather, tab: 'weather' },
