@@ -110,6 +110,7 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
   const [detailVideoVolume, setDetailVideoVolume] = useState<number>(0.6);
   const [detailVideoPlaying, setDetailVideoPlaying] = useState<boolean>(true);
   const detailVideoRef = useRef<HTMLVideoElement | null>(null);
+  const listRequestSeqRef = useRef(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -182,6 +183,8 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
   };
 
   const loadList = async (targetPage: number = page): Promise<void> => {
+    const requestSeq = listRequestSeqRef.current + 1;
+    listRequestSeqRef.current = requestSeq;
     const token = readLocalToken();
     if (!token) {
       setList([]);
@@ -198,6 +201,9 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
         page: targetPage,
         pageSize: marketPageSize,
       });
+      if (requestSeq !== listRequestSeqRef.current) {
+        return;
+      }
       if (result.ok) {
         const normalized = normalizeWallpaperMarketListData(result.data);
         const nextList = normalized.items;
@@ -227,7 +233,9 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
       setHasNextPage(false);
       setMessage(result.message || t('settings.pluginMarket.wallpaper.feedback.loadFailed', { defaultValue: '加载失败' }));
     } finally {
-      setLoading(false);
+      if (requestSeq === listRequestSeqRef.current) {
+        setLoading(false);
+      }
     }
   };
 
