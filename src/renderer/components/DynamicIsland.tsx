@@ -884,7 +884,11 @@ function DynamicIsland(): React.JSX.Element {
       } catch { /* noop */ }
 
       const store = useIslandStore.getState();
-      if (suppressInFavorites && store.state === 'maxExpand' && store.maxExpandTab === 'urlFavorites') return;
+      if (
+        suppressInFavorites
+        && store.state === 'maxExpand'
+        && (store.maxExpandTab === 'urlFavorites' || store.maxExpandTab === 'clipboardHistory')
+      ) return;
 
       const faviconUrl = getWebsiteFaviconUrl(urls[0]);
       const hostname = getWebsiteHostname(urls[0]);
