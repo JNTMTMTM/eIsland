@@ -30,6 +30,7 @@ import {
   applyUserWallpaper,
   getUserWallpaperDetail,
   listUserWallpapers,
+  normalizeWallpaperMarketListData,
   rateUserWallpaper,
   reportUserWallpaper,
   type WallpaperMarketItem,
@@ -91,6 +92,7 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
   const [keyword, setKeyword] = useState('');
   const [sortBy, setSortBy] = useState<'newest' | 'rating' | 'apply'>('newest');
   const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [hasNextPage, setHasNextPage] = useState(false);
   const [searchExpanded, setSearchExpanded] = useState(false);
   const [message, setMessage] = useState('');
@@ -184,6 +186,7 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
     if (!token) {
       setList([]);
       setSelected(null);
+      setTotalPages(1);
       setHasNextPage(false);
       return;
     }
@@ -195,14 +198,24 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
         page: targetPage,
         pageSize: marketPageSize,
       });
-      if (result.ok && Array.isArray(result.data)) {
+      if (result.ok) {
+        const normalized = normalizeWallpaperMarketListData(result.data);
+        const nextList = normalized.items;
+        const hasMore = nextList.length >= marketPageSize;
         setPage(targetPage);
-        setList(result.data);
-        setHasNextPage(result.data.length >= marketPageSize);
-        if (result.data.length === 0) {
+        setList(nextList);
+        setHasNextPage(hasMore);
+        if (normalized.total !== null) {
+          setTotalPages(Math.max(1, Math.ceil(normalized.total / marketPageSize)));
+        } else if (targetPage === 1) {
+          setTotalPages(hasMore ? 2 : 1);
+        } else {
+          setTotalPages((prev) => Math.max(prev, targetPage, hasMore ? targetPage + 1 : targetPage));
+        }
+        if (nextList.length === 0) {
           setSelected(null);
-        } else if (!selected || !result.data.some((item) => item.id === selected.id)) {
-          const next = result.data[0];
+        } else if (!selected || !nextList.some((item) => item.id === selected.id)) {
+          const next = nextList[0];
           setSelected(next);
           // 列表项若是视频，拉一次详情补齐 originalUrl / 封面等字段，保证视频预览能正常进入
           if (next.type === 'video') {
@@ -393,7 +406,11 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
               {t('settings.pluginMarket.wallpaper.actions.prevPage', { defaultValue: '上一页' })}
             </button>
             <span className="settings-plugin-market-pagination-text">
-              {t('settings.pluginMarket.wallpaper.pagination.page', { defaultValue: '第 {{page}} 页', page })}
+              {t('settings.pluginMarket.wallpaper.pagination.page', {
+                defaultValue: '第 {{page}} / {{total}} 页',
+                page,
+                total: totalPages,
+              })}
             </span>
             <button
               className="settings-hotkey-btn"

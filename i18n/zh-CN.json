@@ -1111,7 +1111,7 @@
           "updateSuccess": "已保存，等待审核"
         },
         "pagination": {
-          "page": "第 {{page}} 页"
+          "page": "第 {{page}} / {{total}} 页"
         }
       }
     },

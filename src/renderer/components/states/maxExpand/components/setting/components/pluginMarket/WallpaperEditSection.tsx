@@ -30,6 +30,7 @@ import {
   deleteUserWallpaper,
   getUserWallpaperDetail,
   listMyUserWallpapers,
+  normalizeWallpaperMarketListData,
   updateUserWallpaperMetadata,
   type WallpaperMarketItem,
 } from '../../../../../../../api/userAccountApi';
@@ -61,6 +62,7 @@ export function WallpaperEditSection({ onGoWallpaper }: WallpaperEditSectionProp
   const [loading, setLoading] = useState(false);
   const [keyword, setKeyword] = useState('');
   const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [hasNextPage, setHasNextPage] = useState(false);
   const [searchExpanded, setSearchExpanded] = useState(false);
   const [message, setMessage] = useState('');
@@ -86,6 +88,7 @@ export function WallpaperEditSection({ onGoWallpaper }: WallpaperEditSectionProp
     if (!token) {
       setList([]);
       setSelected(null);
+      setTotalPages(1);
       setHasNextPage(false);
       return;
     }
@@ -96,17 +99,27 @@ export function WallpaperEditSection({ onGoWallpaper }: WallpaperEditSectionProp
         page: targetPage,
         pageSize: MARKET_PAGE_SIZE,
       });
-      if (result.ok && Array.isArray(result.data)) {
+      if (result.ok) {
+        const normalized = normalizeWallpaperMarketListData(result.data);
+        const nextList = normalized.items;
+        const hasMore = nextList.length >= MARKET_PAGE_SIZE;
         setPage(targetPage);
-        setList(result.data);
-        setHasNextPage(result.data.length >= MARKET_PAGE_SIZE);
-        if (result.data.length === 0) {
+        setList(nextList);
+        setHasNextPage(hasMore);
+        if (normalized.total !== null) {
+          setTotalPages(Math.max(1, Math.ceil(normalized.total / MARKET_PAGE_SIZE)));
+        } else if (targetPage === 1) {
+          setTotalPages(hasMore ? 2 : 1);
+        } else {
+          setTotalPages((prev) => Math.max(prev, targetPage, hasMore ? targetPage + 1 : targetPage));
+        }
+        if (nextList.length === 0) {
           setSelected(null);
-        } else if (!selected || !result.data.find((w) => w.id === selected.id)) {
-          setSelected(result.data[0]);
-          setEditTitle(result.data[0].title || '');
-          setEditDescription(result.data[0].description || '');
-          setEditTags(result.data[0].tagsText || '');
+        } else if (!selected || !nextList.find((w) => w.id === selected.id)) {
+          setSelected(nextList[0]);
+          setEditTitle(nextList[0].title || '');
+          setEditDescription(nextList[0].description || '');
+          setEditTags(nextList[0].tagsText || '');
         }
         return;
       }
@@ -252,7 +265,11 @@ export function WallpaperEditSection({ onGoWallpaper }: WallpaperEditSectionProp
               {t('settings.pluginMarket.wallpaper.actions.prevPage', { defaultValue: '上一页' })}
             </button>
             <span className="settings-plugin-market-pagination-text">
-              {t('settings.pluginMarket.wallpaper.pagination.page', { defaultValue: '第 {{page}} 页', page })}
+              {t('settings.pluginMarket.wallpaper.pagination.page', {
+                defaultValue: '第 {{page}} / {{total}} 页',
+                page,
+                total: totalPages,
+              })}
             </span>
             <button
               className="settings-hotkey-btn"

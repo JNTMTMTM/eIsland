@@ -1111,7 +1111,7 @@
           "updateSuccess": "Saved and pending review"
         },
         "pagination": {
-          "page": "Page {{page}}"
+          "page": "Page {{page}} / {{total}}"
         }
       }
     },

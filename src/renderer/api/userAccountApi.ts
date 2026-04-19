@@ -77,6 +77,28 @@ export interface WallpaperMarketItem {
   publishedAt?: string;
 }
 
+export interface WallpaperMarketListData {
+  items: WallpaperMarketItem[];
+  total?: number;
+}
+
+export function normalizeWallpaperMarketListData(
+  data: WallpaperMarketListData | WallpaperMarketItem[] | undefined,
+): { items: WallpaperMarketItem[]; total: number | null } {
+  if (Array.isArray(data)) {
+    return { items: data, total: null };
+  }
+  if (data && Array.isArray(data.items)) {
+    return {
+      items: data.items,
+      total: typeof data.total === 'number' && Number.isFinite(data.total) && data.total >= 0
+        ? data.total
+        : null,
+    };
+  }
+  return { items: [], total: null };
+}
+
 export interface UploadWallpaperPayload {
   title: string;
   description?: string;
@@ -380,7 +402,7 @@ export async function uploadUserAvatar(file: File): Promise<string> {
 export function listUserWallpapers(
   token: string,
   params: { keyword?: string; type?: 'image' | 'video'; sort?: 'newest' | 'rating' | 'apply'; page?: number; pageSize?: number } = {},
-): Promise<UserAccountResult<WallpaperMarketItem[]>> {
+): Promise<UserAccountResult<WallpaperMarketListData | WallpaperMarketItem[]>> {
   const search = new URLSearchParams();
   if (params.keyword) search.set('keyword', params.keyword);
   if (params.type) search.set('type', params.type);
@@ -388,7 +410,7 @@ export function listUserWallpapers(
   if (params.page) search.set('page', String(params.page));
   if (params.pageSize) search.set('pageSize', String(params.pageSize));
   const suffix = search.toString();
-  return request<WallpaperMarketItem[]>(`/v1/user/wallpapers/list${suffix ? `?${suffix}` : ''}`, {
+  return request<WallpaperMarketListData | WallpaperMarketItem[]>(`/v1/user/wallpapers/list${suffix ? `?${suffix}` : ''}`, {
     method: 'GET',
     auth: token,
   });
@@ -403,7 +425,7 @@ export function listUserWallpapers(
 export function listMyUserWallpapers(
   token: string,
   params: { keyword?: string; type?: 'image' | 'video'; sort?: 'newest' | 'rating' | 'apply'; page?: number; pageSize?: number } = {},
-): Promise<UserAccountResult<WallpaperMarketItem[]>> {
+): Promise<UserAccountResult<WallpaperMarketListData | WallpaperMarketItem[]>> {
   const search = new URLSearchParams();
   if (params.keyword) search.set('keyword', params.keyword);
   if (params.type) search.set('type', params.type);
@@ -411,7 +433,7 @@ export function listMyUserWallpapers(
   if (params.page) search.set('page', String(params.page));
   if (params.pageSize) search.set('pageSize', String(params.pageSize));
   const suffix = search.toString();
-  return request<WallpaperMarketItem[]>(`/v1/user/wallpapers/mine${suffix ? `?${suffix}` : ''}`, {
+  return request<WallpaperMarketListData | WallpaperMarketItem[]>(`/v1/user/wallpapers/mine${suffix ? `?${suffix}` : ''}`, {
     method: 'GET',
     auth: token,
   });
