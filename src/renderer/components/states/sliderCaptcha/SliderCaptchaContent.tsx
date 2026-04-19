@@ -82,7 +82,7 @@ export function SliderCaptchaContent({ challenge, onCancel, onConfirm }: SliderC
           <img className="slider-captcha-brand-logo" src={eislandLogo} alt="eIsland" />
           <div className="slider-captcha-brand-texts">
             <div className="slider-captcha-title">滑块验证</div>
-            <div className="slider-captcha-subtitle">eisland js质询服务</div>
+            <div className="slider-captcha-subtitle">由 Pyisland Server & eIsland 提供质询服务</div>
           </div>
         </div>
         <div className="slider-captcha-hint">请先计算下方算式结果，再将滑块拖到对应值</div>
