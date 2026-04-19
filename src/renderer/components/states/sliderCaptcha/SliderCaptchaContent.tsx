@@ -112,7 +112,11 @@ export function SliderCaptchaContent({ challenge, onCancel, onConfirm }: SliderC
           <span className="slider-captcha-equation-label">算式挑战</span>
           <span className="slider-captcha-equation-value">{challengeExpression}</span>
         </div>
-        <div className="slider-captcha-value">当前值：{value}</div>
+        <div className="slider-captcha-value" aria-live="polite">
+          <span className="slider-captcha-value-label">当前值</span>
+          <span className="slider-captcha-value-number">{value}</span>
+          <span className="slider-captcha-value-range">范围 {challenge.minValue} - {challenge.maxValue}</span>
+        </div>
         <input
           className="slider-captcha-range"
           type="range"
