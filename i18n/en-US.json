@@ -565,6 +565,19 @@
       "removeAria": "Remove this clipboard record"
     }
   },
+  "sliderCaptcha": {
+    "title": "Slider Verification",
+    "subtitle": "Challenge service powered by Pyisland Server & eIsland",
+    "hint": "Solve the equation below first, then drag the slider to the matching value",
+    "traceCode": "traceCode: {{code}}",
+    "equationLabel": "Equation Challenge",
+    "currentValueLabel": "Current Value",
+    "valueRange": "Range {{min}} - {{max}}",
+    "actions": {
+      "cancel": "Cancel",
+      "confirm": "Confirm"
+    }
+  },
   "maxExpand": {
     "nav": {
       "expanded": "Back",

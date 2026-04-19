@@ -565,6 +565,19 @@
       "removeAria": "删除该剪贴板记录"
     }
   },
+  "sliderCaptcha": {
+    "title": "滑块验证",
+    "subtitle": "由 Pyisland Server & eIsland 提供质询服务",
+    "hint": "请先计算下方算式结果，再将滑块拖到对应值",
+    "traceCode": "traceCode: {{code}}",
+    "equationLabel": "算式挑战",
+    "currentValueLabel": "当前值",
+    "valueRange": "范围 {{min}} - {{max}}",
+    "actions": {
+      "cancel": "取消",
+      "confirm": "确认"
+    }
+  },
   "maxExpand": {
     "nav": {
       "expanded": "返回",

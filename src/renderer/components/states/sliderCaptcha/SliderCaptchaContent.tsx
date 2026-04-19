@@ -22,6 +22,7 @@
 
 import { useMemo, useState } from 'react';
 import type { CSSProperties, ReactElement } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { UserEmailCaptchaChallenge } from '../../../api/userAccountApi';
 import '../../../styles/slider-captcha.css';
 import eislandLogo from '../../../../../resources/icon/eisland.svg';
@@ -40,6 +41,7 @@ interface SliderCaptchaContentProps {
  * @returns 滑块验证界面节点。
  */
 export function SliderCaptchaContent({ challenge, onCancel, onConfirm }: SliderCaptchaContentProps): ReactElement {
+  const { t } = useTranslation();
   const [value, setValue] = useState(challenge.minValue);
   const [closing, setClosing] = useState(false);
 
@@ -94,22 +96,22 @@ export function SliderCaptchaContent({ challenge, onCancel, onConfirm }: SliderC
         <div className="slider-captcha-brand">
           <img className="slider-captcha-brand-logo" src={eislandLogo} alt="eIsland" />
           <div className="slider-captcha-brand-texts">
-            <div className="slider-captcha-title">滑块验证</div>
-            <div className="slider-captcha-subtitle">由 Pyisland Server & eIsland 提供质询服务</div>
+            <div className="slider-captcha-title">{t('sliderCaptcha.title', { defaultValue: '滑块验证' })}</div>
+            <div className="slider-captcha-subtitle">{t('sliderCaptcha.subtitle', { defaultValue: '由 Pyisland Server & eIsland 提供质询服务' })}</div>
           </div>
         </div>
-        <div className="slider-captcha-hint">请先计算下方算式结果，再将滑块拖到对应值</div>
+        <div className="slider-captcha-hint">{t('sliderCaptcha.hint', { defaultValue: '请先计算下方算式结果，再将滑块拖到对应值' })}</div>
         <div className="slider-captcha-subtitle slider-captcha-trace-code" title={challenge.challengeId || undefined}>
-          traceCode: {traceCode}
+          {t('sliderCaptcha.traceCode', { defaultValue: 'traceCode: {{code}}', code: traceCode })}
         </div>
         <div className="slider-captcha-equation-row">
-          <span className="slider-captcha-equation-label">算式挑战</span>
+          <span className="slider-captcha-equation-label">{t('sliderCaptcha.equationLabel', { defaultValue: '算式挑战' })}</span>
           <span className="slider-captcha-equation-value">{challengeExpression}</span>
         </div>
         <div className="slider-captcha-value" aria-live="polite">
-          <span className="slider-captcha-value-label">当前值</span>
+          <span className="slider-captcha-value-label">{t('sliderCaptcha.currentValueLabel', { defaultValue: '当前值' })}</span>
           <span className="slider-captcha-value-number">{value}</span>
-          <span className="slider-captcha-value-range">范围 {challenge.minValue} - {challenge.maxValue}</span>
+          <span className="slider-captcha-value-range">{t('sliderCaptcha.valueRange', { defaultValue: '范围 {{min}} - {{max}}', min: challenge.minValue, max: challenge.maxValue })}</span>
         </div>
         <input
           className="slider-captcha-range"
@@ -127,14 +129,14 @@ export function SliderCaptchaContent({ challenge, onCancel, onConfirm }: SliderC
             type="button"
             onClick={() => closeWithAnimation(onCancel)}
           >
-            取消
+            {t('sliderCaptcha.actions.cancel', { defaultValue: '取消' })}
           </button>
           <button
             className="slider-captcha-btn slider-captcha-btn-confirm"
             type="button"
             onClick={() => closeWithAnimation(() => onConfirm(value))}
           >
-            确认
+            {t('sliderCaptcha.actions.confirm', { defaultValue: '确认' })}
           </button>
         </div>
       </div>
