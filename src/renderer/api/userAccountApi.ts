@@ -69,6 +69,7 @@ export interface WallpaperMarketItem {
   durationMs?: number;
   frameRate?: number;
   tagsText?: string;
+  copyrightInfo?: string;
   ratingAvg?: number;
   ratingCount?: number;
   downloadCount?: number;
@@ -550,7 +551,7 @@ export async function uploadUserWallpaper(
  */
 export function updateUserWallpaperMetadata(
   token: string,
-  payload: { id: number; title: string; description?: string; type?: 'image' | 'video'; tags?: string },
+  payload: { id: number; title: string; description?: string; type?: 'image' | 'video'; tags?: string; copyrightInfo?: string },
 ): Promise<UserAccountResult<unknown>> {
   return request('/v1/user/wallpapers/metadata', {
     method: 'PUT',
@@ -561,6 +562,7 @@ export function updateUserWallpaperMetadata(
       description: payload.description ?? '',
       type: payload.type ?? 'image',
       tags: payload.tags ?? '',
+      copyrightInfo: payload.copyrightInfo ?? '',
     },
   });
 }

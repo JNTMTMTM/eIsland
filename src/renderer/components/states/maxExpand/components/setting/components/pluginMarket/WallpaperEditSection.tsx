@@ -70,6 +70,7 @@ export function WallpaperEditSection({ onGoWallpaper }: WallpaperEditSectionProp
   const [editTitle, setEditTitle] = useState('');
   const [editDescription, setEditDescription] = useState('');
   const [editTags, setEditTags] = useState('');
+  const [editCopyrightInfo, setEditCopyrightInfo] = useState('');
   const [deleting, setDeleting] = useState(false);
   const [savingMetadata, setSavingMetadata] = useState(false);
   const [deleteConfirming, setDeleteConfirming] = useState(false);
@@ -120,6 +121,7 @@ export function WallpaperEditSection({ onGoWallpaper }: WallpaperEditSectionProp
           setEditTitle(nextList[0].title || '');
           setEditDescription(nextList[0].description || '');
           setEditTags(nextList[0].tagsText || '');
+          setEditCopyrightInfo(nextList[0].copyrightInfo || '');
         }
         return;
       }
@@ -139,6 +141,7 @@ export function WallpaperEditSection({ onGoWallpaper }: WallpaperEditSectionProp
       setEditTitle(result.data.title || '');
       setEditDescription(result.data.description || '');
       setEditTags(result.data.tagsText || '');
+      setEditCopyrightInfo(result.data.copyrightInfo || '');
       return;
     }
     setMessage(result.message || t('settings.pluginMarket.wallpaper.feedback.detailFailed', { defaultValue: '加载详情失败' }));
@@ -198,6 +201,7 @@ export function WallpaperEditSection({ onGoWallpaper }: WallpaperEditSectionProp
         title: editTitle,
         description: editDescription,
         tags: editTags,
+        copyrightInfo: editCopyrightInfo,
         type: selected.type === 'video' ? 'video' : 'image',
       });
       if (!result.ok) {
@@ -343,6 +347,9 @@ export function WallpaperEditSection({ onGoWallpaper }: WallpaperEditSectionProp
                   {t(`settings.pluginMarket.edit.status.${selected.status}`, { defaultValue: selected.status })}
                 </div>
                 <div className="settings-plugin-market-detail-meta">{selected.description || '-'}</div>
+                <div className="settings-plugin-market-detail-meta">
+                  {t('settings.pluginMarket.edit.meta.copyrightInfo', { defaultValue: '版权声明信息' })}: {selected.copyrightInfo || '-'}
+                </div>
                 <div className="settings-plugin-market-detail-meta settings-plugin-market-detail-tags">
                   {(() => {
                     const chips = (selected.tagsText || '')
@@ -367,6 +374,7 @@ export function WallpaperEditSection({ onGoWallpaper }: WallpaperEditSectionProp
                       setEditTitle(selected.title || '');
                       setEditDescription(selected.description || '');
                       setEditTags(selected.tagsText || '');
+                      setEditCopyrightInfo(selected.copyrightInfo || '');
                     }}
                   >
                     {editingMetadata
@@ -426,6 +434,13 @@ export function WallpaperEditSection({ onGoWallpaper }: WallpaperEditSectionProp
                         onChange={setEditTags}
                         placeholder={t('settings.pluginMarket.wallpaper.upload.tagsPlaceholder', { defaultValue: '标签（逗号分隔）' })}
                         disabled={savingMetadata}
+                      />
+                      <input
+                        className="settings-field-input"
+                        value={editCopyrightInfo}
+                        onChange={(e) => setEditCopyrightInfo(e.target.value)}
+                        placeholder={t('settings.pluginMarket.wallpaper.upload.copyrightInfoPlaceholder', { defaultValue: '声明版权信息（如原创、授权来源、授权编号）' })}
+                        maxLength={500}
                       />
                       <button
                         className="settings-hotkey-btn"
