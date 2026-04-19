@@ -576,11 +576,13 @@ export function WallpaperContributionSection({ onGoWallpaper }: WallpaperContrib
               <span>{t('settings.pluginMarket.wallpaper.upload.copyright', { defaultValue: '我确认拥有该图片版权或已获授权' })}</span>
             </label>
             {copyrightDeclared && (
-              <input
+              <textarea
                 className="settings-field-input settings-plugin-market-copyright-input"
                 value={copyrightInfo}
                 onChange={(e) => setCopyrightInfo(e.target.value)}
                 placeholder={t('settings.pluginMarket.wallpaper.upload.copyrightInfoPlaceholder', { defaultValue: '声明版权信息（如原创、授权来源、授权编号）' })}
+                rows={3}
+                wrap="soft"
                 maxLength={500}
               />
             )}

@@ -170,6 +170,11 @@
 .settings-plugin-market-copyright-input {
   flex: 1 1 320px;
   min-width: 220px;
+  min-height: 72px;
+  line-height: 1.45;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  resize: vertical;
 }
 
 .settings-plugin-market-copyright-row .settings-plugin-market-message {

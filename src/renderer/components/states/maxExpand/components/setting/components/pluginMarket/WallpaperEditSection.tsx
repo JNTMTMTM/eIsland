@@ -84,6 +84,22 @@ export function WallpaperEditSection({ onGoWallpaper }: WallpaperEditSectionProp
   const selectedOriginalUrl = selected?.originalUrl || '';
   const selectedIsVideo = selected?.type === 'video';
 
+  const renderStars = (score: number) => {
+    const filled = Math.max(0, Math.min(5, Math.round(score)));
+    return (
+      <span className="settings-plugin-market-star-display" aria-hidden="true">
+        {[1, 2, 3, 4, 5].map((i) => (
+          <img
+            key={`star-${i}`}
+            src={SvgIcon.STAR}
+            alt=""
+            className={`settings-plugin-market-star-inline ${i <= filled ? 'active' : ''}`}
+          />
+        ))}
+      </span>
+    );
+  };
+
   const loadList = async (targetPage: number = page): Promise<void> => {
     const token = readLocalToken();
     if (!token) {
@@ -344,27 +360,60 @@ export function WallpaperEditSection({ onGoWallpaper }: WallpaperEditSectionProp
                     : <img src={SvgIcon.USER} alt="" className="settings-plugin-market-owner-avatar large placeholder" />}
                   <span>@{selected.ownerUsername}</span>
                 </div>
-                <div className="settings-plugin-market-detail-meta">
-                  {t('settings.pluginMarket.edit.meta.status', { defaultValue: '状态' })}:{' '}
-                  {t(`settings.pluginMarket.edit.status.${selected.status}`, { defaultValue: selected.status })}
+                <div className="settings-plugin-market-detail-meta settings-plugin-market-detail-meta-block">
+                  <div className="settings-plugin-market-detail-meta-label">
+                    {t('settings.pluginMarket.edit.meta.status', { defaultValue: '状态' })}
+                  </div>
+                  <div className="settings-plugin-market-detail-meta-value">
+                    {t(`settings.pluginMarket.edit.status.${selected.status}`, { defaultValue: selected.status })}
+                  </div>
                 </div>
-                <div className="settings-plugin-market-detail-meta">{selected.description || '-'}</div>
-                <div className="settings-plugin-market-detail-meta">
-                  {t('settings.pluginMarket.edit.meta.copyrightInfo', { defaultValue: '版权声明信息' })}: {selected.copyrightInfo || '-'}
+                <div className="settings-plugin-market-detail-meta settings-plugin-market-detail-meta-block">
+                  <div className="settings-plugin-market-detail-meta-label">
+                    {t('settings.pluginMarket.wallpaper.meta.description', { defaultValue: '描述' })}
+                  </div>
+                  <div className="settings-plugin-market-detail-meta-value">{selected.description || '-'}</div>
                 </div>
-                <div className="settings-plugin-market-detail-meta settings-plugin-market-detail-tags">
-                  {(() => {
-                    const chips = (selected.tagsText || '')
-                      .split(/[,，]/)
-                      .map((s) => s.trim())
-                      .filter(Boolean);
-                    if (chips.length === 0) return <span className="settings-plugin-market-detail-tags-empty">-</span>;
-                    return chips.map((chip, idx) => (
-                      <span key={`${chip}-${idx}`} className="settings-plugin-market-tag-chip readonly">
-                        {chip}
-                      </span>
-                    ));
-                  })()}
+                <div className="settings-plugin-market-detail-meta settings-plugin-market-detail-meta-block">
+                  <div className="settings-plugin-market-detail-meta-label">
+                    {t('settings.pluginMarket.wallpaper.meta.tags', { defaultValue: '标签' })}
+                  </div>
+                  <div className="settings-plugin-market-detail-meta-value settings-plugin-market-detail-tags">
+                    {(() => {
+                      const chips = (selected.tagsText || '')
+                        .split(/[,，]/)
+                        .map((s) => s.trim())
+                        .filter(Boolean);
+                      if (chips.length === 0) return <span className="settings-plugin-market-detail-tags-empty">-</span>;
+                      return chips.map((chip, idx) => (
+                        <span key={`${chip}-${idx}`} className="settings-plugin-market-tag-chip readonly">
+                          {chip}
+                        </span>
+                      ));
+                    })()}
+                  </div>
+                </div>
+                <div className="settings-plugin-market-detail-meta settings-plugin-market-detail-meta-block">
+                  <div className="settings-plugin-market-detail-meta-label">
+                    {t('settings.pluginMarket.wallpaper.meta.copyrightInfo', { defaultValue: '版权声明' })}
+                  </div>
+                  <div className="settings-plugin-market-detail-meta-value settings-plugin-market-detail-copyright-value">
+                    {selected.copyrightInfo || '-'}
+                  </div>
+                </div>
+                <div className="settings-plugin-market-detail-meta settings-plugin-market-detail-meta-block">
+                  <div className="settings-plugin-market-detail-meta-label">
+                    {t('settings.pluginMarket.wallpaper.meta.rating', { defaultValue: '评分' })}
+                  </div>
+                  <div className="settings-plugin-market-detail-rating">
+                    {renderStars(Number(selected.ratingAvg ?? 0))}
+                    <span>{Number(selected.ratingAvg ?? 0).toFixed(1)}</span>
+                    <span>({selected.ratingCount ?? 0})</span>
+                    <span className="settings-plugin-market-detail-apply">
+                      <img src={SvgIcon.DOWNLOAD} alt="" className="settings-plugin-market-apply-icon" />
+                      <span>{selected.applyCount ?? 0}</span>
+                    </span>
+                  </div>
                 </div>
 
                 <div className="settings-plugin-market-owner-tools">
@@ -437,11 +486,13 @@ export function WallpaperEditSection({ onGoWallpaper }: WallpaperEditSectionProp
                         placeholder={t('settings.pluginMarket.wallpaper.upload.tagsPlaceholder', { defaultValue: '标签（逗号分隔）' })}
                         disabled={savingMetadata}
                       />
-                      <input
-                        className="settings-field-input"
+                      <textarea
+                        className="settings-field-input settings-plugin-market-copyright-input"
                         value={editCopyrightInfo}
                         onChange={(e) => setEditCopyrightInfo(e.target.value)}
                         placeholder={t('settings.pluginMarket.wallpaper.upload.copyrightInfoPlaceholder', { defaultValue: '声明版权信息（如原创、授权来源、授权编号）' })}
+                        rows={3}
+                        wrap="soft"
                         maxLength={500}
                       />
                       <button
