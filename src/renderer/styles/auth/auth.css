@@ -110,3 +110,17 @@
   background: rgba(var(--color-text-rgb), 0.14);
   border-color: rgba(var(--color-text-rgb), 0.24);
 }
+
+.island-shell.login .auth-state-content,
+.island-shell.register .auth-state-content {
+  align-items: center;
+  padding: 14px 22px;
+}
+
+.island-shell.login .auth-panel,
+.island-shell.register .auth-panel {
+  max-height: 100%;
+  padding: 16px;
+  gap: 10px;
+  overflow-y: auto;
+}
