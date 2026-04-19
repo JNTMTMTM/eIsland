@@ -1,3 +1,29 @@
+/*
+ * eIsland - A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Electron.
+ * https://github.com/JNTMTMTM/eIsland
+ *
+ * Copyright (C) 2026 JNTMTMTM
+ * Copyright (C) 2026 pyisland.com
+ *
+ * Original author: JNTMTMTM[](https://github.com/JNTMTMTM)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+/**
+ * @file sliderCaptcha.ts
+ * @description 渲染端滑块验证码流程封装
+ * @author 鸡哥
+ */
+
 import { createUserEmailCaptchaChallenge, fetchUserEmailCaptchaConfig, type UserEmailCaptchaChallenge } from '../api/userAccountApi';
 import { createElement } from 'react';
 import { createRoot } from 'react-dom/client';
@@ -24,6 +50,11 @@ function showBuiltinSliderModal(challenge: UserEmailCaptchaChallenge): Promise<n
   });
 }
 
+/**
+ * 执行邮箱场景滑块验证流程
+ * @param account - 当前进行验证的账号标识
+ * @returns 验证成功返回 ticket 与 randstr，取消返回 null
+ */
 export async function runEmailSliderCaptcha(account: string): Promise<{ ticket: string; randstr: string } | null> {
   const cfg = await fetchUserEmailCaptchaConfig();
   if (!cfg.ok || !cfg.data) {

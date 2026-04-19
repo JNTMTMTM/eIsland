@@ -75,6 +75,10 @@ function getPreviewText(text: string): string {
   return `${oneLine.slice(0, 72)}…`;
 }
 
+/**
+ * 渲染最大展开态的剪贴板历史标签页
+ * @returns 剪贴板历史标签页
+ */
 export function ClipboardHistoryTab(): React.ReactElement {
   const { t } = useTranslation();
   const [items, setItems] = useState<ClipboardHistoryItem[]>([]);

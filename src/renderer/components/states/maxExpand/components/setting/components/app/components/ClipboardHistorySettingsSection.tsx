@@ -36,6 +36,10 @@ const DEFAULT_HISTORY_LIMIT = 10;
 
 const HISTORY_LIMIT_OPTIONS: number[] = [10, 20, 30, 50];
 
+/**
+ * 渲染软件设置中的剪贴板历史设置区块
+ * @returns 剪贴板历史设置区块
+ */
 export function ClipboardHistorySettingsSection(): ReactElement {
   const { t } = useTranslation();
   const [historyEnabled, setHistoryEnabled] = useState<boolean>(true);
