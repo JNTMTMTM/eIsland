@@ -103,7 +103,9 @@ export function WallpaperEditSection({ onGoWallpaper }: WallpaperEditSectionProp
       if (result.ok) {
         const normalized = normalizeWallpaperMarketListData(result.data);
         const nextList = normalized.items;
-        const hasMore = nextList.length >= MARKET_PAGE_SIZE;
+        const hasMore = normalized.total !== null
+          ? targetPage * MARKET_PAGE_SIZE < normalized.total
+          : nextList.length >= MARKET_PAGE_SIZE;
         setPage(targetPage);
         setList(nextList);
         setHasNextPage(hasMore);

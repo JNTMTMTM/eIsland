@@ -207,7 +207,9 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
       if (result.ok) {
         const normalized = normalizeWallpaperMarketListData(result.data);
         const nextList = normalized.items;
-        const hasMore = nextList.length >= marketPageSize;
+        const hasMore = normalized.total !== null
+          ? targetPage * marketPageSize < normalized.total
+          : nextList.length >= marketPageSize;
         setPage(targetPage);
         setList(nextList);
         setHasNextPage(hasMore);
