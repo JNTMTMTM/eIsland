@@ -6,7 +6,8 @@ import { SliderCaptchaContent } from '../components/states/sliderCaptcha/SliderC
 function showBuiltinSliderModal(challenge: UserEmailCaptchaChallenge): Promise<number | null> {
   return new Promise((resolve) => {
     const mountNode = document.createElement('div');
-    document.body.appendChild(mountNode);
+    const modalHost = document.querySelector('.island-shell') ?? document.body;
+    modalHost.appendChild(mountNode);
     const root = createRoot(mountNode);
 
     const close = (value: number | null): void => {

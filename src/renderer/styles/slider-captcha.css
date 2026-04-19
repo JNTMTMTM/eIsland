@@ -21,7 +21,10 @@
   align-items: center;
   justify-content: center;
   pointer-events: auto;
-  background: transparent;
+  border-radius: inherit;
+  background: rgba(6 10 16 / .42);
+  backdrop-filter: blur(10px) saturate(.86);
+  -webkit-backdrop-filter: blur(10px) saturate(.86);
 }
 
 .slider-captcha-card {
