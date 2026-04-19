@@ -1661,6 +1661,91 @@
   border-radius: 8px;
 }
 
+/** ========== 主题外观卡片模块 ========== */
+.settings-theme-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.settings-theme-card {
+  background: rgba(var(--color-text-rgb), 0.04);
+  border: 1px solid rgba(var(--color-text-rgb), 0.08);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.settings-theme-card:hover {
+  border-color: rgba(var(--color-text-rgb), 0.12);
+}
+
+.settings-theme-card-header {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.settings-theme-card-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(var(--color-text-rgb), 0.92);
+  letter-spacing: 0.1px;
+}
+
+.settings-theme-card-subtitle {
+  font-size: 11px;
+  color: rgba(var(--color-text-rgb), 0.42);
+  line-height: 1.5;
+}
+
+.settings-theme-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.settings-theme-card-subgroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.settings-theme-card-subgroup + .settings-theme-card-subgroup {
+  padding-top: 10px;
+  border-top: 1px dashed rgba(var(--color-text-rgb), 0.08);
+}
+
+.settings-theme-card-subgroup-title {
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(var(--color-text-rgb), 0.78);
+}
+
+.settings-theme-card-inline-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  align-items: center;
+}
+
+.settings-theme-card-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: rgba(var(--color-text-rgb), 0.6);
+  cursor: pointer;
+  user-select: none;
+}
+
+.settings-theme-card-check input[type="checkbox"] {
+  accent-color: var(--color-island-text);
+}
+
 /** ========== 用户中心 ========== */
 .settings-user {
   gap: 12px;
