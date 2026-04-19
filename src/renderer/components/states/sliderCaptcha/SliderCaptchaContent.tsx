@@ -21,7 +21,7 @@
  */
 
 import { useMemo, useState } from 'react';
-import type { ReactElement } from 'react';
+import type { CSSProperties, ReactElement } from 'react';
 import type { UserEmailCaptchaChallenge } from '../../../api/userAccountApi';
 import '../../../styles/slider-captcha.css';
 import eislandLogo from '../../../../../resources/icon/eisland.svg';
@@ -42,7 +42,31 @@ interface SliderCaptchaContentProps {
 export function SliderCaptchaContent({ challenge, onCancel, onConfirm }: SliderCaptchaContentProps): ReactElement {
   const [value, setValue] = useState(challenge.minValue);
 
-  const targetText = useMemo(() => `请将滑块拖到目标值：${challenge.targetValue}`, [challenge.targetValue]);
+  const sliderProgress = useMemo(() => {
+    const range = challenge.maxValue - challenge.minValue;
+    if (range <= 0) {
+      return 0;
+    }
+    const progress = ((value - challenge.minValue) / range) * 100;
+    return Math.max(0, Math.min(100, progress));
+  }, [challenge.maxValue, challenge.minValue, value]);
+
+  const sliderStyle = useMemo(() => ({
+    '--slider-progress': `${sliderProgress}%`,
+  }) as CSSProperties, [sliderProgress]);
+
+  const challengeExpression = useMemo(() => {
+    const target = challenge.targetValue;
+    const useAddition = Math.random() >= 0.5;
+    if (useAddition && target >= 0) {
+      const left = Math.floor(Math.random() * (target + 1));
+      const right = target - left;
+      return `${left} + ${right}`;
+    }
+    const right = Math.floor(Math.random() * 20) + 1;
+    const left = target + right;
+    return `${left} - ${right}`;
+  }, [challenge.challengeId, challenge.targetValue]);
 
   return (
     <div
@@ -58,10 +82,14 @@ export function SliderCaptchaContent({ challenge, onCancel, onConfirm }: SliderC
           <img className="slider-captcha-brand-logo" src={eislandLogo} alt="eIsland" />
           <div className="slider-captcha-brand-texts">
             <div className="slider-captcha-title">滑块验证</div>
-            <div className="slider-captcha-subtitle">由 Pyisland server & eIsland 提供质询服务</div>
+            <div className="slider-captcha-subtitle">eisland js质询服务</div>
           </div>
         </div>
-        <div className="slider-captcha-hint">{targetText}</div>
+        <div className="slider-captcha-hint">请先计算下方算式结果，再将滑块拖到对应值</div>
+        <div className="slider-captcha-equation-row">
+          <span className="slider-captcha-equation-label">算式挑战</span>
+          <span className="slider-captcha-equation-value">{challengeExpression}</span>
+        </div>
         <div className="slider-captcha-value">当前值：{value}</div>
         <input
           className="slider-captcha-range"
@@ -70,6 +98,7 @@ export function SliderCaptchaContent({ challenge, onCancel, onConfirm }: SliderC
           max={challenge.maxValue}
           step={1}
           value={value}
+          style={sliderStyle}
           onChange={(event) => setValue(Number(event.target.value))}
         />
         <div className="slider-captcha-actions">
