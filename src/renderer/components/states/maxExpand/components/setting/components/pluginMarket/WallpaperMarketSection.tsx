@@ -42,7 +42,27 @@ interface WallpaperMarketSectionProps {
   onGoContribution: () => void;
 }
 
-const MARKET_PAGE_SIZE = 6;
+const DEFAULT_MARKET_PAGE_SIZE = 6;
+const STANDALONE_MARKET_PAGE_SIZE = 9;
+const STANDALONE_WINDOW_MODE_STORE_KEY = 'standalone-window-mode';
+const LEGACY_COUNTDOWN_WINDOW_MODE_STORE_KEY = 'countdown-window-mode';
+
+async function readStandaloneWindowMode(): Promise<'integrated' | 'standalone'> {
+  try {
+    const mode = await window.api.storeRead(STANDALONE_WINDOW_MODE_STORE_KEY);
+    if (mode === 'standalone') return 'standalone';
+    if (mode === 'integrated') return 'integrated';
+  } catch {
+    // ignore
+  }
+  try {
+    const legacyMode = await window.api.storeRead(LEGACY_COUNTDOWN_WINDOW_MODE_STORE_KEY);
+    if (legacyMode === 'standalone') return 'standalone';
+  } catch {
+    // ignore
+  }
+  return 'integrated';
+}
 
 function formatDuration(durationMs: number | undefined): string {
   if (!durationMs || !Number.isFinite(durationMs) || durationMs <= 0) return '--:--';
@@ -57,6 +77,7 @@ function formatDuration(durationMs: number | undefined): string {
  */
 export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: WallpaperMarketSectionProps) {
   const { t } = useTranslation();
+  const [marketPageSize, setMarketPageSize] = useState(DEFAULT_MARKET_PAGE_SIZE);
   const ratingDescriptions = [
     t('settings.pluginMarket.wallpaper.ratingLevels.1', { defaultValue: '很差' }),
     t('settings.pluginMarket.wallpaper.ratingLevels.2', { defaultValue: '较差' }),
@@ -87,6 +108,15 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
   const [detailVideoVolume, setDetailVideoVolume] = useState<number>(0.6);
   const [detailVideoPlaying, setDetailVideoPlaying] = useState<boolean>(true);
   const detailVideoRef = useRef<HTMLVideoElement | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    readStandaloneWindowMode().then((mode) => {
+      if (cancelled) return;
+      setMarketPageSize(mode === 'standalone' ? STANDALONE_MARKET_PAGE_SIZE : DEFAULT_MARKET_PAGE_SIZE);
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
 
   const selectedPreviewUrl = useMemo(() => (
     selected?.thumb1280Url || selected?.thumb720Url || selected?.thumb320Url || selected?.originalUrl || ''
@@ -163,12 +193,12 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
         keyword: keyword.trim() || undefined,
         sort: sortBy,
         page: targetPage,
-        pageSize: MARKET_PAGE_SIZE,
+        pageSize: marketPageSize,
       });
       if (result.ok && Array.isArray(result.data)) {
         setPage(targetPage);
         setList(result.data);
-        setHasNextPage(result.data.length >= MARKET_PAGE_SIZE);
+        setHasNextPage(result.data.length >= marketPageSize);
         if (result.data.length === 0) {
           setSelected(null);
         } else if (!selected || !result.data.some((item) => item.id === selected.id)) {
@@ -202,7 +232,7 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
   useEffect(() => {
     loadList(1).catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sortBy]);
+  }, [sortBy, marketPageSize]);
 
   const handleSearch = (): void => {
     loadList(1).catch(() => {});

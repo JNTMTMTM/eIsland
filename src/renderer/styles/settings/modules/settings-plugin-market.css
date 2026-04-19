@@ -218,6 +218,10 @@
   padding-right: 4px;
 }
 
+.cw-viewport .settings-plugin-market-list {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .settings-plugin-market-pagination {
   display: grid;
   grid-template-columns: auto 1fr auto;
@@ -252,6 +256,10 @@
   width: 100%;
   height: 140px;
   overflow: hidden;
+}
+
+.cw-viewport .settings-plugin-market-card-media {
+  height: 110px;
 }
 
 .settings-plugin-market-card-img {
