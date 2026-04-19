@@ -58,15 +58,9 @@ export function SliderCaptchaContent({ challenge, onCancel, onConfirm }: SliderC
 
   const challengeExpression = useMemo(() => {
     const target = challenge.targetValue;
-    const useAddition = Math.random() >= 0.5;
-    if (useAddition && target >= 0) {
-      const left = Math.floor(Math.random() * (target + 1));
-      const right = target - left;
-      return `${left} + ${right}`;
-    }
-    const right = Math.floor(Math.random() * 20) + 1;
-    const left = target + right;
-    return `${left} - ${right}`;
+    const left = Math.floor(Math.random() * (target + 1));
+    const right = target - left;
+    return `${left} + ${right}`;
   }, [challenge.challengeId, challenge.targetValue]);
 
   const traceCode = useMemo(() => {
