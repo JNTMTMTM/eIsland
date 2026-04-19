@@ -838,6 +838,10 @@
       "whitelist": {
         "title": "播放器白名单",
         "hint": "只有白名单内的播放器才会触发歌曲信息获取",
+        "empty": "暂无已加入的播放器",
+        "addTitle": "添加播放器",
+        "addHint": "手动输入播放器进程名，或自动从当前 SMTC 会话中检测",
+        "detectedTitle": "当前检测到",
         "placeholder": "输入播放器进程名（如 Spotify.exe）",
         "fetching": "获取中…",
         "fetchSourceProcess": "获取播放进程",
@@ -846,6 +850,8 @@
       "lyrics": {
         "title": "歌词源",
         "hint": "自动模式根据 SMTC 检测到的播放器进程选择对应源，失败后依次尝试其他源，最后使用 LRCLIB 兜底",
+        "displayTitle": "歌词显示",
+        "displayHint": "控制歌词界面的展示效果",
         "sourceOptions": {
           "auto": "自动（跟随播放器）",
           "neteaseOnly": "仅网易云",

@@ -1357,6 +1357,8 @@ export function SettingsTab(): ReactElement {
       }
 
       if (activeTabRef.current === 'music' && target.closest('.settings-music-pages-layout')) {
+        const mainEl = target.closest('.settings-app-page-main') as HTMLElement | null;
+        if (mainEl && mainEl.scrollHeight > mainEl.clientHeight) return;
         const pages = MUSIC_SETTINGS_PAGES;
         const currentPage = musicSettingsPageRef.current;
         const currentIdx = pages.indexOf(currentPage);
@@ -1374,6 +1376,8 @@ export function SettingsTab(): ReactElement {
       }
 
       if (activeTabRef.current === 'weather' && target.closest('.settings-weather-pages-layout')) {
+        const mainEl = target.closest('.settings-app-page-main') as HTMLElement | null;
+        if (mainEl && mainEl.scrollHeight > mainEl.clientHeight) return;
         const pages = WEATHER_SETTINGS_PAGES;
         const currentPage = weatherSettingsPageRef.current;
         const currentIdx = pages.indexOf(currentPage);

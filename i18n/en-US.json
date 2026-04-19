@@ -838,6 +838,10 @@
       "whitelist": {
         "title": "Player Whitelist",
         "hint": "Only whitelisted players can trigger music metadata",
+        "empty": "No players added yet",
+        "addTitle": "Add Player",
+        "addHint": "Enter a player process name manually, or detect it from the current SMTC session",
+        "detectedTitle": "Currently Detected",
         "placeholder": "Enter player process name (e.g. Spotify.exe)",
         "fetching": "Fetching...",
         "fetchSourceProcess": "Fetch Playing Process",
@@ -846,6 +850,8 @@
       "lyrics": {
         "title": "Lyrics Source",
         "hint": "Auto mode selects source by detected SMTC player and falls back to LRCLIB",
+        "displayTitle": "Lyrics Display",
+        "displayHint": "Control how lyrics are rendered on screen",
         "sourceOptions": {
           "auto": "Auto (Follow Player)",
           "neteaseOnly": "NetEase Only",
