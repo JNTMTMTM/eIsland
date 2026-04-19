@@ -1041,8 +1041,11 @@
           "previewGenerating": "Generating previews..."
         },
         "meta": {
+          "description": "Description",
+          "tags": "Tags",
           "rating": "Rating",
-          "apply": "Apply Count"
+          "apply": "Apply Count",
+          "copyrightInfo": "Copyright"
         },
         "report": {
           "copyright": "Copyright",

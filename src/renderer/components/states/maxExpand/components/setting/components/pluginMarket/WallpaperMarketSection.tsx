@@ -558,30 +558,52 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
                     : <img src={SvgIcon.USER} alt="" className="settings-plugin-market-owner-avatar large placeholder" />}
                   <span>@{selected.ownerUsername}</span>
                 </div>
-                <div className="settings-plugin-market-detail-meta">{selected.description || '-'}</div>
-                <div className="settings-plugin-market-detail-meta settings-plugin-market-detail-tags">
-                  {(() => {
-                    const chips = (selected.tagsText || '')
-                      .split(/[,，]/)
-                      .map((s) => s.trim())
-                      .filter(Boolean);
-                    if (chips.length === 0) return <span className="settings-plugin-market-detail-tags-empty">-</span>;
-                    return chips.map((chip, idx) => (
-                      <span key={`${chip}-${idx}`} className="settings-plugin-market-tag-chip readonly">
-                        {chip}
-                      </span>
-                    ));
-                  })()}
+                <div className="settings-plugin-market-detail-meta settings-plugin-market-detail-meta-block">
+                  <div className="settings-plugin-market-detail-meta-label">
+                    {t('settings.pluginMarket.wallpaper.meta.description', { defaultValue: '描述' })}
+                  </div>
+                  <div className="settings-plugin-market-detail-meta-value">{selected.description || '-'}</div>
                 </div>
-                <div className="settings-plugin-market-detail-meta settings-plugin-market-detail-rating">
-                  <span>{t('settings.pluginMarket.wallpaper.meta.rating', { defaultValue: '评分' })}:</span>
-                  {renderStars(Number(selected.ratingAvg ?? 0))}
-                  <span>{Number(selected.ratingAvg ?? 0).toFixed(1)}</span>
-                  <span>({selected.ratingCount ?? 0})</span>
-                  <span className="settings-plugin-market-detail-apply">
-                    <img src={SvgIcon.DOWNLOAD} alt="" className="settings-plugin-market-apply-icon" />
-                    <span>{selected.applyCount ?? 0}</span>
-                  </span>
+                <div className="settings-plugin-market-detail-meta settings-plugin-market-detail-meta-block">
+                  <div className="settings-plugin-market-detail-meta-label">
+                    {t('settings.pluginMarket.wallpaper.meta.tags', { defaultValue: '标签' })}
+                  </div>
+                  <div className="settings-plugin-market-detail-meta-value settings-plugin-market-detail-tags">
+                    {(() => {
+                      const chips = (selected.tagsText || '')
+                        .split(/[,，]/)
+                        .map((s) => s.trim())
+                        .filter(Boolean);
+                      if (chips.length === 0) return <span className="settings-plugin-market-detail-tags-empty">-</span>;
+                      return chips.map((chip, idx) => (
+                        <span key={`${chip}-${idx}`} className="settings-plugin-market-tag-chip readonly">
+                          {chip}
+                        </span>
+                      ));
+                    })()}
+                  </div>
+                </div>
+                <div className="settings-plugin-market-detail-meta settings-plugin-market-detail-meta-block">
+                  <div className="settings-plugin-market-detail-meta-label">
+                    {t('settings.pluginMarket.wallpaper.meta.copyrightInfo', { defaultValue: '版权声明' })}
+                  </div>
+                  <div className="settings-plugin-market-detail-meta-value settings-plugin-market-detail-copyright-value">
+                    {selected.copyrightInfo || '-'}
+                  </div>
+                </div>
+                <div className="settings-plugin-market-detail-meta settings-plugin-market-detail-meta-block">
+                  <div className="settings-plugin-market-detail-meta-label">
+                    {t('settings.pluginMarket.wallpaper.meta.rating', { defaultValue: '评分' })}
+                  </div>
+                  <div className="settings-plugin-market-detail-rating">
+                    {renderStars(Number(selected.ratingAvg ?? 0))}
+                    <span>{Number(selected.ratingAvg ?? 0).toFixed(1)}</span>
+                    <span>({selected.ratingCount ?? 0})</span>
+                    <span className="settings-plugin-market-detail-apply">
+                      <img src={SvgIcon.DOWNLOAD} alt="" className="settings-plugin-market-apply-icon" />
+                      <span>{selected.applyCount ?? 0}</span>
+                    </span>
+                  </div>
                 </div>
 
                 <div className="settings-plugin-market-actions">

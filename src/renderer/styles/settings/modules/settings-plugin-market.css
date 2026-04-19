@@ -458,6 +458,31 @@
   line-height: 1.4;
 }
 
+.settings-plugin-market-detail-meta-block {
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.settings-plugin-market-detail-meta-label {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 11px;
+  line-height: 1.2;
+}
+
+.settings-plugin-market-detail-meta-value {
+  color: rgba(255, 255, 255, 0.84);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.settings-plugin-market-detail-copyright-value {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
 .settings-plugin-market-actions,
 .settings-plugin-market-owner-tools,
 .settings-plugin-market-edit-box {
@@ -587,6 +612,10 @@
   display: flex;
   align-items: center;
   gap: 4px;
+}
+
+.settings-plugin-market-detail-rating {
+  align-items: center;
   flex-wrap: wrap;
 }
 

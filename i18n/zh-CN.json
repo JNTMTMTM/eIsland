@@ -1041,8 +1041,11 @@
           "previewGenerating": "正在生成预览…"
         },
         "meta": {
+          "description": "描述",
+          "tags": "标签",
           "rating": "评分",
-          "apply": "应用次数"
+          "apply": "应用次数",
+          "copyrightInfo": "版权声明"
         },
         "report": {
           "copyright": "版权问题",
