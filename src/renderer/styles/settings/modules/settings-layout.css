@@ -448,6 +448,22 @@
   color: rgba(var(--color-text-rgb), 0.9);
 }
 
+.max-expand-settings-section.settings-update .settings-cards {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.max-expand-settings-section.settings-update .settings-cards::-webkit-scrollbar {
+  width: 4px;
+}
+
+.max-expand-settings-section.settings-update .settings-cards::-webkit-scrollbar-thumb {
+  background: rgba(var(--color-text-rgb), 0.12);
+  border-radius: 2px;
+}
+
 .settings-app-title-line {
   display: flex;
   align-items: baseline;

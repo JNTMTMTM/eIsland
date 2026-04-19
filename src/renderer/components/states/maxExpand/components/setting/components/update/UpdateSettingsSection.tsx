@@ -77,84 +77,110 @@ export function UpdateSettingsSection({
 }: UpdateSettingsSectionProps): ReactElement {
   const { t } = useTranslation();
 
+  const hasLatest = updateStatus === 'available' || updateStatus === 'downloading' || updateStatus === 'ready';
+
   return (
     <div className="max-expand-settings-section settings-update">
       <div className="max-expand-settings-title">{t('settings.labels.update', { defaultValue: '更新设置' })}</div>
 
-      <div className="settings-update-info-grid" style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 0, fontSize: 12 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
-          <span><span style={{ opacity: 0.6 }}>{t('settings.update.currentVersion', { defaultValue: '当前版本' })}</span> <span style={{ fontWeight: 500 }}>eIsland v{aboutVersion || '…'}</span></span>
-          <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-            <span style={{ opacity: 0.6 }}>{t('settings.update.source', { defaultValue: '更新源' })}</span>
-            {updateSources.map((s) => (
-              <label key={s.key} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, cursor: 'pointer', marginLeft: 4 }}>
-                <input
-                  type="radio"
-                  name="update-source"
-                  value={s.key}
-                  checked={updateSource === s.key}
-                  onChange={() => onUpdateSourceChange(s.key)}
-                  style={{ margin: 0 }}
-                />
-                <span>{s.label}</span>
-              </label>
-            ))}
-          </span>
-        </div>
-        {(updateStatus === 'available' || updateStatus === 'downloading' || updateStatus === 'ready') && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ opacity: 0.6 }}>{t('settings.update.latestVersion', { defaultValue: '最新版本' })}</span>
-            <span style={{ fontWeight: 500, color: 'var(--accent-color, #4fc3f7)' }}>v{updateVersion}</span>
-          </div>
-        )}
-      </div>
+      <div className="settings-cards">
 
-      <div className="settings-about-update">
-        <div className="settings-about-update-row">
-          {updateStatus === 'idle' && (
-            <button className="settings-about-update-btn" type="button" onClick={onCheckUpdate}>{t('settings.update.actions.check', { defaultValue: '检查更新' })}</button>
-          )}
-          {updateStatus === 'checking' && (
-            <button className="settings-about-update-btn" type="button" disabled>{t('settings.update.actions.checking', { defaultValue: '检查中…' })}</button>
-          )}
-          {updateStatus === 'latest' && (
-            <button className="settings-about-update-btn" type="button" onClick={onCheckUpdate}>{t('settings.update.actions.latest', { defaultValue: '已是最新版本' })}</button>
-          )}
-          {updateStatus === 'available' && (
-            <button className="settings-about-update-btn update-available" type="button" onClick={onDownloadUpdate}>
-              {t('settings.update.actions.download', { defaultValue: '下载更新' })}
-            </button>
-          )}
-          {updateStatus === 'downloading' && (
-            <div className="settings-about-update-progress">
-              <div style={{ marginBottom: 4, fontSize: 12, opacity: 0.7 }}>
-                {t('settings.update.downloadingFrom', { defaultValue: '正在从 {{source}} 下载更新…', source: currentSourceLabel })}
-              </div>
-              <div className="settings-about-update-progress-bar">
-                <div
-                  className="settings-about-update-progress-fill"
-                  style={{ width: `${downloadProgress?.percent ?? 0}%` }}
-                />
-              </div>
-              <span className="settings-about-update-progress-text">
-                {downloadProgress
-                  ? `${Math.round(downloadProgress.percent)}% · ${(downloadProgress.bytesPerSecond / 1024 / 1024).toFixed(1)} MB/s`
-                  : t('settings.update.preparingDownload', { defaultValue: '准备下载…' })}
-              </span>
+        {/* 卡片 1:版本与更新源 */}
+        <div className="settings-card">
+          <div className="settings-card-header">
+            <div className="settings-card-title">{t('settings.update.versionCardTitle', { defaultValue: '版本信息' })}</div>
+            <div className="settings-card-subtitle">{t('settings.update.versionCardHint', { defaultValue: '查看当前版本并选择更新源,应用所有补丁包均通过该更新源下载' })}</div>
+          </div>
+
+          <div className="settings-card-subgroup">
+            <div className="settings-card-subgroup-title">{t('settings.update.currentVersion', { defaultValue: '当前版本' })}</div>
+            <div className="settings-music-hint" style={{ fontSize: 12 }}>
+              <span style={{ fontWeight: 500, color: 'rgba(var(--color-text-rgb), 0.85)' }}>eIsland v{aboutVersion || '…'}</span>
+              {hasLatest && (
+                <>
+                  <span style={{ margin: '0 8px', opacity: 0.4 }}>·</span>
+                  <span style={{ opacity: 0.6 }}>{t('settings.update.latestVersion', { defaultValue: '最新版本' })}</span>
+                  <span style={{ fontWeight: 500, marginLeft: 6, color: 'var(--accent-color, #4fc3f7)' }}>v{updateVersion}</span>
+                </>
+              )}
             </div>
-          )}
-          {updateStatus === 'ready' && (
-            <button className="settings-about-update-btn update-ready" type="button" onClick={onInstallUpdate}>
-              {t('settings.update.actions.installRestart', { defaultValue: '安装并重启' })}
-            </button>
-          )}
-          {updateStatus === 'error' && (
-            <button className="settings-about-update-btn" type="button" onClick={onCheckUpdate}>{t('settings.update.actions.retry', { defaultValue: '重试' })}</button>
-          )}
+          </div>
+
+          <div className="settings-card-subgroup">
+            <div className="settings-card-subgroup-title">{t('settings.update.source', { defaultValue: '更新源' })}</div>
+            <div className="settings-card-inline-row">
+              {updateSources.map((s) => (
+                <label key={s.key} className="settings-card-check">
+                  <input
+                    type="radio"
+                    name="update-source"
+                    value={s.key}
+                    checked={updateSource === s.key}
+                    onChange={() => onUpdateSourceChange(s.key)}
+                  />
+                  <span>{s.label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
         </div>
-        {updateStatus === 'error' && updateError && (
-          <div className="settings-about-update-error" style={{ marginTop: 8, whiteSpace: 'pre-wrap' }}>{updateError.replace(/\\n/g, '\n')}</div>
-        )}
+
+        {/* 卡片 2:检查与下载 */}
+        <div className="settings-card">
+          <div className="settings-card-header">
+            <div className="settings-card-title">{t('settings.update.actionCardTitle', { defaultValue: '检查与安装' })}</div>
+            <div className="settings-card-subtitle">{t('settings.update.actionCardHint', { defaultValue: '手动触发检查,有新版本时可下载安装;下载完成后点击"安装并重启"应用更新' })}</div>
+          </div>
+
+          <div className="settings-about-update">
+            <div className="settings-about-update-row">
+              {updateStatus === 'idle' && (
+                <button className="settings-about-update-btn" type="button" onClick={onCheckUpdate}>{t('settings.update.actions.check', { defaultValue: '检查更新' })}</button>
+              )}
+              {updateStatus === 'checking' && (
+                <button className="settings-about-update-btn" type="button" disabled>{t('settings.update.actions.checking', { defaultValue: '检查中…' })}</button>
+              )}
+              {updateStatus === 'latest' && (
+                <button className="settings-about-update-btn" type="button" onClick={onCheckUpdate}>{t('settings.update.actions.latest', { defaultValue: '已是最新版本' })}</button>
+              )}
+              {updateStatus === 'available' && (
+                <button className="settings-about-update-btn update-available" type="button" onClick={onDownloadUpdate}>
+                  {t('settings.update.actions.download', { defaultValue: '下载更新' })}
+                </button>
+              )}
+              {updateStatus === 'downloading' && (
+                <div className="settings-about-update-progress">
+                  <div style={{ marginBottom: 4, fontSize: 12, opacity: 0.7 }}>
+                    {t('settings.update.downloadingFrom', { defaultValue: '正在从 {{source}} 下载更新…', source: currentSourceLabel })}
+                  </div>
+                  <div className="settings-about-update-progress-bar">
+                    <div
+                      className="settings-about-update-progress-fill"
+                      style={{ width: `${downloadProgress?.percent ?? 0}%` }}
+                    />
+                  </div>
+                  <span className="settings-about-update-progress-text">
+                    {downloadProgress
+                      ? `${Math.round(downloadProgress.percent)}% · ${(downloadProgress.bytesPerSecond / 1024 / 1024).toFixed(1)} MB/s`
+                      : t('settings.update.preparingDownload', { defaultValue: '准备下载…' })}
+                  </span>
+                </div>
+              )}
+              {updateStatus === 'ready' && (
+                <button className="settings-about-update-btn update-ready" type="button" onClick={onInstallUpdate}>
+                  {t('settings.update.actions.installRestart', { defaultValue: '安装并重启' })}
+                </button>
+              )}
+              {updateStatus === 'error' && (
+                <button className="settings-about-update-btn" type="button" onClick={onCheckUpdate}>{t('settings.update.actions.retry', { defaultValue: '重试' })}</button>
+              )}
+            </div>
+            {updateStatus === 'error' && updateError && (
+              <div className="settings-about-update-error" style={{ marginTop: 8, whiteSpace: 'pre-wrap' }}>{updateError.replace(/\\n/g, '\n')}</div>
+            )}
+          </div>
+        </div>
+
       </div>
     </div>
   );
