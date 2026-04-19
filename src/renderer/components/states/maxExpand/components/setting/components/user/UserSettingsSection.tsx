@@ -160,6 +160,19 @@ export function UserSettingsSection(): ReactElement {
     const handleWheel = (e: WheelEvent): void => {
       e.stopPropagation();
       const target = e.target as HTMLElement | null;
+      const inDotNav = Boolean(target?.closest('.settings-user-page-dots'));
+      if (inDotNav) {
+        const currentIndex = USER_PROFILE_PAGES.indexOf(userProfilePageRef.current);
+        if (currentIndex < 0) return;
+        const nextIndex = e.deltaY > 0
+          ? Math.min(currentIndex + 1, USER_PROFILE_PAGES.length - 1)
+          : Math.max(currentIndex - 1, 0);
+        if (nextIndex !== currentIndex) {
+          e.preventDefault();
+          setUserProfilePage(USER_PROFILE_PAGES[nextIndex]);
+        }
+        return;
+      }
       if (target?.closest('input, textarea, select, button')) {
         return;
       }
