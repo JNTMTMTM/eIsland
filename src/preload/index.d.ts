@@ -128,6 +128,8 @@ declare global {
       toggleTrayHotkeySet: (accelerator: string) => Promise<boolean>;
       showSettingsWindowHotkeyGet: () => Promise<string>;
       showSettingsWindowHotkeySet: (accelerator: string) => Promise<boolean>;
+      openClipboardHistoryHotkeyGet: () => Promise<string>;
+      openClipboardHistoryHotkeySet: (accelerator: string) => Promise<boolean>;
       logWrite: (level: string, message: string) => void;
       musicWhitelistGet: () => Promise<string[]>;
       musicWhitelistSet: (list: string[]) => Promise<boolean>;
@@ -161,6 +163,8 @@ declare global {
       maxexpandMouseleaveIdleSet: (enabled: boolean) => Promise<boolean>;
       springAnimationGet: () => Promise<boolean>;
       springAnimationSet: (enabled: boolean) => Promise<boolean>;
+      clipboardReadText: () => Promise<string>;
+      clipboardWriteText: (text: string) => Promise<boolean>;
       clipboardUrlMonitorGet: () => Promise<boolean>;
       clipboardUrlMonitorSet: (enabled: boolean) => Promise<boolean>;
       clipboardUrlDetectModeGet: () => Promise<'https-only' | 'http-https' | 'domain-only'>;

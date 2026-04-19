@@ -28,6 +28,15 @@ import type { StateCreator } from 'zustand';
 import type { IslandSlice } from '../types';
 import { emptyNotification } from '../constants/defaults';
 
+function isStandaloneRenderer(): boolean {
+  try {
+    const pathname = window.location?.pathname ?? '';
+    return pathname.includes('standalone.html');
+  } catch {
+    return false;
+  }
+}
+
 export const createIslandSlice: StateCreator<
   IslandSlice,
   [],
@@ -68,43 +77,52 @@ export const createIslandSlice: StateCreator<
   },
 
   setLogin: () => set((prev) => {
-    window.api?.expandWindowSettings();
-    window.api?.disableMousePassthrough();
+    const standalone = isStandaloneRenderer();
+    if (!standalone) {
+      window.api?.expandWindowSettings();
+      window.api?.disableMousePassthrough();
+    }
     const nextAuthReturnState = (prev.state === 'login' || prev.state === 'register')
       ? prev.authReturnState
-      : prev.state;
+      : (standalone ? 'maxExpand' : prev.state);
     return { state: 'login', authReturnState: nextAuthReturnState };
   }),
 
   setRegister: () => set((prev) => {
-    window.api?.expandWindowSettings();
-    window.api?.disableMousePassthrough();
+    const standalone = isStandaloneRenderer();
+    if (!standalone) {
+      window.api?.expandWindowSettings();
+      window.api?.disableMousePassthrough();
+    }
     const nextAuthReturnState = (prev.state === 'login' || prev.state === 'register')
       ? prev.authReturnState
-      : prev.state;
+      : (standalone ? 'maxExpand' : prev.state);
     return { state: 'register', authReturnState: nextAuthReturnState };
   }),
 
   returnFromAuth: () => set((prev) => {
+    const standalone = isStandaloneRenderer();
     const target = prev.authReturnState ?? 'maxExpand';
-    if (target === 'idle') {
-      window.api?.collapseWindow();
-      window.api?.enableMousePassthrough();
-    } else if (target === 'hover') {
-      window.api?.expandWindow();
-      window.api?.disableMousePassthrough();
-    } else if (target === 'expanded') {
-      window.api?.expandWindowFull();
-      window.api?.disableMousePassthrough();
-    } else if (target === 'maxExpand' || target === 'guide' || target === 'login' || target === 'register') {
-      window.api?.expandWindowSettings();
-      window.api?.disableMousePassthrough();
-    } else if (target === 'lyrics') {
-      window.api?.expandWindowLyrics();
-      window.api?.enableMousePassthrough();
-    } else if (target === 'notification') {
-      window.api?.expandWindowNotification();
-      window.api?.disableMousePassthrough();
+    if (!standalone) {
+      if (target === 'idle') {
+        window.api?.collapseWindow();
+        window.api?.enableMousePassthrough();
+      } else if (target === 'hover') {
+        window.api?.expandWindow();
+        window.api?.disableMousePassthrough();
+      } else if (target === 'expanded') {
+        window.api?.expandWindowFull();
+        window.api?.disableMousePassthrough();
+      } else if (target === 'maxExpand' || target === 'guide' || target === 'login' || target === 'register') {
+        window.api?.expandWindowSettings();
+        window.api?.disableMousePassthrough();
+      } else if (target === 'lyrics') {
+        window.api?.expandWindowLyrics();
+        window.api?.enableMousePassthrough();
+      } else if (target === 'notification') {
+        window.api?.expandWindowNotification();
+        window.api?.disableMousePassthrough();
+      }
     }
     return { state: target === 'login' || target === 'register' ? 'maxExpand' : target, authReturnState: null };
   }),

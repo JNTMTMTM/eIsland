@@ -551,6 +551,45 @@
       "notePlaceholder": "Enter note"
     }
   },
+  "clipboardHistoryTab": {
+    "title": "Clipboard History",
+    "count": "{{count}} items",
+    "empty": "No records yet. Copy some text and it will appear here.",
+    "actions": {
+      "clear": "Clear",
+      "save": "Save",
+      "copyTitle": "Copy to clipboard",
+      "copyAria": "Copy this record to clipboard",
+      "expand": "Expand",
+      "collapse": "Collapse",
+      "removeAria": "Remove this clipboard record"
+    }
+  },
+  "sliderCaptcha": {
+    "title": "Slider Verification",
+    "subtitle": "Challenge service powered by Pyisland Server & eIsland",
+    "hint": "Solve the equation below first, then drag the slider to the matching value",
+    "traceCode": "traceCode: {{code}}",
+    "equationLabel": "Equation Challenge",
+    "currentValueLabel": "Current Value",
+    "valueRange": "Range {{min}} - {{max}}",
+    "actions": {
+      "cancel": "Cancel",
+      "confirm": "Confirm"
+    }
+  },
+  "maxExpand": {
+    "nav": {
+      "expanded": "Back",
+      "todo": "Todo",
+      "urlFavorites": "URL Favorites",
+      "clipboardHistory": "Clipboard",
+      "aiChat": "AI Chat",
+      "countdown": "Countdown",
+      "settings": "Settings",
+      "switchTo": "Switch to {{label}}"
+    }
+  },
   "settings": {
     "sidebar": {
       "title": "Settings"
@@ -565,6 +604,7 @@
       "language": "Language",
       "behavior": "Interaction",
       "url-parser": "URL Parser",
+      "clipboard-history": "Clipboard History",
       "autostart": "Utilities",
       "network": "Network",
       "weather": "Weather",
@@ -764,6 +804,32 @@
       "saveFailed": "Save failed: {{error}}",
       "unknownError": "Unknown error"
     },
+    "clipboardHistory": {
+      "enabled": {
+        "title": "History Recording",
+        "hint": "When disabled, no new clipboard records are added, while existing records are kept.",
+        "toggle": "Enable clipboard history"
+      },
+      "limit": {
+        "title": "Max Records",
+        "hint": "New records are stored using this rolling limit.",
+        "options": {
+          "10": "10 items",
+          "20": "20 items",
+          "30": "30 items",
+          "50": "50 items"
+        }
+      },
+      "actions": {
+        "title": "Data Management",
+        "hint": "You can clear all saved clipboard history at once.",
+        "clear": "Clear history"
+      },
+      "messages": {
+        "clearSuccess": "Clipboard history cleared",
+        "clearFailed": "Clear failed, please try again"
+      }
+    },
     "network": {
       "timeout": {
         "title": "Request Timeout",
@@ -904,6 +970,10 @@
         "toggleTray": {
           "title": "Show/Hide Tray Icon Shortcut",
           "hint": "Press to toggle the tray icon visibility"
+        },
+        "openClipboardHistory": {
+          "title": "Open Clipboard History Shortcut",
+          "hint": "Press to open Dynamic Island and jump directly to Clipboard History"
         }
       },
       "capture": {
@@ -1310,6 +1380,10 @@
       "url-parser": {
         "label": "URL Parser",
         "desc": "Configure clipboard URL detection and blacklist."
+      },
+      "clipboard-history": {
+        "label": "Clipboard History",
+        "desc": "Configure clipboard history behavior and retention limit."
       },
       "autostart": {
         "label": "Utilities",

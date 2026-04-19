@@ -492,6 +492,21 @@ const api = {
   showSettingsWindowHotkeySet: (accelerator: string): Promise<boolean> => {
     return ipcRenderer.invoke('show-settings-window-hotkey:set', accelerator);
   },
+  /**
+   * 获取当前打开剪贴板历史快捷键
+   * @returns 当前快捷键字符串
+   */
+  openClipboardHistoryHotkeyGet: (): Promise<string> => {
+    return ipcRenderer.invoke('open-clipboard-history-hotkey:get');
+  },
+  /**
+   * 设置打开剪贴板历史快捷键
+   * @param accelerator - Electron accelerator 字符串
+   * @returns 是否注册成功
+   */
+  openClipboardHistoryHotkeySet: (accelerator: string): Promise<boolean> => {
+    return ipcRenderer.invoke('open-clipboard-history-hotkey:set', accelerator);
+  },
   /** ===== 日志文件 API ===== */
   /**
    * 写入日志到文件
@@ -705,6 +720,18 @@ const api = {
    */
   springAnimationSet: (enabled: boolean): Promise<boolean> => {
     return ipcRenderer.invoke('island:spring-animation:set', enabled);
+  },
+  /**
+   * 读取当前剪贴板文本
+   */
+  clipboardReadText: (): Promise<string> => {
+    return ipcRenderer.invoke('clipboard:read-text');
+  },
+  /**
+   * 写入文本到剪贴板
+   */
+  clipboardWriteText: (text: string): Promise<boolean> => {
+    return ipcRenderer.invoke('clipboard:write-text', text);
   },
   /**
    * 获取剪贴板 URL 监听开关

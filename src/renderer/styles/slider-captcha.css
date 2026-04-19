@@ -1,0 +1,299 @@
+/*
+ * eIsland - A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Electron.
+ * https://github.com/JNTMTMTM/eIsland
+ *
+ * Copyright (C) 2026 JNTMTMTM
+ * Copyright (C) 2026 pyisland.com
+ *
+ * Original author: JNTMTMTM[](https://github.com/JNTMTMTM)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ */
+
+.slider-captcha-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+  border-radius: inherit;
+  background: rgba(6 10 16 / .42);
+  backdrop-filter: blur(10px) saturate(.86);
+  -webkit-backdrop-filter: blur(10px) saturate(.86);
+  animation: slider-captcha-overlay-in .22s ease forwards;
+}
+
+.slider-captcha-overlay.is-closing {
+  pointer-events: none;
+  animation: slider-captcha-overlay-out .18s ease forwards;
+}
+
+.slider-captcha-card {
+  width: min(360px, 86vw);
+  padding: 18px;
+  color: rgba(var(--color-text-rgb), .95);
+  background: rgba(var(--color-text-rgb), .06);
+  backdrop-filter: blur(14px);
+  border-radius: 14px;
+  border: 1px solid rgba(var(--color-text-rgb), .14);
+  box-shadow: 0 6px 18px rgb(0 0 0 / .22);
+  animation: slider-captcha-card-in .24s cubic-bezier(.22, 1, .36, 1) forwards;
+  transform-origin: center;
+}
+
+.slider-captcha-card.is-closing {
+  animation: slider-captcha-card-out .18s ease forwards;
+}
+
+@keyframes slider-captcha-overlay-in {
+  from {
+    background: rgba(6 10 16 / 0);
+    backdrop-filter: blur(0) saturate(1);
+    -webkit-backdrop-filter: blur(0) saturate(1);
+  }
+
+  to {
+    background: rgba(6 10 16 / .42);
+    backdrop-filter: blur(10px) saturate(.86);
+    -webkit-backdrop-filter: blur(10px) saturate(.86);
+  }
+}
+
+@keyframes slider-captcha-overlay-out {
+  from {
+    background: rgba(6 10 16 / .42);
+    backdrop-filter: blur(10px) saturate(.86);
+    -webkit-backdrop-filter: blur(10px) saturate(.86);
+  }
+
+  to {
+    background: rgba(6 10 16 / 0);
+    backdrop-filter: blur(0) saturate(1);
+    -webkit-backdrop-filter: blur(0) saturate(1);
+  }
+}
+
+@keyframes slider-captcha-card-out {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(6px) scale(.98);
+  }
+}
+
+@keyframes slider-captcha-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.slider-captcha-brand {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.slider-captcha-brand-logo {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 4px rgba(var(--color-text-rgb), .2));
+}
+
+.slider-captcha-brand-texts {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+.slider-captcha-title {
+  margin-bottom: 2px;
+  font-weight: 700;
+}
+
+.slider-captcha-subtitle {
+  font-size: 12px;
+  color: rgba(var(--color-text-rgb), .62);
+}
+
+.slider-captcha-hint {
+  margin-bottom: 14px;
+  margin-top: 12px;
+  font-size: 13px;
+  opacity: .9;
+}
+
+.slider-captcha-trace-code {
+  margin-top: -10px;
+  margin-bottom: 10px;
+}
+
+.slider-captcha-equation-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  padding: 8px 10px;
+  background: rgba(100 180 255 / .12);
+  border: 1px solid rgba(100 180 255 / .32);
+  border-radius: 10px;
+}
+
+.slider-captcha-equation-label {
+  font-size: 12px;
+  color: rgba(var(--color-text-rgb), .7);
+}
+
+.slider-captcha-equation-value {
+  min-width: 76px;
+  padding: 2px 10px;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+  color: rgba(130 200 255 / .98);
+  letter-spacing: .3px;
+  background: rgba(100 180 255 / .28);
+  border: 1px solid rgba(100 180 255 / .42);
+  border-radius: 999px;
+}
+
+.slider-captcha-value {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.slider-captcha-value-label {
+  font-size: 12px;
+  color: rgba(var(--color-text-rgb), .74);
+}
+
+.slider-captcha-value-number {
+  min-width: 40px;
+  padding: 1px 10px;
+  font-size: 14px;
+  font-weight: 700;
+  text-align: center;
+  color: rgba(130 200 255 / .98);
+  letter-spacing: .2px;
+  background: rgba(100 180 255 / .2);
+  border: 1px solid rgba(100 180 255 / .38);
+  border-radius: 999px;
+}
+
+.slider-captcha-value-range {
+  margin-left: auto;
+  font-size: 11px;
+  color: rgba(var(--color-text-rgb), .5);
+}
+
+.slider-captcha-range {
+  width: 100%;
+  height: 8px;
+  appearance: none;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    rgba(100 180 255 / .85) 0,
+    rgba(100 180 255 / .85) var(--slider-progress),
+    rgba(var(--color-text-rgb), .18) var(--slider-progress),
+    rgba(var(--color-text-rgb), .18) 100%
+  );
+  outline: 0;
+}
+
+.slider-captcha-range::-webkit-slider-runnable-track {
+  height: 8px;
+  border-radius: 999px;
+  background: transparent;
+}
+
+.slider-captcha-range::-moz-range-track {
+  height: 8px;
+  border-radius: 999px;
+  background: transparent;
+}
+
+.slider-captcha-range::-webkit-slider-thumb {
+  width: 16px;
+  height: 16px;
+  margin-top: -4px;
+  appearance: none;
+  border: 1px solid rgba(100 180 255 / .55);
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(100 180 255 / .24);
+}
+
+.slider-captcha-range::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border: 1px solid rgba(100 180 255 / .55);
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(100 180 255 / .24);
+}
+
+.slider-captcha-range:focus-visible::-webkit-slider-thumb {
+  box-shadow: 0 0 0 4px rgba(100 180 255 / .35);
+}
+
+.slider-captcha-range:focus-visible::-moz-range-thumb {
+  box-shadow: 0 0 0 4px rgba(100 180 255 / .35);
+}
+
+.slider-captcha-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 14px;
+}
+
+.slider-captcha-btn {
+  appearance: none;
+  border: 1px solid transparent;
+  padding: 6px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: inherit;
+  color: rgba(var(--color-text-rgb), .84);
+  border-radius: 8px;
+  transition: background .18s ease, color .18s ease, border-color .18s ease, opacity .18s ease;
+}
+
+.slider-captcha-btn-cancel {
+  background: rgba(var(--color-text-rgb), .08);
+  border: 1px solid rgba(var(--color-text-rgb), .16);
+}
+
+.slider-captcha-btn-cancel:hover {
+  background: rgba(var(--color-text-rgb), .14);
+  border-color: rgba(var(--color-text-rgb), .24);
+}
+
+.slider-captcha-btn-confirm {
+  padding: 6px 16px;
+  color: rgba(130 200 255 / .95);
+  background: rgba(100 180 255 / .2);
+  border-color: rgba(100 180 255 / .4);
+}
+
+.slider-captcha-btn-confirm:hover {
+  background: rgba(100 180 255 / .28);
+}

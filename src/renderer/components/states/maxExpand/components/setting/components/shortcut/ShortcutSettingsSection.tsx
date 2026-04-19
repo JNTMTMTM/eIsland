@@ -93,6 +93,14 @@ interface ShortcutSettingsSectionProps {
   setShowSettingsWindowHotkeyError: (value: string) => void;
   handleShowSettingsWindowHotkeyKeyDown: (event: ReactKeyboardEvent<HTMLInputElement>) => void;
   setShowSettingsWindowHotkey: (value: string) => void;
+  openClipboardHistoryHotkeyInputRef: RefObject<HTMLInputElement | null>;
+  openClipboardHistoryHotkeyRecording: boolean;
+  openClipboardHistoryHotkeyError: string;
+  openClipboardHistoryHotkey: string;
+  setOpenClipboardHistoryHotkeyRecording: (value: boolean) => void;
+  setOpenClipboardHistoryHotkeyError: (value: string) => void;
+  handleOpenClipboardHistoryHotkeyKeyDown: (event: ReactKeyboardEvent<HTMLInputElement>) => void;
+  setOpenClipboardHistoryHotkey: (value: string) => void;
 }
 
 /**
@@ -174,6 +182,15 @@ export function ShortcutSettingsSection(props: ShortcutSettingsSectionProps): Re
     setShowSettingsWindowHotkeyError,
     handleShowSettingsWindowHotkeyKeyDown,
     setShowSettingsWindowHotkey,
+
+    openClipboardHistoryHotkeyInputRef,
+    openClipboardHistoryHotkeyRecording,
+    openClipboardHistoryHotkeyError,
+    openClipboardHistoryHotkey,
+    setOpenClipboardHistoryHotkeyRecording,
+    setOpenClipboardHistoryHotkeyError,
+    handleOpenClipboardHistoryHotkeyKeyDown,
+    setOpenClipboardHistoryHotkey,
   } = props;
 
   type ShortcutSettingsPageKey = 'window' | 'capture' | 'media';
@@ -390,6 +407,39 @@ export function ShortcutSettingsSection(props: ShortcutSettingsSectionProps): Re
                   )}
                 </div>
                 {showSettingsWindowHotkeyError && <div className="settings-hotkey-error">{showSettingsWindowHotkeyError}</div>}
+              </div>
+
+              <div className="settings-card">
+                <div className="settings-card-header">
+                  <div className="settings-card-title">{t('settings.shortcut.window.openClipboardHistory.title', { defaultValue: '打开剪贴板历史快捷键' })}</div>
+                  <div className="settings-card-subtitle">{t('settings.shortcut.window.openClipboardHistory.hint', { defaultValue: '按下后将打开灵动岛并直接切换到剪贴板历史界面' })}</div>
+                </div>
+                <div className="settings-hotkey-row">
+                  <input
+                    ref={openClipboardHistoryHotkeyInputRef}
+                    className={`settings-hotkey-input ${openClipboardHistoryHotkeyRecording ? 'recording' : ''}${openClipboardHistoryHotkeyError ? ' error' : ''}`}
+                    type="text"
+                    readOnly
+                    value={openClipboardHistoryHotkeyRecording ? recordingValue : (openClipboardHistoryHotkey || notSetValue)}
+                    onFocus={() => { setOpenClipboardHistoryHotkeyRecording(true); setOpenClipboardHistoryHotkeyError(''); window.api.hotkeySuspend().catch(() => {}); }}
+                    onBlur={() => { setOpenClipboardHistoryHotkeyRecording(false); window.api.hotkeyResume().catch(() => {}); }}
+                    onKeyDown={handleOpenClipboardHistoryHotkeyKeyDown}
+                  />
+                  <button className="settings-hotkey-btn" type="button" onClick={() => { setOpenClipboardHistoryHotkeyRecording(true); openClipboardHistoryHotkeyInputRef.current?.focus(); }}>{openClipboardHistoryHotkeyRecording ? recordingBtn : editBtn}</button>
+                  {openClipboardHistoryHotkey && (
+                    <button className="settings-hotkey-btn" type="button" onClick={() => {
+                      window.api.openClipboardHistoryHotkeySet('').then((ok) => {
+                        if (ok) {
+                          setOpenClipboardHistoryHotkey('');
+                          setOpenClipboardHistoryHotkeyError('');
+                          setOpenClipboardHistoryHotkeyRecording(false);
+                          openClipboardHistoryHotkeyInputRef.current?.blur();
+                        }
+                      }).catch(() => {});
+                    }}>{clearBtn}</button>
+                  )}
+                </div>
+                {openClipboardHistoryHotkeyError && <div className="settings-hotkey-error">{openClipboardHistoryHotkeyError}</div>}
               </div>
             </div>
           )}

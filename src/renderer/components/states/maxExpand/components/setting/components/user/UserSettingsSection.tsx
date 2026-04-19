@@ -212,7 +212,11 @@ export function UserSettingsSection(): ReactElement {
     setAvatarUploading(true);
     setProfileFeedback(null);
     try {
-      const url = await uploadUserAvatar(file);
+      const currentToken = readLocalToken();
+      if (!currentToken) {
+        throw new Error(t('settings.user.feedback.needLogin', { defaultValue: '请先登录后再上传头像' }));
+      }
+      const url = await uploadUserAvatar(file, currentToken);
       setEditAvatar(url);
       setProfileFeedback({ type: 'success', text: t('settings.user.feedback.avatarUploaded', { defaultValue: '头像已上传，保存资料生效' }) });
     } catch (err) {

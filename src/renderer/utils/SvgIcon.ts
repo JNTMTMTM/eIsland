@@ -90,7 +90,9 @@ export const SvgIcon = {
   /** 星星 */
   STAR: './svg/STAR.svg',
   /** 下载 */
-  DOWNLOAD: './svg/DOWNLOAD.svg'
+  DOWNLOAD: './svg/DOWNLOAD.svg',
+  /** 复制 */
+  COPY: './svg/COPY.svg'
 } as const;
 
 export type SvgIconKey = keyof typeof SvgIcon;

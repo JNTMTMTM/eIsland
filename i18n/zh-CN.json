@@ -551,6 +551,45 @@
       "notePlaceholder": "输入备注"
     }
   },
+  "clipboardHistoryTab": {
+    "title": "剪贴板历史",
+    "count": "{{count}} 条",
+    "empty": "暂时没有记录，复制一些文本后会显示在这里。",
+    "actions": {
+      "clear": "清空",
+      "save": "保存",
+      "copyTitle": "复制到剪贴板",
+      "copyAria": "复制该记录到剪贴板",
+      "expand": "展开",
+      "collapse": "收起",
+      "removeAria": "删除该剪贴板记录"
+    }
+  },
+  "sliderCaptcha": {
+    "title": "滑块验证",
+    "subtitle": "由 Pyisland Server & eIsland 提供质询服务",
+    "hint": "请先计算下方算式结果，再将滑块拖到对应值",
+    "traceCode": "traceCode: {{code}}",
+    "equationLabel": "算式挑战",
+    "currentValueLabel": "当前值",
+    "valueRange": "范围 {{min}} - {{max}}",
+    "actions": {
+      "cancel": "取消",
+      "confirm": "确认"
+    }
+  },
+  "maxExpand": {
+    "nav": {
+      "expanded": "返回",
+      "todo": "待办",
+      "urlFavorites": "URL 收藏",
+      "clipboardHistory": "剪贴板",
+      "aiChat": "AI 对话",
+      "countdown": "倒数日",
+      "settings": "设置",
+      "switchTo": "切换到{{label}}"
+    }
+  },
   "settings": {
     "sidebar": {
       "title": "设置"
@@ -565,6 +604,7 @@
       "language": "语言切换",
       "behavior": "交互行为",
       "url-parser": "URL解析",
+      "clipboard-history": "剪贴板历史",
       "autostart": "实用工具",
       "network": "网络配置",
       "weather": "天气配置",
@@ -764,6 +804,32 @@
       "saveFailed": "保存失败：{{error}}",
       "unknownError": "未知错误"
     },
+    "clipboardHistory": {
+      "enabled": {
+        "title": "历史记录开关",
+        "hint": "关闭后不再追加新的剪贴板记录，已有记录会保留。",
+        "toggle": "启用剪贴板历史记录"
+      },
+      "limit": {
+        "title": "最大保留条数",
+        "hint": "新记录会在前端按该条数滚动保存。",
+        "options": {
+          "10": "10 条",
+          "20": "20 条",
+          "30": "30 条",
+          "50": "50 条"
+        }
+      },
+      "actions": {
+        "title": "数据管理",
+        "hint": "可一键清空已保存的剪贴板历史记录。",
+        "clear": "清空历史记录"
+      },
+      "messages": {
+        "clearSuccess": "剪贴板历史已清空",
+        "clearFailed": "清空失败，请稍后重试"
+      }
+    },
     "network": {
       "timeout": {
         "title": "请求超时时间",
@@ -904,6 +970,10 @@
         "toggleTray": {
           "title": "隐藏/显示托盘图标快捷键",
           "hint": "按下此快捷键将隐藏或显示系统托盘中的灵动岛图标"
+        },
+        "openClipboardHistory": {
+          "title": "打开剪贴板历史快捷键",
+          "hint": "按下后将打开灵动岛并直接切换到剪贴板历史界面"
         }
       },
       "capture": {
@@ -1310,6 +1380,10 @@
       "url-parser": {
         "label": "URL解析",
         "desc": "配置剪贴板 URL 识别模式与黑名单。"
+      },
+      "clipboard-history": {
+        "label": "剪贴板历史",
+        "desc": "配置剪贴板历史记录能力与条数。"
       },
       "autostart": {
         "label": "实用工具",

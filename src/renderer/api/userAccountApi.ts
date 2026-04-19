@@ -34,7 +34,11 @@ import type {
 export type { UserAccountGender, UserAccountProfile } from '../utils/userAccount';
 
 /** pyisland-admin 服务根地址 */
-export const USER_ACCOUNT_API_BASE = 'https://server.pyisland.com/api';
+const IS_DEV_RENDERER = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
+export const USER_ACCOUNT_API_BASE = IS_DEV_RENDERER
+  ? 'https://test.server.pyisland.com/api'
+  : 'https://server.pyisland.com/api';
 
 /** 通用 API 返回值 */
 export interface UserAccountResult<T = unknown> {
@@ -53,6 +57,23 @@ export interface UserAccountLoginData {
 }
 
 export type UserEmailCodeScene = 'REGISTER' | 'LOGIN' | 'RESET_PASSWORD' | 'CHANGE_EMAIL';
+
+export interface UserEmailCaptchaConfig {
+  enabled: boolean;
+  provider?: string;
+  minValue?: number;
+  maxValue?: number;
+  tolerance?: number;
+  challengeTtlSeconds?: number;
+}
+
+export interface UserEmailCaptchaChallenge {
+  challengeId: string;
+  minValue: number;
+  maxValue: number;
+  targetValue: number;
+  tolerance: number;
+}
 
 export interface WallpaperMarketItem {
   id: number;
@@ -133,14 +154,61 @@ export interface WallpaperTagItem {
   usageCount?: number;
 }
 
-/** 超时时间（毫秒） */
+/** 超时时间（ms） */
 const DEFAULT_TIMEOUT_MS = 10000;
+const APP_NAME_HEADER = 'X-App-Name';
+const APP_NAME_VALUE = 'eisland';
+const CLIENT_VERSION_HEADER = 'X-Client-Version';
+const REPLAY_TIMESTAMP_HEADER = 'X-Timestamp';
+const REPLAY_NONCE_HEADER = 'X-Nonce';
+let cachedClientVersion: string | null = null;
 
 interface InternalRequestInit {
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
   auth?: string | null;
   body?: Record<string, unknown> | null;
   timeoutMs?: number;
+}
+
+function createReplayNonce(): string {
+  const bytes = new Uint8Array(16);
+  if (typeof globalThis.crypto !== 'undefined' && typeof globalThis.crypto.getRandomValues === 'function') {
+    globalThis.crypto.getRandomValues(bytes);
+  } else {
+    for (let i = 0; i < bytes.length; i++) {
+      bytes[i] = Math.floor(Math.random() * 256);
+    }
+  }
+  return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+function buildReplayHeaders(): Record<string, string> {
+  return {
+    [REPLAY_TIMESTAMP_HEADER]: String(Date.now()),
+    [REPLAY_NONCE_HEADER]: createReplayNonce(),
+  };
+}
+
+function shouldAttachReplayHeaders(path: string, method: InternalRequestInit['method'], auth?: string | null): boolean {
+  if (!auth || auth.trim().length === 0) return false;
+  const actualMethod = method ?? 'GET';
+  if (actualMethod !== 'POST' && actualMethod !== 'PUT' && actualMethod !== 'DELETE') return false;
+  return path.startsWith('/v1/user/') || path === '/v1/upload/user-avatar';
+}
+
+async function resolveClientVersion(): Promise<string | null> {
+  if (cachedClientVersion && cachedClientVersion.length > 0) {
+    return cachedClientVersion;
+  }
+  try {
+    const version = await window.api.updaterVersion();
+    const normalized = typeof version === 'string' ? version.trim() : '';
+    if (!normalized) return null;
+    cachedClientVersion = normalized;
+    return normalized;
+  } catch {
+    return null;
+  }
 }
 
 function parsePayload<T>(body: string): UserAccountResult<T> {
@@ -159,9 +227,17 @@ function parsePayload<T>(body: string): UserAccountResult<T> {
 async function request<T>(path: string, init: InternalRequestInit = {}): Promise<UserAccountResult<T>> {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
+    [APP_NAME_HEADER]: APP_NAME_VALUE,
   };
+  const clientVersion = await resolveClientVersion();
+  if (clientVersion) {
+    headers[CLIENT_VERSION_HEADER] = clientVersion;
+  }
   if (init.auth) {
     headers['Authorization'] = `Bearer ${init.auth}`;
+  }
+  if (shouldAttachReplayHeaders(path, init.method, init.auth)) {
+    Object.assign(headers, buildReplayHeaders());
   }
   try {
     const resp = await window.api.netFetch(`${USER_ACCOUNT_API_BASE}${path}`, {
@@ -274,18 +350,47 @@ export function registerUserWithCode(
 }
 
 /**
+ * 获取邮箱验证码滑块配置。
+ * @returns 滑块配置。
+ */
+export function fetchUserEmailCaptchaConfig(): Promise<UserAccountResult<UserEmailCaptchaConfig>> {
+  return request<UserEmailCaptchaConfig>('/auth/user/email-code/captcha-config', {
+    method: 'GET',
+  });
+}
+
+/**
+ * 创建邮箱验证码滑块挑战。
+ * @param account 账户标识。
+ * @returns 挑战参数。
+ */
+export function createUserEmailCaptchaChallenge(account: string): Promise<UserAccountResult<UserEmailCaptchaChallenge>> {
+  return request<UserEmailCaptchaChallenge>('/auth/user/email-code/captcha-challenge', {
+    method: 'POST',
+    body: { account },
+  });
+}
+
+/**
  * 发送邮箱验证码。
  * @param email 邮箱。
  * @param scene 验证码使用场景。
+ * @param captcha 滑块验证票据。
  * @returns 发送结果（可能包含重试等待秒数）。
  */
 export function sendUserEmailCode(
   email: string,
   scene: UserEmailCodeScene,
+  captcha: { ticket: string; randstr: string },
 ): Promise<UserAccountResult<{ retryAfterSeconds?: number }>> {
   return request<{ retryAfterSeconds?: number }>('/auth/user/email-code/send', {
     method: 'POST',
-    body: { email, scene },
+    body: {
+      email,
+      scene,
+      captchaTicket: captcha.ticket,
+      captchaRandstr: captcha.randstr,
+    },
   });
 }
 
@@ -378,16 +483,28 @@ export function unregisterUser(token: string, password: string): Promise<UserAcc
 }
 
 /**
- * 上传头像到 Cloudflare R2（经由后端公开头像接口）。
- * 由于需要发送 multipart/form-data，走浏览器原生 fetch；后端 CORS 允许所有来源。
+ * 上传头像到 Cloudflare R2（经由后端受鉴权保护的头像接口）。
+ * 由于需要发送 multipart/form-data，走浏览器原生 fetch。
  * @param file 头像文件。
+ * @param token 用户 token。
  * @returns 上传后的完整 URL；失败时抛出 Error。
  */
-export async function uploadUserAvatar(file: File): Promise<string> {
+export async function uploadUserAvatar(file: File, token: string): Promise<string> {
+  if (!token || token.trim().length === 0) {
+    throw new Error('未登录');
+  }
+  const clientVersion = await resolveClientVersion();
+  const replayHeaders = buildReplayHeaders();
   const formData = new FormData();
   formData.append('file', file);
   const resp = await fetch(`${USER_ACCOUNT_API_BASE}/v1/upload/user-avatar`, {
     method: 'POST',
+    headers: {
+      [APP_NAME_HEADER]: APP_NAME_VALUE,
+      ...(clientVersion ? { [CLIENT_VERSION_HEADER]: clientVersion } : {}),
+      Authorization: `Bearer ${token}`,
+      ...replayHeaders,
+    },
     body: formData,
   });
   if (!resp.ok) {
@@ -491,6 +608,7 @@ export async function uploadUserWallpaper(
   payload: UploadWallpaperPayload,
   options: UploadWallpaperOptions = {},
 ): Promise<UserAccountResult<{ id: number }>> {
+  const clientVersion = await resolveClientVersion();
   const formData = new FormData();
   formData.append('title', payload.title);
   if (payload.description) formData.append('description', payload.description);
@@ -512,7 +630,14 @@ export async function uploadUserWallpaper(
   formData.append('thumb1280', payload.thumb1280);
 
   const headers: Record<string, string> = {};
-  if (token) headers.Authorization = `Bearer ${token}`;
+  headers[APP_NAME_HEADER] = APP_NAME_VALUE;
+  if (clientVersion) {
+    headers[CLIENT_VERSION_HEADER] = clientVersion;
+  }
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+    Object.assign(headers, buildReplayHeaders());
+  }
   return new Promise((resolve) => {
     const xhr = new XMLHttpRequest();
     xhr.open('POST', `${USER_ACCOUNT_API_BASE}/v1/user/wallpapers/upload`, true);

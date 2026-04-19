@@ -30,6 +30,7 @@ import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../store/slices';
 import { registerUserWithCode, sendUserEmailCode } from '../../../api/userAccountApi';
 import { updateSessionToken } from '../../../utils/authSession';
+import { runEmailSliderCaptcha } from '../../../utils/sliderCaptcha';
 import '../../../styles/settings/settings.css';
 import '../../../styles/auth/auth.css';
 
@@ -97,7 +98,24 @@ export function RegisterContent(): ReactElement {
       return;
     }
     setSendingCode(true);
-    const result = await sendUserEmailCode(cleanEmail, 'REGISTER');
+    let captchaTicket = '';
+    let captchaRandstr = '';
+    try {
+      const captcha = await runEmailSliderCaptcha(cleanEmail);
+      if (!captcha) {
+        setSendingCode(false);
+        setFeedback({ type: 'error', text: t('settings.user.feedback.captchaCancelled', { defaultValue: '请完成滑块验证后再发送验证码' }) });
+        return;
+      }
+      captchaTicket = captcha.ticket;
+      captchaRandstr = captcha.randstr;
+    } catch (err) {
+      setSendingCode(false);
+      const msg = err instanceof Error ? err.message : t('settings.user.feedback.emailCodeSendFailed', { defaultValue: '验证码发送失败' });
+      setFeedback({ type: 'error', text: msg });
+      return;
+    }
+    const result = await sendUserEmailCode(cleanEmail, 'REGISTER', { ticket: captchaTicket, randstr: captchaRandstr });
     setSendingCode(false);
     if (!result.ok) {
       setFeedback({ type: 'error', text: result.message || t('settings.user.feedback.emailCodeSendFailed', { defaultValue: '验证码发送失败' }) });

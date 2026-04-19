@@ -629,6 +629,12 @@ export function SettingsTab(): ReactElement {
   const [showSettingsWindowHotkeyError, setShowSettingsWindowHotkeyError] = useState<string>('');
   const showSettingsWindowHotkeyInputRef = useRef<HTMLInputElement>(null);
 
+  /** 打开剪贴板历史快捷键相关状态 */
+  const [openClipboardHistoryHotkey, setOpenClipboardHistoryHotkey] = useState<string>('');
+  const [openClipboardHistoryHotkeyRecording, setOpenClipboardHistoryHotkeyRecording] = useState(false);
+  const [openClipboardHistoryHotkeyError, setOpenClipboardHistoryHotkeyError] = useState<string>('');
+  const openClipboardHistoryHotkeyInputRef = useRef<HTMLInputElement>(null);
+
   const hideProcessKeyword = hideProcessFilter.trim().toLowerCase();
 
 
@@ -967,6 +973,10 @@ export function SettingsTab(): ReactElement {
     window.api.showSettingsWindowHotkeyGet().then((key) => {
       if (cancelled) return;
       setShowSettingsWindowHotkey(key || '');
+    }).catch(() => {});
+    window.api.openClipboardHistoryHotkeyGet().then((key) => {
+      if (cancelled) return;
+      setOpenClipboardHistoryHotkey(key || '');
     }).catch(() => {});
     return () => { cancelled = true; };
   }, []);
@@ -1459,8 +1469,8 @@ export function SettingsTab(): ReactElement {
     return parts.length >= 2 ? parts.join('+') : '';
   };
 
-  const isDuplicateHotkey = (acc: string, exclude: 'hide' | 'quit' | 'screenshot' | 'next-song' | 'play-pause-song' | 'reset-position' | 'toggle-tray' | 'show-settings-window'): boolean => {
-    const pairs: Array<{ key: 'hide' | 'quit' | 'screenshot' | 'next-song' | 'play-pause-song' | 'reset-position' | 'toggle-tray' | 'show-settings-window'; value: string }> = [
+  const isDuplicateHotkey = (acc: string, exclude: 'hide' | 'quit' | 'screenshot' | 'next-song' | 'play-pause-song' | 'reset-position' | 'toggle-tray' | 'show-settings-window' | 'open-clipboard-history'): boolean => {
+    const pairs: Array<{ key: 'hide' | 'quit' | 'screenshot' | 'next-song' | 'play-pause-song' | 'reset-position' | 'toggle-tray' | 'show-settings-window' | 'open-clipboard-history'; value: string }> = [
       { key: 'hide', value: hideHotkey },
       { key: 'quit', value: quitHotkey },
       { key: 'screenshot', value: screenshotHotkey },
@@ -1469,6 +1479,7 @@ export function SettingsTab(): ReactElement {
       { key: 'reset-position', value: resetPositionHotkey },
       { key: 'toggle-tray', value: toggleTrayHotkey },
       { key: 'show-settings-window', value: showSettingsWindowHotkey },
+      { key: 'open-clipboard-history', value: openClipboardHistoryHotkey },
     ];
     return pairs.some((item) => item.key !== exclude && item.value && item.value === acc);
   };
@@ -1650,6 +1661,32 @@ export function SettingsTab(): ReactElement {
       }
     }).catch(() => {
       setShowSettingsWindowHotkeyError('快捷键注册失败');
+    });
+  };
+
+  const handleOpenClipboardHistoryHotkeyKeyDown = (e: KeyboardEvent): void => {
+    e.preventDefault();
+    e.stopPropagation();
+    setOpenClipboardHistoryHotkeyError('');
+    const acc = keyEventToAccelerator(e);
+    if (!acc) return;
+    if (isDuplicateHotkey(acc, 'open-clipboard-history')) {
+      setOpenClipboardHistoryHotkeyError('重复快捷键');
+      setOpenClipboardHistoryHotkeyRecording(false);
+      openClipboardHistoryHotkeyInputRef.current?.blur();
+      return;
+    }
+
+    window.api.openClipboardHistoryHotkeySet(acc).then((ok) => {
+      if (ok) {
+        setOpenClipboardHistoryHotkey(acc);
+        setOpenClipboardHistoryHotkeyRecording(false);
+        openClipboardHistoryHotkeyInputRef.current?.blur();
+      } else {
+        setOpenClipboardHistoryHotkeyError('快捷键注册失败，请尝试其他组合');
+      }
+    }).catch(() => {
+      setOpenClipboardHistoryHotkeyError('快捷键注册失败');
     });
   };
 
@@ -2079,6 +2116,14 @@ export function SettingsTab(): ReactElement {
               setShowSettingsWindowHotkeyError={setShowSettingsWindowHotkeyError}
               handleShowSettingsWindowHotkeyKeyDown={handleShowSettingsWindowHotkeyKeyDown}
               setShowSettingsWindowHotkey={setShowSettingsWindowHotkey}
+              openClipboardHistoryHotkeyInputRef={openClipboardHistoryHotkeyInputRef}
+              openClipboardHistoryHotkeyRecording={openClipboardHistoryHotkeyRecording}
+              openClipboardHistoryHotkeyError={openClipboardHistoryHotkeyError}
+              openClipboardHistoryHotkey={openClipboardHistoryHotkey}
+              setOpenClipboardHistoryHotkeyRecording={setOpenClipboardHistoryHotkeyRecording}
+              setOpenClipboardHistoryHotkeyError={setOpenClipboardHistoryHotkeyError}
+              handleOpenClipboardHistoryHotkeyKeyDown={handleOpenClipboardHistoryHotkeyKeyDown}
+              setOpenClipboardHistoryHotkey={setOpenClipboardHistoryHotkey}
             />
           )}
 

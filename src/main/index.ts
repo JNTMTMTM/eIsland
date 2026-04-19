@@ -93,10 +93,11 @@ import {
   SCREENSHOT_HOTKEY_STORE_KEY, NEXT_SONG_HOTKEY_STORE_KEY,
   PLAY_PAUSE_SONG_HOTKEY_STORE_KEY, RESET_POSITION_HOTKEY_STORE_KEY,
   TOGGLE_TRAY_HOTKEY_STORE_KEY, SHOW_SETTINGS_WINDOW_HOTKEY_STORE_KEY,
+  OPEN_CLIPBOARD_HISTORY_HOTKEY_STORE_KEY,
   sanitizeIslandPositionOffset, sanitizeSmtcUnsubscribeMs,
   readHotkeyConfig, readQuitHotkeyConfig, readScreenshotHotkeyConfig,
   readNextSongHotkeyConfig, readPlayPauseSongHotkeyConfig, readResetPositionHotkeyConfig,
-  readToggleTrayHotkeyConfig, readShowSettingsWindowHotkeyConfig,
+  readToggleTrayHotkeyConfig, readShowSettingsWindowHotkeyConfig, readOpenClipboardHistoryHotkeyConfig,
   readWhitelistConfig, readLyricsSourceConfig, readSmtcUnsubscribeMsConfig,
   readHideProcessListConfig, readIslandPositionOffsetConfig, writeIslandPositionOffsetConfig,
   readClipboardUrlMonitorEnabledConfig, readClipboardUrlDetectModeConfig, readClipboardUrlBlacklistConfig,
@@ -163,6 +164,7 @@ const hotkeyService = createHotkeyService({
   readResetPositionHotkeyConfig,
   readToggleTrayHotkeyConfig,
   readShowSettingsWindowHotkeyConfig,
+  readOpenClipboardHistoryHotkeyConfig,
   onScreenshotHotkey: () => {
     captureWindowService.startRegionScreenshot().catch((err) => {
       console.error('[Screenshot] hotkey trigger error:', err);
@@ -208,6 +210,15 @@ const hotkeyService = createHotkeyService({
 
     openStandaloneWindow();
     broadcastSettingChange(-1, 'store:standalone-window-active-tab', 'settings');
+  },
+  onOpenClipboardHistoryHotkey: () => {
+    const target = mainWindow;
+    if (!target || target.isDestroyed()) return;
+    if (!target.isVisible()) {
+      target.show();
+      target.setAlwaysOnTop(true, 'screen-saver');
+    }
+    broadcastSettingChange(-1, 'shortcut:open-clipboard-history', Date.now());
   },
 });
 
@@ -347,6 +358,7 @@ function registerIpcHandlers(): void {
     resetPositionHotkeyStoreKey: RESET_POSITION_HOTKEY_STORE_KEY,
     toggleTrayHotkeyStoreKey: TOGGLE_TRAY_HOTKEY_STORE_KEY,
     showSettingsWindowHotkeyStoreKey: SHOW_SETTINGS_WINDOW_HOTKEY_STORE_KEY,
+    openClipboardHistoryHotkeyStoreKey: OPEN_CLIPBOARD_HISTORY_HOTKEY_STORE_KEY,
     getCurrentHideHotkey: hotkeyService.getCurrentHideHotkey,
     getCurrentQuitHotkey: hotkeyService.getCurrentQuitHotkey,
     getCurrentScreenshotHotkey: hotkeyService.getCurrentScreenshotHotkey,
@@ -355,6 +367,7 @@ function registerIpcHandlers(): void {
     getCurrentResetPositionHotkey: hotkeyService.getCurrentResetPositionHotkey,
     getCurrentToggleTrayHotkey: hotkeyService.getCurrentToggleTrayHotkey,
     getCurrentShowSettingsWindowHotkey: hotkeyService.getCurrentShowSettingsWindowHotkey,
+    getCurrentOpenClipboardHistoryHotkey: hotkeyService.getCurrentOpenClipboardHistoryHotkey,
     readHideHotkeyConfig: readHotkeyConfig,
     readQuitHotkeyConfig,
     readScreenshotHotkeyConfig,
@@ -363,6 +376,7 @@ function registerIpcHandlers(): void {
     readResetPositionHotkeyConfig,
     readToggleTrayHotkeyConfig,
     readShowSettingsWindowHotkeyConfig,
+    readOpenClipboardHistoryHotkeyConfig,
     registerHideHotkey: hotkeyService.registerHideHotkey,
     registerQuitHotkey: hotkeyService.registerQuitHotkey,
     registerNextSongHotkey: hotkeyService.registerNextSongHotkey,
@@ -370,6 +384,7 @@ function registerIpcHandlers(): void {
     registerResetPositionHotkey: hotkeyService.registerResetPositionHotkey,
     registerToggleTrayHotkey: hotkeyService.registerToggleTrayHotkey,
     registerShowSettingsWindowHotkey: hotkeyService.registerShowSettingsWindowHotkey,
+    registerOpenClipboardHistoryHotkey: hotkeyService.registerOpenClipboardHistoryHotkey,
     suspendIslandHotkeys: hotkeyService.suspendIslandHotkeys,
     resumeIslandHotkeys: hotkeyService.resumeIslandHotkeys,
   });
@@ -388,7 +403,8 @@ function registerIpcHandlers(): void {
       const currentResetPos = hotkeyService.getCurrentResetPositionHotkey() || readResetPositionHotkeyConfig();
       const currentToggleTray = hotkeyService.getCurrentToggleTrayHotkey() || readToggleTrayHotkeyConfig();
       const currentShowSettings = hotkeyService.getCurrentShowSettingsWindowHotkey() || readShowSettingsWindowHotkeyConfig();
-      return [currentHide, currentQuit, currentNextSong, currentPlayPauseSong, currentResetPos, currentToggleTray, currentShowSettings];
+      const currentOpenClipboardHistory = hotkeyService.getCurrentOpenClipboardHistoryHotkey() || readOpenClipboardHistoryHotkeyConfig();
+      return [currentHide, currentQuit, currentNextSong, currentPlayPauseSong, currentResetPos, currentToggleTray, currentShowSettings, currentOpenClipboardHistory];
     },
     registerScreenshotHotkey: hotkeyService.registerScreenshotHotkey,
   });
@@ -587,6 +603,10 @@ app.whenReady().then(() => {
   // 读取持久化显示配置窗口快捷键并注册（仅独立窗口模式下会生效）
   const savedShowSettingsWindowHotkey = readShowSettingsWindowHotkeyConfig();
   if (savedShowSettingsWindowHotkey) hotkeyService.registerShowSettingsWindowHotkey(savedShowSettingsWindowHotkey);
+
+  // 读取持久化打开剪贴板历史快捷键并注册
+  const savedOpenClipboardHistoryHotkey = readOpenClipboardHistoryHotkeyConfig();
+  if (savedOpenClipboardHistoryHotkey) hotkeyService.registerOpenClipboardHistoryHotkey(savedOpenClipboardHistoryHotkey);
 
   initUpdaterService({
     updater: autoUpdater,
