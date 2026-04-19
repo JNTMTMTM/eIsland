@@ -34,7 +34,11 @@ import type {
 export type { UserAccountGender, UserAccountProfile } from '../utils/userAccount';
 
 /** pyisland-admin 服务根地址 */
-export const USER_ACCOUNT_API_BASE = 'https://server.pyisland.com/api';
+const IS_DEV_RENDERER = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
+export const USER_ACCOUNT_API_BASE = IS_DEV_RENDERER
+  ? 'https://test.server.pyisland.com/api'
+  : 'https://server.pyisland.com/api';
 
 /** 通用 API 返回值 */
 export interface UserAccountResult<T = unknown> {
@@ -53,6 +57,23 @@ export interface UserAccountLoginData {
 }
 
 export type UserEmailCodeScene = 'REGISTER' | 'LOGIN' | 'RESET_PASSWORD' | 'CHANGE_EMAIL';
+
+export interface UserEmailCaptchaConfig {
+  enabled: boolean;
+  provider?: string;
+  minValue?: number;
+  maxValue?: number;
+  tolerance?: number;
+  challengeTtlSeconds?: number;
+}
+
+export interface UserEmailCaptchaChallenge {
+  challengeId: string;
+  minValue: number;
+  maxValue: number;
+  targetValue: number;
+  tolerance: number;
+}
 
 export interface WallpaperMarketItem {
   id: number;
@@ -329,18 +350,46 @@ export function registerUserWithCode(
 }
 
 /**
+ * 获取邮箱验证码滑块配置。
+ * @returns 滑块配置。
+ */
+export function fetchUserEmailCaptchaConfig(): Promise<UserAccountResult<UserEmailCaptchaConfig>> {
+  return request<UserEmailCaptchaConfig>('/auth/user/email-code/captcha-config', {
+    method: 'GET',
+  });
+}
+
+/**
+ * 创建邮箱验证码滑块挑战。
+ * @returns 挑战参数。
+ */
+export function createUserEmailCaptchaChallenge(): Promise<UserAccountResult<UserEmailCaptchaChallenge>> {
+  return request<UserEmailCaptchaChallenge>('/auth/user/email-code/captcha-challenge', {
+    method: 'POST',
+    body: {},
+  });
+}
+
+/**
  * 发送邮箱验证码。
  * @param email 邮箱。
  * @param scene 验证码使用场景。
+ * @param captcha 滑块验证票据。
  * @returns 发送结果（可能包含重试等待秒数）。
  */
 export function sendUserEmailCode(
   email: string,
   scene: UserEmailCodeScene,
+  captcha: { ticket: string; randstr: string },
 ): Promise<UserAccountResult<{ retryAfterSeconds?: number }>> {
   return request<{ retryAfterSeconds?: number }>('/auth/user/email-code/send', {
     method: 'POST',
-    body: { email, scene },
+    body: {
+      email,
+      scene,
+      captchaTicket: captcha.ticket,
+      captchaRandstr: captcha.randstr,
+    },
   });
 }
 

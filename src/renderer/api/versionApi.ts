@@ -34,7 +34,12 @@ export interface VersionInfo {
   updatedAt: string;
 }
 
-const UPDATE_COUNT_ENDPOINT = 'https://server.pyisland.com/api/v1/version/update-count';
+const IS_DEV_RENDERER = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+const VERSION_API_BASE = IS_DEV_RENDERER
+  ? 'https://test.server.pyisland.com/api'
+  : 'https://server.pyisland.com/api';
+
+const UPDATE_COUNT_ENDPOINT = `${VERSION_API_BASE}/v1/version/update-count`;
 const UPDATE_COUNT_APP_NAME = 'eisland';
 
 /**
@@ -43,7 +48,7 @@ const UPDATE_COUNT_APP_NAME = 'eisland';
  */
 export async function fetchVersion(): Promise<VersionInfo | null> {
   try {
-    const res = await window.api.netFetch('https://server.pyisland.com/api/v1/version?appName=eisland', {
+    const res = await window.api.netFetch(`${VERSION_API_BASE}/v1/version?appName=eisland`, {
       method: 'GET',
       timeoutMs: 5000,
     });
