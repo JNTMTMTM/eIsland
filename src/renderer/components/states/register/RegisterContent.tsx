@@ -101,7 +101,7 @@ export function RegisterContent(): ReactElement {
     let captchaTicket = '';
     let captchaRandstr = '';
     try {
-      const captcha = await runEmailSliderCaptcha();
+      const captcha = await runEmailSliderCaptcha(cleanEmail);
       if (!captcha) {
         setSendingCode(false);
         setFeedback({ type: 'error', text: t('settings.user.feedback.captchaCancelled', { defaultValue: '请完成滑块验证后再发送验证码' }) });

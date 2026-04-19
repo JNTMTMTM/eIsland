@@ -361,12 +361,13 @@ export function fetchUserEmailCaptchaConfig(): Promise<UserAccountResult<UserEma
 
 /**
  * 创建邮箱验证码滑块挑战。
+ * @param account 账户标识。
  * @returns 挑战参数。
  */
-export function createUserEmailCaptchaChallenge(): Promise<UserAccountResult<UserEmailCaptchaChallenge>> {
+export function createUserEmailCaptchaChallenge(account: string): Promise<UserAccountResult<UserEmailCaptchaChallenge>> {
   return request<UserEmailCaptchaChallenge>('/auth/user/email-code/captcha-challenge', {
     method: 'POST',
-    body: {},
+    body: { account },
   });
 }
 

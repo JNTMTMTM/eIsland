@@ -24,7 +24,7 @@ function showBuiltinSliderModal(challenge: UserEmailCaptchaChallenge): Promise<n
   });
 }
 
-export async function runEmailSliderCaptcha(): Promise<{ ticket: string; randstr: string } | null> {
+export async function runEmailSliderCaptcha(account: string): Promise<{ ticket: string; randstr: string } | null> {
   const cfg = await fetchUserEmailCaptchaConfig();
   if (!cfg.ok || !cfg.data) {
     throw new Error(cfg.message || '获取滑块配置失败');
@@ -35,7 +35,7 @@ export async function runEmailSliderCaptcha(): Promise<{ ticket: string; randstr
   if (cfg.data.provider !== 'builtin') {
     throw new Error('暂不支持的滑块验证提供方');
   }
-  const challengeResult = await createUserEmailCaptchaChallenge();
+  const challengeResult = await createUserEmailCaptchaChallenge(account);
   if (!challengeResult.ok || !challengeResult.data) {
     throw new Error(challengeResult.message || '获取滑块挑战失败');
   }
