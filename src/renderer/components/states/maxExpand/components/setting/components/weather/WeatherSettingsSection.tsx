@@ -109,120 +109,135 @@ export function WeatherSettingsSection(props: WeatherSettingsSectionProps): Reac
       <div className="settings-app-pages-layout settings-weather-pages-layout">
         <div className="settings-app-page-main">
           {weatherSettingsPage === 'location' && (
-            <div className="settings-music-section">
-              <div className="settings-music-label">{t('settings.weather.locationPriority.title', { defaultValue: '定位来源优先级' })}</div>
-              <div className="settings-music-hint">{t('settings.weather.locationPriority.hint', { defaultValue: '选择天气定位优先使用 IP 自动定位或自定义位置' })}</div>
-              <div className="settings-lyrics-source-options">
-                {weatherLocationPriorityOptions.map((opt) => (
+            <div className="settings-cards">
+
+              <div className="settings-card">
+                <div className="settings-card-header">
+                  <div className="settings-card-title">{t('settings.weather.locationPriority.title', { defaultValue: '定位来源优先级' })}</div>
+                  <div className="settings-card-subtitle">{t('settings.weather.locationPriority.hint', { defaultValue: '选择天气定位优先使用 IP 自动定位或自定义位置' })}</div>
+                </div>
+                <div className="settings-lyrics-source-options">
+                  {weatherLocationPriorityOptions.map((opt) => (
+                    <button
+                      key={opt.value}
+                      className={`settings-lyrics-source-btn ${weatherLocationPriority === opt.value ? 'active' : ''}`}
+                      type="button"
+                      onClick={() => {
+                        applyWeatherLocationPriority(opt.value).catch((error: unknown) => {
+                          setWeatherLocationConfigMessage({
+                            type: 'error',
+                            text: t('settings.weather.messages.switchPriorityFailed', {
+                              defaultValue: '切换优先级失败：{{error}}',
+                              error: error instanceof Error ? error.message : t('settings.common.unknownError', { defaultValue: '未知错误' }),
+                            }),
+                          });
+                        });
+                      }}
+                    >
+                      {t(locationPriorityKeyMap[opt.value], { defaultValue: opt.label })}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="settings-card">
+                <div className="settings-card-header">
+                  <div className="settings-card-title">{t('settings.weather.customCityTitle', { defaultValue: '自定义城市' })}</div>
+                  <div className="settings-card-subtitle">{t('settings.weather.customCityHint', { defaultValue: '仅在“自定义位置优先”生效，可先测试再保存；支持中文 / 拼音 / 英文。' })}</div>
+                </div>
+                <div className="settings-hotkey-row">
+                  <label className="settings-field" style={{ flex: 1 }}>
+                    <span className="settings-field-label">{t('settings.weather.cityName', { defaultValue: '城市名称' })}</span>
+                    <input
+                      className="settings-field-input"
+                      type="text"
+                      placeholder={t('settings.weather.cityPlaceholder', { defaultValue: '例如：杭州 / Tokyo / New York' })}
+                      value={weatherCustomCityInput}
+                      onChange={(e) => {
+                        setWeatherCustomCityInput(e.target.value);
+                      }}
+                    />
+                  </label>
+                </div>
+                <div className="settings-hotkey-row">
                   <button
-                    key={opt.value}
-                    className={`settings-lyrics-source-btn ${weatherLocationPriority === opt.value ? 'active' : ''}`}
+                    className="settings-hotkey-btn"
                     type="button"
                     onClick={() => {
-                      applyWeatherLocationPriority(opt.value).catch((error: unknown) => {
+                      testWeatherCustomLocation().catch((error: unknown) => {
+                        setWeatherCustomLocationTesting(false);
+                        setWeatherCustomLocationTestMessage({
+                          type: 'error',
+                          text: t('settings.weather.messages.testFailed', {
+                            defaultValue: '测试失败：{{error}}',
+                            error: error instanceof Error ? error.message : t('settings.common.unknownError', { defaultValue: '未知错误' }),
+                          }),
+                        });
+                      });
+                    }}
+                    disabled={weatherCustomLocationTesting}
+                  >
+                    {weatherCustomLocationTesting
+                      ? t('settings.weather.testing', { defaultValue: '测试中...' })
+                      : t('settings.weather.testCustomLocation', { defaultValue: '测试自定义位置（双接口）' })}
+                  </button>
+                  <button
+                    className="settings-hotkey-btn"
+                    type="button"
+                    onClick={() => {
+                      saveWeatherLocationSettings().catch((error: unknown) => {
                         setWeatherLocationConfigMessage({
                           type: 'error',
-                          text: t('settings.weather.messages.switchPriorityFailed', {
-                            defaultValue: '切换优先级失败：{{error}}',
+                          text: t('settings.common.saveFailed', {
+                            defaultValue: '保存失败：{{error}}',
                             error: error instanceof Error ? error.message : t('settings.common.unknownError', { defaultValue: '未知错误' }),
                           }),
                         });
                       });
                     }}
                   >
-                    {t(locationPriorityKeyMap[opt.value], { defaultValue: opt.label })}
+                    {t('settings.weather.saveLocation', { defaultValue: '保存定位配置' })}
                   </button>
-                ))}
-              </div>
-
-              <div className="settings-hotkey-row">
-                <label className="settings-field" style={{ flex: 1 }}>
-                  <span className="settings-field-label">{t('settings.weather.cityName', { defaultValue: '城市名称' })}</span>
-                  <input
-                    className="settings-field-input"
-                    type="text"
-                    placeholder={t('settings.weather.cityPlaceholder', { defaultValue: '例如：杭州 / Tokyo / New York' })}
-                    value={weatherCustomCityInput}
-                    onChange={(e) => {
-                      setWeatherCustomCityInput(e.target.value);
-                    }}
-                  />
-                </label>
-              </div>
-
-              <div className="settings-hotkey-row">
-                <button
-                  className="settings-hotkey-btn"
-                  type="button"
-                  onClick={() => {
-                    testWeatherCustomLocation().catch((error: unknown) => {
-                      setWeatherCustomLocationTesting(false);
-                      setWeatherCustomLocationTestMessage({
-                        type: 'error',
-                        text: t('settings.weather.messages.testFailed', {
-                          defaultValue: '测试失败：{{error}}',
-                          error: error instanceof Error ? error.message : t('settings.common.unknownError', { defaultValue: '未知错误' }),
-                        }),
-                      });
-                    });
-                  }}
-                  disabled={weatherCustomLocationTesting}
-                >
-                  {weatherCustomLocationTesting
-                    ? t('settings.weather.testing', { defaultValue: '测试中...' })
-                    : t('settings.weather.testCustomLocation', { defaultValue: '测试自定义位置（双接口）' })}
-                </button>
-                <button
-                  className="settings-hotkey-btn"
-                  type="button"
-                  onClick={() => {
-                    saveWeatherLocationSettings().catch((error: unknown) => {
-                      setWeatherLocationConfigMessage({
-                        type: 'error',
-                        text: t('settings.common.saveFailed', {
-                          defaultValue: '保存失败：{{error}}',
-                          error: error instanceof Error ? error.message : t('settings.common.unknownError', { defaultValue: '未知错误' }),
-                        }),
-                      });
-                    });
-                  }}
-                >
-                  {t('settings.weather.saveLocation', { defaultValue: '保存定位配置' })}
-                </button>
-              </div>
-
-              {weatherLocationConfigMessage && (
-                <div className="settings-music-hint" style={{ color: weatherLocationConfigMessage.type === 'error' ? '#ff7f7f' : '#7be495' }}>
-                  {weatherLocationConfigMessage.text}
                 </div>
-              )}
-              {weatherCustomLocationTestMessage && (
-                <div className="settings-music-hint" style={{ color: weatherCustomLocationTestMessage.type === 'error' ? '#ff7f7f' : '#7be495' }}>
-                  {weatherCustomLocationTestMessage.text}
-                </div>
-              )}
+                {weatherLocationConfigMessage && (
+                  <div className="settings-music-hint" style={{ color: weatherLocationConfigMessage.type === 'error' ? '#ff7f7f' : '#7be495' }}>
+                    {weatherLocationConfigMessage.text}
+                  </div>
+                )}
+                {weatherCustomLocationTestMessage && (
+                  <div className="settings-music-hint" style={{ color: weatherCustomLocationTestMessage.type === 'error' ? '#ff7f7f' : '#7be495' }}>
+                    {weatherCustomLocationTestMessage.text}
+                  </div>
+                )}
+              </div>
+
             </div>
           )}
 
           {weatherSettingsPage === 'provider' && (
-            <div className="settings-music-section">
-              <div className="settings-music-label">{t('settings.weather.providerPriority.title', { defaultValue: '天气接口优先级' })}</div>
-              <div className="settings-music-hint">{t('settings.weather.providerPriority.hint', { defaultValue: '可选择优先使用 Open-Meteo 或 UAPI，失败时自动切换到另一源' })}</div>
-              <div className="settings-lyrics-source-options">
-                {weatherProviderOptions.map((opt) => (
-                  <button
-                    key={opt.value}
-                    className={`settings-lyrics-source-btn ${weatherPrimaryProvider === opt.value ? 'active' : ''}`}
-                    type="button"
-                    onClick={() => {
-                      setWeatherPrimaryProvider(opt.value);
-                      saveWeatherProviderConfig({ primaryProvider: opt.value });
-                    }}
-                  >
-                    {t(providerPriorityKeyMap[opt.value], { defaultValue: opt.label })}
-                  </button>
-                ))}
+            <div className="settings-cards">
+              <div className="settings-card">
+                <div className="settings-card-header">
+                  <div className="settings-card-title">{t('settings.weather.providerPriority.title', { defaultValue: '天气接口优先级' })}</div>
+                  <div className="settings-card-subtitle">{t('settings.weather.providerPriority.hint', { defaultValue: '可选择优先使用 Open-Meteo 或 UAPI，失败时自动切换到另一源' })}</div>
+                </div>
+                <div className="settings-lyrics-source-options">
+                  {weatherProviderOptions.map((opt) => (
+                    <button
+                      key={opt.value}
+                      className={`settings-lyrics-source-btn ${weatherPrimaryProvider === opt.value ? 'active' : ''}`}
+                      type="button"
+                      onClick={() => {
+                        setWeatherPrimaryProvider(opt.value);
+                        saveWeatherProviderConfig({ primaryProvider: opt.value });
+                      }}
+                    >
+                      {t(providerPriorityKeyMap[opt.value], { defaultValue: opt.label })}
+                    </button>
+                  ))}
+                </div>
               </div>
+
             </div>
           )}
         </div>

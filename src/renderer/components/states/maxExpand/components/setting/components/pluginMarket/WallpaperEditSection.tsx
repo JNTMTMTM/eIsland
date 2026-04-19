@@ -30,12 +30,21 @@ import {
   deleteUserWallpaper,
   getUserWallpaperDetail,
   listMyUserWallpapers,
+  normalizeWallpaperMarketListData,
   updateUserWallpaperMetadata,
   type WallpaperMarketItem,
 } from '../../../../../../../api/userAccountApi';
 import { readLocalToken } from '../../../../../../../utils/userAccount';
 import { SvgIcon } from '../../../../../../../utils/SvgIcon';
 import { TagInput } from './TagInput';
+
+function formatDuration(durationMs: number | undefined): string {
+  if (!durationMs || !Number.isFinite(durationMs) || durationMs <= 0) return '--:--';
+  const totalSec = Math.round(durationMs / 1000);
+  const minutes = Math.floor(totalSec / 60);
+  const seconds = totalSec % 60;
+  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+}
 
 interface WallpaperEditSectionProps {
   onGoWallpaper: () => void;
@@ -53,6 +62,7 @@ export function WallpaperEditSection({ onGoWallpaper }: WallpaperEditSectionProp
   const [loading, setLoading] = useState(false);
   const [keyword, setKeyword] = useState('');
   const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [hasNextPage, setHasNextPage] = useState(false);
   const [searchExpanded, setSearchExpanded] = useState(false);
   const [message, setMessage] = useState('');
@@ -60,6 +70,7 @@ export function WallpaperEditSection({ onGoWallpaper }: WallpaperEditSectionProp
   const [editTitle, setEditTitle] = useState('');
   const [editDescription, setEditDescription] = useState('');
   const [editTags, setEditTags] = useState('');
+  const [editCopyrightInfo, setEditCopyrightInfo] = useState('');
   const [deleting, setDeleting] = useState(false);
   const [savingMetadata, setSavingMetadata] = useState(false);
   const [deleteConfirming, setDeleteConfirming] = useState(false);
@@ -67,12 +78,34 @@ export function WallpaperEditSection({ onGoWallpaper }: WallpaperEditSectionProp
   const selectedPreviewUrl = useMemo(() => (
     selected?.thumb1280Url || selected?.thumb720Url || selected?.thumb320Url || selected?.originalUrl || ''
   ), [selected]);
+  const selectedCoverUrl = useMemo(() => (
+    selected?.thumb1280Url || selected?.thumb720Url || selected?.thumb320Url || ''
+  ), [selected]);
+  const selectedOriginalUrl = selected?.originalUrl || '';
+  const selectedIsVideo = selected?.type === 'video';
+
+  const renderStars = (score: number) => {
+    const filled = Math.max(0, Math.min(5, Math.round(score)));
+    return (
+      <span className="settings-plugin-market-star-display" aria-hidden="true">
+        {[1, 2, 3, 4, 5].map((i) => (
+          <img
+            key={`star-${i}`}
+            src={SvgIcon.STAR}
+            alt=""
+            className={`settings-plugin-market-star-inline ${i <= filled ? 'active' : ''}`}
+          />
+        ))}
+      </span>
+    );
+  };
 
   const loadList = async (targetPage: number = page): Promise<void> => {
     const token = readLocalToken();
     if (!token) {
       setList([]);
       setSelected(null);
+      setTotalPages(1);
       setHasNextPage(false);
       return;
     }
@@ -83,17 +116,30 @@ export function WallpaperEditSection({ onGoWallpaper }: WallpaperEditSectionProp
         page: targetPage,
         pageSize: MARKET_PAGE_SIZE,
       });
-      if (result.ok && Array.isArray(result.data)) {
+      if (result.ok) {
+        const normalized = normalizeWallpaperMarketListData(result.data);
+        const nextList = normalized.items;
+        const hasMore = normalized.total !== null
+          ? targetPage * MARKET_PAGE_SIZE < normalized.total
+          : nextList.length >= MARKET_PAGE_SIZE;
         setPage(targetPage);
-        setList(result.data);
-        setHasNextPage(result.data.length >= MARKET_PAGE_SIZE);
-        if (result.data.length === 0) {
+        setList(nextList);
+        setHasNextPage(hasMore);
+        if (normalized.total !== null) {
+          setTotalPages(Math.max(1, Math.ceil(normalized.total / MARKET_PAGE_SIZE)));
+        } else if (targetPage === 1) {
+          setTotalPages(hasMore ? 2 : 1);
+        } else {
+          setTotalPages((prev) => Math.max(prev, targetPage, hasMore ? targetPage + 1 : targetPage));
+        }
+        if (nextList.length === 0) {
           setSelected(null);
-        } else if (!selected || !result.data.find((w) => w.id === selected.id)) {
-          setSelected(result.data[0]);
-          setEditTitle(result.data[0].title || '');
-          setEditDescription(result.data[0].description || '');
-          setEditTags(result.data[0].tagsText || '');
+        } else if (!selected || !nextList.find((w) => w.id === selected.id)) {
+          setSelected(nextList[0]);
+          setEditTitle(nextList[0].title || '');
+          setEditDescription(nextList[0].description || '');
+          setEditTags(nextList[0].tagsText || '');
+          setEditCopyrightInfo(nextList[0].copyrightInfo || '');
         }
         return;
       }
@@ -113,6 +159,7 @@ export function WallpaperEditSection({ onGoWallpaper }: WallpaperEditSectionProp
       setEditTitle(result.data.title || '');
       setEditDescription(result.data.description || '');
       setEditTags(result.data.tagsText || '');
+      setEditCopyrightInfo(result.data.copyrightInfo || '');
       return;
     }
     setMessage(result.message || t('settings.pluginMarket.wallpaper.feedback.detailFailed', { defaultValue: '加载详情失败' }));
@@ -172,7 +219,8 @@ export function WallpaperEditSection({ onGoWallpaper }: WallpaperEditSectionProp
         title: editTitle,
         description: editDescription,
         tags: editTags,
-        type: 'image',
+        copyrightInfo: editCopyrightInfo,
+        type: selected.type === 'video' ? 'video' : 'image',
       });
       if (!result.ok) {
         setMessage(result.message || t('settings.pluginMarket.wallpaper.feedback.updateFailed', { defaultValue: '保存失败' }));
@@ -201,6 +249,7 @@ export function WallpaperEditSection({ onGoWallpaper }: WallpaperEditSectionProp
             ) : (
               list.map((item) => {
                 const preview = item.thumb320Url || item.thumb720Url || item.thumb1280Url || item.originalUrl || '';
+                const isVideoCard = item.type === 'video';
                 return (
                   <button
                     key={item.id}
@@ -208,7 +257,15 @@ export function WallpaperEditSection({ onGoWallpaper }: WallpaperEditSectionProp
                     className={`settings-plugin-market-card ${selected?.id === item.id ? 'active' : ''}`}
                     onClick={() => { loadDetail(item.id).catch(() => {}); }}
                   >
-                    {preview ? <img src={preview} alt={item.title} className="settings-plugin-market-card-img" /> : null}
+                    <div className="settings-plugin-market-card-media">
+                      {preview ? <img src={preview} alt={item.title} className="settings-plugin-market-card-img" /> : null}
+                      {isVideoCard && (
+                        <span className="settings-plugin-market-card-badge">
+                          {t('settings.pluginMarket.wallpaper.badges.video', { defaultValue: '视频' })}
+                          {item.durationMs ? ` · ${formatDuration(item.durationMs)}` : ''}
+                        </span>
+                      )}
+                    </div>
                     <div className="settings-plugin-market-card-body">
                       <div className="settings-plugin-market-card-title">{item.title}</div>
                       <div className="settings-plugin-market-card-meta">
@@ -230,7 +287,11 @@ export function WallpaperEditSection({ onGoWallpaper }: WallpaperEditSectionProp
               {t('settings.pluginMarket.wallpaper.actions.prevPage', { defaultValue: '上一页' })}
             </button>
             <span className="settings-plugin-market-pagination-text">
-              {t('settings.pluginMarket.wallpaper.pagination.page', { defaultValue: '第 {{page}} 页', page })}
+              {t('settings.pluginMarket.wallpaper.pagination.page', {
+                defaultValue: '第 {{page}} / {{total}} 页',
+                page,
+                total: totalPages,
+              })}
             </span>
             <button
               className="settings-hotkey-btn"
@@ -274,7 +335,21 @@ export function WallpaperEditSection({ onGoWallpaper }: WallpaperEditSectionProp
           ) : (
             <div className="settings-plugin-market-detail-content">
               <div className="settings-plugin-market-detail-preview">
-                {selectedPreviewUrl ? <img src={selectedPreviewUrl} alt={selected.title} className="settings-plugin-market-detail-img" /> : null}
+                {selectedIsVideo && selectedOriginalUrl ? (
+                  <video
+                    key={selectedOriginalUrl}
+                    className="settings-plugin-market-detail-video"
+                    src={selectedOriginalUrl}
+                    poster={selectedCoverUrl || undefined}
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    controls
+                  />
+                ) : selectedPreviewUrl ? (
+                  <img src={selectedPreviewUrl} alt={selected.title} className="settings-plugin-market-detail-img" />
+                ) : null}
               </div>
 
               <div className="settings-plugin-market-detail-meta-panel">
@@ -285,24 +360,60 @@ export function WallpaperEditSection({ onGoWallpaper }: WallpaperEditSectionProp
                     : <img src={SvgIcon.USER} alt="" className="settings-plugin-market-owner-avatar large placeholder" />}
                   <span>@{selected.ownerUsername}</span>
                 </div>
-                <div className="settings-plugin-market-detail-meta">
-                  {t('settings.pluginMarket.edit.meta.status', { defaultValue: '状态' })}:{' '}
-                  {t(`settings.pluginMarket.edit.status.${selected.status}`, { defaultValue: selected.status })}
+                <div className="settings-plugin-market-detail-meta settings-plugin-market-detail-meta-block">
+                  <div className="settings-plugin-market-detail-meta-label">
+                    {t('settings.pluginMarket.edit.meta.status', { defaultValue: '状态' })}
+                  </div>
+                  <div className="settings-plugin-market-detail-meta-value">
+                    {t(`settings.pluginMarket.edit.status.${selected.status}`, { defaultValue: selected.status })}
+                  </div>
                 </div>
-                <div className="settings-plugin-market-detail-meta">{selected.description || '-'}</div>
-                <div className="settings-plugin-market-detail-meta settings-plugin-market-detail-tags">
-                  {(() => {
-                    const chips = (selected.tagsText || '')
-                      .split(/[,，]/)
-                      .map((s) => s.trim())
-                      .filter(Boolean);
-                    if (chips.length === 0) return <span className="settings-plugin-market-detail-tags-empty">-</span>;
-                    return chips.map((chip, idx) => (
-                      <span key={`${chip}-${idx}`} className="settings-plugin-market-tag-chip readonly">
-                        {chip}
-                      </span>
-                    ));
-                  })()}
+                <div className="settings-plugin-market-detail-meta settings-plugin-market-detail-meta-block">
+                  <div className="settings-plugin-market-detail-meta-label">
+                    {t('settings.pluginMarket.wallpaper.meta.description', { defaultValue: '描述' })}
+                  </div>
+                  <div className="settings-plugin-market-detail-meta-value">{selected.description || '-'}</div>
+                </div>
+                <div className="settings-plugin-market-detail-meta settings-plugin-market-detail-meta-block">
+                  <div className="settings-plugin-market-detail-meta-label">
+                    {t('settings.pluginMarket.wallpaper.meta.tags', { defaultValue: '标签' })}
+                  </div>
+                  <div className="settings-plugin-market-detail-meta-value settings-plugin-market-detail-tags">
+                    {(() => {
+                      const chips = (selected.tagsText || '')
+                        .split(/[,，]/)
+                        .map((s) => s.trim())
+                        .filter(Boolean);
+                      if (chips.length === 0) return <span className="settings-plugin-market-detail-tags-empty">-</span>;
+                      return chips.map((chip, idx) => (
+                        <span key={`${chip}-${idx}`} className="settings-plugin-market-tag-chip readonly">
+                          {chip}
+                        </span>
+                      ));
+                    })()}
+                  </div>
+                </div>
+                <div className="settings-plugin-market-detail-meta settings-plugin-market-detail-meta-block">
+                  <div className="settings-plugin-market-detail-meta-label">
+                    {t('settings.pluginMarket.wallpaper.meta.copyrightInfo', { defaultValue: '版权声明' })}
+                  </div>
+                  <div className="settings-plugin-market-detail-meta-value settings-plugin-market-detail-copyright-value">
+                    {selected.copyrightInfo || '-'}
+                  </div>
+                </div>
+                <div className="settings-plugin-market-detail-meta settings-plugin-market-detail-meta-block">
+                  <div className="settings-plugin-market-detail-meta-label">
+                    {t('settings.pluginMarket.wallpaper.meta.rating', { defaultValue: '评分' })}
+                  </div>
+                  <div className="settings-plugin-market-detail-rating">
+                    {renderStars(Number(selected.ratingAvg ?? 0))}
+                    <span>{Number(selected.ratingAvg ?? 0).toFixed(1)}</span>
+                    <span>({selected.ratingCount ?? 0})</span>
+                    <span className="settings-plugin-market-detail-apply">
+                      <img src={SvgIcon.DOWNLOAD} alt="" className="settings-plugin-market-apply-icon" />
+                      <span>{selected.applyCount ?? 0}</span>
+                    </span>
+                  </div>
                 </div>
 
                 <div className="settings-plugin-market-owner-tools">
@@ -314,6 +425,7 @@ export function WallpaperEditSection({ onGoWallpaper }: WallpaperEditSectionProp
                       setEditTitle(selected.title || '');
                       setEditDescription(selected.description || '');
                       setEditTags(selected.tagsText || '');
+                      setEditCopyrightInfo(selected.copyrightInfo || '');
                     }}
                   >
                     {editingMetadata
@@ -373,6 +485,15 @@ export function WallpaperEditSection({ onGoWallpaper }: WallpaperEditSectionProp
                         onChange={setEditTags}
                         placeholder={t('settings.pluginMarket.wallpaper.upload.tagsPlaceholder', { defaultValue: '标签（逗号分隔）' })}
                         disabled={savingMetadata}
+                      />
+                      <textarea
+                        className="settings-field-input settings-plugin-market-copyright-input"
+                        value={editCopyrightInfo}
+                        onChange={(e) => setEditCopyrightInfo(e.target.value)}
+                        placeholder={t('settings.pluginMarket.wallpaper.upload.copyrightInfoPlaceholder', { defaultValue: '声明版权信息（如原创、授权来源、授权编号）' })}
+                        rows={3}
+                        wrap="soft"
+                        maxLength={500}
                       />
                       <button
                         className="settings-hotkey-btn"

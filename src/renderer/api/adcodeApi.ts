@@ -26,6 +26,7 @@
 
 import { loadNetworkConfig } from '../store/utils/storage';
 import { logger } from '../utils/logger';
+import i18n from '../i18n';
 
 /** 行政区查询参数 */
 export interface DistrictQueryParams {
@@ -159,7 +160,7 @@ export async function fetchDistrictByAdcode(params: DistrictQueryParams): Promis
   if (typeof params.pageSize === 'number' && params.pageSize > 0) query.set('page_size', String(Math.floor(params.pageSize)));
 
   if (![...query.keys()].length) {
-    throw new Error('District API 缺少查询参数（adcode 或 keyword）');
+    throw new Error(i18n.t('settings.weather.adcode.missingParams', { defaultValue: 'District API 缺少查询参数（adcode 或 keyword）' }));
   }
 
   const url = `https://uapis.cn/api/v1/misc/district?${query.toString()}`;
@@ -169,16 +170,23 @@ export async function fetchDistrictByAdcode(params: DistrictQueryParams): Promis
   logger.info('[AdcodeApi] response', { url, status: resp.status, ok: resp.ok, body: resp.body });
 
   if (!resp.ok) {
-    throw new Error(`Adcode API HTTP ${resp.status}: ${resp.body.slice(0, 200)}`);
+    throw new Error(i18n.t('settings.weather.adcode.httpError', {
+      defaultValue: 'Adcode API HTTP {{status}}：{{body}}',
+      status: resp.status,
+      body: resp.body.slice(0, 200),
+    }));
   }
 
   if (resp.body.trimStart().startsWith('<')) {
-    throw new Error('Adcode API 返回了非 JSON 内容，请检查网络环境');
+    throw new Error(i18n.t('settings.weather.adcode.nonJson', { defaultValue: 'Adcode API 返回了非 JSON 内容，请检查网络环境' }));
   }
 
   const parsed = JSON.parse(resp.body) as DistrictQueryResult;
   if (typeof parsed.code === 'number' && parsed.code !== 200) {
-    throw new Error(parsed.msg || parsed.message || `Adcode API 返回错误码 ${parsed.code}`);
+    throw new Error(parsed.msg || parsed.message || i18n.t('settings.weather.adcode.errorCode', {
+      defaultValue: 'Adcode API 返回错误码 {{code}}',
+      code: parsed.code,
+    }));
   }
 
   return parsed;
@@ -189,12 +197,12 @@ export async function fetchDistrictByAdcode(params: DistrictQueryParams): Promis
  */
 export async function resolveDistrictLocationByKeyword(keyword: string): Promise<DistrictResolvedLocation> {
   const text = keyword.trim();
-  if (!text) throw new Error('请输入城市名称');
+  if (!text) throw new Error(i18n.t('settings.weather.adcode.emptyKeyword', { defaultValue: '请输入城市名称' }));
 
   const result = await fetchDistrictByAdcode({ keyword: text, subdistrict: 0, page: 1, pageSize: 10 });
   const list = extractDistrictItems(result);
   if (!list.length) {
-    throw new Error('未查询到该城市，请尝试更完整名称');
+    throw new Error(i18n.t('settings.weather.adcode.notFound', { defaultValue: '未查询到该城市，请尝试更完整名称' }));
   }
 
   const normalized = text.toLowerCase();
@@ -210,7 +218,7 @@ export async function resolveDistrictLocationByKeyword(keyword: string): Promise
     .sort((a, b) => b.score - a.score);
 
   if (!scored.length) {
-    throw new Error('查询结果缺少经纬度信息');
+    throw new Error(i18n.t('settings.weather.adcode.noCoords', { defaultValue: '查询结果缺少经纬度信息' }));
   }
 
   const best = scored[0];

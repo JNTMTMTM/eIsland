@@ -98,8 +98,10 @@ declare global {
       openFile: (filePath: string) => Promise<boolean>;
       resolveShortcut: (lnkPath: string) => Promise<{ target: string; name: string } | null>;
       openImageDialog: () => Promise<string | null>;
+      openVideoDialog: () => Promise<string | null>;
       loadWallpaperFile: (filePath: string) => Promise<string | null>;
       clearWallpaperCache: () => Promise<void>;
+      readLocalFileAsBuffer: (filePath: string) => Promise<Uint8Array | null>;
       netFetch: (url: string, options?: {
         method?: string;
         headers?: Record<string, string>;

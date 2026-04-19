@@ -90,18 +90,73 @@ import { SvgIcon } from '../../../../utils/SvgIcon';
 
 const CLIPBOARD_URL_SUPPRESS_IN_FAVORITES_KEY = 'clipboard-url-suppress-in-url-favorites';
 const LOCAL_ISLAND_BG_SYNC_EVENT = 'island-bg-local-sync';
+const ISLAND_BG_MEDIA_STORE_KEY = 'island-bg-media';
+const ISLAND_BG_IMAGE_STORE_KEY = 'island-bg-image';
+const ISLAND_BG_VIDEO_FIT_STORE_KEY = 'island-bg-video-fit';
+const ISLAND_BG_VIDEO_MUTED_STORE_KEY = 'island-bg-video-muted';
+const ISLAND_BG_VIDEO_LOOP_STORE_KEY = 'island-bg-video-loop';
+const ISLAND_BG_VIDEO_VOLUME_STORE_KEY = 'island-bg-video-volume';
+const ISLAND_BG_VIDEO_RATE_STORE_KEY = 'island-bg-video-rate';
+const ISLAND_BG_VIDEO_HW_DECODE_STORE_KEY = 'island-bg-video-hw-decode';
 let _lastSettingsSidebarTab: SettingsSidebarTabKey = 'index';
 
-function isDirectBgImageUrl(image: string): boolean {
-  return image.startsWith('data:')
-    || image.startsWith('http://')
-    || image.startsWith('https://')
-    || image.startsWith('blob:')
-    || image.startsWith('file:')
-    || image.startsWith('/')
-    || image.startsWith('./')
-    || image.startsWith('../')
-    || image.startsWith('assets/');
+type IslandBgMediaType = 'image' | 'video';
+
+interface IslandBgMediaConfig {
+  type: IslandBgMediaType;
+  source: string;
+}
+
+function isDirectBgMediaUrl(source: string): boolean {
+  return source.startsWith('data:')
+    || source.startsWith('http://')
+    || source.startsWith('https://')
+    || source.startsWith('blob:')
+    || source.startsWith('file:')
+    || source.startsWith('/')
+    || source.startsWith('./')
+    || source.startsWith('../')
+    || source.startsWith('assets/');
+}
+
+function toMediaUrl(path: string): string {
+  const normalized = path.replace(/\\/g, '/');
+  return `eisland-media://local/${encodeURIComponent(normalized)}`;
+}
+
+function normalizeBgMediaConfig(value: unknown): IslandBgMediaConfig | null {
+  if (typeof value === 'string') {
+    const source = value.trim();
+    return source ? { type: 'image', source } : null;
+  }
+  if (!value || typeof value !== 'object') return null;
+
+  const candidate = value as { type?: unknown; source?: unknown; image?: unknown; url?: unknown };
+  const sourceRaw = typeof candidate.source === 'string'
+    ? candidate.source
+    : typeof candidate.image === 'string'
+      ? candidate.image
+      : typeof candidate.url === 'string'
+        ? candidate.url
+        : null;
+  if (!sourceRaw) return null;
+
+  const source = sourceRaw.trim();
+  if (!source) return null;
+
+  if (candidate.type === 'video') {
+    return { type: 'video', source };
+  }
+  return { type: 'image', source };
+}
+
+async function resolveBgMediaPreviewUrl(media: IslandBgMediaConfig): Promise<string | null> {
+  if (media.type === 'image') {
+    if (isDirectBgMediaUrl(media.source)) return media.source;
+    return window.api.loadWallpaperFile?.(media.source) ?? null;
+  }
+  if (isDirectBgMediaUrl(media.source)) return media.source;
+  return toMediaUrl(media.source);
 }
 
 function applyIslandOpacity(opacity: number): void {
@@ -152,6 +207,7 @@ interface RunningWindowItem {
 }
 
 type PluginMarketPageKey = 'wallpaper' | 'plugin' | 'contribution' | 'edit';
+const PLUGIN_MARKET_PAGES: PluginMarketPageKey[] = ['wallpaper', 'plugin', 'contribution', 'edit'];
 
 /**
  * 渲染设置面板主视图
@@ -199,6 +255,8 @@ export function SettingsTab(): ReactElement {
   const musicSettingsPageRef = useRef(musicSettingsPage);
   const currentMusicSettingsPageLabel = t(`settings.musicPages.${musicSettingsPage}`, { defaultValue: MUSIC_SETTINGS_PAGE_LABELS[musicSettingsPage] || '白名单' });
   musicSettingsPageRef.current = musicSettingsPage;
+  const pluginMarketPageRef = useRef(pluginMarketPage);
+  pluginMarketPageRef.current = pluginMarketPage;
   const currentPluginMarketPageLabel = t(`settings.pluginMarket.pages.${pluginMarketPage}`, {
     defaultValue: pluginMarketPage === 'wallpaper'
       ? '壁纸'
@@ -271,7 +329,14 @@ export function SettingsTab(): ReactElement {
   const [themeMode, setThemeModeState] = useState<ThemeMode>(getThemeMode);
   const [appLanguage, setAppLanguage] = useState<AppLanguage>(getLanguage);
   const [islandOpacity, setIslandOpacity] = useState<number>(100);
-  const [bgImage, setBgImage] = useState<string | null>(null);
+  const [bgMedia, setBgMedia] = useState<IslandBgMediaConfig | null>(null);
+  const [bgMediaPreviewUrl, setBgMediaPreviewUrl] = useState<string | null>(null);
+  const [bgVideoFit, setBgVideoFit] = useState<'cover' | 'contain'>('cover');
+  const [bgVideoMuted, setBgVideoMuted] = useState<boolean>(true);
+  const [bgVideoLoop, setBgVideoLoop] = useState<boolean>(true);
+  const [bgVideoVolume, setBgVideoVolume] = useState<number>(0.6);
+  const [bgVideoRate, setBgVideoRate] = useState<number>(1);
+  const [bgVideoHwDecode, setBgVideoHwDecode] = useState<boolean>(true);
   const [bgImageOpacity, setBgImageOpacity] = useState<number>(30);
   const [bgImageBlur, setBgImageBlur] = useState<number>(0);
   const bgOpacitySaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -295,11 +360,15 @@ export function SettingsTab(): ReactElement {
     window.api.islandOpacitySet(opacity).catch(() => {});
   };
 
-  const applyBgImage = (dataUrl: string | null): void => {
+  const applyBgMedia = (media: IslandBgMediaConfig | null, previewUrl: string | null): void => {
     const el = document.getElementById('island-bg-layer');
     if (el) {
-      if (dataUrl) {
-        el.style.backgroundImage = `url(${dataUrl})`;
+      if (media?.type === 'image' && previewUrl) {
+        el.style.backgroundImage = `url(${previewUrl})`;
+        el.style.opacity = String(bgImageOpacity / 100);
+        el.style.filter = `blur(${bgImageBlur}px)`;
+      } else if (media?.type === 'video' && previewUrl) {
+        el.style.backgroundImage = '';
         el.style.opacity = String(bgImageOpacity / 100);
         el.style.filter = `blur(${bgImageBlur}px)`;
       } else {
@@ -308,8 +377,14 @@ export function SettingsTab(): ReactElement {
         el.style.filter = 'none';
       }
     }
+    setBgMedia(media);
+    setBgMediaPreviewUrl(previewUrl);
     window.dispatchEvent(new CustomEvent(LOCAL_ISLAND_BG_SYNC_EVENT, {
-      detail: { image: dataUrl },
+      detail: {
+        media,
+        previewUrl,
+        image: media?.type === 'image' ? previewUrl : null,
+      },
     }));
   };
 
@@ -331,8 +406,74 @@ export function SettingsTab(): ReactElement {
     }));
   };
 
-  const persistBgImage = (path: string | null): void => {
-    window.api.storeWrite('island-bg-image', path).catch(() => {});
+  const applyBgVideoFit = (value: 'cover' | 'contain'): void => {
+    window.dispatchEvent(new CustomEvent(LOCAL_ISLAND_BG_SYNC_EVENT, {
+      detail: { videoFit: value },
+    }));
+  };
+
+  const applyBgVideoMuted = (value: boolean): void => {
+    window.dispatchEvent(new CustomEvent(LOCAL_ISLAND_BG_SYNC_EVENT, {
+      detail: { videoMuted: value },
+    }));
+  };
+
+  const applyBgVideoLoop = (value: boolean): void => {
+    window.dispatchEvent(new CustomEvent(LOCAL_ISLAND_BG_SYNC_EVENT, {
+      detail: { videoLoop: value },
+    }));
+  };
+
+  const applyBgVideoVolume = (value: number): void => {
+    const safe = Math.max(0, Math.min(1, value));
+    window.dispatchEvent(new CustomEvent(LOCAL_ISLAND_BG_SYNC_EVENT, {
+      detail: { videoVolume: safe },
+    }));
+  };
+
+  const applyBgVideoRate = (value: number): void => {
+    const safe = Math.max(0.25, Math.min(3, value));
+    window.dispatchEvent(new CustomEvent(LOCAL_ISLAND_BG_SYNC_EVENT, {
+      detail: { videoRate: safe },
+    }));
+  };
+
+  const applyBgVideoHwDecode = (value: boolean): void => {
+    window.dispatchEvent(new CustomEvent(LOCAL_ISLAND_BG_SYNC_EVENT, {
+      detail: { videoHwDecode: value },
+    }));
+  };
+
+  const persistBgMedia = (media: IslandBgMediaConfig | null): void => {
+    window.api.storeWrite(ISLAND_BG_MEDIA_STORE_KEY, media).catch(() => {});
+    const legacyImage = media?.type === 'image' ? media.source : null;
+    window.api.storeWrite(ISLAND_BG_IMAGE_STORE_KEY, legacyImage).catch(() => {});
+  };
+
+  const persistBgVideoFit = (value: 'cover' | 'contain'): void => {
+    window.api.storeWrite(ISLAND_BG_VIDEO_FIT_STORE_KEY, value).catch(() => {});
+  };
+
+  const persistBgVideoMuted = (value: boolean): void => {
+    window.api.storeWrite(ISLAND_BG_VIDEO_MUTED_STORE_KEY, value).catch(() => {});
+  };
+
+  const persistBgVideoLoop = (value: boolean): void => {
+    window.api.storeWrite(ISLAND_BG_VIDEO_LOOP_STORE_KEY, value).catch(() => {});
+  };
+
+  const persistBgVideoVolume = (value: number): void => {
+    const safe = Math.max(0, Math.min(1, value));
+    window.api.storeWrite(ISLAND_BG_VIDEO_VOLUME_STORE_KEY, safe).catch(() => {});
+  };
+
+  const persistBgVideoRate = (value: number): void => {
+    const safe = Math.max(0.25, Math.min(3, value));
+    window.api.storeWrite(ISLAND_BG_VIDEO_RATE_STORE_KEY, safe).catch(() => {});
+  };
+
+  const persistBgVideoHwDecode = (value: boolean): void => {
+    window.api.storeWrite(ISLAND_BG_VIDEO_HW_DECODE_STORE_KEY, value).catch(() => {});
   };
 
   const persistBgOpacity = (value: number): void => {
@@ -348,33 +489,46 @@ export function SettingsTab(): ReactElement {
     if (!filePath) return;
     const dataUrl = await window.api.loadWallpaperFile(filePath);
     if (!dataUrl) return;
-    setBgImage(dataUrl);
-    applyBgImage(dataUrl);
-    persistBgImage(filePath);
+    const media: IslandBgMediaConfig = { type: 'image', source: filePath };
+    applyBgMedia(media, dataUrl);
+    persistBgMedia(media);
+  };
+
+  const handleSelectBgVideo = async (): Promise<void> => {
+    const filePath = await window.api.openVideoDialog();
+    if (!filePath) return;
+    const media: IslandBgMediaConfig = { type: 'video', source: filePath };
+    const previewUrl = await resolveBgMediaPreviewUrl(media);
+    if (!previewUrl) return;
+    applyBgMedia(media, previewUrl);
+    persistBgMedia(media);
   };
 
   const handleClearBgImage = (): void => {
-    setBgImage(null);
-    applyBgImage(null);
-    persistBgImage(null);
+    applyBgMedia(null, null);
+    persistBgMedia(null);
     window.api.clearWallpaperCache?.().catch(() => {});
   };
 
   const handleSelectBuiltinBgImage = (src: string, defaultOpacity: number): void => {
-    setBgImage(src);
+    const media: IslandBgMediaConfig = { type: 'image', source: src };
     setBgImageOpacity(defaultOpacity);
-    applyBgImage(src);
+    applyBgMedia(media, src);
     applyBgOpacity(defaultOpacity);
-    persistBgImage(src);
+    persistBgMedia(media);
     persistBgOpacity(defaultOpacity);
   };
 
-  const handleApplyMarketplaceWallpaper = (imageUrl: string): void => {
-    if (!imageUrl) return;
-    setBgImage(imageUrl);
-    applyBgImage(imageUrl);
-    persistBgImage(imageUrl);
-    window.api.settingsPreview('store:island-bg-image', imageUrl).catch(() => {});
+  const handleApplyMarketplaceWallpaper = (mediaUrl: string, options?: { type?: 'image' | 'video' }): void => {
+    if (!mediaUrl) return;
+    const mediaType: 'image' | 'video' = options?.type === 'video' ? 'video' : 'image';
+    const media: IslandBgMediaConfig = { type: mediaType, source: mediaUrl };
+    applyBgMedia(media, mediaUrl);
+    persistBgMedia(media);
+    if (mediaType === 'image') {
+      window.api.settingsPreview('store:island-bg-image', mediaUrl).catch(() => {});
+    }
+    window.api.settingsPreview('store:island-bg-media', media).catch(() => {});
   };
 
   const visibleCards = useMemo(() => {
@@ -516,23 +670,54 @@ export function SettingsTab(): ReactElement {
       applyIslandOpacity(safe);
     }).catch(() => {});
     Promise.all([
-      window.api.storeRead('island-bg-image') as Promise<string | null>,
+      window.api.storeRead(ISLAND_BG_MEDIA_STORE_KEY),
+      window.api.storeRead(ISLAND_BG_IMAGE_STORE_KEY) as Promise<string | null>,
+      window.api.storeRead(ISLAND_BG_VIDEO_FIT_STORE_KEY) as Promise<'cover' | 'contain' | null>,
+      window.api.storeRead(ISLAND_BG_VIDEO_MUTED_STORE_KEY) as Promise<boolean | null>,
+      window.api.storeRead(ISLAND_BG_VIDEO_LOOP_STORE_KEY) as Promise<boolean | null>,
       window.api.storeRead('island-bg-opacity') as Promise<number | null>,
       window.api.storeRead('island-bg-blur') as Promise<number | null>,
-    ]).then(async ([img, opacity, blur]) => {
+      window.api.storeRead(ISLAND_BG_VIDEO_VOLUME_STORE_KEY) as Promise<number | null>,
+      window.api.storeRead(ISLAND_BG_VIDEO_RATE_STORE_KEY) as Promise<number | null>,
+      window.api.storeRead(ISLAND_BG_VIDEO_HW_DECODE_STORE_KEY) as Promise<boolean | null>,
+    ]).then(async ([mediaRaw, legacyImage, videoFit, videoMuted, videoLoop, opacity, blur, videoVolume, videoRate, videoHwDecode]) => {
       if (cancelled) return;
+      if (videoFit === 'cover' || videoFit === 'contain') {
+        setBgVideoFit(videoFit);
+      }
+      if (typeof videoMuted === 'boolean') {
+        setBgVideoMuted(videoMuted);
+      }
+      if (typeof videoLoop === 'boolean') {
+        setBgVideoLoop(videoLoop);
+      }
+      if (typeof videoVolume === 'number' && Number.isFinite(videoVolume)) {
+        setBgVideoVolume(Math.max(0, Math.min(1, videoVolume)));
+      }
+      if (typeof videoRate === 'number' && Number.isFinite(videoRate)) {
+        setBgVideoRate(Math.max(0.25, Math.min(3, videoRate)));
+      }
+      if (typeof videoHwDecode === 'boolean') {
+        setBgVideoHwDecode(videoHwDecode);
+      }
       if (typeof opacity === 'number' && Number.isFinite(opacity)) setBgImageOpacity(Math.max(0, Math.min(100, Math.round(opacity))));
       if (typeof blur === 'number' && Number.isFinite(blur)) setBgImageBlur(Math.max(0, Math.min(20, Math.round(blur))));
-      if (img && typeof img === 'string') {
-        if (isDirectBgImageUrl(img)) {
-          // Legacy data URL or Vite asset URL (built-in wallpaper)
-          setBgImage(img);
-        } else {
-          // File path — load via IPC
-          const dataUrl = await window.api.loadWallpaperFile?.(img);
-          if (!cancelled && dataUrl) setBgImage(dataUrl);
-        }
+      const media = normalizeBgMediaConfig(mediaRaw)
+        ?? (typeof legacyImage === 'string' ? normalizeBgMediaConfig(legacyImage) : null);
+      if (!media) {
+        setBgMedia(null);
+        setBgMediaPreviewUrl(null);
+        return;
       }
+      const previewUrl = await resolveBgMediaPreviewUrl(media);
+      if (cancelled) return;
+      if (!previewUrl) {
+        setBgMedia(null);
+        setBgMediaPreviewUrl(null);
+        return;
+      }
+      setBgMedia(media);
+      setBgMediaPreviewUrl(previewUrl);
     }).catch(() => {});
     return () => { cancelled = true; };
   }, []);
@@ -582,20 +767,53 @@ export function SettingsTab(): ReactElement {
           : 0;
         setBgImageBlur(safe);
       }
-      if (channel === 'store:island-bg-image') {
-        const image = typeof value === 'string' ? value : null;
-        if (!image) {
-          setBgImage(null);
+      if (channel === 'store:island-bg-media') {
+        const media = normalizeBgMediaConfig(value);
+        if (!media) {
+          setBgMedia(null);
+          setBgMediaPreviewUrl(null);
           return;
         }
-        if (isDirectBgImageUrl(image)) {
-          setBgImage(image);
-          return;
-        }
-        window.api.loadWallpaperFile?.(image).then((dataUrl) => {
+        resolveBgMediaPreviewUrl(media).then((previewUrl) => {
           if (cancelled) return;
-          if (dataUrl) setBgImage(dataUrl);
+          if (!previewUrl) {
+            setBgMedia(null);
+            setBgMediaPreviewUrl(null);
+            return;
+          }
+          setBgMedia(media);
+          setBgMediaPreviewUrl(previewUrl);
         }).catch(() => {});
+      }
+      if (channel === `store:${ISLAND_BG_VIDEO_FIT_STORE_KEY}`) {
+        if (value === 'cover' || value === 'contain') {
+          setBgVideoFit(value);
+        }
+      }
+      if (channel === `store:${ISLAND_BG_VIDEO_MUTED_STORE_KEY}`) {
+        if (typeof value === 'boolean') {
+          setBgVideoMuted(value);
+        }
+      }
+      if (channel === `store:${ISLAND_BG_VIDEO_LOOP_STORE_KEY}`) {
+        if (typeof value === 'boolean') {
+          setBgVideoLoop(value);
+        }
+      }
+      if (channel === `store:${ISLAND_BG_VIDEO_VOLUME_STORE_KEY}`) {
+        if (typeof value === 'number' && Number.isFinite(value)) {
+          setBgVideoVolume(Math.max(0, Math.min(1, value)));
+        }
+      }
+      if (channel === `store:${ISLAND_BG_VIDEO_RATE_STORE_KEY}`) {
+        if (typeof value === 'number' && Number.isFinite(value)) {
+          setBgVideoRate(Math.max(0.25, Math.min(3, value)));
+        }
+      }
+      if (channel === `store:${ISLAND_BG_VIDEO_HW_DECODE_STORE_KEY}`) {
+        if (typeof value === 'boolean') {
+          setBgVideoHwDecode(value);
+        }
       }
     });
     return () => {
@@ -863,6 +1081,7 @@ export function SettingsTab(): ReactElement {
   const applyWeatherLocationPriority = async (nextPriority: WeatherLocationPriority): Promise<void> => {
     setWeatherLocationPriority(nextPriority);
 
+    const unknownError = t('settings.common.unknownError', { defaultValue: '未知错误' });
     try {
       const city = weatherCustomCityInput.trim();
       const existing = loadWeatherLocationConfig().customLocation;
@@ -885,23 +1104,34 @@ export function SettingsTab(): ReactElement {
       setWeatherLocationConfigMessage({
         type: nextPriority === 'custom' && !customLocation ? 'error' : 'success',
         text: nextPriority === 'custom' && !customLocation
-          ? '已切换为自定义位置优先，但未配置城市，将自动回退到 IP 定位'
-          : '定位来源优先级已立即生效',
+          ? t('settings.weather.messages.customMissingFallback', {
+              defaultValue: '已切换为自定义位置优先，但未配置城市，将自动回退到 IP 定位',
+            })
+          : t('settings.weather.messages.priorityApplied', {
+              defaultValue: '定位来源优先级已立即生效',
+            }),
       });
       setWeatherCustomLocationTestMessage(null);
       fetchWeatherData(undefined, true).catch(() => {});
     } catch (error) {
       setWeatherLocationConfigMessage({
         type: 'error',
-        text: `切换优先级失败：${error instanceof Error ? error.message : '未知错误'}`,
+        text: t('settings.weather.messages.switchPriorityFailed', {
+          defaultValue: '切换优先级失败：{{error}}',
+          error: error instanceof Error ? error.message : unknownError,
+        }),
       });
     }
   };
 
   const saveWeatherLocationSettings = async (): Promise<void> => {
     const city = weatherCustomCityInput.trim();
+    const unknownError = t('settings.common.unknownError', { defaultValue: '未知错误' });
     if (weatherLocationPriority === 'custom' && !city) {
-      setWeatherLocationConfigMessage({ type: 'error', text: '请选择“自定义位置优先”时请先输入城市名称' });
+      setWeatherLocationConfigMessage({
+        type: 'error',
+        text: t('settings.weather.messages.customNeedsCity', { defaultValue: '选择“自定义位置优先”时请先输入城市名称' }),
+      });
       return;
     }
 
@@ -923,23 +1153,35 @@ export function SettingsTab(): ReactElement {
       setWeatherLocationConfigMessage({
         type: 'success',
         text: customLocation
-          ? `天气定位配置已保存（${customLocation.city} ${customLocation.latitude.toFixed(4)}, ${customLocation.longitude.toFixed(4)}）`
-          : '天气定位配置已保存',
+          ? t('settings.weather.messages.configSavedWithCity', {
+              defaultValue: '天气定位配置已保存（{{city}} {{lat}}, {{lng}}）',
+              city: customLocation.city,
+              lat: customLocation.latitude.toFixed(4),
+              lng: customLocation.longitude.toFixed(4),
+            })
+          : t('settings.weather.messages.configSaved', { defaultValue: '天气定位配置已保存' }),
       });
       setWeatherCustomLocationTestMessage(null);
       fetchWeatherData(undefined, true).catch(() => {});
     } catch (error) {
       setWeatherLocationConfigMessage({
         type: 'error',
-        text: `城市解析失败：${error instanceof Error ? error.message : '未知错误'}`,
+        text: t('settings.weather.messages.cityResolveFailed', {
+          defaultValue: '城市解析失败：{{error}}',
+          error: error instanceof Error ? error.message : unknownError,
+        }),
       });
     }
   };
 
   const testWeatherCustomLocation = async (): Promise<void> => {
     const city = weatherCustomCityInput.trim();
+    const unknownError = t('settings.common.unknownError', { defaultValue: '未知错误' });
     if (!city) {
-      setWeatherCustomLocationTestMessage({ type: 'error', text: '请先输入城市名称后再测试' });
+      setWeatherCustomLocationTestMessage({
+        type: 'error',
+        text: t('settings.weather.messages.cityRequired', { defaultValue: '请先输入城市名称后再测试' }),
+      });
       return;
     }
 
@@ -953,7 +1195,10 @@ export function SettingsTab(): ReactElement {
       setWeatherCustomLocationTesting(false);
       setWeatherCustomLocationTestMessage({
         type: 'error',
-        text: `城市解析失败：${error instanceof Error ? error.message : '未知错误'}`,
+        text: t('settings.weather.messages.cityResolveFailed', {
+          defaultValue: '城市解析失败：{{error}}',
+          error: error instanceof Error ? error.message : unknownError,
+        }),
       });
       return;
     }
@@ -980,10 +1225,10 @@ export function SettingsTab(): ReactElement {
         throw new Error(`${name} HTTP ${resp.status}`);
       }
       if (resp.body.trimStart().startsWith('<')) {
-        throw new Error(`${name} 返回了非 JSON`);
+        throw new Error(t('settings.weather.messages.providerNonJson', { defaultValue: '{{name}} 返回了非 JSON', name }));
       }
       JSON.parse(resp.body);
-      return `${name} 可用`;
+      return t('settings.weather.messages.providerAvailable', { defaultValue: '{{name}} 可用', name });
     };
 
     try {
@@ -999,19 +1244,34 @@ export function SettingsTab(): ReactElement {
         messages.push(openMeteoResult.value);
       } else {
         hasFailure = true;
-        messages.push(`Open-Meteo 不可用：${openMeteoResult.reason instanceof Error ? openMeteoResult.reason.message : '未知错误'}`);
+        messages.push(t('settings.weather.messages.providerUnavailable', {
+          defaultValue: '{{name}} 不可用：{{error}}',
+          name: 'Open-Meteo',
+          error: openMeteoResult.reason instanceof Error ? openMeteoResult.reason.message : unknownError,
+        }));
       }
 
       if (uapiResult.status === 'fulfilled') {
         messages.push(uapiResult.value);
       } else {
         hasFailure = true;
-        messages.push(`UAPI 不可用：${uapiResult.reason instanceof Error ? uapiResult.reason.message : '未知错误'}`);
+        messages.push(t('settings.weather.messages.providerUnavailable', {
+          defaultValue: '{{name}} 不可用：{{error}}',
+          name: 'UAPI',
+          error: uapiResult.reason instanceof Error ? uapiResult.reason.message : unknownError,
+        }));
       }
 
+      const separator = t('settings.weather.messages.detailSeparator', { defaultValue: '；' });
       setWeatherCustomLocationTestMessage({
         type: hasFailure ? 'error' : 'success',
-        text: `${custom.city}（${custom.latitude.toFixed(4)}, ${custom.longitude.toFixed(4)}） - ${messages.join('；')}`,
+        text: t('settings.weather.messages.testResult', {
+          defaultValue: '{{city}}（{{lat}}, {{lng}}） - {{details}}',
+          city: custom.city,
+          lat: custom.latitude.toFixed(4),
+          lng: custom.longitude.toFixed(4),
+          details: messages.join(separator),
+        }),
       });
     } finally {
       setWeatherCustomLocationTesting(false);
@@ -1100,6 +1360,8 @@ export function SettingsTab(): ReactElement {
       }
 
       if (activeTabRef.current === 'music' && target.closest('.settings-music-pages-layout')) {
+        const mainEl = target.closest('.settings-app-page-main') as HTMLElement | null;
+        if (mainEl && mainEl.scrollHeight > mainEl.clientHeight) return;
         const pages = MUSIC_SETTINGS_PAGES;
         const currentPage = musicSettingsPageRef.current;
         const currentIdx = pages.indexOf(currentPage);
@@ -1117,6 +1379,8 @@ export function SettingsTab(): ReactElement {
       }
 
       if (activeTabRef.current === 'weather' && target.closest('.settings-weather-pages-layout')) {
+        const mainEl = target.closest('.settings-app-page-main') as HTMLElement | null;
+        if (mainEl && mainEl.scrollHeight > mainEl.clientHeight) return;
         const pages = WEATHER_SETTINGS_PAGES;
         const currentPage = weatherSettingsPageRef.current;
         const currentIdx = pages.indexOf(currentPage);
@@ -1126,6 +1390,23 @@ export function SettingsTab(): ReactElement {
             : Math.max(currentIdx - 1, 0);
           if (nextIdx !== currentIdx) {
             setWeatherSettingsPage(pages[nextIdx]);
+          }
+          e.preventDefault();
+          e.stopPropagation();
+          return;
+        }
+      }
+
+      if (activeTabRef.current === 'pluginMarket' && target.closest('.settings-app-page-dots')) {
+        const pages = PLUGIN_MARKET_PAGES;
+        const currentPage = pluginMarketPageRef.current;
+        const currentIdx = pages.indexOf(currentPage);
+        if (currentIdx >= 0) {
+          const nextIdx = e.deltaY > 0
+            ? Math.min(currentIdx + 1, pages.length - 1)
+            : Math.max(currentIdx - 1, 0);
+          if (nextIdx !== currentIdx) {
+            setPluginMarketPage(pages[nextIdx]);
           }
           e.preventDefault();
           e.stopPropagation();
@@ -1648,18 +1929,44 @@ export function SettingsTab(): ReactElement {
               setClipboardUrlSuppressInFavorites={setClipboardUrlSuppressInFavorites}
               autostartMode={autostartMode}
               setAutostartMode={setAutostartMode}
-              bgImage={bgImage}
+              bgMediaType={bgMedia?.type ?? null}
+              bgMediaPreviewUrl={bgMediaPreviewUrl}
+              bgVideoFit={bgVideoFit}
+              setBgVideoFit={setBgVideoFit}
+              bgVideoMuted={bgVideoMuted}
+              setBgVideoMuted={setBgVideoMuted}
+              bgVideoLoop={bgVideoLoop}
+              setBgVideoLoop={setBgVideoLoop}
+              bgVideoVolume={bgVideoVolume}
+              setBgVideoVolume={setBgVideoVolume}
+              bgVideoRate={bgVideoRate}
+              setBgVideoRate={setBgVideoRate}
+              bgVideoHwDecode={bgVideoHwDecode}
+              setBgVideoHwDecode={setBgVideoHwDecode}
               bgImageOpacity={bgImageOpacity}
               bgImageBlur={bgImageBlur}
               setBgImageOpacity={setBgImageOpacity}
               setBgImageBlur={setBgImageBlur}
               applyBgOpacity={applyBgOpacity}
               applyBgBlur={applyBgBlur}
+              applyBgVideoFit={applyBgVideoFit}
+              applyBgVideoMuted={applyBgVideoMuted}
+              applyBgVideoLoop={applyBgVideoLoop}
+              applyBgVideoVolume={applyBgVideoVolume}
+              applyBgVideoRate={applyBgVideoRate}
+              applyBgVideoHwDecode={applyBgVideoHwDecode}
               persistBgOpacity={persistBgOpacity}
               persistBgBlur={persistBgBlur}
+              persistBgVideoFit={persistBgVideoFit}
+              persistBgVideoMuted={persistBgVideoMuted}
+              persistBgVideoLoop={persistBgVideoLoop}
+              persistBgVideoVolume={persistBgVideoVolume}
+              persistBgVideoRate={persistBgVideoRate}
+              persistBgVideoHwDecode={persistBgVideoHwDecode}
               bgOpacitySaveTimerRef={bgOpacitySaveTimerRef}
               bgBlurSaveTimerRef={bgBlurSaveTimerRef}
               handleSelectBgImage={handleSelectBgImage}
+              handleSelectBgVideo={handleSelectBgVideo}
               handleClearBgImage={handleClearBgImage}
               handleSelectBuiltinBgImage={handleSelectBuiltinBgImage}
               appSettingsPages={APP_SETTINGS_PAGES}

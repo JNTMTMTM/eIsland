@@ -305,6 +305,13 @@ const api = {
     return ipcRenderer.invoke('dialog:open-image');
   },
   /**
+   * 打开视频文件选择对话框
+   * @returns 文件路径，取消返回 null
+   */
+  openVideoDialog: (): Promise<string | null> => {
+    return ipcRenderer.invoke('dialog:open-video');
+  },
+  /**
    * 读取缓存的壁纸文件并返回 base64 data URL
    * @param filePath - 壁纸文件绝对路径
    * @returns data URL 字符串，失败返回 null
@@ -317,6 +324,13 @@ const api = {
    */
   clearWallpaperCache: (): Promise<void> => {
     return ipcRenderer.invoke('wallpaper:clear-cache');
+  },
+  /**
+   * 读取本地文件并以 Blob/Uint8Array 形式返回（保留以供其它功能使用）
+   * @param filePath - 文件绝对路径
+   */
+  readLocalFileAsBuffer: (filePath: string): Promise<Uint8Array | null> => {
+    return ipcRenderer.invoke('wallpaper:read-file-buffer', filePath);
   },
   /** ===== HTTP 代理 API（绕过 CORS） ===== */
   /**

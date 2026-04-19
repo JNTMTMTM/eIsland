@@ -24,12 +24,13 @@
  * @author 鸡哥
  */
 
-import { useEffect, useMemo, useState, type ReactElement } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   applyUserWallpaper,
   getUserWallpaperDetail,
   listUserWallpapers,
+  normalizeWallpaperMarketListData,
   rateUserWallpaper,
   reportUserWallpaper,
   type WallpaperMarketItem,
@@ -38,17 +39,46 @@ import { readLocalToken } from '../../../../../../../utils/userAccount';
 import { SvgIcon } from '../../../../../../../utils/SvgIcon';
 
 interface WallpaperMarketSectionProps {
-  onApplyBackground: (imageUrl: string) => void;
+  onApplyBackground: (imageUrl: string, options?: { type?: 'image' | 'video' }) => void;
   onGoContribution: () => void;
 }
 
-const MARKET_PAGE_SIZE = 6;
+const DEFAULT_MARKET_PAGE_SIZE = 6;
+const STANDALONE_MARKET_PAGE_SIZE = 9;
+const STANDALONE_WINDOW_MODE_STORE_KEY = 'standalone-window-mode';
+const LEGACY_COUNTDOWN_WINDOW_MODE_STORE_KEY = 'countdown-window-mode';
+
+async function readStandaloneWindowMode(): Promise<'integrated' | 'standalone'> {
+  try {
+    const mode = await window.api.storeRead(STANDALONE_WINDOW_MODE_STORE_KEY);
+    if (mode === 'standalone') return 'standalone';
+    if (mode === 'integrated') return 'integrated';
+  } catch {
+    // ignore
+  }
+  try {
+    const legacyMode = await window.api.storeRead(LEGACY_COUNTDOWN_WINDOW_MODE_STORE_KEY);
+    if (legacyMode === 'standalone') return 'standalone';
+  } catch {
+    // ignore
+  }
+  return 'integrated';
+}
+
+function formatDuration(durationMs: number | undefined): string {
+  if (!durationMs || !Number.isFinite(durationMs) || durationMs <= 0) return '--:--';
+  const totalSec = Math.round(durationMs / 1000);
+  const minutes = Math.floor(totalSec / 60);
+  const seconds = totalSec % 60;
+  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+}
 
 /**
  * 壁纸市场内容区
  */
 export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: WallpaperMarketSectionProps) {
   const { t } = useTranslation();
+  const [marketPageSize, setMarketPageSize] = useState(DEFAULT_MARKET_PAGE_SIZE);
   const ratingDescriptions = [
     t('settings.pluginMarket.wallpaper.ratingLevels.1', { defaultValue: '很差' }),
     t('settings.pluginMarket.wallpaper.ratingLevels.2', { defaultValue: '较差' }),
@@ -62,6 +92,7 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
   const [keyword, setKeyword] = useState('');
   const [sortBy, setSortBy] = useState<'newest' | 'rating' | 'apply'>('newest');
   const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [hasNextPage, setHasNextPage] = useState(false);
   const [searchExpanded, setSearchExpanded] = useState(false);
   const [message, setMessage] = useState('');
@@ -73,10 +104,67 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
   const [applying, setApplying] = useState(false);
   const [submittingRate, setSubmittingRate] = useState(false);
   const [submittingReport, setSubmittingReport] = useState(false);
+  const [hoverVideoId, setHoverVideoId] = useState<number | null>(null);
+  const [detailVideoMuted, setDetailVideoMuted] = useState<boolean>(true);
+  const [detailVideoPlaybackRate, setDetailVideoPlaybackRate] = useState<number>(1);
+  const [detailVideoVolume, setDetailVideoVolume] = useState<number>(0.6);
+  const [detailVideoPlaying, setDetailVideoPlaying] = useState<boolean>(true);
+  const detailVideoRef = useRef<HTMLVideoElement | null>(null);
+  const listRequestSeqRef = useRef(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    readStandaloneWindowMode().then((mode) => {
+      if (cancelled) return;
+      setMarketPageSize(mode === 'standalone' ? STANDALONE_MARKET_PAGE_SIZE : DEFAULT_MARKET_PAGE_SIZE);
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
 
   const selectedPreviewUrl = useMemo(() => (
     selected?.thumb1280Url || selected?.thumb720Url || selected?.thumb320Url || selected?.originalUrl || ''
   ), [selected]);
+  const selectedCoverUrl = useMemo(() => (
+    selected?.thumb1280Url || selected?.thumb720Url || selected?.thumb320Url || ''
+  ), [selected]);
+  const selectedOriginalUrl = selected?.originalUrl || '';
+  const selectedIsVideo = selected?.type === 'video';
+
+  const handleHoverCard = useCallback((item: WallpaperMarketItem): void => {
+    if (item.type === 'video' && item.originalUrl) {
+      setHoverVideoId(item.id);
+    } else {
+      setHoverVideoId(null);
+    }
+  }, []);
+
+  const handleLeaveCard = useCallback((): void => {
+    setHoverVideoId(null);
+  }, []);
+
+  useEffect(() => {
+    // 切换选中项时，重置详情视频状态
+    setDetailVideoPlaying(true);
+    setDetailVideoPlaybackRate(1);
+  }, [selected?.id]);
+
+  useEffect(() => {
+    const video = detailVideoRef.current;
+    if (!video) return;
+    video.muted = detailVideoMuted;
+    video.volume = Math.max(0, Math.min(1, detailVideoVolume));
+    video.playbackRate = detailVideoPlaybackRate;
+  }, [detailVideoMuted, detailVideoVolume, detailVideoPlaybackRate]);
+
+  useEffect(() => {
+    const video = detailVideoRef.current;
+    if (!video) return;
+    if (detailVideoPlaying) {
+      video.play().catch(() => {});
+    } else {
+      video.pause();
+    }
+  }, [detailVideoPlaying, selectedOriginalUrl]);
 
   const renderStars = (avg: number): ReactElement => {
     const filled = Math.max(0, Math.min(5, Math.round(Number(avg) || 0)));
@@ -95,10 +183,13 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
   };
 
   const loadList = async (targetPage: number = page): Promise<void> => {
+    const requestSeq = listRequestSeqRef.current + 1;
+    listRequestSeqRef.current = requestSeq;
     const token = readLocalToken();
     if (!token) {
       setList([]);
       setSelected(null);
+      setTotalPages(1);
       setHasNextPage(false);
       return;
     }
@@ -108,23 +199,45 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
         keyword: keyword.trim() || undefined,
         sort: sortBy,
         page: targetPage,
-        pageSize: MARKET_PAGE_SIZE,
+        pageSize: marketPageSize,
       });
-      if (result.ok && Array.isArray(result.data)) {
+      if (requestSeq !== listRequestSeqRef.current) {
+        return;
+      }
+      if (result.ok) {
+        const normalized = normalizeWallpaperMarketListData(result.data);
+        const nextList = normalized.items;
+        const hasMore = normalized.total !== null
+          ? targetPage * marketPageSize < normalized.total
+          : nextList.length >= marketPageSize;
         setPage(targetPage);
-        setList(result.data);
-        setHasNextPage(result.data.length >= MARKET_PAGE_SIZE);
-        if (result.data.length === 0) {
+        setList(nextList);
+        setHasNextPage(hasMore);
+        if (normalized.total !== null) {
+          setTotalPages(Math.max(1, Math.ceil(normalized.total / marketPageSize)));
+        } else if (targetPage === 1) {
+          setTotalPages(hasMore ? 2 : 1);
+        } else {
+          setTotalPages((prev) => Math.max(prev, targetPage, hasMore ? targetPage + 1 : targetPage));
+        }
+        if (nextList.length === 0) {
           setSelected(null);
-        } else if (!selected || !result.data.some((item) => item.id === selected.id)) {
-          setSelected(result.data[0]);
+        } else if (!selected || !nextList.some((item) => item.id === selected.id)) {
+          const next = nextList[0];
+          setSelected(next);
+          // 列表项若是视频，拉一次详情补齐 originalUrl / 封面等字段，保证视频预览能正常进入
+          if (next.type === 'video') {
+            loadDetail(next.id).catch(() => {});
+          }
         }
         return;
       }
       setHasNextPage(false);
       setMessage(result.message || t('settings.pluginMarket.wallpaper.feedback.loadFailed', { defaultValue: '加载失败' }));
     } finally {
-      setLoading(false);
+      if (requestSeq === listRequestSeqRef.current) {
+        setLoading(false);
+      }
     }
   };
 
@@ -142,7 +255,7 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
   useEffect(() => {
     loadList(1).catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sortBy]);
+  }, [sortBy, marketPageSize]);
 
   const handleSearch = (): void => {
     loadList(1).catch(() => {});
@@ -169,8 +282,11 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
         setMessage(result.message || t('settings.pluginMarket.wallpaper.feedback.applyFailed', { defaultValue: '应用失败' }));
         return;
       }
-      if (selectedPreviewUrl) {
-        onApplyBackground(selectedPreviewUrl);
+      const applyUrl = selectedIsVideo
+        ? (selectedOriginalUrl || selectedPreviewUrl)
+        : selectedPreviewUrl;
+      if (applyUrl) {
+        onApplyBackground(applyUrl, { type: selectedIsVideo ? 'video' : 'image' });
       }
       setMessage(t('settings.pluginMarket.wallpaper.feedback.applySuccess', { defaultValue: '已应用壁纸背景' }));
       await loadDetail(selected.id);
@@ -233,14 +349,41 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
             ) : (
               list.map((item) => {
                 const preview = item.thumb320Url || item.thumb720Url || item.thumb1280Url || item.originalUrl || '';
+                const isVideoCard = item.type === 'video';
+                const showHoverVideo = isVideoCard && hoverVideoId === item.id && !!item.originalUrl;
                 return (
                   <button
                     key={item.id}
                     type="button"
                     className={`settings-plugin-market-card ${selected?.id === item.id ? 'active' : ''}`}
                     onClick={() => { loadDetail(item.id).catch(() => {}); }}
+                    onMouseEnter={() => handleHoverCard(item)}
+                    onMouseLeave={handleLeaveCard}
+                    onFocus={() => handleHoverCard(item)}
+                    onBlur={handleLeaveCard}
                   >
-                    {preview ? <img src={preview} alt={item.title} className="settings-plugin-market-card-img" /> : null}
+                    <div className="settings-plugin-market-card-media">
+                      {preview ? <img src={preview} alt={item.title} className="settings-plugin-market-card-img" /> : null}
+                      {showHoverVideo && item.originalUrl && (
+                        <video
+                          key={`hover-${item.id}`}
+                          className="settings-plugin-market-card-video"
+                          src={item.originalUrl}
+                          autoPlay
+                          muted
+                          loop
+                          playsInline
+                          preload="metadata"
+                          onCanPlay={(event) => { event.currentTarget.play().catch(() => {}); }}
+                        />
+                      )}
+                      {isVideoCard && (
+                        <span className="settings-plugin-market-card-badge">
+                          {t('settings.pluginMarket.wallpaper.badges.video', { defaultValue: '视频' })}
+                          {item.durationMs ? ` · ${formatDuration(item.durationMs)}` : ''}
+                        </span>
+                      )}
+                    </div>
                     <div className="settings-plugin-market-card-body">
                       <div className="settings-plugin-market-card-title">{item.title}</div>
                       <div className="settings-plugin-market-card-meta settings-plugin-market-owner-row">
@@ -273,7 +416,11 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
               {t('settings.pluginMarket.wallpaper.actions.prevPage', { defaultValue: '上一页' })}
             </button>
             <span className="settings-plugin-market-pagination-text">
-              {t('settings.pluginMarket.wallpaper.pagination.page', { defaultValue: '第 {{page}} 页', page })}
+              {t('settings.pluginMarket.wallpaper.pagination.page', {
+                defaultValue: '第 {{page}} / {{total}} 页',
+                page,
+                total: totalPages,
+              })}
             </span>
             <button
               className="settings-hotkey-btn"
@@ -326,7 +473,81 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
           ) : (
             <div className="settings-plugin-market-detail-content">
               <div className="settings-plugin-market-detail-preview">
-                {selectedPreviewUrl ? <img src={selectedPreviewUrl} alt={selected.title} className="settings-plugin-market-detail-img" /> : null}
+                {selectedIsVideo && selectedOriginalUrl ? (
+                  <>
+                    <video
+                      ref={detailVideoRef}
+                      key={selectedOriginalUrl}
+                      className="settings-plugin-market-detail-video"
+                      src={selectedOriginalUrl}
+                      poster={selectedCoverUrl || undefined}
+                      autoPlay
+                      loop
+                      playsInline
+                      muted={detailVideoMuted}
+                      controls={false}
+                      onEnded={() => setDetailVideoPlaying(true)}
+                      onPlay={() => setDetailVideoPlaying(true)}
+                      onPause={() => setDetailVideoPlaying(false)}
+                    />
+                    <div className="settings-plugin-market-detail-video-controls">
+                      <button
+                        className="settings-hotkey-btn"
+                        type="button"
+                        onClick={() => setDetailVideoPlaying((prev) => !prev)}
+                      >
+                        {detailVideoPlaying
+                          ? t('settings.pluginMarket.wallpaper.videoControls.pause', { defaultValue: '暂停' })
+                          : t('settings.pluginMarket.wallpaper.videoControls.play', { defaultValue: '播放' })}
+                      </button>
+                      <button
+                        className="settings-hotkey-btn"
+                        type="button"
+                        onClick={() => setDetailVideoMuted((prev) => !prev)}
+                      >
+                        {detailVideoMuted
+                          ? t('settings.pluginMarket.wallpaper.videoControls.unmute', { defaultValue: '取消静音' })
+                          : t('settings.pluginMarket.wallpaper.videoControls.mute', { defaultValue: '静音' })}
+                      </button>
+                      <label className="settings-plugin-market-detail-video-slider">
+                        <span>{t('settings.pluginMarket.wallpaper.videoControls.volume', { defaultValue: '音量' })}</span>
+                        <input
+                          type="range"
+                          min={0}
+                          max={1}
+                          step={0.05}
+                          value={detailVideoVolume}
+                          onChange={(event) => {
+                            const value = parseFloat(event.target.value);
+                            if (Number.isFinite(value)) {
+                              setDetailVideoVolume(Math.max(0, Math.min(1, value)));
+                            }
+                          }}
+                        />
+                      </label>
+                      <label className="settings-plugin-market-detail-video-slider">
+                        <span>{t('settings.pluginMarket.wallpaper.videoControls.rate', { defaultValue: '速度' })}</span>
+                        <select
+                          className="settings-field-input"
+                          value={detailVideoPlaybackRate}
+                          onChange={(event) => {
+                            const value = parseFloat(event.target.value);
+                            if (Number.isFinite(value) && value > 0) setDetailVideoPlaybackRate(value);
+                          }}
+                        >
+                          <option value={0.5}>0.5x</option>
+                          <option value={0.75}>0.75x</option>
+                          <option value={1}>1.0x</option>
+                          <option value={1.25}>1.25x</option>
+                          <option value={1.5}>1.5x</option>
+                          <option value={2}>2.0x</option>
+                        </select>
+                      </label>
+                    </div>
+                  </>
+                ) : selectedPreviewUrl ? (
+                  <img src={selectedPreviewUrl} alt={selected.title} className="settings-plugin-market-detail-img" />
+                ) : null}
               </div>
 
               <div className="settings-plugin-market-detail-meta-panel">
@@ -337,30 +558,52 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
                     : <img src={SvgIcon.USER} alt="" className="settings-plugin-market-owner-avatar large placeholder" />}
                   <span>@{selected.ownerUsername}</span>
                 </div>
-                <div className="settings-plugin-market-detail-meta">{selected.description || '-'}</div>
-                <div className="settings-plugin-market-detail-meta settings-plugin-market-detail-tags">
-                  {(() => {
-                    const chips = (selected.tagsText || '')
-                      .split(/[,，]/)
-                      .map((s) => s.trim())
-                      .filter(Boolean);
-                    if (chips.length === 0) return <span className="settings-plugin-market-detail-tags-empty">-</span>;
-                    return chips.map((chip, idx) => (
-                      <span key={`${chip}-${idx}`} className="settings-plugin-market-tag-chip readonly">
-                        {chip}
-                      </span>
-                    ));
-                  })()}
+                <div className="settings-plugin-market-detail-meta settings-plugin-market-detail-meta-block">
+                  <div className="settings-plugin-market-detail-meta-label">
+                    {t('settings.pluginMarket.wallpaper.meta.description', { defaultValue: '描述' })}
+                  </div>
+                  <div className="settings-plugin-market-detail-meta-value">{selected.description || '-'}</div>
                 </div>
-                <div className="settings-plugin-market-detail-meta settings-plugin-market-detail-rating">
-                  <span>{t('settings.pluginMarket.wallpaper.meta.rating', { defaultValue: '评分' })}:</span>
-                  {renderStars(Number(selected.ratingAvg ?? 0))}
-                  <span>{Number(selected.ratingAvg ?? 0).toFixed(1)}</span>
-                  <span>({selected.ratingCount ?? 0})</span>
-                  <span className="settings-plugin-market-detail-apply">
-                    <img src={SvgIcon.DOWNLOAD} alt="" className="settings-plugin-market-apply-icon" />
-                    <span>{selected.applyCount ?? 0}</span>
-                  </span>
+                <div className="settings-plugin-market-detail-meta settings-plugin-market-detail-meta-block">
+                  <div className="settings-plugin-market-detail-meta-label">
+                    {t('settings.pluginMarket.wallpaper.meta.tags', { defaultValue: '标签' })}
+                  </div>
+                  <div className="settings-plugin-market-detail-meta-value settings-plugin-market-detail-tags">
+                    {(() => {
+                      const chips = (selected.tagsText || '')
+                        .split(/[,，]/)
+                        .map((s) => s.trim())
+                        .filter(Boolean);
+                      if (chips.length === 0) return <span className="settings-plugin-market-detail-tags-empty">-</span>;
+                      return chips.map((chip, idx) => (
+                        <span key={`${chip}-${idx}`} className="settings-plugin-market-tag-chip readonly">
+                          {chip}
+                        </span>
+                      ));
+                    })()}
+                  </div>
+                </div>
+                <div className="settings-plugin-market-detail-meta settings-plugin-market-detail-meta-block">
+                  <div className="settings-plugin-market-detail-meta-label">
+                    {t('settings.pluginMarket.wallpaper.meta.copyrightInfo', { defaultValue: '版权声明' })}
+                  </div>
+                  <div className="settings-plugin-market-detail-meta-value settings-plugin-market-detail-copyright-value">
+                    {selected.copyrightInfo || '-'}
+                  </div>
+                </div>
+                <div className="settings-plugin-market-detail-meta settings-plugin-market-detail-meta-block">
+                  <div className="settings-plugin-market-detail-meta-label">
+                    {t('settings.pluginMarket.wallpaper.meta.rating', { defaultValue: '评分' })}
+                  </div>
+                  <div className="settings-plugin-market-detail-rating">
+                    {renderStars(Number(selected.ratingAvg ?? 0))}
+                    <span>{Number(selected.ratingAvg ?? 0).toFixed(1)}</span>
+                    <span>({selected.ratingCount ?? 0})</span>
+                    <span className="settings-plugin-market-detail-apply">
+                      <img src={SvgIcon.DOWNLOAD} alt="" className="settings-plugin-market-apply-icon" />
+                      <span>{selected.applyCount ?? 0}</span>
+                    </span>
+                  </div>
                 </div>
 
                 <div className="settings-plugin-market-actions">

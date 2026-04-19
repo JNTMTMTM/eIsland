@@ -623,11 +623,17 @@
       },
       "layout": {
         "previewTitle": "Overview Layout Preview",
+        "previewHint": "Live preview of the Expand-state island with the chosen widgets. Picking below updates instantly.",
+        "widgetPickerTitle": "Widget Slots",
+        "widgetPickerHint": "Pick the widget for each side. Changes apply and persist instantly.",
         "leftWidget": "Left Widget",
         "rightWidget": "Right Widget"
       },
       "hideProcess": {
+        "title": "Hidden Window Management",
         "hint": "When blacklisted process windows are focused, Dynamic Island hides automatically.",
+        "runningTitle": "Currently Running Windows",
+        "runningHint": "Click a row to add/remove from the blacklist. Search by process name is supported.",
         "searchPlaceholder": "Search process name",
         "refreshing": "Refreshing...",
         "refresh": "Refresh windows",
@@ -637,6 +643,10 @@
       "position": {
         "title": "Dynamic Island Offset",
         "hint": "Applies and saves immediately.",
+        "quickAdjustTitle": "Quick Nudge",
+        "quickAdjustHint": "Each click moves the island by 10px; applied and saved instantly.",
+        "preciseTitle": "Precise Offset",
+        "preciseHint": "Enter horizontal / vertical offset (px). Press Enter or click Apply to commit.",
         "moveLeft": "Left 10",
         "moveRight": "Right 10",
         "moveUp": "Up 10",
@@ -659,8 +669,31 @@
         "customImageHint": "Select local image: jpg / png / gif / webp",
         "changeImage": "Change image",
         "selectImage": "Select image",
+        "customVideo": "Custom Video",
+        "customVideoHint": "Select a local video. Only mp4 is supported.",
+        "changeVideo": "Change video",
+        "selectVideo": "Select video",
+        "videoFitHint": "Video Fit Mode",
+        "videoFitCover": "Cover (Crop)",
+        "videoFitContain": "Contain (Letterbox)",
+        "videoMutedToggle": "Mute video playback",
+        "videoLoopToggle": "Loop video playback",
+        "videoVolumeHint": "Background video volume (0 - 100%). Requires unmute to take effect.",
+        "videoRateHint": "Playback speed",
+        "videoHwDecodeToggle": "Enable hardware decoding (takes effect after restart)",
         "clearBackground": "Clear background",
         "previewAlt": "Background preview",
+        "previewLabel": "Live Preview",
+        "bgCardTitle": "Wallpaper Background",
+        "bgCardSubtitle": "Pick a built-in wallpaper, or import a local image / video as the island background",
+        "effectCardTitle": "Background Display Effect",
+        "effectCardSubtitle": "Tune the background opacity and blur",
+        "opacityTitle": "Background Opacity",
+        "blurTitle": "Background Blur",
+        "videoCardTitle": "Video Playback",
+        "videoCardSubtitle": "Fit mode, audio and playback control for the background video",
+        "videoAudioTitle": "Audio & Loop",
+        "videoPerfTitle": "Performance",
         "imageOpacityHint": "Background opacity (0% - 100%)",
         "imageBlurHint": "Background blur (0px - 20px)",
         "islandOpacityTitle": "Island Opacity",
@@ -684,6 +717,7 @@
         "hint": "Show prompt when URL is detected in clipboard",
         "enableToggle": "Enable clipboard URL monitor",
         "detectModes": "Detection mode",
+        "detectModesHint": "Choose what is treated as a URL, and optionally silence prompts while the favorites view is open.",
         "modeHttpsOnly": "Require https prefix",
         "modeHttpHttps": "Allow http/https",
         "modeDomainOnly": "Allow domain-only",
@@ -734,6 +768,9 @@
       "timeout": {
         "title": "Request Timeout",
         "hint": "Set the maximum wait time for network requests",
+        "presetTitle": "Common Presets",
+        "customTitle": "Custom Seconds",
+        "customHint": "Enter between 1 - 120 seconds; applies on Enter or blur.",
         "unitSecond": "s",
         "options": {
           "ms5000": "5s",
@@ -749,6 +786,8 @@
         "title": "Location Priority",
         "hint": "Prefer IP-based auto location or custom location"
       },
+      "customCityTitle": "Custom City",
+      "customCityHint": "Only used when 'Custom Location First' is active. Test before saving; Chinese / Pinyin / English are supported.",
       "cityName": "City Name",
       "cityPlaceholder": "e.g. Hangzhou / Tokyo / New York",
       "testing": "Testing...",
@@ -770,7 +809,28 @@
       },
       "messages": {
         "switchPriorityFailed": "Failed to switch priority: {{error}}",
-        "testFailed": "Test failed: {{error}}"
+        "testFailed": "Test failed: {{error}}",
+        "cityRequired": "Please enter a city name before testing",
+        "cityResolveFailed": "Failed to resolve city: {{error}}",
+        "providerNonJson": "{{name}} returned non-JSON",
+        "providerAvailable": "{{name}} available",
+        "providerUnavailable": "{{name}} unavailable: {{error}}",
+        "testResult": "{{city}} ({{lat}}, {{lng}}) - {{details}}",
+        "detailSeparator": "; ",
+        "customNeedsCity": "Please enter a city name before choosing 'Custom Location First'",
+        "priorityApplied": "Location priority applied immediately",
+        "customMissingFallback": "Switched to Custom Location First, but no city is configured; falling back to IP location",
+        "configSavedWithCity": "Weather location saved ({{city}} {{lat}}, {{lng}})",
+        "configSaved": "Weather location saved"
+      },
+      "adcode": {
+        "missingParams": "District API is missing query params (adcode or keyword)",
+        "httpError": "Adcode API HTTP {{status}}: {{body}}",
+        "nonJson": "Adcode API returned non-JSON content, please check your network",
+        "errorCode": "Adcode API returned error code {{code}}",
+        "emptyKeyword": "Please enter a city name",
+        "notFound": "No matching city found, try a more complete name",
+        "noCoords": "Query result is missing coordinates"
       },
       "pagination": "Weather settings pagination"
     },
@@ -778,6 +838,10 @@
       "whitelist": {
         "title": "Player Whitelist",
         "hint": "Only whitelisted players can trigger music metadata",
+        "empty": "No players added yet",
+        "addTitle": "Add Player",
+        "addHint": "Enter a player process name manually, or detect it from the current SMTC session",
+        "detectedTitle": "Currently Detected",
         "placeholder": "Enter player process name (e.g. Spotify.exe)",
         "fetching": "Fetching...",
         "fetchSourceProcess": "Fetch Playing Process",
@@ -786,6 +850,8 @@
       "lyrics": {
         "title": "Lyrics Source",
         "hint": "Auto mode selects source by detected SMTC player and falls back to LRCLIB",
+        "displayTitle": "Lyrics Display",
+        "displayHint": "Control how lyrics are rendered on screen",
         "sourceOptions": {
           "auto": "Auto (Follow Player)",
           "neteaseOnly": "NetEase Only",
@@ -859,6 +925,10 @@
       "pagination": "Shortcut settings pagination"
     },
     "update": {
+      "versionCardTitle": "Version Info",
+      "versionCardHint": "View the current version and pick an update source. All patches are downloaded through the selected source.",
+      "actionCardTitle": "Check & Install",
+      "actionCardHint": "Trigger a manual check; when a new version is available you can download it. After the download finishes, click 'Install & Restart' to apply.",
       "currentVersion": "Current Version",
       "source": "Update Source",
       "latestVersion": "Latest Version",
@@ -894,13 +964,13 @@
       "contribution": {
         "title": "Contribute Your Wallpaper",
         "actions": {
-          "backToWallpaper": "Back to Wallpaper Market"
+          "backToWallpaper": "Back to Market"
         }
       },
       "edit": {
         "searchPlaceholder": "Search your wallpapers",
         "actions": {
-          "backToMarket": "Back to Wallpaper Market"
+          "backToMarket": "Back to Market"
         },
         "feedback": {
           "emptyMine": "You haven't uploaded any wallpapers yet",
@@ -919,6 +989,28 @@
       },
       "wallpaper": {
         "searchPlaceholder": "Search title/author/description/tags",
+        "badges": {
+          "video": "Video"
+        },
+        "videoControls": {
+          "play": "Play",
+          "pause": "Pause",
+          "mute": "Mute",
+          "unmute": "Unmute",
+          "volume": "Volume",
+          "rate": "Speed"
+        },
+        "ratingLevels": {
+          "1": "Terrible",
+          "2": "Poor",
+          "3": "Okay",
+          "4": "Good",
+          "5": "Amazing"
+        },
+        "rating": {
+          "current": "Current rating",
+          "help": "Click a star to rate. 5 stars means you love it."
+        },
         "sort": {
           "newest": "Newest",
           "rating": "Top Rated",
@@ -928,15 +1020,32 @@
           "titlePlaceholder": "Title",
           "tagsPlaceholder": "Tags (comma separated)",
           "descriptionPlaceholder": "Description",
+          "transcodePreparing": "Preparing video…",
+          "transcodeRemux": "Already a compatible codec, remuxing in fast path…",
+          "transcodeEncoding": "Transcoding locally (libx264 / aac)…",
+          "transcodeCopy": "ffmpeg not detected; copying the source file directly…",
+          "transcodeMode": {
+            "remux": "Fast remux",
+            "transcode": "Local transcode",
+            "copy": "Direct copy"
+          },
+          "typeImage": "Image",
+          "typeVideo": "Video",
           "chooseFile": "Choose image file",
+          "chooseVideoFile": "Choose video file",
           "noFile": "No file selected",
           "progress": "Upload progress",
+          "videoMeta": "Duration {{seconds}}s / Frame rate {{fps}} fps / Resolution {{width}}x{{height}}",
           "copyright": "I confirm I own the copyright or have authorization",
+          "copyrightInfoPlaceholder": "Copyright declaration details (e.g. original work, authorization source, license number)",
           "previewGenerating": "Generating previews..."
         },
         "meta": {
+          "description": "Description",
+          "tags": "Tags",
           "rating": "Rating",
-          "apply": "Apply Count"
+          "apply": "Apply Count",
+          "copyrightInfo": "Copyright"
         },
         "report": {
           "copyright": "Copyright",
@@ -984,7 +1093,10 @@
           "titleRequired": "Title is required",
           "fileRequired": "Please select an image file",
           "copyrightRequired": "Please confirm copyright declaration",
+          "copyrightInfoRequired": "Please provide copyright declaration details",
           "fileTooLarge": "Image must be <= 20MB",
+          "videoTypeInvalid": "Only mp4 video files are supported",
+          "videoTooLarge": "Video must be <= 100MB",
           "uploadFailed": "Upload failed",
           "uploadSuccess": "Uploaded. Waiting for review",
           "applying": "Applying...",
@@ -1004,7 +1116,7 @@
           "updateSuccess": "Saved and pending review"
         },
         "pagination": {
-          "page": "Page {{page}}"
+          "page": "Page {{page}} / {{total}}"
         }
       }
     },
@@ -1017,7 +1129,12 @@
       "systemPrompt": "System Prompt",
       "promptPlaceholder": "You are a helpful assistant.",
       "saveTitle": "Save (Ctrl+Enter)",
-      "editPromptTitle": "Edit Prompt"
+      "editPromptTitle": "Edit Prompt",
+      "credentialsTitle": "Model Credentials",
+      "credentialsHint": "OpenAI-compatible protocol. Fill in your API Key, Endpoint and model name.",
+      "mcpTitle": "MCP Tooling",
+      "mcpHint": "Optional. Once an MCP endpoint is configured, the Agent can call external tools through it.",
+      "systemPromptHint": "Constrains the Agent's role and style. Leave empty to use the default prompt."
     },
     "about": {
       "authorAvatarAlt": "Author avatar",

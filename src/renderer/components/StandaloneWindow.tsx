@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TodoTab } from './states/maxExpand/components/TodoTab';
@@ -39,10 +39,24 @@ type WindowTab = 'todo' | 'countdown' | 'settings';
 const ACTIVE_TAB_STORE_KEY = 'standalone-window-active-tab';
 const LEGACY_ACTIVE_TAB_STORE_KEY = 'countdown-window-active-tab';
 const AUTH_INTENT_STORE_KEY = 'standalone-window-auth-intent';
+const ISLAND_BG_MEDIA_STORE_KEY = 'island-bg-media';
 const ISLAND_BG_IMAGE_STORE_KEY = 'island-bg-image';
+const ISLAND_BG_VIDEO_FIT_STORE_KEY = 'island-bg-video-fit';
+const ISLAND_BG_VIDEO_MUTED_STORE_KEY = 'island-bg-video-muted';
+const ISLAND_BG_VIDEO_LOOP_STORE_KEY = 'island-bg-video-loop';
+const ISLAND_BG_VIDEO_VOLUME_STORE_KEY = 'island-bg-video-volume';
+const ISLAND_BG_VIDEO_RATE_STORE_KEY = 'island-bg-video-rate';
+const ISLAND_BG_VIDEO_HW_DECODE_STORE_KEY = 'island-bg-video-hw-decode';
 const ISLAND_BG_OPACITY_STORE_KEY = 'island-bg-opacity';
 const ISLAND_BG_BLUR_STORE_KEY = 'island-bg-blur';
 const LOCAL_ISLAND_BG_SYNC_EVENT = 'island-bg-local-sync';
+
+type IslandBgMediaType = 'image' | 'video';
+
+interface IslandBgMediaConfig {
+  type: IslandBgMediaType;
+  source: string;
+}
 
 function applyAuthIntent(intent: unknown): void {
   if (intent === 'login') {
@@ -58,16 +72,56 @@ function applyAuthIntent(intent: unknown): void {
   }
 }
 
-function isDirectBgImageUrl(image: string): boolean {
-  return image.startsWith('data:')
-    || image.startsWith('http://')
-    || image.startsWith('https://')
-    || image.startsWith('blob:')
-    || image.startsWith('file:')
-    || image.startsWith('/')
-    || image.startsWith('./')
-    || image.startsWith('../')
-    || image.startsWith('assets/');
+function isDirectBgMediaUrl(source: string): boolean {
+  return source.startsWith('data:')
+    || source.startsWith('http://')
+    || source.startsWith('https://')
+    || source.startsWith('blob:')
+    || source.startsWith('file:')
+    || source.startsWith('/')
+    || source.startsWith('./')
+    || source.startsWith('../')
+    || source.startsWith('assets/');
+}
+
+function toMediaUrl(path: string): string {
+  const normalized = path.replace(/\\/g, '/');
+  return `eisland-media://local/${encodeURIComponent(normalized)}`;
+}
+
+function normalizeBgMediaConfig(value: unknown): IslandBgMediaConfig | null {
+  if (typeof value === 'string') {
+    const source = value.trim();
+    return source ? { type: 'image', source } : null;
+  }
+  if (!value || typeof value !== 'object') return null;
+
+  const candidate = value as { type?: unknown; source?: unknown; image?: unknown; url?: unknown };
+  const sourceRaw = typeof candidate.source === 'string'
+    ? candidate.source
+    : typeof candidate.image === 'string'
+      ? candidate.image
+      : typeof candidate.url === 'string'
+        ? candidate.url
+        : null;
+  if (!sourceRaw) return null;
+
+  const source = sourceRaw.trim();
+  if (!source) return null;
+
+  if (candidate.type === 'video') {
+    return { type: 'video', source };
+  }
+  return { type: 'image', source };
+}
+
+async function resolveBgMediaPreviewUrl(media: IslandBgMediaConfig): Promise<string | null> {
+  if (media.type === 'image') {
+    if (isDirectBgMediaUrl(media.source)) return media.source;
+    return window.api.loadWallpaperFile?.(media.source) ?? null;
+  }
+  if (isDirectBgMediaUrl(media.source)) return media.source;
+  return toMediaUrl(media.source);
 }
 
 const TAB_LIST: { key: WindowTab; labelKey: string }[] = [
@@ -84,26 +138,25 @@ export function StandaloneWindow(): ReactElement {
   const { t } = useTranslation();
   const state = useIslandStore((s) => s.state);
   const [activeTab, setActiveTab] = useState<WindowTab>('todo');
-  const [bgImageUrl, setBgImageUrl] = useState<string | null>(null);
+  const [bgMedia, setBgMedia] = useState<{ type: IslandBgMediaType; previewUrl: string } | null>(null);
+  const [bgVideoFit, setBgVideoFit] = useState<'cover' | 'contain'>('cover');
+  const [bgVideoMuted, setBgVideoMuted] = useState<boolean>(true);
+  const [bgVideoLoop, setBgVideoLoop] = useState<boolean>(true);
+  const [bgVideoVolume, setBgVideoVolume] = useState<number>(0.6);
+  const [bgVideoRate, setBgVideoRate] = useState<number>(1);
+  const [bgVideoHwDecode, setBgVideoHwDecode] = useState<boolean>(true);
+  const bgVideoElementRef = useRef<HTMLVideoElement | null>(null);
   const [bgImageOpacity, setBgImageOpacity] = useState<number>(30);
   const [bgImageBlur, setBgImageBlur] = useState<number>(0);
 
   useEffect(() => {
     let cancelled = false;
-    const applyBgImage = (imageValue: unknown): void => {
-      const image = typeof imageValue === 'string' ? imageValue : null;
-      if (!image) {
-        setBgImageUrl(null);
+    const applyBgMedia = (media: IslandBgMediaConfig | null, previewUrl: string | null): void => {
+      if (!media || !previewUrl) {
+        setBgMedia(null);
         return;
       }
-      if (isDirectBgImageUrl(image)) {
-        setBgImageUrl(image);
-        return;
-      }
-      window.api.loadWallpaperFile?.(image).then((dataUrl) => {
-        if (cancelled) return;
-        setBgImageUrl(dataUrl ?? null);
-      }).catch(() => {});
+      setBgMedia({ type: media.type, previewUrl });
     };
 
     const applyBgOpacity = (opacityValue: unknown): void => {
@@ -143,9 +196,44 @@ export function StandaloneWindow(): ReactElement {
       }
     }).catch(() => {});
 
-    window.api.storeRead(ISLAND_BG_IMAGE_STORE_KEY).then((image) => {
+    Promise.all([
+      window.api.storeRead(ISLAND_BG_MEDIA_STORE_KEY),
+      window.api.storeRead(ISLAND_BG_IMAGE_STORE_KEY) as Promise<string | null>,
+      window.api.storeRead(ISLAND_BG_VIDEO_FIT_STORE_KEY) as Promise<'cover' | 'contain' | null>,
+      window.api.storeRead(ISLAND_BG_VIDEO_MUTED_STORE_KEY) as Promise<boolean | null>,
+      window.api.storeRead(ISLAND_BG_VIDEO_LOOP_STORE_KEY) as Promise<boolean | null>,
+      window.api.storeRead(ISLAND_BG_VIDEO_VOLUME_STORE_KEY) as Promise<number | null>,
+      window.api.storeRead(ISLAND_BG_VIDEO_RATE_STORE_KEY) as Promise<number | null>,
+      window.api.storeRead(ISLAND_BG_VIDEO_HW_DECODE_STORE_KEY) as Promise<boolean | null>,
+    ]).then(async ([mediaRaw, legacyImage, videoFit, videoMuted, videoLoop, videoVolume, videoRate, videoHwDecode]) => {
       if (cancelled) return;
-      applyBgImage(image);
+      if (videoFit === 'cover' || videoFit === 'contain') {
+        setBgVideoFit(videoFit);
+      }
+      if (typeof videoMuted === 'boolean') {
+        setBgVideoMuted(videoMuted);
+      }
+      if (typeof videoLoop === 'boolean') {
+        setBgVideoLoop(videoLoop);
+      }
+      if (typeof videoVolume === 'number' && Number.isFinite(videoVolume)) {
+        setBgVideoVolume(Math.max(0, Math.min(1, videoVolume)));
+      }
+      if (typeof videoRate === 'number' && Number.isFinite(videoRate)) {
+        setBgVideoRate(Math.max(0.25, Math.min(3, videoRate)));
+      }
+      if (typeof videoHwDecode === 'boolean') {
+        setBgVideoHwDecode(videoHwDecode);
+      }
+      const media = normalizeBgMediaConfig(mediaRaw)
+        ?? (typeof legacyImage === 'string' ? normalizeBgMediaConfig(legacyImage) : null);
+      if (!media) {
+        applyBgMedia(null, null);
+        return;
+      }
+      const previewUrl = await resolveBgMediaPreviewUrl(media);
+      if (cancelled) return;
+      applyBgMedia(media, previewUrl);
     }).catch(() => {});
 
     window.api.storeRead(ISLAND_BG_OPACITY_STORE_KEY).then((opacity) => {
@@ -172,8 +260,16 @@ export function StandaloneWindow(): ReactElement {
           window.api.storeWrite(AUTH_INTENT_STORE_KEY, null).catch(() => {});
         }
       }
-      if (channel === `store:${ISLAND_BG_IMAGE_STORE_KEY}`) {
-        applyBgImage(value);
+      if (channel === `store:${ISLAND_BG_MEDIA_STORE_KEY}`) {
+        const media = normalizeBgMediaConfig(value);
+        if (!media) {
+          applyBgMedia(null, null);
+          return;
+        }
+        resolveBgMediaPreviewUrl(media).then((previewUrl) => {
+          if (cancelled) return;
+          applyBgMedia(media, previewUrl);
+        }).catch(() => {});
       }
       if (channel === `store:${ISLAND_BG_OPACITY_STORE_KEY}`) {
         applyBgOpacity(value);
@@ -181,20 +277,75 @@ export function StandaloneWindow(): ReactElement {
       if (channel === `store:${ISLAND_BG_BLUR_STORE_KEY}`) {
         applyBgBlur(value);
       }
+      if (channel === `store:${ISLAND_BG_VIDEO_FIT_STORE_KEY}`) {
+        if (value === 'cover' || value === 'contain') {
+          setBgVideoFit(value);
+        }
+      }
+      if (channel === `store:${ISLAND_BG_VIDEO_MUTED_STORE_KEY}`) {
+        if (typeof value === 'boolean') {
+          setBgVideoMuted(value);
+        }
+      }
+      if (channel === `store:${ISLAND_BG_VIDEO_LOOP_STORE_KEY}`) {
+        if (typeof value === 'boolean') {
+          setBgVideoLoop(value);
+        }
+      }
+      if (channel === `store:${ISLAND_BG_VIDEO_VOLUME_STORE_KEY}`) {
+        if (typeof value === 'number' && Number.isFinite(value)) {
+          setBgVideoVolume(Math.max(0, Math.min(1, value)));
+        }
+      }
+      if (channel === `store:${ISLAND_BG_VIDEO_RATE_STORE_KEY}`) {
+        if (typeof value === 'number' && Number.isFinite(value)) {
+          setBgVideoRate(Math.max(0.25, Math.min(3, value)));
+        }
+      }
+      if (channel === `store:${ISLAND_BG_VIDEO_HW_DECODE_STORE_KEY}`) {
+        if (typeof value === 'boolean') {
+          setBgVideoHwDecode(value);
+        }
+      }
     });
 
     const localBgSyncHandler = (event: Event): void => {
-      const customEvent = event as CustomEvent<{ image?: string | null; opacity?: number; blur?: number }>;
+      const customEvent = event as CustomEvent<{ media?: IslandBgMediaConfig | null; previewUrl?: string | null; image?: string | null; opacity?: number; blur?: number; videoFit?: 'cover' | 'contain'; videoMuted?: boolean; videoLoop?: boolean; videoVolume?: number; videoRate?: number; videoHwDecode?: boolean }>;
       const detail = customEvent.detail;
       if (!detail || typeof detail !== 'object') return;
-      if ('image' in detail) {
-        applyBgImage(detail.image ?? null);
+      const hasMediaPayload = 'media' in detail || 'previewUrl' in detail;
+      if (hasMediaPayload) {
+        applyBgMedia(detail.media ?? null, detail.previewUrl ?? null);
+      }
+      if (!hasMediaPayload && 'image' in detail) {
+        const media = typeof detail.image === 'string'
+          ? normalizeBgMediaConfig(detail.image)
+          : null;
+        applyBgMedia(media, detail.image ?? null);
       }
       if ('opacity' in detail) {
         applyBgOpacity(detail.opacity);
       }
       if ('blur' in detail) {
         applyBgBlur(detail.blur);
+      }
+      if (detail.videoFit === 'cover' || detail.videoFit === 'contain') {
+        setBgVideoFit(detail.videoFit);
+      }
+      if (typeof detail.videoMuted === 'boolean') {
+        setBgVideoMuted(detail.videoMuted);
+      }
+      if (typeof detail.videoLoop === 'boolean') {
+        setBgVideoLoop(detail.videoLoop);
+      }
+      if (typeof detail.videoVolume === 'number' && Number.isFinite(detail.videoVolume)) {
+        setBgVideoVolume(Math.max(0, Math.min(1, detail.videoVolume)));
+      }
+      if (typeof detail.videoRate === 'number' && Number.isFinite(detail.videoRate)) {
+        setBgVideoRate(Math.max(0.25, Math.min(3, detail.videoRate)));
+      }
+      if (typeof detail.videoHwDecode === 'boolean') {
+        setBgVideoHwDecode(detail.videoHwDecode);
       }
     };
     window.addEventListener(LOCAL_ISLAND_BG_SYNC_EVENT, localBgSyncHandler as EventListener);
@@ -206,6 +357,54 @@ export function StandaloneWindow(): ReactElement {
     };
   }, []);
 
+  const bgVideoLoopRef = useRef<boolean>(bgVideoLoop);
+  useEffect(() => { bgVideoLoopRef.current = bgVideoLoop; }, [bgVideoLoop]);
+
+  // 自定义背景视频循环：绕开 React 合成事件与 Chromium 原生 loop 的偶发失效
+  useEffect(() => {
+    if (bgMedia?.type !== 'video') return;
+    const el = bgVideoElementRef.current;
+    if (!el) return;
+    el.loop = false;
+    const restart = (): void => {
+      if (!bgVideoLoopRef.current) return;
+      try { el.currentTime = 0; } catch { /* ignore */ }
+      el.play().catch(() => {});
+    };
+    const onEnded = (): void => { restart(); };
+    const onTimeUpdate = (): void => {
+      if (!bgVideoLoopRef.current) return;
+      const duration = el.duration;
+      if (!Number.isFinite(duration) || duration <= 0) return;
+      if (duration - el.currentTime <= 0.12) {
+        restart();
+      }
+    };
+    el.addEventListener('ended', onEnded);
+    el.addEventListener('timeupdate', onTimeUpdate);
+    return () => {
+      el.removeEventListener('ended', onEnded);
+      el.removeEventListener('timeupdate', onTimeUpdate);
+    };
+  }, [bgMedia?.previewUrl, bgMedia?.type, bgVideoHwDecode]);
+
+  useEffect(() => {
+    if (!bgVideoLoop) return;
+    const el = bgVideoElementRef.current;
+    if (!el) return;
+    if (el.ended) {
+      try { el.currentTime = 0; } catch { /* ignore */ }
+      el.play().catch(() => {});
+    }
+  }, [bgVideoLoop]);
+
+  useEffect(() => {
+    const el = bgVideoElementRef.current;
+    if (!el) return;
+    el.volume = Math.max(0, Math.min(1, bgVideoVolume));
+    el.playbackRate = Math.max(0.25, Math.min(3, bgVideoRate));
+  }, [bgVideoVolume, bgVideoRate]);
+
   const switchTab = (tab: WindowTab): void => {
     setActiveTab(tab);
     window.api.storeWrite(ACTIVE_TAB_STORE_KEY, tab).catch(() => {});
@@ -216,11 +415,37 @@ export function StandaloneWindow(): ReactElement {
       <div
         className="cw-bg-layer"
         style={{
-          backgroundImage: bgImageUrl ? `url(${bgImageUrl})` : 'none',
-          opacity: bgImageUrl ? bgImageOpacity / 100 : 0,
-          filter: bgImageUrl && bgImageBlur > 0 ? `blur(${bgImageBlur}px)` : 'none',
+          backgroundImage: bgMedia?.type === 'image' && bgMedia.previewUrl ? `url(${bgMedia.previewUrl})` : 'none',
+          opacity: bgMedia?.previewUrl ? bgImageOpacity / 100 : 0,
+          filter: bgMedia?.previewUrl && bgImageBlur > 0 ? `blur(${bgImageBlur}px)` : 'none',
         }}
-      />
+      >
+        {bgMedia?.type === 'video' && (
+          <video
+            key={`${bgMedia.previewUrl}-${bgVideoHwDecode ? 'hw' : 'sw'}`}
+            ref={bgVideoElementRef}
+            className="cw-bg-video"
+            src={bgMedia.previewUrl}
+            autoPlay
+            muted={bgVideoMuted || bgVideoVolume <= 0}
+            playsInline
+            preload="auto"
+            disableRemotePlayback
+            style={{ objectFit: bgVideoFit, imageRendering: bgVideoHwDecode ? undefined : 'auto' }}
+            onLoadedMetadata={(event) => {
+              event.currentTarget.loop = false;
+              event.currentTarget.volume = Math.max(0, Math.min(1, bgVideoVolume));
+              event.currentTarget.playbackRate = Math.max(0.25, Math.min(3, bgVideoRate));
+            }}
+            onCanPlay={(event) => {
+              event.currentTarget.loop = false;
+              event.currentTarget.volume = Math.max(0, Math.min(1, bgVideoVolume));
+              event.currentTarget.playbackRate = Math.max(0.25, Math.min(3, bgVideoRate));
+              event.currentTarget.play().catch(() => {});
+            }}
+          />
+        )}
+      </div>
       {/* 顶部栏：浏览器风格 Tab + 窗口控制 */}
       <div className="cw-chrome">
         <img className="cw-window-icon" src={windowIcon} alt="eIsland" />

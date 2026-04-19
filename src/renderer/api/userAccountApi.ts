@@ -66,7 +66,10 @@ export interface WallpaperMarketItem {
   thumb320Url?: string;
   thumb720Url?: string;
   thumb1280Url?: string;
+  durationMs?: number;
+  frameRate?: number;
   tagsText?: string;
+  copyrightInfo?: string;
   ratingAvg?: number;
   ratingCount?: number;
   downloadCount?: number;
@@ -75,14 +78,44 @@ export interface WallpaperMarketItem {
   publishedAt?: string;
 }
 
+export interface WallpaperMarketListData {
+  items: WallpaperMarketItem[];
+  total?: number;
+}
+
+/**
+ * 统一壁纸市场列表返回结构。
+ * @param data 接口返回的列表数据（可能是旧数组格式或新对象格式）。
+ * @returns 规范化后的列表项与总数。
+ */
+export function normalizeWallpaperMarketListData(
+  data: WallpaperMarketListData | WallpaperMarketItem[] | undefined,
+): { items: WallpaperMarketItem[]; total: number | null } {
+  if (Array.isArray(data)) {
+    return { items: data, total: null };
+  }
+  if (data && Array.isArray(data.items)) {
+    return {
+      items: data.items,
+      total: typeof data.total === 'number' && Number.isFinite(data.total) && data.total >= 0
+        ? data.total
+        : null,
+    };
+  }
+  return { items: [], total: null };
+}
+
 export interface UploadWallpaperPayload {
   title: string;
   description?: string;
   tags?: string;
   type?: 'image' | 'video';
   copyrightDeclared: boolean;
+  copyrightInfo?: string;
   width?: number;
   height?: number;
+  durationMs?: number;
+  frameRate?: number;
   original: File;
   thumb320: File;
   thumb720: File;
@@ -376,7 +409,7 @@ export async function uploadUserAvatar(file: File): Promise<string> {
 export function listUserWallpapers(
   token: string,
   params: { keyword?: string; type?: 'image' | 'video'; sort?: 'newest' | 'rating' | 'apply'; page?: number; pageSize?: number } = {},
-): Promise<UserAccountResult<WallpaperMarketItem[]>> {
+): Promise<UserAccountResult<WallpaperMarketListData | WallpaperMarketItem[]>> {
   const search = new URLSearchParams();
   if (params.keyword) search.set('keyword', params.keyword);
   if (params.type) search.set('type', params.type);
@@ -384,7 +417,7 @@ export function listUserWallpapers(
   if (params.page) search.set('page', String(params.page));
   if (params.pageSize) search.set('pageSize', String(params.pageSize));
   const suffix = search.toString();
-  return request<WallpaperMarketItem[]>(`/v1/user/wallpapers/list${suffix ? `?${suffix}` : ''}`, {
+  return request<WallpaperMarketListData | WallpaperMarketItem[]>(`/v1/user/wallpapers/list${suffix ? `?${suffix}` : ''}`, {
     method: 'GET',
     auth: token,
   });
@@ -399,7 +432,7 @@ export function listUserWallpapers(
 export function listMyUserWallpapers(
   token: string,
   params: { keyword?: string; type?: 'image' | 'video'; sort?: 'newest' | 'rating' | 'apply'; page?: number; pageSize?: number } = {},
-): Promise<UserAccountResult<WallpaperMarketItem[]>> {
+): Promise<UserAccountResult<WallpaperMarketListData | WallpaperMarketItem[]>> {
   const search = new URLSearchParams();
   if (params.keyword) search.set('keyword', params.keyword);
   if (params.type) search.set('type', params.type);
@@ -407,7 +440,7 @@ export function listMyUserWallpapers(
   if (params.page) search.set('page', String(params.page));
   if (params.pageSize) search.set('pageSize', String(params.pageSize));
   const suffix = search.toString();
-  return request<WallpaperMarketItem[]>(`/v1/user/wallpapers/mine${suffix ? `?${suffix}` : ''}`, {
+  return request<WallpaperMarketListData | WallpaperMarketItem[]>(`/v1/user/wallpapers/mine${suffix ? `?${suffix}` : ''}`, {
     method: 'GET',
     auth: token,
   });
@@ -464,8 +497,15 @@ export async function uploadUserWallpaper(
   if (payload.tags) formData.append('tags', payload.tags);
   formData.append('type', payload.type ?? 'image');
   formData.append('copyrightDeclared', payload.copyrightDeclared ? 'true' : 'false');
+  if (payload.copyrightInfo) formData.append('copyrightInfo', payload.copyrightInfo);
   if (typeof payload.width === 'number' && Number.isFinite(payload.width)) formData.append('width', String(Math.round(payload.width)));
   if (typeof payload.height === 'number' && Number.isFinite(payload.height)) formData.append('height', String(Math.round(payload.height)));
+  if (typeof payload.durationMs === 'number' && Number.isFinite(payload.durationMs) && payload.durationMs > 0) {
+    formData.append('durationMs', String(Math.round(payload.durationMs)));
+  }
+  if (typeof payload.frameRate === 'number' && Number.isFinite(payload.frameRate) && payload.frameRate > 0) {
+    formData.append('frameRate', String(payload.frameRate));
+  }
   formData.append('original', payload.original);
   formData.append('thumb320', payload.thumb320);
   formData.append('thumb720', payload.thumb720);
@@ -516,7 +556,7 @@ export async function uploadUserWallpaper(
  */
 export function updateUserWallpaperMetadata(
   token: string,
-  payload: { id: number; title: string; description?: string; type?: 'image' | 'video'; tags?: string },
+  payload: { id: number; title: string; description?: string; type?: 'image' | 'video'; tags?: string; copyrightInfo?: string },
 ): Promise<UserAccountResult<unknown>> {
   return request('/v1/user/wallpapers/metadata', {
     method: 'PUT',
@@ -527,6 +567,7 @@ export function updateUserWallpaperMetadata(
       description: payload.description ?? '',
       type: payload.type ?? 'image',
       tags: payload.tags ?? '',
+      copyrightInfo: payload.copyrightInfo ?? '',
     },
   });
 }
