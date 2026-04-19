@@ -713,6 +713,12 @@ const api = {
     return ipcRenderer.invoke('clipboard:read-text');
   },
   /**
+   * 写入文本到剪贴板
+   */
+  clipboardWriteText: (text: string): Promise<boolean> => {
+    return ipcRenderer.invoke('clipboard:write-text', text);
+  },
+  /**
    * 获取剪贴板 URL 监听开关
    */
   clipboardUrlMonitorGet: (): Promise<boolean> => {

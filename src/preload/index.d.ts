@@ -162,6 +162,7 @@ declare global {
       springAnimationGet: () => Promise<boolean>;
       springAnimationSet: (enabled: boolean) => Promise<boolean>;
       clipboardReadText: () => Promise<string>;
+      clipboardWriteText: (text: string) => Promise<boolean>;
       clipboardUrlMonitorGet: () => Promise<boolean>;
       clipboardUrlMonitorSet: (enabled: boolean) => Promise<boolean>;
       clipboardUrlDetectModeGet: () => Promise<'https-only' | 'http-https' | 'domain-only'>;

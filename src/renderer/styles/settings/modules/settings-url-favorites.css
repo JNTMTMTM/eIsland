@@ -406,6 +406,36 @@
   padding: 6px 8px;
 }
 
+.clipboard-history-summary-row {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+}
+
+.clipboard-history-copy {
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 6px;
+  background: rgba(var(--color-text-rgb), 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.clipboard-history-copy:hover {
+  background: rgba(var(--color-text-rgb), 0.16);
+}
+
+.clipboard-history-copy img {
+  width: 13px;
+  height: 13px;
+  opacity: 0.82;
+}
+
 .clipboard-history-summary {
   width: 100%;
   border: none;

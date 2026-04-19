@@ -26,6 +26,7 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { SvgIcon } from '../../../../utils/SvgIcon';
 
 interface ClipboardHistoryItem {
   id: number;
@@ -206,6 +207,11 @@ export function ClipboardHistoryTab(): React.ReactElement {
     )));
   };
 
+  const handleCopy = (item: ClipboardHistoryItem): void => {
+    const text = expandedId === item.id ? editText : item.text;
+    window.api.clipboardWriteText(text).catch(() => {});
+  };
+
   useEffect(() => {
     if (expandedId === null) return;
     adjustTextareaHeight(editTextareaRef.current);
@@ -242,20 +248,31 @@ export function ClipboardHistoryTab(): React.ReactElement {
           const expanded = expandedId === item.id;
           return (
             <div key={item.id} className="clipboard-history-item">
-              <button
-                className="clipboard-history-summary"
-                type="button"
-                onClick={() => handleToggleExpand(item)}
-                title={item.text}
-              >
-                <span className="clipboard-history-preview">{getPreviewText(item.text)}</span>
-                <span className="clipboard-history-time">{new Date(item.createdAt).toLocaleString()}</span>
-                <span className="clipboard-history-expand-indicator">
-                  {expanded
-                    ? t('clipboardHistoryTab.actions.collapse', { defaultValue: '收起' })
-                    : t('clipboardHistoryTab.actions.expand', { defaultValue: '展开' })}
-                </span>
-              </button>
+              <div className="clipboard-history-summary-row">
+                <button
+                  className="clipboard-history-copy"
+                  type="button"
+                  onClick={() => handleCopy(item)}
+                  aria-label={t('clipboardHistoryTab.actions.copyAria', { defaultValue: '复制该记录到剪贴板' })}
+                  title={t('clipboardHistoryTab.actions.copyTitle', { defaultValue: '复制到剪贴板' })}
+                >
+                  <img src={SvgIcon.COPY} alt="" aria-hidden="true" />
+                </button>
+                <button
+                  className="clipboard-history-summary"
+                  type="button"
+                  onClick={() => handleToggleExpand(item)}
+                  title={item.text}
+                >
+                  <span className="clipboard-history-preview">{getPreviewText(item.text)}</span>
+                  <span className="clipboard-history-time">{new Date(item.createdAt).toLocaleString()}</span>
+                  <span className="clipboard-history-expand-indicator">
+                    {expanded
+                      ? t('clipboardHistoryTab.actions.collapse', { defaultValue: '收起' })
+                      : t('clipboardHistoryTab.actions.expand', { defaultValue: '展开' })}
+                  </span>
+                </button>
+              </div>
 
               {expanded ? (
                 <div className="clipboard-history-detail">

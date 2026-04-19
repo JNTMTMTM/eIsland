@@ -558,6 +558,8 @@
     "actions": {
       "clear": "Clear",
       "save": "Save",
+      "copyTitle": "Copy to clipboard",
+      "copyAria": "Copy this record to clipboard",
       "expand": "Expand",
       "collapse": "Collapse",
       "removeAria": "Remove this clipboard record"

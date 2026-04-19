@@ -66,6 +66,15 @@ export function registerClipboardIpcHandlers(options: RegisterClipboardIpcHandle
     }
   });
 
+  ipcMain.handle('clipboard:write-text', (_event, text: string) => {
+    try {
+      clipboard.writeText(typeof text === 'string' ? text : '');
+      return true;
+    } catch {
+      return false;
+    }
+  });
+
   ipcMain.handle('clipboard:url-blacklist:get', () => {
     return options.getBlacklist();
   });

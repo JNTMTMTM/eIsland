@@ -558,6 +558,8 @@
     "actions": {
       "clear": "清空",
       "save": "保存",
+      "copyTitle": "复制到剪贴板",
+      "copyAria": "复制该记录到剪贴板",
       "expand": "展开",
       "collapse": "收起",
       "removeAria": "删除该剪贴板记录"
