@@ -25,7 +25,7 @@
  * @author 鸡哥
  */
 
-import { ipcMain, shell } from 'electron';
+import { clipboard, ipcMain, shell } from 'electron';
 import { join } from 'path';
 import { writeFileSync } from 'fs';
 import { broadcastSettingChange } from '../utils/broadcast';
@@ -58,6 +58,14 @@ interface RegisterClipboardIpcHandlersOptions {
  * @param options - 配置选项，包含存储目录、键名和状态管理函数
  */
 export function registerClipboardIpcHandlers(options: RegisterClipboardIpcHandlersOptions): void {
+  ipcMain.handle('clipboard:read-text', () => {
+    try {
+      return clipboard.readText() || '';
+    } catch {
+      return '';
+    }
+  });
+
   ipcMain.handle('clipboard:url-blacklist:get', () => {
     return options.getBlacklist();
   });

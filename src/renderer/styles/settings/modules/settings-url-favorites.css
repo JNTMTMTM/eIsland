@@ -310,3 +310,182 @@
   color: rgba(var(--color-text-rgb), 0.4);
   text-align: center;
 }
+
+.clipboard-history {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  gap: 8px;
+}
+
+.clipboard-history-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2px 0;
+}
+
+.clipboard-history-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(var(--color-text-rgb), 0.9);
+}
+
+.clipboard-history-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.clipboard-history-count {
+  font-size: 11px;
+  color: rgba(var(--color-text-rgb), 0.4);
+}
+
+.clipboard-history-clear {
+  height: 24px;
+  border: none;
+  border-radius: 6px;
+  padding: 0 8px;
+  font-size: 11px;
+  color: rgba(var(--color-text-rgb), 0.8);
+  background: rgba(var(--color-text-rgb), 0.1);
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.clipboard-history-clear:hover:not(:disabled) {
+  background: rgba(var(--color-text-rgb), 0.18);
+}
+
+.clipboard-history-clear:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.clipboard-history-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-right: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(var(--color-text-rgb), 0.18) rgba(var(--color-text-rgb), 0.04);
+}
+
+.clipboard-history-list::-webkit-scrollbar {
+  width: 7px;
+}
+
+.clipboard-history-list::-webkit-scrollbar-track {
+  background: linear-gradient(180deg, rgba(var(--color-text-rgb), 0.05), rgba(var(--color-text-rgb), 0.02));
+  border-radius: 999px;
+}
+
+.clipboard-history-list::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  border: 1px solid rgba(var(--color-text-rgb), 0.12);
+  background: rgba(var(--color-text-rgb), 0.14);
+}
+
+.clipboard-history-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(var(--color-text-rgb), 0.22);
+}
+
+.clipboard-history-item {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  border-radius: 8px;
+  background: rgba(var(--color-text-rgb), 0.04);
+  border: 1px solid rgba(var(--color-text-rgb), 0.06);
+  padding: 6px 8px;
+}
+
+.clipboard-history-summary {
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 132px 40px;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.clipboard-history-preview {
+  min-width: 0;
+  font-size: 12px;
+  color: rgba(var(--color-text-rgb), 0.86);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: left;
+}
+
+.clipboard-history-time {
+  font-size: 11px;
+  color: rgba(var(--color-text-rgb), 0.46);
+  text-align: right;
+}
+
+.clipboard-history-expand-indicator {
+  font-size: 11px;
+  color: rgba(var(--color-text-rgb), 0.46);
+  justify-self: end;
+}
+
+.clipboard-history-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 2px;
+}
+
+.clipboard-history-content {
+  margin: 0;
+  max-height: 140px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  border-radius: 6px;
+  border: 1px solid rgba(var(--color-text-rgb), 0.14);
+  background: rgba(var(--color-text-rgb), 0.05);
+  color: rgba(var(--color-text-rgb), 0.82);
+  padding: 8px;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.clipboard-history-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.clipboard-history-remove {
+  width: 20px;
+  height: 20px;
+  border: none;
+  border-radius: 6px;
+  background: rgba(255, 90, 90, 0.14);
+  color: rgba(255, 105, 105, 0.9);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.clipboard-history-remove:hover {
+  background: rgba(255, 90, 90, 0.22);
+}
+
+.clipboard-history-empty {
+  margin-top: 10px;
+  font-size: 12px;
+  color: rgba(var(--color-text-rgb), 0.4);
+  text-align: center;
+}

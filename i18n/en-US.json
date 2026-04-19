@@ -551,6 +551,29 @@
       "notePlaceholder": "Enter note"
     }
   },
+  "clipboardHistoryTab": {
+    "title": "Clipboard History",
+    "count": "{{count}} items",
+    "empty": "No records yet. Copy some text and it will appear here.",
+    "actions": {
+      "clear": "Clear",
+      "expand": "Expand",
+      "collapse": "Collapse",
+      "removeAria": "Remove this clipboard record"
+    }
+  },
+  "maxExpand": {
+    "nav": {
+      "expanded": "Back",
+      "todo": "Todo",
+      "urlFavorites": "URL Favorites",
+      "clipboardHistory": "Clipboard",
+      "aiChat": "AI Chat",
+      "countdown": "Countdown",
+      "settings": "Settings",
+      "switchTo": "Switch to {{label}}"
+    }
+  },
   "settings": {
     "sidebar": {
       "title": "Settings"

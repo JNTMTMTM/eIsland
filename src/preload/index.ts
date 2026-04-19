@@ -707,6 +707,12 @@ const api = {
     return ipcRenderer.invoke('island:spring-animation:set', enabled);
   },
   /**
+   * 读取当前剪贴板文本
+   */
+  clipboardReadText: (): Promise<string> => {
+    return ipcRenderer.invoke('clipboard:read-text');
+  },
+  /**
    * 获取剪贴板 URL 监听开关
    */
   clipboardUrlMonitorGet: (): Promise<boolean> => {

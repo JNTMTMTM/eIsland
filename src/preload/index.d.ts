@@ -161,6 +161,7 @@ declare global {
       maxexpandMouseleaveIdleSet: (enabled: boolean) => Promise<boolean>;
       springAnimationGet: () => Promise<boolean>;
       springAnimationSet: (enabled: boolean) => Promise<boolean>;
+      clipboardReadText: () => Promise<string>;
       clipboardUrlMonitorGet: () => Promise<boolean>;
       clipboardUrlMonitorSet: (enabled: boolean) => Promise<boolean>;
       clipboardUrlDetectModeGet: () => Promise<'https-only' | 'http-https' | 'domain-only'>;

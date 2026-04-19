@@ -551,6 +551,29 @@
       "notePlaceholder": "输入备注"
     }
   },
+  "clipboardHistoryTab": {
+    "title": "剪贴板历史",
+    "count": "{{count}} 条",
+    "empty": "暂时没有记录，复制一些文本后会显示在这里。",
+    "actions": {
+      "clear": "清空",
+      "expand": "展开",
+      "collapse": "收起",
+      "removeAria": "删除该剪贴板记录"
+    }
+  },
+  "maxExpand": {
+    "nav": {
+      "expanded": "返回",
+      "todo": "待办",
+      "urlFavorites": "URL 收藏",
+      "clipboardHistory": "剪贴板",
+      "aiChat": "AI 对话",
+      "countdown": "倒数日",
+      "settings": "设置",
+      "switchTo": "切换到{{label}}"
+    }
+  },
   "settings": {
     "sidebar": {
       "title": "设置"
