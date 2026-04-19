@@ -768,6 +768,9 @@
       "timeout": {
         "title": "Request Timeout",
         "hint": "Set the maximum wait time for network requests",
+        "presetTitle": "Common Presets",
+        "customTitle": "Custom Seconds",
+        "customHint": "Enter between 1 - 120 seconds; applies on Enter or blur.",
         "unitSecond": "s",
         "options": {
           "ms5000": "5s",

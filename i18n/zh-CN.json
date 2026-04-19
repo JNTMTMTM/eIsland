@@ -768,6 +768,9 @@
       "timeout": {
         "title": "请求超时时间",
         "hint": "设置网络请求的最长等待时间，网络较差时可适当增大",
+        "presetTitle": "常用预设",
+        "customTitle": "自定义秒数",
+        "customHint": "输入 1 - 120 之间的秒数，回车或失去焦点后立即生效。",
         "unitSecond": "秒",
         "options": {
           "ms5000": "5 秒",
