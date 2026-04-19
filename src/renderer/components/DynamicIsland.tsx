@@ -513,6 +513,11 @@ function DynamicIsland(): React.JSX.Element {
 
       // 跨窗口设置同步
       window.api?.onSettingsChanged?.((channel: string, value: unknown) => {
+        if (channel === 'shortcut:open-clipboard-history') {
+          const store = useIslandStore.getState();
+          store.setMaxExpandTab('clipboardHistory');
+          store.setMaxExpand();
+        }
         if (channel === 'notification:show') {
           if (value && typeof value === 'object' && 'title' in (value as object) && 'body' in (value as object)) {
             setNotificationRef.current(value as {

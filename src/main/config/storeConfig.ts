@@ -121,6 +121,9 @@ export const DEFAULT_TOGGLE_TRAY_HOTKEY = '';
 /** 默认显示配置窗口快捷键（空表示默认不设置） */
 export const DEFAULT_SHOW_SETTINGS_WINDOW_HOTKEY = '';
 
+/** 默认打开剪贴板历史快捷键（空表示默认不设置） */
+export const DEFAULT_OPEN_CLIPBOARD_HISTORY_HOTKEY = '';
+
 // ===== Store 键名 =====
 
 /** 白名单存储键名 */
@@ -197,6 +200,9 @@ export const TOGGLE_TRAY_HOTKEY_STORE_KEY = 'toggle-tray-hotkey';
 
 /** 显示配置窗口快捷键存储键名 */
 export const SHOW_SETTINGS_WINDOW_HOTKEY_STORE_KEY = 'show-settings-window-hotkey';
+
+/** 打开剪贴板历史快捷键存储键名 */
+export const OPEN_CLIPBOARD_HISTORY_HOTKEY_STORE_KEY = 'open-clipboard-history-hotkey';
 
 // ===== Helper =====
 
@@ -321,6 +327,15 @@ export function readToggleTrayHotkeyConfig(): string {
 export function readShowSettingsWindowHotkeyConfig(): string {
   const data = readJsonFile(SHOW_SETTINGS_WINDOW_HOTKEY_STORE_KEY);
   return typeof data === 'string' ? data : DEFAULT_SHOW_SETTINGS_WINDOW_HOTKEY;
+}
+
+/**
+ * 读取打开剪贴板历史快捷键配置
+ * @returns 快捷键字符串
+ */
+export function readOpenClipboardHistoryHotkeyConfig(): string {
+  const data = readJsonFile(OPEN_CLIPBOARD_HISTORY_HOTKEY_STORE_KEY);
+  return typeof data === 'string' ? data : DEFAULT_OPEN_CLIPBOARD_HISTORY_HOTKEY;
 }
 
 /**

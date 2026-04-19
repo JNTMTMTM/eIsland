@@ -970,6 +970,10 @@
         "toggleTray": {
           "title": "隐藏/显示托盘图标快捷键",
           "hint": "按下此快捷键将隐藏或显示系统托盘中的灵动岛图标"
+        },
+        "openClipboardHistory": {
+          "title": "打开剪贴板历史快捷键",
+          "hint": "按下后将打开灵动岛并直接切换到剪贴板历史界面"
         }
       },
       "capture": {

@@ -128,6 +128,8 @@ declare global {
       toggleTrayHotkeySet: (accelerator: string) => Promise<boolean>;
       showSettingsWindowHotkeyGet: () => Promise<string>;
       showSettingsWindowHotkeySet: (accelerator: string) => Promise<boolean>;
+      openClipboardHistoryHotkeyGet: () => Promise<string>;
+      openClipboardHistoryHotkeySet: (accelerator: string) => Promise<boolean>;
       logWrite: (level: string, message: string) => void;
       musicWhitelistGet: () => Promise<string[]>;
       musicWhitelistSet: (list: string[]) => Promise<boolean>;
