@@ -6,6 +6,8 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+  height: 100%;
+  min-height: 0;
 }
 
 .settings-plugin-market-top-actions {
@@ -189,8 +191,8 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) 300px;
   gap: 12px;
+  flex: 1;
   min-height: 300px;
-  max-height: 520px;
 }
 
 .settings-plugin-market-list-panel {
