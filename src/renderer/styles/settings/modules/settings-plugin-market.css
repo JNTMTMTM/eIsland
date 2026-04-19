@@ -167,6 +167,11 @@
   min-width: 0;
 }
 
+.settings-plugin-market-copyright-input {
+  flex: 1 1 320px;
+  min-width: 220px;
+}
+
 .settings-plugin-market-copyright-row .settings-plugin-market-message {
   flex-shrink: 0;
   text-align: right;

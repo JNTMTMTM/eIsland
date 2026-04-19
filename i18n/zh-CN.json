@@ -1037,6 +1037,7 @@
             "copy": "已直接复制"
           },
           "copyright": "我确认拥有该图片版权或已获授权",
+          "copyrightInfoPlaceholder": "声明版权信息（如原创、授权来源、授权编号）",
           "previewGenerating": "正在生成预览…"
         },
         "meta": {
@@ -1089,6 +1090,7 @@
           "titleRequired": "请填写标题",
           "fileRequired": "请选择图片文件",
           "copyrightRequired": "请先勾选版权声明",
+          "copyrightInfoRequired": "请填写版权声明信息",
           "fileTooLarge": "图片不能超过 20MB",
           "videoTypeInvalid": "仅支持 mp4 视频文件",
           "videoTooLarge": "视频不能超过 100MB",

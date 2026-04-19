@@ -238,6 +238,7 @@ export function WallpaperContributionSection({ onGoWallpaper }: WallpaperContrib
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [uploadVideoMeta, setUploadVideoMeta] = useState<VideoMeta | null>(null);
   const [copyrightDeclared, setCopyrightDeclared] = useState(false);
+  const [copyrightInfo, setCopyrightInfo] = useState('');
   const [previews, setPreviews] = useState<PreviewEntry[]>([]);
   const [previewBusy, setPreviewBusy] = useState(false);
   const previewsRef = useRef<PreviewEntry[]>([]);
@@ -357,6 +358,10 @@ export function WallpaperContributionSection({ onGoWallpaper }: WallpaperContrib
       setMessage(t('settings.pluginMarket.wallpaper.feedback.copyrightRequired', { defaultValue: '请先勾选版权声明' }));
       return;
     }
+    if (!copyrightInfo.trim()) {
+      setMessage(t('settings.pluginMarket.wallpaper.feedback.copyrightInfoRequired', { defaultValue: '请填写版权声明信息' }));
+      return;
+    }
     if (uploadType === 'video' && uploadFile.size > MAX_VIDEO_SIZE) {
       setMessage(t('settings.pluginMarket.wallpaper.feedback.videoTooLarge', { defaultValue: '视频不能超过 100MB' }));
       return;
@@ -383,6 +388,7 @@ export function WallpaperContributionSection({ onGoWallpaper }: WallpaperContrib
         tags: uploadTags.trim(),
         type: uploadType,
         copyrightDeclared,
+        copyrightInfo: copyrightInfo.trim(),
         width: originalPreview.width,
         height: originalPreview.height,
         durationMs: uploadType === 'video' ? uploadVideoMeta?.durationMs : undefined,
@@ -410,6 +416,7 @@ export function WallpaperContributionSection({ onGoWallpaper }: WallpaperContrib
       setUploadFile(null);
       setUploadVideoMeta(null);
       setCopyrightDeclared(false);
+      setCopyrightInfo('');
       clearPreviews();
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
@@ -558,10 +565,25 @@ export function WallpaperContributionSection({ onGoWallpaper }: WallpaperContrib
               <input
                 type="checkbox"
                 checked={copyrightDeclared}
-                onChange={(e) => setCopyrightDeclared(e.target.checked)}
+                onChange={(e) => {
+                  const checked = e.target.checked;
+                  setCopyrightDeclared(checked);
+                  if (!checked) {
+                    setCopyrightInfo('');
+                  }
+                }}
               />
               <span>{t('settings.pluginMarket.wallpaper.upload.copyright', { defaultValue: '我确认拥有该图片版权或已获授权' })}</span>
             </label>
+            {copyrightDeclared && (
+              <input
+                className="settings-field-input settings-plugin-market-copyright-input"
+                value={copyrightInfo}
+                onChange={(e) => setCopyrightInfo(e.target.value)}
+                placeholder={t('settings.pluginMarket.wallpaper.upload.copyrightInfoPlaceholder', { defaultValue: '声明版权信息（如原创、授权来源、授权编号）' })}
+                maxLength={500}
+              />
+            )}
             {message && <div className="settings-plugin-market-message">{message}</div>}
           </div>
           <button

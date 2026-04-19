@@ -105,6 +105,7 @@ export interface UploadWallpaperPayload {
   tags?: string;
   type?: 'image' | 'video';
   copyrightDeclared: boolean;
+  copyrightInfo?: string;
   width?: number;
   height?: number;
   durationMs?: number;
@@ -490,6 +491,7 @@ export async function uploadUserWallpaper(
   if (payload.tags) formData.append('tags', payload.tags);
   formData.append('type', payload.type ?? 'image');
   formData.append('copyrightDeclared', payload.copyrightDeclared ? 'true' : 'false');
+  if (payload.copyrightInfo) formData.append('copyrightInfo', payload.copyrightInfo);
   if (typeof payload.width === 'number' && Number.isFinite(payload.width)) formData.append('width', String(Math.round(payload.width)));
   if (typeof payload.height === 'number' && Number.isFinite(payload.height)) formData.append('height', String(Math.round(payload.height)));
   if (typeof payload.durationMs === 'number' && Number.isFinite(payload.durationMs) && payload.durationMs > 0) {

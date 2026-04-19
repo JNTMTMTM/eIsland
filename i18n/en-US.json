@@ -1037,6 +1037,7 @@
           "progress": "Upload progress",
           "videoMeta": "Duration {{seconds}}s / Frame rate {{fps}} fps / Resolution {{width}}x{{height}}",
           "copyright": "I confirm I own the copyright or have authorization",
+          "copyrightInfoPlaceholder": "Copyright declaration details (e.g. original work, authorization source, license number)",
           "previewGenerating": "Generating previews..."
         },
         "meta": {
@@ -1089,6 +1090,7 @@
           "titleRequired": "Title is required",
           "fileRequired": "Please select an image file",
           "copyrightRequired": "Please confirm copyright declaration",
+          "copyrightInfoRequired": "Please provide copyright declaration details",
           "fileTooLarge": "Image must be <= 20MB",
           "videoTypeInvalid": "Only mp4 video files are supported",
           "videoTooLarge": "Video must be <= 100MB",
