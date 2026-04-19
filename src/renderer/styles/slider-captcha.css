@@ -1,0 +1,121 @@
+/*
+ * eIsland - A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Electron.
+ * https://github.com/JNTMTMTM/eIsland
+ *
+ * Copyright (C) 2026 JNTMTMTM
+ * Copyright (C) 2026 pyisland.com
+ *
+ * Original author: JNTMTMTM[](https://github.com/JNTMTMTM)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ */
+
+.slider-captcha-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+  background: transparent;
+}
+
+.slider-captcha-card {
+  width: min(360px, 86vw);
+  padding: 18px;
+  color: rgba(var(--color-text-rgb), .95);
+  background: rgba(var(--color-text-rgb), .06);
+  backdrop-filter: blur(14px);
+  border-radius: 14px;
+  border: 1px solid rgba(var(--color-text-rgb), .14);
+  box-shadow: 0 6px 18px rgb(0 0 0 / .22);
+}
+
+.slider-captcha-brand {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.slider-captcha-brand-logo {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 4px rgba(var(--color-text-rgb), .2));
+}
+
+.slider-captcha-brand-texts {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+.slider-captcha-title {
+  margin-bottom: 2px;
+  font-weight: 700;
+}
+
+.slider-captcha-subtitle {
+  font-size: 12px;
+  color: rgba(var(--color-text-rgb), .62);
+}
+
+.slider-captcha-hint {
+  margin-bottom: 14px;
+  margin-top: 12px;
+  font-size: 13px;
+  opacity: .9;
+}
+
+.slider-captcha-value {
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+
+.slider-captcha-range {
+  width: 100%;
+}
+
+.slider-captcha-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 14px;
+}
+
+.slider-captcha-btn {
+  appearance: none;
+  border: 1px solid transparent;
+  padding: 6px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: inherit;
+  color: rgba(var(--color-text-rgb), .84);
+  border-radius: 8px;
+  transition: background .18s ease, color .18s ease, border-color .18s ease, opacity .18s ease;
+}
+
+.slider-captcha-btn-cancel {
+  background: rgba(var(--color-text-rgb), .08);
+  border: 1px solid rgba(var(--color-text-rgb), .16);
+}
+
+.slider-captcha-btn-cancel:hover {
+  background: rgba(var(--color-text-rgb), .14);
+  border-color: rgba(var(--color-text-rgb), .24);
+}
+
+.slider-captcha-btn-confirm {
+  padding: 6px 16px;
+  color: rgba(130 200 255 / .95);
+  background: rgba(100 180 255 / .2);
+  border-color: rgba(100 180 255 / .4);
+}
+
+.slider-captcha-btn-confirm:hover {
+  background: rgba(100 180 255 / .28);
+}

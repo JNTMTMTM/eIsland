@@ -1,6 +1,30 @@
+/*
+ * eIsland - A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Electron.
+ * https://github.com/JNTMTMTM/eIsland
+ *
+ * Copyright (C) 2026 JNTMTMTM
+ * Copyright (C) 2026 pyisland.com
+ *
+ * Original author: JNTMTMTM[](https://github.com/JNTMTMTM)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ */
+
+/**
+ * @file SliderCaptchaContent.tsx
+ * @description 滑块验证码状态界面组件。
+ * @description 负责展示挑战信息、滑块输入及确认/取消交互。
+ * @author 鸡哥
+ */
+
 import { useMemo, useState } from 'react';
 import type { ReactElement } from 'react';
 import type { UserEmailCaptchaChallenge } from '../../../api/userAccountApi';
+import '../../../styles/slider-captcha.css';
+import eislandLogo from '../../../../../resources/icon/eisland.svg';
 
 interface SliderCaptchaContentProps {
   challenge: UserEmailCaptchaChallenge;
@@ -8,6 +32,13 @@ interface SliderCaptchaContentProps {
   onConfirm: (value: number) => void;
 }
 
+/**
+ * 渲染滑块验证码弹层组件。
+ * @param challenge - 服务端下发的滑块挑战参数。
+ * @param onCancel - 用户取消验证时的回调。
+ * @param onConfirm - 用户确认验证时的回调，参数为当前滑块值。
+ * @returns 滑块验证界面节点。
+ */
 export function SliderCaptchaContent({ challenge, onCancel, onConfirm }: SliderCaptchaContentProps): ReactElement {
   const [value, setValue] = useState(challenge.minValue);
 
@@ -15,67 +46,43 @@ export function SliderCaptchaContent({ challenge, onCancel, onConfirm }: SliderC
 
   return (
     <div
-      style={{
-        position: 'absolute',
-        inset: 0,
-        zIndex: 30,
-        background: 'transparent',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        pointerEvents: 'auto',
-      }}
+      className="slider-captcha-overlay"
       onClick={(event) => {
         if (event.target === event.currentTarget) {
           onCancel();
         }
       }}
     >
-      <div
-        style={{
-          width: 'min(360px, 86vw)',
-          padding: '18px',
-          borderRadius: '14px',
-          background: 'rgba(15,18,24,0.96)',
-          color: '#f5f7ff',
-          boxShadow: '0 6px 18px rgba(0,0,0,0.28)',
-        }}
-      >
-        <div style={{ fontWeight: 700, marginBottom: '8px' }}>滑块验证</div>
-        <div style={{ fontSize: '13px', opacity: 0.9, marginBottom: '14px' }}>{targetText}</div>
-        <div style={{ fontSize: '13px', marginBottom: '8px' }}>当前值：{value}</div>
+      <div className="slider-captcha-card">
+        <div className="slider-captcha-brand">
+          <img className="slider-captcha-brand-logo" src={eislandLogo} alt="eIsland" />
+          <div className="slider-captcha-brand-texts">
+            <div className="slider-captcha-title">滑块验证</div>
+            <div className="slider-captcha-subtitle">由 Pyisland server & eIsland 提供质询服务</div>
+          </div>
+        </div>
+        <div className="slider-captcha-hint">{targetText}</div>
+        <div className="slider-captcha-value">当前值：{value}</div>
         <input
+          className="slider-captcha-range"
           type="range"
           min={challenge.minValue}
           max={challenge.maxValue}
           step={1}
           value={value}
-          style={{ width: '100%' }}
           onChange={(event) => setValue(Number(event.target.value))}
         />
-        <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '14px' }}>
+        <div className="slider-captcha-actions">
           <button
+            className="slider-captcha-btn slider-captcha-btn-cancel"
             type="button"
-            style={{
-              padding: '6px 12px',
-              borderRadius: '8px',
-              border: '1px solid #5b6475',
-              background: 'transparent',
-              color: '#d8def0',
-            }}
             onClick={onCancel}
           >
             取消
           </button>
           <button
+            className="slider-captcha-btn slider-captcha-btn-confirm"
             type="button"
-            style={{
-              padding: '6px 12px',
-              borderRadius: '8px',
-              border: 'none',
-              background: '#3f7cff',
-              color: '#fff',
-            }}
             onClick={() => onConfirm(value)}
           >
             确认
