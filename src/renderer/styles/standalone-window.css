@@ -340,7 +340,9 @@
 }
 
 [data-theme='light'] .cw-viewport {
-  background: #f5f5f7;
+  /* 保持透明,避免覆盖 .cw-bg-layer 中的背景视频/图片;
+     浅色的基底颜色已由 .cw-root 提供 */
+  background: transparent;
 }
 
 [data-theme='light'] .cw-viewport::-webkit-scrollbar-thumb {
