@@ -25,6 +25,12 @@
   background: rgba(6 10 16 / .42);
   backdrop-filter: blur(10px) saturate(.86);
   -webkit-backdrop-filter: blur(10px) saturate(.86);
+  animation: slider-captcha-overlay-in .22s ease forwards;
+}
+
+.slider-captcha-overlay.is-closing {
+  pointer-events: none;
+  animation: slider-captcha-overlay-out .18s ease forwards;
 }
 
 .slider-captcha-card {
@@ -36,6 +42,64 @@
   border-radius: 14px;
   border: 1px solid rgba(var(--color-text-rgb), .14);
   box-shadow: 0 6px 18px rgb(0 0 0 / .22);
+  animation: slider-captcha-card-in .24s cubic-bezier(.22, 1, .36, 1) forwards;
+  transform-origin: center;
+}
+
+.slider-captcha-card.is-closing {
+  animation: slider-captcha-card-out .18s ease forwards;
+}
+
+@keyframes slider-captcha-overlay-in {
+  from {
+    background: rgba(6 10 16 / 0);
+    backdrop-filter: blur(0) saturate(1);
+    -webkit-backdrop-filter: blur(0) saturate(1);
+  }
+
+  to {
+    background: rgba(6 10 16 / .42);
+    backdrop-filter: blur(10px) saturate(.86);
+    -webkit-backdrop-filter: blur(10px) saturate(.86);
+  }
+}
+
+@keyframes slider-captcha-overlay-out {
+  from {
+    background: rgba(6 10 16 / .42);
+    backdrop-filter: blur(10px) saturate(.86);
+    -webkit-backdrop-filter: blur(10px) saturate(.86);
+  }
+
+  to {
+    background: rgba(6 10 16 / 0);
+    backdrop-filter: blur(0) saturate(1);
+    -webkit-backdrop-filter: blur(0) saturate(1);
+  }
+}
+
+@keyframes slider-captcha-card-out {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(6px) scale(.98);
+  }
+}
+
+@keyframes slider-captcha-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .slider-captcha-brand {

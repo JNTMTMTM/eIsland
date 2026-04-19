@@ -41,6 +41,7 @@ interface SliderCaptchaContentProps {
  */
 export function SliderCaptchaContent({ challenge, onCancel, onConfirm }: SliderCaptchaContentProps): ReactElement {
   const [value, setValue] = useState(challenge.minValue);
+  const [closing, setClosing] = useState(false);
 
   const sliderProgress = useMemo(() => {
     const range = challenge.maxValue - challenge.minValue;
@@ -68,16 +69,26 @@ export function SliderCaptchaContent({ challenge, onCancel, onConfirm }: SliderC
     return `${left} - ${right}`;
   }, [challenge.challengeId, challenge.targetValue]);
 
+  const closeWithAnimation = (handler: () => void): void => {
+    if (closing) {
+      return;
+    }
+    setClosing(true);
+    window.setTimeout(() => {
+      handler();
+    }, 180);
+  };
+
   return (
     <div
-      className="slider-captcha-overlay"
+      className={`slider-captcha-overlay${closing ? ' is-closing' : ''}`}
       onClick={(event) => {
         if (event.target === event.currentTarget) {
-          onCancel();
+          closeWithAnimation(onCancel);
         }
       }}
     >
-      <div className="slider-captcha-card">
+      <div className={`slider-captcha-card${closing ? ' is-closing' : ''}`}>
         <div className="slider-captcha-brand">
           <img className="slider-captcha-brand-logo" src={eislandLogo} alt="eIsland" />
           <div className="slider-captcha-brand-texts">
@@ -105,14 +116,14 @@ export function SliderCaptchaContent({ challenge, onCancel, onConfirm }: SliderC
           <button
             className="slider-captcha-btn slider-captcha-btn-cancel"
             type="button"
-            onClick={onCancel}
+            onClick={() => closeWithAnimation(onCancel)}
           >
             取消
           </button>
           <button
             className="slider-captcha-btn slider-captcha-btn-confirm"
             type="button"
-            onClick={() => onConfirm(value)}
+            onClick={() => closeWithAnimation(() => onConfirm(value))}
           >
             确认
           </button>
