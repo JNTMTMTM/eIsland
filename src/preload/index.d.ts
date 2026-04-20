@@ -176,8 +176,8 @@ declare global {
       autostartSet: (mode: string) => Promise<boolean>;
       navOrderGet: () => Promise<{ visibleOrder: string[]; hiddenOrder: string[] }>;
       navOrderSet: (payload: { visibleOrder: string[]; hiddenOrder: string[] }) => Promise<boolean>;
-      updaterCheck: () => Promise<{ available: boolean; version?: string; releaseNotes?: string; currentVersion?: string; error?: string }>;
-      updaterDownload: () => Promise<boolean>;
+      updaterCheck: (source?: string) => Promise<{ available: boolean; version?: string; releaseNotes?: string; currentVersion?: string; error?: string }>;
+      updaterDownload: (source?: string) => Promise<boolean>;
       updaterInstall: () => Promise<boolean>;
       updaterVersion: () => Promise<string>;
       onUpdaterProgress: (callback: (progress: { percent: number; transferred: number; total: number; bytesPerSecond: number }) => void) => () => void;

@@ -98,6 +98,7 @@ const ISLAND_BG_VIDEO_LOOP_STORE_KEY = 'island-bg-video-loop';
 const ISLAND_BG_VIDEO_VOLUME_STORE_KEY = 'island-bg-video-volume';
 const ISLAND_BG_VIDEO_RATE_STORE_KEY = 'island-bg-video-rate';
 const ISLAND_BG_VIDEO_HW_DECODE_STORE_KEY = 'island-bg-video-hw-decode';
+const UPDATE_SOURCE_STORE_KEY = 'update-source';
 let _lastSettingsSidebarTab: SettingsSidebarTabKey = 'index';
 
 type IslandBgMediaType = 'image' | 'video';
@@ -350,11 +351,18 @@ export function SettingsTab(): ReactElement {
   const [updateVersion, setUpdateVersion] = useState<string>('');
   const [updateError, setUpdateError] = useState<string>('');
   const [downloadProgress, setDownloadProgress] = useState<{ percent: number; transferred: number; total: number; bytesPerSecond: number } | null>(null);
-  const [updateSource, setUpdateSource] = useState<string>('cloudflare-r2');
+  const [updateSource, setUpdateSource] = useState<'cloudflare-r2' | 'github'>('cloudflare-r2');
   const UPDATE_SOURCES: { key: string; label: string }[] = [
     { key: 'cloudflare-r2', label: 'Cloudflare R2' },
+    { key: 'github', label: 'GitHub Releases' },
   ];
   const currentSourceLabel = UPDATE_SOURCES.find((s) => s.key === updateSource)?.label ?? updateSource;
+
+  const handleUpdateSourceChange = (value: string): void => {
+    const nextSource = value === 'github' ? 'github' : 'cloudflare-r2';
+    setUpdateSource(nextSource);
+    window.api.storeWrite(UPDATE_SOURCE_STORE_KEY, nextSource).catch(() => {});
+  };
 
   const persistIslandOpacity = (opacity: number): void => {
     window.api.islandOpacitySet(opacity).catch(() => {});
@@ -995,6 +1003,15 @@ export function SettingsTab(): ReactElement {
     }).catch(() => {});
   }, []);
 
+  useEffect(() => {
+    let cancelled = false;
+    window.api.storeRead(UPDATE_SOURCE_STORE_KEY).then((value) => {
+      if (cancelled) return;
+      setUpdateSource(value === 'github' ? 'github' : 'cloudflare-r2');
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+
   /** 监听下载进度 */
   useEffect(() => {
     const unsub = window.api.onUpdaterProgress?.((progress) => {
@@ -1009,7 +1026,7 @@ export function SettingsTab(): ReactElement {
     setUpdateError('');
     setDownloadProgress(null);
     try {
-      const result = await window.api.updaterCheck();
+      const result = await window.api.updaterCheck(updateSource);
       if (result.error) {
         setUpdateStatus('error');
         setUpdateError(result.error);
@@ -1030,7 +1047,7 @@ export function SettingsTab(): ReactElement {
     setUpdateStatus('downloading');
     setDownloadProgress(null);
     try {
-      const ok = await window.api.updaterDownload();
+      const ok = await window.api.updaterDownload(updateSource);
       if (ok) {
         setUpdateStatus('ready');
       } else {
@@ -2185,7 +2202,7 @@ export function SettingsTab(): ReactElement {
               downloadProgress={downloadProgress}
               currentSourceLabel={currentSourceLabel}
               updateError={updateError}
-              onUpdateSourceChange={setUpdateSource}
+              onUpdateSourceChange={handleUpdateSourceChange}
               onCheckUpdate={handleCheckUpdate}
               onDownloadUpdate={handleDownloadUpdate}
               onInstallUpdate={handleInstallUpdate}

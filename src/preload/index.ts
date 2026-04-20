@@ -806,15 +806,15 @@ const api = {
    * 检查更新
    * @returns 更新信息（是否有新版、版本号等）
    */
-  updaterCheck: (): Promise<{ available: boolean; version?: string; releaseNotes?: string; currentVersion?: string; error?: string }> => {
-    return ipcRenderer.invoke('updater:check');
+  updaterCheck: (source?: string): Promise<{ available: boolean; version?: string; releaseNotes?: string; currentVersion?: string; error?: string }> => {
+    return ipcRenderer.invoke('updater:check', source);
   },
   /**
    * 下载更新
    * @returns 是否成功开始下载
    */
-  updaterDownload: (): Promise<boolean> => {
-    return ipcRenderer.invoke('updater:download');
+  updaterDownload: (source?: string): Promise<boolean> => {
+    return ipcRenderer.invoke('updater:download', source);
   },
   /**
    * 安装更新并重启
