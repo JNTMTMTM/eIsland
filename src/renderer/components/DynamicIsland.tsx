@@ -946,6 +946,20 @@ function DynamicIsland(): React.JSX.Element {
       if (aborted) return;
 
       const config = STATE_CONFIGS[state];
+      const sliderCaptchaActive = Boolean(document.querySelector('.slider-captcha-overlay'));
+
+      if (sliderCaptchaActive) {
+        if (leaveTimerRef.current !== null) {
+          clearTimeout(leaveTimerRef.current);
+          leaveTimerRef.current = null;
+        }
+        isHoveringRef.current = true;
+        window.api?.disableMousePassthrough();
+        if (!aborted) {
+          rafId = requestAnimationFrame(checkMousePosition);
+        }
+        return;
+      }
 
       if (state === 'notification' || state === 'guide' || state === 'login' || state === 'register') {
         if (inWindow) {

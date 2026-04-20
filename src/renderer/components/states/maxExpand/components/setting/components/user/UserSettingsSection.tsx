@@ -30,11 +30,13 @@ import { useTranslation } from 'react-i18next';
 import {
   fetchUserProfile,
   logoutUser,
+  sendUserEmailCode,
   unregisterUser,
   updateUserPassword,
   updateUserProfile,
   uploadUserAvatar,
 } from '../../../../../../../api/userAccountApi';
+import { runEmailSliderCaptcha } from '../../../../../../../utils/sliderCaptcha';
 import useIslandStore from '../../../../../../../store/slices';
 import {
   clearLocalAccount,
@@ -56,6 +58,7 @@ interface Feedback {
 
 const GENDER_VALUES: UserAccountGender[] = ['male', 'female', 'custom', 'undisclosed'];
 const USER_PROFILE_PAGES: UserProfilePage[] = ['info', 'edit', 'account'];
+const EMAIL_PATTERN = /^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
 
 /**
  * 用户中心设置区块。未登录时显示登录/注册；登录后显示资料修改、登出、注销操作。
@@ -75,9 +78,13 @@ export function UserSettingsSection(): ReactElement {
   const [editBirthday, setEditBirthday] = useState('');
   const [editNewPassword, setEditNewPassword] = useState('');
   const [editConfirmPassword, setEditConfirmPassword] = useState('');
+  const [editPasswordEmailCode, setEditPasswordEmailCode] = useState('');
+  const [sendingPasswordCode, setSendingPasswordCode] = useState(false);
+  const [passwordCodeCooldownSeconds, setPasswordCodeCooldownSeconds] = useState(0);
   const [editNewPasswordVisible, setEditNewPasswordVisible] = useState(false);
   const [editConfirmPasswordVisible, setEditConfirmPasswordVisible] = useState(false);
   const [profileFeedback, setProfileFeedback] = useState<Feedback | null>(null);
+  const [passwordCodeFeedback, setPasswordCodeFeedback] = useState<Feedback | null>(null);
   const [savingProfile, setSavingProfile] = useState(false);
   const [savingPassword, setSavingPassword] = useState(false);
   const [avatarUploading, setAvatarUploading] = useState(false);
@@ -105,6 +112,7 @@ export function UserSettingsSection(): ReactElement {
     setProfile(null);
     setProfileError('');
     setProfileFeedback(null);
+    setPasswordCodeFeedback(null);
     setUnregisterConfirmVisible(false);
     setUnregisterPassword('');
     setUnregisterPasswordVisible(false);
@@ -117,9 +125,22 @@ export function UserSettingsSection(): ReactElement {
     setEditBirthday(p.birthday ?? '');
     setEditNewPassword('');
     setEditConfirmPassword('');
+    setEditPasswordEmailCode('');
+    setPasswordCodeCooldownSeconds(0);
+    setPasswordCodeFeedback(null);
     setEditNewPasswordVisible(false);
     setEditConfirmPasswordVisible(false);
   }, []);
+
+  useEffect(() => {
+    if (passwordCodeCooldownSeconds <= 0) return;
+    const timer = window.setTimeout(() => {
+      setPasswordCodeCooldownSeconds((v) => (v > 0 ? v - 1 : 0));
+    }, 1000);
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [passwordCodeCooldownSeconds]);
 
   const loadRemoteProfile = useCallback(async (currentToken: string): Promise<void> => {
     setLoadingProfile(true);
@@ -264,6 +285,10 @@ export function UserSettingsSection(): ReactElement {
 
   const handleChangePassword = async (): Promise<void> => {
     if (!token || savingPassword || savingProfile) return;
+    if (!editPasswordEmailCode.trim()) {
+      setProfileFeedback({ type: 'error', text: t('settings.user.feedback.emailCodeRequired', { defaultValue: '请输入邮箱验证码' }) });
+      return;
+    }
     if (!editNewPassword) {
       setProfileFeedback({ type: 'error', text: t('settings.user.feedback.passwordRequired', { defaultValue: '请输入密码' }) });
       return;
@@ -282,7 +307,11 @@ export function UserSettingsSection(): ReactElement {
     }
     setSavingPassword(true);
     setProfileFeedback(null);
-    const passwordResult = await updateUserPassword(token, { password: editNewPassword });
+    setPasswordCodeFeedback(null);
+    const passwordResult = await updateUserPassword(token, {
+      password: editNewPassword,
+      emailCode: editPasswordEmailCode.trim(),
+    });
     if (!passwordResult.ok) {
       setSavingPassword(false);
       if (passwordResult.code === 401 || passwordResult.code === 4011) {
@@ -294,16 +323,61 @@ export function UserSettingsSection(): ReactElement {
     }
     setEditNewPassword('');
     setEditConfirmPassword('');
+    setEditPasswordEmailCode('');
+    setPasswordCodeCooldownSeconds(0);
     setEditNewPasswordVisible(false);
     setEditConfirmPasswordVisible(false);
     setSavingPassword(false);
     setProfileFeedback({ type: 'success', text: t('settings.user.feedback.passwordChangeSuccess', { defaultValue: '密码已更新' }) });
   };
 
+  const handleSendPasswordCode = async (): Promise<void> => {
+    if (sendingPasswordCode || passwordCodeCooldownSeconds > 0 || savingPassword || savingProfile) {
+      return;
+    }
+    setPasswordCodeFeedback(null);
+    const email = (profile?.email || '').trim().toLowerCase();
+    if (!EMAIL_PATTERN.test(email)) {
+      setPasswordCodeFeedback({ type: 'error', text: t('settings.user.feedback.emailInvalid', { defaultValue: '请输入有效邮箱地址' }) });
+      return;
+    }
+    setSendingPasswordCode(true);
+    let captchaTicket = '';
+    let captchaRandstr = '';
+    try {
+      const captcha = await runEmailSliderCaptcha(email);
+      if (!captcha) {
+        setSendingPasswordCode(false);
+        setPasswordCodeFeedback({ type: 'error', text: t('settings.user.feedback.captchaCancelled', { defaultValue: '请完成滑块验证后再发送验证码' }) });
+        return;
+      }
+      captchaTicket = captcha.ticket;
+      captchaRandstr = captcha.randstr;
+    } catch (err) {
+      setSendingPasswordCode(false);
+      const msg = err instanceof Error ? err.message : t('settings.user.feedback.emailCodeSendFailed', { defaultValue: '验证码发送失败' });
+      setPasswordCodeFeedback({ type: 'error', text: msg });
+      return;
+    }
+
+    const result = await sendUserEmailCode(email, 'RESET_PASSWORD', { ticket: captchaTicket, randstr: captchaRandstr });
+    setSendingPasswordCode(false);
+    if (!result.ok) {
+      setPasswordCodeFeedback({ type: 'error', text: result.message || t('settings.user.feedback.emailCodeSendFailed', { defaultValue: '验证码发送失败' }) });
+      return;
+    }
+    const cooldown = Math.max(0, Number(result.data?.retryAfterSeconds || 60));
+    if (cooldown > 0) {
+      setPasswordCodeCooldownSeconds(cooldown);
+    }
+    setPasswordCodeFeedback({ type: 'success', text: t('settings.user.feedback.emailCodeSent', { defaultValue: '验证码已发送，请查收邮箱' }) });
+  };
+
   const handleCancelProfileChanges = (): void => {
     if (!profile) return;
     applyProfileToEditor(profile);
     setProfileFeedback(null);
+    setPasswordCodeFeedback(null);
   };
 
   const handleLogout = async (): Promise<void> => {
@@ -542,9 +616,34 @@ export function UserSettingsSection(): ReactElement {
 
           <div className="settings-user-edit-card">
             <div className="settings-user-edit-card-head">
-              <div className="settings-user-form-title">{t('settings.user.sections.password', { defaultValue: '修改密码（可选）' })}</div>
+              <div className="settings-user-form-title">{t('settings.user.sections.password', { defaultValue: '修改密码' })}</div>
               <div className="settings-user-edit-card-subtitle">{t('settings.user.sections.passwordHint', { defaultValue: '留空则保持当前密码不变' })}</div>
             </div>
+            <label className="settings-field">
+              <span className="settings-field-label">{t('settings.user.fields.emailCode', { defaultValue: '邮箱验证码' })}</span>
+              <div className="settings-user-password-input-wrap">
+                <input
+                  className="settings-field-input"
+                  type="text"
+                  value={editPasswordEmailCode}
+                  onChange={(e) => setEditPasswordEmailCode(e.target.value)}
+                  placeholder={t('settings.user.fields.emailCodePlaceholder', { defaultValue: '请输入邮箱验证码' })}
+                />
+                <button
+                  type="button"
+                  className="settings-user-password-toggle"
+                  onClick={() => void handleSendPasswordCode()}
+                  disabled={sendingPasswordCode || passwordCodeCooldownSeconds > 0 || savingPassword || savingProfile}
+                >
+                  {sendingPasswordCode
+                    ? t('settings.user.feedback.emailCodeSending', { defaultValue: '发送中…' })
+                    : passwordCodeCooldownSeconds > 0
+                      ? t('settings.user.actions.sendCodeCooldown', { defaultValue: '{{seconds}}s后重试', seconds: passwordCodeCooldownSeconds })
+                      : t('settings.user.actions.sendCode', { defaultValue: '发送验证码' })}
+                </button>
+              </div>
+            </label>
+            {renderFeedback(passwordCodeFeedback)}
             <label className="settings-field">
               <span className="settings-field-label">{t('settings.user.fields.newPassword', { defaultValue: '新密码' })}</span>
               <div className="settings-user-password-input-wrap">

@@ -1266,7 +1266,7 @@
         "avatarHint": "Upload a new avatar",
         "profile": "Profile",
         "profileHint": "Complete public profile details for easier account recognition",
-        "password": "Change password (optional)",
+        "password": "Change password",
         "passwordHint": "Leave blank to keep your current password",
         "danger": "Danger Zone"
       },
@@ -1329,6 +1329,7 @@
         "emailCodeSending": "Sending…",
         "emailCodeSent": "Code sent. Check your inbox",
         "emailCodeSendFailed": "Failed to send code",
+        "captchaCancelled": "Complete slider verification before sending code",
         "operationFailed": "Operation failed",
         "loginSuccess": "Signed in",
         "registerSuccess": "Account created and signed in",

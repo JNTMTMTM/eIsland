@@ -86,7 +86,11 @@ export function SliderCaptchaContent({ challenge, onCancel, onConfirm }: SliderC
   return (
     <div
       className={`slider-captcha-overlay${closing ? ' is-closing' : ''}`}
+      onMouseDown={(event) => {
+        event.stopPropagation();
+      }}
       onClick={(event) => {
+        event.stopPropagation();
         if (event.target === event.currentTarget) {
           closeWithAnimation(onCancel);
         }

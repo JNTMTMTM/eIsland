@@ -437,6 +437,7 @@ export interface UpdateUserProfilePayload {
 /** 修改密码请求体。 */
 export interface UpdateUserPasswordPayload {
   password: string;
+  emailCode: string;
 }
 
 const PASSWORD_TOTP_DIGITS = 6;
@@ -505,6 +506,7 @@ export async function updateUserPassword(token: string, payload: UpdateUserPassw
       auth: token,
       body: {
         password: payload.password,
+        emailCode: payload.emailCode,
         totpCode,
         totpTimestamp,
       },
