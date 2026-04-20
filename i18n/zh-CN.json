@@ -1241,6 +1241,7 @@
       },
       "fields": {
         "username": "用户名",
+        "nickname": "昵称",
         "usernamePlaceholder": "2-32 位，支持中英文 / 数字 / 下划线",
         "account": "用户名或邮箱",
         "accountPlaceholder": "请输入用户名或邮箱",
@@ -1273,6 +1274,12 @@
       "card": {
         "memberSince": "加入时间"
       },
+      "infoNav": {
+        "editDesc": "修改性别、生日等基本资料",
+        "avatarDesc": "上传或更换账号头像",
+        "passwordDesc": "通过邮箱验证码修改登录密码",
+        "logoutDesc": "退出当前账号或注销"
+      },
       "pages": {
         "info": "用户信息",
         "edit": "修改信息",
@@ -1289,6 +1296,9 @@
       "actions": {
         "refresh": "刷新资料",
         "refreshing": "刷新中…",
+        "refreshHint": "邮箱用于接收验证和通知",
+        "refreshHint2": "加入日期以服务端记录为准",
+        "refreshingHint": "同步服务器中的最新个人信息",
         "chooseAvatar": "选择图片上传",
         "uploading": "上传中…",
         "show": "显示",

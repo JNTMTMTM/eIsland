@@ -1241,6 +1241,7 @@
       },
       "fields": {
         "username": "Username",
+        "nickname": "Nickname",
         "usernamePlaceholder": "2-32 chars, letters (incl. CJK) / digits / underscore",
         "account": "Username or Email",
         "accountPlaceholder": "Enter username or email",
@@ -1273,6 +1274,12 @@
       "card": {
         "memberSince": "Member since"
       },
+      "infoNav": {
+        "editDesc": "Edit gender, birthday, and other profile details",
+        "avatarDesc": "Upload or change your account avatar",
+        "passwordDesc": "Change login password via email verification",
+        "logoutDesc": "Sign out or delete your account"
+      },
       "pages": {
         "info": "User Info",
         "edit": "Edit Info",
@@ -1289,6 +1296,9 @@
       "actions": {
         "refresh": "Refresh profile",
         "refreshing": "Refreshing…",
+        "refreshHint": "Used for verification and notifications",
+        "refreshHint2": "Join date is based on server records",
+        "refreshingHint": "Sync the latest profile from server",
         "chooseAvatar": "Upload image",
         "uploading": "Uploading…",
         "show": "Show",

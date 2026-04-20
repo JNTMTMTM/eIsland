@@ -47,6 +47,7 @@ import {
   type UserAccountGender,
   type UserAccountProfile,
 } from '../../../../../../../utils/userAccount';
+import { SvgIcon } from '../../../../../../../utils/SvgIcon';
 
 type FeedbackType = 'success' | 'error' | 'info';
 type UserProfilePage = 'info' | 'edit' | 'password' | 'account';
@@ -61,6 +62,18 @@ type ProfileFeedbackScope = 'profile' | 'password' | 'account';
 const GENDER_VALUES: UserAccountGender[] = ['male', 'female', 'custom', 'undisclosed'];
 const USER_PROFILE_PAGES: UserProfilePage[] = ['info', 'edit', 'password', 'account'];
 const EMAIL_PATTERN = /^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+
+const getGenderIcon = (gender: UserAccountGender | null | undefined): string => {
+  if (gender === 'male') return SvgIcon.BOY;
+  if (gender === 'female') return SvgIcon.GIRL;
+  if (gender === 'custom') return SvgIcon.DIY;
+  return SvgIcon.UNKNOWN;
+};
+
+const formatDateTime = (value: string | null | undefined): string => {
+  if (!value) return '—';
+  return value.replace('T', ' ');
+};
 
 /**
  * 用户中心设置区块。未登录时显示登录/注册；登录后显示资料修改、登出、注销操作。
@@ -528,52 +541,79 @@ export function UserSettingsSection(): ReactElement {
       { id: 'account', label: t('settings.user.pages.account', { defaultValue: '关于账户' }) },
     ];
 
-    const renderInfoPage = (): ReactElement => (
-      <div className="settings-user-page-panel">
-        <div className="settings-user-card">
-          <div className="settings-user-card-head">
-            <div className="settings-user-card-avatar">
-              {displayAvatar
-                ? <img src={displayAvatar} alt={profile?.username ?? ''} />
-                : <span className="settings-user-card-avatar-placeholder">{(profile?.username || '?').slice(0, 1)}</span>}
+    const renderInfoPage = (): ReactElement => {
+      const genderValue: UserAccountGender = profile?.gender ?? 'undisclosed';
+      const genderLabel = t(`settings.user.gender.${genderValue}`, { defaultValue: genderValue });
+
+      return (
+        <div className="settings-user-page-panel settings-user-info-panel">
+          {profileError && <div className="settings-user-feedback settings-user-feedback--error">{profileError}</div>}
+
+          <div className="settings-user-info-summary-card">
+            <div className="settings-user-info-summary-header">
+              <div className="settings-user-info-summary-avatar">
+                {displayAvatar
+                  ? <img src={displayAvatar} alt={profile?.username ?? ''} />
+                  : <span className="settings-user-card-avatar-placeholder">{(profile?.username || '?').slice(0, 1)}</span>}
+              </div>
+              <div className="settings-user-info-summary-identity">
+                <div className="settings-user-info-summary-name">
+                  {profile?.username ?? '—'}
+                  <img className="settings-user-info-gender-icon" src={getGenderIcon(genderValue)} alt={genderLabel} />
+                </div>
+                <div className="settings-user-info-summary-email">{profile?.email ?? '—'}</div>
+              </div>
             </div>
-            <div className="settings-user-card-meta">
-              <div className="settings-user-card-name">{profile?.username ?? ''}</div>
-              <div className="settings-user-card-sub">{profile?.email ?? ''}</div>
-              <div className="settings-user-card-sub">{t('settings.user.card.memberSince', { defaultValue: '加入时间' })}：{profile?.createdAt ? profile.createdAt.replace('T', ' ') : '—'}</div>
+            <div className="settings-user-info-summary-divider" />
+            <div className="settings-user-info-summary-row">
+              <span className="settings-user-info-summary-label">{t('settings.user.fields.gender', { defaultValue: '性别' })}</span>
+              <span className="settings-user-info-summary-value">{genderLabel}</span>
             </div>
+            <div className="settings-user-info-summary-row">
+              <span className="settings-user-info-summary-label">{t('settings.user.fields.birthday', { defaultValue: '生日' })}</span>
+              <span className="settings-user-info-summary-value">{profile?.birthday ?? '—'}</span>
+            </div>
+            <div className="settings-user-info-summary-row">
+              <span className="settings-user-info-summary-label">{t('settings.user.card.memberSince', { defaultValue: '加入时间' })}</span>
+              <span className="settings-user-info-summary-value">{formatDateTime(profile?.createdAt)}</span>
+            </div>
+          </div>
+
+          <div className="settings-user-info-nav-cards">
+            <button type="button" className="settings-index-card" onClick={() => setUserProfilePage('edit')}>
+              <span className="settings-index-card-title">{t('settings.user.pages.edit', { defaultValue: '修改信息' })}</span>
+              <span className="settings-index-card-desc">{t('settings.user.infoNav.editDesc', { defaultValue: '修改性别、生日等基本资料' })}</span>
+              <img className="settings-index-card-layout-icon" src={SvgIcon.USER} alt="" aria-hidden="true" />
+            </button>
+            <button type="button" className="settings-index-card" onClick={() => setUserProfilePage('edit')}>
+              <span className="settings-index-card-title">{t('settings.user.sections.avatar', { defaultValue: '修改头像' })}</span>
+              <span className="settings-index-card-desc">{t('settings.user.infoNav.avatarDesc', { defaultValue: '上传或更换账号头像' })}</span>
+              <img className="settings-index-card-layout-icon" src={SvgIcon.DIY} alt="" aria-hidden="true" />
+            </button>
+            <button type="button" className="settings-index-card" onClick={() => setUserProfilePage('password')}>
+              <span className="settings-index-card-title">{t('settings.user.pages.password', { defaultValue: '修改密码' })}</span>
+              <span className="settings-index-card-desc">{t('settings.user.infoNav.passwordDesc', { defaultValue: '通过邮箱验证码修改登录密码' })}</span>
+              <img className="settings-index-card-layout-icon" src={SvgIcon.SHORTCUT_KEY} alt="" aria-hidden="true" />
+            </button>
             <button
               type="button"
-              className="settings-user-secondary-btn"
+              className="settings-index-card"
               onClick={() => token && void loadRemoteProfile(token)}
               disabled={loadingProfile}
             >
-              {loadingProfile ? t('settings.user.actions.refreshing', { defaultValue: '刷新中…' }) : t('settings.user.actions.refresh', { defaultValue: '刷新资料' })}
+              <span className="settings-index-card-title">{t('settings.user.actions.refresh', { defaultValue: '刷新资料' })}</span>
+              <span className="settings-index-card-desc">{t('settings.user.actions.refreshingHint', { defaultValue: '同步服务器中的最新个人信息' })}</span>
+              <img className="settings-index-card-layout-icon" src={SvgIcon.UPDATE} alt="" aria-hidden="true" />
+            </button>
+            <button type="button" className="settings-index-card" onClick={() => setUserProfilePage('account')}>
+              <span className="settings-index-card-title">{t('settings.user.actions.logout', { defaultValue: '退出登录' })}</span>
+              <span className="settings-index-card-desc">{t('settings.user.infoNav.logoutDesc', { defaultValue: '退出当前账号或注销' })}</span>
+              <img className="settings-index-card-layout-icon" src={SvgIcon.POWER_OFF} alt="" aria-hidden="true" />
             </button>
           </div>
-          {profileError && <div className="settings-user-feedback settings-user-feedback--error">{profileError}</div>}
         </div>
-
-        <div className="settings-user-overview-grid">
-          <div className="settings-user-overview-item">
-            <div className="settings-user-overview-label">{t('settings.user.fields.username', { defaultValue: '用户名' })}</div>
-            <div className="settings-user-overview-value">{profile?.username ?? '—'}</div>
-          </div>
-          <div className="settings-user-overview-item">
-            <div className="settings-user-overview-label">{t('settings.user.fields.email', { defaultValue: '邮箱' })}</div>
-            <div className="settings-user-overview-value">{profile?.email ?? '—'}</div>
-          </div>
-          <div className="settings-user-overview-item">
-            <div className="settings-user-overview-label">{t('settings.user.fields.gender', { defaultValue: '性别' })}</div>
-            <div className="settings-user-overview-value">{t(`settings.user.gender.${profile?.gender ?? 'undisclosed'}`, { defaultValue: profile?.gender ?? 'undisclosed' })}</div>
-          </div>
-          <div className="settings-user-overview-item">
-            <div className="settings-user-overview-label">{t('settings.user.fields.birthday', { defaultValue: '生日' })}</div>
-            <div className="settings-user-overview-value">{profile?.birthday ?? '—'}</div>
-          </div>
-        </div>
-      </div>
-    );
+      );
+    };
 
     const renderEditPage = (): ReactElement => (
       <div className="settings-user-page-panel settings-user-edit-scroll">
