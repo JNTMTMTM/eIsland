@@ -415,6 +415,7 @@ export function sendUserEmailCode(
  * @param email 邮箱。
  * @param scene 验证码使用场景。
  * @param code 邮箱验证码。
+ * @param captcha 滑块验证票据。
  * @param consume 是否消费验证码（默认 true）。
  * @returns 校验结果。
  */
@@ -422,11 +423,20 @@ export function verifyUserEmailCode(
   email: string,
   scene: UserEmailCodeScene,
   code: string,
+  captcha: { ticket: string; randstr: string; sign: string },
   consume = true,
 ): Promise<UserAccountResult<unknown>> {
   return request('/auth/user/email-code/verify', {
     method: 'POST',
-    body: { email, scene, code, consume },
+    body: {
+      email,
+      scene,
+      code,
+      consume,
+      captchaTicket: captcha.ticket,
+      captchaRandstr: captcha.randstr,
+      captchaSign: captcha.sign,
+    },
   });
 }
 
