@@ -370,6 +370,29 @@
   padding: 6px 8px;
   font-size: 12px;
   line-height: 1.35;
+  animation: clipboard-history-feedback-fade 1.8s ease-in-out both;
+}
+
+@keyframes clipboard-history-feedback-fade {
+  0% {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+
+  14% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  82% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(-2px);
+  }
 }
 
 .clipboard-history-feedback--success {
