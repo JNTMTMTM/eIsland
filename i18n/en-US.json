@@ -1245,6 +1245,7 @@
         "usernamePlaceholder": "2-32 chars, letters (incl. CJK) / digits / underscore",
         "account": "Username or Email",
         "accountPlaceholder": "Enter username or email",
+        "boundEmail": "Bound Email",
         "email": "Email",
         "emailCode": "Email Code",
         "emailCodePlaceholder": "Enter email code",

@@ -1245,6 +1245,7 @@
         "usernamePlaceholder": "2-32 位，支持中英文 / 数字 / 下划线",
         "account": "用户名或邮箱",
         "accountPlaceholder": "请输入用户名或邮箱",
+        "boundEmail": "绑定邮箱",
         "email": "邮箱",
         "emailCode": "邮箱验证码",
         "emailCodePlaceholder": "请输入邮箱验证码",
