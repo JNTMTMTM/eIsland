@@ -261,11 +261,6 @@ export function ClipboardHistoryTab(): React.ReactElement {
       });
   };
 
-  const handleToggleExitMaxExpandOnCopy = (enabled: boolean): void => {
-    setExitMaxExpandOnCopy(enabled);
-    window.api.storeWrite(EXIT_MAX_EXPAND_ON_COPY_STORE_KEY, enabled).catch(() => {});
-  };
-
   useEffect(() => {
     if (expandedId === null) return;
     adjustTextareaHeight(editTextareaRef.current);
@@ -287,18 +282,6 @@ export function ClipboardHistoryTab(): React.ReactElement {
           </button>
         </div>
       </div>
-
-      <label className="clipboard-history-config-item" title={t('clipboardHistoryTab.config.exitMaxExpandOnCopyHint', { defaultValue: '复制后立即退出最大展开界面' })}>
-        <span className="clipboard-history-config-label">
-          {t('clipboardHistoryTab.config.exitMaxExpandOnCopy', { defaultValue: '复制后退出最大展开' })}
-        </span>
-        <input
-          className="clipboard-history-config-checkbox"
-          type="checkbox"
-          checked={exitMaxExpandOnCopy}
-          onChange={(e) => handleToggleExitMaxExpandOnCopy(e.target.checked)}
-        />
-      </label>
 
       <div
         className="clipboard-history-list"

@@ -32,6 +32,7 @@ const CLIPBOARD_HISTORY_STORE_KEY = 'clipboard-history-recent';
 const CLIPBOARD_HISTORY_LOCAL_STORAGE_KEY = 'eIsland_clipboard_history_recent';
 const CLIPBOARD_HISTORY_ENABLED_STORE_KEY = 'clipboard-history-enabled';
 const CLIPBOARD_HISTORY_LIMIT_STORE_KEY = 'clipboard-history-limit';
+const CLIPBOARD_HISTORY_EXIT_MAX_EXPAND_ON_COPY_STORE_KEY = 'clipboard-history-exit-max-expand-on-copy';
 const DEFAULT_HISTORY_LIMIT = 10;
 
 const HISTORY_LIMIT_OPTIONS: number[] = [10, 20, 30, 50];
@@ -44,6 +45,7 @@ export function ClipboardHistorySettingsSection(): ReactElement {
   const { t } = useTranslation();
   const [historyEnabled, setHistoryEnabled] = useState<boolean>(true);
   const [historyLimit, setHistoryLimit] = useState<number>(DEFAULT_HISTORY_LIMIT);
+  const [exitMaxExpandOnCopy, setExitMaxExpandOnCopy] = useState<boolean>(false);
   const [clearStatus, setClearStatus] = useState<string>('');
 
   useEffect(() => {
@@ -60,6 +62,13 @@ export function ClipboardHistorySettingsSection(): ReactElement {
       if (typeof value === 'number' && Number.isFinite(value)) {
         const safe = Math.max(1, Math.min(50, Math.round(value)));
         setHistoryLimit(safe);
+      }
+    }).catch(() => {});
+
+    window.api.storeRead(CLIPBOARD_HISTORY_EXIT_MAX_EXPAND_ON_COPY_STORE_KEY).then((value) => {
+      if (cancelled) return;
+      if (typeof value === 'boolean') {
+        setExitMaxExpandOnCopy(value);
       }
     }).catch(() => {});
 
@@ -81,6 +90,14 @@ export function ClipboardHistorySettingsSection(): ReactElement {
     setHistoryLimit(next);
     window.api.storeWrite(CLIPBOARD_HISTORY_LIMIT_STORE_KEY, next).catch(() => {
       setHistoryLimit(prev);
+    });
+  };
+
+  const handleChangeExitMaxExpandOnCopy = (next: boolean): void => {
+    const prev = exitMaxExpandOnCopy;
+    setExitMaxExpandOnCopy(next);
+    window.api.storeWrite(CLIPBOARD_HISTORY_EXIT_MAX_EXPAND_ON_COPY_STORE_KEY, next).catch(() => {
+      setExitMaxExpandOnCopy(prev);
     });
   };
 
@@ -134,6 +151,23 @@ export function ClipboardHistorySettingsSection(): ReactElement {
                 {t(`settings.clipboardHistory.limit.options.${value}`, { defaultValue: `${value} 条` })}
               </button>
             ))}
+          </div>
+        </div>
+
+        <div className="settings-card">
+          <div className="settings-card-header">
+            <div className="settings-card-title">{t('settings.clipboardHistory.exitMaxExpandOnCopy.title', { defaultValue: '复制后自动退出' })}</div>
+            <div className="settings-card-subtitle">{t('settings.clipboardHistory.exitMaxExpandOnCopy.hint', { defaultValue: '复制历史项后自动退出最大展开；有歌曲时回到歌曲态，无歌曲时回到 idle。' })}</div>
+          </div>
+          <div className="settings-card-inline-row">
+            <label className="settings-card-check">
+              <input
+                type="checkbox"
+                checked={exitMaxExpandOnCopy}
+                onChange={(e) => handleChangeExitMaxExpandOnCopy(e.target.checked)}
+              />
+              {t('settings.clipboardHistory.exitMaxExpandOnCopy.toggle', { defaultValue: '启用复制后退出最大展开' })}
+            </label>
           </div>
         </div>
 
