@@ -697,33 +697,38 @@ export function UserSettingsSection(): ReactElement {
       <div className="settings-user-page-panel settings-user-edit-scroll">
         {profileError && <div className="settings-user-feedback settings-user-feedback--error">{profileError}</div>}
         <div className="settings-user-form settings-user-edit-cards">
-          <div className="settings-user-edit-card">
+          <div className="settings-user-edit-card settings-user-avatar-edit-card">
             <div className="settings-user-edit-card-head">
               <div className="settings-user-form-title">{t('settings.user.sections.avatar', { defaultValue: '头像' })}</div>
               <div className="settings-user-edit-card-subtitle">{t('settings.user.sections.avatarHint', { defaultValue: '上传新头像或粘贴图片链接' })}</div>
             </div>
             <div className="settings-user-avatar-row">
-              <div className="settings-user-avatar-preview">
-                {displayAvatar
-                  ? <img src={displayAvatar} alt="avatar preview" />
-                  : <span className="settings-user-card-avatar-placeholder">?</span>}
+              <div className="settings-user-avatar-preview-shell">
+                <div className="settings-user-avatar-preview">
+                  {displayAvatar
+                    ? <img src={displayAvatar} alt="avatar preview" />
+                    : <span className="settings-user-card-avatar-placeholder">?</span>}
+                </div>
               </div>
               <div className="settings-user-avatar-actions">
-                <button
-                  type="button"
-                  className="settings-user-secondary-btn"
-                  onClick={() => avatarInputRef.current?.click()}
-                  disabled={avatarUploading}
-                >
-                  {avatarUploading ? t('settings.user.actions.uploading', { defaultValue: '上传中…' }) : t('settings.user.actions.chooseAvatar', { defaultValue: '选择图片上传' })}
-                </button>
-                <input
-                  ref={avatarInputRef}
-                  type="file"
-                  accept="image/*"
-                  style={{ display: 'none' }}
-                  onChange={(e) => void handleAvatarSelect(e)}
-                />
+                <div className="settings-user-avatar-action-main">
+                  <button
+                    type="button"
+                    className="settings-user-secondary-btn"
+                    onClick={() => avatarInputRef.current?.click()}
+                    disabled={avatarUploading}
+                  >
+                    {avatarUploading ? t('settings.user.actions.uploading', { defaultValue: '上传中…' }) : t('settings.user.actions.chooseAvatar', { defaultValue: '选择图片上传' })}
+                  </button>
+                  <input
+                    ref={avatarInputRef}
+                    type="file"
+                    accept="image/*"
+                    style={{ display: 'none' }}
+                    onChange={(e) => void handleAvatarSelect(e)}
+                  />
+                </div>
+                <div className="settings-user-avatar-actions-hint">{t('settings.user.sections.avatarHint', { defaultValue: '上传新头像或粘贴图片链接' })}</div>
               </div>
             </div>
           </div>

@@ -1853,6 +1853,10 @@
   box-shadow: inset 0 1px 0 rgba(var(--color-text-rgb), 0.04);
 }
 
+.settings-user-avatar-edit-card {
+  gap: 12px;
+}
+
 .settings-user-edit-card-head {
   display: flex;
   flex-direction: column;
@@ -2375,15 +2379,27 @@
 }
 
 .settings-user-avatar-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.settings-user-avatar-preview-shell {
+  width: 88px;
+  height: 88px;
+  border-radius: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(160deg, rgba(var(--color-text-rgb), 0.16), rgba(var(--color-text-rgb), 0.05));
+  border: 1px solid rgba(var(--color-text-rgb), 0.12);
+  box-shadow: inset 0 1px 0 rgba(var(--color-text-rgb), 0.06);
 }
 
 .settings-user-avatar-preview {
-  width: 56px;
-  height: 56px;
+  width: 74px;
+  height: 74px;
   border-radius: 50%;
   overflow: hidden;
   background: rgba(var(--color-text-rgb), 0.1);
@@ -2403,10 +2419,48 @@
 
 .settings-user-avatar-actions {
   flex: 1;
-  min-width: 200px;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
+}
+
+.settings-user-avatar-action-main {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.settings-user-avatar-action-main .settings-user-secondary-btn {
+  width: 100%;
+  justify-content: center;
+}
+
+.settings-user-avatar-actions-hint {
+  font-size: 11px;
+  color: rgba(var(--color-text-rgb), 0.52);
+  line-height: 1.45;
+}
+
+@media (max-width: 760px) {
+  .settings-user-avatar-row {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+  }
+
+  .settings-user-avatar-actions {
+    width: 100%;
+    align-items: center;
+  }
+
+  .settings-user-avatar-action-main {
+    width: 100%;
+  }
+
+  .settings-user-avatar-actions-hint {
+    text-align: center;
+  }
 }
 
 .settings-user-gender-options {
