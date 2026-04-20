@@ -92,7 +92,16 @@ export const SvgIcon = {
   /** 下载 */
   DOWNLOAD: './svg/DOWNLOAD.svg',
   /** 复制 */
-  COPY: './svg/COPY.svg'
+  COPY: './svg/COPY.svg',
+  /** 自定义 */
+  DIY: './svg/DIY.svg',
+  /** 未知 */
+  UNKNOWN: './svg/UNKNOWN.svg',
+  /** 男 */
+  BOY: './svg/BOY.svg',
+  /** 女 */
+  GIRL: './svg/GIRL.svg',
+
 } as const;
 
 export type SvgIconKey = keyof typeof SvgIcon;

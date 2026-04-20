@@ -56,7 +56,7 @@ export interface UserAccountLoginData {
   role: string;
 }
 
-export type UserEmailCodeScene = 'REGISTER' | 'LOGIN' | 'RESET_PASSWORD' | 'CHANGE_EMAIL';
+export type UserEmailCodeScene = 'REGISTER' | 'LOGIN' | 'RESET_PASSWORD' | 'CHANGE_EMAIL' | 'UNREGISTER';
 
 export interface UserEmailCaptchaConfig {
   enabled: boolean;
@@ -73,6 +73,7 @@ export interface UserEmailCaptchaChallenge {
   maxValue: number;
   targetValue: number;
   tolerance: number;
+  captchaSign: string;
 }
 
 export interface WallpaperMarketItem {
@@ -161,6 +162,11 @@ const APP_NAME_VALUE = 'eisland';
 const CLIENT_VERSION_HEADER = 'X-Client-Version';
 const REPLAY_TIMESTAMP_HEADER = 'X-Timestamp';
 const REPLAY_NONCE_HEADER = 'X-Nonce';
+const LOGIN_REPLAY_PATHS = new Set([
+  '/auth/user/login',
+  '/auth/user/login/account',
+  '/auth/user/login/email',
+]);
 let cachedClientVersion: string | null = null;
 
 interface InternalRequestInit {
@@ -190,9 +196,10 @@ function buildReplayHeaders(): Record<string, string> {
 }
 
 function shouldAttachReplayHeaders(path: string, method: InternalRequestInit['method'], auth?: string | null): boolean {
-  if (!auth || auth.trim().length === 0) return false;
   const actualMethod = method ?? 'GET';
   if (actualMethod !== 'POST' && actualMethod !== 'PUT' && actualMethod !== 'DELETE') return false;
+  if (LOGIN_REPLAY_PATHS.has(path)) return true;
+  if (!auth || auth.trim().length === 0) return false;
   return path.startsWith('/v1/user/') || path === '/v1/upload/user-avatar';
 }
 
@@ -265,10 +272,18 @@ async function request<T>(path: string, init: InternalRequestInit = {}): Promise
  * @param password 密码。
  * @returns 登录结果。
  */
-export function loginUserByAccount(username: string, password: string): Promise<UserAccountResult<UserAccountLoginData>> {
+export function loginUserByAccount(
+  username: string,
+  password: string,
+  emailCode?: string,
+): Promise<UserAccountResult<UserAccountLoginData>> {
   return request<UserAccountLoginData>('/auth/user/login/account', {
     method: 'POST',
-    body: { username, password },
+    body: {
+      username,
+      password,
+      emailCode: emailCode?.trim() ? emailCode.trim() : undefined,
+    },
   });
 }
 
@@ -381,7 +396,7 @@ export function createUserEmailCaptchaChallenge(account: string): Promise<UserAc
 export function sendUserEmailCode(
   email: string,
   scene: UserEmailCodeScene,
-  captcha: { ticket: string; randstr: string },
+  captcha: { ticket: string; randstr: string; sign: string },
 ): Promise<UserAccountResult<{ retryAfterSeconds?: number }>> {
   return request<{ retryAfterSeconds?: number }>('/auth/user/email-code/send', {
     method: 'POST',
@@ -390,6 +405,7 @@ export function sendUserEmailCode(
       scene,
       captchaTicket: captcha.ticket,
       captchaRandstr: captcha.randstr,
+      captchaSign: captcha.sign,
     },
   });
 }
@@ -399,6 +415,7 @@ export function sendUserEmailCode(
  * @param email 邮箱。
  * @param scene 验证码使用场景。
  * @param code 邮箱验证码。
+ * @param captcha 滑块验证票据。
  * @param consume 是否消费验证码（默认 true）。
  * @returns 校验结果。
  */
@@ -406,11 +423,20 @@ export function verifyUserEmailCode(
   email: string,
   scene: UserEmailCodeScene,
   code: string,
+  captcha: { ticket: string; randstr: string; sign: string },
   consume = true,
 ): Promise<UserAccountResult<unknown>> {
   return request('/auth/user/email-code/verify', {
     method: 'POST',
-    body: { email, scene, code, consume },
+    body: {
+      email,
+      scene,
+      code,
+      consume,
+      captchaTicket: captcha.ticket,
+      captchaRandstr: captcha.randstr,
+      captchaSign: captcha.sign,
+    },
   });
 }
 
@@ -428,11 +454,80 @@ export function fetchUserProfile(token: string): Promise<UserAccountResult<UserA
 
 /** 修改资料时可选提交的字段。留空的字段表示不修改。 */
 export interface UpdateUserProfilePayload {
-  password?: string;
   avatar?: string | null;
   gender?: UserAccountGender;
   genderCustom?: string | null;
   birthday?: string | null;
+}
+
+/** 修改密码请求体。 */
+export interface UpdateUserPasswordPayload {
+  password: string;
+  emailCode: string;
+}
+
+const PASSWORD_TOTP_DIGITS = 6;
+const PASSWORD_TOTP_PERIOD_SECONDS = 30;
+const BASE32_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+
+interface UserPasswordTotpSeedData {
+  seed: string;
+  algorithm?: string;
+  digits?: number;
+  periodSeconds?: number;
+}
+
+function decodeBase32(seed: string): ArrayBuffer {
+  const normalized = seed.trim().toUpperCase().replace(/=/g, '');
+  if (!normalized) {
+    throw new Error('TOTP Seed 为空');
+  }
+  let value = 0;
+  let bits = 0;
+  const out: number[] = [];
+  normalized.split('').forEach((ch) => {
+    const idx = BASE32_ALPHABET.indexOf(ch);
+    if (idx < 0) {
+      throw new Error('TOTP Seed 格式错误');
+    }
+    value = (value << 5) | idx;
+    bits += 5;
+    if (bits >= 8) {
+      out.push((value >> (bits - 8)) & 0xff);
+      bits -= 8;
+    }
+  });
+  const bytes = Uint8Array.from(out);
+  return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
+}
+
+async function generatePasswordTotp(seed: string, timestampSeconds: number): Promise<string> {
+  if (!globalThis.crypto?.subtle) {
+    throw new Error('WebCrypto 不可用');
+  }
+  const counter = Math.floor(timestampSeconds / PASSWORD_TOTP_PERIOD_SECONDS);
+  const counterBytes = new Uint8Array(8);
+  let value = counter;
+  for (let i = 7; i >= 0; i--) {
+    counterBytes[i] = value & 0xff;
+    value = Math.floor(value / 256);
+  }
+  const key = await globalThis.crypto.subtle.importKey(
+    'raw',
+    decodeBase32(seed),
+    { name: 'HMAC', hash: 'SHA-1' },
+    false,
+    ['sign'],
+  );
+  const signature = await globalThis.crypto.subtle.sign('HMAC', key, counterBytes);
+  const hash = new Uint8Array(signature);
+  const offset = hash[hash.length - 1] & 0x0f;
+  const binary = ((hash[offset] & 0x7f) << 24)
+    | ((hash[offset + 1] & 0xff) << 16)
+    | ((hash[offset + 2] & 0xff) << 8)
+    | (hash[offset + 3] & 0xff);
+  const otp = binary % (10 ** PASSWORD_TOTP_DIGITS);
+  return String(otp).padStart(PASSWORD_TOTP_DIGITS, '0');
 }
 
 /**
@@ -443,7 +538,6 @@ export interface UpdateUserProfilePayload {
  */
 export function updateUserProfile(token: string, payload: UpdateUserProfilePayload): Promise<UserAccountResult<unknown>> {
   const body: Record<string, unknown> = {};
-  if (typeof payload.password === 'string' && payload.password.length > 0) body.password = payload.password;
   if (payload.avatar !== undefined) body.avatar = payload.avatar;
   if (payload.gender) body.gender = payload.gender;
   if (payload.genderCustom !== undefined) body.genderCustom = payload.genderCustom;
@@ -453,6 +547,44 @@ export function updateUserProfile(token: string, payload: UpdateUserProfilePaylo
     auth: token,
     body,
   });
+}
+
+/**
+ * 修改当前登录用户密码。
+ * @param token 用户 token。
+ * @param payload 密码更新参数。
+ * @returns 更新结果。
+ */
+export async function updateUserPassword(token: string, payload: UpdateUserPasswordPayload): Promise<UserAccountResult<unknown>> {
+  try {
+    const seedResult = await request<UserPasswordTotpSeedData>('/v1/user/profile/password/totp-seed', {
+      method: 'GET',
+      auth: token,
+    });
+    if (!seedResult.ok || !seedResult.data?.seed) {
+      return {
+        ok: false,
+        code: seedResult.code || 500,
+        message: seedResult.message || 'TOTP Seed 获取失败',
+      };
+    }
+    const totpCode = await generatePasswordTotp(seedResult.data.seed, Math.floor(Date.now() / 1000));
+    return request('/v1/user/profile/password', {
+      method: 'POST',
+      auth: token,
+      body: {
+        password: payload.password,
+        emailCode: payload.emailCode,
+        totpCode,
+      },
+    });
+  } catch {
+    return {
+      ok: false,
+      code: 500,
+      message: 'TOTP 生成失败',
+    };
+  }
 }
 
 /**
@@ -472,13 +604,14 @@ export function logoutUser(token: string): Promise<UserAccountResult<unknown>> {
  * 注销账号：需带当前密码二次确认。
  * @param token 用户 token。
  * @param password 当前密码。
+ * @param emailCode 邮箱验证码。
  * @returns 注销结果。
  */
-export function unregisterUser(token: string, password: string): Promise<UserAccountResult<unknown>> {
+export function unregisterUser(token: string, password: string, emailCode: string): Promise<UserAccountResult<unknown>> {
   return request('/v1/user/account', {
     method: 'DELETE',
     auth: token,
-    body: { password },
+    body: { password, emailCode },
   });
 }
 

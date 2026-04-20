@@ -44,6 +44,12 @@ interface Feedback {
   text: string;
 }
 
+interface LoginStepUpData {
+  requireEmailVerification?: boolean;
+  maskedEmail?: string;
+  verificationEmail?: string;
+}
+
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 async function readStandaloneWindowMode(): Promise<'integrated' | 'standalone'> {
@@ -68,12 +74,15 @@ export function LoginContent(): ReactElement {
   const { t } = useTranslation();
   const { setRegister, setMaxExpand, setMaxExpandTab, returnFromAuth } = useIslandStore();
   const [account, setAccount] = useState('');
+  const [verificationEmail, setVerificationEmail] = useState('');
+  const [maskedVerificationEmail, setMaskedVerificationEmail] = useState('');
   const [emailCode, setEmailCode] = useState('');
   const [password, setPassword] = useState('');
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [sendingCode, setSendingCode] = useState(false);
   const [sendCooldownSeconds, setSendCooldownSeconds] = useState(0);
+  const [forceEmailVerification, setForceEmailVerification] = useState(false);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
 
   useEffect(() => {
@@ -87,10 +96,23 @@ export function LoginContent(): ReactElement {
   }, [sendCooldownSeconds]);
 
   const isEmailAccount = account.includes('@');
+  const needsEmailVerification = isEmailAccount || forceEmailVerification;
+  const loginVerificationEmail = isEmailAccount
+    ? account.trim().toLowerCase()
+    : verificationEmail.trim().toLowerCase();
+
+  useEffect(() => {
+    if (!isEmailAccount) {
+      return;
+    }
+    const normalized = account.trim().toLowerCase();
+    setVerificationEmail(normalized);
+    setMaskedVerificationEmail(normalized);
+  }, [account, isEmailAccount]);
 
   const handleSendCode = async (): Promise<void> => {
     if (sendingCode || sendCooldownSeconds > 0) return;
-    const email = account.trim().toLowerCase();
+    const email = loginVerificationEmail;
     if (!EMAIL_PATTERN.test(email)) {
       setFeedback({ type: 'error', text: t('settings.user.feedback.emailInvalid', { defaultValue: '请输入有效邮箱地址' }) });
       return;
@@ -98,6 +120,7 @@ export function LoginContent(): ReactElement {
     setSendingCode(true);
     let captchaTicket = '';
     let captchaRandstr = '';
+    let captchaSign = '';
     try {
       const captcha = await runEmailSliderCaptcha(email);
       if (!captcha) {
@@ -107,13 +130,14 @@ export function LoginContent(): ReactElement {
       }
       captchaTicket = captcha.ticket;
       captchaRandstr = captcha.randstr;
+      captchaSign = captcha.sign;
     } catch (err) {
       setSendingCode(false);
       const msg = err instanceof Error ? err.message : t('settings.user.feedback.emailCodeSendFailed', { defaultValue: '验证码发送失败' });
       setFeedback({ type: 'error', text: msg });
       return;
     }
-    const result = await sendUserEmailCode(email, 'LOGIN', { ticket: captchaTicket, randstr: captchaRandstr });
+    const result = await sendUserEmailCode(email, 'LOGIN', { ticket: captchaTicket, randstr: captchaRandstr, sign: captchaSign });
     setSendingCode(false);
     if (!result.ok) {
       setFeedback({ type: 'error', text: result.message || t('settings.user.feedback.emailCodeSendFailed', { defaultValue: '验证码发送失败' }) });
@@ -153,7 +177,7 @@ export function LoginContent(): ReactElement {
       setFeedback({ type: 'error', text: t('settings.user.feedback.passwordRequired', { defaultValue: '请输入密码' }) });
       return;
     }
-    if (isEmailAccount && !emailCode.trim()) {
+    if (needsEmailVerification && !emailCode.trim()) {
       setFeedback({ type: 'error', text: t('settings.user.feedback.emailCodeRequired', { defaultValue: '请输入邮箱验证码' }) });
       return;
     }
@@ -162,13 +186,29 @@ export function LoginContent(): ReactElement {
     setFeedback(null);
     const result = isEmailAccount
       ? await loginUserByEmailWithCode(cleanAccount.toLowerCase(), password, emailCode.trim())
-      : await loginUserByAccount(cleanAccount, password);
+      : await loginUserByAccount(cleanAccount, password, needsEmailVerification ? emailCode.trim() : undefined);
     setSubmitting(false);
+    if (!result.ok && result.code === 428) {
+      const stepUpData = (result.data ?? {}) as LoginStepUpData;
+      const normalizedVerificationEmail = typeof stepUpData.verificationEmail === 'string'
+        ? stepUpData.verificationEmail.trim().toLowerCase()
+        : '';
+      const maskedEmail = typeof stepUpData.maskedEmail === 'string' && stepUpData.maskedEmail.trim().length > 0
+        ? stepUpData.maskedEmail.trim()
+        : normalizedVerificationEmail;
+      setVerificationEmail(normalizedVerificationEmail);
+      setMaskedVerificationEmail(maskedEmail);
+      setForceEmailVerification(true);
+      setFeedback({ type: 'error', text: result.message || '当前登录风险较高，请先完成邮箱验证' });
+      return;
+    }
     if (!result.ok || !result.data) {
       setFeedback({ type: 'error', text: result.message || t('settings.user.feedback.operationFailed', { defaultValue: '操作失败' }) });
       return;
     }
 
+    setForceEmailVerification(false);
+    setMaskedVerificationEmail('');
     updateSessionToken(result.data.token);
     setFeedback({ type: 'success', text: t('settings.user.feedback.loginSuccess', { defaultValue: '登录成功' }) });
     await navigateToUserCenter();
@@ -217,30 +257,43 @@ export function LoginContent(): ReactElement {
           </div>
         </label>
 
-        {isEmailAccount && (
-          <label className="settings-field">
-            <span className="settings-field-label">{t('settings.user.fields.emailCode', { defaultValue: '邮箱验证码' })}</span>
-            <div className="auth-password-input-wrap">
-              <input
-                className="settings-field-input"
-                value={emailCode}
-                onChange={(e) => setEmailCode(e.target.value)}
-                placeholder={t('settings.user.fields.emailCodePlaceholder', { defaultValue: '请输入邮箱验证码' })}
-              />
-              <button
-                type="button"
-                className="auth-password-toggle"
-                onClick={() => void handleSendCode()}
-                disabled={sendingCode || sendCooldownSeconds > 0}
-              >
-                {sendingCode
-                  ? t('settings.user.feedback.emailCodeSending', { defaultValue: '发送中…' })
-                  : sendCooldownSeconds > 0
-                    ? t('settings.user.actions.sendCodeCooldown', { defaultValue: '{{seconds}}s后重试', seconds: sendCooldownSeconds })
-                    : t('settings.user.actions.sendCode', { defaultValue: '发送验证码' })}
-              </button>
-            </div>
-          </label>
+        {needsEmailVerification && (
+          <>
+            {!isEmailAccount && (
+              <label className="settings-field">
+                <span className="settings-field-label">{t('settings.user.fields.boundEmail', { defaultValue: '绑定邮箱' })}</span>
+                <input
+                  className="settings-field-input"
+                  value={maskedVerificationEmail}
+                  readOnly
+                  disabled
+                />
+              </label>
+            )}
+            <label className="settings-field">
+              <span className="settings-field-label">{t('settings.user.fields.emailCode', { defaultValue: '邮箱验证码' })}</span>
+              <div className="auth-password-input-wrap">
+                <input
+                  className="settings-field-input"
+                  value={emailCode}
+                  onChange={(e) => setEmailCode(e.target.value)}
+                  placeholder={t('settings.user.fields.emailCodePlaceholder', { defaultValue: '请输入邮箱验证码' })}
+                />
+                <button
+                  type="button"
+                  className="auth-password-toggle"
+                  onClick={() => void handleSendCode()}
+                  disabled={sendingCode || sendCooldownSeconds > 0}
+                >
+                  {sendingCode
+                    ? t('settings.user.feedback.emailCodeSending', { defaultValue: '发送中…' })
+                    : sendCooldownSeconds > 0
+                      ? t('settings.user.actions.sendCodeCooldown', { defaultValue: '{{seconds}}s后重试', seconds: sendCooldownSeconds })
+                      : t('settings.user.actions.sendCode', { defaultValue: '发送验证码' })}
+                </button>
+              </div>
+            </label>
+          </>
         )}
 
         {renderFeedback()}

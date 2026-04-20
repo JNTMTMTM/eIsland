@@ -95,7 +95,7 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
   const [totalPages, setTotalPages] = useState(1);
   const [hasNextPage, setHasNextPage] = useState(false);
   const [searchExpanded, setSearchExpanded] = useState(false);
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [ratingScore, setRatingScore] = useState(5);
   const [ratingExpanded, setRatingExpanded] = useState(false);
   const [reportReasonType, setReportReasonType] = useState('copyright');
@@ -105,12 +105,23 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
   const [submittingRate, setSubmittingRate] = useState(false);
   const [submittingReport, setSubmittingReport] = useState(false);
   const [hoverVideoId, setHoverVideoId] = useState<number | null>(null);
+  const [hoverVideoLoadingId, setHoverVideoLoadingId] = useState<number | null>(null);
   const [detailVideoMuted, setDetailVideoMuted] = useState<boolean>(true);
   const [detailVideoPlaybackRate, setDetailVideoPlaybackRate] = useState<number>(1);
   const [detailVideoVolume, setDetailVideoVolume] = useState<number>(0.6);
   const [detailVideoPlaying, setDetailVideoPlaying] = useState<boolean>(true);
   const detailVideoRef = useRef<HTMLVideoElement | null>(null);
   const listRequestSeqRef = useRef(0);
+
+  useEffect(() => {
+    if (!message) return;
+    const timerId = window.setTimeout(() => {
+      setMessage(null);
+    }, 1800);
+    return () => {
+      window.clearTimeout(timerId);
+    };
+  }, [message]);
 
   useEffect(() => {
     let cancelled = false;
@@ -133,13 +144,16 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
   const handleHoverCard = useCallback((item: WallpaperMarketItem): void => {
     if (item.type === 'video' && item.originalUrl) {
       setHoverVideoId(item.id);
+      setHoverVideoLoadingId(item.id);
     } else {
       setHoverVideoId(null);
+      setHoverVideoLoadingId(null);
     }
   }, []);
 
   const handleLeaveCard = useCallback((): void => {
     setHoverVideoId(null);
+    setHoverVideoLoadingId(null);
   }, []);
 
   useEffect(() => {
@@ -233,7 +247,7 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
         return;
       }
       setHasNextPage(false);
-      setMessage(result.message || t('settings.pluginMarket.wallpaper.feedback.loadFailed', { defaultValue: '加载失败' }));
+      setMessage({ type: 'error', text: result.message || t('settings.pluginMarket.wallpaper.feedback.loadFailed', { defaultValue: '加载失败' }) });
     } finally {
       if (requestSeq === listRequestSeqRef.current) {
         setLoading(false);
@@ -249,7 +263,7 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
       setSelected(result.data);
       return;
     }
-    setMessage(result.message || t('settings.pluginMarket.wallpaper.feedback.detailFailed', { defaultValue: '加载详情失败' }));
+    setMessage({ type: 'error', text: result.message || t('settings.pluginMarket.wallpaper.feedback.detailFailed', { defaultValue: '加载详情失败' }) });
   };
 
   useEffect(() => {
@@ -275,11 +289,11 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
     const token = readLocalToken();
     if (!token || !selected || applying) return;
     setApplying(true);
-    setMessage(t('settings.pluginMarket.wallpaper.feedback.applying', { defaultValue: '应用中…' }));
+    setMessage({ type: 'success', text: t('settings.pluginMarket.wallpaper.feedback.applying', { defaultValue: '应用中…' }) });
     try {
       const result = await applyUserWallpaper(token, selected.id);
       if (!result.ok) {
-        setMessage(result.message || t('settings.pluginMarket.wallpaper.feedback.applyFailed', { defaultValue: '应用失败' }));
+        setMessage({ type: 'error', text: result.message || t('settings.pluginMarket.wallpaper.feedback.applyFailed', { defaultValue: '应用失败' }) });
         return;
       }
       const applyUrl = selectedIsVideo
@@ -288,7 +302,7 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
       if (applyUrl) {
         onApplyBackground(applyUrl, { type: selectedIsVideo ? 'video' : 'image' });
       }
-      setMessage(t('settings.pluginMarket.wallpaper.feedback.applySuccess', { defaultValue: '已应用壁纸背景' }));
+      setMessage({ type: 'success', text: t('settings.pluginMarket.wallpaper.feedback.applySuccess', { defaultValue: '已应用壁纸背景' }) });
       await loadDetail(selected.id);
     } finally {
       setApplying(false);
@@ -299,14 +313,14 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
     const token = readLocalToken();
     if (!token || !selected || submittingRate) return;
     setSubmittingRate(true);
-    setMessage(t('settings.pluginMarket.wallpaper.feedback.rating', { defaultValue: '评分提交中…' }));
+    setMessage({ type: 'success', text: t('settings.pluginMarket.wallpaper.feedback.rating', { defaultValue: '评分提交中…' }) });
     try {
       const result = await rateUserWallpaper(token, selected.id, ratingScore);
       if (!result.ok) {
-        setMessage(result.message || t('settings.pluginMarket.wallpaper.feedback.rateFailed', { defaultValue: '评分失败' }));
+        setMessage({ type: 'error', text: result.message || t('settings.pluginMarket.wallpaper.feedback.rateFailed', { defaultValue: '评分失败' }) });
         return;
       }
-      setMessage(t('settings.pluginMarket.wallpaper.feedback.rateSuccess', { defaultValue: '评分成功' }));
+      setMessage({ type: 'success', text: t('settings.pluginMarket.wallpaper.feedback.rateSuccess', { defaultValue: '评分成功' }) });
       await loadDetail(selected.id);
     } finally {
       setSubmittingRate(false);
@@ -317,7 +331,7 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
     const token = readLocalToken();
     if (!token || !selected || submittingReport) return;
     setSubmittingReport(true);
-    setMessage(t('settings.pluginMarket.wallpaper.feedback.reporting', { defaultValue: '举报提交中…' }));
+    setMessage({ type: 'success', text: t('settings.pluginMarket.wallpaper.feedback.reporting', { defaultValue: '举报提交中…' }) });
     try {
       const result = await reportUserWallpaper(token, {
         id: selected.id,
@@ -325,11 +339,11 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
         reasonDetail: reportReasonDetail,
       });
       if (!result.ok) {
-        setMessage(result.message || t('settings.pluginMarket.wallpaper.feedback.reportFailed', { defaultValue: '举报失败' }));
+        setMessage({ type: 'error', text: result.message || t('settings.pluginMarket.wallpaper.feedback.reportFailed', { defaultValue: '举报失败' }) });
         return;
       }
       setReportReasonDetail('');
-      setMessage(t('settings.pluginMarket.wallpaper.feedback.reportSuccess', { defaultValue: '举报已提交' }));
+      setMessage({ type: 'success', text: t('settings.pluginMarket.wallpaper.feedback.reportSuccess', { defaultValue: '举报已提交' }) });
     } finally {
       setSubmittingReport(false);
     }
@@ -337,7 +351,11 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
 
   return (
     <div className="settings-plugin-market-wallpaper">
-      {message && <div className="settings-plugin-market-message">{message}</div>}
+      {message && (
+        <div className={`settings-plugin-market-top-message settings-plugin-market-top-message--${message.type}`}>
+          {message.text}
+        </div>
+      )}
 
       <div className="settings-plugin-market-layout">
         <div className="settings-plugin-market-list-panel">
@@ -351,6 +369,7 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
                 const preview = item.thumb320Url || item.thumb720Url || item.thumb1280Url || item.originalUrl || '';
                 const isVideoCard = item.type === 'video';
                 const showHoverVideo = isVideoCard && hoverVideoId === item.id && !!item.originalUrl;
+                const hoverVideoLoading = showHoverVideo && hoverVideoLoadingId === item.id;
                 return (
                   <button
                     key={item.id}
@@ -364,17 +383,31 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
                   >
                     <div className="settings-plugin-market-card-media">
                       {preview ? <img src={preview} alt={item.title} className="settings-plugin-market-card-img" /> : null}
+                      {hoverVideoLoading && (
+                        <div className="settings-plugin-market-card-loading" aria-hidden="true">
+                          <span className="settings-plugin-market-card-loading-spinner" />
+                        </div>
+                      )}
                       {showHoverVideo && item.originalUrl && (
                         <video
                           key={`hover-${item.id}`}
-                          className="settings-plugin-market-card-video"
+                          className={`settings-plugin-market-card-video ${hoverVideoLoading ? 'is-loading' : ''}`}
                           src={item.originalUrl}
                           autoPlay
                           muted
                           loop
                           playsInline
                           preload="metadata"
-                          onCanPlay={(event) => { event.currentTarget.play().catch(() => {}); }}
+                          onLoadStart={() => {
+                            setHoverVideoLoadingId(item.id);
+                          }}
+                          onCanPlay={(event) => {
+                            event.currentTarget.play().catch(() => {});
+                            setHoverVideoLoadingId((current) => (current === item.id ? null : current));
+                          }}
+                          onError={() => {
+                            setHoverVideoLoadingId((current) => (current === item.id ? null : current));
+                          }}
                         />
                       )}
                       {isVideoCard && (

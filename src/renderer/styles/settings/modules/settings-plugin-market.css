@@ -197,6 +197,27 @@
   color: var(--apple-link-dark);
 }
 
+.settings-plugin-market-top-message {
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 6px 8px;
+  font-size: 12px;
+  line-height: 1.35;
+  animation: clipboard-history-feedback-fade 1.8s ease-in-out both;
+}
+
+.settings-plugin-market-top-message--success {
+  color: rgba(91, 213, 145, 0.95);
+  border-color: rgba(76, 188, 131, 0.34);
+  background: rgba(72, 170, 120, 0.16);
+}
+
+.settings-plugin-market-top-message--error {
+  color: rgba(255, 130, 130, 0.95);
+  border-color: rgba(255, 96, 96, 0.38);
+  background: rgba(255, 72, 72, 0.14);
+}
+
 .settings-plugin-market-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 300px;
@@ -287,6 +308,38 @@
   object-fit: cover;
   background: #000;
   display: block;
+  opacity: 1;
+  transition: opacity 180ms ease;
+}
+
+.settings-plugin-market-card-video.is-loading {
+  opacity: 0;
+}
+
+.settings-plugin-market-card-loading {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, rgba(9, 11, 16, 0.68), rgba(9, 11, 16, 0.82));
+  pointer-events: none;
+}
+
+.settings-plugin-market-card-loading-spinner {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  border-top-color: rgba(255, 255, 255, 0.95);
+  animation: settings-plugin-market-card-spin 0.8s linear infinite;
+}
+
+@keyframes settings-plugin-market-card-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .settings-plugin-market-card-badge {

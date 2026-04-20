@@ -16,6 +16,7 @@
   },
   "guide": {
     "actions": {
+      "skip": "Skip Guide",
       "prev": "Previous",
       "next": "Next",
       "start": "Get Started",
@@ -555,6 +556,10 @@
     "title": "Clipboard History",
     "count": "{{count}} items",
     "empty": "No records yet. Copy some text and it will appear here.",
+    "messages": {
+      "copySuccess": "Copied to clipboard",
+      "copyFailed": "Copy failed, please try again"
+    },
     "actions": {
       "clear": "Clear",
       "save": "Save",
@@ -819,6 +824,11 @@
           "30": "30 items",
           "50": "50 items"
         }
+      },
+      "exitMaxExpandOnCopy": {
+        "title": "Auto Exit After Copy",
+        "hint": "Automatically exits max expand after copying a history item; returns to lyrics view when music is playing, otherwise to idle.",
+        "toggle": "Enable exit max expand after copy"
       },
       "actions": {
         "title": "Data Management",
@@ -1241,9 +1251,11 @@
       },
       "fields": {
         "username": "Username",
+        "nickname": "Nickname",
         "usernamePlaceholder": "2-32 chars, letters (incl. CJK) / digits / underscore",
         "account": "Username or Email",
         "accountPlaceholder": "Enter username or email",
+        "boundEmail": "Bound Email",
         "email": "Email",
         "emailCode": "Email Code",
         "emailCodePlaceholder": "Enter email code",
@@ -1266,16 +1278,23 @@
         "avatarHint": "Upload a new avatar",
         "profile": "Profile",
         "profileHint": "Complete public profile details for easier account recognition",
-        "password": "Change password (optional)",
+        "password": "Change password",
         "passwordHint": "Leave blank to keep your current password",
         "danger": "Danger Zone"
       },
       "card": {
         "memberSince": "Member since"
       },
+      "infoNav": {
+        "editDesc": "Edit gender, birthday, and other profile details",
+        "avatarDesc": "Upload or change your account avatar",
+        "passwordDesc": "Change login password via email verification",
+        "logoutDesc": "Sign out or delete your account"
+      },
       "pages": {
         "info": "User Info",
         "edit": "Edit Info",
+        "password": "Change Password",
         "account": "Account",
         "switchTo": "Switch to {{label}}"
       },
@@ -1288,6 +1307,9 @@
       "actions": {
         "refresh": "Refresh profile",
         "refreshing": "Refreshing…",
+        "refreshHint": "Used for verification and notifications",
+        "refreshHint2": "Join date is based on server records",
+        "refreshingHint": "Sync the latest profile from server",
         "chooseAvatar": "Upload image",
         "uploading": "Uploading…",
         "show": "Show",
@@ -1296,6 +1318,8 @@
         "hidePassword": "Hide password",
         "saveProfile": "Save profile",
         "saving": "Saving…",
+        "changePassword": "Change password",
+        "changingPassword": "Changing…",
         "logout": "Sign out",
         "loggingOut": "Signing out…",
         "backToCenter": "Back to Previous Page",
@@ -1327,6 +1351,7 @@
         "emailCodeSending": "Sending…",
         "emailCodeSent": "Code sent. Check your inbox",
         "emailCodeSendFailed": "Failed to send code",
+        "captchaCancelled": "Complete slider verification before sending code",
         "operationFailed": "Operation failed",
         "loginSuccess": "Signed in",
         "registerSuccess": "Account created and signed in",
@@ -1341,6 +1366,7 @@
         "birthdayInvalid": "Birthday must be in yyyy-MM-dd format",
         "saveFailed": "Save failed",
         "saveSuccess": "Profile updated",
+        "passwordChangeSuccess": "Password updated",
         "logoutSuccess": "Signed out",
         "logoutLocalOnly": "Server response error; signed out locally only",
         "unregisterPasswordRequired": "Enter your current password to confirm",

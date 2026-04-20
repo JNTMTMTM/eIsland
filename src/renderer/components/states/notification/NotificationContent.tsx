@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import { useEffect, useState, type ReactElement } from 'react';
+import { useEffect, useState, type CSSProperties, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../store/slices';
 import { SvgIcon } from '../../../utils/SvgIcon';
@@ -110,6 +110,7 @@ export function NotificationContent({
   const { setIdle, setLyrics, setNotification, setMaxExpand, setMaxExpandTab } = useIslandStore();
   const [currentUrlIndex, setCurrentUrlIndex] = useState(0);
   const [favoriteUrlSet, setFavoriteUrlSet] = useState<Set<string>>(new Set());
+  const [useClipboardVectorFallbackIcon, setUseClipboardVectorFallbackIcon] = useState(false);
   const clipboardUrls = type === 'clipboard-url' ? (urls ?? []) : [];
   const hasMultipleClipboardUrls = clipboardUrls.length > 1;
   const currentClipboardUrl = clipboardUrls[currentUrlIndex] ?? '';
@@ -123,6 +124,11 @@ export function NotificationContent({
     if (type !== 'clipboard-url' || !currentClipboardUrl) return '';
     return getWebsiteHostname(currentClipboardUrl).toLowerCase();
   })();
+  const effectiveDisplayIcon = useClipboardVectorFallbackIcon && type === 'clipboard-url' ? SvgIcon.LINK : displayIcon;
+  const isVectorDisplayIcon = Boolean(effectiveDisplayIcon && /\.svg([?#].*)?$/i.test(effectiveDisplayIcon));
+  const vectorIconStyle = isVectorDisplayIcon && effectiveDisplayIcon
+    ? ({ '--notification-icon-mask': `url("${effectiveDisplayIcon}")` } as CSSProperties)
+    : undefined;
   const displayBody = (() => {
     if (type !== 'clipboard-url' || !currentClipboardUrl) return body;
     if (currentUrlIndex === 0 && body) return body;
@@ -132,6 +138,10 @@ export function NotificationContent({
   useEffect(() => {
     setCurrentUrlIndex(0);
   }, [type, urls]);
+
+  useEffect(() => {
+    setUseClipboardVectorFallbackIcon(false);
+  }, [type, currentClipboardUrl, icon]);
 
   useEffect(() => {
     if (type !== 'clipboard-url') return;
@@ -341,18 +351,21 @@ export function NotificationContent({
     <div className="notification-content">
       <div className="notification-main-row">
         <div className="notification-icon">
-          {displayIcon ? (
-            <img
-              src={displayIcon}
-              alt=""
-              className="notification-icon-img"
-              onError={(e) => {
-                if (type === 'clipboard-url') {
-                  (e.target as HTMLImageElement).src = './svg/LINK.svg';
-                  (e.target as HTMLImageElement).onerror = null;
-                }
-              }}
-            />
+          {effectiveDisplayIcon ? (
+            isVectorDisplayIcon ? (
+              <span className="notification-icon-vector" style={vectorIconStyle} aria-hidden="true" />
+            ) : (
+              <img
+                src={effectiveDisplayIcon}
+                alt=""
+                className="notification-icon-img"
+                onError={() => {
+                  if (type === 'clipboard-url') {
+                    setUseClipboardVectorFallbackIcon(true);
+                  }
+                }}
+              />
+            )
           ) : (
             <div className="notification-icon-default" />
           )}

@@ -86,13 +86,17 @@ export function SliderCaptchaContent({ challenge, onCancel, onConfirm }: SliderC
   return (
     <div
       className={`slider-captcha-overlay${closing ? ' is-closing' : ''}`}
+      onMouseDown={(event) => {
+        event.stopPropagation();
+      }}
       onClick={(event) => {
+        event.stopPropagation();
         if (event.target === event.currentTarget) {
           closeWithAnimation(onCancel);
         }
       }}
     >
-      <div className={`slider-captcha-card${closing ? ' is-closing' : ''}`}>
+      <div className={`slider-captcha-card slider-captcha-card--danger${closing ? ' is-closing' : ''}`}>
         <div className="slider-captcha-brand">
           <img className="slider-captcha-brand-logo" src={eislandLogo} alt="eIsland" />
           <div className="slider-captcha-brand-texts">

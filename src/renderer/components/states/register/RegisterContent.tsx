@@ -100,6 +100,7 @@ export function RegisterContent(): ReactElement {
     setSendingCode(true);
     let captchaTicket = '';
     let captchaRandstr = '';
+    let captchaSign = '';
     try {
       const captcha = await runEmailSliderCaptcha(cleanEmail);
       if (!captcha) {
@@ -109,13 +110,14 @@ export function RegisterContent(): ReactElement {
       }
       captchaTicket = captcha.ticket;
       captchaRandstr = captcha.randstr;
+      captchaSign = captcha.sign;
     } catch (err) {
       setSendingCode(false);
       const msg = err instanceof Error ? err.message : t('settings.user.feedback.emailCodeSendFailed', { defaultValue: '验证码发送失败' });
       setFeedback({ type: 'error', text: msg });
       return;
     }
-    const result = await sendUserEmailCode(cleanEmail, 'REGISTER', { ticket: captchaTicket, randstr: captchaRandstr });
+    const result = await sendUserEmailCode(cleanEmail, 'REGISTER', { ticket: captchaTicket, randstr: captchaRandstr, sign: captchaSign });
     setSendingCode(false);
     if (!result.ok) {
       setFeedback({ type: 'error', text: result.message || t('settings.user.feedback.emailCodeSendFailed', { defaultValue: '验证码发送失败' }) });

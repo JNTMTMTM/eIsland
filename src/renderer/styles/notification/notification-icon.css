@@ -44,6 +44,21 @@
   filter: none;
 }
 
+.notification-icon-vector {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  background: rgba(var(--color-text-rgb), 0.86);
+  -webkit-mask-image: var(--notification-icon-mask);
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+  mask-image: var(--notification-icon-mask);
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+}
+
 .notification-icon-default {
   width: 24px;
   height: 24px;
