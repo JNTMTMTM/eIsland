@@ -1866,6 +1866,18 @@
   border-top: 1px dashed rgba(var(--color-text-rgb), 0.12);
 }
 
+.settings-user-edit-action-stack {
+  display: grid;
+  gap: 8px;
+}
+
+.settings-user-edit-action-stack .settings-user-primary-btn,
+.settings-user-edit-action-stack .settings-user-secondary-btn,
+.settings-user-edit-action-stack .settings-user-danger-btn {
+  width: 100%;
+  justify-content: center;
+}
+
 .settings-user-cancel-mark {
   border-style: dashed;
   color: rgba(var(--color-text-rgb), 0.64);

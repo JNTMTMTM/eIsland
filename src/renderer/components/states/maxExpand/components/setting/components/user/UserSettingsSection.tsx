@@ -56,6 +56,8 @@ interface Feedback {
   text: string;
 }
 
+type ProfileFeedbackScope = 'profile' | 'password' | 'account';
+
 const GENDER_VALUES: UserAccountGender[] = ['male', 'female', 'custom', 'undisclosed'];
 const USER_PROFILE_PAGES: UserProfilePage[] = ['info', 'edit', 'account'];
 const EMAIL_PATTERN = /^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
@@ -84,6 +86,7 @@ export function UserSettingsSection(): ReactElement {
   const [editNewPasswordVisible, setEditNewPasswordVisible] = useState(false);
   const [editConfirmPasswordVisible, setEditConfirmPasswordVisible] = useState(false);
   const [profileFeedback, setProfileFeedback] = useState<Feedback | null>(null);
+  const [profileFeedbackScope, setProfileFeedbackScope] = useState<ProfileFeedbackScope>('profile');
   const [passwordCodeFeedback, setPasswordCodeFeedback] = useState<Feedback | null>(null);
   const [savingProfile, setSavingProfile] = useState(false);
   const [savingPassword, setSavingPassword] = useState(false);
@@ -112,17 +115,14 @@ export function UserSettingsSection(): ReactElement {
     setProfile(null);
     setProfileError('');
     setProfileFeedback(null);
+    setProfileFeedbackScope('profile');
     setPasswordCodeFeedback(null);
     setUnregisterConfirmVisible(false);
     setUnregisterPassword('');
     setUnregisterPasswordVisible(false);
   }, []);
 
-  const applyProfileToEditor = useCallback((p: UserAccountProfile): void => {
-    setEditAvatar(p.avatar ?? null);
-    setEditGender(p.gender ?? 'undisclosed');
-    setEditGenderCustom(p.genderCustom ?? '');
-    setEditBirthday(p.birthday ?? '');
+  const resetPasswordEditor = useCallback((): void => {
     setEditNewPassword('');
     setEditConfirmPassword('');
     setEditPasswordEmailCode('');
@@ -131,6 +131,14 @@ export function UserSettingsSection(): ReactElement {
     setEditNewPasswordVisible(false);
     setEditConfirmPasswordVisible(false);
   }, []);
+
+  const applyProfileToEditor = useCallback((p: UserAccountProfile): void => {
+    setEditAvatar(p.avatar ?? null);
+    setEditGender(p.gender ?? 'undisclosed');
+    setEditGenderCustom(p.genderCustom ?? '');
+    setEditBirthday(p.birthday ?? '');
+    resetPasswordEditor();
+  }, [resetPasswordEditor]);
 
   useEffect(() => {
     if (passwordCodeCooldownSeconds <= 0) return;
@@ -225,10 +233,12 @@ export function UserSettingsSection(): ReactElement {
     event.target.value = '';
     if (!file) return;
     if (file.size > 5 * 1024 * 1024) {
+      setProfileFeedbackScope('profile');
       setProfileFeedback({ type: 'error', text: t('settings.user.feedback.avatarTooLarge', { defaultValue: '头像文件不能超过 5MB' }) });
       return;
     }
     if (!file.type.startsWith('image/')) {
+      setProfileFeedbackScope('profile');
       setProfileFeedback({ type: 'error', text: t('settings.user.feedback.avatarNotImage', { defaultValue: '仅支持上传图片文件' }) });
       return;
     }
@@ -241,9 +251,11 @@ export function UserSettingsSection(): ReactElement {
       }
       const url = await uploadUserAvatar(file, currentToken);
       setEditAvatar(url);
+      setProfileFeedbackScope('profile');
       setProfileFeedback({ type: 'success', text: t('settings.user.feedback.avatarUploaded', { defaultValue: '头像已上传，保存资料生效' }) });
     } catch (err) {
       const msg = err instanceof Error ? err.message : t('settings.user.feedback.avatarUploadFailed', { defaultValue: '头像上传失败' });
+      setProfileFeedbackScope('profile');
       setProfileFeedback({ type: 'error', text: msg });
     } finally {
       setAvatarUploading(false);
@@ -253,10 +265,12 @@ export function UserSettingsSection(): ReactElement {
   const handleSaveProfile = async (): Promise<void> => {
     if (!token || savingProfile || savingPassword) return;
     if (editBirthday && !/^\d{4}-\d{2}-\d{2}$/.test(editBirthday)) {
+      setProfileFeedbackScope('profile');
       setProfileFeedback({ type: 'error', text: t('settings.user.feedback.birthdayInvalid', { defaultValue: '生日格式应为 yyyy-MM-dd' }) });
       return;
     }
     setSavingProfile(true);
+    setProfileFeedbackScope('profile');
     setProfileFeedback(null);
     const payload: Parameters<typeof updateUserProfile>[1] = {
       avatar: editAvatar ?? null,
@@ -271,6 +285,7 @@ export function UserSettingsSection(): ReactElement {
         resetToLoggedOut();
         return;
       }
+      setProfileFeedbackScope('profile');
       setProfileFeedback({ type: 'error', text: profileResult.message || t('settings.user.feedback.saveFailed', { defaultValue: '保存失败' }) });
       return;
     }
@@ -280,32 +295,39 @@ export function UserSettingsSection(): ReactElement {
     setEditNewPasswordVisible(false);
     setEditConfirmPasswordVisible(false);
     setSavingProfile(false);
+    setProfileFeedbackScope('profile');
     setProfileFeedback({ type: 'success', text: t('settings.user.feedback.saveSuccess', { defaultValue: '资料已更新' }) });
   };
 
   const handleChangePassword = async (): Promise<void> => {
     if (!token || savingPassword || savingProfile) return;
     if (!editPasswordEmailCode.trim()) {
+      setProfileFeedbackScope('password');
       setProfileFeedback({ type: 'error', text: t('settings.user.feedback.emailCodeRequired', { defaultValue: '请输入邮箱验证码' }) });
       return;
     }
     if (!editNewPassword) {
+      setProfileFeedbackScope('password');
       setProfileFeedback({ type: 'error', text: t('settings.user.feedback.passwordRequired', { defaultValue: '请输入密码' }) });
       return;
     }
     if (editNewPassword.length < 8) {
+      setProfileFeedbackScope('password');
       setProfileFeedback({ type: 'error', text: t('settings.user.feedback.passwordTooShort', { defaultValue: '密码至少 8 位且包含字母与数字' }) });
       return;
     }
     if (!editConfirmPassword) {
+      setProfileFeedbackScope('password');
       setProfileFeedback({ type: 'error', text: t('settings.user.feedback.passwordConfirmRequired', { defaultValue: '请再次输入新密码进行确认' }) });
       return;
     }
     if (editNewPassword !== editConfirmPassword) {
+      setProfileFeedbackScope('password');
       setProfileFeedback({ type: 'error', text: t('settings.user.feedback.passwordConfirmMismatch', { defaultValue: '两次输入的新密码不一致' }) });
       return;
     }
     setSavingPassword(true);
+    setProfileFeedbackScope('password');
     setProfileFeedback(null);
     setPasswordCodeFeedback(null);
     const passwordResult = await updateUserPassword(token, {
@@ -318,6 +340,7 @@ export function UserSettingsSection(): ReactElement {
         resetToLoggedOut();
         return;
       }
+      setProfileFeedbackScope('password');
       setProfileFeedback({ type: 'error', text: passwordResult.message || t('settings.user.feedback.saveFailed', { defaultValue: '保存失败' }) });
       return;
     }
@@ -328,6 +351,7 @@ export function UserSettingsSection(): ReactElement {
     setEditNewPasswordVisible(false);
     setEditConfirmPasswordVisible(false);
     setSavingPassword(false);
+    setProfileFeedbackScope('password');
     setProfileFeedback({ type: 'success', text: t('settings.user.feedback.passwordChangeSuccess', { defaultValue: '密码已更新' }) });
   };
 
@@ -375,9 +399,22 @@ export function UserSettingsSection(): ReactElement {
 
   const handleCancelProfileChanges = (): void => {
     if (!profile) return;
-    applyProfileToEditor(profile);
-    setProfileFeedback(null);
-    setPasswordCodeFeedback(null);
+    setEditAvatar(profile.avatar ?? null);
+    setEditGender(profile.gender ?? 'undisclosed');
+    setEditGenderCustom(profile.genderCustom ?? '');
+    setEditBirthday(profile.birthday ?? '');
+    if (profileFeedbackScope === 'profile') {
+      setProfileFeedback(null);
+    }
+    setProfileFeedbackScope('profile');
+  };
+
+  const handleCancelPasswordChanges = (): void => {
+    resetPasswordEditor();
+    if (profileFeedbackScope === 'password') {
+      setProfileFeedback(null);
+    }
+    setProfileFeedbackScope('password');
   };
 
   const handleLogout = async (): Promise<void> => {
@@ -423,6 +460,7 @@ export function UserSettingsSection(): ReactElement {
         resetToLoggedOut();
         return;
       }
+      setProfileFeedbackScope('account');
       setProfileFeedback({ type: 'error', text: result.message || t('settings.user.feedback.operationFailed', { defaultValue: '操作失败' }) });
       return;
     }
@@ -439,6 +477,11 @@ export function UserSettingsSection(): ReactElement {
     return (
       <div className={`settings-user-feedback settings-user-feedback--${feedback.type}`}>{feedback.text}</div>
     );
+  };
+
+  const renderProfileFeedback = (scope: ProfileFeedbackScope): ReactElement | null => {
+    if (profileFeedbackScope !== scope) return null;
+    return renderFeedback(profileFeedback);
   };
 
   const renderAuthEntry = (): ReactElement => {
@@ -602,7 +645,8 @@ export function UserSettingsSection(): ReactElement {
                 onChange={(e) => setEditBirthday(e.target.value)}
               />
             </label>
-            <div className="settings-user-actions-row settings-user-actions-row--adaptive">
+            {renderProfileFeedback('profile')}
+            <div className="settings-user-edit-action-stack">
               <button
                 type="button"
                 className="settings-user-primary-btn"
@@ -610,6 +654,14 @@ export function UserSettingsSection(): ReactElement {
                 disabled={savingProfile || savingPassword || loadingProfile}
               >
                 {savingProfile ? t('settings.user.actions.saving', { defaultValue: '保存中…' }) : t('settings.user.actions.saveProfile', { defaultValue: '保存资料' })}
+              </button>
+              <button
+                type="button"
+                className="settings-user-secondary-btn settings-user-cancel-mark"
+                onClick={handleCancelProfileChanges}
+                disabled={savingProfile || savingPassword || loadingProfile}
+              >
+                {t('settings.user.actions.cancelChanges', { defaultValue: '取消更改' })}
               </button>
             </div>
           </div>
@@ -692,7 +744,8 @@ export function UserSettingsSection(): ReactElement {
                 </button>
               </div>
             </label>
-            <div className="settings-user-actions-row settings-user-actions-row--adaptive">
+            {renderProfileFeedback('password')}
+            <div className="settings-user-edit-action-stack">
               <button
                 type="button"
                 className="settings-user-primary-btn"
@@ -703,16 +756,10 @@ export function UserSettingsSection(): ReactElement {
                   ? t('settings.user.actions.changingPassword', { defaultValue: '修改中…' })
                   : t('settings.user.actions.changePassword', { defaultValue: '修改密码' })}
               </button>
-            </div>
-          </div>
-
-          <div className="settings-user-edit-actions">
-            {renderFeedback(profileFeedback)}
-            <div className="settings-user-actions-row settings-user-actions-row--adaptive">
               <button
                 type="button"
                 className="settings-user-secondary-btn settings-user-cancel-mark"
-                onClick={handleCancelProfileChanges}
+                onClick={handleCancelPasswordChanges}
                 disabled={savingProfile || savingPassword || loadingProfile}
               >
                 {t('settings.user.actions.cancelChanges', { defaultValue: '取消更改' })}
@@ -732,7 +779,7 @@ export function UserSettingsSection(): ReactElement {
               {t('settings.user.auth.hint', { defaultValue: '登录注册服务由 eIsland server 提供' })}
             </div>
           </div>
-          {renderFeedback(profileFeedback)}
+          {renderProfileFeedback('account')}
           <div className="settings-user-actions-row">
             <button
               type="button"

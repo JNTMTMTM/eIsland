@@ -442,6 +442,38 @@ export interface UpdateUserPasswordPayload {
 
 const PASSWORD_TOTP_DIGITS = 6;
 const PASSWORD_TOTP_PERIOD_SECONDS = 30;
+const BASE32_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+
+interface UserPasswordTotpSeedData {
+  seed: string;
+  algorithm?: string;
+  digits?: number;
+  periodSeconds?: number;
+}
+
+function decodeBase32(seed: string): ArrayBuffer {
+  const normalized = seed.trim().toUpperCase().replace(/=/g, '');
+  if (!normalized) {
+    throw new Error('TOTP Seed 为空');
+  }
+  let value = 0;
+  let bits = 0;
+  const out: number[] = [];
+  for (const ch of normalized) {
+    const idx = BASE32_ALPHABET.indexOf(ch);
+    if (idx < 0) {
+      throw new Error('TOTP Seed 格式错误');
+    }
+    value = (value << 5) | idx;
+    bits += 5;
+    if (bits >= 8) {
+      out.push((value >> (bits - 8)) & 0xff);
+      bits -= 8;
+    }
+  }
+  const bytes = Uint8Array.from(out);
+  return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
+}
 
 async function generatePasswordTotp(seed: string, timestampSeconds: number): Promise<string> {
   if (!globalThis.crypto?.subtle) {
@@ -456,7 +488,7 @@ async function generatePasswordTotp(seed: string, timestampSeconds: number): Pro
   }
   const key = await globalThis.crypto.subtle.importKey(
     'raw',
-    new TextEncoder().encode(seed),
+    decodeBase32(seed),
     { name: 'HMAC', hash: 'SHA-1' },
     false,
     ['sign'],
@@ -499,8 +531,18 @@ export function updateUserProfile(token: string, payload: UpdateUserProfilePaylo
  */
 export async function updateUserPassword(token: string, payload: UpdateUserPasswordPayload): Promise<UserAccountResult<unknown>> {
   try {
-    const totpTimestamp = Math.floor(Date.now() / 1000);
-    const totpCode = await generatePasswordTotp(token, totpTimestamp);
+    const seedResult = await request<UserPasswordTotpSeedData>('/v1/user/profile/password/totp-seed', {
+      method: 'GET',
+      auth: token,
+    });
+    if (!seedResult.ok || !seedResult.data?.seed) {
+      return {
+        ok: false,
+        code: seedResult.code || 500,
+        message: seedResult.message || 'TOTP Seed 获取失败',
+      };
+    }
+    const totpCode = await generatePasswordTotp(seedResult.data.seed, Math.floor(Date.now() / 1000));
     return request('/v1/user/profile/password', {
       method: 'POST',
       auth: token,
@@ -508,7 +550,6 @@ export async function updateUserPassword(token: string, payload: UpdateUserPassw
         password: payload.password,
         emailCode: payload.emailCode,
         totpCode,
-        totpTimestamp,
       },
     });
   } catch {
