@@ -197,6 +197,27 @@
   color: var(--apple-link-dark);
 }
 
+.settings-plugin-market-top-message {
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 6px 8px;
+  font-size: 12px;
+  line-height: 1.35;
+  animation: clipboard-history-feedback-fade 1.8s ease-in-out both;
+}
+
+.settings-plugin-market-top-message--success {
+  color: rgba(91, 213, 145, 0.95);
+  border-color: rgba(76, 188, 131, 0.34);
+  background: rgba(72, 170, 120, 0.16);
+}
+
+.settings-plugin-market-top-message--error {
+  color: rgba(255, 130, 130, 0.95);
+  border-color: rgba(255, 96, 96, 0.38);
+  background: rgba(255, 72, 72, 0.14);
+}
+
 .settings-plugin-market-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 300px;
