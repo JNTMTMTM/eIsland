@@ -96,7 +96,7 @@ export function SliderCaptchaContent({ challenge, onCancel, onConfirm }: SliderC
         }
       }}
     >
-      <div className={`slider-captcha-card${closing ? ' is-closing' : ''}`}>
+      <div className={`slider-captcha-card slider-captcha-card--danger${closing ? ' is-closing' : ''}`}>
         <div className="slider-captcha-brand">
           <img className="slider-captcha-brand-logo" src={eislandLogo} alt="eIsland" />
           <div className="slider-captcha-brand-texts">
