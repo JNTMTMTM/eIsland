@@ -88,10 +88,12 @@ export function ClipboardHistoryTab(): React.ReactElement {
   const [historyEnabled, setHistoryEnabled] = useState<boolean>(true);
   const [historyLimit, setHistoryLimit] = useState<number>(DEFAULT_HISTORY_LIMIT);
   const [exitMaxExpandOnCopy, setExitMaxExpandOnCopy] = useState<boolean>(false);
+  const [copyFeedback, setCopyFeedback] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [editText, setEditText] = useState('');
   const editTextareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const copyFeedbackTimerRef = useRef<number | null>(null);
 
   const adjustTextareaHeight = useCallback((el: HTMLTextAreaElement | null): void => {
     if (!el) return;
@@ -248,8 +250,8 @@ export function ClipboardHistoryTab(): React.ReactElement {
   const handleCopy = (item: ClipboardHistoryItem): void => {
     const text = expandedId === item.id ? editText : item.text;
     window.api.clipboardWriteText(text)
-      .catch(() => {})
-      .finally(() => {
+      .then(() => {
+        showCopyFeedback('success', t('clipboardHistoryTab.messages.copySuccess', { defaultValue: '已复制到剪贴板' }));
         if (exitMaxExpandOnCopy) {
           const store = useIslandStore.getState();
           if (store.isMusicPlaying) {
@@ -258,6 +260,9 @@ export function ClipboardHistoryTab(): React.ReactElement {
             setIdle(true);
           }
         }
+      })
+      .catch(() => {
+        showCopyFeedback('error', t('clipboardHistoryTab.messages.copyFailed', { defaultValue: '复制失败，请稍后重试' }));
       });
   };
 
@@ -265,6 +270,23 @@ export function ClipboardHistoryTab(): React.ReactElement {
     if (expandedId === null) return;
     adjustTextareaHeight(editTextareaRef.current);
   }, [editText, expandedId, adjustTextareaHeight]);
+
+  useEffect(() => () => {
+    if (copyFeedbackTimerRef.current !== null) {
+      window.clearTimeout(copyFeedbackTimerRef.current);
+    }
+  }, []);
+
+  const showCopyFeedback = (type: 'success' | 'error', text: string): void => {
+    setCopyFeedback({ type, text });
+    if (copyFeedbackTimerRef.current !== null) {
+      window.clearTimeout(copyFeedbackTimerRef.current);
+    }
+    copyFeedbackTimerRef.current = window.setTimeout(() => {
+      setCopyFeedback(null);
+      copyFeedbackTimerRef.current = null;
+    }, 1800);
+  };
 
   return (
     <div className="clipboard-history">
@@ -282,6 +304,12 @@ export function ClipboardHistoryTab(): React.ReactElement {
           </button>
         </div>
       </div>
+
+      {copyFeedback ? (
+        <div className={`clipboard-history-feedback clipboard-history-feedback--${copyFeedback.type}`} role="status" aria-live="polite">
+          {copyFeedback.text}
+        </div>
+      ) : null}
 
       <div
         className="clipboard-history-list"

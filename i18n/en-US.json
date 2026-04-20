@@ -555,6 +555,10 @@
     "title": "Clipboard History",
     "count": "{{count}} items",
     "empty": "No records yet. Copy some text and it will appear here.",
+    "messages": {
+      "copySuccess": "Copied to clipboard",
+      "copyFailed": "Copy failed, please try again"
+    },
     "actions": {
       "clear": "Clear",
       "save": "Save",
@@ -819,6 +823,11 @@
           "30": "30 items",
           "50": "50 items"
         }
+      },
+      "exitMaxExpandOnCopy": {
+        "title": "Auto Exit After Copy",
+        "hint": "Automatically exits max expand after copying a history item; returns to lyrics view when music is playing, otherwise to idle.",
+        "toggle": "Enable exit max expand after copy"
       },
       "actions": {
         "title": "Data Management",

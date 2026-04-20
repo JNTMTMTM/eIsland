@@ -364,6 +364,26 @@
   cursor: not-allowed;
 }
 
+.clipboard-history-feedback {
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 6px 8px;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.clipboard-history-feedback--success {
+  color: rgba(91, 213, 145, 0.95);
+  border-color: rgba(76, 188, 131, 0.34);
+  background: rgba(72, 170, 120, 0.16);
+}
+
+.clipboard-history-feedback--error {
+  color: rgba(255, 130, 130, 0.95);
+  border-color: rgba(255, 96, 96, 0.38);
+  background: rgba(255, 72, 72, 0.14);
+}
+
 .clipboard-history-list {
   flex: 1;
   min-height: 0;

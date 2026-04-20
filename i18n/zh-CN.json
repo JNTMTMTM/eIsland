@@ -555,6 +555,10 @@
     "title": "剪贴板历史",
     "count": "{{count}} 条",
     "empty": "暂时没有记录，复制一些文本后会显示在这里。",
+    "messages": {
+      "copySuccess": "已复制到剪贴板",
+      "copyFailed": "复制失败，请稍后重试"
+    },
     "actions": {
       "clear": "清空",
       "save": "保存",
@@ -819,6 +823,11 @@
           "30": "30 条",
           "50": "50 条"
         }
+      },
+      "exitMaxExpandOnCopy": {
+        "title": "复制后自动退出",
+        "hint": "复制历史项后自动退出最大展开；有歌曲时回到歌曲态，无歌曲时回到 idle。",
+        "toggle": "启用复制后退出最大展开"
       },
       "actions": {
         "title": "数据管理",
