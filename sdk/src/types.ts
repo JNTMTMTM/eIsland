@@ -156,6 +156,7 @@ export interface EIslandPluginApi {
 export interface EIslandPluginContext {
   pluginId: string;
   manifest: PluginManifest;
+  mountEl?: HTMLElement;
   api: EIslandPluginApi;
 }
 
