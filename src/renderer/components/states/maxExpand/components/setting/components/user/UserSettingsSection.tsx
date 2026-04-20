@@ -79,6 +79,7 @@ export function UserSettingsSection(): ReactElement {
   const [editConfirmPasswordVisible, setEditConfirmPasswordVisible] = useState(false);
   const [profileFeedback, setProfileFeedback] = useState<Feedback | null>(null);
   const [savingProfile, setSavingProfile] = useState(false);
+  const [savingPassword, setSavingPassword] = useState(false);
   const [avatarUploading, setAvatarUploading] = useState(false);
 
   const [unregisterPassword, setUnregisterPassword] = useState('');
@@ -229,23 +230,7 @@ export function UserSettingsSection(): ReactElement {
   };
 
   const handleSaveProfile = async (): Promise<void> => {
-    if (!token || savingProfile) return;
-    if (editNewPassword && editNewPassword.length < 8) {
-      setProfileFeedback({ type: 'error', text: t('settings.user.feedback.passwordTooShort', { defaultValue: '密码至少 8 位且包含字母与数字' }) });
-      return;
-    }
-    if (!editNewPassword && editConfirmPassword) {
-      setProfileFeedback({ type: 'error', text: t('settings.user.feedback.passwordConfirmNeedsPassword', { defaultValue: '请先输入新密码' }) });
-      return;
-    }
-    if (editNewPassword && !editConfirmPassword) {
-      setProfileFeedback({ type: 'error', text: t('settings.user.feedback.passwordConfirmRequired', { defaultValue: '请再次输入新密码进行确认' }) });
-      return;
-    }
-    if (editNewPassword && editNewPassword !== editConfirmPassword) {
-      setProfileFeedback({ type: 'error', text: t('settings.user.feedback.passwordConfirmMismatch', { defaultValue: '两次输入的新密码不一致' }) });
-      return;
-    }
+    if (!token || savingProfile || savingPassword) return;
     if (editBirthday && !/^\d{4}-\d{2}-\d{2}$/.test(editBirthday)) {
       setProfileFeedback({ type: 'error', text: t('settings.user.feedback.birthdayInvalid', { defaultValue: '生日格式应为 yyyy-MM-dd' }) });
       return;
@@ -258,18 +243,6 @@ export function UserSettingsSection(): ReactElement {
       genderCustom: editGender === 'custom' ? editGenderCustom.trim() : null,
       birthday: editBirthday || null,
     };
-    if (editNewPassword) {
-      const passwordResult = await updateUserPassword(token, { password: editNewPassword });
-      if (!passwordResult.ok) {
-        setSavingProfile(false);
-        if (passwordResult.code === 401 || passwordResult.code === 4011) {
-          resetToLoggedOut();
-          return;
-        }
-        setProfileFeedback({ type: 'error', text: passwordResult.message || t('settings.user.feedback.saveFailed', { defaultValue: '保存失败' }) });
-        return;
-      }
-    }
     const profileResult = await updateUserProfile(token, payload);
     if (!profileResult.ok) {
       setSavingProfile(false);
@@ -287,6 +260,44 @@ export function UserSettingsSection(): ReactElement {
     setEditConfirmPasswordVisible(false);
     setSavingProfile(false);
     setProfileFeedback({ type: 'success', text: t('settings.user.feedback.saveSuccess', { defaultValue: '资料已更新' }) });
+  };
+
+  const handleChangePassword = async (): Promise<void> => {
+    if (!token || savingPassword || savingProfile) return;
+    if (!editNewPassword) {
+      setProfileFeedback({ type: 'error', text: t('settings.user.feedback.passwordRequired', { defaultValue: '请输入密码' }) });
+      return;
+    }
+    if (editNewPassword.length < 8) {
+      setProfileFeedback({ type: 'error', text: t('settings.user.feedback.passwordTooShort', { defaultValue: '密码至少 8 位且包含字母与数字' }) });
+      return;
+    }
+    if (!editConfirmPassword) {
+      setProfileFeedback({ type: 'error', text: t('settings.user.feedback.passwordConfirmRequired', { defaultValue: '请再次输入新密码进行确认' }) });
+      return;
+    }
+    if (editNewPassword !== editConfirmPassword) {
+      setProfileFeedback({ type: 'error', text: t('settings.user.feedback.passwordConfirmMismatch', { defaultValue: '两次输入的新密码不一致' }) });
+      return;
+    }
+    setSavingPassword(true);
+    setProfileFeedback(null);
+    const passwordResult = await updateUserPassword(token, { password: editNewPassword });
+    if (!passwordResult.ok) {
+      setSavingPassword(false);
+      if (passwordResult.code === 401 || passwordResult.code === 4011) {
+        resetToLoggedOut();
+        return;
+      }
+      setProfileFeedback({ type: 'error', text: passwordResult.message || t('settings.user.feedback.saveFailed', { defaultValue: '保存失败' }) });
+      return;
+    }
+    setEditNewPassword('');
+    setEditConfirmPassword('');
+    setEditNewPasswordVisible(false);
+    setEditConfirmPasswordVisible(false);
+    setSavingPassword(false);
+    setProfileFeedback({ type: 'success', text: t('settings.user.feedback.passwordChangeSuccess', { defaultValue: '密码已更新' }) });
   };
 
   const handleCancelProfileChanges = (): void => {
@@ -517,6 +528,16 @@ export function UserSettingsSection(): ReactElement {
                 onChange={(e) => setEditBirthday(e.target.value)}
               />
             </label>
+            <div className="settings-user-actions-row settings-user-actions-row--adaptive">
+              <button
+                type="button"
+                className="settings-user-primary-btn"
+                onClick={() => void handleSaveProfile()}
+                disabled={savingProfile || savingPassword || loadingProfile}
+              >
+                {savingProfile ? t('settings.user.actions.saving', { defaultValue: '保存中…' }) : t('settings.user.actions.saveProfile', { defaultValue: '保存资料' })}
+              </button>
+            </div>
           </div>
 
           <div className="settings-user-edit-card">
@@ -572,6 +593,18 @@ export function UserSettingsSection(): ReactElement {
                 </button>
               </div>
             </label>
+            <div className="settings-user-actions-row settings-user-actions-row--adaptive">
+              <button
+                type="button"
+                className="settings-user-primary-btn"
+                onClick={() => void handleChangePassword()}
+                disabled={savingPassword || savingProfile || loadingProfile}
+              >
+                {savingPassword
+                  ? t('settings.user.actions.changingPassword', { defaultValue: '修改中…' })
+                  : t('settings.user.actions.changePassword', { defaultValue: '修改密码' })}
+              </button>
+            </div>
           </div>
 
           <div className="settings-user-edit-actions">
@@ -579,17 +612,9 @@ export function UserSettingsSection(): ReactElement {
             <div className="settings-user-actions-row settings-user-actions-row--adaptive">
               <button
                 type="button"
-                className="settings-user-primary-btn"
-                onClick={() => void handleSaveProfile()}
-                disabled={savingProfile || loadingProfile}
-              >
-                {savingProfile ? t('settings.user.actions.saving', { defaultValue: '保存中…' }) : t('settings.user.actions.saveProfile', { defaultValue: '保存资料' })}
-              </button>
-              <button
-                type="button"
                 className="settings-user-secondary-btn settings-user-cancel-mark"
                 onClick={handleCancelProfileChanges}
-                disabled={savingProfile || loadingProfile}
+                disabled={savingProfile || savingPassword || loadingProfile}
               >
                 {t('settings.user.actions.cancelChanges', { defaultValue: '取消更改' })}
               </button>
