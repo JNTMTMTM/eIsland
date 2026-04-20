@@ -428,11 +428,15 @@ export function fetchUserProfile(token: string): Promise<UserAccountResult<UserA
 
 /** 修改资料时可选提交的字段。留空的字段表示不修改。 */
 export interface UpdateUserProfilePayload {
-  password?: string;
   avatar?: string | null;
   gender?: UserAccountGender;
   genderCustom?: string | null;
   birthday?: string | null;
+}
+
+/** 修改密码请求体。 */
+export interface UpdateUserPasswordPayload {
+  password: string;
 }
 
 /**
@@ -443,7 +447,6 @@ export interface UpdateUserProfilePayload {
  */
 export function updateUserProfile(token: string, payload: UpdateUserProfilePayload): Promise<UserAccountResult<unknown>> {
   const body: Record<string, unknown> = {};
-  if (typeof payload.password === 'string' && payload.password.length > 0) body.password = payload.password;
   if (payload.avatar !== undefined) body.avatar = payload.avatar;
   if (payload.gender) body.gender = payload.gender;
   if (payload.genderCustom !== undefined) body.genderCustom = payload.genderCustom;
@@ -452,6 +455,22 @@ export function updateUserProfile(token: string, payload: UpdateUserProfilePaylo
     method: 'PUT',
     auth: token,
     body,
+  });
+}
+
+/**
+ * 修改当前登录用户密码。
+ * @param token 用户 token。
+ * @param payload 密码更新参数。
+ * @returns 更新结果。
+ */
+export function updateUserPassword(token: string, payload: UpdateUserPasswordPayload): Promise<UserAccountResult<unknown>> {
+  return request('/v1/user/profile/password', {
+    method: 'POST',
+    auth: token,
+    body: {
+      password: payload.password,
+    },
   });
 }
 

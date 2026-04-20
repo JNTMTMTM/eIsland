@@ -31,6 +31,7 @@ import {
   fetchUserProfile,
   logoutUser,
   unregisterUser,
+  updateUserPassword,
   updateUserProfile,
   uploadUserAvatar,
 } from '../../../../../../../api/userAccountApi';
@@ -257,15 +258,26 @@ export function UserSettingsSection(): ReactElement {
       genderCustom: editGender === 'custom' ? editGenderCustom.trim() : null,
       birthday: editBirthday || null,
     };
-    if (editNewPassword) payload.password = editNewPassword;
-    const result = await updateUserProfile(token, payload);
-    if (!result.ok) {
+    if (editNewPassword) {
+      const passwordResult = await updateUserPassword(token, { password: editNewPassword });
+      if (!passwordResult.ok) {
+        setSavingProfile(false);
+        if (passwordResult.code === 401 || passwordResult.code === 4011) {
+          resetToLoggedOut();
+          return;
+        }
+        setProfileFeedback({ type: 'error', text: passwordResult.message || t('settings.user.feedback.saveFailed', { defaultValue: '保存失败' }) });
+        return;
+      }
+    }
+    const profileResult = await updateUserProfile(token, payload);
+    if (!profileResult.ok) {
       setSavingProfile(false);
-      if (result.code === 401 || result.code === 4011) {
+      if (profileResult.code === 401 || profileResult.code === 4011) {
         resetToLoggedOut();
         return;
       }
-      setProfileFeedback({ type: 'error', text: result.message || t('settings.user.feedback.saveFailed', { defaultValue: '保存失败' }) });
+      setProfileFeedback({ type: 'error', text: profileResult.message || t('settings.user.feedback.saveFailed', { defaultValue: '保存失败' }) });
       return;
     }
     await loadRemoteProfile(token);
