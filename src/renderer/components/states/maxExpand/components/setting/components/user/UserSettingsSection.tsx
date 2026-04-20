@@ -263,7 +263,7 @@ export function UserSettingsSection(): ReactElement {
     return () => {
       el.removeEventListener('wheel', handleWheel);
     };
-  }, []);
+  }, [token, profile]);
 
   const handleAvatarSelect = async (event: ChangeEvent<HTMLInputElement>): Promise<void> => {
     const file = event.target.files?.[0];
