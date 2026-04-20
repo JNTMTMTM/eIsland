@@ -105,6 +105,7 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
   const [submittingRate, setSubmittingRate] = useState(false);
   const [submittingReport, setSubmittingReport] = useState(false);
   const [hoverVideoId, setHoverVideoId] = useState<number | null>(null);
+  const [hoverVideoLoadingId, setHoverVideoLoadingId] = useState<number | null>(null);
   const [detailVideoMuted, setDetailVideoMuted] = useState<boolean>(true);
   const [detailVideoPlaybackRate, setDetailVideoPlaybackRate] = useState<number>(1);
   const [detailVideoVolume, setDetailVideoVolume] = useState<number>(0.6);
@@ -133,13 +134,16 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
   const handleHoverCard = useCallback((item: WallpaperMarketItem): void => {
     if (item.type === 'video' && item.originalUrl) {
       setHoverVideoId(item.id);
+      setHoverVideoLoadingId(item.id);
     } else {
       setHoverVideoId(null);
+      setHoverVideoLoadingId(null);
     }
   }, []);
 
   const handleLeaveCard = useCallback((): void => {
     setHoverVideoId(null);
+    setHoverVideoLoadingId(null);
   }, []);
 
   useEffect(() => {
@@ -351,6 +355,7 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
                 const preview = item.thumb320Url || item.thumb720Url || item.thumb1280Url || item.originalUrl || '';
                 const isVideoCard = item.type === 'video';
                 const showHoverVideo = isVideoCard && hoverVideoId === item.id && !!item.originalUrl;
+                const hoverVideoLoading = showHoverVideo && hoverVideoLoadingId === item.id;
                 return (
                   <button
                     key={item.id}
@@ -364,17 +369,31 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
                   >
                     <div className="settings-plugin-market-card-media">
                       {preview ? <img src={preview} alt={item.title} className="settings-plugin-market-card-img" /> : null}
+                      {hoverVideoLoading && (
+                        <div className="settings-plugin-market-card-loading" aria-hidden="true">
+                          <span className="settings-plugin-market-card-loading-spinner" />
+                        </div>
+                      )}
                       {showHoverVideo && item.originalUrl && (
                         <video
                           key={`hover-${item.id}`}
-                          className="settings-plugin-market-card-video"
+                          className={`settings-plugin-market-card-video ${hoverVideoLoading ? 'is-loading' : ''}`}
                           src={item.originalUrl}
                           autoPlay
                           muted
                           loop
                           playsInline
                           preload="metadata"
-                          onCanPlay={(event) => { event.currentTarget.play().catch(() => {}); }}
+                          onLoadStart={() => {
+                            setHoverVideoLoadingId(item.id);
+                          }}
+                          onCanPlay={(event) => {
+                            event.currentTarget.play().catch(() => {});
+                            setHoverVideoLoadingId((current) => (current === item.id ? null : current));
+                          }}
+                          onError={() => {
+                            setHoverVideoLoadingId((current) => (current === item.id ? null : current));
+                          }}
                         />
                       )}
                       {isVideoCard && (

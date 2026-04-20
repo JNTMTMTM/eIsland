@@ -287,6 +287,38 @@
   object-fit: cover;
   background: #000;
   display: block;
+  opacity: 1;
+  transition: opacity 180ms ease;
+}
+
+.settings-plugin-market-card-video.is-loading {
+  opacity: 0;
+}
+
+.settings-plugin-market-card-loading {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, rgba(9, 11, 16, 0.68), rgba(9, 11, 16, 0.82));
+  pointer-events: none;
+}
+
+.settings-plugin-market-card-loading-spinner {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  border-top-color: rgba(255, 255, 255, 0.95);
+  animation: settings-plugin-market-card-spin 0.8s linear infinite;
+}
+
+@keyframes settings-plugin-market-card-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .settings-plugin-market-card-badge {
