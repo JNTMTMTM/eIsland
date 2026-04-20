@@ -439,6 +439,38 @@ export interface UpdateUserPasswordPayload {
   password: string;
 }
 
+const PASSWORD_TOTP_DIGITS = 6;
+const PASSWORD_TOTP_PERIOD_SECONDS = 30;
+
+async function generatePasswordTotp(seed: string, timestampSeconds: number): Promise<string> {
+  if (!globalThis.crypto?.subtle) {
+    throw new Error('WebCrypto 不可用');
+  }
+  const counter = Math.floor(timestampSeconds / PASSWORD_TOTP_PERIOD_SECONDS);
+  const counterBytes = new Uint8Array(8);
+  let value = counter;
+  for (let i = 7; i >= 0; i--) {
+    counterBytes[i] = value & 0xff;
+    value = Math.floor(value / 256);
+  }
+  const key = await globalThis.crypto.subtle.importKey(
+    'raw',
+    new TextEncoder().encode(seed),
+    { name: 'HMAC', hash: 'SHA-1' },
+    false,
+    ['sign'],
+  );
+  const signature = await globalThis.crypto.subtle.sign('HMAC', key, counterBytes);
+  const hash = new Uint8Array(signature);
+  const offset = hash[hash.length - 1] & 0x0f;
+  const binary = ((hash[offset] & 0x7f) << 24)
+    | ((hash[offset + 1] & 0xff) << 16)
+    | ((hash[offset + 2] & 0xff) << 8)
+    | (hash[offset + 3] & 0xff);
+  const otp = binary % (10 ** PASSWORD_TOTP_DIGITS);
+  return String(otp).padStart(PASSWORD_TOTP_DIGITS, '0');
+}
+
 /**
  * 修改当前登录用户资料。
  * @param token 用户 token。
@@ -464,14 +496,26 @@ export function updateUserProfile(token: string, payload: UpdateUserProfilePaylo
  * @param payload 密码更新参数。
  * @returns 更新结果。
  */
-export function updateUserPassword(token: string, payload: UpdateUserPasswordPayload): Promise<UserAccountResult<unknown>> {
-  return request('/v1/user/profile/password', {
-    method: 'POST',
-    auth: token,
-    body: {
-      password: payload.password,
-    },
-  });
+export async function updateUserPassword(token: string, payload: UpdateUserPasswordPayload): Promise<UserAccountResult<unknown>> {
+  try {
+    const totpTimestamp = Math.floor(Date.now() / 1000);
+    const totpCode = await generatePasswordTotp(token, totpTimestamp);
+    return request('/v1/user/profile/password', {
+      method: 'POST',
+      auth: token,
+      body: {
+        password: payload.password,
+        totpCode,
+        totpTimestamp,
+      },
+    });
+  } catch {
+    return {
+      ok: false,
+      code: 500,
+      message: 'TOTP 生成失败',
+    };
+  }
 }
 
 /**
