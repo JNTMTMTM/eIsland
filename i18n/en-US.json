@@ -1276,6 +1276,7 @@
       "pages": {
         "info": "User Info",
         "edit": "Edit Info",
+        "password": "Change Password",
         "account": "Account",
         "switchTo": "Switch to {{label}}"
       },

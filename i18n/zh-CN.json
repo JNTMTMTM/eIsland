@@ -1276,6 +1276,7 @@
       "pages": {
         "info": "用户信息",
         "edit": "修改信息",
+        "password": "修改密码",
         "account": "关于账户",
         "switchTo": "切换到{{label}}"
       },
