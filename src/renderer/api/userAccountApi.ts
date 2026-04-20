@@ -485,7 +485,7 @@ function decodeBase32(seed: string): ArrayBuffer {
   let value = 0;
   let bits = 0;
   const out: number[] = [];
-  for (const ch of normalized) {
+  normalized.split('').forEach((ch) => {
     const idx = BASE32_ALPHABET.indexOf(ch);
     if (idx < 0) {
       throw new Error('TOTP Seed 格式错误');
@@ -496,7 +496,7 @@ function decodeBase32(seed: string): ArrayBuffer {
       out.push((value >> (bits - 8)) & 0xff);
       bits -= 8;
     }
-  }
+  });
   const bytes = Uint8Array.from(out);
   return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
 }
