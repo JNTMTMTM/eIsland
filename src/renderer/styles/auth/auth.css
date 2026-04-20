@@ -124,3 +124,33 @@
   gap: 10px;
   overflow-y: auto;
 }
+
+.island-shell.register .auth-panel {
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(var(--color-text-rgb), 0.26) rgba(var(--color-text-rgb), 0.08);
+}
+
+.island-shell.register .auth-panel::-webkit-scrollbar {
+  width: 9px;
+}
+
+.island-shell.register .auth-panel::-webkit-scrollbar-track {
+  border-radius: 999px;
+  background: rgba(var(--color-text-rgb), 0.08);
+}
+
+.island-shell.register .auth-panel::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  border: 2px solid rgba(var(--color-text-rgb), 0.08);
+  background: rgba(var(--color-text-rgb), 0.24);
+  transition: background 0.2s ease;
+}
+
+.island-shell.register .auth-panel:hover::-webkit-scrollbar-thumb {
+  background: rgba(var(--color-text-rgb), 0.34);
+}
+
+.island-shell.register .auth-panel::-webkit-scrollbar-thumb:active {
+  background: rgba(var(--color-text-rgb), 0.44);
+}

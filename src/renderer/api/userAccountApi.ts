@@ -56,7 +56,7 @@ export interface UserAccountLoginData {
   role: string;
 }
 
-export type UserEmailCodeScene = 'REGISTER' | 'LOGIN' | 'RESET_PASSWORD' | 'CHANGE_EMAIL';
+export type UserEmailCodeScene = 'REGISTER' | 'LOGIN' | 'RESET_PASSWORD' | 'CHANGE_EMAIL' | 'UNREGISTER';
 
 export interface UserEmailCaptchaConfig {
   enabled: boolean;
@@ -604,13 +604,14 @@ export function logoutUser(token: string): Promise<UserAccountResult<unknown>> {
  * 注销账号：需带当前密码二次确认。
  * @param token 用户 token。
  * @param password 当前密码。
+ * @param emailCode 邮箱验证码。
  * @returns 注销结果。
  */
-export function unregisterUser(token: string, password: string): Promise<UserAccountResult<unknown>> {
+export function unregisterUser(token: string, password: string, emailCode: string): Promise<UserAccountResult<unknown>> {
   return request('/v1/user/account', {
     method: 'DELETE',
     auth: token,
-    body: { password },
+    body: { password, emailCode },
   });
 }
 

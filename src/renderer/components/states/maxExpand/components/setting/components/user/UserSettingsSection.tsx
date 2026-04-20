@@ -106,8 +106,12 @@ export function UserSettingsSection(): ReactElement {
   const [avatarUploading, setAvatarUploading] = useState(false);
 
   const [unregisterPassword, setUnregisterPassword] = useState('');
+  const [unregisterEmailCode, setUnregisterEmailCode] = useState('');
   const [unregisterPasswordVisible, setUnregisterPasswordVisible] = useState(false);
   const [unregisterConfirmVisible, setUnregisterConfirmVisible] = useState(false);
+  const [sendingUnregisterCode, setSendingUnregisterCode] = useState(false);
+  const [unregisterCodeCooldownSeconds, setUnregisterCodeCooldownSeconds] = useState(0);
+  const [unregisterCodeFeedback, setUnregisterCodeFeedback] = useState<Feedback | null>(null);
   const [unregisterSubmitting, setUnregisterSubmitting] = useState(false);
 
   const [logoutSubmitting, setLogoutSubmitting] = useState(false);
@@ -138,7 +142,11 @@ export function UserSettingsSection(): ReactElement {
     setPasswordCodeFeedback(null);
     setUnregisterConfirmVisible(false);
     setUnregisterPassword('');
+    setUnregisterEmailCode('');
     setUnregisterPasswordVisible(false);
+    setSendingUnregisterCode(false);
+    setUnregisterCodeCooldownSeconds(0);
+    setUnregisterCodeFeedback(null);
   }, []);
 
   const resetPasswordEditor = useCallback((): void => {
@@ -168,6 +176,16 @@ export function UserSettingsSection(): ReactElement {
       window.clearTimeout(timer);
     };
   }, [passwordCodeCooldownSeconds]);
+
+  useEffect(() => {
+    if (unregisterCodeCooldownSeconds <= 0) return;
+    const timer = window.setTimeout(() => {
+      setUnregisterCodeCooldownSeconds((v) => (v > 0 ? v - 1 : 0));
+    }, 1000);
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [unregisterCodeCooldownSeconds]);
 
   const loadRemoteProfile = useCallback(async (currentToken: string): Promise<void> => {
     setLoadingProfile(true);
@@ -458,14 +476,64 @@ export function UserSettingsSection(): ReactElement {
 
   const requestUnregister = (): void => {
     setUnregisterPassword('');
+    setUnregisterEmailCode('');
     setUnregisterPasswordVisible(false);
+    setUnregisterCodeCooldownSeconds(0);
+    setUnregisterCodeFeedback(null);
     setUnregisterConfirmVisible(true);
   };
 
   const cancelUnregister = (): void => {
     setUnregisterConfirmVisible(false);
     setUnregisterPassword('');
+    setUnregisterEmailCode('');
     setUnregisterPasswordVisible(false);
+    setUnregisterCodeCooldownSeconds(0);
+    setUnregisterCodeFeedback(null);
+  };
+
+  const handleSendUnregisterCode = async (): Promise<void> => {
+    if (sendingUnregisterCode || unregisterCodeCooldownSeconds > 0 || unregisterSubmitting || savingProfile || savingPassword) {
+      return;
+    }
+    setUnregisterCodeFeedback(null);
+    const email = (profile?.email || '').trim().toLowerCase();
+    if (!EMAIL_PATTERN.test(email)) {
+      setUnregisterCodeFeedback({ type: 'error', text: t('settings.user.feedback.emailInvalid', { defaultValue: '请输入有效邮箱地址' }) });
+      return;
+    }
+    setSendingUnregisterCode(true);
+    let captchaTicket = '';
+    let captchaRandstr = '';
+    let captchaSign = '';
+    try {
+      const captcha = await runEmailSliderCaptcha(email);
+      if (!captcha) {
+        setSendingUnregisterCode(false);
+        setUnregisterCodeFeedback({ type: 'error', text: t('settings.user.feedback.captchaCancelled', { defaultValue: '请完成滑块验证后再发送验证码' }) });
+        return;
+      }
+      captchaTicket = captcha.ticket;
+      captchaRandstr = captcha.randstr;
+      captchaSign = captcha.sign;
+    } catch (err) {
+      setSendingUnregisterCode(false);
+      const msg = err instanceof Error ? err.message : t('settings.user.feedback.emailCodeSendFailed', { defaultValue: '验证码发送失败' });
+      setUnregisterCodeFeedback({ type: 'error', text: msg });
+      return;
+    }
+
+    const result = await sendUserEmailCode(email, 'UNREGISTER', { ticket: captchaTicket, randstr: captchaRandstr, sign: captchaSign });
+    setSendingUnregisterCode(false);
+    if (!result.ok) {
+      setUnregisterCodeFeedback({ type: 'error', text: result.message || t('settings.user.feedback.emailCodeSendFailed', { defaultValue: '验证码发送失败' }) });
+      return;
+    }
+    const cooldown = Math.max(0, Number(result.data?.retryAfterSeconds || 60));
+    if (cooldown > 0) {
+      setUnregisterCodeCooldownSeconds(cooldown);
+    }
+    setUnregisterCodeFeedback({ type: 'success', text: t('settings.user.feedback.emailCodeSent', { defaultValue: '验证码已发送，请查收邮箱' }) });
   };
 
   const handleUnregister = async (): Promise<void> => {
@@ -473,8 +541,13 @@ export function UserSettingsSection(): ReactElement {
     if (!unregisterPassword.trim()) {
       return;
     }
+    if (!unregisterEmailCode.trim()) {
+      setProfileFeedbackScope('account');
+      setProfileFeedback({ type: 'error', text: t('settings.user.feedback.emailCodeRequired', { defaultValue: '请输入邮箱验证码' }) });
+      return;
+    }
     setUnregisterSubmitting(true);
-    const result = await unregisterUser(token, unregisterPassword);
+    const result = await unregisterUser(token, unregisterPassword, unregisterEmailCode.trim());
     setUnregisterSubmitting(false);
     if (!result.ok) {
       if (result.code === 401 || result.code === 4011) {
@@ -490,7 +563,10 @@ export function UserSettingsSection(): ReactElement {
     setProfile(null);
     setUnregisterConfirmVisible(false);
     setUnregisterPassword('');
+    setUnregisterEmailCode('');
     setUnregisterPasswordVisible(false);
+    setUnregisterCodeCooldownSeconds(0);
+    setUnregisterCodeFeedback(null);
   };
 
   const renderFeedback = (feedback: Feedback | null): ReactElement | null => {
@@ -865,6 +941,31 @@ export function UserSettingsSection(): ReactElement {
           ) : (
             <div className="settings-user-unregister-confirm">
               <label className="settings-field">
+                <span className="settings-field-label">{t('settings.user.fields.emailCode', { defaultValue: '邮箱验证码' })}</span>
+                <div className="settings-user-password-input-wrap">
+                  <input
+                    className="settings-field-input"
+                    type="text"
+                    value={unregisterEmailCode}
+                    onChange={(e) => setUnregisterEmailCode(e.target.value)}
+                    placeholder={t('settings.user.fields.emailCodePlaceholder', { defaultValue: '请输入邮箱验证码' })}
+                  />
+                  <button
+                    type="button"
+                    className="settings-user-password-toggle"
+                    onClick={() => void handleSendUnregisterCode()}
+                    disabled={sendingUnregisterCode || unregisterCodeCooldownSeconds > 0 || unregisterSubmitting}
+                  >
+                    {sendingUnregisterCode
+                      ? t('settings.user.feedback.emailCodeSending', { defaultValue: '发送中…' })
+                      : unregisterCodeCooldownSeconds > 0
+                        ? t('settings.user.actions.sendCodeCooldown', { defaultValue: '{{seconds}}s后重试', seconds: unregisterCodeCooldownSeconds })
+                        : t('settings.user.actions.sendCode', { defaultValue: '发送验证码' })}
+                  </button>
+                </div>
+              </label>
+              {renderFeedback(unregisterCodeFeedback)}
+              <label className="settings-field">
                 <span className="settings-field-label">{t('settings.user.fields.currentPassword', { defaultValue: '当前密码' })}</span>
                 <div className="settings-user-password-input-wrap">
                   <input
@@ -893,7 +994,7 @@ export function UserSettingsSection(): ReactElement {
                   type="button"
                   className="settings-user-danger-btn"
                   onClick={() => void handleUnregister()}
-                  disabled={unregisterSubmitting || !unregisterPassword.trim()}
+                  disabled={unregisterSubmitting || !unregisterPassword.trim() || !unregisterEmailCode.trim()}
                 >
                   {unregisterSubmitting ? t('settings.user.actions.unregistering', { defaultValue: '注销中…' }) : t('settings.user.actions.confirmUnregister', { defaultValue: '确认注销' })}
                 </button>
