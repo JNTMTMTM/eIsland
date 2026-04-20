@@ -161,6 +161,11 @@ const APP_NAME_VALUE = 'eisland';
 const CLIENT_VERSION_HEADER = 'X-Client-Version';
 const REPLAY_TIMESTAMP_HEADER = 'X-Timestamp';
 const REPLAY_NONCE_HEADER = 'X-Nonce';
+const LOGIN_REPLAY_PATHS = new Set([
+  '/auth/user/login',
+  '/auth/user/login/account',
+  '/auth/user/login/email',
+]);
 let cachedClientVersion: string | null = null;
 
 interface InternalRequestInit {
@@ -190,9 +195,10 @@ function buildReplayHeaders(): Record<string, string> {
 }
 
 function shouldAttachReplayHeaders(path: string, method: InternalRequestInit['method'], auth?: string | null): boolean {
-  if (!auth || auth.trim().length === 0) return false;
   const actualMethod = method ?? 'GET';
   if (actualMethod !== 'POST' && actualMethod !== 'PUT' && actualMethod !== 'DELETE') return false;
+  if (LOGIN_REPLAY_PATHS.has(path)) return true;
+  if (!auth || auth.trim().length === 0) return false;
   return path.startsWith('/v1/user/') || path === '/v1/upload/user-avatar';
 }
 
@@ -265,10 +271,18 @@ async function request<T>(path: string, init: InternalRequestInit = {}): Promise
  * @param password 密码。
  * @returns 登录结果。
  */
-export function loginUserByAccount(username: string, password: string): Promise<UserAccountResult<UserAccountLoginData>> {
+export function loginUserByAccount(
+  username: string,
+  password: string,
+  emailCode?: string,
+): Promise<UserAccountResult<UserAccountLoginData>> {
   return request<UserAccountLoginData>('/auth/user/login/account', {
     method: 'POST',
-    body: { username, password },
+    body: {
+      username,
+      password,
+      emailCode: emailCode?.trim() ? emailCode.trim() : undefined,
+    },
   });
 }
 
