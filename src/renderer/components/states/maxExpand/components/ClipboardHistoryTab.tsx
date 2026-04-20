@@ -27,6 +27,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SvgIcon } from '../../../../utils/SvgIcon';
+import useIslandStore from '../../../../store/slices';
 
 interface ClipboardHistoryItem {
   id: number;
@@ -38,6 +39,7 @@ const STORE_KEY = 'clipboard-history-recent';
 const LOCAL_STORAGE_KEY = 'eIsland_clipboard_history_recent';
 const HISTORY_ENABLED_STORE_KEY = 'clipboard-history-enabled';
 const HISTORY_LIMIT_STORE_KEY = 'clipboard-history-limit';
+const EXIT_MAX_EXPAND_ON_COPY_STORE_KEY = 'clipboard-history-exit-max-expand-on-copy';
 const DEFAULT_HISTORY_LIMIT = 10;
 const POLL_INTERVAL_MS = 1000;
 
@@ -81,9 +83,11 @@ function getPreviewText(text: string): string {
  */
 export function ClipboardHistoryTab(): React.ReactElement {
   const { t } = useTranslation();
+  const { setIdle, setLyrics } = useIslandStore();
   const [items, setItems] = useState<ClipboardHistoryItem[]>([]);
   const [historyEnabled, setHistoryEnabled] = useState<boolean>(true);
   const [historyLimit, setHistoryLimit] = useState<number>(DEFAULT_HISTORY_LIMIT);
+  const [exitMaxExpandOnCopy, setExitMaxExpandOnCopy] = useState<boolean>(false);
   const [loaded, setLoaded] = useState(false);
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [editText, setEditText] = useState('');
@@ -101,18 +105,22 @@ export function ClipboardHistoryTab(): React.ReactElement {
     Promise.all([
       window.api.storeRead(HISTORY_ENABLED_STORE_KEY),
       window.api.storeRead(HISTORY_LIMIT_STORE_KEY),
-    ]).then(([enabledRaw, limitRaw]) => {
+      window.api.storeRead(EXIT_MAX_EXPAND_ON_COPY_STORE_KEY),
+    ]).then(([enabledRaw, limitRaw, exitRaw]) => {
       if (cancelled) return;
       const nextEnabled = typeof enabledRaw === 'boolean' ? enabledRaw : true;
       const nextLimit = typeof limitRaw === 'number' && Number.isFinite(limitRaw)
         ? Math.max(1, Math.min(50, Math.round(limitRaw)))
         : DEFAULT_HISTORY_LIMIT;
+      const nextExitOnCopy = typeof exitRaw === 'boolean' ? exitRaw : false;
       setHistoryEnabled(nextEnabled);
       setHistoryLimit(nextLimit);
+      setExitMaxExpandOnCopy(nextExitOnCopy);
     }).catch(() => {
       if (cancelled) return;
       setHistoryEnabled(true);
       setHistoryLimit(DEFAULT_HISTORY_LIMIT);
+      setExitMaxExpandOnCopy(false);
     });
 
     window.api.storeRead(STORE_KEY).then((data) => {
@@ -239,7 +247,23 @@ export function ClipboardHistoryTab(): React.ReactElement {
 
   const handleCopy = (item: ClipboardHistoryItem): void => {
     const text = expandedId === item.id ? editText : item.text;
-    window.api.clipboardWriteText(text).catch(() => {});
+    window.api.clipboardWriteText(text)
+      .catch(() => {})
+      .finally(() => {
+        if (exitMaxExpandOnCopy) {
+          const store = useIslandStore.getState();
+          if (store.isMusicPlaying) {
+            setLyrics();
+          } else {
+            setIdle(true);
+          }
+        }
+      });
+  };
+
+  const handleToggleExitMaxExpandOnCopy = (enabled: boolean): void => {
+    setExitMaxExpandOnCopy(enabled);
+    window.api.storeWrite(EXIT_MAX_EXPAND_ON_COPY_STORE_KEY, enabled).catch(() => {});
   };
 
   useEffect(() => {
@@ -263,6 +287,18 @@ export function ClipboardHistoryTab(): React.ReactElement {
           </button>
         </div>
       </div>
+
+      <label className="clipboard-history-config-item" title={t('clipboardHistoryTab.config.exitMaxExpandOnCopyHint', { defaultValue: '复制后立即退出最大展开界面' })}>
+        <span className="clipboard-history-config-label">
+          {t('clipboardHistoryTab.config.exitMaxExpandOnCopy', { defaultValue: '复制后退出最大展开' })}
+        </span>
+        <input
+          className="clipboard-history-config-checkbox"
+          type="checkbox"
+          checked={exitMaxExpandOnCopy}
+          onChange={(e) => handleToggleExitMaxExpandOnCopy(e.target.checked)}
+        />
+      </label>
 
       <div
         className="clipboard-history-list"

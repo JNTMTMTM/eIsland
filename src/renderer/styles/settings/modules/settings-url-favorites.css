@@ -364,6 +364,29 @@
   cursor: not-allowed;
 }
 
+.clipboard-history-config-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1px solid rgba(var(--color-text-rgb), 0.08);
+  background: rgba(var(--color-text-rgb), 0.04);
+}
+
+.clipboard-history-config-label {
+  font-size: 12px;
+  color: rgba(var(--color-text-rgb), 0.72);
+}
+
+.clipboard-history-config-checkbox {
+  width: 14px;
+  height: 14px;
+  accent-color: var(--accent-color, #4fc3f7);
+  cursor: pointer;
+}
+
 .clipboard-history-list {
   flex: 1;
   min-height: 0;
