@@ -16,6 +16,7 @@
   },
   "guide": {
     "actions": {
+      "skip": "Skip Guide",
       "prev": "Previous",
       "next": "Next",
       "start": "Get Started",

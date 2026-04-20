@@ -980,6 +980,12 @@ export function GuideContent(): React.ReactElement {
         </div>
 
         <div className="guide-actions">
+          {!isLast && (
+            <button type="button" className="guide-btn guide-btn-secondary" onClick={handleFinish}>
+              {t('guide.actions.skip', { defaultValue: '跳过引导' })}
+            </button>
+          )}
+
           {page > 0 && (
             <button type="button" className="guide-btn guide-btn-secondary" onClick={handlePrev}>
               {t('guide.actions.prev')}

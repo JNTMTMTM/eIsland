@@ -16,6 +16,7 @@
   },
   "guide": {
     "actions": {
+      "skip": "一键跳过",
       "prev": "上一步",
       "next": "下一步",
       "start": "开始使用",
