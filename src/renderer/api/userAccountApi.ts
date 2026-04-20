@@ -73,6 +73,7 @@ export interface UserEmailCaptchaChallenge {
   maxValue: number;
   targetValue: number;
   tolerance: number;
+  captchaSign: string;
 }
 
 export interface WallpaperMarketItem {
@@ -395,7 +396,7 @@ export function createUserEmailCaptchaChallenge(account: string): Promise<UserAc
 export function sendUserEmailCode(
   email: string,
   scene: UserEmailCodeScene,
-  captcha: { ticket: string; randstr: string },
+  captcha: { ticket: string; randstr: string; sign: string },
 ): Promise<UserAccountResult<{ retryAfterSeconds?: number }>> {
   return request<{ retryAfterSeconds?: number }>('/auth/user/email-code/send', {
     method: 'POST',
@@ -404,6 +405,7 @@ export function sendUserEmailCode(
       scene,
       captchaTicket: captcha.ticket,
       captchaRandstr: captcha.randstr,
+      captchaSign: captcha.sign,
     },
   });
 }

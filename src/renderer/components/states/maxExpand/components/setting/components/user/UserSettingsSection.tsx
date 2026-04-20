@@ -387,6 +387,7 @@ export function UserSettingsSection(): ReactElement {
     setSendingPasswordCode(true);
     let captchaTicket = '';
     let captchaRandstr = '';
+    let captchaSign = '';
     try {
       const captcha = await runEmailSliderCaptcha(email);
       if (!captcha) {
@@ -396,6 +397,7 @@ export function UserSettingsSection(): ReactElement {
       }
       captchaTicket = captcha.ticket;
       captchaRandstr = captcha.randstr;
+      captchaSign = captcha.sign;
     } catch (err) {
       setSendingPasswordCode(false);
       const msg = err instanceof Error ? err.message : t('settings.user.feedback.emailCodeSendFailed', { defaultValue: '验证码发送失败' });
@@ -403,7 +405,7 @@ export function UserSettingsSection(): ReactElement {
       return;
     }
 
-    const result = await sendUserEmailCode(email, 'RESET_PASSWORD', { ticket: captchaTicket, randstr: captchaRandstr });
+    const result = await sendUserEmailCode(email, 'RESET_PASSWORD', { ticket: captchaTicket, randstr: captchaRandstr, sign: captchaSign });
     setSendingPasswordCode(false);
     if (!result.ok) {
       setPasswordCodeFeedback({ type: 'error', text: result.message || t('settings.user.feedback.emailCodeSendFailed', { defaultValue: '验证码发送失败' }) });

@@ -53,15 +53,15 @@ function showBuiltinSliderModal(challenge: UserEmailCaptchaChallenge): Promise<n
 /**
  * 执行邮箱场景滑块验证流程
  * @param account - 当前进行验证的账号标识
- * @returns 验证成功返回 ticket 与 randstr，取消返回 null
+ * @returns 验证成功返回 ticket、randstr 与短期签名，取消返回 null
  */
-export async function runEmailSliderCaptcha(account: string): Promise<{ ticket: string; randstr: string } | null> {
+export async function runEmailSliderCaptcha(account: string): Promise<{ ticket: string; randstr: string; sign: string } | null> {
   const cfg = await fetchUserEmailCaptchaConfig();
   if (!cfg.ok || !cfg.data) {
     throw new Error(cfg.message || '获取滑块配置失败');
   }
   if (!cfg.data.enabled) {
-    return { ticket: '', randstr: '' };
+    return { ticket: '', randstr: '', sign: '' };
   }
   if (cfg.data.provider !== 'builtin') {
     throw new Error('暂不支持的滑块验证提供方');
@@ -77,5 +77,6 @@ export async function runEmailSliderCaptcha(account: string): Promise<{ ticket: 
   return {
     ticket: challengeResult.data.challengeId,
     randstr: String(answer),
+    sign: challengeResult.data.captchaSign,
   };
 }
