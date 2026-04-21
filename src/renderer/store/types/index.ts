@@ -168,6 +168,8 @@ export interface NotificationData {
   sourceAppId?: string;
   /** 更新版本号（用于 update-available 与 update-ready 类型） */
   updateVersion?: string;
+  /** 当前更新源展示文案（用于 update-available 类型） */
+  updateSourceLabel?: string;
   /** 检测到的 URL 列表（仅 clipboard-url 类型） */
   urls?: string[];
 }

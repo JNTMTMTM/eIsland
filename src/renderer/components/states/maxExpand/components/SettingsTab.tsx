@@ -100,6 +100,7 @@ const ISLAND_BG_VIDEO_RATE_STORE_KEY = 'island-bg-video-rate';
 const ISLAND_BG_VIDEO_HW_DECODE_STORE_KEY = 'island-bg-video-hw-decode';
 const UPDATE_SOURCE_STORE_KEY = 'update-source';
 const UPDATE_AUTO_PROMPT_STORE_KEY = 'update-auto-prompt-enabled';
+const SETTINGS_OPEN_TAB_STORE_KEY = 'settings-open-tab';
 let _lastSettingsSidebarTab: SettingsSidebarTabKey = 'index';
 
 type IslandBgMediaType = 'image' | 'video';
@@ -781,6 +782,9 @@ export function SettingsTab(): ReactElement {
   useEffect(() => {
     let cancelled = false;
     const unsub = window.api.onSettingsChanged((channel: string, value: unknown) => {
+      if (channel === 'settings:open-tab' && value === 'update') {
+        setActiveTab('update');
+      }
       if (channel === 'i18n:language' && (value === 'zh-CN' || value === 'en-US')) {
         setAppLanguage(value);
       }
@@ -1023,6 +1027,18 @@ export function SettingsTab(): ReactElement {
     window.api.storeRead(UPDATE_SOURCE_STORE_KEY).then((value) => {
       if (cancelled) return;
       setUpdateSource(value === 'github' ? 'github' : value === 'tencent-cos' ? 'tencent-cos' : value === 'aliyun-oss' ? 'aliyun-oss' : 'cloudflare-r2');
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    window.api.storeRead(SETTINGS_OPEN_TAB_STORE_KEY).then((value) => {
+      if (cancelled) return;
+      if (value === 'update') {
+        setActiveTab('update');
+        window.api.storeWrite(SETTINGS_OPEN_TAB_STORE_KEY, null).catch(() => {});
+      }
     }).catch(() => {});
     return () => { cancelled = true; };
   }, []);

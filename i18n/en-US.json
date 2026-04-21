@@ -346,6 +346,7 @@
     "update": {
       "availableTitle": "New version available",
       "availableBody": "Download now?",
+      "currentSource": "Current update source: {{source}}",
       "readyTitle": "Update ready",
       "readyBody": "Version v{{version}} has been downloaded. Install now?"
     },
@@ -365,6 +366,8 @@
       "installRestart": "Install & Restart",
       "later": "Later",
       "downloadUpdate": "Download Update",
+      "downloadNow": "Download Now",
+      "configureUpdateSource": "Configure Update Source",
       "restartNow": "Restart Now",
       "openAllLinks": "Open All Links",
       "openLink": "Open Link",

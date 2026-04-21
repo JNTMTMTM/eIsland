@@ -55,6 +55,22 @@
   justify-content: flex-end;
 }
 
+.notification-actions--update-available {
+  justify-content: space-between;
+  align-items: center;
+}
+
+.notification-update-source {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  font-size: 11px;
+  color: rgba(var(--color-text-rgb), 0.72);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .notification-snooze-actions,
 .notification-decision-actions {
   display: flex;
