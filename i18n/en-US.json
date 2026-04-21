@@ -1270,7 +1270,10 @@
           "contentPlaceholder": "Provide reproduction steps, actual result, and expected result",
           "logFile": "Log File (Optional, <=50MB)",
           "logFilePlaceholder": "Upload logs to help diagnose the issue",
-          "logFileView": "View Uploaded Log"
+          "logFileView": "View Uploaded Log",
+          "logFileMeta": "Size: {{size}}MB",
+          "logNotePlaceholder": "Note (Optional)",
+          "logNoteSubmitPrefix": "Log Note: "
         },
         "actions": {
           "submit": "Submit Feedback",

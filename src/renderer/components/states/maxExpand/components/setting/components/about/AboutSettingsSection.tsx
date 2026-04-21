@@ -83,6 +83,12 @@ interface FeedbackMessage {
   text: string;
 }
 
+interface FeedbackUploadedLogCard {
+  fileName: string;
+  sizeBytes: number;
+  url: string;
+}
+
 function normalizeFeedbackStatus(value: string | undefined): string {
   const status = (value || '').toLowerCase();
   if (status === 'resolved' || status === 'rejected' || status === 'pending') {
@@ -105,8 +111,7 @@ export function AboutSettingsSection({ aboutVersion }: AboutSettingsSectionProps
   const [feedbackContent, setFeedbackContent] = useState('');
   const [feedbackContact, setFeedbackContact] = useState('');
   const [feedbackStatusFilter, setFeedbackStatusFilter] = useState('');
-  const [feedbackLogFile, setFeedbackLogFile] = useState<File | null>(null);
-  const [feedbackLogUrl, setFeedbackLogUrl] = useState('');
+  const [feedbackLogCard, setFeedbackLogCard] = useState<FeedbackUploadedLogCard | null>(null);
   const [uploadingFeedbackLog, setUploadingFeedbackLog] = useState(false);
   const [submittingFeedback, setSubmittingFeedback] = useState(false);
   const [loadingHistory, setLoadingHistory] = useState(false);
@@ -212,8 +217,11 @@ export function AboutSettingsSection({ aboutVersion }: AboutSettingsSectionProps
     setUploadingFeedbackLog(true);
     try {
       const logUrl = await uploadUserFeedbackLog(file, token);
-      setFeedbackLogFile(file);
-      setFeedbackLogUrl(logUrl);
+      setFeedbackLogCard({
+        fileName: file.name,
+        sizeBytes: file.size,
+        url: logUrl,
+      });
       setFeedbackMessage({
         type: 'success',
         text: t('settings.about.feedback.messages.logUploadSuccess', { defaultValue: '日志上传成功，提交反馈时会自动携带' }),
@@ -414,18 +422,9 @@ export function AboutSettingsSection({ aboutVersion }: AboutSettingsSectionProps
                   disabled={submittingFeedback}
                 />
               </label>
-              <label className="settings-field settings-about-feedback-field-full">
+              <div className="settings-field settings-about-feedback-field-full">
                 <span className="settings-field-label">{t('settings.about.feedback.fields.logFile', { defaultValue: '日志文件（选填，<=50MB）' })}</span>
                 <div className="settings-about-feedback-log-row">
-                  <input
-                    className="settings-field-input"
-                    value={feedbackLogFile
-                      ? `${feedbackLogFile.name} (${(feedbackLogFile.size / (1024 * 1024)).toFixed(2)}MB)`
-                      : ''}
-                    placeholder={t('settings.about.feedback.fields.logFilePlaceholder', { defaultValue: '可上传日志辅助定位问题' })}
-                    readOnly
-                    disabled
-                  />
                   <button
                     type="button"
                     className="settings-user-secondary-btn settings-about-feedback-log-btn"
@@ -436,31 +435,33 @@ export function AboutSettingsSection({ aboutVersion }: AboutSettingsSectionProps
                       ? t('settings.about.feedback.actions.uploadingLog', { defaultValue: '上传中…' })
                       : t('settings.about.feedback.actions.uploadLog', { defaultValue: '上传日志' })}
                   </button>
-                  {feedbackLogUrl ? (
-                    <button
-                      type="button"
-                      className="settings-user-secondary-btn settings-about-feedback-log-btn"
-                      onClick={() => {
-                        setFeedbackLogFile(null);
-                        setFeedbackLogUrl('');
-                      }}
-                      disabled={submittingFeedback || uploadingFeedbackLog}
-                    >
-                      {t('settings.about.feedback.actions.clearLog', { defaultValue: '移除日志' })}
-                    </button>
-                  ) : null}
                 </div>
-                {feedbackLogUrl ? (
-                  <a
-                    className="settings-about-link"
-                    href={feedbackLogUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    {t('settings.about.feedback.fields.logFileView', { defaultValue: '查看已上传日志' })}
-                  </a>
+                {feedbackLogCard ? (
+                  <div className="settings-about-feedback-log-list">
+                    <div className="settings-about-feedback-log-card">
+                      <div className="settings-about-feedback-log-card-main">
+                        <div className="settings-about-feedback-log-card-name">{feedbackLogCard.fileName}</div>
+                        <div className="settings-about-feedback-log-card-meta">
+                          {t('settings.about.feedback.fields.logFileMeta', {
+                            defaultValue: '文件大小：{{size}}MB',
+                            size: (feedbackLogCard.sizeBytes / (1024 * 1024)).toFixed(2),
+                          })}
+                        </div>
+                      </div>
+                      <div className="settings-about-feedback-log-card-actions">
+                        <button
+                          type="button"
+                          className="settings-user-secondary-btn settings-about-feedback-log-btn"
+                          onClick={() => setFeedbackLogCard(null)}
+                          disabled={submittingFeedback || uploadingFeedbackLog}
+                        >
+                          {t('settings.about.feedback.actions.clearLog', { defaultValue: '移除日志' })}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 ) : null}
-              </label>
+              </div>
             </div>
 
             {feedbackMessage ? (
@@ -521,7 +522,7 @@ export function AboutSettingsSection({ aboutVersion }: AboutSettingsSectionProps
                         title: feedbackTitle.trim(),
                         content: feedbackContent.trim(),
                         contact: feedbackContact.trim(),
-                        feedbackLogUrl: feedbackLogUrl || '',
+                        feedbackLogUrl: feedbackLogCard?.url || '',
                         clientVersion: (aboutVersion || '').trim(),
                         captchaTicket: captcha.ticket,
                         captchaRandstr: captcha.randstr,
@@ -537,8 +538,7 @@ export function AboutSettingsSection({ aboutVersion }: AboutSettingsSectionProps
                       }
                       setFeedbackTitle('');
                       setFeedbackContent('');
-                      setFeedbackLogFile(null);
-                      setFeedbackLogUrl('');
+                      setFeedbackLogCard(null);
                       setFeedbackMessage({
                         type: 'success',
                         text: t('settings.about.feedback.messages.submitSuccess', { defaultValue: '反馈已提交，感谢你的建议' }),
