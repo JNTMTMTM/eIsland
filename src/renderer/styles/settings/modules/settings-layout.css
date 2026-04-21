@@ -1068,6 +1068,108 @@
   gap: 14px;
 }
 
+.settings-about-paged {
+  min-height: 0;
+  flex: 1;
+}
+
+.settings-about-layout {
+  display: flex;
+  align-items: stretch;
+  gap: 12px;
+  position: relative;
+  min-height: 0;
+  flex: 1;
+  overflow: hidden;
+}
+
+.settings-about-main {
+  min-height: 0;
+  min-width: 0;
+  flex: 1;
+  height: 100%;
+  overflow-y: auto;
+  padding-right: 30px;
+}
+
+.settings-about-main::-webkit-scrollbar {
+  width: 3px;
+}
+
+.settings-about-main::-webkit-scrollbar-thumb {
+  background: rgba(var(--color-text-rgb), 0.1);
+  border-radius: 2px;
+}
+
+.settings-about-main::-webkit-scrollbar-thumb:hover {
+  background: rgba(var(--color-text-rgb), 0.2);
+}
+
+.settings-about-page-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-height: 100%;
+}
+
+.settings-about-page-dots {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 20px;
+  flex-shrink: 0;
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+}
+
+.settings-about-page-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(var(--color-text-rgb), 0.2);
+  cursor: pointer;
+  position: relative;
+  transition: background 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+}
+
+.settings-about-page-dot:hover {
+  background: rgba(var(--color-text-rgb), 0.45);
+}
+
+.settings-about-page-dot.active {
+  background: var(--color-island-text);
+  box-shadow: 0 0 6px rgba(var(--color-text-rgb), 0.5);
+  transform: scale(1.2);
+}
+
+.settings-about-page-dot::after {
+  content: attr(data-label);
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  opacity: 0;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(0, 0, 0, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 6px;
+  padding: 2px 6px;
+  white-space: nowrap;
+  transition: opacity 0.15s ease;
+}
+
+.settings-about-page-dot:hover::after {
+  opacity: 1;
+}
+
 .settings-about-author {
   display: flex;
   align-items: center;

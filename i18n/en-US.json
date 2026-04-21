@@ -1229,6 +1229,11 @@
       "systemPromptHint": "Constrains the Agent's role and style. Leave empty to use the default prompt."
     },
     "about": {
+      "pagination": "About settings pages",
+      "pages": {
+        "development": "Development Info",
+        "feedback": "Issue Feedback"
+      },
       "authorAvatarAlt": "Author avatar",
       "githubHome": "GitHub Home",
       "notice": "This software is open-source and free. If you paid for it anywhere, request a refund immediately.",

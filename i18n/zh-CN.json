@@ -1229,6 +1229,11 @@
       "systemPromptHint": "用于限定 Agent 的角色与风格，留空则使用默认提示词"
     },
     "about": {
+      "pagination": "关于软件分页",
+      "pages": {
+        "development": "开发信息",
+        "feedback": "问题反馈"
+      },
       "authorAvatarAlt": "作者头像",
       "githubHome": "GitHub 主页",
       "notice": "本软件开源免费，如果你在任何地方付费购买了本软件，请立即退款并给差评。",

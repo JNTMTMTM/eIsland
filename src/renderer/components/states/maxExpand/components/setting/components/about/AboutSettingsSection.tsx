@@ -24,9 +24,14 @@
  * @author 鸡哥
  */
 
+import { useEffect, useRef, useState } from 'react';
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import avatarImg from '../../../../../../../assets/avatar/T.jpg';
+import {
+  AboutSettingsPageDots,
+  type AboutSettingsPageKey,
+} from './components/AboutSettingsPageDots';
 
 const WALLPAPER_SOURCES = [
   {
@@ -56,6 +61,8 @@ interface AboutSettingsSectionProps {
   aboutVersion: string;
 }
 
+const ABOUT_PAGES: AboutSettingsPageKey[] = ['development', 'feedback'];
+
 /**
  * 渲染关于软件设置区块
  * @param aboutVersion - 当前软件版本号
@@ -63,10 +70,43 @@ interface AboutSettingsSectionProps {
  */
 export function AboutSettingsSection({ aboutVersion }: AboutSettingsSectionProps): ReactElement {
   const { t } = useTranslation();
+  const [aboutPage, setAboutPage] = useState<AboutSettingsPageKey>('development');
+  const aboutPageRef = useRef<AboutSettingsPageKey>('development');
+  const aboutLayoutRef = useRef<HTMLDivElement | null>(null);
+  aboutPageRef.current = aboutPage;
 
-  return (
-    <div className="max-expand-settings-section settings-about">
-      <div className="max-expand-settings-title">{t('settings.labels.about', { defaultValue: '关于软件' })}</div>
+  const pageLabels: Record<AboutSettingsPageKey, string> = {
+    development: t('settings.about.pages.development', { defaultValue: '开发信息' }),
+    feedback: t('settings.about.pages.feedback', { defaultValue: '问题反馈' }),
+  };
+
+  useEffect(() => {
+    const el = aboutLayoutRef.current;
+    if (!el) return;
+    const handleWheel = (e: WheelEvent): void => {
+      const target = e.target as HTMLElement | null;
+      const inDotNav = Boolean(target?.closest('.settings-about-page-dots'));
+      if (!inDotNav) {
+        return;
+      }
+      const currentIndex = ABOUT_PAGES.indexOf(aboutPageRef.current);
+      if (currentIndex < 0) return;
+      const nextIndex = e.deltaY > 0
+        ? Math.min(currentIndex + 1, ABOUT_PAGES.length - 1)
+        : Math.max(currentIndex - 1, 0);
+      if (nextIndex !== currentIndex) {
+        e.preventDefault();
+        setAboutPage(ABOUT_PAGES[nextIndex]);
+      }
+    };
+    el.addEventListener('wheel', handleWheel, { passive: false });
+    return () => {
+      el.removeEventListener('wheel', handleWheel);
+    };
+  }, []);
+
+  const renderDevelopmentPage = (): ReactElement => (
+    <div className="settings-about-page-panel">
       <div className="settings-about-author">
         <img className="settings-about-avatar" src={avatarImg} alt={t('settings.about.authorAvatarAlt', { defaultValue: '作者头像' })} />
         <div className="settings-about-author-info">
@@ -110,6 +150,28 @@ export function AboutSettingsSection({ aboutVersion }: AboutSettingsSectionProps
       <div className="settings-about-footer">
         <div className="settings-about-copyright">{t('settings.about.copyright', { defaultValue: '© JNTMTMTM, pyisland.com 版权所有' })}</div>
         <div className="settings-about-slogan">{t('settings.about.slogan', { defaultValue: '算法诠释一切 质疑即是认可' })}</div>
+      </div>
+    </div>
+  );
+
+  const renderFeedbackPage = (): ReactElement => (
+    <div className="settings-about-page-panel" />
+  );
+
+  return (
+    <div className="max-expand-settings-section settings-about settings-about-paged">
+      <div className="max-expand-settings-title">{t('settings.labels.about', { defaultValue: '关于软件' })}</div>
+      <div className="settings-about-layout" ref={aboutLayoutRef}>
+        <div className="settings-about-main">
+          {aboutPage === 'development' && renderDevelopmentPage()}
+          {aboutPage === 'feedback' && renderFeedbackPage()}
+        </div>
+        <AboutSettingsPageDots
+          aboutPage={aboutPage}
+          aboutPages={ABOUT_PAGES}
+          pageLabels={pageLabels}
+          setAboutPage={setAboutPage}
+        />
       </div>
     </div>
   );
