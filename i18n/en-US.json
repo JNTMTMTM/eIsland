@@ -1359,6 +1359,7 @@
         "avatarNotImage": "Only image files are accepted",
         "avatarUploaded": "Avatar uploaded. Save profile to apply.",
         "avatarUploadFailed": "Avatar upload failed",
+        "avatarUploadTooFrequent": "Avatar uploads are too frequent. Please try again later.",
         "passwordTooShort": "Password must be at least 8 chars with letters and digits",
         "passwordConfirmNeedsPassword": "Please enter a new password first",
         "passwordConfirmRequired": "Please confirm your new password",

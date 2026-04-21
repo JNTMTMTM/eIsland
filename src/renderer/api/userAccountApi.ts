@@ -650,10 +650,15 @@ export async function uploadUserAvatar(file: File, token: string, captcha: UserC
     },
     body: formData,
   });
-  if (!resp.ok) {
-    throw new Error(`上传失败：HTTP ${resp.status}`);
+  let payload: { code?: number; message?: string; data?: string } | null = null;
+  try {
+    payload = await resp.json() as { code?: number; message?: string; data?: string };
+  } catch {
+    payload = null;
   }
-  const payload = await resp.json() as { code?: number; message?: string; data?: string };
+  if (!resp.ok) {
+    throw new Error(payload?.message || `上传失败：HTTP ${resp.status}`);
+  }
   if (payload?.code !== 200 || typeof payload.data !== 'string' || payload.data.length === 0) {
     throw new Error(payload?.message || '上传失败');
   }

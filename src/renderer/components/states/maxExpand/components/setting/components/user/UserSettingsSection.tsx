@@ -102,6 +102,7 @@ export function UserSettingsSection(): ReactElement {
   const [passwordCodeCooldownSeconds, setPasswordCodeCooldownSeconds] = useState(0);
   const [editNewPasswordVisible, setEditNewPasswordVisible] = useState(false);
   const [editConfirmPasswordVisible, setEditConfirmPasswordVisible] = useState(false);
+  const [avatarUploadFeedback, setAvatarUploadFeedback] = useState<Feedback | null>(null);
   const [profileFeedback, setProfileFeedback] = useState<Feedback | null>(null);
   const [profileFeedbackScope, setProfileFeedbackScope] = useState<ProfileFeedbackScope>('profile');
   const [passwordCodeFeedback, setPasswordCodeFeedback] = useState<Feedback | null>(null);
@@ -141,6 +142,7 @@ export function UserSettingsSection(): ReactElement {
     setToken(null);
     setProfile(null);
     setProfileError('');
+    setAvatarUploadFeedback(null);
     setProfileFeedback(null);
     setProfileFeedbackScope('profile');
     setPasswordCodeFeedback(null);
@@ -274,17 +276,15 @@ export function UserSettingsSection(): ReactElement {
     event.target.value = '';
     if (!file) return;
     if (file.size > 5 * 1024 * 1024) {
-      setProfileFeedbackScope('profile');
-      setProfileFeedback({ type: 'error', text: t('settings.user.feedback.avatarTooLarge', { defaultValue: '头像文件不能超过 5MB' }) });
+      setAvatarUploadFeedback({ type: 'error', text: t('settings.user.feedback.avatarTooLarge', { defaultValue: '头像文件不能超过 5MB' }) });
       return;
     }
     if (!file.type.startsWith('image/')) {
-      setProfileFeedbackScope('profile');
-      setProfileFeedback({ type: 'error', text: t('settings.user.feedback.avatarNotImage', { defaultValue: '仅支持上传图片文件' }) });
+      setAvatarUploadFeedback({ type: 'error', text: t('settings.user.feedback.avatarNotImage', { defaultValue: '仅支持上传图片文件' }) });
       return;
     }
     setAvatarUploading(true);
-    setProfileFeedback(null);
+    setAvatarUploadFeedback(null);
     try {
       const currentToken = readLocalToken();
       if (!currentToken) {
@@ -300,12 +300,16 @@ export function UserSettingsSection(): ReactElement {
       }
       const url = await uploadUserAvatar(file, currentToken, captcha);
       setEditAvatar(url);
-      setProfileFeedbackScope('profile');
-      setProfileFeedback({ type: 'success', text: t('settings.user.feedback.avatarUploaded', { defaultValue: '头像已上传，保存资料生效' }) });
+      setAvatarUploadFeedback({ type: 'success', text: t('settings.user.feedback.avatarUploaded', { defaultValue: '头像已上传，保存资料生效' }) });
     } catch (err) {
       const msg = err instanceof Error ? err.message : t('settings.user.feedback.avatarUploadFailed', { defaultValue: '头像上传失败' });
-      setProfileFeedbackScope('profile');
-      setProfileFeedback({ type: 'error', text: msg });
+      const isRateLimited = /\b429\b/.test(msg) || msg.includes('上传过于频繁') || msg.includes('too frequent');
+      setAvatarUploadFeedback({
+        type: 'error',
+        text: isRateLimited
+          ? t('settings.user.feedback.avatarUploadTooFrequent', { defaultValue: '头像上传过于频繁，请稍后再试' })
+          : msg,
+      });
     } finally {
       setAvatarUploading(false);
     }
@@ -624,8 +628,8 @@ export function UserSettingsSection(): ReactElement {
 
   const renderProfileEditor = (): ReactElement => {
     const displayAvatar = editAvatar || profile?.avatar || '';
-    const avatarUploadSuccessFeedback = profileFeedbackScope === 'profile' && profileFeedback?.type === 'success'
-      ? profileFeedback
+    const avatarUploadSuccessFeedback = avatarUploadFeedback?.type === 'success'
+      ? avatarUploadFeedback
       : null;
     const profilePageItems: Array<{ id: UserProfilePage; label: string }> = [
       { id: 'info', label: t('settings.user.pages.info', { defaultValue: '用户信息' }) },
@@ -719,7 +723,6 @@ export function UserSettingsSection(): ReactElement {
           <div className="settings-user-edit-card settings-user-avatar-edit-card">
             <div className="settings-user-edit-card-head">
               {avatarUploadSuccessFeedback ? null : <div className="settings-user-form-title">{t('settings.user.sections.avatar', { defaultValue: '头像' })}</div>}
-              {avatarUploadSuccessFeedback ? null : <div className="settings-user-edit-card-subtitle">{t('settings.user.sections.avatarHint', { defaultValue: '上传新头像或粘贴图片链接' })}</div>}
             </div>
             <div className="settings-user-avatar-row">
               <div className="settings-user-avatar-preview-shell">
@@ -747,8 +750,7 @@ export function UserSettingsSection(): ReactElement {
                     onChange={(e) => void handleAvatarSelect(e)}
                   />
                 </div>
-                {avatarUploadSuccessFeedback ? null : <div className="settings-user-avatar-actions-hint">{t('settings.user.sections.avatarHint', { defaultValue: '上传新头像或粘贴图片链接' })}</div>}
-                {renderFeedback(avatarUploadSuccessFeedback)}
+                {renderFeedback(avatarUploadFeedback)}
               </div>
             </div>
           </div>
@@ -795,7 +797,7 @@ export function UserSettingsSection(): ReactElement {
                 onChange={(e) => setEditBirthday(e.target.value)}
               />
             </label>
-            {avatarUploadSuccessFeedback ? null : renderProfileFeedback('profile')}
+            {renderProfileFeedback('profile')}
             <div className="settings-user-edit-action-stack">
               <button
                 type="button"
