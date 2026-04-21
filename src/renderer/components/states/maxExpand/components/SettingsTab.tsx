@@ -351,15 +351,20 @@ export function SettingsTab(): ReactElement {
   const [updateVersion, setUpdateVersion] = useState<string>('');
   const [updateError, setUpdateError] = useState<string>('');
   const [downloadProgress, setDownloadProgress] = useState<{ percent: number; transferred: number; total: number; bytesPerSecond: number } | null>(null);
-  const [updateSource, setUpdateSource] = useState<'cloudflare-r2' | 'github'>('cloudflare-r2');
+  const [updateSource, setUpdateSource] = useState<'cloudflare-r2' | 'tencent-cos' | 'github'>('cloudflare-r2');
   const UPDATE_SOURCES: { key: string; label: string }[] = [
     { key: 'cloudflare-r2', label: 'Cloudflare R2' },
+    { key: 'tencent-cos', label: 'Tencent COS' },
     { key: 'github', label: 'GitHub Releases' },
   ];
   const currentSourceLabel = UPDATE_SOURCES.find((s) => s.key === updateSource)?.label ?? updateSource;
 
   const handleUpdateSourceChange = (value: string): void => {
-    const nextSource = value === 'github' ? 'github' : 'cloudflare-r2';
+    const nextSource = value === 'github'
+      ? 'github'
+      : value === 'tencent-cos'
+        ? 'tencent-cos'
+        : 'cloudflare-r2';
     setUpdateSource(nextSource);
     window.api.storeWrite(UPDATE_SOURCE_STORE_KEY, nextSource).catch(() => {});
   };
@@ -1007,7 +1012,7 @@ export function SettingsTab(): ReactElement {
     let cancelled = false;
     window.api.storeRead(UPDATE_SOURCE_STORE_KEY).then((value) => {
       if (cancelled) return;
-      setUpdateSource(value === 'github' ? 'github' : 'cloudflare-r2');
+      setUpdateSource(value === 'github' ? 'github' : value === 'tencent-cos' ? 'tencent-cos' : 'cloudflare-r2');
     }).catch(() => {});
     return () => { cancelled = true; };
   }, []);

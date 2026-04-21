@@ -28,7 +28,7 @@
 import { ipcMain } from 'electron';
 import type { AppUpdater } from 'electron-updater';
 
-type UpdateSourceKey = 'cloudflare-r2' | 'github';
+type UpdateSourceKey = 'cloudflare-r2' | 'tencent-cos' | 'github';
 
 interface RegisterUpdaterIpcHandlersOptions {
   updater: AppUpdater;
@@ -38,11 +38,14 @@ interface RegisterUpdaterIpcHandlersOptions {
 
 const DEFAULT_UPDATE_SOURCE: UpdateSourceKey = 'cloudflare-r2';
 const R2_UPDATE_URL = 'https://pub-4c1e73c3c2004901aecd6ca014cb16bd.r2.dev';
+const COS_UPDATE_URL = 'https://cdn.pyisland.com/updates';
 const GITHUB_OWNER = 'JNTMTMTM';
 const GITHUB_REPO = 'eIsland';
 
 function normalizeUpdateSource(value: unknown): UpdateSourceKey {
-  return value === 'github' ? 'github' : DEFAULT_UPDATE_SOURCE;
+  if (value === 'github') return 'github';
+  if (value === 'tencent-cos') return 'tencent-cos';
+  return DEFAULT_UPDATE_SOURCE;
 }
 
 function applyUpdateSource(updater: AppUpdater, source: UpdateSourceKey): void {
@@ -52,6 +55,13 @@ function applyUpdateSource(updater: AppUpdater, source: UpdateSourceKey): void {
       owner: GITHUB_OWNER,
       repo: GITHUB_REPO,
       private: false,
+    });
+    return;
+  }
+  if (source === 'tencent-cos') {
+    updater.setFeedURL({
+      provider: 'generic',
+      url: COS_UPDATE_URL,
     });
     return;
   }
