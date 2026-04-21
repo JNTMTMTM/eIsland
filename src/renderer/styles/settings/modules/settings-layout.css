@@ -1375,6 +1375,21 @@
   grid-column: 1 / -1;
 }
 
+.settings-about-feedback-contact-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.settings-about-feedback-contact-row .settings-field-input {
+  flex: 1;
+}
+
+.settings-about-feedback-contact-btn {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
 .settings-about-feedback-textarea {
   min-height: 84px;
 }
@@ -1494,6 +1509,11 @@
 @media (max-width: 760px) {
   .settings-about-feedback-form-grid {
     grid-template-columns: 1fr;
+  }
+
+  .settings-about-feedback-contact-row {
+    flex-direction: column;
+    align-items: stretch;
   }
 }
 

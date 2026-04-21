@@ -163,6 +163,22 @@ export function AboutSettingsSection({ aboutVersion }: AboutSettingsSectionProps
     setFeedbackItems(Array.isArray(result.data.items) ? result.data.items : []);
   };
 
+  const handleFillBoundEmail = (): void => {
+    const boundEmail = (readLocalProfile()?.email || '').trim().toLowerCase();
+    if (!boundEmail) {
+      setFeedbackMessage({
+        type: 'error',
+        text: t('settings.about.feedback.messages.boundEmailNotFound', { defaultValue: '当前账号未找到绑定邮箱' }),
+      });
+      return;
+    }
+    setFeedbackContact(boundEmail);
+    setFeedbackMessage({
+      type: 'info',
+      text: t('settings.about.feedback.messages.boundEmailFilled', { defaultValue: '已自动填充当前账号邮箱' }),
+    });
+  };
+
   useEffect(() => {
     if (aboutPage !== 'feedback') return;
     void loadFeedbackHistory();
@@ -271,13 +287,23 @@ export function AboutSettingsSection({ aboutVersion }: AboutSettingsSectionProps
               </label>
               <label className="settings-field">
                 <span className="settings-field-label">{t('settings.about.feedback.fields.contact', { defaultValue: '联系方式（选填）' })}</span>
-                <input
-                  className="settings-field-input"
-                  value={feedbackContact}
-                  onChange={(e) => setFeedbackContact(e.target.value)}
-                  placeholder={t('settings.about.feedback.fields.contactPlaceholder', { defaultValue: '邮箱、QQ 或其他可联系信息' })}
-                  disabled={submittingFeedback}
-                />
+                <div className="settings-about-feedback-contact-row">
+                  <input
+                    className="settings-field-input"
+                    value={feedbackContact}
+                    onChange={(e) => setFeedbackContact(e.target.value)}
+                    placeholder={t('settings.about.feedback.fields.contactPlaceholder', { defaultValue: '邮箱、QQ 或其他可联系信息' })}
+                    disabled={submittingFeedback}
+                  />
+                  <button
+                    type="button"
+                    className="settings-user-secondary-btn settings-about-feedback-contact-btn"
+                    onClick={handleFillBoundEmail}
+                    disabled={submittingFeedback}
+                  >
+                    {t('settings.about.feedback.actions.useBoundEmail', { defaultValue: '填充邮箱' })}
+                  </button>
+                </div>
               </label>
               <label className="settings-field settings-about-feedback-field-full">
                 <span className="settings-field-label">{t('settings.about.feedback.fields.title', { defaultValue: '标题' })}</span>

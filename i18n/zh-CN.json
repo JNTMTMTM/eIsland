@@ -1272,13 +1272,16 @@
         "actions": {
           "submit": "提交反馈",
           "submitting": "提交中…",
-          "refresh": "刷新"
+          "refresh": "刷新",
+          "useBoundEmail": "填充邮箱"
         },
         "messages": {
           "loginRequired": "请先登录后再使用反馈功能",
           "titleRequired": "请填写反馈标题",
           "contentRequired": "请填写详细描述",
           "captchaCancelled": "请完成滑块验证后再提交反馈",
+          "boundEmailNotFound": "当前账号未找到绑定邮箱",
+          "boundEmailFilled": "已自动填充当前账号邮箱",
           "submitSuccess": "反馈已提交，感谢你的建议",
           "submitFailed": "反馈提交失败，请稍后重试",
           "loadFailed": "反馈记录加载失败"

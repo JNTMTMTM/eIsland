@@ -1272,13 +1272,16 @@
         "actions": {
           "submit": "Submit Feedback",
           "submitting": "Submitting…",
-          "refresh": "Refresh"
+          "refresh": "Refresh",
+          "useBoundEmail": "Fill Email"
         },
         "messages": {
           "loginRequired": "Please sign in before using issue feedback",
           "titleRequired": "Please enter a feedback title",
           "contentRequired": "Please enter detailed description",
           "captchaCancelled": "Complete slider verification before submitting feedback",
+          "boundEmailNotFound": "No bound email found for the current account",
+          "boundEmailFilled": "Current account email has been auto-filled",
           "submitSuccess": "Feedback submitted. Thank you for your input.",
           "submitFailed": "Failed to submit feedback. Please try again later.",
           "loadFailed": "Failed to load feedback history"
