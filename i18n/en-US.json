@@ -1369,7 +1369,7 @@
         "registerSuccess": "Account created and signed in",
         "avatarTooLarge": "Avatar must be under 5MB",
         "avatarNotImage": "Only image files are accepted",
-        "avatarUploaded": "Avatar uploaded. Save profile to apply.",
+        "avatarUploaded": "Avatar updated.",
         "avatarUploadFailed": "Avatar upload failed",
         "avatarUploadTooFrequent": "Avatar uploads are too frequent. Please try again later.",
         "passwordTooShort": "Password must be at least 8 chars with letters and digits",

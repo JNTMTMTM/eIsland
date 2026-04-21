@@ -299,8 +299,24 @@ export function UserSettingsSection(): ReactElement {
         return;
       }
       const url = await uploadUserAvatar(file, currentToken, captcha);
+      const profileResult = await updateUserProfile(currentToken, { avatar: url });
+      if (!profileResult.ok) {
+        if (profileResult.code === 401 || profileResult.code === 4011) {
+          resetToLoggedOut();
+          return;
+        }
+        throw new Error(profileResult.message || t('settings.user.feedback.saveFailed', { defaultValue: '保存失败' }));
+      }
+      setProfile((prev) => {
+        if (!prev) {
+          return prev;
+        }
+        const nextProfile = { ...prev, avatar: url };
+        writeLocalProfile(nextProfile);
+        return nextProfile;
+      });
       setEditAvatar(url);
-      setAvatarUploadFeedback({ type: 'success', text: t('settings.user.feedback.avatarUploaded', { defaultValue: '头像已上传，保存资料生效' }) });
+      setAvatarUploadFeedback({ type: 'success', text: t('settings.user.feedback.avatarUploaded', { defaultValue: '头像已更新' }) });
     } catch (err) {
       const msg = err instanceof Error ? err.message : t('settings.user.feedback.avatarUploadFailed', { defaultValue: '头像上传失败' });
       const isRateLimited = /\b429\b/.test(msg) || msg.includes('上传过于频繁') || msg.includes('too frequent');

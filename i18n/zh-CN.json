@@ -1366,7 +1366,7 @@
         "captchaCancelled": "请完成滑块验证后再发送验证码",
         "avatarTooLarge": "头像文件不能超过 5MB",
         "avatarNotImage": "仅支持上传图片文件",
-        "avatarUploaded": "头像已上传，保存资料生效",
+        "avatarUploaded": "头像已更新",
         "avatarUploadFailed": "头像上传失败",
         "avatarUploadTooFrequent": "头像上传过于频繁，请稍后再试",
         "passwordTooShort": "密码至少 8 位且包含字母与数字",
