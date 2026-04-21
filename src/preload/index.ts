@@ -176,6 +176,12 @@ const api = {
     return ipcRenderer.invoke('app:pick-feedback-log-file');
   },
   /**
+   * 选择反馈截图文件
+   */
+  pickFeedbackScreenshotFile: (): Promise<string | null> => {
+    return ipcRenderer.invoke('app:pick-feedback-screenshot-file');
+  },
+  /**
    * 清理日志缓存
    */
   clearLogsCache: (): Promise<{ success: boolean; freedBytes: number }> => {

@@ -81,6 +81,7 @@ declare global {
       restartApp: () => Promise<boolean>;
       openLogsFolder: () => Promise<boolean>;
       pickFeedbackLogFile: () => Promise<string | null>;
+      pickFeedbackScreenshotFile: () => Promise<string | null>;
       clearLogsCache: () => Promise<{ success: boolean; freedBytes: number }>;
       windowMinimize: () => void;
       windowMaximize: () => void;

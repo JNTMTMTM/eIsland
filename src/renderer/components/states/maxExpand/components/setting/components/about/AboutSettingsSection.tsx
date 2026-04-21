@@ -32,6 +32,7 @@ import {
   fetchMyIssueFeedbackList,
   submitUserIssueFeedback,
   uploadUserFeedbackLog,
+  uploadUserFeedbackScreenshot,
   type UserIssueFeedbackItem,
 } from '../../../../../../../api/userAccountApi';
 import { runSliderCaptcha } from '../../../../../../../utils/sliderCaptcha';
@@ -74,7 +75,8 @@ interface AboutSettingsSectionProps {
 }
 
 const ABOUT_PAGES: AboutSettingsPageKey[] = ['development', 'feedback'];
-const MAX_FEEDBACK_LOG_SIZE = 50 * 1024 * 1024;
+const MAX_FEEDBACK_LOG_SIZE = 5 * 1024 * 1024;
+const MAX_FEEDBACK_SCREENSHOT_SIZE = 10 * 1024 * 1024;
 
 type FeedbackMessageType = 'success' | 'error' | 'info';
 
@@ -87,6 +89,22 @@ interface FeedbackUploadedLogCard {
   fileName: string;
   sizeBytes: number;
   url: string;
+}
+
+interface FeedbackUploadedScreenshotCard {
+  fileName: string;
+  sizeBytes: number;
+  url: string;
+  previewUrl: string;
+}
+
+function inferImageMimeType(fileName: string): string {
+  const normalized = fileName.trim().toLowerCase();
+  if (normalized.endsWith('.png')) return 'image/png';
+  if (normalized.endsWith('.jpg') || normalized.endsWith('.jpeg')) return 'image/jpeg';
+  if (normalized.endsWith('.webp')) return 'image/webp';
+  if (normalized.endsWith('.bmp')) return 'image/bmp';
+  return '';
 }
 
 function normalizeFeedbackStatus(value: string | undefined): string {
@@ -112,7 +130,11 @@ export function AboutSettingsSection({ aboutVersion }: AboutSettingsSectionProps
   const [feedbackContact, setFeedbackContact] = useState('');
   const [feedbackStatusFilter, setFeedbackStatusFilter] = useState('');
   const [feedbackLogCard, setFeedbackLogCard] = useState<FeedbackUploadedLogCard | null>(null);
+  const [feedbackScreenshotCard, setFeedbackScreenshotCard] = useState<FeedbackUploadedScreenshotCard | null>(null);
   const [uploadingFeedbackLog, setUploadingFeedbackLog] = useState(false);
+  const [uploadingFeedbackScreenshot, setUploadingFeedbackScreenshot] = useState(false);
+  const [feedbackLogUploadProgress, setFeedbackLogUploadProgress] = useState(0);
+  const [feedbackScreenshotUploadProgress, setFeedbackScreenshotUploadProgress] = useState(0);
   const [submittingFeedback, setSubmittingFeedback] = useState(false);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [feedbackItems, setFeedbackItems] = useState<UserIssueFeedbackItem[]>([]);
@@ -136,12 +158,57 @@ export function AboutSettingsSection({ aboutVersion }: AboutSettingsSectionProps
     feedback: t('settings.about.pages.feedback', { defaultValue: '问题反馈' }),
   };
 
+  const handleUploadFeedbackScreenshotClick = (): void => {
+    void (async () => {
+      try {
+        const filePath = await window.api.pickFeedbackScreenshotFile();
+        if (!filePath) {
+          return;
+        }
+        const fileName = (filePath.split(/[/\\]/).pop() || '').trim();
+        const mimeType = inferImageMimeType(fileName);
+        if (!fileName || !mimeType) {
+          setFeedbackMessage({
+            type: 'error',
+            text: t('settings.about.feedback.messages.screenshotOnly', { defaultValue: '仅支持上传图片截图文件' }),
+          });
+          return;
+        }
+        const bytes = await window.api.readLocalFileAsBuffer(filePath);
+        if (!bytes || bytes.length === 0) {
+          setFeedbackMessage({
+            type: 'error',
+            text: t('settings.about.feedback.messages.screenshotReadFailed', { defaultValue: '截图文件读取失败，请重试' }),
+          });
+          return;
+        }
+        const safeBytes = new Uint8Array(bytes.byteLength);
+        safeBytes.set(bytes);
+        const file = new File([safeBytes], fileName, { type: mimeType });
+        await handleSelectFeedbackScreenshotFile(file);
+      } catch {
+        setFeedbackMessage({
+          type: 'error',
+          text: t('settings.about.feedback.messages.screenshotReadFailed', { defaultValue: '截图文件读取失败，请重试' }),
+        });
+      }
+    })();
+  };
+
   useEffect(() => {
     const syncSession = (): void => {
       setToken(readLocalToken());
     };
     return subscribeUserAccountSessionChanged(syncSession);
   }, []);
+
+  useEffect(() => {
+    return () => {
+      if (feedbackScreenshotCard?.previewUrl) {
+        URL.revokeObjectURL(feedbackScreenshotCard.previewUrl);
+      }
+    };
+  }, [feedbackScreenshotCard?.previewUrl]);
 
   const loadFeedbackHistory = async (): Promise<void> => {
     if (!token) {
@@ -210,13 +277,16 @@ export function AboutSettingsSection({ aboutVersion }: AboutSettingsSectionProps
     if (file.size > MAX_FEEDBACK_LOG_SIZE) {
       setFeedbackMessage({
         type: 'error',
-        text: t('settings.about.feedback.messages.logTooLarge', { defaultValue: '日志文件不能超过 50MB' }),
+        text: t('settings.about.feedback.messages.logTooLarge', { defaultValue: '日志文件不能超过 5MB' }),
       });
       return;
     }
     setUploadingFeedbackLog(true);
+    setFeedbackLogUploadProgress(0);
     try {
-      const logUrl = await uploadUserFeedbackLog(file, token);
+      const logUrl = await uploadUserFeedbackLog(file, token, {
+        onUploadProgress: (percent) => setFeedbackLogUploadProgress(percent),
+      });
       setFeedbackLogCard({
         fileName: file.name,
         sizeBytes: file.size,
@@ -234,7 +304,68 @@ export function AboutSettingsSection({ aboutVersion }: AboutSettingsSectionProps
           : t('settings.about.feedback.messages.logUploadFailed', { defaultValue: '日志上传失败，请稍后重试' }),
       });
     } finally {
+      setFeedbackLogUploadProgress(0);
       setUploadingFeedbackLog(false);
+    }
+  };
+
+  const handleSelectFeedbackScreenshotFile = async (file: File | null): Promise<void> => {
+    if (!file) {
+      return;
+    }
+    if (!file.type || !file.type.startsWith('image/')) {
+      setFeedbackMessage({
+        type: 'error',
+        text: t('settings.about.feedback.messages.screenshotOnly', { defaultValue: '仅支持上传图片截图文件' }),
+      });
+      return;
+    }
+    if (!token) {
+      setFeedbackMessage({
+        type: 'error',
+        text: t('settings.about.feedback.messages.loginRequired', { defaultValue: '请先登录后再使用反馈功能' }),
+      });
+      return;
+    }
+    if (file.size > MAX_FEEDBACK_SCREENSHOT_SIZE) {
+      setFeedbackMessage({
+        type: 'error',
+        text: t('settings.about.feedback.messages.screenshotTooLarge', { defaultValue: '截图文件不能超过 10MB' }),
+      });
+      return;
+    }
+    setUploadingFeedbackScreenshot(true);
+    setFeedbackScreenshotUploadProgress(0);
+    try {
+      const screenshotUrl = await uploadUserFeedbackScreenshot(file, token, {
+        onUploadProgress: (percent) => setFeedbackScreenshotUploadProgress(percent),
+      });
+      const previewUrl = URL.createObjectURL(file);
+      setFeedbackScreenshotCard((prev) => {
+        if (prev?.previewUrl) {
+          URL.revokeObjectURL(prev.previewUrl);
+        }
+        return {
+          fileName: file.name,
+          sizeBytes: file.size,
+          url: screenshotUrl,
+          previewUrl,
+        };
+      });
+      setFeedbackMessage({
+        type: 'success',
+        text: t('settings.about.feedback.messages.screenshotUploadSuccess', { defaultValue: '截图上传成功，提交反馈时会自动携带' }),
+      });
+    } catch (err) {
+      setFeedbackMessage({
+        type: 'error',
+        text: err instanceof Error
+          ? err.message
+          : t('settings.about.feedback.messages.screenshotUploadFailed', { defaultValue: '截图上传失败，请稍后重试' }),
+      });
+    } finally {
+      setFeedbackScreenshotUploadProgress(0);
+      setUploadingFeedbackScreenshot(false);
     }
   };
 
@@ -423,19 +554,30 @@ export function AboutSettingsSection({ aboutVersion }: AboutSettingsSectionProps
                 />
               </label>
               <div className="settings-field settings-about-feedback-field-full">
-                <span className="settings-field-label">{t('settings.about.feedback.fields.logFile', { defaultValue: '日志文件（选填，<=50MB）' })}</span>
+                <span className="settings-field-label">{t('settings.about.feedback.fields.logFile', { defaultValue: '日志文件（选填，<=5MB）' })}</span>
                 <div className="settings-about-feedback-log-row">
                   <button
                     type="button"
                     className="settings-user-secondary-btn settings-about-feedback-log-btn"
                     onClick={handleUploadFeedbackLogClick}
-                    disabled={submittingFeedback || uploadingFeedbackLog || !token}
+                    disabled={submittingFeedback || uploadingFeedbackLog || uploadingFeedbackScreenshot || !token}
                   >
                     {uploadingFeedbackLog
                       ? t('settings.about.feedback.actions.uploadingLog', { defaultValue: '上传中…' })
                       : t('settings.about.feedback.actions.uploadLog', { defaultValue: '上传日志' })}
                   </button>
                 </div>
+                {uploadingFeedbackLog ? (
+                  <div className="settings-about-feedback-upload-progress">
+                    <div className="settings-about-feedback-upload-progress-bar">
+                      <span
+                        className="settings-about-feedback-upload-progress-fill"
+                        style={{ width: `${feedbackLogUploadProgress}%` }}
+                      />
+                    </div>
+                    <span className="settings-about-feedback-upload-progress-text">{feedbackLogUploadProgress}%</span>
+                  </div>
+                ) : null}
                 {feedbackLogCard ? (
                   <div className="settings-about-feedback-log-list">
                     <div className="settings-about-feedback-log-card">
@@ -453,9 +595,72 @@ export function AboutSettingsSection({ aboutVersion }: AboutSettingsSectionProps
                           type="button"
                           className="settings-user-secondary-btn settings-about-feedback-log-btn"
                           onClick={() => setFeedbackLogCard(null)}
-                          disabled={submittingFeedback || uploadingFeedbackLog}
+                          disabled={submittingFeedback || uploadingFeedbackLog || uploadingFeedbackScreenshot}
                         >
                           {t('settings.about.feedback.actions.clearLog', { defaultValue: '移除日志' })}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+              <div className="settings-field settings-about-feedback-field-full">
+                <span className="settings-field-label">{t('settings.about.feedback.fields.screenshotFile', { defaultValue: '问题截图（选填，<=10MB）' })}</span>
+                <div className="settings-about-feedback-log-row">
+                  <button
+                    type="button"
+                    className="settings-user-secondary-btn settings-about-feedback-log-btn"
+                    onClick={handleUploadFeedbackScreenshotClick}
+                    disabled={submittingFeedback || uploadingFeedbackLog || uploadingFeedbackScreenshot || !token}
+                  >
+                    {uploadingFeedbackScreenshot
+                      ? t('settings.about.feedback.actions.uploadingScreenshot', { defaultValue: '上传中…' })
+                      : t('settings.about.feedback.actions.uploadScreenshot', { defaultValue: '上传截图' })}
+                  </button>
+                </div>
+                {uploadingFeedbackScreenshot ? (
+                  <div className="settings-about-feedback-upload-progress">
+                    <div className="settings-about-feedback-upload-progress-bar">
+                      <span
+                        className="settings-about-feedback-upload-progress-fill"
+                        style={{ width: `${feedbackScreenshotUploadProgress}%` }}
+                      />
+                    </div>
+                    <span className="settings-about-feedback-upload-progress-text">{feedbackScreenshotUploadProgress}%</span>
+                  </div>
+                ) : null}
+                {feedbackScreenshotCard ? (
+                  <div className="settings-about-feedback-log-list">
+                    <div className="settings-about-feedback-log-card settings-about-feedback-screenshot-card">
+                      <img
+                        src={feedbackScreenshotCard.previewUrl}
+                        alt={feedbackScreenshotCard.fileName}
+                        className="settings-about-feedback-screenshot-preview"
+                      />
+                      <div className="settings-about-feedback-log-card-main">
+                        <div className="settings-about-feedback-log-card-name">{feedbackScreenshotCard.fileName}</div>
+                        <div className="settings-about-feedback-log-card-meta">
+                          {t('settings.about.feedback.fields.screenshotFileMeta', {
+                            defaultValue: '文件大小：{{size}}MB',
+                            size: (feedbackScreenshotCard.sizeBytes / (1024 * 1024)).toFixed(2),
+                          })}
+                        </div>
+                      </div>
+                      <div className="settings-about-feedback-log-card-actions">
+                        <button
+                          type="button"
+                          className="settings-user-secondary-btn settings-about-feedback-log-btn"
+                          onClick={() => {
+                            setFeedbackScreenshotCard((prev) => {
+                              if (prev?.previewUrl) {
+                                URL.revokeObjectURL(prev.previewUrl);
+                              }
+                              return null;
+                            });
+                          }}
+                          disabled={submittingFeedback || uploadingFeedbackLog || uploadingFeedbackScreenshot}
+                        >
+                          {t('settings.about.feedback.actions.clearScreenshot', { defaultValue: '移除截图' })}
                         </button>
                       </div>
                     </div>
@@ -523,6 +728,7 @@ export function AboutSettingsSection({ aboutVersion }: AboutSettingsSectionProps
                         content: feedbackContent.trim(),
                         contact: feedbackContact.trim(),
                         feedbackLogUrl: feedbackLogCard?.url || '',
+                        feedbackScreenshotUrl: feedbackScreenshotCard?.url || '',
                         clientVersion: (aboutVersion || '').trim(),
                         captchaTicket: captcha.ticket,
                         captchaRandstr: captcha.randstr,
@@ -539,6 +745,12 @@ export function AboutSettingsSection({ aboutVersion }: AboutSettingsSectionProps
                       setFeedbackTitle('');
                       setFeedbackContent('');
                       setFeedbackLogCard(null);
+                      setFeedbackScreenshotCard((prev) => {
+                        if (prev?.previewUrl) {
+                          URL.revokeObjectURL(prev.previewUrl);
+                        }
+                        return null;
+                      });
                       setFeedbackMessage({
                         type: 'success',
                         text: t('settings.about.feedback.messages.submitSuccess', { defaultValue: '反馈已提交，感谢你的建议' }),

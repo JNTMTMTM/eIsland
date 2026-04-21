@@ -168,6 +168,8 @@ export interface UserIssueFeedbackItem {
   title: string;
   content: string;
   contact?: string;
+  feedbackLogUrl?: string;
+  feedbackScreenshotUrl?: string;
   clientVersion?: string;
   status: string;
   adminReply?: string;
@@ -189,10 +191,15 @@ export interface SubmitUserIssueFeedbackPayload {
   content: string;
   contact?: string;
   feedbackLogUrl?: string;
+  feedbackScreenshotUrl?: string;
   clientVersion?: string;
   captchaTicket: string;
   captchaRandstr: string;
   captchaSign: string;
+}
+
+export interface UserFeedbackUploadOptions {
+  onUploadProgress?: (percent: number) => void;
 }
 
 /** 超时时间（ms） */
@@ -674,6 +681,7 @@ export function submitUserIssueFeedback(
       content: payload.content,
       contact: payload.contact ?? '',
       feedbackLogUrl: payload.feedbackLogUrl ?? '',
+      feedbackScreenshotUrl: payload.feedbackScreenshotUrl ?? '',
       clientVersion: payload.clientVersion ?? '',
       captchaTicket: payload.captchaTicket,
       captchaRandstr: payload.captchaRandstr,
@@ -757,40 +765,90 @@ export async function uploadUserAvatar(file: File, token: string, captcha: UserC
  * @param token 用户 token。
  * @returns 上传后的公网 URL。
  */
-export async function uploadUserFeedbackLog(file: File, token: string): Promise<string> {
+export async function uploadUserFeedbackLog(
+  file: File,
+  token: string,
+  options: UserFeedbackUploadOptions = {},
+): Promise<string> {
   if (!token || token.trim().length === 0) {
     throw new Error('未登录');
   }
   if (!file.name.toLowerCase().endsWith('.log')) {
     throw new Error('仅支持上传 .log 日志文件');
   }
+  return uploadUserFeedbackAsset('/v1/upload/feedback-log', file, token, options);
+}
+
+export async function uploadUserFeedbackScreenshot(
+  file: File,
+  token: string,
+  options: UserFeedbackUploadOptions = {},
+): Promise<string> {
+  if (!token || token.trim().length === 0) {
+    throw new Error('未登录');
+  }
+  if (!file.type || !file.type.startsWith('image/')) {
+    throw new Error('仅支持上传图片截图');
+  }
+  return uploadUserFeedbackAsset('/v1/upload/feedback-screenshot', file, token, options);
+}
+
+async function uploadUserFeedbackAsset(
+  path: '/v1/upload/feedback-log' | '/v1/upload/feedback-screenshot',
+  file: File,
+  token: string,
+  options: UserFeedbackUploadOptions = {},
+): Promise<string> {
   const clientVersion = await resolveClientVersion();
   const replayHeaders = buildReplayHeaders();
   const formData = new FormData();
   formData.append('file', file);
-  const resp = await fetch(`${USER_ACCOUNT_API_BASE}/v1/upload/feedback-log`, {
-    method: 'POST',
-    headers: {
-      [APP_NAME_HEADER]: APP_NAME_VALUE,
-      ...(clientVersion ? { [CLIENT_VERSION_HEADER]: clientVersion } : {}),
-      Authorization: `Bearer ${token}`,
-      ...replayHeaders,
-    },
-    body: formData,
+  const headers: Record<string, string> = {
+    [APP_NAME_HEADER]: APP_NAME_VALUE,
+    ...(clientVersion ? { [CLIENT_VERSION_HEADER]: clientVersion } : {}),
+    Authorization: `Bearer ${token}`,
+    ...replayHeaders,
+  };
+  const payload = await new Promise<{ status: number; body: { code?: number; message?: string; data?: string } | null }>((resolve) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', `${USER_ACCOUNT_API_BASE}${path}`, true);
+    Object.entries(headers).forEach(([key, value]) => {
+      xhr.setRequestHeader(key, value);
+    });
+    xhr.upload.onprogress = (event) => {
+      if (!options.onUploadProgress || !event.lengthComputable) {
+        return;
+      }
+      const percent = Math.max(0, Math.min(100, Math.round((event.loaded / event.total) * 100)));
+      options.onUploadProgress(percent);
+    };
+    xhr.onerror = () => {
+      resolve({ status: xhr.status || 0, body: null });
+    };
+    xhr.onabort = () => {
+      resolve({ status: xhr.status || 0, body: null });
+    };
+    xhr.onload = () => {
+      let parsed: { code?: number; message?: string; data?: string } | null = null;
+      try {
+        parsed = JSON.parse(xhr.responseText) as { code?: number; message?: string; data?: string };
+      } catch {
+        parsed = null;
+      }
+      resolve({ status: xhr.status, body: parsed });
+    };
+    xhr.send(formData);
   });
-  let payload: { code?: number; message?: string; data?: string } | null = null;
-  try {
-    payload = await resp.json() as { code?: number; message?: string; data?: string };
-  } catch {
-    payload = null;
+  if (payload.status < 200 || payload.status >= 300) {
+    throw new Error(payload.body?.message || `上传失败：HTTP ${payload.status}`);
   }
-  if (!resp.ok) {
-    throw new Error(payload?.message || `上传失败：HTTP ${resp.status}`);
+  if (payload.body?.code !== 200 || typeof payload.body.data !== 'string' || payload.body.data.length === 0) {
+    throw new Error(payload.body?.message || '上传失败');
   }
-  if (payload?.code !== 200 || typeof payload.data !== 'string' || payload.data.length === 0) {
-    throw new Error(payload?.message || '上传失败');
+  if (options.onUploadProgress) {
+    options.onUploadProgress(100);
   }
-  return payload.data;
+  return payload.body.data;
 }
 
 /**

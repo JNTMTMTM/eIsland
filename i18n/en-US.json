@@ -1268,10 +1268,12 @@
           "titlePlaceholder": "Briefly describe the issue",
           "content": "Details",
           "contentPlaceholder": "Provide reproduction steps, actual result, and expected result",
-          "logFile": "Log File (Optional, <=50MB)",
+          "logFile": "Log File (Optional, <=5MB)",
           "logFilePlaceholder": "Upload logs to help diagnose the issue",
           "logFileView": "View Uploaded Log",
           "logFileMeta": "Size: {{size}}MB",
+          "screenshotFile": "Screenshot (Optional, <=10MB)",
+          "screenshotFileMeta": "Size: {{size}}MB",
           "logNotePlaceholder": "Note (Optional)",
           "logNoteSubmitPrefix": "Log Note: "
         },
@@ -1282,7 +1284,10 @@
           "useBoundEmail": "Fill Email",
           "uploadLog": "Upload Log",
           "uploadingLog": "Uploading…",
-          "clearLog": "Remove Log"
+          "clearLog": "Remove Log",
+          "uploadScreenshot": "Upload Screenshot",
+          "uploadingScreenshot": "Uploading…",
+          "clearScreenshot": "Remove Screenshot"
         },
         "messages": {
           "loginRequired": "Please sign in before using issue feedback",
@@ -1293,9 +1298,14 @@
           "boundEmailFilled": "Current account email has been auto-filled",
           "logOnly": "Only .log files are supported",
           "logReadFailed": "Failed to read log file. Please try again.",
-          "logTooLarge": "Log file must be 50MB or smaller",
+          "logTooLarge": "Log file must be 5MB or smaller",
           "logUploadSuccess": "Log uploaded successfully and will be attached to the feedback",
           "logUploadFailed": "Failed to upload log. Please try again later.",
+          "screenshotOnly": "Only image screenshots are supported",
+          "screenshotReadFailed": "Failed to read screenshot file. Please try again.",
+          "screenshotTooLarge": "Screenshot file must be 10MB or smaller",
+          "screenshotUploadSuccess": "Screenshot uploaded successfully and will be attached to the feedback",
+          "screenshotUploadFailed": "Failed to upload screenshot. Please try again later.",
           "submitSuccess": "Feedback submitted. Thank you for your input.",
           "submitFailed": "Failed to submit feedback. Please try again later.",
           "loadFailed": "Failed to load feedback history"

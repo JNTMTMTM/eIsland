@@ -1412,6 +1412,37 @@
   gap: 8px;
 }
 
+.settings-about-feedback-upload-progress {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.settings-about-feedback-upload-progress-bar {
+  flex: 1;
+  min-width: 0;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(var(--color-text-rgb), 0.08);
+  overflow: hidden;
+}
+
+.settings-about-feedback-upload-progress-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(100, 180, 255, 0.8), rgba(130, 200, 255, 0.95));
+  transition: width 0.2s ease;
+}
+
+.settings-about-feedback-upload-progress-text {
+  font-size: 10px;
+  color: rgba(var(--color-text-rgb), 0.55);
+  min-width: 34px;
+  text-align: right;
+}
+
 .settings-about-feedback-log-card {
   display: flex;
   align-items: center;
@@ -1448,6 +1479,29 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-shrink: 0;
+}
+
+.settings-about-feedback-screenshot-card {
+  align-items: center;
+}
+
+.settings-about-feedback-screenshot-card .settings-about-feedback-log-card-main {
+  flex: 1;
+  justify-content: center;
+}
+
+.settings-about-feedback-screenshot-card .settings-about-feedback-log-card-actions {
+  align-self: center;
+}
+
+.settings-about-feedback-screenshot-preview {
+  width: 72px;
+  height: 48px;
+  border-radius: 6px;
+  object-fit: cover;
+  border: 1px solid rgba(var(--color-text-rgb), 0.1);
+  background: rgba(var(--color-text-rgb), 0.06);
   flex-shrink: 0;
 }
 
@@ -1615,6 +1669,19 @@
   .settings-about-feedback-log-card {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .settings-about-feedback-screenshot-preview {
+    width: 100%;
+    height: 160px;
+  }
+
+  .settings-about-feedback-screenshot-card {
+    align-items: stretch;
+  }
+
+  .settings-about-feedback-screenshot-card .settings-about-feedback-log-card-actions {
+    align-self: stretch;
   }
 
   .settings-about-feedback-log-card-actions {

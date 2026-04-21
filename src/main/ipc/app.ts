@@ -39,6 +39,26 @@ export function registerAppIpcHandlers(): void {
     app.quit();
   });
 
+  ipcMain.handle('app:pick-feedback-screenshot-file', async (event) => {
+    try {
+      const win = BrowserWindow.fromWebContents(event.sender) ?? BrowserWindow.getFocusedWindow();
+      if (!win) return null;
+      const result = await dialog.showOpenDialog(win, {
+        title: '选择截图文件',
+        defaultPath: app.getPath('pictures'),
+        filters: [{ name: '图片文件', extensions: ['png', 'jpg', 'jpeg', 'webp', 'bmp'] }],
+        properties: ['openFile'],
+      });
+      if (result.canceled || result.filePaths.length === 0) {
+        return null;
+      }
+      return result.filePaths[0] || null;
+    } catch (err) {
+      console.error('[App] pick feedback screenshot file error:', err);
+      return null;
+    }
+  });
+
   ipcMain.handle('app:pick-feedback-log-file', async (event) => {
     try {
       const win = BrowserWindow.fromWebContents(event.sender) ?? BrowserWindow.getFocusedWindow();
