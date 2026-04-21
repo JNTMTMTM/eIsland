@@ -228,7 +228,7 @@ export function SettingsTab(): ReactElement {
   const [musicSettingsPage, setMusicSettingsPage] = useState<MusicSettingsPageKey>('whitelist');
   const [pluginMarketPage, setPluginMarketPage] = useState<PluginMarketPageKey>('wallpaper');
   const [wallpaperMarketRefreshKey, setWallpaperMarketRefreshKey] = useState(0);
-  const { aiConfig, setAiConfig, fetchWeatherData, setGuide, setLogin, setRegister } = useIslandStore();
+  const { aiConfig, setAiConfig, fetchWeatherData, setGuide, setLogin, setRegister, setNotification } = useIslandStore();
   const [editingPrompt, setEditingPrompt] = useState(false);
   const [promptDraft, setPromptDraft] = useState('');
   const promptRef = useRef<HTMLTextAreaElement>(null);
@@ -1199,10 +1199,23 @@ export function SettingsTab(): ReactElement {
 
   const handleIslandDisplaySelectionChange = (selection: string): void => {
     const normalized = selection === 'primary' || /^-?\d+$/.test(selection.trim()) ? selection.trim() : 'primary';
+    if (normalized === islandDisplaySelection) {
+      return;
+    }
     setIslandDisplaySelection(normalized);
     window.api.setIslandDisplaySelection(normalized).catch(() => {
       window.api.storeWrite(ISLAND_DISPLAY_STORE_KEY, normalized).catch(() => {});
     });
+
+    const restartRequiredNotification = {
+      title: t('settings.app.notifications.configChanged.title', { defaultValue: '配置变更' }),
+      body: t('settings.app.notifications.displayChanged.body', { defaultValue: '目标显示器已变更，是否立即重启生效？' }),
+      icon: SvgIcon.SETTING,
+      type: 'restart-required',
+    } as const;
+
+    setNotification(restartRequiredNotification);
+    window.api.settingsPreview('notification:show', restartRequiredNotification).catch(() => {});
   };
 
   const islandPositionInputChanged =
