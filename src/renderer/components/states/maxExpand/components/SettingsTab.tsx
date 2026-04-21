@@ -99,6 +99,7 @@ const ISLAND_BG_VIDEO_VOLUME_STORE_KEY = 'island-bg-video-volume';
 const ISLAND_BG_VIDEO_RATE_STORE_KEY = 'island-bg-video-rate';
 const ISLAND_BG_VIDEO_HW_DECODE_STORE_KEY = 'island-bg-video-hw-decode';
 const UPDATE_SOURCE_STORE_KEY = 'update-source';
+const UPDATE_AUTO_PROMPT_STORE_KEY = 'update-auto-prompt-enabled';
 let _lastSettingsSidebarTab: SettingsSidebarTabKey = 'index';
 
 type IslandBgMediaType = 'image' | 'video';
@@ -351,6 +352,7 @@ export function SettingsTab(): ReactElement {
   const [updateVersion, setUpdateVersion] = useState<string>('');
   const [updateError, setUpdateError] = useState<string>('');
   const [downloadProgress, setDownloadProgress] = useState<{ percent: number; transferred: number; total: number; bytesPerSecond: number } | null>(null);
+  const [updateAutoPromptEnabled, setUpdateAutoPromptEnabled] = useState<boolean>(true);
   const [updateSource, setUpdateSource] = useState<'cloudflare-r2' | 'tencent-cos' | 'aliyun-oss' | 'github'>('cloudflare-r2');
   const UPDATE_SOURCES: { key: string; label: string }[] = [
     { key: 'cloudflare-r2', label: 'Cloudflare R2' },
@@ -370,6 +372,11 @@ export function SettingsTab(): ReactElement {
         : 'cloudflare-r2';
     setUpdateSource(nextSource);
     window.api.storeWrite(UPDATE_SOURCE_STORE_KEY, nextSource).catch(() => {});
+  };
+
+  const handleUpdateAutoPromptEnabledChange = (enabled: boolean): void => {
+    setUpdateAutoPromptEnabled(enabled);
+    window.api.storeWrite(UPDATE_AUTO_PROMPT_STORE_KEY, enabled).catch(() => {});
   };
 
   const persistIslandOpacity = (opacity: number): void => {
@@ -1020,6 +1027,15 @@ export function SettingsTab(): ReactElement {
     return () => { cancelled = true; };
   }, []);
 
+  useEffect(() => {
+    let cancelled = false;
+    window.api.storeRead(UPDATE_AUTO_PROMPT_STORE_KEY).then((value) => {
+      if (cancelled) return;
+      setUpdateAutoPromptEnabled(typeof value === 'boolean' ? value : true);
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+
   /** 监听下载进度 */
   useEffect(() => {
     const unsub = window.api.onUpdaterProgress?.((progress) => {
@@ -1027,6 +1043,16 @@ export function SettingsTab(): ReactElement {
     });
     return () => { unsub?.(); };
   }, []);
+
+  useEffect(() => {
+    const unsub = window.api.onUpdaterAvailable?.((data) => {
+      if (!updateAutoPromptEnabled) return;
+      setUpdateVersion(data.version);
+      setUpdateStatus('available');
+      setUpdateError('');
+    });
+    return () => { unsub?.(); };
+  }, [updateAutoPromptEnabled]);
 
   /** 检查更新（通过 electron-updater） */
   const handleCheckUpdate = async (): Promise<void> => {
@@ -2205,12 +2231,14 @@ export function SettingsTab(): ReactElement {
               aboutVersion={aboutVersion}
               updateSource={updateSource}
               updateSources={UPDATE_SOURCES}
+              updateAutoPromptEnabled={updateAutoPromptEnabled}
               updateStatus={updateStatus}
               updateVersion={updateVersion}
               downloadProgress={downloadProgress}
               currentSourceLabel={currentSourceLabel}
               updateError={updateError}
               onUpdateSourceChange={handleUpdateSourceChange}
+              onUpdateAutoPromptEnabledChange={handleUpdateAutoPromptEnabledChange}
               onCheckUpdate={handleCheckUpdate}
               onDownloadUpdate={handleDownloadUpdate}
               onInstallUpdate={handleInstallUpdate}

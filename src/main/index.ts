@@ -101,6 +101,7 @@ import {
   readWhitelistConfig, readLyricsSourceConfig, readSmtcUnsubscribeMsConfig,
   readHideProcessListConfig, readIslandPositionOffsetConfig, writeIslandPositionOffsetConfig,
   readClipboardUrlMonitorEnabledConfig, readClipboardUrlDetectModeConfig, readClipboardUrlBlacklistConfig,
+  readUpdateAutoPromptConfig,
 } from './config/storeConfig';
 import type { IslandPositionOffset } from './config/storeConfig';
 
@@ -613,6 +614,7 @@ app.whenReady().then(() => {
     getMainWindow: () => mainWindow,
     getAppPath: () => app.getAppPath(),
     isPackaged: () => app.isPackaged,
+    shouldAutoPromptUpdate: () => readUpdateAutoPromptConfig(),
     autoCheckDelayMs: 5000,
   });
 

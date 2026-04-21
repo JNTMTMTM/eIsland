@@ -45,12 +45,14 @@ interface UpdateSettingsSectionProps {
   aboutVersion: string;
   updateSource: string;
   updateSources: UpdateSourceOption[];
+  updateAutoPromptEnabled: boolean;
   updateStatus: UpdateStatus;
   updateVersion: string;
   downloadProgress: DownloadProgressData | null;
   currentSourceLabel: string;
   updateError: string;
   onUpdateSourceChange: (value: string) => void;
+  onUpdateAutoPromptEnabledChange: (enabled: boolean) => void;
   onCheckUpdate: () => void;
   onDownloadUpdate: () => void;
   onInstallUpdate: () => void;
@@ -65,12 +67,14 @@ export function UpdateSettingsSection({
   aboutVersion,
   updateSource,
   updateSources,
+  updateAutoPromptEnabled,
   updateStatus,
   updateVersion,
   downloadProgress,
   currentSourceLabel,
   updateError,
   onUpdateSourceChange,
+  onUpdateAutoPromptEnabledChange,
   onCheckUpdate,
   onDownloadUpdate,
   onInstallUpdate,
@@ -122,6 +126,18 @@ export function UpdateSettingsSection({
                 </label>
               ))}
             </div>
+          </div>
+
+          <div className="settings-card-subgroup">
+            <div className="settings-card-subgroup-title">{t('settings.update.autoPromptTitle', { defaultValue: '更新提示' })}</div>
+            <label className="settings-card-check">
+              <input
+                type="checkbox"
+                checked={updateAutoPromptEnabled}
+                onChange={(e) => onUpdateAutoPromptEnabledChange(e.target.checked)}
+              />
+              <span>{t('settings.update.autoPromptEnabled', { defaultValue: '自动提示版本更新' })}</span>
+            </label>
           </div>
         </div>
 

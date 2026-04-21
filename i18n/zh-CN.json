@@ -1007,6 +1007,8 @@
     "update": {
       "versionCardTitle": "版本信息",
       "versionCardHint": "查看当前版本并选择更新源，应用所有补丁包均通过该更新源下载",
+      "autoPromptTitle": "更新提示",
+      "autoPromptEnabled": "自动提示版本更新",
       "actionCardTitle": "检查与安装",
       "actionCardHint": "手动触发检查，有新版本时可下载安装；下载完成后点击“安装并重启”应用更新",
       "currentVersion": "当前版本",

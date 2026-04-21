@@ -171,6 +171,9 @@ export const CLIPBOARD_URL_BLACKLIST_STORE_KEY = 'clipboard-url-blacklist';
 /** 开机自启模式存储键名 */
 export const AUTOSTART_MODE_STORE_KEY = 'autostart-mode';
 
+/** 自动提示版本更新开关存储键名 */
+export const UPDATE_AUTO_PROMPT_STORE_KEY = 'update-auto-prompt-enabled';
+
 /** 快速导航卡片顺序存储键名 */
 export const NAV_ORDER_STORE_KEY = 'nav-order';
 
@@ -427,4 +430,13 @@ export function readClipboardUrlDetectModeConfig(): ClipboardUrlDetectMode {
 export function readClipboardUrlBlacklistConfig(): string[] {
   const data = readJsonFile(CLIPBOARD_URL_BLACKLIST_STORE_KEY);
   return data !== undefined ? sanitizeClipboardUrlBlacklist(data) : DEFAULT_CLIPBOARD_URL_BLACKLIST;
+}
+
+/**
+ * 读取自动提示版本更新开关配置
+ * @returns 是否启用自动提示
+ */
+export function readUpdateAutoPromptConfig(): boolean {
+  const data = readJsonFile(UPDATE_AUTO_PROMPT_STORE_KEY);
+  return typeof data === 'boolean' ? data : true;
 }

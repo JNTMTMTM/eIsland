@@ -1007,6 +1007,8 @@
     "update": {
       "versionCardTitle": "Version Info",
       "versionCardHint": "View the current version and pick an update source. All patches are downloaded through the selected source.",
+      "autoPromptTitle": "Update Prompt",
+      "autoPromptEnabled": "Auto prompt for new versions",
       "actionCardTitle": "Check & Install",
       "actionCardHint": "Trigger a manual check; when a new version is available you can download it. After the download finishes, click 'Install & Restart' to apply.",
       "currentVersion": "Current Version",
