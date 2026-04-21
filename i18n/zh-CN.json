@@ -754,11 +754,11 @@
         "islandOpacityHint": "数值越低越透明（10% - 100%），调整后立即生效"
       },
       "behavior": {
-        "springTitle": "灵动岛弹性动画 (立即生效)",
+        "springTitle": "灵动岛弹性动画",
         "springHint": "关闭后，展开和收起动画将变得更加平滑内敛，消除弹跳感",
         "springToggle": "启用弹性动画",
-        "mouseLeaveTitle": "鼠标移开自动收回 (重启后生效)",
-        "mouseLeaveHint": "启用后，鼠标离开灵动岛时将自动回到空闲状态（若正在播放音乐则切到歌词态）",
+        "mouseLeaveTitle": "鼠标移开自动收回",
+        "mouseLeaveHint": "启用后，鼠标离开灵动岛时将自动回到空闲状态（重启后生效）",
         "expandLeaveToggle": "展开态（Expand）鼠标移开后自动收回",
         "maxExpandLeaveToggle": "最大展开态（MaxExpand）鼠标移开后自动收回",
         "windowModeTitle": "待办事项 / 倒数日 / 设置 打开方式",

@@ -754,11 +754,11 @@
         "islandOpacityHint": "Lower value = more transparent (10% - 100%)"
       },
       "behavior": {
-        "springTitle": "Spring Animation (Instant)",
+        "springTitle": "Spring Animation",
         "springHint": "Disable to reduce bounce and make transitions smoother",
         "springToggle": "Enable spring animation",
-        "mouseLeaveTitle": "Auto collapse on mouse leave (Restart required)",
-        "mouseLeaveHint": "Collapse when cursor leaves island area",
+        "mouseLeaveTitle": "Auto collapse on mouse leave",
+        "mouseLeaveHint": "Collapse when cursor leaves island area (Restart required)",
         "expandLeaveToggle": "Collapse from Expand state on mouse leave",
         "maxExpandLeaveToggle": "Collapse from MaxExpand state on mouse leave",
         "windowModeTitle": "Todo / Countdown / Settings open mode",
