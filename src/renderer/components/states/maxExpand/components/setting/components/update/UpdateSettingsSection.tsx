@@ -112,6 +112,11 @@ export function UpdateSettingsSection({
 
           <div className="settings-card-subgroup">
             <div className="settings-card-subgroup-title">{t('settings.update.source', { defaultValue: '更新源' })}</div>
+            <div className="settings-music-hint" style={{ marginBottom: 6, whiteSpace: 'pre-line' }}>
+              {t('settings.update.sourceHint', {
+                defaultValue: 'Cloudflare R2：全球访问稳定，综合速度均衡\nTencent COS：国内网络通常更快\nAliyun OSS：国内节点覆盖广，峰值速度高\nGitHub Releases：海外链路较稳，国内可能偏慢',
+              })}
+            </div>
             <div className="settings-card-inline-row">
               {updateSources.map((s) => (
                 <label key={s.key} className="settings-card-check">

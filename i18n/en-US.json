@@ -346,7 +346,7 @@
     "update": {
       "availableTitle": "New version available",
       "availableBody": "Download now?",
-      "currentSource": "Current update source: {{source}}",
+      "currentSource": "Current OSS: {{source}}",
       "readyTitle": "Update ready",
       "readyBody": "Version v{{version}} has been downloaded. Install now?"
     },
@@ -1016,6 +1016,7 @@
       "actionCardHint": "Trigger a manual check; when a new version is available you can download it. After the download finishes, click 'Install & Restart' to apply.",
       "currentVersion": "Current Version",
       "source": "Update Source",
+      "sourceHint": "Cloudflare R2: stable global access with balanced overall speed\nTencent COS: usually faster in mainland China\nAliyun OSS: broad domestic node coverage with high peak throughput\nGitHub Releases: stable overseas links, may be slower in mainland China",
       "latestVersion": "Latest Version",
       "downloadingFrom": "Downloading update from {{source}}...",
       "preparingDownload": "Preparing download...",
