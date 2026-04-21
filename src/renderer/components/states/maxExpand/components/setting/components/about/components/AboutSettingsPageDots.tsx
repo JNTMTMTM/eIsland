@@ -36,6 +36,12 @@ interface AboutSettingsPageDotsProps {
   setAboutPage: (page: AboutSettingsPageKey) => void;
 }
 
+/**
+ * 关于设置页分页圆点切换组件。
+ *
+ * @param props 组件属性
+ * @returns 分页圆点按钮组
+ */
 export function AboutSettingsPageDots({
   aboutPage,
   aboutPages,
