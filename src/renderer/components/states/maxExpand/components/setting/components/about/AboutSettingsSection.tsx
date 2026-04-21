@@ -160,7 +160,10 @@ export function AboutSettingsSection({ aboutVersion }: AboutSettingsSectionProps
 
   return (
     <div className="max-expand-settings-section settings-about settings-about-paged">
-      <div className="max-expand-settings-title">{t('settings.labels.about', { defaultValue: '关于软件' })}</div>
+      <div className="max-expand-settings-title settings-app-title-line">
+        <span>{t('settings.labels.about', { defaultValue: '关于软件' })}</span>
+        <span className="settings-app-title-sub">- {pageLabels[aboutPage]}</span>
+      </div>
       <div className="settings-about-layout" ref={aboutLayoutRef}>
         <div className="settings-about-main">
           {aboutPage === 'development' && renderDevelopmentPage()}
