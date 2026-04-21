@@ -38,7 +38,7 @@ interface RegisterUpdaterIpcHandlersOptions {
 
 const DEFAULT_UPDATE_SOURCE: UpdateSourceKey = 'cloudflare-r2';
 const R2_UPDATE_URL = 'https://pub-4c1e73c3c2004901aecd6ca014cb16bd.r2.dev';
-const COS_UPDATE_URL = 'https://cdn.pyisland.com/updates';
+const COS_UPDATE_URL = 'https://eisland-update-1325659831.cos.ap-nanjing.myqcloud.com';
 const GITHUB_OWNER = 'JNTMTMTM';
 const GITHUB_REPO = 'eIsland';
 
