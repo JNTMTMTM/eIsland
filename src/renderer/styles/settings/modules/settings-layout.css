@@ -2264,6 +2264,10 @@
   flex-shrink: 0;
 }
 
+.settings-user-info-gender-icon--original {
+  filter: none;
+}
+
 .settings-user-info-nav-cards {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

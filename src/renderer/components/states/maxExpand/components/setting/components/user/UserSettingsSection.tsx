@@ -70,6 +70,10 @@ const getGenderIcon = (gender: UserAccountGender | null | undefined): string => 
   return SvgIcon.UNKNOWN;
 };
 
+const shouldKeepGenderIconOriginalColor = (gender: UserAccountGender | null | undefined): boolean => {
+  return gender === 'male' || gender === 'female';
+};
+
 const formatDateTime = (value: string | null | undefined): string => {
   if (!value) return '—';
   return value.replace('T', ' ');
@@ -637,7 +641,11 @@ export function UserSettingsSection(): ReactElement {
               <div className="settings-user-info-summary-identity">
                 <div className="settings-user-info-summary-name">
                   {profile?.username ?? '—'}
-                  <img className="settings-user-info-gender-icon" src={getGenderIcon(genderValue)} alt={genderLabel} />
+                  <img
+                    className={`settings-user-info-gender-icon${shouldKeepGenderIconOriginalColor(genderValue) ? ' settings-user-info-gender-icon--original' : ''}`}
+                    src={getGenderIcon(genderValue)}
+                    alt={genderLabel}
+                  />
                 </div>
                 <div className="settings-user-info-summary-email">{profile?.email ?? '—'}</div>
               </div>
