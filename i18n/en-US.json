@@ -1267,13 +1267,19 @@
           "title": "Title",
           "titlePlaceholder": "Briefly describe the issue",
           "content": "Details",
-          "contentPlaceholder": "Provide reproduction steps, actual result, and expected result"
+          "contentPlaceholder": "Provide reproduction steps, actual result, and expected result",
+          "logFile": "Log File (Optional, <=50MB)",
+          "logFilePlaceholder": "Upload logs to help diagnose the issue",
+          "logFileView": "View Uploaded Log"
         },
         "actions": {
           "submit": "Submit Feedback",
           "submitting": "Submitting…",
           "refresh": "Refresh",
-          "useBoundEmail": "Fill Email"
+          "useBoundEmail": "Fill Email",
+          "uploadLog": "Upload Log",
+          "uploadingLog": "Uploading…",
+          "clearLog": "Remove Log"
         },
         "messages": {
           "loginRequired": "Please sign in before using issue feedback",
@@ -1282,6 +1288,11 @@
           "captchaCancelled": "Complete slider verification before submitting feedback",
           "boundEmailNotFound": "No bound email found for the current account",
           "boundEmailFilled": "Current account email has been auto-filled",
+          "logOnly": "Only .log files are supported",
+          "logReadFailed": "Failed to read log file. Please try again.",
+          "logTooLarge": "Log file must be 50MB or smaller",
+          "logUploadSuccess": "Log uploaded successfully and will be attached to the feedback",
+          "logUploadFailed": "Failed to upload log. Please try again later.",
           "submitSuccess": "Feedback submitted. Thank you for your input.",
           "submitFailed": "Failed to submit feedback. Please try again later.",
           "loadFailed": "Failed to load feedback history"

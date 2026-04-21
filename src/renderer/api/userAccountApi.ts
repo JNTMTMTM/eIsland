@@ -188,6 +188,7 @@ export interface SubmitUserIssueFeedbackPayload {
   title: string;
   content: string;
   contact?: string;
+  feedbackLogUrl?: string;
   clientVersion?: string;
   captchaTicket: string;
   captchaRandstr: string;
@@ -672,6 +673,7 @@ export function submitUserIssueFeedback(
       title: payload.title,
       content: payload.content,
       contact: payload.contact ?? '',
+      feedbackLogUrl: payload.feedbackLogUrl ?? '',
       clientVersion: payload.clientVersion ?? '',
       captchaTicket: payload.captchaTicket,
       captchaRandstr: payload.captchaRandstr,
@@ -725,6 +727,48 @@ export async function uploadUserAvatar(file: File, token: string, captcha: UserC
   formData.append('captchaRandstr', captcha.randstr);
   formData.append('captchaSign', captcha.sign);
   const resp = await fetch(`${USER_ACCOUNT_API_BASE}/v1/upload/user-avatar`, {
+    method: 'POST',
+    headers: {
+      [APP_NAME_HEADER]: APP_NAME_VALUE,
+      ...(clientVersion ? { [CLIENT_VERSION_HEADER]: clientVersion } : {}),
+      Authorization: `Bearer ${token}`,
+      ...replayHeaders,
+    },
+    body: formData,
+  });
+  let payload: { code?: number; message?: string; data?: string } | null = null;
+  try {
+    payload = await resp.json() as { code?: number; message?: string; data?: string };
+  } catch {
+    payload = null;
+  }
+  if (!resp.ok) {
+    throw new Error(payload?.message || `上传失败：HTTP ${resp.status}`);
+  }
+  if (payload?.code !== 200 || typeof payload.data !== 'string' || payload.data.length === 0) {
+    throw new Error(payload?.message || '上传失败');
+  }
+  return payload.data;
+}
+
+/**
+ * 上传问题反馈日志文件到 R2。
+ * @param file 日志文件。
+ * @param token 用户 token。
+ * @returns 上传后的公网 URL。
+ */
+export async function uploadUserFeedbackLog(file: File, token: string): Promise<string> {
+  if (!token || token.trim().length === 0) {
+    throw new Error('未登录');
+  }
+  if (!file.name.toLowerCase().endsWith('.log')) {
+    throw new Error('仅支持上传 .log 日志文件');
+  }
+  const clientVersion = await resolveClientVersion();
+  const replayHeaders = buildReplayHeaders();
+  const formData = new FormData();
+  formData.append('file', file);
+  const resp = await fetch(`${USER_ACCOUNT_API_BASE}/v1/upload/feedback-log`, {
     method: 'POST',
     headers: {
       [APP_NAME_HEADER]: APP_NAME_VALUE,

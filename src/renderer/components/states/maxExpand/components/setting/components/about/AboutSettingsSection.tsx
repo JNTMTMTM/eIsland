@@ -31,6 +31,7 @@ import avatarImg from '../../../../../../../assets/avatar/T.jpg';
 import {
   fetchMyIssueFeedbackList,
   submitUserIssueFeedback,
+  uploadUserFeedbackLog,
   type UserIssueFeedbackItem,
 } from '../../../../../../../api/userAccountApi';
 import { runSliderCaptcha } from '../../../../../../../utils/sliderCaptcha';
@@ -73,6 +74,7 @@ interface AboutSettingsSectionProps {
 }
 
 const ABOUT_PAGES: AboutSettingsPageKey[] = ['development', 'feedback'];
+const MAX_FEEDBACK_LOG_SIZE = 50 * 1024 * 1024;
 
 type FeedbackMessageType = 'success' | 'error' | 'info';
 
@@ -103,6 +105,9 @@ export function AboutSettingsSection({ aboutVersion }: AboutSettingsSectionProps
   const [feedbackContent, setFeedbackContent] = useState('');
   const [feedbackContact, setFeedbackContact] = useState('');
   const [feedbackStatusFilter, setFeedbackStatusFilter] = useState('');
+  const [feedbackLogFile, setFeedbackLogFile] = useState<File | null>(null);
+  const [feedbackLogUrl, setFeedbackLogUrl] = useState('');
+  const [uploadingFeedbackLog, setUploadingFeedbackLog] = useState(false);
   const [submittingFeedback, setSubmittingFeedback] = useState(false);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [feedbackItems, setFeedbackItems] = useState<UserIssueFeedbackItem[]>([]);
@@ -177,6 +182,88 @@ export function AboutSettingsSection({ aboutVersion }: AboutSettingsSectionProps
       type: 'info',
       text: t('settings.about.feedback.messages.boundEmailFilled', { defaultValue: '已自动填充当前账号邮箱' }),
     });
+  };
+
+  const handleSelectFeedbackLogFile = async (file: File | null): Promise<void> => {
+    if (!file) {
+      return;
+    }
+    if (!file.name.toLowerCase().endsWith('.log')) {
+      setFeedbackMessage({
+        type: 'error',
+        text: t('settings.about.feedback.messages.logOnly', { defaultValue: '仅支持上传 .log 日志文件' }),
+      });
+      return;
+    }
+    if (!token) {
+      setFeedbackMessage({
+        type: 'error',
+        text: t('settings.about.feedback.messages.loginRequired', { defaultValue: '请先登录后再使用反馈功能' }),
+      });
+      return;
+    }
+    if (file.size > MAX_FEEDBACK_LOG_SIZE) {
+      setFeedbackMessage({
+        type: 'error',
+        text: t('settings.about.feedback.messages.logTooLarge', { defaultValue: '日志文件不能超过 50MB' }),
+      });
+      return;
+    }
+    setUploadingFeedbackLog(true);
+    try {
+      const logUrl = await uploadUserFeedbackLog(file, token);
+      setFeedbackLogFile(file);
+      setFeedbackLogUrl(logUrl);
+      setFeedbackMessage({
+        type: 'success',
+        text: t('settings.about.feedback.messages.logUploadSuccess', { defaultValue: '日志上传成功，提交反馈时会自动携带' }),
+      });
+    } catch (err) {
+      setFeedbackMessage({
+        type: 'error',
+        text: err instanceof Error
+          ? err.message
+          : t('settings.about.feedback.messages.logUploadFailed', { defaultValue: '日志上传失败，请稍后重试' }),
+      });
+    } finally {
+      setUploadingFeedbackLog(false);
+    }
+  };
+
+  const handleUploadFeedbackLogClick = (): void => {
+    void (async () => {
+      try {
+        const filePath = await window.api.pickFeedbackLogFile();
+        if (!filePath) {
+          return;
+        }
+        const fileName = (filePath.split(/[/\\]/).pop() || '').trim();
+        if (!fileName || !fileName.toLowerCase().endsWith('.log')) {
+          setFeedbackMessage({
+            type: 'error',
+            text: t('settings.about.feedback.messages.logOnly', { defaultValue: '仅支持上传 .log 日志文件' }),
+          });
+          return;
+        }
+        const bytes = await window.api.readLocalFileAsBuffer(filePath);
+        if (!bytes || bytes.length === 0) {
+          setFeedbackMessage({
+            type: 'error',
+            text: t('settings.about.feedback.messages.logReadFailed', { defaultValue: '日志文件读取失败，请重试' }),
+          });
+          return;
+        }
+        const safeBytes = new Uint8Array(bytes.byteLength);
+        safeBytes.set(bytes);
+        const file = new File([safeBytes], fileName, { type: 'text/plain' });
+        await handleSelectFeedbackLogFile(file);
+      } catch {
+        setFeedbackMessage({
+          type: 'error',
+          text: t('settings.about.feedback.messages.logReadFailed', { defaultValue: '日志文件读取失败，请重试' }),
+        });
+      }
+    })();
   };
 
   useEffect(() => {
@@ -327,6 +414,53 @@ export function AboutSettingsSection({ aboutVersion }: AboutSettingsSectionProps
                   disabled={submittingFeedback}
                 />
               </label>
+              <label className="settings-field settings-about-feedback-field-full">
+                <span className="settings-field-label">{t('settings.about.feedback.fields.logFile', { defaultValue: '日志文件（选填，<=50MB）' })}</span>
+                <div className="settings-about-feedback-log-row">
+                  <input
+                    className="settings-field-input"
+                    value={feedbackLogFile
+                      ? `${feedbackLogFile.name} (${(feedbackLogFile.size / (1024 * 1024)).toFixed(2)}MB)`
+                      : ''}
+                    placeholder={t('settings.about.feedback.fields.logFilePlaceholder', { defaultValue: '可上传日志辅助定位问题' })}
+                    readOnly
+                    disabled
+                  />
+                  <button
+                    type="button"
+                    className="settings-user-secondary-btn settings-about-feedback-log-btn"
+                    onClick={handleUploadFeedbackLogClick}
+                    disabled={submittingFeedback || uploadingFeedbackLog || !token}
+                  >
+                    {uploadingFeedbackLog
+                      ? t('settings.about.feedback.actions.uploadingLog', { defaultValue: '上传中…' })
+                      : t('settings.about.feedback.actions.uploadLog', { defaultValue: '上传日志' })}
+                  </button>
+                  {feedbackLogUrl ? (
+                    <button
+                      type="button"
+                      className="settings-user-secondary-btn settings-about-feedback-log-btn"
+                      onClick={() => {
+                        setFeedbackLogFile(null);
+                        setFeedbackLogUrl('');
+                      }}
+                      disabled={submittingFeedback || uploadingFeedbackLog}
+                    >
+                      {t('settings.about.feedback.actions.clearLog', { defaultValue: '移除日志' })}
+                    </button>
+                  ) : null}
+                </div>
+                {feedbackLogUrl ? (
+                  <a
+                    className="settings-about-link"
+                    href={feedbackLogUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {t('settings.about.feedback.fields.logFileView', { defaultValue: '查看已上传日志' })}
+                  </a>
+                ) : null}
+              </label>
             </div>
 
             {feedbackMessage ? (
@@ -387,6 +521,7 @@ export function AboutSettingsSection({ aboutVersion }: AboutSettingsSectionProps
                         title: feedbackTitle.trim(),
                         content: feedbackContent.trim(),
                         contact: feedbackContact.trim(),
+                        feedbackLogUrl: feedbackLogUrl || '',
                         clientVersion: (aboutVersion || '').trim(),
                         captchaTicket: captcha.ticket,
                         captchaRandstr: captcha.randstr,
@@ -402,6 +537,8 @@ export function AboutSettingsSection({ aboutVersion }: AboutSettingsSectionProps
                       }
                       setFeedbackTitle('');
                       setFeedbackContent('');
+                      setFeedbackLogFile(null);
+                      setFeedbackLogUrl('');
                       setFeedbackMessage({
                         type: 'success',
                         text: t('settings.about.feedback.messages.submitSuccess', { defaultValue: '反馈已提交，感谢你的建议' }),

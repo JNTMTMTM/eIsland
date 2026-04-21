@@ -1267,13 +1267,19 @@
           "title": "标题",
           "titlePlaceholder": "请简要描述你遇到的问题",
           "content": "详细描述",
-          "contentPlaceholder": "请提供复现步骤、实际结果、期望结果等信息"
+          "contentPlaceholder": "请提供复现步骤、实际结果、期望结果等信息",
+          "logFile": "日志文件（选填，<=50MB）",
+          "logFilePlaceholder": "可上传日志辅助定位问题",
+          "logFileView": "查看已上传日志"
         },
         "actions": {
           "submit": "提交反馈",
           "submitting": "提交中…",
           "refresh": "刷新",
-          "useBoundEmail": "填充邮箱"
+          "useBoundEmail": "填充邮箱",
+          "uploadLog": "上传日志",
+          "uploadingLog": "上传中…",
+          "clearLog": "移除日志"
         },
         "messages": {
           "loginRequired": "请先登录后再使用反馈功能",
@@ -1282,6 +1288,11 @@
           "captchaCancelled": "请完成滑块验证后再提交反馈",
           "boundEmailNotFound": "当前账号未找到绑定邮箱",
           "boundEmailFilled": "已自动填充当前账号邮箱",
+          "logOnly": "仅支持上传 .log 日志文件",
+          "logReadFailed": "日志文件读取失败，请重试",
+          "logTooLarge": "日志文件不能超过 50MB",
+          "logUploadSuccess": "日志上传成功，提交反馈时会自动携带",
+          "logUploadFailed": "日志上传失败，请稍后重试",
           "submitSuccess": "反馈已提交，感谢你的建议",
           "submitFailed": "反馈提交失败，请稍后重试",
           "loadFailed": "反馈记录加载失败"

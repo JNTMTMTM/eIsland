@@ -25,7 +25,7 @@
  * @author 鸡哥
  */
 
-import { app, BrowserWindow, ipcMain, shell } from 'electron';
+import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron';
 import { basename } from 'path';
 import { clearLogsCacheFiles, ensureLogsDir } from '../log/mainLog';
 import { openStandaloneWindow, closeStandaloneWindow } from '../window/standaloneWindow';
@@ -37,6 +37,31 @@ import { openStandaloneWindow, closeStandaloneWindow } from '../window/standalon
 export function registerAppIpcHandlers(): void {
   ipcMain.on('app:quit', () => {
     app.quit();
+  });
+
+  ipcMain.handle('app:pick-feedback-log-file', async (event) => {
+    try {
+      const win = BrowserWindow.fromWebContents(event.sender) ?? BrowserWindow.getFocusedWindow();
+      if (!win) return null;
+      const logDir = ensureLogsDir();
+      const result = await dialog.showOpenDialog(win, {
+        title: '选择日志文件',
+        defaultPath: logDir,
+        filters: [{ name: '日志文件', extensions: ['log'] }],
+        properties: ['openFile'],
+      });
+      if (result.canceled || result.filePaths.length === 0) {
+        return null;
+      }
+      const selectedPath = result.filePaths[0] || '';
+      if (!selectedPath.toLowerCase().endsWith('.log')) {
+        return null;
+      }
+      return selectedPath;
+    } catch (err) {
+      console.error('[App] pick feedback log file error:', err);
+      return null;
+    }
   });
 
   ipcMain.handle('app:restart', () => {

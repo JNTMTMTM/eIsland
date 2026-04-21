@@ -80,6 +80,7 @@ declare global {
       quitApp: () => void;
       restartApp: () => Promise<boolean>;
       openLogsFolder: () => Promise<boolean>;
+      pickFeedbackLogFile: () => Promise<string | null>;
       clearLogsCache: () => Promise<{ success: boolean; freedBytes: number }>;
       windowMinimize: () => void;
       windowMaximize: () => void;

@@ -170,6 +170,12 @@ const api = {
     return ipcRenderer.invoke('app:open-logs-folder');
   },
   /**
+   * 选择反馈日志文件（默认定位日志目录）
+   */
+  pickFeedbackLogFile: (): Promise<string | null> => {
+    return ipcRenderer.invoke('app:pick-feedback-log-file');
+  },
+  /**
    * 清理日志缓存
    */
   clearLogsCache: (): Promise<{ success: boolean; freedBytes: number }> => {
