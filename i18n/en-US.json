@@ -1252,6 +1252,57 @@
         "link": "Original Link",
         "notice": "NASA images are used under NASA image policy and do not imply NASA endorsement."
       },
+      "feedback": {
+        "intro": "Issue reports are reviewed in the admin panel. Please include complete reproduction details when possible.",
+        "types": {
+          "bug": "Bug",
+          "feature": "Feature Request",
+          "experience": "Experience Improvement",
+          "other": "Other"
+        },
+        "fields": {
+          "type": "Feedback Type",
+          "contact": "Contact (Optional)",
+          "contactPlaceholder": "Email, QQ, or any reachable contact",
+          "title": "Title",
+          "titlePlaceholder": "Briefly describe the issue",
+          "content": "Details",
+          "contentPlaceholder": "Provide reproduction steps, actual result, and expected result"
+        },
+        "actions": {
+          "submit": "Submit Feedback",
+          "submitting": "Submitting…",
+          "refresh": "Refresh"
+        },
+        "messages": {
+          "loginRequired": "Please sign in before using issue feedback",
+          "titleRequired": "Please enter a feedback title",
+          "contentRequired": "Please enter detailed description",
+          "captchaCancelled": "Complete slider verification before submitting feedback",
+          "submitSuccess": "Feedback submitted. Thank you for your input.",
+          "submitFailed": "Failed to submit feedback. Please try again later.",
+          "loadFailed": "Failed to load feedback history"
+        },
+        "history": {
+          "title": "My Feedback History",
+          "loading": "Loading feedback history…",
+          "empty": "No feedback records yet",
+          "loginHint": "Sign in to view your submitted feedback history",
+          "adminReply": "Admin Reply: {{reply}}",
+          "meta": "Type: {{type}} · Submitted: {{time}}",
+          "filters": {
+            "all": "All Status",
+            "pending": "Pending",
+            "resolved": "Resolved",
+            "rejected": "Rejected"
+          },
+          "status": {
+            "pending": "Pending",
+            "resolved": "Resolved",
+            "rejected": "Rejected"
+          }
+        }
+      },
       "copyright": "© JNTMTMTM, pyisland.com. All rights reserved.",
       "slogan": "Algorithms explain everything"
     },

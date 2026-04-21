@@ -24,10 +24,21 @@
  * @author 鸡哥
  */
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import avatarImg from '../../../../../../../assets/avatar/T.jpg';
+import {
+  fetchMyIssueFeedbackList,
+  submitUserIssueFeedback,
+  type UserIssueFeedbackItem,
+} from '../../../../../../../api/userAccountApi';
+import { runSliderCaptcha } from '../../../../../../../utils/sliderCaptcha';
+import {
+  readLocalProfile,
+  readLocalToken,
+  subscribeUserAccountSessionChanged,
+} from '../../../../../../../utils/userAccount';
 import {
   AboutSettingsPageDots,
   type AboutSettingsPageKey,
@@ -63,6 +74,21 @@ interface AboutSettingsSectionProps {
 
 const ABOUT_PAGES: AboutSettingsPageKey[] = ['development', 'feedback'];
 
+type FeedbackMessageType = 'success' | 'error' | 'info';
+
+interface FeedbackMessage {
+  type: FeedbackMessageType;
+  text: string;
+}
+
+function normalizeFeedbackStatus(value: string | undefined): string {
+  const status = (value || '').toLowerCase();
+  if (status === 'resolved' || status === 'rejected' || status === 'pending') {
+    return status;
+  }
+  return 'pending';
+}
+
 /**
  * 渲染关于软件设置区块
  * @param aboutVersion - 当前软件版本号
@@ -71,14 +97,77 @@ const ABOUT_PAGES: AboutSettingsPageKey[] = ['development', 'feedback'];
 export function AboutSettingsSection({ aboutVersion }: AboutSettingsSectionProps): ReactElement {
   const { t } = useTranslation();
   const [aboutPage, setAboutPage] = useState<AboutSettingsPageKey>('development');
+  const [token, setToken] = useState<string | null>(() => readLocalToken());
+  const [feedbackType, setFeedbackType] = useState('bug');
+  const [feedbackTitle, setFeedbackTitle] = useState('');
+  const [feedbackContent, setFeedbackContent] = useState('');
+  const [feedbackContact, setFeedbackContact] = useState('');
+  const [feedbackStatusFilter, setFeedbackStatusFilter] = useState('');
+  const [submittingFeedback, setSubmittingFeedback] = useState(false);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+  const [feedbackItems, setFeedbackItems] = useState<UserIssueFeedbackItem[]>([]);
+  const [feedbackMessage, setFeedbackMessage] = useState<FeedbackMessage | null>(null);
   const aboutPageRef = useRef<AboutSettingsPageKey>('development');
   const aboutLayoutRef = useRef<HTMLDivElement | null>(null);
   aboutPageRef.current = aboutPage;
+
+  const feedbackTypeOptions = useMemo(
+    () => [
+      { value: 'bug', label: t('settings.about.feedback.types.bug', { defaultValue: 'Bug 问题' }) },
+      { value: 'feature', label: t('settings.about.feedback.types.feature', { defaultValue: '功能建议' }) },
+      { value: 'experience', label: t('settings.about.feedback.types.experience', { defaultValue: '体验优化' }) },
+      { value: 'other', label: t('settings.about.feedback.types.other', { defaultValue: '其他' }) },
+    ],
+    [t],
+  );
 
   const pageLabels: Record<AboutSettingsPageKey, string> = {
     development: t('settings.about.pages.development', { defaultValue: '开发信息' }),
     feedback: t('settings.about.pages.feedback', { defaultValue: '问题反馈' }),
   };
+
+  useEffect(() => {
+    const syncSession = (): void => {
+      setToken(readLocalToken());
+    };
+    return subscribeUserAccountSessionChanged(syncSession);
+  }, []);
+
+  const loadFeedbackHistory = async (): Promise<void> => {
+    if (!token) {
+      setFeedbackItems([]);
+      return;
+    }
+    setLoadingHistory(true);
+    const result = await fetchMyIssueFeedbackList(token, {
+      status: feedbackStatusFilter || undefined,
+      page: 1,
+      pageSize: 20,
+    });
+    setLoadingHistory(false);
+    if (!result.ok || !result.data) {
+      if (result.code === 401 || result.code === 4011) {
+        setFeedbackItems([]);
+        setFeedbackMessage({
+          type: 'error',
+          text: t('settings.about.feedback.messages.loginRequired', { defaultValue: '请先登录后再使用反馈功能' }),
+        });
+        return;
+      }
+      setFeedbackMessage({
+        type: 'error',
+        text: result.message || t('settings.about.feedback.messages.loadFailed', { defaultValue: '反馈记录加载失败' }),
+      });
+      return;
+    }
+    setFeedbackItems(Array.isArray(result.data.items) ? result.data.items : []);
+  };
+
+  useEffect(() => {
+    if (aboutPage !== 'feedback') return;
+    void loadFeedbackHistory();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [aboutPage, token, feedbackStatusFilter]);
 
   useEffect(() => {
     const el = aboutLayoutRef.current;
@@ -155,7 +244,241 @@ export function AboutSettingsSection({ aboutVersion }: AboutSettingsSectionProps
   );
 
   const renderFeedbackPage = (): ReactElement => (
-    <div className="settings-about-page-panel" />
+    <div className="settings-about-page-panel settings-about-feedback-panel">
+      <div className="settings-about-feedback-card">
+        <div className="settings-about-feedback-intro">
+          {t('settings.about.feedback.intro', { defaultValue: '问题反馈会进入管理后台审核，请尽量提供完整复现信息。' })}
+        </div>
+        {!token ? (
+          <div className="settings-user-feedback settings-user-feedback--info">
+            {t('settings.about.feedback.messages.loginRequired', { defaultValue: '请先登录后再使用反馈功能' })}
+          </div>
+        ) : (
+          <>
+            <div className="settings-field-group settings-about-feedback-form-grid">
+              <label className="settings-field">
+                <span className="settings-field-label">{t('settings.about.feedback.fields.type', { defaultValue: '反馈类型' })}</span>
+                <select
+                  className="settings-field-input"
+                  value={feedbackType}
+                  onChange={(e) => setFeedbackType(e.target.value)}
+                  disabled={submittingFeedback}
+                >
+                  {feedbackTypeOptions.map((item) => (
+                    <option key={item.value} value={item.value}>{item.label}</option>
+                  ))}
+                </select>
+              </label>
+              <label className="settings-field">
+                <span className="settings-field-label">{t('settings.about.feedback.fields.contact', { defaultValue: '联系方式（选填）' })}</span>
+                <input
+                  className="settings-field-input"
+                  value={feedbackContact}
+                  onChange={(e) => setFeedbackContact(e.target.value)}
+                  placeholder={t('settings.about.feedback.fields.contactPlaceholder', { defaultValue: '邮箱、QQ 或其他可联系信息' })}
+                  disabled={submittingFeedback}
+                />
+              </label>
+              <label className="settings-field settings-about-feedback-field-full">
+                <span className="settings-field-label">{t('settings.about.feedback.fields.title', { defaultValue: '标题' })}</span>
+                <input
+                  className="settings-field-input"
+                  value={feedbackTitle}
+                  onChange={(e) => setFeedbackTitle(e.target.value)}
+                  placeholder={t('settings.about.feedback.fields.titlePlaceholder', { defaultValue: '请简要描述你遇到的问题' })}
+                  maxLength={120}
+                  disabled={submittingFeedback}
+                />
+              </label>
+              <label className="settings-field settings-about-feedback-field-full">
+                <span className="settings-field-label">{t('settings.about.feedback.fields.content', { defaultValue: '详细描述' })}</span>
+                <textarea
+                  className="settings-field-textarea settings-about-feedback-textarea"
+                  value={feedbackContent}
+                  onChange={(e) => setFeedbackContent(e.target.value)}
+                  placeholder={t('settings.about.feedback.fields.contentPlaceholder', { defaultValue: '请提供复现步骤、实际结果、期望结果等信息' })}
+                  maxLength={2000}
+                  disabled={submittingFeedback}
+                />
+              </label>
+            </div>
+
+            {feedbackMessage ? (
+              <div className={`settings-user-feedback settings-user-feedback--${feedbackMessage.type}`}>
+                {feedbackMessage.text}
+              </div>
+            ) : null}
+
+            <div className="settings-about-feedback-actions">
+              <button
+                type="button"
+                className="settings-user-primary-btn"
+                disabled={submittingFeedback}
+                onClick={() => {
+                  void (async () => {
+                    if (!token) {
+                      setFeedbackMessage({
+                        type: 'error',
+                        text: t('settings.about.feedback.messages.loginRequired', { defaultValue: '请先登录后再使用反馈功能' }),
+                      });
+                      return;
+                    }
+                    if (!feedbackTitle.trim()) {
+                      setFeedbackMessage({
+                        type: 'error',
+                        text: t('settings.about.feedback.messages.titleRequired', { defaultValue: '请填写反馈标题' }),
+                      });
+                      return;
+                    }
+                    if (!feedbackContent.trim()) {
+                      setFeedbackMessage({
+                        type: 'error',
+                        text: t('settings.about.feedback.messages.contentRequired', { defaultValue: '请填写详细描述' }),
+                      });
+                      return;
+                    }
+                    const localProfile = readLocalProfile();
+                    const captchaAccount = (
+                      localProfile?.email
+                      || localProfile?.username
+                      || feedbackContact.trim()
+                      || 'issue-feedback'
+                    ).trim();
+                    setSubmittingFeedback(true);
+                    setFeedbackMessage(null);
+                    try {
+                      const captcha = await runSliderCaptcha(captchaAccount);
+                      if (!captcha) {
+                        setFeedbackMessage({
+                          type: 'error',
+                          text: t('settings.about.feedback.messages.captchaCancelled', { defaultValue: '请完成滑块验证后再提交反馈' }),
+                        });
+                        setSubmittingFeedback(false);
+                        return;
+                      }
+                      const result = await submitUserIssueFeedback(token, {
+                        feedbackType,
+                        title: feedbackTitle.trim(),
+                        content: feedbackContent.trim(),
+                        contact: feedbackContact.trim(),
+                        clientVersion: '',
+                        captchaTicket: captcha.ticket,
+                        captchaRandstr: captcha.randstr,
+                        captchaSign: captcha.sign,
+                      });
+                      if (!result.ok) {
+                        setFeedbackMessage({
+                          type: 'error',
+                          text: result.message || t('settings.about.feedback.messages.submitFailed', { defaultValue: '反馈提交失败，请稍后重试' }),
+                        });
+                        setSubmittingFeedback(false);
+                        return;
+                      }
+                      setFeedbackTitle('');
+                      setFeedbackContent('');
+                      setFeedbackMessage({
+                        type: 'success',
+                        text: t('settings.about.feedback.messages.submitSuccess', { defaultValue: '反馈已提交，感谢你的建议' }),
+                      });
+                      await loadFeedbackHistory();
+                    } catch (err) {
+                      setFeedbackMessage({
+                        type: 'error',
+                        text: err instanceof Error
+                          ? err.message
+                          : t('settings.about.feedback.messages.submitFailed', { defaultValue: '反馈提交失败，请稍后重试' }),
+                      });
+                    } finally {
+                      setSubmittingFeedback(false);
+                    }
+                  })();
+                }}
+              >
+                {submittingFeedback
+                  ? t('settings.about.feedback.actions.submitting', { defaultValue: '提交中…' })
+                  : t('settings.about.feedback.actions.submit', { defaultValue: '提交反馈' })}
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+
+      <div className="settings-about-feedback-card">
+        <div className="settings-about-feedback-history-head">
+          <div className="settings-about-feedback-history-title">
+            {t('settings.about.feedback.history.title', { defaultValue: '我的反馈记录' })}
+          </div>
+          <div className="settings-about-feedback-history-controls">
+            <select
+              className="settings-field-input settings-about-feedback-filter"
+              value={feedbackStatusFilter}
+              onChange={(e) => setFeedbackStatusFilter(e.target.value)}
+              disabled={!token || loadingHistory}
+            >
+              <option value="">{t('settings.about.feedback.history.filters.all', { defaultValue: '全部状态' })}</option>
+              <option value="pending">{t('settings.about.feedback.history.filters.pending', { defaultValue: '待处理' })}</option>
+              <option value="resolved">{t('settings.about.feedback.history.filters.resolved', { defaultValue: '已处理' })}</option>
+              <option value="rejected">{t('settings.about.feedback.history.filters.rejected', { defaultValue: '已拒绝' })}</option>
+            </select>
+            <button
+              type="button"
+              className="settings-user-secondary-btn"
+              disabled={!token || loadingHistory}
+              onClick={() => {
+                void loadFeedbackHistory();
+              }}
+            >
+              {t('settings.about.feedback.actions.refresh', { defaultValue: '刷新' })}
+            </button>
+          </div>
+        </div>
+
+        {!token ? (
+          <div className="settings-about-feedback-empty">
+            {t('settings.about.feedback.history.loginHint', { defaultValue: '登录后可查看你提交过的反馈记录' })}
+          </div>
+        ) : loadingHistory ? (
+          <div className="settings-about-feedback-empty">
+            {t('settings.about.feedback.history.loading', { defaultValue: '加载反馈记录中…' })}
+          </div>
+        ) : feedbackItems.length === 0 ? (
+          <div className="settings-about-feedback-empty">
+            {t('settings.about.feedback.history.empty', { defaultValue: '暂无反馈记录' })}
+          </div>
+        ) : (
+          <div className="settings-about-feedback-list">
+            {feedbackItems.map((item) => {
+              const normalizedStatus = normalizeFeedbackStatus(item.status);
+              return (
+                <div className="settings-about-feedback-item" key={item.id}>
+                  <div className="settings-about-feedback-item-head">
+                    <span className="settings-about-feedback-item-title">{item.title || '-'}</span>
+                    <span className={`settings-about-feedback-status settings-about-feedback-status--${normalizedStatus}`}>
+                      {t(`settings.about.feedback.history.status.${normalizedStatus}`, {
+                        defaultValue: normalizedStatus,
+                      })}
+                    </span>
+                  </div>
+                  <div className="settings-about-feedback-item-meta">
+                    {t('settings.about.feedback.history.meta', {
+                      defaultValue: '类型：{{type}} · 提交于：{{time}}',
+                      type: item.feedbackType || '-',
+                      time: item.createdAt || '-',
+                    })}
+                  </div>
+                  <div className="settings-about-feedback-item-content">{item.content || '-'}</div>
+                  {item.adminReply ? (
+                    <div className="settings-about-feedback-item-reply">
+                      {t('settings.about.feedback.history.adminReply', { defaultValue: '管理员回复：{{reply}}', reply: item.adminReply })}
+                    </div>
+                  ) : null}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
   );
 
   return (

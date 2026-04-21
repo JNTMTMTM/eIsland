@@ -161,6 +161,39 @@ export interface WallpaperTagItem {
   usageCount?: number;
 }
 
+export interface UserIssueFeedbackItem {
+  id: number;
+  username: string;
+  feedbackType: string;
+  title: string;
+  content: string;
+  contact?: string;
+  clientVersion?: string;
+  status: string;
+  adminReply?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  resolvedAt?: string;
+}
+
+export interface UserIssueFeedbackListData {
+  items: UserIssueFeedbackItem[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+export interface SubmitUserIssueFeedbackPayload {
+  feedbackType: string;
+  title: string;
+  content: string;
+  contact?: string;
+  clientVersion?: string;
+  captchaTicket: string;
+  captchaRandstr: string;
+  captchaSign: string;
+}
+
 /** 超时时间（ms） */
 const DEFAULT_TIMEOUT_MS = 10000;
 const APP_NAME_HEADER = 'X-App-Name';
@@ -618,6 +651,57 @@ export function unregisterUser(token: string, password: string, emailCode: strin
     method: 'DELETE',
     auth: token,
     body: { password, emailCode },
+  });
+}
+
+/**
+ * 提交问题反馈。
+ * @param token 用户 token。
+ * @param payload 反馈请求体。
+ * @returns 提交结果。
+ */
+export function submitUserIssueFeedback(
+  token: string,
+  payload: SubmitUserIssueFeedbackPayload,
+): Promise<UserAccountResult<unknown>> {
+  return request('/v1/user/feedback/submit', {
+    method: 'POST',
+    auth: token,
+    body: {
+      feedbackType: payload.feedbackType,
+      title: payload.title,
+      content: payload.content,
+      contact: payload.contact ?? '',
+      clientVersion: payload.clientVersion ?? '',
+      captchaTicket: payload.captchaTicket,
+      captchaRandstr: payload.captchaRandstr,
+      captchaSign: payload.captchaSign,
+    },
+  });
+}
+
+/**
+ * 获取当前登录用户的问题反馈列表。
+ * @param token 用户 token。
+ * @param params 可选查询参数。
+ * @returns 反馈列表结果。
+ */
+export function fetchMyIssueFeedbackList(
+  token: string,
+  params?: {
+    status?: string;
+    page?: number;
+    pageSize?: number;
+  },
+): Promise<UserAccountResult<UserIssueFeedbackListData>> {
+  const query = new URLSearchParams();
+  if (params?.status) query.set('status', params.status);
+  if (params?.page) query.set('page', String(params.page));
+  if (params?.pageSize) query.set('pageSize', String(params.pageSize));
+  const qs = query.toString();
+  return request<UserIssueFeedbackListData>(`/v1/user/feedback/mine${qs ? `?${qs}` : ''}`, {
+    method: 'GET',
+    auth: token,
   });
 }
 

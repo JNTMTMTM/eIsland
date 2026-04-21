@@ -1252,6 +1252,57 @@
         "link": "原始链接",
         "notice": "所有 NASA 图像均按照 NASA 图像使用政策使用，不暗示 NASA 对本项目的任何认可。"
       },
+      "feedback": {
+        "intro": "问题反馈会进入管理后台审核，请尽量提供完整复现信息。",
+        "types": {
+          "bug": "Bug 问题",
+          "feature": "功能建议",
+          "experience": "体验优化",
+          "other": "其他"
+        },
+        "fields": {
+          "type": "反馈类型",
+          "contact": "联系方式（选填）",
+          "contactPlaceholder": "邮箱、QQ 或其他可联系信息",
+          "title": "标题",
+          "titlePlaceholder": "请简要描述你遇到的问题",
+          "content": "详细描述",
+          "contentPlaceholder": "请提供复现步骤、实际结果、期望结果等信息"
+        },
+        "actions": {
+          "submit": "提交反馈",
+          "submitting": "提交中…",
+          "refresh": "刷新"
+        },
+        "messages": {
+          "loginRequired": "请先登录后再使用反馈功能",
+          "titleRequired": "请填写反馈标题",
+          "contentRequired": "请填写详细描述",
+          "captchaCancelled": "请完成滑块验证后再提交反馈",
+          "submitSuccess": "反馈已提交，感谢你的建议",
+          "submitFailed": "反馈提交失败，请稍后重试",
+          "loadFailed": "反馈记录加载失败"
+        },
+        "history": {
+          "title": "我的反馈记录",
+          "loading": "加载反馈记录中…",
+          "empty": "暂无反馈记录",
+          "loginHint": "登录后可查看你提交过的反馈记录",
+          "adminReply": "管理员回复：{{reply}}",
+          "meta": "类型：{{type}} · 提交于：{{time}}",
+          "filters": {
+            "all": "全部状态",
+            "pending": "待处理",
+            "resolved": "已处理",
+            "rejected": "已拒绝"
+          },
+          "status": {
+            "pending": "待处理",
+            "resolved": "已处理",
+            "rejected": "已拒绝"
+          }
+        }
+      },
       "copyright": "© JNTMTMTM, pyisland.com 版权所有",
       "slogan": "算法诠释一切 质疑即是认可"
     },
