@@ -361,7 +361,7 @@ export function AboutSettingsSection({ aboutVersion }: AboutSettingsSectionProps
                         title: feedbackTitle.trim(),
                         content: feedbackContent.trim(),
                         contact: feedbackContact.trim(),
-                        clientVersion: '',
+                        clientVersion: (aboutVersion || '').trim(),
                         captchaTicket: captcha.ticket,
                         captchaRandstr: captcha.randstr,
                         captchaSign: captcha.sign,
