@@ -58,7 +58,7 @@ export interface UserAccountLoginData {
 
 export type UserEmailCodeScene = 'REGISTER' | 'LOGIN' | 'RESET_PASSWORD' | 'CHANGE_EMAIL' | 'UNREGISTER';
 
-export interface UserEmailCaptchaConfig {
+export interface UserCaptchaConfig {
   enabled: boolean;
   provider?: string;
   minValue?: number;
@@ -67,7 +67,7 @@ export interface UserEmailCaptchaConfig {
   challengeTtlSeconds?: number;
 }
 
-export interface UserEmailCaptchaChallenge {
+export interface UserCaptchaChallenge {
   challengeId: string;
   minValue: number;
   maxValue: number;
@@ -374,8 +374,8 @@ export function registerUserWithCode(
  * 获取邮箱验证码滑块配置。
  * @returns 滑块配置。
  */
-export function fetchUserEmailCaptchaConfig(): Promise<UserAccountResult<UserEmailCaptchaConfig>> {
-  return request<UserEmailCaptchaConfig>('/auth/user/email-code/captcha-config', {
+export function fetchUserCaptchaConfig(): Promise<UserAccountResult<UserCaptchaConfig>> {
+  return request<UserCaptchaConfig>('/auth/user/email-code/captcha-config', {
     method: 'GET',
   });
 }
@@ -385,8 +385,8 @@ export function fetchUserEmailCaptchaConfig(): Promise<UserAccountResult<UserEma
  * @param account 账户标识。
  * @returns 挑战参数。
  */
-export function createUserEmailCaptchaChallenge(account: string): Promise<UserAccountResult<UserEmailCaptchaChallenge>> {
-  return request<UserEmailCaptchaChallenge>('/auth/user/email-code/captcha-challenge', {
+export function createUserCaptchaChallenge(account: string): Promise<UserAccountResult<UserCaptchaChallenge>> {
+  return request<UserCaptchaChallenge>('/auth/user/email-code/captcha-challenge', {
     method: 'POST',
     body: { account },
   });

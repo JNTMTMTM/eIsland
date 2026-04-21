@@ -30,7 +30,7 @@ import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../store/slices';
 import { loginUserByAccount, loginUserByEmailWithCode, sendUserEmailCode } from '../../../api/userAccountApi';
 import { updateSessionToken } from '../../../utils/authSession';
-import { runEmailSliderCaptcha } from '../../../utils/sliderCaptcha';
+import { runSliderCaptcha } from '../../../utils/sliderCaptcha';
 import '../../../styles/settings/settings.css';
 import '../../../styles/auth/auth.css';
 
@@ -122,7 +122,7 @@ export function LoginContent(): ReactElement {
     let captchaRandstr = '';
     let captchaSign = '';
     try {
-      const captcha = await runEmailSliderCaptcha(email);
+      const captcha = await runSliderCaptcha(email);
       if (!captcha) {
         setSendingCode(false);
         setFeedback({ type: 'error', text: t('settings.user.feedback.captchaCancelled', { defaultValue: '请完成滑块验证后再发送验证码' }) });

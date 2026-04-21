@@ -36,7 +36,7 @@ import {
   updateUserProfile,
   uploadUserAvatar,
 } from '../../../../../../../api/userAccountApi';
-import { runEmailSliderCaptcha } from '../../../../../../../utils/sliderCaptcha';
+import { runSliderCaptcha } from '../../../../../../../utils/sliderCaptcha';
 import useIslandStore from '../../../../../../../store/slices';
 import {
   clearLocalAccount,
@@ -294,7 +294,7 @@ export function UserSettingsSection(): ReactElement {
       if (!captchaAccount) {
         throw new Error(t('settings.user.feedback.needLogin', { defaultValue: '请先登录后再上传头像' }));
       }
-      const captcha = await runEmailSliderCaptcha(captchaAccount);
+      const captcha = await runSliderCaptcha(captchaAccount);
       if (!captcha) {
         return;
       }
@@ -419,7 +419,7 @@ export function UserSettingsSection(): ReactElement {
     let captchaRandstr = '';
     let captchaSign = '';
     try {
-      const captcha = await runEmailSliderCaptcha(email);
+      const captcha = await runSliderCaptcha(email);
       if (!captcha) {
         setSendingPasswordCode(false);
         setPasswordCodeFeedback({ type: 'error', text: t('settings.user.feedback.captchaCancelled', { defaultValue: '请完成滑块验证后再发送验证码' }) });
@@ -519,7 +519,7 @@ export function UserSettingsSection(): ReactElement {
     let captchaRandstr = '';
     let captchaSign = '';
     try {
-      const captcha = await runEmailSliderCaptcha(email);
+      const captcha = await runSliderCaptcha(email);
       if (!captcha) {
         setSendingUnregisterCode(false);
         setUnregisterCodeFeedback({ type: 'error', text: t('settings.user.feedback.captchaCancelled', { defaultValue: '请完成滑块验证后再发送验证码' }) });
