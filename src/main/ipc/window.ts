@@ -48,9 +48,13 @@ interface RegisterWindowIpcHandlersOptions {
   getInitialCenterX: () => number;
   setHiddenByAutoHideProcess: (hidden: boolean) => void;
   getIslandPositionOffset: () => { x: number; y: number };
+  getIslandDisplaySelection: () => string;
+  sanitizeIslandDisplaySelection: (selection: unknown) => string;
+  setIslandDisplaySelection: (selection: string) => void;
   sanitizeIslandPositionOffset: (offset: { x?: number; y?: number }) => { x: number; y: number };
   applyIslandPositionOffset: (offset: { x: number; y: number }) => void;
   writeIslandPositionOffsetConfig: (offset: { x: number; y: number }) => boolean;
+  writeIslandDisplaySelectionConfig: (selection: string) => boolean;
   sizes: WindowIpcSizeOptions;
 }
 
@@ -169,6 +173,28 @@ export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOpti
       return win.getBounds();
     }
     return null;
+  });
+
+  ipcMain.handle('window:island-displays:list', () => {
+    const primaryId = screen.getPrimaryDisplay().id;
+    return screen.getAllDisplays().map((display) => ({
+      id: String(display.id),
+      width: display.workArea.width,
+      height: display.workArea.height,
+      isPrimary: display.id === primaryId,
+    }));
+  });
+
+  ipcMain.handle('window:island-display:get', () => {
+    return options.getIslandDisplaySelection();
+  });
+
+  ipcMain.handle('window:island-display:set', (event, selection: unknown) => {
+    const nextSelection = options.sanitizeIslandDisplaySelection(selection);
+    options.setIslandDisplaySelection(nextSelection);
+    const result = options.writeIslandDisplaySelectionConfig(nextSelection);
+    broadcastSettingChange(event.sender.id, 'island:display', nextSelection);
+    return result;
   });
 
   ipcMain.handle('window:island-position:get', () => {

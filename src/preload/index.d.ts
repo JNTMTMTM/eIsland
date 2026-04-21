@@ -71,12 +71,17 @@ declare global {
       hideWindow: () => void;
       getMousePosition: () => Promise<{ x: number; y: number }>;
       getWindowBounds: () => Promise<{ x: number; y: number; width: number; height: number }>;
+      getIslandDisplays: () => Promise<Array<{ id: string; width: number; height: number; isPrimary: boolean }>>;
+      getIslandDisplaySelection: () => Promise<string>;
+      setIslandDisplaySelection: (selection: string) => Promise<boolean>;
       getIslandPositionOffset: () => Promise<{ x: number; y: number }>;
       setIslandPositionOffset: (offset: { x: number; y: number }) => Promise<boolean>;
       onIslandPositionOffsetChanged: (callback: (offset: { x: number; y: number }) => void) => () => void;
       quitApp: () => void;
       restartApp: () => Promise<boolean>;
       openLogsFolder: () => Promise<boolean>;
+      pickFeedbackLogFile: () => Promise<string | null>;
+      pickFeedbackScreenshotFile: () => Promise<string | null>;
       clearLogsCache: () => Promise<{ success: boolean; freedBytes: number }>;
       windowMinimize: () => void;
       windowMaximize: () => void;
@@ -176,8 +181,8 @@ declare global {
       autostartSet: (mode: string) => Promise<boolean>;
       navOrderGet: () => Promise<{ visibleOrder: string[]; hiddenOrder: string[] }>;
       navOrderSet: (payload: { visibleOrder: string[]; hiddenOrder: string[] }) => Promise<boolean>;
-      updaterCheck: () => Promise<{ available: boolean; version?: string; releaseNotes?: string; currentVersion?: string; error?: string }>;
-      updaterDownload: () => Promise<boolean>;
+      updaterCheck: (source?: string) => Promise<{ available: boolean; version?: string; releaseNotes?: string; currentVersion?: string; error?: string }>;
+      updaterDownload: (source?: string) => Promise<boolean>;
       updaterInstall: () => Promise<boolean>;
       updaterVersion: () => Promise<string>;
       onUpdaterProgress: (callback: (progress: { percent: number; transferred: number; total: number; bytesPerSecond: number }) => void) => () => void;

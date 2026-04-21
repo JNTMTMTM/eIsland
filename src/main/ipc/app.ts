@@ -25,7 +25,7 @@
  * @author 鸡哥
  */
 
-import { app, BrowserWindow, ipcMain, shell } from 'electron';
+import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron';
 import { basename } from 'path';
 import { clearLogsCacheFiles, ensureLogsDir } from '../log/mainLog';
 import { openStandaloneWindow, closeStandaloneWindow } from '../window/standaloneWindow';
@@ -37,6 +37,51 @@ import { openStandaloneWindow, closeStandaloneWindow } from '../window/standalon
 export function registerAppIpcHandlers(): void {
   ipcMain.on('app:quit', () => {
     app.quit();
+  });
+
+  ipcMain.handle('app:pick-feedback-screenshot-file', async (event) => {
+    try {
+      const win = BrowserWindow.fromWebContents(event.sender) ?? BrowserWindow.getFocusedWindow();
+      if (!win) return null;
+      const result = await dialog.showOpenDialog(win, {
+        title: '选择截图文件',
+        defaultPath: app.getPath('pictures'),
+        filters: [{ name: '图片文件', extensions: ['png', 'jpg', 'jpeg', 'webp', 'bmp'] }],
+        properties: ['openFile'],
+      });
+      if (result.canceled || result.filePaths.length === 0) {
+        return null;
+      }
+      return result.filePaths[0] || null;
+    } catch (err) {
+      console.error('[App] pick feedback screenshot file error:', err);
+      return null;
+    }
+  });
+
+  ipcMain.handle('app:pick-feedback-log-file', async (event) => {
+    try {
+      const win = BrowserWindow.fromWebContents(event.sender) ?? BrowserWindow.getFocusedWindow();
+      if (!win) return null;
+      const logDir = ensureLogsDir();
+      const result = await dialog.showOpenDialog(win, {
+        title: '选择日志文件',
+        defaultPath: logDir,
+        filters: [{ name: '日志文件', extensions: ['log'] }],
+        properties: ['openFile'],
+      });
+      if (result.canceled || result.filePaths.length === 0) {
+        return null;
+      }
+      const selectedPath = result.filePaths[0] || '';
+      if (!selectedPath.toLowerCase().endsWith('.log')) {
+        return null;
+      }
+      return selectedPath;
+    } catch (err) {
+      console.error('[App] pick feedback log file error:', err);
+      return null;
+    }
   });
 
   ipcMain.handle('app:restart', () => {

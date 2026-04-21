@@ -36,7 +36,7 @@ import {
   updateUserProfile,
   uploadUserAvatar,
 } from '../../../../../../../api/userAccountApi';
-import { runEmailSliderCaptcha } from '../../../../../../../utils/sliderCaptcha';
+import { runSliderCaptcha } from '../../../../../../../utils/sliderCaptcha';
 import useIslandStore from '../../../../../../../store/slices';
 import {
   clearLocalAccount,
@@ -70,6 +70,10 @@ const getGenderIcon = (gender: UserAccountGender | null | undefined): string => 
   return SvgIcon.UNKNOWN;
 };
 
+const shouldKeepGenderIconOriginalColor = (gender: UserAccountGender | null | undefined): boolean => {
+  return gender === 'male' || gender === 'female';
+};
+
 const formatDateTime = (value: string | null | undefined): string => {
   if (!value) return '—';
   return value.replace('T', ' ');
@@ -98,6 +102,7 @@ export function UserSettingsSection(): ReactElement {
   const [passwordCodeCooldownSeconds, setPasswordCodeCooldownSeconds] = useState(0);
   const [editNewPasswordVisible, setEditNewPasswordVisible] = useState(false);
   const [editConfirmPasswordVisible, setEditConfirmPasswordVisible] = useState(false);
+  const [avatarUploadFeedback, setAvatarUploadFeedback] = useState<Feedback | null>(null);
   const [profileFeedback, setProfileFeedback] = useState<Feedback | null>(null);
   const [profileFeedbackScope, setProfileFeedbackScope] = useState<ProfileFeedbackScope>('profile');
   const [passwordCodeFeedback, setPasswordCodeFeedback] = useState<Feedback | null>(null);
@@ -137,6 +142,7 @@ export function UserSettingsSection(): ReactElement {
     setToken(null);
     setProfile(null);
     setProfileError('');
+    setAvatarUploadFeedback(null);
     setProfileFeedback(null);
     setProfileFeedbackScope('profile');
     setPasswordCodeFeedback(null);
@@ -270,30 +276,56 @@ export function UserSettingsSection(): ReactElement {
     event.target.value = '';
     if (!file) return;
     if (file.size > 5 * 1024 * 1024) {
-      setProfileFeedbackScope('profile');
-      setProfileFeedback({ type: 'error', text: t('settings.user.feedback.avatarTooLarge', { defaultValue: '头像文件不能超过 5MB' }) });
+      setAvatarUploadFeedback({ type: 'error', text: t('settings.user.feedback.avatarTooLarge', { defaultValue: '头像文件不能超过 5MB' }) });
       return;
     }
     if (!file.type.startsWith('image/')) {
-      setProfileFeedbackScope('profile');
-      setProfileFeedback({ type: 'error', text: t('settings.user.feedback.avatarNotImage', { defaultValue: '仅支持上传图片文件' }) });
+      setAvatarUploadFeedback({ type: 'error', text: t('settings.user.feedback.avatarNotImage', { defaultValue: '仅支持上传图片文件' }) });
       return;
     }
     setAvatarUploading(true);
-    setProfileFeedback(null);
+    setAvatarUploadFeedback(null);
     try {
       const currentToken = readLocalToken();
       if (!currentToken) {
         throw new Error(t('settings.user.feedback.needLogin', { defaultValue: '请先登录后再上传头像' }));
       }
-      const url = await uploadUserAvatar(file, currentToken);
+      const captchaAccount = (profile?.email || profile?.username || '').trim();
+      if (!captchaAccount) {
+        throw new Error(t('settings.user.feedback.needLogin', { defaultValue: '请先登录后再上传头像' }));
+      }
+      const captcha = await runSliderCaptcha(captchaAccount);
+      if (!captcha) {
+        return;
+      }
+      const url = await uploadUserAvatar(file, currentToken, captcha);
+      const profileResult = await updateUserProfile(currentToken, { avatar: url });
+      if (!profileResult.ok) {
+        if (profileResult.code === 401 || profileResult.code === 4011) {
+          resetToLoggedOut();
+          return;
+        }
+        throw new Error(profileResult.message || t('settings.user.feedback.saveFailed', { defaultValue: '保存失败' }));
+      }
+      setProfile((prev) => {
+        if (!prev) {
+          return prev;
+        }
+        const nextProfile = { ...prev, avatar: url };
+        writeLocalProfile(nextProfile);
+        return nextProfile;
+      });
       setEditAvatar(url);
-      setProfileFeedbackScope('profile');
-      setProfileFeedback({ type: 'success', text: t('settings.user.feedback.avatarUploaded', { defaultValue: '头像已上传，保存资料生效' }) });
+      setAvatarUploadFeedback({ type: 'success', text: t('settings.user.feedback.avatarUploaded', { defaultValue: '头像已更新' }) });
     } catch (err) {
       const msg = err instanceof Error ? err.message : t('settings.user.feedback.avatarUploadFailed', { defaultValue: '头像上传失败' });
-      setProfileFeedbackScope('profile');
-      setProfileFeedback({ type: 'error', text: msg });
+      const isRateLimited = /\b429\b/.test(msg) || msg.includes('上传过于频繁') || msg.includes('too frequent');
+      setAvatarUploadFeedback({
+        type: 'error',
+        text: isRateLimited
+          ? t('settings.user.feedback.avatarUploadTooFrequent', { defaultValue: '头像上传过于频繁，请稍后再试' })
+          : msg,
+      });
     } finally {
       setAvatarUploading(false);
     }
@@ -407,7 +439,7 @@ export function UserSettingsSection(): ReactElement {
     let captchaRandstr = '';
     let captchaSign = '';
     try {
-      const captcha = await runEmailSliderCaptcha(email);
+      const captcha = await runSliderCaptcha(email);
       if (!captcha) {
         setSendingPasswordCode(false);
         setPasswordCodeFeedback({ type: 'error', text: t('settings.user.feedback.captchaCancelled', { defaultValue: '请完成滑块验证后再发送验证码' }) });
@@ -507,7 +539,7 @@ export function UserSettingsSection(): ReactElement {
     let captchaRandstr = '';
     let captchaSign = '';
     try {
-      const captcha = await runEmailSliderCaptcha(email);
+      const captcha = await runSliderCaptcha(email);
       if (!captcha) {
         setSendingUnregisterCode(false);
         setUnregisterCodeFeedback({ type: 'error', text: t('settings.user.feedback.captchaCancelled', { defaultValue: '请完成滑块验证后再发送验证码' }) });
@@ -612,6 +644,9 @@ export function UserSettingsSection(): ReactElement {
 
   const renderProfileEditor = (): ReactElement => {
     const displayAvatar = editAvatar || profile?.avatar || '';
+    const avatarUploadSuccessFeedback = avatarUploadFeedback?.type === 'success'
+      ? avatarUploadFeedback
+      : null;
     const profilePageItems: Array<{ id: UserProfilePage; label: string }> = [
       { id: 'info', label: t('settings.user.pages.info', { defaultValue: '用户信息' }) },
       { id: 'edit', label: t('settings.user.pages.edit', { defaultValue: '修改信息' }) },
@@ -637,7 +672,11 @@ export function UserSettingsSection(): ReactElement {
               <div className="settings-user-info-summary-identity">
                 <div className="settings-user-info-summary-name">
                   {profile?.username ?? '—'}
-                  <img className="settings-user-info-gender-icon" src={getGenderIcon(genderValue)} alt={genderLabel} />
+                  <img
+                    className={`settings-user-info-gender-icon${shouldKeepGenderIconOriginalColor(genderValue) ? ' settings-user-info-gender-icon--original' : ''}`}
+                    src={getGenderIcon(genderValue)}
+                    alt={genderLabel}
+                  />
                 </div>
                 <div className="settings-user-info-summary-email">{profile?.email ?? '—'}</div>
               </div>
@@ -697,33 +736,37 @@ export function UserSettingsSection(): ReactElement {
       <div className="settings-user-page-panel settings-user-edit-scroll">
         {profileError && <div className="settings-user-feedback settings-user-feedback--error">{profileError}</div>}
         <div className="settings-user-form settings-user-edit-cards">
-          <div className="settings-user-edit-card">
+          <div className="settings-user-edit-card settings-user-avatar-edit-card">
             <div className="settings-user-edit-card-head">
-              <div className="settings-user-form-title">{t('settings.user.sections.avatar', { defaultValue: '头像' })}</div>
-              <div className="settings-user-edit-card-subtitle">{t('settings.user.sections.avatarHint', { defaultValue: '上传新头像或粘贴图片链接' })}</div>
+              {avatarUploadSuccessFeedback ? null : <div className="settings-user-form-title">{t('settings.user.sections.avatar', { defaultValue: '头像' })}</div>}
             </div>
             <div className="settings-user-avatar-row">
-              <div className="settings-user-avatar-preview">
-                {displayAvatar
-                  ? <img src={displayAvatar} alt="avatar preview" />
-                  : <span className="settings-user-card-avatar-placeholder">?</span>}
+              <div className="settings-user-avatar-preview-shell">
+                <div className="settings-user-avatar-preview">
+                  {displayAvatar
+                    ? <img src={displayAvatar} alt="avatar preview" />
+                    : <span className="settings-user-card-avatar-placeholder">?</span>}
+                </div>
               </div>
               <div className="settings-user-avatar-actions">
-                <button
-                  type="button"
-                  className="settings-user-secondary-btn"
-                  onClick={() => avatarInputRef.current?.click()}
-                  disabled={avatarUploading}
-                >
-                  {avatarUploading ? t('settings.user.actions.uploading', { defaultValue: '上传中…' }) : t('settings.user.actions.chooseAvatar', { defaultValue: '选择图片上传' })}
-                </button>
-                <input
-                  ref={avatarInputRef}
-                  type="file"
-                  accept="image/*"
-                  style={{ display: 'none' }}
-                  onChange={(e) => void handleAvatarSelect(e)}
-                />
+                <div className="settings-user-avatar-action-main">
+                  <button
+                    type="button"
+                    className="settings-user-secondary-btn"
+                    onClick={() => avatarInputRef.current?.click()}
+                    disabled={avatarUploading}
+                  >
+                    {avatarUploading ? t('settings.user.actions.uploading', { defaultValue: '上传中…' }) : t('settings.user.actions.chooseAvatar', { defaultValue: '选择图片上传' })}
+                  </button>
+                  <input
+                    ref={avatarInputRef}
+                    type="file"
+                    accept="image/*"
+                    style={{ display: 'none' }}
+                    onChange={(e) => void handleAvatarSelect(e)}
+                  />
+                </div>
+                {renderFeedback(avatarUploadFeedback)}
               </div>
             </div>
           </div>

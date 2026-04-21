@@ -41,6 +41,8 @@ interface UrlFavoriteItem {
 
 const URL_FAVORITES_STORE_KEY = 'url-favorites';
 const URL_FAVORITES_FOCUS_KEY = 'url-favorites-focus-url';
+const UPDATE_SOURCE_STORE_KEY = 'update-source';
+const SETTINGS_OPEN_TAB_STORE_KEY = 'settings-open-tab';
 
 function normalizeUrl(raw: string): string {
   const text = raw.trim();
@@ -89,6 +91,8 @@ interface NotificationContentProps {
   sourceAppId?: string;
   /** 更新版本号（用于 update-available / update-ready） */
   updateVersion?: string;
+  /** 当前更新源展示文案（仅 update-available） */
+  updateSourceLabel?: string;
   /** 检测到的 URL 列表（仅 clipboard-url） */
   urls?: string[];
 }
@@ -104,6 +108,7 @@ export function NotificationContent({
   type,
   sourceAppId: _sourceAppId,
   updateVersion,
+  updateSourceLabel,
   urls,
 }: NotificationContentProps): ReactElement {
   const { t } = useTranslation();
@@ -290,8 +295,21 @@ export function NotificationContent({
   };
 
   const handleGoToUpdate = (): void => {
-    window.api?.updaterDownload().catch(() => {});
+    window.api?.storeRead(UPDATE_SOURCE_STORE_KEY).then((source) => {
+      if (typeof source === 'string') {
+        return window.api?.updaterDownload(source);
+      }
+      return window.api?.updaterDownload();
+    }).catch(() => {
+      window.api?.updaterDownload().catch(() => {});
+    });
     dismiss();
+  };
+
+  const handleConfigureUpdateSource = (): void => {
+    window.api?.storeWrite(SETTINGS_OPEN_TAB_STORE_KEY, 'update').catch(() => {});
+    setMaxExpandTab('settings');
+    setMaxExpand();
   };
 
   const handleDismissUpdate = (): void => {
@@ -392,10 +410,14 @@ export function NotificationContent({
           </div>
         </div>
       ) : type === 'update-available' ? (
-        <div className="notification-actions notification-actions--right">
+        <div className="notification-actions notification-actions--update-available">
+          <div className="notification-update-source" title={updateSourceLabel ? t('notification.update.currentSource', { defaultValue: '当前更新源：{{source}}', source: updateSourceLabel }) : ''}>
+            {updateSourceLabel ? t('notification.update.currentSource', { defaultValue: '当前更新源：{{source}}', source: updateSourceLabel }) : ''}
+          </div>
           <div className="notification-decision-actions">
-            <button type="button" className="notification-action-btn notification-action-complete" onClick={handleGoToUpdate}>{t('notification.actions.downloadUpdate', { defaultValue: '下载更新' })}</button>
-            <button type="button" className="notification-action-btn notification-action-ignore" onClick={handleDismissUpdate}>{t('notification.actions.later', { defaultValue: '稍后' })}</button>
+            <button type="button" className="notification-action-btn notification-action-complete" onClick={handleGoToUpdate}>{t('notification.actions.downloadNow', { defaultValue: '立即下载' })}</button>
+            <button type="button" className="notification-action-btn notification-action-ignore" onClick={handleConfigureUpdateSource}>{t('notification.actions.configureUpdateSource', { defaultValue: '自行配置更新源' })}</button>
+            <button type="button" className="notification-action-btn notification-action-ignore" onClick={handleDismissUpdate}>{t('notification.actions.ignore', { defaultValue: '忽略' })}</button>
           </div>
         </div>
       ) : type === 'restart-required' ? (

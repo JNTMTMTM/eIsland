@@ -98,6 +98,10 @@ const ISLAND_BG_VIDEO_LOOP_STORE_KEY = 'island-bg-video-loop';
 const ISLAND_BG_VIDEO_VOLUME_STORE_KEY = 'island-bg-video-volume';
 const ISLAND_BG_VIDEO_RATE_STORE_KEY = 'island-bg-video-rate';
 const ISLAND_BG_VIDEO_HW_DECODE_STORE_KEY = 'island-bg-video-hw-decode';
+const ISLAND_DISPLAY_STORE_KEY = 'island-display-id';
+const UPDATE_SOURCE_STORE_KEY = 'update-source';
+const UPDATE_AUTO_PROMPT_STORE_KEY = 'update-auto-prompt-enabled';
+const SETTINGS_OPEN_TAB_STORE_KEY = 'settings-open-tab';
 let _lastSettingsSidebarTab: SettingsSidebarTabKey = 'index';
 
 type IslandBgMediaType = 'image' | 'video';
@@ -224,7 +228,7 @@ export function SettingsTab(): ReactElement {
   const [musicSettingsPage, setMusicSettingsPage] = useState<MusicSettingsPageKey>('whitelist');
   const [pluginMarketPage, setPluginMarketPage] = useState<PluginMarketPageKey>('wallpaper');
   const [wallpaperMarketRefreshKey, setWallpaperMarketRefreshKey] = useState(0);
-  const { aiConfig, setAiConfig, fetchWeatherData, setGuide, setLogin, setRegister } = useIslandStore();
+  const { aiConfig, setAiConfig, fetchWeatherData, setGuide, setLogin, setRegister, setNotification } = useIslandStore();
   const [editingPrompt, setEditingPrompt] = useState(false);
   const [promptDraft, setPromptDraft] = useState('');
   const promptRef = useRef<HTMLTextAreaElement>(null);
@@ -343,6 +347,10 @@ export function SettingsTab(): ReactElement {
   const bgBlurSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [islandPositionOffset, setIslandPositionOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [islandPositionInput, setIslandPositionInput] = useState<{ x: string; y: string }>({ x: '0', y: '0' });
+  const [islandDisplaySelection, setIslandDisplaySelection] = useState<string>('primary');
+  const [islandDisplayOptions, setIslandDisplayOptions] = useState<Array<{ id: string; label: string }>>([
+    { id: 'primary', label: t('settings.app.position.displayPrimaryOption', { defaultValue: '主显示器（推荐）' }) },
+  ]);
   const [aboutVersion, setAboutVersion] = useState<string>('');
 
   /** 自动更新相关状态 */
@@ -350,11 +358,32 @@ export function SettingsTab(): ReactElement {
   const [updateVersion, setUpdateVersion] = useState<string>('');
   const [updateError, setUpdateError] = useState<string>('');
   const [downloadProgress, setDownloadProgress] = useState<{ percent: number; transferred: number; total: number; bytesPerSecond: number } | null>(null);
-  const [updateSource, setUpdateSource] = useState<string>('cloudflare-r2');
+  const [updateAutoPromptEnabled, setUpdateAutoPromptEnabled] = useState<boolean>(true);
+  const [updateSource, setUpdateSource] = useState<'cloudflare-r2' | 'tencent-cos' | 'aliyun-oss' | 'github'>('cloudflare-r2');
   const UPDATE_SOURCES: { key: string; label: string }[] = [
     { key: 'cloudflare-r2', label: 'Cloudflare R2' },
+    { key: 'tencent-cos', label: 'Tencent COS' },
+    { key: 'aliyun-oss', label: 'Aliyun OSS' },
+    { key: 'github', label: 'GitHub Releases' },
   ];
   const currentSourceLabel = UPDATE_SOURCES.find((s) => s.key === updateSource)?.label ?? updateSource;
+
+  const handleUpdateSourceChange = (value: string): void => {
+    const nextSource = value === 'github'
+      ? 'github'
+      : value === 'tencent-cos'
+        ? 'tencent-cos'
+        : value === 'aliyun-oss'
+          ? 'aliyun-oss'
+        : 'cloudflare-r2';
+    setUpdateSource(nextSource);
+    window.api.storeWrite(UPDATE_SOURCE_STORE_KEY, nextSource).catch(() => {});
+  };
+
+  const handleUpdateAutoPromptEnabledChange = (enabled: boolean): void => {
+    setUpdateAutoPromptEnabled(enabled);
+    window.api.storeWrite(UPDATE_AUTO_PROMPT_STORE_KEY, enabled).catch(() => {});
+  };
 
   const persistIslandOpacity = (opacity: number): void => {
     window.api.islandOpacitySet(opacity).catch(() => {});
@@ -669,6 +698,47 @@ export function SettingsTab(): ReactElement {
 
   useEffect(() => {
     let cancelled = false;
+    Promise.all([
+      window.api.getIslandDisplays().catch(() => [] as Array<{ id: string; width: number; height: number; isPrimary: boolean }>),
+      window.api.getIslandDisplaySelection().catch(() => 'primary'),
+    ]).then(([displays, savedSelection]) => {
+      if (cancelled) return;
+      const primaryOption = {
+        id: 'primary',
+        label: t('settings.app.position.displayPrimaryOption', { defaultValue: '主显示器（推荐）' }),
+      };
+      const dynamicOptions = displays.map((display, index) => {
+        const base = t('settings.app.position.displayOption', {
+          defaultValue: '显示器 {{index}}（{{width}}×{{height}}）',
+          index: index + 1,
+          width: display.width,
+          height: display.height,
+        });
+        const suffix = display.isPrimary
+          ? t('settings.app.position.displayPrimarySuffix', { defaultValue: ' · 主显示器' })
+          : '';
+        return {
+          id: display.id,
+          label: `${base}${suffix}`,
+        };
+      });
+      const nextOptions = [primaryOption, ...dynamicOptions];
+      setIslandDisplayOptions(nextOptions);
+
+      const normalizedSaved = (() => {
+        if (savedSelection === 'primary') return 'primary';
+        if (typeof savedSelection === 'number' && Number.isFinite(savedSelection)) return String(Math.trunc(savedSelection));
+        if (typeof savedSelection === 'string' && /^-?\d+$/.test(savedSelection.trim())) return savedSelection.trim();
+        return 'primary';
+      })();
+      const optionIds = new Set(nextOptions.map((item) => item.id));
+      setIslandDisplaySelection(optionIds.has(normalizedSaved) ? normalizedSaved : 'primary');
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, [t]);
+
+  useEffect(() => {
+    let cancelled = false;
     window.api.islandOpacityGet().then((val) => {
       if (cancelled) return;
       const safe = typeof val === 'number' ? Math.max(10, Math.min(100, Math.round(val))) : 100;
@@ -758,6 +828,9 @@ export function SettingsTab(): ReactElement {
   useEffect(() => {
     let cancelled = false;
     const unsub = window.api.onSettingsChanged((channel: string, value: unknown) => {
+      if (channel === 'settings:open-tab' && value === 'update') {
+        setActiveTab('update');
+      }
       if (channel === 'i18n:language' && (value === 'zh-CN' || value === 'en-US')) {
         setAppLanguage(value);
       }
@@ -995,6 +1068,36 @@ export function SettingsTab(): ReactElement {
     }).catch(() => {});
   }, []);
 
+  useEffect(() => {
+    let cancelled = false;
+    window.api.storeRead(UPDATE_SOURCE_STORE_KEY).then((value) => {
+      if (cancelled) return;
+      setUpdateSource(value === 'github' ? 'github' : value === 'tencent-cos' ? 'tencent-cos' : value === 'aliyun-oss' ? 'aliyun-oss' : 'cloudflare-r2');
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    window.api.storeRead(SETTINGS_OPEN_TAB_STORE_KEY).then((value) => {
+      if (cancelled) return;
+      if (value === 'update') {
+        setActiveTab('update');
+        window.api.storeWrite(SETTINGS_OPEN_TAB_STORE_KEY, null).catch(() => {});
+      }
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    window.api.storeRead(UPDATE_AUTO_PROMPT_STORE_KEY).then((value) => {
+      if (cancelled) return;
+      setUpdateAutoPromptEnabled(typeof value === 'boolean' ? value : true);
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+
   /** 监听下载进度 */
   useEffect(() => {
     const unsub = window.api.onUpdaterProgress?.((progress) => {
@@ -1003,13 +1106,23 @@ export function SettingsTab(): ReactElement {
     return () => { unsub?.(); };
   }, []);
 
+  useEffect(() => {
+    const unsub = window.api.onUpdaterAvailable?.((data) => {
+      if (!updateAutoPromptEnabled) return;
+      setUpdateVersion(data.version);
+      setUpdateStatus('available');
+      setUpdateError('');
+    });
+    return () => { unsub?.(); };
+  }, [updateAutoPromptEnabled]);
+
   /** 检查更新（通过 electron-updater） */
   const handleCheckUpdate = async (): Promise<void> => {
     setUpdateStatus('checking');
     setUpdateError('');
     setDownloadProgress(null);
     try {
-      const result = await window.api.updaterCheck();
+      const result = await window.api.updaterCheck(updateSource);
       if (result.error) {
         setUpdateStatus('error');
         setUpdateError(result.error);
@@ -1030,7 +1143,7 @@ export function SettingsTab(): ReactElement {
     setUpdateStatus('downloading');
     setDownloadProgress(null);
     try {
-      const ok = await window.api.updaterDownload();
+      const ok = await window.api.updaterDownload(updateSource);
       if (ok) {
         setUpdateStatus('ready');
       } else {
@@ -1082,6 +1195,27 @@ export function SettingsTab(): ReactElement {
       x: String(islandPositionOffset.x),
       y: String(islandPositionOffset.y),
     });
+  };
+
+  const handleIslandDisplaySelectionChange = (selection: string): void => {
+    const normalized = selection === 'primary' || /^-?\d+$/.test(selection.trim()) ? selection.trim() : 'primary';
+    if (normalized === islandDisplaySelection) {
+      return;
+    }
+    setIslandDisplaySelection(normalized);
+    window.api.setIslandDisplaySelection(normalized).catch(() => {
+      window.api.storeWrite(ISLAND_DISPLAY_STORE_KEY, normalized).catch(() => {});
+    });
+
+    const restartRequiredNotification = {
+      title: t('settings.app.notifications.configChanged.title', { defaultValue: '配置变更' }),
+      body: t('settings.app.notifications.displayChanged.body', { defaultValue: '目标显示器已变更，是否立即重启生效？' }),
+      icon: SvgIcon.SETTING,
+      type: 'restart-required',
+    } as const;
+
+    setNotification(restartRequiredNotification);
+    window.api.settingsPreview('notification:show', restartRequiredNotification).catch(() => {});
   };
 
   const islandPositionInputChanged =
@@ -1942,6 +2076,9 @@ export function SettingsTab(): ReactElement {
               applyIslandPositionInput={applyIslandPositionInput}
               islandPositionInputChanged={islandPositionInputChanged}
               cancelIslandPositionInput={cancelIslandPositionInput}
+              islandDisplaySelection={islandDisplaySelection}
+              islandDisplayOptions={islandDisplayOptions}
+              setIslandDisplaySelection={handleIslandDisplaySelectionChange}
               themeMode={themeMode}
               setThemeModeState={setThemeModeState}
               applyThemeMode={applyThemeMode}
@@ -2180,12 +2317,14 @@ export function SettingsTab(): ReactElement {
               aboutVersion={aboutVersion}
               updateSource={updateSource}
               updateSources={UPDATE_SOURCES}
+              updateAutoPromptEnabled={updateAutoPromptEnabled}
               updateStatus={updateStatus}
               updateVersion={updateVersion}
               downloadProgress={downloadProgress}
               currentSourceLabel={currentSourceLabel}
               updateError={updateError}
-              onUpdateSourceChange={setUpdateSource}
+              onUpdateSourceChange={handleUpdateSourceChange}
+              onUpdateAutoPromptEnabledChange={handleUpdateAutoPromptEnabledChange}
               onCheckUpdate={handleCheckUpdate}
               onDownloadUpdate={handleDownloadUpdate}
               onInstallUpdate={handleInstallUpdate}

@@ -23,12 +23,12 @@
 import { useMemo, useState } from 'react';
 import type { CSSProperties, ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { UserEmailCaptchaChallenge } from '../../../api/userAccountApi';
+import type { UserCaptchaChallenge } from '../../../api/userAccountApi';
 import '../../../styles/slider-captcha.css';
 import eislandLogo from '../../../../../resources/icon/eisland.svg';
 
 interface SliderCaptchaContentProps {
-  challenge: UserEmailCaptchaChallenge;
+  challenge: UserCaptchaChallenge;
   onCancel: () => void;
   onConfirm: (value: number) => void;
 }

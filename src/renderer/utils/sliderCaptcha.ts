@@ -24,12 +24,12 @@
  * @author 鸡哥
  */
 
-import { createUserEmailCaptchaChallenge, fetchUserEmailCaptchaConfig, type UserEmailCaptchaChallenge } from '../api/userAccountApi';
+import { createUserCaptchaChallenge, fetchUserCaptchaConfig, type UserCaptchaChallenge } from '../api/userAccountApi';
 import { createElement } from 'react';
 import { createRoot } from 'react-dom/client';
 import { SliderCaptchaContent } from '../components/states/sliderCaptcha/SliderCaptchaContent';
 
-function showBuiltinSliderModal(challenge: UserEmailCaptchaChallenge): Promise<number | null> {
+function showBuiltinSliderModal(challenge: UserCaptchaChallenge): Promise<number | null> {
   return new Promise((resolve) => {
     const mountNode = document.createElement('div');
     const modalHost = document.querySelector('.island-shell') ?? document.body;
@@ -51,12 +51,12 @@ function showBuiltinSliderModal(challenge: UserEmailCaptchaChallenge): Promise<n
 }
 
 /**
- * 执行邮箱场景滑块验证流程
+ * 执行滑块验证流程
  * @param account - 当前进行验证的账号标识
  * @returns 验证成功返回 ticket、randstr 与短期签名，取消返回 null
  */
-export async function runEmailSliderCaptcha(account: string): Promise<{ ticket: string; randstr: string; sign: string } | null> {
-  const cfg = await fetchUserEmailCaptchaConfig();
+export async function runSliderCaptcha(account: string): Promise<{ ticket: string; randstr: string; sign: string } | null> {
+  const cfg = await fetchUserCaptchaConfig();
   if (!cfg.ok || !cfg.data) {
     throw new Error(cfg.message || '获取滑块配置失败');
   }
@@ -66,7 +66,7 @@ export async function runEmailSliderCaptcha(account: string): Promise<{ ticket: 
   if (cfg.data.provider !== 'builtin') {
     throw new Error('暂不支持的滑块验证提供方');
   }
-  const challengeResult = await createUserEmailCaptchaChallenge(account);
+  const challengeResult = await createUserCaptchaChallenge(account);
   if (!challengeResult.ok || !challengeResult.data) {
     throw new Error(challengeResult.message || '获取滑块挑战失败');
   }

@@ -1,0 +1,20 @@
+{
+  "name": "@eisland/plugin-sdk",
+  "version": "26.0.0",
+  "description": "Type definitions and manifest validation helpers for eIsland plugins",
+  "license": "GPL-3.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "templates"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3"
+  }
+}

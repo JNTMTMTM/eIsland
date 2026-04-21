@@ -62,6 +62,14 @@ const ISLAND_BG_VIDEO_VOLUME_STORE_KEY = 'island-bg-video-volume';
 const ISLAND_BG_VIDEO_RATE_STORE_KEY = 'island-bg-video-rate';
 const ISLAND_BG_VIDEO_HW_DECODE_STORE_KEY = 'island-bg-video-hw-decode';
 const LOCAL_ISLAND_BG_SYNC_EVENT = 'island-bg-local-sync';
+const UPDATE_SOURCE_STORE_KEY = 'update-source';
+
+function getUpdateSourceLabel(value: unknown): string {
+  if (value === 'github') return 'GitHub Releases';
+  if (value === 'tencent-cos') return 'Tencent COS';
+  if (value === 'aliyun-oss') return 'Aliyun OSS';
+  return 'Cloudflare R2';
+}
 
 type IslandBgMediaType = 'image' | 'video';
 
@@ -527,6 +535,7 @@ function DynamicIsland(): React.JSX.Element {
               type?: 'default' | 'source-switch' | 'update-available' | 'update-ready' | 'clipboard-url' | 'restart-required';
               sourceAppId?: string;
               updateVersion?: string;
+              updateSourceLabel?: string;
               urls?: string[];
             });
           }
@@ -834,22 +843,19 @@ function DynamicIsland(): React.JSX.Element {
     const unsubAvailable = window.api?.onUpdaterAvailable?.((data) => {
       if (updateNotifiedRef.current) return;
       updateNotifiedRef.current = true;
-      fetchVersion().then((info) => {
+      Promise.all([
+        fetchVersion().catch(() => null),
+        window.api?.storeRead?.(UPDATE_SOURCE_STORE_KEY).catch(() => null),
+      ]).then(([info, source]) => {
         const desc = (info?.description ?? '').trim();
+        const updateSourceLabel = getUpdateSourceLabel(source);
         setNotificationRef.current({
           title: t('notification.update.availableTitle', { defaultValue: '发现新版本' }),
           body: desc || t('notification.update.availableBody', { defaultValue: '是否立即下载？' }),
           icon: SvgIcon.UPDATE,
           type: 'update-available',
           updateVersion: data.version,
-        });
-      }).catch(() => {
-        setNotificationRef.current({
-          title: t('notification.update.availableTitle', { defaultValue: '发现新版本' }),
-          body: t('notification.update.availableBody', { defaultValue: '是否立即下载？' }),
-          icon: SvgIcon.UPDATE,
-          type: 'update-available',
-          updateVersion: data.version,
+          updateSourceLabel,
         });
       });
     });
@@ -1073,6 +1079,7 @@ function DynamicIsland(): React.JSX.Element {
           type={notification.type}
           sourceAppId={notification.sourceAppId}
           updateVersion={notification.updateVersion}
+          updateSourceLabel={notification.updateSourceLabel}
           urls={notification.urls}
         />
       ),

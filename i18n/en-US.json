@@ -346,6 +346,7 @@
     "update": {
       "availableTitle": "New version available",
       "availableBody": "Download now?",
+      "currentSource": "Current OSS: {{source}}",
       "readyTitle": "Update ready",
       "readyBody": "Version v{{version}} has been downloaded. Install now?"
     },
@@ -365,6 +366,8 @@
       "installRestart": "Install & Restart",
       "later": "Later",
       "downloadUpdate": "Download Update",
+      "downloadNow": "Download Now",
+      "configureUpdateSource": "Configure Update Source",
       "restartNow": "Restart Now",
       "openAllLinks": "Open All Links",
       "openLink": "Open Link",
@@ -690,6 +693,12 @@
         "hint": "Applies and saves immediately.",
         "quickAdjustTitle": "Quick Nudge",
         "quickAdjustHint": "Each click moves the island by 10px; applied and saved instantly.",
+        "displayTitle": "Display Selection",
+        "displayHint": "Choose which monitor shows Dynamic Island in multi-display setups. Takes effect after restart.",
+        "displayLabel": "Target Display",
+        "displayPrimaryOption": "Primary Display (Recommended)",
+        "displayOption": "Display {{index}} ({{width}}×{{height}})",
+        "displayPrimarySuffix": " · Primary",
         "preciseTitle": "Precise Offset",
         "preciseHint": "Enter horizontal / vertical offset (px). Press Enter or click Apply to commit.",
         "moveLeft": "Left 10",
@@ -745,11 +754,11 @@
         "islandOpacityHint": "Lower value = more transparent (10% - 100%)"
       },
       "behavior": {
-        "springTitle": "Spring Animation (Instant)",
+        "springTitle": "Spring Animation",
         "springHint": "Disable to reduce bounce and make transitions smoother",
         "springToggle": "Enable spring animation",
-        "mouseLeaveTitle": "Auto collapse on mouse leave (Restart required)",
-        "mouseLeaveHint": "Collapse when cursor leaves island area",
+        "mouseLeaveTitle": "Auto collapse on mouse leave",
+        "mouseLeaveHint": "Collapse when cursor leaves island area (Restart required)",
         "expandLeaveToggle": "Collapse from Expand state on mouse leave",
         "maxExpandLeaveToggle": "Collapse from MaxExpand state on mouse leave",
         "windowModeTitle": "Todo / Countdown / Settings open mode",
@@ -1007,10 +1016,13 @@
     "update": {
       "versionCardTitle": "Version Info",
       "versionCardHint": "View the current version and pick an update source. All patches are downloaded through the selected source.",
+      "autoPromptTitle": "Update Prompt",
+      "autoPromptEnabled": "Auto prompt for new versions",
       "actionCardTitle": "Check & Install",
       "actionCardHint": "Trigger a manual check; when a new version is available you can download it. After the download finishes, click 'Install & Restart' to apply.",
       "currentVersion": "Current Version",
       "source": "Update Source",
+      "sourceHint": "Cloudflare R2: stable global access with balanced overall speed\nTencent COS: usually faster in mainland China\nAliyun OSS: broad domestic node coverage with high peak throughput\nGitHub Releases: stable overseas links, may be slower in mainland China",
       "latestVersion": "Latest Version",
       "downloadingFrom": "Downloading update from {{source}}...",
       "preparingDownload": "Preparing download...",
@@ -1217,6 +1229,11 @@
       "systemPromptHint": "Constrains the Agent's role and style. Leave empty to use the default prompt."
     },
     "about": {
+      "pagination": "About settings pages",
+      "pages": {
+        "development": "Development Info",
+        "feedback": "Issue Feedback"
+      },
       "authorAvatarAlt": "Author avatar",
       "githubHome": "GitHub Home",
       "notice": "This software is open-source and free. If you paid for it anywhere, request a refund immediately.",
@@ -1234,6 +1251,84 @@
         "capture": "Captured by",
         "link": "Original Link",
         "notice": "NASA images are used under NASA image policy and do not imply NASA endorsement."
+      },
+      "feedback": {
+        "intro": "Issue reports are reviewed in the admin panel. Please include complete reproduction details when possible.",
+        "types": {
+          "bug": "Bug",
+          "feature": "Feature Request",
+          "experience": "Experience Improvement",
+          "other": "Other"
+        },
+        "fields": {
+          "type": "Feedback Type",
+          "contact": "Contact (Optional)",
+          "contactPlaceholder": "Email, QQ, or any reachable contact",
+          "title": "Title",
+          "titlePlaceholder": "Briefly describe the issue",
+          "content": "Details",
+          "contentPlaceholder": "Provide reproduction steps, actual result, and expected result",
+          "logFile": "Log File (Optional, <=5MB)",
+          "logFilePlaceholder": "Upload logs to help diagnose the issue",
+          "logFileView": "View Uploaded Log",
+          "logFileMeta": "Size: {{size}}MB",
+          "screenshotFile": "Screenshot (Optional, <=10MB)",
+          "screenshotFileMeta": "Size: {{size}}MB",
+          "logNotePlaceholder": "Note (Optional)",
+          "logNoteSubmitPrefix": "Log Note: "
+        },
+        "actions": {
+          "submit": "Submit Feedback",
+          "submitting": "Submitting…",
+          "refresh": "Refresh",
+          "useBoundEmail": "Fill Email",
+          "uploadLog": "Upload Log",
+          "uploadingLog": "Uploading…",
+          "clearLog": "Remove Log",
+          "uploadScreenshot": "Upload Screenshot",
+          "uploadingScreenshot": "Uploading…",
+          "clearScreenshot": "Remove Screenshot"
+        },
+        "messages": {
+          "loginRequired": "Please sign in before using issue feedback",
+          "titleRequired": "Please enter a feedback title",
+          "contentRequired": "Please enter detailed description",
+          "captchaCancelled": "Complete slider verification before submitting feedback",
+          "boundEmailNotFound": "No bound email found for the current account",
+          "boundEmailFilled": "Current account email has been auto-filled",
+          "logOnly": "Only .log files are supported",
+          "logReadFailed": "Failed to read log file. Please try again.",
+          "logTooLarge": "Log file must be 5MB or smaller",
+          "logUploadSuccess": "Log uploaded successfully and will be attached to the feedback",
+          "logUploadFailed": "Failed to upload log. Please try again later.",
+          "screenshotOnly": "Only image screenshots are supported",
+          "screenshotReadFailed": "Failed to read screenshot file. Please try again.",
+          "screenshotTooLarge": "Screenshot file must be 10MB or smaller",
+          "screenshotUploadSuccess": "Screenshot uploaded successfully and will be attached to the feedback",
+          "screenshotUploadFailed": "Failed to upload screenshot. Please try again later.",
+          "submitSuccess": "Feedback submitted. Thank you for your input.",
+          "submitFailed": "Failed to submit feedback. Please try again later.",
+          "loadFailed": "Failed to load feedback history"
+        },
+        "history": {
+          "title": "My Feedback History",
+          "loading": "Loading feedback history…",
+          "empty": "No feedback records yet",
+          "loginHint": "Sign in to view your submitted feedback history",
+          "adminReply": "Admin Reply: {{reply}}",
+          "meta": "Type: {{type}} · Submitted: {{time}}",
+          "filters": {
+            "all": "All Status",
+            "pending": "Pending",
+            "resolved": "Resolved",
+            "rejected": "Rejected"
+          },
+          "status": {
+            "pending": "Pending",
+            "resolved": "Resolved",
+            "rejected": "Rejected"
+          }
+        }
       },
       "copyright": "© JNTMTMTM, pyisland.com. All rights reserved.",
       "slogan": "Algorithms explain everything"
@@ -1357,8 +1452,9 @@
         "registerSuccess": "Account created and signed in",
         "avatarTooLarge": "Avatar must be under 5MB",
         "avatarNotImage": "Only image files are accepted",
-        "avatarUploaded": "Avatar uploaded. Save profile to apply.",
+        "avatarUploaded": "Avatar updated.",
         "avatarUploadFailed": "Avatar upload failed",
+        "avatarUploadTooFrequent": "Avatar uploads are too frequent. Please try again later.",
         "passwordTooShort": "Password must be at least 8 chars with letters and digits",
         "passwordConfirmNeedsPassword": "Please enter a new password first",
         "passwordConfirmRequired": "Please confirm your new password",

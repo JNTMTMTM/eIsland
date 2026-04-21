@@ -1,0 +1,11 @@
+{
+  "id": "com.pyisland.settings-watcher-plugin",
+  "name": "Settings Watcher Plugin",
+  "version": "1.0.0",
+  "entry": "index.ts",
+  "description": "Example plugin that listens to settings changes and stores counters.",
+  "permissions": ["settings.subscribe", "notify", "storage"],
+  "engines": {
+    "eisland": ">=26.4.3"
+  }
+}

@@ -38,6 +38,7 @@ interface CreateMainWindowServiceOptions {
   getMainWindow: () => BrowserWindow | null;
   setMainWindow: (window: BrowserWindow | null) => void;
   getIslandPositionOffset: () => { x: number; y: number };
+  getIslandDisplaySelection: () => string;
   setIslandPositionOffset: (offset: { x: number; y: number }) => void;
   sanitizeIslandPositionOffset: (offset: { x?: number; y?: number }) => { x: number; y: number };
   sizes: WindowSizeOptions;
@@ -58,9 +59,21 @@ interface MainWindowService {
 export function createMainWindowService(options: CreateMainWindowServiceOptions): MainWindowService {
   let initialCenterX = 0;
 
+  function getTargetDisplay(): Electron.Display {
+    const selection = options.getIslandDisplaySelection();
+    if (selection !== 'primary') {
+      const targetId = Number(selection);
+      if (Number.isFinite(targetId)) {
+        const target = screen.getAllDisplays().find((display) => display.id === targetId);
+        if (target) return target;
+      }
+    }
+    return screen.getPrimaryDisplay();
+  }
+
   function getInitialIslandBounds(): Electron.Rectangle {
-    const primaryDisplay = screen.getPrimaryDisplay();
-    const { x: workX, y: workY, width: workWidth, height: workHeight } = primaryDisplay.workArea;
+    const targetDisplay = getTargetDisplay();
+    const { x: workX, y: workY, width: workWidth, height: workHeight } = targetDisplay.workArea;
     const centeredX = Math.round(workX + (workWidth - options.sizes.islandWidth) / 2);
     const minX = workX;
     const maxX = workX + Math.max(0, workWidth - options.sizes.islandWidth);
@@ -93,8 +106,8 @@ export function createMainWindowService(options: CreateMainWindowServiceOptions)
 
     if (!mainWindow || mainWindow.isDestroyed()) return;
     const bounds = mainWindow.getBounds();
-    const primaryDisplay = screen.getPrimaryDisplay();
-    const { x: workX, y: workY, width: workWidth, height: workHeight } = primaryDisplay.workArea;
+    const targetDisplay = getTargetDisplay();
+    const { x: workX, y: workY, width: workWidth, height: workHeight } = targetDisplay.workArea;
     const targetX = Math.round(initialCenterX - bounds.width / 2);
     const minX = workX;
     const maxX = workX + Math.max(0, workWidth - bounds.width);

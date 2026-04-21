@@ -28,10 +28,56 @@
 import { ipcMain } from 'electron';
 import type { AppUpdater } from 'electron-updater';
 
+type UpdateSourceKey = 'cloudflare-r2' | 'tencent-cos' | 'aliyun-oss' | 'github';
+
 interface RegisterUpdaterIpcHandlersOptions {
   updater: AppUpdater;
   getVersion: () => string;
   isPackaged: () => boolean;
+}
+
+const DEFAULT_UPDATE_SOURCE: UpdateSourceKey = 'cloudflare-r2';
+const R2_UPDATE_URL = 'https://pub-4c1e73c3c2004901aecd6ca014cb16bd.r2.dev';
+const COS_UPDATE_URL = 'https://eisland-update-1325659831.cos.ap-nanjing.myqcloud.com';
+const OSS_UPDATE_URL = 'https://eisland-update.oss-cn-hangzhou.aliyuncs.com';
+const GITHUB_OWNER = 'JNTMTMTM';
+const GITHUB_REPO = 'eIsland';
+
+function normalizeUpdateSource(value: unknown): UpdateSourceKey {
+  if (value === 'github') return 'github';
+  if (value === 'tencent-cos') return 'tencent-cos';
+  if (value === 'aliyun-oss') return 'aliyun-oss';
+  return DEFAULT_UPDATE_SOURCE;
+}
+
+function applyUpdateSource(updater: AppUpdater, source: UpdateSourceKey): void {
+  if (source === 'github') {
+    updater.setFeedURL({
+      provider: 'github',
+      owner: GITHUB_OWNER,
+      repo: GITHUB_REPO,
+      private: false,
+    });
+    return;
+  }
+  if (source === 'tencent-cos') {
+    updater.setFeedURL({
+      provider: 'generic',
+      url: COS_UPDATE_URL,
+    });
+    return;
+  }
+  if (source === 'aliyun-oss') {
+    updater.setFeedURL({
+      provider: 'generic',
+      url: OSS_UPDATE_URL,
+    });
+    return;
+  }
+  updater.setFeedURL({
+    provider: 'generic',
+    url: R2_UPDATE_URL,
+  });
 }
 
 /**
@@ -40,11 +86,14 @@ interface RegisterUpdaterIpcHandlersOptions {
  * @param options - 配置选项，包含更新器和版本信息获取函数
  */
 export function registerUpdaterIpcHandlers(options: RegisterUpdaterIpcHandlersOptions): void {
-  ipcMain.handle('updater:check', async () => {
+  ipcMain.handle('updater:check', async (_event, sourceRaw?: string) => {
     try {
+      const source = normalizeUpdateSource(sourceRaw);
+      applyUpdateSource(options.updater, source);
       const current = options.getVersion();
       console.log('[Updater:check] currentVersion:', current);
       console.log('[Updater:check] app.isPackaged:', options.isPackaged());
+      console.log('[Updater:check] source:', source);
       console.log('[Updater:check] calling checkForUpdates...');
       const result = await options.updater.checkForUpdates();
       console.log('[Updater:check] result:', JSON.stringify(result?.updateInfo ?? null));
@@ -68,8 +117,11 @@ export function registerUpdaterIpcHandlers(options: RegisterUpdaterIpcHandlersOp
     }
   });
 
-  ipcMain.handle('updater:download', async () => {
+  ipcMain.handle('updater:download', async (_event, sourceRaw?: string) => {
     try {
+      const source = normalizeUpdateSource(sourceRaw);
+      applyUpdateSource(options.updater, source);
+      console.log('[Updater:download] source:', source);
       console.log('[Updater:download] step 1 - checkForUpdates...');
       const checkResult = await options.updater.checkForUpdates();
       console.log('[Updater:download] checkResult:', JSON.stringify(checkResult?.updateInfo ?? null));

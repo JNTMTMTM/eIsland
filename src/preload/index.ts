@@ -106,6 +106,24 @@ const api = {
     return ipcRenderer.invoke('window:get-bounds');
   },
   /**
+   * 获取可用于灵动岛显示的显示器列表
+   */
+  getIslandDisplays: (): Promise<Array<{ id: string; width: number; height: number; isPrimary: boolean }>> => {
+    return ipcRenderer.invoke('window:island-displays:list');
+  },
+  /**
+   * 获取灵动岛显示器选择配置
+   */
+  getIslandDisplaySelection: (): Promise<string> => {
+    return ipcRenderer.invoke('window:island-display:get');
+  },
+  /**
+   * 设置并保存灵动岛显示器选择配置
+   */
+  setIslandDisplaySelection: (selection: string): Promise<boolean> => {
+    return ipcRenderer.invoke('window:island-display:set', selection);
+  },
+  /**
    * 获取灵动岛位置偏移
    * @returns 相对主屏工作区顶部居中的偏移
    */
@@ -150,6 +168,18 @@ const api = {
    */
   openLogsFolder: (): Promise<boolean> => {
     return ipcRenderer.invoke('app:open-logs-folder');
+  },
+  /**
+   * 选择反馈日志文件（默认定位日志目录）
+   */
+  pickFeedbackLogFile: (): Promise<string | null> => {
+    return ipcRenderer.invoke('app:pick-feedback-log-file');
+  },
+  /**
+   * 选择反馈截图文件
+   */
+  pickFeedbackScreenshotFile: (): Promise<string | null> => {
+    return ipcRenderer.invoke('app:pick-feedback-screenshot-file');
   },
   /**
    * 清理日志缓存
@@ -806,15 +836,15 @@ const api = {
    * 检查更新
    * @returns 更新信息（是否有新版、版本号等）
    */
-  updaterCheck: (): Promise<{ available: boolean; version?: string; releaseNotes?: string; currentVersion?: string; error?: string }> => {
-    return ipcRenderer.invoke('updater:check');
+  updaterCheck: (source?: string): Promise<{ available: boolean; version?: string; releaseNotes?: string; currentVersion?: string; error?: string }> => {
+    return ipcRenderer.invoke('updater:check', source);
   },
   /**
    * 下载更新
    * @returns 是否成功开始下载
    */
-  updaterDownload: (): Promise<boolean> => {
-    return ipcRenderer.invoke('updater:download');
+  updaterDownload: (source?: string): Promise<boolean> => {
+    return ipcRenderer.invoke('updater:download', source);
   },
   /**
    * 安装更新并重启

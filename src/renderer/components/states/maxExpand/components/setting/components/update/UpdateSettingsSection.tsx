@@ -45,12 +45,14 @@ interface UpdateSettingsSectionProps {
   aboutVersion: string;
   updateSource: string;
   updateSources: UpdateSourceOption[];
+  updateAutoPromptEnabled: boolean;
   updateStatus: UpdateStatus;
   updateVersion: string;
   downloadProgress: DownloadProgressData | null;
   currentSourceLabel: string;
   updateError: string;
   onUpdateSourceChange: (value: string) => void;
+  onUpdateAutoPromptEnabledChange: (enabled: boolean) => void;
   onCheckUpdate: () => void;
   onDownloadUpdate: () => void;
   onInstallUpdate: () => void;
@@ -65,12 +67,14 @@ export function UpdateSettingsSection({
   aboutVersion,
   updateSource,
   updateSources,
+  updateAutoPromptEnabled,
   updateStatus,
   updateVersion,
   downloadProgress,
   currentSourceLabel,
   updateError,
   onUpdateSourceChange,
+  onUpdateAutoPromptEnabledChange,
   onCheckUpdate,
   onDownloadUpdate,
   onInstallUpdate,
@@ -108,6 +112,11 @@ export function UpdateSettingsSection({
 
           <div className="settings-card-subgroup">
             <div className="settings-card-subgroup-title">{t('settings.update.source', { defaultValue: '更新源' })}</div>
+            <div className="settings-music-hint" style={{ marginBottom: 6, whiteSpace: 'pre-line' }}>
+              {t('settings.update.sourceHint', {
+                defaultValue: 'Cloudflare R2：全球访问稳定，综合速度均衡\nTencent COS：国内网络通常更快\nAliyun OSS：国内节点覆盖广，峰值速度高\nGitHub Releases：海外链路较稳，国内可能偏慢',
+              })}
+            </div>
             <div className="settings-card-inline-row">
               {updateSources.map((s) => (
                 <label key={s.key} className="settings-card-check">
@@ -122,6 +131,18 @@ export function UpdateSettingsSection({
                 </label>
               ))}
             </div>
+          </div>
+
+          <div className="settings-card-subgroup">
+            <div className="settings-card-subgroup-title">{t('settings.update.autoPromptTitle', { defaultValue: '更新提示' })}</div>
+            <label className="settings-card-check">
+              <input
+                type="checkbox"
+                checked={updateAutoPromptEnabled}
+                onChange={(e) => onUpdateAutoPromptEnabledChange(e.target.checked)}
+              />
+              <span>{t('settings.update.autoPromptEnabled', { defaultValue: '自动提示版本更新' })}</span>
+            </label>
           </div>
         </div>
 

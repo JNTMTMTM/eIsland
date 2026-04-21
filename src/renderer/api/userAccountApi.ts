@@ -58,7 +58,7 @@ export interface UserAccountLoginData {
 
 export type UserEmailCodeScene = 'REGISTER' | 'LOGIN' | 'RESET_PASSWORD' | 'CHANGE_EMAIL' | 'UNREGISTER';
 
-export interface UserEmailCaptchaConfig {
+export interface UserCaptchaConfig {
   enabled: boolean;
   provider?: string;
   minValue?: number;
@@ -67,13 +67,19 @@ export interface UserEmailCaptchaConfig {
   challengeTtlSeconds?: number;
 }
 
-export interface UserEmailCaptchaChallenge {
+export interface UserCaptchaChallenge {
   challengeId: string;
   minValue: number;
   maxValue: number;
   targetValue: number;
   tolerance: number;
   captchaSign: string;
+}
+
+export interface UserCaptchaPayload {
+  ticket: string;
+  randstr: string;
+  sign: string;
 }
 
 export interface WallpaperMarketItem {
@@ -153,6 +159,47 @@ export interface WallpaperTagItem {
   name: string;
   slug: string;
   usageCount?: number;
+}
+
+export interface UserIssueFeedbackItem {
+  id: number;
+  username: string;
+  feedbackType: string;
+  title: string;
+  content: string;
+  contact?: string;
+  feedbackLogUrl?: string;
+  feedbackScreenshotUrl?: string;
+  clientVersion?: string;
+  status: string;
+  adminReply?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  resolvedAt?: string;
+}
+
+export interface UserIssueFeedbackListData {
+  items: UserIssueFeedbackItem[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+export interface SubmitUserIssueFeedbackPayload {
+  feedbackType: string;
+  title: string;
+  content: string;
+  contact?: string;
+  feedbackLogUrl?: string;
+  feedbackScreenshotUrl?: string;
+  clientVersion?: string;
+  captchaTicket: string;
+  captchaRandstr: string;
+  captchaSign: string;
+}
+
+export interface UserFeedbackUploadOptions {
+  onUploadProgress?: (percent: number) => void;
 }
 
 /** 超时时间（ms） */
@@ -368,8 +415,8 @@ export function registerUserWithCode(
  * 获取邮箱验证码滑块配置。
  * @returns 滑块配置。
  */
-export function fetchUserEmailCaptchaConfig(): Promise<UserAccountResult<UserEmailCaptchaConfig>> {
-  return request<UserEmailCaptchaConfig>('/auth/user/email-code/captcha-config', {
+export function fetchUserCaptchaConfig(): Promise<UserAccountResult<UserCaptchaConfig>> {
+  return request<UserCaptchaConfig>('/auth/user/email-code/captcha-config', {
     method: 'GET',
   });
 }
@@ -379,8 +426,8 @@ export function fetchUserEmailCaptchaConfig(): Promise<UserAccountResult<UserEma
  * @param account 账户标识。
  * @returns 挑战参数。
  */
-export function createUserEmailCaptchaChallenge(account: string): Promise<UserAccountResult<UserEmailCaptchaChallenge>> {
-  return request<UserEmailCaptchaChallenge>('/auth/user/email-code/captcha-challenge', {
+export function createUserCaptchaChallenge(account: string): Promise<UserAccountResult<UserCaptchaChallenge>> {
+  return request<UserCaptchaChallenge>('/auth/user/email-code/captcha-challenge', {
     method: 'POST',
     body: { account },
   });
@@ -396,7 +443,7 @@ export function createUserEmailCaptchaChallenge(account: string): Promise<UserAc
 export function sendUserEmailCode(
   email: string,
   scene: UserEmailCodeScene,
-  captcha: { ticket: string; randstr: string; sign: string },
+  captcha: UserCaptchaPayload,
 ): Promise<UserAccountResult<{ retryAfterSeconds?: number }>> {
   return request<{ retryAfterSeconds?: number }>('/auth/user/email-code/send', {
     method: 'POST',
@@ -616,13 +663,67 @@ export function unregisterUser(token: string, password: string, emailCode: strin
 }
 
 /**
+ * 提交问题反馈。
+ * @param token 用户 token。
+ * @param payload 反馈请求体。
+ * @returns 提交结果。
+ */
+export function submitUserIssueFeedback(
+  token: string,
+  payload: SubmitUserIssueFeedbackPayload,
+): Promise<UserAccountResult<unknown>> {
+  return request('/v1/user/feedback/submit', {
+    method: 'POST',
+    auth: token,
+    body: {
+      feedbackType: payload.feedbackType,
+      title: payload.title,
+      content: payload.content,
+      contact: payload.contact ?? '',
+      feedbackLogUrl: payload.feedbackLogUrl ?? '',
+      feedbackScreenshotUrl: payload.feedbackScreenshotUrl ?? '',
+      clientVersion: payload.clientVersion ?? '',
+      captchaTicket: payload.captchaTicket,
+      captchaRandstr: payload.captchaRandstr,
+      captchaSign: payload.captchaSign,
+    },
+  });
+}
+
+/**
+ * 获取当前登录用户的问题反馈列表。
+ * @param token 用户 token。
+ * @param params 可选查询参数。
+ * @returns 反馈列表结果。
+ */
+export function fetchMyIssueFeedbackList(
+  token: string,
+  params?: {
+    status?: string;
+    page?: number;
+    pageSize?: number;
+  },
+): Promise<UserAccountResult<UserIssueFeedbackListData>> {
+  const query = new URLSearchParams();
+  if (params?.status) query.set('status', params.status);
+  if (params?.page) query.set('page', String(params.page));
+  if (params?.pageSize) query.set('pageSize', String(params.pageSize));
+  const qs = query.toString();
+  return request<UserIssueFeedbackListData>(`/v1/user/feedback/mine${qs ? `?${qs}` : ''}`, {
+    method: 'GET',
+    auth: token,
+  });
+}
+
+/**
  * 上传头像到 Cloudflare R2（经由后端受鉴权保护的头像接口）。
  * 由于需要发送 multipart/form-data，走浏览器原生 fetch。
  * @param file 头像文件。
  * @param token 用户 token。
+ * @param captcha 滑块验证票据。
  * @returns 上传后的完整 URL；失败时抛出 Error。
  */
-export async function uploadUserAvatar(file: File, token: string): Promise<string> {
+export async function uploadUserAvatar(file: File, token: string, captcha: UserCaptchaPayload): Promise<string> {
   if (!token || token.trim().length === 0) {
     throw new Error('未登录');
   }
@@ -630,6 +731,9 @@ export async function uploadUserAvatar(file: File, token: string): Promise<strin
   const replayHeaders = buildReplayHeaders();
   const formData = new FormData();
   formData.append('file', file);
+  formData.append('captchaTicket', captcha.ticket);
+  formData.append('captchaRandstr', captcha.randstr);
+  formData.append('captchaSign', captcha.sign);
   const resp = await fetch(`${USER_ACCOUNT_API_BASE}/v1/upload/user-avatar`, {
     method: 'POST',
     headers: {
@@ -640,14 +744,111 @@ export async function uploadUserAvatar(file: File, token: string): Promise<strin
     },
     body: formData,
   });
-  if (!resp.ok) {
-    throw new Error(`上传失败：HTTP ${resp.status}`);
+  let payload: { code?: number; message?: string; data?: string } | null = null;
+  try {
+    payload = await resp.json() as { code?: number; message?: string; data?: string };
+  } catch {
+    payload = null;
   }
-  const payload = await resp.json() as { code?: number; message?: string; data?: string };
+  if (!resp.ok) {
+    throw new Error(payload?.message || `上传失败：HTTP ${resp.status}`);
+  }
   if (payload?.code !== 200 || typeof payload.data !== 'string' || payload.data.length === 0) {
     throw new Error(payload?.message || '上传失败');
   }
   return payload.data;
+}
+
+/**
+ * 上传问题反馈日志文件到 R2。
+ * @param file 日志文件。
+ * @param token 用户 token。
+ * @returns 上传后的公网 URL。
+ */
+export async function uploadUserFeedbackLog(
+  file: File,
+  token: string,
+  options: UserFeedbackUploadOptions = {},
+): Promise<string> {
+  if (!token || token.trim().length === 0) {
+    throw new Error('未登录');
+  }
+  if (!file.name.toLowerCase().endsWith('.log')) {
+    throw new Error('仅支持上传 .log 日志文件');
+  }
+  return uploadUserFeedbackAsset('/v1/upload/feedback-log', file, token, options);
+}
+
+export async function uploadUserFeedbackScreenshot(
+  file: File,
+  token: string,
+  options: UserFeedbackUploadOptions = {},
+): Promise<string> {
+  if (!token || token.trim().length === 0) {
+    throw new Error('未登录');
+  }
+  if (!file.type || !file.type.startsWith('image/')) {
+    throw new Error('仅支持上传图片截图');
+  }
+  return uploadUserFeedbackAsset('/v1/upload/feedback-screenshot', file, token, options);
+}
+
+async function uploadUserFeedbackAsset(
+  path: '/v1/upload/feedback-log' | '/v1/upload/feedback-screenshot',
+  file: File,
+  token: string,
+  options: UserFeedbackUploadOptions = {},
+): Promise<string> {
+  const clientVersion = await resolveClientVersion();
+  const replayHeaders = buildReplayHeaders();
+  const formData = new FormData();
+  formData.append('file', file);
+  const headers: Record<string, string> = {
+    [APP_NAME_HEADER]: APP_NAME_VALUE,
+    ...(clientVersion ? { [CLIENT_VERSION_HEADER]: clientVersion } : {}),
+    Authorization: `Bearer ${token}`,
+    ...replayHeaders,
+  };
+  const payload = await new Promise<{ status: number; body: { code?: number; message?: string; data?: string } | null }>((resolve) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', `${USER_ACCOUNT_API_BASE}${path}`, true);
+    Object.entries(headers).forEach(([key, value]) => {
+      xhr.setRequestHeader(key, value);
+    });
+    xhr.upload.onprogress = (event) => {
+      if (!options.onUploadProgress || !event.lengthComputable) {
+        return;
+      }
+      const percent = Math.max(0, Math.min(100, Math.round((event.loaded / event.total) * 100)));
+      options.onUploadProgress(percent);
+    };
+    xhr.onerror = () => {
+      resolve({ status: xhr.status || 0, body: null });
+    };
+    xhr.onabort = () => {
+      resolve({ status: xhr.status || 0, body: null });
+    };
+    xhr.onload = () => {
+      let parsed: { code?: number; message?: string; data?: string } | null = null;
+      try {
+        parsed = JSON.parse(xhr.responseText) as { code?: number; message?: string; data?: string };
+      } catch {
+        parsed = null;
+      }
+      resolve({ status: xhr.status, body: parsed });
+    };
+    xhr.send(formData);
+  });
+  if (payload.status < 200 || payload.status >= 300) {
+    throw new Error(payload.body?.message || `上传失败：HTTP ${payload.status}`);
+  }
+  if (payload.body?.code !== 200 || typeof payload.body.data !== 'string' || payload.body.data.length === 0) {
+    throw new Error(payload.body?.message || '上传失败');
+  }
+  if (options.onUploadProgress) {
+    options.onUploadProgress(100);
+  }
+  return payload.body.data;
 }
 
 /**

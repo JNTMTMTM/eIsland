@@ -81,6 +81,7 @@ import {
   DEFAULT_WHITELIST, DEFAULT_HIDE_PROCESS_LIST,
   DEFAULT_CLIPBOARD_URL_DETECT_MODE,
   DEFAULT_ISLAND_POSITION_OFFSET,
+  DEFAULT_ISLAND_DISPLAY_SELECTION,
   WHITELIST_STORE_KEY, LYRICS_SOURCE_STORE_KEY,
   LYRICS_KARAOKE_STORE_KEY, LYRICS_CLOCK_STORE_KEY,
   SMTC_UNSUBSCRIBE_MS_STORE_KEY, HIDE_PROCESS_LIST_STORE_KEY,
@@ -94,13 +95,15 @@ import {
   PLAY_PAUSE_SONG_HOTKEY_STORE_KEY, RESET_POSITION_HOTKEY_STORE_KEY,
   TOGGLE_TRAY_HOTKEY_STORE_KEY, SHOW_SETTINGS_WINDOW_HOTKEY_STORE_KEY,
   OPEN_CLIPBOARD_HISTORY_HOTKEY_STORE_KEY,
-  sanitizeIslandPositionOffset, sanitizeSmtcUnsubscribeMs,
+  sanitizeIslandPositionOffset, sanitizeIslandDisplaySelection, sanitizeSmtcUnsubscribeMs,
   readHotkeyConfig, readQuitHotkeyConfig, readScreenshotHotkeyConfig,
   readNextSongHotkeyConfig, readPlayPauseSongHotkeyConfig, readResetPositionHotkeyConfig,
   readToggleTrayHotkeyConfig, readShowSettingsWindowHotkeyConfig, readOpenClipboardHistoryHotkeyConfig,
   readWhitelistConfig, readLyricsSourceConfig, readSmtcUnsubscribeMsConfig,
-  readHideProcessListConfig, readIslandPositionOffsetConfig, writeIslandPositionOffsetConfig,
+  readHideProcessListConfig, readIslandPositionOffsetConfig, readIslandDisplaySelectionConfig,
+  writeIslandPositionOffsetConfig, writeIslandDisplaySelectionConfig,
   readClipboardUrlMonitorEnabledConfig, readClipboardUrlDetectModeConfig, readClipboardUrlBlacklistConfig,
+  readUpdateAutoPromptConfig,
 } from './config/storeConfig';
 import type { IslandPositionOffset } from './config/storeConfig';
 
@@ -121,12 +124,16 @@ let nowPlayingWhitelist: string[] = [...DEFAULT_WHITELIST];
 /** 运行时灵动岛位置偏移 */
 let islandPositionOffset: IslandPositionOffset = { ...DEFAULT_ISLAND_POSITION_OFFSET };
 
+/** 运行时灵动岛显示器选择 */
+let islandDisplaySelection = DEFAULT_ISLAND_DISPLAY_SELECTION;
+
 const mainWindowService = createMainWindowService({
   getMainWindow: () => mainWindow,
   setMainWindow: (window) => {
     mainWindow = window;
   },
   getIslandPositionOffset: () => islandPositionOffset,
+  getIslandDisplaySelection: () => islandDisplaySelection,
   setIslandPositionOffset: (offset) => {
     islandPositionOffset = offset;
   },
@@ -229,9 +236,15 @@ function registerIpcHandlers(): void {
     getInitialCenterX: mainWindowService.getInitialCenterX,
     setHiddenByAutoHideProcess: autoHideWatcher.setHiddenByAutoHideProcess,
     getIslandPositionOffset: () => islandPositionOffset,
+    getIslandDisplaySelection: () => islandDisplaySelection,
+    sanitizeIslandDisplaySelection,
+    setIslandDisplaySelection: (selection) => {
+      islandDisplaySelection = selection;
+    },
     sanitizeIslandPositionOffset,
     applyIslandPositionOffset: mainWindowService.applyIslandPositionOffset,
     writeIslandPositionOffsetConfig,
+    writeIslandDisplaySelectionConfig,
     sizes: {
       expandedWidth: EXPANDED_WIDTH,
       expandedHeight: EXPANDED_HEIGHT,
@@ -541,6 +554,7 @@ app.whenReady().then(() => {
   });
 
   islandPositionOffset = readIslandPositionOffsetConfig();
+  islandDisplaySelection = readIslandDisplaySelectionConfig();
   clipboardUrlState.setMonitorEnabled(readClipboardUrlMonitorEnabledConfig());
   clipboardUrlState.setDetectMode(readClipboardUrlDetectModeConfig());
   clipboardUrlState.setBlacklist(readClipboardUrlBlacklistConfig());
@@ -613,6 +627,7 @@ app.whenReady().then(() => {
     getMainWindow: () => mainWindow,
     getAppPath: () => app.getAppPath(),
     isPackaged: () => app.isPackaged,
+    shouldAutoPromptUpdate: () => readUpdateAutoPromptConfig(),
     autoCheckDelayMs: 5000,
   });
 

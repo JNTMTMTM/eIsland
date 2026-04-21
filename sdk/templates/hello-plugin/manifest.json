@@ -1,0 +1,14 @@
+{
+  "id": "com.pyisland.eisland.hello-plugin",
+  "name": "Hello Plugin",
+  "version": "1.0.0",
+  "entry": "index.ts",
+  "description": "Minimal example plugin for eIsland.",
+  "permissions": ["storage", "http", "notify"],
+  "network": {
+    "allowDomains": ["api.github.com"]
+  },
+  "engines": {
+    "eisland": ">=26.4.3"
+  }
+}

@@ -33,6 +33,7 @@ interface InitUpdaterServiceOptions {
   getMainWindow: () => BrowserWindow | null;
   getAppPath: () => string;
   isPackaged: () => boolean;
+  shouldAutoPromptUpdate?: () => boolean;
   autoCheckDelayMs?: number;
 }
 
@@ -104,6 +105,11 @@ export function initUpdaterService(options: InitUpdaterServiceOptions): void {
   });
 
   setTimeout(() => {
+    const enabled = options.shouldAutoPromptUpdate ? options.shouldAutoPromptUpdate() : true;
+    if (!enabled) {
+      console.log('[Updater] startup auto-check skipped by setting (update-auto-prompt-enabled=false)');
+      return;
+    }
     console.log('[Updater] auto-checking for updates on startup...');
     updater.checkForUpdates().catch((err) => {
       console.error('[Updater] auto-check error:', err);

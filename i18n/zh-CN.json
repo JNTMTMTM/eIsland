@@ -346,6 +346,7 @@
     "update": {
       "availableTitle": "发现新版本",
       "availableBody": "是否立即下载？",
+      "currentSource": "当前更新源：{{source}}",
       "readyTitle": "更新就绪",
       "readyBody": "新版本 v{{version}} 已下载完成，是否立即安装？"
     },
@@ -365,6 +366,8 @@
       "installRestart": "安装并重启",
       "later": "稍后",
       "downloadUpdate": "下载更新",
+      "downloadNow": "立即下载",
+      "configureUpdateSource": "自行配置更新源",
       "restartNow": "立即重启",
       "openAllLinks": "打开全部链接",
       "openLink": "打开链接",
@@ -690,6 +693,12 @@
         "hint": "调整后立即生效并自动保存，重启后会按该位置校准。",
         "quickAdjustTitle": "快速微调",
         "quickAdjustHint": "每次按钮点击以 10px 步进移动灵动岛位置，立即生效并自动保存。",
+        "displayTitle": "显示器选择",
+        "displayHint": "多显示器环境可指定灵动岛显示器，重启应用后生效。",
+        "displayLabel": "目标显示器",
+        "displayPrimaryOption": "主显示器（推荐）",
+        "displayOption": "显示器 {{index}}（{{width}}×{{height}}）",
+        "displayPrimarySuffix": " · 主显示器",
         "preciseTitle": "精确偏移",
         "preciseHint": "手动输入水平 / 垂直偏移量（单位 px），回车或点击“应用”后生效。",
         "moveLeft": "左移 10",
@@ -745,11 +754,11 @@
         "islandOpacityHint": "数值越低越透明（10% - 100%），调整后立即生效"
       },
       "behavior": {
-        "springTitle": "灵动岛弹性动画 (立即生效)",
+        "springTitle": "灵动岛弹性动画",
         "springHint": "关闭后，展开和收起动画将变得更加平滑内敛，消除弹跳感",
         "springToggle": "启用弹性动画",
-        "mouseLeaveTitle": "鼠标移开自动收回 (重启后生效)",
-        "mouseLeaveHint": "启用后，鼠标离开灵动岛时将自动回到空闲状态（若正在播放音乐则切到歌词态）",
+        "mouseLeaveTitle": "鼠标移开自动收回",
+        "mouseLeaveHint": "启用后，鼠标离开灵动岛时将自动回到空闲状态（重启后生效）",
         "expandLeaveToggle": "展开态（Expand）鼠标移开后自动收回",
         "maxExpandLeaveToggle": "最大展开态（MaxExpand）鼠标移开后自动收回",
         "windowModeTitle": "待办事项 / 倒数日 / 设置 打开方式",
@@ -1007,10 +1016,13 @@
     "update": {
       "versionCardTitle": "版本信息",
       "versionCardHint": "查看当前版本并选择更新源，应用所有补丁包均通过该更新源下载",
+      "autoPromptTitle": "更新提示",
+      "autoPromptEnabled": "自动提示版本更新",
       "actionCardTitle": "检查与安装",
       "actionCardHint": "手动触发检查，有新版本时可下载安装；下载完成后点击“安装并重启”应用更新",
       "currentVersion": "当前版本",
       "source": "更新源",
+      "sourceHint": "Cloudflare R2：全球访问稳定，综合速度均衡\nTencent COS：国内网络通常更快\nAliyun OSS：国内节点覆盖广，峰值速度高\nGitHub Releases：海外链路较稳，国内可能偏慢",
       "latestVersion": "最新版本",
       "downloadingFrom": "正在从 {{source}} 下载更新…",
       "preparingDownload": "准备下载…",
@@ -1217,6 +1229,11 @@
       "systemPromptHint": "用于限定 Agent 的角色与风格，留空则使用默认提示词"
     },
     "about": {
+      "pagination": "关于软件分页",
+      "pages": {
+        "development": "开发信息",
+        "feedback": "问题反馈"
+      },
       "authorAvatarAlt": "作者头像",
       "githubHome": "GitHub 主页",
       "notice": "本软件开源免费，如果你在任何地方付费购买了本软件，请立即退款并给差评。",
@@ -1234,6 +1251,84 @@
         "capture": "拍摄",
         "link": "原始链接",
         "notice": "所有 NASA 图像均按照 NASA 图像使用政策使用，不暗示 NASA 对本项目的任何认可。"
+      },
+      "feedback": {
+        "intro": "问题反馈会进入管理后台审核，请尽量提供完整复现信息。",
+        "types": {
+          "bug": "Bug 问题",
+          "feature": "功能建议",
+          "experience": "体验优化",
+          "other": "其他"
+        },
+        "fields": {
+          "type": "反馈类型",
+          "contact": "联系方式（选填）",
+          "contactPlaceholder": "邮箱、QQ 或其他可联系信息",
+          "title": "标题",
+          "titlePlaceholder": "请简要描述你遇到的问题",
+          "content": "详细描述",
+          "contentPlaceholder": "请提供复现步骤、实际结果、期望结果等信息",
+          "logFile": "日志文件（选填，<=5MB）",
+          "logFilePlaceholder": "可上传日志辅助定位问题",
+          "logFileView": "查看已上传日志",
+          "logFileMeta": "文件大小：{{size}}MB",
+          "screenshotFile": "问题截图（选填，<=10MB）",
+          "screenshotFileMeta": "文件大小：{{size}}MB",
+          "logNotePlaceholder": "备注（选填）",
+          "logNoteSubmitPrefix": "日志备注："
+        },
+        "actions": {
+          "submit": "提交反馈",
+          "submitting": "提交中…",
+          "refresh": "刷新",
+          "useBoundEmail": "填充邮箱",
+          "uploadLog": "上传日志",
+          "uploadingLog": "上传中…",
+          "clearLog": "移除日志",
+          "uploadScreenshot": "上传截图",
+          "uploadingScreenshot": "上传中…",
+          "clearScreenshot": "移除截图"
+        },
+        "messages": {
+          "loginRequired": "请先登录后再使用反馈功能",
+          "titleRequired": "请填写反馈标题",
+          "contentRequired": "请填写详细描述",
+          "captchaCancelled": "请完成滑块验证后再提交反馈",
+          "boundEmailNotFound": "当前账号未找到绑定邮箱",
+          "boundEmailFilled": "已自动填充当前账号邮箱",
+          "logOnly": "仅支持上传 .log 日志文件",
+          "logReadFailed": "日志文件读取失败，请重试",
+          "logTooLarge": "日志文件不能超过 5MB",
+          "logUploadSuccess": "日志上传成功，提交反馈时会自动携带",
+          "logUploadFailed": "日志上传失败，请稍后重试",
+          "screenshotOnly": "仅支持上传图片截图文件",
+          "screenshotReadFailed": "截图文件读取失败，请重试",
+          "screenshotTooLarge": "截图文件不能超过 10MB",
+          "screenshotUploadSuccess": "截图上传成功，提交反馈时会自动携带",
+          "screenshotUploadFailed": "截图上传失败，请稍后重试",
+          "submitSuccess": "反馈已提交，感谢你的建议",
+          "submitFailed": "反馈提交失败，请稍后重试",
+          "loadFailed": "反馈记录加载失败"
+        },
+        "history": {
+          "title": "我的反馈记录",
+          "loading": "加载反馈记录中…",
+          "empty": "暂无反馈记录",
+          "loginHint": "登录后可查看你提交过的反馈记录",
+          "adminReply": "管理员回复：{{reply}}",
+          "meta": "类型：{{type}} · 提交于：{{time}}",
+          "filters": {
+            "all": "全部状态",
+            "pending": "待处理",
+            "resolved": "已处理",
+            "rejected": "已拒绝"
+          },
+          "status": {
+            "pending": "待处理",
+            "resolved": "已处理",
+            "rejected": "已拒绝"
+          }
+        }
       },
       "copyright": "© JNTMTMTM, pyisland.com 版权所有",
       "slogan": "算法诠释一切 质疑即是认可"
@@ -1352,6 +1447,11 @@
         "emailCodeSent": "验证码已发送，请查收邮箱",
         "emailCodeSendFailed": "验证码发送失败",
         "captchaCancelled": "请完成滑块验证后再发送验证码",
+        "avatarTooLarge": "头像文件不能超过 5MB",
+        "avatarNotImage": "仅支持上传图片文件",
+        "avatarUploaded": "头像已更新",
+        "avatarUploadFailed": "头像上传失败",
+        "avatarUploadTooFrequent": "头像上传过于频繁，请稍后再试",
         "passwordTooShort": "密码至少 8 位且包含字母与数字",
         "passwordConfirmRequired": "请再次输入新密码进行确认",
         "passwordConfirmMismatch": "两次输入的新密码不一致",
