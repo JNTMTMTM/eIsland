@@ -1457,6 +1457,28 @@
 
 .settings-about-feedback-textarea {
   min-height: 84px;
+  resize: vertical;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(var(--color-text-rgb), 0.1) rgba(var(--color-text-rgb), 0.08);
+}
+
+.settings-about-feedback-textarea::-webkit-scrollbar {
+  width: 10px;
+}
+
+.settings-about-feedback-textarea::-webkit-scrollbar-track {
+  background: rgba(var(--color-text-rgb), 0.08);
+  border-radius: 999px;
+}
+
+.settings-about-feedback-textarea::-webkit-scrollbar-thumb {
+  background: rgba(var(--color-text-rgb), 0.1);
+  border-radius: 999px;
+  border: 2px solid rgba(var(--color-text-rgb), 0.08);
+}
+
+.settings-about-feedback-textarea:hover::-webkit-scrollbar-thumb {
+  background: rgba(var(--color-text-rgb), 0.2);
 }
 
 .settings-about-feedback-actions {
