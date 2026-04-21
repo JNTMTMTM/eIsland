@@ -71,6 +71,9 @@ declare global {
       hideWindow: () => void;
       getMousePosition: () => Promise<{ x: number; y: number }>;
       getWindowBounds: () => Promise<{ x: number; y: number; width: number; height: number }>;
+      getIslandDisplays: () => Promise<Array<{ id: string; width: number; height: number; isPrimary: boolean }>>;
+      getIslandDisplaySelection: () => Promise<string>;
+      setIslandDisplaySelection: (selection: string) => Promise<boolean>;
       getIslandPositionOffset: () => Promise<{ x: number; y: number }>;
       setIslandPositionOffset: (offset: { x: number; y: number }) => Promise<boolean>;
       onIslandPositionOffsetChanged: (callback: (offset: { x: number; y: number }) => void) => () => void;

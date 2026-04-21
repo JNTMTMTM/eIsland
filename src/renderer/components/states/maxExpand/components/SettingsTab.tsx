@@ -98,6 +98,7 @@ const ISLAND_BG_VIDEO_LOOP_STORE_KEY = 'island-bg-video-loop';
 const ISLAND_BG_VIDEO_VOLUME_STORE_KEY = 'island-bg-video-volume';
 const ISLAND_BG_VIDEO_RATE_STORE_KEY = 'island-bg-video-rate';
 const ISLAND_BG_VIDEO_HW_DECODE_STORE_KEY = 'island-bg-video-hw-decode';
+const ISLAND_DISPLAY_STORE_KEY = 'island-display-id';
 const UPDATE_SOURCE_STORE_KEY = 'update-source';
 const UPDATE_AUTO_PROMPT_STORE_KEY = 'update-auto-prompt-enabled';
 const SETTINGS_OPEN_TAB_STORE_KEY = 'settings-open-tab';
@@ -346,6 +347,10 @@ export function SettingsTab(): ReactElement {
   const bgBlurSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [islandPositionOffset, setIslandPositionOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [islandPositionInput, setIslandPositionInput] = useState<{ x: string; y: string }>({ x: '0', y: '0' });
+  const [islandDisplaySelection, setIslandDisplaySelection] = useState<string>('primary');
+  const [islandDisplayOptions, setIslandDisplayOptions] = useState<Array<{ id: string; label: string }>>([
+    { id: 'primary', label: t('settings.app.position.displayPrimaryOption', { defaultValue: '主显示器（推荐）' }) },
+  ]);
   const [aboutVersion, setAboutVersion] = useState<string>('');
 
   /** 自动更新相关状态 */
@@ -690,6 +695,47 @@ export function SettingsTab(): ReactElement {
     }).catch(() => {});
     return () => { cancelled = true; };
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all([
+      window.api.getIslandDisplays().catch(() => [] as Array<{ id: string; width: number; height: number; isPrimary: boolean }>),
+      window.api.getIslandDisplaySelection().catch(() => 'primary'),
+    ]).then(([displays, savedSelection]) => {
+      if (cancelled) return;
+      const primaryOption = {
+        id: 'primary',
+        label: t('settings.app.position.displayPrimaryOption', { defaultValue: '主显示器（推荐）' }),
+      };
+      const dynamicOptions = displays.map((display, index) => {
+        const base = t('settings.app.position.displayOption', {
+          defaultValue: '显示器 {{index}}（{{width}}×{{height}}）',
+          index: index + 1,
+          width: display.width,
+          height: display.height,
+        });
+        const suffix = display.isPrimary
+          ? t('settings.app.position.displayPrimarySuffix', { defaultValue: ' · 主显示器' })
+          : '';
+        return {
+          id: display.id,
+          label: `${base}${suffix}`,
+        };
+      });
+      const nextOptions = [primaryOption, ...dynamicOptions];
+      setIslandDisplayOptions(nextOptions);
+
+      const normalizedSaved = (() => {
+        if (savedSelection === 'primary') return 'primary';
+        if (typeof savedSelection === 'number' && Number.isFinite(savedSelection)) return String(Math.trunc(savedSelection));
+        if (typeof savedSelection === 'string' && /^-?\d+$/.test(savedSelection.trim())) return savedSelection.trim();
+        return 'primary';
+      })();
+      const optionIds = new Set(nextOptions.map((item) => item.id));
+      setIslandDisplaySelection(optionIds.has(normalizedSaved) ? normalizedSaved : 'primary');
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, [t]);
 
   useEffect(() => {
     let cancelled = false;
@@ -1148,6 +1194,14 @@ export function SettingsTab(): ReactElement {
     setIslandPositionInput({
       x: String(islandPositionOffset.x),
       y: String(islandPositionOffset.y),
+    });
+  };
+
+  const handleIslandDisplaySelectionChange = (selection: string): void => {
+    const normalized = selection === 'primary' || /^-?\d+$/.test(selection.trim()) ? selection.trim() : 'primary';
+    setIslandDisplaySelection(normalized);
+    window.api.setIslandDisplaySelection(normalized).catch(() => {
+      window.api.storeWrite(ISLAND_DISPLAY_STORE_KEY, normalized).catch(() => {});
     });
   };
 
@@ -2009,6 +2063,9 @@ export function SettingsTab(): ReactElement {
               applyIslandPositionInput={applyIslandPositionInput}
               islandPositionInputChanged={islandPositionInputChanged}
               cancelIslandPositionInput={cancelIslandPositionInput}
+              islandDisplaySelection={islandDisplaySelection}
+              islandDisplayOptions={islandDisplayOptions}
+              setIslandDisplaySelection={handleIslandDisplaySelectionChange}
               themeMode={themeMode}
               setThemeModeState={setThemeModeState}
               applyThemeMode={applyThemeMode}

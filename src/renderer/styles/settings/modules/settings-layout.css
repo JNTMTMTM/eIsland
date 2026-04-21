@@ -557,6 +557,12 @@
   color: #fff;
 }
 
+[data-theme='light'] .settings-field-input option,
+[data-theme='light'] .settings-field-input optgroup {
+  background-color: #ffffff;
+  color: #1d1d1f;
+}
+
 .settings-field-textarea {
   background: rgba(var(--color-text-rgb), 0.06);
   border: 1px solid rgba(var(--color-text-rgb), 0.1);

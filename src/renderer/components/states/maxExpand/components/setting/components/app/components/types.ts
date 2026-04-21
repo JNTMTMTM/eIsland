@@ -57,6 +57,14 @@ export interface AppPositionInput {
 }
 
 /**
+ * 灵动岛显示器选项
+ */
+export interface AppIslandDisplayOption {
+  id: string;
+  label: string;
+}
+
+/**
  * 应用设置主组件参数
  * @description 汇总软件设置所有子页面所需的状态和操作函数，用于入口组件分发
  */
@@ -82,6 +90,9 @@ export interface AppSettingsSectionProps {
   applyIslandPositionInput: () => void;
   islandPositionInputChanged: boolean;
   cancelIslandPositionInput: () => void;
+  islandDisplaySelection: string;
+  islandDisplayOptions: AppIslandDisplayOption[];
+  setIslandDisplaySelection: (selection: string) => void;
   themeMode: 'dark' | 'light' | 'system';
   setThemeModeState: (mode: 'dark' | 'light' | 'system') => void;
   applyThemeMode: (mode: 'dark' | 'light' | 'system') => Promise<void>;

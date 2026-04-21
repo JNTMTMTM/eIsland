@@ -43,6 +43,18 @@ export interface IslandPositionOffset {
   y: number;
 }
 
+/**
+ * 规范化灵动岛显示器选择配置
+ * @param raw - 原始配置数据
+ * @returns primary 或显示器 id 字符串
+ */
+export function sanitizeIslandDisplaySelection(raw: unknown): string {
+  if (raw === 'primary') return 'primary';
+  if (typeof raw === 'number' && Number.isFinite(raw)) return String(Math.trunc(raw));
+  if (typeof raw === 'string' && /^-?\d+$/.test(raw.trim())) return raw.trim();
+  return DEFAULT_ISLAND_DISPLAY_SELECTION;
+}
+
 // ===== 灵动岛尺寸常量 =====
 
 export const ISLAND_WIDTH = 260;
@@ -96,6 +108,9 @@ export const DEFAULT_CLIPBOARD_URL_BLACKLIST: string[] = [];
 
 /** 灵动岛位置偏移默认值（相对主屏工作区顶部居中） */
 export const DEFAULT_ISLAND_POSITION_OFFSET: IslandPositionOffset = { x: 0, y: 0 };
+
+/** 灵动岛显示器选择默认值（primary 表示主显示器） */
+export const DEFAULT_ISLAND_DISPLAY_SELECTION = 'primary';
 
 /** 默认隐藏快捷键 */
 export const DEFAULT_HIDE_HOTKEY = 'Alt+X';
@@ -179,6 +194,9 @@ export const NAV_ORDER_STORE_KEY = 'nav-order';
 
 /** 灵动岛位置偏移存储键名 */
 export const ISLAND_POSITION_STORE_KEY = 'island-position-offset';
+
+/** 灵动岛显示器选择存储键名 */
+export const ISLAND_DISPLAY_STORE_KEY = 'island-display-id';
 
 /** 隐藏快捷键存储键名 */
 export const HOTKEY_STORE_KEY = 'hide-hotkey';
@@ -387,6 +405,15 @@ export function readIslandPositionOffsetConfig(): IslandPositionOffset {
 }
 
 /**
+ * 读取灵动岛显示器选择配置
+ * @returns primary 或显示器 id 字符串
+ */
+export function readIslandDisplaySelectionConfig(): string {
+  const data = readJsonFile(ISLAND_DISPLAY_STORE_KEY);
+  return data !== undefined ? sanitizeIslandDisplaySelection(data) : DEFAULT_ISLAND_DISPLAY_SELECTION;
+}
+
+/**
  * 写入灵动岛位置偏移配置
  * @param offset - 位置偏移对象
  * @returns 是否写入成功
@@ -400,6 +427,24 @@ export function writeIslandPositionOffsetConfig(offset: IslandPositionOffset): b
     return true;
   } catch (err) {
     console.error('[IslandPosition] persist error:', err);
+    return false;
+  }
+}
+
+/**
+ * 写入灵动岛显示器选择配置
+ * @param selection - primary 或显示器 id 字符串
+ * @returns 是否写入成功
+ */
+export function writeIslandDisplaySelectionConfig(selection: string): boolean {
+  try {
+    const storeDir = getStoreDir();
+    if (!existsSync(storeDir)) mkdirSync(storeDir, { recursive: true });
+    const filePath = join(storeDir, `${ISLAND_DISPLAY_STORE_KEY}.json`);
+    writeFileSync(filePath, JSON.stringify(sanitizeIslandDisplaySelection(selection), null, 2), 'utf-8');
+    return true;
+  } catch (err) {
+    console.error('[IslandDisplay] persist error:', err);
     return false;
   }
 }

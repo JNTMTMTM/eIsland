@@ -67,6 +67,9 @@ export function AppSettingsSection({
   applyIslandPositionInput,
   islandPositionInputChanged,
   cancelIslandPositionInput,
+  islandDisplaySelection,
+  islandDisplayOptions,
+  setIslandDisplaySelection,
 
   themeMode,
   setThemeModeState,
@@ -175,6 +178,9 @@ export function AppSettingsSection({
             applyIslandPositionInput={applyIslandPositionInput}
             islandPositionInputChanged={islandPositionInputChanged}
             cancelIslandPositionInput={cancelIslandPositionInput}
+            islandDisplaySelection={islandDisplaySelection}
+            islandDisplayOptions={islandDisplayOptions}
+            setIslandDisplaySelection={setIslandDisplaySelection}
           />
         );
       case 'theme':

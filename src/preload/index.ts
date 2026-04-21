@@ -106,6 +106,24 @@ const api = {
     return ipcRenderer.invoke('window:get-bounds');
   },
   /**
+   * 获取可用于灵动岛显示的显示器列表
+   */
+  getIslandDisplays: (): Promise<Array<{ id: string; width: number; height: number; isPrimary: boolean }>> => {
+    return ipcRenderer.invoke('window:island-displays:list');
+  },
+  /**
+   * 获取灵动岛显示器选择配置
+   */
+  getIslandDisplaySelection: (): Promise<string> => {
+    return ipcRenderer.invoke('window:island-display:get');
+  },
+  /**
+   * 设置并保存灵动岛显示器选择配置
+   */
+  setIslandDisplaySelection: (selection: string): Promise<boolean> => {
+    return ipcRenderer.invoke('window:island-display:set', selection);
+  },
+  /**
    * 获取灵动岛位置偏移
    * @returns 相对主屏工作区顶部居中的偏移
    */

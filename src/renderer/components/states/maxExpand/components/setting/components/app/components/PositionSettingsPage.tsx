@@ -37,6 +37,9 @@ type PositionSettingsPageProps = Pick<
   | 'applyIslandPositionInput'
   | 'islandPositionInputChanged'
   | 'cancelIslandPositionInput'
+  | 'islandDisplaySelection'
+  | 'islandDisplayOptions'
+  | 'setIslandDisplaySelection'
 >;
 
 /**
@@ -58,12 +61,38 @@ export function PositionSettingsPage({
   applyIslandPositionInput,
   islandPositionInputChanged,
   cancelIslandPositionInput,
+  islandDisplaySelection,
+  islandDisplayOptions,
+  setIslandDisplaySelection,
 }: PositionSettingsPageProps): ReactElement {
   const { t } = useTranslation();
 
   return (
     <div className="max-expand-settings-section">
       <div className="settings-cards">
+        <div className="settings-card">
+          <div className="settings-card-header">
+            <div className="settings-card-title">{t('settings.app.position.displayTitle', { defaultValue: '显示器选择' })}</div>
+            <div className="settings-card-subtitle">{t('settings.app.position.displayHint', { defaultValue: '多显示器环境可指定灵动岛显示器，重启应用后生效。' })}</div>
+          </div>
+          <div className="settings-hotkey-row">
+            <label className="settings-field" style={{ flex: 1 }}>
+              <span className="settings-field-label">{t('settings.app.position.displayLabel', { defaultValue: '目标显示器' })}</span>
+              <select
+                className="settings-field-input"
+                value={islandDisplaySelection}
+                onChange={(e) => {
+                  setIslandDisplaySelection(e.target.value);
+                }}
+              >
+                {islandDisplayOptions.map((item) => (
+                  <option key={item.id} value={item.id}>{item.label}</option>
+                ))}
+              </select>
+            </label>
+          </div>
+        </div>
+
         <div className="settings-card">
           <div className="settings-card-header">
             <div className="settings-card-title">{t('settings.app.position.quickAdjustTitle', { defaultValue: '快速微调' })}</div>
