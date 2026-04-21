@@ -66,6 +66,7 @@ jobs:
         run: |
           R2_ENDPOINT="https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com"
           R2_PREFIX="${R2_UPDATE_PREFIX:-updates}"
+          aws configure set default.s3.addressing_style auto
           for f in dist/*.exe dist/*.yml dist/*.yaml dist/*.blockmap; do
             [ -f "$f" ] || continue
             echo "Uploading $f ..."
@@ -85,6 +86,7 @@ jobs:
         run: |
           OSS_ENDPOINT="https://oss-${OSS_REGION}.aliyuncs.com"
           OSS_PREFIX="${OSS_UPDATE_PREFIX:-updates}"
+          aws configure set default.s3.addressing_style virtual
           for f in dist/*.exe dist/*.yml dist/*.yaml dist/*.blockmap; do
             [ -f "$f" ] || continue
             echo "Uploading $f ..."
