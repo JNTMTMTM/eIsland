@@ -46,6 +46,7 @@ jobs:
         run: |
           COS_ENDPOINT="https://cos.${COS_REGION}.myqcloud.com"
           COS_PREFIX="${COS_UPDATE_PREFIX:-updates}"
+          aws configure set default.s3.addressing_style virtual
           for f in dist/*.exe dist/*.yml dist/*.yaml dist/*.blockmap; do
             [ -f "$f" ] || continue
             echo "Uploading $f ..."
