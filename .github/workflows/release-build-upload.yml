@@ -1,4 +1,4 @@
-name: Release Build & Upload to R2
+name: Release Build & Upload to COS and R2
 
 on:
   push:
@@ -35,18 +35,40 @@ jobs:
       - name: Generate Release Notes
         run: node --experimental-strip-types scripts/generate-incremental-release-notes.ts -o RELEASE_NOTES.md
 
+      - name: Upload to Tencent COS
+        shell: bash
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.COS_SECRET_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.COS_SECRET_KEY }}
+          COS_REGION: ${{ secrets.COS_REGION }}
+          COS_BUCKET: ${{ secrets.COS_BUCKET_NAME }}
+          COS_UPDATE_PREFIX: ${{ secrets.COS_UPDATE_PREFIX }}
+        run: |
+          COS_ENDPOINT="https://cos.${COS_REGION}.myqcloud.com"
+          COS_PREFIX="${COS_UPDATE_PREFIX:-updates}"
+          for f in dist/*.exe dist/*.yml dist/*.yaml dist/*.blockmap; do
+            [ -f "$f" ] || continue
+            echo "Uploading $f ..."
+            aws s3 cp "$f" "s3://$COS_BUCKET/$COS_PREFIX/$(basename $f)" \
+              --endpoint-url "$COS_ENDPOINT" \
+              --region "$COS_REGION"
+          done
+
       - name: Upload to Cloudflare R2
         shell: bash
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
-          R2_ENDPOINT: https://${{ secrets.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
           R2_BUCKET: ${{ secrets.R2_BUCKET_NAME }}
+          R2_UPDATE_PREFIX: ${{ secrets.R2_UPDATE_PREFIX }}
         run: |
+          R2_ENDPOINT="https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com"
+          R2_PREFIX="${R2_UPDATE_PREFIX:-updates}"
           for f in dist/*.exe dist/*.yml dist/*.yaml dist/*.blockmap; do
             [ -f "$f" ] || continue
             echo "Uploading $f ..."
-            aws s3 cp "$f" "s3://$R2_BUCKET/$(basename $f)" \
+            aws s3 cp "$f" "s3://$R2_BUCKET/$R2_PREFIX/$(basename $f)" \
               --endpoint-url "$R2_ENDPOINT" \
               --region auto
           done
