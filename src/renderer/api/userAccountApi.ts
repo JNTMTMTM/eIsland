@@ -76,6 +76,12 @@ export interface UserEmailCaptchaChallenge {
   captchaSign: string;
 }
 
+export interface UserCaptchaPayload {
+  ticket: string;
+  randstr: string;
+  sign: string;
+}
+
 export interface WallpaperMarketItem {
   id: number;
   ownerUsername: string;
@@ -396,7 +402,7 @@ export function createUserEmailCaptchaChallenge(account: string): Promise<UserAc
 export function sendUserEmailCode(
   email: string,
   scene: UserEmailCodeScene,
-  captcha: { ticket: string; randstr: string; sign: string },
+  captcha: UserCaptchaPayload,
 ): Promise<UserAccountResult<{ retryAfterSeconds?: number }>> {
   return request<{ retryAfterSeconds?: number }>('/auth/user/email-code/send', {
     method: 'POST',
@@ -620,9 +626,10 @@ export function unregisterUser(token: string, password: string, emailCode: strin
  * 由于需要发送 multipart/form-data，走浏览器原生 fetch。
  * @param file 头像文件。
  * @param token 用户 token。
+ * @param captcha 滑块验证票据。
  * @returns 上传后的完整 URL；失败时抛出 Error。
  */
-export async function uploadUserAvatar(file: File, token: string): Promise<string> {
+export async function uploadUserAvatar(file: File, token: string, captcha: UserCaptchaPayload): Promise<string> {
   if (!token || token.trim().length === 0) {
     throw new Error('未登录');
   }
@@ -630,6 +637,9 @@ export async function uploadUserAvatar(file: File, token: string): Promise<strin
   const replayHeaders = buildReplayHeaders();
   const formData = new FormData();
   formData.append('file', file);
+  formData.append('captchaTicket', captcha.ticket);
+  formData.append('captchaRandstr', captcha.randstr);
+  formData.append('captchaSign', captcha.sign);
   const resp = await fetch(`${USER_ACCOUNT_API_BASE}/v1/upload/user-avatar`, {
     method: 'POST',
     headers: {

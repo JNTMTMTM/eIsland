@@ -290,7 +290,15 @@ export function UserSettingsSection(): ReactElement {
       if (!currentToken) {
         throw new Error(t('settings.user.feedback.needLogin', { defaultValue: '请先登录后再上传头像' }));
       }
-      const url = await uploadUserAvatar(file, currentToken);
+      const captchaAccount = (profile?.email || profile?.username || '').trim();
+      if (!captchaAccount) {
+        throw new Error(t('settings.user.feedback.needLogin', { defaultValue: '请先登录后再上传头像' }));
+      }
+      const captcha = await runEmailSliderCaptcha(captchaAccount);
+      if (!captcha) {
+        return;
+      }
+      const url = await uploadUserAvatar(file, currentToken, captcha);
       setEditAvatar(url);
       setProfileFeedbackScope('profile');
       setProfileFeedback({ type: 'success', text: t('settings.user.feedback.avatarUploaded', { defaultValue: '头像已上传，保存资料生效' }) });
@@ -616,6 +624,9 @@ export function UserSettingsSection(): ReactElement {
 
   const renderProfileEditor = (): ReactElement => {
     const displayAvatar = editAvatar || profile?.avatar || '';
+    const avatarUploadSuccessFeedback = profileFeedbackScope === 'profile' && profileFeedback?.type === 'success'
+      ? profileFeedback
+      : null;
     const profilePageItems: Array<{ id: UserProfilePage; label: string }> = [
       { id: 'info', label: t('settings.user.pages.info', { defaultValue: '用户信息' }) },
       { id: 'edit', label: t('settings.user.pages.edit', { defaultValue: '修改信息' }) },
@@ -707,8 +718,8 @@ export function UserSettingsSection(): ReactElement {
         <div className="settings-user-form settings-user-edit-cards">
           <div className="settings-user-edit-card settings-user-avatar-edit-card">
             <div className="settings-user-edit-card-head">
-              <div className="settings-user-form-title">{t('settings.user.sections.avatar', { defaultValue: '头像' })}</div>
-              <div className="settings-user-edit-card-subtitle">{t('settings.user.sections.avatarHint', { defaultValue: '上传新头像或粘贴图片链接' })}</div>
+              {avatarUploadSuccessFeedback ? null : <div className="settings-user-form-title">{t('settings.user.sections.avatar', { defaultValue: '头像' })}</div>}
+              {avatarUploadSuccessFeedback ? null : <div className="settings-user-edit-card-subtitle">{t('settings.user.sections.avatarHint', { defaultValue: '上传新头像或粘贴图片链接' })}</div>}
             </div>
             <div className="settings-user-avatar-row">
               <div className="settings-user-avatar-preview-shell">
@@ -736,7 +747,8 @@ export function UserSettingsSection(): ReactElement {
                     onChange={(e) => void handleAvatarSelect(e)}
                   />
                 </div>
-                <div className="settings-user-avatar-actions-hint">{t('settings.user.sections.avatarHint', { defaultValue: '上传新头像或粘贴图片链接' })}</div>
+                {avatarUploadSuccessFeedback ? null : <div className="settings-user-avatar-actions-hint">{t('settings.user.sections.avatarHint', { defaultValue: '上传新头像或粘贴图片链接' })}</div>}
+                {renderFeedback(avatarUploadSuccessFeedback)}
               </div>
             </div>
           </div>
@@ -783,7 +795,7 @@ export function UserSettingsSection(): ReactElement {
                 onChange={(e) => setEditBirthday(e.target.value)}
               />
             </label>
-            {renderProfileFeedback('profile')}
+            {avatarUploadSuccessFeedback ? null : renderProfileFeedback('profile')}
             <div className="settings-user-edit-action-stack">
               <button
                 type="button"
