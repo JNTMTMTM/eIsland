@@ -24,14 +24,14 @@
  * @author 鸡哥
  */
 
-import type { LyricLine } from './types';
+import type { LyricLine } from '../types';
 import {
   cleanArtist,
   cleanTitle,
   extractSyncedFromArray,
   extractSyncedFromObject,
-} from './helpers';
-import { requestJsonWithLog } from './request';
+} from '../helpers';
+import { requestJsonWithLog } from '../request';
 
 export async function fetchLyricsFromLrclib(title: string, artist: string): Promise<LyricLine[] | null> {
   const cleanedTitle = cleanTitle(title);

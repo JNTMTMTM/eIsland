@@ -24,10 +24,10 @@
  * @author 鸡哥
  */
 
-import type { LyricLine } from './types';
-import { cleanArtist, cleanTitle, parseSyncedLrc } from './helpers';
-import { requestJsonWithLog, requestTextWithLog } from './request';
-import { logger } from '../../../../utils/logger';
+import type { LyricLine } from '../types';
+import { cleanArtist, cleanTitle, parseSyncedLrc } from '../helpers';
+import { requestJsonWithLog, requestTextWithLog } from '../request';
+import { logger } from '../../../../../utils/logger';
 
 const LOG_TAG = '[QQMusic]';
 

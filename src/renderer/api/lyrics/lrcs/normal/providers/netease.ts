@@ -24,9 +24,9 @@
  * @author 鸡哥
  */
 
-import type { LyricLine } from './types';
-import { cleanArtist, cleanTitle, parseSyncedLrc, parseYrc } from './helpers';
-import { requestJsonWithLog } from './request';
+import type { LyricLine } from '../types';
+import { cleanArtist, cleanTitle, parseSyncedLrc, parseYrc } from '../helpers';
+import { requestJsonWithLog } from '../request';
 
 const NETEASE_HEADERS = {
   Referer: 'https://music.163.com',

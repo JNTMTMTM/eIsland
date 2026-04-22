@@ -24,9 +24,9 @@
  * @author 鸡哥
  */
 
-import type { LyricLine } from './types';
-import { cleanArtist, cleanTitle, parseSyncedLrc } from './helpers';
-import { requestJsonWithLog } from './request';
+import type { LyricLine } from '../types';
+import { cleanArtist, cleanTitle, parseSyncedLrc } from '../helpers';
+import { requestJsonWithLog } from '../request';
 
 async function searchKugou(queryTitle: string, queryArtist: string): Promise<LyricLine[] | null> {
   const keyword = `${queryTitle} ${queryArtist}`;
