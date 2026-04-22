@@ -996,6 +996,10 @@
           "title": "Show/Hide Tray Icon Shortcut",
           "hint": "Press to toggle the tray icon visibility"
         },
+        "showConfig": {
+          "title": "Show Settings Window Shortcut",
+          "hint": "Only works in standalone mode: press to open the standalone settings window and switch to the Settings page"
+        },
         "openClipboardHistory": {
           "title": "Open Clipboard History Shortcut",
           "hint": "Press to open Dynamic Island and jump directly to Clipboard History"
