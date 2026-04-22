@@ -45,7 +45,7 @@ jobs:
         run: |
           aws configure set default.s3.addressing_style auto
           aws configure set default.s3.payload_signing_enabled false
-          for f in dist/*.exe dist/latest.yml; do
+          for f in dist/*.exe dist/*.blockmap dist/latest.yml; do
             [ -f "$f" ] || continue
             echo "Uploading $f ..."
             aws s3 cp "$f" "s3://$R2_BUCKET/$(basename $f)" \
@@ -74,6 +74,7 @@ jobs:
         with:
           files: |
             dist/*.exe
+            dist/*.blockmap
             dist/latest.yml
           body_path: RELEASE_NOTES.md
         env:

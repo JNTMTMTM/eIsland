@@ -221,6 +221,14 @@ function resolveLatestYml(distDir: string): string {
   return latestYmlPath;
 }
 
+function resolveInstallerBlockmap(installerFile: string): string {
+  const blockmapFile = `${installerFile}.blockmap`;
+  if (!existsSync(blockmapFile) || !statSync(blockmapFile).isFile()) {
+    throw new Error(`Blockmap file not found for installer: ${blockmapFile}`);
+  }
+  return blockmapFile;
+}
+
 function runAwsCommand(awsExecutable: string, args: string[], env: NodeJS.ProcessEnv): void {
   const result = spawnSync(awsExecutable, args, {
     stdio: 'inherit',
@@ -283,11 +291,13 @@ function main(): void {
   const distDir = parseDistDir(process.argv.slice(2));
   const version = readPackageVersion();
   const installerFile = resolveInstallerForVersion(distDir, version);
+  const blockmapFile = resolveInstallerBlockmap(installerFile);
   const latestYmlFile = resolveLatestYml(distDir);
-  const uploadFiles = [installerFile, latestYmlFile];
+  const uploadFiles = [installerFile, blockmapFile, latestYmlFile];
 
   console.log(`Using version from package.json: ${version}`);
   console.log(`Installer: ${installerFile}`);
+  console.log(`Blockmap: ${blockmapFile}`);
   console.log(`Metadata: ${latestYmlFile}`);
 
   const targets = getUploadTargets();
@@ -296,7 +306,7 @@ function main(): void {
     uploadToTarget(awsExecutable, target, uploadFiles);
   }
 
-  console.log(`\n${green('Upload completed: COS + OSS (installer + latest.yml)')}`);
+  console.log(`\n${green('Upload completed: COS + OSS (installer + blockmap + latest.yml)')}`);
 }
 
 try {
