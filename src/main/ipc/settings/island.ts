@@ -28,7 +28,7 @@
 import { app, ipcMain } from 'electron';
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
-import { broadcastSettingChange } from '../utils/broadcast';
+import { broadcastSettingChange } from '../../utils/broadcast';
 
 interface RegisterIslandIpcHandlersOptions {
   storeDir: string;

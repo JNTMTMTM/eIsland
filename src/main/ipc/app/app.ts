@@ -27,8 +27,8 @@
 
 import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron';
 import { basename } from 'path';
-import { clearLogsCacheFiles, ensureLogsDir } from '../log/mainLog';
-import { openStandaloneWindow, closeStandaloneWindow } from '../window/standaloneWindow';
+import { clearLogsCacheFiles, ensureLogsDir } from '../../log/mainLog';
+import { openStandaloneWindow, closeStandaloneWindow } from '../../window/standaloneWindow';
 
 /**
  * 注册应用相关 IPC 处理器

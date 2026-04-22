@@ -28,13 +28,13 @@
 import { clipboard, ipcMain, shell } from 'electron';
 import { join } from 'path';
 import { writeFileSync } from 'fs';
-import { broadcastSettingChange } from '../utils/broadcast';
+import { broadcastSettingChange } from '../../utils/broadcast';
 import {
   normalizeClipboardUrlBlacklistDomain,
   normalizeClipboardUrlDetectMode,
   sanitizeClipboardUrlBlacklist,
   type ClipboardUrlDetectMode,
-} from '../utils/clipboardUrl';
+} from '../../utils/clipboardUrl';
 
 interface RegisterClipboardIpcHandlersOptions {
   storeDir: string;

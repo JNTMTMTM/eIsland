@@ -26,7 +26,7 @@
  */
 
 import { BrowserWindow, ipcMain, screen } from 'electron';
-import { broadcastSettingChange } from '../utils/broadcast';
+import { broadcastSettingChange } from '../../utils/broadcast';
 
 interface WindowIpcSizeOptions {
   expandedWidth: number;
