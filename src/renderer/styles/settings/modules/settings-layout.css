@@ -2624,6 +2624,7 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+  flex-shrink: 0;
 }
 
 .settings-user-info-summary-card--pro {
@@ -2767,6 +2768,7 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
   align-content: start;
+  flex-shrink: 0;
 }
 
 .settings-user-overview-grid {
