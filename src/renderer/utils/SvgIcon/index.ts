@@ -19,7 +19,7 @@
  */
 
 /**
- * @file SvgIcon.ts
+ * @file index.ts
  * @description 全局 SVG 图标路径枚举
  * @author 鸡哥
  */

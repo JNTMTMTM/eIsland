@@ -1,3 +1,29 @@
+/*
+ * eIsland - A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Electron.
+ * https://github.com/JNTMTMTM/eIsland
+ *
+ * Copyright (C) 2026 JNTMTMTM
+ * Copyright (C) 2026 pyisland.com
+ *
+ * Original author: JNTMTMTM[](https://github.com/JNTMTMTM)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+/**
+ * @file index.ts
+ * @description 基于 Base32 种子生成 TOTP 的工具实现。
+ * @author 鸡哥
+ */
+
 import {
   BASE32_ALPHABET,
   DEFAULT_TOTP_DIGITS,
@@ -31,6 +57,14 @@ function decodeBase32(seed: string): ArrayBuffer {
   return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
 }
 
+/**
+ * 使用 Base32 种子按 RFC 6238 规则生成一次性 TOTP。
+ * @param seed - Base32 编码密钥。
+ * @param timestampSeconds - 当前 Unix 时间戳（秒）。
+ * @param periodSeconds - TOTP 时间步长（秒）。
+ * @param digits - OTP 位数。
+ * @returns 指定位数的 TOTP 字符串。
+ */
 export async function generateTotpFromBase32Seed(
   seed: string,
   timestampSeconds: number,

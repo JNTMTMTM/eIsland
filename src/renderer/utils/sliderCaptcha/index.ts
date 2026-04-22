@@ -19,15 +19,15 @@
  */
 
 /**
- * @file sliderCaptcha.ts
+ * @file index.ts
  * @description 渲染端滑块验证码流程封装
  * @author 鸡哥
  */
 
-import { createUserCaptchaChallenge, fetchUserCaptchaConfig, type UserCaptchaChallenge } from '../api/user/userAccountApi';
+import { createUserCaptchaChallenge, fetchUserCaptchaConfig, type UserCaptchaChallenge } from '../../api/user/userAccountApi';
 import { createElement } from 'react';
 import { createRoot } from 'react-dom/client';
-import { SliderCaptchaContent } from '../components/states/sliderCaptcha/SliderCaptchaContent';
+import { SliderCaptchaContent } from '../../components/states/sliderCaptcha/SliderCaptchaContent';
 
 function showBuiltinSliderModal(challenge: UserCaptchaChallenge): Promise<number | null> {
   return new Promise((resolve) => {

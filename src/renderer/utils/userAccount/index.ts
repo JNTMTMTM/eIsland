@@ -19,7 +19,7 @@
  */
 
 /**
- * @file userAccount.ts
+ * @file index.ts
  * @description 用户账号本地会话工具：仅负责 token / 资料在 localStorage 的读写与类型定义，
  *              不包含任何网络请求（网络请求位于 `renderer/api/user/userAccountApi.ts`）。
  * @author 鸡哥

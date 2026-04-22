@@ -19,12 +19,12 @@
  */
 
 /**
- * @file lrcParser.ts
+ * @file index.ts
  * @description 歌词解析工具集 — LRC/YRC/KRC 格式解析、标题/艺术家清洗、同步歌词提取
  * @author 鸡哥
  */
 
-import type { LyricLine } from '../api/lyrics/lrcs/normal/types';
+import type { LyricLine } from '../../api/lyrics/lrcs/normal/types';
 
 const META_PREFIXES = [
   '作词', '作曲', '编曲', '制作', '混音', '母带', '录音',

@@ -19,12 +19,12 @@
  */
 
 /**
- * @file authSession.ts
+ * @file index.ts
  * @description 用户会话恢复工具：启动时恢复本地 token/资料并尝试刷新资料。
  * @author 鸡哥
  */
 
-import { fetchUserProfile } from '../api/user/userAccountApi';
+import { fetchUserProfile } from '../../api/user/userAccountApi';
 import {
   USER_ACCOUNT_LOGOUT_MARKER_KEY,
   USER_ACCOUNT_PROFILE_STORAGE_KEY,
@@ -33,7 +33,7 @@ import {
   readLocalToken,
   writeLocalProfile,
   writeLocalToken,
-} from './userAccount';
+} from '../userAccount';
 
 /**
  * 在登录/注册成功后写入本地 token。

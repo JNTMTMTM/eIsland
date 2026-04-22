@@ -19,7 +19,7 @@
  */
 
 /**
- * @file timeUtils.ts
+ * @file index.ts
  * @description 时间与日期工具函数，提供格式化时间、获取星期等功能
  * @author 鸡哥
  */
