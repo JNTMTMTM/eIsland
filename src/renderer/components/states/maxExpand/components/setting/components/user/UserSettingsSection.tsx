@@ -702,7 +702,7 @@ export function UserSettingsSection(): ReactElement {
         <div className="settings-user-page-panel settings-user-info-panel">
           {profileError && <div className="settings-user-feedback settings-user-feedback--error">{profileError}</div>}
 
-          <div className="settings-user-info-summary-card">
+          <div className={`settings-user-info-summary-card${isProUser ? ' settings-user-info-summary-card--pro' : ''}`}>
             <div className="settings-user-info-summary-header">
               <div className="settings-user-info-summary-avatar">
                 {displayAvatar
