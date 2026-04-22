@@ -53,21 +53,21 @@ jobs:
               --region auto
           done
 
-      - name: Upload to Tencent COS and Aliyun OSS
-        shell: pwsh
-        env:
-          COS_SECRET_ID: ${{ secrets.COS_SECRET_ID }}
-          COS_SECRET_KEY: ${{ secrets.COS_SECRET_KEY }}
-          COS_REGION: ${{ secrets.COS_REGION }}
-          COS_BUCKET_NAME: ${{ secrets.COS_BUCKET_NAME }}
-          OSS_ACCESS_KEY_ID: ${{ secrets.OSS_ACCESS_KEY_ID }}
-          OSS_ACCESS_KEY_SECRET: ${{ secrets.OSS_ACCESS_KEY_SECRET }}
-          OSS_REGION: ${{ secrets.OSS_REGION }}
-          OSS_BUCKET_NAME: ${{ secrets.OSS_BUCKET_NAME }}
-        run: |
-          node --experimental-strip-types scripts/upload-release-to-cos-oss.ts --dist dist
-          Write-Host "COS update source: https://download-cos.eisland.pyisland.com/"
-          Write-Host "OSS update source: https://download-oss.eisland.pyisland.com/"
+      # - name: Upload to Tencent COS and Aliyun OSS
+      #   shell: pwsh
+      #   env:
+      #     COS_SECRET_ID: ${{ secrets.COS_SECRET_ID }}
+      #     COS_SECRET_KEY: ${{ secrets.COS_SECRET_KEY }}
+      #     COS_REGION: ${{ secrets.COS_REGION }}
+      #     COS_BUCKET_NAME: ${{ secrets.COS_BUCKET_NAME }}
+      #     OSS_ACCESS_KEY_ID: ${{ secrets.OSS_ACCESS_KEY_ID }}
+      #     OSS_ACCESS_KEY_SECRET: ${{ secrets.OSS_ACCESS_KEY_SECRET }}
+      #     OSS_REGION: ${{ secrets.OSS_REGION }}
+      #     OSS_BUCKET_NAME: ${{ secrets.OSS_BUCKET_NAME }}
+      #   run: |
+      #     node --experimental-strip-types scripts/upload-release-to-cos-oss.ts --dist dist
+      #     Write-Host "COS update source: https://download-cos.eisland.pyisland.com/"
+      #     Write-Host "OSS update source: https://download-oss.eisland.pyisland.com/"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
