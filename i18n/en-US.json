@@ -673,6 +673,9 @@
         "configChanged": {
           "title": "Configuration Changed",
           "body": "Todo/Countdown/Settings open mode changed. Restart now to apply?"
+        },
+        "windowControlsChanged": {
+          "body": "Standalone window controls style changed. Restart now to apply?"
         }
       },
       "layout": {

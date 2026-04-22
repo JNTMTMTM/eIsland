@@ -673,6 +673,9 @@
         "configChanged": {
           "title": "配置变更",
           "body": "待办事项/倒数日/设置打开方式已变更，是否立即重启生效？"
+        },
+        "windowControlsChanged": {
+          "body": "独立窗口控制按钮样式已变更，是否立即重启生效？"
         }
       },
       "layout": {
