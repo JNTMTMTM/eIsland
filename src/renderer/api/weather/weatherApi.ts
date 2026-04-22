@@ -24,13 +24,13 @@
  * @author 鸡哥
  */
 
-import type { WeatherData } from '../store/types';
+import type { WeatherData } from '../../store/types';
 import {
   loadLocationFromStorage,
   loadNetworkConfig,
   loadWeatherProviderConfig,
-} from '../store/utils/storage';
-import { logger } from '../utils/logger';
+} from '../../store/utils/storage';
+import { logger } from '../../utils/logger';
 
 /** 天气接口配置（经纬度） */
 export interface WeatherApiConfig {

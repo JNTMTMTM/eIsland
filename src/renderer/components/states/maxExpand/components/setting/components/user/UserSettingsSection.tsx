@@ -35,7 +35,7 @@ import {
   updateUserPassword,
   updateUserProfile,
   uploadUserAvatar,
-} from '../../../../../../../api/userAccountApi';
+} from '../../../../../../../api/user/userAccountApi';
 import { runSliderCaptcha } from '../../../../../../../utils/sliderCaptcha';
 import useIslandStore from '../../../../../../../store/slices';
 import {

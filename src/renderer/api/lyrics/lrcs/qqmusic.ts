@@ -27,7 +27,7 @@
 import type { LyricLine } from './types';
 import { cleanArtist, cleanTitle, parseSyncedLrc } from './helpers';
 import { requestJsonWithLog, requestTextWithLog } from './request';
-import { logger } from '../../utils/logger';
+import { logger } from '../../../utils/logger';
 
 const LOG_TAG = '[QQMusic]';
 

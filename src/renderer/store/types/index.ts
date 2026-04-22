@@ -24,8 +24,9 @@
  * @author 鸡哥
  */
 
-import type { LocationInfo } from '../../api/locationApi';
-import type { WeatherApiConfig } from '../../api/weatherApi';
+import type { LocationInfo } from '../../api/weather/locationApi';
+import type { WeatherApiConfig } from '../../api/weather/weatherApi';
+
 export type { WeatherApiConfig };
 
 /** 灵动岛 UI 状态枚举 */

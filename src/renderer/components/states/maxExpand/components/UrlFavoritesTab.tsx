@@ -27,7 +27,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SvgIcon } from '../../../../utils/SvgIcon';
-import { fetchWebsiteTitle, getWebsiteFaviconUrl } from '../../../../api/siteMetaApi';
+import { fetchWebsiteTitle, getWebsiteFaviconUrl } from '../../../../api/site/siteMetaApi';
 
 interface UrlFavoriteItem {
   id: number;

@@ -29,9 +29,9 @@
 import type {
   UserAccountGender,
   UserAccountProfile,
-} from '../utils/userAccount';
+} from '../../utils/userAccount';
 
-export type { UserAccountGender, UserAccountProfile } from '../utils/userAccount';
+export type { UserAccountGender, UserAccountProfile } from '../../utils/userAccount';
 
 /** pyisland-admin 服务根地址 */
 const IS_DEV_RENDERER = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';

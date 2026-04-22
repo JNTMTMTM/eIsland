@@ -24,8 +24,8 @@
  * @author 鸡哥
  */
 
-import { loadNetworkConfig } from '../store/utils/storage';
-import { logger } from '../utils/logger';
+import { loadNetworkConfig } from '../../store/utils/storage';
+import { logger } from '../../utils/logger';
 
 /** 位置信息接口 */
 export interface LocationInfo {

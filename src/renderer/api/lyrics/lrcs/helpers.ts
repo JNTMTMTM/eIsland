@@ -33,4 +33,4 @@ export {
   cleanArtist,
   extractSyncedFromArray,
   extractSyncedFromObject,
-} from '../../utils/lrcParser';
+} from '../../../utils/lrcParser';

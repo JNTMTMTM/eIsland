@@ -30,7 +30,7 @@ import i18n from '../../../../i18n';
 import useIslandStore from '../../../../store/slices';
 import { getDayName, getDayJi, getDayYi, getLunarDate } from '../../../../utils/timeUtils';
 import { SvgIcon } from '../../../../utils/SvgIcon';
-import { getWebsiteFaviconUrl } from '../../../../api/siteMetaApi';
+import { getWebsiteFaviconUrl } from '../../../../api/site/siteMetaApi';
 
 /** 紧急程度 */
 type Priority = 'P0' | 'P1' | 'P2';

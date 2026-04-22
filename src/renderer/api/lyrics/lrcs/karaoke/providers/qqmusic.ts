@@ -27,7 +27,7 @@
 
 import { cleanArtist, cleanTitle } from '../../helpers';
 import { requestJsonWithLog, requestTextWithLog } from '../../request';
-import { logger } from '../../../../utils/logger';
+import { logger } from '../../../../../utils/logger';
 import { decryptQRC } from '../decrypt/qrc';
 import { parseSyncedLines } from '../parsers';
 import type { KaraokeLine } from '../types';

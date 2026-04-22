@@ -25,7 +25,7 @@
  */
 
 import type { WeatherData } from '../types';
-import type { LocationInfo } from '../../api/locationApi';
+import type { LocationInfo } from '../../api/weather/locationApi';
 
 /** 本地存储 key */
 const WEATHER_STORAGE_KEY = 'island_weather';

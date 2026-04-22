@@ -24,9 +24,9 @@
  * @author 鸡哥
  */
 
-import { loadNetworkConfig } from '../store/utils/storage';
-import { logger } from '../utils/logger';
-import i18n from '../i18n';
+import { loadNetworkConfig } from '../../store/utils/storage';
+import { logger } from '../../utils/logger';
+import i18n from '../../i18n';
 
 /** 行政区查询参数 */
 export interface DistrictQueryParams {

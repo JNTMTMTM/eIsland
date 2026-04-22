@@ -26,7 +26,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import { searchUserTags, type WallpaperTagItem } from '../../../../../../../api/userAccountApi';
+import { searchUserTags, type WallpaperTagItem } from '../../../../../../../api/user/userAccountApi';
 import { readLocalToken } from '../../../../../../../utils/userAccount';
 
 interface TagInputProps {

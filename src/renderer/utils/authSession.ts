@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import { fetchUserProfile } from '../api/userAccountApi';
+import { fetchUserProfile } from '../api/user/userAccountApi';
 import {
   USER_ACCOUNT_LOGOUT_MARKER_KEY,
   USER_ACCOUNT_PROFILE_STORAGE_KEY,

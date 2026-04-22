@@ -28,7 +28,7 @@ import { useEffect, useState } from 'react';
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../store/slices';
-import { loginUserByAccount, loginUserByEmailWithCode, sendUserEmailCode } from '../../../api/userAccountApi';
+import { loginUserByAccount, loginUserByEmailWithCode, sendUserEmailCode } from '../../../api/user/userAccountApi';
 import { updateSessionToken } from '../../../utils/authSession';
 import { runSliderCaptcha } from '../../../utils/sliderCaptcha';
 import '../../../styles/settings/settings.css';

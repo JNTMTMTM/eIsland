@@ -28,7 +28,7 @@ import { useEffect, useState, type CSSProperties, type ReactElement } from 'reac
 import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../store/slices';
 import { SvgIcon } from '../../../utils/SvgIcon';
-import { getWebsiteFaviconUrl, getWebsiteHostname } from '../../../api/siteMetaApi';
+import { getWebsiteFaviconUrl, getWebsiteHostname } from '../../../api/site/siteMetaApi';
 import '../../../styles/notification/notification.css';
 
 interface UrlFavoriteItem {

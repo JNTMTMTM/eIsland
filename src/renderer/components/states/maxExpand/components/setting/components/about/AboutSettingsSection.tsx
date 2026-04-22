@@ -34,7 +34,7 @@ import {
   uploadUserFeedbackLog,
   uploadUserFeedbackScreenshot,
   type UserIssueFeedbackItem,
-} from '../../../../../../../api/userAccountApi';
+} from '../../../../../../../api/user/userAccountApi';
 import { runSliderCaptcha } from '../../../../../../../utils/sliderCaptcha';
 import {
   readLocalProfile,

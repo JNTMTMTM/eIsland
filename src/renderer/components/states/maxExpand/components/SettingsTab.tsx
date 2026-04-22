@@ -81,7 +81,7 @@ import { WallpaperMarketSection } from './setting/components/pluginMarket/Wallpa
 import { WallpaperContributionSection } from './setting/components/pluginMarket/WallpaperContributionSection';
 import { WallpaperEditSection } from './setting/components/pluginMarket/WallpaperEditSection';
 
-import { resolveDistrictLocationByKeyword } from '../../../../api/adcodeApi';
+import { resolveDistrictLocationByKeyword } from '../../../../api/weather/adcodeApi';
 
 import { setThemeMode as applyThemeMode, getThemeMode, type ThemeMode } from '../../../../utils/theme';
 import { getLanguage, setLanguage, type AppLanguage } from '../../../../i18n';

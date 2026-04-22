@@ -34,7 +34,7 @@ import {
   rateUserWallpaper,
   reportUserWallpaper,
   type WallpaperMarketItem,
-} from '../../../../../../../api/userAccountApi';
+} from '../../../../../../../api/user/userAccountApi';
 import { readLocalToken } from '../../../../../../../utils/userAccount';
 import { SvgIcon } from '../../../../../../../utils/SvgIcon';
 
