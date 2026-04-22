@@ -720,6 +720,9 @@
       "theme": {
         "title": "Theme Mode",
         "hint": "Switch dark/light/system and apply instantly",
+        "windowControlsTitle": "Standalone Window Controls Style",
+        "windowControlsHint": "When enabled, the top-right controls in standalone window use macOS-style traffic-light dots (takes effect after restart)",
+        "windowControlsMacToggle": "Use Mac-style window controls",
         "dark": "Dark",
         "light": "Light",
         "system": "System",

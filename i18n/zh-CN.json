@@ -720,6 +720,9 @@
       "theme": {
         "title": "主题模式",
         "hint": "选择深色、浅色或跟随系统主题，切换后立即生效",
+        "windowControlsTitle": "独立窗口控制按钮样式",
+        "windowControlsHint": "启用后，独立窗口右上角将显示 macOS 风格三色圆点控制按钮 (重启后生效)",
+        "windowControlsMacToggle": "使用 Mac 风格窗口控制按钮",
         "dark": "深色模式",
         "light": "浅色模式",
         "system": "跟随系统",

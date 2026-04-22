@@ -99,6 +99,7 @@ const ISLAND_BG_VIDEO_LOOP_STORE_KEY = 'island-bg-video-loop';
 const ISLAND_BG_VIDEO_VOLUME_STORE_KEY = 'island-bg-video-volume';
 const ISLAND_BG_VIDEO_RATE_STORE_KEY = 'island-bg-video-rate';
 const ISLAND_BG_VIDEO_HW_DECODE_STORE_KEY = 'island-bg-video-hw-decode';
+const STANDALONE_WINDOW_MAC_CONTROLS_STORE_KEY = 'standalone-window-mac-controls';
 const ISLAND_DISPLAY_STORE_KEY = 'island-display-id';
 const UPDATE_SOURCE_STORE_KEY = 'update-source';
 const UPDATE_AUTO_PROMPT_STORE_KEY = 'update-auto-prompt-enabled';
@@ -278,6 +279,18 @@ export function SettingsTab(): ReactElement {
     return subscribeUserAccountSessionChanged(applySession);
   }, []);
 
+  /** 加载独立窗口控制按钮样式配置 */
+  useEffect(() => {
+    let cancelled = false;
+    window.api.storeRead(STANDALONE_WINDOW_MAC_CONTROLS_STORE_KEY).then((value) => {
+      if (cancelled) return;
+      if (typeof value === 'boolean') {
+        setStandaloneMacControls(value);
+      }
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+
   const isProUser = useMemo(() => getRoleFromToken(sessionToken) === 'pro', [sessionToken]);
 
   const getSettingsLabel = (key: SettingsTabLabelKey): string => {
@@ -364,6 +377,7 @@ export function SettingsTab(): ReactElement {
   const [hideProcessFilter, setHideProcessFilter] = useState<string>('');
   const [hideProcessLoading, setHideProcessLoading] = useState(false);
   const [themeMode, setThemeModeState] = useState<ThemeMode>(getThemeMode);
+  const [standaloneMacControls, setStandaloneMacControls] = useState<boolean>(false);
   const [appLanguage, setAppLanguage] = useState<AppLanguage>(getLanguage);
   const [islandOpacity, setIslandOpacity] = useState<number>(100);
   const [bgMedia, setBgMedia] = useState<IslandBgMediaConfig | null>(null);
@@ -902,6 +916,11 @@ export function SettingsTab(): ReactElement {
       }
       if (channel === 'i18n:language' && (value === 'zh-CN' || value === 'en-US')) {
         setAppLanguage(value);
+      }
+      if (channel === `store:${STANDALONE_WINDOW_MAC_CONTROLS_STORE_KEY}`) {
+        if (typeof value === 'boolean') {
+          setStandaloneMacControls(value);
+        }
       }
       if (channel === 'store:island-bg-opacity') {
         const safe = typeof value === 'number' && Number.isFinite(value)
@@ -2184,6 +2203,8 @@ export function SettingsTab(): ReactElement {
               themeMode={themeMode}
               setThemeModeState={setThemeModeState}
               applyThemeMode={applyThemeMode}
+              standaloneMacControls={standaloneMacControls}
+              setStandaloneMacControls={setStandaloneMacControls}
               appLanguage={appLanguage}
               applyAppLanguage={applyAppLanguage}
               islandOpacity={islandOpacity}
