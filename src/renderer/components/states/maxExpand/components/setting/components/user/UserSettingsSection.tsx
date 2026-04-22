@@ -79,6 +79,40 @@ const formatDateTime = (value: string | null | undefined): string => {
   return value.replace('T', ' ');
 };
 
+const normalizeRoleValue = (value: string): string => {
+  return value.trim().toLowerCase().replace(/^role_/, '');
+};
+
+const getRoleFromToken = (token: string | null | undefined): string | null => {
+  if (!token) return null;
+  const rawToken = token.trim().replace(/^bearer\s+/i, '');
+  const parts = rawToken.split('.');
+  if (parts.length < 2 || !parts[1]) return null;
+  try {
+    const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const normalized = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
+    const payload = JSON.parse(window.atob(normalized)) as {
+      role?: unknown;
+      authorities?: unknown;
+      authority?: unknown;
+    };
+    if (typeof payload.role === 'string' && payload.role.trim()) {
+      return normalizeRoleValue(payload.role);
+    }
+    const authorityList = Array.isArray(payload.authorities)
+      ? payload.authorities
+      : [payload.authority];
+    for (const authority of authorityList) {
+      if (typeof authority === 'string' && authority.trim()) {
+        return normalizeRoleValue(authority);
+      }
+    }
+    return null;
+  } catch {
+    return null;
+  }
+};
+
 /**
  * 用户中心设置区块。未登录时显示登录/注册；登录后显示资料修改、登出、注销操作。
  * @returns 用户中心设置面板。
@@ -657,6 +691,9 @@ export function UserSettingsSection(): ReactElement {
     const renderInfoPage = (): ReactElement => {
       const genderValue: UserAccountGender = profile?.gender ?? 'undisclosed';
       const genderLabel = t(`settings.user.gender.${genderValue}`, { defaultValue: genderValue });
+      const profileRole = (profile as { role?: unknown } | null)?.role;
+      const normalizedProfileRole = typeof profileRole === 'string' ? normalizeRoleValue(profileRole) : null;
+      const isProUser = normalizedProfileRole === 'pro' || getRoleFromToken(token) === 'pro';
 
       return (
         <div className="settings-user-page-panel settings-user-info-panel">
@@ -671,6 +708,13 @@ export function UserSettingsSection(): ReactElement {
               </div>
               <div className="settings-user-info-summary-identity">
                 <div className="settings-user-info-summary-name">
+                  {isProUser && (
+                    <img
+                      className="settings-user-info-pro-icon"
+                      src={SvgIcon.PRO}
+                      alt="PRO"
+                    />
+                  )}
                   {profile?.username ?? '—'}
                   <img
                     className={`settings-user-info-gender-icon${shouldKeepGenderIconOriginalColor(genderValue) ? ' settings-user-info-gender-icon--original' : ''}`}

@@ -2680,6 +2680,13 @@
   white-space: nowrap;
 }
 
+.settings-user-info-pro-icon {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
 .settings-user-info-summary-divider {
   height: 1px;
   background: rgba(var(--color-text-rgb), 0.08);

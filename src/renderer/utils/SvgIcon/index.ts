@@ -101,6 +101,8 @@ export const SvgIcon = {
   BOY: './svg/BOY.svg',
   /** 女 */
   GIRL: './svg/GIRL.svg',
+  /** PRO */
+  PRO: './svg/PRO.svg',
 
 } as const;
 
