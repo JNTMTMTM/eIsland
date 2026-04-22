@@ -29,6 +29,8 @@ import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../store/slices';
 import { SvgIcon } from '../../../utils/SvgIcon';
 import { getWebsiteFaviconUrl, getWebsiteHostname } from '../../../api/site/siteMetaApi';
+import { fetchUpdateSourceUrl } from '../../../api/user/userAccountApi';
+import { readLocalToken } from '../../../utils/userAccount';
 import '../../../styles/notification/notification.css';
 
 interface UrlFavoriteItem {
@@ -43,6 +45,19 @@ const URL_FAVORITES_STORE_KEY = 'url-favorites';
 const URL_FAVORITES_FOCUS_KEY = 'url-favorites-focus-url';
 const UPDATE_SOURCE_STORE_KEY = 'update-source';
 const SETTINGS_OPEN_TAB_STORE_KEY = 'settings-open-tab';
+
+type UpdateSourceKey = 'cloudflare-r2' | 'tencent-cos' | 'aliyun-oss' | 'github';
+
+function normalizeUpdateSource(value: unknown): UpdateSourceKey {
+  if (value === 'github') return 'github';
+  if (value === 'tencent-cos') return 'tencent-cos';
+  if (value === 'aliyun-oss') return 'aliyun-oss';
+  return 'cloudflare-r2';
+}
+
+function isProOnlySource(source: UpdateSourceKey): boolean {
+  return source === 'tencent-cos' || source === 'aliyun-oss';
+}
 
 function normalizeUrl(raw: string): string {
   const text = raw.trim();
@@ -295,15 +310,34 @@ export function NotificationContent({
   };
 
   const handleGoToUpdate = (): void => {
-    window.api?.storeRead(UPDATE_SOURCE_STORE_KEY).then((source) => {
-      if (typeof source === 'string') {
-        return window.api?.updaterDownload(source);
-      }
-      return window.api?.updaterDownload();
-    }).catch(() => {
-      window.api?.updaterDownload().catch(() => {});
-    });
     dismiss();
+    void (async () => {
+      const sourceRaw = await window.api?.storeRead(UPDATE_SOURCE_STORE_KEY).catch(() => null);
+      const source = normalizeUpdateSource(sourceRaw);
+      if (isProOnlySource(source)) {
+        const token = readLocalToken();
+        if (!token) {
+          setNotification({
+            title: t('notification.update.availableTitle', { defaultValue: '发现新版本' }),
+            body: t('settings.update.proOnlyNeedLogin', { defaultValue: '请先登录 PRO 账号后再使用该更新源' }),
+            icon: SvgIcon.UPDATE,
+          });
+          return;
+        }
+        const resolved = await fetchUpdateSourceUrl(token, source);
+        if (!resolved.ok || !resolved.data?.url) {
+          setNotification({
+            title: t('notification.update.availableTitle', { defaultValue: '发现新版本' }),
+            body: resolved.message || t('settings.update.sourceResolveFailed', { defaultValue: '获取更新源地址失败' }),
+            icon: SvgIcon.UPDATE,
+          });
+          return;
+        }
+        await window.api?.updaterDownload(source, resolved.data.url).catch(() => {});
+        return;
+      }
+      await window.api?.updaterDownload(source).catch(() => {});
+    })();
   };
 
   const handleConfigureUpdateSource = (): void => {
