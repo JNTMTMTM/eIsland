@@ -26,6 +26,7 @@
 
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
+import { SvgIcon } from '../../../../../../../utils/SvgIcon';
 
 type UpdateStatus = 'idle' | 'checking' | 'available' | 'downloading' | 'ready' | 'error' | 'latest';
 
@@ -131,9 +132,16 @@ export function UpdateSettingsSection({
                     disabled={Boolean(s.proOnly && !isProUser)}
                     onChange={() => onUpdateSourceChange(s.key)}
                   />
-                  <span>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
+                    {s.proOnly ? (
+                      <img
+                        src={SvgIcon.VIP}
+                        alt="VIP"
+                        width={16}
+                        height={16}
+                      />
+                    ) : null}
                     {s.label}
-                    {s.proOnly ? ` (${t('settings.update.proOnlyTag', { defaultValue: 'PRO 专属' })})` : ''}
                   </span>
                 </label>
               ))}

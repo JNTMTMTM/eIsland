@@ -103,6 +103,8 @@ export const SvgIcon = {
   GIRL: './svg/GIRL.svg',
   /** PRO */
   PRO: './svg/PRO.svg',
+  /** VIP（别名，复用 PRO 图标） */
+  VIP: './svg/PRO.svg',
 
 } as const;
 
