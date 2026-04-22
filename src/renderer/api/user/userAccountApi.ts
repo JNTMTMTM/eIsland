@@ -30,6 +30,12 @@ import type {
   UserAccountGender,
   UserAccountProfile,
 } from '../../utils/userAccount';
+import {
+  buildReplayHeaders as buildSecurityReplayHeaders,
+  DEFAULT_TOTP_DIGITS,
+  DEFAULT_TOTP_PERIOD_SECONDS,
+  generateTotpFromBase32Seed,
+} from '../../utils/security';
 
 export type { UserAccountGender, UserAccountProfile } from '../../utils/userAccount';
 
@@ -223,23 +229,8 @@ interface InternalRequestInit {
   timeoutMs?: number;
 }
 
-function createReplayNonce(): string {
-  const bytes = new Uint8Array(16);
-  if (typeof globalThis.crypto !== 'undefined' && typeof globalThis.crypto.getRandomValues === 'function') {
-    globalThis.crypto.getRandomValues(bytes);
-  } else {
-    for (let i = 0; i < bytes.length; i++) {
-      bytes[i] = Math.floor(Math.random() * 256);
-    }
-  }
-  return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
-}
-
 function buildReplayHeaders(): Record<string, string> {
-  return {
-    [REPLAY_TIMESTAMP_HEADER]: String(Date.now()),
-    [REPLAY_NONCE_HEADER]: createReplayNonce(),
-  };
+  return buildSecurityReplayHeaders(REPLAY_TIMESTAMP_HEADER, REPLAY_NONCE_HEADER);
 }
 
 function shouldAttachReplayHeaders(path: string, method: InternalRequestInit['method'], auth?: string | null): boolean {
@@ -513,68 +504,11 @@ export interface UpdateUserPasswordPayload {
   emailCode: string;
 }
 
-const PASSWORD_TOTP_DIGITS = 6;
-const PASSWORD_TOTP_PERIOD_SECONDS = 30;
-const BASE32_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
-
 interface UserPasswordTotpSeedData {
   seed: string;
   algorithm?: string;
   digits?: number;
   periodSeconds?: number;
-}
-
-function decodeBase32(seed: string): ArrayBuffer {
-  const normalized = seed.trim().toUpperCase().replace(/=/g, '');
-  if (!normalized) {
-    throw new Error('TOTP Seed 为空');
-  }
-  let value = 0;
-  let bits = 0;
-  const out: number[] = [];
-  normalized.split('').forEach((ch) => {
-    const idx = BASE32_ALPHABET.indexOf(ch);
-    if (idx < 0) {
-      throw new Error('TOTP Seed 格式错误');
-    }
-    value = (value << 5) | idx;
-    bits += 5;
-    if (bits >= 8) {
-      out.push((value >> (bits - 8)) & 0xff);
-      bits -= 8;
-    }
-  });
-  const bytes = Uint8Array.from(out);
-  return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
-}
-
-async function generatePasswordTotp(seed: string, timestampSeconds: number): Promise<string> {
-  if (!globalThis.crypto?.subtle) {
-    throw new Error('WebCrypto 不可用');
-  }
-  const counter = Math.floor(timestampSeconds / PASSWORD_TOTP_PERIOD_SECONDS);
-  const counterBytes = new Uint8Array(8);
-  let value = counter;
-  for (let i = 7; i >= 0; i--) {
-    counterBytes[i] = value & 0xff;
-    value = Math.floor(value / 256);
-  }
-  const key = await globalThis.crypto.subtle.importKey(
-    'raw',
-    decodeBase32(seed),
-    { name: 'HMAC', hash: 'SHA-1' },
-    false,
-    ['sign'],
-  );
-  const signature = await globalThis.crypto.subtle.sign('HMAC', key, counterBytes);
-  const hash = new Uint8Array(signature);
-  const offset = hash[hash.length - 1] & 0x0f;
-  const binary = ((hash[offset] & 0x7f) << 24)
-    | ((hash[offset + 1] & 0xff) << 16)
-    | ((hash[offset + 2] & 0xff) << 8)
-    | (hash[offset + 3] & 0xff);
-  const otp = binary % (10 ** PASSWORD_TOTP_DIGITS);
-  return String(otp).padStart(PASSWORD_TOTP_DIGITS, '0');
 }
 
 /**
@@ -615,7 +549,12 @@ export async function updateUserPassword(token: string, payload: UpdateUserPassw
         message: seedResult.message || 'TOTP Seed 获取失败',
       };
     }
-    const totpCode = await generatePasswordTotp(seedResult.data.seed, Math.floor(Date.now() / 1000));
+    const totpCode = await generateTotpFromBase32Seed(
+      seedResult.data.seed,
+      Math.floor(Date.now() / 1000),
+      DEFAULT_TOTP_PERIOD_SECONDS,
+      DEFAULT_TOTP_DIGITS,
+    );
     return request('/v1/user/profile/password', {
       method: 'POST',
       auth: token,
