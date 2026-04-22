@@ -104,10 +104,9 @@ const getRoleFromToken = (token: string | null | undefined): string | null => {
     const authorityList = Array.isArray(payload.authorities)
       ? payload.authorities
       : [payload.authority];
-    for (const authority of authorityList) {
-      if (typeof authority === 'string' && authority.trim()) {
-        return normalizeRoleValue(authority);
-      }
+    const validAuthority = authorityList.find((authority) => typeof authority === 'string' && authority.trim());
+    if (typeof validAuthority === 'string') {
+      return normalizeRoleValue(validAuthority);
     }
     return null;
   } catch {
