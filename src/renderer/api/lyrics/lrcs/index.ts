@@ -24,19 +24,19 @@
  * @author 鸡哥
  */
 
-import type { LyricLine } from './types';
-import { fetchLyricsFromLrclib } from './lrclib';
-import { fetchLyricsFromNetease } from './netease';
-import { fetchLyricsFromQQMusic } from './qqmusic';
-import { fetchLyricsFromKugou } from './kugou';
-import { fetchLyricsFromSodaMusic } from './sodaMusic';
+import type { LyricLine } from './normal/types';
+import { fetchLyricsFromLrclib } from './normal/lrclib';
+import { fetchLyricsFromNetease } from './normal/netease';
+import { fetchLyricsFromQQMusic } from './normal/qqmusic';
+import { fetchLyricsFromKugou } from './normal/kugou';
+import { fetchLyricsFromSodaMusic } from './normal/sodaMusic';
 
-export type { LyricLine } from './types';
-export { fetchLyricsFromLrclib } from './lrclib';
-export { fetchLyricsFromNetease } from './netease';
-export { fetchLyricsFromQQMusic } from './qqmusic';
-export { fetchLyricsFromKugou } from './kugou';
-export { fetchLyricsFromSodaMusic } from './sodaMusic';
+export type { LyricLine } from './normal/types';
+export { fetchLyricsFromLrclib } from './normal/lrclib';
+export { fetchLyricsFromNetease } from './normal/netease';
+export { fetchLyricsFromQQMusic } from './normal/qqmusic';
+export { fetchLyricsFromKugou } from './normal/kugou';
+export { fetchLyricsFromSodaMusic } from './normal/sodaMusic';
 
 type Provider = 'netease' | 'qqmusic' | 'kugou' | 'sodamusic';
 

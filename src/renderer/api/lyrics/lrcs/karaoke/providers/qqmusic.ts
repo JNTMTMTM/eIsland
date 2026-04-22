@@ -25,8 +25,8 @@
  * @docs https://github.com/cXp1r/lyricify-lyrics-provider-rs
  */
 
-import { cleanArtist, cleanTitle } from '../../helpers';
-import { requestJsonWithLog, requestTextWithLog } from '../../request';
+import { cleanArtist, cleanTitle } from '../../normal/helpers';
+import { requestJsonWithLog, requestTextWithLog } from '../../normal/request';
 import { logger } from '../../../../../utils/logger';
 import { decryptQRC } from '../decrypt/qrc';
 import { parseSyncedLines } from '../parsers';

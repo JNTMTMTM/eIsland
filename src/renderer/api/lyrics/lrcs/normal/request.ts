@@ -24,8 +24,8 @@
  * @author 鸡哥
  */
 
-import { loadNetworkConfig } from '../../../store/utils/storage';
-import { logger } from '../../../utils/logger';
+import { loadNetworkConfig } from '../../../../store/utils/storage';
+import { logger } from '../../../../utils/logger';
 
 export async function requestJsonWithLog<T>(url: string, options?: {
   method?: string;

@@ -25,8 +25,8 @@
  * @docs https://github.com/cXp1r/lyricify-lyrics-provider-rs
  */
 
-import { cleanArtist, cleanTitle } from '../../helpers';
-import { requestJsonWithLog } from '../../request';
+import { cleanArtist, cleanTitle } from '../../normal/helpers';
+import { requestJsonWithLog } from '../../normal/request';
 import { decryptKRC } from '../decrypt/krc';
 import { parseSyncedLines } from '../parsers';
 import type { KaraokeLine } from '../types';

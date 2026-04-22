@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import type { LyricLine } from '../api/lyrics/lrcs/types';
+import type { LyricLine } from '../api/lyrics/lrcs/normal/types';
 
 const META_PREFIXES = [
   '作词', '作曲', '编曲', '制作', '混音', '母带', '录音',
