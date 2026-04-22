@@ -50,7 +50,7 @@ import {
 import { SvgIcon } from '../../../../../../../utils/SvgIcon';
 
 type FeedbackType = 'success' | 'error' | 'info';
-type UserProfilePage = 'info' | 'edit' | 'password' | 'account';
+type UserProfilePage = 'info' | 'edit' | 'password' | 'pro' | 'account';
 
 interface Feedback {
   type: FeedbackType;
@@ -60,7 +60,7 @@ interface Feedback {
 type ProfileFeedbackScope = 'profile' | 'password' | 'account';
 
 const GENDER_VALUES: UserAccountGender[] = ['male', 'female', 'custom', 'undisclosed'];
-const USER_PROFILE_PAGES: UserProfilePage[] = ['info', 'edit', 'password', 'account'];
+const USER_PROFILE_PAGES: UserProfilePage[] = ['info', 'edit', 'password', 'pro', 'account'];
 const EMAIL_PATTERN = /^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
 
 const getGenderIcon = (gender: UserAccountGender | null | undefined): string => {
@@ -163,7 +163,9 @@ export function UserSettingsSection(): ReactElement {
         ? '修改信息'
         : userProfilePage === 'password'
           ? '修改密码'
-          : '关于账户',
+          : userProfilePage === 'pro'
+            ? 'PRO功能'
+            : '关于账户',
   });
 
   const avatarInputRef = useRef<HTMLInputElement | null>(null);
@@ -685,6 +687,7 @@ export function UserSettingsSection(): ReactElement {
       { id: 'info', label: t('settings.user.pages.info', { defaultValue: '用户信息' }) },
       { id: 'edit', label: t('settings.user.pages.edit', { defaultValue: '修改信息' }) },
       { id: 'password', label: t('settings.user.pages.password', { defaultValue: '修改密码' }) },
+      { id: 'pro', label: t('settings.user.pages.pro', { defaultValue: 'PRO功能' }) },
       { id: 'account', label: t('settings.user.pages.account', { defaultValue: '关于账户' }) },
     ];
 
@@ -1100,12 +1103,17 @@ export function UserSettingsSection(): ReactElement {
       </div>
     );
 
+    const renderProPage = (): ReactElement => (
+      <div className="settings-user-page-panel" />
+    );
+
     return (
       <div className="settings-user-profile settings-user-profile-paged" ref={profilePagesLayoutRef}>
         <div className="settings-user-profile-main">
           {userProfilePage === 'info' && renderInfoPage()}
           {userProfilePage === 'edit' && renderEditPage()}
           {userProfilePage === 'password' && renderPasswordPage()}
+          {userProfilePage === 'pro' && renderProPage()}
           {userProfilePage === 'account' && renderAccountPage()}
         </div>
 

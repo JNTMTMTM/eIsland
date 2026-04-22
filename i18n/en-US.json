@@ -1387,9 +1387,10 @@
         "logoutDesc": "Sign out or delete your account"
       },
       "pages": {
-        "info": "User Info",
-        "edit": "Edit Info",
+        "info": "Profile",
+        "edit": "Edit Profile",
         "password": "Change Password",
+        "pro": "PRO Features",
         "account": "Account",
         "switchTo": "Switch to {{label}}"
       },
