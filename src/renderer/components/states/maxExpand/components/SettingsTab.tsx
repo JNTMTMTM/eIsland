@@ -82,6 +82,7 @@ import { WallpaperContributionSection } from './setting/components/pluginMarket/
 import { WallpaperEditSection } from './setting/components/pluginMarket/WallpaperEditSection';
 
 import { resolveDistrictLocationByKeyword } from '../../../../api/weather/adcodeApi';
+import { fetchUpdateSourceUrl } from '../../../../api/user/userAccountApi';
 
 import { setThemeMode as applyThemeMode, getThemeMode, type ThemeMode } from '../../../../utils/theme';
 import { getLanguage, setLanguage, type AppLanguage } from '../../../../i18n';
@@ -211,6 +212,33 @@ interface RunningWindowItem {
 }
 
 type PluginMarketPageKey = 'wallpaper' | 'plugin' | 'contribution' | 'edit';
+type UpdateSourceKey = 'cloudflare-r2' | 'tencent-cos' | 'aliyun-oss' | 'github';
+
+const PRO_UPDATE_SOURCE_SET: ReadonlySet<UpdateSourceKey> = new Set<UpdateSourceKey>(['tencent-cos', 'aliyun-oss']);
+
+const normalizeRoleValue = (value: string): string => {
+  return value.trim().toLowerCase().replace(/^role_/, '');
+};
+
+const getRoleFromToken = (token: string | null | undefined): string | null => {
+  if (!token) return null;
+  const rawToken = token.trim().replace(/^bearer\s+/i, '');
+  const parts = rawToken.split('.');
+  if (parts.length < 2) return null;
+  try {
+    const payload = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const normalizedPayload = payload + '='.repeat((4 - payload.length % 4) % 4);
+    const decoded = JSON.parse(atob(normalizedPayload)) as { role?: unknown };
+    return typeof decoded.role === 'string' ? normalizeRoleValue(decoded.role) : null;
+  } catch {
+    return null;
+  }
+};
+
+const isProOnlyUpdateSource = (source: UpdateSourceKey): boolean => {
+  return PRO_UPDATE_SOURCE_SET.has(source);
+};
+
 const PLUGIN_MARKET_PAGES: PluginMarketPageKey[] = ['wallpaper', 'plugin', 'contribution', 'edit'];
 
 /**
@@ -222,6 +250,7 @@ export function SettingsTab(): ReactElement {
   const { t } = useTranslation();
   const opacitySaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [activeTab, setActiveTab] = useState<SettingsSidebarTabKey>(() => _lastSettingsSidebarTab);
+  const [sessionToken, setSessionToken] = useState<string | null>(() => readLocalToken());
   const [hasLoginSession, setHasLoginSession] = useState<boolean>(() => Boolean(readLocalToken()));
   const [appSettingsPage, setAppSettingsPage] = useState<AppSettingsPageKey>('layout-preview');
   const [weatherSettingsPage, setWeatherSettingsPage] = useState<WeatherSettingsPageKey>('location');
@@ -241,11 +270,15 @@ export function SettingsTab(): ReactElement {
 
   useEffect(() => {
     const applySession = (): void => {
-      setHasLoginSession(Boolean(readLocalToken()));
+      const token = readLocalToken();
+      setSessionToken(token);
+      setHasLoginSession(Boolean(token));
     };
     applySession();
     return subscribeUserAccountSessionChanged(applySession);
   }, []);
+
+  const isProUser = useMemo(() => getRoleFromToken(sessionToken) === 'pro', [sessionToken]);
 
   const getSettingsLabel = (key: SettingsTabLabelKey): string => {
     return t(`settings.labels.${key}`, { defaultValue: SETTINGS_TAB_LABELS[key] });
@@ -359,25 +392,55 @@ export function SettingsTab(): ReactElement {
   const [updateError, setUpdateError] = useState<string>('');
   const [downloadProgress, setDownloadProgress] = useState<{ percent: number; transferred: number; total: number; bytesPerSecond: number } | null>(null);
   const [updateAutoPromptEnabled, setUpdateAutoPromptEnabled] = useState<boolean>(true);
-  const [updateSource, setUpdateSource] = useState<'cloudflare-r2' | 'tencent-cos' | 'aliyun-oss' | 'github'>('cloudflare-r2');
-  const UPDATE_SOURCES: { key: string; label: string }[] = [
+  const [updateSource, setUpdateSource] = useState<UpdateSourceKey>('cloudflare-r2');
+  const UPDATE_SOURCES: { key: UpdateSourceKey; label: string; proOnly?: boolean }[] = [
     { key: 'cloudflare-r2', label: 'Cloudflare R2' },
-    { key: 'tencent-cos', label: 'Tencent COS' },
-    { key: 'aliyun-oss', label: 'Aliyun OSS' },
+    { key: 'tencent-cos', label: 'Tencent COS', proOnly: true },
+    { key: 'aliyun-oss', label: 'Aliyun OSS', proOnly: true },
     { key: 'github', label: 'GitHub Releases' },
   ];
   const currentSourceLabel = UPDATE_SOURCES.find((s) => s.key === updateSource)?.label ?? updateSource;
 
   const handleUpdateSourceChange = (value: string): void => {
-    const nextSource = value === 'github'
+    const nextSource: UpdateSourceKey = value === 'github'
       ? 'github'
       : value === 'tencent-cos'
         ? 'tencent-cos'
         : value === 'aliyun-oss'
           ? 'aliyun-oss'
         : 'cloudflare-r2';
+    if (isProOnlyUpdateSource(nextSource) && !isProUser) {
+      setUpdateStatus('error');
+      setUpdateError(t('settings.update.proOnlyError', { defaultValue: '该更新源仅 PRO 用户可用' }));
+      return;
+    }
     setUpdateSource(nextSource);
+    setUpdateError('');
     window.api.storeWrite(UPDATE_SOURCE_STORE_KEY, nextSource).catch(() => {});
+  };
+
+  useEffect(() => {
+    if (isProUser) return;
+    if (!isProOnlyUpdateSource(updateSource)) return;
+    setUpdateSource('cloudflare-r2');
+    window.api.storeWrite(UPDATE_SOURCE_STORE_KEY, 'cloudflare-r2').catch(() => {});
+  }, [isProUser, updateSource]);
+
+  const resolveUpdateSourceUrl = async (source: UpdateSourceKey): Promise<string | undefined> => {
+    if (!isProOnlyUpdateSource(source)) {
+      return undefined;
+    }
+    if (!isProUser) {
+      throw new Error(t('settings.update.proOnlyError', { defaultValue: '该更新源仅 PRO 用户可用' }));
+    }
+    if (!sessionToken) {
+      throw new Error(t('settings.update.proOnlyNeedLogin', { defaultValue: '请先登录 PRO 账号后再使用该更新源' }));
+    }
+    const result = await fetchUpdateSourceUrl(sessionToken, source);
+    if (!result.ok || !result.data?.url) {
+      throw new Error(result.message || t('settings.update.sourceResolveFailed', { defaultValue: '获取更新源地址失败' }));
+    }
+    return result.data.url;
   };
 
   const handleUpdateAutoPromptEnabledChange = (enabled: boolean): void => {
@@ -1122,7 +1185,8 @@ export function SettingsTab(): ReactElement {
     setUpdateError('');
     setDownloadProgress(null);
     try {
-      const result = await window.api.updaterCheck(updateSource);
+      const resolvedUrl = await resolveUpdateSourceUrl(updateSource);
+      const result = await window.api.updaterCheck(updateSource, resolvedUrl);
       if (result.error) {
         setUpdateStatus('error');
         setUpdateError(result.error);
@@ -1143,16 +1207,17 @@ export function SettingsTab(): ReactElement {
     setUpdateStatus('downloading');
     setDownloadProgress(null);
     try {
-      const ok = await window.api.updaterDownload(updateSource);
+      const resolvedUrl = await resolveUpdateSourceUrl(updateSource);
+      const ok = await window.api.updaterDownload(updateSource, resolvedUrl);
       if (ok) {
         setUpdateStatus('ready');
       } else {
         setUpdateStatus('error');
         setUpdateError('下载失败，请稍后重试');
       }
-    } catch {
+    } catch (err) {
       setUpdateStatus('error');
-      setUpdateError('下载失败，请检查网络连接');
+      setUpdateError(`下载失败: ${err instanceof Error ? err.message : String(err)}`);
     }
   };
 
@@ -2317,6 +2382,7 @@ export function SettingsTab(): ReactElement {
               aboutVersion={aboutVersion}
               updateSource={updateSource}
               updateSources={UPDATE_SOURCES}
+              isProUser={isProUser}
               updateAutoPromptEnabled={updateAutoPromptEnabled}
               updateStatus={updateStatus}
               updateVersion={updateVersion}

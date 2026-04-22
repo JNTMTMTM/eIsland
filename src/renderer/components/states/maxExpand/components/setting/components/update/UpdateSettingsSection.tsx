@@ -32,6 +32,7 @@ type UpdateStatus = 'idle' | 'checking' | 'available' | 'downloading' | 'ready' 
 interface UpdateSourceOption {
   key: string;
   label: string;
+  proOnly?: boolean;
 }
 
 interface DownloadProgressData {
@@ -45,6 +46,7 @@ interface UpdateSettingsSectionProps {
   aboutVersion: string;
   updateSource: string;
   updateSources: UpdateSourceOption[];
+  isProUser: boolean;
   updateAutoPromptEnabled: boolean;
   updateStatus: UpdateStatus;
   updateVersion: string;
@@ -67,6 +69,7 @@ export function UpdateSettingsSection({
   aboutVersion,
   updateSource,
   updateSources,
+  isProUser,
   updateAutoPromptEnabled,
   updateStatus,
   updateVersion,
@@ -125,9 +128,13 @@ export function UpdateSettingsSection({
                     name="update-source"
                     value={s.key}
                     checked={updateSource === s.key}
+                    disabled={Boolean(s.proOnly && !isProUser)}
                     onChange={() => onUpdateSourceChange(s.key)}
                   />
-                  <span>{s.label}</span>
+                  <span>
+                    {s.label}
+                    {s.proOnly ? ` (${t('settings.update.proOnlyTag', { defaultValue: 'PRO 专属' })})` : ''}
+                  </span>
                 </label>
               ))}
             </div>

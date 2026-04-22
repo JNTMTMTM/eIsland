@@ -152,6 +152,19 @@ export function unregisterUser(token: string, password: string, emailCode: strin
 }
 
 /**
+ * 获取 PRO 专属更新源下载地址（COS / OSS）。
+ * @param token - 用户 token。
+ * @param source - 更新源标识（tencent-cos / aliyun-oss）。
+ * @returns 包含 url 字段的结果。
+ */
+export function fetchUpdateSourceUrl(token: string, source: string): Promise<UserAccountResult<{ url: string }>> {
+  return request<{ url: string }>(`/v1/user/update-source?source=${encodeURIComponent(source)}`, {
+    method: 'GET',
+    auth: token,
+  });
+}
+
+/**
  * 上传用户头像。
  * @param file - 头像文件。
  * @param token - 用户 token。

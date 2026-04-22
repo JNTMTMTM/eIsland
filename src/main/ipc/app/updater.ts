@@ -38,8 +38,6 @@ interface RegisterUpdaterIpcHandlersOptions {
 
 const DEFAULT_UPDATE_SOURCE: UpdateSourceKey = 'cloudflare-r2';
 const R2_UPDATE_URL = 'https://pub-4c1e73c3c2004901aecd6ca014cb16bd.r2.dev';
-const COS_UPDATE_URL = 'https://download-cos.eisland.pyisland.com';
-const OSS_UPDATE_URL = 'https://download-oss.eisland.pyisland.com/';
 const GITHUB_OWNER = 'JNTMTMTM';
 const GITHUB_REPO = 'eIsland';
 
@@ -50,7 +48,7 @@ function normalizeUpdateSource(value: unknown): UpdateSourceKey {
   return DEFAULT_UPDATE_SOURCE;
 }
 
-function applyUpdateSource(updater: AppUpdater, source: UpdateSourceKey): void {
+function applyUpdateSource(updater: AppUpdater, source: UpdateSourceKey, resolvedUrl?: string): void {
   if (source === 'github') {
     updater.setFeedURL({
       provider: 'github',
@@ -60,17 +58,13 @@ function applyUpdateSource(updater: AppUpdater, source: UpdateSourceKey): void {
     });
     return;
   }
-  if (source === 'tencent-cos') {
+  if (source === 'tencent-cos' || source === 'aliyun-oss') {
+    if (!resolvedUrl) {
+      throw new Error('PRO update source requires a server-issued URL');
+    }
     updater.setFeedURL({
       provider: 'generic',
-      url: COS_UPDATE_URL,
-    });
-    return;
-  }
-  if (source === 'aliyun-oss') {
-    updater.setFeedURL({
-      provider: 'generic',
-      url: OSS_UPDATE_URL,
+      url: resolvedUrl,
     });
     return;
   }
@@ -86,10 +80,10 @@ function applyUpdateSource(updater: AppUpdater, source: UpdateSourceKey): void {
  * @param options - 配置选项，包含更新器和版本信息获取函数
  */
 export function registerUpdaterIpcHandlers(options: RegisterUpdaterIpcHandlersOptions): void {
-  ipcMain.handle('updater:check', async (_event, sourceRaw?: string) => {
+  ipcMain.handle('updater:check', async (_event, sourceRaw?: string, resolvedUrl?: string) => {
     try {
       const source = normalizeUpdateSource(sourceRaw);
-      applyUpdateSource(options.updater, source);
+      applyUpdateSource(options.updater, source, resolvedUrl);
       const current = options.getVersion();
       console.log('[Updater:check] currentVersion:', current);
       console.log('[Updater:check] app.isPackaged:', options.isPackaged());
@@ -117,10 +111,10 @@ export function registerUpdaterIpcHandlers(options: RegisterUpdaterIpcHandlersOp
     }
   });
 
-  ipcMain.handle('updater:download', async (_event, sourceRaw?: string) => {
+  ipcMain.handle('updater:download', async (_event, sourceRaw?: string, resolvedUrl?: string) => {
     try {
       const source = normalizeUpdateSource(sourceRaw);
-      applyUpdateSource(options.updater, source);
+      applyUpdateSource(options.updater, source, resolvedUrl);
       console.log('[Updater:download] source:', source);
       console.log('[Updater:download] step 1 - checkForUpdates...');
       const checkResult = await options.updater.checkForUpdates();
