@@ -83,6 +83,11 @@ export function toggleMousePassthroughLock(getMainWindow: () => BrowserWindow | 
   win.webContents.send('window:passthrough-lock-changed', mousePassthroughLocked);
 }
 
+/**
+ * 注册窗口控制相关 IPC 处理器
+ * @description 注册窗口尺寸调整、位置调整和鼠标穿透的 IPC 事件处理器
+ * @param options - 配置选项，包含窗口获取和位置管理函数
+ */
 export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOptions): void {
   const withWindow = (fn: (win: BrowserWindow) => void): void => {
     const win = options.getMainWindow();
