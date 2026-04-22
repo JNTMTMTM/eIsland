@@ -63,6 +63,26 @@ interface RegisterWindowIpcHandlersOptions {
  * @description 注册窗口尺寸调整、位置调整和鼠标穿透的 IPC 事件处理器
  * @param options - 配置选项，包含窗口获取和位置管理函数
  */
+/** 鼠标穿透锁定状态 */
+let mousePassthroughLocked = false;
+
+/**
+ * 切换鼠标穿透锁定状态
+ * @description 锁定时窗口始终穿透鼠标事件，解锁后恢复正常行为
+ * @param getMainWindow - 获取主窗口函数
+ */
+export function toggleMousePassthroughLock(getMainWindow: () => BrowserWindow | null): void {
+  mousePassthroughLocked = !mousePassthroughLocked;
+  const win = getMainWindow();
+  if (!win || win.isDestroyed()) return;
+  if (mousePassthroughLocked) {
+    win.setIgnoreMouseEvents(true, { forward: true });
+  } else {
+    win.setIgnoreMouseEvents(false);
+  }
+  win.webContents.send('window:passthrough-lock-changed', mousePassthroughLocked);
+}
+
 export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOptions): void {
   const withWindow = (fn: (win: BrowserWindow) => void): void => {
     const win = options.getMainWindow();
@@ -84,6 +104,7 @@ export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOpti
   });
 
   ipcMain.on('window:disable-mouse-passthrough', () => {
+    if (mousePassthroughLocked) return;
     withWindow((win) => {
       win.setIgnoreMouseEvents(false);
     });

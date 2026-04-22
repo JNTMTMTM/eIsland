@@ -39,6 +39,7 @@ interface RegisterHotkeyIpcHandlersOptions {
   toggleTrayHotkeyStoreKey: string;
   showSettingsWindowHotkeyStoreKey: string;
   openClipboardHistoryHotkeyStoreKey: string;
+  togglePassthroughHotkeyStoreKey: string;
   getCurrentHideHotkey: () => string;
   getCurrentQuitHotkey: () => string;
   getCurrentScreenshotHotkey: () => string;
@@ -48,6 +49,7 @@ interface RegisterHotkeyIpcHandlersOptions {
   getCurrentToggleTrayHotkey: () => string;
   getCurrentShowSettingsWindowHotkey: () => string;
   getCurrentOpenClipboardHistoryHotkey: () => string;
+  getCurrentTogglePassthroughHotkey: () => string;
   readHideHotkeyConfig: () => string;
   readQuitHotkeyConfig: () => string;
   readScreenshotHotkeyConfig: () => string;
@@ -57,6 +59,7 @@ interface RegisterHotkeyIpcHandlersOptions {
   readToggleTrayHotkeyConfig: () => string;
   readShowSettingsWindowHotkeyConfig: () => string;
   readOpenClipboardHistoryHotkeyConfig: () => string;
+  readTogglePassthroughHotkeyConfig: () => string;
   registerHideHotkey: (accelerator: string) => boolean;
   registerQuitHotkey: (accelerator: string) => boolean;
   registerNextSongHotkey: (accelerator: string) => boolean;
@@ -65,6 +68,7 @@ interface RegisterHotkeyIpcHandlersOptions {
   registerToggleTrayHotkey: (accelerator: string) => boolean;
   registerShowSettingsWindowHotkey: (accelerator: string) => boolean;
   registerOpenClipboardHistoryHotkey: (accelerator: string) => boolean;
+  registerTogglePassthroughHotkey: (accelerator: string) => boolean;
   suspendIslandHotkeys: () => void;
   resumeIslandHotkeys: () => void;
 }
@@ -338,6 +342,40 @@ export function registerHotkeyIpcHandlers(options: RegisterHotkeyIpcHandlersOpti
     const success = options.registerToggleTrayHotkey(accelerator);
     if (success) {
       persistHotkey(options.storeDir, options.toggleTrayHotkeyStoreKey, accelerator, 'ToggleTrayHotkey');
+    }
+    return success;
+  });
+
+  ipcMain.handle('toggle-passthrough-hotkey:get', () => {
+    return currentOrStored(options.getCurrentTogglePassthroughHotkey, options.readTogglePassthroughHotkeyConfig);
+  });
+
+  ipcMain.handle('toggle-passthrough-hotkey:set', (_event, accelerator: string) => {
+    const currentHide = currentOrStored(options.getCurrentHideHotkey, options.readHideHotkeyConfig);
+    const currentQuit = currentOrStored(options.getCurrentQuitHotkey, options.readQuitHotkeyConfig);
+    const currentSS = currentOrStored(options.getCurrentScreenshotHotkey, options.readScreenshotHotkeyConfig);
+    const currentNextSong = currentOrStored(options.getCurrentNextSongHotkey, options.readNextSongHotkeyConfig);
+    const currentPlayPauseSong = currentOrStored(options.getCurrentPlayPauseSongHotkey, options.readPlayPauseSongHotkeyConfig);
+    const currentResetPos = currentOrStored(options.getCurrentResetPositionHotkey, options.readResetPositionHotkeyConfig);
+    const currentToggleTray = currentOrStored(options.getCurrentToggleTrayHotkey, options.readToggleTrayHotkeyConfig);
+    const currentShowSettings = currentOrStored(options.getCurrentShowSettingsWindowHotkey, options.readShowSettingsWindowHotkeyConfig);
+    const currentOpenClipboardHistory = currentOrStored(options.getCurrentOpenClipboardHistoryHotkey, options.readOpenClipboardHistoryHotkeyConfig);
+
+    if (accelerator && ((currentHide && accelerator === currentHide)
+      || (currentQuit && accelerator === currentQuit)
+      || (currentSS && accelerator === currentSS)
+      || (currentNextSong && accelerator === currentNextSong)
+      || (currentPlayPauseSong && accelerator === currentPlayPauseSong)
+      || (currentResetPos && accelerator === currentResetPos)
+      || (currentToggleTray && accelerator === currentToggleTray)
+      || (currentShowSettings && accelerator === currentShowSettings)
+      || (currentOpenClipboardHistory && accelerator === currentOpenClipboardHistory))) {
+      return false;
+    }
+
+    const success = options.registerTogglePassthroughHotkey(accelerator);
+    if (success) {
+      persistHotkey(options.storeDir, options.togglePassthroughHotkeyStoreKey, accelerator, 'TogglePassthroughHotkey');
     }
     return success;
   });

@@ -999,6 +999,10 @@
         "openClipboardHistory": {
           "title": "Open Clipboard History Shortcut",
           "hint": "Press to open Dynamic Island and jump directly to Clipboard History"
+        },
+        "togglePassthrough": {
+          "title": "Toggle Mouse Passthrough Shortcut",
+          "hint": "Press to lock or unlock mouse passthrough; when locked, Dynamic Island will not intercept mouse events"
         }
       },
       "capture": {

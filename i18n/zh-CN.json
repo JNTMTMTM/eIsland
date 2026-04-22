@@ -999,6 +999,10 @@
         "openClipboardHistory": {
           "title": "打开剪贴板历史快捷键",
           "hint": "按下后将打开灵动岛并直接切换到剪贴板历史界面"
+        },
+        "togglePassthrough": {
+          "title": "切换鼠标穿透快捷键",
+          "hint": "按下此快捷键将锁定或解锁鼠标穿透状态，锁定后灵动岛不会拦截鼠标事件"
         }
       },
       "capture": {

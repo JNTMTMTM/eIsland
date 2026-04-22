@@ -537,6 +537,35 @@ const api = {
   openClipboardHistoryHotkeySet: (accelerator: string): Promise<boolean> => {
     return ipcRenderer.invoke('open-clipboard-history-hotkey:set', accelerator);
   },
+  /**
+   * 获取当前切换鼠标穿透快捷键
+   * @returns 当前快捷键字符串
+   */
+  togglePassthroughHotkeyGet: (): Promise<string> => {
+    return ipcRenderer.invoke('toggle-passthrough-hotkey:get');
+  },
+  /**
+   * 设置切换鼠标穿透快捷键
+   * @param accelerator - Electron accelerator 字符串
+   * @returns 是否注册成功
+   */
+  togglePassthroughHotkeySet: (accelerator: string): Promise<boolean> => {
+    return ipcRenderer.invoke('toggle-passthrough-hotkey:set', accelerator);
+  },
+  /**
+   * 监听鼠标穿透锁定状态变化
+   * @param callback - 回调函数，参数为是否锁定
+   * @returns 取消监听函数
+   */
+  onPassthroughLockChanged: (callback: (locked: boolean) => void): (() => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, locked: boolean): void => {
+      callback(locked);
+    };
+    ipcRenderer.on('window:passthrough-lock-changed', handler);
+    return () => {
+      ipcRenderer.removeListener('window:passthrough-lock-changed', handler);
+    };
+  },
   /** ===== 日志文件 API ===== */
   /**
    * 写入日志到文件

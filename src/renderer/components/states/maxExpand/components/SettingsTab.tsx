@@ -727,6 +727,12 @@ export function SettingsTab(): ReactElement {
   const [openClipboardHistoryHotkeyError, setOpenClipboardHistoryHotkeyError] = useState<string>('');
   const openClipboardHistoryHotkeyInputRef = useRef<HTMLInputElement>(null);
 
+  /** 切换鼠标穿透快捷键相关状态 */
+  const [togglePassthroughHotkey, setTogglePassthroughHotkey] = useState<string>('');
+  const [togglePassthroughHotkeyRecording, setTogglePassthroughHotkeyRecording] = useState(false);
+  const [togglePassthroughHotkeyError, setTogglePassthroughHotkeyError] = useState<string>('');
+  const togglePassthroughHotkeyInputRef = useRef<HTMLInputElement>(null);
+
   const hideProcessKeyword = hideProcessFilter.trim().toLowerCase();
 
 
@@ -1113,6 +1119,10 @@ export function SettingsTab(): ReactElement {
     window.api.openClipboardHistoryHotkeyGet().then((key) => {
       if (cancelled) return;
       setOpenClipboardHistoryHotkey(key || '');
+    }).catch(() => {});
+    window.api.togglePassthroughHotkeyGet().then((key) => {
+      if (cancelled) return;
+      setTogglePassthroughHotkey(key || '');
     }).catch(() => {});
     return () => { cancelled = true; };
   }, []);
@@ -1668,8 +1678,8 @@ export function SettingsTab(): ReactElement {
     return parts.length >= 2 ? parts.join('+') : '';
   };
 
-  const isDuplicateHotkey = (acc: string, exclude: 'hide' | 'quit' | 'screenshot' | 'next-song' | 'play-pause-song' | 'reset-position' | 'toggle-tray' | 'show-settings-window' | 'open-clipboard-history'): boolean => {
-    const pairs: Array<{ key: 'hide' | 'quit' | 'screenshot' | 'next-song' | 'play-pause-song' | 'reset-position' | 'toggle-tray' | 'show-settings-window' | 'open-clipboard-history'; value: string }> = [
+  const isDuplicateHotkey = (acc: string, exclude: 'hide' | 'quit' | 'screenshot' | 'next-song' | 'play-pause-song' | 'reset-position' | 'toggle-tray' | 'show-settings-window' | 'open-clipboard-history' | 'toggle-passthrough'): boolean => {
+    const pairs: Array<{ key: 'hide' | 'quit' | 'screenshot' | 'next-song' | 'play-pause-song' | 'reset-position' | 'toggle-tray' | 'show-settings-window' | 'open-clipboard-history' | 'toggle-passthrough'; value: string }> = [
       { key: 'hide', value: hideHotkey },
       { key: 'quit', value: quitHotkey },
       { key: 'screenshot', value: screenshotHotkey },
@@ -1679,6 +1689,7 @@ export function SettingsTab(): ReactElement {
       { key: 'toggle-tray', value: toggleTrayHotkey },
       { key: 'show-settings-window', value: showSettingsWindowHotkey },
       { key: 'open-clipboard-history', value: openClipboardHistoryHotkey },
+      { key: 'toggle-passthrough', value: togglePassthroughHotkey },
     ];
     return pairs.some((item) => item.key !== exclude && item.value && item.value === acc);
   };
@@ -1886,6 +1897,32 @@ export function SettingsTab(): ReactElement {
       }
     }).catch(() => {
       setOpenClipboardHistoryHotkeyError('快捷键注册失败');
+    });
+  };
+
+  const handleTogglePassthroughHotkeyKeyDown = (e: KeyboardEvent): void => {
+    e.preventDefault();
+    e.stopPropagation();
+    setTogglePassthroughHotkeyError('');
+    const acc = keyEventToAccelerator(e);
+    if (!acc) return;
+    if (isDuplicateHotkey(acc, 'toggle-passthrough')) {
+      setTogglePassthroughHotkeyError('重复快捷键');
+      setTogglePassthroughHotkeyRecording(false);
+      togglePassthroughHotkeyInputRef.current?.blur();
+      return;
+    }
+
+    window.api.togglePassthroughHotkeySet(acc).then((ok) => {
+      if (ok) {
+        setTogglePassthroughHotkey(acc);
+        setTogglePassthroughHotkeyRecording(false);
+        togglePassthroughHotkeyInputRef.current?.blur();
+      } else {
+        setTogglePassthroughHotkeyError('快捷键注册失败，请尝试其他组合');
+      }
+    }).catch(() => {
+      setTogglePassthroughHotkeyError('快捷键注册失败');
     });
   };
 
@@ -2326,6 +2363,14 @@ export function SettingsTab(): ReactElement {
               setOpenClipboardHistoryHotkeyError={setOpenClipboardHistoryHotkeyError}
               handleOpenClipboardHistoryHotkeyKeyDown={handleOpenClipboardHistoryHotkeyKeyDown}
               setOpenClipboardHistoryHotkey={setOpenClipboardHistoryHotkey}
+              togglePassthroughHotkeyInputRef={togglePassthroughHotkeyInputRef}
+              togglePassthroughHotkeyRecording={togglePassthroughHotkeyRecording}
+              togglePassthroughHotkeyError={togglePassthroughHotkeyError}
+              togglePassthroughHotkey={togglePassthroughHotkey}
+              setTogglePassthroughHotkeyRecording={setTogglePassthroughHotkeyRecording}
+              setTogglePassthroughHotkeyError={setTogglePassthroughHotkeyError}
+              handleTogglePassthroughHotkeyKeyDown={handleTogglePassthroughHotkeyKeyDown}
+              setTogglePassthroughHotkey={setTogglePassthroughHotkey}
             />
           )}
 

@@ -135,6 +135,9 @@ declare global {
       showSettingsWindowHotkeySet: (accelerator: string) => Promise<boolean>;
       openClipboardHistoryHotkeyGet: () => Promise<string>;
       openClipboardHistoryHotkeySet: (accelerator: string) => Promise<boolean>;
+      togglePassthroughHotkeyGet: () => Promise<string>;
+      togglePassthroughHotkeySet: (accelerator: string) => Promise<boolean>;
+      onPassthroughLockChanged: (callback: (locked: boolean) => void) => () => void;
       logWrite: (level: string, message: string) => void;
       musicWhitelistGet: () => Promise<string[]>;
       musicWhitelistSet: (list: string[]) => Promise<boolean>;
