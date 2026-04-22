@@ -96,6 +96,8 @@ export interface AppSettingsSectionProps {
   themeMode: 'dark' | 'light' | 'system';
   setThemeModeState: (mode: 'dark' | 'light' | 'system') => void;
   applyThemeMode: (mode: 'dark' | 'light' | 'system') => Promise<void>;
+  standaloneMacControls: boolean;
+  setStandaloneMacControls: (value: boolean) => void;
   appLanguage: 'zh-CN' | 'en-US';
   applyAppLanguage: (language: 'zh-CN' | 'en-US') => void;
   islandOpacity: number;

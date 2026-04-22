@@ -537,6 +537,35 @@ const api = {
   openClipboardHistoryHotkeySet: (accelerator: string): Promise<boolean> => {
     return ipcRenderer.invoke('open-clipboard-history-hotkey:set', accelerator);
   },
+  /**
+   * 获取当前切换鼠标穿透快捷键
+   * @returns 当前快捷键字符串
+   */
+  togglePassthroughHotkeyGet: (): Promise<string> => {
+    return ipcRenderer.invoke('toggle-passthrough-hotkey:get');
+  },
+  /**
+   * 设置切换鼠标穿透快捷键
+   * @param accelerator - Electron accelerator 字符串
+   * @returns 是否注册成功
+   */
+  togglePassthroughHotkeySet: (accelerator: string): Promise<boolean> => {
+    return ipcRenderer.invoke('toggle-passthrough-hotkey:set', accelerator);
+  },
+  /**
+   * 监听鼠标穿透锁定状态变化
+   * @param callback - 回调函数，参数为是否锁定
+   * @returns 取消监听函数
+   */
+  onPassthroughLockChanged: (callback: (locked: boolean) => void): (() => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, locked: boolean): void => {
+      callback(locked);
+    };
+    ipcRenderer.on('window:passthrough-lock-changed', handler);
+    return () => {
+      ipcRenderer.removeListener('window:passthrough-lock-changed', handler);
+    };
+  },
   /** ===== 日志文件 API ===== */
   /**
    * 写入日志到文件
@@ -836,15 +865,15 @@ const api = {
    * 检查更新
    * @returns 更新信息（是否有新版、版本号等）
    */
-  updaterCheck: (source?: string): Promise<{ available: boolean; version?: string; releaseNotes?: string; currentVersion?: string; error?: string }> => {
-    return ipcRenderer.invoke('updater:check', source);
+  updaterCheck: (source?: string, resolvedUrl?: string): Promise<{ available: boolean; version?: string; releaseNotes?: string; currentVersion?: string; error?: string }> => {
+    return ipcRenderer.invoke('updater:check', source, resolvedUrl);
   },
   /**
    * 下载更新
    * @returns 是否成功开始下载
    */
-  updaterDownload: (source?: string): Promise<boolean> => {
-    return ipcRenderer.invoke('updater:download', source);
+  updaterDownload: (source?: string, resolvedUrl?: string): Promise<boolean> => {
+    return ipcRenderer.invoke('updater:download', source, resolvedUrl);
   },
   /**
    * 安装更新并重启

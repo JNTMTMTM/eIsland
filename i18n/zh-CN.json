@@ -347,6 +347,11 @@
       "availableTitle": "发现新版本",
       "availableBody": "是否立即下载？",
       "currentSource": "当前更新源：{{source}}",
+      "downloadingTitle": "正在下载更新",
+      "downloadingPreparing": "正在准备下载更新…",
+      "downloadingBodyProgress": "已下载 {{percent}} · {{speed}} · 预计剩余 {{eta}}",
+      "downloadingSpeedUnknown": "计算中",
+      "downloadingEtaUnknown": "计算中",
       "readyTitle": "更新就绪",
       "readyBody": "新版本 v{{version}} 已下载完成，是否立即安装？"
     },
@@ -374,6 +379,7 @@
       "favorited": "已收藏",
       "favorite": "收藏",
       "addBlacklist": "加入黑名单",
+      "hide": "隐藏",
       "ignore": "忽略",
       "switch": "切换",
       "snooze5m": "稍后 5m",
@@ -667,6 +673,9 @@
         "configChanged": {
           "title": "配置变更",
           "body": "待办事项/倒数日/设置打开方式已变更，是否立即重启生效？"
+        },
+        "windowControlsChanged": {
+          "body": "独立窗口控制按钮样式已变更，是否立即重启生效？"
         }
       },
       "layout": {
@@ -714,6 +723,9 @@
       "theme": {
         "title": "主题模式",
         "hint": "选择深色、浅色或跟随系统主题，切换后立即生效",
+        "windowControlsTitle": "独立窗口控制按钮样式",
+        "windowControlsHint": "启用后，独立窗口右上角将显示 macOS 风格三色圆点控制按钮 (重启后生效)",
+        "windowControlsMacToggle": "使用 Mac 风格窗口控制按钮",
         "dark": "深色模式",
         "light": "浅色模式",
         "system": "跟随系统",
@@ -990,9 +1002,17 @@
           "title": "隐藏/显示托盘图标快捷键",
           "hint": "按下此快捷键将隐藏或显示系统托盘中的灵动岛图标"
         },
+        "showConfig": {
+          "title": "显示配置窗口快捷键",
+          "hint": "仅在独立窗口模式下生效：按下后将打开独立配置窗口并切换到设置页"
+        },
         "openClipboardHistory": {
           "title": "打开剪贴板历史快捷键",
           "hint": "按下后将打开灵动岛并直接切换到剪贴板历史界面"
+        },
+        "togglePassthrough": {
+          "title": "切换鼠标穿透快捷键",
+          "hint": "按下此快捷键将锁定或解锁鼠标穿透状态，锁定后灵动岛不会拦截鼠标事件"
         }
       },
       "capture": {
@@ -1023,6 +1043,10 @@
       "currentVersion": "当前版本",
       "source": "更新源",
       "sourceHint": "Cloudflare R2：全球访问稳定，综合速度均衡\nTencent COS：国内网络通常更快\nAliyun OSS：国内节点覆盖广，峰值速度高\nGitHub Releases：海外链路较稳，国内可能偏慢",
+      "proOnlyTag": "PRO 专属",
+      "proOnlyError": "该更新源仅 PRO 用户可用",
+      "proOnlyNeedLogin": "请先登录 PRO 账号后再使用该更新源",
+      "sourceResolveFailed": "获取更新源地址失败",
       "latestVersion": "最新版本",
       "downloadingFrom": "正在从 {{source}} 下载更新…",
       "preparingDownload": "准备下载…",
@@ -1390,6 +1414,7 @@
         "info": "用户信息",
         "edit": "修改信息",
         "password": "修改密码",
+        "pro": "PRO功能",
         "account": "关于账户",
         "switchTo": "切换到{{label}}"
       },
@@ -1457,6 +1482,8 @@
         "passwordConfirmMismatch": "两次输入的新密码不一致",
         "saveFailed": "保存失败",
         "saveSuccess": "资料已更新",
+        "refreshSuccess": "资料已刷新",
+        "refreshFailed": "刷新资料失败",
         "passwordChangeSuccess": "密码已更新",
         "logoutSuccess": "已退出登录",
         "logoutLocalOnly": "服务端响应异常，已在本地清除登录态",

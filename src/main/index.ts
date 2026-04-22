@@ -34,23 +34,23 @@ import { createTray, destroyTray, toggleTray } from './tray';
 import { createSessionMainLogger } from './log/mainLog';
 import { startClipboardUrlWatcher, stopClipboardUrlWatcher } from './clipboard/urlWatcher';
 import { createClipboardUrlState } from './clipboard/clipboardUrlState';
-import { registerClipboardIpcHandlers } from './ipc/clipboard';
-import { registerCaptureIpcHandlers } from './ipc/capture';
-import { registerScreenshotHotkeyIpcHandlers } from './ipc/screenshotHotkey';
-import { registerAppIpcHandlers } from './ipc/app';
-import { registerSystemIpcHandlers } from './ipc/system';
-import { registerUpdaterIpcHandlers } from './ipc/updater';
-import { registerWallpaperIpcHandlers } from './ipc/wallpaper';
-import { registerNetIpcHandlers } from './ipc/net';
-import { registerStoreIpcHandlers } from './ipc/store';
-import { registerLogIpcHandlers } from './ipc/log';
-import { registerMusicIpcHandlers } from './ipc/music';
-import { registerHotkeyIpcHandlers } from './ipc/hotkey';
-import { registerIslandIpcHandlers } from './ipc/island';
-import { registerHideProcessIpcHandlers } from './ipc/hideProcess';
-import { registerThemeIpcHandlers } from './ipc/theme';
-import { registerWindowIpcHandlers } from './ipc/window';
-import { registerMediaIpcHandlers } from './ipc/media';
+import { registerClipboardIpcHandlers } from './ipc/settings/clipboard';
+import { registerCaptureIpcHandlers } from './ipc/window/capture';
+import { registerScreenshotHotkeyIpcHandlers } from './ipc/system/screenshotHotkey';
+import { registerAppIpcHandlers } from './ipc/app/app';
+import { registerSystemIpcHandlers } from './ipc/system/system';
+import { registerUpdaterIpcHandlers } from './ipc/app/updater';
+import { registerWallpaperIpcHandlers } from './ipc/window/wallpaper';
+import { registerNetIpcHandlers } from './ipc/app/net';
+import { registerStoreIpcHandlers } from './ipc/app/store';
+import { registerLogIpcHandlers } from './ipc/app/log';
+import { registerMusicIpcHandlers } from './ipc/media/music';
+import { registerHotkeyIpcHandlers } from './ipc/system/hotkey';
+import { registerIslandIpcHandlers } from './ipc/settings/island';
+import { registerHideProcessIpcHandlers } from './ipc/system/hideProcess';
+import { registerThemeIpcHandlers } from './ipc/settings/theme';
+import { registerWindowIpcHandlers, toggleMousePassthroughLock } from './ipc/window/window';
+import { registerMediaIpcHandlers } from './ipc/media/media';
 import { broadcastSettingChange, registerSettingsPreviewHandler } from './utils/broadcast';
 import { registerAppLifecycleHandlers } from './services/appLifecycle';
 import { applyChromiumPerformanceFlags } from './services/chromiumFlags';
@@ -95,10 +95,11 @@ import {
   PLAY_PAUSE_SONG_HOTKEY_STORE_KEY, RESET_POSITION_HOTKEY_STORE_KEY,
   TOGGLE_TRAY_HOTKEY_STORE_KEY, SHOW_SETTINGS_WINDOW_HOTKEY_STORE_KEY,
   OPEN_CLIPBOARD_HISTORY_HOTKEY_STORE_KEY,
+  TOGGLE_PASSTHROUGH_HOTKEY_STORE_KEY,
   sanitizeIslandPositionOffset, sanitizeIslandDisplaySelection, sanitizeSmtcUnsubscribeMs,
   readHotkeyConfig, readQuitHotkeyConfig, readScreenshotHotkeyConfig,
   readNextSongHotkeyConfig, readPlayPauseSongHotkeyConfig, readResetPositionHotkeyConfig,
-  readToggleTrayHotkeyConfig, readShowSettingsWindowHotkeyConfig, readOpenClipboardHistoryHotkeyConfig,
+  readToggleTrayHotkeyConfig, readShowSettingsWindowHotkeyConfig, readOpenClipboardHistoryHotkeyConfig, readTogglePassthroughHotkeyConfig,
   readWhitelistConfig, readLyricsSourceConfig, readSmtcUnsubscribeMsConfig,
   readHideProcessListConfig, readIslandPositionOffsetConfig, readIslandDisplaySelectionConfig,
   writeIslandPositionOffsetConfig, writeIslandDisplaySelectionConfig,
@@ -172,6 +173,7 @@ const hotkeyService = createHotkeyService({
   readToggleTrayHotkeyConfig,
   readShowSettingsWindowHotkeyConfig,
   readOpenClipboardHistoryHotkeyConfig,
+  readTogglePassthroughHotkeyConfig,
   onScreenshotHotkey: () => {
     captureWindowService.startRegionScreenshot().catch((err) => {
       console.error('[Screenshot] hotkey trigger error:', err);
@@ -226,6 +228,9 @@ const hotkeyService = createHotkeyService({
       target.setAlwaysOnTop(true, 'screen-saver');
     }
     broadcastSettingChange(-1, 'shortcut:open-clipboard-history', Date.now());
+  },
+  onTogglePassthroughHotkey: () => {
+    toggleMousePassthroughLock(() => mainWindow);
   },
 });
 
@@ -372,6 +377,7 @@ function registerIpcHandlers(): void {
     toggleTrayHotkeyStoreKey: TOGGLE_TRAY_HOTKEY_STORE_KEY,
     showSettingsWindowHotkeyStoreKey: SHOW_SETTINGS_WINDOW_HOTKEY_STORE_KEY,
     openClipboardHistoryHotkeyStoreKey: OPEN_CLIPBOARD_HISTORY_HOTKEY_STORE_KEY,
+    togglePassthroughHotkeyStoreKey: TOGGLE_PASSTHROUGH_HOTKEY_STORE_KEY,
     getCurrentHideHotkey: hotkeyService.getCurrentHideHotkey,
     getCurrentQuitHotkey: hotkeyService.getCurrentQuitHotkey,
     getCurrentScreenshotHotkey: hotkeyService.getCurrentScreenshotHotkey,
@@ -381,6 +387,7 @@ function registerIpcHandlers(): void {
     getCurrentToggleTrayHotkey: hotkeyService.getCurrentToggleTrayHotkey,
     getCurrentShowSettingsWindowHotkey: hotkeyService.getCurrentShowSettingsWindowHotkey,
     getCurrentOpenClipboardHistoryHotkey: hotkeyService.getCurrentOpenClipboardHistoryHotkey,
+    getCurrentTogglePassthroughHotkey: hotkeyService.getCurrentTogglePassthroughHotkey,
     readHideHotkeyConfig: readHotkeyConfig,
     readQuitHotkeyConfig,
     readScreenshotHotkeyConfig,
@@ -390,6 +397,7 @@ function registerIpcHandlers(): void {
     readToggleTrayHotkeyConfig,
     readShowSettingsWindowHotkeyConfig,
     readOpenClipboardHistoryHotkeyConfig,
+    readTogglePassthroughHotkeyConfig,
     registerHideHotkey: hotkeyService.registerHideHotkey,
     registerQuitHotkey: hotkeyService.registerQuitHotkey,
     registerNextSongHotkey: hotkeyService.registerNextSongHotkey,
@@ -398,6 +406,7 @@ function registerIpcHandlers(): void {
     registerToggleTrayHotkey: hotkeyService.registerToggleTrayHotkey,
     registerShowSettingsWindowHotkey: hotkeyService.registerShowSettingsWindowHotkey,
     registerOpenClipboardHistoryHotkey: hotkeyService.registerOpenClipboardHistoryHotkey,
+    registerTogglePassthroughHotkey: hotkeyService.registerTogglePassthroughHotkey,
     suspendIslandHotkeys: hotkeyService.suspendIslandHotkeys,
     resumeIslandHotkeys: hotkeyService.resumeIslandHotkeys,
   });
@@ -621,6 +630,10 @@ app.whenReady().then(() => {
   // 读取持久化打开剪贴板历史快捷键并注册
   const savedOpenClipboardHistoryHotkey = readOpenClipboardHistoryHotkeyConfig();
   if (savedOpenClipboardHistoryHotkey) hotkeyService.registerOpenClipboardHistoryHotkey(savedOpenClipboardHistoryHotkey);
+
+  // 读取持久化切换鼠标穿透快捷键并注册
+  const savedTogglePassthroughHotkey = readTogglePassthroughHotkeyConfig();
+  if (savedTogglePassthroughHotkey) hotkeyService.registerTogglePassthroughHotkey(savedTogglePassthroughHotkey);
 
   initUpdaterService({
     updater: autoUpdater,

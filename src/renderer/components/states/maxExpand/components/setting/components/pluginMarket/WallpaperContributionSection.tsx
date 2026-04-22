@@ -26,7 +26,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { uploadUserWallpaper } from '../../../../../../../api/userAccountApi';
+import { uploadUserWallpaper } from '../../../../../../../api/user/userAccountApi';
 import { readLocalToken } from '../../../../../../../utils/userAccount';
 import { TagInput } from './TagInput';
 

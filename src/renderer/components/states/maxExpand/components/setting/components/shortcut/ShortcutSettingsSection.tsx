@@ -101,6 +101,14 @@ interface ShortcutSettingsSectionProps {
   setOpenClipboardHistoryHotkeyError: (value: string) => void;
   handleOpenClipboardHistoryHotkeyKeyDown: (event: ReactKeyboardEvent<HTMLInputElement>) => void;
   setOpenClipboardHistoryHotkey: (value: string) => void;
+  togglePassthroughHotkeyInputRef: RefObject<HTMLInputElement | null>;
+  togglePassthroughHotkeyRecording: boolean;
+  togglePassthroughHotkeyError: string;
+  togglePassthroughHotkey: string;
+  setTogglePassthroughHotkeyRecording: (value: boolean) => void;
+  setTogglePassthroughHotkeyError: (value: string) => void;
+  handleTogglePassthroughHotkeyKeyDown: (event: ReactKeyboardEvent<HTMLInputElement>) => void;
+  setTogglePassthroughHotkey: (value: string) => void;
 }
 
 /**
@@ -191,6 +199,15 @@ export function ShortcutSettingsSection(props: ShortcutSettingsSectionProps): Re
     setOpenClipboardHistoryHotkeyError,
     handleOpenClipboardHistoryHotkeyKeyDown,
     setOpenClipboardHistoryHotkey,
+
+    togglePassthroughHotkeyInputRef,
+    togglePassthroughHotkeyRecording,
+    togglePassthroughHotkeyError,
+    togglePassthroughHotkey,
+    setTogglePassthroughHotkeyRecording,
+    setTogglePassthroughHotkeyError,
+    handleTogglePassthroughHotkeyKeyDown,
+    setTogglePassthroughHotkey,
   } = props;
 
   type ShortcutSettingsPageKey = 'window' | 'capture' | 'media';
@@ -440,6 +457,39 @@ export function ShortcutSettingsSection(props: ShortcutSettingsSectionProps): Re
                   )}
                 </div>
                 {openClipboardHistoryHotkeyError && <div className="settings-hotkey-error">{openClipboardHistoryHotkeyError}</div>}
+              </div>
+
+              <div className="settings-card">
+                <div className="settings-card-header">
+                  <div className="settings-card-title">{t('settings.shortcut.window.togglePassthrough.title', { defaultValue: '切换鼠标穿透快捷键' })}</div>
+                  <div className="settings-card-subtitle">{t('settings.shortcut.window.togglePassthrough.hint', { defaultValue: '按下此快捷键将锁定或解锁鼠标穿透状态，锁定后灵动岛不会拦截鼠标事件' })}</div>
+                </div>
+                <div className="settings-hotkey-row">
+                  <input
+                    ref={togglePassthroughHotkeyInputRef}
+                    className={`settings-hotkey-input ${togglePassthroughHotkeyRecording ? 'recording' : ''}${togglePassthroughHotkeyError ? ' error' : ''}`}
+                    type="text"
+                    readOnly
+                    value={togglePassthroughHotkeyRecording ? recordingValue : (togglePassthroughHotkey || notSetValue)}
+                    onFocus={() => { setTogglePassthroughHotkeyRecording(true); setTogglePassthroughHotkeyError(''); window.api.hotkeySuspend().catch(() => {}); }}
+                    onBlur={() => { setTogglePassthroughHotkeyRecording(false); window.api.hotkeyResume().catch(() => {}); }}
+                    onKeyDown={handleTogglePassthroughHotkeyKeyDown}
+                  />
+                  <button className="settings-hotkey-btn" type="button" onClick={() => { setTogglePassthroughHotkeyRecording(true); togglePassthroughHotkeyInputRef.current?.focus(); }}>{togglePassthroughHotkeyRecording ? recordingBtn : editBtn}</button>
+                  {togglePassthroughHotkey && (
+                    <button className="settings-hotkey-btn" type="button" onClick={() => {
+                      window.api.togglePassthroughHotkeySet('').then((ok) => {
+                        if (ok) {
+                          setTogglePassthroughHotkey('');
+                          setTogglePassthroughHotkeyError('');
+                          setTogglePassthroughHotkeyRecording(false);
+                          togglePassthroughHotkeyInputRef.current?.blur();
+                        }
+                      }).catch(() => {});
+                    }}>{clearBtn}</button>
+                  )}
+                </div>
+                {togglePassthroughHotkeyError && <div className="settings-hotkey-error">{togglePassthroughHotkeyError}</div>}
               </div>
             </div>
           )}

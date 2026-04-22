@@ -30,12 +30,13 @@ import { useTranslation } from 'react-i18next';
 import {
   fetchUserProfile,
   logoutUser,
+  refreshUserToken,
   sendUserEmailCode,
   unregisterUser,
   updateUserPassword,
   updateUserProfile,
   uploadUserAvatar,
-} from '../../../../../../../api/userAccountApi';
+} from '../../../../../../../api/user/userAccountApi';
 import { runSliderCaptcha } from '../../../../../../../utils/sliderCaptcha';
 import useIslandStore from '../../../../../../../store/slices';
 import {
@@ -44,13 +45,14 @@ import {
   readLocalToken,
   subscribeUserAccountSessionChanged,
   writeLocalProfile,
+  writeLocalToken,
   type UserAccountGender,
   type UserAccountProfile,
 } from '../../../../../../../utils/userAccount';
 import { SvgIcon } from '../../../../../../../utils/SvgIcon';
 
 type FeedbackType = 'success' | 'error' | 'info';
-type UserProfilePage = 'info' | 'edit' | 'password' | 'account';
+type UserProfilePage = 'info' | 'edit' | 'password' | 'pro' | 'account';
 
 interface Feedback {
   type: FeedbackType;
@@ -60,7 +62,7 @@ interface Feedback {
 type ProfileFeedbackScope = 'profile' | 'password' | 'account';
 
 const GENDER_VALUES: UserAccountGender[] = ['male', 'female', 'custom', 'undisclosed'];
-const USER_PROFILE_PAGES: UserProfilePage[] = ['info', 'edit', 'password', 'account'];
+const USER_PROFILE_PAGES: UserProfilePage[] = ['info', 'edit', 'password', 'pro', 'account'];
 const EMAIL_PATTERN = /^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
 
 const getGenderIcon = (gender: UserAccountGender | null | undefined): string => {
@@ -77,6 +79,39 @@ const shouldKeepGenderIconOriginalColor = (gender: UserAccountGender | null | un
 const formatDateTime = (value: string | null | undefined): string => {
   if (!value) return '—';
   return value.replace('T', ' ');
+};
+
+const normalizeRoleValue = (value: string): string => {
+  return value.trim().toLowerCase().replace(/^role_/, '');
+};
+
+const getRoleFromToken = (token: string | null | undefined): string | null => {
+  if (!token) return null;
+  const rawToken = token.trim().replace(/^bearer\s+/i, '');
+  const parts = rawToken.split('.');
+  if (parts.length < 2 || !parts[1]) return null;
+  try {
+    const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const normalized = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
+    const payload = JSON.parse(window.atob(normalized)) as {
+      role?: unknown;
+      authorities?: unknown;
+      authority?: unknown;
+    };
+    if (typeof payload.role === 'string' && payload.role.trim()) {
+      return normalizeRoleValue(payload.role);
+    }
+    const authorityList = Array.isArray(payload.authorities)
+      ? payload.authorities
+      : [payload.authority];
+    const validAuthority = authorityList.find((authority) => typeof authority === 'string' && authority.trim());
+    if (typeof validAuthority === 'string') {
+      return normalizeRoleValue(validAuthority);
+    }
+    return null;
+  } catch {
+    return null;
+  }
 };
 
 /**
@@ -129,7 +164,9 @@ export function UserSettingsSection(): ReactElement {
         ? '修改信息'
         : userProfilePage === 'password'
           ? '修改密码'
-          : '关于账户',
+          : userProfilePage === 'pro'
+            ? 'PRO功能'
+            : '关于账户',
   });
 
   const avatarInputRef = useRef<HTMLInputElement | null>(null);
@@ -193,7 +230,7 @@ export function UserSettingsSection(): ReactElement {
     };
   }, [unregisterCodeCooldownSeconds]);
 
-  const loadRemoteProfile = useCallback(async (currentToken: string): Promise<void> => {
+  const loadRemoteProfile = useCallback(async (currentToken: string): Promise<boolean> => {
     setLoadingProfile(true);
     setProfileError('');
     const result = await fetchUserProfile(currentToken);
@@ -201,15 +238,43 @@ export function UserSettingsSection(): ReactElement {
     if (!result.ok || !result.data) {
       if (result.code === 401 || result.code === 4011) {
         resetToLoggedOut();
-        return;
+        return false;
       }
       setProfileError(result.message || t('settings.user.feedback.loadFailed', { defaultValue: '加载资料失败' }));
-      return;
+      return false;
     }
     setProfile(result.data);
     writeLocalProfile(result.data);
     applyProfileToEditor(result.data);
+    return true;
   }, [applyProfileToEditor, resetToLoggedOut, t]);
+
+  const handleRefreshProfile = useCallback(async (): Promise<void> => {
+    if (!token || loadingProfile) return;
+    setProfileFeedbackScope('profile');
+    setProfileFeedback(null);
+    const refreshed = await refreshUserToken(token);
+    if (!refreshed.ok || !refreshed.data?.token) {
+      if (refreshed.code === 401 || refreshed.code === 4011) {
+        resetToLoggedOut();
+        return;
+      }
+      const ok = await loadRemoteProfile(token);
+      setProfileFeedbackScope('profile');
+      setProfileFeedback(ok
+        ? { type: 'success', text: t('settings.user.feedback.refreshSuccess', { defaultValue: '资料已刷新' }) }
+        : { type: 'error', text: t('settings.user.feedback.refreshFailed', { defaultValue: '刷新资料失败' }) });
+      return;
+    }
+    const nextToken = refreshed.data.token;
+    writeLocalToken(nextToken);
+    setToken(nextToken);
+    const ok = await loadRemoteProfile(nextToken);
+    setProfileFeedbackScope('profile');
+    setProfileFeedback(ok
+      ? { type: 'success', text: t('settings.user.feedback.refreshSuccess', { defaultValue: '资料已刷新' }) }
+      : { type: 'error', text: t('settings.user.feedback.refreshFailed', { defaultValue: '刷新资料失败' }) });
+  }, [token, loadingProfile, loadRemoteProfile, resetToLoggedOut, t]);
 
   useEffect(() => {
     const syncSession = (): void => {
@@ -651,18 +716,23 @@ export function UserSettingsSection(): ReactElement {
       { id: 'info', label: t('settings.user.pages.info', { defaultValue: '用户信息' }) },
       { id: 'edit', label: t('settings.user.pages.edit', { defaultValue: '修改信息' }) },
       { id: 'password', label: t('settings.user.pages.password', { defaultValue: '修改密码' }) },
+      { id: 'pro', label: t('settings.user.pages.pro', { defaultValue: 'PRO功能' }) },
       { id: 'account', label: t('settings.user.pages.account', { defaultValue: '关于账户' }) },
     ];
 
     const renderInfoPage = (): ReactElement => {
       const genderValue: UserAccountGender = profile?.gender ?? 'undisclosed';
       const genderLabel = t(`settings.user.gender.${genderValue}`, { defaultValue: genderValue });
+      const profileRole = (profile as { role?: unknown } | null)?.role;
+      const normalizedProfileRole = typeof profileRole === 'string' ? normalizeRoleValue(profileRole) : null;
+      const isProUser = normalizedProfileRole === 'pro' || getRoleFromToken(token) === 'pro';
 
       return (
         <div className="settings-user-page-panel settings-user-info-panel">
           {profileError && <div className="settings-user-feedback settings-user-feedback--error">{profileError}</div>}
+          {renderProfileFeedback('profile')}
 
-          <div className="settings-user-info-summary-card">
+          <div className={`settings-user-info-summary-card${isProUser ? ' settings-user-info-summary-card--pro' : ''}`}>
             <div className="settings-user-info-summary-header">
               <div className="settings-user-info-summary-avatar">
                 {displayAvatar
@@ -671,6 +741,13 @@ export function UserSettingsSection(): ReactElement {
               </div>
               <div className="settings-user-info-summary-identity">
                 <div className="settings-user-info-summary-name">
+                  {isProUser && (
+                    <img
+                      className="settings-user-info-pro-icon"
+                      src={SvgIcon.PRO}
+                      alt="PRO"
+                    />
+                  )}
                   {profile?.username ?? '—'}
                   <img
                     className={`settings-user-info-gender-icon${shouldKeepGenderIconOriginalColor(genderValue) ? ' settings-user-info-gender-icon--original' : ''}`}
@@ -715,7 +792,7 @@ export function UserSettingsSection(): ReactElement {
             <button
               type="button"
               className="settings-index-card"
-              onClick={() => token && void loadRemoteProfile(token)}
+              onClick={() => void handleRefreshProfile()}
               disabled={loadingProfile}
             >
               <span className="settings-index-card-title">{t('settings.user.actions.refresh', { defaultValue: '刷新资料' })}</span>
@@ -1056,12 +1133,17 @@ export function UserSettingsSection(): ReactElement {
       </div>
     );
 
+    const renderProPage = (): ReactElement => (
+      <div className="settings-user-page-panel" />
+    );
+
     return (
       <div className="settings-user-profile settings-user-profile-paged" ref={profilePagesLayoutRef}>
         <div className="settings-user-profile-main">
           {userProfilePage === 'info' && renderInfoPage()}
           {userProfilePage === 'edit' && renderEditPage()}
           {userProfilePage === 'password' && renderPasswordPage()}
+          {userProfilePage === 'pro' && renderProPage()}
           {userProfilePage === 'account' && renderAccountPage()}
         </div>
 
@@ -1098,7 +1180,7 @@ export function UserSettingsSection(): ReactElement {
               <button
                 type="button"
                 className="settings-user-primary-btn"
-                onClick={() => token && void loadRemoteProfile(token)}
+                onClick={() => void handleRefreshProfile()}
               >
                 {t('settings.user.actions.refresh', { defaultValue: '刷新资料' })}
               </button>

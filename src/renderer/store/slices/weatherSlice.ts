@@ -26,8 +26,8 @@
 
 import type { StateCreator } from 'zustand';
 import type { WeatherSlice, WeatherApiConfig } from '../types';
-import { fetchWeather } from '../../api/weatherApi';
-import { fetchLocation } from '../../api/locationApi';
+import { fetchWeather } from '../../api/weather/weatherApi';
+import { fetchLocation } from '../../api/weather/locationApi';
 import {
   loadWeatherFromStorage,
   saveWeatherToStorage,

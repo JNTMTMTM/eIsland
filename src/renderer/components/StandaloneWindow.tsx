@@ -49,6 +49,7 @@ const ISLAND_BG_VIDEO_RATE_STORE_KEY = 'island-bg-video-rate';
 const ISLAND_BG_VIDEO_HW_DECODE_STORE_KEY = 'island-bg-video-hw-decode';
 const ISLAND_BG_OPACITY_STORE_KEY = 'island-bg-opacity';
 const ISLAND_BG_BLUR_STORE_KEY = 'island-bg-blur';
+const STANDALONE_WINDOW_MAC_CONTROLS_STORE_KEY = 'standalone-window-mac-controls';
 const LOCAL_ISLAND_BG_SYNC_EVENT = 'island-bg-local-sync';
 
 type IslandBgMediaType = 'image' | 'video';
@@ -148,6 +149,7 @@ export function StandaloneWindow(): ReactElement {
   const bgVideoElementRef = useRef<HTMLVideoElement | null>(null);
   const [bgImageOpacity, setBgImageOpacity] = useState<number>(30);
   const [bgImageBlur, setBgImageBlur] = useState<number>(0);
+  const [standaloneMacControls, setStandaloneMacControls] = useState<boolean>(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -246,6 +248,13 @@ export function StandaloneWindow(): ReactElement {
       applyBgBlur(blur);
     }).catch(() => {});
 
+    window.api.storeRead(STANDALONE_WINDOW_MAC_CONTROLS_STORE_KEY).then((value) => {
+      if (cancelled) return;
+      if (typeof value === 'boolean') {
+        setStandaloneMacControls(value);
+      }
+    }).catch(() => {});
+
     const unsub = window.api.onSettingsChanged((channel: string, value: unknown) => {
       if (cancelled) return;
       if (channel === `store:${ACTIVE_TAB_STORE_KEY}`) {
@@ -305,6 +314,11 @@ export function StandaloneWindow(): ReactElement {
       if (channel === `store:${ISLAND_BG_VIDEO_HW_DECODE_STORE_KEY}`) {
         if (typeof value === 'boolean') {
           setBgVideoHwDecode(value);
+        }
+      }
+      if (channel === `store:${STANDALONE_WINDOW_MAC_CONTROLS_STORE_KEY}`) {
+        if (typeof value === 'boolean') {
+          setStandaloneMacControls(value);
         }
       }
     });
@@ -462,16 +476,32 @@ export function StandaloneWindow(): ReactElement {
           ))}
         </div>
         <div className="cw-chrome__drag" />
-        <div className="cw-chrome__controls">
-          <button className="cw-ctrl" type="button" title={t('standalone.controls.minimize')} onClick={() => window.api.windowMinimize()}>
-            <svg width="10" height="1" viewBox="0 0 10 1"><rect width="10" height="1" fill="currentColor"/></svg>
-          </button>
-          <button className="cw-ctrl" type="button" title={t('standalone.controls.maximize')} onClick={() => window.api.windowMaximize()}>
-            <svg width="10" height="10" viewBox="0 0 10 10"><rect x="0.5" y="0.5" width="9" height="9" rx="1" fill="none" stroke="currentColor" strokeWidth="1"/></svg>
-          </button>
-          <button className="cw-ctrl cw-ctrl--close" type="button" title={t('standalone.controls.close')} onClick={() => window.api.windowClose()}>
-            <svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 1L9 9M9 1L1 9" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/></svg>
-          </button>
+        <div className={`cw-chrome__controls ${standaloneMacControls ? 'cw-chrome__controls--mac' : ''}`}>
+          {standaloneMacControls ? (
+            <>
+              <button className="cw-ctrl cw-ctrl--mac cw-ctrl--mac-minimize" type="button" title={t('standalone.controls.minimize')} onClick={() => window.api.windowMinimize()}>
+                <span className="cw-ctrl-dot" />
+              </button>
+              <button className="cw-ctrl cw-ctrl--mac cw-ctrl--mac-maximize" type="button" title={t('standalone.controls.maximize')} onClick={() => window.api.windowMaximize()}>
+                <span className="cw-ctrl-dot" />
+              </button>
+              <button className="cw-ctrl cw-ctrl--mac cw-ctrl--mac-close" type="button" title={t('standalone.controls.close')} onClick={() => window.api.windowClose()}>
+                <span className="cw-ctrl-dot" />
+              </button>
+            </>
+          ) : (
+            <>
+              <button className="cw-ctrl" type="button" title={t('standalone.controls.minimize')} onClick={() => window.api.windowMinimize()}>
+                <svg width="10" height="1" viewBox="0 0 10 1"><rect width="10" height="1" fill="currentColor"/></svg>
+              </button>
+              <button className="cw-ctrl" type="button" title={t('standalone.controls.maximize')} onClick={() => window.api.windowMaximize()}>
+                <svg width="10" height="10" viewBox="0 0 10 10"><rect x="0.5" y="0.5" width="9" height="9" rx="1" fill="none" stroke="currentColor" strokeWidth="1"/></svg>
+              </button>
+              <button className="cw-ctrl cw-ctrl--close" type="button" title={t('standalone.controls.close')} onClick={() => window.api.windowClose()}>
+                <svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 1L9 9M9 1L1 9" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/></svg>
+              </button>
+            </>
+          )}
         </div>
       </div>
 

@@ -40,12 +40,12 @@ import { LoginContent } from './states/login/LoginContent';
 import { RegisterContent } from './states/register/RegisterContent';
 import { SvgIcon } from '../utils/SvgIcon';
 import type { NowPlayingInfo } from '../store/isLandStore';
-import { fetchLyrics } from '../api/lrcApi';
-import { fetchKaraokeLyrics } from '../api/lrcs/karaoke';
-import type { KaraokeLine } from '../api/lrcs/karaoke';
+import { fetchLyrics } from '../api/lyrics/lrcApi';
+import { fetchKaraokeLyrics } from '../api/lyrics/lrcs/karaoke';
+import type { KaraokeLine } from '../api/lyrics/lrcs/karaoke';
 import type { SyncedLyricLine } from '../store/types';
-import { fetchVersion, reportUpdateDownloadCount } from '../api/versionApi';
-import { getWebsiteFaviconUrl, getWebsiteHostname } from '../api/siteMetaApi';
+import { fetchVersion, reportUpdateDownloadCount } from '../api/update/versionApi';
+import { getWebsiteFaviconUrl, getWebsiteHostname } from '../api/site/siteMetaApi';
 
 /** 灵动岛状态类型 */
 export type IslandState = 'idle' | 'hover' | 'expanded' | 'notification' | 'maxExpand' | 'minimal' | 'lyrics' | 'guide' | 'login' | 'register';

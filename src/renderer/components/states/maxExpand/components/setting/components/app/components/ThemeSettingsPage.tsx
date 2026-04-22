@@ -28,6 +28,8 @@ import { useEffect, useRef } from 'react';
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { BUILTIN_WALLPAPERS } from '../../../../../../../../assets/wallpaper/builtinWallpapers';
+import useIslandStore from '../../../../../../../../store/slices';
+import { SvgIcon } from '../../../../../../../../utils/SvgIcon';
 import type { AppSettingsSectionProps } from './types';
 
 type ThemeSettingsPageProps = Pick<
@@ -35,6 +37,8 @@ type ThemeSettingsPageProps = Pick<
   | 'themeMode'
   | 'setThemeModeState'
   | 'applyThemeMode'
+  | 'standaloneMacControls'
+  | 'setStandaloneMacControls'
   | 'bgMediaType'
   | 'bgMediaPreviewUrl'
   | 'bgVideoFit'
@@ -91,6 +95,8 @@ export function ThemeSettingsPage({
   themeMode,
   setThemeModeState,
   applyThemeMode,
+  standaloneMacControls,
+  setStandaloneMacControls,
   bgMediaType,
   bgMediaPreviewUrl,
   bgVideoFit,
@@ -138,6 +144,7 @@ export function ThemeSettingsPage({
   opacitySaveTimerRef,
 }: ThemeSettingsPageProps): ReactElement {
   const { t } = useTranslation();
+  const setNotification = useIslandStore((s) => s.setNotification);
 
   const bgPreviewVideoRef = useRef<HTMLVideoElement | null>(null);
   const bgPreviewVideoLoopRef = useRef<boolean>(bgVideoLoop);
@@ -230,6 +237,38 @@ export function ThemeSettingsPage({
                 {opt.label}
               </button>
             ))}
+          </div>
+        </div>
+
+        <div className="settings-card">
+          <div className="settings-card-header">
+            <div className="settings-card-title">{t('settings.app.theme.windowControlsTitle', { defaultValue: '独立窗口控制按钮样式' })}</div>
+            <div className="settings-card-subtitle">{t('settings.app.theme.windowControlsHint', { defaultValue: '启用后，独立窗口右上角将显示 macOS 风格三色圆点控制按钮' })}</div>
+          </div>
+          <div className="settings-card-inline-row">
+            <label className="settings-card-check">
+              <input
+                type="checkbox"
+                checked={standaloneMacControls}
+                onChange={(event) => {
+                  const next = event.target.checked;
+                  if (next === standaloneMacControls) return;
+                  setStandaloneMacControls(next);
+                  window.api.storeWrite('standalone-window-mac-controls', next).catch(() => {});
+
+                  const restartRequiredNotification = {
+                    title: t('settings.app.notifications.configChanged.title', { defaultValue: '配置变更' }),
+                    body: t('settings.app.notifications.windowControlsChanged.body', { defaultValue: '独立窗口控制按钮样式已变更，是否立即重启生效？' }),
+                    icon: SvgIcon.SETTING,
+                    type: 'restart-required',
+                  } as const;
+
+                  setNotification(restartRequiredNotification);
+                  window.api.settingsPreview('notification:show', restartRequiredNotification).catch(() => {});
+                }}
+              />
+              {t('settings.app.theme.windowControlsMacToggle', { defaultValue: '使用 Mac 风格窗口控制按钮' })}
+            </label>
           </div>
         </div>
 

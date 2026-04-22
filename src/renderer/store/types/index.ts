@@ -24,8 +24,9 @@
  * @author 鸡哥
  */
 
-import type { LocationInfo } from '../../api/locationApi';
-import type { WeatherApiConfig } from '../../api/weatherApi';
+import type { LocationInfo } from '../../api/weather/locationApi';
+import type { WeatherApiConfig } from '../../api/weather/weatherApi';
+
 export type { WeatherApiConfig };
 
 /** 灵动岛 UI 状态枚举 */
@@ -162,8 +163,8 @@ export interface NotificationData {
   title: string;
   body: string;
   icon?: string;
-  /** 通知类型：默认通知 / 播放源切换请求 / 有新版本 / 更新就绪 / 剪贴板URL / 重启确认 */
-  type?: 'default' | 'source-switch' | 'update-available' | 'update-ready' | 'clipboard-url' | 'restart-required';
+  /** 通知类型：默认通知 / 播放源切换请求 / 有新版本 / 更新下载中 / 更新就绪 / 剪贴板URL / 重启确认 */
+  type?: 'default' | 'source-switch' | 'update-available' | 'update-downloading' | 'update-ready' | 'clipboard-url' | 'restart-required';
   /** 请求切换到的播放源 ID（仅 source-switch 类型） */
   sourceAppId?: string;
   /** 更新版本号（用于 update-available 与 update-ready 类型） */

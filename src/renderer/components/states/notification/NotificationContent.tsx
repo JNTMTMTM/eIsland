@@ -28,7 +28,9 @@ import { useEffect, useState, type CSSProperties, type ReactElement } from 'reac
 import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../store/slices';
 import { SvgIcon } from '../../../utils/SvgIcon';
-import { getWebsiteFaviconUrl, getWebsiteHostname } from '../../../api/siteMetaApi';
+import { getWebsiteFaviconUrl, getWebsiteHostname } from '../../../api/site/siteMetaApi';
+import { fetchUpdateSourceUrl } from '../../../api/user/userAccountApi';
+import { readLocalToken } from '../../../utils/userAccount';
 import '../../../styles/notification/notification.css';
 
 interface UrlFavoriteItem {
@@ -43,6 +45,49 @@ const URL_FAVORITES_STORE_KEY = 'url-favorites';
 const URL_FAVORITES_FOCUS_KEY = 'url-favorites-focus-url';
 const UPDATE_SOURCE_STORE_KEY = 'update-source';
 const SETTINGS_OPEN_TAB_STORE_KEY = 'settings-open-tab';
+
+type UpdateSourceKey = 'cloudflare-r2' | 'tencent-cos' | 'aliyun-oss' | 'github';
+
+interface DownloadProgressData {
+  percent: number;
+  transferred: number;
+  total: number;
+  bytesPerSecond: number;
+}
+
+function normalizeUpdateSource(value: unknown): UpdateSourceKey {
+  if (value === 'github') return 'github';
+  if (value === 'tencent-cos') return 'tencent-cos';
+  if (value === 'aliyun-oss') return 'aliyun-oss';
+  return 'cloudflare-r2';
+}
+
+function isProOnlySource(source: UpdateSourceKey): boolean {
+  return source === 'tencent-cos' || source === 'aliyun-oss';
+}
+
+function formatBytes(bytes: number): string {
+  if (!Number.isFinite(bytes) || bytes <= 0) return '0 B';
+  const units = ['B', 'KB', 'MB', 'GB'];
+  let value = bytes;
+  let unitIndex = 0;
+  while (value >= 1024 && unitIndex < units.length - 1) {
+    value /= 1024;
+    unitIndex += 1;
+  }
+  const digits = value >= 100 || unitIndex === 0 ? 0 : 1;
+  return `${value.toFixed(digits)} ${units[unitIndex]}`;
+}
+
+function formatEta(seconds: number): string {
+  if (!Number.isFinite(seconds) || seconds <= 0) return '00:00';
+  const rounded = Math.max(0, Math.ceil(seconds));
+  const hours = Math.floor(rounded / 3600);
+  const minutes = Math.floor((rounded % 3600) / 60);
+  const secs = rounded % 60;
+  if (hours > 0) return `${hours}:${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+  return `${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+}
 
 function normalizeUrl(raw: string): string {
   const text = raw.trim();
@@ -86,7 +131,7 @@ interface NotificationContentProps {
   /** 通知图标（可选） */
   icon?: string;
   /** 通知类型 */
-  type?: 'default' | 'source-switch' | 'update-available' | 'update-ready' | 'clipboard-url' | 'restart-required';
+  type?: 'default' | 'source-switch' | 'update-available' | 'update-downloading' | 'update-ready' | 'clipboard-url' | 'restart-required';
   /** 请求切换到的播放源 ID（仅 source-switch） */
   sourceAppId?: string;
   /** 更新版本号（用于 update-available / update-ready） */
@@ -116,6 +161,7 @@ export function NotificationContent({
   const [currentUrlIndex, setCurrentUrlIndex] = useState(0);
   const [favoriteUrlSet, setFavoriteUrlSet] = useState<Set<string>>(new Set());
   const [useClipboardVectorFallbackIcon, setUseClipboardVectorFallbackIcon] = useState(false);
+  const [updateDownloadProgress, setUpdateDownloadProgress] = useState<DownloadProgressData | null>(null);
   const clipboardUrls = type === 'clipboard-url' ? (urls ?? []) : [];
   const hasMultipleClipboardUrls = clipboardUrls.length > 1;
   const currentClipboardUrl = clipboardUrls[currentUrlIndex] ?? '';
@@ -134,11 +180,6 @@ export function NotificationContent({
   const vectorIconStyle = isVectorDisplayIcon && effectiveDisplayIcon
     ? ({ '--notification-icon-mask': `url("${effectiveDisplayIcon}")` } as CSSProperties)
     : undefined;
-  const displayBody = (() => {
-    if (type !== 'clipboard-url' || !currentClipboardUrl) return body;
-    if (currentUrlIndex === 0 && body) return body;
-    return getWebsiteHostname(currentClipboardUrl) || currentClipboardUrl;
-  })();
 
   useEffect(() => {
     setCurrentUrlIndex(0);
@@ -147,6 +188,47 @@ export function NotificationContent({
   useEffect(() => {
     setUseClipboardVectorFallbackIcon(false);
   }, [type, currentClipboardUrl, icon]);
+
+  useEffect(() => {
+    if (type !== 'update-downloading') {
+      setUpdateDownloadProgress(null);
+      return;
+    }
+    const unsub = window.api?.onUpdaterProgress?.((progress) => {
+      setUpdateDownloadProgress(progress);
+    });
+    return () => {
+      unsub?.();
+    };
+  }, [type]);
+
+  const updateDownloadBody = (() => {
+    if (type !== 'update-downloading') return '';
+    if (!updateDownloadProgress || updateDownloadProgress.total <= 0) {
+      return t('notification.update.downloadingPreparing', { defaultValue: '正在准备下载更新…' });
+    }
+    const percent = Math.max(0, Math.min(100, updateDownloadProgress.percent || (updateDownloadProgress.transferred / updateDownloadProgress.total) * 100));
+    const speed = updateDownloadProgress.bytesPerSecond > 0
+      ? `${formatBytes(updateDownloadProgress.bytesPerSecond)}/s`
+      : t('notification.update.downloadingSpeedUnknown', { defaultValue: '计算中' });
+    const remainingBytes = Math.max(0, updateDownloadProgress.total - updateDownloadProgress.transferred);
+    const eta = updateDownloadProgress.bytesPerSecond > 0
+      ? formatEta(remainingBytes / updateDownloadProgress.bytesPerSecond)
+      : t('notification.update.downloadingEtaUnknown', { defaultValue: '计算中' });
+    return t('notification.update.downloadingBodyProgress', {
+      defaultValue: '已下载 {{percent}} · {{speed}} · 预计剩余 {{eta}}',
+      percent: `${percent.toFixed(1)}%`,
+      speed,
+      eta,
+    });
+  })();
+
+  const displayBody = (() => {
+    if (type === 'update-downloading') return updateDownloadBody;
+    if (type !== 'clipboard-url' || !currentClipboardUrl) return body;
+    if (currentUrlIndex === 0 && body) return body;
+    return getWebsiteHostname(currentClipboardUrl) || currentClipboardUrl;
+  })();
 
   useEffect(() => {
     if (type !== 'clipboard-url') return;
@@ -295,15 +377,63 @@ export function NotificationContent({
   };
 
   const handleGoToUpdate = (): void => {
-    window.api?.storeRead(UPDATE_SOURCE_STORE_KEY).then((source) => {
-      if (typeof source === 'string') {
-        return window.api?.updaterDownload(source);
-      }
-      return window.api?.updaterDownload();
-    }).catch(() => {
-      window.api?.updaterDownload().catch(() => {});
+    setNotification({
+      title: t('notification.update.downloadingTitle', { defaultValue: '正在下载更新' }),
+      body: t('notification.update.downloadingPreparing', { defaultValue: '正在准备下载更新…' }),
+      icon: SvgIcon.UPDATE,
+      type: 'update-downloading',
+      updateVersion,
     });
-    dismiss();
+    void (async () => {
+      const sourceRaw = await window.api?.storeRead(UPDATE_SOURCE_STORE_KEY).catch(() => null);
+      const source = normalizeUpdateSource(sourceRaw);
+      if (isProOnlySource(source)) {
+        const token = readLocalToken();
+        if (!token) {
+          setNotification({
+            title: t('notification.update.availableTitle', { defaultValue: '发现新版本' }),
+            body: t('settings.update.proOnlyNeedLogin', { defaultValue: '请先登录 PRO 账号后再使用该更新源' }),
+            icon: SvgIcon.UPDATE,
+          });
+          return;
+        }
+        const resolved = await fetchUpdateSourceUrl(token, source);
+        if (!resolved.ok || !resolved.data?.url) {
+          setNotification({
+            title: t('notification.update.availableTitle', { defaultValue: '发现新版本' }),
+            body: resolved.message || t('settings.update.sourceResolveFailed', { defaultValue: '获取更新源地址失败' }),
+            icon: SvgIcon.UPDATE,
+            type: 'update-available',
+            updateVersion,
+            updateSourceLabel,
+          });
+          return;
+        }
+        const ok = await window.api?.updaterDownload(source, resolved.data.url).catch(() => false);
+        if (!ok) {
+          setNotification({
+            title: t('notification.update.availableTitle', { defaultValue: '发现新版本' }),
+            body: t('settings.update.downloadFailed', { defaultValue: '下载失败，请稍后重试' }),
+            icon: SvgIcon.UPDATE,
+            type: 'update-available',
+            updateVersion,
+            updateSourceLabel,
+          });
+        }
+        return;
+      }
+      const ok = await window.api?.updaterDownload(source).catch(() => false);
+      if (!ok) {
+        setNotification({
+          title: t('notification.update.availableTitle', { defaultValue: '发现新版本' }),
+          body: t('settings.update.downloadFailed', { defaultValue: '下载失败，请稍后重试' }),
+          icon: SvgIcon.UPDATE,
+          type: 'update-available',
+          updateVersion,
+          updateSourceLabel,
+        });
+      }
+    })();
   };
 
   const handleConfigureUpdateSource = (): void => {
@@ -391,7 +521,7 @@ export function NotificationContent({
         <div className="notification-info">
           <span className="notification-title">
             {title}
-            {(type === 'update-available' || type === 'update-ready') && updateVersion && (
+            {(type === 'update-available' || type === 'update-downloading' || type === 'update-ready') && updateVersion && (
               <span className="notification-update-version"> v{updateVersion}</span>
             )}
           </span>
@@ -402,7 +532,13 @@ export function NotificationContent({
         </div>
       </div>
 
-      {type === 'update-ready' ? (
+      {type === 'update-downloading' ? (
+        <div className="notification-actions notification-actions--right">
+          <div className="notification-decision-actions">
+            <button type="button" className="notification-action-btn notification-action-ignore" onClick={handleDismissUpdate}>{t('notification.actions.hide', { defaultValue: '隐藏' })}</button>
+          </div>
+        </div>
+      ) : type === 'update-ready' ? (
         <div className="notification-actions notification-actions--right">
           <div className="notification-decision-actions">
             <button type="button" className="notification-action-btn notification-action-complete" onClick={handleInstallUpdate}>{t('notification.actions.installRestart', { defaultValue: '安装并重启' })}</button>

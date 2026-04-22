@@ -174,6 +174,58 @@
   color: #fff;
 }
 
+.cw-chrome__controls--mac {
+  gap: 8px;
+  padding: 0 12px;
+}
+
+.cw-ctrl--mac {
+  width: 12px;
+  height: 12px;
+  padding: 0;
+  border-radius: 50%;
+  position: relative;
+  background: transparent;
+}
+
+.cw-ctrl--mac:hover {
+  background: transparent;
+}
+
+.cw-ctrl--mac .cw-ctrl-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: block;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.18);
+}
+
+.cw-ctrl--mac-minimize .cw-ctrl-dot {
+  background: #fdbc40;
+}
+
+.cw-ctrl--mac-maximize .cw-ctrl-dot {
+  background: #34c749;
+}
+
+.cw-ctrl--mac-close .cw-ctrl-dot {
+  background: #fc605c;
+}
+
+.cw-ctrl--mac::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  opacity: 0;
+  transition: opacity 0.12s;
+}
+
+.cw-ctrl--mac:hover::after {
+  opacity: 1;
+}
+
 /* ===== 视口 / 内容区 ===== */
 .cw-viewport {
   flex: 1;
@@ -337,6 +389,10 @@
 [data-theme='light'] .cw-ctrl--close:hover {
   background: #e81123;
   color: #fff;
+}
+
+[data-theme='light'] .cw-ctrl--mac::after {
+  background: rgba(0, 0, 0, 0.08);
 }
 
 [data-theme='light'] .cw-viewport {

@@ -1,4 +1,4 @@
-name: Release Build & Upload to R2
+name: Release Build & Upload to R2/COS/OSS
 
 on:
   push:
@@ -43,7 +43,9 @@ jobs:
           R2_ENDPOINT: https://${{ secrets.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com
           R2_BUCKET: ${{ secrets.R2_BUCKET_NAME }}
         run: |
-          for f in dist/*.exe dist/*.yml dist/*.yaml dist/*.blockmap; do
+          aws configure set default.s3.addressing_style auto
+          aws configure set default.s3.payload_signing_enabled false
+          for f in dist/*.exe dist/*.blockmap dist/latest.yml; do
             [ -f "$f" ] || continue
             echo "Uploading $f ..."
             aws s3 cp "$f" "s3://$R2_BUCKET/$(basename $f)" \
@@ -51,11 +53,28 @@ jobs:
               --region auto
           done
 
+      - name: Upload to Tencent COS and Aliyun OSS
+        shell: pwsh
+        env:
+          COS_SECRET_ID: ${{ secrets.COS_SECRET_ID }}
+          COS_SECRET_KEY: ${{ secrets.COS_SECRET_KEY }}
+          COS_REGION: ${{ secrets.COS_REGION }}
+          COS_BUCKET_NAME: ${{ secrets.COS_BUCKET_NAME }}
+          OSS_ACCESS_KEY_ID: ${{ secrets.OSS_ACCESS_KEY_ID }}
+          OSS_ACCESS_KEY_SECRET: ${{ secrets.OSS_ACCESS_KEY_SECRET }}
+          OSS_REGION: ${{ secrets.OSS_REGION }}
+          OSS_BUCKET_NAME: ${{ secrets.OSS_BUCKET_NAME }}
+        run: |
+          node --experimental-strip-types scripts/upload-release-to-cos-oss.ts --dist dist
+          Write-Host "COS update source: https://download-cos.eisland.pyisland.com/"
+          Write-Host "OSS update source: https://download-oss.eisland.pyisland.com/"
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
             dist/*.exe
+            dist/*.blockmap
             dist/latest.yml
           body_path: RELEASE_NOTES.md
         env:

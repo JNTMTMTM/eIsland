@@ -347,6 +347,11 @@
       "availableTitle": "New version available",
       "availableBody": "Download now?",
       "currentSource": "Current OSS: {{source}}",
+      "downloadingTitle": "Downloading update",
+      "downloadingPreparing": "Preparing update download...",
+      "downloadingBodyProgress": "Downloaded {{percent}} · {{speed}} · ETA {{eta}}",
+      "downloadingSpeedUnknown": "calculating",
+      "downloadingEtaUnknown": "calculating",
       "readyTitle": "Update ready",
       "readyBody": "Version v{{version}} has been downloaded. Install now?"
     },
@@ -374,6 +379,7 @@
       "favorited": "Favorited",
       "favorite": "Favorite",
       "addBlacklist": "Add to Blacklist",
+      "hide": "Hide",
       "ignore": "Ignore",
       "switch": "Switch",
       "snooze5m": "Later 5m",
@@ -667,6 +673,9 @@
         "configChanged": {
           "title": "Configuration Changed",
           "body": "Todo/Countdown/Settings open mode changed. Restart now to apply?"
+        },
+        "windowControlsChanged": {
+          "body": "Standalone window controls style changed. Restart now to apply?"
         }
       },
       "layout": {
@@ -714,6 +723,9 @@
       "theme": {
         "title": "Theme Mode",
         "hint": "Switch dark/light/system and apply instantly",
+        "windowControlsTitle": "Standalone Window Controls Style",
+        "windowControlsHint": "When enabled, the top-right controls in standalone window use macOS-style traffic-light dots (takes effect after restart)",
+        "windowControlsMacToggle": "Use Mac-style window controls",
         "dark": "Dark",
         "light": "Light",
         "system": "System",
@@ -990,9 +1002,17 @@
           "title": "Show/Hide Tray Icon Shortcut",
           "hint": "Press to toggle the tray icon visibility"
         },
+        "showConfig": {
+          "title": "Show Settings Window Shortcut",
+          "hint": "Only works in standalone mode: press to open the standalone settings window and switch to the Settings page"
+        },
         "openClipboardHistory": {
           "title": "Open Clipboard History Shortcut",
           "hint": "Press to open Dynamic Island and jump directly to Clipboard History"
+        },
+        "togglePassthrough": {
+          "title": "Toggle Mouse Passthrough Shortcut",
+          "hint": "Press to lock or unlock mouse passthrough; when locked, Dynamic Island will not intercept mouse events"
         }
       },
       "capture": {
@@ -1023,6 +1043,10 @@
       "currentVersion": "Current Version",
       "source": "Update Source",
       "sourceHint": "Cloudflare R2: stable global access with balanced overall speed\nTencent COS: usually faster in mainland China\nAliyun OSS: broad domestic node coverage with high peak throughput\nGitHub Releases: stable overseas links, may be slower in mainland China",
+      "proOnlyTag": "PRO Only",
+      "proOnlyError": "This update source is available to PRO users only",
+      "proOnlyNeedLogin": "Please sign in with a PRO account before using this source",
+      "sourceResolveFailed": "Failed to resolve update source URL",
       "latestVersion": "Latest Version",
       "downloadingFrom": "Downloading update from {{source}}...",
       "preparingDownload": "Preparing download...",
@@ -1387,9 +1411,10 @@
         "logoutDesc": "Sign out or delete your account"
       },
       "pages": {
-        "info": "User Info",
-        "edit": "Edit Info",
+        "info": "Profile",
+        "edit": "Edit Profile",
         "password": "Change Password",
+        "pro": "PRO Features",
         "account": "Account",
         "switchTo": "Switch to {{label}}"
       },
@@ -1462,6 +1487,8 @@
         "birthdayInvalid": "Birthday must be in yyyy-MM-dd format",
         "saveFailed": "Save failed",
         "saveSuccess": "Profile updated",
+        "refreshSuccess": "Profile refreshed",
+        "refreshFailed": "Failed to refresh profile",
         "passwordChangeSuccess": "Password updated",
         "logoutSuccess": "Signed out",
         "logoutLocalOnly": "Server response error; signed out locally only",

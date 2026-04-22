@@ -74,6 +74,8 @@ export function AppSettingsSection({
   themeMode,
   setThemeModeState,
   applyThemeMode,
+  standaloneMacControls,
+  setStandaloneMacControls,
   appLanguage,
   applyAppLanguage,
   islandOpacity,
@@ -189,6 +191,8 @@ export function AppSettingsSection({
             themeMode={themeMode}
             setThemeModeState={setThemeModeState}
             applyThemeMode={applyThemeMode}
+            standaloneMacControls={standaloneMacControls}
+            setStandaloneMacControls={setStandaloneMacControls}
             bgMediaType={bgMediaType}
             bgMediaPreviewUrl={bgMediaPreviewUrl}
             bgVideoFit={bgVideoFit}

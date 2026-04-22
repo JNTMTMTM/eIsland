@@ -26,12 +26,14 @@
 
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
+import { SvgIcon } from '../../../../../../../utils/SvgIcon';
 
 type UpdateStatus = 'idle' | 'checking' | 'available' | 'downloading' | 'ready' | 'error' | 'latest';
 
 interface UpdateSourceOption {
   key: string;
   label: string;
+  proOnly?: boolean;
 }
 
 interface DownloadProgressData {
@@ -45,6 +47,7 @@ interface UpdateSettingsSectionProps {
   aboutVersion: string;
   updateSource: string;
   updateSources: UpdateSourceOption[];
+  isProUser: boolean;
   updateAutoPromptEnabled: boolean;
   updateStatus: UpdateStatus;
   updateVersion: string;
@@ -67,6 +70,7 @@ export function UpdateSettingsSection({
   aboutVersion,
   updateSource,
   updateSources,
+  isProUser,
   updateAutoPromptEnabled,
   updateStatus,
   updateVersion,
@@ -125,9 +129,20 @@ export function UpdateSettingsSection({
                     name="update-source"
                     value={s.key}
                     checked={updateSource === s.key}
+                    disabled={Boolean(s.proOnly && !isProUser)}
                     onChange={() => onUpdateSourceChange(s.key)}
                   />
-                  <span>{s.label}</span>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
+                    {s.proOnly ? (
+                      <img
+                        src={SvgIcon.VIP}
+                        alt="VIP"
+                        width={16}
+                        height={16}
+                      />
+                    ) : null}
+                    {s.label}
+                  </span>
                 </label>
               ))}
             </div>

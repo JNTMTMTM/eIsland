@@ -39,6 +39,7 @@ interface CreateHotkeyServiceOptions {
   readToggleTrayHotkeyConfig: () => string;
   readShowSettingsWindowHotkeyConfig: () => string;
   readOpenClipboardHistoryHotkeyConfig: () => string;
+  readTogglePassthroughHotkeyConfig: () => string;
   onScreenshotHotkey: () => void;
   onNextSongHotkey: () => void;
   onPlayPauseSongHotkey: () => void;
@@ -46,6 +47,7 @@ interface CreateHotkeyServiceOptions {
   onToggleTrayHotkey: () => void;
   onShowSettingsWindowHotkey: () => void;
   onOpenClipboardHistoryHotkey: () => void;
+  onTogglePassthroughHotkey: () => void;
 }
 
 interface HotkeyService {
@@ -58,6 +60,7 @@ interface HotkeyService {
   getCurrentToggleTrayHotkey: () => string;
   getCurrentShowSettingsWindowHotkey: () => string;
   getCurrentOpenClipboardHistoryHotkey: () => string;
+  getCurrentTogglePassthroughHotkey: () => string;
   registerHideHotkey: (accelerator: string) => boolean;
   registerQuitHotkey: (accelerator: string) => boolean;
   registerScreenshotHotkey: (accelerator: string) => boolean;
@@ -67,6 +70,7 @@ interface HotkeyService {
   registerToggleTrayHotkey: (accelerator: string) => boolean;
   registerShowSettingsWindowHotkey: (accelerator: string) => boolean;
   registerOpenClipboardHistoryHotkey: (accelerator: string) => boolean;
+  registerTogglePassthroughHotkey: (accelerator: string) => boolean;
   suspendIslandHotkeys: () => void;
   resumeIslandHotkeys: () => void;
 }
@@ -87,6 +91,7 @@ export function createHotkeyService(options: CreateHotkeyServiceOptions): Hotkey
   let currentToggleTrayHotkey = '';
   let currentShowSettingsWindowHotkey = '';
   let currentOpenClipboardHistoryHotkey = '';
+  let currentTogglePassthroughHotkey = '';
 
   function registerHideHotkey(accelerator: string): boolean {
     const previousHotkey = currentHideHotkey || options.readHideHotkeyConfig();
@@ -148,6 +153,33 @@ export function createHotkeyService(options: CreateHotkeyServiceOptions): Hotkey
       return success;
     } catch (err) {
       console.error('[OpenClipboardHistoryHotkey] register error:', err);
+      return false;
+    }
+  }
+
+  function registerTogglePassthroughHotkey(accelerator: string): boolean {
+    if (currentTogglePassthroughHotkey) {
+      try {
+        globalShortcut.unregister(currentTogglePassthroughHotkey);
+      } catch {
+        // ignore
+      }
+      currentTogglePassthroughHotkey = '';
+    }
+
+    if (!accelerator) return true;
+
+    try {
+      const success = globalShortcut.register(accelerator, () => {
+        options.onTogglePassthroughHotkey();
+      });
+
+      if (success) {
+        currentTogglePassthroughHotkey = accelerator;
+      }
+      return success;
+    } catch (err) {
+      console.error('[TogglePassthroughHotkey] register error:', err);
       return false;
     }
   }
@@ -356,6 +388,8 @@ export function createHotkeyService(options: CreateHotkeyServiceOptions): Hotkey
       currentShowSettingsWindowHotkey || options.readShowSettingsWindowHotkeyConfig();
     const openClipboardHistoryHotkey =
       currentOpenClipboardHistoryHotkey || options.readOpenClipboardHistoryHotkeyConfig();
+    const togglePassthroughHotkey =
+      currentTogglePassthroughHotkey || options.readTogglePassthroughHotkeyConfig();
 
     [
       hideHotkey,
@@ -367,6 +401,7 @@ export function createHotkeyService(options: CreateHotkeyServiceOptions): Hotkey
       toggleTrayHotkey,
       showSettingsWindowHotkey,
       openClipboardHistoryHotkey,
+      togglePassthroughHotkey,
     ].forEach((hotkey) => {
       if (!hotkey) return;
       try {
@@ -399,9 +434,12 @@ export function createHotkeyService(options: CreateHotkeyServiceOptions): Hotkey
       currentShowSettingsWindowHotkey || options.readShowSettingsWindowHotkeyConfig();
     const openClipboardHistoryHotkey =
       currentOpenClipboardHistoryHotkey || options.readOpenClipboardHistoryHotkeyConfig();
+    const togglePassthroughHotkey =
+      currentTogglePassthroughHotkey || options.readTogglePassthroughHotkeyConfig();
     if (toggleTrayHotkey) registerToggleTrayHotkey(toggleTrayHotkey);
     if (showSettingsWindowHotkey) registerShowSettingsWindowHotkey(showSettingsWindowHotkey);
     if (openClipboardHistoryHotkey) registerOpenClipboardHistoryHotkey(openClipboardHistoryHotkey);
+    if (togglePassthroughHotkey) registerTogglePassthroughHotkey(togglePassthroughHotkey);
   }
 
   return {
@@ -414,6 +452,7 @@ export function createHotkeyService(options: CreateHotkeyServiceOptions): Hotkey
     getCurrentToggleTrayHotkey: () => currentToggleTrayHotkey,
     getCurrentShowSettingsWindowHotkey: () => currentShowSettingsWindowHotkey,
     getCurrentOpenClipboardHistoryHotkey: () => currentOpenClipboardHistoryHotkey,
+    getCurrentTogglePassthroughHotkey: () => currentTogglePassthroughHotkey,
     registerHideHotkey,
     registerQuitHotkey,
     registerScreenshotHotkey,
@@ -423,6 +462,7 @@ export function createHotkeyService(options: CreateHotkeyServiceOptions): Hotkey
     registerToggleTrayHotkey,
     registerShowSettingsWindowHotkey,
     registerOpenClipboardHistoryHotkey,
+    registerTogglePassthroughHotkey,
     suspendIslandHotkeys,
     resumeIslandHotkeys,
   };
