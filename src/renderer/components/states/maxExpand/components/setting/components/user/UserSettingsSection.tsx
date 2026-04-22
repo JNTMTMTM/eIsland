@@ -30,6 +30,7 @@ import { useTranslation } from 'react-i18next';
 import {
   fetchUserProfile,
   logoutUser,
+  refreshUserToken,
   sendUserEmailCode,
   unregisterUser,
   updateUserPassword,
@@ -44,6 +45,7 @@ import {
   readLocalToken,
   subscribeUserAccountSessionChanged,
   writeLocalProfile,
+  writeLocalToken,
   type UserAccountGender,
   type UserAccountProfile,
 } from '../../../../../../../utils/userAccount';
@@ -246,6 +248,23 @@ export function UserSettingsSection(): ReactElement {
     writeLocalProfile(result.data);
     applyProfileToEditor(result.data);
   }, [applyProfileToEditor, resetToLoggedOut, t]);
+
+  const handleRefreshProfile = useCallback(async (): Promise<void> => {
+    if (!token || loadingProfile) return;
+    const refreshed = await refreshUserToken(token);
+    if (!refreshed.ok || !refreshed.data?.token) {
+      if (refreshed.code === 401 || refreshed.code === 4011) {
+        resetToLoggedOut();
+        return;
+      }
+      await loadRemoteProfile(token);
+      return;
+    }
+    const nextToken = refreshed.data.token;
+    writeLocalToken(nextToken);
+    setToken(nextToken);
+    await loadRemoteProfile(nextToken);
+  }, [token, loadingProfile, loadRemoteProfile, resetToLoggedOut]);
 
   useEffect(() => {
     const syncSession = (): void => {
@@ -762,7 +781,7 @@ export function UserSettingsSection(): ReactElement {
             <button
               type="button"
               className="settings-index-card"
-              onClick={() => token && void loadRemoteProfile(token)}
+              onClick={() => void handleRefreshProfile()}
               disabled={loadingProfile}
             >
               <span className="settings-index-card-title">{t('settings.user.actions.refresh', { defaultValue: '刷新资料' })}</span>
@@ -1150,7 +1169,7 @@ export function UserSettingsSection(): ReactElement {
               <button
                 type="button"
                 className="settings-user-primary-btn"
-                onClick={() => token && void loadRemoteProfile(token)}
+                onClick={() => void handleRefreshProfile()}
               >
                 {t('settings.user.actions.refresh', { defaultValue: '刷新资料' })}
               </button>

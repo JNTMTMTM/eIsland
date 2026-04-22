@@ -43,6 +43,7 @@ const LOGIN_REPLAY_PATHS = new Set([
   '/auth/user/login',
   '/auth/user/login/account',
   '/auth/user/login/email',
+  '/auth/user/token/refresh',
 ]);
 let cachedClientVersion: string | null = null;
 

@@ -100,6 +100,18 @@ export function loginUser(account: string, password: string): Promise<UserAccoun
 }
 
 /**
+ * 刷新当前登录用户 JWT。
+ * @param token - 当前会话 token。
+ * @returns 刷新结果。
+ */
+export function refreshUserToken(token: string): Promise<UserAccountResult<UserAccountLoginData>> {
+  return request<UserAccountLoginData>('/auth/user/token/refresh', {
+    method: 'POST',
+    auth: token,
+  });
+}
+
+/**
  * 用户注册。
  * @param username - 用户名。
  * @param email - 邮箱。
