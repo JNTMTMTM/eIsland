@@ -1463,6 +1463,8 @@
         "birthdayInvalid": "Birthday must be in yyyy-MM-dd format",
         "saveFailed": "Save failed",
         "saveSuccess": "Profile updated",
+        "refreshSuccess": "Profile refreshed",
+        "refreshFailed": "Failed to refresh profile",
         "passwordChangeSuccess": "Password updated",
         "logoutSuccess": "Signed out",
         "logoutLocalOnly": "Server response error; signed out locally only",

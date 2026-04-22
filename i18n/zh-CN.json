@@ -1458,6 +1458,8 @@
         "passwordConfirmMismatch": "两次输入的新密码不一致",
         "saveFailed": "保存失败",
         "saveSuccess": "资料已更新",
+        "refreshSuccess": "资料已刷新",
+        "refreshFailed": "刷新资料失败",
         "passwordChangeSuccess": "密码已更新",
         "logoutSuccess": "已退出登录",
         "logoutLocalOnly": "服务端响应异常，已在本地清除登录态",

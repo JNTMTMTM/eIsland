@@ -231,7 +231,7 @@ export function UserSettingsSection(): ReactElement {
     };
   }, [unregisterCodeCooldownSeconds]);
 
-  const loadRemoteProfile = useCallback(async (currentToken: string): Promise<void> => {
+  const loadRemoteProfile = useCallback(async (currentToken: string): Promise<boolean> => {
     setLoadingProfile(true);
     setProfileError('');
     const result = await fetchUserProfile(currentToken);
@@ -239,32 +239,43 @@ export function UserSettingsSection(): ReactElement {
     if (!result.ok || !result.data) {
       if (result.code === 401 || result.code === 4011) {
         resetToLoggedOut();
-        return;
+        return false;
       }
       setProfileError(result.message || t('settings.user.feedback.loadFailed', { defaultValue: '加载资料失败' }));
-      return;
+      return false;
     }
     setProfile(result.data);
     writeLocalProfile(result.data);
     applyProfileToEditor(result.data);
+    return true;
   }, [applyProfileToEditor, resetToLoggedOut, t]);
 
   const handleRefreshProfile = useCallback(async (): Promise<void> => {
     if (!token || loadingProfile) return;
+    setProfileFeedbackScope('profile');
+    setProfileFeedback(null);
     const refreshed = await refreshUserToken(token);
     if (!refreshed.ok || !refreshed.data?.token) {
       if (refreshed.code === 401 || refreshed.code === 4011) {
         resetToLoggedOut();
         return;
       }
-      await loadRemoteProfile(token);
+      const ok = await loadRemoteProfile(token);
+      setProfileFeedbackScope('profile');
+      setProfileFeedback(ok
+        ? { type: 'success', text: t('settings.user.feedback.refreshSuccess', { defaultValue: '资料已刷新' }) }
+        : { type: 'error', text: t('settings.user.feedback.refreshFailed', { defaultValue: '刷新资料失败' }) });
       return;
     }
     const nextToken = refreshed.data.token;
     writeLocalToken(nextToken);
     setToken(nextToken);
-    await loadRemoteProfile(nextToken);
-  }, [token, loadingProfile, loadRemoteProfile, resetToLoggedOut]);
+    const ok = await loadRemoteProfile(nextToken);
+    setProfileFeedbackScope('profile');
+    setProfileFeedback(ok
+      ? { type: 'success', text: t('settings.user.feedback.refreshSuccess', { defaultValue: '资料已刷新' }) }
+      : { type: 'error', text: t('settings.user.feedback.refreshFailed', { defaultValue: '刷新资料失败' }) });
+  }, [token, loadingProfile, loadRemoteProfile, resetToLoggedOut, t]);
 
   useEffect(() => {
     const syncSession = (): void => {
@@ -720,6 +731,7 @@ export function UserSettingsSection(): ReactElement {
       return (
         <div className="settings-user-page-panel settings-user-info-panel">
           {profileError && <div className="settings-user-feedback settings-user-feedback--error">{profileError}</div>}
+          {renderProfileFeedback('profile')}
 
           <div className={`settings-user-info-summary-card${isProUser ? ' settings-user-info-summary-card--pro' : ''}`}>
             <div className="settings-user-info-summary-header">
