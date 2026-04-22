@@ -13,6 +13,8 @@
     "package": "electron-vite build && electron-builder",
     "changelog:generate": "node --experimental-strip-types scripts/generate-changelog.ts -o docs/CHANGE_LOG.md",
     "release:notes": "node --experimental-strip-types scripts/generate-incremental-release-notes.ts -o RELEASE_NOTES_SINCE_LAST_TAG.md",
+    "release:upload": "npm run package && node --experimental-strip-types scripts/upload-release-to-cos-oss.ts",
+    "release:upload-only": "node --experimental-strip-types scripts/upload-release-to-cos-oss.ts",
     "comment:check": "node --experimental-strip-types scripts/check-comment-standards.ts"
   },
   "dependencies": {
