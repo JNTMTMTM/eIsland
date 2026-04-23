@@ -1013,6 +1013,10 @@
         "togglePassthrough": {
           "title": "Toggle Mouse Passthrough Shortcut",
           "hint": "Press to lock or unlock mouse passthrough; when locked, Dynamic Island will not intercept mouse events"
+        },
+        "toggleUiLock": {
+          "title": "Toggle UI State Lock Shortcut",
+          "hint": "Press to lock the current UI state. While locked, mouse enter/leave or auto logic will not change state. Press again to unlock"
         }
       },
       "capture": {

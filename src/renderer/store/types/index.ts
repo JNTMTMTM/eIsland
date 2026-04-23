@@ -196,6 +196,7 @@ export interface AiChatMessage {
 export interface IslandSlice {
   state: IslandState;
   authReturnState: IslandState | null;
+  uiStateLocked: boolean;
   hoverTab: HoverTab;
   expandTab: ExpandTab;
   maxExpandTab: MaxExpandTab;
@@ -213,6 +214,7 @@ export interface IslandSlice {
   setNotification: (data: NotificationData) => void;
 
   setGuide: () => void;
+  toggleUiStateLock: () => boolean;
   setHoverTab: (tab: HoverTab) => void;
   setExpandTab: (tab: ExpandTab) => void;
   setMaxExpandTab: (tab: MaxExpandTab) => void;

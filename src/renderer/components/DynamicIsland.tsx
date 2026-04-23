@@ -526,6 +526,10 @@ function DynamicIsland(): React.JSX.Element {
           store.setMaxExpandTab('clipboardHistory');
           store.setMaxExpand();
         }
+        if (channel === 'shortcut:toggle-ui-lock') {
+          const store = useIslandStore.getState();
+          store.toggleUiStateLock();
+        }
         if (channel === 'notification:show') {
           if (value && typeof value === 'object' && 'title' in (value as object) && 'body' in (value as object)) {
             setNotificationRef.current(value as {
@@ -950,6 +954,14 @@ function DynamicIsland(): React.JSX.Element {
 
       const inWindow = await isMouseInWindow();
       if (aborted) return;
+
+      if (useIslandStore.getState().uiStateLocked) {
+        clearAllTimers();
+        if (!aborted) {
+          rafId = requestAnimationFrame(checkMousePosition);
+        }
+        return;
+      }
 
       const config = STATE_CONFIGS[state];
       const sliderCaptchaActive = Boolean(document.querySelector('.slider-captcha-overlay'));

@@ -553,6 +553,21 @@ const api = {
     return ipcRenderer.invoke('toggle-passthrough-hotkey:set', accelerator);
   },
   /**
+   * 获取当前切换 UI 状态锁定快捷键
+   * @returns 当前快捷键字符串
+   */
+  toggleUiLockHotkeyGet: (): Promise<string> => {
+    return ipcRenderer.invoke('toggle-ui-lock-hotkey:get');
+  },
+  /**
+   * 设置切换 UI 状态锁定快捷键
+   * @param accelerator - Electron accelerator 字符串
+   * @returns 是否注册成功
+   */
+  toggleUiLockHotkeySet: (accelerator: string): Promise<boolean> => {
+    return ipcRenderer.invoke('toggle-ui-lock-hotkey:set', accelerator);
+  },
+  /**
    * 监听鼠标穿透锁定状态变化
    * @param callback - 回调函数，参数为是否锁定
    * @returns 取消监听函数

@@ -747,6 +747,12 @@ export function SettingsTab(): ReactElement {
   const [togglePassthroughHotkeyError, setTogglePassthroughHotkeyError] = useState<string>('');
   const togglePassthroughHotkeyInputRef = useRef<HTMLInputElement>(null);
 
+  /** 切换 UI 状态锁定快捷键相关状态 */
+  const [toggleUiLockHotkey, setToggleUiLockHotkey] = useState<string>('');
+  const [toggleUiLockHotkeyRecording, setToggleUiLockHotkeyRecording] = useState(false);
+  const [toggleUiLockHotkeyError, setToggleUiLockHotkeyError] = useState<string>('');
+  const toggleUiLockHotkeyInputRef = useRef<HTMLInputElement>(null);
+
   const hideProcessKeyword = hideProcessFilter.trim().toLowerCase();
 
 
@@ -1142,6 +1148,10 @@ export function SettingsTab(): ReactElement {
     window.api.togglePassthroughHotkeyGet().then((key) => {
       if (cancelled) return;
       setTogglePassthroughHotkey(key || '');
+    }).catch(() => {});
+    window.api.toggleUiLockHotkeyGet().then((key) => {
+      if (cancelled) return;
+      setToggleUiLockHotkey(key || '');
     }).catch(() => {});
     return () => { cancelled = true; };
   }, []);
@@ -1697,8 +1707,8 @@ export function SettingsTab(): ReactElement {
     return parts.length >= 2 ? parts.join('+') : '';
   };
 
-  const isDuplicateHotkey = (acc: string, exclude: 'hide' | 'quit' | 'screenshot' | 'next-song' | 'play-pause-song' | 'reset-position' | 'toggle-tray' | 'show-settings-window' | 'open-clipboard-history' | 'toggle-passthrough'): boolean => {
-    const pairs: Array<{ key: 'hide' | 'quit' | 'screenshot' | 'next-song' | 'play-pause-song' | 'reset-position' | 'toggle-tray' | 'show-settings-window' | 'open-clipboard-history' | 'toggle-passthrough'; value: string }> = [
+  const isDuplicateHotkey = (acc: string, exclude: 'hide' | 'quit' | 'screenshot' | 'next-song' | 'play-pause-song' | 'reset-position' | 'toggle-tray' | 'show-settings-window' | 'open-clipboard-history' | 'toggle-passthrough' | 'toggle-ui-lock'): boolean => {
+    const pairs: Array<{ key: 'hide' | 'quit' | 'screenshot' | 'next-song' | 'play-pause-song' | 'reset-position' | 'toggle-tray' | 'show-settings-window' | 'open-clipboard-history' | 'toggle-passthrough' | 'toggle-ui-lock'; value: string }> = [
       { key: 'hide', value: hideHotkey },
       { key: 'quit', value: quitHotkey },
       { key: 'screenshot', value: screenshotHotkey },
@@ -1709,6 +1719,7 @@ export function SettingsTab(): ReactElement {
       { key: 'show-settings-window', value: showSettingsWindowHotkey },
       { key: 'open-clipboard-history', value: openClipboardHistoryHotkey },
       { key: 'toggle-passthrough', value: togglePassthroughHotkey },
+      { key: 'toggle-ui-lock', value: toggleUiLockHotkey },
     ];
     return pairs.some((item) => item.key !== exclude && item.value && item.value === acc);
   };
@@ -1942,6 +1953,32 @@ export function SettingsTab(): ReactElement {
       }
     }).catch(() => {
       setTogglePassthroughHotkeyError('快捷键注册失败');
+    });
+  };
+
+  const handleToggleUiLockHotkeyKeyDown = (e: KeyboardEvent): void => {
+    e.preventDefault();
+    e.stopPropagation();
+    setToggleUiLockHotkeyError('');
+    const acc = keyEventToAccelerator(e);
+    if (!acc) return;
+    if (isDuplicateHotkey(acc, 'toggle-ui-lock')) {
+      setToggleUiLockHotkeyError('重复快捷键');
+      setToggleUiLockHotkeyRecording(false);
+      toggleUiLockHotkeyInputRef.current?.blur();
+      return;
+    }
+
+    window.api.toggleUiLockHotkeySet(acc).then((ok) => {
+      if (ok) {
+        setToggleUiLockHotkey(acc);
+        setToggleUiLockHotkeyRecording(false);
+        toggleUiLockHotkeyInputRef.current?.blur();
+      } else {
+        setToggleUiLockHotkeyError('快捷键注册失败，请尝试其他组合');
+      }
+    }).catch(() => {
+      setToggleUiLockHotkeyError('快捷键注册失败');
     });
   };
 
@@ -2392,6 +2429,14 @@ export function SettingsTab(): ReactElement {
               setTogglePassthroughHotkeyError={setTogglePassthroughHotkeyError}
               handleTogglePassthroughHotkeyKeyDown={handleTogglePassthroughHotkeyKeyDown}
               setTogglePassthroughHotkey={setTogglePassthroughHotkey}
+              toggleUiLockHotkeyInputRef={toggleUiLockHotkeyInputRef}
+              toggleUiLockHotkeyRecording={toggleUiLockHotkeyRecording}
+              toggleUiLockHotkeyError={toggleUiLockHotkeyError}
+              toggleUiLockHotkey={toggleUiLockHotkey}
+              setToggleUiLockHotkeyRecording={setToggleUiLockHotkeyRecording}
+              setToggleUiLockHotkeyError={setToggleUiLockHotkeyError}
+              handleToggleUiLockHotkeyKeyDown={handleToggleUiLockHotkeyKeyDown}
+              setToggleUiLockHotkey={setToggleUiLockHotkey}
             />
           )}
 
