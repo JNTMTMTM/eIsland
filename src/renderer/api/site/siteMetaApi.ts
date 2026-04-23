@@ -42,17 +42,29 @@ export function parseHtmlTitle(html: string): string {
 }
 
 /**
+ * 获取网站 favicon 候选地址列表
+ * @param rawUrl - 网站 URL
+ * @returns favicon 候选地址数组，失败返回空数组
+ */
+export function getWebsiteFaviconUrls(rawUrl: string): string[] {
+  try {
+    const parsed = new URL(rawUrl);
+    const googleFavicon = `https://www.google.com/s2/favicons?sz=64&domain_url=${encodeURIComponent(parsed.origin)}`;
+    const duckduckgoFavicon = `https://icons.duckduckgo.com/ip3/${parsed.hostname}.ico`;
+    const originFavicon = `${parsed.origin.replace(/\/$/, '')}/favicon.ico`;
+    return Array.from(new Set([googleFavicon, duckduckgoFavicon, originFavicon].filter(Boolean)));
+  } catch {
+    return [];
+  }
+}
+
+/**
  * 获取网站 favicon 地址
  * @param rawUrl - 网站 URL
  * @returns favicon 地址，失败返回空字符串
  */
 export function getWebsiteFaviconUrl(rawUrl: string): string {
-  try {
-    const parsed = new URL(rawUrl);
-    return `https://www.google.com/s2/favicons?sz=64&domain_url=${encodeURIComponent(parsed.origin)}`;
-  } catch {
-    return '';
-  }
+  return getWebsiteFaviconUrls(rawUrl)[0] ?? '';
 }
 
 /**

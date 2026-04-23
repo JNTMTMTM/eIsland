@@ -28,7 +28,7 @@ import { useEffect, useState, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../store/slices';
 import { SvgIcon } from '../../../utils/SvgIcon';
-import { getWebsiteFaviconUrl, getWebsiteHostname } from '../../../api/site/siteMetaApi';
+import { getWebsiteFaviconUrl, getWebsiteFaviconUrls, getWebsiteHostname } from '../../../api/site/siteMetaApi';
 import { fetchUpdateSourceUrl } from '../../../api/user/userAccountApi';
 import { readLocalToken } from '../../../utils/userAccount';
 import '../../../styles/notification/notification.css';
@@ -186,12 +186,17 @@ export function NotificationContent({
   const [favoriteUrlSet, setFavoriteUrlSet] = useState<Set<string>>(new Set());
   const [useClipboardVectorFallbackIcon, setUseClipboardVectorFallbackIcon] = useState(false);
   const [updateDownloadProgress, setUpdateDownloadProgress] = useState<DownloadProgressData | null>(null);
+  const [clipboardFaviconIndex, setClipboardFaviconIndex] = useState(0);
   const clipboardUrls = type === 'clipboard-url' ? (urls ?? []) : [];
   const hasMultipleClipboardUrls = clipboardUrls.length > 1;
   const currentClipboardUrl = clipboardUrls[currentUrlIndex] ?? '';
+  const clipboardFaviconCandidates = type === 'clipboard-url'
+    ? getWebsiteFaviconUrls(currentClipboardUrl)
+    : [];
+  const clipboardFavicon = clipboardFaviconCandidates[clipboardFaviconIndex] || '';
   const displayIcon = (() => {
     if (type !== 'clipboard-url' || !currentClipboardUrl) return icon;
-    const faviconUrl = getWebsiteFaviconUrl(currentClipboardUrl);
+    const faviconUrl = clipboardFavicon || getWebsiteFaviconUrl(currentClipboardUrl);
     return faviconUrl || icon;
   })();
 
@@ -205,6 +210,10 @@ export function NotificationContent({
   useEffect(() => {
     setCurrentUrlIndex(0);
   }, [type, urls]);
+
+  useEffect(() => {
+    setClipboardFaviconIndex(0);
+  }, [type, currentClipboardUrl]);
 
   useEffect(() => {
     setUseClipboardVectorFallbackIcon(false);
@@ -527,6 +536,10 @@ export function NotificationContent({
               className="notification-icon-img"
               onError={() => {
                 if (type === 'clipboard-url') {
+                  if (clipboardFaviconIndex < clipboardFaviconCandidates.length - 1) {
+                    setClipboardFaviconIndex((prev) => prev + 1);
+                    return;
+                  }
                   setUseClipboardVectorFallbackIcon(true);
                 }
               }}
