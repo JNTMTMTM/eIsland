@@ -83,6 +83,11 @@ import { WallpaperEditSection } from './setting/components/pluginMarket/Wallpape
 
 import { resolveDistrictLocationByKeyword } from '../../../../api/weather/adcodeApi';
 import { fetchUpdateSourceUrl } from '../../../../api/user/userAccountApi';
+import {
+  readAnnouncementShowMode,
+  writeAnnouncementShowMode,
+  type AnnouncementShowMode,
+} from '../../../../api/announcement/announcementApi';
 
 import { setThemeMode as applyThemeMode, getThemeMode, type ThemeMode } from '../../../../utils/theme';
 import { getLanguage, setLanguage, type AppLanguage } from '../../../../i18n';
@@ -406,6 +411,7 @@ export function SettingsTab(): ReactElement {
   const [updateError, setUpdateError] = useState<string>('');
   const [downloadProgress, setDownloadProgress] = useState<{ percent: number; transferred: number; total: number; bytesPerSecond: number } | null>(null);
   const [updateAutoPromptEnabled, setUpdateAutoPromptEnabled] = useState<boolean>(true);
+  const [announcementShowMode, setAnnouncementShowMode] = useState<AnnouncementShowMode>('always');
   const [updateSource, setUpdateSource] = useState<UpdateSourceKey>('cloudflare-r2');
   const UPDATE_SOURCES: { key: UpdateSourceKey; label: string; proOnly?: boolean }[] = [
     { key: 'cloudflare-r2', label: 'Cloudflare R2' },
@@ -460,6 +466,11 @@ export function SettingsTab(): ReactElement {
   const handleUpdateAutoPromptEnabledChange = (enabled: boolean): void => {
     setUpdateAutoPromptEnabled(enabled);
     window.api.storeWrite(UPDATE_AUTO_PROMPT_STORE_KEY, enabled).catch(() => {});
+  };
+
+  const handleAnnouncementShowModeChange = (mode: AnnouncementShowMode): void => {
+    setAnnouncementShowMode(mode);
+    void writeAnnouncementShowMode(mode);
   };
 
   const persistIslandOpacity = (opacity: number): void => {
@@ -1196,6 +1207,15 @@ export function SettingsTab(): ReactElement {
     window.api.storeRead(UPDATE_AUTO_PROMPT_STORE_KEY).then((value) => {
       if (cancelled) return;
       setUpdateAutoPromptEnabled(typeof value === 'boolean' ? value : true);
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    readAnnouncementShowMode().then((mode) => {
+      if (cancelled) return;
+      setAnnouncementShowMode(mode);
     }).catch(() => {});
     return () => { cancelled = true; };
   }, []);
@@ -2495,6 +2515,7 @@ export function SettingsTab(): ReactElement {
               updateSources={UPDATE_SOURCES}
               isProUser={isProUser}
               updateAutoPromptEnabled={updateAutoPromptEnabled}
+              announcementShowMode={announcementShowMode}
               updateStatus={updateStatus}
               updateVersion={updateVersion}
               downloadProgress={downloadProgress}
@@ -2502,6 +2523,7 @@ export function SettingsTab(): ReactElement {
               updateError={updateError}
               onUpdateSourceChange={handleUpdateSourceChange}
               onUpdateAutoPromptEnabledChange={handleUpdateAutoPromptEnabledChange}
+              onAnnouncementShowModeChange={handleAnnouncementShowModeChange}
               onCheckUpdate={handleCheckUpdate}
               onDownloadUpdate={handleDownloadUpdate}
               onInstallUpdate={handleInstallUpdate}

@@ -30,6 +30,11 @@ const ANNOUNCEMENT_API_BASE = IS_DEV_RENDERER
   ? 'https://test.server.pyisland.com/api'
   : 'https://server.pyisland.com/api';
 
+export const ANNOUNCEMENT_SHOW_MODE_STORE_KEY = 'announcement-show-mode';
+export const ANNOUNCEMENT_LAST_SHOWN_APP_VERSION_STORE_KEY = 'announcement-last-shown-app-version';
+
+export type AnnouncementShowMode = 'always' | 'version-update-only';
+
 export interface AnnouncementData {
   title: string;
   content: string;
@@ -38,6 +43,41 @@ export interface AnnouncementData {
   startAt?: string;
   endAt?: string;
   updatedAt?: string;
+}
+
+export async function readAnnouncementShowMode(): Promise<AnnouncementShowMode> {
+  try {
+    const value = await window.api.storeRead(ANNOUNCEMENT_SHOW_MODE_STORE_KEY);
+    return value === 'always' || value === 'version-update-only' ? value : 'always';
+  } catch {
+    return 'always';
+  }
+}
+
+export async function writeAnnouncementShowMode(mode: AnnouncementShowMode): Promise<void> {
+  try {
+    await window.api.storeWrite(ANNOUNCEMENT_SHOW_MODE_STORE_KEY, mode);
+  } catch {
+    // ignore
+  }
+}
+
+export async function readAnnouncementLastShownAppVersion(): Promise<string> {
+  try {
+    const value = await window.api.storeRead(ANNOUNCEMENT_LAST_SHOWN_APP_VERSION_STORE_KEY);
+    return typeof value === 'string' ? value : '';
+  } catch {
+    return '';
+  }
+}
+
+export async function writeAnnouncementLastShownAppVersion(version: string): Promise<void> {
+  if (!version) return;
+  try {
+    await window.api.storeWrite(ANNOUNCEMENT_LAST_SHOWN_APP_VERSION_STORE_KEY, version);
+  } catch {
+    // ignore
+  }
 }
 
 export async function fetchCurrentAnnouncement(): Promise<AnnouncementData | null> {

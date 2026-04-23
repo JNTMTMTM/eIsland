@@ -47,6 +47,12 @@ import type { KaraokeLine } from '../api/lyrics/lrcs/karaoke';
 import type { SyncedLyricLine } from '../store/types';
 import { fetchVersion, reportUpdateDownloadCount } from '../api/update/versionApi';
 import { getWebsiteFaviconUrl, getWebsiteHostname } from '../api/site/siteMetaApi';
+import {
+  fetchCurrentAnnouncement,
+  readAnnouncementLastShownAppVersion,
+  readAnnouncementShowMode,
+  writeAnnouncementLastShownAppVersion,
+} from '../api/announcement/announcementApi';
 
 /** 灵动岛状态类型 */
 export type IslandState = 'idle' | 'hover' | 'expanded' | 'notification' | 'maxExpand' | 'minimal' | 'lyrics' | 'guide' | 'login' | 'register' | 'announcement';
@@ -333,6 +339,8 @@ function DynamicIsland(): React.JSX.Element {
   const setNotificationRef = useRef(setNotification);
   const expandLeaveIdleRef = useRef(false);
   const maxExpandLeaveIdleRef = useRef(false);
+  const pendingAnnouncementAfterGuideRef = useRef(false);
+  const pendingAnnouncementAppVersionRef = useRef('');
   const bgOpacityRef = useRef<number>(30);
   const bgBlurRef = useRef<number>(0);
   const [bgVideoFit, setBgVideoFit] = useState<'cover' | 'contain'>('cover');
@@ -674,14 +682,53 @@ function DynamicIsland(): React.JSX.Element {
 
   useEffect(() => {
     const unsub = window.api?.onUpdaterNotAvailable?.(() => {
-      const current = useIslandStore.getState().state;
-      if (current === 'guide' || current === 'login' || current === 'register') return;
-      setAnnouncement();
+      void (async () => {
+        const current = useIslandStore.getState().state;
+        if (current === 'login' || current === 'register') return;
+
+        const mode = await readAnnouncementShowMode();
+        const currentVersion = await window.api?.updaterVersion?.() ?? '';
+        if (mode === 'version-update-only') {
+          const lastShownVersion = await readAnnouncementLastShownAppVersion();
+          if (currentVersion && lastShownVersion === currentVersion) return;
+        }
+
+        const announcement = await fetchCurrentAnnouncement();
+        if (!announcement) return;
+
+        const applyShownVersion = async (): Promise<void> => {
+          if (mode !== 'version-update-only' || !currentVersion) return;
+          await writeAnnouncementLastShownAppVersion(currentVersion);
+        };
+
+        if (current === 'guide') {
+          pendingAnnouncementAfterGuideRef.current = true;
+          pendingAnnouncementAppVersionRef.current = mode === 'version-update-only' ? currentVersion : '';
+          return;
+        }
+
+        setAnnouncement();
+        await applyShownVersion();
+      })();
     });
     return () => {
       unsub?.();
     };
   }, [setAnnouncement]);
+
+  useEffect(() => {
+    if (!pendingAnnouncementAfterGuideRef.current) return;
+    if (state === 'guide' || state === 'login' || state === 'register') return;
+
+    pendingAnnouncementAfterGuideRef.current = false;
+    setAnnouncement();
+
+    const pendingVersion = pendingAnnouncementAppVersionRef.current;
+    pendingAnnouncementAppVersionRef.current = '';
+    if (pendingVersion) {
+      void writeAnnouncementLastShownAppVersion(pendingVersion);
+    }
+  }, [state, setAnnouncement]);
 
   // 背景视频的音量 / 速度随设置变更即时生效，避免重建 <video>
   useEffect(() => {

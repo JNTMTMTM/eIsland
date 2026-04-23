@@ -28,7 +28,10 @@ import { useEffect, useState } from 'react';
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../store/slices';
-import { fetchCurrentAnnouncement, type AnnouncementData } from '../../../api/announcement/announcementApi';
+import {
+  fetchCurrentAnnouncement,
+  type AnnouncementData,
+} from '../../../api/announcement/announcementApi';
 import '../../../styles/announcement/announcement.css';
 
 function formatDatetime(value?: string): string {
