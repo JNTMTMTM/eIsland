@@ -187,7 +187,6 @@
   font-weight: 760;
   letter-spacing: 0.02em;
   padding-bottom: 6px;
-  border-bottom: 1px solid rgba(var(--color-text-rgb), 0.18);
 }
 
 .announcement-body h2 {
