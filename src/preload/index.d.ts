@@ -193,6 +193,7 @@ declare global {
       onUpdaterProgress: (callback: (progress: { percent: number; transferred: number; total: number; bytesPerSecond: number }) => void) => () => void;
       onUpdaterDownloaded: (callback: (data: { version: string }) => void) => () => void;
       onUpdaterAvailable: (callback: (data: { version: string; releaseNotes: string }) => void) => () => void;
+      onUpdaterNotAvailable: (callback: (data: { version: string }) => void) => () => void;
       onClipboardUrlsDetected: (callback: (data: { urls: string[]; title: string }) => void) => () => void;
       clipboardOpenUrl: (url: string) => Promise<boolean>;
     };

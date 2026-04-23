@@ -140,7 +140,8 @@
 /** expanded / maxExpand → hover：收缩回弹 */
 .island-shell.spring-animation.hover.morphing.from-expanded,
 .island-shell.spring-animation.hover.morphing.from-maxExpand,
-.island-shell.spring-animation.hover.morphing.from-guide {
+.island-shell.spring-animation.hover.morphing.from-guide,
+.island-shell.spring-animation.hover.morphing.from-announcement {
   animation: shellContractToHover 0.68s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -188,12 +189,12 @@
 }
 
 /** hover → idle：柔和收拢 */
-.island-shell.spring-animation.morphing.from-hover:not(.hover):not(.expanded):not(.maxExpand):not(.notification):not(.guide) {
+.island-shell.spring-animation.morphing.from-hover:not(.hover):not(.expanded):not(.maxExpand):not(.notification):not(.guide):not(.announcement) {
   animation: shellShrinkToIdle 0.68s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 /** notification → idle：横向收拢 */
-.island-shell.spring-animation.morphing.from-notification:not(.hover):not(.expanded):not(.maxExpand):not(.notification):not(.guide) {
+.island-shell.spring-animation.morphing.from-notification:not(.hover):not(.expanded):not(.maxExpand):not(.notification):not(.guide):not(.announcement) {
   animation: shellShrinkFromNotification 0.68s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -278,7 +279,8 @@
 }
 
 .island-shell.login,
-.island-shell.register {
+.island-shell.register,
+.island-shell.announcement {
   width: 860px;
   height: 400px;
   background: var(--color-island-bg);
@@ -287,7 +289,8 @@
 }
 
 .island-shell.login::before,
-.island-shell.register::before {
+.island-shell.register::before,
+.island-shell.announcement::before {
   opacity: 0;
   pointer-events: none;
 }

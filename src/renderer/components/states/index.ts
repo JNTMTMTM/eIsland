@@ -31,3 +31,4 @@ export { MaxExpandContent } from './maxExpand/MaxExpandContent';
 export { GuideContent } from './guide/GuideContent';
 export { LoginContent } from './login/LoginContent';
 export { RegisterContent } from './register/RegisterContent';
+export { AnnouncementContent } from './announcement/AnnouncementContent';

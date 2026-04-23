@@ -54,7 +54,7 @@ export const createIslandSlice: StateCreator<
 
   setIdle: (force?: boolean) => set((prev) => {
     if (prev.uiStateLocked && prev.state !== 'idle') return prev;
-    if (!force && (prev.state === 'expanded' || prev.state === 'maxExpand' || prev.state === 'guide' || prev.state === 'login' || prev.state === 'register')) return prev;
+    if (!force && (prev.state === 'expanded' || prev.state === 'maxExpand' || prev.state === 'guide' || prev.state === 'login' || prev.state === 'register' || prev.state === 'announcement')) return prev;
     window.api?.collapseWindow();
     window.api?.enableMousePassthrough();
     return { state: 'idle' as const, authReturnState: null };
@@ -122,7 +122,7 @@ export const createIslandSlice: StateCreator<
       } else if (target === 'expanded') {
         window.api?.expandWindowFull();
         window.api?.disableMousePassthrough();
-      } else if (target === 'maxExpand' || target === 'guide' || target === 'login' || target === 'register') {
+      } else if (target === 'maxExpand' || target === 'guide' || target === 'login' || target === 'register' || target === 'announcement') {
         window.api?.expandWindowSettings();
         window.api?.disableMousePassthrough();
       } else if (target === 'lyrics') {
@@ -154,6 +154,13 @@ export const createIslandSlice: StateCreator<
     window.api?.expandWindowSettings();
     window.api?.disableMousePassthrough();
     return { state: 'guide' as const, authReturnState: null };
+  }),
+
+  setAnnouncement: () => set((prev) => {
+    if (prev.uiStateLocked && prev.state !== 'announcement') return prev;
+    window.api?.expandWindowSettings();
+    window.api?.disableMousePassthrough();
+    return { state: 'announcement' as const, authReturnState: null };
   }),
 
   toggleUiStateLock: () => {

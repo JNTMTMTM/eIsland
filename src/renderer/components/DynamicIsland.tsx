@@ -38,6 +38,7 @@ import { LyricsContent } from './states/lyrics/LyricsContent';
 import { GuideContent } from './states/guide/GuideContent';
 import { LoginContent } from './states/login/LoginContent';
 import { RegisterContent } from './states/register/RegisterContent';
+import { AnnouncementContent } from './states/announcement/AnnouncementContent';
 import { SvgIcon } from '../utils/SvgIcon';
 import type { NowPlayingInfo } from '../store/isLandStore';
 import { fetchLyrics } from '../api/lyrics/lrcApi';
@@ -48,7 +49,7 @@ import { fetchVersion, reportUpdateDownloadCount } from '../api/update/versionAp
 import { getWebsiteFaviconUrl, getWebsiteHostname } from '../api/site/siteMetaApi';
 
 /** 灵动岛状态类型 */
-export type IslandState = 'idle' | 'hover' | 'expanded' | 'notification' | 'maxExpand' | 'minimal' | 'lyrics' | 'guide' | 'login' | 'register';
+export type IslandState = 'idle' | 'hover' | 'expanded' | 'notification' | 'maxExpand' | 'minimal' | 'lyrics' | 'guide' | 'login' | 'register' | 'announcement';
 
 /** shell.css 中 morph/transition 主时长（0.55s） */
 const SHELL_MORPH_DURATION_MS = 550;
@@ -142,6 +143,7 @@ const STATE_AREA: Record<string, number> = {
   guide: 860 * 400,
   login: 860 * 400,
   register: 860 * 400,
+  announcement: 860 * 400,
 };
 
 /** 状态配置接口 */
@@ -230,6 +232,13 @@ export const STATE_CONFIGS: Record<IslandState, StateConfig> = {
     enterDelay: 0,
     leaveDelay: 0,
   },
+  announcement: {
+    name: 'announcement',
+    mousePassthrough: false,
+    expanded: true,
+    enterDelay: 0,
+    leaveDelay: 0,
+  },
 };
 
 /**
@@ -279,7 +288,7 @@ interface StateRenderer {
  */
 function DynamicIsland(): React.JSX.Element {
   const { t, i18n } = useTranslation();
-  const { state, weather, setHover, setIdle, setExpanded, setLyrics, setGuide, timerData, setTimerData, notification, setNotification, handleNowPlayingUpdate, updateProgress, coverImage, isMusicPlaying, isPlaying, dominantColor, setDominantColor, setSyncedLyrics, setLyricsLoading, syncedLyrics, lyricsLoading, pomodoroRunning, pomodoroRemaining, springAnimation } = useIslandStore();
+  const { state, weather, setHover, setIdle, setExpanded, setLyrics, setGuide, setAnnouncement, timerData, setTimerData, notification, setNotification, handleNowPlayingUpdate, updateProgress, coverImage, isMusicPlaying, isPlaying, dominantColor, setDominantColor, setSyncedLyrics, setLyricsLoading, syncedLyrics, lyricsLoading, pomodoroRunning, pomodoroRemaining, springAnimation } = useIslandStore();
   const prevStateRef = useRef(state);
   const [morphing, setMorphing] = useState(false);
   const [fromState, setFromState] = useState('');
@@ -663,6 +672,17 @@ function DynamicIsland(): React.JSX.Element {
     }
   }, [state, timerData?.state, isPlaying, syncedLyrics, lyricsLoading, setLyrics]);
 
+  useEffect(() => {
+    const unsub = window.api?.onUpdaterNotAvailable?.(() => {
+      const current = useIslandStore.getState().state;
+      if (current === 'guide' || current === 'login' || current === 'register') return;
+      setAnnouncement();
+    });
+    return () => {
+      unsub?.();
+    };
+  }, [setAnnouncement]);
+
   // 背景视频的音量 / 速度随设置变更即时生效，避免重建 <video>
   useEffect(() => {
     const el = bgVideoElementRef.current;
@@ -938,7 +958,7 @@ function DynamicIsland(): React.JSX.Element {
     let lastCheckTime = 0;
     const CHECK_INTERVAL = 16; // ~60fps throttle
 
-    if (state === 'maxExpand' || state === 'expanded') {
+    if (state === 'maxExpand' || state === 'expanded' || state === 'announcement') {
       isHoveringRef.current = true;
     }
 
@@ -979,7 +999,7 @@ function DynamicIsland(): React.JSX.Element {
         return;
       }
 
-      if (state === 'notification' || state === 'guide' || state === 'login' || state === 'register') {
+      if (state === 'notification' || state === 'guide' || state === 'login' || state === 'register' || state === 'announcement') {
         if (inWindow) {
           window.api?.disableMousePassthrough();
         }
@@ -1126,6 +1146,12 @@ function DynamicIsland(): React.JSX.Element {
         <RegisterContent />
       ),
     },
+    {
+      state: 'announcement',
+      render: () => (
+        <AnnouncementContent />
+      ),
+    },
   ];
 
   /**
@@ -1135,7 +1161,7 @@ function DynamicIsland(): React.JSX.Element {
   const handleIslandClick = React.useCallback(() => {
     if (state === 'hover') {
       setExpanded();
-    } else if (state === 'expanded' || state === 'maxExpand') {
+    } else if (state === 'expanded' || state === 'maxExpand' || state === 'announcement') {
       setHover();
     }
   }, [state, setExpanded, setHover]);

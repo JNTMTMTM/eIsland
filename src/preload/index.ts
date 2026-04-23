@@ -944,6 +944,20 @@ const api = {
       ipcRenderer.removeListener('updater:update-available', handler);
     };
   },
+  /**
+   * 监听无可用更新事件
+   * @param callback - 回调函数，接收当前版本号
+   * @returns 取消监听函数
+   */
+  onUpdaterNotAvailable: (callback: (data: { version: string }) => void): (() => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, data: { version: string }): void => {
+      callback(data);
+    };
+    ipcRenderer.on('updater:update-not-available', handler);
+    return () => {
+      ipcRenderer.removeListener('updater:update-not-available', handler);
+    };
+  },
   /** ===== 剪贴板 URL 监听 API ===== */
   /**
    * 监听剪贴板中检测到的 URL
