@@ -83,6 +83,9 @@ export function initUpdaterService(options: InitUpdaterServiceOptions): void {
 
   updater.on('update-not-available', (info: UpdateInfo) => {
     console.log('[Updater] update-not-available, current:', info.version);
+    emitToRenderer('updater:update-not-available', {
+      version: info.version,
+    });
   });
 
   updater.on('download-progress', (progress) => {

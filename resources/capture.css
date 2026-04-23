@@ -87,6 +87,10 @@ body {
 .capture-toolbar button,
 .capture-toolbar select,
 .capture-toolbar input[type="color"] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   padding: 5px 10px;
   border: none;
   border-radius: 5px;
@@ -128,4 +132,12 @@ body {
 .capture-toolbar .label {
   font: 12px/1.2 system-ui, sans-serif;
   color: rgba(255, 255, 255, .85);
+}
+
+.capture-btn-icon {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
 }

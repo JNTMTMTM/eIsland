@@ -96,10 +96,11 @@ import {
   TOGGLE_TRAY_HOTKEY_STORE_KEY, SHOW_SETTINGS_WINDOW_HOTKEY_STORE_KEY,
   OPEN_CLIPBOARD_HISTORY_HOTKEY_STORE_KEY,
   TOGGLE_PASSTHROUGH_HOTKEY_STORE_KEY,
+  TOGGLE_UI_LOCK_HOTKEY_STORE_KEY,
   sanitizeIslandPositionOffset, sanitizeIslandDisplaySelection, sanitizeSmtcUnsubscribeMs,
   readHotkeyConfig, readQuitHotkeyConfig, readScreenshotHotkeyConfig,
   readNextSongHotkeyConfig, readPlayPauseSongHotkeyConfig, readResetPositionHotkeyConfig,
-  readToggleTrayHotkeyConfig, readShowSettingsWindowHotkeyConfig, readOpenClipboardHistoryHotkeyConfig, readTogglePassthroughHotkeyConfig,
+  readToggleTrayHotkeyConfig, readShowSettingsWindowHotkeyConfig, readOpenClipboardHistoryHotkeyConfig, readTogglePassthroughHotkeyConfig, readToggleUiLockHotkeyConfig,
   readWhitelistConfig, readLyricsSourceConfig, readSmtcUnsubscribeMsConfig,
   readHideProcessListConfig, readIslandPositionOffsetConfig, readIslandDisplaySelectionConfig,
   writeIslandPositionOffsetConfig, writeIslandDisplaySelectionConfig,
@@ -174,6 +175,7 @@ const hotkeyService = createHotkeyService({
   readShowSettingsWindowHotkeyConfig,
   readOpenClipboardHistoryHotkeyConfig,
   readTogglePassthroughHotkeyConfig,
+  readToggleUiLockHotkeyConfig,
   onScreenshotHotkey: () => {
     captureWindowService.startRegionScreenshot().catch((err) => {
       console.error('[Screenshot] hotkey trigger error:', err);
@@ -231,6 +233,9 @@ const hotkeyService = createHotkeyService({
   },
   onTogglePassthroughHotkey: () => {
     toggleMousePassthroughLock(() => mainWindow);
+  },
+  onToggleUiLockHotkey: () => {
+    broadcastSettingChange(-1, 'shortcut:toggle-ui-lock', Date.now());
   },
 });
 
@@ -378,6 +383,7 @@ function registerIpcHandlers(): void {
     showSettingsWindowHotkeyStoreKey: SHOW_SETTINGS_WINDOW_HOTKEY_STORE_KEY,
     openClipboardHistoryHotkeyStoreKey: OPEN_CLIPBOARD_HISTORY_HOTKEY_STORE_KEY,
     togglePassthroughHotkeyStoreKey: TOGGLE_PASSTHROUGH_HOTKEY_STORE_KEY,
+    toggleUiLockHotkeyStoreKey: TOGGLE_UI_LOCK_HOTKEY_STORE_KEY,
     getCurrentHideHotkey: hotkeyService.getCurrentHideHotkey,
     getCurrentQuitHotkey: hotkeyService.getCurrentQuitHotkey,
     getCurrentScreenshotHotkey: hotkeyService.getCurrentScreenshotHotkey,
@@ -388,6 +394,7 @@ function registerIpcHandlers(): void {
     getCurrentShowSettingsWindowHotkey: hotkeyService.getCurrentShowSettingsWindowHotkey,
     getCurrentOpenClipboardHistoryHotkey: hotkeyService.getCurrentOpenClipboardHistoryHotkey,
     getCurrentTogglePassthroughHotkey: hotkeyService.getCurrentTogglePassthroughHotkey,
+    getCurrentToggleUiLockHotkey: hotkeyService.getCurrentToggleUiLockHotkey,
     readHideHotkeyConfig: readHotkeyConfig,
     readQuitHotkeyConfig,
     readScreenshotHotkeyConfig,
@@ -398,6 +405,7 @@ function registerIpcHandlers(): void {
     readShowSettingsWindowHotkeyConfig,
     readOpenClipboardHistoryHotkeyConfig,
     readTogglePassthroughHotkeyConfig,
+    readToggleUiLockHotkeyConfig,
     registerHideHotkey: hotkeyService.registerHideHotkey,
     registerQuitHotkey: hotkeyService.registerQuitHotkey,
     registerNextSongHotkey: hotkeyService.registerNextSongHotkey,
@@ -407,6 +415,7 @@ function registerIpcHandlers(): void {
     registerShowSettingsWindowHotkey: hotkeyService.registerShowSettingsWindowHotkey,
     registerOpenClipboardHistoryHotkey: hotkeyService.registerOpenClipboardHistoryHotkey,
     registerTogglePassthroughHotkey: hotkeyService.registerTogglePassthroughHotkey,
+    registerToggleUiLockHotkey: hotkeyService.registerToggleUiLockHotkey,
     suspendIslandHotkeys: hotkeyService.suspendIslandHotkeys,
     resumeIslandHotkeys: hotkeyService.resumeIslandHotkeys,
   });
@@ -426,7 +435,8 @@ function registerIpcHandlers(): void {
       const currentToggleTray = hotkeyService.getCurrentToggleTrayHotkey() || readToggleTrayHotkeyConfig();
       const currentShowSettings = hotkeyService.getCurrentShowSettingsWindowHotkey() || readShowSettingsWindowHotkeyConfig();
       const currentOpenClipboardHistory = hotkeyService.getCurrentOpenClipboardHistoryHotkey() || readOpenClipboardHistoryHotkeyConfig();
-      return [currentHide, currentQuit, currentNextSong, currentPlayPauseSong, currentResetPos, currentToggleTray, currentShowSettings, currentOpenClipboardHistory];
+      const currentToggleUiLock = hotkeyService.getCurrentToggleUiLockHotkey() || readToggleUiLockHotkeyConfig();
+      return [currentHide, currentQuit, currentNextSong, currentPlayPauseSong, currentResetPos, currentToggleTray, currentShowSettings, currentOpenClipboardHistory, currentToggleUiLock];
     },
     registerScreenshotHotkey: hotkeyService.registerScreenshotHotkey,
   });
@@ -634,6 +644,10 @@ app.whenReady().then(() => {
   // 读取持久化切换鼠标穿透快捷键并注册
   const savedTogglePassthroughHotkey = readTogglePassthroughHotkeyConfig();
   if (savedTogglePassthroughHotkey) hotkeyService.registerTogglePassthroughHotkey(savedTogglePassthroughHotkey);
+
+  // 读取持久化切换 UI 状态锁定快捷键并注册
+  const savedToggleUiLockHotkey = readToggleUiLockHotkeyConfig();
+  if (savedToggleUiLockHotkey) hotkeyService.registerToggleUiLockHotkey(savedToggleUiLockHotkey);
 
   initUpdaterService({
     updater: autoUpdater,

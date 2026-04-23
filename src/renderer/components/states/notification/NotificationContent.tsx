@@ -24,11 +24,11 @@
  * @author 鸡哥
  */
 
-import { useEffect, useState, type CSSProperties, type ReactElement } from 'react';
+import { useEffect, useState, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../store/slices';
 import { SvgIcon } from '../../../utils/SvgIcon';
-import { getWebsiteFaviconUrl, getWebsiteHostname } from '../../../api/site/siteMetaApi';
+import { getWebsiteFaviconUrl, getWebsiteFaviconUrls, getWebsiteHostname } from '../../../api/site/siteMetaApi';
 import { fetchUpdateSourceUrl } from '../../../api/user/userAccountApi';
 import { readLocalToken } from '../../../utils/userAccount';
 import '../../../styles/notification/notification.css';
@@ -87,6 +87,30 @@ function formatEta(seconds: number): string {
   const secs = rounded % 60;
   if (hours > 0) return `${hours}:${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
   return `${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+}
+
+function resolveNotificationIconUrl(iconValue: string | null | undefined): string {
+  if (!iconValue) return '';
+  const normalized = iconValue.trim();
+  if (!normalized) return '';
+  const lowered = normalized.toLowerCase();
+  if (
+    lowered.startsWith('http://')
+    || lowered.startsWith('https://')
+    || lowered.startsWith('data:')
+    || lowered.startsWith('blob:')
+    || lowered.startsWith('file:')
+    || lowered.startsWith('app:')
+    || lowered.startsWith('chrome:')
+    || lowered.startsWith('//')
+  ) {
+    return normalized;
+  }
+  try {
+    return new URL(normalized, window.location.href).toString();
+  } catch {
+    return normalized;
+  }
 }
 
 function normalizeUrl(raw: string): string {
@@ -162,12 +186,17 @@ export function NotificationContent({
   const [favoriteUrlSet, setFavoriteUrlSet] = useState<Set<string>>(new Set());
   const [useClipboardVectorFallbackIcon, setUseClipboardVectorFallbackIcon] = useState(false);
   const [updateDownloadProgress, setUpdateDownloadProgress] = useState<DownloadProgressData | null>(null);
+  const [clipboardFaviconIndex, setClipboardFaviconIndex] = useState(0);
   const clipboardUrls = type === 'clipboard-url' ? (urls ?? []) : [];
   const hasMultipleClipboardUrls = clipboardUrls.length > 1;
   const currentClipboardUrl = clipboardUrls[currentUrlIndex] ?? '';
+  const clipboardFaviconCandidates = type === 'clipboard-url'
+    ? getWebsiteFaviconUrls(currentClipboardUrl)
+    : [];
+  const clipboardFavicon = clipboardFaviconCandidates[clipboardFaviconIndex] || '';
   const displayIcon = (() => {
     if (type !== 'clipboard-url' || !currentClipboardUrl) return icon;
-    const faviconUrl = getWebsiteFaviconUrl(currentClipboardUrl);
+    const faviconUrl = clipboardFavicon || getWebsiteFaviconUrl(currentClipboardUrl);
     return faviconUrl || icon;
   })();
 
@@ -176,14 +205,15 @@ export function NotificationContent({
     return getWebsiteHostname(currentClipboardUrl).toLowerCase();
   })();
   const effectiveDisplayIcon = useClipboardVectorFallbackIcon && type === 'clipboard-url' ? SvgIcon.LINK : displayIcon;
-  const isVectorDisplayIcon = Boolean(effectiveDisplayIcon && /\.svg([?#].*)?$/i.test(effectiveDisplayIcon));
-  const vectorIconStyle = isVectorDisplayIcon && effectiveDisplayIcon
-    ? ({ '--notification-icon-mask': `url("${effectiveDisplayIcon}")` } as CSSProperties)
-    : undefined;
+  const resolvedDisplayIcon = resolveNotificationIconUrl(effectiveDisplayIcon);
 
   useEffect(() => {
     setCurrentUrlIndex(0);
   }, [type, urls]);
+
+  useEffect(() => {
+    setClipboardFaviconIndex(0);
+  }, [type, currentClipboardUrl]);
 
   useEffect(() => {
     setUseClipboardVectorFallbackIcon(false);
@@ -499,21 +529,21 @@ export function NotificationContent({
     <div className="notification-content">
       <div className="notification-main-row">
         <div className="notification-icon">
-          {effectiveDisplayIcon ? (
-            isVectorDisplayIcon ? (
-              <span className="notification-icon-vector" style={vectorIconStyle} aria-hidden="true" />
-            ) : (
-              <img
-                src={effectiveDisplayIcon}
-                alt=""
-                className="notification-icon-img"
-                onError={() => {
-                  if (type === 'clipboard-url') {
-                    setUseClipboardVectorFallbackIcon(true);
+          {resolvedDisplayIcon ? (
+            <img
+              src={resolvedDisplayIcon}
+              alt=""
+              className="notification-icon-img"
+              onError={() => {
+                if (type === 'clipboard-url') {
+                  if (clipboardFaviconIndex < clipboardFaviconCandidates.length - 1) {
+                    setClipboardFaviconIndex((prev) => prev + 1);
+                    return;
                   }
-                }}
-              />
-            )
+                  setUseClipboardVectorFallbackIcon(true);
+                }
+              }}
+            />
           ) : (
             <div className="notification-icon-default" />
           )}

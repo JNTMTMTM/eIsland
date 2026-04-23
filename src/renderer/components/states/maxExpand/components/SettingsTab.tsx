@@ -83,6 +83,11 @@ import { WallpaperEditSection } from './setting/components/pluginMarket/Wallpape
 
 import { resolveDistrictLocationByKeyword } from '../../../../api/weather/adcodeApi';
 import { fetchUpdateSourceUrl } from '../../../../api/user/userAccountApi';
+import {
+  readAnnouncementShowMode,
+  writeAnnouncementShowMode,
+  type AnnouncementShowMode,
+} from '../../../../api/announcement/announcementApi';
 
 import { setThemeMode as applyThemeMode, getThemeMode, type ThemeMode } from '../../../../utils/theme';
 import { getLanguage, setLanguage, type AppLanguage } from '../../../../i18n';
@@ -406,6 +411,7 @@ export function SettingsTab(): ReactElement {
   const [updateError, setUpdateError] = useState<string>('');
   const [downloadProgress, setDownloadProgress] = useState<{ percent: number; transferred: number; total: number; bytesPerSecond: number } | null>(null);
   const [updateAutoPromptEnabled, setUpdateAutoPromptEnabled] = useState<boolean>(true);
+  const [announcementShowMode, setAnnouncementShowMode] = useState<AnnouncementShowMode>('version-update-only');
   const [updateSource, setUpdateSource] = useState<UpdateSourceKey>('cloudflare-r2');
   const UPDATE_SOURCES: { key: UpdateSourceKey; label: string; proOnly?: boolean }[] = [
     { key: 'cloudflare-r2', label: 'Cloudflare R2' },
@@ -460,6 +466,11 @@ export function SettingsTab(): ReactElement {
   const handleUpdateAutoPromptEnabledChange = (enabled: boolean): void => {
     setUpdateAutoPromptEnabled(enabled);
     window.api.storeWrite(UPDATE_AUTO_PROMPT_STORE_KEY, enabled).catch(() => {});
+  };
+
+  const handleAnnouncementShowModeChange = (mode: AnnouncementShowMode): void => {
+    setAnnouncementShowMode(mode);
+    void writeAnnouncementShowMode(mode);
   };
 
   const persistIslandOpacity = (opacity: number): void => {
@@ -746,6 +757,12 @@ export function SettingsTab(): ReactElement {
   const [togglePassthroughHotkeyRecording, setTogglePassthroughHotkeyRecording] = useState(false);
   const [togglePassthroughHotkeyError, setTogglePassthroughHotkeyError] = useState<string>('');
   const togglePassthroughHotkeyInputRef = useRef<HTMLInputElement>(null);
+
+  /** 切换 UI 状态锁定快捷键相关状态 */
+  const [toggleUiLockHotkey, setToggleUiLockHotkey] = useState<string>('');
+  const [toggleUiLockHotkeyRecording, setToggleUiLockHotkeyRecording] = useState(false);
+  const [toggleUiLockHotkeyError, setToggleUiLockHotkeyError] = useState<string>('');
+  const toggleUiLockHotkeyInputRef = useRef<HTMLInputElement>(null);
 
   const hideProcessKeyword = hideProcessFilter.trim().toLowerCase();
 
@@ -1143,6 +1160,10 @@ export function SettingsTab(): ReactElement {
       if (cancelled) return;
       setTogglePassthroughHotkey(key || '');
     }).catch(() => {});
+    window.api.toggleUiLockHotkeyGet().then((key) => {
+      if (cancelled) return;
+      setToggleUiLockHotkey(key || '');
+    }).catch(() => {});
     return () => { cancelled = true; };
   }, []);
 
@@ -1186,6 +1207,15 @@ export function SettingsTab(): ReactElement {
     window.api.storeRead(UPDATE_AUTO_PROMPT_STORE_KEY).then((value) => {
       if (cancelled) return;
       setUpdateAutoPromptEnabled(typeof value === 'boolean' ? value : true);
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    readAnnouncementShowMode().then((mode) => {
+      if (cancelled) return;
+      setAnnouncementShowMode(mode);
     }).catch(() => {});
     return () => { cancelled = true; };
   }, []);
@@ -1697,8 +1727,8 @@ export function SettingsTab(): ReactElement {
     return parts.length >= 2 ? parts.join('+') : '';
   };
 
-  const isDuplicateHotkey = (acc: string, exclude: 'hide' | 'quit' | 'screenshot' | 'next-song' | 'play-pause-song' | 'reset-position' | 'toggle-tray' | 'show-settings-window' | 'open-clipboard-history' | 'toggle-passthrough'): boolean => {
-    const pairs: Array<{ key: 'hide' | 'quit' | 'screenshot' | 'next-song' | 'play-pause-song' | 'reset-position' | 'toggle-tray' | 'show-settings-window' | 'open-clipboard-history' | 'toggle-passthrough'; value: string }> = [
+  const isDuplicateHotkey = (acc: string, exclude: 'hide' | 'quit' | 'screenshot' | 'next-song' | 'play-pause-song' | 'reset-position' | 'toggle-tray' | 'show-settings-window' | 'open-clipboard-history' | 'toggle-passthrough' | 'toggle-ui-lock'): boolean => {
+    const pairs: Array<{ key: 'hide' | 'quit' | 'screenshot' | 'next-song' | 'play-pause-song' | 'reset-position' | 'toggle-tray' | 'show-settings-window' | 'open-clipboard-history' | 'toggle-passthrough' | 'toggle-ui-lock'; value: string }> = [
       { key: 'hide', value: hideHotkey },
       { key: 'quit', value: quitHotkey },
       { key: 'screenshot', value: screenshotHotkey },
@@ -1709,6 +1739,7 @@ export function SettingsTab(): ReactElement {
       { key: 'show-settings-window', value: showSettingsWindowHotkey },
       { key: 'open-clipboard-history', value: openClipboardHistoryHotkey },
       { key: 'toggle-passthrough', value: togglePassthroughHotkey },
+      { key: 'toggle-ui-lock', value: toggleUiLockHotkey },
     ];
     return pairs.some((item) => item.key !== exclude && item.value && item.value === acc);
   };
@@ -1942,6 +1973,32 @@ export function SettingsTab(): ReactElement {
       }
     }).catch(() => {
       setTogglePassthroughHotkeyError('快捷键注册失败');
+    });
+  };
+
+  const handleToggleUiLockHotkeyKeyDown = (e: KeyboardEvent): void => {
+    e.preventDefault();
+    e.stopPropagation();
+    setToggleUiLockHotkeyError('');
+    const acc = keyEventToAccelerator(e);
+    if (!acc) return;
+    if (isDuplicateHotkey(acc, 'toggle-ui-lock')) {
+      setToggleUiLockHotkeyError('重复快捷键');
+      setToggleUiLockHotkeyRecording(false);
+      toggleUiLockHotkeyInputRef.current?.blur();
+      return;
+    }
+
+    window.api.toggleUiLockHotkeySet(acc).then((ok) => {
+      if (ok) {
+        setToggleUiLockHotkey(acc);
+        setToggleUiLockHotkeyRecording(false);
+        toggleUiLockHotkeyInputRef.current?.blur();
+      } else {
+        setToggleUiLockHotkeyError('快捷键注册失败，请尝试其他组合');
+      }
+    }).catch(() => {
+      setToggleUiLockHotkeyError('快捷键注册失败');
     });
   };
 
@@ -2392,6 +2449,14 @@ export function SettingsTab(): ReactElement {
               setTogglePassthroughHotkeyError={setTogglePassthroughHotkeyError}
               handleTogglePassthroughHotkeyKeyDown={handleTogglePassthroughHotkeyKeyDown}
               setTogglePassthroughHotkey={setTogglePassthroughHotkey}
+              toggleUiLockHotkeyInputRef={toggleUiLockHotkeyInputRef}
+              toggleUiLockHotkeyRecording={toggleUiLockHotkeyRecording}
+              toggleUiLockHotkeyError={toggleUiLockHotkeyError}
+              toggleUiLockHotkey={toggleUiLockHotkey}
+              setToggleUiLockHotkeyRecording={setToggleUiLockHotkeyRecording}
+              setToggleUiLockHotkeyError={setToggleUiLockHotkeyError}
+              handleToggleUiLockHotkeyKeyDown={handleToggleUiLockHotkeyKeyDown}
+              setToggleUiLockHotkey={setToggleUiLockHotkey}
             />
           )}
 
@@ -2450,6 +2515,7 @@ export function SettingsTab(): ReactElement {
               updateSources={UPDATE_SOURCES}
               isProUser={isProUser}
               updateAutoPromptEnabled={updateAutoPromptEnabled}
+              announcementShowMode={announcementShowMode}
               updateStatus={updateStatus}
               updateVersion={updateVersion}
               downloadProgress={downloadProgress}
@@ -2457,6 +2523,7 @@ export function SettingsTab(): ReactElement {
               updateError={updateError}
               onUpdateSourceChange={handleUpdateSourceChange}
               onUpdateAutoPromptEnabledChange={handleUpdateAutoPromptEnabledChange}
+              onAnnouncementShowModeChange={handleAnnouncementShowModeChange}
               onCheckUpdate={handleCheckUpdate}
               onDownloadUpdate={handleDownloadUpdate}
               onInstallUpdate={handleInstallUpdate}

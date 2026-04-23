@@ -142,6 +142,9 @@ export const DEFAULT_OPEN_CLIPBOARD_HISTORY_HOTKEY = '';
 /** 默认切换鼠标穿透快捷键（空表示默认不设置） */
 export const DEFAULT_TOGGLE_PASSTHROUGH_HOTKEY = '';
 
+/** 默认切换 UI 状态锁定快捷键（空表示默认不设置） */
+export const DEFAULT_TOGGLE_UI_LOCK_HOTKEY = '';
+
 // ===== Store 键名 =====
 
 /** 白名单存储键名 */
@@ -230,6 +233,9 @@ export const OPEN_CLIPBOARD_HISTORY_HOTKEY_STORE_KEY = 'open-clipboard-history-h
 
 /** 切换鼠标穿透快捷键存储键名 */
 export const TOGGLE_PASSTHROUGH_HOTKEY_STORE_KEY = 'toggle-passthrough-hotkey';
+
+/** 切换 UI 状态锁定快捷键存储键名 */
+export const TOGGLE_UI_LOCK_HOTKEY_STORE_KEY = 'toggle-ui-lock-hotkey';
 
 // ===== Helper =====
 
@@ -372,6 +378,15 @@ export function readOpenClipboardHistoryHotkeyConfig(): string {
 export function readTogglePassthroughHotkeyConfig(): string {
   const data = readJsonFile(TOGGLE_PASSTHROUGH_HOTKEY_STORE_KEY);
   return typeof data === 'string' ? data : DEFAULT_TOGGLE_PASSTHROUGH_HOTKEY;
+}
+
+/**
+ * 读取切换 UI 状态锁定快捷键配置
+ * @returns 快捷键字符串
+ */
+export function readToggleUiLockHotkeyConfig(): string {
+  const data = readJsonFile(TOGGLE_UI_LOCK_HOTKEY_STORE_KEY);
+  return typeof data === 'string' ? data : DEFAULT_TOGGLE_UI_LOCK_HOTKEY;
 }
 
 /**

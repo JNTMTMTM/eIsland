@@ -38,6 +38,7 @@ import { LyricsContent } from './states/lyrics/LyricsContent';
 import { GuideContent } from './states/guide/GuideContent';
 import { LoginContent } from './states/login/LoginContent';
 import { RegisterContent } from './states/register/RegisterContent';
+import { AnnouncementContent } from './states/announcement/AnnouncementContent';
 import { SvgIcon } from '../utils/SvgIcon';
 import type { NowPlayingInfo } from '../store/isLandStore';
 import { fetchLyrics } from '../api/lyrics/lrcApi';
@@ -46,9 +47,15 @@ import type { KaraokeLine } from '../api/lyrics/lrcs/karaoke';
 import type { SyncedLyricLine } from '../store/types';
 import { fetchVersion, reportUpdateDownloadCount } from '../api/update/versionApi';
 import { getWebsiteFaviconUrl, getWebsiteHostname } from '../api/site/siteMetaApi';
+import {
+  fetchCurrentAnnouncement,
+  readAnnouncementLastShownAppVersion,
+  readAnnouncementShowMode,
+  writeAnnouncementLastShownAppVersion,
+} from '../api/announcement/announcementApi';
 
 /** 灵动岛状态类型 */
-export type IslandState = 'idle' | 'hover' | 'expanded' | 'notification' | 'maxExpand' | 'minimal' | 'lyrics' | 'guide' | 'login' | 'register';
+export type IslandState = 'idle' | 'hover' | 'expanded' | 'notification' | 'maxExpand' | 'minimal' | 'lyrics' | 'guide' | 'login' | 'register' | 'announcement';
 
 /** shell.css 中 morph/transition 主时长（0.55s） */
 const SHELL_MORPH_DURATION_MS = 550;
@@ -142,6 +149,7 @@ const STATE_AREA: Record<string, number> = {
   guide: 860 * 400,
   login: 860 * 400,
   register: 860 * 400,
+  announcement: 860 * 400,
 };
 
 /** 状态配置接口 */
@@ -230,6 +238,13 @@ export const STATE_CONFIGS: Record<IslandState, StateConfig> = {
     enterDelay: 0,
     leaveDelay: 0,
   },
+  announcement: {
+    name: 'announcement',
+    mousePassthrough: false,
+    expanded: true,
+    enterDelay: 0,
+    leaveDelay: 0,
+  },
 };
 
 /**
@@ -279,7 +294,7 @@ interface StateRenderer {
  */
 function DynamicIsland(): React.JSX.Element {
   const { t, i18n } = useTranslation();
-  const { state, weather, setHover, setIdle, setExpanded, setLyrics, setGuide, timerData, setTimerData, notification, setNotification, handleNowPlayingUpdate, updateProgress, coverImage, isMusicPlaying, isPlaying, dominantColor, setDominantColor, setSyncedLyrics, setLyricsLoading, syncedLyrics, lyricsLoading, pomodoroRunning, pomodoroRemaining, springAnimation } = useIslandStore();
+  const { state, weather, setHover, setIdle, setExpanded, setLyrics, setGuide, setAnnouncement, timerData, setTimerData, notification, setNotification, handleNowPlayingUpdate, updateProgress, coverImage, isMusicPlaying, isPlaying, dominantColor, setDominantColor, setSyncedLyrics, setLyricsLoading, syncedLyrics, lyricsLoading, pomodoroRunning, pomodoroRemaining, springAnimation } = useIslandStore();
   const prevStateRef = useRef(state);
   const [morphing, setMorphing] = useState(false);
   const [fromState, setFromState] = useState('');
@@ -324,6 +339,8 @@ function DynamicIsland(): React.JSX.Element {
   const setNotificationRef = useRef(setNotification);
   const expandLeaveIdleRef = useRef(false);
   const maxExpandLeaveIdleRef = useRef(false);
+  const pendingAnnouncementAfterGuideRef = useRef(false);
+  const pendingAnnouncementAppVersionRef = useRef('');
   const bgOpacityRef = useRef<number>(30);
   const bgBlurRef = useRef<number>(0);
   const [bgVideoFit, setBgVideoFit] = useState<'cover' | 'contain'>('cover');
@@ -526,6 +543,10 @@ function DynamicIsland(): React.JSX.Element {
           store.setMaxExpandTab('clipboardHistory');
           store.setMaxExpand();
         }
+        if (channel === 'shortcut:toggle-ui-lock') {
+          const store = useIslandStore.getState();
+          store.toggleUiStateLock();
+        }
         if (channel === 'notification:show') {
           if (value && typeof value === 'object' && 'title' in (value as object) && 'body' in (value as object)) {
             setNotificationRef.current(value as {
@@ -658,6 +679,56 @@ function DynamicIsland(): React.JSX.Element {
       setLyrics();
     }
   }, [state, timerData?.state, isPlaying, syncedLyrics, lyricsLoading, setLyrics]);
+
+  useEffect(() => {
+    const unsub = window.api?.onUpdaterNotAvailable?.(() => {
+      void (async () => {
+        const current = useIslandStore.getState().state;
+        if (current === 'login' || current === 'register') return;
+
+        const mode = await readAnnouncementShowMode();
+        const currentVersion = await window.api?.updaterVersion?.() ?? '';
+        if (mode === 'version-update-only') {
+          const lastShownVersion = await readAnnouncementLastShownAppVersion();
+          if (currentVersion && lastShownVersion === currentVersion) return;
+        }
+
+        const announcement = await fetchCurrentAnnouncement();
+        if (!announcement) return;
+
+        const applyShownVersion = async (): Promise<void> => {
+          if (mode !== 'version-update-only' || !currentVersion) return;
+          await writeAnnouncementLastShownAppVersion(currentVersion);
+        };
+
+        if (current === 'guide') {
+          pendingAnnouncementAfterGuideRef.current = true;
+          pendingAnnouncementAppVersionRef.current = mode === 'version-update-only' ? currentVersion : '';
+          return;
+        }
+
+        setAnnouncement();
+        await applyShownVersion();
+      })();
+    });
+    return () => {
+      unsub?.();
+    };
+  }, [setAnnouncement]);
+
+  useEffect(() => {
+    if (!pendingAnnouncementAfterGuideRef.current) return;
+    if (state === 'guide' || state === 'login' || state === 'register') return;
+
+    pendingAnnouncementAfterGuideRef.current = false;
+    setAnnouncement();
+
+    const pendingVersion = pendingAnnouncementAppVersionRef.current;
+    pendingAnnouncementAppVersionRef.current = '';
+    if (pendingVersion) {
+      void writeAnnouncementLastShownAppVersion(pendingVersion);
+    }
+  }, [state, setAnnouncement]);
 
   // 背景视频的音量 / 速度随设置变更即时生效，避免重建 <video>
   useEffect(() => {
@@ -934,7 +1005,7 @@ function DynamicIsland(): React.JSX.Element {
     let lastCheckTime = 0;
     const CHECK_INTERVAL = 16; // ~60fps throttle
 
-    if (state === 'maxExpand' || state === 'expanded') {
+    if (state === 'maxExpand' || state === 'expanded' || state === 'announcement') {
       isHoveringRef.current = true;
     }
 
@@ -950,6 +1021,14 @@ function DynamicIsland(): React.JSX.Element {
 
       const inWindow = await isMouseInWindow();
       if (aborted) return;
+
+      if (useIslandStore.getState().uiStateLocked) {
+        clearAllTimers();
+        if (!aborted) {
+          rafId = requestAnimationFrame(checkMousePosition);
+        }
+        return;
+      }
 
       const config = STATE_CONFIGS[state];
       const sliderCaptchaActive = Boolean(document.querySelector('.slider-captcha-overlay'));
@@ -967,7 +1046,7 @@ function DynamicIsland(): React.JSX.Element {
         return;
       }
 
-      if (state === 'notification' || state === 'guide' || state === 'login' || state === 'register') {
+      if (state === 'notification' || state === 'guide' || state === 'login' || state === 'register' || state === 'announcement') {
         if (inWindow) {
           window.api?.disableMousePassthrough();
         }
@@ -1114,6 +1193,12 @@ function DynamicIsland(): React.JSX.Element {
         <RegisterContent />
       ),
     },
+    {
+      state: 'announcement',
+      render: () => (
+        <AnnouncementContent />
+      ),
+    },
   ];
 
   /**
@@ -1123,7 +1208,7 @@ function DynamicIsland(): React.JSX.Element {
   const handleIslandClick = React.useCallback(() => {
     if (state === 'hover') {
       setExpanded();
-    } else if (state === 'expanded' || state === 'maxExpand') {
+    } else if (state === 'expanded' || state === 'maxExpand' || state === 'announcement') {
       setHover();
     }
   }, [state, setExpanded, setHover]);

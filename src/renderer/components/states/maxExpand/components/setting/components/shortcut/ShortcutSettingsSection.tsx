@@ -109,6 +109,14 @@ interface ShortcutSettingsSectionProps {
   setTogglePassthroughHotkeyError: (value: string) => void;
   handleTogglePassthroughHotkeyKeyDown: (event: ReactKeyboardEvent<HTMLInputElement>) => void;
   setTogglePassthroughHotkey: (value: string) => void;
+  toggleUiLockHotkeyInputRef: RefObject<HTMLInputElement | null>;
+  toggleUiLockHotkeyRecording: boolean;
+  toggleUiLockHotkeyError: string;
+  toggleUiLockHotkey: string;
+  setToggleUiLockHotkeyRecording: (value: boolean) => void;
+  setToggleUiLockHotkeyError: (value: string) => void;
+  handleToggleUiLockHotkeyKeyDown: (event: ReactKeyboardEvent<HTMLInputElement>) => void;
+  setToggleUiLockHotkey: (value: string) => void;
 }
 
 /**
@@ -208,6 +216,15 @@ export function ShortcutSettingsSection(props: ShortcutSettingsSectionProps): Re
     setTogglePassthroughHotkeyError,
     handleTogglePassthroughHotkeyKeyDown,
     setTogglePassthroughHotkey,
+
+    toggleUiLockHotkeyInputRef,
+    toggleUiLockHotkeyRecording,
+    toggleUiLockHotkeyError,
+    toggleUiLockHotkey,
+    setToggleUiLockHotkeyRecording,
+    setToggleUiLockHotkeyError,
+    handleToggleUiLockHotkeyKeyDown,
+    setToggleUiLockHotkey,
   } = props;
 
   type ShortcutSettingsPageKey = 'window' | 'capture' | 'media';
@@ -490,6 +507,39 @@ export function ShortcutSettingsSection(props: ShortcutSettingsSectionProps): Re
                   )}
                 </div>
                 {togglePassthroughHotkeyError && <div className="settings-hotkey-error">{togglePassthroughHotkeyError}</div>}
+              </div>
+
+              <div className="settings-card">
+                <div className="settings-card-header">
+                  <div className="settings-card-title">{t('settings.shortcut.window.toggleUiLock.title', { defaultValue: '切换 UI 状态锁定快捷键' })}</div>
+                  <div className="settings-card-subtitle">{t('settings.shortcut.window.toggleUiLock.hint', { defaultValue: '按下后锁定当前 UI 状态，锁定期间不会因鼠标进入/移出或自动逻辑切换状态，再次按下解锁' })}</div>
+                </div>
+                <div className="settings-hotkey-row">
+                  <input
+                    ref={toggleUiLockHotkeyInputRef}
+                    className={`settings-hotkey-input ${toggleUiLockHotkeyRecording ? 'recording' : ''}${toggleUiLockHotkeyError ? ' error' : ''}`}
+                    type="text"
+                    readOnly
+                    value={toggleUiLockHotkeyRecording ? recordingValue : (toggleUiLockHotkey || notSetValue)}
+                    onFocus={() => { setToggleUiLockHotkeyRecording(true); setToggleUiLockHotkeyError(''); window.api.hotkeySuspend().catch(() => {}); }}
+                    onBlur={() => { setToggleUiLockHotkeyRecording(false); window.api.hotkeyResume().catch(() => {}); }}
+                    onKeyDown={handleToggleUiLockHotkeyKeyDown}
+                  />
+                  <button className="settings-hotkey-btn" type="button" onClick={() => { setToggleUiLockHotkeyRecording(true); toggleUiLockHotkeyInputRef.current?.focus(); }}>{toggleUiLockHotkeyRecording ? recordingBtn : editBtn}</button>
+                  {toggleUiLockHotkey && (
+                    <button className="settings-hotkey-btn" type="button" onClick={() => {
+                      window.api.toggleUiLockHotkeySet('').then((ok) => {
+                        if (ok) {
+                          setToggleUiLockHotkey('');
+                          setToggleUiLockHotkeyError('');
+                          setToggleUiLockHotkeyRecording(false);
+                          toggleUiLockHotkeyInputRef.current?.blur();
+                        }
+                      }).catch(() => {});
+                    }}>{clearBtn}</button>
+                  )}
+                </div>
+                {toggleUiLockHotkeyError && <div className="settings-hotkey-error">{toggleUiLockHotkeyError}</div>}
               </div>
             </div>
           )}

@@ -64,6 +64,12 @@
 - https://images.nasa.gov/
 - https://www.nasa.gov/artemis-ii-mobile-wallpapers/
 
+## License & Legal / 许可与合规
+
+- Terms of Service: `LEGAL/TERMS_OF_SERVICE.md`
+- Privacy Policy: `LEGAL/PRIVACY_POLICY.md`
+- Billing & Refund Policy: `LEGAL/BILLING_REFUND_POLICY.md`
+
 ## 许可证 (License)
 
 本项目采用 **GNU General Public License v3.0 (GPLv3)** 或更高版本（GPL-3.0-or-later）发布。
