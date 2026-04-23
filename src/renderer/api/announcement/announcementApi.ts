@@ -48,9 +48,9 @@ export interface AnnouncementData {
 export async function readAnnouncementShowMode(): Promise<AnnouncementShowMode> {
   try {
     const value = await window.api.storeRead(ANNOUNCEMENT_SHOW_MODE_STORE_KEY);
-    return value === 'always' || value === 'version-update-only' ? value : 'always';
+    return value === 'always' || value === 'version-update-only' ? value : 'version-update-only';
   } catch {
-    return 'always';
+    return 'version-update-only';
   }
 }
 

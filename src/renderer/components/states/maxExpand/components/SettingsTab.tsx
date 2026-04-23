@@ -411,7 +411,7 @@ export function SettingsTab(): ReactElement {
   const [updateError, setUpdateError] = useState<string>('');
   const [downloadProgress, setDownloadProgress] = useState<{ percent: number; transferred: number; total: number; bytesPerSecond: number } | null>(null);
   const [updateAutoPromptEnabled, setUpdateAutoPromptEnabled] = useState<boolean>(true);
-  const [announcementShowMode, setAnnouncementShowMode] = useState<AnnouncementShowMode>('always');
+  const [announcementShowMode, setAnnouncementShowMode] = useState<AnnouncementShowMode>('version-update-only');
   const [updateSource, setUpdateSource] = useState<UpdateSourceKey>('cloudflare-r2');
   const UPDATE_SOURCES: { key: UpdateSourceKey; label: string; proOnly?: boolean }[] = [
     { key: 'cloudflare-r2', label: 'Cloudflare R2' },
