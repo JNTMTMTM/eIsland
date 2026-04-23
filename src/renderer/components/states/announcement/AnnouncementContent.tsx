@@ -41,6 +41,10 @@ function formatDatetime(value?: string): string {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
 }
 
+/**
+ * 公告页内容组件
+ * @returns 公告状态视图
+ */
 export function AnnouncementContent(): ReactElement {
   const { t } = useTranslation();
   const { setHover } = useIslandStore();
