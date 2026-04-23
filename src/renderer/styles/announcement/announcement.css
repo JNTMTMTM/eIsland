@@ -66,6 +66,7 @@
   display: flex;
   align-items: flex-start;
   gap: 10px;
+  margin-top: 8px;
 }
 
 .announcement-meta-vertical {
