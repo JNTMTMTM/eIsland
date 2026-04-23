@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import { useEffect, useState, type CSSProperties, type ReactElement } from 'react';
+import { useEffect, useState, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../store/slices';
 import { SvgIcon } from '../../../utils/SvgIcon';
@@ -87,6 +87,30 @@ function formatEta(seconds: number): string {
   const secs = rounded % 60;
   if (hours > 0) return `${hours}:${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
   return `${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+}
+
+function resolveNotificationIconUrl(iconValue: string | null | undefined): string {
+  if (!iconValue) return '';
+  const normalized = iconValue.trim();
+  if (!normalized) return '';
+  const lowered = normalized.toLowerCase();
+  if (
+    lowered.startsWith('http://')
+    || lowered.startsWith('https://')
+    || lowered.startsWith('data:')
+    || lowered.startsWith('blob:')
+    || lowered.startsWith('file:')
+    || lowered.startsWith('app:')
+    || lowered.startsWith('chrome:')
+    || lowered.startsWith('//')
+  ) {
+    return normalized;
+  }
+  try {
+    return new URL(normalized, window.location.href).toString();
+  } catch {
+    return normalized;
+  }
 }
 
 function normalizeUrl(raw: string): string {
@@ -176,10 +200,7 @@ export function NotificationContent({
     return getWebsiteHostname(currentClipboardUrl).toLowerCase();
   })();
   const effectiveDisplayIcon = useClipboardVectorFallbackIcon && type === 'clipboard-url' ? SvgIcon.LINK : displayIcon;
-  const isVectorDisplayIcon = Boolean(effectiveDisplayIcon && /\.svg([?#].*)?$/i.test(effectiveDisplayIcon));
-  const vectorIconStyle = isVectorDisplayIcon && effectiveDisplayIcon
-    ? ({ '--notification-icon-mask': `url("${effectiveDisplayIcon}")` } as CSSProperties)
-    : undefined;
+  const resolvedDisplayIcon = resolveNotificationIconUrl(effectiveDisplayIcon);
 
   useEffect(() => {
     setCurrentUrlIndex(0);
@@ -499,21 +520,17 @@ export function NotificationContent({
     <div className="notification-content">
       <div className="notification-main-row">
         <div className="notification-icon">
-          {effectiveDisplayIcon ? (
-            isVectorDisplayIcon ? (
-              <span className="notification-icon-vector" style={vectorIconStyle} aria-hidden="true" />
-            ) : (
-              <img
-                src={effectiveDisplayIcon}
-                alt=""
-                className="notification-icon-img"
-                onError={() => {
-                  if (type === 'clipboard-url') {
-                    setUseClipboardVectorFallbackIcon(true);
-                  }
-                }}
-              />
-            )
+          {resolvedDisplayIcon ? (
+            <img
+              src={resolvedDisplayIcon}
+              alt=""
+              className="notification-icon-img"
+              onError={() => {
+                if (type === 'clipboard-url') {
+                  setUseClipboardVectorFallbackIcon(true);
+                }
+              }}
+            />
           ) : (
             <div className="notification-icon-default" />
           )}
