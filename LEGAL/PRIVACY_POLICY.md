@@ -32,6 +32,11 @@ This policy explains what data we collect for related services, why we collect i
 6. International Transfer
 - If data crosses regions, we use reasonable safeguards.
 
+7. Account Restriction & Ban Processing
+- To enforce Terms of Service and protect platform security, we may process relevant risk-control data for suspension/ban decisions.
+- Such processing may include login/security logs, abuse reports, and necessary identifiers used to prevent repeated violations.
+- Related records may be retained for a reasonable period required for security review, dispute handling, or legal compliance.
+
 ## 中文
 本政策说明我们在相关服务中可能收集的数据、用途及你的权利。
 
@@ -61,3 +66,8 @@ This policy explains what data we collect for related services, why we collect i
 
 6. 跨境传输
 - 若发生跨境传输，将采取合理保护措施。
+
+7. 账号限制与封禁处理
+- 为执行服务条款并保障平台安全，我们可能处理与暂停/封禁判定相关的必要风控数据。
+- 该处理可能包括登录与安全日志、滥用举报信息，以及用于防止重复违规的必要标识信息。
+- 相关记录会在安全复核、争议处理或法律合规所需的合理期限内保存。

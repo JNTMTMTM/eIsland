@@ -23,6 +23,11 @@ Last Updated: 2026-04-23
 6. Chargeback
 - Fraudulent or abusive chargeback may result in suspension.
 
+7. Suspension/Ban and Billing
+- If an account is suspended or banned due to terms violation, access to paid features may be restricted during the action period.
+- Unless otherwise required by law or explicitly agreed, suspension/ban caused by user violation does not by itself constitute a refund reason.
+- Billing disputes related to enforcement actions can be submitted to billing@mail.shicthrs.com for case-by-case review.
+
 ## 中文
 1. 计费周期
 - 除非另有说明，套餐按月/年预付费。
@@ -43,3 +48,8 @@ Last Updated: 2026-04-23
 
 6. 拒付
 - 欺诈或滥用拒付行为可能导致服务暂停。
+
+7. 暂停/封禁与计费
+- 如账号因违反条款被暂停或封禁，在处置期间其付费功能访问可能受限。
+- 除非法律另有要求或双方另有明确约定，因用户违规导致的暂停/封禁本身不当然构成退款理由。
+- 与处置措施相关的计费争议可发送至 billing@mail.shicthrs.com，我们将按个案复核。
