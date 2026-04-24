@@ -32,6 +32,7 @@ import {
   type UserPaymentCreateChannel,
   type UserPaymentOrderData,
 } from '../../../api/user/userAccountApi';
+import { runSliderCaptcha } from '../../../utils/sliderCaptcha';
 import { readLocalProfile, readLocalToken } from '../../../utils/userAccount';
 import '../../../styles/settings/settings.css';
 import '../../../styles/auth/auth.css';
@@ -182,6 +183,11 @@ export function PaymentContent(): ReactElement {
 
     const channel: UserPaymentCreateChannel = method === 'alipay' ? 'ALIPAY' : 'WECHAT';
     try {
+      const captcha = await runSliderCaptcha(email);
+      if (!captcha) {
+        setFeedback(t('settings.user.feedback.captchaCancelled', { defaultValue: '请完成滑块验证后再继续操作' }));
+        return;
+      }
       setIsCreatingOrder(true);
       const result = await createProMonthOrder(token, channel);
       if (!result.ok || !result.data) {
@@ -201,6 +207,9 @@ export function PaymentContent(): ReactElement {
       window.api.clipboardOpenUrl(payUrl).catch(() => {
         setFeedback(t('settings.user.payment.openPayFailed', { defaultValue: '无法打开支付页面，请稍后重试。' }));
       });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : t('settings.user.payment.createOrderFailed', { defaultValue: '创建支付订单失败，请稍后重试。' });
+      setFeedback(msg);
     } finally {
       setIsCreatingOrder(false);
     }
