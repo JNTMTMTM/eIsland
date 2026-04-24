@@ -26,9 +26,11 @@ import useIslandStore from '../../../store/slices';
 import { SvgIcon } from '../../../utils/SvgIcon';
 import {
   createProMonthOrder,
+  fetchPaymentOrder,
   fetchPaymentChannels,
   fetchProMonthPricing,
   type UserPaymentCreateChannel,
+  type UserPaymentOrderData,
 } from '../../../api/user/userAccountApi';
 import { readLocalProfile, readLocalToken } from '../../../utils/userAccount';
 import '../../../styles/settings/settings.css';
@@ -56,6 +58,9 @@ export function PaymentContent(): ReactElement {
   const [feedback, setFeedback] = useState('');
   const [wechatEnabled, setWechatEnabled] = useState(true);
   const [alipayEnabled, setAlipayEnabled] = useState(true);
+  const [isCreatingOrder, setIsCreatingOrder] = useState(false);
+  const [isRefreshingStatus, setIsRefreshingStatus] = useState(false);
+  const [pendingOrder, setPendingOrder] = useState<UserPaymentOrderData | null>(null);
 
   const handleReportIssue = (): void => {
     window.api.storeWrite(SETTINGS_OPEN_TAB_STORE_KEY, 'about-feedback').catch(() => {});
@@ -114,6 +119,30 @@ export function PaymentContent(): ReactElement {
   }, [method, wechatEnabled, alipayEnabled]);
 
   const anyChannelEnabled = wechatEnabled || alipayEnabled;
+  const creatingOrRefreshing = isCreatingOrder || isRefreshingStatus;
+
+  const pendingOrderAmountLabel = useMemo(() => {
+    if (!pendingOrder || typeof pendingOrder.amountFen !== 'number') return '--';
+    return `¥${(pendingOrder.amountFen / 100).toFixed(2)}`;
+  }, [pendingOrder]);
+
+  const paymentStatusLabel = useMemo(() => {
+    const status = String(pendingOrder?.status || '').toUpperCase();
+    if (status === 'PAYING') return t('settings.user.payment.status.paying', { defaultValue: '待支付' });
+    if (status === 'SUCCESS') return t('settings.user.payment.status.success', { defaultValue: '已支付' });
+    if (status === 'CLOSED') return t('settings.user.payment.status.closed', { defaultValue: '已关闭' });
+    if (status === 'FAILED') return t('settings.user.payment.status.failed', { defaultValue: '支付失败' });
+    return t('settings.user.payment.status.unknown', { defaultValue: '未知' });
+  }, [pendingOrder, t]);
+
+  const paymentStatusClassName = useMemo(() => {
+    const status = String(pendingOrder?.status || '').toUpperCase();
+    if (status === 'SUCCESS') return 'is-success';
+    if (status === 'FAILED') return 'is-failed';
+    if (status === 'CLOSED') return 'is-closed';
+    if (status === 'PAYING') return 'is-paying';
+    return 'is-unknown';
+  }, [pendingOrder]);
 
   const handleSelectMethod = (nextMethod: Exclude<PaymentMethod, null>): void => {
     if ((nextMethod === 'wechat' && !wechatEnabled) || (nextMethod === 'alipay' && !alipayEnabled)) {
@@ -125,12 +154,16 @@ export function PaymentContent(): ReactElement {
     end.setMonth(end.getMonth() + 1);
     setSubscriptionPeriod(`${formatDateOnly(now)} - ${formatDateOnly(end)}`);
     setOrderExpireAt(new Date(Date.now() + 15 * 60 * 1000).toISOString());
+    setPendingOrder(null);
     setFeedback('');
   };
 
   const handleConfirmPay = async (): Promise<void> => {
+    if (isCreatingOrder) {
+      return;
+    }
     if (!method) {
-      setFeedback(t('settings.user.payment.selectMethodHint', { defaultValue: '请选择上方支付方式后再展示二维码。' }));
+      setFeedback(t('settings.user.payment.selectMethodHint', { defaultValue: '请选择上方支付方式后再创建订单。' }));
       return;
     }
     const email = receiptEmail.trim();
@@ -145,24 +178,55 @@ export function PaymentContent(): ReactElement {
     }
 
     const channel: UserPaymentCreateChannel = method === 'alipay' ? 'ALIPAY' : 'WECHAT';
-    const result = await createProMonthOrder(token, channel);
-    if (!result.ok || !result.data) {
-      setFeedback(result.message || t('settings.user.payment.createOrderFailed', { defaultValue: '创建支付订单失败，请稍后重试。' }));
-      return;
+    try {
+      setIsCreatingOrder(true);
+      const result = await createProMonthOrder(token, channel);
+      if (!result.ok || !result.data) {
+        setFeedback(result.message || t('settings.user.payment.createOrderFailed', { defaultValue: '创建支付订单失败，请稍后重试。' }));
+        return;
+      }
+      setPendingOrder(result.data);
+      if (result.data.expireAt) {
+        setOrderExpireAt(result.data.expireAt);
+      }
+      const payUrl = (result.data.payUrl || result.data.qrCodeUrl || '').trim();
+      if (!payUrl) {
+        setFeedback(t('settings.user.payment.payUrlMissing', { defaultValue: '订单创建成功但未返回支付链接，请稍后重试。' }));
+        return;
+      }
+      setFeedback('');
+      window.api.clipboardOpenUrl(payUrl).catch(() => {
+        setFeedback(t('settings.user.payment.openPayFailed', { defaultValue: '无法打开支付页面，请稍后重试。' }));
+      });
+    } finally {
+      setIsCreatingOrder(false);
     }
+  };
 
-    const payUrl = (result.data.payUrl || result.data.qrCodeUrl || '').trim();
-    if (!payUrl) {
-      setFeedback(t('settings.user.payment.payUrlMissing', { defaultValue: '订单创建成功但未返回支付链接，请稍后重试。' }));
+  const handleRefreshPaymentStatus = async (): Promise<void> => {
+    if (!pendingOrder || !pendingOrder.outTradeNo || isRefreshingStatus) {
       return;
     }
-    if (result.data.expireAt) {
-      setOrderExpireAt(result.data.expireAt);
+    const token = readLocalToken();
+    if (!token) {
+      setFeedback(t('settings.user.payment.loginRequired', { defaultValue: '登录状态已失效，请重新登录后再试。' }));
+      return;
     }
-    setFeedback('');
-    window.api.clipboardOpenUrl(payUrl).catch(() => {
-      setFeedback(t('settings.user.payment.openPayFailed', { defaultValue: '无法打开支付页面，请稍后重试。' }));
-    });
+    try {
+      setIsRefreshingStatus(true);
+      const result = await fetchPaymentOrder(token, pendingOrder.outTradeNo);
+      if (!result.ok || !result.data) {
+        setFeedback(result.message || t('settings.user.payment.refreshStatusFailed', { defaultValue: '刷新支付状态失败，请稍后重试。' }));
+        return;
+      }
+      setPendingOrder(result.data);
+      if (result.data.expireAt) {
+        setOrderExpireAt(result.data.expireAt);
+      }
+      setFeedback('');
+    } finally {
+      setIsRefreshingStatus(false);
+    }
   };
 
   const handleFillAccountEmail = (): void => {
@@ -210,7 +274,7 @@ export function PaymentContent(): ReactElement {
           </div>
         ) : null}
 
-        {method ? (
+        {method && !pendingOrder ? (
           <div className="payment-order-card">
             <div className="payment-order-title">
               {t('settings.user.payment.orderTitle', { defaultValue: '确认订单' })}
@@ -252,8 +316,48 @@ export function PaymentContent(): ReactElement {
               type="button"
               className="settings-user-primary-btn payment-confirm-btn"
               onClick={handleConfirmPay}
+              disabled={creatingOrRefreshing}
             >
-              {t('settings.user.payment.confirmPay', { defaultValue: '确认支付' })}
+              {isCreatingOrder ? (
+                <>
+                  <span className="payment-btn-spinner" aria-hidden="true" />
+                  {t('settings.user.payment.creatingOrder', { defaultValue: '创建订单中...' })}
+                </>
+              ) : t('settings.user.payment.confirmPay', { defaultValue: '创建订单' })}
+            </button>
+          </div>
+        ) : null}
+
+        {pendingOrder ? (
+          <div className="payment-order-card">
+            <div className="payment-order-title">
+              {t('settings.user.payment.pendingTitle', { defaultValue: '待支付订单' })}
+            </div>
+            <div className="payment-order-row">
+              <span className="payment-order-label">{t('settings.user.payment.orderNoLabel', { defaultValue: '订单号' })}</span>
+              <span className="payment-order-value">{pendingOrder.outTradeNo || '--'}</span>
+            </div>
+            <div className="payment-order-row">
+              <span className="payment-order-label">{t('settings.user.payment.payAmountLabel', { defaultValue: '付款金额' })}</span>
+              <span className="payment-order-value">{pendingOrderAmountLabel}</span>
+            </div>
+            <div className="payment-order-row">
+              <span className="payment-order-label">{t('settings.user.payment.payStatusLabel', { defaultValue: '支付状态' })}</span>
+              <span className={`payment-status-badge ${paymentStatusClassName}`}>{paymentStatusLabel}</span>
+            </div>
+            {feedback ? <div className="payment-order-feedback">{feedback}</div> : null}
+            <button
+              type="button"
+              className="settings-user-secondary-btn payment-refresh-status-btn"
+              onClick={handleRefreshPaymentStatus}
+              disabled={creatingOrRefreshing}
+            >
+              {isRefreshingStatus ? (
+                <>
+                  <span className="payment-btn-spinner" aria-hidden="true" />
+                  {t('settings.user.payment.refreshingStatus', { defaultValue: '刷新中...' })}
+                </>
+              ) : t('settings.user.payment.refreshStatus', { defaultValue: '刷新支付状态' })}
             </button>
           </div>
         ) : null}

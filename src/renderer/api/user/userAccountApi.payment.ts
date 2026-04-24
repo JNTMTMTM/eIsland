@@ -62,3 +62,13 @@ export function createProMonthOrder(
     auth: token,
   });
 }
+
+export function fetchPaymentOrder(
+  token: string,
+  outTradeNo: string,
+): Promise<UserAccountResult<UserPaymentOrderData>> {
+  return request<UserPaymentOrderData>(`/v1/user/payment/orders/${encodeURIComponent(outTradeNo)}`, {
+    method: 'GET',
+    auth: token,
+  });
+}

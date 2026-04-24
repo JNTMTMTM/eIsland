@@ -226,6 +226,63 @@
   justify-content: center;
 }
 
+.payment-btn-spinner {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: rgba(255, 255, 255, 0.95);
+  animation: payment-btn-spin 0.72s linear infinite;
+}
+
+.payment-refresh-status-btn {
+  width: 100%;
+  justify-content: center;
+}
+
+.payment-status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 66px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1px solid transparent;
+}
+
+.payment-status-badge.is-paying {
+  color: rgba(59, 130, 246, 0.95);
+  background: rgba(59, 130, 246, 0.12);
+  border-color: rgba(59, 130, 246, 0.28);
+}
+
+.payment-status-badge.is-success {
+  color: rgba(74, 222, 128, 0.95);
+  background: rgba(74, 222, 128, 0.12);
+  border-color: rgba(74, 222, 128, 0.28);
+}
+
+.payment-status-badge.is-failed {
+  color: rgba(248, 113, 113, 0.95);
+  background: rgba(248, 113, 113, 0.12);
+  border-color: rgba(248, 113, 113, 0.28);
+}
+
+.payment-status-badge.is-closed,
+.payment-status-badge.is-unknown {
+  color: rgba(var(--color-text-rgb), 0.76);
+  background: rgba(var(--color-text-rgb), 0.1);
+  border-color: rgba(var(--color-text-rgb), 0.2);
+}
+
+@keyframes payment-btn-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .payment-qr-card {
   border: 1px solid rgba(var(--color-text-rgb), 0.1);
   background: rgba(var(--color-text-rgb), 0.03);
