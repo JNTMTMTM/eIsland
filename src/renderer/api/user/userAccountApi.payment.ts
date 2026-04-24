@@ -46,6 +46,11 @@ export function fetchProMonthPricing(token: string): Promise<UserAccountResult<U
   });
 }
 
+/**
+ * 获取当前用户可用支付通道配置。
+ * @param token - 用户 token。
+ * @returns 支付通道配置。
+ */
 export function fetchPaymentChannels(token: string): Promise<UserAccountResult<UserPaymentChannelsData>> {
   return request<UserPaymentChannelsData>('/v1/user/payment/channels', {
     method: 'GET',
@@ -53,6 +58,13 @@ export function fetchPaymentChannels(token: string): Promise<UserAccountResult<U
   });
 }
 
+/**
+ * 创建 Pro 月付订单。
+ * @param token - 用户 token。
+ * @param channel - 支付通道。
+ * @param email - 收据邮箱。
+ * @returns 新创建的支付订单。
+ */
 export function createProMonthOrder(
   token: string,
   channel: UserPaymentCreateChannel,
@@ -65,6 +77,12 @@ export function createProMonthOrder(
   });
 }
 
+/**
+ * 根据订单号查询支付订单详情。
+ * @param token - 用户 token。
+ * @param outTradeNo - 商户订单号。
+ * @returns 订单详情。
+ */
 export function fetchPaymentOrder(
   token: string,
   outTradeNo: string,
@@ -75,6 +93,12 @@ export function fetchPaymentOrder(
   });
 }
 
+/**
+ * 查询当前用户支付订单列表。
+ * @param token - 用户 token。
+ * @param limit - 返回数量上限。
+ * @returns 支付订单列表。
+ */
 export function fetchUserPaymentOrders(
   token: string,
   limit = 20,
@@ -86,6 +110,12 @@ export function fetchUserPaymentOrders(
   });
 }
 
+/**
+ * 关闭当前用户待支付订单。
+ * @param token - 用户 token。
+ * @param outTradeNo - 商户订单号。
+ * @returns 操作结果。
+ */
 export function closeUserPaymentOrder(
   token: string,
   outTradeNo: string,

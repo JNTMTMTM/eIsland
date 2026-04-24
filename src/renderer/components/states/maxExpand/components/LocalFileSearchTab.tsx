@@ -42,6 +42,10 @@ function parseCsvValues(input: string): string[] {
     .filter(Boolean);
 }
 
+/**
+ * 最大展开模式下的本地文件检索页面。
+ * @returns 本地文件搜索页组件。
+ */
 export function LocalFileSearchTab(): React.ReactElement {
   const { t } = useTranslation();
   const [rootDir, setRootDir] = useState('');

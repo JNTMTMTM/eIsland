@@ -48,6 +48,10 @@ function formatDateOnly(value: Date): string {
   return `${year}-${month}-${day}`;
 }
 
+/**
+ * 支付状态页面主内容组件。
+ * @returns 支付页面视图。
+ */
 export function PaymentContent(): ReactElement {
   const { t } = useTranslation();
   const { returnFromAuth, setMaxExpand, setMaxExpandTab } = useIslandStore();
