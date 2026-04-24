@@ -128,10 +128,21 @@
   color: rgba(var(--color-text-rgb), 0.78);
   border-radius: 10px;
   padding: 8px 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   font-size: 12px;
   font-family: inherit;
   cursor: pointer;
   transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+}
+
+.payment-method-icon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  flex-shrink: 0;
 }
 
 .payment-method-btn:hover {

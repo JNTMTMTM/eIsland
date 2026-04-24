@@ -23,6 +23,7 @@ import { useState } from 'react';
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../store/slices';
+import { SvgIcon } from '../../../utils/SvgIcon';
 import '../../../styles/settings/settings.css';
 import '../../../styles/auth/auth.css';
 
@@ -54,6 +55,7 @@ export function PaymentContent(): ReactElement {
             className={`payment-method-btn ${method === 'wechat' ? 'active' : ''}`}
             onClick={() => setMethod('wechat')}
           >
+            <img className="payment-method-icon" src={SvgIcon.WECHATPAY} alt="" aria-hidden="true" />
             {t('settings.user.payment.wechat', { defaultValue: '微信支付' })}
           </button>
           <button
@@ -61,6 +63,7 @@ export function PaymentContent(): ReactElement {
             className={`payment-method-btn ${method === 'alipay' ? 'active' : ''}`}
             onClick={() => setMethod('alipay')}
           >
+            <img className="payment-method-icon" src={SvgIcon.ALIPAY} alt="" aria-hidden="true" />
             {t('settings.user.payment.alipay', { defaultValue: '支付宝' })}
           </button>
         </div>
