@@ -301,9 +301,6 @@ export function PaymentContent(): ReactElement {
               {t('settings.user.payment.orderTitle', { defaultValue: '确认订单' })}
             </div>
             <label className="payment-order-email-field">
-              <span className="payment-order-label">
-                {t('settings.user.payment.receiptEmailLabel', { defaultValue: '收据发送邮箱' })}
-              </span>
               <div className="payment-order-email-row">
                 <input
                   className="settings-field-input"
@@ -320,17 +317,15 @@ export function PaymentContent(): ReactElement {
                 </button>
               </div>
             </label>
-            <div className="payment-order-row">
-              <span className="payment-order-label">{t('settings.user.payment.priceLabel', { defaultValue: '价格' })}</span>
-              <span className="payment-order-value">{priceLabel || t('settings.user.pro.pro.priceUnavailable', { defaultValue: '价格待定' })}</span>
-            </div>
-            <div className="payment-order-row">
-              <span className="payment-order-label">{t('settings.user.payment.subscriptionPeriodLabel', { defaultValue: '订阅时间' })}</span>
-              <span className="payment-order-value">{subscriptionPeriod || '--'}</span>
-            </div>
-            <div className="payment-order-row">
-              <span className="payment-order-label">{t('settings.user.payment.expireLabel', { defaultValue: '订单到期时间' })}</span>
-              <span className="payment-order-value">{orderExpireLabel || '--'}</span>
+            <div className="payment-order-row payment-order-row-split">
+              <div className="payment-order-item">
+                <span className="payment-order-label">{t('settings.user.payment.priceLabel', { defaultValue: '价格' })}</span>
+                <span className="payment-order-value">{priceLabel || t('settings.user.pro.pro.priceUnavailable', { defaultValue: '价格待定' })}</span>
+              </div>
+              <div className="payment-order-item">
+                <span className="payment-order-label">{t('settings.user.payment.subscriptionPeriodLabel', { defaultValue: '订阅时间' })}</span>
+                <span className="payment-order-value">{subscriptionPeriod || '--'}</span>
+              </div>
             </div>
             {feedback ? <div className="payment-order-feedback">{feedback}</div> : null}
             <button
@@ -354,13 +349,15 @@ export function PaymentContent(): ReactElement {
             <div className="payment-order-title">
               {t('settings.user.payment.pendingTitle', { defaultValue: '待支付订单' })}
             </div>
-            <div className="payment-order-row">
-              <span className="payment-order-label">{t('settings.user.payment.orderNoLabel', { defaultValue: '订单号' })}</span>
-              <span className="payment-order-value">{pendingOrder.outTradeNo || '--'}</span>
-            </div>
-            <div className="payment-order-row">
-              <span className="payment-order-label">{t('settings.user.payment.payAmountLabel', { defaultValue: '付款金额' })}</span>
-              <span className="payment-order-value">{pendingOrderAmountLabel}</span>
+            <div className="payment-order-row payment-order-row-split">
+              <div className="payment-order-item">
+                <span className="payment-order-label">{t('settings.user.payment.orderNoLabel', { defaultValue: '订单号' })}</span>
+                <span className="payment-order-value">{pendingOrder.outTradeNo || '--'}</span>
+              </div>
+              <div className="payment-order-item">
+                <span className="payment-order-label">{t('settings.user.payment.payAmountLabel', { defaultValue: '付款金额' })}</span>
+                <span className="payment-order-value">{pendingOrderAmountLabel}</span>
+              </div>
             </div>
             <div className="payment-order-row">
               <span className="payment-order-label">{t('settings.user.payment.payStatusLabel', { defaultValue: '支付状态' })}</span>

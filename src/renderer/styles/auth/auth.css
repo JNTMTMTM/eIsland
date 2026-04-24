@@ -205,6 +205,25 @@
   gap: 12px;
 }
 
+.payment-order-row-split {
+  align-items: flex-start;
+}
+
+.payment-order-item {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.payment-order-item .payment-order-value {
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .payment-order-label {
   font-size: 11px;
   color: rgba(var(--color-text-rgb), 0.58);
