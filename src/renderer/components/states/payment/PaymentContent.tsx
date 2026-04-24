@@ -24,14 +24,18 @@ import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../store/slices';
 import { SvgIcon } from '../../../utils/SvgIcon';
-import { fetchPaymentChannels, fetchProMonthPricing } from '../../../api/user/userAccountApi';
+import {
+  createProMonthOrder,
+  fetchPaymentChannels,
+  fetchProMonthPricing,
+  type UserPaymentCreateChannel,
+} from '../../../api/user/userAccountApi';
 import { readLocalProfile, readLocalToken } from '../../../utils/userAccount';
 import '../../../styles/settings/settings.css';
 import '../../../styles/auth/auth.css';
 
 type PaymentMethod = 'wechat' | 'alipay' | null;
 const SETTINGS_OPEN_TAB_STORE_KEY = 'settings-open-tab';
-const PRO_CHECKOUT_URL = 'https://www.pyisland.com';
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function formatDateOnly(value: Date): string {
@@ -124,13 +128,41 @@ export function PaymentContent(): ReactElement {
     setFeedback('');
   };
 
-  const handleConfirmPay = (): void => {
+  const handleConfirmPay = async (): Promise<void> => {
+    if (!method) {
+      setFeedback(t('settings.user.payment.selectMethodHint', { defaultValue: '请选择上方支付方式后再展示二维码。' }));
+      return;
+    }
     const email = receiptEmail.trim();
     if (!EMAIL_PATTERN.test(email)) {
       setFeedback(t('settings.user.payment.emailInvalid', { defaultValue: '请输入有效的收据邮箱地址' }));
       return;
     }
-    window.api.clipboardOpenUrl(PRO_CHECKOUT_URL).catch(() => {});
+    const token = readLocalToken();
+    if (!token) {
+      setFeedback(t('settings.user.payment.loginRequired', { defaultValue: '登录状态已失效，请重新登录后再试。' }));
+      return;
+    }
+
+    const channel: UserPaymentCreateChannel = method === 'alipay' ? 'ALIPAY' : 'WECHAT';
+    const result = await createProMonthOrder(token, channel);
+    if (!result.ok || !result.data) {
+      setFeedback(result.message || t('settings.user.payment.createOrderFailed', { defaultValue: '创建支付订单失败，请稍后重试。' }));
+      return;
+    }
+
+    const payUrl = (result.data.payUrl || result.data.qrCodeUrl || '').trim();
+    if (!payUrl) {
+      setFeedback(t('settings.user.payment.payUrlMissing', { defaultValue: '订单创建成功但未返回支付链接，请稍后重试。' }));
+      return;
+    }
+    if (result.data.expireAt) {
+      setOrderExpireAt(result.data.expireAt);
+    }
+    setFeedback('');
+    window.api.clipboardOpenUrl(payUrl).catch(() => {
+      setFeedback(t('settings.user.payment.openPayFailed', { defaultValue: '无法打开支付页面，请稍后重试。' }));
+    });
   };
 
   const handleFillAccountEmail = (): void => {

@@ -25,7 +25,14 @@
  */
 
 import { request } from './userAccountApi.client';
-import type { UserAccountResult, UserPaymentChannelsData, UserPaymentPricingData } from './userAccountApi.types';
+import type {
+  UserAccountResult,
+  UserPaymentChannelsData,
+  UserPaymentOrderData,
+  UserPaymentPricingData,
+} from './userAccountApi.types';
+
+export type UserPaymentCreateChannel = 'WECHAT' | 'ALIPAY';
 
 /**
  * 获取 Pro 月付价格信息。
@@ -42,6 +49,16 @@ export function fetchProMonthPricing(token: string): Promise<UserAccountResult<U
 export function fetchPaymentChannels(token: string): Promise<UserAccountResult<UserPaymentChannelsData>> {
   return request<UserPaymentChannelsData>('/v1/user/payment/channels', {
     method: 'GET',
+    auth: token,
+  });
+}
+
+export function createProMonthOrder(
+  token: string,
+  channel: UserPaymentCreateChannel,
+): Promise<UserAccountResult<UserPaymentOrderData>> {
+  return request<UserPaymentOrderData>(`/v1/user/payment/orders/pro-month?channel=${channel}`, {
+    method: 'POST',
     auth: token,
   });
 }

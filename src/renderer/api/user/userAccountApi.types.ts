@@ -197,3 +197,17 @@ export interface UserPaymentChannelsData {
   wechatEnabled: boolean;
   alipayEnabled: boolean;
 }
+
+export interface UserPaymentOrderData {
+  outTradeNo: string;
+  productCode: string;
+  amountFen: number;
+  currency: string;
+  status: string;
+  channel: 'WECHAT' | 'ALIPAY';
+  qrCodeUrl?: string;
+  payUrl?: string;
+  expireAt?: string;
+  paidAt?: string;
+  proExpireAt?: string;
+}
