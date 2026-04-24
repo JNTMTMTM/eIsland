@@ -1270,7 +1270,9 @@
         "docs": "Docs",
         "sourceCode": "Source Code",
         "license": "License",
-        "iconLibrary": "Icon Library"
+        "iconLibrary": "Icon Library",
+        "icpRecord": "ICP Record",
+        "publicSecurityRecord": "Public Security Record"
       },
       "depsTitle": "Open Source Frameworks & Dependencies",
       "wallpaperTitle": "Wallpaper Sources",

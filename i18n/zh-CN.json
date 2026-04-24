@@ -1270,7 +1270,9 @@
         "docs": "文档站",
         "sourceCode": "开源代码",
         "license": "开源协议",
-        "iconLibrary": "图标库"
+        "iconLibrary": "图标库",
+        "icpRecord": "ICP备案",
+        "publicSecurityRecord": "公安备案"
       },
       "depsTitle": "开源框架 & 依赖",
       "wallpaperTitle": "壁纸素材",
