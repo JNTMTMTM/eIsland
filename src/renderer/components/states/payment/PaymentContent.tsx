@@ -24,7 +24,7 @@ import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../store/slices';
 import { SvgIcon } from '../../../utils/SvgIcon';
-import { fetchProMonthPricing } from '../../../api/user/userAccountApi';
+import { fetchPaymentChannels, fetchProMonthPricing } from '../../../api/user/userAccountApi';
 import { readLocalProfile, readLocalToken } from '../../../utils/userAccount';
 import '../../../styles/settings/settings.css';
 import '../../../styles/auth/auth.css';
@@ -50,6 +50,8 @@ export function PaymentContent(): ReactElement {
   const [subscriptionPeriod, setSubscriptionPeriod] = useState('');
   const [priceLabel, setPriceLabel] = useState('');
   const [feedback, setFeedback] = useState('');
+  const [wechatEnabled, setWechatEnabled] = useState(true);
+  const [alipayEnabled, setAlipayEnabled] = useState(true);
 
   const handleReportIssue = (): void => {
     window.api.storeWrite(SETTINGS_OPEN_TAB_STORE_KEY, 'about-feedback').catch(() => {});
@@ -60,10 +62,17 @@ export function PaymentContent(): ReactElement {
   useEffect(() => {
     const token = readLocalToken();
     if (!token) {
+      setWechatEnabled(false);
+      setAlipayEnabled(false);
       setPriceLabel('');
       return;
     }
     let cancelled = false;
+    fetchPaymentChannels(token).then((result) => {
+      if (cancelled || !result.ok || !result.data) return;
+      setWechatEnabled(Boolean(result.data.wechatEnabled));
+      setAlipayEnabled(Boolean(result.data.alipayEnabled));
+    }).catch(() => {});
     fetchProMonthPricing(token).then((result) => {
       if (cancelled || !result.ok || !result.data) return;
       const amountYuanRaw = typeof result.data.amountYuan === 'string' ? result.data.amountYuan.trim() : '';
@@ -91,7 +100,21 @@ export function PaymentContent(): ReactElement {
     return date.toLocaleString();
   }, [orderExpireAt]);
 
+  useEffect(() => {
+    if (method === 'wechat' && !wechatEnabled) {
+      setMethod(null);
+    }
+    if (method === 'alipay' && !alipayEnabled) {
+      setMethod(null);
+    }
+  }, [method, wechatEnabled, alipayEnabled]);
+
+  const anyChannelEnabled = wechatEnabled || alipayEnabled;
+
   const handleSelectMethod = (nextMethod: Exclude<PaymentMethod, null>): void => {
+    if ((nextMethod === 'wechat' && !wechatEnabled) || (nextMethod === 'alipay' && !alipayEnabled)) {
+      return;
+    }
     setMethod(nextMethod);
     const now = new Date();
     const end = new Date(now);
@@ -132,6 +155,7 @@ export function PaymentContent(): ReactElement {
           <button
             type="button"
             className={`payment-method-btn ${method === 'wechat' ? 'active' : ''}`}
+            disabled={!wechatEnabled}
             onClick={() => handleSelectMethod('wechat')}
           >
             <img className="payment-method-icon" src={SvgIcon.WECHATPAY} alt="" aria-hidden="true" />
@@ -140,12 +164,19 @@ export function PaymentContent(): ReactElement {
           <button
             type="button"
             className={`payment-method-btn ${method === 'alipay' ? 'active' : ''}`}
+            disabled={!alipayEnabled}
             onClick={() => handleSelectMethod('alipay')}
           >
             <img className="payment-method-icon" src={SvgIcon.ALIPAY} alt="" aria-hidden="true" />
             {t('settings.user.payment.alipay', { defaultValue: '支付宝' })}
           </button>
         </div>
+
+        {!anyChannelEnabled ? (
+          <div className="payment-order-feedback">
+            {t('settings.user.payment.channelsUnavailable', { defaultValue: '当前支付通道暂不可用，请稍后重试。' })}
+          </div>
+        ) : null}
 
         {method ? (
           <div className="payment-order-card">

@@ -192,3 +192,8 @@ export interface UserPaymentPricingData {
   proDesc?: string;
   proFeatures?: string[];
 }
+
+export interface UserPaymentChannelsData {
+  wechatEnabled: boolean;
+  alipayEnabled: boolean;
+}

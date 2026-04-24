@@ -25,7 +25,7 @@
  */
 
 import { request } from './userAccountApi.client';
-import type { UserAccountResult, UserPaymentPricingData } from './userAccountApi.types';
+import type { UserAccountResult, UserPaymentChannelsData, UserPaymentPricingData } from './userAccountApi.types';
 
 /**
  * 获取 Pro 月付价格信息。
@@ -34,6 +34,13 @@ import type { UserAccountResult, UserPaymentPricingData } from './userAccountApi
  */
 export function fetchProMonthPricing(token: string): Promise<UserAccountResult<UserPaymentPricingData>> {
   return request<UserPaymentPricingData>('/v1/user/payment/pricing/pro-month', {
+    method: 'GET',
+    auth: token,
+  });
+}
+
+export function fetchPaymentChannels(token: string): Promise<UserAccountResult<UserPaymentChannelsData>> {
+  return request<UserPaymentChannelsData>('/v1/user/payment/channels', {
     method: 'GET',
     auth: token,
   });

@@ -1497,6 +1497,7 @@
         "confirmPay": "确认支付",
         "emailInvalid": "请输入有效的收据邮箱地址",
         "boundEmailNotFound": "当前账号未找到绑定邮箱",
+        "channelsUnavailable": "当前支付通道暂不可用，请稍后重试。",
         "wechatHint": "推荐使用微信扫码完成支付",
         "alipayHint": "推荐使用支付宝扫码完成支付",
         "selectMethodHint": "请选择上方支付方式后再展示二维码。",

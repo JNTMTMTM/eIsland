@@ -1497,6 +1497,7 @@
         "confirmPay": "Confirm Payment",
         "emailInvalid": "Please enter a valid receipt email address",
         "boundEmailNotFound": "No bound email found for the current account",
+        "channelsUnavailable": "Payment channels are temporarily unavailable. Please try again later.",
         "wechatHint": "Recommended: scan with WeChat",
         "alipayHint": "Recommended: scan with Alipay",
         "selectMethodHint": "Select a payment method above to show the QR panel.",

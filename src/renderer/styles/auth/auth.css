@@ -156,6 +156,11 @@
   color: rgba(var(--color-text-rgb), 0.95);
 }
 
+.payment-method-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .payment-order-card {
   border: 1px solid rgba(var(--color-text-rgb), 0.1);
   background: rgba(var(--color-text-rgb), 0.03);
