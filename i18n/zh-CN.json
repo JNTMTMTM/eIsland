@@ -1436,10 +1436,15 @@
         "pro": {
           "name": "Pro",
           "price": "¥15 / 月",
+          "priceLoading": "价格加载中…",
+          "priceUnavailable": "价格待定",
           "desc": "完整高级能力与持续更新支持。",
           "feature1": "全部 Free 权益",
           "feature2": "Pro 专属功能与扩展",
           "feature3": "优先体验新功能"
+        },
+        "billingCycle": {
+          "month": "月"
         }
       },
       "gender": {

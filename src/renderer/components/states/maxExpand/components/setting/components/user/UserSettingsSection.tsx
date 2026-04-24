@@ -28,6 +28,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ChangeEvent, ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
+  fetchProMonthPricing,
   fetchUserProfile,
   logoutUser,
   refreshUserToken,
@@ -156,6 +157,8 @@ export function UserSettingsSection(): ReactElement {
 
   const [logoutSubmitting, setLogoutSubmitting] = useState(false);
   const [userProfilePage, setUserProfilePage] = useState<UserProfilePage>('info');
+  const [proMonthPriceLabel, setProMonthPriceLabel] = useState('');
+  const [proMonthPricingLoading, setProMonthPricingLoading] = useState(false);
 
   const currentUserProfilePageLabel = t(`settings.user.pages.${userProfilePage}`, {
     defaultValue: userProfilePage === 'info'
@@ -292,6 +295,46 @@ export function UserSettingsSection(): ReactElement {
     }
     void loadRemoteProfile(token);
   }, [token, loadRemoteProfile, applyProfileToEditor]);
+
+  useEffect(() => {
+    if (!token) {
+      setProMonthPriceLabel('');
+      setProMonthPricingLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+    const loadProMonthPricing = async (): Promise<void> => {
+      setProMonthPricingLoading(true);
+      const result = await fetchProMonthPricing(token);
+      if (cancelled) return;
+      if (!result.ok || !result.data) {
+        setProMonthPriceLabel('');
+        setProMonthPricingLoading(false);
+        return;
+      }
+      const amountYuanRaw = typeof result.data.amountYuan === 'string' ? result.data.amountYuan.trim() : '';
+      const amountYuan = amountYuanRaw || (typeof result.data.amountFen === 'number'
+        ? (result.data.amountFen / 100).toFixed(2)
+        : '');
+      const cycle = String(result.data.billingCycle || '').toUpperCase() === 'MONTH'
+        ? t('settings.user.pro.billingCycle.month', { defaultValue: '月' })
+        : String(result.data.billingCycle || '').trim();
+      if (!amountYuan) {
+        setProMonthPriceLabel('');
+      } else if (!cycle) {
+        setProMonthPriceLabel(`¥${amountYuan}`);
+      } else {
+        setProMonthPriceLabel(`¥${amountYuan} / ${cycle}`);
+      }
+      setProMonthPricingLoading(false);
+    };
+
+    void loadProMonthPricing();
+    return () => {
+      cancelled = true;
+    };
+  }, [token, t]);
 
   useEffect(() => {
     const el = profilePagesLayoutRef.current;
@@ -1171,7 +1214,11 @@ export function UserSettingsSection(): ReactElement {
                 <img className="settings-user-info-pro-icon" src={SvgIcon.PRO} alt="PRO" />
                 {t('settings.user.pro.pro.name', { defaultValue: 'Pro' })}
               </div>
-              <div className="settings-user-pro-plan-price">{t('settings.user.pro.pro.price', { defaultValue: '¥25 / 月' })}</div>
+              <div className="settings-user-pro-plan-price">
+                {proMonthPricingLoading
+                  ? t('settings.user.pro.pro.priceLoading', { defaultValue: '价格加载中…' })
+                  : (proMonthPriceLabel || t('settings.user.pro.pro.priceUnavailable', { defaultValue: '价格待定' }))}
+              </div>
             </div>
             <div className="settings-user-pro-plan-desc">
               {t('settings.user.pro.pro.desc', { defaultValue: '完整高级能力与持续更新支持。' })}

@@ -179,3 +179,12 @@ export interface UpdateUserPasswordPayload {
   password: string;
   emailCode: string;
 }
+
+export interface UserPaymentPricingData {
+  productCode: string;
+  amountFen: number;
+  amountYuan: string;
+  currency: string;
+  billingCycle: string;
+  subject: string;
+}

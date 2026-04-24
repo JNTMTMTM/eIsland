@@ -1436,10 +1436,15 @@
         "pro": {
           "name": "Pro",
           "price": "¥15 / month",
+          "priceLoading": "Loading price…",
+          "priceUnavailable": "Price pending",
           "desc": "Full advanced capabilities with ongoing updates.",
           "feature1": "Everything in Free",
           "feature2": "Exclusive Pro features and extensions",
           "feature3": "Early access to new features"
+        },
+        "billingCycle": {
+          "month": "month"
         }
       },
       "gender": {

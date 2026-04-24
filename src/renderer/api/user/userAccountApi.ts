@@ -37,3 +37,4 @@ export * from './userAccountApi.auth';
 export * from './userAccountApi.profile';
 export * from './userAccountApi.feedback';
 export * from './userAccountApi.wallpaper';
+export * from './userAccountApi.payment';
