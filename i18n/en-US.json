@@ -1414,6 +1414,7 @@
         "editDesc": "Edit gender, birthday, and other profile details",
         "avatarDesc": "Upload or change your account avatar",
         "passwordDesc": "Change login password via email verification",
+        "proDesc": "View Free and Pro plan benefits plus current subscription pricing",
         "logoutDesc": "Sign out or delete your account"
       },
       "pages": {
