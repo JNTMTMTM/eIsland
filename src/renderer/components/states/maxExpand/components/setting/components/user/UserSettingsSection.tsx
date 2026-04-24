@@ -28,6 +28,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ChangeEvent, ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
+  closeUserPaymentOrder,
+  fetchUserPaymentOrders,
   fetchProMonthPricing,
   fetchUserProfile,
   logoutUser,
@@ -37,6 +39,7 @@ import {
   updateUserPassword,
   updateUserProfile,
   uploadUserAvatar,
+  type UserPaymentOrderData,
 } from '../../../../../../../api/user/userAccountApi';
 import { runSliderCaptcha } from '../../../../../../../utils/sliderCaptcha';
 import useIslandStore from '../../../../../../../store/slices';
@@ -53,7 +56,7 @@ import {
 import { SvgIcon } from '../../../../../../../utils/SvgIcon';
 
 type FeedbackType = 'success' | 'error' | 'info';
-type UserProfilePage = 'info' | 'edit' | 'password' | 'pro' | 'account';
+type UserProfilePage = 'info' | 'edit' | 'password' | 'pro' | 'orders' | 'account';
 
 interface Feedback {
   type: FeedbackType;
@@ -67,7 +70,7 @@ interface UserSettingsSectionProps {
 }
 
 const GENDER_VALUES: UserAccountGender[] = ['male', 'female', 'custom', 'undisclosed'];
-const USER_PROFILE_PAGES: UserProfilePage[] = ['info', 'edit', 'password', 'pro', 'account'];
+const USER_PROFILE_PAGES: UserProfilePage[] = ['info', 'edit', 'password', 'pro', 'orders', 'account'];
 const EMAIL_PATTERN = /^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
 
 const getGenderIcon = (gender: UserAccountGender | null | undefined): string => {
@@ -167,6 +170,10 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
   const [proPlanDesc, setProPlanDesc] = useState('');
   const [freePlanFeatures, setFreePlanFeatures] = useState<string[]>([]);
   const [proPlanFeatures, setProPlanFeatures] = useState<string[]>([]);
+  const [userOrders, setUserOrders] = useState<UserPaymentOrderData[]>([]);
+  const [loadingUserOrders, setLoadingUserOrders] = useState(false);
+  const [ordersFeedback, setOrdersFeedback] = useState<Feedback | null>(null);
+  const [orderActionOutTradeNo, setOrderActionOutTradeNo] = useState('');
 
   const currentUserProfilePageLabel = t(`settings.user.pages.${userProfilePage}`, {
     defaultValue: userProfilePage === 'info'
@@ -177,6 +184,8 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
           ? '修改密码'
           : userProfilePage === 'pro'
             ? 'PRO功能'
+            : userProfilePage === 'orders'
+              ? '我的订单'
             : '关于账户',
   });
 
@@ -467,6 +476,33 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
     }
   };
 
+  const loadUserOrders = useCallback(async (): Promise<void> => {
+    if (!token) {
+      setUserOrders([]);
+      setLoadingUserOrders(false);
+      return;
+    }
+    setLoadingUserOrders(true);
+    const result = await fetchUserPaymentOrders(token, 20);
+    setLoadingUserOrders(false);
+    if (!result.ok || !Array.isArray(result.data)) {
+      if (result.code === 401 || result.code === 4011) {
+        resetToLoggedOut();
+        return;
+      }
+      setOrdersFeedback({ type: 'error', text: result.message || t('settings.user.orders.feedback.loadFailed', { defaultValue: '加载订单失败' }) });
+      return;
+    }
+    setUserOrders(result.data);
+  }, [resetToLoggedOut, t, token]);
+
+  useEffect(() => {
+    if (userProfilePage !== 'orders' || !token) {
+      return;
+    }
+    void loadUserOrders();
+  }, [loadUserOrders, token, userProfilePage]);
+
   const handleSaveProfile = async (): Promise<void> => {
     if (!token || savingProfile || savingPassword) return;
     if (editBirthday && !/^\d{4}-\d{2}-\d{2}$/.test(editBirthday)) {
@@ -744,6 +780,155 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
     );
   };
 
+  const getOrderStatusLabel = (status: string): string => {
+    const normalized = String(status || '').toUpperCase();
+    if (normalized === 'PAYING') return t('settings.user.payment.status.paying', { defaultValue: '待支付' });
+    if (normalized === 'SUCCESS') return t('settings.user.payment.status.success', { defaultValue: '已支付' });
+    if (normalized === 'CLOSED') return t('settings.user.payment.status.closed', { defaultValue: '已关闭' });
+    if (normalized === 'FAILED') return t('settings.user.payment.status.failed', { defaultValue: '支付失败' });
+    return t('settings.user.payment.status.unknown', { defaultValue: '未知' });
+  };
+
+  const getOrderStatusClassName = (status: string): string => {
+    const normalized = String(status || '').toUpperCase();
+    if (normalized === 'SUCCESS') return 'is-success';
+    if (normalized === 'FAILED') return 'is-failed';
+    if (normalized === 'CLOSED') return 'is-closed';
+    if (normalized === 'PAYING') return 'is-paying';
+    return 'is-unknown';
+  };
+
+  const handleOpenOrderPayment = (order: UserPaymentOrderData): void => {
+    const payUrl = (order.payUrl || order.qrCodeUrl || '').trim();
+    if (!payUrl) {
+      setOrdersFeedback({
+        type: 'error',
+        text: t('settings.user.payment.payUrlMissing', { defaultValue: '订单创建成功但未返回支付链接，请稍后重试。' }),
+      });
+      return;
+    }
+    window.api.clipboardOpenUrl(payUrl).catch(() => {
+      setOrdersFeedback({
+        type: 'error',
+        text: t('settings.user.payment.openPayFailed', { defaultValue: '无法打开支付页面，请稍后重试。' }),
+      });
+    });
+  };
+
+  const handleCloseOrder = async (order: UserPaymentOrderData): Promise<void> => {
+    if (!token || !order.outTradeNo || orderActionOutTradeNo) return;
+    setOrderActionOutTradeNo(order.outTradeNo);
+    setOrdersFeedback(null);
+    const result = await closeUserPaymentOrder(token, order.outTradeNo);
+    setOrderActionOutTradeNo('');
+    if (!result.ok) {
+      if (result.code === 401 || result.code === 4011) {
+        resetToLoggedOut();
+        return;
+      }
+      setOrdersFeedback({
+        type: 'error',
+        text: result.message || t('settings.user.orders.feedback.closeFailed', { defaultValue: '关闭订单失败，请稍后重试' }),
+      });
+      return;
+    }
+    setOrdersFeedback({ type: 'success', text: t('settings.user.orders.feedback.closeSuccess', { defaultValue: '订单已关闭' }) });
+    await loadUserOrders();
+  };
+
+  const renderOrdersPage = (): ReactElement => (
+    <div className="settings-user-page-panel settings-user-orders-panel">
+        <div className="settings-user-card settings-user-orders-head-card">
+          <div className="settings-user-card-title-row settings-user-orders-title-row">
+            <div className="settings-user-form-title">{t('settings.user.orders.title', { defaultValue: '我的订单' })}</div>
+            <div className="settings-user-card-title-hint">
+              {t('settings.user.orders.subtitle', { defaultValue: '查询当前账号订单，并可继续支付或关闭待支付订单' })}
+            </div>
+            <button
+              type="button"
+              className="settings-user-secondary-btn settings-user-orders-refresh-btn"
+              disabled={loadingUserOrders || !!orderActionOutTradeNo}
+              onClick={() => void loadUserOrders()}
+            >
+              {loadingUserOrders
+                ? (
+                  <>
+                    <span className="settings-user-orders-inline-spinner" aria-hidden="true" />
+                    {t('settings.user.orders.actions.refreshing', { defaultValue: '刷新中…' })}
+                  </>
+                )
+                : t('settings.user.orders.actions.refresh', { defaultValue: '刷新订单' })}
+            </button>
+          </div>
+        </div>
+
+        {ordersFeedback ? renderFeedback(ordersFeedback) : null}
+
+        {loadingUserOrders && userOrders.length === 0 ? (
+          <div className="settings-user-card settings-user-orders-empty">
+            <div className="settings-user-orders-loading-wrap">
+              <span className="settings-user-orders-spinner" aria-hidden="true" />
+              <span>{t('settings.user.orders.loading', { defaultValue: '订单加载中…' })}</span>
+            </div>
+          </div>
+        ) : null}
+
+        {!loadingUserOrders && userOrders.length === 0 ? (
+          <div className="settings-user-card settings-user-orders-empty">
+            {t('settings.user.orders.empty', { defaultValue: '暂无订单记录' })}
+          </div>
+        ) : null}
+
+        {userOrders.map((order) => {
+          const status = String(order.status || '').toUpperCase();
+          const isPaying = status === 'PAYING';
+          const amountLabel = typeof order.amountFen === 'number' ? `¥${(order.amountFen / 100).toFixed(2)}` : '--';
+          return (
+            <div key={order.outTradeNo} className="settings-user-card settings-user-order-item-card">
+              <div className="settings-user-order-item-row">
+                <span className="settings-user-order-item-label">{t('settings.user.payment.orderNoLabel', { defaultValue: '订单号' })}</span>
+                <span className="settings-user-order-item-value">{order.outTradeNo || '--'}</span>
+              </div>
+              <div className="settings-user-order-item-row">
+                <span className="settings-user-order-item-label">{t('settings.user.payment.payAmountLabel', { defaultValue: '付款金额' })}</span>
+                <span className="settings-user-order-item-value">{amountLabel}</span>
+              </div>
+              <div className="settings-user-order-item-row">
+                <span className="settings-user-order-item-label">{t('settings.user.payment.payStatusLabel', { defaultValue: '支付状态' })}</span>
+                <span className={`settings-user-order-status-badge ${getOrderStatusClassName(status)}`}>{getOrderStatusLabel(status)}</span>
+              </div>
+              <div className="settings-user-order-item-row">
+                <span className="settings-user-order-item-label">{t('settings.user.payment.expireLabel', { defaultValue: '订单到期时间' })}</span>
+                <span className="settings-user-order-item-value">{formatDateTime(order.expireAt)}</span>
+              </div>
+              {isPaying ? (
+                <div className="settings-user-order-actions">
+                  <button
+                    type="button"
+                    className="settings-user-primary-btn"
+                    disabled={!!orderActionOutTradeNo}
+                    onClick={() => handleOpenOrderPayment(order)}
+                  >
+                    {t('settings.user.orders.actions.continuePay', { defaultValue: '继续支付' })}
+                  </button>
+                  <button
+                    type="button"
+                    className="settings-user-secondary-btn"
+                    disabled={!!orderActionOutTradeNo}
+                    onClick={() => void handleCloseOrder(order)}
+                  >
+                    {orderActionOutTradeNo === order.outTradeNo
+                      ? t('settings.user.orders.actions.closing', { defaultValue: '关闭中…' })
+                      : t('settings.user.orders.actions.closeOrder', { defaultValue: '关闭订单' })}
+                  </button>
+                </div>
+              ) : null}
+            </div>
+          );
+        })}
+    </div>
+  );
+
   const renderProfileFeedback = (scope: ProfileFeedbackScope): ReactElement | null => {
     if (profileFeedbackScope !== scope) return null;
     return renderFeedback(profileFeedback);
@@ -788,6 +973,7 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
       { id: 'edit', label: t('settings.user.pages.edit', { defaultValue: '修改信息' }) },
       { id: 'password', label: t('settings.user.pages.password', { defaultValue: '修改密码' }) },
       { id: 'pro', label: t('settings.user.pages.pro', { defaultValue: 'PRO功能' }) },
+      { id: 'orders', label: t('settings.user.pages.orders', { defaultValue: '我的订单' }) },
       { id: 'account', label: t('settings.user.pages.account', { defaultValue: '关于账户' }) },
     ];
     const profileRole = (profile as { role?: unknown } | null)?.role;
@@ -853,6 +1039,18 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
               <span className="settings-index-card-title">{t('settings.user.pages.pro', { defaultValue: 'PRO功能' })}</span>
               <span className="settings-index-card-desc">{t('settings.user.infoNav.proDesc', { defaultValue: '查看 Free 与 Pro 计划权益及当前订阅价格' })}</span>
               <img className="settings-index-card-layout-icon" src={SvgIcon.PRO} alt="" aria-hidden="true" />
+            </button>
+            <button
+              type="button"
+              className="settings-index-card"
+              onClick={() => {
+                setOrdersFeedback(null);
+                setUserProfilePage('orders');
+              }}
+            >
+              <span className="settings-index-card-title">{t('settings.user.pages.orders', { defaultValue: '我的订单' })}</span>
+              <span className="settings-index-card-desc">{t('settings.user.infoNav.ordersDesc', { defaultValue: '查看订单状态、继续支付或主动关闭待支付订单' })}</span>
+              <img className="settings-index-card-layout-icon" src={SvgIcon.UPDATE} alt="" aria-hidden="true" />
             </button>
             <button type="button" className="settings-index-card" onClick={() => setUserProfilePage('edit')}>
               <span className="settings-index-card-title">{t('settings.user.pages.edit', { defaultValue: '修改信息' })}</span>
@@ -1315,6 +1513,7 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
           {userProfilePage === 'edit' && renderEditPage()}
           {userProfilePage === 'password' && renderPasswordPage()}
           {userProfilePage === 'pro' && renderProPage()}
+          {userProfilePage === 'orders' && renderOrdersPage()}
           {userProfilePage === 'account' && renderAccountPage()}
         </div>
 

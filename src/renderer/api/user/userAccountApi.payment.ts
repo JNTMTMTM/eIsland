@@ -72,3 +72,24 @@ export function fetchPaymentOrder(
     auth: token,
   });
 }
+
+export function fetchUserPaymentOrders(
+  token: string,
+  limit = 20,
+): Promise<UserAccountResult<UserPaymentOrderData[]>> {
+  const normalizedLimit = Math.max(1, Math.min(Number(limit) || 20, 50));
+  return request<UserPaymentOrderData[]>(`/v1/user/payment/orders?limit=${normalizedLimit}`, {
+    method: 'GET',
+    auth: token,
+  });
+}
+
+export function closeUserPaymentOrder(
+  token: string,
+  outTradeNo: string,
+): Promise<UserAccountResult<null>> {
+  return request<null>(`/v1/user/payment/orders/${encodeURIComponent(outTradeNo)}/close`, {
+    method: 'POST',
+    auth: token,
+  });
+}

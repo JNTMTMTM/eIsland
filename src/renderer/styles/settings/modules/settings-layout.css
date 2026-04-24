@@ -3155,6 +3155,141 @@
   text-decoration: none;
 }
 
+.settings-user-orders-panel {
+  gap: 10px;
+}
+
+.settings-user-orders-head-card {
+  gap: 8px;
+}
+
+.settings-user-orders-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.settings-user-orders-title-row .settings-user-card-title-hint {
+  flex: 1;
+  margin: 0;
+}
+
+.settings-user-orders-refresh-btn {
+  flex-shrink: 0;
+}
+
+.settings-user-orders-inline-spinner {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1.6px solid rgba(var(--color-text-rgb), 0.22);
+  border-top-color: rgba(var(--color-text-rgb), 0.85);
+  animation: settings-user-orders-spin 0.85s linear infinite;
+}
+
+.settings-user-orders-loading-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.settings-user-orders-spinner {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1.8px solid rgba(var(--color-text-rgb), 0.2);
+  border-top-color: rgba(var(--color-text-rgb), 0.85);
+  animation: settings-user-orders-spin 0.85s linear infinite;
+}
+
+@keyframes settings-user-orders-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.settings-user-orders-empty {
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: rgba(var(--color-text-rgb), 0.56);
+}
+
+.settings-user-order-item-card {
+  gap: 8px;
+}
+
+.settings-user-order-item-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.settings-user-order-item-label {
+  font-size: 11px;
+  color: rgba(var(--color-text-rgb), 0.56);
+}
+
+.settings-user-order-item-value {
+  font-size: 12px;
+  color: rgba(var(--color-text-rgb), 0.86);
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.settings-user-order-status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 62px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  border: 1px solid transparent;
+}
+
+.settings-user-order-status-badge.is-paying {
+  color: rgba(245, 180, 61, 1);
+  background: rgba(245, 180, 61, 0.14);
+  border-color: rgba(245, 180, 61, 0.28);
+}
+
+.settings-user-order-status-badge.is-success {
+  color: rgba(74, 222, 128, 1);
+  background: rgba(74, 222, 128, 0.14);
+  border-color: rgba(74, 222, 128, 0.28);
+}
+
+.settings-user-order-status-badge.is-closed,
+.settings-user-order-status-badge.is-failed,
+.settings-user-order-status-badge.is-unknown {
+  color: rgba(var(--color-text-rgb), 0.78);
+  background: rgba(var(--color-text-rgb), 0.1);
+  border-color: rgba(var(--color-text-rgb), 0.2);
+}
+
+.settings-user-order-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.settings-user-order-actions .settings-user-primary-btn,
+.settings-user-order-actions .settings-user-secondary-btn {
+  flex: 1;
+  justify-content: center;
+}
+
 @media (max-width: 760px) {
   .settings-user-avatar-row {
     grid-template-columns: 1fr;

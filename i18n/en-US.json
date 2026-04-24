@@ -1446,6 +1446,7 @@
         "avatarDesc": "Upload or change your account avatar",
         "passwordDesc": "Change login password via email verification",
         "proDesc": "View Free and Pro plan benefits plus current subscription pricing",
+        "ordersDesc": "Check order status, continue payment, or close pending orders",
         "logoutDesc": "Sign out or delete your account"
       },
       "pages": {
@@ -1453,8 +1454,27 @@
         "edit": "Edit Profile",
         "password": "Change Password",
         "pro": "PRO Features",
+        "orders": "My Orders",
         "account": "Account",
         "switchTo": "Switch to {{label}}"
+      },
+      "orders": {
+        "title": "My Orders",
+        "subtitle": "View your account orders and continue payment or close pending ones",
+        "loading": "Loading orders…",
+        "empty": "No order records yet",
+        "actions": {
+          "refresh": "Refresh Orders",
+          "refreshing": "Refreshing…",
+          "continuePay": "Continue Payment",
+          "closeOrder": "Close Order",
+          "closing": "Closing…"
+        },
+        "feedback": {
+          "loadFailed": "Failed to load orders",
+          "closeFailed": "Failed to close order. Please try again later",
+          "closeSuccess": "Order closed"
+        }
       },
       "pro": {
         "title": "Plans",

@@ -1446,6 +1446,7 @@
         "avatarDesc": "上传或更换账号头像",
         "passwordDesc": "通过邮箱验证码修改登录密码",
         "proDesc": "查看 Free 与 Pro 计划权益及当前订阅价格",
+        "ordersDesc": "查看订单状态、继续支付或主动关闭待支付订单",
         "logoutDesc": "退出当前账号或注销"
       },
       "pages": {
@@ -1453,8 +1454,27 @@
         "edit": "修改信息",
         "password": "修改密码",
         "pro": "PRO功能",
+        "orders": "我的订单",
         "account": "关于账户",
         "switchTo": "切换到{{label}}"
+      },
+      "orders": {
+        "title": "我的订单",
+        "subtitle": "查询当前账号订单，并可继续支付或关闭待支付订单",
+        "loading": "订单加载中…",
+        "empty": "暂无订单记录",
+        "actions": {
+          "refresh": "刷新订单",
+          "refreshing": "刷新中…",
+          "continuePay": "继续支付",
+          "closeOrder": "关闭订单",
+          "closing": "关闭中…"
+        },
+        "feedback": {
+          "loadFailed": "加载订单失败",
+          "closeFailed": "关闭订单失败，请稍后重试",
+          "closeSuccess": "订单已关闭"
+        }
       },
       "pro": {
         "title": "产品类型",
