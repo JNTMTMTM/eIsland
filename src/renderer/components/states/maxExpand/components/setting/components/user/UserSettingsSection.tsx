@@ -1014,6 +1014,16 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
                 </div>
                 <div className="settings-user-info-summary-email">{profile?.email ?? '—'}</div>
               </div>
+              <div className="settings-user-info-summary-meta">
+                <div className="settings-user-info-summary-meta-row">
+                  <span className="settings-user-info-summary-label">{t('settings.user.card.memberSince', { defaultValue: '加入时间' })}</span>
+                  <span className="settings-user-info-summary-value">{formatDateTime(profile?.createdAt)}</span>
+                </div>
+                <div className="settings-user-info-summary-meta-row">
+                  <span className="settings-user-info-summary-label">{t('settings.user.card.proExpireAt', { defaultValue: 'Pro到期时间' })}</span>
+                  <span className="settings-user-info-summary-value">{formatDateTime(profile?.proExpireAt)}</span>
+                </div>
+              </div>
             </div>
             <div className="settings-user-info-summary-divider" />
             <div className="settings-user-info-summary-row">
@@ -1023,10 +1033,6 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
             <div className="settings-user-info-summary-row">
               <span className="settings-user-info-summary-label">{t('settings.user.fields.birthday', { defaultValue: '生日' })}</span>
               <span className="settings-user-info-summary-value">{profile?.birthday ?? '—'}</span>
-            </div>
-            <div className="settings-user-info-summary-row">
-              <span className="settings-user-info-summary-label">{t('settings.user.card.memberSince', { defaultValue: '加入时间' })}</span>
-              <span className="settings-user-info-summary-value">{formatDateTime(profile?.createdAt)}</span>
             </div>
           </div>
 

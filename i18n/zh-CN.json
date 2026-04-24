@@ -1439,7 +1439,8 @@
         "danger": "危险操作"
       },
       "card": {
-        "memberSince": "加入时间"
+        "memberSince": "加入时间",
+        "proExpireAt": "Pro到期时间"
       },
       "infoNav": {
         "editDesc": "修改性别、生日等基本资料",

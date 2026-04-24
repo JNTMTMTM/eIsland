@@ -1439,7 +1439,8 @@
         "danger": "Danger Zone"
       },
       "card": {
-        "memberSince": "Member since"
+        "memberSince": "Member since",
+        "proExpireAt": "Pro Expiration"
       },
       "infoNav": {
         "editDesc": "Edit gender, birthday, and other profile details",
