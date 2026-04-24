@@ -98,11 +98,13 @@ async function searchLocalFiles(rootDir: string, keyword: string, options?: Loca
       continue;
     }
 
-    for (const entry of entries) {
-      if (results.length >= maxCount) break;
+    entries.some((entry) => {
+      if (results.length >= maxCount) {
+        return true;
+      }
       const entryName = typeof entry.name === 'string' ? entry.name : entry.name.toString('utf8');
       if (!includeHidden && entryName.startsWith('.')) {
-        continue;
+        return false;
       }
       const entryPath = `${current.dir}${current.dir.endsWith('\\') ? '' : '\\'}${entryName}`;
       const isDirectory = entry.isDirectory();
@@ -123,13 +125,11 @@ async function searchLocalFiles(rootDir: string, keyword: string, options?: Loca
           isDirectory,
         });
       }
-      if (isDirectory && current.depth < maxDepth) {
-        if (excludedDirSet.has(entryName.toLowerCase())) {
-          continue;
-        }
+      if (isDirectory && current.depth < maxDepth && !excludedDirSet.has(entryName.toLowerCase())) {
         queue.push({ dir: entryPath, depth: current.depth + 1 });
       }
-    }
+      return false;
+    });
   }
 
   return results;
