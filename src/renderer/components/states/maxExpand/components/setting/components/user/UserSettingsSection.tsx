@@ -837,6 +837,15 @@ export function UserSettingsSection(): ReactElement {
           </div>
 
           <div className="settings-user-info-nav-cards">
+            <button
+              type="button"
+              className="settings-index-card settings-user-pro-nav-card--outline"
+              onClick={() => setUserProfilePage('pro')}
+            >
+              <span className="settings-index-card-title">{t('settings.user.pages.pro', { defaultValue: 'PRO功能' })}</span>
+              <span className="settings-index-card-desc">{t('settings.user.infoNav.proDesc', { defaultValue: '查看 Free 与 Pro 计划权益及当前订阅价格' })}</span>
+              <img className="settings-index-card-layout-icon" src={SvgIcon.PRO} alt="" aria-hidden="true" />
+            </button>
             <button type="button" className="settings-index-card" onClick={() => setUserProfilePage('edit')}>
               <span className="settings-index-card-title">{t('settings.user.pages.edit', { defaultValue: '修改信息' })}</span>
               <span className="settings-index-card-desc">{t('settings.user.infoNav.editDesc', { defaultValue: '修改性别、生日等基本资料' })}</span>

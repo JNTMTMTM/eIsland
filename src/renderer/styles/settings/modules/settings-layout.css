@@ -2771,6 +2771,58 @@
   flex-shrink: 0;
 }
 
+.settings-user-info-nav-cards .settings-index-card {
+  height: 72px;
+}
+
+.settings-user-info-nav-cards .settings-index-card-desc {
+  display: -webkit-box;
+  line-clamp: 2;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.settings-user-pro-nav-card--outline {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-color: rgba(242, 203, 81, 0.45);
+  background:
+    linear-gradient(125deg, rgba(242, 203, 81, 0.3) 0%, rgba(242, 203, 81, 0.09) 34%, rgba(var(--color-text-rgb), 0.03) 72%),
+    linear-gradient(135deg, rgba(var(--color-text-rgb), 0.08), rgba(var(--color-text-rgb), 0.03));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 239, 184, 0.45),
+    inset 0 0 0 1px rgba(242, 203, 81, 0.16);
+}
+
+.settings-user-pro-nav-card--outline::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    linear-gradient(112deg, rgba(242, 203, 81, 0.42) 0%, rgba(242, 203, 81, 0.12) 24%, rgba(242, 203, 81, 0) 58%);
+  opacity: 0.9;
+}
+
+.settings-user-pro-nav-card--outline > :not(.settings-index-card-layout-icon) {
+  position: relative;
+  z-index: 1;
+}
+
+.settings-user-pro-nav-card--outline .settings-index-card-desc {
+  z-index: 1;
+  opacity: 1;
+}
+
+.settings-user-pro-nav-card--outline .settings-index-card-layout-icon {
+  z-index: 0;
+  opacity: 0.07;
+}
+
 .settings-user-overview-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
