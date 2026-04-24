@@ -38,6 +38,7 @@ import { LyricsContent } from './states/lyrics/LyricsContent';
 import { GuideContent } from './states/guide/GuideContent';
 import { LoginContent } from './states/login/LoginContent';
 import { RegisterContent } from './states/register/RegisterContent';
+import { PaymentContent } from './states/payment/PaymentContent';
 import { AnnouncementContent } from './states/announcement/AnnouncementContent';
 import { SvgIcon } from '../utils/SvgIcon';
 import type { NowPlayingInfo } from '../store/isLandStore';
@@ -55,7 +56,7 @@ import {
 } from '../api/announcement/announcementApi';
 
 /** 灵动岛状态类型 */
-export type IslandState = 'idle' | 'hover' | 'expanded' | 'notification' | 'maxExpand' | 'minimal' | 'lyrics' | 'guide' | 'login' | 'register' | 'announcement';
+export type IslandState = 'idle' | 'hover' | 'expanded' | 'notification' | 'maxExpand' | 'minimal' | 'lyrics' | 'guide' | 'login' | 'register' | 'payment' | 'announcement';
 
 /** shell.css 中 morph/transition 主时长（0.55s） */
 const SHELL_MORPH_DURATION_MS = 550;
@@ -149,6 +150,7 @@ const STATE_AREA: Record<string, number> = {
   guide: 860 * 400,
   login: 860 * 400,
   register: 860 * 400,
+  payment: 860 * 400,
   announcement: 860 * 400,
 };
 
@@ -233,6 +235,13 @@ export const STATE_CONFIGS: Record<IslandState, StateConfig> = {
   },
   register: {
     name: 'register',
+    mousePassthrough: false,
+    expanded: true,
+    enterDelay: 0,
+    leaveDelay: 0,
+  },
+  payment: {
+    name: 'payment',
     mousePassthrough: false,
     expanded: true,
     enterDelay: 0,
@@ -684,7 +693,7 @@ function DynamicIsland(): React.JSX.Element {
     const unsub = window.api?.onUpdaterNotAvailable?.(() => {
       void (async () => {
         const current = useIslandStore.getState().state;
-        if (current === 'login' || current === 'register') return;
+        if (current === 'login' || current === 'register' || current === 'payment') return;
 
         const mode = await readAnnouncementShowMode();
         const currentVersion = await window.api?.updaterVersion?.() ?? '';
@@ -718,7 +727,7 @@ function DynamicIsland(): React.JSX.Element {
 
   useEffect(() => {
     if (!pendingAnnouncementAfterGuideRef.current) return;
-    if (state === 'guide' || state === 'login' || state === 'register') return;
+    if (state === 'guide' || state === 'login' || state === 'register' || state === 'payment') return;
 
     pendingAnnouncementAfterGuideRef.current = false;
     setAnnouncement();
@@ -1046,7 +1055,7 @@ function DynamicIsland(): React.JSX.Element {
         return;
       }
 
-      if (state === 'notification' || state === 'guide' || state === 'login' || state === 'register' || state === 'announcement') {
+      if (state === 'notification' || state === 'guide' || state === 'login' || state === 'register' || state === 'payment' || state === 'announcement') {
         if (inWindow) {
           window.api?.disableMousePassthrough();
         }
@@ -1191,6 +1200,12 @@ function DynamicIsland(): React.JSX.Element {
       state: 'register',
       render: () => (
         <RegisterContent />
+      ),
+    },
+    {
+      state: 'payment',
+      render: () => (
+        <PaymentContent />
       ),
     },
     {

@@ -73,6 +73,7 @@ const WALLPAPER_SOURCES = [
 
 interface AboutSettingsSectionProps {
   aboutVersion: string;
+  initialPage?: AboutSettingsPageKey;
 }
 
 const ABOUT_PAGES: AboutSettingsPageKey[] = ['development', 'feedback'];
@@ -121,9 +122,9 @@ function normalizeFeedbackStatus(value: string | undefined): string {
  * @param aboutVersion - 当前软件版本号
  * @returns 关于软件设置区域
  */
-export function AboutSettingsSection({ aboutVersion }: AboutSettingsSectionProps): ReactElement {
+export function AboutSettingsSection({ aboutVersion, initialPage = 'development' }: AboutSettingsSectionProps): ReactElement {
   const { t } = useTranslation();
-  const [aboutPage, setAboutPage] = useState<AboutSettingsPageKey>('development');
+  const [aboutPage, setAboutPage] = useState<AboutSettingsPageKey>(initialPage);
   const [token, setToken] = useState<string | null>(() => readLocalToken());
   const [feedbackType, setFeedbackType] = useState('bug');
   const [feedbackTitle, setFeedbackTitle] = useState('');
@@ -143,6 +144,10 @@ export function AboutSettingsSection({ aboutVersion }: AboutSettingsSectionProps
   const aboutPageRef = useRef<AboutSettingsPageKey>('development');
   const aboutLayoutRef = useRef<HTMLDivElement | null>(null);
   aboutPageRef.current = aboutPage;
+
+  useEffect(() => {
+    setAboutPage(initialPage);
+  }, [initialPage]);
 
   const feedbackTypeOptions = useMemo(
     () => [

@@ -32,6 +32,7 @@ import { CountdownTab } from './states/maxExpand/components/CountdownTab';
 import { SettingsTab } from './states/maxExpand/components/SettingsTab';
 import { LoginContent } from './states/login/LoginContent';
 import { RegisterContent } from './states/register/RegisterContent';
+import { PaymentContent } from './states/payment/PaymentContent';
 import useIslandStore from '../store/slices';
 import windowIcon from '../../../resources/icon/eisland.svg';
 
@@ -511,7 +512,8 @@ export function StandaloneWindow(): ReactElement {
         {activeTab === 'countdown' && <CountdownTab />}
         {activeTab === 'settings' && state === 'login' && <LoginContent />}
         {activeTab === 'settings' && state === 'register' && <RegisterContent />}
-        {activeTab === 'settings' && state !== 'login' && state !== 'register' && <SettingsTab />}
+        {activeTab === 'settings' && state === 'payment' && <PaymentContent />}
+        {activeTab === 'settings' && state !== 'login' && state !== 'register' && state !== 'payment' && <SettingsTab />}
       </div>
     </div>
   );

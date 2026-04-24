@@ -1481,6 +1481,18 @@
           "month": "月"
         }
       },
+      "payment": {
+        "title": "购买 Pro",
+        "subtitle": "选择支付方式后前往官网完成支付，支付成功后账号会自动同步 Pro 权益。",
+        "method": "支付方式",
+        "wechat": "微信支付",
+        "alipay": "支付宝",
+        "wechatHint": "推荐使用微信扫码完成支付",
+        "alipayHint": "推荐使用支付宝扫码完成支付",
+        "selectMethodHint": "请选择上方支付方式后再展示二维码。",
+        "fallbackHint": "如果扫码不可用，可点击下方按钮前往官网支付页面。",
+        "goCheckout": "前往官网支付"
+      },
       "gender": {
         "male": "男",
         "female": "女",
@@ -1513,6 +1525,7 @@
         "cancelChanges": "取消更改",
         "sendCode": "发送验证码",
         "sendCodeCooldown": "{{seconds}}s后重试",
+        "reportIssue": "报告问题",
         "currentPlan": "当前可用",
         "buyPro": "购买 Pro",
         "proActivated": "已开通 Pro"

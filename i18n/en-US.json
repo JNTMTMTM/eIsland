@@ -1481,6 +1481,18 @@
           "month": "month"
         }
       },
+      "payment": {
+        "title": "Buy Pro",
+        "subtitle": "Select a payment method and continue on the website. Your Pro benefits will sync to this account after payment succeeds.",
+        "method": "Payment Method",
+        "wechat": "WeChat Pay",
+        "alipay": "Alipay",
+        "wechatHint": "Recommended: scan with WeChat",
+        "alipayHint": "Recommended: scan with Alipay",
+        "selectMethodHint": "Select a payment method above to show the QR panel.",
+        "fallbackHint": "If scanning is unavailable, click the button below to open the web checkout page.",
+        "goCheckout": "Go to Web Checkout"
+      },
       "gender": {
         "male": "Male",
         "female": "Female",
@@ -1513,6 +1525,7 @@
         "cancelChanges": "Discard changes",
         "sendCode": "Send Code",
         "sendCodeCooldown": "Retry in {{seconds}}s",
+        "reportIssue": "Report Issue",
         "currentPlan": "Current Plan",
         "buyPro": "Buy Pro",
         "proActivated": "Pro Activated"

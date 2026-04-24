@@ -125,7 +125,7 @@ const getRoleFromToken = (token: string | null | undefined): string | null => {
  */
 export function UserSettingsSection({ initialProfilePage = 'info' }: UserSettingsSectionProps): ReactElement {
   const { t, i18n } = useTranslation();
-  const { setLogin, setRegister } = useIslandStore();
+  const { setLogin, setRegister, setPayment } = useIslandStore();
   const [token, setToken] = useState<string | null>(() => readLocalToken());
   const [profile, setProfile] = useState<UserAccountProfile | null>(() => readLocalProfile());
   const [loadingProfile, setLoadingProfile] = useState(false);
@@ -1288,14 +1288,13 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
                 {t('settings.user.actions.proActivated', { defaultValue: '已开通 Pro' })}
               </button>
             ) : (
-              <a
+              <button
+                type="button"
                 className="settings-user-primary-btn settings-user-pro-buy-link"
-                href="https://www.pyisland.com"
-                target="_blank"
-                rel="noreferrer"
+                onClick={() => setPayment()}
               >
                 {t('settings.user.actions.buyPro', { defaultValue: '购买 Pro' })}
-              </a>
+              </button>
             )}
           </div>
         </div>

@@ -54,7 +54,7 @@ export const createIslandSlice: StateCreator<
 
   setIdle: (force?: boolean) => set((prev) => {
     if (prev.uiStateLocked && prev.state !== 'idle') return prev;
-    if (!force && (prev.state === 'expanded' || prev.state === 'maxExpand' || prev.state === 'guide' || prev.state === 'login' || prev.state === 'register' || prev.state === 'announcement')) return prev;
+    if (!force && (prev.state === 'expanded' || prev.state === 'maxExpand' || prev.state === 'guide' || prev.state === 'login' || prev.state === 'register' || prev.state === 'payment' || prev.state === 'announcement')) return prev;
     window.api?.collapseWindow();
     window.api?.enableMousePassthrough();
     return { state: 'idle' as const, authReturnState: null };
@@ -88,7 +88,7 @@ export const createIslandSlice: StateCreator<
       window.api?.expandWindowSettings();
       window.api?.disableMousePassthrough();
     }
-    const nextAuthReturnState = (prev.state === 'login' || prev.state === 'register')
+    const nextAuthReturnState = (prev.state === 'login' || prev.state === 'register' || prev.state === 'payment')
       ? prev.authReturnState
       : (standalone ? 'maxExpand' : prev.state);
     return { state: 'login', authReturnState: nextAuthReturnState };
@@ -101,10 +101,23 @@ export const createIslandSlice: StateCreator<
       window.api?.expandWindowSettings();
       window.api?.disableMousePassthrough();
     }
-    const nextAuthReturnState = (prev.state === 'login' || prev.state === 'register')
+    const nextAuthReturnState = (prev.state === 'login' || prev.state === 'register' || prev.state === 'payment')
       ? prev.authReturnState
       : (standalone ? 'maxExpand' : prev.state);
     return { state: 'register', authReturnState: nextAuthReturnState };
+  }),
+
+  setPayment: () => set((prev) => {
+    if (prev.uiStateLocked && prev.state !== 'payment') return prev;
+    const standalone = isStandaloneRenderer();
+    if (!standalone) {
+      window.api?.expandWindowSettings();
+      window.api?.disableMousePassthrough();
+    }
+    const nextAuthReturnState = (prev.state === 'login' || prev.state === 'register' || prev.state === 'payment')
+      ? prev.authReturnState
+      : (standalone ? 'maxExpand' : prev.state);
+    return { state: 'payment', authReturnState: nextAuthReturnState };
   }),
 
   returnFromAuth: () => set((prev) => {
@@ -122,7 +135,7 @@ export const createIslandSlice: StateCreator<
       } else if (target === 'expanded') {
         window.api?.expandWindowFull();
         window.api?.disableMousePassthrough();
-      } else if (target === 'maxExpand' || target === 'guide' || target === 'login' || target === 'register' || target === 'announcement') {
+      } else if (target === 'maxExpand' || target === 'guide' || target === 'login' || target === 'register' || target === 'payment' || target === 'announcement') {
         window.api?.expandWindowSettings();
         window.api?.disableMousePassthrough();
       } else if (target === 'lyrics') {
@@ -133,7 +146,7 @@ export const createIslandSlice: StateCreator<
         window.api?.disableMousePassthrough();
       }
     }
-    return { state: target === 'login' || target === 'register' ? 'maxExpand' : target, authReturnState: null };
+    return { state: target === 'login' || target === 'register' || target === 'payment' ? 'maxExpand' : target, authReturnState: null };
   }),
 
   setLyrics: () => set((prev) => {
