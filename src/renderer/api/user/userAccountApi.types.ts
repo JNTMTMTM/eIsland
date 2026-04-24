@@ -187,4 +187,8 @@ export interface UserPaymentPricingData {
   currency: string;
   billingCycle: string;
   subject: string;
+  freeDesc?: string;
+  freeFeatures?: string[];
+  proDesc?: string;
+  proFeatures?: string[];
 }

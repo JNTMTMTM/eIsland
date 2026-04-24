@@ -159,6 +159,10 @@ export function UserSettingsSection(): ReactElement {
   const [userProfilePage, setUserProfilePage] = useState<UserProfilePage>('info');
   const [proMonthPriceLabel, setProMonthPriceLabel] = useState('');
   const [proMonthPricingLoading, setProMonthPricingLoading] = useState(false);
+  const [freePlanDesc, setFreePlanDesc] = useState('');
+  const [proPlanDesc, setProPlanDesc] = useState('');
+  const [freePlanFeatures, setFreePlanFeatures] = useState<string[]>([]);
+  const [proPlanFeatures, setProPlanFeatures] = useState<string[]>([]);
 
   const currentUserProfilePageLabel = t(`settings.user.pages.${userProfilePage}`, {
     defaultValue: userProfilePage === 'info'
@@ -300,6 +304,10 @@ export function UserSettingsSection(): ReactElement {
     if (!token) {
       setProMonthPriceLabel('');
       setProMonthPricingLoading(false);
+      setFreePlanDesc('');
+      setProPlanDesc('');
+      setFreePlanFeatures([]);
+      setProPlanFeatures([]);
       return;
     }
 
@@ -311,6 +319,10 @@ export function UserSettingsSection(): ReactElement {
       if (!result.ok || !result.data) {
         setProMonthPriceLabel('');
         setProMonthPricingLoading(false);
+        setFreePlanDesc('');
+        setProPlanDesc('');
+        setFreePlanFeatures([]);
+        setProPlanFeatures([]);
         return;
       }
       const amountYuanRaw = typeof result.data.amountYuan === 'string' ? result.data.amountYuan.trim() : '';
@@ -327,6 +339,14 @@ export function UserSettingsSection(): ReactElement {
       } else {
         setProMonthPriceLabel(`¥${amountYuan} / ${cycle}`);
       }
+      setFreePlanDesc(typeof result.data.freeDesc === 'string' ? result.data.freeDesc.trim() : '');
+      setProPlanDesc(typeof result.data.proDesc === 'string' ? result.data.proDesc.trim() : '');
+      setFreePlanFeatures(Array.isArray(result.data.freeFeatures)
+        ? result.data.freeFeatures.map((item) => String(item).trim()).filter((item) => !!item)
+        : []);
+      setProPlanFeatures(Array.isArray(result.data.proFeatures)
+        ? result.data.proFeatures.map((item) => String(item).trim()).filter((item) => !!item)
+        : []);
       setProMonthPricingLoading(false);
     };
 
@@ -1178,6 +1198,24 @@ export function UserSettingsSection(): ReactElement {
 
     const renderProPage = (): ReactElement => (
       <div className="settings-user-page-panel settings-user-pro-panel">
+        {(() => {
+          const freeDescText = freePlanDesc || t('settings.user.pro.free.desc', { defaultValue: '基础功能可用，适合轻度日常使用。' });
+          const proDescText = proPlanDesc || t('settings.user.pro.pro.desc', { defaultValue: '完整高级能力与持续更新支持。' });
+          const fallbackFreeFeatures = [
+            t('settings.user.pro.free.feature1', { defaultValue: '基础灵动岛组件' }),
+            t('settings.user.pro.free.feature2', { defaultValue: '常规设置与个性化' }),
+            t('settings.user.pro.free.feature3', { defaultValue: '社区公开内容浏览' }),
+          ];
+          const fallbackProFeatures = [
+            t('settings.user.pro.pro.feature1', { defaultValue: '全部 Free 权益' }),
+            t('settings.user.pro.pro.feature2', { defaultValue: 'Pro 专属功能与扩展' }),
+            t('settings.user.pro.pro.feature3', { defaultValue: '优先体验新功能' }),
+          ];
+          const freeFeatures = freePlanFeatures.length > 0 ? freePlanFeatures : fallbackFreeFeatures;
+          const proFeatures = proPlanFeatures.length > 0 ? proPlanFeatures : fallbackProFeatures;
+
+          return (
+            <>
         <div className="settings-user-card settings-user-pro-intro-card">
           <div className="settings-user-form-title">{t('settings.user.pro.title', { defaultValue: '产品类型' })}</div>
           <div className="settings-user-card-title-hint">
@@ -1192,12 +1230,12 @@ export function UserSettingsSection(): ReactElement {
               <div className="settings-user-pro-plan-price">{t('settings.user.pro.free.price', { defaultValue: '¥0 / 月' })}</div>
             </div>
             <div className="settings-user-pro-plan-desc">
-              {t('settings.user.pro.free.desc', { defaultValue: '基础功能可用，适合轻度日常使用。' })}
+              {freeDescText}
             </div>
             <ul className="settings-user-pro-plan-features">
-              <li>{t('settings.user.pro.free.feature1', { defaultValue: '基础灵动岛组件' })}</li>
-              <li>{t('settings.user.pro.free.feature2', { defaultValue: '常规设置与个性化' })}</li>
-              <li>{t('settings.user.pro.free.feature3', { defaultValue: '社区公开内容浏览' })}</li>
+              {freeFeatures.map((feature, index) => (
+                <li key={`free-feature-${index}`}>{feature}</li>
+              ))}
             </ul>
             <button
               type="button"
@@ -1221,12 +1259,12 @@ export function UserSettingsSection(): ReactElement {
               </div>
             </div>
             <div className="settings-user-pro-plan-desc">
-              {t('settings.user.pro.pro.desc', { defaultValue: '完整高级能力与持续更新支持。' })}
+              {proDescText}
             </div>
             <ul className="settings-user-pro-plan-features">
-              <li>{t('settings.user.pro.pro.feature1', { defaultValue: '全部 Free 权益' })}</li>
-              <li>{t('settings.user.pro.pro.feature2', { defaultValue: 'Pro 专属功能与扩展' })}</li>
-              <li>{t('settings.user.pro.pro.feature3', { defaultValue: '优先体验新功能' })}</li>
+              {proFeatures.map((feature, index) => (
+                <li key={`pro-feature-${index}`}>{feature}</li>
+              ))}
             </ul>
             {isProUser ? (
               <button type="button" className="settings-user-primary-btn" disabled>
@@ -1244,6 +1282,9 @@ export function UserSettingsSection(): ReactElement {
             )}
           </div>
         </div>
+            </>
+          );
+        })()}
       </div>
     );
 
