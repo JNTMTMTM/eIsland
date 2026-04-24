@@ -494,7 +494,11 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
       return;
     }
     setUserOrders(result.data);
-  }, [resetToLoggedOut, t, token]);
+    const hasPaidOrder = result.data.some((order) => String(order?.status || '').toUpperCase() === 'SUCCESS');
+    if (hasPaidOrder) {
+      await loadRemoteProfile(token);
+    }
+  }, [loadRemoteProfile, resetToLoggedOut, t, token]);
 
   useEffect(() => {
     if (userProfilePage !== 'orders' || !token) {
