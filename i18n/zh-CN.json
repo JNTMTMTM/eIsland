@@ -1422,6 +1422,26 @@
         "account": "关于账户",
         "switchTo": "切换到{{label}}"
       },
+      "pro": {
+        "title": "产品类型",
+        "subtitle": "根据你的使用场景选择 Free 或 Pro 版本",
+        "free": {
+          "name": "Free",
+          "price": "¥0 / 月",
+          "desc": "基础功能可用，适合轻度日常使用。",
+          "feature1": "基础灵动岛组件",
+          "feature2": "常规设置与个性化",
+          "feature3": "社区公开内容浏览"
+        },
+        "pro": {
+          "name": "Pro",
+          "price": "¥15 / 月",
+          "desc": "完整高级能力与持续更新支持。",
+          "feature1": "全部 Free 权益",
+          "feature2": "Pro 专属功能与扩展",
+          "feature3": "优先体验新功能"
+        }
+      },
       "gender": {
         "male": "男",
         "female": "女",
@@ -1453,7 +1473,10 @@
         "cancel": "取消",
         "cancelChanges": "取消更改",
         "sendCode": "发送验证码",
-        "sendCodeCooldown": "{{seconds}}s后重试"
+        "sendCodeCooldown": "{{seconds}}s后重试",
+        "currentPlan": "当前可用",
+        "buyPro": "购买 Pro",
+        "proActivated": "已开通 Pro"
       },
       "danger": {
         "hint": "注销后账号与关联资料将被立即删除，无法恢复，请谨慎操作。"

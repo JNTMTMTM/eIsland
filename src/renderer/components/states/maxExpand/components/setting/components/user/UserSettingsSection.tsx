@@ -719,13 +719,13 @@ export function UserSettingsSection(): ReactElement {
       { id: 'pro', label: t('settings.user.pages.pro', { defaultValue: 'PRO功能' }) },
       { id: 'account', label: t('settings.user.pages.account', { defaultValue: '关于账户' }) },
     ];
+    const profileRole = (profile as { role?: unknown } | null)?.role;
+    const normalizedProfileRole = typeof profileRole === 'string' ? normalizeRoleValue(profileRole) : null;
+    const isProUser = normalizedProfileRole === 'pro' || getRoleFromToken(token) === 'pro';
 
     const renderInfoPage = (): ReactElement => {
       const genderValue: UserAccountGender = profile?.gender ?? 'undisclosed';
       const genderLabel = t(`settings.user.gender.${genderValue}`, { defaultValue: genderValue });
-      const profileRole = (profile as { role?: unknown } | null)?.role;
-      const normalizedProfileRole = typeof profileRole === 'string' ? normalizeRoleValue(profileRole) : null;
-      const isProUser = normalizedProfileRole === 'pro' || getRoleFromToken(token) === 'pro';
 
       return (
         <div className="settings-user-page-panel settings-user-info-panel">
@@ -1134,7 +1134,70 @@ export function UserSettingsSection(): ReactElement {
     );
 
     const renderProPage = (): ReactElement => (
-      <div className="settings-user-page-panel" />
+      <div className="settings-user-page-panel settings-user-pro-panel">
+        <div className="settings-user-card settings-user-pro-intro-card">
+          <div className="settings-user-form-title">{t('settings.user.pro.title', { defaultValue: '产品类型' })}</div>
+          <div className="settings-user-card-title-hint">
+            {t('settings.user.pro.subtitle', { defaultValue: '根据你的使用场景选择 Free 或 Pro 版本' })}
+          </div>
+        </div>
+
+        <div className="settings-user-pro-grid">
+          <div className="settings-user-card settings-user-pro-plan-card settings-user-pro-plan-card--free">
+            <div className="settings-user-pro-plan-head">
+              <div className="settings-user-pro-plan-name">{t('settings.user.pro.free.name', { defaultValue: 'Free' })}</div>
+              <div className="settings-user-pro-plan-price">{t('settings.user.pro.free.price', { defaultValue: '¥0 / 月' })}</div>
+            </div>
+            <div className="settings-user-pro-plan-desc">
+              {t('settings.user.pro.free.desc', { defaultValue: '基础功能可用，适合轻度日常使用。' })}
+            </div>
+            <ul className="settings-user-pro-plan-features">
+              <li>{t('settings.user.pro.free.feature1', { defaultValue: '基础灵动岛组件' })}</li>
+              <li>{t('settings.user.pro.free.feature2', { defaultValue: '常规设置与个性化' })}</li>
+              <li>{t('settings.user.pro.free.feature3', { defaultValue: '社区公开内容浏览' })}</li>
+            </ul>
+            <button
+              type="button"
+              className="settings-user-secondary-btn"
+              disabled
+            >
+              {t('settings.user.actions.currentPlan', { defaultValue: '当前可用' })}
+            </button>
+          </div>
+
+          <div className="settings-user-card settings-user-pro-plan-card settings-user-pro-plan-card--pro">
+            <div className="settings-user-pro-plan-head">
+              <div className="settings-user-pro-plan-name">
+                <img className="settings-user-info-pro-icon" src={SvgIcon.PRO} alt="PRO" />
+                {t('settings.user.pro.pro.name', { defaultValue: 'Pro' })}
+              </div>
+              <div className="settings-user-pro-plan-price">{t('settings.user.pro.pro.price', { defaultValue: '¥25 / 月' })}</div>
+            </div>
+            <div className="settings-user-pro-plan-desc">
+              {t('settings.user.pro.pro.desc', { defaultValue: '完整高级能力与持续更新支持。' })}
+            </div>
+            <ul className="settings-user-pro-plan-features">
+              <li>{t('settings.user.pro.pro.feature1', { defaultValue: '全部 Free 权益' })}</li>
+              <li>{t('settings.user.pro.pro.feature2', { defaultValue: 'Pro 专属功能与扩展' })}</li>
+              <li>{t('settings.user.pro.pro.feature3', { defaultValue: '优先体验新功能' })}</li>
+            </ul>
+            {isProUser ? (
+              <button type="button" className="settings-user-primary-btn" disabled>
+                {t('settings.user.actions.proActivated', { defaultValue: '已开通 Pro' })}
+              </button>
+            ) : (
+              <a
+                className="settings-user-primary-btn settings-user-pro-buy-link"
+                href="https://www.pyisland.com"
+                target="_blank"
+                rel="noreferrer"
+              >
+                {t('settings.user.actions.buyPro', { defaultValue: '购买 Pro' })}
+              </a>
+            )}
+          </div>
+        </div>
+      </div>
     );
 
     return (

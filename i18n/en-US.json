@@ -1422,6 +1422,26 @@
         "account": "Account",
         "switchTo": "Switch to {{label}}"
       },
+      "pro": {
+        "title": "Plans",
+        "subtitle": "Choose Free or Pro based on your usage needs",
+        "free": {
+          "name": "Free",
+          "price": "¥0 / month",
+          "desc": "Essential features for light daily usage.",
+          "feature1": "Core Dynamic Island widgets",
+          "feature2": "Standard settings and personalization",
+          "feature3": "Browse public community content"
+        },
+        "pro": {
+          "name": "Pro",
+          "price": "¥15 / month",
+          "desc": "Full advanced capabilities with ongoing updates.",
+          "feature1": "Everything in Free",
+          "feature2": "Exclusive Pro features and extensions",
+          "feature3": "Early access to new features"
+        }
+      },
       "gender": {
         "male": "Male",
         "female": "Female",
@@ -1453,7 +1473,10 @@
         "cancel": "Cancel",
         "cancelChanges": "Discard changes",
         "sendCode": "Send Code",
-        "sendCodeCooldown": "Retry in {{seconds}}s"
+        "sendCodeCooldown": "Retry in {{seconds}}s",
+        "currentPlan": "Current Plan",
+        "buyPro": "Buy Pro",
+        "proActivated": "Pro Activated"
       },
       "danger": {
         "hint": "Deleting your account removes associated data immediately and cannot be undone. Proceed with care."
