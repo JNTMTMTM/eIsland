@@ -82,6 +82,23 @@ declare global {
       openLogsFolder: () => Promise<boolean>;
       pickFeedbackLogFile: () => Promise<string | null>;
       pickFeedbackScreenshotFile: () => Promise<string | null>;
+      pickLocalSearchDirectory: () => Promise<string | null>;
+      searchLocalFiles: (
+        rootDir: string,
+        keyword: string,
+        options?: {
+          limit?: number;
+          maxDepth?: number;
+          includeDirectories?: boolean;
+          includeFiles?: boolean;
+          includeHidden?: boolean;
+          caseSensitive?: boolean;
+          matchMode?: 'contains' | 'startsWith' | 'endsWith' | 'exact';
+          matchScope?: 'name' | 'path';
+          extensions?: string[];
+          excludeDirs?: string[];
+        },
+      ) => Promise<Array<{ name: string; path: string; isDirectory: boolean }>>;
       clearLogsCache: () => Promise<{ success: boolean; freedBytes: number }>;
       windowMinimize: () => void;
       windowMaximize: () => void;

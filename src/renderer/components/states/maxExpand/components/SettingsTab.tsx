@@ -109,6 +109,7 @@ const ISLAND_DISPLAY_STORE_KEY = 'island-display-id';
 const UPDATE_SOURCE_STORE_KEY = 'update-source';
 const UPDATE_AUTO_PROMPT_STORE_KEY = 'update-auto-prompt-enabled';
 const SETTINGS_OPEN_TAB_STORE_KEY = 'settings-open-tab';
+type SettingsOpenTabIntent = 'update' | 'about-feedback' | 'user-orders';
 let _lastSettingsSidebarTab: SettingsSidebarTabKey = 'index';
 
 type IslandBgMediaType = 'image' | 'video';
@@ -261,6 +262,8 @@ export function SettingsTab(): ReactElement {
   const [appSettingsPage, setAppSettingsPage] = useState<AppSettingsPageKey>('layout-preview');
   const [weatherSettingsPage, setWeatherSettingsPage] = useState<WeatherSettingsPageKey>('location');
   const [musicSettingsPage, setMusicSettingsPage] = useState<MusicSettingsPageKey>('whitelist');
+  const [userInitialProfilePage, setUserInitialProfilePage] = useState<'info' | 'pro' | 'orders'>('info');
+  const [aboutInitialPage, setAboutInitialPage] = useState<'development' | 'feedback'>('development');
   const [pluginMarketPage, setPluginMarketPage] = useState<PluginMarketPageKey>('wallpaper');
   const [wallpaperMarketRefreshKey, setWallpaperMarketRefreshKey] = useState(0);
   const { aiConfig, setAiConfig, fetchWeatherData, setGuide, setLogin, setRegister, setNotification } = useIslandStore();
@@ -272,6 +275,18 @@ export function SettingsTab(): ReactElement {
   activeTabRef.current = activeTab;
   useEffect(() => {
     _lastSettingsSidebarTab = activeTab;
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (activeTab !== 'user') {
+      setUserInitialProfilePage('info');
+    }
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (activeTab !== 'about') {
+      setAboutInitialPage('development');
+    }
   }, [activeTab]);
 
   useEffect(() => {
@@ -928,8 +943,18 @@ export function SettingsTab(): ReactElement {
   useEffect(() => {
     let cancelled = false;
     const unsub = window.api.onSettingsChanged((channel: string, value: unknown) => {
-      if (channel === 'settings:open-tab' && value === 'update') {
-        setActiveTab('update');
+      if (channel === 'settings:open-tab') {
+        if (value === 'update') {
+          setActiveTab('update');
+        }
+        if (value === 'about-feedback') {
+          setActiveTab('about');
+          setAboutInitialPage('feedback');
+        }
+        if (value === 'user-orders') {
+          setActiveTab('user');
+          setUserInitialProfilePage('orders');
+        }
       }
       if (channel === 'i18n:language' && (value === 'zh-CN' || value === 'en-US')) {
         setAppLanguage(value);
@@ -1086,8 +1111,11 @@ export function SettingsTab(): ReactElement {
       const hiddenRaw = Array.isArray(navConfig.hiddenOrder) ? navConfig.hiddenOrder : [];
       if (visibleRaw.length > 0 || hiddenRaw.length > 0) {
         const validVisible = visibleRaw.filter((id, idx) => NAV_CARDS_MAP.has(id) && visibleRaw.indexOf(id) === idx);
-        const validHidden = hiddenRaw.filter((id, idx) => NAV_CARDS_MAP.has(id) && hiddenRaw.indexOf(id) === idx && !validVisible.includes(id));
-        setNavOrder(validVisible);
+        const ensuredVisible = ['user-pro', ...validVisible.filter((id) => id !== 'user-pro')];
+        const validHidden = hiddenRaw
+          .filter((id, idx) => NAV_CARDS_MAP.has(id) && hiddenRaw.indexOf(id) === idx && !ensuredVisible.includes(id))
+          .filter((id) => id !== 'user-pro');
+        setNavOrder(ensuredVisible);
         setHiddenNavOrder(validHidden);
       }
     }).catch(() => {});
@@ -1194,8 +1222,19 @@ export function SettingsTab(): ReactElement {
     let cancelled = false;
     window.api.storeRead(SETTINGS_OPEN_TAB_STORE_KEY).then((value) => {
       if (cancelled) return;
-      if (value === 'update') {
+      const intent = value as SettingsOpenTabIntent | null;
+      if (intent === 'update') {
         setActiveTab('update');
+        window.api.storeWrite(SETTINGS_OPEN_TAB_STORE_KEY, null).catch(() => {});
+      }
+      if (intent === 'about-feedback') {
+        setActiveTab('about');
+        setAboutInitialPage('feedback');
+        window.api.storeWrite(SETTINGS_OPEN_TAB_STORE_KEY, null).catch(() => {});
+      }
+      if (intent === 'user-orders') {
+        setActiveTab('user');
+        setUserInitialProfilePage('orders');
         window.api.storeWrite(SETTINGS_OPEN_TAB_STORE_KEY, null).catch(() => {});
       }
     }).catch(() => {});
@@ -2226,6 +2265,11 @@ export function SettingsTab(): ReactElement {
                 if (actionId === 'guide') {
                   setGuide();
                   window.api.settingsPreview('guide:show', true).catch(() => {});
+                  return;
+                }
+                if (actionId === 'user-pro') {
+                  setUserInitialProfilePage('pro');
+                  setActiveTab('user');
                 }
               }}
             />
@@ -2630,9 +2674,9 @@ export function SettingsTab(): ReactElement {
             </div>
           )}
 
-          {activeTab === 'user' && <UserSettingsSection />}
+          {activeTab === 'user' && <UserSettingsSection initialProfilePage={userInitialProfilePage} />}
 
-          {activeTab === 'about' && <AboutSettingsSection aboutVersion={aboutVersion} />}
+          {activeTab === 'about' && <AboutSettingsSection aboutVersion={aboutVersion} initialPage={aboutInitialPage} />}
         </div>
       </div>
     </div>

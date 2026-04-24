@@ -32,6 +32,7 @@ import '../../../styles/settings/settings.css';
 import { AiChatTab } from './components/AiChatTab';
 import { TodoTab } from './components/TodoTab';
 import { UrlFavoritesTab } from './components/UrlFavoritesTab';
+import { LocalFileSearchTab } from './components/LocalFileSearchTab';
 import { ClipboardHistoryTab } from './components/ClipboardHistoryTab';
 import { SettingsTab } from './components/SettingsTab';
 import { CountdownTab } from './components/CountdownTab';
@@ -40,7 +41,7 @@ import { CountdownTab } from './components/CountdownTab';
 type NavDotId = MaxExpandTab | 'expanded';
 
 /** 导航点配置 */
-const NAV_DOTS: NavDotId[] = ['expanded', 'todo', 'urlFavorites', 'clipboardHistory', 'aiChat', 'countdown', 'settings'];
+const NAV_DOTS: NavDotId[] = ['expanded', 'todo', 'urlFavorites', 'localFileSearch', 'clipboardHistory', 'aiChat', 'countdown', 'settings'];
 
 /**
  * 最大展开模式内容组件
@@ -99,10 +100,12 @@ export function MaxExpandContent(): React.ReactElement {
         ? '返回'
         : id === 'todo'
           ? '待办'
-          : id === 'urlFavorites'
-            ? 'URL 收藏'
-            : id === 'clipboardHistory'
-              ? '剪贴板'
+            : id === 'urlFavorites'
+              ? 'URL 收藏'
+              : id === 'localFileSearch'
+                ? '文件查找'
+              : id === 'clipboardHistory'
+                ? '剪贴板'
             : id === 'aiChat'
               ? 'AI 对话'
               : id === 'countdown'
@@ -133,6 +136,9 @@ export function MaxExpandContent(): React.ReactElement {
       if (target.closest('.expand-todo-list')) return;
       if (target.closest('.url-favorites-list')) return;
       if (target.closest('.url-favorites-input')) return;
+      if (target.closest('.local-file-search-results')) return;
+      if (target.closest('.local-file-search-root-input')) return;
+      if (target.closest('.local-file-search-query-input')) return;
       if (target.closest('.clipboard-history-list')) return;
       if (target.closest('.max-expand-settings')) return;
       if (target.closest('.countdown-calendar-wrap')) return;
@@ -173,6 +179,7 @@ export function MaxExpandContent(): React.ReactElement {
         {activeTab === 'aiChat' && <AiChatTab />}
         {countdownMode === 'integrated' && activeTab === 'todo' && <TodoTab />}
         {activeTab === 'urlFavorites' && <UrlFavoritesTab />}
+        {activeTab === 'localFileSearch' && <LocalFileSearchTab />}
         {activeTab === 'clipboardHistory' && <ClipboardHistoryTab />}
         {countdownMode === 'integrated' && activeTab === 'countdown' && <CountdownTab />}
         {countdownMode === 'integrated' && activeTab === 'settings' && <SettingsTab />}

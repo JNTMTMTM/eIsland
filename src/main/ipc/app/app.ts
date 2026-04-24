@@ -26,9 +26,114 @@
  */
 
 import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron';
+import { readdir } from 'fs/promises';
 import { basename } from 'path';
 import { clearLogsCacheFiles, ensureLogsDir } from '../../log/mainLog';
 import { openStandaloneWindow, closeStandaloneWindow } from '../../window/standaloneWindow';
+
+interface LocalFileSearchItem {
+  name: string;
+  path: string;
+  isDirectory: boolean;
+}
+
+interface LocalFileSearchOptions {
+  limit?: number;
+  maxDepth?: number;
+  includeDirectories?: boolean;
+  includeFiles?: boolean;
+  includeHidden?: boolean;
+  caseSensitive?: boolean;
+  matchMode?: 'contains' | 'startsWith' | 'endsWith' | 'exact';
+  matchScope?: 'name' | 'path';
+  extensions?: string[];
+  excludeDirs?: string[];
+}
+
+function isTextMatched(target: string, keyword: string, mode: 'contains' | 'startsWith' | 'endsWith' | 'exact'): boolean {
+  if (mode === 'startsWith') return target.startsWith(keyword);
+  if (mode === 'endsWith') return target.endsWith(keyword);
+  if (mode === 'exact') return target === keyword;
+  return target.includes(keyword);
+}
+
+async function searchLocalFiles(rootDir: string, keyword: string, options?: LocalFileSearchOptions): Promise<LocalFileSearchItem[]> {
+  const trimmedKeyword = keyword.trim();
+  if (!trimmedKeyword || !rootDir.trim()) return [];
+
+  const limit = typeof options?.limit === 'number' ? options.limit : 120;
+  const maxDepthOption = typeof options?.maxDepth === 'number' ? options.maxDepth : 8;
+  const maxCount = Math.max(1, Math.min(500, Math.floor(limit || 120)));
+  const maxDepth = Math.max(0, Math.min(12, Math.floor(maxDepthOption || 8)));
+  const includeDirectories = options?.includeDirectories !== false;
+  const includeFiles = options?.includeFiles !== false;
+  const includeHidden = options?.includeHidden === true;
+  const caseSensitive = options?.caseSensitive === true;
+  const matchMode = options?.matchMode ?? 'contains';
+  const matchScope = options?.matchScope ?? 'name';
+  const keywordForMatch = caseSensitive ? trimmedKeyword : trimmedKeyword.toLowerCase();
+  const extensionSet = new Set(
+    (Array.isArray(options?.extensions) ? options?.extensions : [])
+      .map((ext) => String(ext || '').trim().replace(/^\./, '').toLowerCase())
+      .filter(Boolean),
+  );
+  const excludedDirSet = new Set([
+    '.git',
+    'node_modules',
+    '.idea',
+    '.vscode',
+    ...(Array.isArray(options?.excludeDirs) ? options.excludeDirs : []).map((name) => String(name || '').trim().toLowerCase()).filter(Boolean),
+  ]);
+
+  const queue: Array<{ dir: string; depth: number }> = [{ dir: rootDir, depth: 0 }];
+  const results: LocalFileSearchItem[] = [];
+
+  while (queue.length > 0 && results.length < maxCount) {
+    const current = queue.shift();
+    if (!current) break;
+    let entries: Array<{ name: string | Buffer; isDirectory: () => boolean }>;
+    try {
+      entries = await readdir(current.dir, { withFileTypes: true });
+    } catch {
+      continue;
+    }
+
+    entries.some((entry) => {
+      if (results.length >= maxCount) {
+        return true;
+      }
+      const entryName = typeof entry.name === 'string' ? entry.name : entry.name.toString('utf8');
+      if (!includeHidden && entryName.startsWith('.')) {
+        return false;
+      }
+      const entryPath = `${current.dir}${current.dir.endsWith('\\') ? '' : '\\'}${entryName}`;
+      const isDirectory = entry.isDirectory();
+      const matchTargetRaw = matchScope === 'path' ? entryPath : entryName;
+      const matchTarget = caseSensitive ? matchTargetRaw : matchTargetRaw.toLowerCase();
+      let extensionMatched = true;
+      if (!isDirectory && extensionSet.size > 0) {
+        const dotIndex = entryName.lastIndexOf('.');
+        const ext = dotIndex >= 0 ? entryName.slice(dotIndex + 1).toLowerCase() : '';
+        extensionMatched = extensionSet.has(ext);
+      }
+      const typeMatched = (isDirectory && includeDirectories) || (!isDirectory && includeFiles);
+
+      if (isTextMatched(matchTarget, keywordForMatch, matchMode) && extensionMatched && typeMatched) {
+        results.push({
+          name: entryName,
+          path: entryPath,
+          isDirectory,
+        });
+      }
+      if (isDirectory && current.depth < maxDepth && !excludedDirSet.has(entryName.toLowerCase())) {
+        queue.push({ dir: entryPath, depth: current.depth + 1 });
+      }
+      return false;
+    });
+  }
+
+  return results;
+}
 
 /**
  * 注册应用相关 IPC 处理器
@@ -37,6 +142,39 @@ import { openStandaloneWindow, closeStandaloneWindow } from '../../window/standa
 export function registerAppIpcHandlers(): void {
   ipcMain.on('app:quit', () => {
     app.quit();
+  });
+
+  ipcMain.handle('app:pick-local-search-directory', async (event) => {
+    try {
+      const win = BrowserWindow.fromWebContents(event.sender) ?? BrowserWindow.getFocusedWindow();
+      if (!win) return null;
+      const result = await dialog.showOpenDialog(win, {
+        title: '选择搜索目录',
+        properties: ['openDirectory'],
+      });
+      if (result.canceled || result.filePaths.length === 0) {
+        return null;
+      }
+      return result.filePaths[0] || null;
+    } catch (err) {
+      console.error('[App] pick local search directory error:', err);
+      return null;
+    }
+  });
+
+  ipcMain.handle('app:search-local-files', async (
+    _event,
+    rootDir: string,
+    keyword: string,
+    options?: number | LocalFileSearchOptions,
+  ) => {
+    try {
+      const searchOptions = typeof options === 'number' ? { limit: options } : options;
+      return await searchLocalFiles(rootDir, keyword, searchOptions);
+    } catch (err) {
+      console.error('[App] search local files error:', err);
+      return [];
+    }
   });
 
   ipcMain.handle('app:pick-feedback-screenshot-file', async (event) => {

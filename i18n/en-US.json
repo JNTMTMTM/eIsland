@@ -597,11 +597,42 @@
       "expanded": "Back",
       "todo": "Todo",
       "urlFavorites": "URL Favorites",
+      "localFileSearch": "File Search",
       "clipboardHistory": "Clipboard",
       "aiChat": "AI Chat",
       "countdown": "Countdown",
       "settings": "Settings",
       "switchTo": "Switch to {{label}}"
+    },
+    "localFileSearch": {
+      "title": "Local File Search",
+      "count": "{{count}} items",
+      "pickDir": "Choose Folder",
+      "search": "Search",
+      "config": "Config",
+      "limitLabel": "Result Limit",
+      "depthLabel": "Max Depth",
+      "matchScopeLabel": "Match Scope",
+      "matchScopeName": "File Name",
+      "matchScopePath": "Full Path",
+      "matchModeLabel": "Match Mode",
+      "matchModeContains": "Contains",
+      "matchModeStartsWith": "Starts With",
+      "matchModeEndsWith": "Ends With",
+      "matchModeExact": "Exact",
+      "includeFolders": "Include folders in results",
+      "includeFiles": "Include files in results",
+      "includeHidden": "Include hidden items",
+      "caseSensitive": "Case sensitive",
+      "extensionsLabel": "File extensions",
+      "extensionsPlaceholder": "e.g. pdf,docx,ts",
+      "excludeDirsLabel": "Exclude directories",
+      "excludeDirsPlaceholder": "e.g. dist,build,coverage",
+      "searching": "Searching...",
+      "loading": "Scanning local files...",
+      "empty": "No results yet. Try another keyword or folder.",
+      "rootPlaceholder": "Choose or enter a root folder, e.g. C:\\Users",
+      "keywordPlaceholder": "Enter filename keyword, e.g. report, .pdf"
     }
   },
   "settings": {
@@ -1270,7 +1301,9 @@
         "docs": "Docs",
         "sourceCode": "Source Code",
         "license": "License",
-        "iconLibrary": "Icon Library"
+        "iconLibrary": "Icon Library",
+        "icpRecord": "ICP Record",
+        "publicSecurityRecord": "Public Security Record"
       },
       "depsTitle": "Open Source Frameworks & Dependencies",
       "wallpaperTitle": "Wallpaper Sources",
@@ -1406,12 +1439,15 @@
         "danger": "Danger Zone"
       },
       "card": {
-        "memberSince": "Member since"
+        "memberSince": "Member since",
+        "proExpireAt": "Pro Expiration"
       },
       "infoNav": {
         "editDesc": "Edit gender, birthday, and other profile details",
         "avatarDesc": "Upload or change your account avatar",
         "passwordDesc": "Change login password via email verification",
+        "proDesc": "View Free and Pro plan benefits plus current subscription pricing",
+        "ordersDesc": "Check order status, continue payment, or close pending orders",
         "logoutDesc": "Sign out or delete your account"
       },
       "pages": {
@@ -1419,8 +1455,97 @@
         "edit": "Edit Profile",
         "password": "Change Password",
         "pro": "PRO Features",
+        "orders": "My Orders",
         "account": "Account",
         "switchTo": "Switch to {{label}}"
+      },
+      "orders": {
+        "title": "My Orders",
+        "subtitle": "View your account orders and continue payment or close pending ones",
+        "loading": "Loading orders…",
+        "empty": "No order records yet",
+        "actions": {
+          "refresh": "Refresh Orders",
+          "refreshing": "Refreshing…",
+          "continuePay": "Continue Payment",
+          "closeOrder": "Close Order",
+          "closing": "Closing…"
+        },
+        "feedback": {
+          "loadFailed": "Failed to load orders",
+          "closeFailed": "Failed to close order. Please try again later",
+          "closeSuccess": "Order closed"
+        }
+      },
+      "pro": {
+        "title": "Plans",
+        "subtitle": "Choose Free or Pro based on your usage needs",
+        "free": {
+          "name": "Free",
+          "price": "¥0 / month",
+          "desc": "Essential features for light daily usage.",
+          "feature1": "Core Dynamic Island widgets",
+          "feature2": "Standard settings and personalization",
+          "feature3": "Browse public community content"
+        },
+        "pro": {
+          "name": "Pro",
+          "price": "¥15 / month",
+          "priceLoading": "Loading price…",
+          "priceUnavailable": "Price pending",
+          "desc": "Full advanced capabilities with ongoing updates.",
+          "feature1": "Everything in Free",
+          "feature2": "Exclusive Pro features and extensions",
+          "feature3": "Early access to new features"
+        },
+        "billingCycle": {
+          "month": "month"
+        }
+      },
+      "payment": {
+        "title": "Buy Pro",
+        "subtitle": "Select a payment method and continue on the website. Your Pro benefits will sync to this account after payment succeeds.",
+        "method": "Payment Method",
+        "wechat": "WeChat Pay",
+        "alipay": "Alipay",
+        "orderTitle": "Confirm Order",
+        "receiptEmailLabel": "Receipt Email",
+        "receiptEmailPlaceholder": "Enter the email address for the receipt",
+        "fillAccountEmail": "Use account email",
+        "priceLabel": "Price",
+        "subscriptionPeriodLabel": "Subscription Period",
+        "expireLabel": "Order Expires At",
+        "confirmPay": "Create Order",
+        "emailInvalid": "Please enter a valid receipt email address",
+        "loginRequired": "Your login session has expired. Please sign in again and retry.",
+        "createOrderFailed": "Failed to create payment order. Please try again later.",
+        "payUrlMissing": "Order was created but no payment link was returned. Please try again later.",
+        "openPayFailed": "Unable to open the payment page. Please try again later.",
+        "refreshStatusFailed": "Failed to refresh payment status. Please try again later.",
+        "boundEmailNotFound": "No bound email found for the current account",
+        "channelsUnavailable": "Payment channels are temporarily unavailable. Please try again later.",
+        "creatingOrder": "Creating order...",
+        "pendingTitle": "Pending Payment",
+        "orderNoLabel": "Order No.",
+        "payAmountLabel": "Amount",
+        "payStatusLabel": "Payment Status",
+        "refreshStatus": "Refresh Payment Status",
+        "refreshingStatus": "Refreshing...",
+        "openPaymentPage": "Open Payment Page",
+        "viewOrders": "View Orders",
+        "goUserCenter": "Go to User Center",
+        "status": {
+          "paying": "Pending",
+          "success": "Paid",
+          "closed": "Closed",
+          "failed": "Failed",
+          "unknown": "Unknown"
+        },
+        "wechatHint": "Recommended: scan with WeChat",
+        "alipayHint": "Recommended: scan with Alipay",
+        "selectMethodHint": "Select a payment method above before creating an order.",
+        "fallbackHint": "If scanning is unavailable, click the button below to open the web checkout page.",
+        "goCheckout": "Go to Web Checkout"
       },
       "gender": {
         "male": "Male",
@@ -1453,7 +1578,11 @@
         "cancel": "Cancel",
         "cancelChanges": "Discard changes",
         "sendCode": "Send Code",
-        "sendCodeCooldown": "Retry in {{seconds}}s"
+        "sendCodeCooldown": "Retry in {{seconds}}s",
+        "reportIssue": "Report Issue",
+        "currentPlan": "Current Plan",
+        "buyPro": "Buy Pro",
+        "proActivated": "Pro Activated"
       },
       "danger": {
         "hint": "Deleting your account removes associated data immediately and cannot be undone. Proceed with care."
@@ -1561,6 +1690,10 @@
       "user": {
         "label": "Account",
         "desc": "Sign in, profile, and account deletion"
+      },
+      "user-pro": {
+        "label": "PRO Features",
+        "desc": "View Free and Pro plan benefits plus current subscription pricing"
       },
       "about": {
         "label": "About",

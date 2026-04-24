@@ -179,3 +179,35 @@ export interface UpdateUserPasswordPayload {
   password: string;
   emailCode: string;
 }
+
+export interface UserPaymentPricingData {
+  productCode: string;
+  amountFen: number;
+  amountYuan: string;
+  currency: string;
+  billingCycle: string;
+  subject: string;
+  freeDesc?: string;
+  freeFeatures?: string[];
+  proDesc?: string;
+  proFeatures?: string[];
+}
+
+export interface UserPaymentChannelsData {
+  wechatEnabled: boolean;
+  alipayEnabled: boolean;
+}
+
+export interface UserPaymentOrderData {
+  outTradeNo: string;
+  productCode: string;
+  amountFen: number;
+  currency: string;
+  status: string;
+  channel: 'WECHAT' | 'ALIPAY';
+  qrCodeUrl?: string;
+  payUrl?: string;
+  expireAt?: string;
+  paidAt?: string;
+  proExpireAt?: string;
+}

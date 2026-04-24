@@ -46,6 +46,7 @@ export interface UserAccountProfile {
   genderCustom: string | null;
   birthday: string | null;
   createdAt: string;
+  proExpireAt?: string | null;
 }
 
 /**

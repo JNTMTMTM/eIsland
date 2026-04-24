@@ -597,11 +597,42 @@
       "expanded": "返回",
       "todo": "待办",
       "urlFavorites": "URL 收藏",
+      "localFileSearch": "文件查找",
       "clipboardHistory": "剪贴板",
       "aiChat": "AI 对话",
       "countdown": "倒数日",
       "settings": "设置",
       "switchTo": "切换到{{label}}"
+    },
+    "localFileSearch": {
+      "title": "本地文件查找",
+      "count": "{{count}} 项",
+      "pickDir": "选择目录",
+      "search": "搜索",
+      "config": "配置",
+      "limitLabel": "最大结果数",
+      "depthLabel": "最大深度",
+      "matchScopeLabel": "匹配范围",
+      "matchScopeName": "文件名",
+      "matchScopePath": "完整路径",
+      "matchModeLabel": "匹配方式",
+      "matchModeContains": "包含",
+      "matchModeStartsWith": "前缀",
+      "matchModeEndsWith": "后缀",
+      "matchModeExact": "精确匹配",
+      "includeFolders": "结果包含文件夹",
+      "includeFiles": "结果包含文件",
+      "includeHidden": "包含隐藏项",
+      "caseSensitive": "区分大小写",
+      "extensionsLabel": "文件后缀",
+      "extensionsPlaceholder": "如 pdf,docx,ts",
+      "excludeDirsLabel": "排除目录",
+      "excludeDirsPlaceholder": "如 dist,build,coverage",
+      "searching": "搜索中…",
+      "loading": "正在检索本地文件…",
+      "empty": "暂无结果，试试更换关键词或目录。",
+      "rootPlaceholder": "选择或输入搜索目录，例如 C:\\Users",
+      "keywordPlaceholder": "输入文件名关键词，例如 report、.pdf"
     }
   },
   "settings": {
@@ -1270,7 +1301,9 @@
         "docs": "文档站",
         "sourceCode": "开源代码",
         "license": "开源协议",
-        "iconLibrary": "图标库"
+        "iconLibrary": "图标库",
+        "icpRecord": "ICP备案",
+        "publicSecurityRecord": "公安备案"
       },
       "depsTitle": "开源框架 & 依赖",
       "wallpaperTitle": "壁纸素材",
@@ -1406,12 +1439,15 @@
         "danger": "危险操作"
       },
       "card": {
-        "memberSince": "加入时间"
+        "memberSince": "加入时间",
+        "proExpireAt": "Pro到期时间"
       },
       "infoNav": {
         "editDesc": "修改性别、生日等基本资料",
         "avatarDesc": "上传或更换账号头像",
         "passwordDesc": "通过邮箱验证码修改登录密码",
+        "proDesc": "查看 Free 与 Pro 计划权益及当前订阅价格",
+        "ordersDesc": "查看订单状态、继续支付或主动关闭待支付订单",
         "logoutDesc": "退出当前账号或注销"
       },
       "pages": {
@@ -1419,8 +1455,97 @@
         "edit": "修改信息",
         "password": "修改密码",
         "pro": "PRO功能",
+        "orders": "我的订单",
         "account": "关于账户",
         "switchTo": "切换到{{label}}"
+      },
+      "orders": {
+        "title": "我的订单",
+        "subtitle": "查询当前账号订单，并可继续支付或关闭待支付订单",
+        "loading": "订单加载中…",
+        "empty": "暂无订单记录",
+        "actions": {
+          "refresh": "刷新订单",
+          "refreshing": "刷新中…",
+          "continuePay": "继续支付",
+          "closeOrder": "关闭订单",
+          "closing": "关闭中…"
+        },
+        "feedback": {
+          "loadFailed": "加载订单失败",
+          "closeFailed": "关闭订单失败，请稍后重试",
+          "closeSuccess": "订单已关闭"
+        }
+      },
+      "pro": {
+        "title": "产品类型",
+        "subtitle": "根据你的使用场景选择 Free 或 Pro 版本",
+        "free": {
+          "name": "Free",
+          "price": "¥0 / 月",
+          "desc": "基础功能可用，适合轻度日常使用。",
+          "feature1": "基础灵动岛组件",
+          "feature2": "常规设置与个性化",
+          "feature3": "社区公开内容浏览"
+        },
+        "pro": {
+          "name": "Pro",
+          "price": "¥15 / 月",
+          "priceLoading": "价格加载中…",
+          "priceUnavailable": "价格待定",
+          "desc": "完整高级能力与持续更新支持。",
+          "feature1": "全部 Free 权益",
+          "feature2": "Pro 专属功能与扩展",
+          "feature3": "优先体验新功能"
+        },
+        "billingCycle": {
+          "month": "月"
+        }
+      },
+      "payment": {
+        "title": "购买 Pro",
+        "subtitle": "选择支付方式后前往官网完成支付，支付成功后账号会自动同步 Pro 权益。",
+        "method": "支付方式",
+        "wechat": "微信支付",
+        "alipay": "支付宝",
+        "orderTitle": "确认订单",
+        "receiptEmailLabel": "收据发送邮箱",
+        "receiptEmailPlaceholder": "请输入接收收据的邮箱地址",
+        "fillAccountEmail": "填充本账号邮箱",
+        "priceLabel": "价格",
+        "subscriptionPeriodLabel": "订阅时间",
+        "expireLabel": "订单到期时间",
+        "confirmPay": "创建订单",
+        "emailInvalid": "请输入有效的收据邮箱地址",
+        "loginRequired": "登录状态已失效，请重新登录后再试。",
+        "createOrderFailed": "创建支付订单失败，请稍后重试。",
+        "payUrlMissing": "订单创建成功但未返回支付链接，请稍后重试。",
+        "openPayFailed": "无法打开支付页面，请稍后重试。",
+        "refreshStatusFailed": "刷新支付状态失败，请稍后重试。",
+        "boundEmailNotFound": "当前账号未找到绑定邮箱",
+        "channelsUnavailable": "当前支付通道暂不可用，请稍后重试。",
+        "creatingOrder": "创建订单中...",
+        "pendingTitle": "待支付界面",
+        "orderNoLabel": "订单号",
+        "payAmountLabel": "付款金额",
+        "payStatusLabel": "支付状态",
+        "refreshStatus": "刷新支付状态",
+        "refreshingStatus": "刷新中...",
+        "openPaymentPage": "打开支付界面",
+        "viewOrders": "查看订单",
+        "goUserCenter": "前往用户中心",
+        "status": {
+          "paying": "待支付",
+          "success": "已支付",
+          "closed": "已关闭",
+          "failed": "支付失败",
+          "unknown": "未知"
+        },
+        "wechatHint": "推荐使用微信扫码完成支付",
+        "alipayHint": "推荐使用支付宝扫码完成支付",
+        "selectMethodHint": "请选择上方支付方式后再创建订单。",
+        "fallbackHint": "如果扫码不可用，可点击下方按钮前往官网支付页面。",
+        "goCheckout": "前往官网支付"
       },
       "gender": {
         "male": "男",
@@ -1453,7 +1578,11 @@
         "cancel": "取消",
         "cancelChanges": "取消更改",
         "sendCode": "发送验证码",
-        "sendCodeCooldown": "{{seconds}}s后重试"
+        "sendCodeCooldown": "{{seconds}}s后重试",
+        "reportIssue": "报告问题",
+        "currentPlan": "当前可用",
+        "buyPro": "购买 Pro",
+        "proActivated": "已开通 Pro"
       },
       "danger": {
         "hint": "注销后账号与关联资料将被立即删除，无法恢复，请谨慎操作。"
@@ -1557,9 +1686,13 @@
         "label": "用户中心",
         "desc": "登录、注册、修改、注销等账号操作"
       },
+      "user-pro": {
+        "label": "PRO功能",
+        "desc": "查看 Free 与 Pro 计划权益及当前订阅价格"
+      },
       "about": {
         "label": "关于软件",
-        "desc": "版本信息与项目链接"
+        "desc": "版本信息、源码与反馈入口"
       },
       "music-whitelist": {
         "label": "播放器白名单",

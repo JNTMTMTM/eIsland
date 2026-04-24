@@ -280,6 +280,7 @@
 
 .island-shell.login,
 .island-shell.register,
+.island-shell.payment,
 .island-shell.announcement {
   width: 860px;
   height: 400px;
@@ -290,6 +291,7 @@
 
 .island-shell.login::before,
 .island-shell.register::before,
+.island-shell.payment::before,
 .island-shell.announcement::before {
   opacity: 0;
   pointer-events: none;

@@ -30,7 +30,7 @@ import type { WeatherApiConfig } from '../../api/weather/weatherApi';
 export type { WeatherApiConfig };
 
 /** 灵动岛 UI 状态枚举 */
-export type IslandState = 'idle' | 'hover' | 'expanded' | 'notification' | 'maxExpand' | 'lyrics' | 'guide' | 'login' | 'register' | 'announcement';
+export type IslandState = 'idle' | 'hover' | 'expanded' | 'notification' | 'maxExpand' | 'lyrics' | 'guide' | 'login' | 'register' | 'payment' | 'announcement';
 
 /** Hover 状态下的子标签页类型 */
 export type HoverTab = 'time' | 'o3ics' | 'weather' | 'expand';
@@ -39,7 +39,7 @@ export type HoverTab = 'time' | 'o3ics' | 'weather' | 'expand';
 export type ExpandTab = 'hover' | 'overview' | 'song' | 'tools';
 
 /** MaxExpand 状态下的子标签页类型 */
-export type MaxExpandTab = 'aiChat' | 'todo' | 'urlFavorites' | 'clipboardHistory' | 'countdown' | 'settings';
+export type MaxExpandTab = 'aiChat' | 'todo' | 'urlFavorites' | 'localFileSearch' | 'clipboardHistory' | 'countdown' | 'settings';
 
 /** 歌词显示模式 */
 export type LrcMode = 'off' | 'info' | 'lrc';
@@ -209,6 +209,7 @@ export interface IslandSlice {
   setMaxExpand: () => void;
   setLogin: () => void;
   setRegister: () => void;
+  setPayment: () => void;
   returnFromAuth: () => void;
   setLyrics: () => void;
   setNotification: (data: NotificationData) => void;

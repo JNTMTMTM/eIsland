@@ -170,20 +170,36 @@
 .announcement-body h1,
 .announcement-body h2,
 .announcement-body h3 {
-  margin: 0 0 8px;
-  line-height: 1.25;
+  margin: 18px 0 10px;
+  line-height: 1.28;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.announcement-body h1:first-child,
+.announcement-body h2:first-child,
+.announcement-body h3:first-child {
+  margin-top: 0;
 }
 
 .announcement-body h1 {
-  font-size: 22px;
+  font-size: 28px;
+  font-weight: 760;
+  letter-spacing: 0.02em;
+  padding-bottom: 6px;
 }
 
 .announcement-body h2 {
-  font-size: 18px;
+  font-size: 22px;
+  font-weight: 720;
+  padding-left: 10px;
+  border-left: 3px solid rgba(124, 188, 255, 0.65);
 }
 
 .announcement-body h3 {
-  font-size: 15px;
+  font-size: 18px;
+  font-weight: 680;
+  color: rgba(var(--color-text-rgb), 0.96);
 }
 
 .announcement-body p {
