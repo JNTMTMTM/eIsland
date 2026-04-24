@@ -1249,6 +1249,13 @@
   text-decoration: underline;
 }
 
+.settings-about-record-icon {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
 .settings-about-deps {
   display: flex;
   flex-direction: column;
