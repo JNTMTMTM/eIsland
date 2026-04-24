@@ -124,6 +124,69 @@
   color: var(--color-island-text);
 }
 
+.local-file-search-config-toggle.active {
+  background: rgba(var(--color-text-rgb), 0.24);
+  color: var(--color-island-text);
+}
+
+.local-file-search-config-panel {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px;
+  border: 1px solid rgba(var(--color-text-rgb), 0.08);
+  border-radius: 8px;
+  background: rgba(var(--color-text-rgb), 0.03);
+}
+
+.local-file-search-config-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.local-file-search-config-item--checkbox {
+  margin-left: auto;
+}
+
+.local-file-search-config-label {
+  font-size: 11px;
+  color: rgba(var(--color-text-rgb), 0.58);
+  white-space: nowrap;
+}
+
+.local-file-search-config-select {
+  height: 24px;
+  border-radius: 6px;
+  border: 1px solid rgba(var(--color-text-rgb), 0.12);
+  background: rgba(var(--color-text-rgb), 0.05);
+  color: rgba(var(--color-text-rgb), 0.86);
+  padding: 0 8px;
+  font-size: 11px;
+  outline: none;
+  color-scheme: dark;
+}
+
+.local-file-search-config-select:focus {
+  border-color: rgba(var(--color-text-rgb), 0.22);
+}
+
+.local-file-search-config-select option,
+.local-file-search-config-select optgroup {
+  background-color: #1f1f22;
+  color: #fff;
+}
+
+[data-theme='light'] .local-file-search-config-select {
+  color-scheme: light;
+}
+
+[data-theme='light'] .local-file-search-config-select option,
+[data-theme='light'] .local-file-search-config-select optgroup {
+  background-color: #ffffff;
+  color: #1d1d1f;
+}
+
 .local-file-search-results {
   flex: 1;
   min-height: 0;

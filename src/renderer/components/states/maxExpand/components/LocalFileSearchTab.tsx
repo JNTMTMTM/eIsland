@@ -39,6 +39,9 @@ export function LocalFileSearchTab(): React.ReactElement {
   const { t } = useTranslation();
   const [rootDir, setRootDir] = useState('');
   const [keyword, setKeyword] = useState('');
+  const [showConfig, setShowConfig] = useState(false);
+  const [resultLimit, setResultLimit] = useState(120);
+  const [includeDirectories, setIncludeDirectories] = useState(true);
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<LocalFileSearchItem[]>([]);
   const [iconMap, setIconMap] = useState<Record<string, string>>({});
@@ -100,8 +103,9 @@ export function LocalFileSearchTab(): React.ReactElement {
       return;
     }
     setLoading(true);
-    window.api.searchLocalFiles(trimmedRootDir, trimmedKeyword, 120).then((items) => {
-      setResults(Array.isArray(items) ? items : []);
+    window.api.searchLocalFiles(trimmedRootDir, trimmedKeyword, resultLimit).then((items) => {
+      const list = Array.isArray(items) ? items : [];
+      setResults(includeDirectories ? list : list.filter((item) => !item.isDirectory));
     }).catch(() => {
       setResults([]);
     }).finally(() => {
@@ -152,7 +156,48 @@ export function LocalFileSearchTab(): React.ReactElement {
             ? t('maxExpand.localFileSearch.searching', { defaultValue: '搜索中…' })
             : t('maxExpand.localFileSearch.search', { defaultValue: '搜索' })}
         </button>
+        <button
+          type="button"
+          className={`local-file-search-btn local-file-search-config-toggle${showConfig ? ' active' : ''}`}
+          onClick={() => setShowConfig((prev) => !prev)}
+        >
+          {t('maxExpand.localFileSearch.config', { defaultValue: '配置' })}
+        </button>
       </div>
+
+      {showConfig ? (
+        <div className="local-file-search-config-panel">
+          <label className="local-file-search-config-item">
+            <span className="local-file-search-config-label">
+              {t('maxExpand.localFileSearch.limitLabel', { defaultValue: '最大结果数' })}
+            </span>
+            <select
+              className="local-file-search-config-select"
+              value={String(resultLimit)}
+              onChange={(e) => {
+                const nextLimit = Number(e.target.value);
+                if (Number.isFinite(nextLimit) && nextLimit > 0) {
+                  setResultLimit(nextLimit);
+                }
+              }}
+            >
+              <option value="50">50</option>
+              <option value="120">120</option>
+              <option value="300">300</option>
+            </select>
+          </label>
+          <label className="local-file-search-config-item local-file-search-config-item--checkbox">
+            <input
+              type="checkbox"
+              checked={includeDirectories}
+              onChange={(e) => setIncludeDirectories(e.target.checked)}
+            />
+            <span className="local-file-search-config-label">
+              {t('maxExpand.localFileSearch.includeFolders', { defaultValue: '结果包含文件夹' })}
+            </span>
+          </label>
+        </div>
+      ) : null}
 
       {loading ? (
         <div className="local-file-search-progress" aria-hidden="true">
