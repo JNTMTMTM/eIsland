@@ -1494,7 +1494,7 @@
         "priceLabel": "价格",
         "subscriptionPeriodLabel": "订阅时间",
         "expireLabel": "订单到期时间",
-        "confirmPay": "确认支付",
+        "confirmPay": "创建订单",
         "emailInvalid": "请输入有效的收据邮箱地址",
         "loginRequired": "登录状态已失效，请重新登录后再试。",
         "createOrderFailed": "创建支付订单失败，请稍后重试。",

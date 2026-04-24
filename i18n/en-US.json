@@ -1494,7 +1494,7 @@
         "priceLabel": "Price",
         "subscriptionPeriodLabel": "Subscription Period",
         "expireLabel": "Order Expires At",
-        "confirmPay": "Confirm Payment",
+        "confirmPay": "Create Order",
         "emailInvalid": "Please enter a valid receipt email address",
         "loginRequired": "Your login session has expired. Please sign in again and retry.",
         "createOrderFailed": "Failed to create payment order. Please try again later.",
