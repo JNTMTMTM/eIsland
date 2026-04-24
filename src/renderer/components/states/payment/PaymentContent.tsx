@@ -19,26 +19,105 @@
  * @author 鸡哥
  */
 
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../store/slices';
 import { SvgIcon } from '../../../utils/SvgIcon';
+import { fetchProMonthPricing } from '../../../api/user/userAccountApi';
+import { readLocalProfile, readLocalToken } from '../../../utils/userAccount';
 import '../../../styles/settings/settings.css';
 import '../../../styles/auth/auth.css';
 
 type PaymentMethod = 'wechat' | 'alipay' | null;
 const SETTINGS_OPEN_TAB_STORE_KEY = 'settings-open-tab';
+const PRO_CHECKOUT_URL = 'https://www.pyisland.com';
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function formatDateOnly(value: Date): string {
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, '0');
+  const day = String(value.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
 
 export function PaymentContent(): ReactElement {
   const { t } = useTranslation();
   const { returnFromAuth, setMaxExpand, setMaxExpandTab } = useIslandStore();
   const [method, setMethod] = useState<PaymentMethod>(null);
+  const [receiptEmail, setReceiptEmail] = useState('');
+  const [orderExpireAt, setOrderExpireAt] = useState<string>('');
+  const [subscriptionPeriod, setSubscriptionPeriod] = useState('');
+  const [priceLabel, setPriceLabel] = useState('');
+  const [feedback, setFeedback] = useState('');
 
   const handleReportIssue = (): void => {
     window.api.storeWrite(SETTINGS_OPEN_TAB_STORE_KEY, 'about-feedback').catch(() => {});
     setMaxExpandTab('settings');
     setMaxExpand();
+  };
+
+  useEffect(() => {
+    const token = readLocalToken();
+    if (!token) {
+      setPriceLabel('');
+      return;
+    }
+    let cancelled = false;
+    fetchProMonthPricing(token).then((result) => {
+      if (cancelled || !result.ok || !result.data) return;
+      const amountYuanRaw = typeof result.data.amountYuan === 'string' ? result.data.amountYuan.trim() : '';
+      const amountYuan = amountYuanRaw || (typeof result.data.amountFen === 'number' ? (result.data.amountFen / 100).toFixed(2) : '');
+      const cycle = String(result.data.billingCycle || '').toUpperCase() === 'MONTH'
+        ? t('settings.user.pro.billingCycle.month', { defaultValue: '月' })
+        : String(result.data.billingCycle || '').trim();
+      if (!amountYuan) {
+        setPriceLabel('');
+        return;
+      }
+      setPriceLabel(cycle ? `¥${amountYuan} / ${cycle}` : `¥${amountYuan}`);
+    }).catch(() => {}).finally(() => {
+      if (cancelled) return;
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [t]);
+
+  const orderExpireLabel = useMemo(() => {
+    if (!orderExpireAt) return '';
+    const date = new Date(orderExpireAt);
+    if (!Number.isFinite(date.getTime())) return '';
+    return date.toLocaleString();
+  }, [orderExpireAt]);
+
+  const handleSelectMethod = (nextMethod: Exclude<PaymentMethod, null>): void => {
+    setMethod(nextMethod);
+    const now = new Date();
+    const end = new Date(now);
+    end.setMonth(end.getMonth() + 1);
+    setSubscriptionPeriod(`${formatDateOnly(now)} - ${formatDateOnly(end)}`);
+    setOrderExpireAt(new Date(Date.now() + 15 * 60 * 1000).toISOString());
+    setFeedback('');
+  };
+
+  const handleConfirmPay = (): void => {
+    const email = receiptEmail.trim();
+    if (!EMAIL_PATTERN.test(email)) {
+      setFeedback(t('settings.user.payment.emailInvalid', { defaultValue: '请输入有效的收据邮箱地址' }));
+      return;
+    }
+    window.api.clipboardOpenUrl(PRO_CHECKOUT_URL).catch(() => {});
+  };
+
+  const handleFillAccountEmail = (): void => {
+    const accountEmail = (readLocalProfile()?.email || '').trim().toLowerCase();
+    if (!accountEmail) {
+      setFeedback(t('settings.user.payment.boundEmailNotFound', { defaultValue: '当前账号未找到绑定邮箱' }));
+      return;
+    }
+    setReceiptEmail(accountEmail);
+    setFeedback('');
   };
 
   return (
@@ -53,7 +132,7 @@ export function PaymentContent(): ReactElement {
           <button
             type="button"
             className={`payment-method-btn ${method === 'wechat' ? 'active' : ''}`}
-            onClick={() => setMethod('wechat')}
+            onClick={() => handleSelectMethod('wechat')}
           >
             <img className="payment-method-icon" src={SvgIcon.WECHATPAY} alt="" aria-hidden="true" />
             {t('settings.user.payment.wechat', { defaultValue: '微信支付' })}
@@ -61,7 +140,7 @@ export function PaymentContent(): ReactElement {
           <button
             type="button"
             className={`payment-method-btn ${method === 'alipay' ? 'active' : ''}`}
-            onClick={() => setMethod('alipay')}
+            onClick={() => handleSelectMethod('alipay')}
           >
             <img className="payment-method-icon" src={SvgIcon.ALIPAY} alt="" aria-hidden="true" />
             {t('settings.user.payment.alipay', { defaultValue: '支付宝' })}
@@ -69,18 +148,50 @@ export function PaymentContent(): ReactElement {
         </div>
 
         {method ? (
-          <div className="payment-qr-card">
-            <div className="payment-qr-box" aria-hidden="true">
-              {method === 'wechat' ? 'WECHAT PAY' : 'ALIPAY'}
+          <div className="payment-order-card">
+            <div className="payment-order-title">
+              {t('settings.user.payment.orderTitle', { defaultValue: '确认订单' })}
             </div>
-            <div className="payment-qr-hint">
-              {method === 'wechat'
-                ? t('settings.user.payment.wechatHint', { defaultValue: '推荐使用微信扫码完成支付' })
-                : t('settings.user.payment.alipayHint', { defaultValue: '推荐使用支付宝扫码完成支付' })}
+            <label className="payment-order-email-field">
+              <span className="payment-order-label">
+                {t('settings.user.payment.receiptEmailLabel', { defaultValue: '收据发送邮箱' })}
+              </span>
+              <div className="payment-order-email-row">
+                <input
+                  className="settings-field-input"
+                  value={receiptEmail}
+                  onChange={(e) => setReceiptEmail(e.target.value)}
+                  placeholder={t('settings.user.payment.receiptEmailPlaceholder', { defaultValue: '请输入接收收据的邮箱地址' })}
+                />
+                <button
+                  type="button"
+                  className="settings-user-secondary-btn payment-fill-email-btn"
+                  onClick={handleFillAccountEmail}
+                >
+                  {t('settings.user.payment.fillAccountEmail', { defaultValue: '填充本账号邮箱' })}
+                </button>
+              </div>
+            </label>
+            <div className="payment-order-row">
+              <span className="payment-order-label">{t('settings.user.payment.priceLabel', { defaultValue: '价格' })}</span>
+              <span className="payment-order-value">{priceLabel || t('settings.user.pro.pro.priceUnavailable', { defaultValue: '价格待定' })}</span>
             </div>
-            <div className="payment-qr-subhint">
-              {t('settings.user.payment.fallbackHint', { defaultValue: '如果扫码不可用，可点击下方按钮前往官网支付页面。' })}
+            <div className="payment-order-row">
+              <span className="payment-order-label">{t('settings.user.payment.subscriptionPeriodLabel', { defaultValue: '订阅时间' })}</span>
+              <span className="payment-order-value">{subscriptionPeriod || '--'}</span>
             </div>
+            <div className="payment-order-row">
+              <span className="payment-order-label">{t('settings.user.payment.expireLabel', { defaultValue: '订单到期时间' })}</span>
+              <span className="payment-order-value">{orderExpireLabel || '--'}</span>
+            </div>
+            {feedback ? <div className="payment-order-feedback">{feedback}</div> : null}
+            <button
+              type="button"
+              className="settings-user-primary-btn payment-confirm-btn"
+              onClick={handleConfirmPay}
+            >
+              {t('settings.user.payment.confirmPay', { defaultValue: '确认支付' })}
+            </button>
           </div>
         ) : null}
 

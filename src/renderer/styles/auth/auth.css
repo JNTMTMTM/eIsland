@@ -156,6 +156,71 @@
   color: rgba(var(--color-text-rgb), 0.95);
 }
 
+.payment-order-card {
+  border: 1px solid rgba(var(--color-text-rgb), 0.1);
+  background: rgba(var(--color-text-rgb), 0.03);
+  border-radius: 12px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.payment-order-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(var(--color-text-rgb), 0.9);
+}
+
+.payment-order-email-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.payment-order-email-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.payment-order-email-row .settings-field-input {
+  flex: 1;
+}
+
+.payment-fill-email-btn {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.payment-order-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.payment-order-label {
+  font-size: 11px;
+  color: rgba(var(--color-text-rgb), 0.58);
+}
+
+.payment-order-value {
+  font-size: 12px;
+  color: rgba(var(--color-text-rgb), 0.88);
+  text-align: right;
+}
+
+.payment-order-feedback {
+  font-size: 11px;
+  color: rgba(252, 165, 165, 0.95);
+}
+
+.payment-confirm-btn {
+  width: 100%;
+  justify-content: center;
+}
+
 .payment-qr-card {
   border: 1px solid rgba(var(--color-text-rgb), 0.1);
   background: rgba(var(--color-text-rgb), 0.03);
