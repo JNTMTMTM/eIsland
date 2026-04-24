@@ -56,8 +56,10 @@ export function fetchPaymentChannels(token: string): Promise<UserAccountResult<U
 export function createProMonthOrder(
   token: string,
   channel: UserPaymentCreateChannel,
+  email: string,
 ): Promise<UserAccountResult<UserPaymentOrderData>> {
-  return request<UserPaymentOrderData>(`/v1/user/payment/orders/pro-month?channel=${channel}`, {
+  const encodedEmail = encodeURIComponent(email.trim());
+  return request<UserPaymentOrderData>(`/v1/user/payment/orders/pro-month?channel=${channel}&email=${encodedEmail}`, {
     method: 'POST',
     auth: token,
   });

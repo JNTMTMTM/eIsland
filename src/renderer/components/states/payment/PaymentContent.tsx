@@ -189,7 +189,7 @@ export function PaymentContent(): ReactElement {
         return;
       }
       setIsCreatingOrder(true);
-      const result = await createProMonthOrder(token, channel);
+      const result = await createProMonthOrder(token, channel, email);
       if (!result.ok || !result.data) {
         setFeedback(result.message || t('settings.user.payment.createOrderFailed', { defaultValue: '创建支付订单失败，请稍后重试。' }));
         return;
