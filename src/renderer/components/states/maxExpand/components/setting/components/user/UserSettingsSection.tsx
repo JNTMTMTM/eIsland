@@ -1246,14 +1246,16 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
               <div className="settings-user-pro-plan-name">{t('settings.user.pro.free.name', { defaultValue: 'Free' })}</div>
               <div className="settings-user-pro-plan-price">{t('settings.user.pro.free.price', { defaultValue: '¥0 / 月' })}</div>
             </div>
-            <div className="settings-user-pro-plan-desc">
-              {freeDescText}
+            <div className="settings-user-pro-plan-scroll">
+              <div className="settings-user-pro-plan-desc">
+                {freeDescText}
+              </div>
+              <ul className="settings-user-pro-plan-features">
+                {freeFeatures.map((feature, index) => (
+                  <li key={`free-feature-${index}`}>{feature}</li>
+                ))}
+              </ul>
             </div>
-            <ul className="settings-user-pro-plan-features">
-              {freeFeatures.map((feature, index) => (
-                <li key={`free-feature-${index}`}>{feature}</li>
-              ))}
-            </ul>
             <button
               type="button"
               className="settings-user-secondary-btn"
@@ -1275,14 +1277,16 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
                   : (proMonthPriceLabel || t('settings.user.pro.pro.priceUnavailable', { defaultValue: '价格待定' }))}
               </div>
             </div>
-            <div className="settings-user-pro-plan-desc">
-              {proDescText}
+            <div className="settings-user-pro-plan-scroll">
+              <div className="settings-user-pro-plan-desc">
+                {proDescText}
+              </div>
+              <ul className="settings-user-pro-plan-features">
+                {proFeatures.map((feature, index) => (
+                  <li key={`pro-feature-${index}`}>{feature}</li>
+                ))}
+              </ul>
             </div>
-            <ul className="settings-user-pro-plan-features">
-              {proFeatures.map((feature, index) => (
-                <li key={`pro-feature-${index}`}>{feature}</li>
-              ))}
-            </ul>
             {isProUser ? (
               <button type="button" className="settings-user-primary-btn" disabled>
                 {t('settings.user.actions.proActivated', { defaultValue: '已开通 Pro' })}
