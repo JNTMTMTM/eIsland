@@ -136,6 +136,9 @@ export function MaxExpandContent(): React.ReactElement {
       if (target.closest('.expand-todo-list')) return;
       if (target.closest('.url-favorites-list')) return;
       if (target.closest('.url-favorites-input')) return;
+      if (target.closest('.local-file-search-results')) return;
+      if (target.closest('.local-file-search-root-input')) return;
+      if (target.closest('.local-file-search-query-input')) return;
       if (target.closest('.clipboard-history-list')) return;
       if (target.closest('.max-expand-settings')) return;
       if (target.closest('.countdown-calendar-wrap')) return;

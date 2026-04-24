@@ -52,6 +52,35 @@
   gap: 8px;
 }
 
+.local-file-search-progress {
+  position: relative;
+  width: 100%;
+  height: 2px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(var(--color-text-rgb), 0.08);
+}
+
+.local-file-search-progress-bar {
+  position: absolute;
+  top: 0;
+  left: -35%;
+  width: 35%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, rgba(92, 165, 255, 0.2), rgba(92, 165, 255, 0.95));
+  animation: local-file-search-progress-slide 1.1s ease-in-out infinite;
+}
+
+@keyframes local-file-search-progress-slide {
+  0% {
+    left: -35%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
 .local-file-search-root-input,
 .local-file-search-query-input {
   flex: 1;
@@ -103,6 +132,28 @@
   flex-direction: column;
   gap: 6px;
   padding-right: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(var(--color-text-rgb), 0.18) rgba(var(--color-text-rgb), 0.04);
+}
+
+.local-file-search-results::-webkit-scrollbar {
+  width: 7px;
+}
+
+.local-file-search-results::-webkit-scrollbar-track {
+  background: linear-gradient(180deg, rgba(var(--color-text-rgb), 0.05), rgba(var(--color-text-rgb), 0.02));
+  border-radius: 999px;
+}
+
+.local-file-search-results::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  border: 1px solid rgba(var(--color-text-rgb), 0.12);
+  background: rgba(var(--color-text-rgb), 0.14);
+  box-shadow: none;
+}
+
+.local-file-search-results::-webkit-scrollbar-thumb:hover {
+  background: rgba(var(--color-text-rgb), 0.22);
 }
 
 .local-file-search-item {
@@ -128,11 +179,9 @@
 .local-file-search-item-icon-wrap {
   width: 22px;
   height: 22px;
-  border-radius: 6px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: rgba(var(--color-text-rgb), 0.08);
   flex-shrink: 0;
 }
 

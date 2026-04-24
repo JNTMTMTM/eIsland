@@ -154,6 +154,12 @@ export function LocalFileSearchTab(): React.ReactElement {
         </button>
       </div>
 
+      {loading ? (
+        <div className="local-file-search-progress" aria-hidden="true">
+          <span className="local-file-search-progress-bar" />
+        </div>
+      ) : null}
+
       <div className="local-file-search-results">
         {loading ? (
           <div className="local-file-search-empty">{t('maxExpand.localFileSearch.loading', { defaultValue: '正在检索本地文件…' })}</div>
