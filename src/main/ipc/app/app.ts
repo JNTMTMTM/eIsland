@@ -41,9 +41,20 @@ interface LocalFileSearchOptions {
   limit?: number;
   maxDepth?: number;
   includeDirectories?: boolean;
+  includeFiles?: boolean;
+  includeHidden?: boolean;
   caseSensitive?: boolean;
+  matchMode?: 'contains' | 'startsWith' | 'endsWith' | 'exact';
+  matchScope?: 'name' | 'path';
   extensions?: string[];
   excludeDirs?: string[];
+}
+
+function isTextMatched(target: string, keyword: string, mode: 'contains' | 'startsWith' | 'endsWith' | 'exact'): boolean {
+  if (mode === 'startsWith') return target.startsWith(keyword);
+  if (mode === 'endsWith') return target.endsWith(keyword);
+  if (mode === 'exact') return target === keyword;
+  return target.includes(keyword);
 }
 
 async function searchLocalFiles(rootDir: string, keyword: string, options?: LocalFileSearchOptions): Promise<LocalFileSearchItem[]> {
@@ -55,7 +66,11 @@ async function searchLocalFiles(rootDir: string, keyword: string, options?: Loca
   const maxCount = Math.max(1, Math.min(500, Math.floor(limit || 120)));
   const maxDepth = Math.max(0, Math.min(12, Math.floor(maxDepthOption || 8)));
   const includeDirectories = options?.includeDirectories !== false;
+  const includeFiles = options?.includeFiles !== false;
+  const includeHidden = options?.includeHidden === true;
   const caseSensitive = options?.caseSensitive === true;
+  const matchMode = options?.matchMode ?? 'contains';
+  const matchScope = options?.matchScope ?? 'name';
   const keywordForMatch = caseSensitive ? trimmedKeyword : trimmedKeyword.toLowerCase();
   const extensionSet = new Set(
     (Array.isArray(options?.extensions) ? options?.extensions : [])
@@ -86,17 +101,22 @@ async function searchLocalFiles(rootDir: string, keyword: string, options?: Loca
     for (const entry of entries) {
       if (results.length >= maxCount) break;
       const entryName = typeof entry.name === 'string' ? entry.name : entry.name.toString('utf8');
+      if (!includeHidden && entryName.startsWith('.')) {
+        continue;
+      }
       const entryPath = `${current.dir}${current.dir.endsWith('\\') ? '' : '\\'}${entryName}`;
       const isDirectory = entry.isDirectory();
-      const nameForMatch = caseSensitive ? entryName : entryName.toLowerCase();
+      const matchTargetRaw = matchScope === 'path' ? entryPath : entryName;
+      const matchTarget = caseSensitive ? matchTargetRaw : matchTargetRaw.toLowerCase();
       let extensionMatched = true;
       if (!isDirectory && extensionSet.size > 0) {
         const dotIndex = entryName.lastIndexOf('.');
         const ext = dotIndex >= 0 ? entryName.slice(dotIndex + 1).toLowerCase() : '';
         extensionMatched = extensionSet.has(ext);
       }
+      const typeMatched = (isDirectory && includeDirectories) || (!isDirectory && includeFiles);
 
-      if (nameForMatch.includes(keywordForMatch) && extensionMatched && (includeDirectories || !isDirectory)) {
+      if (isTextMatched(matchTarget, keywordForMatch, matchMode) && extensionMatched && typeMatched) {
         results.push({
           name: entryName,
           path: entryPath,

@@ -197,7 +197,11 @@ const api = {
       limit?: number;
       maxDepth?: number;
       includeDirectories?: boolean;
+      includeFiles?: boolean;
+      includeHidden?: boolean;
       caseSensitive?: boolean;
+      matchMode?: 'contains' | 'startsWith' | 'endsWith' | 'exact';
+      matchScope?: 'name' | 'path';
       extensions?: string[];
       excludeDirs?: string[];
     },

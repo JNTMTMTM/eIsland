@@ -50,6 +50,10 @@ export function LocalFileSearchTab(): React.ReactElement {
   const [resultLimit, setResultLimit] = useState(120);
   const [maxDepth, setMaxDepth] = useState(8);
   const [caseSensitive, setCaseSensitive] = useState(false);
+  const [matchMode, setMatchMode] = useState<'contains' | 'startsWith' | 'endsWith' | 'exact'>('contains');
+  const [matchScope, setMatchScope] = useState<'name' | 'path'>('name');
+  const [includeFiles, setIncludeFiles] = useState(true);
+  const [includeHidden, setIncludeHidden] = useState(false);
   const [extensionsInput, setExtensionsInput] = useState('');
   const [excludeDirsInput, setExcludeDirsInput] = useState('');
   const [includeDirectories, setIncludeDirectories] = useState(true);
@@ -120,7 +124,11 @@ export function LocalFileSearchTab(): React.ReactElement {
       limit: resultLimit,
       maxDepth,
       includeDirectories,
+      includeFiles,
+      includeHidden,
       caseSensitive,
+      matchMode,
+      matchScope,
       extensions: parsedExtensions,
       excludeDirs: parsedExcludeDirs,
     }).then((items) => {
@@ -208,6 +216,46 @@ export function LocalFileSearchTab(): React.ReactElement {
 
           <label className="local-file-search-config-item">
             <span className="local-file-search-config-label">
+              {t('maxExpand.localFileSearch.matchScopeLabel', { defaultValue: '匹配范围' })}
+            </span>
+            <select
+              className="local-file-search-config-select"
+              value={matchScope}
+              onChange={(e) => {
+                const nextValue = e.target.value;
+                if (nextValue === 'name' || nextValue === 'path') {
+                  setMatchScope(nextValue);
+                }
+              }}
+            >
+              <option value="name">{t('maxExpand.localFileSearch.matchScopeName', { defaultValue: '文件名' })}</option>
+              <option value="path">{t('maxExpand.localFileSearch.matchScopePath', { defaultValue: '完整路径' })}</option>
+            </select>
+          </label>
+
+          <label className="local-file-search-config-item">
+            <span className="local-file-search-config-label">
+              {t('maxExpand.localFileSearch.matchModeLabel', { defaultValue: '匹配方式' })}
+            </span>
+            <select
+              className="local-file-search-config-select"
+              value={matchMode}
+              onChange={(e) => {
+                const nextValue = e.target.value;
+                if (nextValue === 'contains' || nextValue === 'startsWith' || nextValue === 'endsWith' || nextValue === 'exact') {
+                  setMatchMode(nextValue);
+                }
+              }}
+            >
+              <option value="contains">{t('maxExpand.localFileSearch.matchModeContains', { defaultValue: '包含' })}</option>
+              <option value="startsWith">{t('maxExpand.localFileSearch.matchModeStartsWith', { defaultValue: '前缀' })}</option>
+              <option value="endsWith">{t('maxExpand.localFileSearch.matchModeEndsWith', { defaultValue: '后缀' })}</option>
+              <option value="exact">{t('maxExpand.localFileSearch.matchModeExact', { defaultValue: '精确匹配' })}</option>
+            </select>
+          </label>
+
+          <label className="local-file-search-config-item">
+            <span className="local-file-search-config-label">
               {t('maxExpand.localFileSearch.depthLabel', { defaultValue: '最大深度' })}
             </span>
             <select
@@ -259,6 +307,28 @@ export function LocalFileSearchTab(): React.ReactElement {
             />
             <span className="local-file-search-config-label">
               {t('maxExpand.localFileSearch.includeFolders', { defaultValue: '结果包含文件夹' })}
+            </span>
+          </label>
+
+          <label className="local-file-search-config-item local-file-search-config-item--checkbox">
+            <input
+              type="checkbox"
+              checked={includeFiles}
+              onChange={(e) => setIncludeFiles(e.target.checked)}
+            />
+            <span className="local-file-search-config-label">
+              {t('maxExpand.localFileSearch.includeFiles', { defaultValue: '结果包含文件' })}
+            </span>
+          </label>
+
+          <label className="local-file-search-config-item local-file-search-config-item--checkbox">
+            <input
+              type="checkbox"
+              checked={includeHidden}
+              onChange={(e) => setIncludeHidden(e.target.checked)}
+            />
+            <span className="local-file-search-config-label">
+              {t('maxExpand.localFileSearch.includeHidden', { defaultValue: '包含隐藏项' })}
             </span>
           </label>
 
