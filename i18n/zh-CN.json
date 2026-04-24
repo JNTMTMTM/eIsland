@@ -1510,6 +1510,8 @@
         "payStatusLabel": "支付状态",
         "refreshStatus": "刷新支付状态",
         "refreshingStatus": "刷新中...",
+        "openPaymentPage": "打开支付界面",
+        "goUserCenter": "前往用户中心",
         "status": {
           "paying": "待支付",
           "success": "已支付",

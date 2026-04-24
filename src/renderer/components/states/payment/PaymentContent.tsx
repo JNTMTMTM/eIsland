@@ -144,6 +144,9 @@ export function PaymentContent(): ReactElement {
     return 'is-unknown';
   }, [pendingOrder]);
 
+  const isPendingOrderPaying = String(pendingOrder?.status || '').toUpperCase() === 'PAYING';
+  const isPendingOrderSuccess = String(pendingOrder?.status || '').toUpperCase() === 'SUCCESS';
+
   const handleSelectMethod = (nextMethod: Exclude<PaymentMethod, null>): void => {
     if ((nextMethod === 'wechat' && !wechatEnabled) || (nextMethod === 'alipay' && !alipayEnabled)) {
       return;
@@ -201,6 +204,24 @@ export function PaymentContent(): ReactElement {
     } finally {
       setIsCreatingOrder(false);
     }
+  };
+
+  const handleOpenPendingPaymentPage = (): void => {
+    if (!pendingOrder) {
+      return;
+    }
+    const payUrl = (pendingOrder.payUrl || pendingOrder.qrCodeUrl || '').trim();
+    if (!payUrl) {
+      setFeedback(t('settings.user.payment.payUrlMissing', { defaultValue: '订单创建成功但未返回支付链接，请稍后重试。' }));
+      return;
+    }
+    window.api.clipboardOpenUrl(payUrl).catch(() => {
+      setFeedback(t('settings.user.payment.openPayFailed', { defaultValue: '无法打开支付页面，请稍后重试。' }));
+    });
+  };
+
+  const handleGoUserCenter = (): void => {
+    returnFromAuth();
   };
 
   const handleRefreshPaymentStatus = async (): Promise<void> => {
@@ -345,6 +366,10 @@ export function PaymentContent(): ReactElement {
               <span className="payment-order-label">{t('settings.user.payment.payStatusLabel', { defaultValue: '支付状态' })}</span>
               <span className={`payment-status-badge ${paymentStatusClassName}`}>{paymentStatusLabel}</span>
             </div>
+            <div className="payment-order-row">
+              <span className="payment-order-label">{t('settings.user.payment.expireLabel', { defaultValue: '订单到期时间' })}</span>
+              <span className="payment-order-value">{orderExpireLabel || '--'}</span>
+            </div>
             {feedback ? <div className="payment-order-feedback">{feedback}</div> : null}
             <button
               type="button"
@@ -359,6 +384,26 @@ export function PaymentContent(): ReactElement {
                 </>
               ) : t('settings.user.payment.refreshStatus', { defaultValue: '刷新支付状态' })}
             </button>
+            {isPendingOrderPaying ? (
+              <button
+                type="button"
+                className="settings-user-primary-btn payment-confirm-btn"
+                onClick={handleOpenPendingPaymentPage}
+                disabled={creatingOrRefreshing}
+              >
+                <img className="payment-action-icon" src={SvgIcon.ALIPAY} alt="" aria-hidden="true" />
+                {t('settings.user.payment.openPaymentPage', { defaultValue: '打开支付界面' })}
+              </button>
+            ) : null}
+            {isPendingOrderSuccess ? (
+              <button
+                type="button"
+                className="settings-user-primary-btn payment-confirm-btn"
+                onClick={handleGoUserCenter}
+              >
+                {t('settings.user.payment.goUserCenter', { defaultValue: '前往用户中心' })}
+              </button>
+            ) : null}
           </div>
         ) : null}
 

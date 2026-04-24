@@ -222,6 +222,9 @@
 }
 
 .payment-confirm-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   width: 100%;
   justify-content: center;
 }
@@ -236,8 +239,18 @@
 }
 
 .payment-refresh-status-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   width: 100%;
   justify-content: center;
+}
+
+.payment-action-icon {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+  flex-shrink: 0;
 }
 
 .payment-status-badge {
@@ -380,4 +393,52 @@
 
 .island-shell.register .auth-panel::-webkit-scrollbar-thumb:active {
   background: rgba(var(--color-text-rgb), 0.44);
+}
+
+.island-shell.payment .auth-panel {
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(var(--color-text-rgb), 0.34) rgba(var(--color-text-rgb), 0.06);
+}
+
+.island-shell.payment .auth-panel::-webkit-scrollbar {
+  width: 10px;
+}
+
+.island-shell.payment .auth-panel::-webkit-scrollbar-track {
+  border-radius: 999px;
+  background: linear-gradient(
+    180deg,
+    rgba(var(--color-text-rgb), 0.04),
+    rgba(var(--color-text-rgb), 0.1)
+  );
+}
+
+.island-shell.payment .auth-panel::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  border: 2px solid rgba(var(--color-text-rgb), 0.1);
+  background: linear-gradient(
+    180deg,
+    rgba(var(--color-text-rgb), 0.24),
+    rgba(var(--color-text-rgb), 0.34)
+  );
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.island-shell.payment .auth-panel:hover::-webkit-scrollbar-thumb {
+  border-color: rgba(var(--color-text-rgb), 0.12);
+  background: linear-gradient(
+    180deg,
+    rgba(var(--color-text-rgb), 0.3),
+    rgba(var(--color-text-rgb), 0.42)
+  );
+}
+
+.island-shell.payment .auth-panel::-webkit-scrollbar-thumb:active {
+  border-color: rgba(var(--color-text-rgb), 0.14);
+  background: linear-gradient(
+    180deg,
+    rgba(var(--color-text-rgb), 0.38),
+    rgba(var(--color-text-rgb), 0.5)
+  );
 }

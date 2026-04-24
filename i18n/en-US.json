@@ -1510,6 +1510,8 @@
         "payStatusLabel": "Payment Status",
         "refreshStatus": "Refresh Payment Status",
         "refreshingStatus": "Refreshing...",
+        "openPaymentPage": "Open Payment Page",
+        "goUserCenter": "Go to User Center",
         "status": {
           "paying": "Pending",
           "success": "Paid",
