@@ -3002,6 +3002,10 @@
 
 .settings-user-pro-panel {
   gap: 10px;
+  flex: 1;
+  min-height: 100%;
+  padding-bottom: 12px;
+  box-sizing: border-box;
 }
 
 .settings-user-pro-intro-card {
@@ -3016,10 +3020,24 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
+  flex: 1;
+  min-height: 0;
+  align-items: stretch;
 }
 
 .settings-user-pro-plan-card {
   min-height: 100%;
+  height: 100%;
+}
+
+.settings-user-pro-plan-features {
+  flex: 1;
+}
+
+.settings-user-pro-plan-card > .settings-user-secondary-btn,
+.settings-user-pro-plan-card > .settings-user-primary-btn,
+.settings-user-pro-plan-card > .settings-user-pro-buy-link {
+  margin-top: auto;
 }
 
 .settings-user-pro-plan-card--free {
@@ -3104,6 +3122,7 @@
 
   .settings-user-pro-grid {
     grid-template-columns: 1fr;
+    flex: 0 0 auto;
   }
 }
 
