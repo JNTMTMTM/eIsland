@@ -233,6 +233,12 @@ export function PaymentContent(): ReactElement {
     returnFromAuth();
   };
 
+  const handleViewOrders = (): void => {
+    window.api.storeWrite(SETTINGS_OPEN_TAB_STORE_KEY, 'user-orders').catch(() => {});
+    setMaxExpandTab('settings');
+    setMaxExpand();
+  };
+
   const handleRefreshPaymentStatus = async (): Promise<void> => {
     if (!pendingOrder || !pendingOrder.outTradeNo || isRefreshingStatus) {
       return;
@@ -401,6 +407,16 @@ export function PaymentContent(): ReactElement {
                 {t('settings.user.payment.openPaymentPage', { defaultValue: '打开支付界面' })}
               </button>
             ) : null}
+            {isPendingOrderPaying ? (
+              <button
+                type="button"
+                className="settings-user-secondary-btn payment-refresh-status-btn"
+                onClick={handleViewOrders}
+                disabled={creatingOrRefreshing}
+              >
+                {t('settings.user.payment.viewOrders', { defaultValue: '查看订单' })}
+              </button>
+            ) : null}
             {isPendingOrderSuccess ? (
               <button
                 type="button"
@@ -408,6 +424,15 @@ export function PaymentContent(): ReactElement {
                 onClick={handleGoUserCenter}
               >
                 {t('settings.user.payment.goUserCenter', { defaultValue: '前往用户中心' })}
+              </button>
+            ) : null}
+            {isPendingOrderSuccess ? (
+              <button
+                type="button"
+                className="settings-user-secondary-btn payment-refresh-status-btn"
+                onClick={handleViewOrders}
+              >
+                {t('settings.user.payment.viewOrders', { defaultValue: '查看订单' })}
               </button>
             ) : null}
           </div>

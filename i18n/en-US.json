@@ -1532,6 +1532,7 @@
         "refreshStatus": "Refresh Payment Status",
         "refreshingStatus": "Refreshing...",
         "openPaymentPage": "Open Payment Page",
+        "viewOrders": "View Orders",
         "goUserCenter": "Go to User Center",
         "status": {
           "paying": "Pending",

@@ -109,7 +109,7 @@ const ISLAND_DISPLAY_STORE_KEY = 'island-display-id';
 const UPDATE_SOURCE_STORE_KEY = 'update-source';
 const UPDATE_AUTO_PROMPT_STORE_KEY = 'update-auto-prompt-enabled';
 const SETTINGS_OPEN_TAB_STORE_KEY = 'settings-open-tab';
-type SettingsOpenTabIntent = 'update' | 'about-feedback';
+type SettingsOpenTabIntent = 'update' | 'about-feedback' | 'user-orders';
 let _lastSettingsSidebarTab: SettingsSidebarTabKey = 'index';
 
 type IslandBgMediaType = 'image' | 'video';
@@ -262,7 +262,7 @@ export function SettingsTab(): ReactElement {
   const [appSettingsPage, setAppSettingsPage] = useState<AppSettingsPageKey>('layout-preview');
   const [weatherSettingsPage, setWeatherSettingsPage] = useState<WeatherSettingsPageKey>('location');
   const [musicSettingsPage, setMusicSettingsPage] = useState<MusicSettingsPageKey>('whitelist');
-  const [userInitialProfilePage, setUserInitialProfilePage] = useState<'info' | 'pro'>('info');
+  const [userInitialProfilePage, setUserInitialProfilePage] = useState<'info' | 'pro' | 'orders'>('info');
   const [aboutInitialPage, setAboutInitialPage] = useState<'development' | 'feedback'>('development');
   const [pluginMarketPage, setPluginMarketPage] = useState<PluginMarketPageKey>('wallpaper');
   const [wallpaperMarketRefreshKey, setWallpaperMarketRefreshKey] = useState(0);
@@ -951,6 +951,10 @@ export function SettingsTab(): ReactElement {
           setActiveTab('about');
           setAboutInitialPage('feedback');
         }
+        if (value === 'user-orders') {
+          setActiveTab('user');
+          setUserInitialProfilePage('orders');
+        }
       }
       if (channel === 'i18n:language' && (value === 'zh-CN' || value === 'en-US')) {
         setAppLanguage(value);
@@ -1226,6 +1230,11 @@ export function SettingsTab(): ReactElement {
       if (intent === 'about-feedback') {
         setActiveTab('about');
         setAboutInitialPage('feedback');
+        window.api.storeWrite(SETTINGS_OPEN_TAB_STORE_KEY, null).catch(() => {});
+      }
+      if (intent === 'user-orders') {
+        setActiveTab('user');
+        setUserInitialProfilePage('orders');
         window.api.storeWrite(SETTINGS_OPEN_TAB_STORE_KEY, null).catch(() => {});
       }
     }).catch(() => {});
