@@ -2508,7 +2508,6 @@
   display: flex;
   align-items: stretch;
   gap: 12px;
-  margin-top: 8px;
   position: relative;
   min-height: 0;
   flex: 1;
