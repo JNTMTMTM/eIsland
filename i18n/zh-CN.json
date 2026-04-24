@@ -597,11 +597,23 @@
       "expanded": "返回",
       "todo": "待办",
       "urlFavorites": "URL 收藏",
+      "localFileSearch": "文件查找",
       "clipboardHistory": "剪贴板",
       "aiChat": "AI 对话",
       "countdown": "倒数日",
       "settings": "设置",
       "switchTo": "切换到{{label}}"
+    },
+    "localFileSearch": {
+      "title": "本地文件查找",
+      "count": "{{count}} 项",
+      "pickDir": "选择目录",
+      "search": "搜索",
+      "searching": "搜索中…",
+      "loading": "正在检索本地文件…",
+      "empty": "暂无结果，试试更换关键词或目录。",
+      "rootPlaceholder": "选择或输入搜索目录，例如 C:\\Users",
+      "keywordPlaceholder": "输入文件名关键词，例如 report、.pdf"
     }
   },
   "settings": {

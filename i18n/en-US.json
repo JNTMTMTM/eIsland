@@ -597,11 +597,23 @@
       "expanded": "Back",
       "todo": "Todo",
       "urlFavorites": "URL Favorites",
+      "localFileSearch": "File Search",
       "clipboardHistory": "Clipboard",
       "aiChat": "AI Chat",
       "countdown": "Countdown",
       "settings": "Settings",
       "switchTo": "Switch to {{label}}"
+    },
+    "localFileSearch": {
+      "title": "Local File Search",
+      "count": "{{count}} items",
+      "pickDir": "Choose Folder",
+      "search": "Search",
+      "searching": "Searching...",
+      "loading": "Scanning local files...",
+      "empty": "No results yet. Try another keyword or folder.",
+      "rootPlaceholder": "Choose or enter a root folder, e.g. C:\\Users",
+      "keywordPlaceholder": "Enter filename keyword, e.g. report, .pdf"
     }
   },
   "settings": {

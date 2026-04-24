@@ -26,9 +26,59 @@
  */
 
 import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron';
+import { readdir } from 'fs/promises';
 import { basename } from 'path';
 import { clearLogsCacheFiles, ensureLogsDir } from '../../log/mainLog';
 import { openStandaloneWindow, closeStandaloneWindow } from '../../window/standaloneWindow';
+
+interface LocalFileSearchItem {
+  name: string;
+  path: string;
+  isDirectory: boolean;
+}
+
+async function searchLocalFiles(rootDir: string, keyword: string, limit: number): Promise<LocalFileSearchItem[]> {
+  const normalizedKeyword = keyword.trim().toLowerCase();
+  if (!normalizedKeyword || !rootDir.trim()) return [];
+
+  const maxCount = Math.max(1, Math.min(500, Math.floor(limit || 120)));
+  const queue: Array<{ dir: string; depth: number }> = [{ dir: rootDir, depth: 0 }];
+  const results: LocalFileSearchItem[] = [];
+  const maxDepth = 8;
+
+  while (queue.length > 0 && results.length < maxCount) {
+    const current = queue.shift();
+    if (!current) break;
+    let entries: Array<{ name: string | Buffer; isDirectory: () => boolean }>;
+    try {
+      entries = await readdir(current.dir, { withFileTypes: true });
+    } catch {
+      continue;
+    }
+
+    for (const entry of entries) {
+      if (results.length >= maxCount) break;
+      const entryName = typeof entry.name === 'string' ? entry.name : entry.name.toString('utf8');
+      const entryPath = `${current.dir}${current.dir.endsWith('\\') ? '' : '\\'}${entryName}`;
+      const lowerName = entryName.toLowerCase();
+      if (lowerName.includes(normalizedKeyword)) {
+        results.push({
+          name: entryName,
+          path: entryPath,
+          isDirectory: entry.isDirectory(),
+        });
+      }
+      if (entry.isDirectory() && current.depth < maxDepth) {
+        if (entryName === '.git' || entryName === 'node_modules' || entryName === '.idea' || entryName === '.vscode') {
+          continue;
+        }
+        queue.push({ dir: entryPath, depth: current.depth + 1 });
+      }
+    }
+  }
+
+  return results;
+}
 
 /**
  * 注册应用相关 IPC 处理器
@@ -37,6 +87,33 @@ import { openStandaloneWindow, closeStandaloneWindow } from '../../window/standa
 export function registerAppIpcHandlers(): void {
   ipcMain.on('app:quit', () => {
     app.quit();
+  });
+
+  ipcMain.handle('app:pick-local-search-directory', async (event) => {
+    try {
+      const win = BrowserWindow.fromWebContents(event.sender) ?? BrowserWindow.getFocusedWindow();
+      if (!win) return null;
+      const result = await dialog.showOpenDialog(win, {
+        title: '选择搜索目录',
+        properties: ['openDirectory'],
+      });
+      if (result.canceled || result.filePaths.length === 0) {
+        return null;
+      }
+      return result.filePaths[0] || null;
+    } catch (err) {
+      console.error('[App] pick local search directory error:', err);
+      return null;
+    }
+  });
+
+  ipcMain.handle('app:search-local-files', async (_event, rootDir: string, keyword: string, limit?: number) => {
+    try {
+      return await searchLocalFiles(rootDir, keyword, typeof limit === 'number' ? limit : 120);
+    } catch (err) {
+      console.error('[App] search local files error:', err);
+      return [];
+    }
   });
 
   ipcMain.handle('app:pick-feedback-screenshot-file', async (event) => {

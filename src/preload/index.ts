@@ -182,6 +182,22 @@ const api = {
     return ipcRenderer.invoke('app:pick-feedback-screenshot-file');
   },
   /**
+   * 选择本地文件搜索目录
+   */
+  pickLocalSearchDirectory: (): Promise<string | null> => {
+    return ipcRenderer.invoke('app:pick-local-search-directory');
+  },
+  /**
+   * 搜索本地文件（名称匹配）
+   */
+  searchLocalFiles: (
+    rootDir: string,
+    keyword: string,
+    limit?: number,
+  ): Promise<Array<{ name: string; path: string; isDirectory: boolean }>> => {
+    return ipcRenderer.invoke('app:search-local-files', rootDir, keyword, limit);
+  },
+  /**
    * 清理日志缓存
    */
   clearLogsCache: (): Promise<{ success: boolean; freedBytes: number }> => {
