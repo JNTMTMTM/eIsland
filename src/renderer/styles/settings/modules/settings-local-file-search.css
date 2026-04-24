@@ -132,6 +132,7 @@
 .local-file-search-config-panel {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 12px;
   padding: 8px 10px;
   border: 1px solid rgba(var(--color-text-rgb), 0.08);
@@ -145,8 +146,13 @@
   gap: 8px;
 }
 
+.local-file-search-config-item--input {
+  min-width: 260px;
+  flex: 1 1 320px;
+}
+
 .local-file-search-config-item--checkbox {
-  margin-left: auto;
+  min-width: 120px;
 }
 
 .local-file-search-config-label {
@@ -168,6 +174,27 @@
 }
 
 .local-file-search-config-select:focus {
+  border-color: rgba(var(--color-text-rgb), 0.22);
+}
+
+.local-file-search-config-input {
+  min-width: 180px;
+  flex: 1;
+  height: 24px;
+  border-radius: 6px;
+  border: 1px solid rgba(var(--color-text-rgb), 0.12);
+  background: rgba(var(--color-text-rgb), 0.05);
+  color: rgba(var(--color-text-rgb), 0.86);
+  padding: 0 8px;
+  font-size: 11px;
+  outline: none;
+}
+
+.local-file-search-config-input::placeholder {
+  color: rgba(var(--color-text-rgb), 0.36);
+}
+
+.local-file-search-config-input:focus {
   border-color: rgba(var(--color-text-rgb), 0.22);
 }
 

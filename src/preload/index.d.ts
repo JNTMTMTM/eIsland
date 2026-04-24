@@ -86,7 +86,14 @@ declare global {
       searchLocalFiles: (
         rootDir: string,
         keyword: string,
-        limit?: number,
+        options?: {
+          limit?: number;
+          maxDepth?: number;
+          includeDirectories?: boolean;
+          caseSensitive?: boolean;
+          extensions?: string[];
+          excludeDirs?: string[];
+        },
       ) => Promise<Array<{ name: string; path: string; isDirectory: boolean }>>;
       clearLogsCache: () => Promise<{ success: boolean; freedBytes: number }>;
       windowMinimize: () => void;

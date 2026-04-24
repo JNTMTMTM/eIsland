@@ -193,9 +193,16 @@ const api = {
   searchLocalFiles: (
     rootDir: string,
     keyword: string,
-    limit?: number,
+    options?: {
+      limit?: number;
+      maxDepth?: number;
+      includeDirectories?: boolean;
+      caseSensitive?: boolean;
+      extensions?: string[];
+      excludeDirs?: string[];
+    },
   ): Promise<Array<{ name: string; path: string; isDirectory: boolean }>> => {
-    return ipcRenderer.invoke('app:search-local-files', rootDir, keyword, limit);
+    return ipcRenderer.invoke('app:search-local-files', rootDir, keyword, options);
   },
   /**
    * 清理日志缓存

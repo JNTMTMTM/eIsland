@@ -35,12 +35,23 @@ interface LocalFileSearchItem {
 
 const SEARCH_ROOT_STORE_KEY = 'local-file-search-root';
 
+function parseCsvValues(input: string): string[] {
+  return input
+    .split(',')
+    .map((part) => part.trim())
+    .filter(Boolean);
+}
+
 export function LocalFileSearchTab(): React.ReactElement {
   const { t } = useTranslation();
   const [rootDir, setRootDir] = useState('');
   const [keyword, setKeyword] = useState('');
   const [showConfig, setShowConfig] = useState(false);
   const [resultLimit, setResultLimit] = useState(120);
+  const [maxDepth, setMaxDepth] = useState(8);
+  const [caseSensitive, setCaseSensitive] = useState(false);
+  const [extensionsInput, setExtensionsInput] = useState('');
+  const [excludeDirsInput, setExcludeDirsInput] = useState('');
   const [includeDirectories, setIncludeDirectories] = useState(true);
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<LocalFileSearchItem[]>([]);
@@ -102,10 +113,18 @@ export function LocalFileSearchTab(): React.ReactElement {
       setResults([]);
       return;
     }
+    const parsedExtensions = parseCsvValues(extensionsInput);
+    const parsedExcludeDirs = parseCsvValues(excludeDirsInput);
     setLoading(true);
-    window.api.searchLocalFiles(trimmedRootDir, trimmedKeyword, resultLimit).then((items) => {
-      const list = Array.isArray(items) ? items : [];
-      setResults(includeDirectories ? list : list.filter((item) => !item.isDirectory));
+    window.api.searchLocalFiles(trimmedRootDir, trimmedKeyword, {
+      limit: resultLimit,
+      maxDepth,
+      includeDirectories,
+      caseSensitive,
+      extensions: parsedExtensions,
+      excludeDirs: parsedExcludeDirs,
+    }).then((items) => {
+      setResults(Array.isArray(items) ? items : []);
     }).catch(() => {
       setResults([]);
     }).finally(() => {
@@ -186,6 +205,52 @@ export function LocalFileSearchTab(): React.ReactElement {
               <option value="300">300</option>
             </select>
           </label>
+
+          <label className="local-file-search-config-item">
+            <span className="local-file-search-config-label">
+              {t('maxExpand.localFileSearch.depthLabel', { defaultValue: '最大深度' })}
+            </span>
+            <select
+              className="local-file-search-config-select"
+              value={String(maxDepth)}
+              onChange={(e) => {
+                const nextDepth = Number(e.target.value);
+                if (Number.isFinite(nextDepth) && nextDepth >= 0) {
+                  setMaxDepth(nextDepth);
+                }
+              }}
+            >
+              <option value="2">2</option>
+              <option value="4">4</option>
+              <option value="8">8</option>
+              <option value="12">12</option>
+            </select>
+          </label>
+
+          <label className="local-file-search-config-item local-file-search-config-item--input">
+            <span className="local-file-search-config-label">
+              {t('maxExpand.localFileSearch.extensionsLabel', { defaultValue: '文件后缀' })}
+            </span>
+            <input
+              className="local-file-search-config-input"
+              value={extensionsInput}
+              onChange={(e) => setExtensionsInput(e.target.value)}
+              placeholder={t('maxExpand.localFileSearch.extensionsPlaceholder', { defaultValue: '如 pdf,docx,ts' })}
+            />
+          </label>
+
+          <label className="local-file-search-config-item local-file-search-config-item--input">
+            <span className="local-file-search-config-label">
+              {t('maxExpand.localFileSearch.excludeDirsLabel', { defaultValue: '排除目录' })}
+            </span>
+            <input
+              className="local-file-search-config-input"
+              value={excludeDirsInput}
+              onChange={(e) => setExcludeDirsInput(e.target.value)}
+              placeholder={t('maxExpand.localFileSearch.excludeDirsPlaceholder', { defaultValue: '如 dist,build,coverage' })}
+            />
+          </label>
+
           <label className="local-file-search-config-item local-file-search-config-item--checkbox">
             <input
               type="checkbox"
@@ -194,6 +259,17 @@ export function LocalFileSearchTab(): React.ReactElement {
             />
             <span className="local-file-search-config-label">
               {t('maxExpand.localFileSearch.includeFolders', { defaultValue: '结果包含文件夹' })}
+            </span>
+          </label>
+
+          <label className="local-file-search-config-item local-file-search-config-item--checkbox">
+            <input
+              type="checkbox"
+              checked={caseSensitive}
+              onChange={(e) => setCaseSensitive(e.target.checked)}
+            />
+            <span className="local-file-search-config-label">
+              {t('maxExpand.localFileSearch.caseSensitive', { defaultValue: '区分大小写' })}
             </span>
           </label>
         </div>

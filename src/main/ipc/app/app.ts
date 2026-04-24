@@ -37,14 +37,41 @@ interface LocalFileSearchItem {
   isDirectory: boolean;
 }
 
-async function searchLocalFiles(rootDir: string, keyword: string, limit: number): Promise<LocalFileSearchItem[]> {
-  const normalizedKeyword = keyword.trim().toLowerCase();
-  if (!normalizedKeyword || !rootDir.trim()) return [];
+interface LocalFileSearchOptions {
+  limit?: number;
+  maxDepth?: number;
+  includeDirectories?: boolean;
+  caseSensitive?: boolean;
+  extensions?: string[];
+  excludeDirs?: string[];
+}
 
+async function searchLocalFiles(rootDir: string, keyword: string, options?: LocalFileSearchOptions): Promise<LocalFileSearchItem[]> {
+  const trimmedKeyword = keyword.trim();
+  if (!trimmedKeyword || !rootDir.trim()) return [];
+
+  const limit = typeof options?.limit === 'number' ? options.limit : 120;
+  const maxDepthOption = typeof options?.maxDepth === 'number' ? options.maxDepth : 8;
   const maxCount = Math.max(1, Math.min(500, Math.floor(limit || 120)));
+  const maxDepth = Math.max(0, Math.min(12, Math.floor(maxDepthOption || 8)));
+  const includeDirectories = options?.includeDirectories !== false;
+  const caseSensitive = options?.caseSensitive === true;
+  const keywordForMatch = caseSensitive ? trimmedKeyword : trimmedKeyword.toLowerCase();
+  const extensionSet = new Set(
+    (Array.isArray(options?.extensions) ? options?.extensions : [])
+      .map((ext) => String(ext || '').trim().replace(/^\./, '').toLowerCase())
+      .filter(Boolean),
+  );
+  const excludedDirSet = new Set([
+    '.git',
+    'node_modules',
+    '.idea',
+    '.vscode',
+    ...(Array.isArray(options?.excludeDirs) ? options.excludeDirs : []).map((name) => String(name || '').trim().toLowerCase()).filter(Boolean),
+  ]);
+
   const queue: Array<{ dir: string; depth: number }> = [{ dir: rootDir, depth: 0 }];
   const results: LocalFileSearchItem[] = [];
-  const maxDepth = 8;
 
   while (queue.length > 0 && results.length < maxCount) {
     const current = queue.shift();
@@ -60,16 +87,24 @@ async function searchLocalFiles(rootDir: string, keyword: string, limit: number)
       if (results.length >= maxCount) break;
       const entryName = typeof entry.name === 'string' ? entry.name : entry.name.toString('utf8');
       const entryPath = `${current.dir}${current.dir.endsWith('\\') ? '' : '\\'}${entryName}`;
-      const lowerName = entryName.toLowerCase();
-      if (lowerName.includes(normalizedKeyword)) {
+      const isDirectory = entry.isDirectory();
+      const nameForMatch = caseSensitive ? entryName : entryName.toLowerCase();
+      let extensionMatched = true;
+      if (!isDirectory && extensionSet.size > 0) {
+        const dotIndex = entryName.lastIndexOf('.');
+        const ext = dotIndex >= 0 ? entryName.slice(dotIndex + 1).toLowerCase() : '';
+        extensionMatched = extensionSet.has(ext);
+      }
+
+      if (nameForMatch.includes(keywordForMatch) && extensionMatched && (includeDirectories || !isDirectory)) {
         results.push({
           name: entryName,
           path: entryPath,
-          isDirectory: entry.isDirectory(),
+          isDirectory,
         });
       }
-      if (entry.isDirectory() && current.depth < maxDepth) {
-        if (entryName === '.git' || entryName === 'node_modules' || entryName === '.idea' || entryName === '.vscode') {
+      if (isDirectory && current.depth < maxDepth) {
+        if (excludedDirSet.has(entryName.toLowerCase())) {
           continue;
         }
         queue.push({ dir: entryPath, depth: current.depth + 1 });
@@ -107,9 +142,15 @@ export function registerAppIpcHandlers(): void {
     }
   });
 
-  ipcMain.handle('app:search-local-files', async (_event, rootDir: string, keyword: string, limit?: number) => {
+  ipcMain.handle('app:search-local-files', async (
+    _event,
+    rootDir: string,
+    keyword: string,
+    options?: number | LocalFileSearchOptions,
+  ) => {
     try {
-      return await searchLocalFiles(rootDir, keyword, typeof limit === 'number' ? limit : 120);
+      const searchOptions = typeof options === 'number' ? { limit: options } : options;
+      return await searchLocalFiles(rootDir, keyword, searchOptions);
     } catch (err) {
       console.error('[App] search local files error:', err);
       return [];
