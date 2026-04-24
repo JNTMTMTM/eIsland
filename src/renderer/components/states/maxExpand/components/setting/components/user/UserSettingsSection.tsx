@@ -62,6 +62,10 @@ interface Feedback {
 
 type ProfileFeedbackScope = 'profile' | 'password' | 'account';
 
+interface UserSettingsSectionProps {
+  initialProfilePage?: UserProfilePage;
+}
+
 const GENDER_VALUES: UserAccountGender[] = ['male', 'female', 'custom', 'undisclosed'];
 const USER_PROFILE_PAGES: UserProfilePage[] = ['info', 'edit', 'password', 'pro', 'account'];
 const EMAIL_PATTERN = /^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
@@ -119,7 +123,7 @@ const getRoleFromToken = (token: string | null | undefined): string | null => {
  * 用户中心设置区块。未登录时显示登录/注册；登录后显示资料修改、登出、注销操作。
  * @returns 用户中心设置面板。
  */
-export function UserSettingsSection(): ReactElement {
+export function UserSettingsSection({ initialProfilePage = 'info' }: UserSettingsSectionProps): ReactElement {
   const { t, i18n } = useTranslation();
   const { setLogin, setRegister } = useIslandStore();
   const [token, setToken] = useState<string | null>(() => readLocalToken());
@@ -156,7 +160,7 @@ export function UserSettingsSection(): ReactElement {
   const [unregisterSubmitting, setUnregisterSubmitting] = useState(false);
 
   const [logoutSubmitting, setLogoutSubmitting] = useState(false);
-  const [userProfilePage, setUserProfilePage] = useState<UserProfilePage>('info');
+  const [userProfilePage, setUserProfilePage] = useState<UserProfilePage>(initialProfilePage);
   const [proMonthPriceLabel, setProMonthPriceLabel] = useState('');
   const [proMonthPricingLoading, setProMonthPricingLoading] = useState(false);
   const [freePlanDesc, setFreePlanDesc] = useState('');
@@ -180,6 +184,10 @@ export function UserSettingsSection(): ReactElement {
   const userProfilePageRef = useRef<UserProfilePage>('info');
   const profilePagesLayoutRef = useRef<HTMLDivElement | null>(null);
   userProfilePageRef.current = userProfilePage;
+
+  useEffect(() => {
+    setUserProfilePage(initialProfilePage);
+  }, [initialProfilePage]);
 
   const resetToLoggedOut = useCallback((): void => {
     clearLocalAccount();

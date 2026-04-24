@@ -261,6 +261,7 @@ export function SettingsTab(): ReactElement {
   const [appSettingsPage, setAppSettingsPage] = useState<AppSettingsPageKey>('layout-preview');
   const [weatherSettingsPage, setWeatherSettingsPage] = useState<WeatherSettingsPageKey>('location');
   const [musicSettingsPage, setMusicSettingsPage] = useState<MusicSettingsPageKey>('whitelist');
+  const [userInitialProfilePage, setUserInitialProfilePage] = useState<'info' | 'pro'>('info');
   const [pluginMarketPage, setPluginMarketPage] = useState<PluginMarketPageKey>('wallpaper');
   const [wallpaperMarketRefreshKey, setWallpaperMarketRefreshKey] = useState(0);
   const { aiConfig, setAiConfig, fetchWeatherData, setGuide, setLogin, setRegister, setNotification } = useIslandStore();
@@ -272,6 +273,12 @@ export function SettingsTab(): ReactElement {
   activeTabRef.current = activeTab;
   useEffect(() => {
     _lastSettingsSidebarTab = activeTab;
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (activeTab !== 'user') {
+      setUserInitialProfilePage('info');
+    }
   }, [activeTab]);
 
   useEffect(() => {
@@ -1086,8 +1093,11 @@ export function SettingsTab(): ReactElement {
       const hiddenRaw = Array.isArray(navConfig.hiddenOrder) ? navConfig.hiddenOrder : [];
       if (visibleRaw.length > 0 || hiddenRaw.length > 0) {
         const validVisible = visibleRaw.filter((id, idx) => NAV_CARDS_MAP.has(id) && visibleRaw.indexOf(id) === idx);
-        const validHidden = hiddenRaw.filter((id, idx) => NAV_CARDS_MAP.has(id) && hiddenRaw.indexOf(id) === idx && !validVisible.includes(id));
-        setNavOrder(validVisible);
+        const ensuredVisible = ['user-pro', ...validVisible.filter((id) => id !== 'user-pro')];
+        const validHidden = hiddenRaw
+          .filter((id, idx) => NAV_CARDS_MAP.has(id) && hiddenRaw.indexOf(id) === idx && !ensuredVisible.includes(id))
+          .filter((id) => id !== 'user-pro');
+        setNavOrder(ensuredVisible);
         setHiddenNavOrder(validHidden);
       }
     }).catch(() => {});
@@ -2226,6 +2236,11 @@ export function SettingsTab(): ReactElement {
                 if (actionId === 'guide') {
                   setGuide();
                   window.api.settingsPreview('guide:show', true).catch(() => {});
+                  return;
+                }
+                if (actionId === 'user-pro') {
+                  setUserInitialProfilePage('pro');
+                  setActiveTab('user');
                 }
               }}
             />
@@ -2630,7 +2645,7 @@ export function SettingsTab(): ReactElement {
             </div>
           )}
 
-          {activeTab === 'user' && <UserSettingsSection />}
+          {activeTab === 'user' && <UserSettingsSection initialProfilePage={userInitialProfilePage} />}
 
           {activeTab === 'about' && <AboutSettingsSection aboutVersion={aboutVersion} />}
         </div>

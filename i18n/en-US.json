@@ -1590,6 +1590,10 @@
         "label": "Account",
         "desc": "Sign in, profile, and account deletion"
       },
+      "user-pro": {
+        "label": "PRO Features",
+        "desc": "View Free and Pro plan benefits plus current subscription pricing"
+      },
       "about": {
         "label": "About",
         "desc": "Version information and project links"

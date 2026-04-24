@@ -119,7 +119,7 @@ export function IndexSettingsSection({
           navEditMode ? (
             <div
               key={card.id}
-              className={`settings-index-card editing${dragOverIdx === idx ? ' drag-over' : ''}`}
+              className={`settings-index-card editing${card.id === 'user-pro' ? ' settings-user-pro-nav-card--outline' : ''}${dragOverIdx === idx ? ' drag-over' : ''}`}
               draggable
               onDragStart={(e) => {
                 dragIdxRef.current = idx;
@@ -166,7 +166,7 @@ export function IndexSettingsSection({
           ) : (
             <button
               key={card.id}
-              className="settings-index-card"
+              className={`settings-index-card${card.id === 'user-pro' ? ' settings-user-pro-nav-card--outline' : ''}`}
               type="button"
               onClick={() => {
                 if (card.actionId && onAction) {

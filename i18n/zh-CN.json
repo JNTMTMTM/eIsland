@@ -1585,9 +1585,13 @@
         "label": "用户中心",
         "desc": "登录、注册、修改、注销等账号操作"
       },
+      "user-pro": {
+        "label": "PRO功能",
+        "desc": "查看 Free 与 Pro 计划权益及当前订阅价格"
+      },
       "about": {
         "label": "关于软件",
-        "desc": "版本信息与项目链接"
+        "desc": "版本信息、源码与反馈入口"
       },
       "music-whitelist": {
         "label": "播放器白名单",
