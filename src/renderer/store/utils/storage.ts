@@ -33,6 +33,7 @@ const LOCATION_STORAGE_KEY = 'island_location';
 const NETWORK_CONFIG_KEY = 'island_network_config';
 const WEATHER_PROVIDER_CONFIG_KEY = 'island_weather_provider_config';
 const WEATHER_LOCATION_CONFIG_KEY = 'island_weather_location_config';
+const WEATHER_LOCATION_CONFIG_STORE_KEY = 'weather-location-config';
 
 /** 默认网络请求超时（毫秒） */
 export const DEFAULT_NETWORK_TIMEOUT_MS = 10000;
@@ -60,6 +61,53 @@ export interface WeatherCustomLocationConfig {
 export interface WeatherLocationConfig {
   priority: WeatherLocationPriority;
   customLocation: WeatherCustomLocationConfig | null;
+}
+
+function toFiniteNumber(value: unknown): number | null {
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  if (typeof value === 'string') {
+    const parsed = Number(value.trim());
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  return null;
+}
+
+function normalizeWeatherCustomLocation(value: unknown): WeatherCustomLocationConfig | null {
+  if (!value || typeof value !== 'object') {
+    return null;
+  }
+  const row = value as {
+    latitude?: unknown;
+    longitude?: unknown;
+    city?: unknown;
+  };
+  const latitude = toFiniteNumber(row.latitude);
+  const longitude = toFiniteNumber(row.longitude);
+  if (latitude === null || longitude === null) {
+    return null;
+  }
+  return {
+    latitude,
+    longitude,
+    city: typeof row.city === 'string' ? row.city : '',
+  };
+}
+
+function normalizeWeatherLocationConfig(value: unknown): WeatherLocationConfig {
+  if (!value || typeof value !== 'object') {
+    return {
+      priority: DEFAULT_WEATHER_LOCATION_PRIORITY,
+      customLocation: null,
+    };
+  }
+  const row = value as {
+    priority?: unknown;
+    customLocation?: unknown;
+  };
+  return {
+    priority: row.priority === 'custom' ? 'custom' : 'ip',
+    customLocation: normalizeWeatherCustomLocation(row.customLocation),
+  };
 }
 
 /**
@@ -122,27 +170,11 @@ export function loadWeatherLocationConfig(): WeatherLocationConfig {
   try {
     const raw = localStorage.getItem(WEATHER_LOCATION_CONFIG_KEY);
     if (raw) {
-      const data = JSON.parse(raw) as WeatherLocationConfig;
-      const priority = data.priority === 'custom' ? 'custom' : 'ip';
-      const custom = data.customLocation;
-      const validCustom = custom
-        && typeof custom.latitude === 'number'
-        && Number.isFinite(custom.latitude)
-        && typeof custom.longitude === 'number'
-        && Number.isFinite(custom.longitude)
-        ? {
-          latitude: custom.latitude,
-          longitude: custom.longitude,
-          city: typeof custom.city === 'string' ? custom.city : '',
-        }
-        : null;
-      return { priority, customLocation: validCustom };
+      const data = JSON.parse(raw) as unknown;
+      return normalizeWeatherLocationConfig(data);
     }
   } catch { /* 忽略 */ }
-  return {
-    priority: DEFAULT_WEATHER_LOCATION_PRIORITY,
-    customLocation: null,
-  };
+  return normalizeWeatherLocationConfig(null);
 }
 
 /**
@@ -150,8 +182,42 @@ export function loadWeatherLocationConfig(): WeatherLocationConfig {
  * @param config - 要保存的天气定位策略配置
  */
 export function saveWeatherLocationConfig(config: WeatherLocationConfig): void {
+  const normalized = normalizeWeatherLocationConfig(config);
   try {
-    localStorage.setItem(WEATHER_LOCATION_CONFIG_KEY, JSON.stringify(config));
+    localStorage.setItem(WEATHER_LOCATION_CONFIG_KEY, JSON.stringify(normalized));
+  } catch { /* 忽略 */ }
+  void window.api?.storeWrite?.(WEATHER_LOCATION_CONFIG_STORE_KEY, normalized).catch(() => {});
+}
+
+/**
+ * 启动时将天气定位配置从主进程 store 同步到本地缓存（并兼容首次迁移）
+ */
+export async function hydrateWeatherLocationConfigFromStore(): Promise<void> {
+  const storeRead = window.api?.storeRead;
+  const storeWrite = window.api?.storeWrite;
+  if (!storeRead || !storeWrite) {
+    return;
+  }
+
+  try {
+    const storeValue = await storeRead(WEATHER_LOCATION_CONFIG_STORE_KEY);
+    if (storeValue !== null && storeValue !== undefined) {
+      const normalized = normalizeWeatherLocationConfig(storeValue);
+      try {
+        localStorage.setItem(WEATHER_LOCATION_CONFIG_KEY, JSON.stringify(normalized));
+      } catch { /* 忽略 */ }
+      return;
+    }
+  } catch { /* 忽略 */ }
+
+  try {
+    const raw = localStorage.getItem(WEATHER_LOCATION_CONFIG_KEY);
+    if (!raw) {
+      return;
+    }
+    const localData = JSON.parse(raw) as unknown;
+    const normalized = normalizeWeatherLocationConfig(localData);
+    await storeWrite(WEATHER_LOCATION_CONFIG_STORE_KEY, normalized);
   } catch { /* 忽略 */ }
 }
 
