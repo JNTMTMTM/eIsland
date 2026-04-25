@@ -644,6 +644,7 @@
   align-items: center;
   justify-content: center;
   gap: 10px;
+  filter: brightness(0) invert(var(--icon-invert));
 }
 .ov-dash-song-btn {
   appearance: none;
@@ -726,12 +727,13 @@
   padding: 1px 4px;
 }
 .ov-cd-card .cd-card-name {
-  font-size: 12px;
+  font-size: 17px;
 }
 .ov-cd-card .cd-card-desc {
   font-size: 8px;
 }
 .ov-cd-card .cd-card-date {
+  color:rgb(255, 255, 255);
   font-size: 8px;
 }
 .ov-cd-card .cd-card-days {
