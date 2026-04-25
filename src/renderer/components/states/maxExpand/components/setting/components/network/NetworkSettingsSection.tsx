@@ -27,6 +27,7 @@
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { StaticAssetNode } from '../../../../../../../store/utils/storage';
+import { SvgIcon } from '../../../../../../../utils/SvgIcon';
 
 interface NetworkSettingsSectionProps {
   isProUser: boolean;
@@ -152,6 +153,19 @@ export function NetworkSettingsSection({
                       saveNetworkConfig({ timeoutMs: networkTimeoutMs, staticAssetNode: opt.value });
                     }}
                   >
+                    {opt.proOnly && (
+                      <span
+                        className="settings-weather-provider-pro-badge"
+                        title={t('settings.network.staticAssetNode.proOnlyHint', { defaultValue: '仅 PRO 用户可用' })}
+                      >
+                        <img
+                          src={SvgIcon.PRO}
+                          alt="PRO"
+                          width={14}
+                          height={14}
+                        />
+                      </span>
+                    )}
                     {opt.label}
                   </button>
                 );
