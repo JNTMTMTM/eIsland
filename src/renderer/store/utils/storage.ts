@@ -37,12 +37,17 @@ const WEATHER_LOCATION_CONFIG_STORE_KEY = 'weather-location-config';
 
 /** 默认网络请求超时（毫秒） */
 export const DEFAULT_NETWORK_TIMEOUT_MS = 10000;
+export const DEFAULT_STATIC_ASSET_NODE_FREE: StaticAssetNode = 'r2';
+export const DEFAULT_STATIC_ASSET_NODE_PRO: StaticAssetNode = 'cos';
 export const DEFAULT_WEATHER_PRIMARY_PROVIDER: WeatherProvider = 'open-meteo';
 export const DEFAULT_WEATHER_LOCATION_PRIORITY: WeatherLocationPriority = 'ip';
 
 /** 网络配置类型 */
+export type StaticAssetNode = 'r2' | 'cos' | 'oss';
+
 export interface NetworkConfig {
   timeoutMs: number;
+  staticAssetNode?: StaticAssetNode;
 }
 
 export type WeatherProvider = 'open-meteo' | 'uapi' | 'qweather-pro';
@@ -119,10 +124,18 @@ export function loadNetworkConfig(): NetworkConfig {
     const raw = localStorage.getItem(NETWORK_CONFIG_KEY);
     if (raw) {
       const data = JSON.parse(raw) as NetworkConfig;
-      if (typeof data.timeoutMs === 'number' && data.timeoutMs > 0) return data;
+      if (typeof data.timeoutMs === 'number' && data.timeoutMs > 0) {
+        return {
+          timeoutMs: data.timeoutMs,
+          staticAssetNode: normalizeStoredStaticAssetNode(data.staticAssetNode),
+        };
+      }
     }
   } catch { /* 忽略 */ }
-  return { timeoutMs: DEFAULT_NETWORK_TIMEOUT_MS };
+  return {
+    timeoutMs: DEFAULT_NETWORK_TIMEOUT_MS,
+    staticAssetNode: DEFAULT_STATIC_ASSET_NODE_FREE,
+  };
 }
 
 /**
@@ -131,8 +144,26 @@ export function loadNetworkConfig(): NetworkConfig {
  */
 export function saveNetworkConfig(config: NetworkConfig): void {
   try {
-    localStorage.setItem(NETWORK_CONFIG_KEY, JSON.stringify(config));
+    const timeoutMs = typeof config.timeoutMs === 'number' && config.timeoutMs > 0
+      ? config.timeoutMs
+      : DEFAULT_NETWORK_TIMEOUT_MS;
+    const staticAssetNode = normalizeStoredStaticAssetNode(config.staticAssetNode);
+    localStorage.setItem(NETWORK_CONFIG_KEY, JSON.stringify({ timeoutMs, staticAssetNode }));
   } catch { /* 忽略 */ }
+}
+
+export function normalizeStoredStaticAssetNode(value: unknown): StaticAssetNode {
+  if (value === 'cos') return 'cos';
+  if (value === 'oss') return 'oss';
+  return 'r2';
+}
+
+export function normalizeStaticAssetNode(value: unknown, proUser: boolean): StaticAssetNode {
+  if (proUser) {
+    if (value === 'oss') return 'oss';
+    return 'cos';
+  }
+  return 'r2';
 }
 
 /**

@@ -26,14 +26,19 @@
 
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
+import type { StaticAssetNode } from '../../../../../../../store/utils/storage';
 
 interface NetworkSettingsSectionProps {
+  isProUser: boolean;
   networkTimeoutMs: number;
   customTimeoutInput: string;
+  staticAssetNode: StaticAssetNode;
   networkTimeoutOptions: Array<{ label: string; value: number }>;
+  staticAssetNodeOptions: Array<{ label: string; value: StaticAssetNode; proOnly?: boolean }>;
   setNetworkTimeoutMs: (v: number) => void;
   setCustomTimeoutInput: (v: string) => void;
-  saveNetworkConfig: (config: { timeoutMs: number }) => void;
+  setStaticAssetNode: (v: StaticAssetNode) => void;
+  saveNetworkConfig: (config: { timeoutMs: number; staticAssetNode?: StaticAssetNode }) => void;
 }
 
 /**
@@ -42,11 +47,15 @@ interface NetworkSettingsSectionProps {
  * @returns 网络设置区域
  */
 export function NetworkSettingsSection({
+  isProUser,
   networkTimeoutMs,
   customTimeoutInput,
+  staticAssetNode,
   networkTimeoutOptions,
+  staticAssetNodeOptions,
   setNetworkTimeoutMs,
   setCustomTimeoutInput,
+  setStaticAssetNode,
   saveNetworkConfig,
 }: NetworkSettingsSectionProps): ReactElement {
   const { t } = useTranslation();
@@ -83,7 +92,7 @@ export function NetworkSettingsSection({
                   onClick={() => {
                     setNetworkTimeoutMs(opt.value);
                     setCustomTimeoutInput(String(opt.value / 1000));
-                    saveNetworkConfig({ timeoutMs: opt.value });
+                    saveNetworkConfig({ timeoutMs: opt.value, staticAssetNode });
                   }}
                 >
                   {t(timeoutOptionKeyMap[opt.value] || '', { defaultValue: opt.label })}
@@ -108,7 +117,7 @@ export function NetworkSettingsSection({
                   if (!isNaN(sec) && sec >= 1) {
                     const ms = Math.round(sec * 1000);
                     setNetworkTimeoutMs(ms);
-                    saveNetworkConfig({ timeoutMs: ms });
+                    saveNetworkConfig({ timeoutMs: ms, staticAssetNode });
                   } else {
                     setCustomTimeoutInput(String(networkTimeoutMs / 1000));
                   }
@@ -119,6 +128,38 @@ export function NetworkSettingsSection({
               />
               <span className="settings-network-custom-unit">{t('settings.network.timeout.unitSecond', { defaultValue: '秒' })}</span>
             </div>
+          </div>
+        </div>
+
+        <div className="settings-card">
+          <div className="settings-card-header">
+            <div className="settings-card-title">{t('settings.network.staticAssetNode.title', { defaultValue: '静态资源节点' })}</div>
+            <div className="settings-card-subtitle">{t('settings.network.staticAssetNode.hint', { defaultValue: '免费用户固定使用 R2，PRO 用户可选择 COS/OSS。' })}</div>
+          </div>
+          <div className="settings-card-subgroup">
+            <div className="settings-lyrics-source-options">
+              {staticAssetNodeOptions.map((opt) => {
+                const disabled = Boolean(opt.proOnly && !isProUser);
+                return (
+                  <button
+                    key={opt.value}
+                    className={`settings-lyrics-source-btn ${staticAssetNode === opt.value ? 'active' : ''}`}
+                    type="button"
+                    disabled={disabled}
+                    onClick={() => {
+                      if (disabled) return;
+                      setStaticAssetNode(opt.value);
+                      saveNetworkConfig({ timeoutMs: networkTimeoutMs, staticAssetNode: opt.value });
+                    }}
+                  >
+                    {opt.label}
+                  </button>
+                );
+              })}
+            </div>
+            {!isProUser && (
+              <div className="settings-music-hint">{t('settings.network.staticAssetNode.proHint', { defaultValue: '升级 PRO 可切换 COS/OSS 节点。' })}</div>
+            )}
           </div>
         </div>
 

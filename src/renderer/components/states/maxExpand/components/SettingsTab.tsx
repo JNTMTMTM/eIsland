@@ -34,6 +34,9 @@ import {
   loadNetworkConfig,
   saveNetworkConfig,
   DEFAULT_NETWORK_TIMEOUT_MS,
+  DEFAULT_STATIC_ASSET_NODE_FREE,
+  normalizeStaticAssetNode,
+  type StaticAssetNode,
   type WeatherProvider,
   type WeatherLocationPriority,
   DEFAULT_WEATHER_PRIMARY_PROVIDER,
@@ -388,6 +391,12 @@ export function SettingsTab(): ReactElement {
   /** 网络配置相关状态 */
   const [networkTimeoutMs, setNetworkTimeoutMs] = useState<number>(DEFAULT_NETWORK_TIMEOUT_MS);
   const [customTimeoutInput, setCustomTimeoutInput] = useState<string>('');
+  const [staticAssetNode, setStaticAssetNode] = useState<StaticAssetNode>(DEFAULT_STATIC_ASSET_NODE_FREE);
+  const staticAssetNodeOptions = useMemo<Array<{ label: string; value: StaticAssetNode; proOnly?: boolean }>>(() => ([
+    { label: 'Cloudflare R2', value: 'r2' },
+    { label: 'Tencent COS', value: 'cos', proOnly: true },
+    { label: 'Aliyun OSS', value: 'oss', proOnly: true },
+  ]), []);
   const [weatherPrimaryProvider, setWeatherPrimaryProvider] = useState<WeatherProvider>(DEFAULT_WEATHER_PRIMARY_PROVIDER);
   const [weatherLocationPriority, setWeatherLocationPriority] = useState<WeatherLocationPriority>(DEFAULT_WEATHER_LOCATION_PRIORITY);
   const [weatherCustomCityInput, setWeatherCustomCityInput] = useState<string>('');
@@ -790,7 +799,17 @@ export function SettingsTab(): ReactElement {
     const cfg = loadNetworkConfig();
     setNetworkTimeoutMs(cfg.timeoutMs);
     setCustomTimeoutInput(String(cfg.timeoutMs / 1000));
+    setStaticAssetNode(normalizeStaticAssetNode(cfg.staticAssetNode, isProUser));
   }, []);
+
+  useEffect(() => {
+    const normalized = normalizeStaticAssetNode(staticAssetNode, isProUser);
+    if (normalized === staticAssetNode) {
+      return;
+    }
+    setStaticAssetNode(normalized);
+    saveNetworkConfig({ timeoutMs: networkTimeoutMs, staticAssetNode: normalized });
+  }, [isProUser, staticAssetNode, networkTimeoutMs]);
 
   useEffect(() => {
     const cfg = loadWeatherProviderConfig();
@@ -2432,11 +2451,15 @@ export function SettingsTab(): ReactElement {
 
           {activeTab === 'network' && (
             <NetworkSettingsSection
+              isProUser={isProUser}
               networkTimeoutMs={networkTimeoutMs}
               customTimeoutInput={customTimeoutInput}
+              staticAssetNode={staticAssetNode}
               networkTimeoutOptions={NETWORK_TIMEOUT_OPTIONS}
+              staticAssetNodeOptions={staticAssetNodeOptions}
               setNetworkTimeoutMs={setNetworkTimeoutMs}
               setCustomTimeoutInput={setCustomTimeoutInput}
+              setStaticAssetNode={setStaticAssetNode}
               saveNetworkConfig={saveNetworkConfig}
             />
           )}
