@@ -28,6 +28,7 @@ import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { WeatherSettingsPageKey } from '../../utils/settingsConfig';
 import type { WeatherLocationPriority, WeatherProvider } from '../../../../../../../store/utils/storage';
+import { SvgIcon } from '../../../../../../../utils/SvgIcon';
 
 interface WeatherMessage {
   type: 'error' | 'success';
@@ -52,6 +53,7 @@ interface WeatherSettingsSectionProps {
   weatherCustomLocationTestMessage: WeatherMessage | null;
   weatherProviderOptions: Array<{ value: WeatherProvider; label: string }>;
   weatherPrimaryProvider: WeatherProvider;
+  isProUser: boolean;
   setWeatherPrimaryProvider: (value: WeatherProvider) => void;
   saveWeatherProviderConfig: (payload: { primaryProvider: WeatherProvider }) => void;
   weatherSettingsPages: WeatherSettingsPageKey[];
@@ -93,6 +95,7 @@ export function WeatherSettingsSection(props: WeatherSettingsSectionProps): Reac
     weatherCustomLocationTestMessage,
     weatherProviderOptions,
     weatherPrimaryProvider,
+    isProUser,
     setWeatherPrimaryProvider,
     saveWeatherProviderConfig,
     weatherSettingsPages,
@@ -224,25 +227,39 @@ export function WeatherSettingsSection(props: WeatherSettingsSectionProps): Reac
                 </div>
                 <div className="settings-lyrics-source-options">
                   {weatherProviderOptions.map((opt) => (
+                    (() => {
+                      const isQweatherPro = opt.value === 'qweather-pro';
+                      const disabled = isQweatherPro && !isProUser;
+                      return (
                     <button
                       key={opt.value}
                       className={`settings-lyrics-source-btn ${weatherPrimaryProvider === opt.value ? 'active' : ''}`}
                       type="button"
+                      disabled={disabled}
+                      title={disabled ? t('settings.weather.proOnlyHint', { defaultValue: '仅 PRO 用户可用' }) : undefined}
                       onClick={() => {
+                        if (disabled) return;
                         setWeatherPrimaryProvider(opt.value);
                         saveWeatherProviderConfig({ primaryProvider: opt.value });
                       }}
                     >
-                      {t(providerPriorityKeyMap[opt.value], { defaultValue: opt.label })}
-                      {opt.value === 'qweather-pro' && (
+                      {isQweatherPro && (
                         <span
                           className="settings-weather-provider-pro-badge"
                           title={t('settings.weather.proOnlyHint', { defaultValue: '仅 PRO 用户可用' })}
                         >
-                          {t('settings.weather.proBadge', { defaultValue: 'PRO' })}
+                          <img
+                            src={SvgIcon.PRO}
+                            alt="PRO"
+                            width={14}
+                            height={14}
+                          />
                         </span>
                       )}
+                      {t(providerPriorityKeyMap[opt.value], { defaultValue: opt.label })}
                     </button>
+                      );
+                    })()
                   ))}
                 </div>
               </div>

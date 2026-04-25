@@ -796,6 +796,13 @@ export function SettingsTab(): ReactElement {
   }, []);
 
   useEffect(() => {
+    if (isProUser) return;
+    if (weatherPrimaryProvider !== 'qweather-pro') return;
+    setWeatherPrimaryProvider('open-meteo');
+    saveWeatherProviderConfig({ primaryProvider: 'open-meteo' });
+  }, [isProUser, weatherPrimaryProvider]);
+
+  useEffect(() => {
     const cfg = loadWeatherLocationConfig();
     setWeatherLocationPriority(cfg.priority);
     setWeatherCustomCityInput(cfg.customLocation?.city || '');
@@ -2437,6 +2444,7 @@ export function SettingsTab(): ReactElement {
               weatherCustomLocationTestMessage={weatherCustomLocationTestMessage}
               weatherProviderOptions={WEATHER_PROVIDER_OPTIONS}
               weatherPrimaryProvider={weatherPrimaryProvider}
+              isProUser={isProUser}
               setWeatherPrimaryProvider={setWeatherPrimaryProvider}
               saveWeatherProviderConfig={saveWeatherProviderConfig}
               weatherSettingsPages={WEATHER_SETTINGS_PAGES}
