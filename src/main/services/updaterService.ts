@@ -113,9 +113,9 @@ export function initUpdaterService(options: InitUpdaterServiceOptions): void {
       console.log('[Updater] startup auto-check skipped by setting (update-auto-prompt-enabled=false)');
       return;
     }
-    console.log('[Updater] auto-checking for updates on startup...');
-    updater.checkForUpdates().catch((err) => {
-      console.error('[Updater] auto-check error:', err);
+    console.log('[Updater] startup auto-check requested, waiting renderer pre-check flow...');
+    emitToRenderer('updater:startup-auto-check-request', {
+      requestedAt: Date.now(),
     });
   }, options.autoCheckDelayMs ?? 5000);
 }

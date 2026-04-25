@@ -29,6 +29,7 @@ import { createRoot } from 'react-dom/client';
 import './styles/index.css';
 import DynamicIsland from './components/DynamicIsland';
 import useIslandStore from './store/slices';
+import { hydrateWeatherLocationConfigFromStore } from './store/utils/storage';
 import { initTheme } from './utils/theme';
 import { bootstrapAuthSession } from './utils/authSession';
 import './i18n';
@@ -48,6 +49,7 @@ const rootEl = root;
 async function bootstrap(): Promise<void> {
   await initTheme();
   await bootstrapAuthSession();
+  await hydrateWeatherLocationConfigFromStore();
 
   /** 启动时初始化灵动岛透明度（在 React 挂载前设置，避免首次渲染闪烁） */
   window.api?.islandOpacityGet?.().then((val) => {

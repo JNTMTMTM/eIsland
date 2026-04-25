@@ -33,18 +33,24 @@ const LOCATION_STORAGE_KEY = 'island_location';
 const NETWORK_CONFIG_KEY = 'island_network_config';
 const WEATHER_PROVIDER_CONFIG_KEY = 'island_weather_provider_config';
 const WEATHER_LOCATION_CONFIG_KEY = 'island_weather_location_config';
+const WEATHER_LOCATION_CONFIG_STORE_KEY = 'weather-location-config';
 
 /** 默认网络请求超时（毫秒） */
 export const DEFAULT_NETWORK_TIMEOUT_MS = 10000;
+export const DEFAULT_STATIC_ASSET_NODE_FREE: StaticAssetNode = 'r2';
+export const DEFAULT_STATIC_ASSET_NODE_PRO: StaticAssetNode = 'r2';
 export const DEFAULT_WEATHER_PRIMARY_PROVIDER: WeatherProvider = 'open-meteo';
 export const DEFAULT_WEATHER_LOCATION_PRIORITY: WeatherLocationPriority = 'ip';
 
 /** 网络配置类型 */
+export type StaticAssetNode = 'r2' | 'cos' | 'oss';
+
 export interface NetworkConfig {
   timeoutMs: number;
+  staticAssetNode?: StaticAssetNode;
 }
 
-export type WeatherProvider = 'open-meteo' | 'uapi';
+export type WeatherProvider = 'open-meteo' | 'uapi' | 'qweather-pro';
 export type WeatherLocationPriority = 'ip' | 'custom';
 
 export interface WeatherProviderConfig {
@@ -62,6 +68,53 @@ export interface WeatherLocationConfig {
   customLocation: WeatherCustomLocationConfig | null;
 }
 
+function toFiniteNumber(value: unknown): number | null {
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  if (typeof value === 'string') {
+    const parsed = Number(value.trim());
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  return null;
+}
+
+function normalizeWeatherCustomLocation(value: unknown): WeatherCustomLocationConfig | null {
+  if (!value || typeof value !== 'object') {
+    return null;
+  }
+  const row = value as {
+    latitude?: unknown;
+    longitude?: unknown;
+    city?: unknown;
+  };
+  const latitude = toFiniteNumber(row.latitude);
+  const longitude = toFiniteNumber(row.longitude);
+  if (latitude === null || longitude === null) {
+    return null;
+  }
+  return {
+    latitude,
+    longitude,
+    city: typeof row.city === 'string' ? row.city : '',
+  };
+}
+
+function normalizeWeatherLocationConfig(value: unknown): WeatherLocationConfig {
+  if (!value || typeof value !== 'object') {
+    return {
+      priority: DEFAULT_WEATHER_LOCATION_PRIORITY,
+      customLocation: null,
+    };
+  }
+  const row = value as {
+    priority?: unknown;
+    customLocation?: unknown;
+  };
+  return {
+    priority: row.priority === 'custom' ? 'custom' : 'ip',
+    customLocation: normalizeWeatherCustomLocation(row.customLocation),
+  };
+}
+
 /**
  * 从本地存储加载网络配置
  * @returns NetworkConfig 网络配置对象
@@ -71,10 +124,18 @@ export function loadNetworkConfig(): NetworkConfig {
     const raw = localStorage.getItem(NETWORK_CONFIG_KEY);
     if (raw) {
       const data = JSON.parse(raw) as NetworkConfig;
-      if (typeof data.timeoutMs === 'number' && data.timeoutMs > 0) return data;
+      if (typeof data.timeoutMs === 'number' && data.timeoutMs > 0) {
+        return {
+          timeoutMs: data.timeoutMs,
+          staticAssetNode: normalizeStoredStaticAssetNode(data.staticAssetNode),
+        };
+      }
     }
   } catch { /* 忽略 */ }
-  return { timeoutMs: DEFAULT_NETWORK_TIMEOUT_MS };
+  return {
+    timeoutMs: DEFAULT_NETWORK_TIMEOUT_MS,
+    staticAssetNode: DEFAULT_STATIC_ASSET_NODE_FREE,
+  };
 }
 
 /**
@@ -83,8 +144,39 @@ export function loadNetworkConfig(): NetworkConfig {
  */
 export function saveNetworkConfig(config: NetworkConfig): void {
   try {
-    localStorage.setItem(NETWORK_CONFIG_KEY, JSON.stringify(config));
+    const timeoutMs = typeof config.timeoutMs === 'number' && config.timeoutMs > 0
+      ? config.timeoutMs
+      : DEFAULT_NETWORK_TIMEOUT_MS;
+    const staticAssetNode = normalizeStoredStaticAssetNode(config.staticAssetNode);
+    localStorage.setItem(NETWORK_CONFIG_KEY, JSON.stringify({ timeoutMs, staticAssetNode }));
   } catch { /* 忽略 */ }
+}
+
+/**
+ * 归一化本地持久化的静态资源节点值。
+ * @param value - 任意来源的节点值。
+ * @returns 合法的静态资源节点，默认回退为 r2。
+ */
+export function normalizeStoredStaticAssetNode(value: unknown): StaticAssetNode {
+  if (value === 'cos') return 'cos';
+  if (value === 'oss') return 'oss';
+  return 'r2';
+}
+
+/**
+ * 按用户身份归一化生效的静态资源节点。
+ * @param value - 用户选择或存储的节点值。
+ * @param proUser - 是否为 PRO/ADMIN 用户。
+ * @returns 当前身份可用的静态资源节点值。
+ */
+export function normalizeStaticAssetNode(value: unknown, proUser: boolean): StaticAssetNode {
+  if (proUser) {
+    if (value === 'r2') return 'r2';
+    if (value === 'cos') return 'cos';
+    if (value === 'oss') return 'oss';
+    return 'r2';
+  }
+  return 'r2';
 }
 
 /**
@@ -96,7 +188,7 @@ export function loadWeatherProviderConfig(): WeatherProviderConfig {
     const raw = localStorage.getItem(WEATHER_PROVIDER_CONFIG_KEY);
     if (raw) {
       const data = JSON.parse(raw) as WeatherProviderConfig;
-      if (data.primaryProvider === 'open-meteo' || data.primaryProvider === 'uapi') {
+      if (data.primaryProvider === 'open-meteo' || data.primaryProvider === 'uapi' || data.primaryProvider === 'qweather-pro') {
         return data;
       }
     }
@@ -122,27 +214,11 @@ export function loadWeatherLocationConfig(): WeatherLocationConfig {
   try {
     const raw = localStorage.getItem(WEATHER_LOCATION_CONFIG_KEY);
     if (raw) {
-      const data = JSON.parse(raw) as WeatherLocationConfig;
-      const priority = data.priority === 'custom' ? 'custom' : 'ip';
-      const custom = data.customLocation;
-      const validCustom = custom
-        && typeof custom.latitude === 'number'
-        && Number.isFinite(custom.latitude)
-        && typeof custom.longitude === 'number'
-        && Number.isFinite(custom.longitude)
-        ? {
-          latitude: custom.latitude,
-          longitude: custom.longitude,
-          city: typeof custom.city === 'string' ? custom.city : '',
-        }
-        : null;
-      return { priority, customLocation: validCustom };
+      const data = JSON.parse(raw) as unknown;
+      return normalizeWeatherLocationConfig(data);
     }
   } catch { /* 忽略 */ }
-  return {
-    priority: DEFAULT_WEATHER_LOCATION_PRIORITY,
-    customLocation: null,
-  };
+  return normalizeWeatherLocationConfig(null);
 }
 
 /**
@@ -150,8 +226,42 @@ export function loadWeatherLocationConfig(): WeatherLocationConfig {
  * @param config - 要保存的天气定位策略配置
  */
 export function saveWeatherLocationConfig(config: WeatherLocationConfig): void {
+  const normalized = normalizeWeatherLocationConfig(config);
   try {
-    localStorage.setItem(WEATHER_LOCATION_CONFIG_KEY, JSON.stringify(config));
+    localStorage.setItem(WEATHER_LOCATION_CONFIG_KEY, JSON.stringify(normalized));
+  } catch { /* 忽略 */ }
+  void window.api?.storeWrite?.(WEATHER_LOCATION_CONFIG_STORE_KEY, normalized).catch(() => {});
+}
+
+/**
+ * 启动时将天气定位配置从主进程 store 同步到本地缓存（并兼容首次迁移）
+ */
+export async function hydrateWeatherLocationConfigFromStore(): Promise<void> {
+  const storeRead = window.api?.storeRead;
+  const storeWrite = window.api?.storeWrite;
+  if (!storeRead || !storeWrite) {
+    return;
+  }
+
+  try {
+    const storeValue = await storeRead(WEATHER_LOCATION_CONFIG_STORE_KEY);
+    if (storeValue !== null && storeValue !== undefined) {
+      const normalized = normalizeWeatherLocationConfig(storeValue);
+      try {
+        localStorage.setItem(WEATHER_LOCATION_CONFIG_KEY, JSON.stringify(normalized));
+      } catch { /* 忽略 */ }
+      return;
+    }
+  } catch { /* 忽略 */ }
+
+  try {
+    const raw = localStorage.getItem(WEATHER_LOCATION_CONFIG_KEY);
+    if (!raw) {
+      return;
+    }
+    const localData = JSON.parse(raw) as unknown;
+    const normalized = normalizeWeatherLocationConfig(localData);
+    await storeWrite(WEATHER_LOCATION_CONFIG_STORE_KEY, normalized);
   } catch { /* 忽略 */ }
 }
 

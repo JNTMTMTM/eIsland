@@ -36,6 +36,8 @@ export const USER_ACCOUNT_API_BASE = IS_DEV_RENDERER
 const DEFAULT_TIMEOUT_MS = 10000;
 const APP_NAME_HEADER = 'X-App-Name';
 const APP_NAME_VALUE = 'eisland';
+const STATIC_ASSET_NODE_HEADER = 'X-Static-Asset-Node';
+const NETWORK_CONFIG_KEY = 'island_network_config';
 const CLIENT_VERSION_HEADER = 'X-Client-Version';
 const REPLAY_TIMESTAMP_HEADER = 'X-Timestamp';
 const REPLAY_NONCE_HEADER = 'X-Nonce';
@@ -46,6 +48,8 @@ const LOGIN_REPLAY_PATHS = new Set([
   '/auth/user/token/refresh',
 ]);
 let cachedClientVersion: string | null = null;
+
+type StaticAssetNode = 'r2' | 'cos' | 'oss';
 
 export interface InternalRequestInit {
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
@@ -60,6 +64,54 @@ export interface InternalRequestInit {
  */
 export function buildReplayHeaders(): Record<string, string> {
   return buildSecurityReplayHeaders(REPLAY_TIMESTAMP_HEADER, REPLAY_NONCE_HEADER);
+}
+
+function parseRoleFromToken(auth?: string | null): string | null {
+  if (!auth) return null;
+  const rawToken = auth.trim().replace(/^bearer\s+/i, '');
+  const parts = rawToken.split('.');
+  if (parts.length < 2 || !parts[1]) return null;
+  try {
+    const payload = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const normalizedPayload = payload + '='.repeat((4 - payload.length % 4) % 4);
+    const decoded = JSON.parse(atob(normalizedPayload)) as { role?: unknown };
+    if (typeof decoded.role !== 'string') return null;
+    return decoded.role.trim().toLowerCase().replace(/^role_/, '');
+  } catch {
+    return null;
+  }
+}
+
+function readStoredStaticAssetNode(): StaticAssetNode {
+  try {
+    const raw = localStorage.getItem(NETWORK_CONFIG_KEY);
+    if (!raw) return 'r2';
+    const data = JSON.parse(raw) as { staticAssetNode?: unknown };
+    if (data.staticAssetNode === 'oss') return 'oss';
+    if (data.staticAssetNode === 'cos') return 'cos';
+  } catch {
+    // ignore
+  }
+  return 'r2';
+}
+
+function resolveStaticAssetNodeHeaderValue(auth?: string | null): StaticAssetNode {
+  const role = parseRoleFromToken(auth);
+  const isProUser = role === 'pro' || role === 'admin';
+  if (!isProUser) {
+    return 'r2';
+  }
+  const stored = readStoredStaticAssetNode();
+  if (stored === 'r2') {
+    return 'r2';
+  }
+  if (stored === 'oss') {
+    return 'oss';
+  }
+  if (stored === 'cos') {
+    return 'cos';
+  }
+  return 'r2';
 }
 
 function shouldAttachReplayHeaders(path: string, method: InternalRequestInit['method'], auth?: string | null): boolean {
@@ -123,6 +175,7 @@ export async function buildUploadHeaders(token?: string | null): Promise<Record<
   if (token && token.trim().length > 0) {
     headers.Authorization = `Bearer ${token}`;
     Object.assign(headers, buildReplayHeaders());
+    headers[STATIC_ASSET_NODE_HEADER] = resolveStaticAssetNodeHeaderValue(token);
   }
   return headers;
 }
@@ -144,6 +197,7 @@ export async function request<T>(path: string, init: InternalRequestInit = {}): 
   }
   if (init.auth) {
     headers.Authorization = `Bearer ${init.auth}`;
+    headers[STATIC_ASSET_NODE_HEADER] = resolveStaticAssetNodeHeaderValue(init.auth);
   }
   if (shouldAttachReplayHeaders(path, init.method, init.auth)) {
     Object.assign(headers, buildReplayHeaders());

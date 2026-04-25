@@ -40,6 +40,7 @@ export const LYRICS_SOURCE_OPTIONS = [
 export const WEATHER_PROVIDER_OPTIONS: Array<{ value: WeatherProvider; label: string }> = [
   { value: 'open-meteo', label: 'Open-Meteo 优先' },
   { value: 'uapi', label: 'UAPI 优先' },
+  { value: 'qweather-pro', label: '和风天气优先' },
 ];
 
 export const WEATHER_LOCATION_PRIORITY_OPTIONS: Array<{ value: WeatherLocationPriority; label: string }> = [

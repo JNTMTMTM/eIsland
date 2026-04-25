@@ -34,6 +34,9 @@ import {
   loadNetworkConfig,
   saveNetworkConfig,
   DEFAULT_NETWORK_TIMEOUT_MS,
+  DEFAULT_STATIC_ASSET_NODE_FREE,
+  normalizeStaticAssetNode,
+  type StaticAssetNode,
   type WeatherProvider,
   type WeatherLocationPriority,
   DEFAULT_WEATHER_PRIMARY_PROVIDER,
@@ -83,6 +86,7 @@ import { WallpaperEditSection } from './setting/components/pluginMarket/Wallpape
 
 import { resolveDistrictLocationByKeyword } from '../../../../api/weather/adcodeApi';
 import { fetchUpdateSourceUrl } from '../../../../api/user/userAccountApi';
+import { request as requestUserAccountApi } from '../../../../api/user/userAccountApi.client';
 import {
   readAnnouncementShowMode,
   writeAnnouncementShowMode,
@@ -108,6 +112,7 @@ const STANDALONE_WINDOW_MAC_CONTROLS_STORE_KEY = 'standalone-window-mac-controls
 const ISLAND_DISPLAY_STORE_KEY = 'island-display-id';
 const UPDATE_SOURCE_STORE_KEY = 'update-source';
 const UPDATE_AUTO_PROMPT_STORE_KEY = 'update-auto-prompt-enabled';
+const WEATHER_ALERT_ENABLED_STORE_KEY = 'weather-alert-enabled';
 const SETTINGS_OPEN_TAB_STORE_KEY = 'settings-open-tab';
 type SettingsOpenTabIntent = 'update' | 'about-feedback' | 'user-orders';
 let _lastSettingsSidebarTab: SettingsSidebarTabKey = 'index';
@@ -386,9 +391,16 @@ export function SettingsTab(): ReactElement {
   /** 网络配置相关状态 */
   const [networkTimeoutMs, setNetworkTimeoutMs] = useState<number>(DEFAULT_NETWORK_TIMEOUT_MS);
   const [customTimeoutInput, setCustomTimeoutInput] = useState<string>('');
+  const [staticAssetNode, setStaticAssetNode] = useState<StaticAssetNode>(DEFAULT_STATIC_ASSET_NODE_FREE);
+  const staticAssetNodeOptions = useMemo<Array<{ label: string; value: StaticAssetNode; proOnly?: boolean }>>(() => ([
+    { label: 'Cloudflare R2', value: 'r2' },
+    { label: 'Tencent COS', value: 'cos', proOnly: true },
+    { label: 'Aliyun OSS', value: 'oss', proOnly: true },
+  ]), []);
   const [weatherPrimaryProvider, setWeatherPrimaryProvider] = useState<WeatherProvider>(DEFAULT_WEATHER_PRIMARY_PROVIDER);
   const [weatherLocationPriority, setWeatherLocationPriority] = useState<WeatherLocationPriority>(DEFAULT_WEATHER_LOCATION_PRIORITY);
   const [weatherCustomCityInput, setWeatherCustomCityInput] = useState<string>('');
+  const [weatherAlertEnabled, setWeatherAlertEnabled] = useState<boolean>(true);
   const [weatherLocationConfigMessage, setWeatherLocationConfigMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [weatherCustomLocationTesting, setWeatherCustomLocationTesting] = useState(false);
   const [weatherCustomLocationTestMessage, setWeatherCustomLocationTestMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -787,7 +799,17 @@ export function SettingsTab(): ReactElement {
     const cfg = loadNetworkConfig();
     setNetworkTimeoutMs(cfg.timeoutMs);
     setCustomTimeoutInput(String(cfg.timeoutMs / 1000));
+    setStaticAssetNode(normalizeStaticAssetNode(cfg.staticAssetNode, isProUser));
   }, []);
+
+  useEffect(() => {
+    const normalized = normalizeStaticAssetNode(staticAssetNode, isProUser);
+    if (normalized === staticAssetNode) {
+      return;
+    }
+    setStaticAssetNode(normalized);
+    saveNetworkConfig({ timeoutMs: networkTimeoutMs, staticAssetNode: normalized });
+  }, [isProUser, staticAssetNode, networkTimeoutMs]);
 
   useEffect(() => {
     const cfg = loadWeatherProviderConfig();
@@ -795,9 +817,25 @@ export function SettingsTab(): ReactElement {
   }, []);
 
   useEffect(() => {
+    if (isProUser) return;
+    if (weatherPrimaryProvider !== 'qweather-pro') return;
+    setWeatherPrimaryProvider('open-meteo');
+    saveWeatherProviderConfig({ primaryProvider: 'open-meteo' });
+  }, [isProUser, weatherPrimaryProvider]);
+
+  useEffect(() => {
     const cfg = loadWeatherLocationConfig();
     setWeatherLocationPriority(cfg.priority);
     setWeatherCustomCityInput(cfg.customLocation?.city || '');
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    window.api.storeRead(WEATHER_ALERT_ENABLED_STORE_KEY).then((value) => {
+      if (cancelled) return;
+      setWeatherAlertEnabled(typeof value === 'boolean' ? value : true);
+    }).catch(() => {});
+    return () => { cancelled = true; };
   }, []);
 
   useEffect(() => {
@@ -1537,11 +1575,33 @@ export function SettingsTab(): ReactElement {
       JSON.parse(resp.body);
       return t('settings.weather.messages.providerAvailable', { defaultValue: '{{name}} 可用', name });
     };
+    const testQWeatherPro = async (): Promise<string> => {
+      const token = readLocalToken();
+      const name = 'QWeather Pro';
+      if (!token) {
+        throw new Error(t('settings.weather.messages.proLoginRequired', { defaultValue: '请先登录 PRO 账号' }));
+      }
+      const qweatherParams = new URLSearchParams({
+        location: `${custom.longitude},${custom.latitude}`,
+        lang: 'zh',
+        unit: 'm',
+      });
+      const result = await requestUserAccountApi(`/v1/user/weather/daily-3d?${qweatherParams.toString()}`, {
+        method: 'GET',
+        auth: token,
+        timeoutMs: networkTimeoutMs,
+      });
+      if (!result.ok) {
+        throw new Error(`${name} ${result.code}: ${result.message}`);
+      }
+      return t('settings.weather.messages.providerAvailable', { defaultValue: '{{name}} 可用', name });
+    };
 
     try {
-      const [openMeteoResult, uapiResult] = await Promise.allSettled([
+      const [openMeteoResult, uapiResult, qweatherResult] = await Promise.allSettled([
         testProvider('Open-Meteo', openMeteoUrl),
         testProvider('UAPI', uapiUrl),
+        testQWeatherPro(),
       ]);
 
       const messages: string[] = [];
@@ -1569,6 +1629,17 @@ export function SettingsTab(): ReactElement {
         }));
       }
 
+      if (qweatherResult.status === 'fulfilled') {
+        messages.push(qweatherResult.value);
+      } else {
+        hasFailure = true;
+        messages.push(t('settings.weather.messages.providerUnavailable', {
+          defaultValue: '{{name}} 不可用：{{error}}',
+          name: 'QWeather Pro',
+          error: qweatherResult.reason instanceof Error ? qweatherResult.reason.message : unknownError,
+        }));
+      }
+
       const separator = t('settings.weather.messages.detailSeparator', { defaultValue: '；' });
       setWeatherCustomLocationTestMessage({
         type: hasFailure ? 'error' : 'success',
@@ -1583,6 +1654,11 @@ export function SettingsTab(): ReactElement {
     } finally {
       setWeatherCustomLocationTesting(false);
     }
+  };
+
+  const applyWeatherAlertEnabled = (enabled: boolean): void => {
+    setWeatherAlertEnabled(enabled);
+    window.api.storeWrite(WEATHER_ALERT_ENABLED_STORE_KEY, enabled).catch(() => {});
   };
 
   const toggleHideProcess = (processName: string): void => {
@@ -2375,11 +2451,15 @@ export function SettingsTab(): ReactElement {
 
           {activeTab === 'network' && (
             <NetworkSettingsSection
+              isProUser={isProUser}
               networkTimeoutMs={networkTimeoutMs}
               customTimeoutInput={customTimeoutInput}
+              staticAssetNode={staticAssetNode}
               networkTimeoutOptions={NETWORK_TIMEOUT_OPTIONS}
+              staticAssetNodeOptions={staticAssetNodeOptions}
               setNetworkTimeoutMs={setNetworkTimeoutMs}
               setCustomTimeoutInput={setCustomTimeoutInput}
+              setStaticAssetNode={setStaticAssetNode}
               saveNetworkConfig={saveNetworkConfig}
             />
           )}
@@ -2403,8 +2483,11 @@ export function SettingsTab(): ReactElement {
               weatherCustomLocationTestMessage={weatherCustomLocationTestMessage}
               weatherProviderOptions={WEATHER_PROVIDER_OPTIONS}
               weatherPrimaryProvider={weatherPrimaryProvider}
+              isProUser={isProUser}
               setWeatherPrimaryProvider={setWeatherPrimaryProvider}
               saveWeatherProviderConfig={saveWeatherProviderConfig}
+              weatherAlertEnabled={weatherAlertEnabled}
+              setWeatherAlertEnabled={applyWeatherAlertEnabled}
               weatherSettingsPages={WEATHER_SETTINGS_PAGES}
               weatherSettingsPageLabels={translatedWeatherSettingsPageLabels}
               setWeatherSettingsPage={setWeatherSettingsPage}

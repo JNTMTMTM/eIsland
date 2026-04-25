@@ -163,14 +163,20 @@ export interface NotificationData {
   title: string;
   body: string;
   icon?: string;
-  /** 通知类型：默认通知 / 播放源切换请求 / 有新版本 / 更新下载中 / 更新就绪 / 剪贴板URL / 重启确认 */
-  type?: 'default' | 'source-switch' | 'update-available' | 'update-downloading' | 'update-ready' | 'clipboard-url' | 'restart-required';
+  /** 通知类型：默认通知 / 播放源切换请求 / 有新版本 / 更新下载中 / 更新就绪 / 启动天气预警 / 剪贴板URL / 重启确认 */
+  type?: 'default' | 'source-switch' | 'update-available' | 'update-downloading' | 'update-ready' | 'weather-alert-startup' | 'clipboard-url' | 'restart-required';
   /** 请求切换到的播放源 ID（仅 source-switch 类型） */
   sourceAppId?: string;
   /** 更新版本号（用于 update-available 与 update-ready 类型） */
   updateVersion?: string;
   /** 当前更新源展示文案（用于 update-available 类型） */
   updateSourceLabel?: string;
+  /** 天气预警发布时间文案（仅 weather-alert-startup 类型） */
+  weatherAlertTime?: string;
+  /** 启动自动检查更新时要使用的更新源（仅 weather-alert-startup 类型） */
+  startupUpdateSource?: 'cloudflare-r2' | 'tencent-cos' | 'aliyun-oss' | 'github';
+  /** 启动自动检查更新时解析后的更新源地址（仅 weather-alert-startup 类型） */
+  startupUpdateResolvedUrl?: string;
   /** 检测到的 URL 列表（仅 clipboard-url 类型） */
   urls?: string[];
 }

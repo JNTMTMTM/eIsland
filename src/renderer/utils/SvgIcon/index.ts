@@ -109,6 +109,8 @@ export const SvgIcon = {
   ALIPAY: './svg/ALIPAY.svg',
   /** WECHATPAY */
   WECHATPAY: './svg/WECHATPAY.svg',
+  /** GITHUB */
+  GITHUB: './svg/GITHUB.svg',
 
 } as const;
 

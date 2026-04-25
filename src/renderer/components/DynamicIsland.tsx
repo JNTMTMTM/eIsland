@@ -47,6 +47,8 @@ import { fetchKaraokeLyrics } from '../api/lyrics/lrcs/karaoke';
 import type { KaraokeLine } from '../api/lyrics/lrcs/karaoke';
 import type { SyncedLyricLine } from '../store/types';
 import { fetchVersion, reportUpdateDownloadCount } from '../api/update/versionApi';
+import { fetchStartupWeatherAlerts } from '../api/weather/weatherApi';
+import { fetchUpdateSourceUrl } from '../api/user/userAccountApi';
 import { getWebsiteFaviconUrl, getWebsiteHostname } from '../api/site/siteMetaApi';
 import {
   fetchCurrentAnnouncement,
@@ -54,6 +56,7 @@ import {
   readAnnouncementShowMode,
   writeAnnouncementLastShownAppVersion,
 } from '../api/announcement/announcementApi';
+import { readLocalToken } from '../utils/userAccount';
 
 /** 灵动岛状态类型 */
 export type IslandState = 'idle' | 'hover' | 'expanded' | 'notification' | 'maxExpand' | 'minimal' | 'lyrics' | 'guide' | 'login' | 'register' | 'payment' | 'announcement';
@@ -71,6 +74,42 @@ const ISLAND_BG_VIDEO_RATE_STORE_KEY = 'island-bg-video-rate';
 const ISLAND_BG_VIDEO_HW_DECODE_STORE_KEY = 'island-bg-video-hw-decode';
 const LOCAL_ISLAND_BG_SYNC_EVENT = 'island-bg-local-sync';
 const UPDATE_SOURCE_STORE_KEY = 'update-source';
+const UPDATE_AUTO_PROMPT_STORE_KEY = 'update-auto-prompt-enabled';
+const WEATHER_ALERT_ENABLED_STORE_KEY = 'weather-alert-enabled';
+
+type UpdateSourceKey = 'cloudflare-r2' | 'tencent-cos' | 'aliyun-oss' | 'github';
+
+const PRO_UPDATE_SOURCE_SET: ReadonlySet<UpdateSourceKey> = new Set<UpdateSourceKey>(['tencent-cos', 'aliyun-oss']);
+
+function normalizeUpdateSource(value: unknown): UpdateSourceKey {
+  if (value === 'github') return 'github';
+  if (value === 'tencent-cos') return 'tencent-cos';
+  if (value === 'aliyun-oss') return 'aliyun-oss';
+  return 'cloudflare-r2';
+}
+
+function isProOnlyUpdateSource(source: UpdateSourceKey): boolean {
+  return PRO_UPDATE_SOURCE_SET.has(source);
+}
+
+const normalizeRoleValue = (value: string): string => {
+  return value.trim().toLowerCase().replace(/^role_/, '');
+};
+
+const getRoleFromToken = (token: string | null | undefined): string | null => {
+  if (!token) return null;
+  const rawToken = token.trim().replace(/^bearer\s+/i, '');
+  const parts = rawToken.split('.');
+  if (parts.length < 2) return null;
+  try {
+    const payload = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const normalizedPayload = payload + '='.repeat((4 - payload.length % 4) % 4);
+    const decoded = JSON.parse(atob(normalizedPayload)) as { role?: unknown };
+    return typeof decoded.role === 'string' ? normalizeRoleValue(decoded.role) : null;
+  } catch {
+    return null;
+  }
+};
 
 function getUpdateSourceLabel(value: unknown): string {
   if (value === 'github') return 'GitHub Releases';
@@ -350,6 +389,7 @@ function DynamicIsland(): React.JSX.Element {
   const maxExpandLeaveIdleRef = useRef(false);
   const pendingAnnouncementAfterGuideRef = useRef(false);
   const pendingAnnouncementAppVersionRef = useRef('');
+  const startupAutoCheckHandledRef = useRef(false);
   const bgOpacityRef = useRef<number>(30);
   const bgBlurRef = useRef<number>(0);
   const [bgVideoFit, setBgVideoFit] = useState<'cover' | 'contain'>('cover');
@@ -562,10 +602,13 @@ function DynamicIsland(): React.JSX.Element {
               title: string;
               body: string;
               icon?: string;
-              type?: 'default' | 'source-switch' | 'update-available' | 'update-ready' | 'clipboard-url' | 'restart-required';
+              type?: 'default' | 'source-switch' | 'update-available' | 'update-downloading' | 'update-ready' | 'weather-alert-startup' | 'clipboard-url' | 'restart-required';
               sourceAppId?: string;
               updateVersion?: string;
               updateSourceLabel?: string;
+              weatherAlertTime?: string;
+              startupUpdateSource?: UpdateSourceKey;
+              startupUpdateResolvedUrl?: string;
               urls?: string[];
             });
           }
@@ -688,6 +731,89 @@ function DynamicIsland(): React.JSX.Element {
       setLyrics();
     }
   }, [state, timerData?.state, isPlaying, syncedLyrics, lyricsLoading, setLyrics]);
+
+  useEffect(() => {
+    const unsub = window.api?.onUpdaterStartupAutoCheckRequest?.(() => {
+      if (startupAutoCheckHandledRef.current) return;
+      startupAutoCheckHandledRef.current = true;
+      void (async () => {
+        const autoPromptValue = await window.api?.storeRead?.(UPDATE_AUTO_PROMPT_STORE_KEY).catch(() => null);
+        const autoPromptEnabled = typeof autoPromptValue === 'boolean' ? autoPromptValue : true;
+        if (!autoPromptEnabled) return;
+
+        const token = readLocalToken();
+        const isProUser = getRoleFromToken(token) === 'pro';
+        const sourceRaw = await window.api?.storeRead?.(UPDATE_SOURCE_STORE_KEY).catch(() => null);
+        let startupSource = normalizeUpdateSource(sourceRaw);
+        let startupResolvedUrl: string | undefined;
+
+        if (isProOnlyUpdateSource(startupSource)) {
+          if (!token || !isProUser) {
+            startupSource = 'cloudflare-r2';
+          } else {
+            const resolved = await fetchUpdateSourceUrl(token, startupSource);
+            if (resolved.ok && resolved.data?.url) {
+              startupResolvedUrl = resolved.data.url;
+            } else {
+              startupSource = 'cloudflare-r2';
+            }
+          }
+        }
+
+        const continueStartupUpdateCheck = async (): Promise<void> => {
+          await window.api?.updaterCheck(startupSource, startupResolvedUrl).catch(() => {});
+        };
+
+        const weatherAlertEnabledValue = await window.api?.storeRead?.(WEATHER_ALERT_ENABLED_STORE_KEY).catch(() => null);
+        const weatherAlertEnabled = typeof weatherAlertEnabledValue === 'boolean' ? weatherAlertEnabledValue : true;
+        if (!weatherAlertEnabled || !isProUser || !token) {
+          await continueStartupUpdateCheck();
+          return;
+        }
+
+        try {
+          const weatherAlertPayload = await fetchStartupWeatherAlerts(token);
+          if (weatherAlertPayload.alerts.length > 0) {
+            const firstAlert = weatherAlertPayload.alerts[0];
+            const firstAlertTitle = firstAlert.title
+              || firstAlert.typeName
+              || t('notification.weatherAlert.defaultTitle', { defaultValue: '天气预警' });
+            const city = weatherAlertPayload.location.city
+              || t('notification.weatherAlert.unknownCity', { defaultValue: '当前位置' });
+            const body = weatherAlertPayload.alerts.length > 1
+              ? t('notification.weatherAlert.bodyWithMore', {
+                  defaultValue: '{{city}}：{{title}}，另有 {{count}} 条预警。',
+                  city,
+                  title: firstAlertTitle,
+                  count: weatherAlertPayload.alerts.length - 1,
+                })
+              : t('notification.weatherAlert.bodySingle', {
+                  defaultValue: '{{city}}：{{title}}',
+                  city,
+                  title: firstAlertTitle,
+                });
+            setNotificationRef.current({
+              title: t('notification.weatherAlert.title', { defaultValue: '天气预警提醒' }),
+              body,
+              icon: SvgIcon.WEATHER,
+              type: 'weather-alert-startup',
+              weatherAlertTime: firstAlert.pubTime,
+              startupUpdateSource: startupSource,
+              startupUpdateResolvedUrl: startupResolvedUrl,
+            });
+            return;
+          }
+        } catch (error) {
+          console.warn('[Updater] startup weather alert pre-check failed:', error);
+        }
+
+        await continueStartupUpdateCheck();
+      })();
+    });
+    return () => {
+      unsub?.();
+    };
+  }, [i18n.resolvedLanguage, t]);
 
   useEffect(() => {
     const unsub = window.api?.onUpdaterNotAvailable?.(() => {
@@ -1168,6 +1294,9 @@ function DynamicIsland(): React.JSX.Element {
           sourceAppId={notification.sourceAppId}
           updateVersion={notification.updateVersion}
           updateSourceLabel={notification.updateSourceLabel}
+          weatherAlertTime={notification.weatherAlertTime}
+          startupUpdateSource={notification.startupUpdateSource}
+          startupUpdateResolvedUrl={notification.startupUpdateResolvedUrl}
           urls={notification.urls}
         />
       ),

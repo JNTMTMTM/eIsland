@@ -153,6 +153,7 @@
   opacity: 0.5;
   flex-shrink: 0;
   animation: lyricIntroFloat 2s ease-in-out infinite;
+  filter: brightness(0) invert(var(--icon-invert)) drop-shadow(0 0 1px rgba(0, 0, 0, 0.3));
 }
 
 .lyrics-empty {

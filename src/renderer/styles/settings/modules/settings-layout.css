@@ -504,7 +504,9 @@
   width: 12px;
   height: 12px;
   display: block;
+  object-fit: contain;
   opacity: 0.72;
+  filter: brightness(0) invert(var(--icon-invert));
 }
 
 .max-expand-settings-desc {
@@ -1544,11 +1546,27 @@
 
 .settings-about-feedback-actions {
   display: flex;
-  justify-content: flex-end;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.settings-about-feedback-actions .settings-user-primary-btn {
+.settings-about-feedback-actions .settings-user-primary-btn,
+.settings-about-feedback-actions .settings-user-secondary-btn {
   width: 100%;
+  justify-content: center;
+}
+
+.settings-about-feedback-issue-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.settings-about-feedback-issue-icon {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  filter: brightness(0) invert(var(--icon-invert));
 }
 
 .settings-about-feedback-history-head {
@@ -1935,6 +1953,9 @@
   gap: 8px;
 }
 .settings-lyrics-source-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   background: rgba(var(--color-text-rgb), 0.06);
   border: 1px solid rgba(var(--color-text-rgb), 0.1);
   border-radius: 6px;
@@ -1953,6 +1974,14 @@
   border-color: rgba(var(--color-text-rgb), 0.7);
   color: var(--color-island-text);
   box-shadow: 0 0 0 1px rgba(var(--color-text-rgb), 0.4);
+}
+
+.settings-weather-provider-pro-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
 }
 
 .max-expand-settings-placeholder {

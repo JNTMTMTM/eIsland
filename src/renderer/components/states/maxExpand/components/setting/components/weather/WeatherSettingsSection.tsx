@@ -28,6 +28,7 @@ import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { WeatherSettingsPageKey } from '../../utils/settingsConfig';
 import type { WeatherLocationPriority, WeatherProvider } from '../../../../../../../store/utils/storage';
+import { SvgIcon } from '../../../../../../../utils/SvgIcon';
 
 interface WeatherMessage {
   type: 'error' | 'success';
@@ -52,8 +53,11 @@ interface WeatherSettingsSectionProps {
   weatherCustomLocationTestMessage: WeatherMessage | null;
   weatherProviderOptions: Array<{ value: WeatherProvider; label: string }>;
   weatherPrimaryProvider: WeatherProvider;
+  isProUser: boolean;
   setWeatherPrimaryProvider: (value: WeatherProvider) => void;
   saveWeatherProviderConfig: (payload: { primaryProvider: WeatherProvider }) => void;
+  weatherAlertEnabled: boolean;
+  setWeatherAlertEnabled: (value: boolean) => void;
   weatherSettingsPages: WeatherSettingsPageKey[];
   weatherSettingsPageLabels: Record<WeatherSettingsPageKey, string>;
   setWeatherSettingsPage: (page: WeatherSettingsPageKey) => void;
@@ -73,6 +77,7 @@ export function WeatherSettingsSection(props: WeatherSettingsSectionProps): Reac
   const providerPriorityKeyMap: Record<WeatherProvider, string> = {
     'open-meteo': 'settings.weather.options.providerPriority.openMeteo',
     uapi: 'settings.weather.options.providerPriority.uapi',
+    'qweather-pro': 'settings.weather.options.providerPriority.qweatherPro',
   };
   const {
     currentWeatherSettingsPageLabel,
@@ -92,8 +97,11 @@ export function WeatherSettingsSection(props: WeatherSettingsSectionProps): Reac
     weatherCustomLocationTestMessage,
     weatherProviderOptions,
     weatherPrimaryProvider,
+    isProUser,
     setWeatherPrimaryProvider,
     saveWeatherProviderConfig,
+    weatherAlertEnabled,
+    setWeatherAlertEnabled,
     weatherSettingsPages,
     weatherSettingsPageLabels,
     setWeatherSettingsPage,
@@ -223,18 +231,75 @@ export function WeatherSettingsSection(props: WeatherSettingsSectionProps): Reac
                 </div>
                 <div className="settings-lyrics-source-options">
                   {weatherProviderOptions.map((opt) => (
+                    (() => {
+                      const isQweatherPro = opt.value === 'qweather-pro';
+                      const disabled = isQweatherPro && !isProUser;
+                      return (
                     <button
                       key={opt.value}
                       className={`settings-lyrics-source-btn ${weatherPrimaryProvider === opt.value ? 'active' : ''}`}
                       type="button"
+                      disabled={disabled}
+                      title={disabled ? t('settings.weather.proOnlyHint', { defaultValue: '仅 PRO 用户可用' }) : undefined}
                       onClick={() => {
+                        if (disabled) return;
                         setWeatherPrimaryProvider(opt.value);
                         saveWeatherProviderConfig({ primaryProvider: opt.value });
                       }}
                     >
+                      {isQweatherPro && (
+                        <span
+                          className="settings-weather-provider-pro-badge"
+                          title={t('settings.weather.proOnlyHint', { defaultValue: '仅 PRO 用户可用' })}
+                        >
+                          <img
+                            src={SvgIcon.PRO}
+                            alt="PRO"
+                            width={14}
+                            height={14}
+                          />
+                        </span>
+                      )}
                       {t(providerPriorityKeyMap[opt.value], { defaultValue: opt.label })}
                     </button>
+                      );
+                    })()
                   ))}
+                </div>
+              </div>
+
+              <div className="settings-card">
+                <div className="settings-card-header">
+                  <div className="settings-card-title">{t('settings.weather.alert.title', { defaultValue: '启动天气预警提醒' })}</div>
+                  <div className="settings-card-subtitle">{t('settings.weather.alert.hint', { defaultValue: '应用启动自动检查更新前，先请求和风天气预警并提示；确认关闭后再继续检查更新。' })}</div>
+                </div>
+                <div className="settings-card-inline-row">
+                  <label
+                    className="settings-card-check"
+                    title={!isProUser ? t('settings.weather.proOnlyHint', { defaultValue: '仅 PRO 用户可用' }) : undefined}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={weatherAlertEnabled}
+                      disabled={!isProUser}
+                      onChange={(e) => {
+                        if (!isProUser) return;
+                        setWeatherAlertEnabled(e.target.checked);
+                      }}
+                    />
+                    <span
+                      className="settings-weather-provider-pro-badge"
+                      title={t('settings.weather.proOnlyHint', { defaultValue: '仅 PRO 用户可用' })}
+                    >
+                      <img
+                        src={SvgIcon.PRO}
+                        alt="PRO"
+                        width={14}
+                        height={14}
+                      />
+                    </span>
+                    {t('settings.weather.alert.enabled', { defaultValue: '开启预警提醒' })}
+                  </label>
                 </div>
               </div>
 

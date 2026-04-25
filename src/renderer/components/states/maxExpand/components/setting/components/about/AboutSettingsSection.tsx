@@ -46,6 +46,7 @@ import {
   AboutSettingsPageDots,
   type AboutSettingsPageKey,
 } from './components/AboutSettingsPageDots';
+import { SvgIcon } from '../../../../../../../utils/SvgIcon';
 
 const WALLPAPER_SOURCES = [
   {
@@ -79,6 +80,7 @@ interface AboutSettingsSectionProps {
 const ABOUT_PAGES: AboutSettingsPageKey[] = ['development', 'feedback'];
 const MAX_FEEDBACK_LOG_SIZE = 5 * 1024 * 1024;
 const MAX_FEEDBACK_SCREENSHOT_SIZE = 10 * 1024 * 1024;
+const GITHUB_ISSUE_URL = 'https://github.com/JNTMTMTM/eIsland/issues/new';
 
 type FeedbackMessageType = 'success' | 'error' | 'info';
 
@@ -780,6 +782,23 @@ export function AboutSettingsSection({ aboutVersion, initialPage = 'development'
                 {submittingFeedback
                   ? t('settings.about.feedback.actions.submitting', { defaultValue: '提交中…' })
                   : t('settings.about.feedback.actions.submit', { defaultValue: '提交反馈' })}
+              </button>
+              <button
+                type="button"
+                className="settings-user-secondary-btn settings-about-feedback-issue-btn"
+                onClick={() => {
+                  window.api.clipboardOpenUrl(GITHUB_ISSUE_URL).catch(() => {
+                    setFeedbackMessage({
+                      type: 'error',
+                      text: t('settings.about.feedback.messages.openGithubIssueFailed', {
+                        defaultValue: '打开 GitHub Issue 失败，请稍后重试',
+                      }),
+                    });
+                  });
+                }}
+              >
+                <img className="settings-about-feedback-issue-icon" src={SvgIcon.GITHUB} alt="GitHub" />
+                {t('settings.about.feedback.actions.openGithubIssue', { defaultValue: '前往 GitHub 提交 Issue' })}
               </button>
             </div>
           </>

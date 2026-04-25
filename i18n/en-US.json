@@ -355,6 +355,15 @@
       "readyTitle": "Update ready",
       "readyBody": "Version v{{version}} has been downloaded. Install now?"
     },
+    "weatherAlert": {
+      "title": "Weather Alert",
+      "defaultTitle": "Weather Warning",
+      "unknownCity": "Current location",
+      "bodySingle": "{{city}}: {{title}}",
+      "bodyWithMore": "{{city}}: {{title}}, plus {{count}} more alerts.",
+      "timeLabel": "Updata Time",
+      "timeUnknown": "Unknown"
+    },
     "clipboard": {
       "detectedTitle": "Link detected",
       "officialBadge": "Official",
@@ -385,6 +394,7 @@
       "snooze5m": "Later 5m",
       "snooze15m": "Later 15m",
       "snooze1h": "Later 1h",
+      "closeAndContinueUpdateCheck": "Close and continue update check",
       "complete": "Complete"
     }
   },
@@ -907,6 +917,12 @@
           "ms20000": "20s",
           "ms30000": "30s"
         }
+      },
+      "staticAssetNode": {
+        "title": "Static Asset Node",
+        "hint": "All users default to R2, and PRO users can choose R2/COS/OSS.",
+        "proOnlyHint": "PRO users only",
+        "proHint": "Upgrade to PRO to switch COS/OSS nodes (or keep using R2)."
       }
     },
     "weather": {
@@ -919,12 +935,20 @@
       "cityName": "City Name",
       "cityPlaceholder": "e.g. Hangzhou / Tokyo / New York",
       "testing": "Testing...",
-      "testCustomLocation": "Test Custom Location (Dual APIs)",
+      "testCustomLocation": "Test Custom Location (Multiple APIs)",
       "saveLocation": "Save Location Settings",
       "providerPriority": {
         "title": "Weather Provider Priority",
-        "hint": "Prefer Open-Meteo or UAPI, then auto-fallback"
+        "hint": "Prefer Open-Meteo, UAPI, or QWeather (PRO), then auto-fallback"
       },
+      "alert": {
+        "title": "Startup Weather Alert Prompt",
+        "hint": "Before startup auto update check, request QWeather alerts first. Update check continues after you confirm close.",
+        "enabled": "Enable alert prompt",
+        "disabled": "Disable alert prompt"
+      },
+      "proBadge": "PRO",
+      "proOnlyHint": "PRO users only",
       "options": {
         "locationPriority": {
           "ip": "IP Location First",
@@ -932,7 +956,8 @@
         },
         "providerPriority": {
           "openMeteo": "Open-Meteo First",
-          "uapi": "UAPI First"
+          "uapi": "UAPI First",
+          "qweatherPro": "QWeather First"
         }
       },
       "messages": {
@@ -943,6 +968,7 @@
         "providerNonJson": "{{name}} returned non-JSON",
         "providerAvailable": "{{name}} available",
         "providerUnavailable": "{{name}} unavailable: {{error}}",
+        "proLoginRequired": "Please sign in with a PRO account first",
         "testResult": "{{city}} ({{lat}}, {{lng}}) - {{details}}",
         "detailSeparator": "; ",
         "customNeedsCity": "Please enter a city name before choosing 'Custom Location First'",
@@ -1342,6 +1368,7 @@
           "submit": "Submit Feedback",
           "submitting": "Submitting…",
           "refresh": "Refresh",
+          "openGithubIssue": "Open GitHub Issue",
           "useBoundEmail": "Fill Email",
           "uploadLog": "Upload Log",
           "uploadingLog": "Uploading…",
@@ -1367,6 +1394,7 @@
           "screenshotTooLarge": "Screenshot file must be 10MB or smaller",
           "screenshotUploadSuccess": "Screenshot uploaded successfully and will be attached to the feedback",
           "screenshotUploadFailed": "Failed to upload screenshot. Please try again later.",
+          "openGithubIssueFailed": "Failed to open GitHub Issue. Please try again later.",
           "submitSuccess": "Feedback submitted. Thank you for your input.",
           "submitFailed": "Failed to submit feedback. Please try again later.",
           "loadFailed": "Failed to load feedback history"
