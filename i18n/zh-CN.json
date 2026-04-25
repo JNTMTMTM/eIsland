@@ -920,9 +920,9 @@
       },
       "staticAssetNode": {
         "title": "静态资源节点",
-        "hint": "免费用户固定使用 R2，PRO 用户可选择 COS/OSS。",
+        "hint": "所有用户默认使用 R2，PRO 用户可选择 R2/COS/OSS。",
         "proOnlyHint": "仅 PRO 用户可用",
-        "proHint": "升级 PRO 可切换 COS/OSS 节点。"
+        "proHint": "升级 PRO 可切换 COS/OSS 节点（也可继续使用 R2）。"
       }
     },
     "weather": {

@@ -920,9 +920,9 @@
       },
       "staticAssetNode": {
         "title": "Static Asset Node",
-        "hint": "Free users are fixed to R2, PRO users can choose COS/OSS.",
+        "hint": "All users default to R2, and PRO users can choose R2/COS/OSS.",
         "proOnlyHint": "PRO users only",
-        "proHint": "Upgrade to PRO to switch COS/OSS nodes."
+        "proHint": "Upgrade to PRO to switch COS/OSS nodes (or keep using R2)."
       }
     },
     "weather": {

@@ -102,10 +102,16 @@ function resolveStaticAssetNodeHeaderValue(auth?: string | null): StaticAssetNod
     return 'r2';
   }
   const stored = readStoredStaticAssetNode();
+  if (stored === 'r2') {
+    return 'r2';
+  }
   if (stored === 'oss') {
     return 'oss';
   }
-  return 'cos';
+  if (stored === 'cos') {
+    return 'cos';
+  }
+  return 'r2';
 }
 
 function shouldAttachReplayHeaders(path: string, method: InternalRequestInit['method'], auth?: string | null): boolean {

@@ -38,7 +38,7 @@ const WEATHER_LOCATION_CONFIG_STORE_KEY = 'weather-location-config';
 /** 默认网络请求超时（毫秒） */
 export const DEFAULT_NETWORK_TIMEOUT_MS = 10000;
 export const DEFAULT_STATIC_ASSET_NODE_FREE: StaticAssetNode = 'r2';
-export const DEFAULT_STATIC_ASSET_NODE_PRO: StaticAssetNode = 'cos';
+export const DEFAULT_STATIC_ASSET_NODE_PRO: StaticAssetNode = 'r2';
 export const DEFAULT_WEATHER_PRIMARY_PROVIDER: WeatherProvider = 'open-meteo';
 export const DEFAULT_WEATHER_LOCATION_PRIORITY: WeatherLocationPriority = 'ip';
 
@@ -160,8 +160,10 @@ export function normalizeStoredStaticAssetNode(value: unknown): StaticAssetNode 
 
 export function normalizeStaticAssetNode(value: unknown, proUser: boolean): StaticAssetNode {
   if (proUser) {
+    if (value === 'r2') return 'r2';
+    if (value === 'cos') return 'cos';
     if (value === 'oss') return 'oss';
-    return 'cos';
+    return 'r2';
   }
   return 'r2';
 }

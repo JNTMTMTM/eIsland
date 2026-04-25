@@ -135,7 +135,7 @@ export function NetworkSettingsSection({
         <div className="settings-card">
           <div className="settings-card-header">
             <div className="settings-card-title">{t('settings.network.staticAssetNode.title', { defaultValue: '静态资源节点' })}</div>
-            <div className="settings-card-subtitle">{t('settings.network.staticAssetNode.hint', { defaultValue: '免费用户固定使用 R2，PRO 用户可选择 COS/OSS。' })}</div>
+            <div className="settings-card-subtitle">{t('settings.network.staticAssetNode.hint', { defaultValue: '所有用户默认使用 R2，PRO 用户可选择 R2/COS/OSS。' })}</div>
           </div>
           <div className="settings-card-subgroup">
             <div className="settings-lyrics-source-options">
@@ -172,7 +172,7 @@ export function NetworkSettingsSection({
               })}
             </div>
             {!isProUser && (
-              <div className="settings-music-hint">{t('settings.network.staticAssetNode.proHint', { defaultValue: '升级 PRO 可切换 COS/OSS 节点。' })}</div>
+              <div className="settings-music-hint">{t('settings.network.staticAssetNode.proHint', { defaultValue: '升级 PRO 可切换 COS/OSS 节点（也可继续使用 R2）。' })}</div>
             )}
           </div>
         </div>
