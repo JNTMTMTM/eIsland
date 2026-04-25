@@ -1362,6 +1362,7 @@
           "submit": "Submit Feedback",
           "submitting": "Submitting…",
           "refresh": "Refresh",
+          "openGithubIssue": "Open GitHub Issue",
           "useBoundEmail": "Fill Email",
           "uploadLog": "Upload Log",
           "uploadingLog": "Uploading…",
@@ -1387,6 +1388,7 @@
           "screenshotTooLarge": "Screenshot file must be 10MB or smaller",
           "screenshotUploadSuccess": "Screenshot uploaded successfully and will be attached to the feedback",
           "screenshotUploadFailed": "Failed to upload screenshot. Please try again later.",
+          "openGithubIssueFailed": "Failed to open GitHub Issue. Please try again later.",
           "submitSuccess": "Feedback submitted. Thank you for your input.",
           "submitFailed": "Failed to submit feedback. Please try again later.",
           "loadFailed": "Failed to load feedback history"

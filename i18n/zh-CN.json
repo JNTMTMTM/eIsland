@@ -1362,6 +1362,7 @@
           "submit": "提交反馈",
           "submitting": "提交中…",
           "refresh": "刷新",
+          "openGithubIssue": "前往 GitHub 提交 Issue",
           "useBoundEmail": "填充邮箱",
           "uploadLog": "上传日志",
           "uploadingLog": "上传中…",
@@ -1387,6 +1388,7 @@
           "screenshotTooLarge": "截图文件不能超过 10MB",
           "screenshotUploadSuccess": "截图上传成功，提交反馈时会自动携带",
           "screenshotUploadFailed": "截图上传失败，请稍后重试",
+          "openGithubIssueFailed": "打开 GitHub Issue 失败，请稍后重试",
           "submitSuccess": "反馈已提交，感谢你的建议",
           "submitFailed": "反馈提交失败，请稍后重试",
           "loadFailed": "反馈记录加载失败"
