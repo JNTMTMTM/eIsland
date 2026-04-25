@@ -355,6 +355,13 @@
       "readyTitle": "更新就绪",
       "readyBody": "新版本 v{{version}} 已下载完成，是否立即安装？"
     },
+    "weatherAlert": {
+      "title": "天气预警提醒",
+      "defaultTitle": "天气预警",
+      "unknownCity": "当前位置",
+      "bodySingle": "{{city}}：{{title}}",
+      "bodyWithMore": "{{city}}：{{title}}，另有 {{count}} 条预警。"
+    },
     "clipboard": {
       "detectedTitle": "检测到链接",
       "officialBadge": "官网",
@@ -385,6 +392,7 @@
       "snooze5m": "稍后 5m",
       "snooze15m": "稍后 15m",
       "snooze1h": "稍后 1h",
+      "closeAndContinueUpdateCheck": "关闭并继续检查更新",
       "complete": "完成"
     }
   },
@@ -924,6 +932,12 @@
       "providerPriority": {
         "title": "天气接口优先级",
         "hint": "可选择优先使用 Open-Meteo、UAPI 或和风天气（PRO），失败时自动切换到可用源"
+      },
+      "alert": {
+        "title": "启动天气预警提醒",
+        "hint": "应用启动自动检查更新前，先请求和风天气预警并提示；确认关闭后再继续检查更新。",
+        "enabled": "开启预警提醒",
+        "disabled": "关闭预警提醒"
       },
       "proBadge": "PRO",
       "proOnlyHint": "仅 PRO 用户可用",

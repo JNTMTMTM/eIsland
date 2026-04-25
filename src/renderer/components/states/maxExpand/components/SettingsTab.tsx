@@ -109,6 +109,7 @@ const STANDALONE_WINDOW_MAC_CONTROLS_STORE_KEY = 'standalone-window-mac-controls
 const ISLAND_DISPLAY_STORE_KEY = 'island-display-id';
 const UPDATE_SOURCE_STORE_KEY = 'update-source';
 const UPDATE_AUTO_PROMPT_STORE_KEY = 'update-auto-prompt-enabled';
+const WEATHER_ALERT_ENABLED_STORE_KEY = 'weather-alert-enabled';
 const SETTINGS_OPEN_TAB_STORE_KEY = 'settings-open-tab';
 type SettingsOpenTabIntent = 'update' | 'about-feedback' | 'user-orders';
 let _lastSettingsSidebarTab: SettingsSidebarTabKey = 'index';
@@ -390,6 +391,7 @@ export function SettingsTab(): ReactElement {
   const [weatherPrimaryProvider, setWeatherPrimaryProvider] = useState<WeatherProvider>(DEFAULT_WEATHER_PRIMARY_PROVIDER);
   const [weatherLocationPriority, setWeatherLocationPriority] = useState<WeatherLocationPriority>(DEFAULT_WEATHER_LOCATION_PRIORITY);
   const [weatherCustomCityInput, setWeatherCustomCityInput] = useState<string>('');
+  const [weatherAlertEnabled, setWeatherAlertEnabled] = useState<boolean>(true);
   const [weatherLocationConfigMessage, setWeatherLocationConfigMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [weatherCustomLocationTesting, setWeatherCustomLocationTesting] = useState(false);
   const [weatherCustomLocationTestMessage, setWeatherCustomLocationTestMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -806,6 +808,15 @@ export function SettingsTab(): ReactElement {
     const cfg = loadWeatherLocationConfig();
     setWeatherLocationPriority(cfg.priority);
     setWeatherCustomCityInput(cfg.customLocation?.city || '');
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    window.api.storeRead(WEATHER_ALERT_ENABLED_STORE_KEY).then((value) => {
+      if (cancelled) return;
+      setWeatherAlertEnabled(typeof value === 'boolean' ? value : true);
+    }).catch(() => {});
+    return () => { cancelled = true; };
   }, []);
 
   useEffect(() => {
@@ -1624,6 +1635,11 @@ export function SettingsTab(): ReactElement {
     } finally {
       setWeatherCustomLocationTesting(false);
     }
+  };
+
+  const applyWeatherAlertEnabled = (enabled: boolean): void => {
+    setWeatherAlertEnabled(enabled);
+    window.api.storeWrite(WEATHER_ALERT_ENABLED_STORE_KEY, enabled).catch(() => {});
   };
 
   const toggleHideProcess = (processName: string): void => {
@@ -2447,6 +2463,8 @@ export function SettingsTab(): ReactElement {
               isProUser={isProUser}
               setWeatherPrimaryProvider={setWeatherPrimaryProvider}
               saveWeatherProviderConfig={saveWeatherProviderConfig}
+              weatherAlertEnabled={weatherAlertEnabled}
+              setWeatherAlertEnabled={applyWeatherAlertEnabled}
               weatherSettingsPages={WEATHER_SETTINGS_PAGES}
               weatherSettingsPageLabels={translatedWeatherSettingsPageLabels}
               setWeatherSettingsPage={setWeatherSettingsPage}

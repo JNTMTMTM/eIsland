@@ -28,11 +28,14 @@ import type { WeatherData } from '../../store/types';
 import {
   loadLocationFromStorage,
   loadNetworkConfig,
+  loadWeatherLocationConfig,
   loadWeatherProviderConfig,
+  saveLocationToStorage,
 } from '../../store/utils/storage';
 import { request as requestUserAccountApi } from '../user/userAccountApi.client';
 import { readLocalToken } from '../../utils/userAccount';
 import { logger } from '../../utils/logger';
+import { fetchLocation } from './locationApi';
 
 /** 天气接口配置（经纬度） */
 export interface WeatherApiConfig {
@@ -98,6 +101,156 @@ interface QWeatherDailyItem {
 interface QWeatherDailyResponse {
   code?: string;
   daily?: QWeatherDailyItem[];
+}
+
+interface QWeatherAlertItem {
+  id?: string;
+  sender?: string;
+  pubTime?: string;
+  title?: string;
+  level?: string;
+  severity?: string;
+  severityColor?: string;
+  typeName?: string;
+  text?: string;
+}
+
+interface QWeatherAlertResponse {
+  code?: string;
+  warning?: QWeatherAlertItem[];
+}
+
+interface WeatherAlertLocation {
+  latitude: number;
+  longitude: number;
+  city: string;
+}
+
+export interface WeatherAlertSummary {
+  id: string;
+  title: string;
+  text: string;
+  level: string;
+  severity: string;
+  severityColor: string;
+  typeName: string;
+  sender: string;
+  pubTime: string;
+}
+
+export interface StartupWeatherAlertPayload {
+  location: WeatherAlertLocation;
+  alerts: WeatherAlertSummary[];
+}
+
+function normalizeWeatherAlertLocationCandidate(candidate: unknown): WeatherAlertLocation | null {
+  if (!candidate || typeof candidate !== 'object') {
+    return null;
+  }
+  const row = candidate as {
+    latitude?: unknown;
+    longitude?: unknown;
+    city?: unknown;
+  };
+  if (typeof row.latitude !== 'number' || !Number.isFinite(row.latitude)) {
+    return null;
+  }
+  if (typeof row.longitude !== 'number' || !Number.isFinite(row.longitude)) {
+    return null;
+  }
+  return {
+    latitude: row.latitude,
+    longitude: row.longitude,
+    city: typeof row.city === 'string' && row.city.trim().length > 0 ? row.city.trim() : '',
+  };
+}
+
+async function resolveWeatherAlertLocation(): Promise<WeatherAlertLocation> {
+  const locationConfig = loadWeatherLocationConfig();
+  const customLocation = normalizeWeatherAlertLocationCandidate(locationConfig.customLocation);
+  const cachedLocation = normalizeWeatherAlertLocationCandidate(loadLocationFromStorage());
+
+  const resolveByIp = async (): Promise<WeatherAlertLocation | null> => {
+    try {
+      const ipLocation = await fetchLocation();
+      saveLocationToStorage(ipLocation);
+      return normalizeWeatherAlertLocationCandidate(ipLocation);
+    } catch (error) {
+      logger.warn('[WeatherApi] 启动预警定位失败，将尝试回退位置来源', { error });
+      return null;
+    }
+  };
+
+  const sourceOrder = locationConfig.priority === 'custom'
+    ? ['custom', 'ip', 'cached'] as const
+    : ['ip', 'custom', 'cached'] as const;
+
+  for (const source of sourceOrder) {
+    if (source === 'custom' && customLocation) {
+      return customLocation;
+    }
+    if (source === 'cached' && cachedLocation) {
+      return cachedLocation;
+    }
+    if (source === 'ip') {
+      const ipLocation = await resolveByIp();
+      if (ipLocation) {
+        return ipLocation;
+      }
+    }
+  }
+
+  if (customLocation) return customLocation;
+  if (cachedLocation) return cachedLocation;
+  throw new Error('Weather alert location unavailable');
+}
+
+function mapQWeatherAlerts(data: QWeatherAlertResponse): WeatherAlertSummary[] {
+  const warnings = Array.isArray(data.warning) ? data.warning : [];
+  return warnings.map((item, index) => {
+    const titleRaw = typeof item.title === 'string' ? item.title.trim() : '';
+    const typeNameRaw = typeof item.typeName === 'string' ? item.typeName.trim() : '';
+    const textRaw = typeof item.text === 'string' ? item.text.trim() : '';
+    return {
+      id: typeof item.id === 'string' && item.id.trim().length > 0 ? item.id.trim() : `alert-${index + 1}`,
+      title: titleRaw || typeNameRaw || '天气预警',
+      text: textRaw,
+      level: typeof item.level === 'string' ? item.level.trim() : '',
+      severity: typeof item.severity === 'string' ? item.severity.trim() : '',
+      severityColor: typeof item.severityColor === 'string' ? item.severityColor.trim() : '',
+      typeName: typeNameRaw,
+      sender: typeof item.sender === 'string' ? item.sender.trim() : '',
+      pubTime: typeof item.pubTime === 'string' ? item.pubTime.trim() : '',
+    };
+  });
+}
+
+export async function fetchStartupWeatherAlerts(tokenInput?: string | null): Promise<StartupWeatherAlertPayload> {
+  const token = tokenInput && tokenInput.trim().length > 0 ? tokenInput.trim() : readLocalToken();
+  if (!token) {
+    throw new Error('QWeather alerts require login');
+  }
+
+  const location = await resolveWeatherAlertLocation();
+  const { timeoutMs } = loadNetworkConfig();
+  const qweatherParams = new URLSearchParams({
+    location: `${location.longitude},${location.latitude}`,
+    lang: 'zh',
+  });
+  const path = `/v1/user/weather/alerts?${qweatherParams.toString()}`;
+  const result = await requestUserAccountApi<QWeatherAlertResponse>(path, {
+    method: 'GET',
+    auth: token,
+    timeoutMs,
+  });
+  if (!result.ok || !result.data) {
+    throw new Error(`QWeather Alerts ${result.code}: ${result.message}`);
+  }
+
+  return {
+    location,
+    alerts: mapQWeatherAlerts(result.data),
+  };
 }
 
 /**

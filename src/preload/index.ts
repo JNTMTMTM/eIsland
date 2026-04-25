@@ -985,6 +985,20 @@ const api = {
       ipcRenderer.removeListener('updater:update-not-available', handler);
     };
   },
+  /**
+   * 监听启动自动检查更新请求事件
+   * @param callback - 回调函数，接收请求时间戳
+   * @returns 取消监听函数
+   */
+  onUpdaterStartupAutoCheckRequest: (callback: (data: { requestedAt: number }) => void): (() => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, data: { requestedAt: number }): void => {
+      callback(data);
+    };
+    ipcRenderer.on('updater:startup-auto-check-request', handler);
+    return () => {
+      ipcRenderer.removeListener('updater:startup-auto-check-request', handler);
+    };
+  },
   /** ===== 剪贴板 URL 监听 API ===== */
   /**
    * 监听剪贴板中检测到的 URL

@@ -355,6 +355,13 @@
       "readyTitle": "Update ready",
       "readyBody": "Version v{{version}} has been downloaded. Install now?"
     },
+    "weatherAlert": {
+      "title": "Weather Alert",
+      "defaultTitle": "Weather Warning",
+      "unknownCity": "Current location",
+      "bodySingle": "{{city}}: {{title}}",
+      "bodyWithMore": "{{city}}: {{title}}, plus {{count}} more alerts."
+    },
     "clipboard": {
       "detectedTitle": "Link detected",
       "officialBadge": "Official",
@@ -385,6 +392,7 @@
       "snooze5m": "Later 5m",
       "snooze15m": "Later 15m",
       "snooze1h": "Later 1h",
+      "closeAndContinueUpdateCheck": "Close and continue update check",
       "complete": "Complete"
     }
   },
@@ -924,6 +932,12 @@
       "providerPriority": {
         "title": "Weather Provider Priority",
         "hint": "Prefer Open-Meteo, UAPI, or QWeather (PRO), then auto-fallback"
+      },
+      "alert": {
+        "title": "Startup Weather Alert Prompt",
+        "hint": "Before startup auto update check, request QWeather alerts first. Update check continues after you confirm close.",
+        "enabled": "Enable alert prompt",
+        "disabled": "Disable alert prompt"
       },
       "proBadge": "PRO",
       "proOnlyHint": "PRO users only",

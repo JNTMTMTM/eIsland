@@ -155,13 +155,17 @@ interface NotificationContentProps {
   /** 通知图标（可选） */
   icon?: string;
   /** 通知类型 */
-  type?: 'default' | 'source-switch' | 'update-available' | 'update-downloading' | 'update-ready' | 'clipboard-url' | 'restart-required';
+  type?: 'default' | 'source-switch' | 'update-available' | 'update-downloading' | 'update-ready' | 'weather-alert-startup' | 'clipboard-url' | 'restart-required';
   /** 请求切换到的播放源 ID（仅 source-switch） */
   sourceAppId?: string;
   /** 更新版本号（用于 update-available / update-ready） */
   updateVersion?: string;
   /** 当前更新源展示文案（仅 update-available） */
   updateSourceLabel?: string;
+  /** 启动自动检查更新时要使用的更新源（仅 weather-alert-startup） */
+  startupUpdateSource?: UpdateSourceKey;
+  /** 启动自动检查更新时解析后的更新源地址（仅 weather-alert-startup） */
+  startupUpdateResolvedUrl?: string;
   /** 检测到的 URL 列表（仅 clipboard-url） */
   urls?: string[];
 }
@@ -178,6 +182,8 @@ export function NotificationContent({
   sourceAppId: _sourceAppId,
   updateVersion,
   updateSourceLabel,
+  startupUpdateSource,
+  startupUpdateResolvedUrl,
   urls,
 }: NotificationContentProps): ReactElement {
   const { t } = useTranslation();
@@ -476,6 +482,11 @@ export function NotificationContent({
     dismiss();
   };
 
+  const handleCloseWeatherAlertAndContinueUpdateCheck = (): void => {
+    void window.api?.updaterCheck(startupUpdateSource, startupUpdateResolvedUrl).catch(() => {});
+    dismiss();
+  };
+
   const handleRestartNow = (): void => {
     void window.api?.restartApp?.().catch(() => {});
     dismiss();
@@ -584,6 +595,18 @@ export function NotificationContent({
             <button type="button" className="notification-action-btn notification-action-complete" onClick={handleGoToUpdate}>{t('notification.actions.downloadNow', { defaultValue: '立即下载' })}</button>
             <button type="button" className="notification-action-btn notification-action-ignore" onClick={handleConfigureUpdateSource}>{t('notification.actions.configureUpdateSource', { defaultValue: '自行配置更新源' })}</button>
             <button type="button" className="notification-action-btn notification-action-ignore" onClick={handleDismissUpdate}>{t('notification.actions.ignore', { defaultValue: '忽略' })}</button>
+          </div>
+        </div>
+      ) : type === 'weather-alert-startup' ? (
+        <div className="notification-actions notification-actions--right">
+          <div className="notification-decision-actions">
+            <button
+              type="button"
+              className="notification-action-btn notification-action-complete"
+              onClick={handleCloseWeatherAlertAndContinueUpdateCheck}
+            >
+              {t('notification.actions.closeAndContinueUpdateCheck', { defaultValue: '关闭并继续检查更新' })}
+            </button>
           </div>
         </div>
       ) : type === 'restart-required' ? (
