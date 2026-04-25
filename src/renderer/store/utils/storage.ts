@@ -152,12 +152,23 @@ export function saveNetworkConfig(config: NetworkConfig): void {
   } catch { /* 忽略 */ }
 }
 
+/**
+ * 归一化本地持久化的静态资源节点值。
+ * @param value - 任意来源的节点值。
+ * @returns 合法的静态资源节点，默认回退为 r2。
+ */
 export function normalizeStoredStaticAssetNode(value: unknown): StaticAssetNode {
   if (value === 'cos') return 'cos';
   if (value === 'oss') return 'oss';
   return 'r2';
 }
 
+/**
+ * 按用户身份归一化生效的静态资源节点。
+ * @param value - 用户选择或存储的节点值。
+ * @param proUser - 是否为 PRO/ADMIN 用户。
+ * @returns 当前身份可用的静态资源节点值。
+ */
 export function normalizeStaticAssetNode(value: unknown, proUser: boolean): StaticAssetNode {
   if (proUser) {
     if (value === 'r2') return 'r2';
