@@ -917,6 +917,12 @@
           "ms20000": "20 秒",
           "ms30000": "30 秒"
         }
+      },
+      "staticAssetNode": {
+        "title": "静态资源节点",
+        "hint": "免费用户固定使用 R2，PRO 用户可选择 COS/OSS。",
+        "proOnlyHint": "仅 PRO 用户可用",
+        "proHint": "升级 PRO 可切换 COS/OSS 节点。"
       }
     },
     "weather": {
