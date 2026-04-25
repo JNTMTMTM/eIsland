@@ -360,7 +360,9 @@
       "defaultTitle": "天气预警",
       "unknownCity": "当前位置",
       "bodySingle": "{{city}}：{{title}}",
-      "bodyWithMore": "{{city}}：{{title}}，另有 {{count}} 条预警。"
+      "bodyWithMore": "{{city}}：{{title}}，另有 {{count}} 条预警。",
+      "timeLabel": "更新时间",
+      "timeUnknown": "未知"
     },
     "clipboard": {
       "detectedTitle": "检测到链接",

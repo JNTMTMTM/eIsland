@@ -360,7 +360,9 @@
       "defaultTitle": "Weather Warning",
       "unknownCity": "Current location",
       "bodySingle": "{{city}}: {{title}}",
-      "bodyWithMore": "{{city}}: {{title}}, plus {{count}} more alerts."
+      "bodyWithMore": "{{city}}: {{title}}, plus {{count}} more alerts.",
+      "timeLabel": "Updata Time",
+      "timeUnknown": "Unknown"
     },
     "clipboard": {
       "detectedTitle": "Link detected",

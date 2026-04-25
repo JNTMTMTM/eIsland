@@ -74,6 +74,37 @@
   overflow: hidden;
 }
 
+.notification-main-row--with-meta {
+  align-items: flex-start;
+}
+
+.notification-meta-right {
+  margin-top: 10px;
+  flex-shrink: 0;
+  margin-left: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  max-width: 92px;
+}
+
+.notification-meta-label {
+  font-size: 10px;
+  line-height: 1;
+  color: rgba(var(--color-text-rgb), 0.46);
+}
+
+.notification-meta-value {
+  font-size: 11px;
+  line-height: 1.1;
+  font-weight: 500;
+  color: rgba(var(--color-text-rgb), 0.68);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .notification-title {
   font-size: 14px;
   font-weight: 600;

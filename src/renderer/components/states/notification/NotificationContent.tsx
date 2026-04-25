@@ -162,6 +162,8 @@ interface NotificationContentProps {
   updateVersion?: string;
   /** 当前更新源展示文案（仅 update-available） */
   updateSourceLabel?: string;
+  /** 天气预警发布时间文案（仅 weather-alert-startup） */
+  weatherAlertTime?: string;
   /** 启动自动检查更新时要使用的更新源（仅 weather-alert-startup） */
   startupUpdateSource?: UpdateSourceKey;
   /** 启动自动检查更新时解析后的更新源地址（仅 weather-alert-startup） */
@@ -182,6 +184,7 @@ export function NotificationContent({
   sourceAppId: _sourceAppId,
   updateVersion,
   updateSourceLabel,
+  weatherAlertTime,
   startupUpdateSource,
   startupUpdateResolvedUrl,
   urls,
@@ -205,6 +208,24 @@ export function NotificationContent({
     const faviconUrl = clipboardFavicon || getWebsiteFaviconUrl(currentClipboardUrl);
     return faviconUrl || icon;
   })();
+
+  const weatherAlertTimeDisplay = (() => {
+    if (type !== 'weather-alert-startup') return '';
+    const raw = typeof weatherAlertTime === 'string' ? weatherAlertTime.trim() : '';
+    if (!raw) {
+      return t('notification.weatherAlert.timeUnknown', { defaultValue: '未知' });
+    }
+    const parsed = new Date(raw);
+    if (Number.isNaN(parsed.getTime())) {
+      return raw;
+    }
+    const month = String(parsed.getMonth() + 1).padStart(2, '0');
+    const day = String(parsed.getDate()).padStart(2, '0');
+    const hours = String(parsed.getHours()).padStart(2, '0');
+    const minutes = String(parsed.getMinutes()).padStart(2, '0');
+    return `${month}-${day} ${hours}:${minutes}`;
+  })();
+  const showWeatherAlertMeta = type === 'weather-alert-startup';
 
   const currentClipboardDomain = (() => {
     if (type !== 'clipboard-url' || !currentClipboardUrl) return '';
@@ -538,7 +559,7 @@ export function NotificationContent({
 
   return (
     <div className="notification-content">
-      <div className="notification-main-row">
+      <div className={showWeatherAlertMeta ? 'notification-main-row notification-main-row--with-meta' : 'notification-main-row'}>
         <div className="notification-icon">
           {resolvedDisplayIcon ? (
             <img
@@ -571,6 +592,12 @@ export function NotificationContent({
             {isOfficialSite && <span className="notification-official-badge">{t('notification.clipboard.officialBadge', { defaultValue: '官网' })}</span>}
           </div>
         </div>
+        {showWeatherAlertMeta && (
+          <div className="notification-meta-right" title={weatherAlertTimeDisplay}>
+            <span className="notification-meta-label">{t('notification.weatherAlert.timeLabel', { defaultValue: '预警时间' })}</span>
+            <span className="notification-meta-value">{weatherAlertTimeDisplay}</span>
+          </div>
+        )}
       </div>
 
       {type === 'update-downloading' ? (

@@ -171,6 +171,8 @@ export interface NotificationData {
   updateVersion?: string;
   /** 当前更新源展示文案（用于 update-available 类型） */
   updateSourceLabel?: string;
+  /** 天气预警发布时间文案（仅 weather-alert-startup 类型） */
+  weatherAlertTime?: string;
   /** 启动自动检查更新时要使用的更新源（仅 weather-alert-startup 类型） */
   startupUpdateSource?: 'cloudflare-r2' | 'tencent-cos' | 'aliyun-oss' | 'github';
   /** 启动自动检查更新时解析后的更新源地址（仅 weather-alert-startup 类型） */

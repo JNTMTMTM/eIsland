@@ -606,6 +606,7 @@ function DynamicIsland(): React.JSX.Element {
               sourceAppId?: string;
               updateVersion?: string;
               updateSourceLabel?: string;
+              weatherAlertTime?: string;
               startupUpdateSource?: UpdateSourceKey;
               startupUpdateResolvedUrl?: string;
               urls?: string[];
@@ -796,6 +797,7 @@ function DynamicIsland(): React.JSX.Element {
               body,
               icon: SvgIcon.WEATHER,
               type: 'weather-alert-startup',
+              weatherAlertTime: firstAlert.pubTime,
               startupUpdateSource: startupSource,
               startupUpdateResolvedUrl: startupResolvedUrl,
             });
@@ -1292,6 +1294,7 @@ function DynamicIsland(): React.JSX.Element {
           sourceAppId={notification.sourceAppId}
           updateVersion={notification.updateVersion}
           updateSourceLabel={notification.updateSourceLabel}
+          weatherAlertTime={notification.weatherAlertTime}
           startupUpdateSource={notification.startupUpdateSource}
           startupUpdateResolvedUrl={notification.startupUpdateResolvedUrl}
           urls={notification.urls}
