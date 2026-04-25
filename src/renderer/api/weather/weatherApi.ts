@@ -185,19 +185,24 @@ async function resolveWeatherAlertLocation(): Promise<WeatherAlertLocation> {
     ? ['custom', 'ip', 'cached'] as const
     : ['ip', 'custom', 'cached'] as const;
 
-  for (const source of sourceOrder) {
-    if (source === 'custom' && customLocation) {
-      return customLocation;
-    }
-    if (source === 'cached' && cachedLocation) {
-      return cachedLocation;
-    }
-    if (source === 'ip') {
-      const ipLocation = await resolveByIp();
-      if (ipLocation) {
-        return ipLocation;
+  const resolvedByOrder = await sourceOrder.reduce<Promise<WeatherAlertLocation | null>>(
+    async (prev, source) => {
+      const resolved = await prev;
+      if (resolved) {
+        return resolved;
       }
-    }
+      if (source === 'custom') {
+        return customLocation;
+      }
+      if (source === 'cached') {
+        return cachedLocation;
+      }
+      return resolveByIp();
+    },
+    Promise.resolve<WeatherAlertLocation | null>(null),
+  );
+  if (resolvedByOrder) {
+    return resolvedByOrder;
   }
 
   if (customLocation) return customLocation;
