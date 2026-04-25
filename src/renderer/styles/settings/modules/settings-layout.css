@@ -1935,6 +1935,9 @@
   gap: 8px;
 }
 .settings-lyrics-source-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   background: rgba(var(--color-text-rgb), 0.06);
   border: 1px solid rgba(var(--color-text-rgb), 0.1);
   border-radius: 6px;
@@ -1953,6 +1956,21 @@
   border-color: rgba(var(--color-text-rgb), 0.7);
   color: var(--color-island-text);
   box-shadow: 0 0 0 1px rgba(var(--color-text-rgb), 0.4);
+}
+
+.settings-weather-provider-pro-badge {
+  display: inline-flex;
+  align-items: center;
+  height: 14px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(255, 197, 84, 0.22), rgba(255, 145, 77, 0.18));
+  border: 1px solid rgba(255, 190, 92, 0.42);
+  color: #ffcf75;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  line-height: 1;
 }
 
 .max-expand-settings-placeholder {

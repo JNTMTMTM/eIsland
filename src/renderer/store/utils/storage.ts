@@ -44,7 +44,7 @@ export interface NetworkConfig {
   timeoutMs: number;
 }
 
-export type WeatherProvider = 'open-meteo' | 'uapi';
+export type WeatherProvider = 'open-meteo' | 'uapi' | 'qweather-pro';
 export type WeatherLocationPriority = 'ip' | 'custom';
 
 export interface WeatherProviderConfig {
@@ -96,7 +96,7 @@ export function loadWeatherProviderConfig(): WeatherProviderConfig {
     const raw = localStorage.getItem(WEATHER_PROVIDER_CONFIG_KEY);
     if (raw) {
       const data = JSON.parse(raw) as WeatherProviderConfig;
-      if (data.primaryProvider === 'open-meteo' || data.primaryProvider === 'uapi') {
+      if (data.primaryProvider === 'open-meteo' || data.primaryProvider === 'uapi' || data.primaryProvider === 'qweather-pro') {
         return data;
       }
     }

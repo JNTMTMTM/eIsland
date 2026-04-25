@@ -83,6 +83,7 @@ import { WallpaperEditSection } from './setting/components/pluginMarket/Wallpape
 
 import { resolveDistrictLocationByKeyword } from '../../../../api/weather/adcodeApi';
 import { fetchUpdateSourceUrl } from '../../../../api/user/userAccountApi';
+import { request as requestUserAccountApi } from '../../../../api/user/userAccountApi.client';
 import {
   readAnnouncementShowMode,
   writeAnnouncementShowMode,
@@ -1537,11 +1538,33 @@ export function SettingsTab(): ReactElement {
       JSON.parse(resp.body);
       return t('settings.weather.messages.providerAvailable', { defaultValue: '{{name}} 可用', name });
     };
+    const testQWeatherPro = async (): Promise<string> => {
+      const token = readLocalToken();
+      const name = 'QWeather Pro';
+      if (!token) {
+        throw new Error(t('settings.weather.messages.proLoginRequired', { defaultValue: '请先登录 PRO 账号' }));
+      }
+      const qweatherParams = new URLSearchParams({
+        location: `${custom.longitude},${custom.latitude}`,
+        lang: 'zh',
+        unit: 'm',
+      });
+      const result = await requestUserAccountApi(`/v1/user/weather/daily-3d?${qweatherParams.toString()}`, {
+        method: 'GET',
+        auth: token,
+        timeoutMs: networkTimeoutMs,
+      });
+      if (!result.ok) {
+        throw new Error(`${name} ${result.code}: ${result.message}`);
+      }
+      return t('settings.weather.messages.providerAvailable', { defaultValue: '{{name}} 可用', name });
+    };
 
     try {
-      const [openMeteoResult, uapiResult] = await Promise.allSettled([
+      const [openMeteoResult, uapiResult, qweatherResult] = await Promise.allSettled([
         testProvider('Open-Meteo', openMeteoUrl),
         testProvider('UAPI', uapiUrl),
+        testQWeatherPro(),
       ]);
 
       const messages: string[] = [];
@@ -1566,6 +1589,17 @@ export function SettingsTab(): ReactElement {
           defaultValue: '{{name}} 不可用：{{error}}',
           name: 'UAPI',
           error: uapiResult.reason instanceof Error ? uapiResult.reason.message : unknownError,
+        }));
+      }
+
+      if (qweatherResult.status === 'fulfilled') {
+        messages.push(qweatherResult.value);
+      } else {
+        hasFailure = true;
+        messages.push(t('settings.weather.messages.providerUnavailable', {
+          defaultValue: '{{name}} 不可用：{{error}}',
+          name: 'QWeather Pro',
+          error: qweatherResult.reason instanceof Error ? qweatherResult.reason.message : unknownError,
         }));
       }
 

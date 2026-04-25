@@ -919,12 +919,14 @@
       "cityName": "City Name",
       "cityPlaceholder": "e.g. Hangzhou / Tokyo / New York",
       "testing": "Testing...",
-      "testCustomLocation": "Test Custom Location (Dual APIs)",
+      "testCustomLocation": "Test Custom Location (Multiple APIs)",
       "saveLocation": "Save Location Settings",
       "providerPriority": {
         "title": "Weather Provider Priority",
-        "hint": "Prefer Open-Meteo or UAPI, then auto-fallback"
+        "hint": "Prefer Open-Meteo, UAPI, or QWeather (PRO), then auto-fallback"
       },
+      "proBadge": "PRO",
+      "proOnlyHint": "PRO users only",
       "options": {
         "locationPriority": {
           "ip": "IP Location First",
@@ -932,7 +934,8 @@
         },
         "providerPriority": {
           "openMeteo": "Open-Meteo First",
-          "uapi": "UAPI First"
+          "uapi": "UAPI First",
+          "qweatherPro": "QWeather First"
         }
       },
       "messages": {
@@ -943,6 +946,7 @@
         "providerNonJson": "{{name}} returned non-JSON",
         "providerAvailable": "{{name}} available",
         "providerUnavailable": "{{name}} unavailable: {{error}}",
+        "proLoginRequired": "Please sign in with a PRO account first",
         "testResult": "{{city}} ({{lat}}, {{lng}}) - {{details}}",
         "detailSeparator": "; ",
         "customNeedsCity": "Please enter a city name before choosing 'Custom Location First'",

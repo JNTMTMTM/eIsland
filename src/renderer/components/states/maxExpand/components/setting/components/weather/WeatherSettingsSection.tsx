@@ -73,6 +73,7 @@ export function WeatherSettingsSection(props: WeatherSettingsSectionProps): Reac
   const providerPriorityKeyMap: Record<WeatherProvider, string> = {
     'open-meteo': 'settings.weather.options.providerPriority.openMeteo',
     uapi: 'settings.weather.options.providerPriority.uapi',
+    'qweather-pro': 'settings.weather.options.providerPriority.qweatherPro',
   };
   const {
     currentWeatherSettingsPageLabel,
@@ -233,6 +234,14 @@ export function WeatherSettingsSection(props: WeatherSettingsSectionProps): Reac
                       }}
                     >
                       {t(providerPriorityKeyMap[opt.value], { defaultValue: opt.label })}
+                      {opt.value === 'qweather-pro' && (
+                        <span
+                          className="settings-weather-provider-pro-badge"
+                          title={t('settings.weather.proOnlyHint', { defaultValue: '仅 PRO 用户可用' })}
+                        >
+                          {t('settings.weather.proBadge', { defaultValue: 'PRO' })}
+                        </span>
+                      )}
                     </button>
                   ))}
                 </div>

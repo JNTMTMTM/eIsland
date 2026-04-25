@@ -30,6 +30,8 @@ import {
   loadNetworkConfig,
   loadWeatherProviderConfig,
 } from '../../store/utils/storage';
+import { request as requestUserAccountApi } from '../user/userAccountApi.client';
+import { readLocalToken } from '../../utils/userAccount';
 import { logger } from '../../utils/logger';
 
 /** 天气接口配置（经纬度） */
@@ -77,6 +79,25 @@ interface UapiWeatherResponse {
   temp_max?: number;
   temp_min?: number;
   forecast?: UapiWeatherForecastItem[];
+}
+
+interface QWeatherDailyItem {
+  tempMax?: string;
+  tempMin?: string;
+  iconDay?: string;
+  iconNight?: string;
+  textDay?: string;
+  textNight?: string;
+  windSpeedDay?: string;
+  windSpeedNight?: string;
+  humidity?: string;
+  precip?: string;
+  uvIndex?: string;
+}
+
+interface QWeatherDailyResponse {
+  code?: string;
+  daily?: QWeatherDailyItem[];
 }
 
 /**
@@ -280,6 +301,58 @@ function mapUapiWeatherToData(data: UapiWeatherResponse): WeatherData {
   };
 }
 
+function parseQWeatherNumber(value: string | undefined, fallback: number): number {
+  if (!value) return fallback;
+  const parsed = Number.parseFloat(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function mapQWeatherDailyToData(data: QWeatherDailyResponse): WeatherData {
+  const daily = Array.isArray(data.daily) ? data.daily : [];
+  if (daily.length === 0) {
+    throw new Error('QWeather response missing daily fields');
+  }
+
+  const today = daily[0];
+  const currentMax = Math.round(parseQWeatherNumber(today.tempMax, 0));
+  const currentMin = Math.round(parseQWeatherNumber(today.tempMin, currentMax));
+  const currentDesc = today.textDay || today.textNight || '未知';
+  const currentIcon = today.iconDay || today.iconNight;
+  const currentWind = Math.round(parseQWeatherNumber(today.windSpeedDay || today.windSpeedNight, 0));
+  const currentUv = Math.round(parseQWeatherNumber(today.uvIndex, 0));
+
+  const makeForecast = (item: QWeatherDailyItem | undefined) => {
+    const actual = item ?? today;
+    const temperatureMax = Math.round(parseQWeatherNumber(actual.tempMax, currentMax));
+    const temperatureMin = Math.round(parseQWeatherNumber(actual.tempMin, currentMin));
+    const description = actual.textDay || actual.textNight || currentDesc;
+    const icon = actual.iconDay || actual.iconNight || currentIcon;
+    return {
+      temperature: Math.round((temperatureMax + temperatureMin) / 2),
+      description,
+      temperatureMax,
+      temperatureMin,
+      windSpeed: Math.round(parseQWeatherNumber(actual.windSpeedDay || actual.windSpeedNight, currentWind)),
+      uvIndex: Math.round(parseQWeatherNumber(actual.uvIndex, currentUv)),
+      precipitationProbability: Math.round(parseQWeatherNumber(actual.precip, 0)),
+      iconCode: mapUapiIconToWmoCode(icon, description),
+    };
+  };
+
+  return {
+    temperature: Math.round((currentMax + currentMin) / 2),
+    description: currentDesc,
+    humidity: Math.round(parseQWeatherNumber(today.humidity, 0)),
+    windSpeed: currentWind,
+    uvIndex: currentUv,
+    iconCode: mapUapiIconToWmoCode(currentIcon, currentDesc),
+    forecast: [
+      makeForecast(daily[1]),
+      makeForecast(daily[2]),
+    ],
+  };
+}
+
 function mapOpenMeteoToData(data: OpenMeteoResponse): WeatherData {
   const current = data.current;
   const daily = data.daily;
@@ -342,6 +415,54 @@ export async function fetchWeather(config: WeatherApiConfig): Promise<WeatherDat
   const { timeoutMs } = loadNetworkConfig();
   const { primaryProvider } = loadWeatherProviderConfig();
   const url = `https://api.open-meteo.com/v1/forecast?${params.toString()}`;
+  const requestQWeatherPro = async (): Promise<WeatherData> => {
+    const token = readLocalToken();
+    if (!token) {
+      throw new Error('QWeather Pro requires login');
+    }
+    const qweatherParams = new URLSearchParams({
+      location: `${config.longitude},${config.latitude}`,
+      lang: 'zh',
+      unit: 'm',
+    });
+    const requestId = `weather_qweather_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    const startedAt = Date.now();
+    const path = `/v1/user/weather/daily-3d?${qweatherParams.toString()}`;
+
+    logger.info('[WeatherApi] request:start', {
+      requestId,
+      provider: 'qweather-pro',
+      method: 'GET',
+      path,
+      query: Object.fromEntries(qweatherParams.entries()),
+      headers: { Authorization: 'Bearer ***' },
+      body: '',
+      timeoutMs,
+    });
+
+    const result = await requestUserAccountApi<QWeatherDailyResponse>(path, {
+      method: 'GET',
+      auth: token,
+      timeoutMs,
+    });
+    logger.info('[WeatherApi] request:end', {
+      requestId,
+      provider: 'qweather-pro',
+      method: 'GET',
+      path,
+      status: result.code,
+      ok: result.ok,
+      durationMs: Date.now() - startedAt,
+      message: result.message,
+    });
+
+    if (!result.ok || !result.data) {
+      throw new Error(`QWeather Pro ${result.code}: ${result.message}`);
+    }
+    const weather = mapQWeatherDailyToData(result.data);
+    logger.info('[WeatherApi] 天气获取成功:', weather.description, weather.temperature + '°C', { provider: 'qweather-pro' });
+    return weather;
+  };
   const requestOpenMeteo = async (): Promise<WeatherData> => {
     const requestId = `weather_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
     const startedAt = Date.now();
@@ -450,19 +571,24 @@ export async function fetchWeather(config: WeatherApiConfig): Promise<WeatherDat
     return weather;
   };
 
-  const firstProvider = primaryProvider === 'uapi' ? 'uapis' : 'open-meteo';
-  const secondProvider = firstProvider === 'open-meteo' ? 'uapis' : 'open-meteo';
-  logger.info('[WeatherApi] provider:priority', { primaryProvider: firstProvider, fallbackProvider: secondProvider });
+  const providerOrder = primaryProvider === 'qweather-pro'
+    ? ['qweather-pro', 'open-meteo', 'uapis'] as const
+    : primaryProvider === 'uapi'
+      ? ['uapis', 'open-meteo'] as const
+      : ['open-meteo', 'uapis'] as const;
+  logger.info('[WeatherApi] provider:priority', { providerOrder });
 
-  try {
-    return firstProvider === 'open-meteo'
-      ? await requestOpenMeteo()
-      : await requestUapi();
-  } catch (primaryError) {
-    logger.warn(`[WeatherApi] ${firstProvider} 失败，尝试 ${secondProvider} 冗余源`, { error: primaryError });
+  let lastError: unknown = null;
+  for (const provider of providerOrder) {
+    try {
+      if (provider === 'qweather-pro') return await requestQWeatherPro();
+      if (provider === 'open-meteo') return await requestOpenMeteo();
+      return await requestUapi();
+    } catch (error) {
+      lastError = error;
+      logger.warn(`[WeatherApi] ${provider} 失败，尝试下一个天气源`, { error });
+    }
   }
 
-  return firstProvider === 'open-meteo'
-    ? requestUapi()
-    : requestOpenMeteo();
+  throw lastError instanceof Error ? lastError : new Error('Weather providers unavailable');
 }

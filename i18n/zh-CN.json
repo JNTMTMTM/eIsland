@@ -919,12 +919,14 @@
       "cityName": "城市名称",
       "cityPlaceholder": "例如：杭州 / Tokyo / New York",
       "testing": "测试中...",
-      "testCustomLocation": "测试自定义位置（双接口）",
+      "testCustomLocation": "测试自定义位置（多接口）",
       "saveLocation": "保存定位配置",
       "providerPriority": {
         "title": "天气接口优先级",
-        "hint": "可选择优先使用 Open-Meteo 或 UAPI，失败时自动切换到另一源"
+        "hint": "可选择优先使用 Open-Meteo、UAPI 或和风天气（PRO），失败时自动切换到可用源"
       },
+      "proBadge": "PRO",
+      "proOnlyHint": "仅 PRO 用户可用",
       "options": {
         "locationPriority": {
           "ip": "IP 定位优先",
@@ -932,7 +934,8 @@
         },
         "providerPriority": {
           "openMeteo": "Open-Meteo 优先",
-          "uapi": "UAPI 优先"
+          "uapi": "UAPI 优先",
+          "qweatherPro": "和风天气优先"
         }
       },
       "messages": {
@@ -943,6 +946,7 @@
         "providerNonJson": "{{name}} 返回了非 JSON",
         "providerAvailable": "{{name}} 可用",
         "providerUnavailable": "{{name}} 不可用：{{error}}",
+        "proLoginRequired": "请先登录 PRO 账号",
         "testResult": "{{city}}（{{lat}}, {{lng}}） - {{details}}",
         "detailSeparator": "；",
         "customNeedsCity": "选择“自定义位置优先”时请先输入城市名称",
