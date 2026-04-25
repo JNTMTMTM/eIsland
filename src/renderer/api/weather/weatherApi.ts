@@ -737,15 +737,27 @@ export async function fetchWeather(config: WeatherApiConfig): Promise<WeatherDat
   logger.info('[WeatherApi] provider:priority', { providerOrder });
 
   let lastError: unknown = null;
-  for (const provider of providerOrder) {
-    try {
-      if (provider === 'qweather-pro') return await requestQWeatherPro();
-      if (provider === 'open-meteo') return await requestOpenMeteo();
-      return await requestUapi();
-    } catch (error) {
-      lastError = error;
-      logger.warn(`[WeatherApi] ${provider} 失败，尝试下一个天气源`, { error });
-    }
+  const weather = await providerOrder.reduce<Promise<Awaited<ReturnType<typeof requestOpenMeteo>> | null>>(
+    async (prev, provider) => {
+      const resolved = await prev;
+      if (resolved) {
+        return resolved;
+      }
+      try {
+        if (provider === 'qweather-pro') return await requestQWeatherPro();
+        if (provider === 'open-meteo') return await requestOpenMeteo();
+        return await requestUapi();
+      } catch (error) {
+        lastError = error;
+        logger.warn(`[WeatherApi] ${provider} 失败，尝试下一个天气源`, { error });
+        return null;
+      }
+    },
+    Promise.resolve<Awaited<ReturnType<typeof requestOpenMeteo>> | null>(null),
+  );
+
+  if (weather) {
+    return weather;
   }
 
   throw lastError instanceof Error ? lastError : new Error('Weather providers unavailable');
