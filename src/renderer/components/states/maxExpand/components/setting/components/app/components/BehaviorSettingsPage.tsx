@@ -31,6 +31,10 @@ import useIslandStore from '../../../../../../../../store/slices';
 import { SvgIcon } from '../../../../../../../../utils/SvgIcon';
 import type { AppSettingsSectionProps } from './types';
 
+type HoverScreenshotMode = 'region' | 'display';
+
+const HOVER_SCREENSHOT_MODE_STORE_KEY = 'hover-screenshot-mode';
+
 type BehaviorSettingsPageProps = Pick<
   AppSettingsSectionProps,
   'expandLeaveIdle' | 'setExpandLeaveIdle' | 'maxExpandLeaveIdle' | 'setMaxExpandLeaveIdle'
@@ -54,6 +58,7 @@ export function BehaviorSettingsPage({
   const setNotification = useIslandStore((s) => s.setNotification);
 
   const [standaloneWindowMode, setStandaloneWindowMode] = useState<'integrated' | 'standalone'>('integrated');
+  const [hoverScreenshotMode, setHoverScreenshotMode] = useState<HoverScreenshotMode>('region');
 
   useEffect(() => {
     let cancelled = false;
@@ -74,6 +79,25 @@ export function BehaviorSettingsPage({
     };
   }, []);
 
+  useEffect(() => {
+    let cancelled = false;
+    window.api.storeRead(HOVER_SCREENSHOT_MODE_STORE_KEY).then((data) => {
+      if (cancelled) return;
+      if (data === 'display') {
+        setHoverScreenshotMode('display');
+        return;
+      }
+      setHoverScreenshotMode('region');
+    }).catch(() => {
+      if (cancelled) return;
+      setHoverScreenshotMode('region');
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const handleStandaloneWindowModeChange = (mode: 'integrated' | 'standalone'): void => {
     setStandaloneWindowMode(mode);
     window.api.storeWrite('standalone-window-mode', mode).catch(() => {});
@@ -87,6 +111,11 @@ export function BehaviorSettingsPage({
 
     setNotification(restartRequiredNotification);
     window.api.settingsPreview('notification:show', restartRequiredNotification).catch(() => {});
+  };
+
+  const handleHoverScreenshotModeChange = (mode: HoverScreenshotMode): void => {
+    setHoverScreenshotMode(mode);
+    window.api.storeWrite(HOVER_SCREENSHOT_MODE_STORE_KEY, mode).catch(() => {});
   };
 
   return (
@@ -171,6 +200,37 @@ export function BehaviorSettingsPage({
                 }}
               />
               {t('settings.app.behavior.standaloneMode', { defaultValue: '独立窗口' })}
+            </label>
+          </div>
+        </div>
+
+        <div className="settings-card">
+          <div className="settings-card-header">
+            <div className="settings-card-title">{t('settings.app.behavior.hoverScreenshotModeTitle', { defaultValue: '悬停界面截图按钮模式' })}</div>
+            <div className="settings-card-subtitle">{t('settings.app.behavior.hoverScreenshotModeHint', { defaultValue: '配置 hover 界面的截图按钮触发选区截图或显示器截图（立即生效）' })}</div>
+          </div>
+          <div className="settings-card-inline-row">
+            <label className="settings-card-check">
+              <input
+                type="radio"
+                name="hover-screenshot-mode"
+                checked={hoverScreenshotMode === 'region'}
+                onChange={() => {
+                  handleHoverScreenshotModeChange('region');
+                }}
+              />
+              {t('settings.app.behavior.hoverScreenshotModeRegion', { defaultValue: '选区截图' })}
+            </label>
+            <label className="settings-card-check">
+              <input
+                type="radio"
+                name="hover-screenshot-mode"
+                checked={hoverScreenshotMode === 'display'}
+                onChange={() => {
+                  handleHoverScreenshotModeChange('display');
+                }}
+              />
+              {t('settings.app.behavior.hoverScreenshotModeDisplay', { defaultValue: '显示器截图' })}
             </label>
           </div>
         </div>

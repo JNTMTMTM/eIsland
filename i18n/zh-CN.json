@@ -435,6 +435,18 @@
       "next": "下一首",
       "empty": "暂无播放中的歌曲"
     },
+    "album": {
+      "title": "相册轮播",
+      "count": "{{count}} 项",
+      "empty": "相册暂无媒体",
+      "open": "点击进入相册",
+      "prev": "上一张",
+      "next": "下一张",
+      "pause": "暂停轮播",
+      "play": "继续轮播",
+      "position": "{{index}} / {{total}}",
+      "videoTag": "视频"
+    },
     "countdown": {
       "title": "倒数日",
       "empty": "暂无倒数日"
@@ -589,6 +601,108 @@
       "removeAria": "删除该剪贴板记录"
     }
   },
+  "albumTab": {
+    "title": "相册",
+    "count": "{{count}} 项",
+    "dropHint": "释放鼠标即可导入媒体文件",
+    "empty": {
+      "title": "还没有媒体内容",
+      "desc": "拖拽图片/视频到这里，或点击“添加媒体”",
+      "filteredTitle": "当前筛选下没有内容",
+      "filteredDesc": "切换为全部/图片/视频查看"
+    },
+    "actions": {
+      "add": "添加媒体",
+      "clear": "清空",
+      "clearConfirm": "再次点击确认清空",
+      "remove": "移除",
+      "removeAria": "移除媒体 {{name}}"
+    },
+    "sort": {
+      "label": "排序",
+      "addedDesc": "最近添加优先",
+      "addedAsc": "最早添加优先",
+      "nameAsc": "文件名升序",
+      "nameDesc": "文件名降序",
+      "durationDesc": "时长从长到短",
+      "durationAsc": "时长从短到长"
+    },
+    "filter": {
+      "label": "媒体筛选",
+      "all": "全部",
+      "image": "仅图片",
+      "video": "仅视频"
+    },
+    "columns": {
+      "aria": "调整每行列数",
+      "smaller": "减少列数",
+      "larger": "增加列数"
+    },
+    "thumb": {
+      "loading": "加载中…",
+      "failed": "加载失败"
+    },
+    "viewer": {
+      "back": "返回总览",
+      "prev": "上一张",
+      "next": "下一张",
+      "zoomIn": "放大",
+      "zoomOut": "缩小",
+      "zoomOne": "实际大小（1:1）",
+      "zoomFit": "适应窗口",
+      "fit": "适应",
+      "play": "播放",
+      "pause": "暂停",
+      "mute": "静音",
+      "unmute": "取消静音",
+      "hideControls": "隐藏控制条",
+      "showControls": "显示控制条",
+      "seek": "进度",
+      "volume": "音量",
+      "openInExplorer": "在资源管理器中打开",
+      "saveAs": "另存为",
+      "loading": "媒体加载中…",
+      "failed": "媒体加载失败"
+    },
+    "meta": {
+      "title": "媒体信息",
+      "name": "文件名",
+      "format": "格式",
+      "resolution": "分辨率",
+      "duration": "时长",
+      "size": "文件大小",
+      "addedAt": "添加时间",
+      "path": "完整路径",
+      "mediaType": "媒体类型",
+      "mediaTypeImage": "图片",
+      "mediaTypeVideo": "视频",
+      "codec": "编码",
+      "fps": "帧率",
+      "setAsIslandBackground": "设为灵动岛背景",
+      "exifTitle": "EXIF 信息",
+      "exifEmpty": "未读取到 EXIF 信息",
+      "make": "厂商",
+      "model": "机型",
+      "dateTimeOriginal": "拍摄时间",
+      "exposure": "曝光时间",
+      "fNumber": "光圈",
+      "iso": "ISO",
+      "focalLength": "焦距"
+    },
+    "status": {
+      "added": "已添加 {{count}} 个媒体文件",
+      "cleared": "相册已清空",
+      "allDuplicated": "媒体文件已存在，未重复添加",
+      "unsupportedOnly": "未识别到受支持的图片/视频格式",
+      "zoomReset": "已恢复到实际大小",
+      "openInExplorerFailed": "无法定位 {{name}}，文件可能已被移动或删除",
+      "saveAsSuccess": "已保存 {{name}}",
+      "saveAsCanceled": "已取消保存",
+      "saveAsFailed": "保存 {{name}} 失败，请稍后重试",
+      "setIslandBackgroundSuccess": "已将 {{name}} 设为灵动岛背景",
+      "setIslandBackgroundFailed": "设置灵动岛背景失败，请稍后重试"
+    }
+  },
   "sliderCaptcha": {
     "title": "滑块验证",
     "subtitle": "由 Pyisland Server & eIsland 提供质询服务",
@@ -607,6 +721,7 @@
       "expanded": "返回",
       "todo": "待办",
       "urlFavorites": "URL 收藏",
+      "album": "相册",
       "localFileSearch": "文件查找",
       "clipboardHistory": "剪贴板",
       "aiChat": "AI 对话",
@@ -653,6 +768,7 @@
       "index": "快速导航",
       "app": "软件设置",
       "layout-preview": "布局预览",
+      "album": "相册配置",
       "hide-process-list": "隐藏窗口管理",
       "position": "位置校准",
       "theme": "主题外观",
@@ -817,7 +933,37 @@
         "windowModeTitle": "待办事项 / 倒数日 / 设置 打开方式",
         "windowModeHint": "选择点击导航时，在灵动岛内显示还是打开独立窗口（重启后生效）",
         "integratedMode": "集成在灵动岛中",
-        "standaloneMode": "独立窗口"
+        "standaloneMode": "独立窗口",
+        "hoverScreenshotModeTitle": "悬停界面截图按钮模式",
+        "hoverScreenshotModeHint": "配置 hover 界面的截图按钮触发选区截图或显示器截图（立即生效）",
+        "hoverScreenshotModeLabel": "截图方式",
+        "hoverScreenshotModeRegion": "选区截图",
+        "hoverScreenshotModeDisplay": "显示器截图"
+      },
+      "album": {
+        "carouselTitle": "相册轮播方式",
+        "carouselHint": "配置总览相册卡片的轮播顺序、频率、展示内容与点击行为（立即生效）",
+        "intervalLabel": "轮播间隔",
+        "interval3s": "3 秒",
+        "interval5s": "5 秒",
+        "interval8s": "8 秒",
+        "orderLabel": "轮播顺序",
+        "orderSequential": "顺序轮播",
+        "orderRandom": "随机轮播",
+        "filterLabel": "展示资源",
+        "filterHint": "选择总览相册卡片参与轮播的资源类型（立即生效）",
+        "filterAll": "全部",
+        "filterImage": "仅图片",
+        "filterVideo": "仅视频",
+        "clickBehaviorLabel": "点击卡片行为",
+        "clickBehaviorHint": "配置点击总览相册卡片后的行为（立即生效）",
+        "clickBehaviorOpen": "打开相册页",
+        "clickBehaviorNone": "无动作",
+        "playbackTitle": "自动播放与视频行为",
+        "playbackHint": "仅影响总览相册轮播卡片，不影响相册主页面。",
+        "autoRotateToggle": "启用自动轮播",
+        "videoAutoPlayToggle": "视频自动播放",
+        "videoMutedToggle": "视频静音播放"
       },
       "urlParser": {
         "title": "剪贴板 URL 监听",
@@ -1474,7 +1620,7 @@
         "editDesc": "修改性别、生日等基本资料",
         "avatarDesc": "上传或更换账号头像",
         "passwordDesc": "通过邮箱验证码修改登录密码",
-        "proDesc": "查看 Free 与 Pro 计划权益及当前订阅价格",
+        "proDesc": "查看 Pro 计划权益及当前订阅价格",
         "ordersDesc": "查看订单状态、继续支付或主动关闭待支付订单",
         "logoutDesc": "退出当前账号或注销"
       },
@@ -1662,6 +1808,10 @@
         "label": "布局预览",
         "desc": "进入布局预览并调整左右控件展示。"
       },
+      "album": {
+        "label": "相册配置",
+        "desc": "相册轮播与相册入口相关配置。"
+      },
       "hide-process-list": {
         "label": "隐藏窗口管理",
         "desc": "管理隐藏窗口名单与自动隐藏规则。"
@@ -1716,7 +1866,7 @@
       },
       "user-pro": {
         "label": "PRO功能",
-        "desc": "查看 Free 与 Pro 计划权益及当前订阅价格"
+        "desc": "查看 Pro 计划权益及当前订阅价格"
       },
       "about": {
         "label": "关于软件",

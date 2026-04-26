@@ -32,6 +32,7 @@ import { writeFileSync } from 'fs';
 interface RegisterCaptureIpcHandlersOptions {
   getCaptureWindow: () => BrowserWindow | null;
   closeCaptureWindow: () => void;
+  startRegionScreenshot: () => Promise<void>;
 }
 
 /**
@@ -40,6 +41,16 @@ interface RegisterCaptureIpcHandlersOptions {
  * @param options - 配置选项，包含获取和关闭截图窗口的函数
  */
 export function registerCaptureIpcHandlers(options: RegisterCaptureIpcHandlersOptions): void {
+  ipcMain.handle('system:screenshot:region:start', async () => {
+    try {
+      await options.startRegionScreenshot();
+      return true;
+    } catch (err) {
+      console.error('[System] start region screenshot error:', err);
+      return false;
+    }
+  });
+
   ipcMain.handle('system:screenshot', async () => {
     try {
       const sources = await desktopCapturer.getSources({

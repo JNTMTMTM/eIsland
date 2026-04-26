@@ -435,6 +435,18 @@
       "next": "Next",
       "empty": "No music playing"
     },
+    "album": {
+      "title": "Album Carousel",
+      "count": "{{count}} items",
+      "empty": "No media in album",
+      "open": "Open album",
+      "prev": "Previous",
+      "next": "Next",
+      "pause": "Pause carousel",
+      "play": "Resume carousel",
+      "position": "{{index}} / {{total}}",
+      "videoTag": "Video"
+    },
     "countdown": {
       "title": "Countdown",
       "empty": "No countdown events"
@@ -589,6 +601,108 @@
       "removeAria": "Remove this clipboard record"
     }
   },
+  "albumTab": {
+    "title": "Album",
+    "count": "{{count}} items",
+    "dropHint": "Drop to import media files",
+    "empty": {
+      "title": "No media yet",
+      "desc": "Drag images/videos here, or click \"Add Media\"",
+      "filteredTitle": "No items under current filter",
+      "filteredDesc": "Switch to All / Images / Videos"
+    },
+    "actions": {
+      "add": "Add Media",
+      "clear": "Clear",
+      "clearConfirm": "Click again to confirm",
+      "remove": "Remove",
+      "removeAria": "Remove media {{name}}"
+    },
+    "sort": {
+      "label": "Sort",
+      "addedDesc": "Most recently added",
+      "addedAsc": "Earliest added first",
+      "nameAsc": "Name A → Z",
+      "nameDesc": "Name Z → A",
+      "durationDesc": "Duration long → short",
+      "durationAsc": "Duration short → long"
+    },
+    "filter": {
+      "label": "Media Filter",
+      "all": "All",
+      "image": "Images",
+      "video": "Videos"
+    },
+    "columns": {
+      "aria": "Adjust columns per row",
+      "smaller": "Decrease columns",
+      "larger": "Increase columns"
+    },
+    "thumb": {
+      "loading": "Loading…",
+      "failed": "Failed to load"
+    },
+    "viewer": {
+      "back": "Back to overview",
+      "prev": "Previous",
+      "next": "Next",
+      "zoomIn": "Zoom in",
+      "zoomOut": "Zoom out",
+      "zoomOne": "Actual size (1:1)",
+      "zoomFit": "Fit to window",
+      "fit": "Fit",
+      "play": "Play",
+      "pause": "Pause",
+      "mute": "Mute",
+      "unmute": "Unmute",
+      "hideControls": "Hide Controls",
+      "showControls": "Show Controls",
+      "seek": "Seek",
+      "volume": "Volume",
+      "openInExplorer": "Show in Explorer",
+      "saveAs": "Save As",
+      "loading": "Loading media…",
+      "failed": "Failed to load media"
+    },
+    "meta": {
+      "title": "Media Info",
+      "name": "Name",
+      "format": "Format",
+      "resolution": "Resolution",
+      "duration": "Duration",
+      "size": "Size",
+      "addedAt": "Added",
+      "path": "Full Path",
+      "mediaType": "Media Type",
+      "mediaTypeImage": "Image",
+      "mediaTypeVideo": "Video",
+      "codec": "Codec",
+      "fps": "FPS",
+      "setAsIslandBackground": "Set As Island Background",
+      "exifTitle": "EXIF",
+      "exifEmpty": "No EXIF data",
+      "make": "Make",
+      "model": "Model",
+      "dateTimeOriginal": "Captured At",
+      "exposure": "Exposure",
+      "fNumber": "Aperture",
+      "iso": "ISO",
+      "focalLength": "Focal Length"
+    },
+    "status": {
+      "added": "Imported {{count}} media file(s)",
+      "cleared": "Album cleared",
+      "allDuplicated": "Media file already exists, skipped duplicates",
+      "unsupportedOnly": "No supported image/video format detected",
+      "zoomReset": "Reset to actual size",
+      "openInExplorerFailed": "Cannot locate {{name}}. The file may have been moved or deleted.",
+      "saveAsSuccess": "Saved {{name}}",
+      "saveAsCanceled": "Save canceled",
+      "saveAsFailed": "Failed to save {{name}}. Please try again.",
+      "setIslandBackgroundSuccess": "Set {{name}} as island background",
+      "setIslandBackgroundFailed": "Failed to set island background. Please try again."
+    }
+  },
   "sliderCaptcha": {
     "title": "Slider Verification",
     "subtitle": "Challenge service powered by Pyisland Server & eIsland",
@@ -607,6 +721,7 @@
       "expanded": "Back",
       "todo": "Todo",
       "urlFavorites": "URL Favorites",
+      "album": "Album",
       "localFileSearch": "File Search",
       "clipboardHistory": "Clipboard",
       "aiChat": "AI Chat",
@@ -653,6 +768,7 @@
       "index": "Navigation",
       "app": "App Settings",
       "layout-preview": "Layout Preview",
+      "album": "Album Settings",
       "hide-process-list": "Hidden Window List",
       "position": "Position Calibration",
       "theme": "Theme",
@@ -817,7 +933,37 @@
         "windowModeTitle": "Todo / Countdown / Settings open mode",
         "windowModeHint": "Choose embedded in island or standalone window",
         "integratedMode": "Embedded in Dynamic Island",
-        "standaloneMode": "Standalone window"
+        "standaloneMode": "Standalone window",
+        "hoverScreenshotModeTitle": "Hover screenshot button mode",
+        "hoverScreenshotModeHint": "Configure hover screenshot button to trigger area screenshot or display screenshot (takes effect immediately)",
+        "hoverScreenshotModeLabel": "Screenshot mode",
+        "hoverScreenshotModeRegion": "Area screenshot",
+        "hoverScreenshotModeDisplay": "Display screenshot"
+      },
+      "album": {
+        "carouselTitle": "Album Carousel Mode",
+        "carouselHint": "Configure overview album card order, interval, media filter, and click behavior (takes effect immediately)",
+        "intervalLabel": "Carousel interval",
+        "interval3s": "3s",
+        "interval5s": "5s",
+        "interval8s": "8s",
+        "orderLabel": "Carousel order",
+        "orderSequential": "Sequential",
+        "orderRandom": "Random",
+        "filterLabel": "Media filter",
+        "filterHint": "Choose which media types are included in overview album card rotation (takes effect immediately)",
+        "filterAll": "All",
+        "filterImage": "Images only",
+        "filterVideo": "Videos only",
+        "clickBehaviorLabel": "Card click behavior",
+        "clickBehaviorHint": "Configure what happens when clicking the overview album card (takes effect immediately)",
+        "clickBehaviorOpen": "Open album page",
+        "clickBehaviorNone": "No action",
+        "playbackTitle": "Autoplay & Video Behavior",
+        "playbackHint": "Only affects the overview album carousel card, not the album main page.",
+        "autoRotateToggle": "Enable auto carousel",
+        "videoAutoPlayToggle": "Autoplay videos",
+        "videoMutedToggle": "Mute video playback"
       },
       "urlParser": {
         "title": "Clipboard URL Monitor",
@@ -1474,7 +1620,7 @@
         "editDesc": "Edit gender, birthday, and other profile details",
         "avatarDesc": "Upload or change your account avatar",
         "passwordDesc": "Change login password via email verification",
-        "proDesc": "View Free and Pro plan benefits plus current subscription pricing",
+        "proDesc": "View Pro plan benefits plus current subscription pricing",
         "ordersDesc": "Check order status, continue payment, or close pending orders",
         "logoutDesc": "Sign out or delete your account"
       },
@@ -1667,6 +1813,10 @@
         "label": "Layout Preview",
         "desc": "Adjust left and right widgets in layout preview."
       },
+      "album": {
+        "label": "Album Settings",
+        "desc": "Configure album carousel and album entry behavior."
+      },
       "hide-process-list": {
         "label": "Hidden Window List",
         "desc": "Manage hidden windows and auto-hide rules."
@@ -1721,7 +1871,7 @@
       },
       "user-pro": {
         "label": "PRO Features",
-        "desc": "View Free and Pro plan benefits plus current subscription pricing"
+        "desc": "View Pro plan benefits plus current subscription pricing"
       },
       "about": {
         "label": "About",

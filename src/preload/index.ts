@@ -314,6 +314,13 @@ const api = {
     return ipcRenderer.invoke('system:screenshot');
   },
   /**
+   * 启动选区截图流程
+   * @returns 是否成功启动
+   */
+  startRegionScreenshot: (): Promise<boolean> => {
+    return ipcRenderer.invoke('system:screenshot:region:start');
+  },
+  /**
    * 打开任务管理器
    * @returns 无返回值
    */
@@ -344,6 +351,22 @@ const api = {
    */
   openFile: (filePath: string): Promise<boolean> => {
     return ipcRenderer.invoke('app:open-file', filePath);
+  },
+  /**
+   * 在系统资源管理器中定位指定文件
+   * @param filePath - 文件路径
+   * @returns 是否成功（路径不存在或非法时返回 false）
+   */
+  openInExplorer: (filePath: string): Promise<boolean> => {
+    return ipcRenderer.invoke('app:open-in-explorer', filePath);
+  },
+  /**
+   * 将图片另存到用户指定路径
+   * @param sourcePath - 源图片绝对路径
+   * @returns 保存结果（ok/canceled/filePath）
+   */
+  saveImageAs: (sourcePath: string): Promise<{ ok: boolean; canceled: boolean; filePath: string | null }> => {
+    return ipcRenderer.invoke('app:save-image-as', sourcePath);
   },
   /**
    * 解析快捷方式 (.lnk)

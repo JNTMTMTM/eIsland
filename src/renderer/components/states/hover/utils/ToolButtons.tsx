@@ -24,9 +24,13 @@
  * @author 鸡哥
  */
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SvgIcon } from '../../../../utils/SvgIcon';
+
+type HoverScreenshotMode = 'region' | 'display';
+
+const HOVER_SCREENSHOT_MODE_STORE_KEY = 'hover-screenshot-mode';
 
 /**
  * 工具按钮组件
@@ -34,9 +38,33 @@ import { SvgIcon } from '../../../../utils/SvgIcon';
  */
 export function ToolButtons(): React.ReactElement {
   const { t } = useTranslation();
+  const [screenshotMode, setScreenshotMode] = useState<HoverScreenshotMode>('region');
+
+  useEffect(() => {
+    let cancelled = false;
+    window.api.storeRead(HOVER_SCREENSHOT_MODE_STORE_KEY).then((value) => {
+      if (cancelled) return;
+      if (value === 'display') {
+        setScreenshotMode('display');
+        return;
+      }
+      setScreenshotMode('region');
+    }).catch(() => {
+      if (cancelled) return;
+      setScreenshotMode('region');
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handleScreenshot = useCallback(async () => {
     try {
+      if (screenshotMode === 'region') {
+        await window.api.startRegionScreenshot();
+        return;
+      }
       const base64 = await window.api.screenshot();
       if (base64) {
         const link = document.createElement('a');
@@ -47,7 +75,7 @@ export function ToolButtons(): React.ReactElement {
     } catch (err) {
       console.error('[ToolButtons] screenshot error:', err);
     }
-  }, []);
+  }, [screenshotMode]);
 
   const handleTaskManager = useCallback(() => {
     window.api.openTaskManager();

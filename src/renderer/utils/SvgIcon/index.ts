@@ -111,6 +111,20 @@ export const SvgIcon = {
   WECHATPAY: './svg/WECHATPAY.svg',
   /** GITHUB */
   GITHUB: './svg/GITHUB.svg',
+  /** 取消 */
+  CANCEL: './svg/CANCEL.svg',
+  /** 返回 */
+  RETURN: './svg/RETURN.svg',
+  /** 静音 */
+  MUTE: './svg/MUTE.svg',
+  /** 取消静音 */
+  UNMUTE: './svg/UNMUTE.svg',
+  /** 可见 */
+  VISIBLE: './svg/VISIBLE.svg',
+  /** 不可见 */
+  INVISIBLE: './svg/INVISIBLE.svg',
+  /** 相册 */
+  PHOTO_ALBUM: './svg/PHOTO_ALBUM.svg',
 
 } as const;
 

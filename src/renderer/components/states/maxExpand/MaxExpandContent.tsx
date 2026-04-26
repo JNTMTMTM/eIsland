@@ -34,6 +34,7 @@ import { TodoTab } from './components/TodoTab';
 import { UrlFavoritesTab } from './components/UrlFavoritesTab';
 import { LocalFileSearchTab } from './components/LocalFileSearchTab';
 import { ClipboardHistoryTab } from './components/ClipboardHistoryTab';
+import { AlbumTab } from './components/AlbumTab';
 import { SettingsTab } from './components/SettingsTab';
 import { CountdownTab } from './components/CountdownTab';
 
@@ -41,7 +42,7 @@ import { CountdownTab } from './components/CountdownTab';
 type NavDotId = MaxExpandTab | 'expanded';
 
 /** 导航点配置 */
-const NAV_DOTS: NavDotId[] = ['expanded', 'todo', 'urlFavorites', 'localFileSearch', 'clipboardHistory', 'aiChat', 'countdown', 'settings'];
+const NAV_DOTS: NavDotId[] = ['expanded', 'todo', 'urlFavorites', 'album', 'localFileSearch', 'clipboardHistory', 'aiChat', 'countdown', 'settings'];
 
 /**
  * 最大展开模式内容组件
@@ -102,6 +103,8 @@ export function MaxExpandContent(): React.ReactElement {
           ? '待办'
             : id === 'urlFavorites'
               ? 'URL 收藏'
+              : id === 'album'
+                ? '相册'
               : id === 'localFileSearch'
                 ? '文件查找'
               : id === 'clipboardHistory'
@@ -136,6 +139,10 @@ export function MaxExpandContent(): React.ReactElement {
       if (target.closest('.expand-todo-list')) return;
       if (target.closest('.url-favorites-list')) return;
       if (target.closest('.url-favorites-input')) return;
+      if (target.closest('.album-grid')) return;
+      if (target.closest('.album-viewer-canvas')) return;
+      if (target.closest('.album-meta-panel')) return;
+      if (target.closest('.album-sort-select')) return;
       if (target.closest('.local-file-search-results')) return;
       if (target.closest('.local-file-search-root-input')) return;
       if (target.closest('.local-file-search-query-input')) return;
@@ -181,6 +188,7 @@ export function MaxExpandContent(): React.ReactElement {
         {activeTab === 'urlFavorites' && <UrlFavoritesTab />}
         {activeTab === 'localFileSearch' && <LocalFileSearchTab />}
         {activeTab === 'clipboardHistory' && <ClipboardHistoryTab />}
+        {activeTab === 'album' && <AlbumTab />}
         {countdownMode === 'integrated' && activeTab === 'countdown' && <CountdownTab />}
         {countdownMode === 'integrated' && activeTab === 'settings' && <SettingsTab />}
       </div>

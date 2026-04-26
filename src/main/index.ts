@@ -444,6 +444,7 @@ function registerIpcHandlers(): void {
   registerCaptureIpcHandlers({
     getCaptureWindow: captureWindowService.getCaptureWindow,
     closeCaptureWindow: captureWindowService.closeCaptureWindow,
+    startRegionScreenshot: captureWindowService.startRegionScreenshot,
   });
 
   registerWallpaperIpcHandlers();

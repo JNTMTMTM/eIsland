@@ -50,7 +50,7 @@ export const WEATHER_LOCATION_PRIORITY_OPTIONS: Array<{ value: WeatherLocationPr
 
 export const SETTINGS_TABS = ['index', 'app', 'network', 'weather', 'music', 'ai', 'shortcut', 'user', 'update', 'pluginMarket', 'about'] as const;
 export type SettingsSidebarTabKey = (typeof SETTINGS_TABS)[number];
-export type AppSettingsPageKey = 'layout-preview' | 'hide-process-list' | 'position' | 'theme' | 'language' | 'behavior' | 'url-parser' | 'clipboard-history' | 'autostart';
+export type AppSettingsPageKey = 'layout-preview' | 'album' | 'hide-process-list' | 'position' | 'theme' | 'language' | 'behavior' | 'url-parser' | 'clipboard-history' | 'autostart';
 export type WeatherSettingsPageKey = 'location' | 'provider';
 export type MusicSettingsPageKey = 'whitelist' | 'lyrics' | 'smtc';
 export type MusicNavCardKey = 'music-whitelist' | 'music-lyrics' | 'music-smtc';
@@ -60,6 +60,7 @@ export const SETTINGS_TAB_LABELS: Record<SettingsTabLabelKey, string> = {
   index: '快速导航',
   app: '软件设置',
   'layout-preview': '布局预览',
+  album: '相册配置',
   'hide-process-list': '隐藏窗口管理',
   position: '位置校准',
   theme: '主题外观',
@@ -85,6 +86,7 @@ export const SETTINGS_TAB_LABELS: Record<SettingsTabLabelKey, string> = {
 export const SETTINGS_TAB_DESCRIPTIONS: Record<Exclude<SettingsTabLabelKey, 'index'>, string> = {
   app: '布局预览与隐藏进程规则配置',
   'layout-preview': '进入布局预览并调整左右控件展示。',
+  album: '相册轮播与相册入口相关配置。',
   'hide-process-list': '管理隐藏窗口名单与自动隐藏规则。',
   position: '动态调整灵动岛位置并保存',
   theme: '切换深色、浅色或跟随系统主题。',
@@ -109,6 +111,7 @@ export const SETTINGS_TAB_DESCRIPTIONS: Record<Exclude<SettingsTabLabelKey, 'ind
 
 export const SETTINGS_TAB_ICONS: Partial<Record<SettingsTabLabelKey, string>> = {
   'layout-preview': SvgIcon.LAYOUT,
+  album: SvgIcon.PHOTO_ALBUM,
   'hide-process-list': SvgIcon.TASK_MANAGER,
   position: SvgIcon.MOVE,
   network: SvgIcon.NETWORK,
@@ -140,7 +143,7 @@ export const NETWORK_TIMEOUT_OPTIONS = [
 
 export const LAYOUT_STORE_KEY = 'overview-layout';
 export const DEFAULT_LAYOUT: OverviewLayoutConfig = { left: 'shortcuts', right: 'todo' };
-export const APP_SETTINGS_PAGES: AppSettingsPageKey[] = ['layout-preview', 'hide-process-list', 'position', 'theme', 'language', 'behavior', 'url-parser', 'clipboard-history', 'autostart'];
+export const APP_SETTINGS_PAGES: AppSettingsPageKey[] = ['layout-preview', 'album', 'hide-process-list', 'position', 'theme', 'language', 'behavior', 'url-parser', 'clipboard-history', 'autostart'];
 export const WEATHER_SETTINGS_PAGES: WeatherSettingsPageKey[] = ['location', 'provider'];
 export const WEATHER_SETTINGS_PAGE_LABELS: Record<WeatherSettingsPageKey, string> = {
   location: '定位配置',
@@ -168,6 +171,7 @@ export const NAV_CARDS: NavCardDef[] = [
   { id: 'user-pro', label: 'PRO功能', desc: '查看 Free 与 Pro 计划权益及当前订阅价格', icon: SvgIcon.PRO, tab: 'user', actionId: 'user-pro' },
   { id: 'guide', label: '使用教程', desc: '查看灵动岛功能引导与操作说明。', icon: SvgIcon.GUIDE, tab: 'index', actionId: 'guide' },
   { id: 'layout-preview', label: SETTINGS_TAB_LABELS['layout-preview'], desc: SETTINGS_TAB_DESCRIPTIONS['layout-preview'], icon: SETTINGS_TAB_ICONS['layout-preview'], tab: 'app', appPage: 'layout-preview' },
+  { id: 'album', label: SETTINGS_TAB_LABELS.album, desc: SETTINGS_TAB_DESCRIPTIONS.album, icon: SETTINGS_TAB_ICONS.album, tab: 'app', appPage: 'album' },
   { id: 'hide-process-list', label: SETTINGS_TAB_LABELS['hide-process-list'], desc: SETTINGS_TAB_DESCRIPTIONS['hide-process-list'], icon: SETTINGS_TAB_ICONS['hide-process-list'], tab: 'app', appPage: 'hide-process-list' },
   { id: 'position', label: SETTINGS_TAB_LABELS.position, desc: SETTINGS_TAB_DESCRIPTIONS.position, icon: SETTINGS_TAB_ICONS.position, tab: 'app', appPage: 'position' },
   { id: 'theme', label: SETTINGS_TAB_LABELS.theme, desc: SETTINGS_TAB_DESCRIPTIONS.theme, icon: SETTINGS_TAB_ICONS.theme, tab: 'app', appPage: 'theme' },

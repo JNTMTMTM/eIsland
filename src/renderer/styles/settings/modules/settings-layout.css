@@ -2860,15 +2860,13 @@
   opacity: 0.9;
 }
 
-.settings-user-pro-nav-card--outline > :not(.settings-index-card-layout-icon) {
+.settings-user-pro-nav-card--outline .settings-index-card-title,
+.settings-user-pro-nav-card--outline .settings-index-card-desc {
   position: relative;
   z-index: 1;
 }
 
-.settings-user-pro-nav-card--outline .settings-index-card-desc {
-  z-index: 1;
-  opacity: 1;
-}
+.settings-user-pro-nav-card--outline .settings-index-card-desc { opacity: 1; }
 
 .settings-user-pro-nav-card--outline .settings-index-card-layout-icon {
   z-index: 0;

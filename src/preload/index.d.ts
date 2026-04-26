@@ -114,10 +114,13 @@ declare global {
       mediaCurrentInfoGet: () => Promise<NowPlayingInfo | null>;
       onNowPlayingInfo: (callback: (info: NowPlayingInfo | null) => void) => () => void;
       screenshot: () => Promise<string | null>;
+      startRegionScreenshot: () => Promise<boolean>;
       openTaskManager: () => void;
       getPathForFile: (file: File) => string;
       getFileIcon: (filePath: string) => Promise<string | null>;
       openFile: (filePath: string) => Promise<boolean>;
+      openInExplorer: (filePath: string) => Promise<boolean>;
+      saveImageAs: (sourcePath: string) => Promise<{ ok: boolean; canceled: boolean; filePath: string | null }>;
       resolveShortcut: (lnkPath: string) => Promise<{ target: string; name: string } | null>;
       openImageDialog: () => Promise<string | null>;
       openVideoDialog: () => Promise<string | null>;
