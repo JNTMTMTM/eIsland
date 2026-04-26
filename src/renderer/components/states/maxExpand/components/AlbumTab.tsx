@@ -1376,7 +1376,7 @@ export function AlbumTab(): ReactElement {
                     />
                     <div className={`album-video-controls${videoControlsCollapsed ? ' album-video-controls--collapsed' : ''}`}>
                       <button
-                        className="album-text-btn album-video-control-btn album-video-control-btn--icon"
+                        className="album-text-btn album-video-control-btn album-video-control-btn--icon album-video-control-btn--toggle"
                         type="button"
                         onClick={handleToggleVideoControls}
                         aria-label={videoControlsCollapsed ? t('albumTab.viewer.showControls') : t('albumTab.viewer.hideControls')}

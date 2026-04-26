@@ -595,8 +595,10 @@
 .album-video-controls {
   position: absolute;
   left: 10px;
-  right: 10px;
+  width: calc(100% - 20px);
   bottom: 10px;
+  box-sizing: border-box;
+  height: 40px;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -605,16 +607,22 @@
   border-radius: 10px;
   background: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(4px);
+  overflow: hidden;
+  --album-controls-ease: cubic-bezier(0.22, 1, 0.36, 1);
   --album-slider-track: rgba(255, 255, 255, 0.22);
   --album-slider-track-hover: rgba(255, 255, 255, 0.32);
   --album-slider-fill: rgba(255, 255, 255, 0.88);
   --album-slider-thumb: #ffffff;
   --album-slider-thumb-shadow: 0 0 0 2px rgba(0, 0, 0, 0.2);
+  transition: width 0.34s var(--album-controls-ease),
+    background-color 0.24s ease,
+    border-color 0.24s ease,
+    box-shadow 0.24s ease;
 }
 
 .album-video-controls--collapsed {
-  right: auto;
-  padding: 6px;
+  width: 48px;
+  padding: 8px 10px;
   gap: 0;
 }
 
@@ -629,13 +637,23 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  flex: 0 0 28px;
   width: 28px;
+  min-width: 28px;
+  max-width: 28px;
+  height: 24px;
+  min-height: 24px;
+  max-height: 24px;
   padding: 0;
   line-height: 0;
 }
 
 .album-video-control-btn--icon .album-svg-icon {
   display: block;
+}
+
+.album-video-control-btn--toggle .album-svg-icon {
+  transition: opacity 0.2s ease;
 }
 
 .album-video-control-btn:hover {
