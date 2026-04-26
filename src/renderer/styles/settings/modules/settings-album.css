@@ -210,6 +210,15 @@
   mask-size: contain;
 }
 
+.album-svg-icon-img {
+  width: 14px;
+  height: 14px;
+  display: block;
+  flex: 0 0 14px;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
 .album-svg-icon--sm {
   width: 12px;
   height: 12px;

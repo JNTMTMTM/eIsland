@@ -418,6 +418,10 @@ function clampColumns(value: unknown): number {
  * 相册页主组件
  * @description 提供总览、单图放大、元数据侧栏与基础 EXIF 解析等能力。
  */
+function AlbumControlIcon({ src }: { src: string }): ReactElement {
+  return <img className="album-svg-icon-img" src={src} alt="" aria-hidden="true" draggable={false} />;
+}
+
 export function AlbumTab(): ReactElement {
   const { t } = useTranslation();
   const [items, setItems] = useState<AlbumItem[]>([]);
@@ -1275,11 +1279,7 @@ export function AlbumTab(): ReactElement {
                 onClick={() => setActiveId(null)}
                 title={t('albumTab.viewer.back')}
               >
-                <span
-                  className="album-svg-icon"
-                  style={{ '--album-icon-src': `url(${SvgIcon.RETURN})` } as CSSProperties}
-                  aria-hidden="true"
-                />
+                <AlbumControlIcon src={SvgIcon.RETURN} />
               </button>
               <button
                 className="album-icon-btn"
@@ -1288,11 +1288,7 @@ export function AlbumTab(): ReactElement {
                 disabled={filteredItems.length <= 1}
                 title={t('albumTab.viewer.prev')}
               >
-                <span
-                  className="album-svg-icon"
-                  style={{ '--album-icon-src': `url(${SvgIcon.PREVIOUS})` } as CSSProperties}
-                  aria-hidden="true"
-                />
+                <AlbumControlIcon src={SvgIcon.PREVIOUS} />
               </button>
               <button
                 className="album-icon-btn"
@@ -1301,11 +1297,7 @@ export function AlbumTab(): ReactElement {
                 disabled={filteredItems.length <= 1}
                 title={t('albumTab.viewer.next')}
               >
-                <span
-                  className="album-svg-icon"
-                  style={{ '--album-icon-src': `url(${SvgIcon.NEXT})` } as CSSProperties}
-                  aria-hidden="true"
-                />
+                <AlbumControlIcon src={SvgIcon.NEXT} />
               </button>
               <span className="album-viewer-name" title={activeItem.path}>{activeItem.name}</span>
               {!activeIsVideo ? (
@@ -1400,11 +1392,7 @@ export function AlbumTab(): ReactElement {
                           aria-label={videoControlsCollapsed ? t('albumTab.viewer.showControls') : t('albumTab.viewer.hideControls')}
                           title={videoControlsCollapsed ? t('albumTab.viewer.showControls') : t('albumTab.viewer.hideControls')}
                         >
-                          <span
-                            className="album-svg-icon"
-                            style={{ '--album-icon-src': `url(${videoControlsCollapsed ? SvgIcon.VISIBLE : SvgIcon.INVISIBLE})` } as CSSProperties}
-                            aria-hidden="true"
-                          />
+                          <AlbumControlIcon src={videoControlsCollapsed ? SvgIcon.VISIBLE : SvgIcon.INVISIBLE} />
                         </button>
                         {!videoControlsCollapsed ? (
                           <>
@@ -1415,11 +1403,7 @@ export function AlbumTab(): ReactElement {
                           aria-label={videoPlaying ? t('albumTab.viewer.pause') : t('albumTab.viewer.play')}
                           title={videoPlaying ? t('albumTab.viewer.pause') : t('albumTab.viewer.play')}
                         >
-                          <span
-                            className="album-svg-icon"
-                            style={{ '--album-icon-src': `url(${videoPlaying ? SvgIcon.PAUSE : SvgIcon.CONTINUE})` } as CSSProperties}
-                            aria-hidden="true"
-                          />
+                          <AlbumControlIcon src={videoPlaying ? SvgIcon.PAUSE : SvgIcon.CONTINUE} />
                         </button>
                         <span className="album-video-time">
                           {formatDuration(videoCurrentTime)} / {formatDuration(videoDuration)}
@@ -1442,11 +1426,7 @@ export function AlbumTab(): ReactElement {
                           aria-label={videoMuted ? t('albumTab.viewer.unmute') : t('albumTab.viewer.mute')}
                           title={videoMuted ? t('albumTab.viewer.unmute') : t('albumTab.viewer.mute')}
                         >
-                          <span
-                            className="album-svg-icon"
-                            style={{ '--album-icon-src': `url(${videoMuted ? SvgIcon.MUTE : SvgIcon.UNMUTE})` } as CSSProperties}
-                            aria-hidden="true"
-                          />
+                          <AlbumControlIcon src={videoMuted ? SvgIcon.MUTE : SvgIcon.UNMUTE} />
                         </button>
                         <input
                           className="album-video-volume"
