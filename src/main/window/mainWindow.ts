@@ -73,15 +73,11 @@ export function createMainWindowService(options: CreateMainWindowServiceOptions)
 
   function getInitialIslandBounds(): Electron.Rectangle {
     const targetDisplay = getTargetDisplay();
-    const { x: workX, y: workY, width: workWidth, height: workHeight } = targetDisplay.workArea;
+    const { x: workX, y: workY, width: workWidth } = targetDisplay.workArea;
     const centeredX = Math.round(workX + (workWidth - options.sizes.islandWidth) / 2);
-    const minX = workX;
-    const maxX = workX + Math.max(0, workWidth - options.sizes.islandWidth);
-    const minY = workY;
-    const maxY = workY + Math.max(0, workHeight - options.sizes.islandHeight);
     const offset = options.getIslandPositionOffset();
-    const x = Math.max(minX, Math.min(maxX, centeredX + offset.x));
-    const y = Math.max(minY, Math.min(maxY, Math.round(workY + offset.y)));
+    const x = centeredX + offset.x;
+    const y = Math.round(workY + offset.y);
     return {
       x,
       y,
@@ -106,17 +102,11 @@ export function createMainWindowService(options: CreateMainWindowServiceOptions)
 
     if (!mainWindow || mainWindow.isDestroyed()) return;
     const bounds = mainWindow.getBounds();
-    const targetDisplay = getTargetDisplay();
-    const { x: workX, y: workY, width: workWidth, height: workHeight } = targetDisplay.workArea;
     const targetX = Math.round(initialCenterX - bounds.width / 2);
-    const minX = workX;
-    const maxX = workX + Math.max(0, workWidth - bounds.width);
-    const minY = workY;
-    const maxY = workY + Math.max(0, workHeight - bounds.height);
 
     mainWindow.setBounds({
-      x: Math.max(minX, Math.min(maxX, targetX)),
-      y: Math.max(minY, Math.min(maxY, nextBaseBounds.y)),
+      x: targetX,
+      y: nextBaseBounds.y,
       width: bounds.width,
       height: bounds.height,
     });
