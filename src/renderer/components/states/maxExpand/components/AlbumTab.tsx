@@ -62,6 +62,8 @@ const ZOOM_MIN = 0.2;
 const ZOOM_MAX = 6;
 /** 单图滚轮缩放步长 */
 const ZOOM_STEP = 0.15;
+/** MaxExpand 切换动画缓冲（ms）：结束后再开始批量媒体加载，避免首帧卡顿 */
+const MEDIA_LOAD_DELAY_MS = 320;
 
 /** 相册条目排序模式 */
 export type AlbumSortMode = 'addedDesc' | 'addedAsc' | 'nameAsc' | 'nameDesc' | 'durationDesc' | 'durationAsc';
@@ -419,6 +421,7 @@ export function AlbumTab(): ReactElement {
   const { t } = useTranslation();
   const [items, setItems] = useState<AlbumItem[]>([]);
   const [loaded, setLoaded] = useState(false);
+  const [mediaLoadReady, setMediaLoadReady] = useState(false);
   const [columns, setColumns] = useState<number>(DEFAULT_COLUMNS);
   const [sortMode, setSortMode] = useState<AlbumSortMode>('addedDesc');
   const [filterMode, setFilterMode] = useState<AlbumFilterMode>('all');
@@ -473,6 +476,16 @@ export function AlbumTab(): ReactElement {
       setLoaded(true);
     });
     return () => { cancelled = true; };
+  }, []);
+
+  /** 延迟触发媒体加载，避免从 Expand 切到 MaxExpand 时动画被 IO/解码阻塞 */
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setMediaLoadReady(true);
+    }, MEDIA_LOAD_DELAY_MS);
+    return () => {
+      window.clearTimeout(timer);
+    };
   }, []);
 
   /** 持久化条目变更 */
@@ -670,7 +683,7 @@ export function AlbumTab(): ReactElement {
 
   /** 缩略图为可见时按需加载 dataUrl */
   useEffect(() => {
-    if (!loaded || items.length === 0) return;
+    if (!loaded || !mediaLoadReady || items.length === 0) return;
     items.forEach((item) => {
       const meta = metaCache[item.id];
       const hasPreview = item.mediaType === 'video' ? Boolean(meta?.videoUrl) : Boolean(meta?.dataUrl);
@@ -678,7 +691,7 @@ export function AlbumTab(): ReactElement {
         loadItemMeta(item);
       }
     });
-  }, [items, metaCache, loaded, loadItemMeta]);
+  }, [items, metaCache, loaded, mediaLoadReady, loadItemMeta]);
 
   /** 进入单图视图时加载对应 EXIF */
   useEffect(() => {
