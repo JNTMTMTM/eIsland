@@ -159,6 +159,9 @@ function getOverviewVideoMimeByExt(ext: string): string {
   return 'video/mp4';
 }
 
+/** overall -> expand 切换动画结束后再加载媒体，避免首帧卡顿 */
+const OVERVIEW_ALBUM_MEDIA_LOAD_DELAY_MS = 680;
+
 /** 总览控件类型 */
 export type OverviewWidgetType = 'shortcuts' | 'todo' | 'song' | 'countdown' | 'pomodoro' | 'urlFavorites' | 'album';
 
@@ -690,8 +693,21 @@ function AlbumCarouselWidget({ openAlbumPage }: { openAlbumPage: () => void }): 
   const [activeIndex, setActiveIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const [slideDir, setSlideDir] = useState<'prev' | 'next'>('next');
+  const [mediaLoadReady, setMediaLoadReady] = useState(false);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
   const [videoPreviewUrl, setVideoPreviewUrl] = useState<string | null>(null);
+  const [videoPosterUrl, setVideoPosterUrl] = useState<string | null>(null);
+  const videoPosterCacheRef = useRef<Record<number, string>>({});
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setMediaLoadReady(true);
+    }, OVERVIEW_ALBUM_MEDIA_LOAD_DELAY_MS);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -760,6 +776,14 @@ function AlbumCarouselWidget({ openAlbumPage }: { openAlbumPage: () => void }): 
   const activeItem = displayItems.length > 0 ? displayItems[activeIndex] : null;
 
   useEffect(() => {
+    if (!activeItem || activeItem.mediaType !== 'video') {
+      setVideoPosterUrl(null);
+      return;
+    }
+    setVideoPosterUrl(videoPosterCacheRef.current[activeItem.id] || null);
+  }, [activeItem?.id, activeItem?.mediaType]);
+
+  useEffect(() => {
     let cancelled = false;
     if (!activeItem) {
       setImagePreviewUrl(null);
@@ -777,6 +801,7 @@ function AlbumCarouselWidget({ openAlbumPage }: { openAlbumPage: () => void }): 
         if (prev) URL.revokeObjectURL(prev);
         return null;
       });
+      setVideoPosterUrl(null);
       window.api.loadWallpaperFile(activeItem.path).then((dataUrl) => {
         if (cancelled) return;
         setImagePreviewUrl(dataUrl || null);
@@ -790,6 +815,17 @@ function AlbumCarouselWidget({ openAlbumPage }: { openAlbumPage: () => void }): 
     }
 
     setImagePreviewUrl(null);
+
+    if (!mediaLoadReady) {
+      setVideoPreviewUrl((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return null;
+      });
+      return () => {
+        cancelled = true;
+      };
+    }
+
     window.api.readLocalFileAsBuffer(activeItem.path).then((buf) => {
       if (cancelled || !buf) return;
       const mime = getOverviewVideoMimeByExt(activeItem.ext);
@@ -797,6 +833,43 @@ function AlbumCarouselWidget({ openAlbumPage }: { openAlbumPage: () => void }): 
       new Uint8Array(arrayBuffer).set(buf);
       const blob = new Blob([arrayBuffer], { type: mime });
       const nextUrl = URL.createObjectURL(blob);
+
+      if (!videoPosterCacheRef.current[activeItem.id]) {
+        const probe = document.createElement('video');
+        probe.preload = 'metadata';
+        probe.muted = true;
+        probe.playsInline = true;
+        const cleanupProbe = (): void => {
+          probe.src = '';
+          probe.load();
+        };
+        probe.onloadeddata = () => {
+          if (cancelled) {
+            cleanupProbe();
+            return;
+          }
+          const width = probe.videoWidth;
+          const height = probe.videoHeight;
+          if (width > 0 && height > 0) {
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            if (ctx) {
+              ctx.drawImage(probe, 0, 0, width, height);
+              const poster = canvas.toDataURL('image/jpeg', 0.86);
+              videoPosterCacheRef.current[activeItem.id] = poster;
+              setVideoPosterUrl(poster);
+            }
+          }
+          cleanupProbe();
+        };
+        probe.onerror = () => {
+          cleanupProbe();
+        };
+        probe.src = nextUrl;
+      }
+
       setVideoPreviewUrl((prev) => {
         if (prev) URL.revokeObjectURL(prev);
         return nextUrl;
@@ -812,7 +885,7 @@ function AlbumCarouselWidget({ openAlbumPage }: { openAlbumPage: () => void }): 
     return () => {
       cancelled = true;
     };
-  }, [activeItem?.id, activeItem?.mediaType, activeItem?.path, activeItem?.ext]);
+  }, [mediaLoadReady, activeItem?.id, activeItem?.mediaType, activeItem?.path, activeItem?.ext]);
 
   useEffect(() => {
     return () => {
@@ -825,6 +898,7 @@ function AlbumCarouselWidget({ openAlbumPage }: { openAlbumPage: () => void }): 
 
   const hasImagePreview = activeItem?.mediaType === 'image' && Boolean(imagePreviewUrl);
   const hasVideoPreview = activeItem?.mediaType === 'video' && Boolean(videoPreviewUrl);
+  const hasVideoPoster = activeItem?.mediaType === 'video' && Boolean(videoPosterUrl);
 
   const goNext = useCallback(() => {
     setSlideDir('next');
@@ -897,16 +971,18 @@ function AlbumCarouselWidget({ openAlbumPage }: { openAlbumPage: () => void }): 
               <video
                 className="ov-dash-album-preview ov-dash-album-video"
                 src={videoPreviewUrl || undefined}
+                poster={videoPosterUrl || undefined}
                 muted={albumConfig.videoMuted}
                 autoPlay={albumConfig.videoAutoPlay}
                 loop
                 playsInline
                 preload="metadata"
               />
+            ) : hasVideoPoster ? (
+              <img className="ov-dash-album-preview" src={videoPosterUrl || undefined} alt={activeItem.name} />
             ) : (
               <div className="ov-dash-album-fallback">
-                <img src={SvgIcon.MUSIC} alt="" className="ov-dash-album-fallback-icon" />
-                <span className="ov-dash-album-fallback-text">{t('overview.album.videoTag', { defaultValue: '视频' })}</span>
+                <img src={SvgIcon.PHOTO_ALBUM} alt="" className="ov-dash-album-fallback-icon" />
               </div>
             )}
           </div>
