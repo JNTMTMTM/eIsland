@@ -746,6 +746,74 @@
   color: rgba(var(--color-text-rgb), 0.25);
 }
 
+/** 电子木鱼控件 */
+.ov-dash-mokugyo-widget {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ov-dash-mokugyo-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+}
+
+.ov-dash-mokugyo-hit-btn {
+  width: 82px;
+  height: 82px;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  box-shadow: none;
+  transition: transform 0.14s ease;
+}
+
+.ov-dash-mokugyo-hit-btn:hover {
+  background: transparent;
+  box-shadow: none;
+}
+
+.ov-dash-mokugyo-hit-btn:active {
+  transform: scale(0.97);
+}
+
+.ov-dash-mokugyo-icon {
+  width: 82px;
+  height: 82px;
+  object-fit: contain;
+  filter: brightness(0) invert(var(--icon-invert));
+  opacity: 0.92;
+  transform-origin: center;
+}
+
+.ov-dash-mokugyo-icon--hit {
+  animation: ovMokugyoHit 0.22s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+@keyframes ovMokugyoHit {
+  0% {
+    transform: scale(1);
+  }
+
+  45% {
+    transform: scale(1.16);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
 /** 歌曲控件 */
 .ov-dash-song-content {
   flex: 1;

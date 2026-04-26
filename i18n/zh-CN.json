@@ -466,6 +466,11 @@
         "longBreak": "长休息"
       }
     },
+    "mokugyo": {
+      "title": "电子木鱼",
+      "hint": "点击木鱼积攒专注",
+      "strike": "敲一下"
+    },
     "urlFavorites": {
       "title": "URL 收藏",
       "count": "{{count}} 条",

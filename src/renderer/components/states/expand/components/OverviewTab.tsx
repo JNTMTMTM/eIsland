@@ -53,6 +53,9 @@ const SIZES: { value: Size; color: string }[] = [
   { value: 'XL', color: '#e57373' },
 ];
 
+const MOKUGYO_AUDIO_SRC = './audio/Mokugyo.wav';
+const MOKUGYO_HIT_ANIMATION_MS = 220;
+
 /** 单条待办 */
 interface TodoItem {
   id: number;
@@ -63,6 +66,79 @@ interface TodoItem {
   size?: Size;
   description?: string;
   subTodos?: { id: number; text: string; done: boolean; priority?: Priority; size?: Size }[];
+}
+
+function MokugyoWidget(): React.ReactElement {
+  const { t } = useTranslation();
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const hitResetTimerRef = useRef<number | null>(null);
+  const [hitting, setHitting] = useState(false);
+
+  useEffect(() => {
+    const audio = new Audio(MOKUGYO_AUDIO_SRC);
+    audio.preload = 'auto';
+    audioRef.current = audio;
+
+    return () => {
+      if (hitResetTimerRef.current !== null) {
+        window.clearTimeout(hitResetTimerRef.current);
+      }
+      const current = audioRef.current;
+      if (current) {
+        current.pause();
+        current.src = '';
+      }
+      audioRef.current = null;
+    };
+  }, []);
+
+  const handleStrike = useCallback((): void => {
+    setHitting(false);
+    window.requestAnimationFrame(() => {
+      setHitting(true);
+    });
+
+    if (hitResetTimerRef.current !== null) {
+      window.clearTimeout(hitResetTimerRef.current);
+    }
+    hitResetTimerRef.current = window.setTimeout(() => {
+      setHitting(false);
+      hitResetTimerRef.current = null;
+    }, MOKUGYO_HIT_ANIMATION_MS);
+
+    const audio = audioRef.current;
+    if (!audio) return;
+    try {
+      audio.currentTime = 0;
+    } catch {
+      // noop
+    }
+    audio.play().catch(() => {});
+  }, []);
+
+  return (
+    <div className="ov-dash-widget ov-dash-mokugyo-widget">
+      <div className="ov-dash-widget-header">
+        <span className="ov-dash-widget-title">{t('overview.mokugyo.title', { defaultValue: '电子木鱼' })}</span>
+      </div>
+      <div className="ov-dash-mokugyo-body">
+        <button
+          className="ov-dash-mokugyo-hit-btn"
+          type="button"
+          onClick={handleStrike}
+          title={t('overview.mokugyo.strike', { defaultValue: '敲一下' })}
+          aria-label={t('overview.mokugyo.strike', { defaultValue: '敲一下' })}
+        >
+          <img
+            src={SvgIcon.MOKUGYO}
+            alt=""
+            aria-hidden="true"
+            className={`ov-dash-mokugyo-icon${hitting ? ' ov-dash-mokugyo-icon--hit' : ''}`}
+          />
+        </button>
+      </div>
+    </div>
+  );
 }
 
 function normalizeOverviewAlbumItems(data: unknown): OverviewAlbumItem[] {
@@ -163,7 +239,7 @@ function getOverviewVideoMimeByExt(ext: string): string {
 const OVERVIEW_ALBUM_MEDIA_LOAD_DELAY_MS = 680;
 
 /** 总览控件类型 */
-export type OverviewWidgetType = 'shortcuts' | 'todo' | 'song' | 'countdown' | 'pomodoro' | 'urlFavorites' | 'album';
+export type OverviewWidgetType = 'shortcuts' | 'todo' | 'song' | 'countdown' | 'pomodoro' | 'urlFavorites' | 'album' | 'mokugyo';
 
 /** 控件选项列表 */
 export const OVERVIEW_WIDGET_OPTIONS: { value: OverviewWidgetType; label: string }[] = [
@@ -173,6 +249,7 @@ export const OVERVIEW_WIDGET_OPTIONS: { value: OverviewWidgetType; label: string
   { value: 'album', label: '相册轮播' },
   { value: 'countdown', label: '倒数日' },
   { value: 'pomodoro', label: '番茄钟' },
+  { value: 'mokugyo', label: '电子木鱼' },
   { value: 'urlFavorites', label: 'URL 收藏' },
 ];
 
@@ -1387,6 +1464,8 @@ export function OverviewTab(): React.ReactElement {
         return <CountdownWidget openTargetPage={openTargetPage} />;
       case 'pomodoro':
         return <PomodoroWidget />;
+      case 'mokugyo':
+        return <MokugyoWidget />;
       case 'urlFavorites':
         return <UrlFavoritesWidget />;
       default:

@@ -466,6 +466,11 @@
         "longBreak": "Long Break"
       }
     },
+    "mokugyo": {
+      "title": "Electronic Mokugyo",
+      "hint": "Tap mokugyo to build focus",
+      "strike": "Strike once"
+    },
     "urlFavorites": {
       "title": "URL Favorites",
       "count": "{{count}} items",
