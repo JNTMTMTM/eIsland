@@ -114,6 +114,7 @@ declare global {
       mediaCurrentInfoGet: () => Promise<NowPlayingInfo | null>;
       onNowPlayingInfo: (callback: (info: NowPlayingInfo | null) => void) => () => void;
       screenshot: () => Promise<string | null>;
+      startRegionScreenshot: () => Promise<boolean>;
       openTaskManager: () => void;
       getPathForFile: (file: File) => string;
       getFileIcon: (filePath: string) => Promise<string | null>;

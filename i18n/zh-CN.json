@@ -920,7 +920,12 @@
         "windowModeTitle": "待办事项 / 倒数日 / 设置 打开方式",
         "windowModeHint": "选择点击导航时，在灵动岛内显示还是打开独立窗口（重启后生效）",
         "integratedMode": "集成在灵动岛中",
-        "standaloneMode": "独立窗口"
+        "standaloneMode": "独立窗口",
+        "hoverScreenshotModeTitle": "悬停界面截图按钮模式",
+        "hoverScreenshotModeHint": "配置 hover 界面的截图按钮触发选区截图或显示器截图（立即生效）",
+        "hoverScreenshotModeLabel": "截图方式",
+        "hoverScreenshotModeRegion": "选区截图",
+        "hoverScreenshotModeDisplay": "显示器截图"
       },
       "urlParser": {
         "title": "剪贴板 URL 监听",

@@ -920,7 +920,12 @@
         "windowModeTitle": "Todo / Countdown / Settings open mode",
         "windowModeHint": "Choose embedded in island or standalone window",
         "integratedMode": "Embedded in Dynamic Island",
-        "standaloneMode": "Standalone window"
+        "standaloneMode": "Standalone window",
+        "hoverScreenshotModeTitle": "Hover screenshot button mode",
+        "hoverScreenshotModeHint": "Configure hover screenshot button to trigger area screenshot or display screenshot (takes effect immediately)",
+        "hoverScreenshotModeLabel": "Screenshot mode",
+        "hoverScreenshotModeRegion": "Area screenshot",
+        "hoverScreenshotModeDisplay": "Display screenshot"
       },
       "urlParser": {
         "title": "Clipboard URL Monitor",

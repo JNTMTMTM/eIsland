@@ -314,6 +314,13 @@ const api = {
     return ipcRenderer.invoke('system:screenshot');
   },
   /**
+   * 启动选区截图流程
+   * @returns 是否成功启动
+   */
+  startRegionScreenshot: (): Promise<boolean> => {
+    return ipcRenderer.invoke('system:screenshot:region:start');
+  },
+  /**
    * 打开任务管理器
    * @returns 无返回值
    */
