@@ -591,20 +591,20 @@
   },
   "albumTab": {
     "title": "Album",
-    "count": "{{count}} photos",
-    "dropHint": "Drop to import images",
+    "count": "{{count}} items",
+    "dropHint": "Drop to import media files",
     "empty": {
-      "title": "No images yet",
-      "desc": "Drag images/videos here, or click \"Add Images\"",
+      "title": "No media yet",
+      "desc": "Drag images/videos here, or click \"Add Media\"",
       "filteredTitle": "No items under current filter",
       "filteredDesc": "Switch to All / Images / Videos"
     },
     "actions": {
-      "add": "Add Images",
+      "add": "Add Media",
       "clear": "Clear",
       "clearConfirm": "Click again to confirm",
       "remove": "Remove",
-      "removeAria": "Remove {{name}}"
+      "removeAria": "Remove media {{name}}"
     },
     "sort": {
       "label": "Sort",
@@ -641,11 +641,11 @@
       "fit": "Fit",
       "openInExplorer": "Show in Explorer",
       "saveAs": "Save As",
-      "loading": "Loading image…",
-      "failed": "Failed to load image"
+      "loading": "Loading media…",
+      "failed": "Failed to load media"
     },
     "meta": {
-      "title": "Image Info",
+      "title": "Media Info",
       "name": "Name",
       "format": "Format",
       "resolution": "Resolution",
@@ -670,9 +670,9 @@
       "focalLength": "Focal Length"
     },
     "status": {
-      "added": "Imported {{count}} image(s)",
+      "added": "Imported {{count}} media file(s)",
       "cleared": "Album cleared",
-      "allDuplicated": "Image already exists, skipped duplicates",
+      "allDuplicated": "Media file already exists, skipped duplicates",
       "unsupportedOnly": "No supported image/video format detected",
       "zoomReset": "Reset to actual size",
       "openInExplorerFailed": "Cannot locate {{name}}. The file may have been moved or deleted.",
