@@ -148,6 +148,37 @@ export function OverviewPreview({ layoutConfig }: { layoutConfig: OverviewLayout
             </div>
           </div>
         );
+      case 'album':
+        return (
+          <div className="ov-dash-widget ov-dash-album-widget">
+            <div className="ov-dash-widget-header">
+              <span className="ov-dash-widget-title">相册轮播</span>
+              <span className="ov-dash-album-count">3 项</span>
+            </div>
+            <div className="ov-dash-album-card" style={{ cursor: 'default' }}>
+              <div className="ov-dash-album-fallback">
+                <img src={SvgIcon.MUSIC} alt="" className="ov-dash-album-fallback-icon" />
+                <span className="ov-dash-album-fallback-text">示例预览</span>
+              </div>
+              <div className="ov-dash-album-mask" />
+              <div className="ov-dash-album-meta">
+                <div className="ov-dash-album-name">示例图片.jpg</div>
+                <div className="ov-dash-album-position">1 / 3</div>
+              </div>
+              <div className="ov-dash-album-controls">
+                <span className="ov-dash-album-btn">
+                  <img src={SvgIcon.PREVIOUS} alt="上一张" className="ov-dash-album-btn-icon" />
+                </span>
+                <span className="ov-dash-album-btn ov-dash-album-btn-play">
+                  <img src={SvgIcon.PAUSE} alt="暂停轮播" className="ov-dash-album-btn-icon" />
+                </span>
+                <span className="ov-dash-album-btn">
+                  <img src={SvgIcon.NEXT} alt="下一张" className="ov-dash-album-btn-icon" />
+                </span>
+              </div>
+            </div>
+          </div>
+        );
       case 'countdown':
         return (
           <div className="ov-dash-widget ov-dash-countdown-widget">

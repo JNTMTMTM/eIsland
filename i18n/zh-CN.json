@@ -435,6 +435,18 @@
       "next": "下一首",
       "empty": "暂无播放中的歌曲"
     },
+    "album": {
+      "title": "相册轮播",
+      "count": "{{count}} 项",
+      "empty": "相册暂无媒体",
+      "open": "点击进入相册",
+      "prev": "上一张",
+      "next": "下一张",
+      "pause": "暂停轮播",
+      "play": "继续轮播",
+      "position": "{{index}} / {{total}}",
+      "videoTag": "视频"
+    },
     "countdown": {
       "title": "倒数日",
       "empty": "暂无倒数日"

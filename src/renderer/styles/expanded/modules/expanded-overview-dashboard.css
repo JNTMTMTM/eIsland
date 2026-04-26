@@ -545,6 +545,139 @@
   color: rgba(var(--color-text-rgb), 0.85);
 }
 
+/** 相册轮播控件 */
+.ov-dash-album-count {
+  margin-left: auto;
+  font-size: 10px;
+  color: rgba(var(--color-text-rgb), 0.4);
+}
+
+.ov-dash-album-card {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  border-radius: 10px;
+  overflow: hidden;
+  cursor: pointer;
+  background: linear-gradient(140deg, rgba(var(--color-text-rgb), 0.1), rgba(var(--color-text-rgb), 0.03));
+  border: 1px solid rgba(var(--color-text-rgb), 0.08);
+}
+
+.ov-dash-album-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.ov-dash-album-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.ov-dash-album-fallback-icon {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  filter: brightness(0) invert(var(--icon-invert));
+  opacity: 0.8;
+}
+
+.ov-dash-album-fallback-text {
+  font-size: 10px;
+  color: rgba(var(--color-text-rgb), 0.6);
+}
+
+.ov-dash-album-mask {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, transparent 42%, rgba(0, 0, 0, 0.62) 100%);
+}
+
+.ov-dash-album-meta {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: 8px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 8px;
+  z-index: 1;
+}
+
+.ov-dash-album-name {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.92);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  max-width: 70%;
+}
+
+.ov-dash-album-position {
+  flex-shrink: 0;
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.ov-dash-album-controls {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  z-index: 1;
+}
+
+.ov-dash-album-btn {
+  width: 22px;
+  height: 22px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(16, 16, 18, 0.42);
+  backdrop-filter: blur(4px);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.15s ease;
+}
+
+.ov-dash-album-btn:hover {
+  background: rgba(16, 16, 18, 0.62);
+}
+
+.ov-dash-album-btn-play {
+  width: 24px;
+  height: 24px;
+}
+
+.ov-dash-album-btn-icon {
+  width: 11px;
+  height: 11px;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+  opacity: 0.92;
+}
+
+.ov-dash-album-empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: rgba(var(--color-text-rgb), 0.25);
+}
+
 /** 歌曲控件 */
 .ov-dash-song-content {
   flex: 1;

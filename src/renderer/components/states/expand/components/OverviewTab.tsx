@@ -65,13 +65,39 @@ interface TodoItem {
   subTodos?: { id: number; text: string; done: boolean; priority?: Priority; size?: Size }[];
 }
 
+function normalizeOverviewAlbumItems(data: unknown): OverviewAlbumItem[] {
+  if (!Array.isArray(data)) return [];
+  const seen = new Set<string>();
+  const result: OverviewAlbumItem[] = [];
+  data.forEach((entry) => {
+    const row = entry as Partial<OverviewAlbumItem> | null;
+    if (!row || typeof row.path !== 'string') return;
+    const path = row.path.trim();
+    if (!path) return;
+    const lowerPath = path.toLowerCase();
+    if (seen.has(lowerPath)) return;
+    seen.add(lowerPath);
+    const mediaType = row.mediaType === 'video' ? 'video' : 'image';
+    const ext = typeof row.ext === 'string' ? row.ext.toLowerCase() : '';
+    const sepIdx = Math.max(path.lastIndexOf('\\'), path.lastIndexOf('/'));
+    const fallbackName = sepIdx >= 0 ? path.slice(sepIdx + 1) : path;
+    const name = typeof row.name === 'string' && row.name.trim() ? row.name.trim() : fallbackName;
+    const addedAt = typeof row.addedAt === 'number' && Number.isFinite(row.addedAt) ? row.addedAt : Date.now();
+    const id = typeof row.id === 'number' && Number.isFinite(row.id) ? row.id : addedAt;
+    result.push({ id, path, name, ext, mediaType, addedAt });
+  });
+  return result;
+}
+
 /** 存储键名 */
 const STORE_KEY = 'todos';
 const APPS_STORE_KEY = 'app-shortcuts';
 const URL_FAVORITES_STORE_KEY = 'url-favorites';
+const PHOTO_ALBUM_STORE_KEY = 'photo-album-items';
 const STANDALONE_WINDOW_MODE_STORE_KEY = 'standalone-window-mode';
 const LEGACY_COUNTDOWN_WINDOW_MODE_STORE_KEY = 'countdown-window-mode';
 const STANDALONE_WINDOW_ACTIVE_TAB_STORE_KEY = 'standalone-window-active-tab';
+const ALBUM_CAROUSEL_INTERVAL_MS = 4500;
 
 /** 应用快捷方式 */
 interface AppShortcut {
@@ -81,14 +107,24 @@ interface AppShortcut {
   iconBase64: string | null;
 }
 
+interface OverviewAlbumItem {
+  id: number;
+  path: string;
+  name: string;
+  ext: string;
+  mediaType: 'image' | 'video';
+  addedAt: number;
+}
+
 /** 总览控件类型 */
-export type OverviewWidgetType = 'shortcuts' | 'todo' | 'song' | 'countdown' | 'pomodoro' | 'urlFavorites';
+export type OverviewWidgetType = 'shortcuts' | 'todo' | 'song' | 'countdown' | 'pomodoro' | 'urlFavorites' | 'album';
 
 /** 控件选项列表 */
 export const OVERVIEW_WIDGET_OPTIONS: { value: OverviewWidgetType; label: string }[] = [
   { value: 'shortcuts', label: '快捷启动' },
   { value: 'todo', label: '待办事项' },
   { value: 'song', label: '歌曲' },
+  { value: 'album', label: '相册轮播' },
   { value: 'countdown', label: '倒数日' },
   { value: 'pomodoro', label: '番茄钟' },
   { value: 'urlFavorites', label: 'URL 收藏' },
@@ -604,6 +640,131 @@ function UrlFavoritesWidget(): React.ReactElement {
   );
 }
 
+function AlbumCarouselWidget({ openAlbumPage }: { openAlbumPage: () => void }): React.ReactElement {
+  const { t } = useTranslation();
+  const [items, setItems] = useState<OverviewAlbumItem[]>([]);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const applyItems = (value: unknown): void => {
+      const next = normalizeOverviewAlbumItems(value);
+      setItems(next);
+      setActiveIndex((prev) => {
+        if (next.length === 0) return 0;
+        return Math.min(prev, next.length - 1);
+      });
+    };
+
+    window.api.storeRead(PHOTO_ALBUM_STORE_KEY).then((value) => {
+      if (cancelled) return;
+      applyItems(value);
+    }).catch(() => {});
+
+    const unsub = window.api.onSettingsChanged((channel, value) => {
+      if (cancelled) return;
+      if (channel === `store:${PHOTO_ALBUM_STORE_KEY}`) {
+        applyItems(value);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+      unsub();
+    };
+  }, []);
+
+  const activeItem = items.length > 0 ? items[activeIndex] : null;
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!activeItem || activeItem.mediaType !== 'image') {
+      setImagePreviewUrl(null);
+      return () => {
+        cancelled = true;
+      };
+    }
+    window.api.loadWallpaperFile(activeItem.path).then((dataUrl) => {
+      if (cancelled) return;
+      setImagePreviewUrl(dataUrl || null);
+    }).catch(() => {
+      if (cancelled) return;
+      setImagePreviewUrl(null);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [activeItem?.id, activeItem?.mediaType, activeItem?.path]);
+
+  const goNext = useCallback(() => {
+    setActiveIndex((prev) => {
+      if (items.length <= 1) return prev;
+      return (prev + 1) % items.length;
+    });
+  }, [items.length]);
+
+  const goPrev = useCallback(() => {
+    setActiveIndex((prev) => {
+      if (items.length <= 1) return prev;
+      return (prev - 1 + items.length) % items.length;
+    });
+  }, [items.length]);
+
+  useEffect(() => {
+    if (paused || items.length <= 1) return;
+    const timer = setInterval(() => {
+      setActiveIndex((prev) => (prev + 1) % items.length);
+    }, ALBUM_CAROUSEL_INTERVAL_MS);
+    return () => clearInterval(timer);
+  }, [paused, items.length]);
+
+  return (
+    <div className="ov-dash-widget ov-dash-album-widget">
+      <div className="ov-dash-widget-header">
+        <span className="ov-dash-widget-title ov-dash-widget-title--link" onClick={openAlbumPage}>{t('overview.album.title', { defaultValue: '相册轮播' })}</span>
+        <span className="ov-dash-album-count">{t('overview.album.count', { defaultValue: '{{count}} 项', count: items.length })}</span>
+      </div>
+      {!activeItem ? (
+        <div className="ov-dash-album-empty">{t('overview.album.empty', { defaultValue: '相册暂无媒体' })}</div>
+      ) : (
+        <div className="ov-dash-album-card" onClick={openAlbumPage} title={t('overview.album.open', { defaultValue: '点击进入相册' })}>
+          {activeItem.mediaType === 'image' && imagePreviewUrl ? (
+            <img className="ov-dash-album-preview" src={imagePreviewUrl} alt={activeItem.name} />
+          ) : (
+            <div className="ov-dash-album-fallback">
+              <img src={SvgIcon.MUSIC} alt="" className="ov-dash-album-fallback-icon" />
+              <span className="ov-dash-album-fallback-text">{t('overview.album.videoTag', { defaultValue: '视频' })}</span>
+            </div>
+          )}
+          <div className="ov-dash-album-mask" />
+          <div className="ov-dash-album-meta">
+            <div className="ov-dash-album-name" title={activeItem.name}>{activeItem.name}</div>
+            <div className="ov-dash-album-position">{t('overview.album.position', { defaultValue: '{{index}} / {{total}}', index: activeIndex + 1, total: items.length })}</div>
+          </div>
+
+          <div className="ov-dash-album-controls" onClick={(e) => e.stopPropagation()}>
+            <button className="ov-dash-album-btn" type="button" onClick={goPrev} title={t('overview.album.prev', { defaultValue: '上一张' })}>
+              <img src={SvgIcon.PREVIOUS} alt={t('overview.album.prev', { defaultValue: '上一张' })} className="ov-dash-album-btn-icon" />
+            </button>
+            <button className="ov-dash-album-btn ov-dash-album-btn-play" type="button" onClick={() => setPaused((v) => !v)} title={paused ? t('overview.album.play', { defaultValue: '继续轮播' }) : t('overview.album.pause', { defaultValue: '暂停轮播' })}>
+              <img
+                src={paused ? SvgIcon.CONTINUE : SvgIcon.PAUSE}
+                alt={paused ? t('overview.album.play', { defaultValue: '继续轮播' }) : t('overview.album.pause', { defaultValue: '暂停轮播' })}
+                className="ov-dash-album-btn-icon"
+              />
+            </button>
+            <button className="ov-dash-album-btn" type="button" onClick={goNext} title={t('overview.album.next', { defaultValue: '下一张' })}>
+              <img src={SvgIcon.NEXT} alt={t('overview.album.next', { defaultValue: '下一张' })} className="ov-dash-album-btn-icon" />
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 /**
  * 总览 Tab
  * @description 展开状态下仪表盘式概览面板
@@ -633,6 +794,11 @@ export function OverviewTab(): React.ReactElement {
       setMaxExpandTab(target);
       setMaxExpand();
     });
+  }, [setMaxExpand, setMaxExpandTab]);
+
+  const goToAlbum = useCallback((): void => {
+    setMaxExpandTab('album');
+    setMaxExpand();
   }, [setMaxExpand, setMaxExpandTab]);
 
   useEffect(() => {
@@ -960,6 +1126,8 @@ export function OverviewTab(): React.ReactElement {
         );
       case 'song':
         return <SongWidget />;
+      case 'album':
+        return <AlbumCarouselWidget openAlbumPage={goToAlbum} />;
       case 'countdown':
         return <CountdownWidget openTargetPage={openTargetPage} />;
       case 'pomodoro':

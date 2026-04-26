@@ -435,6 +435,18 @@
       "next": "Next",
       "empty": "No music playing"
     },
+    "album": {
+      "title": "Album Carousel",
+      "count": "{{count}} items",
+      "empty": "No media in album",
+      "open": "Open album",
+      "prev": "Previous",
+      "next": "Next",
+      "pause": "Pause carousel",
+      "play": "Resume carousel",
+      "position": "{{index}} / {{total}}",
+      "videoTag": "Video"
+    },
     "countdown": {
       "title": "Countdown",
       "empty": "No countdown events"
