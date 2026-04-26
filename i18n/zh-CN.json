@@ -469,7 +469,9 @@
     "mokugyo": {
       "title": "电子木鱼",
       "hint": "点击木鱼积攒专注",
-      "strike": "敲一下"
+      "strike": "敲一下",
+      "total": "累计功德",
+      "plusOne": "功德+1"
     },
     "urlFavorites": {
       "title": "URL 收藏",

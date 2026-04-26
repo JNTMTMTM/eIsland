@@ -753,14 +753,60 @@
   gap: 6px;
 }
 
+.ov-dash-mokugyo-count {
+  margin-left: auto;
+  font-size: 10px;
+  color: rgba(var(--color-text-rgb), 0.62);
+  font-variant-numeric: tabular-nums;
+}
+
 .ov-dash-mokugyo-body {
   flex: 1;
   min-height: 0;
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 0;
+}
+
+.ov-dash-mokugyo-float-layer {
+  position: absolute;
+  top: 14px;
+  right: 94px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.ov-dash-mokugyo-float {
+  position: absolute;
+  right: 0;
+  top: 0;
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.45);
+  white-space: nowrap;
+  animation: ovMokugyoFloatUp 0.9s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+  will-change: transform, opacity;
+}
+
+@keyframes ovMokugyoFloatUp {
+  0% {
+    opacity: 0;
+    transform: translate(0, 8px) scale(0.92);
+  }
+
+  15% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(var(--mokugyo-float-dx, 0px), -34px) scale(1.06);
+  }
 }
 
 .ov-dash-mokugyo-hit-btn {

@@ -469,7 +469,9 @@
     "mokugyo": {
       "title": "Electronic Mokugyo",
       "hint": "Tap mokugyo to build focus",
-      "strike": "Strike once"
+      "strike": "Strike once",
+      "total": "Total Merit",
+      "plusOne": "Merit +1"
     },
     "urlFavorites": {
       "title": "URL Favorites",

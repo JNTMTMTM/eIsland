@@ -55,6 +55,7 @@ const SIZES: { value: Size; color: string }[] = [
 
 const MOKUGYO_AUDIO_SRC = './audio/Mokugyo.wav';
 const MOKUGYO_HIT_ANIMATION_MS = 220;
+const MOKUGYO_FLOAT_DURATION_MS = 900;
 
 /** 单条待办 */
 interface TodoItem {
@@ -68,11 +69,19 @@ interface TodoItem {
   subTodos?: { id: number; text: string; done: boolean; priority?: Priority; size?: Size }[];
 }
 
+interface MokugyoFloatingMerit {
+  id: number;
+  driftX: number;
+}
+
 function MokugyoWidget(): React.ReactElement {
   const { t } = useTranslation();
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const hitResetTimerRef = useRef<number | null>(null);
+  const floatingTimerRef = useRef<Record<number, number>>({});
   const [hitting, setHitting] = useState(false);
+  const [meritCount, setMeritCount] = useState(0);
+  const [floatingMerits, setFloatingMerits] = useState<MokugyoFloatingMerit[]>([]);
 
   useEffect(() => {
     const audio = new Audio(MOKUGYO_AUDIO_SRC);
@@ -83,6 +92,10 @@ function MokugyoWidget(): React.ReactElement {
       if (hitResetTimerRef.current !== null) {
         window.clearTimeout(hitResetTimerRef.current);
       }
+      Object.values(floatingTimerRef.current).forEach((timerId) => {
+        window.clearTimeout(timerId);
+      });
+      floatingTimerRef.current = {};
       const current = audioRef.current;
       if (current) {
         current.pause();
@@ -93,10 +106,20 @@ function MokugyoWidget(): React.ReactElement {
   }, []);
 
   const handleStrike = useCallback((): void => {
+    setMeritCount((prev) => prev + 1);
     setHitting(false);
     window.requestAnimationFrame(() => {
       setHitting(true);
     });
+
+    const floatingId = Date.now() + Math.floor(Math.random() * 1000);
+    const driftX = Math.floor(Math.random() * 22) - 11;
+    setFloatingMerits((prev) => [...prev, { id: floatingId, driftX }]);
+    const timer = window.setTimeout(() => {
+      setFloatingMerits((prev) => prev.filter((item) => item.id !== floatingId));
+      delete floatingTimerRef.current[floatingId];
+    }, MOKUGYO_FLOAT_DURATION_MS);
+    floatingTimerRef.current[floatingId] = timer;
 
     if (hitResetTimerRef.current !== null) {
       window.clearTimeout(hitResetTimerRef.current);
@@ -120,8 +143,22 @@ function MokugyoWidget(): React.ReactElement {
     <div className="ov-dash-widget ov-dash-mokugyo-widget">
       <div className="ov-dash-widget-header">
         <span className="ov-dash-widget-title">{t('overview.mokugyo.title', { defaultValue: '电子木鱼' })}</span>
+        <span className="ov-dash-mokugyo-count">
+          {t('overview.mokugyo.total', { defaultValue: '累计功德' })} {meritCount}
+        </span>
       </div>
       <div className="ov-dash-mokugyo-body">
+        <div className="ov-dash-mokugyo-float-layer" aria-hidden="true">
+          {floatingMerits.map((item) => (
+            <span
+              key={item.id}
+              className="ov-dash-mokugyo-float"
+              style={{ '--mokugyo-float-dx': `${item.driftX}px` } as React.CSSProperties}
+            >
+              {t('overview.mokugyo.plusOne', { defaultValue: '功德+1' })}
+            </span>
+          ))}
+        </div>
         <button
           className="ov-dash-mokugyo-hit-btn"
           type="button"
