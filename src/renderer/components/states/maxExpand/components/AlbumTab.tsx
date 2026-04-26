@@ -232,7 +232,8 @@ function estimateBytesFromDataUrl(dataUrl: string): number {
   if (commaIdx < 0) return 0;
   const base64 = dataUrl.slice(commaIdx + 1);
   // 每 4 个 base64 字符对应 3 字节，padding 修正
-  const padding = base64.endsWith('==') ? 2 : base64.endsWith('=') ? 1 : 0;
+  const paddingMatch = base64.match(/=+$/);
+  const padding = Math.min(2, paddingMatch?.[0].length ?? 0);
   return Math.max(0, Math.floor((base64.length * 3) / 4) - padding);
 }
 
@@ -863,7 +864,7 @@ export function AlbumTab(): ReactElement {
     if (!activeItem || activeItem.mediaType !== 'image') return;
     if (zoom <= 1) return;
     setIsPanning(true);
-    panStartRef.current = { x: event.clientX, y: event.clientY, px: pan.x, py: pan.y };
+    panStartRef.current = {x: event.clientX, y: event.clientY, px: pan.x, py: pan.y};
   };
 
   /** 单图视图：拖动中 */
