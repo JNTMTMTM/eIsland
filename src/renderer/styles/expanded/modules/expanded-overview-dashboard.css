@@ -547,9 +547,21 @@
 
 /** 相册轮播控件 */
 .ov-dash-album-count {
-  margin-left: auto;
+  position: absolute;
+  top: 8px;
+  right: 8px;
   font-size: 10px;
-  color: rgba(var(--color-text-rgb), 0.4);
+  color: rgba(255, 255, 255, 0.82);
+  background: rgba(16, 16, 18, 0.42);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  padding: 2px 8px;
+  backdrop-filter: blur(4px);
+  z-index: 2;
+  opacity: 0;
+  transform: translateY(-4px);
+  pointer-events: none;
+  transition: opacity 0.22s ease, transform 0.22s ease;
 }
 
 .ov-dash-album-card {
@@ -598,18 +610,23 @@
   inset: 0;
   pointer-events: none;
   background: linear-gradient(180deg, transparent 42%, rgba(0, 0, 0, 0.62) 100%);
+  opacity: 0.76;
+  transition: opacity 0.22s ease;
 }
 
 .ov-dash-album-meta {
   position: absolute;
   left: 8px;
-  right: 8px;
+  right: 92px;
   bottom: 8px;
   display: flex;
   align-items: flex-end;
-  justify-content: space-between;
   gap: 8px;
   z-index: 1;
+  opacity: 0;
+  transform: translateY(6px);
+  pointer-events: none;
+  transition: opacity 0.22s ease, transform 0.22s ease;
 }
 
 .ov-dash-album-name {
@@ -629,12 +646,16 @@
 
 .ov-dash-album-controls {
   position: absolute;
-  top: 8px;
   right: 8px;
+  bottom: 8px;
   display: flex;
   align-items: center;
   gap: 6px;
-  z-index: 1;
+  z-index: 2;
+  opacity: 0;
+  transform: translateY(6px);
+  pointer-events: none;
+  transition: opacity 0.22s ease, transform 0.22s ease;
 }
 
 .ov-dash-album-btn {
@@ -666,6 +687,18 @@
   height: 11px;
   object-fit: contain;
   filter: brightness(0) invert(1);
+  opacity: 0.92;
+}
+
+.ov-dash-album-widget:hover .ov-dash-album-controls,
+.ov-dash-album-widget:hover .ov-dash-album-count,
+.ov-dash-album-widget:hover .ov-dash-album-meta {
+  opacity: 1;
+  transform: translate(0, 0);
+  pointer-events: auto;
+}
+
+.ov-dash-album-widget:hover .ov-dash-album-mask {
   opacity: 0.92;
 }
 

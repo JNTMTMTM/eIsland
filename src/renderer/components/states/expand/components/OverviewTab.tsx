@@ -876,7 +876,6 @@ function AlbumCarouselWidget({ openAlbumPage }: { openAlbumPage: () => void }): 
     <div className="ov-dash-widget ov-dash-album-widget">
       <div className="ov-dash-widget-header">
         <span className="ov-dash-widget-title ov-dash-widget-title--link" onClick={openAlbumPage}>{t('overview.album.title', { defaultValue: '相册轮播' })}</span>
-        <span className="ov-dash-album-count">{t('overview.album.count', { defaultValue: '{{count}} 项', count: displayItems.length })}</span>
       </div>
       {!activeItem ? (
         <div className="ov-dash-album-empty">{t('overview.album.empty', { defaultValue: '相册暂无媒体' })}</div>
@@ -886,6 +885,7 @@ function AlbumCarouselWidget({ openAlbumPage }: { openAlbumPage: () => void }): 
           onClick={canOpenAlbum ? openAlbumPage : undefined}
           title={canOpenAlbum ? t('overview.album.open', { defaultValue: '点击进入相册' }) : ''}
         >
+          <div className="ov-dash-album-count">{t('overview.album.position', { defaultValue: '{{index}} / {{total}}', index: activeIndex + 1, total: displayItems.length })}</div>
           {hasImagePreview ? (
             <img className="ov-dash-album-preview" src={imagePreviewUrl ?? undefined} alt={activeItem.name} />
           ) : hasVideoPreview ? (
@@ -907,9 +907,7 @@ function AlbumCarouselWidget({ openAlbumPage }: { openAlbumPage: () => void }): 
           <div className="ov-dash-album-mask" />
           <div className="ov-dash-album-meta">
             <div className="ov-dash-album-name" title={activeItem.name}>{activeItem.name}</div>
-            <div className="ov-dash-album-position">{t('overview.album.position', { defaultValue: '{{index}} / {{total}}', index: activeIndex + 1, total: displayItems.length })}</div>
           </div>
-
           <div className="ov-dash-album-controls" onClick={(e) => e.stopPropagation()}>
             <button className="ov-dash-album-btn" type="button" onClick={goPrev} title={t('overview.album.prev', { defaultValue: '上一张' })}>
               <img src={SvgIcon.PREVIOUS} alt={t('overview.album.prev', { defaultValue: '上一张' })} className="ov-dash-album-btn-icon" />
