@@ -125,6 +125,8 @@ export const SvgIcon = {
   INVISIBLE: './svg/INVISIBLE.svg',
   /** 相册 */
   PHOTO_ALBUM: './svg/PHOTO_ALBUM.svg',
+  /** 木鱼 */
+  MOKUGYO: './svg/MOKUGYO.svg',
 
 } as const;
 
