@@ -438,6 +438,7 @@ export function AlbumTab(): ReactElement {
   const [videoCurrentTime, setVideoCurrentTime] = useState<number>(0);
   const [videoDuration, setVideoDuration] = useState<number>(0);
   const [videoControlsCollapsed, setVideoControlsCollapsed] = useState<boolean>(false);
+  const [viewerSlideDir, setViewerSlideDir] = useState<'prev' | 'next'>('next');
   const [metaCache, setMetaCache] = useState<Record<number, AlbumMeta>>({});
   const metaCacheRef = useRef<Record<number, AlbumMeta>>({});
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -729,6 +730,7 @@ export function AlbumTab(): ReactElement {
     const idx = filteredItems.findIndex((it) => it.id === activeId);
     if (idx < 0) return;
     const nextIdx = (idx + delta + filteredItems.length) % filteredItems.length;
+    setViewerSlideDir(delta < 0 ? 'prev' : 'next');
     setActiveId(filteredItems[nextIdx].id);
     setZoom(1);
     setPan({ x: 0, y: 0 });
@@ -1030,6 +1032,7 @@ export function AlbumTab(): ReactElement {
 
   /** 进入单图视图 */
   const handleOpenItem = (item: AlbumItem): void => {
+    setViewerSlideDir('next');
     setActiveId(item.id);
     setZoom(1);
     setPan({ x: 0, y: 0 });
@@ -1374,104 +1377,106 @@ export function AlbumTab(): ReactElement {
                 onMouseLeave={activeIsVideo ? undefined : handleViewerMouseUp}
                 onDoubleClick={activeIsVideo ? undefined : handleResetZoom}
               >
-                {activeIsVideo && activeVideoUrl ? (
-                  <div className="album-viewer-video-wrap">
-                    <video
-                      ref={viewerVideoRef}
-                      className="album-viewer-video"
-                      src={activeVideoUrl}
-                      autoPlay
-                      playsInline
-                      preload="metadata"
-                      onLoadedMetadata={handleVideoLoadedMetadata}
-                      onTimeUpdate={handleVideoTimeUpdate}
-                      onEnded={() => setVideoPlaying(false)}
-                    />
-                    <div className={`album-video-controls${videoControlsCollapsed ? ' album-video-controls--collapsed' : ''}`}>
-                      <button
-                        className="album-text-btn album-video-control-btn album-video-control-btn--icon album-video-control-btn--toggle"
-                        type="button"
-                        onClick={handleToggleVideoControls}
-                        aria-label={videoControlsCollapsed ? t('albumTab.viewer.showControls') : t('albumTab.viewer.hideControls')}
-                        title={videoControlsCollapsed ? t('albumTab.viewer.showControls') : t('albumTab.viewer.hideControls')}
-                      >
-                        <span
-                          className="album-svg-icon"
-                          style={{ '--album-icon-src': `url(${videoControlsCollapsed ? SvgIcon.VISIBLE : SvgIcon.INVISIBLE})` } as CSSProperties}
-                          aria-hidden="true"
-                        />
-                      </button>
-                      {!videoControlsCollapsed ? (
-                        <>
-                      <button
-                        className="album-text-btn album-video-control-btn album-video-control-btn--icon"
-                        type="button"
-                        onClick={handleToggleVideoPlay}
-                        aria-label={videoPlaying ? t('albumTab.viewer.pause') : t('albumTab.viewer.play')}
-                        title={videoPlaying ? t('albumTab.viewer.pause') : t('albumTab.viewer.play')}
-                      >
-                        <span
-                          className="album-svg-icon"
-                          style={{ '--album-icon-src': `url(${videoPlaying ? SvgIcon.PAUSE : SvgIcon.CONTINUE})` } as CSSProperties}
-                          aria-hidden="true"
-                        />
-                      </button>
-                      <span className="album-video-time">
-                        {formatDuration(videoCurrentTime)} / {formatDuration(videoDuration)}
-                      </span>
-                      <input
-                        className="album-video-seek"
-                        type="range"
-                        min={0}
-                        max={videoDuration > 0 ? videoDuration : 0}
-                        step={0.1}
-                        value={Math.min(videoCurrentTime, videoDuration || 0)}
-                        onChange={handleVideoSeek}
-                        aria-label={t('albumTab.viewer.seek')}
-                        disabled={videoDuration <= 0}
+                <div className={`album-viewer-media-layer album-viewer-media-layer--${viewerSlideDir}`} key={activeItem.id}>
+                  {activeIsVideo && activeVideoUrl ? (
+                    <div className="album-viewer-video-wrap">
+                      <video
+                        ref={viewerVideoRef}
+                        className="album-viewer-video"
+                        src={activeVideoUrl}
+                        autoPlay
+                        playsInline
+                        preload="metadata"
+                        onLoadedMetadata={handleVideoLoadedMetadata}
+                        onTimeUpdate={handleVideoTimeUpdate}
+                        onEnded={() => setVideoPlaying(false)}
                       />
-                      <button
-                        className="album-text-btn album-video-control-btn album-video-control-btn--icon"
-                        type="button"
-                        onClick={handleToggleVideoMute}
-                        aria-label={videoMuted ? t('albumTab.viewer.unmute') : t('albumTab.viewer.mute')}
-                        title={videoMuted ? t('albumTab.viewer.unmute') : t('albumTab.viewer.mute')}
-                      >
-                        <span
-                          className="album-svg-icon"
-                          style={{ '--album-icon-src': `url(${videoMuted ? SvgIcon.MUTE : SvgIcon.UNMUTE})` } as CSSProperties}
-                          aria-hidden="true"
+                      <div className={`album-video-controls${videoControlsCollapsed ? ' album-video-controls--collapsed' : ''}`}>
+                        <button
+                          className="album-text-btn album-video-control-btn album-video-control-btn--icon album-video-control-btn--toggle"
+                          type="button"
+                          onClick={handleToggleVideoControls}
+                          aria-label={videoControlsCollapsed ? t('albumTab.viewer.showControls') : t('albumTab.viewer.hideControls')}
+                          title={videoControlsCollapsed ? t('albumTab.viewer.showControls') : t('albumTab.viewer.hideControls')}
+                        >
+                          <span
+                            className="album-svg-icon"
+                            style={{ '--album-icon-src': `url(${videoControlsCollapsed ? SvgIcon.VISIBLE : SvgIcon.INVISIBLE})` } as CSSProperties}
+                            aria-hidden="true"
+                          />
+                        </button>
+                        {!videoControlsCollapsed ? (
+                          <>
+                        <button
+                          className="album-text-btn album-video-control-btn album-video-control-btn--icon"
+                          type="button"
+                          onClick={handleToggleVideoPlay}
+                          aria-label={videoPlaying ? t('albumTab.viewer.pause') : t('albumTab.viewer.play')}
+                          title={videoPlaying ? t('albumTab.viewer.pause') : t('albumTab.viewer.play')}
+                        >
+                          <span
+                            className="album-svg-icon"
+                            style={{ '--album-icon-src': `url(${videoPlaying ? SvgIcon.PAUSE : SvgIcon.CONTINUE})` } as CSSProperties}
+                            aria-hidden="true"
+                          />
+                        </button>
+                        <span className="album-video-time">
+                          {formatDuration(videoCurrentTime)} / {formatDuration(videoDuration)}
+                        </span>
+                        <input
+                          className="album-video-seek"
+                          type="range"
+                          min={0}
+                          max={videoDuration > 0 ? videoDuration : 0}
+                          step={0.1}
+                          value={Math.min(videoCurrentTime, videoDuration || 0)}
+                          onChange={handleVideoSeek}
+                          aria-label={t('albumTab.viewer.seek')}
+                          disabled={videoDuration <= 0}
                         />
-                      </button>
-                      <input
-                        className="album-video-volume"
-                        type="range"
-                        min={0}
-                        max={1}
-                        step={0.01}
-                        value={videoMuted ? 0 : videoVolume}
-                        onChange={handleVideoVolumeChange}
-                        aria-label={t('albumTab.viewer.volume')}
-                      />
-                        </>
-                      ) : null}
+                        <button
+                          className="album-text-btn album-video-control-btn album-video-control-btn--icon"
+                          type="button"
+                          onClick={handleToggleVideoMute}
+                          aria-label={videoMuted ? t('albumTab.viewer.unmute') : t('albumTab.viewer.mute')}
+                          title={videoMuted ? t('albumTab.viewer.unmute') : t('albumTab.viewer.mute')}
+                        >
+                          <span
+                            className="album-svg-icon"
+                            style={{ '--album-icon-src': `url(${videoMuted ? SvgIcon.MUTE : SvgIcon.UNMUTE})` } as CSSProperties}
+                            aria-hidden="true"
+                          />
+                        </button>
+                        <input
+                          className="album-video-volume"
+                          type="range"
+                          min={0}
+                          max={1}
+                          step={0.01}
+                          value={videoMuted ? 0 : videoVolume}
+                          onChange={handleVideoVolumeChange}
+                          aria-label={t('albumTab.viewer.volume')}
+                        />
+                          </>
+                        ) : null}
+                      </div>
                     </div>
-                  </div>
-                ) : activeMeta?.dataUrl ? (
-                  <img
-                    className="album-viewer-image"
-                    src={activeMeta.dataUrl}
-                    alt={activeItem.name}
-                    draggable={false}
-                    style={{
-                      transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
-                    }}
-                  />
-                ) : activeMeta?.loadFailed ? (
-                  <span className="album-viewer-fallback">{t('albumTab.viewer.failed')}</span>
-                ) : (
-                  <span className="album-viewer-fallback">{t('albumTab.viewer.loading')}</span>
-                )}
+                  ) : activeMeta?.dataUrl ? (
+                    <img
+                      className="album-viewer-image"
+                      src={activeMeta.dataUrl}
+                      alt={activeItem.name}
+                      draggable={false}
+                      style={{
+                        transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
+                      }}
+                    />
+                  ) : activeMeta?.loadFailed ? (
+                    <span className="album-viewer-fallback">{t('albumTab.viewer.failed')}</span>
+                  ) : (
+                    <span className="album-viewer-fallback">{t('albumTab.viewer.loading')}</span>
+                  )}
+                </div>
               </div>
               <aside className="album-meta-panel">
                 <div className="album-meta-title">{t('albumTab.meta.title')}</div>

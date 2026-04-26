@@ -551,6 +551,44 @@
   cursor: zoom-in;
 }
 
+.album-viewer-media-layer {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: album-viewer-slide-next 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+  will-change: transform, opacity;
+}
+
+.album-viewer-media-layer--prev {
+  animation-name: album-viewer-slide-prev;
+}
+
+@keyframes album-viewer-slide-next {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes album-viewer-slide-prev {
+  from {
+    opacity: 0;
+    transform: translateX(-24px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 .album-viewer-canvas--pannable {
   cursor: grab;
 }
