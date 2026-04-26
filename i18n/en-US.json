@@ -768,6 +768,7 @@
       "index": "Navigation",
       "app": "App Settings",
       "layout-preview": "Layout Preview",
+      "album": "Album Settings",
       "hide-process-list": "Hidden Window List",
       "position": "Position Calibration",
       "theme": "Theme",
@@ -1786,6 +1787,10 @@
       "layout-preview": {
         "label": "Layout Preview",
         "desc": "Adjust left and right widgets in layout preview."
+      },
+      "album": {
+        "label": "Album Settings",
+        "desc": "Configure album carousel and album entry behavior."
       },
       "hide-process-list": {
         "label": "Hidden Window List",

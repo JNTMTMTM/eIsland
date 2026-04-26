@@ -768,6 +768,7 @@
       "index": "快速导航",
       "app": "软件设置",
       "layout-preview": "布局预览",
+      "album": "相册配置",
       "hide-process-list": "隐藏窗口管理",
       "position": "位置校准",
       "theme": "主题外观",
@@ -1781,6 +1782,10 @@
       "layout-preview": {
         "label": "布局预览",
         "desc": "进入布局预览并调整左右控件展示。"
+      },
+      "album": {
+        "label": "相册配置",
+        "desc": "相册轮播与相册入口相关配置。"
       },
       "hide-process-list": {
         "label": "隐藏窗口管理",

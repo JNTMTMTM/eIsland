@@ -35,6 +35,7 @@ import { LanguageSettingsPage } from './components/LanguageSettingsPage';
 import { UrlParserSettingsPage } from './components/UrlParserSettingsPage';
 import { ClipboardHistorySettingsSection } from './components/ClipboardHistorySettingsSection';
 import { AutostartSettingsPage } from './components/AutostartSettingsPage';
+import { AlbumSettingsPage } from './components/AlbumSettingsPage';
 import { AppSettingsPageDots } from './components/AppSettingsPageDots';
 import type { AppSettingsSectionProps } from './components/types';
 
@@ -157,6 +158,8 @@ export function AppSettingsSection({
             updateLayout={updateLayout}
           />
         );
+      case 'album':
+        return <AlbumSettingsPage />;
       case 'hide-process-list':
         return (
           <HideProcessSettingsPage

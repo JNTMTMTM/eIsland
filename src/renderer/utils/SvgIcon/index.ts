@@ -123,6 +123,8 @@ export const SvgIcon = {
   VISIBLE: './svg/VISIBLE.svg',
   /** 不可见 */
   INVISIBLE: './svg/INVISIBLE.svg',
+  /** 相册 */
+  PHOTO_ALBUM: './svg/PHOTO_ALBUM.svg',
 
 } as const;
 
