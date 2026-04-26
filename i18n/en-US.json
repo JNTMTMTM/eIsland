@@ -594,8 +594,10 @@
     "count": "{{count}} photos",
     "dropHint": "Drop to import images",
     "empty": {
-      "title": "No photos yet",
-      "desc": "Drag images here, or use the button below to choose images"
+      "title": "No images yet",
+      "desc": "Drag images/videos here, or click \"Add Images\"",
+      "filteredTitle": "No items under current filter",
+      "filteredDesc": "Switch to All / Images / Videos"
     },
     "actions": {
       "add": "Add Images",
@@ -609,7 +611,15 @@
       "addedDesc": "Most recently added",
       "addedAsc": "Earliest added first",
       "nameAsc": "Name A → Z",
-      "nameDesc": "Name Z → A"
+      "nameDesc": "Name Z → A",
+      "durationDesc": "Duration long → short",
+      "durationAsc": "Duration short → long"
+    },
+    "filter": {
+      "label": "Media Filter",
+      "all": "All",
+      "image": "Images",
+      "video": "Videos"
     },
     "columns": {
       "aria": "Adjust columns per row",
@@ -639,9 +649,15 @@
       "name": "Name",
       "format": "Format",
       "resolution": "Resolution",
+      "duration": "Duration",
       "size": "Size",
       "addedAt": "Added",
       "path": "Full Path",
+      "mediaType": "Media Type",
+      "mediaTypeImage": "Image",
+      "mediaTypeVideo": "Video",
+      "codec": "Codec",
+      "fps": "FPS",
       "setAsIslandBackground": "Set As Island Background",
       "exifTitle": "EXIF",
       "exifEmpty": "No EXIF data",
@@ -657,7 +673,7 @@
       "added": "Imported {{count}} image(s)",
       "cleared": "Album cleared",
       "allDuplicated": "Image already exists, skipped duplicates",
-      "unsupportedOnly": "No supported image format detected",
+      "unsupportedOnly": "No supported image/video format detected",
       "zoomReset": "Reset to actual size",
       "openInExplorerFailed": "Cannot locate {{name}}. The file may have been moved or deleted.",
       "saveAsSuccess": "Saved {{name}}",

@@ -46,7 +46,11 @@ const ISLAND_BG_MEDIA_STORE_KEY = 'island-bg-media';
 /** 兼容旧逻辑的背景图片键 */
 const ISLAND_BG_IMAGE_STORE_KEY = 'island-bg-image';
 /** 支持的图片扩展名（小写、不含点） */
-const SUPPORTED_EXTS = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp'];
+const IMAGE_EXTS = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp'];
+/** 支持的视频扩展名（小写、不含点） */
+const VIDEO_EXTS = ['mp4', 'webm', 'mov', 'm4v'];
+/** 支持的媒体扩展名（小写、不含点） */
+const SUPPORTED_EXTS = [...IMAGE_EXTS, ...VIDEO_EXTS];
 /** 总览每行最少列数 */
 const MIN_COLUMNS = 3;
 /** 总览每行最大列数 */
@@ -60,7 +64,9 @@ const ZOOM_MAX = 6;
 const ZOOM_STEP = 0.15;
 
 /** 相册条目排序模式 */
-export type AlbumSortMode = 'addedDesc' | 'addedAsc' | 'nameAsc' | 'nameDesc';
+export type AlbumSortMode = 'addedDesc' | 'addedAsc' | 'nameAsc' | 'nameDesc' | 'durationDesc' | 'durationAsc';
+export type AlbumFilterMode = 'all' | 'image' | 'video';
+type AlbumMediaType = 'image' | 'video';
 
 /** 相册条目（持久化结构） */
 export interface AlbumItem {
@@ -72,8 +78,20 @@ export interface AlbumItem {
   name: string;
   /** 小写扩展名（不含点） */
   ext: string;
+  /** 媒体类型 */
+  mediaType: AlbumMediaType;
   /** 添加到相册的时间戳（ms） */
   addedAt: number;
+}
+
+function formatDuration(seconds: number | undefined): string {
+  if (typeof seconds !== 'number' || !Number.isFinite(seconds) || seconds <= 0) return '-';
+  const total = Math.floor(seconds);
+  const h = Math.floor(total / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const s = total % 60;
+  if (h > 0) return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  return `${m}:${String(s).padStart(2, '0')}`;
 }
 
 interface IslandBgMediaConfig {
@@ -85,10 +103,18 @@ interface IslandBgMediaConfig {
 interface AlbumMeta {
   /** data URL，用于 <img> 显示 */
   dataUrl?: string;
+  /** 视频预览地址 */
+  videoUrl?: string;
   /** 图片像素宽度 */
   width?: number;
   /** 图片像素高度 */
   height?: number;
+  /** 视频时长（秒） */
+  durationSec?: number;
+  /** 视频编码（尽力识别） */
+  videoCodec?: string;
+  /** 视频帧率（受浏览器能力限制，可能无法读取） */
+  fps?: number;
   /** 估算的文件大小（字节） */
   sizeBytes?: number;
   /** 是否正在加载 */
@@ -117,6 +143,31 @@ interface AlbumExifData {
   focalLength?: number;
 }
 
+function getMediaTypeByExt(ext: string): AlbumMediaType | null {
+  if (IMAGE_EXTS.includes(ext)) return 'image';
+  if (VIDEO_EXTS.includes(ext)) return 'video';
+  return null;
+}
+
+function getVideoMimeByExt(ext: string): string {
+  if (ext === 'mp4' || ext === 'm4v') return 'video/mp4';
+  if (ext === 'webm') return 'video/webm';
+  if (ext === 'mov') return 'video/quicktime';
+  return 'video/mp4';
+}
+
+function revokeBlobUrl(url: string | undefined): void {
+  if (url && url.startsWith('blob:')) {
+    URL.revokeObjectURL(url);
+  }
+}
+
+function guessVideoCodecByExt(ext: string): string {
+  if (ext === 'mp4' || ext === 'm4v' || ext === 'mov') return 'H.264/H.265 (container-based)';
+  if (ext === 'webm') return 'VP8/VP9/AV1 (container-based)';
+  return '-';
+}
+
 /** 标准化数据，过滤非法项 */
 function sanitizeAlbumItems(data: unknown): AlbumItem[] {
   if (!Array.isArray(data)) return [];
@@ -133,12 +184,16 @@ function sanitizeAlbumItems(data: unknown): AlbumItem[] {
     const dotIdx = path.lastIndexOf('.');
     const ext = (dotIdx >= 0 ? path.slice(dotIdx + 1) : '').toLowerCase();
     if (ext && !SUPPORTED_EXTS.includes(ext)) return;
+    const mediaType = row.mediaType === 'image' || row.mediaType === 'video'
+      ? row.mediaType
+      : getMediaTypeByExt(ext);
+    if (!mediaType) return;
     const sepIdx = Math.max(path.lastIndexOf('\\'), path.lastIndexOf('/'));
     const fallbackName = sepIdx >= 0 ? path.slice(sepIdx + 1) : path;
     const name = typeof row.name === 'string' && row.name.trim() ? row.name.trim() : fallbackName;
     const addedAt = typeof row.addedAt === 'number' && Number.isFinite(row.addedAt) ? row.addedAt : Date.now();
     const id = typeof row.id === 'number' && Number.isFinite(row.id) ? row.id : addedAt;
-    result.push({ id, path, name, ext, addedAt });
+    result.push({ id, path, name, ext, mediaType, addedAt });
   });
   return result;
 }
@@ -332,7 +387,7 @@ function formatExposureTime(num: number, den: number): string {
 }
 
 /** 排序后的相册条目列表 */
-function sortAlbumItems(items: AlbumItem[], mode: AlbumSortMode): AlbumItem[] {
+function sortAlbumItems(items: AlbumItem[], mode: AlbumSortMode, metaCache: Record<number, AlbumMeta>): AlbumItem[] {
   const next = [...items];
   if (mode === 'addedDesc') {
     next.sort((a, b) => b.addedAt - a.addedAt);
@@ -340,6 +395,10 @@ function sortAlbumItems(items: AlbumItem[], mode: AlbumSortMode): AlbumItem[] {
     next.sort((a, b) => a.addedAt - b.addedAt);
   } else if (mode === 'nameAsc') {
     next.sort((a, b) => a.name.localeCompare(b.name));
+  } else if (mode === 'durationDesc') {
+    next.sort((a, b) => (metaCache[b.id]?.durationSec ?? -1) - (metaCache[a.id]?.durationSec ?? -1));
+  } else if (mode === 'durationAsc') {
+    next.sort((a, b) => (metaCache[a.id]?.durationSec ?? Number.MAX_SAFE_INTEGER) - (metaCache[b.id]?.durationSec ?? Number.MAX_SAFE_INTEGER));
   } else {
     next.sort((a, b) => b.name.localeCompare(a.name));
   }
@@ -362,6 +421,7 @@ export function AlbumTab(): ReactElement {
   const [loaded, setLoaded] = useState(false);
   const [columns, setColumns] = useState<number>(DEFAULT_COLUMNS);
   const [sortMode, setSortMode] = useState<AlbumSortMode>('addedDesc');
+  const [filterMode, setFilterMode] = useState<AlbumFilterMode>('all');
   const [activeId, setActiveId] = useState<number | null>(null);
   const [zoom, setZoom] = useState<number>(1);
   const [pan, setPan] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -370,7 +430,9 @@ export function AlbumTab(): ReactElement {
   const [confirmingClear, setConfirmingClear] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string>('');
   const [metaCache, setMetaCache] = useState<Record<number, AlbumMeta>>({});
+  const metaCacheRef = useRef<Record<number, AlbumMeta>>({});
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const gridVideoRefs = useRef<Record<number, HTMLVideoElement | null>>({});
   const metaLoadingRef = useRef<Set<number>>(new Set());
   const exifLoadingRef = useRef<Set<number>>(new Set());
   const panStartRef = useRef<{ x: number; y: number; px: number; py: number } | null>(null);
@@ -395,7 +457,7 @@ export function AlbumTab(): ReactElement {
       }
       setItems(parsed);
       setColumns(clampColumns(rawColumns));
-      if (rawSort === 'addedDesc' || rawSort === 'addedAsc' || rawSort === 'nameAsc' || rawSort === 'nameDesc') {
+      if (rawSort === 'addedDesc' || rawSort === 'addedAsc' || rawSort === 'nameAsc' || rawSort === 'nameDesc' || rawSort === 'durationDesc' || rawSort === 'durationAsc') {
         setSortMode(rawSort);
       }
       setLoaded(true);
@@ -431,11 +493,80 @@ export function AlbumTab(): ReactElement {
     return () => window.clearTimeout(timer);
   }, [statusMessage]);
 
-  /** 主动加载图片元数据（dataUrl + 尺寸 + 大小） */
+  useEffect(() => {
+    metaCacheRef.current = metaCache;
+  }, [metaCache]);
+
+  useEffect(() => {
+    return () => {
+      Object.values(metaCacheRef.current).forEach((meta) => revokeBlobUrl(meta.videoUrl));
+    };
+  }, []);
+
+  /** 主动加载媒体元数据（图像/视频） */
   const loadItemMeta = useCallback((item: AlbumItem): void => {
     if (metaLoadingRef.current.has(item.id)) return;
     metaLoadingRef.current.add(item.id);
     setMetaCache((prev) => ({ ...prev, [item.id]: { ...prev[item.id], loading: true } }));
+    if (item.mediaType === 'video') {
+      window.api.readLocalFileAsBuffer(item.path).then((buf) => {
+        if (!buf) throw new Error('video buffer read failed');
+        const mime = getVideoMimeByExt(item.ext);
+        const arrayBuffer = new ArrayBuffer(buf.byteLength);
+        new Uint8Array(arrayBuffer).set(buf);
+        const blobUrl = URL.createObjectURL(new Blob([arrayBuffer], { type: mime }));
+        const probe = document.createElement('video');
+        probe.preload = 'metadata';
+        probe.muted = true;
+        probe.playsInline = true;
+        probe.onloadedmetadata = () => {
+          setMetaCache((prev) => {
+            const previousVideoUrl = prev[item.id]?.videoUrl;
+            if (previousVideoUrl && previousVideoUrl !== blobUrl) {
+              revokeBlobUrl(previousVideoUrl);
+            }
+            return {
+              ...prev,
+              [item.id]: {
+                ...prev[item.id],
+                videoUrl: blobUrl,
+                width: probe.videoWidth,
+                height: probe.videoHeight,
+                durationSec: Number.isFinite(probe.duration) ? probe.duration : 0,
+                sizeBytes: buf.byteLength,
+                videoCodec: guessVideoCodecByExt(item.ext),
+                loading: false,
+                loadFailed: false,
+              },
+            };
+          });
+        };
+        probe.onerror = () => {
+          revokeBlobUrl(blobUrl);
+          setMetaCache((prev) => ({
+            ...prev,
+            [item.id]: {
+              ...prev[item.id],
+              loading: false,
+              loadFailed: true,
+            },
+          }));
+        };
+        probe.src = blobUrl;
+      }).catch(() => {
+        setMetaCache((prev) => ({
+          ...prev,
+          [item.id]: {
+            ...prev[item.id],
+            loading: false,
+            loadFailed: true,
+          },
+        }));
+      }).finally(() => {
+        metaLoadingRef.current.delete(item.id);
+      });
+      return;
+    }
     window.api.loadWallpaperFile(item.path).then((dataUrl) => {
       if (!dataUrl) {
         setMetaCache((prev) => ({ ...prev, [item.id]: { ...prev[item.id], loading: false, loadFailed: true } }));
@@ -479,6 +610,7 @@ export function AlbumTab(): ReactElement {
 
   /** 异步加载 JPEG 的 EXIF 信息（仅在单图视图时触发） */
   const loadExifIfNeeded = useCallback((item: AlbumItem): void => {
+    if (item.mediaType !== 'image') return;
     if (item.ext !== 'jpg' && item.ext !== 'jpeg') return;
     if (exifLoadingRef.current.has(item.id)) return;
     if (metaCache[item.id]?.exif) return;
@@ -498,14 +630,20 @@ export function AlbumTab(): ReactElement {
   }, [metaCache]);
 
   /** 已排序的条目列表 */
-  const sortedItems = useMemo(() => sortAlbumItems(items, sortMode), [items, sortMode]);
+  const sortedItems = useMemo(() => sortAlbumItems(items, sortMode, metaCache), [items, sortMode, metaCache]);
+  const filteredItems = useMemo(() => {
+    if (filterMode === 'image') return sortedItems.filter((item) => item.mediaType === 'image');
+    if (filterMode === 'video') return sortedItems.filter((item) => item.mediaType === 'video');
+    return sortedItems;
+  }, [sortedItems, filterMode]);
 
   /** 缩略图为可见时按需加载 dataUrl */
   useEffect(() => {
     if (!loaded || items.length === 0) return;
     items.forEach((item) => {
       const meta = metaCache[item.id];
-      if (!meta || (!meta.dataUrl && !meta.loading && !meta.loadFailed)) {
+      const hasPreview = item.mediaType === 'video' ? Boolean(meta?.videoUrl) : Boolean(meta?.dataUrl);
+      if (!meta || (!hasPreview && !meta.loading && !meta.loadFailed)) {
         loadItemMeta(item);
       }
     });
@@ -536,18 +674,18 @@ export function AlbumTab(): ReactElement {
     return () => window.removeEventListener('keydown', handler);
     // navigateInViewer 不是依赖（在闭包中读取最新值通过 ref 不必要）
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeId, sortedItems]);
+  }, [activeId, filteredItems]);
 
   /**
    * 在单图视图按方向切换图片
    * @param delta - 步进方向（-1 上一张，1 下一张）
    */
   function navigateInViewer(delta: number): void {
-    if (activeId === null || sortedItems.length === 0) return;
-    const idx = sortedItems.findIndex((it) => it.id === activeId);
+    if (activeId === null || filteredItems.length === 0) return;
+    const idx = filteredItems.findIndex((it) => it.id === activeId);
     if (idx < 0) return;
-    const nextIdx = (idx + delta + sortedItems.length) % sortedItems.length;
-    setActiveId(sortedItems[nextIdx].id);
+    const nextIdx = (idx + delta + filteredItems.length) % filteredItems.length;
+    setActiveId(filteredItems[nextIdx].id);
     setZoom(1);
     setPan({ x: 0, y: 0 });
   }
@@ -564,10 +702,12 @@ export function AlbumTab(): ReactElement {
       const dotIdx = path.lastIndexOf('.');
       const ext = (dotIdx >= 0 ? path.slice(dotIdx + 1) : '').toLowerCase();
       if (!ext || !SUPPORTED_EXTS.includes(ext)) return;
+      const mediaType = getMediaTypeByExt(ext);
+      if (!mediaType) return;
       const sepIdx = Math.max(path.lastIndexOf('\\'), path.lastIndexOf('/'));
       const name = sepIdx >= 0 ? path.slice(sepIdx + 1) : path;
       const addedAt = Date.now() + additions.length;
-      additions.push({ id: addedAt, path, name, ext, addedAt });
+      additions.push({ id: addedAt, path, name, ext, mediaType, addedAt });
     });
     if (additions.length === 0) {
       setStatusMessage(t('albumTab.status.unsupportedOnly'));
@@ -625,9 +765,13 @@ export function AlbumTab(): ReactElement {
   /** 切换排序模式 */
   const handleSortChange = (event: ChangeEvent<HTMLSelectElement>): void => {
     const value = event.target.value;
-    if (value === 'addedDesc' || value === 'addedAsc' || value === 'nameAsc' || value === 'nameDesc') {
+    if (value === 'addedDesc' || value === 'addedAsc' || value === 'nameAsc' || value === 'nameDesc' || value === 'durationDesc' || value === 'durationAsc') {
       setSortMode(value);
     }
+  };
+
+  const handleFilterModeChange = (mode: AlbumFilterMode): void => {
+    setFilterMode(mode);
   };
 
   /** 二次确认清空 */
@@ -637,6 +781,7 @@ export function AlbumTab(): ReactElement {
       window.setTimeout(() => setConfirmingClear(false), 2600);
       return;
     }
+    Object.values(metaCacheRef.current).forEach((meta) => revokeBlobUrl(meta.videoUrl));
     setItems([]);
     setMetaCache({});
     setActiveId(null);
@@ -649,6 +794,7 @@ export function AlbumTab(): ReactElement {
     setItems((prev) => prev.filter((it) => it.id !== id));
     setMetaCache((prev) => {
       const next = { ...prev };
+      revokeBlobUrl(next[id]?.videoUrl);
       delete next[id];
       return next;
     });
@@ -657,6 +803,7 @@ export function AlbumTab(): ReactElement {
 
   /** 单图视图：滚轮缩放 */
   const handleViewerWheel = (event: WheelEvent<HTMLDivElement>): void => {
+    if (!activeItem || activeItem.mediaType !== 'image') return;
     event.stopPropagation();
     event.preventDefault();
     setZoom((prev) => {
@@ -667,6 +814,7 @@ export function AlbumTab(): ReactElement {
 
   /** 单图视图：开始拖动 */
   const handleViewerMouseDown = (event: React.MouseEvent<HTMLDivElement>): void => {
+    if (!activeItem || activeItem.mediaType !== 'image') return;
     if (zoom <= 1) return;
     setIsPanning(true);
     panStartRef.current = { x: event.clientX, y: event.clientY, px: pan.x, py: pan.y };
@@ -737,10 +885,13 @@ export function AlbumTab(): ReactElement {
 
   /** 将当前图片设为灵动岛背景图（复用设置页同一存储与同步机制） */
   const handleSetAsIslandBackground = (item: AlbumItem): void => {
-    const media: IslandBgMediaConfig = { type: 'image', source: item.path };
-    const previewPromise = activeMeta?.dataUrl
-      ? Promise.resolve(activeMeta.dataUrl)
-      : window.api.loadWallpaperFile(item.path);
+    const media: IslandBgMediaConfig = {
+      type: item.mediaType,
+      source: item.mediaType === 'video' ? (activeMeta?.videoUrl || '') : item.path,
+    };
+    const previewPromise = item.mediaType === 'video'
+      ? Promise.resolve(activeMeta?.videoUrl || null)
+      : (activeMeta?.dataUrl ? Promise.resolve(activeMeta.dataUrl) : window.api.loadWallpaperFile(item.path));
 
     previewPromise.then((previewUrl) => {
       if (!previewUrl) {
@@ -758,9 +909,9 @@ export function AlbumTab(): ReactElement {
 
       Promise.all([
         window.api.storeWrite(ISLAND_BG_MEDIA_STORE_KEY, media),
-        window.api.storeWrite(ISLAND_BG_IMAGE_STORE_KEY, item.path),
+        window.api.storeWrite(ISLAND_BG_IMAGE_STORE_KEY, item.mediaType === 'image' ? item.path : null),
         window.api.settingsPreview('store:island-bg-media', media),
-        window.api.settingsPreview('store:island-bg-image', item.path),
+        window.api.settingsPreview('store:island-bg-image', item.mediaType === 'image' ? item.path : null),
       ]).then(() => {
         setStatusMessage(t('albumTab.status.setIslandBackgroundSuccess', { name: item.name }));
       }).catch(() => {
@@ -778,18 +929,39 @@ export function AlbumTab(): ReactElement {
     setPan({ x: 0, y: 0 });
   };
 
+  const handleThumbMouseEnter = (item: AlbumItem): void => {
+    if (item.mediaType !== 'video') return;
+    const el = gridVideoRefs.current[item.id];
+    if (!el) return;
+    el.play().catch(() => {});
+  };
+
+  const handleThumbMouseLeave = (item: AlbumItem): void => {
+    if (item.mediaType !== 'video') return;
+    const el = gridVideoRefs.current[item.id];
+    if (!el) return;
+    el.pause();
+    el.currentTime = 0;
+  };
+
   const totalCount = items.length;
   const activeItem = useMemo(
     () => (activeId === null ? null : items.find((it) => it.id === activeId) ?? null),
     [activeId, items],
   );
   const activeMeta = activeItem ? metaCache[activeItem.id] : undefined;
+  const activeIsVideo = activeItem?.mediaType === 'video';
+  const activeVideoUrl = activeItem && activeIsVideo
+    ? (activeMeta?.videoUrl || null)
+    : null;
 
   const sortOptions = useMemo<Array<{ value: AlbumSortMode; label: string }>>(() => ([
     { value: 'addedDesc', label: t('albumTab.sort.addedDesc') },
     { value: 'addedAsc', label: t('albumTab.sort.addedAsc') },
     { value: 'nameAsc', label: t('albumTab.sort.nameAsc') },
     { value: 'nameDesc', label: t('albumTab.sort.nameDesc') },
+    { value: 'durationDesc', label: t('albumTab.sort.durationDesc') },
+    { value: 'durationAsc', label: t('albumTab.sort.durationAsc') },
   ]), [t]);
 
   return (
@@ -821,6 +993,29 @@ export function AlbumTab(): ReactElement {
               ))}
             </select>
           </label>
+          <div className="album-filter-group" role="group" aria-label={t('albumTab.filter.label')}>
+            <button
+              className={`album-filter-btn${filterMode === 'all' ? ' album-filter-btn--active' : ''}`}
+              type="button"
+              onClick={() => handleFilterModeChange('all')}
+            >
+              {t('albumTab.filter.all')}
+            </button>
+            <button
+              className={`album-filter-btn${filterMode === 'image' ? ' album-filter-btn--active' : ''}`}
+              type="button"
+              onClick={() => handleFilterModeChange('image')}
+            >
+              {t('albumTab.filter.image')}
+            </button>
+            <button
+              className={`album-filter-btn${filterMode === 'video' ? ' album-filter-btn--active' : ''}`}
+              type="button"
+              onClick={() => handleFilterModeChange('video')}
+            >
+              {t('albumTab.filter.video')}
+            </button>
+          </div>
           <div className="album-columns" aria-label={t('albumTab.columns.aria')}>
             <button
               className="album-icon-btn"
@@ -891,9 +1086,14 @@ export function AlbumTab(): ReactElement {
                 {t('albumTab.actions.add')}
               </button>
             </div>
+          ) : filteredItems.length === 0 ? (
+            <div className="album-empty">
+              <div className="album-empty-title">{t('albumTab.empty.filteredTitle')}</div>
+              <div className="album-empty-desc">{t('albumTab.empty.filteredDesc')}</div>
+            </div>
           ) : (
             <div className="album-grid" onWheelCapture={(event) => event.stopPropagation()}>
-              {sortedItems.map((item) => {
+              {filteredItems.map((item) => {
                 const meta = metaCache[item.id];
                 return (
                   <div key={item.id} className="album-grid-item">
@@ -901,9 +1101,30 @@ export function AlbumTab(): ReactElement {
                       className="album-thumb"
                       type="button"
                       onClick={() => handleOpenItem(item)}
+                      onMouseEnter={() => handleThumbMouseEnter(item)}
+                      onMouseLeave={() => handleThumbMouseLeave(item)}
                       title={item.name}
                     >
-                      {meta?.dataUrl ? (
+                      {item.mediaType === 'video' ? (
+                        meta?.videoUrl ? (
+                        <>
+                          <video
+                            className="album-thumb-video"
+                            src={meta.videoUrl}
+                            muted
+                            loop
+                            playsInline
+                            preload="metadata"
+                            ref={(el) => { gridVideoRefs.current[item.id] = el; }}
+                          />
+                          <span className="album-thumb-badge">{formatDuration(meta?.durationSec)}</span>
+                        </>
+                        ) : meta?.loadFailed ? (
+                          <span className="album-thumb-fallback">{t('albumTab.thumb.failed')}</span>
+                        ) : (
+                          <span className="album-thumb-fallback">{t('albumTab.thumb.loading')}</span>
+                        )
+                      ) : meta?.dataUrl ? (
                         <img className="album-thumb-img" src={meta.dataUrl} alt={item.name} loading="lazy" />
                       ) : meta?.loadFailed ? (
                         <span className="album-thumb-fallback">{t('albumTab.thumb.failed')}</span>
@@ -954,7 +1175,7 @@ export function AlbumTab(): ReactElement {
                 className="album-icon-btn"
                 type="button"
                 onClick={() => navigateInViewer(-1)}
-                disabled={sortedItems.length <= 1}
+                disabled={filteredItems.length <= 1}
                 title={t('albumTab.viewer.prev')}
               >
                 <span
@@ -967,7 +1188,7 @@ export function AlbumTab(): ReactElement {
                 className="album-icon-btn"
                 type="button"
                 onClick={() => navigateInViewer(1)}
-                disabled={sortedItems.length <= 1}
+                disabled={filteredItems.length <= 1}
                 title={t('albumTab.viewer.next')}
               >
                 <span
@@ -977,7 +1198,8 @@ export function AlbumTab(): ReactElement {
                 />
               </button>
               <span className="album-viewer-name" title={activeItem.path}>{activeItem.name}</span>
-              <div className="album-viewer-zoom-group">
+              {!activeIsVideo ? (
+                <div className="album-viewer-zoom-group">
                 <button
                   className="album-icon-btn"
                   type="button"
@@ -1013,7 +1235,8 @@ export function AlbumTab(): ReactElement {
                 >
                   {t('albumTab.viewer.fit')}
                 </button>
-              </div>
+                </div>
+              ) : null}
               <div className="album-viewer-actions">
                 <button
                   className="album-text-btn"
@@ -1037,15 +1260,24 @@ export function AlbumTab(): ReactElement {
             {/* 主图 + 元数据侧栏 */}
             <div className="album-viewer-body">
               <div
-                className={`album-viewer-canvas${zoom > 1 ? ' album-viewer-canvas--pannable' : ''}${isPanning ? ' album-viewer-canvas--panning' : ''}`}
-                onWheel={handleViewerWheel}
-                onMouseDown={handleViewerMouseDown}
-                onMouseMove={handleViewerMouseMove}
-                onMouseUp={handleViewerMouseUp}
-                onMouseLeave={handleViewerMouseUp}
-                onDoubleClick={handleResetZoom}
+                className={`album-viewer-canvas${!activeIsVideo && zoom > 1 ? ' album-viewer-canvas--pannable' : ''}${!activeIsVideo && isPanning ? ' album-viewer-canvas--panning' : ''}${activeIsVideo ? ' album-viewer-canvas--video' : ''}`}
+                onWheel={activeIsVideo ? undefined : handleViewerWheel}
+                onMouseDown={activeIsVideo ? undefined : handleViewerMouseDown}
+                onMouseMove={activeIsVideo ? undefined : handleViewerMouseMove}
+                onMouseUp={activeIsVideo ? undefined : handleViewerMouseUp}
+                onMouseLeave={activeIsVideo ? undefined : handleViewerMouseUp}
+                onDoubleClick={activeIsVideo ? undefined : handleResetZoom}
               >
-                {activeMeta?.dataUrl ? (
+                {activeIsVideo && activeVideoUrl ? (
+                  <video
+                    className="album-viewer-video"
+                    src={activeVideoUrl}
+                    controls
+                    autoPlay
+                    playsInline
+                    preload="metadata"
+                  />
+                ) : activeMeta?.dataUrl ? (
                   <img
                     className="album-viewer-image"
                     src={activeMeta.dataUrl}
@@ -1073,6 +1305,10 @@ export function AlbumTab(): ReactElement {
                     <span className="album-meta-value">{activeItem.ext.toUpperCase() || '-'}</span>
                   </li>
                   <li className="album-meta-row">
+                    <span className="album-meta-label">{t('albumTab.meta.mediaType')}</span>
+                    <span className="album-meta-value">{activeItem.mediaType === 'video' ? t('albumTab.meta.mediaTypeVideo') : t('albumTab.meta.mediaTypeImage')}</span>
+                  </li>
+                  <li className="album-meta-row">
                     <span className="album-meta-label">{t('albumTab.meta.resolution')}</span>
                     <span className="album-meta-value">
                       {activeMeta?.width && activeMeta?.height
@@ -1080,6 +1316,22 @@ export function AlbumTab(): ReactElement {
                         : '-'}
                     </span>
                   </li>
+                  <li className="album-meta-row">
+                    <span className="album-meta-label">{t('albumTab.meta.duration')}</span>
+                    <span className="album-meta-value">{formatDuration(activeMeta?.durationSec)}</span>
+                  </li>
+                  {activeItem.mediaType === 'video' ? (
+                    <>
+                      <li className="album-meta-row">
+                        <span className="album-meta-label">{t('albumTab.meta.codec')}</span>
+                        <span className="album-meta-value">{activeMeta?.videoCodec || '-'}</span>
+                      </li>
+                      <li className="album-meta-row">
+                        <span className="album-meta-label">{t('albumTab.meta.fps')}</span>
+                        <span className="album-meta-value">{typeof activeMeta?.fps === 'number' ? `${activeMeta.fps.toFixed(2)} FPS` : '-'}</span>
+                      </li>
+                    </>
+                  ) : null}
                   <li className="album-meta-row">
                     <span className="album-meta-label">{t('albumTab.meta.size')}</span>
                     <span className="album-meta-value">{formatBytes(activeMeta?.sizeBytes)}</span>
@@ -1094,7 +1346,7 @@ export function AlbumTab(): ReactElement {
                   </li>
                 </ul>
 
-                {activeMeta?.exif ? (
+                {activeItem.mediaType === 'image' && activeMeta?.exif ? (
                   <>
                     <div className="album-meta-title album-meta-title--sub">{t('albumTab.meta.exifTitle')}</div>
                     <ul className="album-meta-list">
@@ -1142,7 +1394,7 @@ export function AlbumTab(): ReactElement {
                       ) : null}
                     </ul>
                   </>
-                ) : (activeItem.ext === 'jpg' || activeItem.ext === 'jpeg') ? (
+                ) : (activeItem.mediaType === 'image' && (activeItem.ext === 'jpg' || activeItem.ext === 'jpeg')) ? (
                   <div className="album-meta-empty">{t('albumTab.meta.exifEmpty')}</div>
                 ) : null}
 

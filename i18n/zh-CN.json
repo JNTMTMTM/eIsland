@@ -595,7 +595,9 @@
     "dropHint": "释放鼠标即可导入图片",
     "empty": {
       "title": "还没有图片",
-      "desc": "将图片拖到此处，或点击下方按钮选择图片"
+      "desc": "拖拽图片/视频到这里，或点击“添加图片”",
+      "filteredTitle": "当前筛选下没有内容",
+      "filteredDesc": "切换为全部/图片/视频查看"
     },
     "actions": {
       "add": "添加图片",
@@ -609,7 +611,15 @@
       "addedDesc": "最近添加优先",
       "addedAsc": "最早添加优先",
       "nameAsc": "文件名升序",
-      "nameDesc": "文件名降序"
+      "nameDesc": "文件名降序",
+      "durationDesc": "时长从长到短",
+      "durationAsc": "时长从短到长"
+    },
+    "filter": {
+      "label": "媒体筛选",
+      "all": "全部",
+      "image": "仅图片",
+      "video": "仅视频"
     },
     "columns": {
       "aria": "调整每行列数",
@@ -639,9 +649,15 @@
       "name": "文件名",
       "format": "格式",
       "resolution": "分辨率",
+      "duration": "时长",
       "size": "文件大小",
       "addedAt": "添加时间",
       "path": "完整路径",
+      "mediaType": "媒体类型",
+      "mediaTypeImage": "图片",
+      "mediaTypeVideo": "视频",
+      "codec": "编码",
+      "fps": "帧率",
       "setAsIslandBackground": "设为灵动岛背景图片",
       "exifTitle": "EXIF 信息",
       "exifEmpty": "未读取到 EXIF 信息",
@@ -657,7 +673,7 @@
       "added": "已添加 {{count}} 张图片",
       "cleared": "相册已清空",
       "allDuplicated": "图片已存在，未重复添加",
-      "unsupportedOnly": "未识别到受支持的图片格式",
+      "unsupportedOnly": "未识别到受支持的图片/视频格式",
       "zoomReset": "已恢复到实际大小",
       "openInExplorerFailed": "无法定位 {{name}}，文件可能已被移动或删除",
       "saveAsSuccess": "已保存 {{name}}",
