@@ -116,6 +116,15 @@ interface OverviewAlbumItem {
   addedAt: number;
 }
 
+function getOverviewVideoMimeByExt(ext: string): string {
+  if (ext === 'mp4' || ext === 'm4v') return 'video/mp4';
+  if (ext === 'webm') return 'video/webm';
+  if (ext === 'mov') return 'video/quicktime';
+  if (ext === 'avi') return 'video/x-msvideo';
+  if (ext === 'mkv') return 'video/x-matroska';
+  return 'video/mp4';
+}
+
 /** 总览控件类型 */
 export type OverviewWidgetType = 'shortcuts' | 'todo' | 'song' | 'countdown' | 'pomodoro' | 'urlFavorites' | 'album';
 
@@ -646,6 +655,7 @@ function AlbumCarouselWidget({ openAlbumPage }: { openAlbumPage: () => void }): 
   const [activeIndex, setActiveIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
+  const [videoPreviewUrl, setVideoPreviewUrl] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -680,23 +690,70 @@ function AlbumCarouselWidget({ openAlbumPage }: { openAlbumPage: () => void }): 
 
   useEffect(() => {
     let cancelled = false;
-    if (!activeItem || activeItem.mediaType !== 'image') {
+    if (!activeItem) {
       setImagePreviewUrl(null);
+      setVideoPreviewUrl((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return null;
+      });
       return () => {
         cancelled = true;
       };
     }
-    window.api.loadWallpaperFile(activeItem.path).then((dataUrl) => {
-      if (cancelled) return;
-      setImagePreviewUrl(dataUrl || null);
+
+    if (activeItem.mediaType === 'image') {
+      setVideoPreviewUrl((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return null;
+      });
+      window.api.loadWallpaperFile(activeItem.path).then((dataUrl) => {
+        if (cancelled) return;
+        setImagePreviewUrl(dataUrl || null);
+      }).catch(() => {
+        if (cancelled) return;
+        setImagePreviewUrl(null);
+      });
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    setImagePreviewUrl(null);
+    window.api.readLocalFileAsBuffer(activeItem.path).then((buf) => {
+      if (cancelled || !buf) return;
+      const mime = getOverviewVideoMimeByExt(activeItem.ext);
+      const arrayBuffer = new ArrayBuffer(buf.byteLength);
+      new Uint8Array(arrayBuffer).set(buf);
+      const blob = new Blob([arrayBuffer], { type: mime });
+      const nextUrl = URL.createObjectURL(blob);
+      setVideoPreviewUrl((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return nextUrl;
+      });
     }).catch(() => {
       if (cancelled) return;
-      setImagePreviewUrl(null);
+      setVideoPreviewUrl((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return null;
+      });
     });
+
     return () => {
       cancelled = true;
     };
-  }, [activeItem?.id, activeItem?.mediaType, activeItem?.path]);
+  }, [activeItem?.id, activeItem?.mediaType, activeItem?.path, activeItem?.ext]);
+
+  useEffect(() => {
+    return () => {
+      setVideoPreviewUrl((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return null;
+      });
+    };
+  }, []);
+
+  const hasImagePreview = activeItem?.mediaType === 'image' && Boolean(imagePreviewUrl);
+  const hasVideoPreview = activeItem?.mediaType === 'video' && Boolean(videoPreviewUrl);
 
   const goNext = useCallback(() => {
     setActiveIndex((prev) => {
@@ -730,8 +787,18 @@ function AlbumCarouselWidget({ openAlbumPage }: { openAlbumPage: () => void }): 
         <div className="ov-dash-album-empty">{t('overview.album.empty', { defaultValue: '相册暂无媒体' })}</div>
       ) : (
         <div className="ov-dash-album-card" onClick={openAlbumPage} title={t('overview.album.open', { defaultValue: '点击进入相册' })}>
-          {activeItem.mediaType === 'image' && imagePreviewUrl ? (
-            <img className="ov-dash-album-preview" src={imagePreviewUrl} alt={activeItem.name} />
+          {hasImagePreview ? (
+            <img className="ov-dash-album-preview" src={imagePreviewUrl ?? undefined} alt={activeItem.name} />
+          ) : hasVideoPreview ? (
+            <video
+              className="ov-dash-album-preview ov-dash-album-video"
+              src={videoPreviewUrl || undefined}
+              muted
+              autoPlay
+              loop
+              playsInline
+              preload="metadata"
+            />
           ) : (
             <div className="ov-dash-album-fallback">
               <img src={SvgIcon.MUSIC} alt="" className="ov-dash-album-fallback-icon" />
