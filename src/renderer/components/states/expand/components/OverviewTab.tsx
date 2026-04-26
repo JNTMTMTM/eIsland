@@ -689,6 +689,7 @@ function AlbumCarouselWidget({ openAlbumPage }: { openAlbumPage: () => void }): 
   const [albumConfig, setAlbumConfig] = useState<OverviewAlbumCardConfig>(() => normalizeOverviewAlbumCardConfig(null));
   const [activeIndex, setActiveIndex] = useState(0);
   const [paused, setPaused] = useState(false);
+  const [slideDir, setSlideDir] = useState<'prev' | 'next'>('next');
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
   const [videoPreviewUrl, setVideoPreviewUrl] = useState<string | null>(null);
 
@@ -826,6 +827,7 @@ function AlbumCarouselWidget({ openAlbumPage }: { openAlbumPage: () => void }): 
   const hasVideoPreview = activeItem?.mediaType === 'video' && Boolean(videoPreviewUrl);
 
   const goNext = useCallback(() => {
+    setSlideDir('next');
     setActiveIndex((prev) => {
       if (displayItems.length <= 1) return prev;
       if (albumConfig.orderMode === 'random') {
@@ -840,6 +842,7 @@ function AlbumCarouselWidget({ openAlbumPage }: { openAlbumPage: () => void }): 
   }, [displayItems.length, albumConfig.orderMode]);
 
   const goPrev = useCallback(() => {
+    setSlideDir('prev');
     setActiveIndex((prev) => {
       if (displayItems.length <= 1) return prev;
       if (albumConfig.orderMode === 'random') {
@@ -856,6 +859,7 @@ function AlbumCarouselWidget({ openAlbumPage }: { openAlbumPage: () => void }): 
   useEffect(() => {
     if (paused || !albumConfig.autoRotate || displayItems.length <= 1) return;
     const timer = setInterval(() => {
+      setSlideDir('next');
       setActiveIndex((prev) => {
         if (albumConfig.orderMode === 'random') {
           let next = prev;
@@ -886,7 +890,7 @@ function AlbumCarouselWidget({ openAlbumPage }: { openAlbumPage: () => void }): 
           title={canOpenAlbum ? t('overview.album.open', { defaultValue: '点击进入相册' }) : ''}
         >
           <div className="ov-dash-album-count">{t('overview.album.position', { defaultValue: '{{index}} / {{total}}', index: activeIndex + 1, total: displayItems.length })}</div>
-          <div className="ov-dash-album-media" key={`${activeItem.id}-${activeItem.mediaType}`}>
+          <div className={`ov-dash-album-media ov-dash-album-media--${slideDir}`} key={`${activeItem.id}-${activeItem.mediaType}`}>
             {hasImagePreview ? (
               <img className="ov-dash-album-preview" src={imagePreviewUrl ?? undefined} alt={activeItem.name} />
             ) : hasVideoPreview ? (
