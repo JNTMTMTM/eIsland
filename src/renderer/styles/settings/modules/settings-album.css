@@ -609,6 +609,16 @@
   color: rgba(var(--color-text-rgb), 0.5);
 }
 
+.album-meta-actions {
+  margin-top: 4px;
+  display: flex;
+}
+
+.album-meta-apply-btn {
+  width: 100%;
+  justify-content: center;
+}
+
 /* ===== Drop mask ===== */
 
 .album-drop-mask {

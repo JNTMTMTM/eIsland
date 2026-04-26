@@ -642,6 +642,7 @@
       "size": "文件大小",
       "addedAt": "添加时间",
       "path": "完整路径",
+      "setAsIslandBackground": "设为灵动岛背景图片",
       "exifTitle": "EXIF 信息",
       "exifEmpty": "未读取到 EXIF 信息",
       "make": "厂商",
@@ -661,7 +662,9 @@
       "openInExplorerFailed": "无法定位 {{name}}，文件可能已被移动或删除",
       "saveAsSuccess": "已保存 {{name}}",
       "saveAsCanceled": "已取消保存",
-      "saveAsFailed": "保存 {{name}} 失败，请稍后重试"
+      "saveAsFailed": "保存 {{name}} 失败，请稍后重试",
+      "setIslandBackgroundSuccess": "已将 {{name}} 设为灵动岛背景",
+      "setIslandBackgroundFailed": "设置灵动岛背景失败，请稍后重试"
     }
   },
   "sliderCaptcha": {

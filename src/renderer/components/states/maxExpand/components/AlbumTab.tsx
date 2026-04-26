@@ -39,6 +39,12 @@ const LOCAL_STORAGE_KEY = 'eIsland_photo_album_items';
 const COLUMNS_STORE_KEY = 'photo-album-columns';
 /** 总览排序模式持久化键 */
 const SORT_STORE_KEY = 'photo-album-sort';
+/** 灵动岛背景本地同步事件名（与设置页保持一致） */
+const LOCAL_ISLAND_BG_SYNC_EVENT = 'island-bg-local-sync';
+/** 灵动岛背景媒体持久化键 */
+const ISLAND_BG_MEDIA_STORE_KEY = 'island-bg-media';
+/** 兼容旧逻辑的背景图片键 */
+const ISLAND_BG_IMAGE_STORE_KEY = 'island-bg-image';
 /** 支持的图片扩展名（小写、不含点） */
 const SUPPORTED_EXTS = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp'];
 /** 总览每行最少列数 */
@@ -70,6 +76,11 @@ export interface AlbumItem {
   addedAt: number;
 }
 
+interface IslandBgMediaConfig {
+  type: 'image' | 'video';
+  source: string;
+}
+
 /** 相册条目运行时元数据（不持久化） */
 interface AlbumMeta {
   /** data URL，用于 <img> 显示 */
@@ -85,11 +96,11 @@ interface AlbumMeta {
   /** 加载是否失败 */
   loadFailed?: boolean;
   /** 简易 EXIF 信息（仅 JPEG 尝试解析） */
-  exif?: AlbumExifInfo;
+  exif?: AlbumExifData;
 }
 
 /** 简易 EXIF 信息 */
-interface AlbumExifInfo {
+interface AlbumExifData {
   /** 厂商，如 Canon */
   make?: string;
   /** 机型，如 EOS R5 */
@@ -175,7 +186,7 @@ function estimateBytesFromDataUrl(dataUrl: string): number {
  * @param buf - 文件二进制数据
  * @returns 解析得到的 EXIF 信息，缺失字段以 undefined 表示
  */
-function parseJpegExif(buf: Uint8Array): AlbumExifInfo | undefined {
+function parseJpegExif(buf: Uint8Array): AlbumExifData | undefined {
   if (buf.length < 4) return undefined;
   if (buf[0] !== 0xFF || buf[1] !== 0xD8) return undefined;
   let offset = 2;
@@ -200,7 +211,7 @@ function parseJpegExif(buf: Uint8Array): AlbumExifInfo | undefined {
 }
 
 /** 解析 TIFF 段（EXIF 内部结构） */
-function parseExifTiff(buf: Uint8Array, tiffStart: number): AlbumExifInfo | undefined {
+function parseExifTiff(buf: Uint8Array, tiffStart: number): AlbumExifData | undefined {
   if (tiffStart + 8 > buf.length) return undefined;
   const b0 = buf[tiffStart];
   const b1 = buf[tiffStart + 1];
@@ -216,7 +227,7 @@ function parseExifTiff(buf: Uint8Array, tiffStart: number): AlbumExifInfo | unde
   const magic = view.getUint16(tiffStart + 2, little);
   if (magic !== 0x002A) return undefined;
   const ifd0Offset = view.getUint32(tiffStart + 4, little);
-  const exif: AlbumExifInfo = {};
+  const exif: AlbumExifData = {};
   const exifIfdOffset = readIfdEntries(view, buf, tiffStart, tiffStart + ifd0Offset, little, exif, true);
   if (exifIfdOffset > 0) {
     readIfdEntries(view, buf, tiffStart, tiffStart + exifIfdOffset, little, exif, false);
@@ -238,7 +249,7 @@ function readIfdEntries(
   tiffStart: number,
   ifdStart: number,
   little: boolean,
-  exif: AlbumExifInfo,
+  exif: AlbumExifData,
   isIfd0: boolean,
 ): number {
   if (ifdStart + 2 > buf.length) return 0;
@@ -724,6 +735,42 @@ export function AlbumTab(): ReactElement {
     });
   };
 
+  /** 将当前图片设为灵动岛背景图（复用设置页同一存储与同步机制） */
+  const handleSetAsIslandBackground = (item: AlbumItem): void => {
+    const media: IslandBgMediaConfig = { type: 'image', source: item.path };
+    const previewPromise = activeMeta?.dataUrl
+      ? Promise.resolve(activeMeta.dataUrl)
+      : window.api.loadWallpaperFile(item.path);
+
+    previewPromise.then((previewUrl) => {
+      if (!previewUrl) {
+        setStatusMessage(t('albumTab.status.setIslandBackgroundFailed'));
+        return;
+      }
+
+      window.dispatchEvent(new CustomEvent(LOCAL_ISLAND_BG_SYNC_EVENT, {
+        detail: {
+          media,
+          previewUrl,
+          image: previewUrl,
+        },
+      }));
+
+      Promise.all([
+        window.api.storeWrite(ISLAND_BG_MEDIA_STORE_KEY, media),
+        window.api.storeWrite(ISLAND_BG_IMAGE_STORE_KEY, item.path),
+        window.api.settingsPreview('store:island-bg-media', media),
+        window.api.settingsPreview('store:island-bg-image', item.path),
+      ]).then(() => {
+        setStatusMessage(t('albumTab.status.setIslandBackgroundSuccess', { name: item.name }));
+      }).catch(() => {
+        setStatusMessage(t('albumTab.status.setIslandBackgroundFailed'));
+      });
+    }).catch(() => {
+      setStatusMessage(t('albumTab.status.setIslandBackgroundFailed'));
+    });
+  };
+
   /** 进入单图视图 */
   const handleOpenItem = (item: AlbumItem): void => {
     setActiveId(item.id);
@@ -899,7 +946,7 @@ export function AlbumTab(): ReactElement {
               >
                 <span
                   className="album-svg-icon"
-                  style={{ '--album-icon-src': `url(${SvgIcon.RETURN})` } as CSSProperties}
+                  style={{ '--album-icon-src': `url(${SvgIcon.REVERT})` } as CSSProperties}
                   aria-hidden="true"
                 />
               </button>
@@ -1098,6 +1145,17 @@ export function AlbumTab(): ReactElement {
                 ) : (activeItem.ext === 'jpg' || activeItem.ext === 'jpeg') ? (
                   <div className="album-meta-empty">{t('albumTab.meta.exifEmpty')}</div>
                 ) : null}
+
+                <div className="album-meta-actions">
+                  <button
+                    className="album-primary-btn album-meta-apply-btn"
+                    type="button"
+                    onClick={() => handleSetAsIslandBackground(activeItem)}
+                    title={t('albumTab.meta.setAsIslandBackground')}
+                  >
+                    {t('albumTab.meta.setAsIslandBackground')}
+                  </button>
+                </div>
               </aside>
             </div>
           </div>

@@ -642,6 +642,7 @@
       "size": "Size",
       "addedAt": "Added",
       "path": "Full Path",
+      "setAsIslandBackground": "Set As Island Background",
       "exifTitle": "EXIF",
       "exifEmpty": "No EXIF data",
       "make": "Make",
@@ -661,7 +662,9 @@
       "openInExplorerFailed": "Cannot locate {{name}}. The file may have been moved or deleted.",
       "saveAsSuccess": "Saved {{name}}",
       "saveAsCanceled": "Save canceled",
-      "saveAsFailed": "Failed to save {{name}}. Please try again."
+      "saveAsFailed": "Failed to save {{name}}. Please try again.",
+      "setIslandBackgroundSuccess": "Set {{name}} as island background",
+      "setIslandBackgroundFailed": "Failed to set island background. Please try again."
     }
   },
   "sliderCaptcha": {
