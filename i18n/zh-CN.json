@@ -659,7 +659,9 @@
       "unsupportedOnly": "未识别到受支持的图片格式",
       "zoomReset": "已恢复到实际大小",
       "openInExplorerFailed": "无法定位 {{name}}，文件可能已被移动或删除",
-      "saveAsComing": "即将上线：另存 {{name}}"
+      "saveAsSuccess": "已保存 {{name}}",
+      "saveAsCanceled": "已取消保存",
+      "saveAsFailed": "保存 {{name}} 失败，请稍后重试"
     }
   },
   "sliderCaptcha": {

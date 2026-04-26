@@ -354,6 +354,14 @@ const api = {
     return ipcRenderer.invoke('app:open-in-explorer', filePath);
   },
   /**
+   * 将图片另存到用户指定路径
+   * @param sourcePath - 源图片绝对路径
+   * @returns 保存结果（ok/canceled/filePath）
+   */
+  saveImageAs: (sourcePath: string): Promise<{ ok: boolean; canceled: boolean; filePath: string | null }> => {
+    return ipcRenderer.invoke('app:save-image-as', sourcePath);
+  },
+  /**
    * 解析快捷方式 (.lnk)
    * @param lnkPath - .lnk 文件路径
    * @returns 目标路径和名称，或 null

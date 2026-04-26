@@ -706,9 +706,21 @@ export function AlbumTab(): ReactElement {
     });
   };
 
-  /** Phase 2 占位：另存为 */
+  /** 将当前图片另存到用户指定位置 */
   const handleSaveAs = (item: AlbumItem): void => {
-    setStatusMessage(t('albumTab.status.saveAsComing', { name: item.name }));
+    window.api.saveImageAs(item.path).then((result) => {
+      if (result.ok && result.filePath) {
+        setStatusMessage(t('albumTab.status.saveAsSuccess', { name: item.name }));
+        return;
+      }
+      if (result.canceled) {
+        setStatusMessage(t('albumTab.status.saveAsCanceled'));
+        return;
+      }
+      setStatusMessage(t('albumTab.status.saveAsFailed', { name: item.name }));
+    }).catch(() => {
+      setStatusMessage(t('albumTab.status.saveAsFailed', { name: item.name }));
+    });
   };
 
   /** 进入单图视图 */

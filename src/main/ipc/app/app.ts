@@ -27,7 +27,7 @@
 
 import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron';
 import { existsSync } from 'fs';
-import { readdir } from 'fs/promises';
+import { copyFile, readdir } from 'fs/promises';
 import { basename } from 'path';
 import { clearLogsCacheFiles, ensureLogsDir } from '../../log/mainLog';
 import { openStandaloneWindow, closeStandaloneWindow } from '../../window/standaloneWindow';
@@ -297,6 +297,40 @@ export function registerAppIpcHandlers(): void {
     } catch (err) {
       console.error('[App] open-in-explorer error:', err);
       return false;
+    }
+  });
+
+  ipcMain.handle('app:save-image-as', async (event, sourcePath: string) => {
+    try {
+      if (!sourcePath || typeof sourcePath !== 'string') {
+        return { ok: false, canceled: false, filePath: null as string | null };
+      }
+      if (!existsSync(sourcePath)) {
+        return { ok: false, canceled: false, filePath: null as string | null };
+      }
+
+      const win = BrowserWindow.fromWebContents(event.sender) ?? BrowserWindow.getFocusedWindow();
+      if (!win) {
+        return { ok: false, canceled: false, filePath: null as string | null };
+      }
+
+      const defaultName = basename(sourcePath);
+      const saveDialogResult = await dialog.showSaveDialog(win, {
+        title: '保存图片',
+        defaultPath: defaultName,
+        filters: [{ name: '图片文件', extensions: ['jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp'] }],
+      });
+
+      if (saveDialogResult.canceled || !saveDialogResult.filePath) {
+        return { ok: false, canceled: true, filePath: null as string | null };
+      }
+
+      await copyFile(sourcePath, saveDialogResult.filePath);
+      shell.showItemInFolder(saveDialogResult.filePath);
+      return { ok: true, canceled: false, filePath: saveDialogResult.filePath };
+    } catch (err) {
+      console.error('[App] save-image-as error:', err);
+      return { ok: false, canceled: false, filePath: null as string | null };
     }
   });
 

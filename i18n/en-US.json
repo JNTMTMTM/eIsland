@@ -659,7 +659,9 @@
       "unsupportedOnly": "No supported image format detected",
       "zoomReset": "Reset to actual size",
       "openInExplorerFailed": "Cannot locate {{name}}. The file may have been moved or deleted.",
-      "saveAsComing": "Coming soon: save {{name}} as…"
+      "saveAsSuccess": "Saved {{name}}",
+      "saveAsCanceled": "Save canceled",
+      "saveAsFailed": "Failed to save {{name}}. Please try again."
     }
   },
   "sliderCaptcha": {
