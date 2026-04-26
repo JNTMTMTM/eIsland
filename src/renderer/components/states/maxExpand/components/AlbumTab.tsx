@@ -27,8 +27,9 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { ChangeEvent, DragEvent, ReactElement, WheelEvent } from 'react';
+import type { CSSProperties, ChangeEvent, DragEvent, ReactElement, WheelEvent } from 'react';
 import { useTranslation } from 'react-i18next';
+import { SvgIcon } from '../../../../utils/SvgIcon';
 
 /** 持久化键（store） */
 const STORE_KEY = 'photo-album-items';
@@ -134,7 +135,7 @@ function sanitizeAlbumItems(data: unknown): AlbumItem[] {
 /** 写入持久化（store + localStorage 兜底） */
 function persistAlbumItems(items: AlbumItem[]): void {
   try { localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(items)); } catch { /* noop */ }
-  window.api.storeWrite(STORE_KEY, items).catch(() => {});
+  window.api.storeWrite(STORE_KEY, items).catch(() => { });
 }
 
 /** 文件大小格式化为可读字符串 */
@@ -403,13 +404,13 @@ export function AlbumTab(): ReactElement {
   /** 持久化列数 */
   useEffect(() => {
     if (!loaded) return;
-    window.api.storeWrite(COLUMNS_STORE_KEY, columns).catch(() => {});
+    window.api.storeWrite(COLUMNS_STORE_KEY, columns).catch(() => { });
   }, [columns, loaded]);
 
   /** 持久化排序模式 */
   useEffect(() => {
     if (!loaded) return;
-    window.api.storeWrite(SORT_STORE_KEY, sortMode).catch(() => {});
+    window.api.storeWrite(SORT_STORE_KEY, sortMode).catch(() => { });
   }, [sortMode, loaded]);
 
   /** 状态信息自动消失 */
@@ -480,7 +481,7 @@ export function AlbumTab(): ReactElement {
           [item.id]: { ...prev[item.id], exif },
         }));
       }
-    }).catch(() => {}).finally(() => {
+    }).catch(() => { }).finally(() => {
       exifLoadingRef.current.delete(item.id);
     });
   }, [metaCache]);
@@ -872,7 +873,11 @@ export function AlbumTab(): ReactElement {
                         title={t('albumTab.actions.remove')}
                         aria-label={t('albumTab.actions.removeAria', { name: item.name })}
                       >
-                        ×
+                        <span
+                          className="album-svg-icon album-svg-icon--sm"
+                          style={{ '--album-icon-src': `url(${SvgIcon.CANCEL})` } as CSSProperties}
+                          aria-hidden="true"
+                        />
                       </button>
                     </div>
                   </div>
@@ -892,7 +897,11 @@ export function AlbumTab(): ReactElement {
                 onClick={() => setActiveId(null)}
                 title={t('albumTab.viewer.back')}
               >
-                ←
+                <span
+                  className="album-svg-icon"
+                  style={{ '--album-icon-src': `url(${SvgIcon.RETURN})` } as CSSProperties}
+                  aria-hidden="true"
+                />
               </button>
               <button
                 className="album-icon-btn"
@@ -901,7 +910,11 @@ export function AlbumTab(): ReactElement {
                 disabled={sortedItems.length <= 1}
                 title={t('albumTab.viewer.prev')}
               >
-                ‹
+                <span
+                  className="album-svg-icon"
+                  style={{ '--album-icon-src': `url(${SvgIcon.PREVIOUS})` } as CSSProperties}
+                  aria-hidden="true"
+                />
               </button>
               <button
                 className="album-icon-btn"
@@ -910,7 +923,11 @@ export function AlbumTab(): ReactElement {
                 disabled={sortedItems.length <= 1}
                 title={t('albumTab.viewer.next')}
               >
-                ›
+                <span
+                  className="album-svg-icon"
+                  style={{ '--album-icon-src': `url(${SvgIcon.NEXT})` } as CSSProperties}
+                  aria-hidden="true"
+                />
               </button>
               <span className="album-viewer-name" title={activeItem.path}>{activeItem.name}</span>
               <div className="album-viewer-zoom-group">
@@ -921,7 +938,7 @@ export function AlbumTab(): ReactElement {
                   disabled={zoom <= ZOOM_MIN + 0.001}
                   title={t('albumTab.viewer.zoomOut')}
                 >
-                  −
+                  -
                 </button>
                 <span className="album-viewer-zoom-value">{Math.round(zoom * 100)}%</span>
                 <button

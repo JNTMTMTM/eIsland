@@ -111,6 +111,10 @@ export const SvgIcon = {
   WECHATPAY: './svg/WECHATPAY.svg',
   /** GITHUB */
   GITHUB: './svg/GITHUB.svg',
+  /** 取消 */
+  CANCEL: './svg/CANCEL.svg',
+  /** 返回 */
+  RETURN: './svg/RETURN.svg',
 
 } as const;
 
