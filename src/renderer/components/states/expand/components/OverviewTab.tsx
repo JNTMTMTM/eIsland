@@ -886,24 +886,26 @@ function AlbumCarouselWidget({ openAlbumPage }: { openAlbumPage: () => void }): 
           title={canOpenAlbum ? t('overview.album.open', { defaultValue: '点击进入相册' }) : ''}
         >
           <div className="ov-dash-album-count">{t('overview.album.position', { defaultValue: '{{index}} / {{total}}', index: activeIndex + 1, total: displayItems.length })}</div>
-          {hasImagePreview ? (
-            <img className="ov-dash-album-preview" src={imagePreviewUrl ?? undefined} alt={activeItem.name} />
-          ) : hasVideoPreview ? (
-            <video
-              className="ov-dash-album-preview ov-dash-album-video"
-              src={videoPreviewUrl || undefined}
-              muted={albumConfig.videoMuted}
-              autoPlay={albumConfig.videoAutoPlay}
-              loop
-              playsInline
-              preload="metadata"
-            />
-          ) : (
-            <div className="ov-dash-album-fallback">
-              <img src={SvgIcon.MUSIC} alt="" className="ov-dash-album-fallback-icon" />
-              <span className="ov-dash-album-fallback-text">{t('overview.album.videoTag', { defaultValue: '视频' })}</span>
-            </div>
-          )}
+          <div className="ov-dash-album-media" key={`${activeItem.id}-${activeItem.mediaType}`}>
+            {hasImagePreview ? (
+              <img className="ov-dash-album-preview" src={imagePreviewUrl ?? undefined} alt={activeItem.name} />
+            ) : hasVideoPreview ? (
+              <video
+                className="ov-dash-album-preview ov-dash-album-video"
+                src={videoPreviewUrl || undefined}
+                muted={albumConfig.videoMuted}
+                autoPlay={albumConfig.videoAutoPlay}
+                loop
+                playsInline
+                preload="metadata"
+              />
+            ) : (
+              <div className="ov-dash-album-fallback">
+                <img src={SvgIcon.MUSIC} alt="" className="ov-dash-album-fallback-icon" />
+                <span className="ov-dash-album-fallback-text">{t('overview.album.videoTag', { defaultValue: '视频' })}</span>
+              </div>
+            )}
+          </div>
           <div className="ov-dash-album-mask" />
           <div className="ov-dash-album-meta">
             <div className="ov-dash-album-name" title={activeItem.name}>{activeItem.name}</div>

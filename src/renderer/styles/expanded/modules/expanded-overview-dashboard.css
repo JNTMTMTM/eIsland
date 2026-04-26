@@ -575,11 +575,29 @@
   border: 1px solid rgba(var(--color-text-rgb), 0.08);
 }
 
+.ov-dash-album-media {
+  position: absolute;
+  inset: 0;
+  animation: ovAlbumMediaIn 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
 .ov-dash-album-preview {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
+}
+
+@keyframes ovAlbumMediaIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(1.02);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .ov-dash-album-fallback {
