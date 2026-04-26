@@ -589,6 +589,79 @@
       "removeAria": "Remove this clipboard record"
     }
   },
+  "albumTab": {
+    "title": "Album",
+    "count": "{{count}} photos",
+    "dropHint": "Drop to import images",
+    "empty": {
+      "title": "No photos yet",
+      "desc": "Drag images here, or use the button below to choose images"
+    },
+    "actions": {
+      "add": "Add Images",
+      "clear": "Clear",
+      "clearConfirm": "Click again to confirm",
+      "remove": "Remove",
+      "removeAria": "Remove {{name}}"
+    },
+    "sort": {
+      "label": "Sort",
+      "addedDesc": "Most recently added",
+      "addedAsc": "Earliest added first",
+      "nameAsc": "Name A → Z",
+      "nameDesc": "Name Z → A"
+    },
+    "columns": {
+      "aria": "Adjust columns per row",
+      "smaller": "Decrease columns",
+      "larger": "Increase columns"
+    },
+    "thumb": {
+      "loading": "Loading…",
+      "failed": "Failed to load"
+    },
+    "viewer": {
+      "back": "Back to overview",
+      "prev": "Previous",
+      "next": "Next",
+      "zoomIn": "Zoom in",
+      "zoomOut": "Zoom out",
+      "zoomOne": "Actual size (1:1)",
+      "zoomFit": "Fit to window",
+      "fit": "Fit",
+      "openInExplorer": "Show in Explorer",
+      "saveAs": "Save As",
+      "loading": "Loading image…",
+      "failed": "Failed to load image"
+    },
+    "meta": {
+      "title": "Image Info",
+      "name": "Name",
+      "format": "Format",
+      "resolution": "Resolution",
+      "size": "Size",
+      "addedAt": "Added",
+      "path": "Full Path",
+      "exifTitle": "EXIF",
+      "exifEmpty": "No EXIF data",
+      "make": "Make",
+      "model": "Model",
+      "dateTimeOriginal": "Captured At",
+      "exposure": "Exposure",
+      "fNumber": "Aperture",
+      "iso": "ISO",
+      "focalLength": "Focal Length"
+    },
+    "status": {
+      "added": "Imported {{count}} image(s)",
+      "cleared": "Album cleared",
+      "allDuplicated": "Image already exists, skipped duplicates",
+      "unsupportedOnly": "No supported image format detected",
+      "zoomReset": "Reset to actual size",
+      "openInExplorerComing": "Coming soon: locate {{name}} in Explorer",
+      "saveAsComing": "Coming soon: save {{name}} as…"
+    }
+  },
   "sliderCaptcha": {
     "title": "Slider Verification",
     "subtitle": "Challenge service powered by Pyisland Server & eIsland",
@@ -607,6 +680,7 @@
       "expanded": "Back",
       "todo": "Todo",
       "urlFavorites": "URL Favorites",
+      "album": "Album",
       "localFileSearch": "File Search",
       "clipboardHistory": "Clipboard",
       "aiChat": "AI Chat",
