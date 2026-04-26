@@ -1167,7 +1167,7 @@ export function AlbumTab(): ReactElement {
               >
                 <span
                   className="album-svg-icon"
-                  style={{ '--album-icon-src': `url(${SvgIcon.REVERT})` } as CSSProperties}
+                  style={{ '--album-icon-src': `url(${SvgIcon.RETURN})` } as CSSProperties}
                   aria-hidden="true"
                 />
               </button>
