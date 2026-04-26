@@ -119,6 +119,10 @@ export const SvgIcon = {
   MUTE: './svg/MUTE.svg',
   /** 取消静音 */
   UNMUTE: './svg/UNMUTE.svg',
+  /** 可见 */
+  VISIBLE: './svg/VISIBLE.svg',
+  /** 不可见 */
+  INVISIBLE: './svg/INVISIBLE.svg',
 
 } as const;
 

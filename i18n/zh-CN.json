@@ -643,6 +643,8 @@
       "pause": "暂停",
       "mute": "静音",
       "unmute": "取消静音",
+      "hideControls": "隐藏控制条",
+      "showControls": "显示控制条",
       "seek": "进度",
       "volume": "音量",
       "openInExplorer": "在资源管理器中打开",

@@ -434,6 +434,7 @@ export function AlbumTab(): ReactElement {
   const [videoVolume, setVideoVolume] = useState<number>(0.6);
   const [videoCurrentTime, setVideoCurrentTime] = useState<number>(0);
   const [videoDuration, setVideoDuration] = useState<number>(0);
+  const [videoControlsCollapsed, setVideoControlsCollapsed] = useState<boolean>(false);
   const [metaCache, setMetaCache] = useState<Record<number, AlbumMeta>>({});
   const metaCacheRef = useRef<Record<number, AlbumMeta>>({});
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -518,6 +519,7 @@ export function AlbumTab(): ReactElement {
     setVideoVolume(0.6);
     setVideoCurrentTime(0);
     setVideoDuration(0);
+    setVideoControlsCollapsed(false);
   }, [activeId, items]);
 
   useEffect(() => {
@@ -919,6 +921,10 @@ export function AlbumTab(): ReactElement {
     if (safe > 0 && videoMuted) {
       setVideoMuted(false);
     }
+  };
+
+  const handleToggleVideoControls = (): void => {
+    setVideoControlsCollapsed((prev) => !prev);
   };
 
   /** 单图视图：缩放按钮 */
@@ -1368,7 +1374,22 @@ export function AlbumTab(): ReactElement {
                       onTimeUpdate={handleVideoTimeUpdate}
                       onEnded={() => setVideoPlaying(false)}
                     />
-                    <div className="album-video-controls">
+                    <div className={`album-video-controls${videoControlsCollapsed ? ' album-video-controls--collapsed' : ''}`}>
+                      <button
+                        className="album-text-btn album-video-control-btn album-video-control-btn--icon"
+                        type="button"
+                        onClick={handleToggleVideoControls}
+                        aria-label={videoControlsCollapsed ? t('albumTab.viewer.showControls') : t('albumTab.viewer.hideControls')}
+                        title={videoControlsCollapsed ? t('albumTab.viewer.showControls') : t('albumTab.viewer.hideControls')}
+                      >
+                        <span
+                          className="album-svg-icon"
+                          style={{ '--album-icon-src': `url(${videoControlsCollapsed ? SvgIcon.VISIBLE : SvgIcon.INVISIBLE})` } as CSSProperties}
+                          aria-hidden="true"
+                        />
+                      </button>
+                      {!videoControlsCollapsed ? (
+                        <>
                       <button
                         className="album-text-btn album-video-control-btn album-video-control-btn--icon"
                         type="button"
@@ -1419,6 +1440,8 @@ export function AlbumTab(): ReactElement {
                         onChange={handleVideoVolumeChange}
                         aria-label={t('albumTab.viewer.volume')}
                       />
+                        </>
+                      ) : null}
                     </div>
                   </div>
                 ) : activeMeta?.dataUrl ? (

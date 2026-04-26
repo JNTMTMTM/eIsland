@@ -612,6 +612,12 @@
   --album-slider-thumb-shadow: 0 0 0 2px rgba(0, 0, 0, 0.2);
 }
 
+.album-video-controls--collapsed {
+  right: auto;
+  padding: 6px;
+  gap: 0;
+}
+
 .album-video-control-btn {
   height: 24px;
   padding: 0 8px;

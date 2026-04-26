@@ -643,6 +643,8 @@
       "pause": "Pause",
       "mute": "Mute",
       "unmute": "Unmute",
+      "hideControls": "Hide Controls",
+      "showControls": "Show Controls",
       "seek": "Seek",
       "volume": "Volume",
       "openInExplorer": "Show in Explorer",
