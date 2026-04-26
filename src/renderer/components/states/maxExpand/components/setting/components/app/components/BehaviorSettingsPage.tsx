@@ -210,18 +210,27 @@ export function BehaviorSettingsPage({
             <div className="settings-card-subtitle">{t('settings.app.behavior.hoverScreenshotModeHint', { defaultValue: '配置 hover 界面的截图按钮触发选区截图或显示器截图（立即生效）' })}</div>
           </div>
           <div className="settings-card-inline-row">
-            <label className="settings-field" style={{ minWidth: '220px' }}>
-              <span className="settings-field-label">{t('settings.app.behavior.hoverScreenshotModeLabel', { defaultValue: '截图方式' })}</span>
-              <select
-                className="settings-field-input"
-                value={hoverScreenshotMode}
-                onChange={(e) => {
-                  handleHoverScreenshotModeChange(e.target.value === 'display' ? 'display' : 'region');
+            <label className="settings-card-check">
+              <input
+                type="radio"
+                name="hover-screenshot-mode"
+                checked={hoverScreenshotMode === 'region'}
+                onChange={() => {
+                  handleHoverScreenshotModeChange('region');
                 }}
-              >
-                <option value="region">{t('settings.app.behavior.hoverScreenshotModeRegion', { defaultValue: '选区截图' })}</option>
-                <option value="display">{t('settings.app.behavior.hoverScreenshotModeDisplay', { defaultValue: '显示器截图' })}</option>
-              </select>
+              />
+              {t('settings.app.behavior.hoverScreenshotModeRegion', { defaultValue: '选区截图' })}
+            </label>
+            <label className="settings-card-check">
+              <input
+                type="radio"
+                name="hover-screenshot-mode"
+                checked={hoverScreenshotMode === 'display'}
+                onChange={() => {
+                  handleHoverScreenshotModeChange('display');
+                }}
+              />
+              {t('settings.app.behavior.hoverScreenshotModeDisplay', { defaultValue: '显示器截图' })}
             </label>
           </div>
         </div>
