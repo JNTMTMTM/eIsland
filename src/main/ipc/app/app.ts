@@ -26,6 +26,7 @@
  */
 
 import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron';
+import { existsSync } from 'fs';
 import { readdir } from 'fs/promises';
 import { basename } from 'path';
 import { clearLogsCacheFiles, ensureLogsDir } from '../../log/mainLog';
@@ -283,6 +284,18 @@ export function registerAppIpcHandlers(): void {
       return true;
     } catch (err) {
       console.error('[App] open-file error:', err);
+      return false;
+    }
+  });
+
+  ipcMain.handle('app:open-in-explorer', (_event, filePath: string) => {
+    try {
+      if (!filePath || typeof filePath !== 'string') return false;
+      if (!existsSync(filePath)) return false;
+      shell.showItemInFolder(filePath);
+      return true;
+    } catch (err) {
+      console.error('[App] open-in-explorer error:', err);
       return false;
     }
   });

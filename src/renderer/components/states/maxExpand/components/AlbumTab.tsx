@@ -695,9 +695,15 @@ export function AlbumTab(): ReactElement {
     setStatusMessage(t('albumTab.status.zoomReset'));
   };
 
-  /** Phase 2 占位：在资源管理器中定位 */
+  /** 在系统资源管理器中定位当前图片 */
   const handleOpenInExplorer = (item: AlbumItem): void => {
-    setStatusMessage(t('albumTab.status.openInExplorerComing', { name: item.name }));
+    window.api.openInExplorer(item.path).then((ok) => {
+      if (!ok) {
+        setStatusMessage(t('albumTab.status.openInExplorerFailed', { name: item.name }));
+      }
+    }).catch(() => {
+      setStatusMessage(t('albumTab.status.openInExplorerFailed', { name: item.name }));
+    });
   };
 
   /** Phase 2 占位：另存为 */

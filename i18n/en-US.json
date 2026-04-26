@@ -658,7 +658,7 @@
       "allDuplicated": "Image already exists, skipped duplicates",
       "unsupportedOnly": "No supported image format detected",
       "zoomReset": "Reset to actual size",
-      "openInExplorerComing": "Coming soon: locate {{name}} in Explorer",
+      "openInExplorerFailed": "Cannot locate {{name}}. The file may have been moved or deleted.",
       "saveAsComing": "Coming soon: save {{name}} as…"
     }
   },

@@ -346,6 +346,14 @@ const api = {
     return ipcRenderer.invoke('app:open-file', filePath);
   },
   /**
+   * 在系统资源管理器中定位指定文件
+   * @param filePath - 文件路径
+   * @returns 是否成功（路径不存在或非法时返回 false）
+   */
+  openInExplorer: (filePath: string): Promise<boolean> => {
+    return ipcRenderer.invoke('app:open-in-explorer', filePath);
+  },
+  /**
    * 解析快捷方式 (.lnk)
    * @param lnkPath - .lnk 文件路径
    * @returns 目标路径和名称，或 null

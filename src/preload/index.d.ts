@@ -118,6 +118,7 @@ declare global {
       getPathForFile: (file: File) => string;
       getFileIcon: (filePath: string) => Promise<string | null>;
       openFile: (filePath: string) => Promise<boolean>;
+      openInExplorer: (filePath: string) => Promise<boolean>;
       resolveShortcut: (lnkPath: string) => Promise<{ target: string; name: string } | null>;
       openImageDialog: () => Promise<string | null>;
       openVideoDialog: () => Promise<string | null>;
