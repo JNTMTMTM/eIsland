@@ -1370,12 +1370,17 @@ export function AlbumTab(): ReactElement {
                     />
                     <div className="album-video-controls">
                       <button
-                        className="album-text-btn album-video-control-btn"
+                        className="album-text-btn album-video-control-btn album-video-control-btn--icon"
                         type="button"
                         onClick={handleToggleVideoPlay}
+                        aria-label={videoPlaying ? t('albumTab.viewer.pause') : t('albumTab.viewer.play')}
                         title={videoPlaying ? t('albumTab.viewer.pause') : t('albumTab.viewer.play')}
                       >
-                        {videoPlaying ? t('albumTab.viewer.pause') : t('albumTab.viewer.play')}
+                        <span
+                          className="album-svg-icon"
+                          style={{ '--album-icon-src': `url(${videoPlaying ? SvgIcon.PAUSE : SvgIcon.CONTINUE})` } as CSSProperties}
+                          aria-hidden="true"
+                        />
                       </button>
                       <span className="album-video-time">
                         {formatDuration(videoCurrentTime)} / {formatDuration(videoDuration)}
@@ -1392,12 +1397,17 @@ export function AlbumTab(): ReactElement {
                         disabled={videoDuration <= 0}
                       />
                       <button
-                        className="album-text-btn album-video-control-btn"
+                        className="album-text-btn album-video-control-btn album-video-control-btn--icon"
                         type="button"
                         onClick={handleToggleVideoMute}
+                        aria-label={videoMuted ? t('albumTab.viewer.unmute') : t('albumTab.viewer.mute')}
                         title={videoMuted ? t('albumTab.viewer.unmute') : t('albumTab.viewer.mute')}
                       >
-                        {videoMuted ? t('albumTab.viewer.unmute') : t('albumTab.viewer.mute')}
+                        <span
+                          className="album-svg-icon"
+                          style={{ '--album-icon-src': `url(${videoMuted ? SvgIcon.MUTE : SvgIcon.UNMUTE})` } as CSSProperties}
+                          aria-hidden="true"
+                        />
                       </button>
                       <input
                         className="album-video-volume"

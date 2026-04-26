@@ -614,6 +614,19 @@
   background: rgba(255, 255, 255, 0.12);
 }
 
+.album-video-control-btn--icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  padding: 0;
+  line-height: 0;
+}
+
+.album-video-control-btn--icon .album-svg-icon {
+  display: block;
+}
+
 .album-video-control-btn:hover {
   background: rgba(255, 255, 255, 0.2);
   color: #fff;

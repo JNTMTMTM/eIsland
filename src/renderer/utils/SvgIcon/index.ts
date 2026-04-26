@@ -115,6 +115,10 @@ export const SvgIcon = {
   CANCEL: './svg/CANCEL.svg',
   /** 返回 */
   RETURN: './svg/RETURN.svg',
+  /** 静音 */
+  MUTE: './svg/MUTE.svg',
+  /** 取消静音 */
+  UNMUTE: './svg/UNMUTE.svg',
 
 } as const;
 
