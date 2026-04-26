@@ -429,10 +429,16 @@ export function AlbumTab(): ReactElement {
   const [dragOverPage, setDragOverPage] = useState(false);
   const [confirmingClear, setConfirmingClear] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string>('');
+  const [videoPlaying, setVideoPlaying] = useState<boolean>(true);
+  const [videoMuted, setVideoMuted] = useState<boolean>(true);
+  const [videoVolume, setVideoVolume] = useState<number>(0.6);
+  const [videoCurrentTime, setVideoCurrentTime] = useState<number>(0);
+  const [videoDuration, setVideoDuration] = useState<number>(0);
   const [metaCache, setMetaCache] = useState<Record<number, AlbumMeta>>({});
   const metaCacheRef = useRef<Record<number, AlbumMeta>>({});
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const gridVideoRefs = useRef<Record<number, HTMLVideoElement | null>>({});
+  const viewerVideoRef = useRef<HTMLVideoElement | null>(null);
   const metaLoadingRef = useRef<Set<number>>(new Set());
   const exifLoadingRef = useRef<Set<number>>(new Set());
   const panStartRef = useRef<{ x: number; y: number; px: number; py: number } | null>(null);
@@ -502,6 +508,29 @@ export function AlbumTab(): ReactElement {
       Object.values(metaCacheRef.current).forEach((meta) => revokeBlobUrl(meta.videoUrl));
     };
   }, []);
+
+  useEffect(() => {
+    if (activeId === null) return;
+    const target = items.find((it) => it.id === activeId);
+    if (!target || target.mediaType !== 'video') return;
+    setVideoPlaying(true);
+    setVideoMuted(true);
+    setVideoVolume(0.6);
+    setVideoCurrentTime(0);
+    setVideoDuration(0);
+  }, [activeId, items]);
+
+  useEffect(() => {
+    const el = viewerVideoRef.current;
+    if (!el) return;
+    el.muted = videoMuted;
+  }, [videoMuted]);
+
+  useEffect(() => {
+    const el = viewerVideoRef.current;
+    if (!el) return;
+    el.volume = Math.max(0, Math.min(1, videoVolume));
+  }, [videoVolume]);
 
   /** 主动加载媒体元数据（图像/视频） */
   const loadItemMeta = useCallback((item: AlbumItem): void => {
@@ -832,6 +861,64 @@ export function AlbumTab(): ReactElement {
   const handleViewerMouseUp = (): void => {
     setIsPanning(false);
     panStartRef.current = null;
+  };
+
+  const handleVideoLoadedMetadata = (): void => {
+    const el = viewerVideoRef.current;
+    if (!el) return;
+    setVideoDuration(Number.isFinite(el.duration) ? el.duration : 0);
+    setVideoCurrentTime(Number.isFinite(el.currentTime) ? el.currentTime : 0);
+    el.muted = videoMuted;
+    el.volume = Math.max(0, Math.min(1, videoVolume));
+    el.play().then(() => {
+      setVideoPlaying(true);
+    }).catch(() => {
+      setVideoPlaying(false);
+    });
+  };
+
+  const handleVideoTimeUpdate = (): void => {
+    const el = viewerVideoRef.current;
+    if (!el) return;
+    setVideoCurrentTime(Number.isFinite(el.currentTime) ? el.currentTime : 0);
+  };
+
+  const handleToggleVideoPlay = (): void => {
+    const el = viewerVideoRef.current;
+    if (!el) return;
+    if (el.paused) {
+      el.play().then(() => {
+        setVideoPlaying(true);
+      }).catch(() => {
+        setVideoPlaying(false);
+      });
+      return;
+    }
+    el.pause();
+    setVideoPlaying(false);
+  };
+
+  const handleVideoSeek = (event: ChangeEvent<HTMLInputElement>): void => {
+    const el = viewerVideoRef.current;
+    if (!el) return;
+    const next = Number(event.target.value);
+    if (!Number.isFinite(next)) return;
+    el.currentTime = next;
+    setVideoCurrentTime(next);
+  };
+
+  const handleToggleVideoMute = (): void => {
+    setVideoMuted((prev) => !prev);
+  };
+
+  const handleVideoVolumeChange = (event: ChangeEvent<HTMLInputElement>): void => {
+    const next = Number(event.target.value);
+    if (!Number.isFinite(next)) return;
+    const safe = Math.max(0, Math.min(1, next));
+    setVideoVolume(safe);
+    if (safe > 0 && videoMuted) {
+      setVideoMuted(false);
+    }
   };
 
   /** 单图视图：缩放按钮 */
@@ -1269,14 +1356,61 @@ export function AlbumTab(): ReactElement {
                 onDoubleClick={activeIsVideo ? undefined : handleResetZoom}
               >
                 {activeIsVideo && activeVideoUrl ? (
-                  <video
-                    className="album-viewer-video"
-                    src={activeVideoUrl}
-                    controls
-                    autoPlay
-                    playsInline
-                    preload="metadata"
-                  />
+                  <div className="album-viewer-video-wrap">
+                    <video
+                      ref={viewerVideoRef}
+                      className="album-viewer-video"
+                      src={activeVideoUrl}
+                      autoPlay
+                      playsInline
+                      preload="metadata"
+                      onLoadedMetadata={handleVideoLoadedMetadata}
+                      onTimeUpdate={handleVideoTimeUpdate}
+                      onEnded={() => setVideoPlaying(false)}
+                    />
+                    <div className="album-video-controls">
+                      <button
+                        className="album-text-btn album-video-control-btn"
+                        type="button"
+                        onClick={handleToggleVideoPlay}
+                        title={videoPlaying ? t('albumTab.viewer.pause') : t('albumTab.viewer.play')}
+                      >
+                        {videoPlaying ? t('albumTab.viewer.pause') : t('albumTab.viewer.play')}
+                      </button>
+                      <span className="album-video-time">
+                        {formatDuration(videoCurrentTime)} / {formatDuration(videoDuration)}
+                      </span>
+                      <input
+                        className="album-video-seek"
+                        type="range"
+                        min={0}
+                        max={videoDuration > 0 ? videoDuration : 0}
+                        step={0.1}
+                        value={Math.min(videoCurrentTime, videoDuration || 0)}
+                        onChange={handleVideoSeek}
+                        aria-label={t('albumTab.viewer.seek')}
+                        disabled={videoDuration <= 0}
+                      />
+                      <button
+                        className="album-text-btn album-video-control-btn"
+                        type="button"
+                        onClick={handleToggleVideoMute}
+                        title={videoMuted ? t('albumTab.viewer.unmute') : t('albumTab.viewer.mute')}
+                      >
+                        {videoMuted ? t('albumTab.viewer.unmute') : t('albumTab.viewer.mute')}
+                      </button>
+                      <input
+                        className="album-video-volume"
+                        type="range"
+                        min={0}
+                        max={1}
+                        step={0.01}
+                        value={videoMuted ? 0 : videoVolume}
+                        onChange={handleVideoVolumeChange}
+                        aria-label={t('albumTab.viewer.volume')}
+                      />
+                    </div>
+                  </div>
                 ) : activeMeta?.dataUrl ? (
                   <img
                     className="album-viewer-image"
