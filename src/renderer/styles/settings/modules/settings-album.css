@@ -358,7 +358,12 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center;
   display: block;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+  image-rendering: auto;
+  image-rendering: -webkit-optimize-contrast;
 }
 
 .album-thumb-fallback {
