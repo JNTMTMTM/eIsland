@@ -94,10 +94,10 @@ const STORE_KEY = 'todos';
 const APPS_STORE_KEY = 'app-shortcuts';
 const URL_FAVORITES_STORE_KEY = 'url-favorites';
 const PHOTO_ALBUM_STORE_KEY = 'photo-album-items';
+const OVERVIEW_ALBUM_CONFIG_STORE_KEY = 'overview-album-config';
 const STANDALONE_WINDOW_MODE_STORE_KEY = 'standalone-window-mode';
 const LEGACY_COUNTDOWN_WINDOW_MODE_STORE_KEY = 'countdown-window-mode';
 const STANDALONE_WINDOW_ACTIVE_TAB_STORE_KEY = 'standalone-window-active-tab';
-const ALBUM_CAROUSEL_INTERVAL_MS = 4500;
 
 /** 应用快捷方式 */
 interface AppShortcut {
@@ -114,6 +114,40 @@ interface OverviewAlbumItem {
   ext: string;
   mediaType: 'image' | 'video';
   addedAt: number;
+}
+
+type AlbumOrderMode = 'sequential' | 'random';
+type AlbumMediaFilter = 'all' | 'image' | 'video';
+type AlbumCardClickBehavior = 'open-album' | 'none';
+
+interface OverviewAlbumCardConfig {
+  intervalMs: number;
+  autoRotate: boolean;
+  orderMode: AlbumOrderMode;
+  mediaFilter: AlbumMediaFilter;
+  clickBehavior: AlbumCardClickBehavior;
+  videoAutoPlay: boolean;
+  videoMuted: boolean;
+}
+
+function normalizeOverviewAlbumCardConfig(data: unknown): OverviewAlbumCardConfig {
+  const row = (data ?? {}) as Partial<OverviewAlbumCardConfig>;
+  const intervalMs = row.intervalMs === 3000 || row.intervalMs === 5000 || row.intervalMs === 8000
+    ? row.intervalMs
+    : 5000;
+  const orderMode = row.orderMode === 'random' ? 'random' : 'sequential';
+  const mediaFilter = row.mediaFilter === 'image' || row.mediaFilter === 'video' ? row.mediaFilter : 'all';
+  const clickBehavior = row.clickBehavior === 'none' ? 'none' : 'open-album';
+
+  return {
+    intervalMs,
+    autoRotate: row.autoRotate !== false,
+    orderMode,
+    mediaFilter,
+    clickBehavior,
+    videoAutoPlay: row.videoAutoPlay !== false,
+    videoMuted: row.videoMuted !== false,
+  };
 }
 
 function getOverviewVideoMimeByExt(ext: string): string {
@@ -652,6 +686,7 @@ function UrlFavoritesWidget(): React.ReactElement {
 function AlbumCarouselWidget({ openAlbumPage }: { openAlbumPage: () => void }): React.ReactElement {
   const { t } = useTranslation();
   const [items, setItems] = useState<OverviewAlbumItem[]>([]);
+  const [albumConfig, setAlbumConfig] = useState<OverviewAlbumCardConfig>(() => normalizeOverviewAlbumCardConfig(null));
   const [activeIndex, setActiveIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
@@ -686,7 +721,42 @@ function AlbumCarouselWidget({ openAlbumPage }: { openAlbumPage: () => void }): 
     };
   }, []);
 
-  const activeItem = items.length > 0 ? items[activeIndex] : null;
+  useEffect(() => {
+    let cancelled = false;
+    window.api.storeRead(OVERVIEW_ALBUM_CONFIG_STORE_KEY).then((value) => {
+      if (cancelled) return;
+      setAlbumConfig(normalizeOverviewAlbumCardConfig(value));
+    }).catch(() => {
+      if (cancelled) return;
+      setAlbumConfig(normalizeOverviewAlbumCardConfig(null));
+    });
+
+    const unsub = window.api.onSettingsChanged((channel, value) => {
+      if (cancelled) return;
+      if (channel !== `store:${OVERVIEW_ALBUM_CONFIG_STORE_KEY}`) return;
+      setAlbumConfig(normalizeOverviewAlbumCardConfig(value));
+    });
+
+    return () => {
+      cancelled = true;
+      unsub();
+    };
+  }, []);
+
+  const displayItems = items.filter((item) => {
+    if (albumConfig.mediaFilter === 'all') return true;
+    if (albumConfig.mediaFilter === 'image') return item.mediaType === 'image';
+    return item.mediaType === 'video';
+  });
+
+  useEffect(() => {
+    setActiveIndex((prev) => {
+      if (displayItems.length === 0) return 0;
+      return Math.min(prev, displayItems.length - 1);
+    });
+  }, [displayItems.length]);
+
+  const activeItem = displayItems.length > 0 ? displayItems[activeIndex] : null;
 
   useEffect(() => {
     let cancelled = false;
@@ -757,44 +827,73 @@ function AlbumCarouselWidget({ openAlbumPage }: { openAlbumPage: () => void }): 
 
   const goNext = useCallback(() => {
     setActiveIndex((prev) => {
-      if (items.length <= 1) return prev;
-      return (prev + 1) % items.length;
+      if (displayItems.length <= 1) return prev;
+      if (albumConfig.orderMode === 'random') {
+        let next = prev;
+        while (next === prev) {
+          next = Math.floor(Math.random() * displayItems.length);
+        }
+        return next;
+      }
+      return (prev + 1) % displayItems.length;
     });
-  }, [items.length]);
+  }, [displayItems.length, albumConfig.orderMode]);
 
   const goPrev = useCallback(() => {
     setActiveIndex((prev) => {
-      if (items.length <= 1) return prev;
-      return (prev - 1 + items.length) % items.length;
+      if (displayItems.length <= 1) return prev;
+      if (albumConfig.orderMode === 'random') {
+        let next = prev;
+        while (next === prev) {
+          next = Math.floor(Math.random() * displayItems.length);
+        }
+        return next;
+      }
+      return (prev - 1 + displayItems.length) % displayItems.length;
     });
-  }, [items.length]);
+  }, [displayItems.length, albumConfig.orderMode]);
 
   useEffect(() => {
-    if (paused || items.length <= 1) return;
+    if (paused || !albumConfig.autoRotate || displayItems.length <= 1) return;
     const timer = setInterval(() => {
-      setActiveIndex((prev) => (prev + 1) % items.length);
-    }, ALBUM_CAROUSEL_INTERVAL_MS);
+      setActiveIndex((prev) => {
+        if (albumConfig.orderMode === 'random') {
+          let next = prev;
+          while (next === prev) {
+            next = Math.floor(Math.random() * displayItems.length);
+          }
+          return next;
+        }
+        return (prev + 1) % displayItems.length;
+      });
+    }, albumConfig.intervalMs);
     return () => clearInterval(timer);
-  }, [paused, items.length]);
+  }, [paused, albumConfig.autoRotate, albumConfig.orderMode, albumConfig.intervalMs, displayItems.length]);
+
+  const canOpenAlbum = albumConfig.clickBehavior === 'open-album';
 
   return (
     <div className="ov-dash-widget ov-dash-album-widget">
       <div className="ov-dash-widget-header">
         <span className="ov-dash-widget-title ov-dash-widget-title--link" onClick={openAlbumPage}>{t('overview.album.title', { defaultValue: '相册轮播' })}</span>
-        <span className="ov-dash-album-count">{t('overview.album.count', { defaultValue: '{{count}} 项', count: items.length })}</span>
+        <span className="ov-dash-album-count">{t('overview.album.count', { defaultValue: '{{count}} 项', count: displayItems.length })}</span>
       </div>
       {!activeItem ? (
         <div className="ov-dash-album-empty">{t('overview.album.empty', { defaultValue: '相册暂无媒体' })}</div>
       ) : (
-        <div className="ov-dash-album-card" onClick={openAlbumPage} title={t('overview.album.open', { defaultValue: '点击进入相册' })}>
+        <div
+          className="ov-dash-album-card"
+          onClick={canOpenAlbum ? openAlbumPage : undefined}
+          title={canOpenAlbum ? t('overview.album.open', { defaultValue: '点击进入相册' }) : ''}
+        >
           {hasImagePreview ? (
             <img className="ov-dash-album-preview" src={imagePreviewUrl ?? undefined} alt={activeItem.name} />
           ) : hasVideoPreview ? (
             <video
               className="ov-dash-album-preview ov-dash-album-video"
               src={videoPreviewUrl || undefined}
-              muted
-              autoPlay
+              muted={albumConfig.videoMuted}
+              autoPlay={albumConfig.videoAutoPlay}
               loop
               playsInline
               preload="metadata"
@@ -808,14 +907,23 @@ function AlbumCarouselWidget({ openAlbumPage }: { openAlbumPage: () => void }): 
           <div className="ov-dash-album-mask" />
           <div className="ov-dash-album-meta">
             <div className="ov-dash-album-name" title={activeItem.name}>{activeItem.name}</div>
-            <div className="ov-dash-album-position">{t('overview.album.position', { defaultValue: '{{index}} / {{total}}', index: activeIndex + 1, total: items.length })}</div>
+            <div className="ov-dash-album-position">{t('overview.album.position', { defaultValue: '{{index}} / {{total}}', index: activeIndex + 1, total: displayItems.length })}</div>
           </div>
 
           <div className="ov-dash-album-controls" onClick={(e) => e.stopPropagation()}>
             <button className="ov-dash-album-btn" type="button" onClick={goPrev} title={t('overview.album.prev', { defaultValue: '上一张' })}>
               <img src={SvgIcon.PREVIOUS} alt={t('overview.album.prev', { defaultValue: '上一张' })} className="ov-dash-album-btn-icon" />
             </button>
-            <button className="ov-dash-album-btn ov-dash-album-btn-play" type="button" onClick={() => setPaused((v) => !v)} title={paused ? t('overview.album.play', { defaultValue: '继续轮播' }) : t('overview.album.pause', { defaultValue: '暂停轮播' })}>
+            <button
+              className="ov-dash-album-btn ov-dash-album-btn-play"
+              type="button"
+              onClick={() => {
+                if (!albumConfig.autoRotate) return;
+                setPaused((v) => !v);
+              }}
+              disabled={!albumConfig.autoRotate}
+              title={paused ? t('overview.album.play', { defaultValue: '继续轮播' }) : t('overview.album.pause', { defaultValue: '暂停轮播' })}
+            >
               <img
                 src={paused ? SvgIcon.CONTINUE : SvgIcon.PAUSE}
                 alt={paused ? t('overview.album.play', { defaultValue: '继续轮播' }) : t('overview.album.pause', { defaultValue: '暂停轮播' })}
