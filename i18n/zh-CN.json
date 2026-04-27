@@ -566,7 +566,8 @@
       "deny": "拒绝访问",
       "requestHint": "Agent 需要访问以下 URL，是否允许？",
       "allowedHint": "已授权，下一轮可继续读取该 URL。",
-      "deniedHint": "已拒绝该 URL 访问。"
+      "deniedHint": "已拒绝该 URL 访问。",
+      "expiredHint": "网页授权请求已失效，请重新发起请求后再授权。"
     },
     "input": {
       "generatingPlaceholder": "生成中...",

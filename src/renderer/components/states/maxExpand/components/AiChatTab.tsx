@@ -151,11 +151,6 @@ export function AiChatTab(): React.ReactElement {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [aiChatMessages]);
 
-  /** 取消正在进行的请求 */
-  useEffect(() => {
-    return () => { abortRef.current?.abort(); };
-  }, []);
-
   /** 发送消息并调用 API */
   const handleSend = useCallback(async (): Promise<void> => {
     const text = input.trim();
@@ -409,11 +404,24 @@ export function AiChatTab(): React.ReactElement {
       }
     } catch (err: unknown) {
       const errMsg = err instanceof Error ? err.message : t('aiChat.messages.unknownError', { defaultValue: '未知错误' });
+      if (errMsg.toLowerCase().includes('pending request not found')) {
+        setAiWebAccessPrompt(null);
+        updateMessages(prev => ([
+          ...prev,
+          {
+            role: 'assistant',
+            content: t('aiChat.webAccess.expiredHint', {
+              defaultValue: '网页授权请求已失效，请重新发起请求后再授权。',
+            }),
+          },
+        ]));
+        return;
+      }
       setAiWebAccessResolveError(errMsg);
     } finally {
       setResolvingWebAccessDecision(false);
     }
-  }, [t, aiWebAccessPrompt, setAiWebAccessPrompt, setAiWebAccessResolveError]);
+  }, [t, aiWebAccessPrompt, setAiWebAccessPrompt, setAiWebAccessResolveError, updateMessages]);
 
   return (
     <div className="max-expand-chat">
