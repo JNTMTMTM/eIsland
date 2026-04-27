@@ -80,10 +80,22 @@ function normalizeAiWebAccessPrompt(value: AiWebAccessPrompt | null): AiWebAcces
   const requestId = typeof value.requestId === 'string' ? value.requestId.trim() : '';
   const url = typeof value.url === 'string' ? value.url.trim() : '';
   const message = typeof value.message === 'string' ? value.message : '';
+  const hostname = typeof value.hostname === 'string' ? value.hostname.trim() : '';
+  const siteName = typeof value.siteName === 'string' ? value.siteName.trim() : '';
+  const iconUrl = typeof value.iconUrl === 'string' ? value.iconUrl.trim() : '';
+  const domainPolicy = value.domainPolicy === 'allow' || value.domainPolicy === 'deny' ? value.domainPolicy : 'ask';
   if (!requestId || !url) {
     return null;
   }
-  return { requestId, url, message };
+  return {
+    requestId,
+    url,
+    message,
+    hostname,
+    siteName,
+    iconUrl,
+    domainPolicy,
+  };
 }
 
 export const createAiSlice: StateCreator<

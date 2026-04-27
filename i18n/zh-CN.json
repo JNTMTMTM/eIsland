@@ -555,7 +555,7 @@
       "send": "发送"
     },
     "messages": {
-      "missingApiKeyWarn": "⚠️ 请先在「设置 → AI配置」中填写 API Key。",
+      "missingApiKeyWarn": "请先在「设置 → AI配置」中填写 API Key。",
       "unknownError": "未知错误",
       "emptyWithApiKey": "有什么可以帮你的？",
       "emptyWithoutApiKey": "请先在「设置 → AI配置」中填写 API Key"
@@ -567,7 +567,13 @@
       "requestHint": "Agent 需要访问以下 URL，是否允许？",
       "allowedHint": "已授权，下一轮可继续读取该 URL。",
       "deniedHint": "已拒绝该 URL 访问。",
-      "expiredHint": "网页授权请求已失效，请重新发起请求后再授权。"
+      "expiredHint": "网页授权请求已失效，请重新发起请求后再授权。",
+      "policyLabel": "此域名授权策略",
+      "policy": {
+        "ask": "每次都询问",
+        "allow": "始终批准",
+        "deny": "始终禁止"
+      }
     },
     "input": {
       "generatingPlaceholder": "生成中...",

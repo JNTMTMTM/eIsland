@@ -289,6 +289,61 @@
   padding: 14px;
 }
 
+.max-expand-chat-web-access-site {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.max-expand-chat-web-access-site-icon,
+.max-expand-chat-web-access-site-fallback {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.max-expand-chat-web-access-site-icon {
+  border: 1px solid rgba(var(--color-text-rgb), 0.16);
+  background: rgba(var(--color-bg-rgb), 0.92);
+  object-fit: cover;
+}
+
+.max-expand-chat-web-access-site-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(var(--color-text-rgb), 0.9);
+  border: 1px solid rgba(var(--color-text-rgb), 0.2);
+  background: rgba(var(--color-text-rgb), 0.08);
+}
+
+.max-expand-chat-web-access-site-meta {
+  min-width: 0;
+  flex: 1;
+}
+
+.max-expand-chat-web-access-site-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(var(--color-text-rgb), 0.92);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.max-expand-chat-web-access-site-host {
+  margin-top: 2px;
+  font-size: 11px;
+  color: rgba(var(--color-text-rgb), 0.62);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .max-expand-chat-web-access-title {
   font-size: 14px;
   font-weight: 700;
@@ -314,11 +369,48 @@
   word-break: break-all;
 }
 
+.max-expand-chat-web-access-policy-select {
+  margin-left: 4px;
+  appearance: none;
+  border-radius: 8px;
+  border: 1px solid rgba(var(--color-text-rgb), 0.2);
+  background: rgba(var(--color-bg-rgb), 0.94);
+  color: rgba(var(--color-text-rgb), 0.9);
+  font-size: 11px;
+  padding: 5px 10px;
+  outline: none;
+  min-width: 118px;
+  height: 31px;
+  color-scheme: dark;
+}
+
+.max-expand-chat-web-access-policy-select:disabled {
+  opacity: 0.62;
+}
+
+.max-expand-chat-web-access-policy-select option,
+.max-expand-chat-web-access-policy-select optgroup {
+  background-color: #1f1f22;
+  color: #ffffff;
+}
+
+[data-theme='light'] .max-expand-chat-web-access-policy-select {
+  color-scheme: light;
+}
+
+[data-theme='light'] .max-expand-chat-web-access-policy-select option,
+[data-theme='light'] .max-expand-chat-web-access-policy-select optgroup {
+  background-color: #ffffff;
+  color: #1d1d1f;
+}
+
 .max-expand-chat-web-access-actions {
   margin-top: 12px;
   display: flex;
+  align-items: center;
   justify-content: flex-end;
   gap: 8px;
+  flex-wrap: nowrap;
 }
 
 .max-expand-chat-web-access-btn {

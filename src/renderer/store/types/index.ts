@@ -219,6 +219,10 @@ export interface AiWebAccessPrompt {
   requestId: string;
   url: string;
   message: string;
+  hostname?: string;
+  siteName?: string;
+  iconUrl?: string;
+  domainPolicy?: 'ask' | 'allow' | 'deny';
 }
 
 // ============= Slice Interfaces =============

@@ -555,7 +555,7 @@
       "send": "Send"
     },
     "messages": {
-      "missingApiKeyWarn": "⚠️ Please fill in API Key in Settings → AI Config first.",
+      "missingApiKeyWarn": "Please fill in API Key in Settings → AI Config first.",
       "unknownError": "Unknown error",
       "emptyWithApiKey": "How can I help you?",
       "emptyWithoutApiKey": "Please fill in API Key in Settings → AI Config first"
@@ -567,7 +567,13 @@
       "requestHint": "The agent needs to access the following URL. Allow it?",
       "allowedHint": "Authorized. You can retry reading this URL in the next turn.",
       "deniedHint": "Access to this URL has been denied.",
-      "expiredHint": "The web authorization request has expired. Please trigger it again before authorizing."
+      "expiredHint": "The web authorization request has expired. Please trigger it again before authorizing.",
+      "policyLabel": "Domain authorization policy",
+      "policy": {
+        "ask": "Ask every time",
+        "allow": "Always allow",
+        "deny": "Always deny"
+      }
     },
     "input": {
       "generatingPlaceholder": "Generating...",

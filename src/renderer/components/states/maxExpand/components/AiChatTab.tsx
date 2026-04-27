@@ -29,6 +29,14 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useTranslation } from 'react-i18next';
 import { resolveMihtnelisWebAccess, streamMihtnelisAgent } from '../../../../api/ai/mihtnelisAgentStream';
+import {
+  fetchWebsiteTitle,
+  getWebsiteAuthorizationPolicy,
+  getWebsiteFaviconUrl,
+  getWebsiteHostname,
+  setWebsiteAuthorizationPolicy,
+  type SiteAuthorizationPolicy,
+} from '../../../../api/site/siteMetaApi';
 import useIslandStore from '../../../../store/slices';
 import type { AiChatMessage, AiToolCall } from '../../../../store/types';
 import { readLocalToken } from '../../../../utils/userAccount';
@@ -231,12 +239,59 @@ export function AiChatTab(): React.ReactElement {
               if (!requestId || !url) {
                 return;
               }
+              const hostname = getWebsiteHostname(url);
+              const siteName = hostname || url;
+              const iconUrl = getWebsiteFaviconUrl(url);
+              const domainPolicy = getWebsiteAuthorizationPolicy(url);
+
+              if (domainPolicy === 'allow' || domainPolicy === 'deny') {
+                void resolveMihtnelisWebAccess({
+                  token: localToken!,
+                  requestId,
+                  allow: domainPolicy === 'allow',
+                }).catch((error: unknown) => {
+                  const errMsg = error instanceof Error
+                    ? error.message
+                    : t('aiChat.messages.unknownError', { defaultValue: '未知错误' });
+                  setAiWebAccessPrompt({
+                    requestId,
+                    url,
+                    message: typeof payload?.message === 'string' ? payload.message : '',
+                    hostname,
+                    siteName,
+                    iconUrl,
+                    domainPolicy: 'ask',
+                  });
+                  setAiWebAccessResolveError(errMsg);
+                });
+                return;
+              }
+
               setAiWebAccessPrompt({
                 requestId,
                 url,
                 message: typeof payload?.message === 'string' ? payload.message : '',
+                hostname,
+                siteName,
+                iconUrl,
+                domainPolicy,
               });
               setAiWebAccessResolveError('');
+
+              void fetchWebsiteTitle(url, 4500).then((title) => {
+                const trimmedTitle = title.trim();
+                if (!trimmedTitle) {
+                  return;
+                }
+                const latestPrompt = useIslandStore.getState().aiWebAccessPrompt;
+                if (!latestPrompt || latestPrompt.requestId !== requestId) {
+                  return;
+                }
+                useIslandStore.getState().setAiWebAccessPrompt({
+                  ...latestPrompt,
+                  siteName: trimmedTitle,
+                });
+              }).catch(() => undefined);
               return;
             }
 
@@ -391,6 +446,10 @@ export function AiChatTab(): React.ReactElement {
     if (!localToken || !aiWebAccessPrompt?.requestId) {
       return;
     }
+    const policy: SiteAuthorizationPolicy = aiWebAccessPrompt.domainPolicy === 'allow' || aiWebAccessPrompt.domainPolicy === 'deny'
+      ? aiWebAccessPrompt.domainPolicy
+      : 'ask';
+    setWebsiteAuthorizationPolicy(aiWebAccessPrompt.url, policy);
     setResolvingWebAccessDecision(true);
     setAiWebAccessResolveError('');
     try {
@@ -422,6 +481,17 @@ export function AiChatTab(): React.ReactElement {
       setResolvingWebAccessDecision(false);
     }
   }, [t, aiWebAccessPrompt, setAiWebAccessPrompt, setAiWebAccessResolveError, updateMessages]);
+
+  const handleDomainPolicyChange = useCallback((policy: SiteAuthorizationPolicy): void => {
+    if (!aiWebAccessPrompt) {
+      return;
+    }
+    setAiWebAccessPrompt({
+      ...aiWebAccessPrompt,
+      domainPolicy: policy,
+    });
+    setAiWebAccessResolveError('');
+  }, [aiWebAccessPrompt, setAiWebAccessPrompt, setAiWebAccessResolveError]);
 
   return (
     <div className="max-expand-chat">
@@ -501,6 +571,28 @@ export function AiChatTab(): React.ReactElement {
       {aiWebAccessPrompt && (
         <div className="max-expand-chat-web-access-panel">
           <div className="max-expand-chat-web-access-card">
+            <div className="max-expand-chat-web-access-site">
+              {aiWebAccessPrompt.iconUrl ? (
+                <img
+                  className="max-expand-chat-web-access-site-icon"
+                  src={aiWebAccessPrompt.iconUrl}
+                  alt=""
+                  loading="lazy"
+                />
+              ) : (
+                <div className="max-expand-chat-web-access-site-fallback">
+                  {(aiWebAccessPrompt.siteName || aiWebAccessPrompt.hostname || '?').slice(0, 1).toUpperCase()}
+                </div>
+              )}
+              <div className="max-expand-chat-web-access-site-meta">
+                <div className="max-expand-chat-web-access-site-name">
+                  {aiWebAccessPrompt.siteName || aiWebAccessPrompt.hostname || aiWebAccessPrompt.url}
+                </div>
+                {aiWebAccessPrompt.hostname && (
+                  <div className="max-expand-chat-web-access-site-host">{aiWebAccessPrompt.hostname}</div>
+                )}
+              </div>
+            </div>
             <div className="max-expand-chat-web-access-title">
               {t('aiChat.webAccess.title', { defaultValue: '网页访问授权' })}
             </div>
@@ -525,6 +617,26 @@ export function AiChatTab(): React.ReactElement {
               >
                 {t('aiChat.webAccess.allow', { defaultValue: '允许访问' })}
               </button>
+              <select
+                className="max-expand-chat-web-access-policy-select"
+                value={aiWebAccessPrompt.domainPolicy || 'ask'}
+                onChange={(event) => {
+                  handleDomainPolicyChange(event.target.value as SiteAuthorizationPolicy);
+                }}
+                disabled={resolvingWebAccessDecision}
+                title={t('aiChat.webAccess.policyLabel', { defaultValue: '此域名授权策略' })}
+                aria-label={t('aiChat.webAccess.policyLabel', { defaultValue: '此域名授权策略' })}
+              >
+                <option value="ask">
+                  {t('aiChat.webAccess.policy.ask', { defaultValue: '每次都询问' })}
+                </option>
+                <option value="allow">
+                  {t('aiChat.webAccess.policy.allow', { defaultValue: '始终批准' })}
+                </option>
+                <option value="deny">
+                  {t('aiChat.webAccess.policy.deny', { defaultValue: '始终禁止' })}
+                </option>
+              </select>
             </div>
             {aiWebAccessResolveError && (
               <div className="max-expand-chat-web-access-error">{aiWebAccessResolveError}</div>
