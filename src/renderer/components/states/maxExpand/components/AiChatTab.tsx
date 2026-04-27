@@ -30,12 +30,36 @@ import remarkGfm from 'remark-gfm';
 import { useTranslation } from 'react-i18next';
 import { streamMihtnelisAgent } from '../../../../api/ai/mihtnelisAgentStream';
 import useIslandStore from '../../../../store/slices';
+import type { AiChatMessage, AiToolCall } from '../../../../store/types';
 import { readLocalToken } from '../../../../utils/userAccount';
 
-/** 单条消息 */
-interface ChatMessage {
-  role: 'user' | 'assistant';
-  content: string;
+interface ThinkEventPayload {
+  text?: unknown;
+  index?: unknown;
+  done?: unknown;
+}
+
+interface ToolEventPayload {
+  turn?: unknown;
+  tool?: unknown;
+  arguments?: unknown;
+  success?: unknown;
+  error?: unknown;
+  result?: unknown;
+}
+
+function toPrettyJson(value: unknown): string {
+  if (value == null) {
+    return '{}';
+  }
+  if (typeof value === 'string') {
+    return value;
+  }
+  try {
+    return JSON.stringify(value, null, 2);
+  } catch {
+    return String(value);
+  }
 }
 
 /**
@@ -107,7 +131,7 @@ export function AiChatTab(): React.ReactElement {
   const { aiConfig, aiChatMessages, setAiChatMessages, clearAiChatMessages } = useIslandStore();
 
   /** 始终从 store 读最新消息再更新，避免流式 chunk 之间的闭包过期 */
-  const updateMessages = useCallback((updater: (prev: ChatMessage[]) => ChatMessage[]) => {
+  const updateMessages = useCallback((updater: (prev: AiChatMessage[]) => AiChatMessage[]) => {
     const latest = useIslandStore.getState().aiChatMessages;
     useIslandStore.getState().setAiChatMessages(updater(latest));
   }, []);
@@ -145,7 +169,7 @@ export function AiChatTab(): React.ReactElement {
       return;
     }
 
-    const userMsg: ChatMessage = { role: 'user', content: text };
+    const userMsg: AiChatMessage = { role: 'user', content: text };
     const nextMessages = [...aiChatMessages, userMsg];
     setAiChatMessages(nextMessages);
     setInput('');
@@ -161,7 +185,7 @@ export function AiChatTab(): React.ReactElement {
     });
 
     // 添加占位 AI 消息
-    updateMessages(prev => ([...prev, { role: 'assistant', content: '' }]));
+    updateMessages(prev => ([...prev, { role: 'assistant', content: '', thinkBlocks: [], toolCalls: [] }]));
 
     const controller = new AbortController();
     abortRef.current = controller;
@@ -187,6 +211,49 @@ export function AiChatTab(): React.ReactElement {
                 const last = copy[copy.length - 1];
                 if (last && last.role === 'assistant') {
                   copy[copy.length - 1] = { ...last, content: last.content + chunk };
+                }
+                return copy;
+              });
+              return;
+            }
+
+            if (event.type === 'think') {
+              const payload = event.payload as ThinkEventPayload;
+              const thinkText = typeof payload?.text === 'string' ? payload.text : '';
+              const thinkIndex = typeof payload?.index === 'number' ? payload.index : 0;
+              if (!thinkText) return;
+              updateMessages(prev => {
+                const copy = [...prev];
+                const last = copy[copy.length - 1];
+                if (last && last.role === 'assistant') {
+                  const oldBlocks = Array.isArray(last.thinkBlocks) ? [...last.thinkBlocks] : [];
+                  const current = typeof oldBlocks[thinkIndex] === 'string' ? oldBlocks[thinkIndex] : '';
+                  oldBlocks[thinkIndex] = current + thinkText;
+                  copy[copy.length - 1] = { ...last, thinkBlocks: oldBlocks };
+                }
+                return copy;
+              });
+              return;
+            }
+
+            if (event.type === 'tool') {
+              const payload = event.payload as ToolEventPayload;
+              const toolCall: AiToolCall = {
+                turn: typeof payload?.turn === 'number' ? payload.turn : 0,
+                tool: typeof payload?.tool === 'string' ? payload.tool : 'unknown',
+                arguments: typeof payload?.arguments === 'object' && payload?.arguments != null
+                  ? payload.arguments as Record<string, unknown>
+                  : {},
+                success: Boolean(payload?.success),
+                error: typeof payload?.error === 'string' ? payload.error : '',
+                result: payload?.result,
+              };
+              updateMessages(prev => {
+                const copy = [...prev];
+                const last = copy[copy.length - 1];
+                if (last && last.role === 'assistant') {
+                  const oldCalls = Array.isArray(last.toolCalls) ? last.toolCalls : [];
+                  copy[copy.length - 1] = { ...last, toolCalls: [...oldCalls, toolCall] };
                 }
                 return copy;
               });
@@ -304,13 +371,48 @@ export function AiChatTab(): React.ReactElement {
             {msg.role === 'user' ? (
               msg.content
             ) : (
-              msg.content ? (
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                  {msg.content}
-                </ReactMarkdown>
-              ) : (
-                loading && i === aiChatMessages.length - 1 ? '...' : ''
-              )
+              <>
+                {Array.isArray(msg.toolCalls) && msg.toolCalls.length > 0 && (
+                  <div className="max-expand-chat-tool-list">
+                    {msg.toolCalls.map((toolCall, toolIndex) => (
+                      <details key={`${toolCall.tool}-${toolCall.turn}-${toolIndex}`} className="max-expand-chat-tool-card">
+                        <summary className="max-expand-chat-tool-card-head">
+                          <span className="max-expand-chat-tool-left">
+                            <span className="max-expand-chat-tool-name">{toolCall.tool}</span>
+                            <span className="max-expand-chat-tool-turn">#{toolCall.turn || toolIndex + 1}</span>
+                          </span>
+                          <span className={`max-expand-chat-tool-status ${toolCall.success ? 'success' : 'failed'}`}>
+                            {toolCall.success ? '完成' : '失败'}
+                          </span>
+                        </summary>
+                        <div className="max-expand-chat-tool-result">
+                          <div className="max-expand-chat-tool-result-title">工具返回结果</div>
+                          <pre>{toPrettyJson(toolCall.result)}</pre>
+                        </div>
+                      </details>
+                    ))}
+                  </div>
+                )}
+
+                {Array.isArray(msg.thinkBlocks) && msg.thinkBlocks.length > 0 && (
+                  <div className="max-expand-chat-think-list">
+                    {msg.thinkBlocks.map((thinkText, thinkIndex) => (
+                      <details key={`${thinkIndex}-${thinkText.slice(0, 16)}`} className="max-expand-chat-think-card" open={thinkIndex === msg.thinkBlocks!.length - 1 && loading && i === aiChatMessages.length - 1}>
+                        <summary>思考过程 #{thinkIndex + 1}</summary>
+                        <div className="max-expand-chat-think-content">{thinkText}</div>
+                      </details>
+                    ))}
+                  </div>
+                )}
+
+                {msg.content ? (
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {msg.content}
+                  </ReactMarkdown>
+                ) : (
+                  loading && i === aiChatMessages.length - 1 ? '...' : ''
+                )}
+              </>
             )}
           </div>
         ))}

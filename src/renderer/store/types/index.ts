@@ -190,10 +190,22 @@ export interface AiConfig {
   systemPrompt: string;
 }
 
+/** AI 工具调用轨迹 */
+export interface AiToolCall {
+  turn: number;
+  tool: string;
+  arguments?: Record<string, unknown>;
+  success?: boolean;
+  error?: string;
+  result?: unknown;
+}
+
 /** AI 对话单条消息 */
 export interface AiChatMessage {
   role: 'user' | 'assistant';
   content: string;
+  thinkBlocks?: string[];
+  toolCalls?: AiToolCall[];
 }
 
 // ============= Slice Interfaces =============

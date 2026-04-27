@@ -24,7 +24,7 @@ import { buildReplayHeaders, resolveClientVersion, USER_ACCOUNT_API_BASE } from 
 const APP_NAME_HEADER = 'X-App-Name';
 const APP_NAME_VALUE = 'eisland';
 
-export type MihtnelisAgentStreamEventType = 'meta' | 'chunk' | 'billing' | 'final' | 'error';
+export type MihtnelisAgentStreamEventType = 'meta' | 'tool' | 'think' | 'chunk' | 'billing' | 'final' | 'error';
 
 export interface MihtnelisAgentStreamEvent {
   type: MihtnelisAgentStreamEventType;
@@ -140,6 +140,8 @@ export async function streamMihtnelisAgent(request: MihtnelisAgentStreamRequest)
 
 function toEventType(input: string): MihtnelisAgentStreamEventType | null {
   if (input === 'meta') return 'meta';
+  if (input === 'tool') return 'tool';
+  if (input === 'think') return 'think';
   if (input === 'chunk') return 'chunk';
   if (input === 'billing') return 'billing';
   if (input === 'final') return 'final';
