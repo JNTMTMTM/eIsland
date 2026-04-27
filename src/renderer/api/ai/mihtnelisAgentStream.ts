@@ -91,17 +91,8 @@ export async function streamMihtnelisAgent(request: MihtnelisAgentStreamRequest)
   let buffer = '';
   let currentEvent = '';
 
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) {
-      return;
-    }
-
-    buffer += decoder.decode(value, { stream: true });
-    const lines = buffer.split('\n');
-    buffer = lines.pop() ?? '';
-
-    for (const rawLine of lines) {
+  const parseLines = (rawLines: string[]): void => {
+    for (const rawLine of rawLines) {
       const line = rawLine.trimEnd();
       if (!line) {
         currentEvent = '';
@@ -129,6 +120,21 @@ export async function streamMihtnelisAgent(request: MihtnelisAgentStreamRequest)
       }
       request.onEvent?.({ type, payload });
     }
+  };
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) {
+      if (buffer.trim().length > 0) {
+        parseLines((buffer + '\n').split('\n'));
+      }
+      return;
+    }
+
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split('\n');
+    buffer = lines.pop() ?? '';
+    parseLines(lines);
   }
 }
 

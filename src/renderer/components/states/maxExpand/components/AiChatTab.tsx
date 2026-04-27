@@ -168,6 +168,8 @@ export function AiChatTab(): React.ReactElement {
 
     try {
       if (canUseMihtnelis) {
+        let receivedMihtnelisChunk = false;
+        let mihtnelisErrorMessage: string | null = null;
         await streamMihtnelisAgent({
           token: localToken!,
           sessionId: 'max-expand-ai-chat',
@@ -175,20 +177,45 @@ export function AiChatTab(): React.ReactElement {
           provider: aiConfig.model,
           signal: controller.signal,
           onEvent: (event) => {
-            if (event.type !== 'chunk') return;
-            const payload = event.payload as { text?: unknown };
-            const chunk = typeof payload?.text === 'string' ? payload.text : '';
-            if (!chunk) return;
-            updateMessages(prev => {
-              const copy = [...prev];
-              const last = copy[copy.length - 1];
-              if (last && last.role === 'assistant') {
-                copy[copy.length - 1] = { ...last, content: last.content + chunk };
-              }
-              return copy;
-            });
+            if (event.type === 'chunk') {
+              const payload = event.payload as { text?: unknown };
+              const chunk = typeof payload?.text === 'string' ? payload.text : '';
+              if (!chunk) return;
+              receivedMihtnelisChunk = true;
+              updateMessages(prev => {
+                const copy = [...prev];
+                const last = copy[copy.length - 1];
+                if (last && last.role === 'assistant') {
+                  copy[copy.length - 1] = { ...last, content: last.content + chunk };
+                }
+                return copy;
+              });
+              return;
+            }
+
+            if (event.type === 'error') {
+              const payload = event.payload as { message?: unknown };
+              const message = typeof payload?.message === 'string'
+                ? payload.message
+                : 'mihtnelis agent 返回错误';
+              mihtnelisErrorMessage = message;
+            }
           },
         });
+
+        if (!receivedMihtnelisChunk) {
+          const fallbackMessage = mihtnelisErrorMessage
+            ? `❌ ${mihtnelisErrorMessage}`
+            : '⚠️ 未收到模型输出，请检查 DeepSeek 配置与服务端日志。';
+          updateMessages(prev => {
+            const copy = [...prev];
+            const last = copy[copy.length - 1];
+            if (last && last.role === 'assistant' && !last.content) {
+              copy[copy.length - 1] = { ...last, content: fallbackMessage };
+            }
+            return copy;
+          });
+        }
       } else {
         await streamChatCompletion(
           aiConfig.endpoint,
