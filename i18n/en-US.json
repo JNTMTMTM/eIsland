@@ -560,6 +560,14 @@
       "emptyWithApiKey": "How can I help you?",
       "emptyWithoutApiKey": "Please fill in API Key in Settings → AI Config first"
     },
+    "webAccess": {
+      "title": "Web Access Authorization",
+      "allow": "Allow Access",
+      "deny": "Deny Access",
+      "requestHint": "The agent needs to access the following URL. Allow it?",
+      "allowedHint": "Authorized. You can retry reading this URL in the next turn.",
+      "deniedHint": "Access to this URL has been denied."
+    },
     "input": {
       "generatingPlaceholder": "Generating...",
       "placeholder": "Type a message..."

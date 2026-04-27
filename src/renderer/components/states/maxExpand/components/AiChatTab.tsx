@@ -28,7 +28,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useTranslation } from 'react-i18next';
-import { streamMihtnelisAgent } from '../../../../api/ai/mihtnelisAgentStream';
+import { resolveMihtnelisWebAccess, streamMihtnelisAgent } from '../../../../api/ai/mihtnelisAgentStream';
 import useIslandStore from '../../../../store/slices';
 import type { AiChatMessage, AiToolCall } from '../../../../store/types';
 import { readLocalToken } from '../../../../utils/userAccount';
@@ -127,8 +127,18 @@ export function AiChatTab(): React.ReactElement {
   const chatEndRef = useRef<HTMLDivElement>(null);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [resolvingWebAccessDecision, setResolvingWebAccessDecision] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
-  const { aiConfig, aiChatMessages, setAiChatMessages, clearAiChatMessages } = useIslandStore();
+  const {
+    aiConfig,
+    aiChatMessages,
+    setAiChatMessages,
+    clearAiChatMessages,
+    aiWebAccessPrompt,
+    setAiWebAccessPrompt,
+    aiWebAccessResolveError,
+    setAiWebAccessResolveError,
+  } = useIslandStore();
 
   /** 始终从 store 读最新消息再更新，避免流式 chunk 之间的闭包过期 */
   const updateMessages = useCallback((updater: (prev: AiChatMessage[]) => AiChatMessage[]) => {
@@ -174,6 +184,8 @@ export function AiChatTab(): React.ReactElement {
     setAiChatMessages(nextMessages);
     setInput('');
     setLoading(true);
+    setAiWebAccessPrompt(null);
+    setAiWebAccessResolveError('');
 
     // 构建 API 请求消息（含 system prompt）
     const apiMessages: { role: string; content: string }[] = [];
@@ -214,6 +226,28 @@ export function AiChatTab(): React.ReactElement {
                 }
                 return copy;
               });
+              return;
+            }
+
+            if (event.type === 'web_access_request') {
+              const payload = event.payload as { requestId?: unknown; url?: unknown; message?: unknown };
+              const requestId = typeof payload?.requestId === 'string' ? payload.requestId.trim() : '';
+              const url = typeof payload?.url === 'string' ? payload.url.trim() : '';
+              if (!requestId || !url) {
+                return;
+              }
+              setAiWebAccessPrompt({
+                requestId,
+                url,
+                message: typeof payload?.message === 'string' ? payload.message : '',
+              });
+              setAiWebAccessResolveError('');
+              return;
+            }
+
+            if (event.type === 'web_access_resolved') {
+              setAiWebAccessPrompt(null);
+              setAiWebAccessResolveError('');
               return;
             }
 
@@ -320,8 +354,19 @@ export function AiChatTab(): React.ReactElement {
     } finally {
       abortRef.current = null;
       setLoading(false);
+      setResolvingWebAccessDecision(false);
     }
-  }, [input, loading, aiChatMessages, aiConfig, setAiChatMessages, updateMessages, t]);
+  }, [
+    input,
+    loading,
+    aiChatMessages,
+    aiConfig,
+    setAiChatMessages,
+    updateMessages,
+    t,
+    setAiWebAccessPrompt,
+    setAiWebAccessResolveError,
+  ]);
 
   /** 回车发送 */
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>): void => {
@@ -341,7 +386,34 @@ export function AiChatTab(): React.ReactElement {
     abortRef.current?.abort();
     clearAiChatMessages();
     setLoading(false);
+    setResolvingWebAccessDecision(false);
+    setAiWebAccessPrompt(null);
+    setAiWebAccessResolveError('');
   };
+
+  const handleResolveWebAccess = useCallback(async (allow: boolean): Promise<void> => {
+    const localToken = readLocalToken();
+    if (!localToken || !aiWebAccessPrompt?.requestId) {
+      return;
+    }
+    setResolvingWebAccessDecision(true);
+    setAiWebAccessResolveError('');
+    try {
+      await resolveMihtnelisWebAccess({
+        token: localToken,
+        requestId: aiWebAccessPrompt.requestId,
+        allow,
+      });
+      if (!allow) {
+        setAiWebAccessPrompt(null);
+      }
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : t('aiChat.messages.unknownError', { defaultValue: '未知错误' });
+      setAiWebAccessResolveError(errMsg);
+    } finally {
+      setResolvingWebAccessDecision(false);
+    }
+  }, [t, aiWebAccessPrompt, setAiWebAccessPrompt, setAiWebAccessResolveError]);
 
   return (
     <div className="max-expand-chat">
@@ -418,6 +490,40 @@ export function AiChatTab(): React.ReactElement {
         ))}
         <div ref={chatEndRef} />
       </div>
+      {aiWebAccessPrompt && (
+        <div className="max-expand-chat-web-access-panel">
+          <div className="max-expand-chat-web-access-card">
+            <div className="max-expand-chat-web-access-title">
+              {t('aiChat.webAccess.title', { defaultValue: '网页访问授权' })}
+            </div>
+            <div className="max-expand-chat-web-access-desc">
+              {aiWebAccessPrompt.message || t('aiChat.webAccess.requestHint', { defaultValue: 'Agent 需要访问以下 URL，是否允许？' })}
+            </div>
+            <div className="max-expand-chat-web-access-url">{aiWebAccessPrompt.url}</div>
+            <div className="max-expand-chat-web-access-actions">
+              <button
+                type="button"
+                className="max-expand-chat-web-access-btn deny"
+                onClick={() => { handleResolveWebAccess(false); }}
+                disabled={resolvingWebAccessDecision}
+              >
+                {t('aiChat.webAccess.deny', { defaultValue: '拒绝访问' })}
+              </button>
+              <button
+                type="button"
+                className="max-expand-chat-web-access-btn allow"
+                onClick={() => { handleResolveWebAccess(true); }}
+                disabled={resolvingWebAccessDecision}
+              >
+                {t('aiChat.webAccess.allow', { defaultValue: '允许访问' })}
+              </button>
+            </div>
+            {aiWebAccessResolveError && (
+              <div className="max-expand-chat-web-access-error">{aiWebAccessResolveError}</div>
+            )}
+          </div>
+        </div>
+      )}
       {/* 输入栏 */}
       <div className="max-expand-chat-input-bar">
         <input

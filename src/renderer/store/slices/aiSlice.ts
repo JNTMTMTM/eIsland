@@ -25,7 +25,7 @@
  */
 
 import type { StateCreator } from 'zustand';
-import type { AiSlice, AiConfig, AiChatMessage } from '../types';
+import type { AiSlice, AiConfig, AiChatMessage, AiWebAccessPrompt } from '../types';
 
 const AI_CONFIG_KEY = 'eIsland_aiConfig';
 const AI_CHAT_MESSAGES_KEY = 'eIsland_aiChatMessages';
@@ -73,6 +73,19 @@ function saveAiChatMessages(messages: AiChatMessage[]): void {
   } catch { /* ignore */ }
 }
 
+function normalizeAiWebAccessPrompt(value: AiWebAccessPrompt | null): AiWebAccessPrompt | null {
+  if (!value) {
+    return null;
+  }
+  const requestId = typeof value.requestId === 'string' ? value.requestId.trim() : '';
+  const url = typeof value.url === 'string' ? value.url.trim() : '';
+  const message = typeof value.message === 'string' ? value.message : '';
+  if (!requestId || !url) {
+    return null;
+  }
+  return { requestId, url, message };
+}
+
 export const createAiSlice: StateCreator<
   AiSlice,
   [],
@@ -81,6 +94,8 @@ export const createAiSlice: StateCreator<
 > = (set, get) => ({
   aiConfig: loadAiConfig(),
   aiChatMessages: loadAiChatMessages(),
+  aiWebAccessPrompt: null,
+  aiWebAccessResolveError: '',
 
   setAiConfig: (partial) => {
     const next = { ...get().aiConfig, ...partial };
@@ -95,6 +110,18 @@ export const createAiSlice: StateCreator<
 
   clearAiChatMessages: () => {
     saveAiChatMessages([]);
-    set({ aiChatMessages: [] });
+    set({
+      aiChatMessages: [],
+      aiWebAccessPrompt: null,
+      aiWebAccessResolveError: '',
+    });
+  },
+
+  setAiWebAccessPrompt: (prompt) => {
+    set({ aiWebAccessPrompt: normalizeAiWebAccessPrompt(prompt) });
+  },
+
+  setAiWebAccessResolveError: (message) => {
+    set({ aiWebAccessResolveError: typeof message === 'string' ? message : '' });
   },
 });

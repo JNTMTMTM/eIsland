@@ -198,6 +198,12 @@ export interface AiToolCall {
   success?: boolean;
   error?: string;
   result?: unknown;
+  authorizationRequired?: boolean;
+  webAccessRequestId?: string;
+  webAccessUrl?: string;
+  webAccessResolved?: boolean;
+  webAccessAllowed?: boolean;
+  webAccessResolveError?: string;
 }
 
 /** AI 对话单条消息 */
@@ -206,6 +212,13 @@ export interface AiChatMessage {
   content: string;
   thinkBlocks?: string[];
   toolCalls?: AiToolCall[];
+}
+
+/** AI Web 访问提示 */
+export interface AiWebAccessPrompt {
+  requestId: string;
+  url: string;
+  message: string;
 }
 
 // ============= Slice Interfaces =============
@@ -297,6 +310,10 @@ export interface AiSlice {
   aiChatMessages: AiChatMessage[];
   setAiChatMessages: (messages: AiChatMessage[]) => void;
   clearAiChatMessages: () => void;
+  aiWebAccessPrompt: AiWebAccessPrompt | null;
+  setAiWebAccessPrompt: (prompt: AiWebAccessPrompt | null) => void;
+  aiWebAccessResolveError: string;
+  setAiWebAccessResolveError: (message: string) => void;
 }
 
 /** 番茄钟 Slice */

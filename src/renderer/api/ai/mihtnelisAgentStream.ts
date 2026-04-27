@@ -24,11 +24,26 @@ import { buildReplayHeaders, resolveClientVersion, USER_ACCOUNT_API_BASE } from 
 const APP_NAME_HEADER = 'X-App-Name';
 const APP_NAME_VALUE = 'eisland';
 
-export type MihtnelisAgentStreamEventType = 'meta' | 'tool' | 'think' | 'chunk' | 'billing' | 'final' | 'error';
+export type MihtnelisAgentStreamEventType =
+  | 'meta'
+  | 'tool'
+  | 'think'
+  | 'chunk'
+  | 'billing'
+  | 'web_access_request'
+  | 'web_access_resolved'
+  | 'final'
+  | 'error';
 
 export interface MihtnelisAgentStreamEvent {
   type: MihtnelisAgentStreamEventType;
   payload: unknown;
+}
+
+export interface ResolveMihtnelisWebAccessRequest {
+  token: string;
+  requestId: string;
+  allow: boolean;
 }
 
 export interface MihtnelisAgentStreamRequest {
@@ -138,12 +153,50 @@ export async function streamMihtnelisAgent(request: MihtnelisAgentStreamRequest)
   }
 }
 
+export async function resolveMihtnelisWebAccess(request: ResolveMihtnelisWebAccessRequest): Promise<void> {
+  const token = request.token?.trim();
+  if (!token) {
+    throw new Error('未登录，无法提交网页访问授权');
+  }
+  const requestId = request.requestId?.trim();
+  if (!requestId) {
+    throw new Error('requestId 不能为空');
+  }
+
+  const headers: Record<string, string> = {
+    Accept: 'application/json',
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${token}`,
+    [APP_NAME_HEADER]: APP_NAME_VALUE,
+    ...buildReplayHeaders(),
+  };
+  const version = await resolveClientVersion();
+  if (version) {
+    headers['X-Client-Version'] = version;
+  }
+
+  const response = await fetch(`${USER_ACCOUNT_API_BASE}/v1/user/ai/agent/web-access/resolve`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({
+      requestId,
+      allow: Boolean(request.allow),
+    }),
+  });
+  if (!response.ok) {
+    const body = await response.text().catch(() => '');
+    throw new Error(`网页授权提交失败 (${response.status}): ${body || response.statusText}`);
+  }
+}
+
 function toEventType(input: string): MihtnelisAgentStreamEventType | null {
   if (input === 'meta') return 'meta';
   if (input === 'tool') return 'tool';
   if (input === 'think') return 'think';
   if (input === 'chunk') return 'chunk';
   if (input === 'billing') return 'billing';
+  if (input === 'web_access_request') return 'web_access_request';
+  if (input === 'web_access_resolved') return 'web_access_resolved';
   if (input === 'final') return 'final';
   if (input === 'error') return 'error';
   return null;

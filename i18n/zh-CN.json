@@ -560,6 +560,14 @@
       "emptyWithApiKey": "有什么可以帮你的？",
       "emptyWithoutApiKey": "请先在「设置 → AI配置」中填写 API Key"
     },
+    "webAccess": {
+      "title": "网页访问授权",
+      "allow": "允许访问",
+      "deny": "拒绝访问",
+      "requestHint": "Agent 需要访问以下 URL，是否允许？",
+      "allowedHint": "已授权，下一轮可继续读取该 URL。",
+      "deniedHint": "已拒绝该 URL 访问。"
+    },
     "input": {
       "generatingPlaceholder": "生成中...",
       "placeholder": "输入消息..."
