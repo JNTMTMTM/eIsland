@@ -694,6 +694,7 @@ export function SettingsTab(): ReactElement {
     persistBgMedia(null);
     window.api.storeWrite(ISLAND_BG_IMAGE_STORE_KEY, null).catch(() => {});
     window.api.settingsPreview('store:island-bg-image', null).catch(() => {});
+    window.api.setSystemDesktopWallpaper({ clear: true }).catch(() => false);
     window.api.clearWallpaperCache?.().catch(() => {});
   };
 

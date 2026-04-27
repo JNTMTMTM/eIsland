@@ -409,7 +409,7 @@ const api = {
    * 将当前背景同步设置为 Windows 系统桌面壁纸
    * @param payload - 背景源路径和预览地址
    */
-  setSystemDesktopWallpaper: (payload: { sourcePath?: string | null; previewUrl?: string | null }): Promise<boolean> => {
+  setSystemDesktopWallpaper: (payload: { sourcePath?: string | null; previewUrl?: string | null; clear?: boolean }): Promise<boolean> => {
     return ipcRenderer.invoke('wallpaper:system:set', payload);
   },
   /**

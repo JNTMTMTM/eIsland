@@ -126,7 +126,7 @@ declare global {
       openVideoDialog: () => Promise<string | null>;
       loadWallpaperFile: (filePath: string) => Promise<string | null>;
       clearWallpaperCache: () => Promise<void>;
-      setSystemDesktopWallpaper: (payload: { sourcePath?: string | null; previewUrl?: string | null }) => Promise<boolean>;
+      setSystemDesktopWallpaper: (payload: { sourcePath?: string | null; previewUrl?: string | null; clear?: boolean }) => Promise<boolean>;
       wallpaperVideoCover: (sourcePath: string) => Promise<string | null>;
       readLocalFileAsBuffer: (filePath: string) => Promise<Uint8Array | null>;
       netFetch: (url: string, options?: {

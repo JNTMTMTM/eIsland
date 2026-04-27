@@ -145,6 +145,29 @@ function setWindowsDesktopWallpaper(imagePath: string): Promise<boolean> {
   });
 }
 
+function createSolidBlackBmpBuffer(): Buffer {
+  return Buffer.from([
+    0x42, 0x4d, 0x3a, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x36, 0x00,
+    0x00, 0x00, 0x28, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x00,
+    0x00, 0x00, 0x01, 0x00, 0x18, 0x00, 0x00, 0x00, 0x00, 0x00, 0x04, 0x00,
+    0x00, 0x00, 0x13, 0x0b, 0x00, 0x00, 0x13, 0x0b, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00,
+  ]);
+}
+
+function clearWindowsDesktopWallpaper(wallpaperCacheDir: string): Promise<boolean> {
+  if (process.platform !== 'win32') return Promise.resolve(false);
+  try {
+    if (!existsSync(wallpaperCacheDir)) mkdirSync(wallpaperCacheDir, { recursive: true });
+    const blackWallpaperPath = join(wallpaperCacheDir, `${DESKTOP_SYNC_FILE_BASENAME}-black.bmp`);
+    writeFileSync(blackWallpaperPath, createSolidBlackBmpBuffer());
+    return setWindowsDesktopWallpaper(blackWallpaperPath);
+  } catch {
+    return Promise.resolve(false);
+  }
+}
+
 /**
  * 注册壁纸相关 IPC 处理器
  * @description 注册壁纸选择、加载和缓存清理的 IPC 事件处理器
@@ -258,7 +281,10 @@ export function registerWallpaperIpcHandlers(): void {
 
   ipcMain.handle('wallpaper:system:set', async (_event, payload: unknown): Promise<boolean> => {
     if (process.platform !== 'win32') return false;
-    const row = (payload ?? {}) as { sourcePath?: unknown; previewUrl?: unknown };
+    const row = (payload ?? {}) as { sourcePath?: unknown; previewUrl?: unknown; clear?: unknown };
+    if (row.clear === true) {
+      return clearWindowsDesktopWallpaper(wallpaperCacheDir);
+    }
     const sourcePath = typeof row.sourcePath === 'string' ? row.sourcePath : null;
     const previewUrl = typeof row.previewUrl === 'string' ? row.previewUrl : null;
     const imagePath = await resolveDesktopWallpaperImagePath(wallpaperCacheDir, sourcePath, previewUrl);
