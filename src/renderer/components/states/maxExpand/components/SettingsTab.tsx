@@ -651,6 +651,8 @@ export function SettingsTab(): ReactElement {
   const handleClearBgImage = (): void => {
     applyBgMedia(null, null);
     persistBgMedia(null);
+    window.api.storeWrite(ISLAND_BG_IMAGE_STORE_KEY, null).catch(() => {});
+    window.api.settingsPreview('store:island-bg-image', null).catch(() => {});
     window.api.clearWallpaperCache?.().catch(() => {});
   };
 
@@ -931,8 +933,10 @@ export function SettingsTab(): ReactElement {
       }
       if (typeof opacity === 'number' && Number.isFinite(opacity)) setBgImageOpacity(Math.max(0, Math.min(100, Math.round(opacity))));
       if (typeof blur === 'number' && Number.isFinite(blur)) setBgImageBlur(Math.max(0, Math.min(20, Math.round(blur))));
-      const media = normalizeBgMediaConfig(mediaRaw)
-        ?? (typeof legacyImage === 'string' ? normalizeBgMediaConfig(legacyImage) : null);
+      const mediaFromStore = normalizeBgMediaConfig(mediaRaw);
+      const media = mediaRaw === undefined
+        ? (mediaFromStore ?? (typeof legacyImage === 'string' ? normalizeBgMediaConfig(legacyImage) : null))
+        : mediaFromStore;
       if (!media) {
         setBgMedia(null);
         setBgMediaPreviewUrl(null);
