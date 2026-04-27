@@ -28,7 +28,9 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useTranslation } from 'react-i18next';
+import { streamMihtnelisAgent } from '../../../../api/ai/mihtnelisAgentStream';
 import useIslandStore from '../../../../store/slices';
+import { readLocalToken } from '../../../../utils/userAccount';
 
 /** 单条消息 */
 interface ChatMessage {
@@ -125,7 +127,10 @@ export function AiChatTab(): React.ReactElement {
     const text = input.trim();
     if (!text || loading) return;
 
-    if (!aiConfig.apiKey) {
+    const localToken = readLocalToken();
+    const canUseMihtnelis = Boolean(localToken && localToken.trim().length > 0);
+
+    if (!canUseMihtnelis && !aiConfig.apiKey) {
       updateMessages(prev => ([
         ...prev,
         { role: 'user', content: text },
@@ -162,23 +167,47 @@ export function AiChatTab(): React.ReactElement {
     abortRef.current = controller;
 
     try {
-      await streamChatCompletion(
-        aiConfig.endpoint,
-        aiConfig.apiKey,
-        aiConfig.model,
-        apiMessages,
-        (chunk) => {
-          updateMessages(prev => {
-            const copy = [...prev];
-            const last = copy[copy.length - 1];
-            if (last && last.role === 'assistant') {
-              copy[copy.length - 1] = { ...last, content: last.content + chunk };
-            }
-            return copy;
-          });
-        },
-        controller.signal,
-      );
+      if (canUseMihtnelis) {
+        await streamMihtnelisAgent({
+          token: localToken!,
+          sessionId: 'max-expand-ai-chat',
+          message: text,
+          provider: aiConfig.model,
+          signal: controller.signal,
+          onEvent: (event) => {
+            if (event.type !== 'chunk') return;
+            const payload = event.payload as { text?: unknown };
+            const chunk = typeof payload?.text === 'string' ? payload.text : '';
+            if (!chunk) return;
+            updateMessages(prev => {
+              const copy = [...prev];
+              const last = copy[copy.length - 1];
+              if (last && last.role === 'assistant') {
+                copy[copy.length - 1] = { ...last, content: last.content + chunk };
+              }
+              return copy;
+            });
+          },
+        });
+      } else {
+        await streamChatCompletion(
+          aiConfig.endpoint,
+          aiConfig.apiKey,
+          aiConfig.model,
+          apiMessages,
+          (chunk) => {
+            updateMessages(prev => {
+              const copy = [...prev];
+              const last = copy[copy.length - 1];
+              if (last && last.role === 'assistant') {
+                copy[copy.length - 1] = { ...last, content: last.content + chunk };
+              }
+              return copy;
+            });
+          },
+          controller.signal,
+        );
+      }
     } catch (err: unknown) {
       if ((err as Error).name === 'AbortError') return;
       const errMsg = err instanceof Error
@@ -226,7 +255,7 @@ export function AiChatTab(): React.ReactElement {
       <div className="max-expand-chat-header">
         <span className="max-expand-chat-header-title">{t('aiChat.title', { defaultValue: 'AI 对话' })}</span>
         <div className="max-expand-chat-header-actions">
-          <span className="max-expand-chat-header-model">{aiConfig.model || t('aiChat.notConfigured', { defaultValue: '未配置' })}</span>
+          <span className="max-expand-chat-header-model">{readLocalToken() ? 'mihtnelis agent' : (aiConfig.model || t('aiChat.notConfigured', { defaultValue: '未配置' }))}</span>
           {aiChatMessages.length > 0 && (
             <button className="max-expand-chat-clear" onClick={handleClear} type="button">
               {t('aiChat.actions.clear', { defaultValue: '清空' })}
