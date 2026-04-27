@@ -848,7 +848,17 @@
         "widgetPickerTitle": "Widget Slots",
         "widgetPickerHint": "Pick the widget for each side. Changes apply and persist instantly.",
         "leftWidget": "Left Widget",
-        "rightWidget": "Right Widget"
+        "rightWidget": "Right Widget",
+        "widgetNames": {
+          "shortcuts": "Shortcuts",
+          "todo": "Todo",
+          "song": "Song",
+          "countdown": "Countdown",
+          "pomodoro": "Pomodoro",
+          "urlFavorites": "URL Favorites",
+          "album": "Album Carousel",
+          "mokugyo": "Mokugyo"
+        }
       },
       "hideProcess": {
         "title": "Hidden Window Management",

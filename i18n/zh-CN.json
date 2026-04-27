@@ -848,7 +848,17 @@
         "widgetPickerTitle": "控件组合",
         "widgetPickerHint": "分别选择左右两侧展示的控件，切换后立即生效并自动保存。",
         "leftWidget": "左侧控件",
-        "rightWidget": "右侧控件"
+        "rightWidget": "右侧控件",
+        "widgetNames": {
+          "shortcuts": "快捷启动",
+          "todo": "待办事项",
+          "song": "歌曲",
+          "countdown": "倒数日",
+          "pomodoro": "番茄钟",
+          "urlFavorites": "URL 收藏",
+          "album": "相册轮播",
+          "mokugyo": "电子木鱼"
+        }
       },
       "hideProcess": {
         "title": "隐藏窗口管理",

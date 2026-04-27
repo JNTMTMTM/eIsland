@@ -261,6 +261,22 @@ const PLUGIN_MARKET_PAGES: PluginMarketPageKey[] = ['wallpaper', 'plugin', 'cont
  */
 export function SettingsTab(): ReactElement {
   const { t } = useTranslation();
+  const translatedOverviewWidgetOptions = useMemo(() => {
+    const labelKeyMap: Record<OverviewWidgetType, string> = {
+      shortcuts: 'settings.app.layout.widgetNames.shortcuts',
+      todo: 'settings.app.layout.widgetNames.todo',
+      song: 'settings.app.layout.widgetNames.song',
+      countdown: 'settings.app.layout.widgetNames.countdown',
+      pomodoro: 'settings.app.layout.widgetNames.pomodoro',
+      urlFavorites: 'settings.app.layout.widgetNames.urlFavorites',
+      album: 'settings.app.layout.widgetNames.album',
+      mokugyo: 'settings.app.layout.widgetNames.mokugyo',
+    };
+    return OVERVIEW_WIDGET_OPTIONS.map((option) => ({
+      ...option,
+      label: t(labelKeyMap[option.value], { defaultValue: option.label }),
+    }));
+  }, [t]);
   const opacitySaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [activeTab, setActiveTab] = useState<SettingsSidebarTabKey>(() => _lastSettingsSidebarTab);
   const [sessionToken, setSessionToken] = useState<string | null>(() => readLocalToken());
@@ -2414,7 +2430,7 @@ export function SettingsTab(): ReactElement {
               appSettingsPage={appSettingsPage}
               layoutConfig={layoutConfig}
               OverviewPreviewComponent={OverviewPreview}
-              overviewWidgetOptions={OVERVIEW_WIDGET_OPTIONS}
+              overviewWidgetOptions={translatedOverviewWidgetOptions}
               updateLayout={updateLayout}
               hideProcessFilter={hideProcessFilter}
               setHideProcessFilter={setHideProcessFilter}
