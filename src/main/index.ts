@@ -41,6 +41,7 @@ import { registerAppIpcHandlers } from './ipc/app/app';
 import { registerSystemIpcHandlers } from './ipc/system/system';
 import { registerUpdaterIpcHandlers } from './ipc/app/updater';
 import { registerWallpaperIpcHandlers } from './ipc/window/wallpaper';
+import { registerWallpaperVideoIpcHandlers } from './ipc/media/wallpaperVideo';
 import { registerNetIpcHandlers } from './ipc/app/net';
 import { registerStoreIpcHandlers } from './ipc/app/store';
 import { registerLogIpcHandlers } from './ipc/app/log';
@@ -448,6 +449,7 @@ function registerIpcHandlers(): void {
   });
 
   registerWallpaperIpcHandlers();
+  registerWallpaperVideoIpcHandlers();
 
   registerAppIpcHandlers();
 

@@ -406,6 +406,20 @@ const api = {
     return ipcRenderer.invoke('wallpaper:clear-cache');
   },
   /**
+   * 将当前背景同步设置为 Windows 系统桌面壁纸
+   * @param payload - 背景源路径和预览地址
+   */
+  setSystemDesktopWallpaper: (payload: { sourcePath?: string | null; previewUrl?: string | null }): Promise<boolean> => {
+    return ipcRenderer.invoke('wallpaper:system:set', payload);
+  },
+  /**
+   * 从视频中提取封面图路径
+   * @param sourcePath - 视频文件绝对路径
+   */
+  wallpaperVideoCover: (sourcePath: string): Promise<string | null> => {
+    return ipcRenderer.invoke('wallpaper:video:cover', sourcePath);
+  },
+  /**
    * 读取本地文件并以 Blob/Uint8Array 形式返回（保留以供其它功能使用）
    * @param filePath - 文件绝对路径
    */

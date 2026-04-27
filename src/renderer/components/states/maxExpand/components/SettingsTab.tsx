@@ -108,6 +108,7 @@ const ISLAND_BG_VIDEO_LOOP_STORE_KEY = 'island-bg-video-loop';
 const ISLAND_BG_VIDEO_VOLUME_STORE_KEY = 'island-bg-video-volume';
 const ISLAND_BG_VIDEO_RATE_STORE_KEY = 'island-bg-video-rate';
 const ISLAND_BG_VIDEO_HW_DECODE_STORE_KEY = 'island-bg-video-hw-decode';
+const ISLAND_BG_SYNC_SYSTEM_WALLPAPER_STORE_KEY = 'island-bg-sync-system-wallpaper';
 const STANDALONE_WINDOW_MAC_CONTROLS_STORE_KEY = 'standalone-window-mac-controls';
 const ISLAND_DISPLAY_STORE_KEY = 'island-display-id';
 const UPDATE_SOURCE_STORE_KEY = 'update-source';
@@ -420,6 +421,7 @@ export function SettingsTab(): ReactElement {
   const [bgVideoVolume, setBgVideoVolume] = useState<number>(0.6);
   const [bgVideoRate, setBgVideoRate] = useState<number>(1);
   const [bgVideoHwDecode, setBgVideoHwDecode] = useState<boolean>(true);
+  const [syncDesktopWallpaperOnBackgroundChange, setSyncDesktopWallpaperOnBackgroundChange] = useState<boolean>(false);
   const [bgImageOpacity, setBgImageOpacity] = useState<number>(30);
   const [bgImageBlur, setBgImageBlur] = useState<number>(0);
   const bgOpacitySaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -620,6 +622,43 @@ export function SettingsTab(): ReactElement {
     window.api.storeWrite(ISLAND_BG_VIDEO_HW_DECODE_STORE_KEY, value).catch(() => {});
   };
 
+  const resolveDesktopWallpaperPreviewUrl = (previewUrl: string | null): string | null => {
+    if (!previewUrl) return null;
+    const trimmed = previewUrl.trim();
+    if (!trimmed) return null;
+    if (trimmed.startsWith('data:') || trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('file://')) {
+      return trimmed;
+    }
+    try {
+      return new URL(trimmed, window.location.href).toString();
+    } catch {
+      return trimmed;
+    }
+  };
+
+  const syncSystemDesktopWallpaperIfNeeded = async (
+    media: IslandBgMediaConfig | null,
+    previewUrl: string | null,
+  ): Promise<void> => {
+    if (!syncDesktopWallpaperOnBackgroundChange) return;
+    if (!media) return;
+
+    if (media.type === 'video') {
+      const sourcePath = !isDirectBgMediaUrl(media.source) ? media.source : null;
+      if (sourcePath) {
+        const coverPath = await window.api.wallpaperVideoCover(sourcePath).catch(() => null);
+        if (coverPath) {
+          await window.api.setSystemDesktopWallpaper({ sourcePath: coverPath, previewUrl: coverPath }).catch(() => false);
+          return;
+        }
+      }
+    }
+
+    const sourcePath = !isDirectBgMediaUrl(media.source) ? media.source : null;
+    const normalizedPreview = resolveDesktopWallpaperPreviewUrl(previewUrl);
+    await window.api.setSystemDesktopWallpaper({ sourcePath, previewUrl: normalizedPreview }).catch(() => false);
+  };
+
   const persistBgOpacity = (value: number): void => {
     window.api.storeWrite('island-bg-opacity', value).catch(() => {});
   };
@@ -636,6 +675,7 @@ export function SettingsTab(): ReactElement {
     const media: IslandBgMediaConfig = { type: 'image', source: filePath };
     applyBgMedia(media, dataUrl);
     persistBgMedia(media);
+    void syncSystemDesktopWallpaperIfNeeded(media, dataUrl);
   };
 
   const handleSelectBgVideo = async (): Promise<void> => {
@@ -646,6 +686,7 @@ export function SettingsTab(): ReactElement {
     if (!previewUrl) return;
     applyBgMedia(media, previewUrl);
     persistBgMedia(media);
+    void syncSystemDesktopWallpaperIfNeeded(media, previewUrl);
   };
 
   const handleClearBgImage = (): void => {
@@ -663,6 +704,7 @@ export function SettingsTab(): ReactElement {
     applyBgOpacity(defaultOpacity);
     persistBgMedia(media);
     persistBgOpacity(defaultOpacity);
+    void syncSystemDesktopWallpaperIfNeeded(media, src);
   };
 
   const handleApplyMarketplaceWallpaper = (mediaUrl: string, options?: { type?: 'image' | 'video' }): void => {
@@ -671,6 +713,7 @@ export function SettingsTab(): ReactElement {
     const media: IslandBgMediaConfig = { type: mediaType, source: mediaUrl };
     applyBgMedia(media, mediaUrl);
     persistBgMedia(media);
+    void syncSystemDesktopWallpaperIfNeeded(media, mediaUrl);
     if (mediaType === 'image') {
       window.api.settingsPreview('store:island-bg-image', mediaUrl).catch(() => {});
     }
@@ -911,7 +954,8 @@ export function SettingsTab(): ReactElement {
       window.api.storeRead(ISLAND_BG_VIDEO_VOLUME_STORE_KEY) as Promise<number | null>,
       window.api.storeRead(ISLAND_BG_VIDEO_RATE_STORE_KEY) as Promise<number | null>,
       window.api.storeRead(ISLAND_BG_VIDEO_HW_DECODE_STORE_KEY) as Promise<boolean | null>,
-    ]).then(async ([mediaRaw, legacyImage, videoFit, videoMuted, videoLoop, opacity, blur, videoVolume, videoRate, videoHwDecode]) => {
+      window.api.storeRead(ISLAND_BG_SYNC_SYSTEM_WALLPAPER_STORE_KEY) as Promise<boolean | null>,
+    ]).then(async ([mediaRaw, legacyImage, videoFit, videoMuted, videoLoop, opacity, blur, videoVolume, videoRate, videoHwDecode, syncDesktopWallpaper]) => {
       if (cancelled) return;
       if (videoFit === 'cover' || videoFit === 'contain') {
         setBgVideoFit(videoFit);
@@ -930,6 +974,9 @@ export function SettingsTab(): ReactElement {
       }
       if (typeof videoHwDecode === 'boolean') {
         setBgVideoHwDecode(videoHwDecode);
+      }
+      if (typeof syncDesktopWallpaper === 'boolean') {
+        setSyncDesktopWallpaperOnBackgroundChange(syncDesktopWallpaper);
       }
       if (typeof opacity === 'number' && Number.isFinite(opacity)) setBgImageOpacity(Math.max(0, Math.min(100, Math.round(opacity))));
       if (typeof blur === 'number' && Number.isFinite(blur)) setBgImageBlur(Math.max(0, Math.min(20, Math.round(blur))));
@@ -1064,6 +1111,11 @@ export function SettingsTab(): ReactElement {
       if (channel === `store:${ISLAND_BG_VIDEO_HW_DECODE_STORE_KEY}`) {
         if (typeof value === 'boolean') {
           setBgVideoHwDecode(value);
+        }
+      }
+      if (channel === `store:${ISLAND_BG_SYNC_SYSTEM_WALLPAPER_STORE_KEY}`) {
+        if (typeof value === 'boolean') {
+          setSyncDesktopWallpaperOnBackgroundChange(value);
         }
       }
     });
@@ -2421,6 +2473,8 @@ export function SettingsTab(): ReactElement {
               setBgVideoRate={setBgVideoRate}
               bgVideoHwDecode={bgVideoHwDecode}
               setBgVideoHwDecode={setBgVideoHwDecode}
+              syncDesktopWallpaperOnBackgroundChange={syncDesktopWallpaperOnBackgroundChange}
+              setSyncDesktopWallpaperOnBackgroundChange={setSyncDesktopWallpaperOnBackgroundChange}
               bgImageOpacity={bgImageOpacity}
               bgImageBlur={bgImageBlur}
               setBgImageOpacity={setBgImageOpacity}
