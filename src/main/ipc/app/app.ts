@@ -495,6 +495,144 @@ async function executeAgentLocalTool(request: AgentLocalToolRequest): Promise<{
       };
     }
 
+    if (tool === 'file.grep') {
+      const pathArg = normalizeLocalPath(getStringArg(args, 'path'));
+      const pattern = getStringArg(args, 'pattern');
+      if (!pathArg) {
+        throw new Error('file.grep 需要 path');
+      }
+      if (!pattern) {
+        throw new Error('file.grep 需要 pattern');
+      }
+      const limitRaw = getNumberArg(args, 'limit');
+      const maxResults = Math.max(1, Math.min(200, Math.floor(limitRaw == null ? 50 : limitRaw)));
+      const maxDepthRaw = getNumberArg(args, 'maxDepth');
+      const maxDepth = Math.max(0, Math.min(12, Math.floor(maxDepthRaw == null ? 8 : maxDepthRaw)));
+      const fixedStrings = args.fixedStrings === true;
+      const caseSensitive = args.caseSensitive === true;
+      const extensionSet = new Set(
+        (Array.isArray(args.extensions) ? args.extensions : [])
+          .map((ext: unknown) => String(ext || '').trim().replace(/^\./, '').toLowerCase())
+          .filter(Boolean),
+      );
+      const excludedDirSet = new Set([
+        '.git', 'node_modules', '.idea', '.vscode', '__pycache__', '.next', 'dist', 'out', 'build',
+        ...(Array.isArray(args.excludeDirs) ? args.excludeDirs : [])
+          .map((d: unknown) => String(d || '').trim().toLowerCase())
+          .filter(Boolean),
+      ]);
+
+      let regex: RegExp;
+      try {
+        const flags = caseSensitive ? '' : 'i';
+        const source = fixedStrings ? pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') : pattern;
+        regex = new RegExp(source, flags);
+      } catch {
+        throw new Error(`file.grep pattern 无效: ${pattern}`);
+      }
+
+      interface GrepMatch { file: string; line: number; text: string }
+      const matches: GrepMatch[] = [];
+      const MAX_FILE_SIZE = 2 * 1024 * 1024;
+      const queue: Array<{ dir: string; depth: number }> = [{ dir: pathArg, depth: 0 }];
+
+      // 如果 path 指向文件则直接搜索该文件
+      const rootStat = await stat(pathArg).catch(() => null);
+      if (rootStat && rootStat.isFile()) {
+        if (rootStat.size <= MAX_FILE_SIZE) {
+          const content = await readFile(pathArg, 'utf8').catch(() => '');
+          const lines = content.split(/\r?\n/);
+          for (let li = 0; li < lines.length && matches.length < maxResults; li++) {
+            if (regex.test(lines[li])) {
+              matches.push({ file: pathArg, line: li + 1, text: lines[li].slice(0, 500) });
+            }
+          }
+        }
+      } else {
+        while (queue.length > 0 && matches.length < maxResults) {
+          const current = queue.shift();
+          if (!current) break;
+          let entries: Array<{ name: string | Buffer; isDirectory: () => boolean }>;
+          try {
+            entries = await readdir(current.dir, { withFileTypes: true });
+          } catch {
+            continue;
+          }
+          for (const entry of entries) {
+            if (matches.length >= maxResults) break;
+            const entryName = typeof entry.name === 'string' ? entry.name : entry.name.toString('utf8');
+            if (entryName.startsWith('.') && excludedDirSet.has(entryName.toLowerCase())) continue;
+            const entryPath = `${current.dir}${current.dir.endsWith('\\') ? '' : '\\'}${entryName}`;
+            if (entry.isDirectory()) {
+              if (current.depth < maxDepth && !excludedDirSet.has(entryName.toLowerCase())) {
+                queue.push({ dir: entryPath, depth: current.depth + 1 });
+              }
+              continue;
+            }
+            if (extensionSet.size > 0) {
+              const dotIndex = entryName.lastIndexOf('.');
+              const ext = dotIndex >= 0 ? entryName.slice(dotIndex + 1).toLowerCase() : '';
+              if (!extensionSet.has(ext)) continue;
+            }
+            let fileStat;
+            try { fileStat = await stat(entryPath); } catch { continue; }
+            if (!fileStat.isFile() || fileStat.size > MAX_FILE_SIZE) continue;
+            let content: string;
+            try { content = await readFile(entryPath, 'utf8'); } catch { continue; }
+            const lines = content.split(/\r?\n/);
+            for (let li = 0; li < lines.length && matches.length < maxResults; li++) {
+              if (regex.test(lines[li])) {
+                matches.push({ file: entryPath, line: li + 1, text: lines[li].slice(0, 500) });
+              }
+            }
+          }
+        }
+      }
+      return {
+        success: true,
+        result: {
+          path: pathArg,
+          pattern,
+          count: matches.length,
+          matches,
+        },
+        error: '',
+        durationMs: Date.now() - startedAt,
+      };
+    }
+
+    if (tool === 'file.search') {
+      const pathArg = normalizeLocalPath(getStringArg(args, 'path'));
+      const keyword = getStringArg(args, 'keyword');
+      if (!pathArg) {
+        throw new Error('file.search 需要 path');
+      }
+      if (!keyword) {
+        throw new Error('file.search 需要 keyword');
+      }
+      const limitRaw = getNumberArg(args, 'limit');
+      const searchOptions: LocalFileSearchOptions = {
+        limit: Math.max(1, Math.min(200, Math.floor(limitRaw == null ? 50 : limitRaw))),
+        maxDepth: typeof args.maxDepth === 'number' ? args.maxDepth : undefined,
+        includeDirectories: args.includeDirectories !== false,
+        includeFiles: args.includeFiles !== false,
+        caseSensitive: args.caseSensitive === true,
+        extensions: Array.isArray(args.extensions) ? args.extensions.map((e: unknown) => String(e || '')) : undefined,
+      };
+      const results = await searchLocalFiles(pathArg, keyword, searchOptions);
+      return {
+        success: true,
+        result: {
+          path: pathArg,
+          keyword,
+          count: results.length,
+          items: results,
+        },
+        error: '',
+        durationMs: Date.now() - startedAt,
+      };
+    }
+
     if (tool === 'web.search') {
       const result = await executeLocalWebSearch(args);
       return {
