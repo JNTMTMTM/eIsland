@@ -84,6 +84,31 @@ interface ToolCallResultPayload {
 }
 
 let activeAiAbortController: AbortController | null = null;
+const MAX_MIHTNELIS_CONTEXT_CHARS = 1_000_000;
+
+function buildMihtnelisContext(messages: AiChatMessage[]): string {
+  if (!Array.isArray(messages) || messages.length === 0) {
+    return '';
+  }
+  const lines = messages
+    .map((msg) => {
+      const role = msg?.role === 'assistant' ? 'assistant' : 'user';
+      const content = typeof msg?.content === 'string' ? msg.content.trim() : '';
+      if (!content) {
+        return '';
+      }
+      return `${role}: ${content}`;
+    })
+    .filter(Boolean);
+  if (lines.length === 0) {
+    return '';
+  }
+  const fullContext = lines.join('\n\n');
+  if (fullContext.length <= MAX_MIHTNELIS_CONTEXT_CHARS) {
+    return fullContext;
+  }
+  return fullContext.slice(fullContext.length - MAX_MIHTNELIS_CONTEXT_CHARS);
+}
 
 function toPrettyJson(value: unknown): string {
   if (value == null) {
@@ -262,11 +287,13 @@ export function AiChatTab(): React.ReactElement {
         let receivedMihtnelisChunk = false;
         let mihtnelisErrorMessage: string | null = null;
         let streamThinkingEnabled = Boolean(aiConfig.deepseekThinking);
+        const context = buildMihtnelisContext(aiChatMessages);
         await streamMihtnelisAgent({
           token: localToken!,
           sessionId: 'max-expand-ai-chat',
           message: text,
           provider: selectedModel,
+          context,
           thinking: aiConfig.deepseekThinking,
           reasoningEffort: aiConfig.deepseekReasoningEffort,
           signal: controller.signal,
