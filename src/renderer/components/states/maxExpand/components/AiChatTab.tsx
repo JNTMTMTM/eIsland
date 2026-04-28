@@ -803,7 +803,11 @@ export function AiChatTab(): React.ReactElement {
                     const thinkText = thinkBlocks[turn - 1] || '';
                     if (thinkText) {
                       timelineNodes.push(
-                        <details key={`think-${turn}`} className="max-expand-chat-think-card" open={turn === thinkBlocks.length && isLatestAssistantMsg}>
+                        <details
+                          key={`think-${turn}`}
+                          className="max-expand-chat-think-card"
+                          open={aiChatStreaming && turn === thinkBlocks.length && isLatestAssistantMsg}
+                        >
                           <summary>
                             <span className="max-expand-chat-think-title">
                               <img className="max-expand-chat-think-title-icon" src={SvgIcon.DEEPSEEK} alt="" />
