@@ -127,6 +127,8 @@ export const SvgIcon = {
   PHOTO_ALBUM: './svg/PHOTO_ALBUM.svg',
   /** 木鱼 */
   MOKUGYO: './svg/MOKUGYO.svg',
+  /** DEEPSEEK */
+  DEEPSEEK: './svg/DEEPSEEK.svg',
 
 } as const;
 
