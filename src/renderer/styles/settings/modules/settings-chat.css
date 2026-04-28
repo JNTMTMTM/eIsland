@@ -555,7 +555,7 @@
 /** 输入栏 */
 .max-expand-chat-input-bar {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   gap: 8px;
   padding: 8px 12px;
   border-top: 1px solid rgba(var(--color-text-rgb), 0.06);
@@ -567,11 +567,19 @@
   background: rgba(var(--color-text-rgb), 0.06);
   border: 1px solid rgba(var(--color-text-rgb), 0.1);
   border-radius: 8px;
-  padding: 6px 12px;
+  padding: 8px 12px;
   color: var(--color-island-text);
   font-size: 13px;
+  line-height: 1.4;
   outline: none;
   transition: border-color 0.2s ease;
+  resize: none;
+  min-height: 34px;
+  max-height: 128px;
+  overflow-y: hidden;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: inherit;
 }
 
 .max-expand-chat-input::placeholder {

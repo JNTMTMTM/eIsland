@@ -163,6 +163,7 @@ export function AiChatTab(): React.ReactElement {
   const availableModels = ['deepseek-v4-flash'] as const;
   const { t } = useTranslation();
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const [input, setInput] = useState('');
   const [showModelCard, setShowModelCard] = useState(false);
   const [resolvingWebAccessDecision, setResolvingWebAccessDecision] = useState(false);
@@ -193,6 +194,22 @@ export function AiChatTab(): React.ReactElement {
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [aiChatMessages]);
+
+  const syncInputHeight = useCallback((): void => {
+    const el = inputRef.current;
+    if (!el) {
+      return;
+    }
+    const maxHeight = 128;
+    el.style.height = 'auto';
+    const nextHeight = Math.min(maxHeight, Math.max(34, el.scrollHeight));
+    el.style.height = `${nextHeight}px`;
+    el.style.overflowY = el.scrollHeight > maxHeight ? 'auto' : 'hidden';
+  }, []);
+
+  useEffect(() => {
+    syncInputHeight();
+  }, [input, syncInputHeight]);
 
   /** 发送消息并调用 API */
   const handleSend = useCallback(async (): Promise<void> => {
@@ -611,7 +628,7 @@ export function AiChatTab(): React.ReactElement {
   ]);
 
   /** 回车发送 */
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>): void => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>): void => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSend();
@@ -921,9 +938,9 @@ export function AiChatTab(): React.ReactElement {
           </div>
         )}
         <div className="max-expand-chat-input-bar">
-          <input
+          <textarea
+            ref={inputRef}
             className="max-expand-chat-input"
-            type="text"
             placeholder={aiChatStreaming
               ? t('aiChat.input.generatingPlaceholder', { defaultValue: '生成中...' })
               : t('aiChat.input.placeholder', { defaultValue: '输入消息...' })}
@@ -931,6 +948,7 @@ export function AiChatTab(): React.ReactElement {
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             disabled={aiChatStreaming}
+            rows={1}
           />
           {aiChatStreaming ? (
             <button className="max-expand-chat-send" onClick={handleStop}>
