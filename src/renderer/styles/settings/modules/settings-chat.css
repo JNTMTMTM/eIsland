@@ -45,6 +45,36 @@
   flex-shrink: 0;
 }
 
+.max-expand-chat-model-select-shell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.max-expand-chat-model-select-icon {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+}
+
+.max-expand-chat-model-select {
+  margin-left: 0;
+  flex: 1;
+}
+
+.max-expand-chat-model-toggle-with-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  line-height: 1;
+}
+
+.max-expand-chat-model-toggle-icon {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+}
+
 .max-expand-chat-header-title {
   font-size: 13px;
   font-weight: 600;
@@ -201,6 +231,19 @@
   padding: 6px 9px;
   cursor: pointer;
   list-style: none;
+}
+
+.max-expand-chat-think-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.max-expand-chat-think-title-icon {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+  opacity: 0.92;
 }
 
 .max-expand-chat-tool-card-head::-webkit-details-marker {
@@ -592,12 +635,18 @@
 
 /** 发送按钮 */
 .max-expand-chat-send {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   background: rgba(var(--color-text-rgb), 0.1);
   border: none;
   border-radius: 8px;
   padding: 6px 14px;
+  height: 34px;
   color: rgba(var(--color-text-rgb), 0.7);
   font-size: 13px;
+  line-height: 1;
+  white-space: nowrap;
   cursor: pointer;
   transition: background 0.2s ease, color 0.2s ease;
   flex-shrink: 0;

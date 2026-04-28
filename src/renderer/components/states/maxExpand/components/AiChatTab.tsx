@@ -41,6 +41,7 @@ import {
   setWebsiteAuthorizationPolicy,
   type SiteAuthorizationPolicy,
 } from '../../../../api/site/siteMetaApi';
+import { SvgIcon } from '../../../../utils/SvgIcon';
 import useIslandStore from '../../../../store/slices';
 import type { AiChatMessage, AiToolCall } from '../../../../store/types';
 import { readLocalToken } from '../../../../utils/userAccount';
@@ -208,6 +209,7 @@ export function AiChatTab(): React.ReactElement {
   const selectedModel = availableModels.includes(aiConfig.model as (typeof availableModels)[number])
     ? aiConfig.model
     : 'deepseek-v4-flash';
+  const showDeepseekIconOnModelToggle = selectedModel.toLowerCase().includes('deepseek');
   const mihtnelisContext = useMemo(() => buildMihtnelisContext(aiChatMessages), [aiChatMessages]);
   const contextUsageChars = mihtnelisContext.length;
   const contextUsagePercent = Math.min(100, (contextUsageChars / MAX_MIHTNELIS_CONTEXT_CHARS) * 100);
@@ -803,7 +805,10 @@ export function AiChatTab(): React.ReactElement {
                       timelineNodes.push(
                         <details key={`think-${turn}`} className="max-expand-chat-think-card" open={turn === thinkBlocks.length && isLatestAssistantMsg}>
                           <summary>
-                            <span>思考过程 #{turn}</span>
+                            <span className="max-expand-chat-think-title">
+                              <img className="max-expand-chat-think-title-icon" src={SvgIcon.DEEPSEEK} alt="" />
+                              <span>思考过程 #{turn}</span>
+                            </span>
                           </summary>
                           <div className="max-expand-chat-think-content">{thinkText}</div>
                         </details>,
@@ -995,17 +1000,19 @@ export function AiChatTab(): React.ReactElement {
               <div style={{ display: 'flex', gap: 10, alignItems: 'stretch' }}>
                 <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
                   <span style={{ fontSize: 12, opacity: 0.8 }}>{t('settings.ai.model', { defaultValue: '模型' })}</span>
-                  <select
-                    className="max-expand-chat-web-access-policy-select"
-                    value={selectedModel}
-                    onChange={(event) => {
-                      setAiConfig({ model: event.target.value });
-                    }}
-                    title={t('settings.ai.model', { defaultValue: '模型' })}
-                    aria-label={t('settings.ai.model', { defaultValue: '模型' })}
-                  >
-                    <option value="deepseek-v4-flash">deepseek-v4-flash</option>
-                  </select>
+                  <div className="max-expand-chat-model-select-shell">
+                    <select
+                      className="max-expand-chat-web-access-policy-select max-expand-chat-model-select"
+                      value={selectedModel}
+                      onChange={(event) => {
+                        setAiConfig({ model: event.target.value });
+                      }}
+                      title={t('settings.ai.model', { defaultValue: '模型' })}
+                      aria-label={t('settings.ai.model', { defaultValue: '模型' })}
+                    >
+                      <option value="deepseek-v4-flash">deepseek-v4-flash</option>
+                    </select>
+                  </div>
                 </div>
                 <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
                   <span style={{ fontSize: 12, opacity: 0.8 }}>{t('settings.ai.deepseekReasoningEffort', { defaultValue: 'DeepSeek 推理强度' })}</span>
@@ -1098,7 +1105,12 @@ export function AiChatTab(): React.ReactElement {
             }}
             title={t('aiChat.modelCard.title', { defaultValue: '模型选择卡片' })}
           >
-            {selectedModel}
+            {showDeepseekIconOnModelToggle ? (
+              <span className="max-expand-chat-model-toggle-with-icon">
+                <img className="max-expand-chat-model-toggle-icon" src={SvgIcon.DEEPSEEK} alt="" />
+                <span>{selectedModel}</span>
+              </span>
+            ) : selectedModel}
           </button>
         </div>
       </div>
