@@ -1482,6 +1482,17 @@
       "apiKey": "API Key",
       "apiEndpoint": "API Endpoint",
       "model": "Model",
+      "deepseekThinking": "DeepSeek Thinking Mode",
+      "deepseekThinkingOptions": {
+        "off": "Off",
+        "on": "On"
+      },
+      "deepseekReasoningEffort": "DeepSeek Reasoning Effort",
+      "deepseekReasoningEffortOptions": {
+        "low": "Low (low)",
+        "medium": "Medium (medium)",
+        "high": "High (high)"
+      },
       "mcpEndpoint": "MCP Endpoint",
       "mcpPlaceholder": "http://localhost:3000/mcp (optional)",
       "systemPrompt": "System Prompt",

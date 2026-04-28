@@ -62,6 +62,8 @@ export interface MihtnelisAgentStreamRequest {
   message: string;
   sessionId?: string;
   provider?: string;
+  thinking?: boolean;
+  reasoningEffort?: 'low' | 'medium' | 'high';
   signal?: AbortSignal;
   onEvent?: (event: MihtnelisAgentStreamEvent) => void;
 }
@@ -99,6 +101,8 @@ export async function streamMihtnelisAgent(request: MihtnelisAgentStreamRequest)
       sessionId: request.sessionId,
       message,
       provider: request.provider,
+      thinking: typeof request.thinking === 'boolean' ? request.thinking : undefined,
+      reasoningEffort: request.reasoningEffort,
     }),
     signal: request.signal,
   });

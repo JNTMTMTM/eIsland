@@ -51,6 +51,11 @@ interface ThinkEventPayload {
   done?: unknown;
 }
 
+interface MetaEventPayload {
+  thinkingEnabled?: unknown;
+  reasoningEffort?: unknown;
+}
+
 interface ToolEventPayload {
   turn?: unknown;
   tool?: unknown;
@@ -77,6 +82,8 @@ interface ToolCallResultPayload {
   result?: unknown;
   durationMs?: unknown;
 }
+
+let activeAiAbortController: AbortController | null = null;
 
 function toPrettyJson(value: unknown): string {
   if (value == null) {
@@ -153,15 +160,18 @@ async function streamChatCompletion(
  * @description 包含消息列表和输入栏的聊天界面，调用 OpenAI 兼容 API
  */
 export function AiChatTab(): React.ReactElement {
+  const availableModels = ['deepseek-v4-flash'] as const;
   const { t } = useTranslation();
   const chatEndRef = useRef<HTMLDivElement>(null);
   const [input, setInput] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [showModelCard, setShowModelCard] = useState(false);
   const [resolvingWebAccessDecision, setResolvingWebAccessDecision] = useState(false);
-  const abortRef = useRef<AbortController | null>(null);
   const {
     aiConfig,
+    setAiConfig,
     aiChatMessages,
+    aiChatStreaming,
+    setAiChatStreaming,
     setAiChatMessages,
     clearAiChatMessages,
     aiWebAccessPrompt,
@@ -169,6 +179,9 @@ export function AiChatTab(): React.ReactElement {
     aiWebAccessResolveError,
     setAiWebAccessResolveError,
   } = useIslandStore();
+  const selectedModel = availableModels.includes(aiConfig.model as (typeof availableModels)[number])
+    ? aiConfig.model
+    : 'deepseek-v4-flash';
 
   /** 始终从 store 读最新消息再更新，避免流式 chunk 之间的闭包过期 */
   const updateMessages = useCallback((updater: (prev: AiChatMessage[]) => AiChatMessage[]) => {
@@ -184,7 +197,7 @@ export function AiChatTab(): React.ReactElement {
   /** 发送消息并调用 API */
   const handleSend = useCallback(async (): Promise<void> => {
     const text = input.trim();
-    if (!text || loading) return;
+    if (!text || aiChatStreaming) return;
 
     const localToken = readLocalToken();
     const canUseMihtnelis = Boolean(localToken && localToken.trim().length > 0);
@@ -208,7 +221,7 @@ export function AiChatTab(): React.ReactElement {
     const nextMessages = [...aiChatMessages, userMsg];
     setAiChatMessages(nextMessages);
     setInput('');
-    setLoading(true);
+    setAiChatStreaming(true);
     setAiWebAccessPrompt(null);
     setAiWebAccessResolveError('');
 
@@ -225,19 +238,30 @@ export function AiChatTab(): React.ReactElement {
     updateMessages(prev => ([...prev, { role: 'assistant', content: '', thinkBlocks: [], toolCalls: [] }]));
 
     const controller = new AbortController();
-    abortRef.current = controller;
+    activeAiAbortController = controller;
 
     try {
       if (canUseMihtnelis) {
         let receivedMihtnelisChunk = false;
         let mihtnelisErrorMessage: string | null = null;
+        let streamThinkingEnabled = Boolean(aiConfig.deepseekThinking);
         await streamMihtnelisAgent({
           token: localToken!,
           sessionId: 'max-expand-ai-chat',
           message: text,
-          provider: aiConfig.model,
+          provider: selectedModel,
+          thinking: aiConfig.deepseekThinking,
+          reasoningEffort: aiConfig.deepseekReasoningEffort,
           signal: controller.signal,
           onEvent: (event) => {
+            if (event.type === 'meta') {
+              const payload = event.payload as MetaEventPayload;
+              if (typeof payload?.thinkingEnabled === 'boolean') {
+                streamThinkingEnabled = payload.thinkingEnabled;
+              }
+              return;
+            }
+
             if (event.type === 'chunk') {
               const payload = event.payload as { text?: unknown };
               const chunk = typeof payload?.text === 'string' ? payload.text : '';
@@ -465,6 +489,9 @@ export function AiChatTab(): React.ReactElement {
             }
 
             if (event.type === 'think') {
+              if (!streamThinkingEnabled || !aiConfig.deepseekThinking) {
+                return;
+              }
               const payload = event.payload as ThinkEventPayload;
               const thinkText = typeof payload?.text === 'string' ? payload.text : '';
               const thinkIndex = typeof payload?.index === 'number' ? payload.index : 0;
@@ -535,7 +562,7 @@ export function AiChatTab(): React.ReactElement {
         await streamChatCompletion(
           aiConfig.endpoint,
           aiConfig.apiKey,
-          aiConfig.model,
+          selectedModel,
           apiMessages,
           (chunk) => {
             updateMessages(prev => {
@@ -566,15 +593,16 @@ export function AiChatTab(): React.ReactElement {
         return copy;
       });
     } finally {
-      abortRef.current = null;
-      setLoading(false);
+      activeAiAbortController = null;
+      setAiChatStreaming(false);
       setResolvingWebAccessDecision(false);
     }
   }, [
     input,
-    loading,
+    aiChatStreaming,
     aiChatMessages,
     aiConfig,
+    setAiChatStreaming,
     setAiChatMessages,
     updateMessages,
     t,
@@ -592,14 +620,16 @@ export function AiChatTab(): React.ReactElement {
 
   /** 停止生成 */
   const handleStop = (): void => {
-    abortRef.current?.abort();
+    activeAiAbortController?.abort();
+    setAiChatStreaming(false);
   };
 
   /** 清空对话 */
   const handleClear = (): void => {
-    abortRef.current?.abort();
+    activeAiAbortController?.abort();
+    activeAiAbortController = null;
     clearAiChatMessages();
-    setLoading(false);
+    setAiChatStreaming(false);
     setResolvingWebAccessDecision(false);
     setAiWebAccessPrompt(null);
     setAiWebAccessResolveError('');
@@ -663,7 +693,7 @@ export function AiChatTab(): React.ReactElement {
       <div className="max-expand-chat-header">
         <span className="max-expand-chat-header-title">{t('aiChat.title', { defaultValue: 'AI 对话' })}</span>
         <div className="max-expand-chat-header-actions">
-          <span className="max-expand-chat-header-model">{readLocalToken() ? 'mihtnelis agent' : (aiConfig.model || t('aiChat.notConfigured', { defaultValue: '未配置' }))}</span>
+          <span className="max-expand-chat-header-model">{readLocalToken() ? selectedModel : (selectedModel || t('aiChat.notConfigured', { defaultValue: '未配置' }))}</span>
           {aiChatMessages.length > 0 && (
             <button className="max-expand-chat-clear" onClick={handleClear} type="button">
               {t('aiChat.actions.clear', { defaultValue: '清空' })}
@@ -709,13 +739,13 @@ export function AiChatTab(): React.ReactElement {
                   </div>
                 )}
 
-                {Array.isArray(msg.thinkBlocks) && msg.thinkBlocks.length > 0 && (
+                {aiConfig.deepseekThinking && Array.isArray(msg.thinkBlocks) && msg.thinkBlocks.length > 0 && (
                   <div className="max-expand-chat-think-list">
                     {msg.thinkBlocks.map((thinkText, thinkIndex) => (
-                      <details key={`${thinkIndex}-${thinkText.slice(0, 16)}`} className="max-expand-chat-think-card" open={thinkIndex === msg.thinkBlocks!.length - 1 && loading && i === aiChatMessages.length - 1}>
+                      <details key={`${thinkIndex}-${thinkText.slice(0, 16)}`} className="max-expand-chat-think-card" open={thinkIndex === msg.thinkBlocks!.length - 1 && aiChatStreaming && i === aiChatMessages.length - 1}>
                         <summary>
                           <span>思考过程 #{thinkIndex + 1}</span>
-                          {loading && i === aiChatMessages.length - 1 && thinkIndex === msg.thinkBlocks!.length - 1 && (
+                          {aiChatStreaming && i === aiChatMessages.length - 1 && thinkIndex === msg.thinkBlocks!.length - 1 && (
                             <span className="max-expand-chat-think-live-dots">
                               <i />
                               <i />
@@ -734,7 +764,7 @@ export function AiChatTab(): React.ReactElement {
                     {msg.content}
                   </ReactMarkdown>
                 ) : (
-                  loading && i === aiChatMessages.length - 1 ? <span className="max-expand-chat-generating-dots"><i /><i /><i /></span> : ''
+                  aiChatStreaming && i === aiChatMessages.length - 1 ? <span className="max-expand-chat-generating-dots"><i /><i /><i /></span> : ''
                 )}
               </>
             )}
@@ -819,27 +849,109 @@ export function AiChatTab(): React.ReactElement {
         </div>
       )}
       {/* 输入栏 */}
-      <div className="max-expand-chat-input-bar">
-        <input
-          className="max-expand-chat-input"
-          type="text"
-          placeholder={loading
-            ? t('aiChat.input.generatingPlaceholder', { defaultValue: '生成中...' })
-            : t('aiChat.input.placeholder', { defaultValue: '输入消息...' })}
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={handleKeyDown}
-          disabled={loading}
-        />
-        {loading ? (
-          <button className="max-expand-chat-send" onClick={handleStop}>
-            {t('aiChat.actions.stop', { defaultValue: '停止' })}
-          </button>
-        ) : (
-          <button className="max-expand-chat-send" onClick={handleSend}>
-            {t('aiChat.actions.send', { defaultValue: '发送' })}
-          </button>
+      <div>
+        {showModelCard && (
+          <div style={{ marginBottom: 8 }}>
+            <div
+              style={{
+                width: '100%',
+                padding: '10px 12px',
+                borderRadius: 10,
+                border: '1px solid rgba(255,255,255,0.14)',
+                background: 'rgba(255,255,255,0.04)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 8,
+              }}
+            >
+              <div style={{ fontSize: 12, opacity: 0.72 }}>
+                {t('aiChat.modelCard.title', { defaultValue: '模型选择卡片' })}
+              </div>
+              <div style={{ display: 'flex', gap: 10, alignItems: 'stretch' }}>
+                <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <span style={{ fontSize: 12, opacity: 0.8 }}>{t('settings.ai.model', { defaultValue: '模型' })}</span>
+                  <select
+                    className="max-expand-chat-web-access-policy-select"
+                    value={selectedModel}
+                    onChange={(event) => {
+                      setAiConfig({ model: event.target.value });
+                    }}
+                    title={t('settings.ai.model', { defaultValue: '模型' })}
+                    aria-label={t('settings.ai.model', { defaultValue: '模型' })}
+                  >
+                    <option value="deepseek-v4-flash">deepseek-v4-flash</option>
+                  </select>
+                </div>
+                <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <span style={{ fontSize: 12, opacity: 0.8 }}>{t('settings.ai.deepseekReasoningEffort', { defaultValue: 'DeepSeek 推理强度' })}</span>
+                  <select
+                    className="max-expand-chat-web-access-policy-select"
+                    value={aiConfig.deepseekReasoningEffort}
+                    onChange={(event) => {
+                      const value = event.target.value;
+                      setAiConfig({
+                        deepseekReasoningEffort: value === 'low' || value === 'high' ? value : 'medium',
+                      });
+                    }}
+                    title={t('settings.ai.deepseekReasoningEffort', { defaultValue: 'DeepSeek 推理强度' })}
+                    aria-label={t('settings.ai.deepseekReasoningEffort', { defaultValue: 'DeepSeek 推理强度' })}
+                  >
+                    <option value="low">{t('settings.ai.deepseekReasoningEffortOptions.low', { defaultValue: '低 (low)' })}</option>
+                    <option value="medium">{t('settings.ai.deepseekReasoningEffortOptions.medium', { defaultValue: '中 (medium)' })}</option>
+                    <option value="high">{t('settings.ai.deepseekReasoningEffortOptions.high', { defaultValue: '高 (high)' })}</option>
+                  </select>
+                </div>
+                <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <span style={{ fontSize: 12, opacity: 0.8 }}>{t('aiChat.modelCard.focusMode', { defaultValue: '专注模式' })}</span>
+                  <select
+                    className="max-expand-chat-web-access-policy-select"
+                    value={aiConfig.deepseekThinking ? 'on' : 'off'}
+                    onChange={(event) => {
+                      setAiConfig({ deepseekThinking: event.target.value === 'on' });
+                    }}
+                    title={t('aiChat.modelCard.focusMode', { defaultValue: '专注模式' })}
+                    aria-label={t('aiChat.modelCard.focusMode', { defaultValue: '专注模式' })}
+                  >
+                    <option value="off">{t('settings.ai.deepseekThinkingOptions.off', { defaultValue: '关闭' })}</option>
+                    <option value="on">{t('settings.ai.deepseekThinkingOptions.on', { defaultValue: '开启' })}</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
         )}
+        <div className="max-expand-chat-input-bar">
+          <input
+            className="max-expand-chat-input"
+            type="text"
+            placeholder={aiChatStreaming
+              ? t('aiChat.input.generatingPlaceholder', { defaultValue: '生成中...' })
+              : t('aiChat.input.placeholder', { defaultValue: '输入消息...' })}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            disabled={aiChatStreaming}
+          />
+          {aiChatStreaming ? (
+            <button className="max-expand-chat-send" onClick={handleStop}>
+              {t('aiChat.actions.stop', { defaultValue: '停止' })}
+            </button>
+          ) : (
+            <button className="max-expand-chat-send" onClick={handleSend}>
+              {t('aiChat.actions.send', { defaultValue: '发送' })}
+            </button>
+          )}
+          <button
+            className="max-expand-chat-send"
+            type="button"
+            onClick={() => {
+              setShowModelCard((prev) => !prev);
+            }}
+            title={t('aiChat.modelCard.title', { defaultValue: '模型选择卡片' })}
+          >
+            {selectedModel}
+          </button>
+        </div>
       </div>
     </div>
   );

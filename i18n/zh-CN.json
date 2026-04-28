@@ -1482,6 +1482,17 @@
       "apiKey": "API Key",
       "apiEndpoint": "API Endpoint",
       "model": "模型",
+      "deepseekThinking": "DeepSeek Thinking 模式",
+      "deepseekThinkingOptions": {
+        "off": "关闭",
+        "on": "开启"
+      },
+      "deepseekReasoningEffort": "DeepSeek 推理强度",
+      "deepseekReasoningEffortOptions": {
+        "low": "低 (low)",
+        "medium": "中 (medium)",
+        "high": "高 (high)"
+      },
       "mcpEndpoint": "MCP Endpoint",
       "mcpPlaceholder": "http://localhost:3000/mcp (可选)",
       "systemPrompt": "System Prompt",

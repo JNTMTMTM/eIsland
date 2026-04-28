@@ -188,6 +188,8 @@ export interface AiConfig {
   model: string;
   mcpEndpoint: string;
   systemPrompt: string;
+  deepseekThinking: boolean;
+  deepseekReasoningEffort: 'low' | 'medium' | 'high';
 }
 
 /** AI 工具调用轨迹 */
@@ -316,6 +318,8 @@ export interface AiSlice {
   setAiConfig: (config: Partial<AiConfig>) => void;
 
   aiChatMessages: AiChatMessage[];
+  aiChatStreaming: boolean;
+  setAiChatStreaming: (streaming: boolean) => void;
   setAiChatMessages: (messages: AiChatMessage[]) => void;
   clearAiChatMessages: () => void;
   aiWebAccessPrompt: AiWebAccessPrompt | null;

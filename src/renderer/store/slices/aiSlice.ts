@@ -38,10 +38,19 @@ function loadAiConfig(): AiConfig {
     model: 'gpt-4o-mini',
     mcpEndpoint: '',
     systemPrompt: '你是一个有用的助手。',
+    deepseekThinking: false,
+    deepseekReasoningEffort: 'medium',
   };
   try {
     const raw = localStorage.getItem(AI_CONFIG_KEY);
-    if (raw) return { ...defaults, ...JSON.parse(raw) };
+    if (raw) {
+      const parsed = JSON.parse(raw) as Partial<AiConfig>;
+      const merged = { ...defaults, ...parsed };
+      const effort = merged.deepseekReasoningEffort;
+      merged.deepseekReasoningEffort = effort === 'low' || effort === 'high' ? effort : 'medium';
+      merged.deepseekThinking = Boolean(merged.deepseekThinking);
+      return merged;
+    }
   } catch { /* ignore */ }
   return defaults;
 }
@@ -177,6 +186,7 @@ export const createAiSlice: StateCreator<
 > = (set, get) => ({
   aiConfig: loadAiConfig(),
   aiChatMessages: loadAiChatMessages(),
+  aiChatStreaming: false,
   aiWebAccessPrompt: null,
   aiWebAccessResolveError: '',
 
@@ -191,10 +201,15 @@ export const createAiSlice: StateCreator<
     set({ aiChatMessages: messages });
   },
 
+  setAiChatStreaming: (streaming) => {
+    set({ aiChatStreaming: Boolean(streaming) });
+  },
+
   clearAiChatMessages: () => {
     saveAiChatMessages([]);
     set({
       aiChatMessages: [],
+      aiChatStreaming: false,
       aiWebAccessPrompt: null,
       aiWebAccessResolveError: '',
     });
