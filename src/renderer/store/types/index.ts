@@ -194,6 +194,10 @@ export interface AiConfig {
 export interface AiToolCall {
   turn: number;
   tool: string;
+  requestId?: string;
+  riskLevel?: string;
+  durationMs?: number;
+  pending?: boolean;
   arguments?: Record<string, unknown>;
   success?: boolean;
   error?: string;

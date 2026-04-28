@@ -60,11 +60,82 @@ function loadAiChatMessages(): AiChatMessage[] {
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
     return parsed
-      .filter((m) => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string')
-      .map((m) => ({ role: m.role, content: m.content } as AiChatMessage));
+      .map((m) => normalizeAiChatMessage(m))
+      .filter((m): m is AiChatMessage => m != null);
   } catch {
     return [];
   }
+}
+
+function normalizeAiChatMessage(value: unknown): AiChatMessage | null {
+  if (!value || typeof value !== 'object') {
+    return null;
+  }
+  const source = value as Record<string, unknown>;
+  const role = source.role === 'user' || source.role === 'assistant' ? source.role : '';
+  const content = typeof source.content === 'string' ? source.content : '';
+  if (!role) {
+    return null;
+  }
+  const thinkBlocks = Array.isArray(source.thinkBlocks)
+    ? source.thinkBlocks.filter((item): item is string => typeof item === 'string')
+    : [];
+  const toolCalls = Array.isArray(source.toolCalls)
+    ? source.toolCalls
+      .map((item) => normalizeAiToolCall(item))
+      .filter((item): item is NonNullable<AiChatMessage['toolCalls']>[number] => item != null)
+    : [];
+  const normalized: AiChatMessage = {
+    role,
+    content,
+  };
+  if (thinkBlocks.length > 0) {
+    normalized.thinkBlocks = thinkBlocks;
+  }
+  if (toolCalls.length > 0) {
+    normalized.toolCalls = toolCalls;
+  }
+  return normalized;
+}
+
+function normalizeAiToolCall(value: unknown): NonNullable<AiChatMessage['toolCalls']>[number] | null {
+  if (!value || typeof value !== 'object') {
+    return null;
+  }
+  const source = value as Record<string, unknown>;
+  const tool = typeof source.tool === 'string' ? source.tool : '';
+  if (!tool) {
+    return null;
+  }
+  const turn = typeof source.turn === 'number' ? source.turn : 0;
+  const requestId = typeof source.requestId === 'string' ? source.requestId : '';
+  const riskLevel = typeof source.riskLevel === 'string' ? source.riskLevel : '';
+  const durationMs = typeof source.durationMs === 'number' ? source.durationMs : 0;
+  const pending = typeof source.pending === 'boolean' ? source.pending : false;
+  const argumentsPayload = typeof source.arguments === 'object' && source.arguments != null
+    ? source.arguments as Record<string, unknown>
+    : undefined;
+  const success = typeof source.success === 'boolean' ? source.success : undefined;
+  const error = typeof source.error === 'string' ? source.error : '';
+  const normalized = {
+    turn,
+    tool,
+    requestId,
+    riskLevel,
+    durationMs,
+    pending,
+    arguments: argumentsPayload,
+    success,
+    error,
+    result: source.result,
+    authorizationRequired: typeof source.authorizationRequired === 'boolean' ? source.authorizationRequired : undefined,
+    webAccessRequestId: typeof source.webAccessRequestId === 'string' ? source.webAccessRequestId : undefined,
+    webAccessUrl: typeof source.webAccessUrl === 'string' ? source.webAccessUrl : undefined,
+    webAccessResolved: typeof source.webAccessResolved === 'boolean' ? source.webAccessResolved : undefined,
+    webAccessAllowed: typeof source.webAccessAllowed === 'boolean' ? source.webAccessAllowed : undefined,
+    webAccessResolveError: typeof source.webAccessResolveError === 'string' ? source.webAccessResolveError : undefined,
+  };
+  return normalized;
 }
 
 function saveAiChatMessages(messages: AiChatMessage[]): void {

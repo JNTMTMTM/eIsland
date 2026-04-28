@@ -61,9 +61,21 @@ interface ToolEventPayload {
 }
 
 interface ToolCallRequestPayload {
+  turn?: unknown;
   requestId?: unknown;
   tool?: unknown;
   arguments?: unknown;
+  riskLevel?: unknown;
+}
+
+interface ToolCallResultPayload {
+  turn?: unknown;
+  requestId?: unknown;
+  tool?: unknown;
+  success?: unknown;
+  error?: unknown;
+  result?: unknown;
+  durationMs?: unknown;
 }
 
 function toPrettyJson(value: unknown): string {
@@ -242,6 +254,64 @@ export function AiChatTab(): React.ReactElement {
               return;
             }
 
+            if (event.type === 'tool_call_result') {
+              const payload = event.payload as ToolCallResultPayload;
+              const turn = typeof payload?.turn === 'number' ? payload.turn : 0;
+              const requestId = typeof payload?.requestId === 'string' ? payload.requestId.trim() : '';
+              const tool = typeof payload?.tool === 'string' ? payload.tool.trim() : 'unknown';
+              const success = Boolean(payload?.success);
+              const error = typeof payload?.error === 'string' ? payload.error : '';
+              const durationMs = typeof payload?.durationMs === 'number' ? payload.durationMs : 0;
+              const result = payload?.result;
+
+              updateMessages(prev => {
+                const copy = [...prev];
+                const last = copy[copy.length - 1];
+                if (!last || last.role !== 'assistant') {
+                  return copy;
+                }
+                const oldCalls = Array.isArray(last.toolCalls) ? [...last.toolCalls] : [];
+                let matched = false;
+                for (let i = oldCalls.length - 1; i >= 0; i--) {
+                  const current = oldCalls[i];
+                  if (!current) {
+                    continue;
+                  }
+                  const requestMatched = Boolean(requestId) && current.requestId === requestId;
+                  const turnMatched = !requestId && turn > 0 && current.turn === turn && current.tool === tool;
+                  const pendingMatched = !requestId && turn <= 0 && current.pending && current.tool === tool;
+                  if (requestMatched || turnMatched || pendingMatched) {
+                    oldCalls[i] = {
+                      ...current,
+                      tool,
+                      pending: false,
+                      success,
+                      error,
+                      result,
+                      durationMs,
+                    };
+                    matched = true;
+                    break;
+                  }
+                }
+                if (!matched) {
+                  oldCalls.push({
+                    turn,
+                    requestId,
+                    tool,
+                    pending: false,
+                    success,
+                    error,
+                    result,
+                    durationMs,
+                  });
+                }
+                copy[copy.length - 1] = { ...last, toolCalls: oldCalls };
+                return copy;
+              });
+              return;
+            }
+
             if (event.type === 'web_access_request') {
               const payload = event.payload as { requestId?: unknown; url?: unknown; message?: unknown };
               const requestId = typeof payload?.requestId === 'string' ? payload.requestId.trim() : '';
@@ -307,12 +377,42 @@ export function AiChatTab(): React.ReactElement {
 
             if (event.type === 'tool_call_request') {
               const payload = event.payload as ToolCallRequestPayload;
+              const turn = typeof payload?.turn === 'number' ? payload.turn : 0;
               const requestId = typeof payload?.requestId === 'string' ? payload.requestId.trim() : '';
               const tool = typeof payload?.tool === 'string' ? payload.tool.trim() : '';
+              const riskLevel = typeof payload?.riskLevel === 'string' ? payload.riskLevel : '';
               const argumentsPayload = typeof payload?.arguments === 'object' && payload?.arguments != null
                 ? payload.arguments as Record<string, unknown>
                 : {};
-              if (!requestId || !tool) {
+              if (!tool) {
+                return;
+              }
+
+              updateMessages(prev => {
+                const copy = [...prev];
+                const last = copy[copy.length - 1];
+                if (!last || last.role !== 'assistant') {
+                  return copy;
+                }
+                const oldCalls = Array.isArray(last.toolCalls) ? [...last.toolCalls] : [];
+                const call: AiToolCall = {
+                  turn,
+                  requestId,
+                  tool,
+                  arguments: argumentsPayload,
+                  riskLevel,
+                  pending: true,
+                  success: undefined,
+                  error: '',
+                  result: {},
+                };
+                oldCalls.push(call);
+                copy[copy.length - 1] = { ...last, toolCalls: oldCalls };
+                return copy;
+              });
+
+              const isClientLocalTool = tool.startsWith('file.') || tool.startsWith('cmd.');
+              if (!isClientLocalTool || !requestId) {
                 return;
               }
 
@@ -391,6 +491,7 @@ export function AiChatTab(): React.ReactElement {
                 arguments: typeof payload?.arguments === 'object' && payload?.arguments != null
                   ? payload.arguments as Record<string, unknown>
                   : {},
+                pending: false,
                 success: Boolean(payload?.success),
                 error: typeof payload?.error === 'string' ? payload.error : '',
                 result: payload?.result,
@@ -594,8 +695,9 @@ export function AiChatTab(): React.ReactElement {
                             <span className="max-expand-chat-tool-name">{toolCall.tool}</span>
                             <span className="max-expand-chat-tool-turn">#{toolCall.turn || toolIndex + 1}</span>
                           </span>
-                          <span className={`max-expand-chat-tool-status ${toolCall.success ? 'success' : 'failed'}`}>
-                            {toolCall.success ? '完成' : '失败'}
+                          <span className={`max-expand-chat-tool-status ${toolCall.pending ? '' : (toolCall.success ? 'success' : 'failed')}`}>
+                            {toolCall.pending && <span className="max-expand-chat-tool-status-dot" />}
+                            {toolCall.pending ? '执行中' : (toolCall.success ? '完成' : '失败')}
                           </span>
                         </summary>
                         <div className="max-expand-chat-tool-result">
@@ -611,7 +713,16 @@ export function AiChatTab(): React.ReactElement {
                   <div className="max-expand-chat-think-list">
                     {msg.thinkBlocks.map((thinkText, thinkIndex) => (
                       <details key={`${thinkIndex}-${thinkText.slice(0, 16)}`} className="max-expand-chat-think-card" open={thinkIndex === msg.thinkBlocks!.length - 1 && loading && i === aiChatMessages.length - 1}>
-                        <summary>思考过程 #{thinkIndex + 1}</summary>
+                        <summary>
+                          <span>思考过程 #{thinkIndex + 1}</span>
+                          {loading && i === aiChatMessages.length - 1 && thinkIndex === msg.thinkBlocks!.length - 1 && (
+                            <span className="max-expand-chat-think-live-dots">
+                              <i />
+                              <i />
+                              <i />
+                            </span>
+                          )}
+                        </summary>
                         <div className="max-expand-chat-think-content">{thinkText}</div>
                       </details>
                     ))}
@@ -623,7 +734,7 @@ export function AiChatTab(): React.ReactElement {
                     {msg.content}
                   </ReactMarkdown>
                 ) : (
-                  loading && i === aiChatMessages.length - 1 ? '...' : ''
+                  loading && i === aiChatMessages.length - 1 ? <span className="max-expand-chat-generating-dots"><i /><i /><i /></span> : ''
                 )}
               </>
             )}
