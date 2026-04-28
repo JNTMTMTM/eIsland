@@ -219,13 +219,19 @@ export interface AiTodoItem {
   status: 'pending' | 'in_progress' | 'completed';
 }
 
+/** AI Agent TodoList 快照（带时间线 turn） */
+export interface AiTodoSnapshot {
+  turn: number;
+  items: AiTodoItem[];
+}
+
 /** AI 对话单条消息 */
 export interface AiChatMessage {
   role: 'user' | 'assistant';
   content: string;
   thinkBlocks?: string[];
   toolCalls?: AiToolCall[];
-  todoList?: AiTodoItem[];
+  todoSnapshots?: AiTodoSnapshot[];
 }
 
 /** AI Web 访问提示 */

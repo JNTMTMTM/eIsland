@@ -43,7 +43,7 @@ import {
 } from '../../../../api/site/siteMetaApi';
 import { SvgIcon } from '../../../../utils/SvgIcon';
 import useIslandStore from '../../../../store/slices';
-import type { AiChatMessage, AiToolCall, AiTodoItem } from '../../../../store/types';
+import type { AiChatMessage, AiToolCall, AiTodoItem, AiTodoSnapshot } from '../../../../store/types';
 import { readLocalToken } from '../../../../utils/userAccount';
 
 interface ThinkEventPayload {
@@ -730,7 +730,8 @@ export function AiChatTab(): React.ReactElement {
             }
 
             if (event.type === 'todo') {
-              const payload = event.payload as { items?: unknown };
+              const payload = event.payload as { turn?: unknown; items?: unknown };
+              const turn = typeof payload?.turn === 'number' ? payload.turn : 0;
               const rawItems = Array.isArray(payload?.items) ? payload.items : [];
               const items: AiTodoItem[] = rawItems
                 .map((raw, index) => {
@@ -751,11 +752,13 @@ export function AiChatTab(): React.ReactElement {
                 })
                 .filter((item): item is AiTodoItem => item != null);
               if (items.length === 0) return;
+              const snapshot: AiTodoSnapshot = { turn, items };
               updateMessages(prev => {
                 const copy = [...prev];
                 const last = copy[copy.length - 1];
                 if (last && last.role === 'assistant') {
-                  copy[copy.length - 1] = { ...last, todoList: items };
+                  const oldSnapshots = Array.isArray(last.todoSnapshots) ? last.todoSnapshots : [];
+                  copy[copy.length - 1] = { ...last, todoSnapshots: [...oldSnapshots, snapshot] };
                 }
                 return copy;
               });
@@ -958,8 +961,7 @@ export function AiChatTab(): React.ReactElement {
                         return aTurn - bTurn;
                       })
                     : [];
-                  const todoList = Array.isArray(msg.todoList) ? msg.todoList : [];
-                  const todoCompletedCount = todoList.reduce((acc, item) => acc + (item.status === 'completed' ? 1 : 0), 0);
+                  const todoSnapshots: AiTodoSnapshot[] = Array.isArray(msg.todoSnapshots) ? msg.todoSnapshots : [];
 
                   const maxToolTurn = sortedToolCalls.reduce((acc, toolCall) => {
                     const turn = Number.isFinite(toolCall.turn) && (toolCall.turn ?? 0) > 0
@@ -967,43 +969,11 @@ export function AiChatTab(): React.ReactElement {
                       : 0;
                     return Math.max(acc, turn);
                   }, 0);
-                  const maxTurn = Math.max(thinkBlocks.length, maxToolTurn);
+                  const maxTodoTurn = todoSnapshots.reduce((acc, snap) => Math.max(acc, snap.turn), 0);
+                  const maxTurn = Math.max(thinkBlocks.length, maxToolTurn, maxTodoTurn);
                   const isLatestAssistantMsg = i === aiChatMessages.length - 1;
                   const showThinkingFooter = aiConfig.deepseekThinking && aiChatStreaming && isLatestAssistantMsg;
                   const timelineNodes: React.ReactElement[] = [];
-
-                  if (todoList.length > 0) {
-                    const allCompleted = todoCompletedCount === todoList.length;
-                    timelineNodes.push(
-                      <details
-                        key={`todo-${i}`}
-                        className="max-expand-chat-todo-card"
-                        open={!allCompleted}
-                      >
-                        <summary className="max-expand-chat-todo-card-head">
-                          <span className="max-expand-chat-todo-title">
-                            <span>任务清单</span>
-                          </span>
-                          <span className="max-expand-chat-todo-progress">
-                            {todoCompletedCount}/{todoList.length}
-                          </span>
-                        </summary>
-                        <ul className="max-expand-chat-todo-list">
-                          {todoList.map((item) => (
-                            <li
-                              key={item.id}
-                              className={`max-expand-chat-todo-item status-${item.status}`}
-                            >
-                              <span className="max-expand-chat-todo-item-marker" aria-hidden>
-                                {item.status === 'completed' ? '✓' : item.status === 'in_progress' ? '●' : '○'}
-                              </span>
-                              <span className="max-expand-chat-todo-item-text">{item.content}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </details>,
-                    );
-                  }
 
                   for (let turn = 1; turn <= maxTurn; turn++) {
                     const thinkText = thinkBlocks[turn - 1] || '';
@@ -1021,6 +991,43 @@ export function AiChatTab(): React.ReactElement {
                             </span>
                           </summary>
                           <div className="max-expand-chat-think-content">{thinkText}</div>
+                        </details>,
+                      );
+                    }
+
+                    const turnTodoSnapshots = todoSnapshots.filter((snap) => snap.turn === turn);
+                    for (let snapIndex = 0; snapIndex < turnTodoSnapshots.length; snapIndex++) {
+                      const snap = turnTodoSnapshots[snapIndex];
+                      const completedCount = snap.items.reduce((acc, item) => acc + (item.status === 'completed' ? 1 : 0), 0);
+                      const allCompleted = completedCount === snap.items.length;
+                      timelineNodes.push(
+                        <details
+                          key={`todo-${turn}-${snapIndex}`}
+                          className="max-expand-chat-todo-card"
+                          open={!allCompleted}
+                        >
+                          <summary className="max-expand-chat-todo-card-head">
+                            <span className="max-expand-chat-todo-title">
+                              <span>任务清单</span>
+                              <span className="max-expand-chat-tool-turn">#{turn}</span>
+                            </span>
+                            <span className="max-expand-chat-todo-progress">
+                              {completedCount}/{snap.items.length}
+                            </span>
+                          </summary>
+                          <ul className="max-expand-chat-todo-list">
+                            {snap.items.map((item) => (
+                              <li
+                                key={item.id}
+                                className={`max-expand-chat-todo-item status-${item.status}`}
+                              >
+                                <span className="max-expand-chat-todo-item-marker" aria-hidden>
+                                  {item.status === 'completed' ? '✓' : item.status === 'in_progress' ? '●' : '○'}
+                                </span>
+                                <span className="max-expand-chat-todo-item-text">{item.content}</span>
+                              </li>
+                            ))}
+                          </ul>
                         </details>,
                       );
                     }
