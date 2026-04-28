@@ -64,6 +64,7 @@ export interface MihtnelisAgentStreamRequest {
   sessionId?: string;
   provider?: string;
   context?: string;
+  workspaces?: string[];
   thinking?: boolean;
   reasoningEffort?: 'low' | 'medium' | 'high';
   signal?: AbortSignal;
@@ -104,6 +105,7 @@ export async function streamMihtnelisAgent(request: MihtnelisAgentStreamRequest)
       message,
       provider: request.provider,
       context: request.context,
+      workspaces: Array.isArray(request.workspaces) && request.workspaces.length > 0 ? request.workspaces : undefined,
       thinking: typeof request.thinking === 'boolean' ? request.thinking : undefined,
       reasoningEffort: request.reasoningEffort,
     }),

@@ -1509,7 +1509,12 @@
       "credentialsHint": "OpenAI-compatible protocol. Fill in your API Key, Endpoint and model name.",
       "mcpTitle": "MCP Tooling",
       "mcpHint": "Optional. Once an MCP endpoint is configured, the Agent can call external tools through it.",
-      "systemPromptHint": "Constrains the Agent's role and style. Leave empty to use the default prompt."
+      "systemPromptHint": "Constrains the Agent's role and style. Leave empty to use the default prompt.",
+      "workspaceTitle": "Agent Workspace",
+      "workspaceHint": "Configure directories the Agent can access. All file read/write, search, and command execution are restricted to workspaces.",
+      "workspaceAdd": "+ Add Workspace Folder",
+      "workspaceRemove": "Remove",
+      "workspaceEmpty": "No workspace configured. Agent file operations will be blocked."
     },
     "about": {
       "pagination": "About settings pages",

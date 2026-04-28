@@ -444,6 +444,7 @@ export function AiChatTab(): React.ReactElement {
           message: text,
           provider: selectedModel,
           context,
+          workspaces: aiConfig.workspaces,
           thinking: aiConfig.deepseekThinking,
           reasoningEffort: aiConfig.deepseekReasoningEffort,
           signal: controller.signal,
@@ -647,7 +648,7 @@ export function AiChatTab(): React.ReactElement {
                 return;
               }
 
-              void executor({ tool, arguments: argumentsPayload })
+              void executor({ tool, arguments: argumentsPayload, workspaces: aiConfig.workspaces })
                 .then((execution) => {
                   return resolveMihtnelisLocalToolResult({
                     token: localToken!,

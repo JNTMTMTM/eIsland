@@ -34,6 +34,7 @@ interface AiSettingsSectionProps {
     model: string;
     mcpEndpoint: string;
     systemPrompt: string;
+    workspaces: string[];
   };
   editingPrompt: boolean;
   promptDraft: string;
@@ -42,6 +43,8 @@ interface AiSettingsSectionProps {
   setPromptDraft: (v: string) => void;
   savePrompt: () => void;
   startEditPrompt: () => void;
+  onAddWorkspace: () => void;
+  onRemoveWorkspace: (index: number) => void;
   SettingsFieldComponent: (props: {
     label: string;
     value: string;
@@ -65,6 +68,8 @@ export function AiSettingsSection({
   setPromptDraft,
   savePrompt,
   startEditPrompt,
+  onAddWorkspace,
+  onRemoveWorkspace,
   SettingsFieldComponent,
 }: AiSettingsSectionProps): ReactElement {
   const { t } = useTranslation();
@@ -119,7 +124,47 @@ export function AiSettingsSection({
           </div>
         </div>
 
-        {/* 卡片 3:System Prompt */}
+        {/* 卡片 3:工作区 */}
+        <div className="settings-card">
+          <div className="settings-card-header">
+            <div className="settings-card-title">{t('settings.ai.workspaceTitle', { defaultValue: 'Agent 工作区' })}</div>
+            <div className="settings-card-subtitle">{t('settings.ai.workspaceHint', { defaultValue: '配置 Agent 可操作的文件目录,所有文件读写、搜索、命令执行仅限于工作区内' })}</div>
+          </div>
+          <div className="settings-ai-workspace-area">
+            {aiConfig.workspaces.length > 0 && (
+              <ul className="settings-ai-workspace-list">
+                {aiConfig.workspaces.map((ws, idx) => (
+                  <li key={ws} className="settings-ai-workspace-item">
+                    <span className="settings-ai-workspace-path" title={ws}>{ws}</span>
+                    <button
+                      className="settings-ai-workspace-remove-btn"
+                      type="button"
+                      onClick={() => onRemoveWorkspace(idx)}
+                      title={t('settings.ai.workspaceRemove', { defaultValue: '移除' })}
+                      aria-label={t('settings.ai.workspaceRemove', { defaultValue: '移除' })}
+                    >
+                      ×
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {aiConfig.workspaces.length === 0 && (
+              <div className="settings-ai-workspace-empty">
+                {t('settings.ai.workspaceEmpty', { defaultValue: '未配置工作区，Agent 文件操作将被禁止' })}
+              </div>
+            )}
+            <button
+              className="settings-ai-workspace-add-btn"
+              type="button"
+              onClick={onAddWorkspace}
+            >
+              {t('settings.ai.workspaceAdd', { defaultValue: '+ 添加工作区文件夹' })}
+            </button>
+          </div>
+        </div>
+
+        {/* 卡片 4:System Prompt */}
         <div className="settings-card">
           <div className="settings-card-header">
             <div className="settings-card-title">{t('settings.ai.systemPrompt', { defaultValue: 'System Prompt' })}</div>

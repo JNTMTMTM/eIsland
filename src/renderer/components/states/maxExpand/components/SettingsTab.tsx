@@ -2706,6 +2706,17 @@ export function SettingsTab(): ReactElement {
               setPromptDraft={setPromptDraft}
               savePrompt={savePrompt}
               startEditPrompt={startEditPrompt}
+              onAddWorkspace={async () => {
+                const dir = await window.api.pickLocalSearchDirectory();
+                if (!dir) return;
+                const current = Array.isArray(aiConfig.workspaces) ? aiConfig.workspaces : [];
+                if (current.some((w) => w.toLowerCase() === dir.toLowerCase())) return;
+                setAiConfig({ workspaces: [...current, dir] });
+              }}
+              onRemoveWorkspace={(idx) => {
+                const current = Array.isArray(aiConfig.workspaces) ? aiConfig.workspaces : [];
+                setAiConfig({ workspaces: current.filter((_, i) => i !== idx) });
+              }}
               SettingsFieldComponent={SettingsField}
             />
           )}

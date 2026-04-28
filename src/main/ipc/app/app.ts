@@ -55,10 +55,36 @@ interface LocalFileSearchOptions {
 interface AgentLocalToolRequest {
   tool?: unknown;
   arguments?: unknown;
+  workspaces?: unknown;
 }
 
 const MAX_LOCAL_FILE_READ_BYTES = 1024 * 1024;
 const MAX_LOCAL_CMD_OUTPUT_BYTES = 1024 * 1024;
+
+function parseWorkspaces(raw: unknown): string[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map((w) => (typeof w === 'string' ? resolve(w.trim()) : ''))
+    .filter(Boolean);
+}
+
+function isInsideWorkspaces(targetPath: string, workspaces: string[]): boolean {
+  if (workspaces.length === 0) return false;
+  const normalized = resolve(targetPath).toLowerCase();
+  return workspaces.some((ws) => {
+    const wsLower = ws.toLowerCase();
+    return normalized === wsLower || normalized.startsWith(wsLower + '\\');
+  });
+}
+
+function assertWorkspaceBoundary(targetPath: string, workspaces: string[], toolName: string): void {
+  if (workspaces.length === 0) {
+    throw new Error(`${toolName}: 未配置工作区，请先在设置中添加 Agent 工作区目录`);
+  }
+  if (!isInsideWorkspaces(targetPath, workspaces)) {
+    throw new Error(`${toolName}: 路径 ${targetPath} 不在工作区范围内`);
+  }
+}
 const BING_SEARCH_URL_TEMPLATE = 'https://www.bing.com/search?q=%s&form=QBLH&setmkt=zh-CN';
 const BING_SEARCH_FALLBACK_URL_TEMPLATE = 'https://cn.bing.com/search?q=%s&form=QBLH';
 const BING_RESULT_BLOCK_PATTERN = /<li[^>]*class="[^"]*b_algo[^"]*"[^>]*>([\s\S]*?)<\/li>/gi;
@@ -362,6 +388,7 @@ async function executeAgentLocalTool(request: AgentLocalToolRequest): Promise<{
   try {
     const tool = typeof request?.tool === 'string' ? request.tool.trim().toLowerCase() : '';
     const args = toArgumentsRecord(request?.arguments);
+    const workspaces = parseWorkspaces(request?.workspaces);
     if (!tool) {
       throw new Error('tool 不能为空');
     }
@@ -373,6 +400,7 @@ async function executeAgentLocalTool(request: AgentLocalToolRequest): Promise<{
       if (!pathArg) {
         throw new Error('file.list 需要 path');
       }
+      assertWorkspaceBoundary(pathArg, workspaces, 'file.list');
       const entries = await readdir(pathArg, { withFileTypes: true });
       const items = entries.slice(0, limit).map((entry) => ({
         name: entry.name,
@@ -396,6 +424,7 @@ async function executeAgentLocalTool(request: AgentLocalToolRequest): Promise<{
       if (!pathArg) {
         throw new Error('file.read 需要 path');
       }
+      assertWorkspaceBoundary(pathArg, workspaces, 'file.read');
       const fileInfo = await stat(pathArg);
       if (!fileInfo.isFile()) {
         throw new Error('目标路径不是文件');
@@ -422,6 +451,7 @@ async function executeAgentLocalTool(request: AgentLocalToolRequest): Promise<{
       if (!pathArg) {
         throw new Error('file.write 需要 path');
       }
+      assertWorkspaceBoundary(pathArg, workspaces, 'file.write');
       await mkdir(dirname(pathArg), { recursive: true });
       await writeFile(pathArg, content, 'utf8');
       return {
@@ -440,6 +470,7 @@ async function executeAgentLocalTool(request: AgentLocalToolRequest): Promise<{
       if (!pathArg) {
         throw new Error('file.delete 需要 path');
       }
+      assertWorkspaceBoundary(pathArg, workspaces, 'file.delete');
       await rm(pathArg, { recursive: true, force: false });
       return {
         success: true,
@@ -459,6 +490,9 @@ async function executeAgentLocalTool(request: AgentLocalToolRequest): Promise<{
       const timeoutMs = Math.max(1000, Math.min(60000, Math.floor(timeoutRaw == null ? 20000 : timeoutRaw)));
       if (!command) {
         throw new Error('cmd.exec 需要 command');
+      }
+      if (cwd) {
+        assertWorkspaceBoundary(cwd, workspaces, 'cmd.exec');
       }
       const output = await new Promise<{ stdout: string; stderr: string }>((resolvePromise, rejectPromise) => {
         execFile(
@@ -501,6 +535,7 @@ async function executeAgentLocalTool(request: AgentLocalToolRequest): Promise<{
       if (!pathArg) {
         throw new Error('file.grep 需要 path');
       }
+      assertWorkspaceBoundary(pathArg, workspaces, 'file.grep');
       if (!pattern) {
         throw new Error('file.grep 需要 pattern');
       }
@@ -607,6 +642,7 @@ async function executeAgentLocalTool(request: AgentLocalToolRequest): Promise<{
       if (!pathArg) {
         throw new Error('file.search 需要 path');
       }
+      assertWorkspaceBoundary(pathArg, workspaces, 'file.search');
       if (!keyword) {
         throw new Error('file.search 需要 keyword');
       }

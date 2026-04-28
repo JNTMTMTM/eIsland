@@ -190,6 +190,8 @@ export interface AiConfig {
   systemPrompt: string;
   deepseekThinking: boolean;
   deepseekReasoningEffort: 'low' | 'medium' | 'high';
+  /** Agent 工作区目录列表，文件操作限制在这些目录内 */
+  workspaces: string[];
 }
 
 /** AI 工具调用轨迹 */

@@ -214,6 +214,7 @@ const api = {
   executeAgentLocalTool: (request: {
     tool: string;
     arguments?: Record<string, unknown>;
+    workspaces?: string[];
   }): Promise<{
     success: boolean;
     result: unknown;

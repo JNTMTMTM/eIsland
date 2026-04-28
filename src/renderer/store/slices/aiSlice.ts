@@ -40,6 +40,7 @@ function loadAiConfig(): AiConfig {
     systemPrompt: '你是一个有用的助手。',
     deepseekThinking: false,
     deepseekReasoningEffort: 'medium',
+    workspaces: [],
   };
   try {
     const raw = localStorage.getItem(AI_CONFIG_KEY);
@@ -49,6 +50,7 @@ function loadAiConfig(): AiConfig {
       const effort = merged.deepseekReasoningEffort;
       merged.deepseekReasoningEffort = effort === 'low' || effort === 'high' ? effort : 'medium';
       merged.deepseekThinking = Boolean(merged.deepseekThinking);
+      merged.workspaces = Array.isArray(merged.workspaces) ? merged.workspaces.filter((w) => typeof w === 'string' && w.trim()) : [];
       return merged;
     }
   } catch { /* ignore */ }

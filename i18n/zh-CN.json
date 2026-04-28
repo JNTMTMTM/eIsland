@@ -1509,7 +1509,12 @@
       "credentialsHint": "兼容 OpenAI 接口协议，填写你的 API Key、Endpoint 与模型名称",
       "mcpTitle": "MCP 工具接入",
       "mcpHint": "可选，配置 MCP 服务端点后 Agent 可调用对接的外部工具",
-      "systemPromptHint": "用于限定 Agent 的角色与风格，留空则使用默认提示词"
+      "systemPromptHint": "用于限定 Agent 的角色与风格，留空则使用默认提示词",
+      "workspaceTitle": "Agent 工作区",
+      "workspaceHint": "配置 Agent 可操作的文件目录，所有文件读写、搜索、命令执行仅限于工作区内",
+      "workspaceAdd": "+ 添加工作区文件夹",
+      "workspaceRemove": "移除",
+      "workspaceEmpty": "未配置工作区，Agent 文件操作将被禁止"
     },
     "about": {
       "pagination": "关于软件分页",
