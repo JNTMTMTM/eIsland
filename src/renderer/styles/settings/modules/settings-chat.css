@@ -400,6 +400,125 @@
   color: rgba(var(--color-text-rgb), 0.78);
 }
 
+.max-expand-chat-todo-card {
+  border: 1px solid rgba(120, 180, 255, 0.28);
+  border-radius: 9px;
+  background: linear-gradient(180deg, rgba(120, 180, 255, 0.08), rgba(120, 180, 255, 0.025));
+  overflow: hidden;
+}
+
+.max-expand-chat-todo-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 6px 9px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.max-expand-chat-todo-card-head::-webkit-details-marker {
+  display: none;
+}
+
+.max-expand-chat-todo-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: rgba(var(--color-text-rgb), 0.9);
+}
+
+.max-expand-chat-todo-title-icon {
+  font-size: 13px;
+  line-height: 1;
+  opacity: 0.9;
+}
+
+.max-expand-chat-todo-progress {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: rgba(120, 180, 255, 0.18);
+  color: rgba(120, 180, 255, 0.95);
+  border: 1px solid rgba(120, 180, 255, 0.32);
+  font-variant-numeric: tabular-nums;
+}
+
+.max-expand-chat-todo-list {
+  list-style: none;
+  margin: 0 9px 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px dashed rgba(var(--color-text-rgb), 0.18);
+  background: rgba(var(--color-text-rgb), 0.025);
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.max-expand-chat-todo-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: rgba(var(--color-text-rgb), 0.78);
+  transition: opacity 0.18s ease, color 0.18s ease;
+}
+
+.max-expand-chat-todo-item-marker {
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  font-size: 10px;
+  line-height: 1;
+  font-weight: 700;
+  margin-top: 2px;
+}
+
+.max-expand-chat-todo-item-text {
+  flex: 1 1 auto;
+  word-break: break-word;
+}
+
+.max-expand-chat-todo-item.status-pending .max-expand-chat-todo-item-marker {
+  color: rgba(var(--color-text-rgb), 0.55);
+  border: 1px solid rgba(var(--color-text-rgb), 0.32);
+}
+
+.max-expand-chat-todo-item.status-in_progress {
+  color: rgba(var(--color-text-rgb), 0.95);
+}
+
+.max-expand-chat-todo-item.status-in_progress .max-expand-chat-todo-item-marker {
+  color: #fff;
+  background: rgba(120, 180, 255, 0.92);
+  box-shadow: 0 0 0 0 rgba(120, 180, 255, 0.42);
+  animation: maxExpandToolStatusPulse 1.15s ease-out infinite;
+}
+
+.max-expand-chat-todo-item.status-completed {
+  color: rgba(var(--color-text-rgb), 0.5);
+}
+
+.max-expand-chat-todo-item.status-completed .max-expand-chat-todo-item-text {
+  text-decoration: line-through;
+  text-decoration-color: rgba(var(--color-text-rgb), 0.32);
+}
+
+.max-expand-chat-todo-item.status-completed .max-expand-chat-todo-item-marker {
+  color: #fff;
+  background: rgba(74, 209, 138, 0.92);
+  border: 1px solid rgba(74, 209, 138, 0.32);
+}
+
 .max-expand-chat-web-access-panel {
   margin-top: 10px;
   padding: 0 10px;

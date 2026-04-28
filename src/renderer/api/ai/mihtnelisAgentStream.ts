@@ -34,6 +34,7 @@ export type MihtnelisAgentStreamEventType =
   | 'billing'
   | 'web_access_request'
   | 'web_access_resolved'
+  | 'todo'
   | 'final'
   | 'error';
 
@@ -255,6 +256,7 @@ function toEventType(input: string): MihtnelisAgentStreamEventType | null {
   if (input === 'billing') return 'billing';
   if (input === 'web_access_request') return 'web_access_request';
   if (input === 'web_access_resolved') return 'web_access_resolved';
+  if (input === 'todo') return 'todo';
   if (input === 'final') return 'final';
   if (input === 'error') return 'error';
   return null;

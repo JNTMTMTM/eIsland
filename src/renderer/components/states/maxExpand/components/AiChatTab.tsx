@@ -43,7 +43,7 @@ import {
 } from '../../../../api/site/siteMetaApi';
 import { SvgIcon } from '../../../../utils/SvgIcon';
 import useIslandStore from '../../../../store/slices';
-import type { AiChatMessage, AiToolCall } from '../../../../store/types';
+import type { AiChatMessage, AiToolCall, AiTodoItem } from '../../../../store/types';
 import { readLocalToken } from '../../../../utils/userAccount';
 
 interface ThinkEventPayload {
@@ -729,6 +729,39 @@ export function AiChatTab(): React.ReactElement {
               return;
             }
 
+            if (event.type === 'todo') {
+              const payload = event.payload as { items?: unknown };
+              const rawItems = Array.isArray(payload?.items) ? payload.items : [];
+              const items: AiTodoItem[] = rawItems
+                .map((raw, index) => {
+                  if (!raw || typeof raw !== 'object') return null;
+                  const obj = raw as Record<string, unknown>;
+                  const content = typeof obj.content === 'string' ? obj.content.trim() : '';
+                  if (!content) return null;
+                  const idRaw = typeof obj.id === 'string' ? obj.id.trim() : '';
+                  const statusRaw = typeof obj.status === 'string' ? obj.status.trim().toLowerCase() : '';
+                  const status: AiTodoItem['status'] = statusRaw === 'in_progress' || statusRaw === 'completed'
+                    ? statusRaw
+                    : 'pending';
+                  return {
+                    id: idRaw || String(index + 1),
+                    content,
+                    status,
+                  } as AiTodoItem;
+                })
+                .filter((item): item is AiTodoItem => item != null);
+              if (items.length === 0) return;
+              updateMessages(prev => {
+                const copy = [...prev];
+                const last = copy[copy.length - 1];
+                if (last && last.role === 'assistant') {
+                  copy[copy.length - 1] = { ...last, todoList: items };
+                }
+                return copy;
+              });
+              return;
+            }
+
             if (event.type === 'error') {
               const payload = event.payload as { message?: unknown };
               const message = typeof payload?.message === 'string'
@@ -916,12 +949,17 @@ export function AiChatTab(): React.ReactElement {
                     ? msg.thinkBlocks
                     : [];
                   const sortedToolCalls = Array.isArray(msg.toolCalls)
-                    ? [...msg.toolCalls].sort((a, b) => {
-                      const aTurn = Number.isFinite(a.turn) && (a.turn ?? 0) > 0 ? Number(a.turn) : Number.MAX_SAFE_INTEGER;
-                      const bTurn = Number.isFinite(b.turn) && (b.turn ?? 0) > 0 ? Number(b.turn) : Number.MAX_SAFE_INTEGER;
-                      return aTurn - bTurn;
-                    })
+                    ? [...msg.toolCalls]
+                      // agent.todo.write 由独立 TodoList 卡片承载，不在工具时间线中重复展示。
+                      .filter((toolCall) => toolCall.tool !== 'agent.todo.write')
+                      .sort((a, b) => {
+                        const aTurn = Number.isFinite(a.turn) && (a.turn ?? 0) > 0 ? Number(a.turn) : Number.MAX_SAFE_INTEGER;
+                        const bTurn = Number.isFinite(b.turn) && (b.turn ?? 0) > 0 ? Number(b.turn) : Number.MAX_SAFE_INTEGER;
+                        return aTurn - bTurn;
+                      })
                     : [];
+                  const todoList = Array.isArray(msg.todoList) ? msg.todoList : [];
+                  const todoCompletedCount = todoList.reduce((acc, item) => acc + (item.status === 'completed' ? 1 : 0), 0);
 
                   const maxToolTurn = sortedToolCalls.reduce((acc, toolCall) => {
                     const turn = Number.isFinite(toolCall.turn) && (toolCall.turn ?? 0) > 0
@@ -933,6 +971,39 @@ export function AiChatTab(): React.ReactElement {
                   const isLatestAssistantMsg = i === aiChatMessages.length - 1;
                   const showThinkingFooter = aiConfig.deepseekThinking && aiChatStreaming && isLatestAssistantMsg;
                   const timelineNodes: React.ReactElement[] = [];
+
+                  if (todoList.length > 0) {
+                    const allCompleted = todoCompletedCount === todoList.length;
+                    timelineNodes.push(
+                      <details
+                        key={`todo-${i}`}
+                        className="max-expand-chat-todo-card"
+                        open={!allCompleted}
+                      >
+                        <summary className="max-expand-chat-todo-card-head">
+                          <span className="max-expand-chat-todo-title">
+                            <span>任务清单</span>
+                          </span>
+                          <span className="max-expand-chat-todo-progress">
+                            {todoCompletedCount}/{todoList.length}
+                          </span>
+                        </summary>
+                        <ul className="max-expand-chat-todo-list">
+                          {todoList.map((item) => (
+                            <li
+                              key={item.id}
+                              className={`max-expand-chat-todo-item status-${item.status}`}
+                            >
+                              <span className="max-expand-chat-todo-item-marker" aria-hidden>
+                                {item.status === 'completed' ? '✓' : item.status === 'in_progress' ? '●' : '○'}
+                              </span>
+                              <span className="max-expand-chat-todo-item-text">{item.content}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </details>,
+                    );
+                  }
 
                   for (let turn = 1; turn <= maxTurn; turn++) {
                     const thinkText = thinkBlocks[turn - 1] || '';

@@ -212,12 +212,20 @@ export interface AiToolCall {
   webAccessResolveError?: string;
 }
 
+/** AI Agent TodoList 单项 */
+export interface AiTodoItem {
+  id: string;
+  content: string;
+  status: 'pending' | 'in_progress' | 'completed';
+}
+
 /** AI 对话单条消息 */
 export interface AiChatMessage {
   role: 'user' | 'assistant';
   content: string;
   thinkBlocks?: string[];
   toolCalls?: AiToolCall[];
+  todoList?: AiTodoItem[];
 }
 
 /** AI Web 访问提示 */
