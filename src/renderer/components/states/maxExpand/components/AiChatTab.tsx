@@ -494,7 +494,7 @@ export function AiChatTab(): React.ReactElement {
                 return copy;
               });
 
-              const isClientLocalTool = tool.startsWith('file.') || tool.startsWith('cmd.');
+              const isClientLocalTool = tool.startsWith('file.') || tool.startsWith('cmd.') || tool === 'web.search';
               if (!isClientLocalTool || !requestId) {
                 return;
               }
