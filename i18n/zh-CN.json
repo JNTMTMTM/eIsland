@@ -580,6 +580,8 @@
       "placeholder": "输入消息..."
     },
     "contextUsage": {
+      "title": "上下文使用量",
+      "inline": "{{used}} / {{max}} · {{percent}}",
       "tooltip": "上下文使用：{{used}} / {{max}}（{{percent}}）",
       "aria": "上下文使用情况：{{used}} / {{max}}（{{percent}}）"
     }

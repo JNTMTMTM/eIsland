@@ -580,6 +580,8 @@
       "placeholder": "Type a message..."
     },
     "contextUsage": {
+      "title": "Context Usage",
+      "inline": "{{used}} / {{max}} · {{percent}}",
       "tooltip": "Context usage: {{used}} / {{max}} ({{percent}})",
       "aria": "Context usage: {{used}} / {{max}} ({{percent}})"
     }

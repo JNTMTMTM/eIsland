@@ -215,8 +215,8 @@ export function AiChatTab(): React.ReactElement {
   const contextUsageLevelClass = contextUsagePercent >= 90
     ? 'danger'
     : (contextUsagePercent >= 70 ? 'warn' : 'normal');
-  const contextUsageText = t('aiChat.contextUsage.tooltip', {
-    defaultValue: '上下文使用：{{used}} / {{max}}（{{percent}}）',
+  const contextUsageInlineText = t('aiChat.contextUsage.inline', {
+    defaultValue: '{{used}} / {{max}} · {{percent}}',
     used: contextUsageChars.toLocaleString(),
     max: MAX_MIHTNELIS_CONTEXT_CHARS.toLocaleString(),
     percent: contextUsagePercentText,
@@ -1042,6 +1042,29 @@ export function AiChatTab(): React.ReactElement {
                   </select>
                 </div>
               </div>
+              <div
+                className={`max-expand-chat-context-usage in-card ${contextUsageLevelClass}`}
+                role="img"
+                aria-label={t('aiChat.contextUsage.aria', {
+                  defaultValue: '上下文使用情况：{{used}} / {{max}}（{{percent}}）',
+                  used: contextUsageChars.toLocaleString(),
+                  max: MAX_MIHTNELIS_CONTEXT_CHARS.toLocaleString(),
+                  percent: contextUsagePercentText,
+                })}
+              >
+                <div className="max-expand-chat-context-usage-title-row">
+                  <div className="max-expand-chat-context-usage-title">
+                    {t('aiChat.contextUsage.title', { defaultValue: '上下文使用量' })}
+                  </div>
+                  <div className="max-expand-chat-context-usage-summary">{contextUsageInlineText}</div>
+                </div>
+                <div className="max-expand-chat-context-usage-track">
+                  <div
+                    className="max-expand-chat-context-usage-fill"
+                    style={{ width: `${contextUsagePercent}%` }}
+                  />
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -1077,24 +1100,6 @@ export function AiChatTab(): React.ReactElement {
           >
             {selectedModel}
           </button>
-        </div>
-        <div
-          className={`max-expand-chat-context-usage ${contextUsageLevelClass}`}
-          role="img"
-          aria-label={t('aiChat.contextUsage.aria', {
-            defaultValue: '上下文使用情况：{{used}} / {{max}}（{{percent}}）',
-            used: contextUsageChars.toLocaleString(),
-            max: MAX_MIHTNELIS_CONTEXT_CHARS.toLocaleString(),
-            percent: contextUsagePercentText,
-          })}
-        >
-          <div className="max-expand-chat-context-usage-track">
-            <div
-              className="max-expand-chat-context-usage-fill"
-              style={{ width: `${contextUsagePercent}%` }}
-            />
-          </div>
-          <div className="max-expand-chat-context-usage-tooltip">{contextUsageText}</div>
         </div>
       </div>
     </div>
