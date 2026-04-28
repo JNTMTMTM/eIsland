@@ -28,7 +28,11 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useTranslation } from 'react-i18next';
-import { resolveMihtnelisWebAccess, streamMihtnelisAgent } from '../../../../api/ai/mihtnelisAgentStream';
+import {
+  resolveMihtnelisLocalToolResult,
+  resolveMihtnelisWebAccess,
+  streamMihtnelisAgent,
+} from '../../../../api/ai/mihtnelisAgentStream';
 import {
   fetchWebsiteTitle,
   getWebsiteAuthorizationPolicy,
@@ -54,6 +58,12 @@ interface ToolEventPayload {
   success?: unknown;
   error?: unknown;
   result?: unknown;
+}
+
+interface ToolCallRequestPayload {
+  requestId?: unknown;
+  tool?: unknown;
+  arguments?: unknown;
 }
 
 function toPrettyJson(value: unknown): string {
@@ -292,6 +302,59 @@ export function AiChatTab(): React.ReactElement {
                   siteName: trimmedTitle,
                 });
               }).catch(() => undefined);
+              return;
+            }
+
+            if (event.type === 'tool_call_request') {
+              const payload = event.payload as ToolCallRequestPayload;
+              const requestId = typeof payload?.requestId === 'string' ? payload.requestId.trim() : '';
+              const tool = typeof payload?.tool === 'string' ? payload.tool.trim() : '';
+              const argumentsPayload = typeof payload?.arguments === 'object' && payload?.arguments != null
+                ? payload.arguments as Record<string, unknown>
+                : {};
+              if (!requestId || !tool) {
+                return;
+              }
+
+              const executor = window.api?.executeAgentLocalTool;
+              if (typeof executor !== 'function') {
+                void resolveMihtnelisLocalToolResult({
+                  token: localToken!,
+                  requestId,
+                  success: false,
+                  result: {},
+                  error: 'LOCAL_RUNTIME_UNAVAILABLE',
+                  durationMs: 0,
+                }).catch(() => undefined);
+                return;
+              }
+
+              void executor({ tool, arguments: argumentsPayload })
+                .then((execution) => {
+                  return resolveMihtnelisLocalToolResult({
+                    token: localToken!,
+                    requestId,
+                    success: Boolean(execution?.success),
+                    result: execution?.result,
+                    error: typeof execution?.error === 'string' ? execution.error : '',
+                    durationMs: typeof execution?.durationMs === 'number' ? execution.durationMs : 0,
+                  });
+                })
+                .catch((error: unknown) => {
+                  const message = error instanceof Error ? error.message : 'local tool execute failed';
+                  return resolveMihtnelisLocalToolResult({
+                    token: localToken!,
+                    requestId,
+                    success: false,
+                    result: {},
+                    error: message,
+                    durationMs: 0,
+                  });
+                })
+                .catch((submitError: unknown) => {
+                  const message = submitError instanceof Error ? submitError.message : 'local tool result submit failed';
+                  mihtnelisErrorMessage = message;
+                });
               return;
             }
 

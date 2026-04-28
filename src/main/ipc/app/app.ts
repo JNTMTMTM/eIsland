@@ -27,8 +27,9 @@
 
 import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron';
 import { existsSync } from 'fs';
-import { copyFile, readdir } from 'fs/promises';
-import { basename } from 'path';
+import { copyFile, mkdir, readdir, readFile, rm, stat, writeFile } from 'fs/promises';
+import { execFile } from 'child_process';
+import { basename, dirname, resolve } from 'path';
 import { clearLogsCacheFiles, ensureLogsDir } from '../../log/mainLog';
 import { openStandaloneWindow, closeStandaloneWindow } from '../../window/standaloneWindow';
 
@@ -50,6 +51,14 @@ interface LocalFileSearchOptions {
   extensions?: string[];
   excludeDirs?: string[];
 }
+
+interface AgentLocalToolRequest {
+  tool?: unknown;
+  arguments?: unknown;
+}
+
+const MAX_LOCAL_FILE_READ_BYTES = 1024 * 1024;
+const MAX_LOCAL_CMD_OUTPUT_BYTES = 1024 * 1024;
 
 function isTextMatched(target: string, keyword: string, mode: 'contains' | 'startsWith' | 'endsWith' | 'exact'): boolean {
   if (mode === 'startsWith') return target.startsWith(keyword);
@@ -136,6 +145,189 @@ async function searchLocalFiles(rootDir: string, keyword: string, options?: Loca
   return results;
 }
 
+function toArgumentsRecord(value: unknown): Record<string, unknown> {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return {};
+  }
+  return value as Record<string, unknown>;
+}
+
+function getStringArg(args: Record<string, unknown>, key: string): string {
+  const value = args[key];
+  return typeof value === 'string' ? value.trim() : '';
+}
+
+function getNumberArg(args: Record<string, unknown>, key: string): number | null {
+  const value = args[key];
+  if (typeof value !== 'number' || !Number.isFinite(value)) {
+    return null;
+  }
+  return value;
+}
+
+function normalizeLocalPath(input: string): string {
+  const safe = input.trim();
+  if (!safe) {
+    return '';
+  }
+  return resolve(safe);
+}
+
+async function executeAgentLocalTool(request: AgentLocalToolRequest): Promise<{
+  success: boolean;
+  result: unknown;
+  error: string;
+  durationMs: number;
+}> {
+  const startedAt = Date.now();
+  try {
+    const tool = typeof request?.tool === 'string' ? request.tool.trim().toLowerCase() : '';
+    const args = toArgumentsRecord(request?.arguments);
+    if (!tool) {
+      throw new Error('tool 不能为空');
+    }
+
+    if (tool === 'file.list') {
+      const pathArg = normalizeLocalPath(getStringArg(args, 'path'));
+      const limitRaw = getNumberArg(args, 'limit');
+      const limit = Math.max(1, Math.min(500, Math.floor(limitRaw == null ? 200 : limitRaw)));
+      if (!pathArg) {
+        throw new Error('file.list 需要 path');
+      }
+      const entries = await readdir(pathArg, { withFileTypes: true });
+      const items = entries.slice(0, limit).map((entry) => ({
+        name: entry.name,
+        path: resolve(pathArg, entry.name),
+        isDirectory: entry.isDirectory(),
+      }));
+      return {
+        success: true,
+        result: {
+          path: pathArg,
+          items,
+          count: items.length,
+        },
+        error: '',
+        durationMs: Date.now() - startedAt,
+      };
+    }
+
+    if (tool === 'file.read') {
+      const pathArg = normalizeLocalPath(getStringArg(args, 'path'));
+      if (!pathArg) {
+        throw new Error('file.read 需要 path');
+      }
+      const fileInfo = await stat(pathArg);
+      if (!fileInfo.isFile()) {
+        throw new Error('目标路径不是文件');
+      }
+      if (fileInfo.size > MAX_LOCAL_FILE_READ_BYTES) {
+        throw new Error(`文件过大，最大支持 ${MAX_LOCAL_FILE_READ_BYTES} bytes`);
+      }
+      const content = await readFile(pathArg, 'utf8');
+      return {
+        success: true,
+        result: {
+          path: pathArg,
+          content,
+          size: fileInfo.size,
+        },
+        error: '',
+        durationMs: Date.now() - startedAt,
+      };
+    }
+
+    if (tool === 'file.write') {
+      const pathArg = normalizeLocalPath(getStringArg(args, 'path'));
+      const content = typeof args.content === 'string' ? args.content : String(args.content ?? '');
+      if (!pathArg) {
+        throw new Error('file.write 需要 path');
+      }
+      await mkdir(dirname(pathArg), { recursive: true });
+      await writeFile(pathArg, content, 'utf8');
+      return {
+        success: true,
+        result: {
+          path: pathArg,
+          writtenBytes: Buffer.byteLength(content, 'utf8'),
+        },
+        error: '',
+        durationMs: Date.now() - startedAt,
+      };
+    }
+
+    if (tool === 'file.delete') {
+      const pathArg = normalizeLocalPath(getStringArg(args, 'path'));
+      if (!pathArg) {
+        throw new Error('file.delete 需要 path');
+      }
+      await rm(pathArg, { recursive: true, force: false });
+      return {
+        success: true,
+        result: {
+          path: pathArg,
+          deleted: true,
+        },
+        error: '',
+        durationMs: Date.now() - startedAt,
+      };
+    }
+
+    if (tool === 'cmd.exec') {
+      const command = getStringArg(args, 'command');
+      const cwd = normalizeLocalPath(getStringArg(args, 'cwd'));
+      const timeoutRaw = getNumberArg(args, 'timeoutMs');
+      const timeoutMs = Math.max(1000, Math.min(60000, Math.floor(timeoutRaw == null ? 20000 : timeoutRaw)));
+      if (!command) {
+        throw new Error('cmd.exec 需要 command');
+      }
+      const output = await new Promise<{ stdout: string; stderr: string }>((resolvePromise, rejectPromise) => {
+        execFile(
+          'cmd.exe',
+          ['/d', '/s', '/c', command],
+          {
+            windowsHide: true,
+            cwd: cwd || undefined,
+            timeout: timeoutMs,
+            maxBuffer: MAX_LOCAL_CMD_OUTPUT_BYTES,
+          },
+          (error, stdout, stderr) => {
+            if (error) {
+              rejectPromise(error);
+              return;
+            }
+            resolvePromise({
+              stdout: typeof stdout === 'string' ? stdout : '',
+              stderr: typeof stderr === 'string' ? stderr : '',
+            });
+          },
+        );
+      });
+      return {
+        success: true,
+        result: {
+          command,
+          cwd,
+          stdout: output.stdout,
+          stderr: output.stderr,
+        },
+        error: '',
+        durationMs: Date.now() - startedAt,
+      };
+    }
+
+    throw new Error(`不支持的工具: ${tool}`);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error ?? 'local tool failed');
+    return {
+      success: false,
+      result: {},
+      error: message,
+      durationMs: Date.now() - startedAt,
+    };
+  }
+}
+
 /**
  * 注册应用相关 IPC 处理器
  * @description 注册应用级别的 IPC 事件处理器，包括退出、重启、日志管理等
@@ -175,6 +367,20 @@ export function registerAppIpcHandlers(): void {
     } catch (err) {
       console.error('[App] search local files error:', err);
       return [];
+    }
+  });
+
+  ipcMain.handle('agent:local-tool:execute', async (_event, request: AgentLocalToolRequest) => {
+    try {
+      return await executeAgentLocalTool(request);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err ?? 'local tool execute failed');
+      return {
+        success: false,
+        result: {},
+        error: message,
+        durationMs: 0,
+      };
     }
   });
 

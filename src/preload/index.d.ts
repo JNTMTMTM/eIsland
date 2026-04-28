@@ -99,6 +99,15 @@ declare global {
           excludeDirs?: string[];
         },
       ) => Promise<Array<{ name: string; path: string; isDirectory: boolean }>>;
+      executeAgentLocalTool: (request: {
+        tool: string;
+        arguments?: Record<string, unknown>;
+      }) => Promise<{
+        success: boolean;
+        result: unknown;
+        error: string;
+        durationMs: number;
+      }>;
       clearLogsCache: () => Promise<{ success: boolean; freedBytes: number }>;
       windowMinimize: () => void;
       windowMaximize: () => void;

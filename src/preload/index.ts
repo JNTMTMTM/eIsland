@@ -209,6 +209,20 @@ const api = {
     return ipcRenderer.invoke('app:search-local-files', rootDir, keyword, options);
   },
   /**
+   * 执行本地 Agent 工具（主进程执行）
+   */
+  executeAgentLocalTool: (request: {
+    tool: string;
+    arguments?: Record<string, unknown>;
+  }): Promise<{
+    success: boolean;
+    result: unknown;
+    error: string;
+    durationMs: number;
+  }> => {
+    return ipcRenderer.invoke('agent:local-tool:execute', request);
+  },
+  /**
    * 清理日志缓存
    */
   clearLogsCache: (): Promise<{ success: boolean; freedBytes: number }> => {

@@ -27,6 +27,8 @@ const APP_NAME_VALUE = 'eisland';
 export type MihtnelisAgentStreamEventType =
   | 'meta'
   | 'tool'
+  | 'tool_call_request'
+  | 'tool_call_result'
   | 'think'
   | 'chunk'
   | 'billing'
@@ -44,6 +46,15 @@ export interface ResolveMihtnelisWebAccessRequest {
   token: string;
   requestId: string;
   allow: boolean;
+}
+
+export interface ResolveMihtnelisLocalToolRequest {
+  token: string;
+  requestId: string;
+  success: boolean;
+  result?: unknown;
+  error?: string;
+  durationMs?: number;
 }
 
 export interface MihtnelisAgentStreamRequest {
@@ -189,9 +200,50 @@ export async function resolveMihtnelisWebAccess(request: ResolveMihtnelisWebAcce
   }
 }
 
+export async function resolveMihtnelisLocalToolResult(request: ResolveMihtnelisLocalToolRequest): Promise<void> {
+  const token = request.token?.trim();
+  if (!token) {
+    throw new Error('未登录，无法提交本地工具执行结果');
+  }
+  const requestId = request.requestId?.trim();
+  if (!requestId) {
+    throw new Error('requestId 不能为空');
+  }
+
+  const headers: Record<string, string> = {
+    Accept: 'application/json',
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${token}`,
+    [APP_NAME_HEADER]: APP_NAME_VALUE,
+    ...buildReplayHeaders(),
+  };
+  const version = await resolveClientVersion();
+  if (version) {
+    headers['X-Client-Version'] = version;
+  }
+
+  const response = await fetch(`${USER_ACCOUNT_API_BASE}/v1/user/ai/agent/tool-result`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({
+      requestId,
+      success: Boolean(request.success),
+      result: request.result ?? {},
+      error: request.error ?? '',
+      durationMs: Number.isFinite(request.durationMs) ? Math.max(0, Number(request.durationMs)) : 0,
+    }),
+  });
+  if (!response.ok) {
+    const body = await response.text().catch(() => '');
+    throw new Error(`本地工具结果提交失败 (${response.status}): ${body || response.statusText}`);
+  }
+}
+
 function toEventType(input: string): MihtnelisAgentStreamEventType | null {
   if (input === 'meta') return 'meta';
   if (input === 'tool') return 'tool';
+  if (input === 'tool_call_request') return 'tool_call_request';
+  if (input === 'tool_call_result') return 'tool_call_result';
   if (input === 'think') return 'think';
   if (input === 'chunk') return 'chunk';
   if (input === 'billing') return 'billing';
