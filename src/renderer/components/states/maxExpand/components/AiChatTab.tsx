@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useTranslation } from 'react-i18next';
@@ -208,6 +208,19 @@ export function AiChatTab(): React.ReactElement {
   const selectedModel = availableModels.includes(aiConfig.model as (typeof availableModels)[number])
     ? aiConfig.model
     : 'deepseek-v4-flash';
+  const mihtnelisContext = useMemo(() => buildMihtnelisContext(aiChatMessages), [aiChatMessages]);
+  const contextUsageChars = mihtnelisContext.length;
+  const contextUsagePercent = Math.min(100, (contextUsageChars / MAX_MIHTNELIS_CONTEXT_CHARS) * 100);
+  const contextUsagePercentText = `${contextUsagePercent.toFixed(1)}%`;
+  const contextUsageLevelClass = contextUsagePercent >= 90
+    ? 'danger'
+    : (contextUsagePercent >= 70 ? 'warn' : 'normal');
+  const contextUsageText = t('aiChat.contextUsage.tooltip', {
+    defaultValue: '上下文使用：{{used}} / {{max}}（{{percent}}）',
+    used: contextUsageChars.toLocaleString(),
+    max: MAX_MIHTNELIS_CONTEXT_CHARS.toLocaleString(),
+    percent: contextUsagePercentText,
+  });
 
   /** 始终从 store 读最新消息再更新，避免流式 chunk 之间的闭包过期 */
   const updateMessages = useCallback((updater: (prev: AiChatMessage[]) => AiChatMessage[]) => {
@@ -287,7 +300,7 @@ export function AiChatTab(): React.ReactElement {
         let receivedMihtnelisChunk = false;
         let mihtnelisErrorMessage: string | null = null;
         let streamThinkingEnabled = Boolean(aiConfig.deepseekThinking);
-        const context = buildMihtnelisContext(aiChatMessages);
+        const context = mihtnelisContext;
         await streamMihtnelisAgent({
           token: localToken!,
           sessionId: 'max-expand-ai-chat',
@@ -646,6 +659,7 @@ export function AiChatTab(): React.ReactElement {
     aiChatStreaming,
     aiChatMessages,
     aiConfig,
+    mihtnelisContext,
     setAiChatStreaming,
     setAiChatMessages,
     updateMessages,
@@ -1063,6 +1077,24 @@ export function AiChatTab(): React.ReactElement {
           >
             {selectedModel}
           </button>
+        </div>
+        <div
+          className={`max-expand-chat-context-usage ${contextUsageLevelClass}`}
+          role="img"
+          aria-label={t('aiChat.contextUsage.aria', {
+            defaultValue: '上下文使用情况：{{used}} / {{max}}（{{percent}}）',
+            used: contextUsageChars.toLocaleString(),
+            max: MAX_MIHTNELIS_CONTEXT_CHARS.toLocaleString(),
+            percent: contextUsagePercentText,
+          })}
+        >
+          <div className="max-expand-chat-context-usage-track">
+            <div
+              className="max-expand-chat-context-usage-fill"
+              style={{ width: `${contextUsagePercent}%` }}
+            />
+          </div>
+          <div className="max-expand-chat-context-usage-tooltip">{contextUsageText}</div>
         </div>
       </div>
     </div>

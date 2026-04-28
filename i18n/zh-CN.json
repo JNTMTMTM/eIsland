@@ -578,6 +578,10 @@
     "input": {
       "generatingPlaceholder": "生成中...",
       "placeholder": "输入消息..."
+    },
+    "contextUsage": {
+      "tooltip": "上下文使用：{{used}} / {{max}}（{{percent}}）",
+      "aria": "上下文使用情况：{{used}} / {{max}}（{{percent}}）"
     }
   },
   "urlFavoritesTab": {

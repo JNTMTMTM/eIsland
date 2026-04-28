@@ -578,6 +578,10 @@
     "input": {
       "generatingPlaceholder": "Generating...",
       "placeholder": "Type a message..."
+    },
+    "contextUsage": {
+      "tooltip": "Context usage: {{used}} / {{max}} ({{percent}})",
+      "aria": "Context usage: {{used}} / {{max}} ({{percent}})"
     }
   },
   "urlFavoritesTab": {
