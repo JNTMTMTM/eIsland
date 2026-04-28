@@ -975,6 +975,43 @@ export function AiChatTab(): React.ReactElement {
                   const showThinkingFooter = aiConfig.deepseekThinking && aiChatStreaming && isLatestAssistantMsg;
                   const timelineNodes: React.ReactElement[] = [];
 
+                  // turn=0 的 todoSnapshot（旧服务端不带 turn 字段时的兜底）放在时间线最前面
+                  const unturnedTodoSnapshots = todoSnapshots.filter((snap) => !(snap.turn > 0));
+                  for (let snapIndex = 0; snapIndex < unturnedTodoSnapshots.length; snapIndex++) {
+                    const snap = unturnedTodoSnapshots[snapIndex];
+                    const completedCount = snap.items.reduce((acc, item) => acc + (item.status === 'completed' ? 1 : 0), 0);
+                    const allCompleted = completedCount === snap.items.length;
+                    timelineNodes.push(
+                      <details
+                        key={`todo-0-${snapIndex}`}
+                        className="max-expand-chat-todo-card"
+                        open={!allCompleted}
+                      >
+                        <summary className="max-expand-chat-todo-card-head">
+                          <span className="max-expand-chat-todo-title">
+                            <span>任务清单</span>
+                          </span>
+                          <span className="max-expand-chat-todo-progress">
+                            {completedCount}/{snap.items.length}
+                          </span>
+                        </summary>
+                        <ul className="max-expand-chat-todo-list">
+                          {snap.items.map((item) => (
+                            <li
+                              key={item.id}
+                              className={`max-expand-chat-todo-item status-${item.status}`}
+                            >
+                              <span className="max-expand-chat-todo-item-marker" aria-hidden>
+                                {item.status === 'completed' ? '✓' : item.status === 'in_progress' ? '●' : '○'}
+                              </span>
+                              <span className="max-expand-chat-todo-item-text">{item.content}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </details>,
+                    );
+                  }
+
                   for (let turn = 1; turn <= maxTurn; turn++) {
                     const thinkText = thinkBlocks[turn - 1] || '';
                     if (thinkText) {
