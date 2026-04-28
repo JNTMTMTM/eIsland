@@ -177,6 +177,76 @@
   text-decoration: underline;
 }
 
+.max-expand-chat-site-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  margin: 2px 0;
+  padding: 6px 9px;
+  border-radius: 10px;
+  border: 1px solid rgba(var(--color-text-rgb), 0.16);
+  background: rgba(var(--color-text-rgb), 0.06);
+  text-decoration: none !important;
+  color: inherit;
+  vertical-align: middle;
+}
+
+.max-expand-chat-site-link:hover {
+  background: rgba(120, 190, 255, 0.14);
+  border-color: rgba(120, 190, 255, 0.35);
+}
+
+.max-expand-chat-site-link-icon,
+.max-expand-chat-site-link-icon-fallback {
+  width: 18px;
+  height: 18px;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+.max-expand-chat-site-link-icon {
+  border: 1px solid rgba(var(--color-text-rgb), 0.16);
+  object-fit: cover;
+  background: rgba(var(--color-bg-rgb), 0.88);
+}
+
+.max-expand-chat-site-link-icon-fallback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  color: rgba(var(--color-text-rgb), 0.75);
+  background: rgba(var(--color-text-rgb), 0.12);
+}
+
+.max-expand-chat-site-link-meta {
+  min-width: 0;
+  display: inline-flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.max-expand-chat-site-link-title {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 600;
+  color: #78beff;
+}
+
+.max-expand-chat-site-link-host {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 10px;
+  color: rgba(var(--color-text-rgb), 0.62);
+}
+
 .max-expand-chat-bubble.ai code {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   font-size: 12px;
