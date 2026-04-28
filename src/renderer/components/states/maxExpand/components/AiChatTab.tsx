@@ -125,6 +125,26 @@ function toPrettyJson(value: unknown): string {
   }
 }
 
+function sanitizeExternalUrl(rawUrl: string): string {
+  let value = rawUrl.trim();
+  if (!value) {
+    return '';
+  }
+  const trailingPunctuations = [',', '.', ';', '!', '?', '，', '。', '；', '！', '？'];
+  while (value.length > 0 && trailingPunctuations.includes(value[value.length - 1])) {
+    value = value.slice(0, -1);
+  }
+  while (value.endsWith(')')) {
+    const openCount = (value.match(/\(/g) ?? []).length;
+    const closeCount = (value.match(/\)/g) ?? []).length;
+    if (closeCount <= openCount) {
+      break;
+    }
+    value = value.slice(0, -1);
+  }
+  return value;
+}
+
 /**
  * 调用 OpenAI 兼容 Chat Completions API（流式）
  */
@@ -883,7 +903,34 @@ export function AiChatTab(): React.ReactElement {
                       {msg.content ? (
                         <>
                           {timelineNodes.length > 0 ? <div className="max-expand-chat-final-divider" /> : null}
-                          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                          <ReactMarkdown
+                            remarkPlugins={[remarkGfm]}
+                            components={{
+                              a: ({ href, children, onClick, target, rel, ...props }) => {
+                                const safeHref = typeof href === 'string' ? href.trim() : '';
+                                const openHref = sanitizeExternalUrl(safeHref);
+                                const isHttpLink = openHref.startsWith('http://') || openHref.startsWith('https://');
+                                return (
+                                  <a
+                                    {...props}
+                                    href={href}
+                                    target={target ?? '_blank'}
+                                    rel={rel ?? 'noopener noreferrer'}
+                                    onClick={(event) => {
+                                      onClick?.(event);
+                                      if (event.defaultPrevented || !isHttpLink) {
+                                        return;
+                                      }
+                                      event.preventDefault();
+                                      void window.api.clipboardOpenUrl(openHref).catch(() => {});
+                                    }}
+                                  >
+                                    {children}
+                                  </a>
+                                );
+                              },
+                            }}
+                          >
                             {msg.content}
                           </ReactMarkdown>
                         </>
