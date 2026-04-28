@@ -733,14 +733,81 @@ export function AiChatTab(): React.ReactElement {
               msg.content
             ) : (
               <>
-                {Array.isArray(msg.toolCalls) && msg.toolCalls.length > 0 && (
-                  <div className="max-expand-chat-tool-list">
-                    {msg.toolCalls.map((toolCall, toolIndex) => (
-                      <details key={`${toolCall.tool}-${toolCall.turn}-${toolIndex}`} className="max-expand-chat-tool-card">
+                {(() => {
+                  const thinkBlocks = aiConfig.deepseekThinking && Array.isArray(msg.thinkBlocks)
+                    ? msg.thinkBlocks
+                    : [];
+                  const sortedToolCalls = Array.isArray(msg.toolCalls)
+                    ? [...msg.toolCalls].sort((a, b) => {
+                      const aTurn = Number.isFinite(a.turn) && (a.turn ?? 0) > 0 ? Number(a.turn) : Number.MAX_SAFE_INTEGER;
+                      const bTurn = Number.isFinite(b.turn) && (b.turn ?? 0) > 0 ? Number(b.turn) : Number.MAX_SAFE_INTEGER;
+                      return aTurn - bTurn;
+                    })
+                    : [];
+
+                  const maxToolTurn = sortedToolCalls.reduce((acc, toolCall) => {
+                    const turn = Number.isFinite(toolCall.turn) && (toolCall.turn ?? 0) > 0
+                      ? Number(toolCall.turn)
+                      : 0;
+                    return Math.max(acc, turn);
+                  }, 0);
+                  const maxTurn = Math.max(thinkBlocks.length, maxToolTurn);
+                  const isLatestAssistantMsg = i === aiChatMessages.length - 1;
+                  const showThinkingFooter = aiConfig.deepseekThinking && aiChatStreaming && isLatestAssistantMsg;
+                  const timelineNodes: React.ReactElement[] = [];
+
+                  for (let turn = 1; turn <= maxTurn; turn++) {
+                    const thinkText = thinkBlocks[turn - 1] || '';
+                    if (thinkText) {
+                      timelineNodes.push(
+                        <details key={`think-${turn}`} className="max-expand-chat-think-card" open={turn === thinkBlocks.length && isLatestAssistantMsg}>
+                          <summary>
+                            <span>思考过程 #{turn}</span>
+                          </summary>
+                          <div className="max-expand-chat-think-content">{thinkText}</div>
+                        </details>,
+                      );
+                    }
+
+                    const turnToolCalls = sortedToolCalls.filter((toolCall) => {
+                      return Number.isFinite(toolCall.turn)
+                        && (toolCall.turn ?? 0) > 0
+                        && Number(toolCall.turn) === turn;
+                    });
+                    for (let toolIndex = 0; toolIndex < turnToolCalls.length; toolIndex++) {
+                      const toolCall = turnToolCalls[toolIndex];
+                      timelineNodes.push(
+                        <details key={`tool-${turn}-${toolCall.tool}-${toolIndex}`} className="max-expand-chat-tool-card">
+                          <summary className="max-expand-chat-tool-card-head">
+                            <span className="max-expand-chat-tool-left">
+                              <span className="max-expand-chat-tool-name">{toolCall.tool}</span>
+                              <span className="max-expand-chat-tool-turn">#{toolCall.turn || toolIndex + 1}</span>
+                            </span>
+                            <span className={`max-expand-chat-tool-status ${toolCall.pending ? '' : (toolCall.success ? 'success' : 'failed')}`}>
+                              {toolCall.pending && <span className="max-expand-chat-tool-status-dot" />}
+                              {toolCall.pending ? '执行中' : (toolCall.success ? '完成' : '失败')}
+                            </span>
+                          </summary>
+                          <div className="max-expand-chat-tool-result">
+                            <div className="max-expand-chat-tool-result-title">工具返回结果</div>
+                            <pre>{toPrettyJson(toolCall.result)}</pre>
+                          </div>
+                        </details>,
+                      );
+                    }
+                  }
+
+                  const trailingToolCalls = sortedToolCalls.filter((toolCall) => {
+                    return !(Number.isFinite(toolCall.turn) && (toolCall.turn ?? 0) > 0);
+                  });
+                  for (let toolIndex = 0; toolIndex < trailingToolCalls.length; toolIndex++) {
+                    const toolCall = trailingToolCalls[toolIndex];
+                    timelineNodes.push(
+                      <details key={`tool-tail-${toolCall.tool}-${toolIndex}`} className="max-expand-chat-tool-card">
                         <summary className="max-expand-chat-tool-card-head">
                           <span className="max-expand-chat-tool-left">
                             <span className="max-expand-chat-tool-name">{toolCall.tool}</span>
-                            <span className="max-expand-chat-tool-turn">#{toolCall.turn || toolIndex + 1}</span>
+                            <span className="max-expand-chat-tool-turn">#{toolIndex + 1}</span>
                           </span>
                           <span className={`max-expand-chat-tool-status ${toolCall.pending ? '' : (toolCall.success ? 'success' : 'failed')}`}>
                             {toolCall.pending && <span className="max-expand-chat-tool-status-dot" />}
@@ -751,38 +818,38 @@ export function AiChatTab(): React.ReactElement {
                           <div className="max-expand-chat-tool-result-title">工具返回结果</div>
                           <pre>{toPrettyJson(toolCall.result)}</pre>
                         </div>
-                      </details>
-                    ))}
-                  </div>
-                )}
+                      </details>,
+                    );
+                  }
 
-                {aiConfig.deepseekThinking && Array.isArray(msg.thinkBlocks) && msg.thinkBlocks.length > 0 && (
-                  <div className="max-expand-chat-think-list">
-                    {msg.thinkBlocks.map((thinkText, thinkIndex) => (
-                      <details key={`${thinkIndex}-${thinkText.slice(0, 16)}`} className="max-expand-chat-think-card" open={thinkIndex === msg.thinkBlocks!.length - 1 && aiChatStreaming && i === aiChatMessages.length - 1}>
-                        <summary>
-                          <span>思考过程 #{thinkIndex + 1}</span>
-                          {aiChatStreaming && i === aiChatMessages.length - 1 && thinkIndex === msg.thinkBlocks!.length - 1 && (
-                            <span className="max-expand-chat-think-live-dots">
-                              <i />
-                              <i />
-                              <i />
-                            </span>
-                          )}
-                        </summary>
-                        <div className="max-expand-chat-think-content">{thinkText}</div>
-                      </details>
-                    ))}
-                  </div>
-                )}
+                  return (
+                    <>
+                      {timelineNodes.length > 0 && (
+                        <div className="max-expand-chat-tool-list">
+                          {timelineNodes}
+                        </div>
+                      )}
 
-                {msg.content ? (
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                    {msg.content}
-                  </ReactMarkdown>
-                ) : (
-                  aiChatStreaming && i === aiChatMessages.length - 1 ? <span className="max-expand-chat-generating-dots"><i /><i /><i /></span> : ''
-                )}
+                      {msg.content ? (
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                          {msg.content}
+                        </ReactMarkdown>
+                      ) : (
+                        aiChatStreaming && isLatestAssistantMsg && !showThinkingFooter ? <span className="max-expand-chat-generating-dots"><i /><i /><i /></span> : ''
+                      )}
+
+                      {showThinkingFooter && (
+                        <div style={{ marginTop: 6, display: 'flex', justifyContent: 'flex-end' }}>
+                          <span className="max-expand-chat-think-live-dots">
+                            <i />
+                            <i />
+                            <i />
+                          </span>
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
               </>
             )}
           </div>
