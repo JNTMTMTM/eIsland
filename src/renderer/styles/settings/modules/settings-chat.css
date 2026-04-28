@@ -595,6 +595,17 @@
   white-space: pre-wrap;
 }
 
+.max-expand-chat-final-divider {
+  height: 1px;
+  margin: 8px 0;
+  background: linear-gradient(
+    90deg,
+    rgba(var(--color-text-rgb), 0),
+    rgba(var(--color-text-rgb), 0.28),
+    rgba(var(--color-text-rgb), 0)
+  );
+}
+
 /** 输入栏 */
 .max-expand-chat-input-bar {
   display: flex;

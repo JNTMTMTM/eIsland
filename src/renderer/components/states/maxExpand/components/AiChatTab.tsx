@@ -881,9 +881,12 @@ export function AiChatTab(): React.ReactElement {
                       )}
 
                       {msg.content ? (
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                          {msg.content}
-                        </ReactMarkdown>
+                        <>
+                          {timelineNodes.length > 0 ? <div className="max-expand-chat-final-divider" /> : null}
+                          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                            {msg.content}
+                          </ReactMarkdown>
+                        </>
                       ) : (
                         aiChatStreaming && isLatestAssistantMsg && !showThinkingFooter ? <span className="max-expand-chat-generating-dots"><i /><i /><i /></span> : ''
                       )}
