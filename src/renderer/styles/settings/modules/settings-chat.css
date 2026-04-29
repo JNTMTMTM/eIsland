@@ -161,6 +161,8 @@
   background: rgba(var(--color-text-rgb), 0.12);
   color: var(--color-island-text);
   border-bottom-right-radius: 4px;
+  user-select: text;
+  -webkit-user-select: text;
 }
 
 .max-expand-chat-bubble.ai {
@@ -930,8 +932,8 @@
   white-space: pre-wrap;
   word-break: break-word;
   font-family: inherit;
-  user-select: text;
-  -webkit-user-select: text;
+  user-select: text !important;
+  -webkit-user-select: text !important;
 }
 
 .max-expand-chat-input::placeholder {

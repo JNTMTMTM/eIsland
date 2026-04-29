@@ -1598,7 +1598,8 @@ export function AiChatTab(): React.ReactElement {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            disabled={aiChatStreaming}
+            readOnly={aiChatStreaming}
+            aria-disabled={aiChatStreaming}
             rows={1}
           />
           {aiChatStreaming ? (
