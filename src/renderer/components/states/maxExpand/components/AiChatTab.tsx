@@ -942,7 +942,14 @@ export function AiChatTab(): React.ReactElement {
               : t('aiChat.messages.emptyWithoutApiKey', { defaultValue: '请先在「设置 → AI配置」中填写 API Key' })}
           </div>
         )}
-        {aiChatMessages.map((msg, i) => (
+        {aiChatMessages.map((msg, i) => {
+          const isEmptyAssistant = msg.role === 'assistant' && !msg.content
+            && (!Array.isArray(msg.todoSnapshots) || msg.todoSnapshots.length === 0)
+            && (!Array.isArray(msg.thinkBlocks) || msg.thinkBlocks.length === 0)
+            && (!Array.isArray(msg.toolCalls) || msg.toolCalls.filter(tc => tc.tool !== 'agent.todo.write').length === 0)
+            && !(aiChatStreaming && i === aiChatMessages.length - 1);
+          if (isEmptyAssistant) return null;
+          return (
           <div key={i} className={`max-expand-chat-bubble ${msg.role === 'user' ? 'user' : 'ai'}`}>
             {msg.role === 'user' ? (
               msg.content
@@ -1177,7 +1184,8 @@ export function AiChatTab(): React.ReactElement {
               </>
             )}
           </div>
-        ))}
+          );
+        })}
         <div ref={chatEndRef} />
       </div>
       {aiWebAccessPrompt && (

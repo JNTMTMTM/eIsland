@@ -96,6 +96,11 @@ function normalizeAiChatMessage(value: unknown): AiChatMessage | null {
       .map((item) => normalizeAiToolCall(item))
       .filter((item): item is NonNullable<AiChatMessage['toolCalls']>[number] => item != null)
     : [];
+  const todoSnapshots = Array.isArray(source.todoSnapshots)
+    ? source.todoSnapshots
+      .map((item) => normalizeAiTodoSnapshot(item))
+      .filter((item): item is NonNullable<AiChatMessage['todoSnapshots']>[number] => item != null)
+    : [];
   const normalized: AiChatMessage = {
     role,
     content,
@@ -106,7 +111,50 @@ function normalizeAiChatMessage(value: unknown): AiChatMessage | null {
   if (toolCalls.length > 0) {
     normalized.toolCalls = toolCalls;
   }
+  if (todoSnapshots.length > 0) {
+    normalized.todoSnapshots = todoSnapshots;
+  }
   return normalized;
+}
+
+function normalizeAiTodoSnapshot(value: unknown): NonNullable<AiChatMessage['todoSnapshots']>[number] | null {
+  if (!value || typeof value !== 'object') {
+    return null;
+  }
+  const source = value as Record<string, unknown>;
+  const turn = typeof source.turn === 'number' && Number.isFinite(source.turn)
+    ? source.turn
+    : 0;
+  const items = Array.isArray(source.items)
+    ? source.items
+      .map((item) => normalizeAiTodoItem(item))
+      .filter((item): item is NonNullable<AiChatMessage['todoSnapshots']>[number]['items'][number] => item != null)
+    : [];
+  if (items.length === 0) {
+    return null;
+  }
+  return {
+    turn,
+    items,
+  };
+}
+
+function normalizeAiTodoItem(value: unknown): NonNullable<AiChatMessage['todoSnapshots']>[number]['items'][number] | null {
+  if (!value || typeof value !== 'object') {
+    return null;
+  }
+  const source = value as Record<string, unknown>;
+  const id = typeof source.id === 'string' ? source.id : '';
+  const content = typeof source.content === 'string' ? source.content : '';
+  const status = source.status === 'in_progress' || source.status === 'completed' ? source.status : 'pending';
+  if (!id || !content) {
+    return null;
+  }
+  return {
+    id,
+    content,
+    status,
+  };
 }
 
 function normalizeAiToolCall(value: unknown): NonNullable<AiChatMessage['toolCalls']>[number] | null {
