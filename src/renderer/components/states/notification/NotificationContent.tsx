@@ -625,7 +625,7 @@ export function NotificationContent({
           </div>
         </div>
       ) : type === 'weather-alert-startup' ? (
-        <div className="notification-actions notification-actions--right">
+        <div className="notification-actions notification-actions--right notification-actions--weather-alert-startup">
           <div className="notification-decision-actions">
             <button
               type="button"
