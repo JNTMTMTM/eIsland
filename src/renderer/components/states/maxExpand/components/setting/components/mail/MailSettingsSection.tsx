@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import type { ReactElement } from 'react';
+import type { ReactElement, WheelEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { MailSettingsPageKey } from '../../utils/settingsConfig';
 
@@ -80,6 +80,18 @@ export function MailSettingsSection({
   setMailSettingsPage,
 }: MailSettingsSectionProps): ReactElement {
   const { t } = useTranslation();
+
+  const handleDotsWheel = (e: WheelEvent<HTMLDivElement>): void => {
+    e.stopPropagation();
+    const currentIndex = mailSettingsPages.indexOf(mailSettingsPage);
+    if (currentIndex < 0) return;
+    const nextIndex = e.deltaY > 0
+      ? Math.min(currentIndex + 1, mailSettingsPages.length - 1)
+      : Math.max(currentIndex - 1, 0);
+    if (nextIndex === currentIndex) return;
+    e.preventDefault();
+    setMailSettingsPage(mailSettingsPages[nextIndex]);
+  };
 
   return (
     <div className="max-expand-settings-section">
@@ -169,7 +181,11 @@ export function MailSettingsSection({
           )}
         </div>
 
-        <div className="settings-app-page-dots" aria-label={t('settings.mail.pagination', { defaultValue: '邮箱配置分页' })}>
+        <div
+          className="settings-app-page-dots"
+          aria-label={t('settings.mail.pagination', { defaultValue: '邮箱配置分页' })}
+          onWheel={handleDotsWheel}
+        >
           {mailSettingsPages.map((page) => (
             <button
               key={page}
