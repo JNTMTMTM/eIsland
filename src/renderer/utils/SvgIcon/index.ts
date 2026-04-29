@@ -133,7 +133,8 @@ export const SvgIcon = {
   EXPAND: './svg/EXPAND.svg',
   /** 收起 */
   COLLAPSE: './svg/COLLAPSE.svg',
-
+  /** 删除 */
+  DELETE: './svg/DELETE.svg',
 } as const;
 
 export type SvgIconKey = keyof typeof SvgIcon;
