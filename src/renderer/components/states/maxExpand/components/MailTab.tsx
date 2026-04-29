@@ -28,6 +28,7 @@ import { useEffect, useState } from 'react';
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../../store/slices';
+import { SvgIcon } from '../../../../utils/SvgIcon';
 
 const SETTINGS_OPEN_TAB_STORE_KEY = 'settings-open-tab';
 const MAIL_INBOX_REFRESH_TIMEOUT_MS = 20000;
@@ -50,7 +51,6 @@ export function MailTab(): ReactElement {
   const { setMaxExpandTab } = useIslandStore();
   const [inbox, setInbox] = useState<MailInboxItem[]>([]);
   const [loadingInbox, setLoadingInbox] = useState(false);
-  const [mailMessage, setMailMessage] = useState('');
 
   const refreshInbox = async (): Promise<void> => {
     setLoadingInbox(true);
@@ -67,17 +67,12 @@ export function MailTab(): ReactElement {
       ]);
 
       if (!result.ok) {
-        setMailMessage(result.message || t('mailTab.messages.inboxFetchFailed', { defaultValue: '收件箱读取失败' }));
         setInbox([]);
         return;
       }
 
-      setMailMessage('');
       setInbox(result.items || []);
     } catch (error) {
-      setMailMessage(error instanceof Error
-        ? error.message
-        : t('mailTab.messages.inboxFetchFailed', { defaultValue: '收件箱读取失败' }));
       setInbox([]);
     } finally {
       setLoadingInbox(false);
@@ -90,62 +85,53 @@ export function MailTab(): ReactElement {
 
   return (
     <div className="max-expand-settings-section">
-      <div className="max-expand-settings-title">{t('mailTab.title', { defaultValue: '邮箱' })}</div>
-      <div className="settings-cards">
-        <div className="settings-card">
-          <div className="settings-card-header">
-            <div className="settings-card-title">{t('mailTab.introTitle', { defaultValue: '客户端直连邮箱（无服务器）' })}</div>
-            <div className="settings-card-subtitle">
-              {t('mailTab.introDesc', { defaultValue: '仅支持 IMAP 收信。请先在设置中填写服务器参数与账号认证信息。' })}
-            </div>
-          </div>
-          <div className="settings-card-subgroup">
-            <button
-              type="button"
-              className="settings-user-primary-btn"
-              onClick={() => {
-                window.api.storeWrite(SETTINGS_OPEN_TAB_STORE_KEY, 'mail').catch(() => {});
-                setMaxExpandTab('settings');
-              }}
-            >
-              {t('mailTab.goSettings', { defaultValue: '前往邮箱设置' })}
-            </button>
-            <button
-              type="button"
-              className="settings-user-secondary-btn"
-              onClick={() => { void refreshInbox(); }}
-              disabled={loadingInbox}
-            >
-              {loadingInbox
-                ? t('mailTab.actions.refreshing', { defaultValue: '刷新中…' })
-                : t('mailTab.actions.refresh', { defaultValue: '刷新收件箱' })}
-            </button>
-          </div>
+      <div
+        className="max-expand-settings-title settings-mail-tab-title-line"
+      >
+        <span>{t('mailTab.title', { defaultValue: '邮箱' })}</span>
+        <div className="settings-mail-tab-title-actions">
+          <button
+            type="button"
+            className="settings-mail-tab-icon-btn"
+            onClick={() => {
+              window.api.storeWrite(SETTINGS_OPEN_TAB_STORE_KEY, 'mail').catch(() => {});
+              setMaxExpandTab('settings');
+            }}
+            title={t('mailTab.goSettings', { defaultValue: '前往邮箱设置' })}
+            aria-label={t('mailTab.goSettings', { defaultValue: '前往邮箱设置' })}
+          >
+            <img src={SvgIcon.SETTING} alt="" className="settings-mail-tab-icon" />
+          </button>
+          <button
+            type="button"
+            className={`settings-mail-tab-icon-btn ${loadingInbox ? 'is-loading' : ''}`}
+            onClick={() => { void refreshInbox(); }}
+            disabled={loadingInbox}
+            title={t('mailTab.actions.refresh', { defaultValue: '刷新收件箱' })}
+            aria-label={t('mailTab.actions.refresh', { defaultValue: '刷新收件箱' })}
+          >
+            <img src={SvgIcon.REVERT} alt="" className="settings-mail-tab-icon" />
+          </button>
         </div>
-
+      </div>
+      <div className="settings-cards">
         <div className="settings-card">
           <div className="settings-card-header">
             <div className="settings-card-title">{t('mailTab.inboxTitle', { defaultValue: '收件箱（最近 10 封）' })}</div>
           </div>
           <div className="settings-card-subgroup">
-            {inbox.length === 0 ? (
-              <div className="settings-music-hint">{t('mailTab.emptyInbox', { defaultValue: '暂无邮件或读取失败' })}</div>
-            ) : (
-              <div className="settings-whitelist-list" style={{ maxHeight: 180, overflow: 'auto' }}>
+            {inbox.length > 0 && (
+              <div className="settings-whitelist-list settings-mail-tab-inbox-list">
                 {inbox.map((item) => (
                   <div className="settings-whitelist-item" key={item.uid}>
                     <span className="settings-whitelist-name" title={item.subject}>{item.subject || '(无主题)'}</span>
-                    <span className="settings-music-hint" style={{ marginLeft: 8 }}>{item.from || '-'}</span>
+                    <span className="settings-music-hint settings-mail-tab-item-from">{item.from || '-'}</span>
                   </div>
                 ))}
               </div>
             )}
           </div>
         </div>
-
-        {!!mailMessage && (
-          <div className="settings-music-hint">{mailMessage}</div>
-        )}
       </div>
     </div>
   );
