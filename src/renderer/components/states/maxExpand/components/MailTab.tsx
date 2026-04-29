@@ -30,6 +30,7 @@ import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../../store/slices';
 
 const SETTINGS_OPEN_TAB_STORE_KEY = 'settings-open-tab';
+const MAIL_INBOX_REFRESH_TIMEOUT_MS = 20000;
 
 interface MailInboxItem {
   uid: string;
@@ -53,15 +54,34 @@ export function MailTab(): ReactElement {
 
   const refreshInbox = async (): Promise<void> => {
     setLoadingInbox(true);
-    const result = await window.api.mailInboxList(10).catch(() => ({ ok: false, items: [] as MailInboxItem[], message: t('mailTab.messages.inboxFetchFailed', { defaultValue: '收件箱读取失败' }) }));
-    if (!result.ok) {
-      setMailMessage(result.message || t('mailTab.messages.inboxFetchFailed', { defaultValue: '收件箱读取失败' }));
-      setInbox([]);
-    } else {
+    try {
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => {
+          reject(new Error(t('mailTab.messages.inboxFetchTimeout', { defaultValue: '收件箱读取超时，请检查网络或邮箱配置' })));
+        }, MAIL_INBOX_REFRESH_TIMEOUT_MS);
+      });
+
+      const result = await Promise.race([
+        window.api.mailInboxList(10),
+        timeoutPromise,
+      ]);
+
+      if (!result.ok) {
+        setMailMessage(result.message || t('mailTab.messages.inboxFetchFailed', { defaultValue: '收件箱读取失败' }));
+        setInbox([]);
+        return;
+      }
+
       setMailMessage('');
       setInbox(result.items || []);
+    } catch (error) {
+      setMailMessage(error instanceof Error
+        ? error.message
+        : t('mailTab.messages.inboxFetchFailed', { defaultValue: '收件箱读取失败' }));
+      setInbox([]);
+    } finally {
+      setLoadingInbox(false);
     }
-    setLoadingInbox(false);
   };
 
   useEffect(() => {
