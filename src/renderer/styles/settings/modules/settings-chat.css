@@ -164,10 +164,13 @@
 }
 
 .max-expand-chat-bubble.ai {
-  align-self: flex-start;
-  background: rgba(var(--color-text-rgb), 0.06);
+  align-self: stretch;
+  max-width: 100%;
+  width: 100%;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
   color: rgba(var(--color-text-rgb), 0.85);
-  border-bottom-left-radius: 4px;
   user-select: text;
   -webkit-user-select: text;
 }
@@ -452,7 +455,7 @@
   margin: 0 9px 8px;
   padding: 8px 10px;
   border-radius: 8px;
-  border: 1px dashed rgba(var(--color-text-rgb), 0.18);
+  border: none;
   background: rgba(var(--color-text-rgb), 0.025);
   display: flex;
   flex-direction: column;
@@ -707,6 +710,14 @@
   font-weight: 600;
   color: rgba(var(--color-text-rgb), 0.74);
   list-style: none;
+}
+
+.max-expand-chat-loading-row {
+  width: 100%;
+  margin-top: 6px;
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-end;
 }
 
 .max-expand-chat-think-live-dots,

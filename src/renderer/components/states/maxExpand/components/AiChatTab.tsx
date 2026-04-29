@@ -1155,11 +1155,15 @@ export function AiChatTab(): React.ReactElement {
                           </ReactMarkdown>
                         </>
                       ) : (
-                        aiChatStreaming && isLatestAssistantMsg && !showThinkingFooter ? <span className="max-expand-chat-generating-dots"><i /><i /><i /></span> : ''
+                        aiChatStreaming && isLatestAssistantMsg && !showThinkingFooter ? (
+                          <div className="max-expand-chat-loading-row">
+                            <span className="max-expand-chat-generating-dots"><i /><i /><i /></span>
+                          </div>
+                        ) : ''
                       )}
 
                       {showThinkingFooter && (
-                        <div style={{ marginTop: 6, display: 'flex', justifyContent: 'flex-end' }}>
+                        <div className="max-expand-chat-loading-row">
                           <span className="max-expand-chat-think-live-dots">
                             <i />
                             <i />
