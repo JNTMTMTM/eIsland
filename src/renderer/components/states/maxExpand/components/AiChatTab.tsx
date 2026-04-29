@@ -971,14 +971,6 @@ export function AiChatTab(): React.ReactElement {
                     : [];
                   const todoSnapshots: AiTodoSnapshot[] = Array.isArray(msg.todoSnapshots) ? msg.todoSnapshots : [];
 
-                  const maxToolTurn = sortedToolCalls.reduce((acc, toolCall) => {
-                    const turn = Number.isFinite(toolCall.turn) && (toolCall.turn ?? 0) > 0
-                      ? Number(toolCall.turn)
-                      : 0;
-                    return Math.max(acc, turn);
-                  }, 0);
-                  const maxTodoTurn = todoSnapshots.reduce((acc, snap) => Math.max(acc, snap.turn), 0);
-                  const maxTurn = Math.max(thinkBlocks.length, maxToolTurn, maxTodoTurn);
                   const isLatestAssistantMsg = i === aiChatMessages.length - 1;
                   const showThinkingFooter = aiConfig.deepseekThinking && aiChatStreaming && isLatestAssistantMsg;
                   const timelineNodes: React.ReactElement[] = [];
@@ -1020,25 +1012,40 @@ export function AiChatTab(): React.ReactElement {
                     );
                   }
 
-                  for (let turn = 1; turn <= maxTurn; turn++) {
-                    const thinkText = thinkBlocks[turn - 1] || '';
-                    if (thinkText) {
-                      timelineNodes.push(
-                        <details
-                          key={`think-${turn}`}
-                          className="max-expand-chat-think-card"
-                          open={aiChatStreaming && turn === thinkBlocks.length && isLatestAssistantMsg}
-                        >
-                          <summary>
-                            <span className="max-expand-chat-think-title">
-                              <img className="max-expand-chat-think-title-icon" src={SvgIcon.DEEPSEEK} alt="" />
-                              <span>思考过程 #{turn}</span>
-                            </span>
-                          </summary>
-                          <div className="max-expand-chat-think-content">{thinkText}</div>
-                        </details>,
-                      );
-                    }
+                  // 收集所有有效 turn（包括 agent.todo.write 的 turn，标记时间线位置）
+                  const allGroupTurns = new Set<number>();
+                  const allToolCalls = Array.isArray(msg.toolCalls) ? msg.toolCalls : [];
+                  for (const tc of allToolCalls) {
+                    const t = Number.isFinite(tc.turn) && (tc.turn ?? 0) > 0 ? Number(tc.turn) : 0;
+                    if (t > 0) allGroupTurns.add(t);
+                  }
+                  for (const snap of todoSnapshots) {
+                    if (snap.turn > 0) allGroupTurns.add(snap.turn);
+                  }
+                  const sortedGroupTurns = [...allGroupTurns].sort((a, b) => a - b);
+
+                  // think[0] 放在所有工具/todo 组之前（初始推理）
+                  if (thinkBlocks.length > 0 && thinkBlocks[0]) {
+                    timelineNodes.push(
+                      <details
+                        key="think-0"
+                        className="max-expand-chat-think-card"
+                        open={aiChatStreaming && thinkBlocks.length === 1 && isLatestAssistantMsg}
+                      >
+                        <summary>
+                          <span className="max-expand-chat-think-title">
+                            <img className="max-expand-chat-think-title-icon" src={SvgIcon.DEEPSEEK} alt="" />
+                            <span>思考过程 #1</span>
+                          </span>
+                        </summary>
+                        <div className="max-expand-chat-think-content">{thinkBlocks[0]}</div>
+                      </details>,
+                    );
+                  }
+
+                  // 按 turn 顺序渲染所有工具/todo 组
+                  for (let groupIdx = 0; groupIdx < sortedGroupTurns.length; groupIdx++) {
+                    const turn = sortedGroupTurns[groupIdx];
 
                     const turnTodoSnapshots = todoSnapshots.filter((snap) => snap.turn === turn);
                     for (let snapIndex = 0; snapIndex < turnTodoSnapshots.length; snapIndex++) {
@@ -1100,6 +1107,28 @@ export function AiChatTab(): React.ReactElement {
                             <div className="max-expand-chat-tool-result-title">工具返回结果</div>
                             <pre>{toPrettyJson(toolCall.result)}</pre>
                           </div>
+                        </details>,
+                      );
+                    }
+                  }
+
+                  // think[1..] 放在所有工具/todo 组之后（后续推理）
+                  for (let idx = 1; idx < thinkBlocks.length; idx++) {
+                    const thinkText = thinkBlocks[idx] || '';
+                    if (thinkText) {
+                      timelineNodes.push(
+                        <details
+                          key={`think-${idx}`}
+                          className="max-expand-chat-think-card"
+                          open={aiChatStreaming && idx === thinkBlocks.length - 1 && isLatestAssistantMsg}
+                        >
+                          <summary>
+                            <span className="max-expand-chat-think-title">
+                              <img className="max-expand-chat-think-title-icon" src={SvgIcon.DEEPSEEK} alt="" />
+                              <span>思考过程 #{idx + 1}</span>
+                            </span>
+                          </summary>
+                          <div className="max-expand-chat-think-content">{thinkText}</div>
                         </details>,
                       );
                     }
