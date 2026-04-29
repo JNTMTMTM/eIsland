@@ -551,12 +551,29 @@
     "notConfigured": "未配置",
     "actions": {
       "clear": "清空",
+      "newChat": "新建对话",
+      "deleteSession": "删除会话",
+      "loadMoreHistory": "加载更多对话",
+      "reportIssue": "报告问题",
       "stop": "停止",
       "send": "发送"
+    },
+    "session": {
+      "historyTitle": "历史会话",
+      "toggleHistory": "展开历史会话",
+      "untitled": "新对话"
     },
     "modelCard": {
       "title": "模型选择卡片",
       "focusMode": "专注模式"
+    },
+    "skills": {
+      "title": "Skills",
+      "add": "+ 添加",
+      "enable": "启用",
+      "disable": "禁用",
+      "remove": "移除",
+      "dropHint": "拖入 .md 文件或点击添加"
     },
     "codeBlock": {
       "copy": "复制",
@@ -588,6 +605,14 @@
       "title": "本地高风险操作授权",
       "requestHint": "Agent 请求执行以下本地操作，是否允许？",
       "argumentsTitle": "参数",
+      "toolLabel": "工具",
+      "purposeTitle": "用途",
+      "purposeFallback": "未提供用途说明",
+      "riskLabel": "风险等级",
+      "screenshotTag": "截图",
+      "riskLevel": {
+        "high": "高"
+      },
       "allow": "允许执行",
       "deny": "拒绝执行",
       "expiredHint": "本地工具授权请求已失效，请重新发起请求后再授权。"

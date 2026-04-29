@@ -551,12 +551,29 @@
     "notConfigured": "Not configured",
     "actions": {
       "clear": "Clear",
+      "newChat": "New Chat",
+      "deleteSession": "Delete Session",
+      "loadMoreHistory": "Load More History",
+      "reportIssue": "Report Issue",
       "stop": "Stop",
       "send": "Send"
+    },
+    "session": {
+      "historyTitle": "History Sessions",
+      "toggleHistory": "Toggle Session History",
+      "untitled": "New Chat"
     },
     "modelCard": {
       "title": "Model Selection Card",
       "focusMode": "Focus Mode"
+    },
+    "skills": {
+      "title": "Skills",
+      "add": "+ Add",
+      "enable": "Enable",
+      "disable": "Disable",
+      "remove": "Remove",
+      "dropHint": "Drop .md files here or click Add"
     },
     "codeBlock": {
       "copy": "Copy",
@@ -588,6 +605,14 @@
       "title": "Local High-Risk Operation Authorization",
       "requestHint": "The agent requests to run the following local operation. Allow it?",
       "argumentsTitle": "Arguments",
+      "toolLabel": "Tool",
+      "purposeTitle": "Purpose",
+      "purposeFallback": "No purpose provided",
+      "riskLabel": "Risk Level",
+      "screenshotTag": "Screenshot",
+      "riskLevel": {
+        "high": "High"
+      },
       "allow": "Allow Execution",
       "deny": "Deny Execution",
       "expiredHint": "The local tool authorization request has expired. Please trigger it again before authorizing."
