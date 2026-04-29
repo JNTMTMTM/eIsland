@@ -658,6 +658,17 @@ export function AiChatTab(): React.ReactElement {
   }, [updateMessages]);
 
   const hasActiveTextSelection = useCallback((): boolean => {
+    const isInsideSelectableChatArea = (node: Node | null): boolean => {
+      if (!node || !chatRootRef.current) {
+        return false;
+      }
+      const element = node instanceof Element ? node : node.parentElement;
+      if (!element || !chatRootRef.current.contains(element)) {
+        return false;
+      }
+      return Boolean(element.closest('.max-expand-chat-bubble, .max-expand-chat-input'));
+    };
+
     const inputEl = inputRef.current;
     if (inputEl && document.activeElement === inputEl) {
       const start = inputEl.selectionStart;
@@ -671,12 +682,18 @@ export function AiChatTab(): React.ReactElement {
     if (!selection || selection.isCollapsed || selection.rangeCount === 0) {
       return false;
     }
-    const commonNode = selection.getRangeAt(0).commonAncestorContainer;
-    const element = commonNode instanceof Element ? commonNode : commonNode.parentElement;
-    if (!element) {
+
+    if (!isInsideSelectableChatArea(selection.anchorNode) || !isInsideSelectableChatArea(selection.focusNode)) {
       return false;
     }
-    return Boolean(chatRootRef.current?.contains(element));
+
+    for (let i = 0; i < selection.rangeCount; i += 1) {
+      const range = selection.getRangeAt(i);
+      if (!isInsideSelectableChatArea(range.startContainer) || !isInsideSelectableChatArea(range.endContainer)) {
+        return false;
+      }
+    }
+    return true;
   }, []);
 
   const scheduleAssistantUpdateFlush = useCallback((): void => {
