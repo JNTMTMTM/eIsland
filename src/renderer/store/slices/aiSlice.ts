@@ -197,35 +197,11 @@ function normalizeAiToolCall(value: unknown): NonNullable<AiChatMessage['toolCal
   return normalized;
 }
 
-const MAX_TOOL_RESULT_STORAGE_CHARS = 2000;
-
-function sanitizeMessagesForStorage(messages: AiChatMessage[]): AiChatMessage[] {
-  return messages.map((msg) => {
-    if (!Array.isArray(msg.toolCalls) || msg.toolCalls.length === 0) return msg;
-    let changed = false;
-    const sanitizedCalls = msg.toolCalls.map((tc) => {
-      if (tc.result == null) return tc;
-      let resultStr: string;
-      try {
-        resultStr = typeof tc.result === 'string' ? tc.result : JSON.stringify(tc.result);
-      } catch {
-        resultStr = '';
-      }
-      if (resultStr.length <= MAX_TOOL_RESULT_STORAGE_CHARS) return tc;
-      changed = true;
-      return { ...tc, result: { _truncated: true, preview: resultStr.slice(0, MAX_TOOL_RESULT_STORAGE_CHARS) } };
-    });
-    return changed ? { ...msg, toolCalls: sanitizedCalls } : msg;
-  });
-}
-
 function saveAiChatMessages(messages: AiChatMessage[]): void {
   try {
     localStorage.setItem(AI_CHAT_MESSAGES_KEY, JSON.stringify(messages));
-  } catch {
-    try {
-      localStorage.setItem(AI_CHAT_MESSAGES_KEY, JSON.stringify(sanitizeMessagesForStorage(messages)));
-    } catch { /* ignore */ }
+  } catch (err) {
+    console.warn('[aiSlice] saveAiChatMessages failed', err);
   }
 }
 

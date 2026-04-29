@@ -825,6 +825,9 @@ export function AiChatTab(): React.ReactElement {
       });
     } finally {
       activeAiAbortController = null;
+      // 流结束后强制补存一次，防止流式过程中 localStorage 写入失败导致数据丢失
+      const finalMessages = useIslandStore.getState().aiChatMessages;
+      useIslandStore.getState().setAiChatMessages(finalMessages);
       setAiChatStreaming(false);
       setResolvingWebAccessDecision(false);
     }
