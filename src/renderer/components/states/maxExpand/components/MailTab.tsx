@@ -24,17 +24,47 @@
  * @author 鸡哥
  */
 
+import { useEffect, useState } from 'react';
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../../store/slices';
 
+interface MailInboxItem {
+  uid: string;
+  subject: string;
+  from: string;
+  to: string;
+  date: string;
+  size: number;
+}
+
 /**
  * 邮箱 Tab
- * @description 展示邮箱功能介绍，并引导前往设置完成 IMAP/SMTP 配置
+ * @description 展示邮箱功能介绍，并引导前往设置完成 IMAP 配置
  */
 export function MailTab(): ReactElement {
   const { t } = useTranslation();
   const { setMaxExpandTab } = useIslandStore();
+  const [inbox, setInbox] = useState<MailInboxItem[]>([]);
+  const [loadingInbox, setLoadingInbox] = useState(false);
+  const [mailMessage, setMailMessage] = useState('');
+
+  const refreshInbox = async (): Promise<void> => {
+    setLoadingInbox(true);
+    const result = await window.api.mailInboxList(10).catch(() => ({ ok: false, items: [] as MailInboxItem[], message: t('mailTab.messages.inboxFetchFailed', { defaultValue: '收件箱读取失败' }) }));
+    if (!result.ok) {
+      setMailMessage(result.message || t('mailTab.messages.inboxFetchFailed', { defaultValue: '收件箱读取失败' }));
+      setInbox([]);
+    } else {
+      setMailMessage('');
+      setInbox(result.items || []);
+    }
+    setLoadingInbox(false);
+  };
+
+  useEffect(() => {
+    void refreshInbox();
+  }, []);
 
   return (
     <div className="max-expand-settings-section">
@@ -44,7 +74,7 @@ export function MailTab(): ReactElement {
           <div className="settings-card-header">
             <div className="settings-card-title">{t('mailTab.introTitle', { defaultValue: '客户端直连邮箱（无服务器）' })}</div>
             <div className="settings-card-subtitle">
-              {t('mailTab.introDesc', { defaultValue: '收信用 IMAP，发信用 SMTP。请先在设置中填写服务器参数与账号认证信息。' })}
+              {t('mailTab.introDesc', { defaultValue: '仅支持 IMAP 收信。请先在设置中填写服务器参数与账号认证信息。' })}
             </div>
           </div>
           <div className="settings-card-subgroup">
@@ -55,8 +85,42 @@ export function MailTab(): ReactElement {
             >
               {t('mailTab.goSettings', { defaultValue: '前往邮箱设置' })}
             </button>
+            <button
+              type="button"
+              className="settings-user-secondary-btn"
+              onClick={() => { void refreshInbox(); }}
+              disabled={loadingInbox}
+            >
+              {loadingInbox
+                ? t('mailTab.actions.refreshing', { defaultValue: '刷新中…' })
+                : t('mailTab.actions.refresh', { defaultValue: '刷新收件箱' })}
+            </button>
           </div>
         </div>
+
+        <div className="settings-card">
+          <div className="settings-card-header">
+            <div className="settings-card-title">{t('mailTab.inboxTitle', { defaultValue: '收件箱（最近 10 封）' })}</div>
+          </div>
+          <div className="settings-card-subgroup">
+            {inbox.length === 0 ? (
+              <div className="settings-music-hint">{t('mailTab.emptyInbox', { defaultValue: '暂无邮件或读取失败' })}</div>
+            ) : (
+              <div className="settings-whitelist-list" style={{ maxHeight: 180, overflow: 'auto' }}>
+                {inbox.map((item) => (
+                  <div className="settings-whitelist-item" key={item.uid}>
+                    <span className="settings-whitelist-name" title={item.subject}>{item.subject || '(无主题)'}</span>
+                    <span className="settings-music-hint" style={{ marginLeft: 8 }}>{item.from || '-'}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {!!mailMessage && (
+          <div className="settings-music-hint">{mailMessage}</div>
+        )}
       </div>
     </div>
   );

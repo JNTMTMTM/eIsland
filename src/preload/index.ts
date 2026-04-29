@@ -468,6 +468,13 @@ const api = {
   }): Promise<{ ok: boolean; status: number; body: string }> => {
     return ipcRenderer.invoke('net:fetch', url, options);
   },
+  /** ===== 邮件 API ===== */
+  /**
+   * 读取收件箱邮件列表
+   */
+  mailInboxList: (limit?: number): Promise<{ ok: boolean; items: Array<{ uid: string; subject: string; from: string; to: string; date: string; size: number }>; message: string }> => {
+    return ipcRenderer.invoke('mail:inbox:list', limit);
+  },
   /** ===== 文件存储 API ===== */
   /**
    * 从文件读取 JSON 数据

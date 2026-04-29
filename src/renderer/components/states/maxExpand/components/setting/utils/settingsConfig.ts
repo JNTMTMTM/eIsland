@@ -52,7 +52,7 @@ export const SETTINGS_TABS = ['index', 'app', 'network', 'mail', 'weather', 'mus
 export type SettingsSidebarTabKey = (typeof SETTINGS_TABS)[number];
 export type AppSettingsPageKey = 'layout-preview' | 'album' | 'hide-process-list' | 'position' | 'theme' | 'language' | 'behavior' | 'url-parser' | 'clipboard-history' | 'autostart';
 export type WeatherSettingsPageKey = 'location' | 'provider';
-export type MailSettingsPageKey = 'account' | 'imap' | 'smtp';
+export type MailSettingsPageKey = 'account' | 'imap';
 export type MusicSettingsPageKey = 'whitelist' | 'lyrics' | 'smtc';
 export type MusicNavCardKey = 'music-whitelist' | 'music-lyrics' | 'music-smtc';
 export type SettingsTabLabelKey = SettingsSidebarTabKey | AppSettingsPageKey | MusicNavCardKey;
@@ -98,7 +98,7 @@ export const SETTINGS_TAB_DESCRIPTIONS: Record<Exclude<SettingsTabLabelKey, 'ind
   'clipboard-history': '配置剪贴板历史记录能力与条数。',
   autostart: '应用控制、日志与开机启动配置。',
   network: '请求超时与网络行为设置',
-  mail: '配置 IMAP 收信与 SMTP 发信参数',
+  mail: '配置 IMAP 收信参数',
   weather: '天气接口优先级设置',
   music: '播放器白名单与歌词来源',
   'music-whitelist': '配置允许接入灵动岛的播放器。',
@@ -153,11 +153,10 @@ export const WEATHER_SETTINGS_PAGE_LABELS: Record<WeatherSettingsPageKey, string
   location: '定位配置',
   provider: '接口配置',
 };
-export const MAIL_SETTINGS_PAGES: MailSettingsPageKey[] = ['account', 'imap', 'smtp'];
+export const MAIL_SETTINGS_PAGES: MailSettingsPageKey[] = ['account', 'imap'];
 export const MAIL_SETTINGS_PAGE_LABELS: Record<MailSettingsPageKey, string> = {
   account: '账户',
   imap: 'IMAP',
-  smtp: 'SMTP',
 };
 export const MUSIC_SETTINGS_PAGES: MusicSettingsPageKey[] = ['whitelist', 'lyrics', 'smtc'];
 export const MUSIC_SETTINGS_PAGE_LABELS: Record<MusicSettingsPageKey, string> = {

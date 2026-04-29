@@ -670,9 +670,31 @@
   },
   "mailTab": {
     "title": "Mail",
-    "introTitle": "Direct Mail Access",
+    "introTitle": "Direct Mail Access (No Server)",
     "introDesc": "Use IMAP for receiving and SMTP for sending. Configure server and auth first in Settings.",
-    "goSettings": "Go to Mail Settings"
+    "goSettings": "Go to Mail Settings",
+    "inboxTitle": "Inbox (Latest 10)",
+    "emptyInbox": "No mails yet or failed to fetch inbox",
+    "composeTitle": "Send Mail",
+    "fields": {
+      "to": "To",
+      "subject": "Subject",
+      "subjectPlaceholder": "Enter subject",
+      "content": "Content",
+      "contentPlaceholder": "Enter message"
+    },
+    "actions": {
+      "refresh": "Refresh Inbox",
+      "refreshing": "Refreshing...",
+      "send": "Send",
+      "sending": "Sending..."
+    },
+    "messages": {
+      "inboxFetchFailed": "Failed to load inbox",
+      "needRecipient": "Please input recipient email",
+      "sendFailed": "Send failed, please retry",
+      "sendSuccess": "Mail sent"
+    }
   },
   "clipboardHistoryTab": {
     "title": "Clipboard History",

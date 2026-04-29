@@ -670,9 +670,31 @@
   },
   "mailTab": {
     "title": "邮箱",
-    "introTitle": "客户端直连邮箱",
+    "introTitle": "客户端直连邮箱（无服务器）",
     "introDesc": "收信用 IMAP，发信用 SMTP。请先在设置中填写服务器参数与账号认证信息。",
-    "goSettings": "前往邮箱设置"
+    "goSettings": "前往邮箱设置",
+    "inboxTitle": "收件箱（最近 10 封）",
+    "emptyInbox": "暂无邮件或读取失败",
+    "composeTitle": "发送邮件",
+    "fields": {
+      "to": "收件人",
+      "subject": "主题",
+      "subjectPlaceholder": "输入主题",
+      "content": "正文",
+      "contentPlaceholder": "输入正文"
+    },
+    "actions": {
+      "refresh": "刷新收件箱",
+      "refreshing": "刷新中…",
+      "send": "发送",
+      "sending": "发送中…"
+    },
+    "messages": {
+      "inboxFetchFailed": "收件箱读取失败",
+      "needRecipient": "请填写收件人邮箱",
+      "sendFailed": "发送失败，请稍后重试",
+      "sendSuccess": "发送成功"
+    }
   },
   "clipboardHistoryTab": {
     "title": "剪贴板历史",

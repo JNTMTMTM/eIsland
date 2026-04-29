@@ -135,9 +135,6 @@ interface MailAccountConfig {
   imapHost: string;
   imapPort: string;
   imapSecure: boolean;
-  smtpHost: string;
-  smtpPort: string;
-  smtpSecure: boolean;
   authUser: string;
   authSecret: string;
 }
@@ -147,9 +144,6 @@ const DEFAULT_MAIL_ACCOUNT_CONFIG: MailAccountConfig = {
   imapHost: '',
   imapPort: '993',
   imapSecure: true,
-  smtpHost: '',
-  smtpPort: '465',
-  smtpSecure: true,
   authUser: '',
   authSecret: '',
 };
@@ -405,7 +399,6 @@ export function SettingsTab(): ReactElement {
   const translatedMailSettingsPageLabels = useMemo<Record<MailSettingsPageKey, string>>(() => ({
     account: t('settings.mailPages.account', { defaultValue: MAIL_SETTINGS_PAGE_LABELS.account }),
     imap: t('settings.mailPages.imap', { defaultValue: MAIL_SETTINGS_PAGE_LABELS.imap }),
-    smtp: t('settings.mailPages.smtp', { defaultValue: MAIL_SETTINGS_PAGE_LABELS.smtp }),
   }), [t]);
 
   const translatedMusicSettingsPageLabels = useMemo<Record<MusicSettingsPageKey, string>>(() => ({
@@ -449,9 +442,6 @@ export function SettingsTab(): ReactElement {
   const [mailImapHost, setMailImapHost] = useState<string>(DEFAULT_MAIL_ACCOUNT_CONFIG.imapHost);
   const [mailImapPort, setMailImapPort] = useState<string>(DEFAULT_MAIL_ACCOUNT_CONFIG.imapPort);
   const [mailImapSecure, setMailImapSecure] = useState<boolean>(DEFAULT_MAIL_ACCOUNT_CONFIG.imapSecure);
-  const [mailSmtpHost, setMailSmtpHost] = useState<string>(DEFAULT_MAIL_ACCOUNT_CONFIG.smtpHost);
-  const [mailSmtpPort, setMailSmtpPort] = useState<string>(DEFAULT_MAIL_ACCOUNT_CONFIG.smtpPort);
-  const [mailSmtpSecure, setMailSmtpSecure] = useState<boolean>(DEFAULT_MAIL_ACCOUNT_CONFIG.smtpSecure);
   const [mailAuthUser, setMailAuthUser] = useState<string>(DEFAULT_MAIL_ACCOUNT_CONFIG.authUser);
   const [mailAuthSecret, setMailAuthSecret] = useState<string>(DEFAULT_MAIL_ACCOUNT_CONFIG.authSecret);
   const [mailConfigLoaded, setMailConfigLoaded] = useState(false);
@@ -920,9 +910,6 @@ export function SettingsTab(): ReactElement {
       setMailImapHost(typeof next.imapHost === 'string' ? next.imapHost : DEFAULT_MAIL_ACCOUNT_CONFIG.imapHost);
       setMailImapPort(typeof next.imapPort === 'string' ? next.imapPort : DEFAULT_MAIL_ACCOUNT_CONFIG.imapPort);
       setMailImapSecure(typeof next.imapSecure === 'boolean' ? next.imapSecure : DEFAULT_MAIL_ACCOUNT_CONFIG.imapSecure);
-      setMailSmtpHost(typeof next.smtpHost === 'string' ? next.smtpHost : DEFAULT_MAIL_ACCOUNT_CONFIG.smtpHost);
-      setMailSmtpPort(typeof next.smtpPort === 'string' ? next.smtpPort : DEFAULT_MAIL_ACCOUNT_CONFIG.smtpPort);
-      setMailSmtpSecure(typeof next.smtpSecure === 'boolean' ? next.smtpSecure : DEFAULT_MAIL_ACCOUNT_CONFIG.smtpSecure);
       setMailAuthUser(typeof next.authUser === 'string' ? next.authUser : DEFAULT_MAIL_ACCOUNT_CONFIG.authUser);
       setMailAuthSecret(typeof next.authSecret === 'string' ? next.authSecret : DEFAULT_MAIL_ACCOUNT_CONFIG.authSecret);
     }).catch(() => {});
@@ -937,9 +924,6 @@ export function SettingsTab(): ReactElement {
       imapHost: mailImapHost.trim(),
       imapPort: mailImapPort.trim(),
       imapSecure: mailImapSecure,
-      smtpHost: mailSmtpHost.trim(),
-      smtpPort: mailSmtpPort.trim(),
-      smtpSecure: mailSmtpSecure,
       authUser: mailAuthUser.trim(),
       authSecret: mailAuthSecret,
     };
@@ -950,9 +934,6 @@ export function SettingsTab(): ReactElement {
     mailImapHost,
     mailImapPort,
     mailImapSecure,
-    mailSmtpHost,
-    mailSmtpPort,
-    mailSmtpSecure,
     mailAuthUser,
     mailAuthSecret,
   ]);
@@ -2637,18 +2618,12 @@ export function SettingsTab(): ReactElement {
               imapHost={mailImapHost}
               imapPort={mailImapPort}
               imapSecure={mailImapSecure}
-              smtpHost={mailSmtpHost}
-              smtpPort={mailSmtpPort}
-              smtpSecure={mailSmtpSecure}
               authUser={mailAuthUser}
               authSecret={mailAuthSecret}
               setEmailAddress={setMailEmailAddress}
               setImapHost={setMailImapHost}
               setImapPort={setMailImapPort}
               setImapSecure={setMailImapSecure}
-              setSmtpHost={setMailSmtpHost}
-              setSmtpPort={setMailSmtpPort}
-              setSmtpSecure={setMailSmtpSecure}
               setAuthUser={setMailAuthUser}
               setAuthSecret={setMailAuthSecret}
               mailSettingsPages={MAIL_SETTINGS_PAGES}

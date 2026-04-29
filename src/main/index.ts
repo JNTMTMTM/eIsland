@@ -43,6 +43,7 @@ import { registerUpdaterIpcHandlers } from './ipc/app/updater';
 import { registerWallpaperIpcHandlers } from './ipc/window/wallpaper';
 import { registerWallpaperVideoIpcHandlers } from './ipc/media/wallpaperVideo';
 import { registerNetIpcHandlers } from './ipc/app/net';
+import { registerMailIpcHandlers } from './ipc/app/mail';
 import { registerStoreIpcHandlers } from './ipc/app/store';
 import { registerLogIpcHandlers } from './ipc/app/log';
 import { registerMusicIpcHandlers } from './ipc/media/music';
@@ -294,6 +295,11 @@ function registerIpcHandlers(): void {
   if (!existsSync(storeDir)) {
     mkdirSync(storeDir, { recursive: true });
   }
+
+  registerMailIpcHandlers({
+    storeDir,
+    mailConfigStoreKey: 'mail-account-config',
+  });
 
   registerClipboardIpcHandlers({
     storeDir,

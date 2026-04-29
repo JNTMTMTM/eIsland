@@ -20,7 +20,7 @@
 
 /**
  * @file MailSettingsSection.tsx
- * @description 设置页面 - 邮箱 IMAP/SMTP 配置区块
+ * @description 设置页面 - 邮箱 IMAP 配置区块
  * @author 鸡哥
  */
 
@@ -35,18 +35,12 @@ interface MailSettingsSectionProps {
   imapHost: string;
   imapPort: string;
   imapSecure: boolean;
-  smtpHost: string;
-  smtpPort: string;
-  smtpSecure: boolean;
   authUser: string;
   authSecret: string;
   setEmailAddress: (value: string) => void;
   setImapHost: (value: string) => void;
   setImapPort: (value: string) => void;
   setImapSecure: (value: boolean) => void;
-  setSmtpHost: (value: string) => void;
-  setSmtpPort: (value: string) => void;
-  setSmtpSecure: (value: boolean) => void;
   setAuthUser: (value: string) => void;
   setAuthSecret: (value: string) => void;
   mailSettingsPages: MailSettingsPageKey[];
@@ -61,18 +55,12 @@ export function MailSettingsSection({
   imapHost,
   imapPort,
   imapSecure,
-  smtpHost,
-  smtpPort,
-  smtpSecure,
   authUser,
   authSecret,
   setEmailAddress,
   setImapHost,
   setImapPort,
   setImapSecure,
-  setSmtpHost,
-  setSmtpPort,
-  setSmtpSecure,
   setAuthUser,
   setAuthSecret,
   mailSettingsPages,
@@ -153,32 +141,6 @@ export function MailSettingsSection({
             </div>
           )}
 
-          {mailSettingsPage === 'smtp' && (
-            <div className="settings-cards">
-              <div className="settings-card">
-                <div className="settings-card-header">
-                  <div className="settings-card-title">SMTP</div>
-                  <div className="settings-card-subtitle">{t('settings.mail.smtp.hint', { defaultValue: '用于发信。建议使用服务商推荐端口和加密方式。' })}</div>
-                </div>
-                <div className="settings-card-subgroup">
-                  <label className="settings-field">
-                    <span className="settings-field-label">{t('settings.mail.smtp.host', { defaultValue: 'SMTP 服务器' })}</span>
-                    <input className="settings-field-input" value={smtpHost} onChange={(e) => setSmtpHost(e.target.value)} placeholder="smtp.example.com" />
-                  </label>
-                  <label className="settings-field">
-                    <span className="settings-field-label">{t('settings.mail.smtp.port', { defaultValue: 'SMTP 端口' })}</span>
-                    <input className="settings-field-input" value={smtpPort} onChange={(e) => setSmtpPort(e.target.value)} placeholder="465" />
-                  </label>
-                  <div className="settings-card-inline-row" style={{ marginTop: 8 }}>
-                    <label className="settings-card-check">
-                      <input type="checkbox" checked={smtpSecure} onChange={(e) => setSmtpSecure(e.target.checked)} />
-                      <span>{t('settings.mail.smtp.secure', { defaultValue: '启用 TLS / SSL' })}</span>
-                    </label>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
 
         <div
