@@ -248,20 +248,25 @@ function buildMihtnelisContext(messages: AiChatMessage[]): string {
   if (!Array.isArray(messages) || messages.length === 0) {
     return '';
   }
-  const lines = messages
-    .map((msg) => {
-      const role = msg?.role === 'assistant' ? 'assistant' : 'user';
-      const content = typeof msg?.content === 'string' ? msg.content.trim() : '';
-      if (!content) {
-        return '';
-      }
-      return `${role}: ${content}`;
-    })
-    .filter(Boolean);
-  if (lines.length === 0) {
+  const tailLines: string[] = [];
+  let roughLength = 0;
+  for (let i = messages.length - 1; i >= 0; i--) {
+    const msg = messages[i];
+    const role = msg?.role === 'assistant' ? 'assistant' : 'user';
+    const content = typeof msg?.content === 'string' ? msg.content.trim() : '';
+    if (!content) {
+      continue;
+    }
+    tailLines.push(`${role}: ${content}`);
+    roughLength += content.length + role.length + 4;
+    if (roughLength >= MAX_MIHTNELIS_CONTEXT_CHARS + 4096) {
+      break;
+    }
+  }
+  if (tailLines.length === 0) {
     return '';
   }
-  const fullContext = lines.join('\n\n');
+  const fullContext = tailLines.reverse().join('\n\n');
   if (fullContext.length <= MAX_MIHTNELIS_CONTEXT_CHARS) {
     return fullContext;
   }
@@ -520,6 +525,9 @@ export function AiChatTab(): React.ReactElement {
   const { t } = useTranslation();
   const chatEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const pendingAssistantChunkRef = useRef('');
+  const pendingThinkChunksRef = useRef<Map<number, string>>(new Map());
+  const pendingMessageFlushRafRef = useRef<number | null>(null);
   const [input, setInput] = useState('');
   const [showModelCard, setShowModelCard] = useState(false);
   const [resolvingWebAccessDecision, setResolvingWebAccessDecision] = useState(false);
@@ -613,10 +621,55 @@ export function AiChatTab(): React.ReactElement {
     useIslandStore.getState().setAiChatMessages(updater(latest));
   }, []);
 
+  const flushPendingAssistantUpdates = useCallback((): void => {
+    const pendingChunk = pendingAssistantChunkRef.current;
+    const pendingThinkEntries = [...pendingThinkChunksRef.current.entries()];
+    if (!pendingChunk && pendingThinkEntries.length === 0) {
+      return;
+    }
+    pendingAssistantChunkRef.current = '';
+    pendingThinkChunksRef.current.clear();
+    updateMessages(prev => {
+      const copy = [...prev];
+      const last = copy[copy.length - 1];
+      if (!last || last.role !== 'assistant') {
+        return copy;
+      }
+      let nextContent = last.content;
+      if (pendingChunk) {
+        nextContent += pendingChunk;
+      }
+      let nextThinkBlocks = Array.isArray(last.thinkBlocks) ? [...last.thinkBlocks] : [];
+      for (const [thinkIndex, thinkText] of pendingThinkEntries) {
+        if (!thinkText) {
+          continue;
+        }
+        const current = typeof nextThinkBlocks[thinkIndex] === 'string' ? nextThinkBlocks[thinkIndex] : '';
+        nextThinkBlocks[thinkIndex] = current + thinkText;
+      }
+      copy[copy.length - 1] = {
+        ...last,
+        content: nextContent,
+        thinkBlocks: nextThinkBlocks,
+      };
+      return copy;
+    });
+  }, [updateMessages]);
+
+  const scheduleAssistantUpdateFlush = useCallback((): void => {
+    if (pendingMessageFlushRafRef.current != null) {
+      return;
+    }
+    pendingMessageFlushRafRef.current = window.requestAnimationFrame(() => {
+      pendingMessageFlushRafRef.current = null;
+      flushPendingAssistantUpdates();
+    });
+  }, [flushPendingAssistantUpdates]);
+
   /** 滚动到最新消息 */
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [aiChatMessages]);
+    chatEndRef.current?.scrollIntoView({ behavior: aiChatStreaming ? 'auto' : 'smooth' });
+  }, [aiChatMessages, aiChatStreaming]);
 
   const syncInputHeight = useCallback((): void => {
     const el = inputRef.current;
@@ -712,14 +765,8 @@ export function AiChatTab(): React.ReactElement {
               const chunk = typeof payload?.text === 'string' ? payload.text : '';
               if (!chunk) return;
               receivedMihtnelisChunk = true;
-              updateMessages(prev => {
-                const copy = [...prev];
-                const last = copy[copy.length - 1];
-                if (last && last.role === 'assistant') {
-                  copy[copy.length - 1] = { ...last, content: last.content + chunk };
-                }
-                return copy;
-              });
+              pendingAssistantChunkRef.current += chunk;
+              scheduleAssistantUpdateFlush();
               return;
             }
 
@@ -928,17 +975,9 @@ export function AiChatTab(): React.ReactElement {
               const thinkText = typeof payload?.text === 'string' ? payload.text : '';
               const thinkIndex = typeof payload?.index === 'number' ? payload.index : 0;
               if (!thinkText) return;
-              updateMessages(prev => {
-                const copy = [...prev];
-                const last = copy[copy.length - 1];
-                if (last && last.role === 'assistant') {
-                  const oldBlocks = Array.isArray(last.thinkBlocks) ? [...last.thinkBlocks] : [];
-                  const current = typeof oldBlocks[thinkIndex] === 'string' ? oldBlocks[thinkIndex] : '';
-                  oldBlocks[thinkIndex] = current + thinkText;
-                  copy[copy.length - 1] = { ...last, thinkBlocks: oldBlocks };
-                }
-                return copy;
-              });
+              const oldText = pendingThinkChunksRef.current.get(thinkIndex) || '';
+              pendingThinkChunksRef.current.set(thinkIndex, oldText + thinkText);
+              scheduleAssistantUpdateFlush();
               return;
             }
 
@@ -1070,6 +1109,11 @@ export function AiChatTab(): React.ReactElement {
       });
     } finally {
       activeAiAbortController = null;
+      if (pendingMessageFlushRafRef.current != null) {
+        window.cancelAnimationFrame(pendingMessageFlushRafRef.current);
+        pendingMessageFlushRafRef.current = null;
+      }
+      flushPendingAssistantUpdates();
       // 流结束后解包 JSON 信封并强制补存，防止数据丢失
       const finalMessages = useIslandStore.getState().aiChatMessages;
       const lastMsg = finalMessages[finalMessages.length - 1];
@@ -1102,6 +1146,8 @@ export function AiChatTab(): React.ReactElement {
     executeAndSubmitLocalToolResult,
     setAiWebAccessPrompt,
     setAiWebAccessResolveError,
+    flushPendingAssistantUpdates,
+    scheduleAssistantUpdateFlush,
   ]);
 
   /** 回车发送 */
@@ -1115,6 +1161,11 @@ export function AiChatTab(): React.ReactElement {
   /** 停止生成 */
   const handleStop = (): void => {
     activeAiAbortController?.abort();
+    if (pendingMessageFlushRafRef.current != null) {
+      window.cancelAnimationFrame(pendingMessageFlushRafRef.current);
+      pendingMessageFlushRafRef.current = null;
+    }
+    flushPendingAssistantUpdates();
     setAiChatStreaming(false);
   };
 
@@ -1122,6 +1173,12 @@ export function AiChatTab(): React.ReactElement {
   const handleClear = (): void => {
     activeAiAbortController?.abort();
     activeAiAbortController = null;
+    if (pendingMessageFlushRafRef.current != null) {
+      window.cancelAnimationFrame(pendingMessageFlushRafRef.current);
+      pendingMessageFlushRafRef.current = null;
+    }
+    pendingAssistantChunkRef.current = '';
+    pendingThinkChunksRef.current.clear();
     clearAiChatMessages();
     setAiChatStreaming(false);
     setResolvingWebAccessDecision(false);

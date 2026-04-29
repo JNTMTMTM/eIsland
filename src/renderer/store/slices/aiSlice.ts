@@ -249,12 +249,19 @@ export const createAiSlice: StateCreator<
   },
 
   setAiChatMessages: (messages) => {
-    saveAiChatMessages(messages);
+    if (!get().aiChatStreaming) {
+      saveAiChatMessages(messages);
+    }
     set({ aiChatMessages: messages });
   },
 
   setAiChatStreaming: (streaming) => {
-    set({ aiChatStreaming: Boolean(streaming) });
+    const nextStreaming = Boolean(streaming);
+    const prevStreaming = get().aiChatStreaming;
+    set({ aiChatStreaming: nextStreaming });
+    if (prevStreaming && !nextStreaming) {
+      saveAiChatMessages(get().aiChatMessages);
+    }
   },
 
   clearAiChatMessages: () => {
