@@ -123,6 +123,8 @@ export async function streamMihtnelisAgent(request: MihtnelisAgentStreamRequest)
     throw new Error(`mihtnelis agent 请求失败 (${response.status}): ${body || response.statusText}`);
   }
 
+  const responseTraceId = readTraceIdFromHeaders(response.headers);
+
   const reader = response.body?.getReader();
   if (!reader) {
     throw new Error('无法读取 mihtnelis agent 响应流');
@@ -157,6 +159,17 @@ export async function streamMihtnelisAgent(request: MihtnelisAgentStreamRequest)
           payload = JSON.parse(dataText);
         } catch {
           payload = dataText;
+        }
+      }
+      if (type === 'final' && responseTraceId && payload && typeof payload === 'object' && !Array.isArray(payload)) {
+        const payloadObj = payload as Record<string, unknown>;
+        const rawTraceId = payloadObj.traceId ?? payloadObj.traceid ?? payloadObj.trace_id;
+        const hasTraceId = typeof rawTraceId === 'string' && rawTraceId.trim().length > 0;
+        if (!hasTraceId) {
+          payload = {
+            ...payloadObj,
+            traceId: responseTraceId,
+          };
         }
       }
       request.onEvent?.({ type, payload });
@@ -304,4 +317,15 @@ function toEventType(input: string): MihtnelisAgentStreamEventType | null {
   if (input === 'final') return 'final';
   if (input === 'error') return 'error';
   return null;
+}
+
+function readTraceIdFromHeaders(headers: Headers): string {
+  const candidates = ['x-trace-id', 'trace-id', 'x-request-id', 'request-id'];
+  for (const key of candidates) {
+    const value = headers.get(key);
+    if (typeof value === 'string' && value.trim()) {
+      return value.trim();
+    }
+  }
+  return '';
 }

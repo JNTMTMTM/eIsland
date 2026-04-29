@@ -910,6 +910,13 @@
   );
 }
 
+.max-expand-chat-trace-id {
+  font-size: 11px;
+  line-height: 1.4;
+  color: rgba(var(--color-text-rgb), 0.52);
+  word-break: break-all;
+}
+
 /** 输入栏 */
 .max-expand-chat-input-bar {
   display: flex;

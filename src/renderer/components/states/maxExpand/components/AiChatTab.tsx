@@ -89,6 +89,12 @@ interface MetaEventPayload {
   reasoningEffort?: unknown;
 }
 
+interface FinalEventPayload {
+  traceId?: unknown;
+  traceid?: unknown;
+  trace_id?: unknown;
+}
+
 interface ToolEventPayload {
   turn?: unknown;
   tool?: unknown;
@@ -788,7 +794,7 @@ export function AiChatTab(): React.ReactElement {
     });
 
     // 添加占位 AI 消息
-    updateMessages(prev => ([...prev, { role: 'assistant', content: '', thinkBlocks: [], toolCalls: [] }]));
+    updateMessages(prev => ([...prev, { role: 'assistant', content: '', finalized: false, thinkBlocks: [], toolCalls: [] }]));
 
     const controller = new AbortController();
     activeAiAbortController = controller;
@@ -1106,6 +1112,27 @@ export function AiChatTab(): React.ReactElement {
                 ? payload.message
                 : t('aiChat.messages.agentError', { defaultValue: 'mihtnelis agent 返回错误' });
               mihtnelisErrorMessage = message;
+              return;
+            }
+
+            if (event.type === 'final') {
+              const payload = event.payload as FinalEventPayload;
+              const rawTraceId = payload?.traceId ?? payload?.traceid ?? payload?.trace_id;
+              const traceId = typeof rawTraceId === 'string' ? rawTraceId.trim() : '';
+              updateMessages(prev => {
+                const copy = [...prev];
+                const last = copy[copy.length - 1];
+                if (!last || last.role !== 'assistant') {
+                  return copy;
+                }
+                copy[copy.length - 1] = {
+                  ...last,
+                  finalized: true,
+                  traceId,
+                };
+                return copy;
+              });
+              return;
             }
           },
         });
@@ -1400,6 +1427,8 @@ export function AiChatTab(): React.ReactElement {
 
                   const isLatestAssistantMsg = i === aiChatMessages.length - 1;
                   const showThinkingFooter = aiConfig.deepseekThinking && aiChatStreaming && isLatestAssistantMsg;
+                  const traceId = typeof msg.traceId === 'string' ? msg.traceId.trim() : '';
+                  const showFinalTraceMeta = Boolean(msg.finalized);
                   const normalizedMarkdownContent = normalizeMarkdownCodeFences(msg.content);
                   const timelineNodes: React.ReactElement[] = [];
 
@@ -1633,6 +1662,14 @@ export function AiChatTab(): React.ReactElement {
                           >
                             {normalizedMarkdownContent}
                           </ReactMarkdown>
+                          {showFinalTraceMeta && (
+                            <>
+                              <div className="max-expand-chat-final-divider" />
+                              <div className="max-expand-chat-trace-id">
+                                TraceID: {traceId || '-'}
+                              </div>
+                            </>
+                          )}
                         </>
                       ) : (
                         aiChatStreaming && isLatestAssistantMsg && !showThinkingFooter ? (

@@ -231,6 +231,8 @@ export interface AiTodoSnapshot {
 export interface AiChatMessage {
   role: 'user' | 'assistant';
   content: string;
+  traceId?: string;
+  finalized?: boolean;
   thinkBlocks?: string[];
   toolCalls?: AiToolCall[];
   todoSnapshots?: AiTodoSnapshot[];
