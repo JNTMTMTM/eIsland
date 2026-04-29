@@ -558,6 +558,7 @@ export function AiChatTab(): React.ReactElement {
   const hasInitializedAutoScrollRef = useRef(false);
   const [input, setInput] = useState('');
   const [visibleWindowStart, setVisibleWindowStart] = useState(0);
+  const [showSessionSidebar, setShowSessionSidebar] = useState(false);
   const [showModelCard, setShowModelCard] = useState(false);
   const [resolvingWebAccessDecision, setResolvingWebAccessDecision] = useState(false);
   const [aiLocalToolAccessPrompt, setAiLocalToolAccessPrompt] = useState<AiLocalToolAccessPrompt | null>(() => cachedAiLocalToolAccessPrompt);
@@ -567,11 +568,14 @@ export function AiChatTab(): React.ReactElement {
     aiConfig,
     setAiConfig,
     aiChatMessages,
+    aiChatSessions,
+    activeAiChatSessionId,
     aiChatStreaming,
+    createNewAiChatSession,
+    switchAiChatSession,
     setAiChatStreaming,
     setMaxExpandTab,
     setAiChatMessages,
-    clearAiChatMessages,
     aiWebAccessPrompt,
     setAiWebAccessPrompt,
     aiWebAccessResolveError,
@@ -590,6 +594,9 @@ export function AiChatTab(): React.ReactElement {
     return aiChatMessages.slice(visibleWindowStart, visibleWindowEnd);
   }, [aiChatMessages, visibleWindowStart, visibleWindowEnd]);
   const visibleStartIndex = visibleWindowStart;
+  const orderedSessions = useMemo(() => (
+    [...aiChatSessions].sort((a, b) => b.updatedAt - a.updatedAt)
+  ), [aiChatSessions]);
   const contextUsageChars = mihtnelisContext.length;
   const contextUsagePercent = Math.min(100, (contextUsageChars / MAX_MIHTNELIS_CONTEXT_CHARS) * 100);
   const contextUsagePercentText = `${contextUsagePercent.toFixed(1)}%`;
@@ -1323,8 +1330,8 @@ export function AiChatTab(): React.ReactElement {
     setAiChatStreaming(false);
   };
 
-  /** 清空对话 */
-  const handleClear = (): void => {
+  /** 新建对话 */
+  const handleCreateNewChat = (): void => {
     activeAiAbortController?.abort();
     activeAiAbortController = null;
     if (pendingMessageFlushRafRef.current != null) {
@@ -1333,7 +1340,8 @@ export function AiChatTab(): React.ReactElement {
     }
     pendingAssistantChunkRef.current = '';
     pendingThinkChunksRef.current.clear();
-    clearAiChatMessages();
+    createNewAiChatSession();
+    setVisibleWindowStart(0);
     setAiChatStreaming(false);
     setResolvingWebAccessDecision(false);
     setAiWebAccessPrompt(null);
@@ -1449,13 +1457,45 @@ export function AiChatTab(): React.ReactElement {
         <span className="max-expand-chat-header-title">{t('aiChat.title', { defaultValue: 'mihtnelis Agent' })}</span>
         <div className="max-expand-chat-header-actions">
           <span className="max-expand-chat-header-model">{readLocalToken() ? selectedModel : (selectedModel || t('aiChat.notConfigured', { defaultValue: '未配置' }))}</span>
-          {aiChatMessages.length > 0 && (
-            <button className="max-expand-chat-clear" onClick={handleClear} type="button">
-              {t('aiChat.actions.clear', { defaultValue: '清空' })}
-            </button>
-          )}
+          <button className="max-expand-chat-clear" onClick={handleCreateNewChat} type="button">
+            {t('aiChat.actions.newChat', { defaultValue: '新建对话' })}
+          </button>
         </div>
       </div>
+      <div className="max-expand-chat-body">
+        {showSessionSidebar && (
+          <aside className="max-expand-chat-session-sidebar">
+            <div className="max-expand-chat-session-sidebar-title">
+              {t('aiChat.session.historyTitle', { defaultValue: '历史会话' })}
+            </div>
+            <div className="max-expand-chat-session-list">
+              {orderedSessions.map((session) => (
+                <button
+                  key={session.id}
+                  type="button"
+                  className={`max-expand-chat-session-item ${session.id === activeAiChatSessionId ? 'active' : ''}`}
+                  onClick={() => {
+                    if (session.id === activeAiChatSessionId) {
+                      return;
+                    }
+                    switchAiChatSession(session.id);
+                    setVisibleWindowStart(0);
+                    setAiWebAccessPrompt(null);
+                    setAiWebAccessResolveError('');
+                    setAiLocalToolAccessPrompt(null);
+                    setAiLocalToolAccessResolveError('');
+                    setResolvingWebAccessDecision(false);
+                    setResolvingLocalToolAccessDecision(false);
+                  }}
+                >
+                  <span className="max-expand-chat-session-item-title">{session.title || t('aiChat.session.untitled', { defaultValue: '新对话' })}</span>
+                  <span className="max-expand-chat-session-item-time">{new Date(session.updatedAt).toLocaleString()}</span>
+                </button>
+              ))}
+            </div>
+          </aside>
+        )}
+        <div className="max-expand-chat-content">
       {/* 消息列表 */}
       <div className="max-expand-chat-messages">
         {hasUpperHiddenMessages && (
@@ -1956,6 +1996,8 @@ export function AiChatTab(): React.ReactElement {
           </div>
         </div>
       )}
+        </div>
+      </div>
       {/* 输入栏 */}
       <div>
         {showModelCard && (
@@ -2054,6 +2096,16 @@ export function AiChatTab(): React.ReactElement {
           </div>
         )}
         <div className="max-expand-chat-input-bar">
+          <button
+            className="max-expand-chat-send max-expand-chat-session-toggle"
+            type="button"
+            onClick={() => {
+              setShowSessionSidebar((prev) => !prev);
+            }}
+            title={t('aiChat.session.toggleHistory', { defaultValue: '展开历史会话' })}
+          >
+            {showSessionSidebar ? '⟨' : '⟩'}
+          </button>
           <textarea
             ref={inputRef}
             className="max-expand-chat-input"

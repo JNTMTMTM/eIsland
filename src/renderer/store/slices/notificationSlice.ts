@@ -33,6 +33,6 @@ export const createNotificationSlice: StateCreator<
   [],
   [],
   NotificationSlice
-> = (set) => ({
+> = () => ({
   notification: emptyNotification,
 });

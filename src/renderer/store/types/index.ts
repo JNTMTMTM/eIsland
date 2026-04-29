@@ -239,6 +239,14 @@ export interface AiChatMessage {
   todoSnapshots?: AiTodoSnapshot[];
 }
 
+/** AI 历史会话 */
+export interface AiChatSession {
+  id: string;
+  title: string;
+  updatedAt: number;
+  messages: AiChatMessage[];
+}
+
 /** AI Web 访问提示 */
 export interface AiWebAccessPrompt {
   requestId: string;
@@ -336,8 +344,12 @@ export interface AiSlice {
   aiConfig: AiConfig;
   setAiConfig: (config: Partial<AiConfig>) => void;
 
+  aiChatSessions: AiChatSession[];
+  activeAiChatSessionId: string;
   aiChatMessages: AiChatMessage[];
   aiChatStreaming: boolean;
+  createNewAiChatSession: () => void;
+  switchAiChatSession: (sessionId: string) => void;
   setAiChatStreaming: (streaming: boolean) => void;
   setAiChatMessages: (messages: AiChatMessage[]) => void;
   clearAiChatMessages: () => void;

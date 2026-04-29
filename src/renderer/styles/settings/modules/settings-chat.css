@@ -35,6 +35,88 @@
   background: rgba(var(--color-text-rgb), 0.04);
 }
 
+.max-expand-chat-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+
+.max-expand-chat-content {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.max-expand-chat-session-sidebar {
+  width: 220px;
+  min-width: 220px;
+  border-right: 1px solid rgba(var(--color-text-rgb), 0.08);
+  background: rgba(var(--color-text-rgb), 0.03);
+  padding: 10px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.max-expand-chat-session-sidebar-title {
+  font-size: 12px;
+  color: rgba(var(--color-text-rgb), 0.62);
+  padding: 0 4px;
+}
+
+.max-expand-chat-session-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.max-expand-chat-session-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.max-expand-chat-session-list::-webkit-scrollbar-thumb {
+  background: rgba(var(--color-text-rgb), 0.12);
+  border-radius: 2px;
+}
+
+.max-expand-chat-session-item {
+  width: 100%;
+  border: 1px solid rgba(var(--color-text-rgb), 0.12);
+  background: rgba(var(--color-text-rgb), 0.03);
+  border-radius: 8px;
+  padding: 7px 8px;
+  text-align: left;
+  color: rgba(var(--color-text-rgb), 0.86);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.max-expand-chat-session-item:hover,
+.max-expand-chat-session-item.active {
+  background: rgba(var(--color-text-rgb), 0.09);
+  border-color: rgba(var(--color-text-rgb), 0.22);
+}
+
+.max-expand-chat-session-item-title {
+  font-size: 12px;
+  line-height: 1.35;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.max-expand-chat-session-item-time {
+  font-size: 10px;
+  color: rgba(var(--color-text-rgb), 0.5);
+}
+
 /** 对话标题栏 */
 .max-expand-chat-header {
   display: flex;
@@ -108,8 +190,8 @@
 }
 
 .max-expand-chat-clear:hover {
-  background: rgba(255, 80, 80, 0.15);
-  color: rgba(255, 120, 120, 0.9);
+  background: rgba(var(--color-text-rgb), 0.14);
+  color: rgba(var(--color-text-rgb), 0.94);
 }
 
 @keyframes maxExpandFadeIn {
@@ -1117,6 +1199,11 @@
 .max-expand-chat-send:hover {
   background: rgba(var(--color-text-rgb), 0.18);
   color: var(--color-island-text);
+}
+
+.max-expand-chat-session-toggle {
+  min-width: 34px;
+  padding: 6px 8px;
 }
 
 .max-expand-chat-context-usage {
