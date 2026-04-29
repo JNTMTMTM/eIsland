@@ -56,63 +56,16 @@ import {
   toPrettyJson,
   unwrapJsonEnvelope,
 } from './agent/utils/chatUtils';
-
-interface ThinkEventPayload {
-  text?: unknown;
-  index?: unknown;
-  done?: unknown;
-}
-
-interface MetaEventPayload {
-  thinkingEnabled?: unknown;
-  reasoningEffort?: unknown;
-}
-
-interface FinalEventPayload {
-  traceId?: unknown;
-  traceid?: unknown;
-  trace_id?: unknown;
-}
-
-interface ToolEventPayload {
-  turn?: unknown;
-  tool?: unknown;
-  arguments?: unknown;
-  success?: unknown;
-  error?: unknown;
-  result?: unknown;
-}
-
-interface ToolCallRequestPayload {
-  turn?: unknown;
-  requestId?: unknown;
-  tool?: unknown;
-  purpose?: unknown;
-  arguments?: unknown;
-  riskLevel?: unknown;
-  authorizationRequired?: unknown;
-  message?: unknown;
-}
-
-interface ToolCallResultPayload {
-  turn?: unknown;
-  requestId?: unknown;
-  tool?: unknown;
-  success?: unknown;
-  error?: unknown;
-  result?: unknown;
-  durationMs?: unknown;
-}
-
-type AiLocalToolAccessPrompt = {
-  sessionId: string;
-  requestId: string;
-  tool: string;
-  purpose: string;
-  argumentsPayload: Record<string, unknown>;
-  riskLevel: string;
-  message: string;
-};
+import {
+  type AiLocalToolAccessPrompt,
+  type FinalEventPayload,
+  type MetaEventPayload,
+  type ThinkEventPayload,
+  type ToolCallRequestPayload,
+  type ToolCallResultPayload,
+  type ToolEventPayload,
+} from './agent/utils/chatTypes';
+import { resolveSessionCardState } from './agent/utils/sessionUtils';
 
 const SESSION_ABORT_CONTROLLERS = new Map<string, AbortController>();
 const SESSION_STREAMING_IDS = new Set<string>();
@@ -185,28 +138,13 @@ export function AiChatTab(): React.ReactElement {
     [...aiChatSessions].sort((a, b) => b.updatedAt - a.updatedAt)
   ), [aiChatSessions]);
   const getSessionCardState = useCallback((sessionId: string): 'idle' | 'running' | 'awaiting' | 'success' | 'failed' => {
-    if (SESSION_STREAMING_IDS.has(sessionId)) {
-      return 'running';
-    }
-    if (aiWebAccessPrompt?.sessionId === sessionId || aiLocalToolAccessPrompt?.sessionId === sessionId) {
-      return 'awaiting';
-    }
-    const session = aiChatSessions.find((item) => item.id === sessionId);
-    if (!session || !Array.isArray(session.messages) || session.messages.length === 0) {
-      return 'idle';
-    }
-    const lastAssistant = [...session.messages].reverse().find((message) => message.role === 'assistant');
-    if (!lastAssistant) {
-      return 'idle';
-    }
-    const text = typeof lastAssistant.content === 'string' ? lastAssistant.content.trim() : '';
-    if (text.startsWith('❌')) {
-      return 'failed';
-    }
-    if (lastAssistant.finalized || text.length > 0) {
-      return 'success';
-    }
-    return 'idle';
+    return resolveSessionCardState({
+      sessionId,
+      streamingSessionIds: SESSION_STREAMING_IDS,
+      webAccessPrompt: aiWebAccessPrompt,
+      localToolAccessPrompt: aiLocalToolAccessPrompt,
+      sessions: aiChatSessions,
+    });
   }, [aiChatSessions, aiLocalToolAccessPrompt, aiWebAccessPrompt]);
   const contextUsageChars = mihtnelisContext.length;
   const contextUsagePercent = Math.min(100, (contextUsageChars / MAX_MIHTNELIS_CONTEXT_CHARS) * 100);
