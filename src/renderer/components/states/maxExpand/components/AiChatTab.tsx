@@ -523,6 +523,7 @@ async function streamChatCompletion(
 export function AiChatTab(): React.ReactElement {
   const availableModels = ['deepseek-v4-flash'] as const;
   const { t } = useTranslation();
+  const chatRootRef = useRef<HTMLDivElement>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const pendingAssistantChunkRef = useRef('');
@@ -656,20 +657,50 @@ export function AiChatTab(): React.ReactElement {
     });
   }, [updateMessages]);
 
+  const hasActiveTextSelection = useCallback((): boolean => {
+    const inputEl = inputRef.current;
+    if (inputEl && document.activeElement === inputEl) {
+      const start = inputEl.selectionStart;
+      const end = inputEl.selectionEnd;
+      if (typeof start === 'number' && typeof end === 'number' && end > start) {
+        return true;
+      }
+    }
+
+    const selection = window.getSelection();
+    if (!selection || selection.isCollapsed || selection.rangeCount === 0) {
+      return false;
+    }
+    const commonNode = selection.getRangeAt(0).commonAncestorContainer;
+    const element = commonNode instanceof Element ? commonNode : commonNode.parentElement;
+    if (!element) {
+      return false;
+    }
+    return Boolean(chatRootRef.current?.contains(element));
+  }, []);
+
   const scheduleAssistantUpdateFlush = useCallback((): void => {
     if (pendingMessageFlushRafRef.current != null) {
       return;
     }
-    pendingMessageFlushRafRef.current = window.requestAnimationFrame(() => {
+    const flushWhenSelectable = (): void => {
+      if (hasActiveTextSelection()) {
+        pendingMessageFlushRafRef.current = window.requestAnimationFrame(flushWhenSelectable);
+        return;
+      }
       pendingMessageFlushRafRef.current = null;
       flushPendingAssistantUpdates();
-    });
-  }, [flushPendingAssistantUpdates]);
+    };
+    pendingMessageFlushRafRef.current = window.requestAnimationFrame(flushWhenSelectable);
+  }, [flushPendingAssistantUpdates, hasActiveTextSelection]);
 
   /** 滚动到最新消息 */
   useEffect(() => {
+    if (hasActiveTextSelection()) {
+      return;
+    }
     chatEndRef.current?.scrollIntoView({ behavior: aiChatStreaming ? 'auto' : 'smooth' });
-  }, [aiChatMessages, aiChatStreaming]);
+  }, [aiChatMessages, aiChatStreaming, hasActiveTextSelection]);
 
   const syncInputHeight = useCallback((): void => {
     const el = inputRef.current;
@@ -1289,7 +1320,7 @@ export function AiChatTab(): React.ReactElement {
   }, [aiWebAccessPrompt, setAiWebAccessPrompt, setAiWebAccessResolveError]);
 
   return (
-    <div className="max-expand-chat">
+    <div className="max-expand-chat" ref={chatRootRef}>
       {/* 标题 */}
       <div className="max-expand-chat-header">
         <span className="max-expand-chat-header-title">{t('aiChat.title', { defaultValue: 'mihtnelis Agent' })}</span>

@@ -318,6 +318,8 @@
   font-weight: 700;
   letter-spacing: 0.04em;
   color: var(--chat-code-text);
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .max-expand-chat-code-lang-icon {
