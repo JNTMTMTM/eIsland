@@ -325,6 +325,16 @@ function toPrettyJson(value: unknown): string {
   }
 }
 
+function normalizeMarkdownCodeFences(content: string): string {
+  if (!content || content.indexOf('```') < 0) {
+    return content;
+  }
+  let normalized = content;
+  normalized = normalized.replace(/([^\n])\s```(?=\r?\n)/g, '$1\n```');
+  normalized = normalized.replace(/([^\n])\s```\s*$/g, '$1\n```');
+  return normalized;
+}
+
 function sanitizeExternalUrl(rawUrl: string): string {
   let value = rawUrl.trim();
   if (!value) {
@@ -1390,6 +1400,7 @@ export function AiChatTab(): React.ReactElement {
 
                   const isLatestAssistantMsg = i === aiChatMessages.length - 1;
                   const showThinkingFooter = aiConfig.deepseekThinking && aiChatStreaming && isLatestAssistantMsg;
+                  const normalizedMarkdownContent = normalizeMarkdownCodeFences(msg.content);
                   const timelineNodes: React.ReactElement[] = [];
 
                   // turn=0 的 todoSnapshot（旧服务端不带 turn 字段时的兜底）放在时间线最前面
@@ -1620,7 +1631,7 @@ export function AiChatTab(): React.ReactElement {
                               },
                             }}
                           >
-                            {msg.content}
+                            {normalizedMarkdownContent}
                           </ReactMarkdown>
                         </>
                       ) : (
