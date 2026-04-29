@@ -1815,25 +1815,44 @@ export function AiChatTab(): React.ReactElement {
             </div>
             <div className="max-expand-chat-local-tool-meta">
               <div className="max-expand-chat-local-tool-meta-item">
-                <span className="max-expand-chat-local-tool-meta-label">
-                  {t('aiChat.localToolAccess.toolLabel', { defaultValue: '操作' })}
-                </span>
+                <div className="max-expand-chat-local-tool-meta-head">
+                  <span className="max-expand-chat-local-tool-meta-label">
+                    {t('aiChat.localToolAccess.toolLabel', { defaultValue: '操作' })}
+                  </span>
+                  <span className="max-expand-chat-local-tool-meta-shot">
+                    {t('aiChat.localToolAccess.screenshotTag', { defaultValue: '截图' })}
+                  </span>
+                </div>
                 <span className="max-expand-chat-local-tool-meta-value">{aiLocalToolAccessPrompt.tool}</span>
               </div>
               <div className="max-expand-chat-local-tool-meta-item">
-                <span className="max-expand-chat-local-tool-meta-label">
-                  {t('aiChat.localToolAccess.riskLabel', { defaultValue: '风险等级' })}
-                </span>
+                <div className="max-expand-chat-local-tool-meta-head">
+                  <span className="max-expand-chat-local-tool-meta-label">
+                    {t('aiChat.localToolAccess.riskLabel', { defaultValue: '风险等级' })}
+                  </span>
+                  <span className="max-expand-chat-local-tool-meta-shot">
+                    {t('aiChat.localToolAccess.screenshotTag', { defaultValue: '截图' })}
+                  </span>
+                </div>
                 <span className="max-expand-chat-local-tool-meta-value">
                   {(aiLocalToolAccessPrompt.riskLevel || t('aiChat.localToolAccess.riskLevel.high', { defaultValue: 'high' })).toUpperCase()}
                 </span>
               </div>
+              <div className="max-expand-chat-local-tool-meta-item">
+                <div className="max-expand-chat-local-tool-meta-head">
+                  <span className="max-expand-chat-local-tool-meta-label">
+                    {t('aiChat.localToolAccess.purposeTitle', { defaultValue: '调用用途' })}
+                  </span>
+                  <span className="max-expand-chat-local-tool-meta-shot">
+                    {t('aiChat.localToolAccess.screenshotTag', { defaultValue: '截图' })}
+                  </span>
+                </div>
+                <span className="max-expand-chat-local-tool-meta-value">
+                  {aiLocalToolAccessPrompt.purpose || t('aiChat.localToolAccess.purposeFallback', { defaultValue: '未提供用途说明' })}
+                </span>
+              </div>
             </div>
-            <div className="max-expand-chat-tool-result">
-              <div className="max-expand-chat-tool-result-title">{t('aiChat.localToolAccess.purposeTitle', { defaultValue: '调用用途' })}</div>
-              <pre>{aiLocalToolAccessPrompt.purpose || t('aiChat.localToolAccess.purposeFallback', { defaultValue: '未提供用途说明' })}</pre>
-            </div>
-            <div className="max-expand-chat-tool-result">
+            <div className="max-expand-chat-tool-result max-expand-chat-local-tool-arguments-card">
               <div className="max-expand-chat-tool-result-title">{t('aiChat.localToolAccess.argumentsTitle', { defaultValue: '参数' })}</div>
               <pre>{toPrettyJson(aiLocalToolAccessPrompt.argumentsPayload)}</pre>
             </div>
