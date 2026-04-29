@@ -346,6 +346,8 @@
   line-height: 1;
   padding: 6px 9px;
   cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .max-expand-chat-code-copy-btn:hover {
@@ -529,8 +531,8 @@
 
 .max-expand-chat-todo-title-icon {
   font-size: 13px;
-  line-height: 1;
-  opacity: 0.9;
+  line-height: 1.55;
+  font-family: inherit;
 }
 
 .max-expand-chat-todo-progress {
@@ -928,6 +930,8 @@
   white-space: pre-wrap;
   word-break: break-word;
   font-family: inherit;
+  user-select: text;
+  -webkit-user-select: text;
 }
 
 .max-expand-chat-input::placeholder {
