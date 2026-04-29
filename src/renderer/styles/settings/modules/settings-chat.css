@@ -1206,6 +1206,12 @@
   padding: 6px 8px;
 }
 
+.max-expand-chat-session-toggle-icon {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+}
+
 .max-expand-chat-context-usage {
   position: relative;
   margin: 0 12px 8px;

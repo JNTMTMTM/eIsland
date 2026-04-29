@@ -2160,7 +2160,11 @@ export function AiChatTab(): React.ReactElement {
             }}
             title={t('aiChat.session.toggleHistory', { defaultValue: '展开历史会话' })}
           >
-            {showSessionSidebar ? '⟨' : '⟩'}
+            <img
+              className="max-expand-chat-session-toggle-icon"
+              src={showSessionSidebar ? SvgIcon.COLLAPSE : SvgIcon.EXPAND}
+              alt=""
+            />
           </button>
           <textarea
             ref={inputRef}

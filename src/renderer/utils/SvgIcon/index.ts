@@ -132,7 +132,7 @@ export const SvgIcon = {
   /** 展开 */
   EXPAND: './svg/EXPAND.svg',
   /** 收起 */
-  COLLASPE: './svg/COLLAPSE.svg',
+  COLLAPSE: './svg/COLLAPSE.svg',
 
 } as const;
 
