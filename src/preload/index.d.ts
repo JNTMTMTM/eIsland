@@ -83,6 +83,8 @@ declare global {
       pickFeedbackLogFile: () => Promise<string | null>;
       pickFeedbackScreenshotFile: () => Promise<string | null>;
       pickLocalSearchDirectory: () => Promise<string | null>;
+      pickSkillFile: () => Promise<string | null>;
+      readTextFile: (filePath: string) => Promise<string | null>;
       searchLocalFiles: (
         rootDir: string,
         keyword: string,

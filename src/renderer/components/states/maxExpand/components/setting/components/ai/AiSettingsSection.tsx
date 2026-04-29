@@ -164,7 +164,7 @@ export function AiSettingsSection({
           </div>
         </div>
 
-        {/* 卡片 4:System Prompt */}
+        {/* 卡片04:System Prompt */}
         <div className="settings-card">
           <div className="settings-card-header">
             <div className="settings-card-title">{t('settings.ai.systemPrompt', { defaultValue: 'System Prompt' })}</div>

@@ -181,6 +181,14 @@ export interface NotificationData {
   urls?: string[];
 }
 
+/** Agent Skill 定义（基于 .md 文件） */
+export interface AiSkill {
+  id: string;
+  name: string;
+  filePath: string;
+  enabled: boolean;
+}
+
 /** AI 配置数据 */
 export interface AiConfig {
   apiKey: string;
@@ -192,6 +200,8 @@ export interface AiConfig {
   deepseekReasoningEffort: 'low' | 'medium' | 'high';
   /** Agent 工作区目录列表，文件操作限制在这些目录内 */
   workspaces: string[];
+  /** 用户自定义 Agent Skills */
+  skills: AiSkill[];
 }
 
 /** AI 工具调用轨迹 */

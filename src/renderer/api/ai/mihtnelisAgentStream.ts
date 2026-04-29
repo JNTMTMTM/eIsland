@@ -71,6 +71,7 @@ export interface MihtnelisAgentStreamRequest {
   provider?: string;
   context?: string;
   workspaces?: string[];
+  skills?: Array<{ name: string; content: string }>;
   thinking?: boolean;
   reasoningEffort?: 'low' | 'medium' | 'high';
   signal?: AbortSignal;
@@ -112,6 +113,7 @@ export async function streamMihtnelisAgent(request: MihtnelisAgentStreamRequest)
       provider: request.provider,
       context: request.context,
       workspaces: Array.isArray(request.workspaces) && request.workspaces.length > 0 ? request.workspaces : undefined,
+      skills: Array.isArray(request.skills) && request.skills.length > 0 ? request.skills : undefined,
       thinking: typeof request.thinking === 'boolean' ? request.thinking : undefined,
       reasoningEffort: request.reasoningEffort,
     }),

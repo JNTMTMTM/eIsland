@@ -562,6 +562,7 @@ export function AiChatTab(): React.ReactElement {
   const [visibleWindowStart, setVisibleWindowStart] = useState(0);
   const [showSessionSidebar, setShowSessionSidebar] = useState(false);
   const [showModelCard, setShowModelCard] = useState(false);
+  const [skillDragOver, setSkillDragOver] = useState(false);
   const [resolvingWebAccessDecision, setResolvingWebAccessDecision] = useState(false);
   const [aiLocalToolAccessPrompt, setAiLocalToolAccessPrompt] = useState<AiLocalToolAccessPrompt | null>(() => cachedAiLocalToolAccessPrompt);
   const [aiLocalToolAccessResolveError, setAiLocalToolAccessResolveError] = useState(() => cachedAiLocalToolAccessResolveError);
@@ -910,6 +911,18 @@ export function AiChatTab(): React.ReactElement {
         let mihtnelisErrorMessage: string | null = null;
         let streamThinkingEnabled = Boolean(aiConfig.deepseekThinking);
         const context = buildMihtnelisContext(nextMessages);
+        const enabledSkills = Array.isArray(aiConfig.skills) ? aiConfig.skills.filter((s) => s.enabled && s.filePath) : [];
+        let resolvedSkills: Array<{ name: string; content: string }> | undefined;
+        if (enabledSkills.length > 0) {
+          const results = await Promise.all(
+            enabledSkills.map(async (s) => {
+              const content = await window.api.readTextFile(s.filePath);
+              return content ? { name: s.name, content } : null;
+            }),
+          );
+          const valid = results.filter((r): r is { name: string; content: string } => r !== null && r.content.trim().length > 0);
+          if (valid.length > 0) resolvedSkills = valid;
+        }
         await streamMihtnelisAgent({
           token: localToken!,
           sessionId: 'max-expand-ai-chat',
@@ -917,6 +930,7 @@ export function AiChatTab(): React.ReactElement {
           provider: selectedModel,
           context,
           workspaces: aiConfig.workspaces,
+          skills: resolvedSkills,
           thinking: aiConfig.deepseekThinking,
           reasoningEffort: aiConfig.deepseekReasoningEffort,
           signal: controller.signal,
@@ -2103,18 +2117,17 @@ export function AiChatTab(): React.ReactElement {
       <div>
         {showModelCard && (
           <div style={{ marginBottom: 8 }}>
-            <div
-              style={{
-                width: '100%',
-                padding: '10px 12px',
-                borderRadius: 10,
-                border: '1px solid rgba(255,255,255,0.14)',
-                background: 'rgba(255,255,255,0.04)',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 8,
-              }}
-            >
+            <div className="max-expand-chat-model-card">
+              <div
+                className="max-expand-chat-model-card-scroll"
+                onWheelCapture={(e) => {
+                  e.stopPropagation();
+                }}
+                onWheel={(e) => {
+                  e.stopPropagation();
+                }}
+              >
+
               <div style={{ fontSize: 12, opacity: 0.72 }}>
                 {t('aiChat.modelCard.title', { defaultValue: '模型选择卡片' })}
               </div>
@@ -2170,6 +2183,95 @@ export function AiChatTab(): React.ReactElement {
                   </select>
                 </div>
               </div>
+              {/* Agent Skills */}
+              <div
+                className={`max-expand-chat-skills-section${skillDragOver ? ' drag-over' : ''}`}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setSkillDragOver(true);
+                }}
+                onDragLeave={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setSkillDragOver(false);
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setSkillDragOver(false);
+                  const files = Array.from(e.dataTransfer.files);
+                  const mdFiles = files.filter((f) => f.name.toLowerCase().endsWith('.md'));
+                  if (mdFiles.length === 0) return;
+                  const current = Array.isArray(aiConfig.skills) ? aiConfig.skills : [];
+                  const newSkills = [...current];
+                  for (const file of mdFiles) {
+                    const filePath = (file as File & { path?: string }).path;
+                    if (!filePath) continue;
+                    if (newSkills.some((s) => s.filePath.toLowerCase() === filePath.toLowerCase())) continue;
+                    const name = filePath.replace(/\\/g, '/').split('/').pop()?.replace(/\.md$/i, '') || 'skill';
+                    const id = `skill-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+                    newSkills.push({ id, name, filePath, enabled: true });
+                  }
+                  if (newSkills.length !== current.length) {
+                    setAiConfig({ skills: newSkills });
+                  }
+                }}
+              >
+                <div className="max-expand-chat-skills-header">
+                  <span className="max-expand-chat-skills-title">
+                    {t('aiChat.skills.title', { defaultValue: 'Skills' })}
+                  </span>
+                  <button
+                    type="button"
+                    className="max-expand-chat-skills-add-btn"
+                    onClick={async () => {
+                      const filePath = await window.api.pickSkillFile();
+                      if (!filePath) return;
+                      const current = Array.isArray(aiConfig.skills) ? aiConfig.skills : [];
+                      if (current.some((s) => s.filePath.toLowerCase() === filePath.toLowerCase())) return;
+                      const name = filePath.replace(/\\/g, '/').split('/').pop()?.replace(/\.md$/i, '') || 'skill';
+                      const id = `skill-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+                      setAiConfig({ skills: [...current, { id, name, filePath, enabled: true }] });
+                    }}
+                  >
+                    {t('aiChat.skills.add', { defaultValue: '+ 添加' })}
+                  </button>
+                </div>
+                {Array.isArray(aiConfig.skills) && aiConfig.skills.length > 0 ? (
+                  <div className="max-expand-chat-skills-list">
+                    {aiConfig.skills.map((skill) => (
+                      <div key={skill.id} className={`max-expand-chat-skills-item ${skill.enabled ? '' : 'disabled'}`}>
+                        <button
+                          type="button"
+                          className={`max-expand-chat-skills-toggle ${skill.enabled ? 'on' : 'off'}`}
+                          onClick={() => {
+                            const updated = aiConfig.skills.map((s) => s.id === skill.id ? { ...s, enabled: !s.enabled } : s);
+                            setAiConfig({ skills: updated });
+                          }}
+                          title={skill.enabled ? t('aiChat.skills.disable', { defaultValue: '禁用' }) : t('aiChat.skills.enable', { defaultValue: '启用' })}
+                        />
+                        <span className="max-expand-chat-skills-name" title={skill.filePath}>{skill.name}</span>
+                        <button
+                          type="button"
+                          className="max-expand-chat-skills-remove-btn"
+                          onClick={() => {
+                            const updated = aiConfig.skills.filter((s) => s.id !== skill.id);
+                            setAiConfig({ skills: updated });
+                          }}
+                          title={t('aiChat.skills.remove', { defaultValue: '移除' })}
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="max-expand-chat-skills-drop-hint">
+                    {t('aiChat.skills.dropHint', { defaultValue: '拖入 .md 文件或点击添加' })}
+                  </div>
+                )}
+              </div>
               <div
                 className={`max-expand-chat-context-usage in-card ${contextUsageLevelClass}`}
                 role="img"
@@ -2192,6 +2294,7 @@ export function AiChatTab(): React.ReactElement {
                     style={{ width: `${contextUsagePercent}%` }}
                   />
                 </div>
+              </div>
               </div>
             </div>
           </div>

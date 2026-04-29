@@ -828,6 +828,36 @@ export function registerAppIpcHandlers(): void {
     }
   });
 
+  ipcMain.handle('app:pick-skill-file', async (event) => {
+    try {
+      const win = BrowserWindow.fromWebContents(event.sender) ?? BrowserWindow.getFocusedWindow();
+      if (!win) return null;
+      const result = await dialog.showOpenDialog(win, {
+        title: '选择 Skill 文件 (.md)',
+        properties: ['openFile'],
+        filters: [{ name: 'Markdown', extensions: ['md'] }],
+      });
+      if (result.canceled || result.filePaths.length === 0) {
+        return null;
+      }
+      return result.filePaths[0] || null;
+    } catch (err) {
+      console.error('[App] pick skill file error:', err);
+      return null;
+    }
+  });
+
+  ipcMain.handle('app:read-text-file', async (_event, filePath: string) => {
+    try {
+      if (!filePath || !existsSync(filePath)) return null;
+      const content = await readFile(filePath, 'utf-8');
+      return content;
+    } catch (err) {
+      console.error('[App] read text file error:', err);
+      return null;
+    }
+  });
+
   ipcMain.handle('app:search-local-files', async (
     _event,
     rootDir: string,

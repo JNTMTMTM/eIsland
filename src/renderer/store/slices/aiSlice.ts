@@ -25,7 +25,7 @@
  */
 
 import type { StateCreator } from 'zustand';
-import type { AiSlice, AiConfig, AiChatMessage, AiChatSession, AiWebAccessPrompt } from '../types';
+import type { AiSlice, AiConfig, AiChatMessage, AiChatSession, AiWebAccessPrompt, AiSkill } from '../types';
 
 const AI_CONFIG_KEY = 'eIsland_aiConfig';
 const AI_CHAT_MESSAGES_KEY = 'eIsland_aiChatMessages';
@@ -42,6 +42,7 @@ function loadAiConfig(): AiConfig {
     deepseekThinking: false,
     deepseekReasoningEffort: 'medium',
     workspaces: [],
+    skills: [],
   };
   try {
     const raw = localStorage.getItem(AI_CONFIG_KEY);
@@ -52,6 +53,9 @@ function loadAiConfig(): AiConfig {
       merged.deepseekReasoningEffort = effort === 'low' || effort === 'high' ? effort : 'medium';
       merged.deepseekThinking = Boolean(merged.deepseekThinking);
       merged.workspaces = Array.isArray(merged.workspaces) ? merged.workspaces.filter((w) => typeof w === 'string' && w.trim()) : [];
+      merged.skills = Array.isArray(merged.skills)
+        ? (merged.skills as AiSkill[]).filter((s) => typeof s?.id === 'string' && typeof s?.name === 'string' && typeof s?.filePath === 'string')
+        : [];
       return merged;
     }
   } catch { /* ignore */ }

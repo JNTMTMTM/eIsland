@@ -188,6 +188,18 @@ const api = {
     return ipcRenderer.invoke('app:pick-local-search-directory');
   },
   /**
+   * 选择 Skill 文件 (.md)
+   */
+  pickSkillFile: (): Promise<string | null> => {
+    return ipcRenderer.invoke('app:pick-skill-file');
+  },
+  /**
+   * 读取文本文件内容
+   */
+  readTextFile: (filePath: string): Promise<string | null> => {
+    return ipcRenderer.invoke('app:read-text-file', filePath);
+  },
+  /**
    * 搜索本地文件（名称匹配）
    */
   searchLocalFiles: (
