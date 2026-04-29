@@ -911,10 +911,32 @@
 }
 
 .max-expand-chat-trace-id {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
   font-size: 11px;
   line-height: 1.4;
   color: rgba(var(--color-text-rgb), 0.52);
   word-break: break-all;
+}
+
+.max-expand-chat-trace-report-btn {
+  flex-shrink: 0;
+  border: 1px solid rgba(var(--color-text-rgb), 0.18);
+  background: rgba(var(--color-text-rgb), 0.06);
+  color: rgba(var(--color-text-rgb), 0.75);
+  border-radius: 8px;
+  padding: 2px 8px;
+  font-size: 11px;
+  line-height: 1.5;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.max-expand-chat-trace-report-btn:hover {
+  border-color: rgba(var(--color-text-rgb), 0.28);
+  background: rgba(var(--color-text-rgb), 0.1);
 }
 
 /** 输入栏 */

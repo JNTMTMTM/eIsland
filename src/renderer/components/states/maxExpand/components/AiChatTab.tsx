@@ -134,6 +134,8 @@ type AiLocalToolAccessPrompt = {
 
 let activeAiAbortController: AbortController | null = null;
 const MAX_MIHTNELIS_CONTEXT_CHARS = 1_000_000;
+const SETTINGS_OPEN_TAB_STORE_KEY = 'settings-open-tab';
+const SETTINGS_ABOUT_FEEDBACK_PREFILL_STORE_KEY = 'settings-about-feedback-prefill';
 type SiteLinkMeta = {
   hostname: string;
   title: string;
@@ -557,6 +559,7 @@ export function AiChatTab(): React.ReactElement {
     aiChatMessages,
     aiChatStreaming,
     setAiChatStreaming,
+    setMaxExpandTab,
     setAiChatMessages,
     clearAiChatMessages,
     aiWebAccessPrompt,
@@ -1235,6 +1238,21 @@ export function AiChatTab(): React.ReactElement {
     scheduleAssistantUpdateFlush,
   ]);
 
+  const handleReportIssueFromFinalAnswer = useCallback((traceId: string, finalAnswer: string): void => {
+    const safeTraceId = traceId.trim() || '-';
+    const safeAnswer = finalAnswer.trim();
+    const payload = {
+      title: `Agent输出不符合预期 - ${safeTraceId}`,
+      content: safeAnswer,
+    };
+    void window.api.storeWrite(SETTINGS_ABOUT_FEEDBACK_PREFILL_STORE_KEY, payload)
+      .then(() => window.api.storeWrite(SETTINGS_OPEN_TAB_STORE_KEY, 'about-feedback'))
+      .then(() => {
+        setMaxExpandTab('settings');
+      })
+      .catch(() => {});
+  }, [setMaxExpandTab]);
+
   /** 回车发送 */
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>): void => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -1666,7 +1684,14 @@ export function AiChatTab(): React.ReactElement {
                             <>
                               <div className="max-expand-chat-final-divider" />
                               <div className="max-expand-chat-trace-id">
-                                TraceID: {traceId || '-'}
+                                <span>TraceID: {traceId || '-'}</span>
+                                <button
+                                  type="button"
+                                  className="max-expand-chat-trace-report-btn"
+                                  onClick={() => handleReportIssueFromFinalAnswer(traceId, msg.content)}
+                                >
+                                  {t('aiChat.actions.reportIssue', { defaultValue: '报告问题' })}
+                                </button>
                               </div>
                             </>
                           )}
