@@ -225,6 +225,44 @@ function buildMihtnelisContext(messages: AiChatMessage[]): string {
   return fullContext.slice(fullContext.length - MAX_MIHTNELIS_CONTEXT_CHARS);
 }
 
+function repairJsonControlChars(json: string): string {
+  let result = '';
+  let inString = false;
+  let escaped = false;
+  for (let i = 0; i < json.length; i++) {
+    const c = json[i];
+    if (inString) {
+      if (escaped) { result += c; escaped = false; continue; }
+      if (c === '\\') { result += c; escaped = true; continue; }
+      if (c === '"') { result += c; inString = false; continue; }
+      if (c === '\n') { result += '\\n'; continue; }
+      if (c === '\r') { result += '\\r'; continue; }
+      if (c === '\t') { result += '\\t'; continue; }
+      result += c;
+    } else {
+      result += c;
+      if (c === '"') { inString = true; }
+    }
+  }
+  return result;
+}
+
+function unwrapJsonEnvelope(content: string): string {
+  const trimmed = content.trim();
+  if (!trimmed.startsWith('{') || !trimmed.endsWith('}')) {
+    return content;
+  }
+  for (const candidate of [trimmed, repairJsonControlChars(trimmed)]) {
+    try {
+      const parsed = JSON.parse(candidate);
+      if (typeof parsed?.answer === 'string' && parsed.answer.trim()) {
+        return parsed.answer;
+      }
+    } catch { /* try next */ }
+  }
+  return content;
+}
+
 function toPrettyJson(value: unknown): string {
   if (value == null) {
     return '{}';
@@ -933,9 +971,21 @@ export function AiChatTab(): React.ReactElement {
       });
     } finally {
       activeAiAbortController = null;
-      // 流结束后强制补存一次，防止流式过程中 localStorage 写入失败导致数据丢失
+      // 流结束后解包 JSON 信封并强制补存，防止数据丢失
       const finalMessages = useIslandStore.getState().aiChatMessages;
-      useIslandStore.getState().setAiChatMessages(finalMessages);
+      const lastMsg = finalMessages[finalMessages.length - 1];
+      if (lastMsg && lastMsg.role === 'assistant' && lastMsg.content) {
+        const unwrapped = unwrapJsonEnvelope(lastMsg.content);
+        if (unwrapped !== lastMsg.content) {
+          const patched = [...finalMessages];
+          patched[patched.length - 1] = { ...lastMsg, content: unwrapped };
+          useIslandStore.getState().setAiChatMessages(patched);
+        } else {
+          useIslandStore.getState().setAiChatMessages(finalMessages);
+        }
+      } else {
+        useIslandStore.getState().setAiChatMessages(finalMessages);
+      }
       setAiChatStreaming(false);
       setResolvingWebAccessDecision(false);
     }
