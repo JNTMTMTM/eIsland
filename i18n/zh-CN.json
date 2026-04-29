@@ -547,7 +547,7 @@
     }
   },
   "aiChat": {
-    "title": "AI 对话",
+    "title": "mihtnelis Agent",
     "notConfigured": "未配置",
     "actions": {
       "clear": "清空",

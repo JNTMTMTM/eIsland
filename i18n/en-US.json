@@ -547,7 +547,7 @@
     }
   },
   "aiChat": {
-    "title": "AI Chat",
+    "title": "mihtnelis Agent",
     "notConfigured": "Not configured",
     "actions": {
       "clear": "Clear",

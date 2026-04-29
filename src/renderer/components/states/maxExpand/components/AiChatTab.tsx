@@ -923,7 +923,7 @@ export function AiChatTab(): React.ReactElement {
     <div className="max-expand-chat">
       {/* 标题 */}
       <div className="max-expand-chat-header">
-        <span className="max-expand-chat-header-title">{t('aiChat.title', { defaultValue: 'AI 对话' })}</span>
+        <span className="max-expand-chat-header-title">{t('aiChat.title', { defaultValue: 'mihtnelis Agent' })}</span>
         <div className="max-expand-chat-header-actions">
           <span className="max-expand-chat-header-model">{readLocalToken() ? selectedModel : (selectedModel || t('aiChat.notConfigured', { defaultValue: '未配置' }))}</span>
           {aiChatMessages.length > 0 && (
