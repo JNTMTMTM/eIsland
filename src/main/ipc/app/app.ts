@@ -419,6 +419,72 @@ async function executeAgentLocalTool(request: AgentLocalToolRequest): Promise<{
       };
     }
 
+    if (tool === 'file.exists') {
+      const pathArg = normalizeLocalPath(getStringArg(args, 'path'));
+      if (!pathArg) {
+        throw new Error('file.exists 需要 path');
+      }
+      assertWorkspaceBoundary(pathArg, workspaces, 'file.exists');
+      const pathStat = await stat(pathArg).catch(() => null);
+      return {
+        success: true,
+        result: {
+          path: pathArg,
+          exists: Boolean(pathStat),
+          isFile: Boolean(pathStat?.isFile()),
+          isDirectory: Boolean(pathStat?.isDirectory()),
+        },
+        error: '',
+        durationMs: Date.now() - startedAt,
+      };
+    }
+
+    if (tool === 'file.stat') {
+      const pathArg = normalizeLocalPath(getStringArg(args, 'path'));
+      if (!pathArg) {
+        throw new Error('file.stat 需要 path');
+      }
+      assertWorkspaceBoundary(pathArg, workspaces, 'file.stat');
+      const pathStat = await stat(pathArg);
+      return {
+        success: true,
+        result: {
+          path: pathArg,
+          exists: true,
+          isFile: pathStat.isFile(),
+          isDirectory: pathStat.isDirectory(),
+          size: pathStat.size,
+          mode: pathStat.mode,
+          atimeMs: pathStat.atimeMs,
+          mtimeMs: pathStat.mtimeMs,
+          ctimeMs: pathStat.ctimeMs,
+          birthtimeMs: pathStat.birthtimeMs,
+        },
+        error: '',
+        durationMs: Date.now() - startedAt,
+      };
+    }
+
+    if (tool === 'file.mkdir') {
+      const pathArg = normalizeLocalPath(getStringArg(args, 'path'));
+      if (!pathArg) {
+        throw new Error('file.mkdir 需要 path');
+      }
+      assertWorkspaceBoundary(pathArg, workspaces, 'file.mkdir');
+      const recursive = args.recursive !== false;
+      await mkdir(pathArg, { recursive });
+      return {
+        success: true,
+        result: {
+          path: pathArg,
+          recursive,
+          created: true,
+        },
+        error: '',
+        durationMs: Date.now() - startedAt,
+      };
+    }
+
     if (tool === 'file.read') {
       const pathArg = normalizeLocalPath(getStringArg(args, 'path'));
       if (!pathArg) {
@@ -439,6 +505,50 @@ async function executeAgentLocalTool(request: AgentLocalToolRequest): Promise<{
           path: pathArg,
           content,
           size: fileInfo.size,
+        },
+        error: '',
+        durationMs: Date.now() - startedAt,
+      };
+    }
+
+    if (tool === 'file.read.lines') {
+      const pathArg = normalizeLocalPath(getStringArg(args, 'path'));
+      if (!pathArg) {
+        throw new Error('file.read.lines 需要 path');
+      }
+      assertWorkspaceBoundary(pathArg, workspaces, 'file.read.lines');
+      const fileInfo = await stat(pathArg);
+      if (!fileInfo.isFile()) {
+        throw new Error('目标路径不是文件');
+      }
+      if (fileInfo.size > MAX_LOCAL_FILE_READ_BYTES) {
+        throw new Error(`文件过大，最大支持 ${MAX_LOCAL_FILE_READ_BYTES} bytes`);
+      }
+      const startLineRaw = getNumberArg(args, 'startLine');
+      const endLineRaw = getNumberArg(args, 'endLine');
+      const startLine = Math.max(1, Math.floor(startLineRaw == null ? 1 : startLineRaw));
+      const maxWindow = 2000;
+      let endLine = Math.max(startLine, Math.floor(endLineRaw == null ? startLine + 199 : endLineRaw));
+      if (endLine - startLine + 1 > maxWindow) {
+        endLine = startLine + maxWindow - 1;
+      }
+      const content = await readFile(pathArg, 'utf8');
+      const allLines = content.split(/\r?\n/);
+      const startIndex = Math.max(0, startLine - 1);
+      const endIndex = Math.min(allLines.length, endLine);
+      const lines = allLines.slice(startIndex, endIndex).map((text, index) => ({
+        line: startIndex + index + 1,
+        text,
+      }));
+      return {
+        success: true,
+        result: {
+          path: pathArg,
+          startLine,
+          endLine,
+          totalLines: allLines.length,
+          count: lines.length,
+          lines,
         },
         error: '',
         durationMs: Date.now() - startedAt,
