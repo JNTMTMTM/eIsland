@@ -164,6 +164,16 @@
   outline: none;
   font-family: inherit;
   resize: none;
+  overflow-y: auto;
+}
+
+.cd-textarea::-webkit-scrollbar {
+  width: 4px;
+}
+
+.cd-textarea::-webkit-scrollbar-thumb {
+  background: rgba(var(--color-text-rgb), 0.12);
+  border-radius: 2px;
 }
 
 .cd-form-row {
