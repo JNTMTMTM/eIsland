@@ -141,6 +141,35 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+  position: relative;
+  overflow: hidden;
+}
+
+.max-expand-chat-session-item::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: conic-gradient(
+    from var(--session-marquee-angle, 0deg),
+    transparent 0%,
+    rgba(255, 166, 0, 0.06) 6%,
+    rgba(255, 166, 0, 0.92) 14%,
+    rgba(255, 166, 0, 0.06) 22%,
+    transparent 32%
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 1;
 }
 
 .max-expand-chat-session-item-main {
@@ -158,8 +187,8 @@
 }
 
 .max-expand-chat-session-delete {
-  width: 18px;
-  height: 18px;
+  width: 21px;
+  height: 21px;
   border-radius: 5px;
   display: inline-flex;
   align-items: center;
@@ -167,7 +196,7 @@
 }
 
 .max-expand-chat-session-delete:hover {
-  background: rgba(255, 80, 80, 0.18);
+  background: rgb(255, 255, 255, 0.1);
 }
 
 .max-expand-chat-session-delete img {
@@ -180,6 +209,39 @@
 .max-expand-chat-session-item.active {
   background: rgba(var(--color-text-rgb), 0.09);
   border-color: rgba(var(--color-text-rgb), 0.22);
+}
+
+.max-expand-chat-session-item.status-running {
+  border-color: transparent;
+}
+
+.max-expand-chat-session-item.status-running::before {
+  opacity: 1;
+  animation: maxExpandSessionMarqueeRotate 2.2s linear infinite;
+}
+
+.max-expand-chat-session-item.status-awaiting {
+  border-color: rgba(255, 166, 0, 0.82);
+}
+
+.max-expand-chat-session-item.status-success {
+  border-color: rgba(74, 209, 138, 0.82);
+}
+
+.max-expand-chat-session-item.status-failed {
+  border-color: rgba(255, 112, 112, 0.82);
+}
+
+@property --session-marquee-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes maxExpandSessionMarqueeRotate {
+  to {
+    --session-marquee-angle: 360deg;
+  }
 }
 
 .max-expand-chat-session-item-title {

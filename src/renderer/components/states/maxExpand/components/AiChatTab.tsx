@@ -602,6 +602,30 @@ export function AiChatTab(): React.ReactElement {
   const orderedSessions = useMemo(() => (
     [...aiChatSessions].sort((a, b) => b.updatedAt - a.updatedAt)
   ), [aiChatSessions]);
+  const getSessionCardState = useCallback((sessionId: string): 'idle' | 'running' | 'awaiting' | 'success' | 'failed' => {
+    if (SESSION_STREAMING_IDS.has(sessionId)) {
+      return 'running';
+    }
+    if (aiWebAccessPrompt?.sessionId === sessionId || aiLocalToolAccessPrompt?.sessionId === sessionId) {
+      return 'awaiting';
+    }
+    const session = aiChatSessions.find((item) => item.id === sessionId);
+    if (!session || !Array.isArray(session.messages) || session.messages.length === 0) {
+      return 'idle';
+    }
+    const lastAssistant = [...session.messages].reverse().find((message) => message.role === 'assistant');
+    if (!lastAssistant) {
+      return 'idle';
+    }
+    const text = typeof lastAssistant.content === 'string' ? lastAssistant.content.trim() : '';
+    if (text.startsWith('❌')) {
+      return 'failed';
+    }
+    if (lastAssistant.finalized || text.length > 0) {
+      return 'success';
+    }
+    return 'idle';
+  }, [aiChatSessions, aiLocalToolAccessPrompt, aiWebAccessPrompt]);
   const contextUsageChars = mihtnelisContext.length;
   const contextUsagePercent = Math.min(100, (contextUsageChars / MAX_MIHTNELIS_CONTEXT_CHARS) * 100);
   const contextUsagePercentText = `${contextUsagePercent.toFixed(1)}%`;
@@ -1536,7 +1560,7 @@ export function AiChatTab(): React.ReactElement {
                 <button
                   key={session.id}
                   type="button"
-                  className={`max-expand-chat-session-item ${session.id === activeAiChatSessionId ? 'active' : ''}`}
+                  className={`max-expand-chat-session-item ${session.id === activeAiChatSessionId ? 'active' : ''} status-${getSessionCardState(session.id)}`}
                   onClick={() => {
                     if (session.id === activeAiChatSessionId) {
                       return;
