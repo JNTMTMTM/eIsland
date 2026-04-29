@@ -134,7 +134,8 @@ type AiLocalToolAccessPrompt = {
   message: string;
 };
 
-let activeAiAbortController: AbortController | null = null;
+const SESSION_ABORT_CONTROLLERS = new Map<string, AbortController>();
+const SESSION_STREAMING_IDS = new Set<string>();
 let cachedAiLocalToolAccessPrompt: AiLocalToolAccessPrompt | null = null;
 let cachedAiLocalToolAccessResolveError = '';
 const MAX_MIHTNELIS_CONTEXT_CHARS = 1_000_000;
@@ -575,6 +576,7 @@ export function AiChatTab(): React.ReactElement {
     switchAiChatSession,
     setAiChatStreaming,
     setMaxExpandTab,
+    setAiChatSessionMessages,
     setAiChatMessages,
     aiWebAccessPrompt,
     setAiWebAccessPrompt,
@@ -609,6 +611,14 @@ export function AiChatTab(): React.ReactElement {
     max: MAX_MIHTNELIS_CONTEXT_CHARS.toLocaleString(),
     percent: contextUsagePercentText,
   });
+  const refreshActiveSessionStreaming = useCallback((): void => {
+    const activeId = useIslandStore.getState().activeAiChatSessionId;
+    useIslandStore.getState().setAiChatStreaming(SESSION_STREAMING_IDS.has(activeId));
+  }, []);
+
+  useEffect(() => {
+    setAiChatStreaming(SESSION_STREAMING_IDS.has(activeAiChatSessionId));
+  }, [activeAiChatSessionId, setAiChatStreaming]);
 
   useEffect(() => {
     cachedAiLocalToolAccessPrompt = aiLocalToolAccessPrompt;
@@ -812,13 +822,20 @@ export function AiChatTab(): React.ReactElement {
   /** 发送消息并调用 API */
   const handleSend = useCallback(async (): Promise<void> => {
     const text = input.trim();
-    if (!text || aiChatStreaming) return;
+    const targetSessionId = activeAiChatSessionId;
+    if (!text || SESSION_STREAMING_IDS.has(targetSessionId)) return;
+    const updateTargetMessages = (updater: (prev: AiChatMessage[]) => AiChatMessage[]): void => {
+      const state = useIslandStore.getState();
+      const session = state.aiChatSessions.find((item) => item.id === targetSessionId);
+      const prevMessages = session?.messages ?? [];
+      state.setAiChatSessionMessages(targetSessionId, updater(prevMessages));
+    };
 
     const localToken = readLocalToken();
     const canUseMihtnelis = Boolean(localToken && localToken.trim().length > 0);
 
     if (!canUseMihtnelis && !aiConfig.apiKey) {
-      updateMessages(prev => ([
+      updateTargetMessages(prev => ([
         ...prev,
         { role: 'user', content: text },
         {
@@ -834,8 +851,8 @@ export function AiChatTab(): React.ReactElement {
 
     const userMsg: AiChatMessage = { role: 'user', content: text };
     const nextMessages: AiChatMessage[] = [...aiChatMessages, userMsg];
-    setAiChatMessages(nextMessages);
-    setVisibleWindowStart(Math.max(0, nextMessages.length - VISIBLE_CHAT_WINDOW_SIZE));
+    updateTargetMessages(prev => [...prev, userMsg]);
+    setVisibleWindowStart(0);
     setInput('');
     setAiChatStreaming(true);
     setAiWebAccessPrompt(null);
@@ -853,10 +870,12 @@ export function AiChatTab(): React.ReactElement {
     });
 
     // 添加占位 AI 消息
-    updateMessages(prev => ([...prev, { role: 'assistant', content: '', finalized: false, thinkBlocks: [], toolCalls: [] }]));
+    updateTargetMessages(prev => ([...prev, { role: 'assistant', content: '', finalized: false, thinkBlocks: [], toolCalls: [] }]));
 
     const controller = new AbortController();
-    activeAiAbortController = controller;
+    SESSION_ABORT_CONTROLLERS.set(targetSessionId, controller);
+    SESSION_STREAMING_IDS.add(targetSessionId);
+    refreshActiveSessionStreaming();
 
     try {
       if (canUseMihtnelis) {
@@ -875,6 +894,9 @@ export function AiChatTab(): React.ReactElement {
           reasoningEffort: aiConfig.deepseekReasoningEffort,
           signal: controller.signal,
           onEvent: (event) => {
+            if (SESSION_ABORT_CONTROLLERS.get(targetSessionId) !== controller) {
+              return;
+            }
             if (event.type === 'meta') {
               const payload = event.payload as MetaEventPayload;
               if (typeof payload?.thinkingEnabled === 'boolean') {
@@ -888,8 +910,15 @@ export function AiChatTab(): React.ReactElement {
               const chunk = typeof payload?.text === 'string' ? payload.text : '';
               if (!chunk) return;
               receivedMihtnelisChunk = true;
-              pendingAssistantChunkRef.current += chunk;
-              scheduleAssistantUpdateFlush();
+              updateTargetMessages(prev => {
+                const copy = [...prev];
+                const last = copy[copy.length - 1];
+                if (!last || last.role !== 'assistant') {
+                  return copy;
+                }
+                copy[copy.length - 1] = { ...last, content: `${last.content}${chunk}` };
+                return copy;
+              });
               return;
             }
 
@@ -903,7 +932,7 @@ export function AiChatTab(): React.ReactElement {
               const durationMs = typeof payload?.durationMs === 'number' ? payload.durationMs : 0;
               const result = payload?.result;
 
-              updateMessages(prev => {
+              updateTargetMessages(prev => {
                 const copy = [...prev];
                 const last = copy[copy.length - 1];
                 if (!last || last.role !== 'assistant') {
@@ -1030,7 +1059,7 @@ export function AiChatTab(): React.ReactElement {
                 return;
               }
 
-              updateMessages(prev => {
+              updateTargetMessages(prev => {
                 const copy = [...prev];
                 const last = copy[copy.length - 1];
                 if (!last || last.role !== 'assistant') {
@@ -1101,9 +1130,18 @@ export function AiChatTab(): React.ReactElement {
               const thinkText = typeof payload?.text === 'string' ? payload.text : '';
               const thinkIndex = typeof payload?.index === 'number' ? payload.index : 0;
               if (!thinkText) return;
-              const oldText = pendingThinkChunksRef.current.get(thinkIndex) || '';
-              pendingThinkChunksRef.current.set(thinkIndex, oldText + thinkText);
-              scheduleAssistantUpdateFlush();
+              updateTargetMessages(prev => {
+                const copy = [...prev];
+                const last = copy[copy.length - 1];
+                if (!last || last.role !== 'assistant') {
+                  return copy;
+                }
+                const nextThinkBlocks = Array.isArray(last.thinkBlocks) ? [...last.thinkBlocks] : [];
+                const oldText = typeof nextThinkBlocks[thinkIndex] === 'string' ? nextThinkBlocks[thinkIndex] : '';
+                nextThinkBlocks[thinkIndex] = `${oldText}${thinkText}`;
+                copy[copy.length - 1] = { ...last, thinkBlocks: nextThinkBlocks };
+                return copy;
+              });
               return;
             }
 
@@ -1120,7 +1158,7 @@ export function AiChatTab(): React.ReactElement {
                 error: typeof payload?.error === 'string' ? payload.error : '',
                 result: payload?.result,
               };
-              updateMessages(prev => {
+              updateTargetMessages(prev => {
                 const copy = [...prev];
                 const last = copy[copy.length - 1];
                 if (last && last.role === 'assistant') {
@@ -1156,7 +1194,7 @@ export function AiChatTab(): React.ReactElement {
                 .filter((item): item is AiTodoItem => item != null);
               if (items.length === 0) return;
               const snapshot: AiTodoSnapshot = { turn, items };
-              updateMessages(prev => {
+              updateTargetMessages(prev => {
                 const copy = [...prev];
                 const last = copy[copy.length - 1];
                 if (last && last.role === 'assistant') {
@@ -1181,7 +1219,7 @@ export function AiChatTab(): React.ReactElement {
               const payload = event.payload as FinalEventPayload;
               const rawTraceId = payload?.traceId ?? payload?.traceid ?? payload?.trace_id;
               const traceId = typeof rawTraceId === 'string' ? rawTraceId.trim() : '';
-              updateMessages(prev => {
+              updateTargetMessages(prev => {
                 const copy = [...prev];
                 const last = copy[copy.length - 1];
                 if (!last || last.role !== 'assistant') {
@@ -1203,7 +1241,7 @@ export function AiChatTab(): React.ReactElement {
           const fallbackMessage = mihtnelisErrorMessage
             ? `❌ ${mihtnelisErrorMessage}`
             : t('aiChat.messages.noModelOutput', { defaultValue: '未收到模型输出，请检查 DeepSeek 配置与服务端日志。' });
-          updateMessages(prev => {
+          updateTargetMessages(prev => {
             const copy = [...prev];
             const last = copy[copy.length - 1];
             if (last && last.role === 'assistant' && !last.content) {
@@ -1219,7 +1257,7 @@ export function AiChatTab(): React.ReactElement {
           selectedModel,
           apiMessages,
           (chunk) => {
-            updateMessages(prev => {
+            updateTargetMessages(prev => {
               const copy = [...prev];
               const last = copy[copy.length - 1];
               if (last && last.role === 'assistant') {
@@ -1244,7 +1282,7 @@ export function AiChatTab(): React.ReactElement {
       const errMsg = err instanceof Error
         ? err.message
         : t('aiChat.messages.unknownError', { defaultValue: '未知错误' });
-      updateMessages(prev => {
+      updateTargetMessages(prev => {
         const copy = [...prev];
         const last = copy[copy.length - 1];
         if (last && last.role === 'assistant' && !last.content) {
@@ -1255,7 +1293,12 @@ export function AiChatTab(): React.ReactElement {
         return copy;
       });
     } finally {
-      activeAiAbortController = null;
+      if (SESSION_ABORT_CONTROLLERS.get(targetSessionId) !== controller) {
+        return;
+      }
+      SESSION_ABORT_CONTROLLERS.delete(targetSessionId);
+      SESSION_STREAMING_IDS.delete(targetSessionId);
+      refreshActiveSessionStreaming();
       if (pendingMessageFlushRafRef.current != null) {
         window.cancelAnimationFrame(pendingMessageFlushRafRef.current);
         pendingMessageFlushRafRef.current = null;
@@ -1276,7 +1319,6 @@ export function AiChatTab(): React.ReactElement {
       } else {
         useIslandStore.getState().setAiChatMessages(finalMessages);
       }
-      setAiChatStreaming(false);
       setResolvingWebAccessDecision(false);
       setResolvingLocalToolAccessDecision(false);
     }
@@ -1284,8 +1326,11 @@ export function AiChatTab(): React.ReactElement {
     input,
     aiChatStreaming,
     aiChatMessages,
+    aiChatSessions,
+    activeAiChatSessionId,
     aiConfig,
     setAiChatStreaming,
+    setAiChatSessionMessages,
     setAiChatMessages,
     updateMessages,
     t,
@@ -1294,6 +1339,7 @@ export function AiChatTab(): React.ReactElement {
     setAiWebAccessResolveError,
     flushPendingAssistantUpdates,
     scheduleAssistantUpdateFlush,
+    refreshActiveSessionStreaming,
   ]);
 
   const handleReportIssueFromFinalAnswer = useCallback((traceId: string, finalAnswer: string): void => {
@@ -1321,19 +1367,25 @@ export function AiChatTab(): React.ReactElement {
 
   /** 停止生成 */
   const handleStop = (): void => {
-    activeAiAbortController?.abort();
+    const controller = SESSION_ABORT_CONTROLLERS.get(activeAiChatSessionId);
+    controller?.abort();
+    SESSION_ABORT_CONTROLLERS.delete(activeAiChatSessionId);
+    SESSION_STREAMING_IDS.delete(activeAiChatSessionId);
+    refreshActiveSessionStreaming();
     if (pendingMessageFlushRafRef.current != null) {
       window.cancelAnimationFrame(pendingMessageFlushRafRef.current);
       pendingMessageFlushRafRef.current = null;
     }
     flushPendingAssistantUpdates();
-    setAiChatStreaming(false);
   };
 
   /** 新建对话 */
   const handleCreateNewChat = (): void => {
-    activeAiAbortController?.abort();
-    activeAiAbortController = null;
+    const controller = SESSION_ABORT_CONTROLLERS.get(activeAiChatSessionId);
+    controller?.abort();
+    SESSION_ABORT_CONTROLLERS.delete(activeAiChatSessionId);
+    SESSION_STREAMING_IDS.delete(activeAiChatSessionId);
+    refreshActiveSessionStreaming();
     if (pendingMessageFlushRafRef.current != null) {
       window.cancelAnimationFrame(pendingMessageFlushRafRef.current);
       pendingMessageFlushRafRef.current = null;
@@ -1342,7 +1394,6 @@ export function AiChatTab(): React.ReactElement {
     pendingThinkChunksRef.current.clear();
     createNewAiChatSession();
     setVisibleWindowStart(0);
-    setAiChatStreaming(false);
     setResolvingWebAccessDecision(false);
     setAiWebAccessPrompt(null);
     setAiWebAccessResolveError('');
@@ -1479,6 +1530,7 @@ export function AiChatTab(): React.ReactElement {
                       return;
                     }
                     switchAiChatSession(session.id);
+                    setAiChatStreaming(SESSION_STREAMING_IDS.has(session.id));
                     setVisibleWindowStart(0);
                     setAiWebAccessPrompt(null);
                     setAiWebAccessResolveError('');

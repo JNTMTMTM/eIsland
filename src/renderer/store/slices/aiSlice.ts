@@ -388,11 +388,19 @@ export const createAiSlice: StateCreator<
       });
     },
 
-    setAiChatMessages: (messages) => {
+    setAiChatStreaming: (streaming) => {
+      const nextStreaming = Boolean(streaming);
+      const prevStreaming = get().aiChatStreaming;
+      set({ aiChatStreaming: nextStreaming });
+      if (prevStreaming && !nextStreaming) {
+        saveAiChatSessions(get().aiChatSessions, get().activeAiChatSessionId);
+      }
+    },
+
+    setAiChatSessionMessages: (sessionId, messages) => {
       const now = Date.now();
-      const activeId = get().activeAiChatSessionId;
       const nextSessions = get().aiChatSessions.map((session) => {
-        if (session.id !== activeId) {
+        if (session.id !== sessionId) {
           return session;
         }
         return {
@@ -402,22 +410,13 @@ export const createAiSlice: StateCreator<
           title: deriveAiChatSessionTitle(messages),
         };
       });
-      if (!get().aiChatStreaming) {
-        saveAiChatSessions(nextSessions, activeId);
+      if (!get().aiChatStreaming || sessionId !== get().activeAiChatSessionId) {
+        saveAiChatSessions(nextSessions, get().activeAiChatSessionId);
       }
-      set({
-        aiChatMessages: messages,
+      set((state) => ({
         aiChatSessions: nextSessions,
-      });
-    },
-
-    setAiChatStreaming: (streaming) => {
-      const nextStreaming = Boolean(streaming);
-      const prevStreaming = get().aiChatStreaming;
-      set({ aiChatStreaming: nextStreaming });
-      if (prevStreaming && !nextStreaming) {
-        saveAiChatSessions(get().aiChatSessions, get().activeAiChatSessionId);
-      }
+        aiChatMessages: state.activeAiChatSessionId === sessionId ? messages : state.aiChatMessages,
+      }));
     },
 
     clearAiChatMessages: () => {
@@ -450,6 +449,10 @@ export const createAiSlice: StateCreator<
 
     setAiWebAccessResolveError: (message) => {
       set({ aiWebAccessResolveError: typeof message === 'string' ? message : '' });
+    },
+
+    setAiChatMessages: (messages) => {
+      get().setAiChatSessionMessages(get().activeAiChatSessionId, messages);
     },
   };
 };
