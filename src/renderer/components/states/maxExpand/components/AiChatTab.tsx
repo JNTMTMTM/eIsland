@@ -577,6 +577,7 @@ export function AiChatTab(): React.ReactElement {
     setAiChatStreaming,
     setMaxExpandTab,
     setAiChatSessionMessages,
+    markAiChatSessionReplyFinished,
     setAiChatMessages,
     aiWebAccessPrompt,
     setAiWebAccessPrompt,
@@ -1305,20 +1306,22 @@ export function AiChatTab(): React.ReactElement {
       }
       flushPendingAssistantUpdates();
       // 流结束后解包 JSON 信封并强制补存，防止数据丢失
-      const finalMessages = useIslandStore.getState().aiChatMessages;
+      const state = useIslandStore.getState();
+      const finalMessages = state.aiChatSessions.find((item) => item.id === targetSessionId)?.messages || [];
       const lastMsg = finalMessages[finalMessages.length - 1];
       if (lastMsg && lastMsg.role === 'assistant' && lastMsg.content) {
         const unwrapped = unwrapJsonEnvelope(lastMsg.content);
         if (unwrapped !== lastMsg.content) {
           const patched = [...finalMessages];
           patched[patched.length - 1] = { ...lastMsg, content: unwrapped };
-          useIslandStore.getState().setAiChatMessages(patched);
+          state.setAiChatSessionMessages(targetSessionId, patched);
         } else {
-          useIslandStore.getState().setAiChatMessages(finalMessages);
+          state.setAiChatSessionMessages(targetSessionId, finalMessages);
         }
       } else {
-        useIslandStore.getState().setAiChatMessages(finalMessages);
+        state.setAiChatSessionMessages(targetSessionId, finalMessages);
       }
+      markAiChatSessionReplyFinished(targetSessionId, Date.now());
       setResolvingWebAccessDecision(false);
       setResolvingLocalToolAccessDecision(false);
     }
@@ -1331,6 +1334,7 @@ export function AiChatTab(): React.ReactElement {
     aiConfig,
     setAiChatStreaming,
     setAiChatSessionMessages,
+    markAiChatSessionReplyFinished,
     setAiChatMessages,
     updateMessages,
     t,

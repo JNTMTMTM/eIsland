@@ -398,7 +398,6 @@ export const createAiSlice: StateCreator<
     },
 
     setAiChatSessionMessages: (sessionId, messages) => {
-      const now = Date.now();
       const nextSessions = get().aiChatSessions.map((session) => {
         if (session.id !== sessionId) {
           return session;
@@ -406,7 +405,6 @@ export const createAiSlice: StateCreator<
         return {
           ...session,
           messages,
-          updatedAt: now,
           title: deriveAiChatSessionTitle(messages),
         };
       });
@@ -417,6 +415,21 @@ export const createAiSlice: StateCreator<
         aiChatSessions: nextSessions,
         aiChatMessages: state.activeAiChatSessionId === sessionId ? messages : state.aiChatMessages,
       }));
+    },
+
+    markAiChatSessionReplyFinished: (sessionId, finishedAt) => {
+      const stamp = typeof finishedAt === 'number' && Number.isFinite(finishedAt) ? finishedAt : Date.now();
+      const nextSessions = get().aiChatSessions.map((session) => {
+        if (session.id !== sessionId) {
+          return session;
+        }
+        return {
+          ...session,
+          updatedAt: stamp,
+        };
+      });
+      saveAiChatSessions(nextSessions, get().activeAiChatSessionId);
+      set({ aiChatSessions: nextSessions });
     },
 
     clearAiChatMessages: () => {
