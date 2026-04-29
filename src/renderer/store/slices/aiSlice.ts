@@ -388,6 +388,28 @@ export const createAiSlice: StateCreator<
       });
     },
 
+    deleteAiChatSession: (sessionId) => {
+      const sessions = get().aiChatSessions;
+      if (sessions.length <= 1) {
+        return;
+      }
+      const nextSessions = sessions.filter((session) => session.id !== sessionId);
+      if (nextSessions.length === 0) {
+        return;
+      }
+      const activeId = get().activeAiChatSessionId === sessionId
+        ? nextSessions[0].id
+        : get().activeAiChatSessionId;
+      const activeMessages = nextSessions.find((session) => session.id === activeId)?.messages || [];
+      saveAiChatSessions(nextSessions, activeId);
+      set({
+        aiChatSessions: nextSessions,
+        activeAiChatSessionId: activeId,
+        aiChatMessages: activeMessages,
+        aiChatStreaming: false,
+      });
+    },
+
     setAiChatStreaming: (streaming) => {
       const nextStreaming = Boolean(streaming);
       const prevStreaming = get().aiChatStreaming;

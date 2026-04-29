@@ -351,6 +351,7 @@ export interface AiSlice {
   aiChatStreaming: boolean;
   createNewAiChatSession: () => void;
   switchAiChatSession: (sessionId: string) => void;
+  deleteAiChatSession: (sessionId: string) => void;
   setAiChatStreaming: (streaming: boolean) => void;
   setAiChatSessionMessages: (sessionId: string, messages: AiChatMessage[]) => void;
   markAiChatSessionReplyFinished: (sessionId: string, finishedAt?: number) => void;

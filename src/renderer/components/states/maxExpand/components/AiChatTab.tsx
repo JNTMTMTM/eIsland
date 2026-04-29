@@ -575,6 +575,7 @@ export function AiChatTab(): React.ReactElement {
     aiChatStreaming,
     createNewAiChatSession,
     switchAiChatSession,
+    deleteAiChatSession,
     setAiChatStreaming,
     setMaxExpandTab,
     setAiChatSessionMessages,
@@ -1544,8 +1545,25 @@ export function AiChatTab(): React.ReactElement {
                     setResolvingLocalToolAccessDecision(false);
                   }}
                 >
-                  <span className="max-expand-chat-session-item-title">{session.title || t('aiChat.session.untitled', { defaultValue: '新对话' })}</span>
-                  <span className="max-expand-chat-session-item-time">{new Date(session.updatedAt).toLocaleString()}</span>
+                  <span className="max-expand-chat-session-item-main">
+                    <span className="max-expand-chat-session-item-title">{session.title || t('aiChat.session.untitled', { defaultValue: '新对话' })}</span>
+                    <span className="max-expand-chat-session-item-time">{new Date(session.updatedAt).toLocaleString()}</span>
+                  </span>
+                  <span className="max-expand-chat-session-item-actions">
+                    <span
+                      className="max-expand-chat-session-delete"
+                      role="button"
+                      aria-label={t('aiChat.actions.deleteSession', { defaultValue: '删除会话' })}
+                      title={t('aiChat.actions.deleteSession', { defaultValue: '删除会话' })}
+                      onClick={(event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        deleteAiChatSession(session.id);
+                      }}
+                    >
+                      <img src={SvgIcon.DELETE} alt="" />
+                    </span>
+                  </span>
                 </button>
               ))}
             </div>

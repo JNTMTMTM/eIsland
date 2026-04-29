@@ -94,8 +94,42 @@
   color: rgba(var(--color-text-rgb), 0.86);
   cursor: pointer;
   display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.max-expand-chat-session-item-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
   flex-direction: column;
   gap: 3px;
+}
+
+.max-expand-chat-session-item-actions {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+}
+
+.max-expand-chat-session-delete {
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.max-expand-chat-session-delete:hover {
+  background: rgba(255, 80, 80, 0.18);
+}
+
+.max-expand-chat-session-delete img {
+  width: 13px;
+  height: 13px;
+  object-fit: contain;
 }
 
 .max-expand-chat-session-item:hover,
