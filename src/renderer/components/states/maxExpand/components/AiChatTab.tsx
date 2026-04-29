@@ -553,6 +553,7 @@ export function AiChatTab(): React.ReactElement {
   const pendingThinkChunksRef = useRef<Map<number, string>>(new Map());
   const pendingMessageFlushRafRef = useRef<number | null>(null);
   const lastAssistantFlushAtRef = useRef(0);
+  const hasInitializedAutoScrollRef = useRef(false);
   const [input, setInput] = useState('');
   const [visibleWindowStart, setVisibleWindowStart] = useState(0);
   const [showModelCard, setShowModelCard] = useState(false);
@@ -765,11 +766,18 @@ export function AiChatTab(): React.ReactElement {
 
   /** 滚动到最新消息 */
   useEffect(() => {
+    const waitingForLatestWindowAlignment = aiChatMessages.length > VISIBLE_CHAT_WINDOW_SIZE
+      && visibleWindowStart === 0;
+    if (waitingForLatestWindowAlignment) {
+      return;
+    }
     if (hasActiveTextSelection()) {
       return;
     }
-    chatEndRef.current?.scrollIntoView({ behavior: aiChatStreaming ? 'auto' : 'smooth' });
-  }, [aiChatMessages, aiChatStreaming, hasActiveTextSelection]);
+    const isFirstAutoScroll = !hasInitializedAutoScrollRef.current;
+    hasInitializedAutoScrollRef.current = true;
+    chatEndRef.current?.scrollIntoView({ behavior: (aiChatStreaming || isFirstAutoScroll) ? 'auto' : 'smooth' });
+  }, [aiChatMessages, aiChatStreaming, hasActiveTextSelection, visibleWindowStart]);
 
   const syncInputHeight = useCallback((): void => {
     const el = inputRef.current;
