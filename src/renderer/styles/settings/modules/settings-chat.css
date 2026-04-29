@@ -652,6 +652,11 @@
   padding: 0 10px;
 }
 
+.max-expand-chat-local-tool-access-panel {
+  margin-top: 10px;
+  margin-bottom: 8px;
+}
+
 .max-expand-chat-web-access-card {
   width: 100%;
   border-radius: 12px;
@@ -659,6 +664,31 @@
   background: rgba(var(--color-bg-rgb), 0.95);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
   padding: 14px;
+}
+
+.max-expand-chat-local-tool-access-card {
+  height: 248px;
+  min-height: 248px;
+  max-height: 248px;
+  overflow: hidden;
+  overscroll-behavior: contain;
+  padding: 0;
+}
+
+.max-expand-chat-local-tool-access-scroll {
+  height: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 14px;
+}
+
+.max-expand-chat-local-tool-access-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+
+.max-expand-chat-local-tool-access-scroll::-webkit-scrollbar-thumb {
+  background: rgba(var(--color-text-rgb), 0.12);
+  border-radius: 2px;
 }
 
 .max-expand-chat-web-access-site {

@@ -135,6 +135,8 @@ type AiLocalToolAccessPrompt = {
 };
 
 let activeAiAbortController: AbortController | null = null;
+let cachedAiLocalToolAccessPrompt: AiLocalToolAccessPrompt | null = null;
+let cachedAiLocalToolAccessResolveError = '';
 const MAX_MIHTNELIS_CONTEXT_CHARS = 1_000_000;
 const STREAM_UI_FLUSH_INTERVAL_MS = 90;
 const VISIBLE_CHAT_WINDOW_SIZE = 4;
@@ -558,8 +560,8 @@ export function AiChatTab(): React.ReactElement {
   const [visibleWindowStart, setVisibleWindowStart] = useState(0);
   const [showModelCard, setShowModelCard] = useState(false);
   const [resolvingWebAccessDecision, setResolvingWebAccessDecision] = useState(false);
-  const [aiLocalToolAccessPrompt, setAiLocalToolAccessPrompt] = useState<AiLocalToolAccessPrompt | null>(null);
-  const [aiLocalToolAccessResolveError, setAiLocalToolAccessResolveError] = useState('');
+  const [aiLocalToolAccessPrompt, setAiLocalToolAccessPrompt] = useState<AiLocalToolAccessPrompt | null>(() => cachedAiLocalToolAccessPrompt);
+  const [aiLocalToolAccessResolveError, setAiLocalToolAccessResolveError] = useState(() => cachedAiLocalToolAccessResolveError);
   const [resolvingLocalToolAccessDecision, setResolvingLocalToolAccessDecision] = useState(false);
   const {
     aiConfig,
@@ -600,6 +602,11 @@ export function AiChatTab(): React.ReactElement {
     max: MAX_MIHTNELIS_CONTEXT_CHARS.toLocaleString(),
     percent: contextUsagePercentText,
   });
+
+  useEffect(() => {
+    cachedAiLocalToolAccessPrompt = aiLocalToolAccessPrompt;
+    cachedAiLocalToolAccessResolveError = aiLocalToolAccessResolveError;
+  }, [aiLocalToolAccessPrompt, aiLocalToolAccessResolveError]);
 
   const executeAndSubmitLocalToolResult = useCallback(async (params: {
     token: string;
@@ -1872,8 +1879,9 @@ export function AiChatTab(): React.ReactElement {
         </div>
       )}
       {aiLocalToolAccessPrompt && (
-        <div className="max-expand-chat-web-access-panel">
-          <div className="max-expand-chat-web-access-card">
+        <div className="max-expand-chat-web-access-panel max-expand-chat-local-tool-access-panel">
+          <div className="max-expand-chat-web-access-card max-expand-chat-local-tool-access-card">
+            <div className="max-expand-chat-local-tool-access-scroll">
             <div className="max-expand-chat-web-access-title">
               {t('aiChat.localToolAccess.title', { defaultValue: '本地高风险操作授权' })}
             </div>
@@ -1944,6 +1952,7 @@ export function AiChatTab(): React.ReactElement {
             {aiLocalToolAccessResolveError && (
               <div className="max-expand-chat-web-access-error">{aiLocalToolAccessResolveError}</div>
             )}
+            </div>
           </div>
         </div>
       )}
