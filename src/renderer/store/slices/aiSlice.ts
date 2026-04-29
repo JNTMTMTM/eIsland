@@ -168,6 +168,7 @@ function normalizeAiToolCall(value: unknown): NonNullable<AiChatMessage['toolCal
   }
   const turn = typeof source.turn === 'number' ? source.turn : 0;
   const requestId = typeof source.requestId === 'string' ? source.requestId : '';
+  const purpose = typeof source.purpose === 'string' ? source.purpose : '';
   const riskLevel = typeof source.riskLevel === 'string' ? source.riskLevel : '';
   const durationMs = typeof source.durationMs === 'number' ? source.durationMs : 0;
   const pending = typeof source.pending === 'boolean' ? source.pending : false;
@@ -180,6 +181,7 @@ function normalizeAiToolCall(value: unknown): NonNullable<AiChatMessage['toolCal
     turn,
     tool,
     requestId,
+    purpose,
     riskLevel,
     durationMs,
     pending,

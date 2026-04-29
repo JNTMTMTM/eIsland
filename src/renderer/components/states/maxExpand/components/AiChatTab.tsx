@@ -108,6 +108,7 @@ interface ToolCallRequestPayload {
   turn?: unknown;
   requestId?: unknown;
   tool?: unknown;
+  purpose?: unknown;
   arguments?: unknown;
   riskLevel?: unknown;
   authorizationRequired?: unknown;
@@ -127,6 +128,7 @@ interface ToolCallResultPayload {
 type AiLocalToolAccessPrompt = {
   requestId: string;
   tool: string;
+  purpose: string;
   argumentsPayload: Record<string, unknown>;
   riskLevel: string;
   message: string;
@@ -963,6 +965,7 @@ export function AiChatTab(): React.ReactElement {
               const turn = typeof payload?.turn === 'number' ? payload.turn : 0;
               const requestId = typeof payload?.requestId === 'string' ? payload.requestId.trim() : '';
               const tool = typeof payload?.tool === 'string' ? payload.tool.trim() : '';
+              const purpose = typeof payload?.purpose === 'string' ? payload.purpose.trim() : '';
               const riskLevel = typeof payload?.riskLevel === 'string' ? payload.riskLevel : '';
               const authorizationRequired = Boolean(payload?.authorizationRequired);
               const authorizationMessage = typeof payload?.message === 'string' ? payload.message : '';
@@ -984,6 +987,7 @@ export function AiChatTab(): React.ReactElement {
                   turn,
                   requestId,
                   tool,
+                  purpose,
                   arguments: argumentsPayload,
                   riskLevel,
                   pending: true,
@@ -1006,6 +1010,7 @@ export function AiChatTab(): React.ReactElement {
                 setAiLocalToolAccessPrompt({
                   requestId,
                   tool,
+                  purpose,
                   argumentsPayload,
                   riskLevel,
                   message: authorizationMessage,
@@ -1808,7 +1813,26 @@ export function AiChatTab(): React.ReactElement {
             <div className="max-expand-chat-web-access-desc">
               {aiLocalToolAccessPrompt.message || t('aiChat.localToolAccess.requestHint', { defaultValue: 'Agent 请求执行以下本地操作，是否允许？' })}
             </div>
-            <div className="max-expand-chat-web-access-url">{aiLocalToolAccessPrompt.tool}</div>
+            <div className="max-expand-chat-local-tool-meta">
+              <div className="max-expand-chat-local-tool-meta-item">
+                <span className="max-expand-chat-local-tool-meta-label">
+                  {t('aiChat.localToolAccess.toolLabel', { defaultValue: '操作' })}
+                </span>
+                <span className="max-expand-chat-local-tool-meta-value">{aiLocalToolAccessPrompt.tool}</span>
+              </div>
+              <div className="max-expand-chat-local-tool-meta-item">
+                <span className="max-expand-chat-local-tool-meta-label">
+                  {t('aiChat.localToolAccess.riskLabel', { defaultValue: '风险等级' })}
+                </span>
+                <span className="max-expand-chat-local-tool-meta-value">
+                  {(aiLocalToolAccessPrompt.riskLevel || t('aiChat.localToolAccess.riskLevel.high', { defaultValue: 'high' })).toUpperCase()}
+                </span>
+              </div>
+            </div>
+            <div className="max-expand-chat-tool-result">
+              <div className="max-expand-chat-tool-result-title">{t('aiChat.localToolAccess.purposeTitle', { defaultValue: '调用用途' })}</div>
+              <pre>{aiLocalToolAccessPrompt.purpose || t('aiChat.localToolAccess.purposeFallback', { defaultValue: '未提供用途说明' })}</pre>
+            </div>
             <div className="max-expand-chat-tool-result">
               <div className="max-expand-chat-tool-result-title">{t('aiChat.localToolAccess.argumentsTitle', { defaultValue: '参数' })}</div>
               <pre>{toPrettyJson(aiLocalToolAccessPrompt.argumentsPayload)}</pre>

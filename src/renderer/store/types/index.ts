@@ -199,6 +199,7 @@ export interface AiToolCall {
   turn: number;
   tool: string;
   requestId?: string;
+  purpose?: string;
   riskLevel?: string;
   durationMs?: number;
   pending?: boolean;
