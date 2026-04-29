@@ -126,6 +126,7 @@ interface ToolCallResultPayload {
 }
 
 type AiLocalToolAccessPrompt = {
+  sessionId: string;
   requestId: string;
   tool: string;
   purpose: string;
@@ -1003,6 +1004,7 @@ export function AiChatTab(): React.ReactElement {
                     ? error.message
                     : t('aiChat.messages.unknownError', { defaultValue: '未知错误' });
                   setAiWebAccessPrompt({
+                    sessionId: targetSessionId,
                     requestId,
                     url,
                     message: typeof payload?.message === 'string' ? payload.message : '',
@@ -1017,6 +1019,7 @@ export function AiChatTab(): React.ReactElement {
               }
 
               setAiWebAccessPrompt({
+                sessionId: targetSessionId,
                 requestId,
                 url,
                 message: typeof payload?.message === 'string' ? payload.message : '',
@@ -1092,6 +1095,7 @@ export function AiChatTab(): React.ReactElement {
               const needsAuthorization = authorizationRequired || tool === 'file.delete' || tool === 'cmd.exec';
               if (needsAuthorization) {
                 setAiLocalToolAccessPrompt({
+                  sessionId: targetSessionId,
                   requestId,
                   tool,
                   purpose,
@@ -1536,10 +1540,6 @@ export function AiChatTab(): React.ReactElement {
                     switchAiChatSession(session.id);
                     setAiChatStreaming(SESSION_STREAMING_IDS.has(session.id));
                     setVisibleWindowStart(0);
-                    setAiWebAccessPrompt(null);
-                    setAiWebAccessResolveError('');
-                    setAiLocalToolAccessPrompt(null);
-                    setAiLocalToolAccessResolveError('');
                     setResolvingWebAccessDecision(false);
                     setResolvingLocalToolAccessDecision(false);
                   }}
@@ -1898,7 +1898,7 @@ export function AiChatTab(): React.ReactElement {
         )}
         <div ref={chatEndRef} />
       </div>
-      {aiWebAccessPrompt && (
+      {aiWebAccessPrompt?.sessionId === activeAiChatSessionId && (
         <div className="max-expand-chat-web-access-panel">
           <div className="max-expand-chat-web-access-card">
             <div className="max-expand-chat-web-access-site">
@@ -1974,7 +1974,7 @@ export function AiChatTab(): React.ReactElement {
           </div>
         </div>
       )}
-      {aiLocalToolAccessPrompt && (
+      {aiLocalToolAccessPrompt?.sessionId === activeAiChatSessionId && (
         <div className="max-expand-chat-web-access-panel max-expand-chat-local-tool-access-panel">
           <div className="max-expand-chat-web-access-card max-expand-chat-local-tool-access-card">
             <div className="max-expand-chat-local-tool-access-scroll">

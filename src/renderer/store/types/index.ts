@@ -249,6 +249,7 @@ export interface AiChatSession {
 
 /** AI Web 访问提示 */
 export interface AiWebAccessPrompt {
+  sessionId?: string;
   requestId: string;
   url: string;
   message: string;

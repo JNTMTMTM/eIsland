@@ -316,6 +316,7 @@ function normalizeAiWebAccessPrompt(value: AiWebAccessPrompt | null): AiWebAcces
   if (!value) {
     return null;
   }
+  const sessionId = typeof value.sessionId === 'string' ? value.sessionId.trim() : '';
   const requestId = typeof value.requestId === 'string' ? value.requestId.trim() : '';
   const url = typeof value.url === 'string' ? value.url.trim() : '';
   const message = typeof value.message === 'string' ? value.message : '';
@@ -327,6 +328,7 @@ function normalizeAiWebAccessPrompt(value: AiWebAccessPrompt | null): AiWebAcces
     return null;
   }
   return {
+    sessionId,
     requestId,
     url,
     message,
@@ -383,8 +385,6 @@ export const createAiSlice: StateCreator<
         activeAiChatSessionId: target.id,
         aiChatMessages: target.messages,
         aiChatStreaming: false,
-        aiWebAccessPrompt: null,
-        aiWebAccessResolveError: '',
       });
     },
 
