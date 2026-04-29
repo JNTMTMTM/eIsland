@@ -415,6 +415,10 @@
   height: 14px;
   object-fit: contain;
   opacity: 0.92;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
+  pointer-events: none;
 }
 
 .max-expand-chat-tool-card-head::-webkit-details-marker {
