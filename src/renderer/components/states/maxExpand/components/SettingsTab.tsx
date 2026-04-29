@@ -289,9 +289,6 @@ export function SettingsTab(): ReactElement {
   const [pluginMarketPage, setPluginMarketPage] = useState<PluginMarketPageKey>('wallpaper');
   const [wallpaperMarketRefreshKey, setWallpaperMarketRefreshKey] = useState(0);
   const { aiConfig, setAiConfig, fetchWeatherData, setGuide, setLogin, setRegister, setNotification } = useIslandStore();
-  const [editingPrompt, setEditingPrompt] = useState(false);
-  const [promptDraft, setPromptDraft] = useState('');
-  const promptRef = useRef<HTMLTextAreaElement>(null);
   const settingsRef = useRef<HTMLDivElement>(null);
   const activeTabRef = useRef(activeTab);
   activeTabRef.current = activeTab;
@@ -1876,17 +1873,6 @@ export function SettingsTab(): ReactElement {
     return () => el.removeEventListener('wheel', handleWheel);
   }, []);
 
-  const startEditPrompt = (): void => {
-    setPromptDraft(aiConfig.systemPrompt);
-    setEditingPrompt(true);
-    requestAnimationFrame(() => promptRef.current?.focus());
-  };
-
-  const savePrompt = (): void => {
-    setAiConfig({ systemPrompt: promptDraft });
-    setEditingPrompt(false);
-  };
-
   /**
    * 将键盘事件转换为 Electron accelerator 字符串
    * @param e - React 键盘事件
@@ -2699,13 +2685,7 @@ export function SettingsTab(): ReactElement {
           {activeTab === 'ai' && (
             <AiSettingsSection
               aiConfig={aiConfig}
-              editingPrompt={editingPrompt}
-              promptDraft={promptDraft}
-              promptRef={promptRef}
               setAiConfig={setAiConfig}
-              setPromptDraft={setPromptDraft}
-              savePrompt={savePrompt}
-              startEditPrompt={startEditPrompt}
               onAddWorkspace={async () => {
                 const dir = await window.api.pickLocalSearchDirectory();
                 if (!dir) return;
