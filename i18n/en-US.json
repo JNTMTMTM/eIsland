@@ -554,11 +554,35 @@
       "stop": "Stop",
       "send": "Send"
     },
+    "modelCard": {
+      "title": "Model Selection Card",
+      "focusMode": "Focus Mode"
+    },
+    "codeBlock": {
+      "copy": "Copy",
+      "copied": "Copied"
+    },
     "messages": {
       "missingApiKeyWarn": "Please fill in API Key in Settings → AI Config first.",
       "unknownError": "Unknown error",
       "emptyWithApiKey": "How can I help you?",
-      "emptyWithoutApiKey": "Please fill in API Key in Settings → AI Config first"
+      "emptyWithoutApiKey": "Please fill in API Key in Settings → AI Config first",
+      "agentError": "mihtnelis agent returned an error",
+      "noModelOutput": "⚠️ No model output received. Please check DeepSeek configuration and server logs.",
+      "localToolExecuteFailed": "Local tool execution failed",
+      "localToolSubmitFailed": "Local tool result submission failed",
+      "apiRequestFailed": "API request failed ({{status}}): {{detail}}",
+      "cannotReadResponseStream": "Unable to read response stream"
+    },
+    "timeline": {
+      "todoList": "Todo List",
+      "thinkingProcess": "Thinking Process #{{index}}",
+      "toolResultTitle": "Tool Result",
+      "toolStatus": {
+        "pending": "Running",
+        "success": "Done",
+        "failed": "Failed"
+      }
     },
     "webAccess": {
       "title": "Web Access Authorization",

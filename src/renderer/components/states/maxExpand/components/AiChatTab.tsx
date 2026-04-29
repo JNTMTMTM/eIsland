@@ -190,6 +190,7 @@ function codeLanguageLabel(language: string): string {
 }
 
 function MarkdownCodeBlock(props: { className?: string; children: React.ReactNode }): React.ReactElement {
+  const { t } = useTranslation();
   const language = resolveCodeLanguage(props.className);
   const iconSrc = CODE_LANGUAGE_ICON_SRC[language];
   const code = String(props.children ?? '').replace(/\n$/, '');
@@ -220,7 +221,9 @@ function MarkdownCodeBlock(props: { className?: string; children: React.ReactNod
           className="max-expand-chat-code-copy-btn"
           onClick={handleCopy}
         >
-          {copied ? '已复制' : '复制'}
+          {copied
+            ? t('aiChat.codeBlock.copied', { defaultValue: '已复制' })
+            : t('aiChat.codeBlock.copy', { defaultValue: '复制' })}
         </button>
       </div>
       <pre>
@@ -445,6 +448,10 @@ async function streamChatCompletion(
   messages: { role: string; content: string }[],
   onChunk: (text: string) => void,
   signal: AbortSignal,
+  errorMessages: {
+    apiRequestFailed: string;
+    cannotReadResponseStream: string;
+  },
 ): Promise<void> {
   const url = `${endpoint.replace(/\/+$/, '')}/chat/completions`;
 
@@ -460,11 +467,13 @@ async function streamChatCompletion(
 
   if (!res.ok) {
     const body = await res.text().catch(() => '');
-    throw new Error(`API 请求失败 (${res.status}): ${body || res.statusText}`);
+    throw new Error(errorMessages.apiRequestFailed
+      .replace('{{status}}', String(res.status))
+      .replace('{{detail}}', body || res.statusText));
   }
 
   const reader = res.body?.getReader();
-  if (!reader) throw new Error('无法读取响应流');
+  if (!reader) throw new Error(errorMessages.cannotReadResponseStream);
 
   const decoder = new TextDecoder();
   let buffer = '';
@@ -835,7 +844,9 @@ export function AiChatTab(): React.ReactElement {
                   });
                 })
                 .catch((error: unknown) => {
-                  const message = error instanceof Error ? error.message : 'local tool execute failed';
+                  const message = error instanceof Error
+                    ? error.message
+                    : t('aiChat.messages.localToolExecuteFailed', { defaultValue: '本地工具执行失败' });
                   return resolveMihtnelisLocalToolResult({
                     token: localToken!,
                     requestId,
@@ -846,7 +857,9 @@ export function AiChatTab(): React.ReactElement {
                   });
                 })
                 .catch((submitError: unknown) => {
-                  const message = submitError instanceof Error ? submitError.message : 'local tool result submit failed';
+                  const message = submitError instanceof Error
+                    ? submitError.message
+                    : t('aiChat.messages.localToolSubmitFailed', { defaultValue: '本地工具结果提交失败' });
                   mihtnelisErrorMessage = message;
                 });
               return;
@@ -945,7 +958,7 @@ export function AiChatTab(): React.ReactElement {
               const payload = event.payload as { message?: unknown };
               const message = typeof payload?.message === 'string'
                 ? payload.message
-                : 'mihtnelis agent 返回错误';
+                : t('aiChat.messages.agentError', { defaultValue: 'mihtnelis agent 返回错误' });
               mihtnelisErrorMessage = message;
             }
           },
@@ -954,7 +967,7 @@ export function AiChatTab(): React.ReactElement {
         if (!receivedMihtnelisChunk) {
           const fallbackMessage = mihtnelisErrorMessage
             ? `❌ ${mihtnelisErrorMessage}`
-            : '⚠️ 未收到模型输出，请检查 DeepSeek 配置与服务端日志。';
+            : t('aiChat.messages.noModelOutput', { defaultValue: '⚠️ 未收到模型输出，请检查 DeepSeek 配置与服务端日志。' });
           updateMessages(prev => {
             const copy = [...prev];
             const last = copy[copy.length - 1];
@@ -981,6 +994,14 @@ export function AiChatTab(): React.ReactElement {
             });
           },
           controller.signal,
+          {
+            apiRequestFailed: t('aiChat.messages.apiRequestFailed', {
+              defaultValue: 'API 请求失败 ({{status}}): {{detail}}',
+              status: '{{status}}',
+              detail: '{{detail}}',
+            }),
+            cannotReadResponseStream: t('aiChat.messages.cannotReadResponseStream', { defaultValue: '无法读取响应流' }),
+          },
         );
       }
     } catch (err: unknown) {
@@ -1179,7 +1200,7 @@ export function AiChatTab(): React.ReactElement {
                       >
                         <summary className="max-expand-chat-todo-card-head">
                           <span className="max-expand-chat-todo-title">
-                            <span>任务清单</span>
+                            <span>{t('aiChat.timeline.todoList', { defaultValue: '任务清单' })}</span>
                           </span>
                           <span className="max-expand-chat-todo-progress">
                             {completedCount}/{snap.items.length}
@@ -1225,7 +1246,7 @@ export function AiChatTab(): React.ReactElement {
                         <summary>
                           <span className="max-expand-chat-think-title">
                             <img className="max-expand-chat-think-title-icon" src={SvgIcon.DEEPSEEK} alt="" />
-                            <span>思考过程 #1</span>
+                            <span>{t('aiChat.timeline.thinkingProcess', { defaultValue: '思考过程 #{{index}}', index: 1 })}</span>
                           </span>
                         </summary>
                         <div className="max-expand-chat-think-content">{thinkBlocks[0]}</div>
@@ -1250,7 +1271,7 @@ export function AiChatTab(): React.ReactElement {
                         >
                           <summary className="max-expand-chat-todo-card-head">
                             <span className="max-expand-chat-todo-title">
-                              <span>任务清单</span>
+                              <span>{t('aiChat.timeline.todoList', { defaultValue: '任务清单' })}</span>
                               <span className="max-expand-chat-tool-turn">#{turn}</span>
                             </span>
                             <span className="max-expand-chat-todo-progress">
@@ -1290,11 +1311,15 @@ export function AiChatTab(): React.ReactElement {
                             </span>
                             <span className={`max-expand-chat-tool-status ${toolCall.pending ? '' : (toolCall.success ? 'success' : 'failed')}`}>
                               {toolCall.pending && <span className="max-expand-chat-tool-status-dot" />}
-                              {toolCall.pending ? '执行中' : (toolCall.success ? '完成' : '失败')}
+                              {toolCall.pending
+                                ? t('aiChat.timeline.toolStatus.pending', { defaultValue: '执行中' })
+                                : (toolCall.success
+                                  ? t('aiChat.timeline.toolStatus.success', { defaultValue: '完成' })
+                                  : t('aiChat.timeline.toolStatus.failed', { defaultValue: '失败' }))}
                             </span>
                           </summary>
                           <div className="max-expand-chat-tool-result">
-                            <div className="max-expand-chat-tool-result-title">工具返回结果</div>
+                            <div className="max-expand-chat-tool-result-title">{t('aiChat.timeline.toolResultTitle', { defaultValue: '工具返回结果' })}</div>
                             <pre>{toPrettyJson(toolCall.result)}</pre>
                           </div>
                         </details>,
@@ -1315,7 +1340,7 @@ export function AiChatTab(): React.ReactElement {
                           <summary>
                             <span className="max-expand-chat-think-title">
                               <img className="max-expand-chat-think-title-icon" src={SvgIcon.DEEPSEEK} alt="" />
-                              <span>思考过程 #{idx + 1}</span>
+                              <span>{t('aiChat.timeline.thinkingProcess', { defaultValue: '思考过程 #{{index}}', index: idx + 1 })}</span>
                             </span>
                           </summary>
                           <div className="max-expand-chat-think-content">{thinkText}</div>
@@ -1338,11 +1363,15 @@ export function AiChatTab(): React.ReactElement {
                           </span>
                           <span className={`max-expand-chat-tool-status ${toolCall.pending ? '' : (toolCall.success ? 'success' : 'failed')}`}>
                             {toolCall.pending && <span className="max-expand-chat-tool-status-dot" />}
-                            {toolCall.pending ? '执行中' : (toolCall.success ? '完成' : '失败')}
+                            {toolCall.pending
+                              ? t('aiChat.timeline.toolStatus.pending', { defaultValue: '执行中' })
+                              : (toolCall.success
+                                ? t('aiChat.timeline.toolStatus.success', { defaultValue: '完成' })
+                                : t('aiChat.timeline.toolStatus.failed', { defaultValue: '失败' }))}
                           </span>
                         </summary>
                         <div className="max-expand-chat-tool-result">
-                          <div className="max-expand-chat-tool-result-title">工具返回结果</div>
+                          <div className="max-expand-chat-tool-result-title">{t('aiChat.timeline.toolResultTitle', { defaultValue: '工具返回结果' })}</div>
                           <pre>{toPrettyJson(toolCall.result)}</pre>
                         </div>
                       </details>,

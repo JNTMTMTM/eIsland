@@ -554,11 +554,35 @@
       "stop": "停止",
       "send": "发送"
     },
+    "modelCard": {
+      "title": "模型选择卡片",
+      "focusMode": "专注模式"
+    },
+    "codeBlock": {
+      "copy": "复制",
+      "copied": "已复制"
+    },
     "messages": {
       "missingApiKeyWarn": "请先在「设置 → AI配置」中填写 API Key。",
       "unknownError": "未知错误",
       "emptyWithApiKey": "有什么可以帮你的？",
-      "emptyWithoutApiKey": "请先在「设置 → AI配置」中填写 API Key"
+      "emptyWithoutApiKey": "请先在「设置 → AI配置」中填写 API Key",
+      "agentError": "mihtnelis agent 返回错误",
+      "noModelOutput": "⚠️ 未收到模型输出，请检查 DeepSeek 配置与服务端日志。",
+      "localToolExecuteFailed": "本地工具执行失败",
+      "localToolSubmitFailed": "本地工具结果提交失败",
+      "apiRequestFailed": "API 请求失败 ({{status}}): {{detail}}",
+      "cannotReadResponseStream": "无法读取响应流"
+    },
+    "timeline": {
+      "todoList": "任务清单",
+      "thinkingProcess": "思考过程 #{{index}}",
+      "toolResultTitle": "工具返回结果",
+      "toolStatus": {
+        "pending": "执行中",
+        "success": "完成",
+        "failed": "失败"
+      }
     },
     "webAccess": {
       "title": "网页访问授权",
