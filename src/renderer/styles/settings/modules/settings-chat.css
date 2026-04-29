@@ -136,6 +136,27 @@
   border-radius: 2px;
 }
 
+.max-expand-chat-history-tip {
+  display: block;
+  width: 100%;
+  margin-bottom: 4px;
+}
+
+.max-expand-chat-history-load-more {
+  width: 100%;
+  border: 1px solid rgba(var(--color-text-rgb), 0.2);
+  background: rgba(var(--color-text-rgb), 0.04);
+  color: rgba(var(--color-text-rgb), 0.75);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.max-expand-chat-history-load-more:hover {
+  background: rgba(var(--color-text-rgb), 0.1);
+}
+
 /** 空态提示 */
 .max-expand-chat-empty {
   flex: 1;

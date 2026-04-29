@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
+import React, { useDeferredValue, useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import 'devicon/devicon.min.css';
@@ -136,6 +136,9 @@ type AiLocalToolAccessPrompt = {
 
 let activeAiAbortController: AbortController | null = null;
 const MAX_MIHTNELIS_CONTEXT_CHARS = 1_000_000;
+const STREAM_UI_FLUSH_INTERVAL_MS = 90;
+const VISIBLE_CHAT_WINDOW_SIZE = 4;
+const VISIBLE_CHAT_WINDOW_STEP = 4;
 const SETTINGS_OPEN_TAB_STORE_KEY = 'settings-open-tab';
 const SETTINGS_ABOUT_FEEDBACK_PREFILL_STORE_KEY = 'settings-about-feedback-prefill';
 type SiteLinkMeta = {
@@ -549,7 +552,9 @@ export function AiChatTab(): React.ReactElement {
   const pendingAssistantChunkRef = useRef('');
   const pendingThinkChunksRef = useRef<Map<number, string>>(new Map());
   const pendingMessageFlushRafRef = useRef<number | null>(null);
+  const lastAssistantFlushAtRef = useRef(0);
   const [input, setInput] = useState('');
+  const [visibleWindowStart, setVisibleWindowStart] = useState(0);
   const [showModelCard, setShowModelCard] = useState(false);
   const [resolvingWebAccessDecision, setResolvingWebAccessDecision] = useState(false);
   const [aiLocalToolAccessPrompt, setAiLocalToolAccessPrompt] = useState<AiLocalToolAccessPrompt | null>(null);
@@ -569,11 +574,19 @@ export function AiChatTab(): React.ReactElement {
     aiWebAccessResolveError,
     setAiWebAccessResolveError,
   } = useIslandStore();
+  const deferredAiChatMessages = useDeferredValue(aiChatMessages);
   const selectedModel = availableModels.includes(aiConfig.model as (typeof availableModels)[number])
     ? aiConfig.model
     : 'deepseek-v4-flash';
   const showDeepseekIconOnModelToggle = selectedModel.toLowerCase().includes('deepseek');
-  const mihtnelisContext = useMemo(() => buildMihtnelisContext(aiChatMessages), [aiChatMessages]);
+  const mihtnelisContext = useMemo(() => buildMihtnelisContext(deferredAiChatMessages), [deferredAiChatMessages]);
+  const visibleWindowEnd = Math.min(aiChatMessages.length, visibleWindowStart + VISIBLE_CHAT_WINDOW_SIZE);
+  const hasUpperHiddenMessages = visibleWindowStart > 0;
+  const hasLowerHiddenMessages = visibleWindowEnd < aiChatMessages.length;
+  const visibleMessages = useMemo(() => {
+    return aiChatMessages.slice(visibleWindowStart, visibleWindowEnd);
+  }, [aiChatMessages, visibleWindowStart, visibleWindowEnd]);
+  const visibleStartIndex = visibleWindowStart;
   const contextUsageChars = mihtnelisContext.length;
   const contextUsagePercent = Math.min(100, (contextUsageChars / MAX_MIHTNELIS_CONTEXT_CHARS) * 100);
   const contextUsagePercentText = `${contextUsagePercent.toFixed(1)}%`;
@@ -651,6 +664,7 @@ export function AiChatTab(): React.ReactElement {
     }
     pendingAssistantChunkRef.current = '';
     pendingThinkChunksRef.current.clear();
+    lastAssistantFlushAtRef.current = Date.now();
     updateMessages(prev => {
       const copy = [...prev];
       const last = copy[copy.length - 1];
@@ -726,11 +740,28 @@ export function AiChatTab(): React.ReactElement {
         pendingMessageFlushRafRef.current = window.requestAnimationFrame(flushWhenSelectable);
         return;
       }
+      if (Date.now() - lastAssistantFlushAtRef.current < STREAM_UI_FLUSH_INTERVAL_MS) {
+        pendingMessageFlushRafRef.current = window.requestAnimationFrame(flushWhenSelectable);
+        return;
+      }
       pendingMessageFlushRafRef.current = null;
       flushPendingAssistantUpdates();
     };
     pendingMessageFlushRafRef.current = window.requestAnimationFrame(flushWhenSelectable);
   }, [flushPendingAssistantUpdates, hasActiveTextSelection]);
+
+  useEffect(() => {
+    const maxStart = Math.max(0, aiChatMessages.length - VISIBLE_CHAT_WINDOW_SIZE);
+    setVisibleWindowStart(prev => {
+      if (prev === 0 && aiChatMessages.length > VISIBLE_CHAT_WINDOW_SIZE) {
+        return maxStart;
+      }
+      if (aiChatStreaming) {
+        return maxStart;
+      }
+      return Math.min(prev, maxStart);
+    });
+  }, [aiChatMessages.length, aiChatStreaming]);
 
   /** 滚动到最新消息 */
   useEffect(() => {
@@ -780,8 +811,9 @@ export function AiChatTab(): React.ReactElement {
     }
 
     const userMsg: AiChatMessage = { role: 'user', content: text };
-    const nextMessages = [...aiChatMessages, userMsg];
+    const nextMessages: AiChatMessage[] = [...aiChatMessages, userMsg];
     setAiChatMessages(nextMessages);
+    setVisibleWindowStart(Math.max(0, nextMessages.length - VISIBLE_CHAT_WINDOW_SIZE));
     setInput('');
     setAiChatStreaming(true);
     setAiWebAccessPrompt(null);
@@ -809,7 +841,7 @@ export function AiChatTab(): React.ReactElement {
         let receivedMihtnelisChunk = false;
         let mihtnelisErrorMessage: string | null = null;
         let streamThinkingEnabled = Boolean(aiConfig.deepseekThinking);
-        const context = mihtnelisContext;
+        const context = buildMihtnelisContext(nextMessages);
         await streamMihtnelisAgent({
           token: localToken!,
           sessionId: 'max-expand-ai-chat',
@@ -1148,7 +1180,7 @@ export function AiChatTab(): React.ReactElement {
         if (!receivedMihtnelisChunk) {
           const fallbackMessage = mihtnelisErrorMessage
             ? `❌ ${mihtnelisErrorMessage}`
-            : t('aiChat.messages.noModelOutput', { defaultValue: '⚠️ 未收到模型输出，请检查 DeepSeek 配置与服务端日志。' });
+            : t('aiChat.messages.noModelOutput', { defaultValue: '未收到模型输出，请检查 DeepSeek 配置与服务端日志。' });
           updateMessages(prev => {
             const copy = [...prev];
             const last = copy[copy.length - 1];
@@ -1231,7 +1263,6 @@ export function AiChatTab(): React.ReactElement {
     aiChatStreaming,
     aiChatMessages,
     aiConfig,
-    mihtnelisContext,
     setAiChatStreaming,
     setAiChatMessages,
     updateMessages,
@@ -1412,6 +1443,19 @@ export function AiChatTab(): React.ReactElement {
       </div>
       {/* 消息列表 */}
       <div className="max-expand-chat-messages">
+        {hasUpperHiddenMessages && (
+          <div className="max-expand-chat-history-tip">
+            <button
+              type="button"
+              className="max-expand-chat-history-load-more"
+              onClick={() => {
+                setVisibleWindowStart(prev => Math.max(0, prev - VISIBLE_CHAT_WINDOW_STEP));
+              }}
+            >
+              {t('aiChat.actions.loadMoreHistory', { defaultValue: '加载更多对话' })}
+            </button>
+          </div>
+        )}
         {aiChatMessages.length === 0 && (
           <div className="max-expand-chat-empty">
             {aiConfig.apiKey
@@ -1419,15 +1463,16 @@ export function AiChatTab(): React.ReactElement {
               : t('aiChat.messages.emptyWithoutApiKey', { defaultValue: '请先在「设置 → AI配置」中填写 API Key' })}
           </div>
         )}
-        {aiChatMessages.map((msg, i) => {
+        {visibleMessages.map((msg, i) => {
+          const absoluteIndex = visibleStartIndex + i;
           const isEmptyAssistant = msg.role === 'assistant' && !msg.content
             && (!Array.isArray(msg.todoSnapshots) || msg.todoSnapshots.length === 0)
             && (!Array.isArray(msg.thinkBlocks) || msg.thinkBlocks.length === 0)
             && (!Array.isArray(msg.toolCalls) || msg.toolCalls.filter(tc => tc.tool !== 'agent.todo.write').length === 0)
-            && !(aiChatStreaming && i === aiChatMessages.length - 1);
+            && !(aiChatStreaming && absoluteIndex === aiChatMessages.length - 1);
           if (isEmptyAssistant) return null;
           return (
-          <div key={i} className={`max-expand-chat-bubble ${msg.role === 'user' ? 'user' : 'ai'}`}>
+          <div key={absoluteIndex} className={`max-expand-chat-bubble ${msg.role === 'user' ? 'user' : 'ai'}`}>
             {msg.role === 'user' ? (
               msg.content
             ) : (
@@ -1448,7 +1493,7 @@ export function AiChatTab(): React.ReactElement {
                     : [];
                   const todoSnapshots: AiTodoSnapshot[] = Array.isArray(msg.todoSnapshots) ? msg.todoSnapshots : [];
 
-                  const isLatestAssistantMsg = i === aiChatMessages.length - 1;
+                  const isLatestAssistantMsg = absoluteIndex === aiChatMessages.length - 1;
                   const showThinkingFooter = aiConfig.deepseekThinking && aiChatStreaming && isLatestAssistantMsg;
                   const traceId = typeof msg.traceId === 'string' ? msg.traceId.trim() : '';
                   const showFinalTraceMeta = Boolean(msg.finalized);
@@ -1726,6 +1771,20 @@ export function AiChatTab(): React.ReactElement {
           </div>
           );
         })}
+        {hasLowerHiddenMessages && (
+          <div className="max-expand-chat-history-tip">
+            <button
+              type="button"
+              className="max-expand-chat-history-load-more"
+              onClick={() => {
+                const maxStart = Math.max(0, aiChatMessages.length - VISIBLE_CHAT_WINDOW_SIZE);
+                setVisibleWindowStart(prev => Math.min(maxStart, prev + VISIBLE_CHAT_WINDOW_STEP));
+              }}
+            >
+              {t('aiChat.actions.loadMoreHistory', { defaultValue: '加载更多对话' })}
+            </button>
+          </div>
+        )}
         <div ref={chatEndRef} />
       </div>
       {aiWebAccessPrompt && (
