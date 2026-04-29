@@ -27,6 +27,7 @@
 import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import 'devicon/devicon.min.css';
 import { useTranslation } from 'react-i18next';
 import {
   resolveMihtnelisLocalToolResult,
@@ -92,6 +93,113 @@ type SiteLinkMeta = {
   iconUrl: string;
 };
 const SITE_LINK_META_CACHE = new Map<string, SiteLinkMeta>();
+
+const CODE_LANGUAGE_ALIASES: Record<string, string> = {
+  js: 'javascript',
+  jsx: 'react',
+  ts: 'typescript',
+  tsx: 'react',
+  py: 'python',
+  yml: 'yaml',
+  sh: 'bash',
+  shell: 'bash',
+  zsh: 'bash',
+  ps1: 'powershell',
+  csharp: 'csharp',
+  cs: 'csharp',
+  'c++': 'cplusplus',
+  cpp: 'cplusplus',
+  md: 'markdown',
+};
+
+const CODE_LANGUAGE_ICON_CLASS: Record<string, string> = {
+  javascript: 'devicon-javascript-plain',
+  typescript: 'devicon-typescript-plain',
+  react: 'devicon-react-original',
+  python: 'devicon-python-plain',
+  java: 'devicon-java-plain',
+  c: 'devicon-c-plain',
+  cplusplus: 'devicon-cplusplus-plain',
+  csharp: 'devicon-csharp-plain',
+  go: 'devicon-go-original-wordmark',
+  rust: 'devicon-rust-original',
+  php: 'devicon-php-plain',
+  ruby: 'devicon-ruby-plain',
+  swift: 'devicon-swift-plain',
+  kotlin: 'devicon-kotlin-plain',
+  dart: 'devicon-dart-plain',
+  html: 'devicon-html5-plain',
+  css: 'devicon-css3-plain',
+  sass: 'devicon-sass-original',
+  less: 'devicon-less-plain-wordmark',
+  vue: 'devicon-vuejs-plain',
+  svelte: 'devicon-svelte-plain',
+  angular: 'devicon-angularjs-plain',
+  json: 'devicon-plain-wordmark',
+  yaml: 'devicon-yaml-plain',
+  xml: 'devicon-xml-plain',
+  bash: 'devicon-bash-plain',
+  powershell: 'devicon-powershell-plain',
+  dockerfile: 'devicon-docker-plain',
+  docker: 'devicon-docker-plain',
+  sql: 'devicon-azuresqldatabase-plain',
+  markdown: 'devicon-markdown-original',
+  plaintext: 'devicon-plain-wordmark',
+};
+
+function resolveCodeLanguage(className?: string): string {
+  const match = /language-([a-zA-Z0-9#+-]+)/.exec(className ?? '');
+  const raw = (match?.[1] ?? 'plaintext').toLowerCase();
+  return CODE_LANGUAGE_ALIASES[raw] ?? raw;
+}
+
+function codeLanguageLabel(language: string): string {
+  if (language === 'plaintext') {
+    return 'TEXT';
+  }
+  return language.toUpperCase();
+}
+
+function MarkdownCodeBlock(props: { className?: string; children: React.ReactNode }): React.ReactElement {
+  const language = resolveCodeLanguage(props.className);
+  const iconClass = CODE_LANGUAGE_ICON_CLASS[language];
+  const code = String(props.children ?? '').replace(/\n$/, '');
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = useCallback(() => {
+    void navigator.clipboard.writeText(code).then(() => {
+      setCopied(true);
+      window.setTimeout(() => {
+        setCopied(false);
+      }, 1200);
+    }).catch(() => {});
+  }, [code]);
+
+  return (
+    <div className="max-expand-chat-code-block">
+      <div className="max-expand-chat-code-block-head">
+        <span className="max-expand-chat-code-lang">
+          {iconClass ? (
+            <i className={`max-expand-chat-code-lang-icon ${iconClass}`} aria-hidden="true" />
+          ) : (
+            <span className="max-expand-chat-code-lang-dot" aria-hidden="true" />
+          )}
+          <span>{codeLanguageLabel(language)}</span>
+        </span>
+        <button
+          type="button"
+          className="max-expand-chat-code-copy-btn"
+          onClick={handleCopy}
+        >
+          {copied ? '已复制' : '复制'}
+        </button>
+      </div>
+      <pre>
+        <code className={props.className}>{code}</code>
+      </pre>
+    </div>
+  );
+}
 
 function buildMihtnelisContext(messages: AiChatMessage[]): string {
   if (!Array.isArray(messages) || messages.length === 0) {
@@ -1176,6 +1284,14 @@ export function AiChatTab(): React.ReactElement {
                           <ReactMarkdown
                             remarkPlugins={[remarkGfm]}
                             components={{
+                              pre: ({ children }) => <>{children}</>,
+                              code: ({ className, children, ...props }) => {
+                                const isBlock = /language-/.test(className ?? '');
+                                if (!isBlock) {
+                                  return <code className={className} {...props}>{children}</code>;
+                                }
+                                return <MarkdownCodeBlock className={className}>{children}</MarkdownCodeBlock>;
+                              },
                               a: ({ href, children, onClick, target, rel, ...props }) => {
                                 return (
                                   <MarkdownSiteLink

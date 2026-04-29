@@ -271,6 +271,74 @@
   padding: 0;
 }
 
+.max-expand-chat-code-block {
+  margin: 8px 0;
+  border: 1px solid rgba(var(--color-text-rgb), 0.14);
+  border-radius: 10px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.26);
+}
+
+.max-expand-chat-code-block-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 7px 10px;
+  border-bottom: 1px solid rgba(var(--color-text-rgb), 0.12);
+  background: rgba(0, 0, 0, 0.24);
+}
+
+.max-expand-chat-code-lang {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: rgba(var(--color-text-rgb), 0.92);
+}
+
+.max-expand-chat-code-lang-icon {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.max-expand-chat-code-lang-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(120, 190, 255, 0.95);
+}
+
+.max-expand-chat-code-copy-btn {
+  border: 1px solid rgba(var(--color-text-rgb), 0.18);
+  border-radius: 7px;
+  background: rgba(var(--color-text-rgb), 0.08);
+  color: rgba(var(--color-text-rgb), 0.92);
+  font-size: 11px;
+  line-height: 1;
+  padding: 6px 9px;
+  cursor: pointer;
+}
+
+.max-expand-chat-code-copy-btn:hover {
+  background: rgba(var(--color-text-rgb), 0.14);
+}
+
+.max-expand-chat-code-block pre {
+  margin: 0;
+  padding: 10px;
+  background: transparent;
+}
+
+.max-expand-chat-code-block pre code {
+  display: block;
+  white-space: pre;
+  background: transparent;
+  padding: 0;
+}
+
 .max-expand-chat-bubble.ai p {
   margin: 6px 0;
 }
