@@ -922,21 +922,22 @@
 }
 
 .max-expand-chat-trace-report-btn {
+  margin-right: 10px;
   flex-shrink: 0;
-  border: 1px solid rgba(var(--color-text-rgb), 0.18);
-  background: rgba(var(--color-text-rgb), 0.06);
-  color: rgba(var(--color-text-rgb), 0.75);
-  border-radius: 8px;
-  padding: 2px 8px;
+  border: none;
+  background: transparent;
+  color: rgba(var(--color-text-rgb), 0.52);
+  border-radius: 0;
+  padding: 0;
   font-size: 11px;
   line-height: 1.5;
   cursor: pointer;
-  transition: all 0.18s ease;
+  transition: color 0.18s ease;
 }
 
 .max-expand-chat-trace-report-btn:hover {
-  border-color: rgba(var(--color-text-rgb), 0.28);
-  background: rgba(var(--color-text-rgb), 0.1);
+  color: rgba(var(--color-text-rgb), 0.52);
+  text-decoration: underline;
 }
 
 /** 输入栏 */
