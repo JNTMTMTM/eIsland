@@ -120,7 +120,7 @@ const UPDATE_AUTO_PROMPT_STORE_KEY = 'update-auto-prompt-enabled';
 const WEATHER_ALERT_ENABLED_STORE_KEY = 'weather-alert-enabled';
 const MAIL_CONFIG_STORE_KEY = 'mail-account-config';
 const SETTINGS_OPEN_TAB_STORE_KEY = 'settings-open-tab';
-type SettingsOpenTabIntent = 'update' | 'about-feedback' | 'user-orders';
+type SettingsOpenTabIntent = 'update' | 'about-feedback' | 'user-orders' | 'mail';
 let _lastSettingsSidebarTab: SettingsSidebarTabKey = 'index';
 
 type IslandBgMediaType = 'image' | 'video';
@@ -1127,6 +1127,9 @@ export function SettingsTab(): ReactElement {
         if (value === 'update') {
           setActiveTab('update');
         }
+        if (value === 'mail') {
+          setActiveTab('mail');
+        }
         if (value === 'about-feedback') {
           setActiveTab('about');
           setAboutInitialPage('feedback');
@@ -1410,6 +1413,10 @@ export function SettingsTab(): ReactElement {
       const intent = value as SettingsOpenTabIntent | null;
       if (intent === 'update') {
         setActiveTab('update');
+        window.api.storeWrite(SETTINGS_OPEN_TAB_STORE_KEY, null).catch(() => {});
+      }
+      if (intent === 'mail') {
+        setActiveTab('mail');
         window.api.storeWrite(SETTINGS_OPEN_TAB_STORE_KEY, null).catch(() => {});
       }
       if (intent === 'about-feedback') {

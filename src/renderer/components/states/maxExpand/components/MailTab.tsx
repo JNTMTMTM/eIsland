@@ -29,6 +29,8 @@ import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../../store/slices';
 
+const SETTINGS_OPEN_TAB_STORE_KEY = 'settings-open-tab';
+
 interface MailInboxItem {
   uid: string;
   subject: string;
@@ -81,7 +83,10 @@ export function MailTab(): ReactElement {
             <button
               type="button"
               className="settings-user-primary-btn"
-              onClick={() => setMaxExpandTab('settings')}
+              onClick={() => {
+                window.api.storeWrite(SETTINGS_OPEN_TAB_STORE_KEY, 'mail').catch(() => {});
+                setMaxExpandTab('settings');
+              }}
             >
               {t('mailTab.goSettings', { defaultValue: '前往邮箱设置' })}
             </button>
