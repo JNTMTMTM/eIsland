@@ -461,7 +461,7 @@
   height: 24px;
   border: none;
   border-radius: 6px;
-  background: rgba(var(--color-text-rgb), 0.08);
+  background: rgba(255, 255, 255, 0.08);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -470,13 +470,26 @@
 }
 
 .clipboard-history-copy:hover {
-  background: rgba(var(--color-text-rgb), 0.16);
+  background: rgba(255, 255, 255, 0.14);
 }
 
 .clipboard-history-copy img {
   width: 13px;
   height: 13px;
   opacity: 0.82;
+  filter: brightness(0) invert(1);
+}
+
+[data-theme='light'] .clipboard-history-copy {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+[data-theme='light'] .clipboard-history-copy:hover {
+  background: rgba(0, 0, 0, 0.12);
+}
+
+[data-theme='light'] .clipboard-history-copy img {
+  filter: brightness(0) invert(0);
 }
 
 .clipboard-history-summary {

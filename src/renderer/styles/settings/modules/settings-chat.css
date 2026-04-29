@@ -193,16 +193,32 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .max-expand-chat-session-delete:hover {
-  background: rgb(255, 255, 255, 0.1);
+  background: rgba(255, 80, 80, 0.18);
 }
 
 .max-expand-chat-session-delete img {
   width: 13px;
   height: 13px;
   object-fit: contain;
+  filter: brightness(0) invert(1);
+  opacity: 0.9;
+}
+
+[data-theme='light'] .max-expand-chat-session-delete {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+[data-theme='light'] .max-expand-chat-session-delete:hover {
+  background: rgba(255, 80, 80, 0.14);
+}
+
+[data-theme='light'] .max-expand-chat-session-delete img {
+  filter: brightness(0) invert(0);
+  opacity: 0.82;
 }
 
 .max-expand-chat-session-item:hover,
