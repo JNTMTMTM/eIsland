@@ -33,6 +33,8 @@
   animation: maxExpandFadeIn 0.2s ease;
   border-radius: 12px;
   background: rgba(var(--color-text-rgb), 0.04);
+  --session-sidebar-open-width: 220px;
+  --session-sidebar-ease: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .max-expand-chat-body {
@@ -50,14 +52,56 @@
 }
 
 .max-expand-chat-session-sidebar {
-  width: 220px;
-  min-width: 220px;
+  width: var(--session-sidebar-open-width);
+  min-width: 0;
   border-right: 1px solid rgba(var(--color-text-rgb), 0.08);
-  background: rgba(var(--color-text-rgb), 0.03);
   padding: 10px 8px;
   display: flex;
   flex-direction: column;
   gap: 8px;
+  overflow: hidden;
+  transition:
+    width 280ms var(--session-sidebar-ease),
+    padding 280ms var(--session-sidebar-ease),
+    border-color 240ms ease,
+    background 240ms ease,
+    opacity 220ms ease;
+}
+
+.max-expand-chat-session-sidebar.is-open {
+  width: var(--session-sidebar-open-width);
+  padding: 10px 8px;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.max-expand-chat-session-sidebar.is-closed {
+  width: 0;
+  padding: 10px 0;
+  border-right-color: transparent;
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.max-expand-chat-session-sidebar-inner {
+  width: calc(var(--session-sidebar-open-width) - 16px);
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition:
+    opacity 220ms ease,
+    transform 280ms var(--session-sidebar-ease);
+}
+
+.max-expand-chat-session-sidebar.is-open .max-expand-chat-session-sidebar-inner {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.max-expand-chat-session-sidebar.is-closed .max-expand-chat-session-sidebar-inner {
+  opacity: 0;
+  transform: translateX(-8px);
 }
 
 .max-expand-chat-session-sidebar-title {

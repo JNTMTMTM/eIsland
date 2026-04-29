@@ -1523,8 +1523,11 @@ export function AiChatTab(): React.ReactElement {
         </div>
       </div>
       <div className="max-expand-chat-body">
-        {showSessionSidebar && (
-          <aside className="max-expand-chat-session-sidebar">
+        <aside
+          className={`max-expand-chat-session-sidebar ${showSessionSidebar ? 'is-open' : 'is-closed'}`}
+          aria-hidden={!showSessionSidebar}
+        >
+          <div className="max-expand-chat-session-sidebar-inner">
             <div className="max-expand-chat-session-sidebar-title">
               {t('aiChat.session.historyTitle', { defaultValue: '历史会话' })}
             </div>
@@ -1567,8 +1570,8 @@ export function AiChatTab(): React.ReactElement {
                 </button>
               ))}
             </div>
-          </aside>
-        )}
+          </div>
+        </aside>
         <div className="max-expand-chat-content">
       {/* 消息列表 */}
       <div className="max-expand-chat-messages">
