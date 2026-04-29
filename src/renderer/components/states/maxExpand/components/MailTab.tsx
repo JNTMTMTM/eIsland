@@ -87,7 +87,7 @@ export function MailTab(): ReactElement {
   }, []);
 
   return (
-    <div className="max-expand-settings-section">
+    <div className="max-expand-settings-section settings-mail-tab-section">
       <div
         className="max-expand-settings-title settings-mail-tab-title-line"
       >
@@ -117,24 +117,18 @@ export function MailTab(): ReactElement {
           </button>
         </div>
       </div>
-      <div className="settings-cards">
-        <div className="settings-card">
-          <div className="settings-card-header">
-            <div className="settings-card-title">{t('mailTab.inboxTitle', { defaultValue: '收件箱（最近 10 封）' })}</div>
+      <div
+        className="settings-mail-tab-inbox-list"
+        onWheel={(event) => {
+          event.stopPropagation();
+        }}
+      >
+        {inbox.map((item) => (
+          <div className="settings-mail-tab-mail-item" key={item.uid}>
+            <span className="settings-mail-tab-mail-subject" title={item.subject}>{item.subject || '(无主题)'}</span>
+            <span className="settings-mail-tab-mail-from">{item.from || '-'}</span>
           </div>
-          <div className="settings-card-subgroup">
-            {inbox.length > 0 && (
-              <div className="settings-whitelist-list settings-mail-tab-inbox-list">
-                {inbox.map((item) => (
-                  <div className="settings-whitelist-item" key={item.uid}>
-                    <span className="settings-whitelist-name" title={item.subject}>{item.subject || '(无主题)'}</span>
-                    <span className="settings-music-hint settings-mail-tab-item-from">{item.from || '-'}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
+        ))}
       </div>
     </div>
   );
