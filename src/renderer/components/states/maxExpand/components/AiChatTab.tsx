@@ -180,7 +180,7 @@ function MarkdownCodeBlock(props: { className?: string; children: React.ReactNod
       <div className="max-expand-chat-code-block-head">
         <span className="max-expand-chat-code-lang">
           {iconClass ? (
-            <i className={`max-expand-chat-code-lang-icon ${iconClass}`} aria-hidden="true" />
+            <i className={`max-expand-chat-code-lang-icon ${iconClass} colored`} aria-hidden="true" />
           ) : (
             <span className="max-expand-chat-code-lang-dot" aria-hidden="true" />
           )}

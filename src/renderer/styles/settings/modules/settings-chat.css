@@ -272,11 +272,30 @@
 }
 
 .max-expand-chat-code-block {
+  --chat-code-block-bg: rgba(0, 0, 0, 0.26);
+  --chat-code-head-bg: rgba(0, 0, 0, 0.24);
+  --chat-code-border: rgba(var(--color-text-rgb), 0.14);
+  --chat-code-head-border: rgba(var(--color-text-rgb), 0.12);
+  --chat-code-text: rgba(var(--color-text-rgb), 0.92);
+  --chat-code-btn-bg: rgba(var(--color-text-rgb), 0.08);
+  --chat-code-btn-bg-hover: rgba(var(--color-text-rgb), 0.14);
+  --chat-code-btn-border: rgba(var(--color-text-rgb), 0.18);
   margin: 8px 0;
-  border: 1px solid rgba(var(--color-text-rgb), 0.14);
+  border: 1px solid var(--chat-code-border);
   border-radius: 10px;
   overflow: hidden;
-  background: rgba(0, 0, 0, 0.26);
+  background: var(--chat-code-block-bg);
+}
+
+[data-theme='light'] .max-expand-chat-code-block {
+  --chat-code-block-bg: rgba(255, 255, 255, 0.9);
+  --chat-code-head-bg: rgba(0, 0, 0, 0.03);
+  --chat-code-border: rgba(0, 0, 0, 0.14);
+  --chat-code-head-border: rgba(0, 0, 0, 0.1);
+  --chat-code-text: rgba(0, 0, 0, 0.88);
+  --chat-code-btn-bg: rgba(0, 0, 0, 0.04);
+  --chat-code-btn-bg-hover: rgba(0, 0, 0, 0.08);
+  --chat-code-btn-border: rgba(0, 0, 0, 0.12);
 }
 
 .max-expand-chat-code-block-head {
@@ -285,8 +304,8 @@
   justify-content: space-between;
   gap: 10px;
   padding: 7px 10px;
-  border-bottom: 1px solid rgba(var(--color-text-rgb), 0.12);
-  background: rgba(0, 0, 0, 0.24);
+  border-bottom: 1px solid var(--chat-code-head-border);
+  background: var(--chat-code-head-bg);
 }
 
 .max-expand-chat-code-lang {
@@ -296,7 +315,7 @@
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.04em;
-  color: rgba(var(--color-text-rgb), 0.92);
+  color: var(--chat-code-text);
 }
 
 .max-expand-chat-code-lang-icon {
@@ -312,10 +331,10 @@
 }
 
 .max-expand-chat-code-copy-btn {
-  border: 1px solid rgba(var(--color-text-rgb), 0.18);
+  border: 1px solid var(--chat-code-btn-border);
   border-radius: 7px;
-  background: rgba(var(--color-text-rgb), 0.08);
-  color: rgba(var(--color-text-rgb), 0.92);
+  background: var(--chat-code-btn-bg);
+  color: var(--chat-code-text);
   font-size: 11px;
   line-height: 1;
   padding: 6px 9px;
@@ -323,7 +342,7 @@
 }
 
 .max-expand-chat-code-copy-btn:hover {
-  background: rgba(var(--color-text-rgb), 0.14);
+  background: var(--chat-code-btn-bg-hover);
 }
 
 .max-expand-chat-code-block pre {
