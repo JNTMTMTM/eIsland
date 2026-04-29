@@ -668,6 +668,12 @@
       "notePlaceholder": "Enter note"
     }
   },
+  "mailTab": {
+    "title": "Mail",
+    "introTitle": "Direct Mail Access",
+    "introDesc": "Use IMAP for receiving and SMTP for sending. Configure server and auth first in Settings.",
+    "goSettings": "Go to Mail Settings"
+  },
   "clipboardHistoryTab": {
     "title": "Clipboard History",
     "count": "{{count}} items",
@@ -807,6 +813,7 @@
       "todo": "Todo",
       "urlFavorites": "URL Favorites",
       "album": "Album",
+      "mail": "Mail",
       "localFileSearch": "File Search",
       "clipboardHistory": "Clipboard",
       "aiChat": "AI Chat",
@@ -863,6 +870,7 @@
       "clipboard-history": "Clipboard History",
       "autostart": "Utilities",
       "network": "Network",
+      "mail": "Mail",
       "weather": "Weather",
       "music": "Music",
       "music-whitelist": "Player Whitelist",
@@ -874,6 +882,38 @@
       "update": "Updates",
       "pluginMarket": "Plugin Market",
       "about": "About"
+    },
+    "mail": {
+      "pagination": "Mail settings pagination",
+      "account": {
+        "title": "Account",
+        "hint": "The address is used for display and default sender metadata.",
+        "emailAddress": "Email Address",
+        "authUser": "Auth Username",
+        "authSecret": "Auth Secret / App Password"
+      },
+      "imap": {
+        "hint": "Used for receiving mail and syncing mailbox folders.",
+        "host": "IMAP Host",
+        "port": "IMAP Port",
+        "secure": "Use TLS / SSL"
+      },
+      "smtp": {
+        "hint": "Used for sending mail. Prefer provider-recommended ports and encryption.",
+        "host": "SMTP Host",
+        "port": "SMTP Port",
+        "secure": "Use TLS / SSL"
+      },
+      "actions": {
+        "title": "Save",
+        "hint": "This step only stores local config. Next step: implement IMAP fetch + SMTP send.",
+        "save": "Save Mail Config"
+      }
+    },
+    "mailPages": {
+      "account": "Account",
+      "imap": "IMAP",
+      "smtp": "SMTP"
     },
     "weatherPages": {
       "location": "Location",

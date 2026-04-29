@@ -35,6 +35,7 @@ import { UrlFavoritesTab } from './components/UrlFavoritesTab';
 import { LocalFileSearchTab } from './components/LocalFileSearchTab';
 import { ClipboardHistoryTab } from './components/ClipboardHistoryTab';
 import { AlbumTab } from './components/AlbumTab';
+import { MailTab } from './components/MailTab';
 import { SettingsTab } from './components/SettingsTab';
 import { CountdownTab } from './components/CountdownTab';
 
@@ -42,7 +43,7 @@ import { CountdownTab } from './components/CountdownTab';
 type NavDotId = MaxExpandTab | 'expanded';
 
 /** 导航点配置 */
-const NAV_DOTS: NavDotId[] = ['expanded', 'todo', 'urlFavorites', 'album', 'localFileSearch', 'clipboardHistory', 'aiChat', 'countdown', 'settings'];
+const NAV_DOTS: NavDotId[] = ['expanded', 'todo', 'urlFavorites', 'album', 'mail', 'localFileSearch', 'clipboardHistory', 'aiChat', 'countdown', 'settings'];
 
 /**
  * 最大展开模式内容组件
@@ -105,6 +106,8 @@ export function MaxExpandContent(): React.ReactElement {
               ? 'URL 收藏'
               : id === 'album'
                 ? '相册'
+              : id === 'mail'
+                ? '邮箱'
               : id === 'localFileSearch'
                 ? '文件查找'
               : id === 'clipboardHistory'
@@ -194,6 +197,7 @@ export function MaxExpandContent(): React.ReactElement {
         {activeTab === 'localFileSearch' && <LocalFileSearchTab />}
         {activeTab === 'clipboardHistory' && <ClipboardHistoryTab />}
         {activeTab === 'album' && <AlbumTab />}
+        {activeTab === 'mail' && <MailTab />}
         {countdownMode === 'integrated' && activeTab === 'countdown' && <CountdownTab />}
         {countdownMode === 'integrated' && activeTab === 'settings' && <SettingsTab />}
       </div>

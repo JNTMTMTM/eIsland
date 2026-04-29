@@ -668,6 +668,12 @@
       "notePlaceholder": "输入备注"
     }
   },
+  "mailTab": {
+    "title": "邮箱",
+    "introTitle": "客户端直连邮箱",
+    "introDesc": "收信用 IMAP，发信用 SMTP。请先在设置中填写服务器参数与账号认证信息。",
+    "goSettings": "前往邮箱设置"
+  },
   "clipboardHistoryTab": {
     "title": "剪贴板历史",
     "count": "{{count}} 条",
@@ -807,6 +813,7 @@
       "todo": "待办",
       "urlFavorites": "URL 收藏",
       "album": "相册",
+      "mail": "邮箱",
       "localFileSearch": "文件查找",
       "clipboardHistory": "剪贴板",
       "aiChat": "AI 对话",
@@ -863,6 +870,7 @@
       "clipboard-history": "剪贴板历史",
       "autostart": "实用工具",
       "network": "网络配置",
+      "mail": "邮箱配置",
       "weather": "天气配置",
       "music": "歌曲设置",
       "music-whitelist": "播放器白名单",
@@ -874,6 +882,38 @@
       "update": "更新设置",
       "pluginMarket": "插件市场",
       "about": "关于软件"
+    },
+    "mail": {
+      "pagination": "邮箱配置分页",
+      "account": {
+        "title": "账户信息",
+        "hint": "邮箱地址用于展示与默认发件人信息。",
+        "emailAddress": "邮箱地址",
+        "authUser": "认证用户名",
+        "authSecret": "认证密钥 / 应用专用密码"
+      },
+      "imap": {
+        "hint": "用于收信、同步收件箱和文件夹状态。",
+        "host": "IMAP 服务器",
+        "port": "IMAP 端口",
+        "secure": "启用 TLS / SSL"
+      },
+      "smtp": {
+        "hint": "用于发信。建议使用服务商推荐端口和加密方式。",
+        "host": "SMTP 服务器",
+        "port": "SMTP 端口",
+        "secure": "启用 TLS / SSL"
+      },
+      "actions": {
+        "title": "保存配置",
+        "hint": "当前仅保存本地配置。下一步可接入 IMAP 收信与 SMTP 发信实现。",
+        "save": "保存邮箱配置"
+      }
+    },
+    "mailPages": {
+      "account": "账户",
+      "imap": "IMAP",
+      "smtp": "SMTP"
     },
     "weatherPages": {
       "location": "定位配置",

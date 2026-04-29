@@ -57,6 +57,8 @@ import {
   APP_SETTINGS_PAGES,
   WEATHER_SETTINGS_PAGES,
   WEATHER_SETTINGS_PAGE_LABELS,
+  MAIL_SETTINGS_PAGES,
+  MAIL_SETTINGS_PAGE_LABELS,
   MUSIC_SETTINGS_PAGES,
   MUSIC_SETTINGS_PAGE_LABELS,
   NAV_CARDS,
@@ -65,6 +67,7 @@ import {
   type SettingsSidebarTabKey,
   type AppSettingsPageKey,
   type WeatherSettingsPageKey,
+  type MailSettingsPageKey,
   type MusicSettingsPageKey,
   type SettingsTabLabelKey,
   type NavCardDef,
@@ -73,6 +76,7 @@ import { UpdateSettingsSection } from './setting/components/update/UpdateSetting
 import { IndexSettingsSection } from './setting/components/index/IndexSettingsSection';
 import { AppSettingsSection } from './setting/components/app/AppSettingsSection';
 import { NetworkSettingsSection } from './setting/components/network/NetworkSettingsSection';
+import { MailSettingsSection } from './setting/components/mail/MailSettingsSection';
 import { WeatherSettingsSection } from './setting/components/weather/WeatherSettingsSection';
 import { ShortcutSettingsSection } from './setting/components/shortcut/ShortcutSettingsSection';
 import { MusicSettingsSection } from './setting/components/music/MusicSettingsSection';
@@ -114,6 +118,7 @@ const ISLAND_DISPLAY_STORE_KEY = 'island-display-id';
 const UPDATE_SOURCE_STORE_KEY = 'update-source';
 const UPDATE_AUTO_PROMPT_STORE_KEY = 'update-auto-prompt-enabled';
 const WEATHER_ALERT_ENABLED_STORE_KEY = 'weather-alert-enabled';
+const MAIL_CONFIG_STORE_KEY = 'mail-account-config';
 const SETTINGS_OPEN_TAB_STORE_KEY = 'settings-open-tab';
 type SettingsOpenTabIntent = 'update' | 'about-feedback' | 'user-orders';
 let _lastSettingsSidebarTab: SettingsSidebarTabKey = 'index';
@@ -124,6 +129,30 @@ interface IslandBgMediaConfig {
   type: IslandBgMediaType;
   source: string;
 }
+
+interface MailAccountConfig {
+  emailAddress: string;
+  imapHost: string;
+  imapPort: string;
+  imapSecure: boolean;
+  smtpHost: string;
+  smtpPort: string;
+  smtpSecure: boolean;
+  authUser: string;
+  authSecret: string;
+}
+
+const DEFAULT_MAIL_ACCOUNT_CONFIG: MailAccountConfig = {
+  emailAddress: '',
+  imapHost: '',
+  imapPort: '993',
+  imapSecure: true,
+  smtpHost: '',
+  smtpPort: '465',
+  smtpSecure: true,
+  authUser: '',
+  authSecret: '',
+};
 
 function isDirectBgMediaUrl(source: string): boolean {
   return source.startsWith('data:')
@@ -283,6 +312,7 @@ export function SettingsTab(): ReactElement {
   const [hasLoginSession, setHasLoginSession] = useState<boolean>(() => Boolean(readLocalToken()));
   const [appSettingsPage, setAppSettingsPage] = useState<AppSettingsPageKey>('layout-preview');
   const [weatherSettingsPage, setWeatherSettingsPage] = useState<WeatherSettingsPageKey>('location');
+  const [mailSettingsPage, setMailSettingsPage] = useState<MailSettingsPageKey>('account');
   const [musicSettingsPage, setMusicSettingsPage] = useState<MusicSettingsPageKey>('whitelist');
   const [userInitialProfilePage, setUserInitialProfilePage] = useState<'info' | 'pro' | 'orders'>('info');
   const [aboutInitialPage, setAboutInitialPage] = useState<'development' | 'feedback'>('development');
@@ -341,6 +371,9 @@ export function SettingsTab(): ReactElement {
   const weatherSettingsPageRef = useRef(weatherSettingsPage);
   const currentWeatherSettingsPageLabel = t(`settings.weatherPages.${weatherSettingsPage}`, { defaultValue: WEATHER_SETTINGS_PAGE_LABELS[weatherSettingsPage] || '定位配置' });
   weatherSettingsPageRef.current = weatherSettingsPage;
+  const mailSettingsPageRef = useRef(mailSettingsPage);
+  const currentMailSettingsPageLabel = t(`settings.mailPages.${mailSettingsPage}`, { defaultValue: MAIL_SETTINGS_PAGE_LABELS[mailSettingsPage] || '账户' });
+  mailSettingsPageRef.current = mailSettingsPage;
   const musicSettingsPageRef = useRef(musicSettingsPage);
   const currentMusicSettingsPageLabel = t(`settings.musicPages.${musicSettingsPage}`, { defaultValue: MUSIC_SETTINGS_PAGE_LABELS[musicSettingsPage] || '白名单' });
   musicSettingsPageRef.current = musicSettingsPage;
@@ -367,6 +400,12 @@ export function SettingsTab(): ReactElement {
   const translatedWeatherSettingsPageLabels = useMemo<Record<WeatherSettingsPageKey, string>>(() => ({
     location: t('settings.weatherPages.location', { defaultValue: WEATHER_SETTINGS_PAGE_LABELS.location }),
     provider: t('settings.weatherPages.provider', { defaultValue: WEATHER_SETTINGS_PAGE_LABELS.provider }),
+  }), [t]);
+
+  const translatedMailSettingsPageLabels = useMemo<Record<MailSettingsPageKey, string>>(() => ({
+    account: t('settings.mailPages.account', { defaultValue: MAIL_SETTINGS_PAGE_LABELS.account }),
+    imap: t('settings.mailPages.imap', { defaultValue: MAIL_SETTINGS_PAGE_LABELS.imap }),
+    smtp: t('settings.mailPages.smtp', { defaultValue: MAIL_SETTINGS_PAGE_LABELS.smtp }),
   }), [t]);
 
   const translatedMusicSettingsPageLabels = useMemo<Record<MusicSettingsPageKey, string>>(() => ({
@@ -406,6 +445,16 @@ export function SettingsTab(): ReactElement {
   const [networkTimeoutMs, setNetworkTimeoutMs] = useState<number>(DEFAULT_NETWORK_TIMEOUT_MS);
   const [customTimeoutInput, setCustomTimeoutInput] = useState<string>('');
   const [staticAssetNode, setStaticAssetNode] = useState<StaticAssetNode>(DEFAULT_STATIC_ASSET_NODE_FREE);
+  const [mailEmailAddress, setMailEmailAddress] = useState<string>(DEFAULT_MAIL_ACCOUNT_CONFIG.emailAddress);
+  const [mailImapHost, setMailImapHost] = useState<string>(DEFAULT_MAIL_ACCOUNT_CONFIG.imapHost);
+  const [mailImapPort, setMailImapPort] = useState<string>(DEFAULT_MAIL_ACCOUNT_CONFIG.imapPort);
+  const [mailImapSecure, setMailImapSecure] = useState<boolean>(DEFAULT_MAIL_ACCOUNT_CONFIG.imapSecure);
+  const [mailSmtpHost, setMailSmtpHost] = useState<string>(DEFAULT_MAIL_ACCOUNT_CONFIG.smtpHost);
+  const [mailSmtpPort, setMailSmtpPort] = useState<string>(DEFAULT_MAIL_ACCOUNT_CONFIG.smtpPort);
+  const [mailSmtpSecure, setMailSmtpSecure] = useState<boolean>(DEFAULT_MAIL_ACCOUNT_CONFIG.smtpSecure);
+  const [mailAuthUser, setMailAuthUser] = useState<string>(DEFAULT_MAIL_ACCOUNT_CONFIG.authUser);
+  const [mailAuthSecret, setMailAuthSecret] = useState<string>(DEFAULT_MAIL_ACCOUNT_CONFIG.authSecret);
+  const [mailConfigLoaded, setMailConfigLoaded] = useState(false);
   const staticAssetNodeOptions = useMemo<Array<{ label: string; value: StaticAssetNode; proOnly?: boolean }>>(() => ([
     { label: 'Cloudflare R2', value: 'r2' },
     { label: 'Tencent COS', value: 'cos', proOnly: true },
@@ -860,6 +909,53 @@ export function SettingsTab(): ReactElement {
     setCustomTimeoutInput(String(cfg.timeoutMs / 1000));
     setStaticAssetNode(normalizeStaticAssetNode(cfg.staticAssetNode, isProUser));
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    window.api.storeRead(MAIL_CONFIG_STORE_KEY).then((value) => {
+      if (cancelled || !value || typeof value !== 'object') return;
+      const next = value as Partial<MailAccountConfig>;
+
+      setMailEmailAddress(typeof next.emailAddress === 'string' ? next.emailAddress : DEFAULT_MAIL_ACCOUNT_CONFIG.emailAddress);
+      setMailImapHost(typeof next.imapHost === 'string' ? next.imapHost : DEFAULT_MAIL_ACCOUNT_CONFIG.imapHost);
+      setMailImapPort(typeof next.imapPort === 'string' ? next.imapPort : DEFAULT_MAIL_ACCOUNT_CONFIG.imapPort);
+      setMailImapSecure(typeof next.imapSecure === 'boolean' ? next.imapSecure : DEFAULT_MAIL_ACCOUNT_CONFIG.imapSecure);
+      setMailSmtpHost(typeof next.smtpHost === 'string' ? next.smtpHost : DEFAULT_MAIL_ACCOUNT_CONFIG.smtpHost);
+      setMailSmtpPort(typeof next.smtpPort === 'string' ? next.smtpPort : DEFAULT_MAIL_ACCOUNT_CONFIG.smtpPort);
+      setMailSmtpSecure(typeof next.smtpSecure === 'boolean' ? next.smtpSecure : DEFAULT_MAIL_ACCOUNT_CONFIG.smtpSecure);
+      setMailAuthUser(typeof next.authUser === 'string' ? next.authUser : DEFAULT_MAIL_ACCOUNT_CONFIG.authUser);
+      setMailAuthSecret(typeof next.authSecret === 'string' ? next.authSecret : DEFAULT_MAIL_ACCOUNT_CONFIG.authSecret);
+    }).catch(() => {});
+    setMailConfigLoaded(true);
+    return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    if (!mailConfigLoaded) return;
+    const config: MailAccountConfig = {
+      emailAddress: mailEmailAddress.trim(),
+      imapHost: mailImapHost.trim(),
+      imapPort: mailImapPort.trim(),
+      imapSecure: mailImapSecure,
+      smtpHost: mailSmtpHost.trim(),
+      smtpPort: mailSmtpPort.trim(),
+      smtpSecure: mailSmtpSecure,
+      authUser: mailAuthUser.trim(),
+      authSecret: mailAuthSecret,
+    };
+    window.api.storeWrite(MAIL_CONFIG_STORE_KEY, config).catch(() => {});
+  }, [
+    mailConfigLoaded,
+    mailEmailAddress,
+    mailImapHost,
+    mailImapPort,
+    mailImapSecure,
+    mailSmtpHost,
+    mailSmtpPort,
+    mailSmtpSecure,
+    mailAuthUser,
+    mailAuthSecret,
+  ]);
 
   useEffect(() => {
     const normalized = normalizeStaticAssetNode(staticAssetNode, isProUser);
@@ -2312,6 +2408,14 @@ export function SettingsTab(): ReactElement {
             {getSettingsLabel('network')}
           </button>
           <button
+            className={`max-expand-settings-sidebar-item ${activeTab === 'mail' ? 'active' : ''}`}
+            onClick={() => setActiveTab('mail')}
+            type="button"
+          >
+            <span className="sidebar-dot" />
+            {getSettingsLabel('mail')}
+          </button>
+          <button
             className={`max-expand-settings-sidebar-item ${activeTab === 'weather' ? 'active' : ''}`}
             onClick={() => setActiveTab('weather')}
             type="button"
@@ -2522,6 +2626,34 @@ export function SettingsTab(): ReactElement {
               setCustomTimeoutInput={setCustomTimeoutInput}
               setStaticAssetNode={setStaticAssetNode}
               saveNetworkConfig={saveNetworkConfig}
+            />
+          )}
+
+          {activeTab === 'mail' && (
+            <MailSettingsSection
+              currentMailSettingsPageLabel={currentMailSettingsPageLabel}
+              mailSettingsPage={mailSettingsPage}
+              emailAddress={mailEmailAddress}
+              imapHost={mailImapHost}
+              imapPort={mailImapPort}
+              imapSecure={mailImapSecure}
+              smtpHost={mailSmtpHost}
+              smtpPort={mailSmtpPort}
+              smtpSecure={mailSmtpSecure}
+              authUser={mailAuthUser}
+              authSecret={mailAuthSecret}
+              setEmailAddress={setMailEmailAddress}
+              setImapHost={setMailImapHost}
+              setImapPort={setMailImapPort}
+              setImapSecure={setMailImapSecure}
+              setSmtpHost={setMailSmtpHost}
+              setSmtpPort={setMailSmtpPort}
+              setSmtpSecure={setMailSmtpSecure}
+              setAuthUser={setMailAuthUser}
+              setAuthSecret={setMailAuthSecret}
+              mailSettingsPages={MAIL_SETTINGS_PAGES}
+              mailSettingsPageLabels={translatedMailSettingsPageLabels}
+              setMailSettingsPage={setMailSettingsPage}
             />
           )}
 
