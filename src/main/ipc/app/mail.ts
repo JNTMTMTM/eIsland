@@ -25,7 +25,7 @@
  */
 
 import { ipcMain } from 'electron';
-import { existsSync, readFileSync } from 'fs';
+import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { ImapFlow } from 'imapflow';
 import { simpleParser } from 'mailparser';
 import { join } from 'path';
@@ -53,7 +53,13 @@ interface MailInboxItem {
   size: number;
 }
 
+interface MailInboxCacheStore {
+  accounts: Record<string, Record<string, MailInboxItem>>;
+}
+
 const IMAP_TIMEOUT_MS = 15000;
+const MAIL_INBOX_CACHE_STORE_KEY = 'mail-inbox-cache';
+const MAIL_INBOX_CACHE_MAX_ITEMS = 200;
 
 function parsePort(raw: string, fallback: number): number {
   const value = Number(raw);
@@ -115,6 +121,58 @@ function toIsoDateString(value: unknown): string {
   return value.toISOString();
 }
 
+function getInboxCacheFilePath(storeDir: string): string {
+  return join(storeDir, `${MAIL_INBOX_CACHE_STORE_KEY}.json`);
+}
+
+function toAccountCacheKey(config: MailAccountConfig): string {
+  return [
+    config.imapHost.trim().toLowerCase(),
+    parsePort(config.imapPort, config.imapSecure ? 993 : 143),
+    config.imapSecure ? 'tls' : 'plain',
+    config.authUser.trim().toLowerCase(),
+  ].join('|');
+}
+
+function readInboxCache(storeDir: string): MailInboxCacheStore {
+  try {
+    const filePath = getInboxCacheFilePath(storeDir);
+    if (!existsSync(filePath)) return { accounts: {} };
+    const raw = readFileSync(filePath, 'utf-8');
+    const parsed = JSON.parse(raw) as Partial<MailInboxCacheStore>;
+    if (!parsed || typeof parsed !== 'object' || !parsed.accounts || typeof parsed.accounts !== 'object') {
+      return { accounts: {} };
+    }
+    return { accounts: parsed.accounts as Record<string, Record<string, MailInboxItem>> };
+  } catch {
+    return { accounts: {} };
+  }
+}
+
+function writeInboxCache(storeDir: string, value: MailInboxCacheStore): void {
+  try {
+    const filePath = getInboxCacheFilePath(storeDir);
+    writeFileSync(filePath, JSON.stringify(value), 'utf-8');
+  } catch {
+    // ignore cache write errors
+  }
+}
+
+async function toMailInboxItem(uid: number, message: Awaited<ReturnType<ImapFlow['fetchOne']>>): Promise<MailInboxItem | null> {
+  if (!message) return null;
+  const parsed = message.source ? await simpleParser(message.source) : null;
+  return {
+    uid: String(message.uid ?? uid),
+    subject: parsed?.subject || message.envelope?.subject || '(无主题)',
+    from: parsed?.from?.text || formatEnvelopeAddressList(message.envelope?.from),
+    to: parsed?.to?.text || formatEnvelopeAddressList(message.envelope?.to),
+    date: toIsoDateString(parsed?.date) || toIsoDateString(message.envelope?.date),
+    size: typeof message.size === 'number'
+      ? message.size
+      : (Buffer.isBuffer(message.source) ? message.source.length : 0),
+  };
+}
+
 async function withImapClient<T>(config: MailAccountConfig, task: (client: ImapFlow) => Promise<T>): Promise<T> {
   const client = new ImapFlow({
     host: config.imapHost,
@@ -144,7 +202,11 @@ async function withImapClient<T>(config: MailAccountConfig, task: (client: ImapF
   }
 }
 
-async function listInbox(config: MailAccountConfig, limit: number): Promise<MailInboxItem[]> {
+async function listInbox(config: MailAccountConfig, limit: number, storeDir: string): Promise<MailInboxItem[]> {
+  const cacheStore = readInboxCache(storeDir);
+  const accountCacheKey = toAccountCacheKey(config);
+  const accountCache = cacheStore.accounts[accountCacheKey] || {};
+
   return withImapClient(config, async (client) => {
     const lock = await client.getMailboxLock('INBOX');
     try {
@@ -154,6 +216,13 @@ async function listInbox(config: MailAccountConfig, limit: number): Promise<Mail
       const items: MailInboxItem[] = [];
 
       for (const uid of selectedUids) {
+        const cacheKey = String(uid);
+        const cached = accountCache[cacheKey];
+        if (cached) {
+          items.push(cached);
+          continue;
+        }
+
         const message = await client.fetchOne(
           uid,
           {
@@ -164,20 +233,23 @@ async function listInbox(config: MailAccountConfig, limit: number): Promise<Mail
           },
           { uid: true },
         );
-        if (!message) continue;
-
-        const parsed = message.source ? await simpleParser(message.source) : null;
-        items.push({
-          uid: String(message.uid ?? uid),
-          subject: parsed?.subject || message.envelope?.subject || '(无主题)',
-          from: parsed?.from?.text || formatEnvelopeAddressList(message.envelope?.from),
-          to: parsed?.to?.text || formatEnvelopeAddressList(message.envelope?.to),
-          date: toIsoDateString(parsed?.date) || toIsoDateString(message.envelope?.date),
-          size: typeof message.size === 'number'
-            ? message.size
-            : (Buffer.isBuffer(message.source) ? message.source.length : 0),
-        });
+        const item = await toMailInboxItem(uid, message);
+        if (!item) continue;
+        items.push(item);
+        accountCache[cacheKey] = item;
+        accountCache[item.uid] = item;
       }
+
+      const keepUidKeys = uids.slice(-MAIL_INBOX_CACHE_MAX_ITEMS).map((uid) => String(uid));
+      const nextAccountCache: Record<string, MailInboxItem> = {};
+      keepUidKeys.forEach((uid) => {
+        const cached = accountCache[uid];
+        if (cached) {
+          nextAccountCache[uid] = cached;
+        }
+      });
+      cacheStore.accounts[accountCacheKey] = nextAccountCache;
+      writeInboxCache(storeDir, cacheStore);
 
       return items;
     } finally {
@@ -191,7 +263,7 @@ export function registerMailIpcHandlers(options: RegisterMailIpcHandlersOptions)
     try {
       const config = ensureMailConfig(readMailConfig(options.storeDir, options.mailConfigStoreKey));
       const limit = Math.max(1, Math.min(30, Math.floor(typeof limitRaw === 'number' ? limitRaw : 10)));
-      const items = await listInbox(config, limit);
+      const items = await listInbox(config, limit, options.storeDir);
       return { ok: true, items, message: '' };
     } catch (error) {
       return {

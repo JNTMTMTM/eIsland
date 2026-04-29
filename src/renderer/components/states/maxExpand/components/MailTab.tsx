@@ -42,6 +42,8 @@ interface MailInboxItem {
   size: number;
 }
 
+let mailTabInboxMemoryCache: MailInboxItem[] = [];
+
 /**
  * 邮箱 Tab
  * @description 展示邮箱功能介绍，并引导前往设置完成 IMAP 配置
@@ -49,7 +51,7 @@ interface MailInboxItem {
 export function MailTab(): ReactElement {
   const { t } = useTranslation();
   const { setMaxExpandTab } = useIslandStore();
-  const [inbox, setInbox] = useState<MailInboxItem[]>([]);
+  const [inbox, setInbox] = useState<MailInboxItem[]>(() => mailTabInboxMemoryCache);
   const [loadingInbox, setLoadingInbox] = useState(false);
 
   const refreshInbox = async (): Promise<void> => {
@@ -67,13 +69,14 @@ export function MailTab(): ReactElement {
       ]);
 
       if (!result.ok) {
-        setInbox([]);
         return;
       }
 
-      setInbox(result.items || []);
-    } catch (error) {
-      setInbox([]);
+      const nextInbox = result.items || [];
+      setInbox(nextInbox);
+      mailTabInboxMemoryCache = nextInbox;
+    } catch {
+      // keep last inbox data to avoid blank list while retrying
     } finally {
       setLoadingInbox(false);
     }
