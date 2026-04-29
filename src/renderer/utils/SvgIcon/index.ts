@@ -129,6 +129,10 @@ export const SvgIcon = {
   MOKUGYO: './svg/MOKUGYO.svg',
   /** DEEPSEEK */
   DEEPSEEK: './svg/DEEPSEEK.svg',
+  /** 展开 */
+  EXPAND: './svg/EXPAND.svg',
+  /** 收起 */
+  COLLASPE: './svg/COLLAPSE.svg',
 
 } as const;
 
