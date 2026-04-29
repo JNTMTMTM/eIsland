@@ -584,6 +584,14 @@
         "failed": "Failed"
       }
     },
+    "localToolAccess": {
+      "title": "Local High-Risk Operation Authorization",
+      "requestHint": "The agent requests to run the following local operation. Allow it?",
+      "argumentsTitle": "Arguments",
+      "allow": "Allow Execution",
+      "deny": "Deny Execution",
+      "expiredHint": "The local tool authorization request has expired. Please trigger it again before authorizing."
+    },
     "webAccess": {
       "title": "Web Access Authorization",
       "allow": "Allow Access",

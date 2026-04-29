@@ -584,6 +584,14 @@
         "failed": "失败"
       }
     },
+    "localToolAccess": {
+      "title": "本地高风险操作授权",
+      "requestHint": "Agent 请求执行以下本地操作，是否允许？",
+      "argumentsTitle": "参数",
+      "allow": "允许执行",
+      "deny": "拒绝执行",
+      "expiredHint": "本地工具授权请求已失效，请重新发起请求后再授权。"
+    },
     "webAccess": {
       "title": "网页访问授权",
       "allow": "允许访问",

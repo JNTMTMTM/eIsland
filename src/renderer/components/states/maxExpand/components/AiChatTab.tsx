@@ -60,6 +60,7 @@ import sqlOriginalIcon from 'devicon/icons/azuresqldatabase/azuresqldatabase-ori
 import markdownOriginalIcon from 'devicon/icons/markdown/markdown-original.svg';
 import { useTranslation } from 'react-i18next';
 import {
+  resolveMihtnelisLocalToolAccess,
   resolveMihtnelisLocalToolResult,
   resolveMihtnelisWebAccess,
   streamMihtnelisAgent,
@@ -103,6 +104,8 @@ interface ToolCallRequestPayload {
   tool?: unknown;
   arguments?: unknown;
   riskLevel?: unknown;
+  authorizationRequired?: unknown;
+  message?: unknown;
 }
 
 interface ToolCallResultPayload {
@@ -114,6 +117,14 @@ interface ToolCallResultPayload {
   result?: unknown;
   durationMs?: unknown;
 }
+
+type AiLocalToolAccessPrompt = {
+  requestId: string;
+  tool: string;
+  argumentsPayload: Record<string, unknown>;
+  riskLevel: string;
+  message: string;
+};
 
 let activeAiAbortController: AbortController | null = null;
 const MAX_MIHTNELIS_CONTEXT_CHARS = 1_000_000;
@@ -512,6 +523,9 @@ export function AiChatTab(): React.ReactElement {
   const [input, setInput] = useState('');
   const [showModelCard, setShowModelCard] = useState(false);
   const [resolvingWebAccessDecision, setResolvingWebAccessDecision] = useState(false);
+  const [aiLocalToolAccessPrompt, setAiLocalToolAccessPrompt] = useState<AiLocalToolAccessPrompt | null>(null);
+  const [aiLocalToolAccessResolveError, setAiLocalToolAccessResolveError] = useState('');
+  const [resolvingLocalToolAccessDecision, setResolvingLocalToolAccessDecision] = useState(false);
   const {
     aiConfig,
     setAiConfig,
@@ -542,6 +556,56 @@ export function AiChatTab(): React.ReactElement {
     max: MAX_MIHTNELIS_CONTEXT_CHARS.toLocaleString(),
     percent: contextUsagePercentText,
   });
+
+  const executeAndSubmitLocalToolResult = useCallback(async (params: {
+    token: string;
+    requestId: string;
+    tool: string;
+    argumentsPayload: Record<string, unknown>;
+  }): Promise<void> => {
+    const executor = window.api?.executeAgentLocalTool;
+    if (typeof executor !== 'function') {
+      await resolveMihtnelisLocalToolResult({
+        token: params.token,
+        requestId: params.requestId,
+        success: false,
+        result: {},
+        error: 'LOCAL_RUNTIME_UNAVAILABLE',
+        durationMs: 0,
+      });
+      return;
+    }
+    let execution: {
+      success?: boolean;
+      result?: unknown;
+      error?: string;
+      durationMs?: number;
+    } = {};
+    try {
+      execution = await executor({
+        tool: params.tool,
+        arguments: params.argumentsPayload,
+        workspaces: aiConfig.workspaces,
+      });
+    } catch (error: unknown) {
+      execution = {
+        success: false,
+        result: {},
+        error: error instanceof Error
+          ? error.message
+          : t('aiChat.messages.localToolExecuteFailed', { defaultValue: '本地工具执行失败' }),
+        durationMs: 0,
+      };
+    }
+    await resolveMihtnelisLocalToolResult({
+      token: params.token,
+      requestId: params.requestId,
+      success: Boolean(execution?.success),
+      result: execution?.result,
+      error: typeof execution?.error === 'string' ? execution.error : '',
+      durationMs: typeof execution?.durationMs === 'number' ? execution.durationMs : 0,
+    });
+  }, [aiConfig.workspaces, t]);
 
   /** 始终从 store 读最新消息再更新，避免流式 chunk 之间的闭包过期 */
   const updateMessages = useCallback((updater: (prev: AiChatMessage[]) => AiChatMessage[]) => {
@@ -600,6 +664,8 @@ export function AiChatTab(): React.ReactElement {
     setAiChatStreaming(true);
     setAiWebAccessPrompt(null);
     setAiWebAccessResolveError('');
+    setAiLocalToolAccessPrompt(null);
+    setAiLocalToolAccessResolveError('');
 
     // 构建 API 请求消息（含 system prompt）
     const apiMessages: { role: string; content: string }[] = [];
@@ -784,6 +850,8 @@ export function AiChatTab(): React.ReactElement {
               const requestId = typeof payload?.requestId === 'string' ? payload.requestId.trim() : '';
               const tool = typeof payload?.tool === 'string' ? payload.tool.trim() : '';
               const riskLevel = typeof payload?.riskLevel === 'string' ? payload.riskLevel : '';
+              const authorizationRequired = Boolean(payload?.authorizationRequired);
+              const authorizationMessage = typeof payload?.message === 'string' ? payload.message : '';
               const argumentsPayload = typeof payload?.arguments === 'object' && payload?.arguments != null
                 ? payload.arguments as Record<string, unknown>
                 : {};
@@ -819,49 +887,30 @@ export function AiChatTab(): React.ReactElement {
                 return;
               }
 
-              const executor = window.api?.executeAgentLocalTool;
-              if (typeof executor !== 'function') {
-                void resolveMihtnelisLocalToolResult({
-                  token: localToken!,
+              const needsAuthorization = authorizationRequired || tool === 'file.delete' || tool === 'cmd.exec';
+              if (needsAuthorization) {
+                setAiLocalToolAccessPrompt({
                   requestId,
-                  success: false,
-                  result: {},
-                  error: 'LOCAL_RUNTIME_UNAVAILABLE',
-                  durationMs: 0,
-                }).catch(() => undefined);
+                  tool,
+                  argumentsPayload,
+                  riskLevel,
+                  message: authorizationMessage,
+                });
+                setAiLocalToolAccessResolveError('');
                 return;
               }
 
-              void executor({ tool, arguments: argumentsPayload, workspaces: aiConfig.workspaces })
-                .then((execution) => {
-                  return resolveMihtnelisLocalToolResult({
-                    token: localToken!,
-                    requestId,
-                    success: Boolean(execution?.success),
-                    result: execution?.result,
-                    error: typeof execution?.error === 'string' ? execution.error : '',
-                    durationMs: typeof execution?.durationMs === 'number' ? execution.durationMs : 0,
-                  });
-                })
-                .catch((error: unknown) => {
-                  const message = error instanceof Error
-                    ? error.message
-                    : t('aiChat.messages.localToolExecuteFailed', { defaultValue: '本地工具执行失败' });
-                  return resolveMihtnelisLocalToolResult({
-                    token: localToken!,
-                    requestId,
-                    success: false,
-                    result: {},
-                    error: message,
-                    durationMs: 0,
-                  });
-                })
-                .catch((submitError: unknown) => {
-                  const message = submitError instanceof Error
-                    ? submitError.message
-                    : t('aiChat.messages.localToolSubmitFailed', { defaultValue: '本地工具结果提交失败' });
-                  mihtnelisErrorMessage = message;
-                });
+              void executeAndSubmitLocalToolResult({
+                token: localToken!,
+                requestId,
+                tool,
+                argumentsPayload,
+              }).catch((submitError: unknown) => {
+                const message = submitError instanceof Error
+                  ? submitError.message
+                  : t('aiChat.messages.localToolSubmitFailed', { defaultValue: '本地工具结果提交失败' });
+                mihtnelisErrorMessage = message;
+              });
               return;
             }
 
@@ -1038,6 +1087,7 @@ export function AiChatTab(): React.ReactElement {
       }
       setAiChatStreaming(false);
       setResolvingWebAccessDecision(false);
+      setResolvingLocalToolAccessDecision(false);
     }
   }, [
     input,
@@ -1049,6 +1099,7 @@ export function AiChatTab(): React.ReactElement {
     setAiChatMessages,
     updateMessages,
     t,
+    executeAndSubmitLocalToolResult,
     setAiWebAccessPrompt,
     setAiWebAccessResolveError,
   ]);
@@ -1076,6 +1127,9 @@ export function AiChatTab(): React.ReactElement {
     setResolvingWebAccessDecision(false);
     setAiWebAccessPrompt(null);
     setAiWebAccessResolveError('');
+    setResolvingLocalToolAccessDecision(false);
+    setAiLocalToolAccessPrompt(null);
+    setAiLocalToolAccessResolveError('');
   };
 
   const handleResolveWebAccess = useCallback(async (allow: boolean): Promise<void> => {
@@ -1118,6 +1172,53 @@ export function AiChatTab(): React.ReactElement {
       setResolvingWebAccessDecision(false);
     }
   }, [t, aiWebAccessPrompt, setAiWebAccessPrompt, setAiWebAccessResolveError, updateMessages]);
+
+  const handleResolveLocalToolAccess = useCallback(async (allow: boolean): Promise<void> => {
+    const localToken = readLocalToken();
+    if (!localToken || !aiLocalToolAccessPrompt?.requestId) {
+      return;
+    }
+    setResolvingLocalToolAccessDecision(true);
+    setAiLocalToolAccessResolveError('');
+    try {
+      await resolveMihtnelisLocalToolAccess({
+        token: localToken,
+        requestId: aiLocalToolAccessPrompt.requestId,
+        allow,
+      });
+
+      if (!allow) {
+        setAiLocalToolAccessPrompt(null);
+        return;
+      }
+
+      await executeAndSubmitLocalToolResult({
+        token: localToken,
+        requestId: aiLocalToolAccessPrompt.requestId,
+        tool: aiLocalToolAccessPrompt.tool,
+        argumentsPayload: aiLocalToolAccessPrompt.argumentsPayload,
+      });
+      setAiLocalToolAccessPrompt(null);
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : t('aiChat.messages.unknownError', { defaultValue: '未知错误' });
+      if (errMsg.toLowerCase().includes('pending local tool request not found')) {
+        setAiLocalToolAccessPrompt(null);
+        updateMessages(prev => ([
+          ...prev,
+          {
+            role: 'assistant',
+            content: t('aiChat.localToolAccess.expiredHint', {
+              defaultValue: '本地工具授权请求已失效，请重新发起请求后再授权。',
+            }),
+          },
+        ]));
+        return;
+      }
+      setAiLocalToolAccessResolveError(errMsg);
+    } finally {
+      setResolvingLocalToolAccessDecision(false);
+    }
+  }, [t, aiLocalToolAccessPrompt, executeAndSubmitLocalToolResult, updateMessages]);
 
   const handleDomainPolicyChange = useCallback((policy: SiteAuthorizationPolicy): void => {
     if (!aiWebAccessPrompt) {
@@ -1516,6 +1617,44 @@ export function AiChatTab(): React.ReactElement {
             </div>
             {aiWebAccessResolveError && (
               <div className="max-expand-chat-web-access-error">{aiWebAccessResolveError}</div>
+            )}
+          </div>
+        </div>
+      )}
+      {aiLocalToolAccessPrompt && (
+        <div className="max-expand-chat-web-access-panel">
+          <div className="max-expand-chat-web-access-card">
+            <div className="max-expand-chat-web-access-title">
+              {t('aiChat.localToolAccess.title', { defaultValue: '本地高风险操作授权' })}
+            </div>
+            <div className="max-expand-chat-web-access-desc">
+              {aiLocalToolAccessPrompt.message || t('aiChat.localToolAccess.requestHint', { defaultValue: 'Agent 请求执行以下本地操作，是否允许？' })}
+            </div>
+            <div className="max-expand-chat-web-access-url">{aiLocalToolAccessPrompt.tool}</div>
+            <div className="max-expand-chat-tool-result">
+              <div className="max-expand-chat-tool-result-title">{t('aiChat.localToolAccess.argumentsTitle', { defaultValue: '参数' })}</div>
+              <pre>{toPrettyJson(aiLocalToolAccessPrompt.argumentsPayload)}</pre>
+            </div>
+            <div className="max-expand-chat-web-access-actions">
+              <button
+                type="button"
+                className="max-expand-chat-web-access-btn deny"
+                onClick={() => { handleResolveLocalToolAccess(false); }}
+                disabled={resolvingLocalToolAccessDecision}
+              >
+                {t('aiChat.localToolAccess.deny', { defaultValue: '拒绝执行' })}
+              </button>
+              <button
+                type="button"
+                className="max-expand-chat-web-access-btn allow"
+                onClick={() => { handleResolveLocalToolAccess(true); }}
+                disabled={resolvingLocalToolAccessDecision}
+              >
+                {t('aiChat.localToolAccess.allow', { defaultValue: '允许执行' })}
+              </button>
+            </div>
+            {aiLocalToolAccessResolveError && (
+              <div className="max-expand-chat-web-access-error">{aiLocalToolAccessResolveError}</div>
             )}
           </div>
         </div>

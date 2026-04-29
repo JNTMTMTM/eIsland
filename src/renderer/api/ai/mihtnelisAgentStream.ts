@@ -49,6 +49,12 @@ export interface ResolveMihtnelisWebAccessRequest {
   allow: boolean;
 }
 
+export interface ResolveMihtnelisLocalToolAccessRequest {
+  token: string;
+  requestId: string;
+  allow: boolean;
+}
+
 export interface ResolveMihtnelisLocalToolRequest {
   token: string;
   requestId: string;
@@ -245,6 +251,42 @@ export async function resolveMihtnelisLocalToolResult(request: ResolveMihtnelisL
   if (!response.ok) {
     const body = await response.text().catch(() => '');
     throw new Error(`本地工具结果提交失败 (${response.status}): ${body || response.statusText}`);
+  }
+}
+
+export async function resolveMihtnelisLocalToolAccess(request: ResolveMihtnelisLocalToolAccessRequest): Promise<void> {
+  const token = request.token?.trim();
+  if (!token) {
+    throw new Error('未登录，无法提交本地工具授权');
+  }
+  const requestId = request.requestId?.trim();
+  if (!requestId) {
+    throw new Error('requestId 不能为空');
+  }
+
+  const headers: Record<string, string> = {
+    Accept: 'application/json',
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${token}`,
+    [APP_NAME_HEADER]: APP_NAME_VALUE,
+    ...buildReplayHeaders(),
+  };
+  const version = await resolveClientVersion();
+  if (version) {
+    headers['X-Client-Version'] = version;
+  }
+
+  const response = await fetch(`${USER_ACCOUNT_API_BASE}/v1/user/ai/agent/local-tool/resolve`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({
+      requestId,
+      allow: Boolean(request.allow),
+    }),
+  });
+  if (!response.ok) {
+    const body = await response.text().catch(() => '');
+    throw new Error(`本地工具授权提交失败 (${response.status}): ${body || response.statusText}`);
   }
 }
 
