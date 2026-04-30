@@ -1124,7 +1124,7 @@ export function AiChatTab(): React.ReactElement {
     SESSION_ABORT_CONTROLLERS.delete(activeAiChatSessionId);
     SESSION_STREAMING_IDS.delete(activeAiChatSessionId);
     refreshActiveSessionStreaming();
-    if (pendingMessageFlushRafRef.current != null) {
+    if (pendingMessageFlushRafRef.current !== null && pendingMessageFlushRafRef.current !== undefined) {
       window.cancelAnimationFrame(pendingMessageFlushRafRef.current);
       pendingMessageFlushRafRef.current = null;
     }
@@ -1138,7 +1138,7 @@ export function AiChatTab(): React.ReactElement {
     SESSION_ABORT_CONTROLLERS.delete(activeAiChatSessionId);
     SESSION_STREAMING_IDS.delete(activeAiChatSessionId);
     refreshActiveSessionStreaming();
-    if (pendingMessageFlushRafRef.current != null) {
+    if (pendingMessageFlushRafRef.current !== null && pendingMessageFlushRafRef.current !== undefined) {
       window.cancelAnimationFrame(pendingMessageFlushRafRef.current);
       pendingMessageFlushRafRef.current = null;
     }
