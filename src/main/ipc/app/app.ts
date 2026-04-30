@@ -999,6 +999,87 @@ async function executeAgentLocalTool(request: AgentLocalToolRequest): Promise<{
       };
     }
 
+    if (tool === 'sys.open') {
+      const target = getStringArg(args, 'target')?.toLowerCase().trim();
+      const pathArg = getStringArg(args, 'path');
+      if (!target) throw new Error('sys.open 需要 target');
+
+      // 预定义的 Windows 系统组件映射
+      const builtinTargets: Record<string, { exe?: string; uri?: string; label: string }> = {
+        explorer:    { exe: 'explorer.exe', label: '文件资源管理器' },
+        settings:    { uri: 'ms-settings:', label: 'Windows 设置' },
+        display:     { uri: 'ms-settings:display', label: '显示设置' },
+        sound:       { uri: 'ms-settings:sound', label: '声音设置' },
+        bluetooth:   { uri: 'ms-settings:bluetooth', label: '蓝牙设置' },
+        wifi:        { uri: 'ms-settings:network-wifi', label: 'Wi-Fi 设置' },
+        network:     { uri: 'ms-settings:network-status', label: '网络状态' },
+        proxy:       { uri: 'ms-settings:network-proxy', label: '代理设置' },
+        apps:        { uri: 'ms-settings:appsfeatures', label: '应用和功能' },
+        defaultapps: { uri: 'ms-settings:defaultapps', label: '默认应用' },
+        storage:     { uri: 'ms-settings:storagesense', label: '存储设置' },
+        power:       { uri: 'ms-settings:powersleep', label: '电源和睡眠' },
+        about:       { uri: 'ms-settings:about', label: '系统信息' },
+        update:      { uri: 'ms-settings:windowsupdate', label: 'Windows 更新' },
+        datetime:    { uri: 'ms-settings:dateandtime', label: '日期和时间' },
+        language:    { uri: 'ms-settings:regionlanguage', label: '语言设置' },
+        privacy:     { uri: 'ms-settings:privacy', label: '隐私设置' },
+        personalize: { uri: 'ms-settings:personalization', label: '个性化' },
+        themes:      { uri: 'ms-settings:themes', label: '主题' },
+        wallpaper:   { uri: 'ms-settings:personalization-background', label: '壁纸' },
+        lockscreen:  { uri: 'ms-settings:lockscreen', label: '锁屏界面' },
+        taskbar:     { uri: 'ms-settings:taskbar', label: '任务栏设置' },
+        startmenu:   { uri: 'ms-settings:personalization-start', label: '开始菜单设置' },
+        mouse:       { uri: 'ms-settings:mousetouchpad', label: '鼠标设置' },
+        keyboard:    { uri: 'ms-settings:typing', label: '键盘设置' },
+        control:     { exe: 'control.exe', label: '控制面板' },
+        taskmgr:     { exe: 'taskmgr.exe', label: '任务管理器' },
+        devmgr:      { exe: 'devmgmt.msc', label: '设备管理器' },
+        diskmgmt:    { exe: 'diskmgmt.msc', label: '磁盘管理' },
+        services:    { exe: 'services.msc', label: '服务管理' },
+        regedit:     { exe: 'regedit.exe', label: '注册表编辑器' },
+        notepad:     { exe: 'notepad.exe', label: '记事本' },
+        calc:        { exe: 'calc.exe', label: '计算器' },
+        paint:       { exe: 'mspaint.exe', label: '画图' },
+        terminal:    { exe: 'wt.exe', label: 'Windows Terminal' },
+        snip:        { exe: 'snippingtool.exe', label: '截图工具' },
+      };
+
+      const entry = builtinTargets[target];
+      if (entry) {
+        if (entry.uri) {
+          await shell.openExternal(entry.uri);
+        } else if (entry.exe) {
+          const exe: string = entry.exe;
+          const exeArgs: string[] = [];
+          // explorer 支持打开指定路径
+          if (target === 'explorer' && pathArg) {
+            exeArgs.push(normalizeLocalPath(pathArg) || pathArg);
+          }
+          // msc 文件通过 mmc.exe 打开
+          if (exe.endsWith('.msc')) {
+            await new Promise<void>((res, rej) => {
+              execFile('mmc.exe', [exe, ...exeArgs], { windowsHide: false, timeout: 10000 },
+                (err) => { if (err) rej(new Error(err.message)); else res(); });
+            });
+          } else {
+            await new Promise<void>((res, rej) => {
+              execFile(exe, exeArgs, { windowsHide: false, timeout: 10000 },
+                (err) => { if (err) rej(new Error(err.message)); else res(); });
+            });
+          }
+        }
+        return { success: true, result: { target, label: entry.label, opened: true }, error: '', durationMs: Date.now() - startedAt };
+      }
+
+      // 支持直接传入 ms-settings: URI 或其他 URI scheme
+      if (target.startsWith('ms-settings:') || target.startsWith('http://') || target.startsWith('https://')) {
+        await shell.openExternal(target);
+        return { success: true, result: { target, opened: true }, error: '', durationMs: Date.now() - startedAt };
+      }
+
+      throw new Error(`sys.open 不支持的 target: ${target}。可用值: ${Object.keys(builtinTargets).join(', ')}，或直接传入 ms-settings: URI`);
+    }
+
     if (tool === 'file.tree') {
       const pathArg = normalizeLocalPath(getStringArg(args, 'path'));
       const maxDepthRaw = getNumberArg(args, 'maxDepth');
