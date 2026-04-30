@@ -534,6 +534,13 @@
   font-weight: 500;
 }
 
+.settings-field-hint {
+  font-size: 11px;
+  color: rgba(var(--color-text-rgb), 0.35);
+  line-height: 1.4;
+  font-weight: 400;
+}
+
 .settings-field-input {
   background: rgba(var(--color-text-rgb), 0.06);
   border: 1px solid rgba(var(--color-text-rgb), 0.1);
