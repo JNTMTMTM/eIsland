@@ -31,6 +31,7 @@ import useIslandStore from '../../../../store/slices';
 import { SvgIcon } from '../../../../utils/SvgIcon';
 
 const SETTINGS_OPEN_TAB_STORE_KEY = 'settings-open-tab';
+const MAIL_CONFIG_STORE_KEY = 'mail-account-config';
 const MAIL_INBOX_REFRESH_TIMEOUT_MS = 20000;
 
 interface MailInboxItem {
@@ -102,6 +103,7 @@ export function MailTab(): ReactElement {
   const [inbox, setInbox] = useState<MailInboxItem[]>(() => mailTabInboxMemoryCache);
   const [loadingInbox, setLoadingInbox] = useState(false);
   const [expandedUid, setExpandedUid] = useState<string | null>(null);
+  const [mailConfigured, setMailConfigured] = useState<boolean | null>(null);
 
   const refreshInbox = async (): Promise<void> => {
     setLoadingInbox(true);
@@ -133,8 +135,52 @@ export function MailTab(): ReactElement {
   };
 
   useEffect(() => {
-    void refreshInbox();
+    window.api.storeRead(MAIL_CONFIG_STORE_KEY).then((value) => {
+      if (!value || typeof value !== 'object') {
+        setMailConfigured(false);
+        return;
+      }
+      const cfg = value as Record<string, unknown>;
+      const hasConfig = Boolean(
+        typeof cfg.imapHost === 'string' && cfg.imapHost.trim()
+        && typeof cfg.authUser === 'string' && cfg.authUser.trim()
+        && typeof cfg.authSecret === 'string' && cfg.authSecret,
+      );
+      setMailConfigured(hasConfig);
+      if (hasConfig) void refreshInbox();
+    }).catch(() => {
+      setMailConfigured(false);
+    });
   }, []);
+
+  const goMailSettings = (): void => {
+    window.api.storeWrite(SETTINGS_OPEN_TAB_STORE_KEY, 'mail').catch(() => {});
+    setMaxExpandTab('settings');
+  };
+
+  if (mailConfigured === false) {
+    return (
+      <div className="max-expand-settings-section settings-mail-tab-section">
+        <div className="settings-user-auth">
+          <div className="settings-user-auth-entry-title">
+            {t('mailTab.emptyGuide.title', { defaultValue: '配置邮箱 IMAP 账户后即可在此收取和查看邮件' })}
+          </div>
+          <div className="settings-user-auth-hint">
+            {t('mailTab.emptyGuide.hint', { defaultValue: '需要填写 IMAP 服务器地址、认证用户名和密钥。' })}
+          </div>
+          <div className="settings-user-auth-entry-actions">
+            <button
+              type="button"
+              className="settings-user-primary-btn"
+              onClick={goMailSettings}
+            >
+              {t('mailTab.emptyGuide.action', { defaultValue: '前往设置' })}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const selectedItem = expandedUid ? inbox.find((item) => item.uid === expandedUid) : null;
   const hasSplit = Boolean(selectedItem);
