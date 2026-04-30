@@ -330,7 +330,7 @@ export function MailTab(): ReactElement {
             </div>
           </div>
           {hasMultipleAccounts && (
-            <div className="settings-mail-tab-account-tabs">
+            <div className={`settings-mail-tab-account-tabs ${hasSplit ? 'is-collapsed' : ''}`}>
               {configuredAccounts.map((account) => (
                 <button
                   key={account.id}
