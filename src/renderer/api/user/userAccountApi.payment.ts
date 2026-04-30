@@ -125,3 +125,40 @@ export function closeUserPaymentOrder(
     auth: token,
   });
 }
+
+export interface AgentBalanceData {
+  balanceYuan: string;
+}
+
+/**
+ * 查询当前用户 Agent 余额。
+ * @param token - 用户 token。
+ * @returns 余额数据。
+ */
+export function fetchAgentBalance(token: string): Promise<UserAccountResult<AgentBalanceData>> {
+  return request<AgentBalanceData>('/v1/user/agent/balance', {
+    method: 'GET',
+    auth: token,
+  });
+}
+
+export interface AgentRechargeData {
+  balanceYuan: string;
+}
+
+/**
+ * Agent 余额充值。
+ * @param token - 用户 token。
+ * @param amountFen - 充值金额（分）。
+ * @returns 充值结果。
+ */
+export function rechargeAgentBalance(
+  token: string,
+  amountFen: number,
+): Promise<UserAccountResult<AgentRechargeData>> {
+  return request<AgentRechargeData>('/v1/user/agent/balance/recharge', {
+    method: 'POST',
+    auth: token,
+    body: { amountFen },
+  });
+}

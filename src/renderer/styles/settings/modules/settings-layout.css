@@ -3334,6 +3334,144 @@
   text-decoration: none;
 }
 
+/* ── Recharge Page ── */
+
+.settings-user-recharge-panel {
+  gap: 10px;
+  flex: 1;
+  min-height: 0;
+  padding-bottom: 12px;
+  box-sizing: border-box;
+}
+
+.settings-user-recharge-intro-card {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 40px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.settings-user-recharge-intro-card .settings-user-form-title {
+  flex: 0 0 auto;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.settings-user-recharge-intro-card .settings-user-card-title-hint {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.settings-user-recharge-balance {
+  width: 100%;
+  font-size: 12px;
+  color: rgba(var(--color-text-rgb), 0.62);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 2px;
+}
+
+.settings-user-recharge-balance-value {
+  font-weight: 700;
+  font-size: 14px;
+  color: rgba(var(--color-text-rgb), 0.95);
+}
+
+.settings-user-recharge-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.settings-user-recharge-option {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  border: 1px solid rgba(var(--color-text-rgb), 0.12);
+  border-radius: 10px;
+  background: rgba(var(--color-text-rgb), 0.04);
+  cursor: pointer;
+  transition: border-color 0.18s, background 0.18s, box-shadow 0.18s;
+  padding: 6px 8px;
+  user-select: none;
+}
+
+.settings-user-recharge-option:hover {
+  border-color: rgba(var(--color-text-rgb), 0.22);
+  background: rgba(var(--color-text-rgb), 0.08);
+}
+
+.settings-user-recharge-option.active {
+  border-color: rgba(242, 203, 81, 0.6);
+  background: rgba(242, 203, 81, 0.12);
+  box-shadow: 0 0 0 1.5px rgba(242, 203, 81, 0.25);
+}
+
+.settings-user-recharge-option-amount {
+  font-size: 15px;
+  font-weight: 700;
+  color: rgba(var(--color-text-rgb), 0.88);
+}
+
+.settings-user-recharge-option.active .settings-user-recharge-option-amount {
+  color: rgba(var(--color-text-rgb), 0.95);
+}
+
+.settings-user-recharge-option--custom {
+  cursor: default;
+}
+
+.settings-user-recharge-custom-input {
+  width: 100%;
+  height: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(var(--color-text-rgb), 0.88);
+  text-align: center;
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.settings-user-recharge-custom-input::-webkit-inner-spin-button,
+.settings-user-recharge-custom-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.settings-user-recharge-custom-input::placeholder {
+  color: rgba(var(--color-text-rgb), 0.35);
+  font-weight: 500;
+}
+
+.settings-user-recharge-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.settings-user-recharge-actions .settings-user-primary-btn {
+  flex: 1;
+  justify-content: center;
+}
+
+/* ── Orders Page ── */
+
 .settings-user-orders-panel {
   gap: 10px;
 }

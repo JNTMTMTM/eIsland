@@ -31,6 +31,8 @@ import {
   closeUserPaymentOrder,
   fetchUserPaymentOrders,
   fetchProMonthPricing,
+  fetchAgentBalance,
+  rechargeAgentBalance,
   fetchUserProfile,
   logoutUser,
   refreshUserToken,
@@ -56,7 +58,7 @@ import {
 import { SvgIcon } from '../../../../../../../utils/SvgIcon';
 
 type FeedbackType = 'success' | 'error' | 'info';
-type UserProfilePage = 'info' | 'edit' | 'password' | 'pro' | 'orders' | 'account';
+type UserProfilePage = 'info' | 'edit' | 'password' | 'pro' | 'recharge' | 'orders' | 'account';
 
 interface Feedback {
   type: FeedbackType;
@@ -70,7 +72,7 @@ interface UserSettingsSectionProps {
 }
 
 const GENDER_VALUES: UserAccountGender[] = ['male', 'female', 'custom', 'undisclosed'];
-const USER_PROFILE_PAGES: UserProfilePage[] = ['info', 'edit', 'password', 'pro', 'orders', 'account'];
+const USER_PROFILE_PAGES: UserProfilePage[] = ['info', 'edit', 'password', 'pro', 'recharge', 'orders', 'account'];
 const EMAIL_PATTERN = /^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
 
 const getGenderIcon = (gender: UserAccountGender | null | undefined): string => {
@@ -174,6 +176,11 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
   const [loadingUserOrders, setLoadingUserOrders] = useState(false);
   const [ordersFeedback, setOrdersFeedback] = useState<Feedback | null>(null);
   const [orderActionOutTradeNo, setOrderActionOutTradeNo] = useState('');
+  const [rechargeSelected, setRechargeSelected] = useState<number | null>(null);
+  const [rechargeCustomValue, setRechargeCustomValue] = useState('');
+  const [rechargeSubmitting, setRechargeSubmitting] = useState(false);
+  const [rechargeFeedback, setRechargeFeedback] = useState<Feedback | null>(null);
+  const [userBalance, setUserBalance] = useState<string | null>(null);
 
   const currentUserProfilePageLabel = t(`settings.user.pages.${userProfilePage}`, {
     defaultValue: userProfilePage === 'info'
@@ -184,9 +191,11 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
           ? '修改密码'
           : userProfilePage === 'pro'
             ? 'PRO功能'
-            : userProfilePage === 'orders'
-              ? '我的订单'
-            : '关于账户',
+            : userProfilePage === 'recharge'
+              ? '余额充值'
+              : userProfilePage === 'orders'
+                ? '我的订单'
+                : '关于账户',
   });
 
   const avatarInputRef = useRef<HTMLInputElement | null>(null);
@@ -372,6 +381,20 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
       cancelled = true;
     };
   }, [token, t]);
+
+  useEffect(() => {
+    if (!token || userProfilePage !== 'recharge') return;
+    let cancelled = false;
+    const loadBalance = async (): Promise<void> => {
+      const result = await fetchAgentBalance(token);
+      if (cancelled) return;
+      if (result.ok && result.data) {
+        setUserBalance(result.data.balanceYuan);
+      }
+    };
+    void loadBalance();
+    return () => { cancelled = true; };
+  }, [token, userProfilePage]);
 
   useEffect(() => {
     const el = profilePagesLayoutRef.current;
@@ -977,6 +1000,7 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
       { id: 'edit', label: t('settings.user.pages.edit', { defaultValue: '修改信息' }) },
       { id: 'password', label: t('settings.user.pages.password', { defaultValue: '修改密码' }) },
       { id: 'pro', label: t('settings.user.pages.pro', { defaultValue: 'PRO功能' }) },
+      { id: 'recharge', label: t('settings.user.pages.recharge', { defaultValue: '余额充值' }) },
       { id: 'orders', label: t('settings.user.pages.orders', { defaultValue: '我的订单' }) },
       { id: 'account', label: t('settings.user.pages.account', { defaultValue: '关于账户' }) },
     ];
@@ -1526,6 +1550,105 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
       </div>
     );
 
+    const RECHARGE_PRESETS = [1, 10, 30, 50, 100];
+
+    const rechargeAmountYuan = rechargeSelected != null
+      ? rechargeSelected
+      : (rechargeCustomValue.trim() !== '' ? parseFloat(rechargeCustomValue) : NaN);
+    const rechargeAmountValid = !isNaN(rechargeAmountYuan) && rechargeAmountYuan > 0;
+
+    const handleRechargeSubmit = async (): Promise<void> => {
+      if (!rechargeAmountValid || rechargeSubmitting || !token) return;
+      setRechargeSubmitting(true);
+      setRechargeFeedback(null);
+      try {
+        const amountFen = Math.round(rechargeAmountYuan * 100);
+        const result = await rechargeAgentBalance(token, amountFen);
+        if (result.ok && result.data) {
+          setUserBalance(result.data.balanceYuan);
+          setRechargeFeedback({ type: 'success', text: t('settings.user.recharge.success', { defaultValue: '充值成功' }) });
+          setRechargeSelected(null);
+          setRechargeCustomValue('');
+        } else {
+          setRechargeFeedback({ type: 'error', text: result.message || t('settings.user.recharge.fail', { defaultValue: '充值失败，请稍后重试' }) });
+        }
+      } catch {
+        setRechargeFeedback({ type: 'error', text: t('settings.user.recharge.fail', { defaultValue: '充值失败，请稍后重试' }) });
+      } finally {
+        setRechargeSubmitting(false);
+      }
+    };
+
+    const renderRechargePage = (): ReactElement => (
+      <div className="settings-user-page-panel settings-user-recharge-panel">
+        <div className="settings-user-card settings-user-recharge-intro-card">
+          <div className="settings-user-form-title">{t('settings.user.recharge.title', { defaultValue: '余额充值' })}</div>
+          <div className="settings-user-card-title-hint">
+            {t('settings.user.recharge.subtitle', { defaultValue: '充值后可用于 AI 助手对话消耗' })}
+          </div>
+          {userBalance != null && (
+            <div className="settings-user-recharge-balance">
+              {t('settings.user.recharge.currentBalance', { defaultValue: '当前余额' })}：
+              <span className="settings-user-recharge-balance-value">¥{userBalance}</span>
+            </div>
+          )}
+        </div>
+
+        <div className="settings-user-recharge-grid">
+          {RECHARGE_PRESETS.map((amount) => (
+            <button
+              key={amount}
+              type="button"
+              className={`settings-user-recharge-option ${rechargeSelected === amount ? 'active' : ''}`}
+              onClick={() => {
+                setRechargeSelected(rechargeSelected === amount ? null : amount);
+                setRechargeCustomValue('');
+                setRechargeFeedback(null);
+              }}
+            >
+              <span className="settings-user-recharge-option-amount">¥{amount}</span>
+            </button>
+          ))}
+          <div className={`settings-user-recharge-option settings-user-recharge-option--custom ${rechargeSelected == null && rechargeCustomValue.trim() !== '' ? 'active' : ''}`}>
+            <input
+              type="number"
+              min="0.01"
+              step="0.01"
+              placeholder={t('settings.user.recharge.customPlaceholder', { defaultValue: '自定义' })}
+              className="settings-user-recharge-custom-input"
+              value={rechargeCustomValue}
+              onChange={(e) => {
+                setRechargeCustomValue(e.target.value);
+                setRechargeSelected(null);
+                setRechargeFeedback(null);
+              }}
+            />
+          </div>
+        </div>
+
+        {rechargeFeedback && (
+          <div className={`settings-user-feedback settings-user-feedback--${rechargeFeedback.type}`}>
+            {rechargeFeedback.text}
+          </div>
+        )}
+
+        <div className="settings-user-recharge-actions">
+          <button
+            type="button"
+            className="settings-user-primary-btn"
+            disabled={!rechargeAmountValid || rechargeSubmitting}
+            onClick={() => void handleRechargeSubmit()}
+          >
+            {rechargeSubmitting
+              ? t('settings.user.recharge.submitting', { defaultValue: '充值中…' })
+              : rechargeAmountValid
+                ? t('settings.user.recharge.confirm', { defaultValue: '确认充值 ¥{{amount}}', amount: rechargeAmountYuan.toFixed(2) })
+                : t('settings.user.recharge.selectAmount', { defaultValue: '请选择充值金额' })}
+          </button>
+        </div>
+      </div>
+    );
+
     return (
       <div className="settings-user-profile settings-user-profile-paged" ref={profilePagesLayoutRef}>
         <div className="settings-user-profile-main">
@@ -1533,6 +1656,7 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
           {userProfilePage === 'edit' && renderEditPage()}
           {userProfilePage === 'password' && renderPasswordPage()}
           {userProfilePage === 'pro' && renderProPage()}
+          {userProfilePage === 'recharge' && renderRechargePage()}
           {userProfilePage === 'orders' && renderOrdersPage()}
           {userProfilePage === 'account' && renderAccountPage()}
         </div>

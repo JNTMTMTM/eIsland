@@ -1862,9 +1862,21 @@
         "edit": "Edit Profile",
         "password": "Change Password",
         "pro": "PRO Features",
+        "recharge": "Recharge",
         "orders": "My Orders",
         "account": "Account",
         "switchTo": "Switch to {{label}}"
+      },
+      "recharge": {
+        "title": "Recharge Balance",
+        "subtitle": "Top up your balance for AI assistant conversations",
+        "currentBalance": "Current Balance",
+        "customPlaceholder": "Custom",
+        "selectAmount": "Select an amount",
+        "confirm": "Confirm Recharge ¥{{amount}}",
+        "submitting": "Processing…",
+        "success": "Recharge successful",
+        "fail": "Recharge failed. Please try again later"
       },
       "orders": {
         "title": "My Orders",

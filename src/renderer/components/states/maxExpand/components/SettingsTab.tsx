@@ -309,7 +309,7 @@ export function SettingsTab(): ReactElement {
   const [weatherSettingsPage, setWeatherSettingsPage] = useState<WeatherSettingsPageKey>('location');
   const [mailSettingsPage, setMailSettingsPage] = useState<MailSettingsPageKey>('account');
   const [musicSettingsPage, setMusicSettingsPage] = useState<MusicSettingsPageKey>('whitelist');
-  const [userInitialProfilePage, setUserInitialProfilePage] = useState<'info' | 'pro' | 'orders'>('info');
+  const [userInitialProfilePage, setUserInitialProfilePage] = useState<'info' | 'pro' | 'recharge' | 'orders'>('info');
   const [aboutInitialPage, setAboutInitialPage] = useState<'development' | 'feedback'>('development');
   const [pluginMarketPage, setPluginMarketPage] = useState<PluginMarketPageKey>('wallpaper');
   const [wallpaperMarketRefreshKey, setWallpaperMarketRefreshKey] = useState(0);
