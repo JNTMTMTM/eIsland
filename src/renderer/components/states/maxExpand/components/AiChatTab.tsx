@@ -28,37 +28,6 @@ import React, { useDeferredValue, useEffect, useRef, useState, useCallback, useM
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useTranslation } from 'react-i18next';
-import 'devicon/devicon.min.css';
-import javascriptOriginalIcon from 'devicon/icons/javascript/javascript-original.svg';
-import typescriptOriginalIcon from 'devicon/icons/typescript/typescript-original.svg';
-import reactOriginalIcon from 'devicon/icons/react/react-original.svg';
-import pythonOriginalIcon from 'devicon/icons/python/python-original.svg';
-import javaOriginalIcon from 'devicon/icons/java/java-original.svg';
-import cOriginalIcon from 'devicon/icons/c/c-original.svg';
-import cplusplusOriginalIcon from 'devicon/icons/cplusplus/cplusplus-original.svg';
-import csharpOriginalIcon from 'devicon/icons/csharp/csharp-original.svg';
-import goOriginalIcon from 'devicon/icons/go/go-original.svg';
-import rustOriginalIcon from 'devicon/icons/rust/rust-original.svg';
-import phpOriginalIcon from 'devicon/icons/php/php-original.svg';
-import rubyOriginalIcon from 'devicon/icons/ruby/ruby-original.svg';
-import swiftOriginalIcon from 'devicon/icons/swift/swift-original.svg';
-import kotlinOriginalIcon from 'devicon/icons/kotlin/kotlin-original.svg';
-import dartOriginalIcon from 'devicon/icons/dart/dart-original.svg';
-import htmlOriginalIcon from 'devicon/icons/html5/html5-original.svg';
-import cssOriginalIcon from 'devicon/icons/css3/css3-original.svg';
-import sassOriginalIcon from 'devicon/icons/sass/sass-original.svg';
-import lessFallbackIcon from 'devicon/icons/less/less-plain-wordmark.svg';
-import vueOriginalIcon from 'devicon/icons/vuejs/vuejs-original.svg';
-import svelteOriginalIcon from 'devicon/icons/svelte/svelte-original.svg';
-import angularOriginalIcon from 'devicon/icons/angularjs/angularjs-original.svg';
-import jsonOriginalIcon from 'devicon/icons/json/json-original.svg';
-import yamlOriginalIcon from 'devicon/icons/yaml/yaml-original.svg';
-import xmlOriginalIcon from 'devicon/icons/xml/xml-original.svg';
-import bashOriginalIcon from 'devicon/icons/bash/bash-original.svg';
-import powershellOriginalIcon from 'devicon/icons/powershell/powershell-original.svg';
-import dockerOriginalIcon from 'devicon/icons/docker/docker-original.svg';
-import sqlOriginalIcon from 'devicon/icons/azuresqldatabase/azuresqldatabase-original.svg';
-import markdownOriginalIcon from 'devicon/icons/markdown/markdown-original.svg';
 import {
   resolveMihtnelisLocalToolAccess,
   resolveMihtnelisLocalToolResult,
@@ -73,7 +42,7 @@ import {
   setWebsiteAuthorizationPolicy,
   type SiteAuthorizationPolicy,
 } from '../../../../api/site/siteMetaApi';
-import { SvgIcon } from '../../../../utils/SvgIcon';
+import { SvgIcon, resolveDevIconByFileName } from '../../../../utils/SvgIcon';
 import useIslandStore from '../../../../store/slices';
 import type { AiChatAttachment, AiChatMessage, AiToolCall, AiTodoItem, AiTodoSnapshot } from '../../../../store/types';
 import { readLocalToken } from '../../../../utils/userAccount';
@@ -110,81 +79,12 @@ const SETTINGS_ABOUT_FEEDBACK_PREFILL_STORE_KEY = 'settings-about-feedback-prefi
 const ATTACHMENT_MAX_SIZE_BYTES = 102400;
 const ATTACHMENT_MAX_COUNT = 5;
 const ATTACHMENT_ACCEPT_EXTENSIONS = '.txt,.md,.json,.log,.csv,.xml,.yaml,.yml,.toml,.ini,.cfg,.conf,.env,.sh,.bat,.ps1,.py,.js,.ts,.jsx,.tsx,.html,.css,.scss,.less,.sql,.c,.cpp,.h,.hpp,.java,.kt,.swift,.go,.rs,.rb,.php,.lua,.diff,.patch';
-const ATTACHMENT_LANGUAGE_ALIASES: Record<string, string> = {
-  txt: 'plaintext',
-  log: 'plaintext',
-  csv: 'plaintext',
-  ini: 'plaintext',
-  cfg: 'plaintext',
-  conf: 'plaintext',
-  env: 'plaintext',
-  toml: 'plaintext',
-  diff: 'plaintext',
-  patch: 'plaintext',
-  js: 'javascript',
-  jsx: 'react',
-  ts: 'typescript',
-  tsx: 'react',
-  py: 'python',
-  yml: 'yaml',
-  sh: 'bash',
-  shell: 'bash',
-  zsh: 'bash',
-  ps1: 'powershell',
-  csharp: 'csharp',
-  cs: 'csharp',
-  'c++': 'cplusplus',
-  cpp: 'cplusplus',
-  hpp: 'cplusplus',
-  md: 'markdown',
-};
-const ATTACHMENT_ICON_SRC: Record<string, string> = {
-  javascript: javascriptOriginalIcon,
-  typescript: typescriptOriginalIcon,
-  react: reactOriginalIcon,
-  python: pythonOriginalIcon,
-  java: javaOriginalIcon,
-  c: cOriginalIcon,
-  cplusplus: cplusplusOriginalIcon,
-  csharp: csharpOriginalIcon,
-  go: goOriginalIcon,
-  rust: rustOriginalIcon,
-  php: phpOriginalIcon,
-  ruby: rubyOriginalIcon,
-  swift: swiftOriginalIcon,
-  kotlin: kotlinOriginalIcon,
-  dart: dartOriginalIcon,
-  html: htmlOriginalIcon,
-  css: cssOriginalIcon,
-  sass: sassOriginalIcon,
-  less: lessFallbackIcon,
-  vue: vueOriginalIcon,
-  svelte: svelteOriginalIcon,
-  angular: angularOriginalIcon,
-  json: jsonOriginalIcon,
-  yaml: yamlOriginalIcon,
-  xml: xmlOriginalIcon,
-  bash: bashOriginalIcon,
-  powershell: powershellOriginalIcon,
-  dockerfile: dockerOriginalIcon,
-  docker: dockerOriginalIcon,
-  sql: sqlOriginalIcon,
-  markdown: markdownOriginalIcon,
-};
 const EMPTY_GREETING_DEFAULTS = [
   '你好呀，今天想一起处理点什么？',
   '嗨，我在这儿，随时可以帮你。',
   '欢迎回来，先聊聊你现在最想解决的问题吧。',
   '今天也一起高效一点，你想从哪件事开始？',
 ] as const;
-
-function resolveAttachmentIcon(fileName: string): string | undefined {
-  const extMatch = /\.([a-zA-Z0-9#+-]+)$/.exec(fileName ?? '');
-  const raw = (extMatch?.[1] ?? '').toLowerCase();
-  if (!raw) return undefined;
-  const language = ATTACHMENT_LANGUAGE_ALIASES[raw] ?? raw;
-  return ATTACHMENT_ICON_SRC[language];
-}
 
 /**
  * AI 对话 Tab
@@ -1315,8 +1215,8 @@ export function AiChatTab(): React.ReactElement {
                   <div className="max-expand-chat-bubble-attachments">
                     {msg.attachments.map((a) => (
                       <span key={a.name} className="max-expand-chat-bubble-attachment-tag">
-                        {resolveAttachmentIcon(a.name) ? (
-                          <img className="max-expand-chat-bubble-attachment-icon" src={resolveAttachmentIcon(a.name)} alt="" aria-hidden="true" />
+                        {resolveDevIconByFileName(a.name) ? (
+                          <img className="max-expand-chat-bubble-attachment-icon" src={resolveDevIconByFileName(a.name)} alt="" aria-hidden="true" />
                         ) : (
                           <span className="max-expand-chat-bubble-attachment-icon-fallback" aria-hidden="true" />
                         )}
@@ -1993,8 +1893,8 @@ export function AiChatTab(): React.ReactElement {
           <div className="max-expand-chat-attachments-pending">
             {pendingAttachments.map((a) => (
               <span key={a.name} className="max-expand-chat-attachment-tag">
-                {resolveAttachmentIcon(a.name) ? (
-                  <img className="max-expand-chat-attachment-tag-icon" src={resolveAttachmentIcon(a.name)} alt="" aria-hidden="true" />
+                {resolveDevIconByFileName(a.name) ? (
+                  <img className="max-expand-chat-attachment-tag-icon" src={resolveDevIconByFileName(a.name)} alt="" aria-hidden="true" />
                 ) : (
                   <span className="max-expand-chat-attachment-tag-icon-fallback" aria-hidden="true" />
                 )}
