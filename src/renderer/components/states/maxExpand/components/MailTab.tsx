@@ -55,6 +55,18 @@ function escapeHtml(text: string): string {
   return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
+const MAIL_LINK_SCRIPT = [
+  '<script>',
+  'document.addEventListener("click",function(e){',
+  'var a=e.target;while(a&&a.tagName!=="A")a=a.parentElement;',
+  'if(!a||!a.href)return;',
+  'var h=a.href;if(h.startsWith("mailto:")||h.startsWith("javascript:"))return;',
+  'e.preventDefault();e.stopPropagation();',
+  'window.parent.postMessage({type:"mail-open-url",url:h},"*");',
+  '});',
+  '</script>',
+].join('');
+
 const MAIL_SCROLLBAR_CSS = [
   '::-webkit-scrollbar{width:6px;}',
   '::-webkit-scrollbar-track{background:rgba(0,0,0,0.04);}',
@@ -67,9 +79,10 @@ const MAIL_INJECT_HEAD = [
   '<meta charset="utf-8">',
   '<style>',
   'img{max-width:100%;height:auto;}',
-  'a{color:#58a6ff;text-decoration:underline;}',
+  'a{color:#58a6ff;text-decoration:underline;cursor:pointer;}',
   MAIL_SCROLLBAR_CSS,
   '</style>',
+  MAIL_LINK_SCRIPT,
 ].join('');
 
 const MAIL_WRAP_STYLE = [
@@ -84,7 +97,10 @@ const MAIL_WRAP_STYLE = [
   'img{max-width:100%;height:auto;}',
   'table{border-collapse:collapse;max-width:100%;}',
   MAIL_SCROLLBAR_CSS,
-  '</style></head><body>',
+  'a{cursor:pointer;}',
+  '</style>',
+  MAIL_LINK_SCRIPT,
+  '</head><body>',
 ].join('');
 
 function buildMailSrcDoc(content: string): string {
@@ -113,6 +129,15 @@ export function MailTab(): ReactElement {
   const [loadingInbox, setLoadingInbox] = useState(false);
   const [expandedUid, setExpandedUid] = useState<string | null>(null);
   const [mailConfigured, setMailConfigured] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const handleMessage = (e: MessageEvent): void => {
+      if (!e.data || e.data.type !== 'mail-open-url' || typeof e.data.url !== 'string') return;
+      window.api.clipboardOpenUrl(e.data.url).catch(() => {});
+    };
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
 
   const refreshInbox = async (): Promise<void> => {
     setLoadingInbox(true);
@@ -282,7 +307,7 @@ export function MailTab(): ReactElement {
             </div>
             <iframe
               className="settings-mail-tab-mail-body"
-              sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox"
+              sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"
               srcDoc={buildMailSrcDoc(selectedItem.body || selectedItem.preview || '-')}
               title={selectedItem.subject || ''}
             />
