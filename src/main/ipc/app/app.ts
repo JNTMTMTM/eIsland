@@ -765,7 +765,7 @@ async function executeAgentLocalTool(request: AgentLocalToolRequest): Promise<{
       }
       const limitRaw = getNumberArg(args, 'limit');
       const searchOptions: LocalFileSearchOptions = {
-        limit: Math.max(1, Math.min(200, Math.floor(limitRaw == null ? 50 : limitRaw))),
+        limit: Math.max(1, Math.min(200, Math.floor(limitRaw ?? 50))),
         maxDepth: typeof args.maxDepth === 'number' ? args.maxDepth : undefined,
         includeDirectories: args.includeDirectories !== false,
         includeFiles: args.includeFiles !== false,
@@ -824,7 +824,8 @@ async function executeAgentLocalTool(request: AgentLocalToolRequest): Promise<{
         const copyDirRecursive = async (src: string, dest: string): Promise<void> => {
           await mkdir(dest, { recursive: true });
           const entries = await readdir(src, { withFileTypes: true });
-          for (const entry of entries) {
+          for (let entryIdx = 0; entryIdx < entries.length; entryIdx++) {
+            const entry = entries[entryIdx];
             const srcEntry = resolve(src, entry.name);
             const destEntry = resolve(dest, entry.name);
             if (entry.isDirectory()) {

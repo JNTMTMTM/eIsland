@@ -1626,7 +1626,7 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
               <span className="settings-user-recharge-option-amount">¥{amount}</span>
             </button>
           ))}
-          <div className={`settings-user-recharge-option settings-user-recharge-option--custom ${rechargeSelected == null && rechargeCustomValue.trim() !== '' ? 'active' : ''}`}>
+          <div className={`settings-user-recharge-option settings-user-recharge-option--custom ${rechargeSelected === null || rechargeSelected === undefined ? (rechargeCustomValue.trim() !== '' ? 'active' : '') : ''}`}>
             <input
               type="number"
               min="0.01"

@@ -172,7 +172,7 @@ function normalizeAiTodoSnapshot(value: unknown): NonNullable<AiChatMessage['tod
   const items = Array.isArray(source.items)
     ? source.items
       .map((item) => normalizeAiTodoItem(item))
-      .filter((item): item is NonNullable<AiChatMessage['todoSnapshots']>[number]['items'][number] => item != null)
+      .filter((item): item is NonNullable<AiChatMessage['todoSnapshots']>[number]['items'][number] => item !== null && item !== undefined)
     : [];
   if (items.length === 0) {
     return null;
