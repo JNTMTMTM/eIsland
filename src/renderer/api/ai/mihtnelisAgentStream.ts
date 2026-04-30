@@ -69,6 +69,7 @@ export interface MihtnelisAgentStreamRequest {
   message: string;
   sessionId?: string;
   provider?: string;
+  model?: string;
   context?: string;
   workspaces?: string[];
   skills?: Array<{ name: string; content: string }>;
@@ -111,6 +112,7 @@ export async function streamMihtnelisAgent(request: MihtnelisAgentStreamRequest)
       sessionId: request.sessionId,
       message,
       provider: request.provider,
+      model: request.model,
       context: request.context,
       workspaces: Array.isArray(request.workspaces) && request.workspaces.length > 0 ? request.workspaces : undefined,
       skills: Array.isArray(request.skills) && request.skills.length > 0 ? request.skills : undefined,

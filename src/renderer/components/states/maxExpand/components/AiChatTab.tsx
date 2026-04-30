@@ -110,7 +110,7 @@ function isAcceptedAttachmentFile(fileName: string): boolean {
  * @description 包含消息列表和输入栏的聊天界面，调用 OpenAI 兼容 API
  */
 export function AiChatTab(): React.ReactElement {
-  const availableModels = ['deepseek-v4-flash'] as const;
+  const availableModels = ['deepseek-v4-flash', 'deepseek-v4-pro'] as const;
   const { t } = useTranslation();
   const chatRootRef = useRef<HTMLDivElement>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
@@ -585,7 +585,8 @@ export function AiChatTab(): React.ReactElement {
           token: localToken!,
           sessionId: 'max-expand-ai-chat',
           message: text,
-          provider: selectedModel,
+          provider: 'deepseek',
+          model: selectedModel,
           context,
           workspaces: aiConfig.workspaces,
           skills: resolvedSkills,
@@ -1820,6 +1821,7 @@ export function AiChatTab(): React.ReactElement {
                       aria-label={t('settings.ai.model', { defaultValue: '模型' })}
                     >
                       <option value="deepseek-v4-flash">deepseek-v4-flash</option>
+                      <option value="deepseek-v4-pro">deepseek-v4-pro</option>
                     </select>
                   </div>
                 </div>
