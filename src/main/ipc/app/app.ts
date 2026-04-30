@@ -1164,7 +1164,7 @@ async function executeAgentLocalTool(request: AgentLocalToolRequest): Promise<{
       const pidRaw = getNumberArg(args, 'pid');
       const name = getStringArg(args, 'name');
       const handleRaw = getNumberArg(args, 'handle');
-      if (pidRaw == null && !name && handleRaw == null) throw new Error(`${tool} 需要 pid、name 或 handle`);
+      if ((pidRaw === null || pidRaw === undefined) && !name && (handleRaw === null || handleRaw === undefined)) throw new Error(`${tool} 需要 pid、name 或 handle`);
       const swFlag = tool === 'win.minimize' ? 6 : tool === 'win.maximize' ? 3 : 9;
       const actionLabel = tool === 'win.minimize' ? '最小化' : tool === 'win.maximize' ? '最大化' : '还原';
 
@@ -1173,7 +1173,7 @@ async function executeAgentLocalTool(request: AgentLocalToolRequest): Promise<{
       let targetHandle: number = handleRaw ?? 0;
       let targetInfo = { pid: 0, name: '', title: '' };
       if (!targetHandle) {
-        const match = pidRaw != null
+        const match = pidRaw !== null && pidRaw !== undefined
           ? allWindows.find(w => w.processId === Math.floor(pidRaw))
           : allWindows.find(w => w.processName.toLowerCase().includes((name || '').toLowerCase()) || w.title.toLowerCase().includes((name || '').toLowerCase()));
         if (!match) throw new Error('未找到匹配的窗口');
@@ -1198,11 +1198,11 @@ async function executeAgentLocalTool(request: AgentLocalToolRequest): Promise<{
     if (tool === 'win.close') {
       const pidRaw = getNumberArg(args, 'pid');
       const name = getStringArg(args, 'name');
-      if (pidRaw == null && !name) throw new Error('win.close 需要 pid 或 name');
+      if ((pidRaw === null || pidRaw === undefined) && !name) throw new Error('win.close 需要 pid 或 name');
 
       // 通过 queryOpenWindowsWithIcons 确认目标窗口存在
       const allWindows = await queryOpenWindowsWithIcons();
-      const matches = pidRaw != null
+      const matches = pidRaw !== null && pidRaw !== undefined
         ? allWindows.filter(w => w.processId === Math.floor(pidRaw))
         : allWindows.filter(w => w.processName.toLowerCase().includes((name || '').toLowerCase()));
       if (matches.length === 0) throw new Error('未找到匹配的窗口进程');
