@@ -69,6 +69,8 @@ interface MailSettingsSectionProps {
   activeMailAccountId: string;
   setMailAccounts: (accounts: MailAccountConfig[]) => void;
   setActiveMailAccountId: (id: string) => void;
+  mailFetchLimit: number;
+  setMailFetchLimit: (value: number) => void;
   mailSettingsPages: MailSettingsPageKey[];
   mailSettingsPageLabels: Record<MailSettingsPageKey, string>;
   setMailSettingsPage: (page: MailSettingsPageKey) => void;
@@ -87,6 +89,8 @@ export function MailSettingsSection({
   activeMailAccountId,
   setMailAccounts,
   setActiveMailAccountId,
+  mailFetchLimit,
+  setMailFetchLimit,
   mailSettingsPages,
   mailSettingsPageLabels,
   setMailSettingsPage,
@@ -239,6 +243,34 @@ export function MailSettingsSection({
                         <span>{t('settings.mail.imap.secure', { defaultValue: '启用 TLS / SSL' })}</span>
                       </label>
                     </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {mailSettingsPage === 'preferences' && (
+              <div className="settings-cards">
+                <div className="settings-card">
+                  <div className="settings-card-header">
+                    <div className="settings-card-title">{t('settings.mail.preferences.title', { defaultValue: '收信设置' })}</div>
+                    <div className="settings-card-subtitle">{t('settings.mail.preferences.hint', { defaultValue: '控制每次获取邮件的数量和其他收信行为。' })}</div>
+                  </div>
+                  <div className="settings-card-subgroup">
+                    <label className="settings-field">
+                      <span className="settings-field-label">{t('settings.mail.preferences.fetchLimit', { defaultValue: '每次获取邮件数' })}</span>
+                      <span className="settings-field-hint">{t('settings.mail.preferences.fetchLimitHint', { defaultValue: '刷新收件箱时一次拉取的邮件数量，范围 1–30' })}</span>
+                      <input
+                        className="settings-field-input"
+                        type="number"
+                        min={1}
+                        max={30}
+                        value={mailFetchLimit}
+                        onChange={(e) => {
+                          const v = Math.max(1, Math.min(30, Math.floor(Number(e.target.value) || 1)));
+                          setMailFetchLimit(v);
+                        }}
+                      />
+                    </label>
                   </div>
                 </div>
               </div>

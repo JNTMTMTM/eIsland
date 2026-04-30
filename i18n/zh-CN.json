@@ -968,12 +968,19 @@
         "title": "保存配置",
         "hint": "当前仅保存本地配置。下一步可接入 IMAP 收信与 SMTP 发信实现。",
         "save": "保存邮箱配置"
+      },
+      "preferences": {
+        "title": "收信设置",
+        "hint": "控制每次获取邮件的数量和其他收信行为。",
+        "fetchLimit": "每次获取邮件数",
+        "fetchLimitHint": "刷新收件箱时一次拉取的邮件数量，范围 1–30"
       }
     },
     "mailPages": {
       "account": "账户",
       "imap": "IMAP",
-      "smtp": "SMTP"
+      "smtp": "SMTP",
+      "preferences": "收信设置"
     },
     "weatherPages": {
       "location": "定位配置",

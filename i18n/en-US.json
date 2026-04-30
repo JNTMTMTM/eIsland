@@ -968,12 +968,19 @@
         "title": "Save",
         "hint": "This step only stores local config. Next step: implement IMAP fetch + SMTP send.",
         "save": "Save Mail Config"
+      },
+      "preferences": {
+        "title": "Preferences",
+        "hint": "Control how many emails to fetch at once and other inbox behavior.",
+        "fetchLimit": "Fetch Limit",
+        "fetchLimitHint": "Number of emails to pull per inbox refresh, range 1\u201330"
       }
     },
     "mailPages": {
       "account": "Account",
       "imap": "IMAP",
-      "smtp": "SMTP"
+      "smtp": "SMTP",
+      "preferences": "Preferences"
     },
     "weatherPages": {
       "location": "Location",

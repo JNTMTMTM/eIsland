@@ -33,6 +33,7 @@ import { SvgIcon } from '../../../../utils/SvgIcon';
 const SETTINGS_OPEN_TAB_STORE_KEY = 'settings-open-tab';
 const MAIL_CONFIG_STORE_KEY = 'mail-account-config';
 const MAIL_ACCOUNTS_STORE_KEY = 'mail-accounts-config';
+const MAIL_FETCH_LIMIT_STORE_KEY = 'mail-fetch-limit';
 const MAIL_INBOX_REFRESH_TIMEOUT_MS = 20000;
 
 interface MailAccountConfig {
@@ -147,6 +148,7 @@ export function MailTab(): ReactElement {
   const [mailConfigured, setMailConfigured] = useState<boolean | null>(null);
   const [accounts, setAccounts] = useState<MailAccountConfig[]>([]);
   const [activeAccountId, setActiveAccountId] = useState<string>('');
+  const [fetchLimit, setFetchLimit] = useState<number>(10);
 
   const activeAccount = accounts.find((a) => a.id === activeAccountId) || accounts.filter(isAccountConfigured)[0] || null;
 
@@ -178,7 +180,7 @@ export function MailTab(): ReactElement {
           imapSecure: target.imapSecure,
           authUser: target.authUser,
           authSecret: target.authSecret,
-        }, 10),
+        }, fetchLimit),
         timeoutPromise,
       ]);
 
@@ -196,6 +198,12 @@ export function MailTab(): ReactElement {
       setLoadingInbox(false);
     }
   };
+
+  useEffect(() => {
+    window.api.storeRead(MAIL_FETCH_LIMIT_STORE_KEY).then((value) => {
+      if (typeof value === 'number' && value >= 1 && value <= 30) setFetchLimit(value);
+    }).catch(() => {});
+  }, []);
 
   useEffect(() => {
     (async () => {

@@ -52,7 +52,7 @@ export const SETTINGS_TABS = ['index', 'app', 'network', 'mail', 'weather', 'mus
 export type SettingsSidebarTabKey = (typeof SETTINGS_TABS)[number];
 export type AppSettingsPageKey = 'layout-preview' | 'album' | 'hide-process-list' | 'position' | 'theme' | 'language' | 'behavior' | 'url-parser' | 'clipboard-history' | 'autostart';
 export type WeatherSettingsPageKey = 'location' | 'provider';
-export type MailSettingsPageKey = 'account' | 'imap';
+export type MailSettingsPageKey = 'account' | 'imap' | 'preferences';
 export type MusicSettingsPageKey = 'whitelist' | 'lyrics' | 'smtc';
 export type MusicNavCardKey = 'music-whitelist' | 'music-lyrics' | 'music-smtc';
 export type SettingsTabLabelKey = SettingsSidebarTabKey | AppSettingsPageKey | MusicNavCardKey;
@@ -153,10 +153,11 @@ export const WEATHER_SETTINGS_PAGE_LABELS: Record<WeatherSettingsPageKey, string
   location: '定位配置',
   provider: '接口配置',
 };
-export const MAIL_SETTINGS_PAGES: MailSettingsPageKey[] = ['account', 'imap'];
+export const MAIL_SETTINGS_PAGES: MailSettingsPageKey[] = ['account', 'imap', 'preferences'];
 export const MAIL_SETTINGS_PAGE_LABELS: Record<MailSettingsPageKey, string> = {
   account: '账户',
   imap: 'IMAP',
+  preferences: '收信设置',
 };
 export const MUSIC_SETTINGS_PAGES: MusicSettingsPageKey[] = ['whitelist', 'lyrics', 'smtc'];
 export const MUSIC_SETTINGS_PAGE_LABELS: Record<MusicSettingsPageKey, string> = {

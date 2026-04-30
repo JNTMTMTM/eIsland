@@ -120,6 +120,7 @@ const UPDATE_AUTO_PROMPT_STORE_KEY = 'update-auto-prompt-enabled';
 const WEATHER_ALERT_ENABLED_STORE_KEY = 'weather-alert-enabled';
 const MAIL_CONFIG_STORE_KEY = 'mail-account-config';
 const MAIL_ACCOUNTS_STORE_KEY = 'mail-accounts-config';
+const MAIL_FETCH_LIMIT_STORE_KEY = 'mail-fetch-limit';
 const SETTINGS_OPEN_TAB_STORE_KEY = 'settings-open-tab';
 type SettingsOpenTabIntent = 'update' | 'about-feedback' | 'user-orders' | 'mail';
 let _lastSettingsSidebarTab: SettingsSidebarTabKey = 'index';
@@ -399,6 +400,7 @@ export function SettingsTab(): ReactElement {
   const translatedMailSettingsPageLabels = useMemo<Record<MailSettingsPageKey, string>>(() => ({
     account: t('settings.mailPages.account', { defaultValue: MAIL_SETTINGS_PAGE_LABELS.account }),
     imap: t('settings.mailPages.imap', { defaultValue: MAIL_SETTINGS_PAGE_LABELS.imap }),
+    preferences: t('settings.mailPages.preferences', { defaultValue: MAIL_SETTINGS_PAGE_LABELS.preferences }),
   }), [t]);
 
   const translatedMusicSettingsPageLabels = useMemo<Record<MusicSettingsPageKey, string>>(() => ({
@@ -441,6 +443,7 @@ export function SettingsTab(): ReactElement {
   const [mailAccounts, setMailAccounts] = useState<MailAccountConfig[]>([]);
   const [activeMailAccountId, setActiveMailAccountId] = useState<string>('');
   const [mailConfigLoaded, setMailConfigLoaded] = useState(false);
+  const [mailFetchLimit, setMailFetchLimit] = useState<number>(10);
   const staticAssetNodeOptions = useMemo<Array<{ label: string; value: StaticAssetNode; proOnly?: boolean }>>(() => ([
     { label: 'Cloudflare R2', value: 'r2' },
     { label: 'Tencent COS', value: 'cos', proOnly: true },
@@ -949,6 +952,17 @@ export function SettingsTab(): ReactElement {
     if (!mailConfigLoaded) return;
     window.api.storeWrite(MAIL_ACCOUNTS_STORE_KEY, mailAccounts).catch(() => {});
   }, [mailConfigLoaded, mailAccounts]);
+
+  useEffect(() => {
+    window.api.storeRead(MAIL_FETCH_LIMIT_STORE_KEY).then((value) => {
+      if (typeof value === 'number' && value >= 1 && value <= 30) setMailFetchLimit(value);
+    }).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (!mailConfigLoaded) return;
+    window.api.storeWrite(MAIL_FETCH_LIMIT_STORE_KEY, mailFetchLimit).catch(() => {});
+  }, [mailConfigLoaded, mailFetchLimit]);
 
   useEffect(() => {
     const normalized = normalizeStaticAssetNode(staticAssetNode, isProUser);
@@ -2637,6 +2651,8 @@ export function SettingsTab(): ReactElement {
               activeMailAccountId={activeMailAccountId}
               setMailAccounts={setMailAccounts}
               setActiveMailAccountId={setActiveMailAccountId}
+              mailFetchLimit={mailFetchLimit}
+              setMailFetchLimit={setMailFetchLimit}
               mailSettingsPages={MAIL_SETTINGS_PAGES}
               mailSettingsPageLabels={translatedMailSettingsPageLabels}
               setMailSettingsPage={setMailSettingsPage}
