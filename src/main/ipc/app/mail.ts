@@ -51,6 +51,8 @@ interface MailInboxItem {
   to: string;
   date: string;
   size: number;
+  preview: string;
+  body: string;
 }
 
 interface MailInboxCacheStore {
@@ -121,6 +123,33 @@ function toIsoDateString(value: unknown): string {
   return value.toISOString();
 }
 
+function normalizeMailText(value: string): string {
+  return value.replace(/\r\n?/g, '\n').trim();
+}
+
+function toMailPreview(value: string, maxLength = 180): string {
+  const normalized = value.replace(/\s+/g, ' ').trim();
+  if (normalized.length <= maxLength) return normalized;
+  return `${normalized.slice(0, maxLength).trimEnd()}...`;
+}
+
+function ensureMailInboxItemCompatibility(item: MailInboxItem): MailInboxItem {
+  return {
+    uid: item.uid,
+    subject: item.subject || '(无主题)',
+    from: item.from || '',
+    to: item.to || '',
+    date: item.date || '',
+    size: Number.isFinite(item.size) ? item.size : 0,
+    preview: typeof item.preview === 'string' ? item.preview : '',
+    body: typeof item.body === 'string' ? item.body : '',
+  };
+}
+
+function hasMailContent(item: MailInboxItem): boolean {
+  return Boolean((item.preview && item.preview.trim()) || (item.body && item.body.trim()));
+}
+
 function getInboxCacheFilePath(storeDir: string): string {
   return join(storeDir, `${MAIL_INBOX_CACHE_STORE_KEY}.json`);
 }
@@ -161,6 +190,7 @@ function writeInboxCache(storeDir: string, value: MailInboxCacheStore): void {
 async function toMailInboxItem(uid: number, message: Awaited<ReturnType<ImapFlow['fetchOne']>>): Promise<MailInboxItem | null> {
   if (!message) return null;
   const parsed = message.source ? await simpleParser(message.source) : null;
+  const body = normalizeMailText(typeof parsed?.text === 'string' ? parsed.text : '');
   return {
     uid: String(message.uid ?? uid),
     subject: parsed?.subject || message.envelope?.subject || '(无主题)',
@@ -170,6 +200,8 @@ async function toMailInboxItem(uid: number, message: Awaited<ReturnType<ImapFlow
     size: typeof message.size === 'number'
       ? message.size
       : (Buffer.isBuffer(message.source) ? message.source.length : 0),
+    preview: toMailPreview(body),
+    body,
   };
 }
 
@@ -219,8 +251,12 @@ async function listInbox(config: MailAccountConfig, limit: number, storeDir: str
         const cacheKey = String(uid);
         const cached = accountCache[cacheKey];
         if (cached) {
-          items.push(cached);
-          continue;
+          const normalizedCached = ensureMailInboxItemCompatibility(cached);
+          if (hasMailContent(normalizedCached)) {
+            items.push(normalizedCached);
+            accountCache[cacheKey] = normalizedCached;
+            continue;
+          }
         }
 
         const message = await client.fetchOne(
@@ -235,9 +271,10 @@ async function listInbox(config: MailAccountConfig, limit: number, storeDir: str
         );
         const item = await toMailInboxItem(uid, message);
         if (!item) continue;
-        items.push(item);
-        accountCache[cacheKey] = item;
-        accountCache[item.uid] = item;
+        const normalizedItem = ensureMailInboxItemCompatibility(item);
+        items.push(normalizedItem);
+        accountCache[cacheKey] = normalizedItem;
+        accountCache[normalizedItem.uid] = normalizedItem;
       }
 
       const keepUidKeys = uids.slice(-MAIL_INBOX_CACHE_MAX_ITEMS).map((uid) => String(uid));

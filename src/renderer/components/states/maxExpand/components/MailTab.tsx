@@ -40,6 +40,8 @@ interface MailInboxItem {
   to: string;
   date: string;
   size: number;
+  preview: string;
+  body: string;
 }
 
 let mailTabInboxMemoryCache: MailInboxItem[] = [];
@@ -53,6 +55,7 @@ export function MailTab(): ReactElement {
   const { setMaxExpandTab } = useIslandStore();
   const [inbox, setInbox] = useState<MailInboxItem[]>(() => mailTabInboxMemoryCache);
   const [loadingInbox, setLoadingInbox] = useState(false);
+  const [expandedUid, setExpandedUid] = useState<string | null>(null);
 
   const refreshInbox = async (): Promise<void> => {
     setLoadingInbox(true);
@@ -75,6 +78,7 @@ export function MailTab(): ReactElement {
       const nextInbox = result.items || [];
       setInbox(nextInbox);
       mailTabInboxMemoryCache = nextInbox;
+      setExpandedUid((current) => (current && nextInbox.some((item) => item.uid === current) ? current : null));
     } catch {
       // keep last inbox data to avoid blank list while retrying
     } finally {
@@ -124,9 +128,31 @@ export function MailTab(): ReactElement {
         }}
       >
         {inbox.map((item) => (
-          <div className="settings-mail-tab-mail-item" key={item.uid}>
-            <span className="settings-mail-tab-mail-subject" title={item.subject}>{item.subject || '(无主题)'}</span>
-            <span className="settings-mail-tab-mail-from">{item.from || '-'}</span>
+          <div
+            className={`settings-mail-tab-mail-item ${expandedUid === item.uid ? 'is-expanded' : ''}`}
+            key={item.uid}
+            onClick={() => {
+              setExpandedUid((current) => (current === item.uid ? null : item.uid));
+            }}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                setExpandedUid((current) => (current === item.uid ? null : item.uid));
+              }
+            }}
+          >
+            <div className="settings-mail-tab-mail-header">
+              <span className="settings-mail-tab-mail-subject" title={item.subject}>{item.subject || '(无主题)'}</span>
+              <span className="settings-mail-tab-mail-from" title={item.from}>{item.from || '-'}</span>
+            </div>
+            <div className="settings-mail-tab-mail-preview" title={item.preview || item.body || ''}>
+              {item.preview || item.body || '-'}
+            </div>
+            {expandedUid === item.uid ? (
+              <pre className="settings-mail-tab-mail-body">{item.body || item.preview || '-'}</pre>
+            ) : null}
           </div>
         ))}
       </div>

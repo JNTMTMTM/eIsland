@@ -147,7 +147,7 @@ declare global {
         body?: string;
         timeoutMs?: number;
       }) => Promise<{ ok: boolean; status: number; body: string }>;
-      mailInboxList: (limit?: number) => Promise<{ ok: boolean; items: Array<{ uid: string; subject: string; from: string; to: string; date: string; size: number }>; message: string }>;
+      mailInboxList: (limit?: number) => Promise<{ ok: boolean; items: Array<{ uid: string; subject: string; from: string; to: string; date: string; size: number; preview: string; body: string }>; message: string }>;
       storeRead: (key: string) => Promise<unknown>;
       storeWrite: (key: string, data: unknown) => Promise<boolean>;
       hotkeyGet: () => Promise<string>;
