@@ -136,29 +136,29 @@ export interface AgentBalanceData {
  * @returns 余额数据。
  */
 export function fetchAgentBalance(token: string): Promise<UserAccountResult<AgentBalanceData>> {
-  return request<AgentBalanceData>('/v1/user/agent/balance', {
+  return request<AgentBalanceData>('/v1/user/payment/agent/balance', {
     method: 'GET',
     auth: token,
   });
 }
 
-export interface AgentRechargeData {
-  balanceYuan: string;
-}
-
 /**
- * Agent 余额充值。
+ * 创建 Agent 余额充值订单。
  * @param token - 用户 token。
+ * @param channel - 支付通道。
  * @param amountFen - 充值金额（分）。
- * @returns 充值结果。
+ * @param email - 收据邮箱。
+ * @returns 新创建的支付订单。
  */
-export function rechargeAgentBalance(
+export function createAgentRechargeOrder(
   token: string,
+  channel: UserPaymentCreateChannel,
   amountFen: number,
-): Promise<UserAccountResult<AgentRechargeData>> {
-  return request<AgentRechargeData>('/v1/user/agent/balance/recharge', {
-    method: 'POST',
-    auth: token,
-    body: { amountFen },
-  });
+  email: string,
+): Promise<UserAccountResult<UserPaymentOrderData>> {
+  const encodedEmail = encodeURIComponent(email.trim());
+  return request<UserPaymentOrderData>(
+    `/v1/user/payment/orders/agent-recharge?channel=${channel}&amountFen=${amountFen}&email=${encodedEmail}`,
+    { method: 'POST', auth: token },
+  );
 }

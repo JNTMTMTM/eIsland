@@ -32,7 +32,6 @@ import {
   fetchUserPaymentOrders,
   fetchProMonthPricing,
   fetchAgentBalance,
-  rechargeAgentBalance,
   fetchUserProfile,
   logoutUser,
   refreshUserToken,
@@ -178,7 +177,6 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
   const [orderActionOutTradeNo, setOrderActionOutTradeNo] = useState('');
   const [rechargeSelected, setRechargeSelected] = useState<number | null>(null);
   const [rechargeCustomValue, setRechargeCustomValue] = useState('');
-  const [rechargeSubmitting, setRechargeSubmitting] = useState(false);
   const [rechargeFeedback, setRechargeFeedback] = useState<Feedback | null>(null);
   const [userBalance, setUserBalance] = useState<string | null>(null);
 
@@ -1557,26 +1555,10 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
       : (rechargeCustomValue.trim() !== '' ? parseFloat(rechargeCustomValue) : NaN);
     const rechargeAmountValid = !isNaN(rechargeAmountYuan) && rechargeAmountYuan > 0;
 
-    const handleRechargeSubmit = async (): Promise<void> => {
-      if (!rechargeAmountValid || rechargeSubmitting || !token) return;
-      setRechargeSubmitting(true);
-      setRechargeFeedback(null);
-      try {
-        const amountFen = Math.round(rechargeAmountYuan * 100);
-        const result = await rechargeAgentBalance(token, amountFen);
-        if (result.ok && result.data) {
-          setUserBalance(result.data.balanceYuan);
-          setRechargeFeedback({ type: 'success', text: t('settings.user.recharge.success', { defaultValue: '充值成功' }) });
-          setRechargeSelected(null);
-          setRechargeCustomValue('');
-        } else {
-          setRechargeFeedback({ type: 'error', text: result.message || t('settings.user.recharge.fail', { defaultValue: '充值失败，请稍后重试' }) });
-        }
-      } catch {
-        setRechargeFeedback({ type: 'error', text: t('settings.user.recharge.fail', { defaultValue: '充值失败，请稍后重试' }) });
-      } finally {
-        setRechargeSubmitting(false);
-      }
+    const handleRechargeSubmit = (): void => {
+      if (!rechargeAmountValid) return;
+      const amountFen = Math.round(rechargeAmountYuan * 100);
+      setPayment({ type: 'recharge', amountFen });
     };
 
     const renderRechargePage = (): ReactElement => (
@@ -1636,14 +1618,12 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
           <button
             type="button"
             className="settings-user-primary-btn"
-            disabled={!rechargeAmountValid || rechargeSubmitting}
-            onClick={() => void handleRechargeSubmit()}
+            disabled={!rechargeAmountValid}
+            onClick={handleRechargeSubmit}
           >
-            {rechargeSubmitting
-              ? t('settings.user.recharge.submitting', { defaultValue: '充值中…' })
-              : rechargeAmountValid
-                ? t('settings.user.recharge.confirm', { defaultValue: '确认充值 ¥{{amount}}', amount: rechargeAmountYuan.toFixed(2) })
-                : t('settings.user.recharge.selectAmount', { defaultValue: '请选择充值金额' })}
+            {rechargeAmountValid
+              ? t('settings.user.recharge.confirm', { defaultValue: '确认充值 ¥{{amount}}', amount: rechargeAmountYuan.toFixed(2) })
+              : t('settings.user.recharge.selectAmount', { defaultValue: '请选择充值金额' })}
           </button>
         </div>
       </div>

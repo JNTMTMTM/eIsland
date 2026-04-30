@@ -26,6 +26,7 @@ import useIslandStore from '../../../store/slices';
 import { SvgIcon } from '../../../utils/SvgIcon';
 import {
   createProMonthOrder,
+  createAgentRechargeOrder,
   fetchPaymentOrder,
   fetchPaymentChannels,
   fetchProMonthPricing,
@@ -54,7 +55,9 @@ function formatDateOnly(value: Date): string {
  */
 export function PaymentContent(): ReactElement {
   const { t } = useTranslation();
-  const { returnFromAuth, setMaxExpand, setMaxExpandTab } = useIslandStore();
+  const { returnFromAuth, setMaxExpand, setMaxExpandTab, paymentContext } = useIslandStore();
+  const isRechargeMode = paymentContext.type === 'recharge';
+  const rechargeAmountFen = isRechargeMode ? paymentContext.amountFen : 0;
   const [method, setMethod] = useState<PaymentMethod>(null);
   const [receiptEmail, setReceiptEmail] = useState('');
   const [orderExpireAt, setOrderExpireAt] = useState<string>('');
@@ -87,25 +90,29 @@ export function PaymentContent(): ReactElement {
       setWechatEnabled(Boolean(result.data.wechatEnabled));
       setAlipayEnabled(Boolean(result.data.alipayEnabled));
     }).catch(() => {});
-    fetchProMonthPricing(token).then((result) => {
-      if (cancelled || !result.ok || !result.data) return;
-      const amountYuanRaw = typeof result.data.amountYuan === 'string' ? result.data.amountYuan.trim() : '';
-      const amountYuan = amountYuanRaw || (typeof result.data.amountFen === 'number' ? (result.data.amountFen / 100).toFixed(2) : '');
-      const cycle = String(result.data.billingCycle || '').toUpperCase() === 'MONTH'
-        ? t('settings.user.pro.billingCycle.month', { defaultValue: '月' })
-        : String(result.data.billingCycle || '').trim();
-      if (!amountYuan) {
-        setPriceLabel('');
-        return;
-      }
-      setPriceLabel(cycle ? `¥${amountYuan} / ${cycle}` : `¥${amountYuan}`);
-    }).catch(() => {}).finally(() => {
-      if (cancelled) return;
-    });
+    if (isRechargeMode) {
+      setPriceLabel(`¥${(rechargeAmountFen / 100).toFixed(2)}`);
+    } else {
+      fetchProMonthPricing(token).then((result) => {
+        if (cancelled || !result.ok || !result.data) return;
+        const amountYuanRaw = typeof result.data.amountYuan === 'string' ? result.data.amountYuan.trim() : '';
+        const amountYuan = amountYuanRaw || (typeof result.data.amountFen === 'number' ? (result.data.amountFen / 100).toFixed(2) : '');
+        const cycle = String(result.data.billingCycle || '').toUpperCase() === 'MONTH'
+          ? t('settings.user.pro.billingCycle.month', { defaultValue: '月' })
+          : String(result.data.billingCycle || '').trim();
+        if (!amountYuan) {
+          setPriceLabel('');
+          return;
+        }
+        setPriceLabel(cycle ? `¥${amountYuan} / ${cycle}` : `¥${amountYuan}`);
+      }).catch(() => {}).finally(() => {
+        if (cancelled) return;
+      });
+    }
     return () => {
       cancelled = true;
     };
-  }, [t]);
+  }, [t, isRechargeMode, rechargeAmountFen]);
 
   const orderExpireLabel = useMemo(() => {
     if (!orderExpireAt) return '';
@@ -193,7 +200,9 @@ export function PaymentContent(): ReactElement {
         return;
       }
       setIsCreatingOrder(true);
-      const result = await createProMonthOrder(token, channel, email);
+      const result = isRechargeMode
+        ? await createAgentRechargeOrder(token, channel, rechargeAmountFen, email)
+        : await createProMonthOrder(token, channel, email);
       if (!result.ok || !result.data) {
         setFeedback(result.message || t('settings.user.payment.createOrderFailed', { defaultValue: '创建支付订单失败，请稍后重试。' }));
         return;
@@ -282,9 +291,15 @@ export function PaymentContent(): ReactElement {
   return (
     <div className="auth-state-content" onClick={(e) => e.stopPropagation()}>
       <div className="auth-panel payment-panel">
-        <div className="auth-panel-title">{t('settings.user.payment.title', { defaultValue: '购买 Pro' })}</div>
+        <div className="auth-panel-title">
+          {isRechargeMode
+            ? t('settings.user.recharge.paymentTitle', { defaultValue: 'Agent 余额充值' })
+            : t('settings.user.payment.title', { defaultValue: '购买 Pro' })}
+        </div>
         <div className="auth-panel-subtitle">
-          {t('settings.user.payment.subtitle', { defaultValue: '选择支付方式后前往官网完成支付，支付成功后账号会自动同步 Pro 权益。' })}
+          {isRechargeMode
+            ? t('settings.user.recharge.paymentSubtitle', { defaultValue: '选择支付方式后完成支付，余额将自动到账。' })
+            : t('settings.user.payment.subtitle', { defaultValue: '选择支付方式后前往官网完成支付，支付成功后账号会自动同步 Pro 权益。' })}
         </div>
 
         <div className="payment-method-row" role="radiogroup" aria-label={t('settings.user.payment.method', { defaultValue: '支付方式' })}>
@@ -338,13 +353,19 @@ export function PaymentContent(): ReactElement {
             </label>
             <div className="payment-order-row payment-order-row-split">
               <div className="payment-order-item">
-                <span className="payment-order-label">{t('settings.user.payment.priceLabel', { defaultValue: '价格' })}</span>
+                <span className="payment-order-label">
+                  {isRechargeMode
+                    ? t('settings.user.recharge.rechargeAmountLabel', { defaultValue: '充值金额' })
+                    : t('settings.user.payment.priceLabel', { defaultValue: '价格' })}
+                </span>
                 <span className="payment-order-value">{priceLabel || t('settings.user.pro.pro.priceUnavailable', { defaultValue: '价格待定' })}</span>
               </div>
-              <div className="payment-order-item">
-                <span className="payment-order-label">{t('settings.user.payment.subscriptionPeriodLabel', { defaultValue: '订阅时间' })}</span>
-                <span className="payment-order-value">{subscriptionPeriod || '--'}</span>
-              </div>
+              {!isRechargeMode ? (
+                <div className="payment-order-item">
+                  <span className="payment-order-label">{t('settings.user.payment.subscriptionPeriodLabel', { defaultValue: '订阅时间' })}</span>
+                  <span className="payment-order-value">{subscriptionPeriod || '--'}</span>
+                </div>
+              ) : null}
             </div>
             {feedback ? <div className="payment-order-feedback">{feedback}</div> : null}
             <button

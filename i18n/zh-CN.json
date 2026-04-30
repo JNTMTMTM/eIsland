@@ -1870,6 +1870,9 @@
       "recharge": {
         "title": "余额充值",
         "subtitle": "充值后可用于 AI 助手对话消耗",
+        "paymentTitle": "Agent 余额充值",
+        "paymentSubtitle": "选择支付方式后完成支付，余额将自动到账。",
+        "rechargeAmountLabel": "充值金额",
         "currentBalance": "当前余额",
         "customPlaceholder": "自定义",
         "selectAmount": "请选择充值金额",

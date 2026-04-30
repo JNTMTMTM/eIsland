@@ -46,6 +46,7 @@ export const createIslandSlice: StateCreator<
   state: 'idle',
   authReturnState: null,
   uiStateLocked: false,
+  paymentContext: { type: 'pro' },
   hoverTab: 'time',
   expandTab: 'overview',
   maxExpandTab: 'todo',
@@ -107,7 +108,7 @@ export const createIslandSlice: StateCreator<
     return { state: 'register', authReturnState: nextAuthReturnState };
   }),
 
-  setPayment: () => set((prev) => {
+  setPayment: (context) => set((prev) => {
     if (prev.uiStateLocked && prev.state !== 'payment') return prev;
     const standalone = isStandaloneRenderer();
     if (!standalone) {
@@ -117,7 +118,7 @@ export const createIslandSlice: StateCreator<
     const nextAuthReturnState = (prev.state === 'login' || prev.state === 'register' || prev.state === 'payment')
       ? prev.authReturnState
       : (standalone ? 'maxExpand' : prev.state);
-    return { state: 'payment', authReturnState: nextAuthReturnState };
+    return { state: 'payment', authReturnState: nextAuthReturnState, paymentContext: context ?? { type: 'pro' } };
   }),
 
   returnFromAuth: () => set((prev) => {

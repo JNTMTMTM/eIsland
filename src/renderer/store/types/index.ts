@@ -278,6 +278,10 @@ export interface AiWebAccessPrompt {
 
 // ============= Slice Interfaces =============
 
+export type PaymentContext =
+  | { type: 'pro' }
+  | { type: 'recharge'; amountFen: number };
+
 /** 岛屿状态 Slice */
 export interface IslandSlice {
   state: IslandState;
@@ -295,7 +299,8 @@ export interface IslandSlice {
   setMaxExpand: () => void;
   setLogin: () => void;
   setRegister: () => void;
-  setPayment: () => void;
+  paymentContext: PaymentContext;
+  setPayment: (context?: PaymentContext) => void;
   returnFromAuth: () => void;
   setLyrics: () => void;
   setNotification: (data: NotificationData) => void;

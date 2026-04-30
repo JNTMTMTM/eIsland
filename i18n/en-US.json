@@ -1870,6 +1870,9 @@
       "recharge": {
         "title": "Recharge Balance",
         "subtitle": "Top up your balance for AI assistant conversations",
+        "paymentTitle": "Agent Balance Recharge",
+        "paymentSubtitle": "Select a payment method to complete payment. Balance will be credited automatically.",
+        "rechargeAmountLabel": "Recharge Amount",
         "currentBalance": "Current Balance",
         "customPlaceholder": "Custom",
         "selectAmount": "Select an amount",
