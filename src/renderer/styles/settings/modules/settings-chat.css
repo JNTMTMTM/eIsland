@@ -1381,16 +1381,6 @@
   color: rgba(var(--color-text-rgb), 0.8);
 }
 
-/** 附件按钮 */
-.max-expand-chat-attach-btn {
-  padding: 6px 8px;
-}
-
-.max-expand-chat-attach-btn:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
-}
-
 /** 气泡内附件标签 */
 .max-expand-chat-bubble-attachments {
   display: flex;
@@ -1479,6 +1469,11 @@
 .max-expand-chat-session-toggle {
   min-width: 34px;
   padding: 6px 8px;
+}
+
+.max-expand-chat-session-toggle:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
 }
 
 .max-expand-chat-session-toggle-icon {

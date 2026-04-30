@@ -1913,15 +1913,17 @@ export function AiChatTab(): React.ReactElement {
             />
           </button>
           <button
-            className="max-expand-chat-send max-expand-chat-attach-btn"
+            className="max-expand-chat-send max-expand-chat-session-toggle"
             type="button"
             onClick={() => fileInputRef.current?.click()}
             title={t('aiChat.attachments.add', { defaultValue: '添加文本附件' })}
             disabled={aiChatStreaming || pendingAttachments.length >= ATTACHMENT_MAX_COUNT}
           >
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M13.354 7.354l-5.5 5.5a3.536 3.536 0 01-5-5l5.5-5.5a2.121 2.121 0 013 3l-5.5 5.5a.707.707 0 01-1-1l5.5-5.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
+            <img
+              className="max-expand-chat-session-toggle-icon"
+              src={SvgIcon.ATTACHMENT}
+              alt=""
+            />
           </button>
           <textarea
             ref={inputRef}
