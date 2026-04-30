@@ -33,6 +33,7 @@ import { basename, dirname, resolve } from 'path';
 import os from 'os';
 import { clearLogsCacheFiles, ensureLogsDir } from '../../log/mainLog';
 import { openStandaloneWindow, closeStandaloneWindow } from '../../window/standaloneWindow';
+import { registerAgentIpcHandlers } from '../agent';
 
 interface LocalFileSearchItem {
   name: string;
@@ -1303,18 +1304,8 @@ export function registerAppIpcHandlers(): void {
     }
   });
 
-  ipcMain.handle('agent:local-tool:execute', async (_event, request: AgentLocalToolRequest) => {
-    try {
-      return await executeAgentLocalTool(request);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err ?? 'local tool execute failed');
-      return {
-        success: false,
-        result: {},
-        error: message,
-        durationMs: 0,
-      };
-    }
+  registerAgentIpcHandlers({
+    executeAgentLocalTool,
   });
 
   ipcMain.handle('app:pick-feedback-screenshot-file', async (event) => {
