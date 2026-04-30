@@ -55,12 +55,20 @@ function escapeHtml(text: string): string {
   return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
+const MAIL_SCROLLBAR_CSS = [
+  '::-webkit-scrollbar{width:6px;}',
+  '::-webkit-scrollbar-track{background:rgba(0,0,0,0.04);}',
+  '::-webkit-scrollbar-thumb{border-radius:999px;background:rgba(0,0,0,0.18);}',
+  'html{scrollbar-width:thin;scrollbar-color:rgba(0,0,0,0.18) rgba(0,0,0,0.04);}',
+].join('');
+
 const MAIL_INJECT_HEAD = [
   '<base target="_blank">',
   '<meta charset="utf-8">',
   '<style>',
   'img{max-width:100%;height:auto;}',
   'a{color:#58a6ff;text-decoration:underline;}',
+  MAIL_SCROLLBAR_CSS,
   '</style>',
 ].join('');
 
@@ -75,6 +83,7 @@ const MAIL_WRAP_STYLE = [
   'a{color:#1a73e8;text-decoration:underline;}',
   'img{max-width:100%;height:auto;}',
   'table{border-collapse:collapse;max-width:100%;}',
+  MAIL_SCROLLBAR_CSS,
   '</style></head><body>',
 ].join('');
 
