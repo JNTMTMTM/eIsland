@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import React from 'react';
+import type { DragEvent, ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../../../../../store/slices';
 import type { AppShortcut } from '../../utils/overviewUtils';
@@ -34,9 +34,9 @@ interface ShortcutsWidgetProps {
   dragIndex: number | null;
   dragOverIndex: number | null;
   onOpenApp: (path: string) => void;
-  onDragStart: (event: React.DragEvent, index: number) => void;
-  onDragOver: (event: React.DragEvent, index: number) => void;
-  onDrop: (event: React.DragEvent, index: number) => void;
+  onDragStart: (event: DragEvent, index: number) => void;
+  onDragOver: (event: DragEvent, index: number) => void;
+  onDrop: (event: DragEvent, index: number) => void;
   onDragEnd: () => void;
 }
 
@@ -50,7 +50,7 @@ export function ShortcutsWidget({
   onDragOver,
   onDrop,
   onDragEnd,
-}: ShortcutsWidgetProps): React.ReactElement {
+}: ShortcutsWidgetProps): ReactElement {
   const { t } = useTranslation();
   const { setExpandTab } = useIslandStore();
 

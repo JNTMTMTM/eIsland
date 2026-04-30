@@ -547,7 +547,7 @@
   border-radius: 10px;
   border: 1px solid rgba(var(--color-text-rgb), 0.16);
   background: rgba(var(--color-text-rgb), 0.06);
-  text-decoration: none !important;
+  text-decoration: none;
   color: inherit;
   vertical-align: middle;
 }

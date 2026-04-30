@@ -140,23 +140,23 @@ export async function streamMihtnelisAgent(request: MihtnelisAgentStreamRequest)
   let currentEvent = '';
 
   const parseLines = (rawLines: string[]): void => {
-    for (const rawLine of rawLines) {
+    rawLines.forEach((rawLine) => {
       const line = rawLine.trimEnd();
       if (!line) {
         currentEvent = '';
-        continue;
+        return;
       }
       if (line.startsWith('event:')) {
         currentEvent = line.slice(6).trim().toLowerCase();
-        continue;
+        return;
       }
       if (!line.startsWith('data:')) {
-        continue;
+        return;
       }
       const dataText = line.slice(5).trim();
       const type = toEventType(currentEvent);
       if (!type) {
-        continue;
+        return;
       }
       let payload: unknown = dataText;
       if (dataText.startsWith('{') || dataText.startsWith('[')) {
@@ -178,7 +178,7 @@ export async function streamMihtnelisAgent(request: MihtnelisAgentStreamRequest)
         }
       }
       request.onEvent?.({ type, payload });
-    }
+    });
   };
 
   while (true) {

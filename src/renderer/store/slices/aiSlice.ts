@@ -76,7 +76,7 @@ function loadAiChatMessages(): AiChatMessage[] {
     if (!Array.isArray(parsed)) return [];
     return parsed
       .map((m) => normalizeAiChatMessage(m))
-      .filter((m): m is AiChatMessage => m != null);
+      .filter((m): m is AiChatMessage => m !== null && m !== undefined);
   } catch {
     return [];
   }

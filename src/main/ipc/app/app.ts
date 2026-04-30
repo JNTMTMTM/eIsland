@@ -356,19 +356,19 @@ async function executeLocalWebSearch(args: Record<string, unknown>): Promise<{
     throw new Error('web.search 需要 query');
   }
   const limitRaw = getNumberArg(args, 'limit');
-  const limit = Math.max(1, Math.min(10, Math.floor(limitRaw == null ? 5 : limitRaw)));
+  const limit = Math.max(1, Math.min(10, Math.floor(limitRaw ?? 5)));
   const results: Array<{ title: string; url: string; snippet: string }> = [];
   let lastError = '';
-  for (const template of [BING_SEARCH_URL_TEMPLATE, BING_SEARCH_FALLBACK_URL_TEMPLATE]) {
-    if (results.length >= limit) {
-      break;
-    }
+  const searchTemplates = [BING_SEARCH_URL_TEMPLATE, BING_SEARCH_FALLBACK_URL_TEMPLATE];
+  await searchTemplates.reduce(async (prev, template) => {
+    await prev;
+    if (results.length >= limit) return;
     try {
       await collectBingHtmlResults(query, results, limit, template);
     } catch (error) {
       lastError = error instanceof Error ? error.message : String(error);
     }
-  }
+  }, Promise.resolve());
   if (results.length === 0) {
     const suffix = lastError ? ` (${lastError})` : '';
     throw new Error(`web.search 无结果: ${query}${suffix}`);

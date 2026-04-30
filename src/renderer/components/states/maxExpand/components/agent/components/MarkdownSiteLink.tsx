@@ -75,7 +75,6 @@ export function MarkdownSiteLink(props: {
   onClick?: React.MouseEventHandler<HTMLAnchorElement>;
   target?: string;
   rel?: string;
-  anchorProps?: React.AnchorHTMLAttributes<HTMLAnchorElement>;
 }): React.ReactElement {
   const safeHref = typeof props.href === 'string' ? props.href.trim() : '';
   const openHref = sanitizeExternalUrl(safeHref);
@@ -124,7 +123,6 @@ export function MarkdownSiteLink(props: {
   if (!isHttpLink) {
     return (
       <a
-        {...(props.anchorProps ?? {})}
         href={props.href}
         target={props.target ?? '_blank'}
         rel={props.rel ?? 'noopener noreferrer'}
@@ -141,7 +139,6 @@ export function MarkdownSiteLink(props: {
 
   return (
     <a
-      {...(props.anchorProps ?? {})}
       href={props.href}
       target={props.target ?? '_blank'}
       rel={props.rel ?? 'noopener noreferrer'}

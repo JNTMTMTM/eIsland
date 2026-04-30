@@ -24,13 +24,13 @@
  * @author 鸡哥
  */
 
-import React from 'react';
+import type { CSSProperties, ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../../../../../store/slices';
 import { SvgIcon } from '../../../../../../../utils/SvgIcon';
 
 /** 正在播放小组件，展示当前播放歌曲与媒体控制。 */
-export function SongWidget(): React.ReactElement {
+export function SongWidget(): ReactElement {
   const { t } = useTranslation();
   const { mediaInfo, coverImage, isPlaying, isMusicPlaying, dominantColor, setExpandTab } = useIslandStore();
   const [r, g, b] = dominantColor;
@@ -43,7 +43,7 @@ export function SongWidget(): React.ReactElement {
       {isMusicPlaying ? (
         <div
           className="ov-dash-song-content"
-          style={{ '--song-glow': `rgba(${r}, ${g}, ${b}, 0.35)` } as React.CSSProperties}
+          style={{ '--song-glow': `rgba(${r}, ${g}, ${b}, 0.35)` } as CSSProperties}
         >
           {coverImage && (
             <div

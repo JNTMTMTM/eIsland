@@ -254,7 +254,8 @@ async function listInbox(config: MailAccountConfig, limit: number, storeDir: str
       const selectedUids = uids.slice(-limit).reverse();
       const items: MailInboxItem[] = [];
 
-      for (const uid of selectedUids) {
+      for (let uidIdx = 0; uidIdx < selectedUids.length; uidIdx++) {
+        const uid = selectedUids[uidIdx];
         const cacheKey = String(uid);
         const cached = accountCache[cacheKey];
         if (cached) {

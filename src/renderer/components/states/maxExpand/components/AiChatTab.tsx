@@ -113,12 +113,7 @@ function isAcceptedAttachmentFile(fileName: string): boolean {
   if (!lowerName) {
     return false;
   }
-  for (const ext of ATTACHMENT_ACCEPT_EXT_SET) {
-    if (lowerName.endsWith(ext)) {
-      return true;
-    }
-  }
-  return false;
+  return Array.from(ATTACHMENT_ACCEPT_EXT_SET).some((ext) => lowerName.endsWith(ext));
 }
 
 /**
@@ -381,7 +376,7 @@ export function AiChatTab(): React.ReactElement {
   }, []);
 
   const scheduleAssistantUpdateFlush = useCallback((): void => {
-    if (pendingMessageFlushRafRef.current != null) {
+    if (pendingMessageFlushRafRef.current !== null && pendingMessageFlushRafRef.current !== undefined) {
       return;
     }
     const flushWhenSelectable = (): void => {
@@ -1605,14 +1600,14 @@ export function AiChatTab(): React.ReactElement {
                             remarkPlugins={[remarkGfm]}
                             components={{
                               pre: ({ children }) => <>{children}</>,
-                              code: ({ className, children, ...props }) => {
+                              code: ({ className, children }) => {
                                 const isBlock = /language-/.test(className ?? '');
                                 if (!isBlock) {
-                                  return <code className={className} {...props}>{children}</code>;
+                                  return <code className={className}>{children}</code>;
                                 }
                                 return <MarkdownCodeBlock className={className}>{children}</MarkdownCodeBlock>;
                               },
-                              a: ({ href, children, onClick, target, rel, ...props }) => {
+                              a: ({ href, children, onClick, target, rel }) => {
                                 return (
                                   <MarkdownSiteLink
                                     href={typeof href === 'string' ? href : ''}
@@ -1620,7 +1615,6 @@ export function AiChatTab(): React.ReactElement {
                                     onClick={onClick}
                                     target={target}
                                     rel={rel}
-                                    anchorProps={props}
                                   />
                                 );
                               },

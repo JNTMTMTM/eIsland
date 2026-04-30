@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import React from 'react';
+import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { PRIORITIES, SIZES, type TodoItem } from '../../utils/overviewUtils';
 
@@ -47,7 +47,7 @@ export function TodoWidget({
   onToggleDone,
   onToggleSubDone,
   onRemoveTodo,
-}: TodoWidgetProps): React.ReactElement {
+}: TodoWidgetProps): ReactElement {
   const { t } = useTranslation();
   const undoneTodos = todos.filter((todo) => !todo.done);
   const doneTodos = todos.filter((todo) => todo.done);

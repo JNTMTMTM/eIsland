@@ -1585,7 +1585,7 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
 
     const RECHARGE_PRESETS = [1, 10, 30, 50, 100];
 
-    const rechargeAmountYuan = rechargeSelected != null
+    const rechargeAmountYuan = rechargeSelected !== null && rechargeSelected !== undefined
       ? rechargeSelected
       : (rechargeCustomValue.trim() !== '' ? parseFloat(rechargeCustomValue) : NaN);
     const rechargeAmountValid = !isNaN(rechargeAmountYuan) && rechargeAmountYuan > 0;

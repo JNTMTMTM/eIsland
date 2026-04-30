@@ -86,9 +86,10 @@ export function unwrapJsonEnvelope(content: string): string {
   if (!trimmed.startsWith('{') || !trimmed.endsWith('}')) {
     return content;
   }
-  for (const candidate of [trimmed, repairJsonControlChars(trimmed)]) {
+  const candidates = [trimmed, repairJsonControlChars(trimmed)];
+  for (let ci = 0; ci < candidates.length; ci++) {
     try {
-      const parsed = JSON.parse(candidate);
+      const parsed = JSON.parse(candidates[ci]);
       if (typeof parsed?.answer === 'string' && parsed.answer.trim()) {
         return parsed.answer;
       }
@@ -101,7 +102,7 @@ export function unwrapJsonEnvelope(content: string): string {
 
 /** 将任意值转为格式化的 JSON 字符串。 */
 export function toPrettyJson(value: unknown): string {
-  if (value == null) {
+  if (value === null || value === undefined) {
     return '{}';
   }
   if (typeof value === 'string') {
