@@ -254,7 +254,7 @@ function normalizeAiChatSession(value: unknown): AiChatSession | null {
   const rawMessages = Array.isArray(source.messages) ? source.messages : [];
   const messages = rawMessages
     .map((item) => normalizeAiChatMessage(item))
-    .filter((item): item is AiChatMessage => item != null);
+    .filter((item): item is AiChatMessage => item !== null && item !== undefined);
   const title = typeof source.title === 'string' && source.title.trim()
     ? source.title.trim().slice(0, 48)
     : deriveAiChatSessionTitle(messages);

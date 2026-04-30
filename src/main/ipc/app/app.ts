@@ -992,7 +992,7 @@ async function executeAgentLocalTool(request: AgentLocalToolRequest): Promise<{
         filtered = entries;
       }
       const limitRaw = getNumberArg(args, 'limit');
-      const limit = Math.max(1, Math.min(200, Math.floor(limitRaw == null ? 50 : limitRaw)));
+      const limit = Math.max(1, Math.min(200, Math.floor(limitRaw === null || limitRaw === undefined ? 50 : limitRaw)));
       const sliced = filtered.slice(0, limit);
       return {
         success: true,

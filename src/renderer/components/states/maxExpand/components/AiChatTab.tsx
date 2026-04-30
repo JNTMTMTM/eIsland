@@ -940,7 +940,7 @@ export function AiChatTab(): React.ReactElement {
                     status,
                   } as AiTodoItem;
                 })
-                .filter((item): item is AiTodoItem => item != null);
+                .filter((item): item is AiTodoItem => item !== null && item !== undefined);
               if (items.length === 0) return;
               const snapshot: AiTodoSnapshot = { turn, items };
               updateTargetMessages(prev => {
