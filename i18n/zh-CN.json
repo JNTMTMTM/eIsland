@@ -691,9 +691,20 @@
     },
     "messages": {
       "inboxFetchFailed": "收件箱读取失败",
+      "inboxFetchTimeout": "收件箱读取超时，请检查网络或邮箱配置",
       "needRecipient": "请填写收件人邮箱",
       "sendFailed": "发送失败，请稍后重试",
       "sendSuccess": "发送成功"
+    },
+    "emptyGuide": {
+      "title": "配置邮箱 IMAP 账户后即可在此收取和查看邮件",
+      "hint": "需要填写 IMAP 服务器地址、认证用户名和密钥。",
+      "action": "前往设置",
+      "imapHelp": "如何获取 IMAP 信息"
+    },
+    "fallbacks": {
+      "noSubject": "(无主题)",
+      "noSender": "-"
     }
   },
   "clipboardHistoryTab": {
@@ -911,14 +922,32 @@
         "title": "账户信息",
         "hint": "邮箱地址用于展示与默认发件人信息。",
         "emailAddress": "邮箱地址",
+        "emailAddressHint": "你的完整邮箱地址，例如 name@qq.com",
         "authUser": "认证用户名",
-        "authSecret": "认证密钥 / 应用专用密码"
+        "authUserHint": "通常与邮箱地址相同",
+        "authSecret": "认证密钥 / 应用专用密码",
+        "authSecretHint": "邮箱授权码或应用专用密码，非登录密码"
       },
       "imap": {
+        "title": "IMAP",
         "hint": "用于收信、同步收件箱和文件夹状态。",
+        "quickFill": "快速填充",
+        "selectProvider": "选择邮箱服务商自动填充",
         "host": "IMAP 服务器",
         "port": "IMAP 端口",
-        "secure": "启用 TLS / SSL"
+        "secure": "启用 TLS / SSL",
+        "providers": {
+          "qq": "QQ 邮箱",
+          "netease163": "网易 163",
+          "netease126": "网易 126",
+          "neteaseYeah": "网易 yeah",
+          "sina": "新浪邮箱",
+          "sohu": "搜狐邮箱",
+          "aliyun": "阿里邮箱",
+          "foxmail": "Foxmail",
+          "outlook": "Outlook / Hotmail",
+          "gmail": "Gmail"
+        }
       },
       "smtp": {
         "hint": "用于发信。建议使用服务商推荐端口和加密方式。",

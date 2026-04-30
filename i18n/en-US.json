@@ -691,9 +691,20 @@
     },
     "messages": {
       "inboxFetchFailed": "Failed to load inbox",
+      "inboxFetchTimeout": "Inbox request timed out. Please check network or mail settings",
       "needRecipient": "Please input recipient email",
       "sendFailed": "Send failed, please retry",
       "sendSuccess": "Mail sent"
+    },
+    "emptyGuide": {
+      "title": "Configure your IMAP account to receive and view mail here",
+      "hint": "Please fill in IMAP host, auth username, and auth secret first.",
+      "action": "Go to Settings",
+      "imapHelp": "How to get IMAP info"
+    },
+    "fallbacks": {
+      "noSubject": "(No Subject)",
+      "noSender": "-"
     }
   },
   "clipboardHistoryTab": {
@@ -911,14 +922,32 @@
         "title": "Account",
         "hint": "The address is used for display and default sender metadata.",
         "emailAddress": "Email Address",
+        "emailAddressHint": "Your full email address, e.g. name@qq.com",
         "authUser": "Auth Username",
-        "authSecret": "Auth Secret / App Password"
+        "authUserHint": "Usually the same as your email address",
+        "authSecret": "Auth Secret / App Password",
+        "authSecretHint": "Mail authorization code or app password, not your login password"
       },
       "imap": {
+        "title": "IMAP",
         "hint": "Used for receiving mail and syncing mailbox folders.",
+        "quickFill": "Quick Fill",
+        "selectProvider": "Select provider to auto-fill",
         "host": "IMAP Host",
         "port": "IMAP Port",
-        "secure": "Use TLS / SSL"
+        "secure": "Use TLS / SSL",
+        "providers": {
+          "qq": "QQ Mail",
+          "netease163": "NetEase 163",
+          "netease126": "NetEase 126",
+          "neteaseYeah": "NetEase yeah",
+          "sina": "Sina Mail",
+          "sohu": "Sohu Mail",
+          "aliyun": "Aliyun Mail",
+          "foxmail": "Foxmail",
+          "outlook": "Outlook / Hotmail",
+          "gmail": "Gmail"
+        }
       },
       "smtp": {
         "hint": "Used for sending mail. Prefer provider-recommended ports and encryption.",

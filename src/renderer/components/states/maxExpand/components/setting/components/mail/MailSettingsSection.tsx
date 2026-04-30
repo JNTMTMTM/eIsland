@@ -30,7 +30,8 @@ import { useTranslation } from 'react-i18next';
 import type { MailSettingsPageKey } from '../../utils/settingsConfig';
 
 interface MailProviderPreset {
-  label: string;
+  labelKey: string;
+  labelDefault: string;
   domain: string;
   imapHost: string;
   imapPort: string;
@@ -38,16 +39,16 @@ interface MailProviderPreset {
 }
 
 const MAIL_PROVIDER_PRESETS: MailProviderPreset[] = [
-  { label: 'QQ 邮箱', domain: 'qq.com', imapHost: 'imap.qq.com', imapPort: '993', imapSecure: true },
-  { label: '网易 163', domain: '163.com', imapHost: 'imap.163.com', imapPort: '993', imapSecure: true },
-  { label: '网易 126', domain: '126.com', imapHost: 'imap.126.com', imapPort: '993', imapSecure: true },
-  { label: '网易 yeah', domain: 'yeah.net', imapHost: 'imap.yeah.net', imapPort: '993', imapSecure: true },
-  { label: '新浪邮箱', domain: 'sina.com', imapHost: 'imap.sina.com', imapPort: '993', imapSecure: true },
-  { label: '搜狐邮箱', domain: 'sohu.com', imapHost: 'imap.sohu.com', imapPort: '993', imapSecure: true },
-  { label: '阿里邮箱', domain: 'aliyun.com', imapHost: 'imap.aliyun.com', imapPort: '993', imapSecure: true },
-  { label: 'Foxmail', domain: 'foxmail.com', imapHost: 'imap.qq.com', imapPort: '993', imapSecure: true },
-  { label: 'Outlook / Hotmail', domain: 'outlook.com', imapHost: 'outlook.office365.com', imapPort: '993', imapSecure: true },
-  { label: 'Gmail', domain: 'gmail.com', imapHost: 'imap.gmail.com', imapPort: '993', imapSecure: true },
+  { labelKey: 'qq', labelDefault: 'QQ Mail', domain: 'qq.com', imapHost: 'imap.qq.com', imapPort: '993', imapSecure: true },
+  { labelKey: 'netease163', labelDefault: 'NetEase 163', domain: '163.com', imapHost: 'imap.163.com', imapPort: '993', imapSecure: true },
+  { labelKey: 'netease126', labelDefault: 'NetEase 126', domain: '126.com', imapHost: 'imap.126.com', imapPort: '993', imapSecure: true },
+  { labelKey: 'neteaseYeah', labelDefault: 'NetEase yeah', domain: 'yeah.net', imapHost: 'imap.yeah.net', imapPort: '993', imapSecure: true },
+  { labelKey: 'sina', labelDefault: 'Sina Mail', domain: 'sina.com', imapHost: 'imap.sina.com', imapPort: '993', imapSecure: true },
+  { labelKey: 'sohu', labelDefault: 'Sohu Mail', domain: 'sohu.com', imapHost: 'imap.sohu.com', imapPort: '993', imapSecure: true },
+  { labelKey: 'aliyun', labelDefault: 'Aliyun Mail', domain: 'aliyun.com', imapHost: 'imap.aliyun.com', imapPort: '993', imapSecure: true },
+  { labelKey: 'foxmail', labelDefault: 'Foxmail', domain: 'foxmail.com', imapHost: 'imap.qq.com', imapPort: '993', imapSecure: true },
+  { labelKey: 'outlook', labelDefault: 'Outlook / Hotmail', domain: 'outlook.com', imapHost: 'outlook.office365.com', imapPort: '993', imapSecure: true },
+  { labelKey: 'gmail', labelDefault: 'Gmail', domain: 'gmail.com', imapHost: 'imap.gmail.com', imapPort: '993', imapSecure: true },
 ];
 
 interface MailSettingsSectionProps {
@@ -159,7 +160,7 @@ export function MailSettingsSection({
             <div className="settings-cards">
               <div className="settings-card">
                 <div className="settings-card-header">
-                  <div className="settings-card-title">IMAP</div>
+                  <div className="settings-card-title">{t('settings.mail.imap.title', { defaultValue: 'IMAP' })}</div>
                   <div className="settings-card-subtitle">{t('settings.mail.imap.hint', { defaultValue: '用于收信、同步收件箱和文件夹状态。' })}</div>
                 </div>
                 <div className="settings-card-subgroup">
@@ -182,7 +183,9 @@ export function MailSettingsSection({
                               className="settings-mail-preset-option"
                               onClick={() => applyPreset(preset)}
                             >
-                              <span className="settings-mail-preset-option-label">{preset.label}</span>
+                              <span className="settings-mail-preset-option-label">
+                                {t(`settings.mail.imap.providers.${preset.labelKey}`, { defaultValue: preset.labelDefault })}
+                              </span>
                               <span className="settings-mail-preset-option-host">{preset.imapHost}</span>
                             </button>
                           ))}

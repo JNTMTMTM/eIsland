@@ -283,9 +283,9 @@ export function MailTab(): ReactElement {
                 }}
               >
                 <div className="settings-mail-tab-mail-header">
-                  <span className="settings-mail-tab-mail-subject" title={item.subject}>{item.subject || '(无主题)'}</span>
+                  <span className="settings-mail-tab-mail-subject" title={item.subject}>{item.subject || t('mailTab.fallbacks.noSubject', { defaultValue: '(无主题)' })}</span>
                   {!hasSplit && (
-                    <span className="settings-mail-tab-mail-from" title={item.from}>{item.from || '-'}</span>
+                    <span className="settings-mail-tab-mail-from" title={item.from}>{item.from || t('mailTab.fallbacks.noSender', { defaultValue: '-' })}</span>
                   )}
                 </div>
                 <div className="settings-mail-tab-mail-preview" title={item.preview || item.body || ''}>
@@ -309,8 +309,8 @@ export function MailTab(): ReactElement {
             role="presentation"
           >
             <div className="settings-mail-tab-reader-header">
-              <span className="settings-mail-tab-reader-subject">{selectedItem.subject || '(无主题)'}</span>
-              <span className="settings-mail-tab-reader-meta">{selectedItem.from || '-'}</span>
+              <span className="settings-mail-tab-reader-subject">{selectedItem.subject || t('mailTab.fallbacks.noSubject', { defaultValue: '(无主题)' })}</span>
+              <span className="settings-mail-tab-reader-meta">{selectedItem.from || t('mailTab.fallbacks.noSender', { defaultValue: '-' })}</span>
             </div>
             <iframe
               className="settings-mail-tab-mail-body"
