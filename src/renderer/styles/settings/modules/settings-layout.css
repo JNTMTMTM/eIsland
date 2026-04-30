@@ -3577,7 +3577,62 @@
 }
 
 .settings-user-order-item-card {
+  gap: 0;
+}
+
+.settings-user-order-header {
+  display: flex;
+  align-items: center;
   gap: 8px;
+  padding-bottom: 10px;
+}
+
+.settings-user-order-amount {
+  margin-left: auto;
+  font-size: 15px;
+  font-weight: 600;
+  color: rgba(var(--color-text-rgb), 0.92);
+  letter-spacing: -0.2px;
+}
+
+.settings-user-order-product-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  border: 1px solid transparent;
+}
+
+.settings-user-order-product-badge.is-pro {
+  color: rgba(245, 180, 61, 1);
+  background: rgba(245, 180, 61, 0.14);
+  border-color: rgba(245, 180, 61, 0.28);
+}
+
+.settings-user-order-product-badge.is-recharge {
+  color: rgba(91, 192, 235, 1);
+  background: rgba(91, 192, 235, 0.14);
+  border-color: rgba(91, 192, 235, 0.28);
+}
+
+.settings-user-order-product-badge.is-unknown {
+  color: rgba(var(--color-text-rgb), 0.78);
+  background: rgba(var(--color-text-rgb), 0.1);
+  border-color: rgba(var(--color-text-rgb), 0.2);
+}
+
+.settings-user-order-detail-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(var(--color-text-rgb), 0.04);
+  margin-bottom: 2px;
 }
 
 .settings-user-order-item-row {
@@ -3637,6 +3692,7 @@
 .settings-user-order-actions {
   display: flex;
   gap: 8px;
+  margin-top: 10px;
 }
 
 .settings-user-order-actions .settings-user-primary-btn,

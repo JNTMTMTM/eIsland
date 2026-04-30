@@ -209,5 +209,6 @@ export interface UserPaymentOrderData {
   payUrl?: string;
   expireAt?: string;
   paidAt?: string;
+  createdAt?: string;
   proExpireAt?: string;
 }

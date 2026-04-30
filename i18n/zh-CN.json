@@ -1952,6 +1952,14 @@
         "orderNoLabel": "订单号",
         "payAmountLabel": "付款金额",
         "payStatusLabel": "支付状态",
+        "productTypeLabel": "购买类型",
+        "createdAtLabel": "下单时间",
+        "paidAtLabel": "支付时间",
+        "productType": {
+          "PRO_MONTH": "Pro 月度订阅",
+          "AGENT_RECHARGE": "余额充值",
+          "unknown": "未知类型"
+        },
         "refreshStatus": "刷新支付状态",
         "refreshingStatus": "刷新中...",
         "openPaymentPage": "打开支付界面",

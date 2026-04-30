@@ -1952,6 +1952,14 @@
         "orderNoLabel": "Order No.",
         "payAmountLabel": "Amount",
         "payStatusLabel": "Payment Status",
+        "productTypeLabel": "Type",
+        "createdAtLabel": "Created",
+        "paidAtLabel": "Paid At",
+        "productType": {
+          "PRO_MONTH": "Pro Monthly",
+          "AGENT_RECHARGE": "Balance Top-up",
+          "unknown": "Unknown"
+        },
         "refreshStatus": "Refresh Payment Status",
         "refreshingStatus": "Refreshing...",
         "openPaymentPage": "Open Payment Page",

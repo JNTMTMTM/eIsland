@@ -823,6 +823,20 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
     return 'is-unknown';
   };
 
+  const getProductTypeLabel = (productCode: string): string => {
+    const code = String(productCode || '').toUpperCase();
+    if (code === 'PRO_MONTH') return t('settings.user.payment.productType.PRO_MONTH', { defaultValue: 'Pro 月度订阅' });
+    if (code === 'AGENT_RECHARGE') return t('settings.user.payment.productType.AGENT_RECHARGE', { defaultValue: '余额充值' });
+    return t('settings.user.payment.productType.unknown', { defaultValue: '未知类型' });
+  };
+
+  const getProductTypeBadgeClass = (productCode: string): string => {
+    const code = String(productCode || '').toUpperCase();
+    if (code === 'PRO_MONTH') return 'is-pro';
+    if (code === 'AGENT_RECHARGE') return 'is-recharge';
+    return 'is-unknown';
+  };
+
   const handleOpenOrderPayment = (order: UserPaymentOrderData): void => {
     const payUrl = (order.payUrl || order.qrCodeUrl || '').trim();
     if (!payUrl) {
@@ -910,21 +924,33 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
           const amountLabel = typeof order.amountFen === 'number' ? `¥${(order.amountFen / 100).toFixed(2)}` : '--';
           return (
             <div key={order.outTradeNo} className="settings-user-card settings-user-order-item-card">
-              <div className="settings-user-order-item-row">
-                <span className="settings-user-order-item-label">{t('settings.user.payment.orderNoLabel', { defaultValue: '订单号' })}</span>
-                <span className="settings-user-order-item-value">{order.outTradeNo || '--'}</span>
-              </div>
-              <div className="settings-user-order-item-row">
-                <span className="settings-user-order-item-label">{t('settings.user.payment.payAmountLabel', { defaultValue: '付款金额' })}</span>
-                <span className="settings-user-order-item-value">{amountLabel}</span>
-              </div>
-              <div className="settings-user-order-item-row">
-                <span className="settings-user-order-item-label">{t('settings.user.payment.payStatusLabel', { defaultValue: '支付状态' })}</span>
+              <div className="settings-user-order-header">
+                <span className={`settings-user-order-product-badge ${getProductTypeBadgeClass(order.productCode)}`}>
+                  {getProductTypeLabel(order.productCode)}
+                </span>
                 <span className={`settings-user-order-status-badge ${getOrderStatusClassName(status)}`}>{getOrderStatusLabel(status)}</span>
+                <span className="settings-user-order-amount">{amountLabel}</span>
               </div>
-              <div className="settings-user-order-item-row">
-                <span className="settings-user-order-item-label">{t('settings.user.payment.expireLabel', { defaultValue: '订单到期时间' })}</span>
-                <span className="settings-user-order-item-value">{formatDateTime(order.expireAt)}</span>
+              <div className="settings-user-order-detail-card">
+                <div className="settings-user-order-item-row">
+                  <span className="settings-user-order-item-label">{t('settings.user.payment.orderNoLabel', { defaultValue: '订单号' })}</span>
+                  <span className="settings-user-order-item-value">{order.outTradeNo || '--'}</span>
+                </div>
+                <div className="settings-user-order-item-row">
+                  <span className="settings-user-order-item-label">{t('settings.user.payment.createdAtLabel', { defaultValue: '下单时间' })}</span>
+                  <span className="settings-user-order-item-value">{formatDateTime(order.createdAt)}</span>
+                </div>
+                {order.paidAt ? (
+                  <div className="settings-user-order-item-row">
+                    <span className="settings-user-order-item-label">{t('settings.user.payment.paidAtLabel', { defaultValue: '支付时间' })}</span>
+                    <span className="settings-user-order-item-value">{formatDateTime(order.paidAt)}</span>
+                  </div>
+                ) : (
+                  <div className="settings-user-order-item-row">
+                    <span className="settings-user-order-item-label">{t('settings.user.payment.expireLabel', { defaultValue: '订单到期时间' })}</span>
+                    <span className="settings-user-order-item-value">{formatDateTime(order.expireAt)}</span>
+                  </div>
+                )}
               </div>
               {isPaying ? (
                 <div className="settings-user-order-actions">
