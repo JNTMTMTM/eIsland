@@ -1567,8 +1567,8 @@
   white-space: pre-wrap;
   word-break: break-word;
   font-family: inherit;
-  user-select: text !important;
-  -webkit-user-select: text !important;
+  user-select: text;
+  -webkit-user-select: text;
 }
 
 .max-expand-chat-input::placeholder {

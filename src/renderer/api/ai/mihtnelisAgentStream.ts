@@ -326,11 +326,8 @@ function toEventType(input: string): MihtnelisAgentStreamEventType | null {
 
 function readTraceIdFromHeaders(headers: Headers): string {
   const candidates = ['x-trace-id', 'trace-id', 'x-request-id', 'request-id'];
-  for (const key of candidates) {
-    const value = headers.get(key);
-    if (typeof value === 'string' && value.trim()) {
-      return value.trim();
-    }
-  }
-  return '';
+  const matchedValue = candidates
+    .map((key) => headers.get(key))
+    .find((value) => typeof value === 'string' && value.trim());
+  return typeof matchedValue === 'string' ? matchedValue.trim() : '';
 }

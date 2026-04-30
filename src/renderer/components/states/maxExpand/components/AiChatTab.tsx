@@ -320,13 +320,13 @@ export function AiChatTab(): React.ReactElement {
         nextContent += pendingChunk;
       }
       let nextThinkBlocks = Array.isArray(last.thinkBlocks) ? [...last.thinkBlocks] : [];
-      for (const [thinkIndex, thinkText] of pendingThinkEntries) {
+      pendingThinkEntries.forEach(([thinkIndex, thinkText]) => {
         if (!thinkText) {
-          continue;
+          return;
         }
         const current = typeof nextThinkBlocks[thinkIndex] === 'string' ? nextThinkBlocks[thinkIndex] : '';
         nextThinkBlocks[thinkIndex] = current + thinkText;
-      }
+      });
       copy[copy.length - 1] = {
         ...last,
         content: nextContent,
@@ -439,7 +439,7 @@ export function AiChatTab(): React.ReactElement {
   }, [input, syncInputHeight]);
 
   useEffect(() => () => {
-    if (attachmentInvalidTimerRef.current != null) {
+    if (attachmentInvalidTimerRef.current !== null && attachmentInvalidTimerRef.current !== undefined) {
       window.clearTimeout(attachmentInvalidTimerRef.current);
       attachmentInvalidTimerRef.current = null;
     }
@@ -447,7 +447,7 @@ export function AiChatTab(): React.ReactElement {
 
   const markAttachmentDropInvalid = useCallback(() => {
     setAttachmentDropInvalid(true);
-    if (attachmentInvalidTimerRef.current != null) {
+    if (attachmentInvalidTimerRef.current !== null && attachmentInvalidTimerRef.current !== undefined) {
       window.clearTimeout(attachmentInvalidTimerRef.current);
     }
     attachmentInvalidTimerRef.current = window.setTimeout(() => {

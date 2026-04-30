@@ -1603,7 +1603,7 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
           <div className="settings-user-card-title-hint">
             {t('settings.user.recharge.subtitle', { defaultValue: '充值后可用于 AI 助手对话消耗' })}
           </div>
-          {userBalance != null && (
+          {userBalance !== null && userBalance !== undefined && (
             <div className="settings-user-recharge-balance">
               {t('settings.user.recharge.currentBalance', { defaultValue: '当前余额' })}：
               <span className="settings-user-recharge-balance-value">¥{userBalance}</span>

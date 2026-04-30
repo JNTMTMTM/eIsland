@@ -129,12 +129,12 @@ function normalizeAiChatMessage(value: unknown): AiChatMessage | null {
   const toolCalls = Array.isArray(source.toolCalls)
     ? source.toolCalls
       .map((item) => normalizeAiToolCall(item))
-      .filter((item): item is NonNullable<AiChatMessage['toolCalls']>[number] => item != null)
+      .filter((item): item is NonNullable<AiChatMessage['toolCalls']>[number] => item !== null && item !== undefined)
     : [];
   const todoSnapshots = Array.isArray(source.todoSnapshots)
     ? source.todoSnapshots
       .map((item) => normalizeAiTodoSnapshot(item))
-      .filter((item): item is NonNullable<AiChatMessage['todoSnapshots']>[number] => item != null)
+      .filter((item): item is NonNullable<AiChatMessage['todoSnapshots']>[number] => item !== null && item !== undefined)
     : [];
   const normalized: AiChatMessage = {
     role,

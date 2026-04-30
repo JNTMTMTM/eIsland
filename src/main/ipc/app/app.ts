@@ -399,7 +399,7 @@ async function executeAgentLocalTool(request: AgentLocalToolRequest): Promise<{
     if (tool === 'file.list') {
       const pathArg = normalizeLocalPath(getStringArg(args, 'path'));
       const limitRaw = getNumberArg(args, 'limit');
-      const limit = Math.max(1, Math.min(500, Math.floor(limitRaw == null ? 200 : limitRaw)));
+      const limit = Math.max(1, Math.min(500, Math.floor(limitRaw ?? 200)));
       if (!pathArg) {
         throw new Error('file.list 需要 path');
       }
@@ -529,9 +529,9 @@ async function executeAgentLocalTool(request: AgentLocalToolRequest): Promise<{
       }
       const startLineRaw = getNumberArg(args, 'startLine');
       const endLineRaw = getNumberArg(args, 'endLine');
-      const startLine = Math.max(1, Math.floor(startLineRaw == null ? 1 : startLineRaw));
+      const startLine = Math.max(1, Math.floor(startLineRaw ?? 1));
       const maxWindow = 2000;
-      let endLine = Math.max(startLine, Math.floor(endLineRaw == null ? startLine + 199 : endLineRaw));
+      let endLine = Math.max(startLine, Math.floor(endLineRaw ?? startLine + 199));
       if (endLine - startLine + 1 > maxWindow) {
         endLine = startLine + maxWindow - 1;
       }
@@ -600,7 +600,7 @@ async function executeAgentLocalTool(request: AgentLocalToolRequest): Promise<{
       const command = getStringArg(args, 'command');
       const cwd = normalizeLocalPath(getStringArg(args, 'cwd'));
       const timeoutRaw = getNumberArg(args, 'timeoutMs');
-      const timeoutMs = Math.max(1000, Math.min(60000, Math.floor(timeoutRaw == null ? 20000 : timeoutRaw)));
+      const timeoutMs = Math.max(1000, Math.min(60000, Math.floor(timeoutRaw ?? 20000)));
       if (!command) {
         throw new Error('cmd.exec 需要 command');
       }
@@ -653,9 +653,9 @@ async function executeAgentLocalTool(request: AgentLocalToolRequest): Promise<{
         throw new Error('file.grep 需要 pattern');
       }
       const limitRaw = getNumberArg(args, 'limit');
-      const maxResults = Math.max(1, Math.min(200, Math.floor(limitRaw == null ? 50 : limitRaw)));
+      const maxResults = Math.max(1, Math.min(200, Math.floor(limitRaw ?? 50)));
       const maxDepthRaw = getNumberArg(args, 'maxDepth');
-      const maxDepth = Math.max(0, Math.min(12, Math.floor(maxDepthRaw == null ? 8 : maxDepthRaw)));
+      const maxDepth = Math.max(0, Math.min(12, Math.floor(maxDepthRaw ?? 8)));
       const fixedStrings = args.fixedStrings === true;
       const caseSensitive = args.caseSensitive === true;
       const extensionSet = new Set(
@@ -706,8 +706,9 @@ async function executeAgentLocalTool(request: AgentLocalToolRequest): Promise<{
           } catch {
             continue;
           }
-          for (const entry of entries) {
+          for (let entryIdx = 0; entryIdx < entries.length; entryIdx++) {
             if (matches.length >= maxResults) break;
+            const entry = entries[entryIdx];
             const entryName = typeof entry.name === 'string' ? entry.name : entry.name.toString('utf8');
             if (entryName.startsWith('.') && excludedDirSet.has(entryName.toLowerCase())) continue;
             const entryPath = `${current.dir}${current.dir.endsWith('\\') ? '' : '\\'}${entryName}`;
@@ -733,6 +734,9 @@ async function executeAgentLocalTool(request: AgentLocalToolRequest): Promise<{
                 matches.push({ file: entryPath, line: li + 1, text: lines[li].slice(0, 500) });
               }
             }
+          }
+          if (queue.length > 20000) {
+            queue.splice(20000);
           }
         }
       }
