@@ -163,6 +163,7 @@ export function MaxExpandContent(): React.ReactElement {
       if (target.closest('.max-expand-chat-local-tool-access-card')) return;
       if (target.closest('.max-expand-chat-input')) return;
       if (target.closest('.settings-mail-tab-inbox-list')) return;
+      if (target.closest('.settings-mail-tab-reader')) return;
       if (target.closest('.settings-field-input')) return;
       if (target.closest('.settings-field-textarea')) return;
       e.preventDefault();

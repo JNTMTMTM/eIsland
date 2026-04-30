@@ -3,18 +3,47 @@
  * @description 邮箱 Tab 页面独立样式
  */
 
-.settings-mail-tab-title-line {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 8px;
-}
-
+/* ── 根容器 ── */
 .settings-mail-tab-section {
   display: flex;
   flex-direction: column;
   height: 100%;
   min-height: 0;
+}
+
+/* ── 分栏容器 ── */
+.settings-mail-tab-split-container {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  gap: 0;
+  overflow: hidden;
+}
+
+/* ── 左侧列表区 ── */
+.settings-mail-tab-sidebar {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
+  flex-shrink: 0;
+  transition: width 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+.settings-mail-tab-section.has-split .settings-mail-tab-sidebar {
+  width: 38%;
+  border-right: 1px solid rgba(var(--color-text-rgb), 0.1);
+  padding-right: 8px;
+}
+
+/* ── 标题行 ── */
+.settings-mail-tab-title-line {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
 .settings-mail-tab-title-actions {
@@ -57,14 +86,11 @@
 }
 
 @keyframes settings-mail-tab-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
+/* ── 收件箱列表 ── */
 .settings-mail-tab-inbox-list {
   flex: 1;
   min-height: 0;
@@ -89,6 +115,7 @@
   background: rgba(var(--color-text-rgb), 0.18);
 }
 
+/* ── 邮件卡片 ── */
 .settings-mail-tab-mail-item {
   display: flex;
   flex-direction: column;
@@ -100,7 +127,7 @@
   border-radius: 10px;
   background: rgba(var(--color-text-rgb), 0.04);
   cursor: pointer;
-  transition: border-color 0.15s ease, background 0.15s ease;
+  transition: border-color 0.15s ease, background 0.15s ease, padding 0.2s ease, gap 0.2s ease;
 }
 
 .settings-mail-tab-mail-item:hover {
@@ -115,10 +142,18 @@
 }
 
 .settings-mail-tab-mail-item.is-expanded {
-  border-color: rgba(var(--color-text-rgb), 0.24);
-  background: rgba(var(--color-text-rgb), 0.07);
+  border-color: rgba(86, 152, 255, 0.45);
+  background: rgba(86, 152, 255, 0.08);
 }
 
+.has-split .settings-mail-tab-mail-item {
+  gap: 2px;
+  padding: 6px 8px;
+  margin-bottom: 4px;
+  border-radius: 8px;
+}
+
+/* ── 邮件头 ── */
 .settings-mail-tab-mail-header {
   width: 100%;
   display: flex;
@@ -134,6 +169,10 @@
   white-space: nowrap;
   font-size: 12px;
   color: rgba(var(--color-text-rgb), 0.9);
+}
+
+.has-split .settings-mail-tab-mail-subject {
+  font-size: 11px;
 }
 
 .settings-mail-tab-mail-from {
@@ -155,18 +194,58 @@
   color: rgba(var(--color-text-rgb), 0.6);
 }
 
-.settings-mail-tab-mail-body-wrap {
-  margin: 2px 0 0;
-  padding-top: 6px;
-  width: 100%;
-  border-top: 1px solid rgba(var(--color-text-rgb), 0.14);
+/* ── 右侧阅读区 ── */
+.settings-mail-tab-reader {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  padding-left: 10px;
+  animation: settings-mail-tab-reader-in 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+@keyframes settings-mail-tab-reader-in {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.settings-mail-tab-reader-header {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 6px;
+  flex-shrink: 0;
+}
+
+.settings-mail-tab-reader-subject {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(var(--color-text-rgb), 0.92);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.settings-mail-tab-reader-meta {
+  font-size: 11px;
+  color: rgba(var(--color-text-rgb), 0.5);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── 邮件正文 iframe ── */
 .settings-mail-tab-mail-body {
+  flex: 1;
   width: 100%;
-  min-height: 120px;
-  max-height: 360px;
+  min-height: 0;
   border: none;
-  background: transparent;
-  color-scheme: dark;
+  border-radius: 8px;
+  background: #fff;
 }

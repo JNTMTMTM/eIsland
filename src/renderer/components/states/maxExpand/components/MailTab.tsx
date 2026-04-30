@@ -70,8 +70,8 @@ const MAIL_WRAP_STYLE = [
   '<style>',
   'body{margin:0;padding:8px;font-size:13px;line-height:1.6;',
   'font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;',
-  'color:rgba(255,255,255,0.85);background:#1e1e1e;word-break:break-word;overflow-wrap:break-word;}',
-  'a{color:#58a6ff;text-decoration:underline;}',
+  'color:#222;background:#fff;word-break:break-word;overflow-wrap:break-word;}',
+  'a{color:#1a73e8;text-decoration:underline;}',
   'img{max-width:100%;height:auto;}',
   'table{border-collapse:collapse;max-width:100%;}',
   '</style></head><body>',
@@ -136,83 +136,102 @@ export function MailTab(): ReactElement {
     void refreshInbox();
   }, []);
 
+  const selectedItem = expandedUid ? inbox.find((item) => item.uid === expandedUid) : null;
+  const hasSplit = Boolean(selectedItem);
+
   return (
-    <div className="max-expand-settings-section settings-mail-tab-section">
-      <div
-        className="max-expand-settings-title settings-mail-tab-title-line"
-      >
-        <span>{t('mailTab.title', { defaultValue: '邮箱' })}</span>
-        <div className="settings-mail-tab-title-actions">
-          <button
-            type="button"
-            className="settings-mail-tab-icon-btn"
-            onClick={() => {
-              window.api.storeWrite(SETTINGS_OPEN_TAB_STORE_KEY, 'mail').catch(() => {});
-              setMaxExpandTab('settings');
-            }}
-            title={t('mailTab.goSettings', { defaultValue: '前往邮箱设置' })}
-            aria-label={t('mailTab.goSettings', { defaultValue: '前往邮箱设置' })}
-          >
-            <img src={SvgIcon.SETTING} alt="" className="settings-mail-tab-icon" />
-          </button>
-          <button
-            type="button"
-            className={`settings-mail-tab-icon-btn ${loadingInbox ? 'is-loading' : ''}`}
-            onClick={() => { void refreshInbox(); }}
-            disabled={loadingInbox}
-            title={t('mailTab.actions.refresh', { defaultValue: '刷新收件箱' })}
-            aria-label={t('mailTab.actions.refresh', { defaultValue: '刷新收件箱' })}
-          >
-            <img src={SvgIcon.REVERT} alt="" className="settings-mail-tab-icon" />
-          </button>
-        </div>
-      </div>
-      <div
-        className="settings-mail-tab-inbox-list"
-        onWheel={(event) => {
-          event.stopPropagation();
-        }}
-      >
-        {inbox.map((item) => (
+    <div className={`max-expand-settings-section settings-mail-tab-section ${hasSplit ? 'has-split' : ''}`}>
+      <div className="settings-mail-tab-split-container">
+        {/* 左侧：邮件列表 */}
+        <div className="settings-mail-tab-sidebar">
           <div
-            className={`settings-mail-tab-mail-item ${expandedUid === item.uid ? 'is-expanded' : ''}`}
-            key={item.uid}
-            onClick={() => {
-              setExpandedUid((current) => (current === item.uid ? null : item.uid));
-            }}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter' || event.key === ' ') {
-                event.preventDefault();
-                setExpandedUid((current) => (current === item.uid ? null : item.uid));
-              }
+            className="max-expand-settings-title settings-mail-tab-title-line"
+          >
+            <span>{t('mailTab.title', { defaultValue: '邮箱' })}</span>
+            <div className="settings-mail-tab-title-actions">
+              <button
+                type="button"
+                className="settings-mail-tab-icon-btn"
+                onClick={() => {
+                  window.api.storeWrite(SETTINGS_OPEN_TAB_STORE_KEY, 'mail').catch(() => {});
+                  setMaxExpandTab('settings');
+                }}
+                title={t('mailTab.goSettings', { defaultValue: '前往邮箱设置' })}
+                aria-label={t('mailTab.goSettings', { defaultValue: '前往邮箱设置' })}
+              >
+                <img src={SvgIcon.SETTING} alt="" className="settings-mail-tab-icon" />
+              </button>
+              <button
+                type="button"
+                className={`settings-mail-tab-icon-btn ${loadingInbox ? 'is-loading' : ''}`}
+                onClick={() => { void refreshInbox(); }}
+                disabled={loadingInbox}
+                title={t('mailTab.actions.refresh', { defaultValue: '刷新收件箱' })}
+                aria-label={t('mailTab.actions.refresh', { defaultValue: '刷新收件箱' })}
+              >
+                <img src={SvgIcon.REVERT} alt="" className="settings-mail-tab-icon" />
+              </button>
+            </div>
+          </div>
+          <div
+            className="settings-mail-tab-inbox-list"
+            onWheel={(event) => {
+              event.stopPropagation();
             }}
           >
-            <div className="settings-mail-tab-mail-header">
-              <span className="settings-mail-tab-mail-subject" title={item.subject}>{item.subject || '(无主题)'}</span>
-              <span className="settings-mail-tab-mail-from" title={item.from}>{item.from || '-'}</span>
-            </div>
-            <div className="settings-mail-tab-mail-preview" title={item.preview || item.body || ''}>
-              {item.preview || item.body || '-'}
-            </div>
-            {expandedUid === item.uid ? (
+            {inbox.map((item) => (
               <div
-                className="settings-mail-tab-mail-body-wrap"
-                onClick={(e) => e.stopPropagation()}
-                onKeyDown={(e) => e.stopPropagation()}
-                role="presentation"
+                className={`settings-mail-tab-mail-item ${expandedUid === item.uid ? 'is-expanded' : ''}`}
+                key={item.uid}
+                onClick={() => {
+                  setExpandedUid((current) => (current === item.uid ? null : item.uid));
+                }}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    setExpandedUid((current) => (current === item.uid ? null : item.uid));
+                  }
+                }}
               >
-                <iframe
-                  className="settings-mail-tab-mail-body"
-                  sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox"
-                  srcDoc={buildMailSrcDoc(item.body || item.preview || '-')}
-                  title={item.subject || ''}
-                />
+                <div className="settings-mail-tab-mail-header">
+                  <span className="settings-mail-tab-mail-subject" title={item.subject}>{item.subject || '(无主题)'}</span>
+                  {!hasSplit && (
+                    <span className="settings-mail-tab-mail-from" title={item.from}>{item.from || '-'}</span>
+                  )}
+                </div>
+                {!hasSplit && (
+                  <div className="settings-mail-tab-mail-preview" title={item.preview || item.body || ''}>
+                    {item.preview || item.body || '-'}
+                  </div>
+                )}
               </div>
-            ) : null}
+            ))}
           </div>
-        ))}
+        </div>
+
+        {/* 右侧：邮件正文 */}
+        {selectedItem ? (
+          <div
+            className="settings-mail-tab-reader"
+            onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
+            onWheel={(e) => e.stopPropagation()}
+            role="presentation"
+          >
+            <div className="settings-mail-tab-reader-header">
+              <span className="settings-mail-tab-reader-subject">{selectedItem.subject || '(无主题)'}</span>
+              <span className="settings-mail-tab-reader-meta">{selectedItem.from || '-'}</span>
+            </div>
+            <iframe
+              className="settings-mail-tab-mail-body"
+              sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox"
+              srcDoc={buildMailSrcDoc(selectedItem.body || selectedItem.preview || '-')}
+              title={selectedItem.subject || ''}
+            />
+          </div>
+        ) : null}
       </div>
     </div>
   );
