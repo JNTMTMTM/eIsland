@@ -210,6 +210,13 @@ export function MailTab(): ReactElement {
             >
               {t('mailTab.emptyGuide.action', { defaultValue: '前往设置' })}
             </button>
+            <button
+              type="button"
+              className="settings-user-secondary-btn"
+              onClick={() => window.api.clipboardOpenUrl('https://docs.pyisland.com/guide/eisland.html').catch(() => {})}
+            >
+              {t('mailTab.emptyGuide.imapHelp', { defaultValue: '如何获取 IMAP 信息' })}
+            </button>
           </div>
         </div>
       </div>
