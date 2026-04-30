@@ -1030,23 +1030,23 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
               </div>
             </div>
             <div className="settings-user-info-summary-divider" />
-            <div className="settings-user-info-summary-row">
-              <span className="settings-user-info-summary-label">{t('settings.user.fields.gender', { defaultValue: '性别' })}</span>
-              <span className="settings-user-info-summary-value">{genderLabel}</span>
-            </div>
-            <div className="settings-user-info-summary-row">
-              <span className="settings-user-info-summary-label">{t('settings.user.fields.birthday', { defaultValue: '生日' })}</span>
-              <span className="settings-user-info-summary-value">{profile?.birthday ?? '—'}</span>
-            </div>
-            <div className="settings-user-info-summary-divider" />
-            <div className="settings-user-info-summary-row">
-              <span className="settings-user-info-summary-balance">
-                {t('settings.user.card.balance', { defaultValue: '余额' })}
-                {' '}
+            <div className="settings-user-info-summary-bottom">
+              <div className="settings-user-info-summary-balance-card">
+                <span className="settings-user-info-summary-balance-label">{t('settings.user.card.balance', { defaultValue: '余额' })}</span>
                 <span className="settings-user-info-summary-balance-value">
                   ¥{typeof profile?.balanceFen === 'number' ? (profile.balanceFen / 100).toFixed(2) : '0.00'}
                 </span>
-              </span>
+              </div>
+              <div className="settings-user-info-summary-extra-card">
+                <div className="settings-user-info-summary-row">
+                  <span className="settings-user-info-summary-label">{t('settings.user.fields.gender', { defaultValue: '性别' })}</span>
+                  <span className="settings-user-info-summary-value">{genderLabel}</span>
+                </div>
+                <div className="settings-user-info-summary-row">
+                  <span className="settings-user-info-summary-label">{t('settings.user.fields.birthday', { defaultValue: '生日' })}</span>
+                  <span className="settings-user-info-summary-value">{profile?.birthday ?? '—'}</span>
+                </div>
+              </div>
             </div>
           </div>
 

@@ -2893,18 +2893,48 @@
   gap: 3px;
 }
 
-.settings-user-info-summary-balance {
-  font-size: 10px;
-  color: rgba(var(--color-text-rgb), 0.5);
-  display: inline-flex;
-  align-items: baseline;
-  gap: 4px;
+.settings-user-info-summary-bottom {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.settings-user-info-summary-balance-card {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 14px;
+  border-radius: 8px;
+  background: rgba(var(--color-text-rgb), 0.04);
+  border: 1px solid rgba(var(--color-text-rgb), 0.06);
+}
+
+.settings-user-info-summary-balance-label {
+  font-size: 9px;
+  color: rgba(var(--color-text-rgb), 0.45);
 }
 
 .settings-user-info-summary-balance-value {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   color: rgba(var(--color-text-rgb), 0.92);
+  white-space: nowrap;
+}
+
+.settings-user-info-summary-extra-card {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: rgba(var(--color-text-rgb), 0.04);
+  border: 1px solid rgba(var(--color-text-rgb), 0.06);
 }
 
 .settings-user-info-gender-icon {
