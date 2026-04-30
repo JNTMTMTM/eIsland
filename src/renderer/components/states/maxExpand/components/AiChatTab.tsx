@@ -79,12 +79,31 @@ const SETTINGS_ABOUT_FEEDBACK_PREFILL_STORE_KEY = 'settings-about-feedback-prefi
 const ATTACHMENT_MAX_SIZE_BYTES = 102400;
 const ATTACHMENT_MAX_COUNT = 5;
 const ATTACHMENT_ACCEPT_EXTENSIONS = '.txt,.md,.json,.log,.csv,.xml,.yaml,.yml,.toml,.ini,.cfg,.conf,.env,.sh,.bat,.ps1,.py,.js,.ts,.jsx,.tsx,.html,.css,.scss,.less,.sql,.c,.cpp,.h,.hpp,.java,.kt,.swift,.go,.rs,.rb,.php,.lua,.diff,.patch';
+const ATTACHMENT_ACCEPT_EXT_SET = new Set(
+  ATTACHMENT_ACCEPT_EXTENSIONS
+    .split(',')
+    .map((item) => item.trim().toLowerCase())
+    .filter(Boolean),
+);
 const EMPTY_GREETING_DEFAULTS = [
   '你好呀，今天想一起处理点什么？',
   '嗨，我在这儿，随时可以帮你。',
   '欢迎回来，先聊聊你现在最想解决的问题吧。',
   '今天也一起高效一点，你想从哪件事开始？',
 ] as const;
+
+function isAcceptedAttachmentFile(fileName: string): boolean {
+  const lowerName = (fileName ?? '').toLowerCase();
+  if (!lowerName) {
+    return false;
+  }
+  for (const ext of ATTACHMENT_ACCEPT_EXT_SET) {
+    if (lowerName.endsWith(ext)) {
+      return true;
+    }
+  }
+  return false;
+}
 
 /**
  * AI 对话 Tab
@@ -106,6 +125,7 @@ export function AiChatTab(): React.ReactElement {
   const [showSessionSidebar, setShowSessionSidebar] = useState(false);
   const [showModelCard, setShowModelCard] = useState(false);
   const [skillDragOver, setSkillDragOver] = useState(false);
+  const [attachmentDragOver, setAttachmentDragOver] = useState(false);
   const [pendingAttachments, setPendingAttachments] = useState<Array<{ name: string; size: number; content: string }>>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [resolvingWebAccessDecision, setResolvingWebAccessDecision] = useState(false);
@@ -385,6 +405,7 @@ export function AiChatTab(): React.ReactElement {
     const fileArray = Array.from(files);
     fileArray.forEach((file) => {
       if (pendingAttachments.length >= ATTACHMENT_MAX_COUNT) return;
+      if (!isAcceptedAttachmentFile(file.name)) return;
       if (file.size > ATTACHMENT_MAX_SIZE_BYTES) return;
       if (pendingAttachments.some((a) => a.name === file.name)) return;
       const reader = new FileReader();
@@ -401,6 +422,13 @@ export function AiChatTab(): React.ReactElement {
     });
     if (fileInputRef.current) fileInputRef.current.value = '';
   }, [pendingAttachments]);
+
+  const handleAttachmentDrop = useCallback((files: FileList | File[]) => {
+    if (aiChatStreaming || pendingAttachments.length >= ATTACHMENT_MAX_COUNT) {
+      return;
+    }
+    handleAttachFiles(files);
+  }, [aiChatStreaming, handleAttachFiles, pendingAttachments.length]);
 
   /** 发送消息并调用 API */
   const handleSend = useCallback(async (): Promise<void> => {
@@ -1889,27 +1917,48 @@ export function AiChatTab(): React.ReactElement {
           style={{ display: 'none' }}
           onChange={(e) => { if (e.target.files) handleAttachFiles(e.target.files); }}
         />
-        {pendingAttachments.length > 0 && (
-          <div className="max-expand-chat-attachments-pending">
-            {pendingAttachments.map((a) => (
-              <span key={a.name} className="max-expand-chat-attachment-tag">
-                {resolveDevIconByFileName(a.name) ? (
-                  <img className="max-expand-chat-attachment-tag-icon" src={resolveDevIconByFileName(a.name)} alt="" aria-hidden="true" />
-                ) : (
-                  <span className="max-expand-chat-attachment-tag-icon-fallback" aria-hidden="true" />
-                )}
-                <span className="max-expand-chat-attachment-tag-name">{a.name}</span>
-                <button
-                  type="button"
-                  className="max-expand-chat-attachment-tag-remove"
-                  onClick={() => setPendingAttachments((prev) => prev.filter((p) => p.name !== a.name))}
-                  aria-label={t('aiChat.attachments.remove', { defaultValue: '移除附件' })}
-                >×</button>
-              </span>
-            ))}
-          </div>
-        )}
-        <div className="max-expand-chat-input-bar">
+        <div
+          className={`max-expand-chat-attachments-drop-zone${attachmentDragOver ? ' drag-over' : ''}`}
+          onDragOver={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setAttachmentDragOver(true);
+          }}
+          onDragLeave={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setAttachmentDragOver(false);
+          }}
+          onDrop={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setAttachmentDragOver(false);
+            if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
+              handleAttachmentDrop(e.dataTransfer.files);
+            }
+          }}
+        >
+          {pendingAttachments.length > 0 && (
+            <div className="max-expand-chat-attachments-pending">
+              {pendingAttachments.map((a) => (
+                <span key={a.name} className="max-expand-chat-attachment-tag">
+                  {resolveDevIconByFileName(a.name) ? (
+                    <img className="max-expand-chat-attachment-tag-icon" src={resolveDevIconByFileName(a.name)} alt="" aria-hidden="true" />
+                  ) : (
+                    <span className="max-expand-chat-attachment-tag-icon-fallback" aria-hidden="true" />
+                  )}
+                  <span className="max-expand-chat-attachment-tag-name">{a.name}</span>
+                  <button
+                    type="button"
+                    className="max-expand-chat-attachment-tag-remove"
+                    onClick={() => setPendingAttachments((prev) => prev.filter((p) => p.name !== a.name))}
+                    aria-label={t('aiChat.attachments.remove', { defaultValue: '移除附件' })}
+                  >×</button>
+                </span>
+              ))}
+            </div>
+          )}
+          <div className="max-expand-chat-input-bar">
           <button
             className="max-expand-chat-send max-expand-chat-session-toggle"
             type="button"
@@ -1974,6 +2023,7 @@ export function AiChatTab(): React.ReactElement {
               </span>
             ) : selectedModel}
           </button>
+          </div>
         </div>
       </div>
     </div>

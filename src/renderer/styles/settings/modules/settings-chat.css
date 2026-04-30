@@ -1355,6 +1355,18 @@
 }
 
 /** 待发送附件条 */
+.max-expand-chat-attachments-drop-zone {
+  margin: 0 8px 8px;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.max-expand-chat-attachments-drop-zone.drag-over {
+  background: rgba(80, 180, 120, 0.06);
+  box-shadow: inset 0 0 0 1px rgba(80, 180, 120, 0.35);
+}
+
 .max-expand-chat-attachments-pending {
   display: flex;
   flex-wrap: wrap;
