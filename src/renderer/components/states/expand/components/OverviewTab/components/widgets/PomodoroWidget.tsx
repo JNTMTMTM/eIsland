@@ -1,3 +1,29 @@
+/*
+ * eIsland - A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Electron.
+ * https://github.com/JNTMTMTM/eIsland
+ *
+ * Copyright (C) 2026 JNTMTMTM
+ * Copyright (C) 2026 pyisland.com
+ *
+ * Original author: JNTMTMTM[](https://github.com/JNTMTMTM)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+/**
+ * @file PomodoroWidget.tsx
+ * @description Overview 番茄钟小组件，支持工作/休息计时、轮次进度与控制操作。
+ * @author 鸡哥
+ */
+
 import React, { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../../../../../../i18n';
@@ -70,6 +96,7 @@ useIslandStore.subscribe((state) => {
   }
 });
 
+/** 番茄钟小组件，支持工作/休息计时、轮次进度与控制操作。 */
 export function PomodoroWidget(): React.ReactElement {
   const { t } = useTranslation();
   const {

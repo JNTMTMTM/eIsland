@@ -1,7 +1,34 @@
+/*
+ * eIsland - A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Electron.
+ * https://github.com/JNTMTMTM/eIsland
+ *
+ * Copyright (C) 2026 JNTMTMTM
+ * Copyright (C) 2026 pyisland.com
+ *
+ * Original author: JNTMTMTM[](https://github.com/JNTMTMTM)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+/**
+ * @file chatUtils.ts
+ * @description AI 对话工具函数（上下文构建、JSON 信封拆包、Markdown 修正、流式推送等）。
+ * @author 鸡哥
+ */
+
 import type { AiChatMessage } from '../../../../../../store/types';
 
 export const MAX_MIHTNELIS_CONTEXT_CHARS = 1_000_000;
 
+/** 根据历史消息构建 mihtnelis agent 的对话上下文字符串。 */
 export function buildMihtnelisContext(messages: AiChatMessage[]): string {
   if (!Array.isArray(messages) || messages.length === 0) {
     return '';
@@ -53,6 +80,7 @@ function repairJsonControlChars(json: string): string {
   return result;
 }
 
+/** 尝试将 JSON 信封格式的内容拆包为 answer 纯文本。 */
 export function unwrapJsonEnvelope(content: string): string {
   const trimmed = content.trim();
   if (!trimmed.startsWith('{') || !trimmed.endsWith('}')) {
@@ -71,6 +99,7 @@ export function unwrapJsonEnvelope(content: string): string {
   return content;
 }
 
+/** 将任意值转为格式化的 JSON 字符串。 */
 export function toPrettyJson(value: unknown): string {
   if (value == null) {
     return '{}';
@@ -85,6 +114,7 @@ export function toPrettyJson(value: unknown): string {
   }
 }
 
+/** 修正 Markdown 代码围栏前缺少换行符的问题。 */
 export function normalizeMarkdownCodeFences(content: string): string {
   if (!content || content.indexOf('```') < 0) {
     return content;

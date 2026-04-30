@@ -139,6 +139,7 @@ function isAccountConfigured(a: MailAccountConfig): boolean {
   return Boolean(a.imapHost?.trim() && a.authUser?.trim() && a.authSecret);
 }
 
+/** 最大展开模式 — 邮件 Tab 组件，展示收件箱列表并支持多账户切换。 */
 export function MailTab(): ReactElement {
   const { t } = useTranslation();
   const { setMaxExpandTab } = useIslandStore();

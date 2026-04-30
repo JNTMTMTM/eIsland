@@ -120,17 +120,20 @@ export const DevIcon = {
 
 export type DevIconKey = keyof typeof DevIcon;
 
+/** 将原始语言名称解析为标准化的 DevIcon 语言标识。 */
 export function resolveDevIconLanguage(rawLanguage: string): string {
   const raw = (rawLanguage ?? '').toLowerCase();
   if (!raw) return 'plaintext';
   return DEVICON_LANGUAGE_ALIASES[raw] ?? raw;
 }
 
+/** 根据语言名称解析对应的 DevIcon SVG 资源路径。 */
 export function resolveDevIconByLanguage(rawLanguage: string): string | undefined {
   const language = resolveDevIconLanguage(rawLanguage);
   return DevIcon[language as DevIconKey];
 }
 
+/** 根据文件名解析对应的 DevIcon SVG 资源路径。 */
 export function resolveDevIconByFileName(fileName: string): string | undefined {
   const extMatch = /\.([a-zA-Z0-9#+-]+)$/.exec(fileName ?? '');
   const raw = extMatch?.[1] ?? '';

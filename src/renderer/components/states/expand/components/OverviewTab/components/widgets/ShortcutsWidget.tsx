@@ -1,3 +1,29 @@
+/*
+ * eIsland - A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Electron.
+ * https://github.com/JNTMTMTM/eIsland
+ *
+ * Copyright (C) 2026 JNTMTMTM
+ * Copyright (C) 2026 pyisland.com
+ *
+ * Original author: JNTMTMTM[](https://github.com/JNTMTMTM)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+/**
+ * @file ShortcutsWidget.tsx
+ * @description Overview 快捷启动小组件，展示用户配置的应用快捷方式并支持拖拽排序。
+ * @author 鸡哥
+ */
+
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../../../../../store/slices';
@@ -14,6 +40,7 @@ interface ShortcutsWidgetProps {
   onDragEnd: () => void;
 }
 
+/** 快捷启动小组件，展示应用快捷方式并支持拖拽排序。 */
 export function ShortcutsWidget({
   apps,
   dragIndex,

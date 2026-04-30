@@ -1,3 +1,29 @@
+/*
+ * eIsland - A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Electron.
+ * https://github.com/JNTMTMTM/eIsland
+ *
+ * Copyright (C) 2026 JNTMTMTM
+ * Copyright (C) 2026 pyisland.com
+ *
+ * Original author: JNTMTMTM[](https://github.com/JNTMTMTM)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+/**
+ * @file AlbumCarouselWidget.tsx
+ * @description Overview 相册轮播小组件，支持图片/视频自动轮播、筛选与手动切换。
+ * @author 鸡哥
+ */
+
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SvgIcon } from '../../../../../../../utils/SvgIcon';
@@ -16,6 +42,7 @@ interface AlbumCarouselWidgetProps {
   openAlbumPage: () => void;
 }
 
+/** 相册轮播小组件，展示照片/视频并支持自动轮播与手动切换。 */
 export function AlbumCarouselWidget({ openAlbumPage }: AlbumCarouselWidgetProps): React.ReactElement {
   const { t } = useTranslation();
   const [items, setItems] = useState<OverviewAlbumItem[]>([]);

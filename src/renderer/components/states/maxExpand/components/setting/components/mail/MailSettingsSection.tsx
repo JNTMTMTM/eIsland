@@ -82,6 +82,7 @@ function generateId(): string {
 
 const MAX_MAIL_ACCOUNTS = 5;
 
+/** 设置页邮件配置区域组件，支持多账户管理、IMAP 参数编辑与预设导入。 */
 export function MailSettingsSection({
   currentMailSettingsPageLabel,
   mailSettingsPage,

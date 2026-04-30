@@ -1,3 +1,29 @@
+/*
+ * eIsland - A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Electron.
+ * https://github.com/JNTMTMTM/eIsland
+ *
+ * Copyright (C) 2026 JNTMTMTM
+ * Copyright (C) 2026 pyisland.com
+ *
+ * Original author: JNTMTMTM[](https://github.com/JNTMTMTM)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+/**
+ * @file MarkdownSiteLink.tsx
+ * @description AI 对话 Markdown 网站链接卡片组件，自动获取网站标题与图标。
+ * @author 鸡哥
+ */
+
 import React, { useEffect, useState } from 'react';
 import {
   fetchWebsiteTitle,
@@ -42,6 +68,7 @@ function buildSiteLinkMeta(url: string): SiteLinkMeta {
   };
 }
 
+/** Markdown 网站链接卡片组件，自动获取网站标题与 favicon。 */
 export function MarkdownSiteLink(props: {
   href: string;
   children: React.ReactNode;

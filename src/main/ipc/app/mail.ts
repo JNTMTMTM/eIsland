@@ -310,6 +310,7 @@ function isMailAccountConfigLike(value: unknown): value is MailAccountConfig {
     && typeof obj.authSecret === 'string';
 }
 
+/** 注册所有邮件相关的 IPC handler（收件箱列表、邮件详情、账户配置等）。 */
 export function registerMailIpcHandlers(options: RegisterMailIpcHandlersOptions): void {
   ipcMain.handle('mail:inbox:list', async (_event, configOrLimit?: unknown, limitRaw?: number) => {
     try {
