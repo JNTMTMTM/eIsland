@@ -120,6 +120,7 @@ export function AiChatTab(): React.ReactElement {
   const pendingMessageFlushRafRef = useRef<number | null>(null);
   const attachmentInvalidTimerRef = useRef<number | null>(null);
   const attachmentDragDepthRef = useRef(0);
+  const skillDragDepthRef = useRef(0);
   const lastAssistantFlushAtRef = useRef(0);
   const hasInitializedAutoScrollRef = useRef(false);
   const [input, setInput] = useState('');
@@ -1860,19 +1861,28 @@ export function AiChatTab(): React.ReactElement {
               {/* Agent Skills */}
               <div
                 className={`max-expand-chat-skills-section${skillDragOver ? ' drag-over' : ''}`}
+                onDragEnter={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  skillDragDepthRef.current += 1;
+                  setSkillDragOver((prev) => (prev ? prev : true));
+                }}
                 onDragOver={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  setSkillDragOver(true);
                 }}
                 onDragLeave={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  setSkillDragOver(false);
+                  skillDragDepthRef.current = Math.max(0, skillDragDepthRef.current - 1);
+                  if (skillDragDepthRef.current === 0) {
+                    setSkillDragOver(false);
+                  }
                 }}
                 onDrop={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
+                  skillDragDepthRef.current = 0;
                   setSkillDragOver(false);
                   const files = Array.from(e.dataTransfer.files);
                   const mdFiles = files.filter((f) => f.name.toLowerCase().endsWith('.md'));
@@ -1880,7 +1890,7 @@ export function AiChatTab(): React.ReactElement {
                   const current = Array.isArray(aiConfig.skills) ? aiConfig.skills : [];
                   const newSkills = [...current];
                   for (const file of mdFiles) {
-                    const filePath = (file as File & { path?: string }).path;
+                    const filePath = window.api.getPathForFile(file);
                     if (!filePath) continue;
                     if (newSkills.some((s) => s.filePath.toLowerCase() === filePath.toLowerCase())) continue;
                     const name = filePath.replace(/\\/g, '/').split('/').pop()?.replace(/\.md$/i, '') || 'skill';
