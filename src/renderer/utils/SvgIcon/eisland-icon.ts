@@ -81,6 +81,7 @@ export const SvgIcon = {
   COLLAPSE: './svg/COLLAPSE.svg',
   DELETE: './svg/DELETE.svg',
   ATTACHMENT: './svg/ATTACHMENT.svg',
+  RECHARGE: './svg/RECHARGE.svg',
 } as const;
 
 export type SvgIconKey = keyof typeof SvgIcon;

@@ -1854,6 +1854,7 @@
         "avatarDesc": "Upload or change your account avatar",
         "passwordDesc": "Change login password via email verification",
         "proDesc": "View Pro plan benefits plus current subscription pricing",
+        "rechargeDesc": "Top up your balance for AI assistant conversations",
         "ordersDesc": "Check order status, continue payment, or close pending orders",
         "logoutDesc": "Sign out or delete your account"
       },

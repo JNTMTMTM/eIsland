@@ -1084,6 +1084,15 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
             </button>
             <button
               type="button"
+              className="settings-index-card settings-user-recharge-nav-card--outline"
+              onClick={() => setUserProfilePage('recharge')}
+            >
+              <span className="settings-index-card-title">{t('settings.user.pages.recharge', { defaultValue: '余额充值' })}</span>
+              <span className="settings-index-card-desc">{t('settings.user.infoNav.rechargeDesc', { defaultValue: '为 AI 助手对话余额充值' })}</span>
+              <img className="settings-index-card-layout-icon" src={SvgIcon.RECHARGE} alt="" aria-hidden="true" />
+            </button>
+            <button
+              type="button"
               className="settings-index-card"
               onClick={() => {
                 setOrdersFeedback(null);

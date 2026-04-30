@@ -3008,6 +3008,44 @@
   opacity: 0.07;
 }
 
+.settings-user-recharge-nav-card--outline {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-color: rgba(91, 192, 235, 0.45);
+  background:
+    linear-gradient(125deg, rgba(91, 192, 235, 0.3) 0%, rgba(91, 192, 235, 0.09) 34%, rgba(var(--color-text-rgb), 0.03) 72%),
+    linear-gradient(135deg, rgba(var(--color-text-rgb), 0.08), rgba(var(--color-text-rgb), 0.03));
+  box-shadow:
+    inset 0 1px 0 rgba(184, 232, 255, 0.45),
+    inset 0 0 0 1px rgba(91, 192, 235, 0.16);
+}
+
+.settings-user-recharge-nav-card--outline::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    linear-gradient(112deg, rgba(91, 192, 235, 0.42) 0%, rgba(91, 192, 235, 0.12) 24%, rgba(91, 192, 235, 0) 58%);
+  opacity: 0.9;
+}
+
+.settings-user-recharge-nav-card--outline .settings-index-card-title,
+.settings-user-recharge-nav-card--outline .settings-index-card-desc {
+  position: relative;
+  z-index: 1;
+}
+
+.settings-user-recharge-nav-card--outline .settings-index-card-desc { opacity: 1; }
+
+.settings-user-recharge-nav-card--outline .settings-index-card-layout-icon {
+  z-index: 0;
+  opacity: 0.07;
+}
+
 .settings-user-overview-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

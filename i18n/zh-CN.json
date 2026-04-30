@@ -1854,6 +1854,7 @@
         "avatarDesc": "上传或更换账号头像",
         "passwordDesc": "通过邮箱验证码修改登录密码",
         "proDesc": "查看 Pro 计划权益及当前订阅价格",
+        "rechargeDesc": "为 AI 助手对话余额充值",
         "ordersDesc": "查看订单状态、继续支付或主动关闭待支付订单",
         "logoutDesc": "退出当前账号或注销"
       },
