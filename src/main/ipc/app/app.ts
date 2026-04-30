@@ -27,9 +27,10 @@
 
 import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron';
 import { existsSync } from 'fs';
-import { copyFile, mkdir, readdir, readFile, rm, stat, writeFile } from 'fs/promises';
+import { appendFile, copyFile, mkdir, readdir, readFile, rename, rm, stat, writeFile } from 'fs/promises';
 import { execFile } from 'child_process';
 import { basename, dirname, resolve } from 'path';
+import os from 'os';
 import { clearLogsCacheFiles, ensureLogsDir } from '../../log/mainLog';
 import { openStandaloneWindow, closeStandaloneWindow } from '../../window/standaloneWindow';
 
@@ -774,6 +775,267 @@ async function executeAgentLocalTool(request: AgentLocalToolRequest): Promise<{
           count: results.length,
           items: results,
         },
+        error: '',
+        durationMs: Date.now() - startedAt,
+      };
+    }
+
+    if (tool === 'file.rename') {
+      const oldPath = normalizeLocalPath(getStringArg(args, 'oldPath') || getStringArg(args, 'path'));
+      const newPath = normalizeLocalPath(getStringArg(args, 'newPath') || getStringArg(args, 'destination'));
+      if (!oldPath) {
+        throw new Error('file.rename 需要 oldPath');
+      }
+      if (!newPath) {
+        throw new Error('file.rename 需要 newPath');
+      }
+      assertWorkspaceBoundary(oldPath, workspaces, 'file.rename');
+      assertWorkspaceBoundary(newPath, workspaces, 'file.rename');
+      await mkdir(dirname(newPath), { recursive: true });
+      await rename(oldPath, newPath);
+      return {
+        success: true,
+        result: { oldPath, newPath, renamed: true },
+        error: '',
+        durationMs: Date.now() - startedAt,
+      };
+    }
+
+    if (tool === 'file.copy') {
+      const srcPath = normalizeLocalPath(getStringArg(args, 'source') || getStringArg(args, 'path'));
+      const destPath = normalizeLocalPath(getStringArg(args, 'destination') || getStringArg(args, 'newPath'));
+      if (!srcPath) {
+        throw new Error('file.copy 需要 source');
+      }
+      if (!destPath) {
+        throw new Error('file.copy 需要 destination');
+      }
+      assertWorkspaceBoundary(srcPath, workspaces, 'file.copy');
+      assertWorkspaceBoundary(destPath, workspaces, 'file.copy');
+      await mkdir(dirname(destPath), { recursive: true });
+      const srcStat = await stat(srcPath);
+      if (srcStat.isDirectory()) {
+        const copyDirRecursive = async (src: string, dest: string): Promise<void> => {
+          await mkdir(dest, { recursive: true });
+          const entries = await readdir(src, { withFileTypes: true });
+          for (const entry of entries) {
+            const srcEntry = resolve(src, entry.name);
+            const destEntry = resolve(dest, entry.name);
+            if (entry.isDirectory()) {
+              await copyDirRecursive(srcEntry, destEntry);
+            } else {
+              await copyFile(srcEntry, destEntry);
+            }
+          }
+        };
+        await copyDirRecursive(srcPath, destPath);
+      } else {
+        await copyFile(srcPath, destPath);
+      }
+      return {
+        success: true,
+        result: { source: srcPath, destination: destPath, isDirectory: srcStat.isDirectory(), copied: true },
+        error: '',
+        durationMs: Date.now() - startedAt,
+      };
+    }
+
+    if (tool === 'file.append') {
+      const pathArg = normalizeLocalPath(getStringArg(args, 'path'));
+      const content = typeof args.content === 'string' ? args.content : String(args.content ?? '');
+      if (!pathArg) {
+        throw new Error('file.append 需要 path');
+      }
+      assertWorkspaceBoundary(pathArg, workspaces, 'file.append');
+      await mkdir(dirname(pathArg), { recursive: true });
+      await appendFile(pathArg, content, 'utf8');
+      return {
+        success: true,
+        result: { path: pathArg, appendedBytes: Buffer.byteLength(content, 'utf8') },
+        error: '',
+        durationMs: Date.now() - startedAt,
+      };
+    }
+
+    if (tool === 'file.replace') {
+      const pathArg = normalizeLocalPath(getStringArg(args, 'path'));
+      const search = getStringArg(args, 'search');
+      const replacement = typeof args.replacement === 'string' ? args.replacement : String(args.replacement ?? '');
+      const replaceAll = args.replaceAll !== false;
+      if (!pathArg) {
+        throw new Error('file.replace 需要 path');
+      }
+      if (!search) {
+        throw new Error('file.replace 需要 search');
+      }
+      assertWorkspaceBoundary(pathArg, workspaces, 'file.replace');
+      const fileInfo = await stat(pathArg);
+      if (!fileInfo.isFile()) {
+        throw new Error('目标路径不是文件');
+      }
+      if (fileInfo.size > MAX_LOCAL_FILE_READ_BYTES) {
+        throw new Error(`文件过大，最大支持 ${MAX_LOCAL_FILE_READ_BYTES} bytes`);
+      }
+      const originalContent = await readFile(pathArg, 'utf8');
+      let newContent: string;
+      let count: number;
+      if (replaceAll) {
+        const escaped = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp(escaped, 'g');
+        count = (originalContent.match(regex) || []).length;
+        newContent = originalContent.replace(regex, replacement);
+      } else {
+        const idx = originalContent.indexOf(search);
+        count = idx >= 0 ? 1 : 0;
+        newContent = idx >= 0
+          ? originalContent.slice(0, idx) + replacement + originalContent.slice(idx + search.length)
+          : originalContent;
+      }
+      if (count > 0) {
+        await writeFile(pathArg, newContent, 'utf8');
+      }
+      return {
+        success: true,
+        result: { path: pathArg, search, replacementLength: replacement.length, replaceAll, matchCount: count, modified: count > 0 },
+        error: '',
+        durationMs: Date.now() - startedAt,
+      };
+    }
+
+    if (tool === 'cmd.powershell') {
+      const command = getStringArg(args, 'command');
+      const cwd = normalizeLocalPath(getStringArg(args, 'cwd'));
+      const timeoutRaw = getNumberArg(args, 'timeoutMs');
+      const timeoutMs = Math.max(1000, Math.min(60000, Math.floor(timeoutRaw == null ? 20000 : timeoutRaw)));
+      if (!command) {
+        throw new Error('cmd.powershell 需要 command');
+      }
+      if (cwd) {
+        assertWorkspaceBoundary(cwd, workspaces, 'cmd.powershell');
+      }
+      const output = await new Promise<{ stdout: string; stderr: string }>((resolvePromise, rejectPromise) => {
+        execFile(
+          'powershell.exe',
+          ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-Command', command],
+          {
+            windowsHide: true,
+            cwd: cwd || undefined,
+            timeout: timeoutMs,
+            maxBuffer: MAX_LOCAL_CMD_OUTPUT_BYTES,
+          },
+          (error, stdout, stderr) => {
+            if (error) {
+              rejectPromise(error);
+              return;
+            }
+            resolvePromise({
+              stdout: typeof stdout === 'string' ? stdout : '',
+              stderr: typeof stderr === 'string' ? stderr : '',
+            });
+          },
+        );
+      });
+      return {
+        success: true,
+        result: { command, cwd, stdout: output.stdout, stderr: output.stderr },
+        error: '',
+        durationMs: Date.now() - startedAt,
+      };
+    }
+
+    if (tool === 'sys.info') {
+      return {
+        success: true,
+        result: {
+          platform: os.platform(),
+          arch: os.arch(),
+          release: os.release(),
+          hostname: os.hostname(),
+          homedir: os.homedir(),
+          tmpdir: os.tmpdir(),
+          cpuModel: os.cpus()[0]?.model || 'unknown',
+          cpuCores: os.cpus().length,
+          totalMemoryMB: Math.round(os.totalmem() / (1024 * 1024)),
+          freeMemoryMB: Math.round(os.freemem() / (1024 * 1024)),
+          uptime: Math.round(os.uptime()),
+          userInfo: (() => { try { const u = os.userInfo(); return { username: u.username, uid: u.uid, gid: u.gid }; } catch { return null; } })(),
+        },
+        error: '',
+        durationMs: Date.now() - startedAt,
+      };
+    }
+
+    if (tool === 'sys.env') {
+      const nameArg = getStringArg(args, 'name');
+      if (nameArg) {
+        return {
+          success: true,
+          result: { name: nameArg, value: process.env[nameArg] ?? null },
+          error: '',
+          durationMs: Date.now() - startedAt,
+        };
+      }
+      const filterArg = getStringArg(args, 'filter');
+      const entries = Object.entries(process.env);
+      let filtered: Array<[string, string | undefined]>;
+      if (filterArg) {
+        const fl = filterArg.toLowerCase();
+        filtered = entries.filter(([key]) => key.toLowerCase().includes(fl));
+      } else {
+        filtered = entries;
+      }
+      const limitRaw = getNumberArg(args, 'limit');
+      const limit = Math.max(1, Math.min(200, Math.floor(limitRaw == null ? 50 : limitRaw)));
+      const sliced = filtered.slice(0, limit);
+      return {
+        success: true,
+        result: {
+          count: sliced.length,
+          totalMatched: filtered.length,
+          variables: Object.fromEntries(sliced),
+        },
+        error: '',
+        durationMs: Date.now() - startedAt,
+      };
+    }
+
+    if (tool === 'file.tree') {
+      const pathArg = normalizeLocalPath(getStringArg(args, 'path'));
+      const maxDepthRaw = getNumberArg(args, 'maxDepth');
+      const maxDepth = Math.max(1, Math.min(6, Math.floor(maxDepthRaw == null ? 3 : maxDepthRaw)));
+      const limitRaw = getNumberArg(args, 'limit');
+      const maxItems = Math.max(1, Math.min(500, Math.floor(limitRaw == null ? 200 : limitRaw)));
+      if (!pathArg) {
+        throw new Error('file.tree 需要 path');
+      }
+      assertWorkspaceBoundary(pathArg, workspaces, 'file.tree');
+      interface TreeNode { name: string; path: string; isDirectory: boolean; children?: TreeNode[] }
+      let itemCount = 0;
+      const buildTree = async (dir: string, depth: number): Promise<TreeNode[]> => {
+        if (depth > maxDepth || itemCount >= maxItems) return [];
+        let entries: Array<{ name: string; isDirectory: () => boolean }>;
+        try { entries = await readdir(dir, { withFileTypes: true }); } catch { return []; }
+        const excludedDirs = new Set(['.git', 'node_modules', '.idea', '.vscode', '__pycache__', '.next', 'dist', 'out', 'build']);
+        const nodes: TreeNode[] = [];
+        for (const entry of entries) {
+          if (itemCount >= maxItems) break;
+          const entryName = entry.name;
+          if (entryName.startsWith('.') && excludedDirs.has(entryName.toLowerCase())) continue;
+          const entryPath = resolve(dir, entryName);
+          const isDir = entry.isDirectory();
+          itemCount++;
+          const node: TreeNode = { name: entryName, path: entryPath, isDirectory: isDir };
+          if (isDir && depth < maxDepth && !excludedDirs.has(entryName.toLowerCase())) {
+            node.children = await buildTree(entryPath, depth + 1);
+          }
+          nodes.push(node);
+        }
+        return nodes;
+      };
+      const tree = await buildTree(pathArg, 1);
+      return {
+        success: true,
+        result: { path: pathArg, maxDepth, itemCount, tree },
         error: '',
         durationMs: Date.now() - startedAt,
       };
