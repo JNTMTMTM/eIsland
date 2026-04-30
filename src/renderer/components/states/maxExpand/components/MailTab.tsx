@@ -46,6 +46,52 @@ interface MailInboxItem {
 
 let mailTabInboxMemoryCache: MailInboxItem[] = [];
 
+function isHtmlContent(content: string): boolean {
+  return /<\s*(html|head|body|div|p|table|br|span|a|img|ul|ol|li|h[1-6])\b/i.test(content);
+}
+
+function escapeHtml(text: string): string {
+  return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+const MAIL_INJECT_HEAD = [
+  '<base target="_blank">',
+  '<meta charset="utf-8">',
+  '<style>',
+  'img{max-width:100%;height:auto;}',
+  'a{color:#58a6ff;text-decoration:underline;}',
+  '</style>',
+].join('');
+
+const MAIL_WRAP_STYLE = [
+  '<!DOCTYPE html><html><head>',
+  '<base target="_blank">',
+  '<meta charset="utf-8">',
+  '<style>',
+  'body{margin:0;padding:8px;font-size:13px;line-height:1.6;',
+  'font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;',
+  'color:rgba(255,255,255,0.85);background:#1e1e1e;word-break:break-word;overflow-wrap:break-word;}',
+  'a{color:#58a6ff;text-decoration:underline;}',
+  'img{max-width:100%;height:auto;}',
+  'table{border-collapse:collapse;max-width:100%;}',
+  '</style></head><body>',
+].join('');
+
+function buildMailSrcDoc(content: string): string {
+  if (/<html[\s>]/i.test(content)) {
+    if (/<head[\s>]/i.test(content)) {
+      return content.replace(/(<head[^>]*>)/i, `$1${MAIL_INJECT_HEAD}`);
+    }
+    return content.replace(/(<html[^>]*>)/i, `$1<head>${MAIL_INJECT_HEAD}</head>`);
+  }
+
+  const bodyContent = isHtmlContent(content)
+    ? content
+    : `<pre style="white-space:pre-wrap;word-break:break-word;margin:0;font-family:inherit;">${escapeHtml(content)}</pre>`;
+
+  return MAIL_WRAP_STYLE + bodyContent + '</body></html>';
+}
+
 /**
  * 邮箱 Tab
  * @description 展示邮箱功能介绍，并引导前往设置完成 IMAP 配置
@@ -151,7 +197,19 @@ export function MailTab(): ReactElement {
               {item.preview || item.body || '-'}
             </div>
             {expandedUid === item.uid ? (
-              <pre className="settings-mail-tab-mail-body">{item.body || item.preview || '-'}</pre>
+              <div
+                className="settings-mail-tab-mail-body-wrap"
+                onClick={(e) => e.stopPropagation()}
+                onKeyDown={(e) => e.stopPropagation()}
+                role="presentation"
+              >
+                <iframe
+                  className="settings-mail-tab-mail-body"
+                  sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox"
+                  srcDoc={buildMailSrcDoc(item.body || item.preview || '-')}
+                  title={item.subject || ''}
+                />
+              </div>
             ) : null}
           </div>
         ))}

@@ -155,15 +155,18 @@
   color: rgba(var(--color-text-rgb), 0.6);
 }
 
-.settings-mail-tab-mail-body {
+.settings-mail-tab-mail-body-wrap {
   margin: 2px 0 0;
   padding-top: 6px;
   width: 100%;
   border-top: 1px solid rgba(var(--color-text-rgb), 0.14);
-  white-space: pre-wrap;
-  word-break: break-word;
-  font-size: 11px;
-  line-height: 1.45;
-  color: rgba(var(--color-text-rgb), 0.82);
-  font-family: inherit;
+}
+
+.settings-mail-tab-mail-body {
+  width: 100%;
+  min-height: 120px;
+  max-height: 360px;
+  border: none;
+  background: transparent;
+  color-scheme: dark;
 }

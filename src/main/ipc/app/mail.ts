@@ -147,7 +147,9 @@ function ensureMailInboxItemCompatibility(item: MailInboxItem): MailInboxItem {
 }
 
 function hasMailContent(item: MailInboxItem): boolean {
-  return Boolean((item.preview && item.preview.trim()) || (item.body && item.body.trim()));
+  if (!item.preview?.trim() && !item.body?.trim()) return false;
+  if (item.body && !/<[a-z][\s\S]*>/i.test(item.body)) return false;
+  return true;
 }
 
 function getInboxCacheFilePath(storeDir: string): string {
@@ -190,7 +192,12 @@ function writeInboxCache(storeDir: string, value: MailInboxCacheStore): void {
 async function toMailInboxItem(uid: number, message: Awaited<ReturnType<ImapFlow['fetchOne']>>): Promise<MailInboxItem | null> {
   if (!message) return null;
   const parsed = message.source ? await simpleParser(message.source) : null;
-  const body = normalizeMailText(typeof parsed?.text === 'string' ? parsed.text : '');
+  const plainText = normalizeMailText(typeof parsed?.text === 'string' ? parsed.text : '');
+  const body = typeof parsed?.html === 'string' && parsed.html.trim()
+    ? parsed.html
+    : typeof parsed?.textAsHtml === 'string' && parsed.textAsHtml.trim()
+      ? parsed.textAsHtml
+      : plainText;
   return {
     uid: String(message.uid ?? uid),
     subject: parsed?.subject || message.envelope?.subject || '(无主题)',
@@ -200,7 +207,7 @@ async function toMailInboxItem(uid: number, message: Awaited<ReturnType<ImapFlow
     size: typeof message.size === 'number'
       ? message.size
       : (Buffer.isBuffer(message.source) ? message.source.length : 0),
-    preview: toMailPreview(body),
+    preview: toMailPreview(plainText),
     body,
   };
 }
