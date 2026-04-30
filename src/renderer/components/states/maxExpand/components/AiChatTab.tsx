@@ -76,6 +76,12 @@ const VISIBLE_CHAT_WINDOW_SIZE = 4;
 const VISIBLE_CHAT_WINDOW_STEP = 4;
 const SETTINGS_OPEN_TAB_STORE_KEY = 'settings-open-tab';
 const SETTINGS_ABOUT_FEEDBACK_PREFILL_STORE_KEY = 'settings-about-feedback-prefill';
+const EMPTY_GREETING_DEFAULTS = [
+  '你好呀，今天想一起处理点什么？',
+  '嗨，我在这儿，随时可以帮你。',
+  '欢迎回来，先聊聊你现在最想解决的问题吧。',
+  '今天也一起高效一点，你想从哪件事开始？',
+] as const;
 
 /**
  * AI 对话 Tab
@@ -130,6 +136,10 @@ export function AiChatTab(): React.ReactElement {
   const visibleWindowEnd = Math.min(aiChatMessages.length, visibleWindowStart + VISIBLE_CHAT_WINDOW_SIZE);
   const hasUpperHiddenMessages = visibleWindowStart > 0;
   const hasLowerHiddenMessages = visibleWindowEnd < aiChatMessages.length;
+  const [emptyGreetingVariantIndex] = useState(() => Math.floor(Math.random() * EMPTY_GREETING_DEFAULTS.length));
+  const emptyGreeting = t(`aiChat.messages.emptyGreetingVariants.${emptyGreetingVariantIndex}`, {
+    defaultValue: EMPTY_GREETING_DEFAULTS[emptyGreetingVariantIndex] || EMPTY_GREETING_DEFAULTS[0],
+  });
   const visibleMessages = useMemo(() => {
     return aiChatMessages.slice(visibleWindowStart, visibleWindowEnd);
   }, [aiChatMessages, visibleWindowStart, visibleWindowEnd]);
@@ -1147,9 +1157,10 @@ export function AiChatTab(): React.ReactElement {
         )}
         {aiChatMessages.length === 0 && (
           <div className="max-expand-chat-empty">
-            {aiConfig.apiKey
-              ? t('aiChat.messages.emptyWithApiKey', { defaultValue: '有什么可以帮你的？' })
-              : t('aiChat.messages.emptyWithoutApiKey', { defaultValue: '请先在「设置 → AI配置」中填写 API Key' })}
+            <div>{emptyGreeting}</div>
+            <div className="max-expand-chat-empty-disclaimer">
+              {t('aiChat.messages.aiGeneratedDisclaimer', { defaultValue: '内容由 AI 生成，请仔细甄别。' })}
+            </div>
           </div>
         )}
         {visibleMessages.map((msg, i) => {

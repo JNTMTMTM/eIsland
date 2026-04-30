@@ -584,6 +584,13 @@
       "unknownError": "未知错误",
       "emptyWithApiKey": "有什么可以帮你的？",
       "emptyWithoutApiKey": "请先在「设置 → AI配置」中填写 API Key",
+      "emptyGreetingVariants": {
+        "0": "你好呀，今天想一起处理点什么？",
+        "1": "嗨，我在这儿，随时可以帮你。",
+        "2": "欢迎回来，先聊聊你现在最想解决的问题吧。",
+        "3": "今天也一起高效一点，你想从哪件事开始？"
+      },
+      "aiGeneratedDisclaimer": "内容由 AI 生成，请仔细甄别。",
       "agentError": "mihtnelis agent 返回错误",
       "noModelOutput": "⚠️ 未收到模型输出，请检查 DeepSeek 配置与服务端日志。",
       "localToolExecuteFailed": "本地工具执行失败",

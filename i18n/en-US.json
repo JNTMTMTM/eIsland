@@ -584,6 +584,13 @@
       "unknownError": "Unknown error",
       "emptyWithApiKey": "How can I help you?",
       "emptyWithoutApiKey": "Please fill in API Key in Settings → AI Config first",
+      "emptyGreetingVariants": {
+        "0": "Hey there, what would you like to work on today?",
+        "1": "Hi, I'm here and ready whenever you are.",
+        "2": "Welcome back. What's the first thing you'd like to solve?",
+        "3": "Let's make today productive. Where do you want to start?"
+      },
+      "aiGeneratedDisclaimer": "Content is AI-generated. Please verify carefully.",
       "agentError": "mihtnelis agent returned an error",
       "noModelOutput": "⚠️ No model output received. Please check DeepSeek configuration and server logs.",
       "localToolExecuteFailed": "Local tool execution failed",
