@@ -1051,6 +1051,93 @@ async function executeAgentLocalTool(request: AgentLocalToolRequest): Promise<{
       };
     }
 
+    // ── 窗口管理工具（基于 get-windows） ──────────────────────
+    const WIN_PS_TIMEOUT = 15000;
+
+    if (tool === 'win.list') {
+      const { openWindows } = await import('get-windows');
+      const filterArg = getStringArg(args, 'filter') || '';
+      let allWindows = await openWindows();
+      if (filterArg) {
+        const lower = filterArg.toLowerCase();
+        allWindows = allWindows.filter(w =>
+          w.owner.name.toLowerCase().includes(lower) || w.title.toLowerCase().includes(lower));
+      }
+      const items = allWindows.map(w => ({
+        pid: w.owner.processId,
+        name: w.owner.name,
+        title: w.title,
+        handle: w.id,
+        path: w.owner.path,
+        bounds: w.bounds,
+        memoryUsage: w.memoryUsage,
+      }));
+      return { success: true, result: { windows: items, count: items.length }, error: '', durationMs: Date.now() - startedAt };
+    }
+
+    if (tool === 'win.minimize' || tool === 'win.maximize' || tool === 'win.restore') {
+      const pidRaw = getNumberArg(args, 'pid');
+      const name = getStringArg(args, 'name');
+      const handleRaw = getNumberArg(args, 'handle');
+      if (pidRaw == null && !name && handleRaw == null) throw new Error(`${tool} 需要 pid、name 或 handle`);
+      const swFlag = tool === 'win.minimize' ? 6 : tool === 'win.maximize' ? 3 : 9;
+      const actionLabel = tool === 'win.minimize' ? '最小化' : tool === 'win.maximize' ? '最大化' : '还原';
+
+      // 通过 get-windows 查找目标窗口句柄
+      let targetHandle: number = handleRaw ?? 0;
+      let targetInfo = { pid: 0, name: '', title: '' };
+      if (!targetHandle) {
+        const { openWindows } = await import('get-windows');
+        const allWindows = await openWindows();
+        const match = pidRaw != null
+          ? allWindows.find(w => w.owner.processId === Math.floor(pidRaw))
+          : allWindows.find(w => w.owner.name.toLowerCase().includes((name || '').toLowerCase()) || w.title.toLowerCase().includes((name || '').toLowerCase()));
+        if (!match) throw new Error('未找到匹配的窗口');
+        targetHandle = match.id;
+        targetInfo = { pid: match.owner.processId, name: match.owner.name, title: match.title };
+      } else {
+        const { openWindows } = await import('get-windows');
+        const allWindows = await openWindows();
+        const match = allWindows.find(w => w.id === targetHandle);
+        if (match) targetInfo = { pid: match.owner.processId, name: match.owner.name, title: match.title };
+      }
+
+      // 通过 PowerShell 调用 Win32 ShowWindow 控制窗口状态
+      const psScript = `Add-Type -Name WinAPI -Namespace User32 -MemberDefinition '[DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);'; [User32.WinAPI]::ShowWindow([IntPtr]${targetHandle}, ${swFlag})`;
+      await new Promise<void>((res, rej) => {
+        execFile('powershell.exe', ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-Command', psScript],
+          { windowsHide: true, timeout: WIN_PS_TIMEOUT, maxBuffer: 64 * 1024 },
+          (err) => { if (err) rej(new Error(err.message)); else res(); });
+      });
+      return { success: true, result: { ...targetInfo, handle: targetHandle, action: actionLabel }, error: '', durationMs: Date.now() - startedAt };
+    }
+
+    if (tool === 'win.close') {
+      const pidRaw = getNumberArg(args, 'pid');
+      const name = getStringArg(args, 'name');
+      if (pidRaw == null && !name) throw new Error('win.close 需要 pid 或 name');
+
+      // 先通过 get-windows 确认目标窗口存在
+      const { openWindows } = await import('get-windows');
+      const allWindows = await openWindows();
+      const matches = pidRaw != null
+        ? allWindows.filter(w => w.owner.processId === Math.floor(pidRaw))
+        : allWindows.filter(w => w.owner.name.toLowerCase().includes((name || '').toLowerCase()));
+      if (matches.length === 0) throw new Error('未找到匹配的窗口进程');
+
+      const targetPid = matches[0].owner.processId;
+      const targetName = matches[0].owner.name;
+      const targetTitle = matches[0].title;
+
+      // 通过 taskkill 终止进程
+      await new Promise<void>((res, rej) => {
+        execFile('taskkill', ['/PID', String(targetPid), '/F'],
+          { windowsHide: true, timeout: WIN_PS_TIMEOUT },
+          (err) => { if (err) rej(new Error(err.message)); else res(); });
+      });
+      return { success: true, result: { closed: { pid: targetPid, name: targetName, title: targetTitle } }, error: '', durationMs: Date.now() - startedAt };
+    }
+
     throw new Error(`不支持的工具: ${tool}`);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error ?? 'local tool failed');
