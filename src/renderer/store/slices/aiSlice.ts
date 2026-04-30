@@ -82,12 +82,24 @@ function loadAiChatMessages(): AiChatMessage[] {
   }
 }
 
+function stripAttachmentBlocks(content: string): string {
+  if (!content) {
+    return '';
+  }
+  return content.replace(/(?:<attachment name="[^"]*">\n[\s\S]*?\n<\/attachment>\n*)+/g, '').trim();
+}
+
 function deriveAiChatSessionTitle(messages: AiChatMessage[]): string {
-  const firstUserMessage = messages.find((message) => message.role === 'user' && message.content.trim());
+  const firstUserMessage = messages.find((message) => {
+    if (message.role !== 'user') {
+      return false;
+    }
+    return stripAttachmentBlocks(message.content).trim().length > 0;
+  });
   if (!firstUserMessage) {
     return '新对话';
   }
-  const singleLine = firstUserMessage.content.replace(/\s+/g, ' ').trim();
+  const singleLine = stripAttachmentBlocks(firstUserMessage.content).replace(/\s+/g, ' ').trim();
   return singleLine.slice(0, 24) || '新对话';
 }
 
