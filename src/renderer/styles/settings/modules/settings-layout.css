@@ -2893,6 +2893,20 @@
   gap: 3px;
 }
 
+.settings-user-info-summary-balance {
+  font-size: 10px;
+  color: rgba(var(--color-text-rgb), 0.5);
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.settings-user-info-summary-balance-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(var(--color-text-rgb), 0.92);
+}
+
 .settings-user-info-gender-icon {
   width: 14px;
   height: 14px;
