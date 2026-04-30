@@ -32,7 +32,7 @@
 }
 
 .settings-mail-tab-section.has-split .settings-mail-tab-sidebar {
-  width: 38%;
+  width: 28%;
   border-right: 1px solid rgba(var(--color-text-rgb), 0.1);
   padding-right: 8px;
 }
@@ -192,6 +192,14 @@
   white-space: nowrap;
   font-size: 11px;
   color: rgba(var(--color-text-rgb), 0.6);
+}
+
+.settings-mail-tab-mail-date {
+  font-size: 10px;
+  color: rgba(var(--color-text-rgb), 0.4);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* ── 右侧阅读区 ── */

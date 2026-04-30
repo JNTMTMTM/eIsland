@@ -201,10 +201,11 @@ export function MailTab(): ReactElement {
                     <span className="settings-mail-tab-mail-from" title={item.from}>{item.from || '-'}</span>
                   )}
                 </div>
-                {!hasSplit && (
-                  <div className="settings-mail-tab-mail-preview" title={item.preview || item.body || ''}>
-                    {item.preview || item.body || '-'}
-                  </div>
+                <div className="settings-mail-tab-mail-preview" title={item.preview || item.body || ''}>
+                  {item.preview || item.body || '-'}
+                </div>
+                {hasSplit && item.date && (
+                  <span className="settings-mail-tab-mail-date">{new Date(item.date).toLocaleString()}</span>
                 )}
               </div>
             ))}
