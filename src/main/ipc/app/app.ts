@@ -1090,7 +1090,7 @@ async function executeAgentLocalTool(request: AgentLocalToolRequest): Promise<{
     if (tool === 'file.tree') {
       const pathArg = normalizeLocalPath(getStringArg(args, 'path'));
       const maxDepthRaw = getNumberArg(args, 'maxDepth');
-      const maxDepth = Math.max(1, Math.min(6, Math.floor(maxDepthRaw == null ? 3 : maxDepthRaw)));
+      const maxDepth = Math.max(1, Math.min(6, Math.floor(maxDepthRaw === null || maxDepthRaw === undefined ? 3 : maxDepthRaw)));
       const limitRaw = getNumberArg(args, 'limit');
       const maxItems = Math.max(1, Math.min(500, Math.floor(limitRaw == null ? 200 : limitRaw)));
       if (!pathArg) {

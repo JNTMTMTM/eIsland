@@ -1048,7 +1048,7 @@ export function AiChatTab(): React.ReactElement {
       SESSION_ABORT_CONTROLLERS.delete(targetSessionId);
       SESSION_STREAMING_IDS.delete(targetSessionId);
       refreshActiveSessionStreaming();
-      if (pendingMessageFlushRafRef.current != null) {
+      if (pendingMessageFlushRafRef.current !== null && pendingMessageFlushRafRef.current !== undefined) {
         window.cancelAnimationFrame(pendingMessageFlushRafRef.current);
         pendingMessageFlushRafRef.current = null;
       }

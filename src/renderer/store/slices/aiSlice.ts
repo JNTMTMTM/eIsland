@@ -281,7 +281,7 @@ function loadAiChatSessions(): AiChatSession[] {
     }
     return parsed
       .map((item) => normalizeAiChatSession(item))
-      .filter((item): item is AiChatSession => item != null);
+      .filter((item): item is AiChatSession => item !== null && item !== undefined);
   } catch {
     return [];
   }
