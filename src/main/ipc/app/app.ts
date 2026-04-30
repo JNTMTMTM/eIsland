@@ -34,6 +34,7 @@ import os from 'os';
 import { clearLogsCacheFiles, ensureLogsDir } from '../../log/mainLog';
 import { openStandaloneWindow, closeStandaloneWindow } from '../../window/standaloneWindow';
 import { registerAgentIpcHandlers } from '../agent';
+import { queryOpenWindowsWithIcons, type RunningWindowInfo } from '../../system/runningProcesses';
 
 interface LocalFileSearchItem {
   name: string;
@@ -1133,26 +1134,22 @@ async function executeAgentLocalTool(request: AgentLocalToolRequest): Promise<{
       };
     }
 
-    // ── 窗口管理工具（基于 get-windows） ──────────────────────
     const WIN_PS_TIMEOUT = 15000;
 
     if (tool === 'win.list') {
-      const { openWindows } = await import('get-windows');
       const filterArg = getStringArg(args, 'filter') || '';
-      let allWindows = await openWindows();
+      let allWindows: RunningWindowInfo[] = await queryOpenWindowsWithIcons();
       if (filterArg) {
         const lower = filterArg.toLowerCase();
         allWindows = allWindows.filter(w =>
-          w.owner.name.toLowerCase().includes(lower) || w.title.toLowerCase().includes(lower));
+          w.processName.toLowerCase().includes(lower) || w.title.toLowerCase().includes(lower));
       }
       const items = allWindows.map(w => ({
-        pid: w.owner.processId,
-        name: w.owner.name,
+        pid: w.processId,
+        name: w.processName,
         title: w.title,
-        handle: w.id,
-        path: w.owner.path,
-        bounds: w.bounds,
-        memoryUsage: w.memoryUsage,
+        handle: Number(w.id) || 0,
+        path: w.processPath,
       }));
       return { success: true, result: { windows: items, count: items.length }, error: '', durationMs: Date.now() - startedAt };
     }
@@ -1165,23 +1162,21 @@ async function executeAgentLocalTool(request: AgentLocalToolRequest): Promise<{
       const swFlag = tool === 'win.minimize' ? 6 : tool === 'win.maximize' ? 3 : 9;
       const actionLabel = tool === 'win.minimize' ? '最小化' : tool === 'win.maximize' ? '最大化' : '还原';
 
-      // 通过 get-windows 查找目标窗口句柄
+      // 通过 queryOpenWindowsWithIcons 查找目标窗口
+      const allWindows = await queryOpenWindowsWithIcons();
       let targetHandle: number = handleRaw ?? 0;
       let targetInfo = { pid: 0, name: '', title: '' };
       if (!targetHandle) {
-        const { openWindows } = await import('get-windows');
-        const allWindows = await openWindows();
         const match = pidRaw != null
-          ? allWindows.find(w => w.owner.processId === Math.floor(pidRaw))
-          : allWindows.find(w => w.owner.name.toLowerCase().includes((name || '').toLowerCase()) || w.title.toLowerCase().includes((name || '').toLowerCase()));
+          ? allWindows.find(w => w.processId === Math.floor(pidRaw))
+          : allWindows.find(w => w.processName.toLowerCase().includes((name || '').toLowerCase()) || w.title.toLowerCase().includes((name || '').toLowerCase()));
         if (!match) throw new Error('未找到匹配的窗口');
-        targetHandle = match.id;
-        targetInfo = { pid: match.owner.processId, name: match.owner.name, title: match.title };
+        targetHandle = Number(match.id) || 0;
+        if (!targetHandle) throw new Error('无法获取窗口句柄');
+        targetInfo = { pid: match.processId ?? 0, name: match.processName, title: match.title };
       } else {
-        const { openWindows } = await import('get-windows');
-        const allWindows = await openWindows();
-        const match = allWindows.find(w => w.id === targetHandle);
-        if (match) targetInfo = { pid: match.owner.processId, name: match.owner.name, title: match.title };
+        const match = allWindows.find(w => Number(w.id) === targetHandle);
+        if (match) targetInfo = { pid: match.processId ?? 0, name: match.processName, title: match.title };
       }
 
       // 通过 PowerShell 调用 Win32 ShowWindow 控制窗口状态
@@ -1199,17 +1194,17 @@ async function executeAgentLocalTool(request: AgentLocalToolRequest): Promise<{
       const name = getStringArg(args, 'name');
       if (pidRaw == null && !name) throw new Error('win.close 需要 pid 或 name');
 
-      // 先通过 get-windows 确认目标窗口存在
-      const { openWindows } = await import('get-windows');
-      const allWindows = await openWindows();
+      // 通过 queryOpenWindowsWithIcons 确认目标窗口存在
+      const allWindows = await queryOpenWindowsWithIcons();
       const matches = pidRaw != null
-        ? allWindows.filter(w => w.owner.processId === Math.floor(pidRaw))
-        : allWindows.filter(w => w.owner.name.toLowerCase().includes((name || '').toLowerCase()));
+        ? allWindows.filter(w => w.processId === Math.floor(pidRaw))
+        : allWindows.filter(w => w.processName.toLowerCase().includes((name || '').toLowerCase()));
       if (matches.length === 0) throw new Error('未找到匹配的窗口进程');
 
-      const targetPid = matches[0].owner.processId;
-      const targetName = matches[0].owner.name;
+      const targetPid = matches[0].processId ?? 0;
+      const targetName = matches[0].processName;
       const targetTitle = matches[0].title;
+      if (!targetPid) throw new Error('无法获取目标进程 PID');
 
       // 通过 taskkill 终止进程
       await new Promise<void>((res, rej) => {
