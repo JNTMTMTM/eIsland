@@ -836,7 +836,7 @@ export function AiChatTab(): React.ReactElement {
                 return copy;
               });
 
-              const isClientLocalTool = tool.startsWith('file.') || tool.startsWith('cmd.') || tool === 'web.search';
+              const isClientLocalTool = tool.startsWith('file.') || tool.startsWith('cmd.') || tool.startsWith('sys.') || tool.startsWith('win.') || tool === 'web.search';
               if (!isClientLocalTool || !requestId) {
                 return;
               }
@@ -1382,10 +1382,11 @@ export function AiChatTab(): React.ReactElement {
                     ? [...msg.toolCalls]
                       // agent.todo.write 由独立 TodoList 卡片承载，不在工具时间线中重复展示。
                       .filter((toolCall) => toolCall.tool !== 'agent.todo.write')
+                      .map((tc, idx) => ({ ...tc, _idx: idx }))
                       .sort((a, b) => {
                         const aTurn = Number.isFinite(a.turn) && (a.turn ?? 0) > 0 ? Number(a.turn) : Number.MAX_SAFE_INTEGER;
                         const bTurn = Number.isFinite(b.turn) && (b.turn ?? 0) > 0 ? Number(b.turn) : Number.MAX_SAFE_INTEGER;
-                        return aTurn - bTurn;
+                        return aTurn - bTurn || a._idx - b._idx;
                       })
                     : [];
                   const todoSnapshots: AiTodoSnapshot[] = Array.isArray(msg.todoSnapshots) ? msg.todoSnapshots : [];
