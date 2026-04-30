@@ -216,7 +216,7 @@ function normalizeAiToolCall(value: unknown): NonNullable<AiChatMessage['toolCal
   const riskLevel = typeof source.riskLevel === 'string' ? source.riskLevel : '';
   const durationMs = typeof source.durationMs === 'number' ? source.durationMs : 0;
   const pending = typeof source.pending === 'boolean' ? source.pending : false;
-  const argumentsPayload = typeof source.arguments === 'object' && source.arguments != null
+  const argumentsPayload = typeof source.arguments === 'object' && source.arguments !== null && source.arguments !== undefined
     ? source.arguments as Record<string, unknown>
     : undefined;
   const success = typeof source.success === 'boolean' ? source.success : undefined;

@@ -899,7 +899,7 @@ export function AiChatTab(): React.ReactElement {
               const toolCall: AiToolCall = {
                 turn: typeof payload?.turn === 'number' ? payload.turn : 0,
                 tool: typeof payload?.tool === 'string' ? payload.tool : 'unknown',
-                arguments: typeof payload?.arguments === 'object' && payload?.arguments != null
+                arguments: typeof payload?.arguments === 'object' && payload?.arguments !== null && payload?.arguments !== undefined
                   ? payload.arguments as Record<string, unknown>
                   : {},
                 pending: false,
@@ -1957,14 +1957,14 @@ export function AiChatTab(): React.ReactElement {
                   if (mdFiles.length === 0) return;
                   const current = Array.isArray(aiConfig.skills) ? aiConfig.skills : [];
                   const newSkills = [...current];
-                  for (const file of mdFiles) {
+                  mdFiles.forEach((file) => {
                     const filePath = window.api.getPathForFile(file);
-                    if (!filePath) continue;
-                    if (newSkills.some((s) => s.filePath.toLowerCase() === filePath.toLowerCase())) continue;
+                    if (!filePath) return;
+                    if (newSkills.some((s) => s.filePath.toLowerCase() === filePath.toLowerCase())) return;
                     const name = filePath.replace(/\\/g, '/').split('/').pop()?.replace(/\.md$/i, '') || 'skill';
                     const id = `skill-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
                     newSkills.push({ id, name, filePath, enabled: true });
-                  }
+                  });
                   if (newSkills.length !== current.length) {
                     setAiConfig({ skills: newSkills });
                   }

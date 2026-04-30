@@ -913,7 +913,7 @@ async function executeAgentLocalTool(request: AgentLocalToolRequest): Promise<{
       const command = getStringArg(args, 'command');
       const cwd = normalizeLocalPath(getStringArg(args, 'cwd'));
       const timeoutRaw = getNumberArg(args, 'timeoutMs');
-      const timeoutMs = Math.max(1000, Math.min(60000, Math.floor(timeoutRaw == null ? 20000 : timeoutRaw)));
+      const timeoutMs = Math.max(1000, Math.min(60000, Math.floor(timeoutRaw ?? 20000)));
       if (!command) {
         throw new Error('cmd.powershell 需要 command');
       }
@@ -1105,8 +1105,9 @@ async function executeAgentLocalTool(request: AgentLocalToolRequest): Promise<{
         try { entries = await readdir(dir, { withFileTypes: true }); } catch { return []; }
         const excludedDirs = new Set(['.git', 'node_modules', '.idea', '.vscode', '__pycache__', '.next', 'dist', 'out', 'build']);
         const nodes: TreeNode[] = [];
-        for (const entry of entries) {
+        for (let entryIdx = 0; entryIdx < entries.length; entryIdx++) {
           if (itemCount >= maxItems) break;
+          const entry = entries[entryIdx];
           const entryName = entry.name;
           if (entryName.startsWith('.') && excludedDirs.has(entryName.toLowerCase())) continue;
           const entryPath = resolve(dir, entryName);
