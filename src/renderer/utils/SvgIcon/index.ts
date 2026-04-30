@@ -135,6 +135,8 @@ export const SvgIcon = {
   COLLAPSE: './svg/COLLAPSE.svg',
   /** 删除 */
   DELETE: './svg/DELETE.svg',
+  /** 附件 */
+  ATTACHMENT: './svg/ATTACHMENT.svg',
 } as const;
 
 export type SvgIconKey = keyof typeof SvgIcon;
