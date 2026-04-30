@@ -697,6 +697,7 @@
       "sending": "Sending..."
     },
     "messages": {
+      "loading": "Loading mail\u2026",
       "inboxFetchFailed": "Failed to load inbox",
       "inboxFetchTimeout": "Inbox request timed out. Please check network or mail settings",
       "needRecipient": "Please input recipient email",

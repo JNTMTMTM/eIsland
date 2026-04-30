@@ -697,6 +697,7 @@
       "sending": "发送中…"
     },
     "messages": {
+      "loading": "正在获取邮件…",
       "inboxFetchFailed": "收件箱读取失败",
       "inboxFetchTimeout": "收件箱读取超时，请检查网络或邮箱配置",
       "needRecipient": "请填写收件人邮箱",

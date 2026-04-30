@@ -94,6 +94,8 @@
 .settings-mail-tab-inbox-list {
   flex: 1;
   min-height: 0;
+  display: flex;
+  flex-direction: column;
   overflow-y: auto;
   overflow-x: hidden;
   margin-top: 8px;
@@ -113,6 +115,28 @@
 .settings-mail-tab-inbox-list::-webkit-scrollbar-thumb {
   border-radius: 999px;
   background: rgba(var(--color-text-rgb), 0.18);
+}
+
+/* ── 加载动画 ── */
+.settings-mail-tab-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex: 1;
+  min-height: 80px;
+  color: rgba(var(--color-text-rgb), 0.38);
+  font-size: 12px;
+}
+
+.settings-mail-tab-loading-spinner {
+  width: 22px;
+  height: 22px;
+  border: 2px solid rgba(var(--color-text-rgb), 0.1);
+  border-top-color: rgba(var(--color-text-rgb), 0.4);
+  border-radius: 50%;
+  animation: settings-mail-tab-spin 0.7s linear infinite;
 }
 
 /* ── 邮件卡片 ── */

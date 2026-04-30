@@ -358,6 +358,12 @@ export function MailTab(): ReactElement {
               event.stopPropagation();
             }}
           >
+            {loadingInbox && inbox.length === 0 && (
+              <div className="settings-mail-tab-loading">
+                <div className="settings-mail-tab-loading-spinner" />
+                <span>{t('mailTab.messages.loading', { defaultValue: '正在获取邮件…' })}</span>
+              </div>
+            )}
             {inbox.map((item) => (
               <div
                 className={`settings-mail-tab-mail-item ${expandedUid === item.uid ? 'is-expanded' : ''}`}
