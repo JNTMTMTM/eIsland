@@ -44,7 +44,7 @@ import {
 } from '../../../../api/site/siteMetaApi';
 import { SvgIcon } from '../../../../utils/SvgIcon';
 import useIslandStore from '../../../../store/slices';
-import type { AiChatMessage, AiToolCall, AiTodoItem, AiTodoSnapshot } from '../../../../store/types';
+import type { AiChatAttachment, AiChatMessage, AiToolCall, AiTodoItem, AiTodoSnapshot } from '../../../../store/types';
 import { readLocalToken } from '../../../../utils/userAccount';
 import { MarkdownCodeBlock } from './agent/components/MarkdownCodeBlock';
 import { MarkdownSiteLink } from './agent/components/MarkdownSiteLink';
@@ -76,6 +76,9 @@ const VISIBLE_CHAT_WINDOW_SIZE = 4;
 const VISIBLE_CHAT_WINDOW_STEP = 4;
 const SETTINGS_OPEN_TAB_STORE_KEY = 'settings-open-tab';
 const SETTINGS_ABOUT_FEEDBACK_PREFILL_STORE_KEY = 'settings-about-feedback-prefill';
+const ATTACHMENT_MAX_SIZE_BYTES = 102400;
+const ATTACHMENT_MAX_COUNT = 5;
+const ATTACHMENT_ACCEPT_EXTENSIONS = '.txt,.md,.json,.log,.csv,.xml,.yaml,.yml,.toml,.ini,.cfg,.conf,.env,.sh,.bat,.ps1,.py,.js,.ts,.jsx,.tsx,.html,.css,.scss,.less,.sql,.c,.cpp,.h,.hpp,.java,.kt,.swift,.go,.rs,.rb,.php,.lua,.diff,.patch';
 const EMPTY_GREETING_DEFAULTS = [
   '你好呀，今天想一起处理点什么？',
   '嗨，我在这儿，随时可以帮你。',
@@ -103,6 +106,8 @@ export function AiChatTab(): React.ReactElement {
   const [showSessionSidebar, setShowSessionSidebar] = useState(false);
   const [showModelCard, setShowModelCard] = useState(false);
   const [skillDragOver, setSkillDragOver] = useState(false);
+  const [pendingAttachments, setPendingAttachments] = useState<Array<{ name: string; size: number; content: string }>>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [resolvingWebAccessDecision, setResolvingWebAccessDecision] = useState(false);
   const [aiLocalToolAccessPrompt, setAiLocalToolAccessPrompt] = useState<AiLocalToolAccessPrompt | null>(() => cachedAiLocalToolAccessPrompt);
   const [aiLocalToolAccessResolveError, setAiLocalToolAccessResolveError] = useState(() => cachedAiLocalToolAccessResolveError);
@@ -376,6 +381,27 @@ export function AiChatTab(): React.ReactElement {
     syncInputHeight();
   }, [input, syncInputHeight]);
 
+  const handleAttachFiles = useCallback((files: FileList | File[]) => {
+    const fileArray = Array.from(files);
+    fileArray.forEach((file) => {
+      if (pendingAttachments.length >= ATTACHMENT_MAX_COUNT) return;
+      if (file.size > ATTACHMENT_MAX_SIZE_BYTES) return;
+      if (pendingAttachments.some((a) => a.name === file.name)) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        const content = typeof reader.result === 'string' ? reader.result : '';
+        if (!content) return;
+        setPendingAttachments((prev) => {
+          if (prev.length >= ATTACHMENT_MAX_COUNT) return prev;
+          if (prev.some((a) => a.name === file.name)) return prev;
+          return [...prev, { name: file.name, size: file.size, content }];
+        });
+      };
+      reader.readAsText(file);
+    });
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  }, [pendingAttachments]);
+
   /** 发送消息并调用 API */
   const handleSend = useCallback(async (): Promise<void> => {
     const text = input.trim();
@@ -406,11 +432,21 @@ export function AiChatTab(): React.ReactElement {
       return;
     }
 
-    const userMsg: AiChatMessage = { role: 'user', content: text };
+    const attachmentMeta: AiChatAttachment[] = pendingAttachments.map((a) => ({ name: a.name, size: a.size }));
+    const attachmentPrefix = pendingAttachments.length > 0
+      ? pendingAttachments.map((a) => `<attachment name="${a.name}">\n${a.content}\n</attachment>`).join('\n\n') + '\n\n'
+      : '';
+    const fullContent = attachmentPrefix + text;
+    const userMsg: AiChatMessage = {
+      role: 'user',
+      content: fullContent,
+      ...(attachmentMeta.length > 0 ? { attachments: attachmentMeta } : {}),
+    };
     const nextMessages: AiChatMessage[] = [...aiChatMessages, userMsg];
     updateTargetMessages(prev => [...prev, userMsg]);
     setVisibleWindowStart(0);
     setInput('');
+    setPendingAttachments([]);
     setAiChatStreaming(true);
     setAiWebAccessPrompt(null);
     setAiWebAccessResolveError('');
@@ -1174,7 +1210,16 @@ export function AiChatTab(): React.ReactElement {
           return (
           <div key={absoluteIndex} className={`max-expand-chat-bubble ${msg.role === 'user' ? 'user' : 'ai'}`}>
             {msg.role === 'user' ? (
-              msg.content
+              <>
+                {Array.isArray(msg.attachments) && msg.attachments.length > 0 && (
+                  <div className="max-expand-chat-bubble-attachments">
+                    {msg.attachments.map((a) => (
+                      <span key={a.name} className="max-expand-chat-bubble-attachment-tag">{a.name}</span>
+                    ))}
+                  </div>
+                )}
+                {msg.content.replace(/^(?:<attachment name="[^"]*">\n[\s\S]*?\n<\/attachment>\n*)+/, '').trim()}
+              </>
             ) : (
               <>
                 {(() => {
@@ -1829,6 +1874,29 @@ export function AiChatTab(): React.ReactElement {
             </div>
           </div>
         )}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept={ATTACHMENT_ACCEPT_EXTENSIONS}
+          multiple
+          style={{ display: 'none' }}
+          onChange={(e) => { if (e.target.files) handleAttachFiles(e.target.files); }}
+        />
+        {pendingAttachments.length > 0 && (
+          <div className="max-expand-chat-attachments-pending">
+            {pendingAttachments.map((a) => (
+              <span key={a.name} className="max-expand-chat-attachment-tag">
+                <span className="max-expand-chat-attachment-tag-name">{a.name}</span>
+                <button
+                  type="button"
+                  className="max-expand-chat-attachment-tag-remove"
+                  onClick={() => setPendingAttachments((prev) => prev.filter((p) => p.name !== a.name))}
+                  aria-label={t('aiChat.attachments.remove', { defaultValue: '移除附件' })}
+                >×</button>
+              </span>
+            ))}
+          </div>
+        )}
         <div className="max-expand-chat-input-bar">
           <button
             className="max-expand-chat-send max-expand-chat-session-toggle"
@@ -1843,6 +1911,17 @@ export function AiChatTab(): React.ReactElement {
               src={showSessionSidebar ? SvgIcon.COLLAPSE : SvgIcon.EXPAND}
               alt=""
             />
+          </button>
+          <button
+            className="max-expand-chat-send max-expand-chat-attach-btn"
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            title={t('aiChat.attachments.add', { defaultValue: '添加文本附件' })}
+            disabled={aiChatStreaming || pendingAttachments.length >= ATTACHMENT_MAX_COUNT}
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M13.354 7.354l-5.5 5.5a3.536 3.536 0 01-5-5l5.5-5.5a2.121 2.121 0 013 3l-5.5 5.5a.707.707 0 01-1-1l5.5-5.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
           </button>
           <textarea
             ref={inputRef}

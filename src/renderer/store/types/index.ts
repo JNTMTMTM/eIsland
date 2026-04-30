@@ -238,6 +238,12 @@ export interface AiTodoSnapshot {
   items: AiTodoItem[];
 }
 
+/** AI 对话附件元信息（仅文本） */
+export interface AiChatAttachment {
+  name: string;
+  size: number;
+}
+
 /** AI 对话单条消息 */
 export interface AiChatMessage {
   role: 'user' | 'assistant';
@@ -247,6 +253,7 @@ export interface AiChatMessage {
   thinkBlocks?: string[];
   toolCalls?: AiToolCall[];
   todoSnapshots?: AiTodoSnapshot[];
+  attachments?: AiChatAttachment[];
 }
 
 /** AI 历史会话 */

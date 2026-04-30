@@ -575,6 +575,10 @@
       "remove": "Remove",
       "dropHint": "Drop .md files here or click Add"
     },
+    "attachments": {
+      "add": "Add text attachment",
+      "remove": "Remove attachment"
+    },
     "codeBlock": {
       "copy": "Copy",
       "copied": "Copied"

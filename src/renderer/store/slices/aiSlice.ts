@@ -137,6 +137,15 @@ function normalizeAiChatMessage(value: unknown): AiChatMessage | null {
   if (todoSnapshots.length > 0) {
     normalized.todoSnapshots = todoSnapshots;
   }
+  const attachments = Array.isArray(source.attachments)
+    ? source.attachments
+      .filter((a): a is { name: string; size: number } =>
+        !!a && typeof a === 'object' && typeof (a as Record<string, unknown>).name === 'string' && typeof (a as Record<string, unknown>).size === 'number')
+      .map((a) => ({ name: a.name, size: a.size }))
+    : [];
+  if (attachments.length > 0) {
+    normalized.attachments = attachments;
+  }
   return normalized;
 }
 
