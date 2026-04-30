@@ -918,6 +918,15 @@
     },
     "mail": {
       "pagination": "邮箱配置分页",
+      "accounts": {
+        "unnamed": "未命名账户",
+        "add": "添加账户",
+        "remove": "移除",
+        "empty": "暂无账户，请点击上方 + 添加邮箱账户",
+        "label": "账户备注",
+        "labelHint": "自定义名称，方便区分多个邮箱",
+        "labelPlaceholder": "工作邮箱 / 个人邮箱"
+      },
       "account": {
         "title": "账户信息",
         "hint": "邮箱地址用于展示与默认发件人信息。",

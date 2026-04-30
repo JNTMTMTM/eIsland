@@ -302,11 +302,35 @@ async function listInbox(config: MailAccountConfig, limit: number, storeDir: str
   });
 }
 
+function isMailAccountConfigLike(value: unknown): value is MailAccountConfig {
+  if (!value || typeof value !== 'object') return false;
+  const obj = value as Record<string, unknown>;
+  return typeof obj.imapHost === 'string'
+    && typeof obj.authUser === 'string'
+    && typeof obj.authSecret === 'string';
+}
+
 export function registerMailIpcHandlers(options: RegisterMailIpcHandlersOptions): void {
-  ipcMain.handle('mail:inbox:list', async (_event, limitRaw?: number) => {
+  ipcMain.handle('mail:inbox:list', async (_event, configOrLimit?: unknown, limitRaw?: number) => {
     try {
-      const config = ensureMailConfig(readMailConfig(options.storeDir, options.mailConfigStoreKey));
-      const limit = Math.max(1, Math.min(30, Math.floor(typeof limitRaw === 'number' ? limitRaw : 10)));
+      let config: MailAccountConfig;
+      let limit: number;
+
+      if (isMailAccountConfigLike(configOrLimit)) {
+        config = ensureMailConfig({
+          emailAddress: typeof configOrLimit.emailAddress === 'string' ? configOrLimit.emailAddress.trim() : '',
+          imapHost: configOrLimit.imapHost.trim(),
+          imapPort: typeof configOrLimit.imapPort === 'string' ? configOrLimit.imapPort.trim() : '993',
+          imapSecure: configOrLimit.imapSecure !== false,
+          authUser: configOrLimit.authUser.trim(),
+          authSecret: configOrLimit.authSecret,
+        });
+        limit = Math.max(1, Math.min(30, Math.floor(typeof limitRaw === 'number' ? limitRaw : 10)));
+      } else {
+        config = ensureMailConfig(readMailConfig(options.storeDir, options.mailConfigStoreKey));
+        limit = Math.max(1, Math.min(30, Math.floor(typeof configOrLimit === 'number' ? configOrLimit : 10)));
+      }
+
       const items = await listInbox(config, limit, options.storeDir);
       return { ok: true, items, message: '' };
     } catch (error) {

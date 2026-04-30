@@ -472,8 +472,8 @@ const api = {
   /**
    * 读取收件箱邮件列表
    */
-  mailInboxList: (limit?: number): Promise<{ ok: boolean; items: Array<{ uid: string; subject: string; from: string; to: string; date: string; size: number; preview: string; body: string }>; message: string }> => {
-    return ipcRenderer.invoke('mail:inbox:list', limit);
+  mailInboxList: (configOrLimit?: Record<string, unknown> | number, limit?: number): Promise<{ ok: boolean; items: Array<{ uid: string; subject: string; from: string; to: string; date: string; size: number; preview: string; body: string }>; message: string }> => {
+    return ipcRenderer.invoke('mail:inbox:list', configOrLimit, limit);
   },
   /** ===== 文件存储 API ===== */
   /**

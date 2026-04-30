@@ -119,6 +119,7 @@ const UPDATE_SOURCE_STORE_KEY = 'update-source';
 const UPDATE_AUTO_PROMPT_STORE_KEY = 'update-auto-prompt-enabled';
 const WEATHER_ALERT_ENABLED_STORE_KEY = 'weather-alert-enabled';
 const MAIL_CONFIG_STORE_KEY = 'mail-account-config';
+const MAIL_ACCOUNTS_STORE_KEY = 'mail-accounts-config';
 const SETTINGS_OPEN_TAB_STORE_KEY = 'settings-open-tab';
 type SettingsOpenTabIntent = 'update' | 'about-feedback' | 'user-orders' | 'mail';
 let _lastSettingsSidebarTab: SettingsSidebarTabKey = 'index';
@@ -131,6 +132,8 @@ interface IslandBgMediaConfig {
 }
 
 interface MailAccountConfig {
+  id: string;
+  label: string;
   emailAddress: string;
   imapHost: string;
   imapPort: string;
@@ -139,14 +142,11 @@ interface MailAccountConfig {
   authSecret: string;
 }
 
-const DEFAULT_MAIL_ACCOUNT_CONFIG: MailAccountConfig = {
-  emailAddress: '',
-  imapHost: '',
-  imapPort: '993',
-  imapSecure: true,
-  authUser: '',
-  authSecret: '',
-};
+function generateMailAccountId(): string {
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+
 
 function isDirectBgMediaUrl(source: string): boolean {
   return source.startsWith('data:')
@@ -438,12 +438,8 @@ export function SettingsTab(): ReactElement {
   const [networkTimeoutMs, setNetworkTimeoutMs] = useState<number>(DEFAULT_NETWORK_TIMEOUT_MS);
   const [customTimeoutInput, setCustomTimeoutInput] = useState<string>('');
   const [staticAssetNode, setStaticAssetNode] = useState<StaticAssetNode>(DEFAULT_STATIC_ASSET_NODE_FREE);
-  const [mailEmailAddress, setMailEmailAddress] = useState<string>(DEFAULT_MAIL_ACCOUNT_CONFIG.emailAddress);
-  const [mailImapHost, setMailImapHost] = useState<string>(DEFAULT_MAIL_ACCOUNT_CONFIG.imapHost);
-  const [mailImapPort, setMailImapPort] = useState<string>(DEFAULT_MAIL_ACCOUNT_CONFIG.imapPort);
-  const [mailImapSecure, setMailImapSecure] = useState<boolean>(DEFAULT_MAIL_ACCOUNT_CONFIG.imapSecure);
-  const [mailAuthUser, setMailAuthUser] = useState<string>(DEFAULT_MAIL_ACCOUNT_CONFIG.authUser);
-  const [mailAuthSecret, setMailAuthSecret] = useState<string>(DEFAULT_MAIL_ACCOUNT_CONFIG.authSecret);
+  const [mailAccounts, setMailAccounts] = useState<MailAccountConfig[]>([]);
+  const [activeMailAccountId, setActiveMailAccountId] = useState<string>('');
   const [mailConfigLoaded, setMailConfigLoaded] = useState(false);
   const staticAssetNodeOptions = useMemo<Array<{ label: string; value: StaticAssetNode; proOnly?: boolean }>>(() => ([
     { label: 'Cloudflare R2', value: 'r2' },
@@ -902,41 +898,57 @@ export function SettingsTab(): ReactElement {
 
   useEffect(() => {
     let cancelled = false;
-    window.api.storeRead(MAIL_CONFIG_STORE_KEY).then((value) => {
-      if (cancelled || !value || typeof value !== 'object') return;
-      const next = value as Partial<MailAccountConfig>;
-
-      setMailEmailAddress(typeof next.emailAddress === 'string' ? next.emailAddress : DEFAULT_MAIL_ACCOUNT_CONFIG.emailAddress);
-      setMailImapHost(typeof next.imapHost === 'string' ? next.imapHost : DEFAULT_MAIL_ACCOUNT_CONFIG.imapHost);
-      setMailImapPort(typeof next.imapPort === 'string' ? next.imapPort : DEFAULT_MAIL_ACCOUNT_CONFIG.imapPort);
-      setMailImapSecure(typeof next.imapSecure === 'boolean' ? next.imapSecure : DEFAULT_MAIL_ACCOUNT_CONFIG.imapSecure);
-      setMailAuthUser(typeof next.authUser === 'string' ? next.authUser : DEFAULT_MAIL_ACCOUNT_CONFIG.authUser);
-      setMailAuthSecret(typeof next.authSecret === 'string' ? next.authSecret : DEFAULT_MAIL_ACCOUNT_CONFIG.authSecret);
-    }).catch(() => {});
-    setMailConfigLoaded(true);
+    (async () => {
+      try {
+        const accountsRaw = await window.api.storeRead(MAIL_ACCOUNTS_STORE_KEY);
+        if (cancelled) return;
+        if (Array.isArray(accountsRaw) && accountsRaw.length > 0) {
+          const loaded = (accountsRaw as Partial<MailAccountConfig>[]).map((raw) => ({
+            id: typeof raw.id === 'string' && raw.id ? raw.id : generateMailAccountId(),
+            label: typeof raw.label === 'string' ? raw.label : '',
+            emailAddress: typeof raw.emailAddress === 'string' ? raw.emailAddress : '',
+            imapHost: typeof raw.imapHost === 'string' ? raw.imapHost : '',
+            imapPort: typeof raw.imapPort === 'string' ? raw.imapPort : '993',
+            imapSecure: typeof raw.imapSecure === 'boolean' ? raw.imapSecure : true,
+            authUser: typeof raw.authUser === 'string' ? raw.authUser : '',
+            authSecret: typeof raw.authSecret === 'string' ? raw.authSecret : '',
+          }));
+          setMailAccounts(loaded);
+          setActiveMailAccountId(loaded[0].id);
+          setMailConfigLoaded(true);
+          return;
+        }
+        const legacyRaw = await window.api.storeRead(MAIL_CONFIG_STORE_KEY);
+        if (cancelled) return;
+        if (legacyRaw && typeof legacyRaw === 'object' && !Array.isArray(legacyRaw)) {
+          const legacy = legacyRaw as Record<string, unknown>;
+          if (typeof legacy.imapHost === 'string' && legacy.imapHost.trim()) {
+            const migrated: MailAccountConfig = {
+              id: generateMailAccountId(),
+              label: typeof legacy.emailAddress === 'string' ? legacy.emailAddress : '',
+              emailAddress: typeof legacy.emailAddress === 'string' ? legacy.emailAddress : '',
+              imapHost: typeof legacy.imapHost === 'string' ? legacy.imapHost : '',
+              imapPort: typeof legacy.imapPort === 'string' ? legacy.imapPort : '993',
+              imapSecure: typeof legacy.imapSecure === 'boolean' ? legacy.imapSecure : true,
+              authUser: typeof legacy.authUser === 'string' ? legacy.authUser : '',
+              authSecret: typeof legacy.authSecret === 'string' ? legacy.authSecret : '',
+            };
+            setMailAccounts([migrated]);
+            setActiveMailAccountId(migrated.id);
+            setMailConfigLoaded(true);
+            return;
+          }
+        }
+      } catch { /* ignore */ }
+      if (!cancelled) setMailConfigLoaded(true);
+    })();
     return () => { cancelled = true; };
   }, []);
 
   useEffect(() => {
     if (!mailConfigLoaded) return;
-    const config: MailAccountConfig = {
-      emailAddress: mailEmailAddress.trim(),
-      imapHost: mailImapHost.trim(),
-      imapPort: mailImapPort.trim(),
-      imapSecure: mailImapSecure,
-      authUser: mailAuthUser.trim(),
-      authSecret: mailAuthSecret,
-    };
-    window.api.storeWrite(MAIL_CONFIG_STORE_KEY, config).catch(() => {});
-  }, [
-    mailConfigLoaded,
-    mailEmailAddress,
-    mailImapHost,
-    mailImapPort,
-    mailImapSecure,
-    mailAuthUser,
-    mailAuthSecret,
-  ]);
+    window.api.storeWrite(MAIL_ACCOUNTS_STORE_KEY, mailAccounts).catch(() => {});
+  }, [mailConfigLoaded, mailAccounts]);
 
   useEffect(() => {
     const normalized = normalizeStaticAssetNode(staticAssetNode, isProUser);
@@ -2621,18 +2633,10 @@ export function SettingsTab(): ReactElement {
             <MailSettingsSection
               currentMailSettingsPageLabel={currentMailSettingsPageLabel}
               mailSettingsPage={mailSettingsPage}
-              emailAddress={mailEmailAddress}
-              imapHost={mailImapHost}
-              imapPort={mailImapPort}
-              imapSecure={mailImapSecure}
-              authUser={mailAuthUser}
-              authSecret={mailAuthSecret}
-              setEmailAddress={setMailEmailAddress}
-              setImapHost={setMailImapHost}
-              setImapPort={setMailImapPort}
-              setImapSecure={setMailImapSecure}
-              setAuthUser={setMailAuthUser}
-              setAuthSecret={setMailAuthSecret}
+              mailAccounts={mailAccounts}
+              activeMailAccountId={activeMailAccountId}
+              setMailAccounts={setMailAccounts}
+              setActiveMailAccountId={setActiveMailAccountId}
               mailSettingsPages={MAIL_SETTINGS_PAGES}
               mailSettingsPageLabels={translatedMailSettingsPageLabels}
               setMailSettingsPage={setMailSettingsPage}

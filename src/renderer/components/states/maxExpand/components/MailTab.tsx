@@ -32,7 +32,19 @@ import { SvgIcon } from '../../../../utils/SvgIcon';
 
 const SETTINGS_OPEN_TAB_STORE_KEY = 'settings-open-tab';
 const MAIL_CONFIG_STORE_KEY = 'mail-account-config';
+const MAIL_ACCOUNTS_STORE_KEY = 'mail-accounts-config';
 const MAIL_INBOX_REFRESH_TIMEOUT_MS = 20000;
+
+interface MailAccountConfig {
+  id: string;
+  label: string;
+  emailAddress: string;
+  imapHost: string;
+  imapPort: string;
+  imapSecure: boolean;
+  authUser: string;
+  authSecret: string;
+}
 
 interface MailInboxItem {
   uid: string;
@@ -122,6 +134,10 @@ function buildMailSrcDoc(content: string): string {
  * 邮箱 Tab
  * @description 展示邮箱功能介绍，并引导前往设置完成 IMAP 配置
  */
+function isAccountConfigured(a: MailAccountConfig): boolean {
+  return Boolean(a.imapHost?.trim() && a.authUser?.trim() && a.authSecret);
+}
+
 export function MailTab(): ReactElement {
   const { t } = useTranslation();
   const { setMaxExpandTab } = useIslandStore();
@@ -129,6 +145,10 @@ export function MailTab(): ReactElement {
   const [loadingInbox, setLoadingInbox] = useState(false);
   const [expandedUid, setExpandedUid] = useState<string | null>(null);
   const [mailConfigured, setMailConfigured] = useState<boolean | null>(null);
+  const [accounts, setAccounts] = useState<MailAccountConfig[]>([]);
+  const [activeAccountId, setActiveAccountId] = useState<string>('');
+
+  const activeAccount = accounts.find((a) => a.id === activeAccountId) || accounts.filter(isAccountConfigured)[0] || null;
 
   useEffect(() => {
     const handleMessage = (e: MessageEvent): void => {
@@ -139,7 +159,9 @@ export function MailTab(): ReactElement {
     return () => window.removeEventListener('message', handleMessage);
   }, []);
 
-  const refreshInbox = async (): Promise<void> => {
+  const refreshInbox = async (account?: MailAccountConfig): Promise<void> => {
+    const target = account || activeAccount;
+    if (!target || !isAccountConfigured(target)) return;
     setLoadingInbox(true);
     try {
       const timeoutPromise = new Promise<never>((_, reject) => {
@@ -149,7 +171,14 @@ export function MailTab(): ReactElement {
       });
 
       const result = await Promise.race([
-        window.api.mailInboxList(10),
+        window.api.mailInboxList({
+          emailAddress: target.emailAddress,
+          imapHost: target.imapHost,
+          imapPort: target.imapPort,
+          imapSecure: target.imapSecure,
+          authUser: target.authUser,
+          authSecret: target.authSecret,
+        }, 10),
         timeoutPromise,
       ]);
 
@@ -169,22 +198,51 @@ export function MailTab(): ReactElement {
   };
 
   useEffect(() => {
-    window.api.storeRead(MAIL_CONFIG_STORE_KEY).then((value) => {
-      if (!value || typeof value !== 'object') {
-        setMailConfigured(false);
-        return;
-      }
-      const cfg = value as Record<string, unknown>;
-      const hasConfig = Boolean(
-        typeof cfg.imapHost === 'string' && cfg.imapHost.trim()
-        && typeof cfg.authUser === 'string' && cfg.authUser.trim()
-        && typeof cfg.authSecret === 'string' && cfg.authSecret,
-      );
-      setMailConfigured(hasConfig);
-      if (hasConfig) void refreshInbox();
-    }).catch(() => {
+    (async () => {
+      try {
+        const accountsRaw = await window.api.storeRead(MAIL_ACCOUNTS_STORE_KEY);
+        if (Array.isArray(accountsRaw) && accountsRaw.length > 0) {
+          const loaded = accountsRaw as MailAccountConfig[];
+          setAccounts(loaded);
+          const configured = loaded.filter(isAccountConfigured);
+          if (configured.length > 0) {
+            setActiveAccountId(configured[0].id);
+            setMailConfigured(true);
+            void refreshInbox(configured[0]);
+          } else {
+            setMailConfigured(false);
+          }
+          return;
+        }
+        const legacyRaw = await window.api.storeRead(MAIL_CONFIG_STORE_KEY);
+        if (legacyRaw && typeof legacyRaw === 'object' && !Array.isArray(legacyRaw)) {
+          const cfg = legacyRaw as Record<string, unknown>;
+          const hasConfig = Boolean(
+            typeof cfg.imapHost === 'string' && cfg.imapHost.trim()
+            && typeof cfg.authUser === 'string' && cfg.authUser.trim()
+            && typeof cfg.authSecret === 'string' && cfg.authSecret,
+          );
+          setMailConfigured(hasConfig);
+          if (hasConfig) {
+            const legacyAccount: MailAccountConfig = {
+              id: 'legacy',
+              label: typeof cfg.emailAddress === 'string' ? cfg.emailAddress : '',
+              emailAddress: typeof cfg.emailAddress === 'string' ? cfg.emailAddress : '',
+              imapHost: typeof cfg.imapHost === 'string' ? cfg.imapHost : '',
+              imapPort: typeof cfg.imapPort === 'string' ? cfg.imapPort : '993',
+              imapSecure: typeof cfg.imapSecure === 'boolean' ? cfg.imapSecure : true,
+              authUser: typeof cfg.authUser === 'string' ? cfg.authUser : '',
+              authSecret: typeof cfg.authSecret === 'string' ? cfg.authSecret : '',
+            };
+            setAccounts([legacyAccount]);
+            setActiveAccountId(legacyAccount.id);
+            void refreshInbox(legacyAccount);
+          }
+          return;
+        }
+      } catch { /* ignore */ }
       setMailConfigured(false);
-    });
+    })();
   }, []);
 
   const goMailSettings = (): void => {
@@ -223,6 +281,17 @@ export function MailTab(): ReactElement {
     );
   }
 
+  const configuredAccounts = accounts.filter(isAccountConfigured);
+  const hasMultipleAccounts = configuredAccounts.length > 1;
+
+  const switchAccount = (account: MailAccountConfig): void => {
+    setActiveAccountId(account.id);
+    setExpandedUid(null);
+    setInbox([]);
+    mailTabInboxMemoryCache = [];
+    void refreshInbox(account);
+  };
+
   const selectedItem = expandedUid ? inbox.find((item) => item.uid === expandedUid) : null;
   const hasSplit = Boolean(selectedItem);
 
@@ -260,6 +329,21 @@ export function MailTab(): ReactElement {
               </button>
             </div>
           </div>
+          {hasMultipleAccounts && (
+            <div className="settings-mail-tab-account-tabs">
+              {configuredAccounts.map((account) => (
+                <button
+                  key={account.id}
+                  type="button"
+                  className={`settings-mail-tab-account-tab ${account.id === activeAccount?.id ? 'active' : ''}`}
+                  onClick={() => switchAccount(account)}
+                  title={account.label || account.emailAddress}
+                >
+                  {account.label || account.emailAddress || t('mailTab.accounts.unnamed', { defaultValue: '未命名' })}
+                </button>
+              ))}
+            </div>
+          )}
           <div
             className="settings-mail-tab-inbox-list"
             onWheel={(event) => {

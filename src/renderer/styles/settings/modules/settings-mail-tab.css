@@ -352,3 +352,151 @@
   border-radius: 8px;
   background: #fff;
 }
+
+/* ── 设置页：多账户标签页 ── */
+.settings-mail-account-tabs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 0 2px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  flex-shrink: 0;
+}
+
+.settings-mail-account-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.settings-mail-account-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  max-width: 160px;
+  border-radius: 8px;
+  background: rgba(var(--color-text-rgb), 0.05);
+  border: 1px solid rgba(var(--color-text-rgb), 0.08);
+  transition: background 0.15s ease, border-color 0.15s ease;
+  flex-shrink: 0;
+}
+
+.settings-mail-account-tab:hover {
+  background: rgba(var(--color-text-rgb), 0.08);
+}
+
+.settings-mail-account-tab.active {
+  background: rgba(86, 152, 255, 0.1);
+  border-color: rgba(86, 152, 255, 0.3);
+}
+
+.settings-mail-account-tab-btn {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: rgba(var(--color-text-rgb), 0.72);
+  font-size: 11px;
+  padding: 4px 8px;
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 130px;
+}
+
+.settings-mail-account-tab.active .settings-mail-account-tab-btn {
+  color: rgba(var(--color-text-rgb), 0.9);
+  font-weight: 500;
+}
+
+.settings-mail-account-tab-remove {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: rgba(var(--color-text-rgb), 0.35);
+  font-size: 13px;
+  line-height: 1;
+  padding: 2px 5px 2px 0;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: color 0.12s ease;
+}
+
+.settings-mail-account-tab-remove:hover {
+  color: rgba(220, 60, 60, 0.8);
+}
+
+.settings-mail-account-tab-add {
+  appearance: none;
+  border: 1px dashed rgba(var(--color-text-rgb), 0.16);
+  border-radius: 8px;
+  background: transparent;
+  color: rgba(var(--color-text-rgb), 0.4);
+  font-size: 14px;
+  line-height: 1;
+  width: 28px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+
+.settings-mail-account-tab-add:hover {
+  border-color: rgba(86, 152, 255, 0.4);
+  color: rgba(86, 152, 255, 0.8);
+  background: rgba(86, 152, 255, 0.06);
+}
+
+.settings-mail-empty-accounts {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+  font-size: 12px;
+  color: rgba(var(--color-text-rgb), 0.4);
+}
+
+/* ── 收件箱：多账户选择标签 ── */
+.settings-mail-tab-account-tabs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 0 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  flex-shrink: 0;
+}
+
+.settings-mail-tab-account-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.settings-mail-tab-account-tab {
+  appearance: none;
+  border: 1px solid rgba(var(--color-text-rgb), 0.08);
+  border-radius: 6px;
+  background: rgba(var(--color-text-rgb), 0.04);
+  color: rgba(var(--color-text-rgb), 0.6);
+  font-size: 10px;
+  padding: 2px 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 120px;
+  flex-shrink: 0;
+  transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+}
+
+.settings-mail-tab-account-tab:hover {
+  background: rgba(var(--color-text-rgb), 0.08);
+}
+
+.settings-mail-tab-account-tab.active {
+  background: rgba(86, 152, 255, 0.1);
+  border-color: rgba(86, 152, 255, 0.3);
+  color: rgba(var(--color-text-rgb), 0.88);
+  font-weight: 500;
+}

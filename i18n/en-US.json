@@ -918,6 +918,15 @@
     },
     "mail": {
       "pagination": "Mail settings pagination",
+      "accounts": {
+        "unnamed": "Unnamed Account",
+        "add": "Add Account",
+        "remove": "Remove",
+        "empty": "No accounts yet. Click + above to add a mail account.",
+        "label": "Account Label",
+        "labelHint": "Custom name to distinguish multiple accounts",
+        "labelPlaceholder": "Work / Personal"
+      },
       "account": {
         "title": "Account",
         "hint": "The address is used for display and default sender metadata.",
