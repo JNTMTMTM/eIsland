@@ -1363,8 +1363,13 @@
 }
 
 .max-expand-chat-attachments-drop-zone.drag-over {
-  background: rgba(80, 180, 120, 0.06);
-  box-shadow: inset 0 0 0 1px rgba(80, 180, 120, 0.35);
+  background: rgba(var(--color-text-rgb), 0.06);
+  box-shadow: inset 0 0 0 1px rgba(var(--color-text-rgb), 0.2);
+}
+
+.max-expand-chat-attachments-drop-zone.invalid {
+  background: rgba(226, 78, 78, 0.1);
+  box-shadow: inset 0 0 0 1px rgba(226, 78, 78, 0.5);
 }
 
 .max-expand-chat-attachments-pending {

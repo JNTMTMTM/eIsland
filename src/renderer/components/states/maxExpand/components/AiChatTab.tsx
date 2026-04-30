@@ -118,6 +118,8 @@ export function AiChatTab(): React.ReactElement {
   const pendingAssistantChunkRef = useRef('');
   const pendingThinkChunksRef = useRef<Map<number, string>>(new Map());
   const pendingMessageFlushRafRef = useRef<number | null>(null);
+  const attachmentInvalidTimerRef = useRef<number | null>(null);
+  const attachmentDragDepthRef = useRef(0);
   const lastAssistantFlushAtRef = useRef(0);
   const hasInitializedAutoScrollRef = useRef(false);
   const [input, setInput] = useState('');
@@ -126,6 +128,7 @@ export function AiChatTab(): React.ReactElement {
   const [showModelCard, setShowModelCard] = useState(false);
   const [skillDragOver, setSkillDragOver] = useState(false);
   const [attachmentDragOver, setAttachmentDragOver] = useState(false);
+  const [attachmentDropInvalid, setAttachmentDropInvalid] = useState(false);
   const [pendingAttachments, setPendingAttachments] = useState<Array<{ name: string; size: number; content: string }>>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [resolvingWebAccessDecision, setResolvingWebAccessDecision] = useState(false);
@@ -401,6 +404,24 @@ export function AiChatTab(): React.ReactElement {
     syncInputHeight();
   }, [input, syncInputHeight]);
 
+  useEffect(() => () => {
+    if (attachmentInvalidTimerRef.current != null) {
+      window.clearTimeout(attachmentInvalidTimerRef.current);
+      attachmentInvalidTimerRef.current = null;
+    }
+  }, []);
+
+  const markAttachmentDropInvalid = useCallback(() => {
+    setAttachmentDropInvalid(true);
+    if (attachmentInvalidTimerRef.current != null) {
+      window.clearTimeout(attachmentInvalidTimerRef.current);
+    }
+    attachmentInvalidTimerRef.current = window.setTimeout(() => {
+      setAttachmentDropInvalid(false);
+      attachmentInvalidTimerRef.current = null;
+    }, 1200);
+  }, []);
+
   const handleAttachFiles = useCallback((files: FileList | File[]) => {
     const fileArray = Array.from(files);
     fileArray.forEach((file) => {
@@ -424,11 +445,54 @@ export function AiChatTab(): React.ReactElement {
   }, [pendingAttachments]);
 
   const handleAttachmentDrop = useCallback((files: FileList | File[]) => {
-    if (aiChatStreaming || pendingAttachments.length >= ATTACHMENT_MAX_COUNT) {
+    if (aiChatStreaming) {
       return;
     }
-    handleAttachFiles(files);
-  }, [aiChatStreaming, handleAttachFiles, pendingAttachments.length]);
+    const fileArray = Array.from(files);
+    if (pendingAttachments.length >= ATTACHMENT_MAX_COUNT) {
+      markAttachmentDropInvalid();
+      return;
+    }
+    const hasInvalid = fileArray.some((file) => (
+      !isAcceptedAttachmentFile(file.name)
+      || file.size > ATTACHMENT_MAX_SIZE_BYTES
+    ));
+    if (hasInvalid) {
+      markAttachmentDropInvalid();
+    }
+    handleAttachFiles(fileArray);
+  }, [aiChatStreaming, handleAttachFiles, markAttachmentDropInvalid, pendingAttachments.length]);
+
+  const handleAttachmentDragEnter = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    attachmentDragDepthRef.current += 1;
+    setAttachmentDragOver((prev) => (prev ? prev : true));
+  }, []);
+
+  const handleAttachmentDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+  }, []);
+
+  const handleAttachmentDragLeave = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    attachmentDragDepthRef.current = Math.max(0, attachmentDragDepthRef.current - 1);
+    if (attachmentDragDepthRef.current === 0) {
+      setAttachmentDragOver(false);
+    }
+  }, []);
+
+  const handleAttachmentDropEvent = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    attachmentDragDepthRef.current = 0;
+    setAttachmentDragOver(false);
+    if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
+      handleAttachmentDrop(e.dataTransfer.files);
+    }
+  }, [handleAttachmentDrop]);
 
   /** 发送消息并调用 API */
   const handleSend = useCallback(async (): Promise<void> => {
@@ -1918,25 +1982,14 @@ export function AiChatTab(): React.ReactElement {
           onChange={(e) => { if (e.target.files) handleAttachFiles(e.target.files); }}
         />
         <div
-          className={`max-expand-chat-attachments-drop-zone${attachmentDragOver ? ' drag-over' : ''}`}
-          onDragOver={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            setAttachmentDragOver(true);
+          className={`max-expand-chat-attachments-drop-zone${attachmentDragOver ? ' drag-over' : ''}${attachmentDropInvalid ? ' invalid' : ''}`}
+          onDragEnter={(e) => {
+            setAttachmentDropInvalid(false);
+            handleAttachmentDragEnter(e);
           }}
-          onDragLeave={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            setAttachmentDragOver(false);
-          }}
-          onDrop={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            setAttachmentDragOver(false);
-            if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
-              handleAttachmentDrop(e.dataTransfer.files);
-            }
-          }}
+          onDragOver={handleAttachmentDragOver}
+          onDragLeave={handleAttachmentDragLeave}
+          onDrop={handleAttachmentDropEvent}
         >
           {pendingAttachments.length > 0 && (
             <div className="max-expand-chat-attachments-pending">
