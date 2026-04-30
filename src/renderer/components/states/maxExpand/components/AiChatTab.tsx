@@ -92,6 +92,22 @@ const EMPTY_GREETING_DEFAULTS = [
   '今天也一起高效一点，你想从哪件事开始？',
 ] as const;
 
+const getRoleFromToken = (token: string | null | undefined): string | null => {
+  if (!token) return null;
+  const rawToken = token.trim().replace(/^bearer\s+/i, '');
+  const parts = rawToken.split('.');
+  if (parts.length < 2) return null;
+  try {
+    const payload = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const normalizedPayload = payload + '='.repeat((4 - payload.length % 4) % 4);
+    const decoded = JSON.parse(atob(normalizedPayload)) as { role?: unknown };
+    const role = typeof decoded.role === 'string' ? decoded.role.trim().toLowerCase().replace(/^role_/, '') : null;
+    return role;
+  } catch {
+    return null;
+  }
+};
+
 function isAcceptedAttachmentFile(fileName: string): boolean {
   const lowerName = (fileName ?? '').toLowerCase();
   if (!lowerName) {
@@ -112,6 +128,11 @@ function isAcceptedAttachmentFile(fileName: string): boolean {
 export function AiChatTab(): React.ReactElement {
   const availableModels = ['deepseek-v4-flash', 'deepseek-v4-pro'] as const;
   const { t } = useTranslation();
+  const localTokenForRole = readLocalToken();
+  const isProUser = useMemo(() => {
+    const role = getRoleFromToken(localTokenForRole);
+    return role === 'pro' || role === 'admin';
+  }, [localTokenForRole]);
   const chatRootRef = useRef<HTMLDivElement>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -127,6 +148,8 @@ export function AiChatTab(): React.ReactElement {
   const [visibleWindowStart, setVisibleWindowStart] = useState(0);
   const [showSessionSidebar, setShowSessionSidebar] = useState(false);
   const [showModelCard, setShowModelCard] = useState(false);
+  const [showModelDropdown, setShowModelDropdown] = useState(false);
+  const modelDropdownRef = useRef<HTMLDivElement>(null);
   const [skillDragOver, setSkillDragOver] = useState(false);
   const [attachmentDragOver, setAttachmentDragOver] = useState(false);
   const [attachmentDropInvalid, setAttachmentDropInvalid] = useState(false);
@@ -157,9 +180,13 @@ export function AiChatTab(): React.ReactElement {
     setAiWebAccessResolveError,
   } = useIslandStore();
   const deferredAiChatMessages = useDeferredValue(aiChatMessages);
-  const selectedModel = availableModels.includes(aiConfig.model as (typeof availableModels)[number])
-    ? aiConfig.model
-    : 'deepseek-v4-flash';
+  const selectedModel = (() => {
+    const m = availableModels.includes(aiConfig.model as (typeof availableModels)[number])
+      ? aiConfig.model
+      : 'deepseek-v4-flash';
+    if (!isProUser && m === 'deepseek-v4-pro') return 'deepseek-v4-flash';
+    return m;
+  })();
   const showDeepseekIconOnModelToggle = selectedModel.toLowerCase().includes('deepseek');
   const mihtnelisContext = useMemo(() => buildMihtnelisContext(deferredAiChatMessages), [deferredAiChatMessages]);
   const visibleWindowEnd = Math.min(aiChatMessages.length, visibleWindowStart + VISIBLE_CHAT_WINDOW_SIZE);
@@ -210,6 +237,17 @@ export function AiChatTab(): React.ReactElement {
     cachedAiLocalToolAccessPrompt = aiLocalToolAccessPrompt;
     cachedAiLocalToolAccessResolveError = aiLocalToolAccessResolveError;
   }, [aiLocalToolAccessPrompt, aiLocalToolAccessResolveError]);
+
+  useEffect(() => {
+    if (!showModelDropdown) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (modelDropdownRef.current && !modelDropdownRef.current.contains(e.target as Node)) {
+        setShowModelDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showModelDropdown]);
 
   const executeAndSubmitLocalToolResult = useCallback(async (params: {
     token: string;
@@ -1810,19 +1848,39 @@ export function AiChatTab(): React.ReactElement {
               <div style={{ display: 'flex', gap: 10, alignItems: 'stretch' }}>
                 <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
                   <span style={{ fontSize: 12, opacity: 0.8 }}>{t('settings.ai.model', { defaultValue: '模型' })}</span>
-                  <div className="max-expand-chat-model-select-shell">
-                    <select
-                      className="max-expand-chat-web-access-policy-select max-expand-chat-model-select"
-                      value={selectedModel}
-                      onChange={(event) => {
-                        setAiConfig({ model: event.target.value });
-                      }}
+                  <div className="max-expand-chat-model-select-shell" ref={modelDropdownRef}>
+                    <button
+                      type="button"
+                      className="max-expand-chat-model-dropdown-trigger"
+                      onClick={() => setShowModelDropdown((v) => !v)}
                       title={t('settings.ai.model', { defaultValue: '模型' })}
-                      aria-label={t('settings.ai.model', { defaultValue: '模型' })}
                     >
-                      <option value="deepseek-v4-flash">deepseek-v4-flash</option>
-                      <option value="deepseek-v4-pro">deepseek-v4-pro</option>
-                    </select>
+                      <span className="max-expand-chat-model-dropdown-trigger-label">{selectedModel}</span>
+                      <span className="max-expand-chat-model-dropdown-arrow">▾</span>
+                    </button>
+                    {showModelDropdown && (
+                      <div className="max-expand-chat-model-dropdown-list">
+                        {availableModels.map((m) => {
+                          const isPro = m === 'deepseek-v4-pro';
+                          const disabled = isPro && !isProUser;
+                          return (
+                            <button
+                              key={m}
+                              type="button"
+                              className={`max-expand-chat-model-dropdown-item${selectedModel === m ? ' active' : ''}${disabled ? ' disabled' : ''}`}
+                              onClick={() => {
+                                if (disabled) return;
+                                setAiConfig({ model: m });
+                                setShowModelDropdown(false);
+                              }}
+                            >
+                              <span>{m}</span>
+                              {isPro && <img className="max-expand-chat-model-dropdown-pro-icon" src={SvgIcon.PRO} alt="PRO" />}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>

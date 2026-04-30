@@ -284,6 +284,7 @@
 }
 
 .max-expand-chat-model-select-shell {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -298,6 +299,93 @@
 .max-expand-chat-model-select {
   margin-left: 0;
   flex: 1;
+}
+
+.max-expand-chat-model-dropdown-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 5px 10px;
+  border: 1px solid rgba(var(--color-text-rgb), 0.2);
+  border-radius: 8px;
+  background: rgba(var(--color-bg-rgb), 0.94);
+  color: rgba(var(--color-text-rgb), 0.9);
+  font-size: 11px;
+  cursor: pointer;
+  gap: 6px;
+  min-width: 118px;
+  height: 31px;
+}
+
+.max-expand-chat-model-dropdown-trigger:hover {
+  background: rgba(var(--color-bg-rgb), 1);
+}
+
+.max-expand-chat-model-dropdown-trigger-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.max-expand-chat-model-dropdown-arrow {
+  opacity: 0.5;
+  font-size: 10px;
+  flex-shrink: 0;
+}
+
+.max-expand-chat-model-dropdown-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 3px;
+  border: 1px solid rgba(var(--color-text-rgb), 0.2);
+  border-radius: 8px;
+  background: #1f1f22;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.24);
+  z-index: 20;
+  overflow: hidden;
+}
+
+[data-theme='light'] .max-expand-chat-model-dropdown-list {
+  background: #ffffff;
+}
+
+.max-expand-chat-model-dropdown-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 6px 10px;
+  border: none;
+  background: transparent;
+  color: rgba(var(--color-text-rgb), 0.9);
+  font-size: 11px;
+  cursor: pointer;
+  gap: 6px;
+  text-align: left;
+}
+
+.max-expand-chat-model-dropdown-item:hover {
+  background: rgba(var(--color-text-rgb), 0.08);
+}
+
+.max-expand-chat-model-dropdown-item.active {
+  background: rgba(var(--color-text-rgb), 0.12);
+  font-weight: 600;
+}
+
+.max-expand-chat-model-dropdown-item.disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.max-expand-chat-model-dropdown-pro-icon {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+  flex-shrink: 0;
 }
 
 .max-expand-chat-model-toggle-with-icon {
