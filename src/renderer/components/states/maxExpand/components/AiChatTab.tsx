@@ -660,6 +660,19 @@ export function AiChatTab(): React.ReactElement {
               return;
             }
 
+            if (event.type === 'chunk_reset') {
+              updateTargetMessages(prev => {
+                const copy = [...prev];
+                const last = copy[copy.length - 1];
+                if (!last || last.role !== 'assistant') {
+                  return copy;
+                }
+                copy[copy.length - 1] = { ...last, content: '' };
+                return copy;
+              });
+              return;
+            }
+
             if (event.type === 'tool_call_result') {
               const payload = event.payload as ToolCallResultPayload;
               const turn = typeof payload?.turn === 'number' ? payload.turn : 0;

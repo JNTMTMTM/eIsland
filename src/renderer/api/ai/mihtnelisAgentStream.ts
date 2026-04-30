@@ -31,6 +31,7 @@ export type MihtnelisAgentStreamEventType =
   | 'tool_call_result'
   | 'think'
   | 'chunk'
+  | 'chunk_reset'
   | 'billing'
   | 'web_access_request'
   | 'web_access_resolved'
