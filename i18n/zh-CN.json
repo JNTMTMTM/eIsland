@@ -466,6 +466,13 @@
         "longBreak": "长休息"
       }
     },
+    "mokugyo": {
+      "title": "电子木鱼",
+      "hint": "点击木鱼积攒专注",
+      "strike": "敲一下",
+      "total": "累计功德",
+      "plusOne": "功德+1"
+    },
     "urlFavorites": {
       "title": "URL 收藏",
       "count": "{{count}} 条",
@@ -540,22 +547,111 @@
     }
   },
   "aiChat": {
-    "title": "AI 对话",
+    "title": "mihtnelis Agent",
     "notConfigured": "未配置",
     "actions": {
       "clear": "清空",
+      "newChat": "新建对话",
+      "deleteSession": "删除会话",
+      "loadMoreHistory": "加载更多对话",
+      "reportIssue": "报告问题",
       "stop": "停止",
       "send": "发送"
     },
+    "session": {
+      "historyTitle": "历史会话",
+      "toggleHistory": "展开历史会话",
+      "untitled": "新对话"
+    },
+    "modelCard": {
+      "title": "模型选择卡片",
+      "focusMode": "专注模式"
+    },
+    "skills": {
+      "title": "Skills",
+      "add": "+ 添加",
+      "enable": "启用",
+      "disable": "禁用",
+      "remove": "移除",
+      "dropHint": "拖入 .md 文件或点击添加"
+    },
+    "attachments": {
+      "add": "添加文本附件",
+      "remove": "移除附件"
+    },
+    "codeBlock": {
+      "copy": "复制",
+      "copied": "已复制"
+    },
     "messages": {
-      "missingApiKeyWarn": "⚠️ 请先在「设置 → AI配置」中填写 API Key。",
+      "missingApiKeyWarn": "请先在「设置 → AI配置」中填写 API Key。",
       "unknownError": "未知错误",
       "emptyWithApiKey": "有什么可以帮你的？",
-      "emptyWithoutApiKey": "请先在「设置 → AI配置」中填写 API Key"
+      "emptyWithoutApiKey": "请先在「设置 → AI配置」中填写 API Key",
+      "emptyGreetingVariants": {
+        "0": "你好呀，今天想一起处理点什么？",
+        "1": "嗨，我在这儿，随时可以帮你。",
+        "2": "欢迎回来，先聊聊你现在最想解决的问题吧。",
+        "3": "今天也一起高效一点，你想从哪件事开始？"
+      },
+      "aiGeneratedDisclaimer": "内容由 AI 生成，请仔细甄别。",
+      "agentError": "mihtnelis agent 返回错误",
+      "noModelOutput": "⚠️ 未收到模型输出，请检查 DeepSeek 配置与服务端日志。",
+      "localToolExecuteFailed": "本地工具执行失败",
+      "localToolSubmitFailed": "本地工具结果提交失败",
+      "apiRequestFailed": "API 请求失败 ({{status}}): {{detail}}",
+      "cannotReadResponseStream": "无法读取响应流"
+    },
+    "timeline": {
+      "todoList": "任务清单",
+      "thinkingProcess": "思考过程 #{{index}}",
+      "toolResultTitle": "工具返回结果",
+      "toolStatus": {
+        "pending": "执行中",
+        "success": "完成",
+        "failed": "失败"
+      }
+    },
+    "localToolAccess": {
+      "title": "本地高风险操作授权",
+      "requestHint": "Agent 请求执行以下本地操作，是否允许？",
+      "argumentsTitle": "参数",
+      "toolLabel": "工具",
+      "purposeTitle": "用途",
+      "purposeFallback": "未提供用途说明",
+      "riskLabel": "风险等级",
+      "screenshotTag": "截图",
+      "riskLevel": {
+        "high": "高"
+      },
+      "allow": "允许执行",
+      "deny": "拒绝执行",
+      "expiredHint": "本地工具授权请求已失效，请重新发起请求后再授权。"
+    },
+    "webAccess": {
+      "title": "网页访问授权",
+      "allow": "允许访问",
+      "deny": "拒绝访问",
+      "requestHint": "Agent 需要访问以下 URL，是否允许？",
+      "allowedHint": "已授权，下一轮可继续读取该 URL。",
+      "deniedHint": "已拒绝该 URL 访问。",
+      "expiredHint": "网页授权请求已失效，请重新发起请求后再授权。",
+      "policyLabel": "此域名授权策略",
+      "policy": {
+        "ask": "每次都询问",
+        "allow": "始终批准",
+        "deny": "始终禁止"
+      }
     },
     "input": {
       "generatingPlaceholder": "生成中...",
       "placeholder": "输入消息..."
+    },
+    "contextUsage": {
+      "title": "上下文使用量",
+      "inline": "{{used}} / {{max}} · {{percent}}",
+      "tooltip": "上下文使用：{{used}} / {{max}}（{{percent}}）",
+      "aria": "上下文使用情况：{{used}} / {{max}}（{{percent}}）"
     }
   },
   "urlFavoritesTab": {
@@ -581,6 +677,46 @@
       "urlPlaceholder": "编辑 URL",
       "noteLabel": "备注",
       "notePlaceholder": "输入备注"
+    }
+  },
+  "mailTab": {
+    "title": "邮箱",
+    "introTitle": "客户端直连邮箱（无服务器）",
+    "introDesc": "收信用 IMAP，发信用 SMTP。请先在设置中填写服务器参数与账号认证信息。",
+    "goSettings": "前往邮箱设置",
+    "inboxTitle": "收件箱（最近 10 封）",
+    "emptyInbox": "暂无邮件或读取失败",
+    "composeTitle": "发送邮件",
+    "fields": {
+      "to": "收件人",
+      "subject": "主题",
+      "subjectPlaceholder": "输入主题",
+      "content": "正文",
+      "contentPlaceholder": "输入正文"
+    },
+    "actions": {
+      "refresh": "刷新收件箱",
+      "refreshing": "刷新中…",
+      "send": "发送",
+      "sending": "发送中…"
+    },
+    "messages": {
+      "loading": "正在获取邮件…",
+      "inboxFetchFailed": "收件箱读取失败",
+      "inboxFetchTimeout": "收件箱读取超时，请检查网络或邮箱配置",
+      "needRecipient": "请填写收件人邮箱",
+      "sendFailed": "发送失败，请稍后重试",
+      "sendSuccess": "发送成功"
+    },
+    "emptyGuide": {
+      "title": "配置邮箱 IMAP 账户后即可在此收取和查看邮件",
+      "hint": "需要填写 IMAP 服务器地址、认证用户名和密钥。",
+      "action": "前往设置",
+      "imapHelp": "如何获取 IMAP 信息"
+    },
+    "fallbacks": {
+      "noSubject": "(无主题)",
+      "noSender": "-"
     }
   },
   "clipboardHistoryTab": {
@@ -722,6 +858,7 @@
       "todo": "待办",
       "urlFavorites": "URL 收藏",
       "album": "相册",
+      "mail": "邮箱",
       "localFileSearch": "文件查找",
       "clipboardHistory": "剪贴板",
       "aiChat": "AI 对话",
@@ -778,6 +915,7 @@
       "clipboard-history": "剪贴板历史",
       "autostart": "实用工具",
       "network": "网络配置",
+      "mail": "邮箱配置",
       "weather": "天气配置",
       "music": "歌曲设置",
       "music-whitelist": "播放器白名单",
@@ -789,6 +927,72 @@
       "update": "更新设置",
       "pluginMarket": "插件市场",
       "about": "关于软件"
+    },
+    "mail": {
+      "pagination": "邮箱配置分页",
+      "accounts": {
+        "unnamed": "未命名账户",
+        "add": "添加账户",
+        "remove": "移除",
+        "empty": "暂无账户，请点击上方 + 添加邮箱账户",
+        "label": "账户备注",
+        "labelHint": "自定义名称，方便区分多个邮箱",
+        "labelPlaceholder": "工作邮箱 / 个人邮箱"
+      },
+      "account": {
+        "title": "账户信息",
+        "hint": "邮箱地址用于展示与默认发件人信息。",
+        "emailAddress": "邮箱地址",
+        "emailAddressHint": "你的完整邮箱地址，例如 name@qq.com",
+        "authUser": "认证用户名",
+        "authUserHint": "通常与邮箱地址相同",
+        "authSecret": "认证密钥 / 应用专用密码",
+        "authSecretHint": "邮箱授权码或应用专用密码，非登录密码"
+      },
+      "imap": {
+        "title": "IMAP",
+        "hint": "用于收信、同步收件箱和文件夹状态。",
+        "quickFill": "快速填充",
+        "selectProvider": "选择邮箱服务商自动填充",
+        "host": "IMAP 服务器",
+        "port": "IMAP 端口",
+        "secure": "启用 TLS / SSL",
+        "providers": {
+          "qq": "QQ 邮箱",
+          "netease163": "网易 163",
+          "netease126": "网易 126",
+          "neteaseYeah": "网易 yeah",
+          "sina": "新浪邮箱",
+          "sohu": "搜狐邮箱",
+          "aliyun": "阿里邮箱",
+          "foxmail": "Foxmail",
+          "outlook": "Outlook / Hotmail",
+          "gmail": "Gmail"
+        }
+      },
+      "smtp": {
+        "hint": "用于发信。建议使用服务商推荐端口和加密方式。",
+        "host": "SMTP 服务器",
+        "port": "SMTP 端口",
+        "secure": "启用 TLS / SSL"
+      },
+      "actions": {
+        "title": "保存配置",
+        "hint": "当前仅保存本地配置。下一步可接入 IMAP 收信与 SMTP 发信实现。",
+        "save": "保存邮箱配置"
+      },
+      "preferences": {
+        "title": "收信设置",
+        "hint": "控制每次获取邮件的数量和其他收信行为。",
+        "fetchLimit": "每次获取邮件数",
+        "fetchLimitHint": "刷新收件箱时一次拉取的邮件数量，范围 1–30"
+      }
+    },
+    "mailPages": {
+      "account": "账户",
+      "imap": "IMAP",
+      "smtp": "SMTP",
+      "preferences": "收信设置"
     },
     "weatherPages": {
       "location": "定位配置",
@@ -841,7 +1045,17 @@
         "widgetPickerTitle": "控件组合",
         "widgetPickerHint": "分别选择左右两侧展示的控件，切换后立即生效并自动保存。",
         "leftWidget": "左侧控件",
-        "rightWidget": "右侧控件"
+        "rightWidget": "右侧控件",
+        "widgetNames": {
+          "shortcuts": "快捷启动",
+          "todo": "待办事项",
+          "song": "歌曲",
+          "countdown": "倒数日",
+          "pomodoro": "番茄钟",
+          "urlFavorites": "URL 收藏",
+          "album": "相册轮播",
+          "mokugyo": "电子木鱼"
+        }
       },
       "hideProcess": {
         "title": "隐藏窗口管理",
@@ -904,6 +1118,9 @@
         "videoVolumeHint": "背景视频音量（0 - 100%），取消静音后生效",
         "videoRateHint": "播放速度",
         "videoHwDecodeToggle": "启用硬件解码（重启后生效）",
+        "syncDesktopWallpaperTitle": "同步系统桌面壁纸",
+        "syncDesktopWallpaperHint": "背景图片/视频变化时，同步更新 Windows 系统桌面壁纸（视频将使用封面图）",
+        "syncDesktopWallpaperToggle": "背景变化时同步到系统桌面",
         "clearBackground": "清除背景",
         "previewAlt": "背景预览",
         "previewLabel": "实时预览",
@@ -1447,6 +1664,17 @@
       "apiKey": "API Key",
       "apiEndpoint": "API Endpoint",
       "model": "模型",
+      "deepseekThinking": "DeepSeek Thinking 模式",
+      "deepseekThinkingOptions": {
+        "off": "关闭",
+        "on": "开启"
+      },
+      "deepseekReasoningEffort": "DeepSeek 推理强度",
+      "deepseekReasoningEffortOptions": {
+        "low": "低 (low)",
+        "medium": "中 (medium)",
+        "high": "高 (high)"
+      },
       "mcpEndpoint": "MCP Endpoint",
       "mcpPlaceholder": "http://localhost:3000/mcp (可选)",
       "systemPrompt": "System Prompt",
@@ -1457,7 +1685,12 @@
       "credentialsHint": "兼容 OpenAI 接口协议，填写你的 API Key、Endpoint 与模型名称",
       "mcpTitle": "MCP 工具接入",
       "mcpHint": "可选，配置 MCP 服务端点后 Agent 可调用对接的外部工具",
-      "systemPromptHint": "用于限定 Agent 的角色与风格，留空则使用默认提示词"
+      "systemPromptHint": "用于限定 Agent 的角色与风格，留空则使用默认提示词",
+      "workspaceTitle": "Agent 工作区",
+      "workspaceHint": "配置 Agent 可操作的文件目录，所有文件读写、搜索、命令执行仅限于工作区内",
+      "workspaceAdd": "+ 添加工作区文件夹",
+      "workspaceRemove": "移除",
+      "workspaceEmpty": "未配置工作区，Agent 文件操作将被禁止"
     },
     "about": {
       "pagination": "关于软件分页",
@@ -1621,6 +1854,7 @@
         "avatarDesc": "上传或更换账号头像",
         "passwordDesc": "通过邮箱验证码修改登录密码",
         "proDesc": "查看 Pro 计划权益及当前订阅价格",
+        "rechargeDesc": "为 AI 助手对话余额充值",
         "ordersDesc": "查看订单状态、继续支付或主动关闭待支付订单",
         "logoutDesc": "退出当前账号或注销"
       },
@@ -1629,9 +1863,24 @@
         "edit": "修改信息",
         "password": "修改密码",
         "pro": "PRO功能",
+        "recharge": "余额充值",
         "orders": "我的订单",
         "account": "关于账户",
         "switchTo": "切换到{{label}}"
+      },
+      "recharge": {
+        "title": "余额充值",
+        "subtitle": "充值后可用于 AI 助手对话消耗",
+        "paymentTitle": "Agent 余额充值",
+        "paymentSubtitle": "选择支付方式后完成支付，余额将自动到账。",
+        "rechargeAmountLabel": "充值金额",
+        "currentBalance": "当前余额",
+        "customPlaceholder": "自定义",
+        "selectAmount": "请选择充值金额",
+        "confirm": "确认充值 ¥{{amount}}",
+        "submitting": "充值中…",
+        "success": "充值成功",
+        "fail": "充值失败，请稍后重试"
       },
       "orders": {
         "title": "我的订单",
@@ -1703,6 +1952,14 @@
         "orderNoLabel": "订单号",
         "payAmountLabel": "付款金额",
         "payStatusLabel": "支付状态",
+        "productTypeLabel": "购买类型",
+        "createdAtLabel": "下单时间",
+        "paidAtLabel": "支付时间",
+        "productType": {
+          "PRO_MONTH": "Pro 月度订阅",
+          "AGENT_RECHARGE": "余额充值",
+          "unknown": "未知类型"
+        },
         "refreshStatus": "刷新支付状态",
         "refreshingStatus": "刷新中...",
         "openPaymentPage": "打开支付界面",

@@ -115,6 +115,8 @@ export function AppSettingsSection({
   setBgVideoRate,
   bgVideoHwDecode,
   setBgVideoHwDecode,
+  syncDesktopWallpaperOnBackgroundChange,
+  setSyncDesktopWallpaperOnBackgroundChange,
   bgImageOpacity,
   bgImageBlur,
   setBgImageOpacity,
@@ -210,6 +212,8 @@ export function AppSettingsSection({
             setBgVideoRate={setBgVideoRate}
             bgVideoHwDecode={bgVideoHwDecode}
             setBgVideoHwDecode={setBgVideoHwDecode}
+            syncDesktopWallpaperOnBackgroundChange={syncDesktopWallpaperOnBackgroundChange}
+            setSyncDesktopWallpaperOnBackgroundChange={setSyncDesktopWallpaperOnBackgroundChange}
             bgImageOpacity={bgImageOpacity}
             bgImageBlur={bgImageBlur}
             setBgImageOpacity={setBgImageOpacity}

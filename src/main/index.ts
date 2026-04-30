@@ -41,7 +41,9 @@ import { registerAppIpcHandlers } from './ipc/app/app';
 import { registerSystemIpcHandlers } from './ipc/system/system';
 import { registerUpdaterIpcHandlers } from './ipc/app/updater';
 import { registerWallpaperIpcHandlers } from './ipc/window/wallpaper';
+import { registerWallpaperVideoIpcHandlers } from './ipc/media/wallpaperVideo';
 import { registerNetIpcHandlers } from './ipc/app/net';
+import { registerMailIpcHandlers } from './ipc/app/mail';
 import { registerStoreIpcHandlers } from './ipc/app/store';
 import { registerLogIpcHandlers } from './ipc/app/log';
 import { registerMusicIpcHandlers } from './ipc/media/music';
@@ -294,6 +296,11 @@ function registerIpcHandlers(): void {
     mkdirSync(storeDir, { recursive: true });
   }
 
+  registerMailIpcHandlers({
+    storeDir,
+    mailConfigStoreKey: 'mail-account-config',
+  });
+
   registerClipboardIpcHandlers({
     storeDir,
     monitorEnabledStoreKey: CLIPBOARD_URL_MONITOR_ENABLED_STORE_KEY,
@@ -448,6 +455,7 @@ function registerIpcHandlers(): void {
   });
 
   registerWallpaperIpcHandlers();
+  registerWallpaperVideoIpcHandlers();
 
   registerAppIpcHandlers();
 

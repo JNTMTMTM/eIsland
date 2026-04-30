@@ -1,0 +1,425 @@
+/*
+ * eIsland - A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Electron.
+ * https://github.com/JNTMTMTM/eIsland
+ *
+ * Copyright (C) 2026 JNTMTMTM
+ * Copyright (C) 2026 pyisland.com
+ *
+ * Original author: JNTMTMTM[](https://github.com/JNTMTMTM)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+/**
+ * @file MailTab.tsx
+ * @description 最大展开模式 - 邮箱功能入口页
+ * @author 鸡哥
+ */
+
+import { useEffect, useState } from 'react';
+import type { ReactElement } from 'react';
+import { useTranslation } from 'react-i18next';
+import useIslandStore from '../../../../store/slices';
+import { SvgIcon } from '../../../../utils/SvgIcon';
+
+const SETTINGS_OPEN_TAB_STORE_KEY = 'settings-open-tab';
+const MAIL_CONFIG_STORE_KEY = 'mail-account-config';
+const MAIL_ACCOUNTS_STORE_KEY = 'mail-accounts-config';
+const MAIL_FETCH_LIMIT_STORE_KEY = 'mail-fetch-limit';
+const MAIL_INBOX_REFRESH_TIMEOUT_MS = 20000;
+
+interface MailAccountConfig {
+  id: string;
+  label: string;
+  emailAddress: string;
+  imapHost: string;
+  imapPort: string;
+  imapSecure: boolean;
+  authUser: string;
+  authSecret: string;
+}
+
+interface MailInboxItem {
+  uid: string;
+  subject: string;
+  from: string;
+  to: string;
+  date: string;
+  size: number;
+  preview: string;
+  body: string;
+}
+
+let mailTabInboxMemoryCache: MailInboxItem[] = [];
+
+function isHtmlContent(content: string): boolean {
+  return /<\s*(html|head|body|div|p|table|br|span|a|img|ul|ol|li|h[1-6])\b/i.test(content);
+}
+
+function escapeHtml(text: string): string {
+  return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+const MAIL_LINK_SCRIPT = [
+  '<script>',
+  'document.addEventListener("click",function(e){',
+  'var a=e.target;while(a&&a.tagName!=="A")a=a.parentElement;',
+  'if(!a||!a.href)return;',
+  'var h=a.href;if(h.startsWith("mailto:")||h.startsWith("javascript:"))return;',
+  'e.preventDefault();e.stopPropagation();',
+  'window.parent.postMessage({type:"mail-open-url",url:h},"*");',
+  '});',
+  '</script>',
+].join('');
+
+const MAIL_SCROLLBAR_CSS = [
+  '::-webkit-scrollbar{width:6px;}',
+  '::-webkit-scrollbar-track{background:rgba(0,0,0,0.04);}',
+  '::-webkit-scrollbar-thumb{border-radius:999px;background:rgba(0,0,0,0.18);}',
+  'html{scrollbar-width:thin;scrollbar-color:rgba(0,0,0,0.18) rgba(0,0,0,0.04);}',
+].join('');
+
+const MAIL_INJECT_HEAD = [
+  '<base target="_blank">',
+  '<meta charset="utf-8">',
+  '<style>',
+  'img{max-width:100%;height:auto;}',
+  'a{color:#58a6ff;text-decoration:underline;cursor:pointer;}',
+  MAIL_SCROLLBAR_CSS,
+  '</style>',
+  MAIL_LINK_SCRIPT,
+].join('');
+
+const MAIL_WRAP_STYLE = [
+  '<!DOCTYPE html><html><head>',
+  '<base target="_blank">',
+  '<meta charset="utf-8">',
+  '<style>',
+  'body{margin:0;padding:8px;font-size:13px;line-height:1.6;',
+  'font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;',
+  'color:#222;background:#fff;word-break:break-word;overflow-wrap:break-word;}',
+  'a{color:#1a73e8;text-decoration:underline;}',
+  'img{max-width:100%;height:auto;}',
+  'table{border-collapse:collapse;max-width:100%;}',
+  MAIL_SCROLLBAR_CSS,
+  'a{cursor:pointer;}',
+  '</style>',
+  MAIL_LINK_SCRIPT,
+  '</head><body>',
+].join('');
+
+function buildMailSrcDoc(content: string): string {
+  if (/<html[\s>]/i.test(content)) {
+    if (/<head[\s>]/i.test(content)) {
+      return content.replace(/(<head[^>]*>)/i, `$1${MAIL_INJECT_HEAD}`);
+    }
+    return content.replace(/(<html[^>]*>)/i, `$1<head>${MAIL_INJECT_HEAD}</head>`);
+  }
+
+  const bodyContent = isHtmlContent(content)
+    ? content
+    : `<pre style="white-space:pre-wrap;word-break:break-word;margin:0;font-family:inherit;">${escapeHtml(content)}</pre>`;
+
+  return MAIL_WRAP_STYLE + bodyContent + '</body></html>';
+}
+
+/**
+ * 邮箱 Tab
+ * @description 展示邮箱功能介绍，并引导前往设置完成 IMAP 配置
+ */
+function isAccountConfigured(a: MailAccountConfig): boolean {
+  return Boolean(a.imapHost?.trim() && a.authUser?.trim() && a.authSecret);
+}
+
+/** 最大展开模式 — 邮件 Tab 组件，展示收件箱列表并支持多账户切换。 */
+export function MailTab(): ReactElement {
+  const { t } = useTranslation();
+  const { setMaxExpandTab } = useIslandStore();
+  const [inbox, setInbox] = useState<MailInboxItem[]>(() => mailTabInboxMemoryCache);
+  const [loadingInbox, setLoadingInbox] = useState(false);
+  const [expandedUid, setExpandedUid] = useState<string | null>(null);
+  const [mailConfigured, setMailConfigured] = useState<boolean | null>(null);
+  const [accounts, setAccounts] = useState<MailAccountConfig[]>([]);
+  const [activeAccountId, setActiveAccountId] = useState<string>('');
+  const [fetchLimit, setFetchLimit] = useState<number>(10);
+
+  const activeAccount = accounts.find((a) => a.id === activeAccountId) || accounts.filter(isAccountConfigured)[0] || null;
+
+  useEffect(() => {
+    const handleMessage = (e: MessageEvent): void => {
+      if (!e.data || e.data.type !== 'mail-open-url' || typeof e.data.url !== 'string') return;
+      window.api.clipboardOpenUrl(e.data.url).catch(() => {});
+    };
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
+
+  const refreshInbox = async (account?: MailAccountConfig): Promise<void> => {
+    const target = account || activeAccount;
+    if (!target || !isAccountConfigured(target)) return;
+    setLoadingInbox(true);
+    try {
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => {
+          reject(new Error(t('mailTab.messages.inboxFetchTimeout', { defaultValue: '收件箱读取超时，请检查网络或邮箱配置' })));
+        }, MAIL_INBOX_REFRESH_TIMEOUT_MS);
+      });
+
+      const result = await Promise.race([
+        window.api.mailInboxList({
+          emailAddress: target.emailAddress,
+          imapHost: target.imapHost,
+          imapPort: target.imapPort,
+          imapSecure: target.imapSecure,
+          authUser: target.authUser,
+          authSecret: target.authSecret,
+        }, fetchLimit),
+        timeoutPromise,
+      ]);
+
+      if (!result.ok) {
+        return;
+      }
+
+      const nextInbox = result.items || [];
+      setInbox(nextInbox);
+      mailTabInboxMemoryCache = nextInbox;
+      setExpandedUid((current) => (current && nextInbox.some((item) => item.uid === current) ? current : null));
+    } catch {
+      // keep last inbox data to avoid blank list while retrying
+    } finally {
+      setLoadingInbox(false);
+    }
+  };
+
+  useEffect(() => {
+    window.api.storeRead(MAIL_FETCH_LIMIT_STORE_KEY).then((value) => {
+      if (typeof value === 'number' && value >= 1 && value <= 30) setFetchLimit(value);
+    }).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const accountsRaw = await window.api.storeRead(MAIL_ACCOUNTS_STORE_KEY);
+        if (Array.isArray(accountsRaw) && accountsRaw.length > 0) {
+          const loaded = accountsRaw as MailAccountConfig[];
+          setAccounts(loaded);
+          const configured = loaded.filter(isAccountConfigured);
+          if (configured.length > 0) {
+            setActiveAccountId(configured[0].id);
+            setMailConfigured(true);
+            void refreshInbox(configured[0]);
+          } else {
+            setMailConfigured(false);
+          }
+          return;
+        }
+        const legacyRaw = await window.api.storeRead(MAIL_CONFIG_STORE_KEY);
+        if (legacyRaw && typeof legacyRaw === 'object' && !Array.isArray(legacyRaw)) {
+          const cfg = legacyRaw as Record<string, unknown>;
+          const hasConfig = Boolean(
+            typeof cfg.imapHost === 'string' && cfg.imapHost.trim()
+            && typeof cfg.authUser === 'string' && cfg.authUser.trim()
+            && typeof cfg.authSecret === 'string' && cfg.authSecret,
+          );
+          setMailConfigured(hasConfig);
+          if (hasConfig) {
+            const legacyAccount: MailAccountConfig = {
+              id: 'legacy',
+              label: typeof cfg.emailAddress === 'string' ? cfg.emailAddress : '',
+              emailAddress: typeof cfg.emailAddress === 'string' ? cfg.emailAddress : '',
+              imapHost: typeof cfg.imapHost === 'string' ? cfg.imapHost : '',
+              imapPort: typeof cfg.imapPort === 'string' ? cfg.imapPort : '993',
+              imapSecure: typeof cfg.imapSecure === 'boolean' ? cfg.imapSecure : true,
+              authUser: typeof cfg.authUser === 'string' ? cfg.authUser : '',
+              authSecret: typeof cfg.authSecret === 'string' ? cfg.authSecret : '',
+            };
+            setAccounts([legacyAccount]);
+            setActiveAccountId(legacyAccount.id);
+            void refreshInbox(legacyAccount);
+          }
+          return;
+        }
+      } catch { /* ignore */ }
+      setMailConfigured(false);
+    })();
+  }, []);
+
+  const goMailSettings = (): void => {
+    window.api.storeWrite(SETTINGS_OPEN_TAB_STORE_KEY, 'mail').catch(() => {});
+    setMaxExpandTab('settings');
+  };
+
+  if (mailConfigured === false) {
+    return (
+      <div className="max-expand-settings-section settings-mail-tab-section">
+        <div className="settings-user-auth">
+          <div className="settings-user-auth-entry-title">
+            {t('mailTab.emptyGuide.title', { defaultValue: '配置邮箱 IMAP 账户后即可在此收取和查看邮件' })}
+          </div>
+          <div className="settings-user-auth-hint">
+            {t('mailTab.emptyGuide.hint', { defaultValue: '需要填写 IMAP 服务器地址、认证用户名和密钥。' })}
+          </div>
+          <div className="settings-user-auth-entry-actions">
+            <button
+              type="button"
+              className="settings-user-primary-btn"
+              onClick={goMailSettings}
+            >
+              {t('mailTab.emptyGuide.action', { defaultValue: '前往设置' })}
+            </button>
+            <button
+              type="button"
+              className="settings-user-secondary-btn"
+              onClick={() => window.api.clipboardOpenUrl('https://docs.pyisland.com/guide/eisland.html').catch(() => {})}
+            >
+              {t('mailTab.emptyGuide.imapHelp', { defaultValue: '如何获取 IMAP 信息' })}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const configuredAccounts = accounts.filter(isAccountConfigured);
+  const hasMultipleAccounts = configuredAccounts.length > 1;
+
+  const switchAccount = (account: MailAccountConfig): void => {
+    setActiveAccountId(account.id);
+    setExpandedUid(null);
+    setInbox([]);
+    mailTabInboxMemoryCache = [];
+    void refreshInbox(account);
+  };
+
+  const selectedItem = expandedUid ? inbox.find((item) => item.uid === expandedUid) : null;
+  const hasSplit = Boolean(selectedItem);
+
+  return (
+    <div className={`max-expand-settings-section settings-mail-tab-section ${hasSplit ? 'has-split' : ''}`}>
+      <div className="settings-mail-tab-split-container">
+        {/* 左侧：邮件列表 */}
+        <div className="settings-mail-tab-sidebar">
+          <div
+            className="max-expand-settings-title settings-mail-tab-title-line"
+          >
+            <span>{t('mailTab.title', { defaultValue: '邮箱' })}</span>
+            <div className="settings-mail-tab-title-actions">
+              <button
+                type="button"
+                className="settings-mail-tab-icon-btn"
+                onClick={() => {
+                  window.api.storeWrite(SETTINGS_OPEN_TAB_STORE_KEY, 'mail').catch(() => {});
+                  setMaxExpandTab('settings');
+                }}
+                title={t('mailTab.goSettings', { defaultValue: '前往邮箱设置' })}
+                aria-label={t('mailTab.goSettings', { defaultValue: '前往邮箱设置' })}
+              >
+                <img src={SvgIcon.SETTING} alt="" className="settings-mail-tab-icon" />
+              </button>
+              <button
+                type="button"
+                className={`settings-mail-tab-icon-btn ${loadingInbox ? 'is-loading' : ''}`}
+                onClick={() => { void refreshInbox(); }}
+                disabled={loadingInbox}
+                title={t('mailTab.actions.refresh', { defaultValue: '刷新收件箱' })}
+                aria-label={t('mailTab.actions.refresh', { defaultValue: '刷新收件箱' })}
+              >
+                <img src={SvgIcon.REVERT} alt="" className="settings-mail-tab-icon" />
+              </button>
+            </div>
+          </div>
+          {hasMultipleAccounts && (
+            <div className={`settings-mail-tab-account-tabs ${hasSplit ? 'is-collapsed' : ''}`}>
+              {configuredAccounts.map((account) => (
+                <button
+                  key={account.id}
+                  type="button"
+                  className={`settings-mail-tab-account-tab ${account.id === activeAccount?.id ? 'active' : ''}`}
+                  onClick={() => switchAccount(account)}
+                  title={account.label || account.emailAddress}
+                >
+                  {account.label || account.emailAddress || t('mailTab.accounts.unnamed', { defaultValue: '未命名' })}
+                </button>
+              ))}
+            </div>
+          )}
+          <div
+            className="settings-mail-tab-inbox-list"
+            onWheel={(event) => {
+              event.stopPropagation();
+            }}
+          >
+            {loadingInbox && inbox.length === 0 && (
+              <div className="settings-mail-tab-loading">
+                <div className="settings-mail-tab-loading-spinner" />
+                <span>{t('mailTab.messages.loading', { defaultValue: '正在获取邮件…' })}</span>
+              </div>
+            )}
+            {inbox.map((item) => (
+              <div
+                className={`settings-mail-tab-mail-item ${expandedUid === item.uid ? 'is-expanded' : ''}`}
+                key={item.uid}
+                onClick={() => {
+                  setExpandedUid((current) => (current === item.uid ? null : item.uid));
+                }}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    setExpandedUid((current) => (current === item.uid ? null : item.uid));
+                  }
+                }}
+              >
+                <div className="settings-mail-tab-mail-header">
+                  <span className="settings-mail-tab-mail-subject" title={item.subject}>{item.subject || t('mailTab.fallbacks.noSubject', { defaultValue: '(无主题)' })}</span>
+                  {!hasSplit && (
+                    <span className="settings-mail-tab-mail-from" title={item.from}>{item.from || t('mailTab.fallbacks.noSender', { defaultValue: '-' })}</span>
+                  )}
+                </div>
+                <div className="settings-mail-tab-mail-preview" title={item.preview || item.body || ''}>
+                  {item.preview || item.body || '-'}
+                </div>
+                {hasSplit && item.date && (
+                  <span className="settings-mail-tab-mail-date">{new Date(item.date).toLocaleString()}</span>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* 右侧：邮件正文 */}
+        {selectedItem ? (
+          <div
+            className="settings-mail-tab-reader"
+            onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
+            onWheel={(e) => e.stopPropagation()}
+            role="presentation"
+          >
+            <div className="settings-mail-tab-reader-header">
+              <span className="settings-mail-tab-reader-subject">{selectedItem.subject || t('mailTab.fallbacks.noSubject', { defaultValue: '(无主题)' })}</span>
+              <span className="settings-mail-tab-reader-meta">{selectedItem.from || t('mailTab.fallbacks.noSender', { defaultValue: '-' })}</span>
+            </div>
+            <iframe
+              className="settings-mail-tab-mail-body"
+              sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"
+              srcDoc={buildMailSrcDoc(selectedItem.body || selectedItem.preview || '-')}
+              title={selectedItem.subject || ''}
+            />
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+}

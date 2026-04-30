@@ -78,6 +78,7 @@ interface AboutSettingsSectionProps {
 }
 
 const ABOUT_PAGES: AboutSettingsPageKey[] = ['development', 'feedback'];
+const SETTINGS_ABOUT_FEEDBACK_PREFILL_STORE_KEY = 'settings-about-feedback-prefill';
 const MAX_FEEDBACK_LOG_SIZE = 5 * 1024 * 1024;
 const MAX_FEEDBACK_SCREENSHOT_SIZE = 10 * 1024 * 1024;
 const GITHUB_ISSUE_URL = 'https://github.com/JNTMTMTM/eIsland/issues/new';
@@ -418,6 +419,36 @@ export function AboutSettingsSection({ aboutVersion, initialPage = 'development'
     void loadFeedbackHistory();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [aboutPage, token, feedbackStatusFilter]);
+
+  useEffect(() => {
+    if (aboutPage !== 'feedback') {
+      return;
+    }
+    let cancelled = false;
+    void window.api.storeRead(SETTINGS_ABOUT_FEEDBACK_PREFILL_STORE_KEY).then((value) => {
+      if (cancelled || !value || typeof value !== 'object') {
+        return;
+      }
+      const payload = value as Record<string, unknown>;
+      const title = typeof payload.title === 'string' ? payload.title.trim() : '';
+      const content = typeof payload.content === 'string' ? payload.content.trim() : '';
+      if (!title && !content) {
+        return;
+      }
+      setFeedbackTitle(title);
+      setFeedbackContent(content);
+      setFeedbackMessage({
+        type: 'info',
+        text: t('settings.about.feedback.messages.prefilledFromAgent', {
+          defaultValue: '已自动填充 Agent 输出，你可以补充复现步骤后直接提交。',
+        }),
+      });
+      void window.api.storeWrite(SETTINGS_ABOUT_FEEDBACK_PREFILL_STORE_KEY, null).catch(() => {});
+    }).catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [aboutPage, t]);
 
   useEffect(() => {
     const el = aboutLayoutRef.current;

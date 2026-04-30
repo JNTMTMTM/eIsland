@@ -466,6 +466,13 @@
         "longBreak": "Long Break"
       }
     },
+    "mokugyo": {
+      "title": "Electronic Mokugyo",
+      "hint": "Tap mokugyo to build focus",
+      "strike": "Strike once",
+      "total": "Total Merit",
+      "plusOne": "Merit +1"
+    },
     "urlFavorites": {
       "title": "URL Favorites",
       "count": "{{count}} items",
@@ -540,22 +547,111 @@
     }
   },
   "aiChat": {
-    "title": "AI Chat",
+    "title": "mihtnelis Agent",
     "notConfigured": "Not configured",
     "actions": {
       "clear": "Clear",
+      "newChat": "New Chat",
+      "deleteSession": "Delete Session",
+      "loadMoreHistory": "Load More History",
+      "reportIssue": "Report Issue",
       "stop": "Stop",
       "send": "Send"
     },
+    "session": {
+      "historyTitle": "History Sessions",
+      "toggleHistory": "Toggle Session History",
+      "untitled": "New Chat"
+    },
+    "modelCard": {
+      "title": "Model Selection Card",
+      "focusMode": "Focus Mode"
+    },
+    "skills": {
+      "title": "Skills",
+      "add": "+ Add",
+      "enable": "Enable",
+      "disable": "Disable",
+      "remove": "Remove",
+      "dropHint": "Drop .md files here or click Add"
+    },
+    "attachments": {
+      "add": "Add text attachment",
+      "remove": "Remove attachment"
+    },
+    "codeBlock": {
+      "copy": "Copy",
+      "copied": "Copied"
+    },
     "messages": {
-      "missingApiKeyWarn": "⚠️ Please fill in API Key in Settings → AI Config first.",
+      "missingApiKeyWarn": "Please fill in API Key in Settings → AI Config first.",
       "unknownError": "Unknown error",
       "emptyWithApiKey": "How can I help you?",
-      "emptyWithoutApiKey": "Please fill in API Key in Settings → AI Config first"
+      "emptyWithoutApiKey": "Please fill in API Key in Settings → AI Config first",
+      "emptyGreetingVariants": {
+        "0": "Hey there, what would you like to work on today?",
+        "1": "Hi, I'm here and ready whenever you are.",
+        "2": "Welcome back. What's the first thing you'd like to solve?",
+        "3": "Let's make today productive. Where do you want to start?"
+      },
+      "aiGeneratedDisclaimer": "Content is AI-generated. Please verify carefully.",
+      "agentError": "mihtnelis agent returned an error",
+      "noModelOutput": "⚠️ No model output received. Please check DeepSeek configuration and server logs.",
+      "localToolExecuteFailed": "Local tool execution failed",
+      "localToolSubmitFailed": "Local tool result submission failed",
+      "apiRequestFailed": "API request failed ({{status}}): {{detail}}",
+      "cannotReadResponseStream": "Unable to read response stream"
+    },
+    "timeline": {
+      "todoList": "Todo List",
+      "thinkingProcess": "Thinking Process #{{index}}",
+      "toolResultTitle": "Tool Result",
+      "toolStatus": {
+        "pending": "Running",
+        "success": "Done",
+        "failed": "Failed"
+      }
+    },
+    "localToolAccess": {
+      "title": "Local High-Risk Operation Authorization",
+      "requestHint": "The agent requests to run the following local operation. Allow it?",
+      "argumentsTitle": "Arguments",
+      "toolLabel": "Tool",
+      "purposeTitle": "Purpose",
+      "purposeFallback": "No purpose provided",
+      "riskLabel": "Risk Level",
+      "screenshotTag": "Screenshot",
+      "riskLevel": {
+        "high": "High"
+      },
+      "allow": "Allow Execution",
+      "deny": "Deny Execution",
+      "expiredHint": "The local tool authorization request has expired. Please trigger it again before authorizing."
+    },
+    "webAccess": {
+      "title": "Web Access Authorization",
+      "allow": "Allow Access",
+      "deny": "Deny Access",
+      "requestHint": "The agent needs to access the following URL. Allow it?",
+      "allowedHint": "Authorized. You can retry reading this URL in the next turn.",
+      "deniedHint": "Access to this URL has been denied.",
+      "expiredHint": "The web authorization request has expired. Please trigger it again before authorizing.",
+      "policyLabel": "Domain authorization policy",
+      "policy": {
+        "ask": "Ask every time",
+        "allow": "Always allow",
+        "deny": "Always deny"
+      }
     },
     "input": {
       "generatingPlaceholder": "Generating...",
       "placeholder": "Type a message..."
+    },
+    "contextUsage": {
+      "title": "Context Usage",
+      "inline": "{{used}} / {{max}} · {{percent}}",
+      "tooltip": "Context usage: {{used}} / {{max}} ({{percent}})",
+      "aria": "Context usage: {{used}} / {{max}} ({{percent}})"
     }
   },
   "urlFavoritesTab": {
@@ -581,6 +677,46 @@
       "urlPlaceholder": "Edit URL",
       "noteLabel": "Note",
       "notePlaceholder": "Enter note"
+    }
+  },
+  "mailTab": {
+    "title": "Mail",
+    "introTitle": "Direct Mail Access (No Server)",
+    "introDesc": "Use IMAP for receiving and SMTP for sending. Configure server and auth first in Settings.",
+    "goSettings": "Go to Mail Settings",
+    "inboxTitle": "Inbox (Latest 10)",
+    "emptyInbox": "No mails yet or failed to fetch inbox",
+    "composeTitle": "Send Mail",
+    "fields": {
+      "to": "To",
+      "subject": "Subject",
+      "subjectPlaceholder": "Enter subject",
+      "content": "Content",
+      "contentPlaceholder": "Enter message"
+    },
+    "actions": {
+      "refresh": "Refresh Inbox",
+      "refreshing": "Refreshing...",
+      "send": "Send",
+      "sending": "Sending..."
+    },
+    "messages": {
+      "loading": "Loading mail\u2026",
+      "inboxFetchFailed": "Failed to load inbox",
+      "inboxFetchTimeout": "Inbox request timed out. Please check network or mail settings",
+      "needRecipient": "Please input recipient email",
+      "sendFailed": "Send failed, please retry",
+      "sendSuccess": "Mail sent"
+    },
+    "emptyGuide": {
+      "title": "Configure your IMAP account to receive and view mail here",
+      "hint": "Please fill in IMAP host, auth username, and auth secret first.",
+      "action": "Go to Settings",
+      "imapHelp": "How to get IMAP info"
+    },
+    "fallbacks": {
+      "noSubject": "(No Subject)",
+      "noSender": "-"
     }
   },
   "clipboardHistoryTab": {
@@ -722,6 +858,7 @@
       "todo": "Todo",
       "urlFavorites": "URL Favorites",
       "album": "Album",
+      "mail": "Mail",
       "localFileSearch": "File Search",
       "clipboardHistory": "Clipboard",
       "aiChat": "AI Chat",
@@ -778,6 +915,7 @@
       "clipboard-history": "Clipboard History",
       "autostart": "Utilities",
       "network": "Network",
+      "mail": "Mail",
       "weather": "Weather",
       "music": "Music",
       "music-whitelist": "Player Whitelist",
@@ -789,6 +927,72 @@
       "update": "Updates",
       "pluginMarket": "Plugin Market",
       "about": "About"
+    },
+    "mail": {
+      "pagination": "Mail settings pagination",
+      "accounts": {
+        "unnamed": "Unnamed Account",
+        "add": "Add Account",
+        "remove": "Remove",
+        "empty": "No accounts yet. Click + above to add a mail account.",
+        "label": "Account Label",
+        "labelHint": "Custom name to distinguish multiple accounts",
+        "labelPlaceholder": "Work / Personal"
+      },
+      "account": {
+        "title": "Account",
+        "hint": "The address is used for display and default sender metadata.",
+        "emailAddress": "Email Address",
+        "emailAddressHint": "Your full email address, e.g. name@qq.com",
+        "authUser": "Auth Username",
+        "authUserHint": "Usually the same as your email address",
+        "authSecret": "Auth Secret / App Password",
+        "authSecretHint": "Mail authorization code or app password, not your login password"
+      },
+      "imap": {
+        "title": "IMAP",
+        "hint": "Used for receiving mail and syncing mailbox folders.",
+        "quickFill": "Quick Fill",
+        "selectProvider": "Select provider to auto-fill",
+        "host": "IMAP Host",
+        "port": "IMAP Port",
+        "secure": "Use TLS / SSL",
+        "providers": {
+          "qq": "QQ Mail",
+          "netease163": "NetEase 163",
+          "netease126": "NetEase 126",
+          "neteaseYeah": "NetEase yeah",
+          "sina": "Sina Mail",
+          "sohu": "Sohu Mail",
+          "aliyun": "Aliyun Mail",
+          "foxmail": "Foxmail",
+          "outlook": "Outlook / Hotmail",
+          "gmail": "Gmail"
+        }
+      },
+      "smtp": {
+        "hint": "Used for sending mail. Prefer provider-recommended ports and encryption.",
+        "host": "SMTP Host",
+        "port": "SMTP Port",
+        "secure": "Use TLS / SSL"
+      },
+      "actions": {
+        "title": "Save",
+        "hint": "This step only stores local config. Next step: implement IMAP fetch + SMTP send.",
+        "save": "Save Mail Config"
+      },
+      "preferences": {
+        "title": "Preferences",
+        "hint": "Control how many emails to fetch at once and other inbox behavior.",
+        "fetchLimit": "Fetch Limit",
+        "fetchLimitHint": "Number of emails to pull per inbox refresh, range 1\u201330"
+      }
+    },
+    "mailPages": {
+      "account": "Account",
+      "imap": "IMAP",
+      "smtp": "SMTP",
+      "preferences": "Preferences"
     },
     "weatherPages": {
       "location": "Location",
@@ -841,7 +1045,17 @@
         "widgetPickerTitle": "Widget Slots",
         "widgetPickerHint": "Pick the widget for each side. Changes apply and persist instantly.",
         "leftWidget": "Left Widget",
-        "rightWidget": "Right Widget"
+        "rightWidget": "Right Widget",
+        "widgetNames": {
+          "shortcuts": "Shortcuts",
+          "todo": "Todo",
+          "song": "Song",
+          "countdown": "Countdown",
+          "pomodoro": "Pomodoro",
+          "urlFavorites": "URL Favorites",
+          "album": "Album Carousel",
+          "mokugyo": "Mokugyo"
+        }
       },
       "hideProcess": {
         "title": "Hidden Window Management",
@@ -904,6 +1118,9 @@
         "videoVolumeHint": "Background video volume (0 - 100%). Requires unmute to take effect.",
         "videoRateHint": "Playback speed",
         "videoHwDecodeToggle": "Enable hardware decoding (takes effect after restart)",
+        "syncDesktopWallpaperTitle": "Sync System Desktop Wallpaper",
+        "syncDesktopWallpaperHint": "When background image/video changes, sync it to Windows desktop wallpaper (videos use extracted cover image)",
+        "syncDesktopWallpaperToggle": "Sync background changes to system desktop",
         "clearBackground": "Clear background",
         "previewAlt": "Background preview",
         "previewLabel": "Live Preview",
@@ -1447,6 +1664,17 @@
       "apiKey": "API Key",
       "apiEndpoint": "API Endpoint",
       "model": "Model",
+      "deepseekThinking": "DeepSeek Thinking Mode",
+      "deepseekThinkingOptions": {
+        "off": "Off",
+        "on": "On"
+      },
+      "deepseekReasoningEffort": "DeepSeek Reasoning Effort",
+      "deepseekReasoningEffortOptions": {
+        "low": "Low (low)",
+        "medium": "Medium (medium)",
+        "high": "High (high)"
+      },
       "mcpEndpoint": "MCP Endpoint",
       "mcpPlaceholder": "http://localhost:3000/mcp (optional)",
       "systemPrompt": "System Prompt",
@@ -1457,7 +1685,12 @@
       "credentialsHint": "OpenAI-compatible protocol. Fill in your API Key, Endpoint and model name.",
       "mcpTitle": "MCP Tooling",
       "mcpHint": "Optional. Once an MCP endpoint is configured, the Agent can call external tools through it.",
-      "systemPromptHint": "Constrains the Agent's role and style. Leave empty to use the default prompt."
+      "systemPromptHint": "Constrains the Agent's role and style. Leave empty to use the default prompt.",
+      "workspaceTitle": "Agent Workspace",
+      "workspaceHint": "Configure directories the Agent can access. All file read/write, search, and command execution are restricted to workspaces.",
+      "workspaceAdd": "+ Add Workspace Folder",
+      "workspaceRemove": "Remove",
+      "workspaceEmpty": "No workspace configured. Agent file operations will be blocked."
     },
     "about": {
       "pagination": "About settings pages",
@@ -1621,6 +1854,7 @@
         "avatarDesc": "Upload or change your account avatar",
         "passwordDesc": "Change login password via email verification",
         "proDesc": "View Pro plan benefits plus current subscription pricing",
+        "rechargeDesc": "Top up your balance for AI assistant conversations",
         "ordersDesc": "Check order status, continue payment, or close pending orders",
         "logoutDesc": "Sign out or delete your account"
       },
@@ -1629,9 +1863,24 @@
         "edit": "Edit Profile",
         "password": "Change Password",
         "pro": "PRO Features",
+        "recharge": "Recharge",
         "orders": "My Orders",
         "account": "Account",
         "switchTo": "Switch to {{label}}"
+      },
+      "recharge": {
+        "title": "Recharge Balance",
+        "subtitle": "Top up your balance for AI assistant conversations",
+        "paymentTitle": "Agent Balance Recharge",
+        "paymentSubtitle": "Select a payment method to complete payment. Balance will be credited automatically.",
+        "rechargeAmountLabel": "Recharge Amount",
+        "currentBalance": "Current Balance",
+        "customPlaceholder": "Custom",
+        "selectAmount": "Select an amount",
+        "confirm": "Confirm Recharge ¥{{amount}}",
+        "submitting": "Processing…",
+        "success": "Recharge successful",
+        "fail": "Recharge failed. Please try again later"
       },
       "orders": {
         "title": "My Orders",
@@ -1703,6 +1952,14 @@
         "orderNoLabel": "Order No.",
         "payAmountLabel": "Amount",
         "payStatusLabel": "Payment Status",
+        "productTypeLabel": "Type",
+        "createdAtLabel": "Created",
+        "paidAtLabel": "Paid At",
+        "productType": {
+          "PRO_MONTH": "Pro Monthly",
+          "AGENT_RECHARGE": "Balance Top-up",
+          "unknown": "Unknown"
+        },
         "refreshStatus": "Refresh Payment Status",
         "refreshingStatus": "Refreshing...",
         "openPaymentPage": "Open Payment Page",

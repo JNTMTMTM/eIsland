@@ -57,6 +57,8 @@ import {
   APP_SETTINGS_PAGES,
   WEATHER_SETTINGS_PAGES,
   WEATHER_SETTINGS_PAGE_LABELS,
+  MAIL_SETTINGS_PAGES,
+  MAIL_SETTINGS_PAGE_LABELS,
   MUSIC_SETTINGS_PAGES,
   MUSIC_SETTINGS_PAGE_LABELS,
   NAV_CARDS,
@@ -65,6 +67,7 @@ import {
   type SettingsSidebarTabKey,
   type AppSettingsPageKey,
   type WeatherSettingsPageKey,
+  type MailSettingsPageKey,
   type MusicSettingsPageKey,
   type SettingsTabLabelKey,
   type NavCardDef,
@@ -73,6 +76,7 @@ import { UpdateSettingsSection } from './setting/components/update/UpdateSetting
 import { IndexSettingsSection } from './setting/components/index/IndexSettingsSection';
 import { AppSettingsSection } from './setting/components/app/AppSettingsSection';
 import { NetworkSettingsSection } from './setting/components/network/NetworkSettingsSection';
+import { MailSettingsSection } from './setting/components/mail/MailSettingsSection';
 import { WeatherSettingsSection } from './setting/components/weather/WeatherSettingsSection';
 import { ShortcutSettingsSection } from './setting/components/shortcut/ShortcutSettingsSection';
 import { MusicSettingsSection } from './setting/components/music/MusicSettingsSection';
@@ -108,13 +112,17 @@ const ISLAND_BG_VIDEO_LOOP_STORE_KEY = 'island-bg-video-loop';
 const ISLAND_BG_VIDEO_VOLUME_STORE_KEY = 'island-bg-video-volume';
 const ISLAND_BG_VIDEO_RATE_STORE_KEY = 'island-bg-video-rate';
 const ISLAND_BG_VIDEO_HW_DECODE_STORE_KEY = 'island-bg-video-hw-decode';
+const ISLAND_BG_SYNC_SYSTEM_WALLPAPER_STORE_KEY = 'island-bg-sync-system-wallpaper';
 const STANDALONE_WINDOW_MAC_CONTROLS_STORE_KEY = 'standalone-window-mac-controls';
 const ISLAND_DISPLAY_STORE_KEY = 'island-display-id';
 const UPDATE_SOURCE_STORE_KEY = 'update-source';
 const UPDATE_AUTO_PROMPT_STORE_KEY = 'update-auto-prompt-enabled';
 const WEATHER_ALERT_ENABLED_STORE_KEY = 'weather-alert-enabled';
+const MAIL_CONFIG_STORE_KEY = 'mail-account-config';
+const MAIL_ACCOUNTS_STORE_KEY = 'mail-accounts-config';
+const MAIL_FETCH_LIMIT_STORE_KEY = 'mail-fetch-limit';
 const SETTINGS_OPEN_TAB_STORE_KEY = 'settings-open-tab';
-type SettingsOpenTabIntent = 'update' | 'about-feedback' | 'user-orders';
+type SettingsOpenTabIntent = 'update' | 'about-feedback' | 'user-orders' | 'mail';
 let _lastSettingsSidebarTab: SettingsSidebarTabKey = 'index';
 
 type IslandBgMediaType = 'image' | 'video';
@@ -123,6 +131,23 @@ interface IslandBgMediaConfig {
   type: IslandBgMediaType;
   source: string;
 }
+
+interface MailAccountConfig {
+  id: string;
+  label: string;
+  emailAddress: string;
+  imapHost: string;
+  imapPort: string;
+  imapSecure: boolean;
+  authUser: string;
+  authSecret: string;
+}
+
+function generateMailAccountId(): string {
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+
 
 function isDirectBgMediaUrl(source: string): boolean {
   return source.startsWith('data:')
@@ -260,21 +285,35 @@ const PLUGIN_MARKET_PAGES: PluginMarketPageKey[] = ['wallpaper', 'plugin', 'cont
  */
 export function SettingsTab(): ReactElement {
   const { t } = useTranslation();
+  const translatedOverviewWidgetOptions = useMemo(() => {
+    const labelKeyMap: Record<OverviewWidgetType, string> = {
+      shortcuts: 'settings.app.layout.widgetNames.shortcuts',
+      todo: 'settings.app.layout.widgetNames.todo',
+      song: 'settings.app.layout.widgetNames.song',
+      countdown: 'settings.app.layout.widgetNames.countdown',
+      pomodoro: 'settings.app.layout.widgetNames.pomodoro',
+      urlFavorites: 'settings.app.layout.widgetNames.urlFavorites',
+      album: 'settings.app.layout.widgetNames.album',
+      mokugyo: 'settings.app.layout.widgetNames.mokugyo',
+    };
+    return OVERVIEW_WIDGET_OPTIONS.map((option) => ({
+      ...option,
+      label: t(labelKeyMap[option.value], { defaultValue: option.label }),
+    }));
+  }, [t]);
   const opacitySaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [activeTab, setActiveTab] = useState<SettingsSidebarTabKey>(() => _lastSettingsSidebarTab);
   const [sessionToken, setSessionToken] = useState<string | null>(() => readLocalToken());
   const [hasLoginSession, setHasLoginSession] = useState<boolean>(() => Boolean(readLocalToken()));
   const [appSettingsPage, setAppSettingsPage] = useState<AppSettingsPageKey>('layout-preview');
   const [weatherSettingsPage, setWeatherSettingsPage] = useState<WeatherSettingsPageKey>('location');
+  const [mailSettingsPage, setMailSettingsPage] = useState<MailSettingsPageKey>('account');
   const [musicSettingsPage, setMusicSettingsPage] = useState<MusicSettingsPageKey>('whitelist');
-  const [userInitialProfilePage, setUserInitialProfilePage] = useState<'info' | 'pro' | 'orders'>('info');
+  const [userInitialProfilePage, setUserInitialProfilePage] = useState<'info' | 'pro' | 'recharge' | 'orders'>('info');
   const [aboutInitialPage, setAboutInitialPage] = useState<'development' | 'feedback'>('development');
   const [pluginMarketPage, setPluginMarketPage] = useState<PluginMarketPageKey>('wallpaper');
   const [wallpaperMarketRefreshKey, setWallpaperMarketRefreshKey] = useState(0);
   const { aiConfig, setAiConfig, fetchWeatherData, setGuide, setLogin, setRegister, setNotification } = useIslandStore();
-  const [editingPrompt, setEditingPrompt] = useState(false);
-  const [promptDraft, setPromptDraft] = useState('');
-  const promptRef = useRef<HTMLTextAreaElement>(null);
   const settingsRef = useRef<HTMLDivElement>(null);
   const activeTabRef = useRef(activeTab);
   activeTabRef.current = activeTab;
@@ -327,6 +366,9 @@ export function SettingsTab(): ReactElement {
   const weatherSettingsPageRef = useRef(weatherSettingsPage);
   const currentWeatherSettingsPageLabel = t(`settings.weatherPages.${weatherSettingsPage}`, { defaultValue: WEATHER_SETTINGS_PAGE_LABELS[weatherSettingsPage] || '定位配置' });
   weatherSettingsPageRef.current = weatherSettingsPage;
+  const mailSettingsPageRef = useRef(mailSettingsPage);
+  const currentMailSettingsPageLabel = t(`settings.mailPages.${mailSettingsPage}`, { defaultValue: MAIL_SETTINGS_PAGE_LABELS[mailSettingsPage] || '账户' });
+  mailSettingsPageRef.current = mailSettingsPage;
   const musicSettingsPageRef = useRef(musicSettingsPage);
   const currentMusicSettingsPageLabel = t(`settings.musicPages.${musicSettingsPage}`, { defaultValue: MUSIC_SETTINGS_PAGE_LABELS[musicSettingsPage] || '白名单' });
   musicSettingsPageRef.current = musicSettingsPage;
@@ -353,6 +395,12 @@ export function SettingsTab(): ReactElement {
   const translatedWeatherSettingsPageLabels = useMemo<Record<WeatherSettingsPageKey, string>>(() => ({
     location: t('settings.weatherPages.location', { defaultValue: WEATHER_SETTINGS_PAGE_LABELS.location }),
     provider: t('settings.weatherPages.provider', { defaultValue: WEATHER_SETTINGS_PAGE_LABELS.provider }),
+  }), [t]);
+
+  const translatedMailSettingsPageLabels = useMemo<Record<MailSettingsPageKey, string>>(() => ({
+    account: t('settings.mailPages.account', { defaultValue: MAIL_SETTINGS_PAGE_LABELS.account }),
+    imap: t('settings.mailPages.imap', { defaultValue: MAIL_SETTINGS_PAGE_LABELS.imap }),
+    preferences: t('settings.mailPages.preferences', { defaultValue: MAIL_SETTINGS_PAGE_LABELS.preferences }),
   }), [t]);
 
   const translatedMusicSettingsPageLabels = useMemo<Record<MusicSettingsPageKey, string>>(() => ({
@@ -392,6 +440,10 @@ export function SettingsTab(): ReactElement {
   const [networkTimeoutMs, setNetworkTimeoutMs] = useState<number>(DEFAULT_NETWORK_TIMEOUT_MS);
   const [customTimeoutInput, setCustomTimeoutInput] = useState<string>('');
   const [staticAssetNode, setStaticAssetNode] = useState<StaticAssetNode>(DEFAULT_STATIC_ASSET_NODE_FREE);
+  const [mailAccounts, setMailAccounts] = useState<MailAccountConfig[]>([]);
+  const [activeMailAccountId, setActiveMailAccountId] = useState<string>('');
+  const [mailConfigLoaded, setMailConfigLoaded] = useState(false);
+  const [mailFetchLimit, setMailFetchLimit] = useState<number>(10);
   const staticAssetNodeOptions = useMemo<Array<{ label: string; value: StaticAssetNode; proOnly?: boolean }>>(() => ([
     { label: 'Cloudflare R2', value: 'r2' },
     { label: 'Tencent COS', value: 'cos', proOnly: true },
@@ -420,6 +472,7 @@ export function SettingsTab(): ReactElement {
   const [bgVideoVolume, setBgVideoVolume] = useState<number>(0.6);
   const [bgVideoRate, setBgVideoRate] = useState<number>(1);
   const [bgVideoHwDecode, setBgVideoHwDecode] = useState<boolean>(true);
+  const [syncDesktopWallpaperOnBackgroundChange, setSyncDesktopWallpaperOnBackgroundChange] = useState<boolean>(false);
   const [bgImageOpacity, setBgImageOpacity] = useState<number>(30);
   const [bgImageBlur, setBgImageBlur] = useState<number>(0);
   const bgOpacitySaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -620,6 +673,43 @@ export function SettingsTab(): ReactElement {
     window.api.storeWrite(ISLAND_BG_VIDEO_HW_DECODE_STORE_KEY, value).catch(() => {});
   };
 
+  const resolveDesktopWallpaperPreviewUrl = (previewUrl: string | null): string | null => {
+    if (!previewUrl) return null;
+    const trimmed = previewUrl.trim();
+    if (!trimmed) return null;
+    if (trimmed.startsWith('data:') || trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('file://')) {
+      return trimmed;
+    }
+    try {
+      return new URL(trimmed, window.location.href).toString();
+    } catch {
+      return trimmed;
+    }
+  };
+
+  const syncSystemDesktopWallpaperIfNeeded = async (
+    media: IslandBgMediaConfig | null,
+    previewUrl: string | null,
+  ): Promise<void> => {
+    if (!syncDesktopWallpaperOnBackgroundChange) return;
+    if (!media) return;
+
+    if (media.type === 'video') {
+      const sourcePath = !isDirectBgMediaUrl(media.source) ? media.source : null;
+      if (sourcePath) {
+        const coverPath = await window.api.wallpaperVideoCover(sourcePath).catch(() => null);
+        if (coverPath) {
+          await window.api.setSystemDesktopWallpaper({ sourcePath: coverPath, previewUrl: coverPath }).catch(() => false);
+          return;
+        }
+      }
+    }
+
+    const sourcePath = !isDirectBgMediaUrl(media.source) ? media.source : null;
+    const normalizedPreview = resolveDesktopWallpaperPreviewUrl(previewUrl);
+    await window.api.setSystemDesktopWallpaper({ sourcePath, previewUrl: normalizedPreview }).catch(() => false);
+  };
+
   const persistBgOpacity = (value: number): void => {
     window.api.storeWrite('island-bg-opacity', value).catch(() => {});
   };
@@ -636,6 +726,7 @@ export function SettingsTab(): ReactElement {
     const media: IslandBgMediaConfig = { type: 'image', source: filePath };
     applyBgMedia(media, dataUrl);
     persistBgMedia(media);
+    void syncSystemDesktopWallpaperIfNeeded(media, dataUrl);
   };
 
   const handleSelectBgVideo = async (): Promise<void> => {
@@ -646,11 +737,15 @@ export function SettingsTab(): ReactElement {
     if (!previewUrl) return;
     applyBgMedia(media, previewUrl);
     persistBgMedia(media);
+    void syncSystemDesktopWallpaperIfNeeded(media, previewUrl);
   };
 
   const handleClearBgImage = (): void => {
     applyBgMedia(null, null);
     persistBgMedia(null);
+    window.api.storeWrite(ISLAND_BG_IMAGE_STORE_KEY, null).catch(() => {});
+    window.api.settingsPreview('store:island-bg-image', null).catch(() => {});
+    window.api.setSystemDesktopWallpaper({ clear: true }).catch(() => false);
     window.api.clearWallpaperCache?.().catch(() => {});
   };
 
@@ -661,6 +756,7 @@ export function SettingsTab(): ReactElement {
     applyBgOpacity(defaultOpacity);
     persistBgMedia(media);
     persistBgOpacity(defaultOpacity);
+    void syncSystemDesktopWallpaperIfNeeded(media, src);
   };
 
   const handleApplyMarketplaceWallpaper = (mediaUrl: string, options?: { type?: 'image' | 'video' }): void => {
@@ -669,6 +765,7 @@ export function SettingsTab(): ReactElement {
     const media: IslandBgMediaConfig = { type: mediaType, source: mediaUrl };
     applyBgMedia(media, mediaUrl);
     persistBgMedia(media);
+    void syncSystemDesktopWallpaperIfNeeded(media, mediaUrl);
     if (mediaType === 'image') {
       window.api.settingsPreview('store:island-bg-image', mediaUrl).catch(() => {});
     }
@@ -803,6 +900,71 @@ export function SettingsTab(): ReactElement {
   }, []);
 
   useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const accountsRaw = await window.api.storeRead(MAIL_ACCOUNTS_STORE_KEY);
+        if (cancelled) return;
+        if (Array.isArray(accountsRaw) && accountsRaw.length > 0) {
+          const loaded = (accountsRaw as Partial<MailAccountConfig>[]).map((raw) => ({
+            id: typeof raw.id === 'string' && raw.id ? raw.id : generateMailAccountId(),
+            label: typeof raw.label === 'string' ? raw.label : '',
+            emailAddress: typeof raw.emailAddress === 'string' ? raw.emailAddress : '',
+            imapHost: typeof raw.imapHost === 'string' ? raw.imapHost : '',
+            imapPort: typeof raw.imapPort === 'string' ? raw.imapPort : '993',
+            imapSecure: typeof raw.imapSecure === 'boolean' ? raw.imapSecure : true,
+            authUser: typeof raw.authUser === 'string' ? raw.authUser : '',
+            authSecret: typeof raw.authSecret === 'string' ? raw.authSecret : '',
+          }));
+          setMailAccounts(loaded);
+          setActiveMailAccountId(loaded[0].id);
+          setMailConfigLoaded(true);
+          return;
+        }
+        const legacyRaw = await window.api.storeRead(MAIL_CONFIG_STORE_KEY);
+        if (cancelled) return;
+        if (legacyRaw && typeof legacyRaw === 'object' && !Array.isArray(legacyRaw)) {
+          const legacy = legacyRaw as Record<string, unknown>;
+          if (typeof legacy.imapHost === 'string' && legacy.imapHost.trim()) {
+            const migrated: MailAccountConfig = {
+              id: generateMailAccountId(),
+              label: typeof legacy.emailAddress === 'string' ? legacy.emailAddress : '',
+              emailAddress: typeof legacy.emailAddress === 'string' ? legacy.emailAddress : '',
+              imapHost: typeof legacy.imapHost === 'string' ? legacy.imapHost : '',
+              imapPort: typeof legacy.imapPort === 'string' ? legacy.imapPort : '993',
+              imapSecure: typeof legacy.imapSecure === 'boolean' ? legacy.imapSecure : true,
+              authUser: typeof legacy.authUser === 'string' ? legacy.authUser : '',
+              authSecret: typeof legacy.authSecret === 'string' ? legacy.authSecret : '',
+            };
+            setMailAccounts([migrated]);
+            setActiveMailAccountId(migrated.id);
+            setMailConfigLoaded(true);
+            return;
+          }
+        }
+      } catch { /* ignore */ }
+      if (!cancelled) setMailConfigLoaded(true);
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    if (!mailConfigLoaded) return;
+    window.api.storeWrite(MAIL_ACCOUNTS_STORE_KEY, mailAccounts).catch(() => {});
+  }, [mailConfigLoaded, mailAccounts]);
+
+  useEffect(() => {
+    window.api.storeRead(MAIL_FETCH_LIMIT_STORE_KEY).then((value) => {
+      if (typeof value === 'number' && value >= 1 && value <= 30) setMailFetchLimit(value);
+    }).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (!mailConfigLoaded) return;
+    window.api.storeWrite(MAIL_FETCH_LIMIT_STORE_KEY, mailFetchLimit).catch(() => {});
+  }, [mailConfigLoaded, mailFetchLimit]);
+
+  useEffect(() => {
     const normalized = normalizeStaticAssetNode(staticAssetNode, isProUser);
     if (normalized === staticAssetNode) {
       return;
@@ -909,7 +1071,8 @@ export function SettingsTab(): ReactElement {
       window.api.storeRead(ISLAND_BG_VIDEO_VOLUME_STORE_KEY) as Promise<number | null>,
       window.api.storeRead(ISLAND_BG_VIDEO_RATE_STORE_KEY) as Promise<number | null>,
       window.api.storeRead(ISLAND_BG_VIDEO_HW_DECODE_STORE_KEY) as Promise<boolean | null>,
-    ]).then(async ([mediaRaw, legacyImage, videoFit, videoMuted, videoLoop, opacity, blur, videoVolume, videoRate, videoHwDecode]) => {
+      window.api.storeRead(ISLAND_BG_SYNC_SYSTEM_WALLPAPER_STORE_KEY) as Promise<boolean | null>,
+    ]).then(async ([mediaRaw, legacyImage, videoFit, videoMuted, videoLoop, opacity, blur, videoVolume, videoRate, videoHwDecode, syncDesktopWallpaper]) => {
       if (cancelled) return;
       if (videoFit === 'cover' || videoFit === 'contain') {
         setBgVideoFit(videoFit);
@@ -929,10 +1092,15 @@ export function SettingsTab(): ReactElement {
       if (typeof videoHwDecode === 'boolean') {
         setBgVideoHwDecode(videoHwDecode);
       }
+      if (typeof syncDesktopWallpaper === 'boolean') {
+        setSyncDesktopWallpaperOnBackgroundChange(syncDesktopWallpaper);
+      }
       if (typeof opacity === 'number' && Number.isFinite(opacity)) setBgImageOpacity(Math.max(0, Math.min(100, Math.round(opacity))));
       if (typeof blur === 'number' && Number.isFinite(blur)) setBgImageBlur(Math.max(0, Math.min(20, Math.round(blur))));
-      const media = normalizeBgMediaConfig(mediaRaw)
-        ?? (typeof legacyImage === 'string' ? normalizeBgMediaConfig(legacyImage) : null);
+      const mediaFromStore = normalizeBgMediaConfig(mediaRaw);
+      const media = mediaRaw === undefined
+        ? (mediaFromStore ?? (typeof legacyImage === 'string' ? normalizeBgMediaConfig(legacyImage) : null))
+        : mediaFromStore;
       if (!media) {
         setBgMedia(null);
         setBgMediaPreviewUrl(null);
@@ -984,6 +1152,9 @@ export function SettingsTab(): ReactElement {
       if (channel === 'settings:open-tab') {
         if (value === 'update') {
           setActiveTab('update');
+        }
+        if (value === 'mail') {
+          setActiveTab('mail');
         }
         if (value === 'about-feedback') {
           setActiveTab('about');
@@ -1060,6 +1231,11 @@ export function SettingsTab(): ReactElement {
       if (channel === `store:${ISLAND_BG_VIDEO_HW_DECODE_STORE_KEY}`) {
         if (typeof value === 'boolean') {
           setBgVideoHwDecode(value);
+        }
+      }
+      if (channel === `store:${ISLAND_BG_SYNC_SYSTEM_WALLPAPER_STORE_KEY}`) {
+        if (typeof value === 'boolean') {
+          setSyncDesktopWallpaperOnBackgroundChange(value);
         }
       }
     });
@@ -1263,6 +1439,10 @@ export function SettingsTab(): ReactElement {
       const intent = value as SettingsOpenTabIntent | null;
       if (intent === 'update') {
         setActiveTab('update');
+        window.api.storeWrite(SETTINGS_OPEN_TAB_STORE_KEY, null).catch(() => {});
+      }
+      if (intent === 'mail') {
+        setActiveTab('mail');
         window.api.storeWrite(SETTINGS_OPEN_TAB_STORE_KEY, null).catch(() => {});
       }
       if (intent === 'about-feedback') {
@@ -1803,17 +1983,6 @@ export function SettingsTab(): ReactElement {
     return () => el.removeEventListener('wheel', handleWheel);
   }, []);
 
-  const startEditPrompt = (): void => {
-    setPromptDraft(aiConfig.systemPrompt);
-    setEditingPrompt(true);
-    requestAnimationFrame(() => promptRef.current?.focus());
-  };
-
-  const savePrompt = (): void => {
-    setAiConfig({ systemPrompt: promptDraft });
-    setEditingPrompt(false);
-  };
-
   /**
    * 将键盘事件转换为 Electron accelerator 字符串
    * @param e - React 键盘事件
@@ -2253,6 +2422,14 @@ export function SettingsTab(): ReactElement {
             {getSettingsLabel('network')}
           </button>
           <button
+            className={`max-expand-settings-sidebar-item ${activeTab === 'mail' ? 'active' : ''}`}
+            onClick={() => setActiveTab('mail')}
+            type="button"
+          >
+            <span className="sidebar-dot" />
+            {getSettingsLabel('mail')}
+          </button>
+          <button
             className={`max-expand-settings-sidebar-item ${activeTab === 'weather' ? 'active' : ''}`}
             onClick={() => setActiveTab('weather')}
             type="button"
@@ -2357,7 +2534,7 @@ export function SettingsTab(): ReactElement {
               appSettingsPage={appSettingsPage}
               layoutConfig={layoutConfig}
               OverviewPreviewComponent={OverviewPreview}
-              overviewWidgetOptions={OVERVIEW_WIDGET_OPTIONS}
+              overviewWidgetOptions={translatedOverviewWidgetOptions}
               updateLayout={updateLayout}
               hideProcessFilter={hideProcessFilter}
               setHideProcessFilter={setHideProcessFilter}
@@ -2417,6 +2594,8 @@ export function SettingsTab(): ReactElement {
               setBgVideoRate={setBgVideoRate}
               bgVideoHwDecode={bgVideoHwDecode}
               setBgVideoHwDecode={setBgVideoHwDecode}
+              syncDesktopWallpaperOnBackgroundChange={syncDesktopWallpaperOnBackgroundChange}
+              setSyncDesktopWallpaperOnBackgroundChange={setSyncDesktopWallpaperOnBackgroundChange}
               bgImageOpacity={bgImageOpacity}
               bgImageBlur={bgImageBlur}
               setBgImageOpacity={setBgImageOpacity}
@@ -2461,6 +2640,22 @@ export function SettingsTab(): ReactElement {
               setCustomTimeoutInput={setCustomTimeoutInput}
               setStaticAssetNode={setStaticAssetNode}
               saveNetworkConfig={saveNetworkConfig}
+            />
+          )}
+
+          {activeTab === 'mail' && (
+            <MailSettingsSection
+              currentMailSettingsPageLabel={currentMailSettingsPageLabel}
+              mailSettingsPage={mailSettingsPage}
+              mailAccounts={mailAccounts}
+              activeMailAccountId={activeMailAccountId}
+              setMailAccounts={setMailAccounts}
+              setActiveMailAccountId={setActiveMailAccountId}
+              mailFetchLimit={mailFetchLimit}
+              setMailFetchLimit={setMailFetchLimit}
+              mailSettingsPages={MAIL_SETTINGS_PAGES}
+              mailSettingsPageLabels={translatedMailSettingsPageLabels}
+              setMailSettingsPage={setMailSettingsPage}
             />
           )}
 
@@ -2624,13 +2819,18 @@ export function SettingsTab(): ReactElement {
           {activeTab === 'ai' && (
             <AiSettingsSection
               aiConfig={aiConfig}
-              editingPrompt={editingPrompt}
-              promptDraft={promptDraft}
-              promptRef={promptRef}
               setAiConfig={setAiConfig}
-              setPromptDraft={setPromptDraft}
-              savePrompt={savePrompt}
-              startEditPrompt={startEditPrompt}
+              onAddWorkspace={async () => {
+                const dir = await window.api.pickLocalSearchDirectory();
+                if (!dir) return;
+                const current = Array.isArray(aiConfig.workspaces) ? aiConfig.workspaces : [];
+                if (current.some((w) => w.toLowerCase() === dir.toLowerCase())) return;
+                setAiConfig({ workspaces: [...current, dir] });
+              }}
+              onRemoveWorkspace={(idx) => {
+                const current = Array.isArray(aiConfig.workspaces) ? aiConfig.workspaces : [];
+                setAiConfig({ workspaces: current.filter((_, i) => i !== idx) });
+              }}
               SettingsFieldComponent={SettingsField}
             />
           )}

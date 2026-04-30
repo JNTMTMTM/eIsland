@@ -27,10 +27,14 @@
 
 import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron';
 import { existsSync } from 'fs';
-import { copyFile, readdir } from 'fs/promises';
-import { basename } from 'path';
+import { appendFile, copyFile, mkdir, readdir, readFile, rename, rm, stat, writeFile } from 'fs/promises';
+import { execFile } from 'child_process';
+import { basename, dirname, resolve } from 'path';
+import os from 'os';
 import { clearLogsCacheFiles, ensureLogsDir } from '../../log/mainLog';
 import { openStandaloneWindow, closeStandaloneWindow } from '../../window/standaloneWindow';
+import { registerAgentIpcHandlers } from '../agent';
+import { queryOpenWindowsWithIcons, type RunningWindowInfo } from '../../system/runningProcesses';
 
 interface LocalFileSearchItem {
   name: string;
@@ -50,6 +54,46 @@ interface LocalFileSearchOptions {
   extensions?: string[];
   excludeDirs?: string[];
 }
+
+interface AgentLocalToolRequest {
+  tool?: unknown;
+  arguments?: unknown;
+  workspaces?: unknown;
+}
+
+const MAX_LOCAL_FILE_READ_BYTES = 1024 * 1024;
+const MAX_LOCAL_CMD_OUTPUT_BYTES = 1024 * 1024;
+
+function parseWorkspaces(raw: unknown): string[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map((w) => (typeof w === 'string' ? resolve(w.trim()) : ''))
+    .filter(Boolean);
+}
+
+function isInsideWorkspaces(targetPath: string, workspaces: string[]): boolean {
+  if (workspaces.length === 0) return false;
+  const normalized = resolve(targetPath).toLowerCase();
+  return workspaces.some((ws) => {
+    const wsLower = ws.toLowerCase();
+    return normalized === wsLower || normalized.startsWith(wsLower + '\\');
+  });
+}
+
+function assertWorkspaceBoundary(targetPath: string, workspaces: string[], toolName: string): void {
+  if (workspaces.length === 0) {
+    throw new Error(`${toolName}: 未配置工作区，请先在设置中添加 Agent 工作区目录`);
+  }
+  if (!isInsideWorkspaces(targetPath, workspaces)) {
+    throw new Error(`${toolName}: 路径 ${targetPath} 不在工作区范围内`);
+  }
+}
+const BING_SEARCH_URL_TEMPLATE = 'https://www.bing.com/search?q=%s&form=QBLH&setmkt=zh-CN';
+const BING_SEARCH_FALLBACK_URL_TEMPLATE = 'https://cn.bing.com/search?q=%s&form=QBLH';
+const BING_RESULT_BLOCK_PATTERN = /<li[^>]*class="[^"]*b_algo[^"]*"[^>]*>([\s\S]*?)<\/li>/gi;
+const BING_TITLE_LINK_PATTERN = /<h2[^>]*>\s*<a[^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/i;
+const BING_SNIPPET_PATTERN = /<(?:p|div)[^>]*class="[^"]*(?:b_lineclamp\d|b_paractl|b_algoSlug|b_caption)[^"]*"[^>]*>([\s\S]*?)<\/(?:p|div)>/i;
+const BING_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
 
 function isTextMatched(target: string, keyword: string, mode: 'contains' | 'startsWith' | 'endsWith' | 'exact'): boolean {
   if (mode === 'startsWith') return target.startsWith(keyword);
@@ -136,6 +180,1059 @@ async function searchLocalFiles(rootDir: string, keyword: string, options?: Loca
   return results;
 }
 
+function toArgumentsRecord(value: unknown): Record<string, unknown> {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return {};
+  }
+  return value as Record<string, unknown>;
+}
+
+function getStringArg(args: Record<string, unknown>, key: string): string {
+  const value = args[key];
+  return typeof value === 'string' ? value.trim() : '';
+}
+
+function getNumberArg(args: Record<string, unknown>, key: string): number | null {
+  const value = args[key];
+  if (typeof value !== 'number' || !Number.isFinite(value)) {
+    return null;
+  }
+  return value;
+}
+
+function normalizeLocalPath(input: string): string {
+  const safe = input.trim();
+  if (!safe) {
+    return '';
+  }
+  return resolve(safe);
+}
+
+function normalizeWebUrl(input: string): string {
+  const safe = input.trim();
+  if (!safe) {
+    return '';
+  }
+  const normalized = safe.startsWith('http://') || safe.startsWith('https://')
+    ? safe
+    : `https://${safe}`;
+  try {
+    const url = new URL(normalized);
+    const protocol = url.protocol.toLowerCase();
+    if (protocol !== 'http:' && protocol !== 'https:') {
+      return '';
+    }
+    if (!url.hostname.trim()) {
+      return '';
+    }
+    url.hash = '';
+    return url.toString();
+  } catch {
+    return '';
+  }
+}
+
+function decodeHtmlText(input: string): string {
+  return input
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function stripHtmlText(input: string): string {
+  if (!input.trim()) {
+    return '';
+  }
+  const noTag = input.replace(/<[^>]+>/g, ' ');
+  return decodeHtmlText(noTag);
+}
+
+function normalizeBingResultUrl(rawHref: string): string {
+  const href = rawHref.trim();
+  if (!href) {
+    return '';
+  }
+  try {
+    const url = new URL(href, 'https://www.bing.com');
+    if (url.hostname.endsWith('bing.com') && url.pathname.startsWith('/ck/a')) {
+      const encoded = url.searchParams.get('u');
+      if (encoded) {
+        const candidate = encoded.startsWith('a1') ? encoded.slice(2) : encoded;
+        try {
+          const decoded = Buffer.from(candidate, 'base64').toString('utf8');
+          const normalized = normalizeWebUrl(decoded);
+          if (normalized) {
+            return normalized;
+          }
+        } catch {
+          // ignore decode failure
+        }
+      }
+    }
+    return normalizeWebUrl(url.toString());
+  } catch {
+    return normalizeWebUrl(href);
+  }
+}
+
+function parseBingResultBlock(block: string): { title: string; url: string; snippet: string } | null {
+  const titleMatch = BING_TITLE_LINK_PATTERN.exec(block);
+  if (!titleMatch) {
+    return null;
+  }
+  const rawHref = String(titleMatch[1] ?? '').trim();
+  const titleHtml = String(titleMatch[2] ?? '').trim();
+  const resolvedUrl = normalizeBingResultUrl(rawHref);
+  if (!resolvedUrl) {
+    return null;
+  }
+  const title = stripHtmlText(titleHtml);
+  const snippetMatch = BING_SNIPPET_PATTERN.exec(block);
+  const snippet = snippetMatch ? stripHtmlText(String(snippetMatch[1] ?? '')) : '';
+  return {
+    title: title || resolvedUrl,
+    url: resolvedUrl,
+    snippet,
+  };
+}
+
+async function fetchBingSearchHtml(query: string, urlTemplate: string): Promise<string> {
+  const encodedQuery = encodeURIComponent(query.trim());
+  const url = urlTemplate.replace('%s', encodedQuery);
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: {
+      Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+      'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
+      'User-Agent': BING_USER_AGENT,
+    },
+  });
+  if (!response.ok) {
+    throw new Error(`Bing search failed: HTTP ${response.status}`);
+  }
+  const html = await response.text();
+  return html ?? '';
+}
+
+async function collectBingHtmlResults(query: string, collector: Array<{ title: string; url: string; snippet: string }>, limit: number, urlTemplate: string): Promise<void> {
+  if (collector.length >= limit) {
+    return;
+  }
+  let html = '';
+  try {
+    html = await fetchBingSearchHtml(query, urlTemplate);
+  } catch {
+    return;
+  }
+  if (!html.trim()) {
+    return;
+  }
+  BING_RESULT_BLOCK_PATTERN.lastIndex = 0;
+  let match: RegExpExecArray | null = BING_RESULT_BLOCK_PATTERN.exec(html);
+  while (match && collector.length < limit) {
+    const block = String(match[1] ?? '');
+    if (block.trim()) {
+      const item = parseBingResultBlock(block);
+      if (item && !collector.some((existing) => existing.url === item.url)) {
+        collector.push(item);
+      }
+    }
+    match = BING_RESULT_BLOCK_PATTERN.exec(html);
+  }
+}
+
+async function executeLocalWebSearch(args: Record<string, unknown>): Promise<{
+  query: string;
+  provider: string;
+  count: number;
+  results: Array<{ title: string; url: string; snippet: string }>;
+}> {
+  const query = getStringArg(args, 'query') || getStringArg(args, 'q');
+  if (!query) {
+    throw new Error('web.search 需要 query');
+  }
+  const limitRaw = getNumberArg(args, 'limit');
+  const limit = Math.max(1, Math.min(10, Math.floor(limitRaw ?? 5)));
+  const results: Array<{ title: string; url: string; snippet: string }> = [];
+  let lastError = '';
+  const searchTemplates = [BING_SEARCH_URL_TEMPLATE, BING_SEARCH_FALLBACK_URL_TEMPLATE];
+  await searchTemplates.reduce(async (prev, template) => {
+    await prev;
+    if (results.length >= limit) return;
+    try {
+      await collectBingHtmlResults(query, results, limit, template);
+    } catch (error) {
+      lastError = error instanceof Error ? error.message : String(error);
+    }
+  }, Promise.resolve());
+  if (results.length === 0) {
+    const suffix = lastError ? ` (${lastError})` : '';
+    throw new Error(`web.search 无结果: ${query}${suffix}`);
+  }
+  return {
+    query,
+    provider: 'bing-local',
+    count: results.length,
+    results,
+  };
+}
+
+async function executeAgentLocalTool(request: AgentLocalToolRequest): Promise<{
+  success: boolean;
+  result: unknown;
+  error: string;
+  durationMs: number;
+}> {
+  const startedAt = Date.now();
+  try {
+    const tool = typeof request?.tool === 'string' ? request.tool.trim().toLowerCase() : '';
+    const args = toArgumentsRecord(request?.arguments);
+    const workspaces = parseWorkspaces(request?.workspaces);
+    if (!tool) {
+      throw new Error('tool 不能为空');
+    }
+
+    if (tool === 'file.list') {
+      const pathArg = normalizeLocalPath(getStringArg(args, 'path'));
+      const limitRaw = getNumberArg(args, 'limit');
+      const limit = Math.max(1, Math.min(500, Math.floor(limitRaw ?? 200)));
+      if (!pathArg) {
+        throw new Error('file.list 需要 path');
+      }
+      assertWorkspaceBoundary(pathArg, workspaces, 'file.list');
+      const entries = await readdir(pathArg, { withFileTypes: true });
+      const items = entries.slice(0, limit).map((entry) => ({
+        name: entry.name,
+        path: resolve(pathArg, entry.name),
+        isDirectory: entry.isDirectory(),
+      }));
+      return {
+        success: true,
+        result: {
+          path: pathArg,
+          items,
+          count: items.length,
+        },
+        error: '',
+        durationMs: Date.now() - startedAt,
+      };
+    }
+
+    if (tool === 'file.exists') {
+      const pathArg = normalizeLocalPath(getStringArg(args, 'path'));
+      if (!pathArg) {
+        throw new Error('file.exists 需要 path');
+      }
+      assertWorkspaceBoundary(pathArg, workspaces, 'file.exists');
+      const pathStat = await stat(pathArg).catch(() => null);
+      return {
+        success: true,
+        result: {
+          path: pathArg,
+          exists: Boolean(pathStat),
+          isFile: Boolean(pathStat?.isFile()),
+          isDirectory: Boolean(pathStat?.isDirectory()),
+        },
+        error: '',
+        durationMs: Date.now() - startedAt,
+      };
+    }
+
+    if (tool === 'file.stat') {
+      const pathArg = normalizeLocalPath(getStringArg(args, 'path'));
+      if (!pathArg) {
+        throw new Error('file.stat 需要 path');
+      }
+      assertWorkspaceBoundary(pathArg, workspaces, 'file.stat');
+      const pathStat = await stat(pathArg);
+      return {
+        success: true,
+        result: {
+          path: pathArg,
+          exists: true,
+          isFile: pathStat.isFile(),
+          isDirectory: pathStat.isDirectory(),
+          size: pathStat.size,
+          mode: pathStat.mode,
+          atimeMs: pathStat.atimeMs,
+          mtimeMs: pathStat.mtimeMs,
+          ctimeMs: pathStat.ctimeMs,
+          birthtimeMs: pathStat.birthtimeMs,
+        },
+        error: '',
+        durationMs: Date.now() - startedAt,
+      };
+    }
+
+    if (tool === 'file.mkdir') {
+      const pathArg = normalizeLocalPath(getStringArg(args, 'path'));
+      if (!pathArg) {
+        throw new Error('file.mkdir 需要 path');
+      }
+      assertWorkspaceBoundary(pathArg, workspaces, 'file.mkdir');
+      const recursive = args.recursive !== false;
+      await mkdir(pathArg, { recursive });
+      return {
+        success: true,
+        result: {
+          path: pathArg,
+          recursive,
+          created: true,
+        },
+        error: '',
+        durationMs: Date.now() - startedAt,
+      };
+    }
+
+    if (tool === 'file.read') {
+      const pathArg = normalizeLocalPath(getStringArg(args, 'path'));
+      if (!pathArg) {
+        throw new Error('file.read 需要 path');
+      }
+      assertWorkspaceBoundary(pathArg, workspaces, 'file.read');
+      const fileInfo = await stat(pathArg);
+      if (!fileInfo.isFile()) {
+        throw new Error('目标路径不是文件');
+      }
+      if (fileInfo.size > MAX_LOCAL_FILE_READ_BYTES) {
+        throw new Error(`文件过大，最大支持 ${MAX_LOCAL_FILE_READ_BYTES} bytes`);
+      }
+      const content = await readFile(pathArg, 'utf8');
+      return {
+        success: true,
+        result: {
+          path: pathArg,
+          content,
+          size: fileInfo.size,
+        },
+        error: '',
+        durationMs: Date.now() - startedAt,
+      };
+    }
+
+    if (tool === 'file.read.lines') {
+      const pathArg = normalizeLocalPath(getStringArg(args, 'path'));
+      if (!pathArg) {
+        throw new Error('file.read.lines 需要 path');
+      }
+      assertWorkspaceBoundary(pathArg, workspaces, 'file.read.lines');
+      const fileInfo = await stat(pathArg);
+      if (!fileInfo.isFile()) {
+        throw new Error('目标路径不是文件');
+      }
+      if (fileInfo.size > MAX_LOCAL_FILE_READ_BYTES) {
+        throw new Error(`文件过大，最大支持 ${MAX_LOCAL_FILE_READ_BYTES} bytes`);
+      }
+      const startLineRaw = getNumberArg(args, 'startLine');
+      const endLineRaw = getNumberArg(args, 'endLine');
+      const startLine = Math.max(1, Math.floor(startLineRaw ?? 1));
+      const maxWindow = 2000;
+      let endLine = Math.max(startLine, Math.floor(endLineRaw ?? startLine + 199));
+      if (endLine - startLine + 1 > maxWindow) {
+        endLine = startLine + maxWindow - 1;
+      }
+      const content = await readFile(pathArg, 'utf8');
+      const allLines = content.split(/\r?\n/);
+      const startIndex = Math.max(0, startLine - 1);
+      const endIndex = Math.min(allLines.length, endLine);
+      const lines = allLines.slice(startIndex, endIndex).map((text, index) => ({
+        line: startIndex + index + 1,
+        text,
+      }));
+      return {
+        success: true,
+        result: {
+          path: pathArg,
+          startLine,
+          endLine,
+          totalLines: allLines.length,
+          count: lines.length,
+          lines,
+        },
+        error: '',
+        durationMs: Date.now() - startedAt,
+      };
+    }
+
+    if (tool === 'file.write') {
+      const pathArg = normalizeLocalPath(getStringArg(args, 'path'));
+      const content = typeof args.content === 'string' ? args.content : String(args.content ?? '');
+      if (!pathArg) {
+        throw new Error('file.write 需要 path');
+      }
+      assertWorkspaceBoundary(pathArg, workspaces, 'file.write');
+      await mkdir(dirname(pathArg), { recursive: true });
+      await writeFile(pathArg, content, 'utf8');
+      return {
+        success: true,
+        result: {
+          path: pathArg,
+          writtenBytes: Buffer.byteLength(content, 'utf8'),
+        },
+        error: '',
+        durationMs: Date.now() - startedAt,
+      };
+    }
+
+    if (tool === 'file.delete') {
+      const pathArg = normalizeLocalPath(getStringArg(args, 'path'));
+      if (!pathArg) {
+        throw new Error('file.delete 需要 path');
+      }
+      assertWorkspaceBoundary(pathArg, workspaces, 'file.delete');
+      await rm(pathArg, { recursive: true, force: false });
+      return {
+        success: true,
+        result: {
+          path: pathArg,
+          deleted: true,
+        },
+        error: '',
+        durationMs: Date.now() - startedAt,
+      };
+    }
+
+    if (tool === 'cmd.exec') {
+      const command = getStringArg(args, 'command');
+      const cwd = normalizeLocalPath(getStringArg(args, 'cwd'));
+      const timeoutRaw = getNumberArg(args, 'timeoutMs');
+      const timeoutMs = Math.max(1000, Math.min(60000, Math.floor(timeoutRaw ?? 20000)));
+      if (!command) {
+        throw new Error('cmd.exec 需要 command');
+      }
+      if (cwd) {
+        assertWorkspaceBoundary(cwd, workspaces, 'cmd.exec');
+      }
+      const output = await new Promise<{ stdout: string; stderr: string }>((resolvePromise, rejectPromise) => {
+        execFile(
+          'cmd.exe',
+          ['/d', '/s', '/c', command],
+          {
+            windowsHide: true,
+            cwd: cwd || undefined,
+            timeout: timeoutMs,
+            maxBuffer: MAX_LOCAL_CMD_OUTPUT_BYTES,
+          },
+          (error, stdout, stderr) => {
+            if (error) {
+              rejectPromise(error);
+              return;
+            }
+            resolvePromise({
+              stdout: typeof stdout === 'string' ? stdout : '',
+              stderr: typeof stderr === 'string' ? stderr : '',
+            });
+          },
+        );
+      });
+      return {
+        success: true,
+        result: {
+          command,
+          cwd,
+          stdout: output.stdout,
+          stderr: output.stderr,
+        },
+        error: '',
+        durationMs: Date.now() - startedAt,
+      };
+    }
+
+    if (tool === 'file.grep') {
+      const pathArg = normalizeLocalPath(getStringArg(args, 'path'));
+      const pattern = getStringArg(args, 'pattern');
+      if (!pathArg) {
+        throw new Error('file.grep 需要 path');
+      }
+      assertWorkspaceBoundary(pathArg, workspaces, 'file.grep');
+      if (!pattern) {
+        throw new Error('file.grep 需要 pattern');
+      }
+      const limitRaw = getNumberArg(args, 'limit');
+      const maxResults = Math.max(1, Math.min(200, Math.floor(limitRaw ?? 50)));
+      const maxDepthRaw = getNumberArg(args, 'maxDepth');
+      const maxDepth = Math.max(0, Math.min(12, Math.floor(maxDepthRaw ?? 8)));
+      const fixedStrings = args.fixedStrings === true;
+      const caseSensitive = args.caseSensitive === true;
+      const extensionSet = new Set(
+        (Array.isArray(args.extensions) ? args.extensions : [])
+          .map((ext: unknown) => String(ext || '').trim().replace(/^\./, '').toLowerCase())
+          .filter(Boolean),
+      );
+      const excludedDirSet = new Set([
+        '.git', 'node_modules', '.idea', '.vscode', '__pycache__', '.next', 'dist', 'out', 'build',
+        ...(Array.isArray(args.excludeDirs) ? args.excludeDirs : [])
+          .map((d: unknown) => String(d || '').trim().toLowerCase())
+          .filter(Boolean),
+      ]);
+
+      let regex: RegExp;
+      try {
+        const flags = caseSensitive ? '' : 'i';
+        const source = fixedStrings ? pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') : pattern;
+        regex = new RegExp(source, flags);
+      } catch {
+        throw new Error(`file.grep pattern 无效: ${pattern}`);
+      }
+
+      interface GrepMatch { file: string; line: number; text: string }
+      const matches: GrepMatch[] = [];
+      const MAX_FILE_SIZE = 2 * 1024 * 1024;
+      const queue: Array<{ dir: string; depth: number }> = [{ dir: pathArg, depth: 0 }];
+
+      // 如果 path 指向文件则直接搜索该文件
+      const rootStat = await stat(pathArg).catch(() => null);
+      if (rootStat && rootStat.isFile()) {
+        if (rootStat.size <= MAX_FILE_SIZE) {
+          const content = await readFile(pathArg, 'utf8').catch(() => '');
+          const lines = content.split(/\r?\n/);
+          for (let li = 0; li < lines.length && matches.length < maxResults; li++) {
+            if (regex.test(lines[li])) {
+              matches.push({ file: pathArg, line: li + 1, text: lines[li].slice(0, 500) });
+            }
+          }
+        }
+      } else {
+        while (queue.length > 0 && matches.length < maxResults) {
+          const current = queue.shift();
+          if (!current) break;
+          let entries: Array<{ name: string | Buffer; isDirectory: () => boolean }>;
+          try {
+            entries = await readdir(current.dir, { withFileTypes: true });
+          } catch {
+            continue;
+          }
+          for (let entryIdx = 0; entryIdx < entries.length; entryIdx++) {
+            if (matches.length >= maxResults) break;
+            const entry = entries[entryIdx];
+            const entryName = typeof entry.name === 'string' ? entry.name : entry.name.toString('utf8');
+            if (entryName.startsWith('.') && excludedDirSet.has(entryName.toLowerCase())) continue;
+            const entryPath = `${current.dir}${current.dir.endsWith('\\') ? '' : '\\'}${entryName}`;
+            if (entry.isDirectory()) {
+              if (current.depth < maxDepth && !excludedDirSet.has(entryName.toLowerCase())) {
+                queue.push({ dir: entryPath, depth: current.depth + 1 });
+              }
+              continue;
+            }
+            if (extensionSet.size > 0) {
+              const dotIndex = entryName.lastIndexOf('.');
+              const ext = dotIndex >= 0 ? entryName.slice(dotIndex + 1).toLowerCase() : '';
+              if (!extensionSet.has(ext)) continue;
+            }
+            let fileStat;
+            try { fileStat = await stat(entryPath); } catch { continue; }
+            if (!fileStat.isFile() || fileStat.size > MAX_FILE_SIZE) continue;
+            let content: string;
+            try { content = await readFile(entryPath, 'utf8'); } catch { continue; }
+            const lines = content.split(/\r?\n/);
+            for (let li = 0; li < lines.length && matches.length < maxResults; li++) {
+              if (regex.test(lines[li])) {
+                matches.push({ file: entryPath, line: li + 1, text: lines[li].slice(0, 500) });
+              }
+            }
+          }
+          if (queue.length > 20000) {
+            queue.splice(20000);
+          }
+        }
+      }
+      return {
+        success: true,
+        result: {
+          path: pathArg,
+          pattern,
+          count: matches.length,
+          matches,
+        },
+        error: '',
+        durationMs: Date.now() - startedAt,
+      };
+    }
+
+    if (tool === 'file.search') {
+      const pathArg = normalizeLocalPath(getStringArg(args, 'path'));
+      const keyword = getStringArg(args, 'keyword');
+      if (!pathArg) {
+        throw new Error('file.search 需要 path');
+      }
+      assertWorkspaceBoundary(pathArg, workspaces, 'file.search');
+      if (!keyword) {
+        throw new Error('file.search 需要 keyword');
+      }
+      const limitRaw = getNumberArg(args, 'limit');
+      const searchOptions: LocalFileSearchOptions = {
+        limit: Math.max(1, Math.min(200, Math.floor(limitRaw ?? 50))),
+        maxDepth: typeof args.maxDepth === 'number' ? args.maxDepth : undefined,
+        includeDirectories: args.includeDirectories !== false,
+        includeFiles: args.includeFiles !== false,
+        caseSensitive: args.caseSensitive === true,
+        extensions: Array.isArray(args.extensions) ? args.extensions.map((e: unknown) => String(e || '')) : undefined,
+      };
+      const results = await searchLocalFiles(pathArg, keyword, searchOptions);
+      return {
+        success: true,
+        result: {
+          path: pathArg,
+          keyword,
+          count: results.length,
+          items: results,
+        },
+        error: '',
+        durationMs: Date.now() - startedAt,
+      };
+    }
+
+    if (tool === 'file.rename') {
+      const oldPath = normalizeLocalPath(getStringArg(args, 'oldPath') || getStringArg(args, 'path'));
+      const newPath = normalizeLocalPath(getStringArg(args, 'newPath') || getStringArg(args, 'destination'));
+      if (!oldPath) {
+        throw new Error('file.rename 需要 oldPath');
+      }
+      if (!newPath) {
+        throw new Error('file.rename 需要 newPath');
+      }
+      assertWorkspaceBoundary(oldPath, workspaces, 'file.rename');
+      assertWorkspaceBoundary(newPath, workspaces, 'file.rename');
+      await mkdir(dirname(newPath), { recursive: true });
+      await rename(oldPath, newPath);
+      return {
+        success: true,
+        result: { oldPath, newPath, renamed: true },
+        error: '',
+        durationMs: Date.now() - startedAt,
+      };
+    }
+
+    if (tool === 'file.copy') {
+      const srcPath = normalizeLocalPath(getStringArg(args, 'source') || getStringArg(args, 'path'));
+      const destPath = normalizeLocalPath(getStringArg(args, 'destination') || getStringArg(args, 'newPath'));
+      if (!srcPath) {
+        throw new Error('file.copy 需要 source');
+      }
+      if (!destPath) {
+        throw new Error('file.copy 需要 destination');
+      }
+      assertWorkspaceBoundary(srcPath, workspaces, 'file.copy');
+      assertWorkspaceBoundary(destPath, workspaces, 'file.copy');
+      await mkdir(dirname(destPath), { recursive: true });
+      const srcStat = await stat(srcPath);
+      if (srcStat.isDirectory()) {
+        const copyDirRecursive = async (src: string, dest: string): Promise<void> => {
+          await mkdir(dest, { recursive: true });
+          const entries = await readdir(src, { withFileTypes: true });
+          for (let entryIdx = 0; entryIdx < entries.length; entryIdx++) {
+            const entry = entries[entryIdx];
+            const srcEntry = resolve(src, entry.name);
+            const destEntry = resolve(dest, entry.name);
+            if (entry.isDirectory()) {
+              await copyDirRecursive(srcEntry, destEntry);
+            } else {
+              await copyFile(srcEntry, destEntry);
+            }
+          }
+        };
+        await copyDirRecursive(srcPath, destPath);
+      } else {
+        await copyFile(srcPath, destPath);
+      }
+      return {
+        success: true,
+        result: { source: srcPath, destination: destPath, isDirectory: srcStat.isDirectory(), copied: true },
+        error: '',
+        durationMs: Date.now() - startedAt,
+      };
+    }
+
+    if (tool === 'file.append') {
+      const pathArg = normalizeLocalPath(getStringArg(args, 'path'));
+      const content = typeof args.content === 'string' ? args.content : String(args.content ?? '');
+      if (!pathArg) {
+        throw new Error('file.append 需要 path');
+      }
+      assertWorkspaceBoundary(pathArg, workspaces, 'file.append');
+      await mkdir(dirname(pathArg), { recursive: true });
+      await appendFile(pathArg, content, 'utf8');
+      return {
+        success: true,
+        result: { path: pathArg, appendedBytes: Buffer.byteLength(content, 'utf8') },
+        error: '',
+        durationMs: Date.now() - startedAt,
+      };
+    }
+
+    if (tool === 'file.replace') {
+      const pathArg = normalizeLocalPath(getStringArg(args, 'path'));
+      const search = getStringArg(args, 'search');
+      const replacement = typeof args.replacement === 'string' ? args.replacement : String(args.replacement ?? '');
+      const replaceAll = args.replaceAll !== false;
+      if (!pathArg) {
+        throw new Error('file.replace 需要 path');
+      }
+      if (!search) {
+        throw new Error('file.replace 需要 search');
+      }
+      assertWorkspaceBoundary(pathArg, workspaces, 'file.replace');
+      const fileInfo = await stat(pathArg);
+      if (!fileInfo.isFile()) {
+        throw new Error('目标路径不是文件');
+      }
+      if (fileInfo.size > MAX_LOCAL_FILE_READ_BYTES) {
+        throw new Error(`文件过大，最大支持 ${MAX_LOCAL_FILE_READ_BYTES} bytes`);
+      }
+      const originalContent = await readFile(pathArg, 'utf8');
+      let newContent: string;
+      let count: number;
+      if (replaceAll) {
+        const escaped = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp(escaped, 'g');
+        count = (originalContent.match(regex) || []).length;
+        newContent = originalContent.replace(regex, replacement);
+      } else {
+        const idx = originalContent.indexOf(search);
+        count = idx >= 0 ? 1 : 0;
+        newContent = idx >= 0
+          ? originalContent.slice(0, idx) + replacement + originalContent.slice(idx + search.length)
+          : originalContent;
+      }
+      if (count > 0) {
+        await writeFile(pathArg, newContent, 'utf8');
+      }
+      return {
+        success: true,
+        result: { path: pathArg, search, replacementLength: replacement.length, replaceAll, matchCount: count, modified: count > 0 },
+        error: '',
+        durationMs: Date.now() - startedAt,
+      };
+    }
+
+    if (tool === 'cmd.powershell') {
+      const command = getStringArg(args, 'command');
+      const cwd = normalizeLocalPath(getStringArg(args, 'cwd'));
+      const timeoutRaw = getNumberArg(args, 'timeoutMs');
+      const timeoutMs = Math.max(1000, Math.min(60000, Math.floor(timeoutRaw ?? 20000)));
+      if (!command) {
+        throw new Error('cmd.powershell 需要 command');
+      }
+      if (cwd) {
+        assertWorkspaceBoundary(cwd, workspaces, 'cmd.powershell');
+      }
+      const output = await new Promise<{ stdout: string; stderr: string }>((resolvePromise, rejectPromise) => {
+        execFile(
+          'powershell.exe',
+          ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-Command', command],
+          {
+            windowsHide: true,
+            cwd: cwd || undefined,
+            timeout: timeoutMs,
+            maxBuffer: MAX_LOCAL_CMD_OUTPUT_BYTES,
+          },
+          (error, stdout, stderr) => {
+            if (error) {
+              rejectPromise(error);
+              return;
+            }
+            resolvePromise({
+              stdout: typeof stdout === 'string' ? stdout : '',
+              stderr: typeof stderr === 'string' ? stderr : '',
+            });
+          },
+        );
+      });
+      return {
+        success: true,
+        result: { command, cwd, stdout: output.stdout, stderr: output.stderr },
+        error: '',
+        durationMs: Date.now() - startedAt,
+      };
+    }
+
+    if (tool === 'sys.info') {
+      return {
+        success: true,
+        result: {
+          platform: os.platform(),
+          arch: os.arch(),
+          release: os.release(),
+          hostname: os.hostname(),
+          homedir: os.homedir(),
+          tmpdir: os.tmpdir(),
+          cpuModel: os.cpus()[0]?.model || 'unknown',
+          cpuCores: os.cpus().length,
+          totalMemoryMB: Math.round(os.totalmem() / (1024 * 1024)),
+          freeMemoryMB: Math.round(os.freemem() / (1024 * 1024)),
+          uptime: Math.round(os.uptime()),
+          userInfo: (() => { try { const u = os.userInfo(); return { username: u.username, uid: u.uid, gid: u.gid }; } catch { return null; } })(),
+        },
+        error: '',
+        durationMs: Date.now() - startedAt,
+      };
+    }
+
+    if (tool === 'sys.env') {
+      const nameArg = getStringArg(args, 'name');
+      if (nameArg) {
+        return {
+          success: true,
+          result: { name: nameArg, value: process.env[nameArg] ?? null },
+          error: '',
+          durationMs: Date.now() - startedAt,
+        };
+      }
+      const filterArg = getStringArg(args, 'filter');
+      const entries = Object.entries(process.env);
+      let filtered: Array<[string, string | undefined]>;
+      if (filterArg) {
+        const fl = filterArg.toLowerCase();
+        filtered = entries.filter(([key]) => key.toLowerCase().includes(fl));
+      } else {
+        filtered = entries;
+      }
+      const limitRaw = getNumberArg(args, 'limit');
+      const limit = Math.max(1, Math.min(200, Math.floor(limitRaw === null || limitRaw === undefined ? 50 : limitRaw)));
+      const sliced = filtered.slice(0, limit);
+      return {
+        success: true,
+        result: {
+          count: sliced.length,
+          totalMatched: filtered.length,
+          variables: Object.fromEntries(sliced),
+        },
+        error: '',
+        durationMs: Date.now() - startedAt,
+      };
+    }
+
+    if (tool === 'sys.open') {
+      const target = getStringArg(args, 'target')?.toLowerCase().trim();
+      const pathArg = getStringArg(args, 'path');
+      if (!target) throw new Error('sys.open 需要 target');
+
+      // 预定义的 Windows 系统组件映射
+      const builtinTargets: Record<string, { exe?: string; uri?: string; label: string }> = {
+        explorer:    { exe: 'explorer.exe', label: '文件资源管理器' },
+        settings:    { uri: 'ms-settings:', label: 'Windows 设置' },
+        display:     { uri: 'ms-settings:display', label: '显示设置' },
+        sound:       { uri: 'ms-settings:sound', label: '声音设置' },
+        bluetooth:   { uri: 'ms-settings:bluetooth', label: '蓝牙设置' },
+        wifi:        { uri: 'ms-settings:network-wifi', label: 'Wi-Fi 设置' },
+        network:     { uri: 'ms-settings:network-status', label: '网络状态' },
+        proxy:       { uri: 'ms-settings:network-proxy', label: '代理设置' },
+        apps:        { uri: 'ms-settings:appsfeatures', label: '应用和功能' },
+        defaultapps: { uri: 'ms-settings:defaultapps', label: '默认应用' },
+        storage:     { uri: 'ms-settings:storagesense', label: '存储设置' },
+        power:       { uri: 'ms-settings:powersleep', label: '电源和睡眠' },
+        about:       { uri: 'ms-settings:about', label: '系统信息' },
+        update:      { uri: 'ms-settings:windowsupdate', label: 'Windows 更新' },
+        datetime:    { uri: 'ms-settings:dateandtime', label: '日期和时间' },
+        language:    { uri: 'ms-settings:regionlanguage', label: '语言设置' },
+        privacy:     { uri: 'ms-settings:privacy', label: '隐私设置' },
+        personalize: { uri: 'ms-settings:personalization', label: '个性化' },
+        themes:      { uri: 'ms-settings:themes', label: '主题' },
+        wallpaper:   { uri: 'ms-settings:personalization-background', label: '壁纸' },
+        lockscreen:  { uri: 'ms-settings:lockscreen', label: '锁屏界面' },
+        taskbar:     { uri: 'ms-settings:taskbar', label: '任务栏设置' },
+        startmenu:   { uri: 'ms-settings:personalization-start', label: '开始菜单设置' },
+        mouse:       { uri: 'ms-settings:mousetouchpad', label: '鼠标设置' },
+        keyboard:    { uri: 'ms-settings:typing', label: '键盘设置' },
+        control:     { exe: 'control.exe', label: '控制面板' },
+        taskmgr:     { exe: 'taskmgr.exe', label: '任务管理器' },
+        devmgr:      { exe: 'devmgmt.msc', label: '设备管理器' },
+        diskmgmt:    { exe: 'diskmgmt.msc', label: '磁盘管理' },
+        services:    { exe: 'services.msc', label: '服务管理' },
+        regedit:     { exe: 'regedit.exe', label: '注册表编辑器' },
+        notepad:     { exe: 'notepad.exe', label: '记事本' },
+        calc:        { exe: 'calc.exe', label: '计算器' },
+        paint:       { exe: 'mspaint.exe', label: '画图' },
+        terminal:    { exe: 'wt.exe', label: 'Windows Terminal' },
+        snip:        { exe: 'snippingtool.exe', label: '截图工具' },
+      };
+
+      const entry = builtinTargets[target];
+      if (entry) {
+        if (entry.uri) {
+          await shell.openExternal(entry.uri);
+        } else if (entry.exe) {
+          const exe: string = entry.exe;
+          const exeArgs: string[] = [];
+          // explorer 支持打开指定路径
+          if (target === 'explorer' && pathArg) {
+            exeArgs.push(normalizeLocalPath(pathArg) || pathArg);
+          }
+          // msc 文件通过 mmc.exe 打开
+          if (exe.endsWith('.msc')) {
+            await new Promise<void>((res, rej) => {
+              execFile('mmc.exe', [exe, ...exeArgs], { windowsHide: false, timeout: 10000 },
+                (err) => { if (err) rej(new Error(err.message)); else res(); });
+            });
+          } else {
+            await new Promise<void>((res, rej) => {
+              execFile(exe, exeArgs, { windowsHide: false, timeout: 10000 },
+                (err) => { if (err) rej(new Error(err.message)); else res(); });
+            });
+          }
+        }
+        return { success: true, result: { target, label: entry.label, opened: true }, error: '', durationMs: Date.now() - startedAt };
+      }
+
+      // 支持直接传入 ms-settings: URI 或其他 URI scheme
+      if (target.startsWith('ms-settings:') || target.startsWith('http://') || target.startsWith('https://')) {
+        await shell.openExternal(target);
+        return { success: true, result: { target, opened: true }, error: '', durationMs: Date.now() - startedAt };
+      }
+
+      throw new Error(`sys.open 不支持的 target: ${target}。可用值: ${Object.keys(builtinTargets).join(', ')}，或直接传入 ms-settings: URI`);
+    }
+
+    if (tool === 'file.tree') {
+      const pathArg = normalizeLocalPath(getStringArg(args, 'path'));
+      const maxDepthRaw = getNumberArg(args, 'maxDepth');
+      const maxDepth = Math.max(1, Math.min(6, Math.floor(maxDepthRaw === null || maxDepthRaw === undefined ? 3 : maxDepthRaw)));
+      const limitRaw = getNumberArg(args, 'limit');
+      const maxItems = Math.max(1, Math.min(500, Math.floor(limitRaw === null || limitRaw === undefined ? 200 : limitRaw)));
+      if (!pathArg) {
+        throw new Error('file.tree 需要 path');
+      }
+      assertWorkspaceBoundary(pathArg, workspaces, 'file.tree');
+      interface TreeNode { name: string; path: string; isDirectory: boolean; children?: TreeNode[] }
+      let itemCount = 0;
+      const buildTree = async (dir: string, depth: number): Promise<TreeNode[]> => {
+        if (depth > maxDepth || itemCount >= maxItems) return [];
+        let entries: Array<{ name: string; isDirectory: () => boolean }>;
+        try { entries = await readdir(dir, { withFileTypes: true }); } catch { return []; }
+        const excludedDirs = new Set(['.git', 'node_modules', '.idea', '.vscode', '__pycache__', '.next', 'dist', 'out', 'build']);
+        const nodes: TreeNode[] = [];
+        for (let entryIdx = 0; entryIdx < entries.length; entryIdx++) {
+          if (itemCount >= maxItems) break;
+          const entry = entries[entryIdx];
+          const entryName = entry.name;
+          if (entryName.startsWith('.') && excludedDirs.has(entryName.toLowerCase())) continue;
+          const entryPath = resolve(dir, entryName);
+          const isDir = entry.isDirectory();
+          itemCount++;
+          const node: TreeNode = { name: entryName, path: entryPath, isDirectory: isDir };
+          if (isDir && depth < maxDepth && !excludedDirs.has(entryName.toLowerCase())) {
+            node.children = await buildTree(entryPath, depth + 1);
+          }
+          nodes.push(node);
+        }
+        return nodes;
+      };
+      const tree = await buildTree(pathArg, 1);
+      return {
+        success: true,
+        result: { path: pathArg, maxDepth, itemCount, tree },
+        error: '',
+        durationMs: Date.now() - startedAt,
+      };
+    }
+
+    if (tool === 'web.search') {
+      const result = await executeLocalWebSearch(args);
+      return {
+        success: true,
+        result,
+        error: '',
+        durationMs: Date.now() - startedAt,
+      };
+    }
+
+    const WIN_PS_TIMEOUT = 15000;
+
+    if (tool === 'win.list') {
+      const filterArg = getStringArg(args, 'filter') || '';
+      let allWindows: RunningWindowInfo[] = await queryOpenWindowsWithIcons();
+      if (filterArg) {
+        const lower = filterArg.toLowerCase();
+        allWindows = allWindows.filter(w =>
+          w.processName.toLowerCase().includes(lower) || w.title.toLowerCase().includes(lower));
+      }
+      const items = allWindows.map(w => ({
+        pid: w.processId,
+        name: w.processName,
+        title: w.title,
+        handle: Number(w.id) || 0,
+        path: w.processPath,
+      }));
+      return { success: true, result: { windows: items, count: items.length }, error: '', durationMs: Date.now() - startedAt };
+    }
+
+    if (tool === 'win.minimize' || tool === 'win.maximize' || tool === 'win.restore') {
+      const pidRaw = getNumberArg(args, 'pid');
+      const name = getStringArg(args, 'name');
+      const handleRaw = getNumberArg(args, 'handle');
+      if ((pidRaw === null || pidRaw === undefined) && !name && (handleRaw === null || handleRaw === undefined)) throw new Error(`${tool} 需要 pid、name 或 handle`);
+      const swFlag = tool === 'win.minimize' ? 6 : tool === 'win.maximize' ? 3 : 9;
+      const actionLabel = tool === 'win.minimize' ? '最小化' : tool === 'win.maximize' ? '最大化' : '还原';
+
+      // 通过 queryOpenWindowsWithIcons 查找目标窗口
+      const allWindows = await queryOpenWindowsWithIcons();
+      let targetHandle: number = handleRaw ?? 0;
+      let targetInfo = { pid: 0, name: '', title: '' };
+      if (!targetHandle) {
+        const match = pidRaw !== null && pidRaw !== undefined
+          ? allWindows.find(w => w.processId === Math.floor(pidRaw))
+          : allWindows.find(w => w.processName.toLowerCase().includes((name || '').toLowerCase()) || w.title.toLowerCase().includes((name || '').toLowerCase()));
+        if (!match) throw new Error('未找到匹配的窗口');
+        targetHandle = Number(match.id) || 0;
+        if (!targetHandle) throw new Error('无法获取窗口句柄');
+        targetInfo = { pid: match.processId ?? 0, name: match.processName, title: match.title };
+      } else {
+        const match = allWindows.find(w => Number(w.id) === targetHandle);
+        if (match) targetInfo = { pid: match.processId ?? 0, name: match.processName, title: match.title };
+      }
+
+      // 通过 PowerShell 调用 Win32 ShowWindow 控制窗口状态
+      const psScript = `Add-Type -Name WinAPI -Namespace User32 -MemberDefinition '[DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);'; [User32.WinAPI]::ShowWindow([IntPtr]${targetHandle}, ${swFlag})`;
+      await new Promise<void>((res, rej) => {
+        execFile('powershell.exe', ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-Command', psScript],
+          { windowsHide: true, timeout: WIN_PS_TIMEOUT, maxBuffer: 64 * 1024 },
+          (err) => { if (err) rej(new Error(err.message)); else res(); });
+      });
+      return { success: true, result: { ...targetInfo, handle: targetHandle, action: actionLabel }, error: '', durationMs: Date.now() - startedAt };
+    }
+
+    if (tool === 'win.close') {
+      const pidRaw = getNumberArg(args, 'pid');
+      const name = getStringArg(args, 'name');
+      if ((pidRaw === null || pidRaw === undefined) && !name) throw new Error('win.close 需要 pid 或 name');
+
+      // 通过 queryOpenWindowsWithIcons 确认目标窗口存在
+      const allWindows = await queryOpenWindowsWithIcons();
+      const matches = pidRaw !== null && pidRaw !== undefined
+        ? allWindows.filter(w => w.processId === Math.floor(pidRaw))
+        : allWindows.filter(w => w.processName.toLowerCase().includes((name || '').toLowerCase()));
+      if (matches.length === 0) throw new Error('未找到匹配的窗口进程');
+
+      const targetPid = matches[0].processId ?? 0;
+      const targetName = matches[0].processName;
+      const targetTitle = matches[0].title;
+      if (!targetPid) throw new Error('无法获取目标进程 PID');
+
+      // 通过 taskkill 终止进程
+      await new Promise<void>((res, rej) => {
+        execFile('taskkill', ['/PID', String(targetPid), '/F'],
+          { windowsHide: true, timeout: WIN_PS_TIMEOUT },
+          (err) => { if (err) rej(new Error(err.message)); else res(); });
+      });
+      return { success: true, result: { closed: { pid: targetPid, name: targetName, title: targetTitle } }, error: '', durationMs: Date.now() - startedAt };
+    }
+
+    throw new Error(`不支持的工具: ${tool}`);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error ?? 'local tool failed');
+    return {
+      success: false,
+      result: {},
+      error: message,
+      durationMs: Date.now() - startedAt,
+    };
+  }
+}
+
 /**
  * 注册应用相关 IPC 处理器
  * @description 注册应用级别的 IPC 事件处理器，包括退出、重启、日志管理等
@@ -163,6 +1260,36 @@ export function registerAppIpcHandlers(): void {
     }
   });
 
+  ipcMain.handle('app:pick-skill-file', async (event) => {
+    try {
+      const win = BrowserWindow.fromWebContents(event.sender) ?? BrowserWindow.getFocusedWindow();
+      if (!win) return null;
+      const result = await dialog.showOpenDialog(win, {
+        title: '选择 Skill 文件 (.md)',
+        properties: ['openFile'],
+        filters: [{ name: 'Markdown', extensions: ['md'] }],
+      });
+      if (result.canceled || result.filePaths.length === 0) {
+        return null;
+      }
+      return result.filePaths[0] || null;
+    } catch (err) {
+      console.error('[App] pick skill file error:', err);
+      return null;
+    }
+  });
+
+  ipcMain.handle('app:read-text-file', async (_event, filePath: string) => {
+    try {
+      if (!filePath || !existsSync(filePath)) return null;
+      const content = await readFile(filePath, 'utf-8');
+      return content;
+    } catch (err) {
+      console.error('[App] read text file error:', err);
+      return null;
+    }
+  });
+
   ipcMain.handle('app:search-local-files', async (
     _event,
     rootDir: string,
@@ -176,6 +1303,10 @@ export function registerAppIpcHandlers(): void {
       console.error('[App] search local files error:', err);
       return [];
     }
+  });
+
+  registerAgentIpcHandlers({
+    executeAgentLocalTool,
   });
 
   ipcMain.handle('app:pick-feedback-screenshot-file', async (event) => {

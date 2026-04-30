@@ -24,6 +24,54 @@
  * @author 鸡哥
  */
 
+const SITE_AUTH_POLICY_KEY = 'eIsland_siteAuthorizationPolicies';
+
+export type SiteAuthorizationPolicy = 'ask' | 'allow' | 'deny';
+
+interface SiteAuthorizationPolicyMap {
+  [hostname: string]: SiteAuthorizationPolicy;
+}
+
+function normalizePolicy(value: unknown): SiteAuthorizationPolicy {
+  return value === 'allow' || value === 'deny' ? value : 'ask';
+}
+
+function normalizeHostname(rawHostname: string): string {
+  return rawHostname.trim().toLowerCase();
+}
+
+function loadSiteAuthorizationPolicies(): SiteAuthorizationPolicyMap {
+  try {
+    const raw = localStorage.getItem(SITE_AUTH_POLICY_KEY);
+    if (!raw) {
+      return {};
+    }
+    const parsed = JSON.parse(raw) as Record<string, unknown>;
+    if (!parsed || typeof parsed !== 'object') {
+      return {};
+    }
+    const next: SiteAuthorizationPolicyMap = {};
+    Object.entries(parsed).forEach(([hostname, value]) => {
+      const key = normalizeHostname(hostname);
+      if (!key) {
+        return;
+      }
+      next[key] = normalizePolicy(value);
+    });
+    return next;
+  } catch {
+    return {};
+  }
+}
+
+function saveSiteAuthorizationPolicies(policies: SiteAuthorizationPolicyMap): void {
+  try {
+    localStorage.setItem(SITE_AUTH_POLICY_KEY, JSON.stringify(policies));
+  } catch {
+    // ignore
+  }
+}
+
 /**
  * 解析网页 HTML 中的标题
  * @param html - 原始 HTML 字符串
@@ -78,6 +126,40 @@ export function getWebsiteHostname(rawUrl: string): string {
   } catch {
     return '';
   }
+}
+
+/**
+ * 读取域名授权策略（本地）
+ * @param rawUrl - 网站 URL
+ * @returns 授权策略
+ */
+export function getWebsiteAuthorizationPolicy(rawUrl: string): SiteAuthorizationPolicy {
+  const hostname = normalizeHostname(getWebsiteHostname(rawUrl));
+  if (!hostname) {
+    return 'ask';
+  }
+  const policies = loadSiteAuthorizationPolicies();
+  return normalizePolicy(policies[hostname]);
+}
+
+/**
+ * 保存域名授权策略（本地）
+ * @param rawUrl - 网站 URL
+ * @param policy - 授权策略
+ */
+export function setWebsiteAuthorizationPolicy(rawUrl: string, policy: SiteAuthorizationPolicy): void {
+  const hostname = normalizeHostname(getWebsiteHostname(rawUrl));
+  if (!hostname) {
+    return;
+  }
+  const normalizedPolicy = normalizePolicy(policy);
+  const policies = loadSiteAuthorizationPolicies();
+  if (normalizedPolicy === 'ask') {
+    delete policies[hostname];
+  } else {
+    policies[hostname] = normalizedPolicy;
+  }
+  saveSiteAuthorizationPolicies(policies);
 }
 
 /**

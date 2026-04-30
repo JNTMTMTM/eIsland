@@ -25,9 +25,148 @@
  * @author 鸡哥
  */
 
-import { app, BrowserWindow, dialog, ipcMain } from 'electron';
-import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, unlinkSync } from 'fs';
-import { join } from 'path';
+import { app, BrowserWindow, dialog, ipcMain, net } from 'electron';
+import { execFile } from 'child_process';
+import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, unlinkSync, writeFileSync } from 'fs';
+import { extname, join } from 'path';
+import { fileURLToPath } from 'url';
+
+const DESKTOP_SYNC_FILE_BASENAME = 'desktop-sync-wallpaper';
+
+function inferImageExtFromContentType(contentType: string | null): string {
+  if (!contentType) return 'jpg';
+  const lower = contentType.toLowerCase();
+  if (lower.includes('image/png')) return 'png';
+  if (lower.includes('image/webp')) return 'webp';
+  if (lower.includes('image/bmp')) return 'bmp';
+  if (lower.includes('image/gif')) return 'gif';
+  return 'jpg';
+}
+
+function decodeDataUrl(dataUrl: string): { ext: string; data: Buffer } | null {
+  const matched = dataUrl.match(/^data:image\/([a-zA-Z0-9.+-]+);base64,(.+)$/);
+  if (!matched) return null;
+  const rawExt = matched[1].toLowerCase();
+  const ext = rawExt === 'jpeg' ? 'jpg' : rawExt;
+  try {
+    const data = Buffer.from(matched[2], 'base64');
+    if (data.length === 0) return null;
+    return { ext, data };
+  } catch {
+    return null;
+  }
+}
+
+async function resolveDesktopWallpaperImagePath(
+  wallpaperCacheDir: string,
+  sourcePath: string | null,
+  previewUrl: string | null,
+): Promise<string | null> {
+  const source = typeof sourcePath === 'string' ? sourcePath.trim() : '';
+  if (source && existsSync(source)) return source;
+
+  const preview = typeof previewUrl === 'string' ? previewUrl.trim() : '';
+  if (!preview) return null;
+
+  if (preview.startsWith('data:image/')) {
+    const decoded = decodeDataUrl(preview);
+    if (!decoded) return null;
+    if (!existsSync(wallpaperCacheDir)) mkdirSync(wallpaperCacheDir, { recursive: true });
+    const filePath = join(wallpaperCacheDir, `${DESKTOP_SYNC_FILE_BASENAME}.${decoded.ext}`);
+    writeFileSync(filePath, decoded.data);
+    return filePath;
+  }
+
+  if (preview.startsWith('file://')) {
+    try {
+      const filePath = fileURLToPath(preview);
+      if (existsSync(filePath)) return filePath;
+    } catch {
+      return null;
+    }
+    return null;
+  }
+
+  const isHttp = preview.startsWith('http://') || preview.startsWith('https://');
+  if (isHttp) {
+    try {
+      const response = await net.fetch(preview);
+      if (!response.ok) return null;
+      const arrayBuffer = await response.arrayBuffer();
+      if (arrayBuffer.byteLength <= 0) return null;
+      if (!existsSync(wallpaperCacheDir)) mkdirSync(wallpaperCacheDir, { recursive: true });
+      const urlExt = extname(new URL(preview).pathname).replace('.', '').toLowerCase();
+      const contentType = response.headers.get('content-type');
+      const ext = urlExt || inferImageExtFromContentType(contentType);
+      const filePath = join(wallpaperCacheDir, `${DESKTOP_SYNC_FILE_BASENAME}.${ext}`);
+      writeFileSync(filePath, Buffer.from(arrayBuffer));
+      return filePath;
+    } catch {
+      return null;
+    }
+  }
+
+  if (preview.startsWith('/')) {
+    const rendererUrl = process.env.ELECTRON_RENDERER_URL;
+    if (rendererUrl && (rendererUrl.startsWith('http://') || rendererUrl.startsWith('https://'))) {
+      try {
+        const normalized = `${rendererUrl.replace(/\/$/, '')}${preview}`;
+        const response = await net.fetch(normalized);
+        if (!response.ok) return null;
+        const arrayBuffer = await response.arrayBuffer();
+        if (arrayBuffer.byteLength <= 0) return null;
+        if (!existsSync(wallpaperCacheDir)) mkdirSync(wallpaperCacheDir, { recursive: true });
+        const ext = extname(preview).replace('.', '').toLowerCase() || inferImageExtFromContentType(response.headers.get('content-type'));
+        const filePath = join(wallpaperCacheDir, `${DESKTOP_SYNC_FILE_BASENAME}.${ext}`);
+        writeFileSync(filePath, Buffer.from(arrayBuffer));
+        return filePath;
+      } catch {
+        return null;
+      }
+    }
+  }
+
+  return existsSync(preview) ? preview : null;
+}
+
+function setWindowsDesktopWallpaper(imagePath: string): Promise<boolean> {
+  if (process.platform !== 'win32') return Promise.resolve(false);
+  if (!imagePath || !existsSync(imagePath)) return Promise.resolve(false);
+  const escapedPath = imagePath.replace(/'/g, "''");
+  const command = `$sig='[DllImport(\"user32.dll\", SetLastError=true)] public static extern bool SystemParametersInfo(int uAction, int uParam, string lpvParam, int fuWinIni);'; Add-Type -MemberDefinition $sig -Name Win32Wall -Namespace Native -ErrorAction SilentlyContinue; [Native.Win32Wall]::SystemParametersInfo(20, 0, '${escapedPath}', 3)`;
+  return new Promise((resolve) => {
+    execFile('powershell.exe', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', command], { windowsHide: true }, (error, stdout) => {
+      if (error) {
+        resolve(false);
+        return;
+      }
+      resolve(String(stdout).trim().toLowerCase().includes('true'));
+    });
+  });
+}
+
+function createSolidBlackBmpBuffer(): Buffer {
+  return Buffer.from([
+    0x42, 0x4d, 0x3a, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x36, 0x00,
+    0x00, 0x00, 0x28, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x00,
+    0x00, 0x00, 0x01, 0x00, 0x18, 0x00, 0x00, 0x00, 0x00, 0x00, 0x04, 0x00,
+    0x00, 0x00, 0x13, 0x0b, 0x00, 0x00, 0x13, 0x0b, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00,
+  ]);
+}
+
+function clearWindowsDesktopWallpaper(wallpaperCacheDir: string): Promise<boolean> {
+  if (process.platform !== 'win32') return Promise.resolve(false);
+  try {
+    if (!existsSync(wallpaperCacheDir)) mkdirSync(wallpaperCacheDir, { recursive: true });
+    const blackWallpaperPath = join(wallpaperCacheDir, `${DESKTOP_SYNC_FILE_BASENAME}-black.bmp`);
+    writeFileSync(blackWallpaperPath, createSolidBlackBmpBuffer());
+    return setWindowsDesktopWallpaper(blackWallpaperPath);
+  } catch {
+    return Promise.resolve(false);
+  }
+}
 
 /**
  * 注册壁纸相关 IPC 处理器
@@ -138,5 +277,18 @@ export function registerWallpaperIpcHandlers(): void {
     } catch {
       return null;
     }
+  });
+
+  ipcMain.handle('wallpaper:system:set', async (_event, payload: unknown): Promise<boolean> => {
+    if (process.platform !== 'win32') return false;
+    const row = (payload ?? {}) as { sourcePath?: unknown; previewUrl?: unknown; clear?: unknown };
+    if (row.clear === true) {
+      return clearWindowsDesktopWallpaper(wallpaperCacheDir);
+    }
+    const sourcePath = typeof row.sourcePath === 'string' ? row.sourcePath : null;
+    const previewUrl = typeof row.previewUrl === 'string' ? row.previewUrl : null;
+    const imagePath = await resolveDesktopWallpaperImagePath(wallpaperCacheDir, sourcePath, previewUrl);
+    if (!imagePath) return false;
+    return setWindowsDesktopWallpaper(imagePath);
   });
 }

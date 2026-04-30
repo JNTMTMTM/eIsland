@@ -53,6 +53,8 @@ type ThemeSettingsPageProps = Pick<
   | 'setBgVideoRate'
   | 'bgVideoHwDecode'
   | 'setBgVideoHwDecode'
+  | 'syncDesktopWallpaperOnBackgroundChange'
+  | 'setSyncDesktopWallpaperOnBackgroundChange'
   | 'bgImageOpacity'
   | 'bgImageBlur'
   | 'setBgImageOpacity'
@@ -111,6 +113,8 @@ export function ThemeSettingsPage({
   setBgVideoRate,
   bgVideoHwDecode,
   setBgVideoHwDecode,
+  syncDesktopWallpaperOnBackgroundChange,
+  setSyncDesktopWallpaperOnBackgroundChange,
   bgImageOpacity,
   bgImageBlur,
   setBgImageOpacity,
@@ -328,6 +332,25 @@ export function ThemeSettingsPage({
                   {t('settings.app.theme.clearBackground', { defaultValue: '清除背景' })}
                 </button>
               )}
+            </div>
+          </div>
+
+          <div className="settings-card-subgroup">
+            <div className="settings-card-subgroup-title">{t('settings.app.theme.syncDesktopWallpaperTitle', { defaultValue: '同步系统桌面壁纸' })}</div>
+            <div className="settings-music-hint">{t('settings.app.theme.syncDesktopWallpaperHint', { defaultValue: '背景图片/视频变化时，同步更新 Windows 系统桌面壁纸（视频将使用封面图）' })}</div>
+            <div className="settings-card-inline-row">
+              <label className="settings-card-check">
+                <input
+                  type="checkbox"
+                  checked={syncDesktopWallpaperOnBackgroundChange}
+                  onChange={(event) => {
+                    const next = event.target.checked;
+                    setSyncDesktopWallpaperOnBackgroundChange(next);
+                    window.api.storeWrite('island-bg-sync-system-wallpaper', next).catch(() => {});
+                  }}
+                />
+                {t('settings.app.theme.syncDesktopWallpaperToggle', { defaultValue: '背景变化时同步到系统桌面' })}
+              </label>
             </div>
           </div>
 

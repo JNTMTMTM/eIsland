@@ -64,6 +64,7 @@ export type IslandState = 'idle' | 'hover' | 'expanded' | 'notification' | 'maxE
 /** shell.css 中 morph/transition 主时长（0.55s） */
 const SHELL_MORPH_DURATION_MS = 550;
 const CLIPBOARD_URL_SUPPRESS_IN_FAVORITES_KEY = 'clipboard-url-suppress-in-url-favorites';
+export const AI_CHAT_CLIPBOARD_URL_EVENT = 'eisland:ai-chat-clipboard-urls-detected';
 const ISLAND_BG_MEDIA_STORE_KEY = 'island-bg-media';
 const ISLAND_BG_IMAGE_STORE_KEY = 'island-bg-image';
 const ISLAND_BG_VIDEO_FIT_STORE_KEY = 'island-bg-video-fit';
@@ -1104,7 +1105,7 @@ function DynamicIsland(): React.JSX.Element {
       if (
         suppressInFavorites
         && store.state === 'maxExpand'
-        && (store.maxExpandTab === 'urlFavorites' || store.maxExpandTab === 'clipboardHistory')
+        && (store.maxExpandTab === 'urlFavorites' || store.maxExpandTab === 'clipboardHistory' || store.maxExpandTab === 'aiChat')
       ) return;
 
       const faviconUrl = getWebsiteFaviconUrl(urls[0]);

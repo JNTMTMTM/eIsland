@@ -48,10 +48,11 @@ export const WEATHER_LOCATION_PRIORITY_OPTIONS: Array<{ value: WeatherLocationPr
   { value: 'custom', label: '自定义位置优先' },
 ];
 
-export const SETTINGS_TABS = ['index', 'app', 'network', 'weather', 'music', 'ai', 'shortcut', 'user', 'update', 'pluginMarket', 'about'] as const;
+export const SETTINGS_TABS = ['index', 'app', 'network', 'mail', 'weather', 'music', 'ai', 'shortcut', 'user', 'update', 'pluginMarket', 'about'] as const;
 export type SettingsSidebarTabKey = (typeof SETTINGS_TABS)[number];
 export type AppSettingsPageKey = 'layout-preview' | 'album' | 'hide-process-list' | 'position' | 'theme' | 'language' | 'behavior' | 'url-parser' | 'clipboard-history' | 'autostart';
 export type WeatherSettingsPageKey = 'location' | 'provider';
+export type MailSettingsPageKey = 'account' | 'imap' | 'preferences';
 export type MusicSettingsPageKey = 'whitelist' | 'lyrics' | 'smtc';
 export type MusicNavCardKey = 'music-whitelist' | 'music-lyrics' | 'music-smtc';
 export type SettingsTabLabelKey = SettingsSidebarTabKey | AppSettingsPageKey | MusicNavCardKey;
@@ -70,6 +71,7 @@ export const SETTINGS_TAB_LABELS: Record<SettingsTabLabelKey, string> = {
   'clipboard-history': '剪贴板历史',
   autostart: '实用工具',
   network: '网络配置',
+  mail: '邮箱配置',
   weather: '天气配置',
   music: '歌曲设置',
   'music-whitelist': '播放器白名单',
@@ -96,6 +98,7 @@ export const SETTINGS_TAB_DESCRIPTIONS: Record<Exclude<SettingsTabLabelKey, 'ind
   'clipboard-history': '配置剪贴板历史记录能力与条数。',
   autostart: '应用控制、日志与开机启动配置。',
   network: '请求超时与网络行为设置',
+  mail: '配置 IMAP 收信参数',
   weather: '天气接口优先级设置',
   music: '播放器白名单与歌词来源',
   'music-whitelist': '配置允许接入灵动岛的播放器。',
@@ -115,6 +118,7 @@ export const SETTINGS_TAB_ICONS: Partial<Record<SettingsTabLabelKey, string>> = 
   'hide-process-list': SvgIcon.TASK_MANAGER,
   position: SvgIcon.MOVE,
   network: SvgIcon.NETWORK,
+  mail: SvgIcon.MUSIC,
   weather: SvgIcon.WEATHER,
   music: SvgIcon.LRC,
   'music-whitelist': SvgIcon.MUSIC,
@@ -149,6 +153,12 @@ export const WEATHER_SETTINGS_PAGE_LABELS: Record<WeatherSettingsPageKey, string
   location: '定位配置',
   provider: '接口配置',
 };
+export const MAIL_SETTINGS_PAGES: MailSettingsPageKey[] = ['account', 'imap', 'preferences'];
+export const MAIL_SETTINGS_PAGE_LABELS: Record<MailSettingsPageKey, string> = {
+  account: '账户',
+  imap: 'IMAP',
+  preferences: '收信设置',
+};
 export const MUSIC_SETTINGS_PAGES: MusicSettingsPageKey[] = ['whitelist', 'lyrics', 'smtc'];
 export const MUSIC_SETTINGS_PAGE_LABELS: Record<MusicSettingsPageKey, string> = {
   whitelist: '白名单',
@@ -181,6 +191,7 @@ export const NAV_CARDS: NavCardDef[] = [
   { id: 'clipboard-history', label: SETTINGS_TAB_LABELS['clipboard-history'], desc: SETTINGS_TAB_DESCRIPTIONS['clipboard-history'], icon: SETTINGS_TAB_ICONS['clipboard-history'], tab: 'app', appPage: 'clipboard-history' },
   { id: 'autostart', label: SETTINGS_TAB_LABELS.autostart, desc: SETTINGS_TAB_DESCRIPTIONS.autostart, icon: SETTINGS_TAB_ICONS.autostart, tab: 'app', appPage: 'autostart' },
   { id: 'network', label: SETTINGS_TAB_LABELS.network, desc: SETTINGS_TAB_DESCRIPTIONS.network, icon: SETTINGS_TAB_ICONS.network, tab: 'network' },
+  { id: 'mail', label: SETTINGS_TAB_LABELS.mail, desc: SETTINGS_TAB_DESCRIPTIONS.mail, icon: SETTINGS_TAB_ICONS.mail, tab: 'mail' },
   { id: 'weather', label: SETTINGS_TAB_LABELS.weather, desc: SETTINGS_TAB_DESCRIPTIONS.weather, icon: SETTINGS_TAB_ICONS.weather, tab: 'weather' },
   { id: 'ai', label: SETTINGS_TAB_LABELS.ai, desc: SETTINGS_TAB_DESCRIPTIONS.ai, icon: SETTINGS_TAB_ICONS.ai, tab: 'ai' },
   { id: 'shortcut', label: SETTINGS_TAB_LABELS.shortcut, desc: SETTINGS_TAB_DESCRIPTIONS.shortcut, icon: SETTINGS_TAB_ICONS.shortcut, tab: 'shortcut' },

@@ -1,0 +1,333 @@
+/*
+ * eIsland - A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Electron.
+ * https://github.com/JNTMTMTM/eIsland
+ *
+ * Copyright (C) 2026 JNTMTMTM
+ * Copyright (C) 2026 pyisland.com
+ *
+ * Original author: JNTMTMTM[](https://github.com/JNTMTMTM)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ */
+
+/**
+ * @file mihtnelisAgentStream.ts
+ * @description mihtnelis agent 独立流式请求客户端（不走 netFetch）。
+ * @author 鸡哥
+ */
+
+import { buildReplayHeaders, resolveClientVersion, USER_ACCOUNT_API_BASE } from '../user/userAccountApi.client';
+
+const APP_NAME_HEADER = 'X-App-Name';
+const APP_NAME_VALUE = 'eisland';
+
+export type MihtnelisAgentStreamEventType =
+  | 'meta'
+  | 'tool'
+  | 'tool_call_request'
+  | 'tool_call_result'
+  | 'think'
+  | 'chunk'
+  | 'chunk_reset'
+  | 'billing'
+  | 'web_access_request'
+  | 'web_access_resolved'
+  | 'todo'
+  | 'final'
+  | 'error';
+
+export interface MihtnelisAgentStreamEvent {
+  type: MihtnelisAgentStreamEventType;
+  payload: unknown;
+}
+
+export interface ResolveMihtnelisWebAccessRequest {
+  token: string;
+  requestId: string;
+  allow: boolean;
+}
+
+export interface ResolveMihtnelisLocalToolAccessRequest {
+  token: string;
+  requestId: string;
+  allow: boolean;
+}
+
+export interface ResolveMihtnelisLocalToolRequest {
+  token: string;
+  requestId: string;
+  success: boolean;
+  result?: unknown;
+  error?: string;
+  durationMs?: number;
+}
+
+export interface MihtnelisAgentStreamRequest {
+  token: string;
+  message: string;
+  sessionId?: string;
+  provider?: string;
+  model?: string;
+  context?: string;
+  workspaces?: string[];
+  skills?: Array<{ name: string; content: string }>;
+  thinking?: boolean;
+  reasoningEffort?: 'low' | 'medium' | 'high';
+  signal?: AbortSignal;
+  onEvent?: (event: MihtnelisAgentStreamEvent) => void;
+}
+
+/**
+ * 发起 mihtnelis agent 流式请求。
+ * @param request - 请求参数。
+ */
+export async function streamMihtnelisAgent(request: MihtnelisAgentStreamRequest): Promise<void> {
+  const token = request.token?.trim();
+  if (!token) {
+    throw new Error('未登录，无法调用 mihtnelis agent');
+  }
+  const message = request.message?.trim();
+  if (!message) {
+    throw new Error('message 不能为空');
+  }
+
+  const headers: Record<string, string> = {
+    Accept: 'text/event-stream',
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${token}`,
+    [APP_NAME_HEADER]: APP_NAME_VALUE,
+    ...buildReplayHeaders(),
+  };
+  const version = await resolveClientVersion();
+  if (version) {
+    headers['X-Client-Version'] = version;
+  }
+
+  const response = await fetch(`${USER_ACCOUNT_API_BASE}/v1/user/ai/agent/stream`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({
+      sessionId: request.sessionId,
+      message,
+      provider: request.provider,
+      model: request.model,
+      context: request.context,
+      workspaces: Array.isArray(request.workspaces) && request.workspaces.length > 0 ? request.workspaces : undefined,
+      skills: Array.isArray(request.skills) && request.skills.length > 0 ? request.skills : undefined,
+      thinking: typeof request.thinking === 'boolean' ? request.thinking : undefined,
+      reasoningEffort: request.reasoningEffort,
+    }),
+    signal: request.signal,
+  });
+
+  if (!response.ok) {
+    const body = await response.text().catch(() => '');
+    throw new Error(`mihtnelis agent 请求失败 (${response.status}): ${body || response.statusText}`);
+  }
+
+  const responseTraceId = readTraceIdFromHeaders(response.headers);
+
+  const reader = response.body?.getReader();
+  if (!reader) {
+    throw new Error('无法读取 mihtnelis agent 响应流');
+  }
+
+  const decoder = new TextDecoder();
+  let buffer = '';
+  let currentEvent = '';
+
+  const parseLines = (rawLines: string[]): void => {
+    rawLines.forEach((rawLine) => {
+      const line = rawLine.trimEnd();
+      if (!line) {
+        currentEvent = '';
+        return;
+      }
+      if (line.startsWith('event:')) {
+        currentEvent = line.slice(6).trim().toLowerCase();
+        return;
+      }
+      if (!line.startsWith('data:')) {
+        return;
+      }
+      const dataText = line.slice(5).trim();
+      const type = toEventType(currentEvent);
+      if (!type) {
+        return;
+      }
+      let payload: unknown = dataText;
+      if (dataText.startsWith('{') || dataText.startsWith('[')) {
+        try {
+          payload = JSON.parse(dataText);
+        } catch {
+          payload = dataText;
+        }
+      }
+      if (type === 'final' && responseTraceId && payload && typeof payload === 'object' && !Array.isArray(payload)) {
+        const payloadObj = payload as Record<string, unknown>;
+        const rawTraceId = payloadObj.traceId ?? payloadObj.traceid ?? payloadObj.trace_id;
+        const hasTraceId = typeof rawTraceId === 'string' && rawTraceId.trim().length > 0;
+        if (!hasTraceId) {
+          payload = {
+            ...payloadObj,
+            traceId: responseTraceId,
+          };
+        }
+      }
+      request.onEvent?.({ type, payload });
+    });
+  };
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) {
+      if (buffer.trim().length > 0) {
+        parseLines((buffer + '\n').split('\n'));
+      }
+      return;
+    }
+
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split('\n');
+    buffer = lines.pop() ?? '';
+    parseLines(lines);
+  }
+}
+
+export async function resolveMihtnelisWebAccess(request: ResolveMihtnelisWebAccessRequest): Promise<void> {
+  const token = request.token?.trim();
+  if (!token) {
+    throw new Error('未登录，无法提交网页访问授权');
+  }
+  const requestId = request.requestId?.trim();
+  if (!requestId) {
+    throw new Error('requestId 不能为空');
+  }
+
+  const headers: Record<string, string> = {
+    Accept: 'application/json',
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${token}`,
+    [APP_NAME_HEADER]: APP_NAME_VALUE,
+    ...buildReplayHeaders(),
+  };
+  const version = await resolveClientVersion();
+  if (version) {
+    headers['X-Client-Version'] = version;
+  }
+
+  const response = await fetch(`${USER_ACCOUNT_API_BASE}/v1/user/ai/agent/web-access/resolve`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({
+      requestId,
+      allow: Boolean(request.allow),
+    }),
+  });
+  if (!response.ok) {
+    const body = await response.text().catch(() => '');
+    throw new Error(`网页授权提交失败 (${response.status}): ${body || response.statusText}`);
+  }
+}
+
+export async function resolveMihtnelisLocalToolResult(request: ResolveMihtnelisLocalToolRequest): Promise<void> {
+  const token = request.token?.trim();
+  if (!token) {
+    throw new Error('未登录，无法提交本地工具执行结果');
+  }
+  const requestId = request.requestId?.trim();
+  if (!requestId) {
+    throw new Error('requestId 不能为空');
+  }
+
+  const headers: Record<string, string> = {
+    Accept: 'application/json',
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${token}`,
+    [APP_NAME_HEADER]: APP_NAME_VALUE,
+    ...buildReplayHeaders(),
+  };
+  const version = await resolveClientVersion();
+  if (version) {
+    headers['X-Client-Version'] = version;
+  }
+
+  const response = await fetch(`${USER_ACCOUNT_API_BASE}/v1/user/ai/agent/tool-result`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({
+      requestId,
+      success: Boolean(request.success),
+      result: request.result ?? {},
+      error: request.error ?? '',
+      durationMs: Number.isFinite(request.durationMs) ? Math.max(0, Number(request.durationMs)) : 0,
+    }),
+  });
+  if (!response.ok) {
+    const body = await response.text().catch(() => '');
+    throw new Error(`本地工具结果提交失败 (${response.status}): ${body || response.statusText}`);
+  }
+}
+
+export async function resolveMihtnelisLocalToolAccess(request: ResolveMihtnelisLocalToolAccessRequest): Promise<void> {
+  const token = request.token?.trim();
+  if (!token) {
+    throw new Error('未登录，无法提交本地工具授权');
+  }
+  const requestId = request.requestId?.trim();
+  if (!requestId) {
+    throw new Error('requestId 不能为空');
+  }
+
+  const headers: Record<string, string> = {
+    Accept: 'application/json',
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${token}`,
+    [APP_NAME_HEADER]: APP_NAME_VALUE,
+    ...buildReplayHeaders(),
+  };
+  const version = await resolveClientVersion();
+  if (version) {
+    headers['X-Client-Version'] = version;
+  }
+
+  const response = await fetch(`${USER_ACCOUNT_API_BASE}/v1/user/ai/agent/local-tool/resolve`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({
+      requestId,
+      allow: Boolean(request.allow),
+    }),
+  });
+  if (!response.ok) {
+    const body = await response.text().catch(() => '');
+    throw new Error(`本地工具授权提交失败 (${response.status}): ${body || response.statusText}`);
+  }
+}
+
+function toEventType(input: string): MihtnelisAgentStreamEventType | null {
+  if (input === 'meta') return 'meta';
+  if (input === 'tool') return 'tool';
+  if (input === 'tool_call_request') return 'tool_call_request';
+  if (input === 'tool_call_result') return 'tool_call_result';
+  if (input === 'think') return 'think';
+  if (input === 'chunk') return 'chunk';
+  if (input === 'billing') return 'billing';
+  if (input === 'web_access_request') return 'web_access_request';
+  if (input === 'web_access_resolved') return 'web_access_resolved';
+  if (input === 'todo') return 'todo';
+  if (input === 'final') return 'final';
+  if (input === 'error') return 'error';
+  return null;
+}
+
+function readTraceIdFromHeaders(headers: Headers): string {
+  const candidates = ['x-trace-id', 'trace-id', 'x-request-id', 'request-id'];
+  const matchedValue = candidates
+    .map((key) => headers.get(key))
+    .find((value) => typeof value === 'string' && value.trim());
+  return typeof matchedValue === 'string' ? matchedValue.trim() : '';
+}

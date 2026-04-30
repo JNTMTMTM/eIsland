@@ -285,6 +285,19 @@ export function OverviewPreview({ layoutConfig }: { layoutConfig: OverviewLayout
             </div>
           </div>
         );
+      case 'mokugyo':
+        return (
+          <div className="ov-dash-widget ov-dash-mokugyo-widget">
+            <div className="ov-dash-widget-header">
+              <span className="ov-dash-widget-title">电子木鱼</span>
+            </div>
+            <div className="ov-dash-mokugyo-body" style={{ justifyContent: 'center' }}>
+              <span className="ov-dash-mokugyo-hit-btn" style={{ cursor: 'default' }}>
+                <img src={SvgIcon.MOKUGYO} alt="" className="ov-dash-mokugyo-icon" aria-hidden="true" />
+              </span>
+            </div>
+          </div>
+        );
       case 'urlFavorites': {
         const sampleItems = [
           { name: 'GitHub', note: '代码托管' },

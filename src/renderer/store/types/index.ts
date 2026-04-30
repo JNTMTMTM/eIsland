@@ -39,7 +39,7 @@ export type HoverTab = 'time' | 'o3ics' | 'weather' | 'expand';
 export type ExpandTab = 'hover' | 'overview' | 'song' | 'tools';
 
 /** MaxExpand 状态下的子标签页类型 */
-export type MaxExpandTab = 'aiChat' | 'todo' | 'urlFavorites' | 'localFileSearch' | 'clipboardHistory' | 'album' | 'countdown' | 'settings';
+export type MaxExpandTab = 'aiChat' | 'todo' | 'urlFavorites' | 'localFileSearch' | 'clipboardHistory' | 'album' | 'mail' | 'countdown' | 'settings';
 
 /** 歌词显示模式 */
 export type LrcMode = 'off' | 'info' | 'lrc';
@@ -181,6 +181,14 @@ export interface NotificationData {
   urls?: string[];
 }
 
+/** Agent Skill 定义（基于 .md 文件） */
+export interface AiSkill {
+  id: string;
+  name: string;
+  filePath: string;
+  enabled: boolean;
+}
+
 /** AI 配置数据 */
 export interface AiConfig {
   apiKey: string;
@@ -188,15 +196,91 @@ export interface AiConfig {
   model: string;
   mcpEndpoint: string;
   systemPrompt: string;
+  deepseekThinking: boolean;
+  deepseekReasoningEffort: 'low' | 'medium' | 'high';
+  /** Agent 工作区目录列表，文件操作限制在这些目录内 */
+  workspaces: string[];
+  /** 用户自定义 Agent Skills */
+  skills: AiSkill[];
+}
+
+/** AI 工具调用轨迹 */
+export interface AiToolCall {
+  turn: number;
+  tool: string;
+  requestId?: string;
+  purpose?: string;
+  riskLevel?: string;
+  durationMs?: number;
+  pending?: boolean;
+  arguments?: Record<string, unknown>;
+  success?: boolean;
+  error?: string;
+  result?: unknown;
+  authorizationRequired?: boolean;
+  webAccessRequestId?: string;
+  webAccessUrl?: string;
+  webAccessResolved?: boolean;
+  webAccessAllowed?: boolean;
+  webAccessResolveError?: string;
+}
+
+/** AI Agent TodoList 单项 */
+export interface AiTodoItem {
+  id: string;
+  content: string;
+  status: 'pending' | 'in_progress' | 'completed';
+}
+
+/** AI Agent TodoList 快照（带时间线 turn） */
+export interface AiTodoSnapshot {
+  turn: number;
+  items: AiTodoItem[];
+}
+
+/** AI 对话附件元信息（仅文本） */
+export interface AiChatAttachment {
+  name: string;
+  size: number;
 }
 
 /** AI 对话单条消息 */
 export interface AiChatMessage {
   role: 'user' | 'assistant';
   content: string;
+  traceId?: string;
+  finalized?: boolean;
+  thinkBlocks?: string[];
+  toolCalls?: AiToolCall[];
+  todoSnapshots?: AiTodoSnapshot[];
+  attachments?: AiChatAttachment[];
+}
+
+/** AI 历史会话 */
+export interface AiChatSession {
+  id: string;
+  title: string;
+  updatedAt: number;
+  messages: AiChatMessage[];
+}
+
+/** AI Web 访问提示 */
+export interface AiWebAccessPrompt {
+  sessionId?: string;
+  requestId: string;
+  url: string;
+  message: string;
+  hostname?: string;
+  siteName?: string;
+  iconUrl?: string;
+  domainPolicy?: 'ask' | 'allow' | 'deny';
 }
 
 // ============= Slice Interfaces =============
+
+export type PaymentContext =
+  | { type: 'pro' }
+  | { type: 'recharge'; amountFen: number };
 
 /** 岛屿状态 Slice */
 export interface IslandSlice {
@@ -215,7 +299,8 @@ export interface IslandSlice {
   setMaxExpand: () => void;
   setLogin: () => void;
   setRegister: () => void;
-  setPayment: () => void;
+  paymentContext: PaymentContext;
+  setPayment: (context?: PaymentContext) => void;
   returnFromAuth: () => void;
   setLyrics: () => void;
   setNotification: (data: NotificationData) => void;
@@ -282,9 +367,22 @@ export interface AiSlice {
   aiConfig: AiConfig;
   setAiConfig: (config: Partial<AiConfig>) => void;
 
+  aiChatSessions: AiChatSession[];
+  activeAiChatSessionId: string;
   aiChatMessages: AiChatMessage[];
+  aiChatStreaming: boolean;
+  createNewAiChatSession: () => void;
+  switchAiChatSession: (sessionId: string) => void;
+  deleteAiChatSession: (sessionId: string) => void;
+  setAiChatStreaming: (streaming: boolean) => void;
+  setAiChatSessionMessages: (sessionId: string, messages: AiChatMessage[]) => void;
+  markAiChatSessionReplyFinished: (sessionId: string, finishedAt?: number) => void;
   setAiChatMessages: (messages: AiChatMessage[]) => void;
   clearAiChatMessages: () => void;
+  aiWebAccessPrompt: AiWebAccessPrompt | null;
+  setAiWebAccessPrompt: (prompt: AiWebAccessPrompt | null) => void;
+  aiWebAccessResolveError: string;
+  setAiWebAccessResolveError: (message: string) => void;
 }
 
 /** 番茄钟 Slice */

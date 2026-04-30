@@ -133,6 +133,8 @@ export interface AppSettingsSectionProps {
   setBgVideoRate: (value: number) => void;
   bgVideoHwDecode: boolean;
   setBgVideoHwDecode: (value: boolean) => void;
+  syncDesktopWallpaperOnBackgroundChange: boolean;
+  setSyncDesktopWallpaperOnBackgroundChange: (value: boolean) => void;
   bgImageOpacity: number;
   bgImageBlur: number;
   setBgImageOpacity: (value: number) => void;

@@ -188,6 +188,18 @@ const api = {
     return ipcRenderer.invoke('app:pick-local-search-directory');
   },
   /**
+   * 选择 Skill 文件 (.md)
+   */
+  pickSkillFile: (): Promise<string | null> => {
+    return ipcRenderer.invoke('app:pick-skill-file');
+  },
+  /**
+   * 读取文本文件内容
+   */
+  readTextFile: (filePath: string): Promise<string | null> => {
+    return ipcRenderer.invoke('app:read-text-file', filePath);
+  },
+  /**
    * 搜索本地文件（名称匹配）
    */
   searchLocalFiles: (
@@ -207,6 +219,21 @@ const api = {
     },
   ): Promise<Array<{ name: string; path: string; isDirectory: boolean }>> => {
     return ipcRenderer.invoke('app:search-local-files', rootDir, keyword, options);
+  },
+  /**
+   * 执行本地 Agent 工具（主进程执行）
+   */
+  executeAgentLocalTool: (request: {
+    tool: string;
+    arguments?: Record<string, unknown>;
+    workspaces?: string[];
+  }): Promise<{
+    success: boolean;
+    result: unknown;
+    error: string;
+    durationMs: number;
+  }> => {
+    return ipcRenderer.invoke('agent:local-tool:execute', request);
   },
   /**
    * 清理日志缓存
@@ -406,6 +433,20 @@ const api = {
     return ipcRenderer.invoke('wallpaper:clear-cache');
   },
   /**
+   * 将当前背景同步设置为 Windows 系统桌面壁纸
+   * @param payload - 背景源路径和预览地址
+   */
+  setSystemDesktopWallpaper: (payload: { sourcePath?: string | null; previewUrl?: string | null; clear?: boolean }): Promise<boolean> => {
+    return ipcRenderer.invoke('wallpaper:system:set', payload);
+  },
+  /**
+   * 从视频中提取封面图路径
+   * @param sourcePath - 视频文件绝对路径
+   */
+  wallpaperVideoCover: (sourcePath: string): Promise<string | null> => {
+    return ipcRenderer.invoke('wallpaper:video:cover', sourcePath);
+  },
+  /**
    * 读取本地文件并以 Blob/Uint8Array 形式返回（保留以供其它功能使用）
    * @param filePath - 文件绝对路径
    */
@@ -426,6 +467,13 @@ const api = {
     timeoutMs?: number;
   }): Promise<{ ok: boolean; status: number; body: string }> => {
     return ipcRenderer.invoke('net:fetch', url, options);
+  },
+  /** ===== 邮件 API ===== */
+  /**
+   * 读取收件箱邮件列表
+   */
+  mailInboxList: (configOrLimit?: Record<string, unknown> | number, limit?: number): Promise<{ ok: boolean; items: Array<{ uid: string; subject: string; from: string; to: string; date: string; size: number; preview: string; body: string }>; message: string }> => {
+    return ipcRenderer.invoke('mail:inbox:list', configOrLimit, limit);
   },
   /** ===== 文件存储 API ===== */
   /**

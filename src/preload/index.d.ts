@@ -83,6 +83,8 @@ declare global {
       pickFeedbackLogFile: () => Promise<string | null>;
       pickFeedbackScreenshotFile: () => Promise<string | null>;
       pickLocalSearchDirectory: () => Promise<string | null>;
+      pickSkillFile: () => Promise<string | null>;
+      readTextFile: (filePath: string) => Promise<string | null>;
       searchLocalFiles: (
         rootDir: string,
         keyword: string,
@@ -99,6 +101,16 @@ declare global {
           excludeDirs?: string[];
         },
       ) => Promise<Array<{ name: string; path: string; isDirectory: boolean }>>;
+      executeAgentLocalTool: (request: {
+        tool: string;
+        arguments?: Record<string, unknown>;
+        workspaces?: string[];
+      }) => Promise<{
+        success: boolean;
+        result: unknown;
+        error: string;
+        durationMs: number;
+      }>;
       clearLogsCache: () => Promise<{ success: boolean; freedBytes: number }>;
       windowMinimize: () => void;
       windowMaximize: () => void;
@@ -126,6 +138,8 @@ declare global {
       openVideoDialog: () => Promise<string | null>;
       loadWallpaperFile: (filePath: string) => Promise<string | null>;
       clearWallpaperCache: () => Promise<void>;
+      setSystemDesktopWallpaper: (payload: { sourcePath?: string | null; previewUrl?: string | null; clear?: boolean }) => Promise<boolean>;
+      wallpaperVideoCover: (sourcePath: string) => Promise<string | null>;
       readLocalFileAsBuffer: (filePath: string) => Promise<Uint8Array | null>;
       netFetch: (url: string, options?: {
         method?: string;
@@ -133,6 +147,7 @@ declare global {
         body?: string;
         timeoutMs?: number;
       }) => Promise<{ ok: boolean; status: number; body: string }>;
+      mailInboxList: (configOrLimit?: Record<string, unknown> | number, limit?: number) => Promise<{ ok: boolean; items: Array<{ uid: string; subject: string; from: string; to: string; date: string; size: number; preview: string; body: string }>; message: string }>;
       storeRead: (key: string) => Promise<unknown>;
       storeWrite: (key: string, data: unknown) => Promise<boolean>;
       hotkeyGet: () => Promise<string>;
