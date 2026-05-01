@@ -3259,7 +3259,7 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
-  flex: 0 0 auto;
+  flex: 1;
   min-height: 0;
   align-items: stretch;
 }
@@ -3268,7 +3268,6 @@
   display: flex;
   flex-direction: column;
   min-height: 260px;
-  max-height: 260px;
 }
 
 .settings-user-pro-plan-scroll {
@@ -3723,7 +3722,6 @@
 
   .settings-user-pro-grid {
     grid-template-columns: 1fr;
-    flex: 0 0 auto;
   }
 }
 
