@@ -1248,6 +1248,463 @@ async function executeAgentLocalTool(request: AgentLocalToolRequest): Promise<{
       };
     }
 
+    // ── 剪贴板 ──
+
+    if (tool === 'clipboard.read') {
+      const { clipboard } = await import('electron');
+      const text = clipboard.readText();
+      const image = clipboard.readImage();
+      const hasImage = !image.isEmpty();
+      const result: Record<string, unknown> = { text: text || null, hasImage };
+      if (hasImage) {
+        const pngBuf = image.toPNG();
+        result.imageBase64 = pngBuf.toString('base64');
+        result.imageSize = pngBuf.length;
+        result.imageWidth = image.getSize().width;
+        result.imageHeight = image.getSize().height;
+      }
+      return { success: true, result, error: '', durationMs: Date.now() - startedAt };
+    }
+
+    if (tool === 'clipboard.write') {
+      const { clipboard } = await import('electron');
+      const text = getStringArg(args, 'text');
+      if (!text) throw new Error('clipboard.write 需要 text');
+      clipboard.writeText(text);
+      return { success: true, result: { written: true, length: text.length }, error: '', durationMs: Date.now() - startedAt };
+    }
+
+    // ── 通知 ──
+
+    if (tool === 'notification.send') {
+      const { Notification: ElectronNotification } = await import('electron');
+      const title = getStringArg(args, 'title') || 'eIsland Agent';
+      const body = getStringArg(args, 'body');
+      if (!body) throw new Error('notification.send 需要 body');
+      new ElectronNotification({ title, body }).show();
+      return { success: true, result: { title, body, sent: true }, error: '', durationMs: Date.now() - startedAt };
+    }
+
+    // ── 文件压缩/解压 ──
+
+    if (tool === 'file.compress') {
+      const pathArg = normalizeLocalPath(getStringArg(args, 'path'));
+      const destArg = normalizeLocalPath(getStringArg(args, 'destination'));
+      if (!pathArg) throw new Error('file.compress 需要 path');
+      assertWorkspaceBoundary(pathArg, workspaces, 'file.compress');
+      const dest = destArg || `${pathArg}.zip`;
+      assertWorkspaceBoundary(dest, workspaces, 'file.compress');
+      const psScript = `Compress-Archive -Path '${pathArg.replace(/'/g, "''")}' -DestinationPath '${dest.replace(/'/g, "''")}' -Force`;
+      await new Promise<void>((res, rej) => {
+        execFile('powershell.exe', ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-Command', psScript],
+          { windowsHide: true, timeout: 60000, maxBuffer: 64 * 1024 },
+          (err) => { if (err) rej(new Error(err.message)); else res(); });
+      });
+      const zipStat = await stat(dest).catch(() => null);
+      return { success: true, result: { source: pathArg, destination: dest, size: zipStat?.size ?? 0 }, error: '', durationMs: Date.now() - startedAt };
+    }
+
+    if (tool === 'file.extract') {
+      const pathArg = normalizeLocalPath(getStringArg(args, 'path'));
+      const destArg = normalizeLocalPath(getStringArg(args, 'destination'));
+      if (!pathArg) throw new Error('file.extract 需要 path');
+      assertWorkspaceBoundary(pathArg, workspaces, 'file.extract');
+      const dest = destArg || dirname(pathArg);
+      assertWorkspaceBoundary(dest, workspaces, 'file.extract');
+      const psScript = `Expand-Archive -Path '${pathArg.replace(/'/g, "''")}' -DestinationPath '${dest.replace(/'/g, "''")}' -Force`;
+      await new Promise<void>((res, rej) => {
+        execFile('powershell.exe', ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-Command', psScript],
+          { windowsHide: true, timeout: 60000, maxBuffer: 64 * 1024 },
+          (err) => { if (err) rej(new Error(err.message)); else res(); });
+      });
+      return { success: true, result: { source: pathArg, destination: dest, extracted: true }, error: '', durationMs: Date.now() - startedAt };
+    }
+
+    // ── 文件哈希 / 回收站 ──
+
+    if (tool === 'file.hash') {
+      const pathArg = normalizeLocalPath(getStringArg(args, 'path'));
+      const algorithm = (getStringArg(args, 'algorithm') || 'sha256').toUpperCase();
+      if (!pathArg) throw new Error('file.hash 需要 path');
+      assertWorkspaceBoundary(pathArg, workspaces, 'file.hash');
+      const psScript = `(Get-FileHash -Path '${pathArg.replace(/'/g, "''")}' -Algorithm ${algorithm}).Hash`;
+      const output = await new Promise<string>((res, rej) => {
+        execFile('powershell.exe', ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-Command', psScript],
+          { windowsHide: true, timeout: 30000, maxBuffer: 64 * 1024 },
+          (err, stdout) => { if (err) rej(new Error(err.message)); else res(String(stdout).trim()); });
+      });
+      return { success: true, result: { path: pathArg, algorithm, hash: output }, error: '', durationMs: Date.now() - startedAt };
+    }
+
+    if (tool === 'file.trash') {
+      const pathArg = normalizeLocalPath(getStringArg(args, 'path'));
+      if (!pathArg) throw new Error('file.trash 需要 path');
+      assertWorkspaceBoundary(pathArg, workspaces, 'file.trash');
+      const { shell: electronShell } = await import('electron');
+      await electronShell.trashItem(pathArg);
+      return { success: true, result: { path: pathArg, trashed: true }, error: '', durationMs: Date.now() - startedAt };
+    }
+
+    // ── 网络工具 ──
+
+    if (tool === 'net.ping') {
+      const host = getStringArg(args, 'host');
+      if (!host) throw new Error('net.ping 需要 host');
+      const countRaw = getNumberArg(args, 'count');
+      const count = Math.max(1, Math.min(10, Math.floor(countRaw ?? 4)));
+      const output = await new Promise<string>((res) => {
+        execFile('ping', ['-n', String(count), host],
+          { windowsHide: true, timeout: 30000, maxBuffer: 64 * 1024 },
+          (err, stdout) => { if (err) res(String(stdout || err.message)); else res(String(stdout)); });
+      });
+      return { success: true, result: { host, count, output: output.trim() }, error: '', durationMs: Date.now() - startedAt };
+    }
+
+    if (tool === 'net.dns') {
+      const host = getStringArg(args, 'host');
+      if (!host) throw new Error('net.dns 需要 host');
+      const psScript = `Resolve-DnsName -Name '${host.replace(/'/g, "''")}' | Select-Object Name,Type,IPAddress,NameHost | ConvertTo-Json -Compress`;
+      const output = await new Promise<string>((res, rej) => {
+        execFile('powershell.exe', ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-Command', psScript],
+          { windowsHide: true, timeout: 15000, maxBuffer: 64 * 1024 },
+          (err, stdout) => { if (err) rej(new Error(err.message)); else res(String(stdout).trim()); });
+      });
+      let parsed: unknown;
+      try { parsed = JSON.parse(output); } catch { parsed = output; }
+      return { success: true, result: { host, records: parsed }, error: '', durationMs: Date.now() - startedAt };
+    }
+
+    if (tool === 'net.ports') {
+      const filterArg = getStringArg(args, 'filter') || '';
+      const psScript = `Get-NetTCPConnection -State Listen ${filterArg ? `| Where-Object { $_.LocalPort -eq ${filterArg} -or $_.OwningProcess -eq '${filterArg.replace(/'/g, "''")}' }` : ''} | Select-Object -First 50 LocalAddress,LocalPort,OwningProcess,@{N='ProcessName';E={(Get-Process -Id $_.OwningProcess -ErrorAction SilentlyContinue).ProcessName}} | ConvertTo-Json -Compress`;
+      const output = await new Promise<string>((res, rej) => {
+        execFile('powershell.exe', ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-Command', psScript],
+          { windowsHide: true, timeout: 15000, maxBuffer: 128 * 1024 },
+          (err, stdout) => { if (err) rej(new Error(err.message)); else res(String(stdout).trim()); });
+      });
+      let parsed: unknown;
+      try { parsed = JSON.parse(output); } catch { parsed = output; }
+      return { success: true, result: { filter: filterArg || null, ports: parsed }, error: '', durationMs: Date.now() - startedAt };
+    }
+
+    // ── 系统监控 ──
+
+    if (tool === 'monitor.cpu') {
+      const psScript = `Get-CimInstance Win32_Processor | Select-Object Name,NumberOfCores,NumberOfLogicalProcessors,LoadPercentage | ConvertTo-Json -Compress`;
+      const output = await new Promise<string>((res, rej) => {
+        execFile('powershell.exe', ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-Command', psScript],
+          { windowsHide: true, timeout: 15000, maxBuffer: 64 * 1024 },
+          (err, stdout) => { if (err) rej(new Error(err.message)); else res(String(stdout).trim()); });
+      });
+      let parsed: unknown;
+      try { parsed = JSON.parse(output); } catch { parsed = output; }
+      return { success: true, result: parsed, error: '', durationMs: Date.now() - startedAt };
+    }
+
+    if (tool === 'monitor.memory') {
+      const totalMB = Math.round(os.totalmem() / (1024 * 1024));
+      const freeMB = Math.round(os.freemem() / (1024 * 1024));
+      const usedMB = totalMB - freeMB;
+      const usagePercent = Math.round((usedMB / totalMB) * 100);
+      return { success: true, result: { totalMB, freeMB, usedMB, usagePercent }, error: '', durationMs: Date.now() - startedAt };
+    }
+
+    if (tool === 'monitor.disk') {
+      const psScript = `Get-CimInstance Win32_LogicalDisk -Filter "DriveType=3" | Select-Object DeviceID,VolumeName,@{N='SizeGB';E={[math]::Round($_.Size/1GB,2)}},@{N='FreeGB';E={[math]::Round($_.FreeSpace/1GB,2)}},@{N='UsedGB';E={[math]::Round(($_.Size-$_.FreeSpace)/1GB,2)}},@{N='UsagePercent';E={[math]::Round(($_.Size-$_.FreeSpace)/$_.Size*100,1)}} | ConvertTo-Json -Compress`;
+      const output = await new Promise<string>((res, rej) => {
+        execFile('powershell.exe', ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-Command', psScript],
+          { windowsHide: true, timeout: 15000, maxBuffer: 64 * 1024 },
+          (err, stdout) => { if (err) rej(new Error(err.message)); else res(String(stdout).trim()); });
+      });
+      let parsed: unknown;
+      try { parsed = JSON.parse(output); } catch { parsed = output; }
+      return { success: true, result: { disks: parsed }, error: '', durationMs: Date.now() - startedAt };
+    }
+
+    if (tool === 'monitor.gpu') {
+      const psScript = `Get-CimInstance Win32_VideoController | Select-Object Name,AdapterRAM,DriverVersion,VideoProcessor,CurrentHorizontalResolution,CurrentVerticalResolution | ConvertTo-Json -Compress`;
+      const output = await new Promise<string>((res, rej) => {
+        execFile('powershell.exe', ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-Command', psScript],
+          { windowsHide: true, timeout: 15000, maxBuffer: 64 * 1024 },
+          (err, stdout) => { if (err) rej(new Error(err.message)); else res(String(stdout).trim()); });
+      });
+      let parsed: unknown;
+      try { parsed = JSON.parse(output); } catch { parsed = output; }
+      return { success: true, result: parsed, error: '', durationMs: Date.now() - startedAt };
+    }
+
+    // ── 音量 / 亮度 ──
+
+    if (tool === 'volume.get') {
+      const psScript = `Add-Type -TypeDefinition 'using System.Runtime.InteropServices; [Guid("5CDF2C82-841E-4546-9722-0CF74078229A"),InterfaceType(ComInterfaceType.InterfaceIsIUnknown)] interface IAudioEndpointVolume { int _0(); int _1(); int _2(); int _3(); int SetMasterVolumeLevelScalar(float fLevel, System.Guid pguidEventContext); int _5(); int GetMasterVolumeLevelScalar(out float pfLevel); int SetMute(bool bMute, System.Guid pguidEventContext); int GetMute(out bool pbMute); } [Guid("D666063F-1587-4E43-81F1-B948E807363F"),InterfaceType(ComInterfaceType.InterfaceIsIUnknown)] interface IMMDevice { int Activate(ref System.Guid iid, int dwClsCtx, IntPtr pActivationParams, [MarshalAs(UnmanagedType.IUnknown)] out object ppInterface); } [Guid("A95664D2-9614-4F35-A746-DE8DB63617E6"),InterfaceType(ComInterfaceType.InterfaceIsIUnknown)] interface IMMDeviceEnumerator { int GetDefaultAudioEndpoint(int dataFlow, int role, out IMMDevice ppDevice); } [ComImport,Guid("BCDE0395-E52F-467C-8E3D-C4579291692E")] class MMDeviceEnumerator {}'; $e = New-Object MMDeviceEnumerator; $d = $null; [void]$e.GetDefaultAudioEndpoint(0,1,[ref]$d); $iid=[Guid]'5CDF2C82-841E-4546-9722-0CF74078229A'; $v=$null; [void]$d.Activate([ref]$iid,1,[IntPtr]::Zero,[ref]$v); $vol=$v; $level=0.0; [void]$vol.GetMasterVolumeLevelScalar([ref]$level); $muted=$false; [void]$vol.GetMute([ref]$muted); @{level=[math]::Round($level*100);muted=$muted}|ConvertTo-Json -Compress`;
+      const output = await new Promise<string>((res, rej) => {
+        execFile('powershell.exe', ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-Command', psScript],
+          { windowsHide: true, timeout: 10000, maxBuffer: 64 * 1024 },
+          (err, stdout) => { if (err) rej(new Error(err.message)); else res(String(stdout).trim()); });
+      });
+      let parsed: unknown;
+      try { parsed = JSON.parse(output); } catch { parsed = { raw: output }; }
+      return { success: true, result: parsed, error: '', durationMs: Date.now() - startedAt };
+    }
+
+    if (tool === 'volume.set') {
+      const levelRaw = getNumberArg(args, 'level');
+      if (levelRaw === null || levelRaw === undefined) throw new Error('volume.set 需要 level (0-100)');
+      const level = Math.max(0, Math.min(100, Math.floor(levelRaw)));
+      const scalar = (level / 100).toFixed(2);
+      const psScript = `Add-Type -TypeDefinition 'using System.Runtime.InteropServices; [Guid("5CDF2C82-841E-4546-9722-0CF74078229A"),InterfaceType(ComInterfaceType.InterfaceIsIUnknown)] interface IAudioEndpointVolume { int _0(); int _1(); int _2(); int _3(); int SetMasterVolumeLevelScalar(float fLevel, System.Guid pguidEventContext); int _5(); int GetMasterVolumeLevelScalar(out float pfLevel); int SetMute(bool bMute, System.Guid pguidEventContext); int GetMute(out bool pbMute); } [Guid("D666063F-1587-4E43-81F1-B948E807363F"),InterfaceType(ComInterfaceType.InterfaceIsIUnknown)] interface IMMDevice { int Activate(ref System.Guid iid, int dwClsCtx, IntPtr pActivationParams, [MarshalAs(UnmanagedType.IUnknown)] out object ppInterface); } [Guid("A95664D2-9614-4F35-A746-DE8DB63617E6"),InterfaceType(ComInterfaceType.InterfaceIsIUnknown)] interface IMMDeviceEnumerator { int GetDefaultAudioEndpoint(int dataFlow, int role, out IMMDevice ppDevice); } [ComImport,Guid("BCDE0395-E52F-467C-8E3D-C4579291692E")] class MMDeviceEnumerator {}'; $e = New-Object MMDeviceEnumerator; $d = $null; [void]$e.GetDefaultAudioEndpoint(0,1,[ref]$d); $iid=[Guid]'5CDF2C82-841E-4546-9722-0CF74078229A'; $v=$null; [void]$d.Activate([ref]$iid,1,[IntPtr]::Zero,[ref]$v); $vol=$v; [void]$vol.SetMasterVolumeLevelScalar(${scalar},[Guid]::Empty); [void]$vol.SetMute($false,[Guid]::Empty)`;
+      await new Promise<void>((res, rej) => {
+        execFile('powershell.exe', ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-Command', psScript],
+          { windowsHide: true, timeout: 10000, maxBuffer: 64 * 1024 },
+          (err) => { if (err) rej(new Error(err.message)); else res(); });
+      });
+      return { success: true, result: { level, set: true }, error: '', durationMs: Date.now() - startedAt };
+    }
+
+    if (tool === 'brightness.get') {
+      const psScript = `(Get-CimInstance -Namespace root/WMI -ClassName WmiMonitorBrightness).CurrentBrightness`;
+      const output = await new Promise<string>((res, rej) => {
+        execFile('powershell.exe', ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-Command', psScript],
+          { windowsHide: true, timeout: 10000, maxBuffer: 64 * 1024 },
+          (err, stdout) => { if (err) rej(new Error(err.message)); else res(String(stdout).trim()); });
+      });
+      return { success: true, result: { brightness: parseInt(output) || 0 }, error: '', durationMs: Date.now() - startedAt };
+    }
+
+    if (tool === 'brightness.set') {
+      const levelRaw = getNumberArg(args, 'level');
+      if (levelRaw === null || levelRaw === undefined) throw new Error('brightness.set 需要 level (0-100)');
+      const level = Math.max(0, Math.min(100, Math.floor(levelRaw)));
+      const psScript = `(Get-CimInstance -Namespace root/WMI -ClassName WmiMonitorBrightnessMethods).WmiSetBrightness(1,${level})`;
+      await new Promise<void>((res, rej) => {
+        execFile('powershell.exe', ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-Command', psScript],
+          { windowsHide: true, timeout: 10000, maxBuffer: 64 * 1024 },
+          (err) => { if (err) rej(new Error(err.message)); else res(); });
+      });
+      return { success: true, result: { brightness: level, set: true }, error: '', durationMs: Date.now() - startedAt };
+    }
+
+    // ── 显示器 / 电源 / Wi-Fi ──
+
+    if (tool === 'display.list') {
+      const psScript = `Get-CimInstance Win32_DesktopMonitor | Select-Object Name,ScreenWidth,ScreenHeight; Get-CimInstance Win32_VideoController | Select-Object Name,CurrentHorizontalResolution,CurrentVerticalResolution,CurrentRefreshRate | ConvertTo-Json -Compress`;
+      const output = await new Promise<string>((res, rej) => {
+        execFile('powershell.exe', ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-Command', psScript],
+          { windowsHide: true, timeout: 10000, maxBuffer: 64 * 1024 },
+          (err, stdout) => { if (err) rej(new Error(err.message)); else res(String(stdout).trim()); });
+      });
+      let parsed: unknown;
+      try { parsed = JSON.parse(output); } catch { parsed = output; }
+      return { success: true, result: { displays: parsed }, error: '', durationMs: Date.now() - startedAt };
+    }
+
+    if (tool === 'power.sleep' || tool === 'power.shutdown' || tool === 'power.restart') {
+      const action = tool.split('.')[1];
+      let cmd: string;
+      if (action === 'sleep') cmd = 'rundll32.exe powrprof.dll,SetSuspendState 0,1,0';
+      else if (action === 'shutdown') cmd = 'shutdown /s /t 5 /c "eIsland Agent 关机"';
+      else cmd = 'shutdown /r /t 5 /c "eIsland Agent 重启"';
+      await new Promise<void>((res, rej) => {
+        execFile('cmd.exe', ['/c', cmd], { windowsHide: true, timeout: 10000 },
+          (err) => { if (err) rej(new Error(err.message)); else res(); });
+      });
+      return { success: true, result: { action, initiated: true }, error: '', durationMs: Date.now() - startedAt };
+    }
+
+    if (tool === 'wifi.list') {
+      const output = await new Promise<string>((res, rej) => {
+        execFile('netsh', ['wlan', 'show', 'networks', 'mode=bssid'],
+          { windowsHide: true, timeout: 15000, maxBuffer: 128 * 1024 },
+          (err, stdout) => { if (err) rej(new Error(err.message)); else res(String(stdout).trim()); });
+      });
+      return { success: true, result: { output }, error: '', durationMs: Date.now() - startedAt };
+    }
+
+    // ── 注册表 ──
+
+    if (tool === 'registry.read') {
+      const keyPath = getStringArg(args, 'path');
+      const valueName = getStringArg(args, 'name') || '';
+      if (!keyPath) throw new Error('registry.read 需要 path');
+      const psScript = valueName
+        ? `Get-ItemPropertyValue -Path '${keyPath.replace(/'/g, "''")}' -Name '${valueName.replace(/'/g, "''")}'`
+        : `Get-ItemProperty -Path '${keyPath.replace(/'/g, "''")}' | Select-Object * -ExcludeProperty PS* | ConvertTo-Json -Compress`;
+      const output = await new Promise<string>((res, rej) => {
+        execFile('powershell.exe', ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-Command', psScript],
+          { windowsHide: true, timeout: 10000, maxBuffer: 64 * 1024 },
+          (err, stdout) => { if (err) rej(new Error(err.message)); else res(String(stdout).trim()); });
+      });
+      let parsed: unknown;
+      try { parsed = JSON.parse(output); } catch { parsed = output; }
+      return { success: true, result: { path: keyPath, name: valueName || null, value: parsed }, error: '', durationMs: Date.now() - startedAt };
+    }
+
+    if (tool === 'registry.write') {
+      const keyPath = getStringArg(args, 'path');
+      const valueName = getStringArg(args, 'name');
+      const value = getStringArg(args, 'value');
+      const valueType = getStringArg(args, 'type') || 'String';
+      if (!keyPath || !valueName) throw new Error('registry.write 需要 path 和 name');
+      const psScript = `New-ItemProperty -Path '${keyPath.replace(/'/g, "''")}' -Name '${valueName.replace(/'/g, "''")}' -Value '${(value || '').replace(/'/g, "''")}' -PropertyType ${valueType} -Force | Out-Null`;
+      await new Promise<void>((res, rej) => {
+        execFile('powershell.exe', ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-Command', psScript],
+          { windowsHide: true, timeout: 10000, maxBuffer: 64 * 1024 },
+          (err) => { if (err) rej(new Error(err.message)); else res(); });
+      });
+      return { success: true, result: { path: keyPath, name: valueName, written: true }, error: '', durationMs: Date.now() - startedAt };
+    }
+
+    if (tool === 'registry.delete') {
+      const keyPath = getStringArg(args, 'path');
+      const valueName = getStringArg(args, 'name');
+      if (!keyPath) throw new Error('registry.delete 需要 path');
+      const psScript = valueName
+        ? `Remove-ItemProperty -Path '${keyPath.replace(/'/g, "''")}' -Name '${valueName.replace(/'/g, "''")}' -Force`
+        : `Remove-Item -Path '${keyPath.replace(/'/g, "''")}' -Recurse -Force`;
+      await new Promise<void>((res, rej) => {
+        execFile('powershell.exe', ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-Command', psScript],
+          { windowsHide: true, timeout: 10000, maxBuffer: 64 * 1024 },
+          (err) => { if (err) rej(new Error(err.message)); else res(); });
+      });
+      return { success: true, result: { path: keyPath, name: valueName || null, deleted: true }, error: '', durationMs: Date.now() - startedAt };
+    }
+
+    // ── 服务管理 ──
+
+    if (tool === 'service.list') {
+      const filterArg = getStringArg(args, 'filter') || '';
+      const psScript = `Get-Service ${filterArg ? `| Where-Object { $_.Name -like '*${filterArg.replace(/'/g, "''")}*' -or $_.DisplayName -like '*${filterArg.replace(/'/g, "''")}*' }` : ''} | Select-Object -First 50 Name,DisplayName,Status,StartType | ConvertTo-Json -Compress`;
+      const output = await new Promise<string>((res, rej) => {
+        execFile('powershell.exe', ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-Command', psScript],
+          { windowsHide: true, timeout: 15000, maxBuffer: 128 * 1024 },
+          (err, stdout) => { if (err) rej(new Error(err.message)); else res(String(stdout).trim()); });
+      });
+      let parsed: unknown;
+      try { parsed = JSON.parse(output); } catch { parsed = output; }
+      return { success: true, result: { filter: filterArg || null, services: parsed }, error: '', durationMs: Date.now() - startedAt };
+    }
+
+    if (tool === 'service.start' || tool === 'service.stop' || tool === 'service.restart') {
+      const name = getStringArg(args, 'name');
+      if (!name) throw new Error(`${tool} 需要 name`);
+      const action = tool.split('.')[1];
+      const verb = action === 'start' ? 'Start' : action === 'stop' ? 'Stop' : 'Restart';
+      const psScript = `${verb}-Service -Name '${name.replace(/'/g, "''")}' -Force -PassThru | Select-Object Name,Status | ConvertTo-Json -Compress`;
+      const output = await new Promise<string>((res, rej) => {
+        execFile('powershell.exe', ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-Command', psScript],
+          { windowsHide: true, timeout: 30000, maxBuffer: 64 * 1024 },
+          (err, stdout) => { if (err) rej(new Error(err.message)); else res(String(stdout).trim()); });
+      });
+      let parsed: unknown;
+      try { parsed = JSON.parse(output); } catch { parsed = output; }
+      return { success: true, result: { name, action, service: parsed }, error: '', durationMs: Date.now() - startedAt };
+    }
+
+    // ── 计划任务 ──
+
+    if (tool === 'schedule.task.list') {
+      const filterArg = getStringArg(args, 'filter') || '';
+      const psScript = `Get-ScheduledTask ${filterArg ? `| Where-Object { $_.TaskName -like '*${filterArg.replace(/'/g, "''")}*' }` : ''} | Select-Object -First 50 TaskName,State,TaskPath | ConvertTo-Json -Compress`;
+      const output = await new Promise<string>((res, rej) => {
+        execFile('powershell.exe', ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-Command', psScript],
+          { windowsHide: true, timeout: 15000, maxBuffer: 128 * 1024 },
+          (err, stdout) => { if (err) rej(new Error(err.message)); else res(String(stdout).trim()); });
+      });
+      let parsed: unknown;
+      try { parsed = JSON.parse(output); } catch { parsed = output; }
+      return { success: true, result: { filter: filterArg || null, tasks: parsed }, error: '', durationMs: Date.now() - startedAt };
+    }
+
+    if (tool === 'schedule.task.create') {
+      const taskName = getStringArg(args, 'name');
+      const command = getStringArg(args, 'command');
+      const trigger = getStringArg(args, 'trigger') || 'Once';
+      const time = getStringArg(args, 'time');
+      if (!taskName || !command) throw new Error('schedule.task.create 需要 name 和 command');
+      const triggerPart = time ? `-Trigger (New-ScheduledTaskTrigger -${trigger} -At '${time.replace(/'/g, "''")}')` : `-Trigger (New-ScheduledTaskTrigger -${trigger} -At (Get-Date).AddMinutes(5))`;
+      const psScript = `Register-ScheduledTask -TaskName '${taskName.replace(/'/g, "''")}' -Action (New-ScheduledTaskAction -Execute 'powershell.exe' -Argument '-NoProfile -Command ${command.replace(/'/g, "''")}') ${triggerPart} -Force | Select-Object TaskName,State | ConvertTo-Json -Compress`;
+      const output = await new Promise<string>((res, rej) => {
+        execFile('powershell.exe', ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-Command', psScript],
+          { windowsHide: true, timeout: 15000, maxBuffer: 64 * 1024 },
+          (err, stdout) => { if (err) rej(new Error(err.message)); else res(String(stdout).trim()); });
+      });
+      let parsed: unknown;
+      try { parsed = JSON.parse(output); } catch { parsed = output; }
+      return { success: true, result: { name: taskName, command, trigger, task: parsed }, error: '', durationMs: Date.now() - startedAt };
+    }
+
+    // ── 网络代理 / hosts ──
+
+    if (tool === 'net.proxy') {
+      const action = getStringArg(args, 'action') || 'get';
+      if (action === 'get') {
+        const psScript = `Get-ItemProperty 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings' | Select-Object ProxyEnable,ProxyServer,ProxyOverride | ConvertTo-Json -Compress`;
+        const output = await new Promise<string>((res, rej) => {
+          execFile('powershell.exe', ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-Command', psScript],
+            { windowsHide: true, timeout: 10000, maxBuffer: 64 * 1024 },
+            (err, stdout) => { if (err) rej(new Error(err.message)); else res(String(stdout).trim()); });
+        });
+        let parsed: unknown;
+        try { parsed = JSON.parse(output); } catch { parsed = output; }
+        return { success: true, result: { action, proxy: parsed }, error: '', durationMs: Date.now() - startedAt };
+      }
+      const server = getStringArg(args, 'server') || '';
+      const enable = action === 'set' && server;
+      const psScript = `Set-ItemProperty 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings' -Name ProxyEnable -Value ${enable ? 1 : 0}; ${server ? `Set-ItemProperty 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings' -Name ProxyServer -Value '${server.replace(/'/g, "''")}'` : ''}`;
+      await new Promise<void>((res, rej) => {
+        execFile('powershell.exe', ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-Command', psScript],
+          { windowsHide: true, timeout: 10000, maxBuffer: 64 * 1024 },
+          (err) => { if (err) rej(new Error(err.message)); else res(); });
+      });
+      return { success: true, result: { action, server, enabled: Boolean(enable) }, error: '', durationMs: Date.now() - startedAt };
+    }
+
+    if (tool === 'net.hosts') {
+      const action = getStringArg(args, 'action') || 'read';
+      const hostsPath = 'C:\\Windows\\System32\\drivers\\etc\\hosts';
+      if (action === 'read') {
+        const content = await readFile(hostsPath, 'utf8').catch(() => '');
+        return { success: true, result: { path: hostsPath, content }, error: '', durationMs: Date.now() - startedAt };
+      }
+      const ip = getStringArg(args, 'ip');
+      const host = getStringArg(args, 'host');
+      if (!ip || !host) throw new Error('net.hosts edit 需要 ip 和 host');
+      const entry = `${ip} ${host}`;
+      const psScript = `Add-Content -Path '${hostsPath}' -Value '${entry.replace(/'/g, "''")}' -Force`;
+      await new Promise<void>((res, rej) => {
+        execFile('powershell.exe', ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-Command', psScript],
+          { windowsHide: true, timeout: 10000, maxBuffer: 64 * 1024 },
+          (err) => { if (err) rej(new Error(err.message)); else res(); });
+      });
+      return { success: true, result: { action: 'add', entry, added: true }, error: '', durationMs: Date.now() - startedAt };
+    }
+
+    // ── 防火墙 / Defender ──
+
+    if (tool === 'firewall.rules') {
+      const filterArg = getStringArg(args, 'filter') || '';
+      const psScript = `Get-NetFirewallRule ${filterArg ? `| Where-Object { $_.DisplayName -like '*${filterArg.replace(/'/g, "''")}*' }` : ''} | Select-Object -First 30 DisplayName,Direction,Action,Enabled | ConvertTo-Json -Compress`;
+      const output = await new Promise<string>((res, rej) => {
+        execFile('powershell.exe', ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-Command', psScript],
+          { windowsHide: true, timeout: 15000, maxBuffer: 128 * 1024 },
+          (err, stdout) => { if (err) rej(new Error(err.message)); else res(String(stdout).trim()); });
+      });
+      let parsed: unknown;
+      try { parsed = JSON.parse(output); } catch { parsed = output; }
+      return { success: true, result: { filter: filterArg || null, rules: parsed }, error: '', durationMs: Date.now() - startedAt };
+    }
+
+    if (tool === 'defender.scan') {
+      const scanType = getStringArg(args, 'type') || 'QuickScan';
+      const psScript = `Start-MpScan -ScanType ${scanType}`;
+      await new Promise<void>((res, rej) => {
+        execFile('powershell.exe', ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-Command', psScript],
+          { windowsHide: true, timeout: 30000, maxBuffer: 64 * 1024 },
+          (err) => { if (err) rej(new Error(err.message)); else res(); });
+      });
+      return { success: true, result: { scanType, initiated: true }, error: '', durationMs: Date.now() - startedAt };
+    }
+
     throw new Error(`不支持的工具: ${tool}`);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error ?? 'local tool failed');
