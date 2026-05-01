@@ -110,6 +110,7 @@ const CLIENT_LOCAL_TOOL_PREFIXES = [
   'schedule.',
   'firewall.',
   'defender.',
+  'island.',
 ] as const;
 const CLIENT_LOCAL_TOOL_EXACT_NAMES = new Set(['web.search']);
 const HIGH_RISK_LOCAL_TOOL_PREFIXES = [
