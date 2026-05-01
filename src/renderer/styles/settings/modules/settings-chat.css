@@ -1591,6 +1591,131 @@
   border-color: rgba(var(--color-text-rgb), 0.25);
 }
 
+/** Agent 模式选择器 */
+.max-expand-chat-agent-mode-wrap {
+  position: relative;
+  flex-shrink: 0;
+  align-self: flex-end;
+}
+
+.max-expand-chat-agent-mode-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  background: rgba(var(--color-text-rgb), 0.1);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  flex-shrink: 0;
+}
+
+.max-expand-chat-agent-mode-trigger:hover {
+  background: rgba(var(--color-text-rgb), 0.18);
+}
+
+.max-expand-chat-agent-mode-icon {
+  width: 16px;
+  height: 16px;
+  opacity: 0.88;
+  filter: brightness(0) invert(1);
+}
+
+[data-theme='light'] .max-expand-chat-agent-mode-icon {
+  filter: brightness(0) invert(0);
+  opacity: 0.82;
+}
+
+.max-expand-chat-agent-mode-icon.no-filter,
+[data-theme='light'] .max-expand-chat-agent-mode-icon.no-filter {
+  filter: none;
+  opacity: 1;
+}
+
+.max-expand-chat-agent-mode-dropdown {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 130px;
+  background: var(--color-island-bg, rgba(30, 30, 30, 0.96));
+  border: 1px solid rgba(var(--color-text-rgb), 0.12);
+  border-radius: 10px;
+  padding: 4px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  z-index: 9999;
+}
+
+.max-expand-chat-agent-mode-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 10px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: rgba(var(--color-text-rgb), 0.7);
+  font-size: 12.5px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+  white-space: nowrap;
+}
+
+.max-expand-chat-agent-mode-item:hover {
+  background: rgba(var(--color-text-rgb), 0.1);
+  color: var(--color-island-text);
+}
+
+.max-expand-chat-agent-mode-item.active {
+  background: rgba(var(--color-text-rgb), 0.14);
+  color: var(--color-island-text);
+  font-weight: 500;
+}
+
+.max-expand-chat-agent-mode-item-icon {
+  width: 14px;
+  height: 14px;
+  opacity: 0.78;
+  filter: brightness(0) invert(1);
+}
+
+[data-theme='light'] .max-expand-chat-agent-mode-item-icon {
+  filter: brightness(0) invert(0);
+  opacity: 0.72;
+}
+
+.max-expand-chat-agent-mode-item-icon.no-filter,
+[data-theme='light'] .max-expand-chat-agent-mode-item-icon.no-filter {
+  filter: none;
+  opacity: 1;
+}
+
+.max-expand-chat-agent-mode-item.active .max-expand-chat-agent-mode-item-icon {
+  opacity: 1;
+}
+
+.max-expand-chat-agent-mode-item-label {
+  flex: 1;
+  font-size: 12.5px;
+}
+
+.max-expand-chat-agent-mode-item-desc {
+  font-size: 10px;
+  color: rgba(var(--color-text-rgb), 0.4);
+  background: rgba(var(--color-text-rgb), 0.06);
+  padding: 1px 6px;
+  border-radius: 4px;
+  line-height: 1.5;
+  flex-shrink: 0;
+}
+
+.max-expand-chat-agent-mode-item.active .max-expand-chat-agent-mode-item-desc {
+  color: rgba(var(--color-text-rgb), 0.55);
+  background: rgba(var(--color-text-rgb), 0.1);
+}
+
 /** 发送按钮 */
 .max-expand-chat-send {
   display: inline-flex;

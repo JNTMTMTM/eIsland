@@ -82,7 +82,7 @@ export const SvgIcon = {
   DELETE: './svg/DELETE.svg',
   ATTACHMENT: './svg/ATTACHMENT.svg',
   RECHARGE: './svg/RECHARGE.svg',
-  LVOER: './svg/LVOER.svg',
+  LOVER: './svg/LOVER.svg',
   CODING: './svg/CODING.svg',
 } as const;
 

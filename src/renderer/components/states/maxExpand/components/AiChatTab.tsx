@@ -95,6 +95,23 @@ const EMPTY_GREETING_DEFAULTS = [
   '欢迎回来，先聊聊你现在最想解决的问题吧。',
   '今天也一起高效一点，你想从哪件事开始？',
 ] as const;
+type AgentMode = 'mihtnelis' | 'r1pxc' | 'edoc';
+const AGENT_MODES: ReadonlyArray<{ id: AgentMode; label: string; desc: string; icon: string; noFilter?: boolean }> = [
+  { id: 'mihtnelis', label: 'mihtnelis', desc: '全能', icon: SvgIcon.AI },
+  { id: 'r1pxc', label: 'r1pxc', desc: '女友', icon: SvgIcon.LOVER, noFilter: true },
+  { id: 'edoc', label: 'edoc', desc: 'coding', icon: SvgIcon.CODING },
+] as const;
+const AGENT_MODE_STORAGE_KEY = 'eIsland_agentMode';
+function loadAgentMode(): AgentMode {
+  try {
+    const raw = localStorage.getItem(AGENT_MODE_STORAGE_KEY);
+    if (raw && AGENT_MODES.some((m) => m.id === raw)) return raw as AgentMode;
+  } catch { /* ignore */ }
+  return 'mihtnelis';
+}
+function saveAgentMode(mode: AgentMode): void {
+  try { localStorage.setItem(AGENT_MODE_STORAGE_KEY, mode); } catch { /* ignore */ }
+}
 const CLIENT_LOCAL_TOOL_PREFIXES = [
   'file.',
   'cmd.',
@@ -235,6 +252,26 @@ export function AiChatTab(): React.ReactElement {
   const [input, setInput] = useState('');
   const [visibleWindowStart, setVisibleWindowStart] = useState(0);
   const [showSessionSidebar, setShowSessionSidebar] = useState(false);
+  const [agentMode, setAgentModeState] = useState<AgentMode>(loadAgentMode);
+  const [showAgentModeDropdown, setShowAgentModeDropdown] = useState(false);
+  const agentModeDropdownRef = useRef<HTMLDivElement>(null);
+  const agentModeTriggerRef = useRef<HTMLButtonElement>(null);
+  const [agentModeDropdownPos, setAgentModeDropdownPos] = useState<{ left: number; bottom: number } | null>(null);
+  const currentAgentModeConfig = useMemo(() => AGENT_MODES.find((m) => m.id === agentMode) ?? AGENT_MODES[0], [agentMode]);
+  const toggleAgentModeDropdown = useCallback(() => {
+    setShowAgentModeDropdown((prev) => {
+      if (!prev && agentModeTriggerRef.current) {
+        const rect = agentModeTriggerRef.current.getBoundingClientRect();
+        setAgentModeDropdownPos({ left: rect.left, bottom: window.innerHeight - rect.top + 6 });
+      }
+      return !prev;
+    });
+  }, []);
+  const setAgentMode = useCallback((mode: AgentMode) => {
+    setAgentModeState(mode);
+    saveAgentMode(mode);
+    setShowAgentModeDropdown(false);
+  }, []);
   const [showModelCard, setShowModelCard] = useState(false);
   const [showModelDropdown, setShowModelDropdown] = useState(false);
   const modelDropdownRef = useRef<HTMLDivElement>(null);
@@ -348,6 +385,18 @@ export function AiChatTab(): React.ReactElement {
     cachedAiLocalToolAccessPrompt = aiLocalToolAccessPrompt;
     cachedAiLocalToolAccessResolveError = aiLocalToolAccessResolveError;
   }, [aiLocalToolAccessPrompt, aiLocalToolAccessResolveError]);
+
+  useEffect(() => {
+    if (!showAgentModeDropdown) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as Node;
+      if (agentModeDropdownRef.current?.contains(target)) return;
+      if (agentModeTriggerRef.current?.contains(target)) return;
+      setShowAgentModeDropdown(false);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showAgentModeDropdown]);
 
   useEffect(() => {
     if (!showModelDropdown) return;
@@ -764,6 +813,7 @@ export function AiChatTab(): React.ReactElement {
           message: text,
           provider: 'deepseek',
           model: selectedModel,
+          agentMode,
           context,
           workspaces: aiConfig.workspaces,
           skills: resolvedSkills,
@@ -2331,6 +2381,37 @@ export function AiChatTab(): React.ReactElement {
               alt=""
             />
           </button>
+          <div className="max-expand-chat-agent-mode-wrap">
+            <button
+              ref={agentModeTriggerRef}
+              className="max-expand-chat-agent-mode-trigger"
+              type="button"
+              onClick={toggleAgentModeDropdown}
+              title={t('aiChat.agentMode.switch', { defaultValue: '切换 Agent 模式' })}
+            >
+              <img className={`max-expand-chat-agent-mode-icon${currentAgentModeConfig.noFilter ? ' no-filter' : ''}`} src={currentAgentModeConfig.icon} alt="" />
+            </button>
+            {showAgentModeDropdown && agentModeDropdownPos && (
+              <div
+                ref={agentModeDropdownRef}
+                className="max-expand-chat-agent-mode-dropdown"
+                style={{ position: 'fixed', left: agentModeDropdownPos.left, bottom: agentModeDropdownPos.bottom }}
+              >
+                {AGENT_MODES.map((m) => (
+                  <button
+                    key={m.id}
+                    type="button"
+                    className={`max-expand-chat-agent-mode-item${agentMode === m.id ? ' active' : ''}`}
+                    onClick={() => setAgentMode(m.id)}
+                  >
+                    <img className={`max-expand-chat-agent-mode-item-icon${m.noFilter ? ' no-filter' : ''}`} src={m.icon} alt="" />
+                    <span className="max-expand-chat-agent-mode-item-label">{m.label}</span>
+                    <span className="max-expand-chat-agent-mode-item-desc">{m.desc}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
           <textarea
             ref={inputRef}
             className="max-expand-chat-input"
