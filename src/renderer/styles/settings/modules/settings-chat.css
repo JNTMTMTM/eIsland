@@ -623,6 +623,18 @@
   overflow-x: auto;
 }
 
+.max-expand-chat-bubble.ai pre::-webkit-scrollbar,
+.max-expand-chat-code-block pre::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+.max-expand-chat-bubble.ai pre::-webkit-scrollbar-thumb,
+.max-expand-chat-code-block pre::-webkit-scrollbar-thumb {
+  background: rgba(var(--color-text-rgb), 0.15);
+  border-radius: 2px;
+}
+
 .max-expand-chat-bubble.ai pre code {
   background: transparent;
   padding: 0;
