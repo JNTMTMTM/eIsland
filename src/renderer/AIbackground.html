@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Color</title>
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+    body {
+        background: #000; /* 改为纯黑，光晕效果会更明显 */
+    }
+    canvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        pointer-events: none;
+    }
+</style>
+</head>
+<body>
+<canvas id="lightCanvas"></canvas>
+
+<script>
+const canvas = document.getElementById('lightCanvas');
+const ctx = canvas.getContext('2d');
+
+let w, h;
+let hueOffset = 0;
+
+function resize() {
+    w = canvas.width = window.innerWidth;
+    h = canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+function animate() {
+    // 每次绘制前清空画布
+    ctx.clearRect(0, 0, w, h);
+    hueOffset += 0.6; // 控制流光颜色的变化速度
+
+    // ==========================================
+    // 核心参数调节区
+    // ==========================================
+    const blurRadius = 40;  // 光晕向内渗透的深度（越大越柔和深邃）
+    const strokeWidth = 60;  // 发光带的粗细
+    const offset = 10;       // 发光带向屏幕外侧偏移的距离
+                             // (设置偏移是为了隐藏生硬的实体线，只让柔和的光晕漏进屏幕)
+
+    // 1. 设置模糊滤镜，这是实现“透明度向内平滑递减”的魔法
+    // 注意：Canvas 的 filter 比 shadowBlur 对渐变色的支持更好
+    ctx.filter = `blur(${blurRadius}px)`;
+
+    // 2. 创建覆盖全屏的流光渐变色
+    const gradient = ctx.createLinearGradient(0, 0, w, h);
+    gradient.addColorStop(0.0, `hsl(${hueOffset}, 100%, 60%)`);
+    gradient.addColorStop(0.25, `hsl(${hueOffset + 60}, 100%, 60%)`);
+    gradient.addColorStop(0.5, `hsl(${hueOffset + 120}, 100%, 60%)`);
+    gradient.addColorStop(0.75, `hsl(${hueOffset + 180}, 100%, 60%)`);
+    gradient.addColorStop(1.0, `hsl(${hueOffset + 240}, 100%, 60%)`);
+
+    // 3. 在屏幕稍微偏外一点的位置画矩形
+    ctx.beginPath();
+    ctx.rect(
+        -offset, 
+        -offset, 
+        w + offset * 2, 
+        h + offset * 2
+    );
+
+    ctx.lineWidth = strokeWidth;
+    ctx.strokeStyle = gradient;
+    
+    // 如果想要光晕更亮一点，可以开启下面的叠加模式
+    // ctx.globalCompositeOperation = 'lighter'; 
+    
+    // 描边画出被模糊的光晕
+    ctx.stroke();
+
+    // 绘制完后重置 filter，避免影响可能有的其他绘制
+    ctx.filter = 'none';
+    
+    requestAnimationFrame(animate);
+}
+animate();
+</script>
+</body>
+</html>
