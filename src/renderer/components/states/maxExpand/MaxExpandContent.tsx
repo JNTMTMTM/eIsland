@@ -89,7 +89,7 @@ export function MaxExpandContent(): React.ReactElement {
       if (cancelled) return;
       setCountdownMode(_startupMode);
       if (_startupMode === 'standalone' && STANDALONE_HIDDEN_TABS.has(activeTabRef.current)) {
-        setActiveTab('urlFavorites');
+        setActiveTab('aiChat');
       }
     });
     return () => { cancelled = true; };
