@@ -1650,6 +1650,7 @@
 .max-expand-chat-agent-mode-item {
   display: flex;
   align-items: center;
+  justify-content: flex-start;
   gap: 8px;
   width: 100%;
   padding: 6px 10px;
@@ -1658,6 +1659,7 @@
   background: transparent;
   color: rgba(var(--color-text-rgb), 0.7);
   font-size: 12.5px;
+  text-align: left;
   cursor: pointer;
   transition: background 0.15s ease, color 0.15s ease;
   white-space: nowrap;
@@ -1699,9 +1701,11 @@
 .max-expand-chat-agent-mode-item-label {
   flex: 1;
   font-size: 12.5px;
+  text-align: left;
 }
 
 .max-expand-chat-agent-mode-item-desc {
+  margin-left: auto;
   font-size: 10px;
   color: rgba(var(--color-text-rgb), 0.4);
   background: rgba(var(--color-text-rgb), 0.06);
