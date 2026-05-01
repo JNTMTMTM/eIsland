@@ -2127,17 +2127,9 @@
         "label": "PRO功能",
         "desc": "查看 Pro 计划权益及当前订阅价格"
       },
-      "about": {
-        "label": "关于软件",
-        "desc": "版本信息、源码与反馈入口"
-      },
-      "music-whitelist": {
-        "label": "播放器白名单",
-        "desc": "配置允许接入灵动岛的播放器。"
-      },
-      "music-lyrics": {
-        "label": "歌词源",
-        "desc": "选择歌词来源与显示模式。"
+      "user-recharge": {
+        "label": "余额充值",
+        "desc": "为 AI 助手对话余额充值"
       },
       "music-smtc": {
         "label": "SMTC",

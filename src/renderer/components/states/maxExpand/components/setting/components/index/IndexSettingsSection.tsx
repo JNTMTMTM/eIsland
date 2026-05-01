@@ -84,6 +84,11 @@ export function IndexSettingsSection({
   onAction,
 }: IndexSettingsSectionProps): ReactElement {
   const { t } = useTranslation();
+  const getCardOutlineClass = (cardId: string): string => {
+    if (cardId === 'user-pro') return ' settings-user-pro-nav-card--outline';
+    if (cardId === 'user-recharge') return ' settings-user-recharge-nav-card--outline';
+    return '';
+  };
   const getCardLabel = (card: IndexNavCard): string => t(`settings.nav.${card.id}.label`, { defaultValue: card.label });
   const getCardDesc = (card: IndexNavCard): string => t(`settings.nav.${card.id}.desc`, { defaultValue: card.desc });
 
@@ -119,7 +124,7 @@ export function IndexSettingsSection({
           navEditMode ? (
             <div
               key={card.id}
-              className={`settings-index-card editing${card.id === 'user-pro' ? ' settings-user-pro-nav-card--outline' : ''}${dragOverIdx === idx ? ' drag-over' : ''}`}
+              className={`settings-index-card editing${getCardOutlineClass(card.id)}${dragOverIdx === idx ? ' drag-over' : ''}`}
               draggable
               onDragStart={(e) => {
                 dragIdxRef.current = idx;
@@ -166,7 +171,7 @@ export function IndexSettingsSection({
           ) : (
             <button
               key={card.id}
-              className={`settings-index-card${card.id === 'user-pro' ? ' settings-user-pro-nav-card--outline' : ''}`}
+              className={`settings-index-card${getCardOutlineClass(card.id)}`}
               type="button"
               onClick={() => {
                 if (card.actionId && onAction) {

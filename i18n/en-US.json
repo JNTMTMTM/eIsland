@@ -2132,6 +2132,10 @@
         "label": "PRO Features",
         "desc": "View Pro plan benefits plus current subscription pricing"
       },
+      "user-recharge": {
+        "label": "Recharge",
+        "desc": "Top up your balance for AI assistant conversations"
+      },
       "about": {
         "label": "About",
         "desc": "Version information and project links"
