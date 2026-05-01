@@ -161,6 +161,23 @@ function normalizeAiChatMessage(value: unknown): AiChatMessage | null {
   if (attachments.length > 0) {
     normalized.attachments = attachments;
   }
+  if (typeof source.traceId === 'string' && source.traceId.trim()) {
+    normalized.traceId = source.traceId.trim();
+  }
+  if (source.finalized === true) {
+    normalized.finalized = true;
+  }
+  if (source.tokenUsage && typeof source.tokenUsage === 'object' && !Array.isArray(source.tokenUsage)) {
+    const tu = source.tokenUsage as Record<string, unknown>;
+    const inputTokens = typeof tu.inputTokens === 'number' ? tu.inputTokens : 0;
+    const outputTokens = typeof tu.outputTokens === 'number' ? tu.outputTokens : 0;
+    const reasoningTokens = typeof tu.reasoningTokens === 'number' ? tu.reasoningTokens : 0;
+    const totalTokens = typeof tu.totalTokens === 'number' ? tu.totalTokens : 0;
+    const tokenSource = typeof tu.source === 'string' ? tu.source : '';
+    if (inputTokens > 0 || outputTokens > 0 || totalTokens > 0) {
+      normalized.tokenUsage = { inputTokens, outputTokens, reasoningTokens, totalTokens, source: tokenSource };
+    }
+  }
   return normalized;
 }
 
