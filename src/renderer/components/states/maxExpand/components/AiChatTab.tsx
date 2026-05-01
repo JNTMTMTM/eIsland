@@ -169,6 +169,37 @@ function isAcceptedAttachmentFile(fileName: string): boolean {
   return Array.from(ATTACHMENT_ACCEPT_EXT_SET).some((ext) => lowerName.endsWith(ext));
 }
 
+const MARKDOWN_REMARK_PLUGINS = [remarkGfm];
+const MARKDOWN_COMPONENTS: import('react-markdown').Components = {
+  pre: ({ children }) => <>{children}</>,
+  code: ({ className, children }) => {
+    const isBlock = /language-/.test(className ?? '');
+    if (!isBlock) {
+      return <code className={className}>{children}</code>;
+    }
+    return <MarkdownCodeBlock className={className}>{children}</MarkdownCodeBlock>;
+  },
+  a: ({ href, children, onClick, target, rel }) => {
+    return (
+      <MarkdownSiteLink
+        href={typeof href === 'string' ? href : ''}
+        children={children}
+        onClick={onClick}
+        target={target}
+        rel={rel}
+      />
+    );
+  },
+};
+
+const AssistantMarkdown = React.memo(function AssistantMarkdown({ content }: { content: string }): React.ReactElement {
+  return (
+    <ReactMarkdown remarkPlugins={MARKDOWN_REMARK_PLUGINS} components={MARKDOWN_COMPONENTS}>
+      {content}
+    </ReactMarkdown>
+  );
+});
+
 /**
  * AI 对话 Tab
  * @description 包含消息列表和输入栏的聊天界面，调用 OpenAI 兼容 API
@@ -1649,32 +1680,7 @@ export function AiChatTab(): React.ReactElement {
                       {msg.content ? (
                         <>
                           {timelineNodes.length > 0 ? <div className="max-expand-chat-final-divider" /> : null}
-                          <ReactMarkdown
-                            remarkPlugins={[remarkGfm]}
-                            components={{
-                              pre: ({ children }) => <>{children}</>,
-                              code: ({ className, children }) => {
-                                const isBlock = /language-/.test(className ?? '');
-                                if (!isBlock) {
-                                  return <code className={className}>{children}</code>;
-                                }
-                                return <MarkdownCodeBlock className={className}>{children}</MarkdownCodeBlock>;
-                              },
-                              a: ({ href, children, onClick, target, rel }) => {
-                                return (
-                                  <MarkdownSiteLink
-                                    href={typeof href === 'string' ? href : ''}
-                                    children={children}
-                                    onClick={onClick}
-                                    target={target}
-                                    rel={rel}
-                                  />
-                                );
-                              },
-                            }}
-                          >
-                            {normalizedMarkdownContent}
-                          </ReactMarkdown>
+                          <AssistantMarkdown content={normalizedMarkdownContent} />
                           {showFinalTraceMeta && (
                             <>
                               <div className="max-expand-chat-final-divider" />
