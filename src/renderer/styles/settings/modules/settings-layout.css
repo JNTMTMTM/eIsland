@@ -2552,6 +2552,7 @@
   border-radius: 8px;
   cursor: pointer;
   font-family: inherit;
+  width: fit-content;
   transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease, opacity 0.18s ease;
 }
 
@@ -3092,7 +3093,7 @@
   font-size: 11px;
   color: rgba(var(--color-text-rgb), 0.42);
   line-height: 1.4;
-  text-align: right;
+  text-align: left;
 }
 
 .settings-user-card-head {
@@ -3753,6 +3754,17 @@
   background: rgba(100, 180, 255, 0.15);
   border-color: rgba(100, 180, 255, 0.45);
   color: rgba(150, 210, 255, 0.95);
+}
+
+.settings-user-account-actions .settings-user-secondary-btn,
+.settings-user-account-actions .settings-user-primary-btn {
+  width: 100%;
+  justify-content: center;
+}
+
+.settings-user-danger-zone .settings-user-danger-btn {
+  width: 100%;
+  justify-content: center;
 }
 
 .settings-user-danger-zone {
