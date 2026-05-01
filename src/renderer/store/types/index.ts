@@ -198,6 +198,8 @@ export interface AiConfig {
   systemPrompt: string;
   deepseekThinking: boolean;
   deepseekReasoningEffort: 'low' | 'medium' | 'high';
+  /** 上下文窗口大小（token 数） */
+  contextLimit: 200_000 | 400_000 | 1_000_000;
   /** Agent 工作区目录列表，文件操作限制在这些目录内 */
   workspaces: string[];
   /** 用户自定义 Agent Skills */

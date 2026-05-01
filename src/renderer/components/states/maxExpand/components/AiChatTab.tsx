@@ -68,7 +68,11 @@ import { resolveSessionCardState } from './agent/utils/sessionUtils';
 
 const SESSION_ABORT_CONTROLLERS = new Map<string, AbortController>();
 const SESSION_STREAMING_IDS = new Set<string>();
-const MAX_CONTEXT_TOKENS = 131_072;
+const CONTEXT_LIMIT_OPTIONS = [
+  { value: 200_000 as const, label: '200K', proOnly: false },
+  { value: 400_000 as const, label: '400K', proOnly: false },
+  { value: 1_000_000 as const, label: '1M', proOnly: true },
+] as const;
 let cachedAiLocalToolAccessPrompt: AiLocalToolAccessPrompt | null = null;
 let cachedAiLocalToolAccessResolveError = '';
 const STREAM_UI_FLUSH_INTERVAL_MS = 90;
@@ -230,6 +234,8 @@ export function AiChatTab(): React.ReactElement {
   const [showModelCard, setShowModelCard] = useState(false);
   const [showModelDropdown, setShowModelDropdown] = useState(false);
   const modelDropdownRef = useRef<HTMLDivElement>(null);
+  const [showContextDropdown, setShowContextDropdown] = useState(false);
+  const contextDropdownRef = useRef<HTMLDivElement>(null);
   const [skillDragOver, setSkillDragOver] = useState(false);
   const [attachmentDragOver, setAttachmentDragOver] = useState(false);
   const [attachmentDropInvalid, setAttachmentDropInvalid] = useState(false);
@@ -308,7 +314,12 @@ export function AiChatTab(): React.ReactElement {
     return { inputTokens, outputTokens, reasoningTokens, totalTokens, source };
   }, [aiChatMessages]);
   const contextUsageTokens = contextTokenUsage.totalTokens;
-  const contextUsagePercent = contextUsageTokens > 0 ? Math.min(100, (contextUsageTokens / MAX_CONTEXT_TOKENS) * 100) : 0;
+  const selectedContextLimit = (() => {
+    const raw = aiConfig.contextLimit;
+    if (!isProUser && raw === 1_000_000) return 400_000;
+    return raw;
+  })();
+  const contextUsagePercent = contextUsageTokens > 0 ? Math.min(100, (contextUsageTokens / selectedContextLimit) * 100) : 0;
   const contextUsagePercentText = `${contextUsagePercent.toFixed(1)}%`;
   const contextUsageLevelClass = contextUsagePercent >= 90
     ? 'danger'
@@ -316,9 +327,10 @@ export function AiChatTab(): React.ReactElement {
   const contextUsageInlineText = t('aiChat.contextUsage.inline', {
     defaultValue: '{{used}} / {{max}} · {{percent}}',
     used: contextUsageTokens.toLocaleString(),
-    max: MAX_CONTEXT_TOKENS.toLocaleString(),
+    max: selectedContextLimit.toLocaleString(),
     percent: contextUsagePercentText,
   });
+  const selectedContextLabel = CONTEXT_LIMIT_OPTIONS.find((o) => o.value === selectedContextLimit)?.label ?? '200K';
   const refreshActiveSessionStreaming = useCallback((): void => {
     const activeId = useIslandStore.getState().activeAiChatSessionId;
     useIslandStore.getState().setAiChatStreaming(SESSION_STREAMING_IDS.has(activeId));
@@ -343,6 +355,17 @@ export function AiChatTab(): React.ReactElement {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [showModelDropdown]);
+
+  useEffect(() => {
+    if (!showContextDropdown) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (contextDropdownRef.current && !contextDropdownRef.current.contains(e.target as Node)) {
+        setShowContextDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showContextDropdown]);
 
   const executeAndSubmitLocalToolResult = useCallback(async (params: {
     token: string;
@@ -658,7 +681,7 @@ export function AiChatTab(): React.ReactElement {
       return;
     }
 
-    if (contextUsageTokens >= MAX_CONTEXT_TOKENS) {
+    if (contextUsageTokens >= selectedContextLimit) {
       updateTargetMessages(prev => ([
         ...prev,
         { role: 'user', content: text },
@@ -667,7 +690,7 @@ export function AiChatTab(): React.ReactElement {
           content: t('aiChat.messages.contextLimitExceeded', {
             defaultValue: '⚠️ 当前会话已累计使用 {{used}} tokens，超出上下文限制（{{max}} tokens）。请新建会话继续对话。',
             used: contextUsageTokens.toLocaleString(),
-            max: MAX_CONTEXT_TOKENS.toLocaleString(),
+            max: selectedContextLimit.toLocaleString(),
           }),
         },
       ]));
@@ -2026,6 +2049,42 @@ export function AiChatTab(): React.ReactElement {
                     <option value="on">{t('settings.ai.deepseekThinkingOptions.on', { defaultValue: '开启' })}</option>
                   </select>
                 </div>
+                <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <span style={{ fontSize: 12, opacity: 0.8 }}>{t('aiChat.modelCard.contextLimit', { defaultValue: '上下文' })}</span>
+                  <div className="max-expand-chat-model-select-shell" ref={contextDropdownRef}>
+                    <button
+                      type="button"
+                      className="max-expand-chat-model-dropdown-trigger"
+                      onClick={() => setShowContextDropdown((v) => !v)}
+                      title={t('aiChat.modelCard.contextLimit', { defaultValue: '上下文' })}
+                    >
+                      <span className="max-expand-chat-model-dropdown-trigger-label">{selectedContextLabel}</span>
+                      <span className="max-expand-chat-model-dropdown-arrow">▾</span>
+                    </button>
+                    {showContextDropdown && (
+                      <div className="max-expand-chat-model-dropdown-list">
+                        {CONTEXT_LIMIT_OPTIONS.map((opt) => {
+                          const disabled = opt.proOnly && !isProUser;
+                          return (
+                            <button
+                              key={opt.value}
+                              type="button"
+                              className={`max-expand-chat-model-dropdown-item${selectedContextLimit === opt.value ? ' active' : ''}${disabled ? ' disabled' : ''}`}
+                              onClick={() => {
+                                if (disabled) return;
+                                setAiConfig({ contextLimit: opt.value });
+                                setShowContextDropdown(false);
+                              }}
+                            >
+                              <span>{opt.label}</span>
+                              {opt.proOnly && <img className="max-expand-chat-model-dropdown-pro-icon" src={SvgIcon.PRO} alt="PRO" />}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
               {/* Agent Skills */}
               <div
@@ -2131,7 +2190,7 @@ export function AiChatTab(): React.ReactElement {
                 aria-label={t('aiChat.contextUsage.aria', {
                   defaultValue: '上下文使用情况：{{used}} / {{max}} tokens（{{percent}}）',
                   used: contextUsageTokens.toLocaleString(),
-                  max: MAX_CONTEXT_TOKENS.toLocaleString(),
+                  max: selectedContextLimit.toLocaleString(),
                   percent: contextUsagePercentText,
                 })}
               >

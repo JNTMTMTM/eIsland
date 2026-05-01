@@ -41,6 +41,7 @@ function loadAiConfig(): AiConfig {
     systemPrompt: '你是一个有用的助手。',
     deepseekThinking: false,
     deepseekReasoningEffort: 'medium',
+    contextLimit: 200_000,
     workspaces: [],
     skills: [],
   };
@@ -52,6 +53,8 @@ function loadAiConfig(): AiConfig {
       const effort = merged.deepseekReasoningEffort;
       merged.deepseekReasoningEffort = effort === 'low' || effort === 'high' ? effort : 'medium';
       merged.deepseekThinking = Boolean(merged.deepseekThinking);
+      const cl = Number(merged.contextLimit);
+      merged.contextLimit = (cl === 400_000 || cl === 1_000_000) ? cl as 400_000 | 1_000_000 : 200_000;
       merged.workspaces = Array.isArray(merged.workspaces) ? merged.workspaces.filter((w) => typeof w === 'string' && w.trim()) : [];
       merged.skills = Array.isArray(merged.skills)
         ? (merged.skills as AiSkill[]).filter((s) => typeof s?.id === 'string' && typeof s?.name === 'string' && typeof s?.filePath === 'string')
