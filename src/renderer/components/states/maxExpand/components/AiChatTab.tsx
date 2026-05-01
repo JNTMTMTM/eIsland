@@ -91,6 +91,59 @@ const EMPTY_GREETING_DEFAULTS = [
   '欢迎回来，先聊聊你现在最想解决的问题吧。',
   '今天也一起高效一点，你想从哪件事开始？',
 ] as const;
+const CLIENT_LOCAL_TOOL_PREFIXES = [
+  'file.',
+  'cmd.',
+  'sys.',
+  'win.',
+  'clipboard.',
+  'notification.',
+  'net.',
+  'monitor.',
+  'volume.',
+  'brightness.',
+  'display.',
+  'power.',
+  'wifi.',
+  'registry.',
+  'service.',
+  'schedule.',
+  'firewall.',
+  'defender.',
+] as const;
+const CLIENT_LOCAL_TOOL_EXACT_NAMES = new Set(['web.search']);
+const HIGH_RISK_LOCAL_TOOL_PREFIXES = [
+  'file.delete',
+  'file.rename',
+  'file.trash',
+  'cmd.exec',
+  'cmd.powershell',
+  'win.close',
+  'win.minimize',
+  'win.maximize',
+  'win.restore',
+  'power.',
+  'registry.write',
+  'registry.delete',
+  'service.start',
+  'service.stop',
+  'service.restart',
+  'schedule.task.create',
+  'net.proxy',
+  'net.hosts',
+  'defender.scan',
+] as const;
+
+function isClientLocalToolName(tool: string): boolean {
+  const normalized = tool.trim().toLowerCase();
+  return CLIENT_LOCAL_TOOL_EXACT_NAMES.has(normalized)
+    || CLIENT_LOCAL_TOOL_PREFIXES.some(prefix => normalized.startsWith(prefix));
+}
+
+function isHighRiskLocalToolName(tool: string): boolean {
+  const normalized = tool.trim().toLowerCase();
+  return HIGH_RISK_LOCAL_TOOL_PREFIXES.some(prefix => normalized.startsWith(prefix));
+}
 
 const getRoleFromToken = (token: string | null | undefined): string | null => {
   if (!token) return null;
@@ -831,12 +884,12 @@ export function AiChatTab(): React.ReactElement {
                 return copy;
               });
 
-              const isClientLocalTool = tool.startsWith('file.') || tool.startsWith('cmd.') || tool.startsWith('sys.') || tool.startsWith('win.') || tool === 'web.search';
+              const isClientLocalTool = isClientLocalToolName(tool);
               if (!isClientLocalTool || !requestId) {
                 return;
               }
 
-              const needsAuthorization = authorizationRequired || tool === 'file.delete' || tool === 'cmd.exec';
+              const needsAuthorization = authorizationRequired || isHighRiskLocalToolName(tool);
               if (needsAuthorization) {
                 setAiLocalToolAccessPrompt({
                   sessionId: targetSessionId,
