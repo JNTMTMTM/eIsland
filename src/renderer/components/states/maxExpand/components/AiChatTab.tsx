@@ -658,6 +658,23 @@ export function AiChatTab(): React.ReactElement {
       return;
     }
 
+    if (contextUsageTokens >= MAX_CONTEXT_TOKENS) {
+      updateTargetMessages(prev => ([
+        ...prev,
+        { role: 'user', content: text },
+        {
+          role: 'assistant',
+          content: t('aiChat.messages.contextLimitExceeded', {
+            defaultValue: '⚠️ 当前会话已累计使用 {{used}} tokens，超出上下文限制（{{max}} tokens）。请新建会话继续对话。',
+            used: contextUsageTokens.toLocaleString(),
+            max: MAX_CONTEXT_TOKENS.toLocaleString(),
+          }),
+        },
+      ]));
+      setInput('');
+      return;
+    }
+
     const attachmentMeta: AiChatAttachment[] = pendingAttachments.map((a) => ({ name: a.name, size: a.size }));
     const attachmentPrefix = pendingAttachments.length > 0
       ? pendingAttachments.map((a) => `<attachment name="${a.name}">\n${a.content}\n</attachment>`).join('\n\n') + '\n\n'
