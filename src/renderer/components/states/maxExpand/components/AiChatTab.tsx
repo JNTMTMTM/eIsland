@@ -831,9 +831,9 @@ export function AiChatTab(): React.ReactElement {
                   if (!current) {
                     continue;
                   }
-                  const requestMatched = Boolean(requestId) && current.requestId === requestId;
-                  const turnMatched = !requestId && turn > 0 && current.turn === turn && current.tool === tool;
-                  const pendingMatched = !requestId && turn <= 0 && current.pending && current.tool === tool;
+                  const requestMatched = Boolean(requestId) && Boolean(current.requestId) && current.requestId === requestId;
+                  const turnMatched = turn > 0 && current.turn === turn && current.tool === tool;
+                  const pendingMatched = current.pending && current.tool === tool;
                   if (requestMatched || turnMatched || pendingMatched) {
                     oldCalls[i] = {
                       ...current,
@@ -954,6 +954,16 @@ export function AiChatTab(): React.ReactElement {
                   return copy;
                 }
                 const oldCalls = Array.isArray(last.toolCalls) ? [...last.toolCalls] : [];
+                // deduplicate: skip if an entry with the same requestId or turn+tool already exists
+                const alreadyExists = oldCalls.some((c) => {
+                  if (!c) return false;
+                  if (requestId && c.requestId === requestId) return true;
+                  if (turn > 0 && c.turn === turn && c.tool === tool) return true;
+                  return false;
+                });
+                if (alreadyExists) {
+                  return copy;
+                }
                 const call: AiToolCall = {
                   turn,
                   requestId,
@@ -1036,24 +1046,41 @@ export function AiChatTab(): React.ReactElement {
 
             if (event.type === 'tool') {
               const payload = event.payload as ToolEventPayload;
-              const toolCall: AiToolCall = {
-                turn: typeof payload?.turn === 'number' ? payload.turn : 0,
-                tool: typeof payload?.tool === 'string' ? payload.tool : 'unknown',
-                arguments: typeof payload?.arguments === 'object' && payload?.arguments !== null && payload?.arguments !== undefined
-                  ? payload.arguments as Record<string, unknown>
-                  : {},
-                pending: false,
-                success: Boolean(payload?.success),
-                error: typeof payload?.error === 'string' ? payload.error : '',
-                result: payload?.result,
-              };
+              const toolTurn = typeof payload?.turn === 'number' ? payload.turn : 0;
+              const toolName = typeof payload?.tool === 'string' ? payload.tool : 'unknown';
+              const toolArgs = typeof payload?.arguments === 'object' && payload?.arguments !== null && payload?.arguments !== undefined
+                ? payload.arguments as Record<string, unknown>
+                : {};
+              const toolSuccess = Boolean(payload?.success);
+              const toolError = typeof payload?.error === 'string' ? payload.error : '';
+              const toolResult = payload?.result;
               updateTargetMessages(prev => {
                 const copy = [...prev];
                 const last = copy[copy.length - 1];
-                if (last && last.role === 'assistant') {
-                  const oldCalls = Array.isArray(last.toolCalls) ? last.toolCalls : [];
-                  copy[copy.length - 1] = { ...last, toolCalls: [...oldCalls, toolCall] };
+                if (!last || last.role !== 'assistant') {
+                  return copy;
                 }
+                const oldCalls = Array.isArray(last.toolCalls) ? [...last.toolCalls] : [];
+                let matched = false;
+                for (let i = oldCalls.length - 1; i >= 0; i--) {
+                  const current = oldCalls[i];
+                  if (!current) continue;
+                  const turnMatched = toolTurn > 0 && current.turn === toolTurn && current.tool === toolName;
+                  const pendingMatched = current.pending && current.tool === toolName;
+                  if (turnMatched || pendingMatched) {
+                    oldCalls[i] = { ...current, pending: false, success: toolSuccess, error: toolError, result: toolResult, arguments: toolArgs };
+                    matched = true;
+                    break;
+                  }
+                  if (!current.pending && current.tool === toolName) {
+                    matched = true;
+                    break;
+                  }
+                }
+                if (!matched) {
+                  oldCalls.push({ turn: toolTurn, tool: toolName, arguments: toolArgs, pending: false, success: toolSuccess, error: toolError, result: toolResult });
+                }
+                copy[copy.length - 1] = { ...last, toolCalls: oldCalls };
                 return copy;
               });
               return;
