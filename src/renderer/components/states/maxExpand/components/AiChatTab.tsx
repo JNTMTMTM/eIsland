@@ -137,6 +137,10 @@ const HIGH_RISK_LOCAL_TOOL_PREFIXES = [
   'net.proxy',
   'net.hosts',
   'defender.scan',
+  'island.settings.write',
+  'island.theme.set',
+  'island.opacity.set',
+  'island.restart',
 ] as const;
 
 function isClientLocalToolName(tool: string): boolean {
