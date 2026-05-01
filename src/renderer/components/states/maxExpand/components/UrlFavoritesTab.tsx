@@ -92,9 +92,16 @@ export function UrlFavoritesTab(): React.ReactElement {
   const titleResolvingIdsRef = useRef<Set<number>>(new Set());
   const dragFromIdRef = useRef<number | null>(null);
   const dragMovedRef = useRef(false);
+  const skipPersistOnceRef = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
+    const applyFavorites = (data: unknown): void => {
+      if (!Array.isArray(data)) return;
+      skipPersistOnceRef.current = true;
+      setFavorites(sanitizeFavorites(data));
+    };
+
     window.api.storeRead(STORE_KEY).then((data) => {
       if (cancelled) return;
       if (Array.isArray(data) && data.length > 0) {
@@ -118,11 +125,25 @@ export function UrlFavoritesTab(): React.ReactElement {
       if (!cancelled) setLoaded(true);
     });
 
-    return () => { cancelled = true; };
+    const unsub = window.api.onSettingsChanged((channel: string, value: unknown) => {
+      if (cancelled) return;
+      if (channel === `store:${STORE_KEY}`) {
+        applyFavorites(value);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+      unsub();
+    };
   }, []);
 
   useEffect(() => {
     if (!loaded) return;
+    if (skipPersistOnceRef.current) {
+      skipPersistOnceRef.current = false;
+      return;
+    }
     persistFavorites(favorites);
   }, [favorites, loaded]);
 
