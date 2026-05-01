@@ -29,6 +29,11 @@ import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TodoTab } from './states/maxExpand/components/TodoTab';
 import { CountdownTab } from './states/maxExpand/components/CountdownTab';
+import { UrlFavoritesTab } from './states/maxExpand/components/UrlFavoritesTab';
+import { AlbumTab } from './states/maxExpand/components/AlbumTab';
+import { MailTab } from './states/maxExpand/components/MailTab';
+import { LocalFileSearchTab } from './states/maxExpand/components/LocalFileSearchTab';
+import { ClipboardHistoryTab } from './states/maxExpand/components/ClipboardHistoryTab';
 import { SettingsTab } from './states/maxExpand/components/SettingsTab';
 import { LoginContent } from './states/login/LoginContent';
 import { RegisterContent } from './states/register/RegisterContent';
@@ -36,7 +41,7 @@ import { PaymentContent } from './states/payment/PaymentContent';
 import useIslandStore from '../store/slices';
 import windowIcon from '../../../resources/icon/eisland.svg';
 
-type WindowTab = 'todo' | 'countdown' | 'settings';
+type WindowTab = 'todo' | 'countdown' | 'urlFavorites' | 'album' | 'mail' | 'localFileSearch' | 'clipboardHistory' | 'settings';
 const ACTIVE_TAB_STORE_KEY = 'standalone-window-active-tab';
 const LEGACY_ACTIVE_TAB_STORE_KEY = 'countdown-window-active-tab';
 const AUTH_INTENT_STORE_KEY = 'standalone-window-auth-intent';
@@ -126,9 +131,16 @@ async function resolveBgMediaPreviewUrl(media: IslandBgMediaConfig): Promise<str
   return toMediaUrl(media.source);
 }
 
+const VALID_TABS = new Set<WindowTab>(['todo', 'countdown', 'urlFavorites', 'album', 'mail', 'localFileSearch', 'clipboardHistory', 'settings']);
+
 const TAB_LIST: { key: WindowTab; labelKey: string }[] = [
   { key: 'todo', labelKey: 'standalone.tabs.todo' },
   { key: 'countdown', labelKey: 'standalone.tabs.countdown' },
+  { key: 'urlFavorites', labelKey: 'standalone.tabs.urlFavorites' },
+  { key: 'album', labelKey: 'standalone.tabs.album' },
+  { key: 'mail', labelKey: 'standalone.tabs.mail' },
+  { key: 'localFileSearch', labelKey: 'standalone.tabs.localFileSearch' },
+  { key: 'clipboardHistory', labelKey: 'standalone.tabs.clipboardHistory' },
   { key: 'settings', labelKey: 'standalone.tabs.settings' },
 ];
 
@@ -178,14 +190,14 @@ export function StandaloneWindow(): ReactElement {
 
     window.api.storeRead(ACTIVE_TAB_STORE_KEY).then((tab) => {
       if (cancelled) return;
-      if (tab === 'todo' || tab === 'countdown' || tab === 'settings') {
-        setActiveTab(tab);
+      if (VALID_TABS.has(tab as WindowTab)) {
+        setActiveTab(tab as WindowTab);
         return;
       }
       window.api.storeRead(LEGACY_ACTIVE_TAB_STORE_KEY).then((legacyTab) => {
         if (cancelled) return;
-        if (legacyTab === 'todo' || legacyTab === 'countdown' || legacyTab === 'settings') {
-          setActiveTab(legacyTab);
+        if (VALID_TABS.has(legacyTab as WindowTab)) {
+          setActiveTab(legacyTab as WindowTab);
         }
       }).catch(() => {});
     }).catch(() => {});
@@ -259,8 +271,8 @@ export function StandaloneWindow(): ReactElement {
     const unsub = window.api.onSettingsChanged((channel: string, value: unknown) => {
       if (cancelled) return;
       if (channel === `store:${ACTIVE_TAB_STORE_KEY}`) {
-        if (value === 'todo' || value === 'countdown' || value === 'settings') {
-          setActiveTab(value);
+        if (VALID_TABS.has(value as WindowTab)) {
+          setActiveTab(value as WindowTab);
         }
       }
       if (channel === `store:${AUTH_INTENT_STORE_KEY}`) {
@@ -510,6 +522,11 @@ export function StandaloneWindow(): ReactElement {
       <div className="cw-viewport">
         {activeTab === 'todo' && <TodoTab />}
         {activeTab === 'countdown' && <CountdownTab />}
+        {activeTab === 'urlFavorites' && <UrlFavoritesTab />}
+        {activeTab === 'album' && <AlbumTab />}
+        {activeTab === 'mail' && <MailTab />}
+        {activeTab === 'localFileSearch' && <LocalFileSearchTab />}
+        {activeTab === 'clipboardHistory' && <ClipboardHistoryTab />}
         {activeTab === 'settings' && state === 'login' && <LoginContent />}
         {activeTab === 'settings' && state === 'register' && <RegisterContent />}
         {activeTab === 'settings' && state === 'payment' && <PaymentContent />}

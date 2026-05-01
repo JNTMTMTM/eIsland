@@ -6,6 +6,11 @@
     "tabs": {
       "todo": "Todo",
       "countdown": "Countdown",
+      "urlFavorites": "URL Favorites",
+      "album": "Album",
+      "mail": "Mail",
+      "localFileSearch": "File Search",
+      "clipboardHistory": "Clipboard",
       "settings": "Settings"
     },
     "controls": {

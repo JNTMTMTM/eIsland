@@ -6,6 +6,11 @@
     "tabs": {
       "todo": "待办事项",
       "countdown": "倒数日",
+      "urlFavorites": "URL 收藏",
+      "album": "相册",
+      "mail": "邮箱",
+      "localFileSearch": "文件查找",
+      "clipboardHistory": "剪贴板历史",
       "settings": "设置"
     },
     "controls": {

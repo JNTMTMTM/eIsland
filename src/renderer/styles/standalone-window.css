@@ -261,6 +261,51 @@
   box-sizing: border-box;
 }
 
+.cw-viewport .url-favorites {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  border-radius: 0;
+  padding: 24px 32px;
+  box-sizing: border-box;
+}
+
+.cw-viewport .album-tab {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  border-radius: 0;
+  padding: 24px 32px;
+  box-sizing: border-box;
+}
+
+.cw-viewport .settings-mail-tab-section {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  border-radius: 0;
+  padding: 24px 32px;
+  box-sizing: border-box;
+}
+
+.cw-viewport .local-file-search {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  border-radius: 0;
+  padding: 24px 32px;
+  box-sizing: border-box;
+}
+
+.cw-viewport .clipboard-history {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  border-radius: 0;
+  padding: 24px 32px;
+  box-sizing: border-box;
+}
+
 .cw-viewport .cd-top {
   gap: 20px;
 }

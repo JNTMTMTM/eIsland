@@ -50,7 +50,7 @@ const NAV_DOTS: NavDotId[] = ['expanded', 'todo', 'urlFavorites', 'album', 'mail
  * @description 包含 AI 对话窗口和设置面板，底部导航点切换 Tab 或返回 expanded
  */
 /** 独立窗口模式下从灵动岛中移除的 Tab */
-const STANDALONE_HIDDEN_TABS: Set<NavDotId> = new Set(['todo', 'countdown', 'settings']);
+const STANDALONE_HIDDEN_TABS: Set<NavDotId> = new Set(['todo', 'countdown', 'urlFavorites', 'album', 'mail', 'localFileSearch', 'clipboardHistory', 'settings']);
 
 /** 启动时读取一次，整个生命周期内不再变化（重启后生效） */
 let _startupMode: 'integrated' | 'standalone' = 'integrated';
