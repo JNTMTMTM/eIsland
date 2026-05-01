@@ -1221,6 +1221,33 @@ async function executeAgentLocalTool(request: AgentLocalToolRequest): Promise<{
       return { success: true, result: { closed: { pid: targetPid, name: targetName, title: targetTitle } }, error: '', durationMs: Date.now() - startedAt };
     }
 
+    if (tool === 'win.screenshot') {
+      if (workspaces.length === 0) throw new Error('win.screenshot: 未配置工作区，请先在设置中添加 Agent 工作区目录');
+      const pathArg = getStringArg(args, 'path');
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').replace('T', '_').slice(0, 19);
+      const fileName = pathArg || `screenshot_${timestamp}.png`;
+      const savePath = resolve(workspaces[0], fileName);
+      assertWorkspaceBoundary(savePath, workspaces, 'win.screenshot');
+      await mkdir(dirname(savePath), { recursive: true });
+
+      // 复用 desktopCapturer 截取屏幕
+      const { desktopCapturer } = await import('electron');
+      const sources = await desktopCapturer.getSources({
+        types: ['screen'],
+        thumbnailSize: { width: 1920, height: 1080 },
+      });
+      if (sources.length === 0) throw new Error('无法获取屏幕截图源');
+      const pngBuffer = sources[0].thumbnail.toPNG();
+      await writeFile(savePath, pngBuffer);
+
+      return {
+        success: true,
+        result: { path: savePath, size: pngBuffer.length, fileName: basename(savePath) },
+        error: '',
+        durationMs: Date.now() - startedAt,
+      };
+    }
+
     throw new Error(`不支持的工具: ${tool}`);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error ?? 'local tool failed');
