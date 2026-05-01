@@ -1610,7 +1610,8 @@ export function AiChatTab(): React.ReactElement {
                     );
                   }
 
-                  // 按 turn 顺序渲染所有工具/todo 组
+                  // 按 turn 顺序渲染工具/todo 组，每组后面穿插对应的 think 块
+                  let nextThinkIdx = 1; // think[0] 已在前面渲染
                   for (let groupIdx = 0; groupIdx < sortedGroupTurns.length; groupIdx++) {
                     const turn = sortedGroupTurns[groupIdx];
 
@@ -1681,10 +1682,32 @@ export function AiChatTab(): React.ReactElement {
                         </details>,
                       );
                     }
+
+                    // 每个工具组后面穿插对应的 think 块（工具执行后的推理过程）
+                    if (nextThinkIdx < thinkBlocks.length && thinkBlocks[nextThinkIdx]) {
+                      const thinkText = thinkBlocks[nextThinkIdx];
+                      const thinkIdx = nextThinkIdx;
+                      nextThinkIdx++;
+                      timelineNodes.push(
+                        <details
+                          key={`think-${thinkIdx}`}
+                          className="max-expand-chat-think-card"
+                          open={aiChatStreaming && thinkIdx === thinkBlocks.length - 1 && isLatestAssistantMsg}
+                        >
+                          <summary>
+                            <span className="max-expand-chat-think-title">
+                              <img className="max-expand-chat-think-title-icon" src={SvgIcon.DEEPSEEK} alt="" />
+                              <span>{t('aiChat.timeline.thinkingProcess', { defaultValue: '思考过程 #{{index}}', index: thinkIdx + 1 })}</span>
+                            </span>
+                          </summary>
+                          <div className="max-expand-chat-think-content">{thinkText}</div>
+                        </details>,
+                      );
+                    }
                   }
 
-                  // think[1..] 放在所有工具/todo 组之后（后续推理）
-                  for (let idx = 1; idx < thinkBlocks.length; idx++) {
+                  // 剩余的 think 块（没有对应工具组的后续推理）
+                  for (let idx = nextThinkIdx; idx < thinkBlocks.length; idx++) {
                     const thinkText = thinkBlocks[idx] || '';
                     if (thinkText) {
                       timelineNodes.push(
