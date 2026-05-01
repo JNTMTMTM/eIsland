@@ -254,6 +254,13 @@ export interface AiChatMessage {
   toolCalls?: AiToolCall[];
   todoSnapshots?: AiTodoSnapshot[];
   attachments?: AiChatAttachment[];
+  tokenUsage?: {
+    inputTokens: number;
+    outputTokens: number;
+    reasoningTokens: number;
+    totalTokens: number;
+    source: string;
+  };
 }
 
 /** AI 历史会话 */

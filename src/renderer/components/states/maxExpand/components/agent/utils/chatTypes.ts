@@ -39,6 +39,11 @@ export interface FinalEventPayload {
   traceId?: unknown;
   traceid?: unknown;
   trace_id?: unknown;
+  billedInputTokens?: unknown;
+  billedOutputTokens?: unknown;
+  billedReasoningTokens?: unknown;
+  billedTokenTotal?: unknown;
+  tokenSource?: unknown;
 }
 
 export interface ToolEventPayload {

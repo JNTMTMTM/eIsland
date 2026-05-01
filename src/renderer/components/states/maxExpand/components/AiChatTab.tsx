@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import React, { useDeferredValue, useEffect, useRef, useState, useCallback, useMemo } from 'react';
+import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useTranslation } from 'react-i18next';
@@ -49,7 +49,6 @@ import { readLocalToken } from '../../../../utils/userAccount';
 import { MarkdownCodeBlock } from './agent/components/MarkdownCodeBlock';
 import { MarkdownSiteLink } from './agent/components/MarkdownSiteLink';
 import {
-  MAX_MIHTNELIS_CONTEXT_CHARS,
   buildMihtnelisContext,
   normalizeMarkdownCodeFences,
   streamChatCompletion,
@@ -69,6 +68,7 @@ import { resolveSessionCardState } from './agent/utils/sessionUtils';
 
 const SESSION_ABORT_CONTROLLERS = new Map<string, AbortController>();
 const SESSION_STREAMING_IDS = new Set<string>();
+const MAX_CONTEXT_TOKENS = 131_072;
 let cachedAiLocalToolAccessPrompt: AiLocalToolAccessPrompt | null = null;
 let cachedAiLocalToolAccessResolveError = '';
 const STREAM_UI_FLUSH_INTERVAL_MS = 90;
@@ -259,7 +259,6 @@ export function AiChatTab(): React.ReactElement {
     aiWebAccessResolveError,
     setAiWebAccessResolveError,
   } = useIslandStore();
-  const deferredAiChatMessages = useDeferredValue(aiChatMessages);
   const selectedModel = (() => {
     const m = availableModels.includes(aiConfig.model as (typeof availableModels)[number])
       ? aiConfig.model
@@ -268,7 +267,6 @@ export function AiChatTab(): React.ReactElement {
     return m;
   })();
   const showDeepseekIconOnModelToggle = selectedModel.toLowerCase().includes('deepseek');
-  const mihtnelisContext = useMemo(() => buildMihtnelisContext(deferredAiChatMessages), [deferredAiChatMessages]);
   const visibleWindowEnd = Math.min(aiChatMessages.length, visibleWindowStart + VISIBLE_CHAT_WINDOW_SIZE);
   const hasUpperHiddenMessages = visibleWindowStart > 0;
   const hasLowerHiddenMessages = visibleWindowEnd < aiChatMessages.length;
@@ -292,16 +290,33 @@ export function AiChatTab(): React.ReactElement {
       sessions: aiChatSessions,
     });
   }, [aiChatSessions, aiLocalToolAccessPrompt, aiWebAccessPrompt]);
-  const contextUsageChars = mihtnelisContext.length;
-  const contextUsagePercent = Math.min(100, (contextUsageChars / MAX_MIHTNELIS_CONTEXT_CHARS) * 100);
+  const contextTokenUsage = useMemo(() => {
+    let inputTokens = 0;
+    let outputTokens = 0;
+    let reasoningTokens = 0;
+    let totalTokens = 0;
+    let source = '';
+    for (const msg of aiChatMessages) {
+      if (msg?.role === 'assistant' && msg.tokenUsage) {
+        inputTokens += msg.tokenUsage.inputTokens;
+        outputTokens += msg.tokenUsage.outputTokens;
+        reasoningTokens += msg.tokenUsage.reasoningTokens;
+        totalTokens += msg.tokenUsage.totalTokens;
+        source = msg.tokenUsage.source;
+      }
+    }
+    return { inputTokens, outputTokens, reasoningTokens, totalTokens, source };
+  }, [aiChatMessages]);
+  const contextUsageTokens = contextTokenUsage.totalTokens;
+  const contextUsagePercent = contextUsageTokens > 0 ? Math.min(100, (contextUsageTokens / MAX_CONTEXT_TOKENS) * 100) : 0;
   const contextUsagePercentText = `${contextUsagePercent.toFixed(1)}%`;
   const contextUsageLevelClass = contextUsagePercent >= 90
     ? 'danger'
     : (contextUsagePercent >= 70 ? 'warn' : 'normal');
   const contextUsageInlineText = t('aiChat.contextUsage.inline', {
     defaultValue: '{{used}} / {{max}} · {{percent}}',
-    used: contextUsageChars.toLocaleString(),
-    max: MAX_MIHTNELIS_CONTEXT_CHARS.toLocaleString(),
+    used: contextUsageTokens.toLocaleString(),
+    max: MAX_CONTEXT_TOKENS.toLocaleString(),
     percent: contextUsagePercentText,
   });
   const refreshActiveSessionStreaming = useCallback((): void => {
@@ -1053,6 +1068,14 @@ export function AiChatTab(): React.ReactElement {
               const payload = event.payload as FinalEventPayload;
               const rawTraceId = payload?.traceId ?? payload?.traceid ?? payload?.trace_id;
               const traceId = typeof rawTraceId === 'string' ? rawTraceId.trim() : '';
+              const billedInput = typeof payload?.billedInputTokens === 'number' ? payload.billedInputTokens : 0;
+              const billedOutput = typeof payload?.billedOutputTokens === 'number' ? payload.billedOutputTokens : 0;
+              const billedReasoning = typeof payload?.billedReasoningTokens === 'number' ? payload.billedReasoningTokens : 0;
+              const billedTotal = typeof payload?.billedTokenTotal === 'number' ? payload.billedTokenTotal : (billedInput + billedOutput);
+              const tokenSource = typeof payload?.tokenSource === 'string' ? payload.tokenSource : '';
+              const tokenUsage = (billedInput > 0 || billedOutput > 0)
+                ? { inputTokens: billedInput, outputTokens: billedOutput, reasoningTokens: billedReasoning, totalTokens: billedTotal, source: tokenSource }
+                : undefined;
               updateTargetMessages(prev => {
                 const copy = [...prev];
                 const last = copy[copy.length - 1];
@@ -1063,6 +1086,7 @@ export function AiChatTab(): React.ReactElement {
                   ...last,
                   finalized: true,
                   traceId,
+                  ...(tokenUsage ? { tokenUsage } : {}),
                 };
                 return copy;
               });
@@ -2088,9 +2112,9 @@ export function AiChatTab(): React.ReactElement {
                 className={`max-expand-chat-context-usage in-card ${contextUsageLevelClass}`}
                 role="img"
                 aria-label={t('aiChat.contextUsage.aria', {
-                  defaultValue: '上下文使用情况：{{used}} / {{max}}（{{percent}}）',
-                  used: contextUsageChars.toLocaleString(),
-                  max: MAX_MIHTNELIS_CONTEXT_CHARS.toLocaleString(),
+                  defaultValue: '上下文使用情况：{{used}} / {{max}} tokens（{{percent}}）',
+                  used: contextUsageTokens.toLocaleString(),
+                  max: MAX_CONTEXT_TOKENS.toLocaleString(),
                   percent: contextUsagePercentText,
                 })}
               >
