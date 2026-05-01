@@ -143,6 +143,7 @@
 .settings-mail-tab-mail-item {
   display: flex;
   flex-direction: column;
+  flex-shrink: 0;
   gap: 6px;
   min-height: 34px;
   padding: 8px 10px;

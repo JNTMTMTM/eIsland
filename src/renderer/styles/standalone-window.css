@@ -229,7 +229,9 @@
 /* ===== 视口 / 内容区 ===== */
 .cw-viewport {
   flex: 1;
-  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   position: relative;
   -webkit-app-region: no-drag;
   z-index: 1;
@@ -245,65 +247,97 @@
 
 .cw-viewport .expand-todo {
   width: 100%;
-  height: 100%;
+  flex: 1;
+  min-height: 0;
   max-width: none;
   border-radius: 0;
   padding: 24px 32px;
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 .cw-viewport .countdown-panel-v2 {
   width: 100%;
-  height: 100%;
+  flex: 1;
+  min-height: 0;
   max-width: none;
   border-radius: 0;
   padding: 24px 32px;
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 .cw-viewport .url-favorites {
   width: 100%;
-  height: 100%;
+  flex: 1;
+  min-height: 0;
   max-width: none;
   border-radius: 0;
   padding: 24px 32px;
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 .cw-viewport .album-tab {
   width: 100%;
-  height: 100%;
+  flex: 1;
+  min-height: 0;
   max-width: none;
   border-radius: 0;
   padding: 24px 32px;
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 .cw-viewport .settings-mail-tab-section {
   width: 100%;
-  height: 100%;
+  height: auto;
+  flex: 1;
+  min-height: 0;
   max-width: none;
   border-radius: 0;
   padding: 24px 32px;
   box-sizing: border-box;
+  overflow: hidden;
+}
+
+.cw-viewport .settings-mail-tab-section.has-split .settings-mail-tab-sidebar {
+  width: 35%;
+  min-width: 220px;
+}
+
+.cw-viewport .settings-mail-tab-split-container {
+  height: 100%;
+}
+
+.cw-viewport .settings-mail-tab-sidebar {
+  height: 100%;
+}
+
+.cw-viewport .settings-mail-tab-mail-item {
+  flex-shrink: 0;
 }
 
 .cw-viewport .local-file-search {
   width: 100%;
-  height: 100%;
+  flex: 1;
+  min-height: 0;
   max-width: none;
   border-radius: 0;
   padding: 24px 32px;
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 .cw-viewport .clipboard-history {
   width: 100%;
-  height: 100%;
+  flex: 1;
+  min-height: 0;
   max-width: none;
   border-radius: 0;
   padding: 24px 32px;
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 .cw-viewport .cd-top {
@@ -312,11 +346,13 @@
 
 .cw-viewport .max-expand-settings-container {
   width: 100%;
-  height: 100%;
+  flex: 1;
+  min-height: 0;
   max-width: none;
   border-radius: 0;
   padding: 0;
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 /* 独立窗口中隐藏弹出按钮 */
