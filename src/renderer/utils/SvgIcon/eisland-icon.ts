@@ -84,6 +84,7 @@ export const SvgIcon = {
   RECHARGE: './svg/RECHARGE.svg',
   LOVER: './svg/LOVER.svg',
   CODING: './svg/CODING.svg',
+  VERIFIED: './svg/VERIFIED.svg',
 } as const;
 
 export type SvgIconKey = keyof typeof SvgIcon;

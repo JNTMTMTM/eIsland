@@ -96,9 +96,9 @@ const EMPTY_GREETING_DEFAULTS = [
   '今天也一起高效一点，你想从哪件事开始？',
 ] as const;
 type AgentMode = 'mihtnelis' | 'r1pxc' | 'edoc';
-const AGENT_MODES: ReadonlyArray<{ id: AgentMode; label: string; desc: string; icon: string; noFilter?: boolean }> = [
+const AGENT_MODES: ReadonlyArray<{ id: AgentMode; label: string; desc: string; icon: string; noFilter?: boolean; badgeIcon?: string }> = [
   { id: 'mihtnelis', label: 'mihtnelis', desc: '全能', icon: SvgIcon.AI },
-  { id: 'r1pxc', label: 'r1pxc', desc: '女友', icon: SvgIcon.LOVER, noFilter: true },
+  { id: 'r1pxc', label: 'r1pxc', desc: '女友', icon: SvgIcon.LOVER, noFilter: true, badgeIcon: SvgIcon.VERIFIED },
   { id: 'edoc', label: 'edoc', desc: 'coding', icon: SvgIcon.CODING },
 ] as const;
 const AGENT_MODE_STORAGE_KEY = 'eIsland_agentMode';
@@ -2407,6 +2407,7 @@ export function AiChatTab(): React.ReactElement {
                     <img className={`max-expand-chat-agent-mode-item-icon${m.noFilter ? ' no-filter' : ''}`} src={m.icon} alt="" />
                     <span className="max-expand-chat-agent-mode-item-label">{m.label}</span>
                     <span className="max-expand-chat-agent-mode-item-desc">{m.desc}</span>
+                    {m.badgeIcon && <img className="max-expand-chat-agent-mode-item-badge" src={m.badgeIcon} alt="" />}
                   </button>
                 ))}
               </div>

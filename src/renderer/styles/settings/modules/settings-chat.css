@@ -1720,6 +1720,12 @@
   background: rgba(var(--color-text-rgb), 0.1);
 }
 
+.max-expand-chat-agent-mode-item-badge {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+}
+
 /** 发送按钮 */
 .max-expand-chat-send {
   display: inline-flex;
