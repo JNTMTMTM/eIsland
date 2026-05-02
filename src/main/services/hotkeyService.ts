@@ -411,12 +411,9 @@ export function createHotkeyService(options: CreateHotkeyServiceOptions): Hotkey
     }
   }
 
-  /** Agent 语音输入长按检测状态 */
-  let agentVoiceInputHoldTimer: ReturnType<typeof setTimeout> | null = null;
-  let agentVoiceInputReleaseTimer: ReturnType<typeof setTimeout> | null = null;
-  let agentVoiceInputHolding = false;
-  const AGENT_VOICE_INPUT_HOLD_THRESHOLD_MS = 400;
-  const AGENT_VOICE_INPUT_RELEASE_DETECT_MS = 250;
+  /** Agent 语音输入切换状态 */
+  let agentVoiceInputActive = false;
+  let agentVoiceInputDebounce = false;
 
   function registerAgentVoiceInputHotkey(accelerator: string): boolean {
     if (currentAgentVoiceInputHotkey) {
@@ -428,39 +425,24 @@ export function createHotkeyService(options: CreateHotkeyServiceOptions): Hotkey
       currentAgentVoiceInputHotkey = '';
     }
 
-    // 清理长按状态
-    if (agentVoiceInputHoldTimer) { clearTimeout(agentVoiceInputHoldTimer); agentVoiceInputHoldTimer = null; }
-    if (agentVoiceInputReleaseTimer) { clearTimeout(agentVoiceInputReleaseTimer); agentVoiceInputReleaseTimer = null; }
-    if (agentVoiceInputHolding) { options.onAgentVoiceInputHotkeyRelease(); agentVoiceInputHolding = false; }
+    // 清理切换状态
+    if (agentVoiceInputActive) { options.onAgentVoiceInputHotkeyRelease(); agentVoiceInputActive = false; }
 
     if (!accelerator) return true;
 
     try {
       const success = globalShortcut.register(accelerator, () => {
-        // globalShortcut 在按住时会重复触发
-        // 每次触发都重置 release 检测定时器
-        if (agentVoiceInputReleaseTimer) {
-          clearTimeout(agentVoiceInputReleaseTimer);
-        }
-        agentVoiceInputReleaseTimer = setTimeout(() => {
-          // 超过 RELEASE_DETECT_MS 没有再次触发 → 判定为释放
-          if (agentVoiceInputHolding) {
-            agentVoiceInputHolding = false;
-            options.onAgentVoiceInputHotkeyRelease();
-          }
-          if (agentVoiceInputHoldTimer) {
-            clearTimeout(agentVoiceInputHoldTimer);
-            agentVoiceInputHoldTimer = null;
-          }
-        }, AGENT_VOICE_INPUT_RELEASE_DETECT_MS);
+        // globalShortcut 在按住时会重复触发，用 debounce 防止连续切换
+        if (agentVoiceInputDebounce) return;
+        agentVoiceInputDebounce = true;
+        setTimeout(() => { agentVoiceInputDebounce = false; }, 300);
 
-        if (!agentVoiceInputHolding && !agentVoiceInputHoldTimer) {
-          // 首次按下：启动长按阈值定时器
-          agentVoiceInputHoldTimer = setTimeout(() => {
-            agentVoiceInputHoldTimer = null;
-            agentVoiceInputHolding = true;
-            options.onAgentVoiceInputHotkeyHold();
-          }, AGENT_VOICE_INPUT_HOLD_THRESHOLD_MS);
+        if (agentVoiceInputActive) {
+          agentVoiceInputActive = false;
+          options.onAgentVoiceInputHotkeyRelease();
+        } else {
+          agentVoiceInputActive = true;
+          options.onAgentVoiceInputHotkeyHold();
         }
       });
 
