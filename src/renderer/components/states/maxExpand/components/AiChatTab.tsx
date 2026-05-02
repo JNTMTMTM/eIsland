@@ -1682,7 +1682,7 @@ export function AiChatTab(): React.ReactElement {
                   {r1pxcAvatarUrl ? (
                     <img className="max-expand-chat-agent-avatar" src={r1pxcAvatarUrl} alt="" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                   ) : (
-                    <span className="max-expand-chat-agent-avatar max-expand-chat-agent-avatar--placeholder" />
+                    <img className="max-expand-chat-agent-avatar max-expand-chat-agent-avatar--placeholder" src={SvgIcon.USER} alt="" />
                   )}
                   <div className="max-expand-chat-bubble ai r1pxc-chat">
                     <div className="max-expand-chat-loading-row">
@@ -1697,7 +1697,7 @@ export function AiChatTab(): React.ReactElement {
                 {r1pxcAvatarUrl ? (
                   <img className="max-expand-chat-agent-avatar" src={r1pxcAvatarUrl} alt="" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                 ) : (
-                  <span className="max-expand-chat-agent-avatar max-expand-chat-agent-avatar--placeholder" />
+                  <img className="max-expand-chat-agent-avatar max-expand-chat-agent-avatar--placeholder" src={SvgIcon.USER} alt="" />
                 )}
                 <div className="max-expand-chat-agent-bubbles">
                   {segments.map((seg, si) => {

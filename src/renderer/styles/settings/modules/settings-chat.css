@@ -553,7 +553,7 @@
   display: inline-block;
   width: 28px;
   height: 28px;
-  background: rgba(var(--color-text-rgb), 0.12);
+  background: transparent;
 }
 
 .max-expand-chat-agent-bubbles {
