@@ -1626,6 +1626,39 @@ export function AiChatTab(): React.ReactElement {
             && (!Array.isArray(msg.toolCalls) || msg.toolCalls.filter(tc => tc.tool !== 'agent.todo.write').length === 0)
             && !(aiChatStreaming && absoluteIndex === aiChatMessages.length - 1);
           if (isEmptyAssistant) return null;
+
+          if (agentMode === 'r1pxc' && msg.role === 'assistant') {
+            const isLatest = absoluteIndex === aiChatMessages.length - 1;
+            const segments = msg.content
+              ? msg.content.split(/\n\n+/).filter((s) => s.trim().length > 0)
+              : [];
+            if (segments.length === 0 && aiChatStreaming && isLatest) {
+              return (
+                <div key={absoluteIndex} className="max-expand-chat-bubble ai r1pxc-chat">
+                  <div className="max-expand-chat-loading-row">
+                    <span className="max-expand-chat-generating-dots"><i /><i /><i /></span>
+                  </div>
+                </div>
+              );
+            }
+            return (
+              <React.Fragment key={absoluteIndex}>
+                {segments.map((seg, si) => (
+                  <div key={`${absoluteIndex}-${si}`} className="max-expand-chat-bubble ai r1pxc-chat">
+                    <AssistantMarkdown content={normalizeMarkdownCodeFences(seg)} />
+                  </div>
+                ))}
+                {aiChatStreaming && isLatest && (
+                  <div key={`${absoluteIndex}-dots`} className="max-expand-chat-bubble ai r1pxc-chat">
+                    <div className="max-expand-chat-loading-row">
+                      <span className="max-expand-chat-generating-dots"><i /><i /><i /></span>
+                    </div>
+                  </div>
+                )}
+              </React.Fragment>
+            );
+          }
+
           return (
           <div key={absoluteIndex} className={`max-expand-chat-bubble ${msg.role === 'user' ? 'user' : 'ai'}${agentMode === 'r1pxc' ? ' r1pxc-chat' : ''}`}>
             {msg.role === 'user' ? (
@@ -1650,24 +1683,6 @@ export function AiChatTab(): React.ReactElement {
               <>
                 {(() => {
                   const isLatestAssistantMsg = absoluteIndex === aiChatMessages.length - 1;
-
-                  /* ── r1pxc 聊天框模式：仅渲染纯文本气泡 ── */
-                  if (agentMode === 'r1pxc') {
-                    const normalizedContent = normalizeMarkdownCodeFences(msg.content);
-                    return (
-                      <>
-                        {msg.content ? (
-                          <AssistantMarkdown content={normalizedContent} />
-                        ) : (
-                          aiChatStreaming && isLatestAssistantMsg ? (
-                            <div className="max-expand-chat-loading-row">
-                              <span className="max-expand-chat-generating-dots"><i /><i /><i /></span>
-                            </div>
-                          ) : ''
-                        )}
-                      </>
-                    );
-                  }
 
                   const thinkBlocks = aiConfig.deepseekThinking && Array.isArray(msg.thinkBlocks)
                     ? msg.thinkBlocks
