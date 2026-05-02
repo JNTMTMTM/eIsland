@@ -311,6 +311,7 @@ export function AiChatTab(): React.ReactElement {
     setAiWebAccessResolveError,
     setLogin,
     setRegister,
+    dominantColor,
   } = useIslandStore();
   const [hasLoginSession, setHasLoginSession] = useState<boolean>(() => Boolean(readLocalToken()));
   useEffect(() => {
@@ -1537,7 +1538,7 @@ export function AiChatTab(): React.ReactElement {
   }
 
   return (
-    <div className="max-expand-chat" ref={chatRootRef}>
+    <div className="max-expand-chat" ref={chatRootRef} style={{ '--chat-dominant-r': Math.max(dominantColor[0], 140), '--chat-dominant-g': Math.max(dominantColor[1], 140), '--chat-dominant-b': Math.max(dominantColor[2], 140) } as React.CSSProperties}>
       {/* 标题 */}
       <div className="max-expand-chat-header">
         <span className="max-expand-chat-header-title">{currentAgentModeConfig.label} Agent</span>

@@ -513,9 +513,10 @@
 
 .max-expand-chat-bubble.user {
   align-self: flex-end;
-  background: rgba(var(--color-text-rgb), 0.12);
-  color: var(--color-island-text);
+  background: rgba(76, 175, 80, 0.28);
+  color: rgba(var(--color-text-rgb), 0.92);
   border-bottom-right-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.22), 0 0 0 1px rgba(76, 175, 80, 0.15);
   user-select: text;
   -webkit-user-select: text;
 }
@@ -539,8 +540,14 @@
   padding: 5px 10px;
   border-radius: 12px;
   border-bottom-left-radius: 4px;
-  background: rgba(var(--color-text-rgb), 0.08);
+  background: rgba(
+    var(--chat-dominant-r, 140),
+    var(--chat-dominant-g, 140),
+    var(--chat-dominant-b, 140),
+    0.22
+  );
   color: rgba(var(--color-text-rgb), 0.88);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.10);
   line-height: 1.4;
 }
 
