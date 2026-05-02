@@ -328,7 +328,7 @@ export function AiChatTab(): React.ReactElement {
     return m;
   })();
   const selectedProvider = selectedModel.startsWith('mimo-') ? 'mimo' : 'deepseek';
-  const showDeepseekIconOnModelToggle = selectedModel.toLowerCase().includes('deepseek');
+  const modelToggleIcon = selectedModel.startsWith('mimo-') ? SvgIcon.MIMO : selectedModel.toLowerCase().includes('deepseek') ? SvgIcon.DEEPSEEK : null;
   const visibleWindowEnd = Math.min(aiChatMessages.length, visibleWindowStart + VISIBLE_CHAT_WINDOW_SIZE);
   const hasUpperHiddenMessages = visibleWindowStart > 0;
   const hasLowerHiddenMessages = visibleWindowEnd < aiChatMessages.length;
@@ -1769,7 +1769,7 @@ export function AiChatTab(): React.ReactElement {
                       >
                         <summary>
                           <span className="max-expand-chat-think-title">
-                            <img className="max-expand-chat-think-title-icon" src={SvgIcon.DEEPSEEK} alt="" />
+                            <img className="max-expand-chat-think-title-icon" src={modelToggleIcon || SvgIcon.DEEPSEEK} alt="" />
                             <span>{t('aiChat.timeline.thinkingProcess', { defaultValue: '思考过程 #{{index}}', index: 1 })}</span>
                           </span>
                         </summary>
@@ -1864,7 +1864,7 @@ export function AiChatTab(): React.ReactElement {
                         >
                           <summary>
                             <span className="max-expand-chat-think-title">
-                              <img className="max-expand-chat-think-title-icon" src={SvgIcon.DEEPSEEK} alt="" />
+                              <img className="max-expand-chat-think-title-icon" src={modelToggleIcon || SvgIcon.DEEPSEEK} alt="" />
                               <span>{t('aiChat.timeline.thinkingProcess', { defaultValue: '思考过程 #{{index}}', index: thinkIdx + 1 })}</span>
                             </span>
                           </summary>
@@ -1886,7 +1886,7 @@ export function AiChatTab(): React.ReactElement {
                         >
                           <summary>
                             <span className="max-expand-chat-think-title">
-                              <img className="max-expand-chat-think-title-icon" src={SvgIcon.DEEPSEEK} alt="" />
+                              <img className="max-expand-chat-think-title-icon" src={modelToggleIcon || SvgIcon.DEEPSEEK} alt="" />
                               <span>{t('aiChat.timeline.thinkingProcess', { defaultValue: '思考过程 #{{index}}', index: idx + 1 })}</span>
                             </span>
                           </summary>
@@ -2178,7 +2178,10 @@ export function AiChatTab(): React.ReactElement {
                       onClick={() => setShowModelDropdown((v) => !v)}
                       title={t('settings.ai.model', { defaultValue: '模型' })}
                     >
-                      <span className="max-expand-chat-model-dropdown-trigger-label">{selectedModel}</span>
+                      <span className="max-expand-chat-model-dropdown-trigger-label" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <img style={{ width: 14, height: 14 }} src={modelToggleIcon || SvgIcon.DEEPSEEK} alt="" />
+                        {selectedModel}
+                      </span>
                       <span className="max-expand-chat-model-dropdown-arrow">▾</span>
                     </button>
                     {showModelDropdown && (
@@ -2197,7 +2200,10 @@ export function AiChatTab(): React.ReactElement {
                                 setShowModelDropdown(false);
                               }}
                             >
-                              <span>{m}</span>
+                              <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                <img style={{ width: 14, height: 14 }} src={m.startsWith('mimo-') ? SvgIcon.MIMO : SvgIcon.DEEPSEEK} alt="" />
+                                {m}
+                              </span>
                               {isPro && <img className="max-expand-chat-model-dropdown-pro-icon" src={SvgIcon.PRO} alt="PRO" />}
                             </button>
                           );
@@ -2530,9 +2536,9 @@ export function AiChatTab(): React.ReactElement {
             }}
             title={t('aiChat.modelCard.title', { defaultValue: '模型选择卡片' })}
           >
-            {showDeepseekIconOnModelToggle ? (
+            {modelToggleIcon ? (
               <span className="max-expand-chat-model-toggle-with-icon">
-                <img className="max-expand-chat-model-toggle-icon" src={SvgIcon.DEEPSEEK} alt="" />
+                <img className="max-expand-chat-model-toggle-icon" src={modelToggleIcon} alt="" />
                 <span>{selectedModel}</span>
               </span>
             ) : selectedModel}
