@@ -61,6 +61,8 @@ import {
   MAIL_SETTINGS_PAGE_LABELS,
   MUSIC_SETTINGS_PAGES,
   MUSIC_SETTINGS_PAGE_LABELS,
+  AI_SETTINGS_PAGES,
+  AI_SETTINGS_PAGE_LABELS,
   NAV_CARDS,
   DEFAULT_NAV_ORDER,
   NAV_CARDS_MAP,
@@ -69,6 +71,7 @@ import {
   type WeatherSettingsPageKey,
   type MailSettingsPageKey,
   type MusicSettingsPageKey,
+  type AiSettingsPageKey,
   type SettingsTabLabelKey,
   type NavCardDef,
 } from './setting/utils/settingsConfig';
@@ -309,6 +312,7 @@ export function SettingsTab(): ReactElement {
   const [weatherSettingsPage, setWeatherSettingsPage] = useState<WeatherSettingsPageKey>('location');
   const [mailSettingsPage, setMailSettingsPage] = useState<MailSettingsPageKey>('account');
   const [musicSettingsPage, setMusicSettingsPage] = useState<MusicSettingsPageKey>('whitelist');
+  const [aiSettingsPage, setAiSettingsPage] = useState<AiSettingsPageKey>('general');
   const [userInitialProfilePage, setUserInitialProfilePage] = useState<'info' | 'pro' | 'recharge' | 'orders'>('info');
   const [aboutInitialPage, setAboutInitialPage] = useState<'development' | 'feedback'>('development');
   const [pluginMarketPage, setPluginMarketPage] = useState<PluginMarketPageKey>('wallpaper');
@@ -372,6 +376,9 @@ export function SettingsTab(): ReactElement {
   const musicSettingsPageRef = useRef(musicSettingsPage);
   const currentMusicSettingsPageLabel = t(`settings.musicPages.${musicSettingsPage}`, { defaultValue: MUSIC_SETTINGS_PAGE_LABELS[musicSettingsPage] || '白名单' });
   musicSettingsPageRef.current = musicSettingsPage;
+  const aiSettingsPageRef = useRef(aiSettingsPage);
+  const currentAiSettingsPageLabel = t(`settings.aiPages.${aiSettingsPage}`, { defaultValue: AI_SETTINGS_PAGE_LABELS[aiSettingsPage] || '通用配置' });
+  aiSettingsPageRef.current = aiSettingsPage;
   const pluginMarketPageRef = useRef(pluginMarketPage);
   pluginMarketPageRef.current = pluginMarketPage;
   const currentPluginMarketPageLabel = t(`settings.pluginMarket.pages.${pluginMarketPage}`, {
@@ -1950,6 +1957,25 @@ export function SettingsTab(): ReactElement {
         }
       }
 
+      if (activeTabRef.current === 'ai' && target.closest('.settings-app-pages-layout')) {
+        const mainEl = target.closest('.settings-app-page-main') as HTMLElement | null;
+        if (mainEl && mainEl.scrollHeight > mainEl.clientHeight) return;
+        const pages = AI_SETTINGS_PAGES;
+        const currentPage = aiSettingsPageRef.current;
+        const currentIdx = pages.indexOf(currentPage);
+        if (currentIdx >= 0) {
+          const nextIdx = e.deltaY > 0
+            ? Math.min(currentIdx + 1, pages.length - 1)
+            : Math.max(currentIdx - 1, 0);
+          if (nextIdx !== currentIdx) {
+            setAiSettingsPage(pages[nextIdx]);
+          }
+          e.preventDefault();
+          e.stopPropagation();
+          return;
+        }
+      }
+
       if (activeTabRef.current === 'music' && target.closest('.settings-music-pages-layout')) {
         const mainEl = target.closest('.settings-app-page-main') as HTMLElement | null;
         if (mainEl && mainEl.scrollHeight > mainEl.clientHeight) return;
@@ -2851,6 +2877,8 @@ export function SettingsTab(): ReactElement {
 
           {activeTab === 'ai' && (
             <AiSettingsSection
+              currentAiSettingsPageLabel={currentAiSettingsPageLabel}
+              aiSettingsPage={aiSettingsPage}
               aiConfig={aiConfig}
               setAiConfig={setAiConfig}
               onAddWorkspace={async () => {
@@ -2865,6 +2893,9 @@ export function SettingsTab(): ReactElement {
                 setAiConfig({ workspaces: current.filter((_, i) => i !== idx) });
               }}
               SettingsFieldComponent={SettingsField}
+              aiSettingsPages={AI_SETTINGS_PAGES}
+              aiSettingsPageLabels={translatedSettingsTabLabels}
+              setAiSettingsPage={setAiSettingsPage}
             />
           )}
 

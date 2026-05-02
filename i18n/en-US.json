@@ -927,6 +927,8 @@
       "music-lyrics": "Lyrics Source",
       "music-smtc": "SMTC",
       "ai": "AI Agent",
+      "general": "General",
+      "r1pxc": "r1pxc Agent",
       "shortcut": "Shortcuts",
       "user": "Account",
       "update": "Updates",
@@ -1002,6 +1004,10 @@
     "weatherPages": {
       "location": "Location",
       "provider": "Provider"
+    },
+    "aiPages": {
+      "general": "General",
+      "r1pxc": "r1pxc Agent"
     },
     "musicPages": {
       "whitelist": "Whitelist",

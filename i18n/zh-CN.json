@@ -927,6 +927,8 @@
       "music-lyrics": "歌词源",
       "music-smtc": "SMTC",
       "ai": "AI Agent",
+      "general": "通用配置",
+      "r1pxc": "r1pxc Agent",
       "shortcut": "快捷键",
       "user": "用户中心",
       "update": "更新设置",
@@ -1002,6 +1004,10 @@
     "weatherPages": {
       "location": "定位配置",
       "provider": "接口配置"
+    },
+    "aiPages": {
+      "general": "通用配置",
+      "r1pxc": "r1pxc Agent"
     },
     "musicPages": {
       "whitelist": "白名单",
