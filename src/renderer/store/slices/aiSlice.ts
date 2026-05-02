@@ -401,6 +401,15 @@ export const createAiSlice: StateCreator<
   AiSlice
 > = (set, get) => {
   const initialChatState = initializeAiChatState();
+
+  if (typeof window !== 'undefined') {
+    window.addEventListener('storage', (event) => {
+      if (event.key === AI_CONFIG_KEY) {
+        set({ aiConfig: loadAiConfig() });
+      }
+    });
+  }
+
   return {
     aiConfig: loadAiConfig(),
     aiChatSessions: initialChatState.sessions,
