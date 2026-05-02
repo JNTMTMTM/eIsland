@@ -833,7 +833,7 @@ export function AiChatTab(): React.ReactElement {
           skills: resolvedSkills,
           thinking: aiConfig.deepseekThinking,
           reasoningEffort: aiConfig.deepseekReasoningEffort,
-          timestamp: new Date().toISOString(),
+          timestamp: (() => { const d = new Date(); const off = -d.getTimezoneOffset(); const sign = off >= 0 ? '+' : '-'; const pad = (n: number) => String(Math.abs(n)).padStart(2, '0'); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds()) + sign + pad(Math.floor(Math.abs(off) / 60)) + ':' + pad(Math.abs(off) % 60); })(),
           signal: controller.signal,
           onEvent: (event) => {
             if (SESSION_ABORT_CONTROLLERS.get(targetSessionId) !== controller) {
