@@ -88,19 +88,27 @@ export function AiSettingsSection({
           </div>
         </div>
 
-        {/* 卡片 2:工作区 */}
+        {/* 卡片 2:r1pxc Agent 配置 */}
         <div className="settings-card">
           <div className="settings-card-header">
-            <div className="settings-card-title">{t('settings.ai.workspaceTitle', { defaultValue: 'Agent 工作区' })}</div>
-            <div className="settings-card-subtitle">{t('settings.ai.workspaceHint', { defaultValue: '配置 Agent 可操作的文件目录,所有文件读写、搜索、命令执行仅限于工作区内' })}</div>
+            <div className="settings-card-title">{t('settings.ai.r1pxcConfigTitle', { defaultValue: 'r1pxc Agent 配置' })}</div>
+            <div className="settings-card-subtitle">{t('settings.ai.r1pxcConfigHint', { defaultValue: '配置 r1pxc 在聊天中的头像展示' })}</div>
           </div>
-          <div className="settings-field-group" style={{ marginBottom: 10 }}>
+          <div className="settings-field-group">
             <SettingsField
               label={t('settings.ai.r1pxcAvatar', { defaultValue: 'r1pxc 头像 URL' })}
               value={aiConfig.r1pxcAvatar}
               placeholder="https://example.com/r1pxc.png"
               onChange={(v) => setAiConfig({ r1pxcAvatar: v })}
             />
+          </div>
+        </div>
+
+        {/* 卡片 3:工作区 */}
+        <div className="settings-card">
+          <div className="settings-card-header">
+            <div className="settings-card-title">{t('settings.ai.workspaceTitle', { defaultValue: 'Agent 工作区' })}</div>
+            <div className="settings-card-subtitle">{t('settings.ai.workspaceHint', { defaultValue: '配置 Agent 可操作的文件目录,所有文件读写、搜索、命令执行仅限于工作区内' })}</div>
           </div>
           <div className="settings-ai-workspace-area">
             {aiConfig.workspaces.length > 0 && (
