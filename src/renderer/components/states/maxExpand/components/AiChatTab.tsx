@@ -833,6 +833,7 @@ export function AiChatTab(): React.ReactElement {
           skills: resolvedSkills,
           thinking: aiConfig.deepseekThinking,
           reasoningEffort: aiConfig.deepseekReasoningEffort,
+          timestamp: new Date().toISOString(),
           signal: controller.signal,
           onEvent: (event) => {
             if (SESSION_ABORT_CONTROLLERS.get(targetSessionId) !== controller) {
