@@ -45,7 +45,7 @@ import {
 import { SvgIcon, resolveDevIconByFileName } from '../../../../utils/SvgIcon';
 import useIslandStore from '../../../../store/slices';
 import type { AiChatAttachment, AiChatMessage, AiToolCall, AiTodoItem, AiTodoSnapshot } from '../../../../store/types';
-import { readLocalToken } from '../../../../utils/userAccount';
+import { readLocalToken, subscribeUserAccountSessionChanged } from '../../../../utils/userAccount';
 import { MarkdownCodeBlock } from './agent/components/MarkdownCodeBlock';
 import { MarkdownSiteLink } from './agent/components/MarkdownSiteLink';
 import {
@@ -308,7 +308,17 @@ export function AiChatTab(): React.ReactElement {
     setAiWebAccessPrompt,
     aiWebAccessResolveError,
     setAiWebAccessResolveError,
+    setLogin,
+    setRegister,
   } = useIslandStore();
+  const [hasLoginSession, setHasLoginSession] = useState<boolean>(() => Boolean(readLocalToken()));
+  useEffect(() => {
+    const syncSession = (): void => {
+      setHasLoginSession(Boolean(readLocalToken()));
+    };
+    syncSession();
+    return subscribeUserAccountSessionChanged(syncSession);
+  }, []);
   const selectedModel = (() => {
     const m = availableModels.includes(aiConfig.model as (typeof availableModels)[number])
       ? aiConfig.model
@@ -1495,6 +1505,32 @@ export function AiChatTab(): React.ReactElement {
     });
     setAiWebAccessResolveError('');
   }, [aiWebAccessPrompt, setAiWebAccessPrompt, setAiWebAccessResolveError]);
+
+  if (!hasLoginSession) {
+    return (
+      <div className="max-expand-chat" ref={chatRootRef}>
+        <div className="max-expand-chat-header">
+          <span className="max-expand-chat-header-title">{t('aiChat.title', { defaultValue: 'mihtnelis Agent' })}</span>
+        </div>
+        <div className="settings-user-auth">
+          <div className="settings-user-auth-entry-title">
+            {t('aiChat.auth.entryTitle', { defaultValue: '登录后即可使用 AI 智能助手' })}
+          </div>
+          <div className="settings-user-auth-entry-actions">
+            <button type="button" className="settings-user-primary-btn" onClick={() => setLogin()}>
+              {t('aiChat.auth.gotoLogin', { defaultValue: '前往登录' })}
+            </button>
+            <button type="button" className="settings-user-secondary-btn" onClick={() => setRegister()}>
+              {t('aiChat.auth.gotoRegister', { defaultValue: '前往注册' })}
+            </button>
+          </div>
+          <div className="settings-user-auth-hint">
+            {t('aiChat.auth.hint', { defaultValue: 'mihtnelis Agent 为登录用户提供 AI 对话、工具调用与知识检索服务。' })}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-expand-chat" ref={chatRootRef}>
