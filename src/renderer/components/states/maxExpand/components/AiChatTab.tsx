@@ -77,8 +77,10 @@ const CONTEXT_LIMIT_OPTIONS = [
 let cachedAiLocalToolAccessPrompt: AiLocalToolAccessPrompt | null = null;
 let cachedAiLocalToolAccessResolveError = '';
 const STREAM_UI_FLUSH_INTERVAL_MS = 90;
-const VISIBLE_CHAT_WINDOW_SIZE = 4;
-const VISIBLE_CHAT_WINDOW_STEP = 4;
+const VISIBLE_CHAT_WINDOW_SIZE_DEFAULT = 4;
+const VISIBLE_CHAT_WINDOW_SIZE_R1PXC = 20;
+const VISIBLE_CHAT_WINDOW_STEP_DEFAULT = 4;
+const VISIBLE_CHAT_WINDOW_STEP_R1PXC = 20;
 const SETTINGS_OPEN_TAB_STORE_KEY = 'settings-open-tab';
 const SETTINGS_ABOUT_FEEDBACK_PREFILL_STORE_KEY = 'settings-about-feedback-prefill';
 const STANDALONE_WINDOW_MODE_STORE_KEY = 'standalone-window-mode';
@@ -332,6 +334,8 @@ export function AiChatTab(): React.ReactElement {
   })();
   const selectedProvider = selectedModel.startsWith('mimo-') ? 'mimo' : 'deepseek';
   const modelToggleIcon = selectedModel.startsWith('mimo-') ? SvgIcon.MIMO : selectedModel.toLowerCase().includes('deepseek') ? SvgIcon.DEEPSEEK : null;
+  const VISIBLE_CHAT_WINDOW_SIZE = agentMode === 'r1pxc' ? VISIBLE_CHAT_WINDOW_SIZE_R1PXC : VISIBLE_CHAT_WINDOW_SIZE_DEFAULT;
+  const VISIBLE_CHAT_WINDOW_STEP = agentMode === 'r1pxc' ? VISIBLE_CHAT_WINDOW_STEP_R1PXC : VISIBLE_CHAT_WINDOW_STEP_DEFAULT;
   const visibleWindowEnd = Math.min(aiChatMessages.length, visibleWindowStart + VISIBLE_CHAT_WINDOW_SIZE);
   const hasUpperHiddenMessages = visibleWindowStart > 0;
   const hasLowerHiddenMessages = visibleWindowEnd < aiChatMessages.length;
