@@ -1382,6 +1382,7 @@ export function AiChatTab(): React.ReactElement {
           window.api.openStandaloneWindow().catch(() => {});
         } else {
           setMaxExpandTab('settings');
+          window.dispatchEvent(new CustomEvent('settings-open-tab-intent', { detail: 'about-feedback' }));
         }
       })
       .catch(() => {});

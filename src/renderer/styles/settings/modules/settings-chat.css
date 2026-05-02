@@ -517,7 +517,7 @@
   display: flex;
   align-items: flex-end;
   gap: 8px;
-  max-width: 80%;
+  max-width: 88%;
 }
 
 .max-expand-chat-user-avatar {
@@ -535,6 +535,7 @@
 
 .max-expand-chat-bubble.user {
   align-self: flex-end;
+  max-width: 100%;
   background: rgba(76, 175, 80, 0.28);
   color: rgba(var(--color-text-rgb), 0.92);
   border-bottom-right-radius: 4px;
