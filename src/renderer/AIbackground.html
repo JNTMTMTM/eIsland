@@ -20,8 +20,8 @@
 
 <!--
   @file AIbackground.html
-  @description 全屏光圈动效
-  @author silenthim
+  @description Apple Intelligence 风格全屏边缘光效
+  @author silenthim JNTMTMTM
 -->
 <!DOCTYPE html>
 <html lang="zh-CN">
@@ -36,7 +36,7 @@
         box-sizing: border-box;
     }
     body {
-        background: #000; /* 纯黑背景让光晕效果更明显 */
+        background: transparent;
     }
     canvas {
         position: fixed;
@@ -54,55 +54,105 @@ const canvas = document.getElementById('lightCanvas');
 const ctx = canvas.getContext('2d');
 
 let w, h;
-let hueOffset = 0;
+let dpr = window.devicePixelRatio || 1;
 
 function resize() {
-    w = canvas.width = window.innerWidth;
-    h = canvas.height = window.innerHeight;
+    w = window.innerWidth;
+    h = window.innerHeight;
+    canvas.width = w * dpr;
+    canvas.height = h * dpr;
+    canvas.style.width = w + 'px';
+    canvas.style.height = h + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
 resize();
 window.addEventListener('resize', resize);
 
-function animate() {
-    ctx.clearRect(0, 0, w, h);
-    hueOffset += 0.6;
+// 动画参数
+const CYCLE = 24;       // 色环旋转周期（秒）
+const BREATH = 5;       // 呼吸周期（秒）
+const CORNER = 20;      // 容器圆角半径
+const INSET = 10;       // 边框向内收缩距离
 
-    const blurRadius = 40;
-    const strokeWidth = 60;
-    const offset = 10; // 向外偏移以隐藏实体线，只让柔和光晕漏进屏幕
-
-    // Canvas filter 比 shadowBlur 对渐变色的支持更好
-    ctx.filter = `blur(${blurRadius}px)`;
-
-    const gradient = ctx.createLinearGradient(0, 0, w, h);
-    gradient.addColorStop(0.0, `hsl(${hueOffset}, 100%, 60%)`);
-    gradient.addColorStop(0.25, `hsl(${hueOffset + 60}, 100%, 60%)`);
-    gradient.addColorStop(0.5, `hsl(${hueOffset + 120}, 100%, 60%)`);
-    gradient.addColorStop(0.75, `hsl(${hueOffset + 180}, 100%, 60%)`);
-    gradient.addColorStop(1.0, `hsl(${hueOffset + 240}, 100%, 60%)`);
-
+// 圆角矩形路径
+function roundedRectPath(x, y, rw, rh, r) {
     ctx.beginPath();
-    ctx.rect(
-        -offset, 
-        -offset, 
-        w + offset * 2, 
-        h + offset * 2
-    );
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + rw - r, y);
+    ctx.quadraticCurveTo(x + rw, y, x + rw, y + r);
+    ctx.lineTo(x + rw, y + rh - r);
+    ctx.quadraticCurveTo(x + rw, y + rh, x + rw - r, y + rh);
+    ctx.lineTo(x + r, y + rh);
+    ctx.quadraticCurveTo(x, y + rh, x, y + rh - r);
+    ctx.lineTo(x, y + r);
+    ctx.quadraticCurveTo(x, y, x + r, y);
+    ctx.closePath();
+}
 
-    ctx.lineWidth = strokeWidth;
-    ctx.strokeStyle = gradient;
+// 渐变色停：橙→红→品红→紫→蓝→靛→紫→品红（循环）
+const GRADIENT_STOPS = [
+    [0.00, 30, 100, 60],   // 橙
+    [0.10, 10, 100, 55],   // 红橙
+    [0.20, 350, 100, 55],  // 红
+    [0.30, 330, 100, 55],  // 玫红
+    [0.45, 300, 100, 50],  // 品红
+    [0.55, 275, 100, 50],  // 紫
+    [0.65, 255, 100, 55],  // 蓝紫
+    [0.75, 235, 100, 60],  // 蓝
+    [0.85, 260, 100, 55],  // 靛蓝
+    [0.92, 290, 100, 50],  // 紫红
+    [1.00, 30, 100, 60],   // 橙（闭合）
+];
 
-    // 可选：开启叠加模式使光晕更亮
-    // ctx.globalCompositeOperation = 'lighter';
+// 绘制多层辉光 + 锐线，模拟霓虹边框效果
+function drawNeonBorder(rotation, breath) {
+    const x = -INSET;
+    const y = -INSET;
+    const rw = w + INSET * 2;
+    const rh = h + INSET * 2;
+    const cx = w / 2;
+    const cy = h / 2;
 
-    ctx.stroke();
+    // 层配置：[blur, lineWidth, alpha]
+    const layers = [
+        [60, 38, 0.12 * breath],   // 最外层柔光
+        [35, 26, 0.22 * breath],   // 中间辉光
+        [18, 14, 0.40 * breath],   // 内辉光
+        [8,  6,  0.70 * breath],   // 窄辉光
+        [2,  2.5, 1.0],            // 锐线核心
+    ];
 
-    // 重置 filter 避免影响后续绘制
-    ctx.filter = 'none';
-    
+    for (const [blur, lineWidth, alpha] of layers) {
+        ctx.save();
+        ctx.filter = blur > 0 ? `blur(${blur}px)` : 'none';
+        ctx.globalAlpha = alpha;
+
+        roundedRectPath(x, y, rw, rh, CORNER + INSET);
+
+        const gradient = ctx.createConicGradient(rotation, cx, cy);
+        for (const [stop, hue, sat, lum] of GRADIENT_STOPS) {
+            gradient.addColorStop(stop, `hsl(${hue}, ${sat}%, ${lum}%)`);
+        }
+
+        ctx.lineWidth = lineWidth;
+        ctx.strokeStyle = gradient;
+        ctx.stroke();
+        ctx.restore();
+    }
+}
+
+function animate(t) {
+    t /= 1000;
+    ctx.clearRect(0, 0, w, h);
+
+    const breath = 0.85 + 0.15 * Math.sin(t * Math.PI * 2 / BREATH);
+    const rotation = (t / CYCLE) * Math.PI * 2;
+
+    drawNeonBorder(rotation, breath);
+
     requestAnimationFrame(animate);
 }
-animate();
+requestAnimationFrame(animate);
 </script>
 </body>
 </html>
