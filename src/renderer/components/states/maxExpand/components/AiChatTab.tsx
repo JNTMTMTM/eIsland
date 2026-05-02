@@ -1430,6 +1430,7 @@ export function AiChatTab(): React.ReactElement {
     pendingThinkChunksRef.current.clear();
     createNewAiChatSession();
     setVisibleWindowStart(0);
+    setPendingQuote(null);
     setResolvingWebAccessDecision(false);
     setAiWebAccessPrompt(null);
     setAiWebAccessResolveError('');
@@ -1599,6 +1600,7 @@ export function AiChatTab(): React.ReactElement {
                     setVisibleWindowStart(0);
                     setResolvingWebAccessDecision(false);
                     setResolvingLocalToolAccessDecision(false);
+                    setPendingQuote(null);
                   }}
                 >
                   <span className="max-expand-chat-session-item-main">
