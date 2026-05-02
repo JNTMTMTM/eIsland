@@ -78,6 +78,7 @@ export interface MihtnelisAgentStreamRequest {
   thinking?: boolean;
   reasoningEffort?: 'low' | 'medium' | 'high';
   timestamp?: string;
+  location?: string;
   signal?: AbortSignal;
   onEvent?: (event: MihtnelisAgentStreamEvent) => void;
 }
@@ -123,6 +124,7 @@ export async function streamMihtnelisAgent(request: MihtnelisAgentStreamRequest)
       thinking: typeof request.thinking === 'boolean' ? request.thinking : undefined,
       reasoningEffort: request.reasoningEffort,
       timestamp: request.timestamp || undefined,
+      location: request.location || undefined,
     }),
     signal: request.signal,
   });

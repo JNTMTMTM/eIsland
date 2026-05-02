@@ -46,6 +46,7 @@ import { SvgIcon, resolveDevIconByFileName } from '../../../../utils/SvgIcon';
 import useIslandStore from '../../../../store/slices';
 import type { AiChatAttachment, AiChatMessage, AiToolCall, AiTodoItem, AiTodoSnapshot } from '../../../../store/types';
 import { readLocalToken, subscribeUserAccountSessionChanged } from '../../../../utils/userAccount';
+import { loadLocationFromStorage } from '../../../../store/utils/storage';
 import { MarkdownCodeBlock } from './agent/components/MarkdownCodeBlock';
 import { MarkdownSiteLink } from './agent/components/MarkdownSiteLink';
 import {
@@ -834,6 +835,7 @@ export function AiChatTab(): React.ReactElement {
           thinking: aiConfig.deepseekThinking,
           reasoningEffort: aiConfig.deepseekReasoningEffort,
           timestamp: (() => { const d = new Date(); const off = -d.getTimezoneOffset(); const sign = off >= 0 ? '+' : '-'; const pad = (n: number) => String(Math.abs(n)).padStart(2, '0'); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds()) + sign + pad(Math.floor(Math.abs(off) / 60)) + ':' + pad(Math.abs(off) % 60); })(),
+          location: (() => { const loc = loadLocationFromStorage(); if (!loc) return undefined; const parts = [loc.city, loc.regionName, loc.country].filter(Boolean); return parts.length > 0 ? parts.join(', ') : undefined; })(),
           signal: controller.signal,
           onEvent: (event) => {
             if (SESSION_ABORT_CONTROLLERS.get(targetSessionId) !== controller) {
