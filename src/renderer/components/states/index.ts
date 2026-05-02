@@ -33,3 +33,4 @@ export { LoginContent } from './login/LoginContent';
 export { RegisterContent } from './register/RegisterContent';
 export { PaymentContent } from './payment/PaymentContent';
 export { AnnouncementContent } from './announcement/AnnouncementContent';
+export { AgentVoiceInputContent } from './agentVoiceInput/AgentVoiceInputContent';

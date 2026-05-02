@@ -309,6 +309,13 @@
   border-radius: 0 0 22px 22px;
 }
 
+.island-shell.agentVoiceInput {
+  width: 500px;
+  height: 42px;
+  background: var(--color-island-bg);
+  border-radius: 0 0 22px 22px;
+}
+
 /** 分隔线 */
 .divider {
   width: 1px;

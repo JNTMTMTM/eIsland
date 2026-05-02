@@ -40,6 +40,7 @@ import { LoginContent } from './states/login/LoginContent';
 import { RegisterContent } from './states/register/RegisterContent';
 import { PaymentContent } from './states/payment/PaymentContent';
 import { AnnouncementContent } from './states/announcement/AnnouncementContent';
+import { AgentVoiceInputContent } from './states/agentVoiceInput/AgentVoiceInputContent';
 import { SvgIcon } from '../utils/SvgIcon';
 import type { NowPlayingInfo } from '../store/isLandStore';
 import { fetchLyrics } from '../api/lyrics/lrcApi';
@@ -59,7 +60,7 @@ import {
 import { readLocalToken } from '../utils/userAccount';
 
 /** 灵动岛状态类型 */
-export type IslandState = 'idle' | 'hover' | 'expanded' | 'notification' | 'maxExpand' | 'minimal' | 'lyrics' | 'guide' | 'login' | 'register' | 'payment' | 'announcement';
+export type IslandState = 'idle' | 'hover' | 'expanded' | 'notification' | 'maxExpand' | 'minimal' | 'lyrics' | 'guide' | 'login' | 'register' | 'payment' | 'announcement' | 'agentVoiceInput';
 
 /** shell.css 中 morph/transition 主时长（0.55s） */
 const SHELL_MORPH_DURATION_MS = 550;
@@ -192,6 +193,7 @@ const STATE_AREA: Record<string, number> = {
   register: 860 * 400,
   payment: 860 * 400,
   announcement: 860 * 400,
+  agentVoiceInput: 500 * 42,
 };
 
 /** 状态配置接口 */
@@ -292,6 +294,13 @@ export const STATE_CONFIGS: Record<IslandState, StateConfig> = {
     mousePassthrough: false,
     expanded: true,
     enterDelay: 0,
+    leaveDelay: 0,
+  },
+  agentVoiceInput: {
+    name: 'agentVoiceInput',
+    mousePassthrough: true,
+    expanded: true,
+    enterDelay: 50,
     leaveDelay: 0,
   },
 };
@@ -1342,6 +1351,12 @@ function DynamicIsland(): React.JSX.Element {
       state: 'announcement',
       render: () => (
         <AnnouncementContent />
+      ),
+    },
+    {
+      state: 'agentVoiceInput',
+      render: () => (
+        <AgentVoiceInputContent />
       ),
     },
   ];

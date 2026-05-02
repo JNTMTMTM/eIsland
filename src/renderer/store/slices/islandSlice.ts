@@ -139,7 +139,7 @@ export const createIslandSlice: StateCreator<
       } else if (target === 'maxExpand' || target === 'guide' || target === 'login' || target === 'register' || target === 'payment' || target === 'announcement') {
         window.api?.expandWindowSettings();
         window.api?.disableMousePassthrough();
-      } else if (target === 'lyrics') {
+      } else if (target === 'lyrics' || target === 'agentVoiceInput') {
         window.api?.expandWindowLyrics();
         window.api?.enableMousePassthrough();
       } else if (target === 'notification') {
@@ -175,6 +175,13 @@ export const createIslandSlice: StateCreator<
     window.api?.expandWindowSettings();
     window.api?.disableMousePassthrough();
     return { state: 'announcement' as const, authReturnState: null };
+  }),
+
+  setAgentVoiceInput: () => set((prev) => {
+    if (prev.uiStateLocked && prev.state !== 'agentVoiceInput') return prev;
+    window.api?.expandWindowLyrics();
+    window.api?.enableMousePassthrough();
+    return { state: 'agentVoiceInput' as const, authReturnState: null };
   }),
 
   toggleUiStateLock: () => {

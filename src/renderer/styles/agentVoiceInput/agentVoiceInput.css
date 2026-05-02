@@ -1,0 +1,83 @@
+/*
+ * eIsland - A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Electron.
+ * https://github.com/JNTMTMTM/eIsland
+ *
+ * Copyright (C) 2026 JNTMTMTM
+ * Copyright (C) 2026 pyisland.com
+ *
+ * Original author: JNTMTMTM[](https://github.com/JNTMTMTM)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+/**
+ * @file agentVoiceInput.css
+ * @description Agent 语音输入状态样式 — 聆听指示器 + 识别文本
+ */
+
+.agent-voice-input-content {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  padding: 0 16px;
+  gap: 10px;
+  animation: agentVoiceInputEnter 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.agent-voice-input-indicator {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.agent-voice-input-dot {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(var(--color-text-rgb), 0.7);
+  animation: agentVoiceDotPulse 1.4s ease-in-out infinite;
+}
+
+.agent-voice-input-dot:nth-child(1) { animation-delay: 0ms; }
+.agent-voice-input-dot:nth-child(2) { animation-delay: 200ms; }
+.agent-voice-input-dot:nth-child(3) { animation-delay: 400ms; }
+
+.agent-voice-input-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  overflow: hidden;
+}
+
+.agent-voice-input-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(var(--color-text-rgb), 0.6);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@keyframes agentVoiceInputEnter {
+  0%   { opacity: 0; transform: translateY(4px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes agentVoiceDotPulse {
+  0%, 80%, 100% { transform: scale(1);   opacity: 0.3; }
+  40%           { transform: scale(1.5); opacity: 0.9; }
+}
