@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import type { ReactElement } from 'react';
+import { useRef, useState, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 
 interface AiSettingsSectionProps {
@@ -60,6 +60,29 @@ export function AiSettingsSection({
 }: AiSettingsSectionProps): ReactElement {
   const { t } = useTranslation();
   const SettingsField = SettingsFieldComponent;
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [avatarUploadError, setAvatarUploadError] = useState<string>('');
+
+  const readAvatarFile = (file: File): void => {
+    if (!file.type.startsWith('image/')) {
+      setAvatarUploadError(t('settings.ai.r1pxcAvatarFileTypeError', { defaultValue: '请选择图片文件（png/jpg/webp 等）' }));
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = typeof reader.result === 'string' ? reader.result : '';
+      if (!result.startsWith('data:image/')) {
+        setAvatarUploadError(t('settings.ai.r1pxcAvatarReadError', { defaultValue: '头像读取失败，请换一张图片重试' }));
+        return;
+      }
+      setAvatarUploadError('');
+      setAiConfig({ r1pxcAvatar: result });
+    };
+    reader.onerror = () => {
+      setAvatarUploadError(t('settings.ai.r1pxcAvatarReadError', { defaultValue: '头像读取失败，请换一张图片重试' }));
+    };
+    reader.readAsDataURL(file);
+  };
   return (
     <div className="max-expand-settings-section">
       <div className="max-expand-settings-title">{t('settings.labels.ai', { defaultValue: 'AI Agent' })}</div>
@@ -92,15 +115,78 @@ export function AiSettingsSection({
         <div className="settings-card">
           <div className="settings-card-header">
             <div className="settings-card-title">{t('settings.ai.r1pxcConfigTitle', { defaultValue: 'r1pxc Agent 配置' })}</div>
-            <div className="settings-card-subtitle">{t('settings.ai.r1pxcConfigHint', { defaultValue: '配置 r1pxc 在聊天中的头像展示' })}</div>
+            <div className="settings-card-subtitle">{t('settings.ai.r1pxcConfigHint', { defaultValue: '支持拖入图片或从文件资源管理器选择，不支持 URL' })}</div>
           </div>
           <div className="settings-field-group">
-            <SettingsField
-              label={t('settings.ai.r1pxcAvatar', { defaultValue: 'r1pxc 头像 URL' })}
-              value={aiConfig.r1pxcAvatar}
-              placeholder="https://example.com/r1pxc.png"
-              onChange={(v) => setAiConfig({ r1pxcAvatar: v })}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              style={{ display: 'none' }}
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                if (file) {
+                  readAvatarFile(file);
+                }
+                event.currentTarget.value = '';
+              }}
             />
+            <div
+              className="settings-r1pxc-avatar-dropzone"
+              role="button"
+              tabIndex={0}
+              onClick={() => fileInputRef.current?.click()}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault();
+                  fileInputRef.current?.click();
+                }
+              }}
+              onDragOver={(event) => {
+                event.preventDefault();
+              }}
+              onDrop={(event) => {
+                event.preventDefault();
+                const file = event.dataTransfer.files?.[0];
+                if (file) {
+                  readAvatarFile(file);
+                }
+              }}
+            >
+              {aiConfig.r1pxcAvatar ? (
+                <div className="settings-r1pxc-avatar-preview">
+                  <img
+                    className="settings-r1pxc-avatar-img"
+                    src={aiConfig.r1pxcAvatar}
+                    alt="r1pxc-avatar"
+                  />
+                  <span className="settings-r1pxc-avatar-hint">
+                    {t('settings.ai.r1pxcAvatarReplace', { defaultValue: '点击或拖入图片以替换头像' })}
+                  </span>
+                </div>
+              ) : (
+                <span className="settings-r1pxc-avatar-hint">
+                  {t('settings.ai.r1pxcAvatarUploadHint', { defaultValue: '拖入图片，或点击从文件资源管理器选择' })}
+                </span>
+              )}
+            </div>
+            {avatarUploadError && (
+              <div className="settings-r1pxc-avatar-error">
+                {avatarUploadError}
+              </div>
+            )}
+            {aiConfig.r1pxcAvatar && (
+              <button
+                className="settings-r1pxc-avatar-clear-btn"
+                type="button"
+                onClick={() => {
+                  setAvatarUploadError('');
+                  setAiConfig({ r1pxcAvatar: '' });
+                }}
+              >
+                {t('settings.ai.r1pxcAvatarClear', { defaultValue: '清除头像' })}
+              </button>
+            )}
           </div>
         </div>
 

@@ -1662,7 +1662,7 @@ export function AiChatTab(): React.ReactElement {
 
           if (agentMode === 'r1pxc' && msg.role === 'assistant') {
             const isLatest = absoluteIndex === aiChatMessages.length - 1;
-            const r1pxcAvatarUrl = aiConfig.r1pxcAvatar.trim();
+            const r1pxcAvatarUrl = aiConfig.r1pxcAvatar.trim().startsWith('data:image/') ? aiConfig.r1pxcAvatar.trim() : '';
             const rawSegments = msg.content
               ? msg.content.split(/\n\n+/).filter((s) => s.trim().length > 0)
               : [];

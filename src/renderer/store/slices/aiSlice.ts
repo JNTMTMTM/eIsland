@@ -56,7 +56,9 @@ function loadAiConfig(): AiConfig {
       merged.deepseekThinking = Boolean(merged.deepseekThinking);
       const cl = Number(merged.contextLimit);
       merged.contextLimit = (cl === 400_000 || cl === 1_000_000) ? cl as 400_000 | 1_000_000 : 200_000;
-      merged.r1pxcAvatar = typeof merged.r1pxcAvatar === 'string' ? merged.r1pxcAvatar.trim() : '';
+      merged.r1pxcAvatar = typeof merged.r1pxcAvatar === 'string' && merged.r1pxcAvatar.trim().startsWith('data:image/')
+        ? merged.r1pxcAvatar.trim()
+        : '';
       merged.workspaces = Array.isArray(merged.workspaces) ? merged.workspaces.filter((w) => typeof w === 'string' && w.trim()) : [];
       merged.skills = Array.isArray(merged.skills)
         ? (merged.skills as AiSkill[]).filter((s) => typeof s?.id === 'string' && typeof s?.name === 'string' && typeof s?.filePath === 'string')
