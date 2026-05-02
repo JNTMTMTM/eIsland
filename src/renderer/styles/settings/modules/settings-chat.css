@@ -1743,6 +1743,19 @@
   border-color: rgba(var(--color-text-rgb), 0.25);
 }
 
+.max-expand-chat-input::-webkit-scrollbar {
+  width: 4px;
+}
+
+.max-expand-chat-input::-webkit-scrollbar-thumb {
+  background: rgba(var(--color-text-rgb), 0.12);
+  border-radius: 2px;
+}
+
+.max-expand-chat-input::-webkit-scrollbar-thumb:hover {
+  background: rgba(var(--color-text-rgb), 0.22);
+}
+
 /** Agent 模式选择器 */
 .max-expand-chat-agent-mode-wrap {
   position: relative;
