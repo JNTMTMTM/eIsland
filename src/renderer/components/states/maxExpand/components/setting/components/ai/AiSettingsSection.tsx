@@ -32,6 +32,7 @@ interface AiSettingsSectionProps {
     apiKey: string;
     endpoint: string;
     workspaces: string[];
+    r1pxcAvatar: string;
   };
   setAiConfig: (config: Partial<AiSettingsSectionProps['aiConfig']>) => void;
   onAddWorkspace: () => void;
@@ -92,6 +93,14 @@ export function AiSettingsSection({
           <div className="settings-card-header">
             <div className="settings-card-title">{t('settings.ai.workspaceTitle', { defaultValue: 'Agent 工作区' })}</div>
             <div className="settings-card-subtitle">{t('settings.ai.workspaceHint', { defaultValue: '配置 Agent 可操作的文件目录,所有文件读写、搜索、命令执行仅限于工作区内' })}</div>
+          </div>
+          <div className="settings-field-group" style={{ marginBottom: 10 }}>
+            <SettingsField
+              label={t('settings.ai.r1pxcAvatar', { defaultValue: 'r1pxc 头像 URL' })}
+              value={aiConfig.r1pxcAvatar}
+              placeholder="https://example.com/r1pxc.png"
+              onChange={(v) => setAiConfig({ r1pxcAvatar: v })}
+            />
           </div>
           <div className="settings-ai-workspace-area">
             {aiConfig.workspaces.length > 0 && (

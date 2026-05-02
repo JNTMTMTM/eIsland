@@ -1662,6 +1662,7 @@ export function AiChatTab(): React.ReactElement {
 
           if (agentMode === 'r1pxc' && msg.role === 'assistant') {
             const isLatest = absoluteIndex === aiChatMessages.length - 1;
+            const r1pxcAvatarUrl = aiConfig.r1pxcAvatar.trim();
             const rawSegments = msg.content
               ? msg.content.split(/\n\n+/).filter((s) => s.trim().length > 0)
               : [];
@@ -1676,45 +1677,59 @@ export function AiChatTab(): React.ReactElement {
             }
             if (segments.length === 0 && aiChatStreaming && isLatest) {
               return (
-                <div key={absoluteIndex} className="max-expand-chat-bubble ai r1pxc-chat">
-                  <div className="max-expand-chat-loading-row">
-                    <span className="max-expand-chat-generating-dots"><i /><i /><i /></span>
+                <div key={absoluteIndex} className="max-expand-chat-agent-row r1pxc-chat">
+                  {r1pxcAvatarUrl ? (
+                    <img className="max-expand-chat-agent-avatar" src={r1pxcAvatarUrl} alt="" />
+                  ) : (
+                    <span className="max-expand-chat-agent-avatar max-expand-chat-agent-avatar--placeholder" />
+                  )}
+                  <div className="max-expand-chat-bubble ai r1pxc-chat">
+                    <div className="max-expand-chat-loading-row">
+                      <span className="max-expand-chat-generating-dots"><i /><i /><i /></span>
+                    </div>
                   </div>
                 </div>
               );
             }
             return (
-              <React.Fragment key={absoluteIndex}>
-                {segments.map((seg, si) => {
-                  const quoteMatch = seg.match(/^>\s*引用:\s*(.*)/);
-                  const quoteText = quoteMatch ? quoteMatch[1].trim() : null;
-                  const bodyText = quoteMatch ? seg.replace(/^>\s*引用:\s*.*\n?/, '').trim() : seg;
-                  return (
-                  <div
-                    key={`${absoluteIndex}-${si}`}
-                    className="max-expand-chat-bubble ai r1pxc-chat max-expand-chat-bubble--hoverable"
-                  >
-                    {quoteText && (
-                      <div className="max-expand-chat-quote-block">
-                        <span className="max-expand-chat-quote-block-text">{quoteText.length > 80 ? quoteText.slice(0, 80) + '…' : quoteText}</span>
-                      </div>
-                    )}
-                    {bodyText && <AssistantMarkdown content={normalizeMarkdownCodeFences(bodyText)} />}
-                    <span className="max-expand-chat-bubble-actions">
-                      <button type="button" onClick={() => { setPendingQuote(seg.trim()); inputRef.current?.focus(); }}>{t('aiChat.actions.quote', { defaultValue: '引用' })}</button>
-                      <button type="button" onClick={() => { navigator.clipboard.writeText(seg.trim()).catch(() => {}); }}>{t('aiChat.actions.copy', { defaultValue: '复制' })}</button>
-                    </span>
-                  </div>
-                  );
-                })}
-                {aiChatStreaming && isLatest && (
-                  <div key={`${absoluteIndex}-dots`} className="max-expand-chat-bubble ai r1pxc-chat">
-                    <div className="max-expand-chat-loading-row">
-                      <span className="max-expand-chat-generating-dots"><i /><i /><i /></span>
-                    </div>
-                  </div>
+              <div key={absoluteIndex} className="max-expand-chat-agent-row r1pxc-chat">
+                {r1pxcAvatarUrl ? (
+                  <img className="max-expand-chat-agent-avatar" src={r1pxcAvatarUrl} alt="" />
+                ) : (
+                  <span className="max-expand-chat-agent-avatar max-expand-chat-agent-avatar--placeholder" />
                 )}
-              </React.Fragment>
+                <div className="max-expand-chat-agent-bubbles">
+                  {segments.map((seg, si) => {
+                    const quoteMatch = seg.match(/^>\s*引用:\s*(.*)/);
+                    const quoteText = quoteMatch ? quoteMatch[1].trim() : null;
+                    const bodyText = quoteMatch ? seg.replace(/^>\s*引用:\s*.*\n?/, '').trim() : seg;
+                    return (
+                      <div
+                        key={`${absoluteIndex}-${si}`}
+                        className="max-expand-chat-bubble ai r1pxc-chat max-expand-chat-bubble--hoverable"
+                      >
+                        {quoteText && (
+                          <div className="max-expand-chat-quote-block">
+                            <span className="max-expand-chat-quote-block-text">{quoteText.length > 80 ? quoteText.slice(0, 80) + '…' : quoteText}</span>
+                          </div>
+                        )}
+                        {bodyText && <AssistantMarkdown content={normalizeMarkdownCodeFences(bodyText)} />}
+                        <span className="max-expand-chat-bubble-actions">
+                          <button type="button" onClick={() => { setPendingQuote(seg.trim()); inputRef.current?.focus(); }}>{t('aiChat.actions.quote', { defaultValue: '引用' })}</button>
+                          <button type="button" onClick={() => { navigator.clipboard.writeText(seg.trim()).catch(() => {}); }}>{t('aiChat.actions.copy', { defaultValue: '复制' })}</button>
+                        </span>
+                      </div>
+                    );
+                  })}
+                  {aiChatStreaming && isLatest && (
+                    <div key={`${absoluteIndex}-dots`} className="max-expand-chat-bubble ai r1pxc-chat">
+                      <div className="max-expand-chat-loading-row">
+                        <span className="max-expand-chat-generating-dots"><i /><i /><i /></span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
             );
           }
 
