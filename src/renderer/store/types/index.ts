@@ -257,6 +257,7 @@ export interface AiChatMessage {
   toolCalls?: AiToolCall[];
   todoSnapshots?: AiTodoSnapshot[];
   attachments?: AiChatAttachment[];
+  quote?: string;
   tokenUsage?: {
     inputTokens: number;
     outputTokens: number;

@@ -292,6 +292,7 @@ export function AiChatTab(): React.ReactElement {
   const [aiLocalToolAccessPrompt, setAiLocalToolAccessPrompt] = useState<AiLocalToolAccessPrompt | null>(() => cachedAiLocalToolAccessPrompt);
   const [aiLocalToolAccessResolveError, setAiLocalToolAccessResolveError] = useState(() => cachedAiLocalToolAccessResolveError);
   const [resolvingLocalToolAccessDecision, setResolvingLocalToolAccessDecision] = useState(false);
+  const [pendingQuote, setPendingQuote] = useState<string | null>(null);
   const {
     aiConfig,
     setAiConfig,
@@ -789,11 +790,13 @@ export function AiChatTab(): React.ReactElement {
     const attachmentPrefix = pendingAttachments.length > 0
       ? pendingAttachments.map((a) => `<attachment name="${a.name}">\n${a.content}\n</attachment>`).join('\n\n') + '\n\n'
       : '';
-    const fullContent = attachmentPrefix + text;
+    const quotePrefix = pendingQuote && agentMode === 'r1pxc' ? `> 引用: ${pendingQuote}\n\n` : '';
+    const fullContent = attachmentPrefix + quotePrefix + text;
     const userMsg: AiChatMessage = {
       role: 'user',
       content: fullContent,
       ...(attachmentMeta.length > 0 ? { attachments: attachmentMeta } : {}),
+      ...(pendingQuote && agentMode === 'r1pxc' ? { quote: pendingQuote } : {}),
     };
     updateTargetMessages(prev => [...prev, userMsg]);
     const latestSession = useIslandStore.getState().aiChatSessions.find((s) => s.id === targetSessionId);
@@ -801,6 +804,7 @@ export function AiChatTab(): React.ReactElement {
     setVisibleWindowStart(0);
     setInput('');
     setPendingAttachments([]);
+    setPendingQuote(null);
     setAiChatStreaming(true);
     setAiWebAccessPrompt(null);
     setAiWebAccessResolveError('');
@@ -1360,6 +1364,7 @@ export function AiChatTab(): React.ReactElement {
     scheduleAssistantUpdateFlush,
     refreshActiveSessionStreaming,
     agentMode,
+    pendingQuote,
   ]);
 
   const handleReportIssueFromFinalAnswer = useCallback((traceId: string, finalAnswer: string): void => {
@@ -1670,8 +1675,15 @@ export function AiChatTab(): React.ReactElement {
             return (
               <React.Fragment key={absoluteIndex}>
                 {segments.map((seg, si) => (
-                  <div key={`${absoluteIndex}-${si}`} className="max-expand-chat-bubble ai r1pxc-chat">
+                  <div
+                    key={`${absoluteIndex}-${si}`}
+                    className="max-expand-chat-bubble ai r1pxc-chat max-expand-chat-bubble--hoverable"
+                  >
                     <AssistantMarkdown content={normalizeMarkdownCodeFences(seg)} />
+                    <span className="max-expand-chat-bubble-actions">
+                      <button type="button" onClick={() => { setPendingQuote(seg.trim()); inputRef.current?.focus(); }}>{t('aiChat.actions.quote', { defaultValue: '引用' })}</button>
+                      <button type="button" onClick={() => { navigator.clipboard.writeText(seg.trim()).catch(() => {}); }}>{t('aiChat.actions.copy', { defaultValue: '复制' })}</button>
+                    </span>
                   </div>
                 ))}
                 {aiChatStreaming && isLatest && (
@@ -1689,6 +1701,11 @@ export function AiChatTab(): React.ReactElement {
             return (
               <div key={absoluteIndex} className={`max-expand-chat-user-row${agentMode === 'r1pxc' ? ' r1pxc-chat' : ''}`}>
                 <div className={`max-expand-chat-bubble user${agentMode === 'r1pxc' ? ' r1pxc-chat' : ''}`}>
+                  {msg.quote && agentMode === 'r1pxc' && (
+                    <div className="max-expand-chat-quote-block">
+                      <span className="max-expand-chat-quote-block-text">{msg.quote.length > 80 ? msg.quote.slice(0, 80) + '…' : msg.quote}</span>
+                    </div>
+                  )}
                   {Array.isArray(msg.attachments) && msg.attachments.length > 0 && (
                     <div className="max-expand-chat-bubble-attachments">
                       {msg.attachments.map((a) => (
@@ -1703,7 +1720,7 @@ export function AiChatTab(): React.ReactElement {
                       ))}
                     </div>
                   )}
-                  {msg.content.replace(/^(?:<attachment name="[^"]*">\n[\s\S]*?\n<\/attachment>\n*)+/, '').trim()}
+                  {msg.content.replace(/^(?:<attachment name="[^"]*">\n[\s\S]*?\n<\/attachment>\n*)+/, '').replace(/^> 引用: [\s\S]*?\n\n/, '').trim()}
                 </div>
                 {userAvatarUrl ? (
                   <img className="max-expand-chat-user-avatar" src={userAvatarUrl} alt="" />
@@ -1715,7 +1732,10 @@ export function AiChatTab(): React.ReactElement {
           }
 
           return (
-          <div key={absoluteIndex} className={`max-expand-chat-bubble ai${agentMode === 'r1pxc' ? ' r1pxc-chat' : ''}`}>
+          <div
+            key={absoluteIndex}
+            className={`max-expand-chat-bubble ai${agentMode === 'r1pxc' ? ' r1pxc-chat' : ''}`}
+          >
             {(
               <>
                 {(() => {
@@ -2540,6 +2560,12 @@ export function AiChatTab(): React.ReactElement {
               </div>
             )}
           </div>
+          {pendingQuote && agentMode === 'r1pxc' && (
+            <div className="max-expand-chat-quote-preview">
+              <span className="max-expand-chat-quote-preview-text">{pendingQuote.length > 60 ? pendingQuote.slice(0, 60) + '…' : pendingQuote}</span>
+              <button type="button" className="max-expand-chat-quote-preview-close" onClick={() => setPendingQuote(null)}>✕</button>
+            </div>
+          )}
           <textarea
             ref={inputRef}
             className="max-expand-chat-input"

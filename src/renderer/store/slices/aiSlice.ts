@@ -167,6 +167,9 @@ function normalizeAiChatMessage(value: unknown): AiChatMessage | null {
   if (typeof source.traceId === 'string' && source.traceId.trim()) {
     normalized.traceId = source.traceId.trim();
   }
+  if (typeof source.quote === 'string' && source.quote.trim()) {
+    normalized.quote = source.quote.trim();
+  }
   if (source.finalized === true) {
     normalized.finalized = true;
   }
