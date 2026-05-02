@@ -142,12 +142,12 @@ function drawNeonBorder(rotation, breath, pulse, blurBreath, colorBreath) {
 
     // 层配置：[baseBlur, lineWidth, alpha]
     const layers = [
-        [110, 70 * pulse, 0.12 * breath],  // 最外层柔光
-        [70,  50 * pulse, 0.20 * breath],  // 外辉光
-        [45,  34 * pulse, 0.32 * breath],  // 中间辉光
-        [24,  20 * pulse, 0.50 * breath],  // 内辉光
-        [12,  10 * pulse, 0.72 * breath],  // 窄辉光
-        [2,   2.5,        1.0],            // 锐线核心
+        [160, 100 * pulse, 0.10 * breath], // 最外层柔光
+        [110, 75  * pulse, 0.16 * breath], // 外辉光
+        [70,  50  * pulse, 0.25 * breath], // 中间辉光
+        [40,  32  * pulse, 0.40 * breath], // 内辉光
+        [18,  14  * pulse, 0.65 * breath], // 窄辉光
+        [2,   2.5,         1.0],           // 锐线核心
     ];
 
     for (const [baseBlur, lineWidth, alpha] of layers) {
