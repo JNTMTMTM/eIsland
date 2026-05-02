@@ -536,11 +536,12 @@
   align-self: flex-start;
   max-width: 75%;
   width: auto;
-  padding: 8px 12px;
+  padding: 5px 10px;
   border-radius: 12px;
   border-bottom-left-radius: 4px;
   background: rgba(var(--color-text-rgb), 0.08);
   color: rgba(var(--color-text-rgb), 0.88);
+  line-height: 1.4;
 }
 
 .max-expand-chat-bubble.user.r1pxc-chat {
