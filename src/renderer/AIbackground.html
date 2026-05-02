@@ -71,6 +71,11 @@ function startFadeOut() {
     fadingOut = true;
 }
 
+// 出现时播放音效
+const agentAudio = new Audio('./public/audio/AGENT.wav');
+agentAudio.volume = 1.0;
+agentAudio.play().catch(() => {});
+
 function resize() {
     w = window.innerWidth;
     h = window.innerHeight;
