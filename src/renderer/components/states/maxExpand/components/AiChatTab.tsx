@@ -1393,6 +1393,25 @@ export function AiChatTab(): React.ReactElement {
       .catch(() => {});
   }, [setMaxExpandTab]);
 
+  const navigateToSettingsTab = useCallback((intent: string): void => {
+    void window.api.storeWrite(SETTINGS_OPEN_TAB_STORE_KEY, intent)
+      .then(() => window.api.storeRead(STANDALONE_WINDOW_MODE_STORE_KEY))
+      .then((mode) => {
+        if (mode === 'standalone' || mode === 'integrated') return mode;
+        return window.api.storeRead(LEGACY_COUNTDOWN_WINDOW_MODE_STORE_KEY).catch(() => null);
+      })
+      .then((mode) => {
+        if (mode === 'standalone') {
+          window.api.storeWrite(STANDALONE_WINDOW_ACTIVE_TAB_STORE_KEY, 'settings').catch(() => {});
+          window.api.openStandaloneWindow().catch(() => {});
+        } else {
+          setMaxExpandTab('settings');
+          window.dispatchEvent(new CustomEvent('settings-open-tab-intent', { detail: intent }));
+        }
+      })
+      .catch(() => {});
+  }, [setMaxExpandTab]);
+
   /** 回车发送 */
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>): void => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -1680,9 +1699,9 @@ export function AiChatTab(): React.ReactElement {
               return (
                 <div key={absoluteIndex} className="max-expand-chat-agent-row r1pxc-chat">
                   {r1pxcAvatarUrl ? (
-                    <img className="max-expand-chat-agent-avatar" src={r1pxcAvatarUrl} alt="" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                    <img className="max-expand-chat-agent-avatar max-expand-chat-avatar--clickable" src={r1pxcAvatarUrl} alt="" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} onClick={() => navigateToSettingsTab('ai')} />
                   ) : (
-                    <img className="max-expand-chat-agent-avatar max-expand-chat-agent-avatar--placeholder" src={SvgIcon.USER} alt="" />
+                    <img className="max-expand-chat-agent-avatar max-expand-chat-agent-avatar--placeholder max-expand-chat-avatar--clickable" src={SvgIcon.USER} alt="" onClick={() => navigateToSettingsTab('ai')} />
                   )}
                   <div className="max-expand-chat-bubble ai r1pxc-chat">
                     <div className="max-expand-chat-loading-row">
@@ -1695,9 +1714,9 @@ export function AiChatTab(): React.ReactElement {
             return (
               <div key={absoluteIndex} className="max-expand-chat-agent-row r1pxc-chat">
                 {r1pxcAvatarUrl ? (
-                  <img className="max-expand-chat-agent-avatar" src={r1pxcAvatarUrl} alt="" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                  <img className="max-expand-chat-agent-avatar max-expand-chat-avatar--clickable" src={r1pxcAvatarUrl} alt="" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} onClick={() => navigateToSettingsTab('ai')} />
                 ) : (
-                  <img className="max-expand-chat-agent-avatar max-expand-chat-agent-avatar--placeholder" src={SvgIcon.USER} alt="" />
+                  <img className="max-expand-chat-agent-avatar max-expand-chat-agent-avatar--placeholder max-expand-chat-avatar--clickable" src={SvgIcon.USER} alt="" onClick={() => navigateToSettingsTab('ai')} />
                 )}
                 <div className="max-expand-chat-agent-bubbles">
                   {segments.map((seg, si) => {
@@ -1760,9 +1779,9 @@ export function AiChatTab(): React.ReactElement {
                   {msg.content.replace(/^(?:<attachment name="[^"]*">\n[\s\S]*?\n<\/attachment>\n*)+/, '').replace(/^> 引用: [\s\S]*?\n\n/, '').trim()}
                 </div>
                 {userAvatarUrl ? (
-                  <img className="max-expand-chat-user-avatar" src={userAvatarUrl} alt="" />
+                  <img className="max-expand-chat-user-avatar max-expand-chat-avatar--clickable" src={userAvatarUrl} alt="" onClick={() => navigateToSettingsTab('user-info')} />
                 ) : (
-                  <span className="max-expand-chat-user-avatar max-expand-chat-user-avatar--placeholder" />
+                  <span className="max-expand-chat-user-avatar max-expand-chat-user-avatar--placeholder max-expand-chat-avatar--clickable" onClick={() => navigateToSettingsTab('user-info')} />
                 )}
               </div>
             );

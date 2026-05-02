@@ -556,6 +556,15 @@
   background: transparent;
 }
 
+.max-expand-chat-avatar--clickable {
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.max-expand-chat-avatar--clickable:hover {
+  opacity: 0.7;
+}
+
 .max-expand-chat-agent-bubbles {
   display: flex;
   flex-direction: column;

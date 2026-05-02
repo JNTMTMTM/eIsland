@@ -122,7 +122,7 @@ const MAIL_CONFIG_STORE_KEY = 'mail-account-config';
 const MAIL_ACCOUNTS_STORE_KEY = 'mail-accounts-config';
 const MAIL_FETCH_LIMIT_STORE_KEY = 'mail-fetch-limit';
 const SETTINGS_OPEN_TAB_STORE_KEY = 'settings-open-tab';
-type SettingsOpenTabIntent = 'update' | 'about-feedback' | 'user-orders' | 'mail';
+type SettingsOpenTabIntent = 'update' | 'about-feedback' | 'user-orders' | 'user-info' | 'ai' | 'mail';
 let _lastSettingsSidebarTab: SettingsSidebarTabKey = 'index';
 
 type IslandBgMediaType = 'image' | 'video';
@@ -1163,6 +1163,13 @@ export function SettingsTab(): ReactElement {
         setActiveTab('user');
         setUserInitialProfilePage('orders');
       }
+      if (value === 'user-info') {
+        setActiveTab('user');
+        setUserInitialProfilePage('info');
+      }
+      if (value === 'ai') {
+        setActiveTab('ai');
+      }
       if (value) {
         window.api.storeWrite(SETTINGS_OPEN_TAB_STORE_KEY, null).catch(() => {});
       }
@@ -1465,6 +1472,15 @@ export function SettingsTab(): ReactElement {
       if (intent === 'user-orders') {
         setActiveTab('user');
         setUserInitialProfilePage('orders');
+        window.api.storeWrite(SETTINGS_OPEN_TAB_STORE_KEY, null).catch(() => {});
+      }
+      if (intent === 'user-info') {
+        setActiveTab('user');
+        setUserInitialProfilePage('info');
+        window.api.storeWrite(SETTINGS_OPEN_TAB_STORE_KEY, null).catch(() => {});
+      }
+      if (intent === 'ai') {
+        setActiveTab('ai');
         window.api.storeWrite(SETTINGS_OPEN_TAB_STORE_KEY, null).catch(() => {});
       }
     }).catch(() => {});
