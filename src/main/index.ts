@@ -156,6 +156,7 @@ function showAgentVoiceInputWindow(): void {
   });
 
   agentVoiceInputWindow.setIgnoreMouseEvents(true);
+  agentVoiceInputWindow.setAlwaysOnTop(true, 'floating');
 
   if (app.isPackaged) {
     agentVoiceInputWindow.loadFile(join(__dirname, '../renderer/AIbackground.html'));
@@ -166,6 +167,11 @@ function showAgentVoiceInputWindow(): void {
   agentVoiceInputWindow.on('closed', () => {
     agentVoiceInputWindow = null;
   });
+
+  // 确保灵动岛始终在 Agent 语音输入窗口之上
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.setAlwaysOnTop(true, 'screen-saver');
+  }
 }
 
 /**
