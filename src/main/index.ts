@@ -148,6 +148,8 @@ function showAgentVoiceInputWindow(): void {
     resizable: false,
     focusable: false,
     hasShadow: false,
+    show: false,
+    title: '',
     type: 'toolbar',
     webPreferences: {
       contextIsolation: true,
@@ -157,12 +159,19 @@ function showAgentVoiceInputWindow(): void {
 
   agentVoiceInputWindow.setIgnoreMouseEvents(true);
   agentVoiceInputWindow.setAlwaysOnTop(true, 'floating');
+  agentVoiceInputWindow.removeMenu();
 
   if (app.isPackaged) {
     agentVoiceInputWindow.loadFile(join(__dirname, '../renderer/AIbackground.html'));
   } else {
     agentVoiceInputWindow.loadFile(join(__dirname, '../../src/renderer/AIbackground.html'));
   }
+
+  agentVoiceInputWindow.once('ready-to-show', () => {
+    if (agentVoiceInputWindow && !agentVoiceInputWindow.isDestroyed()) {
+      agentVoiceInputWindow.show();
+    }
+  });
 
   agentVoiceInputWindow.on('closed', () => {
     agentVoiceInputWindow = null;
