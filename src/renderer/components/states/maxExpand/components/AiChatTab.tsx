@@ -45,7 +45,7 @@ import {
 import { SvgIcon, resolveDevIconByFileName } from '../../../../utils/SvgIcon';
 import useIslandStore from '../../../../store/slices';
 import type { AiChatAttachment, AiChatMessage, AiToolCall, AiTodoItem, AiTodoSnapshot } from '../../../../store/types';
-import { readLocalToken, subscribeUserAccountSessionChanged } from '../../../../utils/userAccount';
+import { readLocalToken, readLocalProfile, subscribeUserAccountSessionChanged } from '../../../../utils/userAccount';
 import { loadLocationFromStorage } from '../../../../store/utils/storage';
 import { MarkdownCodeBlock } from './agent/components/MarkdownCodeBlock';
 import { MarkdownSiteLink } from './agent/components/MarkdownSiteLink';
@@ -314,9 +314,11 @@ export function AiChatTab(): React.ReactElement {
     dominantColor,
   } = useIslandStore();
   const [hasLoginSession, setHasLoginSession] = useState<boolean>(() => Boolean(readLocalToken()));
+  const [userAvatarUrl, setUserAvatarUrl] = useState<string | null>(() => readLocalProfile()?.avatar ?? null);
   useEffect(() => {
     const syncSession = (): void => {
       setHasLoginSession(Boolean(readLocalToken()));
+      setUserAvatarUrl(readLocalProfile()?.avatar ?? null);
     };
     syncSession();
     return subscribeUserAccountSessionChanged(syncSession);
@@ -1664,27 +1666,38 @@ export function AiChatTab(): React.ReactElement {
             );
           }
 
-          return (
-          <div key={absoluteIndex} className={`max-expand-chat-bubble ${msg.role === 'user' ? 'user' : 'ai'}${agentMode === 'r1pxc' ? ' r1pxc-chat' : ''}`}>
-            {msg.role === 'user' ? (
-              <>
-                {Array.isArray(msg.attachments) && msg.attachments.length > 0 && (
-                  <div className="max-expand-chat-bubble-attachments">
-                    {msg.attachments.map((a) => (
-                      <span key={a.name} className="max-expand-chat-bubble-attachment-tag">
-                        {resolveDevIconByFileName(a.name) ? (
-                          <img className="max-expand-chat-bubble-attachment-icon" src={resolveDevIconByFileName(a.name)} alt="" aria-hidden="true" />
-                        ) : (
-                          <span className="max-expand-chat-bubble-attachment-icon-fallback" aria-hidden="true" />
-                        )}
-                        <span>{a.name}</span>
-                      </span>
-                    ))}
-                  </div>
+          if (msg.role === 'user') {
+            return (
+              <div key={absoluteIndex} className={`max-expand-chat-user-row${agentMode === 'r1pxc' ? ' r1pxc-chat' : ''}`}>
+                <div className={`max-expand-chat-bubble user${agentMode === 'r1pxc' ? ' r1pxc-chat' : ''}`}>
+                  {Array.isArray(msg.attachments) && msg.attachments.length > 0 && (
+                    <div className="max-expand-chat-bubble-attachments">
+                      {msg.attachments.map((a) => (
+                        <span key={a.name} className="max-expand-chat-bubble-attachment-tag">
+                          {resolveDevIconByFileName(a.name) ? (
+                            <img className="max-expand-chat-bubble-attachment-icon" src={resolveDevIconByFileName(a.name)} alt="" aria-hidden="true" />
+                          ) : (
+                            <span className="max-expand-chat-bubble-attachment-icon-fallback" aria-hidden="true" />
+                          )}
+                          <span>{a.name}</span>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  {msg.content.replace(/^(?:<attachment name="[^"]*">\n[\s\S]*?\n<\/attachment>\n*)+/, '').trim()}
+                </div>
+                {userAvatarUrl ? (
+                  <img className="max-expand-chat-user-avatar" src={userAvatarUrl} alt="" />
+                ) : (
+                  <span className="max-expand-chat-user-avatar max-expand-chat-user-avatar--placeholder" />
                 )}
-                {msg.content.replace(/^(?:<attachment name="[^"]*">\n[\s\S]*?\n<\/attachment>\n*)+/, '').trim()}
-              </>
-            ) : (
+              </div>
+            );
+          }
+
+          return (
+          <div key={absoluteIndex} className={`max-expand-chat-bubble ai${agentMode === 'r1pxc' ? ' r1pxc-chat' : ''}`}>
+            {(
               <>
                 {(() => {
                   const isLatestAssistantMsg = absoluteIndex === aiChatMessages.length - 1;

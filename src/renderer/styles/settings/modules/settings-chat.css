@@ -511,6 +511,28 @@
   word-break: break-word;
 }
 
+/** 用户消息行（气泡 + 头像） */
+.max-expand-chat-user-row {
+  align-self: flex-end;
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  max-width: 80%;
+}
+
+.max-expand-chat-user-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.max-expand-chat-user-avatar--placeholder {
+  display: inline-block;
+  background: rgba(var(--color-text-rgb), 0.12);
+}
+
 .max-expand-chat-bubble.user {
   align-self: flex-end;
   background: rgba(76, 175, 80, 0.28);
