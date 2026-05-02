@@ -194,14 +194,14 @@ export function MaxExpandContent(): React.ReactElement {
       {/* Tab 内容区域 */}
       <div className="max-expand-tab-content" onClick={(e) => e.stopPropagation()}>
         {activeTab === 'aiChat' && <AiChatTab />}
-        {countdownMode === 'integrated' && activeTab === 'todo' && <TodoTab />}
+        {activeTab === 'todo' && <TodoTab />}
         {activeTab === 'urlFavorites' && <UrlFavoritesTab />}
         {activeTab === 'localFileSearch' && <LocalFileSearchTab />}
         {activeTab === 'clipboardHistory' && <ClipboardHistoryTab />}
         {activeTab === 'album' && <AlbumTab />}
         {activeTab === 'mail' && <MailTab />}
-        {countdownMode === 'integrated' && activeTab === 'countdown' && <CountdownTab />}
-        {countdownMode === 'integrated' && activeTab === 'settings' && <SettingsTab />}
+        {activeTab === 'countdown' && <CountdownTab />}
+        {activeTab === 'settings' && <SettingsTab />}
       </div>
 
       {/* 底部导航点 */}

@@ -26,15 +26,17 @@
 
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import useIslandStore from '../../../../../../../store/slices';
 import { getWebsiteFaviconUrl } from '../../../../../../../api/site/siteMetaApi';
 import { SvgIcon } from '../../../../../../../utils/SvgIcon';
 import { URL_FAVORITES_STORE_KEY, type UrlFavoriteItem } from '../../utils/overviewUtils';
 
+interface UrlFavoritesWidgetProps {
+  openUrlFavoritesPage: () => void;
+}
+
 /** URL 收藏小组件，展示用户收藏的网址快捷方式。 */
-export function UrlFavoritesWidget(): React.ReactElement {
+export function UrlFavoritesWidget({ openUrlFavoritesPage }: UrlFavoritesWidgetProps): React.ReactElement {
   const { t } = useTranslation();
-  const { setMaxExpand, setMaxExpandTab } = useIslandStore();
   const [favorites, setFavorites] = useState<UrlFavoriteItem[]>([]);
 
   useEffect(() => {
@@ -56,8 +58,7 @@ export function UrlFavoritesWidget(): React.ReactElement {
   }, []);
 
   const goToUrlFavorites = (): void => {
-    setMaxExpandTab('urlFavorites');
-    setMaxExpand();
+    openUrlFavoritesPage();
   };
 
   const handleOpen = (url: string): void => {

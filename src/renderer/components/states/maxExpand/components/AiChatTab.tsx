@@ -80,6 +80,9 @@ const VISIBLE_CHAT_WINDOW_SIZE = 4;
 const VISIBLE_CHAT_WINDOW_STEP = 4;
 const SETTINGS_OPEN_TAB_STORE_KEY = 'settings-open-tab';
 const SETTINGS_ABOUT_FEEDBACK_PREFILL_STORE_KEY = 'settings-about-feedback-prefill';
+const STANDALONE_WINDOW_MODE_STORE_KEY = 'standalone-window-mode';
+const LEGACY_COUNTDOWN_WINDOW_MODE_STORE_KEY = 'countdown-window-mode';
+const STANDALONE_WINDOW_ACTIVE_TAB_STORE_KEY = 'standalone-window-active-tab';
 const ATTACHMENT_MAX_SIZE_BYTES = 102400;
 const ATTACHMENT_MAX_COUNT = 5;
 const ATTACHMENT_ACCEPT_EXTENSIONS = '.txt,.md,.json,.log,.csv,.xml,.yaml,.yml,.toml,.ini,.cfg,.conf,.env,.sh,.bat,.ps1,.py,.js,.ts,.jsx,.tsx,.html,.css,.scss,.less,.sql,.c,.cpp,.h,.hpp,.java,.kt,.swift,.go,.rs,.rb,.php,.lua,.diff,.patch';
@@ -1333,8 +1336,18 @@ export function AiChatTab(): React.ReactElement {
     };
     void window.api.storeWrite(SETTINGS_ABOUT_FEEDBACK_PREFILL_STORE_KEY, payload)
       .then(() => window.api.storeWrite(SETTINGS_OPEN_TAB_STORE_KEY, 'about-feedback'))
-      .then(() => {
-        setMaxExpandTab('settings');
+      .then(() => window.api.storeRead(STANDALONE_WINDOW_MODE_STORE_KEY))
+      .then((mode) => {
+        if (mode === 'standalone' || mode === 'integrated') return mode;
+        return window.api.storeRead(LEGACY_COUNTDOWN_WINDOW_MODE_STORE_KEY).catch(() => null);
+      })
+      .then((mode) => {
+        if (mode === 'standalone') {
+          window.api.storeWrite(STANDALONE_WINDOW_ACTIVE_TAB_STORE_KEY, 'settings').catch(() => {});
+          window.api.openStandaloneWindow().catch(() => {});
+        } else {
+          setMaxExpandTab('settings');
+        }
       })
       .catch(() => {});
   }, [setMaxExpandTab]);

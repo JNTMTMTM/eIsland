@@ -85,7 +85,7 @@ export function OverviewTab(): React.ReactElement {
   const [apps, setApps] = useState<AppShortcut[]>([]);
   const [layoutConfig, setLayoutConfig] = useState<OverviewLayoutConfig>(DEFAULT_LAYOUT);
 
-  const openTargetPage = useCallback((target: 'todo' | 'countdown' | 'settings'): void => {
+  const openTargetPage = useCallback((target: string): void => {
     window.api.storeRead(STANDALONE_WINDOW_MODE_STORE_KEY).then((mode) => {
       if (mode === 'standalone' || mode === 'integrated') return mode;
       return window.api.storeRead(LEGACY_COUNTDOWN_WINDOW_MODE_STORE_KEY).catch(() => null);
@@ -94,18 +94,13 @@ export function OverviewTab(): React.ReactElement {
         window.api.storeWrite(STANDALONE_WINDOW_ACTIVE_TAB_STORE_KEY, target).catch(() => {});
         window.api.openStandaloneWindow().catch(() => {});
       } else {
-        setMaxExpandTab(target);
+        setMaxExpandTab(target as Parameters<typeof setMaxExpandTab>[0]);
         setMaxExpand();
       }
     }).catch(() => {
-      setMaxExpandTab(target);
+      setMaxExpandTab(target as Parameters<typeof setMaxExpandTab>[0]);
       setMaxExpand();
     });
-  }, [setMaxExpand, setMaxExpandTab]);
-
-  const goToAlbum = useCallback((): void => {
-    setMaxExpandTab('album');
-    setMaxExpand();
   }, [setMaxExpand, setMaxExpandTab]);
 
   useEffect(() => {
@@ -302,7 +297,7 @@ export function OverviewTab(): React.ReactElement {
       case 'song':
         return <SongWidget />;
       case 'album':
-        return <AlbumCarouselWidget openAlbumPage={goToAlbum} />;
+        return <AlbumCarouselWidget openAlbumPage={() => openTargetPage('album')} />;
       case 'countdown':
         return <CountdownWidget openTargetPage={openTargetPage} />;
       case 'pomodoro':
@@ -310,7 +305,7 @@ export function OverviewTab(): React.ReactElement {
       case 'mokugyo':
         return <MokugyoWidget />;
       case 'urlFavorites':
-        return <UrlFavoritesWidget />;
+        return <UrlFavoritesWidget openUrlFavoritesPage={() => openTargetPage('urlFavorites')} />;
       default:
         return null;
     }
