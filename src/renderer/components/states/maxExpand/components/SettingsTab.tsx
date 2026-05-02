@@ -1148,22 +1148,33 @@ export function SettingsTab(): ReactElement {
 
   useEffect(() => {
     let cancelled = false;
+    const applyOpenTabIntent = (value: unknown): void => {
+      if (value === 'update') {
+        setActiveTab('update');
+      }
+      if (value === 'mail') {
+        setActiveTab('mail');
+      }
+      if (value === 'about-feedback') {
+        setActiveTab('about');
+        setAboutInitialPage('feedback');
+      }
+      if (value === 'user-orders') {
+        setActiveTab('user');
+        setUserInitialProfilePage('orders');
+      }
+      if (value) {
+        window.api.storeWrite(SETTINGS_OPEN_TAB_STORE_KEY, null).catch(() => {});
+      }
+    };
+    const handleLocalIntent = (e: Event): void => {
+      const detail = (e as CustomEvent).detail;
+      if (typeof detail === 'string' && detail) applyOpenTabIntent(detail);
+    };
+    window.addEventListener('settings-open-tab-intent', handleLocalIntent);
     const unsub = window.api.onSettingsChanged((channel: string, value: unknown) => {
-      if (channel === 'settings:open-tab') {
-        if (value === 'update') {
-          setActiveTab('update');
-        }
-        if (value === 'mail') {
-          setActiveTab('mail');
-        }
-        if (value === 'about-feedback') {
-          setActiveTab('about');
-          setAboutInitialPage('feedback');
-        }
-        if (value === 'user-orders') {
-          setActiveTab('user');
-          setUserInitialProfilePage('orders');
-        }
+      if (channel === `store:${SETTINGS_OPEN_TAB_STORE_KEY}`) {
+        applyOpenTabIntent(value);
       }
       if (channel === 'i18n:language' && (value === 'zh-CN' || value === 'en-US')) {
         setAppLanguage(value);
@@ -1242,6 +1253,7 @@ export function SettingsTab(): ReactElement {
     return () => {
       cancelled = true;
       unsub();
+      window.removeEventListener('settings-open-tab-intent', handleLocalIntent);
     };
   }, []);
 
