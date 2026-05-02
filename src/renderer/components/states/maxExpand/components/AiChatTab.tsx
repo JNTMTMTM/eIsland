@@ -726,7 +726,19 @@ export function AiChatTab(): React.ReactElement {
   const handleSend = useCallback(async (): Promise<void> => {
     const text = input.trim();
     const targetSessionId = activeAiChatSessionId;
-    if (!text || SESSION_STREAMING_IDS.has(targetSessionId)) return;
+    if (!text) return;
+    if (SESSION_STREAMING_IDS.has(targetSessionId)) {
+      if (agentMode !== 'r1pxc') return;
+      const prevController = SESSION_ABORT_CONTROLLERS.get(targetSessionId);
+      prevController?.abort();
+      SESSION_ABORT_CONTROLLERS.delete(targetSessionId);
+      SESSION_STREAMING_IDS.delete(targetSessionId);
+      if (pendingMessageFlushRafRef.current !== null && pendingMessageFlushRafRef.current !== undefined) {
+        window.cancelAnimationFrame(pendingMessageFlushRafRef.current);
+        pendingMessageFlushRafRef.current = null;
+      }
+      flushPendingAssistantUpdates();
+    }
     const updateTargetMessages = (updater: (prev: AiChatMessage[]) => AiChatMessage[]): void => {
       const state = useIslandStore.getState();
       const session = state.aiChatSessions.find((item) => item.id === targetSessionId);
@@ -779,8 +791,9 @@ export function AiChatTab(): React.ReactElement {
       content: fullContent,
       ...(attachmentMeta.length > 0 ? { attachments: attachmentMeta } : {}),
     };
-    const nextMessages: AiChatMessage[] = [...aiChatMessages, userMsg];
     updateTargetMessages(prev => [...prev, userMsg]);
+    const latestSession = useIslandStore.getState().aiChatSessions.find((s) => s.id === targetSessionId);
+    const nextMessages: AiChatMessage[] = latestSession?.messages ?? [...aiChatMessages, userMsg];
     setVisibleWindowStart(0);
     setInput('');
     setPendingAttachments([]);
@@ -1342,6 +1355,7 @@ export function AiChatTab(): React.ReactElement {
     flushPendingAssistantUpdates,
     scheduleAssistantUpdateFlush,
     refreshActiveSessionStreaming,
+    agentMode,
   ]);
 
   const handleReportIssueFromFinalAnswer = useCallback((traceId: string, finalAnswer: string): void => {
@@ -2524,17 +2538,17 @@ export function AiChatTab(): React.ReactElement {
           <textarea
             ref={inputRef}
             className="max-expand-chat-input"
-            placeholder={aiChatStreaming
+            placeholder={aiChatStreaming && agentMode !== 'r1pxc'
               ? t('aiChat.input.generatingPlaceholder', { defaultValue: '生成中...' })
               : t('aiChat.input.placeholder', { defaultValue: '输入消息...' })}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            readOnly={aiChatStreaming}
-            aria-disabled={aiChatStreaming}
+            readOnly={aiChatStreaming && agentMode !== 'r1pxc'}
+            aria-disabled={aiChatStreaming && agentMode !== 'r1pxc'}
             rows={1}
           />
-          {aiChatStreaming ? (
+          {aiChatStreaming && !(agentMode === 'r1pxc' && input.trim()) ? (
             <button className="max-expand-chat-send" onClick={handleStop}>
               {t('aiChat.actions.stop', { defaultValue: '停止' })}
             </button>
