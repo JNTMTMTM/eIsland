@@ -176,6 +176,7 @@ declare global {
       toggleUiLockHotkeySet: (accelerator: string) => Promise<boolean>;
       agentVoiceInputHotkeyGet: () => Promise<string>;
       agentVoiceInputHotkeySet: (accelerator: string) => Promise<boolean>;
+      onAgentVoiceInputState: (callback: (active: boolean) => void) => () => void;
       onPassthroughLockChanged: (callback: (locked: boolean) => void) => () => void;
       logWrite: (level: string, message: string) => void;
       musicWhitelistGet: () => Promise<string[]>;

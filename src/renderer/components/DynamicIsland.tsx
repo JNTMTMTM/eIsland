@@ -352,7 +352,7 @@ interface StateRenderer {
  */
 function DynamicIsland(): React.JSX.Element {
   const { t, i18n } = useTranslation();
-  const { state, weather, setHover, setIdle, setExpanded, setLyrics, setGuide, setAnnouncement, timerData, setTimerData, notification, setNotification, handleNowPlayingUpdate, updateProgress, coverImage, isMusicPlaying, isPlaying, dominantColor, setDominantColor, setSyncedLyrics, setLyricsLoading, syncedLyrics, lyricsLoading, pomodoroRunning, pomodoroRemaining, springAnimation } = useIslandStore();
+  const { state, weather, setHover, setIdle, setExpanded, setLyrics, setGuide, setAnnouncement, setAgentVoiceInput, timerData, setTimerData, notification, setNotification, handleNowPlayingUpdate, updateProgress, coverImage, isMusicPlaying, isPlaying, dominantColor, setDominantColor, setSyncedLyrics, setLyricsLoading, syncedLyrics, lyricsLoading, pomodoroRunning, pomodoroRemaining, springAnimation } = useIslandStore();
   const prevStateRef = useRef(state);
   const [morphing, setMorphing] = useState(false);
   const [fromState, setFromState] = useState('');
@@ -732,6 +732,18 @@ function DynamicIsland(): React.JSX.Element {
       window.addEventListener(LOCAL_ISLAND_BG_SYNC_EVENT, localBgSyncHandler as EventListener);
     }
   }, [i18n.resolvedLanguage]);
+
+  // Agent 语音输入快捷键触发时切换灵动岛状态
+  useEffect(() => {
+    const unsub = window.api?.onAgentVoiceInputState?.((active: boolean) => {
+      if (active) {
+        setAgentVoiceInput();
+      } else {
+        setIdle(true);
+      }
+    });
+    return () => { unsub?.(); };
+  }, [setAgentVoiceInput, setIdle]);
 
   // idle 状态下：正在播放且歌词已识别/加载中时，自动切到歌词态
   useEffect(() => {

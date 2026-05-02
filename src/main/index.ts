@@ -180,6 +180,7 @@ function showAgentVoiceInputWindow(): void {
   // 确保灵动岛始终在 Agent 语音输入窗口之上
   if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.setAlwaysOnTop(true, 'screen-saver');
+    mainWindow.webContents.send('agent-voice-input:state', true);
   }
 }
 
@@ -196,6 +197,9 @@ function hideAgentVoiceInputWindow(): void {
       }
     }, 450);
     agentVoiceInputWindow = null;
+  }
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('agent-voice-input:state', false);
   }
 }
 const captureWindowService = createCaptureWindowService({

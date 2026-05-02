@@ -681,6 +681,20 @@ const api = {
     return ipcRenderer.invoke('agent-voice-input-hotkey:set', accelerator);
   },
   /**
+   * 监听 Agent 语音输入状态变化
+   * @param callback - 回调函数，参数为是否激活
+   * @returns 取消监听函数
+   */
+  onAgentVoiceInputState: (callback: (active: boolean) => void): (() => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, active: boolean): void => {
+      callback(active);
+    };
+    ipcRenderer.on('agent-voice-input:state', handler);
+    return () => {
+      ipcRenderer.removeListener('agent-voice-input:state', handler);
+    };
+  },
+  /**
    * 监听鼠标穿透锁定状态变化
    * @param callback - 回调函数，参数为是否锁定
    * @returns 取消监听函数
