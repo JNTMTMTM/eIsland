@@ -56,6 +56,21 @@ const ctx = canvas.getContext('2d');
 let w, h;
 let dpr = window.devicePixelRatio || 1;
 
+// 淡入动画参数
+const FADE_IN_DURATION = 600; // 毫秒
+let fadeInStart = -1;
+let fadeInAlpha = 0;
+canvas.style.opacity = '0';
+
+// 淡出动画参数
+const FADE_OUT_DURATION = 400; // 毫秒
+let fadeOutStart = -1;
+let fadingOut = false;
+
+function startFadeOut() {
+    fadingOut = true;
+}
+
 function resize() {
     w = window.innerWidth;
     h = window.innerHeight;
@@ -73,6 +88,8 @@ const CYCLE = 24;       // 色环旋转周期（秒）
 const BREATH = 5;       // 呼吸周期（秒）
 const CORNER = 20;      // 容器圆角半径
 const INSET = 10;       // 边框向内收缩距离
+const BURST_DURATION = 800;   // 初始脉冲持续时间（毫秒）
+const BURST_INTENSITY = 1.8;  // 初始脉冲强度倍率
 
 // 圆角矩形路径
 function roundedRectPath(x, y, rw, rh, r) {
@@ -142,10 +159,35 @@ function drawNeonBorder(rotation, breath) {
 }
 
 function animate(t) {
+    // 淡入处理
+    if (fadeInStart < 0) fadeInStart = t;
+    const elapsed = t - fadeInStart;
+    if (!fadingOut && fadeInAlpha < 1) {
+        const p = Math.min(elapsed / FADE_IN_DURATION, 1);
+        fadeInAlpha = 1 - (1 - p) * (1 - p); // easeOutQuad
+        canvas.style.opacity = String(fadeInAlpha);
+    }
+
+    // 淡出处理
+    if (fadingOut) {
+        if (fadeOutStart < 0) fadeOutStart = t;
+        const fp = Math.min((t - fadeOutStart) / FADE_OUT_DURATION, 1);
+        const fadeOutAlpha = fadeInAlpha * (1 - fp * fp); // easeInQuad
+        canvas.style.opacity = String(Math.max(fadeOutAlpha, 0));
+    }
+
     t /= 1000;
     ctx.clearRect(0, 0, w, h);
 
-    const breath = 0.85 + 0.15 * Math.sin(t * Math.PI * 2 / BREATH);
+    let breath = 0.85 + 0.15 * Math.sin(t * Math.PI * 2 / BREATH);
+
+    // 初始脉冲：出现时一次较大的辉光波动
+    if (elapsed < BURST_DURATION) {
+        const bp = elapsed / BURST_DURATION;
+        const burst = 1 + (BURST_INTENSITY - 1) * (1 - bp) * (1 - bp); // easeOut 衰减
+        breath *= burst;
+    }
+
     const rotation = (t / CYCLE) * Math.PI * 2;
 
     drawNeonBorder(rotation, breath);

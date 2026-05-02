@@ -175,11 +175,17 @@ function showAgentVoiceInputWindow(): void {
 }
 
 /**
- * 关闭 Agent 语音输入窗口
+ * 关闭 Agent 语音输入窗口（先播放淡出动画再关闭）
  */
 function hideAgentVoiceInputWindow(): void {
   if (agentVoiceInputWindow && !agentVoiceInputWindow.isDestroyed()) {
-    agentVoiceInputWindow.close();
+    const win = agentVoiceInputWindow;
+    win.webContents.executeJavaScript('startFadeOut()').catch(() => {});
+    setTimeout(() => {
+      if (win && !win.isDestroyed()) {
+        win.close();
+      }
+    }, 450);
     agentVoiceInputWindow = null;
   }
 }
