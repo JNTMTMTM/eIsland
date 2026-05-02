@@ -1662,7 +1662,8 @@ export function AiChatTab(): React.ReactElement {
 
           if (agentMode === 'r1pxc' && msg.role === 'assistant') {
             const isLatest = absoluteIndex === aiChatMessages.length - 1;
-            const r1pxcAvatarUrl = aiConfig.r1pxcAvatar.trim().startsWith('data:image/') ? aiConfig.r1pxcAvatar.trim() : '';
+            const r1pxcAvatarRaw = typeof aiConfig.r1pxcAvatar === 'string' ? aiConfig.r1pxcAvatar.trim() : '';
+            const r1pxcAvatarUrl = r1pxcAvatarRaw.startsWith('data:image/') ? r1pxcAvatarRaw : '';
             const rawSegments = msg.content
               ? msg.content.split(/\n\n+/).filter((s) => s.trim().length > 0)
               : [];
@@ -1679,7 +1680,7 @@ export function AiChatTab(): React.ReactElement {
               return (
                 <div key={absoluteIndex} className="max-expand-chat-agent-row r1pxc-chat">
                   {r1pxcAvatarUrl ? (
-                    <img className="max-expand-chat-agent-avatar" src={r1pxcAvatarUrl} alt="" />
+                    <img className="max-expand-chat-agent-avatar" src={r1pxcAvatarUrl} alt="" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                   ) : (
                     <span className="max-expand-chat-agent-avatar max-expand-chat-agent-avatar--placeholder" />
                   )}
@@ -1694,7 +1695,7 @@ export function AiChatTab(): React.ReactElement {
             return (
               <div key={absoluteIndex} className="max-expand-chat-agent-row r1pxc-chat">
                 {r1pxcAvatarUrl ? (
-                  <img className="max-expand-chat-agent-avatar" src={r1pxcAvatarUrl} alt="" />
+                  <img className="max-expand-chat-agent-avatar" src={r1pxcAvatarUrl} alt="" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                 ) : (
                   <span className="max-expand-chat-agent-avatar max-expand-chat-agent-avatar--placeholder" />
                 )}

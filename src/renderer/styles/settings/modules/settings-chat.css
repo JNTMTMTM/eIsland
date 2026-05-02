@@ -551,6 +551,8 @@
 
 .max-expand-chat-agent-avatar--placeholder {
   display: inline-block;
+  width: 28px;
+  height: 28px;
   background: rgba(var(--color-text-rgb), 0.12);
 }
 
@@ -559,6 +561,8 @@
   flex-direction: column;
   gap: 8px;
   align-items: flex-start;
+  min-width: 0;
+  flex: 1;
 }
 
 .max-expand-chat-bubble.user {

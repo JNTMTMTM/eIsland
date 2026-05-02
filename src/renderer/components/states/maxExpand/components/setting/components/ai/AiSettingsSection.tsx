@@ -86,7 +86,9 @@ export function AiSettingsSection({
   return (
     <div className="max-expand-settings-section">
       <div className="max-expand-settings-title">{t('settings.labels.ai', { defaultValue: 'AI Agent' })}</div>
-      <div className="settings-cards">
+      <div className="settings-app-pages-layout">
+        <div className="settings-app-page-main">
+          <div className="settings-cards">
 
         {/* 卡片 1:模型凭据 */}
         <div className="settings-card" style={{ opacity: 0.5, pointerEvents: 'none' }} aria-disabled="true">
@@ -230,6 +232,8 @@ export function AiSettingsSection({
           </div>
         </div>
 
+          </div>
+        </div>
       </div>
     </div>
   );
