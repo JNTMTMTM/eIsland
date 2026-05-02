@@ -532,6 +532,21 @@
   -webkit-user-select: text;
 }
 
+.max-expand-chat-bubble.ai.r1pxc-chat {
+  align-self: flex-start;
+  max-width: 75%;
+  width: auto;
+  padding: 8px 12px;
+  border-radius: 12px;
+  border-bottom-left-radius: 4px;
+  background: rgba(var(--color-text-rgb), 0.08);
+  color: rgba(var(--color-text-rgb), 0.88);
+}
+
+.max-expand-chat-bubble.user.r1pxc-chat {
+  border-bottom-right-radius: 4px;
+}
+
 .max-expand-chat-bubble.ai a {
   color: rgba(var(--color-text-rgb), 0.9);
   text-decoration: underline;

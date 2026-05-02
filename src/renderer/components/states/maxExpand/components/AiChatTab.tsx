@@ -1578,7 +1578,7 @@ export function AiChatTab(): React.ReactElement {
             && !(aiChatStreaming && absoluteIndex === aiChatMessages.length - 1);
           if (isEmptyAssistant) return null;
           return (
-          <div key={absoluteIndex} className={`max-expand-chat-bubble ${msg.role === 'user' ? 'user' : 'ai'}`}>
+          <div key={absoluteIndex} className={`max-expand-chat-bubble ${msg.role === 'user' ? 'user' : 'ai'}${agentMode === 'r1pxc' ? ' r1pxc-chat' : ''}`}>
             {msg.role === 'user' ? (
               <>
                 {Array.isArray(msg.attachments) && msg.attachments.length > 0 && (
@@ -1600,12 +1600,30 @@ export function AiChatTab(): React.ReactElement {
             ) : (
               <>
                 {(() => {
+                  const isLatestAssistantMsg = absoluteIndex === aiChatMessages.length - 1;
+
+                  /* ── r1pxc 聊天框模式：仅渲染纯文本气泡 ── */
+                  if (agentMode === 'r1pxc') {
+                    const normalizedContent = normalizeMarkdownCodeFences(msg.content);
+                    return (
+                      <>
+                        {msg.content ? (
+                          <AssistantMarkdown content={normalizedContent} />
+                        ) : (
+                          aiChatStreaming && isLatestAssistantMsg ? (
+                            <div className="max-expand-chat-loading-row">
+                              <span className="max-expand-chat-generating-dots"><i /><i /><i /></span>
+                            </div>
+                          ) : ''
+                        )}
+                      </>
+                    );
+                  }
+
                   const thinkBlocks = aiConfig.deepseekThinking && Array.isArray(msg.thinkBlocks)
                     ? msg.thinkBlocks
                     : [];
-                  const sortedToolCalls = agentMode === 'r1pxc'
-                    ? []
-                    : Array.isArray(msg.toolCalls)
+                  const sortedToolCalls = Array.isArray(msg.toolCalls)
                       ? [...msg.toolCalls]
                         // agent.todo.write 由独立 TodoList 卡片承载，不在工具时间线中重复展示。
                         .filter((toolCall) => toolCall.tool !== 'agent.todo.write')
@@ -1618,7 +1636,6 @@ export function AiChatTab(): React.ReactElement {
                       : [];
                   const todoSnapshots: AiTodoSnapshot[] = Array.isArray(msg.todoSnapshots) ? msg.todoSnapshots : [];
 
-                  const isLatestAssistantMsg = absoluteIndex === aiChatMessages.length - 1;
                   const showThinkingFooter = aiConfig.deepseekThinking && aiChatStreaming && isLatestAssistantMsg;
                   const traceId = typeof msg.traceId === 'string' ? msg.traceId.trim() : '';
                   const showFinalTraceMeta = Boolean(msg.finalized);
