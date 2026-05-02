@@ -84,12 +84,17 @@ resize();
 window.addEventListener('resize', resize);
 
 // 动画参数
-const CYCLE = 24;       // 色环旋转周期（秒）
-const BREATH = 5;       // 呼吸周期（秒）
+const CYCLE = 8;        // 色环旋转周期（秒）
+const BREATH = 2.5;     // 主呼吸周期（秒）
+const BREATH2 = 1.4;    // 次呼吸周期（秒）
+const BREATH3 = 6.0;    // 慢波呼吸周期（秒）
+const BLUR_BREATH = 1.8;// 模糊呼吸周期（秒）
+const COLOR_BREATH = 3.6; // 色彩呼吸周期（秒）
 const CORNER = 20;      // 容器圆角半径
 const INSET = 10;       // 边框向内收缩距离
-const BURST_DURATION = 800;   // 初始脉冲持续时间（毫秒）
-const BURST_INTENSITY = 1.8;  // 初始脉冲强度倍率
+const BURST_DURATION = 1000;  // 初始脉冲持续时间（毫秒）
+const BURST_INTENSITY = 2.5;  // 初始脉冲强度倍率
+const PULSE_SPEED = 3.2;      // 辉光脉动速度（秒）
 
 // 圆角矩形路径
 function roundedRectPath(x, y, rw, rh, r) {
@@ -122,7 +127,7 @@ const GRADIENT_STOPS = [
 ];
 
 // 绘制多层辉光 + 锐线，模拟霓虹边框效果
-function drawNeonBorder(rotation, breath) {
+function drawNeonBorder(rotation, breath, pulse, blurBreath, colorBreath) {
     const x = -INSET;
     const y = -INSET;
     const rw = w + INSET * 2;
@@ -130,25 +135,30 @@ function drawNeonBorder(rotation, breath) {
     const cx = w / 2;
     const cy = h / 2;
 
-    // 层配置：[blur, lineWidth, alpha]
+    // 层配置：[baseBlur, lineWidth, alpha]
     const layers = [
-        [60, 38, 0.12 * breath],   // 最外层柔光
-        [35, 26, 0.22 * breath],   // 中间辉光
-        [18, 14, 0.40 * breath],   // 内辉光
-        [8,  6,  0.70 * breath],   // 窄辉光
-        [2,  2.5, 1.0],            // 锐线核心
+        [70, 44 * pulse, 0.15 * breath],   // 最外层柔光
+        [40, 30 * pulse, 0.28 * breath],   // 中间辉光
+        [20, 16 * pulse, 0.48 * breath],   // 内辉光
+        [9,  7  * pulse, 0.75 * breath],   // 窄辉光
+        [2,  2.5,        1.0],             // 锐线核心
     ];
 
-    for (const [blur, lineWidth, alpha] of layers) {
+    for (const [baseBlur, lineWidth, alpha] of layers) {
         ctx.save();
-        ctx.filter = blur > 0 ? `blur(${blur}px)` : 'none';
+        // 模糊呼吸：外层模糊半径随呼吸扩张收缩
+        const animatedBlur = baseBlur > 0 ? baseBlur * blurBreath : 0;
+        ctx.filter = animatedBlur > 0 ? `blur(${animatedBlur}px)` : 'none';
         ctx.globalAlpha = alpha;
 
         roundedRectPath(x, y, rw, rh, CORNER + INSET);
 
         const gradient = ctx.createConicGradient(rotation, cx, cy);
+        // 色彩呼吸：饱和度和亮度随呼吸微调
         for (const [stop, hue, sat, lum] of GRADIENT_STOPS) {
-            gradient.addColorStop(stop, `hsl(${hue}, ${sat}%, ${lum}%)`);
+            const aSat = Math.min(100, sat + 10 * colorBreath);
+            const aLum = lum + 5 * colorBreath;
+            gradient.addColorStop(stop, `hsl(${hue}, ${aSat}%, ${aLum}%)`);
         }
 
         ctx.lineWidth = lineWidth;
@@ -179,9 +189,21 @@ function animate(t) {
     t /= 1000;
     ctx.clearRect(0, 0, w, h);
 
-    let breath = 0.85 + 0.15 * Math.sin(t * Math.PI * 2 / BREATH);
+    // 三波呼吸：主波 + 次波 + 慢波叠加
+    let breath = 0.70 + 0.18 * Math.sin(t * Math.PI * 2 / BREATH)
+                     + 0.07 * Math.sin(t * Math.PI * 2 / BREATH2)
+                     + 0.05 * Math.sin(t * Math.PI * 2 / BREATH3);
 
-    // 初始脉冲：出现时一次较大的辉光波动
+    // 辉光层脉动（线宽波动）
+    const pulse = 0.85 + 0.15 * Math.sin(t * Math.PI * 2 / PULSE_SPEED);
+
+    // 模糊呼吸：外层辉光范围膀胀收缩
+    const blurBreath = 0.85 + 0.15 * Math.sin(t * Math.PI * 2 / BLUR_BREATH);
+
+    // 色彩呼吸：饱和度/亮度微调
+    const colorBreath = Math.sin(t * Math.PI * 2 / COLOR_BREATH);
+
+    // 初始脉冲：出现时一次强烈的辉光波动
     if (elapsed < BURST_DURATION) {
         const bp = elapsed / BURST_DURATION;
         const burst = 1 + (BURST_INTENSITY - 1) * (1 - bp) * (1 - bp); // easeOut 衰减
@@ -190,7 +212,7 @@ function animate(t) {
 
     const rotation = (t / CYCLE) * Math.PI * 2;
 
-    drawNeonBorder(rotation, breath);
+    drawNeonBorder(rotation, breath, pulse, blurBreath, colorBreath);
 
     requestAnimationFrame(animate);
 }
