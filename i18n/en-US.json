@@ -570,7 +570,8 @@
     },
     "modelCard": {
       "title": "Model Selection Card",
-      "focusMode": "Focus Mode"
+      "focusMode": "Focus Mode",
+      "contextLimit": "Context"
     },
     "skills": {
       "title": "Skills",
@@ -591,6 +592,7 @@
     "messages": {
       "missingApiKeyWarn": "Please fill in API Key in Settings → AI Config first.",
       "unknownError": "Unknown error",
+      "contextLimitExceeded": "⚠️ The current session has already used {{used}} tokens, exceeding the context limit ({{max}} tokens). Please start a new session to continue.",
       "emptyWithApiKey": "How can I help you?",
       "emptyWithoutApiKey": "Please fill in API Key in Settings → AI Config first",
       "emptyGreetingVariants": {
@@ -647,6 +649,12 @@
         "allow": "Always allow",
         "deny": "Always deny"
       }
+    },
+    "auth": {
+      "entryTitle": "Sign in to use the AI assistant",
+      "gotoLogin": "Go to Login",
+      "gotoRegister": "Go to Register",
+      "hint": "mihtnelis Agent provides AI chat, tool calling, and knowledge retrieval for signed-in users."
     },
     "input": {
       "generatingPlaceholder": "Generating...",
@@ -1683,6 +1691,7 @@
         "on": "On"
       },
       "deepseekReasoningEffort": "DeepSeek Reasoning Effort",
+      "mimoReasoningEffort": "Mimo Reasoning Effort",
       "deepseekReasoningEffortOptions": {
         "low": "Low (low)",
         "medium": "Medium (medium)",
@@ -1703,7 +1712,14 @@
       "workspaceHint": "Configure directories the Agent can access. All file read/write, search, and command execution are restricted to workspaces.",
       "workspaceAdd": "+ Add Workspace Folder",
       "workspaceRemove": "Remove",
-      "workspaceEmpty": "No workspace configured. Agent file operations will be blocked."
+      "workspaceEmpty": "No workspace configured. Agent file operations will be blocked.",
+      "r1pxcConfigTitle": "r1pxc Agent Avatar Settings",
+      "r1pxcConfigHint": "Supports drag-and-drop image upload or file picker selection; URL is not supported",
+      "r1pxcAvatarReplace": "Click or drop an image to replace avatar",
+      "r1pxcAvatarUploadHint": "Drop an image, or click to choose from file explorer",
+      "r1pxcAvatarClear": "Clear Avatar",
+      "r1pxcAvatarFileTypeError": "Please choose an image file (png/jpg/webp etc.)",
+      "r1pxcAvatarReadError": "Failed to read avatar. Please try another image"
     },
     "about": {
       "pagination": "About settings pages",
