@@ -1510,7 +1510,7 @@ export function AiChatTab(): React.ReactElement {
     return (
       <div className="max-expand-chat" ref={chatRootRef}>
         <div className="max-expand-chat-header">
-          <span className="max-expand-chat-header-title">{t('aiChat.title', { defaultValue: 'mihtnelis Agent' })}</span>
+          <span className="max-expand-chat-header-title">{currentAgentModeConfig.label} Agent</span>
         </div>
         <div className="settings-user-auth">
           <div className="settings-user-auth-entry-title">
@@ -1536,7 +1536,7 @@ export function AiChatTab(): React.ReactElement {
     <div className="max-expand-chat" ref={chatRootRef}>
       {/* 标题 */}
       <div className="max-expand-chat-header">
-        <span className="max-expand-chat-header-title">{t('aiChat.title', { defaultValue: 'mihtnelis Agent' })}</span>
+        <span className="max-expand-chat-header-title">{currentAgentModeConfig.label} Agent</span>
         <div className="max-expand-chat-header-actions">
           <span className="max-expand-chat-header-model">{readLocalToken() ? selectedModel : (selectedModel || t('aiChat.notConfigured', { defaultValue: '未配置' }))}</span>
           <button className="max-expand-chat-clear" onClick={handleCreateNewChat} type="button">
