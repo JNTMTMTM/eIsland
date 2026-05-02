@@ -895,6 +895,12 @@ export function SettingsTab(): ReactElement {
   const [toggleUiLockHotkeyError, setToggleUiLockHotkeyError] = useState<string>('');
   const toggleUiLockHotkeyInputRef = useRef<HTMLInputElement>(null);
 
+  /** Agent 语音输入快捷键相关状态 */
+  const [agentVoiceInputHotkey, setAgentVoiceInputHotkey] = useState<string>('');
+  const [agentVoiceInputHotkeyRecording, setAgentVoiceInputHotkeyRecording] = useState(false);
+  const [agentVoiceInputHotkeyError, setAgentVoiceInputHotkeyError] = useState<string>('');
+  const agentVoiceInputHotkeyInputRef = useRef<HTMLInputElement>(null);
+
   const hideProcessKeyword = hideProcessFilter.trim().toLowerCase();
 
 
@@ -1431,6 +1437,10 @@ export function SettingsTab(): ReactElement {
     window.api.toggleUiLockHotkeyGet().then((key) => {
       if (cancelled) return;
       setToggleUiLockHotkey(key || '');
+    }).catch(() => {});
+    window.api.agentVoiceInputHotkeyGet().then((key) => {
+      if (cancelled) return;
+      setAgentVoiceInputHotkey(key || '');
     }).catch(() => {});
     return () => { cancelled = true; };
   }, []);
@@ -2065,8 +2075,8 @@ export function SettingsTab(): ReactElement {
     return parts.length >= 2 ? parts.join('+') : '';
   };
 
-  const isDuplicateHotkey = (acc: string, exclude: 'hide' | 'quit' | 'screenshot' | 'next-song' | 'play-pause-song' | 'reset-position' | 'toggle-tray' | 'show-settings-window' | 'open-clipboard-history' | 'toggle-passthrough' | 'toggle-ui-lock'): boolean => {
-    const pairs: Array<{ key: 'hide' | 'quit' | 'screenshot' | 'next-song' | 'play-pause-song' | 'reset-position' | 'toggle-tray' | 'show-settings-window' | 'open-clipboard-history' | 'toggle-passthrough' | 'toggle-ui-lock'; value: string }> = [
+  const isDuplicateHotkey = (acc: string, exclude: 'hide' | 'quit' | 'screenshot' | 'next-song' | 'play-pause-song' | 'reset-position' | 'toggle-tray' | 'show-settings-window' | 'open-clipboard-history' | 'toggle-passthrough' | 'toggle-ui-lock' | 'agent-voice-input'): boolean => {
+    const pairs: Array<{ key: 'hide' | 'quit' | 'screenshot' | 'next-song' | 'play-pause-song' | 'reset-position' | 'toggle-tray' | 'show-settings-window' | 'open-clipboard-history' | 'toggle-passthrough' | 'toggle-ui-lock' | 'agent-voice-input'; value: string }> = [
       { key: 'hide', value: hideHotkey },
       { key: 'quit', value: quitHotkey },
       { key: 'screenshot', value: screenshotHotkey },
@@ -2078,6 +2088,7 @@ export function SettingsTab(): ReactElement {
       { key: 'open-clipboard-history', value: openClipboardHistoryHotkey },
       { key: 'toggle-passthrough', value: togglePassthroughHotkey },
       { key: 'toggle-ui-lock', value: toggleUiLockHotkey },
+      { key: 'agent-voice-input', value: agentVoiceInputHotkey },
     ];
     return pairs.some((item) => item.key !== exclude && item.value && item.value === acc);
   };
@@ -2337,6 +2348,32 @@ export function SettingsTab(): ReactElement {
       }
     }).catch(() => {
       setToggleUiLockHotkeyError('快捷键注册失败');
+    });
+  };
+
+  const handleAgentVoiceInputHotkeyKeyDown = (e: KeyboardEvent): void => {
+    e.preventDefault();
+    e.stopPropagation();
+    setAgentVoiceInputHotkeyError('');
+    const acc = keyEventToAccelerator(e);
+    if (!acc) return;
+    if (isDuplicateHotkey(acc, 'agent-voice-input')) {
+      setAgentVoiceInputHotkeyError('重复快捷键');
+      setAgentVoiceInputHotkeyRecording(false);
+      agentVoiceInputHotkeyInputRef.current?.blur();
+      return;
+    }
+
+    window.api.agentVoiceInputHotkeySet(acc).then((ok) => {
+      if (ok) {
+        setAgentVoiceInputHotkey(acc);
+        setAgentVoiceInputHotkeyRecording(false);
+        agentVoiceInputHotkeyInputRef.current?.blur();
+      } else {
+        setAgentVoiceInputHotkeyError('快捷键注册失败，请尝试其他组合');
+      }
+    }).catch(() => {
+      setAgentVoiceInputHotkeyError('快捷键注册失败');
     });
   };
 
@@ -2838,6 +2875,14 @@ export function SettingsTab(): ReactElement {
               setToggleUiLockHotkeyError={setToggleUiLockHotkeyError}
               handleToggleUiLockHotkeyKeyDown={handleToggleUiLockHotkeyKeyDown}
               setToggleUiLockHotkey={setToggleUiLockHotkey}
+              agentVoiceInputHotkeyInputRef={agentVoiceInputHotkeyInputRef}
+              agentVoiceInputHotkeyRecording={agentVoiceInputHotkeyRecording}
+              agentVoiceInputHotkeyError={agentVoiceInputHotkeyError}
+              agentVoiceInputHotkey={agentVoiceInputHotkey}
+              setAgentVoiceInputHotkeyRecording={setAgentVoiceInputHotkeyRecording}
+              setAgentVoiceInputHotkeyError={setAgentVoiceInputHotkeyError}
+              handleAgentVoiceInputHotkeyKeyDown={handleAgentVoiceInputHotkeyKeyDown}
+              setAgentVoiceInputHotkey={setAgentVoiceInputHotkey}
             />
           )}
 

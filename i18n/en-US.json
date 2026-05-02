@@ -1456,6 +1456,10 @@
         "toggleUiLock": {
           "title": "Toggle UI State Lock Shortcut",
           "hint": "Press to lock the current UI state. While locked, mouse enter/leave or auto logic will not change state. Press again to unlock"
+        },
+        "agentVoiceInput": {
+          "title": "Agent Voice Input Shortcut",
+          "hint": "Hold this shortcut to trigger Agent voice input; it closes automatically on release"
         }
       },
       "capture": {

@@ -41,6 +41,7 @@ interface RegisterHotkeyIpcHandlersOptions {
   openClipboardHistoryHotkeyStoreKey: string;
   togglePassthroughHotkeyStoreKey: string;
   toggleUiLockHotkeyStoreKey: string;
+  agentVoiceInputHotkeyStoreKey: string;
   getCurrentHideHotkey: () => string;
   getCurrentQuitHotkey: () => string;
   getCurrentScreenshotHotkey: () => string;
@@ -52,6 +53,7 @@ interface RegisterHotkeyIpcHandlersOptions {
   getCurrentOpenClipboardHistoryHotkey: () => string;
   getCurrentTogglePassthroughHotkey: () => string;
   getCurrentToggleUiLockHotkey: () => string;
+  getCurrentAgentVoiceInputHotkey: () => string;
   readHideHotkeyConfig: () => string;
   readQuitHotkeyConfig: () => string;
   readScreenshotHotkeyConfig: () => string;
@@ -63,6 +65,7 @@ interface RegisterHotkeyIpcHandlersOptions {
   readOpenClipboardHistoryHotkeyConfig: () => string;
   readTogglePassthroughHotkeyConfig: () => string;
   readToggleUiLockHotkeyConfig: () => string;
+  readAgentVoiceInputHotkeyConfig: () => string;
   registerHideHotkey: (accelerator: string) => boolean;
   registerQuitHotkey: (accelerator: string) => boolean;
   registerNextSongHotkey: (accelerator: string) => boolean;
@@ -73,6 +76,7 @@ interface RegisterHotkeyIpcHandlersOptions {
   registerOpenClipboardHistoryHotkey: (accelerator: string) => boolean;
   registerTogglePassthroughHotkey: (accelerator: string) => boolean;
   registerToggleUiLockHotkey: (accelerator: string) => boolean;
+  registerAgentVoiceInputHotkey: (accelerator: string) => boolean;
   suspendIslandHotkeys: () => void;
   resumeIslandHotkeys: () => void;
 }
@@ -418,6 +422,44 @@ export function registerHotkeyIpcHandlers(options: RegisterHotkeyIpcHandlersOpti
     const success = options.registerToggleUiLockHotkey(accelerator);
     if (success) {
       persistHotkey(options.storeDir, options.toggleUiLockHotkeyStoreKey, accelerator, 'ToggleUiLockHotkey');
+    }
+    return success;
+  });
+
+  ipcMain.handle('agent-voice-input-hotkey:get', () => {
+    return currentOrStored(options.getCurrentAgentVoiceInputHotkey, options.readAgentVoiceInputHotkeyConfig);
+  });
+
+  ipcMain.handle('agent-voice-input-hotkey:set', (_event, accelerator: string) => {
+    const currentHide = currentOrStored(options.getCurrentHideHotkey, options.readHideHotkeyConfig);
+    const currentQuit = currentOrStored(options.getCurrentQuitHotkey, options.readQuitHotkeyConfig);
+    const currentSS = currentOrStored(options.getCurrentScreenshotHotkey, options.readScreenshotHotkeyConfig);
+    const currentNextSong = currentOrStored(options.getCurrentNextSongHotkey, options.readNextSongHotkeyConfig);
+    const currentPlayPauseSong = currentOrStored(options.getCurrentPlayPauseSongHotkey, options.readPlayPauseSongHotkeyConfig);
+    const currentResetPos = currentOrStored(options.getCurrentResetPositionHotkey, options.readResetPositionHotkeyConfig);
+    const currentToggleTray = currentOrStored(options.getCurrentToggleTrayHotkey, options.readToggleTrayHotkeyConfig);
+    const currentShowSettings = currentOrStored(options.getCurrentShowSettingsWindowHotkey, options.readShowSettingsWindowHotkeyConfig);
+    const currentOpenClipboardHistory = currentOrStored(options.getCurrentOpenClipboardHistoryHotkey, options.readOpenClipboardHistoryHotkeyConfig);
+    const currentTogglePassthrough = currentOrStored(options.getCurrentTogglePassthroughHotkey, options.readTogglePassthroughHotkeyConfig);
+    const currentToggleUiLock = currentOrStored(options.getCurrentToggleUiLockHotkey, options.readToggleUiLockHotkeyConfig);
+
+    if (accelerator && ((currentHide && accelerator === currentHide)
+      || (currentQuit && accelerator === currentQuit)
+      || (currentSS && accelerator === currentSS)
+      || (currentNextSong && accelerator === currentNextSong)
+      || (currentPlayPauseSong && accelerator === currentPlayPauseSong)
+      || (currentResetPos && accelerator === currentResetPos)
+      || (currentToggleTray && accelerator === currentToggleTray)
+      || (currentShowSettings && accelerator === currentShowSettings)
+      || (currentOpenClipboardHistory && accelerator === currentOpenClipboardHistory)
+      || (currentTogglePassthrough && accelerator === currentTogglePassthrough)
+      || (currentToggleUiLock && accelerator === currentToggleUiLock))) {
+      return false;
+    }
+
+    const success = options.registerAgentVoiceInputHotkey(accelerator);
+    if (success) {
+      persistHotkey(options.storeDir, options.agentVoiceInputHotkeyStoreKey, accelerator, 'AgentVoiceInputHotkey');
     }
     return success;
   });

@@ -41,6 +41,7 @@ interface CreateHotkeyServiceOptions {
   readOpenClipboardHistoryHotkeyConfig: () => string;
   readTogglePassthroughHotkeyConfig: () => string;
   readToggleUiLockHotkeyConfig: () => string;
+  readAgentVoiceInputHotkeyConfig: () => string;
   onScreenshotHotkey: () => void;
   onNextSongHotkey: () => void;
   onPlayPauseSongHotkey: () => void;
@@ -50,6 +51,8 @@ interface CreateHotkeyServiceOptions {
   onOpenClipboardHistoryHotkey: () => void;
   onTogglePassthroughHotkey: () => void;
   onToggleUiLockHotkey: () => void;
+  onAgentVoiceInputHotkeyHold: () => void;
+  onAgentVoiceInputHotkeyRelease: () => void;
 }
 
 interface HotkeyService {
@@ -64,6 +67,7 @@ interface HotkeyService {
   getCurrentOpenClipboardHistoryHotkey: () => string;
   getCurrentTogglePassthroughHotkey: () => string;
   getCurrentToggleUiLockHotkey: () => string;
+  getCurrentAgentVoiceInputHotkey: () => string;
   registerHideHotkey: (accelerator: string) => boolean;
   registerQuitHotkey: (accelerator: string) => boolean;
   registerScreenshotHotkey: (accelerator: string) => boolean;
@@ -75,6 +79,7 @@ interface HotkeyService {
   registerOpenClipboardHistoryHotkey: (accelerator: string) => boolean;
   registerTogglePassthroughHotkey: (accelerator: string) => boolean;
   registerToggleUiLockHotkey: (accelerator: string) => boolean;
+  registerAgentVoiceInputHotkey: (accelerator: string) => boolean;
   suspendIslandHotkeys: () => void;
   resumeIslandHotkeys: () => void;
 }
@@ -97,6 +102,7 @@ export function createHotkeyService(options: CreateHotkeyServiceOptions): Hotkey
   let currentOpenClipboardHistoryHotkey = '';
   let currentTogglePassthroughHotkey = '';
   let currentToggleUiLockHotkey = '';
+  let currentAgentVoiceInputHotkey = '';
 
   function registerHideHotkey(accelerator: string): boolean {
     const previousHotkey = currentHideHotkey || options.readHideHotkeyConfig();
@@ -405,6 +411,69 @@ export function createHotkeyService(options: CreateHotkeyServiceOptions): Hotkey
     }
   }
 
+  /** Agent 语音输入长按检测状态 */
+  let agentVoiceInputHoldTimer: ReturnType<typeof setTimeout> | null = null;
+  let agentVoiceInputReleaseTimer: ReturnType<typeof setTimeout> | null = null;
+  let agentVoiceInputHolding = false;
+  const AGENT_VOICE_INPUT_HOLD_THRESHOLD_MS = 400;
+  const AGENT_VOICE_INPUT_RELEASE_DETECT_MS = 250;
+
+  function registerAgentVoiceInputHotkey(accelerator: string): boolean {
+    if (currentAgentVoiceInputHotkey) {
+      try {
+        globalShortcut.unregister(currentAgentVoiceInputHotkey);
+      } catch {
+        // ignore
+      }
+      currentAgentVoiceInputHotkey = '';
+    }
+
+    // 清理长按状态
+    if (agentVoiceInputHoldTimer) { clearTimeout(agentVoiceInputHoldTimer); agentVoiceInputHoldTimer = null; }
+    if (agentVoiceInputReleaseTimer) { clearTimeout(agentVoiceInputReleaseTimer); agentVoiceInputReleaseTimer = null; }
+    if (agentVoiceInputHolding) { options.onAgentVoiceInputHotkeyRelease(); agentVoiceInputHolding = false; }
+
+    if (!accelerator) return true;
+
+    try {
+      const success = globalShortcut.register(accelerator, () => {
+        // globalShortcut 在按住时会重复触发
+        // 每次触发都重置 release 检测定时器
+        if (agentVoiceInputReleaseTimer) {
+          clearTimeout(agentVoiceInputReleaseTimer);
+        }
+        agentVoiceInputReleaseTimer = setTimeout(() => {
+          // 超过 RELEASE_DETECT_MS 没有再次触发 → 判定为释放
+          if (agentVoiceInputHolding) {
+            agentVoiceInputHolding = false;
+            options.onAgentVoiceInputHotkeyRelease();
+          }
+          if (agentVoiceInputHoldTimer) {
+            clearTimeout(agentVoiceInputHoldTimer);
+            agentVoiceInputHoldTimer = null;
+          }
+        }, AGENT_VOICE_INPUT_RELEASE_DETECT_MS);
+
+        if (!agentVoiceInputHolding && !agentVoiceInputHoldTimer) {
+          // 首次按下：启动长按阈值定时器
+          agentVoiceInputHoldTimer = setTimeout(() => {
+            agentVoiceInputHoldTimer = null;
+            agentVoiceInputHolding = true;
+            options.onAgentVoiceInputHotkeyHold();
+          }, AGENT_VOICE_INPUT_HOLD_THRESHOLD_MS);
+        }
+      });
+
+      if (success) {
+        currentAgentVoiceInputHotkey = accelerator;
+      }
+      return success;
+    } catch (err) {
+      console.error('[AgentVoiceInputHotkey] register error:', err);
+      return false;
+    }
+  }
+
   function suspendIslandHotkeys(): void {
     const hideHotkey = currentHideHotkey || options.readHideHotkeyConfig();
     const quitHotkey = currentQuitHotkey || options.readQuitHotkeyConfig();
@@ -424,6 +493,8 @@ export function createHotkeyService(options: CreateHotkeyServiceOptions): Hotkey
       currentTogglePassthroughHotkey || options.readTogglePassthroughHotkeyConfig();
     const toggleUiLockHotkey =
       currentToggleUiLockHotkey || options.readToggleUiLockHotkeyConfig();
+    const agentVoiceInputHotkey =
+      currentAgentVoiceInputHotkey || options.readAgentVoiceInputHotkeyConfig();
 
     [
       hideHotkey,
@@ -437,6 +508,7 @@ export function createHotkeyService(options: CreateHotkeyServiceOptions): Hotkey
       openClipboardHistoryHotkey,
       togglePassthroughHotkey,
       toggleUiLockHotkey,
+      agentVoiceInputHotkey,
     ].forEach((hotkey) => {
       if (!hotkey) return;
       try {
@@ -478,6 +550,9 @@ export function createHotkeyService(options: CreateHotkeyServiceOptions): Hotkey
     if (openClipboardHistoryHotkey) registerOpenClipboardHistoryHotkey(openClipboardHistoryHotkey);
     if (togglePassthroughHotkey) registerTogglePassthroughHotkey(togglePassthroughHotkey);
     if (toggleUiLockHotkey) registerToggleUiLockHotkey(toggleUiLockHotkey);
+    const agentVoiceInputHotkey =
+      currentAgentVoiceInputHotkey || options.readAgentVoiceInputHotkeyConfig();
+    if (agentVoiceInputHotkey) registerAgentVoiceInputHotkey(agentVoiceInputHotkey);
   }
 
   return {
@@ -492,6 +567,7 @@ export function createHotkeyService(options: CreateHotkeyServiceOptions): Hotkey
     getCurrentOpenClipboardHistoryHotkey: () => currentOpenClipboardHistoryHotkey,
     getCurrentTogglePassthroughHotkey: () => currentTogglePassthroughHotkey,
     getCurrentToggleUiLockHotkey: () => currentToggleUiLockHotkey,
+    getCurrentAgentVoiceInputHotkey: () => currentAgentVoiceInputHotkey,
     registerHideHotkey,
     registerQuitHotkey,
     registerScreenshotHotkey,
@@ -503,6 +579,7 @@ export function createHotkeyService(options: CreateHotkeyServiceOptions): Hotkey
     registerOpenClipboardHistoryHotkey,
     registerTogglePassthroughHotkey,
     registerToggleUiLockHotkey,
+    registerAgentVoiceInputHotkey,
     suspendIslandHotkeys,
     resumeIslandHotkeys,
   };

@@ -99,10 +99,12 @@ import {
   OPEN_CLIPBOARD_HISTORY_HOTKEY_STORE_KEY,
   TOGGLE_PASSTHROUGH_HOTKEY_STORE_KEY,
   TOGGLE_UI_LOCK_HOTKEY_STORE_KEY,
+  AGENT_VOICE_INPUT_HOTKEY_STORE_KEY,
   sanitizeIslandPositionOffset, sanitizeIslandDisplaySelection, sanitizeSmtcUnsubscribeMs,
   readHotkeyConfig, readQuitHotkeyConfig, readScreenshotHotkeyConfig,
   readNextSongHotkeyConfig, readPlayPauseSongHotkeyConfig, readResetPositionHotkeyConfig,
   readToggleTrayHotkeyConfig, readShowSettingsWindowHotkeyConfig, readOpenClipboardHistoryHotkeyConfig, readTogglePassthroughHotkeyConfig, readToggleUiLockHotkeyConfig,
+  readAgentVoiceInputHotkeyConfig,
   readWhitelistConfig, readLyricsSourceConfig, readSmtcUnsubscribeMsConfig,
   readHideProcessListConfig, readIslandPositionOffsetConfig, readIslandDisplaySelectionConfig,
   writeIslandPositionOffsetConfig, writeIslandDisplaySelectionConfig,
@@ -118,6 +120,63 @@ if (!gotTheLock) {
 }
 
 let mainWindow: BrowserWindow | null = null;
+let agentVoiceInputWindow: BrowserWindow | null = null;
+
+/**
+ * 创建全屏透明 Agent 语音输入窗口
+ * @description 加载 AIbackground.html，显示 Agent 语音输入背景光效
+ */
+function showAgentVoiceInputWindow(): void {
+  if (agentVoiceInputWindow && !agentVoiceInputWindow.isDestroyed()) {
+    agentVoiceInputWindow.show();
+    return;
+  }
+
+  const { screen } = require('electron');
+  const primaryDisplay = screen.getPrimaryDisplay();
+  const { width, height } = primaryDisplay.bounds;
+
+  agentVoiceInputWindow = new BrowserWindow({
+    x: primaryDisplay.bounds.x,
+    y: primaryDisplay.bounds.y,
+    width,
+    height,
+    transparent: true,
+    frame: false,
+    alwaysOnTop: true,
+    skipTaskbar: true,
+    resizable: false,
+    focusable: false,
+    hasShadow: false,
+    type: 'toolbar',
+    webPreferences: {
+      contextIsolation: true,
+      nodeIntegration: false,
+    },
+  });
+
+  agentVoiceInputWindow.setIgnoreMouseEvents(true);
+
+  if (app.isPackaged) {
+    agentVoiceInputWindow.loadFile(join(__dirname, '../renderer/AIbackground.html'));
+  } else {
+    agentVoiceInputWindow.loadFile(join(__dirname, '../../src/renderer/AIbackground.html'));
+  }
+
+  agentVoiceInputWindow.on('closed', () => {
+    agentVoiceInputWindow = null;
+  });
+}
+
+/**
+ * 关闭 Agent 语音输入窗口
+ */
+function hideAgentVoiceInputWindow(): void {
+  if (agentVoiceInputWindow && !agentVoiceInputWindow.isDestroyed()) {
+    agentVoiceInputWindow.close();
+    agentVoiceInputWindow = null;
+  }
+}
 const captureWindowService = createCaptureWindowService({
   getMainWindow: () => mainWindow,
 });
@@ -178,6 +237,7 @@ const hotkeyService = createHotkeyService({
   readOpenClipboardHistoryHotkeyConfig,
   readTogglePassthroughHotkeyConfig,
   readToggleUiLockHotkeyConfig,
+  readAgentVoiceInputHotkeyConfig,
   onScreenshotHotkey: () => {
     captureWindowService.startRegionScreenshot().catch((err) => {
       console.error('[Screenshot] hotkey trigger error:', err);
@@ -238,6 +298,12 @@ const hotkeyService = createHotkeyService({
   },
   onToggleUiLockHotkey: () => {
     broadcastSettingChange(-1, 'shortcut:toggle-ui-lock', Date.now());
+  },
+  onAgentVoiceInputHotkeyHold: () => {
+    showAgentVoiceInputWindow();
+  },
+  onAgentVoiceInputHotkeyRelease: () => {
+    hideAgentVoiceInputWindow();
   },
 });
 
@@ -391,6 +457,7 @@ function registerIpcHandlers(): void {
     openClipboardHistoryHotkeyStoreKey: OPEN_CLIPBOARD_HISTORY_HOTKEY_STORE_KEY,
     togglePassthroughHotkeyStoreKey: TOGGLE_PASSTHROUGH_HOTKEY_STORE_KEY,
     toggleUiLockHotkeyStoreKey: TOGGLE_UI_LOCK_HOTKEY_STORE_KEY,
+    agentVoiceInputHotkeyStoreKey: AGENT_VOICE_INPUT_HOTKEY_STORE_KEY,
     getCurrentHideHotkey: hotkeyService.getCurrentHideHotkey,
     getCurrentQuitHotkey: hotkeyService.getCurrentQuitHotkey,
     getCurrentScreenshotHotkey: hotkeyService.getCurrentScreenshotHotkey,
@@ -402,6 +469,7 @@ function registerIpcHandlers(): void {
     getCurrentOpenClipboardHistoryHotkey: hotkeyService.getCurrentOpenClipboardHistoryHotkey,
     getCurrentTogglePassthroughHotkey: hotkeyService.getCurrentTogglePassthroughHotkey,
     getCurrentToggleUiLockHotkey: hotkeyService.getCurrentToggleUiLockHotkey,
+    getCurrentAgentVoiceInputHotkey: hotkeyService.getCurrentAgentVoiceInputHotkey,
     readHideHotkeyConfig: readHotkeyConfig,
     readQuitHotkeyConfig,
     readScreenshotHotkeyConfig,
@@ -413,6 +481,7 @@ function registerIpcHandlers(): void {
     readOpenClipboardHistoryHotkeyConfig,
     readTogglePassthroughHotkeyConfig,
     readToggleUiLockHotkeyConfig,
+    readAgentVoiceInputHotkeyConfig,
     registerHideHotkey: hotkeyService.registerHideHotkey,
     registerQuitHotkey: hotkeyService.registerQuitHotkey,
     registerNextSongHotkey: hotkeyService.registerNextSongHotkey,
@@ -423,6 +492,7 @@ function registerIpcHandlers(): void {
     registerOpenClipboardHistoryHotkey: hotkeyService.registerOpenClipboardHistoryHotkey,
     registerTogglePassthroughHotkey: hotkeyService.registerTogglePassthroughHotkey,
     registerToggleUiLockHotkey: hotkeyService.registerToggleUiLockHotkey,
+    registerAgentVoiceInputHotkey: hotkeyService.registerAgentVoiceInputHotkey,
     suspendIslandHotkeys: hotkeyService.suspendIslandHotkeys,
     resumeIslandHotkeys: hotkeyService.resumeIslandHotkeys,
   });
@@ -443,7 +513,8 @@ function registerIpcHandlers(): void {
       const currentShowSettings = hotkeyService.getCurrentShowSettingsWindowHotkey() || readShowSettingsWindowHotkeyConfig();
       const currentOpenClipboardHistory = hotkeyService.getCurrentOpenClipboardHistoryHotkey() || readOpenClipboardHistoryHotkeyConfig();
       const currentToggleUiLock = hotkeyService.getCurrentToggleUiLockHotkey() || readToggleUiLockHotkeyConfig();
-      return [currentHide, currentQuit, currentNextSong, currentPlayPauseSong, currentResetPos, currentToggleTray, currentShowSettings, currentOpenClipboardHistory, currentToggleUiLock];
+      const currentAgentVoiceInput = hotkeyService.getCurrentAgentVoiceInputHotkey() || readAgentVoiceInputHotkeyConfig();
+      return [currentHide, currentQuit, currentNextSong, currentPlayPauseSong, currentResetPos, currentToggleTray, currentShowSettings, currentOpenClipboardHistory, currentToggleUiLock, currentAgentVoiceInput];
     },
     registerScreenshotHotkey: hotkeyService.registerScreenshotHotkey,
   });
@@ -657,6 +728,10 @@ app.whenReady().then(() => {
   // 读取持久化切换 UI 状态锁定快捷键并注册
   const savedToggleUiLockHotkey = readToggleUiLockHotkeyConfig();
   if (savedToggleUiLockHotkey) hotkeyService.registerToggleUiLockHotkey(savedToggleUiLockHotkey);
+
+  // 读取持久化 Agent 语音输入快捷键并注册
+  const savedAgentVoiceInputHotkey = readAgentVoiceInputHotkeyConfig();
+  if (savedAgentVoiceInputHotkey) hotkeyService.registerAgentVoiceInputHotkey(savedAgentVoiceInputHotkey);
 
   initUpdaterService({
     updater: autoUpdater,
