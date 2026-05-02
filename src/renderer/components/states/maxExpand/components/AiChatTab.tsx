@@ -2562,12 +2562,6 @@ export function AiChatTab(): React.ReactElement {
               </div>
             )}
           </div>
-          {pendingQuote && agentMode === 'r1pxc' && (
-            <div className="max-expand-chat-quote-preview">
-              <span className="max-expand-chat-quote-preview-text">{pendingQuote.length > 60 ? pendingQuote.slice(0, 60) + '…' : pendingQuote}</span>
-              <button type="button" className="max-expand-chat-quote-preview-close" onClick={() => setPendingQuote(null)}>✕</button>
-            </div>
-          )}
           <textarea
             ref={inputRef}
             className="max-expand-chat-input"
@@ -2606,6 +2600,12 @@ export function AiChatTab(): React.ReactElement {
             ) : selectedModel}
           </button>
           </div>
+          {pendingQuote && agentMode === 'r1pxc' && (
+            <div className="max-expand-chat-quote-preview">
+              <span className="max-expand-chat-quote-preview-text">{pendingQuote.length > 60 ? pendingQuote.slice(0, 60) + '…' : pendingQuote}</span>
+              <button type="button" className="max-expand-chat-quote-preview-close" onClick={() => setPendingQuote(null)}>✕</button>
+            </div>
+          )}
         </div>
       </div>
     </div>
