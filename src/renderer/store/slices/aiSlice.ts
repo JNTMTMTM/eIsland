@@ -161,6 +161,9 @@ function normalizeAiChatMessage(value: unknown): AiChatMessage | null {
   if (attachments.length > 0) {
     normalized.attachments = attachments;
   }
+  if (typeof source.model === 'string' && source.model.trim()) {
+    normalized.model = source.model.trim();
+  }
   if (typeof source.traceId === 'string' && source.traceId.trim()) {
     normalized.traceId = source.traceId.trim();
   }

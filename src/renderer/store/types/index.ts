@@ -250,6 +250,7 @@ export interface AiChatAttachment {
 export interface AiChatMessage {
   role: 'user' | 'assistant';
   content: string;
+  model?: string;
   traceId?: string;
   finalized?: boolean;
   thinkBlocks?: string[];

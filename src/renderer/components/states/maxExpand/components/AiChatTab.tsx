@@ -797,7 +797,7 @@ export function AiChatTab(): React.ReactElement {
     });
 
     // 添加占位 AI 消息
-    updateTargetMessages(prev => ([...prev, { role: 'assistant', content: '', finalized: false, thinkBlocks: [], toolCalls: [] }]));
+    updateTargetMessages(prev => ([...prev, { role: 'assistant', content: '', model: selectedModel, finalized: false, thinkBlocks: [], toolCalls: [] }]));
 
     const controller = new AbortController();
     SESSION_ABORT_CONTROLLERS.set(targetSessionId, controller);
@@ -1706,6 +1706,7 @@ export function AiChatTab(): React.ReactElement {
 
                   const showThinkingFooter = aiConfig.deepseekThinking && aiChatStreaming && isLatestAssistantMsg;
                   const traceId = typeof msg.traceId === 'string' ? msg.traceId.trim() : '';
+                  const msgModelIcon = msg.model?.startsWith('mimo-') ? SvgIcon.MIMO : SvgIcon.DEEPSEEK;
                   const showFinalTraceMeta = Boolean(msg.finalized);
                   const normalizedMarkdownContent = normalizeMarkdownCodeFences(msg.content);
                   const timelineNodes: React.ReactElement[] = [];
@@ -1769,7 +1770,7 @@ export function AiChatTab(): React.ReactElement {
                       >
                         <summary>
                           <span className="max-expand-chat-think-title">
-                            <img className="max-expand-chat-think-title-icon" src={modelToggleIcon || SvgIcon.DEEPSEEK} alt="" />
+                            <img className="max-expand-chat-think-title-icon" src={msgModelIcon} alt="" />
                             <span>{t('aiChat.timeline.thinkingProcess', { defaultValue: '思考过程 #{{index}}', index: 1 })}</span>
                           </span>
                         </summary>
@@ -1864,7 +1865,7 @@ export function AiChatTab(): React.ReactElement {
                         >
                           <summary>
                             <span className="max-expand-chat-think-title">
-                              <img className="max-expand-chat-think-title-icon" src={modelToggleIcon || SvgIcon.DEEPSEEK} alt="" />
+                              <img className="max-expand-chat-think-title-icon" src={msgModelIcon} alt="" />
                               <span>{t('aiChat.timeline.thinkingProcess', { defaultValue: '思考过程 #{{index}}', index: thinkIdx + 1 })}</span>
                             </span>
                           </summary>
@@ -1886,7 +1887,7 @@ export function AiChatTab(): React.ReactElement {
                         >
                           <summary>
                             <span className="max-expand-chat-think-title">
-                              <img className="max-expand-chat-think-title-icon" src={modelToggleIcon || SvgIcon.DEEPSEEK} alt="" />
+                              <img className="max-expand-chat-think-title-icon" src={msgModelIcon} alt="" />
                               <span>{t('aiChat.timeline.thinkingProcess', { defaultValue: '思考过程 #{{index}}', index: idx + 1 })}</span>
                             </span>
                           </summary>
