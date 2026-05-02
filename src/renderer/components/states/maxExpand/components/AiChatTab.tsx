@@ -234,7 +234,7 @@ const AssistantMarkdown = React.memo(function AssistantMarkdown({ content }: { c
  * @description 包含消息列表和输入栏的聊天界面，调用 OpenAI 兼容 API
  */
 export function AiChatTab(): React.ReactElement {
-  const availableModels = ['deepseek-v4-flash', 'deepseek-v4-pro', 'MiMo-V2.5', 'MiMo-V2.5-Pro'] as const;
+  const availableModels = ['deepseek-v4-flash', 'deepseek-v4-pro', 'mimo-v2.5', 'mimo-v2.5-pro'] as const;
   const { t } = useTranslation();
   const localTokenForRole = readLocalToken();
   const isProUser = useMemo(() => {
@@ -323,10 +323,10 @@ export function AiChatTab(): React.ReactElement {
     const m = availableModels.includes(aiConfig.model as (typeof availableModels)[number])
       ? aiConfig.model
       : 'deepseek-v4-flash';
-    if (!isProUser && (m === 'deepseek-v4-pro' || m === 'MiMo-V2.5-Pro')) return 'deepseek-v4-flash';
+    if (!isProUser && (m === 'deepseek-v4-pro' || m === 'mimo-v2.5-pro')) return 'deepseek-v4-flash';
     return m;
   })();
-  const selectedProvider = selectedModel.startsWith('MiMo-') ? 'mimo' : 'deepseek';
+  const selectedProvider = selectedModel.startsWith('mimo-') ? 'mimo' : 'deepseek';
   const showDeepseekIconOnModelToggle = selectedModel.toLowerCase().includes('deepseek');
   const visibleWindowEnd = Math.min(aiChatMessages.length, visibleWindowStart + VISIBLE_CHAT_WINDOW_SIZE);
   const hasUpperHiddenMessages = visibleWindowStart > 0;
@@ -2181,7 +2181,7 @@ export function AiChatTab(): React.ReactElement {
                     {showModelDropdown && (
                       <div className="max-expand-chat-model-dropdown-list">
                         {availableModels.map((m) => {
-                          const isPro = m === 'deepseek-v4-pro' || m === 'MiMo-V2.5-Pro';
+                          const isPro = m === 'deepseek-v4-pro' || m === 'mimo-v2.5-pro';
                           const disabled = isPro && !isProUser;
                           return (
                             <button
