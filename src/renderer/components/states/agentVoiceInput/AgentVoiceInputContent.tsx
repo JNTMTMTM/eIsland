@@ -31,6 +31,8 @@ import { readLocalToken } from '../../../utils/userAccount';
 import useIslandStore from '../../../store/isLandStore';
 import '../../../styles/agentVoiceInput/agentVoiceInput.css';
 
+let moduleSttCleanup: (() => void) | null = null;
+
 /**
  * Agent 语音输入状态内容组件
  * @description 显示语音识别相关内容，与灵动岛歌词状态尺寸一致（500×42）
@@ -72,7 +74,14 @@ export function AgentVoiceInputContent(): ReactElement {
       }
       sttSession?.stop();
       sttSession = null;
+      if (moduleSttCleanup === stopAll) moduleSttCleanup = null;
     };
+
+    if (moduleSttCleanup) {
+      moduleSttCleanup();
+      moduleSttCleanup = null;
+    }
+    moduleSttCleanup = stopAll;
 
     const pushPcm = (input: Float32Array): void => {
       if (!sttSession || input.length === 0) return;
@@ -139,6 +148,12 @@ export function AgentVoiceInputContent(): ReactElement {
         });
       } catch {
         setStatusText('无法连接语音识别服务');
+        return;
+      }
+
+      if (!active) {
+        sttSession?.stop();
+        sttSession = null;
         return;
       }
 
