@@ -105,7 +105,7 @@ export function SttContent(): ReactElement {
         />
       </div>
       <div className="stt-actions">
-        <button className="stt-action-btn" onClick={() => setAgent()}>发送给Agent</button>
+        <button className="stt-action-btn" onClick={() => setAgent(editRef.current?.textContent?.trim() || sttText || '')}>发送给Agent</button>
         <button className="stt-action-btn" onClick={handleAddTodo}>{addedTodo ? '已添加' : '添加待办'}</button>
         <button className="stt-action-btn" onClick={handleCopy}>{copied ? '已复制' : '复制'}</button>
         <button className="stt-action-btn" onClick={() => setIdle(true)}>忽略</button>

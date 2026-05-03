@@ -52,6 +52,7 @@ export const createIslandSlice: StateCreator<
   maxExpandTab: 'todo',
   notification: emptyNotification,
   sttText: '',
+  agentPrompt: '',
   springAnimation: true,
 
   setIdle: (force?: boolean) => set((prev) => {
@@ -192,11 +193,11 @@ export const createIslandSlice: StateCreator<
     return { state: 'stt' as const, sttText: text ?? '', authReturnState: null };
   }),
 
-  setAgent: () => set((prev) => {
+  setAgent: (prompt?: string) => set((prev) => {
     if (prev.uiStateLocked && prev.state !== 'agent') return prev;
     window.api?.expandWindowNotification();
     window.api?.disableMousePassthrough();
-    return { state: 'agent' as const, authReturnState: null };
+    return { state: 'agent' as const, agentPrompt: prompt ?? prev.sttText ?? '', authReturnState: null };
   }),
 
   toggleUiStateLock: () => {

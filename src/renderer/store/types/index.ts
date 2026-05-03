@@ -301,6 +301,7 @@ export interface IslandSlice {
   maxExpandTab: MaxExpandTab;
   notification: NotificationData;
   sttText: string;
+  agentPrompt: string;
 
   springAnimation: boolean;
   setIdle: (force?: boolean) => void;
@@ -319,7 +320,7 @@ export interface IslandSlice {
   setAnnouncement: () => void;
   setAgentVoiceInput: () => void;
   setStt: (text?: string) => void;
-  setAgent: () => void;
+  setAgent: (prompt?: string) => void;
   toggleUiStateLock: () => boolean;
   setHoverTab: (tab: HoverTab) => void;
   setExpandTab: (tab: ExpandTab) => void;
