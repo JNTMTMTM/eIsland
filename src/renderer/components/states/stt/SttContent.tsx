@@ -19,20 +19,30 @@
  */
 
 /**
- * @file index.ts
- * @description 状态组件导出
+ * @file SttContent.tsx
+ * @description STT 识别结果状态内容组件
  * @author 鸡哥
  */
 
-export { IdleContent } from './idle/IdleContent';
-export { HoverContent } from './hover/HoverContent';
-export { ExpandedContent } from './expand/ExpandedContent';
-export { MaxExpandContent } from './maxExpand/MaxExpandContent';
-export { GuideContent } from './guide/GuideContent';
-export { LoginContent } from './login/LoginContent';
-export { RegisterContent } from './register/RegisterContent';
-export { PaymentContent } from './payment/PaymentContent';
-export { AnnouncementContent } from './announcement/AnnouncementContent';
-export { AgentVoiceInputContent } from './agentVoiceInput/AgentVoiceInputContent';
-export { AgentContent } from './agent/AgentContent';
-export { SttContent } from './stt/SttContent';
+import type { ReactElement } from 'react';
+import useIslandStore from '../../../store/isLandStore';
+import '../../../styles/stt/stt.css';
+
+/**
+ * STT 识别结果状态内容组件
+ * @description 与 notification 尺寸一致
+ */
+export function SttContent(): ReactElement {
+  const sttText = useIslandStore((s) => s.sttText);
+  const setIdle = useIslandStore((s) => s.setIdle);
+
+  return (
+    <div className="stt-content">
+      <div className="stt-text-area">
+        <span className="stt-text-label">识别结果</span>
+        <span className="stt-text-body">{sttText || '...'}</span>
+      </div>
+      <button className="stt-dismiss-btn" onClick={() => setIdle(true)}>忽略</button>
+    </div>
+  );
+}

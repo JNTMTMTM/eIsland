@@ -190,7 +190,7 @@ export function AgentVoiceInputContent(): ReactElement {
       if (autoCutoffTimer) clearTimeout(autoCutoffTimer);
       stopAll();
       if (transcriptRef.current) {
-        useIslandStore.getState().setAgent(transcriptRef.current);
+        useIslandStore.getState().setStt(transcriptRef.current);
       }
     };
   }, []);

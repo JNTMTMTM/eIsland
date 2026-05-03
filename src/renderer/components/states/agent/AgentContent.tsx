@@ -25,7 +25,6 @@
  */
 
 import type { ReactElement } from 'react';
-import useIslandStore from '../../../store/isLandStore';
 import '../../../styles/agent/agent.css';
 
 /**
@@ -33,16 +32,8 @@ import '../../../styles/agent/agent.css';
  * @description 与 notification 尺寸一致（500×88）
  */
 export function AgentContent(): ReactElement {
-  const agentText = useIslandStore((s) => s.agentText);
-  const setIdle = useIslandStore((s) => s.setIdle);
-
   return (
     <div className="agent-content">
-      <div className="agent-text-area">
-        <span className="agent-text-label">识别结果</span>
-        <span className="agent-text-body">{agentText || '...'}</span>
-      </div>
-      <button className="agent-dismiss-btn" onClick={() => setIdle(true)}>忽略</button>
     </div>
   );
 }

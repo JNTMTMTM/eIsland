@@ -154,7 +154,8 @@
 
 /** idle → notification：弹性横向膨胀 + 纵向伸展 */
 .island-shell.spring-animation.notification.morphing.from-idle,
-.island-shell.spring-animation.agent.morphing.from-idle {
+.island-shell.spring-animation.agent.morphing.from-idle,
+.island-shell.spring-animation.stt.morphing.from-idle {
   animation: shellExpandToNotification 0.68s cubic-bezier(0.25, 1.06, 0.45, 1);
 }
 
@@ -168,7 +169,8 @@
 
 /** hover → notification：小幅纵向伸展 */
 .island-shell.spring-animation.notification.morphing.from-hover,
-.island-shell.spring-animation.agent.morphing.from-hover {
+.island-shell.spring-animation.agent.morphing.from-hover,
+.island-shell.spring-animation.stt.morphing.from-hover {
   animation: shellExpandNotifFromHover 0.72s cubic-bezier(0.25, 1.08, 0.45, 1);
 }
 
@@ -181,7 +183,8 @@
 
 /** notification → hover：同尺寸，微妙呼吸 */
 .island-shell.spring-animation.hover.morphing.from-notification,
-.island-shell.spring-animation.hover.morphing.from-agent {
+.island-shell.spring-animation.hover.morphing.from-agent,
+.island-shell.spring-animation.hover.morphing.from-stt {
   animation: shellCrossfade 0.68s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -192,13 +195,14 @@
 }
 
 /** hover → idle：柔和收拢 */
-.island-shell.spring-animation.morphing.from-hover:not(.hover):not(.expanded):not(.maxExpand):not(.notification):not(.agent):not(.guide):not(.announcement) {
+.island-shell.spring-animation.morphing.from-hover:not(.hover):not(.expanded):not(.maxExpand):not(.notification):not(.agent):not(.stt):not(.guide):not(.announcement) {
   animation: shellShrinkToIdle 0.68s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 /** notification → idle：横向收拢 */
-.island-shell.spring-animation.morphing.from-notification:not(.hover):not(.expanded):not(.maxExpand):not(.notification):not(.agent):not(.guide):not(.announcement),
-.island-shell.spring-animation.morphing.from-agent:not(.hover):not(.expanded):not(.maxExpand):not(.notification):not(.agent):not(.guide):not(.announcement) {
+.island-shell.spring-animation.morphing.from-notification:not(.hover):not(.expanded):not(.maxExpand):not(.notification):not(.agent):not(.stt):not(.guide):not(.announcement),
+.island-shell.spring-animation.morphing.from-agent:not(.hover):not(.expanded):not(.maxExpand):not(.notification):not(.agent):not(.stt):not(.guide):not(.announcement),
+.island-shell.spring-animation.morphing.from-stt:not(.hover):not(.expanded):not(.maxExpand):not(.notification):not(.agent):not(.stt):not(.guide):not(.announcement) {
   animation: shellShrinkFromNotification 0.68s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -302,7 +306,8 @@
 }
 
 .island-shell.notification,
-.island-shell.agent {
+.island-shell.agent,
+.island-shell.stt {
   width: 500px;
   height: 88px;
 }
