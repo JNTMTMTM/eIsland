@@ -37,6 +37,7 @@ export function SttContent(): ReactElement {
   const sttText = useIslandStore((s) => s.sttText);
   const setIdle = useIslandStore((s) => s.setIdle);
   const setStt = useIslandStore((s) => s.setStt);
+  const setAgent = useIslandStore((s) => s.setAgent);
   const editRef = useRef<HTMLDivElement>(null);
   const [editing, setEditing] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -104,6 +105,7 @@ export function SttContent(): ReactElement {
         />
       </div>
       <div className="stt-actions">
+        <button className="stt-action-btn" onClick={() => setAgent()}>发送给Agent</button>
         <button className="stt-action-btn" onClick={handleAddTodo}>{addedTodo ? '已添加' : '添加待办'}</button>
         <button className="stt-action-btn" onClick={handleCopy}>{copied ? '已复制' : '复制'}</button>
         <button className="stt-action-btn" onClick={() => setIdle(true)}>忽略</button>
