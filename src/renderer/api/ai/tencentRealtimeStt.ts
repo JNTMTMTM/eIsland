@@ -18,7 +18,7 @@ import { buildReplayHeaders, resolveClientVersion, USER_ACCOUNT_API_BASE } from 
 const APP_NAME_HEADER = 'X-App-Name';
 const APP_NAME_VALUE = 'eisland';
 
-export type RealtimeSttEventType = 'partial' | 'final' | 'error';
+export type RealtimeSttEventType = 'partial' | 'final' | 'error' | 'ready';
 
 export interface RealtimeSttEvent {
   type: RealtimeSttEventType;
@@ -96,7 +96,9 @@ export async function startTencentRealtimeStt(request: StartRealtimeSttRequest):
     try {
       const payload = JSON.parse(event.data) as { event?: string; text?: string; message?: string };
       const eventType = payload.event || '';
-      if (eventType === 'stt_partial') {
+      if (eventType === 'stt_ready') {
+        request.onEvent({ type: 'ready', text: '' });
+      } else if (eventType === 'stt_partial') {
         request.onEvent({ type: 'partial', text: payload.text || '' });
       } else if (eventType === 'stt_final') {
         request.onEvent({ type: 'final', text: payload.text || '' });

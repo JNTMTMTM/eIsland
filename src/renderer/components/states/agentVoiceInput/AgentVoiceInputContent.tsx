@@ -37,7 +37,7 @@ import '../../../styles/agentVoiceInput/agentVoiceInput.css';
  */
 export function AgentVoiceInputContent(): ReactElement {
   const [transcript, setTranscript] = useState('');
-  const [statusText, setStatusText] = useState('正在聆听…');
+  const [statusText, setStatusText] = useState('正在连接ASR服务');
   const textRef = useRef<HTMLDivElement>(null);
   const transcriptRef = useRef('');
 
@@ -107,8 +107,7 @@ export function AgentVoiceInputContent(): ReactElement {
           token,
           language: 'zh-CN',
           onOpen: () => {
-            if (!active) return;
-            setStatusText('正在聆听…');
+            // WebSocket to server opened; ASR not ready yet
           },
           onClose: () => {
             if (!active) return;
@@ -118,6 +117,10 @@ export function AgentVoiceInputContent(): ReactElement {
           },
           onEvent: (event) => {
             if (!active) return;
+            if (event.type === 'ready') {
+              setStatusText('正在聆听…');
+              return;
+            }
             if (event.type === 'error') {
               hasError = true;
               setStatusText(event.text || '实时识别失败');
