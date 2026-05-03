@@ -26,7 +26,7 @@
 .stt-content {
   position: relative;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: flex-start;
   gap: 8px;
   width: 100%;
@@ -62,7 +62,7 @@
   font-size: 14px;
   font-weight: 500;
   color: rgba(var(--color-text-rgb), 0.9);
-  text-align: right;
+  text-align: left;
   word-break: break-all;
   display: -webkit-box;
   -webkit-line-clamp: 2;
