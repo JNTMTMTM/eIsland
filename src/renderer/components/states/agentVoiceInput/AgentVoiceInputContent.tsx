@@ -192,8 +192,11 @@ export function AgentVoiceInputContent(): ReactElement {
     return () => {
       if (autoCutoffTimer) clearTimeout(autoCutoffTimer);
       stopAll();
-      if (transcriptRef.current) {
-        useIslandStore.getState().setStt(transcriptRef.current);
+      const finalText = transcriptRef.current?.trim();
+      if (finalText) {
+        requestAnimationFrame(() => {
+          useIslandStore.getState().setStt(finalText);
+        });
       }
     };
   }, []);
