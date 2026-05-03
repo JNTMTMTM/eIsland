@@ -361,21 +361,23 @@ export function AiChatTab(): React.ReactElement {
     });
   }, [aiChatSessions, aiLocalToolAccessPrompt, aiWebAccessPrompt]);
   const contextTokenUsage = useMemo(() => {
-    let inputTokens = 0;
-    let outputTokens = 0;
-    let reasoningTokens = 0;
-    let totalTokens = 0;
-    let source = '';
-    for (const msg of aiChatMessages) {
-      if (msg?.role === 'assistant' && msg.tokenUsage) {
-        inputTokens += msg.tokenUsage.inputTokens;
-        outputTokens += msg.tokenUsage.outputTokens;
-        reasoningTokens += msg.tokenUsage.reasoningTokens;
-        totalTokens += msg.tokenUsage.totalTokens;
-        source = msg.tokenUsage.source;
+    return aiChatMessages.reduce((acc, msg) => {
+      if (msg?.role !== 'assistant' || !msg.tokenUsage) {
+        return acc;
       }
-    }
-    return { inputTokens, outputTokens, reasoningTokens, totalTokens, source };
+      acc.inputTokens += msg.tokenUsage.inputTokens;
+      acc.outputTokens += msg.tokenUsage.outputTokens;
+      acc.reasoningTokens += msg.tokenUsage.reasoningTokens;
+      acc.totalTokens += msg.tokenUsage.totalTokens;
+      acc.source = msg.tokenUsage.source;
+      return acc;
+    }, {
+      inputTokens: 0,
+      outputTokens: 0,
+      reasoningTokens: 0,
+      totalTokens: 0,
+      source: '',
+    });
   }, [aiChatMessages]);
   const contextUsageTokens = contextTokenUsage.totalTokens;
   const selectedContextLimit = (() => {
