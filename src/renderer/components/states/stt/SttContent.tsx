@@ -38,6 +38,7 @@ export function SttContent(): ReactElement {
 
   return (
     <div className="stt-content">
+      <img className="stt-icon" src="image/STT_LISTENING.png" alt="" draggable={false} />
       <div className="stt-text-area">
         <span className="stt-text-label">识别结果</span>
         <span className="stt-text-body">{sttText || '...'}</span>
