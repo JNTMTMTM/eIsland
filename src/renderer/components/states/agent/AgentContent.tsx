@@ -117,6 +117,7 @@ export function AgentContent(): ReactElement {
   const [answerText, setAnswerText] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const [authPending, setAuthPending] = useState<AuthPending | null>(null);
+  const [toolCallInfo, setToolCallInfo] = useState<{ tool: string; purpose: string } | null>(null);
   const textRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
   const answerAccRef = useRef('');
@@ -148,6 +149,7 @@ export function AgentContent(): ReactElement {
       setAnswerText('');
       setErrorMsg('');
       setAuthPending(null);
+      setToolCallInfo(null);
       answerAccRef.current = '';
       thinkAccRef.current = '';
 
@@ -220,6 +222,7 @@ export function AgentContent(): ReactElement {
 
             if (event.type === 'chunk') {
               setPhase('answering');
+              setToolCallInfo(null);
               const payload = event.payload as { text?: unknown };
               const text = typeof payload?.text === 'string' ? payload.text : '';
               if (text) {
@@ -237,6 +240,9 @@ export function AgentContent(): ReactElement {
 
             if (event.type === 'tool') {
               setPhase('toolCalling');
+              const payload = event.payload as { tool?: unknown; turn?: unknown; success?: unknown };
+              const hasResult = payload?.success !== undefined;
+              if (hasResult) setToolCallInfo(null);
               return;
             }
 
@@ -256,6 +262,7 @@ export function AgentContent(): ReactElement {
               if (!tool) return;
 
               setPhase('toolCalling');
+              setToolCallInfo({ tool, purpose: purpose || `调用 ${tool}` });
 
               const isLocal = isClientLocalToolName(tool);
               if (!isLocal || !requestId) return;
@@ -391,6 +398,8 @@ export function AgentContent(): ReactElement {
     } catch { /* ignore resolve errors */ }
   }, [authPending, aiConfig.workspaces]);
 
+  const overlayText = authPending ? authPending.description : toolCallInfo ? toolCallInfo.purpose : null;
+  const overlayLabel = authPending ? '需要授权' : toolCallInfo ? `正在调用: ${toolCallInfo.tool}` : null;
   const displayText = (answerText || thinkText || errorMsg || PHASE_LABEL[phase]).replace(/\n{2,}/g, '\n');
   const isThinkOnly = !answerText && !!thinkText;
 
@@ -404,13 +413,13 @@ export function AgentContent(): ReactElement {
       />
       <div className="agent-text-area">
         <span className="agent-text-label">
-          {authPending ? '需要授权' : PHASE_LABEL[phase]}
+          {overlayLabel ?? PHASE_LABEL[phase]}
         </span>
         <div
           ref={textRef}
-          className={`agent-text-body${authPending ? ' agent-text-auth' : isThinkOnly ? ' agent-text-thinking' : ''}${phase === 'error' ? ' agent-text-error' : ''}`}
+          className={`agent-text-body${overlayText ? ' agent-text-auth' : isThinkOnly ? ' agent-text-thinking' : ''}${phase === 'error' ? ' agent-text-error' : ''}`}
         >
-          {authPending ? authPending.description : displayText}
+          {overlayText ?? displayText}
         </div>
       </div>
       <div className="agent-actions">
