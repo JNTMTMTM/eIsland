@@ -47,6 +47,23 @@ export function AgentVoiceInputContent(): ReactElement {
     let pending = new Float32Array(0);
     let sttSession: { pushAudioFrame: (pcm16: Int16Array) => void; stop: () => void } | null = null;
     let hasError = false;
+    let autoCutoffTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const stopAll = (): void => {
+      active = false;
+      processorNode?.disconnect();
+      sourceNode?.disconnect();
+      if (audioContext) {
+        void audioContext.close().catch(() => {});
+        audioContext = null;
+      }
+      if (mediaStream) {
+        mediaStream.getTracks().forEach((track) => track.stop());
+        mediaStream = null;
+      }
+      sttSession?.stop();
+      sttSession = null;
+    };
 
     const pushPcm = (input: Float32Array): void => {
       if (!sttSession || input.length === 0) return;
@@ -145,6 +162,12 @@ export function AgentVoiceInputContent(): ReactElement {
 
         sourceNode.connect(processorNode);
         processorNode.connect(audioContext.destination);
+
+        autoCutoffTimer = setTimeout(() => {
+          if (!active) return;
+          setStatusText('已达最大录音时长（1分钟）');
+          stopAll();
+        }, 60_000);
       } catch {
         setStatusText('麦克风权限被拒绝或不可用');
       }
@@ -153,16 +176,8 @@ export function AgentVoiceInputContent(): ReactElement {
     void start();
 
     return () => {
-      active = false;
-      processorNode?.disconnect();
-      sourceNode?.disconnect();
-      if (audioContext) {
-        void audioContext.close().catch(() => {});
-      }
-      if (mediaStream) {
-        mediaStream.getTracks().forEach((track) => track.stop());
-      }
-      sttSession?.stop();
+      if (autoCutoffTimer) clearTimeout(autoCutoffTimer);
+      stopAll();
     };
   }, []);
 
