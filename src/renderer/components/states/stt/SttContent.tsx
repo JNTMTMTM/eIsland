@@ -40,6 +40,7 @@ export function SttContent(): ReactElement {
   const editRef = useRef<HTMLDivElement>(null);
   const [editing, setEditing] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [addedTodo, setAddedTodo] = useState(false);
 
   useEffect(() => {
     if (editRef.current && !editing) {
@@ -60,6 +61,22 @@ export function SttContent(): ReactElement {
     if (text && text !== sttText) {
       setStt(text);
     }
+  };
+
+  const handleAddTodo = (): void => {
+    const text = editRef.current?.textContent?.trim() || sttText || '';
+    if (!text) return;
+    const now = Date.now();
+    const newItem = { id: now, text, done: false, createdAt: now, description: '', subTodos: [] };
+    window.api.storeRead('todos').then((data: unknown) => {
+      const prev = Array.isArray(data) ? data : [];
+      const updated = [...prev, newItem];
+      try { localStorage.setItem('eIsland_todos', JSON.stringify(updated)); } catch { /* noop */ }
+      return window.api.storeWrite('todos', updated);
+    }).then(() => {
+      setAddedTodo(true);
+      setTimeout(() => setAddedTodo(false), 1500);
+    }).catch(() => {});
   };
 
   const handleCopy = (): void => {
@@ -87,6 +104,7 @@ export function SttContent(): ReactElement {
         />
       </div>
       <div className="stt-actions">
+        <button className="stt-action-btn" onClick={handleAddTodo}>{addedTodo ? '已添加' : '添加待办'}</button>
         <button className="stt-action-btn" onClick={handleCopy}>{copied ? '已复制' : '复制'}</button>
         <button className="stt-action-btn" onClick={() => setIdle(true)}>忽略</button>
       </div>
