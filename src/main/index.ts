@@ -133,12 +133,14 @@ function showAgentVoiceInputWindow(): void {
   }
 
   const { screen } = require('electron');
-  const primaryDisplay = screen.getPrimaryDisplay();
-  const { width, height } = primaryDisplay.bounds;
+  const targetDisplay = mainWindow && !mainWindow.isDestroyed()
+    ? screen.getDisplayMatching(mainWindow.getBounds())
+    : screen.getPrimaryDisplay();
+  const { width, height } = targetDisplay.bounds;
 
   agentVoiceInputWindow = new BrowserWindow({
-    x: primaryDisplay.bounds.x,
-    y: primaryDisplay.bounds.y,
+    x: targetDisplay.bounds.x,
+    y: targetDisplay.bounds.y,
     width,
     height,
     transparent: true,
