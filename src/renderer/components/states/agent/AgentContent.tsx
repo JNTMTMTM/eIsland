@@ -19,19 +19,28 @@
  */
 
 /**
- * @file index.ts
- * @description 状态组件导出
+ * @file AgentContent.tsx
+ * @description Agent 状态内容组件
  * @author 鸡哥
  */
 
-export { IdleContent } from './idle/IdleContent';
-export { HoverContent } from './hover/HoverContent';
-export { ExpandedContent } from './expand/ExpandedContent';
-export { MaxExpandContent } from './maxExpand/MaxExpandContent';
-export { GuideContent } from './guide/GuideContent';
-export { LoginContent } from './login/LoginContent';
-export { RegisterContent } from './register/RegisterContent';
-export { PaymentContent } from './payment/PaymentContent';
-export { AnnouncementContent } from './announcement/AnnouncementContent';
-export { AgentVoiceInputContent } from './agentVoiceInput/AgentVoiceInputContent';
-export { AgentContent } from './agent/AgentContent';
+import type { ReactElement } from 'react';
+import useIslandStore from '../../../store/isLandStore';
+import '../../../styles/agent/agent.css';
+
+/**
+ * Agent 状态内容组件
+ * @description 与 notification 尺寸一致（500×88）
+ */
+export function AgentContent(): ReactElement {
+  const agentText = useIslandStore((s) => s.agentText);
+
+  return (
+    <div className="agent-content">
+      <div className="agent-text-area">
+        <span className="agent-text-label">识别结果</span>
+        <span className="agent-text-body">{agentText || '...'}</span>
+      </div>
+    </div>
+  );
+}

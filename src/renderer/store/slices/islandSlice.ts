@@ -51,6 +51,7 @@ export const createIslandSlice: StateCreator<
   expandTab: 'overview',
   maxExpandTab: 'todo',
   notification: emptyNotification,
+  agentText: '',
   springAnimation: true,
 
   setIdle: (force?: boolean) => set((prev) => {
@@ -142,7 +143,7 @@ export const createIslandSlice: StateCreator<
       } else if (target === 'lyrics' || target === 'agentVoiceInput') {
         window.api?.expandWindowLyrics();
         window.api?.enableMousePassthrough();
-      } else if (target === 'notification') {
+      } else if (target === 'notification' || target === 'agent') {
         window.api?.expandWindowNotification();
         window.api?.disableMousePassthrough();
       }
@@ -182,6 +183,13 @@ export const createIslandSlice: StateCreator<
     window.api?.expandWindowLyrics();
     window.api?.enableMousePassthrough();
     return { state: 'agentVoiceInput' as const, authReturnState: null };
+  }),
+
+  setAgent: (text?: string) => set((prev) => {
+    if (prev.uiStateLocked && prev.state !== 'agent') return prev;
+    window.api?.expandWindowNotification();
+    window.api?.disableMousePassthrough();
+    return { state: 'agent' as const, agentText: text ?? '', authReturnState: null };
   }),
 
   toggleUiStateLock: () => {

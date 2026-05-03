@@ -41,6 +41,7 @@ import { RegisterContent } from './states/register/RegisterContent';
 import { PaymentContent } from './states/payment/PaymentContent';
 import { AnnouncementContent } from './states/announcement/AnnouncementContent';
 import { AgentVoiceInputContent } from './states/agentVoiceInput/AgentVoiceInputContent';
+import { AgentContent } from './states/agent/AgentContent';
 import { SvgIcon } from '../utils/SvgIcon';
 import type { NowPlayingInfo } from '../store/isLandStore';
 import { fetchLyrics } from '../api/lyrics/lrcApi';
@@ -60,7 +61,7 @@ import {
 import { readLocalToken } from '../utils/userAccount';
 
 /** 灵动岛状态类型 */
-export type IslandState = 'idle' | 'hover' | 'expanded' | 'notification' | 'maxExpand' | 'minimal' | 'lyrics' | 'guide' | 'login' | 'register' | 'payment' | 'announcement' | 'agentVoiceInput';
+export type IslandState = 'idle' | 'hover' | 'expanded' | 'notification' | 'maxExpand' | 'minimal' | 'lyrics' | 'guide' | 'login' | 'register' | 'payment' | 'announcement' | 'agentVoiceInput' | 'agent';
 
 /** shell.css 中 morph/transition 主时长（0.55s） */
 const SHELL_MORPH_DURATION_MS = 550;
@@ -194,6 +195,7 @@ const STATE_AREA: Record<string, number> = {
   payment: 860 * 400,
   announcement: 860 * 400,
   agentVoiceInput: 500 * 42,
+  agent: 500 * 88,
 };
 
 /** 状态配置接口 */
@@ -301,6 +303,13 @@ export const STATE_CONFIGS: Record<IslandState, StateConfig> = {
     mousePassthrough: true,
     expanded: true,
     enterDelay: 50,
+    leaveDelay: 0,
+  },
+  agent: {
+    name: 'agent',
+    mousePassthrough: false,
+    expanded: true,
+    enterDelay: 0,
     leaveDelay: 0,
   },
 };
@@ -1203,7 +1212,7 @@ function DynamicIsland(): React.JSX.Element {
         return;
       }
 
-      if (state === 'notification' || state === 'guide' || state === 'login' || state === 'register' || state === 'payment' || state === 'announcement') {
+      if (state === 'notification' || state === 'agent' || state === 'guide' || state === 'login' || state === 'register' || state === 'payment' || state === 'announcement') {
         if (inWindow) {
           window.api?.disableMousePassthrough();
         }
@@ -1369,6 +1378,12 @@ function DynamicIsland(): React.JSX.Element {
       state: 'agentVoiceInput',
       render: () => (
         <AgentVoiceInputContent />
+      ),
+    },
+    {
+      state: 'agent',
+      render: () => (
+        <AgentContent />
       ),
     },
   ];

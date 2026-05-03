@@ -28,6 +28,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { ReactElement } from 'react';
 import { startTencentRealtimeStt } from '../../../api/ai/tencentRealtimeStt';
 import { readLocalToken } from '../../../utils/userAccount';
+import useIslandStore from '../../../store/isLandStore';
 import '../../../styles/agentVoiceInput/agentVoiceInput.css';
 
 /**
@@ -38,6 +39,7 @@ export function AgentVoiceInputContent(): ReactElement {
   const [transcript, setTranscript] = useState('');
   const [statusText, setStatusText] = useState('正在聆听…');
   const textRef = useRef<HTMLDivElement>(null);
+  const transcriptRef = useRef('');
 
   useEffect(() => {
     if (textRef.current) {
@@ -123,10 +125,12 @@ export function AgentVoiceInputContent(): ReactElement {
             }
             if (event.type === 'partial') {
               setTranscript(event.text || '');
+              transcriptRef.current = event.text || '';
               return;
             }
             if (event.type === 'final' && event.text) {
               setTranscript(event.text);
+              transcriptRef.current = event.text;
             }
           },
         });
@@ -185,6 +189,9 @@ export function AgentVoiceInputContent(): ReactElement {
     return () => {
       if (autoCutoffTimer) clearTimeout(autoCutoffTimer);
       stopAll();
+      if (transcriptRef.current) {
+        useIslandStore.getState().setAgent(transcriptRef.current);
+      }
     };
   }, []);
 
