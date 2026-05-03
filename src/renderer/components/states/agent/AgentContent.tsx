@@ -34,6 +34,7 @@ import '../../../styles/agent/agent.css';
  */
 export function AgentContent(): ReactElement {
   const agentText = useIslandStore((s) => s.agentText);
+  const setIdle = useIslandStore((s) => s.setIdle);
 
   return (
     <div className="agent-content">
@@ -41,6 +42,7 @@ export function AgentContent(): ReactElement {
         <span className="agent-text-label">识别结果</span>
         <span className="agent-text-body">{agentText || '...'}</span>
       </div>
+      <button className="agent-dismiss-btn" onClick={() => setIdle(true)}>忽略</button>
     </div>
   );
 }
