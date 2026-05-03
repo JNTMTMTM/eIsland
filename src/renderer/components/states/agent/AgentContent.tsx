@@ -32,6 +32,7 @@ import type { MihtnelisAgentStreamEvent } from '../../../api/ai/mihtnelisAgentSt
 import { readLocalToken } from '../../../utils/userAccount';
 import { loadLocationFromStorage } from '../../../store/utils/storage';
 import { buildMihtnelisContext } from '../../states/maxExpand/components/agent/utils/chatUtils';
+import type { AiChatMessage } from '../../../store/types';
 import '../../../styles/agent/agent.css';
 
 type AgentPhase = 'connecting' | 'thinking' | 'toolCalling' | 'answering' | 'done' | 'error';
@@ -81,6 +82,8 @@ export function AgentContent(): ReactElement {
   const [errorMsg, setErrorMsg] = useState('');
   const textRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const answerAccRef = useRef('');
+  const thinkAccRef = useRef('');
 
   useEffect(() => {
     if (textRef.current) {
@@ -105,6 +108,8 @@ export function AgentContent(): ReactElement {
       setThinkText('');
       setAnswerText('');
       setErrorMsg('');
+      answerAccRef.current = '';
+      thinkAccRef.current = '';
 
       const availableModels = ['deepseek-v4-flash', 'deepseek-v4-pro', 'mimo-v2.5', 'mimo-v2.5-pro'];
       const selectedModel = availableModels.includes(aiConfig.model) ? aiConfig.model : 'deepseek-v4-flash';
@@ -166,7 +171,10 @@ export function AgentContent(): ReactElement {
               setPhase('thinking');
               const payload = event.payload as { text?: unknown };
               const text = typeof payload?.text === 'string' ? payload.text : '';
-              if (text) setThinkText((prev) => prev + text);
+              if (text) {
+                thinkAccRef.current += text;
+                setThinkText((prev) => prev + text);
+              }
               return;
             }
 
@@ -174,11 +182,15 @@ export function AgentContent(): ReactElement {
               setPhase('answering');
               const payload = event.payload as { text?: unknown };
               const text = typeof payload?.text === 'string' ? payload.text : '';
-              if (text) setAnswerText((prev) => prev + text);
+              if (text) {
+                answerAccRef.current += text;
+                setAnswerText((prev) => prev + text);
+              }
               return;
             }
 
             if (event.type === 'chunk_reset') {
+              answerAccRef.current = '';
               setAnswerText('');
               return;
             }
@@ -205,6 +217,22 @@ export function AgentContent(): ReactElement {
 
         if (active) {
           setPhase((prev) => (prev === 'error' ? prev : 'done'));
+          const finalAnswer = answerAccRef.current.trim();
+          if (finalAnswer) {
+            const store = useIslandStore.getState();
+            const sid = store.activeAiChatSessionId;
+            const session = store.aiChatSessions.find((s) => s.id === sid);
+            const prev = session?.messages ?? [];
+            const userMsg: AiChatMessage = { role: 'user', content: agentPrompt.trim() };
+            const assistantMsg: AiChatMessage = {
+              role: 'assistant',
+              content: finalAnswer,
+              model: selectedModel,
+              finalized: true,
+              ...(thinkAccRef.current ? { thinkBlocks: [thinkAccRef.current] } : {}),
+            };
+            store.setAiChatSessionMessages(sid, [...prev, userMsg, assistantMsg]);
+          }
         }
       } catch (err: unknown) {
         if (!active) return;
