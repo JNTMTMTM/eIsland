@@ -119,6 +119,29 @@
   background: rgba(var(--color-text-rgb), 0.08);
 }
 
+.agent-action-allow {
+  color: #4caf50;
+}
+
+.agent-action-allow:hover {
+  color: #2e7d32;
+  background: rgba(76, 175, 80, 0.12);
+}
+
+.agent-action-deny {
+  color: #ef5350;
+}
+
+.agent-action-deny:hover {
+  color: #c62828;
+  background: rgba(239, 83, 80, 0.12);
+}
+
+.agent-text-body.agent-text-auth {
+  color: rgba(var(--color-text-rgb), 0.7);
+  font-style: normal;
+}
+
 @keyframes agentEnter {
   0%   { opacity: 0; transform: translateY(4px); }
   100% { opacity: 1; transform: translateY(0); }

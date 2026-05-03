@@ -24,10 +24,15 @@
  * @author 鸡哥
  */
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ReactElement } from 'react';
 import useIslandStore from '../../../store/isLandStore';
-import { streamMihtnelisAgent } from '../../../api/ai/mihtnelisAgentStream';
+import {
+  streamMihtnelisAgent,
+  resolveMihtnelisWebAccess,
+  resolveMihtnelisLocalToolAccess,
+  resolveMihtnelisLocalToolResult,
+} from '../../../api/ai/mihtnelisAgentStream';
 import type { MihtnelisAgentStreamEvent } from '../../../api/ai/mihtnelisAgentStream';
 import { readLocalToken } from '../../../utils/userAccount';
 import { loadLocationFromStorage } from '../../../store/utils/storage';
@@ -67,6 +72,37 @@ function loadAgentMode(): string {
 
 const INLINE_PROMPT_HINT = '[快问快答模式] 请用简洁精炼的语言回答，输出不超过3句话，避免冗长解释和列表。直接给出核心结论。';
 
+const CLIENT_LOCAL_TOOL_PREFIXES = [
+  'file.', 'cmd.', 'sys.', 'win.', 'clipboard.', 'notification.', 'net.',
+  'monitor.', 'volume.', 'brightness.', 'display.', 'power.', 'wifi.',
+  'registry.', 'service.', 'schedule.', 'firewall.', 'defender.', 'island.',
+] as const;
+const CLIENT_LOCAL_TOOL_EXACT_NAMES = new Set(['web.search']);
+const HIGH_RISK_LOCAL_TOOL_PREFIXES = [
+  'file.delete', 'file.rename', 'file.trash', 'cmd.exec', 'cmd.powershell',
+  'win.close', 'win.minimize', 'win.maximize', 'win.restore', 'power.',
+  'registry.write', 'registry.delete', 'service.start', 'service.stop',
+  'service.restart', 'schedule.task.create', 'net.proxy', 'net.hosts',
+  'defender.scan', 'island.settings.write', 'island.theme.set',
+  'island.opacity.set', 'island.restart',
+] as const;
+function isClientLocalToolName(tool: string): boolean {
+  const n = tool.trim().toLowerCase();
+  return CLIENT_LOCAL_TOOL_EXACT_NAMES.has(n) || CLIENT_LOCAL_TOOL_PREFIXES.some((p) => n.startsWith(p));
+}
+function isHighRiskLocalToolName(tool: string): boolean {
+  const n = tool.trim().toLowerCase();
+  return HIGH_RISK_LOCAL_TOOL_PREFIXES.some((p) => n.startsWith(p));
+}
+
+interface AuthPending {
+  type: 'web' | 'tool';
+  requestId: string;
+  description: string;
+  tool?: string;
+  argumentsPayload?: Record<string, unknown>;
+}
+
 /**
  * Agent 状态内容组件
  * @description 与 notification 尺寸一致（500×88），左侧状态图 + 右侧流式文本
@@ -80,10 +116,12 @@ export function AgentContent(): ReactElement {
   const [thinkText, setThinkText] = useState('');
   const [answerText, setAnswerText] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
+  const [authPending, setAuthPending] = useState<AuthPending | null>(null);
   const textRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
   const answerAccRef = useRef('');
   const thinkAccRef = useRef('');
+  const tokenRef = useRef('');
 
   useEffect(() => {
     if (textRef.current) {
@@ -98,6 +136,7 @@ export function AgentContent(): ReactElement {
       setErrorMsg(!token ? '请先登录' : '没有输入内容');
       return;
     }
+    tokenRef.current = token;
 
     const controller = new AbortController();
     abortRef.current = controller;
@@ -108,6 +147,7 @@ export function AgentContent(): ReactElement {
       setThinkText('');
       setAnswerText('');
       setErrorMsg('');
+      setAuthPending(null);
       answerAccRef.current = '';
       thinkAccRef.current = '';
 
@@ -195,8 +235,70 @@ export function AgentContent(): ReactElement {
               return;
             }
 
-            if (event.type === 'tool' || event.type === 'tool_call_request') {
+            if (event.type === 'tool') {
               setPhase('toolCalling');
+              return;
+            }
+
+            if (event.type === 'tool_call_request') {
+              const payload = event.payload as {
+                turn?: unknown; requestId?: unknown; tool?: unknown; purpose?: unknown;
+                riskLevel?: unknown; authorizationRequired?: unknown; message?: unknown;
+                arguments?: unknown;
+              };
+              const requestId = typeof payload?.requestId === 'string' ? payload.requestId.trim() : '';
+              const tool = typeof payload?.tool === 'string' ? payload.tool.trim() : '';
+              const purpose = typeof payload?.purpose === 'string' ? payload.purpose.trim() : '';
+              const authorizationRequired = Boolean(payload?.authorizationRequired);
+              const authMessage = typeof payload?.message === 'string' ? payload.message : '';
+              const argumentsPayload = typeof payload?.arguments === 'object' && payload?.arguments !== null
+                ? payload.arguments as Record<string, unknown> : {};
+              if (!tool) return;
+
+              setPhase('toolCalling');
+
+              const isLocal = isClientLocalToolName(tool);
+              if (!isLocal || !requestId) return;
+
+              const needsAuth = authorizationRequired || isHighRiskLocalToolName(tool);
+              if (needsAuth) {
+                const desc = authMessage || purpose || `工具 ${tool} 请求授权`;
+                setAuthPending({ type: 'tool', requestId, description: desc, tool, argumentsPayload });
+                return;
+              }
+
+              void (async () => {
+                try {
+                  const executor = window.api?.executeAgentLocalTool;
+                  if (typeof executor !== 'function') {
+                    await resolveMihtnelisLocalToolResult({ token, requestId, success: false, result: {}, error: 'LOCAL_RUNTIME_UNAVAILABLE', durationMs: 0 });
+                    return;
+                  }
+                  const execution = await executor({ tool, arguments: argumentsPayload, workspaces: aiConfig.workspaces });
+                  await resolveMihtnelisLocalToolResult({
+                    token, requestId,
+                    success: Boolean(execution?.success),
+                    result: execution?.result,
+                    error: typeof execution?.error === 'string' ? execution.error : '',
+                    durationMs: typeof execution?.durationMs === 'number' ? execution.durationMs : 0,
+                  });
+                } catch { /* ignore */ }
+              })();
+              return;
+            }
+
+            if (event.type === 'web_access_request') {
+              const payload = event.payload as { requestId?: unknown; url?: unknown; message?: unknown };
+              const requestId = typeof payload?.requestId === 'string' ? payload.requestId.trim() : '';
+              const url = typeof payload?.url === 'string' ? payload.url.trim() : '';
+              if (!requestId || !url) return;
+              const desc = typeof payload?.message === 'string' && payload.message ? payload.message : `请求访问: ${url}`;
+              setAuthPending({ type: 'web', requestId, description: desc });
+              return;
+            }
+
+            if (event.type === 'web_access_resolved') {
+              setAuthPending((prev) => (prev?.type === 'web' ? null : prev));
               return;
             }
 
@@ -252,6 +354,43 @@ export function AgentContent(): ReactElement {
     };
   }, [agentPrompt, aiConfig.model, aiConfig.deepseekThinking, aiConfig.deepseekReasoningEffort, aiConfig.workspaces, aiConfig.skills]);
 
+  const handleAuthDecision = useCallback(async (allow: boolean) => {
+    const auth = authPending;
+    if (!auth) return;
+    const token = tokenRef.current;
+    if (!token) return;
+
+    setAuthPending(null);
+
+    try {
+      if (auth.type === 'web') {
+        await resolveMihtnelisWebAccess({ token, requestId: auth.requestId, allow });
+      } else if (auth.type === 'tool') {
+        await resolveMihtnelisLocalToolAccess({ token, requestId: auth.requestId, allow });
+        if (allow) {
+          const executor = window.api?.executeAgentLocalTool;
+          if (typeof executor !== 'function') {
+            await resolveMihtnelisLocalToolResult({ token, requestId: auth.requestId, success: false, result: {}, error: 'LOCAL_RUNTIME_UNAVAILABLE', durationMs: 0 });
+          } else {
+            let execution: { success?: boolean; result?: unknown; error?: string; durationMs?: number } = {};
+            try {
+              execution = await executor({ tool: auth.tool!, arguments: auth.argumentsPayload ?? {}, workspaces: aiConfig.workspaces });
+            } catch (e: unknown) {
+              execution = { success: false, result: {}, error: e instanceof Error ? e.message : '本地工具执行失败', durationMs: 0 };
+            }
+            await resolveMihtnelisLocalToolResult({
+              token, requestId: auth.requestId,
+              success: Boolean(execution?.success),
+              result: execution?.result,
+              error: typeof execution?.error === 'string' ? execution.error : '',
+              durationMs: typeof execution?.durationMs === 'number' ? execution.durationMs : 0,
+            });
+          }
+        }
+      }
+    } catch { /* ignore resolve errors */ }
+  }, [authPending, aiConfig.workspaces]);
+
   const displayText = (answerText || thinkText || errorMsg || PHASE_LABEL[phase]).replace(/\n{2,}/g, '\n');
   const isThinkOnly = !answerText && !!thinkText;
 
@@ -264,16 +403,25 @@ export function AgentContent(): ReactElement {
         draggable={false}
       />
       <div className="agent-text-area">
-        <span className="agent-text-label">{PHASE_LABEL[phase]}</span>
+        <span className="agent-text-label">
+          {authPending ? '需要授权' : PHASE_LABEL[phase]}
+        </span>
         <div
           ref={textRef}
-          className={`agent-text-body${isThinkOnly ? ' agent-text-thinking' : ''}${phase === 'error' ? ' agent-text-error' : ''}`}
+          className={`agent-text-body${authPending ? ' agent-text-auth' : isThinkOnly ? ' agent-text-thinking' : ''}${phase === 'error' ? ' agent-text-error' : ''}`}
         >
-          {displayText}
+          {authPending ? authPending.description : displayText}
         </div>
       </div>
       <div className="agent-actions">
-        <button className="agent-action-btn" onClick={() => setIdle(true)}>关闭</button>
+        {authPending ? (
+          <>
+            <button className="agent-action-btn agent-action-deny" onClick={() => void handleAuthDecision(false)}>不授权</button>
+            <button className="agent-action-btn agent-action-allow" onClick={() => void handleAuthDecision(true)}>授权</button>
+          </>
+        ) : (
+          <button className="agent-action-btn" onClick={() => setIdle(true)}>关闭</button>
+        )}
       </div>
     </div>
   );
