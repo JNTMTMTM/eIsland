@@ -39,6 +39,7 @@ export function SttContent(): ReactElement {
   const setStt = useIslandStore((s) => s.setStt);
   const editRef = useRef<HTMLDivElement>(null);
   const [editing, setEditing] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (editRef.current && !editing) {
@@ -61,6 +62,15 @@ export function SttContent(): ReactElement {
     }
   };
 
+  const handleCopy = (): void => {
+    const text = editRef.current?.textContent?.trim() || sttText || '';
+    if (!text) return;
+    void navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    });
+  };
+
   return (
     <div className="stt-content">
       <img className="stt-icon" src="image/STT_LISTENING.png" alt="" draggable={false} />
@@ -76,7 +86,10 @@ export function SttContent(): ReactElement {
           onBlur={handleBlur}
         />
       </div>
-      <button className="stt-dismiss-btn" onClick={() => setIdle(true)}>忽略</button>
+      <div className="stt-actions">
+        <button className="stt-action-btn" onClick={handleCopy}>{copied ? '已复制' : '复制'}</button>
+        <button className="stt-action-btn" onClick={() => setIdle(true)}>忽略</button>
+      </div>
     </div>
   );
 }

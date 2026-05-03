@@ -92,10 +92,15 @@
   background: rgba(var(--color-text-rgb), 0.06);
 }
 
-.stt-dismiss-btn {
+.stt-actions {
   position: absolute;
   right: 16px;
   bottom: 8px;
+  display: flex;
+  gap: 4px;
+}
+
+.stt-action-btn {
   background: none;
   border: none;
   cursor: pointer;
@@ -107,7 +112,7 @@
   transition: color 0.2s, background 0.2s;
 }
 
-.stt-dismiss-btn:hover {
+.stt-action-btn:hover {
   color: rgba(var(--color-text-rgb), 0.7);
   background: rgba(var(--color-text-rgb), 0.08);
 }
