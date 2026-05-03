@@ -40,6 +40,9 @@ import { LoginContent } from './states/login/LoginContent';
 import { RegisterContent } from './states/register/RegisterContent';
 import { PaymentContent } from './states/payment/PaymentContent';
 import { AnnouncementContent } from './states/announcement/AnnouncementContent';
+import { AgentVoiceInputContent } from './states/agentVoiceInput/AgentVoiceInputContent';
+import { AgentContent } from './states/agent/AgentContent';
+import { SttContent } from './states/stt/SttContent';
 import { SvgIcon } from '../utils/SvgIcon';
 import type { NowPlayingInfo } from '../store/isLandStore';
 import { fetchLyrics } from '../api/lyrics/lrcApi';
@@ -59,7 +62,7 @@ import {
 import { readLocalToken } from '../utils/userAccount';
 
 /** 灵动岛状态类型 */
-export type IslandState = 'idle' | 'hover' | 'expanded' | 'notification' | 'maxExpand' | 'minimal' | 'lyrics' | 'guide' | 'login' | 'register' | 'payment' | 'announcement';
+export type IslandState = 'idle' | 'hover' | 'expanded' | 'notification' | 'maxExpand' | 'minimal' | 'lyrics' | 'guide' | 'login' | 'register' | 'payment' | 'announcement' | 'agentVoiceInput' | 'agent' | 'stt';
 
 /** shell.css 中 morph/transition 主时长（0.55s） */
 const SHELL_MORPH_DURATION_MS = 550;
@@ -192,6 +195,9 @@ const STATE_AREA: Record<string, number> = {
   register: 860 * 400,
   payment: 860 * 400,
   announcement: 860 * 400,
+  agentVoiceInput: 500 * 42,
+  agent: 500 * 88,
+  stt: 500 * 88,
 };
 
 /** 状态配置接口 */
@@ -294,6 +300,27 @@ export const STATE_CONFIGS: Record<IslandState, StateConfig> = {
     enterDelay: 0,
     leaveDelay: 0,
   },
+  agentVoiceInput: {
+    name: 'agentVoiceInput',
+    mousePassthrough: true,
+    expanded: true,
+    enterDelay: 50,
+    leaveDelay: 0,
+  },
+  agent: {
+    name: 'agent',
+    mousePassthrough: false,
+    expanded: true,
+    enterDelay: 0,
+    leaveDelay: 0,
+  },
+  stt: {
+    name: 'stt',
+    mousePassthrough: false,
+    expanded: true,
+    enterDelay: 0,
+    leaveDelay: 0,
+  },
 };
 
 /**
@@ -343,7 +370,7 @@ interface StateRenderer {
  */
 function DynamicIsland(): React.JSX.Element {
   const { t, i18n } = useTranslation();
-  const { state, weather, setHover, setIdle, setExpanded, setLyrics, setGuide, setAnnouncement, timerData, setTimerData, notification, setNotification, handleNowPlayingUpdate, updateProgress, coverImage, isMusicPlaying, isPlaying, dominantColor, setDominantColor, setSyncedLyrics, setLyricsLoading, syncedLyrics, lyricsLoading, pomodoroRunning, pomodoroRemaining, springAnimation } = useIslandStore();
+  const { state, weather, setHover, setIdle, setExpanded, setLyrics, setGuide, setAnnouncement, setAgentVoiceInput, timerData, setTimerData, notification, setNotification, handleNowPlayingUpdate, updateProgress, coverImage, isMusicPlaying, isPlaying, dominantColor, setDominantColor, setSyncedLyrics, setLyricsLoading, syncedLyrics, lyricsLoading, pomodoroRunning, pomodoroRemaining, springAnimation } = useIslandStore();
   const prevStateRef = useRef(state);
   const [morphing, setMorphing] = useState(false);
   const [fromState, setFromState] = useState('');
@@ -723,6 +750,18 @@ function DynamicIsland(): React.JSX.Element {
       window.addEventListener(LOCAL_ISLAND_BG_SYNC_EVENT, localBgSyncHandler as EventListener);
     }
   }, [i18n.resolvedLanguage]);
+
+  // Agent 语音输入快捷键触发时切换灵动岛状态
+  useEffect(() => {
+    const unsub = window.api?.onAgentVoiceInputState?.((active: boolean) => {
+      if (active) {
+        setAgentVoiceInput();
+      } else {
+        setIdle(true);
+      }
+    });
+    return () => { unsub?.(); };
+  }, [setAgentVoiceInput, setIdle]);
 
   // idle 状态下：正在播放且歌词已识别/加载中时，自动切到歌词态
   useEffect(() => {
@@ -1182,7 +1221,7 @@ function DynamicIsland(): React.JSX.Element {
         return;
       }
 
-      if (state === 'notification' || state === 'guide' || state === 'login' || state === 'register' || state === 'payment' || state === 'announcement') {
+      if (state === 'notification' || state === 'agent' || state === 'stt' || state === 'guide' || state === 'login' || state === 'register' || state === 'payment' || state === 'announcement') {
         if (inWindow) {
           window.api?.disableMousePassthrough();
         }
@@ -1342,6 +1381,24 @@ function DynamicIsland(): React.JSX.Element {
       state: 'announcement',
       render: () => (
         <AnnouncementContent />
+      ),
+    },
+    {
+      state: 'agentVoiceInput',
+      render: () => (
+        <AgentVoiceInputContent />
+      ),
+    },
+    {
+      state: 'agent',
+      render: () => (
+        <AgentContent />
+      ),
+    },
+    {
+      state: 'stt',
+      render: () => (
+        <SttContent />
       ),
     },
   ];

@@ -30,7 +30,7 @@ import type { WeatherApiConfig } from '../../api/weather/weatherApi';
 export type { WeatherApiConfig };
 
 /** 灵动岛 UI 状态枚举 */
-export type IslandState = 'idle' | 'hover' | 'expanded' | 'notification' | 'maxExpand' | 'lyrics' | 'guide' | 'login' | 'register' | 'payment' | 'announcement';
+export type IslandState = 'idle' | 'hover' | 'expanded' | 'notification' | 'maxExpand' | 'lyrics' | 'guide' | 'login' | 'register' | 'payment' | 'announcement' | 'agentVoiceInput' | 'agent' | 'stt';
 
 /** Hover 状态下的子标签页类型 */
 export type HoverTab = 'time' | 'o3ics' | 'weather' | 'expand';
@@ -198,11 +198,9 @@ export interface AiConfig {
   systemPrompt: string;
   deepseekThinking: boolean;
   deepseekReasoningEffort: 'low' | 'medium' | 'high';
-  /** 上下文窗口大小（token 数） */
   contextLimit: 200_000 | 400_000 | 1_000_000;
-  /** Agent 工作区目录列表，文件操作限制在这些目录内 */
+  r1pxcAvatar: string;
   workspaces: string[];
-  /** 用户自定义 Agent Skills */
   skills: AiSkill[];
 }
 
@@ -250,12 +248,14 @@ export interface AiChatAttachment {
 export interface AiChatMessage {
   role: 'user' | 'assistant';
   content: string;
+  model?: string;
   traceId?: string;
   finalized?: boolean;
   thinkBlocks?: string[];
   toolCalls?: AiToolCall[];
   todoSnapshots?: AiTodoSnapshot[];
   attachments?: AiChatAttachment[];
+  quote?: string;
   tokenUsage?: {
     inputTokens: number;
     outputTokens: number;
@@ -300,6 +300,8 @@ export interface IslandSlice {
   expandTab: ExpandTab;
   maxExpandTab: MaxExpandTab;
   notification: NotificationData;
+  sttText: string;
+  agentPrompt: string;
 
   springAnimation: boolean;
   setIdle: (force?: boolean) => void;
@@ -316,6 +318,9 @@ export interface IslandSlice {
 
   setGuide: () => void;
   setAnnouncement: () => void;
+  setAgentVoiceInput: () => void;
+  setStt: (text?: string) => void;
+  setAgent: (prompt?: string) => void;
   toggleUiStateLock: () => boolean;
   setHoverTab: (tab: HoverTab) => void;
   setExpandTab: (tab: ExpandTab) => void;

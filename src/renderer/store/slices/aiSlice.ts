@@ -42,6 +42,7 @@ function loadAiConfig(): AiConfig {
     deepseekThinking: false,
     deepseekReasoningEffort: 'medium',
     contextLimit: 200_000,
+    r1pxcAvatar: '',
     workspaces: [],
     skills: [],
   };
@@ -55,6 +56,9 @@ function loadAiConfig(): AiConfig {
       merged.deepseekThinking = Boolean(merged.deepseekThinking);
       const cl = Number(merged.contextLimit);
       merged.contextLimit = (cl === 400_000 || cl === 1_000_000) ? cl as 400_000 | 1_000_000 : 200_000;
+      merged.r1pxcAvatar = typeof merged.r1pxcAvatar === 'string' && merged.r1pxcAvatar.trim().startsWith('data:image/')
+        ? merged.r1pxcAvatar.trim()
+        : '';
       merged.workspaces = Array.isArray(merged.workspaces) ? merged.workspaces.filter((w) => typeof w === 'string' && w.trim()) : [];
       merged.skills = Array.isArray(merged.skills)
         ? (merged.skills as AiSkill[]).filter((s) => typeof s?.id === 'string' && typeof s?.name === 'string' && typeof s?.filePath === 'string')
@@ -161,8 +165,14 @@ function normalizeAiChatMessage(value: unknown): AiChatMessage | null {
   if (attachments.length > 0) {
     normalized.attachments = attachments;
   }
+  if (typeof source.model === 'string' && source.model.trim()) {
+    normalized.model = source.model.trim();
+  }
   if (typeof source.traceId === 'string' && source.traceId.trim()) {
     normalized.traceId = source.traceId.trim();
+  }
+  if (typeof source.quote === 'string' && source.quote.trim()) {
+    normalized.quote = source.quote.trim();
   }
   if (source.finalized === true) {
     normalized.finalized = true;
@@ -391,6 +401,15 @@ export const createAiSlice: StateCreator<
   AiSlice
 > = (set, get) => {
   const initialChatState = initializeAiChatState();
+
+  if (typeof window !== 'undefined') {
+    window.addEventListener('storage', (event) => {
+      if (event.key === AI_CONFIG_KEY) {
+        set({ aiConfig: loadAiConfig() });
+      }
+    });
+  }
+
   return {
     aiConfig: loadAiConfig(),
     aiChatSessions: initialChatState.sessions,

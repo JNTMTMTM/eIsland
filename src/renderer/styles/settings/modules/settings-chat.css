@@ -511,11 +511,76 @@
   word-break: break-word;
 }
 
+/** 用户消息行（气泡 + 头像） */
+.max-expand-chat-user-row {
+  align-self: flex-end;
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  max-width: 88%;
+}
+
+.max-expand-chat-user-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.max-expand-chat-user-avatar--placeholder {
+  display: inline-block;
+  background: rgba(var(--color-text-rgb), 0.12);
+}
+
+.max-expand-chat-agent-row.r1pxc-chat {
+  align-self: flex-start;
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  max-width: 88%;
+}
+
+.max-expand-chat-agent-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.max-expand-chat-agent-avatar--placeholder {
+  display: inline-block;
+  width: 28px;
+  height: 28px;
+  background: transparent;
+}
+
+.max-expand-chat-avatar--clickable {
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.max-expand-chat-avatar--clickable:hover {
+  opacity: 0.7;
+}
+
+.max-expand-chat-agent-bubbles {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+  min-width: 0;
+  flex: 1;
+}
+
 .max-expand-chat-bubble.user {
   align-self: flex-end;
-  background: rgba(var(--color-text-rgb), 0.12);
-  color: var(--color-island-text);
+  max-width: 100%;
+  background: rgba(76, 175, 80, 0.28);
+  color: rgba(var(--color-text-rgb), 0.92);
   border-bottom-right-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.22), 0 0 0 1px rgba(76, 175, 80, 0.15);
   user-select: text;
   -webkit-user-select: text;
 }
@@ -530,6 +595,134 @@
   color: rgba(var(--color-text-rgb), 0.85);
   user-select: text;
   -webkit-user-select: text;
+}
+
+.max-expand-chat-bubble.ai.r1pxc-chat {
+  align-self: flex-start;
+  max-width: 120%;
+  width: auto;
+  padding: 5px 10px;
+  border-radius: 12px;
+  border-bottom-left-radius: 4px;
+  background: rgba(
+    var(--chat-dominant-r, 140),
+    var(--chat-dominant-g, 140),
+    var(--chat-dominant-b, 140),
+    0.22
+  );
+  color: rgba(var(--color-text-rgb), 0.88);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.10);
+  line-height: 1.4;
+}
+
+.max-expand-chat-bubble.user.r1pxc-chat {
+  border-bottom-right-radius: 4px;
+}
+
+/** 气泡悬停操作栏（下方展开，不影响气泡最小宽度） */
+.max-expand-chat-bubble.ai.r1pxc-chat.max-expand-chat-bubble--hoverable {
+  position: relative;
+  padding-bottom: 5px;
+  min-width: 0;
+  transition: padding-bottom 0.2s ease, min-width 0.2s ease;
+}
+
+.max-expand-chat-bubble.ai.r1pxc-chat.max-expand-chat-bubble--hoverable:hover {
+  padding-bottom: 22px;
+  min-width: 110px;
+}
+
+.max-expand-chat-bubble--hoverable .max-expand-chat-bubble-actions {
+  position: absolute;
+  left: 10px;
+  bottom: 4px;
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease 0.15s;
+}
+
+.max-expand-chat-bubble--hoverable:hover .max-expand-chat-bubble-actions {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.max-expand-chat-bubble--hoverable:not(:hover) .max-expand-chat-bubble-actions {
+  transition-delay: 0s;
+}
+
+.max-expand-chat-bubble-actions button {
+  all: unset;
+  box-sizing: border-box;
+  padding: 1px 8px;
+  font-size: 10px;
+  border-radius: 4px;
+  background: rgba(var(--color-text-rgb), 0.08);
+  color: rgba(var(--color-text-rgb), 0.50);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.max-expand-chat-bubble-actions button:hover {
+  background: rgba(var(--color-text-rgb), 0.15);
+  color: rgba(var(--color-text-rgb), 0.80);
+}
+
+/** 输入框上方引用预览条 */
+.max-expand-chat-quote-preview {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  margin: 0 0 2px;
+  border-left: 2px solid rgba(76, 175, 80, 0.6);
+  border-radius: 4px;
+  background: rgba(var(--color-text-rgb), 0.06);
+  font-size: 11px;
+  color: rgba(var(--color-text-rgb), 0.55);
+  line-height: 1.3;
+}
+
+.max-expand-chat-quote-preview-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.max-expand-chat-quote-preview-close {
+  all: unset;
+  cursor: pointer;
+  font-size: 12px;
+  color: rgba(var(--color-text-rgb), 0.4);
+  flex-shrink: 0;
+  padding: 0 2px;
+  line-height: 1;
+}
+
+.max-expand-chat-quote-preview-close:hover {
+  color: rgba(var(--color-text-rgb), 0.7);
+}
+
+/** 气泡内引用块 */
+.max-expand-chat-quote-block {
+  padding: 3px 8px;
+  margin-bottom: 4px;
+  border-left: 2px solid rgba(var(--color-text-rgb), 0.25);
+  border-radius: 2px;
+  background: rgba(var(--color-text-rgb), 0.06);
+  font-size: 11px;
+  color: rgba(var(--color-text-rgb), 0.50);
+  line-height: 1.3;
+}
+
+.max-expand-chat-quote-block-text {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .max-expand-chat-bubble.ai a {
@@ -1589,6 +1782,154 @@
 
 .max-expand-chat-input:focus {
   border-color: rgba(var(--color-text-rgb), 0.25);
+}
+
+.max-expand-chat-input::-webkit-scrollbar {
+  width: 4px;
+}
+
+.max-expand-chat-input::-webkit-scrollbar-thumb {
+  background: rgba(var(--color-text-rgb), 0.12);
+  border-radius: 2px;
+}
+
+.max-expand-chat-input::-webkit-scrollbar-thumb:hover {
+  background: rgba(var(--color-text-rgb), 0.22);
+}
+
+/** Agent 模式选择器 */
+.max-expand-chat-agent-mode-wrap {
+  position: relative;
+  flex-shrink: 0;
+  align-self: flex-end;
+}
+
+.max-expand-chat-agent-mode-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  background: rgba(var(--color-text-rgb), 0.1);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  flex-shrink: 0;
+}
+
+.max-expand-chat-agent-mode-trigger:hover {
+  background: rgba(var(--color-text-rgb), 0.18);
+}
+
+.max-expand-chat-agent-mode-icon {
+  width: 16px;
+  height: 16px;
+  opacity: 0.88;
+  filter: brightness(0) invert(1);
+}
+
+[data-theme='light'] .max-expand-chat-agent-mode-icon {
+  filter: brightness(0) invert(0);
+  opacity: 0.82;
+}
+
+.max-expand-chat-agent-mode-icon.no-filter,
+[data-theme='light'] .max-expand-chat-agent-mode-icon.no-filter {
+  filter: none;
+  opacity: 1;
+}
+
+.max-expand-chat-agent-mode-dropdown {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 130px;
+  background: var(--color-island-bg, rgba(30, 30, 30, 0.96));
+  border: 1px solid rgba(var(--color-text-rgb), 0.12);
+  border-radius: 10px;
+  padding: 4px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  z-index: 9999;
+}
+
+.max-expand-chat-agent-mode-item {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 10px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: rgba(var(--color-text-rgb), 0.7);
+  font-size: 12.5px;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+  white-space: nowrap;
+}
+
+.max-expand-chat-agent-mode-item:hover {
+  background: rgba(var(--color-text-rgb), 0.1);
+  color: var(--color-island-text);
+}
+
+.max-expand-chat-agent-mode-item.active {
+  background: rgba(var(--color-text-rgb), 0.14);
+  color: var(--color-island-text);
+  font-weight: 500;
+}
+
+.max-expand-chat-agent-mode-item-icon {
+  width: 14px;
+  height: 14px;
+  opacity: 0.78;
+  filter: brightness(0) invert(1);
+}
+
+[data-theme='light'] .max-expand-chat-agent-mode-item-icon {
+  filter: brightness(0) invert(0);
+  opacity: 0.72;
+}
+
+.max-expand-chat-agent-mode-item-icon.no-filter,
+[data-theme='light'] .max-expand-chat-agent-mode-item-icon.no-filter {
+  filter: none;
+  opacity: 1;
+}
+
+.max-expand-chat-agent-mode-item.active .max-expand-chat-agent-mode-item-icon {
+  opacity: 1;
+}
+
+.max-expand-chat-agent-mode-item-label {
+  flex: 1;
+  font-size: 12.5px;
+  text-align: left;
+}
+
+.max-expand-chat-agent-mode-item-desc {
+  margin-left: auto;
+  font-size: 10px;
+  color: rgba(var(--color-text-rgb), 0.4);
+  background: rgba(var(--color-text-rgb), 0.06);
+  padding: 1px 6px;
+  border-radius: 4px;
+  line-height: 1.5;
+  flex-shrink: 0;
+}
+
+.max-expand-chat-agent-mode-item.active .max-expand-chat-agent-mode-item-desc {
+  color: rgba(var(--color-text-rgb), 0.55);
+  background: rgba(var(--color-text-rgb), 0.1);
+}
+
+.max-expand-chat-agent-mode-item-badge {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
 }
 
 /** 发送按钮 */

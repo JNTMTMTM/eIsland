@@ -1,9 +1,34 @@
+<!--
+ * eIsland - A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Electron.
+ * https://github.com/JNTMTMTM/eIsland
+ *
+ * Copyright (C) 2026 JNTMTMTM
+ * Copyright (C) 2026 pyisland.com
+ *
+ * Original author: JNTMTMTM[](https://github.com/JNTMTMTM)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+-->
+
+<!--
+  @file AIbackground.html
+  @description Apple Intelligence 风格全屏边缘光效
+  @author silenthim JNTMTMTM
+-->
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Color</title>
+<title></title>
 <style>
     * {
         margin: 0;
@@ -11,7 +36,7 @@
         box-sizing: border-box;
     }
     body {
-        background: #000; /* 改为纯黑，光晕效果会更明显 */
+        background: transparent;
     }
     canvas {
         position: fixed;
@@ -29,64 +54,180 @@ const canvas = document.getElementById('lightCanvas');
 const ctx = canvas.getContext('2d');
 
 let w, h;
-let hueOffset = 0;
+let dpr = window.devicePixelRatio || 1;
+
+// 淡入动画参数
+const FADE_IN_DURATION = 600; // 毫秒
+let fadeInStart = -1;
+let fadeInAlpha = 0;
+canvas.style.opacity = '0';
+
+// 淡出动画参数
+const FADE_OUT_DURATION = 400; // 毫秒
+let fadeOutStart = -1;
+let fadingOut = false;
+
+function startFadeOut() {
+    fadingOut = true;
+}
+
+// 出现时播放音效
+const agentAudio = new Audio('./audio/AGENT.wav');
+agentAudio.volume = 1.0;
+agentAudio.onerror = function() {
+    this.onerror = null;
+    this.src = './public/audio/AGENT.wav';
+    this.play().catch(() => {});
+};
+agentAudio.play().catch(() => {});
 
 function resize() {
-    w = canvas.width = window.innerWidth;
-    h = canvas.height = window.innerHeight;
+    w = window.innerWidth;
+    h = window.innerHeight;
+    canvas.width = w * dpr;
+    canvas.height = h * dpr;
+    canvas.style.width = w + 'px';
+    canvas.style.height = h + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
 resize();
 window.addEventListener('resize', resize);
 
-function animate() {
-    // 每次绘制前清空画布
-    ctx.clearRect(0, 0, w, h);
-    hueOffset += 0.6; // 控制流光颜色的变化速度
+// 动画参数
+const CYCLE = 8;        // 色环旋转周期（秒）
+const BREATH = 2.5;     // 主呼吸周期（秒）
+const BREATH2 = 1.4;    // 次呼吸周期（秒）
+const BREATH3 = 6.0;    // 慢波呼吸周期（秒）
+const BLUR_BREATH = 1.8;// 模糊呼吸周期（秒）
+const COLOR_BREATH = 3.6; // 色彩呼吸周期（秒）
+const CORNER = 20;      // 容器圆角半径
+const INSET = 10;       // 边框向内收缩距离
+const BURST_DURATION = 1000;  // 初始脉冲持续时间（毫秒）
+const BURST_INTENSITY = 2.5;  // 初始脉冲强度倍率
+const PULSE_SPEED = 3.2;      // 辉光脉动速度（秒）
 
-    // ==========================================
-    // 核心参数调节区
-    // ==========================================
-    const blurRadius = 40;  // 光晕向内渗透的深度（越大越柔和深邃）
-    const strokeWidth = 60;  // 发光带的粗细
-    const offset = 10;       // 发光带向屏幕外侧偏移的距离
-                             // (设置偏移是为了隐藏生硬的实体线，只让柔和的光晕漏进屏幕)
-
-    // 1. 设置模糊滤镜，这是实现“透明度向内平滑递减”的魔法
-    // 注意：Canvas 的 filter 比 shadowBlur 对渐变色的支持更好
-    ctx.filter = `blur(${blurRadius}px)`;
-
-    // 2. 创建覆盖全屏的流光渐变色
-    const gradient = ctx.createLinearGradient(0, 0, w, h);
-    gradient.addColorStop(0.0, `hsl(${hueOffset}, 100%, 60%)`);
-    gradient.addColorStop(0.25, `hsl(${hueOffset + 60}, 100%, 60%)`);
-    gradient.addColorStop(0.5, `hsl(${hueOffset + 120}, 100%, 60%)`);
-    gradient.addColorStop(0.75, `hsl(${hueOffset + 180}, 100%, 60%)`);
-    gradient.addColorStop(1.0, `hsl(${hueOffset + 240}, 100%, 60%)`);
-
-    // 3. 在屏幕稍微偏外一点的位置画矩形
+// 圆角矩形路径
+function roundedRectPath(x, y, rw, rh, r) {
     ctx.beginPath();
-    ctx.rect(
-        -offset, 
-        -offset, 
-        w + offset * 2, 
-        h + offset * 2
-    );
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + rw - r, y);
+    ctx.quadraticCurveTo(x + rw, y, x + rw, y + r);
+    ctx.lineTo(x + rw, y + rh - r);
+    ctx.quadraticCurveTo(x + rw, y + rh, x + rw - r, y + rh);
+    ctx.lineTo(x + r, y + rh);
+    ctx.quadraticCurveTo(x, y + rh, x, y + rh - r);
+    ctx.lineTo(x, y + r);
+    ctx.quadraticCurveTo(x, y, x + r, y);
+    ctx.closePath();
+}
 
-    ctx.lineWidth = strokeWidth;
-    ctx.strokeStyle = gradient;
-    
-    // 如果想要光晕更亮一点，可以开启下面的叠加模式
-    // ctx.globalCompositeOperation = 'lighter'; 
-    
-    // 描边画出被模糊的光晕
-    ctx.stroke();
+// 渐变色停：橙→红→品红→紫→蓝→靛→紫→品红（循环）
+const GRADIENT_STOPS = [
+    [0.00, 30, 100, 60],   // 橙
+    [0.10, 10, 100, 55],   // 红橙
+    [0.20, 350, 100, 55],  // 红
+    [0.30, 330, 100, 55],  // 玫红
+    [0.45, 300, 100, 50],  // 品红
+    [0.55, 275, 100, 50],  // 紫
+    [0.65, 255, 100, 55],  // 蓝紫
+    [0.75, 235, 100, 60],  // 蓝
+    [0.85, 260, 100, 55],  // 靛蓝
+    [0.92, 290, 100, 50],  // 紫红
+    [1.00, 30, 100, 60],   // 橙（闭合）
+];
 
-    // 绘制完后重置 filter，避免影响可能有的其他绘制
-    ctx.filter = 'none';
-    
+// 绘制多层辉光 + 锐线，模拟霓虹边框效果
+function drawNeonBorder(rotation, breath, pulse, blurBreath, colorBreath) {
+    const x = -INSET;
+    const y = -INSET;
+    const rw = w + INSET * 2;
+    const rh = h + INSET * 2;
+    const cx = w / 2;
+    const cy = h / 2;
+
+    // 层配置：[baseBlur, lineWidth, alpha]
+    const layers = [
+        [160, 100 * pulse, 0.10 * breath], // 最外层柔光
+        [110, 75  * pulse, 0.16 * breath], // 外辉光
+        [70,  50  * pulse, 0.25 * breath], // 中间辉光
+        [40,  32  * pulse, 0.40 * breath], // 内辉光
+        [18,  14  * pulse, 0.65 * breath], // 窄辉光
+        [2,   2.5,         1.0],           // 锐线核心
+    ];
+
+    for (const [baseBlur, lineWidth, alpha] of layers) {
+        ctx.save();
+        // 模糊呼吸：外层模糊半径随呼吸扩张收缩
+        const animatedBlur = baseBlur > 0 ? baseBlur * blurBreath : 0;
+        ctx.filter = animatedBlur > 0 ? `blur(${animatedBlur}px)` : 'none';
+        ctx.globalAlpha = alpha;
+
+        roundedRectPath(x, y, rw, rh, CORNER + INSET);
+
+        const gradient = ctx.createConicGradient(rotation, cx, cy);
+        // 色彩呼吸：饱和度和亮度随呼吸微调
+        for (const [stop, hue, sat, lum] of GRADIENT_STOPS) {
+            const aSat = Math.min(100, sat + 10 * colorBreath);
+            const aLum = lum + 5 * colorBreath;
+            gradient.addColorStop(stop, `hsl(${hue}, ${aSat}%, ${aLum}%)`);
+        }
+
+        ctx.lineWidth = lineWidth;
+        ctx.strokeStyle = gradient;
+        ctx.stroke();
+        ctx.restore();
+    }
+}
+
+function animate(t) {
+    // 淡入处理
+    if (fadeInStart < 0) fadeInStart = t;
+    const elapsed = t - fadeInStart;
+    if (!fadingOut && fadeInAlpha < 1) {
+        const p = Math.min(elapsed / FADE_IN_DURATION, 1);
+        fadeInAlpha = 1 - (1 - p) * (1 - p); // easeOutQuad
+        canvas.style.opacity = String(fadeInAlpha);
+    }
+
+    // 淡出处理
+    if (fadingOut) {
+        if (fadeOutStart < 0) fadeOutStart = t;
+        const fp = Math.min((t - fadeOutStart) / FADE_OUT_DURATION, 1);
+        const fadeOutAlpha = fadeInAlpha * (1 - fp * fp); // easeInQuad
+        canvas.style.opacity = String(Math.max(fadeOutAlpha, 0));
+    }
+
+    t /= 1000;
+    ctx.clearRect(0, 0, w, h);
+
+    // 三波呼吸：主波 + 次波 + 慢波叠加
+    let breath = 0.70 + 0.18 * Math.sin(t * Math.PI * 2 / BREATH)
+                     + 0.07 * Math.sin(t * Math.PI * 2 / BREATH2)
+                     + 0.05 * Math.sin(t * Math.PI * 2 / BREATH3);
+
+    // 辉光层脉动（线宽波动）
+    const pulse = 0.85 + 0.15 * Math.sin(t * Math.PI * 2 / PULSE_SPEED);
+
+    // 模糊呼吸：外层辉光范围膀胀收缩
+    const blurBreath = 0.85 + 0.15 * Math.sin(t * Math.PI * 2 / BLUR_BREATH);
+
+    // 色彩呼吸：饱和度/亮度微调
+    const colorBreath = Math.sin(t * Math.PI * 2 / COLOR_BREATH);
+
+    // 初始脉冲：出现时一次强烈的辉光波动
+    if (elapsed < BURST_DURATION) {
+        const bp = elapsed / BURST_DURATION;
+        const burst = 1 + (BURST_INTENSITY - 1) * (1 - bp) * (1 - bp); // easeOut 衰减
+        breath *= burst;
+    }
+
+    const rotation = (t / CYCLE) * Math.PI * 2;
+
+    drawNeonBorder(rotation, breath, pulse, blurBreath, colorBreath);
+
     requestAnimationFrame(animate);
 }
-animate();
+requestAnimationFrame(animate);
 </script>
 </body>
 </html>

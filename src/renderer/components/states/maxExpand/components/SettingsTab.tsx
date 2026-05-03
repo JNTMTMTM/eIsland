@@ -61,6 +61,8 @@ import {
   MAIL_SETTINGS_PAGE_LABELS,
   MUSIC_SETTINGS_PAGES,
   MUSIC_SETTINGS_PAGE_LABELS,
+  AI_SETTINGS_PAGES,
+  AI_SETTINGS_PAGE_LABELS,
   NAV_CARDS,
   DEFAULT_NAV_ORDER,
   NAV_CARDS_MAP,
@@ -69,6 +71,7 @@ import {
   type WeatherSettingsPageKey,
   type MailSettingsPageKey,
   type MusicSettingsPageKey,
+  type AiSettingsPageKey,
   type SettingsTabLabelKey,
   type NavCardDef,
 } from './setting/utils/settingsConfig';
@@ -122,7 +125,7 @@ const MAIL_CONFIG_STORE_KEY = 'mail-account-config';
 const MAIL_ACCOUNTS_STORE_KEY = 'mail-accounts-config';
 const MAIL_FETCH_LIMIT_STORE_KEY = 'mail-fetch-limit';
 const SETTINGS_OPEN_TAB_STORE_KEY = 'settings-open-tab';
-type SettingsOpenTabIntent = 'update' | 'about-feedback' | 'user-orders' | 'mail';
+type SettingsOpenTabIntent = 'update' | 'about-feedback' | 'user-orders' | 'user-info' | 'ai' | 'mail';
 let _lastSettingsSidebarTab: SettingsSidebarTabKey = 'index';
 
 type IslandBgMediaType = 'image' | 'video';
@@ -309,6 +312,7 @@ export function SettingsTab(): ReactElement {
   const [weatherSettingsPage, setWeatherSettingsPage] = useState<WeatherSettingsPageKey>('location');
   const [mailSettingsPage, setMailSettingsPage] = useState<MailSettingsPageKey>('account');
   const [musicSettingsPage, setMusicSettingsPage] = useState<MusicSettingsPageKey>('whitelist');
+  const [aiSettingsPage, setAiSettingsPage] = useState<AiSettingsPageKey>('general');
   const [userInitialProfilePage, setUserInitialProfilePage] = useState<'info' | 'pro' | 'recharge' | 'orders'>('info');
   const [aboutInitialPage, setAboutInitialPage] = useState<'development' | 'feedback'>('development');
   const [pluginMarketPage, setPluginMarketPage] = useState<PluginMarketPageKey>('wallpaper');
@@ -372,6 +376,9 @@ export function SettingsTab(): ReactElement {
   const musicSettingsPageRef = useRef(musicSettingsPage);
   const currentMusicSettingsPageLabel = t(`settings.musicPages.${musicSettingsPage}`, { defaultValue: MUSIC_SETTINGS_PAGE_LABELS[musicSettingsPage] || '白名单' });
   musicSettingsPageRef.current = musicSettingsPage;
+  const aiSettingsPageRef = useRef(aiSettingsPage);
+  const currentAiSettingsPageLabel = t(`settings.aiPages.${aiSettingsPage}`, { defaultValue: AI_SETTINGS_PAGE_LABELS[aiSettingsPage] || '通用配置' });
+  aiSettingsPageRef.current = aiSettingsPage;
   const pluginMarketPageRef = useRef(pluginMarketPage);
   pluginMarketPageRef.current = pluginMarketPage;
   const currentPluginMarketPageLabel = t(`settings.pluginMarket.pages.${pluginMarketPage}`, {
@@ -888,6 +895,12 @@ export function SettingsTab(): ReactElement {
   const [toggleUiLockHotkeyError, setToggleUiLockHotkeyError] = useState<string>('');
   const toggleUiLockHotkeyInputRef = useRef<HTMLInputElement>(null);
 
+  /** Agent 语音输入快捷键相关状态 */
+  const [agentVoiceInputHotkey, setAgentVoiceInputHotkey] = useState<string>('');
+  const [agentVoiceInputHotkeyRecording, setAgentVoiceInputHotkeyRecording] = useState(false);
+  const [agentVoiceInputHotkeyError, setAgentVoiceInputHotkeyError] = useState<string>('');
+  const agentVoiceInputHotkeyInputRef = useRef<HTMLInputElement>(null);
+
   const hideProcessKeyword = hideProcessFilter.trim().toLowerCase();
 
 
@@ -1148,22 +1161,40 @@ export function SettingsTab(): ReactElement {
 
   useEffect(() => {
     let cancelled = false;
+    const applyOpenTabIntent = (value: unknown): void => {
+      if (value === 'update') {
+        setActiveTab('update');
+      }
+      if (value === 'mail') {
+        setActiveTab('mail');
+      }
+      if (value === 'about-feedback') {
+        setActiveTab('about');
+        setAboutInitialPage('feedback');
+      }
+      if (value === 'user-orders') {
+        setActiveTab('user');
+        setUserInitialProfilePage('orders');
+      }
+      if (value === 'user-info') {
+        setActiveTab('user');
+        setUserInitialProfilePage('info');
+      }
+      if (value === 'ai') {
+        setActiveTab('ai');
+      }
+      if (value) {
+        window.api.storeWrite(SETTINGS_OPEN_TAB_STORE_KEY, null).catch(() => {});
+      }
+    };
+    const handleLocalIntent = (e: Event): void => {
+      const detail = (e as CustomEvent).detail;
+      if (typeof detail === 'string' && detail) applyOpenTabIntent(detail);
+    };
+    window.addEventListener('settings-open-tab-intent', handleLocalIntent);
     const unsub = window.api.onSettingsChanged((channel: string, value: unknown) => {
-      if (channel === 'settings:open-tab') {
-        if (value === 'update') {
-          setActiveTab('update');
-        }
-        if (value === 'mail') {
-          setActiveTab('mail');
-        }
-        if (value === 'about-feedback') {
-          setActiveTab('about');
-          setAboutInitialPage('feedback');
-        }
-        if (value === 'user-orders') {
-          setActiveTab('user');
-          setUserInitialProfilePage('orders');
-        }
+      if (channel === `store:${SETTINGS_OPEN_TAB_STORE_KEY}`) {
+        applyOpenTabIntent(value);
       }
       if (channel === 'i18n:language' && (value === 'zh-CN' || value === 'en-US')) {
         setAppLanguage(value);
@@ -1242,6 +1273,7 @@ export function SettingsTab(): ReactElement {
     return () => {
       cancelled = true;
       unsub();
+      window.removeEventListener('settings-open-tab-intent', handleLocalIntent);
     };
   }, []);
 
@@ -1406,6 +1438,10 @@ export function SettingsTab(): ReactElement {
       if (cancelled) return;
       setToggleUiLockHotkey(key || '');
     }).catch(() => {});
+    window.api.agentVoiceInputHotkeyGet().then((key) => {
+      if (cancelled) return;
+      setAgentVoiceInputHotkey(key || '');
+    }).catch(() => {});
     return () => { cancelled = true; };
   }, []);
 
@@ -1453,6 +1489,15 @@ export function SettingsTab(): ReactElement {
       if (intent === 'user-orders') {
         setActiveTab('user');
         setUserInitialProfilePage('orders');
+        window.api.storeWrite(SETTINGS_OPEN_TAB_STORE_KEY, null).catch(() => {});
+      }
+      if (intent === 'user-info') {
+        setActiveTab('user');
+        setUserInitialProfilePage('info');
+        window.api.storeWrite(SETTINGS_OPEN_TAB_STORE_KEY, null).catch(() => {});
+      }
+      if (intent === 'ai') {
+        setActiveTab('ai');
         window.api.storeWrite(SETTINGS_OPEN_TAB_STORE_KEY, null).catch(() => {});
       }
     }).catch(() => {});
@@ -1922,6 +1967,25 @@ export function SettingsTab(): ReactElement {
         }
       }
 
+      if (activeTabRef.current === 'ai' && target.closest('.settings-app-pages-layout')) {
+        const mainEl = target.closest('.settings-app-page-main') as HTMLElement | null;
+        if (mainEl && mainEl.scrollHeight > mainEl.clientHeight) return;
+        const pages = AI_SETTINGS_PAGES;
+        const currentPage = aiSettingsPageRef.current;
+        const currentIdx = pages.indexOf(currentPage);
+        if (currentIdx >= 0) {
+          const nextIdx = e.deltaY > 0
+            ? Math.min(currentIdx + 1, pages.length - 1)
+            : Math.max(currentIdx - 1, 0);
+          if (nextIdx !== currentIdx) {
+            setAiSettingsPage(pages[nextIdx]);
+          }
+          e.preventDefault();
+          e.stopPropagation();
+          return;
+        }
+      }
+
       if (activeTabRef.current === 'music' && target.closest('.settings-music-pages-layout')) {
         const mainEl = target.closest('.settings-app-page-main') as HTMLElement | null;
         if (mainEl && mainEl.scrollHeight > mainEl.clientHeight) return;
@@ -2011,8 +2075,8 @@ export function SettingsTab(): ReactElement {
     return parts.length >= 2 ? parts.join('+') : '';
   };
 
-  const isDuplicateHotkey = (acc: string, exclude: 'hide' | 'quit' | 'screenshot' | 'next-song' | 'play-pause-song' | 'reset-position' | 'toggle-tray' | 'show-settings-window' | 'open-clipboard-history' | 'toggle-passthrough' | 'toggle-ui-lock'): boolean => {
-    const pairs: Array<{ key: 'hide' | 'quit' | 'screenshot' | 'next-song' | 'play-pause-song' | 'reset-position' | 'toggle-tray' | 'show-settings-window' | 'open-clipboard-history' | 'toggle-passthrough' | 'toggle-ui-lock'; value: string }> = [
+  const isDuplicateHotkey = (acc: string, exclude: 'hide' | 'quit' | 'screenshot' | 'next-song' | 'play-pause-song' | 'reset-position' | 'toggle-tray' | 'show-settings-window' | 'open-clipboard-history' | 'toggle-passthrough' | 'toggle-ui-lock' | 'agent-voice-input'): boolean => {
+    const pairs: Array<{ key: 'hide' | 'quit' | 'screenshot' | 'next-song' | 'play-pause-song' | 'reset-position' | 'toggle-tray' | 'show-settings-window' | 'open-clipboard-history' | 'toggle-passthrough' | 'toggle-ui-lock' | 'agent-voice-input'; value: string }> = [
       { key: 'hide', value: hideHotkey },
       { key: 'quit', value: quitHotkey },
       { key: 'screenshot', value: screenshotHotkey },
@@ -2024,6 +2088,7 @@ export function SettingsTab(): ReactElement {
       { key: 'open-clipboard-history', value: openClipboardHistoryHotkey },
       { key: 'toggle-passthrough', value: togglePassthroughHotkey },
       { key: 'toggle-ui-lock', value: toggleUiLockHotkey },
+      { key: 'agent-voice-input', value: agentVoiceInputHotkey },
     ];
     return pairs.some((item) => item.key !== exclude && item.value && item.value === acc);
   };
@@ -2283,6 +2348,32 @@ export function SettingsTab(): ReactElement {
       }
     }).catch(() => {
       setToggleUiLockHotkeyError('快捷键注册失败');
+    });
+  };
+
+  const handleAgentVoiceInputHotkeyKeyDown = (e: KeyboardEvent): void => {
+    e.preventDefault();
+    e.stopPropagation();
+    setAgentVoiceInputHotkeyError('');
+    const acc = keyEventToAccelerator(e);
+    if (!acc) return;
+    if (isDuplicateHotkey(acc, 'agent-voice-input')) {
+      setAgentVoiceInputHotkeyError('重复快捷键');
+      setAgentVoiceInputHotkeyRecording(false);
+      agentVoiceInputHotkeyInputRef.current?.blur();
+      return;
+    }
+
+    window.api.agentVoiceInputHotkeySet(acc).then((ok) => {
+      if (ok) {
+        setAgentVoiceInputHotkey(acc);
+        setAgentVoiceInputHotkeyRecording(false);
+        agentVoiceInputHotkeyInputRef.current?.blur();
+      } else {
+        setAgentVoiceInputHotkeyError('快捷键注册失败，请尝试其他组合');
+      }
+    }).catch(() => {
+      setAgentVoiceInputHotkeyError('快捷键注册失败');
     });
   };
 
@@ -2784,6 +2875,14 @@ export function SettingsTab(): ReactElement {
               setToggleUiLockHotkeyError={setToggleUiLockHotkeyError}
               handleToggleUiLockHotkeyKeyDown={handleToggleUiLockHotkeyKeyDown}
               setToggleUiLockHotkey={setToggleUiLockHotkey}
+              agentVoiceInputHotkeyInputRef={agentVoiceInputHotkeyInputRef}
+              agentVoiceInputHotkeyRecording={agentVoiceInputHotkeyRecording}
+              agentVoiceInputHotkeyError={agentVoiceInputHotkeyError}
+              agentVoiceInputHotkey={agentVoiceInputHotkey}
+              setAgentVoiceInputHotkeyRecording={setAgentVoiceInputHotkeyRecording}
+              setAgentVoiceInputHotkeyError={setAgentVoiceInputHotkeyError}
+              handleAgentVoiceInputHotkeyKeyDown={handleAgentVoiceInputHotkeyKeyDown}
+              setAgentVoiceInputHotkey={setAgentVoiceInputHotkey}
             />
           )}
 
@@ -2823,6 +2922,8 @@ export function SettingsTab(): ReactElement {
 
           {activeTab === 'ai' && (
             <AiSettingsSection
+              currentAiSettingsPageLabel={currentAiSettingsPageLabel}
+              aiSettingsPage={aiSettingsPage}
               aiConfig={aiConfig}
               setAiConfig={setAiConfig}
               onAddWorkspace={async () => {
@@ -2837,6 +2938,9 @@ export function SettingsTab(): ReactElement {
                 setAiConfig({ workspaces: current.filter((_, i) => i !== idx) });
               }}
               SettingsFieldComponent={SettingsField}
+              aiSettingsPages={AI_SETTINGS_PAGES}
+              aiSettingsPageLabels={translatedSettingsTabLabels}
+              setAiSettingsPage={setAiSettingsPage}
             />
           )}
 

@@ -51,6 +51,8 @@ export const createIslandSlice: StateCreator<
   expandTab: 'overview',
   maxExpandTab: 'todo',
   notification: emptyNotification,
+  sttText: '',
+  agentPrompt: '',
   springAnimation: true,
 
   setIdle: (force?: boolean) => set((prev) => {
@@ -139,10 +141,10 @@ export const createIslandSlice: StateCreator<
       } else if (target === 'maxExpand' || target === 'guide' || target === 'login' || target === 'register' || target === 'payment' || target === 'announcement') {
         window.api?.expandWindowSettings();
         window.api?.disableMousePassthrough();
-      } else if (target === 'lyrics') {
+      } else if (target === 'lyrics' || target === 'agentVoiceInput') {
         window.api?.expandWindowLyrics();
         window.api?.enableMousePassthrough();
-      } else if (target === 'notification') {
+      } else if (target === 'notification' || target === 'agent' || target === 'stt') {
         window.api?.expandWindowNotification();
         window.api?.disableMousePassthrough();
       }
@@ -175,6 +177,27 @@ export const createIslandSlice: StateCreator<
     window.api?.expandWindowSettings();
     window.api?.disableMousePassthrough();
     return { state: 'announcement' as const, authReturnState: null };
+  }),
+
+  setAgentVoiceInput: () => set((prev) => {
+    if (prev.uiStateLocked && prev.state !== 'agentVoiceInput') return prev;
+    window.api?.expandWindowLyrics();
+    window.api?.enableMousePassthrough();
+    return { state: 'agentVoiceInput' as const, authReturnState: null };
+  }),
+
+  setStt: (text?: string) => set((prev) => {
+    if (prev.uiStateLocked && prev.state !== 'stt') return prev;
+    window.api?.expandWindowNotification();
+    window.api?.disableMousePassthrough();
+    return { state: 'stt' as const, sttText: text ?? '', authReturnState: null };
+  }),
+
+  setAgent: (prompt?: string) => set((prev) => {
+    if (prev.uiStateLocked && prev.state !== 'agent') return prev;
+    window.api?.expandWindowNotification();
+    window.api?.disableMousePassthrough();
+    return { state: 'agent' as const, agentPrompt: prompt ?? prev.sttText ?? '', authReturnState: null };
   }),
 
   toggleUiStateLock: () => {

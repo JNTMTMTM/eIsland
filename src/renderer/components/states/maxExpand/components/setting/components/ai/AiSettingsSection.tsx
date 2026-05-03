@@ -24,14 +24,19 @@
  * @author 鸡哥
  */
 
-import type { ReactElement } from 'react';
+import { useRef, useState, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
+import { AiSettingsPageDots } from './AiSettingsPageDots';
+import type { AiSettingsPageKey } from '../../utils/settingsConfig';
 
 interface AiSettingsSectionProps {
+  currentAiSettingsPageLabel: string;
+  aiSettingsPage: AiSettingsPageKey;
   aiConfig: {
     apiKey: string;
     endpoint: string;
     workspaces: string[];
+    r1pxcAvatar: string;
   };
   setAiConfig: (config: Partial<AiSettingsSectionProps['aiConfig']>) => void;
   onAddWorkspace: () => void;
@@ -43,6 +48,9 @@ interface AiSettingsSectionProps {
     type?: string;
     onChange: (v: string) => void;
   }) => ReactElement;
+  aiSettingsPages: AiSettingsPageKey[];
+  aiSettingsPageLabels: Record<string, string>;
+  setAiSettingsPage: (page: AiSettingsPageKey) => void;
 }
 
 /**
@@ -51,82 +59,219 @@ interface AiSettingsSectionProps {
  * @returns AI 设置区域
  */
 export function AiSettingsSection({
+  currentAiSettingsPageLabel,
+  aiSettingsPage,
   aiConfig,
   setAiConfig,
   onAddWorkspace,
   onRemoveWorkspace,
   SettingsFieldComponent,
+  aiSettingsPages,
+  aiSettingsPageLabels,
+  setAiSettingsPage,
 }: AiSettingsSectionProps): ReactElement {
   const { t } = useTranslation();
   const SettingsField = SettingsFieldComponent;
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [avatarUploadError, setAvatarUploadError] = useState<string>('');
+
+  const readAvatarFile = (file: File): void => {
+    if (!file.type.startsWith('image/')) {
+      setAvatarUploadError(t('settings.ai.r1pxcAvatarFileTypeError', { defaultValue: '请选择图片文件（png/jpg/webp 等）' }));
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = typeof reader.result === 'string' ? reader.result : '';
+      if (!result.startsWith('data:image/')) {
+        setAvatarUploadError(t('settings.ai.r1pxcAvatarReadError', { defaultValue: '头像读取失败，请换一张图片重试' }));
+        return;
+      }
+      setAvatarUploadError('');
+      setAiConfig({ r1pxcAvatar: result });
+    };
+    reader.onerror = () => {
+      setAvatarUploadError(t('settings.ai.r1pxcAvatarReadError', { defaultValue: '头像读取失败，请换一张图片重试' }));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const renderGeneralPage = (): ReactElement => (
+    <div className="settings-cards">
+      {/* 卡片 1:模型凭据 */}
+      <div className="settings-card" style={{ opacity: 0.5, pointerEvents: 'none' }} aria-disabled="true">
+        <div className="settings-card-header">
+          <div className="settings-card-title">{t('settings.ai.credentialsTitle', { defaultValue: '模型凭据' })}</div>
+          <div className="settings-card-subtitle">{t('settings.ai.credentialsHint', { defaultValue: '模型凭据已迁移到 Agent 面板配置' })}</div>
+        </div>
+        <div className="settings-field-group">
+          <SettingsField
+            label={t('settings.ai.apiKey', { defaultValue: 'API Key' })}
+            value={aiConfig.apiKey}
+            placeholder="sk-..."
+            type="password"
+            onChange={(v) => setAiConfig({ apiKey: v })}
+          />
+          <SettingsField
+            label={t('settings.ai.apiEndpoint', { defaultValue: 'API Endpoint' })}
+            value={aiConfig.endpoint}
+            placeholder="https://api.openai.com/v1"
+            onChange={(v) => setAiConfig({ endpoint: v })}
+          />
+        </div>
+      </div>
+
+      {/* 卡片 2:工作区 */}
+      <div className="settings-card">
+        <div className="settings-card-header">
+          <div className="settings-card-title">{t('settings.ai.workspaceTitle', { defaultValue: 'Agent 工作区' })}</div>
+          <div className="settings-card-subtitle">{t('settings.ai.workspaceHint', { defaultValue: '配置 Agent 可操作的文件目录,所有文件读写、搜索、命令执行仅限于工作区内' })}</div>
+        </div>
+        <div className="settings-ai-workspace-area">
+          {aiConfig.workspaces.length > 0 && (
+            <ul className="settings-ai-workspace-list">
+              {aiConfig.workspaces.map((ws, idx) => (
+                <li key={ws} className="settings-ai-workspace-item">
+                  <span className="settings-ai-workspace-path" title={ws}>{ws}</span>
+                  <button
+                    className="settings-ai-workspace-remove-btn"
+                    type="button"
+                    onClick={() => onRemoveWorkspace(idx)}
+                    title={t('settings.ai.workspaceRemove', { defaultValue: '移除' })}
+                    aria-label={t('settings.ai.workspaceRemove', { defaultValue: '移除' })}
+                  >
+                    ×
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+          {aiConfig.workspaces.length === 0 && (
+            <div className="settings-ai-workspace-empty">
+              {t('settings.ai.workspaceEmpty', { defaultValue: '未配置工作区，Agent 文件操作将被禁止' })}
+            </div>
+          )}
+          <button
+            className="settings-ai-workspace-add-btn"
+            type="button"
+            onClick={onAddWorkspace}
+          >
+            {t('settings.ai.workspaceAdd', { defaultValue: '+ 添加工作区文件夹' })}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderR1pxcPage = (): ReactElement => (
+    <div className="settings-cards">
+      {/* r1pxc Agent 头像配置 */}
+      <div className="settings-card">
+        <div className="settings-card-header">
+          <div className="settings-card-title">{t('settings.ai.r1pxcConfigTitle', { defaultValue: 'r1pxc Agent 头像配置' })}</div>
+          <div className="settings-card-subtitle">{t('settings.ai.r1pxcConfigHint', { defaultValue: '支持拖入图片或从文件资源管理器选择，不支持 URL' })}</div>
+        </div>
+        <div className="settings-field-group">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            style={{ display: 'none' }}
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              if (file) {
+                readAvatarFile(file);
+              }
+              event.currentTarget.value = '';
+            }}
+          />
+          <div
+            className="settings-r1pxc-avatar-dropzone"
+            role="button"
+            tabIndex={0}
+            onClick={() => fileInputRef.current?.click()}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                fileInputRef.current?.click();
+              }
+            }}
+            onDragOver={(event) => {
+              event.preventDefault();
+            }}
+            onDrop={(event) => {
+              event.preventDefault();
+              const file = event.dataTransfer.files?.[0];
+              if (file) {
+                readAvatarFile(file);
+              }
+            }}
+          >
+            {aiConfig.r1pxcAvatar ? (
+              <div className="settings-r1pxc-avatar-preview">
+                <img
+                  className="settings-r1pxc-avatar-img"
+                  src={aiConfig.r1pxcAvatar}
+                  alt="r1pxc-avatar"
+                />
+                <span className="settings-r1pxc-avatar-hint">
+                  {t('settings.ai.r1pxcAvatarReplace', { defaultValue: '点击或拖入图片以替换头像' })}
+                </span>
+              </div>
+            ) : (
+              <span className="settings-r1pxc-avatar-hint">
+                {t('settings.ai.r1pxcAvatarUploadHint', { defaultValue: '拖入图片，或点击从文件资源管理器选择' })}
+              </span>
+            )}
+          </div>
+          {avatarUploadError && (
+            <div className="settings-r1pxc-avatar-error">
+              {avatarUploadError}
+            </div>
+          )}
+          {aiConfig.r1pxcAvatar && (
+            <button
+              className="settings-r1pxc-avatar-clear-btn"
+              type="button"
+              onClick={() => {
+                setAvatarUploadError('');
+                setAiConfig({ r1pxcAvatar: '' });
+              }}
+            >
+              {t('settings.ai.r1pxcAvatarClear', { defaultValue: '清除头像' })}
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderCurrentPage = (): ReactElement | null => {
+    switch (aiSettingsPage) {
+      case 'general':
+        return renderGeneralPage();
+      case 'r1pxc':
+        return renderR1pxcPage();
+      default:
+        return null;
+    }
+  };
+
   return (
     <div className="max-expand-settings-section">
-      <div className="max-expand-settings-title">{t('settings.labels.ai', { defaultValue: 'AI Agent' })}</div>
-      <div className="settings-cards">
+      <div className="max-expand-settings-title settings-app-title-line">
+        <span>{t('settings.labels.ai', { defaultValue: 'AI Agent' })}</span>
+        <span className="settings-app-title-sub">- {currentAiSettingsPageLabel}</span>
+      </div>
+      <div className="settings-app-pages-layout">
+        <div className="settings-app-page-main">{renderCurrentPage()}</div>
 
-        {/* 卡片 1:模型凭据 */}
-        <div className="settings-card" style={{ opacity: 0.5, pointerEvents: 'none' }} aria-disabled="true">
-          <div className="settings-card-header">
-            <div className="settings-card-title">{t('settings.ai.credentialsTitle', { defaultValue: '模型凭据' })}</div>
-            <div className="settings-card-subtitle">{t('settings.ai.credentialsHint', { defaultValue: '模型凭据已迁移到 Agent 面板配置' })}</div>
-          </div>
-          <div className="settings-field-group">
-            <SettingsField
-              label={t('settings.ai.apiKey', { defaultValue: 'API Key' })}
-              value={aiConfig.apiKey}
-              placeholder="sk-..."
-              type="password"
-              onChange={(v) => setAiConfig({ apiKey: v })}
-            />
-            <SettingsField
-              label={t('settings.ai.apiEndpoint', { defaultValue: 'API Endpoint' })}
-              value={aiConfig.endpoint}
-              placeholder="https://api.openai.com/v1"
-              onChange={(v) => setAiConfig({ endpoint: v })}
-            />
-          </div>
-        </div>
-
-        {/* 卡片 2:工作区 */}
-        <div className="settings-card">
-          <div className="settings-card-header">
-            <div className="settings-card-title">{t('settings.ai.workspaceTitle', { defaultValue: 'Agent 工作区' })}</div>
-            <div className="settings-card-subtitle">{t('settings.ai.workspaceHint', { defaultValue: '配置 Agent 可操作的文件目录,所有文件读写、搜索、命令执行仅限于工作区内' })}</div>
-          </div>
-          <div className="settings-ai-workspace-area">
-            {aiConfig.workspaces.length > 0 && (
-              <ul className="settings-ai-workspace-list">
-                {aiConfig.workspaces.map((ws, idx) => (
-                  <li key={ws} className="settings-ai-workspace-item">
-                    <span className="settings-ai-workspace-path" title={ws}>{ws}</span>
-                    <button
-                      className="settings-ai-workspace-remove-btn"
-                      type="button"
-                      onClick={() => onRemoveWorkspace(idx)}
-                      title={t('settings.ai.workspaceRemove', { defaultValue: '移除' })}
-                      aria-label={t('settings.ai.workspaceRemove', { defaultValue: '移除' })}
-                    >
-                      ×
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-            {aiConfig.workspaces.length === 0 && (
-              <div className="settings-ai-workspace-empty">
-                {t('settings.ai.workspaceEmpty', { defaultValue: '未配置工作区，Agent 文件操作将被禁止' })}
-              </div>
-            )}
-            <button
-              className="settings-ai-workspace-add-btn"
-              type="button"
-              onClick={onAddWorkspace}
-            >
-              {t('settings.ai.workspaceAdd', { defaultValue: '+ 添加工作区文件夹' })}
-            </button>
-          </div>
-        </div>
-
+        <AiSettingsPageDots
+          aiSettingsPage={aiSettingsPage}
+          aiSettingsPages={aiSettingsPages}
+          settingsTabLabels={aiSettingsPageLabels}
+          setAiSettingsPage={setAiSettingsPage}
+        />
       </div>
     </div>
   );

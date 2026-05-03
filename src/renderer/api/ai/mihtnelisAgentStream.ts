@@ -71,11 +71,15 @@ export interface MihtnelisAgentStreamRequest {
   sessionId?: string;
   provider?: string;
   model?: string;
+  agentMode?: string;
   context?: string;
   workspaces?: string[];
   skills?: Array<{ name: string; content: string }>;
   thinking?: boolean;
   reasoningEffort?: 'low' | 'medium' | 'high';
+  timestamp?: string;
+  location?: string;
+  snapshotMode?: boolean;
   signal?: AbortSignal;
   onEvent?: (event: MihtnelisAgentStreamEvent) => void;
 }
@@ -114,11 +118,15 @@ export async function streamMihtnelisAgent(request: MihtnelisAgentStreamRequest)
       message,
       provider: request.provider,
       model: request.model,
+      agentMode: request.agentMode || undefined,
       context: request.context,
       workspaces: Array.isArray(request.workspaces) && request.workspaces.length > 0 ? request.workspaces : undefined,
       skills: Array.isArray(request.skills) && request.skills.length > 0 ? request.skills : undefined,
       thinking: typeof request.thinking === 'boolean' ? request.thinking : undefined,
       reasoningEffort: request.reasoningEffort,
+      timestamp: request.timestamp || undefined,
+      location: request.location || undefined,
+      snapshotMode: request.snapshotMode === true ? true : undefined,
     }),
     signal: request.signal,
   });

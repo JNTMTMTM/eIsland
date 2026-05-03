@@ -82,6 +82,10 @@ export const SvgIcon = {
   DELETE: './svg/DELETE.svg',
   ATTACHMENT: './svg/ATTACHMENT.svg',
   RECHARGE: './svg/RECHARGE.svg',
+  LOVER: './svg/LOVER.svg',
+  CODING: './svg/CODING.svg',
+  VERIFIED: './svg/VERIFIED.svg',
+  MIMO: './svg/MIMO.svg',
 } as const;
 
 export type SvgIconKey = keyof typeof SvgIcon;

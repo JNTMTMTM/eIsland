@@ -61,7 +61,8 @@ export default defineConfig({
       rollupOptions: {
         input: {
           index: resolve(__dirname, 'src/renderer/index.html'),
-          standalone: resolve(__dirname, 'src/renderer/standalone.html')
+          standalone: resolve(__dirname, 'src/renderer/standalone.html'),
+          AIbackground: resolve(__dirname, 'src/renderer/AIbackground.html')
         }
       },
     },

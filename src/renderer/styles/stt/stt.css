@@ -1,0 +1,123 @@
+/*
+ * eIsland - A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Electron.
+ * https://github.com/JNTMTMTM/eIsland
+ *
+ * Copyright (C) 2026 JNTMTMTM
+ * Copyright (C) 2026 pyisland.com
+ *
+ * Original author: JNTMTMTM[](https://github.com/JNTMTMTM)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+/**
+ * @file stt.css
+ * @description STT 识别结果状态样式
+ */
+
+.stt-content {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 8px;
+  width: 100%;
+  height: 100%;
+  padding: 3px 16px 8px;
+  animation: sttEnter 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.stt-icon {
+  width: 74px;
+  height: 74px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.stt-text-area {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  min-width: 0;
+  flex: 1;
+}
+
+.stt-text-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(var(--color-text-rgb), 0.45);
+  white-space: nowrap;
+}
+
+.stt-text-body {
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(var(--color-text-rgb), 0.9);
+  text-align: left;
+  word-break: break-all;
+  max-height: calc(1.4em * 2);
+  overflow-y: auto;
+  line-height: 1.4;
+  cursor: text;
+  outline: none;
+  border-radius: 4px;
+  padding: 1px 4px;
+  margin: -1px -4px;
+  transition: background 0.2s;
+}
+
+.stt-text-body::-webkit-scrollbar {
+  width: 4px;
+}
+
+.stt-text-body::-webkit-scrollbar-thumb {
+  background: rgba(var(--color-text-rgb), 0.12);
+  border-radius: 2px;
+}
+
+.stt-text-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(var(--color-text-rgb), 0.22);
+}
+
+.stt-text-body:focus {
+  background: rgba(var(--color-text-rgb), 0.06);
+}
+
+.stt-actions {
+  position: absolute;
+  right: 16px;
+  bottom: 8px;
+  display: flex;
+  gap: 4px;
+}
+
+.stt-action-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(var(--color-text-rgb), 0.35);
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: color 0.2s, background 0.2s;
+}
+
+.stt-action-btn:hover {
+  color: rgba(var(--color-text-rgb), 0.7);
+  background: rgba(var(--color-text-rgb), 0.08);
+}
+
+@keyframes sttEnter {
+  0%   { opacity: 0; transform: translateY(4px); }
+  100% { opacity: 1; transform: translateY(0); }
+}

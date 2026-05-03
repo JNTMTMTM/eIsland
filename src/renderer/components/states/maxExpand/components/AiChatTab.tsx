@@ -45,7 +45,8 @@ import {
 import { SvgIcon, resolveDevIconByFileName } from '../../../../utils/SvgIcon';
 import useIslandStore from '../../../../store/slices';
 import type { AiChatAttachment, AiChatMessage, AiToolCall, AiTodoItem, AiTodoSnapshot } from '../../../../store/types';
-import { readLocalToken } from '../../../../utils/userAccount';
+import { readLocalToken, readLocalProfile, subscribeUserAccountSessionChanged } from '../../../../utils/userAccount';
+import { loadLocationFromStorage } from '../../../../store/utils/storage';
 import { MarkdownCodeBlock } from './agent/components/MarkdownCodeBlock';
 import { MarkdownSiteLink } from './agent/components/MarkdownSiteLink';
 import {
@@ -76,10 +77,15 @@ const CONTEXT_LIMIT_OPTIONS = [
 let cachedAiLocalToolAccessPrompt: AiLocalToolAccessPrompt | null = null;
 let cachedAiLocalToolAccessResolveError = '';
 const STREAM_UI_FLUSH_INTERVAL_MS = 90;
-const VISIBLE_CHAT_WINDOW_SIZE = 4;
-const VISIBLE_CHAT_WINDOW_STEP = 4;
+const VISIBLE_CHAT_WINDOW_SIZE_DEFAULT = 4;
+const VISIBLE_CHAT_WINDOW_SIZE_R1PXC = 25;
+const VISIBLE_CHAT_WINDOW_STEP_DEFAULT = 4;
+const VISIBLE_CHAT_WINDOW_STEP_R1PXC = 25;
 const SETTINGS_OPEN_TAB_STORE_KEY = 'settings-open-tab';
 const SETTINGS_ABOUT_FEEDBACK_PREFILL_STORE_KEY = 'settings-about-feedback-prefill';
+const STANDALONE_WINDOW_MODE_STORE_KEY = 'standalone-window-mode';
+const LEGACY_COUNTDOWN_WINDOW_MODE_STORE_KEY = 'countdown-window-mode';
+const STANDALONE_WINDOW_ACTIVE_TAB_STORE_KEY = 'standalone-window-active-tab';
 const ATTACHMENT_MAX_SIZE_BYTES = 102400;
 const ATTACHMENT_MAX_COUNT = 5;
 const ATTACHMENT_ACCEPT_EXTENSIONS = '.txt,.md,.json,.log,.csv,.xml,.yaml,.yml,.toml,.ini,.cfg,.conf,.env,.sh,.bat,.ps1,.py,.js,.ts,.jsx,.tsx,.html,.css,.scss,.less,.sql,.c,.cpp,.h,.hpp,.java,.kt,.swift,.go,.rs,.rb,.php,.lua,.diff,.patch';
@@ -95,6 +101,23 @@ const EMPTY_GREETING_DEFAULTS = [
   '欢迎回来，先聊聊你现在最想解决的问题吧。',
   '今天也一起高效一点，你想从哪件事开始？',
 ] as const;
+type AgentMode = 'mihtnelis' | 'r1pxc' | 'edoc';
+const AGENT_MODES: ReadonlyArray<{ id: AgentMode; label: string; desc: string; icon: string; noFilter?: boolean; badgeIcon?: string }> = [
+  { id: 'mihtnelis', label: 'mihtnelis', desc: '全能', icon: SvgIcon.AI },
+  { id: 'r1pxc', label: 'r1pxc', desc: '女友', icon: SvgIcon.LOVER, noFilter: true, badgeIcon: SvgIcon.VERIFIED },
+  { id: 'edoc', label: 'edoc', desc: 'coding', icon: SvgIcon.CODING },
+] as const;
+const AGENT_MODE_STORAGE_KEY = 'eIsland_agentMode';
+function loadAgentMode(): AgentMode {
+  try {
+    const raw = localStorage.getItem(AGENT_MODE_STORAGE_KEY);
+    if (raw && AGENT_MODES.some((m) => m.id === raw)) return raw as AgentMode;
+  } catch { /* ignore */ }
+  return 'mihtnelis';
+}
+function saveAgentMode(mode: AgentMode): void {
+  try { localStorage.setItem(AGENT_MODE_STORAGE_KEY, mode); } catch { /* ignore */ }
+}
 const CLIENT_LOCAL_TOOL_PREFIXES = [
   'file.',
   'cmd.',
@@ -137,6 +160,10 @@ const HIGH_RISK_LOCAL_TOOL_PREFIXES = [
   'net.proxy',
   'net.hosts',
   'defender.scan',
+  'island.settings.write',
+  'island.theme.set',
+  'island.opacity.set',
+  'island.restart',
 ] as const;
 
 function isClientLocalToolName(tool: string): boolean {
@@ -210,7 +237,7 @@ const AssistantMarkdown = React.memo(function AssistantMarkdown({ content }: { c
  * @description 包含消息列表和输入栏的聊天界面，调用 OpenAI 兼容 API
  */
 export function AiChatTab(): React.ReactElement {
-  const availableModels = ['deepseek-v4-flash', 'deepseek-v4-pro'] as const;
+  const availableModels = ['deepseek-v4-flash', 'deepseek-v4-pro', 'mimo-v2.5', 'mimo-v2.5-pro'] as const;
   const { t } = useTranslation();
   const localTokenForRole = readLocalToken();
   const isProUser = useMemo(() => {
@@ -231,6 +258,26 @@ export function AiChatTab(): React.ReactElement {
   const [input, setInput] = useState('');
   const [visibleWindowStart, setVisibleWindowStart] = useState(0);
   const [showSessionSidebar, setShowSessionSidebar] = useState(false);
+  const [agentMode, setAgentModeState] = useState<AgentMode>(loadAgentMode);
+  const [showAgentModeDropdown, setShowAgentModeDropdown] = useState(false);
+  const agentModeDropdownRef = useRef<HTMLDivElement>(null);
+  const agentModeTriggerRef = useRef<HTMLButtonElement>(null);
+  const [agentModeDropdownPos, setAgentModeDropdownPos] = useState<{ left: number; bottom: number } | null>(null);
+  const currentAgentModeConfig = useMemo(() => AGENT_MODES.find((m) => m.id === agentMode) ?? AGENT_MODES[0], [agentMode]);
+  const toggleAgentModeDropdown = useCallback(() => {
+    setShowAgentModeDropdown((prev) => {
+      if (!prev && agentModeTriggerRef.current) {
+        const rect = agentModeTriggerRef.current.getBoundingClientRect();
+        setAgentModeDropdownPos({ left: rect.left, bottom: window.innerHeight - rect.top + 6 });
+      }
+      return !prev;
+    });
+  }, []);
+  const setAgentMode = useCallback((mode: AgentMode) => {
+    setAgentModeState(mode);
+    saveAgentMode(mode);
+    setShowAgentModeDropdown(false);
+  }, []);
   const [showModelCard, setShowModelCard] = useState(false);
   const [showModelDropdown, setShowModelDropdown] = useState(false);
   const modelDropdownRef = useRef<HTMLDivElement>(null);
@@ -245,6 +292,7 @@ export function AiChatTab(): React.ReactElement {
   const [aiLocalToolAccessPrompt, setAiLocalToolAccessPrompt] = useState<AiLocalToolAccessPrompt | null>(() => cachedAiLocalToolAccessPrompt);
   const [aiLocalToolAccessResolveError, setAiLocalToolAccessResolveError] = useState(() => cachedAiLocalToolAccessResolveError);
   const [resolvingLocalToolAccessDecision, setResolvingLocalToolAccessDecision] = useState(false);
+  const [pendingQuote, setPendingQuote] = useState<string | null>(null);
   const {
     aiConfig,
     setAiConfig,
@@ -264,15 +312,31 @@ export function AiChatTab(): React.ReactElement {
     setAiWebAccessPrompt,
     aiWebAccessResolveError,
     setAiWebAccessResolveError,
+    setLogin,
+    setRegister,
+    dominantColor,
   } = useIslandStore();
+  const [hasLoginSession, setHasLoginSession] = useState<boolean>(() => Boolean(readLocalToken()));
+  const [userAvatarUrl, setUserAvatarUrl] = useState<string | null>(() => readLocalProfile()?.avatar ?? null);
+  useEffect(() => {
+    const syncSession = (): void => {
+      setHasLoginSession(Boolean(readLocalToken()));
+      setUserAvatarUrl(readLocalProfile()?.avatar ?? null);
+    };
+    syncSession();
+    return subscribeUserAccountSessionChanged(syncSession);
+  }, []);
   const selectedModel = (() => {
     const m = availableModels.includes(aiConfig.model as (typeof availableModels)[number])
       ? aiConfig.model
       : 'deepseek-v4-flash';
-    if (!isProUser && m === 'deepseek-v4-pro') return 'deepseek-v4-flash';
+    if (!isProUser && (m === 'deepseek-v4-pro' || m === 'mimo-v2.5-pro')) return 'deepseek-v4-flash';
     return m;
   })();
-  const showDeepseekIconOnModelToggle = selectedModel.toLowerCase().includes('deepseek');
+  const selectedProvider = selectedModel.startsWith('mimo-') ? 'mimo' : 'deepseek';
+  const modelToggleIcon = selectedModel.startsWith('mimo-') ? SvgIcon.MIMO : selectedModel.toLowerCase().includes('deepseek') ? SvgIcon.DEEPSEEK : null;
+  const VISIBLE_CHAT_WINDOW_SIZE = agentMode === 'r1pxc' ? VISIBLE_CHAT_WINDOW_SIZE_R1PXC : VISIBLE_CHAT_WINDOW_SIZE_DEFAULT;
+  const VISIBLE_CHAT_WINDOW_STEP = agentMode === 'r1pxc' ? VISIBLE_CHAT_WINDOW_STEP_R1PXC : VISIBLE_CHAT_WINDOW_STEP_DEFAULT;
   const visibleWindowEnd = Math.min(aiChatMessages.length, visibleWindowStart + VISIBLE_CHAT_WINDOW_SIZE);
   const hasUpperHiddenMessages = visibleWindowStart > 0;
   const hasLowerHiddenMessages = visibleWindowEnd < aiChatMessages.length;
@@ -297,21 +361,23 @@ export function AiChatTab(): React.ReactElement {
     });
   }, [aiChatSessions, aiLocalToolAccessPrompt, aiWebAccessPrompt]);
   const contextTokenUsage = useMemo(() => {
-    let inputTokens = 0;
-    let outputTokens = 0;
-    let reasoningTokens = 0;
-    let totalTokens = 0;
-    let source = '';
-    for (const msg of aiChatMessages) {
-      if (msg?.role === 'assistant' && msg.tokenUsage) {
-        inputTokens += msg.tokenUsage.inputTokens;
-        outputTokens += msg.tokenUsage.outputTokens;
-        reasoningTokens += msg.tokenUsage.reasoningTokens;
-        totalTokens += msg.tokenUsage.totalTokens;
-        source = msg.tokenUsage.source;
+    return aiChatMessages.reduce((acc, msg) => {
+      if (msg?.role !== 'assistant' || !msg.tokenUsage) {
+        return acc;
       }
-    }
-    return { inputTokens, outputTokens, reasoningTokens, totalTokens, source };
+      acc.inputTokens += msg.tokenUsage.inputTokens;
+      acc.outputTokens += msg.tokenUsage.outputTokens;
+      acc.reasoningTokens += msg.tokenUsage.reasoningTokens;
+      acc.totalTokens += msg.tokenUsage.totalTokens;
+      acc.source = msg.tokenUsage.source;
+      return acc;
+    }, {
+      inputTokens: 0,
+      outputTokens: 0,
+      reasoningTokens: 0,
+      totalTokens: 0,
+      source: '',
+    });
   }, [aiChatMessages]);
   const contextUsageTokens = contextTokenUsage.totalTokens;
   const selectedContextLimit = (() => {
@@ -344,6 +410,18 @@ export function AiChatTab(): React.ReactElement {
     cachedAiLocalToolAccessPrompt = aiLocalToolAccessPrompt;
     cachedAiLocalToolAccessResolveError = aiLocalToolAccessResolveError;
   }, [aiLocalToolAccessPrompt, aiLocalToolAccessResolveError]);
+
+  useEffect(() => {
+    if (!showAgentModeDropdown) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as Node;
+      if (agentModeDropdownRef.current?.contains(target)) return;
+      if (agentModeTriggerRef.current?.contains(target)) return;
+      setShowAgentModeDropdown(false);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showAgentModeDropdown]);
 
   useEffect(() => {
     if (!showModelDropdown) return;
@@ -655,7 +733,19 @@ export function AiChatTab(): React.ReactElement {
   const handleSend = useCallback(async (): Promise<void> => {
     const text = input.trim();
     const targetSessionId = activeAiChatSessionId;
-    if (!text || SESSION_STREAMING_IDS.has(targetSessionId)) return;
+    if (!text) return;
+    if (SESSION_STREAMING_IDS.has(targetSessionId)) {
+      if (agentMode !== 'r1pxc') return;
+      const prevController = SESSION_ABORT_CONTROLLERS.get(targetSessionId);
+      prevController?.abort();
+      SESSION_ABORT_CONTROLLERS.delete(targetSessionId);
+      SESSION_STREAMING_IDS.delete(targetSessionId);
+      if (pendingMessageFlushRafRef.current !== null && pendingMessageFlushRafRef.current !== undefined) {
+        window.cancelAnimationFrame(pendingMessageFlushRafRef.current);
+        pendingMessageFlushRafRef.current = null;
+      }
+      flushPendingAssistantUpdates();
+    }
     const updateTargetMessages = (updater: (prev: AiChatMessage[]) => AiChatMessage[]): void => {
       const state = useIslandStore.getState();
       const session = state.aiChatSessions.find((item) => item.id === targetSessionId);
@@ -702,17 +792,21 @@ export function AiChatTab(): React.ReactElement {
     const attachmentPrefix = pendingAttachments.length > 0
       ? pendingAttachments.map((a) => `<attachment name="${a.name}">\n${a.content}\n</attachment>`).join('\n\n') + '\n\n'
       : '';
-    const fullContent = attachmentPrefix + text;
+    const quotePrefix = pendingQuote && agentMode === 'r1pxc' ? `> 引用: ${pendingQuote}\n\n` : '';
+    const fullContent = attachmentPrefix + quotePrefix + text;
     const userMsg: AiChatMessage = {
       role: 'user',
       content: fullContent,
       ...(attachmentMeta.length > 0 ? { attachments: attachmentMeta } : {}),
+      ...(pendingQuote && agentMode === 'r1pxc' ? { quote: pendingQuote } : {}),
     };
-    const nextMessages: AiChatMessage[] = [...aiChatMessages, userMsg];
     updateTargetMessages(prev => [...prev, userMsg]);
+    const latestSession = useIslandStore.getState().aiChatSessions.find((s) => s.id === targetSessionId);
+    const nextMessages: AiChatMessage[] = latestSession?.messages ?? [...aiChatMessages, userMsg];
     setVisibleWindowStart(0);
     setInput('');
     setPendingAttachments([]);
+    setPendingQuote(null);
     setAiChatStreaming(true);
     setAiWebAccessPrompt(null);
     setAiWebAccessResolveError('');
@@ -729,7 +823,7 @@ export function AiChatTab(): React.ReactElement {
     });
 
     // 添加占位 AI 消息
-    updateTargetMessages(prev => ([...prev, { role: 'assistant', content: '', finalized: false, thinkBlocks: [], toolCalls: [] }]));
+    updateTargetMessages(prev => ([...prev, { role: 'assistant', content: '', model: selectedModel, finalized: false, thinkBlocks: [], toolCalls: [] }]));
 
     const controller = new AbortController();
     SESSION_ABORT_CONTROLLERS.set(targetSessionId, controller);
@@ -758,13 +852,16 @@ export function AiChatTab(): React.ReactElement {
           token: localToken!,
           sessionId: 'max-expand-ai-chat',
           message: text,
-          provider: 'deepseek',
+          provider: selectedProvider,
           model: selectedModel,
+          agentMode,
           context,
           workspaces: aiConfig.workspaces,
           skills: resolvedSkills,
           thinking: aiConfig.deepseekThinking,
           reasoningEffort: aiConfig.deepseekReasoningEffort,
+          timestamp: (() => { const d = new Date(); const off = -d.getTimezoneOffset(); const sign = off >= 0 ? '+' : '-'; const pad = (n: number) => String(Math.abs(n)).padStart(2, '0'); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds()) + sign + pad(Math.floor(Math.abs(off) / 60)) + ':' + pad(Math.abs(off) % 60); })(),
+          location: (() => { const loc = loadLocationFromStorage(); if (!loc) return undefined; const parts = [loc.city, loc.regionName, loc.country].filter(Boolean); return parts.length > 0 ? parts.join(', ') : undefined; })(),
           signal: controller.signal,
           onEvent: (event) => {
             if (SESSION_ABORT_CONTROLLERS.get(targetSessionId) !== controller) {
@@ -1268,6 +1365,8 @@ export function AiChatTab(): React.ReactElement {
     flushPendingAssistantUpdates,
     scheduleAssistantUpdateFlush,
     refreshActiveSessionStreaming,
+    agentMode,
+    pendingQuote,
   ]);
 
   const handleReportIssueFromFinalAnswer = useCallback((traceId: string, finalAnswer: string): void => {
@@ -1279,8 +1378,38 @@ export function AiChatTab(): React.ReactElement {
     };
     void window.api.storeWrite(SETTINGS_ABOUT_FEEDBACK_PREFILL_STORE_KEY, payload)
       .then(() => window.api.storeWrite(SETTINGS_OPEN_TAB_STORE_KEY, 'about-feedback'))
-      .then(() => {
-        setMaxExpandTab('settings');
+      .then(() => window.api.storeRead(STANDALONE_WINDOW_MODE_STORE_KEY))
+      .then((mode) => {
+        if (mode === 'standalone' || mode === 'integrated') return mode;
+        return window.api.storeRead(LEGACY_COUNTDOWN_WINDOW_MODE_STORE_KEY).catch(() => null);
+      })
+      .then((mode) => {
+        if (mode === 'standalone') {
+          window.api.storeWrite(STANDALONE_WINDOW_ACTIVE_TAB_STORE_KEY, 'settings').catch(() => {});
+          window.api.openStandaloneWindow().catch(() => {});
+        } else {
+          setMaxExpandTab('settings');
+          window.dispatchEvent(new CustomEvent('settings-open-tab-intent', { detail: 'about-feedback' }));
+        }
+      })
+      .catch(() => {});
+  }, [setMaxExpandTab]);
+
+  const navigateToSettingsTab = useCallback((intent: string): void => {
+    void window.api.storeWrite(SETTINGS_OPEN_TAB_STORE_KEY, intent)
+      .then(() => window.api.storeRead(STANDALONE_WINDOW_MODE_STORE_KEY))
+      .then((mode) => {
+        if (mode === 'standalone' || mode === 'integrated') return mode;
+        return window.api.storeRead(LEGACY_COUNTDOWN_WINDOW_MODE_STORE_KEY).catch(() => null);
+      })
+      .then((mode) => {
+        if (mode === 'standalone') {
+          window.api.storeWrite(STANDALONE_WINDOW_ACTIVE_TAB_STORE_KEY, 'settings').catch(() => {});
+          window.api.openStandaloneWindow().catch(() => {});
+        } else {
+          setMaxExpandTab('settings');
+          window.dispatchEvent(new CustomEvent('settings-open-tab-intent', { detail: intent }));
+        }
       })
       .catch(() => {});
   }, [setMaxExpandTab]);
@@ -1322,6 +1451,7 @@ export function AiChatTab(): React.ReactElement {
     pendingThinkChunksRef.current.clear();
     createNewAiChatSession();
     setVisibleWindowStart(0);
+    setPendingQuote(null);
     setResolvingWebAccessDecision(false);
     setAiWebAccessPrompt(null);
     setAiWebAccessResolveError('');
@@ -1429,11 +1559,37 @@ export function AiChatTab(): React.ReactElement {
     setAiWebAccessResolveError('');
   }, [aiWebAccessPrompt, setAiWebAccessPrompt, setAiWebAccessResolveError]);
 
+  if (!hasLoginSession) {
+    return (
+      <div className="max-expand-chat" ref={chatRootRef}>
+        <div className="max-expand-chat-header">
+          <span className="max-expand-chat-header-title">{currentAgentModeConfig.label} Agent</span>
+        </div>
+        <div className="settings-user-auth">
+          <div className="settings-user-auth-entry-title">
+            {t('aiChat.auth.entryTitle', { defaultValue: '登录后即可使用 AI 智能助手' })}
+          </div>
+          <div className="settings-user-auth-entry-actions">
+            <button type="button" className="settings-user-primary-btn" onClick={() => setLogin()}>
+              {t('aiChat.auth.gotoLogin', { defaultValue: '前往登录' })}
+            </button>
+            <button type="button" className="settings-user-secondary-btn" onClick={() => setRegister()}>
+              {t('aiChat.auth.gotoRegister', { defaultValue: '前往注册' })}
+            </button>
+          </div>
+          <div className="settings-user-auth-hint">
+            {t('aiChat.auth.hint', { defaultValue: 'mihtnelis Agent 为登录用户提供 AI 对话、工具调用与知识检索服务。' })}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="max-expand-chat" ref={chatRootRef}>
+    <div className="max-expand-chat" ref={chatRootRef} style={{ '--chat-dominant-r': Math.max(dominantColor[0], 140), '--chat-dominant-g': Math.max(dominantColor[1], 140), '--chat-dominant-b': Math.max(dominantColor[2], 140) } as React.CSSProperties}>
       {/* 标题 */}
       <div className="max-expand-chat-header">
-        <span className="max-expand-chat-header-title">{t('aiChat.title', { defaultValue: 'mihtnelis Agent' })}</span>
+        <span className="max-expand-chat-header-title">{currentAgentModeConfig.label} Agent</span>
         <div className="max-expand-chat-header-actions">
           <span className="max-expand-chat-header-model">{readLocalToken() ? selectedModel : (selectedModel || t('aiChat.notConfigured', { defaultValue: '未配置' }))}</span>
           <button className="max-expand-chat-clear" onClick={handleCreateNewChat} type="button">
@@ -1465,6 +1621,7 @@ export function AiChatTab(): React.ReactElement {
                     setVisibleWindowStart(0);
                     setResolvingWebAccessDecision(false);
                     setResolvingLocalToolAccessDecision(false);
+                    setPendingQuote(null);
                   }}
                 >
                   <span className="max-expand-chat-session-item-main">
@@ -1523,48 +1680,144 @@ export function AiChatTab(): React.ReactElement {
             && (!Array.isArray(msg.toolCalls) || msg.toolCalls.filter(tc => tc.tool !== 'agent.todo.write').length === 0)
             && !(aiChatStreaming && absoluteIndex === aiChatMessages.length - 1);
           if (isEmptyAssistant) return null;
-          return (
-          <div key={absoluteIndex} className={`max-expand-chat-bubble ${msg.role === 'user' ? 'user' : 'ai'}`}>
-            {msg.role === 'user' ? (
-              <>
-                {Array.isArray(msg.attachments) && msg.attachments.length > 0 && (
-                  <div className="max-expand-chat-bubble-attachments">
-                    {msg.attachments.map((a) => (
-                      <span key={a.name} className="max-expand-chat-bubble-attachment-tag">
-                        {resolveDevIconByFileName(a.name) ? (
-                          <img className="max-expand-chat-bubble-attachment-icon" src={resolveDevIconByFileName(a.name)} alt="" aria-hidden="true" />
-                        ) : (
-                          <span className="max-expand-chat-bubble-attachment-icon-fallback" aria-hidden="true" />
-                        )}
-                        <span>{a.name}</span>
-                      </span>
-                    ))}
+
+          if (agentMode === 'r1pxc' && msg.role === 'assistant') {
+            const isLatest = absoluteIndex === aiChatMessages.length - 1;
+            const r1pxcAvatarRaw = typeof aiConfig.r1pxcAvatar === 'string' ? aiConfig.r1pxcAvatar.trim() : '';
+            const r1pxcAvatarUrl = r1pxcAvatarRaw.startsWith('data:image/') ? r1pxcAvatarRaw : '';
+            const rawSegments = msg.content
+              ? msg.content.split(/\n\n+/).filter((s) => s.trim().length > 0)
+              : [];
+            const segments: string[] = [];
+            for (let si = 0; si < rawSegments.length; si++) {
+              if (/^>\s*引用:/.test(rawSegments[si]) && si + 1 < rawSegments.length) {
+                segments.push(rawSegments[si] + '\n' + rawSegments[si + 1]);
+                si++;
+              } else {
+                segments.push(rawSegments[si]);
+              }
+            }
+            if (segments.length === 0 && aiChatStreaming && isLatest) {
+              return (
+                <div key={absoluteIndex} className="max-expand-chat-agent-row r1pxc-chat">
+                  {r1pxcAvatarUrl ? (
+                    <img className="max-expand-chat-agent-avatar max-expand-chat-avatar--clickable" src={r1pxcAvatarUrl} alt="" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} onClick={() => navigateToSettingsTab('ai')} />
+                  ) : (
+                    <img className="max-expand-chat-agent-avatar max-expand-chat-agent-avatar--placeholder max-expand-chat-avatar--clickable" src={SvgIcon.USER} alt="" onClick={() => navigateToSettingsTab('ai')} />
+                  )}
+                  <div className="max-expand-chat-bubble ai r1pxc-chat">
+                    <div className="max-expand-chat-loading-row">
+                      <span className="max-expand-chat-generating-dots"><i /><i /><i /></span>
+                    </div>
                   </div>
+                </div>
+              );
+            }
+            return (
+              <div key={absoluteIndex} className="max-expand-chat-agent-row r1pxc-chat">
+                {r1pxcAvatarUrl ? (
+                  <img className="max-expand-chat-agent-avatar max-expand-chat-avatar--clickable" src={r1pxcAvatarUrl} alt="" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} onClick={() => navigateToSettingsTab('ai')} />
+                ) : (
+                  <img className="max-expand-chat-agent-avatar max-expand-chat-agent-avatar--placeholder max-expand-chat-avatar--clickable" src={SvgIcon.USER} alt="" onClick={() => navigateToSettingsTab('ai')} />
                 )}
-                {msg.content.replace(/^(?:<attachment name="[^"]*">\n[\s\S]*?\n<\/attachment>\n*)+/, '').trim()}
-              </>
-            ) : (
+                <div className="max-expand-chat-agent-bubbles">
+                  {segments.map((seg, si) => {
+                    const quoteMatch = seg.match(/^>\s*引用:\s*(.*)/);
+                    const quoteText = quoteMatch ? quoteMatch[1].trim() : null;
+                    const bodyText = quoteMatch ? seg.replace(/^>\s*引用:\s*.*\n?/, '').trim() : seg;
+                    return (
+                      <div
+                        key={`${absoluteIndex}-${si}`}
+                        className="max-expand-chat-bubble ai r1pxc-chat max-expand-chat-bubble--hoverable"
+                      >
+                        {quoteText && (
+                          <div className="max-expand-chat-quote-block">
+                            <span className="max-expand-chat-quote-block-text">{quoteText.length > 80 ? quoteText.slice(0, 80) + '…' : quoteText}</span>
+                          </div>
+                        )}
+                        {bodyText && <AssistantMarkdown content={normalizeMarkdownCodeFences(bodyText)} />}
+                        <span className="max-expand-chat-bubble-actions">
+                          <button type="button" onClick={() => { setPendingQuote(seg.trim()); inputRef.current?.focus(); }}>{t('aiChat.actions.quote', { defaultValue: '引用' })}</button>
+                          <button type="button" onClick={() => { navigator.clipboard.writeText(seg.trim()).catch(() => {}); }}>{t('aiChat.actions.copy', { defaultValue: '复制' })}</button>
+                        </span>
+                      </div>
+                    );
+                  })}
+                  {aiChatStreaming && isLatest && (
+                    <div key={`${absoluteIndex}-dots`} className="max-expand-chat-bubble ai r1pxc-chat">
+                      <div className="max-expand-chat-loading-row">
+                        <span className="max-expand-chat-generating-dots"><i /><i /><i /></span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          }
+
+          if (msg.role === 'user') {
+            return (
+              <div key={absoluteIndex} className={`max-expand-chat-user-row${agentMode === 'r1pxc' ? ' r1pxc-chat' : ''}`}>
+                <div className={`max-expand-chat-bubble user${agentMode === 'r1pxc' ? ' r1pxc-chat' : ''}`}>
+                  {msg.quote && agentMode === 'r1pxc' && (
+                    <div className="max-expand-chat-quote-block">
+                      <span className="max-expand-chat-quote-block-text">{msg.quote.length > 80 ? msg.quote.slice(0, 80) + '…' : msg.quote}</span>
+                    </div>
+                  )}
+                  {Array.isArray(msg.attachments) && msg.attachments.length > 0 && (
+                    <div className="max-expand-chat-bubble-attachments">
+                      {msg.attachments.map((a) => (
+                        <span key={a.name} className="max-expand-chat-bubble-attachment-tag">
+                          {resolveDevIconByFileName(a.name) ? (
+                            <img className="max-expand-chat-bubble-attachment-icon" src={resolveDevIconByFileName(a.name)} alt="" aria-hidden="true" />
+                          ) : (
+                            <span className="max-expand-chat-bubble-attachment-icon-fallback" aria-hidden="true" />
+                          )}
+                          <span>{a.name}</span>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  {msg.content.replace(/^(?:<attachment name="[^"]*">\n[\s\S]*?\n<\/attachment>\n*)+/, '').replace(/^> 引用: [\s\S]*?\n\n/, '').trim()}
+                </div>
+                {userAvatarUrl ? (
+                  <img className="max-expand-chat-user-avatar max-expand-chat-avatar--clickable" src={userAvatarUrl} alt="" onClick={() => navigateToSettingsTab('user-info')} />
+                ) : (
+                  <span className="max-expand-chat-user-avatar max-expand-chat-user-avatar--placeholder max-expand-chat-avatar--clickable" onClick={() => navigateToSettingsTab('user-info')} />
+                )}
+              </div>
+            );
+          }
+
+          return (
+          <div
+            key={absoluteIndex}
+            className={`max-expand-chat-bubble ai${agentMode === 'r1pxc' ? ' r1pxc-chat' : ''}`}
+          >
+            {(
               <>
                 {(() => {
+                  const isLatestAssistantMsg = absoluteIndex === aiChatMessages.length - 1;
+
                   const thinkBlocks = aiConfig.deepseekThinking && Array.isArray(msg.thinkBlocks)
                     ? msg.thinkBlocks
                     : [];
                   const sortedToolCalls = Array.isArray(msg.toolCalls)
-                    ? [...msg.toolCalls]
-                      // agent.todo.write 由独立 TodoList 卡片承载，不在工具时间线中重复展示。
-                      .filter((toolCall) => toolCall.tool !== 'agent.todo.write')
-                      .map((tc, idx) => ({ ...tc, _idx: idx }))
-                      .sort((a, b) => {
-                        const aTurn = Number.isFinite(a.turn) && (a.turn ?? 0) > 0 ? Number(a.turn) : Number.MAX_SAFE_INTEGER;
-                        const bTurn = Number.isFinite(b.turn) && (b.turn ?? 0) > 0 ? Number(b.turn) : Number.MAX_SAFE_INTEGER;
-                        return aTurn - bTurn || a._idx - b._idx;
-                      })
-                    : [];
+                      ? [...msg.toolCalls]
+                        // agent.todo.write 由独立 TodoList 卡片承载，不在工具时间线中重复展示。
+                        .filter((toolCall) => toolCall.tool !== 'agent.todo.write')
+                        .map((tc, idx) => ({ ...tc, _idx: idx }))
+                        .sort((a, b) => {
+                          const aTurn = Number.isFinite(a.turn) && (a.turn ?? 0) > 0 ? Number(a.turn) : Number.MAX_SAFE_INTEGER;
+                          const bTurn = Number.isFinite(b.turn) && (b.turn ?? 0) > 0 ? Number(b.turn) : Number.MAX_SAFE_INTEGER;
+                          return aTurn - bTurn || a._idx - b._idx;
+                        })
+                      : [];
                   const todoSnapshots: AiTodoSnapshot[] = Array.isArray(msg.todoSnapshots) ? msg.todoSnapshots : [];
 
-                  const isLatestAssistantMsg = absoluteIndex === aiChatMessages.length - 1;
                   const showThinkingFooter = aiConfig.deepseekThinking && aiChatStreaming && isLatestAssistantMsg;
                   const traceId = typeof msg.traceId === 'string' ? msg.traceId.trim() : '';
+                  const msgModelIcon = msg.model?.startsWith('mimo-') ? SvgIcon.MIMO : SvgIcon.DEEPSEEK;
                   const showFinalTraceMeta = Boolean(msg.finalized);
                   const normalizedMarkdownContent = normalizeMarkdownCodeFences(msg.content);
                   const timelineNodes: React.ReactElement[] = [];
@@ -1628,7 +1881,7 @@ export function AiChatTab(): React.ReactElement {
                       >
                         <summary>
                           <span className="max-expand-chat-think-title">
-                            <img className="max-expand-chat-think-title-icon" src={SvgIcon.DEEPSEEK} alt="" />
+                            <img className="max-expand-chat-think-title-icon" src={msgModelIcon} alt="" />
                             <span>{t('aiChat.timeline.thinkingProcess', { defaultValue: '思考过程 #{{index}}', index: 1 })}</span>
                           </span>
                         </summary>
@@ -1723,7 +1976,7 @@ export function AiChatTab(): React.ReactElement {
                         >
                           <summary>
                             <span className="max-expand-chat-think-title">
-                              <img className="max-expand-chat-think-title-icon" src={SvgIcon.DEEPSEEK} alt="" />
+                              <img className="max-expand-chat-think-title-icon" src={msgModelIcon} alt="" />
                               <span>{t('aiChat.timeline.thinkingProcess', { defaultValue: '思考过程 #{{index}}', index: thinkIdx + 1 })}</span>
                             </span>
                           </summary>
@@ -1745,7 +1998,7 @@ export function AiChatTab(): React.ReactElement {
                         >
                           <summary>
                             <span className="max-expand-chat-think-title">
-                              <img className="max-expand-chat-think-title-icon" src={SvgIcon.DEEPSEEK} alt="" />
+                              <img className="max-expand-chat-think-title-icon" src={msgModelIcon} alt="" />
                               <span>{t('aiChat.timeline.thinkingProcess', { defaultValue: '思考过程 #{{index}}', index: idx + 1 })}</span>
                             </span>
                           </summary>
@@ -2037,13 +2290,16 @@ export function AiChatTab(): React.ReactElement {
                       onClick={() => setShowModelDropdown((v) => !v)}
                       title={t('settings.ai.model', { defaultValue: '模型' })}
                     >
-                      <span className="max-expand-chat-model-dropdown-trigger-label">{selectedModel}</span>
+                      <span className="max-expand-chat-model-dropdown-trigger-label" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <img style={{ width: 14, height: 14 }} src={modelToggleIcon || SvgIcon.DEEPSEEK} alt="" />
+                        {selectedModel}
+                      </span>
                       <span className="max-expand-chat-model-dropdown-arrow">▾</span>
                     </button>
                     {showModelDropdown && (
                       <div className="max-expand-chat-model-dropdown-list">
                         {availableModels.map((m) => {
-                          const isPro = m === 'deepseek-v4-pro';
+                          const isPro = m === 'deepseek-v4-pro' || m === 'mimo-v2.5-pro';
                           const disabled = isPro && !isProUser;
                           return (
                             <button
@@ -2056,7 +2312,10 @@ export function AiChatTab(): React.ReactElement {
                                 setShowModelDropdown(false);
                               }}
                             >
-                              <span>{m}</span>
+                              <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                <img style={{ width: 14, height: 14 }} src={m.startsWith('mimo-') ? SvgIcon.MIMO : SvgIcon.DEEPSEEK} alt="" />
+                                {m}
+                              </span>
                               {isPro && <img className="max-expand-chat-model-dropdown-pro-icon" src={SvgIcon.PRO} alt="PRO" />}
                             </button>
                           );
@@ -2066,7 +2325,7 @@ export function AiChatTab(): React.ReactElement {
                   </div>
                 </div>
                 <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
-                  <span style={{ fontSize: 12, opacity: 0.8 }}>{t('settings.ai.deepseekReasoningEffort', { defaultValue: 'DeepSeek 推理强度' })}</span>
+                  <span style={{ fontSize: 12, opacity: 0.8 }}>{selectedProvider === 'mimo' ? t('settings.ai.mimoReasoningEffort', { defaultValue: 'Mimo 推理强度' }) : t('settings.ai.deepseekReasoningEffort', { defaultValue: 'DeepSeek 推理强度' })}</span>
                   <select
                     className="max-expand-chat-web-access-policy-select"
                     value={aiConfig.deepseekReasoningEffort}
@@ -2076,8 +2335,8 @@ export function AiChatTab(): React.ReactElement {
                         deepseekReasoningEffort: value === 'low' || value === 'high' ? value : 'medium',
                       });
                     }}
-                    title={t('settings.ai.deepseekReasoningEffort', { defaultValue: 'DeepSeek 推理强度' })}
-                    aria-label={t('settings.ai.deepseekReasoningEffort', { defaultValue: 'DeepSeek 推理强度' })}
+                    title={selectedProvider === 'mimo' ? t('settings.ai.mimoReasoningEffort', { defaultValue: 'Mimo 推理强度' }) : t('settings.ai.deepseekReasoningEffort', { defaultValue: 'DeepSeek 推理强度' })}
+                    aria-label={selectedProvider === 'mimo' ? t('settings.ai.mimoReasoningEffort', { defaultValue: 'Mimo 推理强度' }) : t('settings.ai.deepseekReasoningEffort', { defaultValue: 'DeepSeek 推理强度' })}
                   >
                     <option value="low">{t('settings.ai.deepseekReasoningEffortOptions.low', { defaultValue: '低 (low)' })}</option>
                     <option value="medium">{t('settings.ai.deepseekReasoningEffortOptions.medium', { defaultValue: '中 (medium)' })}</option>
@@ -2327,20 +2586,52 @@ export function AiChatTab(): React.ReactElement {
               alt=""
             />
           </button>
+          <div className="max-expand-chat-agent-mode-wrap">
+            <button
+              ref={agentModeTriggerRef}
+              className="max-expand-chat-agent-mode-trigger"
+              type="button"
+              onClick={toggleAgentModeDropdown}
+              title={t('aiChat.agentMode.switch', { defaultValue: '切换 Agent 模式' })}
+            >
+              <img className={`max-expand-chat-agent-mode-icon${currentAgentModeConfig.noFilter ? ' no-filter' : ''}`} src={currentAgentModeConfig.icon} alt="" />
+            </button>
+            {showAgentModeDropdown && agentModeDropdownPos && (
+              <div
+                ref={agentModeDropdownRef}
+                className="max-expand-chat-agent-mode-dropdown"
+                style={{ position: 'fixed', left: agentModeDropdownPos.left, bottom: agentModeDropdownPos.bottom }}
+              >
+                {AGENT_MODES.map((m) => (
+                  <button
+                    key={m.id}
+                    type="button"
+                    className={`max-expand-chat-agent-mode-item${agentMode === m.id ? ' active' : ''}`}
+                    onClick={() => setAgentMode(m.id)}
+                  >
+                    <img className={`max-expand-chat-agent-mode-item-icon${m.noFilter ? ' no-filter' : ''}`} src={m.icon} alt="" />
+                    <span className="max-expand-chat-agent-mode-item-label">{m.label}</span>
+                    <span className="max-expand-chat-agent-mode-item-desc">{m.desc}</span>
+                    {m.badgeIcon && <img className="max-expand-chat-agent-mode-item-badge" src={m.badgeIcon} alt="" />}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
           <textarea
             ref={inputRef}
             className="max-expand-chat-input"
-            placeholder={aiChatStreaming
+            placeholder={aiChatStreaming && agentMode !== 'r1pxc'
               ? t('aiChat.input.generatingPlaceholder', { defaultValue: '生成中...' })
               : t('aiChat.input.placeholder', { defaultValue: '输入消息...' })}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            readOnly={aiChatStreaming}
-            aria-disabled={aiChatStreaming}
+            readOnly={aiChatStreaming && agentMode !== 'r1pxc'}
+            aria-disabled={aiChatStreaming && agentMode !== 'r1pxc'}
             rows={1}
           />
-          {aiChatStreaming ? (
+          {aiChatStreaming && !(agentMode === 'r1pxc' && input.trim()) ? (
             <button className="max-expand-chat-send" onClick={handleStop}>
               {t('aiChat.actions.stop', { defaultValue: '停止' })}
             </button>
@@ -2357,14 +2648,20 @@ export function AiChatTab(): React.ReactElement {
             }}
             title={t('aiChat.modelCard.title', { defaultValue: '模型选择卡片' })}
           >
-            {showDeepseekIconOnModelToggle ? (
+            {modelToggleIcon ? (
               <span className="max-expand-chat-model-toggle-with-icon">
-                <img className="max-expand-chat-model-toggle-icon" src={SvgIcon.DEEPSEEK} alt="" />
+                <img className="max-expand-chat-model-toggle-icon" src={modelToggleIcon} alt="" />
                 <span>{selectedModel}</span>
               </span>
             ) : selectedModel}
           </button>
           </div>
+          {pendingQuote && agentMode === 'r1pxc' && (
+            <div className="max-expand-chat-quote-preview">
+              <span className="max-expand-chat-quote-preview-text">{pendingQuote.length > 60 ? pendingQuote.slice(0, 60) + '…' : pendingQuote}</span>
+              <button type="button" className="max-expand-chat-quote-preview-close" onClick={() => setPendingQuote(null)}>✕</button>
+            </div>
+          )}
         </div>
       </div>
     </div>

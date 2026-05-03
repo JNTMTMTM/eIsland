@@ -666,6 +666,35 @@ const api = {
     return ipcRenderer.invoke('toggle-ui-lock-hotkey:set', accelerator);
   },
   /**
+   * 获取当前 Agent 语音输入快捷键
+   * @returns 当前快捷键字符串
+   */
+  agentVoiceInputHotkeyGet: (): Promise<string> => {
+    return ipcRenderer.invoke('agent-voice-input-hotkey:get');
+  },
+  /**
+   * 设置 Agent 语音输入快捷键
+   * @param accelerator - Electron accelerator 字符串
+   * @returns 是否注册成功
+   */
+  agentVoiceInputHotkeySet: (accelerator: string): Promise<boolean> => {
+    return ipcRenderer.invoke('agent-voice-input-hotkey:set', accelerator);
+  },
+  /**
+   * 监听 Agent 语音输入状态变化
+   * @param callback - 回调函数，参数为是否激活
+   * @returns 取消监听函数
+   */
+  onAgentVoiceInputState: (callback: (active: boolean) => void): (() => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, active: boolean): void => {
+      callback(active);
+    };
+    ipcRenderer.on('agent-voice-input:state', handler);
+    return () => {
+      ipcRenderer.removeListener('agent-voice-input:state', handler);
+    };
+  },
+  /**
    * 监听鼠标穿透锁定状态变化
    * @param callback - 回调函数，参数为是否锁定
    * @returns 取消监听函数

@@ -570,7 +570,8 @@
     },
     "modelCard": {
       "title": "模型选择卡片",
-      "focusMode": "专注模式"
+      "focusMode": "专注模式",
+      "contextLimit": "上下文"
     },
     "skills": {
       "title": "Skills",
@@ -591,6 +592,7 @@
     "messages": {
       "missingApiKeyWarn": "请先在「设置 → AI配置」中填写 API Key。",
       "unknownError": "未知错误",
+      "contextLimitExceeded": "⚠️ 当前会话已累计使用 {{used}} tokens，超出上下文限制（{{max}} tokens）。请新建会话继续对话。",
       "emptyWithApiKey": "有什么可以帮你的？",
       "emptyWithoutApiKey": "请先在「设置 → AI配置」中填写 API Key",
       "emptyGreetingVariants": {
@@ -647,6 +649,12 @@
         "allow": "始终批准",
         "deny": "始终禁止"
       }
+    },
+    "auth": {
+      "entryTitle": "登录后即可使用 AI 智能助手",
+      "gotoLogin": "前往登录",
+      "gotoRegister": "前往注册",
+      "hint": "mihtnelis Agent 为登录用户提供 AI 对话、工具调用与知识检索服务。"
     },
     "input": {
       "generatingPlaceholder": "生成中...",
@@ -927,6 +935,8 @@
       "music-lyrics": "歌词源",
       "music-smtc": "SMTC",
       "ai": "AI Agent",
+      "general": "通用配置",
+      "r1pxc": "r1pxc Agent",
       "shortcut": "快捷键",
       "user": "用户中心",
       "update": "更新设置",
@@ -1002,6 +1012,10 @@
     "weatherPages": {
       "location": "定位配置",
       "provider": "接口配置"
+    },
+    "aiPages": {
+      "general": "通用配置",
+      "r1pxc": "r1pxc Agent"
     },
     "musicPages": {
       "whitelist": "白名单",
@@ -1442,6 +1456,10 @@
         "toggleUiLock": {
           "title": "切换 UI 状态锁定快捷键",
           "hint": "按下后锁定当前 UI 状态，锁定期间不会因鼠标进入/移出或自动逻辑切换状态，再次按下解锁"
+        },
+        "agentVoiceInput": {
+          "title": "Agent 语音输入快捷键",
+          "hint": "长按此快捷键将触发 Agent 语音输入，释放后自动关闭"
         }
       },
       "capture": {
@@ -1677,6 +1695,7 @@
         "on": "开启"
       },
       "deepseekReasoningEffort": "DeepSeek 推理强度",
+      "mimoReasoningEffort": "Mimo 推理强度",
       "deepseekReasoningEffortOptions": {
         "low": "低 (low)",
         "medium": "中 (medium)",
@@ -1697,7 +1716,14 @@
       "workspaceHint": "配置 Agent 可操作的文件目录，所有文件读写、搜索、命令执行仅限于工作区内",
       "workspaceAdd": "+ 添加工作区文件夹",
       "workspaceRemove": "移除",
-      "workspaceEmpty": "未配置工作区，Agent 文件操作将被禁止"
+      "workspaceEmpty": "未配置工作区，Agent 文件操作将被禁止",
+      "r1pxcConfigTitle": "r1pxc Agent 头像配置",
+      "r1pxcConfigHint": "支持拖入图片或从文件资源管理器选择，不支持 URL",
+      "r1pxcAvatarReplace": "点击或拖入图片以替换头像",
+      "r1pxcAvatarUploadHint": "拖入图片，或点击从文件资源管理器选择",
+      "r1pxcAvatarClear": "清除头像",
+      "r1pxcAvatarFileTypeError": "请选择图片文件（png/jpg/webp 等）",
+      "r1pxcAvatarReadError": "头像读取失败，请换一张图片重试"
     },
     "about": {
       "pagination": "关于软件分页",
