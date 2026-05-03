@@ -64,11 +64,8 @@
   color: rgba(var(--color-text-rgb), 0.9);
   text-align: left;
   word-break: break-all;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  max-height: calc(1.4em * 2);
+  overflow-y: auto;
   line-height: 1.4;
   cursor: text;
   outline: none;
@@ -78,11 +75,21 @@
   transition: background 0.2s;
 }
 
+.stt-text-body::-webkit-scrollbar {
+  width: 4px;
+}
+
+.stt-text-body::-webkit-scrollbar-thumb {
+  background: rgba(var(--color-text-rgb), 0.12);
+  border-radius: 2px;
+}
+
+.stt-text-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(var(--color-text-rgb), 0.22);
+}
+
 .stt-text-body:focus {
   background: rgba(var(--color-text-rgb), 0.06);
-  display: block;
-  -webkit-line-clamp: unset;
-  line-clamp: unset;
 }
 
 .stt-dismiss-btn {
