@@ -190,6 +190,7 @@ export function AgentContent(): ReactElement {
           context: context || undefined,
           workspaces: aiConfig.workspaces,
           skills: resolvedSkills,
+          snapshotMode: true,
           thinking: aiConfig.deepseekThinking,
           reasoningEffort: aiConfig.deepseekReasoningEffort,
           timestamp: (() => {

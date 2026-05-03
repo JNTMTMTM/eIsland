@@ -79,6 +79,7 @@ export interface MihtnelisAgentStreamRequest {
   reasoningEffort?: 'low' | 'medium' | 'high';
   timestamp?: string;
   location?: string;
+  snapshotMode?: boolean;
   signal?: AbortSignal;
   onEvent?: (event: MihtnelisAgentStreamEvent) => void;
 }
@@ -125,6 +126,7 @@ export async function streamMihtnelisAgent(request: MihtnelisAgentStreamRequest)
       reasoningEffort: request.reasoningEffort,
       timestamp: request.timestamp || undefined,
       location: request.location || undefined,
+      snapshotMode: request.snapshotMode === true ? true : undefined,
     }),
     signal: request.signal,
   });
