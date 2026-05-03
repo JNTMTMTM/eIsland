@@ -31,6 +31,7 @@ import { streamMihtnelisAgent } from '../../../api/ai/mihtnelisAgentStream';
 import type { MihtnelisAgentStreamEvent } from '../../../api/ai/mihtnelisAgentStream';
 import { readLocalToken } from '../../../utils/userAccount';
 import { loadLocationFromStorage } from '../../../store/utils/storage';
+import { buildMihtnelisContext } from '../../states/maxExpand/components/agent/utils/chatUtils';
 import '../../../styles/agent/agent.css';
 
 type AgentPhase = 'connecting' | 'thinking' | 'toolCalling' | 'answering' | 'done' | 'error';
@@ -52,6 +53,18 @@ const PHASE_LABEL: Record<AgentPhase, string> = {
   done: '回答完成',
   error: '出错了',
 };
+
+const AGENT_MODE_STORAGE_KEY = 'eIsland_agentMode';
+const VALID_AGENT_MODES = new Set(['mihtnelis', 'r1pxc', 'edoc']);
+function loadAgentMode(): string {
+  try {
+    const raw = localStorage.getItem(AGENT_MODE_STORAGE_KEY);
+    if (raw && VALID_AGENT_MODES.has(raw)) return raw;
+  } catch { /* ignore */ }
+  return 'mihtnelis';
+}
+
+const INLINE_PROMPT_HINT = '[快问快答模式] 请用简洁精炼的语言回答，输出不超过3句话，避免冗长解释和列表。直接给出核心结论。';
 
 /**
  * Agent 状态内容组件
@@ -93,19 +106,52 @@ export function AgentContent(): ReactElement {
       setAnswerText('');
       setErrorMsg('');
 
-      const selectedModel = aiConfig.model || 'deepseek-v4-flash';
+      const availableModels = ['deepseek-v4-flash', 'deepseek-v4-pro', 'mimo-v2.5', 'mimo-v2.5-pro'];
+      const selectedModel = availableModels.includes(aiConfig.model) ? aiConfig.model : 'deepseek-v4-flash';
       const selectedProvider = selectedModel.startsWith('mimo-') ? 'mimo' : 'deepseek';
+      const agentMode = loadAgentMode();
+
+      const state = useIslandStore.getState();
+      const activeSessionId = state.activeAiChatSessionId;
+      const activeSession = state.aiChatSessions.find((s) => s.id === activeSessionId);
+      const sessionMessages = activeSession?.messages ?? [];
+      const context = buildMihtnelisContext(sessionMessages);
+
+      const enabledSkills = Array.isArray(aiConfig.skills) ? aiConfig.skills.filter((s) => s.enabled && s.filePath) : [];
+      let resolvedSkills: Array<{ name: string; content: string }> | undefined;
+      if (enabledSkills.length > 0) {
+        const results = await Promise.all(
+          enabledSkills.map(async (s) => {
+            const content = await window.api.readTextFile(s.filePath);
+            return content ? { name: s.name, content } : null;
+          }),
+        );
+        const valid = results.filter((r): r is { name: string; content: string } => r !== null && r.content.trim().length > 0);
+        if (valid.length > 0) resolvedSkills = valid;
+      }
+
+      const message = `${INLINE_PROMPT_HINT}\n\n${agentPrompt.trim()}`;
 
       try {
         await streamMihtnelisAgent({
           token,
-          sessionId: 'island-agent-inline',
-          message: agentPrompt.trim(),
+          sessionId: activeSessionId || 'island-agent-inline',
+          message,
           provider: selectedProvider,
           model: selectedModel,
+          agentMode,
+          context: context || undefined,
+          workspaces: aiConfig.workspaces,
+          skills: resolvedSkills,
           thinking: aiConfig.deepseekThinking,
           reasoningEffort: aiConfig.deepseekReasoningEffort,
-          timestamp: new Date().toISOString(),
+          timestamp: (() => {
+            const d = new Date();
+            const off = -d.getTimezoneOffset();
+            const sign = off >= 0 ? '+' : '-';
+            const pad = (n: number): string => String(Math.abs(n)).padStart(2, '0');
+            return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}${sign}${pad(Math.floor(Math.abs(off) / 60))}:${pad(Math.abs(off) % 60)}`;
+          })(),
           location: (() => {
             const loc = loadLocationFromStorage();
             if (!loc) return undefined;
@@ -176,9 +222,9 @@ export function AgentContent(): ReactElement {
       controller.abort();
       abortRef.current = null;
     };
-  }, [agentPrompt, aiConfig.model, aiConfig.deepseekThinking, aiConfig.deepseekReasoningEffort]);
+  }, [agentPrompt, aiConfig.model, aiConfig.deepseekThinking, aiConfig.deepseekReasoningEffort, aiConfig.workspaces, aiConfig.skills]);
 
-  const displayText = answerText || thinkText || errorMsg || PHASE_LABEL[phase];
+  const displayText = (answerText || thinkText || errorMsg || PHASE_LABEL[phase]).replace(/\n{2,}/g, '\n');
   const isThinkOnly = !answerText && !!thinkText;
 
   return (

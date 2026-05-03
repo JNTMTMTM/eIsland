@@ -48,6 +48,7 @@
   align-items: flex-start;
   gap: 1px;
   min-width: 0;
+  width: 0;
   flex: 1;
 }
 
@@ -59,6 +60,7 @@
 }
 
 .agent-text-body {
+  width: 100%;
   font-size: 13px;
   font-weight: 400;
   color: rgba(var(--color-text-rgb), 0.9);
@@ -67,7 +69,7 @@
   max-height: calc(1.4em * 3);
   overflow-y: auto;
   line-height: 1.4;
-  white-space: pre-wrap;
+  white-space: pre-line;
 }
 
 .agent-text-body.agent-text-thinking {
