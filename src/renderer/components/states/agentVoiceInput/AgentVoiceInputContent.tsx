@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { ReactElement } from 'react';
 import { startTencentRealtimeStt } from '../../../api/ai/tencentRealtimeStt';
 import { readLocalToken } from '../../../utils/userAccount';
@@ -37,6 +37,13 @@ import '../../../styles/agentVoiceInput/agentVoiceInput.css';
 export function AgentVoiceInputContent(): ReactElement {
   const [transcript, setTranscript] = useState('');
   const [statusText, setStatusText] = useState('正在聆听…');
+  const textRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (textRef.current) {
+      textRef.current.scrollLeft = textRef.current.scrollWidth;
+    }
+  }, [transcript]);
 
   useEffect(() => {
     let active = true;
@@ -191,7 +198,7 @@ export function AgentVoiceInputContent(): ReactElement {
         </div>
         <span className="agent-voice-input-label">{statusText}</span>
       </div>
-      <div className="agent-voice-input-text">
+      <div className="agent-voice-input-text" ref={textRef}>
         <span className="agent-voice-input-transcript">{transcript || '...'}</span>
       </div>
     </div>
