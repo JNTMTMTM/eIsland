@@ -122,6 +122,7 @@ export function AgentContent(): ReactElement {
   const abortRef = useRef<AbortController | null>(null);
   const answerAccRef = useRef('');
   const thinkAccRef = useRef('');
+  const traceIdRef = useRef('');
   const tokenRef = useRef('');
 
   useEffect(() => {
@@ -152,6 +153,7 @@ export function AgentContent(): ReactElement {
       setToolCallInfo(null);
       answerAccRef.current = '';
       thinkAccRef.current = '';
+      traceIdRef.current = '';
 
       const availableModels = ['deepseek-v4-flash', 'deepseek-v4-pro', 'mimo-v2.5', 'mimo-v2.5-pro'];
       const selectedModel = availableModels.includes(aiConfig.model) ? aiConfig.model : 'deepseek-v4-flash';
@@ -319,6 +321,11 @@ export function AgentContent(): ReactElement {
             }
 
             if (event.type === 'final') {
+              const payload = event.payload as { traceId?: unknown; traceid?: unknown; trace_id?: unknown };
+              const rawTraceId = payload?.traceId ?? payload?.traceid ?? payload?.trace_id;
+              if (typeof rawTraceId === 'string' && rawTraceId.trim()) {
+                traceIdRef.current = rawTraceId.trim();
+              }
               setPhase('done');
               return;
             }
@@ -339,6 +346,7 @@ export function AgentContent(): ReactElement {
               content: finalAnswer,
               model: selectedModel,
               finalized: true,
+              traceId: traceIdRef.current || undefined,
               ...(thinkAccRef.current ? { thinkBlocks: [thinkAccRef.current] } : {}),
             };
             store.setAiChatSessionMessages(sid, [...prev, userMsg, assistantMsg]);
