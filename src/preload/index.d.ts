@@ -111,6 +111,24 @@ declare global {
         error: string;
         durationMs: number;
       }>;
+      ollamaPing: (baseUrl?: string) => Promise<boolean>;
+      ollamaModels: (baseUrl?: string) => Promise<string[]>;
+      ollamaChatStart: (
+        sessionId: string,
+        request: {
+          model: string;
+          systemPrompt: string;
+          userMessage: string;
+          context?: string;
+          baseUrl?: string;
+          temperature?: number;
+        },
+      ) => Promise<{ started: boolean; sessionId: string }>;
+      ollamaChatAbort: (sessionId: string) => Promise<{ aborted: boolean }>;
+      onOllamaChatEvent: (
+        sessionId: string,
+        callback: (event: { type: string; payload: Record<string, unknown> }) => void,
+      ) => () => void;
       clearLogsCache: () => Promise<{ success: boolean; freedBytes: number }>;
       windowMinimize: () => void;
       windowMaximize: () => void;

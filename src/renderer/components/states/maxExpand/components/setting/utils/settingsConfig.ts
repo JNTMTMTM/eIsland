@@ -53,7 +53,7 @@ export type SettingsSidebarTabKey = (typeof SETTINGS_TABS)[number];
 export type AppSettingsPageKey = 'layout-preview' | 'album' | 'hide-process-list' | 'position' | 'theme' | 'language' | 'behavior' | 'url-parser' | 'clipboard-history' | 'autostart';
 export type WeatherSettingsPageKey = 'location' | 'provider';
 export type MailSettingsPageKey = 'account' | 'imap' | 'preferences';
-export type AiSettingsPageKey = 'general' | 'r1pxc';
+export type AiSettingsPageKey = 'general' | 'r1pxc' | 'ollama';
 export type MusicSettingsPageKey = 'whitelist' | 'lyrics' | 'smtc';
 export type MusicNavCardKey = 'music-whitelist' | 'music-lyrics' | 'music-smtc';
 export type SettingsTabLabelKey = SettingsSidebarTabKey | AppSettingsPageKey | AiSettingsPageKey | MusicNavCardKey;
@@ -81,6 +81,7 @@ export const SETTINGS_TAB_LABELS: Record<SettingsTabLabelKey, string> = {
   ai: 'AI Agent',
   general: '通用配置',
   r1pxc: 'r1pxc Agent',
+  ollama: 'Ollama 本地',
   shortcut: '快捷键',
   user: '用户中心',
   update: '更新设置',
@@ -110,6 +111,7 @@ export const SETTINGS_TAB_DESCRIPTIONS: Record<Exclude<SettingsTabLabelKey, 'ind
   ai: 'AI 服务与 Prompt 配置',
   general: '模型凭据与工作区配置。',
   r1pxc: 'r1pxc Agent 头像与个性化配置。',
+  ollama: '本地 Ollama 模型与连接配置。',
   shortcut: '隐藏、关闭、截图快捷键',
   user: '登录、资料、注销等账号操作',
   update: '检查与下载软件更新',
@@ -164,10 +166,11 @@ export const MAIL_SETTINGS_PAGE_LABELS: Record<MailSettingsPageKey, string> = {
   imap: 'IMAP',
   preferences: '收信设置',
 };
-export const AI_SETTINGS_PAGES: AiSettingsPageKey[] = ['general', 'r1pxc'];
+export const AI_SETTINGS_PAGES: AiSettingsPageKey[] = ['general', 'r1pxc', 'ollama'];
 export const AI_SETTINGS_PAGE_LABELS: Record<AiSettingsPageKey, string> = {
   general: '通用配置',
   r1pxc: 'r1pxc Agent',
+  ollama: 'Ollama 本地',
 };
 export const MUSIC_SETTINGS_PAGES: MusicSettingsPageKey[] = ['whitelist', 'lyrics', 'smtc'];
 export const MUSIC_SETTINGS_PAGE_LABELS: Record<MusicSettingsPageKey, string> = {

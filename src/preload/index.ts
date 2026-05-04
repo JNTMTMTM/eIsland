@@ -236,6 +236,62 @@ const api = {
     return ipcRenderer.invoke('agent:local-tool:execute', request);
   },
   /**
+   * 检测本地 Ollama 服务是否可用
+   */
+  ollamaPing: (baseUrl?: string): Promise<boolean> => {
+    return ipcRenderer.invoke('ollama:ping', baseUrl);
+  },
+  /**
+   * 获取 Ollama 本地可用模型列表
+   */
+  ollamaModels: (baseUrl?: string): Promise<string[]> => {
+    return ipcRenderer.invoke('ollama:models', baseUrl);
+  },
+  /**
+   * 启动 Ollama 本地 ReAct 编排会话
+   */
+  ollamaChatStart: (
+    sessionId: string,
+    request: {
+      model: string;
+      systemPrompt: string;
+      userMessage: string;
+      context?: string;
+      baseUrl?: string;
+      temperature?: number;
+    },
+  ): Promise<{ started: boolean; sessionId: string }> => {
+    return ipcRenderer.invoke('ollama:chat:start', sessionId, request);
+  },
+  /**
+   * 中止 Ollama 本地编排会话
+   */
+  ollamaChatAbort: (sessionId: string): Promise<{ aborted: boolean }> => {
+    return ipcRenderer.invoke('ollama:chat:abort', sessionId);
+  },
+  /**
+   * 监听 Ollama 编排会话事件
+   * @param sessionId - 会话 ID
+   * @param callback - 事件回调
+   * @returns 取消监听函数
+   */
+  onOllamaChatEvent: (
+    sessionId: string,
+    callback: (event: { type: string; payload: Record<string, unknown> }) => void,
+  ): (() => void) => {
+    const channel = `ollama:chat:event:${sessionId}`;
+    const handler = (
+      _event: Electron.IpcRendererEvent,
+      data: { type: string; payload: Record<string, unknown> },
+    ): void => {
+      callback(data);
+    };
+    ipcRenderer.on(channel, handler);
+    return () => {
+      ipcRenderer.removeListener(channel, handler);
+    };
+  },
+  /**
    * 清理日志缓存
    */
   clearLogsCache: (): Promise<{ success: boolean; freedBytes: number }> => {

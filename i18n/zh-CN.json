@@ -604,6 +604,7 @@
       "aiGeneratedDisclaimer": "内容由 AI 生成，请仔细甄别。",
       "agentError": "mihtnelis agent 返回错误",
       "noModelOutput": "⚠️ 未收到模型输出，请检查 DeepSeek 配置与服务端日志。",
+      "noModelOutputOllama": "⚠️ 未收到模型输出，请检查 Ollama 服务是否运行中。",
       "localToolExecuteFailed": "本地工具执行失败",
       "localToolSubmitFailed": "本地工具结果提交失败",
       "apiRequestFailed": "API 请求失败 ({{status}}): {{detail}}",

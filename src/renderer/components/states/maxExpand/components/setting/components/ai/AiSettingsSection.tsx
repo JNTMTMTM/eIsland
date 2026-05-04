@@ -37,6 +37,8 @@ interface AiSettingsSectionProps {
     endpoint: string;
     workspaces: string[];
     r1pxcAvatar: string;
+    ollamaModel: string;
+    ollamaBaseUrl: string;
   };
   setAiConfig: (config: Partial<AiSettingsSectionProps['aiConfig']>) => void;
   onAddWorkspace: () => void;
@@ -246,12 +248,39 @@ export function AiSettingsSection({
     </div>
   );
 
+  const renderOllamaPage = (): ReactElement => (
+    <div className="settings-cards">
+      <div className="settings-card">
+        <div className="settings-card-header">
+          <div className="settings-card-title">{t('settings.ai.ollamaTitle', { defaultValue: 'Ollama 本地模型' })}</div>
+          <div className="settings-card-subtitle">{t('settings.ai.ollamaHint', { defaultValue: '配置本地 Ollama 服务地址与默认模型，在模型下拉中选择 ollama 即可使用' })}</div>
+        </div>
+        <div className="settings-field-group">
+          <SettingsField
+            label={t('settings.ai.ollamaModel', { defaultValue: '模型名称' })}
+            value={aiConfig.ollamaModel}
+            placeholder="qwen3:8b"
+            onChange={(v) => setAiConfig({ ollamaModel: v })}
+          />
+          <SettingsField
+            label={t('settings.ai.ollamaBaseUrl', { defaultValue: '服务地址' })}
+            value={aiConfig.ollamaBaseUrl}
+            placeholder="http://localhost:11434"
+            onChange={(v) => setAiConfig({ ollamaBaseUrl: v })}
+          />
+        </div>
+      </div>
+    </div>
+  );
+
   const renderCurrentPage = (): ReactElement | null => {
     switch (aiSettingsPage) {
       case 'general':
         return renderGeneralPage();
       case 'r1pxc':
         return renderR1pxcPage();
+      case 'ollama':
+        return renderOllamaPage();
       default:
         return null;
     }

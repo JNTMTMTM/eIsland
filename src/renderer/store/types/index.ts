@@ -202,6 +202,8 @@ export interface AiConfig {
   r1pxcAvatar: string;
   workspaces: string[];
   skills: AiSkill[];
+  ollamaModel: string;
+  ollamaBaseUrl: string;
 }
 
 /** AI 工具调用轨迹 */

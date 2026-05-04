@@ -34,6 +34,7 @@ import {
   resolveMihtnelisWebAccess,
   streamMihtnelisAgent,
 } from '../../../../api/ai/mihtnelisAgentStream';
+import { streamOllamaLocalAgent } from '../../../../api/ai/ollamaLocalAgent';
 import {
   fetchWebsiteTitle,
   getWebsiteAuthorizationPolicy,
@@ -237,7 +238,7 @@ const AssistantMarkdown = React.memo(function AssistantMarkdown({ content }: { c
  * @description 包含消息列表和输入栏的聊天界面，调用 OpenAI 兼容 API
  */
 export function AiChatTab(): React.ReactElement {
-  const availableModels = ['deepseek-v4-flash', 'deepseek-v4-pro', 'mimo-v2.5', 'mimo-v2.5-pro'] as const;
+  const availableModels = ['deepseek-v4-flash', 'deepseek-v4-pro', 'mimo-v2.5', 'mimo-v2.5-pro', 'ollama'] as const;
   const { t } = useTranslation();
   const localTokenForRole = readLocalToken();
   const isProUser = useMemo(() => {
@@ -333,8 +334,10 @@ export function AiChatTab(): React.ReactElement {
     if (!isProUser && (m === 'deepseek-v4-pro' || m === 'mimo-v2.5-pro')) return 'deepseek-v4-flash';
     return m;
   })();
-  const selectedProvider = selectedModel.startsWith('mimo-') ? 'mimo' : 'deepseek';
-  const modelToggleIcon = selectedModel.startsWith('mimo-') ? SvgIcon.MIMO : selectedModel.toLowerCase().includes('deepseek') ? SvgIcon.DEEPSEEK : null;
+  const isOllamaModel = selectedModel === 'ollama';
+  const selectedProvider = isOllamaModel ? 'ollama' : (selectedModel.startsWith('mimo-') ? 'mimo' : 'deepseek');
+  const modelToggleIcon = isOllamaModel ? null : (selectedModel.startsWith('mimo-') ? SvgIcon.MIMO : (selectedModel.toLowerCase().includes('deepseek') ? SvgIcon.DEEPSEEK : null));
+  const ollamaDisplayLabel = aiConfig.ollamaModel ? `ollama (${aiConfig.ollamaModel})` : 'ollama';
   const VISIBLE_CHAT_WINDOW_SIZE = agentMode === 'r1pxc' ? VISIBLE_CHAT_WINDOW_SIZE_R1PXC : VISIBLE_CHAT_WINDOW_SIZE_DEFAULT;
   const VISIBLE_CHAT_WINDOW_STEP = agentMode === 'r1pxc' ? VISIBLE_CHAT_WINDOW_STEP_R1PXC : VISIBLE_CHAT_WINDOW_STEP_DEFAULT;
   const visibleWindowEnd = Math.min(aiChatMessages.length, visibleWindowStart + VISIBLE_CHAT_WINDOW_SIZE);
@@ -756,7 +759,7 @@ export function AiChatTab(): React.ReactElement {
     const localToken = readLocalToken();
     const canUseMihtnelis = Boolean(localToken && localToken.trim().length > 0);
 
-    if (!canUseMihtnelis && !aiConfig.apiKey) {
+    if (!isOllamaModel && !canUseMihtnelis && !aiConfig.apiKey) {
       updateTargetMessages(prev => ([
         ...prev,
         { role: 'user', content: text },
@@ -831,7 +834,144 @@ export function AiChatTab(): React.ReactElement {
     refreshActiveSessionStreaming();
 
     try {
-      if (canUseMihtnelis) {
+      if (isOllamaModel) {
+        let receivedOllamaChunk = false;
+        let ollamaErrorMessage: string | null = null;
+        const ollamaContext = buildMihtnelisContext(nextMessages);
+        const ollamaEnabledSkills = Array.isArray(aiConfig.skills) ? aiConfig.skills.filter((s) => s.enabled && s.filePath) : [];
+        let ollamaResolvedSkills: Array<{ name: string; content: string }> | undefined;
+        if (ollamaEnabledSkills.length > 0) {
+          const ollamaSkillResults = await Promise.all(
+            ollamaEnabledSkills.map(async (s) => {
+              const content = await window.api.readTextFile(s.filePath);
+              return content ? { name: s.name, content } : null;
+            }),
+          );
+          const ollamaValidSkills = ollamaSkillResults.filter((r): r is { name: string; content: string } => r !== null && r.content.trim().length > 0);
+          if (ollamaValidSkills.length > 0) ollamaResolvedSkills = ollamaValidSkills;
+        }
+        const ollamaModelName = aiConfig.ollamaModel || 'qwen3:8b';
+        await streamOllamaLocalAgent({
+          token: localToken || '',
+          message: text,
+          model: ollamaModelName,
+          agentMode,
+          context: ollamaContext,
+          workspaces: aiConfig.workspaces,
+          skills: ollamaResolvedSkills,
+          baseUrl: aiConfig.ollamaBaseUrl || undefined,
+          signal: controller.signal,
+          onEvent: (event) => {
+            if (SESSION_ABORT_CONTROLLERS.get(targetSessionId) !== controller) {
+              return;
+            }
+            if (event.type === 'chunk') {
+              const payload = event.payload as { text?: unknown };
+              const chunk = typeof payload?.text === 'string' ? payload.text : '';
+              if (!chunk) return;
+              receivedOllamaChunk = true;
+              updateTargetMessages(prev => {
+                const copy = [...prev];
+                const last = copy[copy.length - 1];
+                if (!last || last.role !== 'assistant') return copy;
+                copy[copy.length - 1] = { ...last, content: `${last.content}${chunk}` };
+                return copy;
+              });
+              return;
+            }
+            if (event.type === 'tool_call_request') {
+              const payload = event.payload as ToolCallRequestPayload;
+              const turn = typeof payload?.turn === 'number' ? payload.turn : 0;
+              const tool = typeof payload?.tool === 'string' ? payload.tool.trim() : '';
+              const purpose = typeof payload?.purpose === 'string' ? payload.purpose.trim() : '';
+              const riskLevel = typeof payload?.riskLevel === 'string' ? payload.riskLevel : 'local';
+              const argumentsPayload = typeof payload?.arguments === 'object' && payload?.arguments !== null
+                ? payload.arguments as Record<string, unknown>
+                : {};
+              if (!tool) return;
+              updateTargetMessages(prev => {
+                const copy = [...prev];
+                const last = copy[copy.length - 1];
+                if (!last || last.role !== 'assistant') return copy;
+                const oldCalls = Array.isArray(last.toolCalls) ? [...last.toolCalls] : [];
+                oldCalls.push({ turn, tool, purpose, arguments: argumentsPayload, riskLevel, pending: true, success: undefined, error: '' });
+                copy[copy.length - 1] = { ...last, toolCalls: oldCalls };
+                return copy;
+              });
+              return;
+            }
+            if (event.type === 'tool_call_result') {
+              const payload = event.payload as ToolCallResultPayload;
+              const turn = typeof payload?.turn === 'number' ? payload.turn : 0;
+              const tool = typeof payload?.tool === 'string' ? payload.tool.trim() : 'unknown';
+              const success = Boolean(payload?.success);
+              const error = typeof payload?.error === 'string' ? payload.error : '';
+              const durationMs = typeof payload?.durationMs === 'number' ? payload.durationMs : 0;
+              const result = payload?.result;
+              updateTargetMessages(prev => {
+                const copy = [...prev];
+                const last = copy[copy.length - 1];
+                if (!last || last.role !== 'assistant') return copy;
+                const oldCalls = Array.isArray(last.toolCalls) ? [...last.toolCalls] : [];
+                let matched = false;
+                for (let i = oldCalls.length - 1; i >= 0; i--) {
+                  const current = oldCalls[i];
+                  if (!current) continue;
+                  if ((turn > 0 && current.turn === turn && current.tool === tool) || (current.pending && current.tool === tool)) {
+                    oldCalls[i] = { ...current, pending: false, success, error, result, durationMs };
+                    matched = true;
+                    break;
+                  }
+                }
+                if (!matched) {
+                  oldCalls.push({ turn, tool, pending: false, success, error, result, durationMs });
+                }
+                copy[copy.length - 1] = { ...last, toolCalls: oldCalls };
+                return copy;
+              });
+              return;
+            }
+            if (event.type === 'error') {
+              const payload = event.payload as { message?: unknown };
+              ollamaErrorMessage = typeof payload?.message === 'string'
+                ? payload.message
+                : t('aiChat.messages.agentError', { defaultValue: 'Ollama 本地 Agent 返回错误' });
+              return;
+            }
+            if (event.type === 'final') {
+              const payload = event.payload as FinalEventPayload;
+              const billedInput = typeof payload?.billedInputTokens === 'number' ? payload.billedInputTokens : 0;
+              const billedOutput = typeof payload?.billedOutputTokens === 'number' ? payload.billedOutputTokens : 0;
+              const billedTotal = typeof payload?.billedTokenTotal === 'number' ? payload.billedTokenTotal : (billedInput + billedOutput);
+              const tokenSource = typeof payload?.tokenSource === 'string' ? payload.tokenSource : 'local';
+              const tokenUsage = (billedInput > 0 || billedOutput > 0)
+                ? { inputTokens: billedInput, outputTokens: billedOutput, reasoningTokens: 0, totalTokens: billedTotal, source: tokenSource }
+                : undefined;
+              updateTargetMessages(prev => {
+                const copy = [...prev];
+                const last = copy[copy.length - 1];
+                if (!last || last.role !== 'assistant') return copy;
+                copy[copy.length - 1] = { ...last, finalized: true, ...(tokenUsage ? { tokenUsage } : {}) };
+                return copy;
+              });
+              return;
+            }
+          },
+        });
+        if (!receivedOllamaChunk) {
+          const fallbackMessage = ollamaErrorMessage
+            ? `❌ ${ollamaErrorMessage}`
+            : t('aiChat.messages.noModelOutputOllama', { defaultValue: '⚠️ 未收到模型输出，请检查 Ollama 服务是否运行中。' });
+          updateTargetMessages(prev => {
+            const copy = [...prev];
+            const last = copy[copy.length - 1];
+            if (last && last.role === 'assistant' && !last.content) {
+              copy[copy.length - 1] = { ...last, content: fallbackMessage };
+            }
+            return copy;
+          });
+        }
+      } else if (canUseMihtnelis) {
         let receivedMihtnelisChunk = false;
         let mihtnelisErrorMessage: string | null = null;
         let streamThinkingEnabled = Boolean(aiConfig.deepseekThinking);
@@ -2292,7 +2432,7 @@ export function AiChatTab(): React.ReactElement {
                     >
                       <span className="max-expand-chat-model-dropdown-trigger-label" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                         <img style={{ width: 14, height: 14 }} src={modelToggleIcon || SvgIcon.DEEPSEEK} alt="" />
-                        {selectedModel}
+                        {isOllamaModel ? ollamaDisplayLabel : selectedModel}
                       </span>
                       <span className="max-expand-chat-model-dropdown-arrow">▾</span>
                     </button>
@@ -2300,7 +2440,10 @@ export function AiChatTab(): React.ReactElement {
                       <div className="max-expand-chat-model-dropdown-list">
                         {availableModels.map((m) => {
                           const isPro = m === 'deepseek-v4-pro' || m === 'mimo-v2.5-pro';
+                          const isOllama = m === 'ollama';
                           const disabled = isPro && !isProUser;
+                          const icon = isOllama ? SvgIcon.DEEPSEEK : (m.startsWith('mimo-') ? SvgIcon.MIMO : SvgIcon.DEEPSEEK);
+                          const label = isOllama ? (aiConfig.ollamaModel ? `ollama (${aiConfig.ollamaModel})` : 'ollama') : m;
                           return (
                             <button
                               key={m}
@@ -2313,8 +2456,8 @@ export function AiChatTab(): React.ReactElement {
                               }}
                             >
                               <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                                <img style={{ width: 14, height: 14 }} src={m.startsWith('mimo-') ? SvgIcon.MIMO : SvgIcon.DEEPSEEK} alt="" />
-                                {m}
+                                <img style={{ width: 14, height: 14 }} src={icon} alt="" />
+                                {label}
                               </span>
                               {isPro && <img className="max-expand-chat-model-dropdown-pro-icon" src={SvgIcon.PRO} alt="PRO" />}
                             </button>
