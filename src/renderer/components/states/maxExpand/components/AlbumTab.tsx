@@ -27,7 +27,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { CSSProperties, ChangeEvent, DragEvent, ReactElement, WheelEvent } from 'react';
+import type { ChangeEvent, DragEvent, ReactElement, WheelEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SvgIcon } from '../../../../utils/SvgIcon';
 
@@ -1255,11 +1255,7 @@ export function AlbumTab(): ReactElement {
                         title={t('albumTab.actions.remove')}
                         aria-label={t('albumTab.actions.removeAria', { name: item.name })}
                       >
-                        <span
-                          className="album-svg-icon album-svg-icon--sm"
-                          style={{ '--album-icon-src': `url(${SvgIcon.CANCEL})` } as CSSProperties}
-                          aria-hidden="true"
-                        />
+                        <AlbumControlIcon src={SvgIcon.DELETE} />
                       </button>
                     </div>
                   </div>
