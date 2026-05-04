@@ -336,7 +336,7 @@ export function AiChatTab(): React.ReactElement {
   })();
   const isOllamaModel = selectedModel === 'ollama';
   const selectedProvider = isOllamaModel ? 'ollama' : (selectedModel.startsWith('mimo-') ? 'mimo' : 'deepseek');
-  const modelToggleIcon = isOllamaModel ? null : (selectedModel.startsWith('mimo-') ? SvgIcon.MIMO : (selectedModel.toLowerCase().includes('deepseek') ? SvgIcon.DEEPSEEK : null));
+  const modelToggleIcon = isOllamaModel ? SvgIcon.OLLAMA : (selectedModel.startsWith('mimo-') ? SvgIcon.MIMO : (selectedModel.toLowerCase().includes('deepseek') ? SvgIcon.DEEPSEEK : null));
   const ollamaDisplayLabel = aiConfig.ollamaModel ? `ollama (${aiConfig.ollamaModel})` : 'ollama';
   const VISIBLE_CHAT_WINDOW_SIZE = agentMode === 'r1pxc' ? VISIBLE_CHAT_WINDOW_SIZE_R1PXC : VISIBLE_CHAT_WINDOW_SIZE_DEFAULT;
   const VISIBLE_CHAT_WINDOW_STEP = agentMode === 'r1pxc' ? VISIBLE_CHAT_WINDOW_STEP_R1PXC : VISIBLE_CHAT_WINDOW_STEP_DEFAULT;
@@ -2442,7 +2442,7 @@ export function AiChatTab(): React.ReactElement {
                           const isPro = m === 'deepseek-v4-pro' || m === 'mimo-v2.5-pro';
                           const isOllama = m === 'ollama';
                           const disabled = isPro && !isProUser;
-                          const icon = isOllama ? SvgIcon.DEEPSEEK : (m.startsWith('mimo-') ? SvgIcon.MIMO : SvgIcon.DEEPSEEK);
+                          const icon = isOllama ? SvgIcon.OLLAMA : (m.startsWith('mimo-') ? SvgIcon.MIMO : SvgIcon.DEEPSEEK);
                           const label = isOllama ? (aiConfig.ollamaModel ? `ollama (${aiConfig.ollamaModel})` : 'ollama') : m;
                           return (
                             <button
