@@ -164,10 +164,18 @@ export async function streamOllamaLocalAgent(request: OllamaLocalAgentRequest): 
       request.onEvent?.({ type: 'tool_call_result', payload });
       return;
     }
+    if (type === 'think') {
+      request.onEvent?.({ type: 'think', payload });
+      return;
+    }
+    if ((type as string) === 'stream_rollback') {
+      request.onEvent?.({ type: 'stream_rollback' as MihtnelisAgentStreamEventType, payload });
+      return;
+    }
     if (type === 'meta') {
       request.onEvent?.({
         type: 'meta',
-        payload: { ...payload, thinkingEnabled: false },
+        payload: { ...payload, thinkingEnabled: Boolean(payload.thinkingEnabled) },
       });
       return;
     }

@@ -48,6 +48,7 @@ export type OllamaEventType =
   | 'chunk'
   | 'tool_call_request'
   | 'tool_call_result'
+  | 'stream_rollback'
   | 'final'
   | 'error';
 
@@ -195,6 +196,7 @@ export async function orchestrateOllamaChat(
       provider: 'ollama',
       model,
       timestamp: new Date().toISOString(),
+      thinkingEnabled: true,
     },
   });
   callbacks.onEvent({
@@ -204,6 +206,8 @@ export async function orchestrateOllamaChat(
 
   let scratchpad = '';
   let turn = 0;
+  let totalInputTokens = 0;
+  let totalOutputTokens = 0;
 
   while (turn < MAX_REACT_TURNS) {
     if (signal?.aborted) {
@@ -219,26 +223,52 @@ export async function orchestrateOllamaChat(
       { role: 'user', content: userPrompt },
     ];
 
-    // 流式获取 LLM 输出
+    // 创建 ThinkStreamParser 实现实时流式推送
+    const parser = new ThinkStreamParser();
+    const emitCallbacks = {
+      onThink: (text: string, index: number): void => {
+        callbacks.onEvent({ type: 'think', payload: { text, index } });
+      },
+      onContent: (text: string): void => {
+        callbacks.onEvent({ type: 'chunk', payload: { text } });
+      },
+    };
+
+    // 流式获取 LLM 输出（实时推送 chunk 和 think 事件）
     let llmOutput: string;
     let usage: OllamaStreamChunk['usage'] | undefined;
     try {
-      const result = await streamLlmTurn(model, messages, baseUrl, temperature, signal);
+      const result = await streamLlmTurn(model, messages, baseUrl, temperature, signal, (chunk) => {
+        parser.feed(chunk, emitCallbacks);
+      });
+      parser.flush(emitCallbacks);
       llmOutput = result.text;
       usage = result.usage;
     } catch (err) {
+      parser.flush(emitCallbacks);
       const msg = err instanceof Error ? err.message : String(err);
       callbacks.onEvent({ type: 'error', payload: { code: 'LLM_ERROR', message: msg } });
       return;
     }
 
-    // 解析 LLM 输出
-    const parsed = parseLlmOutput(llmOutput);
+    if (usage) {
+      totalInputTokens += usage.prompt_tokens ?? 0;
+      totalOutputTokens += usage.completion_tokens ?? 0;
+    }
+
+    // 去除 <think> 块后的纯正文
+    const contentWithoutThink = llmOutput
+      .replace(/<think>[\s\S]*?<\/think>/g, '')
+      .trim();
+
+    // 解析 LLM 输出（使用去除 think 块后的文本）
+    const parsed = parseLlmOutput(contentWithoutThink);
 
     if (parsed.type === 'final') {
-      // 流式推送最终回答
       const answer = parsed.data.answer;
-      if (answer) {
+      // 如果已流式输出的正文与最终答案不同（JSON 信封场景），则替换
+      if (parser.streamedContent.trim() !== answer.trim() && answer) {
+        callbacks.onEvent({ type: 'stream_rollback', payload: {} });
         callbacks.onEvent({ type: 'chunk', payload: { text: answer } });
       }
       callbacks.onEvent({
@@ -248,9 +278,9 @@ export async function orchestrateOllamaChat(
           agent: 'mihtnelis agent (local)',
           provider: 'ollama',
           model,
-          billedInputTokens: usage?.prompt_tokens ?? 0,
-          billedOutputTokens: usage?.completion_tokens ?? 0,
-          billedTokenTotal: usage?.total_tokens ?? 0,
+          billedInputTokens: totalInputTokens,
+          billedOutputTokens: totalOutputTokens,
+          billedTokenTotal: totalInputTokens + totalOutputTokens,
           tokenSource: usage ? 'api' : 'estimate',
         },
       });
@@ -259,6 +289,11 @@ export async function orchestrateOllamaChat(
 
     if (parsed.type === 'tool_call') {
       const { tool, purpose, arguments: toolArgs } = parsed.data;
+
+      // 回滚已流式输出的 JSON 内容
+      if (parser.streamedContent.trim()) {
+        callbacks.onEvent({ type: 'stream_rollback', payload: {} });
+      }
 
       callbacks.onEvent({
         type: 'tool_call_request',
@@ -321,11 +356,7 @@ export async function orchestrateOllamaChat(
       continue;
     }
 
-    // unknown 类型 - LLM 输出不符合预期格式，作为 final 回答处理
-    const fallbackText = parsed.raw || llmOutput;
-    if (fallbackText.trim()) {
-      callbacks.onEvent({ type: 'chunk', payload: { text: fallbackText } });
-    }
+    // unknown 类型 - 正文已被实时流式推送，直接 finalize
     callbacks.onEvent({
       type: 'final',
       payload: {
@@ -333,7 +364,10 @@ export async function orchestrateOllamaChat(
         agent: 'mihtnelis agent (local)',
         provider: 'ollama',
         model,
-        tokenSource: 'estimate',
+        billedInputTokens: totalInputTokens,
+        billedOutputTokens: totalOutputTokens,
+        billedTokenTotal: totalInputTokens + totalOutputTokens,
+        tokenSource: usage ? 'api' : 'estimate',
       },
     });
     return;
@@ -351,13 +385,106 @@ export async function orchestrateOllamaChat(
       agent: 'mihtnelis agent (local)',
       provider: 'ollama',
       model,
+      billedInputTokens: totalInputTokens,
+      billedOutputTokens: totalOutputTokens,
+      billedTokenTotal: totalInputTokens + totalOutputTokens,
       tokenSource: 'estimate',
     },
   });
 }
 
 /**
- * 执行单轮 LLM 流式调用并收集完整输出
+ * 流式 <think> 标签解析器。
+ * 将 LLM 输出拆分为思考内容（think）与正文内容（content）。
+ */
+class ThinkStreamParser {
+  private state: 'outside' | 'thinking' = 'outside';
+  private buffer = '';
+  private thinkIndex = 0;
+  /** 已通过 onContent 输出的累积正文 */
+  streamedContent = '';
+
+  feed(
+    chunk: string,
+    emit: { onThink: (text: string, index: number) => void; onContent: (text: string) => void },
+  ): void {
+    this.buffer += chunk;
+    this.drain(emit);
+  }
+
+  flush(
+    emit: { onThink: (text: string, index: number) => void; onContent: (text: string) => void },
+  ): void {
+    if (this.buffer) {
+      if (this.state === 'thinking') {
+        emit.onThink(this.buffer, this.thinkIndex);
+      } else {
+        this.streamedContent += this.buffer;
+        emit.onContent(this.buffer);
+      }
+      this.buffer = '';
+    }
+  }
+
+  private drain(
+    emit: { onThink: (text: string, index: number) => void; onContent: (text: string) => void },
+  ): void {
+    while (this.buffer.length > 0) {
+      if (this.state === 'outside') {
+        const idx = this.buffer.indexOf('<think>');
+        if (idx === -1) {
+          const partial = this.partialTagLen(this.buffer, '<think>');
+          if (partial > 0) {
+            const safe = this.buffer.substring(0, this.buffer.length - partial);
+            if (safe) { this.streamedContent += safe; emit.onContent(safe); }
+            this.buffer = this.buffer.substring(this.buffer.length - partial);
+            return;
+          }
+          this.streamedContent += this.buffer;
+          emit.onContent(this.buffer);
+          this.buffer = '';
+          return;
+        }
+        if (idx > 0) {
+          const before = this.buffer.substring(0, idx);
+          this.streamedContent += before;
+          emit.onContent(before);
+        }
+        this.buffer = this.buffer.substring(idx + 7);
+        this.state = 'thinking';
+      } else {
+        const idx = this.buffer.indexOf('</think>');
+        if (idx === -1) {
+          const partial = this.partialTagLen(this.buffer, '</think>');
+          if (partial > 0) {
+            const safe = this.buffer.substring(0, this.buffer.length - partial);
+            if (safe) emit.onThink(safe, this.thinkIndex);
+            this.buffer = this.buffer.substring(this.buffer.length - partial);
+            return;
+          }
+          emit.onThink(this.buffer, this.thinkIndex);
+          this.buffer = '';
+          return;
+        }
+        if (idx > 0) emit.onThink(this.buffer.substring(0, idx), this.thinkIndex);
+        this.buffer = this.buffer.substring(idx + 8);
+        this.state = 'outside';
+        this.thinkIndex++;
+      }
+    }
+  }
+
+  private partialTagLen(text: string, tag: string): number {
+    for (let len = Math.min(text.length, tag.length - 1); len > 0; len--) {
+      if (text.endsWith(tag.substring(0, len))) return len;
+    }
+    return 0;
+  }
+}
+
+/**
+ * 执行单轮 LLM 流式调用并收集完整输出。
+ * @param onStreamChunk 实时流式回调，每收到一个 delta 即调用。
  */
 function streamLlmTurn(
   model: string,
@@ -365,13 +492,14 @@ function streamLlmTurn(
   baseUrl: string | undefined,
   temperature: number | undefined,
   signal: AbortSignal | undefined,
+  onStreamChunk?: (text: string) => void,
 ): Promise<{ text: string; usage?: OllamaStreamChunk['usage'] }> {
   return new Promise((resolve, reject) => {
     const handle = streamOllamaChat(
       { model, messages, stream: true, baseUrl, temperature, signal },
       {
         onChunk: (text) => {
-          void text;
+          onStreamChunk?.(text);
         },
         onDone: (fullText, usage) => {
           resolve({ text: fullText, usage });

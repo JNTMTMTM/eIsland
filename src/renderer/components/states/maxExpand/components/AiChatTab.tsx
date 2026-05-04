@@ -852,6 +852,7 @@ export function AiChatTab(): React.ReactElement {
         }
         const ollamaModelName = aiConfig.ollamaModel || 'qwen3:8b';
         const ollamaTemperature = aiConfig.deepseekReasoningEffort === 'low' ? 0.3 : aiConfig.deepseekReasoningEffort === 'high' ? 1.0 : 0.6;
+        let ollamaThinkingEnabled = false;
         await streamOllamaLocalAgent({
           token: localToken || '',
           message: text,
@@ -865,6 +866,40 @@ export function AiChatTab(): React.ReactElement {
           signal: controller.signal,
           onEvent: (event) => {
             if (SESSION_ABORT_CONTROLLERS.get(targetSessionId) !== controller) {
+              return;
+            }
+            if (event.type === 'meta') {
+              const payload = event.payload as { thinkingEnabled?: unknown };
+              ollamaThinkingEnabled = Boolean(payload?.thinkingEnabled);
+              return;
+            }
+            if (event.type === 'think') {
+              if (!ollamaThinkingEnabled || !aiConfig.deepseekThinking) return;
+              const payload = event.payload as { text?: unknown; index?: unknown };
+              const thinkText = typeof payload?.text === 'string' ? payload.text : '';
+              const thinkIndex = typeof payload?.index === 'number' ? payload.index : 0;
+              if (!thinkText) return;
+              receivedOllamaChunk = true;
+              updateTargetMessages(prev => {
+                const copy = [...prev];
+                const last = copy[copy.length - 1];
+                if (!last || last.role !== 'assistant') return copy;
+                const nextThinkBlocks = Array.isArray(last.thinkBlocks) ? [...last.thinkBlocks] : [];
+                const oldText = typeof nextThinkBlocks[thinkIndex] === 'string' ? nextThinkBlocks[thinkIndex] : '';
+                nextThinkBlocks[thinkIndex] = `${oldText}${thinkText}`;
+                copy[copy.length - 1] = { ...last, thinkBlocks: nextThinkBlocks };
+                return copy;
+              });
+              return;
+            }
+            if ((event.type as string) === 'stream_rollback') {
+              updateTargetMessages(prev => {
+                const copy = [...prev];
+                const last = copy[copy.length - 1];
+                if (!last || last.role !== 'assistant') return copy;
+                copy[copy.length - 1] = { ...last, content: '' };
+                return copy;
+              });
               return;
             }
             if (event.type === 'chunk') {
