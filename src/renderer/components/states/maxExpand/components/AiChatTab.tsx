@@ -1994,7 +1994,8 @@ export function AiChatTab(): React.ReactElement {
 
                   const showThinkingFooter = aiConfig.deepseekThinking && aiChatStreaming && isLatestAssistantMsg;
                   const traceId = typeof msg.traceId === 'string' ? msg.traceId.trim() : '';
-                  const msgModelIcon = msg.model?.startsWith('mimo-') ? SvgIcon.MIMO : SvgIcon.DEEPSEEK;
+                  const isMsgOllama = msg.model === 'ollama';
+                  const msgModelIcon = isMsgOllama ? SvgIcon.OLLAMA : (msg.model?.startsWith('mimo-') ? SvgIcon.MIMO : SvgIcon.DEEPSEEK);
                   const showFinalTraceMeta = Boolean(msg.finalized);
                   const normalizedMarkdownContent = normalizeMarkdownCodeFences(msg.content);
                   const timelineNodes: React.ReactElement[] = [];
@@ -2229,16 +2230,22 @@ export function AiChatTab(): React.ReactElement {
                           {showFinalTraceMeta && (
                             <>
                               <div className="max-expand-chat-final-divider" />
-                              <div className="max-expand-chat-trace-id">
-                                <span>TraceID: {traceId || '-'}</span>
-                                <button
-                                  type="button"
-                                  className="max-expand-chat-trace-report-btn"
-                                  onClick={() => handleReportIssueFromFinalAnswer(traceId, msg.content)}
-                                >
-                                  {t('aiChat.actions.reportIssue', { defaultValue: '报告问题' })}
-                                </button>
-                              </div>
+                              {isMsgOllama ? (
+                                <div className="max-expand-chat-trace-id">
+                                  <span>{t('aiChat.localModelGenerated', { defaultValue: '本地模型生成' })}</span>
+                                </div>
+                              ) : (
+                                <div className="max-expand-chat-trace-id">
+                                  <span>TraceID: {traceId || '-'}</span>
+                                  <button
+                                    type="button"
+                                    className="max-expand-chat-trace-report-btn"
+                                    onClick={() => handleReportIssueFromFinalAnswer(traceId, msg.content)}
+                                  >
+                                    {t('aiChat.actions.reportIssue', { defaultValue: '报告问题' })}
+                                  </button>
+                                </div>
+                              )}
                             </>
                           )}
                         </>

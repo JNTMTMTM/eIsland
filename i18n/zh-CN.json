@@ -602,6 +602,7 @@
         "3": "今天也一起高效一点，你想从哪件事开始？"
       },
       "aiGeneratedDisclaimer": "内容由 AI 生成，请仔细甄别。",
+      "localModelGenerated": "本地模型生成",
       "agentError": "mihtnelis agent 返回错误",
       "noModelOutput": "⚠️ 未收到模型输出，请检查 DeepSeek 配置与服务端日志。",
       "noModelOutputOllama": "⚠️ 未收到模型输出，请检查 Ollama 服务是否运行中。",
