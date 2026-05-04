@@ -223,14 +223,18 @@ export async function orchestrateOllamaChat(
       { role: 'user', content: userPrompt },
     ];
 
-    // 创建 ThinkStreamParser 实现实时流式推送
+    // 创建 JSON 信封过滤器 + ThinkStreamParser 实现实时流式推送
+    const envFilter = new JsonEnvelopeStreamFilter();
     const parser = new ThinkStreamParser();
     const emitCallbacks = {
       onThink: (text: string, index: number): void => {
         callbacks.onEvent({ type: 'think', payload: { text, index } });
       },
       onContent: (text: string): void => {
-        callbacks.onEvent({ type: 'chunk', payload: { text } });
+        // 内容经过 JSON 信封过滤器，只推送干净文本
+        envFilter.feed(text, (clean) => {
+          callbacks.onEvent({ type: 'chunk', payload: { text: clean } });
+        });
       },
     };
 
@@ -242,10 +246,16 @@ export async function orchestrateOllamaChat(
         parser.feed(chunk, emitCallbacks);
       });
       parser.flush(emitCallbacks);
+      envFilter.flush((clean) => {
+        callbacks.onEvent({ type: 'chunk', payload: { text: clean } });
+      });
       llmOutput = result.text;
       usage = result.usage;
     } catch (err) {
       parser.flush(emitCallbacks);
+      envFilter.flush((clean) => {
+        callbacks.onEvent({ type: 'chunk', payload: { text: clean } });
+      });
       const msg = err instanceof Error ? err.message : String(err);
       callbacks.onEvent({ type: 'error', payload: { code: 'LLM_ERROR', message: msg } });
       return;
@@ -266,8 +276,9 @@ export async function orchestrateOllamaChat(
 
     if (parsed.type === 'final') {
       const answer = parsed.data.answer;
-      // 如果已流式输出的正文与最终答案不同（JSON 信封场景），则替换
-      if (parser.streamedContent.trim() !== answer.trim() && answer) {
+      const alreadyForwarded = envFilter.forwardedContent.trim();
+      // 仅当过滤器未推送或推送内容与最终答案不同时，才替换
+      if (alreadyForwarded !== answer.trim() && answer) {
         callbacks.onEvent({ type: 'stream_rollback', payload: {} });
         callbacks.onEvent({ type: 'chunk', payload: { text: answer } });
       }
@@ -290,8 +301,8 @@ export async function orchestrateOllamaChat(
     if (parsed.type === 'tool_call') {
       const { tool, purpose, arguments: toolArgs } = parsed.data;
 
-      // 回滚已流式输出的 JSON 内容
-      if (parser.streamedContent.trim()) {
+      // 回滚已流式输出的内容（过滤器已抑制大部分 JSON，但仍可能有残留）
+      if (envFilter.forwardedContent.trim()) {
         callbacks.onEvent({ type: 'stream_rollback', payload: {} });
       }
 
@@ -391,6 +402,130 @@ export async function orchestrateOllamaChat(
       tokenSource: 'estimate',
     },
   });
+}
+
+/**
+ * 流式 JSON 信封过滤器。
+ * 检测 LLM 输出中的 {"type":"final","answer":"..."} 或 {"type":"tool_call",...} 信封，
+ * 只将 answer 值（或纯文本）推送给下游，抑制 JSON 结构泄漏。
+ * 逻辑参考服务端 MihtnelisAgentOrchestratorService 的 streamListener。
+ */
+class JsonEnvelopeStreamFilter {
+  private buf = '';
+  private mode: 'detecting' | 'answer' | 'passthrough' | 'suppressed' = 'detecting';
+  private fwdPos = 0;
+  /** 已推送给下游的干净文本 */
+  forwardedContent = '';
+  private static readonly TRAIL = 2; // 保留尾部 "} 不推送
+  private static readonly DETECT_THRESHOLD = 80;
+
+  feed(text: string, emit: (clean: string) => void): void {
+    if (!text) return;
+    this.buf += text;
+    if (this.mode === 'suppressed') return;
+
+    if (this.mode === 'detecting') {
+      const b = this.buf;
+      // 检测 "answer": " 模式
+      let idx = b.indexOf('"answer":"');
+      if (idx < 0) idx = b.indexOf('"answer": "');
+      if (idx >= 0) {
+        this.mode = 'answer';
+        const qStart = b.indexOf('"', idx + '"answer":'.length);
+        this.fwdPos = qStart >= 0 ? qStart + 1 : b.length;
+        this.flushAnswer(emit, false);
+        return;
+      }
+      // 检测 tool_call → 抑制
+      if (b.includes('"tool_call"')) {
+        this.mode = 'suppressed';
+        return;
+      }
+      // 纯文本检测：前 N 个字符无 '{' 则认为是纯文本
+      const trimmedStart = b.trimStart();
+      if (trimmedStart.length > 0 && trimmedStart[0] !== '{') {
+        this.mode = 'passthrough';
+        this.forwardedContent += b;
+        emit(b);
+        this.fwdPos = b.length;
+        return;
+      }
+      // 缓冲区过长仍未确定 → 抑制（大概率是 JSON）
+      if (b.length > JsonEnvelopeStreamFilter.DETECT_THRESHOLD) {
+        this.mode = 'suppressed';
+        return;
+      }
+    } else if (this.mode === 'answer') {
+      this.flushAnswer(emit, false);
+    } else if (this.mode === 'passthrough') {
+      this.forwardedContent += text;
+      emit(text);
+    }
+  }
+
+  flush(emit: (clean: string) => void): void {
+    if (this.mode === 'answer') {
+      this.flushAnswer(emit, true);
+    } else if (this.mode === 'detecting') {
+      // 检测阶段结束仍未决定 → 尝试最终判断
+      const b = this.buf.trimStart();
+      if (b.length > 0 && b[0] !== '{') {
+        this.forwardedContent += this.buf;
+        emit(this.buf);
+      }
+      // 如果是 JSON，不输出（后续 parseLlmOutput 会处理）
+    } else if (this.mode === 'passthrough') {
+      // passthrough 已全部推送
+    }
+    // suppressed: 什么都不推送
+  }
+
+  private flushAnswer(emit: (clean: string) => void, done: boolean): void {
+    const b = this.buf;
+    let end: number;
+    if (done) {
+      end = b.length;
+      // 去掉末尾 "}
+      if (end >= 2 && b[end - 1] === '}' && b[end - 2] === '"') end -= 2;
+      else if (end >= 3 && b[end - 1] === '}' && b[end - 3] === '"') end -= 3;
+    } else {
+      end = b.length - JsonEnvelopeStreamFilter.TRAIL;
+    }
+    // 不拆分转义序列
+    if (!done && end > this.fwdPos && b[end - 1] === '\\') end--;
+    if (end > this.fwdPos) {
+      const raw = b.substring(this.fwdPos, end);
+      this.fwdPos = end;
+      const clean = JsonEnvelopeStreamFilter.unescapeJsonValue(raw);
+      if (clean) {
+        this.forwardedContent += clean;
+        emit(clean);
+      }
+    }
+  }
+
+  private static unescapeJsonValue(s: string): string {
+    if (!s || !s.includes('\\')) return s;
+    let out = '';
+    for (let i = 0; i < s.length; i++) {
+      const c = s[i];
+      if (c === '\\' && i + 1 < s.length) {
+        const n = s[i + 1];
+        switch (n) {
+          case 'n': out += '\n'; i++; break;
+          case 't': out += '\t'; i++; break;
+          case 'r': out += '\r'; i++; break;
+          case '"': out += '"'; i++; break;
+          case '\\': out += '\\'; i++; break;
+          case '/': out += '/'; i++; break;
+          default: out += c; break;
+        }
+      } else {
+        out += c;
+      }
+    }
+    return out;
+  }
 }
 
 /**
