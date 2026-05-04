@@ -34,6 +34,7 @@ import {
   resolveMihtnelisLocalToolResult,
 } from '../../../api/ai/mihtnelisAgentStream';
 import type { MihtnelisAgentStreamEvent } from '../../../api/ai/mihtnelisAgentStream';
+import { streamOllamaLocalAgent } from '../../../api/ai/ollamaLocalAgent';
 import { readLocalToken } from '../../../utils/userAccount';
 import { loadLocationFromStorage } from '../../../store/utils/storage';
 import { buildMihtnelisContext } from '../../states/maxExpand/components/agent/utils/chatUtils';
@@ -155,9 +156,10 @@ export function AgentContent(): ReactElement {
       thinkAccRef.current = '';
       traceIdRef.current = '';
 
+      const isOllama = aiConfig.model === 'ollama';
       const availableModels = ['deepseek-v4-flash', 'deepseek-v4-pro', 'mimo-v2.5', 'mimo-v2.5-pro'];
-      const selectedModel = availableModels.includes(aiConfig.model) ? aiConfig.model : 'deepseek-v4-flash';
-      const selectedProvider = selectedModel.startsWith('mimo-') ? 'mimo' : 'deepseek';
+      const selectedModel = isOllama ? 'ollama' : (availableModels.includes(aiConfig.model) ? aiConfig.model : 'deepseek-v4-flash');
+      const selectedProvider = isOllama ? 'ollama' : (selectedModel.startsWith('mimo-') ? 'mimo' : 'deepseek');
       const agentMode = loadAgentMode();
 
       const state = useIslandStore.getState();
@@ -181,156 +183,187 @@ export function AgentContent(): ReactElement {
 
       const message = `${INLINE_PROMPT_HINT}\n\n${agentPrompt.trim()}`;
 
-      try {
-        await streamMihtnelisAgent({
-          token,
-          sessionId: activeSessionId || 'island-agent-inline',
-          message,
-          provider: selectedProvider,
-          model: selectedModel,
-          agentMode,
-          context: context || undefined,
-          workspaces: aiConfig.workspaces,
-          skills: resolvedSkills,
-          snapshotMode: true,
-          thinking: aiConfig.deepseekThinking,
-          reasoningEffort: aiConfig.deepseekReasoningEffort,
-          timestamp: (() => {
-            const d = new Date();
-            const off = -d.getTimezoneOffset();
-            const sign = off >= 0 ? '+' : '-';
-            const pad = (n: number): string => String(Math.abs(n)).padStart(2, '0');
-            return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}${sign}${pad(Math.floor(Math.abs(off) / 60))}:${pad(Math.abs(off) % 60)}`;
-          })(),
-          location: (() => {
-            const loc = loadLocationFromStorage();
-            if (!loc) return undefined;
-            const parts = [loc.city, loc.regionName, loc.country].filter(Boolean);
-            return parts.length > 0 ? parts.join(', ') : undefined;
-          })(),
-          signal: controller.signal,
-          onEvent: (event: MihtnelisAgentStreamEvent) => {
-            if (!active) return;
+      // ── 通用事件处理器（Ollama 和 Mihtnelis 共用） ──
+      const handleEvent = (event: MihtnelisAgentStreamEvent): void => {
+        if (!active) return;
 
-            if (event.type === 'think') {
-              setPhase('thinking');
-              const payload = event.payload as { text?: unknown };
-              const text = typeof payload?.text === 'string' ? payload.text : '';
-              if (text) {
-                thinkAccRef.current += text;
-                setThinkText((prev) => prev + text);
-              }
-              return;
-            }
+        if (event.type === 'think') {
+          setPhase('thinking');
+          const payload = event.payload as { text?: unknown };
+          const text = typeof payload?.text === 'string' ? payload.text : '';
+          if (text) {
+            thinkAccRef.current += text;
+            setThinkText((prev) => prev + text);
+          }
+          return;
+        }
 
-            if (event.type === 'chunk') {
-              setPhase('answering');
-              setToolCallInfo(null);
-              const payload = event.payload as { text?: unknown };
-              const text = typeof payload?.text === 'string' ? payload.text : '';
-              if (text) {
-                answerAccRef.current += text;
-                setAnswerText((prev) => prev + text);
-              }
-              return;
-            }
+        if (event.type === 'chunk') {
+          setPhase('answering');
+          setToolCallInfo(null);
+          const payload = event.payload as { text?: unknown };
+          const text = typeof payload?.text === 'string' ? payload.text : '';
+          if (text) {
+            answerAccRef.current += text;
+            setAnswerText((prev) => prev + text);
+          }
+          return;
+        }
 
-            if (event.type === 'chunk_reset') {
-              answerAccRef.current = '';
-              setAnswerText('');
-              return;
-            }
+        if (event.type === 'chunk_reset' || (event.type as string) === 'stream_rollback') {
+          answerAccRef.current = '';
+          setAnswerText('');
+          return;
+        }
 
-            if (event.type === 'tool') {
-              setPhase('toolCalling');
-              const payload = event.payload as { tool?: unknown; turn?: unknown; success?: unknown };
-              const hasResult = payload?.success !== undefined;
-              if (hasResult) setToolCallInfo(null);
-              return;
-            }
+        if (event.type === 'tool') {
+          setPhase('toolCalling');
+          const payload = event.payload as { tool?: unknown; turn?: unknown; success?: unknown };
+          const hasResult = payload?.success !== undefined;
+          if (hasResult) setToolCallInfo(null);
+          return;
+        }
 
-            if (event.type === 'tool_call_request') {
-              const payload = event.payload as {
-                turn?: unknown; requestId?: unknown; tool?: unknown; purpose?: unknown;
-                riskLevel?: unknown; authorizationRequired?: unknown; message?: unknown;
-                arguments?: unknown;
-              };
-              const requestId = typeof payload?.requestId === 'string' ? payload.requestId.trim() : '';
-              const tool = typeof payload?.tool === 'string' ? payload.tool.trim() : '';
-              const purpose = typeof payload?.purpose === 'string' ? payload.purpose.trim() : '';
-              const authorizationRequired = Boolean(payload?.authorizationRequired);
-              const authMessage = typeof payload?.message === 'string' ? payload.message : '';
-              const argumentsPayload = typeof payload?.arguments === 'object' && payload?.arguments !== null
-                ? payload.arguments as Record<string, unknown> : {};
-              if (!tool) return;
+        if (event.type === 'tool_call_request') {
+          const payload = event.payload as {
+            turn?: unknown; requestId?: unknown; tool?: unknown; purpose?: unknown;
+            riskLevel?: unknown; authorizationRequired?: unknown; message?: unknown;
+            arguments?: unknown;
+          };
+          const requestId = typeof payload?.requestId === 'string' ? payload.requestId.trim() : '';
+          const tool = typeof payload?.tool === 'string' ? payload.tool.trim() : '';
+          const purpose = typeof payload?.purpose === 'string' ? payload.purpose.trim() : '';
+          const authorizationRequired = Boolean(payload?.authorizationRequired);
+          const authMessage = typeof payload?.message === 'string' ? payload.message : '';
+          const argumentsPayload = typeof payload?.arguments === 'object' && payload?.arguments !== null
+            ? payload.arguments as Record<string, unknown> : {};
+          if (!tool) return;
 
-              setPhase('toolCalling');
-              setToolCallInfo({ tool, purpose: purpose || `调用 ${tool}` });
+          setPhase('toolCalling');
+          setToolCallInfo({ tool, purpose: purpose || `调用 ${tool}` });
 
-              const isLocal = isClientLocalToolName(tool);
-              if (!isLocal || !requestId) return;
+          // Ollama 工具调用由编排器自动处理，无需客户端介入
+          if (isOllama) return;
 
-              const needsAuth = authorizationRequired || isHighRiskLocalToolName(tool);
-              if (needsAuth) {
-                const desc = authMessage || purpose || `工具 ${tool} 请求授权`;
-                setAuthPending({ type: 'tool', requestId, description: desc, tool, argumentsPayload });
+          const isLocal = isClientLocalToolName(tool);
+          if (!isLocal || !requestId) return;
+
+          const needsAuth = authorizationRequired || isHighRiskLocalToolName(tool);
+          if (needsAuth) {
+            const desc = authMessage || purpose || `工具 ${tool} 请求授权`;
+            setAuthPending({ type: 'tool', requestId, description: desc, tool, argumentsPayload });
+            return;
+          }
+
+          void (async () => {
+            try {
+              const executor = window.api?.executeAgentLocalTool;
+              if (typeof executor !== 'function') {
+                await resolveMihtnelisLocalToolResult({ token, requestId, success: false, result: {}, error: 'LOCAL_RUNTIME_UNAVAILABLE', durationMs: 0 });
                 return;
               }
+              const execution = await executor({ tool, arguments: argumentsPayload, workspaces: aiConfig.workspaces });
+              await resolveMihtnelisLocalToolResult({
+                token, requestId,
+                success: Boolean(execution?.success),
+                result: execution?.result,
+                error: typeof execution?.error === 'string' ? execution.error : '',
+                durationMs: typeof execution?.durationMs === 'number' ? execution.durationMs : 0,
+              });
+            } catch { /* ignore */ }
+          })();
+          return;
+        }
 
-              void (async () => {
-                try {
-                  const executor = window.api?.executeAgentLocalTool;
-                  if (typeof executor !== 'function') {
-                    await resolveMihtnelisLocalToolResult({ token, requestId, success: false, result: {}, error: 'LOCAL_RUNTIME_UNAVAILABLE', durationMs: 0 });
-                    return;
-                  }
-                  const execution = await executor({ tool, arguments: argumentsPayload, workspaces: aiConfig.workspaces });
-                  await resolveMihtnelisLocalToolResult({
-                    token, requestId,
-                    success: Boolean(execution?.success),
-                    result: execution?.result,
-                    error: typeof execution?.error === 'string' ? execution.error : '',
-                    durationMs: typeof execution?.durationMs === 'number' ? execution.durationMs : 0,
-                  });
-                } catch { /* ignore */ }
-              })();
-              return;
-            }
+        if (event.type === 'tool_call_result') {
+          setToolCallInfo(null);
+          return;
+        }
 
-            if (event.type === 'web_access_request') {
-              const payload = event.payload as { requestId?: unknown; url?: unknown; message?: unknown };
-              const requestId = typeof payload?.requestId === 'string' ? payload.requestId.trim() : '';
-              const url = typeof payload?.url === 'string' ? payload.url.trim() : '';
-              if (!requestId || !url) return;
-              const desc = typeof payload?.message === 'string' && payload.message ? payload.message : `请求访问: ${url}`;
-              setAuthPending({ type: 'web', requestId, description: desc });
-              return;
-            }
+        if (event.type === 'web_access_request') {
+          const payload = event.payload as { requestId?: unknown; url?: unknown; message?: unknown };
+          const requestId = typeof payload?.requestId === 'string' ? payload.requestId.trim() : '';
+          const url = typeof payload?.url === 'string' ? payload.url.trim() : '';
+          if (!requestId || !url) return;
+          const desc = typeof payload?.message === 'string' && payload.message ? payload.message : `请求访问: ${url}`;
+          setAuthPending({ type: 'web', requestId, description: desc });
+          return;
+        }
 
-            if (event.type === 'web_access_resolved') {
-              setAuthPending((prev) => (prev?.type === 'web' ? null : prev));
-              return;
-            }
+        if (event.type === 'web_access_resolved') {
+          setAuthPending((prev) => (prev?.type === 'web' ? null : prev));
+          return;
+        }
 
-            if (event.type === 'error') {
-              const payload = event.payload as { message?: unknown };
-              const msg = typeof payload?.message === 'string' ? payload.message : '未知错误';
-              setPhase('error');
-              setErrorMsg(msg);
-              return;
-            }
+        if (event.type === 'error') {
+          const payload = event.payload as { message?: unknown };
+          const msg = typeof payload?.message === 'string' ? payload.message : '未知错误';
+          setPhase('error');
+          setErrorMsg(msg);
+          return;
+        }
 
-            if (event.type === 'final') {
-              const payload = event.payload as { traceId?: unknown; traceid?: unknown; trace_id?: unknown };
-              const rawTraceId = payload?.traceId ?? payload?.traceid ?? payload?.trace_id;
-              if (typeof rawTraceId === 'string' && rawTraceId.trim()) {
-                traceIdRef.current = rawTraceId.trim();
-              }
-              setPhase('done');
-              return;
-            }
-          },
-        });
+        if (event.type === 'final') {
+          const payload = event.payload as { traceId?: unknown; traceid?: unknown; trace_id?: unknown };
+          const rawTraceId = payload?.traceId ?? payload?.traceid ?? payload?.trace_id;
+          if (typeof rawTraceId === 'string' && rawTraceId.trim()) {
+            traceIdRef.current = rawTraceId.trim();
+          }
+          setPhase('done');
+          return;
+        }
+      };
+
+      try {
+        if (isOllama) {
+          // ── Ollama 本地模型分支 ──
+          const ollamaModelName = aiConfig.ollamaModel || 'qwen3:8b';
+          const ollamaTemperature = aiConfig.deepseekReasoningEffort === 'low' ? 0.3 : aiConfig.deepseekReasoningEffort === 'high' ? 1.0 : 0.6;
+          await streamOllamaLocalAgent({
+            token: token || '',
+            message,
+            model: ollamaModelName,
+            agentMode,
+            context: context || undefined,
+            workspaces: aiConfig.workspaces,
+            skills: resolvedSkills,
+            baseUrl: aiConfig.ollamaBaseUrl || undefined,
+            temperature: ollamaTemperature,
+            signal: controller.signal,
+            onEvent: handleEvent,
+          });
+        } else {
+          // ── Mihtnelis 云端模型分支 ──
+          await streamMihtnelisAgent({
+            token,
+            sessionId: activeSessionId || 'island-agent-inline',
+            message,
+            provider: selectedProvider,
+            model: selectedModel,
+            agentMode,
+            context: context || undefined,
+            workspaces: aiConfig.workspaces,
+            skills: resolvedSkills,
+            snapshotMode: true,
+            thinking: aiConfig.deepseekThinking,
+            reasoningEffort: aiConfig.deepseekReasoningEffort,
+            timestamp: (() => {
+              const d = new Date();
+              const off = -d.getTimezoneOffset();
+              const sign = off >= 0 ? '+' : '-';
+              const pad = (n: number): string => String(Math.abs(n)).padStart(2, '0');
+              return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}${sign}${pad(Math.floor(Math.abs(off) / 60))}:${pad(Math.abs(off) % 60)}`;
+            })(),
+            location: (() => {
+              const loc = loadLocationFromStorage();
+              if (!loc) return undefined;
+              const parts = [loc.city, loc.regionName, loc.country].filter(Boolean);
+              return parts.length > 0 ? parts.join(', ') : undefined;
+            })(),
+            signal: controller.signal,
+            onEvent: handleEvent,
+          });
+        }
 
         if (active) {
           setPhase((prev) => (prev === 'error' ? prev : 'done'));
