@@ -2538,6 +2538,7 @@ export function AiChatTab(): React.ReactElement {
                     onChange={(event) => {
                       setAiConfig({ deepseekThinking: event.target.value === 'on' });
                     }}
+                    disabled={isOllamaModel}
                     title={t('aiChat.modelCard.focusMode', { defaultValue: '专注模式' })}
                     aria-label={t('aiChat.modelCard.focusMode', { defaultValue: '专注模式' })}
                   >
@@ -2551,7 +2552,8 @@ export function AiChatTab(): React.ReactElement {
                     <button
                       type="button"
                       className="max-expand-chat-model-dropdown-trigger"
-                      onClick={() => setShowContextDropdown((v) => !v)}
+                      disabled={isOllamaModel}
+                      onClick={() => { if (!isOllamaModel) setShowContextDropdown((v) => !v); }}
                       title={t('aiChat.modelCard.contextLimit', { defaultValue: '上下文' })}
                     >
                       <span className="max-expand-chat-model-dropdown-trigger-label">{selectedContextLabel}</span>
