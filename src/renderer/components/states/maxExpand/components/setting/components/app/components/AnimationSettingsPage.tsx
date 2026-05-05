@@ -24,9 +24,12 @@
  * @author 鸡哥
  */
 
+import { useEffect, useState } from 'react';
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../../../../../../store/slices';
+
+const MAXEXPAND_TAB_ANIMATION_KEY = 'maxexpand-tab-animation';
 
 /**
  * 渲染软件动画设置页面
@@ -34,6 +37,22 @@ import useIslandStore from '../../../../../../../../store/slices';
  */
 export function AnimationSettingsPage(): ReactElement {
   const { t } = useTranslation();
+  const [tabAnimation, setTabAnimation] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    window.api.storeRead(MAXEXPAND_TAB_ANIMATION_KEY).then((v: unknown) => {
+      if (cancelled) return;
+      if (v === false) setTabAnimation(false);
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+
+  const handleTabAnimationChange = (enabled: boolean): void => {
+    setTabAnimation(enabled);
+    window.api.storeWrite(MAXEXPAND_TAB_ANIMATION_KEY, enabled).catch(() => {});
+    window.api.settingsPreview('settings:maxexpand-tab-animation', enabled).catch(() => {});
+  };
 
   return (
     <div className="max-expand-settings-section">
@@ -81,6 +100,22 @@ export function AnimationSettingsPage(): ReactElement {
                 })}
               </label>
             ))}
+          </div>
+        </div>
+        <div className="settings-card">
+          <div className="settings-card-header">
+            <div className="settings-card-title">{t('settings.app.animation.tabSwitchTitle', { defaultValue: 'MaxExpand 切换动画 (立即生效)' })}</div>
+            <div className="settings-card-subtitle">{t('settings.app.animation.tabSwitchHint', { defaultValue: '启用后，切换设置页面时将播放左右滑动过渡动画' })}</div>
+          </div>
+          <div className="settings-card-inline-row">
+            <label className="settings-card-check">
+              <input
+                type="checkbox"
+                checked={tabAnimation}
+                onChange={(e) => handleTabAnimationChange(e.target.checked)}
+              />
+              {t('settings.app.animation.tabSwitchToggle', { defaultValue: '启用切换动画' })}
+            </label>
           </div>
         </div>
       </div>

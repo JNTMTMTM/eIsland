@@ -1207,7 +1207,10 @@
         "animSpeedHint": "Control the transition speed when the island switches states",
         "animSpeed_slow": "Slow",
         "animSpeed_medium": "Medium",
-        "animSpeed_fast": "Fast"
+        "animSpeed_fast": "Fast",
+        "tabSwitchTitle": "MaxExpand Tab Switch Animation (Instant)",
+        "tabSwitchHint": "Enable slide transition animation when switching between pages",
+        "tabSwitchToggle": "Enable tab switch animation"
       },
       "album": {
         "carouselTitle": "Album Carousel Mode",

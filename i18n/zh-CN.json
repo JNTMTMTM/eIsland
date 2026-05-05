@@ -1207,7 +1207,10 @@
         "animSpeedHint": "控制灵动岛状态切换时的过渡动画快慢",
         "animSpeed_slow": "慢",
         "animSpeed_medium": "中",
-        "animSpeed_fast": "快"
+        "animSpeed_fast": "快",
+        "tabSwitchTitle": "MaxExpand 切换动画 (立即生效)",
+        "tabSwitchHint": "启用后，切换设置页面时将播放左右滑动过渡动画",
+        "tabSwitchToggle": "启用切换动画"
       },
       "album": {
         "carouselTitle": "相册轮播方式",

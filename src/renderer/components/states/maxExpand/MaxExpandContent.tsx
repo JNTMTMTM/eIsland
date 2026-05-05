@@ -81,6 +81,20 @@ export function MaxExpandContent(): React.ReactElement {
   activeTabRef.current = activeTab;
 
   const [slideDir, setSlideDir] = useState<'left' | 'right'>('right');
+  const [tabAnimation, setTabAnimation] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    window.api.storeRead('maxexpand-tab-animation').then((v: unknown) => {
+      if (cancelled) return;
+      if (v === false) setTabAnimation(false);
+    }).catch(() => {});
+    const unsub = window.api.onSettingsChanged((channel: string, value: unknown) => {
+      if (cancelled) return;
+      if (channel === 'settings:maxexpand-tab-animation') setTabAnimation(value !== false);
+    });
+    return () => { cancelled = true; unsub(); };
+  }, []);
 
   const [countdownMode, setCountdownMode] = useState<'integrated' | 'standalone'>(
     _startupModeResolved ? _startupMode : 'integrated'
@@ -202,7 +216,7 @@ export function MaxExpandContent(): React.ReactElement {
     <div className="settings-content" ref={contentRef}>
       {/* Tab 内容区域 */}
       <div className="max-expand-tab-content" onClick={(e) => e.stopPropagation()}>
-        <div className={`max-expand-tab-transition max-expand-tab-slide-${slideDir}`} key={activeTab}>
+        <div className={`max-expand-tab-transition${tabAnimation ? ` max-expand-tab-slide-${slideDir}` : ''}`} key={activeTab}>
           {activeTab === 'aiChat' && <AiChatTab />}
           {activeTab === 'todo' && <TodoTab />}
           {activeTab === 'urlFavorites' && <UrlFavoritesTab />}
