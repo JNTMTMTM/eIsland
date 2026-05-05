@@ -30,6 +30,7 @@
     "lunar-javascript": "^1.7.7",
     "lyric-resolver": "^0.1.6",
     "mailparser": "^3.9.8",
+    "open": "^11.0.0",
     "openmeteo": "^1.2.3",
     "react-datepicker": "^9.1.0",
     "react-i18next": "^15.7.2",

@@ -1896,6 +1896,36 @@ async function executeAgentLocalTool(request: AgentLocalToolRequest): Promise<{
       };
     }
 
+    if (tool === 'sys.launch') {
+      const target = getStringArg(args, 'target') || '';
+      const appName = getStringArg(args, 'app') || '';
+
+      if (!target && !appName) {
+        return { success: false, result: {}, error: 'sys.launch 需要 target 或 app 参数', durationMs: Date.now() - startedAt };
+      }
+
+      // open 包是 ESM-only，需要动态 import
+      const openModule = await (Function('return import("open")')() as Promise<typeof import('open')>);
+
+      if (appName && target) {
+        // 用指定应用打开目标
+        await openModule.openApp(appName, { arguments: [target] });
+      } else if (appName) {
+        // 仅启动应用
+        await openModule.openApp(appName);
+      } else {
+        // 打开文件/URL/可执行文件
+        await openModule.default(target);
+      }
+
+      return {
+        success: true,
+        result: { launched: target || appName, app: appName || null },
+        error: '',
+        durationMs: Date.now() - startedAt,
+      };
+    }
+
     throw new Error(`不支持的工具: ${tool}`);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error ?? 'local tool failed');
