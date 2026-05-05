@@ -180,6 +180,9 @@ export const EXPAND_MOUSELEAVE_IDLE_STORE_KEY = 'expand-mouseleave-idle';
 /** maxExpand 鼠标移开回 idle 开关存储键名 */
 export const MAXEXPAND_MOUSELEAVE_IDLE_STORE_KEY = 'maxexpand-mouseleave-idle';
 
+/** idle 状态点击展开开关存储键名 */
+export const IDLE_CLICK_EXPAND_STORE_KEY = 'idle-click-expand';
+
 /** 灵动岛弹性动画开关存储键名 */
 export const SPRING_ANIMATION_STORE_KEY = 'spring-animation';
 

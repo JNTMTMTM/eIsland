@@ -228,6 +228,8 @@ declare global {
       expandMouseleaveIdleSet: (enabled: boolean) => Promise<boolean>;
       maxexpandMouseleaveIdleGet: () => Promise<boolean>;
       maxexpandMouseleaveIdleSet: (enabled: boolean) => Promise<boolean>;
+      idleClickExpandGet: () => Promise<boolean>;
+      idleClickExpandSet: (enabled: boolean) => Promise<boolean>;
       springAnimationGet: () => Promise<boolean>;
       springAnimationSet: (enabled: boolean) => Promise<boolean>;
       animationSpeedGet: () => Promise<string>;

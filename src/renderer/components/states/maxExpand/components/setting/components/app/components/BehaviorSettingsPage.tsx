@@ -59,6 +59,7 @@ export function BehaviorSettingsPage({
 
   const [standaloneWindowMode, setStandaloneWindowMode] = useState<'integrated' | 'standalone'>('integrated');
   const [hoverScreenshotMode, setHoverScreenshotMode] = useState<HoverScreenshotMode>('region');
+  const [idleClickExpand, setIdleClickExpand] = useState<boolean>(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -77,6 +78,15 @@ export function BehaviorSettingsPage({
     return () => {
       cancelled = true;
     };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    window.api.idleClickExpandGet().then((v) => {
+      if (cancelled) return;
+      setIdleClickExpand(v);
+    }).catch(() => {});
+    return () => { cancelled = true; };
   }, []);
 
   useEffect(() => {
@@ -148,6 +158,26 @@ export function BehaviorSettingsPage({
                 }}
               />
               {t('settings.app.behavior.maxExpandLeaveToggle', { defaultValue: '最大展开态（MaxExpand）鼠标移开后自动收回' })}
+            </label>
+          </div>
+        </div>
+
+        <div className="settings-card">
+          <div className="settings-card-header">
+            <div className="settings-card-title">{t('settings.app.behavior.idleClickExpandTitle', { defaultValue: '空闲态点击展开' })}</div>
+            <div className="settings-card-subtitle">{t('settings.app.behavior.idleClickExpandHint', { defaultValue: '启用后，鼠标悬停在灵动岛上不会自动展开，需要点击才能展开，后续交互不受影响' })}</div>
+          </div>
+          <div className="settings-card-inline-row">
+            <label className="settings-card-check">
+              <input
+                type="checkbox"
+                checked={idleClickExpand}
+                onChange={(e) => {
+                  setIdleClickExpand(e.target.checked);
+                  window.api.idleClickExpandSet(e.target.checked).catch(() => {});
+                }}
+              />
+              {t('settings.app.behavior.idleClickExpandToggle', { defaultValue: '空闲状态下点击展开（禁用悬停自动展开）' })}
             </label>
           </div>
         </div>

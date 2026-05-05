@@ -415,6 +415,7 @@ function DynamicIsland(): React.JSX.Element {
   const setNotificationRef = useRef(setNotification);
   const expandLeaveIdleRef = useRef(false);
   const maxExpandLeaveIdleRef = useRef(false);
+  const idleClickExpandRef = useRef(false);
   const pendingAnnouncementAfterGuideRef = useRef(false);
   const pendingAnnouncementAppVersionRef = useRef('');
   const startupAutoCheckHandledRef = useRef(false);
@@ -550,6 +551,7 @@ function DynamicIsland(): React.JSX.Element {
       window.api?.enableMousePassthrough();
       window.api?.expandMouseleaveIdleGet?.().then((v) => { expandLeaveIdleRef.current = v; }).catch(() => {});
       window.api?.maxexpandMouseleaveIdleGet?.().then((v) => { maxExpandLeaveIdleRef.current = v; }).catch(() => {});
+      window.api?.idleClickExpandGet?.().then((v) => { idleClickExpandRef.current = v; }).catch(() => {});
       window.api?.springAnimationGet?.().then((v) => { useIslandStore.getState().setSpringAnimation(v); }).catch(() => {});
       window.api?.animationSpeedGet?.().then((v) => { const s = v === 'slow' || v === 'medium' || v === 'fast' ? v : 'medium'; useIslandStore.getState().setAnimationSpeed(s); }).catch(() => {});
 
@@ -655,6 +657,9 @@ function DynamicIsland(): React.JSX.Element {
         }
         if (channel === 'island:maxexpand-mouseleave-idle') {
           maxExpandLeaveIdleRef.current = Boolean(value);
+        }
+        if (channel === 'island:idle-click-expand') {
+          idleClickExpandRef.current = Boolean(value);
         }
         if (channel === 'island:spring-animation') {
           useIslandStore.getState().setSpringAnimation(Boolean(value));
@@ -1247,21 +1252,32 @@ function DynamicIsland(): React.JSX.Element {
         }
 
         if (!isHoveringRef.current && enterTimerRef.current === null) {
-          enterTimerRef.current = setTimeout(() => {
-            enterTimerRef.current = null;
-            if (aborted || isHoveringRef.current) return;
-
-            isHoveringRef.current = true;
+          if (state === 'idle' && idleClickExpandRef.current) {
             if (config.mousePassthrough) {
               window.api?.disableMousePassthrough();
             }
-            setHover();
-          });
+          } else {
+            enterTimerRef.current = setTimeout(() => {
+              enterTimerRef.current = null;
+              if (aborted || isHoveringRef.current) return;
+
+              isHoveringRef.current = true;
+              if (config.mousePassthrough) {
+                window.api?.disableMousePassthrough();
+              }
+              setHover();
+            });
+          }
         }
       } else {
         if (enterTimerRef.current !== null) {
           clearTimeout(enterTimerRef.current);
           enterTimerRef.current = null;
+        }
+
+        // idle 点击展开模式：鼠标离开时恢复穿透
+        if (state === 'idle' && idleClickExpandRef.current && !isHoveringRef.current) {
+          window.api?.enableMousePassthrough();
         }
 
         if (isHoveringRef.current && leaveTimerRef.current === null) {
@@ -1417,7 +1433,10 @@ function DynamicIsland(): React.JSX.Element {
    * @description hover 状态下单击展开到 expanded；expanded 状态下单击收回到 hover
    */
   const handleIslandClick = React.useCallback(() => {
-    if (state === 'hover') {
+    if (state === 'idle' && idleClickExpandRef.current) {
+      isHoveringRef.current = true;
+      setHover();
+    } else if (state === 'hover') {
       setExpanded();
     } else if (state === 'expanded' || state === 'maxExpand' || state === 'announcement') {
       setHover();

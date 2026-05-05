@@ -973,6 +973,18 @@ const api = {
     return ipcRenderer.invoke('island:maxexpand-mouseleave-idle:set', enabled);
   },
   /**
+   * 获取 idle 点击展开开关
+   */
+  idleClickExpandGet: (): Promise<boolean> => {
+    return ipcRenderer.invoke('island:idle-click-expand:get');
+  },
+  /**
+   * 设置 idle 点击展开开关
+   */
+  idleClickExpandSet: (enabled: boolean): Promise<boolean> => {
+    return ipcRenderer.invoke('island:idle-click-expand:set', enabled);
+  },
+  /**
    * 获取是否启用弹性动画
    */
   springAnimationGet: (): Promise<boolean> => {
