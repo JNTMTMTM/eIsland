@@ -42,6 +42,7 @@ export function SttContent(): ReactElement {
   const [editing, setEditing] = useState(false);
   const [copied, setCopied] = useState(false);
   const [addedTodo, setAddedTodo] = useState(false);
+  const [addedMemo, setAddedMemo] = useState(false);
 
   useEffect(() => {
     if (editRef.current && !editing) {
@@ -80,6 +81,22 @@ export function SttContent(): ReactElement {
     }).catch(() => {});
   };
 
+  const handleAddMemo = (): void => {
+    const text = editRef.current?.textContent?.trim() || sttText || '';
+    if (!text) return;
+    const now = Date.now();
+    const d = new Date(now);
+    const ts = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}:${String(d.getSeconds()).padStart(2, '0')}`;
+    const newMemo = { id: now, title: `${ts}-ASR快速添加`, content: text, createdAt: now, updatedAt: now, pinned: false, bookmarked: false };
+    window.api.storeRead('memos').then((data: unknown) => {
+      const prev = Array.isArray(data) ? data : [];
+      return window.api.storeWrite('memos', [newMemo, ...prev]);
+    }).then(() => {
+      setAddedMemo(true);
+      setTimeout(() => setAddedMemo(false), 1500);
+    }).catch(() => {});
+  };
+
   const handleCopy = (): void => {
     const text = editRef.current?.textContent?.trim() || sttText || '';
     if (!text) return;
@@ -106,6 +123,7 @@ export function SttContent(): ReactElement {
       </div>
       <div className="stt-actions">
         <button className="stt-action-btn" onClick={() => setAgent(editRef.current?.textContent?.trim() || sttText || '')}>发送给Agent</button>
+        <button className="stt-action-btn" onClick={handleAddMemo}>{addedMemo ? '已添加' : '添加到备忘录'}</button>
         <button className="stt-action-btn" onClick={handleAddTodo}>{addedTodo ? '已添加' : '添加待办'}</button>
         <button className="stt-action-btn" onClick={handleCopy}>{copied ? '已复制' : '复制'}</button>
         <button className="stt-action-btn" onClick={() => setIdle(true)}>忽略</button>
