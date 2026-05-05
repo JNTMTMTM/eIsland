@@ -55,6 +55,7 @@ interface AiSettingsSectionProps {
   aiSettingsPages: AiSettingsPageKey[];
   aiSettingsPageLabels: Record<string, string>;
   setAiSettingsPage: (page: AiSettingsPageKey) => void;
+  isProUser: boolean;
 }
 
 /**
@@ -73,6 +74,7 @@ export function AiSettingsSection({
   aiSettingsPages,
   aiSettingsPageLabels,
   setAiSettingsPage,
+  isProUser,
 }: AiSettingsSectionProps): ReactElement {
   const { t } = useTranslation();
   const SettingsField = SettingsFieldComponent;
@@ -303,7 +305,7 @@ export function AiSettingsSection({
 
   const renderOllamaPage = (): ReactElement => (
     <div className="settings-cards">
-      <div className="settings-card">
+      <div className="settings-card" style={isProUser ? undefined : { opacity: 0.5, pointerEvents: 'none' }} aria-disabled={!isProUser}>
         <div className="settings-card-header">
           <div className="settings-card-title" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <img src={SvgIcon.PRO} alt="PRO" width={16} height={16} style={{ flexShrink: 0 }} />

@@ -2941,6 +2941,7 @@ export function SettingsTab(): ReactElement {
               aiSettingsPages={AI_SETTINGS_PAGES}
               aiSettingsPageLabels={translatedSettingsTabLabels}
               setAiSettingsPage={setAiSettingsPage}
+              isProUser={isProUser}
             />
           )}
 
