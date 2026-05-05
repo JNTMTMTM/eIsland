@@ -20,7 +20,7 @@
 
 /**
  * @file standaloneMain.tsx
- * @description 倒数日/TODOs 独立窗口渲染入口
+ * @description 独立窗口渲染入口
  * @author 鸡哥
  */
 

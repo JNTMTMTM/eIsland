@@ -26,6 +26,7 @@
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
+import { SvgIcon } from '../../../../utils/SvgIcon';
 
 /** 单条备忘录 */
 interface MemoItem {
@@ -249,7 +250,7 @@ export function MemoTab(): React.ReactElement {
                   onClick={() => handleTogglePin(selectedMemo.id)}
                   title={selectedMemo.pinned ? t('maxExpand.memo.unpin', { defaultValue: '取消置顶' }) : t('maxExpand.memo.pin', { defaultValue: '置顶' })}
                 >
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7.5 1.5L12 4.5L9.5 8L10 12.5L7 10L4 12.5L4.5 8L2 4.5L6.5 1.5L7.5 1.5Z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" fill={selectedMemo.pinned ? 'currentColor' : 'none'}/></svg>
+                  <img src={SvgIcon.PIN_ON_TOP} alt="pin" width="14" height="14" draggable={false} />
                 </button>
                 <button
                   className="memo-tab-editor-delete"
@@ -257,7 +258,7 @@ export function MemoTab(): React.ReactElement {
                   onClick={() => handleDelete(selectedMemo.id)}
                   title={t('maxExpand.memo.delete', { defaultValue: '删除' })}
                 >
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 4h8M5.5 4V3a1 1 0 011-1h1a1 1 0 011 1v1M5.5 6.5v4M8.5 6.5v4M4 4l.5 8a1 1 0 001 1h3a1 1 0 001-1L10 4" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  <img src={SvgIcon.DELETE} alt="delete" width="14" height="14" draggable={false} />
                 </button>
               </div>
             </div>
