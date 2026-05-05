@@ -35,13 +35,14 @@ import { MailTab } from './states/maxExpand/components/MailTab';
 import { LocalFileSearchTab } from './states/maxExpand/components/LocalFileSearchTab';
 import { ClipboardHistoryTab } from './states/maxExpand/components/ClipboardHistoryTab';
 import { SettingsTab } from './states/maxExpand/components/SettingsTab';
+import { MemoTab } from './states/maxExpand/components/MemoTab';
 import { LoginContent } from './states/login/LoginContent';
 import { RegisterContent } from './states/register/RegisterContent';
 import { PaymentContent } from './states/payment/PaymentContent';
 import useIslandStore from '../store/slices';
 import windowIcon from '../../../resources/icon/eisland.svg';
 
-type WindowTab = 'todo' | 'countdown' | 'urlFavorites' | 'album' | 'mail' | 'localFileSearch' | 'clipboardHistory' | 'settings';
+type WindowTab = 'todo' | 'countdown' | 'urlFavorites' | 'album' | 'mail' | 'localFileSearch' | 'clipboardHistory' | 'memo' | 'settings';
 const ACTIVE_TAB_STORE_KEY = 'standalone-window-active-tab';
 const LEGACY_ACTIVE_TAB_STORE_KEY = 'countdown-window-active-tab';
 const AUTH_INTENT_STORE_KEY = 'standalone-window-auth-intent';
@@ -131,7 +132,7 @@ async function resolveBgMediaPreviewUrl(media: IslandBgMediaConfig): Promise<str
   return toMediaUrl(media.source);
 }
 
-const VALID_TABS = new Set<WindowTab>(['todo', 'countdown', 'urlFavorites', 'album', 'mail', 'localFileSearch', 'clipboardHistory', 'settings']);
+const VALID_TABS = new Set<WindowTab>(['todo', 'countdown', 'urlFavorites', 'album', 'mail', 'localFileSearch', 'clipboardHistory', 'memo', 'settings']);
 
 const TAB_LIST: { key: WindowTab; labelKey: string }[] = [
   { key: 'todo', labelKey: 'standalone.tabs.todo' },
@@ -141,6 +142,7 @@ const TAB_LIST: { key: WindowTab; labelKey: string }[] = [
   { key: 'mail', labelKey: 'standalone.tabs.mail' },
   { key: 'localFileSearch', labelKey: 'standalone.tabs.localFileSearch' },
   { key: 'clipboardHistory', labelKey: 'standalone.tabs.clipboardHistory' },
+  { key: 'memo', labelKey: 'standalone.tabs.memo' },
   { key: 'settings', labelKey: 'standalone.tabs.settings' },
 ];
 
@@ -527,6 +529,7 @@ export function StandaloneWindow(): ReactElement {
         {activeTab === 'mail' && <MailTab />}
         {activeTab === 'localFileSearch' && <LocalFileSearchTab />}
         {activeTab === 'clipboardHistory' && <ClipboardHistoryTab />}
+        {activeTab === 'memo' && <MemoTab />}
         {activeTab === 'settings' && state === 'login' && <LoginContent />}
         {activeTab === 'settings' && state === 'register' && <RegisterContent />}
         {activeTab === 'settings' && state === 'payment' && <PaymentContent />}

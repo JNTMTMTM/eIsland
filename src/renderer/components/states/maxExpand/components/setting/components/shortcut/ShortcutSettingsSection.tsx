@@ -244,10 +244,11 @@ export function ShortcutSettingsSection(props: ShortcutSettingsSectionProps): Re
     setAgentVoiceInputHotkey,
   } = props;
 
-  type ShortcutSettingsPageKey = 'window' | 'capture' | 'media';
-  const pages: ShortcutSettingsPageKey[] = ['window', 'capture', 'media'];
+  type ShortcutSettingsPageKey = 'window' | 'agent' | 'capture' | 'media';
+  const pages: ShortcutSettingsPageKey[] = ['window', 'agent', 'capture', 'media'];
   const pageLabels: Record<ShortcutSettingsPageKey, string> = {
     window: t('settings.shortcut.pages.window', { defaultValue: '窗口控制' }),
+    agent: t('settings.shortcut.pages.agent', { defaultValue: 'Agent 快捷键' }),
     capture: t('settings.shortcut.pages.capture', { defaultValue: '截图' }),
     media: t('settings.shortcut.pages.media', { defaultValue: '音乐控制' }),
   };
@@ -559,6 +560,11 @@ export function ShortcutSettingsSection(props: ShortcutSettingsSectionProps): Re
                 {toggleUiLockHotkeyError && <div className="settings-hotkey-error">{toggleUiLockHotkeyError}</div>}
               </div>
 
+            </div>
+          )}
+
+          {shortcutPage === 'agent' && (
+            <div className="settings-cards">
               <div className="settings-card">
                 <div className="settings-card-header">
                   <div className="settings-card-title">{t('settings.shortcut.window.agentVoiceInput.title', { defaultValue: 'Agent 语音输入快捷键' })}</div>

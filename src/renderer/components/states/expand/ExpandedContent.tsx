@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../store/slices';
 import type { ExpandTab } from '../../../store/types';
@@ -49,6 +49,23 @@ export function ExpandedContent(): React.ReactElement {
   const contentRef = useRef<HTMLDivElement>(null);
   const expandTabRef = useRef(expandTab);
   expandTabRef.current = expandTab;
+
+  const [slideDir, setSlideDir] = useState<'left' | 'right'>('right');
+  const [tabAnimation, setTabAnimation] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    window.api.storeRead('expand-tab-animation').then((v: unknown) => {
+      if (cancelled) return;
+      if (v === false) setTabAnimation(false);
+    }).catch(() => {});
+    const unsub = window.api.onSettingsChanged((channel: string, value: unknown) => {
+      if (cancelled) return;
+      if (channel === 'settings:expand-tab-animation') setTabAnimation(value !== false);
+    });
+    return () => { cancelled = true; unsub(); };
+  }, []);
+
   const getNavLabel = (tab: NavDotId): string => t(`expanded.nav.${tab}`, {
     defaultValue: tab === 'hover'
       ? '返回'
@@ -83,6 +100,9 @@ export function ExpandedContent(): React.ReactElement {
       }
       if (nextId === 'hover') { setHover(); return; }
       if (nextId === 'maxExpand') { setMaxExpand(); return; }
+      const curIdx = EXPAND_NAV_DOTS.indexOf(expandTabRef.current);
+      const nextIdx = EXPAND_NAV_DOTS.indexOf(nextId);
+      setSlideDir(nextIdx >= curIdx ? 'right' : 'left');
       setExpandTab(nextId);
     };
 
@@ -94,9 +114,11 @@ export function ExpandedContent(): React.ReactElement {
     <div className="expanded-content" ref={contentRef}>
       {/* Tab 内容区域 */}
       <div className="expand-tab-content" onClick={(e) => e.stopPropagation()}>
-        {expandTab === 'overview' && <OverviewTab />}
-        {expandTab === 'song' && <SongTab />}
-        {expandTab === 'tools' && <ToolsTab />}
+        <div className={`expand-tab-transition${tabAnimation ? ` expand-tab-slide-${slideDir}` : ''}`} key={expandTab}>
+          {expandTab === 'overview' && <OverviewTab />}
+          {expandTab === 'song' && <SongTab />}
+          {expandTab === 'tools' && <ToolsTab />}
+        </div>
       </div>
 
       {/* 底部导航点 */}
@@ -108,7 +130,12 @@ export function ExpandedContent(): React.ReactElement {
             onClick={() => {
               if (tab === 'hover') { setHover(); }
               else if (tab === 'maxExpand') { setMaxExpand(); }
-              else { setExpandTab(tab); }
+              else {
+                const curIdx = EXPAND_NAV_DOTS.indexOf(expandTabRef.current);
+                const nextIdx = EXPAND_NAV_DOTS.indexOf(tab);
+                setSlideDir(nextIdx >= curIdx ? 'right' : 'left');
+                setExpandTab(tab);
+              }
             }}
             title={getNavLabel(tab)}
             aria-label={t('expanded.nav.switchToPage', { defaultValue: '切换到{{label}}页面', label: getNavLabel(tab) })}

@@ -28,6 +28,8 @@ import { useRef, useState, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AiSettingsPageDots } from './AiSettingsPageDots';
 import type { AiSettingsPageKey } from '../../utils/settingsConfig';
+import { SvgIcon } from '../../../../../../../utils/SvgIcon';
+import { getOllamaModels, detectOllamaBaseUrl } from '../../../../../../../api/ai/ollamaLocalAgent';
 
 interface AiSettingsSectionProps {
   currentAiSettingsPageLabel: string;
@@ -37,6 +39,8 @@ interface AiSettingsSectionProps {
     endpoint: string;
     workspaces: string[];
     r1pxcAvatar: string;
+    ollamaModel: string;
+    ollamaBaseUrl: string;
   };
   setAiConfig: (config: Partial<AiSettingsSectionProps['aiConfig']>) => void;
   onAddWorkspace: () => void;
@@ -51,6 +55,7 @@ interface AiSettingsSectionProps {
   aiSettingsPages: AiSettingsPageKey[];
   aiSettingsPageLabels: Record<string, string>;
   setAiSettingsPage: (page: AiSettingsPageKey) => void;
+  isProUser: boolean;
 }
 
 /**
@@ -69,11 +74,63 @@ export function AiSettingsSection({
   aiSettingsPages,
   aiSettingsPageLabels,
   setAiSettingsPage,
+  isProUser,
 }: AiSettingsSectionProps): ReactElement {
   const { t } = useTranslation();
   const SettingsField = SettingsFieldComponent;
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [avatarUploadError, setAvatarUploadError] = useState<string>('');
+
+  // ── Ollama 设置页状态 ──
+  const [ollamaModelsList, setOllamaModelsList] = useState<string[]>([]);
+  const [ollamaFetching, setOllamaFetching] = useState<boolean>(false);
+  const [ollamaDetecting, setOllamaDetecting] = useState<boolean>(false);
+  const [ollamaModelsHint, setOllamaModelsHint] = useState<string>('');
+  const [ollamaDetectHint, setOllamaDetectHint] = useState<string>('');
+
+  const handleFetchOllamaModels = async (): Promise<void> => {
+    setOllamaFetching(true);
+    setOllamaModelsHint('');
+    try {
+      const baseUrl = aiConfig.ollamaBaseUrl?.trim() || undefined;
+      const list = await getOllamaModels(baseUrl);
+      setOllamaModelsList(list);
+      if (list.length === 0) {
+        setOllamaModelsHint(t('settings.ai.ollamaFetchEmpty', { defaultValue: '未检测到本地 Ollama 模型' }));
+      } else {
+        setOllamaModelsHint(t('settings.ai.ollamaFetchOk', {
+          defaultValue: '已找到 {{count}} 个本地模型',
+          count: list.length,
+        }));
+      }
+    } catch {
+      setOllamaModelsList([]);
+      setOllamaModelsHint(t('settings.ai.ollamaFetchFail', { defaultValue: '获取模型列表失败，请检查 Ollama 服务' }));
+    } finally {
+      setOllamaFetching(false);
+    }
+  };
+
+  const handleDetectOllamaPort = async (): Promise<void> => {
+    setOllamaDetecting(true);
+    setOllamaDetectHint('');
+    try {
+      const detected = await detectOllamaBaseUrl();
+      if (detected) {
+        setAiConfig({ ollamaBaseUrl: detected });
+        setOllamaDetectHint(t('settings.ai.ollamaDetectOk', {
+          defaultValue: '已检测到 {{url}}',
+          url: detected,
+        }));
+      } else {
+        setOllamaDetectHint(t('settings.ai.ollamaDetectFail', {
+          defaultValue: '未检测到运行中的 Ollama 服务，请确认已启动 ollama serve',
+        }));
+      }
+    } finally {
+      setOllamaDetecting(false);
+    }
+  };
 
   const readAvatarFile = (file: File): void => {
     if (!file.type.startsWith('image/')) {
@@ -246,12 +303,92 @@ export function AiSettingsSection({
     </div>
   );
 
+  const renderOllamaPage = (): ReactElement => (
+    <div className="settings-cards">
+      <div className="settings-card" style={isProUser ? undefined : { opacity: 0.5, pointerEvents: 'none' }} aria-disabled={!isProUser}>
+        <div className="settings-card-header">
+          <div className="settings-card-title" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <img src={SvgIcon.PRO} alt="PRO" width={16} height={16} style={{ flexShrink: 0 }} />
+            {t('settings.ai.ollamaTitle', { defaultValue: 'Ollama 本地模型' })}
+          </div>
+          <div className="settings-card-subtitle">{t('settings.ai.ollamaHint', { defaultValue: '配置本地 Ollama 服务地址与默认模型，在模型下拉中选择 ollama 即可使用' })}</div>
+        </div>
+        <div className="settings-field-group">
+          {/* 模型名称 + 获取按钮 */}
+          <SettingsField
+            label={t('settings.ai.ollamaModel', { defaultValue: '模型名称' })}
+            value={aiConfig.ollamaModel}
+            placeholder="qwen3:8b"
+            onChange={(v) => setAiConfig({ ollamaModel: v })}
+          />
+          <button
+            className="settings-ai-workspace-add-btn"
+            type="button"
+            disabled={ollamaFetching}
+            onClick={() => void handleFetchOllamaModels()}
+            style={{ marginTop: -4 }}
+          >
+            {ollamaFetching
+              ? t('settings.ai.ollamaFetching', { defaultValue: '正在获取…' })
+              : t('settings.ai.ollamaFetchBtn', { defaultValue: '获取本地模型列表' })}
+          </button>
+          {ollamaModelsHint && (
+            <div style={{ fontSize: 11, color: 'rgba(var(--color-text-rgb), 0.5)', marginTop: -2 }}>
+              {ollamaModelsHint}
+            </div>
+          )}
+          {ollamaModelsList.length > 0 && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 2 }}>
+              {ollamaModelsList.map((m) => (
+                <button
+                  key={m}
+                  type="button"
+                  className={`settings-ollama-model-chip${aiConfig.ollamaModel === m ? ' active' : ''}`}
+                  onClick={() => setAiConfig({ ollamaModel: m })}
+                  title={m}
+                >
+                  {m}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* 服务地址 + 自动检测按钮 */}
+          <SettingsField
+            label={t('settings.ai.ollamaBaseUrl', { defaultValue: '服务地址' })}
+            value={aiConfig.ollamaBaseUrl}
+            placeholder="http://localhost:11434"
+            onChange={(v) => setAiConfig({ ollamaBaseUrl: v })}
+          />
+          <button
+            className="settings-ai-workspace-add-btn"
+            type="button"
+            disabled={ollamaDetecting}
+            onClick={() => void handleDetectOllamaPort()}
+            style={{ marginTop: -4 }}
+          >
+            {ollamaDetecting
+              ? t('settings.ai.ollamaDetecting', { defaultValue: '正在检测…' })
+              : t('settings.ai.ollamaDetectBtn', { defaultValue: '自动检测 Ollama 端口' })}
+          </button>
+          {ollamaDetectHint && (
+            <div style={{ fontSize: 11, color: 'rgba(var(--color-text-rgb), 0.5)', marginTop: -2 }}>
+              {ollamaDetectHint}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
   const renderCurrentPage = (): ReactElement | null => {
     switch (aiSettingsPage) {
       case 'general':
         return renderGeneralPage();
       case 'r1pxc':
         return renderR1pxcPage();
+      case 'ollama':
+        return renderOllamaPage();
       default:
         return null;
     }

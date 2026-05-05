@@ -7,7 +7,7 @@
 /todo.md
 /.env
 /RELEASE_NOTES_SINCE_LAST_TAG.md
-/docs/api
+/docs/developer
 
 node_modules/
 dist/

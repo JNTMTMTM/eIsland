@@ -220,6 +220,70 @@
   100% { transform: scale(1); }
 }
 
+/* ── 动画速度档位 ── */
+
+/** 慢速：基础过渡 */
+.island-shell.speed-slow {
+  transition: width 0.64s ease,
+              height 0.64s ease,
+              border-radius 0.64s ease,
+              background 0.64s ease,
+              box-shadow 0.64s ease;
+}
+.island-shell.spring-animation.speed-slow {
+  transition: width 1.08s cubic-bezier(0.22, 1, 0.36, 1),
+              height 1.08s cubic-bezier(0.22, 1, 0.36, 1),
+              border-radius 1.08s cubic-bezier(0.22, 1, 0.36, 1),
+              background 0.72s ease,
+              box-shadow 1.08s ease;
+}
+.island-shell.speed-slow.morphing { animation-duration: 0.88s; }
+.island-shell.spring-animation.speed-slow.hover.morphing.from-idle { animation-duration: 1.08s; }
+.island-shell.spring-animation.speed-slow.hover.morphing.from-expanded,
+.island-shell.spring-animation.speed-slow.hover.morphing.from-maxExpand,
+.island-shell.spring-animation.speed-slow.hover.morphing.from-guide,
+.island-shell.spring-animation.speed-slow.hover.morphing.from-announcement { animation-duration: 1.08s; }
+.island-shell.spring-animation.speed-slow.notification.morphing.from-idle,
+.island-shell.spring-animation.speed-slow.agent.morphing.from-idle,
+.island-shell.spring-animation.speed-slow.stt.morphing.from-idle { animation-duration: 1.08s; }
+.island-shell.spring-animation.speed-slow.notification.morphing.from-hover,
+.island-shell.spring-animation.speed-slow.agent.morphing.from-hover,
+.island-shell.spring-animation.speed-slow.stt.morphing.from-hover { animation-duration: 1.15s; }
+.island-shell.spring-animation.speed-slow.hover.morphing.from-notification,
+.island-shell.spring-animation.speed-slow.hover.morphing.from-agent,
+.island-shell.spring-animation.speed-slow.hover.morphing.from-stt { animation-duration: 1.08s; }
+
+/** 快速：基础过渡 */
+.island-shell.speed-fast {
+  transition: width 0.2s ease,
+              height 0.2s ease,
+              border-radius 0.2s ease,
+              background 0.2s ease,
+              box-shadow 0.2s ease;
+}
+.island-shell.spring-animation.speed-fast {
+  transition: width 0.34s cubic-bezier(0.22, 1, 0.36, 1),
+              height 0.34s cubic-bezier(0.22, 1, 0.36, 1),
+              border-radius 0.34s cubic-bezier(0.22, 1, 0.36, 1),
+              background 0.22s ease,
+              box-shadow 0.34s ease;
+}
+.island-shell.speed-fast.morphing { animation-duration: 0.28s; }
+.island-shell.spring-animation.speed-fast.hover.morphing.from-idle { animation-duration: 0.34s; }
+.island-shell.spring-animation.speed-fast.hover.morphing.from-expanded,
+.island-shell.spring-animation.speed-fast.hover.morphing.from-maxExpand,
+.island-shell.spring-animation.speed-fast.hover.morphing.from-guide,
+.island-shell.spring-animation.speed-fast.hover.morphing.from-announcement { animation-duration: 0.34s; }
+.island-shell.spring-animation.speed-fast.notification.morphing.from-idle,
+.island-shell.spring-animation.speed-fast.agent.morphing.from-idle,
+.island-shell.spring-animation.speed-fast.stt.morphing.from-idle { animation-duration: 0.34s; }
+.island-shell.spring-animation.speed-fast.notification.morphing.from-hover,
+.island-shell.spring-animation.speed-fast.agent.morphing.from-hover,
+.island-shell.spring-animation.speed-fast.stt.morphing.from-hover { animation-duration: 0.36s; }
+.island-shell.spring-animation.speed-fast.hover.morphing.from-notification,
+.island-shell.spring-animation.speed-fast.hover.morphing.from-agent,
+.island-shell.spring-animation.speed-fast.hover.morphing.from-stt { animation-duration: 0.34s; }
+
 /** Idle 内容 */
 .idle-content {
   position: relative;

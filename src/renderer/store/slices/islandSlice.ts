@@ -54,6 +54,7 @@ export const createIslandSlice: StateCreator<
   sttText: '',
   agentPrompt: '',
   springAnimation: true,
+  animationSpeed: 'medium' as const,
 
   setIdle: (force?: boolean) => set((prev) => {
     if (prev.uiStateLocked && prev.state !== 'idle') return prev;
@@ -210,4 +211,5 @@ export const createIslandSlice: StateCreator<
   setExpandTab: (tab) => set({ expandTab: tab }),
   setMaxExpandTab: (tab) => set({ maxExpandTab: tab }),
   setSpringAnimation: (enabled) => set({ springAnimation: enabled }),
+  setAnimationSpeed: (speed) => set({ animationSpeed: speed }),
 });

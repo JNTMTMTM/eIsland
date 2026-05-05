@@ -31,6 +31,7 @@ import { HideProcessSettingsPage } from './components/HideProcessSettingsPage';
 import { PositionSettingsPage } from './components/PositionSettingsPage';
 import { ThemeSettingsPage } from './components/ThemeSettingsPage';
 import { BehaviorSettingsPage } from './components/BehaviorSettingsPage';
+import { AnimationSettingsPage } from './components/AnimationSettingsPage';
 import { LanguageSettingsPage } from './components/LanguageSettingsPage';
 import { UrlParserSettingsPage } from './components/UrlParserSettingsPage';
 import { ClipboardHistorySettingsSection } from './components/ClipboardHistorySettingsSection';
@@ -256,6 +257,8 @@ export function AppSettingsSection({
             setMaxExpandLeaveIdle={setMaxExpandLeaveIdle}
           />
         );
+      case 'animation':
+        return <AnimationSettingsPage />;
       case 'language':
         return <LanguageSettingsPage appLanguage={appLanguage} applyAppLanguage={applyAppLanguage} />;
       case 'url-parser':

@@ -35,6 +35,7 @@ interface RegisterIslandIpcHandlersOptions {
   islandOpacityStoreKey: string;
   expandMouseleaveIdleStoreKey: string;
   maxExpandMouseleaveIdleStoreKey: string;
+  idleClickExpandStoreKey: string;
   autostartModeStoreKey: string;
   navOrderStoreKey: string;
 }
@@ -119,6 +120,30 @@ export function registerIslandIpcHandlers(options: RegisterIslandIpcHandlersOpti
     }
   });
 
+  ipcMain.handle('island:idle-click-expand:get', () => {
+    try {
+      const filePath = join(options.storeDir, `${options.idleClickExpandStoreKey}.json`);
+      if (!existsSync(filePath)) return false;
+      const raw = readFileSync(filePath, 'utf-8');
+      const data = JSON.parse(raw);
+      return typeof data === 'boolean' ? data : false;
+    } catch {
+      return false;
+    }
+  });
+
+  ipcMain.handle('island:idle-click-expand:set', (event, enabled: boolean) => {
+    try {
+      const filePath = join(options.storeDir, `${options.idleClickExpandStoreKey}.json`);
+      writeFileSync(filePath, JSON.stringify(enabled, null, 2), 'utf-8');
+      broadcastSettingChange(event.sender.id, 'island:idle-click-expand', enabled);
+      return true;
+    } catch (err) {
+      console.error('[IdleClickExpand] persist error:', err);
+      return false;
+    }
+  });
+
   ipcMain.handle('island:spring-animation:get', () => {
     try {
       const filePath = join(options.storeDir, 'spring-animation.json');
@@ -139,6 +164,31 @@ export function registerIslandIpcHandlers(options: RegisterIslandIpcHandlersOpti
       return true;
     } catch (err) {
       console.error('[SpringAnimation] persist error:', err);
+      return false;
+    }
+  });
+
+  ipcMain.handle('island:animation-speed:get', () => {
+    try {
+      const filePath = join(options.storeDir, 'animation-speed.json');
+      if (!existsSync(filePath)) return 'medium';
+      const raw = readFileSync(filePath, 'utf-8');
+      const data = JSON.parse(raw);
+      return data === 'slow' || data === 'medium' || data === 'fast' ? data : 'medium';
+    } catch {
+      return 'medium';
+    }
+  });
+
+  ipcMain.handle('island:animation-speed:set', (event, speed: string) => {
+    try {
+      const valid = speed === 'slow' || speed === 'medium' || speed === 'fast' ? speed : 'medium';
+      const filePath = join(options.storeDir, 'animation-speed.json');
+      writeFileSync(filePath, JSON.stringify(valid, null, 2), 'utf-8');
+      broadcastSettingChange(event.sender.id, 'island:animation-speed', valid);
+      return true;
+    } catch (err) {
+      console.error('[AnimationSpeed] persist error:', err);
       return false;
     }
   });

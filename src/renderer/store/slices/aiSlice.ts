@@ -45,6 +45,8 @@ function loadAiConfig(): AiConfig {
     r1pxcAvatar: '',
     workspaces: [],
     skills: [],
+    ollamaModel: '',
+    ollamaBaseUrl: '',
   };
   try {
     const raw = localStorage.getItem(AI_CONFIG_KEY);
@@ -63,6 +65,8 @@ function loadAiConfig(): AiConfig {
       merged.skills = Array.isArray(merged.skills)
         ? (merged.skills as AiSkill[]).filter((s) => typeof s?.id === 'string' && typeof s?.name === 'string' && typeof s?.filePath === 'string')
         : [];
+      merged.ollamaModel = typeof merged.ollamaModel === 'string' ? merged.ollamaModel.trim() : '';
+      merged.ollamaBaseUrl = typeof merged.ollamaBaseUrl === 'string' ? merged.ollamaBaseUrl.trim() : '';
       return merged;
     }
   } catch { /* ignore */ }

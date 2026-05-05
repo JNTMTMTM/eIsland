@@ -64,8 +64,8 @@ import { readLocalToken } from '../utils/userAccount';
 /** 灵动岛状态类型 */
 export type IslandState = 'idle' | 'hover' | 'expanded' | 'notification' | 'maxExpand' | 'minimal' | 'lyrics' | 'guide' | 'login' | 'register' | 'payment' | 'announcement' | 'agentVoiceInput' | 'agent' | 'stt';
 
-/** shell.css 中 morph/transition 主时长（0.55s） */
-const SHELL_MORPH_DURATION_MS = 550;
+/** shell.css 中 morph/transition 主时长，按速度档位区分 */
+const MORPH_DURATION_BY_SPEED: Record<string, number> = { slow: 1100, medium: 550, fast: 280 };
 const CLIPBOARD_URL_SUPPRESS_IN_FAVORITES_KEY = 'clipboard-url-suppress-in-url-favorites';
 export const AI_CHAT_CLIPBOARD_URL_EVENT = 'eisland:ai-chat-clipboard-urls-detected';
 const ISLAND_BG_MEDIA_STORE_KEY = 'island-bg-media';
@@ -370,7 +370,7 @@ interface StateRenderer {
  */
 function DynamicIsland(): React.JSX.Element {
   const { t, i18n } = useTranslation();
-  const { state, weather, setHover, setIdle, setExpanded, setLyrics, setGuide, setAnnouncement, setAgentVoiceInput, timerData, setTimerData, notification, setNotification, handleNowPlayingUpdate, updateProgress, coverImage, isMusicPlaying, isPlaying, dominantColor, setDominantColor, setSyncedLyrics, setLyricsLoading, syncedLyrics, lyricsLoading, pomodoroRunning, pomodoroRemaining, springAnimation } = useIslandStore();
+  const { state, weather, setHover, setIdle, setExpanded, setLyrics, setGuide, setAnnouncement, setAgentVoiceInput, timerData, setTimerData, notification, setNotification, handleNowPlayingUpdate, updateProgress, coverImage, isMusicPlaying, isPlaying, dominantColor, setDominantColor, setSyncedLyrics, setLyricsLoading, syncedLyrics, lyricsLoading, pomodoroRunning, pomodoroRemaining, springAnimation, animationSpeed } = useIslandStore();
   const prevStateRef = useRef(state);
   const [morphing, setMorphing] = useState(false);
   const [fromState, setFromState] = useState('');
@@ -385,7 +385,7 @@ function DynamicIsland(): React.JSX.Element {
     setFromState(prevStateRef.current);
     prevStateRef.current = state;
     setMorphing(true);
-    const id = setTimeout(() => { setMorphing(false); setFromState(''); }, SHELL_MORPH_DURATION_MS);
+    const id = setTimeout(() => { setMorphing(false); setFromState(''); }, MORPH_DURATION_BY_SPEED[animationSpeed] ?? 550);
     return () => clearTimeout(id);
   }, [state]);
 
@@ -415,6 +415,7 @@ function DynamicIsland(): React.JSX.Element {
   const setNotificationRef = useRef(setNotification);
   const expandLeaveIdleRef = useRef(false);
   const maxExpandLeaveIdleRef = useRef(false);
+  const idleClickExpandRef = useRef(false);
   const pendingAnnouncementAfterGuideRef = useRef(false);
   const pendingAnnouncementAppVersionRef = useRef('');
   const startupAutoCheckHandledRef = useRef(false);
@@ -550,6 +551,9 @@ function DynamicIsland(): React.JSX.Element {
       window.api?.enableMousePassthrough();
       window.api?.expandMouseleaveIdleGet?.().then((v) => { expandLeaveIdleRef.current = v; }).catch(() => {});
       window.api?.maxexpandMouseleaveIdleGet?.().then((v) => { maxExpandLeaveIdleRef.current = v; }).catch(() => {});
+      window.api?.idleClickExpandGet?.().then((v) => { idleClickExpandRef.current = v; }).catch(() => {});
+      window.api?.springAnimationGet?.().then((v) => { useIslandStore.getState().setSpringAnimation(v); }).catch(() => {});
+      window.api?.animationSpeedGet?.().then((v) => { const s = v === 'slow' || v === 'medium' || v === 'fast' ? v : 'medium'; useIslandStore.getState().setAnimationSpeed(s); }).catch(() => {});
 
       Promise.all([
         window.api?.storeRead?.(ISLAND_BG_MEDIA_STORE_KEY),
@@ -653,6 +657,16 @@ function DynamicIsland(): React.JSX.Element {
         }
         if (channel === 'island:maxexpand-mouseleave-idle') {
           maxExpandLeaveIdleRef.current = Boolean(value);
+        }
+        if (channel === 'island:idle-click-expand') {
+          idleClickExpandRef.current = Boolean(value);
+        }
+        if (channel === 'island:spring-animation') {
+          useIslandStore.getState().setSpringAnimation(Boolean(value));
+        }
+        if (channel === 'island:animation-speed') {
+          const v = value === 'slow' || value === 'medium' || value === 'fast' ? value : 'medium';
+          useIslandStore.getState().setAnimationSpeed(v);
         }
         if (channel === 'store:island-bg-media') {
           const media = normalizeBgMediaConfig(value);
@@ -1221,7 +1235,7 @@ function DynamicIsland(): React.JSX.Element {
         return;
       }
 
-      if (state === 'notification' || state === 'agent' || state === 'stt' || state === 'guide' || state === 'login' || state === 'register' || state === 'payment' || state === 'announcement') {
+      if (state === 'notification' || state === 'agent' || state === 'stt' || state === 'agentVoiceInput' || state === 'guide' || state === 'login' || state === 'register' || state === 'payment' || state === 'announcement') {
         if (inWindow) {
           window.api?.disableMousePassthrough();
         }
@@ -1238,21 +1252,32 @@ function DynamicIsland(): React.JSX.Element {
         }
 
         if (!isHoveringRef.current && enterTimerRef.current === null) {
-          enterTimerRef.current = setTimeout(() => {
-            enterTimerRef.current = null;
-            if (aborted || isHoveringRef.current) return;
-
-            isHoveringRef.current = true;
+          if (state === 'idle' && idleClickExpandRef.current) {
             if (config.mousePassthrough) {
               window.api?.disableMousePassthrough();
             }
-            setHover();
-          });
+          } else {
+            enterTimerRef.current = setTimeout(() => {
+              enterTimerRef.current = null;
+              if (aborted || isHoveringRef.current) return;
+
+              isHoveringRef.current = true;
+              if (config.mousePassthrough) {
+                window.api?.disableMousePassthrough();
+              }
+              setHover();
+            });
+          }
         }
       } else {
         if (enterTimerRef.current !== null) {
           clearTimeout(enterTimerRef.current);
           enterTimerRef.current = null;
+        }
+
+        // idle 点击展开模式：鼠标离开时恢复穿透
+        if (state === 'idle' && idleClickExpandRef.current && !isHoveringRef.current) {
+          window.api?.enableMousePassthrough();
         }
 
         if (isHoveringRef.current && leaveTimerRef.current === null) {
@@ -1408,7 +1433,10 @@ function DynamicIsland(): React.JSX.Element {
    * @description hover 状态下单击展开到 expanded；expanded 状态下单击收回到 hover
    */
   const handleIslandClick = React.useCallback(() => {
-    if (state === 'hover') {
+    if (state === 'idle' && idleClickExpandRef.current) {
+      isHoveringRef.current = true;
+      setHover();
+    } else if (state === 'hover') {
       setExpanded();
     } else if (state === 'expanded' || state === 'maxExpand' || state === 'announcement') {
       setHover();
@@ -1420,7 +1448,7 @@ function DynamicIsland(): React.JSX.Element {
 
   return (
     <div
-      className={`island-shell ${getStateClassName(state)}${morphing ? ' morphing' : ''}${fromState ? ` from-${fromState}` : ''}${morphing && fromState && (STATE_AREA[fromState] ?? 0) > (STATE_AREA[state] ?? 0) ? ' instant-resize' : ''}${showGlow ? ' music-glow' : ''}${showGlow && !isPlaying ? ' music-paused' : ''}${springAnimation ? ' spring-animation' : ''}`}
+      className={`island-shell ${getStateClassName(state)}${morphing ? ' morphing' : ''}${fromState ? ` from-${fromState}` : ''}${morphing && fromState && (STATE_AREA[fromState] ?? 0) > (STATE_AREA[state] ?? 0) ? ' instant-resize' : ''}${showGlow ? ' music-glow' : ''}${showGlow && !isPlaying ? ' music-paused' : ''}${springAnimation ? ' spring-animation' : ''} speed-${animationSpeed}`}
       onClick={handleIslandClick}
       style={showGlow ? {
         '--glow-r': r,

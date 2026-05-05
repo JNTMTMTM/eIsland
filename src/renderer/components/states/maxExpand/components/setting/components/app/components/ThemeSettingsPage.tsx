@@ -221,7 +221,7 @@ export function ThemeSettingsPage({
         <div className="settings-card">
           <div className="settings-card-header">
             <div className="settings-card-title">{t('settings.app.theme.title', { defaultValue: '主题模式' })}</div>
-            <div className="settings-card-subtitle">{t('settings.app.theme.hint', { defaultValue: '选择深色、浅色或跟随系统主题，切换后立即生效' })}</div>
+            <div className="settings-card-subtitle">{t('settings.app.theme.hint', { defaultValue: '选择深色、浅色或跟随系统主题' })}</div>
           </div>
           <div className="settings-lyrics-source-options">
             {([
@@ -262,7 +262,7 @@ export function ThemeSettingsPage({
 
                   const restartRequiredNotification = {
                     title: t('settings.app.notifications.configChanged.title', { defaultValue: '配置变更' }),
-                    body: t('settings.app.notifications.windowControlsChanged.body', { defaultValue: '独立窗口控制按钮样式已变更，是否立即重启生效？' }),
+                    body: t('settings.app.notifications.windowControlsChanged.body', { defaultValue: '独立窗口控制按钮样式已变更。' }),
                     icon: SvgIcon.SETTING,
                     type: 'restart-required',
                   } as const;
@@ -603,7 +603,7 @@ export function ThemeSettingsPage({
                       window.api.settingsPreview('store:island-bg-video-hw-decode', next).catch(() => {});
                     }}
                   />
-                  {t('settings.app.theme.videoHwDecodeToggle', { defaultValue: '启用硬件解码（重启后生效）' })}
+                  {t('settings.app.theme.videoHwDecodeToggle', { defaultValue: '启用硬件解码' })}
                 </label>
               </div>
             </div>
@@ -613,7 +613,7 @@ export function ThemeSettingsPage({
         <div className="settings-card">
           <div className="settings-card-header">
             <div className="settings-card-title">{t('settings.app.theme.islandOpacityTitle', { defaultValue: '灵动岛透明度' })}</div>
-            <div className="settings-card-subtitle">{t('settings.app.theme.islandOpacityHint', { defaultValue: '数值越低越透明（10% - 100%），调整后立即生效' })}</div>
+            <div className="settings-card-subtitle">{t('settings.app.theme.islandOpacityHint', { defaultValue: '数值越低越透明（10% - 100%）' })}</div>
           </div>
           <div className="settings-opacity-slider-row">
             <input

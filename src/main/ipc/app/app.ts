@@ -36,6 +36,7 @@ import { openStandaloneWindow, closeStandaloneWindow } from '../../window/standa
 import { registerAgentIpcHandlers } from '../agent';
 import { queryOpenWindowsWithIcons, type RunningWindowInfo } from '../../system/runningProcesses';
 import { broadcastSettingChange } from '../../utils/broadcast';
+import { getSmtcNowPlaying } from '../../music/smtcAccessor';
 
 interface LocalFileSearchItem {
   name: string;
@@ -102,6 +103,7 @@ const ISLAND_SETTINGS_REGISTRY: Array<{ key: string; description: string; type: 
   { key: 'expand-mouseleave-idle', description: 'Expand 鼠标移开自动回 idle', type: 'boolean' },
   { key: 'maxexpand-mouseleave-idle', description: 'MaxExpand 鼠标移开自动回 idle', type: 'boolean' },
   { key: 'spring-animation', description: '弹性动画开关', type: 'boolean' },
+  { key: 'animation-speed', description: '动画速度 (slow/medium/fast)', type: 'string' },
   { key: 'clipboard-url-monitor-enabled', description: '剪贴板 URL 监听开关', type: 'boolean' },
   { key: 'clipboard-url-detect-mode', description: '剪贴板 URL 识别模式 (auto/strict)', type: 'string' },
   { key: 'clipboard-url-blacklist', description: '剪贴板 URL 域名黑名单', type: 'array' },
@@ -145,6 +147,7 @@ const ISLAND_SETTING_BROADCAST_CHANNELS: Record<string, string> = {
   'expand-mouseleave-idle': 'island:expand-mouseleave-idle',
   'maxexpand-mouseleave-idle': 'island:maxexpand-mouseleave-idle',
   'spring-animation': 'island:spring-animation',
+  'animation-speed': 'island:animation-speed',
 };
 
 function isTextMatched(target: string, keyword: string, mode: 'contains' | 'startsWith' | 'endsWith' | 'exact'): boolean {
@@ -1856,6 +1859,99 @@ async function executeAgentLocalTool(request: AgentLocalToolRequest): Promise<{
     if (tool === 'island.restart') {
       setTimeout(() => { app.relaunch(); app.exit(0); }, 500);
       return { success: true, result: { restarting: true }, error: '', durationMs: Date.now() - startedAt };
+    }
+
+    if (tool === 'sys.installed-apps') {
+      const filterArg = getStringArg(args, 'filter') || '';
+      const limitRaw = getNumberArg(args, 'limit');
+      const limit = Math.max(1, Math.min(500, Math.floor(limitRaw ?? 200)));
+
+      const { getAllInstalledSoftware } = require('fetch-installed-software') as {
+        getAllInstalledSoftware: () => Promise<Array<Record<string, string>>>;
+      };
+      const rawList: Array<Record<string, string>> = await getAllInstalledSoftware();
+
+      let apps = rawList
+        .filter((item) => item.DisplayName)
+        .map((item) => ({
+          name: item.DisplayName || '',
+          version: item.DisplayVersion || '',
+          publisher: item.Publisher || '',
+          installDate: item.InstallDate || '',
+          installLocation: item.InstallLocation || '',
+        }))
+        .sort((a, b) => a.name.localeCompare(b.name));
+
+      if (filterArg) {
+        const fl = filterArg.toLowerCase();
+        apps = apps.filter((a) => a.name.toLowerCase().includes(fl) || a.publisher.toLowerCase().includes(fl));
+      }
+
+      apps = apps.slice(0, limit);
+
+      return {
+        success: true,
+        result: { filter: filterArg || null, count: apps.length, apps },
+        error: '',
+        durationMs: Date.now() - startedAt,
+      };
+    }
+
+    if (tool === 'sys.launch') {
+      const target = getStringArg(args, 'target') || '';
+      const appName = getStringArg(args, 'app') || '';
+
+      if (!target && !appName) {
+        return { success: false, result: {}, error: 'sys.launch 需要 target 或 app 参数', durationMs: Date.now() - startedAt };
+      }
+
+      // open 包是 ESM-only，需要动态 import
+      const openModule = await (Function('return import("open")')() as Promise<typeof import('open')>);
+
+      if (appName && target) {
+        // 用指定应用打开目标
+        await openModule.openApp(appName, { arguments: [target] });
+      } else if (appName) {
+        // 仅启动应用
+        await openModule.openApp(appName);
+      } else {
+        // 打开文件/URL/可执行文件
+        await openModule.default(target);
+      }
+
+      return {
+        success: true,
+        result: { launched: target || appName, app: appName || null },
+        error: '',
+        durationMs: Date.now() - startedAt,
+      };
+    }
+
+    if (tool === 'sys.nowplaying') {
+      const nowPlaying = getSmtcNowPlaying();
+      if (!nowPlaying) {
+        return {
+          success: true,
+          result: { playing: false, message: '当前没有正在播放的媒体' },
+          error: '',
+          durationMs: Date.now() - startedAt,
+        };
+      }
+      return {
+        success: true,
+        result: {
+          playing: true,
+          title: nowPlaying.title,
+          artist: nowPlaying.artist,
+          album: nowPlaying.album,
+          isPlaying: nowPlaying.isPlaying,
+          duration_ms: nowPlaying.duration_ms,
+          position_ms: nowPlaying.position_ms,
+          deviceId: nowPlaying.deviceId,
+        },
+        error: '',
+        durationMs: Date.now() - startedAt,
+      };
     }
 
     throw new Error(`不支持的工具: ${tool}`);

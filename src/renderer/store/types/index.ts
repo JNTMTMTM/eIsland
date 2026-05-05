@@ -32,6 +32,9 @@ export type { WeatherApiConfig };
 /** 灵动岛 UI 状态枚举 */
 export type IslandState = 'idle' | 'hover' | 'expanded' | 'notification' | 'maxExpand' | 'lyrics' | 'guide' | 'login' | 'register' | 'payment' | 'announcement' | 'agentVoiceInput' | 'agent' | 'stt';
 
+/** 灵动岛动画速度档位 */
+export type AnimationSpeed = 'slow' | 'medium' | 'fast';
+
 /** Hover 状态下的子标签页类型 */
 export type HoverTab = 'time' | 'o3ics' | 'weather' | 'expand';
 
@@ -39,7 +42,7 @@ export type HoverTab = 'time' | 'o3ics' | 'weather' | 'expand';
 export type ExpandTab = 'hover' | 'overview' | 'song' | 'tools';
 
 /** MaxExpand 状态下的子标签页类型 */
-export type MaxExpandTab = 'aiChat' | 'todo' | 'urlFavorites' | 'localFileSearch' | 'clipboardHistory' | 'album' | 'mail' | 'countdown' | 'settings';
+export type MaxExpandTab = 'aiChat' | 'todo' | 'urlFavorites' | 'localFileSearch' | 'clipboardHistory' | 'album' | 'mail' | 'memo' | 'countdown' | 'settings';
 
 /** 歌词显示模式 */
 export type LrcMode = 'off' | 'info' | 'lrc';
@@ -202,6 +205,8 @@ export interface AiConfig {
   r1pxcAvatar: string;
   workspaces: string[];
   skills: AiSkill[];
+  ollamaModel: string;
+  ollamaBaseUrl: string;
 }
 
 /** AI 工具调用轨迹 */
@@ -304,6 +309,7 @@ export interface IslandSlice {
   agentPrompt: string;
 
   springAnimation: boolean;
+  animationSpeed: AnimationSpeed;
   setIdle: (force?: boolean) => void;
   setHover: () => void;
   setExpanded: () => void;
@@ -326,6 +332,7 @@ export interface IslandSlice {
   setExpandTab: (tab: ExpandTab) => void;
   setMaxExpandTab: (tab: MaxExpandTab) => void;
   setSpringAnimation: (enabled: boolean) => void;
+  setAnimationSpeed: (speed: AnimationSpeed) => void;
 }
 
 /** 天气 Slice */
@@ -361,7 +368,6 @@ export interface MediaSlice {
   nearbyLyrics: LyricLine[];
   coverImage: string | null;
   dominantColor: [number, number, number];
-  /** 同步歌词（SMTC 回调后立即获取） */
   syncedLyrics: SyncedLyricLine[] | null;
   lyricsLoading: boolean;
   updateLrcData: (data: LrcUpdateData | null) => void;

@@ -27,7 +27,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { CSSProperties, ChangeEvent, DragEvent, ReactElement, WheelEvent } from 'react';
+import type { ChangeEvent, DragEvent, ReactElement, WheelEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SvgIcon } from '../../../../utils/SvgIcon';
 
@@ -414,14 +414,14 @@ function clampColumns(value: unknown): number {
   return Math.max(MIN_COLUMNS, Math.min(MAX_COLUMNS, n));
 }
 
-/**
- * 相册页主组件
- * @description 提供总览、单图放大、元数据侧栏与基础 EXIF 解析等能力。
- */
 function AlbumControlIcon({ src }: { src: string }): ReactElement {
   return <img className="album-svg-icon-img" src={src} alt="" aria-hidden="true" draggable={false} />;
 }
 
+/**
+ * 相册页主组件。
+ * @description 提供总览、单图放大、元数据侧栏与基础 EXIF 解析等能力。
+ */
 export function AlbumTab(): ReactElement {
   const { t } = useTranslation();
   const [items, setItems] = useState<AlbumItem[]>([]);
@@ -1255,11 +1255,7 @@ export function AlbumTab(): ReactElement {
                         title={t('albumTab.actions.remove')}
                         aria-label={t('albumTab.actions.removeAria', { name: item.name })}
                       >
-                        <span
-                          className="album-svg-icon album-svg-icon--sm"
-                          style={{ '--album-icon-src': `url(${SvgIcon.CANCEL})` } as CSSProperties}
-                          aria-hidden="true"
-                        />
+                        <AlbumControlIcon src={SvgIcon.DELETE} />
                       </button>
                     </div>
                   </div>

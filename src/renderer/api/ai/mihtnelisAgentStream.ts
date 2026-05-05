@@ -316,6 +316,77 @@ export async function resolveMihtnelisLocalToolAccess(request: ResolveMihtnelisL
   }
 }
 
+export interface FetchAgentPromptRequest {
+  token: string;
+  agentMode?: string;
+  snapshotMode?: boolean;
+  localMode?: boolean;
+  workspaces?: string[];
+  skills?: Array<{ name: string; content: string }>;
+}
+
+export interface FetchAgentPromptResponse {
+  success: boolean;
+  systemPrompt: string;
+  error?: string;
+}
+
+/**
+ * 从服务端动态获取 Agent 系统提示词（供客户端本地直连模式使用）。
+ * @param request - 请求参数。
+ */
+export async function fetchAgentPrompt(request: FetchAgentPromptRequest): Promise<FetchAgentPromptResponse> {
+  const token = request.token?.trim();
+  if (!token) {
+    throw new Error('未登录，无法获取 agent prompt');
+  }
+
+  const headers: Record<string, string> = {
+    Accept: 'application/json',
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${token}`,
+    [APP_NAME_HEADER]: APP_NAME_VALUE,
+    ...buildReplayHeaders(),
+  };
+  const version = await resolveClientVersion();
+  if (version) {
+    headers['X-Client-Version'] = version;
+  }
+
+  const response = await fetch(`${USER_ACCOUNT_API_BASE}/v1/user/ai/agent/prompt`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({
+      agentMode: request.agentMode || undefined,
+      snapshotMode: request.snapshotMode === true ? true : undefined,
+      localMode: request.localMode === true ? true : undefined,
+      workspaces: Array.isArray(request.workspaces) && request.workspaces.length > 0 ? request.workspaces : undefined,
+      skills: Array.isArray(request.skills) && request.skills.length > 0 ? request.skills : undefined,
+    }),
+  });
+
+  if (!response.ok) {
+    const body = await response.text().catch(() => '');
+    let detail = body || response.statusText;
+    try {
+      const parsed = JSON.parse(body) as { error?: unknown; message?: unknown };
+      const parsedMessage = parsed.error ?? parsed.message;
+      if (typeof parsedMessage === 'string' && parsedMessage.trim()) {
+        detail = parsedMessage.trim();
+      }
+    } catch {
+      // ignore non-json error body
+    }
+    throw new Error(`获取 agent prompt 失败 (${response.status}): ${detail}`);
+  }
+
+  const json = (await response.json()) as FetchAgentPromptResponse;
+  if (!json.success) {
+    throw new Error(json.error || '获取 agent prompt 失败');
+  }
+  return json;
+}
+
 function toEventType(input: string): MihtnelisAgentStreamEventType | null {
   if (input === 'meta') return 'meta';
   if (input === 'tool') return 'tool';

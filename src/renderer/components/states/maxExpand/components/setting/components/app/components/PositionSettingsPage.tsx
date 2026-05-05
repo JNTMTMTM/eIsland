@@ -73,7 +73,7 @@ export function PositionSettingsPage({
         <div className="settings-card">
           <div className="settings-card-header">
             <div className="settings-card-title">{t('settings.app.position.displayTitle', { defaultValue: '显示器选择' })}</div>
-            <div className="settings-card-subtitle">{t('settings.app.position.displayHint', { defaultValue: '多显示器环境可指定灵动岛显示器，重启应用后生效。' })}</div>
+            <div className="settings-card-subtitle">{t('settings.app.position.displayHint', { defaultValue: '多显示器环境可指定灵动岛显示器。' })}</div>
           </div>
           <div className="settings-hotkey-row">
             <label className="settings-field" style={{ flex: 1 }}>
@@ -96,7 +96,7 @@ export function PositionSettingsPage({
         <div className="settings-card">
           <div className="settings-card-header">
             <div className="settings-card-title">{t('settings.app.position.quickAdjustTitle', { defaultValue: '快速微调' })}</div>
-            <div className="settings-card-subtitle">{t('settings.app.position.quickAdjustHint', { defaultValue: '每次按钮点击以 10px 步进移动灵动岛位置，立即生效并自动保存。' })}</div>
+            <div className="settings-card-subtitle">{t('settings.app.position.quickAdjustHint', { defaultValue: '每次按钮点击以 10px 步进移动灵动岛位置，并自动保存。' })}</div>
           </div>
           <div className="settings-hotkey-row">
             <button className="settings-hotkey-btn" type="button" onClick={() => applyIslandPositionOffset(islandPositionOffset.x - 10, islandPositionOffset.y)}>{t('settings.app.position.moveLeft', { defaultValue: '左移 10' })}</button>

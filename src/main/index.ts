@@ -62,6 +62,7 @@ import { createCaptureWindowService } from './window/captureWindow';
 import { createMainWindowService } from './window/mainWindow';
 import { openStandaloneWindow } from './window/standaloneWindow';
 import { createSmtcService } from './music/smtcService';
+import { setSmtcAccessor } from './music/smtcAccessor';
 import { createAutoHideWatcher } from './system/autoHideWatcher';
 import { sendMediaVirtualKey } from './system/mediaKey';
 import {
@@ -88,7 +89,7 @@ import {
   LYRICS_KARAOKE_STORE_KEY, LYRICS_CLOCK_STORE_KEY,
   SMTC_UNSUBSCRIBE_MS_STORE_KEY, HIDE_PROCESS_LIST_STORE_KEY,
   THEME_MODE_STORE_KEY, ISLAND_OPACITY_STORE_KEY,
-  EXPAND_MOUSELEAVE_IDLE_STORE_KEY, MAXEXPAND_MOUSELEAVE_IDLE_STORE_KEY,
+  EXPAND_MOUSELEAVE_IDLE_STORE_KEY, MAXEXPAND_MOUSELEAVE_IDLE_STORE_KEY, IDLE_CLICK_EXPAND_STORE_KEY,
   CLIPBOARD_URL_MONITOR_ENABLED_STORE_KEY,
   CLIPBOARD_URL_DETECT_MODE_STORE_KEY, CLIPBOARD_URL_BLACKLIST_STORE_KEY,
   AUTOSTART_MODE_STORE_KEY, NAV_ORDER_STORE_KEY,
@@ -458,6 +459,7 @@ function registerIpcHandlers(): void {
     islandOpacityStoreKey: ISLAND_OPACITY_STORE_KEY,
     expandMouseleaveIdleStoreKey: EXPAND_MOUSELEAVE_IDLE_STORE_KEY,
     maxExpandMouseleaveIdleStoreKey: MAXEXPAND_MOUSELEAVE_IDLE_STORE_KEY,
+    idleClickExpandStoreKey: IDLE_CLICK_EXPAND_STORE_KEY,
     autostartModeStoreKey: AUTOSTART_MODE_STORE_KEY,
     navOrderStoreKey: NAV_ORDER_STORE_KEY,
   });
@@ -689,6 +691,7 @@ app.whenReady().then(() => {
   createTray(mainWindow);
 
   smtcService.initWorker();
+  setSmtcAccessor(smtcService.getSmtcSessionRuntime, smtcService.getCurrentDeviceId);
   startClipboardUrlWatcher({
     getWindow: () => mainWindow,
     getEnabled: clipboardUrlState.getMonitorEnabled,

@@ -11,6 +11,7 @@
       "mail": "邮箱",
       "localFileSearch": "文件查找",
       "clipboardHistory": "剪贴板历史",
+      "memo": "备忘录",
       "settings": "设置"
     },
     "controls": {
@@ -602,8 +603,10 @@
         "3": "今天也一起高效一点，你想从哪件事开始？"
       },
       "aiGeneratedDisclaimer": "内容由 AI 生成，请仔细甄别。",
+      "localModelGenerated": "本地模型生成",
       "agentError": "mihtnelis agent 返回错误",
       "noModelOutput": "⚠️ 未收到模型输出，请检查 DeepSeek 配置与服务端日志。",
+      "noModelOutputOllama": "⚠️ 未收到模型输出，请检查 Ollama 服务是否运行中。",
       "localToolExecuteFailed": "本地工具执行失败",
       "localToolSubmitFailed": "本地工具结果提交失败",
       "apiRequestFailed": "API 请求失败 ({{status}}): {{detail}}",
@@ -875,6 +878,7 @@
       "localFileSearch": "文件查找",
       "clipboardHistory": "剪贴板",
       "aiChat": "AI 对话",
+      "memo": "备忘录",
       "countdown": "倒数日",
       "settings": "设置",
       "switchTo": "切换到{{label}}"
@@ -908,6 +912,28 @@
       "empty": "暂无结果，试试更换关键词或目录。",
       "rootPlaceholder": "选择或输入搜索目录，例如 C:\\Users",
       "keywordPlaceholder": "输入文件名关键词，例如 report、.pdf"
+    },
+    "memo": {
+      "search": "搜索备忘录…",
+      "add": "新建",
+      "loading": "加载中…",
+      "empty": "暂无备忘录",
+      "untitled": "无标题",
+      "noContent": "无内容",
+      "pinned": "已置顶",
+      "titlePlaceholder": "标题",
+      "contentPlaceholder": "在这里写点什么…",
+      "bookmark": "标记书签",
+      "unbookmark": "取消书签",
+      "bookmarked": "已标记",
+      "showAll": "显示全部",
+      "showBookmarked": "仅显示书签",
+      "pin": "置顶",
+      "unpin": "取消置顶",
+      "delete": "删除",
+      "created": "创建于",
+      "updated": "更新于",
+      "selectHint": "选择或新建一条备忘录"
     }
   },
   "settings": {
@@ -1052,17 +1078,17 @@
       "notifications": {
         "configChanged": {
           "title": "配置变更",
-          "body": "待办事项/倒数日/设置打开方式已变更，是否立即重启生效？"
+          "body": "待办事项/倒数日/设置打开方式已变更。"
         },
         "windowControlsChanged": {
-          "body": "独立窗口控制按钮样式已变更，是否立即重启生效？"
+          "body": "独立窗口控制按钮样式已变更。"
         }
       },
       "layout": {
         "previewTitle": "总览布局预览",
         "previewHint": "实时显示左右控件组合后的 Expand 态灵动岛样式，切换下方控件可即时预览。",
         "widgetPickerTitle": "控件组合",
-        "widgetPickerHint": "分别选择左右两侧展示的控件，切换后立即生效并自动保存。",
+        "widgetPickerHint": "分别选择左右两侧展示的控件，切换后自动保存。",
         "leftWidget": "左侧控件",
         "rightWidget": "右侧控件",
         "widgetNames": {
@@ -1089,11 +1115,11 @@
       },
       "position": {
         "title": "灵动岛位置偏移",
-        "hint": "调整后立即生效并自动保存，重启后会按该位置校准。",
+        "hint": "调整后自动保存，重启后会按该位置校准。",
         "quickAdjustTitle": "快速微调",
-        "quickAdjustHint": "每次按钮点击以 10px 步进移动灵动岛位置，立即生效并自动保存。",
+        "quickAdjustHint": "每次按钮点击以 10px 步进移动灵动岛位置，并自动保存。",
         "displayTitle": "显示器选择",
-        "displayHint": "多显示器环境可指定灵动岛显示器，重启应用后生效。",
+        "displayHint": "多显示器环境可指定灵动岛显示器。",
         "displayLabel": "目标显示器",
         "displayPrimaryOption": "主显示器（推荐）",
         "displayOption": "显示器 {{index}}（{{width}}×{{height}}）",
@@ -1112,9 +1138,9 @@
       },
       "theme": {
         "title": "主题模式",
-        "hint": "选择深色、浅色或跟随系统主题，切换后立即生效",
+        "hint": "选择深色、浅色或跟随系统主题",
         "windowControlsTitle": "独立窗口控制按钮样式",
-        "windowControlsHint": "启用后，独立窗口右上角将显示 macOS 风格三色圆点控制按钮 (重启后生效)",
+        "windowControlsHint": "启用后，独立窗口右上角将显示 macOS 风格三色圆点控制按钮",
         "windowControlsMacToggle": "使用 Mac 风格窗口控制按钮",
         "dark": "深色模式",
         "light": "浅色模式",
@@ -1136,7 +1162,7 @@
         "videoLoopToggle": "循环播放视频",
         "videoVolumeHint": "背景视频音量（0 - 100%），取消静音后生效",
         "videoRateHint": "播放速度",
-        "videoHwDecodeToggle": "启用硬件解码（重启后生效）",
+        "videoHwDecodeToggle": "启用硬件解码",
         "syncDesktopWallpaperTitle": "同步系统桌面壁纸",
         "syncDesktopWallpaperHint": "背景图片/视频变化时，同步更新 Windows 系统桌面壁纸（视频将使用封面图）",
         "syncDesktopWallpaperToggle": "背景变化时同步到系统桌面",
@@ -1156,29 +1182,45 @@
         "imageOpacityHint": "背景图片透明度（0% - 100%），数值越高图片越明显",
         "imageBlurHint": "背景图片模糊度（0px - 20px），数值越高越模糊",
         "islandOpacityTitle": "灵动岛透明度",
-        "islandOpacityHint": "数值越低越透明（10% - 100%），调整后立即生效"
+        "islandOpacityHint": "数值越低越透明（10% - 100%）"
       },
       "behavior": {
-        "springTitle": "灵动岛弹性动画",
-        "springHint": "关闭后，展开和收起动画将变得更加平滑内敛，消除弹跳感",
-        "springToggle": "启用弹性动画",
         "mouseLeaveTitle": "鼠标移开自动收回",
-        "mouseLeaveHint": "启用后，鼠标离开灵动岛时将自动回到空闲状态（重启后生效）",
+        "mouseLeaveHint": "启用后，鼠标离开灵动岛时将自动回到空闲状态",
         "expandLeaveToggle": "展开态（Expand）鼠标移开后自动收回",
         "maxExpandLeaveToggle": "最大展开态（MaxExpand）鼠标移开后自动收回",
+        "idleClickExpandTitle": "空闲态点击展开",
+        "idleClickExpandHint": "启用后，鼠标悬停在灵动岛上不会自动展开，需要点击才能展开，后续交互不受影响",
+        "idleClickExpandToggle": "空闲状态下点击展开（禁用悬停自动展开）",
         "windowModeTitle": "待办事项 / 倒数日 / 设置 打开方式",
-        "windowModeHint": "选择点击导航时，在灵动岛内显示还是打开独立窗口（重启后生效）",
+        "windowModeHint": "选择点击导航时，在灵动岛内显示还是打开独立窗口",
         "integratedMode": "集成在灵动岛中",
         "standaloneMode": "独立窗口",
         "hoverScreenshotModeTitle": "悬停界面截图按钮模式",
-        "hoverScreenshotModeHint": "配置 hover 界面的截图按钮触发选区截图或显示器截图（立即生效）",
+        "hoverScreenshotModeHint": "配置 hover 界面的截图按钮触发选区截图或显示器截图",
         "hoverScreenshotModeLabel": "截图方式",
         "hoverScreenshotModeRegion": "选区截图",
         "hoverScreenshotModeDisplay": "显示器截图"
       },
+      "animation": {
+        "springTitle": "灵动岛弹性动画",
+        "springHint": "关闭后，展开和收起动画将变得更加平滑内敛，消除弹跳感",
+        "springToggle": "启用弹性动画",
+        "animSpeedTitle": "灵动岛动画速度",
+        "animSpeedHint": "控制灵动岛状态切换时的过渡动画快慢",
+        "animSpeed_slow": "慢",
+        "animSpeed_medium": "中",
+        "animSpeed_fast": "快",
+        "expandTabSwitchTitle": "Expand 切换动画",
+        "expandTabSwitchHint": "启用后，展开态切换页面时将播放左右滑动过渡动画",
+        "expandTabSwitchToggle": "启用切换动画",
+        "maxExpandTabSwitchTitle": "MaxExpand 切换动画",
+        "maxExpandTabSwitchHint": "启用后，最大展开态切换页面时将播放左右滑动过渡动画",
+        "maxExpandTabSwitchToggle": "启用切换动画"
+      },
       "album": {
         "carouselTitle": "相册轮播方式",
-        "carouselHint": "配置总览相册卡片的轮播顺序、频率、展示内容与点击行为（立即生效）",
+        "carouselHint": "配置总览相册卡片的轮播顺序、频率、展示内容与点击行为",
         "intervalLabel": "轮播间隔",
         "interval3s": "3 秒",
         "interval5s": "5 秒",
@@ -1187,12 +1229,12 @@
         "orderSequential": "顺序轮播",
         "orderRandom": "随机轮播",
         "filterLabel": "展示资源",
-        "filterHint": "选择总览相册卡片参与轮播的资源类型（立即生效）",
+        "filterHint": "选择总览相册卡片参与轮播的资源类型",
         "filterAll": "全部",
         "filterImage": "仅图片",
         "filterVideo": "仅视频",
         "clickBehaviorLabel": "点击卡片行为",
-        "clickBehaviorHint": "配置点击总览相册卡片后的行为（立即生效）",
+        "clickBehaviorHint": "配置点击总览相册卡片后的行为",
         "clickBehaviorOpen": "打开相册页",
         "clickBehaviorNone": "无动作",
         "playbackTitle": "自动播放与视频行为",
@@ -1290,7 +1332,7 @@
         "hint": "设置网络请求的最长等待时间，网络较差时可适当增大",
         "presetTitle": "常用预设",
         "customTitle": "自定义秒数",
-        "customHint": "输入 1 - 120 之间的秒数，回车或失去焦点后立即生效。",
+        "customHint": "输入 1 - 120 之间的秒数，回车或失去焦点后应用。",
         "unitSecond": "秒",
         "options": {
           "ms5000": "5 秒",
@@ -1302,9 +1344,9 @@
       },
       "staticAssetNode": {
         "title": "静态资源节点",
-        "hint": "所有用户默认使用 R2，PRO 用户可选择 R2/COS/OSS。",
-        "proOnlyHint": "仅 PRO 用户可用",
-        "proHint": "升级 PRO 可切换 COS/OSS 节点（也可继续使用 R2）。"
+        "hint": "所有用户默认使用 R2，可选择 R2/COS/OSS。",
+        "proOnlyHint": "当前账户不可用",
+        "proHint": "可切换 COS/OSS 节点（也可继续使用 R2）。"
       }
     },
     "weather": {
@@ -1321,7 +1363,7 @@
       "saveLocation": "保存定位配置",
       "providerPriority": {
         "title": "天气接口优先级",
-        "hint": "可选择优先使用 Open-Meteo、UAPI 或和风天气（PRO），失败时自动切换到可用源"
+        "hint": "可选择优先使用 Open-Meteo、UAPI 或和风天气，失败时自动切换到可用源"
       },
       "alert": {
         "title": "启动天气预警提醒",
@@ -1329,8 +1371,8 @@
         "enabled": "开启预警提醒",
         "disabled": "关闭预警提醒"
       },
-      "proBadge": "PRO",
-      "proOnlyHint": "仅 PRO 用户可用",
+      "proBadge": "",
+      "proOnlyHint": "当前账户不可用",
       "options": {
         "locationPriority": {
           "ip": "IP 定位优先",
@@ -1350,11 +1392,11 @@
         "providerNonJson": "{{name}} 返回了非 JSON",
         "providerAvailable": "{{name}} 可用",
         "providerUnavailable": "{{name}} 不可用：{{error}}",
-        "proLoginRequired": "请先登录 PRO 账号",
+        "proLoginRequired": "请先登录账号",
         "testResult": "{{city}}（{{lat}}, {{lng}}） - {{details}}",
         "detailSeparator": "；",
         "customNeedsCity": "选择“自定义位置优先”时请先输入城市名称",
-        "priorityApplied": "定位来源优先级已立即生效",
+        "priorityApplied": "定位来源优先级已应用",
         "customMissingFallback": "已切换为自定义位置优先，但未配置城市，将自动回退到 IP 定位",
         "configSavedWithCity": "天气定位配置已保存（{{city}} {{lat}}, {{lng}}）",
         "configSaved": "天气定位配置已保存"
@@ -1414,6 +1456,7 @@
     "shortcut": {
       "pages": {
         "window": "窗口控制",
+        "agent": "Agent 快捷键",
         "capture": "截图",
         "media": "音乐控制"
       },
@@ -1492,9 +1535,9 @@
       "currentVersion": "当前版本",
       "source": "更新源",
       "sourceHint": "Cloudflare R2：全球访问稳定，综合速度均衡\nTencent COS：国内网络通常更快\nAliyun OSS：国内节点覆盖广，峰值速度高\nGitHub Releases：海外链路较稳，国内可能偏慢",
-      "proOnlyTag": "PRO 专属",
-      "proOnlyError": "该更新源仅 PRO 用户可用",
-      "proOnlyNeedLogin": "请先登录 PRO 账号后再使用该更新源",
+      "proOnlyTag": "",
+      "proOnlyError": "当前账户不可用该更新源",
+      "proOnlyNeedLogin": "请先登录账号后再使用该更新源",
       "sourceResolveFailed": "获取更新源地址失败",
       "latestVersion": "最新版本",
       "downloadingFrom": "正在从 {{source}} 下载更新…",
@@ -1696,6 +1739,7 @@
       },
       "deepseekReasoningEffort": "DeepSeek 推理强度",
       "mimoReasoningEffort": "Mimo 推理强度",
+      "ollamaReasoningEffort": "思考强度",
       "deepseekReasoningEffortOptions": {
         "low": "低 (low)",
         "medium": "中 (medium)",
@@ -1717,6 +1761,19 @@
       "workspaceAdd": "+ 添加工作区文件夹",
       "workspaceRemove": "移除",
       "workspaceEmpty": "未配置工作区，Agent 文件操作将被禁止",
+      "ollamaTitle": "Ollama 本地模型",
+      "ollamaHint": "配置本地 Ollama 服务地址与默认模型，在模型下拉中选择 ollama 即可使用",
+      "ollamaModel": "模型名称",
+      "ollamaFetching": "正在获取…",
+      "ollamaFetchBtn": "获取本地模型列表",
+      "ollamaFetchEmpty": "未检测到本地 Ollama 模型",
+      "ollamaFetchOk": "已找到 {{count}} 个本地模型",
+      "ollamaFetchFail": "获取模型列表失败，请检查 Ollama 服务",
+      "ollamaBaseUrl": "服务地址",
+      "ollamaDetecting": "正在检测…",
+      "ollamaDetectBtn": "自动检测 Ollama 端口",
+      "ollamaDetectOk": "已检测到 {{url}}",
+      "ollamaDetectFail": "未检测到运行中的 Ollama 服务，请确认已启动 ollama serve",
       "r1pxcConfigTitle": "r1pxc Agent 头像配置",
       "r1pxcConfigHint": "支持拖入图片或从文件资源管理器选择，不支持 URL",
       "r1pxcAvatarReplace": "点击或拖入图片以替换头像",
@@ -1951,7 +2008,7 @@
           "priceUnavailable": "价格待定",
           "desc": "完整高级能力与持续更新支持。",
           "feature1": "全部 Free 权益",
-          "feature2": "Pro 专属功能与扩展",
+          "feature2": "高级功能与扩展",
           "feature3": "优先体验新功能"
         },
         "billingCycle": {

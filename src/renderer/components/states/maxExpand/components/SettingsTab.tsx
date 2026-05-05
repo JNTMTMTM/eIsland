@@ -1315,6 +1315,11 @@ export function SettingsTab(): ReactElement {
       if (cancelled) return;
       useIslandStore.getState().setSpringAnimation(v);
     }).catch(() => {});
+    window.api.animationSpeedGet().then((v) => {
+      if (cancelled) return;
+      const valid = v === 'slow' || v === 'medium' || v === 'fast' ? v : 'medium';
+      useIslandStore.getState().setAnimationSpeed(valid);
+    }).catch(() => {});
     window.api.clipboardUrlMonitorGet().then((v) => {
       if (cancelled) return;
       setClipboardUrlMonitorEnabled(v);
@@ -2941,6 +2946,7 @@ export function SettingsTab(): ReactElement {
               aiSettingsPages={AI_SETTINGS_PAGES}
               aiSettingsPageLabels={translatedSettingsTabLabels}
               setAiSettingsPage={setAiSettingsPage}
+              isProUser={isProUser}
             />
           )}
 

@@ -488,6 +488,13 @@
   background: rgba(255, 90, 90, 0.22);
 }
 
+.album-grid-remove .album-svg-icon-img {
+  width: 12px;
+  height: 12px;
+  flex: 0 0 12px;
+  filter: brightness(0) invert(48%) sepia(91%) saturate(4012%) hue-rotate(336deg) brightness(101%) contrast(101%);
+}
+
 /* ===== Viewer ===== */
 
 .album-viewer {

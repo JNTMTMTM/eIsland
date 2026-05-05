@@ -236,6 +236,68 @@ const api = {
     return ipcRenderer.invoke('agent:local-tool:execute', request);
   },
   /**
+   * 检测本地 Ollama 服务是否可用
+   */
+  ollamaPing: (baseUrl?: string): Promise<boolean> => {
+    return ipcRenderer.invoke('ollama:ping', baseUrl);
+  },
+  /**
+   * 获取 Ollama 本地可用模型列表
+   */
+  ollamaModels: (baseUrl?: string): Promise<string[]> => {
+    return ipcRenderer.invoke('ollama:models', baseUrl);
+  },
+  /**
+   * 自动检测本地 Ollama 服务运行的端口（baseUrl）
+   */
+  ollamaDetectBaseUrl: (): Promise<string | null> => {
+    return ipcRenderer.invoke('ollama:detectBaseUrl');
+  },
+  /**
+   * 启动 Ollama 本地 ReAct 编排会话
+   */
+  ollamaChatStart: (
+    sessionId: string,
+    request: {
+      model: string;
+      systemPrompt: string;
+      userMessage: string;
+      context?: string;
+      baseUrl?: string;
+      temperature?: number;
+    },
+  ): Promise<{ started: boolean; sessionId: string }> => {
+    return ipcRenderer.invoke('ollama:chat:start', sessionId, request);
+  },
+  /**
+   * 中止 Ollama 本地编排会话
+   */
+  ollamaChatAbort: (sessionId: string): Promise<{ aborted: boolean }> => {
+    return ipcRenderer.invoke('ollama:chat:abort', sessionId);
+  },
+  /**
+   * 监听 Ollama 编排会话事件
+   * @param sessionId - 会话 ID
+   * @param callback - 事件回调
+   * @returns 取消监听函数
+   */
+  onOllamaChatEvent: (
+    sessionId: string,
+    callback: (event: { type: string; payload: Record<string, unknown> }) => void,
+  ): (() => void) => {
+    const channel = `ollama:chat:event:${sessionId}`;
+    const handler = (
+      _event: Electron.IpcRendererEvent,
+      data: { type: string; payload: Record<string, unknown> },
+    ): void => {
+      callback(data);
+    };
+    ipcRenderer.on(channel, handler);
+    return () => {
+      ipcRenderer.removeListener(channel, handler);
+    };
+  },
+  /**
    * 清理日志缓存
    */
   clearLogsCache: (): Promise<{ success: boolean; freedBytes: number }> => {
@@ -911,6 +973,18 @@ const api = {
     return ipcRenderer.invoke('island:maxexpand-mouseleave-idle:set', enabled);
   },
   /**
+   * 获取 idle 点击展开开关
+   */
+  idleClickExpandGet: (): Promise<boolean> => {
+    return ipcRenderer.invoke('island:idle-click-expand:get');
+  },
+  /**
+   * 设置 idle 点击展开开关
+   */
+  idleClickExpandSet: (enabled: boolean): Promise<boolean> => {
+    return ipcRenderer.invoke('island:idle-click-expand:set', enabled);
+  },
+  /**
    * 获取是否启用弹性动画
    */
   springAnimationGet: (): Promise<boolean> => {
@@ -921,6 +995,18 @@ const api = {
    */
   springAnimationSet: (enabled: boolean): Promise<boolean> => {
     return ipcRenderer.invoke('island:spring-animation:set', enabled);
+  },
+  /**
+   * 获取动画速度档位 (slow / medium / fast)
+   */
+  animationSpeedGet: (): Promise<string> => {
+    return ipcRenderer.invoke('island:animation-speed:get');
+  },
+  /**
+   * 设置动画速度档位
+   */
+  animationSpeedSet: (speed: string): Promise<boolean> => {
+    return ipcRenderer.invoke('island:animation-speed:set', speed);
   },
   /**
    * 读取当前剪贴板文本

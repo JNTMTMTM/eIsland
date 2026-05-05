@@ -65,7 +65,7 @@ export function LayoutPreviewSettingsPage({
         <div className="settings-card">
           <div className="settings-card-header">
             <div className="settings-card-title">{t('settings.app.layout.widgetPickerTitle', { defaultValue: '控件组合' })}</div>
-            <div className="settings-card-subtitle">{t('settings.app.layout.widgetPickerHint', { defaultValue: '分别选择左右两侧展示的控件，切换后立即生效并自动保存。' })}</div>
+            <div className="settings-card-subtitle">{t('settings.app.layout.widgetPickerHint', { defaultValue: '分别选择左右两侧展示的控件，切换后自动保存。' })}</div>
           </div>
           <div className="settings-layout-controls">
             <div className="settings-layout-control">

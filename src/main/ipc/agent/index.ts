@@ -25,6 +25,7 @@
  */
 
 import { registerAgentLocalToolIpcHandlers } from './localToolIpc';
+import { registerOllamaIpcHandlers } from './ollamaIpc';
 import type { AgentLocalToolRequest, AgentLocalToolResult } from './localToolIpc';
 
 export type { AgentLocalToolRequest, AgentLocalToolResult } from './localToolIpc';
@@ -36,6 +37,9 @@ interface RegisterAgentIpcHandlersOptions {
 /** 注册所有 Agent 相关的 IPC handler。 */
 export function registerAgentIpcHandlers(options: RegisterAgentIpcHandlersOptions): void {
   registerAgentLocalToolIpcHandlers({
+    executeAgentLocalTool: options.executeAgentLocalTool,
+  });
+  registerOllamaIpcHandlers({
     executeAgentLocalTool: options.executeAgentLocalTool,
   });
 }

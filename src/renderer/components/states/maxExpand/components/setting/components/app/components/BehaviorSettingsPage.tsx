@@ -59,6 +59,7 @@ export function BehaviorSettingsPage({
 
   const [standaloneWindowMode, setStandaloneWindowMode] = useState<'integrated' | 'standalone'>('integrated');
   const [hoverScreenshotMode, setHoverScreenshotMode] = useState<HoverScreenshotMode>('region');
+  const [idleClickExpand, setIdleClickExpand] = useState<boolean>(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -77,6 +78,15 @@ export function BehaviorSettingsPage({
     return () => {
       cancelled = true;
     };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    window.api.idleClickExpandGet().then((v) => {
+      if (cancelled) return;
+      setIdleClickExpand(v);
+    }).catch(() => {});
+    return () => { cancelled = true; };
   }, []);
 
   useEffect(() => {
@@ -104,7 +114,7 @@ export function BehaviorSettingsPage({
 
     const restartRequiredNotification = {
       title: t('settings.app.notifications.configChanged.title', { defaultValue: '配置变更' }),
-      body: t('settings.app.notifications.configChanged.body', { defaultValue: '待办事项/倒数日/设置打开方式已变更，是否立即重启生效？' }),
+      body: t('settings.app.notifications.configChanged.body', { defaultValue: '待办事项/倒数日/设置打开方式已变更。' }),
       icon: SvgIcon.SETTING,
       type: 'restart-required',
     } as const;
@@ -123,28 +133,7 @@ export function BehaviorSettingsPage({
       <div className="settings-cards">
         <div className="settings-card">
           <div className="settings-card-header">
-            <div className="settings-card-title">{t('settings.app.behavior.springTitle', { defaultValue: '灵动岛弹性动画 (立即生效)' })}</div>
-            <div className="settings-card-subtitle">{t('settings.app.behavior.springHint', { defaultValue: '关闭后，展开和收起动画将变得更加平滑内敛，消除弹跳感' })}</div>
-          </div>
-          <div className="settings-card-inline-row">
-            <label className="settings-card-check">
-              <input
-                type="checkbox"
-                checked={useIslandStore.getState().springAnimation}
-                onChange={(e) => {
-                  const next = e.target.checked;
-                  useIslandStore.getState().setSpringAnimation(next);
-                  window.api.springAnimationSet(next).catch(() => {});
-                }}
-              />
-              {t('settings.app.behavior.springToggle', { defaultValue: '启用弹性动画' })}
-            </label>
-          </div>
-        </div>
-
-        <div className="settings-card">
-          <div className="settings-card-header">
-            <div className="settings-card-title">{t('settings.app.behavior.mouseLeaveTitle', { defaultValue: '鼠标移开自动收回 (重启后生效)' })}</div>
+            <div className="settings-card-title">{t('settings.app.behavior.mouseLeaveTitle', { defaultValue: '鼠标移开自动收回' })}</div>
             <div className="settings-card-subtitle">{t('settings.app.behavior.mouseLeaveHint', { defaultValue: '启用后，鼠标离开灵动岛时将自动回到空闲状态（若正在播放音乐则切到歌词态）' })}</div>
           </div>
           <div className="settings-card-inline-row">
@@ -175,8 +164,28 @@ export function BehaviorSettingsPage({
 
         <div className="settings-card">
           <div className="settings-card-header">
+            <div className="settings-card-title">{t('settings.app.behavior.idleClickExpandTitle', { defaultValue: '空闲态点击展开' })}</div>
+            <div className="settings-card-subtitle">{t('settings.app.behavior.idleClickExpandHint', { defaultValue: '启用后，鼠标悬停在灵动岛上不会自动展开，需要点击才能展开，后续交互不受影响' })}</div>
+          </div>
+          <div className="settings-card-inline-row">
+            <label className="settings-card-check">
+              <input
+                type="checkbox"
+                checked={idleClickExpand}
+                onChange={(e) => {
+                  setIdleClickExpand(e.target.checked);
+                  window.api.idleClickExpandSet(e.target.checked).catch(() => {});
+                }}
+              />
+              {t('settings.app.behavior.idleClickExpandToggle', { defaultValue: '空闲状态下点击展开（禁用悬停自动展开）' })}
+            </label>
+          </div>
+        </div>
+
+        <div className="settings-card">
+          <div className="settings-card-header">
             <div className="settings-card-title">{t('settings.app.behavior.windowModeTitle', { defaultValue: '待办事项 / 倒数日 / 设置 打开方式' })}</div>
-            <div className="settings-card-subtitle">{t('settings.app.behavior.windowModeHint', { defaultValue: '选择点击导航时，在灵动岛内显示还是打开独立窗口（重启后生效）' })}</div>
+            <div className="settings-card-subtitle">{t('settings.app.behavior.windowModeHint', { defaultValue: '选择点击导航时，在灵动岛内显示还是打开独立窗口' })}</div>
           </div>
           <div className="settings-card-inline-row">
             <label className="settings-card-check">
@@ -207,7 +216,7 @@ export function BehaviorSettingsPage({
         <div className="settings-card">
           <div className="settings-card-header">
             <div className="settings-card-title">{t('settings.app.behavior.hoverScreenshotModeTitle', { defaultValue: '悬停界面截图按钮模式' })}</div>
-            <div className="settings-card-subtitle">{t('settings.app.behavior.hoverScreenshotModeHint', { defaultValue: '配置 hover 界面的截图按钮触发选区截图或显示器截图（立即生效）' })}</div>
+            <div className="settings-card-subtitle">{t('settings.app.behavior.hoverScreenshotModeHint', { defaultValue: '配置 hover 界面的截图按钮触发选区截图或显示器截图' })}</div>
           </div>
           <div className="settings-card-inline-row">
             <label className="settings-card-check">

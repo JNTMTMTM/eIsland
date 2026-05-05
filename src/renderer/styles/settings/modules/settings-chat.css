@@ -318,8 +318,14 @@
   height: 31px;
 }
 
-.max-expand-chat-model-dropdown-trigger:hover {
+.max-expand-chat-model-dropdown-trigger:hover:not(:disabled) {
   background: rgba(var(--color-bg-rgb), 1);
+}
+
+.max-expand-chat-model-dropdown-trigger:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
 }
 
 .max-expand-chat-model-dropdown-trigger-label {

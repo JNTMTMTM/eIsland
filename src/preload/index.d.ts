@@ -111,6 +111,25 @@ declare global {
         error: string;
         durationMs: number;
       }>;
+      ollamaPing: (baseUrl?: string) => Promise<boolean>;
+      ollamaModels: (baseUrl?: string) => Promise<string[]>;
+      ollamaDetectBaseUrl: () => Promise<string | null>;
+      ollamaChatStart: (
+        sessionId: string,
+        request: {
+          model: string;
+          systemPrompt: string;
+          userMessage: string;
+          context?: string;
+          baseUrl?: string;
+          temperature?: number;
+        },
+      ) => Promise<{ started: boolean; sessionId: string }>;
+      ollamaChatAbort: (sessionId: string) => Promise<{ aborted: boolean }>;
+      onOllamaChatEvent: (
+        sessionId: string,
+        callback: (event: { type: string; payload: Record<string, unknown> }) => void,
+      ) => () => void;
       clearLogsCache: () => Promise<{ success: boolean; freedBytes: number }>;
       windowMinimize: () => void;
       windowMaximize: () => void;
@@ -209,8 +228,12 @@ declare global {
       expandMouseleaveIdleSet: (enabled: boolean) => Promise<boolean>;
       maxexpandMouseleaveIdleGet: () => Promise<boolean>;
       maxexpandMouseleaveIdleSet: (enabled: boolean) => Promise<boolean>;
+      idleClickExpandGet: () => Promise<boolean>;
+      idleClickExpandSet: (enabled: boolean) => Promise<boolean>;
       springAnimationGet: () => Promise<boolean>;
       springAnimationSet: (enabled: boolean) => Promise<boolean>;
+      animationSpeedGet: () => Promise<string>;
+      animationSpeedSet: (speed: string) => Promise<boolean>;
       clipboardReadText: () => Promise<string>;
       clipboardWriteText: (text: string) => Promise<boolean>;
       clipboardUrlMonitorGet: () => Promise<boolean>;
