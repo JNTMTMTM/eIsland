@@ -62,6 +62,7 @@ import { createCaptureWindowService } from './window/captureWindow';
 import { createMainWindowService } from './window/mainWindow';
 import { openStandaloneWindow } from './window/standaloneWindow';
 import { createSmtcService } from './music/smtcService';
+import { setSmtcAccessor } from './music/smtcAccessor';
 import { createAutoHideWatcher } from './system/autoHideWatcher';
 import { sendMediaVirtualKey } from './system/mediaKey';
 import {
@@ -689,6 +690,7 @@ app.whenReady().then(() => {
   createTray(mainWindow);
 
   smtcService.initWorker();
+  setSmtcAccessor(smtcService.getSmtcSessionRuntime, smtcService.getCurrentDeviceId);
   startClipboardUrlWatcher({
     getWindow: () => mainWindow,
     getEnabled: clipboardUrlState.getMonitorEnabled,

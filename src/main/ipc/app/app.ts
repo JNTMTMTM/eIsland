@@ -36,6 +36,7 @@ import { openStandaloneWindow, closeStandaloneWindow } from '../../window/standa
 import { registerAgentIpcHandlers } from '../agent';
 import { queryOpenWindowsWithIcons, type RunningWindowInfo } from '../../system/runningProcesses';
 import { broadcastSettingChange } from '../../utils/broadcast';
+import { getSmtcNowPlaying } from '../../music/smtcAccessor';
 
 interface LocalFileSearchItem {
   name: string;
@@ -1921,6 +1922,33 @@ async function executeAgentLocalTool(request: AgentLocalToolRequest): Promise<{
       return {
         success: true,
         result: { launched: target || appName, app: appName || null },
+        error: '',
+        durationMs: Date.now() - startedAt,
+      };
+    }
+
+    if (tool === 'sys.nowplaying') {
+      const nowPlaying = getSmtcNowPlaying();
+      if (!nowPlaying) {
+        return {
+          success: true,
+          result: { playing: false, message: '当前没有正在播放的媒体' },
+          error: '',
+          durationMs: Date.now() - startedAt,
+        };
+      }
+      return {
+        success: true,
+        result: {
+          playing: true,
+          title: nowPlaying.title,
+          artist: nowPlaying.artist,
+          album: nowPlaying.album,
+          isPlaying: nowPlaying.isPlaying,
+          duration_ms: nowPlaying.duration_ms,
+          position_ms: nowPlaying.position_ms,
+          deviceId: nowPlaying.deviceId,
+        },
         error: '',
         durationMs: Date.now() - startedAt,
       };
