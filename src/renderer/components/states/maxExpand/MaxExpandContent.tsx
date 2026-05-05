@@ -38,19 +38,20 @@ import { AlbumTab } from './components/AlbumTab';
 import { MailTab } from './components/MailTab';
 import { SettingsTab } from './components/SettingsTab';
 import { CountdownTab } from './components/CountdownTab';
+import { MemoTab } from './components/MemoTab';
 
 /** 导航点标识 — 含特殊动作：expanded 返回 */
 type NavDotId = MaxExpandTab | 'expanded';
 
 /** 导航点配置 */
-const NAV_DOTS: NavDotId[] = ['expanded', 'todo', 'urlFavorites', 'album', 'mail', 'localFileSearch', 'clipboardHistory', 'aiChat', 'countdown', 'settings'];
+const NAV_DOTS: NavDotId[] = ['expanded', 'todo', 'urlFavorites', 'album', 'mail', 'localFileSearch', 'clipboardHistory', 'aiChat', 'memo', 'countdown', 'settings'];
 
 /**
  * 最大展开模式内容组件
  * @description 包含 AI 对话窗口和设置面板，底部导航点切换 Tab 或返回 expanded
  */
 /** 独立窗口模式下从灵动岛中移除的 Tab */
-const STANDALONE_HIDDEN_TABS: Set<NavDotId> = new Set(['todo', 'countdown', 'urlFavorites', 'album', 'mail', 'localFileSearch', 'clipboardHistory', 'settings']);
+const STANDALONE_HIDDEN_TABS: Set<NavDotId> = new Set(['todo', 'countdown', 'urlFavorites', 'album', 'mail', 'localFileSearch', 'clipboardHistory', 'memo', 'settings']);
 
 /** 启动时读取一次，整个生命周期内不再变化（重启后生效） */
 let _startupMode: 'integrated' | 'standalone' = 'integrated';
@@ -114,6 +115,8 @@ export function MaxExpandContent(): React.ReactElement {
                 ? '剪贴板'
             : id === 'aiChat'
               ? 'AI 对话'
+              : id === 'memo'
+                ? '备忘录'
               : id === 'countdown'
                 ? '倒数日'
                 : '设置',
@@ -166,6 +169,7 @@ export function MaxExpandContent(): React.ReactElement {
       if (target.closest('.settings-mail-tab-reader')) return;
       if (target.closest('.settings-field-input')) return;
       if (target.closest('.settings-field-textarea')) return;
+      if (target.closest('.memo-tab-container')) return;
       e.preventDefault();
 
       const dots = filteredNavDotsRef.current;
@@ -200,6 +204,7 @@ export function MaxExpandContent(): React.ReactElement {
         {activeTab === 'clipboardHistory' && <ClipboardHistoryTab />}
         {activeTab === 'album' && <AlbumTab />}
         {activeTab === 'mail' && <MailTab />}
+        {activeTab === 'memo' && <MemoTab />}
         {activeTab === 'countdown' && <CountdownTab />}
         {activeTab === 'settings' && <SettingsTab />}
       </div>

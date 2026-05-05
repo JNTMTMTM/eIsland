@@ -11,6 +11,7 @@
       "mail": "邮箱",
       "localFileSearch": "文件查找",
       "clipboardHistory": "剪贴板历史",
+      "memo": "备忘录",
       "settings": "设置"
     },
     "controls": {
@@ -877,6 +878,7 @@
       "localFileSearch": "文件查找",
       "clipboardHistory": "剪贴板",
       "aiChat": "AI 对话",
+      "memo": "备忘录",
       "countdown": "倒数日",
       "settings": "设置",
       "switchTo": "切换到{{label}}"
@@ -910,6 +912,23 @@
       "empty": "暂无结果，试试更换关键词或目录。",
       "rootPlaceholder": "选择或输入搜索目录，例如 C:\\Users",
       "keywordPlaceholder": "输入文件名关键词，例如 report、.pdf"
+    },
+    "memo": {
+      "search": "搜索备忘录…",
+      "add": "新建",
+      "loading": "加载中…",
+      "empty": "暂无备忘录",
+      "untitled": "无标题",
+      "noContent": "无内容",
+      "pinned": "已置顶",
+      "titlePlaceholder": "标题",
+      "contentPlaceholder": "在这里写点什么…",
+      "pin": "置顶",
+      "unpin": "取消置顶",
+      "delete": "删除",
+      "created": "创建于",
+      "updated": "更新于",
+      "selectHint": "选择或新建一条备忘录"
     }
   },
   "settings": {

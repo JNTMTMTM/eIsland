@@ -11,6 +11,7 @@
       "mail": "Mail",
       "localFileSearch": "File Search",
       "clipboardHistory": "Clipboard",
+      "memo": "Memo",
       "settings": "Settings"
     },
     "controls": {
@@ -877,6 +878,7 @@
       "localFileSearch": "File Search",
       "clipboardHistory": "Clipboard",
       "aiChat": "AI Chat",
+      "memo": "Memo",
       "countdown": "Countdown",
       "settings": "Settings",
       "switchTo": "Switch to {{label}}"
@@ -910,6 +912,23 @@
       "empty": "No results yet. Try another keyword or folder.",
       "rootPlaceholder": "Choose or enter a root folder, e.g. C:\\Users",
       "keywordPlaceholder": "Enter filename keyword, e.g. report, .pdf"
+    },
+    "memo": {
+      "search": "Search memos...",
+      "add": "New",
+      "loading": "Loading...",
+      "empty": "No memos yet",
+      "untitled": "Untitled",
+      "noContent": "No content",
+      "pinned": "Pinned",
+      "titlePlaceholder": "Title",
+      "contentPlaceholder": "Write something here...",
+      "pin": "Pin",
+      "unpin": "Unpin",
+      "delete": "Delete",
+      "created": "Created",
+      "updated": "Updated",
+      "selectHint": "Select or create a memo"
     }
   },
   "settings": {
