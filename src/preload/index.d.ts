@@ -113,6 +113,7 @@ declare global {
       }>;
       ollamaPing: (baseUrl?: string) => Promise<boolean>;
       ollamaModels: (baseUrl?: string) => Promise<string[]>;
+      ollamaDetectBaseUrl: () => Promise<string | null>;
       ollamaChatStart: (
         sessionId: string,
         request: {

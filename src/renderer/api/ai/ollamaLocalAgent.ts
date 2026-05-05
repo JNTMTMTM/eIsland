@@ -131,6 +131,18 @@ export async function getOllamaModels(baseUrl?: string): Promise<string[]> {
 }
 
 /**
+ * 自动探测本地 Ollama 服务运行的端口（baseUrl）。
+ * 找到时返回完整 baseUrl，否则返回 null。
+ */
+export async function detectOllamaBaseUrl(): Promise<string | null> {
+  try {
+    return await window.api.ollamaDetectBaseUrl();
+  } catch {
+    return null;
+  }
+}
+
+/**
  * 启动 Ollama 本地直连 Agent 会话。
  * 事件通过 onEvent 回调推送，格式与 MihtnelisAgentStreamEvent 兼容。
  */

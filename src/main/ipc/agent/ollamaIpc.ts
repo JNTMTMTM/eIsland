@@ -25,7 +25,7 @@
  */
 
 import { ipcMain } from 'electron';
-import { pingOllama, listOllamaModels } from './ollamaClient';
+import { pingOllama, listOllamaModels, detectOllamaBaseUrl } from './ollamaClient';
 import { orchestrateOllamaChat } from './ollamaOrchestrator';
 import type { AgentLocalToolRequest, AgentLocalToolResult } from './localToolIpc';
 
@@ -58,6 +58,14 @@ export function registerOllamaIpcHandlers(options: RegisterOllamaIpcHandlersOpti
       return await listOllamaModels(baseUrl);
     } catch {
       return [];
+    }
+  });
+
+  ipcMain.handle('ollama:detectBaseUrl', async () => {
+    try {
+      return await detectOllamaBaseUrl();
+    } catch {
+      return null;
     }
   });
 

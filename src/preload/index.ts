@@ -248,6 +248,12 @@ const api = {
     return ipcRenderer.invoke('ollama:models', baseUrl);
   },
   /**
+   * 自动检测本地 Ollama 服务运行的端口（baseUrl）
+   */
+  ollamaDetectBaseUrl: (): Promise<string | null> => {
+    return ipcRenderer.invoke('ollama:detectBaseUrl');
+  },
+  /**
    * 启动 Ollama 本地 ReAct 编排会话
    */
   ollamaChatStart: (

@@ -105,6 +105,24 @@ export async function pingOllama(baseUrl?: string): Promise<boolean> {
 }
 
 /**
+ * 自动检测本地运行的 Ollama 服务端口。
+ * 探测常用端口（11434 默认 / 11435 / 11436），返回可用的 baseUrl，找不到时返回 null。
+ */
+export async function detectOllamaBaseUrl(): Promise<string | null> {
+  const candidates = [
+    'http://localhost:11434',
+    'http://127.0.0.1:11434',
+    'http://localhost:11435',
+    'http://localhost:11436',
+  ];
+  for (const base of candidates) {
+    const ok = await pingOllama(base);
+    if (ok) return base;
+  }
+  return null;
+}
+
+/**
  * 获取 Ollama 本地可用模型列表。
  */
 export async function listOllamaModels(baseUrl?: string): Promise<string[]> {

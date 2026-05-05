@@ -735,10 +735,45 @@
   transition: background 0.15s, color 0.15s, border-color 0.15s;
 }
 
-.settings-ai-workspace-add-btn:hover {
+.settings-ai-workspace-add-btn:hover:not(:disabled) {
   background: rgba(var(--color-text-rgb), 0.04);
   color: rgba(var(--color-text-rgb), 0.7);
   border-color: rgba(var(--color-text-rgb), 0.3);
+}
+
+.settings-ai-workspace-add-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/** Ollama 模型选择 chip */
+.settings-ollama-model-chip {
+  appearance: none;
+  border: 1px solid rgba(var(--color-text-rgb), 0.15);
+  background: rgba(var(--color-text-rgb), 0.03);
+  color: rgba(var(--color-text-rgb), 0.65);
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.settings-ollama-model-chip:hover {
+  background: rgba(var(--color-text-rgb), 0.06);
+  border-color: rgba(var(--color-text-rgb), 0.3);
+  color: rgba(var(--color-text-rgb), 0.85);
+}
+
+.settings-ollama-model-chip.active {
+  background: rgba(var(--color-text-rgb), 0.1);
+  border-color: rgba(var(--color-text-rgb), 0.4);
+  color: rgba(var(--color-text-rgb), 0.95);
+  font-weight: 600;
 }
 
 /** r1pxc Agent 头像上传区域 */
