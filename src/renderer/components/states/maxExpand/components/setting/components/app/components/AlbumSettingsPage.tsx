@@ -118,7 +118,7 @@ export function AlbumSettingsPage(): ReactElement {
         <div className="settings-card">
           <div className="settings-card-header">
             <div className="settings-card-title">{t('settings.app.album.carouselTitle', { defaultValue: '相册轮播方式' })}</div>
-            <div className="settings-card-subtitle">{t('settings.app.album.carouselHint', { defaultValue: '配置总览相册卡片的轮播顺序、频率、展示内容与点击行为（立即生效）' })}</div>
+            <div className="settings-card-subtitle">{t('settings.app.album.carouselHint', { defaultValue: '配置总览相册卡片的轮播顺序、频率、展示内容与点击行为' })}</div>
           </div>
 
           <div className="settings-card-inline-row">
@@ -188,7 +188,7 @@ export function AlbumSettingsPage(): ReactElement {
         <div className="settings-card">
           <div className="settings-card-header">
             <div className="settings-card-title">{t('settings.app.album.filterLabel', { defaultValue: '展示资源' })}</div>
-            <div className="settings-card-subtitle">{t('settings.app.album.filterHint', { defaultValue: '选择总览相册卡片参与轮播的资源类型（立即生效）' })}</div>
+            <div className="settings-card-subtitle">{t('settings.app.album.filterHint', { defaultValue: '选择总览相册卡片参与轮播的资源类型' })}</div>
           </div>
           <div className="settings-card-inline-row">
             <label className="settings-card-check">
@@ -230,7 +230,7 @@ export function AlbumSettingsPage(): ReactElement {
         <div className="settings-card">
           <div className="settings-card-header">
             <div className="settings-card-title">{t('settings.app.album.clickBehaviorLabel', { defaultValue: '点击卡片行为' })}</div>
-            <div className="settings-card-subtitle">{t('settings.app.album.clickBehaviorHint', { defaultValue: '配置点击总览相册卡片后的行为（立即生效）' })}</div>
+            <div className="settings-card-subtitle">{t('settings.app.album.clickBehaviorHint', { defaultValue: '配置点击总览相册卡片后的行为' })}</div>
           </div>
           <div className="settings-card-inline-row">
             <label className="settings-card-check">

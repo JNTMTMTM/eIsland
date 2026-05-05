@@ -1078,17 +1078,17 @@
       "notifications": {
         "configChanged": {
           "title": "Configuration Changed",
-          "body": "Todo/Countdown/Settings open mode changed. Restart now to apply?"
+          "body": "Todo/Countdown/Settings open mode changed."
         },
         "windowControlsChanged": {
-          "body": "Standalone window controls style changed. Restart now to apply?"
+          "body": "Standalone window controls style changed."
         }
       },
       "layout": {
         "previewTitle": "Overview Layout Preview",
-        "previewHint": "Live preview of the Expand-state island with the chosen widgets. Picking below updates instantly.",
+        "previewHint": "Live preview of the Expand-state island with the chosen widgets.",
         "widgetPickerTitle": "Widget Slots",
-        "widgetPickerHint": "Pick the widget for each side. Changes apply and persist instantly.",
+        "widgetPickerHint": "Pick the widget for each side. Changes are saved automatically.",
         "leftWidget": "Left Widget",
         "rightWidget": "Right Widget",
         "widgetNames": {
@@ -1115,9 +1115,9 @@
       },
       "position": {
         "title": "Dynamic Island Offset",
-        "hint": "Applies and saves immediately.",
+        "hint": "Saved automatically after adjustment.",
         "quickAdjustTitle": "Quick Nudge",
-        "quickAdjustHint": "Each click moves the island by 10px; applied and saved instantly.",
+        "quickAdjustHint": "Each click moves the island by 10px and saves automatically.",
         "displayTitle": "Display Selection",
         "displayHint": "Choose which monitor shows Dynamic Island in multi-display setups. Takes effect after restart.",
         "displayLabel": "Target Display",
@@ -1138,9 +1138,9 @@
       },
       "theme": {
         "title": "Theme Mode",
-        "hint": "Switch dark/light/system and apply instantly",
+        "hint": "Switch dark/light/system themes",
         "windowControlsTitle": "Standalone Window Controls Style",
-        "windowControlsHint": "When enabled, the top-right controls in standalone window use macOS-style traffic-light dots (takes effect after restart)",
+        "windowControlsHint": "When enabled, the top-right controls in standalone window use macOS-style traffic-light dots",
         "windowControlsMacToggle": "Use Mac-style window controls",
         "dark": "Dark",
         "light": "Light",
@@ -1162,7 +1162,7 @@
         "videoLoopToggle": "Loop video playback",
         "videoVolumeHint": "Background video volume (0 - 100%). Requires unmute to take effect.",
         "videoRateHint": "Playback speed",
-        "videoHwDecodeToggle": "Enable hardware decoding (takes effect after restart)",
+        "videoHwDecodeToggle": "Enable hardware decoding",
         "syncDesktopWallpaperTitle": "Sync System Desktop Wallpaper",
         "syncDesktopWallpaperHint": "When background image/video changes, sync it to Windows desktop wallpaper (videos use extracted cover image)",
         "syncDesktopWallpaperToggle": "Sync background changes to system desktop",
@@ -1186,7 +1186,7 @@
       },
       "behavior": {
         "mouseLeaveTitle": "Auto collapse on mouse leave",
-        "mouseLeaveHint": "Collapse when cursor leaves island area (Restart required)",
+        "mouseLeaveHint": "Collapse when cursor leaves island area",
         "expandLeaveToggle": "Collapse from Expand state on mouse leave",
         "maxExpandLeaveToggle": "Collapse from MaxExpand state on mouse leave",
         "windowModeTitle": "Todo / Countdown / Settings open mode",
@@ -1194,30 +1194,30 @@
         "integratedMode": "Embedded in Dynamic Island",
         "standaloneMode": "Standalone window",
         "hoverScreenshotModeTitle": "Hover screenshot button mode",
-        "hoverScreenshotModeHint": "Configure hover screenshot button to trigger area screenshot or display screenshot (takes effect immediately)",
+        "hoverScreenshotModeHint": "Configure hover screenshot button to trigger area screenshot or display screenshot",
         "hoverScreenshotModeLabel": "Screenshot mode",
         "hoverScreenshotModeRegion": "Area screenshot",
         "hoverScreenshotModeDisplay": "Display screenshot"
       },
       "animation": {
-        "springTitle": "Spring Animation (Instant)",
+        "springTitle": "Spring Animation",
         "springHint": "Disable to reduce bounce and make transitions smoother",
         "springToggle": "Enable spring animation",
-        "animSpeedTitle": "Island Animation Speed (Instant)",
+        "animSpeedTitle": "Island Animation Speed",
         "animSpeedHint": "Control the transition speed when the island switches states",
         "animSpeed_slow": "Slow",
         "animSpeed_medium": "Medium",
         "animSpeed_fast": "Fast",
-        "expandTabSwitchTitle": "Expand Tab Switch Animation (Instant)",
+        "expandTabSwitchTitle": "Expand Tab Switch Animation",
         "expandTabSwitchHint": "Enable slide transition when switching pages in Expand mode",
         "expandTabSwitchToggle": "Enable tab switch animation",
-        "maxExpandTabSwitchTitle": "MaxExpand Tab Switch Animation (Instant)",
+        "maxExpandTabSwitchTitle": "MaxExpand Tab Switch Animation",
         "maxExpandTabSwitchHint": "Enable slide transition when switching pages in MaxExpand mode",
         "maxExpandTabSwitchToggle": "Enable tab switch animation"
       },
       "album": {
         "carouselTitle": "Album Carousel Mode",
-        "carouselHint": "Configure overview album card order, interval, media filter, and click behavior (takes effect immediately)",
+        "carouselHint": "Configure overview album card order, interval, media filter, and click behavior",
         "intervalLabel": "Carousel interval",
         "interval3s": "3s",
         "interval5s": "5s",
@@ -1226,12 +1226,12 @@
         "orderSequential": "Sequential",
         "orderRandom": "Random",
         "filterLabel": "Media filter",
-        "filterHint": "Choose which media types are included in overview album card rotation (takes effect immediately)",
+        "filterHint": "Choose which media types are included in overview album card rotation",
         "filterAll": "All",
         "filterImage": "Images only",
         "filterVideo": "Videos only",
         "clickBehaviorLabel": "Card click behavior",
-        "clickBehaviorHint": "Configure what happens when clicking the overview album card (takes effect immediately)",
+        "clickBehaviorHint": "Configure what happens when clicking the overview album card",
         "clickBehaviorOpen": "Open album page",
         "clickBehaviorNone": "No action",
         "playbackTitle": "Autoplay & Video Behavior",
@@ -1341,9 +1341,9 @@
       },
       "staticAssetNode": {
         "title": "Static Asset Node",
-        "hint": "All users default to R2, and PRO users can choose R2/COS/OSS.",
-        "proOnlyHint": "PRO users only",
-        "proHint": "Upgrade to PRO to switch COS/OSS nodes (or keep using R2)."
+        "hint": "All users default to R2, and can choose R2/COS/OSS.",
+        "proOnlyHint": "Unavailable for current account",
+        "proHint": "You can switch COS/OSS nodes (or keep using R2)."
       }
     },
     "weather": {
@@ -1360,7 +1360,7 @@
       "saveLocation": "Save Location Settings",
       "providerPriority": {
         "title": "Weather Provider Priority",
-        "hint": "Prefer Open-Meteo, UAPI, or QWeather (PRO), then auto-fallback"
+        "hint": "Prefer Open-Meteo, UAPI, or QWeather, then auto-fallback"
       },
       "alert": {
         "title": "Startup Weather Alert Prompt",
@@ -1368,8 +1368,8 @@
         "enabled": "Enable alert prompt",
         "disabled": "Disable alert prompt"
       },
-      "proBadge": "PRO",
-      "proOnlyHint": "PRO users only",
+      "proBadge": "",
+      "proOnlyHint": "Unavailable for current account",
       "options": {
         "locationPriority": {
           "ip": "IP Location First",
@@ -1389,11 +1389,11 @@
         "providerNonJson": "{{name}} returned non-JSON",
         "providerAvailable": "{{name}} available",
         "providerUnavailable": "{{name}} unavailable: {{error}}",
-        "proLoginRequired": "Please sign in with a PRO account first",
+        "proLoginRequired": "Please sign in first",
         "testResult": "{{city}} ({{lat}}, {{lng}}) - {{details}}",
         "detailSeparator": "; ",
         "customNeedsCity": "Please enter a city name before choosing 'Custom Location First'",
-        "priorityApplied": "Location priority applied immediately",
+        "priorityApplied": "Location priority applied",
         "customMissingFallback": "Switched to Custom Location First, but no city is configured; falling back to IP location",
         "configSavedWithCity": "Weather location saved ({{city}} {{lat}}, {{lng}})",
         "configSaved": "Weather location saved"
@@ -1532,9 +1532,9 @@
       "currentVersion": "Current Version",
       "source": "Update Source",
       "sourceHint": "Cloudflare R2: stable global access with balanced overall speed\nTencent COS: usually faster in mainland China\nAliyun OSS: broad domestic node coverage with high peak throughput\nGitHub Releases: stable overseas links, may be slower in mainland China",
-      "proOnlyTag": "PRO Only",
-      "proOnlyError": "This update source is available to PRO users only",
-      "proOnlyNeedLogin": "Please sign in with a PRO account before using this source",
+      "proOnlyTag": "",
+      "proOnlyError": "This update source is unavailable for current account",
+      "proOnlyNeedLogin": "Please sign in before using this source",
       "sourceResolveFailed": "Failed to resolve update source URL",
       "latestVersion": "Latest Version",
       "downloadingFrom": "Downloading update from {{source}}...",
@@ -1759,7 +1759,7 @@
       "workspaceRemove": "Remove",
       "workspaceEmpty": "No workspace configured. Agent file operations will be blocked.",
       "ollamaTitle": "Ollama Local Models",
-      "ollamaHint": "Configure local Ollama endpoint and default model. Select ollama in the model dropdown to use it (Pro only).",
+      "ollamaHint": "Configure local Ollama endpoint and default model. Select ollama in the model dropdown to use it.",
       "ollamaModel": "Model Name",
       "ollamaFetching": "Fetching...",
       "ollamaFetchBtn": "Fetch Local Model List",
@@ -2175,7 +2175,7 @@
       },
       "language": {
         "label": "Language",
-        "desc": "Switch app display language instantly."
+        "desc": "Switch app display language."
       },
       "behavior": {
         "label": "Interaction",

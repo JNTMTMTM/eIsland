@@ -104,7 +104,7 @@ export function BehaviorSettingsPage({
 
     const restartRequiredNotification = {
       title: t('settings.app.notifications.configChanged.title', { defaultValue: '配置变更' }),
-      body: t('settings.app.notifications.configChanged.body', { defaultValue: '待办事项/倒数日/设置打开方式已变更，是否立即重启生效？' }),
+      body: t('settings.app.notifications.configChanged.body', { defaultValue: '待办事项/倒数日/设置打开方式已变更。' }),
       icon: SvgIcon.SETTING,
       type: 'restart-required',
     } as const;
@@ -123,7 +123,7 @@ export function BehaviorSettingsPage({
       <div className="settings-cards">
         <div className="settings-card">
           <div className="settings-card-header">
-            <div className="settings-card-title">{t('settings.app.behavior.mouseLeaveTitle', { defaultValue: '鼠标移开自动收回 (重启后生效)' })}</div>
+            <div className="settings-card-title">{t('settings.app.behavior.mouseLeaveTitle', { defaultValue: '鼠标移开自动收回' })}</div>
             <div className="settings-card-subtitle">{t('settings.app.behavior.mouseLeaveHint', { defaultValue: '启用后，鼠标离开灵动岛时将自动回到空闲状态（若正在播放音乐则切到歌词态）' })}</div>
           </div>
           <div className="settings-card-inline-row">
@@ -155,7 +155,7 @@ export function BehaviorSettingsPage({
         <div className="settings-card">
           <div className="settings-card-header">
             <div className="settings-card-title">{t('settings.app.behavior.windowModeTitle', { defaultValue: '待办事项 / 倒数日 / 设置 打开方式' })}</div>
-            <div className="settings-card-subtitle">{t('settings.app.behavior.windowModeHint', { defaultValue: '选择点击导航时，在灵动岛内显示还是打开独立窗口（重启后生效）' })}</div>
+            <div className="settings-card-subtitle">{t('settings.app.behavior.windowModeHint', { defaultValue: '选择点击导航时，在灵动岛内显示还是打开独立窗口' })}</div>
           </div>
           <div className="settings-card-inline-row">
             <label className="settings-card-check">
@@ -186,7 +186,7 @@ export function BehaviorSettingsPage({
         <div className="settings-card">
           <div className="settings-card-header">
             <div className="settings-card-title">{t('settings.app.behavior.hoverScreenshotModeTitle', { defaultValue: '悬停界面截图按钮模式' })}</div>
-            <div className="settings-card-subtitle">{t('settings.app.behavior.hoverScreenshotModeHint', { defaultValue: '配置 hover 界面的截图按钮触发选区截图或显示器截图（立即生效）' })}</div>
+            <div className="settings-card-subtitle">{t('settings.app.behavior.hoverScreenshotModeHint', { defaultValue: '配置 hover 界面的截图按钮触发选区截图或显示器截图' })}</div>
           </div>
           <div className="settings-card-inline-row">
             <label className="settings-card-check">

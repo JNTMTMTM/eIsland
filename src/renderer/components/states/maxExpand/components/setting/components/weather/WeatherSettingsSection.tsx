@@ -240,7 +240,7 @@ export function WeatherSettingsSection(props: WeatherSettingsSectionProps): Reac
                       className={`settings-lyrics-source-btn ${weatherPrimaryProvider === opt.value ? 'active' : ''}`}
                       type="button"
                       disabled={disabled}
-                      title={disabled ? t('settings.weather.proOnlyHint', { defaultValue: '仅 PRO 用户可用' }) : undefined}
+                      title={disabled ? t('settings.weather.proOnlyHint', { defaultValue: '当前账户不可用' }) : undefined}
                       onClick={() => {
                         if (disabled) return;
                         setWeatherPrimaryProvider(opt.value);
@@ -250,7 +250,7 @@ export function WeatherSettingsSection(props: WeatherSettingsSectionProps): Reac
                       {isQweatherPro && (
                         <span
                           className="settings-weather-provider-pro-badge"
-                          title={t('settings.weather.proOnlyHint', { defaultValue: '仅 PRO 用户可用' })}
+                          title={t('settings.weather.proOnlyHint', { defaultValue: '当前账户不可用' })}
                         >
                           <img
                             src={SvgIcon.PRO}
@@ -276,7 +276,7 @@ export function WeatherSettingsSection(props: WeatherSettingsSectionProps): Reac
                 <div className="settings-card-inline-row">
                   <label
                     className="settings-card-check"
-                    title={!isProUser ? t('settings.weather.proOnlyHint', { defaultValue: '仅 PRO 用户可用' }) : undefined}
+                    title={!isProUser ? t('settings.weather.proOnlyHint', { defaultValue: '当前账户不可用' }) : undefined}
                   >
                     <input
                       type="checkbox"
@@ -289,7 +289,7 @@ export function WeatherSettingsSection(props: WeatherSettingsSectionProps): Reac
                     />
                     <span
                       className="settings-weather-provider-pro-badge"
-                      title={t('settings.weather.proOnlyHint', { defaultValue: '仅 PRO 用户可用' })}
+                      title={t('settings.weather.proOnlyHint', { defaultValue: '当前账户不可用' })}
                     >
                       <img
                         src={SvgIcon.PRO}

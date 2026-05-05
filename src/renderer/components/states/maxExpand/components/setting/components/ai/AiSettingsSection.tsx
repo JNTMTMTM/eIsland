@@ -311,7 +311,7 @@ export function AiSettingsSection({
             <img src={SvgIcon.PRO} alt="PRO" width={16} height={16} style={{ flexShrink: 0 }} />
             {t('settings.ai.ollamaTitle', { defaultValue: 'Ollama 本地模型' })}
           </div>
-          <div className="settings-card-subtitle">{t('settings.ai.ollamaHint', { defaultValue: '配置本地 Ollama 服务地址与默认模型，在模型下拉中选择 ollama 即可使用（仅 Pro）' })}</div>
+          <div className="settings-card-subtitle">{t('settings.ai.ollamaHint', { defaultValue: '配置本地 Ollama 服务地址与默认模型，在模型下拉中选择 ollama 即可使用' })}</div>
         </div>
         <div className="settings-field-group">
           {/* 模型名称 + 获取按钮 */}

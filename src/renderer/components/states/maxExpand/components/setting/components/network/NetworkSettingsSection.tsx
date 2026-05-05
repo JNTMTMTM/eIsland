@@ -104,7 +104,7 @@ export function NetworkSettingsSection({
 
           <div className="settings-card-subgroup">
             <div className="settings-card-subgroup-title">{t('settings.network.timeout.customTitle', { defaultValue: '自定义秒数' })}</div>
-            <div className="settings-music-hint">{t('settings.network.timeout.customHint', { defaultValue: '输入 1 - 120 之间的秒数，回车或失去焦点后立即生效。' })}</div>
+            <div className="settings-music-hint">{t('settings.network.timeout.customHint', { defaultValue: '输入 1 - 120 之间的秒数，回车或失去焦点后应用。' })}</div>
             <div className={`settings-network-custom${isCustomTimeout ? ' active' : ''}`}>
               <input
                 className="settings-network-custom-input"
@@ -156,7 +156,7 @@ export function NetworkSettingsSection({
                     {opt.proOnly && (
                       <span
                         className="settings-weather-provider-pro-badge"
-                        title={t('settings.network.staticAssetNode.proOnlyHint', { defaultValue: '仅 PRO 用户可用' })}
+                        title={t('settings.network.staticAssetNode.proOnlyHint', { defaultValue: '当前账户不可用' })}
                       >
                         <img
                           src={SvgIcon.PRO}

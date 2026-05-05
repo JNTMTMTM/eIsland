@@ -71,7 +71,7 @@ export function AnimationSettingsPage(): ReactElement {
       <div className="settings-cards">
         <div className="settings-card">
           <div className="settings-card-header">
-            <div className="settings-card-title">{t('settings.app.animation.springTitle', { defaultValue: '灵动岛弹性动画 (立即生效)' })}</div>
+            <div className="settings-card-title">{t('settings.app.animation.springTitle', { defaultValue: '灵动岛弹性动画' })}</div>
             <div className="settings-card-subtitle">{t('settings.app.animation.springHint', { defaultValue: '关闭后，展开和收起动画将变得更加平滑内敛，消除弹跳感' })}</div>
           </div>
           <div className="settings-card-inline-row">
@@ -92,7 +92,7 @@ export function AnimationSettingsPage(): ReactElement {
 
         <div className="settings-card">
           <div className="settings-card-header">
-            <div className="settings-card-title">{t('settings.app.animation.animSpeedTitle', { defaultValue: '灵动岛动画速度 (立即生效)' })}</div>
+            <div className="settings-card-title">{t('settings.app.animation.animSpeedTitle', { defaultValue: '灵动岛动画速度' })}</div>
             <div className="settings-card-subtitle">{t('settings.app.animation.animSpeedHint', { defaultValue: '控制灵动岛状态切换时的过渡动画快慢' })}</div>
           </div>
           <div className="settings-card-inline-row">
@@ -116,7 +116,7 @@ export function AnimationSettingsPage(): ReactElement {
         </div>
         <div className="settings-card">
           <div className="settings-card-header">
-            <div className="settings-card-title">{t('settings.app.animation.expandTabSwitchTitle', { defaultValue: 'Expand 切换动画 (立即生效)' })}</div>
+            <div className="settings-card-title">{t('settings.app.animation.expandTabSwitchTitle', { defaultValue: 'Expand 切换动画' })}</div>
             <div className="settings-card-subtitle">{t('settings.app.animation.expandTabSwitchHint', { defaultValue: '启用后，展开态切换页面时将播放左右滑动过渡动画' })}</div>
           </div>
           <div className="settings-card-inline-row">
@@ -132,7 +132,7 @@ export function AnimationSettingsPage(): ReactElement {
         </div>
         <div className="settings-card">
           <div className="settings-card-header">
-            <div className="settings-card-title">{t('settings.app.animation.maxExpandTabSwitchTitle', { defaultValue: 'MaxExpand 切换动画 (立即生效)' })}</div>
+            <div className="settings-card-title">{t('settings.app.animation.maxExpandTabSwitchTitle', { defaultValue: 'MaxExpand 切换动画' })}</div>
             <div className="settings-card-subtitle">{t('settings.app.animation.maxExpandTabSwitchHint', { defaultValue: '启用后，最大展开态切换页面时将播放左右滑动过渡动画' })}</div>
           </div>
           <div className="settings-card-inline-row">

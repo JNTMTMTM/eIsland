@@ -1498,7 +1498,7 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
           ];
           const fallbackProFeatures = [
             t('settings.user.pro.pro.feature1', { defaultValue: '全部 Free 权益' }),
-            t('settings.user.pro.pro.feature2', { defaultValue: 'Pro 专属功能与扩展' }),
+            t('settings.user.pro.pro.feature2', { defaultValue: '高级功能与扩展' }),
             t('settings.user.pro.pro.feature3', { defaultValue: '优先体验新功能' }),
           ];
           const freeFeatures = freePlanFeatures.length > 0 ? freePlanFeatures : fallbackFreeFeatures;
