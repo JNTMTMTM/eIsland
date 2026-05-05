@@ -1221,7 +1221,7 @@ function DynamicIsland(): React.JSX.Element {
         return;
       }
 
-      if (state === 'notification' || state === 'agent' || state === 'stt' || state === 'guide' || state === 'login' || state === 'register' || state === 'payment' || state === 'announcement') {
+      if (state === 'notification' || state === 'agent' || state === 'stt' || state === 'agentVoiceInput' || state === 'guide' || state === 'login' || state === 'register' || state === 'payment' || state === 'announcement') {
         if (inWindow) {
           window.api?.disableMousePassthrough();
         }
