@@ -1860,6 +1860,42 @@ async function executeAgentLocalTool(request: AgentLocalToolRequest): Promise<{
       return { success: true, result: { restarting: true }, error: '', durationMs: Date.now() - startedAt };
     }
 
+    if (tool === 'sys.installed-apps') {
+      const filterArg = getStringArg(args, 'filter') || '';
+      const limitRaw = getNumberArg(args, 'limit');
+      const limit = Math.max(1, Math.min(500, Math.floor(limitRaw ?? 200)));
+
+      const { getAllInstalledSoftware } = require('fetch-installed-software') as {
+        getAllInstalledSoftware: () => Promise<Array<Record<string, string>>>;
+      };
+      const rawList: Array<Record<string, string>> = await getAllInstalledSoftware();
+
+      let apps = rawList
+        .filter((item) => item.DisplayName)
+        .map((item) => ({
+          name: item.DisplayName || '',
+          version: item.DisplayVersion || '',
+          publisher: item.Publisher || '',
+          installDate: item.InstallDate || '',
+          installLocation: item.InstallLocation || '',
+        }))
+        .sort((a, b) => a.name.localeCompare(b.name));
+
+      if (filterArg) {
+        const fl = filterArg.toLowerCase();
+        apps = apps.filter((a) => a.name.toLowerCase().includes(fl) || a.publisher.toLowerCase().includes(fl));
+      }
+
+      apps = apps.slice(0, limit);
+
+      return {
+        success: true,
+        result: { filter: filterArg || null, count: apps.length, apps },
+        error: '',
+        durationMs: Date.now() - startedAt,
+      };
+    }
+
     throw new Error(`不支持的工具: ${tool}`);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error ?? 'local tool failed');
