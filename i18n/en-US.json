@@ -1208,9 +1208,12 @@
         "animSpeed_slow": "Slow",
         "animSpeed_medium": "Medium",
         "animSpeed_fast": "Fast",
-        "tabSwitchTitle": "MaxExpand Tab Switch Animation (Instant)",
-        "tabSwitchHint": "Enable slide transition animation when switching between pages",
-        "tabSwitchToggle": "Enable tab switch animation"
+        "expandTabSwitchTitle": "Expand Tab Switch Animation (Instant)",
+        "expandTabSwitchHint": "Enable slide transition when switching pages in Expand mode",
+        "expandTabSwitchToggle": "Enable tab switch animation",
+        "maxExpandTabSwitchTitle": "MaxExpand Tab Switch Animation (Instant)",
+        "maxExpandTabSwitchHint": "Enable slide transition when switching pages in MaxExpand mode",
+        "maxExpandTabSwitchToggle": "Enable tab switch animation"
       },
       "album": {
         "carouselTitle": "Album Carousel Mode",

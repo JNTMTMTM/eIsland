@@ -30,6 +30,7 @@ import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../../../../../../store/slices';
 
 const MAXEXPAND_TAB_ANIMATION_KEY = 'maxexpand-tab-animation';
+const EXPAND_TAB_ANIMATION_KEY = 'expand-tab-animation';
 
 /**
  * 渲染软件动画设置页面
@@ -37,21 +38,32 @@ const MAXEXPAND_TAB_ANIMATION_KEY = 'maxexpand-tab-animation';
  */
 export function AnimationSettingsPage(): ReactElement {
   const { t } = useTranslation();
-  const [tabAnimation, setTabAnimation] = useState(true);
+  const [maxExpandTabAnim, setMaxExpandTabAnim] = useState(true);
+  const [expandTabAnim, setExpandTabAnim] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
     window.api.storeRead(MAXEXPAND_TAB_ANIMATION_KEY).then((v: unknown) => {
       if (cancelled) return;
-      if (v === false) setTabAnimation(false);
+      if (v === false) setMaxExpandTabAnim(false);
+    }).catch(() => {});
+    window.api.storeRead(EXPAND_TAB_ANIMATION_KEY).then((v: unknown) => {
+      if (cancelled) return;
+      if (v === false) setExpandTabAnim(false);
     }).catch(() => {});
     return () => { cancelled = true; };
   }, []);
 
-  const handleTabAnimationChange = (enabled: boolean): void => {
-    setTabAnimation(enabled);
+  const handleMaxExpandTabAnimChange = (enabled: boolean): void => {
+    setMaxExpandTabAnim(enabled);
     window.api.storeWrite(MAXEXPAND_TAB_ANIMATION_KEY, enabled).catch(() => {});
     window.api.settingsPreview('settings:maxexpand-tab-animation', enabled).catch(() => {});
+  };
+
+  const handleExpandTabAnimChange = (enabled: boolean): void => {
+    setExpandTabAnim(enabled);
+    window.api.storeWrite(EXPAND_TAB_ANIMATION_KEY, enabled).catch(() => {});
+    window.api.settingsPreview('settings:expand-tab-animation', enabled).catch(() => {});
   };
 
   return (
@@ -104,17 +116,33 @@ export function AnimationSettingsPage(): ReactElement {
         </div>
         <div className="settings-card">
           <div className="settings-card-header">
-            <div className="settings-card-title">{t('settings.app.animation.tabSwitchTitle', { defaultValue: 'MaxExpand 切换动画 (立即生效)' })}</div>
-            <div className="settings-card-subtitle">{t('settings.app.animation.tabSwitchHint', { defaultValue: '启用后，切换设置页面时将播放左右滑动过渡动画' })}</div>
+            <div className="settings-card-title">{t('settings.app.animation.expandTabSwitchTitle', { defaultValue: 'Expand 切换动画 (立即生效)' })}</div>
+            <div className="settings-card-subtitle">{t('settings.app.animation.expandTabSwitchHint', { defaultValue: '启用后，展开态切换页面时将播放左右滑动过渡动画' })}</div>
           </div>
           <div className="settings-card-inline-row">
             <label className="settings-card-check">
               <input
                 type="checkbox"
-                checked={tabAnimation}
-                onChange={(e) => handleTabAnimationChange(e.target.checked)}
+                checked={expandTabAnim}
+                onChange={(e) => handleExpandTabAnimChange(e.target.checked)}
               />
-              {t('settings.app.animation.tabSwitchToggle', { defaultValue: '启用切换动画' })}
+              {t('settings.app.animation.expandTabSwitchToggle', { defaultValue: '启用切换动画' })}
+            </label>
+          </div>
+        </div>
+        <div className="settings-card">
+          <div className="settings-card-header">
+            <div className="settings-card-title">{t('settings.app.animation.maxExpandTabSwitchTitle', { defaultValue: 'MaxExpand 切换动画 (立即生效)' })}</div>
+            <div className="settings-card-subtitle">{t('settings.app.animation.maxExpandTabSwitchHint', { defaultValue: '启用后，最大展开态切换页面时将播放左右滑动过渡动画' })}</div>
+          </div>
+          <div className="settings-card-inline-row">
+            <label className="settings-card-check">
+              <input
+                type="checkbox"
+                checked={maxExpandTabAnim}
+                onChange={(e) => handleMaxExpandTabAnimChange(e.target.checked)}
+              />
+              {t('settings.app.animation.maxExpandTabSwitchToggle', { defaultValue: '启用切换动画' })}
             </label>
           </div>
         </div>

@@ -1208,9 +1208,12 @@
         "animSpeed_slow": "慢",
         "animSpeed_medium": "中",
         "animSpeed_fast": "快",
-        "tabSwitchTitle": "MaxExpand 切换动画 (立即生效)",
-        "tabSwitchHint": "启用后，切换设置页面时将播放左右滑动过渡动画",
-        "tabSwitchToggle": "启用切换动画"
+        "expandTabSwitchTitle": "Expand 切换动画 (立即生效)",
+        "expandTabSwitchHint": "启用后，展开态切换页面时将播放左右滑动过渡动画",
+        "expandTabSwitchToggle": "启用切换动画",
+        "maxExpandTabSwitchTitle": "MaxExpand 切换动画 (立即生效)",
+        "maxExpandTabSwitchHint": "启用后，最大展开态切换页面时将播放左右滑动过渡动画",
+        "maxExpandTabSwitchToggle": "启用切换动画"
       },
       "album": {
         "carouselTitle": "相册轮播方式",
