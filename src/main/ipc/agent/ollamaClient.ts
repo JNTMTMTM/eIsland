@@ -228,13 +228,13 @@ export function streamOllamaChat(
         const lines = buffer.split('\n');
         buffer = lines.pop() || '';
 
-        for (const line of lines) {
+        lines.forEach((line) => {
           const trimmed = line.trim();
-          if (!trimmed) continue;
+          if (!trimmed) return;
 
           const dataPrefix = trimmed.startsWith('data: ') ? trimmed.slice(6) : trimmed;
           if (dataPrefix === '[DONE]') {
-            continue;
+            return;
           }
 
           try {
@@ -253,7 +253,7 @@ export function streamOllamaChat(
           } catch {
             // 跳过无法解析的行
           }
-        }
+        });
       });
 
       res.on('end', () => {
