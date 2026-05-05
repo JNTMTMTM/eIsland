@@ -41,6 +41,31 @@
   overflow: hidden;
 }
 
+/** Tab 切换过渡动画包裹层 */
+.max-expand-tab-transition {
+  display: flex;
+  width: 100%;
+  height: 100%;
+}
+
+.max-expand-tab-slide-right {
+  animation: maxExpandSlideRight 0.22s ease-out;
+}
+
+.max-expand-tab-slide-left {
+  animation: maxExpandSlideLeft 0.22s ease-out;
+}
+
+@keyframes maxExpandSlideRight {
+  from { opacity: 0; transform: translateX(30px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes maxExpandSlideLeft {
+  from { opacity: 0; transform: translateX(-30px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
 /** 设置面板 */
 .max-expand-settings {
   flex: 1;

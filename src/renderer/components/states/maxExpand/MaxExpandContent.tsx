@@ -80,6 +80,8 @@ export function MaxExpandContent(): React.ReactElement {
   const activeTabRef = useRef(activeTab);
   activeTabRef.current = activeTab;
 
+  const [slideDir, setSlideDir] = useState<'left' | 'right'>('right');
+
   const [countdownMode, setCountdownMode] = useState<'integrated' | 'standalone'>(
     _startupModeResolved ? _startupMode : 'integrated'
   );
@@ -132,6 +134,9 @@ export function MaxExpandContent(): React.ReactElement {
   /** 切换 Tab */
   const navigateTab = useCallback((id: NavDotId): void => {
     if (id === 'expanded') { setExpanded(); return; }
+    const curIdx = NAV_DOTS.indexOf(activeTabRef.current);
+    const nextIdx = NAV_DOTS.indexOf(id as NavDotId);
+    setSlideDir(nextIdx >= curIdx ? 'right' : 'left');
     setActiveTab(id);
   }, [setExpanded, setActiveTab]);
 
@@ -197,16 +202,18 @@ export function MaxExpandContent(): React.ReactElement {
     <div className="settings-content" ref={contentRef}>
       {/* Tab 内容区域 */}
       <div className="max-expand-tab-content" onClick={(e) => e.stopPropagation()}>
-        {activeTab === 'aiChat' && <AiChatTab />}
-        {activeTab === 'todo' && <TodoTab />}
-        {activeTab === 'urlFavorites' && <UrlFavoritesTab />}
-        {activeTab === 'localFileSearch' && <LocalFileSearchTab />}
-        {activeTab === 'clipboardHistory' && <ClipboardHistoryTab />}
-        {activeTab === 'album' && <AlbumTab />}
-        {activeTab === 'mail' && <MailTab />}
-        {activeTab === 'memo' && <MemoTab />}
-        {activeTab === 'countdown' && <CountdownTab />}
-        {activeTab === 'settings' && <SettingsTab />}
+        <div className={`max-expand-tab-transition max-expand-tab-slide-${slideDir}`} key={activeTab}>
+          {activeTab === 'aiChat' && <AiChatTab />}
+          {activeTab === 'todo' && <TodoTab />}
+          {activeTab === 'urlFavorites' && <UrlFavoritesTab />}
+          {activeTab === 'localFileSearch' && <LocalFileSearchTab />}
+          {activeTab === 'clipboardHistory' && <ClipboardHistoryTab />}
+          {activeTab === 'album' && <AlbumTab />}
+          {activeTab === 'mail' && <MailTab />}
+          {activeTab === 'memo' && <MemoTab />}
+          {activeTab === 'countdown' && <CountdownTab />}
+          {activeTab === 'settings' && <SettingsTab />}
+        </div>
       </div>
 
       {/* 底部导航点 */}
