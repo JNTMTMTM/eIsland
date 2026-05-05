@@ -230,6 +230,8 @@ declare global {
       maxexpandMouseleaveIdleSet: (enabled: boolean) => Promise<boolean>;
       springAnimationGet: () => Promise<boolean>;
       springAnimationSet: (enabled: boolean) => Promise<boolean>;
+      animationSpeedGet: () => Promise<string>;
+      animationSpeedSet: (speed: string) => Promise<boolean>;
       clipboardReadText: () => Promise<string>;
       clipboardWriteText: (text: string) => Promise<boolean>;
       clipboardUrlMonitorGet: () => Promise<boolean>;

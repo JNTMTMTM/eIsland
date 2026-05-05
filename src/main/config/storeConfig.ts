@@ -183,6 +183,9 @@ export const MAXEXPAND_MOUSELEAVE_IDLE_STORE_KEY = 'maxexpand-mouseleave-idle';
 /** 灵动岛弹性动画开关存储键名 */
 export const SPRING_ANIMATION_STORE_KEY = 'spring-animation';
 
+/** 灵动岛动画速度存储键名 */
+export const ANIMATION_SPEED_STORE_KEY = 'animation-speed';
+
 /** 剪贴板 URL 监听开关存储键名 */
 export const CLIPBOARD_URL_MONITOR_ENABLED_STORE_KEY = 'clipboard-url-monitor-enabled';
 

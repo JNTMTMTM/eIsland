@@ -985,6 +985,18 @@ const api = {
     return ipcRenderer.invoke('island:spring-animation:set', enabled);
   },
   /**
+   * 获取动画速度档位 (slow / medium / fast)
+   */
+  animationSpeedGet: (): Promise<string> => {
+    return ipcRenderer.invoke('island:animation-speed:get');
+  },
+  /**
+   * 设置动画速度档位
+   */
+  animationSpeedSet: (speed: string): Promise<boolean> => {
+    return ipcRenderer.invoke('island:animation-speed:set', speed);
+  },
+  /**
    * 读取当前剪贴板文本
    */
   clipboardReadText: (): Promise<string> => {

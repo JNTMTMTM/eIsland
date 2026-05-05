@@ -102,6 +102,7 @@ const ISLAND_SETTINGS_REGISTRY: Array<{ key: string; description: string; type: 
   { key: 'expand-mouseleave-idle', description: 'Expand 鼠标移开自动回 idle', type: 'boolean' },
   { key: 'maxexpand-mouseleave-idle', description: 'MaxExpand 鼠标移开自动回 idle', type: 'boolean' },
   { key: 'spring-animation', description: '弹性动画开关', type: 'boolean' },
+  { key: 'animation-speed', description: '动画速度 (slow/medium/fast)', type: 'string' },
   { key: 'clipboard-url-monitor-enabled', description: '剪贴板 URL 监听开关', type: 'boolean' },
   { key: 'clipboard-url-detect-mode', description: '剪贴板 URL 识别模式 (auto/strict)', type: 'string' },
   { key: 'clipboard-url-blacklist', description: '剪贴板 URL 域名黑名单', type: 'array' },
@@ -145,6 +146,7 @@ const ISLAND_SETTING_BROADCAST_CHANNELS: Record<string, string> = {
   'expand-mouseleave-idle': 'island:expand-mouseleave-idle',
   'maxexpand-mouseleave-idle': 'island:maxexpand-mouseleave-idle',
   'spring-animation': 'island:spring-animation',
+  'animation-speed': 'island:animation-speed',
 };
 
 function isTextMatched(target: string, keyword: string, mode: 'contains' | 'startsWith' | 'endsWith' | 'exact'): boolean {

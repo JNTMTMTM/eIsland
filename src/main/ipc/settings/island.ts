@@ -143,6 +143,31 @@ export function registerIslandIpcHandlers(options: RegisterIslandIpcHandlersOpti
     }
   });
 
+  ipcMain.handle('island:animation-speed:get', () => {
+    try {
+      const filePath = join(options.storeDir, 'animation-speed.json');
+      if (!existsSync(filePath)) return 'medium';
+      const raw = readFileSync(filePath, 'utf-8');
+      const data = JSON.parse(raw);
+      return data === 'slow' || data === 'medium' || data === 'fast' ? data : 'medium';
+    } catch {
+      return 'medium';
+    }
+  });
+
+  ipcMain.handle('island:animation-speed:set', (event, speed: string) => {
+    try {
+      const valid = speed === 'slow' || speed === 'medium' || speed === 'fast' ? speed : 'medium';
+      const filePath = join(options.storeDir, 'animation-speed.json');
+      writeFileSync(filePath, JSON.stringify(valid, null, 2), 'utf-8');
+      broadcastSettingChange(event.sender.id, 'island:animation-speed', valid);
+      return true;
+    } catch (err) {
+      console.error('[AnimationSpeed] persist error:', err);
+      return false;
+    }
+  });
+
   ipcMain.handle('island:autostart:get', () => {
     try {
       const filePath = join(options.storeDir, `${options.autostartModeStoreKey}.json`);
