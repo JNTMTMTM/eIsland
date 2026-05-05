@@ -367,7 +367,17 @@ export async function fetchAgentPrompt(request: FetchAgentPromptRequest): Promis
 
   if (!response.ok) {
     const body = await response.text().catch(() => '');
-    throw new Error(`获取 agent prompt 失败 (${response.status}): ${body || response.statusText}`);
+    let detail = body || response.statusText;
+    try {
+      const parsed = JSON.parse(body) as { error?: unknown; message?: unknown };
+      const parsedMessage = parsed.error ?? parsed.message;
+      if (typeof parsedMessage === 'string' && parsedMessage.trim()) {
+        detail = parsedMessage.trim();
+      }
+    } catch {
+      // ignore non-json error body
+    }
+    throw new Error(`获取 agent prompt 失败 (${response.status}): ${detail}`);
   }
 
   const json = (await response.json()) as FetchAgentPromptResponse;

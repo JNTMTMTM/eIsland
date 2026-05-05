@@ -30,6 +30,26 @@ import type { MihtnelisAgentStreamEvent, MihtnelisAgentStreamEventType } from '.
 let cachedSystemPrompt: string | null = null;
 let cachedPromptKey = '';
 
+function getRoleFromToken(token: string | null | undefined): string | null {
+  if (!token) return null;
+  const rawToken = token.trim().replace(/^bearer\s+/i, '');
+  const parts = rawToken.split('.');
+  if (parts.length < 2) return null;
+  try {
+    const payload = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const padded = payload.padEnd(Math.ceil(payload.length / 4) * 4, '=');
+    const decoded = JSON.parse(atob(padded)) as { role?: unknown };
+    return typeof decoded.role === 'string' ? decoded.role.trim().toLowerCase() : null;
+  } catch {
+    return null;
+  }
+}
+
+function isProToken(token: string | null | undefined): boolean {
+  const role = getRoleFromToken(token);
+  return role === 'pro';
+}
+
 export interface OllamaLocalAgentRequest {
   token: string;
   message: string;
@@ -118,6 +138,9 @@ export async function streamOllamaLocalAgent(request: OllamaLocalAgentRequest): 
   const token = request.token?.trim();
   if (!token) {
     throw new Error('未登录，无法启动本地 Agent');
+  }
+  if (!isProToken(token)) {
+    throw new Error('本地模型仅 Pro 用户可用');
   }
   const message = request.message?.trim();
   if (!message) {

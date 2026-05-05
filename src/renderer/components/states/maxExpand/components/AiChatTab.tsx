@@ -2483,8 +2483,8 @@ export function AiChatTab(): React.ReactElement {
                     {showModelDropdown && (
                       <div className="max-expand-chat-model-dropdown-list">
                         {availableModels.map((m) => {
-                          const isPro = m === 'deepseek-v4-pro' || m === 'mimo-v2.5-pro';
                           const isOllama = m === 'ollama';
+                          const isPro = m === 'deepseek-v4-pro' || m === 'mimo-v2.5-pro' || isOllama;
                           const disabled = isPro && !isProUser;
                           const icon = isOllama ? SvgIcon.OLLAMA : (m.startsWith('mimo-') ? SvgIcon.MIMO : SvgIcon.DEEPSEEK);
                           const label = isOllama ? (aiConfig.ollamaModel ? `ollama (${aiConfig.ollamaModel})` : 'ollama') : m;
