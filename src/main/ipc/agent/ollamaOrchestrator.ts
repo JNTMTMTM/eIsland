@@ -93,7 +93,8 @@ function parseLlmOutput(raw: string): ParsedLlmOutput {
   const jsonCandidate = trimmed.substring(braceStart, braceEnd + 1);
 
   // 尝试多种修复策略
-  for (const candidate of [jsonCandidate, repairJsonNewlines(jsonCandidate)]) {
+  const parsedOutput = [jsonCandidate, repairJsonNewlines(jsonCandidate)].reduce<ParsedLlmOutput | null>((acc, candidate) => {
+    if (acc) return acc;
     try {
       const parsed = JSON.parse(candidate) as Record<string, unknown>;
       const outputType = String(parsed.type || '').trim().toLowerCase();
@@ -120,14 +121,16 @@ function parseLlmOutput(raw: string): ParsedLlmOutput {
         };
       }
 
-      // 有 answer 字段但 type 不明确
       if (typeof parsed.answer === 'string' && parsed.answer.trim()) {
         return { type: 'final', data: { answer: parsed.answer } };
       }
+      return null;
     } catch {
-      // try next candidate
+      return null;
     }
-  }
+  }, null);
+
+  if (parsedOutput) return parsedOutput;
 
   // 如果整个输出看起来不是 JSON，视为直接回答
   if (braceStart > 20 || trimmed.length - (braceEnd + 1) > 20) {

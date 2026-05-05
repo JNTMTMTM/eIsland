@@ -115,11 +115,12 @@ export async function detectOllamaBaseUrl(): Promise<string | null> {
     'http://localhost:11435',
     'http://localhost:11436',
   ];
-  for (const base of candidates) {
+  return candidates.reduce<Promise<string | null>>(async (foundPromise, base) => {
+    const found = await foundPromise;
+    if (found) return found;
     const ok = await pingOllama(base);
-    if (ok) return base;
-  }
-  return null;
+    return ok ? base : null;
+  }, Promise.resolve(null));
 }
 
 /**
