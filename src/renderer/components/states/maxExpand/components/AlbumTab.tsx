@@ -414,14 +414,14 @@ function clampColumns(value: unknown): number {
   return Math.max(MIN_COLUMNS, Math.min(MAX_COLUMNS, n));
 }
 
-/**
- * 相册页主组件
- * @description 提供总览、单图放大、元数据侧栏与基础 EXIF 解析等能力。
- */
 function AlbumControlIcon({ src }: { src: string }): ReactElement {
   return <img className="album-svg-icon-img" src={src} alt="" aria-hidden="true" draggable={false} />;
 }
 
+/**
+ * 相册页主组件。
+ * @description 提供总览、单图放大、元数据侧栏与基础 EXIF 解析等能力。
+ */
 export function AlbumTab(): ReactElement {
   const { t } = useTranslation();
   const [items, setItems] = useState<AlbumItem[]>([]);

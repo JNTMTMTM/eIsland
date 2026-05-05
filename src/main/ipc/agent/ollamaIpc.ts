@@ -44,6 +44,10 @@ interface RegisterOllamaIpcHandlersOptions {
   executeAgentLocalTool: (request: AgentLocalToolRequest) => Promise<AgentLocalToolResult>;
 }
 
+/**
+ * 注册 Ollama 相关 IPC 处理器。
+ * @param options - 注册所需依赖（本地工具执行器）。
+ */
 export function registerOllamaIpcHandlers(options: RegisterOllamaIpcHandlersOptions): void {
   ipcMain.handle('ollama:ping', async (_event, baseUrl?: string) => {
     try {
