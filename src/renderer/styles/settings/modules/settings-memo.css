@@ -199,6 +199,12 @@
   flex-shrink: 0;
 }
 
+.memo-tab-bookmark-icon {
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+.memo-tab-editor-bookmark,
 .memo-tab-editor-pin,
 .memo-tab-editor-delete {
   display: flex;
@@ -214,10 +220,15 @@
   transition: background 0.2s, color 0.2s;
 }
 
+.memo-tab-editor-bookmark:hover,
 .memo-tab-editor-pin:hover,
 .memo-tab-editor-delete:hover {
   background: rgba(255, 255, 255, 0.12);
   color: rgba(255, 255, 255, 0.85);
+}
+
+.memo-tab-editor-bookmark--active {
+  opacity: 1;
 }
 
 .memo-tab-editor-pin--active {

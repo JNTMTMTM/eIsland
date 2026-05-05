@@ -88,6 +88,8 @@ export const SvgIcon = {
   MIMO: './svg/MIMO.svg',
   OLLAMA: './svg/OLLAMA.svg',
   PIN_ON_TOP: './svg/PIN_ON_TOP.svg',
+  BOOKMARK: './svg/BOOKMARK.svg',
+  BOOKMARK_ON: './svg/BOOKMARK_ON.svg',
 } as const;
 
 export type SvgIconKey = keyof typeof SvgIcon;

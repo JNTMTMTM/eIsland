@@ -36,6 +36,7 @@ interface MemoItem {
   createdAt: number;
   updatedAt: number;
   pinned: boolean;
+  bookmarked: boolean;
 }
 
 /** 存储键名（对应 userData/eIsland_store/memos.json） */
@@ -50,6 +51,7 @@ function normalizeMemos(items: MemoItem[]): MemoItem[] {
     createdAt: m.createdAt ?? Date.now(),
     updatedAt: m.updatedAt ?? m.createdAt ?? Date.now(),
     pinned: m.pinned ?? false,
+    bookmarked: m.bookmarked ?? false,
   }));
 }
 
@@ -141,6 +143,7 @@ export function MemoTab(): React.ReactElement {
       createdAt: now,
       updatedAt: now,
       pinned: false,
+      bookmarked: false,
     };
     setMemos((prev) => [newMemo, ...prev]);
     setSelectedId(now);
@@ -152,6 +155,13 @@ export function MemoTab(): React.ReactElement {
     setMemos((prev) => prev.filter((m) => m.id !== id));
     if (selectedId === id) setSelectedId(null);
   }, [selectedId]);
+
+  /** 标记/取消书签 */
+  const handleToggleBookmark = useCallback((id: number): void => {
+    setMemos((prev) =>
+      prev.map((m) => (m.id === id ? { ...m, bookmarked: !m.bookmarked, updatedAt: Date.now() } : m)),
+    );
+  }, []);
 
   /** 置顶/取消置顶 */
   const handleTogglePin = useCallback((id: number): void => {
@@ -220,7 +230,8 @@ export function MemoTab(): React.ReactElement {
               }}
             >
               <div className="memo-tab-item-title">
-                {memo.pinned && <span className="memo-tab-pin-icon" title={t('maxExpand.memo.pinned', { defaultValue: '已置顶' })}>📌</span>}
+                {memo.pinned && <img className="memo-tab-pin-icon" src={SvgIcon.PIN_ON_TOP} alt="pinned" width="12" height="12" draggable={false} title={t('maxExpand.memo.pinned', { defaultValue: '已置顶' })} />}
+                {memo.bookmarked && <img className="memo-tab-bookmark-icon" src={SvgIcon.BOOKMARK_ON} alt="bookmarked" width="12" height="12" draggable={false} title={t('maxExpand.memo.bookmarked', { defaultValue: '已标记' })} />}
                 {memo.title || t('maxExpand.memo.untitled', { defaultValue: '无标题' })}
               </div>
               <div className="memo-tab-item-summary">{extractSummary(memo.content) || t('maxExpand.memo.noContent', { defaultValue: '无内容' })}</div>
@@ -244,6 +255,14 @@ export function MemoTab(): React.ReactElement {
                 onChange={(e) => handleTitleChange(selectedMemo.id, e.target.value)}
               />
               <div className="memo-tab-editor-actions">
+                <button
+                  className={`memo-tab-editor-bookmark ${selectedMemo.bookmarked ? 'memo-tab-editor-bookmark--active' : ''}`}
+                  type="button"
+                  onClick={() => handleToggleBookmark(selectedMemo.id)}
+                  title={selectedMemo.bookmarked ? t('maxExpand.memo.unbookmark', { defaultValue: '取消书签' }) : t('maxExpand.memo.bookmark', { defaultValue: '标记书签' })}
+                >
+                  <img src={selectedMemo.bookmarked ? SvgIcon.BOOKMARK_ON : SvgIcon.BOOKMARK} alt="bookmark" width="14" height="14" draggable={false} />
+                </button>
                 <button
                   className={`memo-tab-editor-pin ${selectedMemo.pinned ? 'memo-tab-editor-pin--active' : ''}`}
                   type="button"
