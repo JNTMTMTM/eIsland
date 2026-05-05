@@ -1185,14 +1185,6 @@
         "islandOpacityHint": "数值越低越透明（10% - 100%），调整后立即生效"
       },
       "behavior": {
-        "springTitle": "灵动岛弹性动画",
-        "springHint": "关闭后，展开和收起动画将变得更加平滑内敛，消除弹跳感",
-        "springToggle": "启用弹性动画",
-        "animSpeedTitle": "灵动岛动画速度",
-        "animSpeedHint": "控制灵动岛状态切换时的过渡动画快慢",
-        "animSpeed_slow": "慢",
-        "animSpeed_medium": "中",
-        "animSpeed_fast": "快",
         "mouseLeaveTitle": "鼠标移开自动收回",
         "mouseLeaveHint": "启用后，鼠标离开灵动岛时将自动回到空闲状态（重启后生效）",
         "expandLeaveToggle": "展开态（Expand）鼠标移开后自动收回",
@@ -1206,6 +1198,16 @@
         "hoverScreenshotModeLabel": "截图方式",
         "hoverScreenshotModeRegion": "选区截图",
         "hoverScreenshotModeDisplay": "显示器截图"
+      },
+      "animation": {
+        "springTitle": "灵动岛弹性动画 (立即生效)",
+        "springHint": "关闭后，展开和收起动画将变得更加平滑内敛，消除弹跳感",
+        "springToggle": "启用弹性动画",
+        "animSpeedTitle": "灵动岛动画速度 (立即生效)",
+        "animSpeedHint": "控制灵动岛状态切换时的过渡动画快慢",
+        "animSpeed_slow": "慢",
+        "animSpeed_medium": "中",
+        "animSpeed_fast": "快"
       },
       "album": {
         "carouselTitle": "相册轮播方式",

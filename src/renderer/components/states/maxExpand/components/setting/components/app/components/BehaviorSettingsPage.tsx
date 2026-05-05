@@ -123,52 +123,6 @@ export function BehaviorSettingsPage({
       <div className="settings-cards">
         <div className="settings-card">
           <div className="settings-card-header">
-            <div className="settings-card-title">{t('settings.app.behavior.springTitle', { defaultValue: '灵动岛弹性动画 (立即生效)' })}</div>
-            <div className="settings-card-subtitle">{t('settings.app.behavior.springHint', { defaultValue: '关闭后，展开和收起动画将变得更加平滑内敛，消除弹跳感' })}</div>
-          </div>
-          <div className="settings-card-inline-row">
-            <label className="settings-card-check">
-              <input
-                type="checkbox"
-                checked={useIslandStore.getState().springAnimation}
-                onChange={(e) => {
-                  const next = e.target.checked;
-                  useIslandStore.getState().setSpringAnimation(next);
-                  window.api.springAnimationSet(next).catch(() => {});
-                }}
-              />
-              {t('settings.app.behavior.springToggle', { defaultValue: '启用弹性动画' })}
-            </label>
-          </div>
-        </div>
-
-        <div className="settings-card">
-          <div className="settings-card-header">
-            <div className="settings-card-title">{t('settings.app.behavior.animSpeedTitle', { defaultValue: '灵动岛动画速度 (立即生效)' })}</div>
-            <div className="settings-card-subtitle">{t('settings.app.behavior.animSpeedHint', { defaultValue: '控制灵动岛状态切换时的过渡动画快慢' })}</div>
-          </div>
-          <div className="settings-card-inline-row">
-            {(['slow', 'medium', 'fast'] as const).map((speed) => (
-              <label className="settings-card-check" key={speed}>
-                <input
-                  type="radio"
-                  name="animation-speed"
-                  checked={useIslandStore.getState().animationSpeed === speed}
-                  onChange={() => {
-                    useIslandStore.getState().setAnimationSpeed(speed);
-                    window.api.animationSpeedSet(speed).catch(() => {});
-                  }}
-                />
-                {t(`settings.app.behavior.animSpeed_${speed}`, {
-                  defaultValue: speed === 'slow' ? '慢' : speed === 'medium' ? '中' : '快',
-                })}
-              </label>
-            ))}
-          </div>
-        </div>
-
-        <div className="settings-card">
-          <div className="settings-card-header">
             <div className="settings-card-title">{t('settings.app.behavior.mouseLeaveTitle', { defaultValue: '鼠标移开自动收回 (重启后生效)' })}</div>
             <div className="settings-card-subtitle">{t('settings.app.behavior.mouseLeaveHint', { defaultValue: '启用后，鼠标离开灵动岛时将自动回到空闲状态（若正在播放音乐则切到歌词态）' })}</div>
           </div>

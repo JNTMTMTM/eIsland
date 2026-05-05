@@ -1185,14 +1185,6 @@
         "islandOpacityHint": "Lower value = more transparent (10% - 100%)"
       },
       "behavior": {
-        "springTitle": "Spring Animation",
-        "springHint": "Disable to reduce bounce and make transitions smoother",
-        "springToggle": "Enable spring animation",
-        "animSpeedTitle": "Island Animation Speed",
-        "animSpeedHint": "Control the transition speed when the island switches states",
-        "animSpeed_slow": "Slow",
-        "animSpeed_medium": "Medium",
-        "animSpeed_fast": "Fast",
         "mouseLeaveTitle": "Auto collapse on mouse leave",
         "mouseLeaveHint": "Collapse when cursor leaves island area (Restart required)",
         "expandLeaveToggle": "Collapse from Expand state on mouse leave",
@@ -1206,6 +1198,16 @@
         "hoverScreenshotModeLabel": "Screenshot mode",
         "hoverScreenshotModeRegion": "Area screenshot",
         "hoverScreenshotModeDisplay": "Display screenshot"
+      },
+      "animation": {
+        "springTitle": "Spring Animation (Instant)",
+        "springHint": "Disable to reduce bounce and make transitions smoother",
+        "springToggle": "Enable spring animation",
+        "animSpeedTitle": "Island Animation Speed (Instant)",
+        "animSpeedHint": "Control the transition speed when the island switches states",
+        "animSpeed_slow": "Slow",
+        "animSpeed_medium": "Medium",
+        "animSpeed_fast": "Fast"
       },
       "album": {
         "carouselTitle": "Album Carousel Mode",
