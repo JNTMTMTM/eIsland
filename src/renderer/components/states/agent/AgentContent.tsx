@@ -24,8 +24,8 @@
  * @author 鸡哥
  */
 
-import { useCallback, useEffect, useRef, useState } from 'react';
-import type { ReactElement } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { ReactElement, ReactNode } from 'react';
 import useIslandStore from '../../../store/isLandStore';
 import {
   streamMihtnelisAgent,
@@ -72,6 +72,36 @@ function loadAgentMode(): string {
 }
 
 const INLINE_PROMPT_HINT = '[快问快答模式] 请用简洁精炼的语言回答，输出不超过3句话，避免冗长解释和列表。直接给出核心结论。思考过程(thinking)也请尽量精简，不要输出冗长的推理链，控制在几句话以内。';
+
+/**
+ * 轻量级内联 Markdown 渲染器
+ * 仅支持：**加粗**、*斜体*、~~删除线~~
+ */
+function renderInlineMarkdown(text: string): ReactNode[] {
+  const parts: ReactNode[] = [];
+  const regex = /(\*\*(.+?)\*\*|\*(.+?)\*|~~(.+?)~~)/g;
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+  let key = 0;
+
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push(text.slice(lastIndex, match.index));
+    }
+    if (match[2]) {
+      parts.push(<strong key={key++}>{match[2]}</strong>);
+    } else if (match[3]) {
+      parts.push(<em key={key++}>{match[3]}</em>);
+    } else if (match[4]) {
+      parts.push(<del key={key++}>{match[4]}</del>);
+    }
+    lastIndex = regex.lastIndex;
+  }
+  if (lastIndex < text.length) {
+    parts.push(text.slice(lastIndex));
+  }
+  return parts;
+}
 
 const CLIENT_LOCAL_TOOL_PREFIXES = [
   'file.', 'cmd.', 'sys.', 'win.', 'clipboard.', 'notification.', 'net.',
@@ -445,6 +475,11 @@ export function AgentContent(): ReactElement {
   const displayText = (answerText || thinkText || errorMsg || PHASE_LABEL[phase]).replace(/\n{2,}/g, '\n');
   const isThinkOnly = !answerText && !!thinkText;
 
+  const renderedDisplay = useMemo(() => {
+    if (overlayText) return overlayText;
+    return renderInlineMarkdown(displayText);
+  }, [overlayText, displayText]);
+
   return (
     <div className="agent-content">
       <img
@@ -461,7 +496,7 @@ export function AgentContent(): ReactElement {
           ref={textRef}
           className={`agent-text-body${overlayText ? ' agent-text-auth' : isThinkOnly ? ' agent-text-thinking' : ''}${phase === 'error' ? ' agent-text-error' : ''}`}
         >
-          {overlayText ?? displayText}
+          {renderedDisplay}
         </div>
       </div>
       <div className="agent-actions">
