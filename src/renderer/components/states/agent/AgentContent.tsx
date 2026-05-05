@@ -71,7 +71,7 @@ function loadAgentMode(): string {
   return 'mihtnelis';
 }
 
-const INLINE_PROMPT_HINT = '[快问快答模式] 请用简洁精炼的语言回答，输出不超过3句话，避免冗长解释和列表。直接给出核心结论。';
+const INLINE_PROMPT_HINT = '[快问快答模式] 请用简洁精炼的语言回答，输出不超过3句话，避免冗长解释和列表。直接给出核心结论。思考过程(thinking)也请尽量精简，不要输出冗长的推理链，控制在几句话以内。';
 
 const CLIENT_LOCAL_TOOL_PREFIXES = [
   'file.', 'cmd.', 'sys.', 'win.', 'clipboard.', 'notification.', 'net.',
@@ -436,7 +436,7 @@ export function AgentContent(): ReactElement {
             });
           }
         }
-      }
+    }
     } catch { /* ignore resolve errors */ }
   }, [authPending, aiConfig.workspaces]);
 
