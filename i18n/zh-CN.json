@@ -926,6 +926,8 @@
       "bookmark": "标记书签",
       "unbookmark": "取消书签",
       "bookmarked": "已标记",
+      "showAll": "显示全部",
+      "showBookmarked": "仅显示书签",
       "pin": "置顶",
       "unpin": "取消置顶",
       "delete": "删除",

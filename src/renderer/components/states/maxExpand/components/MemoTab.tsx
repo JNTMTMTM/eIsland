@@ -87,6 +87,7 @@ export function MemoTab(): React.ReactElement {
   const [loaded, setLoaded] = useState(false);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [search, setSearch] = useState('');
+  const [bookmarkOnly, setBookmarkOnly] = useState(false);
   const skipPersistOnceRef = useRef(false);
   const editorRef = useRef<HTMLTextAreaElement>(null);
   const titleRef = useRef<HTMLInputElement>(null);
@@ -187,6 +188,7 @@ export function MemoTab(): React.ReactElement {
   /** 过滤 & 排序：置顶优先，然后按更新时间倒序 */
   const filteredMemos = memos
     .filter((m) => {
+      if (bookmarkOnly && !m.bookmarked) return false;
       if (!search.trim()) return true;
       const q = search.toLowerCase();
       return m.title.toLowerCase().includes(q) || m.content.toLowerCase().includes(q);
@@ -203,6 +205,14 @@ export function MemoTab(): React.ReactElement {
       {/* 左侧列表 */}
       <div className="memo-tab-sidebar">
         <div className="memo-tab-sidebar-header">
+          <button
+            className={`memo-tab-bookmark-filter ${bookmarkOnly ? 'memo-tab-bookmark-filter--active' : ''}`}
+            type="button"
+            onClick={() => setBookmarkOnly((v) => !v)}
+            title={bookmarkOnly ? t('maxExpand.memo.showAll', { defaultValue: '显示全部' }) : t('maxExpand.memo.showBookmarked', { defaultValue: '仅显示书签' })}
+          >
+            <img src={bookmarkOnly ? SvgIcon.BOOKMARK_ON : SvgIcon.BOOKMARK} alt="bookmark-filter" width="14" height="14" draggable={false} />
+          </button>
           <input
             className="memo-tab-search"
             type="text"

@@ -38,6 +38,31 @@
   border-bottom: 1px solid rgba(var(--color-text-rgb), 0.06);
 }
 
+.memo-tab-bookmark-filter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 6px;
+  background: rgba(var(--color-text-rgb), 0.06);
+  cursor: pointer;
+  transition: background 0.2s;
+  flex-shrink: 0;
+  opacity: 0.55;
+}
+
+.memo-tab-bookmark-filter:hover {
+  background: rgba(var(--color-text-rgb), 0.12);
+  opacity: 0.8;
+}
+
+.memo-tab-bookmark-filter--active {
+  opacity: 1;
+  background: rgba(var(--color-text-rgb), 0.1);
+}
+
 .memo-tab-search {
   flex: 1;
   background: rgba(var(--color-text-rgb), 0.06);

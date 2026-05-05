@@ -926,6 +926,8 @@
       "bookmark": "Bookmark",
       "unbookmark": "Remove Bookmark",
       "bookmarked": "Bookmarked",
+      "showAll": "Show All",
+      "showBookmarked": "Bookmarked Only",
       "pin": "Pin",
       "unpin": "Unpin",
       "delete": "Delete",
