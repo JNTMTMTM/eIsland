@@ -1953,6 +1953,129 @@ async function executeAgentLocalTool(request: AgentLocalToolRequest): Promise<{
         durationMs: Date.now() - startedAt,
       };
     }
+    if (tool === 'alarm.list') {
+      const storeDir = resolve(app.getPath('userData'), 'eIsland_store');
+      const filePath = resolve(storeDir, 'alarms.json');
+      let alarms: unknown[] = [];
+      if (existsSync(filePath)) {
+        try { alarms = JSON.parse(await readFile(filePath, 'utf8')); } catch { /* noop */ }
+      }
+      if (!Array.isArray(alarms)) alarms = [];
+      return { success: true, result: { count: alarms.length, alarms }, error: '', durationMs: Date.now() - startedAt };
+    }
+
+    if (tool === 'alarm.create') {
+      const hourRaw = getNumberArg(args, 'hour');
+      const minuteRaw = getNumberArg(args, 'minute');
+      if (hourRaw === null || hourRaw === undefined) throw new Error('alarm.create 需要 hour (0-23)');
+      if (minuteRaw === null || minuteRaw === undefined) throw new Error('alarm.create 需要 minute (0-59)');
+      const hour = Math.max(0, Math.min(23, Math.floor(hourRaw)));
+      const minute = Math.max(0, Math.min(59, Math.floor(minuteRaw)));
+      const secondRaw = getNumberArg(args, 'second');
+      const second = secondRaw != null ? Math.max(0, Math.min(59, Math.floor(secondRaw))) : 0;
+      const label = getStringArg(args, 'label') || '';
+      const repeat = Array.isArray(args.repeat) ? (args.repeat as number[]).filter((v) => typeof v === 'number' && v >= 0 && v <= 6) : [];
+      const enabled = args.enabled !== false;
+
+      const storeDir = resolve(app.getPath('userData'), 'eIsland_store');
+      const filePath = resolve(storeDir, 'alarms.json');
+      let alarms: Array<Record<string, unknown>> = [];
+      if (existsSync(filePath)) {
+        try { const parsed = JSON.parse(await readFile(filePath, 'utf8')); if (Array.isArray(parsed)) alarms = parsed; } catch { /* noop */ }
+      }
+
+      const newAlarm = {
+        id: Date.now(),
+        hour,
+        minute,
+        second,
+        label,
+        enabled,
+        repeat,
+        createdAt: Date.now(),
+      };
+      alarms.push(newAlarm);
+      await mkdir(storeDir, { recursive: true });
+      await writeFile(filePath, JSON.stringify(alarms, null, 2), 'utf8');
+      broadcastSettingChange(-1, 'store:alarms', alarms);
+      return { success: true, result: { created: newAlarm }, error: '', durationMs: Date.now() - startedAt };
+    }
+
+    if (tool === 'alarm.delete') {
+      const idRaw = getNumberArg(args, 'id');
+      if (idRaw === null || idRaw === undefined) throw new Error('alarm.delete 需要 id');
+      const targetId = Math.floor(idRaw);
+
+      const storeDir = resolve(app.getPath('userData'), 'eIsland_store');
+      const filePath = resolve(storeDir, 'alarms.json');
+      let alarms: Array<Record<string, unknown>> = [];
+      if (existsSync(filePath)) {
+        try { const parsed = JSON.parse(await readFile(filePath, 'utf8')); if (Array.isArray(parsed)) alarms = parsed; } catch { /* noop */ }
+      }
+
+      const before = alarms.length;
+      alarms = alarms.filter((a) => a.id !== targetId);
+      if (alarms.length === before) {
+        return { success: false, result: {}, error: `闹钟 ID ${targetId} 不存在`, durationMs: Date.now() - startedAt };
+      }
+      await writeFile(filePath, JSON.stringify(alarms, null, 2), 'utf8');
+      broadcastSettingChange(-1, 'store:alarms', alarms);
+      return { success: true, result: { deletedId: targetId, remaining: alarms.length }, error: '', durationMs: Date.now() - startedAt };
+    }
+
+    if (tool === 'alarm.toggle') {
+      const idRaw = getNumberArg(args, 'id');
+      if (idRaw === null || idRaw === undefined) throw new Error('alarm.toggle 需要 id');
+      const targetId = Math.floor(idRaw);
+      const enabled = args.enabled === true;
+
+      const storeDir = resolve(app.getPath('userData'), 'eIsland_store');
+      const filePath = resolve(storeDir, 'alarms.json');
+      let alarms: Array<Record<string, unknown>> = [];
+      if (existsSync(filePath)) {
+        try { const parsed = JSON.parse(await readFile(filePath, 'utf8')); if (Array.isArray(parsed)) alarms = parsed; } catch { /* noop */ }
+      }
+
+      const target = alarms.find((a) => a.id === targetId);
+      if (!target) {
+        return { success: false, result: {}, error: `闹钟 ID ${targetId} 不存在`, durationMs: Date.now() - startedAt };
+      }
+      target.enabled = enabled;
+      await writeFile(filePath, JSON.stringify(alarms, null, 2), 'utf8');
+      broadcastSettingChange(-1, 'store:alarms', alarms);
+      return { success: true, result: { id: targetId, enabled }, error: '', durationMs: Date.now() - startedAt };
+    }
+
+    if (tool === 'alarm.update') {
+      const idRaw = getNumberArg(args, 'id');
+      if (idRaw === null || idRaw === undefined) throw new Error('alarm.update 需要 id');
+      const targetId = Math.floor(idRaw);
+
+      const storeDir = resolve(app.getPath('userData'), 'eIsland_store');
+      const filePath = resolve(storeDir, 'alarms.json');
+      let alarms: Array<Record<string, unknown>> = [];
+      if (existsSync(filePath)) {
+        try { const parsed = JSON.parse(await readFile(filePath, 'utf8')); if (Array.isArray(parsed)) alarms = parsed; } catch { /* noop */ }
+      }
+
+      const target = alarms.find((a) => a.id === targetId);
+      if (!target) {
+        return { success: false, result: {}, error: `闹钟 ID ${targetId} 不存在`, durationMs: Date.now() - startedAt };
+      }
+
+      const hourRaw = getNumberArg(args, 'hour');
+      const minuteRaw = getNumberArg(args, 'minute');
+      const secondRaw = getNumberArg(args, 'second');
+      if (hourRaw !== null && hourRaw !== undefined) target.hour = Math.max(0, Math.min(23, Math.floor(hourRaw)));
+      if (minuteRaw !== null && minuteRaw !== undefined) target.minute = Math.max(0, Math.min(59, Math.floor(minuteRaw)));
+      if (secondRaw !== null && secondRaw !== undefined) target.second = Math.max(0, Math.min(59, Math.floor(secondRaw)));
+      if (typeof args.label === 'string') target.label = args.label;
+      if (Array.isArray(args.repeat)) target.repeat = (args.repeat as number[]).filter((v) => typeof v === 'number' && v >= 0 && v <= 6);
+
+      await writeFile(filePath, JSON.stringify(alarms, null, 2), 'utf8');
+      broadcastSettingChange(-1, 'store:alarms', alarms);
+      return { success: true, result: { updated: target }, error: '', durationMs: Date.now() - startedAt };
+    }
 
     throw new Error(`不支持的工具: ${tool}`);
   } catch (error) {
