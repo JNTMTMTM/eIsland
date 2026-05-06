@@ -163,7 +163,7 @@ export function MaxExpandLayoutSettingsPage({
                     onClick={() => moveItem(idx, 'up')}
                     title={t('settings.app.maxExpandLayout.moveUp', { defaultValue: '上移' })}
                   >
-                    <img src={SvgIcon.COLLAPSE} alt="" className="maxexpand-layout-item-btn-icon" />
+                    <img src={SvgIcon.MOVE_UP} alt="" className="maxexpand-layout-item-btn-icon" />
                   </button>
                   <button
                     className="maxexpand-layout-item-move-btn"
@@ -172,7 +172,7 @@ export function MaxExpandLayoutSettingsPage({
                     onClick={() => moveItem(idx, 'down')}
                     title={t('settings.app.maxExpandLayout.moveDown', { defaultValue: '下移' })}
                   >
-                    <img src={SvgIcon.EXPAND} alt="" className="maxexpand-layout-item-btn-icon" />
+                    <img src={SvgIcon.MOVE_DOWN} alt="" className="maxexpand-layout-item-btn-icon" />
                   </button>
                   <button
                     className={`maxexpand-layout-item-toggle${item.visible ? ' maxexpand-layout-item-toggle--on' : ''}`}
