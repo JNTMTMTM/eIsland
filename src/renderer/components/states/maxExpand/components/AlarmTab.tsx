@@ -84,36 +84,80 @@ interface WheelPickerProps {
 
 function WheelPicker({ min, max, value, onChange }: WheelPickerProps): React.ReactElement {
   const containerRef = useRef<HTMLDivElement>(null);
-  const isScrollingRef = useRef(false);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const items = Array.from({ length: max - min + 1 }, (_, i) => min + i);
+  const items = React.useMemo(() => Array.from({ length: max - min + 1 }, (_, i) => min + i), [min, max]);
   const padding = Math.floor(WHEEL_VISIBLE_ITEMS / 2);
+  const containerHeight = WHEEL_VISIBLE_ITEMS * WHEEL_ITEM_HEIGHT;
+
+  const currentIdx = value - min;
+  const dragStartY = useRef(0);
+  const dragStartIdx = useRef(0);
+  const isDragging = useRef(false);
+  const lastIdxRef = useRef(currentIdx);
+  lastIdxRef.current = currentIdx;
+
+  const clampIdx = useCallback((idx: number) => Math.max(0, Math.min(items.length - 1, idx)), [items.length]);
+
+  const scrollToIdx = useCallback((idx: number, smooth = true) => {
+    const el = containerRef.current;
+    if (!el) return;
+    const top = idx * WHEEL_ITEM_HEIGHT;
+    if (smooth) {
+      el.scrollTo({ top, behavior: 'smooth' });
+    } else {
+      el.scrollTop = top;
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!isDragging.current) {
+      scrollToIdx(currentIdx, false);
+    }
+  }, [currentIdx, scrollToIdx]);
 
   useEffect(() => {
     const el = containerRef.current;
-    if (!el || isScrollingRef.current) return;
-    const targetTop = (value - min) * WHEEL_ITEM_HEIGHT;
-    if (Math.abs(el.scrollTop - targetTop) > 1) {
-      el.scrollTop = targetTop;
-    }
-  }, [value, min]);
+    if (!el) return;
+    const handleWheel = (e: WheelEvent): void => {
+      e.preventDefault();
+      const dir = e.deltaY > 0 ? 1 : e.deltaY < 0 ? -1 : 0;
+      if (dir === 0) return;
+      const cur = lastIdxRef.current;
+      const next = clampIdx(cur + dir);
+      if (next !== cur) {
+        scrollToIdx(next, true);
+        onChange(items[next]);
+      }
+    };
+    el.addEventListener('wheel', handleWheel, { passive: false });
+    return () => el.removeEventListener('wheel', handleWheel);
+  }, [items, onChange, clampIdx, scrollToIdx]);
 
-  const handleScroll = useCallback(() => {
-    if (timerRef.current) clearTimeout(timerRef.current);
-    isScrollingRef.current = true;
-    timerRef.current = setTimeout(() => {
-      const el = containerRef.current;
-      if (!el) return;
-      const idx = Math.round(el.scrollTop / WHEEL_ITEM_HEIGHT);
-      const clamped = Math.max(0, Math.min(items.length - 1, idx));
-      const snappedTop = clamped * WHEEL_ITEM_HEIGHT;
-      el.scrollTo({ top: snappedTop, behavior: 'smooth' });
-      onChange(items[clamped]);
-      setTimeout(() => { isScrollingRef.current = false; }, 60);
-    }, 50);
-  }, [items, onChange]);
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    isDragging.current = true;
+    dragStartY.current = e.clientY;
+    dragStartIdx.current = lastIdxRef.current;
 
-  const containerHeight = WHEEL_VISIBLE_ITEMS * WHEEL_ITEM_HEIGHT;
+    const handleMouseMove = (ev: MouseEvent): void => {
+      const dy = dragStartY.current - ev.clientY;
+      const offsetItems = Math.round(dy / WHEEL_ITEM_HEIGHT);
+      const next = clampIdx(dragStartIdx.current + offsetItems);
+      if (next !== lastIdxRef.current) {
+        scrollToIdx(next, false);
+        onChange(items[next]);
+      }
+    };
+
+    const handleMouseUp = (): void => {
+      isDragging.current = false;
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      scrollToIdx(lastIdxRef.current, true);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  }, [items, onChange, clampIdx, scrollToIdx]);
 
   return (
     <div className="alarm-wheel-picker" style={{ height: containerHeight }}>
@@ -121,10 +165,9 @@ function WheelPicker({ min, max, value, onChange }: WheelPickerProps): React.Rea
       <div
         className="alarm-wheel-scroll"
         ref={containerRef}
-        onScroll={handleScroll}
-        style={{ height: containerHeight }}
+        onMouseDown={handleMouseDown}
+        style={{ height: containerHeight, cursor: 'grab' }}
       >
-        {/* top padding */}
         {Array.from({ length: padding }, (_, i) => (
           <div key={`pt${i}`} className="alarm-wheel-item alarm-wheel-item--empty" style={{ height: WHEEL_ITEM_HEIGHT }} />
         ))}
@@ -137,7 +180,6 @@ function WheelPicker({ min, max, value, onChange }: WheelPickerProps): React.Rea
             {String(n).padStart(2, '0')}
           </div>
         ))}
-        {/* bottom padding */}
         {Array.from({ length: padding }, (_, i) => (
           <div key={`pb${i}`} className="alarm-wheel-item alarm-wheel-item--empty" style={{ height: WHEEL_ITEM_HEIGHT }} />
         ))}
