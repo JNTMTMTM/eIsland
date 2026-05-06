@@ -880,6 +880,7 @@
       "aiChat": "AI Chat",
       "memo": "Memo",
       "countdown": "Countdown",
+      "alarm": "Alarm",
       "settings": "Settings",
       "switchTo": "Switch to {{label}}"
     },
@@ -934,6 +935,36 @@
       "created": "Created",
       "updated": "Updated",
       "selectHint": "Select or create a memo"
+    },
+    "alarm": {
+      "title": "Alarms",
+      "add": "New Alarm",
+      "loading": "Loading...",
+      "empty": "No alarms yet. Tap + to create one.",
+      "labelPlaceholder": "Label (optional)",
+      "cancel": "Cancel",
+      "save": "Save",
+      "delete": "Delete",
+      "turnOn": "Turn on",
+      "turnOff": "Turn off",
+      "disabled": "Off",
+      "repeatOnce": "Once",
+      "repeatEveryday": "Every day",
+      "repeatWeekdays": "Weekdays",
+      "repeatWeekend": "Weekends",
+      "ringIn": "In {{h}}h {{m}}m",
+      "ringInMin": "In {{m}}m",
+      "ringTomorrow": "Tomorrow",
+      "ringInDays": "In {{n}} days",
+      "weekday": {
+        "sun": "Sun",
+        "mon": "Mon",
+        "tue": "Tue",
+        "wed": "Wed",
+        "thu": "Thu",
+        "fri": "Fri",
+        "sat": "Sat"
+      }
     }
   },
   "settings": {
@@ -1124,7 +1155,8 @@
           "clipboardHistory": "Clipboard",
           "aiChat": "AI Chat",
           "memo": "Memo",
-          "countdown": "Countdown"
+          "countdown": "Countdown",
+          "alarm": "Alarm"
         }
       },
       "hideProcess": {

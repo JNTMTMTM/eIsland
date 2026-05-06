@@ -880,6 +880,7 @@
       "aiChat": "AI 对话",
       "memo": "备忘录",
       "countdown": "倒数日",
+      "alarm": "闹钟",
       "settings": "设置",
       "switchTo": "切换到{{label}}"
     },
@@ -934,6 +935,36 @@
       "created": "创建于",
       "updated": "更新于",
       "selectHint": "选择或新建一条备忘录"
+    },
+    "alarm": {
+      "title": "闹钟",
+      "add": "新建闹钟",
+      "loading": "加载中…",
+      "empty": "暂无闹钟，点击右上角新建",
+      "labelPlaceholder": "闹钟备注（可选）",
+      "cancel": "取消",
+      "save": "保存",
+      "delete": "删除",
+      "turnOn": "开启",
+      "turnOff": "关闭",
+      "disabled": "已关闭",
+      "repeatOnce": "仅一次",
+      "repeatEveryday": "每天",
+      "repeatWeekdays": "工作日",
+      "repeatWeekend": "周末",
+      "ringIn": "{{h}}小时{{m}}分钟后",
+      "ringInMin": "{{m}}分钟后",
+      "ringTomorrow": "明天",
+      "ringInDays": "{{n}}天后",
+      "weekday": {
+        "sun": "日",
+        "mon": "一",
+        "tue": "二",
+        "wed": "三",
+        "thu": "四",
+        "fri": "五",
+        "sat": "六"
+      }
     }
   },
   "settings": {
@@ -1124,7 +1155,8 @@
           "clipboardHistory": "剪贴板",
           "aiChat": "AI 对话",
           "memo": "备忘录",
-          "countdown": "倒数日"
+          "countdown": "倒数日",
+          "alarm": "闹钟"
         }
       },
       "hideProcess": {
