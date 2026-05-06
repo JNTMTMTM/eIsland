@@ -109,6 +109,15 @@ export function MaxExpandContent(): React.ReactElement {
     return () => { cancelled = true; unsub(); };
   }, []);
 
+  /** 当前 activeTab 不在可见导航点中时，自动跳转到第一个可见页面 */
+  useEffect(() => {
+    if (activeTab === 'settings') return;
+    const isVisible = NAV_DOTS.includes(activeTab);
+    if (!isVisible && NAV_DOTS.length > 2) {
+      setActiveTab(NAV_DOTS[1] as MaxExpandTab);
+    }
+  }, [NAV_DOTS, activeTab, setActiveTab]);
+
   /** 加载全展开导航布局配置 */
   useEffect(() => {
     let cancelled = false;
