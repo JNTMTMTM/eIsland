@@ -373,7 +373,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 20px 10px;
+  padding: 10px 16px 4px;
   flex-shrink: 0;
 }
 
@@ -388,10 +388,10 @@
 .alarm-editor-panel-body {
   flex: 1;
   overflow-y: auto;
-  padding: 8px 24px 24px;
+  padding: 4px 16px 16px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 12px;
 }
 
 .alarm-editor-panel-body::-webkit-scrollbar {
@@ -409,7 +409,7 @@
   align-items: center;
   gap: 6px;
   justify-content: center;
-  padding: 12px 0;
+  padding: 6px 0;
 }
 
 .alarm-editor-time-sep {
@@ -516,7 +516,7 @@
 .alarm-editor-field {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .alarm-editor-field-label-row {
