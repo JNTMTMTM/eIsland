@@ -2299,6 +2299,10 @@
         "label": "Interaction",
         "desc": "Configure auto-collapse when mouse leaves."
       },
+      "animation": {
+        "label": "Animations",
+        "desc": "Dynamic Island spring animation and speed settings."
+      },
       "url-parser": {
         "label": "URL Parser",
         "desc": "Configure clipboard URL detection and blacklist."
@@ -2318,6 +2322,10 @@
       "network": {
         "label": "Network",
         "desc": "Request timeout and network behavior settings"
+      },
+      "mail": {
+        "label": "Mail",
+        "desc": "Configure IMAP mail receiving parameters"
       },
       "weather": {
         "label": "Weather",

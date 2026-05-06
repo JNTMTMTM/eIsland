@@ -2294,6 +2294,10 @@
         "label": "交互行为",
         "desc": "配置鼠标移开后是否自动收回。"
       },
+      "animation": {
+        "label": "软件动画",
+        "desc": "灵动岛弹性动画与动画速度配置。"
+      },
       "url-parser": {
         "label": "URL解析",
         "desc": "配置剪贴板 URL 识别模式与黑名单。"
@@ -2313,6 +2317,10 @@
       "network": {
         "label": "网络配置",
         "desc": "请求超时与网络行为设置"
+      },
+      "mail": {
+        "label": "邮箱配置",
+        "desc": "配置 IMAP 收信参数"
       },
       "weather": {
         "label": "天气配置",
@@ -2337,6 +2345,18 @@
       "user-recharge": {
         "label": "余额充值",
         "desc": "为 AI 助手对话余额充值"
+      },
+      "about": {
+        "label": "关于软件",
+        "desc": "版本信息与项目链接"
+      },
+      "music-whitelist": {
+        "label": "播放器白名单",
+        "desc": "配置允许接入灵动岛的播放器。"
+      },
+      "music-lyrics": {
+        "label": "歌词源",
+        "desc": "选择歌词来源与显示模式。"
       },
       "music-smtc": {
         "label": "SMTC",
