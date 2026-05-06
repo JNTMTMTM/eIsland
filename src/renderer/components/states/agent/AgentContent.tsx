@@ -106,7 +106,7 @@ function renderInlineMarkdown(text: string): ReactNode[] {
 const CLIENT_LOCAL_TOOL_PREFIXES = [
   'file.', 'cmd.', 'sys.', 'win.', 'clipboard.', 'notification.', 'net.',
   'monitor.', 'volume.', 'brightness.', 'display.', 'power.', 'wifi.',
-  'registry.', 'service.', 'schedule.', 'firewall.', 'defender.', 'island.',
+  'registry.', 'service.', 'schedule.', 'firewall.', 'defender.', 'island.', 'alarm.',
 ] as const;
 const CLIENT_LOCAL_TOOL_EXACT_NAMES = new Set(['web.search']);
 const HIGH_RISK_LOCAL_TOOL_PREFIXES = [
@@ -115,7 +115,7 @@ const HIGH_RISK_LOCAL_TOOL_PREFIXES = [
   'registry.write', 'registry.delete', 'service.start', 'service.stop',
   'service.restart', 'schedule.task.create', 'net.proxy', 'net.hosts',
   'defender.scan', 'island.settings.write', 'island.theme.set',
-  'island.opacity.set', 'island.restart',
+  'island.opacity.set', 'island.restart', 'alarm.delete',
 ] as const;
 function isClientLocalToolName(tool: string): boolean {
   const n = tool.trim().toLowerCase();
