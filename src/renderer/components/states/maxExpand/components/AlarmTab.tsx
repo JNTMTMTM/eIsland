@@ -319,7 +319,7 @@ export function AlarmTab(): React.ReactElement {
             }}
             title={t('alarm.add', { defaultValue: '新建闹钟' })}
           >
-+
+            <img src={adding ? SvgIcon.CANCEL : SvgIcon.PLUS} alt="" className="alarm-tab-btn-icon" />
           </button>
         </div>
 

@@ -90,7 +90,11 @@
 .alarm-tab-add-btn--active {
   background: rgba(var(--color-text-rgb), 0.14);
   color: rgba(var(--color-text-rgb), 0.9);
-  transform: rotate(45deg);
+}
+
+.alarm-tab-add-btn--active .alarm-tab-btn-icon {
+  width: 10px;
+  height: 10px;
 }
 
 .alarm-tab-btn-icon {
