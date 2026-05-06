@@ -28,6 +28,7 @@ import { useCallback, useRef, useState, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { MaxExpandNavLayoutConfig } from '../../../utils/settingsConfig';
 import { MAXEXPAND_TAB_LABELS } from '../../../utils/settingsConfig';
+import { SvgIcon } from '../../../../../../../../utils/SvgIcon';
 
 interface MaxExpandLayoutSettingsPageProps {
   maxExpandNavLayout: MaxExpandNavLayoutConfig;
@@ -151,7 +152,7 @@ export function MaxExpandLayoutSettingsPage({
                 onDrop={() => handleDrop(idx)}
                 onDragEnd={handleDragEnd}
               >
-                <span className="maxexpand-layout-item-handle">⠿</span>
+                <img src={SvgIcon.DRAG} alt="" className="maxexpand-layout-item-handle-icon" />
                 <span className="maxexpand-layout-item-index">{idx + 1}</span>
                 <span className="maxexpand-layout-item-label">{getTabLabel(item.id)}</span>
                 <div className="maxexpand-layout-item-actions">
@@ -162,7 +163,7 @@ export function MaxExpandLayoutSettingsPage({
                     onClick={() => moveItem(idx, 'up')}
                     title={t('settings.app.maxExpandLayout.moveUp', { defaultValue: '上移' })}
                   >
-                    ↑
+                    <img src={SvgIcon.COLLAPSE} alt="" className="maxexpand-layout-item-btn-icon" />
                   </button>
                   <button
                     className="maxexpand-layout-item-move-btn"
@@ -171,7 +172,7 @@ export function MaxExpandLayoutSettingsPage({
                     onClick={() => moveItem(idx, 'down')}
                     title={t('settings.app.maxExpandLayout.moveDown', { defaultValue: '下移' })}
                   >
-                    ↓
+                    <img src={SvgIcon.EXPAND} alt="" className="maxexpand-layout-item-btn-icon" />
                   </button>
                   <button
                     className={`maxexpand-layout-item-toggle${item.visible ? ' maxexpand-layout-item-toggle--on' : ''}`}
@@ -182,7 +183,7 @@ export function MaxExpandLayoutSettingsPage({
                       : t('settings.app.maxExpandLayout.showTab', { defaultValue: '显示此页面' })
                     }
                   >
-                    {item.visible ? '✓' : '✗'}
+                    <img src={item.visible ? SvgIcon.VISIBLE : SvgIcon.INVISIBLE} alt="" className="maxexpand-layout-item-btn-icon" />
                   </button>
                 </div>
               </div>

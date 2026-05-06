@@ -91,6 +91,7 @@ export const SvgIcon = {
   BOOKMARK: './svg/BOOKMARK.svg',
   BOOKMARK_ON: './svg/BOOKMARK_ON.svg',
   ANIMATION: './svg/ANIMATION.svg',
+  DRAG: './svg/DRAG.svg',
 } as const;
 
 export type SvgIconKey = keyof typeof SvgIcon;
