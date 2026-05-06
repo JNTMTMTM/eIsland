@@ -207,6 +207,7 @@ export interface AiConfig {
   skills: AiSkill[];
   ollamaModel: string;
   ollamaBaseUrl: string;
+  customApiModel: string;
 }
 
 /** AI 工具调用轨迹 */

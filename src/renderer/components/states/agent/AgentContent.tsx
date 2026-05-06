@@ -187,9 +187,15 @@ export function AgentContent(): ReactElement {
       traceIdRef.current = '';
 
       const isOllama = aiConfig.model === 'ollama';
+      const isCustomApi = aiConfig.model === 'custom-api';
+      const hasCustomCredentials = Boolean(aiConfig.apiKey?.trim() && aiConfig.endpoint?.trim());
       const availableModels = ['deepseek-v4-flash', 'deepseek-v4-pro', 'mimo-v2.5', 'mimo-v2.5-pro'];
-      const selectedModel = isOllama ? 'ollama' : (availableModels.includes(aiConfig.model) ? aiConfig.model : 'deepseek-v4-flash');
-      const selectedProvider = isOllama ? 'ollama' : (selectedModel.startsWith('mimo-') ? 'mimo' : 'deepseek');
+      const selectedModel = isOllama
+        ? 'ollama'
+        : (isCustomApi && hasCustomCredentials
+          ? (aiConfig.customApiModel?.trim() || 'gpt-4o-mini')
+          : (availableModels.includes(aiConfig.model) ? aiConfig.model : 'deepseek-v4-flash'));
+      const selectedProvider = isCustomApi ? 'custom' : (isOllama ? 'ollama' : (selectedModel.startsWith('mimo-') ? 'mimo' : 'deepseek'));
       const agentMode = loadAgentMode();
 
       const state = useIslandStore.getState();
@@ -390,6 +396,8 @@ export function AgentContent(): ReactElement {
               const parts = [loc.city, loc.regionName, loc.country].filter(Boolean);
               return parts.length > 0 ? parts.join(', ') : undefined;
             })(),
+            customApiKey: isCustomApi && hasCustomCredentials ? aiConfig.apiKey : undefined,
+            customEndpoint: isCustomApi && hasCustomCredentials ? aiConfig.endpoint : undefined,
             signal: controller.signal,
             onEvent: handleEvent,
           });
@@ -431,7 +439,7 @@ export function AgentContent(): ReactElement {
       controller.abort();
       abortRef.current = null;
     };
-  }, [agentPrompt, aiConfig.model, aiConfig.deepseekThinking, aiConfig.deepseekReasoningEffort, aiConfig.workspaces, aiConfig.skills]);
+  }, [agentPrompt, aiConfig.apiKey, aiConfig.endpoint, aiConfig.model, aiConfig.customApiModel, aiConfig.deepseekThinking, aiConfig.deepseekReasoningEffort, aiConfig.workspaces, aiConfig.skills]);
 
   const handleAuthDecision = useCallback(async (allow: boolean) => {
     const auth = authPending;
