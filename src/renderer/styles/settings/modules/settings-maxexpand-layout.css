@@ -77,7 +77,6 @@
 
 .maxexpand-layout-preview-dot--hidden .maxexpand-layout-dot-label {
   color: rgba(var(--color-text-rgb), 0.25);
-  text-decoration: line-through;
 }
 
 .maxexpand-layout-preview-dot--fixed .maxexpand-layout-dot-label {
@@ -150,7 +149,6 @@
 }
 
 .maxexpand-layout-item--disabled .maxexpand-layout-item-label {
-  text-decoration: line-through;
   color: rgba(var(--color-text-rgb), 0.4);
 }
 
