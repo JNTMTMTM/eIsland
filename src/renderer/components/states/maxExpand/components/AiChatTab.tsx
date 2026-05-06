@@ -1992,7 +1992,8 @@ export function AiChatTab(): React.ReactElement {
                   const showThinkingFooter = aiConfig.deepseekThinking && aiChatStreaming && isLatestAssistantMsg;
                   const traceId = typeof msg.traceId === 'string' ? msg.traceId.trim() : '';
                   const isMsgOllama = msg.model === 'ollama';
-                  const msgModelIcon = isMsgOllama ? SvgIcon.OLLAMA : (msg.model?.startsWith('mimo-') ? SvgIcon.MIMO : SvgIcon.DEEPSEEK);
+                  const isMsgCustomApi = msg.model === 'custom-api';
+                  const msgModelIcon = isMsgCustomApi ? SvgIcon.AI : (isMsgOllama ? SvgIcon.OLLAMA : (msg.model?.startsWith('mimo-') ? SvgIcon.MIMO : SvgIcon.DEEPSEEK));
                   const showFinalTraceMeta = Boolean(msg.finalized);
                   const normalizedMarkdownContent = normalizeMarkdownCodeFences(msg.content);
                   const timelineNodes: React.ReactElement[] = [];
