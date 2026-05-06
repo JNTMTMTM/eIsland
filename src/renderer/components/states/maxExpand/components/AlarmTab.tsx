@@ -534,7 +534,10 @@ export function AlarmTab(): React.ReactElement {
           </div>
 
           <div className="alarm-editor-field">
-            <div className="alarm-editor-field-label">{t('alarm.repeatField', { defaultValue: '重复' })}</div>
+            <div className="alarm-editor-field-label-row">
+              <span className="alarm-editor-field-label">{t('alarm.repeatField', { defaultValue: '重复' })}</span>
+              <span className="alarm-editor-repeat-hint">{repeatSummary(editorRepeat)}</span>
+            </div>
             <div className="alarm-editor-weekdays">
               {ALL_WEEKDAYS.map((d) => (
                 <button
@@ -547,7 +550,6 @@ export function AlarmTab(): React.ReactElement {
                 </button>
               ))}
             </div>
-            <div className="alarm-editor-repeat-hint">{repeatSummary(editorRepeat)}</div>
           </div>
         </div>
       </div>

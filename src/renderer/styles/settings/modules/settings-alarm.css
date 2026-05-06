@@ -519,6 +519,12 @@
   gap: 8px;
 }
 
+.alarm-editor-field-label-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
 .alarm-editor-field-label {
   font-size: 13px;
   font-weight: 500;
@@ -587,9 +593,9 @@
 
 .alarm-editor-repeat-hint {
   font-size: 12px;
-  color: rgba(var(--color-text-rgb), 0.35);
+  font-weight: 400;
+  color: rgba(var(--color-text-rgb), 0.3);
   letter-spacing: -0.01em;
-  min-height: 16px;
 }
 
 /* ── 操作按钮（固定在顶栏右侧） ── */
