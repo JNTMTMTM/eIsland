@@ -532,6 +532,54 @@ function DynamicIsland(): React.JSX.Element {
     };
   }, [timerData?.state, timerData?.remainingSeconds, setTimerData, i18n.resolvedLanguage]);
 
+  const alarmFiredSetRef = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    const ALARM_STORE_KEY = 'alarms';
+    const alarmInterval = setInterval(async () => {
+      try {
+        const data = await window.api?.storeRead(ALARM_STORE_KEY);
+        if (!Array.isArray(data) || data.length === 0) return;
+        const now = new Date();
+        const h = now.getHours();
+        const m = now.getMinutes();
+        const s = now.getSeconds();
+        const weekday = now.getDay() as 0 | 1 | 2 | 3 | 4 | 5 | 6;
+        const timeKey = `${h}:${m}:${s}`;
+
+        for (const alarm of data) {
+          if (!alarm || !alarm.enabled) continue;
+          if (alarm.hour !== h || alarm.minute !== m || alarm.second !== s) continue;
+          const hasRepeat = Array.isArray(alarm.repeat) && alarm.repeat.length > 0;
+          if (hasRepeat && !alarm.repeat.includes(weekday)) continue;
+
+          const firedKey = `${alarm.id}-${timeKey}`;
+          if (alarmFiredSetRef.current.has(firedKey)) continue;
+          alarmFiredSetRef.current.add(firedKey);
+
+          const timeStr = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+          const label = alarm.label ? `${alarm.label}` : '';
+          setNotificationRef.current({
+            title: t('notification.alarm.title', { defaultValue: '闹钟' }),
+            body: label ? `${timeStr} — ${label}` : timeStr,
+            icon: SvgIcon.TIMER,
+          });
+
+          if (!hasRepeat) {
+            const updated = data.map((a: { id: number }) =>
+              a.id === alarm.id ? { ...a, enabled: false } : a,
+            );
+            await window.api?.storeWrite(ALARM_STORE_KEY, updated).catch(() => {});
+          }
+        }
+
+        if (alarmFiredSetRef.current.size > 200) {
+          alarmFiredSetRef.current.clear();
+        }
+      } catch { /* noop */ }
+    }, 1000);
+    return () => clearInterval(alarmInterval);
+  }, [i18n.resolvedLanguage]);
+
   useEffect(() => {
     const update = (): void => {
       const now = new Date();
