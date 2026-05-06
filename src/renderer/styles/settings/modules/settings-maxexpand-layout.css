@@ -34,7 +34,7 @@
 .maxexpand-layout-preview-dots {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 20px;
   padding: 10px 16px;
   border-radius: 20px;
   background: rgba(var(--color-text-rgb), 0.06);
