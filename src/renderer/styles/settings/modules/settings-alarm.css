@@ -426,6 +426,19 @@
   overflow: hidden;
   border-radius: 10px;
   background: rgba(var(--color-text-rgb), 0.03);
+  transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  transform: scale(1);
+}
+
+.alarm-wheel-picker:hover {
+  background: rgba(var(--color-text-rgb), 0.05);
+  box-shadow: 0 0 0 1px rgba(var(--color-text-rgb), 0.06);
+  transform: scale(1.05);
+}
+
+.alarm-wheel-picker:active {
+  background: rgba(var(--color-text-rgb), 0.06);
+  transform: scale(1.02);
 }
 
 /* 中心高亮条 */
@@ -440,6 +453,17 @@
   background: rgba(var(--color-text-rgb), 0.07);
   pointer-events: none;
   z-index: 1;
+  transition: background 0.2s;
+}
+
+.alarm-wheel-picker:hover .alarm-wheel-highlight {
+  background: rgba(var(--color-text-rgb), 0.10);
+}
+
+/* 上下淡入遮罩 */
+.alarm-wheel-picker::before,
+.alarm-wheel-picker::after {
+  content: '';
 }
 
 /* 滚动区域 */
@@ -458,19 +482,29 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 400;
   font-variant-numeric: tabular-nums;
   color: rgba(var(--color-text-rgb), 0.25);
   scroll-snap-align: start;
   user-select: none;
-  transition: color 0.12s, font-weight 0.12s;
+  transition: color 0.2s ease, font-size 0.2s ease, font-weight 0.2s ease, transform 0.2s ease;
+}
+
+.alarm-wheel-item:hover:not(.alarm-wheel-item--active) {
+  color: rgba(var(--color-text-rgb), 0.5);
 }
 
 .alarm-wheel-item--active {
   color: rgba(var(--color-text-rgb), 0.9);
   font-weight: 600;
   font-size: 16px;
+  transform: scale(1);
+  opacity: 1;
+}
+
+.alarm-wheel-picker:hover .alarm-wheel-item--active {
+  transform: scale(1.1);
 }
 
 .alarm-wheel-item--empty {
