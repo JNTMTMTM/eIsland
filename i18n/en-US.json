@@ -342,6 +342,11 @@
     "unknown": "N/A"
   },
   "notification": {
+    "alarm": {
+      "title": "Alarm",
+      "body": "{{time}}",
+      "bodyWithLabel": "{{time}} — {{label}}"
+    },
     "timer": {
       "title": "Timer",
       "finished": "Countdown finished"
@@ -939,9 +944,13 @@
     "alarm": {
       "title": "Alarms",
       "add": "New Alarm",
+      "newTitle": "New Alarm",
+      "editTitle": "Edit Alarm",
       "loading": "Loading...",
       "empty": "No alarms yet. Tap + to create one.",
+      "labelField": "Label",
       "labelPlaceholder": "Label (optional)",
+      "repeatField": "Repeat",
       "cancel": "Cancel",
       "save": "Save",
       "delete": "Delete",

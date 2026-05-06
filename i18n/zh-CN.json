@@ -342,6 +342,11 @@
     "unknown": "未知"
   },
   "notification": {
+    "alarm": {
+      "title": "闹钟",
+      "body": "{{time}}",
+      "bodyWithLabel": "{{time}} — {{label}}"
+    },
     "timer": {
       "title": "计时器",
       "finished": "倒计时已结束"
@@ -939,9 +944,13 @@
     "alarm": {
       "title": "闹钟",
       "add": "新建闹钟",
+      "newTitle": "新建闹钟",
+      "editTitle": "编辑闹钟",
       "loading": "加载中…",
       "empty": "暂无闹钟，点击右上角新建",
+      "labelField": "备注",
       "labelPlaceholder": "闹钟备注（可选）",
+      "repeatField": "重复",
       "cancel": "取消",
       "save": "保存",
       "delete": "删除",

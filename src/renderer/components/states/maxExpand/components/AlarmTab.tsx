@@ -259,20 +259,20 @@ export function AlarmTab(): React.ReactElement {
   /** 星期几简写 */
   const weekdayLabel = useCallback((d: Weekday): string => {
     const keys = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
-    return t(`alarm.weekday.${keys[d]}`, { defaultValue: ['日', '一', '二', '三', '四', '五', '六'][d] });
+    return t(`maxExpand.alarm.weekday.${keys[d]}`, { defaultValue: ['日', '一', '二', '三', '四', '五', '六'][d] });
   }, [t]);
 
   /** 重复描述 */
   const repeatSummary = useCallback((repeat: Weekday[]): string => {
-    if (repeat.length === 0) return t('alarm.repeatOnce', { defaultValue: '仅一次' });
-    if (repeat.length === 7) return t('alarm.repeatEveryday', { defaultValue: '每天' });
+    if (repeat.length === 0) return t('maxExpand.alarm.repeatOnce', { defaultValue: '仅一次' });
+    if (repeat.length === 7) return t('maxExpand.alarm.repeatEveryday', { defaultValue: '每天' });
     const weekdays: Weekday[] = [1, 2, 3, 4, 5];
     const weekend: Weekday[] = [0, 6];
     if (weekdays.every((d) => repeat.includes(d)) && !weekend.some((d) => repeat.includes(d))) {
-      return t('alarm.repeatWeekdays', { defaultValue: '工作日' });
+      return t('maxExpand.alarm.repeatWeekdays', { defaultValue: '工作日' });
     }
     if (weekend.every((d) => repeat.includes(d)) && !weekdays.some((d) => repeat.includes(d))) {
-      return t('alarm.repeatWeekend', { defaultValue: '周末' });
+      return t('maxExpand.alarm.repeatWeekend', { defaultValue: '周末' });
     }
     return repeat.map((d) => weekdayLabel(d)).join(' ');
   }, [t, weekdayLabel]);
@@ -355,7 +355,7 @@ export function AlarmTab(): React.ReactElement {
 
   /** 计算距下次响铃的时间描述 */
   const nextRingDesc = useCallback((alarm: AlarmItem): string => {
-    if (!alarm.enabled) return t('alarm.disabled', { defaultValue: '已关闭' });
+    if (!alarm.enabled) return t('maxExpand.alarm.disabled', { defaultValue: '已关闭' });
     const now = new Date();
     const todayMinutes = now.getHours() * 60 + now.getMinutes();
     const alarmMinutes = alarm.hour * 60 + alarm.minute;
@@ -367,10 +367,10 @@ export function AlarmTab(): React.ReactElement {
         const h = Math.floor(diff / 60);
         const m = diff % 60;
         return h > 0
-          ? t('alarm.ringIn', { defaultValue: '{{h}}小时{{m}}分钟后', h, m })
-          : t('alarm.ringInMin', { defaultValue: '{{m}}分钟后', m });
+          ? t('maxExpand.alarm.ringIn', { defaultValue: '{{h}}小时{{m}}分钟后', h, m })
+          : t('maxExpand.alarm.ringInMin', { defaultValue: '{{m}}分钟后', m });
       }
-      return t('alarm.ringTomorrow', { defaultValue: '明天' });
+      return t('maxExpand.alarm.ringTomorrow', { defaultValue: '明天' });
     }
 
     for (let offset = 0; offset < 7; offset++) {
@@ -381,12 +381,12 @@ export function AlarmTab(): React.ReactElement {
         const h = Math.floor(diff / 60);
         const m = diff % 60;
         return h > 0
-          ? t('alarm.ringIn', { defaultValue: '{{h}}小时{{m}}分钟后', h, m })
-          : t('alarm.ringInMin', { defaultValue: '{{m}}分钟后', m });
+          ? t('maxExpand.alarm.ringIn', { defaultValue: '{{h}}小时{{m}}分钟后', h, m })
+          : t('maxExpand.alarm.ringInMin', { defaultValue: '{{m}}分钟后', m });
       }
       if (offset === 0) continue;
-      if (offset === 1) return t('alarm.ringTomorrow', { defaultValue: '明天' });
-      return t('alarm.ringInDays', { defaultValue: '{{n}}天后', n: offset });
+      if (offset === 1) return t('maxExpand.alarm.ringTomorrow', { defaultValue: '明天' });
+      return t('maxExpand.alarm.ringInDays', { defaultValue: '{{n}}天后', n: offset });
     }
     return '';
   }, [t]);
@@ -437,7 +437,7 @@ export function AlarmTab(): React.ReactElement {
       {/* ── 左侧：闹钟列表（编辑时为侧边栏） ── */}
       <div className={`alarm-tab-sidebar${showEditor ? ' alarm-tab-sidebar--compact' : ''}`}>
         <div className="alarm-tab-header">
-          <div className="alarm-tab-title">{t('alarm.title', { defaultValue: '闹钟' })}</div>
+          <div className="alarm-tab-title">{t('maxExpand.alarm.title', { defaultValue: '闹钟' })}</div>
           <button
             className={`alarm-tab-add-btn${adding ? ' alarm-tab-add-btn--active' : ''}`}
             type="button"
@@ -445,17 +445,17 @@ export function AlarmTab(): React.ReactElement {
               if (adding) { closeEditor(); }
               else { const _now = new Date(); setNewHour(_now.getHours()); setNewMinute(_now.getMinutes()); setNewSecond(_now.getSeconds()); setAdding(true); setEditingId(null); }
             }}
-            title={t('alarm.add', { defaultValue: '新建闹钟' })}
+            title={t('maxExpand.alarm.add', { defaultValue: '新建闹钟' })}
           >
             <img src={adding ? SvgIcon.CANCEL : SvgIcon.PLUS} alt="" className="alarm-tab-btn-icon" />
           </button>
         </div>
 
         <div className="alarm-tab-list">
-          {!loaded && <div className="alarm-tab-loading">{t('alarm.loading', { defaultValue: '加载中…' })}</div>}
+          {!loaded && <div className="alarm-tab-loading">{t('maxExpand.alarm.loading', { defaultValue: '加载中…' })}</div>}
           {loaded && sortedAlarms.length === 0 && (
             <div className="alarm-tab-empty">
-              <span className="alarm-tab-empty-text">{t('alarm.empty', { defaultValue: '暂无闹钟，点击 + 新建' })}</span>
+              <span className="alarm-tab-empty-text">{t('maxExpand.alarm.empty', { defaultValue: '暂无闹钟，点击 + 新建' })}</span>
             </div>
           )}
           {sortedAlarms.map((alarm) => (
@@ -474,7 +474,7 @@ export function AlarmTab(): React.ReactElement {
                   className="alarm-delete-btn"
                   type="button"
                   onClick={() => deleteAlarm(alarm.id)}
-                  title={t('alarm.delete', { defaultValue: '删除' })}
+                  title={t('maxExpand.alarm.delete', { defaultValue: '删除' })}
                 >
                   <img src={SvgIcon.DELETE} alt="" className="alarm-tab-btn-icon" />
                 </button>
@@ -482,7 +482,7 @@ export function AlarmTab(): React.ReactElement {
                   className={`alarm-toggle${alarm.enabled ? ' alarm-toggle--on' : ''}`}
                   type="button"
                   onClick={() => toggleEnabled(alarm.id)}
-                  title={alarm.enabled ? t('alarm.turnOff', { defaultValue: '关闭' }) : t('alarm.turnOn', { defaultValue: '开启' })}
+                  title={alarm.enabled ? t('maxExpand.alarm.turnOff', { defaultValue: '关闭' }) : t('maxExpand.alarm.turnOn', { defaultValue: '开启' })}
                 >
                   <span className="alarm-toggle-track">
                     <span className="alarm-toggle-thumb" />
@@ -500,15 +500,15 @@ export function AlarmTab(): React.ReactElement {
         <div className="alarm-editor-panel-header">
           <div className="alarm-editor-panel-title">
             {adding
-              ? t('alarm.newTitle', { defaultValue: '新建闹钟' })
-              : t('alarm.editTitle', { defaultValue: '编辑闹钟' })}
+              ? t('maxExpand.alarm.newTitle', { defaultValue: '新建闹钟' })
+              : t('maxExpand.alarm.editTitle', { defaultValue: '编辑闹钟' })}
           </div>
           <div className="alarm-editor-actions">
             <button className="alarm-editor-cancel-btn" type="button" onClick={closeEditor}>
-              {t('alarm.cancel', { defaultValue: '取消' })}
+              {t('maxExpand.alarm.cancel', { defaultValue: '取消' })}
             </button>
             <button className="alarm-editor-save-btn" type="button" onClick={adding ? addAlarm : saveEdit}>
-              {t('alarm.save', { defaultValue: '保存' })}
+              {t('maxExpand.alarm.save', { defaultValue: '保存' })}
             </button>
           </div>
         </div>
@@ -524,11 +524,11 @@ export function AlarmTab(): React.ReactElement {
           </div>
 
           <div className="alarm-editor-field">
-            <div className="alarm-editor-field-label">{t('alarm.labelField', { defaultValue: '备注' })}</div>
+            <div className="alarm-editor-field-label">{t('maxExpand.alarm.labelField', { defaultValue: '备注' })}</div>
             <input
               className="alarm-editor-label-input"
               type="text"
-              placeholder={t('alarm.labelPlaceholder', { defaultValue: '闹钟备注（可选）' })}
+              placeholder={t('maxExpand.alarm.labelPlaceholder', { defaultValue: '闹钟备注（可选）' })}
               value={editorLabel}
               onChange={(e) => setEditorLabel(e.target.value)}
             />
@@ -536,7 +536,7 @@ export function AlarmTab(): React.ReactElement {
 
           <div className="alarm-editor-field">
             <div className="alarm-editor-field-label-row">
-              <span className="alarm-editor-field-label">{t('alarm.repeatField', { defaultValue: '重复' })}</span>
+              <span className="alarm-editor-field-label">{t('maxExpand.alarm.repeatField', { defaultValue: '重复' })}</span>
               <span className="alarm-editor-repeat-hint">{repeatSummary(editorRepeat)}</span>
             </div>
             <div className="alarm-editor-weekdays">

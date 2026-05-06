@@ -558,9 +558,12 @@ function DynamicIsland(): React.JSX.Element {
 
           const timeStr = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
           const label = alarm.label ? `${alarm.label}` : '';
+          const body = label
+            ? t('notification.alarm.bodyWithLabel', { defaultValue: '{{time}} — {{label}}', time: timeStr, label })
+            : t('notification.alarm.body', { defaultValue: '{{time}}', time: timeStr });
           setNotificationRef.current({
             title: t('notification.alarm.title', { defaultValue: '闹钟' }),
-            body: label ? `${timeStr} — ${label}` : timeStr,
+            body,
             icon: SvgIcon.TIMER,
           });
 
