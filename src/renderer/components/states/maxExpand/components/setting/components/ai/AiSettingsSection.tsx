@@ -37,6 +37,8 @@ interface AiSettingsSectionProps {
   aiConfig: {
     apiKey: string;
     endpoint: string;
+    model: string;
+    customApiModel: string;
     workspaces: string[];
     r1pxcAvatar: string;
     ollamaModel: string;
@@ -87,6 +89,71 @@ export function AiSettingsSection({
   const [ollamaDetecting, setOllamaDetecting] = useState<boolean>(false);
   const [ollamaModelsHint, setOllamaModelsHint] = useState<string>('');
   const [ollamaDetectHint, setOllamaDetectHint] = useState<string>('');
+  const [agentModelsList, setAgentModelsList] = useState<string[]>([]);
+  const [agentModelsFetching, setAgentModelsFetching] = useState<boolean>(false);
+  const [agentModelsHint, setAgentModelsHint] = useState<string>('');
+
+  const resolveAgentModelsUrl = (rawEndpoint: string): string => {
+    const endpoint = rawEndpoint.trim().replace(/\/+$/, '');
+    if (!endpoint) {
+      return '';
+    }
+    if (endpoint.endsWith('/v1/models') || endpoint.endsWith('/models')) {
+      return endpoint;
+    }
+    if (endpoint.endsWith('/v1/chat/completions')) {
+      return endpoint.replace(/\/v1\/chat\/completions$/, '/v1/models');
+    }
+    if (endpoint.endsWith('/chat/completions')) {
+      return endpoint.replace(/\/chat\/completions$/, '/models');
+    }
+    if (endpoint.endsWith('/v1')) {
+      return `${endpoint}/models`;
+    }
+    return `${endpoint}/v1/models`;
+  };
+
+  const handleFetchAgentModels = async (): Promise<void> => {
+    const endpoint = aiConfig.endpoint?.trim() || '';
+    if (!endpoint) {
+      setAgentModelsList([]);
+      setAgentModelsHint(t('settings.ai.agentModelFetchNeedEndpoint', { defaultValue: '请先填写 API Endpoint' }));
+      return;
+    }
+    const modelsUrl = resolveAgentModelsUrl(endpoint);
+    setAgentModelsFetching(true);
+    setAgentModelsHint('');
+    try {
+      const headers: Record<string, string> = { Accept: 'application/json' };
+      const apiKey = aiConfig.apiKey?.trim() || '';
+      if (apiKey) {
+        headers.Authorization = `Bearer ${apiKey}`;
+      }
+      const response = await fetch(modelsUrl, { method: 'GET', headers });
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      const payload = await response.json() as {
+        data?: Array<{ id?: unknown }>;
+      };
+      const list = Array.isArray(payload?.data)
+        ? payload.data
+          .map((item) => (typeof item?.id === 'string' ? item.id.trim() : ''))
+          .filter((item) => item.length > 0)
+        : [];
+      setAgentModelsList(list);
+      setAgentModelsHint(
+        list.length > 0
+          ? t('settings.ai.agentModelFetchOk', { defaultValue: '已获取 {{count}} 个模型', count: list.length })
+          : t('settings.ai.agentModelFetchEmpty', { defaultValue: '未获取到模型，请检查接口是否支持 /models' }),
+      );
+    } catch {
+      setAgentModelsList([]);
+      setAgentModelsHint(t('settings.ai.agentModelFetchFail', { defaultValue: '获取模型列表失败，请检查 Endpoint / Key' }));
+    } finally {
+      setAgentModelsFetching(false);
+    }
+  };
 
   const handleFetchOllamaModels = async (): Promise<void> => {
     setOllamaFetching(true);
@@ -156,10 +223,13 @@ export function AiSettingsSection({
   const renderGeneralPage = (): ReactElement => (
     <div className="settings-cards">
       {/* 卡片 1:模型凭据 */}
-      <div className="settings-card" style={{ opacity: 0.5, pointerEvents: 'none' }} aria-disabled="true">
+      <div className="settings-card" style={isProUser ? undefined : { opacity: 0.5, pointerEvents: 'none' }} aria-disabled={!isProUser}>
         <div className="settings-card-header">
-          <div className="settings-card-title">{t('settings.ai.credentialsTitle', { defaultValue: '模型凭据' })}</div>
-          <div className="settings-card-subtitle">{t('settings.ai.credentialsHint', { defaultValue: '模型凭据已迁移到 Agent 面板配置' })}</div>
+          <div className="settings-card-title" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <img src={SvgIcon.PRO} alt="PRO" width={16} height={16} style={{ flexShrink: 0 }} />
+            {t('settings.ai.credentialsTitle', { defaultValue: '模型凭据' })}
+          </div>
+          <div className="settings-card-subtitle">{t('settings.ai.credentialsHint', { defaultValue: '用于 Agent 中转调用的自定义 API 凭据（可选）' })}</div>
         </div>
         <div className="settings-field-group">
           <SettingsField
@@ -175,6 +245,52 @@ export function AiSettingsSection({
             placeholder="https://api.openai.com/v1"
             onChange={(v) => setAiConfig({ endpoint: v })}
           />
+          <SettingsField
+            label={t('settings.ai.agentModel', { defaultValue: 'Agent 模型' })}
+            value={aiConfig.customApiModel}
+            placeholder="gpt-4o-mini"
+            onChange={(v) => setAiConfig({ customApiModel: v })}
+          />
+          <button
+            className="settings-ai-workspace-add-btn"
+            type="button"
+            disabled={agentModelsFetching}
+            onClick={() => void handleFetchAgentModels()}
+            style={{ marginTop: -4 }}
+          >
+            {agentModelsFetching
+              ? t('settings.ai.agentModelFetching', { defaultValue: '正在获取…' })
+              : t('settings.ai.agentModelFetchBtn', { defaultValue: '获取可用模型' })}
+          </button>
+          {agentModelsHint && (
+            <div style={{ fontSize: 11, color: 'rgba(var(--color-text-rgb), 0.5)', marginTop: -2 }}>
+              {agentModelsHint}
+            </div>
+          )}
+          {agentModelsList.length > 0 && (
+            <div className="settings-field" style={{ marginTop: 2 }}>
+              <label className="settings-field-label">
+                {t('settings.ai.agentModelDropdown', { defaultValue: '模型下拉选择' })}
+              </label>
+              <select
+                className="settings-field-input"
+                value={agentModelsList.includes(aiConfig.customApiModel) ? aiConfig.customApiModel : ''}
+                onChange={(event) => {
+                  const nextModel = event.target.value;
+                  if (nextModel) {
+                    setAiConfig({ customApiModel: nextModel });
+                  }
+                }}
+              >
+                <option value="">{t('settings.ai.agentModelSelectPlaceholder', { defaultValue: '请选择模型' })}</option>
+                {agentModelsList.map((modelItem) => (
+                  <option key={modelItem} value={modelItem}>
+                    {modelItem}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
         </div>
       </div>
 

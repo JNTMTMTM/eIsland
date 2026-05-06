@@ -80,6 +80,8 @@ export interface MihtnelisAgentStreamRequest {
   timestamp?: string;
   location?: string;
   snapshotMode?: boolean;
+  customApiKey?: string;
+  customEndpoint?: string;
   signal?: AbortSignal;
   onEvent?: (event: MihtnelisAgentStreamEvent) => void;
 }
@@ -127,6 +129,8 @@ export async function streamMihtnelisAgent(request: MihtnelisAgentStreamRequest)
       timestamp: request.timestamp || undefined,
       location: request.location || undefined,
       snapshotMode: request.snapshotMode === true ? true : undefined,
+      customApiKey: request.customApiKey?.trim() || undefined,
+      customEndpoint: request.customEndpoint?.trim() || undefined,
     }),
     signal: request.signal,
   });

@@ -27,6 +27,7 @@
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { LayoutPreviewSettingsPage } from './components/LayoutPreviewSettingsPage';
+import { MaxExpandLayoutSettingsPage } from './components/MaxExpandLayoutSettingsPage';
 import { HideProcessSettingsPage } from './components/HideProcessSettingsPage';
 import { PositionSettingsPage } from './components/PositionSettingsPage';
 import { ThemeSettingsPage } from './components/ThemeSettingsPage';
@@ -35,6 +36,7 @@ import { AnimationSettingsPage } from './components/AnimationSettingsPage';
 import { LanguageSettingsPage } from './components/LanguageSettingsPage';
 import { UrlParserSettingsPage } from './components/UrlParserSettingsPage';
 import { ClipboardHistorySettingsSection } from './components/ClipboardHistorySettingsSection';
+import { AlarmSettingsPage } from './components/AlarmSettingsPage';
 import { AutostartSettingsPage } from './components/AutostartSettingsPage';
 import { AlbumSettingsPage } from './components/AlbumSettingsPage';
 import { AppSettingsPageDots } from './components/AppSettingsPageDots';
@@ -52,6 +54,8 @@ export function AppSettingsSection({
   OverviewPreviewComponent,
   overviewWidgetOptions,
   updateLayout,
+  maxExpandNavLayout,
+  updateMaxExpandNavLayout,
 
   hideProcessFilter,
   setHideProcessFilter,
@@ -159,6 +163,13 @@ export function AppSettingsSection({
             OverviewPreviewComponent={OverviewPreviewComponent}
             overviewWidgetOptions={overviewWidgetOptions}
             updateLayout={updateLayout}
+          />
+        );
+      case 'maxexpand-layout':
+        return (
+          <MaxExpandLayoutSettingsPage
+            maxExpandNavLayout={maxExpandNavLayout}
+            updateMaxExpandNavLayout={updateMaxExpandNavLayout}
           />
         );
       case 'album':
@@ -276,6 +287,8 @@ export function AppSettingsSection({
         );
       case 'clipboard-history':
         return <ClipboardHistorySettingsSection />;
+      case 'alarm':
+        return <AlarmSettingsPage />;
       case 'autostart':
         return <AutostartSettingsPage autostartMode={autostartMode} setAutostartMode={setAutostartMode} />;
       default:

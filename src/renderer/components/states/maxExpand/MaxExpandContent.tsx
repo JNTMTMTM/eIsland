@@ -28,6 +28,11 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../store/slices';
 import type { MaxExpandTab } from '../../../store/types';
+import {
+  MAXEXPAND_NAV_LAYOUT_STORE_KEY,
+  DEFAULT_MAXEXPAND_NAV_LAYOUT,
+  type MaxExpandNavLayoutConfig,
+} from './components/setting/utils/settingsConfig';
 import '../../../styles/settings/settings.css';
 import { AiChatTab } from './components/AiChatTab';
 import { TodoTab } from './components/TodoTab';
@@ -39,19 +44,17 @@ import { MailTab } from './components/MailTab';
 import { SettingsTab } from './components/SettingsTab';
 import { CountdownTab } from './components/CountdownTab';
 import { MemoTab } from './components/MemoTab';
+import { AlarmTab } from './components/AlarmTab';
 
 /** 导航点标识 — 含特殊动作：expanded 返回 */
 type NavDotId = MaxExpandTab | 'expanded';
-
-/** 导航点配置 */
-const NAV_DOTS: NavDotId[] = ['expanded', 'todo', 'urlFavorites', 'album', 'mail', 'localFileSearch', 'clipboardHistory', 'aiChat', 'memo', 'countdown', 'settings'];
 
 /**
  * 最大展开模式内容组件
  * @description 包含 AI 对话窗口和设置面板，底部导航点切换 Tab 或返回 expanded
  */
 /** 独立窗口模式下从灵动岛中移除的 Tab */
-const STANDALONE_HIDDEN_TABS: Set<NavDotId> = new Set(['todo', 'countdown', 'urlFavorites', 'album', 'mail', 'localFileSearch', 'clipboardHistory', 'memo', 'settings']);
+const STANDALONE_HIDDEN_TABS: Set<NavDotId> = new Set(['todo', 'countdown', 'urlFavorites', 'album', 'mail', 'localFileSearch', 'clipboardHistory', 'memo', 'alarm', 'settings']);
 
 /** 启动时读取一次，整个生命周期内不再变化（重启后生效） */
 let _startupMode: 'integrated' | 'standalone' = 'integrated';
@@ -82,6 +85,17 @@ export function MaxExpandContent(): React.ReactElement {
 
   const [slideDir, setSlideDir] = useState<'left' | 'right'>('right');
   const [tabAnimation, setTabAnimation] = useState(true);
+  const [navLayoutConfig, setNavLayoutConfig] = useState<MaxExpandNavLayoutConfig>(DEFAULT_MAXEXPAND_NAV_LAYOUT);
+
+  /** 根据用户配置动态生成导航点序列 */
+  const NAV_DOTS: NavDotId[] = useMemo(() => {
+    const visibleTabs = navLayoutConfig
+      .filter((item) => item.visible)
+      .map((item) => item.id as NavDotId);
+    return ['expanded' as NavDotId, ...visibleTabs, 'settings' as NavDotId];
+  }, [navLayoutConfig]);
+  const navDotsRef = useRef(NAV_DOTS);
+  navDotsRef.current = NAV_DOTS;
 
   useEffect(() => {
     let cancelled = false;
@@ -94,6 +108,43 @@ export function MaxExpandContent(): React.ReactElement {
       if (channel === 'settings:maxexpand-tab-animation') setTabAnimation(value !== false);
     });
     return () => { cancelled = true; unsub(); };
+  }, []);
+
+  /** 当前 activeTab 不在可见导航点中时，自动跳转到第一个可见页面 */
+  useEffect(() => {
+    if (activeTab === 'settings') return;
+    const isVisible = NAV_DOTS.includes(activeTab);
+    if (!isVisible && NAV_DOTS.length > 2) {
+      setActiveTab(NAV_DOTS[1] as MaxExpandTab);
+    }
+  }, [NAV_DOTS, activeTab, setActiveTab]);
+
+  /** 加载全展开导航布局配置 */
+  useEffect(() => {
+    let cancelled = false;
+    window.api.storeRead(MAXEXPAND_NAV_LAYOUT_STORE_KEY).then((data: unknown) => {
+      if (cancelled) return;
+      if (Array.isArray(data) && data.length > 0) {
+        setNavLayoutConfig(data as MaxExpandNavLayoutConfig);
+      }
+    }).catch(() => {});
+    const unsub = window.api.onSettingsChanged((channel: string, value: unknown) => {
+      if (cancelled) return;
+      if (channel === `store:${MAXEXPAND_NAV_LAYOUT_STORE_KEY}`) {
+        if (Array.isArray(value) && value.length > 0) {
+          setNavLayoutConfig(value as MaxExpandNavLayoutConfig);
+        }
+      }
+    });
+    const handleLocalChange = (e: Event): void => {
+      if (cancelled) return;
+      const detail = (e as CustomEvent).detail;
+      if (Array.isArray(detail) && detail.length > 0) {
+        setNavLayoutConfig(detail as MaxExpandNavLayoutConfig);
+      }
+    };
+    window.addEventListener('maxexpand-nav-layout-changed', handleLocalChange);
+    return () => { cancelled = true; unsub(); window.removeEventListener('maxexpand-nav-layout-changed', handleLocalChange); };
   }, []);
 
   const [countdownMode, setCountdownMode] = useState<'integrated' | 'standalone'>(
@@ -135,21 +186,24 @@ export function MaxExpandContent(): React.ReactElement {
                 ? '备忘录'
               : id === 'countdown'
                 ? '倒数日'
+              : id === 'alarm'
+                ? '闹钟'
                 : '设置',
     });
     if (countdownMode === 'standalone') {
       return NAV_DOTS.filter(d => !STANDALONE_HIDDEN_TABS.has(d)).map((id) => ({ id, label: getNavLabel(id) }));
     }
     return NAV_DOTS.map((id) => ({ id, label: getNavLabel(id) }));
-  }, [countdownMode, t]);
+  }, [countdownMode, t, NAV_DOTS]);
   const filteredNavDotsRef = useRef(filteredNavDots);
   filteredNavDotsRef.current = filteredNavDots;
 
   /** 切换 Tab */
   const navigateTab = useCallback((id: NavDotId): void => {
     if (id === 'expanded') { setExpanded(); return; }
-    const curIdx = NAV_DOTS.indexOf(activeTabRef.current);
-    const nextIdx = NAV_DOTS.indexOf(id as NavDotId);
+    const dots = navDotsRef.current;
+    const curIdx = dots.indexOf(activeTabRef.current);
+    const nextIdx = dots.indexOf(id as NavDotId);
     setSlideDir(nextIdx >= curIdx ? 'right' : 'left');
     setActiveTab(id);
   }, [setExpanded, setActiveTab]);
@@ -189,6 +243,7 @@ export function MaxExpandContent(): React.ReactElement {
       if (target.closest('.settings-field-input')) return;
       if (target.closest('.settings-field-textarea')) return;
       if (target.closest('.memo-tab-container')) return;
+      if (target.closest('.alarm-tab-container')) return;
       e.preventDefault();
 
       const dots = filteredNavDotsRef.current;
@@ -226,6 +281,7 @@ export function MaxExpandContent(): React.ReactElement {
           {activeTab === 'mail' && <MailTab />}
           {activeTab === 'memo' && <MemoTab />}
           {activeTab === 'countdown' && <CountdownTab />}
+          {activeTab === 'alarm' && <AlarmTab />}
           {activeTab === 'settings' && <SettingsTab />}
         </div>
       </div>

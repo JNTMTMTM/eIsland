@@ -342,6 +342,11 @@
     "unknown": "未知"
   },
   "notification": {
+    "alarm": {
+      "title": "闹钟",
+      "body": "{{time}}",
+      "bodyWithLabel": "{{time}} — {{label}}"
+    },
     "timer": {
       "title": "计时器",
       "finished": "倒计时已结束"
@@ -880,6 +885,7 @@
       "aiChat": "AI 对话",
       "memo": "备忘录",
       "countdown": "倒数日",
+      "alarm": "闹钟",
       "settings": "设置",
       "switchTo": "切换到{{label}}"
     },
@@ -934,6 +940,40 @@
       "created": "创建于",
       "updated": "更新于",
       "selectHint": "选择或新建一条备忘录"
+    },
+    "alarm": {
+      "title": "闹钟",
+      "add": "新建闹钟",
+      "newTitle": "新建闹钟",
+      "editTitle": "编辑闹钟",
+      "loading": "加载中…",
+      "empty": "暂无闹钟，点击右上角新建",
+      "labelField": "备注",
+      "labelPlaceholder": "闹钟备注（可选）",
+      "repeatField": "重复",
+      "cancel": "取消",
+      "save": "保存",
+      "delete": "删除",
+      "turnOn": "开启",
+      "turnOff": "关闭",
+      "disabled": "已关闭",
+      "repeatOnce": "仅一次",
+      "repeatEveryday": "每天",
+      "repeatWeekdays": "工作日",
+      "repeatWeekend": "周末",
+      "ringIn": "{{h}}小时{{m}}分钟后",
+      "ringInMin": "{{m}}分钟后",
+      "ringTomorrow": "明天",
+      "ringInDays": "{{n}}天后",
+      "weekday": {
+        "sun": "日",
+        "mon": "一",
+        "tue": "二",
+        "wed": "三",
+        "thu": "四",
+        "fri": "五",
+        "sat": "六"
+      }
     }
   },
   "settings": {
@@ -952,6 +992,7 @@
       "behavior": "交互行为",
       "url-parser": "URL解析",
       "clipboard-history": "剪贴板历史",
+      "alarm": "闹钟配置",
       "autostart": "实用工具",
       "network": "网络配置",
       "mail": "邮箱配置",
@@ -1100,6 +1141,32 @@
           "urlFavorites": "URL 收藏",
           "album": "相册轮播",
           "mokugyo": "电子木鱼"
+        }
+      },
+      "maxExpandLayout": {
+        "previewTitle": "全展开导航预览",
+        "previewHint": "预览底部导航点的排列顺序，灰色表示已隐藏的页面。",
+        "backLabel": "返回",
+        "settingsLabel": "设置",
+        "orderTitle": "页面排序与可见性",
+        "orderHint": "拖拽调整页面顺序，点击开关切换是否显示。当前显示 {{count}} / {{total}} 个页面。",
+        "moveUp": "上移",
+        "moveDown": "下移",
+        "hideTab": "隐藏此页面",
+        "showTab": "显示此页面",
+        "alwaysVisible": "此页面不可隐藏",
+        "resetDefault": "恢复默认",
+        "tabLabels": {
+          "todo": "待办事项",
+          "urlFavorites": "URL 收藏",
+          "album": "相册",
+          "mail": "邮箱",
+          "localFileSearch": "文件查找",
+          "clipboardHistory": "剪贴板",
+          "aiChat": "AI 对话",
+          "memo": "备忘录",
+          "countdown": "倒数日",
+          "alarm": "闹钟"
         }
       },
       "hideProcess": {
@@ -1324,6 +1391,40 @@
       "messages": {
         "clearSuccess": "剪贴板历史已清空",
         "clearFailed": "清空失败，请稍后重试"
+      }
+    },
+    "alarm": {
+      "sound": {
+        "title": "提醒音",
+        "hint": "闹钟到点时播放提示音效。",
+        "toggle": "启用闹钟提醒音"
+      },
+      "notification": {
+        "title": "系统通知",
+        "hint": "闹钟触发时发送系统通知提醒。",
+        "toggle": "启用系统通知"
+      },
+      "snooze": {
+        "title": "贪睡时长",
+        "hint": "点击贪睡后延迟再次提醒的分钟数。",
+        "options": {
+          "1": "1 分钟",
+          "3": "3 分钟",
+          "5": "5 分钟",
+          "10": "10 分钟",
+          "15": "15 分钟"
+        }
+      },
+      "autoDismiss": {
+        "title": "自动关闭",
+        "hint": "闹钟响铃后自动关闭的分钟数，设为「不自动关闭」则需手动操作。",
+        "never": "不自动关闭",
+        "options": {
+          "1": "1 分钟",
+          "3": "3 分钟",
+          "5": "5 分钟",
+          "10": "10 分钟"
+        }
       }
     },
     "network": {
@@ -1740,6 +1841,7 @@
       "deepseekReasoningEffort": "DeepSeek 推理强度",
       "mimoReasoningEffort": "Mimo 推理强度",
       "ollamaReasoningEffort": "思考强度",
+      "customReasoningEffort": "推理强度",
       "deepseekReasoningEffortOptions": {
         "low": "低 (low)",
         "medium": "中 (medium)",
@@ -1753,6 +1855,15 @@
       "editPromptTitle": "编辑 Prompt",
       "credentialsTitle": "模型凭据",
       "credentialsHint": "兼容 OpenAI 接口协议，填写你的 API Key、Endpoint 与模型名称",
+      "agentModel": "Agent 模型",
+      "agentModelFetching": "正在获取…",
+      "agentModelFetchBtn": "获取可用模型",
+      "agentModelDropdown": "模型下拉选择",
+      "agentModelSelectPlaceholder": "请选择模型",
+      "agentModelFetchNeedEndpoint": "请先填写 API Endpoint",
+      "agentModelFetchOk": "已获取 {{count}} 个模型",
+      "agentModelFetchEmpty": "未获取到模型，请检查接口是否支持 /models",
+      "agentModelFetchFail": "获取模型列表失败，请检查 Endpoint / Key",
       "mcpTitle": "MCP 工具接入",
       "mcpHint": "可选，配置 MCP 服务端点后 Agent 可调用对接的外部工具",
       "systemPromptHint": "用于限定 Agent 的角色与风格，留空则使用默认提示词",
@@ -2155,6 +2266,10 @@
         "label": "布局预览",
         "desc": "进入布局预览并调整左右控件展示。"
       },
+      "maxexpand-layout": {
+        "label": "全展开布局",
+        "desc": "调整页面顺序与显示开关。"
+      },
       "album": {
         "label": "相册配置",
         "desc": "相册轮播与相册入口相关配置。"
@@ -2179,6 +2294,10 @@
         "label": "交互行为",
         "desc": "配置鼠标移开后是否自动收回。"
       },
+      "animation": {
+        "label": "软件动画",
+        "desc": "灵动岛弹性动画与动画速度配置。"
+      },
       "url-parser": {
         "label": "URL解析",
         "desc": "配置剪贴板 URL 识别模式与黑名单。"
@@ -2187,6 +2306,10 @@
         "label": "剪贴板历史",
         "desc": "配置剪贴板历史记录能力与条数。"
       },
+      "alarm": {
+        "label": "闹钟配置",
+        "desc": "配置闹钟提醒音、贪睡与通知行为。"
+      },
       "autostart": {
         "label": "实用工具",
         "desc": "应用控制、日志与开机启动配置。"
@@ -2194,6 +2317,10 @@
       "network": {
         "label": "网络配置",
         "desc": "请求超时与网络行为设置"
+      },
+      "mail": {
+        "label": "邮箱配置",
+        "desc": "配置 IMAP 收信参数"
       },
       "weather": {
         "label": "天气配置",
@@ -2218,6 +2345,18 @@
       "user-recharge": {
         "label": "余额充值",
         "desc": "为 AI 助手对话余额充值"
+      },
+      "about": {
+        "label": "关于软件",
+        "desc": "版本信息与项目链接"
+      },
+      "music-whitelist": {
+        "label": "播放器白名单",
+        "desc": "配置允许接入灵动岛的播放器。"
+      },
+      "music-lyrics": {
+        "label": "歌词源",
+        "desc": "选择歌词来源与显示模式。"
       },
       "music-smtc": {
         "label": "SMTC",

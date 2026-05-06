@@ -42,7 +42,7 @@ export type HoverTab = 'time' | 'o3ics' | 'weather' | 'expand';
 export type ExpandTab = 'hover' | 'overview' | 'song' | 'tools';
 
 /** MaxExpand 状态下的子标签页类型 */
-export type MaxExpandTab = 'aiChat' | 'todo' | 'urlFavorites' | 'localFileSearch' | 'clipboardHistory' | 'album' | 'mail' | 'memo' | 'countdown' | 'settings';
+export type MaxExpandTab = 'aiChat' | 'todo' | 'urlFavorites' | 'localFileSearch' | 'clipboardHistory' | 'album' | 'mail' | 'memo' | 'countdown' | 'alarm' | 'settings';
 
 /** 歌词显示模式 */
 export type LrcMode = 'off' | 'info' | 'lrc';
@@ -207,6 +207,7 @@ export interface AiConfig {
   skills: AiSkill[];
   ollamaModel: string;
   ollamaBaseUrl: string;
+  customApiModel: string;
 }
 
 /** AI 工具调用轨迹 */

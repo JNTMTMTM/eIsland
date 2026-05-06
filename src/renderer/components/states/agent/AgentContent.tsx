@@ -35,7 +35,7 @@ import {
 } from '../../../api/ai/mihtnelisAgentStream';
 import type { MihtnelisAgentStreamEvent } from '../../../api/ai/mihtnelisAgentStream';
 import { streamOllamaLocalAgent } from '../../../api/ai/ollamaLocalAgent';
-import { readLocalToken } from '../../../utils/userAccount';
+import { readLocalToken, getRoleFromToken } from '../../../utils/userAccount';
 import { loadLocationFromStorage } from '../../../store/utils/storage';
 import { buildMihtnelisContext } from '../../states/maxExpand/components/agent/utils/chatUtils';
 import type { AiChatMessage } from '../../../store/types';
@@ -106,7 +106,7 @@ function renderInlineMarkdown(text: string): ReactNode[] {
 const CLIENT_LOCAL_TOOL_PREFIXES = [
   'file.', 'cmd.', 'sys.', 'win.', 'clipboard.', 'notification.', 'net.',
   'monitor.', 'volume.', 'brightness.', 'display.', 'power.', 'wifi.',
-  'registry.', 'service.', 'schedule.', 'firewall.', 'defender.', 'island.',
+  'registry.', 'service.', 'schedule.', 'firewall.', 'defender.', 'island.', 'alarm.', 'todolist.',
 ] as const;
 const CLIENT_LOCAL_TOOL_EXACT_NAMES = new Set(['web.search']);
 const HIGH_RISK_LOCAL_TOOL_PREFIXES = [
@@ -115,7 +115,7 @@ const HIGH_RISK_LOCAL_TOOL_PREFIXES = [
   'registry.write', 'registry.delete', 'service.start', 'service.stop',
   'service.restart', 'schedule.task.create', 'net.proxy', 'net.hosts',
   'defender.scan', 'island.settings.write', 'island.theme.set',
-  'island.opacity.set', 'island.restart',
+  'island.opacity.set', 'island.restart', 'alarm.delete', 'todolist.delete',
 ] as const;
 function isClientLocalToolName(tool: string): boolean {
   const n = tool.trim().toLowerCase();
@@ -187,9 +187,17 @@ export function AgentContent(): ReactElement {
       traceIdRef.current = '';
 
       const isOllama = aiConfig.model === 'ollama';
+      const isCustomApi = aiConfig.model === 'custom-api';
+      const userRole = getRoleFromToken(token);
+      const isProUser = userRole === 'pro' || userRole === 'admin';
+      const useCustomApi = isCustomApi && isProUser && Boolean(aiConfig.apiKey?.trim() && aiConfig.endpoint?.trim());
       const availableModels = ['deepseek-v4-flash', 'deepseek-v4-pro', 'mimo-v2.5', 'mimo-v2.5-pro'];
-      const selectedModel = isOllama ? 'ollama' : (availableModels.includes(aiConfig.model) ? aiConfig.model : 'deepseek-v4-flash');
-      const selectedProvider = isOllama ? 'ollama' : (selectedModel.startsWith('mimo-') ? 'mimo' : 'deepseek');
+      const selectedModel = isOllama ? 'ollama'
+        : useCustomApi ? (aiConfig.customApiModel?.trim() || 'gpt-4o-mini')
+        : (availableModels.includes(aiConfig.model) ? aiConfig.model : 'deepseek-v4-flash');
+      const selectedProvider = isOllama ? 'ollama'
+        : useCustomApi ? 'custom'
+        : (selectedModel.startsWith('mimo-') ? 'mimo' : 'deepseek');
       const agentMode = loadAgentMode();
 
       const state = useIslandStore.getState();
@@ -362,6 +370,40 @@ export function AgentContent(): ReactElement {
             signal: controller.signal,
             onEvent: handleEvent,
           });
+        } else if (useCustomApi) {
+          // ── 自定义 API 凭据分支（仅 Pro 用户） ──
+          const customModelName = aiConfig.customApiModel?.trim() || 'gpt-4o-mini';
+          await streamMihtnelisAgent({
+            token,
+            sessionId: activeSessionId || 'island-agent-inline',
+            message,
+            provider: 'custom',
+            model: customModelName,
+            agentMode,
+            context: context || undefined,
+            workspaces: aiConfig.workspaces,
+            skills: resolvedSkills,
+            snapshotMode: true,
+            thinking: aiConfig.deepseekThinking,
+            reasoningEffort: aiConfig.deepseekReasoningEffort,
+            timestamp: (() => {
+              const d = new Date();
+              const off = -d.getTimezoneOffset();
+              const sign = off >= 0 ? '+' : '-';
+              const pad = (n: number): string => String(Math.abs(n)).padStart(2, '0');
+              return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}${sign}${pad(Math.floor(Math.abs(off) / 60))}:${pad(Math.abs(off) % 60)}`;
+            })(),
+            location: (() => {
+              const loc = loadLocationFromStorage();
+              if (!loc) return undefined;
+              const parts = [loc.city, loc.regionName, loc.country].filter(Boolean);
+              return parts.length > 0 ? parts.join(', ') : undefined;
+            })(),
+            customApiKey: aiConfig.apiKey,
+            customEndpoint: aiConfig.endpoint,
+            signal: controller.signal,
+            onEvent: handleEvent,
+          });
         } else {
           // ── Mihtnelis 云端模型分支 ──
           await streamMihtnelisAgent({
@@ -431,7 +473,7 @@ export function AgentContent(): ReactElement {
       controller.abort();
       abortRef.current = null;
     };
-  }, [agentPrompt, aiConfig.model, aiConfig.deepseekThinking, aiConfig.deepseekReasoningEffort, aiConfig.workspaces, aiConfig.skills]);
+  }, [agentPrompt, aiConfig.apiKey, aiConfig.endpoint, aiConfig.model, aiConfig.customApiModel, aiConfig.deepseekThinking, aiConfig.deepseekReasoningEffort, aiConfig.workspaces, aiConfig.skills]);
 
   const handleAuthDecision = useCallback(async (allow: boolean) => {
     const auth = authPending;

@@ -50,7 +50,7 @@ export const WEATHER_LOCATION_PRIORITY_OPTIONS: Array<{ value: WeatherLocationPr
 
 export const SETTINGS_TABS = ['index', 'app', 'network', 'mail', 'weather', 'music', 'ai', 'shortcut', 'user', 'update', 'pluginMarket', 'about'] as const;
 export type SettingsSidebarTabKey = (typeof SETTINGS_TABS)[number];
-export type AppSettingsPageKey = 'layout-preview' | 'album' | 'hide-process-list' | 'position' | 'theme' | 'language' | 'behavior' | 'animation' | 'url-parser' | 'clipboard-history' | 'autostart';
+export type AppSettingsPageKey = 'layout-preview' | 'maxexpand-layout' | 'album' | 'hide-process-list' | 'position' | 'theme' | 'language' | 'behavior' | 'animation' | 'url-parser' | 'clipboard-history' | 'alarm' | 'autostart';
 export type WeatherSettingsPageKey = 'location' | 'provider';
 export type MailSettingsPageKey = 'account' | 'imap' | 'preferences';
 export type AiSettingsPageKey = 'general' | 'r1pxc' | 'ollama';
@@ -62,6 +62,7 @@ export const SETTINGS_TAB_LABELS: Record<SettingsTabLabelKey, string> = {
   index: '快速导航',
   app: '软件设置',
   'layout-preview': '布局预览',
+  'maxexpand-layout': '全展开布局',
   album: '相册配置',
   'hide-process-list': '隐藏窗口管理',
   position: '位置校准',
@@ -71,6 +72,7 @@ export const SETTINGS_TAB_LABELS: Record<SettingsTabLabelKey, string> = {
   animation: '软件动画',
   'url-parser': 'URL解析',
   'clipboard-history': '剪贴板历史',
+  alarm: '闹钟配置',
   autostart: '实用工具',
   network: '网络配置',
   mail: '邮箱配置',
@@ -93,6 +95,7 @@ export const SETTINGS_TAB_LABELS: Record<SettingsTabLabelKey, string> = {
 export const SETTINGS_TAB_DESCRIPTIONS: Record<Exclude<SettingsTabLabelKey, 'index'>, string> = {
   app: '布局预览与隐藏进程规则配置',
   'layout-preview': '进入布局预览并调整左右控件展示。',
+  'maxexpand-layout': '自定义全展开界面各页面的显示顺序与可见性。',
   album: '相册轮播与相册入口相关配置。',
   'hide-process-list': '管理隐藏窗口名单与自动隐藏规则。',
   position: '动态调整灵动岛位置并保存',
@@ -102,6 +105,7 @@ export const SETTINGS_TAB_DESCRIPTIONS: Record<Exclude<SettingsTabLabelKey, 'ind
   animation: '灵动岛弹性动画与动画速度配置。',
   'url-parser': '配置剪贴板 URL 识别模式与黑名单。',
   'clipboard-history': '配置剪贴板历史记录能力与条数。',
+  alarm: '配置闹钟提醒音、贪睡与通知行为。',
   autostart: '应用控制、日志与开机启动配置。',
   network: '请求超时与网络行为设置',
   mail: '配置 IMAP 收信参数',
@@ -123,6 +127,7 @@ export const SETTINGS_TAB_DESCRIPTIONS: Record<Exclude<SettingsTabLabelKey, 'ind
 
 export const SETTINGS_TAB_ICONS: Partial<Record<SettingsTabLabelKey, string>> = {
   'layout-preview': SvgIcon.LAYOUT,
+  'maxexpand-layout': SvgIcon.LAYOUT,
   album: SvgIcon.PHOTO_ALBUM,
   'hide-process-list': SvgIcon.TASK_MANAGER,
   position: SvgIcon.MOVE,
@@ -144,6 +149,7 @@ export const SETTINGS_TAB_ICONS: Partial<Record<SettingsTabLabelKey, string>> = 
   animation: SvgIcon.ANIMATION,
   'url-parser': SvgIcon.LINK,
   'clipboard-history': SvgIcon.COPY,
+  alarm: SvgIcon.TIMER,
   autostart: SvgIcon.CONTINUE,
 };
 
@@ -157,7 +163,35 @@ export const NETWORK_TIMEOUT_OPTIONS = [
 
 export const LAYOUT_STORE_KEY = 'overview-layout';
 export const DEFAULT_LAYOUT: OverviewLayoutConfig = { left: 'shortcuts', right: 'todo' };
-export const APP_SETTINGS_PAGES: AppSettingsPageKey[] = ['layout-preview', 'album', 'hide-process-list', 'position', 'theme', 'language', 'behavior', 'animation', 'url-parser', 'clipboard-history', 'autostart'];
+
+export const MAXEXPAND_NAV_LAYOUT_STORE_KEY = 'maxexpand-nav-layout';
+
+export interface MaxExpandNavItem {
+  id: string;
+  visible: boolean;
+}
+
+export type MaxExpandNavLayoutConfig = MaxExpandNavItem[];
+
+export const MAXEXPAND_CONFIGURABLE_TABS: string[] = ['todo', 'urlFavorites', 'album', 'mail', 'localFileSearch', 'clipboardHistory', 'aiChat', 'memo', 'countdown', 'alarm'];
+
+export const MAXEXPAND_ALWAYS_VISIBLE_TABS: Set<string> = new Set(['aiChat']);
+
+export const MAXEXPAND_TAB_LABELS: Record<string, string> = {
+  todo: '待办事项',
+  urlFavorites: 'URL 收藏',
+  album: '相册',
+  mail: '邮箱',
+  localFileSearch: '文件查找',
+  clipboardHistory: '剪贴板',
+  aiChat: 'AI 对话',
+  memo: '备忘录',
+  countdown: '倒数日',
+  alarm: '闹钟',
+};
+
+export const DEFAULT_MAXEXPAND_NAV_LAYOUT: MaxExpandNavLayoutConfig = MAXEXPAND_CONFIGURABLE_TABS.map((id) => ({ id, visible: true }));
+export const APP_SETTINGS_PAGES: AppSettingsPageKey[] = ['layout-preview', 'maxexpand-layout', 'album', 'hide-process-list', 'position', 'theme', 'language', 'behavior', 'animation', 'url-parser', 'clipboard-history', 'alarm', 'autostart'];
 export const WEATHER_SETTINGS_PAGES: WeatherSettingsPageKey[] = ['location', 'provider'];
 export const WEATHER_SETTINGS_PAGE_LABELS: Record<WeatherSettingsPageKey, string> = {
   location: '定位配置',
@@ -196,8 +230,9 @@ export interface NavCardDef {
 export const NAV_CARDS: NavCardDef[] = [
   { id: 'user-pro', label: 'PRO功能', desc: '查看 Free 与 Pro 计划权益及当前订阅价格', icon: SvgIcon.PRO, tab: 'user', actionId: 'user-pro' },
   { id: 'user-recharge', label: '余额充值', desc: '为 AI 助手对话余额充值', icon: SvgIcon.RECHARGE, tab: 'user', actionId: 'user-recharge' },
-  { id: 'guide', label: '使用教程', desc: '查看灵动岛功能引导与操作说明。', icon: SvgIcon.GUIDE, tab: 'index', actionId: 'guide' },
+  { id: 'user', label: SETTINGS_TAB_LABELS.user, desc: SETTINGS_TAB_DESCRIPTIONS.user, icon: SETTINGS_TAB_ICONS.user, tab: 'user' },
   { id: 'layout-preview', label: SETTINGS_TAB_LABELS['layout-preview'], desc: SETTINGS_TAB_DESCRIPTIONS['layout-preview'], icon: SETTINGS_TAB_ICONS['layout-preview'], tab: 'app', appPage: 'layout-preview' },
+  { id: 'maxexpand-layout', label: SETTINGS_TAB_LABELS['maxexpand-layout'], desc: SETTINGS_TAB_DESCRIPTIONS['maxexpand-layout'], icon: SETTINGS_TAB_ICONS['maxexpand-layout'], tab: 'app', appPage: 'maxexpand-layout' },
   { id: 'album', label: SETTINGS_TAB_LABELS.album, desc: SETTINGS_TAB_DESCRIPTIONS.album, icon: SETTINGS_TAB_ICONS.album, tab: 'app', appPage: 'album' },
   { id: 'hide-process-list', label: SETTINGS_TAB_LABELS['hide-process-list'], desc: SETTINGS_TAB_DESCRIPTIONS['hide-process-list'], icon: SETTINGS_TAB_ICONS['hide-process-list'], tab: 'app', appPage: 'hide-process-list' },
   { id: 'position', label: SETTINGS_TAB_LABELS.position, desc: SETTINGS_TAB_DESCRIPTIONS.position, icon: SETTINGS_TAB_ICONS.position, tab: 'app', appPage: 'position' },
@@ -207,13 +242,14 @@ export const NAV_CARDS: NavCardDef[] = [
   { id: 'animation', label: SETTINGS_TAB_LABELS.animation, desc: SETTINGS_TAB_DESCRIPTIONS.animation, icon: SETTINGS_TAB_ICONS.animation, tab: 'app', appPage: 'animation' },
   { id: 'url-parser', label: SETTINGS_TAB_LABELS['url-parser'], desc: SETTINGS_TAB_DESCRIPTIONS['url-parser'], icon: SETTINGS_TAB_ICONS['url-parser'], tab: 'app', appPage: 'url-parser' },
   { id: 'clipboard-history', label: SETTINGS_TAB_LABELS['clipboard-history'], desc: SETTINGS_TAB_DESCRIPTIONS['clipboard-history'], icon: SETTINGS_TAB_ICONS['clipboard-history'], tab: 'app', appPage: 'clipboard-history' },
+  { id: 'alarm', label: SETTINGS_TAB_LABELS.alarm, desc: SETTINGS_TAB_DESCRIPTIONS.alarm, icon: SETTINGS_TAB_ICONS.alarm, tab: 'app', appPage: 'alarm' },
   { id: 'autostart', label: SETTINGS_TAB_LABELS.autostart, desc: SETTINGS_TAB_DESCRIPTIONS.autostart, icon: SETTINGS_TAB_ICONS.autostart, tab: 'app', appPage: 'autostart' },
   { id: 'network', label: SETTINGS_TAB_LABELS.network, desc: SETTINGS_TAB_DESCRIPTIONS.network, icon: SETTINGS_TAB_ICONS.network, tab: 'network' },
   { id: 'mail', label: SETTINGS_TAB_LABELS.mail, desc: SETTINGS_TAB_DESCRIPTIONS.mail, icon: SETTINGS_TAB_ICONS.mail, tab: 'mail' },
   { id: 'weather', label: SETTINGS_TAB_LABELS.weather, desc: SETTINGS_TAB_DESCRIPTIONS.weather, icon: SETTINGS_TAB_ICONS.weather, tab: 'weather' },
   { id: 'ai', label: SETTINGS_TAB_LABELS.ai, desc: SETTINGS_TAB_DESCRIPTIONS.ai, icon: SETTINGS_TAB_ICONS.ai, tab: 'ai' },
   { id: 'shortcut', label: SETTINGS_TAB_LABELS.shortcut, desc: SETTINGS_TAB_DESCRIPTIONS.shortcut, icon: SETTINGS_TAB_ICONS.shortcut, tab: 'shortcut' },
-  { id: 'user', label: SETTINGS_TAB_LABELS.user, desc: SETTINGS_TAB_DESCRIPTIONS.user, icon: SETTINGS_TAB_ICONS.user, tab: 'user' },
+  { id: 'guide', label: '使用教程', desc: '查看灵动岛功能引导与操作说明。', icon: SvgIcon.GUIDE, tab: 'index', actionId: 'guide' },
   { id: 'about', label: SETTINGS_TAB_LABELS.about, desc: SETTINGS_TAB_DESCRIPTIONS.about, icon: SETTINGS_TAB_ICONS.about, tab: 'about' },
   { id: 'music-whitelist', label: SETTINGS_TAB_LABELS['music-whitelist'], desc: SETTINGS_TAB_DESCRIPTIONS['music-whitelist'], icon: SETTINGS_TAB_ICONS['music-whitelist'], tab: 'music', musicPage: 'whitelist' },
   { id: 'music-lyrics', label: SETTINGS_TAB_LABELS['music-lyrics'], desc: SETTINGS_TAB_DESCRIPTIONS['music-lyrics'], icon: SETTINGS_TAB_ICONS['music-lyrics'], tab: 'music', musicPage: 'lyrics' },

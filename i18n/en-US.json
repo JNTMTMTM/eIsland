@@ -342,6 +342,11 @@
     "unknown": "N/A"
   },
   "notification": {
+    "alarm": {
+      "title": "Alarm",
+      "body": "{{time}}",
+      "bodyWithLabel": "{{time}} — {{label}}"
+    },
     "timer": {
       "title": "Timer",
       "finished": "Countdown finished"
@@ -880,6 +885,7 @@
       "aiChat": "AI Chat",
       "memo": "Memo",
       "countdown": "Countdown",
+      "alarm": "Alarm",
       "settings": "Settings",
       "switchTo": "Switch to {{label}}"
     },
@@ -934,6 +940,40 @@
       "created": "Created",
       "updated": "Updated",
       "selectHint": "Select or create a memo"
+    },
+    "alarm": {
+      "title": "Alarms",
+      "add": "New Alarm",
+      "newTitle": "New Alarm",
+      "editTitle": "Edit Alarm",
+      "loading": "Loading...",
+      "empty": "No alarms yet. Tap + to create one.",
+      "labelField": "Label",
+      "labelPlaceholder": "Label (optional)",
+      "repeatField": "Repeat",
+      "cancel": "Cancel",
+      "save": "Save",
+      "delete": "Delete",
+      "turnOn": "Turn on",
+      "turnOff": "Turn off",
+      "disabled": "Off",
+      "repeatOnce": "Once",
+      "repeatEveryday": "Every day",
+      "repeatWeekdays": "Weekdays",
+      "repeatWeekend": "Weekends",
+      "ringIn": "In {{h}}h {{m}}m",
+      "ringInMin": "In {{m}}m",
+      "ringTomorrow": "Tomorrow",
+      "ringInDays": "In {{n}} days",
+      "weekday": {
+        "sun": "Sun",
+        "mon": "Mon",
+        "tue": "Tue",
+        "wed": "Wed",
+        "thu": "Thu",
+        "fri": "Fri",
+        "sat": "Sat"
+      }
     }
   },
   "settings": {
@@ -952,6 +992,7 @@
       "behavior": "Interaction",
       "url-parser": "URL Parser",
       "clipboard-history": "Clipboard History",
+      "alarm": "Alarm Settings",
       "autostart": "Utilities",
       "network": "Network",
       "mail": "Mail",
@@ -1100,6 +1141,32 @@
           "urlFavorites": "URL Favorites",
           "album": "Album Carousel",
           "mokugyo": "Mokugyo"
+        }
+      },
+      "maxExpandLayout": {
+        "previewTitle": "MaxExpand Navigation Preview",
+        "previewHint": "Preview the bottom navigation order. Dimmed items are hidden.",
+        "backLabel": "Back",
+        "settingsLabel": "Settings",
+        "orderTitle": "Page Order & Visibility",
+        "orderHint": "Drag to reorder pages and use the toggle to show/hide them. Currently visible: {{count}} / {{total}}.",
+        "moveUp": "Move Up",
+        "moveDown": "Move Down",
+        "hideTab": "Hide this page",
+        "showTab": "Show this page",
+        "alwaysVisible": "This page cannot be hidden",
+        "resetDefault": "Restore Defaults",
+        "tabLabels": {
+          "todo": "Todo",
+          "urlFavorites": "URL Favorites",
+          "album": "Album",
+          "mail": "Mail",
+          "localFileSearch": "File Search",
+          "clipboardHistory": "Clipboard",
+          "aiChat": "AI Chat",
+          "memo": "Memo",
+          "countdown": "Countdown",
+          "alarm": "Alarm"
         }
       },
       "hideProcess": {
@@ -1324,6 +1391,40 @@
       "messages": {
         "clearSuccess": "Clipboard history cleared",
         "clearFailed": "Clear failed, please try again"
+      }
+    },
+    "alarm": {
+      "sound": {
+        "title": "Alarm Sound",
+        "hint": "Play a sound effect when the alarm goes off.",
+        "toggle": "Enable alarm sound"
+      },
+      "notification": {
+        "title": "System Notification",
+        "hint": "Send a system notification when the alarm triggers.",
+        "toggle": "Enable system notification"
+      },
+      "snooze": {
+        "title": "Snooze Duration",
+        "hint": "Minutes to wait before re-alerting after snooze.",
+        "options": {
+          "1": "1 min",
+          "3": "3 min",
+          "5": "5 min",
+          "10": "10 min",
+          "15": "15 min"
+        }
+      },
+      "autoDismiss": {
+        "title": "Auto Dismiss",
+        "hint": "Automatically dismiss the alarm after a set number of minutes. Choose 'Never' to require manual dismissal.",
+        "never": "Never",
+        "options": {
+          "1": "1 min",
+          "3": "3 min",
+          "5": "5 min",
+          "10": "10 min"
+        }
       }
     },
     "network": {
@@ -1740,6 +1841,7 @@
       "deepseekReasoningEffort": "DeepSeek Reasoning Effort",
       "mimoReasoningEffort": "Mimo Reasoning Effort",
       "ollamaReasoningEffort": "Reasoning Effort",
+      "customReasoningEffort": "Reasoning Effort",
       "deepseekReasoningEffortOptions": {
         "low": "Low (low)",
         "medium": "Medium (medium)",
@@ -1753,6 +1855,15 @@
       "editPromptTitle": "Edit Prompt",
       "credentialsTitle": "Model Credentials",
       "credentialsHint": "OpenAI-compatible protocol. Fill in your API Key, Endpoint and model name.",
+      "agentModel": "Agent Model",
+      "agentModelFetching": "Fetching...",
+      "agentModelFetchBtn": "Fetch Available Models",
+      "agentModelDropdown": "Model Dropdown",
+      "agentModelSelectPlaceholder": "Please select a model",
+      "agentModelFetchNeedEndpoint": "Please fill in API Endpoint first",
+      "agentModelFetchOk": "Fetched {{count}} models",
+      "agentModelFetchEmpty": "No models returned. Check whether /models is supported",
+      "agentModelFetchFail": "Failed to fetch model list. Please check Endpoint / Key",
       "mcpTitle": "MCP Tooling",
       "mcpHint": "Optional. Once an MCP endpoint is configured, the Agent can call external tools through it.",
       "systemPromptHint": "Constrains the Agent's role and style. Leave empty to use the default prompt.",
@@ -2160,6 +2271,10 @@
         "label": "Layout Preview",
         "desc": "Adjust left and right widgets in layout preview."
       },
+      "maxexpand-layout": {
+        "label": "MaxExpand Layout",
+        "desc": "Adjust page order and visibility."
+      },
       "album": {
         "label": "Album Settings",
         "desc": "Configure album carousel and album entry behavior."
@@ -2184,6 +2299,10 @@
         "label": "Interaction",
         "desc": "Configure auto-collapse when mouse leaves."
       },
+      "animation": {
+        "label": "Animations",
+        "desc": "Dynamic Island spring animation and speed settings."
+      },
       "url-parser": {
         "label": "URL Parser",
         "desc": "Configure clipboard URL detection and blacklist."
@@ -2192,6 +2311,10 @@
         "label": "Clipboard History",
         "desc": "Configure clipboard history behavior and retention limit."
       },
+      "alarm": {
+        "label": "Alarm Settings",
+        "desc": "Configure alarm sound, snooze and notification behavior."
+      },
       "autostart": {
         "label": "Utilities",
         "desc": "App controls, logs, and startup options."
@@ -2199,6 +2322,10 @@
       "network": {
         "label": "Network",
         "desc": "Request timeout and network behavior settings"
+      },
+      "mail": {
+        "label": "Mail",
+        "desc": "Configure IMAP mail receiving parameters"
       },
       "weather": {
         "label": "Weather",

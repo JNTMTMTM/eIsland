@@ -47,6 +47,7 @@ function loadAiConfig(): AiConfig {
     skills: [],
     ollamaModel: '',
     ollamaBaseUrl: '',
+    customApiModel: '',
   };
   try {
     const raw = localStorage.getItem(AI_CONFIG_KEY);
@@ -67,6 +68,7 @@ function loadAiConfig(): AiConfig {
         : [];
       merged.ollamaModel = typeof merged.ollamaModel === 'string' ? merged.ollamaModel.trim() : '';
       merged.ollamaBaseUrl = typeof merged.ollamaBaseUrl === 'string' ? merged.ollamaBaseUrl.trim() : '';
+      merged.customApiModel = typeof merged.customApiModel === 'string' ? merged.customApiModel.trim() : '';
       return merged;
     }
   } catch { /* ignore */ }
