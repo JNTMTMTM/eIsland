@@ -1102,6 +1102,31 @@
           "mokugyo": "Mokugyo"
         }
       },
+      "maxExpandLayout": {
+        "previewTitle": "MaxExpand Navigation Preview",
+        "previewHint": "Preview the bottom navigation order. Dimmed items are hidden.",
+        "backLabel": "Back",
+        "settingsLabel": "Settings",
+        "orderTitle": "Page Order & Visibility",
+        "orderHint": "Drag to reorder pages and use the toggle to show/hide them. Currently visible: {{count}} / {{total}}.",
+        "moveUp": "Move Up",
+        "moveDown": "Move Down",
+        "hideTab": "Hide this page",
+        "showTab": "Show this page",
+        "alwaysVisible": "This page cannot be hidden",
+        "resetDefault": "Restore Defaults",
+        "tabLabels": {
+          "todo": "Todo",
+          "urlFavorites": "URL Favorites",
+          "album": "Album",
+          "mail": "Mail",
+          "localFileSearch": "File Search",
+          "clipboardHistory": "Clipboard",
+          "aiChat": "AI Chat",
+          "memo": "Memo",
+          "countdown": "Countdown"
+        }
+      },
       "hideProcess": {
         "title": "Hidden Window Management",
         "hint": "When blacklisted process windows are focused, Dynamic Island hides automatically.",
@@ -2169,6 +2194,10 @@
       "layout-preview": {
         "label": "Layout Preview",
         "desc": "Adjust left and right widgets in layout preview."
+      },
+      "maxexpand-layout": {
+        "label": "MaxExpand Layout",
+        "desc": "Adjust page order and visibility."
       },
       "album": {
         "label": "Album Settings",

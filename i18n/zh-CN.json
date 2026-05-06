@@ -1102,6 +1102,31 @@
           "mokugyo": "电子木鱼"
         }
       },
+      "maxExpandLayout": {
+        "previewTitle": "全展开导航预览",
+        "previewHint": "预览底部导航点的排列顺序，灰色表示已隐藏的页面。",
+        "backLabel": "返回",
+        "settingsLabel": "设置",
+        "orderTitle": "页面排序与可见性",
+        "orderHint": "拖拽调整页面顺序，点击开关切换是否显示。当前显示 {{count}} / {{total}} 个页面。",
+        "moveUp": "上移",
+        "moveDown": "下移",
+        "hideTab": "隐藏此页面",
+        "showTab": "显示此页面",
+        "alwaysVisible": "此页面不可隐藏",
+        "resetDefault": "恢复默认",
+        "tabLabels": {
+          "todo": "待办事项",
+          "urlFavorites": "URL 收藏",
+          "album": "相册",
+          "mail": "邮箱",
+          "localFileSearch": "文件查找",
+          "clipboardHistory": "剪贴板",
+          "aiChat": "AI 对话",
+          "memo": "备忘录",
+          "countdown": "倒数日"
+        }
+      },
       "hideProcess": {
         "title": "隐藏窗口管理",
         "hint": "当下方黑名单进程对应窗口处于焦点状态时，将立即隐藏灵动岛；失去焦点后自动显示。",
@@ -2164,6 +2189,10 @@
       "layout-preview": {
         "label": "布局预览",
         "desc": "进入布局预览并调整左右控件展示。"
+      },
+      "maxexpand-layout": {
+        "label": "全展开布局",
+        "desc": "调整页面顺序与显示开关。"
       },
       "album": {
         "label": "相册配置",
