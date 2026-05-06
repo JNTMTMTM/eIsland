@@ -2525,7 +2525,7 @@ export function AiChatTab(): React.ReactElement {
                   </div>
                 </div>
                 <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
-                  <span style={{ fontSize: 12, opacity: 0.8 }}>{selectedProvider === 'ollama' ? t('settings.ai.ollamaReasoningEffort', { defaultValue: '思考强度' }) : selectedProvider === 'mimo' ? t('settings.ai.mimoReasoningEffort', { defaultValue: 'Mimo 推理强度' }) : t('settings.ai.deepseekReasoningEffort', { defaultValue: 'DeepSeek 推理强度' })}</span>
+                  <span style={{ fontSize: 12, opacity: 0.8 }}>{selectedProvider === 'custom' ? t('settings.ai.customReasoningEffort', { defaultValue: '推理强度' }) : selectedProvider === 'ollama' ? t('settings.ai.ollamaReasoningEffort', { defaultValue: '思考强度' }) : selectedProvider === 'mimo' ? t('settings.ai.mimoReasoningEffort', { defaultValue: 'Mimo 推理强度' }) : t('settings.ai.deepseekReasoningEffort', { defaultValue: 'DeepSeek 推理强度' })}</span>
                   <select
                     className="max-expand-chat-web-access-policy-select"
                     value={aiConfig.deepseekReasoningEffort}
@@ -2535,8 +2535,8 @@ export function AiChatTab(): React.ReactElement {
                         deepseekReasoningEffort: value === 'low' || value === 'high' ? value : 'medium',
                       });
                     }}
-                    title={selectedProvider === 'ollama' ? t('settings.ai.ollamaReasoningEffort', { defaultValue: '思考强度' }) : selectedProvider === 'mimo' ? t('settings.ai.mimoReasoningEffort', { defaultValue: 'Mimo 推理强度' }) : t('settings.ai.deepseekReasoningEffort', { defaultValue: 'DeepSeek 推理强度' })}
-                    aria-label={selectedProvider === 'ollama' ? t('settings.ai.ollamaReasoningEffort', { defaultValue: '思考强度' }) : selectedProvider === 'mimo' ? t('settings.ai.mimoReasoningEffort', { defaultValue: 'Mimo 推理强度' }) : t('settings.ai.deepseekReasoningEffort', { defaultValue: 'DeepSeek 推理强度' })}
+                    title={selectedProvider === 'custom' ? t('settings.ai.customReasoningEffort', { defaultValue: '推理强度' }) : selectedProvider === 'ollama' ? t('settings.ai.ollamaReasoningEffort', { defaultValue: '思考强度' }) : selectedProvider === 'mimo' ? t('settings.ai.mimoReasoningEffort', { defaultValue: 'Mimo 推理强度' }) : t('settings.ai.deepseekReasoningEffort', { defaultValue: 'DeepSeek 推理强度' })}
+                    aria-label={selectedProvider === 'custom' ? t('settings.ai.customReasoningEffort', { defaultValue: '推理强度' }) : selectedProvider === 'ollama' ? t('settings.ai.ollamaReasoningEffort', { defaultValue: '思考强度' }) : selectedProvider === 'mimo' ? t('settings.ai.mimoReasoningEffort', { defaultValue: 'Mimo 推理强度' }) : t('settings.ai.deepseekReasoningEffort', { defaultValue: 'DeepSeek 推理强度' })}
                   >
                     <option value="low">{t('settings.ai.deepseekReasoningEffortOptions.low', { defaultValue: '低 (low)' })}</option>
                     <option value="medium">{t('settings.ai.deepseekReasoningEffortOptions.medium', { defaultValue: '中 (medium)' })}</option>
