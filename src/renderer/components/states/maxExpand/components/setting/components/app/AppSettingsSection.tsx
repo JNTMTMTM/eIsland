@@ -36,6 +36,7 @@ import { AnimationSettingsPage } from './components/AnimationSettingsPage';
 import { LanguageSettingsPage } from './components/LanguageSettingsPage';
 import { UrlParserSettingsPage } from './components/UrlParserSettingsPage';
 import { ClipboardHistorySettingsSection } from './components/ClipboardHistorySettingsSection';
+import { AlarmSettingsPage } from './components/AlarmSettingsPage';
 import { AutostartSettingsPage } from './components/AutostartSettingsPage';
 import { AlbumSettingsPage } from './components/AlbumSettingsPage';
 import { AppSettingsPageDots } from './components/AppSettingsPageDots';
@@ -286,6 +287,8 @@ export function AppSettingsSection({
         );
       case 'clipboard-history':
         return <ClipboardHistorySettingsSection />;
+      case 'alarm':
+        return <AlarmSettingsPage />;
       case 'autostart':
         return <AutostartSettingsPage autostartMode={autostartMode} setAutostartMode={setAutostartMode} />;
       default:

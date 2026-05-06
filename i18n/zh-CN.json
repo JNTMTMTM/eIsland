@@ -983,6 +983,7 @@
       "behavior": "交互行为",
       "url-parser": "URL解析",
       "clipboard-history": "剪贴板历史",
+      "alarm": "闹钟配置",
       "autostart": "实用工具",
       "network": "网络配置",
       "mail": "邮箱配置",
@@ -1381,6 +1382,40 @@
       "messages": {
         "clearSuccess": "剪贴板历史已清空",
         "clearFailed": "清空失败，请稍后重试"
+      }
+    },
+    "alarm": {
+      "sound": {
+        "title": "提醒音",
+        "hint": "闹钟到点时播放提示音效。",
+        "toggle": "启用闹钟提醒音"
+      },
+      "notification": {
+        "title": "系统通知",
+        "hint": "闹钟触发时发送系统通知提醒。",
+        "toggle": "启用系统通知"
+      },
+      "snooze": {
+        "title": "贪睡时长",
+        "hint": "点击贪睡后延迟再次提醒的分钟数。",
+        "options": {
+          "1": "1 分钟",
+          "3": "3 分钟",
+          "5": "5 分钟",
+          "10": "10 分钟",
+          "15": "15 分钟"
+        }
+      },
+      "autoDismiss": {
+        "title": "自动关闭",
+        "hint": "闹钟响铃后自动关闭的分钟数，设为「不自动关闭」则需手动操作。",
+        "never": "不自动关闭",
+        "options": {
+          "1": "1 分钟",
+          "3": "3 分钟",
+          "5": "5 分钟",
+          "10": "10 分钟"
+        }
       }
     },
     "network": {
@@ -2257,6 +2292,10 @@
       "clipboard-history": {
         "label": "剪贴板历史",
         "desc": "配置剪贴板历史记录能力与条数。"
+      },
+      "alarm": {
+        "label": "闹钟配置",
+        "desc": "配置闹钟提醒音、贪睡与通知行为。"
       },
       "autostart": {
         "label": "实用工具",

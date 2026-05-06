@@ -983,6 +983,7 @@
       "behavior": "Interaction",
       "url-parser": "URL Parser",
       "clipboard-history": "Clipboard History",
+      "alarm": "Alarm Settings",
       "autostart": "Utilities",
       "network": "Network",
       "mail": "Mail",
@@ -1381,6 +1382,40 @@
       "messages": {
         "clearSuccess": "Clipboard history cleared",
         "clearFailed": "Clear failed, please try again"
+      }
+    },
+    "alarm": {
+      "sound": {
+        "title": "Alarm Sound",
+        "hint": "Play a sound effect when the alarm goes off.",
+        "toggle": "Enable alarm sound"
+      },
+      "notification": {
+        "title": "System Notification",
+        "hint": "Send a system notification when the alarm triggers.",
+        "toggle": "Enable system notification"
+      },
+      "snooze": {
+        "title": "Snooze Duration",
+        "hint": "Minutes to wait before re-alerting after snooze.",
+        "options": {
+          "1": "1 min",
+          "3": "3 min",
+          "5": "5 min",
+          "10": "10 min",
+          "15": "15 min"
+        }
+      },
+      "autoDismiss": {
+        "title": "Auto Dismiss",
+        "hint": "Automatically dismiss the alarm after a set number of minutes. Choose 'Never' to require manual dismissal.",
+        "never": "Never",
+        "options": {
+          "1": "1 min",
+          "3": "3 min",
+          "5": "5 min",
+          "10": "10 min"
+        }
       }
     },
     "network": {
@@ -2262,6 +2297,10 @@
       "clipboard-history": {
         "label": "Clipboard History",
         "desc": "Configure clipboard history behavior and retention limit."
+      },
+      "alarm": {
+        "label": "Alarm Settings",
+        "desc": "Configure alarm sound, snooze and notification behavior."
       },
       "autostart": {
         "label": "Utilities",
