@@ -2521,9 +2521,9 @@ export function AiChatTab(): React.ReactElement {
                         })}
                         <button
                           type="button"
-                          className={`max-expand-chat-model-dropdown-item${isCustomApiModel ? ' active' : ''}${hasCustomApiCredentials ? '' : ' disabled'}`}
+                          className={`max-expand-chat-model-dropdown-item${isCustomApiModel ? ' active' : ''}${(!isProUser || !hasCustomApiCredentials) ? ' disabled' : ''}`}
                           onClick={() => {
-                            if (!hasCustomApiCredentials) return;
+                            if (!isProUser || !hasCustomApiCredentials) return;
                             setAiConfig({ model: 'custom-api' });
                             setShowModelDropdown(false);
                           }}
@@ -2532,6 +2532,7 @@ export function AiChatTab(): React.ReactElement {
                             <img style={{ width: 14, height: 14 }} src={SvgIcon.AI} alt="" />
                             {customApiDisplayLabel}
                           </span>
+                          <img className="max-expand-chat-model-dropdown-pro-icon" src={SvgIcon.PRO} alt="PRO" />
                         </button>
                       </div>
                     )}
