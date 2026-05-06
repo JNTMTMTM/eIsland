@@ -172,6 +172,8 @@ export type MaxExpandNavLayoutConfig = MaxExpandNavItem[];
 
 export const MAXEXPAND_CONFIGURABLE_TABS: string[] = ['todo', 'urlFavorites', 'album', 'mail', 'localFileSearch', 'clipboardHistory', 'aiChat', 'memo', 'countdown'];
 
+export const MAXEXPAND_ALWAYS_VISIBLE_TABS: Set<string> = new Set(['aiChat']);
+
 export const MAXEXPAND_TAB_LABELS: Record<string, string> = {
   todo: '待办事项',
   urlFavorites: 'URL 收藏',

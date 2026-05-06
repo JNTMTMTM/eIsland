@@ -84,6 +84,42 @@
   font-weight: 500;
 }
 
+/* ─── 标题行（含恢复默认按钮） ─── */
+
+.settings-card-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.maxexpand-layout-reset-btn {
+  appearance: none;
+  border: none;
+  background: rgba(var(--color-text-rgb), 0.06);
+  color: rgba(var(--color-text-rgb), 0.55);
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.maxexpand-layout-reset-btn:hover {
+  background: rgba(var(--color-text-rgb), 0.12);
+  color: rgba(var(--color-text-rgb), 0.8);
+}
+
+.maxexpand-layout-reset-btn-icon {
+  width: 12px;
+  height: 12px;
+  opacity: 0.6;
+}
+
 /* ─── 排序列表 ─── */
 
 .maxexpand-layout-list {
