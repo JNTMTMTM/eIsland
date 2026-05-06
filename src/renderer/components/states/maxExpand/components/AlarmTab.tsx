@@ -36,6 +36,7 @@ interface AlarmItem {
   id: number;
   hour: number;
   minute: number;
+  second: number;
   label: string;
   enabled: boolean;
   repeat: Weekday[];
@@ -57,6 +58,7 @@ function normalizeAlarms(items: AlarmItem[]): AlarmItem[] {
     ...a,
     hour: a.hour ?? 0,
     minute: a.minute ?? 0,
+    second: a.second ?? 0,
     label: a.label ?? '',
     enabled: a.enabled ?? true,
     repeat: Array.isArray(a.repeat) ? a.repeat : [],
@@ -64,9 +66,84 @@ function normalizeAlarms(items: AlarmItem[]): AlarmItem[] {
   }));
 }
 
-/** 格式化时间 HH:MM */
-function formatTime(h: number, m: number): string {
-  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+/** 格式化时间 HH:MM:SS */
+function formatTime(h: number, m: number, s: number): string {
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
+
+/** iOS 风格时间轮盘选择器 */
+const WHEEL_ITEM_HEIGHT = 28;
+const WHEEL_VISIBLE_ITEMS = 5;
+
+interface WheelPickerProps {
+  min: number;
+  max: number;
+  value: number;
+  onChange: (val: number) => void;
+}
+
+function WheelPicker({ min, max, value, onChange }: WheelPickerProps): React.ReactElement {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const isScrollingRef = useRef(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const items = Array.from({ length: max - min + 1 }, (_, i) => min + i);
+  const padding = Math.floor(WHEEL_VISIBLE_ITEMS / 2);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el || isScrollingRef.current) return;
+    const targetTop = (value - min) * WHEEL_ITEM_HEIGHT;
+    if (Math.abs(el.scrollTop - targetTop) > 1) {
+      el.scrollTop = targetTop;
+    }
+  }, [value, min]);
+
+  const handleScroll = useCallback(() => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    isScrollingRef.current = true;
+    timerRef.current = setTimeout(() => {
+      const el = containerRef.current;
+      if (!el) return;
+      const idx = Math.round(el.scrollTop / WHEEL_ITEM_HEIGHT);
+      const clamped = Math.max(0, Math.min(items.length - 1, idx));
+      const snappedTop = clamped * WHEEL_ITEM_HEIGHT;
+      el.scrollTo({ top: snappedTop, behavior: 'smooth' });
+      onChange(items[clamped]);
+      setTimeout(() => { isScrollingRef.current = false; }, 60);
+    }, 50);
+  }, [items, onChange]);
+
+  const containerHeight = WHEEL_VISIBLE_ITEMS * WHEEL_ITEM_HEIGHT;
+
+  return (
+    <div className="alarm-wheel-picker" style={{ height: containerHeight }}>
+      <div className="alarm-wheel-highlight" />
+      <div
+        className="alarm-wheel-scroll"
+        ref={containerRef}
+        onScroll={handleScroll}
+        style={{ height: containerHeight }}
+      >
+        {/* top padding */}
+        {Array.from({ length: padding }, (_, i) => (
+          <div key={`pt${i}`} className="alarm-wheel-item alarm-wheel-item--empty" style={{ height: WHEEL_ITEM_HEIGHT }} />
+        ))}
+        {items.map((n) => (
+          <div
+            key={n}
+            className={`alarm-wheel-item${n === value ? ' alarm-wheel-item--active' : ''}`}
+            style={{ height: WHEEL_ITEM_HEIGHT }}
+          >
+            {String(n).padStart(2, '0')}
+          </div>
+        ))}
+        {/* bottom padding */}
+        {Array.from({ length: padding }, (_, i) => (
+          <div key={`pb${i}`} className="alarm-wheel-item alarm-wheel-item--empty" style={{ height: WHEEL_ITEM_HEIGHT }} />
+        ))}
+      </div>
+    </div>
+  );
 }
 
 /**
@@ -83,6 +160,7 @@ export function AlarmTab(): React.ReactElement {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editHour, setEditHour] = useState(0);
   const [editMinute, setEditMinute] = useState(0);
+  const [editSecond, setEditSecond] = useState(0);
   const [editLabel, setEditLabel] = useState('');
   const [editRepeat, setEditRepeat] = useState<Weekday[]>([]);
 
@@ -90,6 +168,7 @@ export function AlarmTab(): React.ReactElement {
   const [adding, setAdding] = useState(false);
   const [newHour, setNewHour] = useState(8);
   const [newMinute, setNewMinute] = useState(0);
+  const [newSecond, setNewSecond] = useState(0);
   const [newLabel, setNewLabel] = useState('');
   const [newRepeat, setNewRepeat] = useState<Weekday[]>([]);
 
@@ -162,17 +241,18 @@ export function AlarmTab(): React.ReactElement {
   };
 
   /** 检查是否已有相同时间的闹钟 */
-  const isDuplicateTime = (h: number, m: number, excludeId?: number): boolean => {
-    return alarms.some((a) => a.hour === h && a.minute === m && a.id !== excludeId);
+  const isDuplicateTime = (h: number, m: number, s: number, excludeId?: number): boolean => {
+    return alarms.some((a) => a.hour === h && a.minute === m && a.second === s && a.id !== excludeId);
   };
 
   /** 添加闹钟 */
   const addAlarm = (): void => {
-    if (isDuplicateTime(newHour, newMinute)) return;
+    if (isDuplicateTime(newHour, newMinute, newSecond)) return;
     const item: AlarmItem = {
       id: Date.now(),
       hour: newHour,
       minute: newMinute,
+      second: newSecond,
       label: newLabel.trim(),
       enabled: true,
       repeat: [...newRepeat],
@@ -188,6 +268,7 @@ export function AlarmTab(): React.ReactElement {
     setEditingId(null);
     setNewHour(8);
     setNewMinute(0);
+    setNewSecond(0);
     setNewLabel('');
     setNewRepeat([]);
   };
@@ -209,6 +290,7 @@ export function AlarmTab(): React.ReactElement {
     setEditingId(alarm.id);
     setEditHour(alarm.hour);
     setEditMinute(alarm.minute);
+    setEditSecond(alarm.second);
     setEditLabel(alarm.label);
     setEditRepeat([...alarm.repeat]);
   };
@@ -216,11 +298,12 @@ export function AlarmTab(): React.ReactElement {
   /** 保存编辑 */
   const saveEdit = (): void => {
     if (editingId === null) return;
-    if (isDuplicateTime(editHour, editMinute, editingId)) return;
+    if (isDuplicateTime(editHour, editMinute, editSecond, editingId)) return;
     setAlarms((prev) => prev.map((a) => a.id === editingId ? {
       ...a,
       hour: editHour,
       minute: editMinute,
+      second: editSecond,
       label: editLabel.trim(),
       repeat: [...editRepeat],
     } : a));
@@ -294,13 +377,15 @@ export function AlarmTab(): React.ReactElement {
     return parts;
   };
 
-  /** 当前编辑器用到的时/分/标签/重复 */
+  /** 当前编辑器用到的时/分/秒/标签/重复 */
   const editorHour = adding ? newHour : editHour;
   const editorMinute = adding ? newMinute : editMinute;
+  const editorSecond = adding ? newSecond : editSecond;
   const editorLabel = adding ? newLabel : editLabel;
   const editorRepeat = adding ? newRepeat : editRepeat;
   const setEditorHour = adding ? setNewHour : setEditHour;
   const setEditorMinute = adding ? setNewMinute : setEditMinute;
+  const setEditorSecond = adding ? setNewSecond : setEditSecond;
   const setEditorLabel = adding ? setNewLabel : setEditLabel;
   const setEditorRepeat = adding ? setNewRepeat : setEditRepeat;
 
@@ -336,7 +421,7 @@ export function AlarmTab(): React.ReactElement {
               className={`alarm-card${alarm.enabled ? '' : ' alarm-card--disabled'}${editingId === alarm.id ? ' alarm-card--active' : ''}`}
             >
               <div className="alarm-card-left" onClick={() => startEdit(alarm)}>
-                <div className="alarm-card-time">{formatTime(alarm.hour, alarm.minute)}</div>
+                <div className="alarm-card-time">{formatTime(alarm.hour, alarm.minute, alarm.second)}</div>
                 <div className="alarm-card-meta">
                   {buildMetaFragments(alarm)}
                 </div>
@@ -388,23 +473,11 @@ export function AlarmTab(): React.ReactElement {
         {/* 可滚动表单区域 */}
         <div className="alarm-editor-panel-body">
           <div className="alarm-editor-time-row">
-            <input
-              className="alarm-editor-time-input"
-              type="number"
-              min={0}
-              max={23}
-              value={editorHour}
-              onChange={(e) => setEditorHour(Math.max(0, Math.min(23, Number(e.target.value) || 0)))}
-            />
+            <WheelPicker min={0} max={23} value={editorHour} onChange={setEditorHour} />
             <span className="alarm-editor-time-sep">:</span>
-            <input
-              className="alarm-editor-time-input"
-              type="number"
-              min={0}
-              max={59}
-              value={editorMinute}
-              onChange={(e) => setEditorMinute(Math.max(0, Math.min(59, Number(e.target.value) || 0)))}
-            />
+            <WheelPicker min={0} max={59} value={editorMinute} onChange={setEditorMinute} />
+            <span className="alarm-editor-time-sep">:</span>
+            <WheelPicker min={0} max={59} value={editorSecond} onChange={setEditorSecond} />
           </div>
 
           <div className="alarm-editor-field">

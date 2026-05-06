@@ -402,7 +402,7 @@
   border-radius: 2px;
 }
 
-/* ── 时间输入行 ── */
+/* ── 时间轮盘选择器 ── */
 .alarm-editor-time-row {
   display: flex;
   align-items: center;
@@ -411,40 +411,70 @@
   padding: 12px 0;
 }
 
-.alarm-editor-time-input {
-  width: 80px;
-  text-align: center;
-  font-size: 48px;
-  font-weight: 200;
-  letter-spacing: -0.02em;
-  border: none;
-  border-radius: 12px;
-  background: rgba(var(--color-text-rgb), 0.05);
-  color: rgba(var(--color-text-rgb), 0.9);
-  padding: 10px 4px;
-  outline: none;
-  transition: background 0.2s;
-  font-variant-numeric: tabular-nums;
-  -moz-appearance: textfield;
-  appearance: textfield;
-}
-
-.alarm-editor-time-input::-webkit-inner-spin-button,
-.alarm-editor-time-input::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
-.alarm-editor-time-input:focus {
-  background: rgba(var(--color-text-rgb), 0.09);
-}
-
 .alarm-editor-time-sep {
-  font-size: 42px;
-  font-weight: 200;
-  color: rgba(var(--color-text-rgb), 0.25);
+  font-size: 20px;
+  font-weight: 300;
+  color: rgba(var(--color-text-rgb), 0.2);
   user-select: none;
   margin: 0 2px;
+}
+
+/* 轮盘容器 */
+.alarm-wheel-picker {
+  position: relative;
+  width: 52px;
+  overflow: hidden;
+  border-radius: 10px;
+  background: rgba(var(--color-text-rgb), 0.03);
+}
+
+/* 中心高亮条 */
+.alarm-wheel-highlight {
+  position: absolute;
+  top: 50%;
+  left: 3px;
+  right: 3px;
+  height: 28px;
+  transform: translateY(-50%);
+  border-radius: 6px;
+  background: rgba(var(--color-text-rgb), 0.07);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* 滚动区域 */
+.alarm-wheel-scroll {
+  overflow-y: auto;
+  scroll-snap-type: y mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+
+.alarm-wheel-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* 每一项 */
+.alarm-wheel-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+  color: rgba(var(--color-text-rgb), 0.25);
+  scroll-snap-align: start;
+  user-select: none;
+  transition: color 0.12s, font-weight 0.12s;
+}
+
+.alarm-wheel-item--active {
+  color: rgba(var(--color-text-rgb), 0.9);
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.alarm-wheel-item--empty {
+  pointer-events: none;
 }
 
 /* ── 字段组 ── */
