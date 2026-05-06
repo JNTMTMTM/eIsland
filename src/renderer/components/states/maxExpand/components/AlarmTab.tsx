@@ -308,9 +308,10 @@ export function AlarmTab(): React.ReactElement {
   const closeEditor = (): void => {
     setAdding(false);
     setEditingId(null);
-    setNewHour(8);
-    setNewMinute(0);
-    setNewSecond(0);
+    const _now = new Date();
+    setNewHour(_now.getHours());
+    setNewMinute(_now.getMinutes());
+    setNewSecond(_now.getSeconds());
     setNewLabel('');
     setNewRepeat([]);
   };
@@ -442,7 +443,7 @@ export function AlarmTab(): React.ReactElement {
             type="button"
             onClick={() => {
               if (adding) { closeEditor(); }
-              else { setAdding(true); setEditingId(null); }
+              else { const _now = new Date(); setNewHour(_now.getHours()); setNewMinute(_now.getMinutes()); setNewSecond(_now.getSeconds()); setAdding(true); setEditingId(null); }
             }}
             title={t('alarm.add', { defaultValue: '新建闹钟' })}
           >
