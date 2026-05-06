@@ -27,6 +27,7 @@
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { LayoutPreviewSettingsPage } from './components/LayoutPreviewSettingsPage';
+import { MaxExpandLayoutSettingsPage } from './components/MaxExpandLayoutSettingsPage';
 import { HideProcessSettingsPage } from './components/HideProcessSettingsPage';
 import { PositionSettingsPage } from './components/PositionSettingsPage';
 import { ThemeSettingsPage } from './components/ThemeSettingsPage';
@@ -52,6 +53,8 @@ export function AppSettingsSection({
   OverviewPreviewComponent,
   overviewWidgetOptions,
   updateLayout,
+  maxExpandNavLayout,
+  updateMaxExpandNavLayout,
 
   hideProcessFilter,
   setHideProcessFilter,
@@ -159,6 +162,13 @@ export function AppSettingsSection({
             OverviewPreviewComponent={OverviewPreviewComponent}
             overviewWidgetOptions={overviewWidgetOptions}
             updateLayout={updateLayout}
+          />
+        );
+      case 'maxexpand-layout':
+        return (
+          <MaxExpandLayoutSettingsPage
+            maxExpandNavLayout={maxExpandNavLayout}
+            updateMaxExpandNavLayout={updateMaxExpandNavLayout}
           />
         );
       case 'album':

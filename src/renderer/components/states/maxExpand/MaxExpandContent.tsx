@@ -28,6 +28,11 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../store/slices';
 import type { MaxExpandTab } from '../../../store/types';
+import {
+  MAXEXPAND_NAV_LAYOUT_STORE_KEY,
+  DEFAULT_MAXEXPAND_NAV_LAYOUT,
+  type MaxExpandNavLayoutConfig,
+} from './components/setting/utils/settingsConfig';
 import '../../../styles/settings/settings.css';
 import { AiChatTab } from './components/AiChatTab';
 import { TodoTab } from './components/TodoTab';
@@ -42,9 +47,6 @@ import { MemoTab } from './components/MemoTab';
 
 /** 导航点标识 — 含特殊动作：expanded 返回 */
 type NavDotId = MaxExpandTab | 'expanded';
-
-/** 导航点配置 */
-const NAV_DOTS: NavDotId[] = ['expanded', 'todo', 'urlFavorites', 'album', 'mail', 'localFileSearch', 'clipboardHistory', 'aiChat', 'memo', 'countdown', 'settings'];
 
 /**
  * 最大展开模式内容组件
@@ -82,6 +84,17 @@ export function MaxExpandContent(): React.ReactElement {
 
   const [slideDir, setSlideDir] = useState<'left' | 'right'>('right');
   const [tabAnimation, setTabAnimation] = useState(true);
+  const [navLayoutConfig, setNavLayoutConfig] = useState<MaxExpandNavLayoutConfig>(DEFAULT_MAXEXPAND_NAV_LAYOUT);
+
+  /** 根据用户配置动态生成导航点序列 */
+  const NAV_DOTS: NavDotId[] = useMemo(() => {
+    const visibleTabs = navLayoutConfig
+      .filter((item) => item.visible)
+      .map((item) => item.id as NavDotId);
+    return ['expanded' as NavDotId, ...visibleTabs, 'settings' as NavDotId];
+  }, [navLayoutConfig]);
+  const navDotsRef = useRef(NAV_DOTS);
+  navDotsRef.current = NAV_DOTS;
 
   useEffect(() => {
     let cancelled = false;
@@ -94,6 +107,34 @@ export function MaxExpandContent(): React.ReactElement {
       if (channel === 'settings:maxexpand-tab-animation') setTabAnimation(value !== false);
     });
     return () => { cancelled = true; unsub(); };
+  }, []);
+
+  /** 加载全展开导航布局配置 */
+  useEffect(() => {
+    let cancelled = false;
+    window.api.storeRead(MAXEXPAND_NAV_LAYOUT_STORE_KEY).then((data: unknown) => {
+      if (cancelled) return;
+      if (Array.isArray(data) && data.length > 0) {
+        setNavLayoutConfig(data as MaxExpandNavLayoutConfig);
+      }
+    }).catch(() => {});
+    const unsub = window.api.onSettingsChanged((channel: string, value: unknown) => {
+      if (cancelled) return;
+      if (channel === `store:${MAXEXPAND_NAV_LAYOUT_STORE_KEY}`) {
+        if (Array.isArray(value) && value.length > 0) {
+          setNavLayoutConfig(value as MaxExpandNavLayoutConfig);
+        }
+      }
+    });
+    const handleLocalChange = (e: Event): void => {
+      if (cancelled) return;
+      const detail = (e as CustomEvent).detail;
+      if (Array.isArray(detail) && detail.length > 0) {
+        setNavLayoutConfig(detail as MaxExpandNavLayoutConfig);
+      }
+    };
+    window.addEventListener('maxexpand-nav-layout-changed', handleLocalChange);
+    return () => { cancelled = true; unsub(); window.removeEventListener('maxexpand-nav-layout-changed', handleLocalChange); };
   }, []);
 
   const [countdownMode, setCountdownMode] = useState<'integrated' | 'standalone'>(
@@ -141,15 +182,16 @@ export function MaxExpandContent(): React.ReactElement {
       return NAV_DOTS.filter(d => !STANDALONE_HIDDEN_TABS.has(d)).map((id) => ({ id, label: getNavLabel(id) }));
     }
     return NAV_DOTS.map((id) => ({ id, label: getNavLabel(id) }));
-  }, [countdownMode, t]);
+  }, [countdownMode, t, NAV_DOTS]);
   const filteredNavDotsRef = useRef(filteredNavDots);
   filteredNavDotsRef.current = filteredNavDots;
 
   /** 切换 Tab */
   const navigateTab = useCallback((id: NavDotId): void => {
     if (id === 'expanded') { setExpanded(); return; }
-    const curIdx = NAV_DOTS.indexOf(activeTabRef.current);
-    const nextIdx = NAV_DOTS.indexOf(id as NavDotId);
+    const dots = navDotsRef.current;
+    const curIdx = dots.indexOf(activeTabRef.current);
+    const nextIdx = dots.indexOf(id as NavDotId);
     setSlideDir(nextIdx >= curIdx ? 'right' : 'left');
     setActiveTab(id);
   }, [setExpanded, setActiveTab]);

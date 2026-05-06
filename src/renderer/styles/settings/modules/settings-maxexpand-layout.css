@@ -1,0 +1,221 @@
+/*
+ * eIsland - A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Electron.
+ * https://github.com/JNTMTMTM/eIsland
+ *
+ * Copyright (C) 2026 JNTMTMTM
+ * Copyright (C) 2026 pyisland.com
+ *
+ * Original author: JNTMTMTM[](https://github.com/JNTMTMTM)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+/**
+ * @file settings-maxexpand-layout.css
+ * @description 全展开布局设置页面样式（导航预览 + 排序列表）
+ */
+
+/* ─── 导航预览区域 ─── */
+
+.maxexpand-layout-preview-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 16px 0 8px;
+}
+
+.maxexpand-layout-preview-dots {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 20px;
+  background: rgba(var(--color-text-rgb), 0.06);
+  border: 1px solid rgba(var(--color-text-rgb), 0.08);
+}
+
+.maxexpand-layout-preview-dot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.maxexpand-layout-preview-dot::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(var(--color-text-rgb), 0.55);
+  transition: background 0.2s ease, opacity 0.2s ease;
+}
+
+.maxexpand-layout-preview-dot--hidden::before {
+  background: rgba(var(--color-text-rgb), 0.15);
+  opacity: 0.5;
+}
+
+.maxexpand-layout-preview-dot--fixed::before {
+  background: rgba(var(--color-text-rgb), 0.75);
+}
+
+.maxexpand-layout-dot-label {
+  font-size: 9px;
+  color: rgba(var(--color-text-rgb), 0.5);
+  white-space: nowrap;
+  max-width: 48px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.maxexpand-layout-preview-dot--hidden .maxexpand-layout-dot-label {
+  color: rgba(var(--color-text-rgb), 0.25);
+  text-decoration: line-through;
+}
+
+.maxexpand-layout-preview-dot--fixed .maxexpand-layout-dot-label {
+  color: rgba(var(--color-text-rgb), 0.7);
+  font-weight: 500;
+}
+
+/* ─── 排序列表 ─── */
+
+.maxexpand-layout-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 4px 0;
+}
+
+.maxexpand-layout-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(var(--color-text-rgb), 0.03);
+  border: 1px solid rgba(var(--color-text-rgb), 0.06);
+  cursor: grab;
+  transition: background 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+  user-select: none;
+}
+
+.maxexpand-layout-item:hover {
+  background: rgba(var(--color-text-rgb), 0.06);
+  border-color: rgba(var(--color-text-rgb), 0.1);
+}
+
+.maxexpand-layout-item:active {
+  cursor: grabbing;
+}
+
+.maxexpand-layout-item--drag-over {
+  border-color: rgba(var(--color-text-rgb), 0.3);
+  background: rgba(var(--color-text-rgb), 0.08);
+}
+
+.maxexpand-layout-item--disabled {
+  opacity: 0.5;
+}
+
+.maxexpand-layout-item-handle {
+  font-size: 14px;
+  color: rgba(var(--color-text-rgb), 0.3);
+  cursor: grab;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.maxexpand-layout-item-index {
+  font-size: 11px;
+  color: rgba(var(--color-text-rgb), 0.35);
+  font-weight: 500;
+  min-width: 16px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.maxexpand-layout-item-label {
+  flex: 1;
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(var(--color-text-rgb), 0.85);
+}
+
+.maxexpand-layout-item--disabled .maxexpand-layout-item-label {
+  text-decoration: line-through;
+  color: rgba(var(--color-text-rgb), 0.4);
+}
+
+.maxexpand-layout-item-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.maxexpand-layout-item-move-btn {
+  appearance: none;
+  border: none;
+  background: rgba(var(--color-text-rgb), 0.06);
+  color: rgba(var(--color-text-rgb), 0.5);
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.maxexpand-layout-item-move-btn:hover:not(:disabled) {
+  background: rgba(var(--color-text-rgb), 0.12);
+  color: rgba(var(--color-text-rgb), 0.8);
+}
+
+.maxexpand-layout-item-move-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.maxexpand-layout-item-toggle {
+  appearance: none;
+  border: none;
+  width: 26px;
+  height: 22px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(220, 60, 60, 0.12);
+  color: rgba(220, 60, 60, 0.7);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.maxexpand-layout-item-toggle:hover {
+  background: rgba(220, 60, 60, 0.2);
+  color: rgba(220, 60, 60, 0.9);
+}
+
+.maxexpand-layout-item-toggle--on {
+  background: rgba(60, 180, 80, 0.12);
+  color: rgba(60, 180, 80, 0.7);
+}
+
+.maxexpand-layout-item-toggle--on:hover {
+  background: rgba(60, 180, 80, 0.2);
+  color: rgba(60, 180, 80, 0.9);
+}

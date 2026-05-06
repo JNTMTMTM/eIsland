@@ -54,6 +54,9 @@ import {
   NETWORK_TIMEOUT_OPTIONS,
   LAYOUT_STORE_KEY,
   DEFAULT_LAYOUT,
+  MAXEXPAND_NAV_LAYOUT_STORE_KEY,
+  DEFAULT_MAXEXPAND_NAV_LAYOUT,
+  type MaxExpandNavLayoutConfig,
   APP_SETTINGS_PAGES,
   WEATHER_SETTINGS_PAGES,
   WEATHER_SETTINGS_PAGE_LABELS,
@@ -417,6 +420,7 @@ export function SettingsTab(): ReactElement {
   }), [t]);
 
   const [layoutConfig, setLayoutConfig] = useState<OverviewLayoutConfig>(DEFAULT_LAYOUT);
+  const [maxExpandNavLayout, setMaxExpandNavLayout] = useState<MaxExpandNavLayoutConfig>(DEFAULT_MAXEXPAND_NAV_LAYOUT);
 
   /** 歌曲设置相关状态 */
   const [whitelist, setWhitelist] = useState<string[]>([]);
@@ -1396,6 +1400,18 @@ export function SettingsTab(): ReactElement {
     return () => { cancelled = true; };
   }, []);
 
+  /** 加载全展开导航布局配置 */
+  useEffect(() => {
+    let cancelled = false;
+    window.api.storeRead(MAXEXPAND_NAV_LAYOUT_STORE_KEY).then((data) => {
+      if (cancelled) return;
+      if (Array.isArray(data) && data.length > 0) {
+        setMaxExpandNavLayout(data as MaxExpandNavLayoutConfig);
+      }
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+
   /** 加载快捷键配置 */
   useEffect(() => {
     let cancelled = false;
@@ -1596,6 +1612,12 @@ export function SettingsTab(): ReactElement {
     const updated = { ...layoutConfig, [side]: value };
     setLayoutConfig(updated);
     window.api.storeWrite(LAYOUT_STORE_KEY, updated).catch(() => {});
+  };
+
+  const updateMaxExpandNavLayout = (layout: MaxExpandNavLayoutConfig): void => {
+    setMaxExpandNavLayout(layout);
+    window.api.storeWrite(MAXEXPAND_NAV_LAYOUT_STORE_KEY, layout).catch(() => {});
+    window.dispatchEvent(new CustomEvent('maxexpand-nav-layout-changed', { detail: layout }));
   };
 
   const applyIslandPositionOffset = (x: number, y: number): void => {
@@ -2637,6 +2659,8 @@ export function SettingsTab(): ReactElement {
               OverviewPreviewComponent={OverviewPreview}
               overviewWidgetOptions={translatedOverviewWidgetOptions}
               updateLayout={updateLayout}
+              maxExpandNavLayout={maxExpandNavLayout}
+              updateMaxExpandNavLayout={updateMaxExpandNavLayout}
               hideProcessFilter={hideProcessFilter}
               setHideProcessFilter={setHideProcessFilter}
               refreshRunningProcesses={refreshRunningProcesses}
