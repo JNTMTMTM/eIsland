@@ -140,6 +140,7 @@ const CLIENT_LOCAL_TOOL_PREFIXES = [
   'defender.',
   'island.',
   'alarm.',
+  'todolist.',
 ] as const;
 const CLIENT_LOCAL_TOOL_EXACT_NAMES = new Set(['web.search']);
 const HIGH_RISK_LOCAL_TOOL_PREFIXES = [
@@ -167,6 +168,7 @@ const HIGH_RISK_LOCAL_TOOL_PREFIXES = [
   'island.opacity.set',
   'island.restart',
   'alarm.delete',
+  'todolist.delete',
 ] as const;
 
 function isClientLocalToolName(tool: string): boolean {

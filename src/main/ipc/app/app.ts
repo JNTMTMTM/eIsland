@@ -2077,6 +2077,114 @@ async function executeAgentLocalTool(request: AgentLocalToolRequest): Promise<{
       return { success: true, result: { updated: target }, error: '', durationMs: Date.now() - startedAt };
     }
 
+    if (tool === 'todolist.list') {
+      const storeDir = resolve(app.getPath('userData'), 'eIsland_store');
+      const filePath = resolve(storeDir, 'todos.json');
+      let todos: unknown[] = [];
+      if (existsSync(filePath)) {
+        try { todos = JSON.parse(await readFile(filePath, 'utf8')); } catch { /* noop */ }
+      }
+      if (!Array.isArray(todos)) todos = [];
+      return { success: true, result: { count: todos.length, todos }, error: '', durationMs: Date.now() - startedAt };
+    }
+
+    if (tool === 'todolist.create') {
+      const text = getStringArg(args, 'text');
+      if (!text) throw new Error('todolist.create 需要 text');
+      const priority = getStringArg(args, 'priority') || undefined;
+      const size = getStringArg(args, 'size') || undefined;
+      const description = getStringArg(args, 'description') || '';
+
+      const storeDir = resolve(app.getPath('userData'), 'eIsland_store');
+      const filePath = resolve(storeDir, 'todos.json');
+      let todos: Array<Record<string, unknown>> = [];
+      if (existsSync(filePath)) {
+        try { const parsed = JSON.parse(await readFile(filePath, 'utf8')); if (Array.isArray(parsed)) todos = parsed; } catch { /* noop */ }
+      }
+
+      const now = Date.now();
+      const newTodo: Record<string, unknown> = { id: now, text, done: false, createdAt: now, description, subTodos: [] };
+      if (priority) newTodo.priority = priority;
+      if (size) newTodo.size = size;
+
+      todos.push(newTodo);
+      if (!existsSync(storeDir)) await mkdir(storeDir, { recursive: true });
+      await writeFile(filePath, JSON.stringify(todos, null, 2), 'utf8');
+      broadcastSettingChange(-1, 'store:todos', todos);
+      return { success: true, result: { created: newTodo }, error: '', durationMs: Date.now() - startedAt };
+    }
+
+    if (tool === 'todolist.delete') {
+      const idRaw = getNumberArg(args, 'id');
+      if (idRaw === null || idRaw === undefined) throw new Error('todolist.delete 需要 id');
+      const targetId = Math.floor(idRaw);
+
+      const storeDir = resolve(app.getPath('userData'), 'eIsland_store');
+      const filePath = resolve(storeDir, 'todos.json');
+      let todos: Array<Record<string, unknown>> = [];
+      if (existsSync(filePath)) {
+        try { const parsed = JSON.parse(await readFile(filePath, 'utf8')); if (Array.isArray(parsed)) todos = parsed; } catch { /* noop */ }
+      }
+
+      const before = todos.length;
+      todos = todos.filter((t) => t.id !== targetId);
+      if (todos.length === before) {
+        return { success: false, result: {}, error: `待办 ID ${targetId} 不存在`, durationMs: Date.now() - startedAt };
+      }
+      await writeFile(filePath, JSON.stringify(todos, null, 2), 'utf8');
+      broadcastSettingChange(-1, 'store:todos', todos);
+      return { success: true, result: { deleted: targetId, remaining: todos.length }, error: '', durationMs: Date.now() - startedAt };
+    }
+
+    if (tool === 'todolist.toggle') {
+      const idRaw = getNumberArg(args, 'id');
+      if (idRaw === null || idRaw === undefined) throw new Error('todolist.toggle 需要 id');
+      const targetId = Math.floor(idRaw);
+
+      const storeDir = resolve(app.getPath('userData'), 'eIsland_store');
+      const filePath = resolve(storeDir, 'todos.json');
+      let todos: Array<Record<string, unknown>> = [];
+      if (existsSync(filePath)) {
+        try { const parsed = JSON.parse(await readFile(filePath, 'utf8')); if (Array.isArray(parsed)) todos = parsed; } catch { /* noop */ }
+      }
+
+      const target = todos.find((t) => t.id === targetId);
+      if (!target) {
+        return { success: false, result: {}, error: `待办 ID ${targetId} 不存在`, durationMs: Date.now() - startedAt };
+      }
+      target.done = !target.done;
+      await writeFile(filePath, JSON.stringify(todos, null, 2), 'utf8');
+      broadcastSettingChange(-1, 'store:todos', todos);
+      return { success: true, result: { id: targetId, done: target.done }, error: '', durationMs: Date.now() - startedAt };
+    }
+
+    if (tool === 'todolist.update') {
+      const idRaw = getNumberArg(args, 'id');
+      if (idRaw === null || idRaw === undefined) throw new Error('todolist.update 需要 id');
+      const targetId = Math.floor(idRaw);
+
+      const storeDir = resolve(app.getPath('userData'), 'eIsland_store');
+      const filePath = resolve(storeDir, 'todos.json');
+      let todos: Array<Record<string, unknown>> = [];
+      if (existsSync(filePath)) {
+        try { const parsed = JSON.parse(await readFile(filePath, 'utf8')); if (Array.isArray(parsed)) todos = parsed; } catch { /* noop */ }
+      }
+
+      const target = todos.find((t) => t.id === targetId);
+      if (!target) {
+        return { success: false, result: {}, error: `待办 ID ${targetId} 不存在`, durationMs: Date.now() - startedAt };
+      }
+
+      if (typeof args.text === 'string' && args.text.trim()) target.text = args.text.trim();
+      if (typeof args.priority === 'string') target.priority = args.priority || undefined;
+      if (typeof args.size === 'string') target.size = args.size || undefined;
+      if (typeof args.description === 'string') target.description = args.description;
+
+      await writeFile(filePath, JSON.stringify(todos, null, 2), 'utf8');
+      broadcastSettingChange(-1, 'store:todos', todos);
+      return { success: true, result: { updated: target }, error: '', durationMs: Date.now() - startedAt };
+    }
+
     throw new Error(`不支持的工具: ${tool}`);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error ?? 'local tool failed');
