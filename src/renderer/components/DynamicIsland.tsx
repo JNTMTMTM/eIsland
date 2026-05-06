@@ -545,15 +545,16 @@ function DynamicIsland(): React.JSX.Element {
         const s = now.getSeconds();
         const weekday = now.getDay() as 0 | 1 | 2 | 3 | 4 | 5 | 6;
         const timeKey = `${h}:${m}:${s}`;
+        const disableOnceAlarmIds: number[] = [];
 
-        for (const alarm of data) {
-          if (!alarm || !alarm.enabled) continue;
-          if (alarm.hour !== h || alarm.minute !== m || alarm.second !== s) continue;
+        data.forEach((alarm) => {
+          if (!alarm || !alarm.enabled) return;
+          if (alarm.hour !== h || alarm.minute !== m || alarm.second !== s) return;
           const hasRepeat = Array.isArray(alarm.repeat) && alarm.repeat.length > 0;
-          if (hasRepeat && !alarm.repeat.includes(weekday)) continue;
+          if (hasRepeat && !alarm.repeat.includes(weekday)) return;
 
           const firedKey = `${alarm.id}-${timeKey}`;
-          if (alarmFiredSetRef.current.has(firedKey)) continue;
+          if (alarmFiredSetRef.current.has(firedKey)) return;
           alarmFiredSetRef.current.add(firedKey);
 
           const timeStr = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
@@ -562,17 +563,20 @@ function DynamicIsland(): React.JSX.Element {
             ? t('notification.alarm.bodyWithLabel', { defaultValue: '{{time}} — {{label}}', time: timeStr, label })
             : t('notification.alarm.body', { defaultValue: '{{time}}', time: timeStr });
           setNotificationRef.current({
-            title: t('notification.alarm.title', { defaultValue: '闹钟' }),
+            title: t('notification.alarm.title', { defaultValue: '闹钟提醒' }),
             body,
-            icon: SvgIcon.TIMER,
           });
 
           if (!hasRepeat) {
-            const updated = data.map((a: { id: number }) =>
-              a.id === alarm.id ? { ...a, enabled: false } : a,
-            );
-            await window.api?.storeWrite(ALARM_STORE_KEY, updated).catch(() => {});
+            disableOnceAlarmIds.push(alarm.id);
           }
+        });
+
+        if (disableOnceAlarmIds.length > 0) {
+          const updated = data.map((a: { id: number }) =>
+            disableOnceAlarmIds.includes(a.id) ? { ...a, enabled: false } : a,
+          );
+          await window.api?.storeWrite(ALARM_STORE_KEY, updated).catch(() => {});
         }
 
         if (alarmFiredSetRef.current.size > 200) {

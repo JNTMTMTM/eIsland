@@ -334,7 +334,7 @@
 }
 
 .alarm-delete-btn:hover {
-  opacity: 0.85 !important;
+  opacity: 0.85;
   background: rgba(255, 59, 48, 0.1);
 }
 

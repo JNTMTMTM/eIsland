@@ -1972,7 +1972,7 @@ async function executeAgentLocalTool(request: AgentLocalToolRequest): Promise<{
       const hour = Math.max(0, Math.min(23, Math.floor(hourRaw)));
       const minute = Math.max(0, Math.min(59, Math.floor(minuteRaw)));
       const secondRaw = getNumberArg(args, 'second');
-      const second = secondRaw != null ? Math.max(0, Math.min(59, Math.floor(secondRaw))) : 0;
+      const second = secondRaw !== null && secondRaw !== undefined ? Math.max(0, Math.min(59, Math.floor(secondRaw))) : 0;
       const label = getStringArg(args, 'label') || '';
       const repeat = Array.isArray(args.repeat) ? (args.repeat as number[]).filter((v) => typeof v === 'number' && v >= 0 && v <= 6) : [];
       const enabled = args.enabled !== false;
