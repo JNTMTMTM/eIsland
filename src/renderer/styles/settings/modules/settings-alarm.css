@@ -14,8 +14,7 @@
    容器：默认全宽纵向，编辑时横向分栏
    ══════════════════════════════════════ */
 .alarm-tab-container {
-  display: flex;
-  flex-direction: row;
+  position: relative;
   width: 100%;
   height: 100%;
   min-height: 0;
@@ -27,18 +26,22 @@
    左侧 侧边栏（闹钟列表）
    ══════════════════════════════════════ */
 .alarm-tab-sidebar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 100%;
   display: flex;
   flex-direction: column;
-  flex: 1;
-  min-width: 0;
   overflow: hidden;
-  transition: flex 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-right: 1px solid transparent;
+  transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .alarm-tab-sidebar--compact {
-  flex: 0 0 240px;
-  max-width: 240px;
-  border-right: 1px solid rgba(var(--color-text-rgb), 0.06);
+  width: 240px;
+  border-right-color: rgba(var(--color-text-rgb), 0.06);
 }
 
 /* ── 头部 ── */
@@ -334,11 +337,24 @@
    右侧 编辑面板
    ══════════════════════════════════════ */
 .alarm-editor-panel {
-  flex: 1;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 100%;
+  right: 0;
   display: flex;
   flex-direction: column;
-  min-width: 0;
   overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transition: left 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.28s 0.06s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.alarm-editor-panel--visible {
+  left: 240px;
+  opacity: 1;
+  pointer-events: auto;
 }
 
 /* 固定顶栏 */

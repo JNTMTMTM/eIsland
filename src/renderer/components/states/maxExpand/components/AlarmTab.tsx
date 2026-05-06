@@ -359,78 +359,76 @@ export function AlarmTab(): React.ReactElement {
         </div>
       </div>
 
-      {/* ── 右侧：编辑面板 ── */}
-      {showEditor && (
-        <div className="alarm-editor-panel">
-          {/* 固定顶栏：标题 + 操作按钮 */}
-          <div className="alarm-editor-panel-header">
-            <div className="alarm-editor-panel-title">
-              {adding
-                ? t('alarm.newTitle', { defaultValue: '新建闹钟' })
-                : t('alarm.editTitle', { defaultValue: '编辑闹钟' })}
-            </div>
-            <div className="alarm-editor-actions">
-              <button className="alarm-editor-cancel-btn" type="button" onClick={closeEditor}>
-                {t('alarm.cancel', { defaultValue: '取消' })}
-              </button>
-              <button className="alarm-editor-save-btn" type="button" onClick={adding ? addAlarm : saveEdit}>
-                {t('alarm.save', { defaultValue: '保存' })}
-              </button>
-            </div>
+      {/* ── 右侧：编辑面板（始终渲染，通过 CSS 类控制展开） ── */}
+      <div className={`alarm-editor-panel${showEditor ? ' alarm-editor-panel--visible' : ''}`}>
+        {/* 固定顶栏：标题 + 操作按钮 */}
+        <div className="alarm-editor-panel-header">
+          <div className="alarm-editor-panel-title">
+            {adding
+              ? t('alarm.newTitle', { defaultValue: '新建闹钟' })
+              : t('alarm.editTitle', { defaultValue: '编辑闹钟' })}
           </div>
-
-          {/* 可滚动表单区域 */}
-          <div className="alarm-editor-panel-body">
-            <div className="alarm-editor-time-row">
-              <input
-                className="alarm-editor-time-input"
-                type="number"
-                min={0}
-                max={23}
-                value={editorHour}
-                onChange={(e) => setEditorHour(Math.max(0, Math.min(23, Number(e.target.value) || 0)))}
-              />
-              <span className="alarm-editor-time-sep">:</span>
-              <input
-                className="alarm-editor-time-input"
-                type="number"
-                min={0}
-                max={59}
-                value={editorMinute}
-                onChange={(e) => setEditorMinute(Math.max(0, Math.min(59, Number(e.target.value) || 0)))}
-              />
-            </div>
-
-            <div className="alarm-editor-field">
-              <div className="alarm-editor-field-label">{t('alarm.labelField', { defaultValue: '备注' })}</div>
-              <input
-                className="alarm-editor-label-input"
-                type="text"
-                placeholder={t('alarm.labelPlaceholder', { defaultValue: '闹钟备注（可选）' })}
-                value={editorLabel}
-                onChange={(e) => setEditorLabel(e.target.value)}
-              />
-            </div>
-
-            <div className="alarm-editor-field">
-              <div className="alarm-editor-field-label">{t('alarm.repeatField', { defaultValue: '重复' })}</div>
-              <div className="alarm-editor-weekdays">
-                {ALL_WEEKDAYS.map((d) => (
-                  <button
-                    key={d}
-                    className={`alarm-weekday-btn${editorRepeat.includes(d) ? ' alarm-weekday-btn--active' : ''}`}
-                    type="button"
-                    onClick={() => setEditorRepeat(toggleWeekday(editorRepeat, d))}
-                  >
-                    {weekdayLabel(d)}
-                  </button>
-                ))}
-              </div>
-              <div className="alarm-editor-repeat-hint">{repeatSummary(editorRepeat)}</div>
-            </div>
+          <div className="alarm-editor-actions">
+            <button className="alarm-editor-cancel-btn" type="button" onClick={closeEditor}>
+              {t('alarm.cancel', { defaultValue: '取消' })}
+            </button>
+            <button className="alarm-editor-save-btn" type="button" onClick={adding ? addAlarm : saveEdit}>
+              {t('alarm.save', { defaultValue: '保存' })}
+            </button>
           </div>
         </div>
-      )}
+
+        {/* 可滚动表单区域 */}
+        <div className="alarm-editor-panel-body">
+          <div className="alarm-editor-time-row">
+            <input
+              className="alarm-editor-time-input"
+              type="number"
+              min={0}
+              max={23}
+              value={editorHour}
+              onChange={(e) => setEditorHour(Math.max(0, Math.min(23, Number(e.target.value) || 0)))}
+            />
+            <span className="alarm-editor-time-sep">:</span>
+            <input
+              className="alarm-editor-time-input"
+              type="number"
+              min={0}
+              max={59}
+              value={editorMinute}
+              onChange={(e) => setEditorMinute(Math.max(0, Math.min(59, Number(e.target.value) || 0)))}
+            />
+          </div>
+
+          <div className="alarm-editor-field">
+            <div className="alarm-editor-field-label">{t('alarm.labelField', { defaultValue: '备注' })}</div>
+            <input
+              className="alarm-editor-label-input"
+              type="text"
+              placeholder={t('alarm.labelPlaceholder', { defaultValue: '闹钟备注（可选）' })}
+              value={editorLabel}
+              onChange={(e) => setEditorLabel(e.target.value)}
+            />
+          </div>
+
+          <div className="alarm-editor-field">
+            <div className="alarm-editor-field-label">{t('alarm.repeatField', { defaultValue: '重复' })}</div>
+            <div className="alarm-editor-weekdays">
+              {ALL_WEEKDAYS.map((d) => (
+                <button
+                  key={d}
+                  className={`alarm-weekday-btn${editorRepeat.includes(d) ? ' alarm-weekday-btn--active' : ''}`}
+                  type="button"
+                  onClick={() => setEditorRepeat(toggleWeekday(editorRepeat, d))}
+                >
+                  {weekdayLabel(d)}
+                </button>
+              ))}
+            </div>
+            <div className="alarm-editor-repeat-hint">{repeatSummary(editorRepeat)}</div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
