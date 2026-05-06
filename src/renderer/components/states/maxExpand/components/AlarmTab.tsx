@@ -161,8 +161,14 @@ export function AlarmTab(): React.ReactElement {
     return list.includes(day) ? list.filter((d) => d !== day) : [...list, day];
   };
 
+  /** 检查是否已有相同时间的闹钟 */
+  const isDuplicateTime = (h: number, m: number, excludeId?: number): boolean => {
+    return alarms.some((a) => a.hour === h && a.minute === m && a.id !== excludeId);
+  };
+
   /** 添加闹钟 */
   const addAlarm = (): void => {
+    if (isDuplicateTime(newHour, newMinute)) return;
     const item: AlarmItem = {
       id: Date.now(),
       hour: newHour,
@@ -210,6 +216,7 @@ export function AlarmTab(): React.ReactElement {
   /** 保存编辑 */
   const saveEdit = (): void => {
     if (editingId === null) return;
+    if (isDuplicateTime(editHour, editMinute, editingId)) return;
     setAlarms((prev) => prev.map((a) => a.id === editingId ? {
       ...a,
       hour: editHour,

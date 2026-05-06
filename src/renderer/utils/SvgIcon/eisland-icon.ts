@@ -94,6 +94,7 @@ export const SvgIcon = {
   DRAG: './svg/DRAG.svg',
   MOVE_UP: './svg/MOVE_UP.svg',
   MOVE_DOWN: './svg/MOVE_DOWN.svg',
+  PLUS: './svg/PLUS.svg',
 } as const;
 
 export type SvgIconKey = keyof typeof SvgIcon;
