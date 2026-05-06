@@ -7,19 +7,38 @@
 
 /**
  * @file settings-alarm.css
- * @description 闹钟 Tab 样式
+ * @description 闹钟 Tab 样式 — Apple Clock 风格，左右分栏布局
  */
 
-/* ── 容器 ── */
+/* ══════════════════════════════════════
+   容器：默认全宽纵向，编辑时横向分栏
+   ══════════════════════════════════════ */
 .alarm-tab-container {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   width: 100%;
   height: 100%;
   min-height: 0;
   color: rgba(var(--color-text-rgb), 0.88);
-  overflow-y: auto;
-  padding: 0 16px 16px;
+  overflow: hidden;
+}
+
+/* ══════════════════════════════════════
+   左侧 侧边栏（闹钟列表）
+   ══════════════════════════════════════ */
+.alarm-tab-sidebar {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  transition: flex 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.alarm-tab-sidebar--compact {
+  flex: 0 0 240px;
+  max-width: 240px;
+  border-right: 1px solid rgba(var(--color-text-rgb), 0.06);
 }
 
 /* ── 头部 ── */
@@ -27,163 +46,254 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 0 10px;
-  position: sticky;
-  top: 0;
-  z-index: 2;
-  backdrop-filter: blur(12px);
+  padding: 14px 16px 10px;
+  flex-shrink: 0;
 }
 
 .alarm-tab-title {
   font-size: 18px;
   font-weight: 600;
-  letter-spacing: 0.02em;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
 }
 
 .alarm-tab-add-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   border: none;
   border-radius: 50%;
-  background: rgba(var(--color-text-rgb), 0.08);
-  color: rgba(var(--color-text-rgb), 0.7);
-  font-size: 20px;
+  background: rgba(var(--color-text-rgb), 0.07);
+  color: rgba(var(--color-text-rgb), 0.55);
+  font-size: 17px;
   font-weight: 300;
   cursor: pointer;
-  transition: background 0.2s, color 0.2s;
+  transition: background 0.18s, color 0.18s, transform 0.25s;
   line-height: 1;
+  flex-shrink: 0;
 }
 
 .alarm-tab-add-btn:hover {
+  background: rgba(var(--color-text-rgb), 0.12);
+  color: rgba(var(--color-text-rgb), 0.85);
+}
+
+.alarm-tab-add-btn:active {
+  transform: scale(0.9);
+}
+
+.alarm-tab-add-btn--active {
   background: rgba(var(--color-text-rgb), 0.14);
   color: rgba(var(--color-text-rgb), 0.9);
+  transform: rotate(45deg);
 }
 
 .alarm-tab-btn-icon {
-  width: 16px;
-  height: 16px;
-  opacity: 0.65;
+  width: 14px;
+  height: 14px;
+  opacity: 0.6;
 }
 
 /* ── 列表 ── */
 .alarm-tab-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0 0 8px;
+}
+
+.alarm-tab-list::-webkit-scrollbar {
+  width: 3px;
+}
+
+.alarm-tab-list::-webkit-scrollbar-thumb {
+  background: rgba(var(--color-text-rgb), 0.1);
+  border-radius: 2px;
 }
 
 .alarm-tab-loading,
 .alarm-tab-empty {
-  text-align: center;
-  padding: 40px 0;
-  font-size: 13px;
-  color: rgba(var(--color-text-rgb), 0.4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 16px;
+  gap: 8px;
 }
 
-/* ── 闹钟卡片 ── */
+.alarm-tab-empty-icon {
+  font-size: 32px;
+  opacity: 0.12;
+  line-height: 1;
+}
+
+.alarm-tab-loading {
+  font-size: 12px;
+  color: rgba(var(--color-text-rgb), 0.3);
+}
+
+.alarm-tab-empty-text {
+  font-size: 12px;
+  color: rgba(var(--color-text-rgb), 0.28);
+  letter-spacing: -0.01em;
+}
+
+/* ══════════════════════════════════════
+   闹钟卡片
+   ══════════════════════════════════════ */
 .alarm-card {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 14px;
-  border-radius: 12px;
-  background: rgba(var(--color-text-rgb), 0.04);
-  transition: background 0.2s, opacity 0.25s;
+  padding: 12px 16px;
+  background: transparent;
+  transition: background 0.18s, opacity 0.3s;
+  border-bottom: 1px solid rgba(var(--color-text-rgb), 0.05);
+  cursor: default;
+}
+
+.alarm-card:last-child {
+  border-bottom: none;
 }
 
 .alarm-card:hover {
+  background: rgba(var(--color-text-rgb), 0.03);
+}
+
+.alarm-card--active {
   background: rgba(var(--color-text-rgb), 0.07);
 }
 
 .alarm-card--disabled {
+  opacity: 0.38;
+}
+
+.alarm-card--disabled:hover {
   opacity: 0.45;
 }
 
 .alarm-card-left {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
   cursor: pointer;
   flex: 1;
   min-width: 0;
 }
 
 .alarm-card-time {
-  font-size: 32px;
-  font-weight: 300;
-  letter-spacing: 0.04em;
+  font-size: 36px;
+  font-weight: 200;
+  letter-spacing: -0.02em;
   line-height: 1.1;
   font-variant-numeric: tabular-nums;
+  color: rgba(var(--color-text-rgb), 0.92);
+}
+
+.alarm-card--disabled .alarm-card-time {
+  color: rgba(var(--color-text-rgb), 0.5);
+}
+
+/* 侧边栏紧凑模式：缩小卡片字号 */
+.alarm-tab-sidebar--compact .alarm-card {
+  padding: 10px 14px;
+}
+
+.alarm-tab-sidebar--compact .alarm-card-time {
+  font-size: 28px;
+}
+
+.alarm-tab-sidebar--compact .alarm-card-meta {
+  font-size: 11px;
+}
+
+.alarm-tab-sidebar--compact .alarm-toggle {
+  width: 40px;
+  height: 24px;
+}
+
+.alarm-tab-sidebar--compact .alarm-toggle-track {
+  border-radius: 12px;
+}
+
+.alarm-tab-sidebar--compact .alarm-toggle-thumb {
+  width: 20px;
+  height: 20px;
+}
+
+.alarm-tab-sidebar--compact .alarm-toggle--on .alarm-toggle-thumb {
+  transform: translateX(16px);
 }
 
 .alarm-card-meta {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 5px;
   font-size: 12px;
-  color: rgba(var(--color-text-rgb), 0.5);
-  flex-wrap: wrap;
+  color: rgba(var(--color-text-rgb), 0.4);
+  letter-spacing: -0.01em;
 }
 
 .alarm-card-label {
-  color: rgba(var(--color-text-rgb), 0.65);
+  color: rgba(var(--color-text-rgb), 0.55);
   font-weight: 500;
 }
 
-.alarm-card-repeat {
-  opacity: 0.8;
-}
-
-.alarm-card-next {
-  opacity: 0.6;
-  font-style: italic;
+.alarm-card-meta-sep {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: rgba(var(--color-text-rgb), 0.18);
+  flex-shrink: 0;
 }
 
 .alarm-card-right {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   flex-shrink: 0;
 }
 
-/* ── 开关 Toggle ── */
+/* ── 开关 Toggle (iOS) ── */
 .alarm-toggle {
   position: relative;
-  width: 44px;
-  height: 24px;
+  width: 51px;
+  height: 31px;
   border: none;
   background: none;
   padding: 0;
   cursor: pointer;
+  flex-shrink: 0;
 }
 
 .alarm-toggle-track {
   display: block;
   width: 100%;
   height: 100%;
-  border-radius: 12px;
-  background: rgba(var(--color-text-rgb), 0.15);
-  transition: background 0.25s;
+  border-radius: 16px;
+  background: rgba(var(--color-text-rgb), 0.12);
+  transition: background 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
 }
 
 .alarm-toggle--on .alarm-toggle-track {
-  background: #4cd964;
+  background: #34c759;
 }
 
 .alarm-toggle-thumb {
   position: absolute;
   top: 2px;
   left: 2px;
-  width: 20px;
-  height: 20px;
+  width: 27px;
+  height: 27px;
   border-radius: 50%;
   background: #fff;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
-  transition: transform 0.25s;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.14), 0 1px 1px rgba(0, 0, 0, 0.05);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .alarm-toggle--on .alarm-toggle-thumb {
@@ -195,66 +305,82 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
   border: none;
-  border-radius: 6px;
+  border-radius: 50%;
   background: transparent;
   cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.18s, background 0.18s;
+}
+
+.alarm-card:hover .alarm-delete-btn {
   opacity: 0.35;
-  transition: opacity 0.2s, background 0.2s;
 }
 
 .alarm-delete-btn:hover {
-  opacity: 0.8;
-  background: rgba(255, 60, 60, 0.12);
+  opacity: 0.85 !important;
+  background: rgba(255, 59, 48, 0.1);
 }
 
 .alarm-delete-btn .alarm-tab-btn-icon {
-  width: 15px;
-  height: 15px;
+  width: 13px;
+  height: 13px;
   opacity: 1;
 }
 
-/* ── 编辑器 / 新建表单 ── */
-.alarm-editor {
+/* ══════════════════════════════════════
+   右侧 编辑面板
+   ══════════════════════════════════════ */
+.alarm-editor-panel {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 14px;
-  border-radius: 12px;
-  background: rgba(var(--color-text-rgb), 0.05);
-  margin-bottom: 8px;
+  min-width: 0;
+  padding: 20px 24px;
+  overflow-y: auto;
+  gap: 20px;
 }
 
-.alarm-editor--adding {
-  border: 1px dashed rgba(var(--color-text-rgb), 0.12);
+.alarm-editor-panel::-webkit-scrollbar {
+  width: 3px;
 }
 
-.alarm-editor--editing {
-  border: 1px solid rgba(var(--color-text-rgb), 0.1);
+.alarm-editor-panel::-webkit-scrollbar-thumb {
+  background: rgba(var(--color-text-rgb), 0.08);
+  border-radius: 2px;
 }
 
+.alarm-editor-panel-title {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: rgba(var(--color-text-rgb), 0.85);
+}
+
+/* ── 时间输入行 ── */
 .alarm-editor-time-row {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   justify-content: center;
+  padding: 12px 0;
 }
 
 .alarm-editor-time-input {
-  width: 64px;
+  width: 80px;
   text-align: center;
-  font-size: 28px;
-  font-weight: 300;
-  letter-spacing: 0.02em;
-  border: 1px solid rgba(var(--color-text-rgb), 0.1);
-  border-radius: 8px;
-  background: rgba(var(--color-text-rgb), 0.04);
-  color: rgba(var(--color-text-rgb), 0.85);
-  padding: 6px 4px;
+  font-size: 48px;
+  font-weight: 200;
+  letter-spacing: -0.02em;
+  border: none;
+  border-radius: 12px;
+  background: rgba(var(--color-text-rgb), 0.05);
+  color: rgba(var(--color-text-rgb), 0.9);
+  padding: 10px 4px;
   outline: none;
-  transition: border-color 0.2s;
+  transition: background 0.2s;
   font-variant-numeric: tabular-nums;
   -moz-appearance: textfield;
   appearance: textfield;
@@ -267,69 +393,95 @@
 }
 
 .alarm-editor-time-input:focus {
-  border-color: rgba(var(--color-text-rgb), 0.3);
+  background: rgba(var(--color-text-rgb), 0.09);
 }
 
 .alarm-editor-time-sep {
-  font-size: 28px;
-  font-weight: 300;
-  color: rgba(var(--color-text-rgb), 0.4);
+  font-size: 42px;
+  font-weight: 200;
+  color: rgba(var(--color-text-rgb), 0.25);
   user-select: none;
+  margin: 0 2px;
+}
+
+/* ── 字段组 ── */
+.alarm-editor-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.alarm-editor-field-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(var(--color-text-rgb), 0.5);
+  letter-spacing: -0.01em;
 }
 
 .alarm-editor-label-input {
   width: 100%;
-  border: 1px solid rgba(var(--color-text-rgb), 0.1);
+  border: none;
   border-radius: 8px;
-  background: rgba(var(--color-text-rgb), 0.04);
+  background: rgba(var(--color-text-rgb), 0.05);
   color: rgba(var(--color-text-rgb), 0.85);
-  padding: 7px 10px;
-  font-size: 13px;
+  padding: 9px 12px;
+  font-size: 14px;
+  letter-spacing: -0.01em;
   outline: none;
-  transition: border-color 0.2s;
+  transition: background 0.2s;
 }
 
 .alarm-editor-label-input::placeholder {
-  color: rgba(var(--color-text-rgb), 0.3);
+  color: rgba(var(--color-text-rgb), 0.25);
 }
 
 .alarm-editor-label-input:focus {
-  border-color: rgba(var(--color-text-rgb), 0.3);
+  background: rgba(var(--color-text-rgb), 0.09);
 }
 
 /* ── 星期选择 ── */
 .alarm-editor-weekdays {
   display: flex;
-  gap: 4px;
-  justify-content: center;
-  flex-wrap: wrap;
+  gap: 5px;
 }
 
 .alarm-weekday-btn {
-  width: 34px;
-  height: 34px;
-  border: 1px solid rgba(var(--color-text-rgb), 0.1);
+  width: 36px;
+  height: 36px;
+  border: none;
   border-radius: 50%;
-  background: rgba(var(--color-text-rgb), 0.03);
-  color: rgba(var(--color-text-rgb), 0.55);
+  background: rgba(var(--color-text-rgb), 0.06);
+  color: rgba(var(--color-text-rgb), 0.4);
   font-size: 12px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .alarm-weekday-btn:hover {
-  background: rgba(var(--color-text-rgb), 0.08);
-  color: rgba(var(--color-text-rgb), 0.8);
+  background: rgba(var(--color-text-rgb), 0.1);
+  color: rgba(var(--color-text-rgb), 0.65);
 }
 
 .alarm-weekday-btn--active {
-  background: rgba(var(--color-text-rgb), 0.12);
-  color: rgba(var(--color-text-rgb), 0.95);
-  border-color: rgba(var(--color-text-rgb), 0.25);
+  background: rgba(var(--color-text-rgb), 0.85);
+  color: rgba(var(--color-bg-rgb, 0, 0, 0), 0.95);
   font-weight: 600;
+}
+
+.alarm-weekday-btn--active:hover {
+  background: rgba(var(--color-text-rgb), 0.75);
+}
+
+.alarm-editor-repeat-hint {
+  font-size: 12px;
+  color: rgba(var(--color-text-rgb), 0.35);
+  letter-spacing: -0.01em;
+  min-height: 16px;
 }
 
 /* ── 操作按钮 ── */
@@ -337,34 +489,66 @@
   display: flex;
   justify-content: flex-end;
   gap: 8px;
-  margin-top: 2px;
+  margin-top: auto;
+  padding-top: 12px;
 }
 
 .alarm-editor-cancel-btn,
 .alarm-editor-save-btn {
-  padding: 6px 18px;
+  padding: 8px 22px;
   border: none;
-  border-radius: 8px;
-  font-size: 13px;
+  border-radius: 980px;
+  font-size: 14px;
+  letter-spacing: -0.01em;
   cursor: pointer;
-  transition: background 0.2s, color 0.2s;
+  transition: background 0.18s, color 0.18s, transform 0.18s;
+}
+
+.alarm-editor-cancel-btn:active,
+.alarm-editor-save-btn:active {
+  transform: scale(0.96);
 }
 
 .alarm-editor-cancel-btn {
   background: rgba(var(--color-text-rgb), 0.06);
-  color: rgba(var(--color-text-rgb), 0.6);
+  color: rgba(var(--color-text-rgb), 0.5);
+  font-weight: 400;
 }
 
 .alarm-editor-cancel-btn:hover {
   background: rgba(var(--color-text-rgb), 0.1);
+  color: rgba(var(--color-text-rgb), 0.7);
 }
 
 .alarm-editor-save-btn {
-  background: rgba(var(--color-text-rgb), 0.1);
-  color: rgba(var(--color-text-rgb), 0.85);
+  background: rgba(var(--color-text-rgb), 0.85);
+  color: rgba(var(--color-bg-rgb, 0, 0, 0), 0.95);
   font-weight: 500;
 }
 
 .alarm-editor-save-btn:hover {
-  background: rgba(var(--color-text-rgb), 0.16);
+  background: rgba(var(--color-text-rgb), 0.75);
+}
+
+/* ══════ 浅色主题覆盖 ══════ */
+[data-theme='light'] .alarm-toggle--on .alarm-toggle-track {
+  background: #34c759;
+}
+
+[data-theme='light'] .alarm-weekday-btn--active {
+  background: rgba(var(--color-text-rgb), 0.82);
+  color: #fff;
+}
+
+[data-theme='light'] .alarm-editor-save-btn {
+  background: rgba(var(--color-text-rgb), 0.82);
+  color: #fff;
+}
+
+[data-theme='light'] .alarm-delete-btn:hover {
+  background: rgba(255, 59, 48, 0.08);
+}
+
+[data-theme='light'] .alarm-card--active {
+  background: rgba(var(--color-text-rgb), 0.05);
 }
