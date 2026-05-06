@@ -147,6 +147,27 @@ export function writeLocalProfile(profile: UserAccountProfile | null): void {
 }
 
 /**
+ * 从 JWT token 中解析用户角色。
+ * @param token JWT token 字符串。
+ * @returns 角色字符串（如 'user' / 'pro' / 'admin'），解析失败返回 null。
+ */
+export function getRoleFromToken(token: string | null | undefined): string | null {
+  if (!token) return null;
+  const rawToken = token.trim().replace(/^bearer\s+/i, '');
+  const parts = rawToken.split('.');
+  if (parts.length < 2) return null;
+  try {
+    const payload = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const normalizedPayload = payload + '='.repeat((4 - payload.length % 4) % 4);
+    const decoded = JSON.parse(atob(normalizedPayload)) as { role?: unknown };
+    const role = typeof decoded.role === 'string' ? decoded.role.trim().toLowerCase().replace(/^role_/, '') : null;
+    return role;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * 清空当前设备上的登录态（token + 资料缓存），用于显式退出登录 / 注销。
  */
 export function clearLocalAccount(): void {

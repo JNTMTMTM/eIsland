@@ -46,7 +46,7 @@ import {
 import { SvgIcon, resolveDevIconByFileName } from '../../../../utils/SvgIcon';
 import useIslandStore from '../../../../store/slices';
 import type { AiChatAttachment, AiChatMessage, AiToolCall, AiTodoItem, AiTodoSnapshot } from '../../../../store/types';
-import { readLocalToken, readLocalProfile, subscribeUserAccountSessionChanged } from '../../../../utils/userAccount';
+import { readLocalToken, readLocalProfile, subscribeUserAccountSessionChanged, getRoleFromToken } from '../../../../utils/userAccount';
 import { loadLocationFromStorage } from '../../../../store/utils/storage';
 import { MarkdownCodeBlock } from './agent/components/MarkdownCodeBlock';
 import { MarkdownSiteLink } from './agent/components/MarkdownSiteLink';
@@ -178,21 +178,6 @@ function isHighRiskLocalToolName(tool: string): boolean {
   return HIGH_RISK_LOCAL_TOOL_PREFIXES.some(prefix => normalized.startsWith(prefix));
 }
 
-const getRoleFromToken = (token: string | null | undefined): string | null => {
-  if (!token) return null;
-  const rawToken = token.trim().replace(/^bearer\s+/i, '');
-  const parts = rawToken.split('.');
-  if (parts.length < 2) return null;
-  try {
-    const payload = parts[1].replace(/-/g, '+').replace(/_/g, '/');
-    const normalizedPayload = payload + '='.repeat((4 - payload.length % 4) % 4);
-    const decoded = JSON.parse(atob(normalizedPayload)) as { role?: unknown };
-    const role = typeof decoded.role === 'string' ? decoded.role.trim().toLowerCase().replace(/^role_/, '') : null;
-    return role;
-  } catch {
-    return null;
-  }
-};
 
 function isAcceptedAttachmentFile(fileName: string): boolean {
   const lowerName = (fileName ?? '').toLowerCase();
@@ -332,7 +317,7 @@ export function AiChatTab(): React.ReactElement {
     const m = availableModels.includes(aiConfig.model as (typeof availableModels)[number])
       ? aiConfig.model
       : 'deepseek-v4-flash';
-    if (m === 'custom-api' && !hasCustomApiCredentials) return 'deepseek-v4-flash';
+    if (m === 'custom-api' && (!isProUser || !hasCustomApiCredentials)) return 'deepseek-v4-flash';
     if (!isProUser && (m === 'deepseek-v4-pro' || m === 'mimo-v2.5-pro')) return 'deepseek-v4-flash';
     return m;
   })();

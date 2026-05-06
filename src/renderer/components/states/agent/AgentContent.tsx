@@ -35,7 +35,7 @@ import {
 } from '../../../api/ai/mihtnelisAgentStream';
 import type { MihtnelisAgentStreamEvent } from '../../../api/ai/mihtnelisAgentStream';
 import { streamOllamaLocalAgent } from '../../../api/ai/ollamaLocalAgent';
-import { readLocalToken } from '../../../utils/userAccount';
+import { readLocalToken, getRoleFromToken } from '../../../utils/userAccount';
 import { loadLocationFromStorage } from '../../../store/utils/storage';
 import { buildMihtnelisContext } from '../../states/maxExpand/components/agent/utils/chatUtils';
 import type { AiChatMessage } from '../../../store/types';
@@ -188,14 +188,16 @@ export function AgentContent(): ReactElement {
 
       const isOllama = aiConfig.model === 'ollama';
       const isCustomApi = aiConfig.model === 'custom-api';
-      const hasCustomCredentials = Boolean(aiConfig.apiKey?.trim() && aiConfig.endpoint?.trim());
+      const userRole = getRoleFromToken(token);
+      const isProUser = userRole === 'pro' || userRole === 'admin';
+      const useCustomApi = isCustomApi && isProUser && Boolean(aiConfig.apiKey?.trim() && aiConfig.endpoint?.trim());
       const availableModels = ['deepseek-v4-flash', 'deepseek-v4-pro', 'mimo-v2.5', 'mimo-v2.5-pro'];
-      const selectedModel = isOllama
-        ? 'ollama'
-        : (isCustomApi && hasCustomCredentials
-          ? (aiConfig.customApiModel?.trim() || 'gpt-4o-mini')
-          : (availableModels.includes(aiConfig.model) ? aiConfig.model : 'deepseek-v4-flash'));
-      const selectedProvider = isCustomApi ? 'custom' : (isOllama ? 'ollama' : (selectedModel.startsWith('mimo-') ? 'mimo' : 'deepseek'));
+      const selectedModel = isOllama ? 'ollama'
+        : useCustomApi ? (aiConfig.customApiModel?.trim() || 'gpt-4o-mini')
+        : (availableModels.includes(aiConfig.model) ? aiConfig.model : 'deepseek-v4-flash');
+      const selectedProvider = isOllama ? 'ollama'
+        : useCustomApi ? 'custom'
+        : (selectedModel.startsWith('mimo-') ? 'mimo' : 'deepseek');
       const agentMode = loadAgentMode();
 
       const state = useIslandStore.getState();
@@ -368,6 +370,40 @@ export function AgentContent(): ReactElement {
             signal: controller.signal,
             onEvent: handleEvent,
           });
+        } else if (useCustomApi) {
+          // ── 自定义 API 凭据分支（仅 Pro 用户） ──
+          const customModelName = aiConfig.customApiModel?.trim() || 'gpt-4o-mini';
+          await streamMihtnelisAgent({
+            token,
+            sessionId: activeSessionId || 'island-agent-inline',
+            message,
+            provider: 'custom',
+            model: customModelName,
+            agentMode,
+            context: context || undefined,
+            workspaces: aiConfig.workspaces,
+            skills: resolvedSkills,
+            snapshotMode: true,
+            thinking: aiConfig.deepseekThinking,
+            reasoningEffort: aiConfig.deepseekReasoningEffort,
+            timestamp: (() => {
+              const d = new Date();
+              const off = -d.getTimezoneOffset();
+              const sign = off >= 0 ? '+' : '-';
+              const pad = (n: number): string => String(Math.abs(n)).padStart(2, '0');
+              return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}${sign}${pad(Math.floor(Math.abs(off) / 60))}:${pad(Math.abs(off) % 60)}`;
+            })(),
+            location: (() => {
+              const loc = loadLocationFromStorage();
+              if (!loc) return undefined;
+              const parts = [loc.city, loc.regionName, loc.country].filter(Boolean);
+              return parts.length > 0 ? parts.join(', ') : undefined;
+            })(),
+            customApiKey: aiConfig.apiKey,
+            customEndpoint: aiConfig.endpoint,
+            signal: controller.signal,
+            onEvent: handleEvent,
+          });
         } else {
           // ── Mihtnelis 云端模型分支 ──
           await streamMihtnelisAgent({
@@ -396,8 +432,6 @@ export function AgentContent(): ReactElement {
               const parts = [loc.city, loc.regionName, loc.country].filter(Boolean);
               return parts.length > 0 ? parts.join(', ') : undefined;
             })(),
-            customApiKey: isCustomApi && hasCustomCredentials ? aiConfig.apiKey : undefined,
-            customEndpoint: isCustomApi && hasCustomCredentials ? aiConfig.endpoint : undefined,
             signal: controller.signal,
             onEvent: handleEvent,
           });
