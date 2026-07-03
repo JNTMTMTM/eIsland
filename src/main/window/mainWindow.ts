@@ -42,6 +42,7 @@ interface CreateMainWindowServiceOptions {
   setIslandPositionOffset: (offset: { x: number; y: number }) => void;
   sanitizeIslandPositionOffset: (offset: { x?: number; y?: number }) => { x: number; y: number };
   sizes: WindowSizeOptions;
+  onBeforeShow?: () => void;
 }
 
 interface MainWindowService {
@@ -151,6 +152,9 @@ export function createMainWindowService(options: CreateMainWindowServiceOptions)
 
     mainWindow.on('ready-to-show', () => {
       mainWindow.setBounds(initialBounds, false);
+      if (options.onBeforeShow) {
+        options.onBeforeShow();
+      }
       mainWindow.show();
       mainWindow.setAlwaysOnTop(true, 'screen-saver');
     });

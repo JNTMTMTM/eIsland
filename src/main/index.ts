@@ -65,6 +65,7 @@ import { initUpdaterService } from './services/updaterService';
 import { createCaptureWindowService } from './window/captureWindow';
 import { createMainWindowService } from './window/mainWindow';
 import { openStandaloneWindow } from './window/standaloneWindow';
+import { showSplashWindow, closeSplashWindow } from './window/splashWindow';
 import { createSmtcService } from './music/smtcService';
 import { setSmtcAccessor } from './music/smtcAccessor';
 import { createAutoHideWatcher } from './system/autoHideWatcher';
@@ -348,6 +349,9 @@ const mainWindowService = createMainWindowService({
   sizes: {
     islandWidth: ISLAND_WIDTH,
     islandHeight: ISLAND_HEIGHT,
+  },
+  onBeforeShow: () => {
+    closeSplashWindow();
   },
 });
 
@@ -829,6 +833,7 @@ app.whenReady().then(() => {
   clipboardUrlState.setDetectMode(readClipboardUrlDetectModeConfig());
   clipboardUrlState.setBlacklist(readClipboardUrlBlacklistConfig());
 
+  showSplashWindow();
   mainWindowService.createWindow();
   createTray(mainWindow);
 
