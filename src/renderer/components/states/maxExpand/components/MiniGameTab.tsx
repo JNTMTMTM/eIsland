@@ -157,7 +157,6 @@ export function MiniGameTab(): ReactElement {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [gameState, setGameState] = useState<Game2048State>({ score: 0, best: 0, over: false, moveCount: 0 });
-  const [activeSession, setActiveSession] = useState<Game2048Session | null>(null);
   const gameRef = useRef<Game2048Handle>(null);
   const gomokuRef = useRef<GameGomokuHandle>(null);
   const [gomokuState, setGomokuState] = useState<GameGomokuState>(() => createEmptyGomokuState());
@@ -306,7 +305,6 @@ export function MiniGameTab(): ReactElement {
       seed: data.seed,
       startedAt: data.startedAt,
     };
-    setActiveSession(session);
     return session;
   }, []);
 
@@ -369,7 +367,6 @@ export function MiniGameTab(): ReactElement {
         setLeaderboard([]);
         setLoading(false);
         setError(null);
-        setActiveSession(null);
       }
     };
     syncLogin();
@@ -715,7 +712,7 @@ export function MiniGameTab(): ReactElement {
             {/* 游戏棋盘（纯净，无上下控件） */}
             {game2048Available && (
               <div className="mg-game-area">
-                <Game2048 ref={gameRef} onGameEnd={handleGameEnd} onStateChange={handleGameState} activeSession={activeSession} />
+                <Game2048 ref={gameRef} onGameEnd={handleGameEnd} onStateChange={handleGameState} />
               </div>
             )}
             {gomokuAvailable && (
@@ -876,7 +873,7 @@ export function MiniGameTab(): ReactElement {
                     </div>
                     <div className="mg-section-header-actions">
                       <span className="mg-my-rank">{t('miniGameTab.myRank')}: {myRank ?? t('miniGameTab.rankUnavailable')}</span>
-                      <button className="mg-refresh-btn" type="button" onClick={handleRefresh} title={t('miniGameTab.refresh')} aria-label={t('miniGameTab.refresh')} disabled={Boolean(error)}>
+                      <button className="mg-refresh-btn" type="button" onClick={handleRefresh} title={t('miniGameTab.refresh')} aria-label={t('miniGameTab.refresh')} disabled={loading}>
                         <img className="mg-refresh-icon" src={SvgIcon.REVERT} alt="" aria-hidden="true" />
                       </button>
                     </div>

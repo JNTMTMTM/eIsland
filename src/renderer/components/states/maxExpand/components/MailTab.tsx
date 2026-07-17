@@ -24,9 +24,10 @@
  * @author 鸡哥
  */
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
+import DOMPurify from 'dompurify';
 import useIslandStore from '../../../../store/slices';
 import { SvgIcon } from '../../../../utils/SvgIcon';
 
@@ -58,7 +59,8 @@ interface MailInboxItem {
   body: string;
 }
 
-let mailTabInboxMemoryCache: MailInboxItem[] = [];
+const mailTabInboxMemoryCache = new Map<string, MailInboxItem[]>();
+const MAIL_ALLOWED_URI_PATTERN = /^(?:(?:https?|mailto|tel|cid):|[^a-z]|[a-z+.-]+(?:[^a-z+.-:]|$))/i;
 
 function isHtmlContent(content: string): boolean {
   return /<\s*(html|head|body|div|p|table|br|span|a|img|ul|ol|li|h[1-6])\b/i.test(content);
@@ -67,18 +69,6 @@ function isHtmlContent(content: string): boolean {
 function escapeHtml(text: string): string {
   return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
-
-const MAIL_LINK_SCRIPT = [
-  '<script>',
-  'document.addEventListener("click",function(e){',
-  'var a=e.target;while(a&&a.tagName!=="A")a=a.parentElement;',
-  'if(!a||!a.href)return;',
-  'var h=a.href;if(h.startsWith("mailto:")||h.startsWith("javascript:"))return;',
-  'e.preventDefault();e.stopPropagation();',
-  'window.parent.postMessage({type:"mail-open-url",url:h},"*");',
-  '});',
-  '</script>',
-].join('');
 
 const MAIL_SCROLLBAR_CSS = [
   '::-webkit-scrollbar{width:6px;}',
@@ -95,7 +85,6 @@ const MAIL_INJECT_HEAD = [
   'a{color:#58a6ff;text-decoration:underline;cursor:pointer;}',
   MAIL_SCROLLBAR_CSS,
   '</style>',
-  MAIL_LINK_SCRIPT,
 ].join('');
 
 const MAIL_WRAP_STYLE = [
@@ -112,20 +101,31 @@ const MAIL_WRAP_STYLE = [
   MAIL_SCROLLBAR_CSS,
   'a{cursor:pointer;}',
   '</style>',
-  MAIL_LINK_SCRIPT,
   '</head><body>',
 ].join('');
 
+function sanitizeMailHtml(content: string, wholeDocument = false): string {
+  return DOMPurify.sanitize(content, {
+    WHOLE_DOCUMENT: wholeDocument,
+    ADD_ATTR: ['target', 'rel'],
+    FORBID_TAGS: ['script', 'iframe', 'object', 'embed', 'form', 'input', 'button', 'textarea', 'select'],
+    FORBID_ATTR: ['srcdoc'],
+    ALLOWED_URI_REGEXP: MAIL_ALLOWED_URI_PATTERN,
+  });
+}
+
 function buildMailSrcDoc(content: string): string {
-  if (/<html[\s>]/i.test(content)) {
+  const isFullDocument = /<html[\s>]/i.test(content);
+  const sanitizedContent = sanitizeMailHtml(content, isFullDocument);
+  if (isFullDocument) {
     if (/<head[\s>]/i.test(content)) {
-      return content.replace(/(<head[^>]*>)/i, `$1${MAIL_INJECT_HEAD}`);
+      return sanitizedContent.replace(/(<head[^>]*>)/i, `$1${MAIL_INJECT_HEAD}`);
     }
-    return content.replace(/(<html[^>]*>)/i, `$1<head>${MAIL_INJECT_HEAD}</head>`);
+    return sanitizedContent.replace(/(<html[^>]*>)/i, `$1<head>${MAIL_INJECT_HEAD}</head>`);
   }
 
   const bodyContent = isHtmlContent(content)
-    ? content
+    ? sanitizedContent
     : `<pre style="white-space:pre-wrap;word-break:break-word;margin:0;font-family:inherit;">${escapeHtml(content)}</pre>`;
 
   return MAIL_WRAP_STYLE + bodyContent + '</body></html>';
@@ -139,36 +139,37 @@ function isAccountConfigured(a: MailAccountConfig): boolean {
   return Boolean(a.imapHost?.trim() && a.authUser?.trim() && a.authSecret);
 }
 
+function getMailAccountCacheKey(account: MailAccountConfig): string {
+  return account.id || account.emailAddress || account.authUser;
+}
+
 /** 最大展开模式 — 邮件 Tab 组件，展示收件箱列表并支持多账户切换。 */
 export function MailTab(): ReactElement {
   const { t } = useTranslation();
   const { setMaxExpandTab } = useIslandStore();
-  const [inbox, setInbox] = useState<MailInboxItem[]>(() => mailTabInboxMemoryCache);
+  const [inbox, setInbox] = useState<MailInboxItem[]>([]);
   const [loadingInbox, setLoadingInbox] = useState(false);
   const [expandedUid, setExpandedUid] = useState<string | null>(null);
   const [mailConfigured, setMailConfigured] = useState<boolean | null>(null);
   const [accounts, setAccounts] = useState<MailAccountConfig[]>([]);
   const [activeAccountId, setActiveAccountId] = useState<string>('');
   const [fetchLimit, setFetchLimit] = useState<number>(10);
+  const refreshInboxRequestIdRef = useRef(0);
 
   const activeAccount = accounts.find((a) => a.id === activeAccountId) || accounts.filter(isAccountConfigured)[0] || null;
+  const activeAccountRef = useRef<MailAccountConfig | null>(activeAccount);
+  activeAccountRef.current = activeAccount;
 
-  useEffect(() => {
-    const handleMessage = (e: MessageEvent): void => {
-      if (!e.data || e.data.type !== 'mail-open-url' || typeof e.data.url !== 'string') return;
-      window.api.clipboardOpenUrl(e.data.url).catch(() => {});
-    };
-    window.addEventListener('message', handleMessage);
-    return () => window.removeEventListener('message', handleMessage);
-  }, []);
-
-  const refreshInbox = async (account?: MailAccountConfig): Promise<void> => {
-    const target = account || activeAccount;
+  const refreshInbox = useCallback(async (account?: MailAccountConfig): Promise<void> => {
+    const target = account || activeAccountRef.current;
     if (!target || !isAccountConfigured(target)) return;
+    const requestId = refreshInboxRequestIdRef.current + 1;
+    refreshInboxRequestIdRef.current = requestId;
     setLoadingInbox(true);
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
     try {
       const timeoutPromise = new Promise<never>((_, reject) => {
-        setTimeout(() => {
+        timeoutId = setTimeout(() => {
           reject(new Error(t('mailTab.messages.inboxFetchTimeout', { defaultValue: '收件箱读取超时，请检查网络或邮箱配置' })));
         }, MAIL_INBOX_REFRESH_TIMEOUT_MS);
       });
@@ -185,20 +186,27 @@ export function MailTab(): ReactElement {
         timeoutPromise,
       ]);
 
+      if (requestId !== refreshInboxRequestIdRef.current) {
+        return;
+      }
+
       if (!result.ok) {
         return;
       }
 
       const nextInbox = result.items || [];
       setInbox(nextInbox);
-      mailTabInboxMemoryCache = nextInbox;
+      mailTabInboxMemoryCache.set(getMailAccountCacheKey(target), nextInbox);
       setExpandedUid((current) => (current && nextInbox.some((item) => item.uid === current) ? current : null));
     } catch {
       // keep last inbox data to avoid blank list while retrying
     } finally {
-      setLoadingInbox(false);
+      if (timeoutId) clearTimeout(timeoutId);
+      if (requestId === refreshInboxRequestIdRef.current) {
+        setLoadingInbox(false);
+      }
     }
-  };
+  }, [fetchLimit, t]);
 
   useEffect(() => {
     window.api.storeRead(MAIL_FETCH_LIMIT_STORE_KEY).then((value) => {
@@ -216,6 +224,7 @@ export function MailTab(): ReactElement {
           const configured = loaded.filter(isAccountConfigured);
           if (configured.length > 0) {
             setActiveAccountId(configured[0].id);
+            setInbox(mailTabInboxMemoryCache.get(getMailAccountCacheKey(configured[0])) ?? []);
             setMailConfigured(true);
             void refreshInbox(configured[0]);
           } else {
@@ -245,6 +254,7 @@ export function MailTab(): ReactElement {
             };
             setAccounts([legacyAccount]);
             setActiveAccountId(legacyAccount.id);
+            setInbox(mailTabInboxMemoryCache.get(getMailAccountCacheKey(legacyAccount)) ?? []);
             void refreshInbox(legacyAccount);
           }
           return;
@@ -252,7 +262,7 @@ export function MailTab(): ReactElement {
       } catch { /* ignore */ }
       setMailConfigured(false);
     })();
-  }, []);
+  }, [refreshInbox]);
 
   const goMailSettings = (): void => {
     window.api.storeWrite(SETTINGS_OPEN_TAB_STORE_KEY, 'mail').catch(() => {});
@@ -296,8 +306,7 @@ export function MailTab(): ReactElement {
   const switchAccount = (account: MailAccountConfig): void => {
     setActiveAccountId(account.id);
     setExpandedUid(null);
-    setInbox([]);
-    mailTabInboxMemoryCache = [];
+    setInbox(mailTabInboxMemoryCache.get(getMailAccountCacheKey(account)) ?? []);
     void refreshInbox(account);
   };
 
@@ -413,7 +422,7 @@ export function MailTab(): ReactElement {
             </div>
             <iframe
               className="settings-mail-tab-mail-body"
-              sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"
+              sandbox="allow-popups allow-popups-to-escape-sandbox"
               srcDoc={buildMailSrcDoc(selectedItem.body || selectedItem.preview || '-')}
               title={selectedItem.subject || ''}
             />
