@@ -24,6 +24,7 @@
  * @author 鸡哥
  */
 
+import { createElement } from 'react';
 import type { MemoItem } from '../types/memoTypes';
 import { STORE_KEY, MARKDOWN_HIGHLIGHT_PATTERNS } from '../config/memoConfig';
 
@@ -157,9 +158,7 @@ export function renderMarkdownEditorMirror(content: string): React.ReactNode[] {
   ranges.forEach((range, index) => {
     if (range.start > cursor) nodes.push(source.slice(cursor, range.start));
     nodes.push(
-      <span key={`${range.start}-${range.end}-${index}`} className={`memo-tab-markdown-token ${range.className}`}>
-        {source.slice(range.start, range.end)}
-      </span>,
+      createElement('span', { key: `${range.start}-${range.end}-${index}`, className: `memo-tab-markdown-token ${range.className}` }, source.slice(range.start, range.end)),
     );
     cursor = range.end;
   });

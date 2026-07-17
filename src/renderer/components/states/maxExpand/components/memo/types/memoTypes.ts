@@ -88,3 +88,54 @@ export interface UseMemoTabReturn {
   handleAddTag: (id: number) => void;
   handleRemoveTag: (id: number, tag: string) => void;
 }
+
+/** MemoSidebar 组件入参 */
+export interface MemoSidebarProps {
+  loaded: boolean;
+  filteredMemos: MemoItem[];
+  selectedId: number | null;
+  setSelectedId: (id: number | null) => void;
+  search: string;
+  setSearch: (value: string) => void;
+  activeTag: MemoTagFilter;
+  setActiveTag: (tag: MemoTagFilter | ((prev: MemoTagFilter) => MemoTagFilter)) => void;
+  bookmarkOnly: boolean;
+  setBookmarkOnly: (value: boolean | ((prev: boolean) => boolean)) => void;
+  bulkSelectMode: boolean;
+  selectedMemoIds: Set<number>;
+  tagFilterScrollable: boolean;
+  editorRef: React.RefObject<HTMLTextAreaElement | null>;
+  tagFilterRef: React.RefObject<HTMLDivElement | null>;
+  memoTags: Array<[string, number]>;
+  selectedMemoCount: number;
+  handleAdd: () => void;
+  handleToggleBulkSelect: () => void;
+  handleToggleMemoSelection: (id: number) => void;
+  handleDeleteSelected: () => void;
+}
+
+/** MemoEditor 组件入参 */
+export interface MemoEditorProps {
+  selectedMemo: MemoItem;
+  tagInput: string;
+  setTagInput: (value: string) => void;
+  tagEditorOpen: boolean;
+  setTagEditorOpen: (open: boolean | ((prev: boolean) => boolean)) => void;
+  viewMode: MemoViewMode;
+  setViewMode: (mode: MemoViewMode) => void;
+  editorScroll: { left: number; top: number };
+  setEditorScroll: (scroll: { left: number; top: number }) => void;
+  editorRef: React.RefObject<HTMLTextAreaElement | null>;
+  titleRef: React.RefObject<HTMLInputElement | null>;
+  contentPlaceholder: string;
+  markdownPreviewContent: string;
+  markdownEditorMirror: React.ReactNode[];
+  viewModes: Array<{ id: MemoViewMode; label: string }>;
+  handleDelete: (id: number) => void;
+  handleToggleBookmark: (id: number) => void;
+  handleTogglePin: (id: number) => void;
+  handleTitleChange: (id: number, title: string) => void;
+  handleContentChange: (id: number, content: string) => void;
+  handleAddTag: (id: number) => void;
+  handleRemoveTag: (id: number, tag: string) => void;
+}
