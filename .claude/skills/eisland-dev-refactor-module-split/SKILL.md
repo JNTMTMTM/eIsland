@@ -20,6 +20,23 @@ Split a monolithic React component file into a clean module structure with five 
 
 ## Process
 
+### Step 0: Ensure module scaffolding exists
+
+Before extracting any code, verify the target module directory has the required structure. If any of the following are missing, create them first:
+
+```
+<module>/
+├── index.ts          (if missing, create with placeholder export)
+├── types/            (if missing, create directory)
+├── config/           (if missing, create directory)
+├── utils/            (if missing, create directory)
+├── hooks/            (if missing, create directory)
+└── components/       (if missing, create directory)
+```
+
+- Empty directories should contain a `.gitkeep` placeholder
+- `index.ts` should initially export the original component (update after refactoring)
+
 ### Step 1: Analyze the source file
 
 Read the target file in full. Categorize every piece of code into one of five buckets:

@@ -3,21 +3,21 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "拆分 src/renderer/components/states/announcement/AnnouncementContent.tsx 进 components hooks utils config 文件夹",
-      "expected_output": "AnnouncementContent.tsx simplified to thin composition layer. Pure functions to utils/, hooks to hooks/, sub-components to components/, i18n keys/defaults to config/. License headers and JSDoc on all files. TypeScript compiles clean.",
-      "files": ["src/renderer/components/states/announcement/AnnouncementContent.tsx"]
+      "prompt": "参考 c:\\Users\\Administrator\\Desktop\\pyisland_project\\eIsland\\src\\renderer\\components\\states\\maxExpand\\components\\album 文件架构 拆分 c:\\Users\\Administrator\\Desktop\\pyisland_project\\eIsland\\src\\renderer\\components\\states\\maxExpand\\components\\memo\\components\\MemoTab.tsx 到 c:\\Users\\Administrator\\Desktop\\pyisland_project\\eIsland\\src\\renderer\\components\\states\\maxExpand\\components\\memo",
+      "expected_output": "MemoTab.tsx (~680行) 拆分为模块结构：types/memoTypes.ts (MemoItem, MemoViewMode, MemoTagFilter, 组件Props, hook返回类型), config/memoConfig.ts (STORE_KEY), utils/memoUtils.ts (normalizeTag, normalizeTagList, normalizeMemos, persistMemos, formatTime, extractSummary, extractMemoTags, getMemoSearchText, renderMarkdownEditorMirror, getMarkdownPreviewContent), hooks/useMemos.ts (全部状态管理), components/ (MemoTab, MemoSidebar, MemoEditor, MemoTagEditor, MemoListItem), index.ts. 每个文件包含 GPL-3.0 头和 JSDoc. TypeScript 编译通过.",
+      "files": ["src/renderer/components/states/maxExpand/components/memo/components/MemoTab.tsx"]
     },
     {
       "id": 2,
-      "prompt": "拆分 src/renderer/components/states/lyrics/LyricsContent.tsx 到 utils hooks config components",
-      "expected_output": "LyricsContent.tsx reduced from ~260 to ~130 lines. Binary search to utils/, multiple hooks to hooks/, KaraokeSyllableLine to components/, store key to config/. License headers and JSDoc on all files. TypeScript compiles clean.",
-      "files": ["src/renderer/components/states/lyrics/LyricsContent.tsx"]
+      "prompt": "拆分 src/renderer/components/states/announcement/AnnouncementContent.tsx 到 types config utils hooks components 子目录",
+      "expected_output": "AnnouncementContent.tsx simplified to thin composition layer. Types to types/, pure functions to utils/, hooks to hooks/, sub-components to components/, constants to config/, index.ts entry point. License headers and JSDoc on all files. TypeScript compiles clean.",
+      "files": ["src/renderer/components/states/announcement/AnnouncementContent.tsx"]
     },
     {
       "id": 3,
-      "prompt": "把 IdleContent.tsx 拆分到 components hooks utils config 子目录",
-      "expected_output": "IdleContent.tsx split into subdirectories. Only directories with extractable code are created. Each file has license header and JSDoc. Main file imports from new modules. TypeScript compiles clean.",
-      "files": ["src/renderer/components/states/idle/IdleContent.tsx"]
+      "prompt": "拆分 src/renderer/components/states/lyrics/LyricsContent.tsx 到 types config utils hooks components",
+      "expected_output": "LyricsContent.tsx reduced significantly. Types/interfaces to types/, binary search to utils/, multiple hooks to hooks/, KaraokeSyllableLine to components/, store key to config/, index.ts entry point. License headers and JSDoc on all files. TypeScript compiles clean.",
+      "files": ["src/renderer/components/states/lyrics/LyricsContent.tsx"]
     }
   ]
 }
