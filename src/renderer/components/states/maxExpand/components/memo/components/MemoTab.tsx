@@ -28,7 +28,7 @@ import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import ReactMarkdown from 'react-markdown';
 import { useTranslation } from 'react-i18next';
 import remarkGfm from 'remark-gfm';
-import { SvgIcon } from '../../../../utils/SvgIcon';
+import { SvgIcon } from '../../../../../../utils/SvgIcon';
 
 type MemoViewMode = 'edit' | 'preview' | 'split';
 type MemoTagFilter = string | null;

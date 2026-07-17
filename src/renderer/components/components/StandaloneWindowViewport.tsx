@@ -33,7 +33,7 @@ import { MailTab } from '../states/maxExpand/components/MailTab';
 import { LocalFileSearchTab } from '../states/maxExpand/components/localFileSearch/components/LocalFileSearchTab';
 import { ClipboardHistoryTab } from '../states/maxExpand/components/clipBoardHistory';
 import { SettingsTab } from '../states/maxExpand/components/SettingsTab';
-import { MemoTab } from '../states/maxExpand/components/MemoTab';
+import { MemoTab } from '../states/maxExpand/components/memo/components/MemoTab';
 import { AlarmTab } from '../states/maxExpand/components/alarm/components/AlarmTab';
 import { ToolboxTab } from '../states/maxExpand/components/ToolboxTab';
 import { LoginContent } from '../states/login';
