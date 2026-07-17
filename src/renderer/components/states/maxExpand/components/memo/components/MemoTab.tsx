@@ -20,386 +20,66 @@
 
 /**
  * @file MemoTab.tsx
- * @description 最大展开模式 备忘录 Tab — 多条备忘录管理，支持新建、编辑、删除、搜索
+ * @description 最大展开模式 备忘录 Tab — 薄组合层，由 useMemoTab hook 驱动
  * @author 鸡哥
  */
 
-import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { useTranslation } from 'react-i18next';
 import remarkGfm from 'remark-gfm';
 import { SvgIcon } from '../../../../../../utils/SvgIcon';
-
-type MemoViewMode = 'edit' | 'preview' | 'split';
-type MemoTagFilter = string | null;
-
-/** 单条备忘录 */
-interface MemoItem {
-  id: number;
-  title: string;
-  content: string;
-  tags: string[];
-  createdAt: number;
-  updatedAt: number;
-  pinned: boolean;
-  bookmarked: boolean;
-}
-
-/** 存储键名（对应 userData/eIsland_store/memos.json） */
-const STORE_KEY = 'memos';
-
-function normalizeTag(value: string): string {
-  return value.trim().replace(/^#+/, '').slice(0, 24);
-}
-
-function normalizeTagList(tags: unknown): string[] {
-  if (!Array.isArray(tags)) return [];
-  return Array.from(new Set(
-    tags
-      .filter((tag): tag is string => typeof tag === 'string')
-      .map(normalizeTag)
-      .filter(Boolean),
-  ));
-}
-
-/** 规范化旧数据，补全缺失字段 */
-function normalizeMemos(items: MemoItem[]): MemoItem[] {
-  return items.map((m) => ({
-    ...m,
-    title: m.title ?? '',
-    content: m.content ?? '',
-    tags: normalizeTagList((m as Partial<MemoItem>).tags),
-    createdAt: m.createdAt ?? Date.now(),
-    updatedAt: m.updatedAt ?? m.createdAt ?? Date.now(),
-    pinned: m.pinned ?? false,
-    bookmarked: m.bookmarked ?? false,
-  }));
-}
-
-/** 通过 IPC 写入文件 */
-function persistMemos(items: MemoItem[]): void {
-  window.api.storeWrite(STORE_KEY, items).catch(() => {});
-}
-
-/** 格式化时间 */
-function formatTime(ts: number): string {
-  const d = new Date(ts);
-  const yyyy = d.getFullYear();
-  const MM = String(d.getMonth() + 1).padStart(2, '0');
-  const dd = String(d.getDate()).padStart(2, '0');
-  const hh = String(d.getHours()).padStart(2, '0');
-  const mm = String(d.getMinutes()).padStart(2, '0');
-  return `${yyyy}-${MM}-${dd} ${hh}:${mm}`;
-}
-
-/** 从内容中提取摘要（首行非空文本，截断到 60 字符） */
-function extractSummary(content: string): string {
-  const plainContent = content
-    .replace(/```[\s\S]*?```/g, ' ')
-    .replace(/`([^`]+)`/g, '$1')
-    .replace(/[#>*_~\-[\]()]/g, ' ');
-  const line = plainContent.split('\n').find((l) => l.trim().length > 0)?.trim() ?? '';
-  return line.length > 60 ? line.slice(0, 60) + '…' : line;
-}
-
-function extractMemoTags(memo: Pick<MemoItem, 'title' | 'content' | 'tags'>): string[] {
-  const text = `${memo.title}\n${memo.content}`;
-  const inlineTags = Array.from(text.matchAll(/(^|\s)#([\p{L}\p{N}_-]{1,24})/gu))
-    .map((match) => match[2]?.trim())
-    .filter((tag): tag is string => Boolean(tag));
-  return Array.from(new Set([...normalizeTagList(memo.tags), ...inlineTags.map(normalizeTag)].filter(Boolean)));
-}
-
-function getMemoSearchText(memo: MemoItem): string {
-  return [memo.title, memo.content, ...extractMemoTags(memo)].join('\n').toLowerCase();
-}
-
-const MARKDOWN_HIGHLIGHT_PATTERNS = [
-  { className: 'memo-tab-markdown-token--code-block', pattern: /(```[\s\S]*?```)/g },
-  { className: 'memo-tab-markdown-token--inline-code', pattern: /(`[^`\n]+`)/g },
-  { className: 'memo-tab-markdown-token--heading', pattern: /(^|\n)(#{1,6}\s[^\n]*)/g },
-  { className: 'memo-tab-markdown-token--strong', pattern: /(\*\*[^*\n]+\*\*|__[^_\n]+__)/g },
-  { className: 'memo-tab-markdown-token--emphasis', pattern: /(\*[^*\n]+\*|_[^_\n]+_)/g },
-  { className: 'memo-tab-markdown-token--link', pattern: /(\[[^\]\n]+\]\([^\)\n]+\))/g },
-  { className: 'memo-tab-markdown-token--quote', pattern: /(^|\n)(>[^\n]*)/g },
-  { className: 'memo-tab-markdown-token--list', pattern: /(^|\n)(\s*(?:[-*+]\s|\d+\.\s)[^\n]*)/g },
-];
-
-/** 渲染与 textarea 同排版的 Markdown 高亮镜像 */
-function renderMarkdownEditorMirror(content: string): React.ReactNode[] {
-  const source = content.length > 0 ? content : ' ';
-  const ranges = MARKDOWN_HIGHLIGHT_PATTERNS.flatMap(({ className, pattern }) => {
-    const regex = new RegExp(pattern.source, pattern.flags);
-    return Array.from(source.matchAll(regex)).map((match) => {
-      const value = match[2] ?? match[1] ?? match[0];
-      const index = match.index ?? 0;
-      const start = source.indexOf(value, index);
-      return { className, start, end: start + value.length };
-    });
-  })
-    .filter((range) => range.start >= 0 && range.end > range.start)
-    .sort((a, b) => a.start - b.start || b.end - a.end)
-    .reduce<Array<{ className: string; start: number; end: number }>>((acc, range) => {
-      const last = acc[acc.length - 1];
-      if (!last || range.start >= last.end) acc.push(range);
-      return acc;
-    }, []);
-
-  const nodes: React.ReactNode[] = [];
-  let cursor = 0;
-  ranges.forEach((range, index) => {
-    if (range.start > cursor) nodes.push(source.slice(cursor, range.start));
-    nodes.push(
-      <span key={`${range.start}-${range.end}-${index}`} className={`memo-tab-markdown-token ${range.className}`}>
-        {source.slice(range.start, range.end)}
-      </span>,
-    );
-    cursor = range.end;
-  });
-  if (cursor < source.length) nodes.push(source.slice(cursor));
-  if (source.endsWith('\n')) nodes.push(' ');
-  return nodes;
-}
-
-function getMarkdownPreviewContent(content: string, placeholder: string): string {
-  return content.trim().length > 0 ? content : placeholder;
-}
+import { useMemoTab } from '../hooks/useMemoTab';
+import { extractSummary, extractMemoTags, formatTime } from '../utils/memoUtils';
 
 /**
- * Memo Tab
- * @description 最大展开模式下的备忘录面板
+ * Memo Tab — 最大展开模式下的备忘录面板
  */
 export function MemoTab(): React.ReactElement {
   const { t } = useTranslation();
-  const [memos, setMemos] = useState<MemoItem[]>([]);
-  const [loaded, setLoaded] = useState(false);
-  const [selectedId, setSelectedId] = useState<number | null>(null);
-  const [search, setSearch] = useState('');
-  const [activeTag, setActiveTag] = useState<MemoTagFilter>(null);
-  const [tagInput, setTagInput] = useState('');
-  const [tagEditorOpen, setTagEditorOpen] = useState(false);
-  const [bookmarkOnly, setBookmarkOnly] = useState(false);
-  const [bulkSelectMode, setBulkSelectMode] = useState(false);
-  const [selectedMemoIds, setSelectedMemoIds] = useState<Set<number>>(() => new Set());
-  const [tagFilterScrollable, setTagFilterScrollable] = useState(false);
-  const [viewMode, setViewMode] = useState<MemoViewMode>('edit');
-  const [editorScroll, setEditorScroll] = useState({ left: 0, top: 0 });
-  const skipPersistOnceRef = useRef(false);
-  const editorRef = useRef<HTMLTextAreaElement>(null);
-  const titleRef = useRef<HTMLInputElement>(null);
-  const tagFilterRef = useRef<HTMLDivElement>(null);
-
-  /** 启动时从文件加载 */
-  useEffect(() => {
-    let cancelled = false;
-    const applyMemos = (data: unknown): void => {
-      if (!Array.isArray(data)) return;
-      skipPersistOnceRef.current = true;
-      setMemos(normalizeMemos(data as MemoItem[]));
-    };
-
-    window.api.storeRead(STORE_KEY).then((data) => {
-      if (cancelled) return;
-      if (Array.isArray(data) && data.length > 0) {
-        setMemos(normalizeMemos(data as MemoItem[]));
-      }
-      setLoaded(true);
-    }).catch(() => {
-      if (!cancelled) setLoaded(true);
-    });
-
-    const unsub = window.api.onSettingsChanged((channel: string, value: unknown) => {
-      if (cancelled) return;
-      if (channel === `store:${STORE_KEY}`) {
-        applyMemos(value);
-      }
-    });
-
-    return () => {
-      cancelled = true;
-      unsub();
-    };
-  }, []);
-
-  /** 当 memos 变化时持久化 */
-  useEffect(() => {
-    if (!loaded) return;
-    if (skipPersistOnceRef.current) {
-      skipPersistOnceRef.current = false;
-      return;
-    }
-    persistMemos(memos);
-  }, [memos, loaded]);
-
-  /** 新建备忘录 */
-  const handleAdd = useCallback((): void => {
-    const now = Date.now();
-    const newMemo: MemoItem = {
-      id: now,
-      title: '',
-      content: '',
-      tags: [],
-      createdAt: now,
-      updatedAt: now,
-      pinned: false,
-      bookmarked: false,
-    };
-    setMemos((prev) => [newMemo, ...prev]);
-    setSelectedId(now);
-    setTimeout(() => titleRef.current?.focus(), 50);
-  }, []);
-
-  /** 删除备忘录 */
-  const handleDelete = useCallback((id: number): void => {
-    setMemos((prev) => prev.filter((m) => m.id !== id));
-    setSelectedMemoIds((prev) => {
-      const next = new Set(prev);
-      next.delete(id);
-      return next;
-    });
-    if (selectedId === id) setSelectedId(null);
-  }, [selectedId]);
-
-  const handleToggleBulkSelect = useCallback((): void => {
-    setBulkSelectMode((enabled) => {
-      if (enabled) setSelectedMemoIds(new Set());
-      return !enabled;
-    });
-  }, []);
-
-  const handleToggleMemoSelection = useCallback((id: number): void => {
-    setSelectedMemoIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
-      return next;
-    });
-  }, []);
-
-  const handleDeleteSelected = useCallback((): void => {
-    if (selectedMemoIds.size === 0) return;
-    setMemos((prev) => prev.filter((m) => !selectedMemoIds.has(m.id)));
-    if (selectedId !== null && selectedMemoIds.has(selectedId)) setSelectedId(null);
-    setSelectedMemoIds(new Set());
-    setBulkSelectMode(false);
-  }, [selectedMemoIds, selectedId]);
-
-  /** 标记/取消书签 */
-  const handleToggleBookmark = useCallback((id: number): void => {
-    setMemos((prev) =>
-      prev.map((m) => (m.id === id ? { ...m, bookmarked: !m.bookmarked, updatedAt: Date.now() } : m)),
-    );
-  }, []);
-
-  /** 置顶/取消置顶 */
-  const handleTogglePin = useCallback((id: number): void => {
-    setMemos((prev) =>
-      prev.map((m) => (m.id === id ? { ...m, pinned: !m.pinned, updatedAt: Date.now() } : m)),
-    );
-  }, []);
-
-  /** 更新标题 */
-  const handleTitleChange = useCallback((id: number, title: string): void => {
-    setMemos((prev) =>
-      prev.map((m) => (m.id === id ? { ...m, title, updatedAt: Date.now() } : m)),
-    );
-  }, []);
-
-  /** 更新内容 */
-  const handleContentChange = useCallback((id: number, content: string): void => {
-    setMemos((prev) =>
-      prev.map((m) => (m.id === id ? { ...m, content, updatedAt: Date.now() } : m)),
-    );
-  }, []);
-
-  const handleAddTag = useCallback((id: number): void => {
-    const tag = normalizeTag(tagInput);
-    if (!tag) return;
-    setMemos((prev) => prev.map((m) => {
-      if (m.id !== id) return m;
-      const tags = normalizeTagList([...m.tags, tag]);
-      return { ...m, tags, updatedAt: Date.now() };
-    }));
-    setActiveTag(tag);
-    setTagInput('');
-  }, [tagInput]);
-
-  const handleRemoveTag = useCallback((id: number, tag: string): void => {
-    setMemos((prev) => prev.map((m) => {
-      if (m.id !== id) return m;
-      return { ...m, tags: m.tags.filter((item) => item !== tag), updatedAt: Date.now() };
-    }));
-  }, []);
-
-  const memoTags = useMemo(() => {
-    const counts = new Map<string, number>();
-    memos.forEach((memo) => {
-      extractMemoTags(memo).forEach((tag) => counts.set(tag, (counts.get(tag) ?? 0) + 1));
-    });
-    return Array.from(counts.entries())
-      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
-  }, [memos]);
-
-  useEffect(() => {
-    if (activeTag && !memoTags.some(([tag]) => tag === activeTag)) {
-      setActiveTag(null);
-    }
-  }, [activeTag, memoTags]);
-
-  useEffect(() => {
-    const memoIds = new Set(memos.map((memo) => memo.id));
-    setSelectedMemoIds((prev) => {
-      const next = new Set(Array.from(prev).filter((id) => memoIds.has(id)));
-      return next.size === prev.size ? prev : next;
-    });
-    if (memos.length === 0) setBulkSelectMode(false);
-  }, [memos]);
-
-  useEffect(() => {
-    const tagFilter = tagFilterRef.current;
-    if (!tagFilter) return;
-
-    const updateScrollable = (): void => {
-      setTagFilterScrollable(tagFilter.scrollWidth > tagFilter.clientWidth + 1);
-    };
-
-    updateScrollable();
-    const resizeObserver = new ResizeObserver(updateScrollable);
-    resizeObserver.observe(tagFilter);
-    return () => resizeObserver.disconnect();
-  }, [memoTags]);
-
-  /** 过滤 & 排序：标签/书签/全文搜索后，置顶优先，然后按更新时间倒序 */
-  const filteredMemos = memos
-    .filter((m) => {
-      if (bookmarkOnly && !m.bookmarked) return false;
-      const tags = extractMemoTags(m);
-      if (activeTag && !tags.includes(activeTag)) return false;
-      const q = search.trim().toLowerCase();
-      if (!q) return true;
-      return getMemoSearchText(m).includes(q);
-    })
-    .sort((a, b) => {
-      if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
-      return b.updatedAt - a.updatedAt;
-    });
-
-  const selectedMemo = memos.find((m) => m.id === selectedId) ?? null;
-  const contentPlaceholder = t('maxExpand.memo.contentPlaceholder', { defaultValue: '在这里写点什么…' });
-  const markdownPreviewContent = selectedMemo ? getMarkdownPreviewContent(selectedMemo.content, contentPlaceholder) : '';
-  const markdownEditorMirror = useMemo(
-    () => renderMarkdownEditorMirror(selectedMemo?.content ?? ''),
-    [selectedMemo?.content],
-  );
-  const viewModes: Array<{ id: MemoViewMode; label: string }> = [
-    { id: 'edit', label: t('maxExpand.memo.editMode', { defaultValue: '编辑' }) },
-    { id: 'preview', label: t('maxExpand.memo.previewMode', { defaultValue: '预览' }) },
-    { id: 'split', label: t('maxExpand.memo.splitMode', { defaultValue: '分屏' }) },
-  ];
-  const selectedMemoCount = selectedMemoIds.size;
+  const {
+    loaded,
+    selectedId,
+    setSelectedId,
+    search,
+    setSearch,
+    activeTag,
+    setActiveTag,
+    tagInput,
+    setTagInput,
+    tagEditorOpen,
+    setTagEditorOpen,
+    bookmarkOnly,
+    setBookmarkOnly,
+    bulkSelectMode,
+    selectedMemoIds,
+    tagFilterScrollable,
+    viewMode,
+    setViewMode,
+    editorScroll,
+    setEditorScroll,
+    editorRef,
+    titleRef,
+    tagFilterRef,
+    memoTags,
+    filteredMemos,
+    selectedMemo,
+    contentPlaceholder,
+    markdownPreviewContent,
+    markdownEditorMirror,
+    viewModes,
+    selectedMemoCount,
+    handleAdd,
+    handleDelete,
+    handleToggleBulkSelect,
+    handleToggleMemoSelection,
+    handleDeleteSelected,
+    handleToggleBookmark,
+    handleTogglePin,
+    handleTitleChange,
+    handleContentChange,
+    handleAddTag,
+    handleRemoveTag,
+  } = useMemoTab();
 
   return (
     <div className="memo-tab-container">
