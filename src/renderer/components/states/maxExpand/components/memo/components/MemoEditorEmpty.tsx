@@ -25,6 +25,7 @@
  */
 
 import { useTranslation } from 'react-i18next';
+import { SvgIcon } from '../../../../../../utils/SvgIcon';
 
 /**
  * 编辑区空白占位
@@ -35,7 +36,7 @@ export function MemoEditorEmpty(): React.ReactElement {
   return (
     <div className="memo-tab-editor-empty">
       <div className="memo-tab-editor-empty-icon">
-        <svg width="48" height="48" viewBox="0 0 48 48" fill="none"><rect x="8" y="6" width="32" height="36" rx="4" stroke="currentColor" strokeWidth="2"/><path d="M16 16h16M16 24h12M16 32h8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+        <img src={SvgIcon.MEMO} alt="" width="48" height="48" draggable={false} />
       </div>
       <div className="memo-tab-editor-empty-text">{t('maxExpand.memo.selectHint', { defaultValue: '选择或新建一条备忘录' })}</div>
     </div>
