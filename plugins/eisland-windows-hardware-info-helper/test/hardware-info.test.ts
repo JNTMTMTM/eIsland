@@ -14,7 +14,7 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
  */
 
@@ -26,7 +26,11 @@
 
 import { describe, it, expect } from 'vitest';
 
-const hw = require('../') as {
+const isWin = process.platform === 'win32';
+const describeWin = isWin ? describe : describe.skip;
+
+// Conditionally require — avoids crashing on non-Windows CI
+let hw: {
   getCpuInfo(): unknown[];
   getGpuInfo(): unknown[];
   getMemoryInfo(): unknown[];
@@ -37,7 +41,13 @@ const hw = require('../') as {
   getMonitorInfo(): unknown[];
 };
 
-describe('@eisland/windows-hardware-info-helper', () => {
+try {
+  hw = require('../');
+} catch {
+  hw = {} as any;
+}
+
+describeWin('@eisland/windows-hardware-info-helper', () => {
   it('exports all expected functions', () => {
     expect(typeof hw.getCpuInfo).toBe('function');
     expect(typeof hw.getGpuInfo).toBe('function');

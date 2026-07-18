@@ -18,10 +18,6 @@
  * GNU General Public License for more details.
  */
 
-if (process.platform !== 'win32') {
-  throw new Error('@eisland/windows-hardware-info-helper only supports Windows.');
-}
-
 const { spawnSync } = require('node:child_process');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -58,7 +54,8 @@ function callHelper(args, timeout = 10000) {
   if (result.status !== 0 || result.error || !result.stdout) return null;
 
   try {
-    return JSON.parse(result.stdout.trim());
+    const parsed = JSON.parse(result.stdout.trim());
+    return Array.isArray(parsed) ? parsed : null;
   } catch {
     return null;
   }

@@ -178,7 +178,7 @@ static class HardwareInfoHelper
                     manufacturer        = Str(obj, "Manufacturer"),
                     macAddress          = Str(obj, "MACAddress"),
                     adapterType         = Str(obj, "AdapterType"),
-                    speedBps            = Uint(obj, "Speed"),
+                    speedBps            = Ulong(obj, "Speed"),
                     netConnectionStatus = Ushort(obj, "NetConnectionStatus") == 2,
                     pnpDeviceId         = Str(obj, "PNPDeviceID"),
                     status              = Str(obj, "Status"),

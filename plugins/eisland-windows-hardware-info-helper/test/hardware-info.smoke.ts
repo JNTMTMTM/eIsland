@@ -24,6 +24,11 @@
  * @author 鸡哥
  */
 
+if (process.platform !== 'win32') {
+  console.log('Skipping: Windows-only plugin');
+  process.exit(0);
+}
+
 const hw = require('../');
 
 console.log('=== Hardware Info Smoke Test ===\n');
