@@ -3558,23 +3558,23 @@
     "divider": "或",
     "github": {
       "login": "GitHub",
-      "loading": "连接中…"
+      "loading": "连接中"
     },
     "microsoft": {
       "login": "Microsoft",
-      "loading": "连接中…"
+      "loading": "连接中"
     },
     "wechat": {
       "login": "WeChat",
-      "loading": "连接中…"
+      "loading": "连接中"
     },
     "gitee": {
       "login": "Gitee",
-      "loading": "连接中…"
+      "loading": "连接中"
     },
     "kook": {
       "login": "KOOK",
-      "loading": "连接中…"
+      "loading": "连接中"
     },
     "setPassword": {
       "title": "设置密码",
