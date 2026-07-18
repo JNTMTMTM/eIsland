@@ -1,0 +1,35 @@
+{
+  "name": "@eisland/windows-hardware-info-helper",
+  "version": "26.0.0",
+  "description": "Windows hardware information query via Native AOT DLL using WMI (System.Management).",
+  "author": "JNTMTMTM",
+  "license": "GPL-3.0",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "os": [
+    "win32"
+  ],
+  "cpu": [
+    "x64",
+    "arm64",
+    "ia32"
+  ],
+  "scripts": {
+    "postinstall": "npm run build",
+    "build": "dotnet publish src/eIslandHardwareInfoHelper.csproj -c Release -r win-x64",
+    "clean": "dotnet clean src/eIslandHardwareInfoHelper.csproj",
+    "rebuild": "npm run clean && npm run build"
+  },
+  "dependencies": {
+    "koffi": "^2.9.1"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.4"
+  },
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "ffi-loader.js",
+    "src"
+  ]
+}
