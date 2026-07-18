@@ -101,66 +101,68 @@ export function UrlFavoritesItem({
         </span>
       </button>
 
-      {isExpanded ? (
-        <div className="url-favorites-editor">
-          <div className="url-favorites-editor-row">
-            <span className="url-favorites-editor-label">{t('urlFavoritesTab.editor.urlLabel', { defaultValue: 'URL' })}</span>
-            <input
-              className="url-favorites-url-input"
-              type="text"
-              value={editUrlInput}
-              onChange={(e) => setEditUrlInput(e.target.value)}
-              placeholder={t('urlFavoritesTab.editor.urlPlaceholder', { defaultValue: '编辑 URL' })}
-            />
-          </div>
-          <div className="url-favorites-editor-row">
-            <span className="url-favorites-editor-label">{t('urlFavoritesTab.editor.noteLabel', { defaultValue: '备注' })}</span>
-            <input
-              className="url-favorites-note-input"
-              type="text"
-              value={editNoteInput}
-              onChange={(e) => setEditNoteInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  onSaveEdit(item.id);
-                }
-              }}
-              placeholder={t('urlFavoritesTab.editor.notePlaceholder', { defaultValue: '输入备注' })}
-            />
-          </div>
-          <div className="url-favorites-editor-row">
-            <span className="url-favorites-editor-label">{t('urlFavoritesTab.editor.folderLabel', { defaultValue: '文件夹' })}</span>
-            <input
-              className="url-favorites-folder-edit-input"
-              type="text"
-              value={editFolderInput}
-              onChange={(e) => setEditFolderInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  onSaveEdit(item.id);
-                }
-              }}
-              placeholder={t('urlFavoritesTab.editor.folderPlaceholder', { defaultValue: '输入文件夹名称，留空为未分类' })}
-              list="url-favorites-folder-options"
-            />
-          </div>
-          <div className="url-favorites-editor-actions">
-            <button className="url-favorites-save" type="button" onClick={() => onSaveEdit(item.id)}>
-              {t('urlFavoritesTab.actions.save', { defaultValue: '保存' })}
-            </button>
-            <button
-              className="url-favorites-remove"
-              type="button"
-              onClick={() => onRemove(item.id)}
-              aria-label={t('urlFavoritesTab.actions.removeAria', { defaultValue: '删除 URL 收藏' })}
-            >
-              ×
-            </button>
+      <div className={`url-favorites-editor-wrapper${isExpanded ? ' url-favorites-editor-wrapper--open' : ''}`}>
+        <div className="url-favorites-editor-inner">
+          <div className="url-favorites-editor">
+            <div className="url-favorites-editor-row">
+              <span className="url-favorites-editor-label">{t('urlFavoritesTab.editor.urlLabel', { defaultValue: 'URL' })}</span>
+              <input
+                className="url-favorites-url-input"
+                type="text"
+                value={editUrlInput}
+                onChange={(e) => setEditUrlInput(e.target.value)}
+                placeholder={t('urlFavoritesTab.editor.urlPlaceholder', { defaultValue: '编辑 URL' })}
+              />
+            </div>
+            <div className="url-favorites-editor-row">
+              <span className="url-favorites-editor-label">{t('urlFavoritesTab.editor.noteLabel', { defaultValue: '备注' })}</span>
+              <input
+                className="url-favorites-note-input"
+                type="text"
+                value={editNoteInput}
+                onChange={(e) => setEditNoteInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    onSaveEdit(item.id);
+                  }
+                }}
+                placeholder={t('urlFavoritesTab.editor.notePlaceholder', { defaultValue: '输入备注' })}
+              />
+            </div>
+            <div className="url-favorites-editor-row">
+              <span className="url-favorites-editor-label">{t('urlFavoritesTab.editor.folderLabel', { defaultValue: '文件夹' })}</span>
+              <input
+                className="url-favorites-folder-edit-input"
+                type="text"
+                value={editFolderInput}
+                onChange={(e) => setEditFolderInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    onSaveEdit(item.id);
+                  }
+                }}
+                placeholder={t('urlFavoritesTab.editor.folderPlaceholder', { defaultValue: '输入文件夹名称，留空为未分类' })}
+                list="url-favorites-folder-options"
+              />
+            </div>
+            <div className="url-favorites-editor-actions">
+              <button className="url-favorites-save" type="button" onClick={() => onSaveEdit(item.id)}>
+                {t('urlFavoritesTab.actions.save', { defaultValue: '保存' })}
+              </button>
+              <button
+                className="url-favorites-remove"
+                type="button"
+                onClick={() => onRemove(item.id)}
+                aria-label={t('urlFavoritesTab.actions.removeAria', { defaultValue: '删除 URL 收藏' })}
+              >
+                ×
+              </button>
+            </div>
           </div>
         </div>
-      ) : null}
+      </div>
     </div>
   );
 }
