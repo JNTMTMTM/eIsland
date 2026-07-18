@@ -20,57 +20,39 @@
 
 /**
  * @file useUrlFavorites.ts
- * @description URL 收藏模块状态管理 hook，包含所有 useEffect、事件处理逻辑。
+ * @description URL 收藏模块主 hook，组合持久化、导入导出、拖拽子 hook。
  * @author 鸡哥
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import type { DragEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import { fetchWebsiteTitle } from '../../../../../../api/site/siteMetaApi';
-import { STORE_KEY, FOCUS_KEY, LOCAL_STORAGE_KEY } from '../config/urlFavoritesConfig';
-import type { UrlFavoriteItem, UrlFavoritesImportFormat, UrlFavoritesExportFormat, UseUrlFavoritesReturn } from '../types/urlFavoritesTypes';
-import {
-  normalizeUrl,
-  normalizeFolder,
-  sanitizeFavorites,
-  parseImportedFavorites,
-  mergeFavorites,
-  serializeFavoritesToJson,
-  serializeFavoritesToHtml,
-  persistFavorites,
-} from '../utils/urlFavoritesUtils';
+import { useUrlFavoritesPersistence } from './useUrlFavoritesPersistence';
+import { useUrlFavoritesImportExport } from './useUrlFavoritesImportExport';
+import { useUrlFavoritesDnd } from './useUrlFavoritesDnd';
+import type { UrlFavoriteItem, UseUrlFavoritesReturn } from '../types/urlFavoritesTypes';
+import { normalizeUrl, normalizeFolder } from '../utils/urlFavoritesUtils';
 
 /**
- * URL 收藏状态管理 hook
+ * URL 收藏模块主 hook
  * @returns UseUrlFavoritesReturn
  */
 export function useUrlFavorites(): UseUrlFavoritesReturn {
   const { t } = useTranslation();
-  const [favorites, setFavorites] = useState<UrlFavoriteItem[]>([]);
-  const [loaded, setLoaded] = useState(false);
+  /* UI 状态 */
   const [urlInput, setUrlInput] = useState('');
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [focusedId, setFocusedId] = useState<number | null>(null);
-  const [importFormat, setImportFormat] = useState<UrlFavoritesImportFormat>('json');
-  const [exportFormat, setExportFormat] = useState<UrlFavoritesExportFormat>('json');
   const [folderToolsOpen, setFolderToolsOpen] = useState(false);
   const [importExportOpen, setImportExportOpen] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
-  const [draggingId, setDraggingId] = useState<number | null>(null);
-  const [dragOverId, setDragOverId] = useState<number | null>(null);
   const [activeFolder, setActiveFolder] = useState('');
   const [newFolderInput, setNewFolderInput] = useState('');
   const [editUrlInput, setEditUrlInput] = useState('');
   const [editNoteInput, setEditNoteInput] = useState('');
   const [editFolderInput, setEditFolderInput] = useState('');
-  const titleResolvingIdsRef = useRef<Set<number>>(new Set());
-  const dragFromIdRef = useRef<number | null>(null);
-  const dragMovedRef = useRef(false);
-  const skipPersistOnceRef = useRef(false);
-  const importInputRef = useRef<HTMLInputElement>(null);
   const statusTimerRef = useRef<number | null>(null);
 
+  /* 状态消息（带自动清除） */
   const showStatusMessage = (message: string): void => {
     if (statusTimerRef.current !== null) window.clearTimeout(statusTimerRef.current);
     setStatusMessage(message);
@@ -84,120 +66,31 @@ export function useUrlFavorites(): UseUrlFavoritesReturn {
     if (statusTimerRef.current !== null) window.clearTimeout(statusTimerRef.current);
   }, []);
 
-  useEffect(() => {
-    let cancelled = false;
-    const applyFavorites = (data: unknown): void => {
-      if (!Array.isArray(data)) return;
-      skipPersistOnceRef.current = true;
-      setFavorites(sanitizeFavorites(data));
-    };
+  /* 焦点恢复回调（传给持久化 hook） */
+  const handleExpandForFocus = (item: UrlFavoriteItem): void => {
+    setExpandedId(item.id);
+    setEditUrlInput(item.url);
+    setEditNoteInput(item.note);
+    setEditFolderInput(item.folder);
+  };
 
-    window.api.storeRead(STORE_KEY).then((data) => {
-      if (cancelled) return;
-      if (Array.isArray(data) && data.length > 0) {
-        applyFavorites(data);
-      } else {
-        try {
-          const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
-          if (raw) {
-            const items = sanitizeFavorites(JSON.parse(raw) as unknown[]);
-            applyFavorites(items);
-            window.api.storeWrite(STORE_KEY, items).catch(() => {});
-          }
-        } catch { /* noop */ }
-      }
-      setLoaded(true);
-    }).catch(() => {
-      try {
-        const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
-        if (raw) applyFavorites(JSON.parse(raw) as unknown[]);
-      } catch { /* noop */ }
-      if (!cancelled) setLoaded(true);
-    });
-
-    const unsub = window.api.onSettingsChanged((channel: string, value: unknown) => {
-      if (cancelled) return;
-      if (channel === `store:${STORE_KEY}`) {
-        applyFavorites(value);
-      }
-    });
-
-    return () => {
-      cancelled = true;
-      unsub();
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!loaded) return;
-    if (skipPersistOnceRef.current) {
-      skipPersistOnceRef.current = false;
-      return;
-    }
-    persistFavorites(favorites);
-  }, [favorites, loaded]);
-
-  useEffect(() => {
-    if (!loaded || favorites.length === 0) return;
-    let targetUrl = '';
-    try {
-      const raw = localStorage.getItem(FOCUS_KEY) ?? '';
-      targetUrl = normalizeUrl(raw);
-    } catch {
-      targetUrl = '';
-    }
-    if (!targetUrl) return;
-
-    const matched = favorites.find((item) => item.url.toLowerCase() === targetUrl.toLowerCase());
-    if (!matched) return;
-
-    setExpandedId(matched.id);
-    setEditUrlInput(matched.url);
-    setEditNoteInput(matched.note);
-    setEditFolderInput(matched.folder);
-    setFocusedId(matched.id);
+  const handleFocusedForFocus = (id: number): void => {
+    setFocusedId(id);
     window.setTimeout(() => {
-      setFocusedId((prev) => (prev === matched.id ? null : prev));
+      setFocusedId((prev) => (prev === id ? null : prev));
     }, 1800);
+  };
 
-    try {
-      localStorage.removeItem(FOCUS_KEY);
-    } catch { /* noop */ }
+  /* 子 hooks */
+  const { favorites, setFavorites, loaded } = useUrlFavoritesPersistence(
+    handleExpandForFocus,
+    handleFocusedForFocus,
+  );
 
-    window.requestAnimationFrame(() => {
-      const el = document.querySelector<HTMLElement>(`[data-url-favorite-id="${matched.id}"]`);
-      el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    });
-  }, [loaded, favorites]);
+  const importExport = useUrlFavoritesImportExport(favorites, setFavorites, showStatusMessage);
+  const dnd = useUrlFavoritesDnd(setFavorites);
 
-  useEffect(() => {
-    if (!loaded || favorites.length === 0) return;
-
-    const pendingItems = favorites.filter((item) => {
-      const hasResolvedTitle = item.title.trim() && item.title.trim() !== item.url;
-      return !hasResolvedTitle && !titleResolvingIdsRef.current.has(item.id);
-    });
-
-    if (pendingItems.length === 0) return;
-
-    pendingItems.forEach((item) => {
-      titleResolvingIdsRef.current.add(item.id);
-      fetchWebsiteTitle(item.url)
-        .then((title) => {
-          const nextTitle = title.trim();
-          if (!nextTitle) return;
-          setFavorites((prev) => prev.map((row) => (
-            row.id === item.id
-              ? { ...row, title: nextTitle }
-              : row
-          )));
-        })
-        .finally(() => {
-          titleResolvingIdsRef.current.delete(item.id);
-        });
-    });
-  }, [favorites, loaded]);
-
+  /* 收藏操作 */
   const handleAdd = (): void => {
     const normalizedUrl = normalizeUrl(urlInput);
     if (!normalizedUrl) return;
@@ -274,10 +167,6 @@ export function useUrlFavorites(): UseUrlFavoritesReturn {
     }
   };
 
-  const handleImportClick = (): void => {
-    importInputRef.current?.click();
-  };
-
   const handleCreateFolder = (): void => {
     const folder = normalizeFolder(newFolderInput);
     if (!folder) return;
@@ -292,110 +181,7 @@ export function useUrlFavorites(): UseUrlFavoritesReturn {
     if (activeFolder === folder) setActiveFolder('');
   };
 
-  const handleImportFile = (file: File | null): void => {
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      try {
-        const content = typeof reader.result === 'string' ? reader.result : '';
-        const imported = parseImportedFavorites(content, importFormat);
-        if (imported.length === 0) {
-          showStatusMessage(t('urlFavoritesTab.messages.importEmpty', { defaultValue: '未识别到可导入的收藏' }));
-          return;
-        }
-        const next = mergeFavorites(favorites, imported);
-        const addedCount = next.length - favorites.length;
-        if (addedCount === 0) {
-          showStatusMessage(t('urlFavoritesTab.messages.importEmpty', { defaultValue: '未识别到可导入的收藏' }));
-          return;
-        }
-        setFavorites(next);
-        showStatusMessage(t('urlFavoritesTab.messages.importSuccess', { defaultValue: '已导入 {{count}} 条收藏', count: addedCount }));
-      } catch {
-        showStatusMessage(t('urlFavoritesTab.messages.importFailed', { defaultValue: '导入失败，请检查文件格式' }));
-      } finally {
-        if (importInputRef.current) importInputRef.current.value = '';
-      }
-    };
-    reader.onerror = () => {
-      showStatusMessage(t('urlFavoritesTab.messages.importFailed', { defaultValue: '导入失败，请检查文件格式' }));
-      if (importInputRef.current) importInputRef.current.value = '';
-    };
-    reader.readAsText(file, 'utf-8');
-  };
-
-  const handleExport = (): void => {
-    const isJson = exportFormat === 'json';
-    const content = isJson
-      ? serializeFavoritesToJson(favorites)
-      : serializeFavoritesToHtml(favorites, t('urlFavoritesTab.folders.uncategorized', { defaultValue: '未分类' }));
-    const date = new Date().toISOString().slice(0, 10);
-    window.api.saveTextFile({
-      defaultPath: `eIsland-url-favorites-${date}.${isJson ? 'json' : 'html'}`,
-      content,
-      filters: isJson
-        ? [{ name: 'JSON', extensions: ['json'] }]
-        : [{ name: 'HTML', extensions: ['html', 'htm'] }],
-    }).then((result) => {
-      if (result.ok) {
-        showStatusMessage(t('urlFavoritesTab.messages.exportSuccess', { defaultValue: '已导出 {{count}} 条收藏', count: favorites.length }));
-        return;
-      }
-      if (!result.canceled) {
-        showStatusMessage(t('urlFavoritesTab.messages.exportFailed', { defaultValue: '导出失败，请稍后重试' }));
-      }
-    }).catch(() => {
-      showStatusMessage(t('urlFavoritesTab.messages.exportFailed', { defaultValue: '导出失败，请稍后重试' }));
-    });
-  };
-
-  const resetDragState = (): void => {
-    dragFromIdRef.current = null;
-    setDraggingId(null);
-    setDragOverId(null);
-    window.setTimeout(() => {
-      dragMovedRef.current = false;
-    }, 0);
-  };
-
-  const handleDragStart = (e: DragEvent<HTMLButtonElement>, id: number): void => {
-    dragFromIdRef.current = id;
-    dragMovedRef.current = false;
-    setDraggingId(id);
-    setDragOverId(id);
-    e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/plain', String(id));
-  };
-
-  const handleDragOver = (e: DragEvent<HTMLDivElement>, id: number): void => {
-    if (dragFromIdRef.current === null) return;
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-    if (dragFromIdRef.current !== id) dragMovedRef.current = true;
-    setDragOverId(id);
-  };
-
-  const handleDrop = (e: DragEvent<HTMLDivElement>, id: number): void => {
-    e.preventDefault();
-    const fromId = dragFromIdRef.current;
-    if (fromId === null || fromId === id) {
-      resetDragState();
-      return;
-    }
-
-    setFavorites((prev) => {
-      const fromIndex = prev.findIndex((item) => item.id === fromId);
-      const toIndex = prev.findIndex((item) => item.id === id);
-      if (fromIndex < 0 || toIndex < 0 || fromIndex === toIndex) return prev;
-      const next = [...prev];
-      const [moved] = next.splice(fromIndex, 1);
-      next.splice(toIndex, 0, moved);
-      return next;
-    });
-
-    resetDragState();
-  };
-
+  /* 派生数据 */
   const totalCount = favorites.length;
   const folders = useMemo(
     () => Array.from(new Set(favorites.map((item) => item.folder).filter(Boolean))).sort((a, b) => a.localeCompare(b)),
@@ -420,17 +206,17 @@ export function useUrlFavorites(): UseUrlFavoritesReturn {
     setUrlInput,
     expandedId,
     focusedId,
-    importFormat,
-    setImportFormat,
-    exportFormat,
-    setExportFormat,
+    importFormat: importExport.importFormat,
+    setImportFormat: importExport.setImportFormat,
+    exportFormat: importExport.exportFormat,
+    setExportFormat: importExport.setExportFormat,
     folderToolsOpen,
     setFolderToolsOpen,
     importExportOpen,
     setImportExportOpen,
     statusMessage,
-    draggingId,
-    dragOverId,
+    draggingId: dnd.draggingId,
+    dragOverId: dnd.dragOverId,
     activeFolder,
     setActiveFolder,
     newFolderInput,
@@ -441,7 +227,7 @@ export function useUrlFavorites(): UseUrlFavoritesReturn {
     setEditNoteInput,
     editFolderInput,
     setEditFolderInput,
-    importInputRef,
+    importInputRef: importExport.importInputRef,
     totalCount,
     folders,
     visibleFavorites,
@@ -452,15 +238,15 @@ export function useUrlFavorites(): UseUrlFavoritesReturn {
     handleToggleExpand,
     handleSaveEdit,
     handleRemove,
-    handleImportClick,
+    handleImportClick: importExport.handleImportClick,
     handleCreateFolder,
     handleClearFolder,
-    handleImportFile,
-    handleExport,
-    dragMovedRef,
-    handleDragStart,
-    handleDragOver,
-    handleDrop,
-    resetDragState,
+    handleImportFile: importExport.handleImportFile,
+    handleExport: importExport.handleExport,
+    dragMovedRef: dnd.dragMovedRef,
+    handleDragStart: dnd.handleDragStart,
+    handleDragOver: dnd.handleDragOver,
+    handleDrop: dnd.handleDrop,
+    resetDragState: dnd.resetDragState,
   };
 }

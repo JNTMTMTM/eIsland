@@ -25,7 +25,7 @@
  */
 
 import { STORE_KEY, LOCAL_STORAGE_KEY } from '../config/urlFavoritesConfig';
-import type { UrlFavoriteItem, UrlFavoritesImportFormat } from '../types/urlFavoritesTypes';
+import type { UrlFavoriteItem, UrlFavoritesFormat } from '../types/urlFavoritesTypes';
 
 /**
  * 标准化文件夹名称
@@ -128,7 +128,7 @@ export function parseHtmlBookmarks(content: string): UrlFavoriteItem[] {
  * @param format - 导入格式
  * @returns 收藏项列表
  */
-export function parseImportedFavorites(content: string, format: UrlFavoritesImportFormat): UrlFavoriteItem[] {
+export function parseImportedFavorites(content: string, format: UrlFavoritesFormat): UrlFavoriteItem[] {
   return format === 'json' ? parseJsonFavorites(content) : parseHtmlBookmarks(content);
 }
 

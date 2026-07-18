@@ -26,6 +26,7 @@
 
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
+import { SUPPORTED_FORMATS } from '../config/urlFavoritesConfig';
 import type { UrlFavoritesImportExportPanelProps } from '../types/urlFavoritesTypes';
 
 /**
@@ -60,7 +61,7 @@ export function UrlFavoritesImportExportPanel({
         onChange={(e) => onImportFile(e.target.files?.[0] ?? null)}
       />
       <div className="url-favorites-format-group" aria-label={t('urlFavoritesTab.import.formatAria', { defaultValue: '导入格式' })}>
-        {(['json', 'html'] as const).map((format) => (
+        {SUPPORTED_FORMATS.map((format) => (
           <button
             key={`import-${format}`}
             className={`url-favorites-format-btn${importFormat === format ? ' url-favorites-format-btn--active' : ''}`}
@@ -75,7 +76,7 @@ export function UrlFavoritesImportExportPanel({
         {t('urlFavoritesTab.actions.import', { defaultValue: '导入' })}
       </button>
       <div className="url-favorites-format-group" aria-label={t('urlFavoritesTab.export.formatAria', { defaultValue: '导出格式' })}>
-        {(['json', 'html'] as const).map((format) => (
+        {SUPPORTED_FORMATS.map((format) => (
           <button
             key={`export-${format}`}
             className={`url-favorites-format-btn${exportFormat === format ? ' url-favorites-format-btn--active' : ''}`}

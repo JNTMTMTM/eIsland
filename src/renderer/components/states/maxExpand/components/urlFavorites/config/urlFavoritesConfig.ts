@@ -32,3 +32,6 @@ export const FOCUS_KEY = 'url-favorites-focus-url';
 
 /** localStorage 缓存键 */
 export const LOCAL_STORAGE_KEY = 'eIsland_url_favorites';
+
+/** 支持的导入导出格式 */
+export const SUPPORTED_FORMATS = ['json', 'html'] as const;

@@ -36,11 +36,8 @@ export interface UrlFavoriteItem {
   createdAt: number;
 }
 
-/** 导入格式 */
-export type UrlFavoritesImportFormat = 'json' | 'html';
-
-/** 导出格式 */
-export type UrlFavoritesExportFormat = 'json' | 'html';
+/** 导入导出格式 */
+export type UrlFavoritesFormat = 'json' | 'html';
 
 /** useUrlFavorites hook 返回值类型 */
 export interface UseUrlFavoritesReturn {
@@ -49,10 +46,10 @@ export interface UseUrlFavoritesReturn {
   setUrlInput: Dispatch<SetStateAction<string>>;
   expandedId: number | null;
   focusedId: number | null;
-  importFormat: UrlFavoritesImportFormat;
-  setImportFormat: Dispatch<SetStateAction<UrlFavoritesImportFormat>>;
-  exportFormat: UrlFavoritesExportFormat;
-  setExportFormat: Dispatch<SetStateAction<UrlFavoritesExportFormat>>;
+  importFormat: UrlFavoritesFormat;
+  setImportFormat: Dispatch<SetStateAction<UrlFavoritesFormat>>;
+  exportFormat: UrlFavoritesFormat;
+  setExportFormat: Dispatch<SetStateAction<UrlFavoritesFormat>>;
   folderToolsOpen: boolean;
   setFolderToolsOpen: Dispatch<SetStateAction<boolean>>;
   importExportOpen: boolean;
@@ -128,10 +125,10 @@ export interface UrlFavoritesFolderPanelProps {
 export interface UrlFavoritesImportExportPanelProps {
   importExportOpen: boolean;
   importInputRef: RefObject<HTMLInputElement | null>;
-  importFormat: UrlFavoritesImportFormat;
-  setImportFormat: Dispatch<SetStateAction<UrlFavoritesImportFormat>>;
-  exportFormat: UrlFavoritesExportFormat;
-  setExportFormat: Dispatch<SetStateAction<UrlFavoritesExportFormat>>;
+  importFormat: UrlFavoritesFormat;
+  setImportFormat: Dispatch<SetStateAction<UrlFavoritesFormat>>;
+  exportFormat: UrlFavoritesFormat;
+  setExportFormat: Dispatch<SetStateAction<UrlFavoritesFormat>>;
   onImportClick: () => void;
   onImportFile: (file: File | null) => void;
   onExport: () => void;
