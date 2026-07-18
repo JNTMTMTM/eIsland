@@ -18,6 +18,12 @@
  * GNU General Public License for more details.
  */
 
+/**
+ * @file vitest.config.ts
+ * @description Vitest test configuration
+ * @author JNTMTMTM
+ */
+
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({

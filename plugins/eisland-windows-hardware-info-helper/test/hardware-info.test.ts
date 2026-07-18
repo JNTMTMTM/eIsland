@@ -18,6 +18,12 @@
  * GNU General Public License for more details.
  */
 
+/**
+ * @file hardware-info.test.ts
+ * @description Unit tests for hardware info helper query functions
+ * @author JNTMTMTM
+ */
+
 import { describe, it, expect } from 'vitest';
 
 const hw = require('../') as {
