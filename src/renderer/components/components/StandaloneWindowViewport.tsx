@@ -29,7 +29,7 @@ import { TodoTab } from '../states/maxExpand/components/todo/components/TodoTab'
 import { CountdownTab } from '../states/maxExpand/components/countdown';
 import { UrlFavoritesTab } from '../states/maxExpand/components/UrlFavoritesTab';
 import { AlbumTab } from '../states/maxExpand/components/album/components/AlbumTab';
-import { MailTab } from '../states/maxExpand/components/MailTab';
+import { MailTab } from '../states/maxExpand/components/mail';
 import { LocalFileSearchTab } from '../states/maxExpand/components/localFileSearch/components/LocalFileSearchTab';
 import { ClipboardHistoryTab } from '../states/maxExpand/components/clipBoardHistory';
 import { SettingsTab } from '../states/maxExpand/components/SettingsTab';

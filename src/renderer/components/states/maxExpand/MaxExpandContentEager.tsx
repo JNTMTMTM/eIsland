@@ -33,7 +33,7 @@ import { UrlFavoritesTab } from './components/UrlFavoritesTab';
 import { LocalFileSearchTab } from './components/localFileSearch/components/LocalFileSearchTab';
 import { ClipboardHistoryTab } from './components/clipBoardHistory';
 import { AlbumTab } from './components/album/components/AlbumTab';
-import { MailTab } from './components/MailTab';
+import { MailTab } from './components/mail';
 import { SettingsTab } from './components/SettingsTab';
 import { CountdownTab } from './components/countdown';
 import { MemoTab } from './components/memo/components/MemoTab';
