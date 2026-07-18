@@ -1,5 +1,5 @@
 ---
-title: BluetoothDeviceInfo (Hardware Info)
+title: BluetoothDeviceInfo
 icon: fa6-solid:table
 ---
 
