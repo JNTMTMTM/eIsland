@@ -25,6 +25,7 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import type { DragEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { fetchWebsiteTitle } from '../../../../../../api/site/siteMetaApi';
 import { STORE_KEY, FOCUS_KEY, LOCAL_STORAGE_KEY } from '../config/urlFavoritesConfig';
@@ -68,13 +69,20 @@ export function useUrlFavorites(): UseUrlFavoritesReturn {
   const dragMovedRef = useRef(false);
   const skipPersistOnceRef = useRef(false);
   const importInputRef = useRef<HTMLInputElement>(null);
+  const statusTimerRef = useRef<number | null>(null);
 
   const showStatusMessage = (message: string): void => {
+    if (statusTimerRef.current !== null) window.clearTimeout(statusTimerRef.current);
     setStatusMessage(message);
-    window.setTimeout(() => {
+    statusTimerRef.current = window.setTimeout(() => {
+      statusTimerRef.current = null;
       setStatusMessage((current) => (current === message ? '' : current));
     }, 2400);
   };
+
+  useEffect(() => () => {
+    if (statusTimerRef.current !== null) window.clearTimeout(statusTimerRef.current);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -87,13 +95,13 @@ export function useUrlFavorites(): UseUrlFavoritesReturn {
     window.api.storeRead(STORE_KEY).then((data) => {
       if (cancelled) return;
       if (Array.isArray(data) && data.length > 0) {
-        setFavorites(sanitizeFavorites(data));
+        applyFavorites(data);
       } else {
         try {
           const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
           if (raw) {
             const items = sanitizeFavorites(JSON.parse(raw) as unknown[]);
-            setFavorites(items);
+            applyFavorites(items);
             window.api.storeWrite(STORE_KEY, items).catch(() => {});
           }
         } catch { /* noop */ }
@@ -102,7 +110,7 @@ export function useUrlFavorites(): UseUrlFavoritesReturn {
     }).catch(() => {
       try {
         const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
-        if (raw) setFavorites(sanitizeFavorites(JSON.parse(raw) as unknown[]));
+        if (raw) applyFavorites(JSON.parse(raw) as unknown[]);
       } catch { /* noop */ }
       if (!cancelled) setLoaded(true);
     });
@@ -350,7 +358,7 @@ export function useUrlFavorites(): UseUrlFavoritesReturn {
     }, 0);
   };
 
-  const handleDragStart = (e: React.DragEvent<HTMLButtonElement>, id: number): void => {
+  const handleDragStart = (e: DragEvent<HTMLButtonElement>, id: number): void => {
     dragFromIdRef.current = id;
     dragMovedRef.current = false;
     setDraggingId(id);
@@ -359,7 +367,7 @@ export function useUrlFavorites(): UseUrlFavoritesReturn {
     e.dataTransfer.setData('text/plain', String(id));
   };
 
-  const handleDragOver = (e: React.DragEvent<HTMLDivElement>, id: number): void => {
+  const handleDragOver = (e: DragEvent<HTMLDivElement>, id: number): void => {
     if (dragFromIdRef.current === null) return;
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
@@ -367,7 +375,7 @@ export function useUrlFavorites(): UseUrlFavoritesReturn {
     setDragOverId(id);
   };
 
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>, id: number): void => {
+  const handleDrop = (e: DragEvent<HTMLDivElement>, id: number): void => {
     e.preventDefault();
     const fromId = dragFromIdRef.current;
     if (fromId === null || fromId === id) {

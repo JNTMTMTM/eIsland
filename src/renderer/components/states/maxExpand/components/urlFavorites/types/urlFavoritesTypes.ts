@@ -24,6 +24,8 @@
  * @author 鸡哥
  */
 
+import type { Dispatch, SetStateAction, RefObject, DragEvent } from 'react';
+
 /** 单条 URL 收藏 */
 export interface UrlFavoriteItem {
   id: number;
@@ -44,31 +46,31 @@ export type UrlFavoritesExportFormat = 'json' | 'html';
 export interface UseUrlFavoritesReturn {
   favorites: UrlFavoriteItem[];
   urlInput: string;
-  setUrlInput: React.Dispatch<React.SetStateAction<string>>;
+  setUrlInput: Dispatch<SetStateAction<string>>;
   expandedId: number | null;
   focusedId: number | null;
   importFormat: UrlFavoritesImportFormat;
-  setImportFormat: React.Dispatch<React.SetStateAction<UrlFavoritesImportFormat>>;
+  setImportFormat: Dispatch<SetStateAction<UrlFavoritesImportFormat>>;
   exportFormat: UrlFavoritesExportFormat;
-  setExportFormat: React.Dispatch<React.SetStateAction<UrlFavoritesExportFormat>>;
+  setExportFormat: Dispatch<SetStateAction<UrlFavoritesExportFormat>>;
   folderToolsOpen: boolean;
-  setFolderToolsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  setFolderToolsOpen: Dispatch<SetStateAction<boolean>>;
   importExportOpen: boolean;
-  setImportExportOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  setImportExportOpen: Dispatch<SetStateAction<boolean>>;
   statusMessage: string;
   draggingId: number | null;
   dragOverId: number | null;
   activeFolder: string;
-  setActiveFolder: React.Dispatch<React.SetStateAction<string>>;
+  setActiveFolder: Dispatch<SetStateAction<string>>;
   newFolderInput: string;
-  setNewFolderInput: React.Dispatch<React.SetStateAction<string>>;
+  setNewFolderInput: Dispatch<SetStateAction<string>>;
   editUrlInput: string;
-  setEditUrlInput: React.Dispatch<React.SetStateAction<string>>;
+  setEditUrlInput: Dispatch<SetStateAction<string>>;
   editNoteInput: string;
-  setEditNoteInput: React.Dispatch<React.SetStateAction<string>>;
+  setEditNoteInput: Dispatch<SetStateAction<string>>;
   editFolderInput: string;
-  setEditFolderInput: React.Dispatch<React.SetStateAction<string>>;
-  importInputRef: React.RefObject<HTMLInputElement | null>;
+  setEditFolderInput: Dispatch<SetStateAction<string>>;
+  importInputRef: RefObject<HTMLInputElement | null>;
   totalCount: number;
   folders: string[];
   visibleFavorites: UrlFavoriteItem[];
@@ -84,10 +86,10 @@ export interface UseUrlFavoritesReturn {
   handleClearFolder: (folder: string) => void;
   handleImportFile: (file: File | null) => void;
   handleExport: () => void;
-  dragMovedRef: React.RefObject<boolean>;
-  handleDragStart: (e: React.DragEvent<HTMLButtonElement>, id: number) => void;
-  handleDragOver: (e: React.DragEvent<HTMLDivElement>, id: number) => void;
-  handleDrop: (e: React.DragEvent<HTMLDivElement>, id: number) => void;
+  dragMovedRef: RefObject<boolean>;
+  handleDragStart: (e: DragEvent<HTMLButtonElement>, id: number) => void;
+  handleDragOver: (e: DragEvent<HTMLDivElement>, id: number) => void;
+  handleDrop: (e: DragEvent<HTMLDivElement>, id: number) => void;
   resetDragState: () => void;
 }
 
@@ -101,7 +103,7 @@ export interface UrlFavoritesHeaderProps {
 /** UrlFavoritesInputBar 组件入参 */
 export interface UrlFavoritesInputBarProps {
   urlInput: string;
-  setUrlInput: React.Dispatch<React.SetStateAction<string>>;
+  setUrlInput: Dispatch<SetStateAction<string>>;
   placeholder: string;
   onAdd: () => void;
   folderToolsOpen: boolean;
@@ -115,9 +117,9 @@ export interface UrlFavoritesFolderPanelProps {
   folderToolsOpen: boolean;
   folders: string[];
   activeFolder: string;
-  setActiveFolder: React.Dispatch<React.SetStateAction<string>>;
+  setActiveFolder: Dispatch<SetStateAction<string>>;
   newFolderInput: string;
-  setNewFolderInput: React.Dispatch<React.SetStateAction<string>>;
+  setNewFolderInput: Dispatch<SetStateAction<string>>;
   onCreateFolder: () => void;
   onClearFolder: (folder: string) => void;
 }
@@ -125,11 +127,11 @@ export interface UrlFavoritesFolderPanelProps {
 /** UrlFavoritesImportExportPanel 组件入参 */
 export interface UrlFavoritesImportExportPanelProps {
   importExportOpen: boolean;
-  importInputRef: React.RefObject<HTMLInputElement | null>;
+  importInputRef: RefObject<HTMLInputElement | null>;
   importFormat: UrlFavoritesImportFormat;
-  setImportFormat: React.Dispatch<React.SetStateAction<UrlFavoritesImportFormat>>;
+  setImportFormat: Dispatch<SetStateAction<UrlFavoritesImportFormat>>;
   exportFormat: UrlFavoritesExportFormat;
-  setExportFormat: React.Dispatch<React.SetStateAction<UrlFavoritesExportFormat>>;
+  setExportFormat: Dispatch<SetStateAction<UrlFavoritesExportFormat>>;
   onImportClick: () => void;
   onImportFile: (file: File | null) => void;
   onExport: () => void;
@@ -149,18 +151,18 @@ export interface UrlFavoritesItemProps {
   isDragOver: boolean;
   isDragging: boolean;
   editUrlInput: string;
-  setEditUrlInput: React.Dispatch<React.SetStateAction<string>>;
+  setEditUrlInput: Dispatch<SetStateAction<string>>;
   editNoteInput: string;
-  setEditNoteInput: React.Dispatch<React.SetStateAction<string>>;
+  setEditNoteInput: Dispatch<SetStateAction<string>>;
   editFolderInput: string;
-  setEditFolderInput: React.Dispatch<React.SetStateAction<string>>;
+  setEditFolderInput: Dispatch<SetStateAction<string>>;
   onToggleExpand: (item: UrlFavoriteItem) => void;
   onOpen: (url: string) => void;
   onSaveEdit: (id: number) => void;
   onRemove: (id: number) => void;
-  onDragStart: (e: React.DragEvent<HTMLButtonElement>, id: number) => void;
-  onDragOver: (e: React.DragEvent<HTMLDivElement>, id: number) => void;
-  onDrop: (e: React.DragEvent<HTMLDivElement>, id: number) => void;
+  onDragStart: (e: DragEvent<HTMLButtonElement>, id: number) => void;
+  onDragOver: (e: DragEvent<HTMLDivElement>, id: number) => void;
+  onDrop: (e: DragEvent<HTMLDivElement>, id: number) => void;
   onDragEnd: () => void;
-  dragMovedRef: React.RefObject<boolean>;
+  dragMovedRef: RefObject<boolean>;
 }
