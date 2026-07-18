@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-07-17T13:10:15.455Z
+> 生成时间：2026-07-18T07:20:20.656Z
 
 ## 26.6.4
 
@@ -2755,6 +2755,19 @@
 
 ## Unreleased
 
+- 2026-07-18 | 72b32ed3 | 鸡哥 | Merge pull request #157 from JNTMTMTM/dev
+- 2026-07-18 | c6e4fc76 | 鸡哥 | feat(mail): implement mail module with multi-account support and inbox functionality
+- 2026-07-18 | 0654d627 | 鸡哥 | Merge pull request #156 from silenthim18303/dev
+- 2026-07-17 | e7b6e040 | silenthim18303 | 把账户读取、旧配置归一化、fetchLimit 读取、收件箱请求超时处理拆成命名函数,把空状态、标题操作、账户 tabs、邮件列表、邮件阅读器拆成小组件,修复初始化竞态：现在先读保存的 mail-fetch-limit，再用正确 limit 拉取收件箱,增加请求序号保护，避免快速切换账户时旧请求回写覆盖新账户列表
+- 2026-07-17 | a53cdab6 | 鸡哥 | feat(memo): add brightness filter for empty icon and bookmark filter images in light theme
+- 2026-07-17 | 9feaa731 | 鸡哥 | feat(memo): replace SVG icon with MEMO image in MemoEditorEmpty component
+- 2026-07-17 | d8f45431 | 鸡哥 | feat(svg): add MEMO icon to SvgIcon and corresponding test case
+- 2026-07-17 | ccefd0b1 | 鸡哥 | feat(memo): implement MemoEditor and MemoEditorEmpty components; enhance MemoTab with MemoSidebar integration
+- 2026-07-17 | 8818d03d | 鸡哥 | refactor: restructure memo module with useMemoTab hook and utility functions
+- 2026-07-17 | 44742446 | 鸡哥 | feat(memo): add MemoTab component for managing memos with create, edit, delete, and search functionalities
+- 2026-07-17 | adcdf49a | 鸡哥 | refactor(SKILL): update module split instructions and eval prompts for clarity and structure
+- 2026-07-17 | 709c6600 | 鸡哥 | refactor(SKILL): enhance module structure by adding types and refining directory organization
+- 2026-07-17 | 9752a2e1 | eislandBot | docs: auto update CHANGE_LOG.md for #154 by @JNTMTMTM [skip ci]
 - 2026-07-17 | d5e3f08f | 鸡哥 | Merge pull request #154 from JNTMTMTM/dev
 - 2026-07-17 | 1d185935 | 鸡哥 | refactor(todo): update type imports to use CSSProperties for style definitions
 - 2026-07-17 | 35f9362f | 鸡哥 | feat(localFileSearch): enhance config panel transition effects with margin adjustments
