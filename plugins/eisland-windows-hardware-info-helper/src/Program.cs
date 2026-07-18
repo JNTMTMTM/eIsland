@@ -53,21 +53,25 @@ static class HardwareInfoHelper
     {
         var list = new List<object>();
         using var searcher = new ManagementObjectSearcher("SELECT * FROM Win32_Processor");
-        foreach (ManagementObject obj in searcher.Get())
+        using var collection = searcher.Get();
+        foreach (ManagementObject obj in collection)
         {
-            list.Add(new
+            using (obj)
             {
-                name                    = Str(obj, "Name"),
-                manufacturer            = Str(obj, "Manufacturer"),
-                numberOfCores           = Uint(obj, "NumberOfCores"),
-                numberOfLogicalProcessors = Uint(obj, "NumberOfLogicalProcessors"),
-                maxClockSpeedMhz        = Uint(obj, "MaxClockSpeed"),
-                currentClockSpeedMhz    = Uint(obj, "CurrentClockSpeed"),
-                socketDesignation       = Str(obj, "SocketDesignation"),
-                architecture            = ArchName(Uint(obj, "Architecture")),
-                l2CacheSizeKb           = Uint(obj, "L2CacheSize"),
-                l3CacheSizeKb           = Uint(obj, "L3CacheSize"),
-            });
+                list.Add(new
+                {
+                    name                    = Str(obj, "Name"),
+                    manufacturer            = Str(obj, "Manufacturer"),
+                    numberOfCores           = Uint(obj, "NumberOfCores"),
+                    numberOfLogicalProcessors = Uint(obj, "NumberOfLogicalProcessors"),
+                    maxClockSpeedMhz        = Uint(obj, "MaxClockSpeed"),
+                    currentClockSpeedMhz    = Uint(obj, "CurrentClockSpeed"),
+                    socketDesignation       = Str(obj, "SocketDesignation"),
+                    architecture            = ArchName(Uint(obj, "Architecture")),
+                    l2CacheSizeKb           = Uint(obj, "L2CacheSize"),
+                    l3CacheSizeKb           = Uint(obj, "L3CacheSize"),
+                });
+            }
         }
         return list.ToArray();
     }
@@ -78,21 +82,25 @@ static class HardwareInfoHelper
     {
         var list = new List<object>();
         using var searcher = new ManagementObjectSearcher("SELECT * FROM Win32_VideoController");
-        foreach (ManagementObject obj in searcher.Get())
+        using var collection = searcher.Get();
+        foreach (ManagementObject obj in collection)
         {
-            list.Add(new
+            using (obj)
             {
-                name                        = Str(obj, "Name"),
-                manufacturer                = Str(obj, "AdapterCompatibility"),
-                adapterRamBytes             = Ulong(obj, "AdapterRAM"),
-                driverVersion               = Str(obj, "DriverVersion"),
-                driverDate                  = WmiDate(obj, "DriverDate"),
-                videoProcessor              = Str(obj, "VideoProcessor"),
-                currentHorizontalResolution = Uint(obj, "CurrentHorizontalResolution"),
-                currentVerticalResolution   = Uint(obj, "CurrentVerticalResolution"),
-                currentRefreshRate          = Uint(obj, "CurrentRefreshRate"),
-                status                      = Str(obj, "Status"),
-            });
+                list.Add(new
+                {
+                    name                        = Str(obj, "Name"),
+                    manufacturer                = Str(obj, "AdapterCompatibility"),
+                    adapterRamBytes             = Ulong(obj, "AdapterRAM"),
+                    driverVersion               = Str(obj, "DriverVersion"),
+                    driverDate                  = WmiDate(obj, "DriverDate"),
+                    videoProcessor              = Str(obj, "VideoProcessor"),
+                    currentHorizontalResolution = Uint(obj, "CurrentHorizontalResolution"),
+                    currentVerticalResolution   = Uint(obj, "CurrentVerticalResolution"),
+                    currentRefreshRate          = Uint(obj, "CurrentRefreshRate"),
+                    status                      = Str(obj, "Status"),
+                });
+            }
         }
         return list.ToArray();
     }
@@ -103,20 +111,24 @@ static class HardwareInfoHelper
     {
         var list = new List<object>();
         using var searcher = new ManagementObjectSearcher("SELECT * FROM Win32_PhysicalMemory");
-        foreach (ManagementObject obj in searcher.Get())
+        using var collection = searcher.Get();
+        foreach (ManagementObject obj in collection)
         {
-            list.Add(new
+            using (obj)
             {
-                deviceLocator   = Str(obj, "DeviceLocator"),
-                manufacturer    = Str(obj, "Manufacturer"),
-                capacityBytes   = Ulong(obj, "Capacity"),
-                speedMhz        = Uint(obj, "Speed"),
-                memoryType      = MemTypeName(Uint(obj, "MemoryType")),
-                formFactor      = FormFactorName(Uint(obj, "FormFactor")),
-                dataWidth       = Uint(obj, "DataWidth"),
-                partNumber      = Str(obj, "PartNumber"),
-                serialNumber    = Str(obj, "SerialNumber"),
-            });
+                list.Add(new
+                {
+                    deviceLocator   = Str(obj, "DeviceLocator"),
+                    manufacturer    = Str(obj, "Manufacturer"),
+                    capacityBytes   = Ulong(obj, "Capacity"),
+                    speedMhz        = Uint(obj, "Speed"),
+                    memoryType      = MemTypeName(Uint(obj, "MemoryType")),
+                    formFactor      = FormFactorName(Uint(obj, "FormFactor")),
+                    dataWidth       = Uint(obj, "DataWidth"),
+                    partNumber      = Str(obj, "PartNumber"),
+                    serialNumber    = Str(obj, "SerialNumber"),
+                });
+            }
         }
         return list.ToArray();
     }
@@ -127,19 +139,23 @@ static class HardwareInfoHelper
     {
         var list = new List<object>();
         using var searcher = new ManagementObjectSearcher("SELECT * FROM Win32_DiskDrive");
-        foreach (ManagementObject obj in searcher.Get())
+        using var collection = searcher.Get();
+        foreach (ManagementObject obj in collection)
         {
-            list.Add(new
+            using (obj)
             {
-                model           = Str(obj, "Model"),
-                manufacturer    = Str(obj, "Manufacturer"),
-                sizeBytes       = Ulong(obj, "Size"),
-                mediaType       = Str(obj, "MediaType"),
-                interfaceType   = Str(obj, "InterfaceType"),
-                partitions      = Uint(obj, "Partitions"),
-                serialNumber    = Str(obj, "SerialNumber"),
-                status          = Str(obj, "Status"),
-            });
+                list.Add(new
+                {
+                    model           = Str(obj, "Model"),
+                    manufacturer    = Str(obj, "Manufacturer"),
+                    sizeBytes       = Ulong(obj, "Size"),
+                    mediaType       = Str(obj, "MediaType"),
+                    interfaceType   = Str(obj, "InterfaceType"),
+                    partitions      = Uint(obj, "Partitions"),
+                    serialNumber    = Str(obj, "SerialNumber"),
+                    status          = Str(obj, "Status"),
+                });
+            }
         }
         return list.ToArray();
     }
@@ -151,19 +167,23 @@ static class HardwareInfoHelper
         var list = new List<object>();
         using var searcher = new ManagementObjectSearcher(
             "SELECT * FROM Win32_NetworkAdapter WHERE PhysicalAdapter = TRUE");
-        foreach (ManagementObject obj in searcher.Get())
+        using var collection = searcher.Get();
+        foreach (ManagementObject obj in collection)
         {
-            list.Add(new
+            using (obj)
             {
-                name                = Str(obj, "Name"),
-                manufacturer        = Str(obj, "Manufacturer"),
-                macAddress          = Str(obj, "MACAddress"),
-                adapterType         = Str(obj, "AdapterType"),
-                speedBps            = Uint(obj, "Speed"),
-                netConnectionStatus = Ushort(obj, "NetConnectionStatus") == 2,
-                pnpDeviceId         = Str(obj, "PNPDeviceID"),
-                status              = Str(obj, "Status"),
-            });
+                list.Add(new
+                {
+                    name                = Str(obj, "Name"),
+                    manufacturer        = Str(obj, "Manufacturer"),
+                    macAddress          = Str(obj, "MACAddress"),
+                    adapterType         = Str(obj, "AdapterType"),
+                    speedBps            = Uint(obj, "Speed"),
+                    netConnectionStatus = Ushort(obj, "NetConnectionStatus") == 2,
+                    pnpDeviceId         = Str(obj, "PNPDeviceID"),
+                    status              = Str(obj, "Status"),
+                });
+            }
         }
         return list.ToArray();
     }
@@ -175,15 +195,19 @@ static class HardwareInfoHelper
         var list = new List<object>();
         using var searcher = new ManagementObjectSearcher(
             "SELECT * FROM Win32_PnPEntity WHERE PNPClass = 'Bluetooth'");
-        foreach (ManagementObject obj in searcher.Get())
+        using var collection = searcher.Get();
+        foreach (ManagementObject obj in collection)
         {
-            list.Add(new
+            using (obj)
             {
-                name        = Str(obj, "Name"),
-                deviceId    = Str(obj, "DeviceID"),
-                pnpDeviceId = Str(obj, "PNPDeviceID"),
-                status      = Str(obj, "Status"),
-            });
+                list.Add(new
+                {
+                    name        = Str(obj, "Name"),
+                    deviceId    = Str(obj, "DeviceID"),
+                    pnpDeviceId = Str(obj, "PNPDeviceID"),
+                    status      = Str(obj, "Status"),
+                });
+            }
         }
         return list.ToArray();
     }
@@ -194,15 +218,19 @@ static class HardwareInfoHelper
     {
         var list = new List<object>();
         using var searcher = new ManagementObjectSearcher("SELECT * FROM Win32_BaseBoard");
-        foreach (ManagementObject obj in searcher.Get())
+        using var collection = searcher.Get();
+        foreach (ManagementObject obj in collection)
         {
-            list.Add(new
+            using (obj)
             {
-                manufacturer = Str(obj, "Manufacturer"),
-                product      = Str(obj, "Product"),
-                serialNumber = Str(obj, "SerialNumber"),
-                version      = Str(obj, "Version"),
-            });
+                list.Add(new
+                {
+                    manufacturer = Str(obj, "Manufacturer"),
+                    product      = Str(obj, "Product"),
+                    serialNumber = Str(obj, "SerialNumber"),
+                    version      = Str(obj, "Version"),
+                });
+            }
         }
         return list.ToArray();
     }
@@ -217,18 +245,22 @@ static class HardwareInfoHelper
         {
             using var searcher = new ManagementObjectSearcher(
                 @"root\wmi", "SELECT * FROM WmiMonitorBasicDisplayParams");
+            using var collection = searcher.Get();
             uint index = 0;
-            foreach (ManagementObject obj in searcher.Get())
+            foreach (ManagementObject obj in collection)
             {
-                index++;
-                list.Add(new
+                using (obj)
                 {
-                name         = $"Monitor {index}",
-                manufacturer = MfgName(Ushort(obj, "ManufacturerName")),
-                screenWidth  = Uint(obj, "MaxHorizontalImageSize"),
-                screenHeight = Uint(obj, "MaxVerticalImageSize"),
-                pnpDeviceId  = Str(obj, "InstanceName"),
-                });
+                    index++;
+                    list.Add(new
+                    {
+                        name         = $"Monitor {index}",
+                        manufacturer = MfgName(Ushort(obj, "ManufacturerName")),
+                        screenWidth  = Uint(obj, "MaxHorizontalImageSize"),
+                        screenHeight = Uint(obj, "MaxVerticalImageSize"),
+                        pnpDeviceId  = Str(obj, "InstanceName"),
+                    });
+                }
             }
         }
         catch { /* WmiMonitorBasicDisplayParams 可能不可用 */ }
@@ -237,17 +269,21 @@ static class HardwareInfoHelper
         {
             using var fallback = new ManagementObjectSearcher(
                 "SELECT * FROM Win32_DesktopMonitor");
-            foreach (ManagementObject obj in fallback.Get())
+            using var collection = fallback.Get();
+            foreach (ManagementObject obj in collection)
             {
-                list.Add(new
+                using (obj)
                 {
-                name         = Str(obj, "Name"),
-                manufacturer = Str(obj, "MonitorManufacturer"),
-                screenWidth  = Uint(obj, "ScreenWidth"),
-                screenHeight = Uint(obj, "ScreenHeight"),
-                pnpDeviceId  = Str(obj, "PNPDeviceID"),
-                status       = Str(obj, "Status"),
-                });
+                    list.Add(new
+                    {
+                        name         = Str(obj, "Name"),
+                        manufacturer = Str(obj, "MonitorManufacturer"),
+                        screenWidth  = Uint(obj, "ScreenWidth"),
+                        screenHeight = Uint(obj, "ScreenHeight"),
+                        pnpDeviceId  = Str(obj, "PNPDeviceID"),
+                        status       = Str(obj, "Status"),
+                    });
+                }
             }
         }
 
