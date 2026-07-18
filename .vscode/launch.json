@@ -2,7 +2,7 @@
   "version": "26.0.0",
   "configurations": [
     {
-      "name": "Eisland: Developers Normal DEV Mode",
+      "name": "Eisland: Eisland DEV Server",
       "type": "node",
       "request": "launch",
       "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron-vite",
@@ -35,6 +35,16 @@
       "request": "launch",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "release:upload-only"],
+      "console": "integratedTerminal",
+      "skipFiles": ["<node_internals>/**"]
+    },
+    {
+      "name": "Eisland: Docs DEV Server",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "docs:dev"],
+      "cwd": "${workspaceFolder}/web/eisland-web-docs",
       "console": "integratedTerminal",
       "skipFiles": ["<node_internals>/**"]
     }
