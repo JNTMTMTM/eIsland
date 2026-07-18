@@ -3,33 +3,51 @@ name: eisland-dev-refactor-module-split
 author: JNTMTMTM
 description: >
   Refactor a monolithic React component file into a standardized module structure with
-  components/, hooks/, utils/, and config/ subdirectories. Use this skill whenever the user
-  asks to "split", "refactor", "拆分", "拆解", or "restructure" a component file into
-  subdirectories, or when they mention organizing code into utils/hooks/config/components folders.
+  components/, hooks/, utils/, types/, and config/ subdirectories. Use this skill whenever
+  the user asks to "split", "refactor", "拆分", "拆解", or "restructure" a component file
+  into subdirectories, or when they mention organizing code into modules.
 ---
 
 # Refactor Module Split
 
-Split a monolithic React component file into a clean module structure with four subdirectories: `components/`, `hooks/`, `utils/`, and `config/`.
+Split a monolithic React component file into a clean module structure with five subdirectories: `components/`, `hooks/`, `utils/`, `types/`, and `config/`, plus an `index.ts` entry point.
 
 ## When to use
 
-- A single `.tsx` file has grown large and contains multiple concerns (utility functions, hooks, sub-components, constants)
+- A single `.tsx` file has grown large and contains multiple concerns (utility functions, hooks, sub-components, constants, type definitions)
 - The user explicitly asks to split/refactor a component into subdirectories
 - The file is a React component that mixes UI rendering, state management, utility logic, and configuration
 
 ## Process
 
+### Step 0: Ensure module scaffolding exists
+
+Before extracting any code, verify the target module directory has the required structure. If any of the following are missing, create them first:
+
+```
+<module>/
+├── index.ts          (if missing, create with placeholder export)
+├── types/            (if missing, create directory)
+├── config/           (if missing, create directory)
+├── utils/            (if missing, create directory)
+├── hooks/            (if missing, create directory)
+└── components/       (if missing, create directory)
+```
+
+- Empty directories should contain a `.gitkeep` placeholder
+- `index.ts` should initially export the original component (update after refactoring)
+
 ### Step 1: Analyze the source file
 
-Read the target file in full. Categorize every piece of code into one of four buckets:
+Read the target file in full. Categorize every piece of code into one of five buckets:
 
 | Bucket | Criteria | Target directory |
 |--------|----------|-----------------|
+| **Types** | `type`, `interface`, component prop interfaces, hook return types | `types/` |
+| **Constants** | `const` values, config keys, store keys, i18n keys/defaults | `config/` |
 | **Pure functions** | No React hooks, no side effects, deterministic input→output | `utils/` |
 | **React hooks** | Uses `useState`, `useEffect`, `useMemo`, `useCallback`, or custom hooks | `hooks/` |
 | **Sub-components** | Returns JSX, used within the main component | `components/` |
-| **Constants** | `const` values, config keys, i18n keys/defaults, type-only definitions used across modules | `config/` |
 
 Also check if the file's sibling directories already exist (e.g., `components/` or `hooks/` may already have files from prior refactoring). Don't duplicate existing extractions.
 
@@ -43,20 +61,59 @@ For each extracted piece, create a new file in the appropriate directory. Every 
 4. **Correct imports** — relative paths back to shared types or store slices
 
 Naming conventions:
-- `utils/` — camelCase function name as filename (e.g., `findCurrentIndex.ts`, `formatDatetime.ts`)
-- `hooks/` — camelCase with `use` prefix (e.g., `useBeijingClock.ts`, `useLyricsSettings.ts`)
-- `components/` — PascalCase component name (e.g., `KaraokeSyllableLine.tsx`, `AnnouncementHeader.tsx`)
-- `config/` — camelCase descriptive name (e.g., `lyricsConstants.ts`, `announcementDefaults.ts`)
+- `types/` — camelCase with module prefix (e.g., `todoTypes.ts`, `albumTypes.ts`, `localFileSearchTypes.ts`)
+- `config/` — camelCase with module prefix (e.g., `todoConfig.ts`, `albumConfig.ts`, `localFileSearchConfig.ts`)
+- `utils/` — camelCase with module prefix (e.g., `todoUtils.ts`, `albumUtils.ts`, `localFileSearchUtils.ts`)
+- `hooks/` — camelCase with `use` prefix (e.g., `useTodos.ts`, `useAlbumItems.ts`, `useLocalFileSearch.ts`)
+- `components/` — PascalCase component name (e.g., `TodoTab.tsx`, `TodoHeader.tsx`, `AlbumGridItem.tsx`)
 
-### Step 3: Rewrite the source file
+### Step 3: Define types first
+
+Create `types/<module>Types.ts` **before** other files. This file must contain:
+
+1. **Domain types** — data models, enums, union types used by the module
+2. **Hook return type** — `Use<Module>Return` interface describing the hook's full return shape
+3. **Component prop interfaces** — `<Component>Props` for every sub-component
+
+All component prop interfaces and hook return types MUST be defined in `types/`, not inline in component or hook files.
+
+Example pattern:
+```typescript
+// types/todoTypes.ts
+
+/** 紧急程度 */
+export type Priority = 'P0' | 'P1' | 'P2';
+
+/** 单条待办 */
+export interface TodoItem { ... }
+
+/** useTodos hook 返回值类型 */
+export interface UseTodosReturn { ... }
+
+/** TodoHeader 组件入参 */
+export interface TodoHeaderProps { ... }
+
+/** TodoInputBar 组件入参 */
+export interface TodoInputBarProps { ... }
+```
+
+### Step 4: Rewrite the source file
 
 Replace the extracted code in the original file with imports from the new modules. The source file should become a thin composition layer that:
-- Imports from `./hooks/`, `./components/`, `./utils/`, `./config/`
-- Calls hooks at the top level
-- Renders sub-components in JSX
-- Contains no extracted logic
+- Imports hook from `../hooks/use<Module>`
+- Imports sub-components from `./<ComponentName>`
+- Calls the hook at the top level
+- Destructures hook return values and passes them as props to sub-components
+- Contains no extracted logic, no `useEffect`, no utility functions
 
-### Step 4: Verify
+### Step 5: Create the index.ts entry point
+
+Create `<module>/index.ts` that re-exports the main component:
+```typescript
+export { TodoTab } from './components/TodoTab';
+```
+
+### Step 6: Verify
 
 Run these checks in order — all must pass before committing:
 
@@ -79,33 +136,91 @@ If any check fails, fix the issue before proceeding. Common failures:
 - `i18n:check` — a `t('key')` call references a key not present in both locale files
 - `test` — a refactored import path broke a test, or an extracted function changed behavior
 
-### Step 5: Commit
+### Step 7: Commit
 
 Use a conventional commit message:
 ```
-refactor(<module-name>): extract utils, hooks, components, config from <OriginalFile>
+refactor(<module-name>): extract types, utils, hooks, components, config from <OriginalFile>
 
-- utils/<name>.ts: <what it does>
+- types/<name>Types.ts: type definitions + component prop interfaces
+- utils/<name>Utils.ts: <what it does>
+- hooks/use<Name>.ts: <what it does>
 - components/<Name>.tsx: <what it does>
-- hooks/<name>.ts: <what it does>
-- config/<name>.ts: <what it contains>
+- config/<name>Config.ts: <what it contains>
+- index.ts: module entry point
 - <OriginalFile>.ts: simplified from <N> to <M> lines
 ```
 
-## Directory structure example
+## Directory structure
 
 ```
 feature/
-├── FeatureContent.tsx          (thin composition layer)
-├── components/
-│   └── FeatureHeader.tsx       (sub-component)
-├── hooks/
-│   ├── useFeatureData.ts       (data fetching hook)
-│   └── useFeatureSettings.ts   (settings listener hook)
+├── index.ts                    (module entry point, re-exports main component)
+├── types/
+│   └── featureTypes.ts         (types, hook return type, component prop interfaces)
+├── config/
+│   └── featureConfig.ts        (constants, store keys, defaults)
 ├── utils/
-│   └── formatValue.ts          (pure utility function)
-└── config/
-    └── featureConstants.ts     (i18n keys, store keys, defaults)
+│   └── featureUtils.ts         (pure utility functions)
+├── hooks/
+│   └── useFeature.ts           (all state management logic)
+└── components/
+    ├── FeatureTab.tsx           (thin composition layer: hook + sub-components)
+    ├── FeatureHeader.tsx        (sub-component)
+    └── FeatureList.tsx          (sub-component)
+```
+
+### Real examples from the codebase
+
+```
+todo/
+├── index.ts
+├── types/todoTypes.ts
+├── config/todoConfig.ts
+├── utils/todoUtils.ts
+├── hooks/useTodos.ts
+└── components/
+    ├── TodoTab.tsx
+    ├── TodoHeader.tsx
+    ├── TodoInputBar.tsx
+    ├── TodoList.tsx
+    ├── TodoItem.tsx
+    └── TodoSubItem.tsx
+
+album/
+├── index.ts
+├── types/albumTypes.ts
+├── config/albumConfig.ts
+├── utils/albumUtils.ts
+├── hooks/
+│   ├── useAlbumItems.ts
+│   ├── useAlbumViewer.ts
+│   ├── useAlbumViewerActions.ts
+│   ├── useAlbumSelection.ts
+│   ├── useAlbumGridConfig.ts
+│   └── useAlbumDrag.ts
+└── components/
+    ├── AlbumTab.tsx
+    ├── AlbumHeader.tsx
+    ├── AlbumOverview.tsx
+    ├── AlbumViewer.tsx
+    ├── AlbumGridItem.tsx
+    ├── AlbumMetaPanel.tsx
+    └── AlbumSelectionBar.tsx
+
+localFileSearch/
+├── index.ts
+├── types/localFileSearchTypes.ts
+├── config/localFileSearchConfig.ts
+├── utils/localFileSearchUtils.ts
+├── hooks/useLocalFileSearch.ts
+└── components/
+    ├── LocalFileSearchTab.tsx
+    ├── LocalFileSearchHeader.tsx
+    ├── LocalFileSearchRootRow.tsx
+    ├── LocalFileSearchQueryRow.tsx
+    ├── LocalFileSearchConfigPanel.tsx
+    └── LocalFileSearchResults.tsx
 ```
 
 ## Acceptance criteria
@@ -161,9 +276,13 @@ Every extracted file MUST satisfy ALL of the following before the refactoring is
 
 ## Important rules
 
-- **All four directories must exist.** If a directory has no files, create a `.gitkeep` placeholder. The user expects the full structure.
-- **Extract ALL hooks.** Every `useEffect`, `useState`, `useMemo`, `useCallback` block in the original file must end up in a hook file. The main component should have zero `useEffect` calls after refactoring (unless the effect is trivially tied to a single prop and extracting it would overcomplicate the code — justify with a comment).
+- **All five directories must exist** (`types/`, `config/`, `utils/`, `hooks/`, `components/`). If a directory has no files, create a `.gitkeep` placeholder.
+- **`types/` must be created first.** All component prop interfaces and hook return types go in `types/`, not inline in component or hook files.
+- **`index.ts` is required.** Every module must have an `index.ts` that re-exports the main component.
+- **Extract ALL hooks.** Every `useEffect`, `useState`, `useMemo`, `useCallback` block in the original file must end up in a hook file. The main component should have zero `useEffect` calls after refactoring.
 - **Extract ALL pure functions.** If a function has no React hooks and no side effects, it belongs in `utils/`. Don't leave pure functions in the component.
+- **Extract ALL types.** All `type` and `interface` definitions used across multiple files go in `types/`.
+- **Use `CSSProperties` not `React.CSSProperties`.** When importing CSS type utilities, import `CSSProperties` directly from `'react'` — do not use `React.CSSProperties` without importing `React`.
 - **Match existing style.** Use the same comment density, naming patterns, and import ordering as the rest of the project.
 - **Preserve behavior exactly.** This is a pure structural refactor — no logic changes, no new features, no "improvements" to adjacent code.
 - **Relative imports from subdirectories.** A file in `hooks/` that needs a store type uses `../../../../store/types`, not an alias.

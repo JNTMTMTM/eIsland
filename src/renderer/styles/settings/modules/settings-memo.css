@@ -924,6 +924,14 @@
   opacity: 0.4;
 }
 
+.memo-tab-editor-empty-icon img {
+  filter: brightness(0) invert(1);
+}
+
+.memo-tab-bookmark-filter img {
+  filter: brightness(0) invert(1);
+}
+
 .memo-tab-editor-empty-text {
   font-size: 13px;
 }
@@ -1041,4 +1049,12 @@
 
 [data-theme='light'] .memo-tab-editor-empty-icon {
   opacity: 0.25;
+}
+
+[data-theme='light'] .memo-tab-editor-empty-icon img {
+  filter: brightness(0) invert(0);
+}
+
+[data-theme='light'] .memo-tab-bookmark-filter img {
+  filter: brightness(0) invert(0);
 }
