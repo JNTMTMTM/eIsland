@@ -527,6 +527,25 @@
   justify-self: end;
 }
 
+.url-favorites-editor-wrapper {
+  display: grid;
+  grid-template-rows: 0fr;
+  margin-bottom: -6px;
+  transition:
+    grid-template-rows 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    margin-bottom 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.url-favorites-editor-wrapper--open {
+  grid-template-rows: 1fr;
+  margin-bottom: 0;
+}
+
+.url-favorites-editor-inner {
+  overflow: hidden;
+  min-height: 0;
+}
+
 .url-favorites-editor {
   display: flex;
   flex-direction: column;
@@ -617,6 +636,22 @@
   font-size: 12px;
   color: rgba(var(--color-text-rgb), 0.4);
   text-align: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .url-favorites-editor-wrapper {
+    transition: none;
+  }
+
+  .url-favorites-folder-bar,
+  .url-favorites-import-export-panel {
+    transition: none;
+  }
+
+  .url-favorites-folder-bar > *:not(datalist),
+  .url-favorites-import-export-panel > *:not(.url-favorites-file-input) {
+    transition: none;
+  }
 }
 
 .clipboard-history {
