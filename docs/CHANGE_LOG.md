@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-07-18T07:20:20.656Z
+> 生成时间：2026-07-18T10:34:15.666Z
 
 ## 26.6.4
 
@@ -2755,6 +2755,12 @@
 
 ## Unreleased
 
+- 2026-07-18 | 7e27877b | 鸡哥 | Merge pull request #158 from JNTMTMTM/dev
+- 2026-07-18 | ef24d27c | 鸡哥 | feat(urlFavorites): implement import/export functionality with drag-and-drop support and format selection
+- 2026-07-18 | 1f6b2af6 | 鸡哥 | feat(urlFavorites): refactor drag event types and improve state management with concise type imports
+- 2026-07-18 | 989d5d54 | 鸡哥 | feat(urlFavorites): enhance editor UI with transition effects and improved layout
+- 2026-07-18 | bbf899b2 | 鸡哥 | feat(urlFavorites): implement URL favorites management module with hooks and components
+- 2026-07-18 | 152192b7 | eislandBot | docs: auto update CHANGE_LOG.md for #157 by @JNTMTMTM [skip ci]
 - 2026-07-18 | 72b32ed3 | 鸡哥 | Merge pull request #157 from JNTMTMTM/dev
 - 2026-07-18 | c6e4fc76 | 鸡哥 | feat(mail): implement mail module with multi-account support and inbox functionality
 - 2026-07-18 | 0654d627 | 鸡哥 | Merge pull request #156 from silenthim18303/dev
