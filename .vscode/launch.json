@@ -1,0 +1,15 @@
+{
+  "version": "26.0.0",
+  "configurations": [
+    {
+      "name": "Eisland: Developers Normal DEV Mode",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron-vite",
+      "runtimeArgs": ["dev"],
+      "console": "integratedTerminal",
+      "sourceMaps": true,
+      "skipFiles": ["<node_internals>/**"]
+    }
+  ]
+}
