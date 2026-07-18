@@ -99,18 +99,32 @@ export interface MonitorInfo {
   manufacturer: string | null;
   screenWidth: number | null;
   screenHeight: number | null;
-  refreshRate: number | null;
   pnpDeviceId: string | null;
   status: string | null;
 }
 
 // -- Query Functions --
 
+/** Get CPU information */
 export function getCpuInfo(): CpuInfo[];
+
+/** Get GPU information */
 export function getGpuInfo(): GpuInfo[];
+
+/** Get memory slot information */
 export function getMemoryInfo(): MemorySlotInfo[];
+
+/** Get disk information */
 export function getDiskInfo(): DiskInfo[];
+
+/** Get network adapter information */
 export function getNetworkAdapterInfo(): NetworkAdapterInfo[];
+
+/** Get Bluetooth device information (paired devices via WMI) */
 export function getBluetoothDevices(): BluetoothDeviceInfo[];
+
+/** Get motherboard information */
 export function getMotherboardInfo(): MotherboardInfo[];
+
+/** Get monitor information */
 export function getMonitorInfo(): MonitorInfo[];

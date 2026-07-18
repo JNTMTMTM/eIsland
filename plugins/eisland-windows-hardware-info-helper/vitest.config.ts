@@ -14,23 +14,17 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  */
 
-using System.Text.Json.Serialization;
+import { defineConfig } from 'vitest/config';
 
-namespace eIslandHardwareInfoHelper;
-
-[JsonSerializable(typeof(CpuInfo[]))]
-[JsonSerializable(typeof(GpuInfo[]))]
-[JsonSerializable(typeof(MemorySlotInfo[]))]
-[JsonSerializable(typeof(DiskInfo[]))]
-[JsonSerializable(typeof(NetworkAdapterInfo[]))]
-[JsonSerializable(typeof(BluetoothDeviceInfo[]))]
-[JsonSerializable(typeof(MotherboardInfo[]))]
-[JsonSerializable(typeof(MonitorInfo[]))]
-[JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
-internal partial class HiJsonContext : JsonSerializerContext
-{
-}
+export default defineConfig({
+  test: {
+    environment: 'node',
+    include: ['test/**/*.test.ts'],
+    clearMocks: true,
+    restoreMocks: true,
+  },
+});

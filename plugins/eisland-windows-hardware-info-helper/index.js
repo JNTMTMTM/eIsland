@@ -22,86 +22,110 @@ if (process.platform !== 'win32') {
   throw new Error('@eisland/windows-hardware-info-helper only supports Windows.');
 }
 
-const { callJson, getLastError } = require('./ffi-loader');
+const { spawnSync } = require('node:child_process');
+const fs = require('node:fs');
+const path = require('node:path');
+
+const helperCandidates = [
+  path.join(__dirname, 'src', 'bin', 'Release', 'net10.0', 'eIslandHardwareInfoReader.exe'),
+  path.join(__dirname, 'src', 'bin', 'Debug', 'net10.0', 'eIslandHardwareInfoReader.exe'),
+];
 
 /**
- * 获取 CPU 信息
+ * Find helper EXE path
+ * @returns {string | null}
+ */
+function findHelper() {
+  return helperCandidates.find((c) => fs.existsSync(c)) ?? null;
+}
+
+/**
+ * Synchronously call helper EXE
+ * @param {string[]} args
+ * @param {number} timeout
+ * @returns {any | null}
+ */
+function callHelper(args, timeout = 10000) {
+  const helperPath = findHelper();
+  if (!helperPath) return null;
+
+  const result = spawnSync(helperPath, args, {
+    encoding: 'utf8',
+    windowsHide: true,
+    timeout,
+  });
+
+  if (result.status !== 0 || result.error || !result.stdout) return null;
+
+  try {
+    return JSON.parse(result.stdout.trim());
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Get CPU information
  * @returns {Array<import('.').CpuInfo>}
  */
 function getCpuInfo() {
-  const result = callJson('hi_get_cpu_info');
-  if (!result) throw new Error('Failed to get CPU info: ' + getLastError());
-  return result;
+  return callHelper(['cpu']) ?? [];
 }
 
 /**
- * 获取 GPU 信息
+ * Get GPU information
  * @returns {Array<import('.').GpuInfo>}
  */
 function getGpuInfo() {
-  const result = callJson('hi_get_gpu_info');
-  if (!result) throw new Error('Failed to get GPU info: ' + getLastError());
-  return result;
+  return callHelper(['gpu']) ?? [];
 }
 
 /**
- * 获取内存信息
+ * Get memory slot information
  * @returns {Array<import('.').MemorySlotInfo>}
  */
 function getMemoryInfo() {
-  const result = callJson('hi_get_memory_info');
-  if (!result) throw new Error('Failed to get memory info: ' + getLastError());
-  return result;
+  return callHelper(['memory']) ?? [];
 }
 
 /**
- * 获取硬盘信息
+ * Get disk information
  * @returns {Array<import('.').DiskInfo>}
  */
 function getDiskInfo() {
-  const result = callJson('hi_get_disk_info');
-  if (!result) throw new Error('Failed to get disk info: ' + getLastError());
-  return result;
+  return callHelper(['disk']) ?? [];
 }
 
 /**
- * 获取网卡信息
+ * Get network adapter information
  * @returns {Array<import('.').NetworkAdapterInfo>}
  */
 function getNetworkAdapterInfo() {
-  const result = callJson('hi_get_network_adapter_info');
-  if (!result) throw new Error('Failed to get network adapter info: ' + getLastError());
-  return result;
+  return callHelper(['network']) ?? [];
 }
 
 /**
- * 获取蓝牙设备信息（已配对）
+ * Get Bluetooth device information (paired devices via WMI)
  * @returns {Array<import('.').BluetoothDeviceInfo>}
  */
 function getBluetoothDevices() {
-  const result = callJson('hi_get_bluetooth_devices');
-  if (!result) throw new Error('Failed to get Bluetooth devices: ' + getLastError());
-  return result;
+  return callHelper(['bluetooth']) ?? [];
 }
 
 /**
- * 获取主板信息
+ * Get motherboard information
  * @returns {Array<import('.').MotherboardInfo>}
  */
 function getMotherboardInfo() {
-  const result = callJson('hi_get_motherboard_info');
-  if (!result) throw new Error('Failed to get motherboard info: ' + getLastError());
-  return result;
+  return callHelper(['motherboard']) ?? [];
 }
 
 /**
- * 获取显示器信息
+ * Get monitor information
  * @returns {Array<import('.').MonitorInfo>}
  */
 function getMonitorInfo() {
-  const result = callJson('hi_get_monitor_info');
-  if (!result) throw new Error('Failed to get monitor info: ' + getLastError());
-  return result;
+  return callHelper(['monitor']) ?? [];
 }
 
 module.exports = {

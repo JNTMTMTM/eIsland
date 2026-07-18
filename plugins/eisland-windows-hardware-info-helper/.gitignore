@@ -1,17 +1,8 @@
 node_modules/
-build/
 src/bin/
 src/obj/
 src/.vs/
 *.log
 *.pdb
-*.ipdb
-*.iobj
-*.exp
-*.lib
-*.node
-*.recipe
-*.lastbuildstate
-*.tlog
 .DS_Store
 Thumbs.db
