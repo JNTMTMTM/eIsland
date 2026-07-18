@@ -21,7 +21,7 @@
 /**
  * @file hardware-info.smoke.ts
  * @description Smoke test for hardware info helper — prints all query results
- * @author JNTMTMTM
+ * @author 鸡哥
  */
 
 const hw = require('../');

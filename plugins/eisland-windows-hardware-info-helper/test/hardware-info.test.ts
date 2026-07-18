@@ -21,7 +21,7 @@
 /**
  * @file hardware-info.test.ts
  * @description Unit tests for hardware info helper query functions
- * @author JNTMTMTM
+ * @author 鸡哥
  */
 
 import { describe, it, expect } from 'vitest';

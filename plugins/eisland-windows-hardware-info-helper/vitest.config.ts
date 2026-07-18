@@ -21,7 +21,7 @@
 /**
  * @file vitest.config.ts
  * @description Vitest test configuration
- * @author JNTMTMTM
+ * @author 鸡哥
  */
 
 import { defineConfig } from 'vitest/config';
