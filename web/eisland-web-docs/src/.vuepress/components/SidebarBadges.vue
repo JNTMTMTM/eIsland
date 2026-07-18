@@ -80,6 +80,14 @@ const BADGE_MAP: Record<string, string> = {
   ToastNotificationSnapshot: 'interface',
   // Application Icon Helper
   IconResult: 'interface',
+  // Hardware Info Helper
+  CpuInfo: 'interface',
+  GpuInfo: 'interface',
+  MemorySlotInfo: 'interface',
+  DiskInfo: 'interface',
+  NetworkAdapterInfo: 'interface',
+  MotherboardInfo: 'interface',
+  MonitorInfo: 'interface',
   // Screenshot Helper
   ScreenshotResult: 'interface',
   VisibleWindowBounds: 'interface',
