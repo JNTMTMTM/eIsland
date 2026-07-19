@@ -1,0 +1,8 @@
+node_modules/
+src/bin/
+src/obj/
+src/.vs/
+*.log
+*.pdb
+.DS_Store
+Thumbs.db

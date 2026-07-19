@@ -14,3 +14,4 @@ Plugins for system resource monitoring and process management.
 | [Windows Performance Monitor](performance-monitor.md) | CPU, memory, and temperature monitoring |
 | [Windows Processes Attacker](processes-attacker.md) | Process termination utilities |
 | [Windows Application Icon Helper](application-icon-helper.md) | Application icon extraction by name, PID, path, or shortcut |
+| [Windows Hardware Info Helper](hardware-info-helper.md) | Static hardware information query (CPU, GPU, memory, disk, etc.) |
