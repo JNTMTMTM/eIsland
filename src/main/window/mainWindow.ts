@@ -28,6 +28,7 @@
 import { BrowserWindow, screen, shell } from 'electron';
 import { join } from 'path';
 import { is } from '@electron-toolkit/utils';
+import { readIslandShapeModeConfig } from '../config/storeConfig';
 
 interface WindowSizeOptions {
   islandWidth: number;
@@ -76,11 +77,16 @@ export function createMainWindowService(options: CreateMainWindowServiceOptions)
 
   function getInitialIslandBounds(): Electron.Rectangle {
     const targetDisplay = getTargetDisplay();
-    const { x: workX, y: workY, width: workWidth } = targetDisplay.workArea;
+    const { x: workX, y: workY, width: workWidth, height: workHeight } = targetDisplay.workArea;
     const centeredX = Math.round(workX + (workWidth - options.sizes.islandWidth) / 2);
     const offset = options.getIslandPositionOffset();
     const x = centeredX + offset.x;
-    const y = Math.round(workY + offset.y);
+    const shapeMode = readIslandShapeModeConfig();
+    /** pill 模式默认居中，notch 模式贴顶 */
+    const baseY = shapeMode === 'pill'
+      ? Math.round(workY + (workHeight - options.sizes.islandHeight) / 2)
+      : workY;
+    const y = baseY + offset.y;
     return {
       x,
       y,

@@ -38,6 +38,8 @@ interface RegisterIslandIpcHandlersOptions {
   idleClickExpandStoreKey: string;
   autostartModeStoreKey: string;
   navOrderStoreKey: string;
+  /** 形态模式变更后触发窗口重定位 */
+  onShapeModeChanged?: () => void;
 }
 
 /**
@@ -189,6 +191,32 @@ export function registerIslandIpcHandlers(options: RegisterIslandIpcHandlersOpti
       return true;
     } catch (err) {
       console.error('[AnimationSpeed] persist error:', err);
+      return false;
+    }
+  });
+
+  ipcMain.handle('island:shape-mode:get', () => {
+    try {
+      const filePath = join(options.storeDir, 'island-shape-mode.json');
+      if (!existsSync(filePath)) return 'notch';
+      const raw = readFileSync(filePath, 'utf-8');
+      const data = JSON.parse(raw);
+      return data === 'notch' || data === 'pill' ? data : 'notch';
+    } catch {
+      return 'notch';
+    }
+  });
+
+  ipcMain.handle('island:shape-mode:set', (event, mode: string) => {
+    try {
+      const valid = mode === 'notch' || mode === 'pill' ? mode : 'notch';
+      const filePath = join(options.storeDir, 'island-shape-mode.json');
+      writeFileSync(filePath, JSON.stringify(valid, null, 2), 'utf-8');
+      broadcastSettingChange(event.sender.id, 'island:shape-mode', valid);
+      options.onShapeModeChanged?.();
+      return true;
+    } catch (err) {
+      console.error('[ShapeMode] persist error:', err);
       return false;
     }
   });

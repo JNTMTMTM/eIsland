@@ -142,6 +142,14 @@ const api = {
     ipcRenderer.send('window:collapse');
   },
   /**
+   * 按像素偏移移动窗口（用于拖动）
+   * @param dx - 水平偏移量
+   * @param dy - 垂直偏移量
+   */
+  moveWindowDelta: (dx: number, dy: number): void => {
+    ipcRenderer.send('window:move-delta', dx, dy);
+  },
+  /**
    * 隐藏窗口
    */
   hideWindow: (): void => {
@@ -1224,6 +1232,18 @@ const api = {
    */
   animationSpeedSet: (speed: string): Promise<boolean> => {
     return ipcRenderer.invoke('island:animation-speed:set', speed);
+  },
+  /**
+   * 获取灵动岛形态模式 (notch / pill)
+   */
+  shapeModeGet: (): Promise<string> => {
+    return ipcRenderer.invoke('island:shape-mode:get');
+  },
+  /**
+   * 设置灵动岛形态模式
+   */
+  shapeModeSet: (mode: string): Promise<boolean> => {
+    return ipcRenderer.invoke('island:shape-mode:set', mode);
   },
   /**
    * 读取当前剪贴板文本

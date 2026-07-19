@@ -111,6 +111,12 @@ export const DEFAULT_ISLAND_POSITION_OFFSET: IslandPositionOffset = { x: 0, y: 0
 /** 灵动岛显示器选择默认值（primary 表示主显示器） */
 export const DEFAULT_ISLAND_DISPLAY_SELECTION = 'primary';
 
+/** 灵动岛形态模式存储键名 */
+export const ISLAND_SHAPE_MODE_STORE_KEY = 'island-shape-mode';
+
+/** 灵动岛形态模式默认值（notch = 刘海屏，pill = 灵动岛胶囊） */
+export const DEFAULT_ISLAND_SHAPE_MODE = 'notch';
+
 /** 默认隐藏快捷键 */
 export const DEFAULT_HIDE_HOTKEY = 'Alt+X';
 
@@ -530,6 +536,15 @@ export function writeIslandDisplaySelectionConfig(selection: string): boolean {
     console.error('[IslandDisplay] persist error:', err);
     return false;
   }
+}
+
+/**
+ * 读取灵动岛形态模式配置
+ * @returns 形态模式字符串（notch 或 pill）
+ */
+export function readIslandShapeModeConfig(): string {
+  const data = readJsonFile(ISLAND_SHAPE_MODE_STORE_KEY);
+  return data === 'notch' || data === 'pill' ? data : DEFAULT_ISLAND_SHAPE_MODE;
 }
 
 /**

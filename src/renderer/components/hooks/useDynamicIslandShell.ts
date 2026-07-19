@@ -46,6 +46,8 @@ interface UseDynamicIslandShellOptions {
   hasActiveCliSessionRef: React.MutableRefObject<boolean>;
   idleClickExpandRef: React.MutableRefObject<boolean>;
   isHoveringRef: React.MutableRefObject<boolean>;
+  /** pill 模式下强制 click-to-hover */
+  forceClickToHover?: boolean;
 }
 
 interface DynamicIslandShellState {
@@ -73,6 +75,7 @@ export function useDynamicIslandShell(options: UseDynamicIslandShellOptions): Dy
     hasActiveCliSessionRef,
     idleClickExpandRef,
     isHoveringRef,
+    forceClickToHover = false,
   } = options;
 
   const prevStateRef = useRef(state);
@@ -113,7 +116,7 @@ export function useDynamicIslandShell(options: UseDynamicIslandShellOptions): Dy
   }, [state, animationSpeed]);
 
   const handleIslandClick = useCallback(() => {
-    if (state === 'idle' && idleClickExpandRef.current) {
+    if (state === 'idle' && (forceClickToHover || idleClickExpandRef.current)) {
       isHoveringRef.current = true;
       setHover();
       return;
@@ -132,7 +135,7 @@ export function useDynamicIslandShell(options: UseDynamicIslandShellOptions): Dy
       }
       setHover();
     }
-  }, [state, setExpanded, setHover, setCli, hasActiveCliSessionRef, idleClickExpandRef, isHoveringRef]);
+  }, [state, setExpanded, setHover, setCli, hasActiveCliSessionRef, idleClickExpandRef, isHoveringRef, forceClickToHover]);
 
   return {
     morphing,

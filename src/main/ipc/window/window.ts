@@ -27,6 +27,7 @@
 
 import { BrowserWindow, ipcMain, screen } from 'electron';
 import { broadcastSettingChange } from '../../utils/broadcast';
+import { readIslandShapeModeConfig } from '../../config/storeConfig';
 
 interface WindowIpcSizeOptions {
   expandedWidth: number;
@@ -103,6 +104,21 @@ export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOpti
     }
   };
 
+  /** 获取当前窗口水平中心点（pill 模式用当前窗口中心，notch 模式用初始中心） */
+  const getEffectiveCenterX = (win: BrowserWindow): number => {
+    const shapeMode = readIslandShapeModeConfig();
+    if (shapeMode === 'pill') {
+      const bounds = win.getBounds();
+      return bounds.x + bounds.width / 2;
+    }
+    return options.getInitialCenterX();
+  };
+
+  /** 获取当前窗口 y 坐标（pill 模式保持当前 y，notch 模式保持当前 y） */
+  const getEffectiveY = (win: BrowserWindow): number => {
+    return win.getBounds().y;
+  };
+
   ipcMain.on('window:enable-mouse-passthrough', () => {
     withWindow((win) => {
       win.setIgnoreMouseEvents(true, { forward: true });
@@ -118,9 +134,10 @@ export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOpti
 
   ipcMain.on('window:expand', () => {
     withWindow((win) => {
+      const centerX = getEffectiveCenterX(win);
       win.setBounds({
-        x: Math.round(options.getInitialCenterX() - options.sizes.expandedWidth / 2),
-        y: win.getBounds().y,
+        x: Math.round(centerX - options.sizes.expandedWidth / 2),
+        y: getEffectiveY(win),
         width: options.sizes.expandedWidth,
         height: options.sizes.expandedHeight,
       });
@@ -129,9 +146,10 @@ export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOpti
 
   ipcMain.on('window:expand-notification', () => {
     withWindow((win) => {
+      const centerX = getEffectiveCenterX(win);
       win.setBounds({
-        x: Math.round(options.getInitialCenterX() - options.sizes.notificationWidth / 2),
-        y: win.getBounds().y,
+        x: Math.round(centerX - options.sizes.notificationWidth / 2),
+        y: getEffectiveY(win),
         width: options.sizes.notificationWidth,
         height: options.sizes.notificationHeight,
       });
@@ -140,9 +158,10 @@ export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOpti
 
   ipcMain.on('window:expand-lyrics', () => {
     withWindow((win) => {
+      const centerX = getEffectiveCenterX(win);
       win.setBounds({
-        x: Math.round(options.getInitialCenterX() - options.sizes.lyricsWidth / 2),
-        y: win.getBounds().y,
+        x: Math.round(centerX - options.sizes.lyricsWidth / 2),
+        y: getEffectiveY(win),
         width: options.sizes.lyricsWidth,
         height: options.sizes.lyricsHeight,
       });
@@ -151,9 +170,10 @@ export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOpti
 
   ipcMain.on('window:expand-lyrics-translation', () => {
     withWindow((win) => {
+      const centerX = getEffectiveCenterX(win);
       win.setBounds({
-        x: Math.round(options.getInitialCenterX() - options.sizes.lyricsWidth / 2),
-        y: win.getBounds().y,
+        x: Math.round(centerX - options.sizes.lyricsWidth / 2),
+        y: getEffectiveY(win),
         width: options.sizes.lyricsWidth,
         height: options.sizes.lyricsTranslationHeight,
       });
@@ -162,9 +182,10 @@ export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOpti
 
   ipcMain.on('window:expand-full', () => {
     withWindow((win) => {
+      const centerX = getEffectiveCenterX(win);
       win.setBounds({
-        x: Math.round(options.getInitialCenterX() - options.sizes.expandedFullWidth / 2),
-        y: win.getBounds().y,
+        x: Math.round(centerX - options.sizes.expandedFullWidth / 2),
+        y: getEffectiveY(win),
         width: options.sizes.expandedFullWidth,
         height: options.sizes.expandedFullHeight,
       });
@@ -173,9 +194,10 @@ export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOpti
 
   ipcMain.on('window:expand-settings', () => {
     withWindow((win) => {
+      const centerX = getEffectiveCenterX(win);
       win.setBounds({
-        x: Math.round(options.getInitialCenterX() - options.sizes.settingsWidth / 2),
-        y: win.getBounds().y,
+        x: Math.round(centerX - options.sizes.settingsWidth / 2),
+        y: getEffectiveY(win),
         width: options.sizes.settingsWidth,
         height: options.sizes.settingsHeight,
       });
@@ -184,9 +206,10 @@ export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOpti
 
   ipcMain.on('window:collapse', () => {
     withWindow((win) => {
+      const centerX = getEffectiveCenterX(win);
       win.setBounds({
-        x: Math.round(options.getInitialCenterX() - options.sizes.islandWidth / 2),
-        y: win.getBounds().y,
+        x: Math.round(centerX - options.sizes.islandWidth / 2),
+        y: getEffectiveY(win),
         width: options.sizes.islandWidth,
         height: options.sizes.islandHeight,
       });
@@ -203,6 +226,18 @@ export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOpti
   ipcMain.handle('window:get-mouse-position', () => {
     const point = screen.getCursorScreenPoint();
     return { x: point.x, y: point.y };
+  });
+
+  ipcMain.on('window:move-delta', (_event, dx: number, dy: number) => {
+    withWindow((win) => {
+      const bounds = win.getBounds();
+      win.setBounds({
+        x: Math.round(bounds.x + dx),
+        y: Math.round(bounds.y + dy),
+        width: bounds.width,
+        height: bounds.height,
+      });
+    });
   });
 
   ipcMain.handle('window:get-bounds', () => {

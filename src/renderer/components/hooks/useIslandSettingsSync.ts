@@ -102,6 +102,10 @@ export function useIslandSettingsSync(options: UseIslandSettingsSyncOptions): vo
         const speed = value === 'slow' || value === 'medium' || value === 'fast' ? value : 'medium';
         useIslandStore.getState().setAnimationSpeed(speed);
       }).catch(() => {});
+      window.api?.shapeModeGet?.().then((value) => {
+        const mode = value === 'notch' || value === 'pill' ? value : 'notch';
+        useIslandStore.getState().setShapeMode(mode);
+      }).catch(() => {});
 
       Promise.all([
         window.api?.storeRead?.(ISLAND_BG_MEDIA_STORE_KEY),
@@ -198,6 +202,10 @@ export function useIslandSettingsSync(options: UseIslandSettingsSyncOptions): vo
         if (channel === 'island:animation-speed') {
           const v = value === 'slow' || value === 'medium' || value === 'fast' ? value : 'medium';
           useIslandStore.getState().setAnimationSpeed(v);
+        }
+        if (channel === 'island:shape-mode') {
+          const v = value === 'notch' || value === 'pill' ? value : 'notch';
+          useIslandStore.getState().setShapeMode(v);
         }
         if (channel === 'store:island-bg-media') {
           const media = normalizeBgMediaConfig(value);

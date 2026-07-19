@@ -53,6 +53,52 @@
   -webkit-mask-image: -webkit-radial-gradient(white, white);
 }
 
+/* ── 灵动岛胶囊形态（pill） ── */
+
+.island-shell.shape-pill {
+  border-radius: 21px;
+  transform-origin: center center;
+  cursor: grab;
+}
+
+.island-shell.shape-pill:active {
+  cursor: grabbing;
+}
+
+.island-shell.shape-pill.hover {
+  border-radius: 30px;
+}
+
+.island-shell.shape-pill.notification,
+.island-shell.shape-pill.agent,
+.island-shell.shape-pill.stt,
+.island-shell.shape-pill.cli {
+  border-radius: 44px;
+}
+
+.island-shell.shape-pill.expanded,
+.island-shell.shape-pill.maxExpand,
+.island-shell.shape-pill.guide,
+.island-shell.shape-pill.login,
+.island-shell.shape-pill.register,
+.island-shell.shape-pill.resetPassword,
+.island-shell.shape-pill.setPassword,
+.island-shell.shape-pill.bindOAuth,
+.island-shell.shape-pill.bindEmail,
+.island-shell.shape-pill.payment,
+.island-shell.shape-pill.announcement {
+  border-radius: 26px;
+}
+
+.island-shell.shape-pill.lyrics,
+.island-shell.shape-pill.agentVoiceInput {
+  border-radius: 21px;
+}
+
+.island-shell.shape-pill.lyricsTranslation {
+  border-radius: 30px;
+}
+
 .island-shell.spring-animation {
   transition: width 0.68s cubic-bezier(0.22, 1, 0.36, 1),
               height 0.68s cubic-bezier(0.22, 1, 0.36, 1),

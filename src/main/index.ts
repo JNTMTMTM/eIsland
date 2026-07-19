@@ -620,6 +620,9 @@ function registerIpcHandlers(): void {
     idleClickExpandStoreKey: IDLE_CLICK_EXPAND_STORE_KEY,
     autostartModeStoreKey: AUTOSTART_MODE_STORE_KEY,
     navOrderStoreKey: NAV_ORDER_STORE_KEY,
+    onShapeModeChanged: () => {
+      mainWindowService.applyIslandPositionOffset(islandPositionOffset);
+    },
   });
 
   registerHideProcessIpcHandlers({

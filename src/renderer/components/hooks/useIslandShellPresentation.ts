@@ -26,6 +26,7 @@
 
 import { useMemo } from 'react';
 import { STATE_AREA, getStateClassName } from '../config/dynamicIslandConfig';
+import type { IslandShapeMode } from '../../store/types';
 
 interface UseIslandShellPresentationOptions {
   state: string;
@@ -34,6 +35,7 @@ interface UseIslandShellPresentationOptions {
   showGlow: string | null;
   springAnimation: boolean;
   animationSpeed: string;
+  shapeMode: IslandShapeMode;
   dominantColor: [number, number, number];
 }
 
@@ -55,6 +57,7 @@ export function useIslandShellPresentation(options: UseIslandShellPresentationOp
     showGlow,
     springAnimation,
     animationSpeed,
+    shapeMode,
     dominantColor,
   } = options;
 
@@ -64,8 +67,8 @@ export function useIslandShellPresentation(options: UseIslandShellPresentationOp
       && fromState
       && (stateAreaMap[fromState] ?? 0) > (stateAreaMap[state] ?? 0);
 
-    return `island-shell ${getStateClassName(state as Parameters<typeof getStateClassName>[0])}${morphing ? ' morphing' : ''}${fromState ? ` from-${fromState}` : ''}${instantResize ? ' instant-resize' : ''}${showGlow ? ' music-glow' : ''}${showGlow === 'paused' ? ' music-paused' : ''}${springAnimation ? ' spring-animation' : ''} speed-${animationSpeed}`;
-  }, [state, morphing, fromState, showGlow, springAnimation, animationSpeed]);
+    return `island-shell shape-${shapeMode} ${getStateClassName(state as Parameters<typeof getStateClassName>[0])}${morphing ? ' morphing' : ''}${fromState ? ` from-${fromState}` : ''}${instantResize ? ' instant-resize' : ''}${showGlow ? ' music-glow' : ''}${showGlow === 'paused' ? ' music-paused' : ''}${springAnimation ? ' spring-animation' : ''} speed-${animationSpeed}`;
+  }, [state, morphing, fromState, showGlow, springAnimation, animationSpeed, shapeMode]);
 
   const shellStyle = useMemo<React.CSSProperties | undefined>(() => {
     if (!showGlow) return undefined;
