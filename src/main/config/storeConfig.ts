@@ -150,6 +150,9 @@ export const DEFAULT_TOGGLE_PASSTHROUGH_HOTKEY = '';
 /** 默认切换 UI 状态锁定快捷键（空表示默认不设置） */
 export const DEFAULT_TOGGLE_UI_LOCK_HOTKEY = '';
 
+/** 默认切换形态模式快捷键（空表示默认不设置） */
+export const DEFAULT_TOGGLE_SHAPE_MODE_HOTKEY = '';
+
 /** 默认 Agent 语音输入快捷键（长按触发） */
 export const DEFAULT_AGENT_VOICE_INPUT_HOTKEY = 'Alt+P';
 
@@ -274,6 +277,9 @@ export const TOGGLE_PASSTHROUGH_HOTKEY_STORE_KEY = 'toggle-passthrough-hotkey';
 
 /** 切换 UI 状态锁定快捷键存储键名 */
 export const TOGGLE_UI_LOCK_HOTKEY_STORE_KEY = 'toggle-ui-lock-hotkey';
+
+/** 切换形态模式快捷键存储键名 */
+export const TOGGLE_SHAPE_MODE_HOTKEY_STORE_KEY = 'toggle-shape-mode-hotkey';
 
 /** Agent 语音输入快捷键存储键名 */
 export const AGENT_VOICE_INPUT_HOTKEY_STORE_KEY = 'agent-voice-input-hotkey';
@@ -449,6 +455,15 @@ export function readAgentVoiceInputHotkeyConfig(): string {
 }
 
 /**
+ * 读取切换形态模式快捷键配置
+ * @returns 快捷键字符串
+ */
+export function readToggleShapeModeHotkeyConfig(): string {
+  const data = readJsonFile(TOGGLE_SHAPE_MODE_HOTKEY_STORE_KEY);
+  return typeof data === 'string' ? data : DEFAULT_TOGGLE_SHAPE_MODE_HOTKEY;
+}
+
+/**
  * 读取播放器白名单配置
  * @returns 播放器名称数组
  */
@@ -545,6 +560,25 @@ export function writeIslandDisplaySelectionConfig(selection: string): boolean {
 export function readIslandShapeModeConfig(): string {
   const data = readJsonFile(ISLAND_SHAPE_MODE_STORE_KEY);
   return data === 'notch' || data === 'pill' ? data : DEFAULT_ISLAND_SHAPE_MODE;
+}
+
+/**
+ * 写入灵动岛形态模式配置
+ * @param mode - 形态模式字符串（notch 或 pill）
+ * @returns 是否写入成功
+ */
+export function writeIslandShapeModeConfig(mode: string): boolean {
+  try {
+    const storeDir = getStoreDir();
+    if (!existsSync(storeDir)) mkdirSync(storeDir, { recursive: true });
+    const valid = mode === 'notch' || mode === 'pill' ? mode : DEFAULT_ISLAND_SHAPE_MODE;
+    const filePath = join(storeDir, `${ISLAND_SHAPE_MODE_STORE_KEY}.json`);
+    writeFileSync(filePath, JSON.stringify(valid, null, 2), 'utf-8');
+    return true;
+  } catch (err) {
+    console.error('[IslandShapeMode] persist error:', err);
+    return false;
+  }
 }
 
 /**

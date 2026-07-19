@@ -112,11 +112,13 @@ import {
   TOGGLE_PASSTHROUGH_HOTKEY_STORE_KEY,
   TOGGLE_UI_LOCK_HOTKEY_STORE_KEY,
   AGENT_VOICE_INPUT_HOTKEY_STORE_KEY,
+  TOGGLE_SHAPE_MODE_HOTKEY_STORE_KEY,
+  readIslandShapeModeConfig, writeIslandShapeModeConfig,
   sanitizeIslandPositionOffset, sanitizeIslandDisplaySelection, sanitizeSmtcUnsubscribeMs,
   readHotkeyConfig, readQuitHotkeyConfig, readScreenshotHotkeyConfig,
   readNextSongHotkeyConfig, readPlayPauseSongHotkeyConfig, readResetPositionHotkeyConfig,
   readToggleTrayHotkeyConfig, readShowSettingsWindowHotkeyConfig, readOpenClipboardHistoryHotkeyConfig, readTogglePassthroughHotkeyConfig, readToggleUiLockHotkeyConfig,
-  readAgentVoiceInputHotkeyConfig,
+  readAgentVoiceInputHotkeyConfig, readToggleShapeModeHotkeyConfig,
   readWhitelistConfig, readLyricsSourceConfig, readSmtcUnsubscribeMsConfig,
   readHideProcessListConfig, readAutoHideFullscreenWindowsConfig, readIslandPositionOffsetConfig, readIslandDisplaySelectionConfig,
   writeIslandPositionOffsetConfig, writeIslandDisplaySelectionConfig,
@@ -410,6 +412,7 @@ const hotkeyService = createHotkeyService({
   readTogglePassthroughHotkeyConfig,
   readToggleUiLockHotkeyConfig,
   readAgentVoiceInputHotkeyConfig,
+  readToggleShapeModeHotkeyConfig,
   onScreenshotHotkey: () => {
     captureWindowService.startRegionScreenshot().catch((err) => {
       console.error('[Screenshot] hotkey trigger error:', err);
@@ -479,6 +482,13 @@ const hotkeyService = createHotkeyService({
   },
   onAgentVoiceInputHotkeyRelease: () => {
     hideAgentVoiceInputWindow();
+  },
+  onToggleShapeModeHotkey: () => {
+    const current = readIslandShapeModeConfig();
+    const next = current === 'pill' ? 'notch' : 'pill';
+    writeIslandShapeModeConfig(next);
+    broadcastSettingChange(-1, 'island:shape-mode', next);
+    mainWindowService.applyIslandPositionOffset(islandPositionOffset);
   },
 });
 
@@ -651,6 +661,7 @@ function registerIpcHandlers(): void {
     togglePassthroughHotkeyStoreKey: TOGGLE_PASSTHROUGH_HOTKEY_STORE_KEY,
     toggleUiLockHotkeyStoreKey: TOGGLE_UI_LOCK_HOTKEY_STORE_KEY,
     agentVoiceInputHotkeyStoreKey: AGENT_VOICE_INPUT_HOTKEY_STORE_KEY,
+    toggleShapeModeHotkeyStoreKey: TOGGLE_SHAPE_MODE_HOTKEY_STORE_KEY,
     getCurrentHideHotkey: hotkeyService.getCurrentHideHotkey,
     getCurrentQuitHotkey: hotkeyService.getCurrentQuitHotkey,
     getCurrentScreenshotHotkey: hotkeyService.getCurrentScreenshotHotkey,
@@ -663,6 +674,7 @@ function registerIpcHandlers(): void {
     getCurrentTogglePassthroughHotkey: hotkeyService.getCurrentTogglePassthroughHotkey,
     getCurrentToggleUiLockHotkey: hotkeyService.getCurrentToggleUiLockHotkey,
     getCurrentAgentVoiceInputHotkey: hotkeyService.getCurrentAgentVoiceInputHotkey,
+    getCurrentToggleShapeModeHotkey: hotkeyService.getCurrentToggleShapeModeHotkey,
     readHideHotkeyConfig: readHotkeyConfig,
     readQuitHotkeyConfig,
     readScreenshotHotkeyConfig,
@@ -675,6 +687,7 @@ function registerIpcHandlers(): void {
     readTogglePassthroughHotkeyConfig,
     readToggleUiLockHotkeyConfig,
     readAgentVoiceInputHotkeyConfig,
+    readToggleShapeModeHotkeyConfig,
     registerHideHotkey: hotkeyService.registerHideHotkey,
     registerQuitHotkey: hotkeyService.registerQuitHotkey,
     registerNextSongHotkey: hotkeyService.registerNextSongHotkey,
@@ -686,6 +699,7 @@ function registerIpcHandlers(): void {
     registerTogglePassthroughHotkey: hotkeyService.registerTogglePassthroughHotkey,
     registerToggleUiLockHotkey: hotkeyService.registerToggleUiLockHotkey,
     registerAgentVoiceInputHotkey: hotkeyService.registerAgentVoiceInputHotkey,
+    registerToggleShapeModeHotkey: hotkeyService.registerToggleShapeModeHotkey,
     suspendIslandHotkeys: hotkeyService.suspendIslandHotkeys,
     resumeIslandHotkeys: hotkeyService.resumeIslandHotkeys,
   });
@@ -707,7 +721,8 @@ function registerIpcHandlers(): void {
       const currentOpenClipboardHistory = hotkeyService.getCurrentOpenClipboardHistoryHotkey() || readOpenClipboardHistoryHotkeyConfig();
       const currentToggleUiLock = hotkeyService.getCurrentToggleUiLockHotkey() || readToggleUiLockHotkeyConfig();
       const currentAgentVoiceInput = hotkeyService.getCurrentAgentVoiceInputHotkey() || readAgentVoiceInputHotkeyConfig();
-      return [currentHide, currentQuit, currentNextSong, currentPlayPauseSong, currentResetPos, currentToggleTray, currentShowSettings, currentOpenClipboardHistory, currentToggleUiLock, currentAgentVoiceInput];
+      const currentToggleShapeMode = hotkeyService.getCurrentToggleShapeModeHotkey() || readToggleShapeModeHotkeyConfig();
+      return [currentHide, currentQuit, currentNextSong, currentPlayPauseSong, currentResetPos, currentToggleTray, currentShowSettings, currentOpenClipboardHistory, currentToggleUiLock, currentAgentVoiceInput, currentToggleShapeMode];
     },
     registerScreenshotHotkey: hotkeyService.registerScreenshotHotkey,
   });
@@ -937,6 +952,10 @@ app.whenReady().then(() => {
   // 读取持久化 Agent 语音输入快捷键并注册
   const savedAgentVoiceInputHotkey = readAgentVoiceInputHotkeyConfig();
   if (savedAgentVoiceInputHotkey) hotkeyService.registerAgentVoiceInputHotkey(savedAgentVoiceInputHotkey);
+
+  // 读取持久化切换形态模式快捷键并注册
+  const savedToggleShapeModeHotkey = readToggleShapeModeHotkeyConfig();
+  if (savedToggleShapeModeHotkey) hotkeyService.registerToggleShapeModeHotkey(savedToggleShapeModeHotkey);
 
   initUpdaterService({
     updater: autoUpdater,

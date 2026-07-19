@@ -869,6 +869,21 @@ const api = {
     return ipcRenderer.invoke('toggle-ui-lock-hotkey:set', accelerator);
   },
   /**
+   * 获取当前切换形态模式快捷键
+   * @returns 当前快捷键字符串
+   */
+  toggleShapeModeHotkeyGet: (): Promise<string> => {
+    return ipcRenderer.invoke('toggle-shape-mode-hotkey:get');
+  },
+  /**
+   * 设置切换形态模式快捷键
+   * @param accelerator - Electron accelerator 字符串
+   * @returns 是否注册成功
+   */
+  toggleShapeModeHotkeySet: (accelerator: string): Promise<boolean> => {
+    return ipcRenderer.invoke('toggle-shape-mode-hotkey:set', accelerator);
+  },
+  /**
    * 获取当前 Agent 语音输入快捷键
    * @returns 当前快捷键字符串
    */
