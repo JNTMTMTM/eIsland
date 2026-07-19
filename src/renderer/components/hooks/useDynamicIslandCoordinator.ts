@@ -165,6 +165,7 @@ export function useDynamicIslandCoordinator(options: UseDynamicIslandCoordinator
     setHover,
     setExpanded,
     setCli,
+    setHoverTab,
     hasActiveCliSessionRef,
     idleClickExpandRef,
     isHoveringRef,

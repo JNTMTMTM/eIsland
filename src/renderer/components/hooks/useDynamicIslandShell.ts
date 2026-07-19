@@ -43,6 +43,7 @@ interface UseDynamicIslandShellOptions {
   setHover: () => void;
   setExpanded: () => void;
   setCli: () => void;
+  setHoverTab: (tab: 'time' | 'lyrics' | 'weather' | 'expand') => void;
   hasActiveCliSessionRef: React.MutableRefObject<boolean>;
   idleClickExpandRef: React.MutableRefObject<boolean>;
   isHoveringRef: React.MutableRefObject<boolean>;
@@ -72,6 +73,7 @@ export function useDynamicIslandShell(options: UseDynamicIslandShellOptions): Dy
     setHover,
     setExpanded,
     setCli,
+    setHoverTab,
     hasActiveCliSessionRef,
     idleClickExpandRef,
     isHoveringRef,
@@ -121,6 +123,9 @@ export function useDynamicIslandShell(options: UseDynamicIslandShellOptions): Dy
     if (clickToHoverStates && (forceClickToHover || idleClickExpandRef.current)) {
       isHoveringRef.current = true;
       setHover();
+      if (state === 'lyrics' || state === 'lyricsTranslation') {
+        setHoverTab('lyrics');
+      }
       return;
     }
 
@@ -137,7 +142,7 @@ export function useDynamicIslandShell(options: UseDynamicIslandShellOptions): Dy
       }
       setHover();
     }
-  }, [state, setExpanded, setHover, setCli, hasActiveCliSessionRef, idleClickExpandRef, isHoveringRef, forceClickToHover]);
+  }, [state, setExpanded, setHover, setCli, setHoverTab, hasActiveCliSessionRef, idleClickExpandRef, isHoveringRef, forceClickToHover]);
 
   return {
     morphing,
