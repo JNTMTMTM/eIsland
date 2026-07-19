@@ -117,7 +117,7 @@ export function useDynamicIslandShell(options: UseDynamicIslandShellOptions): Dy
 
   const handleIslandClick = useCallback(() => {
     /** pill 模式下 idle/lyrics/lyricsTranslation/agentVoiceInput 点击均进入 hover */
-    const clickToHoverStates = state === 'idle' || state === 'lyrics' || state === 'lyricsTranslation' || state === 'agentVoiceInput';
+    const clickToHoverStates = state === 'idle' || state === 'lyrics' || state === 'lyricsTranslation' || (state as string) === 'agentVoiceInput';
     if (clickToHoverStates && (forceClickToHover || idleClickExpandRef.current)) {
       isHoveringRef.current = true;
       setHover();
