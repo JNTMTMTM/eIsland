@@ -125,6 +125,14 @@ interface ShortcutSettingsSectionProps {
   setAgentVoiceInputHotkeyError: (value: string) => void;
   handleAgentVoiceInputHotkeyKeyDown: (event: ReactKeyboardEvent<HTMLInputElement>) => void;
   setAgentVoiceInputHotkey: (value: string) => void;
+  toggleShapeModeHotkeyInputRef: RefObject<HTMLInputElement | null>;
+  toggleShapeModeHotkeyRecording: boolean;
+  toggleShapeModeHotkeyError: string;
+  toggleShapeModeHotkey: string;
+  setToggleShapeModeHotkeyRecording: (value: boolean) => void;
+  setToggleShapeModeHotkeyError: (value: string) => void;
+  handleToggleShapeModeHotkeyKeyDown: (event: ReactKeyboardEvent<HTMLInputElement>) => void;
+  setToggleShapeModeHotkey: (value: string) => void;
 }
 
 /**
@@ -242,6 +250,14 @@ export function ShortcutSettingsSection(props: ShortcutSettingsSectionProps): Re
     setAgentVoiceInputHotkeyError,
     handleAgentVoiceInputHotkeyKeyDown,
     setAgentVoiceInputHotkey,
+    toggleShapeModeHotkeyInputRef,
+    toggleShapeModeHotkeyRecording,
+    toggleShapeModeHotkeyError,
+    toggleShapeModeHotkey,
+    setToggleShapeModeHotkeyRecording,
+    setToggleShapeModeHotkeyError,
+    handleToggleShapeModeHotkeyKeyDown,
+    setToggleShapeModeHotkey,
   } = props;
 
   type ShortcutSettingsPageKey = 'window' | 'agent' | 'capture' | 'media';
@@ -558,6 +574,39 @@ export function ShortcutSettingsSection(props: ShortcutSettingsSectionProps): Re
                   )}
                 </div>
                 {toggleUiLockHotkeyError && <div className="settings-hotkey-error">{toggleUiLockHotkeyError}</div>}
+              </div>
+
+              <div className="settings-card">
+                <div className="settings-card-header">
+                  <div className="settings-card-title">{t('settings.shortcut.window.toggleShapeMode.title', { defaultValue: '切换形态模式快捷键' })}</div>
+                  <div className="settings-card-subtitle">{t('settings.shortcut.window.toggleShapeMode.hint', { defaultValue: '按下此快捷键将在刘海屏与灵动岛形态之间快速切换' })}</div>
+                </div>
+                <div className="settings-hotkey-row">
+                  <input
+                    ref={toggleShapeModeHotkeyInputRef}
+                    className={`settings-hotkey-input ${toggleShapeModeHotkeyRecording ? 'recording' : ''}${toggleShapeModeHotkeyError ? ' error' : ''}`}
+                    type="text"
+                    readOnly
+                    value={toggleShapeModeHotkeyRecording ? recordingValue : (toggleShapeModeHotkey || notSetValue)}
+                    onFocus={() => { setToggleShapeModeHotkeyRecording(true); setToggleShapeModeHotkeyError(''); window.api.hotkeySuspend().catch(() => {}); }}
+                    onBlur={() => { setToggleShapeModeHotkeyRecording(false); window.api.hotkeyResume().catch(() => {}); }}
+                    onKeyDown={handleToggleShapeModeHotkeyKeyDown}
+                  />
+                  <button className="settings-hotkey-btn" type="button" onClick={() => { setToggleShapeModeHotkeyRecording(true); toggleShapeModeHotkeyInputRef.current?.focus(); }}>{toggleShapeModeHotkeyRecording ? recordingBtn : editBtn}</button>
+                  {toggleShapeModeHotkey && (
+                    <button className="settings-hotkey-btn" type="button" onClick={() => {
+                      window.api.toggleShapeModeHotkeySet('').then((ok) => {
+                        if (ok) {
+                          setToggleShapeModeHotkey('');
+                          setToggleShapeModeHotkeyError('');
+                          setToggleShapeModeHotkeyRecording(false);
+                          toggleShapeModeHotkeyInputRef.current?.blur();
+                        }
+                      }).catch(() => {});
+                    }}>{clearBtn}</button>
+                  )}
+                </div>
+                {toggleShapeModeHotkeyError && <div className="settings-hotkey-error">{toggleShapeModeHotkeyError}</div>}
               </div>
 
             </div>

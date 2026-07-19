@@ -602,6 +602,12 @@ export function SettingsTab(): ReactElement {
   const [agentVoiceInputHotkeyError, setAgentVoiceInputHotkeyError] = useState<string>('');
   const agentVoiceInputHotkeyInputRef = useRef<HTMLInputElement>(null);
 
+  /** 切换形态模式快捷键相关状态 */
+  const [toggleShapeModeHotkey, setToggleShapeModeHotkey] = useState<string>('');
+  const [toggleShapeModeHotkeyRecording, setToggleShapeModeHotkeyRecording] = useState(false);
+  const [toggleShapeModeHotkeyError, setToggleShapeModeHotkeyError] = useState<string>('');
+  const toggleShapeModeHotkeyInputRef = useRef<HTMLInputElement>(null);
+
   const hideProcessKeyword = hideProcessFilter.trim().toLowerCase();
 
 
@@ -1203,6 +1209,10 @@ export function SettingsTab(): ReactElement {
     window.api.agentVoiceInputHotkeyGet().then((key) => {
       if (cancelled) return;
       setAgentVoiceInputHotkey(key || '');
+    }).catch(() => {});
+    window.api.toggleShapeModeHotkeyGet().then((key) => {
+      if (cancelled) return;
+      setToggleShapeModeHotkey(key || '');
     }).catch(() => {});
     return () => { cancelled = true; };
   }, []);
@@ -1842,8 +1852,8 @@ export function SettingsTab(): ReactElement {
     return parts.length >= 2 ? parts.join('+') : '';
   };
 
-  const isDuplicateHotkey = (acc: string, exclude: 'hide' | 'quit' | 'screenshot' | 'next-song' | 'play-pause-song' | 'reset-position' | 'toggle-tray' | 'show-settings-window' | 'open-clipboard-history' | 'toggle-passthrough' | 'toggle-ui-lock' | 'agent-voice-input'): boolean => {
-    const pairs: Array<{ key: 'hide' | 'quit' | 'screenshot' | 'next-song' | 'play-pause-song' | 'reset-position' | 'toggle-tray' | 'show-settings-window' | 'open-clipboard-history' | 'toggle-passthrough' | 'toggle-ui-lock' | 'agent-voice-input'; value: string }> = [
+  const isDuplicateHotkey = (acc: string, exclude: 'hide' | 'quit' | 'screenshot' | 'next-song' | 'play-pause-song' | 'reset-position' | 'toggle-tray' | 'show-settings-window' | 'open-clipboard-history' | 'toggle-passthrough' | 'toggle-ui-lock' | 'agent-voice-input' | 'toggle-shape-mode'): boolean => {
+    const pairs: Array<{ key: string; value: string }> = [
       { key: 'hide', value: hideHotkey },
       { key: 'quit', value: quitHotkey },
       { key: 'screenshot', value: screenshotHotkey },
@@ -1856,6 +1866,7 @@ export function SettingsTab(): ReactElement {
       { key: 'toggle-passthrough', value: togglePassthroughHotkey },
       { key: 'toggle-ui-lock', value: toggleUiLockHotkey },
       { key: 'agent-voice-input', value: agentVoiceInputHotkey },
+      { key: 'toggle-shape-mode', value: toggleShapeModeHotkey },
     ];
     return pairs.some((item) => item.key !== exclude && item.value && item.value === acc);
   };
@@ -2141,6 +2152,36 @@ export function SettingsTab(): ReactElement {
       }
     }).catch(() => {
       setAgentVoiceInputHotkeyError(t('settings.hotkey.registerFailed', { defaultValue: '快捷键注册失败' }));
+    });
+  };
+
+  /**
+   * 切换形态模式快捷键录入键盘事件处理
+   * @param e - React 键盘事件
+   */
+  const handleToggleShapeModeHotkeyKeyDown = (e: KeyboardEvent): void => {
+    e.preventDefault();
+    e.stopPropagation();
+    setToggleShapeModeHotkeyError('');
+    const acc = keyEventToAccelerator(e);
+    if (!acc) return;
+    if (isDuplicateHotkey(acc, 'toggle-shape-mode')) {
+      setToggleShapeModeHotkeyError(t('settings.hotkey.duplicateHotkey', { defaultValue: '重复快捷键' }));
+      setToggleShapeModeHotkeyRecording(false);
+      toggleShapeModeHotkeyInputRef.current?.blur();
+      return;
+    }
+
+    window.api.toggleShapeModeHotkeySet(acc).then((ok) => {
+      if (ok) {
+        setToggleShapeModeHotkey(acc);
+        setToggleShapeModeHotkeyRecording(false);
+        toggleShapeModeHotkeyInputRef.current?.blur();
+      } else {
+        setToggleShapeModeHotkeyError(t('settings.hotkey.registerFailedRetry', { defaultValue: '快捷键注册失败，请尝试其他组合' }));
+      }
+    }).catch(() => {
+      setToggleShapeModeHotkeyError(t('settings.hotkey.registerFailed', { defaultValue: '快捷键注册失败' }));
     });
   };
 
@@ -2659,6 +2700,14 @@ export function SettingsTab(): ReactElement {
               setAgentVoiceInputHotkeyError={setAgentVoiceInputHotkeyError}
               handleAgentVoiceInputHotkeyKeyDown={handleAgentVoiceInputHotkeyKeyDown}
               setAgentVoiceInputHotkey={setAgentVoiceInputHotkey}
+              toggleShapeModeHotkeyInputRef={toggleShapeModeHotkeyInputRef}
+              toggleShapeModeHotkeyRecording={toggleShapeModeHotkeyRecording}
+              toggleShapeModeHotkeyError={toggleShapeModeHotkeyError}
+              toggleShapeModeHotkey={toggleShapeModeHotkey}
+              setToggleShapeModeHotkeyRecording={setToggleShapeModeHotkeyRecording}
+              setToggleShapeModeHotkeyError={setToggleShapeModeHotkeyError}
+              handleToggleShapeModeHotkeyKeyDown={handleToggleShapeModeHotkeyKeyDown}
+              setToggleShapeModeHotkey={setToggleShapeModeHotkey}
             />
           )}
 
