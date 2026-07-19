@@ -18,7 +18,7 @@
  * GNU General Public License for more details.
  */
 
-const { spawnSync } = require('node:child_process');
+const childProcess = require('node:child_process');
 const fs = require('node:fs');
 const path = require('node:path');
 
@@ -43,20 +43,59 @@ function findHelper() {
  */
 function callHelper(args, timeout = 10000) {
   const helperPath = findHelper();
-  if (!helperPath) return null;
+  if (!helperPath) {
+    console.error(
+      '[eisland-windows-hardware-info-helper] Helper executable not found. Searched candidates:',
+      helperCandidates,
+    );
+    return null;
+  }
 
-  const result = spawnSync(helperPath, args, {
+  const result = childProcess.spawnSync(helperPath, args, {
     encoding: 'utf8',
     windowsHide: true,
     timeout,
   });
 
-  if (result.status !== 0 || result.error || !result.stdout) return null;
+  if (result.error) {
+    console.error(
+      '[eisland-windows-hardware-info-helper] Failed to spawn helper process',
+      { helperPath, args, error: result.error },
+    );
+    return null;
+  }
+
+  if (result.status !== 0) {
+    console.error(
+      '[eisland-windows-hardware-info-helper] Helper exited with non-zero status',
+      { helperPath, args, status: result.status, signal: result.signal, stderr: result.stderr },
+    );
+    return null;
+  }
+
+  if (!result.stdout) {
+    console.error(
+      '[eisland-windows-hardware-info-helper] Helper produced no stdout',
+      { helperPath, args, status: result.status, signal: result.signal, stderr: result.stderr },
+    );
+    return null;
+  }
 
   try {
     const parsed = JSON.parse(result.stdout.trim());
-    return Array.isArray(parsed) ? parsed : null;
-  } catch {
+    if (!Array.isArray(parsed)) {
+      console.error(
+        '[eisland-windows-hardware-info-helper] Helper returned non-array JSON payload',
+        { helperPath, args, stdout: result.stdout },
+      );
+      return null;
+    }
+    return parsed;
+  } catch (error) {
+    console.error(
+      '[eisland-windows-hardware-info-helper] Failed to parse JSON from helper stdout',
+      { helperPath, args, error, stdout: result.stdout },
+    );
     return null;
   }
 }
@@ -102,7 +141,7 @@ function getNetworkAdapterInfo() {
 }
 
 /**
- * Get Bluetooth device information (paired devices via WMI)
+ * Get Bluetooth device information (PnP devices via WMI)
  * @returns {Array<import('.').BluetoothDeviceInfo>}
  */
 function getBluetoothDevices() {

@@ -34,7 +34,7 @@ This returns monitor hardware information (physical size, manufacturer), not dis
 :::
 
 :::tip
-Calculate the diagonal screen size from `screenWidth` and `screenHeight` (in centimeters): `Math.sqrt(w² + h²) / 2.54` gives inches.
+Calculate the diagonal screen size from `screenWidth` and `screenHeight` (in centimeters): `Math.sqrt(w * w + h * h) / 2.54` gives inches.
 :::
 
 ## Example

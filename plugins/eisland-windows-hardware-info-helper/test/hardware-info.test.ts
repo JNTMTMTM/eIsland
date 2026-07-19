@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, afterEach, vi } from 'vitest';
 
 const isWin = process.platform === 'win32';
 const describeWin = isWin ? describe : describe.skip;
@@ -46,6 +46,75 @@ try {
 } catch {
   hw = {} as any;
 }
+
+describeWin('@eisland/windows-hardware-info-helper fallback behavior', () => {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const childProcess = require('node:child_process');
+
+  const apiNames: Array<keyof typeof hw> = [
+    'getCpuInfo',
+    'getGpuInfo',
+    'getMemoryInfo',
+    'getDiskInfo',
+    'getNetworkAdapterInfo',
+    'getBluetoothDevices',
+    'getMotherboardInfo',
+    'getMonitorInfo',
+  ];
+
+  const callAllAndExpectEmptyArray = () => {
+    for (const name of apiNames) {
+      const fn = (hw as any)[name] as () => unknown[];
+      const result = fn();
+      expect(Array.isArray(result)).toBe(true);
+      expect(result).toEqual([]);
+    }
+  };
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('returns empty array when helper exits non-zero', () => {
+    vi.spyOn(childProcess, 'spawnSync').mockReturnValue({
+      status: 1,
+      stdout: '',
+      stderr: 'some error',
+      error: undefined,
+    } as any);
+    callAllAndExpectEmptyArray();
+  });
+
+  it('returns empty array when helper reports spawn error', () => {
+    vi.spyOn(childProcess, 'spawnSync').mockReturnValue({
+      status: null,
+      stdout: '',
+      stderr: '',
+      error: new Error('spawn error'),
+    } as any);
+    callAllAndExpectEmptyArray();
+  });
+
+  it('returns empty array when helper outputs invalid JSON', () => {
+    vi.spyOn(childProcess, 'spawnSync').mockReturnValue({
+      status: 0,
+      stdout: 'not-json',
+      stderr: '',
+      error: undefined,
+    } as any);
+    callAllAndExpectEmptyArray();
+  });
+
+  it('returns empty array when helper outputs non-array JSON', () => {
+    vi.spyOn(childProcess, 'spawnSync').mockReturnValue({
+      status: 0,
+      stdout: JSON.stringify({ error: 'unexpected structure' }),
+      stderr: '',
+      error: undefined,
+    } as any);
+    callAllAndExpectEmptyArray();
+  });
+});
 
 describeWin('@eisland/windows-hardware-info-helper', () => {
   it('exports all expected functions', () => {
@@ -92,19 +161,79 @@ describeWin('@eisland/windows-hardware-info-helper', () => {
   }
 
   describe('getCpuInfo', () => {
-    it('CPU items have name or null', () => {
-      for (const item of hw.getCpuInfo()) {
-        const cpu = item as { name: string | null };
+    it('CPU items have expected shape', () => {
+      const items = hw.getCpuInfo();
+      for (const item of items) {
+        expect(item).not.toBeNull();
+        expect(typeof item).toBe('object');
+      }
+      if (items.length > 0) {
+        const cpu = items[0] as { name: string | null };
         expect(cpu.name === null || typeof cpu.name === 'string').toBe(true);
       }
     });
   });
 
+  describe('getGpuInfo', () => {
+    it('GPU items have expected shape', () => {
+      const items = hw.getGpuInfo();
+      for (const item of items) {
+        expect(item).not.toBeNull();
+        expect(typeof item).toBe('object');
+      }
+      if (items.length > 0) {
+        const gpu = items[0] as { adapterRamBytes: number | null };
+        expect(
+          gpu.adapterRamBytes === null || typeof gpu.adapterRamBytes === 'number',
+        ).toBe(true);
+      }
+    });
+  });
+
+  describe('getDiskInfo', () => {
+    it('Disk items have expected shape', () => {
+      const items = hw.getDiskInfo();
+      for (const item of items) {
+        expect(item).not.toBeNull();
+        expect(typeof item).toBe('object');
+      }
+      if (items.length > 0) {
+        const disk = items[0] as { sizeBytes: number | null };
+        expect(
+          disk.sizeBytes === null || typeof disk.sizeBytes === 'number',
+        ).toBe(true);
+      }
+    });
+  });
+
+  describe('getNetworkAdapterInfo', () => {
+    it('Network adapter items have expected shape', () => {
+      const items = hw.getNetworkAdapterInfo();
+      for (const item of items) {
+        expect(item).not.toBeNull();
+        expect(typeof item).toBe('object');
+      }
+      if (items.length > 0) {
+        const adapter = items[0] as { netConnectionStatus: boolean | null };
+        expect(
+          adapter.netConnectionStatus === null ||
+            typeof adapter.netConnectionStatus === 'boolean',
+        ).toBe(true);
+      }
+    });
+  });
+
   describe('getMotherboardInfo', () => {
-    it('motherboard items have manufacturer or null', () => {
-      for (const item of hw.getMotherboardInfo()) {
-        const mb = item as { manufacturer: string | null };
+    it('Motherboard items have expected shape', () => {
+      const items = hw.getMotherboardInfo();
+      for (const item of items) {
+        expect(item).not.toBeNull();
+        expect(typeof item).toBe('object');
+      }
+      if (items.length > 0) {
+        const mb = items[0] as { manufacturer: string | null; product: string | null };
         expect(mb.manufacturer === null || typeof mb.manufacturer === 'string').toBe(true);
+        expect(mb.product === null || typeof mb.product === 'string').toBe(true);
       }
     });
   });

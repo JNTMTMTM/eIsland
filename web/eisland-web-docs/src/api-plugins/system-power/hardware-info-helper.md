@@ -36,7 +36,7 @@ This plugin only works on Windows. It requires the .NET 10.0 runtime to be insta
 | [`getMemoryInfo()`](./hardware-info-helper/get-memory-info.md) | Query memory slot details (capacity, speed, type, manufacturer) |
 | [`getDiskInfo()`](./hardware-info-helper/get-disk-info.md) | Query disk details (model, size, interface, serial number) |
 | [`getNetworkAdapterInfo()`](./hardware-info-helper/get-network-adapter-info.md) | Query network adapter details (name, MAC, speed, type) |
-| [`getBluetoothDevices()`](./hardware-info-helper/get-bluetooth-devices.md) | Query paired Bluetooth devices via WMI |
+| [`getBluetoothDevices()`](./hardware-info-helper/get-bluetooth-devices.md) | Query Bluetooth PnP devices via WMI (radios, HCI, protocol drivers, and user-paired peripherals) |
 | [`getMotherboardInfo()`](./hardware-info-helper/get-motherboard-info.md) | Query motherboard details (manufacturer, model, serial) |
 | [`getMonitorInfo()`](./hardware-info-helper/get-monitor-info.md) | Query monitor details (name, manufacturer, physical size) |
 
@@ -49,7 +49,7 @@ This plugin only works on Windows. It requires the .NET 10.0 runtime to be insta
 | [`MemorySlotInfo`](./hardware-info-helper/memory-slot-info.md) | Physical memory slot information |
 | [`DiskInfo`](./hardware-info-helper/disk-info.md) | Physical disk drive information |
 | [`NetworkAdapterInfo`](./hardware-info-helper/network-adapter-info.md) | Physical network adapter information |
-| [`BluetoothDeviceInfo`](./hardware-info-helper/bluetooth-device-info.md) | Paired Bluetooth device information |
+| [`BluetoothDeviceInfo`](./hardware-info-helper/bluetooth-device-info.md) | Bluetooth PnP device information (radios, adapters, stack components, user-paired peripherals) |
 | [`MotherboardInfo`](./hardware-info-helper/motherboard-info.md) | Motherboard (baseboard) information |
 | [`MonitorInfo`](./hardware-info-helper/monitor-info.md) | Display monitor information |
 

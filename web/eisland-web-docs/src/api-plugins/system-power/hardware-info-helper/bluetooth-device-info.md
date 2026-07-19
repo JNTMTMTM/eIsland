@@ -6,7 +6,7 @@ icon: fa6-solid:table
 # BluetoothDeviceInfo
 
 :::info
-`BluetoothDeviceInfo` is an interface representing paired Bluetooth device information returned by [`getBluetoothDevices()`](./get-bluetooth-devices.md). These are devices known to the system via WMI `Win32_PnPEntity` with `PNPClass = 'Bluetooth'`. This is a simplified view — for full Bluetooth monitoring with connection state tracking, use the [Bluetooth Helper](../../connectivity/bluetooth-helper.md) plugin instead.
+`BluetoothDeviceInfo` is an interface representing Bluetooth Plug and Play (PnP) entities returned by [`getBluetoothDevices()`](./get-bluetooth-devices.md). It enumerates all devices known to the system via WMI `Win32_PnPEntity` with `PNPClass = 'Bluetooth'`, including radios, adapters, stack components, and user-paired peripherals. This is a simplified view — for full Bluetooth monitoring with connection state tracking, use the [Bluetooth Helper](../../connectivity/bluetooth-helper.md) plugin instead.
 :::
 
 ## Signature
