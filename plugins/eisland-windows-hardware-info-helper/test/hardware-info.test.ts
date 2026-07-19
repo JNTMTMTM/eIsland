@@ -39,6 +39,7 @@ let hw: {
   getBluetoothDevices(): unknown[];
   getMotherboardInfo(): unknown[];
   getMonitorInfo(): unknown[];
+  __resetHelperCache(): void;
 };
 
 try {
@@ -73,6 +74,14 @@ describeWin('@eisland/windows-hardware-info-helper fallback behavior', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+    hw.__resetHelperCache();
+  });
+
+  it('returns empty array when helper executable is not found', () => {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const fs = require('node:fs');
+    vi.spyOn(fs, 'existsSync').mockReturnValue(false);
+    callAllAndExpectEmptyArray();
   });
 
   it('returns empty array when helper exits non-zero', () => {

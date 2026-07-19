@@ -27,12 +27,19 @@ const helperCandidates = [
   path.join(__dirname, 'src', 'bin', 'Debug', 'net10.0', 'eIslandHardwareInfoReader.exe'),
 ];
 
+/** @type {string | null | undefined} — undefined = not yet resolved */
+let cachedHelperPath;
+
 /**
- * Find helper EXE path
+ * Find helper EXE path (cached after first resolution)
  * @returns {string | null}
  */
 function findHelper() {
-  return helperCandidates.find((c) => fs.existsSync(c)) ?? null;
+  if (cachedHelperPath !== undefined) {
+    return cachedHelperPath;
+  }
+  cachedHelperPath = helperCandidates.find((c) => fs.existsSync(c)) ?? null;
+  return cachedHelperPath;
 }
 
 /**
@@ -173,4 +180,8 @@ module.exports = {
   getBluetoothDevices,
   getMotherboardInfo,
   getMonitorInfo,
+  /** Reset cached helper path — for testing only */
+  __resetHelperCache() {
+    cachedHelperPath = undefined;
+  },
 };
