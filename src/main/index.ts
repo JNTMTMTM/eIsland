@@ -489,6 +489,7 @@ const hotkeyService = createHotkeyService({
     writeIslandShapeModeConfig(next);
     broadcastSettingChange(-1, 'island:shape-mode', next);
     mainWindowService.applyIslandPositionOffset(islandPositionOffset);
+    mainWindowService.notifyShapeModeChanged();
   },
 });
 
@@ -632,6 +633,7 @@ function registerIpcHandlers(): void {
     navOrderStoreKey: NAV_ORDER_STORE_KEY,
     onShapeModeChanged: () => {
       mainWindowService.applyIslandPositionOffset(islandPositionOffset);
+      mainWindowService.notifyShapeModeChanged();
     },
   });
 

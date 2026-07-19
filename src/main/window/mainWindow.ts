@@ -52,6 +52,8 @@ interface MainWindowService {
   createWindow: () => void;
   getInitialCenterX: () => number;
   applyIslandPositionOffset: (offset: { x: number; y: number }) => void;
+  /** 通知渲染进程当前形态模式已变更 */
+  notifyShapeModeChanged: () => void;
 }
 
 /**
@@ -193,9 +195,18 @@ export function createMainWindowService(options: CreateMainWindowServiceOptions)
     }
   }
 
+  function notifyShapeModeChanged(): void {
+    const mainWindow = options.getMainWindow();
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      const mode = readIslandShapeModeConfig();
+      mainWindow.webContents.send('island:shape-mode:changed', mode);
+    }
+  }
+
   return {
     createWindow,
     getInitialCenterX: () => initialCenterX,
     applyIslandPositionOffset,
+    notifyShapeModeChanged,
   };
 }

@@ -339,4 +339,13 @@ export function useIslandSettingsSync(options: UseIslandSettingsSyncOptions): vo
     autoDimEnabledRef,
     autoDimDelayRef,
   ]);
+
+  /** 专用形态模式变更监听（独立于 initRef 守卫，确保始终活跃） */
+  useEffect(() => {
+    const unsub = window.api?.onShapeModeChanged?.((mode: string) => {
+      const v = mode === 'notch' || mode === 'pill' ? mode : 'notch';
+      useIslandStore.getState().setShapeMode(v);
+    });
+    return () => { unsub?.(); };
+  }, []);
 }

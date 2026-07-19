@@ -1261,6 +1261,18 @@ const api = {
     return ipcRenderer.invoke('island:shape-mode:set', mode);
   },
   /**
+   * 监听形态模式变更通知（专用通道，由主进程主动推送）
+   */
+  onShapeModeChanged: (callback: (mode: string) => void): (() => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, mode: string): void => {
+      callback(mode);
+    };
+    ipcRenderer.on('island:shape-mode:changed', handler);
+    return () => {
+      ipcRenderer.removeListener('island:shape-mode:changed', handler);
+    };
+  },
+  /**
    * 读取当前剪贴板文本
    */
   clipboardReadText: (): Promise<string> => {
