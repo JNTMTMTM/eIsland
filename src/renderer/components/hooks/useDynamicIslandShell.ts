@@ -116,7 +116,9 @@ export function useDynamicIslandShell(options: UseDynamicIslandShellOptions): Dy
   }, [state, animationSpeed]);
 
   const handleIslandClick = useCallback(() => {
-    if (state === 'idle' && (forceClickToHover || idleClickExpandRef.current)) {
+    /** pill 模式下 idle/lyrics/lyricsTranslation/agentVoiceInput 点击均进入 hover */
+    const clickToHoverStates = state === 'idle' || state === 'lyrics' || state === 'lyricsTranslation' || state === 'agentVoiceInput';
+    if (clickToHoverStates && (forceClickToHover || idleClickExpandRef.current)) {
       isHoveringRef.current = true;
       setHover();
       return;

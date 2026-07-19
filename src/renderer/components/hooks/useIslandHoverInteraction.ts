@@ -148,7 +148,9 @@ export function useIslandHoverInteraction(options: UseIslandHoverInteractionOpti
         }
 
         if (!isHoveringRef.current && enterTimerRef.current === null) {
-          if (state === 'idle' && (forceClickToHover || idleClickExpandRef.current)) {
+          /** pill 模式下 idle/lyrics/lyricsTranslation/agentVoiceInput 均需点击才展开 */
+          const clickToHoverStates = state === 'idle' || state === 'lyrics' || state === 'lyricsTranslation' || state === 'agentVoiceInput';
+          if (clickToHoverStates && (forceClickToHover || idleClickExpandRef.current)) {
             if (config.mousePassthrough) {
               window.api?.disableMousePassthrough();
             }
@@ -174,7 +176,7 @@ export function useIslandHoverInteraction(options: UseIslandHoverInteractionOpti
           enterTimerRef.current = null;
         }
 
-        if (state === 'idle' && (forceClickToHover || idleClickExpandRef.current) && !isHoveringRef.current) {
+        if ((state === 'idle' || state === 'lyrics' || state === 'lyricsTranslation' || state === 'agentVoiceInput') && (forceClickToHover || idleClickExpandRef.current) && !isHoveringRef.current) {
           window.api?.enableMousePassthrough();
         }
 
