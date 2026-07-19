@@ -1,7 +1,198 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-07-18T10:34:15.666Z
+> 生成时间：2026-07-19T08:24:14.261Z
+
+## 26.6.5
+
+- 2026-07-18 | 4ca36e4e | 鸡哥 | feat(vscode): add additional launch configurations for testing and packaging
+- 2026-07-18 | 7d1f80f6 | 鸡哥 | chore: update version to 26.6.5 in package.json and package-lock.json
+- 2026-07-18 | 4f149751 | 鸡哥 | feat(vscode): add launch configuration and update .gitignore to exclude settings.json
+- 2026-07-18 | 211a5a16 | 鸡哥 | fix(i18n): remove ellipsis from loading messages in GitHub, Microsoft, WeChat, Gitee, and KOOK
+- 2026-07-18 | 8db8d4d4 | 鸡哥 | refactor(docs): reorganize V26.6.5 release notes for clarity and structure
+- 2026-07-18 | f4eadf38 | 鸡哥 | feat(docs): update V26.6.5 release notes to include GitHub third-party login support
+- 2026-07-18 | 4d005f53 | 鸡哥 | docs(announcement): add V26.6.5 release notes
+- 2026-07-18 | 1378410d | eislandBot | docs: auto update CHANGE_LOG.md for #158 by @JNTMTMTM [skip ci]
+- 2026-07-18 | 7e27877b | 鸡哥 | Merge pull request #158 from JNTMTMTM/dev
+- 2026-07-18 | ef24d27c | 鸡哥 | feat(urlFavorites): implement import/export functionality with drag-and-drop support and format selection
+- 2026-07-18 | 1f6b2af6 | 鸡哥 | feat(urlFavorites): refactor drag event types and improve state management with concise type imports
+- 2026-07-18 | 989d5d54 | 鸡哥 | feat(urlFavorites): enhance editor UI with transition effects and improved layout
+- 2026-07-18 | bbf899b2 | 鸡哥 | feat(urlFavorites): implement URL favorites management module with hooks and components
+- 2026-07-18 | 152192b7 | eislandBot | docs: auto update CHANGE_LOG.md for #157 by @JNTMTMTM [skip ci]
+- 2026-07-18 | 72b32ed3 | 鸡哥 | Merge pull request #157 from JNTMTMTM/dev
+- 2026-07-18 | c6e4fc76 | 鸡哥 | feat(mail): implement mail module with multi-account support and inbox functionality
+- 2026-07-18 | 0654d627 | 鸡哥 | Merge pull request #156 from silenthim18303/dev
+- 2026-07-17 | e7b6e040 | silenthim18303 | 把账户读取、旧配置归一化、fetchLimit 读取、收件箱请求超时处理拆成命名函数,把空状态、标题操作、账户 tabs、邮件列表、邮件阅读器拆成小组件,修复初始化竞态：现在先读保存的 mail-fetch-limit，再用正确 limit 拉取收件箱,增加请求序号保护，避免快速切换账户时旧请求回写覆盖新账户列表
+- 2026-07-17 | a53cdab6 | 鸡哥 | feat(memo): add brightness filter for empty icon and bookmark filter images in light theme
+- 2026-07-17 | 9feaa731 | 鸡哥 | feat(memo): replace SVG icon with MEMO image in MemoEditorEmpty component
+- 2026-07-17 | d8f45431 | 鸡哥 | feat(svg): add MEMO icon to SvgIcon and corresponding test case
+- 2026-07-17 | ccefd0b1 | 鸡哥 | feat(memo): implement MemoEditor and MemoEditorEmpty components; enhance MemoTab with MemoSidebar integration
+- 2026-07-17 | 8818d03d | 鸡哥 | refactor: restructure memo module with useMemoTab hook and utility functions
+- 2026-07-17 | 44742446 | 鸡哥 | feat(memo): add MemoTab component for managing memos with create, edit, delete, and search functionalities
+- 2026-07-17 | adcdf49a | 鸡哥 | refactor(SKILL): update module split instructions and eval prompts for clarity and structure
+- 2026-07-17 | 709c6600 | 鸡哥 | refactor(SKILL): enhance module structure by adding types and refining directory organization
+- 2026-07-17 | 9752a2e1 | eislandBot | docs: auto update CHANGE_LOG.md for #154 by @JNTMTMTM [skip ci]
+- 2026-07-17 | d5e3f08f | 鸡哥 | Merge pull request #154 from JNTMTMTM/dev
+- 2026-07-17 | 1d185935 | 鸡哥 | refactor(todo): update type imports to use CSSProperties for style definitions
+- 2026-07-17 | 35f9362f | 鸡哥 | feat(localFileSearch): enhance config panel transition effects with margin adjustments
+- 2026-07-17 | ac22c492 | 鸡哥 | feat(localFileSearch): enhance configuration panel layout with transition effects
+- 2026-07-17 | 413f7ad3 | 鸡哥 | feat(localFileSearch): implement local file search module with configuration and results display
+- 2026-07-17 | ec12104b | 鸡哥 | feat(localFileSearch): restructure LocalFileSearchTab component and update import paths
+- 2026-07-17 | 7d85bf72 | 鸡哥 | feat(todo): implement Todo module with components for task management
+- 2026-07-17 | 168b15b4 | 鸡哥 | refactor: reorganize TodoTab component structure and update import paths
+- 2026-07-17 | 06576005 | 鸡哥 | feat(countdown): add countdown module with calendar, card, and form components
+- 2026-07-17 | 73f6fba6 | 鸡哥 | feat: add CountdownTab component for managing countdown events with calendar integration
+- 2026-07-17 | 3e14b42b | eislandBot | docs: auto update CHANGE_LOG.md for #153 by @JNTMTMTM [skip ci]
+- 2026-07-17 | d865d203 | 鸡哥 | Merge pull request #153 from JNTMTMTM/dev
+- 2026-07-17 | 7d5bd233 | 鸡哥 | refactor: improve password detection logic in isLikelyPassword function for better accuracy
+- 2026-07-17 | fea0eab9 | 鸡哥 | refactor: enhance clipboard history item row layout with new detail wrapper for improved expansion handling
+- 2026-07-17 | 0fef1bd0 | 鸡哥 | refactor: update clipboard history components for improved state management and accessibility
+- 2026-07-17 | 3bc5a9ec | 鸡哥 | refactor: move FEEDBACK_DURATION_MS constant to config for better maintainability
+- 2026-07-16 | 7752fc4e | 鸡哥 | feat: add clipboard history module with header, item rows, hooks, and utilities
+- 2026-07-16 | 1933f9fb | 鸡哥 | feat: add ClipboardHistoryTab component for managing clipboard history in max expand mode
+- 2026-07-16 | 50c53553 | eislandBot | docs: auto update CHANGE_LOG.md for #151 by @JNTMTMTM [skip ci]
+- 2026-07-16 | 813250a7 | 鸡哥 | Merge pull request #151 from JNTMTMTM/dev
+- 2026-07-16 | a190ccb8 | 鸡哥 | feat(oauth): enhance OAuth login handling and update documentation for KOOK support
+- 2026-07-16 | 0a1a474e | 鸡哥 | feat(oauth): refactor OAuth login handling and add unit tests for OAuth functions
+- 2026-07-16 | d129025f | 鸡哥 | feat(docs): update OAuth references to include KOOK and Gitee across multiple documents
+- 2026-07-16 | d861a61a | 鸡哥 | feat(auth-api): update OAuth section to include Gitee and KOOK authorization endpoints
+- 2026-07-16 | 012d6b2e | 鸡哥 | fix(auth-panel): increase width from 490px to 550px for improved layout
+- 2026-07-16 | ae08d158 | 鸡哥 | feat(oauth): add KOOK login functionality and update related components
+- 2026-07-16 | 1c9142c2 | 鸡哥 | feat(svg): add KOOK icon and update SvgIcon references
+- 2026-07-16 | ac667458 | 鸡哥 | fix(auth-panel): increase width from 430px to 490px for better layout
+- 2026-07-16 | 98d59c0a | 鸡哥 | feat(user-settings): add Gitee as an OAuth provider in UserSettingsSection
+- 2026-07-16 | 48f1085d | 鸡哥 | feat(oauth): add Gitee login functionality and update related components
+- 2026-07-16 | 41df44a8 | 鸡哥 | feat(svg): add GITEE icon and update SvgIcon properties
+- 2026-07-16 | 1ef54d09 | eislandBot | docs: auto update CHANGE_LOG.md for #150 by @JNTMTMTM [skip ci]
+- 2026-07-16 | eefe6a5c | 鸡哥 | Merge pull request #150 from JNTMTMTM/dev
+- 2026-07-16 | db6c1f4b | 鸡哥 | refactor(cli): update eventFilter type to CliEventFilter for improved type safety
+- 2026-07-16 | bd9637fe | 鸡哥 | feat(album): add index file for Album module with export for AlarmTab component
+- 2026-07-16 | 601219b9 | 鸡哥 | refactor(album): consolidate hook return types and improve type imports for better clarity and organization
+- 2026-07-16 | 89e91f5e | 鸡哥 | refactor(album): migrate constants and types to albumConfig for better organization
+- 2026-07-16 | 0b28f4d6 | 鸡哥 | feat(album): enhance AlbumTab component with improved hooks and file handling functionality
+- 2026-07-16 | 55afc92b | 鸡哥 | refactor(album): streamline component props by consolidating types for AlbumGridItem, AlbumHeader, AlbumMetaPanel, AlbumOverview, and AlbumSelectionBar
+- 2026-07-16 | e291107c | 鸡哥 | feat(album): refactor AlbumTab component and add AlbumHeader and AlbumOverview components for improved structure and functionality
+- 2026-07-16 | bd521969 | 鸡哥 | feat(album): add album viewer, selection bar, grid item, and meta panel components
+- 2026-07-16 | 4168aefd | 鸡哥 | fix: update import path for resolveBgMediaPreviewUrl in useAlbumViewerActions hook
+- 2026-07-16 | c276f06a | 鸡哥 | feat(album): add hooks for album management and viewer functionality
+- 2026-07-16 | aa6674a9 | 鸡哥 | feat(album): refactor album module by creating separate types and utility functions for better organization and maintainability
+- 2026-07-16 | 62933357 | 鸡哥 | feat(album): add initial album component structure
+- 2026-07-16 | 349310c1 | 鸡哥 | refactor: move AlarmEditorProps interface to a new file for better organization
+- 2026-07-16 | dcbc0ee5 | 鸡哥 | refactor: create AlarmSidebar component to streamline AlarmTab structure and improve readability
+- 2026-07-16 | b77c34d5 | 鸡哥 | refactor: create EventStreamPanel component to enhance CLI tab structure and functionality
+- 2026-07-16 | 8ee6ce79 | 鸡哥 | refactor: restructure CLI components and hooks for improved organization and functionality
+- 2026-07-16 | 10ce34b5 | 鸡哥 | refactor: move event constants to cliConstants.ts for better organization
+- 2026-07-16 | 2b664394 | 鸡哥 | refactor: simplify ActivityHeatmap component by utilizing custom hooks for grid and scroll management
+- 2026-07-16 | fcdce5e8 | 鸡哥 | refactor: update ActivityHeatmap types and props for improved clarity and structure
+- 2026-07-16 | 91363604 | 鸡哥 | refactor: reorganize type imports and remove deprecated config/types.ts
+- 2026-07-15 | 6446d1ab | eislandBot | docs: auto update CHANGE_LOG.md for #149 by @JNTMTMTM [skip ci]
+- 2026-07-16 | cb6160af | 鸡哥 | Merge pull request #149 from JNTMTMTM/dev
+- 2026-07-16 | 1cbcb4f2 | 鸡哥 | refactor: update type imports in ChatInputBar for improved clarity and consistency
+- 2026-07-16 | 18ab0b2c | 鸡哥 | refactor: update props in AiChatTab and ChatInputBar, remove unused sessionId in WebAccessPanel, enhance attachment validation in useChatSend
+- 2026-07-16 | 6bf860e6 | 鸡哥 | refactor: reorganize AgentMode and SessionCardState types, streamline imports in chat-related files
+- 2026-07-16 | d9a0a026 | 鸡哥 | feat: refactor chat-related functions and constants into chatHelpers utility file
+- 2026-07-16 | 5563c828 | 鸡哥 | feat: centralize isMinimaxModel function and remove duplicates from components
+- 2026-07-15 | d1adc3a4 | 鸡哥 | refactor: replace React.ReactElement with ReactElement type in multiple components
+- 2026-07-15 | b8a871f0 | 鸡哥 | feat: refactor AlarmCard component props and move type definitions to a new file
+- 2026-07-15 | 1f3f06e4 | 鸡哥 | feat: add alarm management components and hooks
+- 2026-07-15 | 66de19dc | 鸡哥 | feat: add AlarmTab component for managing multiple alarms with create, edit, delete, and repeat functionality
+- 2026-07-15 | c2e8e129 | 鸡哥 | feat: refactor AiChatTab import paths and relocate component to agent directory
+- 2026-07-15 | d3d19b81 | 鸡哥 | feat: add centralized chat state management hook and related types
+- 2026-07-14 | 8d0c9023 | eislandBot | docs: auto update CHANGE_LOG.md for #148 by @JNTMTMTM [skip ci]
+- 2026-07-15 | ca878eb3 | 鸡哥 | Merge pull request #148 from JNTMTMTM/dev
+- 2026-07-14 | 646ac5a5 | 鸡哥 | feat: normalize provider names to lowercase in useLogin hook and update unbinding button logic in UserSettingsSection
+- 2026-07-14 | 5f7a9fec | 鸡哥 | feat: streamline disabled providers logic by using filter method
+- 2026-07-14 | b96623b1 | 鸡哥 | feat: simplify Microsoft login button text handling by removing disabled state message
+- 2026-07-14 | bee56f8f | 鸡哥 | feat: add fetchOAuthProviders function and integrate disabled providers logic in login components
+- 2026-07-14 | 4aff3324 | 鸡哥 | feat: add unbind functionality for OAuth bindings in user settings
+- 2026-07-14 | 48da9c3a | 鸡哥 | feat: update OAuth fields in user settings to use providerUserId instead of email
+- 2026-07-14 | 7f7ecf74 | 鸡哥 | feat: implement OAuth bindings management in user settings
+- 2026-07-14 | 53546f98 | 鸡哥 | feat: add OAuth page binding to user settings and update translations
+- 2026-07-14 | 408de939 | eislandBot | docs: auto update CHANGE_LOG.md for #147 by @JNTMTMTM [skip ci]
+- 2026-07-14 | 797b8a83 | 鸡哥 | Merge pull request #147 from JNTMTMTM/dev
+- 2026-07-14 | 08f422bd | 鸡哥 | feat: replace GitHub OAuth SVG icon with image component for improved rendering
+- 2026-07-14 | 5984f429 | 鸡哥 | feat: update EMAIL_PATTERN import path and refactor oauth button rendering in LoginForm
+- 2026-07-14 | 9697a14e | 鸡哥 | feat: migrate splash configuration to splashWindowConfig and update imports
+- 2026-07-14 | b3b661bd | 鸡哥 | feat: migrate EMAIL_PATTERN to dynamicIslandPatterns and update imports across components
+- 2026-07-14 | eb9bf320 | 鸡哥 | feat: migrate ALL_DEPENDENCIES to dynamicIslandDependencies and update imports
+- 2026-07-14 | 566bacef | 鸡哥 | feat: centralize EMAIL_PATTERN regex in patterns.ts and update imports across components
+- 2026-07-14 | d6e18297 | 鸡哥 | feat: define LoginFormProps interface for improved type safety and component props management
+- 2026-07-14 | dc87b621 | 鸡哥 | feat: refactor OAuth buttons to consolidate loading state management
+- 2026-07-14 | 2c8cd211 | 鸡哥 | feat: update WECHAT icon file path and add new SVG file
+- 2026-07-14 | ad1ae87c | 鸡哥 | feat: update OAuth login button labels for consistency and adjust layout to row
+- 2026-07-14 | d2168d7c | 鸡哥 | feat: enhance OAuth support by adding WeChat email binding functionality and updating state machine documentation
+- 2026-07-14 | aae61863 | 鸡哥 | feat: add emailPlaceholder for email input in English and Chinese localization
+- 2026-07-14 | 51f80056 | 鸡哥 | feat: update wechatBindEmail function to include emailCode parameter and adjust useBindEmail hook for email binding
+- 2026-07-14 | 6ff7406f | 鸡哥 | feat: add BIND_EMAIL type to UserEmailCodeScene for email binding functionality
+- 2026-07-14 | 5f7cffc5 | 鸡哥 | feat: implement wechatBindEmail function and integrate it into useBindEmail hook for OAuth email binding
+- 2026-07-14 | 8bb36549 | 鸡哥 | feat: add email binding functionality for new OAuth users
+- 2026-07-14 | 2bc928ff | 鸡哥 | feat: add WeChat login handling to LoginContent component
+- 2026-07-14 | 586d5c96 | 鸡哥 | feat: add WeChat OAuth login functionality and localization support
+- 2026-07-13 | f5e85b97 | eislandBot | docs: auto update CHANGE_LOG.md for #146 by @JNTMTMTM [skip ci]
+- 2026-07-13 | af754cb6 | 鸡哥 | Merge pull request #146 from JNTMTMTM/dev
+- 2026-07-13 | 38db027b | 鸡哥 | feat: update skip button text to include default value for better localization
+- 2026-07-13 | e5c43284 | 鸡哥 | feat: add skip functionality to LanguageStep component
+- 2026-07-13 | 9b863ac4 | 鸡哥 | feat: replace Microsoft login SVG with SvgIcon component
+- 2026-07-13 | a42d054b | 鸡哥 | feat: add Microsoft SVG icon and update SvgIcon utility
+- 2026-07-13 | 1346c97c | 鸡哥 | feat: enhance authentication documentation to include Microsoft OAuth support
+- 2026-07-13 | 389a43c7 | 鸡哥 | fix: disable Microsoft login button during submission and loading states
+- 2026-07-13 | 57e16646 | 鸡哥 | feat: add Microsoft OAuth login functionality and update related UI components
+- 2026-07-13 | 025dfab8 | 鸡哥 | feat: add SVG resources to electron-builder configuration
+- 2026-07-13 | a11a5011 | eislandBot | docs: auto update CHANGE_LOG.md for #145 by @JNTMTMTM [skip ci]
+- 2026-07-13 | ea5237d1 | 鸡哥 | Merge pull request #145 from JNTMTMTM/dev
+- 2026-07-13 | 4c95cedf | 鸡哥 | refactor: remove OAuth IPC handlers and related code, streamline user account API requests
+- 2026-07-13 | 81559519 | 鸡哥 | feat: add module entry documentation for OAuth binding and password setting components
+- 2026-07-13 | fe25cc74 | 鸡哥 | feat: refactor GitHub OAuth requests to use dedicated githubRequest function
+- 2026-07-13 | 961b886e | 鸡哥 | feat: add confirm password visibility handling to SetPasswordContent component
+- 2026-07-13 | 139ada2f | 鸡哥 | feat: add confirm password visibility toggle to SetPasswordForm component
+- 2026-07-13 | 027a7bf3 | 鸡哥 | feat: create SetPasswordFormProps interface for type safety in SetPasswordForm component
+- 2026-07-13 | 9ff7d79c | 鸡哥 | feat: define BindOAuthFormProps interface for improved type safety in OAuth form component
+- 2026-07-13 | fa6e2ff3 | 鸡哥 | feat: update documentation for OAuth integration, including state machine and MySQL schema
+- 2026-07-13 | 2592972f | 鸡哥 | feat: enhance hover interaction and login state handling with new CSS classes
+- 2026-07-13 | ce0d5886 | 鸡哥 | feat: add OAuth functionality for user account binding and password setting
+- 2026-07-13 | 80b97357 | 鸡哥 | fix: simplify cancel login message in English and Chinese translations
+- 2026-07-12 | 93882ffc | eislandBot | docs: auto update CHANGE_LOG.md for #144 by @JNTMTMTM [skip ci]
+- 2026-07-13 | 0fb81520 | 鸡哥 | Merge pull request #144 from JNTMTMTM/dev
+- 2026-07-12 | 8037941c | 鸡哥 | feat: update sponsor images to include names and improve layout responsiveness
+- 2026-07-12 | 054b0437 | 鸡哥 | Refactor code structure for improved readability and maintainability
+- 2026-07-12 | 43823051 | 鸡哥 | feat: add sponsors step to the guide with localization and styling
+- 2026-07-12 | 53d87836 | 鸡哥 | feat: add signpath logo image to the public assets
+- 2026-07-11 | 04461ec1 | eislandBot | docs: auto update CHANGE_LOG.md for #143 by @JNTMTMTM [skip ci]
+- 2026-07-11 | 2d93ed22 | 鸡哥 | Merge pull request #143 from JNTMTMTM/dev
+- 2026-07-11 | d3d9434c | 鸡哥 | feat: add documentation for getVisibleWindows function in screenshotHelper.ts
+- 2026-07-11 | 84e8ed2f | 鸡哥 | fix: update version to 26.0.1 in package.json and package-lock.json
+- 2026-07-11 | 21f55f4b | 鸡哥 | feat: add visible window enumeration functionality and related documentation
+- 2026-07-11 | 5a6e8bf7 | 鸡哥 | feat: add functionality to retrieve visible window bounds and update related interfaces and tests
+- 2026-07-11 | c1326b33 | eislandBot | docs: auto update CHANGE_LOG.md for #142 by @JNTMTMTM [skip ci]
+- 2026-07-11 | fcdd3e02 | 鸡哥 | Merge pull request #142 from JNTMTMTM/dev
+- 2026-07-11 | 430dafa7 | 鸡哥 | refactor: remove unused changes section from pull request template
+- 2026-07-11 | 9ee19b33 | 鸡哥 | fix: restrict publish trigger to package.json changes and enhance version check logic
+- 2026-07-11 | ad703a45 | eislandBot | docs: auto update CHANGE_LOG.md for #141 by @JNTMTMTM [skip ci]
+- 2026-07-11 | 6a9da232 | 鸡哥 | Merge pull request #141 from JNTMTMTM/dev
+- 2026-07-11 | e95aed1e | 鸡哥 | docs: update test coverage numbers and enhance error message descriptions in screenshot helper documentation
+- 2026-07-11 | 7991e819 | 鸡哥 | feat: enhance error handling and add TFM constant for screenshot helper
+- 2026-07-11 | 0ba42201 | 鸡哥 | feat: add documentation and descriptions for Windows Screenshot Helper module and tests
+- 2026-07-11 | bc332d9d | 鸡哥 | fix: improve loading logic for Windows Screenshot Helper and enhance error handling
+- 2026-07-11 | e25f3f0c | 鸡哥 | feat: add internationalization support for capture tools and update UI elements
+- 2026-07-11 | 9bf331ab | 鸡哥 | feat: add Windows Screenshot Helper plugin documentation and commands
+- 2026-07-11 | 16caab44 | 鸡哥 | feat: add Windows Screenshot Helper plugin with capture and error handling functions
+- 2026-07-11 | 91609051 | 鸡哥 | feat: enhance capture window service with opacity and mouse event handling
+- 2026-07-11 | 4beebf9e | 鸡哥 | feat: add windows screenshot helper plugin
+- 2026-07-11 | 19ad1f73 | 鸡哥 | feat: add setHoverTab function to useDynamicIslandCoordinator and useIslandHoverInteraction hooks
+- 2026-07-11 | 7d521d42 | 鸡哥 | feat: enhance event handling and cleanup in various components
+- 2026-07-11 | 449362e7 | 鸡哥 | docs: update tech stack documentation for plugins and architecture details
+- 2026-07-11 | c6c137d4 | 鸡哥 | feat: add Windows Application Icon Helper plugin to README.md
+- 2026-07-11 | 812276b5 | 鸡哥 | feat: add CLAUDE.md with behavioral guidelines for LLM coding practices
+- 2026-07-10 | 4431b075 | eislandBot | docs: auto update CHANGE_LOG.md for #140 by @JNTMTMTM [skip ci]
+- 2026-07-10 | f22823fc | 鸡哥 | Merge pull request #140 from JNTMTMTM/dev
+- 2026-07-10 | 3710af9a | 鸡哥 | feat: add MCP configuration files for CodeGraph integration
+- 2026-07-09 | a18ddef7 | eislandBot | docs: auto update CHANGE_LOG.md for #138 by @JNTMTMTM [skip ci]
+- 2026-07-10 | 49814160 | 鸡哥 | Merge pull request #138 from JNTMTMTM/dev
+- 2026-07-10 | cde4dc16 | 鸡哥 | feat: add Application Icon Helper plugin and update plugin count in setup documentation
+- 2026-07-10 | c779a7a8 | 鸡哥 | docs: add build instructions for automatic plugin building
+- 2026-07-10 | 7141f629 | 鸡哥 | Merge commit '6c9bdb6d6d53cb876b7904dff8526f65fad9e876' into dev
+- 2026-07-10 | 6c9bdb6d | 鸡哥 | feat: add build and clean scripts for application icon helper plugin
+- 2026-07-09 | d5702790 | 鸡哥 | docs(announcement): add v26.4.4 release notes
 
 ## 26.6.4
 
@@ -2755,183 +2946,15 @@
 
 ## Unreleased
 
-- 2026-07-18 | 7e27877b | 鸡哥 | Merge pull request #158 from JNTMTMTM/dev
-- 2026-07-18 | ef24d27c | 鸡哥 | feat(urlFavorites): implement import/export functionality with drag-and-drop support and format selection
-- 2026-07-18 | 1f6b2af6 | 鸡哥 | feat(urlFavorites): refactor drag event types and improve state management with concise type imports
-- 2026-07-18 | 989d5d54 | 鸡哥 | feat(urlFavorites): enhance editor UI with transition effects and improved layout
-- 2026-07-18 | bbf899b2 | 鸡哥 | feat(urlFavorites): implement URL favorites management module with hooks and components
-- 2026-07-18 | 152192b7 | eislandBot | docs: auto update CHANGE_LOG.md for #157 by @JNTMTMTM [skip ci]
-- 2026-07-18 | 72b32ed3 | 鸡哥 | Merge pull request #157 from JNTMTMTM/dev
-- 2026-07-18 | c6e4fc76 | 鸡哥 | feat(mail): implement mail module with multi-account support and inbox functionality
-- 2026-07-18 | 0654d627 | 鸡哥 | Merge pull request #156 from silenthim18303/dev
-- 2026-07-17 | e7b6e040 | silenthim18303 | 把账户读取、旧配置归一化、fetchLimit 读取、收件箱请求超时处理拆成命名函数,把空状态、标题操作、账户 tabs、邮件列表、邮件阅读器拆成小组件,修复初始化竞态：现在先读保存的 mail-fetch-limit，再用正确 limit 拉取收件箱,增加请求序号保护，避免快速切换账户时旧请求回写覆盖新账户列表
-- 2026-07-17 | a53cdab6 | 鸡哥 | feat(memo): add brightness filter for empty icon and bookmark filter images in light theme
-- 2026-07-17 | 9feaa731 | 鸡哥 | feat(memo): replace SVG icon with MEMO image in MemoEditorEmpty component
-- 2026-07-17 | d8f45431 | 鸡哥 | feat(svg): add MEMO icon to SvgIcon and corresponding test case
-- 2026-07-17 | ccefd0b1 | 鸡哥 | feat(memo): implement MemoEditor and MemoEditorEmpty components; enhance MemoTab with MemoSidebar integration
-- 2026-07-17 | 8818d03d | 鸡哥 | refactor: restructure memo module with useMemoTab hook and utility functions
-- 2026-07-17 | 44742446 | 鸡哥 | feat(memo): add MemoTab component for managing memos with create, edit, delete, and search functionalities
-- 2026-07-17 | adcdf49a | 鸡哥 | refactor(SKILL): update module split instructions and eval prompts for clarity and structure
-- 2026-07-17 | 709c6600 | 鸡哥 | refactor(SKILL): enhance module structure by adding types and refining directory organization
-- 2026-07-17 | 9752a2e1 | eislandBot | docs: auto update CHANGE_LOG.md for #154 by @JNTMTMTM [skip ci]
-- 2026-07-17 | d5e3f08f | 鸡哥 | Merge pull request #154 from JNTMTMTM/dev
-- 2026-07-17 | 1d185935 | 鸡哥 | refactor(todo): update type imports to use CSSProperties for style definitions
-- 2026-07-17 | 35f9362f | 鸡哥 | feat(localFileSearch): enhance config panel transition effects with margin adjustments
-- 2026-07-17 | ac22c492 | 鸡哥 | feat(localFileSearch): enhance configuration panel layout with transition effects
-- 2026-07-17 | 413f7ad3 | 鸡哥 | feat(localFileSearch): implement local file search module with configuration and results display
-- 2026-07-17 | ec12104b | 鸡哥 | feat(localFileSearch): restructure LocalFileSearchTab component and update import paths
-- 2026-07-17 | 7d85bf72 | 鸡哥 | feat(todo): implement Todo module with components for task management
-- 2026-07-17 | 168b15b4 | 鸡哥 | refactor: reorganize TodoTab component structure and update import paths
-- 2026-07-17 | 06576005 | 鸡哥 | feat(countdown): add countdown module with calendar, card, and form components
-- 2026-07-17 | 73f6fba6 | 鸡哥 | feat: add CountdownTab component for managing countdown events with calendar integration
-- 2026-07-17 | 3e14b42b | eislandBot | docs: auto update CHANGE_LOG.md for #153 by @JNTMTMTM [skip ci]
-- 2026-07-17 | d865d203 | 鸡哥 | Merge pull request #153 from JNTMTMTM/dev
-- 2026-07-17 | 7d5bd233 | 鸡哥 | refactor: improve password detection logic in isLikelyPassword function for better accuracy
-- 2026-07-17 | fea0eab9 | 鸡哥 | refactor: enhance clipboard history item row layout with new detail wrapper for improved expansion handling
-- 2026-07-17 | 0fef1bd0 | 鸡哥 | refactor: update clipboard history components for improved state management and accessibility
-- 2026-07-17 | 3bc5a9ec | 鸡哥 | refactor: move FEEDBACK_DURATION_MS constant to config for better maintainability
-- 2026-07-16 | 7752fc4e | 鸡哥 | feat: add clipboard history module with header, item rows, hooks, and utilities
-- 2026-07-16 | 1933f9fb | 鸡哥 | feat: add ClipboardHistoryTab component for managing clipboard history in max expand mode
-- 2026-07-16 | 50c53553 | eislandBot | docs: auto update CHANGE_LOG.md for #151 by @JNTMTMTM [skip ci]
-- 2026-07-16 | 813250a7 | 鸡哥 | Merge pull request #151 from JNTMTMTM/dev
-- 2026-07-16 | a190ccb8 | 鸡哥 | feat(oauth): enhance OAuth login handling and update documentation for KOOK support
-- 2026-07-16 | 0a1a474e | 鸡哥 | feat(oauth): refactor OAuth login handling and add unit tests for OAuth functions
-- 2026-07-16 | d129025f | 鸡哥 | feat(docs): update OAuth references to include KOOK and Gitee across multiple documents
-- 2026-07-16 | d861a61a | 鸡哥 | feat(auth-api): update OAuth section to include Gitee and KOOK authorization endpoints
-- 2026-07-16 | 012d6b2e | 鸡哥 | fix(auth-panel): increase width from 490px to 550px for improved layout
-- 2026-07-16 | ae08d158 | 鸡哥 | feat(oauth): add KOOK login functionality and update related components
-- 2026-07-16 | 1c9142c2 | 鸡哥 | feat(svg): add KOOK icon and update SvgIcon references
-- 2026-07-16 | ac667458 | 鸡哥 | fix(auth-panel): increase width from 430px to 490px for better layout
-- 2026-07-16 | 98d59c0a | 鸡哥 | feat(user-settings): add Gitee as an OAuth provider in UserSettingsSection
-- 2026-07-16 | 48f1085d | 鸡哥 | feat(oauth): add Gitee login functionality and update related components
-- 2026-07-16 | 41df44a8 | 鸡哥 | feat(svg): add GITEE icon and update SvgIcon properties
-- 2026-07-16 | 1ef54d09 | eislandBot | docs: auto update CHANGE_LOG.md for #150 by @JNTMTMTM [skip ci]
-- 2026-07-16 | eefe6a5c | 鸡哥 | Merge pull request #150 from JNTMTMTM/dev
-- 2026-07-16 | db6c1f4b | 鸡哥 | refactor(cli): update eventFilter type to CliEventFilter for improved type safety
-- 2026-07-16 | bd9637fe | 鸡哥 | feat(album): add index file for Album module with export for AlarmTab component
-- 2026-07-16 | 601219b9 | 鸡哥 | refactor(album): consolidate hook return types and improve type imports for better clarity and organization
-- 2026-07-16 | 89e91f5e | 鸡哥 | refactor(album): migrate constants and types to albumConfig for better organization
-- 2026-07-16 | 0b28f4d6 | 鸡哥 | feat(album): enhance AlbumTab component with improved hooks and file handling functionality
-- 2026-07-16 | 55afc92b | 鸡哥 | refactor(album): streamline component props by consolidating types for AlbumGridItem, AlbumHeader, AlbumMetaPanel, AlbumOverview, and AlbumSelectionBar
-- 2026-07-16 | e291107c | 鸡哥 | feat(album): refactor AlbumTab component and add AlbumHeader and AlbumOverview components for improved structure and functionality
-- 2026-07-16 | bd521969 | 鸡哥 | feat(album): add album viewer, selection bar, grid item, and meta panel components
-- 2026-07-16 | 4168aefd | 鸡哥 | fix: update import path for resolveBgMediaPreviewUrl in useAlbumViewerActions hook
-- 2026-07-16 | c276f06a | 鸡哥 | feat(album): add hooks for album management and viewer functionality
-- 2026-07-16 | aa6674a9 | 鸡哥 | feat(album): refactor album module by creating separate types and utility functions for better organization and maintainability
-- 2026-07-16 | 62933357 | 鸡哥 | feat(album): add initial album component structure
-- 2026-07-16 | 349310c1 | 鸡哥 | refactor: move AlarmEditorProps interface to a new file for better organization
-- 2026-07-16 | dcbc0ee5 | 鸡哥 | refactor: create AlarmSidebar component to streamline AlarmTab structure and improve readability
-- 2026-07-16 | b77c34d5 | 鸡哥 | refactor: create EventStreamPanel component to enhance CLI tab structure and functionality
-- 2026-07-16 | 8ee6ce79 | 鸡哥 | refactor: restructure CLI components and hooks for improved organization and functionality
-- 2026-07-16 | 10ce34b5 | 鸡哥 | refactor: move event constants to cliConstants.ts for better organization
-- 2026-07-16 | 2b664394 | 鸡哥 | refactor: simplify ActivityHeatmap component by utilizing custom hooks for grid and scroll management
-- 2026-07-16 | fcdce5e8 | 鸡哥 | refactor: update ActivityHeatmap types and props for improved clarity and structure
-- 2026-07-16 | 91363604 | 鸡哥 | refactor: reorganize type imports and remove deprecated config/types.ts
-- 2026-07-15 | 6446d1ab | eislandBot | docs: auto update CHANGE_LOG.md for #149 by @JNTMTMTM [skip ci]
-- 2026-07-16 | cb6160af | 鸡哥 | Merge pull request #149 from JNTMTMTM/dev
-- 2026-07-16 | 1cbcb4f2 | 鸡哥 | refactor: update type imports in ChatInputBar for improved clarity and consistency
-- 2026-07-16 | 18ab0b2c | 鸡哥 | refactor: update props in AiChatTab and ChatInputBar, remove unused sessionId in WebAccessPanel, enhance attachment validation in useChatSend
-- 2026-07-16 | 6bf860e6 | 鸡哥 | refactor: reorganize AgentMode and SessionCardState types, streamline imports in chat-related files
-- 2026-07-16 | d9a0a026 | 鸡哥 | feat: refactor chat-related functions and constants into chatHelpers utility file
-- 2026-07-16 | 5563c828 | 鸡哥 | feat: centralize isMinimaxModel function and remove duplicates from components
-- 2026-07-15 | d1adc3a4 | 鸡哥 | refactor: replace React.ReactElement with ReactElement type in multiple components
-- 2026-07-15 | b8a871f0 | 鸡哥 | feat: refactor AlarmCard component props and move type definitions to a new file
-- 2026-07-15 | 1f3f06e4 | 鸡哥 | feat: add alarm management components and hooks
-- 2026-07-15 | 66de19dc | 鸡哥 | feat: add AlarmTab component for managing multiple alarms with create, edit, delete, and repeat functionality
-- 2026-07-15 | c2e8e129 | 鸡哥 | feat: refactor AiChatTab import paths and relocate component to agent directory
-- 2026-07-15 | d3d19b81 | 鸡哥 | feat: add centralized chat state management hook and related types
-- 2026-07-14 | 8d0c9023 | eislandBot | docs: auto update CHANGE_LOG.md for #148 by @JNTMTMTM [skip ci]
-- 2026-07-15 | ca878eb3 | 鸡哥 | Merge pull request #148 from JNTMTMTM/dev
-- 2026-07-14 | 646ac5a5 | 鸡哥 | feat: normalize provider names to lowercase in useLogin hook and update unbinding button logic in UserSettingsSection
-- 2026-07-14 | 5f7a9fec | 鸡哥 | feat: streamline disabled providers logic by using filter method
-- 2026-07-14 | b96623b1 | 鸡哥 | feat: simplify Microsoft login button text handling by removing disabled state message
-- 2026-07-14 | bee56f8f | 鸡哥 | feat: add fetchOAuthProviders function and integrate disabled providers logic in login components
-- 2026-07-14 | 4aff3324 | 鸡哥 | feat: add unbind functionality for OAuth bindings in user settings
-- 2026-07-14 | 48da9c3a | 鸡哥 | feat: update OAuth fields in user settings to use providerUserId instead of email
-- 2026-07-14 | 7f7ecf74 | 鸡哥 | feat: implement OAuth bindings management in user settings
-- 2026-07-14 | 53546f98 | 鸡哥 | feat: add OAuth page binding to user settings and update translations
-- 2026-07-14 | 408de939 | eislandBot | docs: auto update CHANGE_LOG.md for #147 by @JNTMTMTM [skip ci]
-- 2026-07-14 | 797b8a83 | 鸡哥 | Merge pull request #147 from JNTMTMTM/dev
-- 2026-07-14 | 08f422bd | 鸡哥 | feat: replace GitHub OAuth SVG icon with image component for improved rendering
-- 2026-07-14 | 5984f429 | 鸡哥 | feat: update EMAIL_PATTERN import path and refactor oauth button rendering in LoginForm
-- 2026-07-14 | 9697a14e | 鸡哥 | feat: migrate splash configuration to splashWindowConfig and update imports
-- 2026-07-14 | b3b661bd | 鸡哥 | feat: migrate EMAIL_PATTERN to dynamicIslandPatterns and update imports across components
-- 2026-07-14 | eb9bf320 | 鸡哥 | feat: migrate ALL_DEPENDENCIES to dynamicIslandDependencies and update imports
-- 2026-07-14 | 566bacef | 鸡哥 | feat: centralize EMAIL_PATTERN regex in patterns.ts and update imports across components
-- 2026-07-14 | d6e18297 | 鸡哥 | feat: define LoginFormProps interface for improved type safety and component props management
-- 2026-07-14 | dc87b621 | 鸡哥 | feat: refactor OAuth buttons to consolidate loading state management
-- 2026-07-14 | 2c8cd211 | 鸡哥 | feat: update WECHAT icon file path and add new SVG file
-- 2026-07-14 | ad1ae87c | 鸡哥 | feat: update OAuth login button labels for consistency and adjust layout to row
-- 2026-07-14 | d2168d7c | 鸡哥 | feat: enhance OAuth support by adding WeChat email binding functionality and updating state machine documentation
-- 2026-07-14 | aae61863 | 鸡哥 | feat: add emailPlaceholder for email input in English and Chinese localization
-- 2026-07-14 | 51f80056 | 鸡哥 | feat: update wechatBindEmail function to include emailCode parameter and adjust useBindEmail hook for email binding
-- 2026-07-14 | 6ff7406f | 鸡哥 | feat: add BIND_EMAIL type to UserEmailCodeScene for email binding functionality
-- 2026-07-14 | 5f7cffc5 | 鸡哥 | feat: implement wechatBindEmail function and integrate it into useBindEmail hook for OAuth email binding
-- 2026-07-14 | 8bb36549 | 鸡哥 | feat: add email binding functionality for new OAuth users
-- 2026-07-14 | 2bc928ff | 鸡哥 | feat: add WeChat login handling to LoginContent component
-- 2026-07-14 | 586d5c96 | 鸡哥 | feat: add WeChat OAuth login functionality and localization support
-- 2026-07-13 | f5e85b97 | eislandBot | docs: auto update CHANGE_LOG.md for #146 by @JNTMTMTM [skip ci]
-- 2026-07-13 | af754cb6 | 鸡哥 | Merge pull request #146 from JNTMTMTM/dev
-- 2026-07-13 | 38db027b | 鸡哥 | feat: update skip button text to include default value for better localization
-- 2026-07-13 | e5c43284 | 鸡哥 | feat: add skip functionality to LanguageStep component
-- 2026-07-13 | 9b863ac4 | 鸡哥 | feat: replace Microsoft login SVG with SvgIcon component
-- 2026-07-13 | a42d054b | 鸡哥 | feat: add Microsoft SVG icon and update SvgIcon utility
-- 2026-07-13 | 1346c97c | 鸡哥 | feat: enhance authentication documentation to include Microsoft OAuth support
-- 2026-07-13 | 389a43c7 | 鸡哥 | fix: disable Microsoft login button during submission and loading states
-- 2026-07-13 | 57e16646 | 鸡哥 | feat: add Microsoft OAuth login functionality and update related UI components
-- 2026-07-13 | 025dfab8 | 鸡哥 | feat: add SVG resources to electron-builder configuration
-- 2026-07-13 | a11a5011 | eislandBot | docs: auto update CHANGE_LOG.md for #145 by @JNTMTMTM [skip ci]
-- 2026-07-13 | ea5237d1 | 鸡哥 | Merge pull request #145 from JNTMTMTM/dev
-- 2026-07-13 | 4c95cedf | 鸡哥 | refactor: remove OAuth IPC handlers and related code, streamline user account API requests
-- 2026-07-13 | 81559519 | 鸡哥 | feat: add module entry documentation for OAuth binding and password setting components
-- 2026-07-13 | fe25cc74 | 鸡哥 | feat: refactor GitHub OAuth requests to use dedicated githubRequest function
-- 2026-07-13 | 961b886e | 鸡哥 | feat: add confirm password visibility handling to SetPasswordContent component
-- 2026-07-13 | 139ada2f | 鸡哥 | feat: add confirm password visibility toggle to SetPasswordForm component
-- 2026-07-13 | 027a7bf3 | 鸡哥 | feat: create SetPasswordFormProps interface for type safety in SetPasswordForm component
-- 2026-07-13 | 9ff7d79c | 鸡哥 | feat: define BindOAuthFormProps interface for improved type safety in OAuth form component
-- 2026-07-13 | fa6e2ff3 | 鸡哥 | feat: update documentation for OAuth integration, including state machine and MySQL schema
-- 2026-07-13 | 2592972f | 鸡哥 | feat: enhance hover interaction and login state handling with new CSS classes
-- 2026-07-13 | ce0d5886 | 鸡哥 | feat: add OAuth functionality for user account binding and password setting
-- 2026-07-13 | 80b97357 | 鸡哥 | fix: simplify cancel login message in English and Chinese translations
-- 2026-07-12 | 93882ffc | eislandBot | docs: auto update CHANGE_LOG.md for #144 by @JNTMTMTM [skip ci]
-- 2026-07-13 | 0fb81520 | 鸡哥 | Merge pull request #144 from JNTMTMTM/dev
-- 2026-07-12 | 8037941c | 鸡哥 | feat: update sponsor images to include names and improve layout responsiveness
-- 2026-07-12 | 054b0437 | 鸡哥 | Refactor code structure for improved readability and maintainability
-- 2026-07-12 | 43823051 | 鸡哥 | feat: add sponsors step to the guide with localization and styling
-- 2026-07-12 | 53d87836 | 鸡哥 | feat: add signpath logo image to the public assets
-- 2026-07-11 | 04461ec1 | eislandBot | docs: auto update CHANGE_LOG.md for #143 by @JNTMTMTM [skip ci]
-- 2026-07-11 | 2d93ed22 | 鸡哥 | Merge pull request #143 from JNTMTMTM/dev
-- 2026-07-11 | d3d9434c | 鸡哥 | feat: add documentation for getVisibleWindows function in screenshotHelper.ts
-- 2026-07-11 | 84e8ed2f | 鸡哥 | fix: update version to 26.0.1 in package.json and package-lock.json
-- 2026-07-11 | 21f55f4b | 鸡哥 | feat: add visible window enumeration functionality and related documentation
-- 2026-07-11 | 5a6e8bf7 | 鸡哥 | feat: add functionality to retrieve visible window bounds and update related interfaces and tests
-- 2026-07-11 | c1326b33 | eislandBot | docs: auto update CHANGE_LOG.md for #142 by @JNTMTMTM [skip ci]
-- 2026-07-11 | fcdd3e02 | 鸡哥 | Merge pull request #142 from JNTMTMTM/dev
-- 2026-07-11 | 430dafa7 | 鸡哥 | refactor: remove unused changes section from pull request template
-- 2026-07-11 | 9ee19b33 | 鸡哥 | fix: restrict publish trigger to package.json changes and enhance version check logic
-- 2026-07-11 | ad703a45 | eislandBot | docs: auto update CHANGE_LOG.md for #141 by @JNTMTMTM [skip ci]
-- 2026-07-11 | 6a9da232 | 鸡哥 | Merge pull request #141 from JNTMTMTM/dev
-- 2026-07-11 | e95aed1e | 鸡哥 | docs: update test coverage numbers and enhance error message descriptions in screenshot helper documentation
-- 2026-07-11 | 7991e819 | 鸡哥 | feat: enhance error handling and add TFM constant for screenshot helper
-- 2026-07-11 | 0ba42201 | 鸡哥 | feat: add documentation and descriptions for Windows Screenshot Helper module and tests
-- 2026-07-11 | bc332d9d | 鸡哥 | fix: improve loading logic for Windows Screenshot Helper and enhance error handling
-- 2026-07-11 | e25f3f0c | 鸡哥 | feat: add internationalization support for capture tools and update UI elements
-- 2026-07-11 | 9bf331ab | 鸡哥 | feat: add Windows Screenshot Helper plugin documentation and commands
-- 2026-07-11 | 16caab44 | 鸡哥 | feat: add Windows Screenshot Helper plugin with capture and error handling functions
-- 2026-07-11 | 91609051 | 鸡哥 | feat: enhance capture window service with opacity and mouse event handling
-- 2026-07-11 | 4beebf9e | 鸡哥 | feat: add windows screenshot helper plugin
-- 2026-07-11 | 19ad1f73 | 鸡哥 | feat: add setHoverTab function to useDynamicIslandCoordinator and useIslandHoverInteraction hooks
-- 2026-07-11 | 7d521d42 | 鸡哥 | feat: enhance event handling and cleanup in various components
-- 2026-07-11 | 449362e7 | 鸡哥 | docs: update tech stack documentation for plugins and architecture details
-- 2026-07-11 | c6c137d4 | 鸡哥 | feat: add Windows Application Icon Helper plugin to README.md
-- 2026-07-11 | 812276b5 | 鸡哥 | feat: add CLAUDE.md with behavioral guidelines for LLM coding practices
-- 2026-07-10 | 4431b075 | eislandBot | docs: auto update CHANGE_LOG.md for #140 by @JNTMTMTM [skip ci]
-- 2026-07-10 | f22823fc | 鸡哥 | Merge pull request #140 from JNTMTMTM/dev
-- 2026-07-10 | 3710af9a | 鸡哥 | feat: add MCP configuration files for CodeGraph integration
-- 2026-07-09 | a18ddef7 | eislandBot | docs: auto update CHANGE_LOG.md for #138 by @JNTMTMTM [skip ci]
-- 2026-07-10 | 49814160 | 鸡哥 | Merge pull request #138 from JNTMTMTM/dev
-- 2026-07-10 | cde4dc16 | 鸡哥 | feat: add Application Icon Helper plugin and update plugin count in setup documentation
-- 2026-07-10 | c779a7a8 | 鸡哥 | docs: add build instructions for automatic plugin building
-- 2026-07-10 | 7141f629 | 鸡哥 | Merge commit '6c9bdb6d6d53cb876b7904dff8526f65fad9e876' into dev
-- 2026-07-10 | 6c9bdb6d | 鸡哥 | feat: add build and clean scripts for application icon helper plugin
-- 2026-07-09 | d5702790 | 鸡哥 | docs(announcement): add v26.4.4 release notes
+- 2026-07-19 | 32cdf866 | 鸡哥 | Merge pull request #159 from JNTMTMTM/dev
+- 2026-07-19 | ec37b8d1 | 鸡哥 | refactor: implement caching for helper EXE path and add reset function for testing
+- 2026-07-19 | aed9f8d8 | 鸡哥 | refactor: enhance error handling and logging in hardware info helper; update documentation for Bluetooth and monitor info
+- 2026-07-19 | 3babce72 | 鸡哥 | refactor: improve Windows platform checks and update data type handling in hardware info
+- 2026-07-19 | a4f77e09 | 鸡哥 | refactor: update author names in test files and configuration
+- 2026-07-19 | 744c12f1 | 鸡哥 | refactor: add descriptions to test files and configuration for clarity
+- 2026-07-19 | 8d6f5221 | 鸡哥 | refactor: optimize hardware info retrieval by using 'using' statements for ManagementObject
+- 2026-07-19 | 456c99ae | 鸡哥 | refactor: update title in BluetoothDeviceInfo documentation
+- 2026-07-19 | 8cd91278 | 鸡哥 | refactor: update launch configuration names and add Docs DEV Server
+- 2026-07-19 | 1b31bf90 | 鸡哥 | Add hardware information query functions and interfaces
+- 2026-07-19 | 02ab1dbc | 鸡哥 | Refactor hardware info helper: remove old code, implement new structure and tests
+- 2026-07-18 | f163578a | 鸡哥 | feat: add Windows hardware info helper plugin
