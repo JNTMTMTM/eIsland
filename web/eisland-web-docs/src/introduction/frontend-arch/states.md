@@ -6,7 +6,7 @@ icon: diagram-project
 # eIsland State Machine
 
 :::info
-The eIsland state machine is the core architecture that controls the island's appearance, behavior, and interactions. It manages **20 distinct states**, each with defined pixel dimensions, mouse behavior, and transition rules.
+The eIsland state machine is the core architecture that controls the island's appearance, behavior, and interactions. It manages **20 distinct states**, each with defined pixel dimensions, mouse behavior, and transition rules. The dimensions shown below are for **Notch** mode — see [Shape Modes](shape-modes.md) for **Pill** mode dimensions.
 :::
 
 ## State Categories
