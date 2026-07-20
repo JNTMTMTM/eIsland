@@ -89,6 +89,9 @@ export function useIslandDrag(options: UseIslandDragOptions): UseIslandDragResul
       document.removeEventListener('mousedown', handleMouseDown);
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
+      /** 形态模式切换（如 pill→notch）导致 draggable 变为 false 时，重置拖动标记以恢复点击 */
+      isDraggingRef.current = false;
+      hasMovedRef.current = false;
     };
   }, [draggable]);
 
