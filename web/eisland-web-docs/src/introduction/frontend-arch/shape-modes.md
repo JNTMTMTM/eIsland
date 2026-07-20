@@ -41,9 +41,13 @@ The shape mode affects the height of every island state. Widths remain the same 
 
 | State | Width | Notch Height | Pill Height | Pill Border Radius |
 |-------|-------|-------------|-------------|-------------------|
-| `notification` | 500 px | 88 px | 100 px | 44 px |
+| `notification` | 500 px (content: 480 px in pill) | 88 px | 100 px | 44 px |
 | `lyrics` | 500 px | 42 px | 52 px | 21 px |
 | `lyricsTranslation` | 500 px | 60 px | 72 px | 30 px |
+
+:::note
+In pill mode, the notification shell remains 500 px wide, but the inner `.notification-content` container is constrained to 480 px via CSS (`src/renderer/styles/notification/notification-content.css`). This creates a subtle inset effect within the pill shape.
+:::
 
 ### AI & Input States
 
