@@ -27,7 +27,17 @@
 
 import { BrowserWindow, ipcMain, screen } from 'electron';
 import { broadcastSettingChange } from '../../utils/broadcast';
-import { readIslandShapeModeConfig } from '../../config/storeConfig';
+import {
+  readIslandShapeModeConfig,
+  PILL_ISLAND_WIDTH,
+  PILL_ISLAND_HEIGHT,
+  PILL_EXPANDED_HEIGHT,
+  PILL_NOTIFICATION_HEIGHT,
+  PILL_LYRICS_HEIGHT,
+  PILL_LYRICS_TRANSLATION_HEIGHT,
+  PILL_EXPANDED_FULL_HEIGHT,
+  PILL_SETTINGS_HEIGHT,
+} from '../../config/storeConfig';
 
 interface WindowIpcSizeOptions {
   expandedWidth: number;
@@ -119,6 +129,11 @@ export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOpti
     return win.getBounds().y;
   };
 
+  /** 根据当前形态模式返回对应高度（pill 模式各状态加高） */
+  const getHeight = (notchHeight: number, pillHeight: number): number => {
+    return readIslandShapeModeConfig() === 'pill' ? pillHeight : notchHeight;
+  };
+
   ipcMain.on('window:enable-mouse-passthrough', () => {
     withWindow((win) => {
       win.setIgnoreMouseEvents(true, { forward: true });
@@ -139,7 +154,7 @@ export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOpti
         x: Math.round(centerX - options.sizes.expandedWidth / 2),
         y: getEffectiveY(win),
         width: options.sizes.expandedWidth,
-        height: options.sizes.expandedHeight,
+        height: getHeight(options.sizes.expandedHeight, PILL_EXPANDED_HEIGHT),
       });
     });
   });
@@ -151,7 +166,7 @@ export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOpti
         x: Math.round(centerX - options.sizes.notificationWidth / 2),
         y: getEffectiveY(win),
         width: options.sizes.notificationWidth,
-        height: options.sizes.notificationHeight,
+        height: getHeight(options.sizes.notificationHeight, PILL_NOTIFICATION_HEIGHT),
       });
     });
   });
@@ -163,7 +178,7 @@ export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOpti
         x: Math.round(centerX - options.sizes.lyricsWidth / 2),
         y: getEffectiveY(win),
         width: options.sizes.lyricsWidth,
-        height: options.sizes.lyricsHeight,
+        height: getHeight(options.sizes.lyricsHeight, PILL_LYRICS_HEIGHT),
       });
     });
   });
@@ -175,7 +190,7 @@ export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOpti
         x: Math.round(centerX - options.sizes.lyricsWidth / 2),
         y: getEffectiveY(win),
         width: options.sizes.lyricsWidth,
-        height: options.sizes.lyricsTranslationHeight,
+        height: getHeight(options.sizes.lyricsTranslationHeight, PILL_LYRICS_TRANSLATION_HEIGHT),
       });
     });
   });
@@ -187,7 +202,7 @@ export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOpti
         x: Math.round(centerX - options.sizes.expandedFullWidth / 2),
         y: getEffectiveY(win),
         width: options.sizes.expandedFullWidth,
-        height: options.sizes.expandedFullHeight,
+        height: getHeight(options.sizes.expandedFullHeight, PILL_EXPANDED_FULL_HEIGHT),
       });
     });
   });
@@ -199,7 +214,7 @@ export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOpti
         x: Math.round(centerX - options.sizes.settingsWidth / 2),
         y: getEffectiveY(win),
         width: options.sizes.settingsWidth,
-        height: options.sizes.settingsHeight,
+        height: getHeight(options.sizes.settingsHeight, PILL_SETTINGS_HEIGHT),
       });
     });
   });
@@ -207,11 +222,12 @@ export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOpti
   ipcMain.on('window:collapse', () => {
     withWindow((win) => {
       const centerX = getEffectiveCenterX(win);
+      const w = getHeight(options.sizes.islandWidth, PILL_ISLAND_WIDTH);
       win.setBounds({
-        x: Math.round(centerX - options.sizes.islandWidth / 2),
+        x: Math.round(centerX - w / 2),
         y: getEffectiveY(win),
-        width: options.sizes.islandWidth,
-        height: options.sizes.islandHeight,
+        width: w,
+        height: getHeight(options.sizes.islandHeight, PILL_ISLAND_HEIGHT),
       });
     });
   });

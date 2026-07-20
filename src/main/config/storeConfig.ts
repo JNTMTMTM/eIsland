@@ -71,6 +71,17 @@ export const EXPANDED_FULL_HEIGHT = 150;
 export const SETTINGS_WIDTH = 860;
 export const SETTINGS_HEIGHT = 400;
 
+// ===== 灵动岛 pill 模式尺寸常量 =====
+
+export const PILL_ISLAND_WIDTH = 290;
+export const PILL_ISLAND_HEIGHT = 52;
+export const PILL_EXPANDED_HEIGHT = 72;
+export const PILL_NOTIFICATION_HEIGHT = 100;
+export const PILL_LYRICS_HEIGHT = 52;
+export const PILL_LYRICS_TRANSLATION_HEIGHT = 72;
+export const PILL_EXPANDED_FULL_HEIGHT = 164;
+export const PILL_SETTINGS_HEIGHT = 416;
+
 // ===== SMTC 常量 =====
 
 /** SMTC 取消订阅设为永不取消时的值 */

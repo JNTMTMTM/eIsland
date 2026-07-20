@@ -56,6 +56,8 @@
 /* ── 灵动岛胶囊形态（pill） ── */
 
 .island-shell.shape-pill {
+  width: 290px;
+  height: 52px;
   border-radius: 21px;
   transform-origin: center center;
   cursor: grab;
@@ -66,6 +68,7 @@
 }
 
 .island-shell.shape-pill.hover {
+  height: 72px;
   border-radius: 30px;
 }
 
@@ -73,6 +76,7 @@
 .island-shell.shape-pill.agent,
 .island-shell.shape-pill.stt,
 .island-shell.shape-pill.cli {
+  height: 100px;
   border-radius: 44px;
 }
 
@@ -90,12 +94,31 @@
   border-radius: 26px;
 }
 
+.island-shell.shape-pill.expanded {
+  height: 164px;
+}
+
+.island-shell.shape-pill.maxExpand,
+.island-shell.shape-pill.guide,
+.island-shell.shape-pill.login,
+.island-shell.shape-pill.register,
+.island-shell.shape-pill.resetPassword,
+.island-shell.shape-pill.setPassword,
+.island-shell.shape-pill.bindOAuth,
+.island-shell.shape-pill.bindEmail,
+.island-shell.shape-pill.payment,
+.island-shell.shape-pill.announcement {
+  height: 416px;
+}
+
 .island-shell.shape-pill.lyrics,
 .island-shell.shape-pill.agentVoiceInput {
+  height: 52px;
   border-radius: 21px;
 }
 
 .island-shell.shape-pill.lyricsTranslation {
+  height: 72px;
   border-radius: 30px;
 }
 

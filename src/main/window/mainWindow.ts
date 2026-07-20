@@ -28,7 +28,7 @@
 import { BrowserWindow, screen, shell } from 'electron';
 import { join } from 'path';
 import { is } from '@electron-toolkit/utils';
-import { readIslandShapeModeConfig } from '../config/storeConfig';
+import { readIslandShapeModeConfig, PILL_ISLAND_WIDTH, PILL_ISLAND_HEIGHT } from '../config/storeConfig';
 
 interface WindowSizeOptions {
   islandWidth: number;
@@ -89,11 +89,13 @@ export function createMainWindowService(options: CreateMainWindowServiceOptions)
       ? workY + 46
       : workY;
     const y = baseY + offset.y;
+    const width = shapeMode === 'pill' ? PILL_ISLAND_WIDTH : options.sizes.islandWidth;
+    const height = shapeMode === 'pill' ? PILL_ISLAND_HEIGHT : options.sizes.islandHeight;
     return {
       x,
       y,
-      width: options.sizes.islandWidth,
-      height: options.sizes.islandHeight,
+      width,
+      height,
     };
   }
 
