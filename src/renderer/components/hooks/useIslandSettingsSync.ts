@@ -375,28 +375,63 @@ export function useIslandSettingsSync(options: UseIslandSettingsSyncOptions): vo
       });
     };
 
+    /** 根据当前状态调用对应的窗口 resize */
+    const applyWindowForState = (state: string): void => {
+      if (state === 'hover') {
+        window.api?.expandWindow();
+      } else if (state === 'notification' || state === 'agent' || state === 'stt' || state === 'cli') {
+        window.api?.expandWindowNotification();
+      } else if (state === 'lyrics' || state === 'agentVoiceInput') {
+        window.api?.expandWindowLyrics();
+      } else if (state === 'lyricsTranslation') {
+        window.api?.expandWindowLyricsTranslation();
+      } else if (state === 'expanded') {
+        window.api?.expandWindowFull();
+      } else if (state === 'maxExpand' || state === 'guide' || state === 'login' || state === 'register' || state === 'resetPassword' || state === 'setPassword' || state === 'bindOAuth' || state === 'bindEmail' || state === 'payment' || state === 'announcement') {
+        window.api?.expandWindowSettings();
+      } else {
+        window.api?.collapseWindow();
+      }
+    };
+
     const unsub = window.api?.onShapeModeChanged?.((mode: string, targetX: number, targetY: number) => {
       const v = mode === 'notch' || mode === 'pill' ? mode : 'notch';
-      const currentMode = useIslandStore.getState().shapeMode;
-      if (currentMode === v) return;
+      const store = useIslandStore.getState();
+      if (store.shapeMode === v) return;
 
-      /** 根据当前窗口位置和主进程计算的目标位置得出动画增量 */
-      const currentX = window.screenX;
-      const currentY = window.screenY;
-      const dx = targetX - currentX;
-      const dy = targetY - currentY;
+      const currentState = store.state;
+      const isIdleSize = currentState === 'idle' || currentState === 'lyrics' || currentState === 'lyricsTranslation' || currentState === 'agentVoiceInput';
+      /** notch 与 pill 基准 Y 差值（pill 在 notch 下方 46px） */
+      const pillNotchDeltaY = 46;
 
       if (v === 'notch') {
-        /** pill → notch：先移动窗口到目标位置（保持 pill 外观），再切换 CSS + 缩小窗口 */
-        animateWindowMove(dx, dy, ANIM_DURATION).then(() => {
+        if (isIdleSize) {
+          /** pill → notch idle：先动画移动窗口到顶部，再切换 CSS + resize */
+          const dx = targetX - window.screenX;
+          const dy = targetY - window.screenY;
+          animateWindowMove(dx, dy, ANIM_DURATION).then(() => {
+            useIslandStore.getState().setShapeMode('notch');
+            applyWindowForState(currentState);
+          }).catch(() => {});
+        } else {
+          /** pill → notch 非 idle：切换 CSS，展开 handler 设置正确位置（getEffectiveY 贴顶） */
           useIslandStore.getState().setShapeMode('notch');
-          window.api?.collapseWindow();
-        }).catch(() => {});
+          applyWindowForState(currentState);
+        }
       } else {
-        /** notch → pill：先扩展窗口到 pill 尺寸（避免裁切），再切换 CSS，再移动到目标位置 */
-        window.api?.collapseWindow();
-        useIslandStore.getState().setShapeMode('pill');
-        animateWindowMove(dx, dy, ANIM_DURATION).catch(() => {});
+        if (isIdleSize) {
+          /** notch → pill idle：先 resize 到 pill 尺寸，再切换 CSS，再动画移动窗口 */
+          applyWindowForState(currentState);
+          useIslandStore.getState().setShapeMode('pill');
+          const dx = targetX - window.screenX;
+          const dy = targetY - window.screenY;
+          animateWindowMove(dx, dy, ANIM_DURATION).catch(() => {});
+        } else {
+          /** notch → pill 非 idle：切换 CSS + resize，再动画下移 */
+          useIslandStore.getState().setShapeMode('pill');
+          applyWindowForState(currentState);
+          animateWindowMove(0, pillNotchDeltaY, ANIM_DURATION).catch(() => {});
+        }
       }
     });
     return () => { unsub?.(); };
