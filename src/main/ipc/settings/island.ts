@@ -29,6 +29,7 @@ import { app, ipcMain } from 'electron';
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { broadcastSettingChange } from '../../utils/broadcast';
+import { readIslandShapeModeConfig, writeIslandShapeModeConfig } from '../../config/storeConfig';
 
 interface RegisterIslandIpcHandlersOptions {
   storeDir: string;
@@ -196,29 +197,16 @@ export function registerIslandIpcHandlers(options: RegisterIslandIpcHandlersOpti
   });
 
   ipcMain.handle('island:shape-mode:get', () => {
-    try {
-      const filePath = join(options.storeDir, 'island-shape-mode.json');
-      if (!existsSync(filePath)) return 'notch';
-      const raw = readFileSync(filePath, 'utf-8');
-      const data = JSON.parse(raw);
-      return data === 'notch' || data === 'pill' ? data : 'notch';
-    } catch {
-      return 'notch';
-    }
+    return readIslandShapeModeConfig();
   });
 
   ipcMain.handle('island:shape-mode:set', (event, mode: string) => {
-    try {
-      const valid = mode === 'notch' || mode === 'pill' ? mode : 'notch';
-      const filePath = join(options.storeDir, 'island-shape-mode.json');
-      writeFileSync(filePath, JSON.stringify(valid, null, 2), 'utf-8');
-      broadcastSettingChange(event.sender.id, 'island:shape-mode', valid);
-      options.onShapeModeChanged?.();
-      return true;
-    } catch (err) {
-      console.error('[ShapeMode] persist error:', err);
-      return false;
-    }
+    const valid = mode === 'notch' || mode === 'pill' ? mode : 'notch';
+    const ok = writeIslandShapeModeConfig(valid);
+    if (!ok) return false;
+    broadcastSettingChange(event.sender.id, 'island:shape-mode', valid);
+    options.onShapeModeChanged?.();
+    return true;
   });
 
   ipcMain.handle('island:autostart:get', () => {

@@ -446,6 +446,7 @@ export function registerHotkeyIpcHandlers(options: RegisterHotkeyIpcHandlersOpti
     const currentOpenClipboardHistory = currentOrStored(options.getCurrentOpenClipboardHistoryHotkey, options.readOpenClipboardHistoryHotkeyConfig);
     const currentTogglePassthrough = currentOrStored(options.getCurrentTogglePassthroughHotkey, options.readTogglePassthroughHotkeyConfig);
     const currentToggleUiLock = currentOrStored(options.getCurrentToggleUiLockHotkey, options.readToggleUiLockHotkeyConfig);
+    const currentToggleShapeMode = currentOrStored(options.getCurrentToggleShapeModeHotkey, options.readToggleShapeModeHotkeyConfig);
 
     if (accelerator && ((currentHide && accelerator === currentHide)
       || (currentQuit && accelerator === currentQuit)
@@ -457,7 +458,8 @@ export function registerHotkeyIpcHandlers(options: RegisterHotkeyIpcHandlersOpti
       || (currentShowSettings && accelerator === currentShowSettings)
       || (currentOpenClipboardHistory && accelerator === currentOpenClipboardHistory)
       || (currentTogglePassthrough && accelerator === currentTogglePassthrough)
-      || (currentToggleUiLock && accelerator === currentToggleUiLock))) {
+      || (currentToggleUiLock && accelerator === currentToggleUiLock)
+      || (currentToggleShapeMode && accelerator === currentToggleShapeMode))) {
       return false;
     }
 
@@ -484,6 +486,7 @@ export function registerHotkeyIpcHandlers(options: RegisterHotkeyIpcHandlersOpti
     const currentOpenClipboardHistory = currentOrStored(options.getCurrentOpenClipboardHistoryHotkey, options.readOpenClipboardHistoryHotkeyConfig);
     const currentTogglePassthrough = currentOrStored(options.getCurrentTogglePassthroughHotkey, options.readTogglePassthroughHotkeyConfig);
     const currentToggleUiLock = currentOrStored(options.getCurrentToggleUiLockHotkey, options.readToggleUiLockHotkeyConfig);
+    const currentAgentVoiceInput = currentOrStored(options.getCurrentAgentVoiceInputHotkey, options.readAgentVoiceInputHotkeyConfig);
 
     if (accelerator && ((currentHide && accelerator === currentHide)
       || (currentQuit && accelerator === currentQuit)
@@ -495,7 +498,8 @@ export function registerHotkeyIpcHandlers(options: RegisterHotkeyIpcHandlersOpti
       || (currentShowSettings && accelerator === currentShowSettings)
       || (currentOpenClipboardHistory && accelerator === currentOpenClipboardHistory)
       || (currentTogglePassthrough && accelerator === currentTogglePassthrough)
-      || (currentToggleUiLock && accelerator === currentToggleUiLock))) {
+      || (currentToggleUiLock && accelerator === currentToggleUiLock)
+      || (currentAgentVoiceInput && accelerator === currentAgentVoiceInput))) {
       return false;
     }
 

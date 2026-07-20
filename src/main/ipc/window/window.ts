@@ -256,6 +256,7 @@ export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOpti
   });
 
   ipcMain.on('window:move-delta', (_event, dx: number, dy: number) => {
+    if (!Number.isFinite(dx) || !Number.isFinite(dy)) return;
     withWindow((win) => {
       const bounds = win.getBounds();
       win.setBounds({

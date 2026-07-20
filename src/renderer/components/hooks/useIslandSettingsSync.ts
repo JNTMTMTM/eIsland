@@ -350,6 +350,9 @@ export function useIslandSettingsSync(options: UseIslandSettingsSyncOptions): vo
      * @param totalDy - 垂直总位移
      * @param duration - 动画时长（毫秒）
      */
+    /** 当前动画帧 ID，用于取消 */
+    let animFrameId = 0;
+
     const animateWindowMove = (totalDx: number, totalDy: number, duration: number): Promise<void> => {
       return new Promise((resolve) => {
         const startTime = performance.now();
@@ -366,12 +369,12 @@ export function useIslandSettingsSync(options: UseIslandSettingsSyncOptions): vo
           }
           lastProgress = eased;
           if (progress < 1) {
-            requestAnimationFrame(step);
+            animFrameId = requestAnimationFrame(step);
           } else {
             resolve();
           }
         };
-        requestAnimationFrame(step);
+        animFrameId = requestAnimationFrame(step);
       });
     };
 
@@ -434,6 +437,9 @@ export function useIslandSettingsSync(options: UseIslandSettingsSyncOptions): vo
         }
       }
     });
-    return () => { unsub?.(); };
+    return () => {
+      if (animFrameId) cancelAnimationFrame(animFrameId);
+      unsub?.();
+    };
   }, []);
 }
