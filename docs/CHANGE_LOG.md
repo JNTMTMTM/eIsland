@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-07-19T08:24:14.261Z
+> 生成时间：2026-07-20T11:55:20.388Z
 
 ## 26.6.5
 
@@ -2946,6 +2946,32 @@
 
 ## Unreleased
 
+- 2026-07-20 | 65651124 | 鸡哥 | Merge pull request #160 from JNTMTMTM/dev
+- 2026-07-20 | d236b2bd | 鸡哥 | feat: add toggle shape mode hotkey registration and configuration for improved user control
+- 2026-07-20 | 644e0a58 | 鸡哥 | feat: refactor shape mode handling to use config functions for improved maintainability fix: add validation for window move delta to prevent invalid values feat: enhance animation frame management in useIslandSettingsSync for better performance
+- 2026-07-20 | 9da26437 | 鸡哥 | fix: clarify notification dimensions in pill mode for improved understanding
+- 2026-07-20 | 66da0417 | 鸡哥 | feat: add shape modes documentation and update related references for improved user guidance
+- 2026-07-20 | d99989df | 鸡哥 | fix: notify main window on shape mode change to ensure proper animation execution
+- 2026-07-20 | dce48f1e | 鸡哥 | feat: add shape mode titles and hints for improved user guidance in hover and agent input sections
+- 2026-07-20 | 05db8dbd | 鸡哥 | feat: narrow notification content container in pill mode for improved layout
+- 2026-07-20 | bc90e1f9 | 鸡哥 | feat: add shape mode IPC handlers and hotkey configurations for improved functionality
+- 2026-07-20 | 54c758ff | 鸡哥 | fix: reset dragging state on shape mode change to ensure proper click handling
+- 2026-07-20 | 0148acef | 鸡哥 | feat: add new shape mode toggle and related event handlers to enhance functionality
+- 2026-07-20 | e6b42df7 | 鸡哥 | feat: implement dynamic window resizing based on state changes for improved user experience
+- 2026-07-20 | 06cf0435 | 鸡哥 | fix: remove unused PILL_ISLAND_WIDTH constant and adjust related calculations
+- 2026-07-20 | 301634be | 鸡哥 | feat: enhance shape mode change handling with smooth window animations and target position updates
+- 2026-07-20 | 9e0468e1 | 鸡哥 | feat: force window collapse on shape mode change to refresh dimensions
+- 2026-07-20 | d246be78 | 鸡哥 | fix: adjust padding in settings content for improved layout
+- 2026-07-20 | 5cfb2d59 | 鸡哥 | feat: add pill mode dimensions and update related window sizing logic
+- 2026-07-20 | b561be18 | 鸡哥 | fix: update comments for shape mode positioning logic in createMainWindowService
+- 2026-07-19 | f474724c | 鸡哥 | feat: implement shape mode change notification and listener in main and renderer processes
+- 2026-07-19 | 34974cf8 | 鸡哥 | feat: add toggle shape mode hotkey configuration and handling in settings
+- 2026-07-19 | 91d23bd3 | 鸡哥 | feat: add toggle shape mode hotkey functionality and related IPC handlers
+- 2026-07-19 | 2132e521 | 鸡哥 | feat: add setHoverTab function to useDynamicIslandShell and useDynamicIslandCoordinator hooks
+- 2026-07-19 | 08f64c79 | 鸡哥 | fix: ensure correct type handling for agentVoiceInput state in click-to-hover logic
+- 2026-07-19 | 8f20d32d | 鸡哥 | refactor: update click-to-hover logic for pill mode to include additional states
+- 2026-07-19 | bd69fa35 | 鸡哥 | feat: add island shape mode functionality with notch and pill options; implement drag support for pill mode
+- 2026-07-19 | e206f711 | eislandBot | docs: auto update CHANGE_LOG.md for #159 by @JNTMTMTM [skip ci]
 - 2026-07-19 | 32cdf866 | 鸡哥 | Merge pull request #159 from JNTMTMTM/dev
 - 2026-07-19 | ec37b8d1 | 鸡哥 | refactor: implement caching for helper EXE path and add reset function for testing
 - 2026-07-19 | aed9f8d8 | 鸡哥 | refactor: enhance error handling and logging in hardware info helper; update documentation for Bluetooth and monitor info
