@@ -345,6 +345,8 @@ export function useIslandSettingsSync(options: UseIslandSettingsSyncOptions): vo
     const unsub = window.api?.onShapeModeChanged?.((mode: string) => {
       const v = mode === 'notch' || mode === 'pill' ? mode : 'notch';
       useIslandStore.getState().setShapeMode(v);
+      /** 强制重新 collapse，用新形态模式的尺寸刷新 Electron 窗口大小 */
+      window.api?.collapseWindow();
     });
     return () => { unsub?.(); };
   }, []);
