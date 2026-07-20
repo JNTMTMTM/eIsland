@@ -29,7 +29,6 @@ import { BrowserWindow, ipcMain, screen } from 'electron';
 import { broadcastSettingChange } from '../../utils/broadcast';
 import {
   readIslandShapeModeConfig,
-  PILL_ISLAND_WIDTH,
   PILL_ISLAND_HEIGHT,
   PILL_EXPANDED_HEIGHT,
   PILL_NOTIFICATION_HEIGHT,
@@ -124,8 +123,21 @@ export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOpti
     return options.getInitialCenterX();
   };
 
-  /** 获取当前窗口 y 坐标（pill 模式保持当前 y，notch 模式保持当前 y） */
+  /** 获取当前窗口 y 坐标（notch 模式始终贴顶，pill 模式保持当前 y） */
   const getEffectiveY = (win: BrowserWindow): number => {
+    const shapeMode = readIslandShapeModeConfig();
+    if (shapeMode === 'notch') {
+      const selection = options.getIslandDisplaySelection();
+      let targetDisplay = screen.getPrimaryDisplay();
+      if (selection !== 'primary') {
+        const targetId = Number(selection);
+        if (Number.isFinite(targetId)) {
+          const found = screen.getAllDisplays().find((d) => d.id === targetId);
+          if (found) targetDisplay = found;
+        }
+      }
+      return targetDisplay.workArea.y;
+    }
     return win.getBounds().y;
   };
 
@@ -222,11 +234,10 @@ export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOpti
   ipcMain.on('window:collapse', () => {
     withWindow((win) => {
       const centerX = getEffectiveCenterX(win);
-      const w = getHeight(options.sizes.islandWidth, PILL_ISLAND_WIDTH);
       win.setBounds({
-        x: Math.round(centerX - w / 2),
+        x: Math.round(centerX - options.sizes.islandWidth / 2),
         y: getEffectiveY(win),
-        width: w,
+        width: options.sizes.islandWidth,
         height: getHeight(options.sizes.islandHeight, PILL_ISLAND_HEIGHT),
       });
     });

@@ -28,7 +28,7 @@
 import { BrowserWindow, screen, shell } from 'electron';
 import { join } from 'path';
 import { is } from '@electron-toolkit/utils';
-import { readIslandShapeModeConfig, PILL_ISLAND_WIDTH, PILL_ISLAND_HEIGHT } from '../config/storeConfig';
+import { readIslandShapeModeConfig, PILL_ISLAND_HEIGHT } from '../config/storeConfig';
 
 interface WindowSizeOptions {
   islandWidth: number;
@@ -84,17 +84,15 @@ export function createMainWindowService(options: CreateMainWindowServiceOptions)
     const offset = options.getIslandPositionOffset();
     const x = centeredX + offset.x;
     const shapeMode = readIslandShapeModeConfig();
-    /** notch 模式贴顶；pill 模式贴近顶部（刘海高度 + 间距），避免热切换时大幅跳动 */
-    const baseY = shapeMode === 'pill'
-      ? workY + 46
+    /** notch 模式贴顶（忽略 y 偏移）；pill 模式贴近顶部 + 用户拖动偏移 */
+    const y = shapeMode === 'pill'
+      ? workY + 46 + offset.y
       : workY;
-    const y = baseY + offset.y;
-    const width = shapeMode === 'pill' ? PILL_ISLAND_WIDTH : options.sizes.islandWidth;
     const height = shapeMode === 'pill' ? PILL_ISLAND_HEIGHT : options.sizes.islandHeight;
     return {
       x,
       y,
-      width,
+      width: options.sizes.islandWidth,
       height,
     };
   }

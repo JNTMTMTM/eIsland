@@ -56,7 +56,6 @@
 /* ── 灵动岛胶囊形态（pill） ── */
 
 .island-shell.shape-pill {
-  width: 290px;
   height: 52px;
   border-radius: 21px;
   transform-origin: center center;

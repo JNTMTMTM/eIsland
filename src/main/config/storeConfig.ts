@@ -73,7 +73,6 @@ export const SETTINGS_HEIGHT = 400;
 
 // ===== 灵动岛 pill 模式尺寸常量 =====
 
-export const PILL_ISLAND_WIDTH = 290;
 export const PILL_ISLAND_HEIGHT = 52;
 export const PILL_EXPANDED_HEIGHT = 72;
 export const PILL_NOTIFICATION_HEIGHT = 100;
