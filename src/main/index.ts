@@ -488,7 +488,6 @@ const hotkeyService = createHotkeyService({
     const next = current === 'pill' ? 'notch' : 'pill';
     writeIslandShapeModeConfig(next);
     broadcastSettingChange(-1, 'island:shape-mode', next);
-    mainWindowService.applyIslandPositionOffset(islandPositionOffset);
     mainWindowService.notifyShapeModeChanged();
   },
 });
@@ -632,8 +631,7 @@ function registerIpcHandlers(): void {
     autostartModeStoreKey: AUTOSTART_MODE_STORE_KEY,
     navOrderStoreKey: NAV_ORDER_STORE_KEY,
     onShapeModeChanged: () => {
-      mainWindowService.applyIslandPositionOffset(islandPositionOffset);
-      mainWindowService.notifyShapeModeChanged();
+      /** 不立即跳转窗口，由渲染进程收到 notifyShapeModeChanged 后执行动画 */
     },
   });
 

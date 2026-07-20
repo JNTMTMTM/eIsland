@@ -201,7 +201,8 @@ export function createMainWindowService(options: CreateMainWindowServiceOptions)
     const mainWindow = options.getMainWindow();
     if (mainWindow && !mainWindow.isDestroyed()) {
       const mode = readIslandShapeModeConfig();
-      mainWindow.webContents.send('island:shape-mode:changed', mode);
+      const targetBounds = getInitialIslandBounds();
+      mainWindow.webContents.send('island:shape-mode:changed', mode, targetBounds.x, targetBounds.y);
     }
   }
 

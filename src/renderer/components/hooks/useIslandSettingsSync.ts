@@ -342,11 +342,62 @@ export function useIslandSettingsSync(options: UseIslandSettingsSyncOptions): vo
 
   /** 专用形态模式变更监听（独立于 initRef 守卫，确保始终活跃） */
   useEffect(() => {
-    const unsub = window.api?.onShapeModeChanged?.((mode: string) => {
+    const ANIM_DURATION = 300;
+
+    /**
+     * 平滑移动窗口（增量式，每帧计算差值）
+     * @param totalDx - 水平总位移
+     * @param totalDy - 垂直总位移
+     * @param duration - 动画时长（毫秒）
+     */
+    const animateWindowMove = (totalDx: number, totalDy: number, duration: number): Promise<void> => {
+      return new Promise((resolve) => {
+        const startTime = performance.now();
+        let lastProgress = 0;
+        const step = (now: number): void => {
+          const elapsed = now - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+          /** easeOutCubic 缓动 */
+          const eased = 1 - Math.pow(1 - progress, 3);
+          const dx = Math.round(totalDx * (eased - lastProgress));
+          const dy = Math.round(totalDy * (eased - lastProgress));
+          if (dx !== 0 || dy !== 0) {
+            window.api?.moveWindowDelta?.(dx, dy);
+          }
+          lastProgress = eased;
+          if (progress < 1) {
+            requestAnimationFrame(step);
+          } else {
+            resolve();
+          }
+        };
+        requestAnimationFrame(step);
+      });
+    };
+
+    const unsub = window.api?.onShapeModeChanged?.((mode: string, targetX: number, targetY: number) => {
       const v = mode === 'notch' || mode === 'pill' ? mode : 'notch';
-      useIslandStore.getState().setShapeMode(v);
-      /** 强制重新 collapse，用新形态模式的尺寸刷新 Electron 窗口大小 */
-      window.api?.collapseWindow();
+      const currentMode = useIslandStore.getState().shapeMode;
+      if (currentMode === v) return;
+
+      /** 根据当前窗口位置和主进程计算的目标位置得出动画增量 */
+      const currentX = window.screenX;
+      const currentY = window.screenY;
+      const dx = targetX - currentX;
+      const dy = targetY - currentY;
+
+      if (v === 'notch') {
+        /** pill → notch：先移动窗口到目标位置（保持 pill 外观），再切换 CSS + 缩小窗口 */
+        animateWindowMove(dx, dy, ANIM_DURATION).then(() => {
+          useIslandStore.getState().setShapeMode('notch');
+          window.api?.collapseWindow();
+        }).catch(() => {});
+      } else {
+        /** notch → pill：先扩展窗口到 pill 尺寸（避免裁切），再切换 CSS，再移动到目标位置 */
+        window.api?.collapseWindow();
+        useIslandStore.getState().setShapeMode('pill');
+        animateWindowMove(dx, dy, ANIM_DURATION).catch(() => {});
+      }
     });
     return () => { unsub?.(); };
   }, []);

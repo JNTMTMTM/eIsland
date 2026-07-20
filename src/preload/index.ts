@@ -1263,9 +1263,9 @@ const api = {
   /**
    * 监听形态模式变更通知（专用通道，由主进程主动推送）
    */
-  onShapeModeChanged: (callback: (mode: string) => void): (() => void) => {
-    const handler = (_event: Electron.IpcRendererEvent, mode: string): void => {
-      callback(mode);
+  onShapeModeChanged: (callback: (mode: string, targetX: number, targetY: number) => void): (() => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, mode: string, targetX: number, targetY: number): void => {
+      callback(mode, targetX, targetY);
     };
     ipcRenderer.on('island:shape-mode:changed', handler);
     return () => {
