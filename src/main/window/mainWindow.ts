@@ -84,9 +84,9 @@ export function createMainWindowService(options: CreateMainWindowServiceOptions)
     const offset = options.getIslandPositionOffset();
     const x = centeredX + offset.x;
     const shapeMode = readIslandShapeModeConfig();
-    /** pill 模式默认居中，notch 模式贴顶 */
+    /** notch 模式贴顶；pill 模式贴近顶部（刘海高度 + 间距），避免热切换时大幅跳动 */
     const baseY = shapeMode === 'pill'
-      ? Math.round(workY + (workHeight - options.sizes.islandHeight) / 2)
+      ? workY + 46
       : workY;
     const y = baseY + offset.y;
     return {
