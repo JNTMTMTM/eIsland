@@ -59,6 +59,7 @@ describe('createHotkeyService', () => {
     readTogglePassthroughHotkeyConfig: () => 'Ctrl+Alt+X',
     readToggleUiLockHotkeyConfig: () => 'Ctrl+Alt+L',
     readAgentVoiceInputHotkeyConfig: () => 'Ctrl+Alt+A',
+    readToggleShapeModeHotkeyConfig: () => 'Ctrl+Alt+S',
     onScreenshotHotkey: vi.fn(),
     onNextSongHotkey: vi.fn(),
     onPlayPauseSongHotkey: vi.fn(),
@@ -70,6 +71,7 @@ describe('createHotkeyService', () => {
     onToggleUiLockHotkey: vi.fn(),
     onAgentVoiceInputHotkeyHold: vi.fn(),
     onAgentVoiceInputHotkeyRelease: vi.fn(),
+    onToggleShapeModeHotkey: vi.fn(),
   };
 
   beforeEach(() => {

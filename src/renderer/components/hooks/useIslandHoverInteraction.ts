@@ -46,6 +46,8 @@ interface UseIslandHoverInteractionOptions {
   maxExpandLeaveIdleRef: React.MutableRefObject<boolean>;
   enterTimerRef: React.MutableRefObject<ReturnType<typeof setTimeout> | null>;
   leaveTimerRef: React.MutableRefObject<ReturnType<typeof setTimeout> | null>;
+  /** pill 模式下强制 click-to-hover */
+  forceClickToHover?: boolean;
 }
 
 /**
@@ -66,7 +68,10 @@ export function useIslandHoverInteraction(options: UseIslandHoverInteractionOpti
     maxExpandLeaveIdleRef,
     enterTimerRef,
     leaveTimerRef,
+    forceClickToHover = false,
   } = options;
+
+  /** pill 模式下始终 click-to-hover，读取 ref 保持运行时最新 */
 
   const clearAllTimers = useCallback(() => {
     if (enterTimerRef.current !== null) {
@@ -143,7 +148,9 @@ export function useIslandHoverInteraction(options: UseIslandHoverInteractionOpti
         }
 
         if (!isHoveringRef.current && enterTimerRef.current === null) {
-          if (state === 'idle' && idleClickExpandRef.current) {
+          /** pill 模式下 idle/lyrics/lyricsTranslation/agentVoiceInput 均需点击才展开 */
+          const clickToHoverStates = state === 'idle' || state === 'lyrics' || state === 'lyricsTranslation' || (state as string) === 'agentVoiceInput';
+          if (clickToHoverStates && (forceClickToHover || idleClickExpandRef.current)) {
             if (config.mousePassthrough) {
               window.api?.disableMousePassthrough();
             }
@@ -169,7 +176,7 @@ export function useIslandHoverInteraction(options: UseIslandHoverInteractionOpti
           enterTimerRef.current = null;
         }
 
-        if (state === 'idle' && idleClickExpandRef.current && !isHoveringRef.current) {
+        if ((state === 'idle' || state === 'lyrics' || state === 'lyricsTranslation' || (state as string) === 'agentVoiceInput') && (forceClickToHover || idleClickExpandRef.current) && !isHoveringRef.current) {
           window.api?.enableMousePassthrough();
         }
 
@@ -234,5 +241,6 @@ export function useIslandHoverInteraction(options: UseIslandHoverInteractionOpti
     maxExpandLeaveIdleRef,
     enterTimerRef,
     leaveTimerRef,
+    forceClickToHover,
   ]);
 }

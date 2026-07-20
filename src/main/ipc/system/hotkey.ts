@@ -42,6 +42,7 @@ interface RegisterHotkeyIpcHandlersOptions {
   togglePassthroughHotkeyStoreKey: string;
   toggleUiLockHotkeyStoreKey: string;
   agentVoiceInputHotkeyStoreKey: string;
+  toggleShapeModeHotkeyStoreKey: string;
   getCurrentHideHotkey: () => string;
   getCurrentQuitHotkey: () => string;
   getCurrentScreenshotHotkey: () => string;
@@ -54,6 +55,7 @@ interface RegisterHotkeyIpcHandlersOptions {
   getCurrentTogglePassthroughHotkey: () => string;
   getCurrentToggleUiLockHotkey: () => string;
   getCurrentAgentVoiceInputHotkey: () => string;
+  getCurrentToggleShapeModeHotkey: () => string;
   readHideHotkeyConfig: () => string;
   readQuitHotkeyConfig: () => string;
   readScreenshotHotkeyConfig: () => string;
@@ -66,6 +68,7 @@ interface RegisterHotkeyIpcHandlersOptions {
   readTogglePassthroughHotkeyConfig: () => string;
   readToggleUiLockHotkeyConfig: () => string;
   readAgentVoiceInputHotkeyConfig: () => string;
+  readToggleShapeModeHotkeyConfig: () => string;
   registerHideHotkey: (accelerator: string) => boolean;
   registerQuitHotkey: (accelerator: string) => boolean;
   registerNextSongHotkey: (accelerator: string) => boolean;
@@ -77,6 +80,7 @@ interface RegisterHotkeyIpcHandlersOptions {
   registerTogglePassthroughHotkey: (accelerator: string) => boolean;
   registerToggleUiLockHotkey: (accelerator: string) => boolean;
   registerAgentVoiceInputHotkey: (accelerator: string) => boolean;
+  registerToggleShapeModeHotkey: (accelerator: string) => boolean;
   suspendIslandHotkeys: () => void;
   resumeIslandHotkeys: () => void;
 }
@@ -442,6 +446,7 @@ export function registerHotkeyIpcHandlers(options: RegisterHotkeyIpcHandlersOpti
     const currentOpenClipboardHistory = currentOrStored(options.getCurrentOpenClipboardHistoryHotkey, options.readOpenClipboardHistoryHotkeyConfig);
     const currentTogglePassthrough = currentOrStored(options.getCurrentTogglePassthroughHotkey, options.readTogglePassthroughHotkeyConfig);
     const currentToggleUiLock = currentOrStored(options.getCurrentToggleUiLockHotkey, options.readToggleUiLockHotkeyConfig);
+    const currentToggleShapeMode = currentOrStored(options.getCurrentToggleShapeModeHotkey, options.readToggleShapeModeHotkeyConfig);
 
     if (accelerator && ((currentHide && accelerator === currentHide)
       || (currentQuit && accelerator === currentQuit)
@@ -453,13 +458,54 @@ export function registerHotkeyIpcHandlers(options: RegisterHotkeyIpcHandlersOpti
       || (currentShowSettings && accelerator === currentShowSettings)
       || (currentOpenClipboardHistory && accelerator === currentOpenClipboardHistory)
       || (currentTogglePassthrough && accelerator === currentTogglePassthrough)
-      || (currentToggleUiLock && accelerator === currentToggleUiLock))) {
+      || (currentToggleUiLock && accelerator === currentToggleUiLock)
+      || (currentToggleShapeMode && accelerator === currentToggleShapeMode))) {
       return false;
     }
 
     const success = options.registerAgentVoiceInputHotkey(accelerator);
     if (success) {
       persistHotkey(options.storeDir, options.agentVoiceInputHotkeyStoreKey, accelerator, 'AgentVoiceInputHotkey');
+    }
+    return success;
+  });
+
+  ipcMain.handle('toggle-shape-mode-hotkey:get', () => {
+    return currentOrStored(options.getCurrentToggleShapeModeHotkey, options.readToggleShapeModeHotkeyConfig);
+  });
+
+  ipcMain.handle('toggle-shape-mode-hotkey:set', (_event, accelerator: string) => {
+    const currentHide = currentOrStored(options.getCurrentHideHotkey, options.readHideHotkeyConfig);
+    const currentQuit = currentOrStored(options.getCurrentQuitHotkey, options.readQuitHotkeyConfig);
+    const currentSS = currentOrStored(options.getCurrentScreenshotHotkey, options.readScreenshotHotkeyConfig);
+    const currentNextSong = currentOrStored(options.getCurrentNextSongHotkey, options.readNextSongHotkeyConfig);
+    const currentPlayPauseSong = currentOrStored(options.getCurrentPlayPauseSongHotkey, options.readPlayPauseSongHotkeyConfig);
+    const currentResetPos = currentOrStored(options.getCurrentResetPositionHotkey, options.readResetPositionHotkeyConfig);
+    const currentToggleTray = currentOrStored(options.getCurrentToggleTrayHotkey, options.readToggleTrayHotkeyConfig);
+    const currentShowSettings = currentOrStored(options.getCurrentShowSettingsWindowHotkey, options.readShowSettingsWindowHotkeyConfig);
+    const currentOpenClipboardHistory = currentOrStored(options.getCurrentOpenClipboardHistoryHotkey, options.readOpenClipboardHistoryHotkeyConfig);
+    const currentTogglePassthrough = currentOrStored(options.getCurrentTogglePassthroughHotkey, options.readTogglePassthroughHotkeyConfig);
+    const currentToggleUiLock = currentOrStored(options.getCurrentToggleUiLockHotkey, options.readToggleUiLockHotkeyConfig);
+    const currentAgentVoiceInput = currentOrStored(options.getCurrentAgentVoiceInputHotkey, options.readAgentVoiceInputHotkeyConfig);
+
+    if (accelerator && ((currentHide && accelerator === currentHide)
+      || (currentQuit && accelerator === currentQuit)
+      || (currentSS && accelerator === currentSS)
+      || (currentNextSong && accelerator === currentNextSong)
+      || (currentPlayPauseSong && accelerator === currentPlayPauseSong)
+      || (currentResetPos && accelerator === currentResetPos)
+      || (currentToggleTray && accelerator === currentToggleTray)
+      || (currentShowSettings && accelerator === currentShowSettings)
+      || (currentOpenClipboardHistory && accelerator === currentOpenClipboardHistory)
+      || (currentTogglePassthrough && accelerator === currentTogglePassthrough)
+      || (currentToggleUiLock && accelerator === currentToggleUiLock)
+      || (currentAgentVoiceInput && accelerator === currentAgentVoiceInput))) {
+      return false;
+    }
+
+    const success = options.registerToggleShapeModeHotkey(accelerator);
+    if (success) {
+      persistHotkey(options.storeDir, options.toggleShapeModeHotkeyStoreKey, accelerator, 'ToggleShapeModeHotkey');
     }
     return success;
   });

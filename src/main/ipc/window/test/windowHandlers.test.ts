@@ -42,7 +42,7 @@ vi.mock('electron', () => ({
   },
   screen: {
     getCursorScreenPoint: vi.fn(() => ({ x: 10, y: 20 })),
-    getPrimaryDisplay: vi.fn(() => ({ id: 1 })),
+    getPrimaryDisplay: vi.fn(() => ({ id: 1, workArea: { y: 0, width: 1920, height: 1080 } })),
     getAllDisplays: vi.fn(() => [{ id: 1, workArea: { width: 1920, height: 1080 } }]),
   },
   BrowserWindow: class {},
@@ -50,6 +50,17 @@ vi.mock('electron', () => ({
 
 vi.mock('../../../utils/broadcast', () => ({
   broadcastSettingChange: broadcastSettingChangeMock,
+}));
+
+vi.mock('../../../config/storeConfig', () => ({
+  readIslandShapeModeConfig: () => 'notch',
+  PILL_ISLAND_HEIGHT: 52,
+  PILL_EXPANDED_HEIGHT: 72,
+  PILL_NOTIFICATION_HEIGHT: 100,
+  PILL_LYRICS_HEIGHT: 52,
+  PILL_LYRICS_TRANSLATION_HEIGHT: 72,
+  PILL_EXPANDED_FULL_HEIGHT: 164,
+  PILL_SETTINGS_HEIGHT: 416,
 }));
 
 import { registerWindowIpcHandlers, toggleMousePassthroughLock } from '../window';

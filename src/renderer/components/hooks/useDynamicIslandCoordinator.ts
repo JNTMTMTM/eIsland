@@ -41,6 +41,7 @@ import { useIslandBackgroundMediaController } from './useIslandBackgroundMediaCo
 import { useIslandEscapeNavigation } from './useIslandEscapeNavigation';
 import { useIslandShellPresentation } from './useIslandShellPresentation';
 import { useIslandRuntimeRefs } from './useIslandRuntimeRefs';
+import { useIslandDrag } from './useIslandDrag';
 import { useIslandAutoDim } from './useIslandAutoDim';
 import { useClaudeCliSessionStatus } from './useClaudeCliSessionStatus';
 
@@ -105,6 +106,7 @@ export function useDynamicIslandCoordinator(options: UseDynamicIslandCoordinator
     currentPositionMs,
     springAnimation,
     animationSpeed,
+    shapeMode,
   } = store;
 
   const {
@@ -163,9 +165,11 @@ export function useDynamicIslandCoordinator(options: UseDynamicIslandCoordinator
     setHover,
     setExpanded,
     setCli,
+    setHoverTab,
     hasActiveCliSessionRef,
     idleClickExpandRef,
     isHoveringRef,
+    forceClickToHover: shapeMode === 'pill',
   });
 
   useIslandNowPlayingSync({
@@ -290,6 +294,7 @@ export function useDynamicIslandCoordinator(options: UseDynamicIslandCoordinator
     maxExpandLeaveIdleRef,
     enterTimerRef,
     leaveTimerRef,
+    forceClickToHover: shapeMode === 'pill',
   });
 
   const {
@@ -302,13 +307,16 @@ export function useDynamicIslandCoordinator(options: UseDynamicIslandCoordinator
     showGlow,
     springAnimation,
     animationSpeed,
+    shapeMode,
     dominantColor,
   });
+
+  const { wrapClick } = useIslandDrag({ shapeMode, state });
 
   return {
     shellClassName,
     shellStyle,
-    handleIslandClick,
+    handleIslandClick: wrapClick(handleIslandClick),
     timeStr,
     dayStr,
     fullTimeStr,

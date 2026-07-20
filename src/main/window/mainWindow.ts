@@ -28,6 +28,7 @@
 import { BrowserWindow, screen, shell } from 'electron';
 import { join } from 'path';
 import { is } from '@electron-toolkit/utils';
+import { readIslandShapeModeConfig, PILL_ISLAND_HEIGHT } from '../config/storeConfig';
 
 interface WindowSizeOptions {
   islandWidth: number;
@@ -51,6 +52,8 @@ interface MainWindowService {
   createWindow: () => void;
   getInitialCenterX: () => number;
   applyIslandPositionOffset: (offset: { x: number; y: number }) => void;
+  /** 通知渲染进程当前形态模式已变更 */
+  notifyShapeModeChanged: () => void;
 }
 
 /**
@@ -76,16 +79,21 @@ export function createMainWindowService(options: CreateMainWindowServiceOptions)
 
   function getInitialIslandBounds(): Electron.Rectangle {
     const targetDisplay = getTargetDisplay();
-    const { x: workX, y: workY, width: workWidth } = targetDisplay.workArea;
+    const { x: workX, y: workY, width: workWidth, height: workHeight } = targetDisplay.workArea;
     const centeredX = Math.round(workX + (workWidth - options.sizes.islandWidth) / 2);
     const offset = options.getIslandPositionOffset();
     const x = centeredX + offset.x;
-    const y = Math.round(workY + offset.y);
+    const shapeMode = readIslandShapeModeConfig();
+    /** notch 模式贴顶（忽略 y 偏移）；pill 模式贴近顶部 + 用户拖动偏移 */
+    const y = shapeMode === 'pill'
+      ? workY + 46 + offset.y
+      : workY;
+    const height = shapeMode === 'pill' ? PILL_ISLAND_HEIGHT : options.sizes.islandHeight;
     return {
       x,
       y,
       width: options.sizes.islandWidth,
-      height: options.sizes.islandHeight,
+      height,
     };
   }
 
@@ -187,9 +195,19 @@ export function createMainWindowService(options: CreateMainWindowServiceOptions)
     }
   }
 
+  function notifyShapeModeChanged(): void {
+    const mainWindow = options.getMainWindow();
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      const mode = readIslandShapeModeConfig();
+      const targetBounds = getInitialIslandBounds();
+      mainWindow.webContents.send('island:shape-mode:changed', mode, targetBounds.x, targetBounds.y);
+    }
+  }
+
   return {
     createWindow,
     getInitialCenterX: () => initialCenterX,
     applyIslandPositionOffset,
+    notifyShapeModeChanged,
   };
 }

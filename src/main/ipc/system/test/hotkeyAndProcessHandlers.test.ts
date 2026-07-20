@@ -66,6 +66,7 @@ describe('system hotkey and hide-process ipc handlers', () => {
     const registerTogglePassthroughHotkey = vi.fn(() => true);
     const registerToggleUiLockHotkey = vi.fn(() => true);
     const registerAgentVoiceInputHotkey = vi.fn(() => true);
+    const registerToggleShapeModeHotkey = vi.fn(() => true);
     const suspendIslandHotkeys = vi.fn();
     const resumeIslandHotkeys = vi.fn();
 
@@ -83,6 +84,7 @@ describe('system hotkey and hide-process ipc handlers', () => {
         togglePassthroughHotkeyStoreKey: 'passthrough',
         toggleUiLockHotkeyStoreKey: 'uilock',
         agentVoiceInputHotkeyStoreKey: 'agentVoice',
+        toggleShapeModeHotkeyStoreKey: 'shapeMode',
         getCurrentHideHotkey: () => 'Ctrl+Alt+H',
         getCurrentQuitHotkey: () => 'Ctrl+Alt+Q',
         getCurrentScreenshotHotkey: () => 'Ctrl+Shift+S',
@@ -95,6 +97,8 @@ describe('system hotkey and hide-process ipc handlers', () => {
         getCurrentTogglePassthroughHotkey: () => 'Ctrl+Alt+M',
         getCurrentToggleUiLockHotkey: () => 'Ctrl+Alt+L',
         getCurrentAgentVoiceInputHotkey: () => 'Ctrl+Alt+V',
+        getCurrentToggleShapeModeHotkey: () => '',
+        readToggleShapeModeHotkeyConfig: () => '',
         readHideHotkeyConfig: () => 'Alt+1',
         readQuitHotkeyConfig: () => 'Alt+2',
         readScreenshotHotkeyConfig: () => 'Alt+3',
@@ -118,6 +122,7 @@ describe('system hotkey and hide-process ipc handlers', () => {
         registerTogglePassthroughHotkey,
         registerToggleUiLockHotkey,
         registerAgentVoiceInputHotkey,
+        registerToggleShapeModeHotkey,
         suspendIslandHotkeys,
         resumeIslandHotkeys,
       },
@@ -133,6 +138,7 @@ describe('system hotkey and hide-process ipc handlers', () => {
         registerTogglePassthroughHotkey,
         registerToggleUiLockHotkey,
         registerAgentVoiceInputHotkey,
+        registerToggleShapeModeHotkey,
         suspendIslandHotkeys,
         resumeIslandHotkeys,
       },

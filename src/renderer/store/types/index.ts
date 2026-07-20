@@ -36,6 +36,9 @@ export type IslandState = 'idle' | 'hover' | 'expanded' | 'notification' | 'maxE
 /** 灵动岛动画速度档位 */
 export type AnimationSpeed = 'slow' | 'medium' | 'fast';
 
+/** 灵动岛形态模式 */
+export type IslandShapeMode = 'notch' | 'pill';
+
 /** Hover 状态下的子标签页类型 */
 export type HoverTab = 'time' | 'lyrics' | 'weather' | 'expand';
 
@@ -337,6 +340,7 @@ export interface IslandSlice {
 
   springAnimation: boolean;
   animationSpeed: AnimationSpeed;
+  shapeMode: IslandShapeMode;
   setIdle: (force?: boolean) => void;
   setHover: () => void;
   setExpanded: () => void;
@@ -368,6 +372,7 @@ export interface IslandSlice {
   setMaxExpandTab: (tab: MaxExpandTab) => void;
   setSpringAnimation: (enabled: boolean) => void;
   setAnimationSpeed: (speed: AnimationSpeed) => void;
+  setShapeMode: (mode: IslandShapeMode) => void;
 }
 
 /** 天气 Slice */

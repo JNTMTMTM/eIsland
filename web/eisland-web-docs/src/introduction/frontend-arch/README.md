@@ -19,4 +19,5 @@ The eIsland frontend is built on Electron's multi-process architecture with a st
 |----------|-------------|
 | [Process Model](process-model.md) | Electron's multi-process architecture: Main, Preload, and Renderer processes with IPC communication |
 | [State Machine](states.md) | The 19-state state machine that controls the island's visual modes, transitions, and interaction behavior |
+| [Shape Modes](shape-modes.md) | Notch and Pill shape modes: dimensions, positioning, interaction differences, and toggle mechanism |
 | [Electron Windows](electron-windows.md) | All BrowserWindow instances: main island, splash, guide, standalone, capture, and glow overlays |

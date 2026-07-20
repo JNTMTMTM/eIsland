@@ -43,9 +43,12 @@ interface UseDynamicIslandShellOptions {
   setHover: () => void;
   setExpanded: () => void;
   setCli: () => void;
+  setHoverTab: (tab: 'time' | 'lyrics' | 'weather' | 'expand') => void;
   hasActiveCliSessionRef: React.MutableRefObject<boolean>;
   idleClickExpandRef: React.MutableRefObject<boolean>;
   isHoveringRef: React.MutableRefObject<boolean>;
+  /** pill 模式下强制 click-to-hover */
+  forceClickToHover?: boolean;
 }
 
 interface DynamicIslandShellState {
@@ -70,9 +73,11 @@ export function useDynamicIslandShell(options: UseDynamicIslandShellOptions): Dy
     setHover,
     setExpanded,
     setCli,
+    setHoverTab,
     hasActiveCliSessionRef,
     idleClickExpandRef,
     isHoveringRef,
+    forceClickToHover = false,
   } = options;
 
   const prevStateRef = useRef(state);
@@ -113,9 +118,14 @@ export function useDynamicIslandShell(options: UseDynamicIslandShellOptions): Dy
   }, [state, animationSpeed]);
 
   const handleIslandClick = useCallback(() => {
-    if (state === 'idle' && idleClickExpandRef.current) {
+    /** pill 模式下 idle/lyrics/lyricsTranslation/agentVoiceInput 点击均进入 hover */
+    const clickToHoverStates = state === 'idle' || state === 'lyrics' || state === 'lyricsTranslation' || (state as string) === 'agentVoiceInput';
+    if (clickToHoverStates && (forceClickToHover || idleClickExpandRef.current)) {
       isHoveringRef.current = true;
       setHover();
+      if (state === 'lyrics' || state === 'lyricsTranslation') {
+        setHoverTab('lyrics');
+      }
       return;
     }
 
@@ -132,7 +142,7 @@ export function useDynamicIslandShell(options: UseDynamicIslandShellOptions): Dy
       }
       setHover();
     }
-  }, [state, setExpanded, setHover, setCli, hasActiveCliSessionRef, idleClickExpandRef, isHoveringRef]);
+  }, [state, setExpanded, setHover, setCli, setHoverTab, hasActiveCliSessionRef, idleClickExpandRef, isHoveringRef, forceClickToHover]);
 
   return {
     morphing,

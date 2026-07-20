@@ -90,6 +90,7 @@ declare global {
       expandWindowSettings: () => void;
       collapseWindow: () => void;
       hideWindow: () => void;
+      moveWindowDelta: (dx: number, dy: number) => void;
       getMousePosition: () => Promise<Point>;
       getWindowBounds: () => Promise<Bounds>;
       getIslandDisplays: () => Promise<IslandDisplayInfo[]>;
@@ -206,6 +207,8 @@ declare global {
       togglePassthroughHotkeySet: (accelerator: string) => Promise<boolean>;
       toggleUiLockHotkeyGet: () => Promise<string>;
       toggleUiLockHotkeySet: (accelerator: string) => Promise<boolean>;
+      toggleShapeModeHotkeyGet: () => Promise<string>;
+      toggleShapeModeHotkeySet: (accelerator: string) => Promise<boolean>;
       agentVoiceInputHotkeyGet: () => Promise<string>;
       agentVoiceInputHotkeySet: (accelerator: string) => Promise<boolean>;
       onAgentVoiceInputState: (callback: (active: boolean) => void) => () => void;
@@ -250,6 +253,9 @@ declare global {
       onSettingsChanged: (callback: (channel: string, value: unknown) => void) => () => void;
       islandOpacityGet: () => Promise<number>;
       islandOpacitySet: (opacity: number) => Promise<boolean>;
+      shapeModeGet: () => Promise<string>;
+      shapeModeSet: (mode: string) => Promise<boolean>;
+      onShapeModeChanged: (callback: (mode: string, targetX: number, targetY: number) => void) => () => void;
       expandMouseleaveIdleGet: () => Promise<boolean>;
       expandMouseleaveIdleSet: (enabled: boolean) => Promise<boolean>;
       maxexpandMouseleaveIdleGet: () => Promise<boolean>;

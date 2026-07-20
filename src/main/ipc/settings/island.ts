@@ -29,6 +29,7 @@ import { app, ipcMain } from 'electron';
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { broadcastSettingChange } from '../../utils/broadcast';
+import { readIslandShapeModeConfig, writeIslandShapeModeConfig } from '../../config/storeConfig';
 
 interface RegisterIslandIpcHandlersOptions {
   storeDir: string;
@@ -38,6 +39,8 @@ interface RegisterIslandIpcHandlersOptions {
   idleClickExpandStoreKey: string;
   autostartModeStoreKey: string;
   navOrderStoreKey: string;
+  /** 形态模式变更后触发窗口重定位 */
+  onShapeModeChanged?: () => void;
 }
 
 /**
@@ -191,6 +194,19 @@ export function registerIslandIpcHandlers(options: RegisterIslandIpcHandlersOpti
       console.error('[AnimationSpeed] persist error:', err);
       return false;
     }
+  });
+
+  ipcMain.handle('island:shape-mode:get', () => {
+    return readIslandShapeModeConfig();
+  });
+
+  ipcMain.handle('island:shape-mode:set', (event, mode: string) => {
+    const valid = mode === 'notch' || mode === 'pill' ? mode : 'notch';
+    const ok = writeIslandShapeModeConfig(valid);
+    if (!ok) return false;
+    broadcastSettingChange(event.sender.id, 'island:shape-mode', valid);
+    options.onShapeModeChanged?.();
+    return true;
   });
 
   ipcMain.handle('island:autostart:get', () => {

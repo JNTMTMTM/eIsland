@@ -102,6 +102,10 @@ export function useIslandSettingsSync(options: UseIslandSettingsSyncOptions): vo
         const speed = value === 'slow' || value === 'medium' || value === 'fast' ? value : 'medium';
         useIslandStore.getState().setAnimationSpeed(speed);
       }).catch(() => {});
+      window.api?.shapeModeGet?.().then((value) => {
+        const mode = value === 'notch' || value === 'pill' ? value : 'notch';
+        useIslandStore.getState().setShapeMode(mode);
+      }).catch(() => {});
 
       Promise.all([
         window.api?.storeRead?.(ISLAND_BG_MEDIA_STORE_KEY),
@@ -198,6 +202,10 @@ export function useIslandSettingsSync(options: UseIslandSettingsSyncOptions): vo
         if (channel === 'island:animation-speed') {
           const v = value === 'slow' || value === 'medium' || value === 'fast' ? value : 'medium';
           useIslandStore.getState().setAnimationSpeed(v);
+        }
+        if (channel === 'island:shape-mode') {
+          const v = value === 'notch' || value === 'pill' ? value : 'notch';
+          useIslandStore.getState().setShapeMode(v);
         }
         if (channel === 'store:island-bg-media') {
           const media = normalizeBgMediaConfig(value);
@@ -331,4 +339,107 @@ export function useIslandSettingsSync(options: UseIslandSettingsSyncOptions): vo
     autoDimEnabledRef,
     autoDimDelayRef,
   ]);
+
+  /** 专用形态模式变更监听（独立于 initRef 守卫，确保始终活跃） */
+  useEffect(() => {
+    const ANIM_DURATION = 300;
+
+    /**
+     * 平滑移动窗口（增量式，每帧计算差值）
+     * @param totalDx - 水平总位移
+     * @param totalDy - 垂直总位移
+     * @param duration - 动画时长（毫秒）
+     */
+    /** 当前动画帧 ID，用于取消 */
+    let animFrameId = 0;
+
+    const animateWindowMove = (totalDx: number, totalDy: number, duration: number): Promise<void> => {
+      return new Promise((resolve) => {
+        const startTime = performance.now();
+        let lastProgress = 0;
+        const step = (now: number): void => {
+          const elapsed = now - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+          /** easeOutCubic 缓动 */
+          const eased = 1 - Math.pow(1 - progress, 3);
+          const dx = Math.round(totalDx * (eased - lastProgress));
+          const dy = Math.round(totalDy * (eased - lastProgress));
+          if (dx !== 0 || dy !== 0) {
+            window.api?.moveWindowDelta?.(dx, dy);
+          }
+          lastProgress = eased;
+          if (progress < 1) {
+            animFrameId = requestAnimationFrame(step);
+          } else {
+            resolve();
+          }
+        };
+        animFrameId = requestAnimationFrame(step);
+      });
+    };
+
+    /** 根据当前状态调用对应的窗口 resize */
+    const applyWindowForState = (state: string): void => {
+      if (state === 'hover') {
+        window.api?.expandWindow();
+      } else if (state === 'notification' || state === 'agent' || state === 'stt' || state === 'cli') {
+        window.api?.expandWindowNotification();
+      } else if (state === 'lyrics' || state === 'agentVoiceInput') {
+        window.api?.expandWindowLyrics();
+      } else if (state === 'lyricsTranslation') {
+        window.api?.expandWindowLyricsTranslation();
+      } else if (state === 'expanded') {
+        window.api?.expandWindowFull();
+      } else if (state === 'maxExpand' || state === 'guide' || state === 'login' || state === 'register' || state === 'resetPassword' || state === 'setPassword' || state === 'bindOAuth' || state === 'bindEmail' || state === 'payment' || state === 'announcement') {
+        window.api?.expandWindowSettings();
+      } else {
+        window.api?.collapseWindow();
+      }
+    };
+
+    const unsub = window.api?.onShapeModeChanged?.((mode: string, targetX: number, targetY: number) => {
+      const v = mode === 'notch' || mode === 'pill' ? mode : 'notch';
+      const store = useIslandStore.getState();
+      if (store.shapeMode === v) return;
+
+      const currentState = store.state;
+      const isIdleSize = currentState === 'idle' || currentState === 'lyrics' || currentState === 'lyricsTranslation' || currentState === 'agentVoiceInput';
+      /** notch 与 pill 基准 Y 差值（pill 在 notch 下方 46px） */
+      const pillNotchDeltaY = 46;
+
+      if (v === 'notch') {
+        if (isIdleSize) {
+          /** pill → notch idle：先动画移动窗口到顶部，再切换 CSS + resize */
+          const dx = targetX - window.screenX;
+          const dy = targetY - window.screenY;
+          animateWindowMove(dx, dy, ANIM_DURATION).then(() => {
+            useIslandStore.getState().setShapeMode('notch');
+            applyWindowForState(currentState);
+          }).catch(() => {});
+        } else {
+          /** pill → notch 非 idle：切换 CSS，展开 handler 设置正确位置（getEffectiveY 贴顶） */
+          useIslandStore.getState().setShapeMode('notch');
+          applyWindowForState(currentState);
+        }
+      } else {
+        if (isIdleSize) {
+          /** notch → pill idle：先 resize 到 pill 尺寸，再切换 CSS，再动画移动窗口 */
+          applyWindowForState(currentState);
+          useIslandStore.getState().setShapeMode('pill');
+          const dx = targetX - window.screenX;
+          const dy = targetY - window.screenY;
+          animateWindowMove(dx, dy, ANIM_DURATION).catch(() => {});
+        } else {
+          /** notch → pill 非 idle：切换 CSS + resize，再动画下移 */
+          useIslandStore.getState().setShapeMode('pill');
+          applyWindowForState(currentState);
+          animateWindowMove(0, pillNotchDeltaY, ANIM_DURATION).catch(() => {});
+        }
+      }
+    });
+    return () => {
+      if (animFrameId) cancelAnimationFrame(animFrameId);
+      unsub?.();
+    };
+  }, []);
 }

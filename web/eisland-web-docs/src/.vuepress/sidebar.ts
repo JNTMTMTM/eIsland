@@ -59,6 +59,7 @@ export default sidebar({
       children: [
         "frontend-arch/process-model.md",
         "frontend-arch/states.md",
+        "frontend-arch/shape-modes.md",
         "frontend-arch/electron-windows.md",
       ],
     },

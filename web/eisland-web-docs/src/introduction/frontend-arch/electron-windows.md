@@ -63,11 +63,15 @@ The core floating widget. It floats always-on-top near the top-center of the scr
 
 ### Dynamic Resize States
 
+:::tip
+The dimensions below are for **Notch** mode. In **Pill** mode, all heights are slightly larger (e.g., idle is 52 px instead of 42 px). See [Shape Modes](shape-modes.md) for the full dimension comparison.
+:::
+
 The main window resizes via IPC channels depending on the current island state:
 
 | State | Width | Height | IPC Channel |
 |-------|-------|--------|-------------|
-| Idle (pill) | 260 | 42 | `window:collapse` |
+| Idle | 260 | 42 | `window:collapse` |
 | Hover / Expanded | 500 | 60 | `window:expand` |
 | Notification | 500 | 88 | `window:expand-notification` |
 | Lyrics | 500 | 42 | `window:expand-lyrics` |

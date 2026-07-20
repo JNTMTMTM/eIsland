@@ -27,6 +27,16 @@
 
 import { BrowserWindow, ipcMain, screen } from 'electron';
 import { broadcastSettingChange } from '../../utils/broadcast';
+import {
+  readIslandShapeModeConfig,
+  PILL_ISLAND_HEIGHT,
+  PILL_EXPANDED_HEIGHT,
+  PILL_NOTIFICATION_HEIGHT,
+  PILL_LYRICS_HEIGHT,
+  PILL_LYRICS_TRANSLATION_HEIGHT,
+  PILL_EXPANDED_FULL_HEIGHT,
+  PILL_SETTINGS_HEIGHT,
+} from '../../config/storeConfig';
 
 interface WindowIpcSizeOptions {
   expandedWidth: number;
@@ -103,6 +113,39 @@ export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOpti
     }
   };
 
+  /** 获取当前窗口水平中心点（pill 模式用当前窗口中心，notch 模式用初始中心） */
+  const getEffectiveCenterX = (win: BrowserWindow): number => {
+    const shapeMode = readIslandShapeModeConfig();
+    if (shapeMode === 'pill') {
+      const bounds = win.getBounds();
+      return bounds.x + bounds.width / 2;
+    }
+    return options.getInitialCenterX();
+  };
+
+  /** 获取当前窗口 y 坐标（notch 模式始终贴顶，pill 模式保持当前 y） */
+  const getEffectiveY = (win: BrowserWindow): number => {
+    const shapeMode = readIslandShapeModeConfig();
+    if (shapeMode === 'notch') {
+      const selection = options.getIslandDisplaySelection();
+      let targetDisplay = screen.getPrimaryDisplay();
+      if (selection !== 'primary') {
+        const targetId = Number(selection);
+        if (Number.isFinite(targetId)) {
+          const found = screen.getAllDisplays().find((d) => d.id === targetId);
+          if (found) targetDisplay = found;
+        }
+      }
+      return targetDisplay.workArea.y;
+    }
+    return win.getBounds().y;
+  };
+
+  /** 根据当前形态模式返回对应高度（pill 模式各状态加高） */
+  const getHeight = (notchHeight: number, pillHeight: number): number => {
+    return readIslandShapeModeConfig() === 'pill' ? pillHeight : notchHeight;
+  };
+
   ipcMain.on('window:enable-mouse-passthrough', () => {
     withWindow((win) => {
       win.setIgnoreMouseEvents(true, { forward: true });
@@ -118,77 +161,84 @@ export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOpti
 
   ipcMain.on('window:expand', () => {
     withWindow((win) => {
+      const centerX = getEffectiveCenterX(win);
       win.setBounds({
-        x: Math.round(options.getInitialCenterX() - options.sizes.expandedWidth / 2),
-        y: win.getBounds().y,
+        x: Math.round(centerX - options.sizes.expandedWidth / 2),
+        y: getEffectiveY(win),
         width: options.sizes.expandedWidth,
-        height: options.sizes.expandedHeight,
+        height: getHeight(options.sizes.expandedHeight, PILL_EXPANDED_HEIGHT),
       });
     });
   });
 
   ipcMain.on('window:expand-notification', () => {
     withWindow((win) => {
+      const centerX = getEffectiveCenterX(win);
       win.setBounds({
-        x: Math.round(options.getInitialCenterX() - options.sizes.notificationWidth / 2),
-        y: win.getBounds().y,
+        x: Math.round(centerX - options.sizes.notificationWidth / 2),
+        y: getEffectiveY(win),
         width: options.sizes.notificationWidth,
-        height: options.sizes.notificationHeight,
+        height: getHeight(options.sizes.notificationHeight, PILL_NOTIFICATION_HEIGHT),
       });
     });
   });
 
   ipcMain.on('window:expand-lyrics', () => {
     withWindow((win) => {
+      const centerX = getEffectiveCenterX(win);
       win.setBounds({
-        x: Math.round(options.getInitialCenterX() - options.sizes.lyricsWidth / 2),
-        y: win.getBounds().y,
+        x: Math.round(centerX - options.sizes.lyricsWidth / 2),
+        y: getEffectiveY(win),
         width: options.sizes.lyricsWidth,
-        height: options.sizes.lyricsHeight,
+        height: getHeight(options.sizes.lyricsHeight, PILL_LYRICS_HEIGHT),
       });
     });
   });
 
   ipcMain.on('window:expand-lyrics-translation', () => {
     withWindow((win) => {
+      const centerX = getEffectiveCenterX(win);
       win.setBounds({
-        x: Math.round(options.getInitialCenterX() - options.sizes.lyricsWidth / 2),
-        y: win.getBounds().y,
+        x: Math.round(centerX - options.sizes.lyricsWidth / 2),
+        y: getEffectiveY(win),
         width: options.sizes.lyricsWidth,
-        height: options.sizes.lyricsTranslationHeight,
+        height: getHeight(options.sizes.lyricsTranslationHeight, PILL_LYRICS_TRANSLATION_HEIGHT),
       });
     });
   });
 
   ipcMain.on('window:expand-full', () => {
     withWindow((win) => {
+      const centerX = getEffectiveCenterX(win);
       win.setBounds({
-        x: Math.round(options.getInitialCenterX() - options.sizes.expandedFullWidth / 2),
-        y: win.getBounds().y,
+        x: Math.round(centerX - options.sizes.expandedFullWidth / 2),
+        y: getEffectiveY(win),
         width: options.sizes.expandedFullWidth,
-        height: options.sizes.expandedFullHeight,
+        height: getHeight(options.sizes.expandedFullHeight, PILL_EXPANDED_FULL_HEIGHT),
       });
     });
   });
 
   ipcMain.on('window:expand-settings', () => {
     withWindow((win) => {
+      const centerX = getEffectiveCenterX(win);
       win.setBounds({
-        x: Math.round(options.getInitialCenterX() - options.sizes.settingsWidth / 2),
-        y: win.getBounds().y,
+        x: Math.round(centerX - options.sizes.settingsWidth / 2),
+        y: getEffectiveY(win),
         width: options.sizes.settingsWidth,
-        height: options.sizes.settingsHeight,
+        height: getHeight(options.sizes.settingsHeight, PILL_SETTINGS_HEIGHT),
       });
     });
   });
 
   ipcMain.on('window:collapse', () => {
     withWindow((win) => {
+      const centerX = getEffectiveCenterX(win);
       win.setBounds({
-        x: Math.round(options.getInitialCenterX() - options.sizes.islandWidth / 2),
-        y: win.getBounds().y,
+        x: Math.round(centerX - options.sizes.islandWidth / 2),
+        y: getEffectiveY(win),
         width: options.sizes.islandWidth,
-        height: options.sizes.islandHeight,
+        height: getHeight(options.sizes.islandHeight, PILL_ISLAND_HEIGHT),
       });
     });
   });
@@ -203,6 +253,19 @@ export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOpti
   ipcMain.handle('window:get-mouse-position', () => {
     const point = screen.getCursorScreenPoint();
     return { x: point.x, y: point.y };
+  });
+
+  ipcMain.on('window:move-delta', (_event, dx: number, dy: number) => {
+    if (!Number.isFinite(dx) || !Number.isFinite(dy)) return;
+    withWindow((win) => {
+      const bounds = win.getBounds();
+      win.setBounds({
+        x: Math.round(bounds.x + dx),
+        y: Math.round(bounds.y + dy),
+        width: bounds.width,
+        height: bounds.height,
+      });
+    });
   });
 
   ipcMain.handle('window:get-bounds', () => {

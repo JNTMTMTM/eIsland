@@ -142,6 +142,14 @@ const api = {
     ipcRenderer.send('window:collapse');
   },
   /**
+   * 按像素偏移移动窗口（用于拖动）
+   * @param dx - 水平偏移量
+   * @param dy - 垂直偏移量
+   */
+  moveWindowDelta: (dx: number, dy: number): void => {
+    ipcRenderer.send('window:move-delta', dx, dy);
+  },
+  /**
    * 隐藏窗口
    */
   hideWindow: (): void => {
@@ -861,6 +869,21 @@ const api = {
     return ipcRenderer.invoke('toggle-ui-lock-hotkey:set', accelerator);
   },
   /**
+   * 获取当前切换形态模式快捷键
+   * @returns 当前快捷键字符串
+   */
+  toggleShapeModeHotkeyGet: (): Promise<string> => {
+    return ipcRenderer.invoke('toggle-shape-mode-hotkey:get');
+  },
+  /**
+   * 设置切换形态模式快捷键
+   * @param accelerator - Electron accelerator 字符串
+   * @returns 是否注册成功
+   */
+  toggleShapeModeHotkeySet: (accelerator: string): Promise<boolean> => {
+    return ipcRenderer.invoke('toggle-shape-mode-hotkey:set', accelerator);
+  },
+  /**
    * 获取当前 Agent 语音输入快捷键
    * @returns 当前快捷键字符串
    */
@@ -1224,6 +1247,30 @@ const api = {
    */
   animationSpeedSet: (speed: string): Promise<boolean> => {
     return ipcRenderer.invoke('island:animation-speed:set', speed);
+  },
+  /**
+   * 获取灵动岛形态模式 (notch / pill)
+   */
+  shapeModeGet: (): Promise<string> => {
+    return ipcRenderer.invoke('island:shape-mode:get');
+  },
+  /**
+   * 设置灵动岛形态模式
+   */
+  shapeModeSet: (mode: string): Promise<boolean> => {
+    return ipcRenderer.invoke('island:shape-mode:set', mode);
+  },
+  /**
+   * 监听形态模式变更通知（专用通道，由主进程主动推送）
+   */
+  onShapeModeChanged: (callback: (mode: string, targetX: number, targetY: number) => void): (() => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, mode: string, targetX: number, targetY: number): void => {
+      callback(mode, targetX, targetY);
+    };
+    ipcRenderer.on('island:shape-mode:changed', handler);
+    return () => {
+      ipcRenderer.removeListener('island:shape-mode:changed', handler);
+    };
   },
   /**
    * 读取当前剪贴板文本

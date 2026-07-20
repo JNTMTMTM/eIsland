@@ -242,6 +242,11 @@
   background: rgba(59, 130, 246, 0.32);
 }
 
+/** pill 模式下通知内容容器收窄 */
+.island-shell.shape-pill .notification-content {
+  width: 480px;
+}
+
 @keyframes notifRowEnter {
   0%   { opacity: 0; transform: translateY(7px) scale(0.97); }
   55%  { opacity: 1; }

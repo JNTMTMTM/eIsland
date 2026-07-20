@@ -42,6 +42,7 @@ interface CreateHotkeyServiceOptions {
   readTogglePassthroughHotkeyConfig: () => string;
   readToggleUiLockHotkeyConfig: () => string;
   readAgentVoiceInputHotkeyConfig: () => string;
+  readToggleShapeModeHotkeyConfig: () => string;
   onScreenshotHotkey: () => void;
   onNextSongHotkey: () => void;
   onPlayPauseSongHotkey: () => void;
@@ -53,6 +54,7 @@ interface CreateHotkeyServiceOptions {
   onToggleUiLockHotkey: () => void;
   onAgentVoiceInputHotkeyHold: () => void;
   onAgentVoiceInputHotkeyRelease: () => void;
+  onToggleShapeModeHotkey: () => void;
 }
 
 interface HotkeyService {
@@ -68,6 +70,7 @@ interface HotkeyService {
   getCurrentTogglePassthroughHotkey: () => string;
   getCurrentToggleUiLockHotkey: () => string;
   getCurrentAgentVoiceInputHotkey: () => string;
+  getCurrentToggleShapeModeHotkey: () => string;
   registerHideHotkey: (accelerator: string) => boolean;
   registerQuitHotkey: (accelerator: string) => boolean;
   registerScreenshotHotkey: (accelerator: string) => boolean;
@@ -80,6 +83,7 @@ interface HotkeyService {
   registerTogglePassthroughHotkey: (accelerator: string) => boolean;
   registerToggleUiLockHotkey: (accelerator: string) => boolean;
   registerAgentVoiceInputHotkey: (accelerator: string) => boolean;
+  registerToggleShapeModeHotkey: (accelerator: string) => boolean;
   suspendIslandHotkeys: () => void;
   resumeIslandHotkeys: () => void;
 }
@@ -103,6 +107,7 @@ export function createHotkeyService(options: CreateHotkeyServiceOptions): Hotkey
   let currentTogglePassthroughHotkey = '';
   let currentToggleUiLockHotkey = '';
   let currentAgentVoiceInputHotkey = '';
+  let currentToggleShapeModeHotkey = '';
 
   function registerHideHotkey(accelerator: string): boolean {
     const previousHotkey = currentHideHotkey || options.readHideHotkeyConfig();
@@ -456,6 +461,33 @@ export function createHotkeyService(options: CreateHotkeyServiceOptions): Hotkey
     }
   }
 
+  function registerToggleShapeModeHotkey(accelerator: string): boolean {
+    if (currentToggleShapeModeHotkey) {
+      try {
+        globalShortcut.unregister(currentToggleShapeModeHotkey);
+      } catch {
+        // ignore
+      }
+      currentToggleShapeModeHotkey = '';
+    }
+
+    if (!accelerator) return true;
+
+    try {
+      const success = globalShortcut.register(accelerator, () => {
+        options.onToggleShapeModeHotkey();
+      });
+
+      if (success) {
+        currentToggleShapeModeHotkey = accelerator;
+      }
+      return success;
+    } catch (err) {
+      console.error('[ToggleShapeModeHotkey] register error:', err);
+      return false;
+    }
+  }
+
   function suspendIslandHotkeys(): void {
     const hideHotkey = currentHideHotkey || options.readHideHotkeyConfig();
     const quitHotkey = currentQuitHotkey || options.readQuitHotkeyConfig();
@@ -477,6 +509,8 @@ export function createHotkeyService(options: CreateHotkeyServiceOptions): Hotkey
       currentToggleUiLockHotkey || options.readToggleUiLockHotkeyConfig();
     const agentVoiceInputHotkey =
       currentAgentVoiceInputHotkey || options.readAgentVoiceInputHotkeyConfig();
+    const toggleShapeModeHotkey =
+      currentToggleShapeModeHotkey || options.readToggleShapeModeHotkeyConfig();
 
     [
       hideHotkey,
@@ -491,6 +525,7 @@ export function createHotkeyService(options: CreateHotkeyServiceOptions): Hotkey
       togglePassthroughHotkey,
       toggleUiLockHotkey,
       agentVoiceInputHotkey,
+      toggleShapeModeHotkey,
     ].forEach((hotkey) => {
       if (!hotkey) return;
       try {
@@ -535,6 +570,9 @@ export function createHotkeyService(options: CreateHotkeyServiceOptions): Hotkey
     const agentVoiceInputHotkey =
       currentAgentVoiceInputHotkey || options.readAgentVoiceInputHotkeyConfig();
     if (agentVoiceInputHotkey) registerAgentVoiceInputHotkey(agentVoiceInputHotkey);
+    const toggleShapeModeHotkey =
+      currentToggleShapeModeHotkey || options.readToggleShapeModeHotkeyConfig();
+    if (toggleShapeModeHotkey) registerToggleShapeModeHotkey(toggleShapeModeHotkey);
   }
 
   return {
@@ -550,6 +588,7 @@ export function createHotkeyService(options: CreateHotkeyServiceOptions): Hotkey
     getCurrentTogglePassthroughHotkey: () => currentTogglePassthroughHotkey,
     getCurrentToggleUiLockHotkey: () => currentToggleUiLockHotkey,
     getCurrentAgentVoiceInputHotkey: () => currentAgentVoiceInputHotkey,
+    getCurrentToggleShapeModeHotkey: () => currentToggleShapeModeHotkey,
     registerHideHotkey,
     registerQuitHotkey,
     registerScreenshotHotkey,
@@ -562,6 +601,7 @@ export function createHotkeyService(options: CreateHotkeyServiceOptions): Hotkey
     registerTogglePassthroughHotkey,
     registerToggleUiLockHotkey,
     registerAgentVoiceInputHotkey,
+    registerToggleShapeModeHotkey,
     suspendIslandHotkeys,
     resumeIslandHotkeys,
   };

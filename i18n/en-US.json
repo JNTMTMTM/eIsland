@@ -2282,7 +2282,11 @@
         "hoverScreenshotModeHint": "Configure hover screenshot button to trigger area screenshot or display screenshot",
         "hoverScreenshotModeLabel": "Screenshot mode",
         "hoverScreenshotModeRegion": "Area screenshot",
-        "hoverScreenshotModeDisplay": "Display screenshot"
+        "hoverScreenshotModeDisplay": "Display screenshot",
+        "shapeModeTitle": "Island Shape",
+        "shapeModeHint": "Switch the island's appearance: Notch pins to the top of the screen, Pill is an oval floating shape",
+        "shapeModeNotch": "Notch",
+        "shapeModePill": "Pill"
       },
       "animation": {
         "springTitle": "Spring Animation",
@@ -2693,6 +2697,10 @@
         "agentVoiceInput": {
           "title": "Agent Voice Input Shortcut",
           "hint": "Hold this shortcut to trigger Agent voice input; it closes automatically on release"
+        },
+        "toggleShapeMode": {
+          "title": "Toggle Shape Mode Shortcut",
+          "hint": "Press to quickly switch between Notch and Pill shape modes"
         }
       },
       "capture": {

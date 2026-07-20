@@ -71,6 +71,16 @@ export const EXPANDED_FULL_HEIGHT = 150;
 export const SETTINGS_WIDTH = 860;
 export const SETTINGS_HEIGHT = 400;
 
+// ===== 灵动岛 pill 模式尺寸常量 =====
+
+export const PILL_ISLAND_HEIGHT = 52;
+export const PILL_EXPANDED_HEIGHT = 72;
+export const PILL_NOTIFICATION_HEIGHT = 100;
+export const PILL_LYRICS_HEIGHT = 52;
+export const PILL_LYRICS_TRANSLATION_HEIGHT = 72;
+export const PILL_EXPANDED_FULL_HEIGHT = 164;
+export const PILL_SETTINGS_HEIGHT = 416;
+
 // ===== SMTC 常量 =====
 
 /** SMTC 取消订阅设为永不取消时的值 */
@@ -111,6 +121,12 @@ export const DEFAULT_ISLAND_POSITION_OFFSET: IslandPositionOffset = { x: 0, y: 0
 /** 灵动岛显示器选择默认值（primary 表示主显示器） */
 export const DEFAULT_ISLAND_DISPLAY_SELECTION = 'primary';
 
+/** 灵动岛形态模式存储键名 */
+export const ISLAND_SHAPE_MODE_STORE_KEY = 'island-shape-mode';
+
+/** 灵动岛形态模式默认值（notch = 刘海屏，pill = 灵动岛胶囊） */
+export const DEFAULT_ISLAND_SHAPE_MODE = 'notch';
+
 /** 默认隐藏快捷键 */
 export const DEFAULT_HIDE_HOTKEY = 'Alt+X';
 
@@ -143,6 +159,9 @@ export const DEFAULT_TOGGLE_PASSTHROUGH_HOTKEY = '';
 
 /** 默认切换 UI 状态锁定快捷键（空表示默认不设置） */
 export const DEFAULT_TOGGLE_UI_LOCK_HOTKEY = '';
+
+/** 默认切换形态模式快捷键（空表示默认不设置） */
+export const DEFAULT_TOGGLE_SHAPE_MODE_HOTKEY = '';
 
 /** 默认 Agent 语音输入快捷键（长按触发） */
 export const DEFAULT_AGENT_VOICE_INPUT_HOTKEY = 'Alt+P';
@@ -268,6 +287,9 @@ export const TOGGLE_PASSTHROUGH_HOTKEY_STORE_KEY = 'toggle-passthrough-hotkey';
 
 /** 切换 UI 状态锁定快捷键存储键名 */
 export const TOGGLE_UI_LOCK_HOTKEY_STORE_KEY = 'toggle-ui-lock-hotkey';
+
+/** 切换形态模式快捷键存储键名 */
+export const TOGGLE_SHAPE_MODE_HOTKEY_STORE_KEY = 'toggle-shape-mode-hotkey';
 
 /** Agent 语音输入快捷键存储键名 */
 export const AGENT_VOICE_INPUT_HOTKEY_STORE_KEY = 'agent-voice-input-hotkey';
@@ -443,6 +465,15 @@ export function readAgentVoiceInputHotkeyConfig(): string {
 }
 
 /**
+ * 读取切换形态模式快捷键配置
+ * @returns 快捷键字符串
+ */
+export function readToggleShapeModeHotkeyConfig(): string {
+  const data = readJsonFile(TOGGLE_SHAPE_MODE_HOTKEY_STORE_KEY);
+  return typeof data === 'string' ? data : DEFAULT_TOGGLE_SHAPE_MODE_HOTKEY;
+}
+
+/**
  * 读取播放器白名单配置
  * @returns 播放器名称数组
  */
@@ -528,6 +559,34 @@ export function writeIslandDisplaySelectionConfig(selection: string): boolean {
     return true;
   } catch (err) {
     console.error('[IslandDisplay] persist error:', err);
+    return false;
+  }
+}
+
+/**
+ * 读取灵动岛形态模式配置
+ * @returns 形态模式字符串（notch 或 pill）
+ */
+export function readIslandShapeModeConfig(): string {
+  const data = readJsonFile(ISLAND_SHAPE_MODE_STORE_KEY);
+  return data === 'notch' || data === 'pill' ? data : DEFAULT_ISLAND_SHAPE_MODE;
+}
+
+/**
+ * 写入灵动岛形态模式配置
+ * @param mode - 形态模式字符串（notch 或 pill）
+ * @returns 是否写入成功
+ */
+export function writeIslandShapeModeConfig(mode: string): boolean {
+  try {
+    const storeDir = getStoreDir();
+    if (!existsSync(storeDir)) mkdirSync(storeDir, { recursive: true });
+    const valid = mode === 'notch' || mode === 'pill' ? mode : DEFAULT_ISLAND_SHAPE_MODE;
+    const filePath = join(storeDir, `${ISLAND_SHAPE_MODE_STORE_KEY}.json`);
+    writeFileSync(filePath, JSON.stringify(valid, null, 2), 'utf-8');
+    return true;
+  } catch (err) {
+    console.error('[IslandShapeMode] persist error:', err);
     return false;
   }
 }
