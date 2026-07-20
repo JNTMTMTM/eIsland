@@ -2282,7 +2282,11 @@
         "hoverScreenshotModeHint": "配置 hover 界面的截图按钮触发选区截图或显示器截图",
         "hoverScreenshotModeLabel": "截图方式",
         "hoverScreenshotModeRegion": "选区截图",
-        "hoverScreenshotModeDisplay": "显示器截图"
+        "hoverScreenshotModeDisplay": "显示器截图",
+        "shapeModeTitle": "岛屿形态",
+        "shapeModeHint": "切换灵动岛的外观形态，刘海屏贴于屏幕顶部，灵动岛为胶囊形状",
+        "shapeModeNotch": "刘海屏",
+        "shapeModePill": "灵动岛"
       },
       "animation": {
         "springTitle": "灵动岛弹性动画",
@@ -2693,6 +2697,10 @@
         "agentVoiceInput": {
           "title": "Agent 语音输入快捷键",
           "hint": "长按此快捷键将触发 Agent 语音输入，释放后自动关闭"
+        },
+        "toggleShapeMode": {
+          "title": "切换形态模式快捷键",
+          "hint": "按下此快捷键将在刘海屏与灵动岛形态之间快速切换"
         }
       },
       "capture": {
