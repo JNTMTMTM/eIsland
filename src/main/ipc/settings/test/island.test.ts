@@ -116,6 +116,8 @@ describe('registerIslandIpcHandlers', () => {
       'island:spring-animation:set',
       'island:animation-speed:get',
       'island:animation-speed:set',
+      'island:shape-mode:get',
+      'island:shape-mode:set',
       'island:autostart:get',
       'island:autostart:set',
       'island:nav-order:get',
