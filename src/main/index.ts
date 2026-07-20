@@ -631,7 +631,7 @@ function registerIpcHandlers(): void {
     autostartModeStoreKey: AUTOSTART_MODE_STORE_KEY,
     navOrderStoreKey: NAV_ORDER_STORE_KEY,
     onShapeModeChanged: () => {
-      /** 不立即跳转窗口，由渲染进程收到 notifyShapeModeChanged 后执行动画 */
+      mainWindowService.notifyShapeModeChanged();
     },
   });
 
