@@ -186,26 +186,49 @@ The `island:shape-mode:changed` event includes the target `(x, y)` bounds so the
 
 ## Animated Transitions
 
-When the shape mode changes, the renderer performs an animated transition managed by `useIslandSettingsSync`:
+When the shape mode changes, the renderer performs an animated transition managed by `useIslandSettingsSync`.
 
-### Pill → Notch (Idle State)
+:::important
+The main process computes `targetX` based on `islandWidth` (260 px, the idle width). However, `lyrics`, `lyricsTranslation`, and `agentVoiceInput` states use a wider window (500 px). The transition logic accounts for this width mismatch to prevent diagonal drift during mode switches.
+:::
 
-1. Animate window position upward to notch Y
+### Idle-Size States
+
+The `isIdleSize` group includes `idle` (260 px wide) and the 500 px-wide content states (`lyrics`, `lyricsTranslation`, `agentVoiceInput`). The transition behavior differs based on the actual window width.
+
+#### Pill → Notch (`idle` — 260 px)
+
+1. Animate window position (X and Y) to notch target
 2. Switch CSS class to `shape-notch`
 3. Resize window to notch dimensions
 
-### Pill → Notch (Non-Idle State)
+#### Pill → Notch (`lyrics` / `lyricsTranslation` / `agentVoiceInput` — 500 px)
 
-1. Switch CSS class to `shape-notch`
-2. Let the current state's expand handler set correct position
+1. Compute corrected target X from notch-mode center and actual window width
+2. Animate window diagonally (X and Y) to notch target — avoids two-step repositioning
+3. Switch CSS class to `shape-notch`
+4. Resize window to notch dimensions
 
-### Notch → Pill (Idle State)
+#### Notch → Pill (`idle` — 260 px)
 
 1. Resize window to pill dimensions
 2. Switch CSS class to `shape-pill`
 3. Animate window position downward to pill Y offset
 
-### Notch → Pill (Non-Idle State)
+#### Notch → Pill (`lyrics` / `lyricsTranslation` / `agentVoiceInput` — 500 px)
+
+1. Resize window (width unchanged at 500 px, height adjusts)
+2. Switch CSS class to `shape-pill`
+3. Animate window vertically downward (dx = 0, horizontal center preserved)
+
+### Non-Idle States
+
+#### Pill → Notch
+
+1. Switch CSS class to `shape-notch`
+2. Let the current state's expand handler set correct position
+
+#### Notch → Pill
 
 1. Switch CSS class to `shape-pill`
 2. Resize window to pill dimensions
