@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-07-20T11:55:20.388Z
+> 生成时间：2026-07-21T10:22:14.911Z
 
 ## 26.6.5
 
@@ -2946,6 +2946,10 @@
 
 ## Unreleased
 
+- 2026-07-21 | de89801a | 鸡哥 | Merge pull request #161 from JNTMTMTM/dev
+- 2026-07-21 | f7f92c57 | 鸡哥 | docs: enhance shape mode transition documentation with detailed idle and non-idle state behaviors
+- 2026-07-21 | af469998 | 鸡哥 | fix: adjust target window position calculations for notch and pill modes to ensure smooth animations
+- 2026-07-20 | b844ce93 | eislandBot | docs: auto update CHANGE_LOG.md for #160 by @JNTMTMTM [skip ci]
 - 2026-07-20 | 65651124 | 鸡哥 | Merge pull request #160 from JNTMTMTM/dev
 - 2026-07-20 | d236b2bd | 鸡哥 | feat: add toggle shape mode hotkey registration and configuration for improved user control
 - 2026-07-20 | 644e0a58 | 鸡哥 | feat: refactor shape mode handling to use config functions for improved maintainability fix: add validation for window move delta to prevent invalid values feat: enhance animation frame management in useIslandSettingsSync for better performance
