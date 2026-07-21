@@ -410,7 +410,12 @@ export function useIslandSettingsSync(options: UseIslandSettingsSyncOptions): vo
       if (v === 'notch') {
         if (isIdleSize) {
           /** pill → notch idle：先动画移动窗口到顶部，再切换 CSS + resize */
-          const dx = targetX - window.screenX;
+          /** targetX 基于 islandWidth(260) 计算，lyrics 等状态窗口宽度为 500，
+           *  需按实际宽度计算目标 X，使动画与 applyWindowForState 的最终位置一致，避免两步跳动 */
+          const ISLAND_WIDTH = 260;
+          const notchModeCenterX = targetX + ISLAND_WIDTH / 2;
+          const targetWindowX = Math.round(notchModeCenterX - window.outerWidth / 2);
+          const dx = targetWindowX - window.screenX;
           const dy = targetY - window.screenY;
           animateWindowMove(dx, dy, ANIM_DURATION).then(() => {
             useIslandStore.getState().setShapeMode('notch');
@@ -426,7 +431,9 @@ export function useIslandSettingsSync(options: UseIslandSettingsSyncOptions): vo
           /** notch → pill idle：先 resize 到 pill 尺寸，再切换 CSS，再动画移动窗口 */
           applyWindowForState(currentState);
           useIslandStore.getState().setShapeMode('pill');
-          const dx = targetX - window.screenX;
+          /** targetX 基于 islandWidth(260) 计算，但 lyrics/lyricsTranslation/agentVoiceInput
+           *  窗口宽度为 500，与 idle(260) 不同，水平方向不移动，仅垂直下移 */
+          const dx = currentState === 'idle' ? targetX - window.screenX : 0;
           const dy = targetY - window.screenY;
           animateWindowMove(dx, dy, ANIM_DURATION).catch(() => {});
         } else {
