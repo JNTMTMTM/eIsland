@@ -19,9 +19,23 @@
  */
 
 /**
- * @file index.ts
- * @description 引导灵动岛形态设置步骤模块入口
+ * @file shapeOptions.ts
+ * @description 引导灵动岛形态设置步骤配置
  * @author 鸡哥
  */
 
-export { ShapeStep } from './components/ShapeStep';
+import type { IslandShapeMode } from '../../../../../store/types';
+
+/** 形态选项条目 */
+export interface ShapeModeOption {
+  /** 模式值 */
+  value: IslandShapeMode;
+  /** 显示名称 i18n key */
+  labelKey: string;
+}
+
+/** 灵动岛形态选项列表 */
+export const SHAPE_MODE_OPTIONS: ShapeModeOption[] = [
+  { value: 'notch', labelKey: 'guide.shape.notch' },
+  { value: 'pill', labelKey: 'guide.shape.pill' },
+];

@@ -20,8 +20,14 @@
 
 /**
  * @file index.ts
- * @description 引导灵动岛形态设置步骤模块入口
+ * @description 引导灵动岛形态设置步骤类型定义
  * @author 鸡哥
  */
 
-export { ShapeStep } from './components/ShapeStep';
+/** ShapeStep 组件属性 */
+export interface ShapeStepProps {
+  /** 确认后进入下一步的回调 */
+  onNext: () => void;
+  /** 返回上一步的回调 */
+  onPrev: () => void;
+}

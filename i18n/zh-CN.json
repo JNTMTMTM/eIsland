@@ -98,6 +98,12 @@
       "light": "浅色",
       "system": "跟随系统"
     },
+    "shape": {
+      "title": "灵动岛形态",
+      "subtitle": "选择灵动岛的外观形态",
+      "notch": "刘海屏",
+      "pill": "灵动岛"
+    },
     "update": {
       "title": "选择更新源",
       "subtitle": "选择检查更新时使用的下载源"

@@ -98,6 +98,12 @@
       "light": "Light",
       "system": "System"
     },
+    "shape": {
+      "title": "Island Shape",
+      "subtitle": "Choose the appearance shape of Dynamic Island",
+      "notch": "Notch",
+      "pill": "Pill"
+    },
     "update": {
       "title": "Select Update Source",
       "subtitle": "Choose the download source for checking updates"
