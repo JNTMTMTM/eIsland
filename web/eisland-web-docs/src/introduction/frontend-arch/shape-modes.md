@@ -59,7 +59,7 @@ In pill mode, the notification shell remains 500 px wide, but the inner `.notifi
 | `agentVoiceInput` | 500 px | 42 px | 52 px | 21 px |
 
 :::note
-In pill mode, the `stt` state's inner `.stt-content` container height is constrained to 80 px via CSS (`src/renderer/styles/stt/stt.css`). This prevents the content from overflowing the pill shape.
+In pill mode, both `agent` and `stt` states constrain their inner content containers to 80 px height via CSS (`src/renderer/styles/agent/agent.css` and `src/renderer/styles/stt/stt.css`). This prevents the content from overflowing the pill shape.
 :::
 
 ### Full-Screen States
@@ -270,6 +270,7 @@ The `isIdleSize` group includes `idle` (260 px wide) and the 500 px-wide content
 | Guide step | `src/renderer/components/.../DynamicIslandGuidePages/shape/` | Shape selection with SVG previews |
 | Guide CSS | `src/renderer/styles/guide/shape.css` | Card layout and preview styles |
 | STT pill CSS | `src/renderer/styles/stt/stt.css` | `.stt-content` height constraint in pill mode |
+| Agent pill CSS | `src/renderer/styles/agent/agent.css` | `.agent-content` height constraint in pill mode |
 
 :::details
 **Test Coverage**: Shape mode IPC registration is verified in `src/main/ipc/settings/test/island.test.ts`. Window handler tests mock `readIslandShapeModeConfig` and all `PILL_*` constants in `src/main/ipc/window/test/windowHandlers.test.ts`.
