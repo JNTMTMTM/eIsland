@@ -19,26 +19,15 @@
  */
 
 /**
- * @file DynamicIslandGuideTypes.ts
- * @description 灵动岛引导流程类型定义
+ * @file index.ts
+ * @description 引导灵动岛形态设置步骤类型定义
  * @author 鸡哥
  */
 
-/** 引导步骤 */
-export type GuideStep = 'language' | 'whitelist' | 'smtc' | 'theme' | 'shape' | 'update' | 'github' | 'sponsors' | 'welcome';
-
-/** 引导步骤索引映射 */
-export const GUIDE_STEP_INDEX: Record<GuideStep, number> = {
-  language: 0,
-  whitelist: 1,
-  smtc: 2,
-  theme: 3,
-  shape: 4,
-  update: 5,
-  github: 6,
-  sponsors: 7,
-  welcome: 8,
-};
-
-/** 引导步骤总数（从索引映射自动推导，避免遗漏） */
-export const GUIDE_STEP_TOTAL = Object.keys(GUIDE_STEP_INDEX).length;
+/** ShapeStep 组件属性 */
+export interface ShapeStepProps {
+  /** 确认后进入下一步的回调 */
+  onNext: () => void;
+  /** 返回上一步的回调 */
+  onPrev: () => void;
+}

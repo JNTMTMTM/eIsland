@@ -143,6 +143,11 @@
   font-style: normal;
 }
 
+/** pill 模式下 agent 内容容器收窄高度 */
+.island-shell.shape-pill .agent-content {
+  height: 80px;
+}
+
 @keyframes agentEnter {
   0%   { opacity: 0; transform: translateY(4px); }
   100% { opacity: 1; transform: translateY(0); }

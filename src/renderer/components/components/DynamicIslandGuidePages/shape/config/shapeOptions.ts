@@ -19,26 +19,25 @@
  */
 
 /**
- * @file DynamicIslandGuideTypes.ts
- * @description 灵动岛引导流程类型定义
+ * @file shapeOptions.ts
+ * @description 引导灵动岛形态设置步骤配置
  * @author 鸡哥
  */
 
-/** 引导步骤 */
-export type GuideStep = 'language' | 'whitelist' | 'smtc' | 'theme' | 'shape' | 'update' | 'github' | 'sponsors' | 'welcome';
+import type { IslandShapeMode } from '../../../../../store/types';
 
-/** 引导步骤索引映射 */
-export const GUIDE_STEP_INDEX: Record<GuideStep, number> = {
-  language: 0,
-  whitelist: 1,
-  smtc: 2,
-  theme: 3,
-  shape: 4,
-  update: 5,
-  github: 6,
-  sponsors: 7,
-  welcome: 8,
-};
+/** 形态选项条目 */
+export interface ShapeModeOption {
+  /** 模式值 */
+  value: IslandShapeMode;
+  /** 显示名称 i18n key */
+  labelKey: string;
+  /** 描述 i18n key */
+  descKey: string;
+}
 
-/** 引导步骤总数（从索引映射自动推导，避免遗漏） */
-export const GUIDE_STEP_TOTAL = Object.keys(GUIDE_STEP_INDEX).length;
+/** 灵动岛形态选项列表 */
+export const SHAPE_MODE_OPTIONS: ShapeModeOption[] = [
+  { value: 'notch', labelKey: 'guide.shape.notch', descKey: 'guide.shape.notchDesc' },
+  { value: 'pill', labelKey: 'guide.shape.pill', descKey: 'guide.shape.pillDesc' },
+];

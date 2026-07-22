@@ -35,6 +35,7 @@ import { LanguageStep } from './components/components/DynamicIslandGuidePages/la
 import { WhitelistStep } from './components/components/DynamicIslandGuidePages/smtc-white-list';
 import { SmtcStep } from './components/components/DynamicIslandGuidePages/smtc-test';
 import { ThemeStep } from './components/components/DynamicIslandGuidePages/theme';
+import { ShapeStep } from './components/components/DynamicIslandGuidePages/shape';
 import { UpdateStep } from './components/components/DynamicIslandGuidePages/update';
 import { GithubStep } from './components/components/DynamicIslandGuidePages/github';
 import { SponsorStep } from './components/components/DynamicIslandGuidePages/sponsors';
@@ -79,9 +80,9 @@ function GuideApp(): ReactElement {
     setStep('whitelist');
   }, []);
 
-  /** 主题设置完成，进入更新源配置 */
+  /** 主题设置完成，进入形态设置 */
   const handleThemeNext = useCallback((): void => {
-    setStep('update');
+    setStep('shape');
   }, []);
 
   /** 主题设置返回 SMTC 检查 */
@@ -89,14 +90,24 @@ function GuideApp(): ReactElement {
     setStep('smtc');
   }, []);
 
+  /** 形态设置完成，进入更新源配置 */
+  const handleShapeNext = useCallback((): void => {
+    setStep('update');
+  }, []);
+
+  /** 形态设置返回主题设置 */
+  const handleShapePrev = useCallback((): void => {
+    setStep('theme');
+  }, []);
+
   /** 更新源配置完成，进入开源信息 */
   const handleUpdateNext = useCallback((): void => {
     setStep('github');
   }, []);
 
-  /** 更新源配置返回主题设置 */
+  /** 更新源配置返回形态设置 */
   const handleUpdatePrev = useCallback((): void => {
-    setStep('theme');
+    setStep('shape');
   }, []);
 
   /** 开源信息完成，进入赞助商页 */
@@ -153,6 +164,12 @@ function GuideApp(): ReactElement {
           <ThemeStep
             onNext={handleThemeNext}
             onPrev={handleThemePrev}
+          />
+        )}
+        {step === 'shape' && (
+          <ShapeStep
+            onNext={handleShapeNext}
+            onPrev={handleShapePrev}
           />
         )}
         {step === 'update' && (
