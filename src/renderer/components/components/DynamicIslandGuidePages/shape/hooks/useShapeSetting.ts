@@ -52,9 +52,11 @@ export function useShapeSetting(): UseShapeSettingReturn {
 
   /** 监听形态模式外部变更（快捷键 / 主窗口设置页等） */
   useEffect(() => {
-    const unsub = window.api.onShapeModeChanged((val) => {
-      const safe: IslandShapeMode = val === 'notch' || val === 'pill' ? val : 'notch';
-      setModeState(safe);
+    const unsub = window.api.onSettingsChanged((channel, value) => {
+      if (channel === 'island:shape-mode') {
+        const safe: IslandShapeMode = value === 'notch' || value === 'pill' ? value : 'notch';
+        setModeState(safe);
+      }
     });
     return unsub;
   }, []);
