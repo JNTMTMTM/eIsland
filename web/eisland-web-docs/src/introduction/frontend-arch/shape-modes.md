@@ -58,6 +58,10 @@ In pill mode, the notification shell remains 500 px wide, but the inner `.notifi
 | `cli` | 500 px | 88 px | 100 px | 44 px |
 | `agentVoiceInput` | 500 px | 42 px | 52 px | 21 px |
 
+:::note
+In pill mode, the `stt` state's inner `.stt-content` container height is constrained to 80 px via CSS (`src/renderer/styles/stt/stt.css`). This prevents the content from overflowing the pill shape.
+:::
+
 ### Full-Screen States
 
 All full-screen states (`guide`, `login`, `register`, `resetPassword`, `setPassword`, `bindOAuth`, `bindEmail`, `payment`, `announcement`) share the same dimensions in both modes (860×400 px), but pill mode adds a 26 px border radius.
@@ -127,7 +131,16 @@ Defined in `src/renderer/styles/reset/reset.css`.
 
 ## Toggle Mechanism
 
-The shape mode can be toggled through two methods:
+The shape mode can be toggled through three methods:
+
+### Guide Step
+
+During the first-run guide, a dedicated **Island Shape** step presents two cards with SVG previews:
+
+- **Notch** — Anchored at the top, mimicking a notch screen
+- **Pill** — Floating capsule shape, more dynamic
+
+Each card includes a visual preview of the shape rendered inside a miniature screen outline. Selecting a card immediately applies the shape and broadcasts the change to all windows.
 
 ### Settings UI
 
@@ -143,7 +156,7 @@ Selecting a radio button triggers an immediate hot-switch — the island animate
 A configurable keyboard shortcut toggles between notch and pill modes. The hotkey can be set in **Settings > Shortcuts > Toggle Shape Mode**.
 
 :::note
-Both the settings UI and the hotkey trigger the same internal flow: write config → broadcast change → notify renderer → animate transition.
+All three methods (guide, settings UI, hotkey) trigger the same internal flow: write config → broadcast change → notify renderer → animate transition. The guide and settings page both listen to `onSettingsChanged` for cross-window sync — changing the shape in one window updates the selection in the other.
 :::
 
 ---
@@ -254,6 +267,9 @@ The `isIdleSize` group includes `idle` (260 px wide) and the 500 px-wide content
 | Hover interaction | `src/renderer/components/hooks/useIslandHoverInteraction.ts` | Pill forces click-to-hover |
 | Shell CSS | `src/renderer/styles/shell/shell.css` | `.shape-pill.*` dimension and radius rules |
 | Settings UI | `src/renderer/components/.../BehaviorSettingsPage.tsx` | Notch/Pill radio buttons |
+| Guide step | `src/renderer/components/.../DynamicIslandGuidePages/shape/` | Shape selection with SVG previews |
+| Guide CSS | `src/renderer/styles/guide/shape.css` | Card layout and preview styles |
+| STT pill CSS | `src/renderer/styles/stt/stt.css` | `.stt-content` height constraint in pill mode |
 
 :::details
 **Test Coverage**: Shape mode IPC registration is verified in `src/main/ipc/settings/test/island.test.ts`. Window handler tests mock `readIslandShapeModeConfig` and all `PILL_*` constants in `src/main/ipc/window/test/windowHandlers.test.ts`.
