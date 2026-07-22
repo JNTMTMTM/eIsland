@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-07-21T10:22:14.911Z
+> 生成时间：2026-07-22T17:44:20.725Z
 
 ## 26.6.5
 
@@ -2946,6 +2946,16 @@
 
 ## Unreleased
 
+- 2026-07-23 | 54dccb92 | 鸡哥 | Merge pull request #162 from JNTMTMTM/dev
+- 2026-07-23 | 1a97f90c | 鸡哥 | feat: constrain agent content height to 80px in pill mode
+- 2026-07-23 | aa24a2d9 | 鸡哥 | feat: update shape modes documentation with STT container height constraint and guide step details
+- 2026-07-23 | 7fa233ac | 鸡哥 | feat: adjust height of STT content container in pill mode
+- 2026-07-22 | f5cce33b | 鸡哥 | feat: enhance shape selection with visual previews and descriptions
+- 2026-07-22 | 2228dc36 | 鸡哥 | feat: add listener for external shape mode changes in BehaviorSettingsPage
+- 2026-07-22 | c0de89ee | 鸡哥 | fix: update shape mode listener to correctly handle external changes
+- 2026-07-22 | 683e67d6 | 鸡哥 | feat: add shape selection step to Dynamic Island guide with localization support
+- 2026-07-22 | 6de9d294 | 鸡哥 | feat: add DynamicIslandGuidePages shape component
+- 2026-07-21 | 94c19180 | eislandBot | docs: auto update CHANGE_LOG.md for #161 by @JNTMTMTM [skip ci]
 - 2026-07-21 | de89801a | 鸡哥 | Merge pull request #161 from JNTMTMTM/dev
 - 2026-07-21 | f7f92c57 | 鸡哥 | docs: enhance shape mode transition documentation with detailed idle and non-idle state behaviors
 - 2026-07-21 | af469998 | 鸡哥 | fix: adjust target window position calculations for notch and pill modes to ensure smooth animations
