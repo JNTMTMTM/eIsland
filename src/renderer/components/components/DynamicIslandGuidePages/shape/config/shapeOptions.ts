@@ -32,10 +32,12 @@ export interface ShapeModeOption {
   value: IslandShapeMode;
   /** 显示名称 i18n key */
   labelKey: string;
+  /** 描述 i18n key */
+  descKey: string;
 }
 
 /** 灵动岛形态选项列表 */
 export const SHAPE_MODE_OPTIONS: ShapeModeOption[] = [
-  { value: 'notch', labelKey: 'guide.shape.notch' },
-  { value: 'pill', labelKey: 'guide.shape.pill' },
+  { value: 'notch', labelKey: 'guide.shape.notch', descKey: 'guide.shape.notchDesc' },
+  { value: 'pill', labelKey: 'guide.shape.pill', descKey: 'guide.shape.pillDesc' },
 ];

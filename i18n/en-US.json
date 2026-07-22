@@ -102,7 +102,9 @@
       "title": "Island Shape",
       "subtitle": "Choose the appearance shape of Dynamic Island",
       "notch": "Notch",
-      "pill": "Pill"
+      "pill": "Pill",
+      "notchDesc": "Anchored at the top, mimicking a notch screen",
+      "pillDesc": "Floating capsule shape, more dynamic"
     },
     "update": {
       "title": "Select Update Source",
