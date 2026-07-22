@@ -100,6 +100,16 @@ export function BehaviorSettingsPage({
     return () => { cancelled = true; };
   }, []);
 
+  /** 监听形态模式外部变更（guide / 快捷键等） */
+  useEffect(() => {
+    const unsub = window.api.onSettingsChanged((channel, value) => {
+      if (channel === 'island:shape-mode') {
+        setShapeMode(value === 'notch' || value === 'pill' ? value : 'notch');
+      }
+    });
+    return unsub;
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
     window.api.storeRead(HOVER_SCREENSHOT_MODE_STORE_KEY).then((data) => {
