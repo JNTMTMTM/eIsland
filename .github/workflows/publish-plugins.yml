@@ -30,6 +30,7 @@ jobs:
           - eisland-windows-bluetooth-helper
           - eisland-windows-brightness-helper
           - eisland-windows-fullscreen-detector
+          - eisland-windows-hardware-info-helper
           - eisland-windows-performance-monitor
           - eisland-windows-power-helper
           - eisland-windows-processes-attacker
@@ -103,6 +104,7 @@ jobs:
           - eisland-windows-bluetooth-helper
           - eisland-windows-brightness-helper
           - eisland-windows-fullscreen-detector
+          - eisland-windows-hardware-info-helper
           - eisland-windows-performance-monitor
           - eisland-windows-power-helper
           - eisland-windows-processes-attacker
