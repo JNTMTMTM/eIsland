@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-07-22T17:44:20.725Z
+> 生成时间：2026-07-23T11:10:22.635Z
 
 ## 26.6.5
 
@@ -2946,6 +2946,11 @@
 
 ## Unreleased
 
+- 2026-07-23 | 7d579b06 | 鸡哥 | Merge pull request #163 from JNTMTMTM/dev
+- 2026-07-23 | 47bb640f | 鸡哥 | docs: update plugin creation guidelines in CLAUDE.md
+- 2026-07-23 | 853b04b1 | 鸡哥 | docs: add guidelines for plugin version bump in CLAUDE.md
+- 2026-07-23 | e84e4b6e | 鸡哥 | feat: add eisland-windows-hardware-info-helper to publish jobs
+- 2026-07-22 | 3db630ed | eislandBot | docs: auto update CHANGE_LOG.md for #162 by @JNTMTMTM [skip ci]
 - 2026-07-23 | 54dccb92 | 鸡哥 | Merge pull request #162 from JNTMTMTM/dev
 - 2026-07-23 | 1a97f90c | 鸡哥 | feat: constrain agent content height to 80px in pill mode
 - 2026-07-23 | aa24a2d9 | 鸡哥 | feat: update shape modes documentation with STT container height constraint and guide step details
