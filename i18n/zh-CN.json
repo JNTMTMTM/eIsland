@@ -106,6 +106,14 @@
       "notchDesc": "贴于屏幕顶部，模拟刘海屏效果",
       "pillDesc": "悬浮于屏幕中，胶囊形状更灵动"
     },
+    "lyricMode": {
+      "title": "歌词显示模式",
+      "subtitle": "选择歌词的高亮显示方式",
+      "normal": "普通模式",
+      "karaoke": "逐字模式",
+      "normalDesc": "歌词以纯文本方式整行高亮显示",
+      "karaokeDesc": "歌词逐字扫光高亮，卡拉 OK 效果"
+    },
     "update": {
       "title": "选择更新源",
       "subtitle": "选择检查更新时使用的下载源"

@@ -36,6 +36,7 @@ import { WhitelistStep } from './components/components/DynamicIslandGuidePages/s
 import { SmtcStep } from './components/components/DynamicIslandGuidePages/smtc-test';
 import { ThemeStep } from './components/components/DynamicIslandGuidePages/theme';
 import { ShapeStep } from './components/components/DynamicIslandGuidePages/shape';
+import { LyricModeStep } from './components/components/DynamicIslandGuidePages/lyric-mode';
 import { UpdateStep } from './components/components/DynamicIslandGuidePages/update';
 import { GithubStep } from './components/components/DynamicIslandGuidePages/github';
 import { SponsorStep } from './components/components/DynamicIslandGuidePages/sponsors';
@@ -90,9 +91,9 @@ function GuideApp(): ReactElement {
     setStep('smtc');
   }, []);
 
-  /** 形态设置完成，进入更新源配置 */
+  /** 形态设置完成，进入歌词模式配置 */
   const handleShapeNext = useCallback((): void => {
-    setStep('update');
+    setStep('lyricMode');
   }, []);
 
   /** 形态设置返回主题设置 */
@@ -100,14 +101,24 @@ function GuideApp(): ReactElement {
     setStep('theme');
   }, []);
 
+  /** 歌词模式配置完成，进入更新源配置 */
+  const handleLyricModeNext = useCallback((): void => {
+    setStep('update');
+  }, []);
+
+  /** 歌词模式配置返回形态设置 */
+  const handleLyricModePrev = useCallback((): void => {
+    setStep('shape');
+  }, []);
+
   /** 更新源配置完成，进入开源信息 */
   const handleUpdateNext = useCallback((): void => {
     setStep('github');
   }, []);
 
-  /** 更新源配置返回形态设置 */
+  /** 更新源配置返回歌词模式配置 */
   const handleUpdatePrev = useCallback((): void => {
-    setStep('shape');
+    setStep('lyricMode');
   }, []);
 
   /** 开源信息完成，进入赞助商页 */
@@ -170,6 +181,12 @@ function GuideApp(): ReactElement {
           <ShapeStep
             onNext={handleShapeNext}
             onPrev={handleShapePrev}
+          />
+        )}
+        {step === 'lyricMode' && (
+          <LyricModeStep
+            onNext={handleLyricModeNext}
+            onPrev={handleLyricModePrev}
           />
         )}
         {step === 'update' && (

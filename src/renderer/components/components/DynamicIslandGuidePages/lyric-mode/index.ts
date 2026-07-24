@@ -19,27 +19,9 @@
  */
 
 /**
- * @file DynamicIslandGuideTypes.ts
- * @description 灵动岛引导流程类型定义
+ * @file index.ts
+ * @description 引导歌词模式设置步骤模块入口
  * @author 鸡哥
  */
 
-/** 引导步骤 */
-export type GuideStep = 'language' | 'whitelist' | 'smtc' | 'theme' | 'shape' | 'lyricMode' | 'update' | 'github' | 'sponsors' | 'welcome';
-
-/** 引导步骤索引映射 */
-export const GUIDE_STEP_INDEX: Record<GuideStep, number> = {
-  language: 0,
-  whitelist: 1,
-  smtc: 2,
-  theme: 3,
-  shape: 4,
-  lyricMode: 5,
-  update: 6,
-  github: 7,
-  sponsors: 8,
-  welcome: 9,
-};
-
-/** 引导步骤总数（从索引映射自动推导，避免遗漏） */
-export const GUIDE_STEP_TOTAL = Object.keys(GUIDE_STEP_INDEX).length;
+export { LyricModeStep } from './components/LyricModeStep';
