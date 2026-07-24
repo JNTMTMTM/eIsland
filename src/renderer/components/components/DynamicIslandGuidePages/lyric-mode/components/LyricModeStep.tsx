@@ -45,48 +45,27 @@ function getSampleLyrics(t: TFunction): string[] {
   ];
 }
 
-/** 普通模式预览 SVG — 歌词以纯文本逐行显示 */
+/** 普通模式预览 — 当前行整行纯白高亮 */
 function NormalPreview({ lyrics }: { lyrics: string[] }): ReactElement {
   return (
-    <svg className="guide-lyric-mode-preview-svg" viewBox="0 0 220 110" fill="none" xmlns="http://www.w3.org/2000/svg">
-      {/* 歌词容器背景 */}
-      <rect x="6" y="4" width="208" height="102" rx="10" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
-      {/* 非当前行 — 暗色 */}
-      <text x="110" y="28" textAnchor="middle" fill="rgba(255,255,255,0.2)" fontSize="11" fontFamily="inherit">{lyrics[0]}</text>
-      {/* 当前行 — 亮色纯文本，无扫光 */}
-      <text x="110" y="52" textAnchor="middle" fill="rgba(255,255,255,0.85)" fontSize="12" fontWeight="600" fontFamily="inherit">{lyrics[1]}</text>
-      {/* 下一行 — 暗色 */}
-      <text x="110" y="74" textAnchor="middle" fill="rgba(255,255,255,0.2)" fontSize="11" fontFamily="inherit">{lyrics[2]}</text>
-      {/* 再下一行 — 更暗 */}
-      <text x="110" y="94" textAnchor="middle" fill="rgba(255,255,255,0.1)" fontSize="10" fontFamily="inherit">{lyrics[3]}</text>
-    </svg>
+    <div className="guide-lyric-mode-preview-box">
+      <span className="guide-lyric-mode-line dim">{lyrics[0]}</span>
+      <span className="guide-lyric-mode-line current">{lyrics[1]}</span>
+      <span className="guide-lyric-mode-line dim">{lyrics[2]}</span>
+      <span className="guide-lyric-mode-line dimmer">{lyrics[3]}</span>
+    </div>
   );
 }
 
-/** 逐字模式预览 SVG — 当前行带扫光渐变高亮效果 */
+/** 逐字模式预览 — 当前行带扫光动画渐变 */
 function KaraokePreview({ lyrics }: { lyrics: string[] }): ReactElement {
   return (
-    <svg className="guide-lyric-mode-preview-svg" viewBox="0 0 220 110" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        {/* 扫光渐变 — 左侧高亮过渡到右侧暗色 */}
-        <linearGradient id="karaoke-sweep" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stopColor="rgba(255,255,255,0.95)" />
-          <stop offset="50%" stopColor="rgba(255,255,255,0.85)" />
-          <stop offset="70%" stopColor="rgba(255,255,255,0.25)" />
-          <stop offset="100%" stopColor="rgba(255,255,255,0.12)" />
-        </linearGradient>
-      </defs>
-      {/* 歌词容器背景 */}
-      <rect x="6" y="4" width="208" height="102" rx="10" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
-      {/* 非当前行 — 暗色 */}
-      <text x="110" y="28" textAnchor="middle" fill="rgba(255,255,255,0.2)" fontSize="11" fontFamily="inherit">{lyrics[0]}</text>
-      {/* 当前行 — 扫光渐变高亮 */}
-      <text x="110" y="52" textAnchor="middle" fill="url(#karaoke-sweep)" fontSize="12" fontWeight="600" fontFamily="inherit">{lyrics[1]}</text>
-      {/* 下一行 — 暗色 */}
-      <text x="110" y="74" textAnchor="middle" fill="rgba(255,255,255,0.2)" fontSize="11" fontFamily="inherit">{lyrics[2]}</text>
-      {/* 再下一行 — 更暗 */}
-      <text x="110" y="94" textAnchor="middle" fill="rgba(255,255,255,0.1)" fontSize="10" fontFamily="inherit">{lyrics[3]}</text>
-    </svg>
+    <div className="guide-lyric-mode-preview-box">
+      <span className="guide-lyric-mode-line dim">{lyrics[0]}</span>
+      <span className="guide-lyric-mode-line sweep">{lyrics[1]}</span>
+      <span className="guide-lyric-mode-line dim">{lyrics[2]}</span>
+      <span className="guide-lyric-mode-line dimmer">{lyrics[3]}</span>
+    </div>
   );
 }
 

@@ -72,9 +72,77 @@
   justify-content: center;
 }
 
-.guide-lyric-mode-preview-svg {
-  width: 220px;
+.guide-lyric-mode-preview-box {
+  width: 240px;
   height: 110px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 10px 16px;
+  overflow: hidden;
+}
+
+/* ===== Lyric Lines ===== */
+
+.guide-lyric-mode-line {
+  font-size: 12px;
+  line-height: 1.4;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.guide-lyric-mode-line.dim {
+  color: rgba(255, 255, 255, 0.2);
+}
+
+.guide-lyric-mode-line.dimmer {
+  color: rgba(255, 255, 255, 0.1);
+  font-size: 11px;
+}
+
+.guide-lyric-mode-line.current {
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 600;
+  font-size: 13px;
+}
+
+/* ===== Karaoke Sweep Animation — 与实际歌词扫光完全一致 ===== */
+
+@property --guide-syl-prog {
+  syntax: '<percentage>';
+  inherits: false;
+  initial-value: 0%;
+}
+
+.guide-lyric-mode-line.sweep {
+  font-weight: 600;
+  font-size: 13px;
+  --guide-syl-prog: 0%;
+  background: linear-gradient(
+    to right,
+    rgba(var(--color-text-rgb), 0.95) var(--guide-syl-prog),
+    rgba(var(--color-text-rgb), 0.28) var(--guide-syl-prog)
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  animation: guideLyricSweep 2.8s ease-in-out infinite;
+}
+
+@keyframes guideLyricSweep {
+  0%   { --guide-syl-prog: 0%; }
+  45%  { --guide-syl-prog: 100%; }
+  55%  { --guide-syl-prog: 100%; }
+  100% { --guide-syl-prog: 0%; }
 }
 
 /* ===== Card Text ===== */
