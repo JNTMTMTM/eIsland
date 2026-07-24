@@ -26,60 +26,69 @@
 
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { LYRIC_MODE_OPTIONS } from '../config/lyricModeOptions';
 import { useLyricModeSetting } from '../hooks/useLyricModeSetting';
 import type { LyricModeStepProps } from '../types';
 
+/**
+ * 获取示例歌词数组
+ * @param t - 国际化函数
+ * @returns 四行示例歌词
+ */
+function getSampleLyrics(t: TFunction): string[] {
+  return [
+    t('guide.lyricMode.sampleLyrics.0', { defaultValue: '这是一句测试歌词' }),
+    t('guide.lyricMode.sampleLyrics.1', { defaultValue: '音乐在空中飘荡' }),
+    t('guide.lyricMode.sampleLyrics.2', { defaultValue: '旋律轻轻回响' }),
+    t('guide.lyricMode.sampleLyrics.3', { defaultValue: '每个音符都在歌唱' }),
+  ];
+}
+
 /** 普通模式预览 SVG — 歌词以纯文本逐行显示 */
-function NormalPreview(): ReactElement {
+function NormalPreview({ lyrics }: { lyrics: string[] }): ReactElement {
   return (
-    <svg className="guide-lyric-mode-preview-svg" viewBox="0 0 180 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg className="guide-lyric-mode-preview-svg" viewBox="0 0 220 110" fill="none" xmlns="http://www.w3.org/2000/svg">
       {/* 歌词容器背景 */}
-      <rect x="10" y="8" width="160" height="84" rx="10" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
+      <rect x="6" y="4" width="208" height="102" rx="10" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
       {/* 非当前行 — 暗色 */}
-      <rect x="30" y="20" width="80" height="6" rx="3" fill="rgba(255,255,255,0.15)" />
+      <text x="110" y="28" textAnchor="middle" fill="rgba(255,255,255,0.2)" fontSize="11" fontFamily="inherit">{lyrics[0]}</text>
       {/* 当前行 — 亮色纯文本，无扫光 */}
-      <rect x="25" y="36" width="130" height="8" rx="4" fill="rgba(255,255,255,0.75)" />
+      <text x="110" y="52" textAnchor="middle" fill="rgba(255,255,255,0.85)" fontSize="12" fontWeight="600" fontFamily="inherit">{lyrics[1]}</text>
       {/* 下一行 — 暗色 */}
-      <rect x="35" y="54" width="70" height="6" rx="3" fill="rgba(255,255,255,0.15)" />
+      <text x="110" y="74" textAnchor="middle" fill="rgba(255,255,255,0.2)" fontSize="11" fontFamily="inherit">{lyrics[2]}</text>
       {/* 再下一行 — 更暗 */}
-      <rect x="40" y="70" width="60" height="5" rx="2.5" fill="rgba(255,255,255,0.08)" />
+      <text x="110" y="94" textAnchor="middle" fill="rgba(255,255,255,0.1)" fontSize="10" fontFamily="inherit">{lyrics[3]}</text>
     </svg>
   );
 }
 
 /** 逐字模式预览 SVG — 当前行带扫光渐变高亮效果 */
-function KaraokePreview(): ReactElement {
+function KaraokePreview({ lyrics }: { lyrics: string[] }): ReactElement {
   return (
-    <svg className="guide-lyric-mode-preview-svg" viewBox="0 0 180 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg className="guide-lyric-mode-preview-svg" viewBox="0 0 220 110" fill="none" xmlns="http://www.w3.org/2000/svg">
       <defs>
         {/* 扫光渐变 — 左侧高亮过渡到右侧暗色 */}
         <linearGradient id="karaoke-sweep" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stopColor="rgba(255,255,255,0.9)" />
-          <stop offset="55%" stopColor="rgba(255,255,255,0.85)" />
+          <stop offset="0%" stopColor="rgba(255,255,255,0.95)" />
+          <stop offset="50%" stopColor="rgba(255,255,255,0.85)" />
           <stop offset="70%" stopColor="rgba(255,255,255,0.25)" />
-          <stop offset="100%" stopColor="rgba(255,255,255,0.15)" />
+          <stop offset="100%" stopColor="rgba(255,255,255,0.12)" />
         </linearGradient>
       </defs>
       {/* 歌词容器背景 */}
-      <rect x="10" y="8" width="160" height="84" rx="10" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
+      <rect x="6" y="4" width="208" height="102" rx="10" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
       {/* 非当前行 — 暗色 */}
-      <rect x="30" y="20" width="80" height="6" rx="3" fill="rgba(255,255,255,0.15)" />
+      <text x="110" y="28" textAnchor="middle" fill="rgba(255,255,255,0.2)" fontSize="11" fontFamily="inherit">{lyrics[0]}</text>
       {/* 当前行 — 扫光渐变高亮 */}
-      <rect x="25" y="36" width="130" height="8" rx="4" fill="url(#karaoke-sweep)" />
+      <text x="110" y="52" textAnchor="middle" fill="url(#karaoke-sweep)" fontSize="12" fontWeight="600" fontFamily="inherit">{lyrics[1]}</text>
       {/* 下一行 — 暗色 */}
-      <rect x="35" y="54" width="70" height="6" rx="3" fill="rgba(255,255,255,0.15)" />
+      <text x="110" y="74" textAnchor="middle" fill="rgba(255,255,255,0.2)" fontSize="11" fontFamily="inherit">{lyrics[2]}</text>
       {/* 再下一行 — 更暗 */}
-      <rect x="40" y="70" width="60" height="5" rx="2.5" fill="rgba(255,255,255,0.08)" />
+      <text x="110" y="94" textAnchor="middle" fill="rgba(255,255,255,0.1)" fontSize="10" fontFamily="inherit">{lyrics[3]}</text>
     </svg>
   );
 }
-
-/** 歌词模式预览组件映射 */
-const LYRIC_MODE_PREVIEW: Record<string, () => ReactElement> = {
-  normal: NormalPreview,
-  karaoke: KaraokePreview,
-};
 
 /**
  * 歌词模式设置步骤组件
@@ -88,6 +97,7 @@ const LYRIC_MODE_PREVIEW: Record<string, () => ReactElement> = {
 export function LyricModeStep({ onNext, onPrev }: LyricModeStepProps): ReactElement {
   const { t } = useTranslation();
   const { karaoke, setKaraoke } = useLyricModeSetting();
+  const lyrics = getSampleLyrics(t);
 
   return (
     <div className="guide-step">
@@ -99,7 +109,7 @@ export function LyricModeStep({ onNext, onPrev }: LyricModeStepProps): ReactElem
         <div className="guide-lyric-mode-card-list">
           {LYRIC_MODE_OPTIONS.map((opt) => {
             const previewKey = opt.value ? 'karaoke' : 'normal';
-            const Preview = LYRIC_MODE_PREVIEW[previewKey];
+            const Preview = opt.value ? KaraokePreview : NormalPreview;
             return (
               <button
                 key={previewKey}
@@ -107,7 +117,7 @@ export function LyricModeStep({ onNext, onPrev }: LyricModeStepProps): ReactElem
                 onClick={(): void => { setKaraoke(opt.value); }}
               >
                 <div className="guide-lyric-mode-preview">
-                  {Preview && <Preview />}
+                  <Preview lyrics={lyrics} />
                 </div>
                 <span className="guide-lyric-mode-card-label">
                   {t(opt.labelKey, { defaultValue: previewKey })}

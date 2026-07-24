@@ -112,7 +112,13 @@
       "normal": "Normal",
       "karaoke": "Karaoke",
       "normalDesc": "Lyrics highlight the full line as plain text",
-      "karaokeDesc": "Word-by-word sweep highlight, karaoke effect"
+      "karaokeDesc": "Word-by-word sweep highlight, karaoke effect",
+      "sampleLyrics": {
+        "0": "This is a sample lyric line",
+        "1": "Music floating in the air",
+        "2": "Melody gently echoes",
+        "3": "Every note is singing along"
+      }
     },
     "update": {
       "title": "Select Update Source",
