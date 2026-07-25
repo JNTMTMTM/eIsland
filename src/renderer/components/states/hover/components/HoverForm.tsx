@@ -29,7 +29,7 @@ import type { useHover } from '../hooks/useHover';
 import { NAV_DOTS } from '../config/hoverConfig';
 import { TimeTab } from '../pages/time';
 import { LyricsTab } from '../pages/lyric';
-import { WeatherTab } from '../pages/WeatherTab';
+import { WeatherTab } from '../pages/weather';
 
 type HoverFormProps = ReturnType<typeof useHover>;
 
