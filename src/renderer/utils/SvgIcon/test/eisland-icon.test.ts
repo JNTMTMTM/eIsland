@@ -92,12 +92,14 @@ describe('SvgIcon', () => {
     expect(SvgIcon).toHaveProperty('LOVER');
     expect(SvgIcon).toHaveProperty('CODING');
     expect(SvgIcon).toHaveProperty('VERIFIED');
+    expect(SvgIcon).toHaveProperty('VOLUME');
     expect(SvgIcon).toHaveProperty('MIMO');
     expect(SvgIcon).toHaveProperty('OLLAMA');
     expect(SvgIcon).toHaveProperty('PIN_ON_TOP');
     expect(SvgIcon).toHaveProperty('BOOKMARK');
     expect(SvgIcon).toHaveProperty('BOOKMARK_ON');
     expect(SvgIcon).toHaveProperty('ANIMATION');
+    expect(SvgIcon).toHaveProperty('BRIGHTNESS');
     expect(SvgIcon).toHaveProperty('DRAG');
     expect(SvgIcon).toHaveProperty('MOVE_UP');
     expect(SvgIcon).toHaveProperty('MOVE_DOWN');
