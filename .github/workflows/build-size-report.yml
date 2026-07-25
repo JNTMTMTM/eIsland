@@ -1,0 +1,232 @@
+name: eisland-ci-Build Size Report
+
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - 'src/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'electron.vite.config.ts'
+      - 'tsconfig*.json'
+      - '.github/workflows/build-size-report.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  size-report:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      # ---- Build base branch ----
+
+      - name: Checkout base branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          clean: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies (base)
+        run: npm ci --ignore-scripts
+
+      - name: Install Electron binary (base)
+        run: node node_modules/electron/install.js
+
+      - name: Build base branch
+        run: npm run build
+
+      - name: Collect base sizes
+        run: node --experimental-strip-types scripts/collect-build-sizes.ts --output base-sizes.json
+
+      - name: Clean build output
+        run: rm -rf out
+
+      # ---- Build PR branch ----
+
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          clean: false
+
+      - name: Install dependencies (PR)
+        run: npm ci --ignore-scripts
+
+      - name: Install Electron binary (PR)
+        run: node node_modules/electron/install.js
+
+      - name: Build PR branch
+        run: npm run build
+
+      - name: Collect PR sizes
+        run: node --experimental-strip-types scripts/collect-build-sizes.ts --output pr-sizes.json
+
+      # ---- Post comment ----
+
+      - name: Compare and comment
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.BOT_PAT || secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('node:fs');
+            const marker = '<!-- build-size-report -->';
+
+            /** @type {Array<{path: string, raw: number, gzip: number}>} */
+            const base = JSON.parse(fs.readFileSync('base-sizes.json', 'utf8'));
+            const pr = JSON.parse(fs.readFileSync('pr-sizes.json', 'utf8'));
+
+            const baseMap = new Map(base.map(f => [f.path, f]));
+            const prMap = new Map(pr.map(f => [f.path, f]));
+
+            // Collect all paths
+            const allPaths = [...new Set([...baseMap.keys(), ...prMap.keys()])].sort();
+
+            /**
+             * Format bytes to human-readable string
+             * @param {number} bytes
+             * @returns {string}
+             */
+            const fmt = (bytes) => {
+              if (bytes < 1024) return `${bytes} B`;
+              if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} kB`;
+              return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+            };
+
+            /**
+             * Format change percentage
+             * @param {number} pct - percentage change
+             * @returns {string}
+             */
+            const fmtPct = (pct) => {
+              if (!isFinite(pct)) return 'new';
+              const sign = pct > 0 ? '+' : '';
+              return `${sign}${pct.toFixed(2)}%`;
+            };
+
+            // Build rows with change data
+            const rows = allPaths.map(path => {
+              const b = baseMap.get(path);
+              const p = prMap.get(path);
+              const baseRaw = b?.raw ?? 0;
+              const baseGzip = b?.gzip ?? 0;
+              const prRaw = p?.raw ?? 0;
+              const prGzip = p?.gzip ?? 0;
+              const rawDiff = prRaw - baseRaw;
+              const gzipDiff = prGzip - baseGzip;
+              const rawPct = baseRaw === 0 ? Infinity : (rawDiff / baseRaw) * 100;
+              const gzipPct = baseGzip === 0 ? Infinity : (gzipDiff / baseGzip) * 100;
+
+              return { path, baseRaw, baseGzip, prRaw, prGzip, rawDiff, gzipDiff, rawPct, gzipPct };
+            });
+
+            // Filter to files that actually changed
+            const changed = rows.filter(r => r.rawDiff !== 0 || r.gzipDiff !== 0);
+
+            // Categorize by severity
+            const critical = changed.filter(r => Math.abs(r.rawPct) >= 2);
+            const significant = changed.filter(r => Math.abs(r.rawPct) >= 0.2 && Math.abs(r.rawPct) < 2);
+
+            // Summary stats
+            const totalBaseRaw = base.reduce((s, f) => s + f.raw, 0);
+            const totalBaseGzip = base.reduce((s, f) => s + f.gzip, 0);
+            const totalPrRaw = pr.reduce((s, f) => s + f.raw, 0);
+            const totalPrGzip = pr.reduce((s, f) => s + f.gzip, 0);
+            const totalRawDiff = totalPrRaw - totalBaseRaw;
+            const totalGzipDiff = totalPrGzip - totalBaseGzip;
+            const totalRawPct = totalBaseRaw === 0 ? 0 : (totalRawDiff / totalBaseRaw) * 100;
+            const totalGzipPct = totalBaseGzip === 0 ? 0 : (totalGzipDiff / totalBaseGzip) * 100;
+            const shortBaseSha = context.payload.pull_request.base.sha.slice(0, 7);
+            const shortHeadSha = context.payload.pull_request.head.sha.slice(0, 7);
+
+            // ==================== Render ====================
+
+            let body = `${marker}\n`;
+            body += `## Build Size Report\n\n`;
+
+            // -- Overall summary
+            body += `Comparing: \`${shortBaseSha}\`... \`${shortHeadSha}\`\n\n`;
+            body += `| Metric | Base | Current | Diff |\n`;
+            body += `|--------|------|---------|------|\n`;
+            body += `| Raw size | ${fmt(totalBaseRaw)} | ${fmt(totalPrRaw)} | ${fmt(totalRawDiff)} (${fmtPct(totalRawPct)}) |\n`;
+            body += `| Gzip size | ${fmt(totalBaseGzip)} | ${fmt(totalPrGzip)} | ${fmt(totalGzipDiff)} (${fmtPct(totalGzipPct)}) |\n`;
+            body += `| Files | ${base.length} | ${pr.length} | ${pr.length - base.length >= 0 ? '+' : ''}${pr.length - base.length} |\n\n`;
+
+            // -- Critical changes table
+            if (critical.length > 0) {
+              body += `### Critical Size Changes\n\n`;
+              body += `Includes changes greater than or equal to 2%:\n\n`;
+              body += `| File | +/- | Base | Current | +/- gzip | Base gzip | Current gzip |\n`;
+              body += `|------|-----|------|---------|----------|-----------|--------------|\n`;
+
+              for (const r of critical.sort((a, b) => Math.abs(b.rawDiff) - Math.abs(a.rawDiff))) {
+                const sign = r.rawDiff > 0 ? '+' : r.rawDiff < 0 ? '-' : '=';
+                body += `| ${r.path} | **${sign}** ${fmtPct(r.rawPct)} | ${fmt(r.baseRaw)} | ${fmt(r.prRaw)} | ${fmt(r.gzipDiff)} | ${fmt(r.baseGzip)} | ${fmt(r.prGzip)} |\n`;
+              }
+              body += `\n`;
+            }
+
+            // -- Significant changes table
+            if (significant.length > 0) {
+              body += `### Significant Size Changes\n\n`;
+              body += `Includes changes between 0.2% and 2%:\n\n`;
+              body += `| File | +/- | Base | Current | +/- gzip | Base gzip | Current gzip |\n`;
+              body += `|------|-----|------|---------|----------|-----------|--------------|\n`;
+
+              for (const r of significant.sort((a, b) => Math.abs(b.rawDiff) - Math.abs(a.rawDiff))) {
+                const sign = r.rawDiff > 0 ? '+' : r.rawDiff < 0 ? '-' : '=';
+                body += `| ${r.path} | ${fmtPct(r.rawPct)} | ${fmt(r.baseRaw)} | ${fmt(r.prRaw)} | ${fmt(r.gzipDiff)} | ${fmt(r.baseGzip)} | ${fmt(r.prGzip)} |\n`;
+              }
+              body += `\n`;
+            }
+
+            // -- No changes
+            if (critical.length === 0 && significant.length === 0) {
+              body += `No significant size changes detected.\n\n`;
+            }
+
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            body += `[View workflow run](${runUrl})`;
+
+            // ==================== Post Comment ====================
+
+            const { owner, repo } = context.repo;
+            const issue_number = context.payload.pull_request.number;
+
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner,
+              repo,
+              issue_number,
+              per_page: 100,
+            });
+
+            const existing = comments.find((comment) =>
+              comment.user?.type === 'Bot' && comment.body?.includes(marker)
+            );
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner,
+                repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number,
+                body,
+              });
+            }
