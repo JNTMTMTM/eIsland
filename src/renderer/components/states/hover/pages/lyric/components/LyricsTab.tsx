@@ -102,7 +102,7 @@ export function LyricsTab(): ReactElement {
       </div>
 
       <div className="lrc-wave-container">
-        <SilkyWave color={dominantColor} playing={isPlaying} />
+        <SilkyWave color={dominantColor ?? [0, 0, 0]} playing={isPlaying} />
       </div>
     </div>
   );

@@ -24,8 +24,7 @@
  * @author 鸡哥
  */
 
-/** i18n 翻译函数签名 */
-type TFunction = (key: string, options?: Record<string, unknown>) => string;
+import type { TFunction } from 'i18next';
 
 /**
  * 获取星期标签
