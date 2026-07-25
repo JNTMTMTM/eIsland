@@ -24,4 +24,4 @@
  * @author 鸡哥
  */
 
-export { HoverContent } from './HoverContent';
+export { HoverContent } from './components/HoverContent';

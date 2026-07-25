@@ -25,9 +25,9 @@
  */
 
 import type { ReactElement } from 'react';
-import type { HoverContentProps } from './config/hoverConfig';
-import { useHover } from './hooks/useHover';
-import { HoverForm } from './components/HoverForm';
+import type { HoverContentProps } from '../config/hoverConfig';
+import { useHover } from '../hooks/useHover';
+import { HoverForm } from '../pages/HoverForm';
 import '../../../styles/hover/hover.css';
 
 /** Hover 状态内容组件 */
