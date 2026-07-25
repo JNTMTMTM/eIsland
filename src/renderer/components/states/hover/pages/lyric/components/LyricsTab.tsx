@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import React from 'react';
+import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../../../../store/slices';
 import { SvgIcon } from '../../../../../../utils/SvgIcon';
@@ -36,7 +36,7 @@ import { SilkyWave } from './SilkyWave';
  * @description 显示当前播放歌词、唱片封面和播放控制
  * @returns 歌词 Tab 元素
  */
-export function LyricsTab(): React.ReactElement {
+export function LyricsTab(): ReactElement {
   const { t } = useTranslation();
   const {
     isMusicPlaying,

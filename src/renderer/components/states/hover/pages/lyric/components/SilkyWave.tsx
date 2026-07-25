@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import React from 'react';
+import type { ReactElement } from 'react';
 import type { SilkyWaveProps } from '../types/silkyWaveTypes';
 import { useSilkyWave } from '../hooks/useSilkyWave';
 
@@ -37,7 +37,7 @@ import { useSilkyWave } from '../hooks/useSilkyWave';
 export function SilkyWave({
   color,
   playing,
-}: SilkyWaveProps): React.ReactElement {
+}: SilkyWaveProps): ReactElement {
   const canvasRef = useSilkyWave(color, playing);
 
   return (

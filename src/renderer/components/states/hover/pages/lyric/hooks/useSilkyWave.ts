@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import { useRef, useEffect, useCallback } from 'react';
+import { useRef, useEffect, useCallback, type RefObject } from 'react';
 import { WAVE_LAYERS } from '../config/silkyWaveConfig';
 
 /**
@@ -37,7 +37,7 @@ import { WAVE_LAYERS } from '../config/silkyWaveConfig';
 export function useSilkyWave(
   color: [number, number, number],
   playing: boolean,
-): React.RefObject<HTMLCanvasElement | null> {
+): RefObject<HTMLCanvasElement | null> {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rafRef = useRef<number>(0);
   const timeRef = useRef<number>(0);
