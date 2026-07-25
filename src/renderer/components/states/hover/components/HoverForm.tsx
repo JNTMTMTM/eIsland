@@ -27,9 +27,9 @@
 import type { ReactElement } from 'react';
 import type { useHover } from '../hooks/useHover';
 import { NAV_DOTS } from '../config/hoverConfig';
-import { TimeTab } from './TimeTab';
-import { LyricsTab } from './LrcTab';
-import { WeatherTab } from './WeatherTab';
+import { TimeTab } from '../pages/TimeTab';
+import { LyricsTab } from '../pages/LrcTab';
+import { WeatherTab } from '../pages/WeatherTab';
 
 type HoverFormProps = ReturnType<typeof useHover>;
 
