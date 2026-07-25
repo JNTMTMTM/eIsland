@@ -1,4 +1,4 @@
-name: Deploy frpc Config
+name: eisland CI Deploy frpc Config
 
 on:
   workflow_dispatch:

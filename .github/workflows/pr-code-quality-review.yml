@@ -1,4 +1,4 @@
-name: PR Code Quality Review
+name: eisland CI PR Code Quality Review
 
 on:
   pull_request_target:

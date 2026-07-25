@@ -1,4 +1,4 @@
-name: PR Comment Report
+name: eisland CI PR Comment Report
 
 on:
   pull_request_target:

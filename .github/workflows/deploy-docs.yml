@@ -1,4 +1,4 @@
-name: Deploy Docs
+name: eisland CI Deploy Docs
 
 on:
   push:
