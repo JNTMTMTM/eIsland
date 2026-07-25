@@ -25,10 +25,10 @@
  */
 
 import type { ReactElement } from 'react';
-import type { HoverContentProps } from '../config/hoverConfig';
+import type { HoverContentProps } from '../types';
 import { useHover } from '../hooks/useHover';
 import { HoverForm } from './HoverForm';
-import '../../../styles/hover/hover.css';
+import '../../../../styles/hover/hover.css';
 
 /** Hover 状态内容组件 */
 export function HoverContent(props: HoverContentProps): ReactElement {

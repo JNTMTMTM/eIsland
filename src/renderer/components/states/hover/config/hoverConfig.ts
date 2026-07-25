@@ -20,15 +20,10 @@
 
 /**
  * @file hoverConfig.ts
- * @description Hover 状态配置与类型定义
+ * @description Hover 状态配置
  * @author 鸡哥
  */
 
 import type { HoverTab } from '../../../../store/types';
-
-export interface HoverContentProps {
-  fullTimeStr: string;
-  lunarStr: string;
-}
 
 export const NAV_DOTS: HoverTab[] = ['time', 'lyrics', 'weather', 'expand'];

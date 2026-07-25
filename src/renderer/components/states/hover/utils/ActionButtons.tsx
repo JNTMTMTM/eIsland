@@ -27,13 +27,7 @@
 import { type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SvgIcon } from '../../../../utils/SvgIcon';
-
-interface ActionButtonsProps {
-  /** 隐藏图标路径 */
-  hideIcon?: string;
-  /** 退出图标路径 */
-  powerOffIcon?: string;
-}
+import type { ActionButtonsProps } from '../types';
 
 /**
  * 操作按钮组件
