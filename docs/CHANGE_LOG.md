@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-07-23T11:10:22.635Z
+> 生成时间：2026-07-25T15:01:02.406Z
 
 ## 26.6.5
 
@@ -2946,6 +2946,20 @@
 
 ## Unreleased
 
+- 2026-07-25 | eefc9aee | 鸡哥 | Merge pull request #164 from JNTMTMTM/dev
+- 2026-07-25 | 047b4899 | 鸡哥 | feat: update SilkyWave color fallback and import TFunction type from i18next
+- 2026-07-25 | d4e07df6 | 鸡哥 | feat: update type imports for LyricsTab and SilkyWave components
+- 2026-07-25 | fd5fbaed | 鸡哥 | feat: enhance hover state with tab navigation and module structure details
+- 2026-07-25 | c3fa080c | 鸡哥 | feat: restructure weather module with new components and utility functions
+- 2026-07-25 | 8ea8be34 | 鸡哥 | feat: reorganize TimeTab component and its types into a new directory structure
+- 2026-07-25 | e31fdca3 | 鸡哥 | feat: implement lyrics module with SilkyWave animation and utility functions
+- 2026-07-25 | 4956a5ff | 鸡哥 | feat: create a new types module for hover components and update imports
+- 2026-07-25 | 28a1eb9e | 鸡哥 | feat: move HoverForm component to a new location and update imports
+- 2026-07-25 | 7fc51bc7 | 鸡哥 | refactor: restructure hover components and remove unused files
+- 2026-07-25 | bbe3f539 | 鸡哥 | feat: refactor lyric mode previews to use div elements and enhance styling
+- 2026-07-24 | 4a206837 | 鸡哥 | feat: add sample lyrics to lyric mode and adjust preview dimensions
+- 2026-07-24 | 9e61673c | 鸡哥 | feat: add lyric display mode configuration and related components
+- 2026-07-23 | 8a3a169c | eislandBot | docs: auto update CHANGE_LOG.md for #163 by @JNTMTMTM [skip ci]
 - 2026-07-23 | 7d579b06 | 鸡哥 | Merge pull request #163 from JNTMTMTM/dev
 - 2026-07-23 | 47bb640f | 鸡哥 | docs: update plugin creation guidelines in CLAUDE.md
 - 2026-07-23 | 853b04b1 | 鸡哥 | docs: add guidelines for plugin version bump in CLAUDE.md
