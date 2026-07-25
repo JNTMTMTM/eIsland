@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-07-25T15:01:02.406Z
+> 生成时间：2026-07-25T15:58:34.456Z
 
 ## 26.6.5
 
@@ -2946,6 +2946,13 @@
 
 ## Unreleased
 
+- 2026-07-25 | ac522921 | 鸡哥 | Merge pull request #165 from JNTMTMTM/dev
+- 2026-07-25 | 51cfd5d2 | 鸡哥 | fix: update file documentation for clarity and consistency
+- 2026-07-25 | cd897d99 | 鸡哥 | feat: add build size report workflow and size collection script
+- 2026-07-25 | a33a84a2 | 鸡哥 | feat: enhance test report generation with detailed log parsing and summary breakdown
+- 2026-07-25 | ae8c0af9 | 鸡哥 | feat: add environment specification to workflow jobs for consistency
+- 2026-07-25 | 1f746080 | 鸡哥 | feat: update workflow names to include 'eisland CI' prefix for consistency
+- 2026-07-25 | 1f3fce14 | eislandBot | docs: auto update CHANGE_LOG.md for #164 by @JNTMTMTM [skip ci]
 - 2026-07-25 | eefc9aee | 鸡哥 | Merge pull request #164 from JNTMTMTM/dev
 - 2026-07-25 | 047b4899 | 鸡哥 | feat: update SilkyWave color fallback and import TFunction type from i18next
 - 2026-07-25 | d4e07df6 | 鸡哥 | feat: update type imports for LyricsTab and SilkyWave components
