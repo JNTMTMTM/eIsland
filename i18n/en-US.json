@@ -398,6 +398,10 @@
       "screenshot": "Screenshot",
       "taskManager": "Task Manager"
     },
+    "media": {
+      "brightness": "Brightness",
+      "volume": "Volume"
+    },
     "timer": {
       "title": "Countdown",
       "editHint": "Scroll wheel to edit time",

@@ -140,6 +140,23 @@
   gap: 6px;
 }
 
+/** 媒体调节按钮组（亮度、音量） */
+.media-buttons {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.media-buttons .action-btn {
+  width: 28px;
+}
+
+.media-buttons .action-btn-icon {
+  width: 20px;
+  height: 20px;
+}
+
 /** 工具按钮组（截图、任务管理器） */
 .timer-tools {
   display: flex;

@@ -398,6 +398,10 @@
       "screenshot": "截图",
       "taskManager": "任务管理器"
     },
+    "media": {
+      "brightness": "亮度",
+      "volume": "音量"
+    },
     "timer": {
       "title": "倒计时",
       "editHint": "滚动滚轮编辑时间",

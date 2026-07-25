@@ -28,6 +28,7 @@ import type React from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActionButtons } from '../../../utils/ActionButtons';
 import { CountdownEdit } from '../../../utils/CountdownEdit';
+import { MediaButtons } from '../../../utils/MediaButtons';
 import type { TimeTabProps } from '../types/timeTabTypes';
 
 /**
@@ -45,7 +46,7 @@ export function TimeTab({
   return (
     <div className="time-tab-wrapper">
       <ActionButtons />
-      <div className="time-tab-divider" />
+      <MediaButtons />
       <CountdownEdit />
       <div className="time-tab-divider" />
       <div className="flex flex-col gap-1 text-right">
