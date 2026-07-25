@@ -19,8 +19,10 @@
  */
 
 /**
- * @fileoverview Collects build output file sizes (raw + gzip) from the out/ directory.
+ * @file collect-build-sizes.ts
+ * @description Collects build output file sizes (raw + gzip) from the out/ directory.
  * Outputs JSON to the path specified by --output, or stdout by default.
+ * @author 鸡哥
  */
 
 import { readdirSync, statSync, readFileSync, writeFileSync } from 'node:fs';
