@@ -325,7 +325,7 @@ The `idle` state is the default resting state when no user interaction occurs. I
 ### hover
 
 :::info
-The `hover` state provides quick information preview on mouse hover, serving as a bridge between idle and expanded states.
+The `hover` state provides quick information preview on mouse hover, serving as a bridge between idle and expanded states. It uses a **tab-based architecture** with three navigable pages: Time, Lyrics, and Weather.
 :::
 
 | Property | Value |
@@ -346,10 +346,66 @@ The `hover` state provides quick information preview on mouse hover, serving as 
 - Click on island → `expanded`
 - Timeout → `idle` (if configured)
 
-**UI Components Rendered:**
-- Expanded time display with date
-- Quick info snippets (weather, music, notifications)
-- Hover-reveal action buttons
+#### Tab Navigation
+
+The hover state contains four navigation dots at the top. Three switch between tab pages; the fourth triggers expansion.
+
+| Tab | Page | Description |
+|-----|------|-------------|
+| `time` | TimeTab | Time display, lunar calendar, countdown timer, hide/quit buttons |
+| `lyrics` | LyricsTab | Music playback controls, album art, artist info, canvas wave animation |
+| `weather` | WeatherTab | Current weather, 2-day forecast, click-to-refresh |
+| `expand` | — | Triggers transition to `expanded` state |
+
+:::tip
+Users can switch tabs by scrolling the mouse wheel while hovering over the island. The scroll direction cycles through the tab list in order.
+:::
+
+#### Module Structure
+
+:::details hover module file tree
+```
+hover/
+├── index.ts                          # Module entry point
+├── types/index.ts                    # Shared type definitions (HoverContentProps, ActionButtonsProps, etc.)
+├── config/hoverConfig.ts             # Navigation dots configuration
+├── hooks/useHover.ts                 # Tab switching, wheel navigation, scroll logic
+├── components/
+│   ├── HoverContent.tsx              # Top-level component, wires hook to form
+│   └── HoverForm.tsx                 # Tab layout, nav dots, tab content switching
+├── utils/
+│   ├── ActionButtons.tsx             # Hide island / Quit app buttons
+│   ├── CountdownEdit.tsx             # Editable countdown timer
+│   └── ToolButtons.tsx              # Screenshot / Task Manager buttons
+└── pages/
+    ├── time/                         # Time tab module
+    │   ├── index.ts
+    │   ├── types/timeTabTypes.ts
+    │   └── components/TimeTab.tsx
+    ├── lyric/                        # Lyrics tab module
+    │   ├── index.ts
+    │   ├── types/silkyWaveTypes.ts
+    │   ├── config/silkyWaveConfig.ts
+    │   ├── hooks/useSilkyWave.ts
+    │   ├── utils/lyricUtils.ts
+    │   └── components/
+    │       ├── LyricsTab.tsx
+    │       └── SilkyWave.tsx
+    └── weather/                      # Weather tab module
+        ├── index.ts
+        ├── config/weatherConfig.ts
+        ├── utils/weatherUtils.ts
+        └── components/WeatherTab.tsx
+```
+:::
+
+#### Page Details
+
+**Time Tab** — The default tab on hover entry. Displays the current time and lunar calendar date. Includes an inline countdown timer (scroll wheel to edit digits) and action buttons for hiding the island or quitting the app.
+
+**Lyrics Tab** — Shown when music is playing. Displays the album cover as a vinyl disc, song title, artist name, and playback controls (prev/play-pause/next). A canvas-based `SilkyWave` component renders a multi-layer sinusoidal wave animation that reacts to the playback state.
+
+**Weather Tab** — Displays the current temperature, weather description, and location. Shows a 2-day forecast with icons, precipitation probability, and wind speed. Clicking the weather icon triggers a refresh.
 
 **Behavior Details:**
 - 60ms enter delay prevents accidental activation

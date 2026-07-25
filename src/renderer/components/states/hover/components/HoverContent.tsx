@@ -19,10 +19,30 @@
  */
 
 /**
- * @file index.ts
- * @description Hover 状态模块导出入口
+ * @file HoverContent.tsx
+ * @description Hover 状态内容组件
  * @author 鸡哥
  */
 
-export { HoverContent } from './components/HoverContent';
-export * from './types';
+import type { ReactElement } from 'react';
+import type { HoverContentProps } from '../types';
+import { useHover } from '../hooks/useHover';
+import { HoverForm } from './HoverForm';
+import '../../../../styles/hover/hover.css';
+
+/** Hover 状态内容组件 */
+export function HoverContent(props: HoverContentProps): ReactElement {
+  const hover = useHover(props);
+  return (
+    <HoverForm
+      fullTimeStr={hover.fullTimeStr}
+      lunarStr={hover.lunarStr}
+      t={hover.t}
+      hoverTab={hover.hoverTab}
+      setHoverTab={hover.setHoverTab}
+      setExpanded={hover.setExpanded}
+      contentRef={hover.contentRef}
+      getDotLabel={hover.getDotLabel}
+    />
+  );
+}

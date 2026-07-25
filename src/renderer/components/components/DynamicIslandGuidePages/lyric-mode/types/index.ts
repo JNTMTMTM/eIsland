@@ -20,9 +20,14 @@
 
 /**
  * @file index.ts
- * @description Hover 状态模块导出入口
+ * @description 引导歌词模式设置步骤类型定义
  * @author 鸡哥
  */
 
-export { HoverContent } from './components/HoverContent';
-export * from './types';
+/** LyricModeStep 组件属性 */
+export interface LyricModeStepProps {
+  /** 确认后进入下一步的回调 */
+  onNext: () => void;
+  /** 返回上一步的回调 */
+  onPrev: () => void;
+}

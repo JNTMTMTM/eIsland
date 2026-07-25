@@ -104,10 +104,11 @@ export function registerMusicIpcHandlers(options: RegisterMusicIpcHandlersOption
     }
   });
 
-  ipcMain.handle('music:lyrics-karaoke:set', (_event, enabled: boolean) => {
+  ipcMain.handle('music:lyrics-karaoke:set', (event, enabled: boolean) => {
     try {
       const filePath = join(options.storeDir, `${options.lyricsKaraokeStoreKey}.json`);
       writeFileSync(filePath, JSON.stringify(enabled, null, 2), 'utf-8');
+      broadcastSettingChange(event.sender.id, 'music:lyrics-karaoke', enabled);
       return true;
     } catch (err) {
       console.error('[LyricsKaraoke] persist error:', err);

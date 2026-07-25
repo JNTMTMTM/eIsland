@@ -1004,6 +1004,9 @@ export function SettingsTab(): ReactElement {
       if (channel === 'store:music-whitelist' && Array.isArray(value)) {
         setWhitelist(value);
       }
+      if (channel === 'music:lyrics-karaoke' && typeof value === 'boolean') {
+        setLyricsKaraoke(value);
+      }
       if (channel === 'store:update-source' && typeof value === 'string' && value) {
         const nextSource: UpdateSourceKey = UPDATE_SOURCES.some(s => s.key === value) ? value as UpdateSourceKey : 'cloudflare-r2';
         setUpdateSource(nextSource);

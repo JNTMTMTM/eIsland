@@ -26,56 +26,22 @@
 
 import { type SyntheticEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import useIslandStore from '../../../../store/slices';
-import { abbreviateWeatherDescription } from '../../../../utils/weatherText';
-import '../../../../styles/hover/weather-tab.css';
-
-const FALLBACK_WEATHER_ICON = './svg/NA.svg';
-
-/**
- * 获取星期标签
- * @param index - 预报天数索引（0=明天，1=后天）
- * @returns 星期标签字符串
- */
-function getWeekLabel(index: number, t: (key: string, options?: Record<string, unknown>) => string): string {
-  return index === 0
-    ? t('hover.weather.week.tomorrow', { defaultValue: '明天' })
-    : t('hover.weather.week.dayAfterTomorrow', { defaultValue: '后天' });
-}
-
-/**
- * 获取当前天气图标路径（白天/晚上）
- * @param iconCode - 天气图标编号
- * @param isDay - 是否为白天（true=白天，false=夜晚）
- * @returns 天气图标资源路径
- */
-function getWeatherIconPath(iconCode: number, isDay: boolean): string {
-  const suffix = isDay ? 'd' : 'n';
-  return `./icon/${iconCode}${suffix}_big.png`;
-}
-
-/**
- * 获取小图标路径
- * @param iconCode - 天气图标编号
- * @param isDay - 是否为白天（true=白天，false=夜晚）
- * @returns 天气小图标资源路径
- */
-function getWeatherSmallIconPath(iconCode: number, isDay: boolean): string {
-  const suffix = isDay ? 'd' : 'n';
-  return `./icon/${iconCode}${suffix}.png`;
-}
-
-function formatPrecipitationText(value: number, t: (key: string, options?: Record<string, unknown>) => string): string {
-  return value < 0 ? ` ${t('hover.weather.na', { defaultValue: 'N/A' })}` : `${value}%`;
-}
-
-function formatWindText(value: number, t: (key: string, options?: Record<string, unknown>) => string): string {
-  return value < 0 ? ` ${t('hover.weather.na', { defaultValue: 'N/A' })}` : `${value}m/s`;
-}
+import useIslandStore from '../../../../../../store/slices';
+import { abbreviateWeatherDescription } from '../../../../../../utils/weatherText';
+import '../../../../../../styles/hover/weather-tab.css';
+import { FALLBACK_WEATHER_ICON } from '../config/weatherConfig';
+import {
+  getWeekLabel,
+  getWeatherIconPath,
+  getWeatherSmallIconPath,
+  formatPrecipitationText,
+  formatWindText,
+} from '../utils/weatherUtils';
 
 /**
  * 天气 Tab 内容
  * @description 显示当前天气及未来两天预报
+ * @returns 天气 Tab 元素
  */
 export function WeatherTab(): React.ReactElement {
   const { t } = useTranslation();

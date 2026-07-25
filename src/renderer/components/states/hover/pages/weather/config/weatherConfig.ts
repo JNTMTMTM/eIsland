@@ -19,10 +19,10 @@
  */
 
 /**
- * @file index.ts
- * @description Hover 状态模块导出入口
+ * @file weatherConfig.ts
+ * @description 天气模块常量配置
  * @author 鸡哥
  */
 
-export { HoverContent } from './components/HoverContent';
-export * from './types';
+/** 天气图标加载失败时的兜底图标路径 */
+export const FALLBACK_WEATHER_ICON = './svg/NA.svg';

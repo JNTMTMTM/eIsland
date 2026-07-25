@@ -28,7 +28,8 @@ import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../../store/slices';
 import type { HoverTab } from '../../../../store/types';
-import { NAV_DOTS, type HoverContentProps } from '../config/hoverConfig';
+import { NAV_DOTS } from '../config/hoverConfig';
+import type { HoverContentProps } from '../types';
 
 /** Hover 状态交互逻辑 Hook */
 export function useHover(props: HoverContentProps) {

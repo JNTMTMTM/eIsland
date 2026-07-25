@@ -19,10 +19,27 @@
  */
 
 /**
- * @file index.ts
- * @description Hover 状态模块导出入口
+ * @file types/index.ts
+ * @description Hover 模块类型定义统一导出
  * @author 鸡哥
  */
 
-export { HoverContent } from './components/HoverContent';
-export * from './types';
+/** HoverContent 组件 Props */
+export interface HoverContentProps {
+  fullTimeStr: string;
+  lunarStr: string;
+}
+
+/** ActionButtons 组件 Props */
+export interface ActionButtonsProps {
+  /** 隐藏图标路径 */
+  hideIcon?: string;
+  /** 退出图标路径 */
+  powerOffIcon?: string;
+}
+
+/** 截图模式 */
+export type HoverScreenshotMode = 'region' | 'display';
+
+/** 计时器状态 */
+export type TimerState = 'idle' | 'running' | 'paused';

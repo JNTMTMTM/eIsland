@@ -27,8 +27,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SvgIcon } from '../../../../utils/SvgIcon';
-
-type HoverScreenshotMode = 'region' | 'display';
+import type { HoverScreenshotMode } from '../types';
 
 const HOVER_SCREENSHOT_MODE_STORE_KEY = 'hover-screenshot-mode';
 

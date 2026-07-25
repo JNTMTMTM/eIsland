@@ -20,9 +20,8 @@
 
 /**
  * @file index.ts
- * @description Hover 状态模块导出入口
+ * @description 引导歌词模式设置步骤模块入口
  * @author 鸡哥
  */
 
-export { HoverContent } from './components/HoverContent';
-export * from './types';
+export { LyricModeStep } from './components/LyricModeStep';

@@ -19,10 +19,16 @@
  */
 
 /**
- * @file index.ts
- * @description Hover 状态模块导出入口
+ * @file silkyWaveConfig.ts
+ * @description SilkyWave 波浪层常量配置
  * @author 鸡哥
  */
 
-export { HoverContent } from './components/HoverContent';
-export * from './types';
+import type { WaveLayer } from '../types/silkyWaveTypes';
+
+/** 多层正弦波配置参数 */
+export const WAVE_LAYERS: WaveLayer[] = [
+  { amplitude: 6, frequency: 0.018, speed: 0.025, phase: 0, opacity: 0.35 },
+  { amplitude: 4.5, frequency: 0.024, speed: -0.018, phase: 2, opacity: 0.25 },
+  { amplitude: 3, frequency: 0.032, speed: 0.032, phase: 4, opacity: 0.15 },
+];

@@ -1,0 +1,161 @@
+/*
+ * eIsland - A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Electron.
+ * https://github.com/JNTMTMTM/eIsland
+ *
+ * Copyright (C) 2026 JNTMTMTM
+ * Copyright (C) 2026 pyisland.com
+ *
+ * Original author: JNTMTMTM[](https://github.com/JNTMTMTM)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+/**
+ * @file guide/lyric-mode.css
+ * @description 引导配置窗口 — 歌词模式设置步骤样式
+ * @author 鸡哥
+ */
+
+.guide-lyric-mode-content {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+/* ===== Lyric Mode Card List ===== */
+
+.guide-lyric-mode-card-list {
+  display: flex;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.guide-lyric-mode-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: 280px;
+  padding: 24px 20px 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+}
+
+.guide-lyric-mode-card:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.guide-lyric-mode-card.selected {
+  border-color: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.3);
+}
+
+/* ===== Lyric Mode Preview ===== */
+
+.guide-lyric-mode-preview {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.guide-lyric-mode-preview-box {
+  width: 240px;
+  height: 110px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 10px 16px;
+  overflow: hidden;
+}
+
+/* ===== Lyric Lines ===== */
+
+.guide-lyric-mode-line {
+  font-size: 12px;
+  line-height: 1.4;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.guide-lyric-mode-line.dim {
+  color: rgba(255, 255, 255, 0.2);
+}
+
+.guide-lyric-mode-line.dimmer {
+  color: rgba(255, 255, 255, 0.1);
+  font-size: 11px;
+}
+
+.guide-lyric-mode-line.current {
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 600;
+  font-size: 13px;
+}
+
+/* ===== Karaoke Sweep Animation — 与实际歌词扫光完全一致 ===== */
+
+@property --guide-syl-prog {
+  syntax: '<percentage>';
+  inherits: false;
+  initial-value: 0%;
+}
+
+.guide-lyric-mode-line.sweep {
+  font-weight: 600;
+  font-size: 13px;
+  --guide-syl-prog: 0%;
+  background: linear-gradient(
+    to right,
+    rgba(var(--color-text-rgb), 0.95) var(--guide-syl-prog),
+    rgba(var(--color-text-rgb), 0.28) var(--guide-syl-prog)
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  animation: guideLyricSweep 2.8s ease-in-out infinite;
+}
+
+@keyframes guideLyricSweep {
+  0%   { --guide-syl-prog: 0%; }
+  45%  { --guide-syl-prog: 100%; }
+  55%  { --guide-syl-prog: 100%; }
+  100% { --guide-syl-prog: 0%; }
+}
+
+/* ===== Card Text ===== */
+
+.guide-lyric-mode-card-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.guide-lyric-mode-card-desc {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.4);
+  text-align: center;
+  line-height: 1.5;
+}

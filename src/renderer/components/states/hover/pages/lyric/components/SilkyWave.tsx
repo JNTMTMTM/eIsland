@@ -19,10 +19,31 @@
  */
 
 /**
- * @file index.ts
- * @description Hover 状态模块导出入口
+ * @file SilkyWave.tsx
+ * @description Canvas 丝滑波浪组件，使用 requestAnimationFrame 绘制多层正弦波
  * @author 鸡哥
  */
 
-export { HoverContent } from './components/HoverContent';
-export * from './types';
+import type { ReactElement } from 'react';
+import type { SilkyWaveProps } from '../types/silkyWaveTypes';
+import { useSilkyWave } from '../hooks/useSilkyWave';
+
+/**
+ * Canvas 丝滑波浪组件
+ * @description 使用 requestAnimationFrame 绘制多层正弦波，实现 60fps 流畅动画
+ * @param props - 组件入参
+ * @returns Canvas 元素
+ */
+export function SilkyWave({
+  color,
+  playing,
+}: SilkyWaveProps): ReactElement {
+  const canvasRef = useSilkyWave(color, playing);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      className="lrc-wave-canvas"
+    />
+  );
+}

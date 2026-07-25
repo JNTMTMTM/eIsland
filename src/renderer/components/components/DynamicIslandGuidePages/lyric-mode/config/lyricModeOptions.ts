@@ -19,10 +19,23 @@
  */
 
 /**
- * @file index.ts
- * @description Hover 状态模块导出入口
+ * @file lyricModeOptions.ts
+ * @description 引导歌词模式设置步骤配置
  * @author 鸡哥
  */
 
-export { HoverContent } from './components/HoverContent';
-export * from './types';
+/** 歌词模式选项条目 */
+export interface LyricModeOption {
+  /** 模式值：true = 逐字模式, false = 普通模式 */
+  value: boolean;
+  /** 显示名称 i18n key */
+  labelKey: string;
+  /** 描述 i18n key */
+  descKey: string;
+}
+
+/** 歌词模式选项列表 */
+export const LYRIC_MODE_OPTIONS: LyricModeOption[] = [
+  { value: false, labelKey: 'guide.lyricMode.normal', descKey: 'guide.lyricMode.normalDesc' },
+  { value: true, labelKey: 'guide.lyricMode.karaoke', descKey: 'guide.lyricMode.karaokeDesc' },
+];

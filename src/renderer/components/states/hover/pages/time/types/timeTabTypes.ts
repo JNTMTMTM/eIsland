@@ -19,30 +19,15 @@
  */
 
 /**
- * @file HoverContent.tsx
- * @description Hover 状态内容组件
+ * @file timeTabTypes.ts
+ * @description 时间 Tab 组件类型定义
  * @author 鸡哥
  */
 
-import type { ReactElement } from 'react';
-import type { HoverContentProps } from './config/hoverConfig';
-import { useHover } from './hooks/useHover';
-import { HoverForm } from './components/HoverForm';
-import '../../../styles/hover/hover.css';
-
-/** Hover 状态内容组件 */
-export function HoverContent(props: HoverContentProps): ReactElement {
-  const hover = useHover(props);
-  return (
-    <HoverForm
-      fullTimeStr={hover.fullTimeStr}
-      lunarStr={hover.lunarStr}
-      t={hover.t}
-      hoverTab={hover.hoverTab}
-      setHoverTab={hover.setHoverTab}
-      setExpanded={hover.setExpanded}
-      contentRef={hover.contentRef}
-      getDotLabel={hover.getDotLabel}
-    />
-  );
+/** TimeTab 组件入参 */
+export interface TimeTabProps {
+  /** 完整时间字符串 (YY-MM-DD HH:MM:SS) */
+  fullTimeStr: string;
+  /** 农历日期字符串 */
+  lunarStr: string;
 }

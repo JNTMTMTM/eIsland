@@ -19,10 +19,24 @@
  */
 
 /**
- * @file index.ts
- * @description Hover 状态模块导出入口
+ * @file silkyWaveTypes.ts
+ * @description SilkyWave 组件类型定义
  * @author 鸡哥
  */
 
-export { HoverContent } from './components/HoverContent';
-export * from './types';
+/** 波浪层配置 */
+export interface WaveLayer {
+  amplitude: number;
+  frequency: number;
+  speed: number;
+  phase: number;
+  opacity: number;
+}
+
+/** SilkyWave 组件入参 */
+export interface SilkyWaveProps {
+  /** 主题色 RGB */
+  color: [number, number, number];
+  /** 是否正在播放 */
+  playing: boolean;
+}
