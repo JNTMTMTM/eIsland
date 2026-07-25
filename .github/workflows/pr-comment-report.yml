@@ -10,6 +10,7 @@ permissions:
 
 jobs:
   comment-report:
+    environment: production
     runs-on: ubuntu-latest
 
     steps:

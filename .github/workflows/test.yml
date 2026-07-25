@@ -18,6 +18,7 @@ permissions:
 
 jobs:
   vitest:
+    environment: production
     runs-on: windows-latest
     defaults:
       run:
