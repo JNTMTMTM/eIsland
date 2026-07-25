@@ -1,4 +1,4 @@
-name: Issue Auto Label
+name: eisland CI Issue Auto Label
 
 on:
   issues:

@@ -1,4 +1,4 @@
-name: Release Build & Upload to R2/COS/OSS
+name: eisland CI Release Build & Upload to R2/COS/OSS
 
 on:
   push:

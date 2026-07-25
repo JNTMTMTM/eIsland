@@ -1,4 +1,4 @@
-name: i18n Completeness Check
+name: eisland CI i18n Completeness Check
 
 on:
   pull_request_target:

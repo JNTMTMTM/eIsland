@@ -1,4 +1,4 @@
-name: Test
+name: eisland CI Test
 
 on:
   pull_request_target:
@@ -18,6 +18,7 @@ permissions:
 
 jobs:
   vitest:
+    environment: production
     runs-on: windows-latest
     defaults:
       run:
@@ -125,51 +126,201 @@ jobs:
             const fs = require('node:fs');
             const marker = '<!-- test-workflow-report -->';
 
+            // ==================== Log Parsing ====================
+
+            /**
+             * Read a log file, return empty string if missing
+             * @param {string} path - log file path
+             * @returns {string}
+             */
             const readLog = (path) => {
               try {
-                const content = fs.readFileSync(path, 'utf8').trim();
-                if (!content) return '(empty output)';
-                return content.length > 6000 ? `${content.slice(0, 6000)}\n... (truncated)` : content;
+                return fs.readFileSync(path, 'utf8').trim();
               } catch {
-                return '(log file not found)';
+                return '';
               }
             };
+
+            /**
+             * Parse vitest log into per-module results and failure details
+             * @param {string} log - raw vitest output
+             * @returns {{ modules: Array<{name: string, passed: number, failed: number, skipped: number, duration: string}>, failures: Array<{test: string, module: string, error: string}> }}
+             */
+            const parseVitestLog = (log) => {
+              if (!log) return { modules: [], failures: [] };
+
+              const modules = [];
+              const failures = [];
+              const lines = log.split('\n');
+
+              // Match module summary lines: "  PASS / FAIL  src/path/file.test.ts (N tests) Xms"
+              // Also matches vitest default: "  src/path/file.test.ts (N) | Xms" style
+              const moduleRe = /^\s*(?:PASS|FAIL|✓|✗|×)\s+(.+?)\s+\((\d+)\s*(?:tests?)?\s*(?:\|\s*(\d+)\s*failed)?\)\s*(?:([\d.]+)\s*ms)?/i;
+              // Fallback: "  src/path/file.test.ts ...." lines
+              const moduleRe2 = /^\s*(✓|✗|×|PASS|FAIL)\s+(\S.*?)(?:\s+\((\d+)\s*(?:tests?)?\))?\s*(?:([\d.]+)\s*ms)?/i;
+              // Failure detail lines: " FAIL  test name" or "AssertionError: ..."
+              const failTestRe = /^\s*(?:FAIL|✗|×)\s+(.+)/;
+              const errorLineRe = /^(?:Error|AssertionError|TypeError|ReferenceError|SyntaxError|RangeError|Expected|Received|Difference):/;
+
+              let currentModule = null;
+              let collectingError = false;
+              let currentFailTest = '';
+              let errorLines = [];
+
+              for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
+
+                // Try to match a module summary line
+                let m = line.match(moduleRe);
+                if (!m) m = line.match(moduleRe2);
+
+                if (m) {
+                  // Flush previous failure
+                  if (collectingError && currentFailTest) {
+                    failures.push({ test: currentFailTest, module: currentModule || 'unknown', error: errorLines.join('\n').trim() || '(no details)' });
+                    collectingError = false;
+                    errorLines = [];
+                  }
+
+                  const modPath = m[2] || m[1];
+                  const passed = (m[1] === 'PASS' || m[1] === '✓') ? 1 : 0;
+                  const failed = m[3] ? parseInt(m[3]) : (m[1] === 'FAIL' || m[1] === '✗' || m[1] === '×') ? 1 : 0;
+                  const duration = m[4] ? `${m[4]}ms` : '';
+
+                  currentModule = modPath.trim();
+                  modules.push({ name: currentModule, passed: passed || 0, failed, skipped: 0, duration });
+                  continue;
+                }
+
+                // Match individual fail test lines
+                const ftm = line.match(failTestRe);
+                if (ftm && !line.match(/^\s*(PASS|FAIL|✓|✗|×)\s+\S+\s+\(/)) {
+                  if (collectingError && currentFailTest) {
+                    failures.push({ test: currentFailTest, module: currentModule || 'unknown', error: errorLines.join('\n').trim() || '(no details)' });
+                    errorLines = [];
+                  }
+                  currentFailTest = ftm[1].trim();
+                  collectingError = true;
+                  continue;
+                }
+
+                // Collect error details
+                if (collectingError) {
+                  if (line.trim() === '' && errorLines.length > 0) {
+                    // End of error block
+                    failures.push({ test: currentFailTest, module: currentModule || 'unknown', error: errorLines.join('\n').trim() || '(no details)' });
+                    collectingError = false;
+                    errorLines = [];
+                  } else if (line.trim()) {
+                    errorLines.push(line);
+                  }
+                }
+              }
+
+              // Flush last failure
+              if (collectingError && currentFailTest) {
+                failures.push({ test: currentFailTest, module: currentModule || 'unknown', error: errorLines.join('\n').trim() || '(no details)' });
+              }
+
+              return { modules, failures };
+            };
+
+            /**
+             * Aggregate parsed modules into directory-level groups
+             * @param {Array} modules - parsed module results
+             * @returns {Array<{group: string, passed: number, failed: number, skipped: number, duration: string, files: Array}>}
+             */
+            const groupByDirectory = (modules) => {
+              const groups = {};
+              for (const mod of modules) {
+                // Extract directory: "src/renderer/components/foo.test.ts" -> "src/renderer/components"
+                const parts = mod.name.replace(/\\/g, '/').split('/');
+                const dir = parts.length > 1 ? parts.slice(0, -1).join('/') : '(root)';
+                if (!groups[dir]) {
+                  groups[dir] = { group: dir, passed: 0, failed: 0, skipped: 0, totalDuration: 0, files: [] };
+                }
+                groups[dir].passed += mod.passed;
+                groups[dir].failed += mod.failed;
+                groups[dir].skipped += mod.skipped;
+                const ms = parseFloat(mod.duration) || 0;
+                groups[dir].totalDuration += ms;
+                groups[dir].files.push(mod);
+              }
+              return Object.values(groups).sort((a, b) => a.group.localeCompare(b.group));
+            };
+
+            // ==================== Build Report ====================
 
             const preloadCode = process.env.PRELOAD_EXIT_CODE || '1';
             const fullCode = process.env.FULL_EXIT_CODE || '1';
             const preloadDuration = process.env.PRELOAD_DURATION_SECONDS || '-';
             const fullDuration = process.env.FULL_DURATION_SECONDS || '-';
-            const preloadStatus = preloadCode === '0' ? 'PASS' : 'FAIL';
-            const fullStatus = fullCode === '0' ? 'PASS' : 'FAIL';
-            const overallStatus = preloadCode === '0' && fullCode === '0' ? 'All tests passed' : 'Test failures detected';
+            const overallPass = preloadCode === '0' && fullCode === '0';
+
             const shortSha = (context.sha || '').slice(0, 7) || 'unknown';
             const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
 
-            const body = `${marker}
-            ## Automated Test Report
+            const preloadLog = readLog('preload-test.log');
+            const fullLog = readLog('full-test.log');
+            const preloadParsed = parseVitestLog(preloadLog);
+            const fullParsed = parseVitestLog(fullLog);
+            const fullGroups = groupByDirectory(fullParsed.modules);
 
-            **Overall:** ${overallStatus}
-            - Commit: \`${shortSha}\`
-            - Preload tests: ${preloadStatus} (${preloadDuration}s)
-            - Full test suite: ${fullStatus} (${fullDuration}s)
+            const totalPassed = fullParsed.modules.reduce((s, m) => s + m.passed, 0);
+            const totalFailed = fullParsed.modules.reduce((s, m) => s + m.failed, 0);
+            const totalModules = fullParsed.modules.length;
 
-            <details>
-            <summary>Preload test output</summary>
+            // ==================== Render ====================
 
-            \`\`\`
-            ${readLog('preload-test.log')}
-            \`\`\`
-            </details>
+            let body = `${marker}\n`;
+            body += `## Test Report\n\n`;
 
-            <details>
-            <summary>Full test output</summary>
+            // -- Summary row
+            body += `| Suite | Status | Tests | Duration |\n`;
+            body += `|-------|--------|-------|----------|\n`;
+            body += `| Preload | ${preloadCode === '0' ? 'PASS' : 'FAIL'} | - | ${preloadDuration}s |\n`;
+            body += `| Full | ${fullCode === '0' ? 'PASS' : 'FAIL'} | ${totalPassed} passed, ${totalFailed} failed | ${fullDuration}s |\n`;
+            body += `\n`;
 
-            \`\`\`
-            ${readLog('full-test.log')}
-            \`\`\`
-            </details>
+            // -- Per-module breakdown
+            if (fullGroups.length > 0) {
+              body += `### Module Breakdown\n\n`;
+              body += `| Module | Passed | Failed | Duration |\n`;
+              body += `|--------|--------|--------|----------|\n`;
+              for (const g of fullGroups) {
+                const dur = g.totalDuration > 1000 ? `${(g.totalDuration / 1000).toFixed(1)}s` : `${Math.round(g.totalDuration)}ms`;
+                const status = g.failed > 0 ? `${g.passed} / ${g.failed} failed` : `${g.passed} passed`;
+                body += `| ${g.group} | ${g.passed} | ${g.failed} | ${dur} |\n`;
+              }
+              body += `\n`;
+            }
 
-            [View workflow run](${runUrl})`;
+            // -- Failure details
+            if (fullParsed.failures.length > 0) {
+              body += `### Failures\n\n`;
+              for (const f of fullParsed.failures) {
+                body += `**${f.module}** > \`${f.test}\`\n\n`;
+                body += `\`\`\`\n${f.error}\n\`\`\`\n\n`;
+              }
+            }
+
+            // -- Preload details (collapsed)
+            if (preloadLog) {
+              body += `<details>\n<summary>Preload test output</summary>\n\n`;
+              body += `\`\`\`\n${preloadLog.length > 6000 ? preloadLog.slice(0, 6000) + '\n... (truncated)' : preloadLog}\n\`\`\`\n`;
+              body += `</details>\n\n`;
+            }
+
+            // -- Full raw log (collapsed, only if failures exist)
+            if (fullParsed.failures.length > 0 && fullLog) {
+              body += `<details>\n<summary>Full test log</summary>\n\n`;
+              body += `\`\`\`\n${fullLog.length > 8000 ? fullLog.slice(0, 8000) + '\n... (truncated)' : fullLog}\n\`\`\`\n`;
+              body += `</details>\n\n`;
+            }
+
+            body += `[View workflow run](${runUrl})`;
+
+            // ==================== Post Comment ====================
 
             const { owner, repo } = context.repo;
             const issue_number = context.payload.pull_request.number;

@@ -1,4 +1,4 @@
-name: Publish Plugins
+name: eisland CI Publish Plugins
 
 on:
   push:

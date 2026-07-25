@@ -1,4 +1,4 @@
-name: PR Comment Report
+name: eisland CI PR Comment Report
 
 on:
   pull_request_target:
@@ -10,6 +10,7 @@ permissions:
 
 jobs:
   comment-report:
+    environment: production
     runs-on: ubuntu-latest
 
     steps:

@@ -1,4 +1,4 @@
-name: Auto Update CHANGELOG (PR Merge / Release)
+name: eisland CI Auto Update CHANGELOG (PR Merge / Release)
 
 on:
   pull_request:

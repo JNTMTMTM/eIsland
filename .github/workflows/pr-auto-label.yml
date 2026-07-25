@@ -1,4 +1,4 @@
-name: PR Auto Label
+name: eisland CI PR Auto Label
 
 on:
   pull_request_target:
