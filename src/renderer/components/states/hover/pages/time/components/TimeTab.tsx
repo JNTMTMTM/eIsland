@@ -26,19 +26,15 @@
 
 import type React from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActionButtons } from '../utils/ActionButtons';
-import { CountdownEdit } from '../utils/CountdownEdit';
-
-interface TimeTabProps {
-  /** 完整时间字符串 (YY-MM-DD HH:MM:SS) */
-  fullTimeStr: string;
-  /** 农历日期字符串 */
-  lunarStr: string;
-}
+import { ActionButtons } from '../../../utils/ActionButtons';
+import { CountdownEdit } from '../../../utils/CountdownEdit';
+import type { TimeTabProps } from '../types/timeTabTypes';
 
 /**
  * 时间 Tab 内容
  * @description 显示当前时间、农历日期
+ * @param props - 组件入参
+ * @returns 时间 Tab 元素
  */
 export function TimeTab({
   fullTimeStr,
