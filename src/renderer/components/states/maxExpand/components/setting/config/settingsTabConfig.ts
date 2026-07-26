@@ -220,4 +220,6 @@ export const isProOnlyUpdateSource = (source: UpdateSourceKey): boolean => {
   return PRO_UPDATE_SOURCE_SET.has(source);
 };
 
+export const HOVER_MUSIC_BG_STYLE_STORE_KEY = 'hover-music-bg-style';
+
 export const SETTINGS_SIDEBAR_DEFAULT_TAB: SettingsSidebarTabKey = 'index';
