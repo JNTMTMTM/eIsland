@@ -26,8 +26,8 @@
 
 import { type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
-import { SvgIcon } from '../../../../utils/SvgIcon';
-import type { ActionButtonsProps } from '../types';
+import { SvgIcon } from '../../../../../../utils/SvgIcon';
+import type { ActionButtonsProps } from '../types/timeTabTypes';
 
 /**
  * 操作按钮组件

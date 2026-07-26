@@ -29,17 +29,3 @@ export interface HoverContentProps {
   fullTimeStr: string;
   lunarStr: string;
 }
-
-/** ActionButtons 组件 Props */
-export interface ActionButtonsProps {
-  /** 隐藏图标路径 */
-  hideIcon?: string;
-  /** 退出图标路径 */
-  powerOffIcon?: string;
-}
-
-/** 截图模式 */
-export type HoverScreenshotMode = 'region' | 'display';
-
-/** 计时器状态 */
-export type TimerState = 'idle' | 'running' | 'paused';

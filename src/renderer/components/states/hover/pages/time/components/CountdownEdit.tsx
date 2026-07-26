@@ -26,10 +26,10 @@
 
 import React, { useCallback, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import useIslandStore from '../../../../store/slices';
-import { SvgIcon } from '../../../../utils/SvgIcon';
+import useIslandStore from '../../../../../../store/slices';
+import { SvgIcon } from '../../../../../../utils/SvgIcon';
 import { ToolButtons } from './ToolButtons';
-import type { TimerState } from '../types';
+import type { TimerState } from '../types/timeTabTypes';
 
 function padZero(value: number): string {
   return value < 10 ? `0${value}` : `${value}`;

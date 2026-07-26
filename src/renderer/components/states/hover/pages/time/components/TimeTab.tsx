@@ -26,9 +26,9 @@
 
 import type React from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActionButtons } from '../../../utils/ActionButtons';
-import { CountdownEdit } from '../../../utils/CountdownEdit';
-import { MediaButtons } from '../../../utils/MediaButtons';
+import { ActionButtons } from './ActionButtons';
+import { CountdownEdit } from './CountdownEdit';
+import { MediaButtons } from './MediaButtons';
 import type { TimeTabProps } from '../types/timeTabTypes';
 
 /**

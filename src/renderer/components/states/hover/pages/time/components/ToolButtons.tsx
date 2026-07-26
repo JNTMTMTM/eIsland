@@ -26,8 +26,8 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { SvgIcon } from '../../../../utils/SvgIcon';
-import type { HoverScreenshotMode } from '../types';
+import { SvgIcon } from '../../../../../../utils/SvgIcon';
+import type { HoverScreenshotMode } from '../types/timeTabTypes';
 
 const HOVER_SCREENSHOT_MODE_STORE_KEY = 'hover-screenshot-mode';
 

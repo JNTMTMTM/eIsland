@@ -26,7 +26,7 @@
 
 import { type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
-import { SvgIcon } from '../../../../utils/SvgIcon';
+import { SvgIcon } from '../../../../../../utils/SvgIcon';
 
 /**
  * 媒体调节按钮组件
