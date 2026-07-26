@@ -408,6 +408,12 @@
       "sliderLabel": "屏幕亮度",
       "unavailable": "不可用"
     },
+    "volume": {
+      "title": "系统音量",
+      "hint": "拖动调节",
+      "sliderLabel": "系统音量",
+      "unavailable": "不可用"
+    },
     "timer": {
       "title": "倒计时",
       "editHint": "滚动滚轮编辑时间",
