@@ -1,0 +1,147 @@
+---
+watermark: true
+title: VolumeMonitor
+icon: fa6-solid:cubes
+---
+
+# VolumeMonitor
+
+:::info
+VolumeMonitor is a real-time volume change detector built on top of Windows Core Audio COM event notifications. It extends Node.js `EventEmitter` and pushes volume change events without polling, making it lightweight and responsive. Use it when your application needs to react to volume adjustments made by the user or the system (e.g. volume keys, mixer changes, or application-level adjustments).
+:::
+
+## Constructor
+
+```typescript
+new VolumeMonitor(): VolumeMonitor
+```
+
+Creates a new VolumeMonitor instance. The monitor does not start automatically — you must call [`start()`](#methods) to begin listening for volume changes.
+
+## Usage
+
+VolumeMonitor follows a simple lifecycle: **create → listen → start → stop**.
+
+1. Create a `VolumeMonitor` instance.
+2. Register event listeners for `volume-changed` and `error` **before** calling `start()`, so you never miss early events.
+3. Call `start()` to subscribe to Core Audio volume events.
+4. Call `stop()` when you no longer need monitoring to release system resources.
+
+:::tip
+Both `start()` and `stop()` are idempotent — calling `start()` on an already-running monitor or `stop()` on a stopped monitor is a safe no-op. This makes cleanup code simpler since you can always call `stop()` unconditionally.
+:::
+
+:::note
+If you need to restart monitoring after stopping, it is recommended to create a fresh `VolumeMonitor` instance rather than calling `start()` again on the same instance. This avoids stale listener state and ensures a clean Core Audio subscription.
+:::
+
+## Methods
+
+| Method | Return | Description |
+|--------|--------|-------------|
+| `start()` | `void` | Start monitoring for volume changes. Idempotent — safe to call multiple times. |
+| `stop()` | `void` | Stop monitoring and release the Core Audio subscription. Idempotent — safe to call multiple times. |
+| `isRunning()` | `boolean` | Returns `true` if the monitor is currently active. |
+
+## Events
+
+| Event | Payload | Description |
+|-------|---------|-------------|
+| `volume-changed` | `level: number, timestamp: number` | Fired when the system volume changes. `level` is a percentage (0–100). `timestamp` is the event timestamp. |
+| `error` | `err: Error` | Fired when an internal error occurs during monitoring (e.g. Core Audio subscription failure). |
+
+:::warning
+If you do not register an `error` listener, errors will be thrown as unhandled exceptions and may crash your process. Always attach an `error` handler before calling `start()`.
+:::
+
+## Example
+
+::: code-tabs
+
+@tab TypeScript
+
+```ts
+import { VolumeMonitor } from '@eisland/windows-volume-helper';
+
+// Create a new monitor instance
+const monitor = new VolumeMonitor();
+
+// Listen for volume changes — register before start() to avoid missing events
+monitor.on('volume-changed', (level: number, timestamp: number) => {
+  // Volume is a percentage from 0 to 100; timestamp comes from the event
+  console.log(`Volume changed to ${level}% at ${new Date(timestamp)}`);
+});
+
+// Handle monitoring errors (e.g. Core Audio subscription failure)
+monitor.on('error', (err: Error) => {
+  console.error('Volume monitor error:', err);
+});
+
+// Start the monitor — begins listening for Core Audio volume events
+monitor.start();
+
+// Check if the monitor is running
+console.log(`Monitoring active: ${monitor.isRunning()}`);
+
+// Stop the monitor when done — releases the Core Audio subscription
+monitor.stop();
+```
+
+@tab JavaScript
+
+```js
+const { VolumeMonitor } = require('@eisland/windows-volume-helper');
+
+// Create a new monitor instance
+const monitor = new VolumeMonitor();
+
+// Listen for volume changes — register before start() to avoid missing events
+monitor.on('volume-changed', (level, timestamp) => {
+  // Volume is a percentage from 0 to 100; timestamp comes from the event
+  console.log(`Volume changed to ${level}% at ${new Date(timestamp)}`);
+});
+
+// Handle monitoring errors (e.g. Core Audio subscription failure)
+monitor.on('error', (err) => {
+  console.error('Volume monitor error:', err);
+});
+
+// Start the monitor — begins listening for Core Audio volume events
+monitor.start();
+
+// Check if the monitor is running
+console.log(`Monitoring active: ${monitor.isRunning()}`);
+
+// Stop the monitor when done — releases the Core Audio subscription
+monitor.stop();
+```
+
+:::
+
+## Notes
+
+:::note
+The monitor uses Windows Core Audio COM event notifications internally. This means it only works on systems with an active audio playback device. Systems without speakers or headphones connected may not receive events.
+:::
+
+:::note
+Register your event listeners before calling `start()`. While `start()` is idempotent, the `volume-changed` event could fire almost immediately after the Core Audio subscription is established, so late listeners may miss the first event.
+:::
+
+:::important
+The `timestamp` parameter in the `volume-changed` event is generated by the monitoring process. Use `new Date(timestamp)` to convert it to a JavaScript `Date` object.
+:::
+
+## Danger Avoidance
+
+:::danger
+Always call `stop()` when you are done with the monitor. Failing to stop the monitor keeps the Core Audio subscription active, which consumes system resources. In long-running applications (e.g. Electron tray apps), forgetting to stop can lead to resource leaks over time.
+:::
+
+:::danger
+Do not create multiple `VolumeMonitor` instances simultaneously. Each instance spawns its own monitoring process. Multiple concurrent instances cause duplicate events and unnecessary system overhead. Use a single instance and share it across your application.
+:::
+
+:::danger
+Do not call `start()` on a monitor that has already been stopped and expect it to behave identically to a fresh instance. If you need to restart monitoring after stopping, create a new `VolumeMonitor` instance to ensure a clean Core Audio subscription.
+:::

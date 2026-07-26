@@ -91,6 +91,8 @@ const BADGE_MAP: Record<string, string> = {
   // Screenshot Helper
   ScreenshotResult: 'interface',
   VisibleWindowBounds: 'interface',
+  // Volume Helper
+  VolumeMonitor: 'monitor',
 }
 
 // ── badge label text ─────────────────────────────────────────────
