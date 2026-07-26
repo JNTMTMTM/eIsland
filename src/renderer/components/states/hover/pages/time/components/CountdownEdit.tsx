@@ -24,116 +24,36 @@
  * @author 鸡哥
  */
 
-import React, { useCallback, useEffect, useRef } from 'react';
+import { type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
-import useIslandStore from '../../../../../../store/slices';
 import { SvgIcon } from '../../../../../../utils/SvgIcon';
 import { ToolButtons } from './ToolButtons';
-import type { TimerState } from '../types/timeTabTypes';
-
-function padZero(value: number): string {
-  return value < 10 ? `0${value}` : `${value}`;
-}
+import { useCountdownEdit } from '../hooks/useCountdownEdit';
+import { padZero } from '../utils/timerUtils';
 
 /**
  * 可编辑计时器组件
  * @description 位于时间和农历左侧，直接显示输入框，支持开始、暂停、重置
  * 倒计时逻辑由 DynamicIsland 全局管理，此组件仅负责 UI 展示和用户交互
  */
-export function CountdownEdit(): React.ReactElement {
+export function CountdownEdit(): ReactElement {
   const { t } = useTranslation();
-  const { timerData, setTimerData } = useIslandStore();
-
-  const timerState: TimerState = timerData?.state ?? 'idle';
-  const remainingSeconds: number = timerData?.remainingSeconds ?? 0;
-  const inputHours: string = timerData?.inputHours ?? '00';
-  const inputMinutes: string = timerData?.inputMinutes ?? '00';
-  const inputSeconds: string = timerData?.inputSeconds ?? '00';
-
-  const handleInputChange = useCallback((
-    value: string,
-    setter: 'inputHours' | 'inputMinutes' | 'inputSeconds',
-    max: number
-  ) => {
-    const num = parseInt(value, 10);
-    const newValue = (!isNaN(num) && num <= max)
-      ? value.padStart(2, '0')
-      : (value === '' ? '00' : timerData?.[setter] ?? '00');
-
-    setTimerData({ [setter]: newValue });
-  }, [timerData, setTimerData]);
-
-  const timerDataRef = useRef(timerData);
-  timerDataRef.current = timerData;
-  const setTimerDataRef = useRef(setTimerData);
-  setTimerDataRef.current = setTimerData;
-  const timerInputsRef = useRef<HTMLDivElement>(null);
-  const isEditing = timerState === 'idle';
-
-  useEffect(() => {
-    const el = timerInputsRef.current;
-    if (!el) return;
-    const handleWheel = (e: WheelEvent): void => {
-      const target = e.target as HTMLElement;
-      const setter = target.getAttribute('data-setter') as 'inputHours' | 'inputMinutes' | 'inputSeconds' | null;
-      const maxStr = target.getAttribute('data-max');
-      if (!setter || !maxStr) return;
-      e.preventDefault();
-      const max = parseInt(maxStr, 10);
-      const delta = e.deltaY < 0 ? 1 : -1;
-      const currentStr = timerDataRef.current?.[setter] ?? '00';
-      const current = parseInt(currentStr, 10) || 0;
-      let next = current + delta;
-      if (next < 0) next = max;
-      if (next > max) next = 0;
-      setTimerDataRef.current({ [setter]: padZero(next) });
-    };
-    el.addEventListener('wheel', handleWheel, { passive: false });
-    return () => el.removeEventListener('wheel', handleWheel);
-  }, [isEditing]);
-
-  const handleStart = useCallback(() => {
-    const h = parseInt(inputHours, 10) || 0;
-    const m = parseInt(inputMinutes, 10) || 0;
-    const s = parseInt(inputSeconds, 10) || 0;
-    const total = h * 3600 + m * 60 + s;
-
-    if (total > 0) {
-      setTimerData({
-        state: 'running',
-        remainingSeconds: total,
-      });
-    }
-  }, [inputHours, inputMinutes, inputSeconds, setTimerData]);
-
-  const handlePause = useCallback(() => {
-    setTimerData({ state: 'paused' });
-  }, [setTimerData]);
-
-  const handleResume = useCallback(() => {
-    if (remainingSeconds > 0) {
-      setTimerData({ state: 'running' });
-    }
-  }, [remainingSeconds, setTimerData]);
-
-  const handleReset = useCallback(() => {
-    setTimerData({
-      state: 'idle',
-      remainingSeconds: 0,
-      inputHours: '00',
-      inputMinutes: '00',
-      inputSeconds: '00',
-    });
-  }, [setTimerData]);
-
-  const getTimeParts = (totalSeconds: number) => {
-    const h = Math.floor(totalSeconds / 3600);
-    const m = Math.floor((totalSeconds % 3600) / 60);
-    const s = totalSeconds % 60;
-    return { h, m, s };
-  };
-
-  const { h, m, s } = getTimeParts(remainingSeconds);
+  const {
+    timerState,
+    isEditing,
+    inputHours,
+    inputMinutes,
+    inputSeconds,
+    h,
+    m,
+    s,
+    timerInputsRef,
+    handleInputChange,
+    handleStart,
+    handlePause,
+    handleResume,
+    handleReset,
+  } = useCountdownEdit();
 
   return (
     <div className="timer-container">

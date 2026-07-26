@@ -27,6 +27,7 @@
 import { type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SvgIcon } from '../../../../../../utils/SvgIcon';
+import { useActionButtons } from '../hooks/useActionButtons';
 import type { ActionButtonsProps } from '../types/timeTabTypes';
 
 /**
@@ -38,15 +39,7 @@ export function ActionButtons({
   powerOffIcon = SvgIcon.POWER_OFF,
 }: ActionButtonsProps): ReactElement {
   const { t } = useTranslation();
-
-  const handleHide = (): void => {
-    window.api.collapseWindow();
-    window.api?.hideWindow();
-  };
-
-  const handleQuit = (): void => {
-    window.api.quitApp();
-  };
+  const { handleHide, handleQuit } = useActionButtons();
 
   return (
     <div className="action-buttons">

@@ -24,61 +24,18 @@
  * @author 鸡哥
  */
 
-import React, { useCallback, useEffect, useState } from 'react';
+import { type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SvgIcon } from '../../../../../../utils/SvgIcon';
-import type { HoverScreenshotMode } from '../types/timeTabTypes';
-
-const HOVER_SCREENSHOT_MODE_STORE_KEY = 'hover-screenshot-mode';
+import { useToolButtons } from '../hooks/useToolButtons';
 
 /**
  * 工具按钮组件
  * @description 提供截图和打开任务管理器两个功能按钮
  */
-export function ToolButtons(): React.ReactElement {
+export function ToolButtons(): ReactElement {
   const { t } = useTranslation();
-  const [screenshotMode, setScreenshotMode] = useState<HoverScreenshotMode>('region');
-
-  useEffect(() => {
-    let cancelled = false;
-    window.api.storeRead(HOVER_SCREENSHOT_MODE_STORE_KEY).then((value) => {
-      if (cancelled) return;
-      if (value === 'display') {
-        setScreenshotMode('display');
-        return;
-      }
-      setScreenshotMode('region');
-    }).catch(() => {
-      if (cancelled) return;
-      setScreenshotMode('region');
-    });
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  const handleScreenshot = useCallback(async () => {
-    try {
-      if (screenshotMode === 'region') {
-        await window.api.startRegionScreenshot();
-        return;
-      }
-      const base64 = await window.api.screenshot();
-      if (base64) {
-        const link = document.createElement('a');
-        link.download = `screenshot_${Date.now()}.png`;
-        link.href = `data:image/png;base64,${base64}`;
-        link.click();
-      }
-    } catch (err) {
-      console.error('[ToolButtons] screenshot error:', err);
-    }
-  }, [screenshotMode]);
-
-  const handleTaskManager = useCallback(() => {
-    window.api.openTaskManager();
-  }, []);
+  const { handleScreenshot, handleTaskManager } = useToolButtons();
 
   return (
     <div className="timer-tools">
