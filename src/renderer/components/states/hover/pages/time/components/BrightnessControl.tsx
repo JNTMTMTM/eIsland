@@ -24,10 +24,9 @@
  * @author 鸡哥
  */
 
-import { type ChangeEvent, type ReactElement, useEffect, useRef, useState } from 'react';
+import { type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
-
-const BRIGHTNESS_UPDATE_DELAY_MS = 80;
+import { useBrightness } from '../hooks/useBrightness';
 
 /**
  * 屏幕亮度调节控件
@@ -36,36 +35,7 @@ const BRIGHTNESS_UPDATE_DELAY_MS = 80;
  */
 export function BrightnessControl(): ReactElement {
   const { t } = useTranslation();
-  const [brightness, setBrightness] = useState(50);
-  const [isAvailable, setIsAvailable] = useState(false);
-  const updateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    window.api.getBrightness().then((value) => {
-      if (cancelled || value === null) return;
-      setBrightness(value);
-      setIsAvailable(true);
-    }).catch(() => {
-      if (!cancelled) setIsAvailable(false);
-    });
-
-    return () => {
-      cancelled = true;
-      if (updateTimerRef.current) clearTimeout(updateTimerRef.current);
-    };
-  }, []);
-
-  const handleBrightnessChange = (event: ChangeEvent<HTMLInputElement>): void => {
-    const nextBrightness = Number(event.target.value);
-    setBrightness(nextBrightness);
-
-    if (updateTimerRef.current) clearTimeout(updateTimerRef.current);
-    updateTimerRef.current = setTimeout(() => {
-      void window.api.setBrightness(nextBrightness);
-    }, BRIGHTNESS_UPDATE_DELAY_MS);
-  };
+  const { brightness, isAvailable, handleBrightnessChange } = useBrightness();
 
   return (
     <div className="brightness-panel">
