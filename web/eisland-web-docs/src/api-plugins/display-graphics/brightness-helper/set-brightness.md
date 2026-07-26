@@ -7,7 +7,7 @@ icon: fa6-solid:code
 # setBrightness
 
 :::info
-`setBrightness` is a function that sets the screen brightness to a specified percentage via Windows WMI (Windows Management Instrumentation). It accepts a value from 0 to 100 and returns a boolean indicating whether the brightness was applied successfully. This is the primary write API in the brightness-helper plugin, complementing the read-only [getBrightness](get-brightness.md) function.
+`setBrightness` is a function that sets the screen brightness to a specified percentage. It first attempts WMI (Windows Management Instrumentation) for built-in displays, then falls back to DDC/CI for external monitors. It accepts a value from 0 to 100 and returns a boolean indicating whether the brightness was applied successfully. This is the primary write API in the brightness-helper plugin, complementing the read-only [getBrightness](get-brightness.md) function.
 :::
 
 ## Signature
@@ -24,7 +24,7 @@ function setBrightness(brightness: number): boolean
 
 ## Return Value
 
-Returns `true` if the brightness was set successfully, `false` otherwise. A `false` return typically means the display device is not accessible or WMI failed to apply the change.
+Returns `true` if the brightness was set successfully, `false` otherwise. A `false` return typically means neither WMI nor DDC/CI could apply the change — the display device may be inaccessible or unsupported.
 
 :::warning
 Always check the return value before assuming the brightness changed. A `false` result does not throw -- it silently signals failure. Use [getBrightness](get-brightness.md) afterward to confirm the actual brightness if certainty is required.
@@ -115,7 +115,7 @@ The `brightness` parameter accepts whole numbers. Fractional values will be trun
 :::
 
 :::note
-This function operates through WMI (`WmiMonitorBrightnessMethods`), which requires the application to run with sufficient privileges. On some systems, brightness control may not work if the WMI provider is unavailable or the display driver does not expose brightness methods.
+This function first tries WMI (`WmiMonitorBrightnessMethods`) for built-in displays, then falls back to DDC/CI (`dxva2.dll`) for external monitors. WMI requires sufficient privileges; DDC/CI works on most external monitors connected via HDMI, DisplayPort, or USB-C. If both providers fail, the function returns `false`.
 :::
 
 ## Danger Avoidance

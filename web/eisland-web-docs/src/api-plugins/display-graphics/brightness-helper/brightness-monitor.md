@@ -121,7 +121,7 @@ monitor.stop();
 ## Notes
 
 :::note
-The monitor uses Windows WMI `WmiMonitorBrightnessEvent` internally. This means it only works on systems where WMI brightness monitoring is supported — most modern Windows laptops and all-in-one PCs qualify, but some desktop monitors may not report brightness via WMI.
+The monitor uses Windows WMI `WmiMonitorBrightnessEvent` internally. This means it only detects brightness changes on WMI-compatible displays (typically built-in laptop screens and all-in-one PCs). Brightness changes on external monitors controlled via DDC/CI will not trigger events. For external monitors, consider polling [getBrightness](get-brightness.md) periodically instead.
 :::
 
 :::note

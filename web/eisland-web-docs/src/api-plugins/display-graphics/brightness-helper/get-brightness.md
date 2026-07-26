@@ -7,7 +7,7 @@ icon: fa6-solid:code
 # getBrightness
 
 :::info
-`getBrightness` queries the current screen brightness through WMI (Windows Management Instrumentation). It returns a [BrightnessInfo](brightness-info.md) object containing the brightness percentage and display metadata, or `null` if no WMI-compatible display is available. This is a synchronous one-shot read — it does not subscribe to changes.
+`getBrightness` queries the current screen brightness through WMI (Windows Management Instrumentation) for built-in displays, falling back to DDC/CI for external monitors. It returns a [BrightnessInfo](brightness-info.md) object containing the brightness percentage, display metadata, and the control source, or `null` if no compatible display is available. This is a synchronous one-shot read — it does not subscribe to changes.
 :::
 
 ## Signature
@@ -18,7 +18,7 @@ function getBrightness(): BrightnessInfo | null;
 
 ## Usage
 
-Call `getBrightness` when you need to read the current screen brightness — for example, to display the value in a UI slider, log the state, or decide whether to adjust brightness based on ambient conditions. Because this is a synchronous one-shot query, it does not reflect external changes made after the call returns. For real-time monitoring, use [BrightnessMonitor](brightness-monitor.md) instead.
+Call `getBrightness` when you need to read the current screen brightness — for example, to display the value in a UI slider, log the state, or decide whether to adjust brightness based on ambient conditions. The function first attempts WMI (for built-in displays) and falls back to DDC/CI (for external monitors). Because this is a synchronous one-shot query, it does not reflect external changes made after the call returns. For real-time monitoring, use [BrightnessMonitor](brightness-monitor.md) instead.
 
 :::tip
 If you only need the brightness value once at startup or on demand, `getBrightness` is the simplest choice. If you need to react to every brightness change (e.g. hardware buttons, OS adjustments), prefer [BrightnessMonitor](brightness-monitor.md) for event-driven tracking without polling overhead.
@@ -26,7 +26,7 @@ If you only need the brightness value once at startup or on demand, `getBrightne
 
 ## Return Value
 
-Returns a [BrightnessInfo](brightness-info.md) object, or `null` if brightness cannot be read (e.g. no WMI-compatible display, or the query failed).
+Returns a [BrightnessInfo](brightness-info.md) object, or `null` if brightness cannot be read (e.g. no WMI-compatible or DDC/CI-capable display, or the query failed).
 
 The `BrightnessInfo` object has the following shape:
 
@@ -34,10 +34,11 @@ The `BrightnessInfo` object has the following shape:
 | --- | --- | --- |
 | `currentBrightness` | `number` | Current brightness percentage (0–100) |
 | `levels` | `number[] \| null` | Array of brightness levels supported by the display, or `null` if unavailable |
-| `instanceName` | `string \| null` | WMI monitor instance name, or `null` if unavailable |
+| `instanceName` | `string \| null` | Monitor instance name (WMI) or description (DDC/CI), or `null` if unavailable |
+| `source` | `'wmi' \| 'ddc-ci'` | Brightness control source: `'wmi'` for built-in displays, `'ddc-ci'` for external monitors |
 
 :::warning
-The return value can be `null`. Systems without WMI-compatible displays (e.g. some desktop monitors connected via HDMI/DP) will return `null`. Always check for `null` before accessing properties on the result.
+The return value can be `null`. Systems where neither WMI nor DDC/CI can read brightness (e.g. virtual displays, unsupported monitors) will return `null`. Always check for `null` before accessing properties on the result.
 :::
 
 ## Example
@@ -91,7 +92,7 @@ if (info) {
 ## Notes
 
 :::note
-This function performs a synchronous WMI query. While the call is fast on most systems, avoid calling it in a tight loop; cache the result and re-query only when needed, or use [BrightnessMonitor](brightness-monitor.md) for continuous tracking.
+This function performs a synchronous query — WMI first, then DDC/CI if WMI returns no results. While the call is fast on most systems, avoid calling it in a tight loop; cache the result and re-query only when needed, or use [BrightnessMonitor](brightness-monitor.md) for continuous tracking.
 :::
 
 :::note
@@ -105,7 +106,7 @@ The `levels` and `instanceName` fields may be `null` on some hardware even when 
 ## Danger Avoidance
 
 :::danger
-Do not assume the return value is always non-null. Systems without WMI-compatible displays (e.g. some desktop monitors connected via HDMI/DP) will return `null`. Always guard against `null` before accessing properties like `currentBrightness`, or your application will crash with a TypeError.
+Do not assume the return value is always non-null. Systems where neither WMI nor DDC/CI can read brightness (e.g. virtual displays, some external monitors) will return `null`. Always guard against `null` before accessing properties like `currentBrightness`, or your application will crash with a TypeError.
 :::
 
 :::danger
