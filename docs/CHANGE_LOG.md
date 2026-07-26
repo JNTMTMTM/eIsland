@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-07-25T15:58:34.456Z
+> 生成时间：2026-07-26T16:35:38.432Z
 
 ## 26.6.5
 
@@ -2946,6 +2946,22 @@
 
 ## Unreleased
 
+- 2026-07-27 | 68915708 | 鸡哥 | Merge pull request #167 from JNTMTMTM/dev
+- 2026-07-27 | 70c526eb | 鸡哥 | fix: correct workflow name formatting in build size report
+- 2026-07-27 | d224ccff | 鸡哥 | feat: update Node.js version to 22 in build size report workflow
+- 2026-07-27 | fd8afffa | 鸡哥 | feat: add volume control localization to English and Chinese language files
+- 2026-07-27 | 22e530df | 鸡哥 | feat: add volume control functionality with IPC handlers and UI components
+- 2026-07-26 | e2ebd76a | 鸡哥 | feat: add Windows Volume Helper with volume control and monitoring functionality
+- 2026-07-26 | b8ad5205 | 鸡哥 | feat: add Windows volume helper plugin with playback device control and monitoring
+- 2026-07-26 | 87448485 | 鸡哥 | feat: update brightness helper documentation to reflect DDC/CI support and clarify usage of WMI and DDC/CI for brightness control
+- 2026-07-26 | b7c79be7 | 鸡哥 | feat: enhance brightness control with DDC/CI support; update WMI integration and add tests
+- 2026-07-26 | 86641560 | 鸡哥 | feat: implement useBrightness hook for managing screen brightness state and logic; refactor BrightnessControl component
+- 2026-07-26 | b119d0b3 | 鸡哥 | feat: add brightness control feature with UI components and IPC handlers
+- 2026-07-26 | f324f122 | 鸡哥 | feat: refactor ActionButtons, CountdownEdit, and ToolButtons components; add custom hooks for action and countdown logic
+- 2026-07-26 | 4c33980c | 鸡哥 | feat: add ActionButtons, CountdownEdit, MediaButtons, ToolButtons components and update timeTabTypes
+- 2026-07-26 | add029cd | 鸡哥 | feat: add media buttons for brightness and volume adjustment in TimeTab
+- 2026-07-26 | 76490228 | 鸡哥 | feat: add VOLUME and BRIGHTNESS SVG icons to SvgIcon utility
+- 2026-07-25 | cb7d2f94 | eislandBot | docs: auto update CHANGE_LOG.md for #165 by @JNTMTMTM [skip ci]
 - 2026-07-25 | ac522921 | 鸡哥 | Merge pull request #165 from JNTMTMTM/dev
 - 2026-07-25 | 51cfd5d2 | 鸡哥 | fix: update file documentation for clarity and consistency
 - 2026-07-25 | cd897d99 | 鸡哥 | feat: add build size report workflow and size collection script
