@@ -30,6 +30,7 @@ import { exec } from 'child_process';
 import os from 'os';
 import * as si from 'systeminformation';
 import { getBrightness, setBrightness } from '@eisland/windows-brightness-helper';
+import { getVolume, setVolume } from '@eisland/windows-volume-helper';
 
 interface PerformanceSnapshot {
   timestamp: number;
@@ -390,6 +391,28 @@ export function registerSystemIpcHandlers(options: RegisterSystemIpcHandlersOpti
       return setBrightness(brightness);
     } catch (err) {
       console.error('[System] brightness:set error:', err);
+      return false;
+    }
+  });
+
+  ipcMain.handle('system:volume:get', () => {
+    if (process.platform !== 'win32') return null;
+    try {
+      return getVolume();
+    } catch (err) {
+      console.error('[System] volume:get error:', err);
+      return null;
+    }
+  });
+
+  ipcMain.handle('system:volume:set', (_event, volume: unknown) => {
+    if (process.platform !== 'win32' || typeof volume !== 'number' || !Number.isFinite(volume)) {
+      return false;
+    }
+    try {
+      return setVolume(volume);
+    } catch (err) {
+      console.error('[System] volume:set error:', err);
       return false;
     }
   });

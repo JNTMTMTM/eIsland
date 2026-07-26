@@ -19,32 +19,10 @@
  */
 
 /**
- * @file timeTabTypes.ts
- * @description 时间 Tab 组件类型定义
+ * @file volumeConfig.ts
+ * @description 系统音量调节相关配置
  * @author 鸡哥
  */
 
-/** TimeTab 组件入参 */
-export interface TimeTabProps {
-  /** 完整时间字符串 (YY-MM-DD HH:MM:SS) */
-  fullTimeStr: string;
-  /** 农历日期字符串 */
-  lunarStr: string;
-}
-
-/** ActionButtons 组件 Props */
-export interface ActionButtonsProps {
-  /** 隐藏图标路径 */
-  hideIcon?: string;
-  /** 退出图标路径 */
-  powerOffIcon?: string;
-}
-
-/** 截图模式 */
-export type HoverScreenshotMode = 'region' | 'display';
-
-/** Hover 时间区域面板模式 */
-export type TimePanelMode = 'countdown' | 'brightness' | 'volume';
-
-/** 计时器状态 */
-export type TimerState = 'idle' | 'running' | 'paused';
+/** 音量更新防抖延迟（毫秒） */
+export const VOLUME_UPDATE_DELAY_MS = 80;

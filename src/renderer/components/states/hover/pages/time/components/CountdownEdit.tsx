@@ -29,21 +29,23 @@ import { useTranslation } from 'react-i18next';
 import { SvgIcon } from '../../../../../../utils/SvgIcon';
 import { BrightnessControl } from './BrightnessControl';
 import { ToolButtons } from './ToolButtons';
+import { VolumeControl } from './VolumeControl';
 import { useCountdownEdit } from '../hooks/useCountdownEdit';
+import type { TimePanelMode } from '../types/timeTabTypes';
 import { padZero } from '../utils/timerUtils';
 
 interface CountdownEditProps {
-  isBrightnessActive: boolean;
+  activePanel: TimePanelMode;
 }
 
 /**
  * 可编辑计时器组件
  * @description 位于时间和农历左侧，直接显示输入框，支持开始、暂停、重置
  * 倒计时逻辑由 DynamicIsland 全局管理，此组件仅负责 UI 展示和用户交互
- * @param props - 是否在倒计时区域显示亮度控件
- * @returns 倒计时或亮度控件区域
+ * @param props - 当前面板模式（倒计时/亮度/音量）
+ * @returns 倒计时或亮度/音量控件区域
  */
-export function CountdownEdit({ isBrightnessActive }: CountdownEditProps): ReactElement {
+export function CountdownEdit({ activePanel }: CountdownEditProps): ReactElement {
   const { t } = useTranslation();
   const {
     timerState,
@@ -69,7 +71,7 @@ export function CountdownEdit({ isBrightnessActive }: CountdownEditProps): React
       <div className="timer-tools-divider" />
 
       <div className="timer-main-shell">
-        <div className={`timer-main${isBrightnessActive ? ' timer-main-hidden' : ''}`}>
+        <div className={`timer-main${activePanel !== 'countdown' ? ' timer-main-hidden' : ''}`}>
           <div className="timer-title-row">
             <div className="timer-title">
               <span className="text-[10px] text-[var(--color-island-text)] leading-tight">{t('hover.timer.title', { defaultValue: '倒计时' })}</span>
@@ -139,7 +141,8 @@ export function CountdownEdit({ isBrightnessActive }: CountdownEditProps): React
             </div>
           </div>
         </div>
-        {isBrightnessActive && <BrightnessControl />}
+        {activePanel === 'brightness' && <BrightnessControl />}
+        {activePanel === 'volume' && <VolumeControl />}
       </div>
     </div>
   );

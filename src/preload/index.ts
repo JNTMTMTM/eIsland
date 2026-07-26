@@ -508,6 +508,21 @@ const api = {
   setBrightness: (brightness: number): Promise<boolean> => {
     return ipcRenderer.invoke('system:brightness:set', brightness);
   },
+  /**
+   * 获取当前默认播放设备音量
+   * @returns 当前音量百分比，不支持时返回 null
+   */
+  getVolume: (): Promise<number | null> => {
+    return ipcRenderer.invoke('system:volume:get');
+  },
+  /**
+   * 设置当前默认播放设备音量
+   * @param volume - 目标音量百分比（0-100）
+   * @returns 是否设置成功
+   */
+  setVolume: (volume: number): Promise<boolean> => {
+    return ipcRenderer.invoke('system:volume:set', volume);
+  },
   getPerformanceSnapshot: (
     selection?: { cpu?: string; gpu?: string; disk?: string },
     includeHardwareOptions = true,
