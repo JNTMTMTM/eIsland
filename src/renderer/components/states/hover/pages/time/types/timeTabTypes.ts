@@ -31,3 +31,20 @@ export interface TimeTabProps {
   /** 农历日期字符串 */
   lunarStr: string;
 }
+
+/** ActionButtons 组件 Props */
+export interface ActionButtonsProps {
+  /** 隐藏图标路径 */
+  hideIcon?: string;
+  /** 退出图标路径 */
+  powerOffIcon?: string;
+}
+
+/** 截图模式 */
+export type HoverScreenshotMode = 'region' | 'display';
+
+/** Hover 时间区域面板模式 */
+export type TimePanelMode = 'countdown' | 'brightness' | 'volume';
+
+/** 计时器状态 */
+export type TimerState = 'idle' | 'running' | 'paused';

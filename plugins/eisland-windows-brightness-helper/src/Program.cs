@@ -35,32 +35,46 @@ static class BrightnessHelper
 {
     public static object? GetBrightness()
     {
-        using var searcher = new ManagementObjectSearcher(@"root\wmi", "SELECT * FROM WmiMonitorBrightness");
-        foreach (ManagementObject obj in searcher.Get())
+        var wmiSnapshot = WmiBrightnessController.GetBrightness();
+        if (wmiSnapshot is not null)
         {
-            var rawLevels = obj["Level"] as byte[];
             return new
             {
-                currentBrightness = (byte)obj["CurrentBrightness"],
-                levels = rawLevels?.Select(b => (int)b).ToArray(),
-                instanceName = obj["InstanceName"] as string
+                currentBrightness = wmiSnapshot.CurrentBrightness,
+                levels = wmiSnapshot.Levels,
+                instanceName = wmiSnapshot.InstanceName,
+                source = "wmi"
             };
         }
-        return null;
+
+        var ddcCiSnapshot = DdcCiBrightnessController.GetBrightness();
+        if (ddcCiSnapshot is null)
+        {
+            return null;
+        }
+
+        return new
+        {
+            currentBrightness = ddcCiSnapshot.CurrentBrightness,
+            levels = (int[]?)null,
+            instanceName = ddcCiSnapshot.Description,
+            source = "ddc-ci"
+        };
     }
 
     public static object SetBrightness(byte brightness)
     {
-        using var searcher = new ManagementObjectSearcher(@"root\wmi", "SELECT * FROM WmiMonitorBrightnessMethods");
-        foreach (ManagementObject obj in searcher.Get())
+        if (WmiBrightnessController.SetBrightness(brightness))
         {
-            var inParams = obj.GetMethodParameters("WmiSetBrightness");
-            inParams["Brightness"] = brightness;
-            inParams["Timeout"] = (uint)0;
-            obj.InvokeMethod("WmiSetBrightness", inParams, null);
-            return new { success = true, brightness };
+            return new { success = true, brightness, source = "wmi" };
         }
-        return new { success = false, error = "No monitor found" };
+
+        if (DdcCiBrightnessController.SetBrightness(brightness))
+        {
+            return new { success = true, brightness, source = "ddc-ci" };
+        }
+
+        return new { success = false, error = "No controllable monitor found" };
     }
 
     public static void Monitor()

@@ -6,9 +6,9 @@ icon: sun
 
 # Windows Brightness Helper
 
-`@eisland/windows-brightness-helper` · v26.0.0
+`@eisland/windows-brightness-helper` · v26.0.1
 
-Screen brightness monitoring and control via .NET console EXE (spawnSync/spawn).
+Screen brightness monitoring and control via .NET console EXE (spawnSync/spawn). Supports built-in displays via WMI and external monitors via DDC/CI.
 
 ## Interfaces
 

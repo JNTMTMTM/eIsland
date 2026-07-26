@@ -398,6 +398,22 @@
       "screenshot": "Screenshot",
       "taskManager": "Task Manager"
     },
+    "media": {
+      "brightness": "Brightness",
+      "volume": "Volume"
+    },
+    "brightness": {
+      "title": "Screen brightness",
+      "hint": "Drag to adjust",
+      "sliderLabel": "Screen brightness",
+      "unavailable": "Unavailable"
+    },
+    "volume": {
+      "title": "System volume",
+      "hint": "Drag to adjust",
+      "sliderLabel": "System volume",
+      "unavailable": "Unavailable"
+    },
     "timer": {
       "title": "Countdown",
       "editHint": "Scroll wheel to edit time",

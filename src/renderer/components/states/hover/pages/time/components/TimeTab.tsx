@@ -25,10 +25,12 @@
  */
 
 import type React from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActionButtons } from '../../../utils/ActionButtons';
-import { CountdownEdit } from '../../../utils/CountdownEdit';
-import type { TimeTabProps } from '../types/timeTabTypes';
+import { ActionButtons } from './ActionButtons';
+import { CountdownEdit } from './CountdownEdit';
+import { MediaButtons } from './MediaButtons';
+import type { TimePanelMode, TimeTabProps } from '../types/timeTabTypes';
 
 /**
  * 时间 Tab 内容
@@ -41,12 +43,20 @@ export function TimeTab({
   lunarStr
 }: TimeTabProps): React.ReactElement {
   const { t } = useTranslation();
+  const [activePanel, setActivePanel] = useState<TimePanelMode>('countdown');
+
+  const handlePanelToggle = (panel: Exclude<TimePanelMode, 'countdown'>): void => {
+    setActivePanel((current) => current === panel ? 'countdown' : panel);
+  };
 
   return (
     <div className="time-tab-wrapper">
       <ActionButtons />
-      <div className="time-tab-divider" />
-      <CountdownEdit />
+      <MediaButtons
+        activePanel={activePanel}
+        onPanelToggle={handlePanelToggle}
+      />
+      <CountdownEdit activePanel={activePanel} />
       <div className="time-tab-divider" />
       <div className="flex flex-col gap-1 text-right">
         <span className="text-sm text-[var(--color-island-text)] font-medium tabular-nums">

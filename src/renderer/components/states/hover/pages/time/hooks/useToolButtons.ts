@@ -19,24 +19,25 @@
  */
 
 /**
- * @file ToolButtons.tsx
- * @description 截图和任务管理器工具按钮组件
+ * @file useToolButtons.ts
+ * @description 工具按钮逻辑 Hook（截图模式读取、截图/任务管理器操作）
  * @author 鸡哥
  */
 
-import React, { useCallback, useEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { SvgIcon } from '../../../../utils/SvgIcon';
-import type { HoverScreenshotMode } from '../types';
+import { useCallback, useEffect, useState } from 'react';
+import type { HoverScreenshotMode } from '../types/timeTabTypes';
 
 const HOVER_SCREENSHOT_MODE_STORE_KEY = 'hover-screenshot-mode';
 
 /**
- * 工具按钮组件
- * @description 提供截图和打开任务管理器两个功能按钮
+ * 工具按钮逻辑 Hook
+ * @description 管理截图模式状态，提供截图和打开任务管理器的回调
+ * @returns 截图模式和操作回调
  */
-export function ToolButtons(): React.ReactElement {
-  const { t } = useTranslation();
+export function useToolButtons(): {
+  handleScreenshot: () => Promise<void>;
+  handleTaskManager: () => void;
+} {
   const [screenshotMode, setScreenshotMode] = useState<HoverScreenshotMode>('region');
 
   useEffect(() => {
@@ -80,14 +81,5 @@ export function ToolButtons(): React.ReactElement {
     window.api.openTaskManager();
   }, []);
 
-  return (
-    <div className="timer-tools">
-      <button className="action-btn" onClick={handleScreenshot} title={t('hover.tools.screenshot', { defaultValue: '截图' })}>
-        <img src={SvgIcon.SCREENSHOT} alt={t('hover.tools.screenshot', { defaultValue: '截图' })} className="action-btn-icon" />
-      </button>
-      <button className="action-btn" onClick={handleTaskManager} title={t('hover.tools.taskManager', { defaultValue: '任务管理器' })}>
-        <img src={SvgIcon.TASK_MANAGER} alt={t('hover.tools.taskManager', { defaultValue: '任务管理器' })} className="action-btn-icon" />
-      </button>
-    </div>
-  );
+  return { handleScreenshot, handleTaskManager };
 }

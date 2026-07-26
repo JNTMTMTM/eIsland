@@ -1,4 +1,4 @@
-name: eisland-ci-Build Size Report
+name: eisland CI Build Size Report
 
 on:
   pull_request_target:
@@ -35,7 +35,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
 
       - name: Install dependencies (base)
