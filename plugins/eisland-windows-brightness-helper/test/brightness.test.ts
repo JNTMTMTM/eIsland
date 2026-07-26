@@ -48,6 +48,10 @@ function expectValidBrightnessShape(info: BrightnessInfo) {
   if (info.instanceName !== null) {
     expect(typeof info.instanceName).toBe('string');
   }
+
+  if (info.source !== undefined) {
+    expect(['wmi', 'ddc-ci']).toContain(info.source);
+  }
 }
 
 describe('@eisland/windows-brightness-helper', () => {

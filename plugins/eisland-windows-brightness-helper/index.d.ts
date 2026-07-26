@@ -29,6 +29,8 @@ export interface BrightnessInfo {
   levels: number[] | null;
   /** 显示器实例名称 */
   instanceName: string | null;
+  /** 亮度控制来源：内置屏 WMI 或外接显示器 DDC/CI */
+  source?: 'wmi' | 'ddc-ci';
 }
 
 // ── 查询函数 ──────────────────────────────────────────────────
