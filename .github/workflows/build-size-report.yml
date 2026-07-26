@@ -1,4 +1,4 @@
-name: eisland-ci-Build Size Report
+name: eisland CI Build Size Report
 
 on:
   pull_request_target:
