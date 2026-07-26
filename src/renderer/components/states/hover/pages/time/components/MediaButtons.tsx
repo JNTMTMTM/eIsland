@@ -20,7 +20,7 @@
 
 /**
  * @file MediaButtons.tsx
- * @description 亮度和音量调节按钮组件（仅 UI，暂不实现功能）
+ * @description 亮度和音量调节按钮组件
  * @author 鸡哥
  */
 
@@ -28,19 +28,31 @@ import { type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SvgIcon } from '../../../../../../utils/SvgIcon';
 
+interface MediaButtonsProps {
+  isBrightnessActive: boolean;
+  onBrightnessToggle: () => void;
+}
+
 /**
  * 媒体调节按钮组件
- * @description 提供亮度和音量两个调节按钮，仅展示前端 UI
+ * @description 提供亮度调节入口和音量占位按钮
+ * @param props - 亮度面板状态与切换回调
+ * @returns 媒体调节按钮元素
  */
-export function MediaButtons(): ReactElement {
+export function MediaButtons({
+  isBrightnessActive,
+  onBrightnessToggle,
+}: MediaButtonsProps): ReactElement {
   const { t } = useTranslation();
 
   return (
     <div className="media-buttons">
       <button
         className="action-btn"
+        onClick={onBrightnessToggle}
         title={t('hover.media.brightness', { defaultValue: '亮度' })}
         aria-label={t('hover.media.brightness', { defaultValue: '亮度' })}
+        aria-pressed={isBrightnessActive}
       >
         <img src={SvgIcon.BRIGHTNESS} alt={t('hover.media.brightness', { defaultValue: '亮度' })} className="action-btn-icon" />
       </button>

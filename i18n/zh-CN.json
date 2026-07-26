@@ -402,6 +402,12 @@
       "brightness": "亮度",
       "volume": "音量"
     },
+    "brightness": {
+      "title": "屏幕亮度",
+      "hint": "拖动调节",
+      "sliderLabel": "屏幕亮度",
+      "unavailable": "不可用"
+    },
     "timer": {
       "title": "倒计时",
       "editHint": "滚动滚轮编辑时间",

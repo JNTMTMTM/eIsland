@@ -493,6 +493,21 @@ const api = {
   openTaskManager: (): void => {
     ipcRenderer.send('system:open-task-manager');
   },
+  /**
+   * 获取当前屏幕亮度
+   * @returns 当前亮度百分比，不支持时返回 null
+   */
+  getBrightness: (): Promise<number | null> => {
+    return ipcRenderer.invoke('system:brightness:get');
+  },
+  /**
+   * 设置当前屏幕亮度
+   * @param brightness - 目标亮度百分比（0-100）
+   * @returns 是否设置成功
+   */
+  setBrightness: (brightness: number): Promise<boolean> => {
+    return ipcRenderer.invoke('system:brightness:set', brightness);
+  },
   getPerformanceSnapshot: (
     selection?: { cpu?: string; gpu?: string; disk?: string },
     includeHardwareOptions = true,

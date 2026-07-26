@@ -63,12 +63,62 @@
   gap: 6px;
 }
 
+/** 保留倒计时的实际尺寸，亮度面板仅覆盖其内容 */
+.timer-main-shell {
+  position: relative;
+  flex-shrink: 0;
+}
+
 /** 计时器主体 */
 .timer-main {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 4px;
+}
+
+.timer-main-hidden {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.brightness-panel {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+}
+
+.brightness-control-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  width: 100%;
+  min-height: 26px;
+  gap: 8px;
+}
+
+.brightness-slider {
+  flex: 1;
+  min-width: 0;
+  accent-color: var(--color-island-text);
+  cursor: pointer;
+}
+
+.brightness-slider:disabled {
+  cursor: not-allowed;
+  opacity: .5;
+}
+
+.brightness-value {
+  min-width: 32px;
+  color: var(--color-island-text);
+  font-size: 12px;
+  font-weight: 600;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
 }
 
 .timer-main-row {

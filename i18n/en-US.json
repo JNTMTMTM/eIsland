@@ -402,6 +402,12 @@
       "brightness": "Brightness",
       "volume": "Volume"
     },
+    "brightness": {
+      "title": "Screen brightness",
+      "hint": "Drag to adjust",
+      "sliderLabel": "Screen brightness",
+      "unavailable": "Unavailable"
+    },
     "timer": {
       "title": "Countdown",
       "editHint": "Scroll wheel to edit time",

@@ -29,6 +29,7 @@ import { ipcMain } from 'electron';
 import { exec } from 'child_process';
 import os from 'os';
 import * as si from 'systeminformation';
+import { getBrightness, setBrightness } from '@eisland/windows-brightness-helper';
 
 interface PerformanceSnapshot {
   timestamp: number;
@@ -369,6 +370,28 @@ export function registerSystemIpcHandlers(options: RegisterSystemIpcHandlersOpti
   ipcMain.handle('system:focused-window:get', async () => {
     if (process.platform !== 'win32') return null;
     return options.queryFocusedWindow();
+  });
+
+  ipcMain.handle('system:brightness:get', () => {
+    if (process.platform !== 'win32') return null;
+    try {
+      return getBrightness()?.currentBrightness ?? null;
+    } catch (err) {
+      console.error('[System] brightness:get error:', err);
+      return null;
+    }
+  });
+
+  ipcMain.handle('system:brightness:set', (_event, brightness: unknown) => {
+    if (process.platform !== 'win32' || typeof brightness !== 'number' || !Number.isFinite(brightness)) {
+      return false;
+    }
+    try {
+      return setBrightness(brightness);
+    } catch (err) {
+      console.error('[System] brightness:set error:', err);
+      return false;
+    }
   });
 
   ipcMain.handle(

@@ -25,6 +25,7 @@
  */
 
 import type React from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActionButtons } from './ActionButtons';
 import { CountdownEdit } from './CountdownEdit';
@@ -42,12 +43,20 @@ export function TimeTab({
   lunarStr
 }: TimeTabProps): React.ReactElement {
   const { t } = useTranslation();
+  const [isBrightnessActive, setIsBrightnessActive] = useState(false);
+
+  const handleBrightnessToggle = (): void => {
+    setIsBrightnessActive((active) => !active);
+  };
 
   return (
     <div className="time-tab-wrapper">
       <ActionButtons />
-      <MediaButtons />
-      <CountdownEdit />
+      <MediaButtons
+        isBrightnessActive={isBrightnessActive}
+        onBrightnessToggle={handleBrightnessToggle}
+      />
+      <CountdownEdit isBrightnessActive={isBrightnessActive} />
       <div className="time-tab-divider" />
       <div className="flex flex-col gap-1 text-right">
         <span className="text-sm text-[var(--color-island-text)] font-medium tabular-nums">

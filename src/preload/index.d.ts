@@ -240,6 +240,8 @@ declare global {
       getRunningNonSystemProcessesWithIcons: () => Promise<RunningProcessInfo[]>;
       getOpenWindowsWithIcons: () => Promise<RunningWindowInfo[]>;
       getFocusedWindow: () => Promise<RunningWindowInfo | null>;
+      getBrightness: () => Promise<number | null>;
+      setBrightness: (brightness: number) => Promise<boolean>;
       hideProcessListGet: () => Promise<string[]>;
       hideProcessListSet: (list: string[]) => Promise<boolean>;
       autoHideFullscreenWindowsGet: () => Promise<boolean>;
