@@ -98,17 +98,17 @@ const LYRICS_FONT_STORE_KEY = 'lyrics-font-family';
 const UI_CUSTOM_FONTS_STORE_KEY = 'ui-custom-fonts';
 const LYRICS_CUSTOM_FONTS_STORE_KEY = 'lyrics-custom-fonts';
 
-/** 字体预设列表 */
+/** 字体预设列表（label 为 i18n key） */
 const FONT_PRESETS = [
-  { value: 'default', label: '系统默认', css: "'Microsoft YaHei', 'PingFang SC', -apple-system, sans-serif" },
-  { value: 'microsoft-yahei', label: '微软雅黑', css: "'Microsoft YaHei', sans-serif" },
-  { value: 'simhei', label: '黑体', css: "'SimHei', sans-serif" },
-  { value: 'simsun', label: '宋体', css: "'SimSun', serif" },
-  { value: 'kaiti', label: '楷体', css: "'KaiTi', serif" },
-  { value: 'fangsong', label: '仿宋', css: "'FangSong', serif" },
-  { value: 'cascadia-code', label: 'Cascadia Code', css: "'Cascadia Code', 'JetBrains Mono', Consolas, monospace" },
-  { value: 'jetbrains-mono', label: 'JetBrains Mono', css: "'JetBrains Mono', 'Cascadia Code', Consolas, monospace" },
-  { value: 'consolas', label: 'Consolas', css: "Consolas, 'Courier New', monospace" },
+  { value: 'default', i18nKey: 'settings.app.theme.fontDefault', css: "'Microsoft YaHei', 'PingFang SC', -apple-system, sans-serif" },
+  { value: 'microsoft-yahei', i18nKey: 'settings.app.theme.fontMicrosoftYahei', css: "'Microsoft YaHei', sans-serif" },
+  { value: 'simhei', i18nKey: 'settings.app.theme.fontSimhei', css: "'SimHei', sans-serif" },
+  { value: 'simsun', i18nKey: 'settings.app.theme.fontSimsun', css: "'SimSun', serif" },
+  { value: 'kaiti', i18nKey: 'settings.app.theme.fontKaiti', css: "'KaiTi', serif" },
+  { value: 'fangsong', i18nKey: 'settings.app.theme.fontFangsong', css: "'FangSong', serif" },
+  { value: 'cascadia-code', i18nKey: 'settings.app.theme.fontCascadiaCode', css: "'Cascadia Code', 'JetBrains Mono', Consolas, monospace" },
+  { value: 'jetbrains-mono', i18nKey: 'settings.app.theme.fontJetbrainsMono', css: "'JetBrains Mono', 'Cascadia Code', Consolas, monospace" },
+  { value: 'consolas', i18nKey: 'settings.app.theme.fontConsolas', css: "Consolas, 'Courier New', monospace" },
 ] as const;
 
 /** 自定义字体条目 */
@@ -387,7 +387,7 @@ export function ThemeSettingsPage({
                   window.api.storeWrite(UI_FONT_STORE_KEY, font.value).catch(() => {});
                 }}
               >
-                {font.label}
+                {t(font.i18nKey)}
               </button>
             ))}
             {uiCustomFonts.map((font) => (
@@ -470,7 +470,7 @@ export function ThemeSettingsPage({
                   window.api.storeWrite(LYRICS_FONT_STORE_KEY, font.value).catch(() => {});
                 }}
               >
-                {font.label}
+                {t(font.i18nKey)}
               </button>
             ))}
             {lyricsCustomFonts.map((font) => (
