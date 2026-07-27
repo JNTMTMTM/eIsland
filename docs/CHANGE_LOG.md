@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-07-26T16:35:38.432Z
+> 生成时间：2026-07-27T07:12:30.479Z
 
 ## 26.6.5
 
@@ -2946,6 +2946,14 @@
 
 ## Unreleased
 
+- 2026-07-27 | 88335c28 | 鸡哥 | Merge pull request #169 from JNTMTMTM/dev
+- 2026-07-27 | 38b349ad | 鸡哥 | refactor: replace for loop with forEach for drawing lines in MusicBgWavePreview
+- 2026-07-27 | ea35927d | 鸡哥 | feat: update music background wave preview to use layered line waves
+- 2026-07-27 | d71e9439 | 鸡哥 | feat: reorganize music background style preview section in settings page
+- 2026-07-27 | b59fda78 | 鸡哥 | refactor: remove unused music background preview labels from settings page
+- 2026-07-27 | bfba6a4f | 鸡哥 | feat: enhance music background style preview with active state styling
+- 2026-07-27 | 4beaad45 | 鸡哥 | feat: add hover music background style preview and settings
+- 2026-07-26 | 68c519ea | eislandBot | docs: auto update CHANGE_LOG.md for #167 by @JNTMTMTM [skip ci]
 - 2026-07-27 | 68915708 | 鸡哥 | Merge pull request #167 from JNTMTMTM/dev
 - 2026-07-27 | 70c526eb | 鸡哥 | fix: correct workflow name formatting in build size report
 - 2026-07-27 | d224ccff | 鸡哥 | feat: update Node.js version to 22 in build size report workflow
