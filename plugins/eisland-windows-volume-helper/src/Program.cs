@@ -7,6 +7,30 @@ try
 {
     switch (command)
     {
+        case "get-mute":
+            Console.WriteLine(JsonSerializer.Serialize(
+                AudioEndpointController.GetMute() is bool muted
+                    ? new { muted }
+                    : null,
+                jsonOptions));
+            break;
+
+        case "set-mute" when args.Length > 1 && bool.TryParse(args[1], out var requestedMute):
+            Console.WriteLine(JsonSerializer.Serialize(new
+            {
+                success = AudioEndpointController.SetMute(requestedMute),
+                muted = requestedMute
+            }, jsonOptions));
+            break;
+
+        case "set-mute":
+            Console.WriteLine(JsonSerializer.Serialize(new
+            {
+                success = false,
+                error = "Missing or invalid mute state"
+            }, jsonOptions));
+            break;
+
         case "get":
             Console.WriteLine(JsonSerializer.Serialize(
                 AudioEndpointController.GetVolume() is int level

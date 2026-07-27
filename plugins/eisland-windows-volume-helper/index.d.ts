@@ -20,6 +20,12 @@
 
 import { EventEmitter } from 'events';
 
+/** 获取当前默认播放设备的静音状态 */
+export function getMute(): boolean | null;
+
+/** 设置当前默认播放设备的静音状态 */
+export function setMute(muted: boolean): boolean;
+
 /** 获取当前默认播放设备的主音量（0-100） */
 export function getVolume(): number | null;
 

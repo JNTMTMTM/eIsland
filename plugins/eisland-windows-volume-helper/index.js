@@ -56,6 +56,26 @@ function callHelper(args, timeout = 5000) {
 }
 
 /**
+ * 获取当前默认播放设备的静音状态
+ * @returns {boolean | null} 静音状态，失败时返回 null
+ */
+function getMute() {
+  const result = callHelper(['get-mute']);
+  return typeof result?.muted === 'boolean' ? result.muted : null;
+}
+
+/**
+ * 设置当前默认播放设备的静音状态
+ * @param {boolean} muted - 是否静音
+ * @returns {boolean} 是否设置成功
+ */
+function setMute(muted) {
+  if (typeof muted !== 'boolean') return false;
+  const result = callHelper(['set-mute', String(muted)]);
+  return result?.success === true;
+}
+
+/**
  * 获取当前默认播放设备的主音量
  * @returns {number | null} 0-100 音量，失败时返回 null
  */
@@ -162,6 +182,8 @@ class VolumeMonitor extends EventEmitter {
 }
 
 module.exports = {
+  getMute,
+  setMute,
   getVolume,
   setVolume,
   VolumeMonitor,
