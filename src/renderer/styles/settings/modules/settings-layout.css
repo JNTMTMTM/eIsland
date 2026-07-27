@@ -2300,6 +2300,11 @@
   background: rgba(var(--color-text-rgb), 0.05);
 }
 
+.settings-music-bg-preview-item.active {
+  border-color: rgba(100, 180, 255, 0.5);
+  background: rgba(100, 180, 255, 0.06);
+}
+
 .settings-music-bg-preview-label {
   font-size: 11px;
   font-weight: 500;
@@ -2339,22 +2344,15 @@
   display: block;
 }
 
-.settings-music-bg-preview-radio {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
+.settings-music-bg-preview-name {
   font-size: 11px;
-  color: rgba(var(--color-text-rgb), 0.7);
+  font-weight: 500;
+  color: rgba(var(--color-text-rgb), 0.6);
+  text-align: center;
 }
 
-.settings-music-bg-preview-radio input[type='radio'] {
-  accent-color: var(--color-island-text);
-}
-
-.settings-music-bg-preview-item:has(input:checked) {
-  border-color: rgba(100, 180, 255, 0.5);
-  background: rgba(100, 180, 255, 0.06);
+.settings-music-bg-preview-item.active .settings-music-bg-preview-name {
+  color: rgba(100, 180, 255, 0.9);
 }
 
 /** ===== 歌曲设置 ===== */

@@ -85,39 +85,23 @@ export function LayoutPreviewSettingsPage({
             <div className="settings-card-subtitle">{t('settings.app.layout.musicBgHint', { defaultValue: '预览并选择 Hover 态歌曲界面的背景波浪效果样式。' })}</div>
           </div>
           <div className="settings-music-bg-preview-row">
-            <div className="settings-music-bg-preview-item" onClick={() => handleStyleChange('silky')}>
-              <div className={`settings-music-bg-preview-label ${bgStyle === 'silky' ? 'active' : ''}`}>
+            <div className={`settings-music-bg-preview-item ${bgStyle === 'silky' ? 'active' : ''}`} onClick={() => handleStyleChange('silky')}>
+              <div className="settings-music-bg-preview-label">
                 {t('settings.app.layout.musicBgCurrent', { defaultValue: '目前状态' })}
               </div>
               <div className="settings-music-bg-preview-canvas-wrap">
                 <SilkyWave color={waveColor} playing />
               </div>
-              <div className="settings-music-bg-preview-radio">
-                <input
-                  type="radio"
-                  name="hover-music-bg-style"
-                  checked={bgStyle === 'silky'}
-                  onChange={() => handleStyleChange('silky')}
-                />
-                <span>{t('settings.app.layout.musicBgSilky', { defaultValue: '丝滑波浪' })}</span>
-              </div>
+              <span className="settings-music-bg-preview-name">{t('settings.app.layout.musicBgSilky', { defaultValue: '丝滑波浪' })}</span>
             </div>
-            <div className="settings-music-bg-preview-item" onClick={() => handleStyleChange('wave')}>
-              <div className={`settings-music-bg-preview-label ${bgStyle === 'wave' ? 'active' : ''}`}>
+            <div className={`settings-music-bg-preview-item ${bgStyle === 'wave' ? 'active' : ''}`} onClick={() => handleStyleChange('wave')}>
+              <div className="settings-music-bg-preview-label">
                 {t('settings.app.layout.musicBgModified', { defaultValue: '修改后效果' })}
               </div>
               <div className="settings-music-bg-preview-canvas-wrap">
                 <MusicBgWavePreview color={waveColor} playing />
               </div>
-              <div className="settings-music-bg-preview-radio">
-                <input
-                  type="radio"
-                  name="hover-music-bg-style"
-                  checked={bgStyle === 'wave'}
-                  onChange={() => handleStyleChange('wave')}
-                />
-                <span>{t('settings.app.layout.musicBgWave', { defaultValue: '音频波浪' })}</span>
-              </div>
+              <span className="settings-music-bg-preview-name">{t('settings.app.layout.musicBgWave', { defaultValue: '音频波浪' })}</span>
             </div>
           </div>
         </div>
