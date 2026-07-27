@@ -31,6 +31,7 @@ import {
   COLUMNS_STORE_KEY,
   GROUP_MODE_STORE_KEY,
   LOCAL_STORAGE_KEY,
+  MEDIA_LOAD_CONCURRENCY,
   MEDIA_LOAD_DELAY_MS,
   SORT_STORE_KEY,
   STORE_KEY,
@@ -64,7 +65,13 @@ export function useAlbumItems(): UseAlbumItemsReturn {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const gridVideoRefs = useRef<Record<number, HTMLVideoElement | null>>({});
   const metaLoadingRef = useRef<Set<number>>(new Set());
+  const fullImageLoadingRef = useRef<Set<number>>(new Set());
+  const requestedFullImageIdRef = useRef<number | null>(null);
   const exifLoadingRef = useRef<Set<number>>(new Set());
+  const mediaQueueRef = useRef<AlbumItem[]>([]);
+  const mediaQueuedIdsRef = useRef<Set<number>>(new Set());
+  const mediaActiveCountRef = useRef(0);
+  const drainMediaQueueRef = useRef<() => void>(() => {});
 
   /** 初次加载持久化数据 */
   useEffect(() => {
@@ -130,7 +137,7 @@ export function useAlbumItems(): UseAlbumItemsReturn {
     };
   }, []);
 
-  /** 主动加载媒体元数据（图像/视频） */
+  /** 主动加载媒体元数据（图像/视频），完成后自动驱动队列 */
   const loadItemMeta = useCallback((item: AlbumItem): void => {
     if (metaLoadingRef.current.has(item.id)) return;
     metaLoadingRef.current.add(item.id);
@@ -183,55 +190,113 @@ export function useAlbumItems(): UseAlbumItemsReturn {
         }));
       }).finally(() => {
         metaLoadingRef.current.delete(item.id);
+        mediaActiveCountRef.current = Math.max(0, mediaActiveCountRef.current - 1);
+        drainMediaQueueRef.current();
       });
       return;
     }
-    window.api.loadWallpaperFile(item.path).then((dataUrl) => {
-      if (!dataUrl) {
+    window.api.loadAlbumThumbnail(item.path).then((thumbnailUrl) => {
+      if (!thumbnailUrl) {
         setMetaCache((prev) => ({ ...prev, [item.id]: { ...prev[item.id], loading: false, loadFailed: true } }));
         return;
       }
-      const sizeBytes = estimateBytesFromDataUrl(dataUrl);
-      const probe = new Image();
-      probe.onload = () => {
-        setMetaCache((prev) => ({
-          ...prev,
-          [item.id]: {
-            ...prev[item.id],
-            dataUrl,
-            sizeBytes,
-            width: probe.naturalWidth,
-            height: probe.naturalHeight,
-            loading: false,
-            loadFailed: false,
-          },
-        }));
-      };
-      probe.onerror = () => {
-        setMetaCache((prev) => ({
-          ...prev,
-          [item.id]: { ...prev[item.id], dataUrl, sizeBytes, loading: false, loadFailed: false },
-        }));
-      };
-      probe.src = dataUrl;
+      setMetaCache((prev) => ({
+        ...prev,
+        [item.id]: {
+          ...prev[item.id],
+          thumbnailUrl,
+          loading: false,
+          loadFailed: false,
+        },
+      }));
     }).catch(() => {
       setMetaCache((prev) => ({ ...prev, [item.id]: { ...prev[item.id], loading: false, loadFailed: true } }));
     }).finally(() => {
       metaLoadingRef.current.delete(item.id);
+      mediaActiveCountRef.current = Math.max(0, mediaActiveCountRef.current - 1);
+      drainMediaQueueRef.current();
     });
   }, []);
 
-  /** 缩略图为可见时按需加载 dataUrl */
+  /** 仅为当前查看项加载原图，并释放上一张原图字符串 */
+  const loadFullImage = useCallback((item: AlbumItem): void => {
+    if (item.mediaType !== 'image') return;
+    requestedFullImageIdRef.current = item.id;
+    if (metaCacheRef.current[item.id]?.dataUrl || fullImageLoadingRef.current.has(item.id)) return;
+    fullImageLoadingRef.current.add(item.id);
+    setMetaCache((prev) => ({
+      ...prev,
+      [item.id]: { ...prev[item.id], loading: true, loadFailed: false },
+    }));
+    window.api.loadWallpaperFile(item.path).then((dataUrl) => {
+      if (!dataUrl || requestedFullImageIdRef.current !== item.id) return;
+      const sizeBytes = estimateBytesFromDataUrl(dataUrl);
+      const probe = new Image();
+      const commit = (width?: number, height?: number): void => {
+        if (requestedFullImageIdRef.current !== item.id) return;
+        setMetaCache((prev) => {
+          const next = Object.fromEntries(
+            Object.entries(prev).map(([id, meta]) => [id, id === String(item.id) ? meta : { ...meta, dataUrl: undefined }]),
+          ) as Record<number, AlbumMeta>;
+          next[item.id] = {
+            ...next[item.id],
+            dataUrl,
+            sizeBytes,
+            width,
+            height,
+            loading: false,
+            loadFailed: false,
+          };
+          return next;
+        });
+      };
+      probe.onload = () => commit(probe.naturalWidth, probe.naturalHeight);
+      probe.onerror = () => commit();
+      probe.src = dataUrl;
+    }).catch(() => {
+      if (requestedFullImageIdRef.current !== item.id) return;
+      setMetaCache((prev) => ({
+        ...prev,
+        [item.id]: { ...prev[item.id], loading: false, loadFailed: true },
+      }));
+    }).finally(() => {
+      fullImageLoadingRef.current.delete(item.id);
+    });
+  }, []);
+
+  /** 从队列中取出下一个待加载项并执行（受并发上限控制） */
+  const drainMediaQueue = useCallback((): void => {
+    while (mediaActiveCountRef.current < MEDIA_LOAD_CONCURRENCY && mediaQueueRef.current.length > 0) {
+      const next = mediaQueueRef.current.shift();
+      if (!next) break;
+      mediaQueuedIdsRef.current.delete(next.id);
+      mediaActiveCountRef.current += 1;
+      loadItemMeta(next);
+    }
+  }, [loadItemMeta]);
+
+  /** 保持 ref 始终指向最新的 drainMediaQueue */
+  useEffect(() => {
+    drainMediaQueueRef.current = drainMediaQueue;
+  }, [drainMediaQueue]);
+
+  /** 缩略图按需入队加载（受并发上限控制，不依赖 metaCache 避免反复触发） */
   useEffect(() => {
     if (!loaded || !mediaLoadReady || items.length === 0) return;
+    const pending: AlbumItem[] = [];
     items.forEach((item) => {
+      if (metaLoadingRef.current.has(item.id) || mediaQueuedIdsRef.current.has(item.id)) return;
       const meta = metaCache[item.id];
-      const hasPreview = item.mediaType === 'video' ? Boolean(meta?.videoUrl) : Boolean(meta?.dataUrl);
+      const hasPreview = item.mediaType === 'video' ? Boolean(meta?.videoUrl) : Boolean(meta?.thumbnailUrl);
       if (!meta || (!hasPreview && !meta.loading && !meta.loadFailed)) {
-        loadItemMeta(item);
+        pending.push(item);
       }
     });
-  }, [items, metaCache, loaded, mediaLoadReady, loadItemMeta]);
+    if (pending.length === 0) return;
+    pending.forEach((item) => mediaQueuedIdsRef.current.add(item.id));
+    mediaQueueRef.current.push(...pending);
+    drainMediaQueue();
+  }, [items, loaded, mediaLoadReady, drainMediaQueue]);
 
   /** 异步加载 JPEG 的 EXIF 信息（仅在单图视图时触发） */
   const loadExifIfNeeded = useCallback((item: AlbumItem): void => {
@@ -355,6 +420,7 @@ export function useAlbumItems(): UseAlbumItemsReturn {
     initSortMode,
     initGroupMode,
     loadExifIfNeeded,
+    loadFullImage,
     handleAddFiles,
     handleRemove,
     handleRemoveSelected,

@@ -59,3 +59,5 @@ export const ZOOM_MAX = 6;
 export const ZOOM_STEP = 0.15;
 /** MaxExpand 切换动画缓冲（ms）：结束后再开始批量媒体加载，避免首帧卡顿 */
 export const MEDIA_LOAD_DELAY_MS = 320;
+/** 批量缩略图加载最大并发数 */
+export const MEDIA_LOAD_CONCURRENCY = 4;

@@ -38,6 +38,7 @@ const {
   showSaveDialogMock,
   showOpenDialogMock,
   createFromDataURLMock,
+  createThumbnailFromPathMock,
   browserWindowFromWebContentsMock,
   browserWindowGetFocusedWindowMock,
   netFetchMock,
@@ -48,6 +49,7 @@ const {
   showSaveDialogMock: vi.fn(),
   showOpenDialogMock: vi.fn(),
   createFromDataURLMock: vi.fn(),
+  createThumbnailFromPathMock: vi.fn(),
   browserWindowFromWebContentsMock: vi.fn(),
   browserWindowGetFocusedWindowMock: vi.fn(),
   netFetchMock: vi.fn(),
@@ -96,6 +98,7 @@ vi.mock('electron', () => ({
   },
   nativeImage: {
     createFromDataURL: createFromDataURLMock,
+    createThumbnailFromPath: createThumbnailFromPathMock,
   },
   BrowserWindow: {
     fromWebContents: browserWindowFromWebContentsMock,
@@ -143,6 +146,7 @@ describe('capture and wallpaper ipc handlers', () => {
     showSaveDialogMock.mockReset();
     showOpenDialogMock.mockReset();
     createFromDataURLMock.mockReset();
+    createThumbnailFromPathMock.mockReset();
     browserWindowFromWebContentsMock.mockReset();
     browserWindowGetFocusedWindowMock.mockReset();
     netFetchMock.mockReset();
@@ -248,12 +252,17 @@ describe('capture and wallpaper ipc handlers', () => {
     });
     readdirSyncMock.mockReturnValue(['custom-bg-abc.png', 'keep.txt']);
     readFileSyncMock.mockReturnValue(Buffer.from('img'));
+    createThumbnailFromPathMock.mockResolvedValue({
+      isEmpty: () => false,
+      toJPEG: () => Buffer.from('thumb'),
+    });
 
     registerWallpaperIpcHandlers();
 
     const openImage = handleHandlers.get('dialog:open-image');
     const openVideo = handleHandlers.get('dialog:open-video');
     const loadFile = handleHandlers.get('wallpaper:load-file');
+    const loadThumbnail = handleHandlers.get('album:load-thumbnail');
     const clearCache = handleHandlers.get('wallpaper:clear-cache');
     const readBuffer = handleHandlers.get('wallpaper:read-file-buffer');
 
@@ -267,6 +276,8 @@ describe('capture and wallpaper ipc handlers', () => {
     expect(unlinkSyncMock).toHaveBeenCalledWith(expect.stringContaining('custom-bg-abc.png'));
 
     await expect(loadFile?.({}, 'D:/wall/in.png')).resolves.toBe(`data:image/png;base64,${Buffer.from('img').toString('base64')}`);
+    await expect(loadThumbnail?.({}, 'D:/wall/in.png')).resolves.toBe(`data:image/jpeg;base64,${Buffer.from('thumb').toString('base64')}`);
+    expect(createThumbnailFromPathMock).toHaveBeenCalledWith('D:/wall/in.png', { width: 320, height: 320 });
     await expect(readBuffer?.({}, 'C:/AppData/eIsland/wallpapers/test.png')).resolves.toEqual(new Uint8Array(Buffer.from('img')));
 
     await clearCache?.({});

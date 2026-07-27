@@ -175,6 +175,7 @@ declare global {
       openFontDialog: () => Promise<{ path: string; data: string; ext: string; name: string } | null>;
       readFontFile: (filePath: string) => Promise<{ path: string; data: string; ext: string; name: string } | null>;
       loadWallpaperFile: (filePath: string) => Promise<string | null>;
+      loadAlbumThumbnail: (filePath: string) => Promise<string | null>;
       clearWallpaperCache: () => Promise<void>;
       setSystemDesktopWallpaper: (payload: SetWallpaperPayload) => Promise<boolean>;
       wallpaperVideoCover: (sourcePath: string) => Promise<string | null>;

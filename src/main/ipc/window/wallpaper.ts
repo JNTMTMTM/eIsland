@@ -25,7 +25,7 @@
  * @author 鸡哥
  */
 
-import { app, BrowserWindow, dialog, ipcMain, net } from 'electron';
+import { app, BrowserWindow, dialog, ipcMain, nativeImage, net } from 'electron';
 import { execFile } from 'child_process';
 import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, unlinkSync, writeFileSync } from 'fs';
 import { extname, join, resolve, sep } from 'path';
@@ -284,6 +284,18 @@ export function registerWallpaperIpcHandlers(): void {
       const mime = mimeMap[ext] || 'image/png';
       const buf = readFileSync(filePath);
       return `data:${mime};base64,${buf.toString('base64')}`;
+    } catch {
+      return null;
+    }
+  });
+
+  ipcMain.handle('album:load-thumbnail', async (_event, filePath: string): Promise<string | null> => {
+    try {
+      if (!filePath || typeof filePath !== 'string') return null;
+      if (!existsSync(filePath)) return null;
+      const thumbnail = await nativeImage.createThumbnailFromPath(filePath, { width: 320, height: 320 });
+      if (thumbnail.isEmpty()) return null;
+      return `data:image/jpeg;base64,${thumbnail.toJPEG(78).toString('base64')}`;
     } catch {
       return null;
     }
