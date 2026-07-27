@@ -25,8 +25,15 @@
  */
 
 import type { ReactElement } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import useIslandStore from '../../../../../../../../store/slices';
+import { SilkyWave } from '../../../../../../hover/pages/lyric/components/SilkyWave';
+import { MusicBgWavePreview } from '../preview/MusicBgWavePreview';
+import { HOVER_MUSIC_BG_STYLE_STORE_KEY } from '../../../config/settingsTabConfig';
 import type { AppSettingsSectionProps } from './types';
+
+type HoverMusicBgStyle = 'silky' | 'wave';
 
 type LayoutPreviewSettingsPageProps = Pick<AppSettingsSectionProps, 'layoutConfig' | 'OverviewPreviewComponent' | 'overviewWidgetOptions' | 'overviewClockStyleOptions' | 'updateLayout' | 'updateClockStyle' | 'updateGradientColor'>;
 
@@ -52,6 +59,22 @@ export function LayoutPreviewSettingsPage({
 }: LayoutPreviewSettingsPageProps): ReactElement {
   const { t } = useTranslation();
   const OverviewPreview = OverviewPreviewComponent;
+  const { dominantColor } = useIslandStore();
+  const [bgStyle, setBgStyle] = useState<HoverMusicBgStyle>('silky');
+
+  useEffect(() => {
+    window.api.storeRead(HOVER_MUSIC_BG_STYLE_STORE_KEY).then((v) => {
+      if (v === 'silky' || v === 'wave') setBgStyle(v);
+    }).catch(() => {});
+  }, []);
+
+  const handleStyleChange = useCallback((style: HoverMusicBgStyle) => {
+    setBgStyle(style);
+    window.api.storeWrite(HOVER_MUSIC_BG_STYLE_STORE_KEY, style).catch(() => {});
+  }, []);
+
+  // dominantColor 范围 0-255
+  const waveColor = dominantColor ?? [100, 180, 255];
 
   return (
     <div className="max-expand-settings-section">
@@ -133,6 +156,27 @@ export function LayoutPreviewSettingsPage({
                   </label>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="settings-card">
+          <div className="settings-card-header">
+            <div className="settings-card-title">{t('settings.app.layout.musicBgTitle', { defaultValue: 'Hover 音乐背景样式' })}</div>
+            <div className="settings-card-subtitle">{t('settings.app.layout.musicBgHint', { defaultValue: '预览并选择 Hover 态歌曲界面的背景波浪效果样式。' })}</div>
+          </div>
+          <div className="settings-music-bg-preview-row">
+            <div className={`settings-music-bg-preview-item ${bgStyle === 'silky' ? 'active' : ''}`} onClick={() => handleStyleChange('silky')}>
+              <div className="settings-music-bg-preview-canvas-wrap">
+                <SilkyWave color={waveColor} playing />
+              </div>
+              <span className="settings-music-bg-preview-name">{t('settings.app.layout.musicBgSilky', { defaultValue: '丝滑波浪' })}</span>
+            </div>
+            <div className={`settings-music-bg-preview-item ${bgStyle === 'wave' ? 'active' : ''}`} onClick={() => handleStyleChange('wave')}>
+              <div className="settings-music-bg-preview-canvas-wrap">
+                <MusicBgWavePreview color={waveColor} playing />
+              </div>
+              <span className="settings-music-bg-preview-name">{t('settings.app.layout.musicBgWave', { defaultValue: '音频波浪' })}</span>
             </div>
           </div>
         </div>

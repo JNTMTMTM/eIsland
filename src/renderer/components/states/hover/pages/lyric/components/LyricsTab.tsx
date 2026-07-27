@@ -25,11 +25,16 @@
  */
 
 import type { ReactElement } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../../../../store/slices';
 import { SvgIcon } from '../../../../../../utils/SvgIcon';
 import { truncateByVisualWidth } from '../utils/lyricUtils';
 import { SilkyWave } from './SilkyWave';
+import { MusicBgWavePreview } from '../../../../maxExpand/components/setting/components/app/preview/MusicBgWavePreview';
+import { HOVER_MUSIC_BG_STYLE_STORE_KEY } from '../../../../maxExpand/components/setting/config/settingsTabConfig';
+
+type HoverMusicBgStyle = 'silky' | 'wave';
 
 /**
  * 歌词 Tab 内容
@@ -46,12 +51,23 @@ export function LyricsTab(): ReactElement {
     dominantColor,
   } = useIslandStore();
 
+  const [bgStyle, setBgStyle] = useState<HoverMusicBgStyle>('silky');
+
+  useEffect(() => {
+    window.api.storeRead(HOVER_MUSIC_BG_STYLE_STORE_KEY).then((v) => {
+      if (v === 'silky' || v === 'wave') setBgStyle(v);
+    }).catch(() => {});
+  }, []);
+
   const handlePlayPause = () => window.api?.mediaPlayPause();
   const handlePrev = () => window.api?.mediaPrev();
   const handleNext = () => window.api?.mediaNext();
 
   const artistText = truncateByVisualWidth(mediaInfo.artist || t('hover.music.unknownArtist', { defaultValue: '未知艺术家' }), 50);
   const albumText = truncateByVisualWidth(mediaInfo.title || t('hover.music.unknownTitle', { defaultValue: '未知歌曲' }), 45);
+
+  // dominantColor 范围 0-255，SilkyWave 和 MusicBgWavePreview 都使用 0-255 范围
+  const waveColor = dominantColor ?? [0, 0, 0];
 
   return (
     <div className={`lrc-tab-wrapper ${isPlaying ? 'playing' : ''}`}>
@@ -102,7 +118,11 @@ export function LyricsTab(): ReactElement {
       </div>
 
       <div className="lrc-wave-container">
-        <SilkyWave color={dominantColor ?? [0, 0, 0]} playing={isPlaying} />
+        {bgStyle === 'wave' ? (
+          <MusicBgWavePreview color={waveColor} playing={isPlaying} />
+        ) : (
+          <SilkyWave color={waveColor} playing={isPlaying} />
+        )}
       </div>
     </div>
   );
