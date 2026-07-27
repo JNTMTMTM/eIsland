@@ -71,51 +71,34 @@ export function MusicBgWavePreview({ color, playing }: MusicBgWavePreviewProps):
 
     const [r, g, b] = color;
 
-    // 绘制多层波浪
-    const layers = [
-      { amp: 8, freq: 0.015, speed: 0.8, opacity: 0.4 },
-      { amp: 6, freq: 0.02, speed: -0.6, opacity: 0.3 },
-      { amp: 4, freq: 0.025, speed: 1.0, opacity: 0.2 },
+    // 绘制多层线条波浪
+    const lines = [
+      { amp: 5, freq: 0.012, speed: 0.6, width: 2.0, opacity: 0.7 },
+      { amp: 4, freq: 0.018, speed: -0.8, width: 1.5, opacity: 0.5 },
+      { amp: 3, freq: 0.025, speed: 1.0, width: 1.2, opacity: 0.4 },
+      { amp: 2, freq: 0.032, speed: -1.2, width: 1.0, opacity: 0.3 },
     ];
 
-    for (const layer of layers) {
+    const centerY = h * 0.5;
+
+    for (const line of lines) {
       ctx.beginPath();
-      ctx.moveTo(0, h);
 
       for (let x = 0; x <= w; x += 2) {
-        const y = h - layer.amp - (
-          layer.amp * 0.5 * Math.sin(x * layer.freq + t * layer.speed) +
-          layer.amp * 0.3 * Math.sin(x * layer.freq * 2.5 + t * layer.speed * 0.7 + 1.5) +
-          layer.amp * 0.2 * Math.sin(x * layer.freq * 4 + t * layer.speed * 1.3 + 3.0)
+        const y = centerY + (
+          line.amp * Math.sin(x * line.freq + t * line.speed) +
+          line.amp * 0.5 * Math.sin(x * line.freq * 2 + t * line.speed * 0.7 + 1.5) +
+          line.amp * 0.3 * Math.sin(x * line.freq * 3.5 + t * line.speed * 1.3 + 3.0)
         );
 
         if (x === 0) ctx.moveTo(x, y);
         else ctx.lineTo(x, y);
       }
 
-      ctx.lineTo(w, h);
-      ctx.lineTo(0, h);
-      ctx.closePath();
-
-      ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${layer.opacity})`;
-      ctx.fill();
+      ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${line.opacity})`;
+      ctx.lineWidth = line.width;
+      ctx.stroke();
     }
-
-    // 绘制顶部高光线
-    ctx.beginPath();
-    for (let x = 0; x <= w; x += 2) {
-      const y = h - 8 - (
-        4 * Math.sin(x * 0.015 + t * 0.8) +
-        2 * Math.sin(x * 0.03 + t * 1.2 + 1.0)
-      );
-
-      if (x === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-    }
-
-    ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, 0.6)`;
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
 
     if (playing) {
       rafRef.current = requestAnimationFrame(draw);
