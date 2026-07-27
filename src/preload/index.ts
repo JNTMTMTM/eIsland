@@ -641,6 +641,21 @@ const api = {
     return ipcRenderer.invoke('dialog:open-video');
   },
   /**
+   * 打开字体文件选择对话框
+   * @returns 字体文件信息（path, data, ext, name），取消返回 null
+   */
+  openFontDialog: (): Promise<{ path: string; data: string; ext: string; name: string } | null> => {
+    return ipcRenderer.invoke('dialog:open-font');
+  },
+  /**
+   * 读取字体文件并返回 base64 数据
+   * @param filePath - 字体文件绝对路径
+   * @returns 字体文件信息，失败返回 null
+   */
+  readFontFile: (filePath: string): Promise<{ path: string; data: string; ext: string; name: string } | null> => {
+    return ipcRenderer.invoke('font:read-file', filePath);
+  },
+  /**
    * 读取缓存的壁纸文件并返回 base64 data URL
    * @param filePath - 壁纸文件绝对路径
    * @returns data URL 字符串，失败返回 null

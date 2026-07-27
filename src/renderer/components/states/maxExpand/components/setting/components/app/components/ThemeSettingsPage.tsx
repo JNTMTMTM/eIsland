@@ -95,6 +95,8 @@ type ThemeSettingsPageProps = Pick<
 const MUSIC_OUTER_GLOW_EFFECT_STORE_KEY = 'music-outer-glow-effect-enabled';
 const UI_FONT_STORE_KEY = 'ui-font-family';
 const LYRICS_FONT_STORE_KEY = 'lyrics-font-family';
+const UI_FONT_CUSTOM_PATH_KEY = 'ui-font-custom-path';
+const LYRICS_FONT_CUSTOM_PATH_KEY = 'lyrics-font-custom-path';
 
 /** 字体预设列表 */
 const FONT_PRESETS = [
@@ -107,7 +109,45 @@ const FONT_PRESETS = [
   { value: 'cascadia-code', label: 'Cascadia Code', css: "'Cascadia Code', 'JetBrains Mono', Consolas, monospace" },
   { value: 'jetbrains-mono', label: 'JetBrains Mono', css: "'JetBrains Mono', 'Cascadia Code', Consolas, monospace" },
   { value: 'consolas', label: 'Consolas', css: "Consolas, 'Courier New', monospace" },
+  { value: 'custom', label: '自定义…', css: '' },
 ] as const;
+
+/** MIME 类型映射 */
+const FONT_MIME_MAP: Record<string, string> = {
+  ttf: 'font/ttf',
+  otf: 'font/otf',
+  woff: 'font/woff',
+  woff2: 'font/woff2',
+};
+
+/**
+ * 从 base64 数据加载自定义字体并注入 @font-face
+ * @param familyName - 字体族名称
+ * @param base64Data - base64 编码的字体数据
+ * @param ext - 文件扩展名
+ * @returns CSS font-family 值
+ */
+function injectCustomFontFace(familyName: string, base64Data: string, ext: string): string {
+  const mime = FONT_MIME_MAP[ext] || 'font/ttf';
+  const binary = atob(base64Data);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  const blob = new Blob([bytes], { type: mime });
+  const url = URL.createObjectURL(blob);
+
+  const styleId = `custom-font-${familyName}`;
+  let style = document.getElementById(styleId) as HTMLStyleElement | null;
+  if (!style) {
+    style = document.createElement('style');
+    style.id = styleId;
+    document.head.appendChild(style);
+  }
+  style.textContent = `@font-face { font-family: '${familyName}'; src: url('${url}') format('${ext === 'ttf' ? 'truetype' : ext === 'otf' ? 'opentype' : ext}'); }`;
+
+  return `'${familyName}', sans-serif`;
+}
 
 /**
  * 渲染软件主题与背景设置页面
@@ -177,6 +217,8 @@ export function ThemeSettingsPage({
   const [musicOuterGlowEffectEnabled, setMusicOuterGlowEffectEnabled] = useState<boolean>(true);
   const [uiFont, setUIFont] = useState<string>('default');
   const [lyricsFont, setLyricsFont] = useState<string>('default');
+  const [uiCustomFontPath, setUiCustomFontPath] = useState<string>('');
+  const [lyricsCustomFontPath, setLyricsCustomFontPath] = useState<string>('');
 
   const bgPreviewVideoRef = useRef<HTMLVideoElement | null>(null);
   const bgPreviewVideoLoopRef = useRef<boolean>(bgVideoLoop);
@@ -202,20 +244,40 @@ export function ThemeSettingsPage({
     Promise.all([
       window.api.storeRead(UI_FONT_STORE_KEY),
       window.api.storeRead(LYRICS_FONT_STORE_KEY),
-    ]).then(([uiVal, lyricsVal]) => {
+      window.api.storeRead(UI_FONT_CUSTOM_PATH_KEY),
+      window.api.storeRead(LYRICS_FONT_CUSTOM_PATH_KEY),
+    ]).then(([uiVal, lyricsVal, uiCustomPath, lyricsCustomPath]) => {
       if (cancelled) return;
       if (typeof uiVal === 'string') {
         setUIFont(uiVal);
-        const preset = FONT_PRESETS.find((f) => f.value === uiVal);
-        if (preset) {
-          document.documentElement.style.setProperty('--island-ui-font', preset.css);
+        if (uiVal === 'custom' && typeof uiCustomPath === 'string') {
+          setUiCustomFontPath(uiCustomPath);
+          window.api.readFontFile(uiCustomPath).then((result) => {
+            if (cancelled || !result) return;
+            const css = injectCustomFontFace('eIsland-UICustom', result.data, result.ext);
+            document.documentElement.style.setProperty('--island-ui-font', css);
+          }).catch(() => {});
+        } else {
+          const preset = FONT_PRESETS.find((f) => f.value === uiVal);
+          if (preset && preset.css) {
+            document.documentElement.style.setProperty('--island-ui-font', preset.css);
+          }
         }
       }
       if (typeof lyricsVal === 'string') {
         setLyricsFont(lyricsVal);
-        const preset = FONT_PRESETS.find((f) => f.value === lyricsVal);
-        if (preset) {
-          document.documentElement.style.setProperty('--island-lyrics-font', preset.css);
+        if (lyricsVal === 'custom' && typeof lyricsCustomPath === 'string') {
+          setLyricsCustomFontPath(lyricsCustomPath);
+          window.api.readFontFile(lyricsCustomPath).then((result) => {
+            if (cancelled || !result) return;
+            const css = injectCustomFontFace('eIsland-LyricsCustom', result.data, result.ext);
+            document.documentElement.style.setProperty('--island-lyrics-font', css);
+          }).catch(() => {});
+        } else {
+          const preset = FONT_PRESETS.find((f) => f.value === lyricsVal);
+          if (preset && preset.css) {
+            document.documentElement.style.setProperty('--island-lyrics-font', preset.css);
+          }
         }
       }
     }).catch(() => {});
@@ -342,12 +404,26 @@ export function ThemeSettingsPage({
                 className={`settings-lyrics-source-btn ${uiFont === font.value ? 'active' : ''}`}
                 type="button"
                 onClick={() => {
-                  setUIFont(font.value);
-                  document.documentElement.style.setProperty('--island-ui-font', font.css);
-                  window.api.storeWrite(UI_FONT_STORE_KEY, font.value).catch(() => {});
+                  if (font.value === 'custom') {
+                    window.api.openFontDialog().then((result) => {
+                      if (!result) return;
+                      const css = injectCustomFontFace('eIsland-UICustom', result.data, result.ext);
+                      setUIFont('custom');
+                      setUiCustomFontPath(result.path);
+                      document.documentElement.style.setProperty('--island-ui-font', css);
+                      window.api.storeWrite(UI_FONT_STORE_KEY, 'custom').catch(() => {});
+                      window.api.storeWrite(UI_FONT_CUSTOM_PATH_KEY, result.path).catch(() => {});
+                    }).catch(() => {});
+                  } else {
+                    setUIFont(font.value);
+                    document.documentElement.style.setProperty('--island-ui-font', font.css);
+                    window.api.storeWrite(UI_FONT_STORE_KEY, font.value).catch(() => {});
+                  }
                 }}
               >
-                {font.label}
+                {font.value === 'custom' && uiCustomFontPath
+                  ? uiCustomFontPath.split(/[/\\]/).pop()?.replace(/\.[^.]+$/, '') || font.label
+                  : font.label}
               </button>
             ))}
           </div>
@@ -365,12 +441,26 @@ export function ThemeSettingsPage({
                 className={`settings-lyrics-source-btn ${lyricsFont === font.value ? 'active' : ''}`}
                 type="button"
                 onClick={() => {
-                  setLyricsFont(font.value);
-                  document.documentElement.style.setProperty('--island-lyrics-font', font.css);
-                  window.api.storeWrite(LYRICS_FONT_STORE_KEY, font.value).catch(() => {});
+                  if (font.value === 'custom') {
+                    window.api.openFontDialog().then((result) => {
+                      if (!result) return;
+                      const css = injectCustomFontFace('eIsland-LyricsCustom', result.data, result.ext);
+                      setLyricsFont('custom');
+                      setLyricsCustomFontPath(result.path);
+                      document.documentElement.style.setProperty('--island-lyrics-font', css);
+                      window.api.storeWrite(LYRICS_FONT_STORE_KEY, 'custom').catch(() => {});
+                      window.api.storeWrite(LYRICS_FONT_CUSTOM_PATH_KEY, result.path).catch(() => {});
+                    }).catch(() => {});
+                  } else {
+                    setLyricsFont(font.value);
+                    document.documentElement.style.setProperty('--island-lyrics-font', font.css);
+                    window.api.storeWrite(LYRICS_FONT_STORE_KEY, font.value).catch(() => {});
+                  }
                 }}
               >
-                {font.label}
+                {font.value === 'custom' && lyricsCustomFontPath
+                  ? lyricsCustomFontPath.split(/[/\\]/).pop()?.replace(/\.[^.]+$/, '') || font.label
+                  : font.label}
               </button>
             ))}
           </div>
