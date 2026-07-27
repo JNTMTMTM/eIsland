@@ -31,6 +31,7 @@
   height: 100%;
   padding: 0 16px;
   gap: 8px;
+  font-family: var(--island-lyrics-font);
   animation: lyricsEnter 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 

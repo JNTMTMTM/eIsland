@@ -93,6 +93,21 @@ type ThemeSettingsPageProps = Pick<
 >;
 
 const MUSIC_OUTER_GLOW_EFFECT_STORE_KEY = 'music-outer-glow-effect-enabled';
+const UI_FONT_STORE_KEY = 'ui-font-family';
+const LYRICS_FONT_STORE_KEY = 'lyrics-font-family';
+
+/** 字体预设列表 */
+const FONT_PRESETS = [
+  { value: 'default', label: '系统默认', css: "'Microsoft YaHei', 'PingFang SC', -apple-system, sans-serif" },
+  { value: 'microsoft-yahei', label: '微软雅黑', css: "'Microsoft YaHei', sans-serif" },
+  { value: 'simhei', label: '黑体', css: "'SimHei', sans-serif" },
+  { value: 'simsun', label: '宋体', css: "'SimSun', serif" },
+  { value: 'kaiti', label: '楷体', css: "'KaiTi', serif" },
+  { value: 'fangsong', label: '仿宋', css: "'FangSong', serif" },
+  { value: 'cascadia-code', label: 'Cascadia Code', css: "'Cascadia Code', 'JetBrains Mono', Consolas, monospace" },
+  { value: 'jetbrains-mono', label: 'JetBrains Mono', css: "'JetBrains Mono', 'Cascadia Code', Consolas, monospace" },
+  { value: 'consolas', label: 'Consolas', css: "Consolas, 'Courier New', monospace" },
+] as const;
 
 /**
  * 渲染软件主题与背景设置页面
@@ -160,6 +175,8 @@ export function ThemeSettingsPage({
   const { t } = useTranslation();
   const setNotification = useIslandStore((s) => s.setNotification);
   const [musicOuterGlowEffectEnabled, setMusicOuterGlowEffectEnabled] = useState<boolean>(true);
+  const [uiFont, setUIFont] = useState<string>('default');
+  const [lyricsFont, setLyricsFont] = useState<string>('default');
 
   const bgPreviewVideoRef = useRef<HTMLVideoElement | null>(null);
   const bgPreviewVideoLoopRef = useRef<boolean>(bgVideoLoop);
@@ -174,6 +191,32 @@ export function ThemeSettingsPage({
       if (cancelled) return;
       if (typeof value === 'boolean') {
         setMusicOuterGlowEffectEnabled(value);
+      }
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+
+  /** 加载字体设置 */
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all([
+      window.api.storeRead(UI_FONT_STORE_KEY),
+      window.api.storeRead(LYRICS_FONT_STORE_KEY),
+    ]).then(([uiVal, lyricsVal]) => {
+      if (cancelled) return;
+      if (typeof uiVal === 'string') {
+        setUIFont(uiVal);
+        const preset = FONT_PRESETS.find((f) => f.value === uiVal);
+        if (preset) {
+          document.documentElement.style.setProperty('--island-ui-font', preset.css);
+        }
+      }
+      if (typeof lyricsVal === 'string') {
+        setLyricsFont(lyricsVal);
+        const preset = FONT_PRESETS.find((f) => f.value === lyricsVal);
+        if (preset) {
+          document.documentElement.style.setProperty('--island-lyrics-font', preset.css);
+        }
       }
     }).catch(() => {});
     return () => { cancelled = true; };
@@ -284,6 +327,52 @@ export function ThemeSettingsPage({
                 {t('settings.app.theme.musicOuterGlowToggle', { defaultValue: '启用歌曲播放外光圈跑马灯特效' })}
               </label>
             </div>
+          </div>
+        </div>
+
+        <div className="settings-card">
+          <div className="settings-card-header">
+            <div className="settings-card-title">{t('settings.app.theme.uiFontTitle', { defaultValue: '界面字体' })}</div>
+            <div className="settings-card-subtitle">{t('settings.app.theme.uiFontHint', { defaultValue: '选择灵动岛界面使用的字体' })}</div>
+          </div>
+          <div className="settings-lyrics-source-options">
+            {FONT_PRESETS.map((font) => (
+              <button
+                key={font.value}
+                className={`settings-lyrics-source-btn ${uiFont === font.value ? 'active' : ''}`}
+                type="button"
+                onClick={() => {
+                  setUIFont(font.value);
+                  document.documentElement.style.setProperty('--island-ui-font', font.css);
+                  window.api.storeWrite(UI_FONT_STORE_KEY, font.value).catch(() => {});
+                }}
+              >
+                {font.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="settings-card">
+          <div className="settings-card-header">
+            <div className="settings-card-title">{t('settings.app.theme.lyricsFontTitle', { defaultValue: '歌词字体' })}</div>
+            <div className="settings-card-subtitle">{t('settings.app.theme.lyricsFontHint', { defaultValue: '选择歌词显示使用的字体' })}</div>
+          </div>
+          <div className="settings-lyrics-source-options">
+            {FONT_PRESETS.map((font) => (
+              <button
+                key={font.value}
+                className={`settings-lyrics-source-btn ${lyricsFont === font.value ? 'active' : ''}`}
+                type="button"
+                onClick={() => {
+                  setLyricsFont(font.value);
+                  document.documentElement.style.setProperty('--island-lyrics-font', font.css);
+                  window.api.storeWrite(LYRICS_FONT_STORE_KEY, font.value).catch(() => {});
+                }}
+              >
+                {font.label}
+              </button>
+            ))}
           </div>
         </div>
 

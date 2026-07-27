@@ -2308,6 +2308,10 @@
         "autoDimHint": "When enabled, the island opacity is reduced after no mouse interaction for the configured duration, and restores when the cursor enters",
         "autoDimToggle": "Enable idle auto-dim",
         "autoDimDelayHint": "Seconds before dimming on inactivity (1 - 120s)",
+        "uiFontTitle": "UI Font",
+        "uiFontHint": "Choose the font for the island interface",
+        "lyricsFontTitle": "Lyrics Font",
+        "lyricsFontHint": "Choose the font for lyrics display",
         "defaultOpacitySuffix": " (default opacity {{opacity}}%)"
       },
       "behavior": {
