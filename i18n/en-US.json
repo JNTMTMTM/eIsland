@@ -2312,7 +2312,7 @@
         "uiFontHint": "Choose the font for the island interface",
         "lyricsFontTitle": "Lyrics Font",
         "lyricsFontHint": "Choose the font for lyrics display",
-        "customFontLoaded": "Loaded: {{name}}",
+        "addCustomFont": "Add Font",
         "defaultOpacitySuffix": " (default opacity {{opacity}}%)"
       },
       "behavior": {

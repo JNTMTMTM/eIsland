@@ -2312,7 +2312,7 @@
         "uiFontHint": "选择灵动岛界面使用的字体",
         "lyricsFontTitle": "歌词字体",
         "lyricsFontHint": "选择歌词显示使用的字体",
-        "customFontLoaded": "已加载：{{name}}",
+        "addCustomFont": "添加字体",
         "defaultOpacitySuffix": "（默认透明度 {{opacity}}%）"
       },
       "behavior": {

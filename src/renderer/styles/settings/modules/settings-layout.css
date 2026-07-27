@@ -2514,6 +2514,18 @@
   box-shadow: 0 0 0 1px rgba(var(--color-text-rgb), 0.4);
 }
 
+.settings-font-delete {
+  margin-left: 4px;
+  font-size: 13px;
+  line-height: 1;
+  color: rgba(var(--color-text-rgb), 0.35);
+  cursor: pointer;
+  transition: color 0.15s;
+}
+.settings-font-delete:hover {
+  color: #e74c3c;
+}
+
 .settings-weather-provider-pro-badge {
   display: inline-flex;
   align-items: center;
