@@ -20,7 +20,7 @@
 
 /**
  * @file useLyricsSettings.ts
- * @description 歌词相关设置 Hook（逐字扫光、时钟、外发光）
+ * @description 歌词相关设置 Hook（功能开关、逐字扫光、时钟、外发光）
  * @author 鸡哥
  */
 
@@ -28,6 +28,7 @@ import { useEffect, useState } from 'react';
 import { MUSIC_OUTER_GLOW_EFFECT_STORE_KEY } from '../config/lyricsConstants';
 
 interface UseLyricsSettingsResult {
+  lyricsEnabled: boolean;
   karaokeEnabled: boolean;
   clockEnabled: boolean;
   musicOuterGlowEffectEnabled: boolean;
@@ -37,21 +38,35 @@ interface UseLyricsSettingsResult {
 
 /**
  * 加载并监听歌词相关设置项。
- * @returns 逐字扫光、时钟、外发光三项开关状态。
+ * @returns 歌词功能、逐字扫光、时钟、外发光及校准设置。
  */
 export function useLyricsSettings(): UseLyricsSettingsResult {
+  const [lyricsEnabled, setLyricsEnabled] = useState(true);
   const [karaokeEnabled, setKaraokeEnabled] = useState(false);
   const [clockEnabled, setClockEnabled] = useState(true);
   const [musicOuterGlowEffectEnabled, setMusicOuterGlowEffectEnabled] = useState(true);
   const [calibrateEnabled, setCalibrateEnabled] = useState(true);
   const [calibrateDelaySec, setCalibrateDelaySec] = useState(20);
 
-  /** 加载逐字扫光与时钟配置 */
+  /** 加载并监听歌词功能、逐字扫光与时钟配置 */
   useEffect(() => {
+    window.api?.musicLyricsEnabledGet().then(setLyricsEnabled).catch(() => {});
     window.api?.musicLyricsKaraokeGet().then(setKaraokeEnabled).catch(() => {});
     window.api?.musicLyricsClockGet().then(setClockEnabled).catch(() => {});
     window.api?.musicLyricsCalibrateEnabledGet().then(setCalibrateEnabled).catch(() => {});
     window.api?.musicLyricsCalibrateDelayGet().then(setCalibrateDelaySec).catch(() => {});
+
+    const handler = (event: Event): void => {
+      const detail = (event as CustomEvent<{ channel?: unknown; value?: unknown }>).detail;
+      if (detail?.channel === 'music:lyrics-enabled' && typeof detail.value === 'boolean') {
+        setLyricsEnabled(detail.value);
+      }
+      if (detail?.channel === 'music:lyrics-karaoke' && typeof detail.value === 'boolean') {
+        setKaraokeEnabled(detail.value);
+      }
+    };
+    window.addEventListener('island:setting-changed', handler);
+    return () => window.removeEventListener('island:setting-changed', handler);
   }, []);
 
   /** 监听外发光效果开关 */
@@ -75,5 +90,5 @@ export function useLyricsSettings(): UseLyricsSettingsResult {
     };
   }, []);
 
-  return { karaokeEnabled, clockEnabled, musicOuterGlowEffectEnabled, calibrateEnabled, calibrateDelaySec };
+  return { lyricsEnabled, karaokeEnabled, clockEnabled, musicOuterGlowEffectEnabled, calibrateEnabled, calibrateDelaySec };
 }

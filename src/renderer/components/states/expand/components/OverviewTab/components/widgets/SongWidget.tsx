@@ -28,11 +28,32 @@ import type { CSSProperties, ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../../../../../store/slices';
 import { SvgIcon } from '../../../../../../../utils/SvgIcon';
+import { KaraokeSyllableLine } from '../../../../../lyrics/components/KaraokeSyllableLine';
+import { useCurrentLyric } from '../../../../../lyrics/hooks/useCurrentLyric';
+import { useLyricsSettings } from '../../../../../lyrics/hooks/useLyricsSettings';
 
 /** 正在播放小组件，展示当前播放歌曲与媒体控制。 */
 export function SongWidget(): ReactElement {
   const { t } = useTranslation();
-  const { mediaInfo, coverImage, isPlaying, isMusicPlaying, dominantColor, setExpandTab } = useIslandStore();
+  const {
+    mediaInfo,
+    coverImage,
+    isPlaying,
+    isMusicPlaying,
+    dominantColor,
+    syncedLyrics,
+    lyricsLoading,
+    currentPositionMs,
+    setExpandTab,
+  } = useIslandStore();
+  const { lyricsEnabled, karaokeEnabled } = useLyricsSettings();
+  const { currentIdx, hasLyrics, isIntro, currentLine, currentText, hasSyllables } = useCurrentLyric(
+    syncedLyrics,
+    lyricsLoading,
+    currentPositionMs,
+  );
+  const lyricText = isIntro ? syncedLyrics?.[0]?.text ?? '' : currentText;
+  const nextLyricText = syncedLyrics?.[isIntro ? 1 : currentIdx + 1]?.text ?? '';
   const [r, g, b] = dominantColor;
 
   return (
@@ -62,6 +83,33 @@ export function SongWidget(): ReactElement {
               {mediaInfo.album && <div className="ov-dash-song-album">{mediaInfo.album}</div>}
             </div>
           </div>
+          {lyricsEnabled && (
+            <div className="ov-dash-song-lyrics">
+              {lyricsLoading ? (
+                <span className="ov-dash-song-lyric-status">{t('songTab.lyrics.loading')}</span>
+              ) : hasLyrics && lyricText ? (
+                <>
+                  <div
+                    key={currentIdx}
+                    className={`ov-dash-song-lyric-current${karaokeEnabled && hasSyllables && !isIntro ? ' karaoke' : ''}`}
+                  >
+                    {karaokeEnabled && hasSyllables && currentLine && !isIntro ? (
+                      <KaraokeSyllableLine
+                        syllables={currentLine.syllables!}
+                        lineStartMs={currentLine.time_ms}
+                        posMs={currentPositionMs}
+                      />
+                    ) : (
+                      lyricText
+                    )}
+                  </div>
+                  {nextLyricText && <div className="ov-dash-song-lyric-next">{nextLyricText}</div>}
+                </>
+              ) : (
+                <span className="ov-dash-song-lyric-status">{t('songTab.lyrics.empty')}</span>
+              )}
+            </div>
+          )}
           <div className="ov-dash-song-controls">
             <button className="ov-dash-song-btn" onClick={() => window.api.mediaPrev()} type="button" title={t('overview.song.prev', { defaultValue: '上一首' })}>
               <img src={SvgIcon.PREVIOUS_SONG} alt={t('overview.song.prev', { defaultValue: '上一首' })} className="ov-dash-song-btn-icon ov-dash-song-btn-icon--sm" />

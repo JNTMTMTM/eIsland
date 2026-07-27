@@ -339,6 +339,7 @@ export function MusicSettingsSection(props: MusicSettingsSectionProps): ReactEle
                         onChange={(e) => {
                           setLyricsKaraoke(e.target.checked);
                           window.api.musicLyricsKaraokeSet(e.target.checked).catch(() => {});
+                          window.dispatchEvent(new CustomEvent('island:setting-changed', { detail: { channel: 'music:lyrics-karaoke', value: e.target.checked } }));
                         }}
                       />
                       {t('settings.music.lyrics.karaokeToggle', { defaultValue: '启用逐字扫光效果' })}

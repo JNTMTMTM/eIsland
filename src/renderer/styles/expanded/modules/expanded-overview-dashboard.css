@@ -913,13 +913,13 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
   justify-content: center;
-  gap: 8px;
+  gap: 4px;
   position: relative;
   overflow: hidden;
   border-radius: 10px;
-  padding: 6px;
+  padding: 4px 6px;
 }
 .ov-dash-song-bg {
   position: absolute;
@@ -942,13 +942,14 @@
   z-index: 1;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
+  width: 100%;
   min-width: 0;
   max-width: 100%;
 }
 .ov-dash-song-cover {
-  width: 50px;
-  height: 50px;
+  width: 40px;
+  height: 40px;
   border-radius: 6px;
   background: rgba(var(--color-text-rgb), 0.08);
   background-size: cover;
@@ -967,12 +968,13 @@
 .ov-dash-song-info {
   position: relative;
   z-index: 1;
+  flex: 1;
   min-width: 0;
-  text-align: right;
+  text-align: left;
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
-  gap: 2px;
+  align-items: flex-start;
+  gap: 1px;
 }
 .ov-dash-song-title {
   font-size: 12px;
@@ -1000,6 +1002,60 @@
   margin-top: 1px;
   max-width: 100%;
 }
+.ov-dash-song-lyrics {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1px;
+  min-width: 0;
+  min-height: 27px;
+  padding: 3px 6px;
+  overflow: hidden;
+  border-radius: 6px;
+  background: rgba(var(--color-text-rgb), 0.045);
+  text-align: center;
+}
+
+.ov-dash-song-lyric-current,
+.ov-dash-song-lyric-next,
+.ov-dash-song-lyric-status {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ov-dash-song-lyric-current {
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: rgba(var(--color-text-rgb), 0.88);
+}
+
+.ov-dash-song-lyric-current.karaoke .lyrics-syllable {
+  color: transparent;
+  background: linear-gradient(
+    90deg,
+    rgba(var(--color-text-rgb), 0.95) 0%,
+    rgba(var(--color-text-rgb), 0.95) var(--syl-prog, 0%),
+    rgba(var(--color-text-rgb), 0.28) var(--syl-prog, 0%),
+    rgba(var(--color-text-rgb), 0.28) 100%
+  );
+  background-clip: text;
+}
+
+.ov-dash-song-lyric-next {
+  font-size: 8px;
+  line-height: 1.25;
+  color: rgba(var(--color-text-rgb), 0.35);
+}
+
+.ov-dash-song-lyric-status {
+  font-size: 9px;
+  color: rgba(var(--color-text-rgb), 0.3);
+}
+
 .ov-dash-song-controls {
   position: relative;
   z-index: 1;
