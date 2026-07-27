@@ -942,10 +942,10 @@
   z-index: 1;
   display: flex;
   align-items: center;
-  gap: 7px;
-  width: 100%;
+  gap: 5px;
+  width: min(100%, 180px);
   min-width: 0;
-  max-width: 100%;
+  margin: 0 auto;
 }
 .ov-dash-song-cover {
   width: 40px;
@@ -970,13 +970,14 @@
   z-index: 1;
   flex: 1;
   min-width: 0;
-  text-align: left;
+  text-align: right;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: flex-end;
   gap: 1px;
 }
 .ov-dash-song-title {
+  width: 100%;
   font-size: 12px;
   font-weight: 600;
   color: rgba(var(--color-text-rgb), 0.9);
@@ -986,6 +987,7 @@
   max-width: 100%;
 }
 .ov-dash-song-artist {
+  width: 100%;
   font-size: 10px;
   color: rgba(var(--color-text-rgb), 0.55);
   overflow: hidden;
@@ -994,6 +996,7 @@
   max-width: 100%;
 }
 .ov-dash-song-album {
+  width: 100%;
   font-size: 9px;
   color: rgba(var(--color-text-rgb), 0.35);
   overflow: hidden;
@@ -1016,7 +1019,7 @@
   overflow: hidden;
   border-radius: 6px;
   background: rgba(var(--color-text-rgb), 0.045);
-  text-align: left;
+  text-align: right;
 }
 
 .ov-dash-song-lyric-current,
@@ -1064,6 +1067,7 @@
   align-items: center;
   justify-content: center;
   gap: 10px;
+  margin-top: 10px;
   filter: brightness(0) invert(var(--icon-invert));
 }
 .ov-dash-song-btn {
