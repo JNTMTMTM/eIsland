@@ -162,6 +162,10 @@ export function useLogin() {
       setFeedback({ type: 'error', text: t('settings.user.feedback.passwordRequired', { defaultValue: '请输入密码' }) });
       return;
     }
+    if (isEmailAccount && !EMAIL_PATTERN.test(cleanAccount.toLowerCase())) {
+      setFeedback({ type: 'error', text: t('settings.user.feedback.emailInvalid', { defaultValue: '请输入有效邮箱地址' }) });
+      return;
+    }
     if (needsEmailVerification && !emailCode.trim()) {
       setFeedback({ type: 'error', text: t('settings.user.feedback.emailCodeRequired', { defaultValue: '请输入邮箱验证码' }) });
       return;

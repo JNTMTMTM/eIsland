@@ -25,4 +25,4 @@
  */
 
 /** 邮箱格式正则 */
-export const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+export const EMAIL_PATTERN = /^(?!.*\.\.)[A-Za-z0-9](?:[A-Za-z0-9_+.-]{0,62}[A-Za-z0-9])?@(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+[A-Za-z]{2,63}$/;

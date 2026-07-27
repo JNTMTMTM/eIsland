@@ -222,11 +222,20 @@
   flex-direction: column;
 }
 
-.max-expand-settings-panel::-webkit-scrollbar {
+.max-expand-settings-panel::-webkit-scrollbar,
+.island-shell.login .auth-panel::-webkit-scrollbar,
+.cw-viewport .auth-panel::-webkit-scrollbar {
   width: 4px;
 }
 
-.max-expand-settings-panel::-webkit-scrollbar-thumb {
+.island-shell.login .auth-panel::-webkit-scrollbar-track,
+.cw-viewport .auth-panel::-webkit-scrollbar-track {
+  margin: 20px 0;
+}
+
+.max-expand-settings-panel::-webkit-scrollbar-thumb,
+.island-shell.login .auth-panel::-webkit-scrollbar-thumb,
+.cw-viewport .auth-panel::-webkit-scrollbar-thumb {
   background: rgba(var(--color-text-rgb), 0.12);
   border-radius: 2px;
 }

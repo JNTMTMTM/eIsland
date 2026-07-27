@@ -58,6 +58,7 @@ import {
   type UserAccountProfile,
 } from '../../../../../../../utils/userAccount';
 import { SvgIcon } from '../../../../../../../utils/SvgIcon';
+import { EMAIL_PATTERN } from '../../../../../../../components/config/dynamicIslandPatterns';
 import { LoginHeatmap } from './components/LoginHeatmap';
 import { readLoginDays, recordLoginDay } from './utils/loginHeatmapStorage';
 import '../../../../../../../styles/settings/modules/cli.css';
@@ -78,7 +79,6 @@ interface UserSettingsSectionProps {
 
 const GENDER_VALUES: UserAccountGender[] = ['male', 'female', 'custom', 'undisclosed'];
 const USER_PROFILE_PAGES: UserProfilePage[] = ['info', 'edit', 'password', 'pro', 'recharge', 'orders', 'account', 'oauth'];
-const EMAIL_PATTERN = /^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
 
 const getGenderIcon = (gender: UserAccountGender | null | undefined): string => {
   if (gender === 'male') return SvgIcon.BOY;
