@@ -948,6 +948,11 @@
   min-width: 0;
   margin: 0 auto;
 }
+
+.ov-dash-song-body,
+.ov-dash-song-controls {
+  transform: translateY(5px);
+}
 .ov-dash-song-cover {
   width: 46px;
   height: 46px;
