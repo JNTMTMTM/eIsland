@@ -30,6 +30,7 @@ import { useTranslation } from 'react-i18next';
 import { BUILTIN_WALLPAPERS } from '../../../../../../../../assets/wallpaper/builtinWallpapers';
 import useIslandStore from '../../../../../../../../store/slices';
 import { SvgIcon } from '../../../../../../../../utils/SvgIcon';
+import { injectFontFace } from '../../../../../../../../utils/font';
 import type { AppSettingsSectionProps } from './types';
 
 type ThemeSettingsPageProps = Pick<
@@ -115,43 +116,6 @@ const FONT_PRESETS = [
 interface CustomFont {
   name: string;
   path: string;
-}
-
-/** MIME 类型映射 */
-const FONT_MIME_MAP: Record<string, string> = {
-  ttf: 'font/ttf',
-  otf: 'font/otf',
-  woff: 'font/woff',
-  woff2: 'font/woff2',
-};
-
-/**
- * 从 base64 数据注入 @font-face
- * @param familyName - 字体族名称
- * @param base64Data - base64 编码的字体数据
- * @param ext - 文件扩展名
- * @returns CSS font-family 值
- */
-function injectCustomFontFace(familyName: string, base64Data: string, ext: string): string {
-  const mime = FONT_MIME_MAP[ext] || 'font/ttf';
-  const binary = atob(base64Data);
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i);
-  }
-  const blob = new Blob([bytes], { type: mime });
-  const url = URL.createObjectURL(blob);
-
-  const styleId = `custom-font-${familyName}`;
-  let style = document.getElementById(styleId) as HTMLStyleElement | null;
-  if (!style) {
-    style = document.createElement('style');
-    style.id = styleId;
-    document.head.appendChild(style);
-  }
-  style.textContent = `@font-face { font-family: '${familyName}'; src: url('${url}') format('${ext === 'ttf' ? 'truetype' : ext === 'otf' ? 'opentype' : ext}'); }`;
-
-  return `'${familyName}', sans-serif`;
 }
 
 
@@ -400,17 +364,16 @@ export function ThemeSettingsPage({
                   setUIFont(key);
                   window.api.readFontFile(font.path).then((result) => {
                     if (!result) return;
-                    const css = injectCustomFontFace(`eIsland-UI-${font.name}`, result.data, result.ext);
+                    const css = injectFontFace(`eIsland-UI-${font.name}`, result.data, result.ext);
                     document.documentElement.style.setProperty('--island-ui-font', css);
                   }).catch(() => {});
                   window.api.storeWrite(UI_FONT_STORE_KEY, key).catch(() => {});
                 }}
               >
                 {font.name}
-                <span
+                <button
                   className="settings-font-delete"
-                  role="button"
-                  tabIndex={-1}
+                  type="button"
                   onClick={(e) => {
                     e.stopPropagation();
                     const next = uiCustomFonts.filter((f) => f.path !== font.path);
@@ -425,7 +388,7 @@ export function ThemeSettingsPage({
                   }}
                 >
                   ×
-                </span>
+                </button>
               </button>
             ))}
             <button
@@ -440,7 +403,7 @@ export function ThemeSettingsPage({
                   const next = [...uiCustomFonts, entry];
                   setUiCustomFonts(next);
                   window.api.storeWrite(UI_CUSTOM_FONTS_STORE_KEY, next).catch(() => {});
-                  injectCustomFontFace(`eIsland-UI-${result.name}`, result.data, result.ext);
+                  injectFontFace(`eIsland-UI-${result.name}`, result.data, result.ext);
                   const key = `custom:${result.path}`;
                   setUIFont(key);
                   document.documentElement.style.setProperty('--island-ui-font', `'eIsland-UI-${result.name}', sans-serif`);
@@ -483,17 +446,16 @@ export function ThemeSettingsPage({
                   setLyricsFont(key);
                   window.api.readFontFile(font.path).then((result) => {
                     if (!result) return;
-                    const css = injectCustomFontFace(`eIsland-Lyrics-${font.name}`, result.data, result.ext);
+                    const css = injectFontFace(`eIsland-Lyrics-${font.name}`, result.data, result.ext);
                     document.documentElement.style.setProperty('--island-lyrics-font', css);
                   }).catch(() => {});
                   window.api.storeWrite(LYRICS_FONT_STORE_KEY, key).catch(() => {});
                 }}
               >
                 {font.name}
-                <span
+                <button
                   className="settings-font-delete"
-                  role="button"
-                  tabIndex={-1}
+                  type="button"
                   onClick={(e) => {
                     e.stopPropagation();
                     const next = lyricsCustomFonts.filter((f) => f.path !== font.path);
@@ -508,7 +470,7 @@ export function ThemeSettingsPage({
                   }}
                 >
                   ×
-                </span>
+                </button>
               </button>
             ))}
             <button
@@ -523,7 +485,7 @@ export function ThemeSettingsPage({
                   const next = [...lyricsCustomFonts, entry];
                   setLyricsCustomFonts(next);
                   window.api.storeWrite(LYRICS_CUSTOM_FONTS_STORE_KEY, next).catch(() => {});
-                  injectCustomFontFace(`eIsland-Lyrics-${result.name}`, result.data, result.ext);
+                  injectFontFace(`eIsland-Lyrics-${result.name}`, result.data, result.ext);
                   const key = `custom:${result.path}`;
                   setLyricsFont(key);
                   document.documentElement.style.setProperty('--island-lyrics-font', `'eIsland-Lyrics-${result.name}', sans-serif`);

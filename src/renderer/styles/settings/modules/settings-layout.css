@@ -2516,6 +2516,9 @@
 
 .settings-font-delete {
   margin-left: 4px;
+  padding: 0;
+  border: none;
+  background: none;
   font-size: 13px;
   line-height: 1;
   color: rgba(var(--color-text-rgb), 0.35);

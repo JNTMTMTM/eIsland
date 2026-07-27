@@ -259,10 +259,12 @@ export function registerWallpaperIpcHandlers(): void {
 
   ipcMain.handle('font:read-file', async (_event, filePath: string) => {
     try {
+      if (!filePath || typeof filePath !== 'string') return null;
       if (!existsSync(filePath)) return null;
+      const ext = extname(filePath).slice(1).toLowerCase();
+      if (!['ttf', 'otf', 'woff', 'woff2'].includes(ext)) return null;
       const buffer = readFileSync(filePath);
       const base64 = buffer.toString('base64');
-      const ext = filePath.split('.').pop()?.toLowerCase() || 'ttf';
       const name = filePath.split(/[/\\]/).pop()?.replace(/\.[^.]+$/, '') || 'CustomFont';
       return { path: filePath, data: base64, ext, name };
     } catch {

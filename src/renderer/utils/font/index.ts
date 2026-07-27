@@ -25,7 +25,7 @@
  */
 
 /** 预设字体 CSS 映射 */
-const PRESET_FONTS: Record<string, string> = {
+export const PRESET_FONTS: Record<string, string> = {
   'default': "'Microsoft YaHei', 'PingFang SC', -apple-system, sans-serif",
   'microsoft-yahei': "'Microsoft YaHei', sans-serif",
   'simhei': "'SimHei', sans-serif",
@@ -52,13 +52,13 @@ interface CustomFont {
 }
 
 /**
- * 从 base64 数据注入 @font-face
+ * 从 base64 数据注入 @font-face（复用已有 style 元素时会释放旧 Blob URL）
  * @param familyName - 字体族名称
  * @param base64Data - base64 编码的字体数据
  * @param ext - 文件扩展名
  * @returns CSS font-family 值
  */
-function injectFontFace(familyName: string, base64Data: string, ext: string): string {
+export function injectFontFace(familyName: string, base64Data: string, ext: string): string {
   const mime = FONT_MIME_MAP[ext] || 'font/ttf';
   const binary = atob(base64Data);
   const bytes = new Uint8Array(binary.length);
@@ -74,8 +74,14 @@ function injectFontFace(familyName: string, base64Data: string, ext: string): st
     style = document.createElement('style');
     style.id = styleId;
     document.head.appendChild(style);
+  } else {
+    const previousUrl = style.dataset.fontUrl;
+    if (previousUrl) URL.revokeObjectURL(previousUrl);
   }
-  style.textContent = `@font-face { font-family: '${familyName}'; src: url('${url}') format('${ext === 'ttf' ? 'truetype' : ext === 'otf' ? 'opentype' : ext}'); }`;
+  style.dataset.fontUrl = url;
+
+  const format = ext === 'ttf' ? 'truetype' : ext === 'otf' ? 'opentype' : ext;
+  style.textContent = `@font-face { font-family: '${familyName}'; src: url('${url}') format('${format}'); }`;
 
   return `'${familyName}', sans-serif`;
 }
