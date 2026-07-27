@@ -985,27 +985,18 @@
   font-size: 13px;
   font-weight: 600;
   color: rgba(var(--color-text-rgb), 0.9);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
   max-width: 100%;
 }
 .ov-dash-song-artist {
   width: 100%;
   font-size: 11px;
   color: rgba(var(--color-text-rgb), 0.55);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
   max-width: 100%;
 }
 .ov-dash-song-album {
   width: 100%;
   font-size: 10px;
   color: rgba(var(--color-text-rgb), 0.35);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
   margin-top: 1px;
   max-width: 100%;
 }
@@ -1027,12 +1018,48 @@
   text-align: right;
 }
 
-.ov-dash-song-lyric-current,
-.ov-dash-song-lyric-next,
-.ov-dash-song-lyric-status {
+.ov-dash-song-scroll {
   overflow: hidden;
-  text-overflow: ellipsis;
+  text-overflow: clip;
   white-space: nowrap;
+}
+
+.ov-dash-song-scroll-content {
+  display: inline-block;
+  min-width: max-content;
+  transform: translateX(0);
+}
+
+.ov-dash-song-scroll.is-overflowing {
+  text-align: left;
+}
+
+.ov-dash-song-scroll.is-overflowing .ov-dash-song-scroll-content {
+  animation: ov-song-text-scroll var(--song-text-scroll-duration) ease-in-out 1s infinite alternate;
+}
+
+.ov-dash-song-scroll.is-progress-driven .ov-dash-song-scroll-content {
+  animation: none;
+  transform: translateX(calc(-1 * var(--song-text-scroll-offset)));
+  transition: transform 0.12s linear;
+}
+
+@keyframes ov-song-text-scroll {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(calc(-1 * var(--song-text-scroll-distance)));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ov-dash-song-scroll.is-overflowing .ov-dash-song-scroll-content {
+    animation: none;
+    transform: translateX(0);
+    transition: none;
+  }
 }
 
 .ov-dash-song-lyric-current {

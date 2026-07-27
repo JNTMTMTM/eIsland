@@ -24,14 +24,70 @@
  * @author 鸡哥
  */
 
-import type { CSSProperties, ReactElement } from 'react';
-import { useState } from 'react';
+import type { CSSProperties, ReactElement, ReactNode } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../../../../../store/slices';
 import { SvgIcon } from '../../../../../../../utils/SvgIcon';
 import { KaraokeSyllableLine } from '../../../../../lyrics/components/KaraokeSyllableLine';
 import { useCurrentLyric } from '../../../../../lyrics/hooks/useCurrentLyric';
 import { useLyricsSettings } from '../../../../../lyrics/hooks/useLyricsSettings';
+
+interface ScrollingTextProps {
+  children: ReactNode;
+  className: string;
+  scrollProgress?: number;
+}
+
+/**
+ * 仅在文本溢出可用宽度时启用往返滚动。
+ * @param props - 文本节点与外层样式类名。
+ * @returns 可根据实际宽度切换滚动状态的文本元素。
+ */
+function ScrollingText({ children, className, scrollProgress }: ScrollingTextProps): ReactElement {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLSpanElement>(null);
+  const [overflowDistance, setOverflowDistance] = useState(0);
+
+  useLayoutEffect(() => {
+    const container = containerRef.current;
+    const content = contentRef.current;
+    if (!container || !content) return undefined;
+
+    const updateOverflow = (): void => {
+      setOverflowDistance(Math.max(0, content.scrollWidth - container.clientWidth));
+    };
+    const observer = new ResizeObserver(updateOverflow);
+    observer.observe(container);
+    observer.observe(content);
+    updateOverflow();
+
+    return () => observer.disconnect();
+  }, []);
+
+  const normalizedProgress = scrollProgress === undefined
+    ? undefined
+    : Math.min(1, Math.max(0, scrollProgress));
+  const style = overflowDistance > 0
+    ? {
+      '--song-text-scroll-distance': `${overflowDistance}px`,
+      '--song-text-scroll-duration': `${Math.max(6, overflowDistance / 18 + 4)}s`,
+      '--song-text-scroll-offset': `${overflowDistance * (normalizedProgress ?? 0)}px`,
+    } as CSSProperties
+    : undefined;
+  const progressClass = normalizedProgress === undefined ? '' : ' is-progress-driven';
+
+  return (
+    <div
+      ref={containerRef}
+      className={`${className} ov-dash-song-scroll${overflowDistance > 0 ? ` is-overflowing${progressClass}` : ''}`}
+    >
+      <span ref={contentRef} className="ov-dash-song-scroll-content" style={style}>
+        {children}
+      </span>
+    </div>
+  );
+}
 
 /** 正在播放小组件，展示当前播放歌曲与媒体控制。 */
 export function SongWidget(): ReactElement {
@@ -57,6 +113,13 @@ export function SongWidget(): ReactElement {
   const lyricText = isIntro ? syncedLyrics?.[0]?.text ?? '' : currentText;
   const nextLyricText = syncedLyrics?.[isIntro ? 1 : currentIdx + 1]?.text ?? '';
   const lyricsVisible = showLyrics && lyricsEnabled;
+  const karaokeLineDurationMs = currentLine?.syllables?.reduce(
+    (duration, syllable) => Math.max(duration, syllable.start_offset_ms + syllable.duration_ms),
+    0,
+  ) ?? 0;
+  const karaokeScrollProgress = karaokeEnabled && hasSyllables && currentLine && !isIntro && karaokeLineDurationMs > 0
+    ? (currentPositionMs - currentLine.time_ms) / karaokeLineDurationMs
+    : undefined;
   const [r, g, b] = dominantColor;
 
   return (
@@ -83,12 +146,15 @@ export function SongWidget(): ReactElement {
             {lyricsVisible ? (
               <div className="ov-dash-song-lyrics">
                 {lyricsLoading ? (
-                  <span className="ov-dash-song-lyric-status">{t('songTab.lyrics.loading')}</span>
+                  <ScrollingText className="ov-dash-song-lyric-status">
+                    {t('songTab.lyrics.loading')}
+                  </ScrollingText>
                 ) : hasLyrics && lyricText ? (
                   <>
-                    <div
+                    <ScrollingText
                       key={currentIdx}
                       className={`ov-dash-song-lyric-current${karaokeEnabled && hasSyllables && !isIntro ? ' karaoke' : ''}`}
+                      scrollProgress={karaokeScrollProgress}
                     >
                       {karaokeEnabled && hasSyllables && currentLine && !isIntro ? (
                         <KaraokeSyllableLine
@@ -99,18 +165,32 @@ export function SongWidget(): ReactElement {
                       ) : (
                         lyricText
                       )}
-                    </div>
-                    {nextLyricText && <div className="ov-dash-song-lyric-next">{nextLyricText}</div>}
+                    </ScrollingText>
+                    {nextLyricText && (
+                      <ScrollingText className="ov-dash-song-lyric-next">
+                        {nextLyricText}
+                      </ScrollingText>
+                    )}
                   </>
                 ) : (
-                  <span className="ov-dash-song-lyric-status">{t('songTab.lyrics.empty')}</span>
+                  <ScrollingText className="ov-dash-song-lyric-status">
+                    {t('songTab.lyrics.empty')}
+                  </ScrollingText>
                 )}
               </div>
             ) : (
               <div className="ov-dash-song-info">
-                <div className="ov-dash-song-title">{mediaInfo.title || t('overview.song.unknownTitle', { defaultValue: '未知歌曲' })}</div>
-                <div className="ov-dash-song-artist">{mediaInfo.artist || t('overview.song.unknownArtist', { defaultValue: '未知艺术家' })}</div>
-                {mediaInfo.album && <div className="ov-dash-song-album">{mediaInfo.album}</div>}
+                <ScrollingText className="ov-dash-song-title">
+                  {mediaInfo.title || t('overview.song.unknownTitle', { defaultValue: '未知歌曲' })}
+                </ScrollingText>
+                <ScrollingText className="ov-dash-song-artist">
+                  {mediaInfo.artist || t('overview.song.unknownArtist', { defaultValue: '未知艺术家' })}
+                </ScrollingText>
+                {mediaInfo.album && (
+                  <ScrollingText className="ov-dash-song-album">
+                    {mediaInfo.album}
+                  </ScrollingText>
+                )}
               </div>
             )}
           </div>
