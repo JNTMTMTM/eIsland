@@ -25,6 +25,7 @@
  */
 
 import type { CSSProperties, ReactElement } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../../../../../store/slices';
 import { SvgIcon } from '../../../../../../../utils/SvgIcon';
@@ -35,6 +36,7 @@ import { useLyricsSettings } from '../../../../../lyrics/hooks/useLyricsSettings
 /** 正在播放小组件，展示当前播放歌曲与媒体控制。 */
 export function SongWidget(): ReactElement {
   const { t } = useTranslation();
+  const [showLyrics, setShowLyrics] = useState(false);
   const {
     mediaInfo,
     coverImage,
@@ -54,6 +56,7 @@ export function SongWidget(): ReactElement {
   );
   const lyricText = isIntro ? syncedLyrics?.[0]?.text ?? '' : currentText;
   const nextLyricText = syncedLyrics?.[isIntro ? 1 : currentIdx + 1]?.text ?? '';
+  const lyricsVisible = showLyrics && lyricsEnabled;
   const [r, g, b] = dominantColor;
 
   return (
@@ -77,42 +80,54 @@ export function SongWidget(): ReactElement {
               className="ov-dash-song-cover"
               style={coverImage ? { backgroundImage: `url(${coverImage})` } : undefined}
             />
-            <div className="ov-dash-song-info">
-              <div className="ov-dash-song-title">{mediaInfo.title || t('overview.song.unknownTitle', { defaultValue: '未知歌曲' })}</div>
-              <div className="ov-dash-song-artist">{mediaInfo.artist || t('overview.song.unknownArtist', { defaultValue: '未知艺术家' })}</div>
-              {mediaInfo.album && <div className="ov-dash-song-album">{mediaInfo.album}</div>}
-            </div>
+            {lyricsVisible ? (
+              <div className="ov-dash-song-lyrics">
+                {lyricsLoading ? (
+                  <span className="ov-dash-song-lyric-status">{t('songTab.lyrics.loading')}</span>
+                ) : hasLyrics && lyricText ? (
+                  <>
+                    <div
+                      key={currentIdx}
+                      className={`ov-dash-song-lyric-current${karaokeEnabled && hasSyllables && !isIntro ? ' karaoke' : ''}`}
+                    >
+                      {karaokeEnabled && hasSyllables && currentLine && !isIntro ? (
+                        <KaraokeSyllableLine
+                          syllables={currentLine.syllables!}
+                          lineStartMs={currentLine.time_ms}
+                          posMs={currentPositionMs}
+                        />
+                      ) : (
+                        lyricText
+                      )}
+                    </div>
+                    {nextLyricText && <div className="ov-dash-song-lyric-next">{nextLyricText}</div>}
+                  </>
+                ) : (
+                  <span className="ov-dash-song-lyric-status">{t('songTab.lyrics.empty')}</span>
+                )}
+              </div>
+            ) : (
+              <div className="ov-dash-song-info">
+                <div className="ov-dash-song-title">{mediaInfo.title || t('overview.song.unknownTitle', { defaultValue: '未知歌曲' })}</div>
+                <div className="ov-dash-song-artist">{mediaInfo.artist || t('overview.song.unknownArtist', { defaultValue: '未知艺术家' })}</div>
+                {mediaInfo.album && <div className="ov-dash-song-album">{mediaInfo.album}</div>}
+              </div>
+            )}
           </div>
-          {lyricsEnabled && (
-            <div className="ov-dash-song-lyrics">
-              {lyricsLoading ? (
-                <span className="ov-dash-song-lyric-status">{t('songTab.lyrics.loading')}</span>
-              ) : hasLyrics && lyricText ? (
-                <>
-                  <div
-                    key={currentIdx}
-                    className={`ov-dash-song-lyric-current${karaokeEnabled && hasSyllables && !isIntro ? ' karaoke' : ''}`}
-                  >
-                    {karaokeEnabled && hasSyllables && currentLine && !isIntro ? (
-                      <KaraokeSyllableLine
-                        syllables={currentLine.syllables!}
-                        lineStartMs={currentLine.time_ms}
-                        posMs={currentPositionMs}
-                      />
-                    ) : (
-                      lyricText
-                    )}
-                  </div>
-                  {nextLyricText && <div className="ov-dash-song-lyric-next">{nextLyricText}</div>}
-                </>
-              ) : (
-                <span className="ov-dash-song-lyric-status">{t('songTab.lyrics.empty')}</span>
-              )}
-            </div>
-          )}
           <div className="ov-dash-song-controls">
-            <button className="ov-dash-song-btn" onClick={() => {}} type="button" title={t('overview.song.lyric', { defaultValue: '歌词' })}>
-              <img src={SvgIcon.LYRIC} alt={t('overview.song.lyric', { defaultValue: '歌词' })} className="ov-dash-song-btn-icon ov-dash-song-btn-icon--lg" />
+            <button
+              className="ov-dash-song-btn"
+              onClick={() => setShowLyrics((visible) => !visible)}
+              type="button"
+              title={lyricsVisible ? t('overview.song.information') : t('overview.song.lyric')}
+              aria-pressed={lyricsVisible}
+              disabled={!lyricsEnabled}
+            >
+              <img
+                src={lyricsVisible ? SvgIcon.INFORMATION : SvgIcon.LYRIC}
+                alt={lyricsVisible ? t('overview.song.information') : t('overview.song.lyric')}
+                className="ov-dash-song-btn-icon ov-dash-song-btn-icon--lg"
+              />
             </button>
             <button className="ov-dash-song-btn" onClick={() => window.api.mediaPrev()} type="button" title={t('overview.song.prev', { defaultValue: '上一首' })}>
               <img src={SvgIcon.PREVIOUS_SONG} alt={t('overview.song.prev', { defaultValue: '上一首' })} className="ov-dash-song-btn-icon ov-dash-song-btn-icon--sm" />

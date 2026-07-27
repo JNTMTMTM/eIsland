@@ -1006,16 +1006,17 @@
   position: relative;
   z-index: 1;
   display: flex;
+  flex: 1;
   flex-direction: column;
   justify-content: center;
   gap: 1px;
   min-width: 0;
-  min-height: 27px;
+  min-height: 40px;
   padding: 3px 6px;
   overflow: hidden;
   border-radius: 6px;
   background: rgba(var(--color-text-rgb), 0.045);
-  text-align: center;
+  text-align: left;
 }
 
 .ov-dash-song-lyric-current,
@@ -1081,6 +1082,13 @@
 }
 .ov-dash-song-btn:hover {
   background: rgba(var(--color-text-rgb), 0.16);
+}
+.ov-dash-song-btn:disabled {
+  cursor: default;
+  opacity: 0.35;
+}
+.ov-dash-song-btn:disabled:hover {
+  background: rgba(var(--color-text-rgb), 0.08);
 }
 .ov-dash-song-btn-play {
   width: 32px;

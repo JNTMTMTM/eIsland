@@ -630,6 +630,7 @@
       "play": "Play",
       "next": "Next",
       "lyric": "Lyrics",
+      "information": "Song information",
       "mute": "Mute",
       "empty": "No music playing"
     },
