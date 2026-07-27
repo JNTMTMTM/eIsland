@@ -48,6 +48,7 @@ describe('applyChromiumPerformanceFlags', () => {
     expect(appendSwitch).toHaveBeenCalledWith('enable-features', 'BackForwardCache');
     expect(appendSwitch).toHaveBeenCalledWith('autoplay-policy', 'no-user-gesture-required');
     expect(appendSwitch).toHaveBeenCalledWith('disable-dev-shm-usage');
+    expect(appendSwitch).not.toHaveBeenCalledWith('js-flags', expect.stringContaining('max-old-space-size'));
 
     const disableFeaturesCall = appendSwitch.mock.calls.find(([name]) => name === 'disable-features');
     expect(disableFeaturesCall?.[1]).toContain('HardwareMediaKeyHandling');
