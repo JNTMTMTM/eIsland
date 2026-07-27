@@ -160,8 +160,8 @@ export const DEFAULT_TOGGLE_PASSTHROUGH_HOTKEY = '';
 /** 默认切换 UI 状态锁定快捷键（空表示默认不设置） */
 export const DEFAULT_TOGGLE_UI_LOCK_HOTKEY = '';
 
-/** 默认切换形态模式快捷键（空表示默认不设置） */
-export const DEFAULT_TOGGLE_SHAPE_MODE_HOTKEY = '';
+/** 默认切换形态模式快捷键 */
+export const DEFAULT_TOGGLE_SHAPE_MODE_HOTKEY = 'Alt+E';
 
 /** 默认 Agent 语音输入快捷键（长按触发） */
 export const DEFAULT_AGENT_VOICE_INPUT_HOTKEY = 'Alt+P';
