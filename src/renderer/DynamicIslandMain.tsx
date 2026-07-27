@@ -31,6 +31,7 @@ import DynamicIsland from './components/DynamicIsland';
 import useIslandStore from './store/slices';
 import { hydrateWeatherLocationConfigFromStore } from './store/utils/storage';
 import { initTheme } from './utils/theme';
+import { initFonts } from './utils/font';
 import { bootstrapAuthSession } from './utils/authSession';
 import i18n from './i18n';
 
@@ -48,6 +49,7 @@ const rootEl = root;
 /** 启动时初始化主题（读取持久化设置并应用 data-theme，在 React 挂载前执行避免闪烁） */
 async function bootstrap(): Promise<void> {
   await initTheme();
+  await initFonts();
   await bootstrapAuthSession();
   await hydrateWeatherLocationConfigFromStore();
 

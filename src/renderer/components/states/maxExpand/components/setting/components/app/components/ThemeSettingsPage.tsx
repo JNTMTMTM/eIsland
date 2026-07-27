@@ -154,27 +154,6 @@ function injectCustomFontFace(familyName: string, base64Data: string, ext: strin
   return `'${familyName}', sans-serif`;
 }
 
-/**
- * 批量加载自定义字体列表并注入 @font-face
- * @param fonts - 自定义字体列表
- * @param prefix - 字体族名称前缀
- * @returns 每个字体对应的 CSS font-family 值映射
- */
-async function loadCustomFonts(fonts: CustomFont[], prefix: string): Promise<Map<string, string>> {
-  const cssMap = new Map<string, string>();
-  for (const font of fonts) {
-    try {
-      const result = await window.api.readFontFile(font.path);
-      if (result) {
-        const css = injectCustomFontFace(`${prefix}-${font.name}`, result.data, result.ext);
-        cssMap.set(font.path, css);
-      }
-    } catch {
-      // 字体文件不可用时跳过
-    }
-  }
-  return cssMap;
-}
 
 /**
  * 渲染软件主题与背景设置页面
@@ -265,7 +244,7 @@ export function ThemeSettingsPage({
     return () => { cancelled = true; };
   }, []);
 
-  /** 加载字体设置 */
+  /** 同步字体设置到 UI 状态（CSS 变量已在启动时由 initFonts 应用） */
   useEffect(() => {
     let cancelled = false;
     Promise.all([
@@ -273,45 +252,12 @@ export function ThemeSettingsPage({
       window.api.storeRead(LYRICS_FONT_STORE_KEY),
       window.api.storeRead(UI_CUSTOM_FONTS_STORE_KEY),
       window.api.storeRead(LYRICS_CUSTOM_FONTS_STORE_KEY),
-    ]).then(async ([uiVal, lyricsVal, uiCustom, lyricsCustom]) => {
+    ]).then(([uiVal, lyricsVal, uiCustom, lyricsCustom]) => {
       if (cancelled) return;
-
-      const uiCustomArr = Array.isArray(uiCustom) ? uiCustom as CustomFont[] : [];
-      const lyricsCustomArr = Array.isArray(lyricsCustom) ? lyricsCustom as CustomFont[] : [];
-      if (!cancelled) {
-        setUiCustomFonts(uiCustomArr);
-        setLyricsCustomFonts(lyricsCustomArr);
-      }
-
-      const [uiCssMap, lyricsCssMap] = await Promise.all([
-        loadCustomFonts(uiCustomArr, 'eIsland-UI'),
-        loadCustomFonts(lyricsCustomArr, 'eIsland-Lyrics'),
-      ]);
-      if (cancelled) return;
-
-      if (typeof uiVal === 'string') {
-        setUIFont(uiVal);
-        if (uiVal.startsWith('custom:')) {
-          const path = uiVal.slice(7);
-          const css = uiCssMap.get(path);
-          if (css) document.documentElement.style.setProperty('--island-ui-font', css);
-        } else {
-          const preset = FONT_PRESETS.find((f) => f.value === uiVal);
-          if (preset?.css) document.documentElement.style.setProperty('--island-ui-font', preset.css);
-        }
-      }
-
-      if (typeof lyricsVal === 'string') {
-        setLyricsFont(lyricsVal);
-        if (lyricsVal.startsWith('custom:')) {
-          const path = lyricsVal.slice(7);
-          const css = lyricsCssMap.get(path);
-          if (css) document.documentElement.style.setProperty('--island-lyrics-font', css);
-        } else {
-          const preset = FONT_PRESETS.find((f) => f.value === lyricsVal);
-          if (preset?.css) document.documentElement.style.setProperty('--island-lyrics-font', preset.css);
-        }
-      }
+      if (typeof uiVal === 'string') setUIFont(uiVal);
+      if (typeof lyricsVal === 'string') setLyricsFont(lyricsVal);
+      if (Array.isArray(uiCustom)) setUiCustomFonts(uiCustom as CustomFont[]);
+      if (Array.isArray(lyricsCustom)) setLyricsCustomFonts(lyricsCustom as CustomFont[]);
     }).catch(() => {});
     return () => { cancelled = true; };
   }, []);
