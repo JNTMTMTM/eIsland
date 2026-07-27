@@ -38,6 +38,13 @@
   --color-island-text: #ffffff;
   --color-shadow-rgb: 0, 0, 0;
   --icon-invert: 1;
+  --island-ui-font: 'Microsoft YaHei', 'PingFang SC', -apple-system, sans-serif;
+  --island-lyrics-font: 'Microsoft YaHei', 'PingFang SC', -apple-system, sans-serif;
+}
+
+/** ===== UI 字体应用 ===== */
+body {
+  font-family: var(--island-ui-font);
 }
 
 /** ===== 浅色主题覆盖 ===== */

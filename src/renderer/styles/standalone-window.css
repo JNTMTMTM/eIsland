@@ -38,7 +38,7 @@
   background: #000;
   position: relative;
   color: #fff;
-  font-family: 'SF Pro Display', 'SF Pro Text', 'Microsoft YaHei', 'PingFang SC', -apple-system, sans-serif;
+  font-family: var(--island-ui-font);
   overflow: hidden;
   letter-spacing: -0.12px;
 }

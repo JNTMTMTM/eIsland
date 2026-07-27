@@ -100,6 +100,7 @@
   min-width: 0;
   gap: 2px;
   z-index: 2;
+  font-family: var(--island-lyrics-font);
 }
 
 .lrc-title {

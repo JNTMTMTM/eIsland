@@ -30,6 +30,7 @@ import { useTranslation } from 'react-i18next';
 import { BUILTIN_WALLPAPERS } from '../../../../../../../../assets/wallpaper/builtinWallpapers';
 import useIslandStore from '../../../../../../../../store/slices';
 import { SvgIcon } from '../../../../../../../../utils/SvgIcon';
+import { injectFontFace } from '../../../../../../../../utils/font';
 import type { AppSettingsSectionProps } from './types';
 
 type ThemeSettingsPageProps = Pick<
@@ -93,6 +94,30 @@ type ThemeSettingsPageProps = Pick<
 >;
 
 const MUSIC_OUTER_GLOW_EFFECT_STORE_KEY = 'music-outer-glow-effect-enabled';
+const UI_FONT_STORE_KEY = 'ui-font-family';
+const LYRICS_FONT_STORE_KEY = 'lyrics-font-family';
+const UI_CUSTOM_FONTS_STORE_KEY = 'ui-custom-fonts';
+const LYRICS_CUSTOM_FONTS_STORE_KEY = 'lyrics-custom-fonts';
+
+/** 字体预设列表（label 为 i18n key） */
+const FONT_PRESETS = [
+  { value: 'default', i18nKey: 'settings.app.theme.fontDefault', css: "'Microsoft YaHei', 'PingFang SC', -apple-system, sans-serif" },
+  { value: 'microsoft-yahei', i18nKey: 'settings.app.theme.fontMicrosoftYahei', css: "'Microsoft YaHei', sans-serif" },
+  { value: 'simhei', i18nKey: 'settings.app.theme.fontSimhei', css: "'SimHei', sans-serif" },
+  { value: 'simsun', i18nKey: 'settings.app.theme.fontSimsun', css: "'SimSun', serif" },
+  { value: 'kaiti', i18nKey: 'settings.app.theme.fontKaiti', css: "'KaiTi', serif" },
+  { value: 'fangsong', i18nKey: 'settings.app.theme.fontFangsong', css: "'FangSong', serif" },
+  { value: 'cascadia-code', i18nKey: 'settings.app.theme.fontCascadiaCode', css: "'Cascadia Code', 'JetBrains Mono', Consolas, monospace" },
+  { value: 'jetbrains-mono', i18nKey: 'settings.app.theme.fontJetbrainsMono', css: "'JetBrains Mono', 'Cascadia Code', Consolas, monospace" },
+  { value: 'consolas', i18nKey: 'settings.app.theme.fontConsolas', css: "Consolas, 'Courier New', monospace" },
+] as const;
+
+/** 自定义字体条目 */
+interface CustomFont {
+  name: string;
+  path: string;
+}
+
 
 /**
  * 渲染软件主题与背景设置页面
@@ -160,6 +185,10 @@ export function ThemeSettingsPage({
   const { t } = useTranslation();
   const setNotification = useIslandStore((s) => s.setNotification);
   const [musicOuterGlowEffectEnabled, setMusicOuterGlowEffectEnabled] = useState<boolean>(true);
+  const [uiFont, setUIFont] = useState<string>('default');
+  const [lyricsFont, setLyricsFont] = useState<string>('default');
+  const [uiCustomFonts, setUiCustomFonts] = useState<CustomFont[]>([]);
+  const [lyricsCustomFonts, setLyricsCustomFonts] = useState<CustomFont[]>([]);
 
   const bgPreviewVideoRef = useRef<HTMLVideoElement | null>(null);
   const bgPreviewVideoLoopRef = useRef<boolean>(bgVideoLoop);
@@ -175,6 +204,24 @@ export function ThemeSettingsPage({
       if (typeof value === 'boolean') {
         setMusicOuterGlowEffectEnabled(value);
       }
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+
+  /** 同步字体设置到 UI 状态（CSS 变量已在启动时由 initFonts 应用） */
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all([
+      window.api.storeRead(UI_FONT_STORE_KEY),
+      window.api.storeRead(LYRICS_FONT_STORE_KEY),
+      window.api.storeRead(UI_CUSTOM_FONTS_STORE_KEY),
+      window.api.storeRead(LYRICS_CUSTOM_FONTS_STORE_KEY),
+    ]).then(([uiVal, lyricsVal, uiCustom, lyricsCustom]) => {
+      if (cancelled) return;
+      if (typeof uiVal === 'string') setUIFont(uiVal);
+      if (typeof lyricsVal === 'string') setLyricsFont(lyricsVal);
+      if (Array.isArray(uiCustom)) setUiCustomFonts(uiCustom as CustomFont[]);
+      if (Array.isArray(lyricsCustom)) setLyricsCustomFonts(lyricsCustom as CustomFont[]);
     }).catch(() => {});
     return () => { cancelled = true; };
   }, []);
@@ -284,6 +331,170 @@ export function ThemeSettingsPage({
                 {t('settings.app.theme.musicOuterGlowToggle', { defaultValue: '启用歌曲播放外光圈跑马灯特效' })}
               </label>
             </div>
+          </div>
+        </div>
+
+        <div className="settings-card">
+          <div className="settings-card-header">
+            <div className="settings-card-title">{t('settings.app.theme.uiFontTitle', { defaultValue: '界面字体' })}</div>
+            <div className="settings-card-subtitle">{t('settings.app.theme.uiFontHint', { defaultValue: '选择灵动岛界面使用的字体' })}</div>
+          </div>
+          <div className="settings-lyrics-source-options">
+            {FONT_PRESETS.map((font) => (
+              <button
+                key={font.value}
+                className={`settings-lyrics-source-btn ${uiFont === font.value ? 'active' : ''}`}
+                type="button"
+                onClick={() => {
+                  setUIFont(font.value);
+                  document.documentElement.style.setProperty('--island-ui-font', font.css);
+                  window.api.storeWrite(UI_FONT_STORE_KEY, font.value).catch(() => {});
+                }}
+              >
+                {t(font.i18nKey)}
+              </button>
+            ))}
+            {uiCustomFonts.map((font) => (
+              <button
+                key={font.path}
+                className={`settings-lyrics-source-btn ${uiFont === `custom:${font.path}` ? 'active' : ''}`}
+                type="button"
+                onClick={() => {
+                  const key = `custom:${font.path}`;
+                  setUIFont(key);
+                  window.api.readFontFile(font.path).then((result) => {
+                    if (!result) return;
+                    const css = injectFontFace(`eIsland-UI-${font.name}`, result.data, result.ext);
+                    document.documentElement.style.setProperty('--island-ui-font', css);
+                  }).catch(() => {});
+                  window.api.storeWrite(UI_FONT_STORE_KEY, key).catch(() => {});
+                }}
+              >
+                {font.name}
+                <button
+                  className="settings-font-delete"
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const next = uiCustomFonts.filter((f) => f.path !== font.path);
+                    setUiCustomFonts(next);
+                    window.api.storeWrite(UI_CUSTOM_FONTS_STORE_KEY, next).catch(() => {});
+                    if (uiFont === `custom:${font.path}`) {
+                      const fallback = FONT_PRESETS[0];
+                      setUIFont(fallback.value);
+                      document.documentElement.style.setProperty('--island-ui-font', fallback.css);
+                      window.api.storeWrite(UI_FONT_STORE_KEY, fallback.value).catch(() => {});
+                    }
+                  }}
+                >
+                  <img className="settings-font-delete-icon" src={SvgIcon.CANCEL} alt="" draggable={false} />
+                </button>
+              </button>
+            ))}
+            <button
+              className="settings-lyrics-source-btn"
+              type="button"
+              onClick={() => {
+                window.api.openFontDialog().then((result) => {
+                  if (!result) return;
+                  const entry: CustomFont = { name: result.name, path: result.path };
+                  const exists = uiCustomFonts.some((f) => f.path === result.path);
+                  if (exists) return;
+                  const next = [...uiCustomFonts, entry];
+                  setUiCustomFonts(next);
+                  window.api.storeWrite(UI_CUSTOM_FONTS_STORE_KEY, next).catch(() => {});
+                  injectFontFace(`eIsland-UI-${result.name}`, result.data, result.ext);
+                  const key = `custom:${result.path}`;
+                  setUIFont(key);
+                  document.documentElement.style.setProperty('--island-ui-font', `'eIsland-UI-${result.name}', sans-serif`);
+                  window.api.storeWrite(UI_FONT_STORE_KEY, key).catch(() => {});
+                }).catch(() => {});
+              }}
+            >
+              + {t('settings.app.theme.addCustomFont', { defaultValue: '添加字体' })}
+            </button>
+          </div>
+        </div>
+
+        <div className="settings-card">
+          <div className="settings-card-header">
+            <div className="settings-card-title">{t('settings.app.theme.lyricsFontTitle', { defaultValue: '歌词字体' })}</div>
+            <div className="settings-card-subtitle">{t('settings.app.theme.lyricsFontHint', { defaultValue: '选择歌词显示使用的字体' })}</div>
+          </div>
+          <div className="settings-lyrics-source-options">
+            {FONT_PRESETS.map((font) => (
+              <button
+                key={font.value}
+                className={`settings-lyrics-source-btn ${lyricsFont === font.value ? 'active' : ''}`}
+                type="button"
+                onClick={() => {
+                  setLyricsFont(font.value);
+                  document.documentElement.style.setProperty('--island-lyrics-font', font.css);
+                  window.api.storeWrite(LYRICS_FONT_STORE_KEY, font.value).catch(() => {});
+                }}
+              >
+                {t(font.i18nKey)}
+              </button>
+            ))}
+            {lyricsCustomFonts.map((font) => (
+              <button
+                key={font.path}
+                className={`settings-lyrics-source-btn ${lyricsFont === `custom:${font.path}` ? 'active' : ''}`}
+                type="button"
+                onClick={() => {
+                  const key = `custom:${font.path}`;
+                  setLyricsFont(key);
+                  window.api.readFontFile(font.path).then((result) => {
+                    if (!result) return;
+                    const css = injectFontFace(`eIsland-Lyrics-${font.name}`, result.data, result.ext);
+                    document.documentElement.style.setProperty('--island-lyrics-font', css);
+                  }).catch(() => {});
+                  window.api.storeWrite(LYRICS_FONT_STORE_KEY, key).catch(() => {});
+                }}
+              >
+                {font.name}
+                <button
+                  className="settings-font-delete"
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const next = lyricsCustomFonts.filter((f) => f.path !== font.path);
+                    setLyricsCustomFonts(next);
+                    window.api.storeWrite(LYRICS_CUSTOM_FONTS_STORE_KEY, next).catch(() => {});
+                    if (lyricsFont === `custom:${font.path}`) {
+                      const fallback = FONT_PRESETS[0];
+                      setLyricsFont(fallback.value);
+                      document.documentElement.style.setProperty('--island-lyrics-font', fallback.css);
+                      window.api.storeWrite(LYRICS_FONT_STORE_KEY, fallback.value).catch(() => {});
+                    }
+                  }}
+                >
+                  <img className="settings-font-delete-icon" src={SvgIcon.CANCEL} alt="" draggable={false} />
+                </button>
+              </button>
+            ))}
+            <button
+              className="settings-lyrics-source-btn"
+              type="button"
+              onClick={() => {
+                window.api.openFontDialog().then((result) => {
+                  if (!result) return;
+                  const entry: CustomFont = { name: result.name, path: result.path };
+                  const exists = lyricsCustomFonts.some((f) => f.path === result.path);
+                  if (exists) return;
+                  const next = [...lyricsCustomFonts, entry];
+                  setLyricsCustomFonts(next);
+                  window.api.storeWrite(LYRICS_CUSTOM_FONTS_STORE_KEY, next).catch(() => {});
+                  injectFontFace(`eIsland-Lyrics-${result.name}`, result.data, result.ext);
+                  const key = `custom:${result.path}`;
+                  setLyricsFont(key);
+                  document.documentElement.style.setProperty('--island-lyrics-font', `'eIsland-Lyrics-${result.name}', sans-serif`);
+                  window.api.storeWrite(LYRICS_FONT_STORE_KEY, key).catch(() => {});
+                }).catch(() => {});
+              }}
+            >
+              + {t('settings.app.theme.addCustomFont', { defaultValue: '添加字体' })}
+            </button>
           </div>
         </div>
 
