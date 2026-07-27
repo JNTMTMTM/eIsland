@@ -118,7 +118,7 @@ export function SongWidget(): ReactElement {
     0,
   ) ?? 0;
   const karaokeScrollProgress = karaokeEnabled && hasSyllables && currentLine && !isIntro && karaokeLineDurationMs > 0
-    ? (currentPositionMs - currentLine.time_ms) / karaokeLineDurationMs
+    ? (currentPositionMs - currentLine.time_ms) / (karaokeLineDurationMs * 0.85)
     : undefined;
   const [r, g, b] = dominantColor;
 
