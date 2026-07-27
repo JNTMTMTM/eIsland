@@ -2528,6 +2528,9 @@
 .settings-font-delete:hover {
   color: #e74c3c;
 }
+.settings-lyrics-source-btn:has(.settings-font-delete:hover) {
+  border-color: #e74c3c;
+}
 
 .settings-weather-provider-pro-badge {
   display: inline-flex;
