@@ -1099,6 +1099,10 @@
   width: 11px;
   height: 11px;
 }
+.ov-dash-song-btn-icon--lg {
+  width: 16px;
+  height: 16px;
+}
 .ov-dash-song-empty {
   flex: 1;
   display: flex;

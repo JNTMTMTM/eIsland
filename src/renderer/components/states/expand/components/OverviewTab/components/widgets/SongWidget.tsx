@@ -111,6 +111,9 @@ export function SongWidget(): ReactElement {
             </div>
           )}
           <div className="ov-dash-song-controls">
+            <button className="ov-dash-song-btn" onClick={() => {}} type="button" title={t('overview.song.lyric', { defaultValue: '歌词' })}>
+              <img src={SvgIcon.LYRIC} alt={t('overview.song.lyric', { defaultValue: '歌词' })} className="ov-dash-song-btn-icon ov-dash-song-btn-icon--lg" />
+            </button>
             <button className="ov-dash-song-btn" onClick={() => window.api.mediaPrev()} type="button" title={t('overview.song.prev', { defaultValue: '上一首' })}>
               <img src={SvgIcon.PREVIOUS_SONG} alt={t('overview.song.prev', { defaultValue: '上一首' })} className="ov-dash-song-btn-icon ov-dash-song-btn-icon--sm" />
             </button>
@@ -123,6 +126,9 @@ export function SongWidget(): ReactElement {
             </button>
             <button className="ov-dash-song-btn" onClick={() => window.api.mediaNext()} type="button" title={t('overview.song.next', { defaultValue: '下一首' })}>
               <img src={SvgIcon.NEXT_SONG} alt={t('overview.song.next', { defaultValue: '下一首' })} className="ov-dash-song-btn-icon ov-dash-song-btn-icon--sm" />
+            </button>
+            <button className="ov-dash-song-btn" onClick={() => {}} type="button" title={t('overview.song.mute', { defaultValue: '静音' })}>
+              <img src={SvgIcon.MUTE} alt={t('overview.song.mute', { defaultValue: '静音' })} className="ov-dash-song-btn-icon ov-dash-song-btn-icon--lg" />
             </button>
           </div>
         </div>

@@ -629,6 +629,8 @@
       "pause": "Pause",
       "play": "Play",
       "next": "Next",
+      "lyric": "Lyrics",
+      "mute": "Mute",
       "empty": "No music playing"
     },
     "album": {
