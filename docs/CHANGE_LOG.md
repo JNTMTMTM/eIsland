@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-07-27T07:12:30.479Z
+> 生成时间：2026-07-27T10:44:01.650Z
 
 ## 26.6.5
 
@@ -2946,6 +2946,19 @@
 
 ## Unreleased
 
+- 2026-07-27 | 7ce7d021 | 鸡哥 | Merge pull request #170 from JNTMTMTM/dev
+- 2026-07-27 | c009964d | 鸡哥 | feat: replace delete icon with SVG image for font settings and add styling
+- 2026-07-27 | 64e51ab1 | 鸡哥 | feat: add hover effect for lyrics source button to enhance visual feedback
+- 2026-07-27 | fb8136aa | 鸡哥 | feat: enhance font handling with validation and improved injection logic
+- 2026-07-27 | b5238ebd | 鸡哥 | feat: optimize custom font loading with Promise.all for improved performance
+- 2026-07-27 | 1677ed61 | 鸡哥 | feat: add customizable font options and i18n keys for theme settings
+- 2026-07-27 | 32f553c2 | 鸡哥 | feat: implement font initialization and loading for custom fonts
+- 2026-07-27 | 96f076d1 | 鸡哥 | feat: update theme settings to support adding custom fonts
+- 2026-07-27 | f06f85a9 | 鸡哥 | feat: add custom font loaded message to theme settings
+- 2026-07-27 | 0b8eaa71 | 鸡哥 | feat: add font file dialog and custom font support in theme settings
+- 2026-07-27 | 4518651e | 鸡哥 | feat: add customizable font settings for UI and lyrics display
+- 2026-07-27 | e9948d8e | 鸡哥 | chore: remove environment specification from CI workflow jobs
+- 2026-07-27 | c80880ad | eislandBot | docs: auto update CHANGE_LOG.md for #169 by @JNTMTMTM [skip ci]
 - 2026-07-27 | 88335c28 | 鸡哥 | Merge pull request #169 from JNTMTMTM/dev
 - 2026-07-27 | 38b349ad | 鸡哥 | refactor: replace for loop with forEach for drawing lines in MusicBgWavePreview
 - 2026-07-27 | ea35927d | 鸡哥 | feat: update music background wave preview to use layered line waves
