@@ -86,18 +86,12 @@ export function LayoutPreviewSettingsPage({
           </div>
           <div className="settings-music-bg-preview-row">
             <div className={`settings-music-bg-preview-item ${bgStyle === 'silky' ? 'active' : ''}`} onClick={() => handleStyleChange('silky')}>
-              <div className="settings-music-bg-preview-label">
-                {t('settings.app.layout.musicBgCurrent', { defaultValue: '目前状态' })}
-              </div>
               <div className="settings-music-bg-preview-canvas-wrap">
                 <SilkyWave color={waveColor} playing />
               </div>
               <span className="settings-music-bg-preview-name">{t('settings.app.layout.musicBgSilky', { defaultValue: '丝滑波浪' })}</span>
             </div>
             <div className={`settings-music-bg-preview-item ${bgStyle === 'wave' ? 'active' : ''}`} onClick={() => handleStyleChange('wave')}>
-              <div className="settings-music-bg-preview-label">
-                {t('settings.app.layout.musicBgModified', { defaultValue: '修改后效果' })}
-              </div>
               <div className="settings-music-bg-preview-canvas-wrap">
                 <MusicBgWavePreview color={waveColor} playing />
               </div>
