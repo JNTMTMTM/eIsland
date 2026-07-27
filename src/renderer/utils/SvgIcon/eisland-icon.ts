@@ -41,6 +41,7 @@ export const SvgIcon = {
   NETWORK: './svg/NETWORK.svg',
   WEATHER: './svg/WEATHER.svg',
   LRC: './svg/LRC.svg',
+  LYRIC: './svg/LYRIC.svg',
   AI: './svg/AI.svg',
   SHORTCUT_KEY: './svg/SHORTCUT_KEY.svg',
   ABOUT: './svg/ABOUT.svg',

@@ -45,6 +45,7 @@ describe('SvgIcon', () => {
     expect(SvgIcon).toHaveProperty('NETWORK');
     expect(SvgIcon).toHaveProperty('WEATHER');
     expect(SvgIcon).toHaveProperty('LRC');
+    expect(SvgIcon).toHaveProperty('LYRIC');
     expect(SvgIcon).toHaveProperty('AI');
     expect(SvgIcon).toHaveProperty('SHORTCUT_KEY');
     expect(SvgIcon).toHaveProperty('ABOUT');
