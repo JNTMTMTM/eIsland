@@ -57,6 +57,14 @@ const {
   seekMock: vi.fn(),
 }));
 
+const {
+  getMuteMock,
+  setMuteMock,
+} = vi.hoisted(() => ({
+  getMuteMock: vi.fn(),
+  setMuteMock: vi.fn(),
+}));
+
 vi.mock('electron', () => ({
   ipcMain: {
     handle: handleMock,
@@ -74,6 +82,11 @@ vi.mock('fs', () => ({
 
 vi.mock('../../../utils/broadcast', () => ({
   broadcastSettingChange: broadcastSettingChangeMock,
+}));
+
+vi.mock('@eisland/windows-volume-helper', () => ({
+  getMute: getMuteMock,
+  setMute: setMuteMock,
 }));
 
 vi.mock('@eisland/windows-smtc-helper', () => ({
@@ -98,6 +111,8 @@ describe('media ipc handlers', () => {
     readFileSyncMock.mockReset();
     writeFileSyncMock.mockReset();
     broadcastSettingChangeMock.mockReset();
+    getMuteMock.mockReset();
+    setMuteMock.mockReset();
 
     handleMock.mockImplementation((channel: string, handler: (...args: unknown[]) => unknown) => {
       handlers.set(channel, handler);
@@ -130,6 +145,36 @@ describe('media ipc handlers', () => {
     expect(playMock).toHaveBeenCalledTimes(1);
     expect(nextMock).not.toHaveBeenCalled();
     expect(previousMock).not.toHaveBeenCalled();
+  });
+
+  it('reads and toggles the default playback device mute state', () => {
+    getMuteMock
+      .mockReturnValueOnce(false)
+      .mockReturnValueOnce(false)
+      .mockReturnValueOnce(true)
+      .mockReturnValueOnce(null);
+    setMuteMock
+      .mockReturnValueOnce(true)
+      .mockReturnValueOnce(false);
+
+    registerMediaIpcHandlers({
+      getMainWindow: () => null,
+      isWhitelisted: () => true,
+      getPendingSourceSwitchId: () => '',
+      setPendingSourceSwitchId: vi.fn(),
+      getPendingSourceSwitchEntry: () => null,
+      clearPendingSourceSwitchEntry: vi.fn(),
+      getCurrentDeviceId: () => 'device-1',
+      setCurrentDeviceId: vi.fn(),
+      getSmtcSessionRuntime: () => new Map(),
+    });
+
+    expect(handlers.get('media:get-muted')?.({})).toBe(false);
+    expect(handlers.get('media:toggle-muted')?.({})).toBe(true);
+    expect(setMuteMock).toHaveBeenNthCalledWith(1, true);
+    expect(handlers.get('media:toggle-muted')?.({})).toBeNull();
+    expect(setMuteMock).toHaveBeenNthCalledWith(2, false);
+    expect(handlers.get('media:toggle-muted')?.({})).toBeNull();
   });
 
   it('returns current info and applies source switch updates', () => {

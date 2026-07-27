@@ -451,6 +451,20 @@ const api = {
     return ipcRenderer.invoke('media:set-volume', volume);
   },
   /**
+   * 获取当前默认播放设备的静音状态
+   * @returns 当前静音状态，读取失败时返回 null
+   */
+  mediaGetMuted: (): Promise<boolean | null> => {
+    return ipcRenderer.invoke('media:get-muted');
+  },
+  /**
+   * 切换当前默认播放设备的静音状态
+   * @returns 切换后的静音状态，操作失败时返回 null
+   */
+  mediaToggleMuted: (): Promise<boolean | null> => {
+    return ipcRenderer.invoke('media:toggle-muted');
+  },
+  /**
    * 获取当前正在播放歌曲信息（用于初始化）
    */
   mediaCurrentInfoGet: (): Promise<NowPlayingInfo | null> => {

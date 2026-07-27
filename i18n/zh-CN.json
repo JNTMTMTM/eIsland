@@ -632,6 +632,7 @@
       "lyric": "歌词",
       "information": "歌曲信息",
       "mute": "静音",
+      "unmute": "取消静音",
       "empty": "暂无播放中的歌曲"
     },
     "album": {

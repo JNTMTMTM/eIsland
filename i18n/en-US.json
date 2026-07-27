@@ -632,6 +632,7 @@
       "lyric": "Lyrics",
       "information": "Song information",
       "mute": "Mute",
+      "unmute": "Unmute",
       "empty": "No music playing"
     },
     "album": {

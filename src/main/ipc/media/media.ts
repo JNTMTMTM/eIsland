@@ -27,6 +27,7 @@
 
 import { BrowserWindow, ipcMain } from 'electron';
 import { play, pause, next, previous, seek, getTimestamp } from '@eisland/windows-smtc-helper';
+import { getMute, setMute } from '@eisland/windows-volume-helper';
 
 interface MediaSessionRuntimeEntry {
   payload: unknown;
@@ -103,6 +104,16 @@ export function registerMediaIpcHandlers(options: RegisterMediaIpcHandlersOption
 
   ipcMain.handle('media:set-volume', (_event, _volume: number) => {
     // SMTC 不支持应用级音量控制
+  });
+
+  ipcMain.handle('media:get-muted', () => getMute());
+
+  ipcMain.handle('media:toggle-muted', () => {
+    const muted = getMute();
+    if (muted === null) return null;
+
+    const nextMuted = !muted;
+    return setMute(nextMuted) ? nextMuted : null;
   });
 
   ipcMain.handle('smtc:get-timestamp', () => {

@@ -45,6 +45,8 @@ type TestWindow = {
 type ExposedApi = {
   enableMousePassthrough: () => void;
   getMousePosition: () => Promise<unknown>;
+  mediaGetMuted: () => Promise<boolean | null>;
+  mediaToggleMuted: () => Promise<boolean | null>;
   onNowPlayingInfo: (callback: (payload: unknown) => void) => () => void;
   getPathForFile: (file: File) => string;
   windowClose: () => void;
@@ -144,6 +146,12 @@ describe('preload bridge', () => {
     setup.invokeMock.mockResolvedValue({ x: 100, y: 200 });
     await api.getMousePosition();
     expect(setup.invokeMock).toHaveBeenCalledWith('window:get-mouse-position');
+
+    await api.mediaGetMuted();
+    expect(setup.invokeMock).toHaveBeenCalledWith('media:get-muted');
+
+    await api.mediaToggleMuted();
+    expect(setup.invokeMock).toHaveBeenCalledWith('media:toggle-muted');
 
     const callback = vi.fn();
     const unsubscribe = api.onNowPlayingInfo(callback);

@@ -25,7 +25,7 @@
  */
 
 import type { CSSProperties, ReactElement, ReactNode } from 'react';
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../../../../../store/slices';
 import { SvgIcon } from '../../../../../../../utils/SvgIcon';
@@ -93,6 +93,8 @@ function ScrollingText({ children, className, scrollProgress }: ScrollingTextPro
 export function SongWidget(): ReactElement {
   const { t } = useTranslation();
   const [showLyrics, setShowLyrics] = useState(false);
+  const [isMuted, setIsMuted] = useState<boolean | null>(null);
+  const [mutePending, setMutePending] = useState(false);
   const {
     mediaInfo,
     coverImage,
@@ -110,6 +112,31 @@ export function SongWidget(): ReactElement {
     lyricsLoading,
     currentPositionMs,
   );
+
+  useEffect(() => {
+    let active = true;
+    window.api.mediaGetMuted().then((muted) => {
+      if (active) setIsMuted(muted);
+    }).catch(() => {
+      if (active) setIsMuted(null);
+    });
+
+    return () => { active = false; };
+  }, []);
+
+  const handleToggleMute = async (): Promise<void> => {
+    if (mutePending || isMuted === null) return;
+    setMutePending(true);
+    try {
+      const nextMuted = await window.api.mediaToggleMuted();
+      if (nextMuted !== null) setIsMuted(nextMuted);
+    } catch {
+      // 保持最后一次成功读取的系统静音状态。
+    } finally {
+      setMutePending(false);
+    }
+  };
+
   const lyricText = isIntro ? syncedLyrics?.[0]?.text ?? '' : currentText;
   const nextLyricText = syncedLyrics?.[isIntro ? 1 : currentIdx + 1]?.text ?? '';
   const lyricsVisible = showLyrics && lyricsEnabled;
@@ -125,6 +152,9 @@ export function SongWidget(): ReactElement {
     ? undefined
     : karaokeLinearScrollProgress ** 2 * (3 - 2 * karaokeLinearScrollProgress);
   const [r, g, b] = dominantColor;
+  const muteLabel = isMuted
+    ? t('overview.song.unmute')
+    : t('overview.song.mute');
 
   return (
     <div className="ov-dash-widget ov-dash-song-widget">
@@ -226,8 +256,19 @@ export function SongWidget(): ReactElement {
             <button className="ov-dash-song-btn" onClick={() => window.api.mediaNext()} type="button" title={t('overview.song.next', { defaultValue: '下一首' })}>
               <img src={SvgIcon.NEXT_SONG} alt={t('overview.song.next', { defaultValue: '下一首' })} className="ov-dash-song-btn-icon ov-dash-song-btn-icon--sm" />
             </button>
-            <button className="ov-dash-song-btn" onClick={() => {}} type="button" title={t('overview.song.mute', { defaultValue: '静音' })}>
-              <img src={SvgIcon.MUTE} alt={t('overview.song.mute', { defaultValue: '静音' })} className="ov-dash-song-btn-icon ov-dash-song-btn-icon--lg" />
+            <button
+              className="ov-dash-song-btn"
+              onClick={handleToggleMute}
+              type="button"
+              title={muteLabel}
+              aria-pressed={isMuted === true}
+              disabled={mutePending || isMuted === null}
+            >
+              <img
+                src={isMuted ? SvgIcon.VOLUME : SvgIcon.MUTE}
+                alt={muteLabel}
+                className="ov-dash-song-btn-icon ov-dash-song-btn-icon--lg"
+              />
             </button>
           </div>
         </div>
