@@ -1092,6 +1092,34 @@
   color: rgba(var(--color-text-rgb), 0.3);
 }
 
+.ov-dash-song-lyric-status.is-loading {
+  margin-left: 8px;
+  animation: ov-song-lyrics-loading 1.2s ease-in-out infinite;
+  transform-origin: right center;
+  will-change: transform, opacity;
+}
+
+@keyframes ov-song-lyrics-loading {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: translateY(1px) scale(0.98);
+  }
+
+  50% {
+    opacity: 1;
+    transform: translateY(-1px) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ov-dash-song-lyric-status.is-loading {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+
 .ov-dash-song-controls {
   position: relative;
   z-index: 1;

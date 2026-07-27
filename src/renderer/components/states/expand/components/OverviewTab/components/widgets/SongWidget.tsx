@@ -150,7 +150,7 @@ export function SongWidget(): ReactElement {
             {lyricsVisible ? (
               <div className="ov-dash-song-lyrics">
                 {lyricsLoading ? (
-                  <ScrollingText className="ov-dash-song-lyric-status">
+                  <ScrollingText className="ov-dash-song-lyric-status is-loading">
                     {t('songTab.lyrics.loading')}
                   </ScrollingText>
                 ) : hasLyrics && lyricText ? (
