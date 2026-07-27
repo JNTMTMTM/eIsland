@@ -121,6 +121,7 @@ export const SvgIcon = {
   DEVELOPER: './svg/DEVELOPER.svg',
   MICROSOFT: './svg/MICROSOFT.svg',
   WECHAT: './svg/WECHAT.svg',
+  INFORMATION: './svg/INFORMATION.svg',
   GITEE: './svg/GITEE.svg',
   KOOK: './svg/KOOK.svg',
   MEMO: './svg/MEMO.svg'

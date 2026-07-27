@@ -125,6 +125,8 @@ describe('SvgIcon', () => {
     expect(SvgIcon).toHaveProperty('DEVELOPER');
     expect(SvgIcon).toHaveProperty('MICROSOFT');
     expect(SvgIcon).toHaveProperty('GITEE');
+    expect(SvgIcon).toHaveProperty('WECHAT');
+    expect(SvgIcon).toHaveProperty('INFORMATION');
     expect(SvgIcon).toHaveProperty('KOOK');
     expect(SvgIcon).toHaveProperty('MEMO');
   });
