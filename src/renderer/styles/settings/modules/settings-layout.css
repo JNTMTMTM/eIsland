@@ -2525,6 +2525,12 @@
   cursor: pointer;
   transition: color 0.15s;
 }
+.settings-font-delete-icon {
+  width: 12px;
+  height: 12px;
+  opacity: 0.35;
+  transition: opacity 0.15s;
+}
 .settings-font-delete:hover {
   color: #e74c3c;
 }

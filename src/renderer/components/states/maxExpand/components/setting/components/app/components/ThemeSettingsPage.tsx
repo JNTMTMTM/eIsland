@@ -387,7 +387,7 @@ export function ThemeSettingsPage({
                     }
                   }}
                 >
-                  ×
+                  <img className="settings-font-delete-icon" src={SvgIcon.CANCEL} alt="" draggable={false} />
                 </button>
               </button>
             ))}
@@ -469,7 +469,7 @@ export function ThemeSettingsPage({
                     }
                   }}
                 >
-                  ×
+                  <img className="settings-font-delete-icon" src={SvgIcon.CANCEL} alt="" draggable={false} />
                 </button>
               </button>
             ))}
