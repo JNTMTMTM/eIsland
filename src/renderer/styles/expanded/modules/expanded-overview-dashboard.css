@@ -913,13 +913,13 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
   justify-content: center;
-  gap: 8px;
+  gap: 4px;
   position: relative;
   overflow: hidden;
   border-radius: 10px;
-  padding: 6px;
+  padding: 4px 6px;
 }
 .ov-dash-song-bg {
   position: absolute;
@@ -942,13 +942,20 @@
   z-index: 1;
   display: flex;
   align-items: center;
-  gap: 8px;
-  min-width: 0;
+  gap: 5px;
+  width: fit-content;
   max-width: 100%;
+  min-width: 0;
+  margin: 0 auto;
+}
+
+.ov-dash-song-body,
+.ov-dash-song-controls {
+  transform: translateY(5px);
 }
 .ov-dash-song-cover {
-  width: 50px;
-  height: 50px;
+  width: 46px;
+  height: 46px;
   border-radius: 6px;
   background: rgba(var(--color-text-rgb), 0.08);
   background-size: cover;
@@ -967,39 +974,157 @@
 .ov-dash-song-info {
   position: relative;
   z-index: 1;
+  flex: 0 1 auto;
+  width: max-content;
+  max-width: 160px;
   min-width: 0;
   text-align: right;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 2px;
+  gap: 1px;
+  padding: 0 6px;
 }
 .ov-dash-song-title {
-  font-size: 12px;
+  width: 100%;
+  font-size: 13px;
   font-weight: 600;
   color: rgba(var(--color-text-rgb), 0.9);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
   max-width: 100%;
 }
 .ov-dash-song-artist {
-  font-size: 10px;
+  width: 100%;
+  font-size: 11px;
   color: rgba(var(--color-text-rgb), 0.55);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
   max-width: 100%;
 }
 .ov-dash-song-album {
-  font-size: 9px;
+  width: 100%;
+  font-size: 10px;
   color: rgba(var(--color-text-rgb), 0.35);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
   margin-top: 1px;
   max-width: 100%;
 }
+.ov-dash-song-lyrics {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex: 0 1 auto;
+  width: max-content;
+  max-width: 200px;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1px;
+  min-width: 0;
+  min-height: 46px;
+  padding: 3px 6px;
+  overflow: hidden;
+  border-radius: 6px;
+  text-align: right;
+}
+
+.ov-dash-song-scroll {
+  overflow: hidden;
+  text-overflow: clip;
+  white-space: nowrap;
+}
+
+.ov-dash-song-scroll-content {
+  display: inline-block;
+  min-width: max-content;
+  transform: translateX(0);
+}
+
+.ov-dash-song-scroll.is-overflowing {
+  text-align: left;
+}
+
+.ov-dash-song-scroll.is-overflowing .ov-dash-song-scroll-content {
+  animation: ov-song-text-scroll var(--song-text-scroll-duration) ease-in-out 1s infinite alternate;
+}
+
+.ov-dash-song-scroll.is-progress-driven .ov-dash-song-scroll-content {
+  animation: none;
+  transform: translateX(calc(-1 * var(--song-text-scroll-offset)));
+  transition: transform 0.12s linear;
+}
+
+@keyframes ov-song-text-scroll {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(calc(-1 * var(--song-text-scroll-distance)));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ov-dash-song-scroll.is-overflowing .ov-dash-song-scroll-content {
+    animation: none;
+    transform: translateX(0);
+    transition: none;
+  }
+}
+
+.ov-dash-song-lyric-current {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: rgba(var(--color-text-rgb), 0.88);
+}
+
+.ov-dash-song-lyric-current.karaoke .lyrics-syllable {
+  color: transparent;
+  background: linear-gradient(
+    90deg,
+    rgba(var(--color-text-rgb), 0.95) 0%,
+    rgba(var(--color-text-rgb), 0.95) var(--syl-prog, 0%),
+    rgba(var(--color-text-rgb), 0.28) var(--syl-prog, 0%),
+    rgba(var(--color-text-rgb), 0.28) 100%
+  );
+  background-clip: text;
+}
+
+.ov-dash-song-lyric-next {
+  font-size: 9px;
+  line-height: 1.25;
+  color: rgba(var(--color-text-rgb), 0.35);
+}
+
+.ov-dash-song-lyric-status {
+  font-size: 10px;
+  color: rgba(var(--color-text-rgb), 0.3);
+}
+
+.ov-dash-song-lyric-status.is-loading {
+  margin-left: 8px;
+  animation: ov-song-lyrics-loading 1.2s ease-in-out infinite;
+  transform-origin: right center;
+  will-change: transform, opacity;
+}
+
+@keyframes ov-song-lyrics-loading {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: translateY(1px) scale(0.98);
+  }
+
+  50% {
+    opacity: 1;
+    transform: translateY(-1px) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ov-dash-song-lyric-status.is-loading {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+
 .ov-dash-song-controls {
   position: relative;
   z-index: 1;
@@ -1007,6 +1132,7 @@
   align-items: center;
   justify-content: center;
   gap: 10px;
+  margin-top: 10px;
   filter: brightness(0) invert(var(--icon-invert));
 }
 .ov-dash-song-btn {
@@ -1026,6 +1152,13 @@
 .ov-dash-song-btn:hover {
   background: rgba(var(--color-text-rgb), 0.16);
 }
+.ov-dash-song-btn:disabled {
+  cursor: default;
+  opacity: 0.35;
+}
+.ov-dash-song-btn:disabled:hover {
+  background: rgba(var(--color-text-rgb), 0.08);
+}
 .ov-dash-song-btn-play {
   width: 32px;
   height: 32px;
@@ -1042,6 +1175,10 @@
 .ov-dash-song-btn-icon--sm {
   width: 11px;
   height: 11px;
+}
+.ov-dash-song-btn-icon--lg {
+  width: 16px;
+  height: 16px;
 }
 .ov-dash-song-empty {
   flex: 1;

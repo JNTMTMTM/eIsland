@@ -51,7 +51,7 @@ export function SetPasswordForm(props: SetPasswordFormProps): ReactElement {
 
   return (
     <div className="auth-state-content" onClick={(e) => e.stopPropagation()}>
-      <div className="auth-panel">
+      <div className="auth-panel settings-scrollbar-thin">
         <div className="auth-panel-title">{t('oauth.setPassword.title', { defaultValue: '设置密码' })}</div>
         <div className="auth-panel-subtitle">
           {t('oauth.setPassword.hint', { defaultValue: 'OAuth 登录成功，请设置密码以完成注册' })}

@@ -147,6 +147,8 @@ declare global {
       mediaSeek: (positionMs: number) => Promise<void>;
       mediaGetVolume: () => Promise<number>;
       mediaSetVolume: (volume: number) => Promise<void>;
+      mediaGetMuted: () => Promise<boolean | null>;
+      mediaToggleMuted: () => Promise<boolean | null>;
       mediaCurrentInfoGet: () => Promise<NowPlayingInfo | null>;
       onNowPlayingInfo: (callback: (info: NowPlayingInfo | null) => void) => () => void;
       screenshot: () => Promise<string | null>;
@@ -175,6 +177,7 @@ declare global {
       openFontDialog: () => Promise<{ path: string; data: string; ext: string; name: string } | null>;
       readFontFile: (filePath: string) => Promise<{ path: string; data: string; ext: string; name: string } | null>;
       loadWallpaperFile: (filePath: string) => Promise<string | null>;
+      loadAlbumThumbnail: (filePath: string) => Promise<string | null>;
       clearWallpaperCache: () => Promise<void>;
       setSystemDesktopWallpaper: (payload: SetWallpaperPayload) => Promise<boolean>;
       wallpaperVideoCover: (sourcePath: string) => Promise<string | null>;

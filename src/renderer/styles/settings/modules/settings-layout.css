@@ -222,11 +222,16 @@
   flex-direction: column;
 }
 
-.max-expand-settings-panel::-webkit-scrollbar {
+.settings-scrollbar-thin::-webkit-scrollbar {
   width: 4px;
 }
 
-.max-expand-settings-panel::-webkit-scrollbar-thumb {
+.island-shell.login .auth-panel::-webkit-scrollbar-track,
+.cw-viewport .auth-panel::-webkit-scrollbar-track {
+  margin: 20px 0;
+}
+
+.settings-scrollbar-thin::-webkit-scrollbar-thumb {
   background: rgba(var(--color-text-rgb), 0.12);
   border-radius: 2px;
 }

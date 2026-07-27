@@ -451,6 +451,20 @@ const api = {
     return ipcRenderer.invoke('media:set-volume', volume);
   },
   /**
+   * 获取当前默认播放设备的静音状态
+   * @returns 当前静音状态，读取失败时返回 null
+   */
+  mediaGetMuted: (): Promise<boolean | null> => {
+    return ipcRenderer.invoke('media:get-muted');
+  },
+  /**
+   * 切换当前默认播放设备的静音状态
+   * @returns 切换后的静音状态，操作失败时返回 null
+   */
+  mediaToggleMuted: (): Promise<boolean | null> => {
+    return ipcRenderer.invoke('media:toggle-muted');
+  },
+  /**
    * 获取当前正在播放歌曲信息（用于初始化）
    */
   mediaCurrentInfoGet: (): Promise<NowPlayingInfo | null> => {
@@ -662,6 +676,14 @@ const api = {
    */
   loadWallpaperFile: (filePath: string): Promise<string | null> => {
     return ipcRenderer.invoke('wallpaper:load-file', filePath);
+  },
+  /**
+   * 生成相册网格缩略图，避免批量传输和解码原图
+   * @param filePath - 图片文件绝对路径
+   * @returns 缩略图 data URL，失败返回 null
+   */
+  loadAlbumThumbnail: (filePath: string): Promise<string | null> => {
+    return ipcRenderer.invoke('album:load-thumbnail', filePath);
   },
   /**
    * 清理 userData/wallpapers/ 下的自定义壁纸缓存

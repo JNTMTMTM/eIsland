@@ -85,8 +85,8 @@ export function AlbumGridItem({
           ) : (
             <span className="album-thumb-fallback">{t('albumTab.thumb.loading')}</span>
           )
-        ) : meta?.dataUrl ? (
-          <img className="album-thumb-img" src={meta.dataUrl} alt={item.name} loading="lazy" />
+        ) : meta?.thumbnailUrl ? (
+          <img className="album-thumb-img" src={meta.thumbnailUrl} alt={item.name} loading="lazy" />
         ) : meta?.loadFailed ? (
           <span className="album-thumb-fallback">{t('albumTab.thumb.failed')}</span>
         ) : (

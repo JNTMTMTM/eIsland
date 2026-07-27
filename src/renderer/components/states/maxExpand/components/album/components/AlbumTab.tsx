@@ -48,7 +48,7 @@ export function AlbumTab(): ReactElement {
   const {
     items, loaded, metaCache, statusMessage, setStatusMessage,
     fileInputRef, gridVideoRefs, initColumns, initSortMode, initGroupMode,
-    loadExifIfNeeded, handleAddFiles, handleRemove, handleRemoveSelected,
+    loadExifIfNeeded, loadFullImage, handleAddFiles, handleRemove, handleRemoveSelected,
     handleThumbMouseEnter, handleThumbMouseLeave,
     handleFileInputChange, handlePickFiles,
   } = useAlbumItems();
@@ -60,7 +60,7 @@ export function AlbumTab(): ReactElement {
   } = useAlbumGridConfig(items, metaCache, loaded, initColumns, initSortMode, initGroupMode);
 
   /* ── Hook: 查看器 ── */
-  const viewer = useAlbumViewer(items, filteredItems, metaCache, loadExifIfNeeded);
+  const viewer = useAlbumViewer(items, filteredItems, metaCache, loadExifIfNeeded, loadFullImage);
   const { activeId, setActiveId } = viewer;
 
   /* ── Hook: 查看器动作 ── */

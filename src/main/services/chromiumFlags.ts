@@ -67,6 +67,5 @@ export function applyChromiumPerformanceFlags(app: App): void {
   app.commandLine.appendSwitch('disable-component-update');
   app.commandLine.appendSwitch('disable-breakpad');
   app.commandLine.appendSwitch('disable-domain-reliability');
-  app.commandLine.appendSwitch('js-flags', '--max-old-space-size=128 --lite-mode');
   app.commandLine.appendSwitch('disable-dev-shm-usage');
 }

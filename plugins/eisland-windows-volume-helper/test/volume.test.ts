@@ -31,8 +31,18 @@ const volume = require('../') as typeof volumeTypes;
 
 describe('@eisland/windows-volume-helper', () => {
   it('exports expected functions', () => {
+    expect(typeof volume.getMute).toBe('function');
+    expect(typeof volume.setMute).toBe('function');
     expect(typeof volume.getVolume).toBe('function');
     expect(typeof volume.setVolume).toBe('function');
+  });
+
+  it('reads and reapplies the current mute state', () => {
+    const originalMuted = volume.getMute();
+    if (originalMuted === null) return;
+
+    expect(volume.setMute(originalMuted)).toBe(true);
+    expect(volume.getMute()).toBe(originalMuted);
   });
 
   it('returns a valid volume level or null', () => {

@@ -5,6 +5,25 @@ internal static class AudioEndpointController
     private static readonly Guid AudioEndpointVolumeInterfaceId = typeof(IAudioEndpointVolume).GUID;
     private static readonly Guid EventContext = Guid.Empty;
 
+    public static bool? GetMute()
+    {
+        return WithDefaultEndpointVolume(endpointVolume =>
+        {
+            endpointVolume.GetMute(out var muted);
+            return muted;
+        });
+    }
+
+    public static bool SetMute(bool muted)
+    {
+        return WithDefaultEndpointVolume(endpointVolume =>
+        {
+            var eventContext = EventContext;
+            endpointVolume.SetMute(muted, ref eventContext);
+            return true;
+        }) ?? false;
+    }
+
     public static int? GetVolume()
     {
         return WithDefaultEndpointVolume(endpointVolume =>

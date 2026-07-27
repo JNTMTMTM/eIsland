@@ -56,7 +56,9 @@ export interface IslandBgMediaConfig {
 
 /** 相册条目运行时元数据（不持久化） */
 export interface AlbumMeta {
-  /** data URL，用于 <img> 显示 */
+  /** 缩略图 data URL，用于网格预览 */
+  thumbnailUrl?: string;
+  /** 原图 data URL，仅在单图查看时保留 */
   dataUrl?: string;
   /** 视频预览地址 */
   videoUrl?: string;
@@ -265,6 +267,7 @@ export interface UseAlbumItemsReturn {
   initSortMode: AlbumSortMode;
   initGroupMode: AlbumGroupMode;
   loadExifIfNeeded: (item: AlbumItem) => void;
+  loadFullImage: (item: AlbumItem) => void;
   handleAddFiles: (files: FileList | File[] | null) => void;
   handleRemove: (id: number) => void;
   handleRemoveSelected: (ids: Set<number>) => void;

@@ -75,7 +75,7 @@ export function LoginForm(props: LoginFormProps): ReactElement {
 
   return (
     <div className="auth-state-content" onClick={(e) => e.stopPropagation()}>
-      <div className="auth-panel">
+      <div className="auth-panel settings-scrollbar-thin">
         <div className="auth-panel-title">{t('settings.user.auth.login', { defaultValue: '登录' })}</div>
         <div className="auth-panel-subtitle">
           {t('settings.user.auth.hint', { defaultValue: '登录注册服务由 eIsland server 提供' })}

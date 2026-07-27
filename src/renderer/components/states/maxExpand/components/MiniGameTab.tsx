@@ -529,7 +529,7 @@ export function MiniGameTab(): ReactElement {
         </div>
 
         {/* 主面板 */}
-        <div className="max-expand-settings-panel">
+        <div className="max-expand-settings-panel settings-scrollbar-thin">
           {activeSidebar !== 'index' && (
             <div className="max-expand-settings-title settings-app-title-line">
               <span>{selectedEntry ? t(selectedEntry.labelKey, { defaultValue: selectedEntry.id }) : ''}</span>

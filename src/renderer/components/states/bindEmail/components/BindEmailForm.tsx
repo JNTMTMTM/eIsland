@@ -47,7 +47,7 @@ export function BindEmailForm(props: BindEmailFormProps): ReactElement {
 
   return (
     <div className="auth-state-content" onClick={(e) => e.stopPropagation()}>
-      <div className="auth-panel">
+      <div className="auth-panel settings-scrollbar-thin">
         <div className="auth-panel-title">{t('oauth.bindEmail.title', { defaultValue: '绑定邮箱' })}</div>
         <div className="auth-panel-subtitle">
           {t('oauth.bindEmail.hint', { defaultValue: '请绑定邮箱以完成注册' })}
