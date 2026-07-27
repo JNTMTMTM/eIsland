@@ -117,9 +117,13 @@ export function SongWidget(): ReactElement {
     (duration, syllable) => Math.max(duration, syllable.start_offset_ms + syllable.duration_ms),
     0,
   ) ?? 0;
-  const karaokeScrollProgress = karaokeEnabled && hasSyllables && currentLine && !isIntro && karaokeLineDurationMs > 0
-    ? (currentPositionMs - currentLine.time_ms) / (karaokeLineDurationMs * 0.85)
+  const karaokeLinearScrollProgress = karaokeEnabled && hasSyllables && currentLine && !isIntro && karaokeLineDurationMs > 0
+    ? Math.min(1, Math.max(0, (currentPositionMs - currentLine.time_ms) / (karaokeLineDurationMs * 0.85)))
     : undefined;
+  // 平滑变速避免线性跟随在行首、行尾产生突兀位移。
+  const karaokeScrollProgress = karaokeLinearScrollProgress === undefined
+    ? undefined
+    : karaokeLinearScrollProgress ** 2 * (3 - 2 * karaokeLinearScrollProgress);
   const [r, g, b] = dominantColor;
 
   return (
