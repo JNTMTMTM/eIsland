@@ -81,27 +81,6 @@ export function LayoutPreviewSettingsPage({
       <div className="settings-cards">
         <div className="settings-card">
           <div className="settings-card-header">
-            <div className="settings-card-title">{t('settings.app.layout.musicBgTitle', { defaultValue: 'Hover 音乐背景样式' })}</div>
-            <div className="settings-card-subtitle">{t('settings.app.layout.musicBgHint', { defaultValue: '预览并选择 Hover 态歌曲界面的背景波浪效果样式。' })}</div>
-          </div>
-          <div className="settings-music-bg-preview-row">
-            <div className={`settings-music-bg-preview-item ${bgStyle === 'silky' ? 'active' : ''}`} onClick={() => handleStyleChange('silky')}>
-              <div className="settings-music-bg-preview-canvas-wrap">
-                <SilkyWave color={waveColor} playing />
-              </div>
-              <span className="settings-music-bg-preview-name">{t('settings.app.layout.musicBgSilky', { defaultValue: '丝滑波浪' })}</span>
-            </div>
-            <div className={`settings-music-bg-preview-item ${bgStyle === 'wave' ? 'active' : ''}`} onClick={() => handleStyleChange('wave')}>
-              <div className="settings-music-bg-preview-canvas-wrap">
-                <MusicBgWavePreview color={waveColor} playing />
-              </div>
-              <span className="settings-music-bg-preview-name">{t('settings.app.layout.musicBgWave', { defaultValue: '音频波浪' })}</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="settings-card">
-          <div className="settings-card-header">
             <div className="settings-card-title">{t('settings.app.layout.previewTitle', { defaultValue: '总览布局预览' })}</div>
             <div className="settings-card-subtitle">{t('settings.app.layout.previewHint', { defaultValue: '实时显示左右控件组合后的 Expand 态灵动岛样式，切换下方控件可即时预览。' })}</div>
           </div>
@@ -177,6 +156,27 @@ export function LayoutPreviewSettingsPage({
                   </label>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="settings-card">
+          <div className="settings-card-header">
+            <div className="settings-card-title">{t('settings.app.layout.musicBgTitle', { defaultValue: 'Hover 音乐背景样式' })}</div>
+            <div className="settings-card-subtitle">{t('settings.app.layout.musicBgHint', { defaultValue: '预览并选择 Hover 态歌曲界面的背景波浪效果样式。' })}</div>
+          </div>
+          <div className="settings-music-bg-preview-row">
+            <div className={`settings-music-bg-preview-item ${bgStyle === 'silky' ? 'active' : ''}`} onClick={() => handleStyleChange('silky')}>
+              <div className="settings-music-bg-preview-canvas-wrap">
+                <SilkyWave color={waveColor} playing />
+              </div>
+              <span className="settings-music-bg-preview-name">{t('settings.app.layout.musicBgSilky', { defaultValue: '丝滑波浪' })}</span>
+            </div>
+            <div className={`settings-music-bg-preview-item ${bgStyle === 'wave' ? 'active' : ''}`} onClick={() => handleStyleChange('wave')}>
+              <div className="settings-music-bg-preview-canvas-wrap">
+                <MusicBgWavePreview color={waveColor} playing />
+              </div>
+              <span className="settings-music-bg-preview-name">{t('settings.app.layout.musicBgWave', { defaultValue: '音频波浪' })}</span>
             </div>
           </div>
         </div>
