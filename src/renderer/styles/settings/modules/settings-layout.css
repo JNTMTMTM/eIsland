@@ -222,9 +222,7 @@
   flex-direction: column;
 }
 
-.max-expand-settings-panel::-webkit-scrollbar,
-.island-shell.login .auth-panel::-webkit-scrollbar,
-.cw-viewport .auth-panel::-webkit-scrollbar {
+.settings-scrollbar-thin::-webkit-scrollbar {
   width: 4px;
 }
 
@@ -233,9 +231,7 @@
   margin: 20px 0;
 }
 
-.max-expand-settings-panel::-webkit-scrollbar-thumb,
-.island-shell.login .auth-panel::-webkit-scrollbar-thumb,
-.cw-viewport .auth-panel::-webkit-scrollbar-thumb {
+.settings-scrollbar-thin::-webkit-scrollbar-thumb {
   background: rgba(var(--color-text-rgb), 0.12);
   border-radius: 2px;
 }

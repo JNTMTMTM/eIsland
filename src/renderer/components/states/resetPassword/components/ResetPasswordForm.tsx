@@ -58,7 +58,7 @@ export function ResetPasswordForm(props: ResetPasswordFormProps): ReactElement {
 
   return (
     <div className="auth-state-content" onClick={(e) => e.stopPropagation()}>
-      <div className="auth-panel">
+      <div className="auth-panel settings-scrollbar-thin">
         <div className="auth-panel-title">{t('settings.user.auth.resetPassword', { defaultValue: '重置密码' })}</div>
         <div className="auth-panel-subtitle">
           {t('settings.user.auth.resetPasswordHint', { defaultValue: '通过邮箱验证码校验身份后，可继续修改登录密码' })}

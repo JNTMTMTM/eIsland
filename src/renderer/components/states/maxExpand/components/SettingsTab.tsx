@@ -2397,7 +2397,7 @@ export function SettingsTab(): ReactElement {
           </button>
         </div>
 
-        <div className="max-expand-settings-panel">
+        <div className="max-expand-settings-panel settings-scrollbar-thin">
           {activeTab === 'index' && (
             <IndexSettingsSection
               visibleCards={visibleCards}

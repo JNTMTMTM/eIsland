@@ -46,7 +46,7 @@ export function BindOAuthForm(props: BindOAuthFormProps): ReactElement {
 
   return (
     <div className="auth-state-content" onClick={(e) => e.stopPropagation()}>
-      <div className="auth-panel">
+      <div className="auth-panel settings-scrollbar-thin">
         <div className="auth-panel-title">{t('oauth.bindOAuth.title', { defaultValue: '绑定账号' })}</div>
         <div className="auth-panel-subtitle">
           {t('oauth.bindOAuth.hint', { defaultValue: '该邮箱已注册，请输入密码将 GitHub 账号绑定到已有账号' })}

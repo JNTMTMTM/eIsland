@@ -207,7 +207,7 @@ export function ToolboxTab(): ReactElement {
           ))}
         </div>
 
-        <div className="max-expand-settings-panel">
+        <div className="max-expand-settings-panel settings-scrollbar-thin">
           {activeSidebar !== 'index' && (
             <div className="max-expand-settings-title toolbox-panel-title settings-app-title-line">
               <span>{activeSidebarItem ? t(activeSidebarItem.labelKey) : ''}</span>

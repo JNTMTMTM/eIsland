@@ -106,7 +106,7 @@ export function PaymentContent(): ReactElement {
       setFeedback(t('settings.user.payment.selectMethodHint', { defaultValue: '请选择上方支付方式后再创建订单。' }));
       return;
     }
-    const email = receiptEmail.trim();
+    const email = receiptEmail.trim().toLowerCase();
     if (!EMAIL_PATTERN.test(email)) {
       setFeedback(t('settings.user.payment.emailInvalid', { defaultValue: '请输入有效的收据邮箱地址' }));
       return;
@@ -204,7 +204,7 @@ export function PaymentContent(): ReactElement {
 
   return (
     <div className="auth-state-content" onClick={(e) => e.stopPropagation()}>
-      <div className="auth-panel payment-panel">
+      <div className="auth-panel payment-panel settings-scrollbar-thin">
         <div className="auth-panel-title">
           {isRechargeMode
             ? t('settings.user.recharge.paymentTitle', { defaultValue: 'Agent 余额充值' })
