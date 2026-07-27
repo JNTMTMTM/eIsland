@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-07-27T10:44:01.650Z
+> 生成时间：2026-07-27T15:56:09.196Z
 
 ## 26.6.5
 
@@ -2946,6 +2946,29 @@
 
 ## Unreleased
 
+- 2026-07-27 | 937cfc47 | 鸡哥 | Merge pull request #172 from JNTMTMTM/dev
+- 2026-07-27 | 22c701b8 | 鸡哥 | fix: update author name in dynamicIslandPatterns test file
+- 2026-07-27 | ea385086 | 鸡哥 | feat: implement mute and unmute functionality for playback device
+- 2026-07-27 | 8b29fc0e | 鸡哥 | feat: add getMute and setMute functions for managing playback device mute state
+- 2026-07-27 | a2eb7d3a | 鸡哥 | feat: add vertical translation for song body and controls in overview dashboard
+- 2026-07-27 | 15d9502e | 鸡哥 | feat: add loading animation for song lyrics status in SongWidget
+- 2026-07-27 | 2b1d4219 | 鸡哥 | feat: enhance karaoke scroll progress calculation for smoother transitions
+- 2026-07-27 | 3f73ae3a | 鸡哥 | feat: adjust karaoke scroll progress calculation for improved accuracy
+- 2026-07-27 | 0901e7a7 | 鸡哥 | feat: implement scrolling text component for song lyrics and update styles for better overflow handling
+- 2026-07-27 | ce3b9413 | 鸡哥 | feat: adjust margin-top for song button for improved layout
+- 2026-07-27 | 404bd719 | 鸡哥 | feat: update song info layout for better responsiveness and adjust font size
+- 2026-07-27 | a38241f6 | 鸡哥 | feat: adjust layout and alignment of song details in overview dashboard
+- 2026-07-27 | 28606c3b | 鸡哥 | feat: add song information text and enhance SongWidget layout
+- 2026-07-27 | 97421b70 | 鸡哥 | feat: add INFORMATION SVG icon and update SvgIcon references
+- 2026-07-27 | 7b4e1255 | 鸡哥 | feat: add lyric and mute buttons to SongWidget and update translations
+- 2026-07-27 | 6ef0446c | 鸡哥 | feat: add LYRIC icon and update SvgIcon properties
+- 2026-07-27 | 676faa20 | 鸡哥 | feat: enhance SongWidget with lyrics display and karaoke support
+- 2026-07-27 | 88bb69b1 | 鸡哥 | feat: remove js-flags switch from Chromium performance flags
+- 2026-07-27 | 196f5fb6 | 鸡哥 | feat: add album thumbnail loading functionality and improve media handling
+- 2026-07-27 | 0125d996 | 鸡哥 | feat: set default toggle shape mode hotkey to 'Alt+E'
+- 2026-07-27 | 724c1b7c | 鸡哥 | feat: add thin scrollbar styling to various auth panels and forms
+- 2026-07-27 | 6e5ef0bd | silenthim18303 | 邮箱格式判定采用了更严格的判定方式，同时修复了滚动条样式丢失问题 喵⊙ω⊙`)“
+- 2026-07-27 | 5913295c | eislandBot | docs: auto update CHANGE_LOG.md for #170 by @JNTMTMTM [skip ci]
 - 2026-07-27 | 7ce7d021 | 鸡哥 | Merge pull request #170 from JNTMTMTM/dev
 - 2026-07-27 | c009964d | 鸡哥 | feat: replace delete icon with SVG image for font settings and add styling
 - 2026-07-27 | 64e51ab1 | 鸡哥 | feat: add hover effect for lyrics source button to enhance visual feedback
