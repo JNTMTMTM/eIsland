@@ -98,18 +98,20 @@ export async function initFonts(): Promise<void> {
 
     /** 加载自定义字体列表，返回 path → css 映射 */
     async function loadCustom(fonts: CustomFont[], prefix: string): Promise<Map<string, string>> {
-      const cssMap = new Map<string, string>();
-      for (const font of fonts) {
-        try {
-          const result = await window.api.readFontFile(font.path);
-          if (result) {
-            cssMap.set(font.path, injectFontFace(`${prefix}-${font.name}`, result.data, result.ext));
+      const entries = await Promise.all(
+        fonts.map(async (font) => {
+          try {
+            const result = await window.api.readFontFile(font.path);
+            if (result) {
+              return [font.path, injectFontFace(`${prefix}-${font.name}`, result.data, result.ext)] as const;
+            }
+          } catch {
+            /* 字体文件不可用时跳过 */
           }
-        } catch {
-          /* 字体文件不可用时跳过 */
-        }
-      }
-      return cssMap;
+          return null;
+        })
+      );
+      return new Map(entries.filter((e): e is NonNullable<typeof e> => e !== null));
     }
 
     const [uiCssMap, lyricsCssMap] = await Promise.all([
