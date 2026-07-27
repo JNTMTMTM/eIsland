@@ -1072,7 +1072,7 @@
   align-items: center;
   justify-content: center;
   gap: 10px;
-  margin-top: 14px;
+  margin-top: 10px;
   filter: brightness(0) invert(var(--icon-invert));
 }
 .ov-dash-song-btn {
