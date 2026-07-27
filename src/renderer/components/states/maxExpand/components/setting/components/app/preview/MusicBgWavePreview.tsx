@@ -81,7 +81,7 @@ export function MusicBgWavePreview({ color, playing }: MusicBgWavePreviewProps):
 
     const centerY = h * 0.5;
 
-    for (const line of lines) {
+    lines.forEach((line) => {
       ctx.beginPath();
 
       for (let x = 0; x <= w; x += 2) {
@@ -98,7 +98,7 @@ export function MusicBgWavePreview({ color, playing }: MusicBgWavePreviewProps):
       ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${line.opacity})`;
       ctx.lineWidth = line.width;
       ctx.stroke();
-    }
+    });
 
     if (playing) {
       rafRef.current = requestAnimationFrame(draw);
