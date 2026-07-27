@@ -943,13 +943,14 @@
   display: flex;
   align-items: center;
   gap: 5px;
-  width: min(100%, 180px);
+  width: fit-content;
+  max-width: 100%;
   min-width: 0;
   margin: 0 auto;
 }
 .ov-dash-song-cover {
-  width: 40px;
-  height: 40px;
+  width: 46px;
+  height: 46px;
   border-radius: 6px;
   background: rgba(var(--color-text-rgb), 0.08);
   background-size: cover;
@@ -968,17 +969,20 @@
 .ov-dash-song-info {
   position: relative;
   z-index: 1;
-  flex: 1;
+  flex: 0 1 auto;
+  width: max-content;
+  max-width: 160px;
   min-width: 0;
   text-align: right;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   gap: 1px;
+  padding: 0 6px;
 }
 .ov-dash-song-title {
   width: 100%;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   color: rgba(var(--color-text-rgb), 0.9);
   overflow: hidden;
@@ -988,7 +992,7 @@
 }
 .ov-dash-song-artist {
   width: 100%;
-  font-size: 10px;
+  font-size: 11px;
   color: rgba(var(--color-text-rgb), 0.55);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -997,7 +1001,7 @@
 }
 .ov-dash-song-album {
   width: 100%;
-  font-size: 9px;
+  font-size: 10px;
   color: rgba(var(--color-text-rgb), 0.35);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1009,16 +1013,17 @@
   position: relative;
   z-index: 1;
   display: flex;
-  flex: 1;
+  flex: 0 1 auto;
+  width: max-content;
+  max-width: 200px;
   flex-direction: column;
   justify-content: center;
   gap: 1px;
   min-width: 0;
-  min-height: 40px;
+  min-height: 46px;
   padding: 3px 6px;
   overflow: hidden;
   border-radius: 6px;
-  background: rgba(var(--color-text-rgb), 0.045);
   text-align: right;
 }
 
@@ -1031,7 +1036,7 @@
 }
 
 .ov-dash-song-lyric-current {
-  font-size: 10px;
+  font-size: 13px;
   font-weight: 600;
   line-height: 1.35;
   color: rgba(var(--color-text-rgb), 0.88);
@@ -1050,13 +1055,13 @@
 }
 
 .ov-dash-song-lyric-next {
-  font-size: 8px;
+  font-size: 9px;
   line-height: 1.25;
   color: rgba(var(--color-text-rgb), 0.35);
 }
 
 .ov-dash-song-lyric-status {
-  font-size: 9px;
+  font-size: 10px;
   color: rgba(var(--color-text-rgb), 0.3);
 }
 
@@ -1067,7 +1072,7 @@
   align-items: center;
   justify-content: center;
   gap: 10px;
-  margin-top: 10px;
+  margin-top: 14px;
   filter: brightness(0) invert(var(--icon-invert));
 }
 .ov-dash-song-btn {
