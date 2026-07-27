@@ -416,17 +416,22 @@ export function ThemeSettingsPage({
                     }).catch(() => {});
                   } else {
                     setUIFont(font.value);
+                    setUiCustomFontPath('');
                     document.documentElement.style.setProperty('--island-ui-font', font.css);
                     window.api.storeWrite(UI_FONT_STORE_KEY, font.value).catch(() => {});
+                    window.api.storeWrite(UI_FONT_CUSTOM_PATH_KEY, '').catch(() => {});
                   }
                 }}
               >
-                {font.value === 'custom' && uiCustomFontPath
-                  ? uiCustomFontPath.split(/[/\\]/).pop()?.replace(/\.[^.]+$/, '') || font.label
-                  : font.label}
+                {font.label}
               </button>
             ))}
           </div>
+          {uiFont === 'custom' && uiCustomFontPath && (
+            <div className="settings-music-hint" style={{ marginTop: 6 }}>
+              {t('settings.app.theme.customFontLoaded', { defaultValue: '已加载：{{name}}', name: uiCustomFontPath.split(/[/\\]/).pop()?.replace(/\.[^.]+$/, '') || '' })}
+            </div>
+          )}
         </div>
 
         <div className="settings-card">
@@ -453,17 +458,22 @@ export function ThemeSettingsPage({
                     }).catch(() => {});
                   } else {
                     setLyricsFont(font.value);
+                    setLyricsCustomFontPath('');
                     document.documentElement.style.setProperty('--island-lyrics-font', font.css);
                     window.api.storeWrite(LYRICS_FONT_STORE_KEY, font.value).catch(() => {});
+                    window.api.storeWrite(LYRICS_FONT_CUSTOM_PATH_KEY, '').catch(() => {});
                   }
                 }}
               >
-                {font.value === 'custom' && lyricsCustomFontPath
-                  ? lyricsCustomFontPath.split(/[/\\]/).pop()?.replace(/\.[^.]+$/, '') || font.label
-                  : font.label}
+                {font.label}
               </button>
             ))}
           </div>
+          {lyricsFont === 'custom' && lyricsCustomFontPath && (
+            <div className="settings-music-hint" style={{ marginTop: 6 }}>
+              {t('settings.app.theme.customFontLoaded', { defaultValue: '已加载：{{name}}', name: lyricsCustomFontPath.split(/[/\\]/).pop()?.replace(/\.[^.]+$/, '') || '' })}
+            </div>
+          )}
         </div>
 
         <div className="settings-card">
