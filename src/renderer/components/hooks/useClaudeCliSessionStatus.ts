@@ -20,67 +20,90 @@
 
 /**
  * @file useClaudeCliSessionStatus.ts
- * @description 订阅 Claude Code CLI 状态，提供“是否存在活跃会话”的同步只读引用。
+ * @description 订阅 Claude Code 与 Codex CLI 状态，检测新会话并追踪活跃状态。
  * @author 鸡哥
  */
 
 import { useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { playNotificationSoundOnce } from '../../utils/audio/notificationSound';
 import { readEffectiveAudioVolume } from '../../utils/audio/volume';
 import useIslandStore from '../../store/isLandStore';
+import type { CliProvider } from '../../store/types';
 import { AgentIcon } from '../../utils/SvgIcon';
 
+interface CliStatusSnapshot {
+  sessions: Array<{ id: string; phase: string; pendingPermission?: { id: string } | null }>;
+  events?: Array<{ id: string; eventName?: string }>;
+}
+
+interface ProviderTracker {
+  initialized: boolean;
+  sessionIds: Set<string>;
+  topEventId: string | null;
+  permissionIds: Set<string>;
+}
+
+const createProviderTracker = (): ProviderTracker => ({
+  initialized: false,
+  sessionIds: new Set(),
+  topEventId: null,
+  permissionIds: new Set(),
+});
+
 /**
- * @description 以 ref 形式追踪是否存在活跃 Claude 会话（phase 非 completed），不触发组件重渲染。
+ * @description 以 ref 形式追踪 Claude Code 与 Codex 是否存在活跃会话，不触发组件重渲染。
  * @returns 包含 hasActiveSessionRef 的对象，可在事件回调中同步读取。
  */
 export function useClaudeCliSessionStatus(): {
   hasActiveSessionRef: React.MutableRefObject<boolean>;
 } {
+  const { t } = useTranslation();
   const hasActiveSessionRef = useRef(false);
-  // 已提示过的待授权事件 id，避免重复播放音效
-  const seenPermissionIdsRef = useRef<Set<string>>(new Set());
-  const initializedRef = useRef(false);
-  // 基线顶部事件 id，用于判断是否出现新的事件
-  const baselineTopEventIdRef = useRef<string | null>(null);
+  const activeByProviderRef = useRef<Record<CliProvider, boolean>>({ claude: false, codex: false });
+  const trackersRef = useRef<Record<CliProvider, ProviderTracker>>({
+    claude: createProviderTracker(),
+    codex: createProviderTracker(),
+  });
 
   useEffect(() => {
     let cancelled = false;
 
-    const applySnapshot = (snapshot: { sessions: Array<{ phase: string; pendingPermission?: { id: string } | null }>; events?: Array<{ id: string; eventName?: string }> } | null | undefined): void => {
+    const applySnapshot = (provider: CliProvider, snapshot: CliStatusSnapshot | null | undefined): void => {
       if (cancelled || !snapshot) return;
-      hasActiveSessionRef.current = snapshot.sessions.some((session) => session.phase !== 'completed');
+      const tracker = trackersRef.current[provider];
+      const sessionIds = new Set(snapshot.sessions.map((session) => session.id));
+      activeByProviderRef.current[provider] = snapshot.sessions.some((session) => session.phase !== 'completed');
+      hasActiveSessionRef.current = Object.values(activeByProviderRef.current).some(Boolean);
 
-      // 收集当前所有待授权事件 id
       const pendingIds = new Set<string>(
         snapshot.sessions
           .filter((session) => session.phase === 'waiting_permission' && session.pendingPermission?.id)
           .map((session) => session.pendingPermission!.id),
       );
-
       const topEvent = snapshot.events?.[0];
       const topEventId = topEvent?.id ?? null;
-      const topEventName = topEvent?.eventName ?? '';
-      const isSessionStartEvent = /^session(start)$/i.test(topEventName) || /^sessionstart$/i.test(topEventName);
+      const isSessionStartEvent = /^sessionstart$/i.test(topEvent?.eventName ?? '');
+      const hasNewSessionId = [...sessionIds].some((id) => !tracker.sessionIds.has(id));
 
-      // 首次快照只记录基线，不触发音效；之后出现新的待授权请求才播放
-      if (initializedRef.current) {
+      if (tracker.initialized) {
         [...pendingIds].some((id) => {
-          if (seenPermissionIdsRef.current.has(id)) return false;
+          if (tracker.permissionIds.has(id)) return false;
           playNotificationSoundOnce();
-          // 若当前不在 CLI 视图（cli 态 / maxExpand 的 CLI 标签），切换到 cli 态展示授权
-          const store = useIslandStore.getState();
-          const inCliView = store.state === 'cli' || (store.state === 'maxExpand' && store.maxExpandTab === 'cli');
-          if (!inCliView) store.setCli();
-          return true;
-        });
-
-        // 只要检测到新的 SessionStart 事件，就弹通知 + 音效 + 光效（不再限制每次启动仅一次）
-        if (topEventId && topEventId !== baselineTopEventIdRef.current && isSessionStartEvent) {
           const store = useIslandStore.getState();
           const inCliView = store.state === 'cli' || (store.state === 'maxExpand' && store.maxExpandTab === 'cli');
           if (!inCliView) {
-            // 与 STT 触发同款音效
+            store.setCliProvider(provider);
+            store.setCli();
+          }
+          return true;
+        });
+
+        const hasNewSessionStart = Boolean(topEventId && topEventId !== tracker.topEventId && isSessionStartEvent);
+        if (hasNewSessionId || hasNewSessionStart) {
+          const store = useIslandStore.getState();
+          const inCliView = store.state === 'cli' || (store.state === 'maxExpand' && store.maxExpandTab === 'cli');
+          if (!inCliView) {
             void (async () => {
               const targetVolume = await readEffectiveAudioVolume('effect').catch(() => 1);
               const triggerSound = new Audio('./audio/AGENT.wav');
@@ -93,27 +116,38 @@ export function useClaudeCliSessionStatus(): {
             })();
             void window.api?.cliGlowShow?.();
             store.setNotification({
-              title: 'Claude Code',
-              body: '检测到新的 Claude Code 活动，是否切换到 CLI 面板查看？',
-              icon: AgentIcon.CLAUDE_KB,
+              title: provider === 'codex' ? 'Codex' : 'Claude Code',
+              body: t('notification.cliSessionDetected.body', {
+                provider: provider === 'codex' ? 'Codex' : 'Claude Code',
+              }),
+              icon: provider === 'codex' ? AgentIcon.CODEX : AgentIcon.CLAUDE_KB,
               type: 'cli-session-detected',
+              cliProvider: provider,
             });
           }
         }
       }
-      initializedRef.current = true;
-      seenPermissionIdsRef.current = pendingIds;
-      baselineTopEventIdRef.current = topEventId;
+
+      tracker.initialized = true;
+      tracker.sessionIds = sessionIds;
+      tracker.permissionIds = pendingIds;
+      tracker.topEventId = topEventId;
     };
 
-    window.api?.claudeCodeStatusGet?.().then(applySnapshot).catch(() => {});
-    const unsubscribe = window.api?.onClaudeCodeStatusUpdated?.(applySnapshot);
+    const applyClaudeSnapshot = (snapshot: CliStatusSnapshot | null | undefined): void => applySnapshot('claude', snapshot);
+    const applyCodexSnapshot = (snapshot: CliStatusSnapshot | null | undefined): void => applySnapshot('codex', snapshot);
+
+    window.api?.claudeCodeStatusGet?.().then(applyClaudeSnapshot).catch(() => {});
+    window.api?.codexStatusGet?.().then(applyCodexSnapshot).catch(() => {});
+    const unsubscribeClaude = window.api?.onClaudeCodeStatusUpdated?.(applyClaudeSnapshot);
+    const unsubscribeCodex = window.api?.onCodexStatusUpdated?.(applyCodexSnapshot);
 
     return () => {
       cancelled = true;
-      unsubscribe?.();
+      unsubscribeClaude?.();
+      unsubscribeCodex?.();
     };
-  }, []);
+  }, [t]);
 
   return { hasActiveSessionRef };
 }

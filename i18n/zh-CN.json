@@ -491,6 +491,9 @@
     "sourceSwitch": {
       "title": "检测到其他播放源"
     },
+    "cliSessionDetected": {
+      "body": "检测到新的 {{provider}} 活动，是否切换到 CLI 面板查看？"
+    },
     "update": {
       "availableTitle": "发现新版本",
       "availableBody": "是否立即下载？",

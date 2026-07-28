@@ -49,6 +49,7 @@ export function NotificationContent({
   body,
   icon,
   type,
+  cliProvider,
   sourceAppId: _sourceAppId,
   updateVersion,
   updateSourceLabel,
@@ -60,7 +61,7 @@ export function NotificationContent({
   agentName: _agentName,
 }: NotificationContentProps): ReactElement {
   const { t } = useTranslation();
-  const { setIdle, setLyrics, setNotification, setMaxExpand, setMaxExpandTab, setCli } = useIslandStore();
+  const { setIdle, setLyrics, setNotification, setMaxExpand, setMaxExpandTab, setCli, setCliProvider } = useIslandStore();
   const [currentUrlIndex, setCurrentUrlIndex] = useState(0);
   const [useClipboardVectorFallbackIcon, setUseClipboardVectorFallbackIcon] = useState(false);
   const [clipboardFaviconIndex, setClipboardFaviconIndex] = useState(0);
@@ -312,8 +313,17 @@ export function NotificationContent({
   };
 
   const handleRestartNow = (): void => { void window.api?.restartApp?.().catch(() => {}); dismiss(); };  const handleRestartLater = (): void => { dismiss(); };
-  const handleSwitchToCli = (): void => { void window.api?.cliGlowHide?.(); setMaxExpandTab('cli'); setMaxExpand(); };
-  const handleSwitchToCliState = (): void => { void window.api?.cliGlowHide?.(); setCli(); };
+  const handleSwitchToCli = (): void => {
+    void window.api?.cliGlowHide?.();
+    if (cliProvider) setCliProvider(cliProvider);
+    setMaxExpandTab('cli');
+    setMaxExpand();
+  };
+  const handleSwitchToCliState = (): void => {
+    void window.api?.cliGlowHide?.();
+    if (cliProvider) setCliProvider(cliProvider);
+    setCli();
+  };
   const handleCliIgnore = (): void => { void window.api?.cliGlowHide?.(); dismiss(); };
   const handleOpenUrl = (url: string): void => { window.api?.clipboardOpenUrl(url); dismiss(); };
 

@@ -491,6 +491,9 @@
     "sourceSwitch": {
       "title": "Other playback source detected"
     },
+    "cliSessionDetected": {
+      "body": "New {{provider}} activity detected. Switch to the CLI panel?"
+    },
     "update": {
       "availableTitle": "New version available",
       "availableBody": "Download now?",
