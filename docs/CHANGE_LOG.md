@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-07-27T15:56:09.196Z
+> 生成时间：2026-07-28T10:13:43.231Z
 
 ## 26.6.5
 
@@ -2946,6 +2946,18 @@
 
 ## Unreleased
 
+- 2026-07-28 | 1c66f9bb | 鸡哥 | Merge pull request #173 from JNTMTMTM/dev
+- 2026-07-28 | 22614628 | 鸡哥 | fix: correct grammar in cli state description for clarity
+- 2026-07-28 | 7f60837b | 鸡哥 | feat: enhance CLI provider initialization and fallback logic in tests
+- 2026-07-28 | 702f2550 | 鸡哥 | fix: update version to 26.0.1 and refine type usage in smoke test
+- 2026-07-28 | 43740aeb | 鸡哥 | feat: add Claude Code and Codex CLI integration with session monitoring and lifecycle management
+- 2026-07-28 | fbdce936 | 鸡哥 | feat: add CLI state documentation and support for Codex monitoring
+- 2026-07-28 | 7bc35317 | 鸡哥 | fix: adjust height of cli-state content for better layout
+- 2026-07-28 | afb66cf9 | 鸡哥 | feat: add CLI session detection notification and update related components
+- 2026-07-28 | eaddf33e | 鸡哥 | fix: update icon imports for Codex and Claude in CLI components
+- 2026-07-28 | de217cee | 鸡哥 | feat: add Codex CLI status monitoring and session management
+- 2026-07-28 | 986bab37 | 鸡哥 | feat: add CODEX icon to AgentIcon and update tests
+- 2026-07-27 | d3fbc39f | eislandBot | docs: auto update CHANGE_LOG.md for #172 by @JNTMTMTM [skip ci]
 - 2026-07-27 | 937cfc47 | 鸡哥 | Merge pull request #172 from JNTMTMTM/dev
 - 2026-07-27 | 22c701b8 | 鸡哥 | fix: update author name in dynamicIslandPatterns test file
 - 2026-07-27 | ea385086 | 鸡哥 | feat: implement mute and unmute functionality for playback device
