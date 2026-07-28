@@ -367,6 +367,135 @@ function DynamicIsland() {
 }
 ```
 
+## Claude Code & Codex CLI Integration
+
+:::info
+eIsland integrates with **Claude Code** and **Codex** CLI tools to provide real-time session monitoring directly within the island. The integration uses a hook-based architecture that detects new sessions, streams events, and surfaces permission requests without leaving the desktop.
+:::
+
+### Dual-Provider Architecture
+
+The CLI subsystem supports two providers through a unified `CliProvider` type:
+
+```ts
+type CliProvider = 'claude' | 'codex';
+```
+
+Each provider has its own IPC channels, but the renderer uses a shared abstraction layer (`useCliStatus` hook) that routes to the correct API based on the active provider:
+
+```ts
+const apiFor = (provider: CliProvider) => provider === 'codex'
+  ? {
+      get: window.api.codexStatusGet,
+      enable: window.api.codexMonitorEnable,
+      disable: window.api.codexMonitorDisable,
+      subscribe: window.api.onCodexStatusUpdated,
+    }
+  : {
+      get: window.api.claudeCodeStatusGet,
+      enable: window.api.claudeCodeHookInstall,
+      disable: window.api.claudeCodeHookUninstall,
+      subscribe: window.api.onClaudeCodeStatusUpdated,
+    };
+```
+
+:::tip
+The provider selection is persisted to localStorage and restored on app restart. When a new session is detected for the inactive provider, the system auto-switches and shows a notification.
+:::
+
+### Session Detection
+
+The `useClaudeCliSessionStatus` hook runs at the coordinator level and monitors both providers simultaneously. It uses **ref-based tracking** to avoid triggering re-renders:
+
+```ts
+export function useClaudeCliSessionStatus(): {
+  hasActiveSessionRef: React.MutableRefObject<boolean>;
+} {
+  const trackersRef = useRef<Record<CliProvider, ProviderTracker>>({
+    claude: createProviderTracker(),
+    codex: createProviderTracker(),
+  });
+
+  useEffect(() => {
+    // Subscribe to both providers
+    const unsubscribeClaude = window.api?.onClaudeCodeStatusUpdated?.(applyClaudeSnapshot);
+    const unsubscribeCodex = window.api?.onCodexStatusUpdated?.(applyCodexSnapshot);
+
+    return () => { unsubscribeClaude?.(); unsubscribeCodex?.(); };
+  }, []);
+}
+```
+
+**Detection Logic:**
+
+| Signal | Action |
+|--------|--------|
+| New session ID not in tracker | Play notification sound, show glow, fire notification |
+| New `sessionStart` event | Same as new session |
+| New pending permission ID | Auto-transition to `cli` state with sound |
+| Session phase changes to `completed` | Mark provider as inactive (if no other active sessions) |
+
+### IPC Channel Map
+
+| Channel | Direction | Provider | Description |
+|---------|-----------|----------|-------------|
+| `claudeCodeStatusGet` | Renderer → Main | Claude | Fetch current status snapshot |
+| `codexStatusGet` | Renderer → Main | Codex | Fetch current status snapshot |
+| `onClaudeCodeStatusUpdated` | Main → Renderer | Claude | Real-time status subscription |
+| `onCodexStatusUpdated` | Main → Renderer | Codex | Real-time status subscription |
+| `claudeCodePermissionResolve` | Renderer → Main | Claude | Resolve permission (deny/allow/always) |
+| `claudeCodeHookInstall` | Renderer → Main | Claude | Install CLI hook script |
+| `claudeCodeHookUninstall` | Renderer → Main | Claude | Uninstall CLI hook script |
+| `codexMonitorEnable` | Renderer → Main | Codex | Enable Codex monitoring |
+| `codexMonitorDisable` | Renderer → Main | Codex | Disable Codex monitoring |
+| `cliGlowShow` | Renderer → Main | Both | Show fullscreen glow overlay |
+
+### Status Snapshot Structure
+
+Both providers return the same snapshot shape:
+
+```ts
+interface CliStatusSnapshot {
+  enabled: boolean;              // Whether monitoring is active
+  receiverRunning: boolean;      // Backend receiver status
+  receiverUrl: string | null;    // Receiver endpoint URL
+  settingsPath: string;          // Hook script config path
+  hookScriptPath: string;        // Hook script location
+  sessions: CliSessionSnapshot[];// Active and completed sessions
+  events: CliHookEvent[];        // Recent events (newest first)
+  heatmap: Record<string, { session: number; tool: number; prompt: number }>;
+  updatedAt: number;             // Last update timestamp
+}
+```
+
+### Session Lifecycle
+
+A CLI session progresses through four phases:
+
+| Phase | Description | Island Behavior |
+|-------|-------------|-----------------|
+| `idle` | Session created, no activity | Show in session list |
+| `running` | Actively processing | Stream events, update heatmap |
+| `waiting_permission` | Blocked on tool approval | Auto-transition to `cli` state, show permission buttons |
+| `completed` | Session finished | Filtered from active list, data retained for heatmap |
+
+:::important
+Permission handling is Claude-only. Codex sessions auto-approve tool calls. The island displays three permission buttons for Claude: **Deny**, **Allow**, and **Always Allow** — each maps to a `claudeCodePermissionResolve` IPC call.
+:::
+
+### Component Layers
+
+The CLI integration has two visual layers:
+
+| Layer | State | Dimensions | Components |
+|-------|-------|------------|------------|
+| **Island compact** | `cli` | 500×88 px | `CliContent` — provider icon, session title, phase badge, event summary, permission buttons |
+| **Full panel** | `maxExpand` (tab: `cli`) | 860×400 px | `CliTab` — session sidebar, event stream, activity heatmap, monitor controls |
+
+:::note
+For the full CLI architecture, module structure, and hook details, see [CLI State & Codex Support](../frontend-arch/cli.md).
+:::
+
 ## State Management
 
 ### Zustand Store Architecture
@@ -516,7 +645,7 @@ export function saveNetworkConfig(config: NetworkConfig): void {
 
 ### State Configuration
 
-The island has **16 distinct states**, each with defined pixel dimensions and behavior rules:
+The island has **20 distinct states**, each with defined pixel dimensions and behavior rules:
 
 #### State Areas (Width × Height)
 
@@ -539,7 +668,7 @@ export const STATE_AREA: Record<string, number> = {
   guide: 860 * 400,         // 344,000 px²
   announcement: 860 * 400,  // 344,000 px²
   stt: 500 * 88,            // 44,000 px²
-  cli: 860 * 400,           // 344,000 px²
+  cli: 500 * 88,            // 44,000 px²
 };
 ```
 
