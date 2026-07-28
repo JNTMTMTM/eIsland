@@ -27,6 +27,7 @@
 export const AgentIcon = {
   CLAUDE: './svg/agent/CLAUDE.svg',
   CLAUDE_KB: './svg/agent/CLAUDE_KB.svg',
+  CODEX: './svg/agent/CODEX.svg',
 } as const;
 
 export type AgentIconKey = keyof typeof AgentIcon;

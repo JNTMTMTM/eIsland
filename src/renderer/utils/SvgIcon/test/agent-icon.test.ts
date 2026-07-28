@@ -31,6 +31,7 @@ describe('AgentIcon', () => {
   it('should contain expected keys', () => {
     expect(AgentIcon).toHaveProperty('CLAUDE');
     expect(AgentIcon).toHaveProperty('CLAUDE_KB');
+    expect(AgentIcon).toHaveProperty('CODEX');
   });
 
   it('all values should be strings starting with ./svg/agent/ and ending with .svg', () => {
@@ -40,7 +41,7 @@ describe('AgentIcon', () => {
     });
   });
 
-  it('should contain exactly 1 key', () => {
-    expect(Object.keys(AgentIcon)).toHaveLength(2);
+  it('should contain exactly 3 keys', () => {
+    expect(Object.keys(AgentIcon)).toHaveLength(3);
   });
 });
