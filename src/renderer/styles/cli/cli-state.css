@@ -34,6 +34,10 @@
   animation: cliStateEnter 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+.island-shell.shape-pill .cli-state-content {
+  height: 80px;
+}
+
 .cli-state-icon {
   width: 70px;
   height: 70px;
