@@ -111,7 +111,7 @@ export function SessionSidebar({
               <div className="cli-tab-session-top">
                 <img
                   className={`cli-tab-session-icon${provider === 'codex' ? ' cli-tab-session-icon--codex' : ''}`}
-                  src={provider === 'codex' ? SvgIcon.AI : AgentIcon.CLAUDE}
+                  src={provider === 'codex' ? AgentIcon.CODEX : AgentIcon.CLAUDE}
                   alt=""
                   width="18"
                   height="18"

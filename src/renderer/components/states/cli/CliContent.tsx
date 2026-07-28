@@ -29,7 +29,7 @@ import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../store/isLandStore';
 import { GifIcon } from '../../../utils/GifIcon/gif-icon';
-import { SvgIcon } from '../../../utils/SvgIcon';
+import { AgentIcon } from '../../../utils/SvgIcon';
 import { useCliStatus } from '../maxExpand/components/cli/hooks/useCliStatus';
 import { CliProviderSwitch } from '../maxExpand/components/cli/components/CliProviderSwitch';
 import { phaseLabel } from '../maxExpand/components/cli/utils/cliFormatters';
@@ -103,7 +103,7 @@ export function CliContent(): ReactElement {
     <div className="cli-state-content">
       <img
         className={`cli-state-icon${provider === 'codex' ? ' cli-state-icon--codex' : ''}`}
-        src={provider === 'codex' ? SvgIcon.AI : gifSrc}
+        src={provider === 'codex' ? AgentIcon.CODEX : gifSrc}
         alt=""
         draggable={false}
       />
