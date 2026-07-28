@@ -36,6 +36,7 @@ import { SvgIcon, AgentIcon } from '../../../../../../utils/SvgIcon';
  */
 export function SessionSidebar({
   t,
+  provider,
   sessions,
   selectedSessionId,
   setSelectedSessionId,
@@ -108,7 +109,14 @@ export function SessionSidebar({
                 {sessionSelected && <img className="cli-tab-checked-icon-img" src={SvgIcon.CHECKED} alt="" width="10" height="10" draggable={false} />}
               </span>
               <div className="cli-tab-session-top">
-                <img className="cli-tab-session-icon" src={AgentIcon.CLAUDE} alt="" width="18" height="18" draggable={false} />
+                <img
+                  className={`cli-tab-session-icon${provider === 'codex' ? ' cli-tab-session-icon--codex' : ''}`}
+                  src={provider === 'codex' ? AgentIcon.CODEX : AgentIcon.CLAUDE}
+                  alt=""
+                  width="18"
+                  height="18"
+                  draggable={false}
+                />
                 <span className="cli-tab-session-title">{session.title}</span>
                 <span className={`cli-tab-phase ${session.phase}`}>{phaseLabel(session.phase, t)}</span>
               </div>

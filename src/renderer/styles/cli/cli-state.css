@@ -34,6 +34,10 @@
   animation: cliStateEnter 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+.island-shell.shape-pill .cli-state-content {
+  height: 80px;
+}
+
 .cli-state-icon {
   width: 70px;
   height: 70px;
@@ -41,6 +45,12 @@
   flex-shrink: 0;
   align-self: center;
   transform: translateY(-10px);
+}
+
+.cli-state-icon--codex {
+  padding: 16px;
+  filter: brightness(0) invert(1);
+  opacity: .86;
 }
 
 .cli-state-body {
@@ -172,7 +182,33 @@
   right: 16px;
   top: 8px;
   display: flex;
+  align-items: center;
   gap: 4px;
+}
+
+.cli-state-actions .cli-provider-switch {
+  display: inline-flex;
+  gap: 1px;
+  padding: 1px;
+  border: 1px solid rgba(var(--color-text-rgb), 0.08);
+  border-radius: 5px;
+  background: rgba(var(--color-text-rgb), 0.04);
+}
+
+.cli-state-actions .cli-provider-switch-btn {
+  height: 18px;
+  padding: 0 5px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: rgba(var(--color-text-rgb), 0.45);
+  cursor: pointer;
+  font-size: 9px;
+}
+
+.cli-state-actions .cli-provider-switch-btn.active {
+  background: rgba(100, 180, 255, 0.16);
+  color: rgba(100, 180, 255, 0.95);
 }
 
 .cli-state-action-btn {
@@ -266,6 +302,10 @@
 @keyframes cliStateLyricFade {
   from { opacity: 0; transform: translateY(3px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+[data-theme='light'] .cli-state-icon--codex {
+  filter: brightness(0) invert(0);
 }
 
 @keyframes cliStateEnter {

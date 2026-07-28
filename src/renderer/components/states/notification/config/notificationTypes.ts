@@ -24,6 +24,8 @@
  * @author 鸡哥
  */
 
+import type { CliProvider } from '../../../../store/types';
+
 /** URL 收藏项 */
 export interface UrlFavoriteItem {
   id: number;
@@ -54,6 +56,8 @@ export interface NotificationContentProps {
   icon?: string;
   /** 通知类型 */
   type?: 'default' | 'source-switch' | 'update-available' | 'update-downloading' | 'update-ready' | 'weather-alert-startup' | 'clipboard-url' | 'restart-required' | 'external-agent-active' | 'external-agent-stopped' | 'cli-session-detected';
+  /** 检测到 CLI session 时应切换到的提供方 */
+  cliProvider?: CliProvider;
   /** 外部 Agent 名称（仅 external-agent-active / external-agent-stopped 类型） */
   agentName?: string;
   /** 请求切换到的播放源 ID（仅 source-switch） */

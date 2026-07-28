@@ -50,7 +50,7 @@ The eIsland state machine is the core architecture that controls the island's ap
 | `agent` | AI assistant mode | No | 500×88 px |
 | `agentVoiceInput` | Voice command mode | No | 500×88 px |
 | `stt` | Speech-to-text | No | 500×88 px |
-| `cli` | Command line interface | No | 860×400 px |
+| `cli` | Claude Code / Codex session monitor | No | 500×88 px |
 
 ## State Configuration
 
@@ -121,7 +121,7 @@ export const STATE_AREA: Record<string, number> = {
   guide: 860 * 400,         // 344,000 px²
   announcement: 860 * 400,  // 344,000 px²
   stt: 500 * 88,            // 44,000 px²
-  cli: 860 * 400,           // 344,000 px²
+  cli: 500 * 88,            // 44,000 px²
 };
 ```
 
@@ -1231,41 +1231,40 @@ The `stt` (Speech-to-Text) state displays transcription results.
 ### cli
 
 :::info
-The `cli` state provides a terminal emulator interface for command execution.
+The `cli` state provides real-time monitoring of **Claude Code** and **Codex** CLI sessions. For the full architecture, event system, and permission handling, see [CLI State & Codex Support](cli.md).
 :::
 
 | Property | Value |
 |----------|-------|
-| **Dimensions** | 860×400 px |
+| **Dimensions** | 500×88 px |
 | **Mouse** | Interactive |
 | **Expanded** | Yes |
 | **Enter Delay** | 0ms |
 | **Leave Delay** | 0ms |
 
 **Entry Conditions:**
+- New CLI session detected (auto-transition via notification)
+- Permission request received (auto-transition with sound + glow)
 - Click on CLI tab with active session (from `expanded`, `maxExpand`, or `announcement`)
-- Direct CLI access (if configured)
-- Claude Code CLI session active
 
 **Exit Conditions:**
-- Close button → `expanded`
-- Escape key → `expanded`
-- Exit command → `expanded`
+- Close button → `idle`
+- Click on body → `maxExpand` (opens full CLI panel)
+- Escape key → previous state
 
 **UI Components Rendered:**
-- Terminal output area
-- Command input field
-- Session selector
-- Tab management
-- Split pane (optional)
-- Status bar
+- Provider icon (animated GIF for Claude, static SVG for Codex)
+- Session title and phase badge
+- Latest event summary or pending permission details
+- Provider switch (Claude / Codex toggle)
+- Permission buttons (Deny / Allow / Always Allow) — Claude only
+- Synced lyrics overlay (when music is playing and no permission is pending)
 
 **Behavior Details:**
-- Full terminal emulation
-- Command execution (CMD, PowerShell)
-- Session management (multiple tabs)
-- Claude Code CLI integration
-- Command history
-- Auto-completion
-- Syntax highlighting
-- Only accessible when on CLI tab with active session
+- Dual-provider support (Claude Code and Codex)
+- Real-time event streaming via IPC
+- Automatic session detection with notification sound
+- CLI glow overlay effect on new sessions
+- Permission request auto-prompts with tool details
+- Pill mode: content height reduced to 80px (shell stays 100px)
+- Click body to expand into full `maxExpand` CLI panel with session sidebar, event stream, and activity heatmap

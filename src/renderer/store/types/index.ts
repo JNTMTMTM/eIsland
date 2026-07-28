@@ -45,6 +45,9 @@ export type HoverTab = 'time' | 'lyrics' | 'weather' | 'expand';
 /** Expanded 状态下的子标签页类型 */
 export type ExpandTab = 'hover' | 'overview' | 'song' | 'tools' | 'translation' | 'performanceMonitor';
 
+/** CLI 活动提供方 */
+export type CliProvider = 'claude' | 'codex';
+
 /** MaxExpand 状态下的子标签页类型 */
 export type MaxExpandTab = 'aiChat' | 'todo' | 'urlFavorites' | 'localFileSearch' | 'clipboardHistory' | 'album' | 'mail' | 'memo' | 'countdown' | 'alarm' | 'toolbox' | 'miniGame' | 'stock' | 'cli' | 'settings';
 
@@ -172,6 +175,8 @@ export interface NotificationData {
   icon?: string;
   /** 通知类型：默认通知 / 播放源切换请求 / 有新版本 / 更新下载中 / 更新就绪 / 启动天气预警 / 剪贴板URL / 重启确认 / 外部Agent启动 / 外部Agent关闭 / 检测到 Claude Code 流事件 */
   type?: 'default' | 'source-switch' | 'update-available' | 'update-downloading' | 'update-ready' | 'weather-alert-startup' | 'clipboard-url' | 'restart-required' | 'external-agent-active' | 'external-agent-stopped' | 'cli-session-detected';
+  /** 检测到 CLI session 时应切换到的提供方 */
+  cliProvider?: CliProvider;
   /** 外部 Agent 名称（仅 external-agent-active / external-agent-stopped 类型） */
   agentName?: string;
   /** 请求切换到的播放源 ID（仅 source-switch 类型） */
@@ -334,6 +339,7 @@ export interface IslandSlice {
   hoverTab: HoverTab;
   expandTab: ExpandTab;
   maxExpandTab: MaxExpandTab;
+  cliProvider: CliProvider;
   notification: NotificationData;
   sttText: string;
   agentPrompt: string;
@@ -370,6 +376,7 @@ export interface IslandSlice {
   setHoverTab: (tab: HoverTab) => void;
   setExpandTab: (tab: ExpandTab) => void;
   setMaxExpandTab: (tab: MaxExpandTab) => void;
+  setCliProvider: (provider: CliProvider) => void;
   setSpringAnimation: (enabled: boolean) => void;
   setAnimationSpeed: (speed: AnimationSpeed) => void;
   setShapeMode: (mode: IslandShapeMode) => void;

@@ -24,8 +24,6 @@
  * @author 鸡哥
  */
 
-import type { Dirent } from 'fs';
-
 const { getIconByShortcutPath } = require('../');
 const path = require('path');
 const fs = require('fs');
@@ -65,7 +63,7 @@ let startMenuLnks: string[] = [];
 
 try {
   const walk = (dir: string): string[] =>
-    fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry: Dirent) => {
+    fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry: { name: string; isDirectory: () => boolean }) => {
       const fullPath = path.join(dir, entry.name);
       if (entry.isDirectory()) return walk(fullPath);
       return entry.name.endsWith('.lnk') ? [fullPath] : [];

@@ -61,5 +61,6 @@ export type { ClaudeCodeHookEventDetailItem } from './system/ClaudeCodeHookEvent
 export type { ClaudeCodeSessionSnapshot, ClaudeCodeSessionPhase } from './system/ClaudeCodeSessionSnapshot';
 export type { ClaudeCodeStatusService, ClaudeSettingsMutationResult, PermissionDecision } from './system/ClaudeCodeStatusService';
 export type { ClaudeCodeStatusSnapshot } from './system/ClaudeCodeStatusSnapshot';
+export type { CodexStatusService, CodexMonitorMutationResult } from './system/CodexStatusService';
 export type { RunningProcessInfo } from './system/RunningProcessInfo';
 export type { RunningWindowInfo } from './system/RunningWindowInfo';

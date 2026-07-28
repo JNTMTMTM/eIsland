@@ -20,13 +20,13 @@
 
 /**
  * @file CliTab.tsx
- * @description Claude Code CLI 状态控制面板 — 简洁左右分栏布局
+ * @description Claude Code 与 Codex CLI 状态控制面板 — 简洁左右分栏布局
  * @author 鸡哥
  */
 
 import { type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useClaudeCodeStatus } from '../hooks/useClaudeCodeStatus';
+import { useCliStatus } from '../hooks/useCliStatus';
 import { useCliEvents } from '../hooks/useCliEvents';
 import { useBulkSelect } from '../hooks/useBulkSelect';
 import { useEventPagination } from '../hooks/useEventPagination';
@@ -37,13 +37,15 @@ import { SessionSidebar } from './SessionSidebar';
 import '../../../../../../styles/settings/modules/cli.css';
 
 /**
- * Claude Code CLI 状态控制面板主组件
+ * Claude Code 与 Codex CLI 状态控制面板主组件
  * @returns CLI 面板 React 元素
  */
 export function CliTab(): ReactElement {
   const { t } = useTranslation();
   const setCli = useIslandStore((s) => s.setCli);
-  const { snapshot, enableHook, disableHook, clearEvents, deleteSessions } = useClaudeCodeStatus();
+  const provider = useIslandStore((s) => s.cliProvider);
+  const setProvider = useIslandStore((s) => s.setCliProvider);
+  const { snapshot, enableMonitor, disableMonitor, clearEvents, deleteSessions } = useCliStatus(provider);
   const {
     eventFilter,
     setEventFilter,
@@ -68,6 +70,7 @@ export function CliTab(): ReactElement {
     <div className="cli-tab" onClick={(e) => e.stopPropagation()}>
       <SessionSidebar
         t={t}
+        provider={provider}
         sessions={snapshot.sessions}
         selectedSessionId={selectedSessionId}
         setSelectedSessionId={setSelectedSessionId}
@@ -80,6 +83,8 @@ export function CliTab(): ReactElement {
       />
       <EventStreamPanel
         t={t}
+        provider={provider}
+        onProviderChange={setProvider}
         snapshot={snapshot}
         eventFilter={eventFilter}
         setEventFilter={setEventFilter}
@@ -90,8 +95,8 @@ export function CliTab(): ReactElement {
         totalPages={totalPages}
         currentPage={currentPage}
         setPage={setPage}
-        enableHook={enableHook}
-        disableHook={disableHook}
+        enableMonitor={enableMonitor}
+        disableMonitor={disableMonitor}
         clearEvents={clearEvents}
         setCli={setCli}
         activeSessionCount={activeSessions.length}

@@ -11,23 +11,15 @@
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
  */
 
 /**
- * @file agent-icon.ts
- * @description AI Agent 图标路径枚举
+ * @file codex.ts
+ * @description Codex CLI 状态桥接类型。
  * @author 鸡哥
  */
 
-export const AgentIcon = {
-  CLAUDE: './svg/agent/CLAUDE.svg',
-  CLAUDE_KB: './svg/agent/CLAUDE_KB.svg',
-  CODEX: './svg/agent/CODEX.svg',
-} as const;
+import type { ClaudeCodeHookMutationResult, ClaudeCodeStatusSnapshot } from './claudeCode';
 
-export type AgentIconKey = keyof typeof AgentIcon;
+export type CodexStatusSnapshot = ClaudeCodeStatusSnapshot;
+export type CodexMonitorMutationResult = ClaudeCodeHookMutationResult;

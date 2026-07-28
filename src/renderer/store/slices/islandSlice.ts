@@ -38,6 +38,14 @@ function isStandaloneRenderer(): boolean {
   }
 }
 
+function readCliProvider(): 'claude' | 'codex' {
+  try {
+    return window.localStorage.getItem('eisland-cli-provider') === 'codex' ? 'codex' : 'claude';
+  } catch {
+    return 'claude';
+  }
+}
+
 export const createIslandSlice: StateCreator<
   IslandSlice,
   [],
@@ -54,6 +62,7 @@ export const createIslandSlice: StateCreator<
   hoverTab: 'time',
   expandTab: 'overview',
   maxExpandTab: 'todo',
+  cliProvider: readCliProvider(),
   notification: emptyNotification,
   sttText: '',
   agentPrompt: '',
@@ -274,6 +283,14 @@ export const createIslandSlice: StateCreator<
   setHoverTab: (tab) => set({ hoverTab: tab }),
   setExpandTab: (tab) => set({ expandTab: tab }),
   setMaxExpandTab: (tab) => set({ maxExpandTab: tab }),
+  setCliProvider: (provider) => {
+    try {
+      window.localStorage.setItem('eisland-cli-provider', provider);
+    } catch {
+      // 无持久化能力时仍保留当前渲染进程内的选择。
+    }
+    set({ cliProvider: provider });
+  },
   setSpringAnimation: (enabled) => set({ springAnimation: enabled }),
   setAnimationSpeed: (speed) => set({ animationSpeed: speed }),
   setShapeMode: (mode) => set({ shapeMode: mode }),
