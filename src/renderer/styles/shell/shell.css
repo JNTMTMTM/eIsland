@@ -81,6 +81,7 @@
 
 .island-shell.shape-pill.expanded,
 .island-shell.shape-pill.maxExpand,
+.island-shell.shape-pill.captureTranslate,
 .island-shell.shape-pill.guide,
 .island-shell.shape-pill.login,
 .island-shell.shape-pill.register,
@@ -98,6 +99,7 @@
 }
 
 .island-shell.shape-pill.maxExpand,
+.island-shell.shape-pill.captureTranslate,
 .island-shell.shape-pill.guide,
 .island-shell.shape-pill.login,
 .island-shell.shape-pill.register,
@@ -402,6 +404,20 @@
 }
 
 .island-shell.maxExpand::before {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/** 图片翻译模式 - 与最大展开面板同尺寸 */
+.island-shell.captureTranslate {
+  width: 860px;
+  height: 400px;
+  background: var(--color-island-bg);
+  border-radius: 0 0 22px 22px;
+  box-shadow: none;
+}
+
+.island-shell.captureTranslate::before {
   opacity: 0;
   pointer-events: none;
 }

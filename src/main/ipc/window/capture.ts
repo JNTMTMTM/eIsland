@@ -32,6 +32,7 @@ import { capturePrimaryDisplayPng } from '../../window/screenshotHelper';
 
 interface RegisterCaptureIpcHandlersOptions {
   getCaptureWindow: () => BrowserWindow | null;
+  getMainWindow: () => BrowserWindow | null;
   closeCaptureWindow: () => void;
   startRegionScreenshot: () => Promise<void>;
 }
@@ -79,6 +80,21 @@ export function registerCaptureIpcHandlers(options: RegisterCaptureIpcHandlersOp
       clipboard.writeImage(image);
     } catch (err) {
       console.error('[Screenshot] copy error:', err);
+    }
+    options.closeCaptureWindow();
+  });
+
+  ipcMain.on('capture-translate', (_event, { dataURL }: { dataURL: string }) => {
+    try {
+      if (typeof dataURL !== 'string' || !dataURL.startsWith('data:image/')) {
+        throw new Error('invalid capture image');
+      }
+      const mainWindow = options.getMainWindow();
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('capture:translate-requested', dataURL);
+      }
+    } catch (err) {
+      console.error('[Screenshot] translate dispatch error:', err);
     }
     options.closeCaptureWindow();
   });

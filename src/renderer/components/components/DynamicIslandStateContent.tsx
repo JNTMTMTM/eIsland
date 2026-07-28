@@ -33,6 +33,7 @@ import { ExpandedContent } from '../states/expand/ExpandedContent';
 import { MaxExpandContent } from '../states/maxExpand/MaxExpandContent';
 import { LyricsContent } from '../states/lyrics/LyricsContent';
 import { LyricsTranslationContent } from '../states/lyricsTranslation/LyricsTranslationContent';
+import { CaptureTranslateContent } from '../states/captureTranslate';
 import { GuideContent } from '../states/guide/GuideContent';
 import { LoginContent } from '../states/login';
 import { RegisterContent } from '../states/register/RegisterContent';
@@ -128,6 +129,7 @@ export function DynamicIslandStateContent({
   if (state === 'maxExpand') return <MaxExpandContent />;
   if (state === 'lyrics') return <LyricsContent />;
   if (state === 'lyricsTranslation') return <LyricsTranslationContent />;
+  if (state === 'captureTranslate') return <CaptureTranslateContent />;
   if (state === 'guide') return <GuideContent />;
   if (state === 'login') return <LoginContent />;
   if (state === 'register') return <RegisterContent />;

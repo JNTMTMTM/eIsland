@@ -94,6 +94,7 @@ const CAPTURE_I18N = {
       color: '颜色',
       size: '粗细',
       save: '保存',
+      translate: '图片翻译',
       cancel: '取消',
       done: '完成',
     },
@@ -110,6 +111,7 @@ const CAPTURE_I18N = {
       color: 'Color',
       size: 'Size',
       save: 'Save',
+      translate: 'Translate',
       cancel: 'Cancel',
       done: 'Done',
     },
@@ -804,6 +806,11 @@ btnUndo.addEventListener('click', () => {
 document.getElementById('btnCopy').addEventListener('click', () => {
   const dataURL = cropSelectionWithAnnotations();
   if (dataURL) ipcRenderer.send('capture-complete', { dataURL });
+});
+
+document.getElementById('btnTranslate').addEventListener('click', () => {
+  const dataURL = cropSelectionWithAnnotations();
+  if (dataURL) ipcRenderer.send('capture-translate', { dataURL });
 });
 
 document.getElementById('btnSave').addEventListener('click', () => {

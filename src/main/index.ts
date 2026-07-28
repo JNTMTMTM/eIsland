@@ -736,6 +736,7 @@ function registerIpcHandlers(): void {
 
   registerCaptureIpcHandlers({
     getCaptureWindow: captureWindowService.getCaptureWindow,
+    getMainWindow: () => mainWindow,
     closeCaptureWindow: captureWindowService.closeCaptureWindow,
     startRegionScreenshot: captureWindowService.startRegionScreenshot,
   });

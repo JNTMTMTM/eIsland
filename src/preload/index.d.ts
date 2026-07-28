@@ -155,6 +155,7 @@ declare global {
       onNowPlayingInfo: (callback: (info: NowPlayingInfo | null) => void) => () => void;
       screenshot: () => Promise<string | null>;
       startRegionScreenshot: () => Promise<boolean>;
+      onCaptureTranslateRequest: (callback: (dataUrl: string) => void) => () => void;
       openTaskManager: () => void;
       getPerformanceSnapshot: (
         selection?: PerformanceHardwareSelection,

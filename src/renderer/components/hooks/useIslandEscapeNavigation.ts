@@ -40,6 +40,7 @@ interface UseIslandEscapeNavigationOptions {
  * @returns 上一级岛屿状态；不支持键盘返回时返回 null。
  */
 export function getEscapeNavigationTarget(state: IslandState): IslandState | null {
+  if (state === 'captureTranslate') return 'idle';
   if (state === 'maxExpand') return 'expanded';
   if (state === 'expanded') return 'hover';
   if (state === 'hover') return 'idle';
@@ -88,7 +89,7 @@ export function useIslandEscapeNavigation(options: UseIslandEscapeNavigationOpti
         return;
       }
 
-      setIdle();
+      setIdle(state === 'captureTranslate');
     };
 
     window.addEventListener('keydown', handleKeyDown);

@@ -31,7 +31,20 @@ import type { TranslationLyricsResult } from '../../api/lyrics/lrcApi';
 export type { WeatherApiConfig };
 
 /** 灵动岛 UI 状态枚举 */
-export type IslandState = 'idle' | 'hover' | 'expanded' | 'notification' | 'maxExpand' | 'lyrics' | 'lyricsTranslation' | 'guide' | 'login' | 'register' | 'resetPassword' | 'setPassword' | 'bindOAuth' | 'bindEmail' | 'payment' | 'announcement' | 'agentVoiceInput' | 'agent' | 'stt' | 'cli';
+export type IslandState = 'idle' | 'hover' | 'expanded' | 'notification' | 'maxExpand' | 'lyrics' | 'lyricsTranslation' | 'captureTranslate' | 'guide' | 'login' | 'register' | 'resetPassword' | 'setPassword' | 'bindOAuth' | 'bindEmail' | 'payment' | 'announcement' | 'agentVoiceInput' | 'agent' | 'stt' | 'cli';
+
+/** 图片翻译状态。 */
+export type CaptureTranslateStatus = 'submitting' | 'processing' | 'succeeded' | 'failed';
+
+/** 图片翻译状态数据。 */
+export interface CaptureTranslateState {
+  status: CaptureTranslateStatus;
+  originalImage: string;
+  taskId: string | null;
+  translatedImage: string | null;
+  translatedText: string;
+  errorMessage: string;
+}
 
 /** 灵动岛动画速度档位 */
 export type AnimationSpeed = 'slow' | 'medium' | 'fast';
@@ -343,6 +356,7 @@ export interface IslandSlice {
   notification: NotificationData;
   sttText: string;
   agentPrompt: string;
+  captureTranslate: CaptureTranslateState;
 
   springAnimation: boolean;
   animationSpeed: AnimationSpeed;
@@ -364,6 +378,8 @@ export interface IslandSlice {
   returnFromAuth: () => void;
   setLyrics: () => void;
   setLyricsTranslation: () => void;
+  setCaptureTranslate: (data: CaptureTranslateState) => void;
+  updateCaptureTranslate: (data: Partial<CaptureTranslateState>) => void;
   setNotification: (data: NotificationData) => void;
 
   setGuide: () => void;

@@ -31,6 +31,7 @@ export const STATE_AREA: Record<string, number> = {
   minimal: 260 * 42,
   lyrics: 500 * 42,
   lyricsTranslation: 500 * 60,
+  captureTranslate: 860 * 400,
   hover: 500 * 60,
   notification: 500 * 88,
   expanded: 860 * 150,
@@ -113,6 +114,13 @@ export const STATE_CONFIGS: Record<IslandState, StateConfig> = {
     mousePassthrough: true,
     expanded: true,
     enterDelay: 50,
+    leaveDelay: 0,
+  },
+  captureTranslate: {
+    name: 'captureTranslate',
+    mousePassthrough: false,
+    expanded: true,
+    enterDelay: 0,
     leaveDelay: 0,
   },
   guide: {

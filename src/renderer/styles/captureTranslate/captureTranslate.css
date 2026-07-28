@@ -1,0 +1,229 @@
+/*
+ * eIsland - A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Electron.
+ * https://github.com/JNTMTMTM/eIsland
+ *
+ * Copyright (C) 2026 JNTMTMTM
+ * Copyright (C) 2026 pyisland.com
+ */
+
+.capture-translate-state {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  padding: 18px;
+  color: var(--color-text);
+}
+
+.capture-translate-panel {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid rgba(var(--color-text-rgb), 0.1);
+  border-radius: 18px;
+  background: linear-gradient(150deg, rgba(var(--color-text-rgb), 0.07), rgba(var(--color-text-rgb), 0.025));
+  overflow: hidden;
+}
+
+.capture-translate-header,
+.capture-translate-title,
+.capture-translate-text-header,
+.capture-translate-feedback,
+.capture-translate-copy-button,
+.capture-translate-icon-button {
+  display: flex;
+  align-items: center;
+}
+
+.capture-translate-header {
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.capture-translate-title {
+  gap: 10px;
+  min-width: 0;
+}
+
+.capture-translate-title-icon {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border-radius: 11px;
+  color: #9bcaff;
+  background: rgba(80, 158, 255, 0.16);
+  border: 1px solid rgba(120, 188, 255, 0.22);
+}
+
+.capture-translate-title > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.capture-translate-title strong {
+  font-size: 16px;
+  font-weight: 650;
+}
+
+.capture-translate-title span:last-child {
+  font-size: 12px;
+  color: rgba(var(--color-text-rgb), 0.58);
+}
+
+.capture-translate-icon-button,
+.capture-translate-copy-button {
+  justify-content: center;
+  gap: 5px;
+  border: 1px solid rgba(var(--color-text-rgb), 0.14);
+  color: rgba(var(--color-text-rgb), 0.86);
+  background: rgba(var(--color-text-rgb), 0.06);
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.capture-translate-icon-button {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 10px;
+}
+
+.capture-translate-copy-button {
+  padding: 5px 9px;
+  border-radius: 9px;
+  font-size: 12px;
+}
+
+.capture-translate-icon-button:hover,
+.capture-translate-copy-button:hover {
+  background: rgba(var(--color-text-rgb), 0.13);
+  border-color: rgba(var(--color-text-rgb), 0.24);
+}
+
+.capture-translate-body {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(260px, 0.8fr);
+  gap: 14px;
+}
+
+.capture-translate-image-card,
+.capture-translate-text-card {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  border-radius: 14px;
+  border: 1px solid rgba(var(--color-text-rgb), 0.09);
+  background: rgba(0, 0, 0, 0.18);
+  overflow: hidden;
+}
+
+.capture-translate-image-card {
+  display: grid;
+  place-items: center;
+}
+
+.capture-translate-image-card img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+}
+
+.capture-translate-card-label {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 2;
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-size: 11px;
+  color: rgba(var(--color-text-rgb), 0.84);
+  background: rgba(0, 0, 0, 0.56);
+  backdrop-filter: blur(8px);
+}
+
+.capture-translate-loading-mask {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: rgba(var(--color-text-rgb), 0.86);
+  background: rgba(0, 0, 0, 0.48);
+  backdrop-filter: blur(4px);
+  font-size: 13px;
+}
+
+.capture-translate-spinner {
+  animation: captureTranslateSpin 0.9s linear infinite;
+}
+
+.capture-translate-text-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.capture-translate-text-header {
+  height: 44px;
+  flex: 0 0 auto;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 12px;
+  border-bottom: 1px solid rgba(var(--color-text-rgb), 0.08);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.capture-translate-text-content {
+  flex: 1;
+  min-height: 0;
+  padding: 12px;
+  overflow: auto;
+  scrollbar-width: thin;
+}
+
+.capture-translate-text-content pre {
+  margin: 0;
+  color: rgba(var(--color-text-rgb), 0.92);
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.65;
+  white-space: pre-wrap;
+  word-break: break-word;
+  user-select: text;
+}
+
+.capture-translate-feedback {
+  height: 100%;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
+  color: rgba(var(--color-text-rgb), 0.62);
+  font-size: 13px;
+}
+
+.capture-translate-error {
+  padding: 12px;
+  border-radius: 10px;
+  color: #ffb4b4;
+  background: rgba(255, 75, 75, 0.1);
+  border: 1px solid rgba(255, 100, 100, 0.18);
+  font-size: 13px;
+  line-height: 1.55;
+  user-select: text;
+}
+
+@keyframes captureTranslateSpin {
+  to { transform: rotate(360deg); }
+}
