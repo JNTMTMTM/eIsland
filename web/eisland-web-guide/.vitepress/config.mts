@@ -8,7 +8,7 @@ export default defineConfig({
   head: [
     ['link', { rel: 'icon', href: '/favicon.svg' }],
   ],
-
+  appearance: 'force-dark',
   themeConfig: {
     logo: '/favicon.svg',
 
@@ -40,7 +40,6 @@ export default defineConfig({
     lastUpdated: {
       text: '最后更新于',
     },
-
     returnToTopLabel: '回到顶部',
     sidebarMenuLabel: '菜单',
     darkModeSwitchLabel: '主题',
