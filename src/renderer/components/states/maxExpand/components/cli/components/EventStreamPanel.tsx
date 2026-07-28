@@ -31,6 +31,7 @@ import { filterLabel } from '../utils/cliFormatters';
 import { SvgIcon } from '../../../../../../utils/SvgIcon';
 import { ActivityHeatmap } from './ActivityHeatmap';
 import { EventRow } from './EventRow';
+import { CliProviderSwitch } from './CliProviderSwitch';
 
 /**
  * CLI 面板右侧事件流 + 控制区
@@ -39,6 +40,8 @@ import { EventRow } from './EventRow';
  */
 export function EventStreamPanel({
   t,
+  provider,
+  onProviderChange,
   snapshot,
   eventFilter,
   setEventFilter,
@@ -49,8 +52,8 @@ export function EventStreamPanel({
   totalPages,
   currentPage,
   setPage,
-  enableHook,
-  disableHook,
+  enableMonitor,
+  disableMonitor,
   clearEvents,
   setCli,
   activeSessionCount,
@@ -62,6 +65,7 @@ export function EventStreamPanel({
     <div className="cli-tab-main">
       <div className="cli-tab-main-header">
         <div className="cli-tab-stream-title">
+          <CliProviderSwitch provider={provider} onChange={onProviderChange} />
           <span className={`cli-tab-hook-badge ${snapshot.enabled ? 'enabled' : 'disabled'}`}>
             {snapshot.enabled ? t('maxExpand.cli.enabled', { defaultValue: '已启用' }) : t('maxExpand.cli.disabled', { defaultValue: '未启用' })}
           </span>
@@ -98,8 +102,10 @@ export function EventStreamPanel({
           <button
             className="cli-tab-action-btn"
             type="button"
-            title={snapshot.enabled ? t('maxExpand.cli.disableHook', { defaultValue: '关闭 Hook' }) : t('maxExpand.cli.enableHook', { defaultValue: '启用 Hook' })}
-            onClick={snapshot.enabled ? disableHook : enableHook}
+            title={snapshot.enabled
+              ? t(provider === 'claude' ? 'maxExpand.cli.disableHook' : 'maxExpand.cli.disableMonitor')
+              : t(provider === 'claude' ? 'maxExpand.cli.enableHook' : 'maxExpand.cli.enableMonitor')}
+            onClick={snapshot.enabled ? disableMonitor : enableMonitor}
           >
             <img src={snapshot.enabled ? SvgIcon.PAUSE : SvgIcon.CONTINUE} alt="" width="14" height="14" draggable={false} />
           </button>
@@ -163,7 +169,14 @@ export function EventStreamPanel({
         {filteredEvents.length === 0 && (
           <div className="cli-tab-empty">{t('maxExpand.cli.emptyEvents', { defaultValue: '暂无事件' })}</div>
         )}
-        {pagedEvents.map((event) => <EventRow key={event.id} event={event} t={t} showPermission={pendingPermissionEventIds.has(event.id)} />)}
+        {pagedEvents.map((event) => (
+          <EventRow
+            key={event.id}
+            event={event}
+            t={t}
+            showPermission={provider === 'claude' && pendingPermissionEventIds.has(event.id)}
+          />
+        ))}
       </div>
     </div>
   );

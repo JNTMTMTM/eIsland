@@ -74,6 +74,8 @@ import type {
   RunningWindowInfo,
   ClaudeCodeStatusSnapshot,
   ClaudeCodeHookMutationResult,
+  CodexStatusSnapshot,
+  CodexMonitorMutationResult,
 } from './types';
 
 /** 自定义 API，供渲染进程调用 */
@@ -1633,6 +1635,30 @@ const api = {
     ipcRenderer.on('claude-code:status-updated', handler);
     return () => {
       ipcRenderer.removeListener('claude-code:status-updated', handler);
+    };
+  },
+  codexStatusGet: (): Promise<CodexStatusSnapshot> => {
+    return ipcRenderer.invoke('codex:status:get');
+  },
+  codexMonitorEnable: (): Promise<CodexMonitorMutationResult> => {
+    return ipcRenderer.invoke('codex:monitor:enable');
+  },
+  codexMonitorDisable: (): Promise<CodexMonitorMutationResult> => {
+    return ipcRenderer.invoke('codex:monitor:disable');
+  },
+  codexEventsClear: (): Promise<CodexStatusSnapshot> => {
+    return ipcRenderer.invoke('codex:events:clear');
+  },
+  codexSessionsDelete: (sessionIds: string[]): Promise<CodexStatusSnapshot> => {
+    return ipcRenderer.invoke('codex:sessions:delete', sessionIds);
+  },
+  onCodexStatusUpdated: (callback: (snapshot: CodexStatusSnapshot) => void): (() => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, snapshot: CodexStatusSnapshot): void => {
+      callback(snapshot);
+    };
+    ipcRenderer.on('codex:status-updated', handler);
+    return () => {
+      ipcRenderer.removeListener('codex:status-updated', handler);
     };
   }
 };

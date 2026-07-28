@@ -42,6 +42,7 @@ function createSliceState(creator: StateCreator<IslandState, [], [], IslandState
 }
 
 describe('createIslandSlice', () => {
+  const storage = new Map<string, string>();
   const api = {
     collapseWindow: vi.fn(),
     enableMousePassthrough: vi.fn(),
@@ -54,12 +55,17 @@ describe('createIslandSlice', () => {
   };
 
   beforeEach(() => {
+    storage.clear();
     Object.values(api).forEach((mock) => mock.mockReset());
     vi.spyOn(notificationSound, 'playNotificationSoundOnce').mockImplementation(() => {});
 
     Object.defineProperty(globalThis, 'window', {
       value: {
         location: { pathname: '/index.html' },
+        localStorage: {
+          getItem: (key: string) => storage.get(key) ?? null,
+          setItem: (key: string, value: string) => storage.set(key, value),
+        },
         api,
       },
       configurable: true,
@@ -111,6 +117,15 @@ describe('createIslandSlice', () => {
     expect(state.authReturnState).toBeNull();
     expect(api.expandWindow).toHaveBeenCalled();
     expect(api.disableMousePassthrough).toHaveBeenCalled();
+  });
+
+  it('persists the selected CLI provider', () => {
+    const store = createSliceState(createIslandSlice);
+
+    store.getState().setCliProvider('codex');
+
+    expect(store.getState().cliProvider).toBe('codex');
+    expect(storage.get('eisland-cli-provider')).toBe('codex');
   });
 
   it('plays sound and transitions to notification state', () => {

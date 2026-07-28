@@ -25,6 +25,7 @@
  */
 
 import type { RefObject } from 'react';
+import type { CliProvider } from '../../../../../../store/types';
 import type { HeatmapGrid } from '../utils/heatmapGrid';
 import type { CliEventFilter } from '../config/cliFilters';
 
@@ -64,6 +65,7 @@ export interface EventRowProps {
 /** SessionSidebar 组件属性 */
 export interface SessionSidebarProps {
   t: TFunction;
+  provider: CliProvider;
   sessions: CliSessionSnapshot[];
   selectedSessionId: string | null;
   setSelectedSessionId: (id: string | null) => void;
@@ -78,6 +80,8 @@ export interface SessionSidebarProps {
 /** EventStreamPanel 组件属性 */
 export interface EventStreamPanelProps {
   t: TFunction;
+  provider: CliProvider;
+  onProviderChange: (provider: CliProvider) => void;
   snapshot: CliStatusSnapshot;
   eventFilter: CliEventFilter;
   setEventFilter: (filter: CliEventFilter) => void;
@@ -88,8 +92,8 @@ export interface EventStreamPanelProps {
   totalPages: number;
   currentPage: number;
   setPage: (page: number) => void;
-  enableHook: () => Promise<void>;
-  disableHook: () => Promise<void>;
+  enableMonitor: () => Promise<void>;
+  disableMonitor: () => Promise<void>;
   clearEvents: () => Promise<void>;
   setCli: () => void;
   activeSessionCount: number;

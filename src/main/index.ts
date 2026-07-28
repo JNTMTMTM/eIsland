@@ -35,6 +35,7 @@ import { createSessionMainLogger } from './log/mainLog';
 import { startClipboardUrlWatcher, stopClipboardUrlWatcher } from './clipboard/urlWatcher';
 import { createClipboardUrlState } from './clipboard/clipboardUrlState';
 import { registerClaudeCodeStatusIpcHandlers } from './ipc/agent/claudeCodeStatusIpc';
+import { registerCodexStatusIpcHandlers } from './ipc/agent/codexStatusIpc';
 import { registerClipboardIpcHandlers } from './ipc/settings/clipboard';
 import { registerCaptureIpcHandlers } from './ipc/window/capture';
 import { registerScreenshotHotkeyIpcHandlers } from './ipc/system/screenshotHotkey';
@@ -72,6 +73,7 @@ import { setSmtcAccessor } from './music/smtcAccessor';
 import { createAutoHideWatcher } from './system/autoHideWatcher';
 import { createExternalAgentWatcher } from './system/externalAgentWatcher';
 import { createClaudeCodeStatusService } from './system/claudeCodeStatusService';
+import { createCodexStatusService } from './system/codexStatusService';
 import { play, pause, next } from '@eisland/windows-smtc-helper';
 import {
   queryFocusedWindow,
@@ -386,6 +388,10 @@ const claudeCodeStatusService = createClaudeCodeStatusService({
   getMainWindow: () => mainWindow,
 });
 
+const codexStatusService = createCodexStatusService({
+  getMainWindow: () => mainWindow,
+});
+
 /** SMTC 自动取消订阅时间（毫秒），0 为永不取消 */
 let smtcUnsubscribeMs = DEFAULT_SMTC_UNSUBSCRIBE_MS;
 
@@ -583,6 +589,7 @@ function registerIpcHandlers(): void {
 
   registerStoreIpcHandlers({ storeDir });
   registerClaudeCodeStatusIpcHandlers({ service: claudeCodeStatusService });
+  registerCodexStatusIpcHandlers(codexStatusService);
   registerSettingsPreviewHandler();
 
   registerLogIpcHandlers({ writeMainLog });
@@ -888,6 +895,7 @@ app.whenReady().then(() => {
 
   registerIpcHandlers();
   void claudeCodeStatusService.start();
+  void codexStatusService.start();
 
   // 读取持久化白名单
   nowPlayingWhitelist = readWhitelistConfig();

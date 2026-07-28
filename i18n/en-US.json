@@ -1385,11 +1385,18 @@
       "switchTo": "Switch to {{label}}"
     },
     "cli": {
-      "eyebrow": "Claude Code",
+      "eyebrow": "CLI Activity",
       "title": "CLI Console",
-      "subtitle": "Monitor Claude Code CLI sessions, tool usage, notifications, and permission requests in real time. Enable the local hook first; new Claude Code sessions will start reporting status.",
+      "subtitle": "Monitor Claude Code and Codex CLI sessions, prompts, tool calls, and model output in real time. Claude Code uses a local hook; Codex sessions are detected automatically.",
+      "provider": {
+        "label": "Switch CLI activity source",
+        "claude": "Claude",
+        "codex": "Codex"
+      },
       "enableHook": "Enable Status Hook",
       "disableHook": "Disable Status Hook",
+      "enableMonitor": "Enable Codex Session Monitor",
+      "disableMonitor": "Disable Codex Session Monitor",
       "clear": "Clear Records",
       "hookStatus": "Hook Status",
       "receiverStatus": "Receiver",
@@ -1411,10 +1418,10 @@
       "events": "Event Stream",
       "loading": "Loading",
       "updatedAt": "Updated at {{time}}",
-      "emptySessions": "No Claude Code sessions yet.",
-      "emptyEvents": "Enable the hook and start a new Claude Code CLI session to see live status.",
+      "emptySessions": "No CLI sessions for the selected source.",
+      "emptyEvents": "Start a new CLI session to see its activity here.",
       "allSessions": "All Sessions",
-      "allSessionsHint": "Show all Claude Code event streams",
+      "allSessionsHint": "Show all CLI events for the selected source",
       "allLabel": "all",
       "filterAria": "Event filters",
       "heatmapAria": "Activity heatmap",
@@ -1457,7 +1464,7 @@
       },
       "detail": {
         "userInput": "User input",
-        "assistantOutput": "Claude output",
+        "assistantOutput": "Model output",
         "toolUseId": "Tool call ID",
         "toolInput": "Tool input",
         "toolResult": "Tool result",

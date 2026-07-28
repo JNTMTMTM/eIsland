@@ -241,6 +241,11 @@
   margin-right: 6px;
 }
 
+.cli-tab-session-icon--codex {
+  filter: brightness(0) invert(1);
+  opacity: .82;
+}
+
 .cli-tab-session-title {
   flex: 1;
   min-width: 0;
@@ -337,6 +342,51 @@
   align-items: center;
   gap: 8px;
   min-width: 0;
+}
+
+.cli-provider-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid rgba(var(--color-text-rgb), 0.08);
+  border-radius: 7px;
+  background: rgba(var(--color-text-rgb), 0.04);
+}
+
+.cli-provider-switch-btn {
+  height: 22px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: rgba(var(--color-text-rgb), 0.48);
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 500;
+  transition: background 0.18s, color 0.18s;
+}
+
+.cli-provider-switch-btn:hover {
+  color: rgba(var(--color-text-rgb), 0.78);
+}
+
+.cli-provider-switch-btn.active {
+  background: rgba(100, 180, 255, 0.16);
+  color: rgba(100, 180, 255, 0.95);
+}
+
+.cli-provider-switch--compact {
+  gap: 1px;
+  padding: 1px;
+  border-radius: 5px;
+}
+
+.cli-provider-switch--compact .cli-provider-switch-btn {
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 4px;
+  font-size: 9px;
 }
 
 .cli-tab-stream-session {
@@ -992,7 +1042,8 @@
 }
 
 /* ══════ 浅色主题 ══════ */
-[data-theme='light'] .cli-tab-checked-icon-img {
+[data-theme='light'] .cli-tab-checked-icon-img,
+[data-theme='light'] .cli-tab-session-icon--codex {
   filter: brightness(0) invert(0);
 }
 

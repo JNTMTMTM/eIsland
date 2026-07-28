@@ -74,6 +74,8 @@ import type {
   PerformanceSnapshot,
   ClaudeCodeStatusSnapshot,
   ClaudeCodeHookMutationResult,
+  CodexStatusSnapshot,
+  CodexMonitorMutationResult,
 } from './types';
 
 declare global {
@@ -318,6 +320,12 @@ declare global {
       claudeCodeSessionsDelete: (sessionIds: string[]) => Promise<ClaudeCodeStatusSnapshot>;
       claudeCodePermissionResolve: (sessionId: string, decision: 'allow' | 'always' | 'deny') => Promise<ClaudeCodeStatusSnapshot>;
       onClaudeCodeStatusUpdated: (callback: (snapshot: ClaudeCodeStatusSnapshot) => void) => () => void;
+      codexStatusGet: () => Promise<CodexStatusSnapshot>;
+      codexMonitorEnable: () => Promise<CodexMonitorMutationResult>;
+      codexMonitorDisable: () => Promise<CodexMonitorMutationResult>;
+      codexEventsClear: () => Promise<CodexStatusSnapshot>;
+      codexSessionsDelete: (sessionIds: string[]) => Promise<CodexStatusSnapshot>;
+      onCodexStatusUpdated: (callback: (snapshot: CodexStatusSnapshot) => void) => () => void;
     };
   }
 }

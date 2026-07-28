@@ -45,6 +45,9 @@ export type HoverTab = 'time' | 'lyrics' | 'weather' | 'expand';
 /** Expanded 状态下的子标签页类型 */
 export type ExpandTab = 'hover' | 'overview' | 'song' | 'tools' | 'translation' | 'performanceMonitor';
 
+/** CLI 活动提供方 */
+export type CliProvider = 'claude' | 'codex';
+
 /** MaxExpand 状态下的子标签页类型 */
 export type MaxExpandTab = 'aiChat' | 'todo' | 'urlFavorites' | 'localFileSearch' | 'clipboardHistory' | 'album' | 'mail' | 'memo' | 'countdown' | 'alarm' | 'toolbox' | 'miniGame' | 'stock' | 'cli' | 'settings';
 
@@ -334,6 +337,7 @@ export interface IslandSlice {
   hoverTab: HoverTab;
   expandTab: ExpandTab;
   maxExpandTab: MaxExpandTab;
+  cliProvider: CliProvider;
   notification: NotificationData;
   sttText: string;
   agentPrompt: string;
@@ -370,6 +374,7 @@ export interface IslandSlice {
   setHoverTab: (tab: HoverTab) => void;
   setExpandTab: (tab: ExpandTab) => void;
   setMaxExpandTab: (tab: MaxExpandTab) => void;
+  setCliProvider: (provider: CliProvider) => void;
   setSpringAnimation: (enabled: boolean) => void;
   setAnimationSpeed: (speed: AnimationSpeed) => void;
   setShapeMode: (mode: IslandShapeMode) => void;

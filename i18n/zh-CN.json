@@ -1385,11 +1385,18 @@
       "switchTo": "切换到{{label}}"
     },
     "cli": {
-      "eyebrow": "Claude Code",
+      "eyebrow": "CLI 活动",
       "title": "CLI 控制台",
-      "subtitle": "实时汇总 Claude Code CLI 的会话、工具调用、通知和授权请求。首次使用需要启用本地 hook，新的 Claude Code 会话会开始上报状态。",
+      "subtitle": "实时汇总 Claude Code 与 Codex CLI 的会话、提示词、工具调用和模型输出。Claude Code 使用本地 Hook，Codex 自动读取本机会话记录。",
+      "provider": {
+        "label": "切换 CLI 活动来源",
+        "claude": "Claude",
+        "codex": "Codex"
+      },
       "enableHook": "启用状态 Hook",
       "disableHook": "关闭状态 Hook",
+      "enableMonitor": "启用 Codex 会话监视",
+      "disableMonitor": "关闭 Codex 会话监视",
       "clear": "清空记录",
       "hookStatus": "Hook 状态",
       "receiverStatus": "接收器",
@@ -1411,10 +1418,10 @@
       "events": "事件流",
       "loading": "加载中",
       "updatedAt": "更新于 {{time}}",
-      "emptySessions": "暂无 Claude Code 会话。",
-      "emptyEvents": "启用 Hook 后启动新的 Claude Code CLI 会话即可看到状态。",
+      "emptySessions": "当前来源暂无 CLI 会话。",
+      "emptyEvents": "启动新的 CLI 会话后，活动会显示在这里。",
       "allSessions": "全部会话",
-      "allSessionsHint": "显示所有 Claude Code 事件流",
+      "allSessionsHint": "显示当前来源的全部 CLI 事件流",
       "allLabel": "all",
       "filterAria": "事件筛选",
       "heatmapAria": "活动热力图",
@@ -1457,7 +1464,7 @@
       },
       "detail": {
         "userInput": "用户输入",
-        "assistantOutput": "Claude 输出",
+        "assistantOutput": "模型输出",
         "toolUseId": "工具调用 ID",
         "toolInput": "工具入参",
         "toolResult": "工具结果",

@@ -20,7 +20,7 @@
 
 /**
  * @file CliContent.tsx
- * @description CLI 状态内容组件 — 退出 maxExpand 后在灵动岛上展示活跃 Claude 会话的实时流事件
+ * @description CLI 状态内容组件 — 展示当前 Claude Code 或 Codex 会话的实时流事件
  * @author 鸡哥
  */
 
@@ -29,7 +29,9 @@ import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../store/isLandStore';
 import { GifIcon } from '../../../utils/GifIcon/gif-icon';
-import { useClaudeCodeStatus } from '../maxExpand/components/cli/hooks/useClaudeCodeStatus';
+import { SvgIcon } from '../../../utils/SvgIcon';
+import { useCliStatus } from '../maxExpand/components/cli/hooks/useCliStatus';
+import { CliProviderSwitch } from '../maxExpand/components/cli/components/CliProviderSwitch';
 import { phaseLabel } from '../maxExpand/components/cli/utils/cliFormatters';
 import { useCurrentLyric } from '../lyrics/hooks/useCurrentLyric';
 import { useLyricsSettings } from '../lyrics/hooks/useLyricsSettings';
@@ -38,14 +40,16 @@ import '../../../styles/cli/cli-state.css';
 
 /**
  * CLI 状态内容组件
- * @description 与 agent 态尺寸一致（500×88），左侧 Claude 图标 + 右侧最新流事件，点击进入完整面板。
+ * @description 与 agent 态尺寸一致（500×88），左侧提供方图标 + 右侧最新流事件，点击进入完整面板。
  */
 export function CliContent(): ReactElement {
   const { t } = useTranslation();
   const setIdle = useIslandStore((s) => s.setIdle);
   const setMaxExpand = useIslandStore((s) => s.setMaxExpand);
   const setMaxExpandTab = useIslandStore((s) => s.setMaxExpandTab);
-  const { snapshot } = useClaudeCodeStatus();
+  const provider = useIslandStore((s) => s.cliProvider);
+  const setProvider = useIslandStore((s) => s.setCliProvider);
+  const { snapshot } = useCliStatus(provider);
 
   // 同步当前播放歌曲的动态歌词
   const isMusicPlaying = useIslandStore((s) => s.isMusicPlaying);
@@ -97,7 +101,12 @@ export function CliContent(): ReactElement {
 
   return (
     <div className="cli-state-content">
-      <img className="cli-state-icon" src={gifSrc} alt="" draggable={false} />
+      <img
+        className={`cli-state-icon${provider === 'codex' ? ' cli-state-icon--codex' : ''}`}
+        src={provider === 'codex' ? SvgIcon.AI : gifSrc}
+        alt=""
+        draggable={false}
+      />
       <button type="button" className="cli-state-body" onClick={openPanel}>
         <span className="cli-state-title-row">
           <span className="cli-state-title">{title}</span>
@@ -121,11 +130,12 @@ export function CliContent(): ReactElement {
         )}
       </button>
       <div className="cli-state-actions">
+        <CliProviderSwitch provider={provider} onChange={setProvider} compact />
         <button type="button" className="cli-state-action-btn" onClick={() => setIdle(true)}>
           {t('agent.actions.close', { defaultValue: '关闭' })}
         </button>
       </div>
-      {activeSession?.phase === 'waiting_permission' ? (
+      {provider === 'claude' && activeSession?.phase === 'waiting_permission' ? (
         <div className="cli-state-permission">
           <button
             type="button"
