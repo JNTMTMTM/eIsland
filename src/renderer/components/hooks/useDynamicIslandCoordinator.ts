@@ -44,7 +44,6 @@ import { useIslandRuntimeRefs } from './useIslandRuntimeRefs';
 import { useIslandDrag } from './useIslandDrag';
 import { useIslandAutoDim } from './useIslandAutoDim';
 import { useClaudeCliSessionStatus } from './useClaudeCliSessionStatus';
-import { useCaptureTranslateBridge } from '../states/captureTranslate/hooks/useCaptureTranslateBridge';
 
 interface UseDynamicIslandCoordinatorOptions {
   store: IIslandStore;
@@ -248,8 +247,6 @@ export function useDynamicIslandCoordinator(options: UseDynamicIslandCoordinator
     setAgentVoiceInput,
     setIdle,
   });
-
-  useCaptureTranslateBridge();
 
   useIslandEscapeNavigation({
     state,

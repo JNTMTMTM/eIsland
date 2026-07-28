@@ -66,21 +66,13 @@ export const createIslandSlice: StateCreator<
   notification: emptyNotification,
   sttText: '',
   agentPrompt: '',
-  captureTranslate: {
-    status: 'submitting',
-    originalImage: '',
-    taskId: null,
-    translatedImage: null,
-    translatedText: '',
-    errorMessage: '',
-  },
   springAnimation: true,
   animationSpeed: 'medium' as const,
   shapeMode: 'notch' as const,
 
   setIdle: (force?: boolean) => set((prev) => {
     if (prev.uiStateLocked && prev.state !== 'idle') return prev;
-    if (!force && (prev.state === 'expanded' || prev.state === 'maxExpand' || prev.state === 'captureTranslate' || prev.state === 'guide' || prev.state === 'login' || prev.state === 'register' || prev.state === 'resetPassword' || prev.state === 'setPassword' || prev.state === 'bindOAuth' || prev.state === 'bindEmail' || prev.state === 'payment' || prev.state === 'announcement')) return prev;
+    if (!force && (prev.state === 'expanded' || prev.state === 'maxExpand' || prev.state === 'guide' || prev.state === 'login' || prev.state === 'register' || prev.state === 'resetPassword' || prev.state === 'setPassword' || prev.state === 'bindOAuth' || prev.state === 'bindEmail' || prev.state === 'payment' || prev.state === 'announcement')) return prev;
     window.api?.collapseWindow();
     window.api?.enableMousePassthrough();
     return { state: 'idle' as const, authReturnState: null };
@@ -232,17 +224,6 @@ export const createIslandSlice: StateCreator<
     window.api?.enableMousePassthrough();
     return { state: 'lyricsTranslation', authReturnState: null };
   }),
-
-  setCaptureTranslate: (data) => set((prev) => {
-    if (prev.uiStateLocked && prev.state !== 'captureTranslate') return prev;
-    window.api?.expandWindowSettings();
-    window.api?.disableMousePassthrough();
-    return { state: 'captureTranslate' as const, captureTranslate: data, authReturnState: null };
-  }),
-
-  updateCaptureTranslate: (data) => set((prev) => ({
-    captureTranslate: { ...prev.captureTranslate, ...data },
-  })),
 
   setNotification: (data) => set((prev) => {
     if (prev.uiStateLocked && prev.state !== 'notification') return prev;

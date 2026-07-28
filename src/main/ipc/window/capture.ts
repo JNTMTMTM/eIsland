@@ -29,10 +29,10 @@ import { app, clipboard, desktopCapturer, dialog, ipcMain, nativeImage, type Bro
 import { join } from 'path';
 import { writeFileSync } from 'fs';
 import { capturePrimaryDisplayPng } from '../../window/screenshotHelper';
+import { translateCaptureImage } from '../../services/imageTranslationService';
 
 interface RegisterCaptureIpcHandlersOptions {
   getCaptureWindow: () => BrowserWindow | null;
-  getMainWindow: () => BrowserWindow | null;
   closeCaptureWindow: () => void;
   startRegionScreenshot: () => Promise<void>;
 }
@@ -84,19 +84,29 @@ export function registerCaptureIpcHandlers(options: RegisterCaptureIpcHandlersOp
     options.closeCaptureWindow();
   });
 
-  ipcMain.on('capture-translate', (_event, { dataURL }: { dataURL: string }) => {
-    try {
-      if (typeof dataURL !== 'string' || !dataURL.startsWith('data:image/')) {
-        throw new Error('invalid capture image');
-      }
-      const mainWindow = options.getMainWindow();
-      if (mainWindow && !mainWindow.isDestroyed()) {
-        mainWindow.webContents.send('capture:translate-requested', dataURL);
-      }
-    } catch (err) {
-      console.error('[Screenshot] translate dispatch error:', err);
+  ipcMain.handle('capture-translate', async (event, payload: {
+    dataURL: string;
+    token: string;
+    targetLanguage: string;
+  }) => {
+    const captureWindow = options.getCaptureWindow();
+    if (!captureWindow || captureWindow.isDestroyed() || event.sender.id !== captureWindow.webContents.id) {
+      return { success: false, message: '截图窗口已关闭' };
     }
-    options.closeCaptureWindow();
+
+    const controller = new AbortController();
+    const abort = (): void => controller.abort();
+    event.sender.once('destroyed', abort);
+    try {
+      return await translateCaptureImage(
+        typeof payload?.token === 'string' ? payload.token : '',
+        typeof payload?.dataURL === 'string' ? payload.dataURL : '',
+        payload?.targetLanguage === 'en' ? 'en' : 'zh',
+        controller.signal,
+      );
+    } finally {
+      event.sender.removeListener('destroyed', abort);
+    }
   });
 
   ipcMain.on('capture-save', async (_event, { dataURL }: { dataURL: string }) => {

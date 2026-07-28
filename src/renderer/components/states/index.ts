@@ -29,7 +29,6 @@ export { HoverContent } from './hover';
 export { ExpandedContent } from './expand/ExpandedContent';
 export { MaxExpandContent } from './maxExpand/MaxExpandContent';
 export { LyricsTranslationContent } from './lyricsTranslation/LyricsTranslationContent';
-export { CaptureTranslateContent } from './captureTranslate';
 export { GuideContent } from './guide/GuideContent';
 export { LoginContent } from './login';
 export { RegisterContent } from './register/RegisterContent';

@@ -182,11 +182,7 @@ describe('capture and wallpaper ipc handlers', () => {
     const captureWindow = {
       isDestroyed: vi.fn(() => false),
       hide: vi.fn(),
-    };
-    const mainWindowSend = vi.fn();
-    const mainWindow = {
-      isDestroyed: vi.fn(() => false),
-      webContents: { send: mainWindowSend },
+      webContents: { id: 7 },
     };
 
     const pngBuffer = Buffer.from('png-data');
@@ -209,7 +205,6 @@ describe('capture and wallpaper ipc handlers', () => {
 
     registerCaptureIpcHandlers({
       getCaptureWindow: () => captureWindow as never,
-      getMainWindow: () => mainWindow as never,
       closeCaptureWindow,
       startRegionScreenshot,
     });
@@ -225,15 +220,23 @@ describe('capture and wallpaper ipc handlers', () => {
     expect(clipboardWriteImageMock).toHaveBeenCalled();
     expect(closeCaptureWindow).toHaveBeenCalledTimes(1);
 
-    onHandlers.get('capture-translate')?.({}, { dataURL: 'data:image/png;base64,TRANSLATE' });
-    expect(mainWindowSend).toHaveBeenCalledWith('capture:translate-requested', 'data:image/png;base64,TRANSLATE');
+    const translateSender = {
+      id: 7,
+      once: vi.fn(),
+      removeListener: vi.fn(),
+    };
+    await expect(handleHandlers.get('capture-translate')?.(
+      { sender: translateSender },
+      { dataURL: 'data:image/png;base64,TRANSLATE', token: '', targetLanguage: 'zh' },
+    )).resolves.toEqual({ success: false, message: '请先登录 Pro 账号后再使用图片翻译' });
+    expect(closeCaptureWindow).toHaveBeenCalledTimes(1);
 
     await onHandlers.get('capture-save')?.({}, { dataURL: 'data:image/png;base64,BBB' });
     expect(captureWindow.hide).toHaveBeenCalled();
     expect(writeFileSyncMock).toHaveBeenCalledWith('C:/Pictures/s1.png', pngBuffer);
 
     onHandlers.get('capture-cancel')?.({});
-    expect(closeCaptureWindow).toHaveBeenCalledTimes(4);
+    expect(closeCaptureWindow).toHaveBeenCalledTimes(3);
   });
 
   it('handles wallpaper open/load/clear/read-buffer branches', async () => {

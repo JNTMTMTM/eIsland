@@ -90,7 +90,7 @@ export function useIslandHoverInteraction(options: UseIslandHoverInteractionOpti
     let lastCheckTime = 0;
     const CHECK_INTERVAL = 16;
 
-    if (state === 'maxExpand' || state === 'expanded' || state === 'captureTranslate' || state === 'announcement') {
+    if (state === 'maxExpand' || state === 'expanded' || state === 'announcement') {
       isHoveringRef.current = true;
     }
 
@@ -131,7 +131,7 @@ export function useIslandHoverInteraction(options: UseIslandHoverInteractionOpti
         return;
       }
 
-      if (state === 'notification' || state === 'agent' || state === 'stt' || state === 'cli' || state === 'agentVoiceInput' || state === 'captureTranslate' || state === 'guide' || state === 'login' || state === 'register' || state === 'resetPassword' || state === 'payment' || state === 'announcement') {
+      if (state === 'notification' || state === 'agent' || state === 'stt' || state === 'cli' || state === 'agentVoiceInput' || state === 'guide' || state === 'login' || state === 'register' || state === 'resetPassword' || state === 'payment' || state === 'announcement') {
         if (inWindow) {
           window.api?.disableMousePassthrough();
         }

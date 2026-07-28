@@ -503,16 +503,6 @@ const api = {
     return ipcRenderer.invoke('system:screenshot:region:start');
   },
   /**
-   * 订阅截图图片翻译请求
-   * @param callback - 接收选区图片 dataURL
-   * @returns 取消订阅函数
-   */
-  onCaptureTranslateRequest: (callback: (dataUrl: string) => void): (() => void) => {
-    const handler = (_event: Electron.IpcRendererEvent, dataUrl: string): void => callback(dataUrl);
-    ipcRenderer.on('capture:translate-requested', handler);
-    return () => ipcRenderer.removeListener('capture:translate-requested', handler);
-  },
-  /**
    * 打开任务管理器
    * @returns 无返回值
    */

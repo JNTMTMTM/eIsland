@@ -41,6 +41,8 @@ const captureSourceBadge = document.getElementById('captureSourceBadge');
 const colorPicker = document.getElementById('colorPicker');
 const sizePicker = document.getElementById('sizePicker');
 const btnUndo = document.getElementById('btnUndo');
+const translateOverlay = document.getElementById('translateOverlay');
+const translateMessage = document.getElementById('translateMessage');
 
 let bgImage = null;
 let W = 0;
@@ -80,6 +82,7 @@ let captureLanguage = 'zh-CN';
 let captureWindowRects = [];
 let hoverWindowRect = null;
 let pendingWindowClickRect = null;
+let isTranslating = false;
 
 const CAPTURE_I18N = {
   'zh-CN': {
@@ -95,6 +98,9 @@ const CAPTURE_I18N = {
       size: '粗细',
       save: '保存',
       translate: '图片翻译',
+      translating: '正在识别并翻译图片',
+      loginRequired: '请先登录 Pro 账号后再使用图片翻译',
+      translateFailed: '图片翻译失败',
       cancel: '取消',
       done: '完成',
     },
@@ -112,6 +118,9 @@ const CAPTURE_I18N = {
       size: 'Size',
       save: 'Save',
       translate: 'Translate',
+      translating: 'Recognizing and translating image',
+      loginRequired: 'Please sign in to a Pro account to translate images',
+      translateFailed: 'Image translation failed',
       cancel: 'Cancel',
       done: 'Done',
     },
@@ -370,6 +379,46 @@ function hideToolbar() {
   toolbar.style.display = 'none';
 }
 
+function positionTranslateOverlay() {
+  translateOverlay.style.left = `${selX}px`;
+  translateOverlay.style.top = `${selY}px`;
+  translateOverlay.style.width = `${selW}px`;
+  translateOverlay.style.height = `${selH}px`;
+}
+
+function showTranslateOverlay(message, isError = false) {
+  positionTranslateOverlay();
+  translateMessage.textContent = message;
+  translateOverlay.classList.toggle('is-error', isError);
+  translateOverlay.style.display = 'flex';
+}
+
+function hideTranslateOverlay() {
+  translateOverlay.style.display = 'none';
+  translateOverlay.classList.remove('is-error');
+}
+
+function loadImage(src) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error(tCapture('translateFailed')));
+    image.src = src;
+  });
+}
+
+async function replaceSelectionWithTranslatedImage(dataUrl) {
+  const image = await loadImage(dataUrl);
+  pushHistory();
+  drawCtx.clearRect(selX, selY, selW, selH);
+  drawCtx.drawImage(image, selX, selY, selW, selH);
+  activeTool = 'select';
+  Array.from(document.querySelectorAll('button.tool')).forEach((btn) => {
+    btn.classList.toggle('active', btn.dataset.tool === 'select');
+  });
+  drawMask();
+}
+
 function setTool(tool) {
   activeTool = tool;
   Array.from(document.querySelectorAll('button.tool')).forEach((btn) => {
@@ -580,7 +629,7 @@ ipcRenderer.on('capture-image', (_e, data) => {
 });
 
 tempCanvas.addEventListener('mousedown', (e) => {
-  if (e.button !== 0) return;
+  if (isTranslating || e.button !== 0) return;
   const mx = e.clientX;
   const my = e.clientY;
 
@@ -643,6 +692,7 @@ tempCanvas.addEventListener('mousedown', (e) => {
 });
 
 tempCanvas.addEventListener('mousemove', (e) => {
+  if (isTranslating) return;
   const mx = e.clientX;
   const my = e.clientY;
 
@@ -741,6 +791,7 @@ tempCanvas.addEventListener('mousemove', (e) => {
 });
 
 tempCanvas.addEventListener('mouseup', (e) => {
+  if (isTranslating) return;
   const mx = e.clientX;
   const my = e.clientY;
 
@@ -790,7 +841,7 @@ tempCanvas.addEventListener('mouseup', (e) => {
 
 Array.from(document.querySelectorAll('button.tool')).forEach((btn) => {
   btn.addEventListener('click', () => {
-    if (state !== STATE.SELECTED) return;
+    if (isTranslating || state !== STATE.SELECTED) return;
     setTool(btn.dataset.tool || 'select');
   });
 });
@@ -808,9 +859,40 @@ document.getElementById('btnCopy').addEventListener('click', () => {
   if (dataURL) ipcRenderer.send('capture-complete', { dataURL });
 });
 
-document.getElementById('btnTranslate').addEventListener('click', () => {
+document.getElementById('btnTranslate').addEventListener('click', async () => {
+  if (isTranslating || state !== STATE.SELECTED) return;
   const dataURL = cropSelectionWithAnnotations();
-  if (dataURL) ipcRenderer.send('capture-translate', { dataURL });
+  if (!dataURL) return;
+
+  isTranslating = true;
+  hideToolbar();
+  sizeInfo.style.display = 'none';
+  showTranslateOverlay(tCapture('translating'));
+
+  try {
+    const token = await ipcRenderer.invoke('store:read', 'user-account-token');
+    if (typeof token !== 'string' || !token.trim()) {
+      throw new Error(tCapture('loginRequired'));
+    }
+    const result = await ipcRenderer.invoke('capture-translate', {
+      dataURL,
+      token,
+      targetLanguage: captureLanguage === 'en-US' ? 'en' : 'zh',
+    });
+    if (!result?.success || !result.translatedImage) {
+      throw new Error(result?.message || tCapture('translateFailed'));
+    }
+    await replaceSelectionWithTranslatedImage(result.translatedImage);
+    hideTranslateOverlay();
+  } catch (error) {
+    showTranslateOverlay(error instanceof Error ? error.message : tCapture('translateFailed'), true);
+    await new Promise((resolve) => window.setTimeout(resolve, 2200));
+    hideTranslateOverlay();
+  } finally {
+    isTranslating = false;
+    showToolbar();
+    updateSizeInfo(selX, selY);
+  }
 });
 
 document.getElementById('btnSave').addEventListener('click', () => {
@@ -840,8 +922,14 @@ document.addEventListener('keydown', (e) => {
 window.addEventListener('resize', () => {
   initCanvases();
   if (state !== STATE.IDLE) {
-    showToolbar();
-    updateSizeInfo(selX, selY);
+    if (isTranslating) {
+      hideToolbar();
+      positionTranslateOverlay();
+      sizeInfo.style.display = 'none';
+    } else {
+      showToolbar();
+      updateSizeInfo(selX, selY);
+    }
   } else {
     sizeInfo.style.display = 'none';
     hideToolbar();
