@@ -1258,7 +1258,7 @@ The `cli` state provides real-time monitoring of **Claude Code** and **Codex** C
 - Latest event summary or pending permission details
 - Provider switch (Claude / Codex toggle)
 - Permission buttons (Deny / Allow / Always Allow) — Claude only
-- Synced lyrics overlay (when music playing and no permission pending)
+- Synced lyrics overlay (when music is playing and no permission is pending)
 
 **Behavior Details:**
 - Dual-provider support (Claude Code and Codex)
