@@ -5,3 +5,11 @@
 .VPHomeHero {
   display: none;
 }
+
+.VPNav,
+.VPFooter,
+.VPHomeFeaturesBefore,
+.VPHomeFeatures {
+  position: relative;
+  z-index: 1;
+}

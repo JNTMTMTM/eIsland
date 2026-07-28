@@ -1,12 +1,14 @@
 <script setup>
 import DefaultTheme from 'vitepress/theme'
 import { useData } from 'vitepress'
+import WaveBackground from './components/WaveBackground.vue'
 
 const { frontmatter } = useData()
 const isHome = frontmatter.value.layout === 'home'
 </script>
 
 <template>
+  <WaveBackground v-if="isHome" />
   <DefaultTheme.Layout>
     <template #home-features-before>
       <div v-if="isHome" class="video-home">
@@ -27,7 +29,7 @@ const isHome = frontmatter.value.layout === 'home'
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: calc(85vh - var(--vp-nav-height) - var(--vp-footer-height, 0px));
+  min-height: calc(87vh - var(--vp-nav-height) - var(--vp-footer-height, 0px));
 }
 
 .video-home__player {
