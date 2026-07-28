@@ -20,7 +20,7 @@
  */
 
 import { app, type BrowserWindow } from 'electron';
-import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'fs';
+import { type Dirent, existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'fs';
 import { dirname, join } from 'path';
 import type { ClaudeCodeHeatmapDaily } from '../types/system/ClaudeCodeHeatmapDailyCount';
 import type { ClaudeCodeHookEvent } from '../types/system/ClaudeCodeHookEvent';
@@ -76,7 +76,7 @@ function collectJsonlFiles(root: string): FileEntry[] {
   const output: FileEntry[] = [];
   const visit = (directory: string): void => {
     if (output.length >= MAX_FILES) return;
-    let entries: ReturnType<typeof readdirSync>;
+    let entries: Dirent<string>[];
     try {
       entries = readdirSync(directory, { withFileTypes: true, encoding: 'utf-8' });
     } catch {
@@ -226,7 +226,6 @@ export function createCodexStatusService(options: CreateCodexStatusServiceOption
 
   const startPolling = (): void => {
     if (timer || !enabled) return;
-    rebuildSnapshot();
     timer = setInterval(rebuildSnapshot, options.pollIntervalMs ?? DEFAULT_POLL_INTERVAL_MS);
     rebuildSnapshot();
   };

@@ -128,6 +128,36 @@ describe('createIslandSlice', () => {
     expect(storage.get('eisland-cli-provider')).toBe('codex');
   });
 
+  it('initializes cliProvider from storage with a default of claude', () => {
+    // When storage has a value, it should be used
+    storage.set('eisland-cli-provider', 'codex');
+    let store = createSliceState(createIslandSlice);
+
+    expect(store.getState().cliProvider).toBe('codex');
+
+    // When storage is empty, it should default to "claude"
+    storage.delete('eisland-cli-provider');
+    store = createSliceState(createIslandSlice);
+
+    expect(store.getState().cliProvider).toBe('claude');
+  });
+
+  it('falls back to claude when reading cliProvider from storage throws', () => {
+    const originalGetItem = window.localStorage.getItem;
+
+    // Simulate a failure in localStorage.getItem
+    window.localStorage.getItem = vi.fn(() => {
+      throw new Error('localStorage failure');
+    });
+
+    const store = createSliceState(createIslandSlice);
+
+    expect(store.getState().cliProvider).toBe('claude');
+
+    // Restore original getItem implementation
+    window.localStorage.getItem = originalGetItem;
+  });
+
   it('plays sound and transitions to notification state', () => {
     const playSpy = vi.spyOn(notificationSound, 'playNotificationSoundOnce');
     const store = createSliceState(createIslandSlice);
