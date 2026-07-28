@@ -1,0 +1,27 @@
+:root {
+  --vp-layout-max-width: 1440px;
+}
+
+.VPHomeHero {
+  min-height: calc(100vh - var(--vp-nav-height));
+  display: flex;
+  align-items: center;
+}
+
+.VPHero .container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.VPHero .text {
+  text-align: center;
+}
+
+.VPHero .tagline {
+  text-align: center;
+}
+
+.VPHero .actions {
+  justify-content: center;
+}
