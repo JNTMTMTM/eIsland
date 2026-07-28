@@ -41,6 +41,8 @@ const captureSourceBadge = document.getElementById('captureSourceBadge');
 const colorPicker = document.getElementById('colorPicker');
 const sizePicker = document.getElementById('sizePicker');
 const btnUndo = document.getElementById('btnUndo');
+const btnTranslate = document.getElementById('btnTranslate');
+const btnTranslateLabel = document.getElementById('btnTranslateLabel');
 const translateOverlay = document.getElementById('translateOverlay');
 const translateMessage = document.getElementById('translateMessage');
 
@@ -83,6 +85,8 @@ let captureWindowRects = [];
 let hoverWindowRect = null;
 let pendingWindowClickRect = null;
 let isTranslating = false;
+let translationCache = null;
+let displayedImageVersion = 'original';
 
 const CAPTURE_I18N = {
   'zh-CN': {
@@ -98,6 +102,8 @@ const CAPTURE_I18N = {
       size: '粗细',
       save: '保存',
       translate: '图片翻译',
+      showOriginal: '显示原文',
+      showTranslation: '显示译文',
       translating: '正在识别并翻译图片',
       loginRequired: '请先登录 Pro 账号后再使用图片翻译',
       translateFailed: '图片翻译失败',
@@ -118,6 +124,8 @@ const CAPTURE_I18N = {
       size: 'Size',
       save: 'Save',
       translate: 'Translate',
+      showOriginal: 'Show original',
+      showTranslation: 'Show translation',
       translating: 'Recognizing and translating image',
       loginRequired: 'Please sign in to a Pro account to translate images',
       translateFailed: 'Image translation failed',
@@ -143,6 +151,7 @@ function applyCaptureLanguage(language) {
   Array.from(document.querySelectorAll('[data-i18n]')).forEach((el) => {
     el.textContent = tCapture(el.dataset.i18n);
   });
+  updateTranslateButtonLabel();
   setCaptureSource(captureSourceBadge?.dataset.captureSource || 'js');
 }
 
@@ -277,6 +286,7 @@ function findWindowRectAt(mx, my) {
 }
 
 function selectWindowRect(rect) {
+  resetTranslationCache();
   selX = rect.x;
   selY = rect.y;
   selW = rect.width;
@@ -398,6 +408,21 @@ function hideTranslateOverlay() {
   translateOverlay.classList.remove('is-error');
 }
 
+function updateTranslateButtonLabel() {
+  const labelKey = !translationCache
+    ? 'translate'
+    : displayedImageVersion === 'translated'
+      ? 'showOriginal'
+      : 'showTranslation';
+  btnTranslateLabel.textContent = tCapture(labelKey);
+}
+
+function resetTranslationCache() {
+  translationCache = null;
+  displayedImageVersion = 'original';
+  updateTranslateButtonLabel();
+}
+
 function loadImage(src) {
   return new Promise((resolve, reject) => {
     const image = new Image();
@@ -407,9 +432,8 @@ function loadImage(src) {
   });
 }
 
-async function replaceSelectionWithTranslatedImage(dataUrl) {
+async function renderSelectionImage(dataUrl) {
   const image = await loadImage(dataUrl);
-  pushHistory();
   drawCtx.clearRect(selX, selY, selW, selH);
   drawCtx.drawImage(image, selX, selY, selW, selH);
   activeTool = 'select';
@@ -417,6 +441,18 @@ async function replaceSelectionWithTranslatedImage(dataUrl) {
     btn.classList.toggle('active', btn.dataset.tool === 'select');
   });
   drawMask();
+}
+
+async function toggleCachedTranslation() {
+  if (!translationCache) return false;
+  const nextVersion = displayedImageVersion === 'translated' ? 'original' : 'translated';
+  const nextImage = nextVersion === 'translated'
+    ? translationCache.translatedImage
+    : translationCache.originalImage;
+  await renderSelectionImage(nextImage);
+  displayedImageVersion = nextVersion;
+  updateTranslateButtonLabel();
+  return true;
 }
 
 function setTool(tool) {
@@ -512,6 +548,7 @@ function drawRect(ctx, x1, y1, x2, y2) {
 }
 
 function finishSelection(mx, my) {
+  resetTranslationCache();
   hoverWindowRect = null;
   selX = Math.min(startX, mx);
   selY = Math.min(startY, my);
@@ -587,6 +624,7 @@ function releaseCaptureResources() {
 }
 
 ipcRenderer.on('capture-image', (_e, data) => {
+  resetTranslationCache();
   scaleFactor = data.scaleFactor || 1;
   setCaptureSource(data.captureSource);
   setVisibleWindowRects(data.visibleWindows, data.display);
@@ -634,6 +672,7 @@ tempCanvas.addEventListener('mousedown', (e) => {
   const my = e.clientY;
 
   if (state === STATE.IDLE) {
+    resetTranslationCache();
     pendingWindowClickRect = hoverWindowRect;
     state = STATE.DRAWING;
     startX = mx;
@@ -647,6 +686,7 @@ tempCanvas.addEventListener('mousedown', (e) => {
   if (state === STATE.SELECTED && activeTool === 'select') {
     const handle = hitTestHandle(mx, my);
     if (handle) {
+      resetTranslationCache();
       state = STATE.RESIZING;
       resizeHandle = handle;
       const anchors = {
@@ -661,12 +701,14 @@ tempCanvas.addEventListener('mousedown', (e) => {
       return;
     }
     if (isInsideSelection(mx, my)) {
+      resetTranslationCache();
       state = STATE.MOVING;
       moveOffX = mx - selX;
       moveOffY = my - selY;
       hideToolbar();
       return;
     }
+    resetTranslationCache();
     state = STATE.DRAWING;
     startX = mx;
     startY = my;
@@ -676,6 +718,7 @@ tempCanvas.addEventListener('mousedown', (e) => {
   }
 
   if (state === STATE.SELECTED && activeTool !== 'select' && isInsideSelection(mx, my)) {
+    resetTranslationCache();
     state = STATE.ANNOTATING;
     annotStartX = mx;
     annotStartY = my;
@@ -851,6 +894,7 @@ sizePicker.addEventListener('change', () => { drawingSize = Number(sizePicker.va
 
 btnUndo.addEventListener('click', () => {
   if (state !== STATE.SELECTED) return;
+  resetTranslationCache();
   undoLast();
 });
 
@@ -859,10 +903,21 @@ document.getElementById('btnCopy').addEventListener('click', () => {
   if (dataURL) ipcRenderer.send('capture-complete', { dataURL });
 });
 
-document.getElementById('btnTranslate').addEventListener('click', async () => {
+btnTranslate.addEventListener('click', async () => {
   if (isTranslating || state !== STATE.SELECTED) return;
-  const dataURL = cropSelectionWithAnnotations();
-  if (!dataURL) return;
+
+  if (translationCache) {
+    isTranslating = true;
+    try {
+      await toggleCachedTranslation();
+    } finally {
+      isTranslating = false;
+    }
+    return;
+  }
+
+  const originalImage = cropSelectionWithAnnotations();
+  if (!originalImage) return;
 
   isTranslating = true;
   hideToolbar();
@@ -875,14 +930,21 @@ document.getElementById('btnTranslate').addEventListener('click', async () => {
       throw new Error(tCapture('loginRequired'));
     }
     const result = await ipcRenderer.invoke('capture-translate', {
-      dataURL,
+      dataURL: originalImage,
       token,
       targetLanguage: captureLanguage === 'en-US' ? 'en' : 'zh',
     });
     if (!result?.success || !result.translatedImage) {
       throw new Error(result?.message || tCapture('translateFailed'));
     }
-    await replaceSelectionWithTranslatedImage(result.translatedImage);
+    pushHistory();
+    await renderSelectionImage(result.translatedImage);
+    translationCache = {
+      originalImage,
+      translatedImage: result.translatedImage,
+    };
+    displayedImageVersion = 'translated';
+    updateTranslateButtonLabel();
     hideTranslateOverlay();
   } catch (error) {
     showTranslateOverlay(error instanceof Error ? error.message : tCapture('translateFailed'), true);
@@ -915,7 +977,10 @@ document.addEventListener('keydown', (e) => {
     return;
   }
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
-    if (state === STATE.SELECTED) undoLast();
+    if (state === STATE.SELECTED) {
+      resetTranslationCache();
+      undoLast();
+    }
   }
 });
 
