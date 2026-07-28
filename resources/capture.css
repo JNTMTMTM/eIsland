@@ -76,8 +76,8 @@ body {
   display: none;
   align-items: center;
   justify-content: center;
-  flex-direction: column;
-  gap: 12px;
+  flex-direction: row;
+  gap: 8px;
   min-width: 3px;
   min-height: 3px;
   overflow: hidden;
@@ -98,9 +98,10 @@ body {
 }
 
 .capture-translate-spinner {
-  width: 34px;
-  height: 34px;
-  border: 3px solid rgba(255, 255, 255, .24);
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  border: 2px solid rgba(255, 255, 255, .24);
   border-top-color: #fff;
   border-radius: 50%;
   animation: capture-translate-spin .8s linear infinite;
