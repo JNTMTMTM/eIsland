@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-07-29T08:25:02.001Z
+> 生成时间：2026-07-29T09:02:26.569Z
 
 ## 26.6.5
 
@@ -2946,6 +2946,11 @@
 
 ## Unreleased
 
+- 2026-07-29 | 11778ee7 | 鸡哥 | Merge pull request #175 from JNTMTMTM/dev
+- 2026-07-29 | c8fb3794 | 鸡哥 | fix: add permissions section to CI deploy guide
+- 2026-07-29 | 95b0058e | 鸡哥 | feat: add CI workflow for Markdown link checking
+- 2026-07-29 | 7b3b20b5 | 鸡哥 | feat: add CI deployment workflow for eisland guide
+- 2026-07-29 | e78aed83 | eislandBot | docs: auto update CHANGE_LOG.md for #174 by @JNTMTMTM [skip ci]
 - 2026-07-29 | 10507d8c | 鸡哥 | Merge pull request #174 from JNTMTMTM/dev
 - 2026-07-29 | ae8f32f1 | 鸡哥 | style: add licensing information and author details to multiple files
 - 2026-07-29 | dd64ccd1 | 鸡哥 | style: enhance error handling and localization for image translation process
