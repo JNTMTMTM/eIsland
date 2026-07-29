@@ -83,6 +83,7 @@ interface UserSettingsSectionProps {
 
 const GENDER_VALUES: UserAccountGender[] = ['male', 'female', 'custom', 'undisclosed'];
 const USER_PROFILE_PAGES: UserProfilePage[] = ['info', 'edit', 'password', 'pro', 'recharge', 'orders', 'account', 'oauth', 'image-translation'];
+const IMAGE_TRANSLATION_HISTORY_PAGE_SIZE = 5;
 
 const getGenderIcon = (gender: UserAccountGender | null | undefined): string => {
   if (gender === 'male') return SvgIcon.BOY;
@@ -206,6 +207,9 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
   const [oauthFeedback, setOauthFeedback] = useState<{ bindingId: number; feedback: Feedback } | null>(null);
 
   const [imageTranslationHistory, setImageTranslationHistory] = useState<ImageTranslationHistoryItem[]>([]);
+  const [imageTranslationHistoryPage, setImageTranslationHistoryPage] = useState(1);
+  const [imageTranslationHistoryTotal, setImageTranslationHistoryTotal] = useState(0);
+  const [imageTranslationHistoryTotalPages, setImageTranslationHistoryTotalPages] = useState(0);
   const [loadingImageTranslationHistory, setLoadingImageTranslationHistory] = useState(false);
   const [imageTranslationHistoryError, setImageTranslationHistoryError] = useState('');
 
@@ -521,18 +525,21 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
     }
   }, [loadRemoteProfile, resetToLoggedOut, t, token]);
 
-  const loadImageTranslationHistory = useCallback(async (): Promise<void> => {
+  const loadImageTranslationHistory = useCallback(async (page: number): Promise<void> => {
     if (!token) {
       setImageTranslationHistory([]);
+      setImageTranslationHistoryPage(1);
+      setImageTranslationHistoryTotal(0);
+      setImageTranslationHistoryTotalPages(0);
       setLoadingImageTranslationHistory(false);
       setImageTranslationHistoryError('');
       return;
     }
     setLoadingImageTranslationHistory(true);
     setImageTranslationHistoryError('');
-    const result = await fetchImageTranslationHistory(token, 100);
+    const result = await fetchImageTranslationHistory(token, page, IMAGE_TRANSLATION_HISTORY_PAGE_SIZE);
     setLoadingImageTranslationHistory(false);
-    if (!result.ok || !Array.isArray(result.data)) {
+    if (!result.ok || !result.data || !Array.isArray(result.data.items)) {
       if (result.code === 401 || result.code === 4011) {
         resetToLoggedOut();
         return;
@@ -540,7 +547,10 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
       setImageTranslationHistoryError(result.message || t('settings.user.imageTranslation.loadFailed', { defaultValue: '加载图片翻译记录失败' }));
       return;
     }
-    setImageTranslationHistory(result.data);
+    setImageTranslationHistory(result.data.items);
+    setImageTranslationHistoryPage(result.data.page);
+    setImageTranslationHistoryTotal(result.data.total);
+    setImageTranslationHistoryTotalPages(result.data.totalPages);
   }, [resetToLoggedOut, t, token]);
 
   useEffect(() => {
@@ -554,8 +564,8 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
     if (userProfilePage !== 'image-translation' || !token) {
       return;
     }
-    void loadImageTranslationHistory();
-  }, [loadImageTranslationHistory, token, userProfilePage]);
+    void loadImageTranslationHistory(imageTranslationHistoryPage);
+  }, [imageTranslationHistoryPage, loadImageTranslationHistory, token, userProfilePage]);
 
   useEffect(() => {
     if (userProfilePage !== 'oauth' || !token) {
@@ -1885,6 +1895,35 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
             );
           })}
         </div>
+
+        {imageTranslationHistoryTotalPages > 0 ? (
+          <nav className="settings-plugin-market-pagination settings-user-image-translation-pagination" aria-label={t('settings.user.imageTranslation.pagination.label', { defaultValue: '图片翻译历史分页' })}>
+            <button
+              type="button"
+              className="settings-hotkey-btn"
+              disabled={loadingImageTranslationHistory || imageTranslationHistoryPage <= 1}
+              onClick={() => setImageTranslationHistoryPage((current) => Math.max(1, current - 1))}
+            >
+              {t('settings.user.imageTranslation.pagination.previous', { defaultValue: '上一页' })}
+            </button>
+            <span className="settings-plugin-market-pagination-text settings-user-image-translation-pagination-summary">
+              {t('settings.user.imageTranslation.pagination.summary', {
+                defaultValue: '第 {{page}} / {{totalPages}} 页，共 {{total}} 条',
+                page: imageTranslationHistoryPage,
+                totalPages: imageTranslationHistoryTotalPages,
+                total: imageTranslationHistoryTotal,
+              })}
+            </span>
+            <button
+              type="button"
+              className="settings-hotkey-btn"
+              disabled={loadingImageTranslationHistory || imageTranslationHistoryPage >= imageTranslationHistoryTotalPages}
+              onClick={() => setImageTranslationHistoryPage((current) => Math.min(imageTranslationHistoryTotalPages, current + 1))}
+            >
+              {t('settings.user.imageTranslation.pagination.next', { defaultValue: '下一页' })}
+            </button>
+          </nav>
+        ) : null}
       </div>
     );
 

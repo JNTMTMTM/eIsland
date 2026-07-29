@@ -42,13 +42,26 @@ export interface ImageTranslationHistoryItem {
   finishedAt: string | null;
 }
 
+export interface ImageTranslationHistoryPage {
+  items: ImageTranslationHistoryItem[];
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
+}
+
 export function fetchImageTranslationHistory(
   token: string,
-  limit = 100,
-): Promise<UserAccountResult<ImageTranslationHistoryItem[]>> {
-  const normalizedLimit = Math.max(1, Math.min(Number(limit) || 100, 100));
-  return request<ImageTranslationHistoryItem[]>(`/v1/toolbox/image-translations/history?limit=${normalizedLimit}`, {
-    method: 'GET',
-    auth: token,
-  });
+  page = 1,
+  pageSize = 5,
+): Promise<UserAccountResult<ImageTranslationHistoryPage>> {
+  const normalizedPage = Math.max(1, Math.floor(Number(page) || 1));
+  const normalizedPageSize = Math.max(1, Math.min(Math.floor(Number(pageSize) || 5), 100));
+  return request<ImageTranslationHistoryPage>(
+    `/v1/toolbox/image-translations/history?page=${normalizedPage}&pageSize=${normalizedPageSize}`,
+    {
+      method: 'GET',
+      auth: token,
+    },
+  );
 }

@@ -3307,6 +3307,12 @@
         "resultImageAlt": "Translated result image",
         "resultPending": "Waiting for translation result",
         "resultUnavailable": "No result image available",
+        "pagination": {
+          "label": "Image translation history pagination",
+          "previous": "Previous",
+          "next": "Next",
+          "summary": "Page {{page}} / {{totalPages}}, {{total}} total"
+        },
         "status": {
           "queued": "Queued",
           "processing": "Translating",

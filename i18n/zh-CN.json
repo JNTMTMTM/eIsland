@@ -3307,6 +3307,12 @@
         "resultImageAlt": "翻译后图片",
         "resultPending": "等待翻译结果",
         "resultUnavailable": "无可用结果图片",
+        "pagination": {
+          "label": "图片翻译历史分页",
+          "previous": "上一页",
+          "next": "下一页",
+          "summary": "第 {{page}} / {{totalPages}} 页，共 {{total}} 条"
+        },
         "status": {
           "queued": "排队中",
           "processing": "翻译中",
