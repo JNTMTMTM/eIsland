@@ -5512,6 +5512,29 @@
   gap: 10px;
 }
 
+.settings-user-image-translation-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.settings-user-image-translation-actions .settings-hotkey-btn {
+  width: 100%;
+  min-width: 0;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+.settings-user-image-translation-remove:disabled {
+  color: rgba(248, 113, 113, 0.6);
+  border-color: rgba(248, 113, 113, 0.16);
+  background: rgba(248, 113, 113, 0.06);
+}
+
+.settings-user-image-translation-actions + .settings-user-feedback {
+  margin-top: 0;
+}
+
 .settings-user-image-translation-image-card {
   min-width: 0;
   margin: 0;

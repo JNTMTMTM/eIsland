@@ -3308,6 +3308,15 @@
         "resultPending": "等待翻译结果",
         "resultUnavailable": "无可用结果图片",
         "previewLabel": "图片预览",
+        "actions": {
+          "downloadSource": "下载原始截图",
+          "downloadResult": "下载翻译截图",
+          "downloading": "下载中…",
+          "downloadStarted": "已开始下载",
+          "downloadFailed": "下载失败",
+          "remove": "抹掉此记录",
+          "removePending": "暂未开放"
+        },
         "pagination": {
           "label": "图片翻译历史分页",
           "previous": "上一页",

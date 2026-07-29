@@ -3308,6 +3308,15 @@
         "resultPending": "Waiting for translation result",
         "resultUnavailable": "No result image available",
         "previewLabel": "Image preview",
+        "actions": {
+          "downloadSource": "Download Original",
+          "downloadResult": "Download Translation",
+          "downloading": "Downloading…",
+          "downloadStarted": "Download started",
+          "downloadFailed": "Download failed",
+          "remove": "Remove Record",
+          "removePending": "Coming soon"
+        },
         "pagination": {
           "label": "Image translation history pagination",
           "previous": "Previous",

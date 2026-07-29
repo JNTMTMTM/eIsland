@@ -104,6 +104,17 @@ const IMAGE_TRANSLATION_PREVIEW_MAX_SCALE = 4;
 const clampImageTranslationPreviewScale = (value: number): number => {
   return Math.min(IMAGE_TRANSLATION_PREVIEW_MAX_SCALE, Math.max(IMAGE_TRANSLATION_PREVIEW_MIN_SCALE, value));
 };
+
+const buildImageTranslationDownloadName = (taskId: string, kind: 'source' | 'result', imageUrl: string): string => {
+  let extension = '.jpg';
+  try {
+    const matchedExtension = new URL(imageUrl).pathname.match(/\.(jpe?g|png|webp)$/i)?.[0];
+    if (matchedExtension) extension = matchedExtension.toLowerCase();
+  } catch {
+    // 使用默认扩展名。
+  }
+  return `image-translation-${taskId.slice(0, 8)}-${kind}${extension}`;
+};
 const IMAGE_TRANSLATION_HISTORY_PAGE_SIZE = 5;
 
 const getGenderIcon = (gender: UserAccountGender | null | undefined): string => {
@@ -237,6 +248,8 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
   const [imageTranslationPreviewScale, setImageTranslationPreviewScale] = useState(1);
   const [imageTranslationPreviewOffset, setImageTranslationPreviewOffset] = useState({ x: 0, y: 0 });
   const [imageTranslationPreviewDragging, setImageTranslationPreviewDragging] = useState(false);
+  const [imageTranslationDownloadingKey, setImageTranslationDownloadingKey] = useState('');
+  const [imageTranslationActionFeedback, setImageTranslationActionFeedback] = useState<{ taskId: string; feedback: Feedback } | null>(null);
 
   /** 用户中心登录天数热力图：记录并展示当前用户每个自然日是否登录 */
   const [loginDays, setLoginDays] = useState<Set<string>>(() => readLoginDays(profile?.username));
@@ -663,6 +676,37 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
     setImageTranslationHistoryTotal(result.data.total);
     setImageTranslationHistoryTotalPages(result.data.totalPages);
   }, [resetToLoggedOut, t, token]);
+
+  const handleDownloadImageTranslationImage = useCallback(async (
+    task: ImageTranslationHistoryItem,
+    kind: 'source' | 'result',
+    imageUrl: string | null,
+  ): Promise<void> => {
+    if (!imageUrl || imageTranslationDownloadingKey) return;
+    const actionKey = `${task.taskId}:${kind}`;
+    setImageTranslationDownloadingKey(actionKey);
+    setImageTranslationActionFeedback(null);
+    try {
+      const savePath = await window.api.downloadPickSavePath(
+        buildImageTranslationDownloadName(task.taskId, kind, imageUrl),
+      );
+      if (!savePath) return;
+      const result = await window.api.downloadStart({ url: imageUrl, savePath, threads: 4 });
+      setImageTranslationActionFeedback({
+        taskId: task.taskId,
+        feedback: result.ok
+          ? { type: 'success', text: t('settings.user.imageTranslation.actions.downloadStarted', { defaultValue: '已开始下载' }) }
+          : { type: 'error', text: result.message || t('settings.user.imageTranslation.actions.downloadFailed', { defaultValue: '下载失败' }) },
+      });
+    } catch {
+      setImageTranslationActionFeedback({
+        taskId: task.taskId,
+        feedback: { type: 'error', text: t('settings.user.imageTranslation.actions.downloadFailed', { defaultValue: '下载失败' }) },
+      });
+    } finally {
+      setImageTranslationDownloadingKey('');
+    }
+  }, [imageTranslationDownloadingKey, t]);
 
   useEffect(() => {
     if (userProfilePage !== 'orders' || !token) {
@@ -2048,6 +2092,41 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
                       )}
                   </figure>
                 </div>
+
+                <div className="settings-user-image-translation-actions">
+                  <button
+                    type="button"
+                    className="settings-hotkey-btn"
+                    disabled={Boolean(imageTranslationDownloadingKey)}
+                    onClick={() => void handleDownloadImageTranslationImage(task, 'source', task.sourceUrl)}
+                  >
+                    {imageTranslationDownloadingKey === `${task.taskId}:source`
+                      ? t('settings.user.imageTranslation.actions.downloading', { defaultValue: '下载中…' })
+                      : t('settings.user.imageTranslation.actions.downloadSource', { defaultValue: '下载原始截图' })}
+                  </button>
+                  <button
+                    type="button"
+                    className="settings-hotkey-btn"
+                    disabled={!task.resultUrl || Boolean(imageTranslationDownloadingKey)}
+                    onClick={() => void handleDownloadImageTranslationImage(task, 'result', task.resultUrl)}
+                  >
+                    {imageTranslationDownloadingKey === `${task.taskId}:result`
+                      ? t('settings.user.imageTranslation.actions.downloading', { defaultValue: '下载中…' })
+                      : t('settings.user.imageTranslation.actions.downloadResult', { defaultValue: '下载翻译截图' })}
+                  </button>
+                  <button
+                    type="button"
+                    className="settings-hotkey-btn settings-user-image-translation-remove"
+                    disabled
+                    title={t('settings.user.imageTranslation.actions.removePending', { defaultValue: '暂未开放' })}
+                  >
+                    {t('settings.user.imageTranslation.actions.remove', { defaultValue: '抹掉此记录' })}
+                  </button>
+                </div>
+
+                {imageTranslationActionFeedback?.taskId === task.taskId
+                  ? renderFeedback(imageTranslationActionFeedback.feedback)
+                  : null}
 
                 {task.errorMessage ? (
                   <div className="settings-user-image-translation-error">{task.errorMessage}</div>
