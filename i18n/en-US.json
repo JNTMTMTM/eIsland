@@ -3271,6 +3271,7 @@
         "orders": "My Orders",
         "account": "Account",
         "oauth": "Third-party App",
+        "image-translation": "Image Translation",
         "switchTo": "Switch to {{label}}"
       },
       "oauth": {

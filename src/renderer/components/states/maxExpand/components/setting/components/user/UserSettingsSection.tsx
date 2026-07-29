@@ -65,7 +65,7 @@ import { SettingsPageNavigation, SettingsPageNavigationToggle } from '../Setting
 import '../../../../../../../styles/settings/modules/cli.css';
 
 type FeedbackType = 'success' | 'error' | 'info';
-type UserProfilePage = 'info' | 'edit' | 'password' | 'pro' | 'recharge' | 'orders' | 'account' | 'oauth';
+type UserProfilePage = 'info' | 'edit' | 'password' | 'pro' | 'recharge' | 'orders' | 'account' | 'oauth' | 'image-translation';
 
 interface Feedback {
   type: FeedbackType;
@@ -79,7 +79,7 @@ interface UserSettingsSectionProps {
 }
 
 const GENDER_VALUES: UserAccountGender[] = ['male', 'female', 'custom', 'undisclosed'];
-const USER_PROFILE_PAGES: UserProfilePage[] = ['info', 'edit', 'password', 'pro', 'recharge', 'orders', 'account', 'oauth'];
+const USER_PROFILE_PAGES: UserProfilePage[] = ['info', 'edit', 'password', 'pro', 'recharge', 'orders', 'account', 'oauth', 'image-translation'];
 
 const getGenderIcon = (gender: UserAccountGender | null | undefined): string => {
   if (gender === 'male') return SvgIcon.BOY;
@@ -214,7 +214,9 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
                 ? '我的订单'
                 : userProfilePage === 'account'
                   ? '关于账户'
-                  : '第三方应用绑定',
+                  : userProfilePage === 'oauth'
+                    ? '第三方应用绑定'
+                    : '图片翻译',
   });
 
   const avatarInputRef = useRef<HTMLInputElement | null>(null);
@@ -1047,6 +1049,7 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
       { id: 'orders', label: t('settings.user.pages.orders', { defaultValue: '我的订单' }) },
       { id: 'account', label: t('settings.user.pages.account', { defaultValue: '关于账户' }) },
       { id: 'oauth', label: t('settings.user.pages.oauth', { defaultValue: '第三方应用绑定' }) },
+      { id: 'image-translation', label: t('settings.user.pages.image-translation', { defaultValue: '图片翻译' }) },
     ];
     const profilePageLabels = Object.fromEntries(
       profilePageItems.map((item) => [item.id, item.label]),
@@ -1800,6 +1803,7 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
           {userProfilePage === 'orders' && renderOrdersPage()}
           {userProfilePage === 'account' && renderAccountPage()}
           {userProfilePage === 'oauth' && renderOAuthPage()}
+          {userProfilePage === 'image-translation' && <div className="settings-user-page-panel" />}
         </div>
 
         <SettingsPageNavigation
