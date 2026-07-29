@@ -3307,6 +3307,7 @@
         "resultImageAlt": "翻译后图片",
         "resultPending": "等待翻译结果",
         "resultUnavailable": "无可用结果图片",
+        "previewLabel": "图片预览",
         "pagination": {
           "label": "图片翻译历史分页",
           "previous": "上一页",

@@ -3307,6 +3307,7 @@
         "resultImageAlt": "Translated result image",
         "resultPending": "Waiting for translation result",
         "resultUnavailable": "No result image available",
+        "previewLabel": "Image preview",
         "pagination": {
           "label": "Image translation history pagination",
           "previous": "Previous",

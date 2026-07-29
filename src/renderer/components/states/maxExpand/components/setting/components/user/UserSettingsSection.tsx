@@ -75,6 +75,12 @@ interface Feedback {
   text: string;
 }
 
+interface ImageTranslationPreview {
+  taskId: string;
+  url: string;
+  alt: string;
+}
+
 type ProfileFeedbackScope = 'profile' | 'password' | 'account';
 
 interface UserSettingsSectionProps {
@@ -212,6 +218,7 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
   const [imageTranslationHistoryTotalPages, setImageTranslationHistoryTotalPages] = useState(0);
   const [loadingImageTranslationHistory, setLoadingImageTranslationHistory] = useState(false);
   const [imageTranslationHistoryError, setImageTranslationHistoryError] = useState('');
+  const [imageTranslationPreview, setImageTranslationPreview] = useState<ImageTranslationPreview | null>(null);
 
   /** 用户中心登录天数热力图：记录并展示当前用户每个自然日是否登录 */
   const [loginDays, setLoginDays] = useState<Set<string>>(() => readLoginDays(profile?.username));
@@ -537,6 +544,7 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
     }
     setLoadingImageTranslationHistory(true);
     setImageTranslationHistoryError('');
+    setImageTranslationPreview(null);
     const result = await fetchImageTranslationHistory(token, page, IMAGE_TRANSLATION_HISTORY_PAGE_SIZE);
     setLoadingImageTranslationHistory(false);
     if (!result.ok || !result.data || !Array.isArray(result.data.items)) {
@@ -1818,6 +1826,21 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
             const targetLanguageIcon = resolveImageTranslationLanguageIcon(targetLanguage);
             return (
               <article key={task.taskId} className="settings-user-card settings-user-image-translation-item">
+                {imageTranslationPreview?.taskId === task.taskId ? (
+                  <button
+                    type="button"
+                    className="settings-user-image-translation-preview"
+                    aria-label={t('settings.user.imageTranslation.previewLabel', { defaultValue: '图片预览' })}
+                    onClick={() => setImageTranslationPreview(null)}
+                  >
+                    <img
+                      src={imageTranslationPreview.url}
+                      alt={imageTranslationPreview.alt}
+                      draggable={false}
+                    />
+                  </button>
+                ) : (
+                  <>
                 <div className="settings-user-image-translation-item-head">
                   <div className="settings-user-image-translation-meta">
                     <span className="settings-user-image-translation-language-route">
@@ -1857,40 +1880,60 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
                 <div className="settings-user-image-translation-images">
                   <figure className="settings-user-image-translation-image-card">
                     <figcaption>{t('settings.user.imageTranslation.sourceImage', { defaultValue: '翻译前' })}</figcaption>
-                    <div className="settings-user-image-translation-image-wrap">
+                    <button
+                      type="button"
+                      className="settings-user-image-translation-image-wrap"
+                      onClick={() => setImageTranslationPreview({
+                        taskId: task.taskId,
+                        url: task.sourceUrl,
+                        alt: t('settings.user.imageTranslation.sourceImageAlt', { defaultValue: '翻译前图片' }),
+                      })}
+                    >
                       <img
                         src={task.sourceUrl}
                         alt={t('settings.user.imageTranslation.sourceImageAlt', { defaultValue: '翻译前图片' })}
                         loading="lazy"
                         draggable={false}
                       />
-                    </div>
+                    </button>
                   </figure>
 
                   <figure className="settings-user-image-translation-image-card">
                     <figcaption>{t('settings.user.imageTranslation.resultImage', { defaultValue: '翻译后' })}</figcaption>
-                    <div className="settings-user-image-translation-image-wrap">
                       {task.resultUrl ? (
-                        <img
-                          src={task.resultUrl}
-                          alt={t('settings.user.imageTranslation.resultImageAlt', { defaultValue: '翻译后图片' })}
-                          loading="lazy"
-                          draggable={false}
-                        />
+                        <button
+                          type="button"
+                          className="settings-user-image-translation-image-wrap"
+                          onClick={() => setImageTranslationPreview({
+                            taskId: task.taskId,
+                            url: task.resultUrl as string,
+                            alt: t('settings.user.imageTranslation.resultImageAlt', { defaultValue: '翻译后图片' }),
+                          })}
+                        >
+                          <img
+                            src={task.resultUrl}
+                            alt={t('settings.user.imageTranslation.resultImageAlt', { defaultValue: '翻译后图片' })}
+                            loading="lazy"
+                            draggable={false}
+                          />
+                        </button>
                       ) : (
-                        <span className="settings-user-image-translation-image-placeholder">
-                          {normalizedStatus === 'FAILED'
-                            ? t('settings.user.imageTranslation.resultUnavailable', { defaultValue: '无可用结果图片' })
-                            : t('settings.user.imageTranslation.resultPending', { defaultValue: '等待翻译结果' })}
-                        </span>
+                        <div className="settings-user-image-translation-image-wrap">
+                          <span className="settings-user-image-translation-image-placeholder">
+                            {normalizedStatus === 'FAILED'
+                              ? t('settings.user.imageTranslation.resultUnavailable', { defaultValue: '无可用结果图片' })
+                              : t('settings.user.imageTranslation.resultPending', { defaultValue: '等待翻译结果' })}
+                          </span>
+                        </div>
                       )}
-                    </div>
                   </figure>
                 </div>
 
                 {task.errorMessage ? (
                   <div className="settings-user-image-translation-error">{task.errorMessage}</div>
                 ) : null}
+                  </>
+                )}
               </article>
             );
           })}
