@@ -1224,9 +1224,7 @@
   height: 26px;
   margin-left: auto;
   padding: 0;
-  border: 1px solid rgba(var(--color-text-rgb), 0.1);
-  border-radius: 8px;
-  background: rgba(var(--color-text-rgb), 0.04);
+  background: transparent;
   color: rgba(var(--color-text-rgb), 0.62);
   cursor: pointer;
   transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
@@ -1234,9 +1232,7 @@
 
 .settings-page-navigation-toggle:hover,
 .settings-page-navigation-toggle[aria-expanded='true'] {
-  border-color: rgba(var(--color-text-rgb), 0.2);
-  background: rgba(var(--color-text-rgb), 0.1);
-  color: rgba(var(--color-text-rgb), 0.92);
+  background: transparent;
 }
 
 .settings-page-navigation-toggle-icon {

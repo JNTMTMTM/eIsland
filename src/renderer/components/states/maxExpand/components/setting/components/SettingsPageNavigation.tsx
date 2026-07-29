@@ -65,7 +65,7 @@ export function SettingsPageNavigationToggle({
     >
       <img
         className="settings-page-navigation-toggle-icon"
-        src={expanded ? SvgIcon.COLLAPSE : SvgIcon.EXPAND}
+        src={expanded ? SvgIcon.EXPAND : SvgIcon.COLLAPSE}
         alt=""
         aria-hidden="true"
       />
