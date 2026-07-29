@@ -91,7 +91,7 @@ export function registerCaptureIpcHandlers(options: RegisterCaptureIpcHandlersOp
   }) => {
     const captureWindow = options.getCaptureWindow();
     if (!captureWindow || captureWindow.isDestroyed() || event.sender.id !== captureWindow.webContents.id) {
-      return { success: false, message: '截图窗口已关闭' };
+      return { success: false, code: 'captureWindowClosed' };
     }
 
     const controller = new AbortController();

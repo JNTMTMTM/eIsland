@@ -35,9 +35,22 @@ type ApiResult = {
   message?: string;
 };
 
+/** 图片翻译错误码，由渲染进程映射为本地化文案。 */
+export const IMAGE_TRANSLATE_ERROR = {
+  LOGIN_REQUIRED: 'loginRequired',
+  INVALID_DATA: 'invalidData',
+  SUBMIT_FAILED: 'submitFailed',
+  QUERY_FAILED: 'queryFailed',
+  TRANSLATION_FAILED: 'translationFailed',
+  NO_RESULT_URL: 'noResultUrl',
+  TIMEOUT: 'timeout',
+  ABORTED: 'aborted',
+} as const;
+
 export type CaptureTranslationResult = {
   success: boolean;
   translatedImage?: string;
+  code?: string;
   message?: string;
 };
 
@@ -111,8 +124,8 @@ export async function translateCaptureImage(
   targetLanguage: string,
   signal: AbortSignal,
 ): Promise<CaptureTranslationResult> {
-  if (!token.trim()) return { success: false, message: '请先登录 Pro 账号后再使用图片翻译' };
-  if (!dataUrl.startsWith('data:image/')) return { success: false, message: '无效的截图数据' };
+  if (!token.trim()) return { success: false, code: IMAGE_TRANSLATE_ERROR.LOGIN_REQUIRED, message: '请先登录 Pro 账号后再使用图片翻译' };
+  if (!dataUrl.startsWith('data:image/')) return { success: false, code: IMAGE_TRANSLATE_ERROR.INVALID_DATA, message: '无效的截图数据' };
 
   try {
     const formData = new FormData();
@@ -126,7 +139,7 @@ export async function translateCaptureImage(
       signal,
     ));
     if (!submitted.success || !submitted.data?.taskId) {
-      return { success: false, message: submitted.message ?? '图片翻译任务提交失败' };
+      return { success: false, code: IMAGE_TRANSLATE_ERROR.SUBMIT_FAILED, message: submitted.message ?? '图片翻译任务提交失败' };
     }
 
     for (let count = 0; count < MAX_POLL_COUNT; count += 1) {
@@ -138,13 +151,13 @@ export async function translateCaptureImage(
       ));
       if (!result.success || !result.data) {
         if (count < 2) continue;
-        return { success: false, message: result.message ?? '查询图片翻译任务失败' };
+        return { success: false, code: IMAGE_TRANSLATE_ERROR.QUERY_FAILED, message: result.message ?? '查询图片翻译任务失败' };
       }
       if (result.data.status === 'FAILED') {
-        return { success: false, message: result.data.errorMessage ?? '图片翻译失败' };
+        return { success: false, code: IMAGE_TRANSLATE_ERROR.TRANSLATION_FAILED, message: result.data.errorMessage ?? '图片翻译失败' };
       }
       if (result.data.status === 'SUCCEEDED') {
-        if (!result.data.resultUrl) return { success: false, message: '服务端未返回翻译图片' };
+        if (!result.data.resultUrl) return { success: false, code: IMAGE_TRANSLATE_ERROR.NO_RESULT_URL, message: '服务端未返回翻译图片' };
         return {
           success: true,
           translatedImage: await downloadAsDataUrl(result.data.resultUrl, signal),
@@ -152,11 +165,11 @@ export async function translateCaptureImage(
       }
     }
 
-    return { success: false, message: '图片翻译等待超时，请稍后重试' };
+    return { success: false, code: IMAGE_TRANSLATE_ERROR.TIMEOUT, message: '图片翻译等待超时，请稍后重试' };
   } catch (error) {
     if (error instanceof DOMException && error.name === 'AbortError') {
-      return { success: false, message: '图片翻译请求已取消或超时' };
+      return { success: false, code: IMAGE_TRANSLATE_ERROR.ABORTED, message: '图片翻译请求已取消或超时' };
     }
-    return { success: false, message: error instanceof Error ? error.message : '图片翻译失败' };
+    return { success: false, code: IMAGE_TRANSLATE_ERROR.TRANSLATION_FAILED, message: error instanceof Error ? error.message : '图片翻译失败' };
   }
 }

@@ -1245,7 +1245,7 @@
 }
 
 [data-theme='light'] .settings-page-navigation-toggle-icon {
-  filter: brightness(0) invert(0);
+  filter: brightness(0);
 }
 
 .settings-page-navigation-menu {

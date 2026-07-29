@@ -107,6 +107,13 @@ const CAPTURE_I18N = {
       translating: '翻译中',
       loginRequired: '请先登录 Pro 账号后再使用图片翻译',
       translateFailed: '图片翻译失败',
+      invalidData: '无效的截图数据',
+      submitFailed: '图片翻译任务提交失败',
+      queryFailed: '查询图片翻译任务失败',
+      noResultUrl: '服务端未返回翻译图片',
+      timeout: '图片翻译等待超时，请稍后重试',
+      aborted: '图片翻译请求已取消或超时',
+      captureWindowClosed: '截图窗口已关闭',
       cancel: '取消',
       done: '完成',
     },
@@ -129,6 +136,13 @@ const CAPTURE_I18N = {
       translating: 'Translating',
       loginRequired: 'Please sign in to a Pro account to translate images',
       translateFailed: 'Image translation failed',
+      invalidData: 'Invalid screenshot data',
+      submitFailed: 'Failed to submit image translation task',
+      queryFailed: 'Failed to query image translation task',
+      noResultUrl: 'Server did not return translated image',
+      timeout: 'Image translation timed out, please try again',
+      aborted: 'Image translation request was cancelled or timed out',
+      captureWindowClosed: 'Screenshot window was closed',
       cancel: 'Cancel',
       done: 'Done',
     },
@@ -935,7 +949,11 @@ btnTranslate.addEventListener('click', async () => {
       targetLanguage: captureLanguage === 'en-US' ? 'en' : 'zh',
     });
     if (!result?.success || !result.translatedImage) {
-      throw new Error(result?.message || tCapture('translateFailed'));
+      const errorCode = result?.code;
+      const fallbackMsg = errorCode && tCapture(errorCode) !== errorCode
+        ? tCapture(errorCode)
+        : tCapture('translateFailed');
+      throw new Error(result?.message || fallbackMsg);
     }
     pushHistory();
     await renderSelectionImage(result.translatedImage);

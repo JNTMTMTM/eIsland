@@ -228,7 +228,7 @@ describe('capture and wallpaper ipc handlers', () => {
     await expect(handleHandlers.get('capture-translate')?.(
       { sender: translateSender },
       { dataURL: 'data:image/png;base64,TRANSLATE', token: '', targetLanguage: 'zh' },
-    )).resolves.toEqual({ success: false, message: '请先登录 Pro 账号后再使用图片翻译' });
+    )).resolves.toEqual({ success: false, code: 'loginRequired', message: '请先登录 Pro 账号后再使用图片翻译' });
     expect(closeCaptureWindow).toHaveBeenCalledTimes(1);
 
     await onHandlers.get('capture-save')?.({}, { dataURL: 'data:image/png;base64,BBB' });
