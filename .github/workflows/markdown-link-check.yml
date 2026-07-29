@@ -1,0 +1,32 @@
+name: eisland CI Markdown Link Check
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - '**/*.md'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: markdown-link-check-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  markdown-link-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check Markdown links
+        uses: dvdstelt/hyperhawk@ed46ad292b0c81d5aeecb9efc30425d31de522d1 # v1.11.0
+        with:
+          token: ${{ github.token }}
+          files: '**/*.md'
+          skip-code-blocks: true
+          report-only-changed: true
+          strict: true
