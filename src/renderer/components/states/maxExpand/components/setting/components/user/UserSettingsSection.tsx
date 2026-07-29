@@ -60,6 +60,7 @@ import {
   type UserAccountProfile,
 } from '../../../../../../../utils/userAccount';
 import { SvgIcon } from '../../../../../../../utils/SvgIcon';
+import { resolveCountryIcon } from '../../../../../../../utils/SvgIcon/country-icon';
 import { EMAIL_PATTERN } from '../../../../../../../components/config/dynamicIslandPatterns';
 import { LoginHeatmap } from './components/LoginHeatmap';
 import { readLoginDays, recordLoginDay } from './utils/loginHeatmapStorage';
@@ -97,6 +98,14 @@ const shouldKeepGenderIconOriginalColor = (gender: UserAccountGender | null | un
 const formatDateTime = (value: string | null | undefined): string => {
   if (!value) return '—';
   return value.replace('T', ' ');
+};
+
+const resolveImageTranslationLanguageIcon = (language: string): { src?: string; isAuto: boolean } => {
+  const normalized = String(language || '').trim().toLowerCase();
+  if (normalized === 'auto') {
+    return { src: SvgIcon.AI, isAuto: true };
+  }
+  return { src: resolveCountryIcon(normalized), isAuto: false };
 };
 
 const normalizeRoleValue = (value: string): string => {
@@ -1793,12 +1802,40 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
           {imageTranslationHistory.map((task) => {
             const normalizedStatus = String(task.status || '').toUpperCase();
             const statusClass = normalizedStatus.toLowerCase().replace(/[^a-z0-9-]/g, '') || 'unknown';
+            const sourceLanguage = task.sourceLanguage || 'auto';
+            const targetLanguage = task.targetLanguage || 'zh';
+            const sourceLanguageIcon = resolveImageTranslationLanguageIcon(sourceLanguage);
+            const targetLanguageIcon = resolveImageTranslationLanguageIcon(targetLanguage);
             return (
               <article key={task.taskId} className="settings-user-card settings-user-image-translation-item">
                 <div className="settings-user-image-translation-item-head">
                   <div className="settings-user-image-translation-meta">
-                    <span>
-                      {task.sourceLanguage || 'auto'} {t('settings.user.imageTranslation.languageConnector', { defaultValue: '到' })} {task.targetLanguage || 'zh'}
+                    <span className="settings-user-image-translation-language-route">
+                      <span className="settings-user-image-translation-language">
+                        {sourceLanguageIcon.src ? (
+                          <img
+                            className={sourceLanguageIcon.isAuto ? 'is-auto' : ''}
+                            src={sourceLanguageIcon.src}
+                            alt=""
+                            aria-hidden="true"
+                            draggable={false}
+                          />
+                        ) : null}
+                        <span>{sourceLanguage}</span>
+                      </span>
+                      <span>{t('settings.user.imageTranslation.languageConnector', { defaultValue: '到' })}</span>
+                      <span className="settings-user-image-translation-language">
+                        {targetLanguageIcon.src ? (
+                          <img
+                            className={targetLanguageIcon.isAuto ? 'is-auto' : ''}
+                            src={targetLanguageIcon.src}
+                            alt=""
+                            aria-hidden="true"
+                            draggable={false}
+                          />
+                        ) : null}
+                        <span>{targetLanguage}</span>
+                      </span>
                     </span>
                     <span>{formatDateTime(task.createdAt)}</span>
                   </div>

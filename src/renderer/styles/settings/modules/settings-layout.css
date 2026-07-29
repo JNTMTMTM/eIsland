@@ -5445,6 +5445,34 @@
   text-transform: uppercase;
 }
 
+.settings-user-image-translation-language-route,
+.settings-user-image-translation-language {
+  display: inline-flex;
+  align-items: center;
+}
+
+.settings-user-image-translation-language-route {
+  gap: 6px;
+}
+
+.settings-user-image-translation-language {
+  gap: 4px;
+}
+
+.settings-user-image-translation-language img {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+  object-fit: contain;
+}
+
+.settings-user-image-translation-language img.is-auto {
+  width: 14px;
+  height: 14px;
+  opacity: 0.85;
+  filter: invert(calc(1 - var(--icon-invert)));
+}
+
 .settings-user-image-translation-status {
   flex-shrink: 0;
   padding: 3px 8px;
