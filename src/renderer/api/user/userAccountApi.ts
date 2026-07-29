@@ -38,5 +38,7 @@ export * from './userAccountApi.profile';
 export * from './userAccountApi.feedback';
 export * from './userAccountApi.wallpaper';
 export * from './userAccountApi.payment';
+export { deleteImageTranslationHistory, fetchImageTranslationHistory } from './userAccountApi.translation';
+export type { ImageTranslationHistoryItem, ImageTranslationHistoryPage } from './userAccountApi.translation';
 export { fetchOAuthBindings, unbindOAuth, fetchOAuthProviders } from './userAccountApi.oauth';
 export type { OAuthBindingItem, OAuthProviderItem } from './userAccountApi.oauth';

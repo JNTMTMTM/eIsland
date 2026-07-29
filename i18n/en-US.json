@@ -3271,6 +3271,7 @@
         "orders": "My Orders",
         "account": "Account",
         "oauth": "Third-party App",
+        "image-translation": "Image Translation",
         "switchTo": "Switch to {{label}}"
       },
       "oauth": {
@@ -3292,6 +3293,44 @@
         "feedback": {
           "unbindSuccess": "Unbound successfully",
           "unbindFailed": "Failed to unbind"
+        }
+      },
+      "imageTranslation": {
+        "subtitle": "View original images alongside their translated results",
+        "loading": "Loading image translation history…",
+        "loadFailed": "Failed to load image translation history",
+        "empty": "No image translation history",
+        "languageConnector": "to",
+        "sourceImage": "Before Translation",
+        "sourceImageAlt": "Original image before translation",
+        "resultImage": "After Translation",
+        "resultImageAlt": "Translated result image",
+        "resultPending": "Waiting for translation result",
+        "resultUnavailable": "No result image available",
+        "previewLabel": "Image preview",
+        "actions": {
+          "downloadSource": "Download Original",
+          "downloadResult": "Download Translation",
+          "downloading": "Downloading…",
+          "downloadStarted": "Download started",
+          "downloadFailed": "Download failed",
+          "remove": "Remove Record",
+          "removing": "Removing…",
+          "removeSuccess": "Images and translation record removed",
+          "removeFailed": "Failed to remove images"
+        },
+        "pagination": {
+          "label": "Image translation history pagination",
+          "previous": "Previous",
+          "next": "Next",
+          "summary": "Page {{page}} / {{totalPages}}, {{total}} total"
+        },
+        "status": {
+          "queued": "Queued",
+          "processing": "Translating",
+          "succeeded": "Completed",
+          "failed": "Failed",
+          "unknown": "Unknown"
         }
       },
       "recharge": {

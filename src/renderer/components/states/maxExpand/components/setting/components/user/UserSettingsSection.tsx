@@ -24,14 +24,16 @@
  * @author 鸡哥
  */
 
-import { useCallback, useEffect, useRef, useState } from 'react';
-import type { ChangeEvent, ReactElement } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { ChangeEvent, PointerEvent as ReactPointerEvent, ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   closeUserPaymentOrder,
+  deleteImageTranslationHistory,
   fetchUserPaymentOrders,
   fetchProMonthPricing,
   fetchAgentBalance,
+  fetchImageTranslationHistory,
   fetchOAuthBindings,
   fetchUserProfile,
   logoutUser,
@@ -42,6 +44,7 @@ import {
   updateUserPassword,
   updateUserProfile,
   uploadUserAvatar,
+  type ImageTranslationHistoryItem,
   type OAuthBindingItem,
   type UserPaymentOrderData,
 } from '../../../../../../../api/user/userAccountApi';
@@ -58,6 +61,7 @@ import {
   type UserAccountProfile,
 } from '../../../../../../../utils/userAccount';
 import { SvgIcon } from '../../../../../../../utils/SvgIcon';
+import { resolveCountryIcon } from '../../../../../../../utils/SvgIcon/country-icon';
 import { EMAIL_PATTERN } from '../../../../../../../components/config/dynamicIslandPatterns';
 import { LoginHeatmap } from './components/LoginHeatmap';
 import { readLoginDays, recordLoginDay } from './utils/loginHeatmapStorage';
@@ -65,11 +69,26 @@ import { SettingsPageNavigation, SettingsPageNavigationToggle } from '../Setting
 import '../../../../../../../styles/settings/modules/cli.css';
 
 type FeedbackType = 'success' | 'error' | 'info';
-type UserProfilePage = 'info' | 'edit' | 'password' | 'pro' | 'recharge' | 'orders' | 'account' | 'oauth';
+type UserProfilePage = 'info' | 'edit' | 'password' | 'pro' | 'recharge' | 'orders' | 'account' | 'oauth' | 'image-translation';
 
 interface Feedback {
   type: FeedbackType;
   text: string;
+}
+
+interface ImageTranslationPreview {
+  taskId: string;
+  url: string;
+  alt: string;
+}
+
+interface ImageTranslationPreviewDrag {
+  pointerId: number;
+  startX: number;
+  startY: number;
+  originX: number;
+  originY: number;
+  moved: boolean;
 }
 
 type ProfileFeedbackScope = 'profile' | 'password' | 'account';
@@ -79,7 +98,25 @@ interface UserSettingsSectionProps {
 }
 
 const GENDER_VALUES: UserAccountGender[] = ['male', 'female', 'custom', 'undisclosed'];
-const USER_PROFILE_PAGES: UserProfilePage[] = ['info', 'edit', 'password', 'pro', 'recharge', 'orders', 'account', 'oauth'];
+const USER_PROFILE_PAGES: UserProfilePage[] = ['info', 'edit', 'password', 'pro', 'recharge', 'orders', 'account', 'oauth', 'image-translation'];
+const IMAGE_TRANSLATION_PREVIEW_MIN_SCALE = 0.5;
+const IMAGE_TRANSLATION_PREVIEW_MAX_SCALE = 4;
+
+const clampImageTranslationPreviewScale = (value: number): number => {
+  return Math.min(IMAGE_TRANSLATION_PREVIEW_MAX_SCALE, Math.max(IMAGE_TRANSLATION_PREVIEW_MIN_SCALE, value));
+};
+
+const buildImageTranslationDownloadName = (taskId: string, kind: 'source' | 'result', imageUrl: string): string => {
+  let extension = '.jpg';
+  try {
+    const matchedExtension = new URL(imageUrl).pathname.match(/\.(jpe?g|png|webp)$/i)?.[0];
+    if (matchedExtension) extension = matchedExtension.toLowerCase();
+  } catch {
+    // 使用默认扩展名。
+  }
+  return `image-translation-${taskId.slice(0, 8)}-${kind}${extension}`;
+};
+const IMAGE_TRANSLATION_HISTORY_PAGE_SIZE = 5;
 
 const getGenderIcon = (gender: UserAccountGender | null | undefined): string => {
   if (gender === 'male') return SvgIcon.BOY;
@@ -95,6 +132,14 @@ const shouldKeepGenderIconOriginalColor = (gender: UserAccountGender | null | un
 const formatDateTime = (value: string | null | undefined): string => {
   if (!value) return '—';
   return value.replace('T', ' ');
+};
+
+const resolveImageTranslationLanguageIcon = (language: string): { src?: string; isAuto: boolean } => {
+  const normalized = String(language || '').trim().toLowerCase();
+  if (normalized === 'auto') {
+    return { src: SvgIcon.AI, isAuto: true };
+  }
+  return { src: resolveCountryIcon(normalized), isAuto: false };
 };
 
 const normalizeRoleValue = (value: string): string => {
@@ -194,6 +239,20 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
   const [oauthUnbindingId, setOauthUnbindingId] = useState<number | null>(null);
   const [oauthFeedback, setOauthFeedback] = useState<{ bindingId: number; feedback: Feedback } | null>(null);
 
+  const [imageTranslationHistory, setImageTranslationHistory] = useState<ImageTranslationHistoryItem[]>([]);
+  const [imageTranslationHistoryPage, setImageTranslationHistoryPage] = useState(1);
+  const [imageTranslationHistoryTotal, setImageTranslationHistoryTotal] = useState(0);
+  const [imageTranslationHistoryTotalPages, setImageTranslationHistoryTotalPages] = useState(0);
+  const [loadingImageTranslationHistory, setLoadingImageTranslationHistory] = useState(false);
+  const [imageTranslationHistoryError, setImageTranslationHistoryError] = useState('');
+  const [imageTranslationPreview, setImageTranslationPreview] = useState<ImageTranslationPreview | null>(null);
+  const [imageTranslationPreviewScale, setImageTranslationPreviewScale] = useState(1);
+  const [imageTranslationPreviewOffset, setImageTranslationPreviewOffset] = useState({ x: 0, y: 0 });
+  const [imageTranslationPreviewDragging, setImageTranslationPreviewDragging] = useState(false);
+  const [imageTranslationDownloadingKey, setImageTranslationDownloadingKey] = useState('');
+  const [imageTranslationRemovingTaskId, setImageTranslationRemovingTaskId] = useState('');
+  const [imageTranslationActionFeedback, setImageTranslationActionFeedback] = useState<{ taskId: string; feedback: Feedback } | null>(null);
+
   /** 用户中心登录天数热力图：记录并展示当前用户每个自然日是否登录 */
   const [loginDays, setLoginDays] = useState<Set<string>>(() => readLoginDays(profile?.username));
   /** 登录热力图是否展开（默认收起，点击右侧统计卡内的图标按钮切换） */
@@ -214,14 +273,128 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
                 ? '我的订单'
                 : userProfilePage === 'account'
                   ? '关于账户'
-                  : '第三方应用绑定',
+                  : userProfilePage === 'oauth'
+                    ? '第三方应用绑定'
+                    : '图片翻译',
   });
 
   const avatarInputRef = useRef<HTMLInputElement | null>(null);
+  const imageTranslationPreviewRef = useRef<HTMLButtonElement | null>(null);
+  const imageTranslationPreviewDragRef = useRef<ImageTranslationPreviewDrag | null>(null);
+  const imageTranslationPreviewScaleRef = useRef(imageTranslationPreviewScale);
+
+  const getImageTranslationStatusLabel = useMemo(() => {
+    return (status: string): string => {
+      const normalized = String(status || '').toUpperCase();
+      if (normalized === 'SUCCEEDED') return t('settings.user.imageTranslation.status.succeeded', { defaultValue: '已完成' });
+      if (normalized === 'FAILED') return t('settings.user.imageTranslation.status.failed', { defaultValue: '失败' });
+      if (normalized === 'PROCESSING') return t('settings.user.imageTranslation.status.processing', { defaultValue: '翻译中' });
+      if (normalized === 'QUEUED') return t('settings.user.imageTranslation.status.queued', { defaultValue: '排队中' });
+      return status || t('settings.user.imageTranslation.status.unknown', { defaultValue: '未知' });
+    };
+  }, [t]);
 
   useEffect(() => {
     setUserProfilePage(initialProfilePage);
   }, [initialProfilePage]);
+
+  useEffect(() => {
+    setImageTranslationPreviewScale(1);
+    setImageTranslationPreviewOffset({ x: 0, y: 0 });
+    setImageTranslationPreviewDragging(false);
+    imageTranslationPreviewDragRef.current = null;
+  }, [imageTranslationPreview]);
+
+  useEffect(() => {
+    imageTranslationPreviewScaleRef.current = imageTranslationPreviewScale;
+  }, [imageTranslationPreviewScale]);
+
+  useEffect(() => {
+    if (!imageTranslationPreview) return;
+    const previewElement = imageTranslationPreviewRef.current;
+    if (!previewElement) return;
+
+    const handleWheel = (event: WheelEvent): void => {
+      event.preventDefault();
+      event.stopPropagation();
+      const zoomFactor = Math.exp(-event.deltaY * 0.0015);
+      const nextScale = clampImageTranslationPreviewScale(
+        Number((imageTranslationPreviewScaleRef.current * zoomFactor).toFixed(3)),
+      );
+      const maxX = Math.max(0, previewElement.clientWidth * (nextScale - 1) / 2);
+      const maxY = Math.max(0, previewElement.clientHeight * (nextScale - 1) / 2);
+      setImageTranslationPreviewScale(nextScale);
+      setImageTranslationPreviewOffset((current) => ({
+        x: Math.min(maxX, Math.max(-maxX, current.x)),
+        y: Math.min(maxY, Math.max(-maxY, current.y)),
+      }));
+    };
+
+    previewElement.addEventListener('wheel', handleWheel, { passive: false });
+    return () => previewElement.removeEventListener('wheel', handleWheel);
+  }, [imageTranslationPreview]);
+
+  const handleImageTranslationPreviewPointerDown = useCallback((event: ReactPointerEvent<HTMLButtonElement>): void => {
+    if (event.button !== 0) return;
+    event.preventDefault();
+    event.stopPropagation();
+    event.currentTarget.setPointerCapture(event.pointerId);
+    imageTranslationPreviewDragRef.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      originX: imageTranslationPreviewOffset.x,
+      originY: imageTranslationPreviewOffset.y,
+      moved: false,
+    };
+    setImageTranslationPreviewDragging(true);
+  }, [imageTranslationPreviewOffset]);
+
+  const handleImageTranslationPreviewPointerMove = useCallback((event: ReactPointerEvent<HTMLButtonElement>): void => {
+    const drag = imageTranslationPreviewDragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    event.preventDefault();
+    event.stopPropagation();
+    const deltaX = event.clientX - drag.startX;
+    const deltaY = event.clientY - drag.startY;
+    if (Math.abs(deltaX) > 3 || Math.abs(deltaY) > 3) {
+      drag.moved = true;
+    }
+    const maxX = Math.max(0, event.currentTarget.clientWidth * (imageTranslationPreviewScale - 1) / 2);
+    const maxY = Math.max(0, event.currentTarget.clientHeight * (imageTranslationPreviewScale - 1) / 2);
+    setImageTranslationPreviewOffset({
+      x: Math.min(maxX, Math.max(-maxX, drag.originX + deltaX)),
+      y: Math.min(maxY, Math.max(-maxY, drag.originY + deltaY)),
+    });
+  }, [imageTranslationPreviewScale]);
+
+  const handleImageTranslationPreviewPointerUp = useCallback((event: ReactPointerEvent<HTMLButtonElement>): void => {
+    const drag = imageTranslationPreviewDragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    event.preventDefault();
+    event.stopPropagation();
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+    setImageTranslationPreviewDragging(false);
+  }, []);
+
+  const handleImageTranslationPreviewPointerCancel = useCallback((event: ReactPointerEvent<HTMLButtonElement>): void => {
+    if (imageTranslationPreviewDragRef.current?.pointerId !== event.pointerId) return;
+    imageTranslationPreviewDragRef.current = null;
+    setImageTranslationPreviewDragging(false);
+  }, []);
+
+  const handleImageTranslationPreviewClick = useCallback((event: ReactPointerEvent<HTMLButtonElement>): void => {
+    const drag = imageTranslationPreviewDragRef.current;
+    imageTranslationPreviewDragRef.current = null;
+    if (drag?.moved) {
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+    setImageTranslationPreview(null);
+  }, []);
 
   const resetToLoggedOut = useCallback((): void => {
     clearLocalAccount();
@@ -504,12 +677,126 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
     }
   }, [loadRemoteProfile, resetToLoggedOut, t, token]);
 
+  const loadImageTranslationHistory = useCallback(async (page: number): Promise<void> => {
+    if (!token) {
+      setImageTranslationHistory([]);
+      setImageTranslationHistoryPage(1);
+      setImageTranslationHistoryTotal(0);
+      setImageTranslationHistoryTotalPages(0);
+      setLoadingImageTranslationHistory(false);
+      setImageTranslationHistoryError('');
+      return;
+    }
+    setLoadingImageTranslationHistory(true);
+    setImageTranslationHistoryError('');
+    setImageTranslationPreview(null);
+    const result = await fetchImageTranslationHistory(token, page, IMAGE_TRANSLATION_HISTORY_PAGE_SIZE);
+    setLoadingImageTranslationHistory(false);
+    if (!result.ok || !result.data || !Array.isArray(result.data.items)) {
+      if (result.code === 401 || result.code === 4011) {
+        resetToLoggedOut();
+        return;
+      }
+      setImageTranslationHistoryError(result.message || t('settings.user.imageTranslation.loadFailed', { defaultValue: '加载图片翻译记录失败' }));
+      return;
+    }
+    setImageTranslationHistory(result.data.items);
+    setImageTranslationHistoryPage(result.data.page);
+    setImageTranslationHistoryTotal(result.data.total);
+    setImageTranslationHistoryTotalPages(result.data.totalPages);
+  }, [resetToLoggedOut, t, token]);
+
+  const handleDownloadImageTranslationImage = useCallback(async (
+    task: ImageTranslationHistoryItem,
+    kind: 'source' | 'result',
+    imageUrl: string | null,
+  ): Promise<void> => {
+    if (!imageUrl || imageTranslationDownloadingKey) return;
+    const actionKey = `${task.taskId}:${kind}`;
+    setImageTranslationDownloadingKey(actionKey);
+    setImageTranslationActionFeedback(null);
+    try {
+      const savePath = await window.api.downloadPickSavePath(
+        buildImageTranslationDownloadName(task.taskId, kind, imageUrl),
+      );
+      if (!savePath) return;
+      const result = await window.api.downloadStart({ url: imageUrl, savePath, threads: 4 });
+      setImageTranslationActionFeedback({
+        taskId: task.taskId,
+        feedback: result.ok
+          ? { type: 'success', text: t('settings.user.imageTranslation.actions.downloadStarted', { defaultValue: '已开始下载' }) }
+          : { type: 'error', text: result.message || t('settings.user.imageTranslation.actions.downloadFailed', { defaultValue: '下载失败' }) },
+      });
+    } catch {
+      setImageTranslationActionFeedback({
+        taskId: task.taskId,
+        feedback: { type: 'error', text: t('settings.user.imageTranslation.actions.downloadFailed', { defaultValue: '下载失败' }) },
+      });
+    } finally {
+      setImageTranslationDownloadingKey('');
+    }
+  }, [imageTranslationDownloadingKey, t]);
+
+  const handleRemoveImageTranslation = useCallback(async (
+    task: ImageTranslationHistoryItem,
+  ): Promise<void> => {
+    if (!token || imageTranslationRemovingTaskId || imageTranslationDownloadingKey) return;
+    setImageTranslationRemovingTaskId(task.taskId);
+    setImageTranslationActionFeedback(null);
+    const result = await deleteImageTranslationHistory(token, task.taskId);
+    setImageTranslationRemovingTaskId('');
+    if (!result.ok) {
+      if (result.code === 401 || result.code === 4011) {
+        resetToLoggedOut();
+        return;
+      }
+      setImageTranslationActionFeedback({
+        taskId: task.taskId,
+        feedback: {
+          type: 'error',
+          text: result.message || t('settings.user.imageTranslation.actions.removeFailed', { defaultValue: '抹掉图片失败' }),
+        },
+      });
+      return;
+    }
+
+    setImageTranslationPreview((current) => current?.taskId === task.taskId ? null : current);
+    setImageTranslationActionFeedback({
+      taskId: task.taskId,
+      feedback: {
+        type: 'success',
+        text: t('settings.user.imageTranslation.actions.removeSuccess', { defaultValue: '图片及翻译记录已抹掉' }),
+      },
+    });
+    if (imageTranslationHistory.length === 1 && imageTranslationHistoryPage > 1) {
+      setImageTranslationHistoryPage((current) => Math.max(1, current - 1));
+      return;
+    }
+    await loadImageTranslationHistory(imageTranslationHistoryPage);
+  }, [
+    imageTranslationDownloadingKey,
+    imageTranslationHistory.length,
+    imageTranslationHistoryPage,
+    imageTranslationRemovingTaskId,
+    loadImageTranslationHistory,
+    resetToLoggedOut,
+    t,
+    token,
+  ]);
+
   useEffect(() => {
     if (userProfilePage !== 'orders' || !token) {
       return;
     }
     void loadUserOrders();
   }, [loadUserOrders, token, userProfilePage]);
+
+  useEffect(() => {
+    if (userProfilePage !== 'image-translation' || !token) {
+      return;
+    }
+    void loadImageTranslationHistory(imageTranslationHistoryPage);
+  }, [imageTranslationHistoryPage, loadImageTranslationHistory, token, userProfilePage]);
 
   useEffect(() => {
     if (userProfilePage !== 'oauth' || !token) {
@@ -1047,6 +1334,7 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
       { id: 'orders', label: t('settings.user.pages.orders', { defaultValue: '我的订单' }) },
       { id: 'account', label: t('settings.user.pages.account', { defaultValue: '关于账户' }) },
       { id: 'oauth', label: t('settings.user.pages.oauth', { defaultValue: '第三方应用绑定' }) },
+      { id: 'image-translation', label: t('settings.user.pages.image-translation', { defaultValue: '图片翻译' }) },
     ];
     const profilePageLabels = Object.fromEntries(
       profilePageItems.map((item) => [item.id, item.label]),
@@ -1710,6 +1998,239 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
       </div>
     );
 
+    const renderImageTranslationPage = (): ReactElement => (
+      <div className="settings-user-page-panel settings-user-image-translation-panel">
+        <div className="settings-user-card settings-user-image-translation-head-card">
+          <div className="settings-user-image-translation-head">
+            <div>
+              <div className="settings-user-form-title">{t('settings.user.pages.image-translation', { defaultValue: '图片翻译' })}</div>
+              <div className="settings-user-card-title-hint">
+                {t('settings.user.imageTranslation.subtitle', { defaultValue: '查看原始图片与翻译后的结果图片' })}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {loadingImageTranslationHistory && imageTranslationHistory.length === 0 ? (
+          <div className="settings-user-card settings-user-image-translation-state">
+            <span className="settings-user-orders-inline-spinner" aria-hidden="true" />
+            <span>{t('settings.user.imageTranslation.loading', { defaultValue: '加载图片翻译记录中…' })}</span>
+          </div>
+        ) : null}
+
+        {imageTranslationHistoryError ? (
+          <div className="settings-user-feedback settings-user-feedback--error">
+            {imageTranslationHistoryError}
+          </div>
+        ) : null}
+
+        {!loadingImageTranslationHistory && !imageTranslationHistoryError && imageTranslationHistory.length === 0 ? (
+          <div className="settings-user-card settings-user-image-translation-state">
+            {t('settings.user.imageTranslation.empty', { defaultValue: '暂无图片翻译记录' })}
+          </div>
+        ) : null}
+
+        <div className="settings-user-image-translation-list">
+          {imageTranslationHistory.map((task) => {
+            const normalizedStatus = String(task.status || '').toUpperCase();
+            const canRemove = normalizedStatus === 'SUCCEEDED' || normalizedStatus === 'FAILED';
+            const statusClass = normalizedStatus.toLowerCase().replace(/[^a-z0-9-]/g, '') || 'unknown';
+            const sourceLanguage = task.sourceLanguage || 'auto';
+            const targetLanguage = task.targetLanguage || 'zh';
+            const resultUrl = typeof task.resultUrl === 'string' ? task.resultUrl.trim() : '';
+            const sourceLanguageIcon = resolveImageTranslationLanguageIcon(sourceLanguage);
+            const targetLanguageIcon = resolveImageTranslationLanguageIcon(targetLanguage);
+            return (
+              <article key={task.taskId} className="settings-user-card settings-user-image-translation-item">
+                {imageTranslationPreview?.taskId === task.taskId ? (
+                  <button
+                    ref={imageTranslationPreviewRef}
+                    type="button"
+                    className={`settings-user-image-translation-preview${imageTranslationPreviewDragging ? ' is-dragging' : ''}`}
+                    aria-label={t('settings.user.imageTranslation.previewLabel', { defaultValue: '图片预览' })}
+                    onPointerDown={handleImageTranslationPreviewPointerDown}
+                    onPointerMove={handleImageTranslationPreviewPointerMove}
+                    onPointerUp={handleImageTranslationPreviewPointerUp}
+                    onPointerCancel={handleImageTranslationPreviewPointerCancel}
+                    onClick={handleImageTranslationPreviewClick}
+                  >
+                    <img
+                      src={imageTranslationPreview.url}
+                      alt={imageTranslationPreview.alt}
+                      draggable={false}
+                      style={{
+                        transform: `translate3d(${imageTranslationPreviewOffset.x}px, ${imageTranslationPreviewOffset.y}px, 0) scale(${imageTranslationPreviewScale})`,
+                      }}
+                    />
+                  </button>
+                ) : (
+                  <>
+                    <div className="settings-user-image-translation-item-head">
+                      <div className="settings-user-image-translation-meta">
+                        <span className="settings-user-image-translation-language-route">
+                          <span className="settings-user-image-translation-language">
+                            {sourceLanguageIcon.src ? (
+                              <img
+                                className={sourceLanguageIcon.isAuto ? 'is-auto' : ''}
+                                src={sourceLanguageIcon.src}
+                                alt=""
+                                aria-hidden="true"
+                                draggable={false}
+                              />
+                            ) : null}
+                            <span>{sourceLanguage}</span>
+                          </span>
+                          <span>{t('settings.user.imageTranslation.languageConnector', { defaultValue: '到' })}</span>
+                          <span className="settings-user-image-translation-language">
+                            {targetLanguageIcon.src ? (
+                              <img
+                                className={targetLanguageIcon.isAuto ? 'is-auto' : ''}
+                                src={targetLanguageIcon.src}
+                                alt=""
+                                aria-hidden="true"
+                                draggable={false}
+                              />
+                            ) : null}
+                            <span>{targetLanguage}</span>
+                          </span>
+                        </span>
+                        <span>{formatDateTime(task.createdAt)}</span>
+                      </div>
+                      <span className={`settings-user-image-translation-status settings-user-image-translation-status--${statusClass}`}>
+                        {getImageTranslationStatusLabel(task.status)}
+                      </span>
+                    </div>
+
+                    <div className="settings-user-image-translation-images">
+                      <figure className="settings-user-image-translation-image-card">
+                        <figcaption>{t('settings.user.imageTranslation.sourceImage', { defaultValue: '翻译前' })}</figcaption>
+                        <button
+                          type="button"
+                          className="settings-user-image-translation-image-wrap"
+                          onClick={() => setImageTranslationPreview({
+                            taskId: task.taskId,
+                            url: task.sourceUrl,
+                            alt: t('settings.user.imageTranslation.sourceImageAlt', { defaultValue: '翻译前图片' }),
+                          })}
+                        >
+                          <img
+                            src={task.sourceUrl}
+                            alt={t('settings.user.imageTranslation.sourceImageAlt', { defaultValue: '翻译前图片' })}
+                            loading="lazy"
+                            draggable={false}
+                          />
+                        </button>
+                      </figure>
+
+                      <figure className="settings-user-image-translation-image-card">
+                        <figcaption>{t('settings.user.imageTranslation.resultImage', { defaultValue: '翻译后' })}</figcaption>
+                        {resultUrl ? (
+                          <button
+                            type="button"
+                            className="settings-user-image-translation-image-wrap"
+                            onClick={() => setImageTranslationPreview({
+                              taskId: task.taskId,
+                              url: resultUrl,
+                              alt: t('settings.user.imageTranslation.resultImageAlt', { defaultValue: '翻译后图片' }),
+                            })}
+                          >
+                            <img
+                              src={resultUrl}
+                              alt={t('settings.user.imageTranslation.resultImageAlt', { defaultValue: '翻译后图片' })}
+                              loading="lazy"
+                              draggable={false}
+                            />
+                          </button>
+                        ) : (
+                          <div className="settings-user-image-translation-image-wrap">
+                            <span className="settings-user-image-translation-image-placeholder">
+                              {normalizedStatus === 'FAILED'
+                                ? t('settings.user.imageTranslation.resultUnavailable', { defaultValue: '无可用结果图片' })
+                                : t('settings.user.imageTranslation.resultPending', { defaultValue: '等待翻译结果' })}
+                            </span>
+                          </div>
+                        )}
+                      </figure>
+                    </div>
+
+                    <div className="settings-user-image-translation-actions">
+                      <button
+                        type="button"
+                        className="settings-hotkey-btn"
+                        disabled={Boolean(imageTranslationDownloadingKey) || Boolean(imageTranslationRemovingTaskId)}
+                        onClick={() => void handleDownloadImageTranslationImage(task, 'source', task.sourceUrl)}
+                      >
+                        {imageTranslationDownloadingKey === `${task.taskId}:source`
+                          ? t('settings.user.imageTranslation.actions.downloading', { defaultValue: '下载中…' })
+                          : t('settings.user.imageTranslation.actions.downloadSource', { defaultValue: '下载原始截图' })}
+                      </button>
+                      <button
+                        type="button"
+                        className="settings-hotkey-btn"
+                        disabled={!resultUrl || Boolean(imageTranslationDownloadingKey) || Boolean(imageTranslationRemovingTaskId)}
+                        onClick={() => void handleDownloadImageTranslationImage(task, 'result', resultUrl)}
+                      >
+                        {imageTranslationDownloadingKey === `${task.taskId}:result`
+                          ? t('settings.user.imageTranslation.actions.downloading', { defaultValue: '下载中…' })
+                          : t('settings.user.imageTranslation.actions.downloadResult', { defaultValue: '下载翻译截图' })}
+                      </button>
+                      <button
+                        type="button"
+                        className="settings-hotkey-btn settings-user-image-translation-remove"
+                        disabled={!canRemove || Boolean(imageTranslationRemovingTaskId) || Boolean(imageTranslationDownloadingKey)}
+                        onClick={() => void handleRemoveImageTranslation(task)}
+                      >
+                        {imageTranslationRemovingTaskId === task.taskId
+                          ? t('settings.user.imageTranslation.actions.removing', { defaultValue: '抹掉中…' })
+                          : t('settings.user.imageTranslation.actions.remove', { defaultValue: '抹掉此记录' })}
+                      </button>
+                    </div>
+
+                    {imageTranslationActionFeedback?.taskId === task.taskId
+                      ? renderFeedback(imageTranslationActionFeedback.feedback)
+                      : null}
+
+                    {task.errorMessage ? (
+                      <div className="settings-user-image-translation-error">{task.errorMessage}</div>
+                    ) : null}
+                  </>
+                )}
+              </article>
+            );
+          })}
+        </div>
+
+        {imageTranslationHistoryTotalPages > 0 ? (
+          <nav className="settings-plugin-market-pagination settings-user-image-translation-pagination" aria-label={t('settings.user.imageTranslation.pagination.label', { defaultValue: '图片翻译历史分页' })}>
+            <button
+              type="button"
+              className="settings-hotkey-btn"
+              disabled={loadingImageTranslationHistory || imageTranslationHistoryPage <= 1}
+              onClick={() => setImageTranslationHistoryPage((current) => Math.max(1, current - 1))}
+            >
+              {t('settings.user.imageTranslation.pagination.previous', { defaultValue: '上一页' })}
+            </button>
+            <span className="settings-plugin-market-pagination-text settings-user-image-translation-pagination-summary">
+              {t('settings.user.imageTranslation.pagination.summary', {
+                defaultValue: '第 {{page}} / {{totalPages}} 页，共 {{total}} 条',
+                page: imageTranslationHistoryPage,
+                totalPages: imageTranslationHistoryTotalPages,
+                total: imageTranslationHistoryTotal,
+              })}
+            </span>
+            <button
+              type="button"
+              className="settings-hotkey-btn"
+              disabled={loadingImageTranslationHistory || imageTranslationHistoryPage >= imageTranslationHistoryTotalPages}
+              onClick={() => setImageTranslationHistoryPage((current) => Math.min(imageTranslationHistoryTotalPages, current + 1))}
+            >
+              {t('settings.user.imageTranslation.pagination.next', { defaultValue: '下一页' })}
+            </button>
+          </nav>
+        ) : null}
+      </div>
+    );
+
     const rechargeAmountYuan = rechargeSelected !== null && rechargeSelected !== undefined
       ? rechargeSelected
       : (rechargeCustomValue.trim() !== '' ? parseFloat(rechargeCustomValue) : NaN);
@@ -1800,6 +2321,7 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
           {userProfilePage === 'orders' && renderOrdersPage()}
           {userProfilePage === 'account' && renderAccountPage()}
           {userProfilePage === 'oauth' && renderOAuthPage()}
+          {userProfilePage === 'image-translation' && renderImageTranslationPage()}
         </div>
 
         <SettingsPageNavigation

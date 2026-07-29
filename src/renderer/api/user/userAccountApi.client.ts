@@ -118,7 +118,9 @@ function shouldAttachReplayHeaders(path: string, method: InternalRequestInit['me
   if (actualMethod !== 'POST' && actualMethod !== 'PUT' && actualMethod !== 'DELETE') return false;
   if (LOGIN_REPLAY_PATHS.has(path)) return true;
   if (!auth || auth.trim().length === 0) return false;
-  return path.startsWith('/v1/user/') || path === '/v1/upload/user-avatar';
+  return path.startsWith('/v1/user/')
+    || path === '/v1/upload/user-avatar'
+    || path.startsWith('/v1/toolbox/image-translations/');
 }
 
 /**

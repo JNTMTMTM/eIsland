@@ -3271,6 +3271,7 @@
         "orders": "我的订单",
         "account": "关于账户",
         "oauth": "第三方应用绑定",
+        "image-translation": "图片翻译",
         "switchTo": "切换到{{label}}"
       },
       "oauth": {
@@ -3292,6 +3293,44 @@
         "feedback": {
           "unbindSuccess": "已解除绑定",
           "unbindFailed": "解除绑定失败"
+        }
+      },
+      "imageTranslation": {
+        "subtitle": "查看原始图片与翻译后的结果图片",
+        "loading": "加载图片翻译记录中…",
+        "loadFailed": "加载图片翻译记录失败",
+        "empty": "暂无图片翻译记录",
+        "languageConnector": "到",
+        "sourceImage": "翻译前",
+        "sourceImageAlt": "翻译前图片",
+        "resultImage": "翻译后",
+        "resultImageAlt": "翻译后图片",
+        "resultPending": "等待翻译结果",
+        "resultUnavailable": "无可用结果图片",
+        "previewLabel": "图片预览",
+        "actions": {
+          "downloadSource": "下载原始截图",
+          "downloadResult": "下载翻译截图",
+          "downloading": "下载中…",
+          "downloadStarted": "已开始下载",
+          "downloadFailed": "下载失败",
+          "remove": "抹掉此记录",
+          "removing": "抹掉中…",
+          "removeSuccess": "图片及翻译记录已抹掉",
+          "removeFailed": "抹掉图片失败"
+        },
+        "pagination": {
+          "label": "图片翻译历史分页",
+          "previous": "上一页",
+          "next": "下一页",
+          "summary": "第 {{page}} / {{totalPages}} 页，共 {{total}} 条"
+        },
+        "status": {
+          "queued": "排队中",
+          "processing": "翻译中",
+          "succeeded": "已完成",
+          "failed": "失败",
+          "unknown": "未知"
         }
       },
       "recharge": {

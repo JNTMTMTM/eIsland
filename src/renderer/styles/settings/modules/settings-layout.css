@@ -5384,6 +5384,274 @@
   justify-content: center;
 }
 
+/* ── Image Translation History Page ── */
+
+.settings-user-image-translation-panel {
+  gap: 10px;
+}
+
+.settings-user-image-translation-head-card {
+  gap: 8px;
+}
+
+.settings-user-image-translation-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.settings-user-image-translation-state {
+  min-height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 12px;
+  color: rgba(var(--color-text-rgb), 0.56);
+}
+
+.settings-user-image-translation-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.settings-user-image-translation-item {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  padding: 8px 14px 12px;
+  gap: 7px;
+}
+
+.settings-user-image-translation-item-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.settings-user-image-translation-meta {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 10px;
+  color: rgba(var(--color-text-rgb), 0.54);
+}
+
+.settings-user-image-translation-meta span:first-child {
+  color: rgba(var(--color-text-rgb), 0.86);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.settings-user-image-translation-language-route,
+.settings-user-image-translation-language {
+  display: inline-flex;
+  align-items: center;
+}
+
+.settings-user-image-translation-language-route {
+  gap: 6px;
+}
+
+.settings-user-image-translation-language {
+  gap: 4px;
+}
+
+.settings-user-image-translation-language img {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+  object-fit: contain;
+}
+
+.settings-user-image-translation-language img.is-auto {
+  width: 14px;
+  height: 14px;
+  opacity: 0.85;
+  filter: invert(calc(1 - var(--icon-invert)));
+}
+
+.settings-user-image-translation-status {
+  flex-shrink: 0;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(var(--color-text-rgb), 0.18);
+  background: rgba(var(--color-text-rgb), 0.08);
+  color: rgba(var(--color-text-rgb), 0.72);
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.settings-user-image-translation-status--succeeded {
+  color: rgba(74, 222, 128, 1);
+  border-color: rgba(74, 222, 128, 0.28);
+  background: rgba(74, 222, 128, 0.12);
+}
+
+.settings-user-image-translation-status--failed {
+  color: rgba(248, 113, 113, 1);
+  border-color: rgba(248, 113, 113, 0.28);
+  background: rgba(248, 113, 113, 0.12);
+}
+
+.settings-user-image-translation-status--processing,
+.settings-user-image-translation-status--queued {
+  color: rgba(96, 165, 250, 1);
+  border-color: rgba(96, 165, 250, 0.28);
+  background: rgba(96, 165, 250, 0.12);
+}
+
+.settings-user-image-translation-images {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.settings-user-image-translation-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.settings-user-image-translation-actions .settings-hotkey-btn {
+  width: 100%;
+  min-width: 0;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+.settings-user-image-translation-actions .settings-hotkey-btn:disabled,
+.settings-user-image-translation-actions .settings-hotkey-btn:disabled:hover {
+  color: rgba(var(--color-text-rgb), 0.28);
+  border-color: rgba(var(--color-text-rgb), 0.055);
+  background: rgba(var(--color-text-rgb), 0.025);
+  box-shadow: none;
+  filter: grayscale(0.45);
+  opacity: 0.58;
+  cursor: not-allowed;
+}
+
+.settings-user-image-translation-actions .settings-user-image-translation-remove {
+  color: rgba(248, 113, 113, 0.92);
+  border-color: rgba(248, 113, 113, 0.28);
+  background: rgba(248, 113, 113, 0.1);
+}
+
+.settings-user-image-translation-actions .settings-user-image-translation-remove:not(:disabled):hover {
+  color: rgba(254, 202, 202, 1);
+  border-color: rgba(248, 113, 113, 0.44);
+  background: rgba(248, 113, 113, 0.18);
+}
+
+.settings-user-image-translation-actions .settings-user-image-translation-remove:disabled,
+.settings-user-image-translation-actions .settings-user-image-translation-remove:disabled:hover {
+  color: rgba(248, 113, 113, 0.6);
+  border-color: rgba(248, 113, 113, 0.16);
+  background: rgba(248, 113, 113, 0.06);
+  filter: grayscale(0.15);
+}
+
+.settings-user-image-translation-actions + .settings-user-feedback {
+  margin-top: 0;
+}
+
+.settings-user-image-translation-image-card {
+  min-width: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.settings-user-image-translation-image-card figcaption {
+  font-size: 10px;
+  color: rgba(var(--color-text-rgb), 0.58);
+}
+
+.settings-user-image-translation-image-wrap {
+  width: 100%;
+  height: 180px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 9px;
+  border: 1px solid rgba(var(--color-text-rgb), 0.09);
+  background: rgba(var(--color-text-rgb), 0.035);
+  color: inherit;
+  font: inherit;
+}
+
+button.settings-user-image-translation-image-wrap {
+  cursor: zoom-in;
+  transition: border-color 0.18s ease, background 0.18s ease;
+}
+
+button.settings-user-image-translation-image-wrap:hover {
+  border-color: rgba(var(--color-text-rgb), 0.2);
+  background: rgba(var(--color-text-rgb), 0.065);
+}
+
+.settings-user-image-translation-image-wrap img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+}
+
+.settings-user-image-translation-image-placeholder {
+  padding: 12px;
+  text-align: center;
+  font-size: 11px;
+  color: rgba(var(--color-text-rgb), 0.42);
+}
+
+.settings-user-image-translation-error {
+  padding: 7px 9px;
+  border-radius: 7px;
+  background: rgba(248, 113, 113, 0.08);
+  color: rgba(248, 113, 113, 0.88);
+  font-size: 10px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.settings-user-image-translation-preview {
+  width: 100%;
+  height: 220px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  overscroll-behavior: contain;
+  touch-action: none;
+  border: 0;
+  background: transparent;
+  cursor: grab;
+}
+
+.settings-user-image-translation-preview.is-dragging {
+  cursor: grabbing;
+}
+
+.settings-user-image-translation-preview > img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+  transform-origin: center;
+  will-change: transform;
+  pointer-events: none;
+  user-select: none;
+}
+
 @media (max-width: 760px) {
   .settings-user-avatar-row {
     grid-template-columns: 1fr;
@@ -5406,6 +5674,20 @@
 
   .settings-user-pro-grid {
     grid-template-columns: 1fr;
+  }
+
+  .settings-user-image-translation-head,
+  .settings-user-image-translation-item-head {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .settings-user-image-translation-images {
+    grid-template-columns: 1fr;
+  }
+
+  .settings-user-image-translation-image-wrap {
+    height: 220px;
   }
 }
 
