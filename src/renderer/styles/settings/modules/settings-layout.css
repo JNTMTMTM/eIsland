@@ -5525,10 +5525,23 @@
   white-space: nowrap;
 }
 
-.settings-user-image-translation-remove:disabled {
+.settings-user-image-translation-actions .settings-hotkey-btn:disabled,
+.settings-user-image-translation-actions .settings-hotkey-btn:disabled:hover {
+  color: rgba(var(--color-text-rgb), 0.28);
+  border-color: rgba(var(--color-text-rgb), 0.055);
+  background: rgba(var(--color-text-rgb), 0.025);
+  box-shadow: none;
+  filter: grayscale(0.45);
+  opacity: 0.58;
+  cursor: not-allowed;
+}
+
+.settings-user-image-translation-actions .settings-user-image-translation-remove:disabled,
+.settings-user-image-translation-actions .settings-user-image-translation-remove:disabled:hover {
   color: rgba(248, 113, 113, 0.6);
   border-color: rgba(248, 113, 113, 0.16);
   background: rgba(248, 113, 113, 0.06);
+  filter: grayscale(0.15);
 }
 
 .settings-user-image-translation-actions + .settings-user-feedback {

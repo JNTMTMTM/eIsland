@@ -1969,6 +1969,7 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
             const statusClass = normalizedStatus.toLowerCase().replace(/[^a-z0-9-]/g, '') || 'unknown';
             const sourceLanguage = task.sourceLanguage || 'auto';
             const targetLanguage = task.targetLanguage || 'zh';
+            const resultUrl = typeof task.resultUrl === 'string' ? task.resultUrl.trim() : '';
             const sourceLanguageIcon = resolveImageTranslationLanguageIcon(sourceLanguage);
             const targetLanguageIcon = resolveImageTranslationLanguageIcon(targetLanguage);
             return (
@@ -2064,18 +2065,18 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
 
                   <figure className="settings-user-image-translation-image-card">
                     <figcaption>{t('settings.user.imageTranslation.resultImage', { defaultValue: '翻译后' })}</figcaption>
-                      {task.resultUrl ? (
+                      {resultUrl ? (
                         <button
                           type="button"
                           className="settings-user-image-translation-image-wrap"
                           onClick={() => setImageTranslationPreview({
                             taskId: task.taskId,
-                            url: task.resultUrl as string,
+                            url: resultUrl,
                             alt: t('settings.user.imageTranslation.resultImageAlt', { defaultValue: '翻译后图片' }),
                           })}
                         >
                           <img
-                            src={task.resultUrl}
+                            src={resultUrl}
                             alt={t('settings.user.imageTranslation.resultImageAlt', { defaultValue: '翻译后图片' })}
                             loading="lazy"
                             draggable={false}
@@ -2107,8 +2108,8 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
                   <button
                     type="button"
                     className="settings-hotkey-btn"
-                    disabled={!task.resultUrl || Boolean(imageTranslationDownloadingKey)}
-                    onClick={() => void handleDownloadImageTranslationImage(task, 'result', task.resultUrl)}
+                    disabled={!resultUrl || Boolean(imageTranslationDownloadingKey)}
+                    onClick={() => void handleDownloadImageTranslationImage(task, 'result', resultUrl)}
                   >
                     {imageTranslationDownloadingKey === `${task.taskId}:result`
                       ? t('settings.user.imageTranslation.actions.downloading', { defaultValue: '下载中…' })
