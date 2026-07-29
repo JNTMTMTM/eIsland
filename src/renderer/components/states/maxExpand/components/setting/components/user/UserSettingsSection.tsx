@@ -1807,7 +1807,9 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
               <article key={task.taskId} className="settings-user-card settings-user-image-translation-item">
                 <div className="settings-user-image-translation-item-head">
                   <div className="settings-user-image-translation-meta">
-                    <span>{task.sourceLanguage || 'auto'} → {task.targetLanguage || 'zh'}</span>
+                    <span>
+                      {task.sourceLanguage || 'auto'} {t('settings.user.imageTranslation.languageConnector', { defaultValue: '到' })} {task.targetLanguage || 'zh'}
+                    </span>
                     <span>{formatDateTime(task.createdAt)}</span>
                   </div>
                   <span className={`settings-user-image-translation-status settings-user-image-translation-status--${statusClass}`}>

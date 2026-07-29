@@ -3302,6 +3302,7 @@
         "empty": "No image translation history",
         "refresh": "Refresh",
         "refreshing": "Refreshing…",
+        "languageConnector": "to",
         "sourceImage": "Before Translation",
         "sourceImageAlt": "Original image before translation",
         "resultImage": "After Translation",
