@@ -25,9 +25,10 @@
  */
 
 import { useState } from 'react';
-import type { ReactElement, WheelEvent } from 'react';
+import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { MailSettingsPageKey } from '../../utils/settingsConfig';
+import { SettingsPageNavigation, SettingsPageNavigationToggle } from '../SettingsPageNavigation';
 
 interface MailProviderPreset {
   labelKey: string;
@@ -98,6 +99,7 @@ export function MailSettingsSection({
 }: MailSettingsSectionProps): ReactElement {
   const { t } = useTranslation();
   const [presetOpen, setPresetOpen] = useState(false);
+  const [pageNavigationExpanded, setPageNavigationExpanded] = useState(false);
 
   const activeAccount = mailAccounts.find((a) => a.id === activeMailAccountId) || mailAccounts[0] || null;
 
@@ -130,16 +132,6 @@ export function MailSettingsSection({
     setPresetOpen(false);
   };
 
-  const handleDotsWheel = (e: WheelEvent<HTMLDivElement>): void => {
-    e.stopPropagation();
-    const currentIndex = mailSettingsPages.indexOf(mailSettingsPage);
-    if (currentIndex < 0) return;
-    const nextIndex = e.deltaY > 0 ? Math.min(currentIndex + 1, mailSettingsPages.length - 1) : Math.max(currentIndex - 1, 0);
-    if (nextIndex === currentIndex) return;
-    e.preventDefault();
-    setMailSettingsPage(mailSettingsPages[nextIndex]);
-  };
-
   const displayName = (a: MailAccountConfig): string => a.label || a.emailAddress || t('settings.mail.accounts.unnamed', { defaultValue: '未命名账户' });
 
   return (
@@ -147,6 +139,11 @@ export function MailSettingsSection({
       <div className="max-expand-settings-title settings-app-title-line">
         <span>{t('settings.labels.mail', { defaultValue: '邮箱配置' })}</span>
         <span className="settings-app-title-sub">- {currentMailSettingsPageLabel}</span>
+        <SettingsPageNavigationToggle
+          expanded={pageNavigationExpanded}
+          label={t(pageNavigationExpanded ? 'settings.navigation.collapse' : 'settings.navigation.expand')}
+          onToggle={() => setPageNavigationExpanded((current) => !current)}
+        />
       </div>
 
       {/* 账户标签页 */}
@@ -279,23 +276,14 @@ export function MailSettingsSection({
 
           </div>
 
-          <div
-            className="settings-app-page-dots"
-            aria-label={t('settings.mail.pagination', { defaultValue: '邮箱配置分页' })}
-            onWheel={handleDotsWheel}
-          >
-            {mailSettingsPages.map((page) => (
-              <button
-                key={page}
-                className={`settings-app-page-dot ${mailSettingsPage === page ? 'active' : ''}`}
-                data-label={mailSettingsPageLabels[page]}
-                type="button"
-                onClick={() => setMailSettingsPage(page)}
-                title={mailSettingsPageLabels[page]}
-                aria-label={mailSettingsPageLabels[page]}
-              />
-            ))}
-          </div>
+          <SettingsPageNavigation
+            activePage={mailSettingsPage}
+            expanded={pageNavigationExpanded}
+            pages={mailSettingsPages}
+            pageLabels={mailSettingsPageLabels}
+            navigationLabel={t('settings.mail.pagination')}
+            onSelectPage={setMailSettingsPage}
+          />
         </div>
       ) : (
         <div className="settings-mail-empty-accounts">

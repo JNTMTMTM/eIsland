@@ -1922,6 +1922,10 @@
     }
   },
   "settings": {
+    "navigation": {
+      "expand": "Expand page navigation",
+      "collapse": "Collapse page navigation"
+    },
     "sidebar": {
       "title": "Settings"
     },
@@ -2829,6 +2833,7 @@
       "guideResetError": "Failed. Please try again later"
     },
     "pluginMarket": {
+      "pagination": "Wallpaper market pagination",
       "search": {
         "wallpaperTitle": "Wallpaper Market",
         "wallpaperHint": "Browse and apply community-shared wallpapers, supporting both image and video wallpapers",
@@ -3190,6 +3195,7 @@
       "authorName": "JNTMTMTM"
     },
     "user": {
+      "pagination": "User center pagination",
       "auth": {
         "login": "Sign In",
         "register": "Sign Up",

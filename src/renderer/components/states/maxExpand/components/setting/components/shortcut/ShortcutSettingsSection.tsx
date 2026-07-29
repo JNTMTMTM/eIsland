@@ -24,9 +24,10 @@
  * @author 鸡哥
  */
 
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import type { KeyboardEvent as ReactKeyboardEvent, ReactElement, RefObject } from 'react';
 import { useTranslation } from 'react-i18next';
+import { SettingsPageNavigation, SettingsPageNavigationToggle } from '../SettingsPageNavigation';
 
 interface ShortcutSettingsSectionProps {
   hotkeyInputRef: RefObject<HTMLInputElement | null>;
@@ -274,41 +275,20 @@ export function ShortcutSettingsSection(props: ShortcutSettingsSectionProps): Re
   const editBtn = t('settings.shortcut.common.editBtn', { defaultValue: '修改' });
   const clearBtn = t('settings.shortcut.common.clearBtn', { defaultValue: '清除' });
   const [shortcutPage, setShortcutPage] = useState<ShortcutSettingsPageKey>('window');
-  const shortcutPageRef = useRef(shortcutPage);
-  shortcutPageRef.current = shortcutPage;
-  const shortcutPagesLayoutRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const el = shortcutPagesLayoutRef.current;
-    if (!el) return;
-    const handleWheel = (e: WheelEvent): void => {
-      e.stopPropagation();
-      const target = e.target as HTMLElement | null;
-      const mainEl = target?.closest('.settings-app-page-main') as HTMLElement | null;
-      if (mainEl && mainEl.scrollHeight > mainEl.clientHeight) return;
-
-      const currentIdx = pages.indexOf(shortcutPageRef.current);
-      if (currentIdx < 0) return;
-      const nextIdx = e.deltaY > 0
-        ? Math.min(currentIdx + 1, pages.length - 1)
-        : Math.max(currentIdx - 1, 0);
-
-      if (nextIdx !== currentIdx) {
-        e.preventDefault();
-        setShortcutPage(pages[nextIdx]);
-      }
-    };
-    el.addEventListener('wheel', handleWheel, { passive: false });
-    return () => el.removeEventListener('wheel', handleWheel);
-  }, []);
+  const [pageNavigationExpanded, setPageNavigationExpanded] = useState(false);
 
   return (
     <div className="max-expand-settings-section">
       <div className="max-expand-settings-title settings-app-title-line">
         <span>{t('settings.labels.shortcut', { defaultValue: '快捷键' })}</span>
         <span className="settings-app-title-sub">- {pageLabels[shortcutPage]}</span>
+        <SettingsPageNavigationToggle
+          expanded={pageNavigationExpanded}
+          label={t(pageNavigationExpanded ? 'settings.navigation.collapse' : 'settings.navigation.expand')}
+          onToggle={() => setPageNavigationExpanded((current) => !current)}
+        />
       </div>
-      <div className="settings-app-pages-layout settings-shortcut-pages-layout" ref={shortcutPagesLayoutRef}>
+      <div className="settings-app-pages-layout settings-shortcut-pages-layout">
         <div className="settings-app-page-main">
           {shortcutPage === 'window' && (
             <div className="settings-cards">
@@ -757,19 +737,14 @@ export function ShortcutSettingsSection(props: ShortcutSettingsSectionProps): Re
           )}
         </div>
 
-        <div className="settings-app-page-dots" aria-label={t('settings.shortcut.pagination', { defaultValue: '快捷键设置分页' })}>
-          {pages.map((page) => (
-            <button
-              key={page}
-              className={`settings-app-page-dot ${shortcutPage === page ? 'active' : ''}`}
-              data-label={pageLabels[page]}
-              type="button"
-              onClick={() => setShortcutPage(page)}
-              title={pageLabels[page]}
-              aria-label={pageLabels[page]}
-            />
-          ))}
-        </div>
+        <SettingsPageNavigation
+          activePage={shortcutPage}
+          expanded={pageNavigationExpanded}
+          pages={pages}
+          pageLabels={pageLabels}
+          navigationLabel={t('settings.shortcut.pagination')}
+          onSelectPage={setShortcutPage}
+        />
       </div>
     </div>
   );

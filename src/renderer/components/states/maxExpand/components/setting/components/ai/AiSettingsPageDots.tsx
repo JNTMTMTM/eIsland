@@ -20,22 +20,24 @@
 
 /**
  * @file AiSettingsPageDots.tsx
- * @description 设置页面 - AI 设置分页圆点组件
+ * @description 设置页面 - AI 设置分页导航组件
  * @author 鸡哥
  */
 
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
+import { SettingsPageNavigation } from '../SettingsPageNavigation';
 import type { AiSettingsPageKey } from '../../utils/settingsConfig';
 
 /**
- * AI 设置分页圆点组件属性
+ * AI 设置分页导航组件属性
  */
 export interface AiSettingsPageDotsProps {
   /**
    * 当前激活的 AI 设置分页
    */
   aiSettingsPage: AiSettingsPageKey;
+  expanded: boolean;
   /**
    * 可用的 AI 设置分页列表
    */
@@ -51,15 +53,16 @@ export interface AiSettingsPageDotsProps {
 }
 
 /**
- * 渲染 AI 设置分页切换圆点
+ * 渲染 AI 设置分页标签导航
  * @param aiSettingsPage - 当前激活的 AI 设置分页
  * @param aiSettingsPages - 可用的 AI 设置分页列表
  * @param settingsTabLabels - 分页与展示文案映射
  * @param setAiSettingsPage - 切换 AI 设置分页的方法
- * @returns AI 设置分页圆点区域
+ * @returns AI 设置分页标签导航区域
  */
 export function AiSettingsPageDots({
   aiSettingsPage,
+  expanded,
   aiSettingsPages,
   settingsTabLabels,
   setAiSettingsPage,
@@ -67,18 +70,13 @@ export function AiSettingsPageDots({
   const { t } = useTranslation();
 
   return (
-    <div className="settings-app-page-dots" aria-label={t('settings.ai.pagination', { defaultValue: 'AI 设置分页' })}>
-      {aiSettingsPages.map((page) => (
-        <button
-          key={page}
-          className={`settings-app-page-dot ${aiSettingsPage === page ? 'active' : ''}`}
-          data-label={settingsTabLabels[page]}
-          type="button"
-          onClick={() => setAiSettingsPage(page)}
-          title={settingsTabLabels[page]}
-          aria-label={settingsTabLabels[page]}
-        />
-      ))}
-    </div>
+    <SettingsPageNavigation
+      activePage={aiSettingsPage}
+      expanded={expanded}
+      pages={aiSettingsPages}
+      pageLabels={settingsTabLabels}
+      navigationLabel={t('settings.ai.pagination')}
+      onSelectPage={setAiSettingsPage}
+    />
   );
 }

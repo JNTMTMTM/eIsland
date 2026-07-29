@@ -136,6 +136,7 @@ import { OverviewPreview } from './setting/components/app/preview/OverviewPrevie
 import { WallpaperMarketSection } from './setting/components/pluginMarket/WallpaperMarketSection';
 import { WallpaperContributionSection } from './setting/components/pluginMarket/WallpaperContributionSection';
 import { WallpaperEditSection } from './setting/components/pluginMarket/WallpaperEditSection';
+import { SettingsPageNavigation, SettingsPageNavigationToggle } from './setting/components/SettingsPageNavigation';
 
 import { resolveDistrictLocationByKeyword } from '../../../../api/weather/adcodeApi';
 import { request as requestUserAccountApi } from '../../../../api/user/userAccountApi.client';
@@ -224,11 +225,10 @@ export function SettingsTab(): ReactElement {
   const [userInitialProfilePage, setUserInitialProfilePage] = useState<'info' | 'pro' | 'recharge' | 'orders'>('info');
   const [aboutInitialPage, setAboutInitialPage] = useState<'development' | 'feedback'>('development');
   const [pluginMarketPage, setPluginMarketPage] = useState<PluginMarketPageKey>('wallpaper');
+  const [pluginMarketNavigationExpanded, setPluginMarketNavigationExpanded] = useState(false);
   const [wallpaperMarketRefreshKey, setWallpaperMarketRefreshKey] = useState(0);
   const { aiConfig, setAiConfig, fetchWeatherData, setLogin, setRegister, setNotification } = useIslandStore();
   const settingsRef = useRef<HTMLDivElement>(null);
-  const activeTabRef = useRef(activeTab);
-  activeTabRef.current = activeTab;
   useEffect(() => {
     if (activeTab !== 'user') {
       setUserInitialProfilePage('info');
@@ -268,30 +268,17 @@ export function SettingsTab(): ReactElement {
   const getSettingsLabel = (key: SettingsTabLabelKey): string => {
     return t(`settings.labels.${key}`, { defaultValue: SETTINGS_TAB_LABELS[key] });
   };
-  const appSettingsPageRef = useRef(appSettingsPage);
   const currentAppSettingsPageLabel = getSettingsLabel(appSettingsPage);
-  appSettingsPageRef.current = appSettingsPage;
-  const weatherSettingsPageRef = useRef(weatherSettingsPage);
   const currentWeatherSettingsPageLabel = t(`settings.weatherPages.${weatherSettingsPage}`, { defaultValue: WEATHER_SETTINGS_PAGE_LABELS[weatherSettingsPage] || '定位配置' });
-  weatherSettingsPageRef.current = weatherSettingsPage;
-  const mailSettingsPageRef = useRef(mailSettingsPage);
   const currentMailSettingsPageLabel = t(`settings.mailPages.${mailSettingsPage}`, { defaultValue: MAIL_SETTINGS_PAGE_LABELS[mailSettingsPage] || '账户' });
-  mailSettingsPageRef.current = mailSettingsPage;
-  const musicSettingsPageRef = useRef(musicSettingsPage);
   const currentMusicSettingsPageLabel = t(`settings.musicPages.${musicSettingsPage}`, { defaultValue: MUSIC_SETTINGS_PAGE_LABELS[musicSettingsPage] || '白名单' });
-  musicSettingsPageRef.current = musicSettingsPage;
-  const aiSettingsPageRef = useRef(aiSettingsPage);
   const currentAiSettingsPageLabel = t(`settings.aiPages.${aiSettingsPage}`, { defaultValue: AI_SETTINGS_PAGE_LABELS[aiSettingsPage] || '通用配置' });
-  aiSettingsPageRef.current = aiSettingsPage;
-  const pluginMarketPageRef = useRef(pluginMarketPage);
-  pluginMarketPageRef.current = pluginMarketPage;
-  const currentPluginMarketPageLabel = t(`settings.pluginMarket.pages.${pluginMarketPage}`, {
-    defaultValue: pluginMarketPage === 'wallpaper'
-      ? '壁纸'
-      : pluginMarketPage === 'edit'
-          ? '修改壁纸'
-          : '贡献',
-  });
+  const pluginMarketPageLabels: Record<PluginMarketPageKey, string> = {
+    wallpaper: t('settings.pluginMarket.pages.wallpaper', { defaultValue: '壁纸' }),
+    contribution: t('settings.pluginMarket.pages.contribution', { defaultValue: '贡献' }),
+    edit: t('settings.pluginMarket.pages.edit', { defaultValue: '修改壁纸' }),
+  };
+  const currentPluginMarketPageLabel = pluginMarketPageLabels[pluginMarketPage];
 
   const translatedSettingsTabLabels = useMemo<Record<string, string>>(() => {
     const next: Record<string, string> = {};
@@ -1711,122 +1698,6 @@ export function SettingsTab(): ReactElement {
     return () => { cancelled = true; };
   }, []);
 
-  /** 滚轮处理设置页内部分页（禁用跨设置 Tab 滚轮切换） */
-  useEffect(() => {
-    const el = settingsRef.current;
-    if (!el) return;
-    const handleWheel = (e: WheelEvent): void => {
-      const target = e.target as HTMLElement;
-      if (target.closest('.settings-field-input')) return;
-      if (target.closest('.settings-field-textarea')) return;
-      if (target.closest('.settings-whitelist-input')) return;
-      if (target.closest('.settings-about')) return;
-      if (target.closest('.settings-update')) return;
-      if (target.closest('.settings-index-section')) return;
-      if (target.closest('.settings-index-cards')) return;
-
-      if (target.closest('.settings-hide-process-list')) return;
-      if (target.closest('.settings-hotkey-section')) return;
-
-      if (activeTabRef.current === 'app' && target.closest('.settings-app-pages-layout')) {
-        const mainEl = target.closest('.settings-app-page-main') as HTMLElement | null;
-        if (mainEl && mainEl.scrollHeight > mainEl.clientHeight) return;
-        const pages = APP_SETTINGS_PAGES;
-        const currentPage = appSettingsPageRef.current;
-        const currentIdx = pages.indexOf(currentPage);
-        if (currentIdx >= 0) {
-          const nextIdx = e.deltaY > 0
-            ? Math.min(currentIdx + 1, pages.length - 1)
-            : Math.max(currentIdx - 1, 0);
-          if (nextIdx !== currentIdx) {
-            setAppSettingsPage(pages[nextIdx]);
-          }
-          e.preventDefault();
-          e.stopPropagation();
-          return;
-        }
-      }
-
-      if (activeTabRef.current === 'ai' && target.closest('.settings-app-pages-layout')) {
-        const mainEl = target.closest('.settings-app-page-main') as HTMLElement | null;
-        if (mainEl && mainEl.scrollHeight > mainEl.clientHeight) return;
-        const pages = AI_SETTINGS_PAGES;
-        const currentPage = aiSettingsPageRef.current;
-        const currentIdx = pages.indexOf(currentPage);
-        if (currentIdx >= 0) {
-          const nextIdx = e.deltaY > 0
-            ? Math.min(currentIdx + 1, pages.length - 1)
-            : Math.max(currentIdx - 1, 0);
-          if (nextIdx !== currentIdx) {
-            setAiSettingsPage(pages[nextIdx]);
-          }
-          e.preventDefault();
-          e.stopPropagation();
-          return;
-        }
-      }
-
-      if (activeTabRef.current === 'music' && target.closest('.settings-music-pages-layout')) {
-        const mainEl = target.closest('.settings-app-page-main') as HTMLElement | null;
-        if (mainEl && mainEl.scrollHeight > mainEl.clientHeight) return;
-        const pages = MUSIC_SETTINGS_PAGES;
-        const currentPage = musicSettingsPageRef.current;
-        const currentIdx = pages.indexOf(currentPage);
-        if (currentIdx >= 0) {
-          const nextIdx = e.deltaY > 0
-            ? Math.min(currentIdx + 1, pages.length - 1)
-            : Math.max(currentIdx - 1, 0);
-          if (nextIdx !== currentIdx) {
-            setMusicSettingsPage(pages[nextIdx]);
-          }
-          e.preventDefault();
-          e.stopPropagation();
-          return;
-        }
-      }
-
-      if (activeTabRef.current === 'weather' && target.closest('.settings-weather-pages-layout')) {
-        const mainEl = target.closest('.settings-app-page-main') as HTMLElement | null;
-        if (mainEl && mainEl.scrollHeight > mainEl.clientHeight) return;
-        const pages = WEATHER_SETTINGS_PAGES;
-        const currentPage = weatherSettingsPageRef.current;
-        const currentIdx = pages.indexOf(currentPage);
-        if (currentIdx >= 0) {
-          const nextIdx = e.deltaY > 0
-            ? Math.min(currentIdx + 1, pages.length - 1)
-            : Math.max(currentIdx - 1, 0);
-          if (nextIdx !== currentIdx) {
-            setWeatherSettingsPage(pages[nextIdx]);
-          }
-          e.preventDefault();
-          e.stopPropagation();
-          return;
-        }
-      }
-
-      if (activeTabRef.current === 'pluginMarket' && target.closest('.settings-app-page-dots')) {
-        const pages = PLUGIN_MARKET_PAGES;
-        const currentPage = pluginMarketPageRef.current;
-        const currentIdx = pages.indexOf(currentPage);
-        if (currentIdx >= 0) {
-          const nextIdx = e.deltaY > 0
-            ? Math.min(currentIdx + 1, pages.length - 1)
-            : Math.max(currentIdx - 1, 0);
-          if (nextIdx !== currentIdx) {
-            setPluginMarketPage(pages[nextIdx]);
-          }
-          e.preventDefault();
-          e.stopPropagation();
-          return;
-        }
-      }
-
-      return;
-    };
-    el.addEventListener('wheel', handleWheel, { passive: false });
-    return () => el.removeEventListener('wheel', handleWheel);
-  }, []);
-
   /**
    * 将键盘事件转换为 Electron accelerator 字符串
    * @param e - React 键盘事件
@@ -2821,6 +2692,13 @@ export function SettingsTab(): ReactElement {
                     <img src={SvgIcon.REVERT} alt="" className="settings-app-title-refresh-icon" />
                   </button>
                 )}
+                {hasLoginSession && (
+                  <SettingsPageNavigationToggle
+                    expanded={pluginMarketNavigationExpanded}
+                    label={t(pluginMarketNavigationExpanded ? 'settings.navigation.collapse' : 'settings.navigation.expand')}
+                    onToggle={() => setPluginMarketNavigationExpanded((current) => !current)}
+                  />
+                )}
               </div>
               {hasLoginSession ? (
                 <div className="settings-app-pages-layout" style={{ marginTop: 0 }}>
@@ -2842,29 +2720,14 @@ export function SettingsTab(): ReactElement {
                       />
                     )}
                   </div>
-                  <div className="settings-app-page-dots">
-                    <button
-                      className={`settings-app-page-dot ${pluginMarketPage === 'wallpaper' ? 'active' : ''}`}
-                      data-label={t('settings.pluginMarket.pages.wallpaper', { defaultValue: '壁纸' })}
-                      onClick={() => setPluginMarketPage('wallpaper')}
-                      title={t('settings.pluginMarket.pages.wallpaper', { defaultValue: '壁纸' })}
-                      aria-label={t('settings.pluginMarket.pages.wallpaper', { defaultValue: '壁纸' })}
-                    />
-                    <button
-                      className={`settings-app-page-dot ${pluginMarketPage === 'contribution' ? 'active' : ''}`}
-                      data-label={t('settings.pluginMarket.pages.contribution', { defaultValue: '贡献' })}
-                      onClick={() => setPluginMarketPage('contribution')}
-                      title={t('settings.pluginMarket.pages.contribution', { defaultValue: '贡献' })}
-                      aria-label={t('settings.pluginMarket.pages.contribution', { defaultValue: '贡献' })}
-                    />
-                    <button
-                      className={`settings-app-page-dot ${pluginMarketPage === 'edit' ? 'active' : ''}`}
-                      data-label={t('settings.pluginMarket.pages.edit', { defaultValue: '修改壁纸' })}
-                      onClick={() => setPluginMarketPage('edit')}
-                      title={t('settings.pluginMarket.pages.edit', { defaultValue: '修改壁纸' })}
-                      aria-label={t('settings.pluginMarket.pages.edit', { defaultValue: '修改壁纸' })}
-                    />
-                  </div>
+                  <SettingsPageNavigation
+                    activePage={pluginMarketPage}
+                    expanded={pluginMarketNavigationExpanded}
+                    pages={PLUGIN_MARKET_PAGES}
+                    pageLabels={pluginMarketPageLabels}
+                    navigationLabel={t('settings.pluginMarket.pagination')}
+                    onSelectPage={setPluginMarketPage}
+                  />
                 </div>
               ) : (
                 <div className="settings-user-auth">

@@ -46,6 +46,7 @@ import {
   AboutSettingsPageDots,
   type AboutSettingsPageKey,
 } from './components/AboutSettingsPageDots';
+import { SettingsPageNavigationToggle } from '../SettingsPageNavigation';
 import { SvgIcon } from '../../../../../../../utils/SvgIcon';
 import { ALL_DEPENDENCIES } from '../../../../../../config/dynamicIslandDependencies';
 
@@ -129,6 +130,7 @@ function normalizeFeedbackStatus(value: string | undefined): string {
 export function AboutSettingsSection({ aboutVersion, initialPage = 'development' }: AboutSettingsSectionProps): ReactElement {
   const { t } = useTranslation();
   const [aboutPage, setAboutPage] = useState<AboutSettingsPageKey>(initialPage);
+  const [pageNavigationExpanded, setPageNavigationExpanded] = useState(false);
   const [token, setToken] = useState<string | null>(() => readLocalToken());
   const [feedbackType, setFeedbackType] = useState('bug');
   const [feedbackTitle, setFeedbackTitle] = useState('');
@@ -145,9 +147,6 @@ export function AboutSettingsSection({ aboutVersion, initialPage = 'development'
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [feedbackItems, setFeedbackItems] = useState<UserIssueFeedbackItem[]>([]);
   const [feedbackMessage, setFeedbackMessage] = useState<FeedbackMessage | null>(null);
-  const aboutPageRef = useRef<AboutSettingsPageKey>('development');
-  const aboutLayoutRef = useRef<HTMLDivElement | null>(null);
-  aboutPageRef.current = aboutPage;
 
   useEffect(() => {
     setAboutPage(initialPage);
@@ -450,31 +449,6 @@ export function AboutSettingsSection({ aboutVersion, initialPage = 'development'
       cancelled = true;
     };
   }, [aboutPage, t]);
-
-  useEffect(() => {
-    const el = aboutLayoutRef.current;
-    if (!el) return;
-    const handleWheel = (e: WheelEvent): void => {
-      const target = e.target as HTMLElement | null;
-      const inDotNav = Boolean(target?.closest('.settings-about-page-dots'));
-      if (!inDotNav) {
-        return;
-      }
-      const currentIndex = ABOUT_PAGES.indexOf(aboutPageRef.current);
-      if (currentIndex < 0) return;
-      const nextIndex = e.deltaY > 0
-        ? Math.min(currentIndex + 1, ABOUT_PAGES.length - 1)
-        : Math.max(currentIndex - 1, 0);
-      if (nextIndex !== currentIndex) {
-        e.preventDefault();
-        setAboutPage(ABOUT_PAGES[nextIndex]);
-      }
-    };
-    el.addEventListener('wheel', handleWheel, { passive: false });
-    return () => {
-      el.removeEventListener('wheel', handleWheel);
-    };
-  }, []);
 
   const renderDevelopmentPage = (): ReactElement => (
     <div className="settings-about-page-panel">
@@ -926,14 +900,20 @@ export function AboutSettingsSection({ aboutVersion, initialPage = 'development'
       <div className="max-expand-settings-title settings-app-title-line">
         <span>{t('settings.labels.about', { defaultValue: '关于软件' })}</span>
         <span className="settings-app-title-sub">- {pageLabels[aboutPage]}</span>
+        <SettingsPageNavigationToggle
+          expanded={pageNavigationExpanded}
+          label={t(pageNavigationExpanded ? 'settings.navigation.collapse' : 'settings.navigation.expand')}
+          onToggle={() => setPageNavigationExpanded((current) => !current)}
+        />
       </div>
-      <div className="settings-about-layout" ref={aboutLayoutRef}>
+      <div className="settings-about-layout">
         <div className="settings-about-main">
           {aboutPage === 'development' && renderDevelopmentPage()}
           {aboutPage === 'feedback' && renderFeedbackPage()}
         </div>
         <AboutSettingsPageDots
           aboutPage={aboutPage}
+          expanded={pageNavigationExpanded}
           aboutPages={ABOUT_PAGES}
           pageLabels={pageLabels}
           setAboutPage={setAboutPage}

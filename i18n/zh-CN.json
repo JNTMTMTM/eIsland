@@ -1922,6 +1922,10 @@
     }
   },
   "settings": {
+    "navigation": {
+      "expand": "展开页面导航",
+      "collapse": "收起页面导航"
+    },
     "sidebar": {
       "title": "设置"
     },
@@ -2829,6 +2833,7 @@
       "guideResetError": "设置失败，请稍后重试"
     },
     "pluginMarket": {
+      "pagination": "壁纸市场分页",
       "search": {
         "wallpaperTitle": "壁纸市场",
         "wallpaperHint": "浏览并应用社区分享的壁纸资源，支持图片和视频壁纸",
@@ -3190,6 +3195,7 @@
       "authorName": "鸡哥"
     },
     "user": {
+      "pagination": "用户中心分页",
       "auth": {
         "login": "登录",
         "register": "注册",
