@@ -1166,7 +1166,7 @@
 .settings-app-pages-layout {
   display: flex;
   align-items: stretch;
-  gap: 12px;
+  gap: 4px;
   margin-top: 8px;
   min-height: 0;
   flex: 1;
@@ -1600,7 +1600,7 @@
 .settings-about-layout {
   display: flex;
   align-items: stretch;
-  gap: 12px;
+  gap: 4px;
   position: relative;
   min-height: 0;
   flex: 1;
@@ -4206,7 +4206,7 @@
   display: flex;
   flex-direction: row;
   align-items: stretch;
-  gap: 12px;
+  gap: 4px;
   position: relative;
   min-height: 0;
   flex: 1;
