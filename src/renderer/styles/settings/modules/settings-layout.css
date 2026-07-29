@@ -4204,6 +4204,7 @@
 
 .settings-user-profile-paged {
   display: flex;
+  flex-direction: row;
   align-items: stretch;
   gap: 12px;
   position: relative;
@@ -4221,7 +4222,7 @@
   flex-direction: column;
   gap: 14px;
   overflow-y: auto;
-  padding-right: 30px;
+  padding-right: 4px;
 }
 
 .settings-user-profile-main::-webkit-scrollbar {
