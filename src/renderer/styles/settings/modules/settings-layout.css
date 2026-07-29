@@ -5422,7 +5422,8 @@
 }
 
 .settings-user-image-translation-item {
-  gap: 10px;
+  padding: 8px 14px 12px;
+  gap: 7px;
 }
 
 .settings-user-image-translation-item-head {
