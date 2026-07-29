@@ -89,6 +89,12 @@ interface UserSettingsSectionProps {
 
 const GENDER_VALUES: UserAccountGender[] = ['male', 'female', 'custom', 'undisclosed'];
 const USER_PROFILE_PAGES: UserProfilePage[] = ['info', 'edit', 'password', 'pro', 'recharge', 'orders', 'account', 'oauth', 'image-translation'];
+const IMAGE_TRANSLATION_PREVIEW_MIN_SCALE = 0.5;
+const IMAGE_TRANSLATION_PREVIEW_MAX_SCALE = 4;
+
+const clampImageTranslationPreviewScale = (value: number): number => {
+  return Math.min(IMAGE_TRANSLATION_PREVIEW_MAX_SCALE, Math.max(IMAGE_TRANSLATION_PREVIEW_MIN_SCALE, value));
+};
 const IMAGE_TRANSLATION_HISTORY_PAGE_SIZE = 5;
 
 const getGenderIcon = (gender: UserAccountGender | null | undefined): string => {
@@ -219,6 +225,7 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
   const [loadingImageTranslationHistory, setLoadingImageTranslationHistory] = useState(false);
   const [imageTranslationHistoryError, setImageTranslationHistoryError] = useState('');
   const [imageTranslationPreview, setImageTranslationPreview] = useState<ImageTranslationPreview | null>(null);
+  const [imageTranslationPreviewScale, setImageTranslationPreviewScale] = useState(1);
 
   /** 用户中心登录天数热力图：记录并展示当前用户每个自然日是否登录 */
   const [loginDays, setLoginDays] = useState<Set<string>>(() => readLoginDays(profile?.username));
@@ -246,10 +253,30 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
   });
 
   const avatarInputRef = useRef<HTMLInputElement | null>(null);
+  const imageTranslationPreviewRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
     setUserProfilePage(initialProfilePage);
   }, [initialProfilePage]);
+
+  useEffect(() => {
+    setImageTranslationPreviewScale(1);
+    if (!imageTranslationPreview) return;
+    const previewElement = imageTranslationPreviewRef.current;
+    if (!previewElement) return;
+
+    const handleWheel = (event: WheelEvent): void => {
+      event.preventDefault();
+      event.stopPropagation();
+      const zoomFactor = Math.exp(-event.deltaY * 0.0015);
+      setImageTranslationPreviewScale((current) => {
+        return clampImageTranslationPreviewScale(Number((current * zoomFactor).toFixed(3)));
+      });
+    };
+
+    previewElement.addEventListener('wheel', handleWheel, { passive: false });
+    return () => previewElement.removeEventListener('wheel', handleWheel);
+  }, [imageTranslationPreview]);
 
   const resetToLoggedOut = useCallback((): void => {
     clearLocalAccount();
@@ -1828,6 +1855,7 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
               <article key={task.taskId} className="settings-user-card settings-user-image-translation-item">
                 {imageTranslationPreview?.taskId === task.taskId ? (
                   <button
+                    ref={imageTranslationPreviewRef}
                     type="button"
                     className="settings-user-image-translation-preview"
                     aria-label={t('settings.user.imageTranslation.previewLabel', { defaultValue: '图片预览' })}
@@ -1837,6 +1865,7 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
                       src={imageTranslationPreview.url}
                       alt={imageTranslationPreview.alt}
                       draggable={false}
+                      style={{ transform: `scale(${imageTranslationPreviewScale})` }}
                     />
                   </button>
                 ) : (

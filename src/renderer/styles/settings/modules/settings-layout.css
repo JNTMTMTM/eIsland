@@ -5582,6 +5582,8 @@ button.settings-user-image-translation-image-wrap:hover {
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  overscroll-behavior: contain;
+  touch-action: none;
   border: 0;
   background: transparent;
   cursor: zoom-out;
@@ -5592,6 +5594,10 @@ button.settings-user-image-translation-image-wrap:hover {
   height: 100%;
   display: block;
   object-fit: contain;
+  transform-origin: center;
+  will-change: transform;
+  pointer-events: none;
+  user-select: none;
 }
 
 @media (max-width: 760px) {
