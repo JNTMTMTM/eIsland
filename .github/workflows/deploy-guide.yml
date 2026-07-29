@@ -12,6 +12,9 @@ concurrency:
   group: deploy-guide
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
