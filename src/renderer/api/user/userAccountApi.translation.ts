@@ -50,6 +50,16 @@ export interface ImageTranslationHistoryPage {
   totalPages: number;
 }
 
+export function deleteImageTranslationHistory(
+  token: string,
+  taskId: string,
+): Promise<UserAccountResult<void>> {
+  return request<void>(`/v1/toolbox/image-translations/${encodeURIComponent(taskId)}`, {
+    method: 'DELETE',
+    auth: token,
+  });
+}
+
 export function fetchImageTranslationHistory(
   token: string,
   page = 1,

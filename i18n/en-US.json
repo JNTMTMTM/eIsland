@@ -3315,7 +3315,9 @@
           "downloadStarted": "Download started",
           "downloadFailed": "Download failed",
           "remove": "Remove Record",
-          "removePending": "Coming soon"
+          "removing": "Removing…",
+          "removeSuccess": "Images and translation record removed",
+          "removeFailed": "Failed to remove images"
         },
         "pagination": {
           "label": "Image translation history pagination",

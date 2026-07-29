@@ -29,6 +29,7 @@ import type { ChangeEvent, PointerEvent as ReactPointerEvent, ReactElement } fro
 import { useTranslation } from 'react-i18next';
 import {
   closeUserPaymentOrder,
+  deleteImageTranslationHistory,
   fetchUserPaymentOrders,
   fetchProMonthPricing,
   fetchAgentBalance,
@@ -249,6 +250,7 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
   const [imageTranslationPreviewOffset, setImageTranslationPreviewOffset] = useState({ x: 0, y: 0 });
   const [imageTranslationPreviewDragging, setImageTranslationPreviewDragging] = useState(false);
   const [imageTranslationDownloadingKey, setImageTranslationDownloadingKey] = useState('');
+  const [imageTranslationRemovingTaskId, setImageTranslationRemovingTaskId] = useState('');
   const [imageTranslationActionFeedback, setImageTranslationActionFeedback] = useState<{ taskId: string; feedback: Feedback } | null>(null);
 
   /** 用户中心登录天数热力图：记录并展示当前用户每个自然日是否登录 */
@@ -707,6 +709,53 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
       setImageTranslationDownloadingKey('');
     }
   }, [imageTranslationDownloadingKey, t]);
+
+  const handleRemoveImageTranslation = useCallback(async (
+    task: ImageTranslationHistoryItem,
+  ): Promise<void> => {
+    if (!token || imageTranslationRemovingTaskId || imageTranslationDownloadingKey) return;
+    setImageTranslationRemovingTaskId(task.taskId);
+    setImageTranslationActionFeedback(null);
+    const result = await deleteImageTranslationHistory(token, task.taskId);
+    setImageTranslationRemovingTaskId('');
+    if (!result.ok) {
+      if (result.code === 401 || result.code === 4011) {
+        resetToLoggedOut();
+        return;
+      }
+      setImageTranslationActionFeedback({
+        taskId: task.taskId,
+        feedback: {
+          type: 'error',
+          text: result.message || t('settings.user.imageTranslation.actions.removeFailed', { defaultValue: '抹掉图片失败' }),
+        },
+      });
+      return;
+    }
+
+    setImageTranslationPreview((current) => current?.taskId === task.taskId ? null : current);
+    setImageTranslationActionFeedback({
+      taskId: task.taskId,
+      feedback: {
+        type: 'success',
+        text: t('settings.user.imageTranslation.actions.removeSuccess', { defaultValue: '图片及翻译记录已抹掉' }),
+      },
+    });
+    if (imageTranslationHistory.length === 1 && imageTranslationHistoryPage > 1) {
+      setImageTranslationHistoryPage((current) => Math.max(1, current - 1));
+      return;
+    }
+    await loadImageTranslationHistory(imageTranslationHistoryPage);
+  }, [
+    imageTranslationDownloadingKey,
+    imageTranslationHistory.length,
+    imageTranslationHistoryPage,
+    imageTranslationRemovingTaskId,
+    loadImageTranslationHistory,
+    resetToLoggedOut,
+    t,
+    token,
+  ]);
 
   useEffect(() => {
     if (userProfilePage !== 'orders' || !token) {
@@ -1966,6 +2015,7 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
         <div className="settings-user-image-translation-list">
           {imageTranslationHistory.map((task) => {
             const normalizedStatus = String(task.status || '').toUpperCase();
+            const canRemove = normalizedStatus === 'SUCCEEDED' || normalizedStatus === 'FAILED';
             const statusClass = normalizedStatus.toLowerCase().replace(/[^a-z0-9-]/g, '') || 'unknown';
             const sourceLanguage = task.sourceLanguage || 'auto';
             const targetLanguage = task.targetLanguage || 'zh';
@@ -2098,7 +2148,7 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
                   <button
                     type="button"
                     className="settings-hotkey-btn"
-                    disabled={Boolean(imageTranslationDownloadingKey)}
+                    disabled={Boolean(imageTranslationDownloadingKey) || Boolean(imageTranslationRemovingTaskId)}
                     onClick={() => void handleDownloadImageTranslationImage(task, 'source', task.sourceUrl)}
                   >
                     {imageTranslationDownloadingKey === `${task.taskId}:source`
@@ -2108,7 +2158,7 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
                   <button
                     type="button"
                     className="settings-hotkey-btn"
-                    disabled={!resultUrl || Boolean(imageTranslationDownloadingKey)}
+                    disabled={!resultUrl || Boolean(imageTranslationDownloadingKey) || Boolean(imageTranslationRemovingTaskId)}
                     onClick={() => void handleDownloadImageTranslationImage(task, 'result', resultUrl)}
                   >
                     {imageTranslationDownloadingKey === `${task.taskId}:result`
@@ -2118,10 +2168,12 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
                   <button
                     type="button"
                     className="settings-hotkey-btn settings-user-image-translation-remove"
-                    disabled
-                    title={t('settings.user.imageTranslation.actions.removePending', { defaultValue: '暂未开放' })}
+                    disabled={!canRemove || Boolean(imageTranslationRemovingTaskId) || Boolean(imageTranslationDownloadingKey)}
+                    onClick={() => void handleRemoveImageTranslation(task)}
                   >
-                    {t('settings.user.imageTranslation.actions.remove', { defaultValue: '抹掉此记录' })}
+                    {imageTranslationRemovingTaskId === task.taskId
+                      ? t('settings.user.imageTranslation.actions.removing', { defaultValue: '抹掉中…' })
+                      : t('settings.user.imageTranslation.actions.remove', { defaultValue: '抹掉此记录' })}
                   </button>
                 </div>
 

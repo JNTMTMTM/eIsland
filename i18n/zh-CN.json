@@ -3315,7 +3315,9 @@
           "downloadStarted": "已开始下载",
           "downloadFailed": "下载失败",
           "remove": "抹掉此记录",
-          "removePending": "暂未开放"
+          "removing": "抹掉中…",
+          "removeSuccess": "图片及翻译记录已抹掉",
+          "removeFailed": "抹掉图片失败"
         },
         "pagination": {
           "label": "图片翻译历史分页",

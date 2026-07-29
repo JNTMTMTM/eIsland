@@ -5536,6 +5536,18 @@
   cursor: not-allowed;
 }
 
+.settings-user-image-translation-actions .settings-user-image-translation-remove {
+  color: rgba(248, 113, 113, 0.92);
+  border-color: rgba(248, 113, 113, 0.28);
+  background: rgba(248, 113, 113, 0.1);
+}
+
+.settings-user-image-translation-actions .settings-user-image-translation-remove:not(:disabled):hover {
+  color: rgba(254, 202, 202, 1);
+  border-color: rgba(248, 113, 113, 0.44);
+  background: rgba(248, 113, 113, 0.18);
+}
+
 .settings-user-image-translation-actions .settings-user-image-translation-remove:disabled,
 .settings-user-image-translation-actions .settings-user-image-translation-remove:disabled:hover {
   color: rgba(248, 113, 113, 0.6);
