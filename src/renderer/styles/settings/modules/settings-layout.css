@@ -676,18 +676,21 @@
   margin-bottom: 8px;
 }
 
-.max-expand-settings-section.settings-update .settings-cards {
+.max-expand-settings-section.settings-update .settings-cards,
+.max-expand-settings-section.settings-network .settings-cards {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
   padding-right: 4px;
 }
 
-.max-expand-settings-section.settings-update .settings-cards::-webkit-scrollbar {
+.max-expand-settings-section.settings-update .settings-cards::-webkit-scrollbar,
+.max-expand-settings-section.settings-network .settings-cards::-webkit-scrollbar {
   width: 4px;
 }
 
-.max-expand-settings-section.settings-update .settings-cards::-webkit-scrollbar-thumb {
+.max-expand-settings-section.settings-update .settings-cards::-webkit-scrollbar-thumb,
+.max-expand-settings-section.settings-network .settings-cards::-webkit-scrollbar-thumb {
   background: rgba(var(--color-text-rgb), 0.12);
   border-radius: 2px;
 }
