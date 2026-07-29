@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ChangeEvent, PointerEvent as ReactPointerEvent, ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -281,6 +281,18 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
   const avatarInputRef = useRef<HTMLInputElement | null>(null);
   const imageTranslationPreviewRef = useRef<HTMLButtonElement | null>(null);
   const imageTranslationPreviewDragRef = useRef<ImageTranslationPreviewDrag | null>(null);
+  const imageTranslationPreviewScaleRef = useRef(imageTranslationPreviewScale);
+
+  const getImageTranslationStatusLabel = useMemo(() => {
+    return (status: string): string => {
+      const normalized = String(status || '').toUpperCase();
+      if (normalized === 'SUCCEEDED') return t('settings.user.imageTranslation.status.succeeded', { defaultValue: '已完成' });
+      if (normalized === 'FAILED') return t('settings.user.imageTranslation.status.failed', { defaultValue: '失败' });
+      if (normalized === 'PROCESSING') return t('settings.user.imageTranslation.status.processing', { defaultValue: '翻译中' });
+      if (normalized === 'QUEUED') return t('settings.user.imageTranslation.status.queued', { defaultValue: '排队中' });
+      return status || t('settings.user.imageTranslation.status.unknown', { defaultValue: '未知' });
+    };
+  }, [t]);
 
   useEffect(() => {
     setUserProfilePage(initialProfilePage);
@@ -294,6 +306,10 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
   }, [imageTranslationPreview]);
 
   useEffect(() => {
+    imageTranslationPreviewScaleRef.current = imageTranslationPreviewScale;
+  }, [imageTranslationPreviewScale]);
+
+  useEffect(() => {
     if (!imageTranslationPreview) return;
     const previewElement = imageTranslationPreviewRef.current;
     if (!previewElement) return;
@@ -303,7 +319,7 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
       event.stopPropagation();
       const zoomFactor = Math.exp(-event.deltaY * 0.0015);
       const nextScale = clampImageTranslationPreviewScale(
-        Number((imageTranslationPreviewScale * zoomFactor).toFixed(3)),
+        Number((imageTranslationPreviewScaleRef.current * zoomFactor).toFixed(3)),
       );
       const maxX = Math.max(0, previewElement.clientWidth * (nextScale - 1) / 2);
       const maxY = Math.max(0, previewElement.clientHeight * (nextScale - 1) / 2);
@@ -316,7 +332,7 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
 
     previewElement.addEventListener('wheel', handleWheel, { passive: false });
     return () => previewElement.removeEventListener('wheel', handleWheel);
-  }, [imageTranslationPreview, imageTranslationPreviewScale]);
+  }, [imageTranslationPreview]);
 
   const handleImageTranslationPreviewPointerDown = useCallback((event: ReactPointerEvent<HTMLButtonElement>): void => {
     if (event.button !== 0) return;
@@ -367,6 +383,17 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
     if (imageTranslationPreviewDragRef.current?.pointerId !== event.pointerId) return;
     imageTranslationPreviewDragRef.current = null;
     setImageTranslationPreviewDragging(false);
+  }, []);
+
+  const handleImageTranslationPreviewClick = useCallback((event: ReactPointerEvent<HTMLButtonElement>): void => {
+    const drag = imageTranslationPreviewDragRef.current;
+    imageTranslationPreviewDragRef.current = null;
+    if (drag?.moved) {
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+    setImageTranslationPreview(null);
   }, []);
 
   const resetToLoggedOut = useCallback((): void => {
@@ -1971,15 +1998,6 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
       </div>
     );
 
-    const getImageTranslationStatusLabel = (status: string): string => {
-      const normalized = String(status || '').toUpperCase();
-      if (normalized === 'SUCCEEDED') return t('settings.user.imageTranslation.status.succeeded', { defaultValue: '已完成' });
-      if (normalized === 'FAILED') return t('settings.user.imageTranslation.status.failed', { defaultValue: '失败' });
-      if (normalized === 'PROCESSING') return t('settings.user.imageTranslation.status.processing', { defaultValue: '翻译中' });
-      if (normalized === 'QUEUED') return t('settings.user.imageTranslation.status.queued', { defaultValue: '排队中' });
-      return status || t('settings.user.imageTranslation.status.unknown', { defaultValue: '未知' });
-    };
-
     const renderImageTranslationPage = (): ReactElement => (
       <div className="settings-user-page-panel settings-user-image-translation-panel">
         <div className="settings-user-card settings-user-image-translation-head-card">
@@ -2034,16 +2052,7 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
                     onPointerMove={handleImageTranslationPreviewPointerMove}
                     onPointerUp={handleImageTranslationPreviewPointerUp}
                     onPointerCancel={handleImageTranslationPreviewPointerCancel}
-                    onClick={(event) => {
-                      const drag = imageTranslationPreviewDragRef.current;
-                      imageTranslationPreviewDragRef.current = null;
-                      if (drag?.moved) {
-                        event.preventDefault();
-                        event.stopPropagation();
-                        return;
-                      }
-                      setImageTranslationPreview(null);
-                    }}
+                    onClick={handleImageTranslationPreviewClick}
                   >
                     <img
                       src={imageTranslationPreview.url}
@@ -2056,134 +2065,134 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
                   </button>
                 ) : (
                   <>
-                <div className="settings-user-image-translation-item-head">
-                  <div className="settings-user-image-translation-meta">
-                    <span className="settings-user-image-translation-language-route">
-                      <span className="settings-user-image-translation-language">
-                        {sourceLanguageIcon.src ? (
-                          <img
-                            className={sourceLanguageIcon.isAuto ? 'is-auto' : ''}
-                            src={sourceLanguageIcon.src}
-                            alt=""
-                            aria-hidden="true"
-                            draggable={false}
-                          />
-                        ) : null}
-                        <span>{sourceLanguage}</span>
+                    <div className="settings-user-image-translation-item-head">
+                      <div className="settings-user-image-translation-meta">
+                        <span className="settings-user-image-translation-language-route">
+                          <span className="settings-user-image-translation-language">
+                            {sourceLanguageIcon.src ? (
+                              <img
+                                className={sourceLanguageIcon.isAuto ? 'is-auto' : ''}
+                                src={sourceLanguageIcon.src}
+                                alt=""
+                                aria-hidden="true"
+                                draggable={false}
+                              />
+                            ) : null}
+                            <span>{sourceLanguage}</span>
+                          </span>
+                          <span>{t('settings.user.imageTranslation.languageConnector', { defaultValue: '到' })}</span>
+                          <span className="settings-user-image-translation-language">
+                            {targetLanguageIcon.src ? (
+                              <img
+                                className={targetLanguageIcon.isAuto ? 'is-auto' : ''}
+                                src={targetLanguageIcon.src}
+                                alt=""
+                                aria-hidden="true"
+                                draggable={false}
+                              />
+                            ) : null}
+                            <span>{targetLanguage}</span>
+                          </span>
+                        </span>
+                        <span>{formatDateTime(task.createdAt)}</span>
+                      </div>
+                      <span className={`settings-user-image-translation-status settings-user-image-translation-status--${statusClass}`}>
+                        {getImageTranslationStatusLabel(task.status)}
                       </span>
-                      <span>{t('settings.user.imageTranslation.languageConnector', { defaultValue: '到' })}</span>
-                      <span className="settings-user-image-translation-language">
-                        {targetLanguageIcon.src ? (
-                          <img
-                            className={targetLanguageIcon.isAuto ? 'is-auto' : ''}
-                            src={targetLanguageIcon.src}
-                            alt=""
-                            aria-hidden="true"
-                            draggable={false}
-                          />
-                        ) : null}
-                        <span>{targetLanguage}</span>
-                      </span>
-                    </span>
-                    <span>{formatDateTime(task.createdAt)}</span>
-                  </div>
-                  <span className={`settings-user-image-translation-status settings-user-image-translation-status--${statusClass}`}>
-                    {getImageTranslationStatusLabel(task.status)}
-                  </span>
-                </div>
+                    </div>
 
-                <div className="settings-user-image-translation-images">
-                  <figure className="settings-user-image-translation-image-card">
-                    <figcaption>{t('settings.user.imageTranslation.sourceImage', { defaultValue: '翻译前' })}</figcaption>
-                    <button
-                      type="button"
-                      className="settings-user-image-translation-image-wrap"
-                      onClick={() => setImageTranslationPreview({
-                        taskId: task.taskId,
-                        url: task.sourceUrl,
-                        alt: t('settings.user.imageTranslation.sourceImageAlt', { defaultValue: '翻译前图片' }),
-                      })}
-                    >
-                      <img
-                        src={task.sourceUrl}
-                        alt={t('settings.user.imageTranslation.sourceImageAlt', { defaultValue: '翻译前图片' })}
-                        loading="lazy"
-                        draggable={false}
-                      />
-                    </button>
-                  </figure>
-
-                  <figure className="settings-user-image-translation-image-card">
-                    <figcaption>{t('settings.user.imageTranslation.resultImage', { defaultValue: '翻译后' })}</figcaption>
-                      {resultUrl ? (
+                    <div className="settings-user-image-translation-images">
+                      <figure className="settings-user-image-translation-image-card">
+                        <figcaption>{t('settings.user.imageTranslation.sourceImage', { defaultValue: '翻译前' })}</figcaption>
                         <button
                           type="button"
                           className="settings-user-image-translation-image-wrap"
                           onClick={() => setImageTranslationPreview({
                             taskId: task.taskId,
-                            url: resultUrl,
-                            alt: t('settings.user.imageTranslation.resultImageAlt', { defaultValue: '翻译后图片' }),
+                            url: task.sourceUrl,
+                            alt: t('settings.user.imageTranslation.sourceImageAlt', { defaultValue: '翻译前图片' }),
                           })}
                         >
                           <img
-                            src={resultUrl}
-                            alt={t('settings.user.imageTranslation.resultImageAlt', { defaultValue: '翻译后图片' })}
+                            src={task.sourceUrl}
+                            alt={t('settings.user.imageTranslation.sourceImageAlt', { defaultValue: '翻译前图片' })}
                             loading="lazy"
                             draggable={false}
                           />
                         </button>
-                      ) : (
-                        <div className="settings-user-image-translation-image-wrap">
-                          <span className="settings-user-image-translation-image-placeholder">
-                            {normalizedStatus === 'FAILED'
-                              ? t('settings.user.imageTranslation.resultUnavailable', { defaultValue: '无可用结果图片' })
-                              : t('settings.user.imageTranslation.resultPending', { defaultValue: '等待翻译结果' })}
-                          </span>
-                        </div>
-                      )}
-                  </figure>
-                </div>
+                      </figure>
 
-                <div className="settings-user-image-translation-actions">
-                  <button
-                    type="button"
-                    className="settings-hotkey-btn"
-                    disabled={Boolean(imageTranslationDownloadingKey) || Boolean(imageTranslationRemovingTaskId)}
-                    onClick={() => void handleDownloadImageTranslationImage(task, 'source', task.sourceUrl)}
-                  >
-                    {imageTranslationDownloadingKey === `${task.taskId}:source`
-                      ? t('settings.user.imageTranslation.actions.downloading', { defaultValue: '下载中…' })
-                      : t('settings.user.imageTranslation.actions.downloadSource', { defaultValue: '下载原始截图' })}
-                  </button>
-                  <button
-                    type="button"
-                    className="settings-hotkey-btn"
-                    disabled={!resultUrl || Boolean(imageTranslationDownloadingKey) || Boolean(imageTranslationRemovingTaskId)}
-                    onClick={() => void handleDownloadImageTranslationImage(task, 'result', resultUrl)}
-                  >
-                    {imageTranslationDownloadingKey === `${task.taskId}:result`
-                      ? t('settings.user.imageTranslation.actions.downloading', { defaultValue: '下载中…' })
-                      : t('settings.user.imageTranslation.actions.downloadResult', { defaultValue: '下载翻译截图' })}
-                  </button>
-                  <button
-                    type="button"
-                    className="settings-hotkey-btn settings-user-image-translation-remove"
-                    disabled={!canRemove || Boolean(imageTranslationRemovingTaskId) || Boolean(imageTranslationDownloadingKey)}
-                    onClick={() => void handleRemoveImageTranslation(task)}
-                  >
-                    {imageTranslationRemovingTaskId === task.taskId
-                      ? t('settings.user.imageTranslation.actions.removing', { defaultValue: '抹掉中…' })
-                      : t('settings.user.imageTranslation.actions.remove', { defaultValue: '抹掉此记录' })}
-                  </button>
-                </div>
+                      <figure className="settings-user-image-translation-image-card">
+                        <figcaption>{t('settings.user.imageTranslation.resultImage', { defaultValue: '翻译后' })}</figcaption>
+                        {resultUrl ? (
+                          <button
+                            type="button"
+                            className="settings-user-image-translation-image-wrap"
+                            onClick={() => setImageTranslationPreview({
+                              taskId: task.taskId,
+                              url: resultUrl,
+                              alt: t('settings.user.imageTranslation.resultImageAlt', { defaultValue: '翻译后图片' }),
+                            })}
+                          >
+                            <img
+                              src={resultUrl}
+                              alt={t('settings.user.imageTranslation.resultImageAlt', { defaultValue: '翻译后图片' })}
+                              loading="lazy"
+                              draggable={false}
+                            />
+                          </button>
+                        ) : (
+                          <div className="settings-user-image-translation-image-wrap">
+                            <span className="settings-user-image-translation-image-placeholder">
+                              {normalizedStatus === 'FAILED'
+                                ? t('settings.user.imageTranslation.resultUnavailable', { defaultValue: '无可用结果图片' })
+                                : t('settings.user.imageTranslation.resultPending', { defaultValue: '等待翻译结果' })}
+                            </span>
+                          </div>
+                        )}
+                      </figure>
+                    </div>
 
-                {imageTranslationActionFeedback?.taskId === task.taskId
-                  ? renderFeedback(imageTranslationActionFeedback.feedback)
-                  : null}
+                    <div className="settings-user-image-translation-actions">
+                      <button
+                        type="button"
+                        className="settings-hotkey-btn"
+                        disabled={Boolean(imageTranslationDownloadingKey) || Boolean(imageTranslationRemovingTaskId)}
+                        onClick={() => void handleDownloadImageTranslationImage(task, 'source', task.sourceUrl)}
+                      >
+                        {imageTranslationDownloadingKey === `${task.taskId}:source`
+                          ? t('settings.user.imageTranslation.actions.downloading', { defaultValue: '下载中…' })
+                          : t('settings.user.imageTranslation.actions.downloadSource', { defaultValue: '下载原始截图' })}
+                      </button>
+                      <button
+                        type="button"
+                        className="settings-hotkey-btn"
+                        disabled={!resultUrl || Boolean(imageTranslationDownloadingKey) || Boolean(imageTranslationRemovingTaskId)}
+                        onClick={() => void handleDownloadImageTranslationImage(task, 'result', resultUrl)}
+                      >
+                        {imageTranslationDownloadingKey === `${task.taskId}:result`
+                          ? t('settings.user.imageTranslation.actions.downloading', { defaultValue: '下载中…' })
+                          : t('settings.user.imageTranslation.actions.downloadResult', { defaultValue: '下载翻译截图' })}
+                      </button>
+                      <button
+                        type="button"
+                        className="settings-hotkey-btn settings-user-image-translation-remove"
+                        disabled={!canRemove || Boolean(imageTranslationRemovingTaskId) || Boolean(imageTranslationDownloadingKey)}
+                        onClick={() => void handleRemoveImageTranslation(task)}
+                      >
+                        {imageTranslationRemovingTaskId === task.taskId
+                          ? t('settings.user.imageTranslation.actions.removing', { defaultValue: '抹掉中…' })
+                          : t('settings.user.imageTranslation.actions.remove', { defaultValue: '抹掉此记录' })}
+                      </button>
+                    </div>
 
-                {task.errorMessage ? (
-                  <div className="settings-user-image-translation-error">{task.errorMessage}</div>
-                ) : null}
+                    {imageTranslationActionFeedback?.taskId === task.taskId
+                      ? renderFeedback(imageTranslationActionFeedback.feedback)
+                      : null}
+
+                    {task.errorMessage ? (
+                      <div className="settings-user-image-translation-error">{task.errorMessage}</div>
+                    ) : null}
                   </>
                 )}
               </article>
