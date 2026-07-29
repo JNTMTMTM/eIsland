@@ -25,7 +25,7 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { ChangeEvent, ReactElement } from 'react';
+import type { ChangeEvent, PointerEvent as ReactPointerEvent, ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   closeUserPaymentOrder,
@@ -79,6 +79,15 @@ interface ImageTranslationPreview {
   taskId: string;
   url: string;
   alt: string;
+}
+
+interface ImageTranslationPreviewDrag {
+  pointerId: number;
+  startX: number;
+  startY: number;
+  originX: number;
+  originY: number;
+  moved: boolean;
 }
 
 type ProfileFeedbackScope = 'profile' | 'password' | 'account';
@@ -226,6 +235,8 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
   const [imageTranslationHistoryError, setImageTranslationHistoryError] = useState('');
   const [imageTranslationPreview, setImageTranslationPreview] = useState<ImageTranslationPreview | null>(null);
   const [imageTranslationPreviewScale, setImageTranslationPreviewScale] = useState(1);
+  const [imageTranslationPreviewOffset, setImageTranslationPreviewOffset] = useState({ x: 0, y: 0 });
+  const [imageTranslationPreviewDragging, setImageTranslationPreviewDragging] = useState(false);
 
   /** 用户中心登录天数热力图：记录并展示当前用户每个自然日是否登录 */
   const [loginDays, setLoginDays] = useState<Set<string>>(() => readLoginDays(profile?.username));
@@ -254,6 +265,7 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
 
   const avatarInputRef = useRef<HTMLInputElement | null>(null);
   const imageTranslationPreviewRef = useRef<HTMLButtonElement | null>(null);
+  const imageTranslationPreviewDragRef = useRef<ImageTranslationPreviewDrag | null>(null);
 
   useEffect(() => {
     setUserProfilePage(initialProfilePage);
@@ -261,6 +273,12 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
 
   useEffect(() => {
     setImageTranslationPreviewScale(1);
+    setImageTranslationPreviewOffset({ x: 0, y: 0 });
+    setImageTranslationPreviewDragging(false);
+    imageTranslationPreviewDragRef.current = null;
+  }, [imageTranslationPreview]);
+
+  useEffect(() => {
     if (!imageTranslationPreview) return;
     const previewElement = imageTranslationPreviewRef.current;
     if (!previewElement) return;
@@ -269,14 +287,72 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
       event.preventDefault();
       event.stopPropagation();
       const zoomFactor = Math.exp(-event.deltaY * 0.0015);
-      setImageTranslationPreviewScale((current) => {
-        return clampImageTranslationPreviewScale(Number((current * zoomFactor).toFixed(3)));
-      });
+      const nextScale = clampImageTranslationPreviewScale(
+        Number((imageTranslationPreviewScale * zoomFactor).toFixed(3)),
+      );
+      const maxX = Math.max(0, previewElement.clientWidth * (nextScale - 1) / 2);
+      const maxY = Math.max(0, previewElement.clientHeight * (nextScale - 1) / 2);
+      setImageTranslationPreviewScale(nextScale);
+      setImageTranslationPreviewOffset((current) => ({
+        x: Math.min(maxX, Math.max(-maxX, current.x)),
+        y: Math.min(maxY, Math.max(-maxY, current.y)),
+      }));
     };
 
     previewElement.addEventListener('wheel', handleWheel, { passive: false });
     return () => previewElement.removeEventListener('wheel', handleWheel);
-  }, [imageTranslationPreview]);
+  }, [imageTranslationPreview, imageTranslationPreviewScale]);
+
+  const handleImageTranslationPreviewPointerDown = useCallback((event: ReactPointerEvent<HTMLButtonElement>): void => {
+    if (event.button !== 0) return;
+    event.preventDefault();
+    event.stopPropagation();
+    event.currentTarget.setPointerCapture(event.pointerId);
+    imageTranslationPreviewDragRef.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      originX: imageTranslationPreviewOffset.x,
+      originY: imageTranslationPreviewOffset.y,
+      moved: false,
+    };
+    setImageTranslationPreviewDragging(true);
+  }, [imageTranslationPreviewOffset]);
+
+  const handleImageTranslationPreviewPointerMove = useCallback((event: ReactPointerEvent<HTMLButtonElement>): void => {
+    const drag = imageTranslationPreviewDragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    event.preventDefault();
+    event.stopPropagation();
+    const deltaX = event.clientX - drag.startX;
+    const deltaY = event.clientY - drag.startY;
+    if (Math.abs(deltaX) > 3 || Math.abs(deltaY) > 3) {
+      drag.moved = true;
+    }
+    const maxX = Math.max(0, event.currentTarget.clientWidth * (imageTranslationPreviewScale - 1) / 2);
+    const maxY = Math.max(0, event.currentTarget.clientHeight * (imageTranslationPreviewScale - 1) / 2);
+    setImageTranslationPreviewOffset({
+      x: Math.min(maxX, Math.max(-maxX, drag.originX + deltaX)),
+      y: Math.min(maxY, Math.max(-maxY, drag.originY + deltaY)),
+    });
+  }, [imageTranslationPreviewScale]);
+
+  const handleImageTranslationPreviewPointerUp = useCallback((event: ReactPointerEvent<HTMLButtonElement>): void => {
+    const drag = imageTranslationPreviewDragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    event.preventDefault();
+    event.stopPropagation();
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+    setImageTranslationPreviewDragging(false);
+  }, []);
+
+  const handleImageTranslationPreviewPointerCancel = useCallback((event: ReactPointerEvent<HTMLButtonElement>): void => {
+    if (imageTranslationPreviewDragRef.current?.pointerId !== event.pointerId) return;
+    imageTranslationPreviewDragRef.current = null;
+    setImageTranslationPreviewDragging(false);
+  }, []);
 
   const resetToLoggedOut = useCallback((): void => {
     clearLocalAccount();
@@ -1857,15 +1933,30 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
                   <button
                     ref={imageTranslationPreviewRef}
                     type="button"
-                    className="settings-user-image-translation-preview"
+                    className={`settings-user-image-translation-preview${imageTranslationPreviewDragging ? ' is-dragging' : ''}`}
                     aria-label={t('settings.user.imageTranslation.previewLabel', { defaultValue: '图片预览' })}
-                    onClick={() => setImageTranslationPreview(null)}
+                    onPointerDown={handleImageTranslationPreviewPointerDown}
+                    onPointerMove={handleImageTranslationPreviewPointerMove}
+                    onPointerUp={handleImageTranslationPreviewPointerUp}
+                    onPointerCancel={handleImageTranslationPreviewPointerCancel}
+                    onClick={(event) => {
+                      const drag = imageTranslationPreviewDragRef.current;
+                      imageTranslationPreviewDragRef.current = null;
+                      if (drag?.moved) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        return;
+                      }
+                      setImageTranslationPreview(null);
+                    }}
                   >
                     <img
                       src={imageTranslationPreview.url}
                       alt={imageTranslationPreview.alt}
                       draggable={false}
-                      style={{ transform: `scale(${imageTranslationPreviewScale})` }}
+                      style={{
+                        transform: `translate3d(${imageTranslationPreviewOffset.x}px, ${imageTranslationPreviewOffset.y}px, 0) scale(${imageTranslationPreviewScale})`,
+                      }}
                     />
                   </button>
                 ) : (

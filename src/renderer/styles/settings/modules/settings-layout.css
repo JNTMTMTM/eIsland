@@ -5586,7 +5586,11 @@ button.settings-user-image-translation-image-wrap:hover {
   touch-action: none;
   border: 0;
   background: transparent;
-  cursor: zoom-out;
+  cursor: grab;
+}
+
+.settings-user-image-translation-preview.is-dragging {
+  cursor: grabbing;
 }
 
 .settings-user-image-translation-preview > img {
