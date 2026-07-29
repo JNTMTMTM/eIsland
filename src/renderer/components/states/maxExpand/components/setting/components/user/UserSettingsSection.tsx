@@ -1767,16 +1767,6 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
                 {t('settings.user.imageTranslation.subtitle', { defaultValue: '查看原始图片与翻译后的结果图片' })}
               </div>
             </div>
-            <button
-              type="button"
-              className="settings-user-secondary-btn settings-user-image-translation-refresh"
-              onClick={() => void loadImageTranslationHistory()}
-              disabled={loadingImageTranslationHistory}
-            >
-              {loadingImageTranslationHistory
-                ? t('settings.user.imageTranslation.refreshing', { defaultValue: '刷新中…' })
-                : t('settings.user.imageTranslation.refresh', { defaultValue: '刷新' })}
-            </button>
           </div>
         </div>
 

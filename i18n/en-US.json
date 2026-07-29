@@ -3300,8 +3300,6 @@
         "loading": "Loading image translation history…",
         "loadFailed": "Failed to load image translation history",
         "empty": "No image translation history",
-        "refresh": "Refresh",
-        "refreshing": "Refreshing…",
         "languageConnector": "to",
         "sourceImage": "Before Translation",
         "sourceImageAlt": "Original image before translation",

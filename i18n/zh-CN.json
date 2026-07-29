@@ -3300,8 +3300,6 @@
         "loading": "加载图片翻译记录中…",
         "loadFailed": "加载图片翻译记录失败",
         "empty": "暂无图片翻译记录",
-        "refresh": "刷新",
-        "refreshing": "刷新中…",
         "languageConnector": "到",
         "sourceImage": "翻译前",
         "sourceImageAlt": "翻译前图片",

@@ -5401,10 +5401,6 @@
   gap: 12px;
 }
 
-.settings-user-image-translation-refresh {
-  flex-shrink: 0;
-}
-
 .settings-user-image-translation-state {
   min-height: 72px;
   display: flex;
