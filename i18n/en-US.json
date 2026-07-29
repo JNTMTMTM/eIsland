@@ -3295,6 +3295,27 @@
           "unbindFailed": "Failed to unbind"
         }
       },
+      "imageTranslation": {
+        "subtitle": "View original images alongside their translated results",
+        "loading": "Loading image translation history…",
+        "loadFailed": "Failed to load image translation history",
+        "empty": "No image translation history",
+        "refresh": "Refresh",
+        "refreshing": "Refreshing…",
+        "sourceImage": "Before Translation",
+        "sourceImageAlt": "Original image before translation",
+        "resultImage": "After Translation",
+        "resultImageAlt": "Translated result image",
+        "resultPending": "Waiting for translation result",
+        "resultUnavailable": "No result image available",
+        "status": {
+          "queued": "Queued",
+          "processing": "Translating",
+          "succeeded": "Completed",
+          "failed": "Failed",
+          "unknown": "Unknown"
+        }
+      },
       "recharge": {
         "title": "Recharge Balance",
         "subtitle": "Top up your balance for AI assistant conversations",

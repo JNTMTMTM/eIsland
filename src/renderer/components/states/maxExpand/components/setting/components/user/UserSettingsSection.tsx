@@ -32,6 +32,7 @@ import {
   fetchUserPaymentOrders,
   fetchProMonthPricing,
   fetchAgentBalance,
+  fetchImageTranslationHistory,
   fetchOAuthBindings,
   fetchUserProfile,
   logoutUser,
@@ -42,6 +43,7 @@ import {
   updateUserPassword,
   updateUserProfile,
   uploadUserAvatar,
+  type ImageTranslationHistoryItem,
   type OAuthBindingItem,
   type UserPaymentOrderData,
 } from '../../../../../../../api/user/userAccountApi';
@@ -193,6 +195,10 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
   const [loadingOAuthBindings, setLoadingOAuthBindings] = useState(false);
   const [oauthUnbindingId, setOauthUnbindingId] = useState<number | null>(null);
   const [oauthFeedback, setOauthFeedback] = useState<{ bindingId: number; feedback: Feedback } | null>(null);
+
+  const [imageTranslationHistory, setImageTranslationHistory] = useState<ImageTranslationHistoryItem[]>([]);
+  const [loadingImageTranslationHistory, setLoadingImageTranslationHistory] = useState(false);
+  const [imageTranslationHistoryError, setImageTranslationHistoryError] = useState('');
 
   /** 用户中心登录天数热力图：记录并展示当前用户每个自然日是否登录 */
   const [loginDays, setLoginDays] = useState<Set<string>>(() => readLoginDays(profile?.username));
@@ -506,12 +512,41 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
     }
   }, [loadRemoteProfile, resetToLoggedOut, t, token]);
 
+  const loadImageTranslationHistory = useCallback(async (): Promise<void> => {
+    if (!token) {
+      setImageTranslationHistory([]);
+      setLoadingImageTranslationHistory(false);
+      setImageTranslationHistoryError('');
+      return;
+    }
+    setLoadingImageTranslationHistory(true);
+    setImageTranslationHistoryError('');
+    const result = await fetchImageTranslationHistory(token, 100);
+    setLoadingImageTranslationHistory(false);
+    if (!result.ok || !Array.isArray(result.data)) {
+      if (result.code === 401 || result.code === 4011) {
+        resetToLoggedOut();
+        return;
+      }
+      setImageTranslationHistoryError(result.message || t('settings.user.imageTranslation.loadFailed', { defaultValue: '加载图片翻译记录失败' }));
+      return;
+    }
+    setImageTranslationHistory(result.data);
+  }, [resetToLoggedOut, t, token]);
+
   useEffect(() => {
     if (userProfilePage !== 'orders' || !token) {
       return;
     }
     void loadUserOrders();
   }, [loadUserOrders, token, userProfilePage]);
+
+  useEffect(() => {
+    if (userProfilePage !== 'image-translation' || !token) {
+      return;
+    }
+    void loadImageTranslationHistory();
+  }, [loadImageTranslationHistory, token, userProfilePage]);
 
   useEffect(() => {
     if (userProfilePage !== 'oauth' || !token) {
@@ -1713,6 +1748,117 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
       </div>
     );
 
+    const getImageTranslationStatusLabel = (status: string): string => {
+      const normalized = String(status || '').toUpperCase();
+      if (normalized === 'SUCCEEDED') return t('settings.user.imageTranslation.status.succeeded', { defaultValue: '已完成' });
+      if (normalized === 'FAILED') return t('settings.user.imageTranslation.status.failed', { defaultValue: '失败' });
+      if (normalized === 'PROCESSING') return t('settings.user.imageTranslation.status.processing', { defaultValue: '翻译中' });
+      if (normalized === 'QUEUED') return t('settings.user.imageTranslation.status.queued', { defaultValue: '排队中' });
+      return status || t('settings.user.imageTranslation.status.unknown', { defaultValue: '未知' });
+    };
+
+    const renderImageTranslationPage = (): ReactElement => (
+      <div className="settings-user-page-panel settings-user-image-translation-panel">
+        <div className="settings-user-card settings-user-image-translation-head-card">
+          <div className="settings-user-image-translation-head">
+            <div>
+              <div className="settings-user-form-title">{t('settings.user.pages.image-translation', { defaultValue: '图片翻译' })}</div>
+              <div className="settings-user-card-title-hint">
+                {t('settings.user.imageTranslation.subtitle', { defaultValue: '查看原始图片与翻译后的结果图片' })}
+              </div>
+            </div>
+            <button
+              type="button"
+              className="settings-user-secondary-btn settings-user-image-translation-refresh"
+              onClick={() => void loadImageTranslationHistory()}
+              disabled={loadingImageTranslationHistory}
+            >
+              {loadingImageTranslationHistory
+                ? t('settings.user.imageTranslation.refreshing', { defaultValue: '刷新中…' })
+                : t('settings.user.imageTranslation.refresh', { defaultValue: '刷新' })}
+            </button>
+          </div>
+        </div>
+
+        {loadingImageTranslationHistory && imageTranslationHistory.length === 0 ? (
+          <div className="settings-user-card settings-user-image-translation-state">
+            <span className="settings-user-orders-inline-spinner" aria-hidden="true" />
+            <span>{t('settings.user.imageTranslation.loading', { defaultValue: '加载图片翻译记录中…' })}</span>
+          </div>
+        ) : null}
+
+        {imageTranslationHistoryError ? (
+          <div className="settings-user-feedback settings-user-feedback--error">
+            {imageTranslationHistoryError}
+          </div>
+        ) : null}
+
+        {!loadingImageTranslationHistory && !imageTranslationHistoryError && imageTranslationHistory.length === 0 ? (
+          <div className="settings-user-card settings-user-image-translation-state">
+            {t('settings.user.imageTranslation.empty', { defaultValue: '暂无图片翻译记录' })}
+          </div>
+        ) : null}
+
+        <div className="settings-user-image-translation-list">
+          {imageTranslationHistory.map((task) => {
+            const normalizedStatus = String(task.status || '').toUpperCase();
+            const statusClass = normalizedStatus.toLowerCase().replace(/[^a-z0-9-]/g, '') || 'unknown';
+            return (
+              <article key={task.taskId} className="settings-user-card settings-user-image-translation-item">
+                <div className="settings-user-image-translation-item-head">
+                  <div className="settings-user-image-translation-meta">
+                    <span>{task.sourceLanguage || 'auto'} → {task.targetLanguage || 'zh'}</span>
+                    <span>{formatDateTime(task.createdAt)}</span>
+                  </div>
+                  <span className={`settings-user-image-translation-status settings-user-image-translation-status--${statusClass}`}>
+                    {getImageTranslationStatusLabel(task.status)}
+                  </span>
+                </div>
+
+                <div className="settings-user-image-translation-images">
+                  <figure className="settings-user-image-translation-image-card">
+                    <figcaption>{t('settings.user.imageTranslation.sourceImage', { defaultValue: '翻译前' })}</figcaption>
+                    <div className="settings-user-image-translation-image-wrap">
+                      <img
+                        src={task.sourceUrl}
+                        alt={t('settings.user.imageTranslation.sourceImageAlt', { defaultValue: '翻译前图片' })}
+                        loading="lazy"
+                        draggable={false}
+                      />
+                    </div>
+                  </figure>
+
+                  <figure className="settings-user-image-translation-image-card">
+                    <figcaption>{t('settings.user.imageTranslation.resultImage', { defaultValue: '翻译后' })}</figcaption>
+                    <div className="settings-user-image-translation-image-wrap">
+                      {task.resultUrl ? (
+                        <img
+                          src={task.resultUrl}
+                          alt={t('settings.user.imageTranslation.resultImageAlt', { defaultValue: '翻译后图片' })}
+                          loading="lazy"
+                          draggable={false}
+                        />
+                      ) : (
+                        <span className="settings-user-image-translation-image-placeholder">
+                          {normalizedStatus === 'FAILED'
+                            ? t('settings.user.imageTranslation.resultUnavailable', { defaultValue: '无可用结果图片' })
+                            : t('settings.user.imageTranslation.resultPending', { defaultValue: '等待翻译结果' })}
+                        </span>
+                      )}
+                    </div>
+                  </figure>
+                </div>
+
+                {task.errorMessage ? (
+                  <div className="settings-user-image-translation-error">{task.errorMessage}</div>
+                ) : null}
+              </article>
+            );
+          })}
+        </div>
+      </div>
+    );
+
     const rechargeAmountYuan = rechargeSelected !== null && rechargeSelected !== undefined
       ? rechargeSelected
       : (rechargeCustomValue.trim() !== '' ? parseFloat(rechargeCustomValue) : NaN);
@@ -1803,7 +1949,7 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
           {userProfilePage === 'orders' && renderOrdersPage()}
           {userProfilePage === 'account' && renderAccountPage()}
           {userProfilePage === 'oauth' && renderOAuthPage()}
-          {userProfilePage === 'image-translation' && <div className="settings-user-page-panel" />}
+          {userProfilePage === 'image-translation' && renderImageTranslationPage()}
         </div>
 
         <SettingsPageNavigation

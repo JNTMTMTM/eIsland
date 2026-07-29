@@ -3295,6 +3295,27 @@
           "unbindFailed": "解除绑定失败"
         }
       },
+      "imageTranslation": {
+        "subtitle": "查看原始图片与翻译后的结果图片",
+        "loading": "加载图片翻译记录中…",
+        "loadFailed": "加载图片翻译记录失败",
+        "empty": "暂无图片翻译记录",
+        "refresh": "刷新",
+        "refreshing": "刷新中…",
+        "sourceImage": "翻译前",
+        "sourceImageAlt": "翻译前图片",
+        "resultImage": "翻译后",
+        "resultImageAlt": "翻译后图片",
+        "resultPending": "等待翻译结果",
+        "resultUnavailable": "无可用结果图片",
+        "status": {
+          "queued": "排队中",
+          "processing": "翻译中",
+          "succeeded": "已完成",
+          "failed": "失败",
+          "unknown": "未知"
+        }
+      },
       "recharge": {
         "title": "余额充值",
         "subtitle": "充值后可用于 AI 助手对话消耗",
