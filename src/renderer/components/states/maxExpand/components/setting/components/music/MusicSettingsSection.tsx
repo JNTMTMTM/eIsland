@@ -24,9 +24,11 @@
  * @author 鸡哥
  */
 
+import { useState } from 'react';
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { MusicSettingsPageKey } from '../../utils/settingsConfig';
+import { SettingsPageNavigation, SettingsPageNavigationToggle } from '../SettingsPageNavigation';
 
 interface MusicSourceOption {
   value: string;
@@ -85,6 +87,7 @@ interface MusicSettingsSectionProps {
  */
 export function MusicSettingsSection(props: MusicSettingsSectionProps): ReactElement {
   const { t } = useTranslation();
+  const [pageNavigationExpanded, setPageNavigationExpanded] = useState(false);
   const lyricsSourceOptionKeyMap: Record<string, string> = {
     auto: 'settings.music.lyrics.sourceOptions.auto',
     'netease-only': 'settings.music.lyrics.sourceOptions.neteaseOnly',
@@ -141,6 +144,11 @@ export function MusicSettingsSection(props: MusicSettingsSectionProps): ReactEle
       <div className="max-expand-settings-title settings-app-title-line">
         <span>{t('settings.labels.music', { defaultValue: '歌曲设置' })}</span>
         <span className="settings-app-title-sub">- {currentMusicSettingsPageLabel}</span>
+        <SettingsPageNavigationToggle
+          expanded={pageNavigationExpanded}
+          label={t(pageNavigationExpanded ? 'settings.navigation.collapse' : 'settings.navigation.expand')}
+          onToggle={() => setPageNavigationExpanded((current) => !current)}
+        />
       </div>
 
       <div className="settings-app-pages-layout settings-music-pages-layout">
@@ -474,19 +482,14 @@ export function MusicSettingsSection(props: MusicSettingsSectionProps): ReactEle
           )}
         </div>
 
-        <div className="settings-app-page-dots" aria-label={t('settings.music.pagination', { defaultValue: '歌曲设置分页' })}>
-          {musicSettingsPages.map((page) => (
-            <button
-              key={page}
-              className={`settings-app-page-dot ${musicSettingsPage === page ? 'active' : ''}`}
-              data-label={musicSettingsPageLabels[page]}
-              type="button"
-              onClick={() => setMusicSettingsPage(page)}
-              title={musicSettingsPageLabels[page]}
-              aria-label={musicSettingsPageLabels[page]}
-            />
-          ))}
-        </div>
+        <SettingsPageNavigation
+          activePage={musicSettingsPage}
+          expanded={pageNavigationExpanded}
+          pages={musicSettingsPages}
+          pageLabels={musicSettingsPageLabels}
+          navigationLabel={t('settings.music.pagination')}
+          onSelectPage={setMusicSettingsPage}
+        />
       </div>
     </div>
   );

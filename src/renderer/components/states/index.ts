@@ -28,6 +28,7 @@ export { IdleContent } from './idle';
 export { HoverContent } from './hover';
 export { ExpandedContent } from './expand/ExpandedContent';
 export { MaxExpandContent } from './maxExpand/MaxExpandContent';
+export { LyricsTranslationContent } from './lyricsTranslation/LyricsTranslationContent';
 export { GuideContent } from './guide/GuideContent';
 export { LoginContent } from './login';
 export { RegisterContent } from './register/RegisterContent';

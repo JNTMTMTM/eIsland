@@ -70,6 +70,52 @@ body {
   background: rgba(0, 0, 0, .75);
 }
 
+.capture-translate-overlay {
+  position: fixed;
+  z-index: 10;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-direction: row;
+  gap: 8px;
+  min-width: 3px;
+  min-height: 3px;
+  overflow: hidden;
+  color: #fff;
+  font: 14px/1.5 system-ui, sans-serif;
+  text-align: center;
+  pointer-events: auto;
+  background: rgba(10, 14, 22, .78);
+  backdrop-filter: blur(6px);
+}
+
+.capture-translate-overlay.is-error {
+  background: rgba(72, 14, 18, .88);
+}
+
+.capture-translate-overlay.is-error .capture-translate-spinner {
+  display: none;
+}
+
+.capture-translate-spinner {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  border: 2px solid rgba(255, 255, 255, .24);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: capture-translate-spin .8s linear infinite;
+}
+
+.capture-translate-message {
+  max-width: min(360px, calc(100% - 24px));
+  text-wrap: balance;
+}
+
+@keyframes capture-translate-spin {
+  to { transform: rotate(360deg); }
+}
+
 .capture-toolbar {
   position: fixed;
   z-index: 20;

@@ -71,7 +71,7 @@ export function NetworkSettingsSection({
   const isCustomTimeout = networkTimeoutOptions.every((o) => o.value !== networkTimeoutMs);
 
   return (
-    <div className="max-expand-settings-section">
+    <div className="max-expand-settings-section settings-network">
       <div className="max-expand-settings-title">{t('settings.labels.network', { defaultValue: '网络配置' })}</div>
       <div className="settings-cards">
 

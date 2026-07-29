@@ -29,6 +29,7 @@ import { app, clipboard, desktopCapturer, dialog, ipcMain, nativeImage, type Bro
 import { join } from 'path';
 import { writeFileSync } from 'fs';
 import { capturePrimaryDisplayPng } from '../../window/screenshotHelper';
+import { translateCaptureImage } from '../../services/imageTranslationService';
 
 interface RegisterCaptureIpcHandlersOptions {
   getCaptureWindow: () => BrowserWindow | null;
@@ -81,6 +82,31 @@ export function registerCaptureIpcHandlers(options: RegisterCaptureIpcHandlersOp
       console.error('[Screenshot] copy error:', err);
     }
     options.closeCaptureWindow();
+  });
+
+  ipcMain.handle('capture-translate', async (event, payload: {
+    dataURL: string;
+    token: string;
+    targetLanguage: string;
+  }) => {
+    const captureWindow = options.getCaptureWindow();
+    if (!captureWindow || captureWindow.isDestroyed() || event.sender.id !== captureWindow.webContents.id) {
+      return { success: false, code: 'captureWindowClosed' };
+    }
+
+    const controller = new AbortController();
+    const abort = (): void => controller.abort();
+    event.sender.once('destroyed', abort);
+    try {
+      return await translateCaptureImage(
+        typeof payload?.token === 'string' ? payload.token : '',
+        typeof payload?.dataURL === 'string' ? payload.dataURL : '',
+        payload?.targetLanguage === 'en' ? 'en' : 'zh',
+        controller.signal,
+      );
+    } finally {
+      event.sender.removeListener('destroyed', abort);
+    }
   });
 
   ipcMain.on('capture-save', async (_event, { dataURL }: { dataURL: string }) => {

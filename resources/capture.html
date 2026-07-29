@@ -33,6 +33,11 @@
 
 <div class="capture-size-info" id="size-info"></div>
 
+<div class="capture-translate-overlay" id="translateOverlay" role="status" aria-live="polite">
+  <span class="capture-translate-spinner" aria-hidden="true"></span>
+  <span class="capture-translate-message" id="translateMessage"></span>
+</div>
+
 <div class="capture-toolbar" id="toolbar">
   <span class="capture-source-badge" id="captureSourceBadge" data-capture-source="js">使用js</span>
   <button class="tool active" data-tool="select" data-i18n="select">选区</button>
@@ -55,6 +60,10 @@
   </select>
 
   <div class="sep"></div>
+  <button id="btnTranslate">
+    <img class="capture-btn-icon" src="./svg/TRANSLATION.svg" alt="" aria-hidden="true">
+    <span id="btnTranslateLabel" data-i18n="translate">图片翻译</span>
+  </button>
   <button id="btnSave">
     <img class="capture-btn-icon" src="./svg/SAVE.svg" alt="" aria-hidden="true">
     <span data-i18n="save">保存</span>

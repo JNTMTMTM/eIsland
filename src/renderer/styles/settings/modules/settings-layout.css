@@ -676,26 +676,30 @@
   margin-bottom: 8px;
 }
 
-.max-expand-settings-section.settings-update .settings-cards {
+.max-expand-settings-section.settings-update .settings-cards,
+.max-expand-settings-section.settings-network .settings-cards {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
   padding-right: 4px;
 }
 
-.max-expand-settings-section.settings-update .settings-cards::-webkit-scrollbar {
+.max-expand-settings-section.settings-update .settings-cards::-webkit-scrollbar,
+.max-expand-settings-section.settings-network .settings-cards::-webkit-scrollbar {
   width: 4px;
 }
 
-.max-expand-settings-section.settings-update .settings-cards::-webkit-scrollbar-thumb {
+.max-expand-settings-section.settings-update .settings-cards::-webkit-scrollbar-thumb,
+.max-expand-settings-section.settings-network .settings-cards::-webkit-scrollbar-thumb {
   background: rgba(var(--color-text-rgb), 0.12);
   border-radius: 2px;
 }
 
 .settings-app-title-line {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 6px;
+  width: 100%;
 }
 
 .settings-app-title-sub {
@@ -1165,7 +1169,7 @@
 .settings-app-pages-layout {
   display: flex;
   align-items: stretch;
-  gap: 12px;
+  gap: 4px;
   margin-top: 8px;
   min-height: 0;
   flex: 1;
@@ -1177,7 +1181,7 @@
   flex: 1;
   min-width: 0;
   min-height: 0;
-  padding-right: 30px;
+  padding-right: 4px;
   overflow-y: auto;
 }
 
@@ -1194,62 +1198,109 @@
   background: rgba(var(--color-text-rgb), 0.2);
 }
 
-.settings-app-page-dots {
+.settings-page-navigation {
   display: flex;
+  flex: 0 0 0;
   flex-direction: column;
+  align-items: flex-end;
+  width: 0;
+  min-width: 0;
+  height: 100%;
+  max-height: 100%;
+  overflow: hidden;
+  transition: width 0.2s ease, flex-basis 0.2s ease;
+}
+
+.settings-page-navigation.expanded {
+  flex-basis: 128px;
+  width: 128px;
+}
+
+.settings-page-navigation-toggle {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  width: 20px;
-  flex-shrink: 0;
-  position: absolute;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 2;
-}
-
-.settings-app-page-dot {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  border: none;
-  background: rgba(var(--color-text-rgb), 0.2);
+  width: 26px;
+  height: 26px;
+  margin-left: auto;
+  padding: 0;
+  background: transparent;
+  color: rgba(var(--color-text-rgb), 0.62);
   cursor: pointer;
-  position: relative;
-  transition: background 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+  transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
 }
 
-.settings-app-page-dot:hover {
-  background: rgba(var(--color-text-rgb), 0.45);
+.settings-page-navigation-toggle:hover,
+.settings-page-navigation-toggle[aria-expanded='true'] {
+  background: transparent;
 }
 
-.settings-app-page-dot.active {
-  background: var(--color-island-text);
-  box-shadow: 0 0 6px rgba(var(--color-text-rgb), 0.5);
-  transform: scale(1.2);
+.settings-page-navigation-toggle-icon {
+  display: block;
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+  opacity: 0.78;
+  filter: brightness(0) invert(1);
 }
 
-.settings-app-page-dot::after {
-  content: attr(data-label);
-  position: absolute;
-  right: 14px;
-  top: 50%;
-  transform: translateY(-50%);
-  pointer-events: none;
-  opacity: 0;
-  font-size: 10px;
-  color: rgba(255, 255, 255, 0.9);
-  background: rgba(0, 0, 0, 0.75);
-  border: 1px solid rgba(255, 255, 255, 0.16);
+[data-theme='light'] .settings-page-navigation-toggle-icon {
+  filter: brightness(0);
+}
+
+.settings-page-navigation-menu {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 2px;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  max-height: 100%;
+  padding: 6px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border: 1px solid rgba(var(--color-text-rgb), 0.12);
+  border-radius: 10px;
+  background: rgba(var(--color-text-rgb), 0.04);
+}
+
+.settings-page-navigation-item {
+  appearance: none;
+  padding: 5px 9px;
+  border: none;
   border-radius: 6px;
-  padding: 2px 6px;
+  background: transparent;
+  color: rgba(var(--color-text-rgb), 0.5);
+  font-size: 11px;
+  text-align: left;
   white-space: nowrap;
-  transition: opacity 0.15s ease;
+  cursor: pointer;
+  transition: color 0.2s ease, background 0.2s ease;
 }
 
-.settings-app-page-dot:hover::after {
-  opacity: 1;
+.settings-page-navigation-item:hover {
+  color: rgba(var(--color-text-rgb), 0.78);
+  background: rgba(var(--color-text-rgb), 0.07);
+}
+
+.settings-page-navigation-item.active {
+  color: rgba(var(--color-text-rgb), 0.96);
+  font-weight: 500;
+  background: rgba(var(--color-text-rgb), 0.12);
+}
+
+.settings-page-navigation-menu::-webkit-scrollbar {
+  width: 3px;
+  height: 3px;
+}
+
+.settings-page-navigation-menu::-webkit-scrollbar-thumb {
+  border-radius: 2px;
+  background: rgba(var(--color-text-rgb), 0.16);
 }
 
 .settings-hide-processes {
@@ -1552,7 +1603,7 @@
 .settings-about-layout {
   display: flex;
   align-items: stretch;
-  gap: 12px;
+  gap: 4px;
   position: relative;
   min-height: 0;
   flex: 1;
@@ -1565,7 +1616,7 @@
   flex: 1;
   height: 100%;
   overflow-y: auto;
-  padding-right: 30px;
+  padding-right: 4px;
 }
 
 .settings-about-main::-webkit-scrollbar {
@@ -1586,64 +1637,6 @@
   flex-direction: column;
   gap: 14px;
   min-height: 100%;
-}
-
-.settings-about-page-dots {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  width: 20px;
-  flex-shrink: 0;
-  position: absolute;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 2;
-}
-
-.settings-about-page-dot {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  border: none;
-  background: rgba(var(--color-text-rgb), 0.2);
-  cursor: pointer;
-  position: relative;
-  transition: background 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
-}
-
-.settings-about-page-dot:hover {
-  background: rgba(var(--color-text-rgb), 0.45);
-}
-
-.settings-about-page-dot.active {
-  background: var(--color-island-text);
-  box-shadow: 0 0 6px rgba(var(--color-text-rgb), 0.5);
-  transform: scale(1.2);
-}
-
-.settings-about-page-dot::after {
-  content: attr(data-label);
-  position: absolute;
-  right: 14px;
-  top: 50%;
-  transform: translateY(-50%);
-  pointer-events: none;
-  opacity: 0;
-  font-size: 10px;
-  color: rgba(255, 255, 255, 0.9);
-  background: rgba(0, 0, 0, 0.75);
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 6px;
-  padding: 2px 6px;
-  white-space: nowrap;
-  transition: opacity 0.15s ease;
-}
-
-.settings-about-page-dot:hover::after {
-  opacity: 1;
 }
 
 .settings-about-author {
@@ -4214,8 +4207,9 @@
 
 .settings-user-profile-paged {
   display: flex;
+  flex-direction: row;
   align-items: stretch;
-  gap: 12px;
+  gap: 4px;
   position: relative;
   min-height: 0;
   flex: 1;
@@ -4231,7 +4225,7 @@
   flex-direction: column;
   gap: 14px;
   overflow-y: auto;
-  padding-right: 30px;
+  padding-right: 4px;
 }
 
 .settings-user-profile-main::-webkit-scrollbar {
@@ -4257,64 +4251,6 @@
 .settings-user-edit-scroll {
   overflow: visible;
   padding-right: 0;
-}
-
-.settings-user-page-dots {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  width: 20px;
-  flex-shrink: 0;
-  position: absolute;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 2;
-}
-
-.settings-user-page-dot {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  border: none;
-  background: rgba(var(--color-text-rgb), 0.2);
-  cursor: pointer;
-  position: relative;
-  transition: background 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
-}
-
-.settings-user-page-dot:hover {
-  background: rgba(var(--color-text-rgb), 0.45);
-}
-
-.settings-user-page-dot.active {
-  background: var(--color-island-text);
-  box-shadow: 0 0 6px rgba(var(--color-text-rgb), 0.5);
-  transform: scale(1.2);
-}
-
-.settings-user-page-dot::after {
-  content: attr(data-label);
-  position: absolute;
-  right: 14px;
-  top: 50%;
-  transform: translateY(-50%);
-  pointer-events: none;
-  opacity: 0;
-  font-size: 10px;
-  color: rgba(255, 255, 255, 0.9);
-  background: rgba(0, 0, 0, 0.75);
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 6px;
-  padding: 2px 6px;
-  white-space: nowrap;
-  transition: opacity 0.15s ease;
-}
-
-.settings-user-page-dot:hover::after {
-  opacity: 1;
 }
 
 .settings-user-info-panel {

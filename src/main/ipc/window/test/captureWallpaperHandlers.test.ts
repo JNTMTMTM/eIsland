@@ -182,6 +182,7 @@ describe('capture and wallpaper ipc handlers', () => {
     const captureWindow = {
       isDestroyed: vi.fn(() => false),
       hide: vi.fn(),
+      webContents: { id: 7 },
     };
 
     const pngBuffer = Buffer.from('png-data');
@@ -217,6 +218,17 @@ describe('capture and wallpaper ipc handlers', () => {
     onHandlers.get('capture-complete')?.({}, { dataURL: 'data:image/png;base64,AAA' });
     expect(createFromDataURLMock).toHaveBeenCalledWith('data:image/png;base64,AAA');
     expect(clipboardWriteImageMock).toHaveBeenCalled();
+    expect(closeCaptureWindow).toHaveBeenCalledTimes(1);
+
+    const translateSender = {
+      id: 7,
+      once: vi.fn(),
+      removeListener: vi.fn(),
+    };
+    await expect(handleHandlers.get('capture-translate')?.(
+      { sender: translateSender },
+      { dataURL: 'data:image/png;base64,TRANSLATE', token: '', targetLanguage: 'zh' },
+    )).resolves.toEqual({ success: false, code: 'loginRequired', message: '请先登录 Pro 账号后再使用图片翻译' });
     expect(closeCaptureWindow).toHaveBeenCalledTimes(1);
 
     await onHandlers.get('capture-save')?.({}, { dataURL: 'data:image/png;base64,BBB' });

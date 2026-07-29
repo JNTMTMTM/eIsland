@@ -1,4 +1,4 @@
-﻿/*
+/*
  * eIsland - A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Electron.
  * https://github.com/JNTMTMTM/eIsland
  *
@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import type { ReactElement } from 'react';
+import { useState, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { LayoutPreviewSettingsPage } from './components/LayoutPreviewSettingsPage';
 import { ExpandLayoutSettingsPage } from './components/ExpandLayoutSettingsPage';
@@ -46,6 +46,7 @@ import { NotificationSettingsPage } from './components/NotificationSettingsPage'
 import { PerformanceSettingsPage } from './components/PerformanceSettingsPage';
 import { PerformanceMonitorSettingsPage } from './components/PerformanceMonitorSettingsPage';
 import { AppSettingsPageDots } from './components/AppSettingsPageDots';
+import { SettingsPageNavigationToggle } from '../SettingsPageNavigation';
 import type { AppSettingsSectionProps } from './components/types';
 
 /**
@@ -170,6 +171,7 @@ export function AppSettingsSection({
   setAppSettingsPage,
 }: AppSettingsSectionProps): ReactElement {
   const { t } = useTranslation();
+  const [pageNavigationExpanded, setPageNavigationExpanded] = useState(false);
 
   const renderCurrentPage = (): ReactElement | null => {
     switch (appSettingsPage) {
@@ -344,13 +346,18 @@ export function AppSettingsSection({
       <div className="max-expand-settings-title settings-app-title-line">
         <span>{t('settings.labels.app', { defaultValue: '软件设置' })}</span>
         <span className="settings-app-title-sub">- {currentAppSettingsPageLabel}</span>
+        <SettingsPageNavigationToggle
+          expanded={pageNavigationExpanded}
+          label={t(pageNavigationExpanded ? 'settings.navigation.collapse' : 'settings.navigation.expand')}
+          onToggle={() => setPageNavigationExpanded((current) => !current)}
+        />
       </div>
 
       <div className="settings-app-pages-layout">
         <div className="settings-app-page-main">{renderCurrentPage()}</div>
-
         <AppSettingsPageDots
           appSettingsPage={appSettingsPage}
+          expanded={pageNavigationExpanded}
           appSettingsPages={appSettingsPages}
           settingsTabLabels={settingsTabLabels}
           setAppSettingsPage={setAppSettingsPage}

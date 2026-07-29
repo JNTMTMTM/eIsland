@@ -61,6 +61,7 @@ import { SvgIcon } from '../../../../../../../utils/SvgIcon';
 import { EMAIL_PATTERN } from '../../../../../../../components/config/dynamicIslandPatterns';
 import { LoginHeatmap } from './components/LoginHeatmap';
 import { readLoginDays, recordLoginDay } from './utils/loginHeatmapStorage';
+import { SettingsPageNavigation, SettingsPageNavigationToggle } from '../SettingsPageNavigation';
 import '../../../../../../../styles/settings/modules/cli.css';
 
 type FeedbackType = 'success' | 'error' | 'info';
@@ -171,6 +172,7 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
 
   const [logoutSubmitting, setLogoutSubmitting] = useState(false);
   const [userProfilePage, setUserProfilePage] = useState<UserProfilePage>(initialProfilePage);
+  const [pageNavigationExpanded, setPageNavigationExpanded] = useState(false);
   const [proMonthPriceLabel, setProMonthPriceLabel] = useState('');
   const [proMonthPricingLoading, setProMonthPricingLoading] = useState(false);
   const [freePlanDesc, setFreePlanDesc] = useState('');
@@ -216,9 +218,6 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
   });
 
   const avatarInputRef = useRef<HTMLInputElement | null>(null);
-  const userProfilePageRef = useRef<UserProfilePage>('info');
-  const profilePagesLayoutRef = useRef<HTMLDivElement | null>(null);
-  userProfilePageRef.current = userProfilePage;
 
   useEffect(() => {
     setUserProfilePage(initialProfilePage);
@@ -420,49 +419,6 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
     void loadBalance();
     return () => { cancelled = true; };
   }, [token, userProfilePage]);
-
-  useEffect(() => {
-    const el = profilePagesLayoutRef.current;
-    if (!el) return;
-    const handleWheel = (e: WheelEvent): void => {
-      e.stopPropagation();
-      const target = e.target as HTMLElement | null;
-      const inDotNav = Boolean(target?.closest('.settings-user-page-dots'));
-      if (inDotNav) {
-        const currentIndex = USER_PROFILE_PAGES.indexOf(userProfilePageRef.current);
-        if (currentIndex < 0) return;
-        const nextIndex = e.deltaY > 0
-          ? Math.min(currentIndex + 1, USER_PROFILE_PAGES.length - 1)
-          : Math.max(currentIndex - 1, 0);
-        if (nextIndex !== currentIndex) {
-          e.preventDefault();
-          setUserProfilePage(USER_PROFILE_PAGES[nextIndex]);
-        }
-        return;
-      }
-      if (target?.closest('input, textarea, select, button')) {
-        return;
-      }
-      const mainEl = el.querySelector('.settings-user-profile-main') as HTMLElement | null;
-      if (!mainEl) return;
-      if (mainEl.scrollHeight > mainEl.clientHeight) {
-        return;
-      }
-      const currentIndex = USER_PROFILE_PAGES.indexOf(userProfilePageRef.current);
-      if (currentIndex < 0) return;
-      const nextIndex = e.deltaY > 0
-        ? Math.min(currentIndex + 1, USER_PROFILE_PAGES.length - 1)
-        : Math.max(currentIndex - 1, 0);
-      if (nextIndex !== currentIndex) {
-        e.preventDefault();
-        setUserProfilePage(USER_PROFILE_PAGES[nextIndex]);
-      }
-    };
-    el.addEventListener('wheel', handleWheel, { passive: false });
-    return () => {
-      el.removeEventListener('wheel', handleWheel);
-    };
-  }, [token, profile]);
 
   const handleAvatarSelect = async (event: ChangeEvent<HTMLInputElement>): Promise<void> => {
     const file = event.target.files?.[0];
@@ -1092,6 +1048,9 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
       { id: 'account', label: t('settings.user.pages.account', { defaultValue: '关于账户' }) },
       { id: 'oauth', label: t('settings.user.pages.oauth', { defaultValue: '第三方应用绑定' }) },
     ];
+    const profilePageLabels = Object.fromEntries(
+      profilePageItems.map((item) => [item.id, item.label]),
+    ) as Record<UserProfilePage, string>;
     const profileRole = (profile as { role?: unknown } | null)?.role;
     const normalizedProfileRole = typeof profileRole === 'string' ? normalizeRoleValue(profileRole) : null;
     const isProUser = normalizedProfileRole === 'pro' || getRoleFromToken(token) === 'pro';
@@ -1831,7 +1790,7 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
     );
 
     return (
-      <div className="settings-user-profile settings-user-profile-paged" ref={profilePagesLayoutRef}>
+      <div className="settings-user-profile settings-user-profile-paged">
         <div className="settings-user-profile-main">
           {userProfilePage === 'info' && renderInfoPage()}
           {userProfilePage === 'edit' && renderEditPage()}
@@ -1843,18 +1802,14 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
           {userProfilePage === 'oauth' && renderOAuthPage()}
         </div>
 
-        <div className="settings-user-page-dots">
-          {profilePageItems.map((item) => (
-            <button
-              key={item.id}
-              className={`settings-user-page-dot ${userProfilePage === item.id ? 'active' : ''}`}
-              data-label={item.label}
-              onClick={() => setUserProfilePage(item.id)}
-              title={item.label}
-              aria-label={t('settings.user.pages.switchTo', { defaultValue: '切换到{{label}}', label: item.label })}
-            />
-          ))}
-        </div>
+        <SettingsPageNavigation
+          activePage={userProfilePage}
+          expanded={pageNavigationExpanded}
+          pages={USER_PROFILE_PAGES}
+          pageLabels={profilePageLabels}
+          navigationLabel={t('settings.user.pagination')}
+          onSelectPage={setUserProfilePage}
+        />
       </div>
     );
   };
@@ -1864,6 +1819,13 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
       <div className="max-expand-settings-title settings-app-title-line">
         <span>{t('settings.labels.user', { defaultValue: '用户中心' })}</span>
         {token && profile && <span className="settings-app-title-sub">- {currentUserProfilePageLabel}</span>}
+        {token && profile && (
+          <SettingsPageNavigationToggle
+            expanded={pageNavigationExpanded}
+            label={t(pageNavigationExpanded ? 'settings.navigation.collapse' : 'settings.navigation.expand')}
+            onToggle={() => setPageNavigationExpanded((current) => !current)}
+          />
+        )}
       </div>
       {token && profile ? renderProfileEditor() : token ? (
         <div className="settings-user-loading">

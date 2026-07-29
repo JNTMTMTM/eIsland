@@ -24,11 +24,13 @@
  * @author 鸡哥
  */
 
+import { useState } from 'react';
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { WeatherSettingsPageKey } from '../../utils/settingsConfig';
 import type { WeatherLocationPriority, WeatherProvider } from '../../../../../../../store/utils/storage';
 import { SvgIcon } from '../../../../../../../utils/SvgIcon';
+import { SettingsPageNavigation, SettingsPageNavigationToggle } from '../SettingsPageNavigation';
 
 interface WeatherMessage {
   type: 'error' | 'success';
@@ -70,6 +72,7 @@ interface WeatherSettingsSectionProps {
  */
 export function WeatherSettingsSection(props: WeatherSettingsSectionProps): ReactElement {
   const { t } = useTranslation();
+  const [pageNavigationExpanded, setPageNavigationExpanded] = useState(false);
   const locationPriorityKeyMap: Record<WeatherLocationPriority, string> = {
     ip: 'settings.weather.options.locationPriority.ip',
     custom: 'settings.weather.options.locationPriority.custom',
@@ -112,6 +115,11 @@ export function WeatherSettingsSection(props: WeatherSettingsSectionProps): Reac
       <div className="max-expand-settings-title settings-app-title-line">
         <span>{t('settings.labels.weather', { defaultValue: '天气配置' })}</span>
         <span className="settings-app-title-sub">- {currentWeatherSettingsPageLabel}</span>
+        <SettingsPageNavigationToggle
+          expanded={pageNavigationExpanded}
+          label={t(pageNavigationExpanded ? 'settings.navigation.collapse' : 'settings.navigation.expand')}
+          onToggle={() => setPageNavigationExpanded((current) => !current)}
+        />
       </div>
 
       <div className="settings-app-pages-layout settings-weather-pages-layout">
@@ -307,19 +315,14 @@ export function WeatherSettingsSection(props: WeatherSettingsSectionProps): Reac
           )}
         </div>
 
-        <div className="settings-app-page-dots" aria-label={t('settings.weather.pagination', { defaultValue: '天气配置分页' })}>
-          {weatherSettingsPages.map((page) => (
-            <button
-              key={page}
-              className={`settings-app-page-dot ${weatherSettingsPage === page ? 'active' : ''}`}
-              data-label={weatherSettingsPageLabels[page]}
-              type="button"
-              onClick={() => setWeatherSettingsPage(page)}
-              title={weatherSettingsPageLabels[page]}
-              aria-label={weatherSettingsPageLabels[page]}
-            />
-          ))}
-        </div>
+        <SettingsPageNavigation
+          activePage={weatherSettingsPage}
+          expanded={pageNavigationExpanded}
+          pages={weatherSettingsPages}
+          pageLabels={weatherSettingsPageLabels}
+          navigationLabel={t('settings.weather.pagination')}
+          onSelectPage={setWeatherSettingsPage}
+        />
       </div>
     </div>
   );

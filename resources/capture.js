@@ -41,6 +41,10 @@ const captureSourceBadge = document.getElementById('captureSourceBadge');
 const colorPicker = document.getElementById('colorPicker');
 const sizePicker = document.getElementById('sizePicker');
 const btnUndo = document.getElementById('btnUndo');
+const btnTranslate = document.getElementById('btnTranslate');
+const btnTranslateLabel = document.getElementById('btnTranslateLabel');
+const translateOverlay = document.getElementById('translateOverlay');
+const translateMessage = document.getElementById('translateMessage');
 
 let bgImage = null;
 let W = 0;
@@ -80,6 +84,9 @@ let captureLanguage = 'zh-CN';
 let captureWindowRects = [];
 let hoverWindowRect = null;
 let pendingWindowClickRect = null;
+let isTranslating = false;
+let translationCache = null;
+let displayedImageVersion = 'original';
 
 const CAPTURE_I18N = {
   'zh-CN': {
@@ -94,6 +101,19 @@ const CAPTURE_I18N = {
       color: '颜色',
       size: '粗细',
       save: '保存',
+      translate: '图片翻译',
+      showOriginal: '显示原文',
+      showTranslation: '显示译文',
+      translating: '翻译中',
+      loginRequired: '请先登录 Pro 账号后再使用图片翻译',
+      translateFailed: '图片翻译失败',
+      invalidData: '无效的截图数据',
+      submitFailed: '图片翻译任务提交失败',
+      queryFailed: '查询图片翻译任务失败',
+      noResultUrl: '服务端未返回翻译图片',
+      timeout: '图片翻译等待超时，请稍后重试',
+      aborted: '图片翻译请求已取消或超时',
+      captureWindowClosed: '截图窗口已关闭',
       cancel: '取消',
       done: '完成',
     },
@@ -110,6 +130,19 @@ const CAPTURE_I18N = {
       color: 'Color',
       size: 'Size',
       save: 'Save',
+      translate: 'Translate',
+      showOriginal: 'Show original',
+      showTranslation: 'Show translation',
+      translating: 'Translating',
+      loginRequired: 'Please sign in to a Pro account to translate images',
+      translateFailed: 'Image translation failed',
+      invalidData: 'Invalid screenshot data',
+      submitFailed: 'Failed to submit image translation task',
+      queryFailed: 'Failed to query image translation task',
+      noResultUrl: 'Server did not return translated image',
+      timeout: 'Image translation timed out, please try again',
+      aborted: 'Image translation request was cancelled or timed out',
+      captureWindowClosed: 'Screenshot window was closed',
       cancel: 'Cancel',
       done: 'Done',
     },
@@ -132,6 +165,7 @@ function applyCaptureLanguage(language) {
   Array.from(document.querySelectorAll('[data-i18n]')).forEach((el) => {
     el.textContent = tCapture(el.dataset.i18n);
   });
+  updateTranslateButtonLabel();
   setCaptureSource(captureSourceBadge?.dataset.captureSource || 'js');
 }
 
@@ -266,6 +300,7 @@ function findWindowRectAt(mx, my) {
 }
 
 function selectWindowRect(rect) {
+  resetTranslationCache();
   selX = rect.x;
   selY = rect.y;
   selW = rect.width;
@@ -368,6 +403,72 @@ function hideToolbar() {
   toolbar.style.display = 'none';
 }
 
+function positionTranslateOverlay() {
+  translateOverlay.style.left = `${selX}px`;
+  translateOverlay.style.top = `${selY}px`;
+  translateOverlay.style.width = `${selW}px`;
+  translateOverlay.style.height = `${selH}px`;
+}
+
+function showTranslateOverlay(message, isError = false) {
+  positionTranslateOverlay();
+  translateMessage.textContent = message;
+  translateOverlay.classList.toggle('is-error', isError);
+  translateOverlay.style.display = 'flex';
+}
+
+function hideTranslateOverlay() {
+  translateOverlay.style.display = 'none';
+  translateOverlay.classList.remove('is-error');
+}
+
+function updateTranslateButtonLabel() {
+  const labelKey = !translationCache
+    ? 'translate'
+    : displayedImageVersion === 'translated'
+      ? 'showOriginal'
+      : 'showTranslation';
+  btnTranslateLabel.textContent = tCapture(labelKey);
+}
+
+function resetTranslationCache() {
+  translationCache = null;
+  displayedImageVersion = 'original';
+  updateTranslateButtonLabel();
+}
+
+function loadImage(src) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error(tCapture('translateFailed')));
+    image.src = src;
+  });
+}
+
+async function renderSelectionImage(dataUrl) {
+  const image = await loadImage(dataUrl);
+  drawCtx.clearRect(selX, selY, selW, selH);
+  drawCtx.drawImage(image, selX, selY, selW, selH);
+  activeTool = 'select';
+  Array.from(document.querySelectorAll('button.tool')).forEach((btn) => {
+    btn.classList.toggle('active', btn.dataset.tool === 'select');
+  });
+  drawMask();
+}
+
+async function toggleCachedTranslation() {
+  if (!translationCache) return false;
+  const nextVersion = displayedImageVersion === 'translated' ? 'original' : 'translated';
+  const nextImage = nextVersion === 'translated'
+    ? translationCache.translatedImage
+    : translationCache.originalImage;
+  await renderSelectionImage(nextImage);
+  displayedImageVersion = nextVersion;
+  updateTranslateButtonLabel();
+  return true;
+}
+
 function setTool(tool) {
   activeTool = tool;
   Array.from(document.querySelectorAll('button.tool')).forEach((btn) => {
@@ -461,6 +562,7 @@ function drawRect(ctx, x1, y1, x2, y2) {
 }
 
 function finishSelection(mx, my) {
+  resetTranslationCache();
   hoverWindowRect = null;
   selX = Math.min(startX, mx);
   selY = Math.min(startY, my);
@@ -536,6 +638,7 @@ function releaseCaptureResources() {
 }
 
 ipcRenderer.on('capture-image', (_e, data) => {
+  resetTranslationCache();
   scaleFactor = data.scaleFactor || 1;
   setCaptureSource(data.captureSource);
   setVisibleWindowRects(data.visibleWindows, data.display);
@@ -578,11 +681,12 @@ ipcRenderer.on('capture-image', (_e, data) => {
 });
 
 tempCanvas.addEventListener('mousedown', (e) => {
-  if (e.button !== 0) return;
+  if (isTranslating || e.button !== 0) return;
   const mx = e.clientX;
   const my = e.clientY;
 
   if (state === STATE.IDLE) {
+    resetTranslationCache();
     pendingWindowClickRect = hoverWindowRect;
     state = STATE.DRAWING;
     startX = mx;
@@ -596,6 +700,7 @@ tempCanvas.addEventListener('mousedown', (e) => {
   if (state === STATE.SELECTED && activeTool === 'select') {
     const handle = hitTestHandle(mx, my);
     if (handle) {
+      resetTranslationCache();
       state = STATE.RESIZING;
       resizeHandle = handle;
       const anchors = {
@@ -610,12 +715,14 @@ tempCanvas.addEventListener('mousedown', (e) => {
       return;
     }
     if (isInsideSelection(mx, my)) {
+      resetTranslationCache();
       state = STATE.MOVING;
       moveOffX = mx - selX;
       moveOffY = my - selY;
       hideToolbar();
       return;
     }
+    resetTranslationCache();
     state = STATE.DRAWING;
     startX = mx;
     startY = my;
@@ -625,6 +732,7 @@ tempCanvas.addEventListener('mousedown', (e) => {
   }
 
   if (state === STATE.SELECTED && activeTool !== 'select' && isInsideSelection(mx, my)) {
+    resetTranslationCache();
     state = STATE.ANNOTATING;
     annotStartX = mx;
     annotStartY = my;
@@ -641,6 +749,7 @@ tempCanvas.addEventListener('mousedown', (e) => {
 });
 
 tempCanvas.addEventListener('mousemove', (e) => {
+  if (isTranslating) return;
   const mx = e.clientX;
   const my = e.clientY;
 
@@ -739,6 +848,7 @@ tempCanvas.addEventListener('mousemove', (e) => {
 });
 
 tempCanvas.addEventListener('mouseup', (e) => {
+  if (isTranslating) return;
   const mx = e.clientX;
   const my = e.clientY;
 
@@ -788,7 +898,7 @@ tempCanvas.addEventListener('mouseup', (e) => {
 
 Array.from(document.querySelectorAll('button.tool')).forEach((btn) => {
   btn.addEventListener('click', () => {
-    if (state !== STATE.SELECTED) return;
+    if (isTranslating || state !== STATE.SELECTED) return;
     setTool(btn.dataset.tool || 'select');
   });
 });
@@ -798,12 +908,71 @@ sizePicker.addEventListener('change', () => { drawingSize = Number(sizePicker.va
 
 btnUndo.addEventListener('click', () => {
   if (state !== STATE.SELECTED) return;
+  resetTranslationCache();
   undoLast();
 });
 
 document.getElementById('btnCopy').addEventListener('click', () => {
   const dataURL = cropSelectionWithAnnotations();
   if (dataURL) ipcRenderer.send('capture-complete', { dataURL });
+});
+
+btnTranslate.addEventListener('click', async () => {
+  if (isTranslating || state !== STATE.SELECTED) return;
+
+  if (translationCache) {
+    isTranslating = true;
+    try {
+      await toggleCachedTranslation();
+    } finally {
+      isTranslating = false;
+    }
+    return;
+  }
+
+  const originalImage = cropSelectionWithAnnotations();
+  if (!originalImage) return;
+
+  isTranslating = true;
+  hideToolbar();
+  sizeInfo.style.display = 'none';
+  showTranslateOverlay(tCapture('translating'));
+
+  try {
+    const token = await ipcRenderer.invoke('store:read', 'user-account-token');
+    if (typeof token !== 'string' || !token.trim()) {
+      throw new Error(tCapture('loginRequired'));
+    }
+    const result = await ipcRenderer.invoke('capture-translate', {
+      dataURL: originalImage,
+      token,
+      targetLanguage: captureLanguage === 'en-US' ? 'en' : 'zh',
+    });
+    if (!result?.success || !result.translatedImage) {
+      const errorCode = result?.code;
+      const fallbackMsg = errorCode && tCapture(errorCode) !== errorCode
+        ? tCapture(errorCode)
+        : tCapture('translateFailed');
+      throw new Error(result?.message || fallbackMsg);
+    }
+    pushHistory();
+    await renderSelectionImage(result.translatedImage);
+    translationCache = {
+      originalImage,
+      translatedImage: result.translatedImage,
+    };
+    displayedImageVersion = 'translated';
+    updateTranslateButtonLabel();
+    hideTranslateOverlay();
+  } catch (error) {
+    showTranslateOverlay(error instanceof Error ? error.message : tCapture('translateFailed'), true);
+    await new Promise((resolve) => window.setTimeout(resolve, 2200));
+    hideTranslateOverlay();
+  } finally {
+    isTranslating = false;
+    showToolbar();
+    updateSizeInfo(selX, selY);
+  }
 });
 
 document.getElementById('btnSave').addEventListener('click', () => {
@@ -826,15 +995,24 @@ document.addEventListener('keydown', (e) => {
     return;
   }
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
-    if (state === STATE.SELECTED) undoLast();
+    if (state === STATE.SELECTED) {
+      resetTranslationCache();
+      undoLast();
+    }
   }
 });
 
 window.addEventListener('resize', () => {
   initCanvases();
   if (state !== STATE.IDLE) {
-    showToolbar();
-    updateSizeInfo(selX, selY);
+    if (isTranslating) {
+      hideToolbar();
+      positionTranslateOverlay();
+      sizeInfo.style.display = 'none';
+    } else {
+      showToolbar();
+      updateSizeInfo(selX, selY);
+    }
   } else {
     sizeInfo.style.display = 'none';
     hideToolbar();

@@ -27,6 +27,7 @@
 import { useRef, useState, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AiSettingsPageDots } from './AiSettingsPageDots';
+import { SettingsPageNavigationToggle } from '../SettingsPageNavigation';
 import type { AiSettingsPageKey } from '../../utils/settingsConfig';
 import { SvgIcon } from '../../../../../../../utils/SvgIcon';
 import { getOllamaModels, detectOllamaBaseUrl } from '../../../../../../../api/ai/ollamaLocalAgent';
@@ -79,6 +80,7 @@ export function AiSettingsSection({
   isProUser,
 }: AiSettingsSectionProps): ReactElement {
   const { t } = useTranslation();
+  const [pageNavigationExpanded, setPageNavigationExpanded] = useState(false);
   const SettingsField = SettingsFieldComponent;
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [avatarUploadError, setAvatarUploadError] = useState<string>('');
@@ -515,12 +517,17 @@ export function AiSettingsSection({
       <div className="max-expand-settings-title settings-app-title-line">
         <span>{t('settings.labels.ai', { defaultValue: 'AI Agent' })}</span>
         <span className="settings-app-title-sub">- {currentAiSettingsPageLabel}</span>
+        <SettingsPageNavigationToggle
+          expanded={pageNavigationExpanded}
+          label={t(pageNavigationExpanded ? 'settings.navigation.collapse' : 'settings.navigation.expand')}
+          onToggle={() => setPageNavigationExpanded((current) => !current)}
+        />
       </div>
       <div className="settings-app-pages-layout">
         <div className="settings-app-page-main">{renderCurrentPage()}</div>
-
         <AiSettingsPageDots
           aiSettingsPage={aiSettingsPage}
+          expanded={pageNavigationExpanded}
           aiSettingsPages={aiSettingsPages}
           settingsTabLabels={aiSettingsPageLabels}
           setAiSettingsPage={setAiSettingsPage}

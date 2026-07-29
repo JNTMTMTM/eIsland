@@ -20,22 +20,24 @@
 
 /**
  * @file AppSettingsPageDots.tsx
- * @description 设置页面 - 软件设置分页圆点组件
+ * @description 设置页面 - 软件设置分页导航组件
  * @author 鸡哥
  */
 
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
+import { SettingsPageNavigation } from '../../SettingsPageNavigation';
 import type { AppSettingsPageKey } from '../../../utils/settingsConfig';
 
 /**
- * 软件设置分页圆点组件属性
+ * 软件设置分页导航组件属性
  */
 export interface AppSettingsPageDotsProps {
   /**
    * 当前激活的软件设置分页
    */
   appSettingsPage: AppSettingsPageKey;
+  expanded: boolean;
   /**
    * 可用的软件设置分页列表
    */
@@ -51,15 +53,16 @@ export interface AppSettingsPageDotsProps {
 }
 
 /**
- * 渲染软件设置分页切换圆点
+ * 渲染软件设置分页标签导航
  * @param appSettingsPage - 当前激活的软件设置分页
  * @param appSettingsPages - 可用的软件设置分页列表
  * @param settingsTabLabels - 分页与展示文案映射
  * @param setAppSettingsPage - 切换软件设置分页的方法
- * @returns 软件设置分页圆点区域
+ * @returns 软件设置分页标签导航区域
  */
 export function AppSettingsPageDots({
   appSettingsPage,
+  expanded,
   appSettingsPages,
   settingsTabLabels,
   setAppSettingsPage,
@@ -67,18 +70,13 @@ export function AppSettingsPageDots({
   const { t } = useTranslation();
 
   return (
-    <div className="settings-app-page-dots" aria-label={t('settings.app.pagination', { defaultValue: '软件设置分页' })}>
-      {appSettingsPages.map((page) => (
-        <button
-          key={page}
-          className={`settings-app-page-dot ${appSettingsPage === page ? 'active' : ''}`}
-          data-label={settingsTabLabels[page]}
-          type="button"
-          onClick={() => setAppSettingsPage(page)}
-          title={settingsTabLabels[page]}
-          aria-label={settingsTabLabels[page]}
-        />
-      ))}
-    </div>
+    <SettingsPageNavigation
+      activePage={appSettingsPage}
+      expanded={expanded}
+      pages={appSettingsPages}
+      pageLabels={settingsTabLabels}
+      navigationLabel={t('settings.app.pagination')}
+      onSelectPage={setAppSettingsPage}
+    />
   );
 }

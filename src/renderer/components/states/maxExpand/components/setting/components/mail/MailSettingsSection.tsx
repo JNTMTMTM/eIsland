@@ -25,9 +25,10 @@
  */
 
 import { useState } from 'react';
-import type { ReactElement, WheelEvent } from 'react';
+import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { MailSettingsPageKey } from '../../utils/settingsConfig';
+import { SettingsPageNavigation, SettingsPageNavigationToggle } from '../SettingsPageNavigation';
 
 interface MailProviderPreset {
   labelKey: string;
@@ -98,6 +99,7 @@ export function MailSettingsSection({
 }: MailSettingsSectionProps): ReactElement {
   const { t } = useTranslation();
   const [presetOpen, setPresetOpen] = useState(false);
+  const [pageNavigationExpanded, setPageNavigationExpanded] = useState(false);
 
   const activeAccount = mailAccounts.find((a) => a.id === activeMailAccountId) || mailAccounts[0] || null;
 
@@ -130,16 +132,6 @@ export function MailSettingsSection({
     setPresetOpen(false);
   };
 
-  const handleDotsWheel = (e: WheelEvent<HTMLDivElement>): void => {
-    e.stopPropagation();
-    const currentIndex = mailSettingsPages.indexOf(mailSettingsPage);
-    if (currentIndex < 0) return;
-    const nextIndex = e.deltaY > 0 ? Math.min(currentIndex + 1, mailSettingsPages.length - 1) : Math.max(currentIndex - 1, 0);
-    if (nextIndex === currentIndex) return;
-    e.preventDefault();
-    setMailSettingsPage(mailSettingsPages[nextIndex]);
-  };
-
   const displayName = (a: MailAccountConfig): string => a.label || a.emailAddress || t('settings.mail.accounts.unnamed', { defaultValue: '未命名账户' });
 
   return (
@@ -147,10 +139,17 @@ export function MailSettingsSection({
       <div className="max-expand-settings-title settings-app-title-line">
         <span>{t('settings.labels.mail', { defaultValue: '邮箱配置' })}</span>
         <span className="settings-app-title-sub">- {currentMailSettingsPageLabel}</span>
+        <SettingsPageNavigationToggle
+          expanded={pageNavigationExpanded}
+          label={t(pageNavigationExpanded ? 'settings.navigation.collapse' : 'settings.navigation.expand')}
+          onToggle={() => setPageNavigationExpanded((current) => !current)}
+        />
       </div>
 
-      {/* 账户标签页 */}
-      <div className="settings-mail-account-tabs">
+      <div className="settings-app-pages-layout settings-mail-pages-layout">
+        <div className="settings-mail-pages-main">
+          {/* 账户标签页 */}
+          <div className="settings-mail-account-tabs">
         {mailAccounts.map((account) => (
           <div key={account.id} className={`settings-mail-account-tab ${account.id === (activeAccount?.id ?? '') ? 'active' : ''}`}>
             <button type="button" className="settings-mail-account-tab-btn" onClick={() => setActiveMailAccountId(account.id)} title={displayName(account)}>
@@ -164,11 +163,10 @@ export function MailSettingsSection({
         {mailAccounts.length < MAX_MAIL_ACCOUNTS && (
           <button type="button" className="settings-mail-account-tab-add" onClick={addAccount} title={t('settings.mail.accounts.add', { defaultValue: '添加账户' })} aria-label={t('settings.mail.accounts.add', { defaultValue: '添加账户' })}>+</button>
         )}
-      </div>
+          </div>
 
-      {activeAccount ? (
-        <div className="settings-app-pages-layout settings-mail-pages-layout">
-          <div className="settings-app-page-main">
+          {activeAccount ? (
+            <div className="settings-app-page-main">
             {mailSettingsPage === 'account' && (
               <div className="settings-cards">
                 <div className="settings-card">
@@ -278,30 +276,24 @@ export function MailSettingsSection({
             )}
 
           </div>
-
-          <div
-            className="settings-app-page-dots"
-            aria-label={t('settings.mail.pagination', { defaultValue: '邮箱配置分页' })}
-            onWheel={handleDotsWheel}
-          >
-            {mailSettingsPages.map((page) => (
-              <button
-                key={page}
-                className={`settings-app-page-dot ${mailSettingsPage === page ? 'active' : ''}`}
-                data-label={mailSettingsPageLabels[page]}
-                type="button"
-                onClick={() => setMailSettingsPage(page)}
-                title={mailSettingsPageLabels[page]}
-                aria-label={mailSettingsPageLabels[page]}
-              />
-            ))}
+        ) : (
+          <div className="settings-mail-empty-accounts">
+            <span>{t('settings.mail.accounts.empty', { defaultValue: '暂无账户，请点击上方 + 添加邮箱账户' })}</span>
           </div>
+        )}
         </div>
-      ) : (
-        <div className="settings-mail-empty-accounts">
-          <span>{t('settings.mail.accounts.empty', { defaultValue: '暂无账户，请点击上方 + 添加邮箱账户' })}</span>
-        </div>
-      )}
+
+        {activeAccount && (
+          <SettingsPageNavigation
+            activePage={mailSettingsPage}
+            expanded={pageNavigationExpanded}
+            pages={mailSettingsPages}
+            pageLabels={mailSettingsPageLabels}
+            navigationLabel={t('settings.mail.pagination')}
+            onSelectPage={setMailSettingsPage}
+          />
+        )}
+      </div>
     </div>
   );
 }
