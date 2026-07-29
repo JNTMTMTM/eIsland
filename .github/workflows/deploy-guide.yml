@@ -1,0 +1,66 @@
+name: eisland CI Deploy Guide
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'web/eisland-web-guide/**'
+      - '.github/workflows/deploy-guide.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-guide
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: web/eisland-web-guide/package-lock.json
+
+      - name: Install dependencies
+        working-directory: web/eisland-web-guide
+        run: npm ci
+
+      - name: Build guide
+        working-directory: web/eisland-web-guide
+        run: npm run build
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: guide-dist
+          path: web/eisland-web-guide/.vitepress/dist
+          retention-days: 1
+
+  deploy-server:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: guide-dist
+          path: dist
+
+      - name: Deploy via rsync
+        uses: burnett01/rsync-deployments@796cf0d5e4b535745ce49d7429f77cf39e25ef39
+        with:
+          switches: -avzr --delete --no-owner --no-group --no-perms --chmod=Du=rwx,Dg=rx,Do=rx,Fu=rw,Fg=r,Fo=r
+          path: dist/
+          remote_path: ${{ secrets.DEPLOY_PATH_GUIDE }}
+          remote_host: ${{ secrets.DEPLOY_HOST }}
+          remote_port: ${{ secrets.DEPLOY_PORT }}
+          remote_user: ${{ secrets.DEPLOY_USER }}
+          remote_key: ${{ secrets.DEPLOY_SSH_KEY }}
