@@ -1295,6 +1295,7 @@
 
 .settings-page-navigation-menu::-webkit-scrollbar {
   width: 3px;
+  height: 3px;
 }
 
 .settings-page-navigation-menu::-webkit-scrollbar-thumb {
