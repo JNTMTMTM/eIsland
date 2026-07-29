@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-07-28T10:13:43.231Z
+> 生成时间：2026-07-29T08:25:02.001Z
 
 ## 26.6.5
 
@@ -2946,6 +2946,31 @@
 
 ## Unreleased
 
+- 2026-07-29 | 10507d8c | 鸡哥 | Merge pull request #174 from JNTMTMTM/dev
+- 2026-07-29 | ae8f32f1 | 鸡哥 | style: add licensing information and author details to multiple files
+- 2026-07-29 | dd64ccd1 | 鸡哥 | style: enhance error handling and localization for image translation process
+- 2026-07-29 | 74bf2be4 | 鸡哥 | style: update oauth label for clarity in settings
+- 2026-07-29 | 5283d7e9 | 鸡哥 | style: refactor MailSettingsSection layout for improved structure and responsiveness
+- 2026-07-29 | 1f168767 | 鸡哥 | style: add height to scrollbar for settings page navigation menu
+- 2026-07-29 | 16a50a04 | 鸡哥 | style: swap icon states for navigation toggle and simplify hover styles for consistency
+- 2026-07-29 | 8399bec3 | 鸡哥 | style: enhance settings page navigation menu layout for improved responsiveness
+- 2026-07-29 | 04bc35b6 | 鸡哥 | style: update network settings section layout and scrollbar styles for consistency
+- 2026-07-29 | ff83378e | 鸡哥 | style: reduce gap size in settings layout for improved spacing consistency
+- 2026-07-29 | afa6d66c | 鸡哥 | style: adjust user profile layout and padding for improved responsiveness
+- 2026-07-29 | 1c284a91 | 鸡哥 | feat: implement navigation toggle for settings pages and refactor pagination components
+- 2026-07-29 | b8c62de6 | 鸡哥 | feat: add translation button icon and SVG asset for improved UI
+- 2026-07-29 | 80cd2fd5 | 鸡哥 | style: update layout and spinner size in capture UI; improve translation messages
+- 2026-07-29 | 1ad15293 | 鸡哥 | feat: enhance translation button functionality and update UI labels
+- 2026-07-29 | 8915f233 | 鸡哥 | refactor: remove image translation feature
+- 2026-07-29 | d24ee3ec | 鸡哥 | feat: update CaptureTranslatePanel for improved image comparison and UI adjustments
+- 2026-07-29 | f9cd42b5 | 鸡哥 | feat: add image translation feature with dynamic island integration
+- 2026-07-29 | 3cb3769d | 鸡哥 | feat: add localization support and create English index page
+- 2026-07-29 | a8012cf8 | 鸡哥 | feat: add styles for DocSearch button in custom.css
+- 2026-07-29 | 47a16a5a | 鸡哥 | feat: add appearance setting for dark mode in VitePress config
+- 2026-07-29 | 6f8b9cb4 | 鸡哥 | feat: add WaveBackground component and integrate into home layout
+- 2026-07-29 | 7806d9bb | 鸡哥 | feat: implement video player in home layout and update styles
+- 2026-07-29 | 21184057 | 鸡哥 | Add new assets for the web guide
+- 2026-07-28 | e6990f81 | eislandBot | docs: auto update CHANGE_LOG.md for #173 by @JNTMTMTM [skip ci]
 - 2026-07-28 | 1c66f9bb | 鸡哥 | Merge pull request #173 from JNTMTMTM/dev
 - 2026-07-28 | 22614628 | 鸡哥 | fix: correct grammar in cli state description for clarity
 - 2026-07-28 | 7f60837b | 鸡哥 | feat: enhance CLI provider initialization and fallback logic in tests
