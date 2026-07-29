@@ -50,6 +50,12 @@ export interface ImageTranslationHistoryPage {
   totalPages: number;
 }
 
+/**
+ * 删除指定的图片翻译记录
+ * @param token - 用户认证令牌
+ * @param taskId - 要删除的翻译任务 ID
+ * @returns 删除结果
+ */
 export function deleteImageTranslationHistory(
   token: string,
   taskId: string,
@@ -60,6 +66,13 @@ export function deleteImageTranslationHistory(
   });
 }
 
+/**
+ * 获取图片翻译历史记录（分页）
+ * @param token - 用户认证令牌
+ * @param page - 页码，默认 1
+ * @param pageSize - 每页数量，默认 5，最大 100
+ * @returns 分页的历史记录
+ */
 export function fetchImageTranslationHistory(
   token: string,
   page = 1,
