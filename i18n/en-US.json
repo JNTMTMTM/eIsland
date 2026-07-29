@@ -3270,7 +3270,7 @@
         "recharge": "Recharge",
         "orders": "My Orders",
         "account": "Account",
-        "oauth": "Third-party App Binding",
+        "oauth": "Third-party App",
         "switchTo": "Switch to {{label}}"
       },
       "oauth": {
