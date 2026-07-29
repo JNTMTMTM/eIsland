@@ -146,8 +146,10 @@ export function MailSettingsSection({
         />
       </div>
 
-      {/* 账户标签页 */}
-      <div className="settings-mail-account-tabs">
+      <div className="settings-app-pages-layout settings-mail-pages-layout">
+        <div className="settings-mail-pages-main">
+          {/* 账户标签页 */}
+          <div className="settings-mail-account-tabs">
         {mailAccounts.map((account) => (
           <div key={account.id} className={`settings-mail-account-tab ${account.id === (activeAccount?.id ?? '') ? 'active' : ''}`}>
             <button type="button" className="settings-mail-account-tab-btn" onClick={() => setActiveMailAccountId(account.id)} title={displayName(account)}>
@@ -161,11 +163,10 @@ export function MailSettingsSection({
         {mailAccounts.length < MAX_MAIL_ACCOUNTS && (
           <button type="button" className="settings-mail-account-tab-add" onClick={addAccount} title={t('settings.mail.accounts.add', { defaultValue: '添加账户' })} aria-label={t('settings.mail.accounts.add', { defaultValue: '添加账户' })}>+</button>
         )}
-      </div>
+          </div>
 
-      {activeAccount ? (
-        <div className="settings-app-pages-layout settings-mail-pages-layout">
-          <div className="settings-app-page-main">
+          {activeAccount ? (
+            <div className="settings-app-page-main">
             {mailSettingsPage === 'account' && (
               <div className="settings-cards">
                 <div className="settings-card">
@@ -275,7 +276,14 @@ export function MailSettingsSection({
             )}
 
           </div>
+        ) : (
+          <div className="settings-mail-empty-accounts">
+            <span>{t('settings.mail.accounts.empty', { defaultValue: '暂无账户，请点击上方 + 添加邮箱账户' })}</span>
+          </div>
+        )}
+        </div>
 
+        {activeAccount && (
           <SettingsPageNavigation
             activePage={mailSettingsPage}
             expanded={pageNavigationExpanded}
@@ -284,12 +292,8 @@ export function MailSettingsSection({
             navigationLabel={t('settings.mail.pagination')}
             onSelectPage={setMailSettingsPage}
           />
-        </div>
-      ) : (
-        <div className="settings-mail-empty-accounts">
-          <span>{t('settings.mail.accounts.empty', { defaultValue: '暂无账户，请点击上方 + 添加邮箱账户' })}</span>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
