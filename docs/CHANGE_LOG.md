@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-07-29T09:02:26.569Z
+> 生成时间：2026-07-29T14:53:54.109Z
 
 ## 26.6.5
 
@@ -2946,6 +2946,24 @@
 
 ## Unreleased
 
+- 2026-07-29 | 16ba7623 | 鸡哥 | Merge pull request #176 from JNTMTMTM/dev
+- 2026-07-29 | 75b162c8 | 鸡哥 | feat: enhance user settings with image translation status labels and refactor preview handling
+- 2026-07-29 | 26ba0829 | 鸡哥 | feat: add documentation for image translation history functions
+- 2026-07-29 | 76b76915 | 鸡哥 | feat: implement image translation removal functionality with user feedback
+- 2026-07-29 | 6d13756c | 鸡哥 | feat: enhance user image translation actions with improved disabled button styles
+- 2026-07-29 | e52852d3 | 鸡哥 | feat: add download actions for image translation in user settings
+- 2026-07-29 | 9f8d2847 | 鸡哥 | feat: enhance image translation preview with drag functionality and cursor updates
+- 2026-07-29 | f9936976 | 鸡哥 | feat: add zoom functionality for image translation preview in user settings
+- 2026-07-29 | cd17f2cc | 鸡哥 | feat: add image preview functionality for translation history in user settings
+- 2026-07-29 | 8e5c936a | 鸡哥 | feat: implement pagination for image translation history in user settings
+- 2026-07-29 | 0ada8d71 | 鸡哥 | feat: add language icons for image translation in user settings
+- 2026-07-29 | bc9046bb | 鸡哥 | refactor: remove refresh button and related translations from image translation settings
+- 2026-07-29 | ba360b5b | 鸡哥 | feat: add language connector for image translation in user settings
+- 2026-07-29 | 698c736d | 鸡哥 | style: update padding and gap for user image translation item
+- 2026-07-29 | f170438f | 鸡哥 | feat: add image translation history feature to user settings
+- 2026-07-29 | 64ee686b | 鸡哥 | feat: add image translation page to user settings
+- 2026-07-29 | adc53808 | 鸡哥 | fix: add TypeScript configuration file for eisland-web-guide
+- 2026-07-29 | a976441c | eislandBot | docs: auto update CHANGE_LOG.md for #175 by @JNTMTMTM [skip ci]
 - 2026-07-29 | 11778ee7 | 鸡哥 | Merge pull request #175 from JNTMTMTM/dev
 - 2026-07-29 | c8fb3794 | 鸡哥 | fix: add permissions section to CI deploy guide
 - 2026-07-29 | 95b0058e | 鸡哥 | feat: add CI workflow for Markdown link checking
