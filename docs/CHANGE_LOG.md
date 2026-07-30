@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-07-29T14:53:54.109Z
+> 生成时间：2026-07-30T14:31:14.400Z
 
 ## 26.6.5
 
@@ -2946,6 +2946,12 @@
 
 ## Unreleased
 
+- 2026-07-30 | c24249bf | 鸡哥 | Merge pull request #177 from JNTMTMTM/dev
+- 2026-07-30 | cb4d5926 | 鸡哥 | feat: enhance accessibility by adding aria-labels to toolbar buttons and updating SVG icons
+- 2026-07-30 | 90b66328 | 鸡哥 | feat: enhance translation button with label for improved accessibility
+- 2026-07-30 | 0885fd3d | 鸡哥 | feat: update capture toolbar with new SVG icons and improve accessibility att
+- 2026-07-30 | ceffae87 | 鸡哥 | feat: add new SVG icons for MOSAIC, PAINTBRUSH, RECTANGLE, SLSECTION, and S_LINE
+- 2026-07-29 | fde41c90 | eislandBot | docs: auto update CHANGE_LOG.md for #176 by @JNTMTMTM [skip ci]
 - 2026-07-29 | 16ba7623 | 鸡哥 | Merge pull request #176 from JNTMTMTM/dev
 - 2026-07-29 | 75b162c8 | 鸡哥 | feat: enhance user settings with image translation status labels and refactor preview handling
 - 2026-07-29 | 26ba0829 | 鸡哥 | feat: add documentation for image translation history functions
