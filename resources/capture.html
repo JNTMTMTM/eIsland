@@ -40,12 +40,24 @@
 
 <div class="capture-toolbar" id="toolbar">
   <span class="capture-source-badge" id="captureSourceBadge" data-capture-source="js">使用js</span>
-  <button class="tool active" data-tool="select" data-i18n="select">选区</button>
-  <button class="tool" data-tool="mosaic" data-i18n="mosaic">马赛克</button>
-  <button class="tool" data-tool="line" data-i18n="line">直线</button>
-  <button class="tool" data-tool="rect" data-i18n="rect">矩形</button>
-  <button class="tool" data-tool="pen" data-i18n="pen">画笔</button>
-  <button class="capture-btn-undo" id="btnUndo" data-i18n="undo">撤销</button>
+  <button class="tool active" data-tool="select" data-i18n-title="select" data-i18n-aria-label="select" title="选区" aria-label="选区">
+    <img class="capture-btn-icon" src="./svg/SELECT.svg" alt="" aria-hidden="true">
+  </button>
+  <button class="tool" data-tool="mosaic" data-i18n-title="mosaic" data-i18n-aria-label="mosaic" title="马赛克" aria-label="马赛克">
+    <img class="capture-btn-icon" src="./svg/MOSAIC.svg" alt="" aria-hidden="true">
+  </button>
+  <button class="tool" data-tool="line" data-i18n-title="line" data-i18n-aria-label="line" title="直线" aria-label="直线">
+    <img class="capture-btn-icon" src="./svg/LINE.svg" alt="" aria-hidden="true">
+  </button>
+  <button class="tool" data-tool="rect" data-i18n-title="rect" data-i18n-aria-label="rect" title="矩形" aria-label="矩形">
+    <img class="capture-btn-icon" src="./svg/RECTANGLE.svg" alt="" aria-hidden="true">
+  </button>
+  <button class="tool" data-tool="pen" data-i18n-title="pen" data-i18n-aria-label="pen" title="画笔" aria-label="画笔">
+    <img class="capture-btn-icon" src="./svg/PAINTBRUSH.svg" alt="" aria-hidden="true">
+  </button>
+  <button class="capture-btn-undo" id="btnUndo" data-i18n-title="undo" data-i18n-aria-label="undo" title="撤销" aria-label="撤销">
+    <img class="capture-btn-icon" src="./svg/UNDO.svg" alt="" aria-hidden="true">
+  </button>
 
   <div class="sep"></div>
   <span class="label" data-i18n="color">颜色</span>
@@ -64,17 +76,14 @@
     <img class="capture-btn-icon" src="./svg/TRANSLATION.svg" alt="" aria-hidden="true">
     <span id="btnTranslateLabel" data-i18n="translate">图片翻译</span>
   </button>
-  <button id="btnSave">
+  <button id="btnSave" data-i18n-title="save" data-i18n-aria-label="save" title="保存" aria-label="保存">
     <img class="capture-btn-icon" src="./svg/SAVE.svg" alt="" aria-hidden="true">
-    <span data-i18n="save">保存</span>
   </button>
-  <button class="danger" id="btnCancel">
+  <button class="danger" id="btnCancel" data-i18n-title="cancel" data-i18n-aria-label="cancel" title="取消" aria-label="取消">
     <img class="capture-btn-icon" src="./svg/CANCEL.svg" alt="" aria-hidden="true">
-    <span data-i18n="cancel">取消</span>
   </button>
-  <button class="primary" id="btnCopy">
+  <button class="primary" id="btnCopy" data-i18n-title="done" data-i18n-aria-label="done" title="完成" aria-label="完成">
     <img class="capture-btn-icon" src="./svg/FINISH.svg" alt="" aria-hidden="true">
-    <span data-i18n="done">完成</span>
   </button>
 </div>
 

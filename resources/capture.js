@@ -165,6 +165,12 @@ function applyCaptureLanguage(language) {
   Array.from(document.querySelectorAll('[data-i18n]')).forEach((el) => {
     el.textContent = tCapture(el.dataset.i18n);
   });
+  Array.from(document.querySelectorAll('[data-i18n-title]')).forEach((el) => {
+    el.title = tCapture(el.dataset.i18nTitle);
+  });
+  Array.from(document.querySelectorAll('[data-i18n-aria-label]')).forEach((el) => {
+    el.setAttribute('aria-label', tCapture(el.dataset.i18nAriaLabel));
+  });
   updateTranslateButtonLabel();
   setCaptureSource(captureSourceBadge?.dataset.captureSource || 'js');
 }
