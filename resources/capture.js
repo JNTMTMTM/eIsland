@@ -42,7 +42,6 @@ const colorPicker = document.getElementById('colorPicker');
 const sizePicker = document.getElementById('sizePicker');
 const btnUndo = document.getElementById('btnUndo');
 const btnTranslate = document.getElementById('btnTranslate');
-const btnTranslateLabel = document.getElementById('btnTranslateLabel');
 const translateOverlay = document.getElementById('translateOverlay');
 const translateMessage = document.getElementById('translateMessage');
 
@@ -164,6 +163,9 @@ function applyCaptureLanguage(language) {
   document.documentElement.lang = captureLanguage;
   Array.from(document.querySelectorAll('[data-i18n]')).forEach((el) => {
     el.textContent = tCapture(el.dataset.i18n);
+  });
+  Array.from(document.querySelectorAll('[data-i18n-title]')).forEach((el) => {
+    el.title = tCapture(el.dataset.i18nTitle);
   });
   updateTranslateButtonLabel();
   setCaptureSource(captureSourceBadge?.dataset.captureSource || 'js');
@@ -428,7 +430,7 @@ function updateTranslateButtonLabel() {
     : displayedImageVersion === 'translated'
       ? 'showOriginal'
       : 'showTranslation';
-  btnTranslateLabel.textContent = tCapture(labelKey);
+  btnTranslate.title = tCapture(labelKey);
 }
 
 function resetTranslationCache() {
