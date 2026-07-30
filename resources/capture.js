@@ -42,6 +42,7 @@ const colorPicker = document.getElementById('colorPicker');
 const sizePicker = document.getElementById('sizePicker');
 const btnUndo = document.getElementById('btnUndo');
 const btnTranslate = document.getElementById('btnTranslate');
+const btnTranslateLabel = document.getElementById('btnTranslateLabel');
 const translateOverlay = document.getElementById('translateOverlay');
 const translateMessage = document.getElementById('translateMessage');
 
@@ -430,7 +431,7 @@ function updateTranslateButtonLabel() {
     : displayedImageVersion === 'translated'
       ? 'showOriginal'
       : 'showTranslation';
-  btnTranslate.title = tCapture(labelKey);
+  btnTranslateLabel.textContent = tCapture(labelKey);
 }
 
 function resetTranslationCache() {
