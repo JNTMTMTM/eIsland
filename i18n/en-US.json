@@ -2737,8 +2737,10 @@
     "shortcut": {
       "pages": {
         "window": "Window Control",
-        "agent": "Agent Shortcuts",
+        "display": "Display Mode",
+        "agent": "AI Agent",
         "capture": "Capture",
+        "clipboard": "Clipboard",
         "media": "Media Control"
       },
       "common": {

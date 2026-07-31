@@ -2737,9 +2737,11 @@
     "shortcut": {
       "pages": {
         "window": "窗口控制",
-        "agent": "Agent 快捷键",
+        "display": "显示模式",
+        "agent": "AI",
         "capture": "截图",
-        "media": "音乐控制"
+        "clipboard": "剪贴板",
+        "media": "媒体控制"
       },
       "common": {
         "recordingValue": "请按下快捷键组合…",

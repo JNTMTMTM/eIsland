@@ -261,13 +261,15 @@ export function ShortcutSettingsSection(props: ShortcutSettingsSectionProps): Re
     setToggleShapeModeHotkey,
   } = props;
 
-  type ShortcutSettingsPageKey = 'window' | 'agent' | 'capture' | 'media';
-  const pages: ShortcutSettingsPageKey[] = ['window', 'agent', 'capture', 'media'];
+  type ShortcutSettingsPageKey = 'window' | 'display' | 'agent' | 'capture' | 'clipboard' | 'media';
+  const pages: ShortcutSettingsPageKey[] = ['window', 'display', 'agent', 'capture', 'clipboard', 'media'];
   const pageLabels: Record<ShortcutSettingsPageKey, string> = {
     window: t('settings.shortcut.pages.window', { defaultValue: '窗口控制' }),
-    agent: t('settings.shortcut.pages.agent', { defaultValue: 'Agent 快捷键' }),
+    display: t('settings.shortcut.pages.display', { defaultValue: '显示模式' }),
+    agent: t('settings.shortcut.pages.agent', { defaultValue: 'AI' }),
     capture: t('settings.shortcut.pages.capture', { defaultValue: '截图' }),
-    media: t('settings.shortcut.pages.media', { defaultValue: '音乐控制' }),
+    clipboard: t('settings.shortcut.pages.clipboard', { defaultValue: '剪贴板' }),
+    media: t('settings.shortcut.pages.media', { defaultValue: '媒体控制' }),
   };
   const recordingValue = t('settings.shortcut.common.recordingValue', { defaultValue: '请按下快捷键组合…' });
   const notSetValue = t('settings.shortcut.common.notSetValue', { defaultValue: '未设置' });
@@ -295,7 +297,7 @@ export function ShortcutSettingsSection(props: ShortcutSettingsSectionProps): Re
               <div className="settings-card">
                 <div className="settings-card-header">
                   <div className="settings-card-title">{t('settings.shortcut.window.toggleIsland.title', { defaultValue: '隐藏/显示快捷键' })}</div>
-                  <div className="settings-card-subtitle">{t('settings.shortcut.window.toggleIsland.hint', { defaultValue: '点击“修改”后按下组合键（如 Alt+X、Ctrl+Shift+H）' })}</div>
+                  <div className="settings-card-subtitle">{t('settings.shortcut.window.toggleIsland.hint', { defaultValue: '点击"修改"后按下组合键（如 Alt+X、Ctrl+Shift+H）' })}</div>
                 </div>
                 <div className="settings-hotkey-row">
                   <input
@@ -393,39 +395,6 @@ export function ShortcutSettingsSection(props: ShortcutSettingsSectionProps): Re
 
               <div className="settings-card">
                 <div className="settings-card-header">
-                  <div className="settings-card-title">{t('settings.shortcut.window.toggleTray.title', { defaultValue: '隐藏/显示托盘图标快捷键' })}</div>
-                  <div className="settings-card-subtitle">{t('settings.shortcut.window.toggleTray.hint', { defaultValue: '按下此快捷键将隐藏或显示系统托盘中的灵动岛图标' })}</div>
-                </div>
-                <div className="settings-hotkey-row">
-                  <input
-                    ref={toggleTrayHotkeyInputRef}
-                    className={`settings-hotkey-input ${toggleTrayHotkeyRecording ? 'recording' : ''}${toggleTrayHotkeyError ? ' error' : ''}`}
-                    type="text"
-                    readOnly
-                    value={toggleTrayHotkeyRecording ? recordingValue : (toggleTrayHotkey || notSetValue)}
-                    onFocus={() => { setToggleTrayHotkeyRecording(true); setToggleTrayHotkeyError(''); window.api.hotkeySuspend().catch(() => {}); }}
-                    onBlur={() => { setToggleTrayHotkeyRecording(false); window.api.hotkeyResume().catch(() => {}); }}
-                    onKeyDown={handleToggleTrayHotkeyKeyDown}
-                  />
-                  <button className="settings-hotkey-btn" type="button" onClick={() => { setToggleTrayHotkeyRecording(true); toggleTrayHotkeyInputRef.current?.focus(); }}>{toggleTrayHotkeyRecording ? recordingBtn : editBtn}</button>
-                  {toggleTrayHotkey && (
-                    <button className="settings-hotkey-btn" type="button" onClick={() => {
-                      window.api.toggleTrayHotkeySet('').then((ok) => {
-                        if (ok) {
-                          setToggleTrayHotkey('');
-                          setToggleTrayHotkeyError('');
-                          setToggleTrayHotkeyRecording(false);
-                          toggleTrayHotkeyInputRef.current?.blur();
-                        }
-                      }).catch(() => {});
-                    }}>{clearBtn}</button>
-                  )}
-                </div>
-                {toggleTrayHotkeyError && <div className="settings-hotkey-error">{toggleTrayHotkeyError}</div>}
-              </div>
-
-              <div className="settings-card">
-                <div className="settings-card-header">
                   <div className="settings-card-title">{t('settings.shortcut.window.showConfig.title', { defaultValue: '显示配置窗口快捷键' })}</div>
                   <div className="settings-card-subtitle">{t('settings.shortcut.window.showConfig.hint', { defaultValue: '仅在独立窗口模式下生效：按下后将打开独立配置窗口并切换到设置页' })}</div>
                 </div>
@@ -457,37 +426,42 @@ export function ShortcutSettingsSection(props: ShortcutSettingsSectionProps): Re
                 {showSettingsWindowHotkeyError && <div className="settings-hotkey-error">{showSettingsWindowHotkeyError}</div>}
               </div>
 
+            </div>
+          )}
+
+          {shortcutPage === 'display' && (
+            <div className="settings-cards">
               <div className="settings-card">
                 <div className="settings-card-header">
-                  <div className="settings-card-title">{t('settings.shortcut.window.openClipboardHistory.title', { defaultValue: '打开剪贴板历史快捷键' })}</div>
-                  <div className="settings-card-subtitle">{t('settings.shortcut.window.openClipboardHistory.hint', { defaultValue: '按下后将打开灵动岛并直接切换到剪贴板历史界面' })}</div>
+                  <div className="settings-card-title">{t('settings.shortcut.window.toggleTray.title', { defaultValue: '隐藏/显示托盘图标快捷键' })}</div>
+                  <div className="settings-card-subtitle">{t('settings.shortcut.window.toggleTray.hint', { defaultValue: '按下此快捷键将隐藏或显示系统托盘中的灵动岛图标' })}</div>
                 </div>
                 <div className="settings-hotkey-row">
                   <input
-                    ref={openClipboardHistoryHotkeyInputRef}
-                    className={`settings-hotkey-input ${openClipboardHistoryHotkeyRecording ? 'recording' : ''}${openClipboardHistoryHotkeyError ? ' error' : ''}`}
+                    ref={toggleTrayHotkeyInputRef}
+                    className={`settings-hotkey-input ${toggleTrayHotkeyRecording ? 'recording' : ''}${toggleTrayHotkeyError ? ' error' : ''}`}
                     type="text"
                     readOnly
-                    value={openClipboardHistoryHotkeyRecording ? recordingValue : (openClipboardHistoryHotkey || notSetValue)}
-                    onFocus={() => { setOpenClipboardHistoryHotkeyRecording(true); setOpenClipboardHistoryHotkeyError(''); window.api.hotkeySuspend().catch(() => {}); }}
-                    onBlur={() => { setOpenClipboardHistoryHotkeyRecording(false); window.api.hotkeyResume().catch(() => {}); }}
-                    onKeyDown={handleOpenClipboardHistoryHotkeyKeyDown}
+                    value={toggleTrayHotkeyRecording ? recordingValue : (toggleTrayHotkey || notSetValue)}
+                    onFocus={() => { setToggleTrayHotkeyRecording(true); setToggleTrayHotkeyError(''); window.api.hotkeySuspend().catch(() => {}); }}
+                    onBlur={() => { setToggleTrayHotkeyRecording(false); window.api.hotkeyResume().catch(() => {}); }}
+                    onKeyDown={handleToggleTrayHotkeyKeyDown}
                   />
-                  <button className="settings-hotkey-btn" type="button" onClick={() => { setOpenClipboardHistoryHotkeyRecording(true); openClipboardHistoryHotkeyInputRef.current?.focus(); }}>{openClipboardHistoryHotkeyRecording ? recordingBtn : editBtn}</button>
-                  {openClipboardHistoryHotkey && (
+                  <button className="settings-hotkey-btn" type="button" onClick={() => { setToggleTrayHotkeyRecording(true); toggleTrayHotkeyInputRef.current?.focus(); }}>{toggleTrayHotkeyRecording ? recordingBtn : editBtn}</button>
+                  {toggleTrayHotkey && (
                     <button className="settings-hotkey-btn" type="button" onClick={() => {
-                      window.api.openClipboardHistoryHotkeySet('').then((ok) => {
+                      window.api.toggleTrayHotkeySet('').then((ok) => {
                         if (ok) {
-                          setOpenClipboardHistoryHotkey('');
-                          setOpenClipboardHistoryHotkeyError('');
-                          setOpenClipboardHistoryHotkeyRecording(false);
-                          openClipboardHistoryHotkeyInputRef.current?.blur();
+                          setToggleTrayHotkey('');
+                          setToggleTrayHotkeyError('');
+                          setToggleTrayHotkeyRecording(false);
+                          toggleTrayHotkeyInputRef.current?.blur();
                         }
                       }).catch(() => {});
                     }}>{clearBtn}</button>
                   )}
                 </div>
-                {openClipboardHistoryHotkeyError && <div className="settings-hotkey-error">{openClipboardHistoryHotkeyError}</div>}
+                {toggleTrayHotkeyError && <div className="settings-hotkey-error">{toggleTrayHotkeyError}</div>}
               </div>
 
               <div className="settings-card">
@@ -662,6 +636,43 @@ export function ShortcutSettingsSection(props: ShortcutSettingsSectionProps): Re
                   )}
                 </div>
                 {screenshotHotkeyError && <div className="settings-hotkey-error">{screenshotHotkeyError}</div>}
+              </div>
+            </div>
+          )}
+
+          {shortcutPage === 'clipboard' && (
+            <div className="settings-cards">
+              <div className="settings-card">
+                <div className="settings-card-header">
+                  <div className="settings-card-title">{t('settings.shortcut.window.openClipboardHistory.title', { defaultValue: '打开剪贴板历史快捷键' })}</div>
+                  <div className="settings-card-subtitle">{t('settings.shortcut.window.openClipboardHistory.hint', { defaultValue: '按下后将打开灵动岛并直接切换到剪贴板历史界面' })}</div>
+                </div>
+                <div className="settings-hotkey-row">
+                  <input
+                    ref={openClipboardHistoryHotkeyInputRef}
+                    className={`settings-hotkey-input ${openClipboardHistoryHotkeyRecording ? 'recording' : ''}${openClipboardHistoryHotkeyError ? ' error' : ''}`}
+                    type="text"
+                    readOnly
+                    value={openClipboardHistoryHotkeyRecording ? recordingValue : (openClipboardHistoryHotkey || notSetValue)}
+                    onFocus={() => { setOpenClipboardHistoryHotkeyRecording(true); setOpenClipboardHistoryHotkeyError(''); window.api.hotkeySuspend().catch(() => {}); }}
+                    onBlur={() => { setOpenClipboardHistoryHotkeyRecording(false); window.api.hotkeyResume().catch(() => {}); }}
+                    onKeyDown={handleOpenClipboardHistoryHotkeyKeyDown}
+                  />
+                  <button className="settings-hotkey-btn" type="button" onClick={() => { setOpenClipboardHistoryHotkeyRecording(true); openClipboardHistoryHotkeyInputRef.current?.focus(); }}>{openClipboardHistoryHotkeyRecording ? recordingBtn : editBtn}</button>
+                  {openClipboardHistoryHotkey && (
+                    <button className="settings-hotkey-btn" type="button" onClick={() => {
+                      window.api.openClipboardHistoryHotkeySet('').then((ok) => {
+                        if (ok) {
+                          setOpenClipboardHistoryHotkey('');
+                          setOpenClipboardHistoryHotkeyError('');
+                          setOpenClipboardHistoryHotkeyRecording(false);
+                          openClipboardHistoryHotkeyInputRef.current?.blur();
+                        }
+                      }).catch(() => {});
+                    }}>{clearBtn}</button>
+                  )}
+                </div>
+                {openClipboardHistoryHotkeyError && <div className="settings-hotkey-error">{openClipboardHistoryHotkeyError}</div>}
               </div>
             </div>
           )}
