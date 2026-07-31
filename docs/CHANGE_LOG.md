@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-07-31T09:41:29.235Z
+> 生成时间：2026-07-31T17:19:16.463Z
 
 ## 26.6.5
 
@@ -2946,6 +2946,17 @@
 
 ## Unreleased
 
+- 2026-08-01 | af73da12 | 鸡哥 | Merge pull request #181 from JNTMTMTM/dev
+- 2026-08-01 | 6cecd81d | 鸡哥 | fix: update markdown link check to allow non-strict validation
+- 2026-08-01 | c17ed102 | 鸡哥 | feat: add pagination label for network settings in English and Chinese translations
+- 2026-08-01 | 1e3cadba | 鸡哥 | Merge pull request #180 from silenthim18303/dev
+- 2026-08-01 | e4f7446e | 鸡哥 | feat: add network settings page integration with settings tab and searchable settings
+- 2026-07-31 | c928b1a7 | 鸡哥 | feat: update shortcut settings to include display mode and clipboard options
+- 2026-07-31 | 589285a5 | 鸡哥 | feat: update network settings section to include data center options
+- 2026-07-31 | b911643d | 鸡哥 | Merge commit 'acd186d29055c2996e1eb0177d7ee491de187f4d' into dev
+- 2026-07-31 | 61106dae | 鸡哥 | feat: add network settings page with timeout and data center options
+- 2026-07-31 | 02089141 | silenthim | 更新了文档站
+- 2026-07-31 | acd186d2 | eislandBot | docs: auto update CHANGE_LOG.md for #178 by @JNTMTMTM [skip ci]
 - 2026-07-31 | 98c76951 | 鸡哥 | Merge pull request #178 from JNTMTMTM/dev
 - 2026-07-31 | 7c413d47 | 鸡哥 | feat: enhance image translation by adding source language support
 - 2026-07-31 | bb6b27f9 | 鸡哥 | feat: add translation settings for screenshot feature in both en-US and zh-CN locales
