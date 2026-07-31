@@ -2047,6 +2047,10 @@
       "lyrics": "歌词源",
       "smtc": "SMTC"
     },
+    "networkPages": {
+      "timeout": "请求超时",
+      "data-center": "数据中心"
+    },
     "index": {
       "title": "快速导航",
       "reset": "恢复默认",
@@ -2601,7 +2605,8 @@
         "hint": "所有用户默认使用 R2，可选择 R2/COS/OSS。",
         "proOnlyHint": "当前账户不可用",
         "proHint": "可切换 COS/OSS 节点（也可继续使用 R2）。"
-      }
+      },
+      "pagination": "网络配置分页"
     },
     "weather": {
       "locationPriority": {
@@ -2733,9 +2738,11 @@
     "shortcut": {
       "pages": {
         "window": "窗口控制",
-        "agent": "Agent 快捷键",
+        "display": "显示模式",
+        "agent": "AI",
         "capture": "截图",
-        "media": "音乐控制"
+        "clipboard": "剪贴板",
+        "media": "媒体控制"
       },
       "common": {
         "recordingValue": "请按下快捷键组合…",

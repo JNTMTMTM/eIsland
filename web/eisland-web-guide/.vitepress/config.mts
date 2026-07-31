@@ -43,7 +43,23 @@ export default defineConfig({
       themeConfig: {
         nav: [
           { text: '首页', link: '/' },
+          { text: '使用指南', link: '/guide/getting-started' },
         ],
+        sidebar: {
+          '/guide/': [
+            {
+              text: '使用指南',
+              items: [
+                { text: '快速开始', link: '/guide/getting-started' },
+                { text: '搜索技能', link: '/guide/search' },
+                { text: '音乐歌词显示', link: '/guide/lyrics' },
+                { text: '语音助手', link: '/guide/voice' },
+                { text: '快捷键设置', link: '/guide/keys' },
+                { text: '透明度设置', link: '/guide/transparency' },
+              ],
+            },
+          ],
+        },
         outline: {
           level: [2, 3],
           label: '页面导航',
@@ -68,7 +84,23 @@ export default defineConfig({
       themeConfig: {
         nav: [
           { text: 'Home', link: '/en/' },
+          { text: 'Guide', link: '/en/guide/getting-started' },
         ],
+        sidebar: {
+          '/en/guide/': [
+            {
+              text: 'User Guide',
+              items: [
+                { text: 'Getting Started', link: '/en/guide/getting-started' },
+                { text: 'Search', link: '/en/guide/search' },
+                { text: 'Synced Lyrics', link: '/en/guide/lyrics' },
+                { text: 'Voice Assistant', link: '/en/guide/voice' },
+                { text: 'Keyboard Shortcuts', link: '/en/guide/keys' },
+                { text: 'Transparency', link: '/en/guide/transparency' },
+              ],
+            },
+          ],
+        },
         outline: {
           level: [2, 3],
           label: 'On this page',
@@ -89,7 +121,6 @@ export default defineConfig({
 
   themeConfig: {
     logo: '/favicon.svg',
-    sidebar: {},
     socialLinks: [
       { icon: 'github', link: 'https://github.com/JNTMTMTM/eIsland' },
     ],

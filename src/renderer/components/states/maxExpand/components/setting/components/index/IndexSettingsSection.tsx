@@ -26,7 +26,7 @@
 
 import { useState, useMemo, type MutableRefObject, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
-import { SEARCHABLE_SETTINGS, SETTINGS_TAB_ICONS, type SearchableSettingItem, type AppSettingsPageKey, type MusicSettingsPageKey, type AiSettingsPageKey, type SettingsSidebarTabKey } from '../../utils/settingsConfig';
+import { SEARCHABLE_SETTINGS, SETTINGS_TAB_ICONS, type SearchableSettingItem, type AppSettingsPageKey, type MusicSettingsPageKey, type AiSettingsPageKey, type NetworkSettingsPageKey, type SettingsSidebarTabKey } from '../../utils/settingsConfig';
 
 interface IndexNavCard {
   id: string;
@@ -56,6 +56,7 @@ interface IndexSettingsSectionProps {
   setAppSettingsPage: (page: AppSettingsPageKey) => void;
   setMusicSettingsPage: (page: MusicSettingsPageKey) => void;
   setAiSettingsPage?: (page: AiSettingsPageKey) => void;
+  setNetworkSettingsPage?: (page: NetworkSettingsPageKey) => void;
   setActiveTab: (tab: SettingsSidebarTabKey) => void;
   onAction?: (actionId: string) => void;
 }
@@ -82,6 +83,7 @@ export function IndexSettingsSection({
   setAppSettingsPage,
   setMusicSettingsPage,
   setAiSettingsPage,
+  setNetworkSettingsPage,
   setActiveTab,
   onAction,
 }: IndexSettingsSectionProps): ReactElement {
@@ -99,6 +101,7 @@ export function IndexSettingsSection({
     if (item.appPage) return SETTINGS_TAB_ICONS[item.appPage];
     if (item.musicPage) return SETTINGS_TAB_ICONS[`music-${item.musicPage}` as keyof typeof SETTINGS_TAB_ICONS] ?? SETTINGS_TAB_ICONS.music;
     if (item.aiPage) return SETTINGS_TAB_ICONS.ai;
+    if (item.networkPage) return SETTINGS_TAB_ICONS.network;
     return SETTINGS_TAB_ICONS[item.tab as keyof typeof SETTINGS_TAB_ICONS];
   };
 
@@ -170,6 +173,9 @@ export function IndexSettingsSection({
                         } else if (item.aiPage && setAiSettingsPage) {
                           setAiSettingsPage(item.aiPage);
                           setActiveTab('ai');
+                        } else if (item.networkPage && setNetworkSettingsPage) {
+                          setNetworkSettingsPage(item.networkPage);
+                          setActiveTab('network');
                         } else {
                           setActiveTab(item.tab);
                         }

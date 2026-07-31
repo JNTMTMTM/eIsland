@@ -2047,6 +2047,10 @@
       "lyrics": "Lyrics",
       "smtc": "SMTC"
     },
+    "networkPages": {
+      "timeout": "Timeout",
+      "data-center": "Data Center"
+    },
     "index": {
       "title": "Quick Navigation",
       "reset": "Reset",
@@ -2601,7 +2605,8 @@
         "hint": "All users default to R2, and can choose R2/COS/OSS.",
         "proOnlyHint": "Unavailable for current account",
         "proHint": "You can switch COS/OSS nodes (or keep using R2)."
-      }
+      },
+      "pagination": "Network settings pagination"
     },
     "weather": {
       "locationPriority": {
@@ -2733,8 +2738,10 @@
     "shortcut": {
       "pages": {
         "window": "Window Control",
-        "agent": "Agent Shortcuts",
+        "display": "Display Mode",
+        "agent": "AI Agent",
         "capture": "Capture",
+        "clipboard": "Clipboard",
         "media": "Media Control"
       },
       "common": {
