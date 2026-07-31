@@ -45,6 +45,7 @@ import { SoundSettingsPage } from './components/SoundSettingsPage';
 import { NotificationSettingsPage } from './components/NotificationSettingsPage';
 import { PerformanceSettingsPage } from './components/PerformanceSettingsPage';
 import { PerformanceMonitorSettingsPage } from './components/PerformanceMonitorSettingsPage';
+import { ScreenshotSettingsPage } from './components/ScreenshotSettingsPage';
 import { AppSettingsPageDots } from './components/AppSettingsPageDots';
 import { SettingsPageNavigationToggle } from '../SettingsPageNavigation';
 import type { AppSettingsSectionProps } from './components/types';
@@ -336,6 +337,8 @@ export function AppSettingsSection({
         return <PerformanceSettingsPage />;
       case 'performance-monitor':
         return <PerformanceMonitorSettingsPage />;
+      case 'screenshot-settings':
+        return <ScreenshotSettingsPage />;
       default:
         return null;
     }

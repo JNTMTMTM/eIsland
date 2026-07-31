@@ -133,6 +133,7 @@ async function downloadAsDataUrl(url: string, signal: AbortSignal): Promise<stri
 export async function translateCaptureImage(
   token: string,
   dataUrl: string,
+  sourceLanguage: string,
   targetLanguage: string,
   signal: AbortSignal,
 ): Promise<CaptureTranslationResult> {
@@ -142,8 +143,8 @@ export async function translateCaptureImage(
   try {
     const formData = new FormData();
     formData.append('file', dataUrlToBlob(dataUrl), 'capture-translate.png');
-    formData.append('sourceLanguage', 'auto');
-    formData.append('targetLanguage', targetLanguage === 'en' ? 'en' : 'zh');
+    formData.append('sourceLanguage', sourceLanguage || 'auto');
+    formData.append('targetLanguage', targetLanguage || 'zh');
 
     const submitted = await parseApiResponse(await requestWithTimeout(
       `${API_BASE}/v1/toolbox/image-translations`,
