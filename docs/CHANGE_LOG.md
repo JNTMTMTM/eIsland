@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-07-30T14:31:14.400Z
+> 生成时间：2026-07-31T09:41:29.235Z
 
 ## 26.6.5
 
@@ -2946,6 +2946,11 @@
 
 ## Unreleased
 
+- 2026-07-31 | 98c76951 | 鸡哥 | Merge pull request #178 from JNTMTMTM/dev
+- 2026-07-31 | 7c413d47 | 鸡哥 | feat: enhance image translation by adding source language support
+- 2026-07-31 | bb6b27f9 | 鸡哥 | feat: add translation settings for screenshot feature in both en-US and zh-CN locales
+- 2026-07-31 | af460d10 | 鸡哥 | feat: add screenshot settings page and update related configurations
+- 2026-07-30 | a6d8f9f7 | eislandBot | docs: auto update CHANGE_LOG.md for #177 by @JNTMTMTM [skip ci]
 - 2026-07-30 | c24249bf | 鸡哥 | Merge pull request #177 from JNTMTMTM/dev
 - 2026-07-30 | cb4d5926 | 鸡哥 | feat: enhance accessibility by adding aria-labels to toolbar buttons and updating SVG icons
 - 2026-07-30 | 90b66328 | 鸡哥 | feat: enhance translation button with label for improved accessibility
