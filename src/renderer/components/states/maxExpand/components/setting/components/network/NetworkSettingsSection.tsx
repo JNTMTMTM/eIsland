@@ -160,6 +160,11 @@ export function NetworkSettingsSection(props: NetworkSettingsSectionProps): Reac
                 </div>
               </div>
 
+            </div>
+          )}
+
+          {networkSettingsPage === 'data-center' && (
+            <div className="settings-cards">
               <div className="settings-card">
                 <div className="settings-card-header">
                   <div className="settings-card-title">{t('settings.network.staticAssetNode.title', { defaultValue: '静态资源节点' })}</div>
@@ -204,13 +209,6 @@ export function NetworkSettingsSection(props: NetworkSettingsSectionProps): Reac
                   )}
                 </div>
               </div>
-
-            </div>
-          )}
-
-          {networkSettingsPage === 'data-center' && (
-            <div className="settings-cards">
-              {/* 数据中心 - 留空 */}
             </div>
           )}
         </div>
