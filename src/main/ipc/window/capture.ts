@@ -87,6 +87,7 @@ export function registerCaptureIpcHandlers(options: RegisterCaptureIpcHandlersOp
   ipcMain.handle('capture-translate', async (event, payload: {
     dataURL: string;
     token: string;
+    sourceLanguage: string;
     targetLanguage: string;
   }) => {
     const captureWindow = options.getCaptureWindow();
@@ -101,7 +102,8 @@ export function registerCaptureIpcHandlers(options: RegisterCaptureIpcHandlersOp
       return await translateCaptureImage(
         typeof payload?.token === 'string' ? payload.token : '',
         typeof payload?.dataURL === 'string' ? payload.dataURL : '',
-        payload?.targetLanguage === 'en' ? 'en' : 'zh',
+        typeof payload?.sourceLanguage === 'string' && payload.sourceLanguage ? payload.sourceLanguage : 'auto',
+        typeof payload?.targetLanguage === 'string' && payload.targetLanguage ? payload.targetLanguage : 'zh',
         controller.signal,
       );
     } finally {

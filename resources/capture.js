@@ -949,10 +949,17 @@ btnTranslate.addEventListener('click', async () => {
     if (typeof token !== 'string' || !token.trim()) {
       throw new Error(tCapture('loginRequired'));
     }
+    const [storedSourceLang, storedTargetLang] = await Promise.all([
+      ipcRenderer.invoke('store:read', 'screenshot-translate-source-lang'),
+      ipcRenderer.invoke('store:read', 'screenshot-translate-target-lang'),
+    ]);
+    const sourceLanguage = typeof storedSourceLang === 'string' && storedSourceLang ? storedSourceLang : 'auto';
+    const targetLanguage = typeof storedTargetLang === 'string' && storedTargetLang ? storedTargetLang : 'en';
     const result = await ipcRenderer.invoke('capture-translate', {
       dataURL: originalImage,
       token,
-      targetLanguage: captureLanguage === 'en-US' ? 'en' : 'zh',
+      sourceLanguage,
+      targetLanguage,
     });
     if (!result?.success || !result.translatedImage) {
       const errorCode = result?.code;
