@@ -424,6 +424,7 @@ export interface SearchableSettingItem {
   appPage?: AppSettingsPageKey;
   musicPage?: MusicSettingsPageKey;
   aiPage?: AiSettingsPageKey;
+  networkPage?: NetworkSettingsPageKey;
 }
 
 export const SEARCHABLE_SETTINGS: SearchableSettingItem[] = [
@@ -432,6 +433,7 @@ export const SEARCHABLE_SETTINGS: SearchableSettingItem[] = [
   { label: '控件组合', desc: '分别选择左右两侧展示的控件，切换后自动保存。', labelKey: 'settings.app.layout.widgetPickerTitle', descKey: 'settings.app.layout.widgetPickerHint', tab: 'app', appPage: 'layout-preview' },
   { label: '中间时钟样式', desc: '选择总览中间时钟区域样式，切换后自动保存。', labelKey: 'settings.app.layout.clockStyleTitle', descKey: 'settings.app.layout.clockStyleHint', tab: 'app', appPage: 'layout-preview' },
   { label: '渐变颜色编辑', desc: '选择一个基准色，自动生成渐变时钟字体。', labelKey: 'settings.app.layout.gradientEditorTitle', descKey: 'settings.app.layout.gradientEditorHint', tab: 'app', appPage: 'layout-preview' },
+  { label: 'Hover 音乐背景样式', desc: '预览并选择 Hover 态歌曲界面的背景波浪效果样式。', labelKey: 'settings.app.layout.musicBgTitle', descKey: 'settings.app.layout.musicBgHint', tab: 'app', appPage: 'layout-preview' },
   // ── 软件设置 > 展开布局 ──
   { label: '展开导航预览', desc: '预览展开态底部导航点顺序，灰色表示已隐藏页面。', labelKey: 'settings.app.expandLayout.previewTitle', descKey: 'settings.app.expandLayout.previewHint', tab: 'app', appPage: 'expand-layout' },
   { label: '页面排序与可见性（展开）', desc: '拖拽调整展开态页面顺序，点击开关切换是否显示。', labelKey: 'settings.app.expandLayout.orderTitle', descKey: 'settings.app.expandLayout.orderHintStatic', tab: 'app', appPage: 'expand-layout' },
@@ -458,9 +460,13 @@ export const SEARCHABLE_SETTINGS: SearchableSettingItem[] = [
   { label: '背景显示效果', desc: '调整背景的透明度与模糊度', labelKey: 'settings.app.theme.effectCardTitle', descKey: 'settings.app.theme.effectCardSubtitle', tab: 'app', appPage: 'theme' },
   { label: '视频播放', desc: '背景视频的填充、声音与播放控制', labelKey: 'settings.app.theme.videoCardTitle', descKey: 'settings.app.theme.videoCardSubtitle', tab: 'app', appPage: 'theme' },
   { label: '灵动岛透明度', desc: '数值越低越透明（10% - 100%）', labelKey: 'settings.app.theme.islandOpacityTitle', descKey: 'settings.app.theme.islandOpacityHint', tab: 'app', appPage: 'theme' },
+  { label: '音乐外光圈特效', desc: '控制歌曲播放时专辑封面外圈的跑马灯/光晕动态效果。', labelKey: 'settings.app.theme.musicOuterGlowTitle', descKey: 'settings.app.theme.musicOuterGlowHint', tab: 'app', appPage: 'theme' },
+  { label: '界面字体', desc: '选择灵动岛界面使用的字体', labelKey: 'settings.app.theme.uiFontTitle', descKey: 'settings.app.theme.uiFontHint', tab: 'app', appPage: 'theme' },
+  { label: '歌词字体', desc: '选择歌词显示使用的字体', labelKey: 'settings.app.theme.lyricsFontTitle', descKey: 'settings.app.theme.lyricsFontHint', tab: 'app', appPage: 'theme' },
   // ── 软件设置 > 语言 ──
   { label: '显示语言', desc: '切换后将立即应用到支持多语言的界面文案', labelKey: 'settings.language.title', descKey: 'settings.language.hint', tab: 'app', appPage: 'language' },
   // ── 软件设置 > 交互行为 ──
+  { label: '岛屿形态', desc: '切换灵动岛的外观形态，刘海屏贴于屏幕顶部，灵动岛为胶囊形状', labelKey: 'settings.app.behavior.shapeModeTitle', descKey: 'settings.app.behavior.shapeModeHint', tab: 'app', appPage: 'behavior' },
   { label: '鼠标移开自动收回', desc: '启用后，鼠标离开灵动岛时将自动回到空闲状态（若正在播放音乐则切到歌词态）', labelKey: 'settings.app.behavior.mouseLeaveTitle', descKey: 'settings.app.behavior.mouseLeaveHint', tab: 'app', appPage: 'behavior' },
   { label: '空闲态点击展开', desc: '启用后，鼠标悬停在灵动岛上不会自动展开，需要点击才能展开，后续交互不受影响', labelKey: 'settings.app.behavior.idleClickExpandTitle', descKey: 'settings.app.behavior.idleClickExpandHint', tab: 'app', appPage: 'behavior' },
   { label: '是否显示启动动画', desc: '开启后每次启动显示启动动画，关闭后不显示', labelKey: 'settings.app.animation.startupAnimationTitle', descKey: 'settings.app.animation.startupAnimationHint', tab: 'app', appPage: 'animation' },
@@ -498,6 +504,9 @@ export const SEARCHABLE_SETTINGS: SearchableSettingItem[] = [
   // ── 软件设置 > 通知设置 ──
   { label: '通知设置', desc: '配置灵动岛通知提醒与展示行为。', labelKey: 'settings.notification.pageTitle', descKey: 'settings.notification.pageHint', tab: 'app', appPage: 'notification' },
   { label: '通知音效', desc: '通知触发时播放一次提示音。', labelKey: 'settings.notification.sound.title', descKey: 'settings.notification.sound.hint', tab: 'app', appPage: 'notification' },
+  { label: 'Agent 启动通知', desc: '检测到桌面 Agent 启动或关闭时弹出灵动岛通知。', labelKey: 'settings.notification.agentNotification.title', descKey: 'settings.notification.agentNotification.hint', tab: 'app', appPage: 'notification' },
+  // ── 软件设置 > 截图设置 ──
+  { label: '截图翻译语言', desc: '配置截图翻译的源语言和目标语言。', labelKey: 'settings.app.screenshotSettings.translateTitle', descKey: 'settings.app.screenshotSettings.translateHint', tab: 'app', appPage: 'screenshot-settings' },
   { label: '性能设置', desc: '性能相关配置。', labelKey: 'settings.app.performance.title', descKey: 'settings.app.performance.hint', tab: 'app', appPage: 'performance' },
   { label: '启用性能模式', desc: '启用后 MaxExpand 首次进入将延迟加载各页面，降低首次切换卡顿；关闭后使用旧版一次性加载方式。', labelKey: 'settings.app.performance.modeTitle', descKey: 'settings.app.performance.modeHint', tab: 'app', appPage: 'performance' },
   { label: '解除帧率限制', desc: '启用后将解除 Chromium 帧率上限，适用于高刷新率显示器。更改后需重启应用生效。', labelKey: 'settings.app.performance.frameRateLimitTitle', descKey: 'settings.app.performance.frameRateLimitHint', tab: 'app', appPage: 'performance' },
@@ -505,9 +514,10 @@ export const SEARCHABLE_SETTINGS: SearchableSettingItem[] = [
   { label: '性能监控', desc: '性能监控展示与硬件状态配置。', labelKey: 'settings.app.performanceMonitor.title', descKey: 'settings.app.performanceMonitor.hint', tab: 'app', appPage: 'performance-monitor' },
   { label: '监控硬件', desc: '选择性能监控图表读取的 CPU、GPU 和磁盘目标。', labelKey: 'settings.app.performanceMonitor.hardwareTitle', descKey: 'settings.app.performanceMonitor.hardwareHint', tab: 'app', appPage: 'performance-monitor' },
   { label: '图表颜色', desc: '调整 Expand 性能监控中 CPU、GPU、内存和磁盘图表颜色。', labelKey: 'settings.app.performanceMonitor.colorsTitle', descKey: 'settings.app.performanceMonitor.colorsHint', tab: 'app', appPage: 'performance-monitor' },
-  // ── 网络配置 ──
-  { label: '请求超时时间', desc: '设置网络请求的最长等待时间，网络较差时可适当增大', labelKey: 'settings.network.timeout.title', descKey: 'settings.network.timeout.hint', tab: 'network' },
-  { label: '静态资源节点', desc: '所有用户默认使用 R2，PRO 用户可选择 R2/COS/OSS。', labelKey: 'settings.network.staticAssetNode.title', descKey: 'settings.network.staticAssetNode.hint', tab: 'network' },
+  // ── 网络配置 > 请求超时 ──
+  { label: '请求超时时间', desc: '设置网络请求的最长等待时间，网络较差时可适当增大', labelKey: 'settings.network.timeout.title', descKey: 'settings.network.timeout.hint', tab: 'network', networkPage: 'timeout' },
+  // ── 网络配置 > 数据中心 ──
+  { label: '静态资源节点', desc: '所有用户默认使用 R2，PRO 用户可选择 R2/COS/OSS。', labelKey: 'settings.network.staticAssetNode.title', descKey: 'settings.network.staticAssetNode.hint', tab: 'network', networkPage: 'data-center' },
   // ── 邮箱配置 ──
   { label: '账户信息', desc: '邮箱地址用于展示与默认发件人信息。', labelKey: 'settings.mail.account.title', descKey: 'settings.mail.account.hint', tab: 'mail' },
   { label: 'IMAP', desc: '用于收信、同步收件箱和文件夹状态。', labelKey: 'settings.mail.imap.title', descKey: 'settings.mail.imap.hint', tab: 'mail' },
@@ -542,6 +552,7 @@ export const SEARCHABLE_SETTINGS: SearchableSettingItem[] = [
   { label: '打开剪贴板历史快捷键', desc: '按下后将打开灵动岛并直接切换到剪贴板历史界面', labelKey: 'settings.shortcut.window.openClipboardHistory.title', descKey: 'settings.shortcut.window.openClipboardHistory.hint', tab: 'shortcut' },
   { label: '切换鼠标穿透快捷键', desc: '按下此快捷键将锁定或解锁鼠标穿透状态，锁定后灵动岛不会拦截鼠标事件', labelKey: 'settings.shortcut.window.togglePassthrough.title', descKey: 'settings.shortcut.window.togglePassthrough.hint', tab: 'shortcut' },
   { label: '切换 UI 状态锁定快捷键', desc: '按下后锁定当前 UI 状态，锁定期间不会因鼠标进入/移出或自动逻辑切换状态，再次按下解锁', labelKey: 'settings.shortcut.window.toggleUiLock.title', descKey: 'settings.shortcut.window.toggleUiLock.hint', tab: 'shortcut' },
+  { label: '切换形态模式快捷键', desc: '按下此快捷键将在刘海屏与灵动岛形态之间快速切换', labelKey: 'settings.shortcut.window.toggleShapeMode.title', descKey: 'settings.shortcut.window.toggleShapeMode.hint', tab: 'shortcut' },
   // ── 快捷键 > AI ──
   { label: 'Agent 语音输入快捷键', desc: '长按此快捷键将触发 Agent 语音输入，释放后自动关闭', labelKey: 'settings.shortcut.window.agentVoiceInput.title', descKey: 'settings.shortcut.window.agentVoiceInput.hint', tab: 'shortcut' },
   // ── 快捷键 > 截图 ──
@@ -553,6 +564,7 @@ export const SEARCHABLE_SETTINGS: SearchableSettingItem[] = [
   { label: '版本信息', desc: '查看当前版本并选择更新源,应用所有补丁包均通过该更新源下载', labelKey: 'settings.update.versionCardTitle', descKey: 'settings.update.versionCardHint', tab: 'update' },
   { label: '检查与安装', desc: '手动触发检查,有新版本时可下载安装;下载完成后点击"安装并重启"应用更新', labelKey: 'settings.update.actionCardTitle', descKey: 'settings.update.actionCardHint', tab: 'update' },
   { label: '更新提示', desc: '控制是否自动提示版本更新和公告展示策略', labelKey: 'settings.update.autoPromptTitle', descKey: 'settings.update.autoPromptHintStatic', tab: 'update' },
+  { label: '引导界面', desc: '重新显示首次启动引导界面', labelKey: 'settings.update.guideCardTitle', descKey: 'settings.update.guideCardHint', tab: 'update' },
   // ── 插件市场 ──
   { label: '壁纸市场', desc: '浏览并应用社区分享的壁纸资源，支持图片和视频壁纸', labelKey: 'settings.pluginMarket.search.wallpaperTitle', descKey: 'settings.pluginMarket.search.wallpaperHint', tab: 'pluginMarket' },
   { label: '壁纸贡献', desc: '上传你的壁纸作品，分享给社区用户', labelKey: 'settings.pluginMarket.search.contributionTitle', descKey: 'settings.pluginMarket.search.contributionHint', tab: 'pluginMarket' },

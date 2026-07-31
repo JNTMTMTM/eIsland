@@ -2297,6 +2297,7 @@ export function SettingsTab(): ReactElement {
               setAppSettingsPage={setAppSettingsPage}
               setMusicSettingsPage={setMusicSettingsPage}
               setAiSettingsPage={setAiSettingsPage}
+              setNetworkSettingsPage={setNetworkSettingsPage}
               setActiveTab={setActiveTab}
               onAction={(actionId) => {
                 if (actionId === 'user-pro') {
