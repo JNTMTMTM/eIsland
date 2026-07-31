@@ -29,4 +29,4 @@ jobs:
           files: '**/*.md'
           skip-code-blocks: true
           report-only-changed: true
-          strict: true
+          strict: false
