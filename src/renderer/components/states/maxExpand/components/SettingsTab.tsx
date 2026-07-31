@@ -71,6 +71,8 @@ import {
   MUSIC_SETTINGS_PAGE_LABELS,
   AI_SETTINGS_PAGES,
   AI_SETTINGS_PAGE_LABELS,
+  NETWORK_SETTINGS_PAGES,
+  NETWORK_SETTINGS_PAGE_LABELS,
   NAV_CARDS,
   DEFAULT_NAV_ORDER,
   NAV_CARDS_MAP,
@@ -79,6 +81,7 @@ import {
   type MailSettingsPageKey,
   type MusicSettingsPageKey,
   type AiSettingsPageKey,
+  type NetworkSettingsPageKey,
   type SettingsTabLabelKey,
   type NavCardDef,
 } from './setting/utils/settingsConfig';
@@ -222,6 +225,7 @@ export function SettingsTab(): ReactElement {
   const [mailSettingsPage, setMailSettingsPage] = useState<MailSettingsPageKey>('account');
   const [musicSettingsPage, setMusicSettingsPage] = useState<MusicSettingsPageKey>('whitelist');
   const [aiSettingsPage, setAiSettingsPage] = useState<AiSettingsPageKey>('general');
+  const [networkSettingsPage, setNetworkSettingsPage] = useState<NetworkSettingsPageKey>('timeout');
   const [userInitialProfilePage, setUserInitialProfilePage] = useState<'info' | 'pro' | 'recharge' | 'orders'>('info');
   const [aboutInitialPage, setAboutInitialPage] = useState<'development' | 'feedback'>('development');
   const [pluginMarketPage, setPluginMarketPage] = useState<PluginMarketPageKey>('wallpaper');
@@ -273,6 +277,7 @@ export function SettingsTab(): ReactElement {
   const currentMailSettingsPageLabel = t(`settings.mailPages.${mailSettingsPage}`, { defaultValue: MAIL_SETTINGS_PAGE_LABELS[mailSettingsPage] || '账户' });
   const currentMusicSettingsPageLabel = t(`settings.musicPages.${musicSettingsPage}`, { defaultValue: MUSIC_SETTINGS_PAGE_LABELS[musicSettingsPage] || '白名单' });
   const currentAiSettingsPageLabel = t(`settings.aiPages.${aiSettingsPage}`, { defaultValue: AI_SETTINGS_PAGE_LABELS[aiSettingsPage] || '通用配置' });
+  const currentNetworkSettingsPageLabel = t(`settings.networkPages.${networkSettingsPage}`, { defaultValue: NETWORK_SETTINGS_PAGE_LABELS[networkSettingsPage] || '请求超时' });
   const pluginMarketPageLabels: Record<PluginMarketPageKey, string> = {
     wallpaper: t('settings.pluginMarket.pages.wallpaper', { defaultValue: '壁纸' }),
     contribution: t('settings.pluginMarket.pages.contribution', { defaultValue: '贡献' }),
@@ -291,6 +296,11 @@ export function SettingsTab(): ReactElement {
   const translatedWeatherSettingsPageLabels = useMemo<Record<WeatherSettingsPageKey, string>>(() => ({
     location: t('settings.weatherPages.location', { defaultValue: WEATHER_SETTINGS_PAGE_LABELS.location }),
     provider: t('settings.weatherPages.provider', { defaultValue: WEATHER_SETTINGS_PAGE_LABELS.provider }),
+  }), [t]);
+
+  const translatedNetworkSettingsPageLabels = useMemo<Record<NetworkSettingsPageKey, string>>(() => ({
+    timeout: t('settings.networkPages.timeout', { defaultValue: NETWORK_SETTINGS_PAGE_LABELS.timeout }),
+    'data-center': t('settings.networkPages.data-center', { defaultValue: NETWORK_SETTINGS_PAGE_LABELS['data-center'] }),
   }), [t]);
 
   const translatedMailSettingsPageLabels = useMemo<Record<MailSettingsPageKey, string>>(() => ({
@@ -2427,6 +2437,11 @@ export function SettingsTab(): ReactElement {
               setCustomTimeoutInput={setCustomTimeoutInput}
               setStaticAssetNode={setStaticAssetNode}
               saveNetworkConfig={saveNetworkConfig}
+              currentNetworkSettingsPageLabel={currentNetworkSettingsPageLabel}
+              networkSettingsPage={networkSettingsPage}
+              networkSettingsPages={NETWORK_SETTINGS_PAGES}
+              networkSettingsPageLabels={translatedNetworkSettingsPageLabels}
+              setNetworkSettingsPage={setNetworkSettingsPage}
             />
           )}
 

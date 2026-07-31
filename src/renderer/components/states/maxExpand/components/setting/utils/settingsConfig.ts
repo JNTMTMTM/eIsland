@@ -59,6 +59,7 @@ export type MailSettingsPageKey = 'account' | 'imap' | 'preferences';
 export type AiSettingsPageKey = 'general' | 'r1pxc' | 'ollama';
 export type MusicSettingsPageKey = 'whitelist' | 'lyrics' | 'smtc';
 export type MusicNavCardKey = 'music-whitelist' | 'music-lyrics' | 'music-smtc';
+export type NetworkSettingsPageKey = 'timeout' | 'data-center';
 export type SettingsTabLabelKey = SettingsSidebarTabKey | AppSettingsPageKey | AiSettingsPageKey | MusicNavCardKey;
 
 export const SETTINGS_TAB_LABELS: Record<SettingsTabLabelKey, string> = {
@@ -350,6 +351,11 @@ export const AI_SETTINGS_PAGE_LABELS: Record<AiSettingsPageKey, string> = {
   general: '通用配置',
   r1pxc: 'r1pxc Agent',
   ollama: 'Ollama 本地',
+};
+export const NETWORK_SETTINGS_PAGES: NetworkSettingsPageKey[] = ['timeout', 'data-center'];
+export const NETWORK_SETTINGS_PAGE_LABELS: Record<NetworkSettingsPageKey, string> = {
+  timeout: '请求超时',
+  'data-center': '数据中心',
 };
 export const MUSIC_SETTINGS_PAGES: MusicSettingsPageKey[] = ['whitelist', 'lyrics', 'smtc'];
 export const MUSIC_SETTINGS_PAGE_LABELS: Record<MusicSettingsPageKey, string> = {

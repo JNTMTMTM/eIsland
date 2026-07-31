@@ -2047,6 +2047,10 @@
       "lyrics": "歌词源",
       "smtc": "SMTC"
     },
+    "networkPages": {
+      "timeout": "请求超时",
+      "data-center": "数据中心"
+    },
     "index": {
       "title": "快速导航",
       "reset": "恢复默认",

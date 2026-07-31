@@ -2047,6 +2047,10 @@
       "lyrics": "Lyrics",
       "smtc": "SMTC"
     },
+    "networkPages": {
+      "timeout": "Timeout",
+      "data-center": "Data Center"
+    },
     "index": {
       "title": "Quick Navigation",
       "reset": "Reset",
