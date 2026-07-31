@@ -53,7 +53,7 @@ export const WEATHER_LOCATION_PRIORITY_OPTIONS: Array<{ value: WeatherLocationPr
 
 export const SETTINGS_TABS = ['index', 'app', 'network', 'mail', 'weather', 'music', 'ai', 'shortcut', 'user', 'update', 'pluginMarket', 'about'] as const;
 export type SettingsSidebarTabKey = (typeof SETTINGS_TABS)[number];
-export type AppSettingsPageKey = 'layout-preview' | 'expand-layout' | 'maxexpand-layout' | 'album' | 'hide-process-list' | 'position' | 'theme' | 'language' | 'behavior' | 'animation' | 'url-parser' | 'clipboard-history' | 'alarm' | 'break-reminder' | 'autostart' | 'sound' | 'notification' | 'performance' | 'performance-monitor';
+export type AppSettingsPageKey = 'layout-preview' | 'expand-layout' | 'maxexpand-layout' | 'album' | 'hide-process-list' | 'position' | 'theme' | 'language' | 'behavior' | 'animation' | 'url-parser' | 'clipboard-history' | 'alarm' | 'break-reminder' | 'autostart' | 'sound' | 'notification' | 'performance' | 'performance-monitor' | 'screenshot-settings';
 export type WeatherSettingsPageKey = 'location' | 'provider';
 export type MailSettingsPageKey = 'account' | 'imap' | 'preferences';
 export type AiSettingsPageKey = 'general' | 'r1pxc' | 'ollama';
@@ -83,6 +83,7 @@ export const SETTINGS_TAB_LABELS: Record<SettingsTabLabelKey, string> = {
   notification: '通知设置',
   performance: '性能设置',
   'performance-monitor': '性能监控',
+  'screenshot-settings': '截图设置',
   network: '网络配置',
   mail: '邮箱配置',
   weather: '天气配置',
@@ -122,6 +123,7 @@ export const SETTINGS_TAB_DESCRIPTIONS: Record<Exclude<SettingsTabLabelKey, 'ind
   notification: '配置灵动岛通知提醒与展示行为。',
   performance: '性能相关配置。',
   'performance-monitor': '性能监控展示与硬件状态配置。',
+  'screenshot-settings': '截图相关配置。',
   network: '请求超时与网络行为设置',
   mail: '配置 IMAP 收信参数',
   weather: '天气接口优先级设置',
@@ -172,6 +174,7 @@ export const SETTINGS_TAB_ICONS: Partial<Record<SettingsTabLabelKey, string>> = 
   notification: SvgIcon.NOTIFICATION,
   performance: SvgIcon.TASK_MANAGER,
   'performance-monitor': SvgIcon.TASK_MANAGER,
+  'screenshot-settings': SvgIcon.SCREENSHOT,
   pluginMarket: SvgIcon.PLUGIN,
 };
 
@@ -330,7 +333,7 @@ export function normalizeMaxExpandNavLayoutConfig(raw: unknown): MaxExpandNavLay
   return ordered;
 }
 
-export const APP_SETTINGS_PAGES: AppSettingsPageKey[] = ['layout-preview', 'expand-layout', 'maxexpand-layout', 'album', 'hide-process-list', 'position', 'theme', 'language', 'behavior', 'animation', 'url-parser', 'clipboard-history', 'alarm', 'break-reminder', 'autostart', 'sound', 'notification', 'performance', 'performance-monitor'];
+export const APP_SETTINGS_PAGES: AppSettingsPageKey[] = ['layout-preview', 'expand-layout', 'maxexpand-layout', 'album', 'hide-process-list', 'position', 'theme', 'language', 'behavior', 'animation', 'url-parser', 'clipboard-history', 'alarm', 'break-reminder', 'autostart', 'sound', 'notification', 'performance', 'performance-monitor', 'screenshot-settings'];
 export const WEATHER_SETTINGS_PAGES: WeatherSettingsPageKey[] = ['location', 'provider'];
 export const WEATHER_SETTINGS_PAGE_LABELS: Record<WeatherSettingsPageKey, string> = {
   location: '定位配置',
@@ -389,6 +392,7 @@ export const NAV_CARDS: NavCardDef[] = [
   { id: 'notification', label: SETTINGS_TAB_LABELS.notification, desc: SETTINGS_TAB_DESCRIPTIONS.notification, icon: SETTINGS_TAB_ICONS.notification, tab: 'app', appPage: 'notification' },
   { id: 'performance', label: SETTINGS_TAB_LABELS.performance, desc: SETTINGS_TAB_DESCRIPTIONS.performance, icon: SETTINGS_TAB_ICONS.performance, tab: 'app', appPage: 'performance' },
   { id: 'performance-monitor', label: SETTINGS_TAB_LABELS['performance-monitor'], desc: SETTINGS_TAB_DESCRIPTIONS['performance-monitor'], icon: SETTINGS_TAB_ICONS['performance-monitor'], tab: 'app', appPage: 'performance-monitor' },
+  { id: 'screenshot-settings', label: SETTINGS_TAB_LABELS['screenshot-settings'], desc: SETTINGS_TAB_DESCRIPTIONS['screenshot-settings'], icon: SETTINGS_TAB_ICONS['screenshot-settings'], tab: 'app', appPage: 'screenshot-settings' },
   { id: 'network', label: SETTINGS_TAB_LABELS.network, desc: SETTINGS_TAB_DESCRIPTIONS.network, icon: SETTINGS_TAB_ICONS.network, tab: 'network' },
   { id: 'mail', label: SETTINGS_TAB_LABELS.mail, desc: SETTINGS_TAB_DESCRIPTIONS.mail, icon: SETTINGS_TAB_ICONS.mail, tab: 'mail' },
   { id: 'weather', label: SETTINGS_TAB_LABELS.weather, desc: SETTINGS_TAB_DESCRIPTIONS.weather, icon: SETTINGS_TAB_ICONS.weather, tab: 'weather' },

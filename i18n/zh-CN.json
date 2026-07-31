@@ -1951,6 +1951,7 @@
       "notification": "通知设置",
       "performance": "性能设置",
       "performance-monitor": "性能监控",
+      "screenshot-settings": "截图设置",
       "network": "网络配置",
       "mail": "邮箱配置",
       "weather": "天气配置",
@@ -2111,6 +2112,10 @@
           "memory": "内存",
           "disk": "磁盘"
         }
+      },
+      "screenshotSettings": {
+        "title": "截图设置",
+        "hint": "截图相关配置。"
       },
       "notifications": {
         "configChanged": {
