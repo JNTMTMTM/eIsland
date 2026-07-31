@@ -2115,7 +2115,9 @@
       },
       "screenshotSettings": {
         "title": "截图设置",
-        "hint": "截图相关配置。"
+        "hint": "截图相关配置。",
+        "translateTitle": "截图翻译语言",
+        "translateHint": "配置截图翻译的源语言和目标语言。"
       },
       "notifications": {
         "configChanged": {

@@ -2115,7 +2115,9 @@
       },
       "screenshotSettings": {
         "title": "Screenshot Settings",
-        "hint": "Configure screenshot related settings."
+        "hint": "Configure screenshot related settings.",
+        "translateTitle": "Screenshot Translation Language",
+        "translateHint": "Configure source and target languages for screenshot translation."
       },
       "notifications": {
         "configChanged": {
