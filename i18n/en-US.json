@@ -2605,7 +2605,8 @@
         "hint": "All users default to R2, and can choose R2/COS/OSS.",
         "proOnlyHint": "Unavailable for current account",
         "proHint": "You can switch COS/OSS nodes (or keep using R2)."
-      }
+      },
+      "pagination": "Network settings pagination"
     },
     "weather": {
       "locationPriority": {
