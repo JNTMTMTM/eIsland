@@ -29,7 +29,6 @@ export const ANNOUNCEMENT_KEYS = {
   SUBTITLE: 'announcement.subtitle',
   DEFAULT_TITLE: 'announcement.defaultTitle',
   UPDATED_AT: 'announcement.updatedAt',
-  CLOSE: 'announcement.close',
   LOADING: 'announcement.loading',
   EMPTY: 'announcement.empty',
 } as const;
@@ -39,7 +38,6 @@ export const ANNOUNCEMENT_DEFAULTS = {
   SUBTITLE: '当前已是最新版本，以下为最新公告内容。',
   DEFAULT_TITLE: '系统公告',
   UPDATED_AT: '更新时间：{{time}}',
-  CLOSE: '关闭',
   LOADING: '正在加载公告…',
   EMPTY: '暂无公告内容',
 } as const;

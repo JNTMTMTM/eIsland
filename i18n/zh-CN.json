@@ -472,11 +472,9 @@
   "announcement": {
     "loading": "正在加载公告…",
     "empty": "暂无公告内容",
-    "title": "公告",
     "subtitle": "当前已是最新版本，以下为最新公告内容。",
     "defaultTitle": "系统公告",
-    "updatedAt": "更新时间：{{time}}",
-    "close": "关闭"
+    "updatedAt": "更新时间：{{time}}"
   },
   "notification": {
     "alarm": {

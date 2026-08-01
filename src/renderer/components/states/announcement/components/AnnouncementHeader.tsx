@@ -29,6 +29,7 @@ import { useTranslation } from 'react-i18next';
 import type { AnnouncementData } from '../../../../api/announcement/announcementApi';
 import { formatDatetime } from '../utils/formatDatetime';
 import { ANNOUNCEMENT_KEYS, ANNOUNCEMENT_DEFAULTS } from '../config/announcementDefaults';
+import { SvgIcon } from '../../../../utils/SvgIcon';
 
 interface AnnouncementHeaderProps {
   announcement: AnnouncementData | null;
@@ -56,7 +57,7 @@ export function AnnouncementHeader({ announcement, onClose }: AnnouncementHeader
       </div>
       <div className="announcement-header-actions">
         <button type="button" className="announcement-close-btn" onClick={onClose}>
-          {t(ANNOUNCEMENT_KEYS.CLOSE, { defaultValue: ANNOUNCEMENT_DEFAULTS.CLOSE })}
+          <img src={SvgIcon.CANCEL} alt="" draggable={false} />
         </button>
       </div>
     </div>

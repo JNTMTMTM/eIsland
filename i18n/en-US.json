@@ -472,11 +472,9 @@
   "announcement": {
     "loading": "Loading announcements…",
     "empty": "No announcements",
-    "title": "Announcements",
     "subtitle": "You are on the latest version. Below are the latest announcements.",
     "defaultTitle": "System Announcement",
-    "updatedAt": "Updated: {{time}}",
-    "close": "Close"
+    "updatedAt": "Updated: {{time}}"
   },
   "notification": {
     "alarm": {

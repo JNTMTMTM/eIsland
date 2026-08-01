@@ -83,10 +83,20 @@
   background: rgba(255, 255, 255, 0.08);
   color: var(--color-text);
   border-radius: 10px;
-  padding: 6px 12px;
+  padding: 6px;
   cursor: pointer;
-  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.announcement-close-btn img {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+  filter: brightness(0) invert(var(--icon-invert));
+  opacity: 0.5;
 }
 
 .announcement-close-btn:hover {
