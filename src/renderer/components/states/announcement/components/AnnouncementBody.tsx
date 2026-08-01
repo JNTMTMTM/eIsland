@@ -24,12 +24,23 @@
  * @author 鸡哥
  */
 
-import type { ReactElement } from 'react';
+import { useMemo, useRef, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import DOMPurify from 'dompurify';
 import type { AnnouncementData } from '../../../../api/announcement/announcementApi';
 import { ANNOUNCEMENT_KEYS, ANNOUNCEMENT_DEFAULTS } from '../config/announcementDefaults';
 import { AnnouncementVideo } from './AnnouncementVideo';
+
+/** 从 HTML 内容中提取章节标题 */
+function extractHeadings(html: string): { level: number; text: string }[] {
+  const container = document.createElement('div');
+  container.innerHTML = html;
+  const headings = container.querySelectorAll('h1, h2, h3');
+  return Array.from(headings).map((el) => ({
+    level: Number(el.tagName[1]),
+    text: el.textContent?.trim() || '',
+  })).filter((h) => h.text);
+}
 
 interface AnnouncementBodyProps {
   loading: boolean;
@@ -44,6 +55,25 @@ interface AnnouncementBodyProps {
  */
 export function AnnouncementBody({ loading, announcement, showVideo }: AnnouncementBodyProps): ReactElement {
   const { t } = useTranslation();
+  const bodyRef = useRef<HTMLDivElement>(null);
+
+  const headings = useMemo(() => {
+    if (!announcement?.contentHtml) return [];
+    return extractHeadings(announcement.contentHtml);
+  }, [announcement?.contentHtml]);
+
+  /** 点击章节标题滚动到对应位置 */
+  const handleTocClick = (text: string) => {
+    const body = bodyRef.current;
+    if (!body) return;
+    const els = body.querySelectorAll('h1, h2, h3');
+    for (const el of els) {
+      if (el.textContent?.trim() === text) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        break;
+      }
+    }
+  };
 
   if (loading) {
     return <div className="announcement-empty">{t(ANNOUNCEMENT_KEYS.LOADING, { defaultValue: ANNOUNCEMENT_DEFAULTS.LOADING })}</div>;
@@ -54,14 +84,21 @@ export function AnnouncementBody({ loading, announcement, showVideo }: Announcem
   }
 
   const contentNode = announcement.contentHtml
-    ? <div className="announcement-body" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(announcement.contentHtml) }} />
-    : <div className="announcement-body"><pre>{announcement.content || ''}</pre></div>;
+    ? <div ref={bodyRef} className="announcement-body" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(announcement.contentHtml) }} />
+    : <div ref={bodyRef} className="announcement-body"><pre>{announcement.content || ''}</pre></div>;
 
   if (announcement.bvid) {
     return (
       <div className={`announcement-content-row${showVideo ? ' video-visible' : ''}`}>
         <AnnouncementVideo bvid={announcement.bvid} autoplay={false} showDanmaku={false} aspectRatio={9 / 16} />
         {contentNode}
+        {!showVideo && headings.length > 0 && (
+          <div className="announcement-toc">
+            {headings.map((h, i) => (
+              <div key={i} className={`announcement-toc-item level-${h.level}`} onClick={() => handleTocClick(h.text)}>{h.text}</div>
+            ))}
+          </div>
+        )}
       </div>
     );
   }
