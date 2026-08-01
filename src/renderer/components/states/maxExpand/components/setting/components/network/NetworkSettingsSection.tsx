@@ -99,6 +99,13 @@ export function NetworkSettingsSection(props: NetworkSettingsSectionProps): Reac
 
   const isCustomTimeout = networkTimeoutOptions.every((o) => o.value !== networkTimeoutMs);
 
+  /** 静态资源节点对应的图标映射 */
+  const staticAssetNodeIconMap: Record<string, string> = {
+    'r2': ServiceIcon.CLOUDFLARE,
+    'cos': ServiceIcon.TENCENTCLOUD,
+    'oss': ServiceIcon.ALIBABACLOUD,
+  };
+
   /** 更新源对应的图标映射 */
   const updateSourceIconMap: Record<string, string> = {
     'cloudflare-r2': ServiceIcon.CLOUDFLARE,
@@ -208,6 +215,15 @@ export function NetworkSettingsSection(props: NetworkSettingsSectionProps): Reac
                             saveNetworkConfig({ timeoutMs: networkTimeoutMs, staticAssetNode: opt.value });
                           }}
                         >
+                          {staticAssetNodeIconMap[opt.value] && (
+                            <img
+                              src={staticAssetNodeIconMap[opt.value]}
+                              alt=""
+                              width={16}
+                              height={16}
+                              style={{ flexShrink: 0 }}
+                            />
+                          )}
                           {opt.proOnly && (
                             <span
                               className="settings-weather-provider-pro-badge"
