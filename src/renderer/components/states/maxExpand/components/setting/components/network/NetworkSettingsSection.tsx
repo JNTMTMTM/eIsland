@@ -30,6 +30,7 @@ import { useTranslation } from 'react-i18next';
 import type { NetworkSettingsPageKey } from '../../utils/settingsConfig';
 import type { StaticAssetNode } from '../../../../../../../store/utils/storage';
 import { SvgIcon } from '../../../../../../../utils/SvgIcon';
+import { ServiceIcon } from '../../../../../../../utils/SvgIcon/service-icon';
 import { SettingsPageNavigation, SettingsPageNavigationToggle } from '../SettingsPageNavigation';
 
 interface UpdateSourceOption {
@@ -97,6 +98,15 @@ export function NetworkSettingsSection(props: NetworkSettingsSectionProps): Reac
   };
 
   const isCustomTimeout = networkTimeoutOptions.every((o) => o.value !== networkTimeoutMs);
+
+  /** 更新源对应的图标映射 */
+  const updateSourceIconMap: Record<string, string> = {
+    'cloudflare-r2': ServiceIcon.CLOUDFLARE,
+    'esa-cdn': ServiceIcon.ALIBABACLOUD,
+    'tencent-cos': ServiceIcon.TENCENTCLOUD,
+    'aliyun-oss': ServiceIcon.ALIBABACLOUD,
+    'github': SvgIcon.GITHUB,
+  };
 
   return (
     <div className="max-expand-settings-section">
@@ -246,6 +256,15 @@ export function NetworkSettingsSection(props: NetworkSettingsSectionProps): Reac
                           onChange={() => onUpdateSourceChange(s.key)}
                         />
                         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
+                          {updateSourceIconMap[s.key] ? (
+                            <img
+                              src={updateSourceIconMap[s.key]}
+                              alt=""
+                              width={16}
+                              height={16}
+                              style={{ flexShrink: 0 }}
+                            />
+                          ) : null}
                           {s.proOnly ? (
                             <img
                               src={SvgIcon.VIP}
