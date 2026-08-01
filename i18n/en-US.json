@@ -2610,6 +2610,11 @@
         "proOnlyHint": "Unavailable for current account",
         "proHint": "You can switch COS/OSS nodes (or keep using R2)."
       },
+      "updateSource": {
+        "title": "Update Source",
+        "hint": "Choose the download source for app patches, different sources have varying speeds across regions",
+        "sourceHint": "Cloudflare R2: Global access stable, balanced speed\nESA CDN: ESA global CDN, available for all users\nTencent COS: Usually faster in China\nAliyun OSS: Wide domestic coverage, high peak speed\nGitHub Releases: Stable overseas, may be slow in China"
+      },
       "pagination": "Network settings pagination"
     },
     "weather": {
@@ -2848,7 +2853,8 @@
       "guideCardTitle": "Guide",
       "guideCardHint": "Show the first-launch guide again",
       "guideResetSuccess": "Success! Guide will show on next launch",
-      "guideResetError": "Failed. Please try again later"
+      "guideResetError": "Failed. Please try again later",
+      "pagination": "Update settings pagination"
     },
     "pluginMarket": {
       "pagination": "Wallpaper market pagination",
