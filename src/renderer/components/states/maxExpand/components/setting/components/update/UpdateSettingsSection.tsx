@@ -120,42 +120,7 @@ export function UpdateSettingsSection({
         </div>
       </div>
 
-      {/* 卡片 2:更新提示 */}
-      <div className="settings-card">
-        <div className="settings-card-header">
-          <div className="settings-card-title">{t('settings.update.autoPromptTitle', { defaultValue: '更新提示' })}</div>
-          <div className="settings-card-subtitle">{t('settings.update.autoPromptHintStatic', { defaultValue: '控制是否自动提示版本更新和公告展示策略' })}</div>
-        </div>
-
-        <label className="settings-card-check">
-          <input
-            type="checkbox"
-            checked={updateAutoPromptEnabled}
-            onChange={(e) => onUpdateAutoPromptEnabledChange(e.target.checked)}
-          />
-          <span>{t('settings.update.autoPromptEnabled', { defaultValue: '自动提示版本更新' })}</span>
-        </label>
-        <label className="settings-card-check" style={{ marginTop: 6 }}>
-          <input
-            type="radio"
-            name="announcement-show-mode"
-            checked={announcementShowMode === 'always'}
-            onChange={() => onAnnouncementShowModeChange('always')}
-          />
-          <span>{t('settings.update.announcementShowModeAlways', { defaultValue: '每次都显示公告' })}</span>
-        </label>
-        <label className="settings-card-check" style={{ marginTop: 6 }}>
-          <input
-            type="radio"
-            name="announcement-show-mode"
-            checked={announcementShowMode === 'version-update-only'}
-            onChange={() => onAnnouncementShowModeChange('version-update-only')}
-          />
-          <span>{t('settings.update.announcementShowModeVersionOnly', { defaultValue: '仅版本更新时显示公告' })}</span>
-        </label>
-      </div>
-
-      {/* 卡片 3:检查与下载 */}
+      {/* 卡片 2:检查与下载 */}
       <div className="settings-card">
         <div className="settings-card-header">
           <div className="settings-card-title">{t('settings.update.actionCardTitle', { defaultValue: '检查与安装' })}</div>
@@ -211,7 +176,49 @@ export function UpdateSettingsSection({
         </div>
       </div>
 
-      {/* 卡片 4:引导界面 */}
+    </div>
+  );
+
+  /** 渲染信息同步页 */
+  const renderInfoSyncPage = (): ReactElement => (
+    <div className="settings-cards">
+
+      {/* 卡片 1:更新提示 */}
+      <div className="settings-card">
+        <div className="settings-card-header">
+          <div className="settings-card-title">{t('settings.update.autoPromptTitle', { defaultValue: '更新提示' })}</div>
+          <div className="settings-card-subtitle">{t('settings.update.autoPromptHintStatic', { defaultValue: '控制是否自动提示版本更新和公告展示策略' })}</div>
+        </div>
+
+        <label className="settings-card-check">
+          <input
+            type="checkbox"
+            checked={updateAutoPromptEnabled}
+            onChange={(e) => onUpdateAutoPromptEnabledChange(e.target.checked)}
+          />
+          <span>{t('settings.update.autoPromptEnabled', { defaultValue: '自动提示版本更新' })}</span>
+        </label>
+        <label className="settings-card-check" style={{ marginTop: 6 }}>
+          <input
+            type="radio"
+            name="announcement-show-mode"
+            checked={announcementShowMode === 'always'}
+            onChange={() => onAnnouncementShowModeChange('always')}
+          />
+          <span>{t('settings.update.announcementShowModeAlways', { defaultValue: '每次都显示公告' })}</span>
+        </label>
+        <label className="settings-card-check" style={{ marginTop: 6 }}>
+          <input
+            type="radio"
+            name="announcement-show-mode"
+            checked={announcementShowMode === 'version-update-only'}
+            onChange={() => onAnnouncementShowModeChange('version-update-only')}
+          />
+          <span>{t('settings.update.announcementShowModeVersionOnly', { defaultValue: '仅版本更新时显示公告' })}</span>
+        </label>
+      </div>
+
+      {/* 卡片 2:引导界面 */}
       <div className="settings-card">
         <div className="settings-card-header">
           <div className="settings-card-title">{t('settings.update.guideCardTitle', { defaultValue: '引导界面' })}</div>
@@ -233,13 +240,6 @@ export function UpdateSettingsSection({
         )}
       </div>
 
-    </div>
-  );
-
-  /** 渲染信息同步页 */
-  const renderInfoSyncPage = (): ReactElement => (
-    <div className="settings-cards">
-      {/* 空白分页 - 信息同步 */}
     </div>
   );
 
