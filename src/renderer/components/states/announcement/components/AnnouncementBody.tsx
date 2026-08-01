@@ -24,29 +24,13 @@
  * @author 鸡哥
  */
 
-import { useMemo, useRef, useState, useCallback, useEffect, type ReactElement } from 'react';
+import { type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import DOMPurify from 'dompurify';
-import type { AnnouncementData } from '../../../../api/announcement/announcementApi';
 import { ANNOUNCEMENT_KEYS, ANNOUNCEMENT_DEFAULTS } from '../config/announcementDefaults';
+import { useAnnouncementToc } from '../hooks/useAnnouncementToc';
+import type { AnnouncementBodyProps } from '../types/AnnouncementBody.types';
 import { AnnouncementVideo } from './AnnouncementVideo';
-
-/** 从 HTML 内容中提取章节标题 */
-function extractHeadings(html: string): { level: number; text: string }[] {
-  const container = document.createElement('div');
-  container.innerHTML = html;
-  const headings = container.querySelectorAll('h1, h2, h3');
-  return Array.from(headings).map((el) => ({
-    level: Number(el.tagName[1]),
-    text: el.textContent?.trim() || '',
-  })).filter((h) => h.text);
-}
-
-interface AnnouncementBodyProps {
-  loading: boolean;
-  announcement: AnnouncementData | null;
-  showVideo: boolean;
-}
 
 /**
  * 渲染公告面板正文内容。
@@ -55,73 +39,8 @@ interface AnnouncementBodyProps {
  */
 export function AnnouncementBody({ loading, announcement, showVideo }: AnnouncementBodyProps): ReactElement {
   const { t } = useTranslation();
-  const bodyRef = useRef<HTMLDivElement>(null);
-  const tocRef = useRef<HTMLDivElement>(null);
-  const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const [activeIndex, setActiveIndex] = useState<number>(-1);
-  const [indicatorTop, setIndicatorTop] = useState(0);
-
-  const headings = useMemo(() => {
-    if (!announcement?.contentHtml) return [];
-    return extractHeadings(announcement.contentHtml);
-  }, [announcement?.contentHtml]);
-
-  /** 更新指示器位置 */
-  const updateIndicator = useCallback((index: number) => {
-    const item = itemRefs.current[index];
-    const toc = tocRef.current;
-    if (!item || !toc) return;
-    const tocRect = toc.getBoundingClientRect();
-    const itemRect = item.getBoundingClientRect();
-    const itemTop = itemRect.top - tocRect.top + toc.scrollTop;
-    setIndicatorTop(itemTop + (itemRect.height - 12) / 2);
-  }, []);
-
-  /** 点击章节标题滚动到对应位置 */
-  const handleTocClick = (text: string, index: number) => {
-    setActiveIndex(index);
-    updateIndicator(index);
-    const body = bodyRef.current;
-    if (!body) return;
-    const els = body.querySelectorAll('h1, h2, h3');
-    for (const el of els) {
-      if (el.textContent?.trim() === text) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        break;
-      }
-    }
-  };
-
-  /** 滚动时更新选中章节 */
-  useEffect(() => {
-    const body = bodyRef.current;
-    if (!body || !announcement?.contentHtml || showVideo) return;
-
-    const handleScroll = () => {
-      const els = body.querySelectorAll('h1, h2, h3');
-      if (!els.length) return;
-
-      let closestIndex = 0;
-      let closestDistance = Infinity;
-      const bodyRect = body.getBoundingClientRect();
-
-      els.forEach((el, i) => {
-        const rect = el.getBoundingClientRect();
-        const distance = Math.abs(rect.top - bodyRect.top);
-        if (distance < closestDistance) {
-          closestDistance = distance;
-          closestIndex = i;
-        }
-      });
-
-      setActiveIndex(closestIndex);
-      updateIndicator(closestIndex);
-    };
-
-    body.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll();
-    return () => body.removeEventListener('scroll', handleScroll);
-  }, [announcement?.contentHtml, showVideo, updateIndicator]);
+  const { bodyRef, tocRef, itemRefs, headings, activeIndex, indicatorTop, handleTocClick } =
+    useAnnouncementToc({ contentHtml: announcement?.contentHtml, showVideo });
 
   if (loading) {
     return <div className="announcement-empty">{t(ANNOUNCEMENT_KEYS.LOADING, { defaultValue: ANNOUNCEMENT_DEFAULTS.LOADING })}</div>;
