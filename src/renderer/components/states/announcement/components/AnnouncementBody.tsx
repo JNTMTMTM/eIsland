@@ -34,6 +34,7 @@ import { AnnouncementVideo } from './AnnouncementVideo';
 interface AnnouncementBodyProps {
   loading: boolean;
   announcement: AnnouncementData | null;
+  showVideo: boolean;
 }
 
 /**
@@ -41,7 +42,7 @@ interface AnnouncementBodyProps {
  * @param props - 公告正文渲染参数。
  * @returns 公告正文区域。
  */
-export function AnnouncementBody({ loading, announcement }: AnnouncementBodyProps): ReactElement {
+export function AnnouncementBody({ loading, announcement, showVideo }: AnnouncementBodyProps): ReactElement {
   const { t } = useTranslation();
 
   if (loading) {
@@ -56,7 +57,7 @@ export function AnnouncementBody({ loading, announcement }: AnnouncementBodyProp
     ? <div className="announcement-body" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(announcement.contentHtml) }} />
     : <div className="announcement-body"><pre>{announcement.content || ''}</pre></div>;
 
-  if (announcement.bvid) {
+  if (announcement.bvid && showVideo) {
     return (
       <div className="announcement-content-row">
         <AnnouncementVideo bvid={announcement.bvid} autoplay={false} showDanmaku={false} aspectRatio={9 / 16} />

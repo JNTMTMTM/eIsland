@@ -61,6 +61,7 @@
 .announcement-header-actions {
   display: flex;
   align-items: flex-start;
+  gap: 6px;
   margin-top: 4px;
 }
 

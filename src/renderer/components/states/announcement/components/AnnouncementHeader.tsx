@@ -33,6 +33,8 @@ import { SvgIcon } from '../../../../utils/SvgIcon';
 
 interface AnnouncementHeaderProps {
   announcement: AnnouncementData | null;
+  showVideo: boolean;
+  onToggleVideo: () => void;
   onClose: () => void;
 }
 
@@ -41,7 +43,7 @@ interface AnnouncementHeaderProps {
  * @param props - 公告头部渲染参数。
  * @returns 公告头部区域。
  */
-export function AnnouncementHeader({ announcement, onClose }: AnnouncementHeaderProps): ReactElement {
+export function AnnouncementHeader({ announcement, showVideo, onToggleVideo, onClose }: AnnouncementHeaderProps): ReactElement {
   const { t } = useTranslation();
 
   const titleText = announcement?.title || t(ANNOUNCEMENT_KEYS.DEFAULT_TITLE, { defaultValue: ANNOUNCEMENT_DEFAULTS.DEFAULT_TITLE });
@@ -56,6 +58,11 @@ export function AnnouncementHeader({ announcement, onClose }: AnnouncementHeader
         <div className="announcement-subtitle">{subtitleText}</div>
       </div>
       <div className="announcement-header-actions">
+        {announcement?.bvid && (
+          <button type="button" className="announcement-close-btn" onClick={onToggleVideo}>
+            <img src={SvgIcon.VIDEO} alt="" draggable={false} />
+          </button>
+        )}
         <button type="button" className="announcement-close-btn" onClick={onClose}>
           <img src={SvgIcon.CANCEL} alt="" draggable={false} />
         </button>
