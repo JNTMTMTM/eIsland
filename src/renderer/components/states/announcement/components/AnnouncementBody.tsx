@@ -131,8 +131,18 @@ export function AnnouncementBody({ loading, announcement, showVideo }: Announcem
     return <div className="announcement-empty">{t(ANNOUNCEMENT_KEYS.EMPTY, { defaultValue: ANNOUNCEMENT_DEFAULTS.EMPTY })}</div>;
   }
 
+  /** 点击链接时在外部浏览器打开 */
+  const handleBodyClick = (e: React.MouseEvent) => {
+    const target = e.target as HTMLElement;
+    const link = target.closest('a');
+    if (link?.href) {
+      e.preventDefault();
+      window.open(link.href, '_blank', 'noopener,noreferrer');
+    }
+  };
+
   const contentNode = announcement.contentHtml
-    ? <div ref={bodyRef} className="announcement-body" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(announcement.contentHtml) }} />
+    ? <div ref={bodyRef} className="announcement-body" onClick={handleBodyClick} dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(announcement.contentHtml) }} />
     : <div ref={bodyRef} className="announcement-body"><pre>{announcement.content || ''}</pre></div>;
 
   if (announcement.bvid) {
