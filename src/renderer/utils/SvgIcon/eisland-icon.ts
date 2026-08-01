@@ -124,7 +124,8 @@ export const SvgIcon = {
   INFORMATION: './svg/INFORMATION.svg',
   GITEE: './svg/GITEE.svg',
   KOOK: './svg/KOOK.svg',
-  MEMO: './svg/MEMO.svg'
+  MEMO: './svg/MEMO.svg',
+  VIDEO: './svg/VIDEO.svg'
 } as const;
 
 export type SvgIconKey = keyof typeof SvgIcon;
