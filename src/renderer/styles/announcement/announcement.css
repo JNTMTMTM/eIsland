@@ -65,16 +65,7 @@
 .announcement-header-actions {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
   margin-top: 8px;
-}
-
-.announcement-meta-vertical {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 2px;
-  text-align: right;
 }
 
 .announcement-title {
@@ -121,18 +112,6 @@
 .announcement-dismiss-btn:hover {
   background: rgba(255, 255, 255, 0.12);
   border-color: rgba(255, 255, 255, 0.24);
-}
-
-.announcement-meta-title {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--color-text);
-  line-height: 1.2;
-}
-
-.announcement-meta-time {
-  color: rgba(var(--color-text-rgb), 0.56);
-  font-size: 12px;
 }
 
 .announcement-body {

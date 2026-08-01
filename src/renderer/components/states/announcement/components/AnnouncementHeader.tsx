@@ -43,21 +43,18 @@ interface AnnouncementHeaderProps {
 export function AnnouncementHeader({ announcement, onClose }: AnnouncementHeaderProps): ReactElement {
   const { t } = useTranslation();
 
+  const titleText = announcement?.title || t(ANNOUNCEMENT_KEYS.DEFAULT_TITLE, { defaultValue: ANNOUNCEMENT_DEFAULTS.DEFAULT_TITLE });
+  const subtitleText = announcement?.updatedAt
+    ? t(ANNOUNCEMENT_KEYS.UPDATED_AT, { defaultValue: ANNOUNCEMENT_DEFAULTS.UPDATED_AT, time: formatDatetime(announcement.updatedAt) })
+    : t(ANNOUNCEMENT_KEYS.SUBTITLE, { defaultValue: ANNOUNCEMENT_DEFAULTS.SUBTITLE });
+
   return (
     <div className="announcement-panel-header">
       <div>
-        <div className="announcement-title">{t(ANNOUNCEMENT_KEYS.TITLE, { defaultValue: ANNOUNCEMENT_DEFAULTS.TITLE })}</div>
-        <div className="announcement-subtitle">{t(ANNOUNCEMENT_KEYS.SUBTITLE, { defaultValue: ANNOUNCEMENT_DEFAULTS.SUBTITLE })}</div>
+        <div className="announcement-title">{titleText}</div>
+        <div className="announcement-subtitle">{subtitleText}</div>
       </div>
       <div className="announcement-header-actions">
-        {announcement && (
-          <div className="announcement-meta-vertical">
-            <span className="announcement-meta-title">{announcement.title || t(ANNOUNCEMENT_KEYS.DEFAULT_TITLE, { defaultValue: ANNOUNCEMENT_DEFAULTS.DEFAULT_TITLE })}</span>
-            {announcement.updatedAt && (
-              <span className="announcement-meta-time">{t(ANNOUNCEMENT_KEYS.UPDATED_AT, { defaultValue: ANNOUNCEMENT_DEFAULTS.UPDATED_AT, time: formatDatetime(announcement.updatedAt) })}</span>
-            )}
-          </div>
-        )}
         <button type="button" className="announcement-close-btn" onClick={onClose}>
           {t(ANNOUNCEMENT_KEYS.CLOSE, { defaultValue: ANNOUNCEMENT_DEFAULTS.CLOSE })}
         </button>

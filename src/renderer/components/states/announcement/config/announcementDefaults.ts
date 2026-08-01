@@ -26,7 +26,6 @@
 
 /** 公告面板 i18n 翻译键 */
 export const ANNOUNCEMENT_KEYS = {
-  TITLE: 'announcement.title',
   SUBTITLE: 'announcement.subtitle',
   DEFAULT_TITLE: 'announcement.defaultTitle',
   UPDATED_AT: 'announcement.updatedAt',
@@ -37,7 +36,6 @@ export const ANNOUNCEMENT_KEYS = {
 
 /** 公告面板翻译默认值 */
 export const ANNOUNCEMENT_DEFAULTS = {
-  TITLE: '公告',
   SUBTITLE: '当前已是最新版本，以下为最新公告内容。',
   DEFAULT_TITLE: '系统公告',
   UPDATED_AT: '更新时间：{{time}}',
