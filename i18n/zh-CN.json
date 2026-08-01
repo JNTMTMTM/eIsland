@@ -2743,7 +2743,7 @@
       "pages": {
         "window": "窗口控制",
         "display": "显示模式",
-        "agent": "AI",
+        "agent": "AI Agent",
         "capture": "截图",
         "clipboard": "剪贴板",
         "media": "媒体控制"
