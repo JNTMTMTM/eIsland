@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import { useMemo, useRef, useState, useCallback, type ReactElement } from 'react';
+import { useMemo, useRef, useState, useCallback, useEffect, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import DOMPurify from 'dompurify';
 import type { AnnouncementData } from '../../../../api/announcement/announcementApi';
@@ -91,6 +91,37 @@ export function AnnouncementBody({ loading, announcement, showVideo }: Announcem
       }
     }
   };
+
+  /** 滚动时更新选中章节 */
+  useEffect(() => {
+    const body = bodyRef.current;
+    if (!body || !announcement?.contentHtml || showVideo) return;
+
+    const handleScroll = () => {
+      const els = body.querySelectorAll('h1, h2, h3');
+      if (!els.length) return;
+
+      let closestIndex = 0;
+      let closestDistance = Infinity;
+      const bodyRect = body.getBoundingClientRect();
+
+      els.forEach((el, i) => {
+        const rect = el.getBoundingClientRect();
+        const distance = Math.abs(rect.top - bodyRect.top);
+        if (distance < closestDistance) {
+          closestDistance = distance;
+          closestIndex = i;
+        }
+      });
+
+      setActiveIndex(closestIndex);
+      updateIndicator(closestIndex);
+    };
+
+    body.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
+    return () => body.removeEventListener('scroll', handleScroll);
+  }, [announcement?.contentHtml, showVideo, updateIndicator]);
 
   if (loading) {
     return <div className="announcement-empty">{t(ANNOUNCEMENT_KEYS.LOADING, { defaultValue: ANNOUNCEMENT_DEFAULTS.LOADING })}</div>;
