@@ -73,6 +73,8 @@ import {
   AI_SETTINGS_PAGE_LABELS,
   NETWORK_SETTINGS_PAGES,
   NETWORK_SETTINGS_PAGE_LABELS,
+  UPDATE_SETTINGS_PAGES,
+  UPDATE_SETTINGS_PAGE_LABELS,
   NAV_CARDS,
   DEFAULT_NAV_ORDER,
   NAV_CARDS_MAP,
@@ -82,6 +84,7 @@ import {
   type MusicSettingsPageKey,
   type AiSettingsPageKey,
   type NetworkSettingsPageKey,
+  type UpdateSettingsPageKey,
   type SettingsTabLabelKey,
   type NavCardDef,
 } from './setting/utils/settingsConfig';
@@ -226,6 +229,7 @@ export function SettingsTab(): ReactElement {
   const [musicSettingsPage, setMusicSettingsPage] = useState<MusicSettingsPageKey>('whitelist');
   const [aiSettingsPage, setAiSettingsPage] = useState<AiSettingsPageKey>('general');
   const [networkSettingsPage, setNetworkSettingsPage] = useState<NetworkSettingsPageKey>('timeout');
+  const [updateSettingsPage, setUpdateSettingsPage] = useState<UpdateSettingsPageKey>('update-check');
   const [userInitialProfilePage, setUserInitialProfilePage] = useState<'info' | 'pro' | 'recharge' | 'orders'>('info');
   const [aboutInitialPage, setAboutInitialPage] = useState<'development' | 'feedback'>('development');
   const [pluginMarketPage, setPluginMarketPage] = useState<PluginMarketPageKey>('wallpaper');
@@ -278,6 +282,7 @@ export function SettingsTab(): ReactElement {
   const currentMusicSettingsPageLabel = t(`settings.musicPages.${musicSettingsPage}`, { defaultValue: MUSIC_SETTINGS_PAGE_LABELS[musicSettingsPage] || '白名单' });
   const currentAiSettingsPageLabel = t(`settings.aiPages.${aiSettingsPage}`, { defaultValue: AI_SETTINGS_PAGE_LABELS[aiSettingsPage] || '通用配置' });
   const currentNetworkSettingsPageLabel = t(`settings.networkPages.${networkSettingsPage}`, { defaultValue: NETWORK_SETTINGS_PAGE_LABELS[networkSettingsPage] || '请求超时' });
+  const currentUpdateSettingsPageLabel = t(`settings.updatePages.${updateSettingsPage}`, { defaultValue: UPDATE_SETTINGS_PAGE_LABELS[updateSettingsPage] || '检查更新' });
   const pluginMarketPageLabels: Record<PluginMarketPageKey, string> = {
     wallpaper: t('settings.pluginMarket.pages.wallpaper', { defaultValue: '壁纸' }),
     contribution: t('settings.pluginMarket.pages.contribution', { defaultValue: '贡献' }),
@@ -301,6 +306,11 @@ export function SettingsTab(): ReactElement {
   const translatedNetworkSettingsPageLabels = useMemo<Record<NetworkSettingsPageKey, string>>(() => ({
     timeout: t('settings.networkPages.timeout', { defaultValue: NETWORK_SETTINGS_PAGE_LABELS.timeout }),
     'data-center': t('settings.networkPages.data-center', { defaultValue: NETWORK_SETTINGS_PAGE_LABELS['data-center'] }),
+  }), [t]);
+
+  const translatedUpdateSettingsPageLabels = useMemo<Record<UpdateSettingsPageKey, string>>(() => ({
+    'update-check': t('settings.updatePages.update-check', { defaultValue: UPDATE_SETTINGS_PAGE_LABELS['update-check'] }),
+    'info-sync': t('settings.updatePages.info-sync', { defaultValue: UPDATE_SETTINGS_PAGE_LABELS['info-sync'] }),
   }), [t]);
 
   const translatedMailSettingsPageLabels = useMemo<Record<MailSettingsPageKey, string>>(() => ({
@@ -2443,6 +2453,9 @@ export function SettingsTab(): ReactElement {
               networkSettingsPages={NETWORK_SETTINGS_PAGES}
               networkSettingsPageLabels={translatedNetworkSettingsPageLabels}
               setNetworkSettingsPage={setNetworkSettingsPage}
+              updateSource={updateSource}
+              updateSources={UPDATE_SOURCES}
+              onUpdateSourceChange={handleUpdateSourceChange}
             />
           )}
 
@@ -2671,9 +2684,6 @@ export function SettingsTab(): ReactElement {
           {activeTab === 'update' && (
             <UpdateSettingsSection
               aboutVersion={aboutVersion}
-              updateSource={updateSource}
-              updateSources={UPDATE_SOURCES}
-              isProUser={isProUser}
               updateAutoPromptEnabled={updateAutoPromptEnabled}
               announcementShowMode={announcementShowMode}
               updateStatus={updateStatus}
@@ -2681,7 +2691,6 @@ export function SettingsTab(): ReactElement {
               downloadProgress={downloadProgress}
               currentSourceLabel={currentSourceLabel}
               updateError={updateError}
-              onUpdateSourceChange={handleUpdateSourceChange}
               onUpdateAutoPromptEnabledChange={handleUpdateAutoPromptEnabledChange}
               onAnnouncementShowModeChange={handleAnnouncementShowModeChange}
               onCheckUpdate={handleCheckUpdate}
@@ -2689,6 +2698,11 @@ export function SettingsTab(): ReactElement {
               onInstallUpdate={handleInstallUpdate}
               onResetGuide={handleResetGuide}
               guideResetStatus={guideResetStatus}
+              currentUpdateSettingsPageLabel={currentUpdateSettingsPageLabel}
+              updateSettingsPage={updateSettingsPage}
+              updateSettingsPages={UPDATE_SETTINGS_PAGES}
+              updateSettingsPageLabels={translatedUpdateSettingsPageLabels}
+              setUpdateSettingsPage={setUpdateSettingsPage}
             />
           )}
 

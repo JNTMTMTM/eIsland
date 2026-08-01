@@ -60,7 +60,8 @@ export type AiSettingsPageKey = 'general' | 'r1pxc' | 'ollama';
 export type MusicSettingsPageKey = 'whitelist' | 'lyrics' | 'smtc';
 export type MusicNavCardKey = 'music-whitelist' | 'music-lyrics' | 'music-smtc';
 export type NetworkSettingsPageKey = 'timeout' | 'data-center';
-export type SettingsTabLabelKey = SettingsSidebarTabKey | AppSettingsPageKey | AiSettingsPageKey | MusicNavCardKey;
+export type UpdateSettingsPageKey = 'update-check' | 'info-sync';
+export type SettingsTabLabelKey = SettingsSidebarTabKey | AppSettingsPageKey | AiSettingsPageKey | MusicNavCardKey | UpdateSettingsPageKey;
 
 export const SETTINGS_TAB_LABELS: Record<SettingsTabLabelKey, string> = {
   index: '快速导航',
@@ -99,6 +100,8 @@ export const SETTINGS_TAB_LABELS: Record<SettingsTabLabelKey, string> = {
   shortcut: '快捷键',
   user: '用户中心',
   update: '更新设置',
+  'update-check': '检查更新',
+  'info-sync': '信息同步',
   pluginMarket: '壁纸市场',
   about: '关于软件',
 };
@@ -139,6 +142,8 @@ export const SETTINGS_TAB_DESCRIPTIONS: Record<Exclude<SettingsTabLabelKey, 'ind
   shortcut: '隐藏、关闭、截图快捷键',
   user: '登录、资料、注销等账号操作',
   update: '检查与下载软件更新',
+  'update-check': '检查与下载软件更新',
+  'info-sync': '信息同步配置',
   pluginMarket: '壁纸市场入口与壁纸管理',
   about: '版本信息与项目链接',
 };
@@ -357,6 +362,11 @@ export const NETWORK_SETTINGS_PAGE_LABELS: Record<NetworkSettingsPageKey, string
   timeout: '请求超时',
   'data-center': '数据中心',
 };
+export const UPDATE_SETTINGS_PAGES: UpdateSettingsPageKey[] = ['update-check', 'info-sync'];
+export const UPDATE_SETTINGS_PAGE_LABELS: Record<UpdateSettingsPageKey, string> = {
+  'update-check': '检查更新',
+  'info-sync': '信息同步',
+};
 export const MUSIC_SETTINGS_PAGES: MusicSettingsPageKey[] = ['whitelist', 'lyrics', 'smtc'];
 export const MUSIC_SETTINGS_PAGE_LABELS: Record<MusicSettingsPageKey, string> = {
   whitelist: '白名单',
@@ -518,6 +528,7 @@ export const SEARCHABLE_SETTINGS: SearchableSettingItem[] = [
   { label: '请求超时时间', desc: '设置网络请求的最长等待时间，网络较差时可适当增大', labelKey: 'settings.network.timeout.title', descKey: 'settings.network.timeout.hint', tab: 'network', networkPage: 'timeout' },
   // ── 网络配置 > 数据中心 ──
   { label: '静态资源节点', desc: '所有用户默认使用 R2，PRO 用户可选择 R2/COS/OSS。', labelKey: 'settings.network.staticAssetNode.title', descKey: 'settings.network.staticAssetNode.hint', tab: 'network', networkPage: 'data-center' },
+  { label: '更新源', desc: '选择应用补丁包的下载来源，不同源在各地区速度有差异', labelKey: 'settings.network.updateSource.title', descKey: 'settings.network.updateSource.hint', tab: 'network', networkPage: 'data-center' },
   // ── 邮箱配置 ──
   { label: '账户信息', desc: '邮箱地址用于展示与默认发件人信息。', labelKey: 'settings.mail.account.title', descKey: 'settings.mail.account.hint', tab: 'mail' },
   { label: 'IMAP', desc: '用于收信、同步收件箱和文件夹状态。', labelKey: 'settings.mail.imap.title', descKey: 'settings.mail.imap.hint', tab: 'mail' },
@@ -561,7 +572,7 @@ export const SEARCHABLE_SETTINGS: SearchableSettingItem[] = [
   { label: '快速切换歌曲快捷键', desc: '按下后触发系统下一曲媒体按键（仅白名单播放器生效）', labelKey: 'settings.shortcut.media.nextSong.title', descKey: 'settings.shortcut.media.nextSong.hint', tab: 'shortcut' },
   { label: '暂停/播放歌曲快捷键', desc: '按下后触发系统播放/暂停媒体按键（仅白名单播放器生效）', labelKey: 'settings.shortcut.media.playPause.title', descKey: 'settings.shortcut.media.playPause.hint', tab: 'shortcut' },
   // ── 更新设置 ──
-  { label: '版本信息', desc: '查看当前版本并选择更新源,应用所有补丁包均通过该更新源下载', labelKey: 'settings.update.versionCardTitle', descKey: 'settings.update.versionCardHint', tab: 'update' },
+  { label: '版本信息', desc: '查看当前版本信息，更新源可在网络配置中设置', labelKey: 'settings.update.versionCardTitle', descKey: 'settings.update.versionCardHint', tab: 'update' },
   { label: '检查与安装', desc: '手动触发检查,有新版本时可下载安装;下载完成后点击"安装并重启"应用更新', labelKey: 'settings.update.actionCardTitle', descKey: 'settings.update.actionCardHint', tab: 'update' },
   { label: '更新提示', desc: '控制是否自动提示版本更新和公告展示策略', labelKey: 'settings.update.autoPromptTitle', descKey: 'settings.update.autoPromptHintStatic', tab: 'update' },
   { label: '引导界面', desc: '重新显示首次启动引导界面', labelKey: 'settings.update.guideCardTitle', descKey: 'settings.update.guideCardHint', tab: 'update' },

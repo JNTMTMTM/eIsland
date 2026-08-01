@@ -2051,6 +2051,10 @@
       "timeout": "请求超时",
       "data-center": "数据中心"
     },
+    "updatePages": {
+      "update-check": "检查更新",
+      "info-sync": "信息同步"
+    },
     "index": {
       "title": "快速导航",
       "reset": "恢复默认",
@@ -2606,6 +2610,11 @@
         "proOnlyHint": "当前账户不可用",
         "proHint": "可切换 COS/OSS 节点（也可继续使用 R2）。"
       },
+      "updateSource": {
+        "title": "更新源",
+        "hint": "选择应用补丁包的下载来源，不同源在各地区速度有差异",
+        "sourceHint": "Cloudflare R2：全球访问稳定，综合速度均衡\nESA CDN：ESA全球CDN，所有用户可用\nTencent COS：国内网络通常更快\nAliyun OSS：国内节点覆盖广，峰值速度高\nGitHub Releases：海外链路较稳，国内可能偏慢"
+      },
       "pagination": "网络配置分页"
     },
     "weather": {
@@ -2739,7 +2748,7 @@
       "pages": {
         "window": "窗口控制",
         "display": "显示模式",
-        "agent": "AI",
+        "agent": "AI Agent",
         "capture": "截图",
         "clipboard": "剪贴板",
         "media": "媒体控制"
@@ -2844,7 +2853,8 @@
       "guideCardTitle": "引导界面",
       "guideCardHint": "重新显示首次启动引导界面",
       "guideResetSuccess": "设置成功，下次启动将显示引导界面",
-      "guideResetError": "设置失败，请稍后重试"
+      "guideResetError": "设置失败，请稍后重试",
+      "pagination": "更新设置分页"
     },
     "pluginMarket": {
       "pagination": "壁纸市场分页",

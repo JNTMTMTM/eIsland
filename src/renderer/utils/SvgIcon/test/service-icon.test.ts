@@ -31,6 +31,7 @@ describe('ServiceIcon', () => {
   it('should contain expected keys', () => {
     expect(ServiceIcon).toHaveProperty('CLOUDFLARE');
     expect(ServiceIcon).toHaveProperty('ALIBABACLOUD');
+    expect(ServiceIcon).toHaveProperty('TENCENTCLOUD');
   });
 
   it('all values should be strings starting with ./svg/services/ and ending with .svg', () => {
@@ -40,7 +41,7 @@ describe('ServiceIcon', () => {
     });
   });
 
-  it('should contain exactly 2 keys', () => {
-    expect(Object.keys(ServiceIcon)).toHaveLength(2);
+  it('should contain exactly 3 keys', () => {
+    expect(Object.keys(ServiceIcon)).toHaveLength(3);
   });
 });

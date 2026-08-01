@@ -30,7 +30,14 @@ import { useTranslation } from 'react-i18next';
 import type { NetworkSettingsPageKey } from '../../utils/settingsConfig';
 import type { StaticAssetNode } from '../../../../../../../store/utils/storage';
 import { SvgIcon } from '../../../../../../../utils/SvgIcon';
+import { ServiceIcon } from '../../../../../../../utils/SvgIcon/service-icon';
 import { SettingsPageNavigation, SettingsPageNavigationToggle } from '../SettingsPageNavigation';
+
+interface UpdateSourceOption {
+  key: string;
+  label: string;
+  proOnly?: boolean;
+}
 
 interface NetworkSettingsSectionProps {
   isProUser: boolean;
@@ -48,6 +55,9 @@ interface NetworkSettingsSectionProps {
   networkSettingsPages: NetworkSettingsPageKey[];
   networkSettingsPageLabels: Record<NetworkSettingsPageKey, string>;
   setNetworkSettingsPage: (page: NetworkSettingsPageKey) => void;
+  updateSource: string;
+  updateSources: UpdateSourceOption[];
+  onUpdateSourceChange: (value: string) => void;
 }
 
 /**
@@ -74,6 +84,9 @@ export function NetworkSettingsSection(props: NetworkSettingsSectionProps): Reac
     networkSettingsPages,
     networkSettingsPageLabels,
     setNetworkSettingsPage,
+    updateSource,
+    updateSources,
+    onUpdateSourceChange,
   } = props;
 
   const timeoutOptionKeyMap: Record<number, string> = {
@@ -85,6 +98,22 @@ export function NetworkSettingsSection(props: NetworkSettingsSectionProps): Reac
   };
 
   const isCustomTimeout = networkTimeoutOptions.every((o) => o.value !== networkTimeoutMs);
+
+  /** 静态资源节点对应的图标映射 */
+  const staticAssetNodeIconMap: Record<string, string> = {
+    'r2': ServiceIcon.CLOUDFLARE,
+    'cos': ServiceIcon.TENCENTCLOUD,
+    'oss': ServiceIcon.ALIBABACLOUD,
+  };
+
+  /** 更新源对应的图标映射 */
+  const updateSourceIconMap: Record<string, string> = {
+    'cloudflare-r2': ServiceIcon.CLOUDFLARE,
+    'esa-cdn': ServiceIcon.ALIBABACLOUD,
+    'tencent-cos': ServiceIcon.TENCENTCLOUD,
+    'aliyun-oss': ServiceIcon.ALIBABACLOUD,
+    'github': SvgIcon.GITHUB,
+  };
 
   return (
     <div className="max-expand-settings-section">
@@ -186,6 +215,15 @@ export function NetworkSettingsSection(props: NetworkSettingsSectionProps): Reac
                             saveNetworkConfig({ timeoutMs: networkTimeoutMs, staticAssetNode: opt.value });
                           }}
                         >
+                          {staticAssetNodeIconMap[opt.value] && (
+                            <img
+                              src={staticAssetNodeIconMap[opt.value]}
+                              alt=""
+                              width={16}
+                              height={16}
+                              style={{ flexShrink: 0 }}
+                            />
+                          )}
                           {opt.proOnly && (
                             <span
                               className="settings-weather-provider-pro-badge"
@@ -207,6 +245,55 @@ export function NetworkSettingsSection(props: NetworkSettingsSectionProps): Reac
                   {!isProUser && (
                     <div className="settings-music-hint">{t('settings.network.staticAssetNode.proHint', { defaultValue: '升级 PRO 可切换 COS/OSS 节点（也可继续使用 R2）。' })}</div>
                   )}
+                </div>
+              </div>
+
+              {/* 卡片：更新源 */}
+              <div className="settings-card">
+                <div className="settings-card-header">
+                  <div className="settings-card-title">{t('settings.network.updateSource.title', { defaultValue: '更新源' })}</div>
+                  <div className="settings-card-subtitle">{t('settings.network.updateSource.hint', { defaultValue: '选择应用补丁包的下载来源，不同源在各地区速度有差异' })}</div>
+                </div>
+                <div className="settings-card-subgroup">
+                  <div className="settings-music-hint" style={{ marginBottom: 6, whiteSpace: 'pre-line' }}>
+                    {t('settings.network.updateSource.sourceHint', {
+                      defaultValue: 'Cloudflare R2：全球访问稳定，综合速度均衡\nESA CDN：ESA全球CDN，所有用户可用\nTencent COS：国内网络通常更快\nAliyun OSS：国内节点覆盖广，峰值速度高\nGitHub Releases：海外链路较稳，国内可能偏慢',
+                    })}
+                  </div>
+                  <div className="settings-card-inline-row">
+                    {updateSources.map((s) => (
+                      <label key={s.key} className="settings-card-check">
+                        <input
+                          type="radio"
+                          name="update-source"
+                          value={s.key}
+                          checked={updateSource === s.key}
+                          disabled={Boolean(s.proOnly && !isProUser)}
+                          onChange={() => onUpdateSourceChange(s.key)}
+                        />
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
+                          {updateSourceIconMap[s.key] ? (
+                            <img
+                              src={updateSourceIconMap[s.key]}
+                              alt=""
+                              width={16}
+                              height={16}
+                              style={{ flexShrink: 0 }}
+                            />
+                          ) : null}
+                          {s.proOnly ? (
+                            <img
+                              src={SvgIcon.VIP}
+                              alt="VIP"
+                              width={16}
+                              height={16}
+                            />
+                          ) : null}
+                          {s.label}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
