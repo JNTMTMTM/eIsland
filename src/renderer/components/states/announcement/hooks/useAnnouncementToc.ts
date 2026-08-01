@@ -26,6 +26,7 @@
 
 import { useMemo, useRef, useState, useCallback, useEffect } from 'react';
 import type { TocHeading } from '../types/AnnouncementBody.types';
+import type { UseAnnouncementTocOptions } from '../types/useAnnouncementToc.types';
 
 /** 从 HTML 内容中提取章节标题 */
 function extractHeadings(html: string): TocHeading[] {
@@ -36,11 +37,6 @@ function extractHeadings(html: string): TocHeading[] {
     level: Number(el.tagName[1]),
     text: el.textContent?.trim() || '',
   })).filter((h) => h.text);
-}
-
-interface UseAnnouncementTocOptions {
-  contentHtml: string | undefined;
-  showVideo: boolean;
 }
 
 /**
