@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-07-31T17:19:16.463Z
+> 生成时间：2026-08-01T12:30:58.106Z
 
 ## 26.6.5
 
@@ -2946,6 +2946,18 @@
 
 ## Unreleased
 
+- 2026-08-01 | c398773d | 鸡哥 | Merge pull request #182 from JNTMTMTM/dev
+- 2026-08-01 | 3960face | 鸡哥 | feat: add update source localization for improved clarity in network settings
+- 2026-08-01 | 6e06442a | 鸡哥 | feat: add static asset node icon mapping for improved visual representation in network settings
+- 2026-08-01 | 54e9af46 | 鸡哥 | feat: add update source icon mapping for improved visual representation in network settings
+- 2026-08-01 | bfeaf925 | 鸡哥 | feat: add TENCENTCLOUD service icon and update ServiceIcon structure
+- 2026-08-01 | 1ae85666 | 鸡哥 | feat: reorganize update settings UI by moving auto prompt options to a new section for better clarity
+- 2026-08-01 | 36ee7d56 | 鸡哥 | fix: update agent label to "AI Agent" for clarity in zh-CN localization
+- 2026-08-01 | bcc37d4b | 鸡哥 | feat: add skill for creating an empty settings subpage with navigation support
+- 2026-08-01 | 8a4ad4d9 | 鸡哥 | feat: add update settings pages and related components for improved update management
+- 2026-08-01 | 1c3ff88c | 鸡哥 | feat: enhance update settings UI with improved layout and descriptions
+- 2026-08-01 | 75444f66 | 鸡哥 | feat: add update source selection to network settings and update related descriptions
+- 2026-07-31 | 37570905 | eislandBot | docs: auto update CHANGE_LOG.md for #181 by @JNTMTMTM [skip ci]
 - 2026-08-01 | af73da12 | 鸡哥 | Merge pull request #181 from JNTMTMTM/dev
 - 2026-08-01 | 6cecd81d | 鸡哥 | fix: update markdown link check to allow non-strict validation
 - 2026-08-01 | c17ed102 | 鸡哥 | feat: add pagination label for network settings in English and Chinese translations
