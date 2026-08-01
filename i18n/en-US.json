@@ -2051,6 +2051,10 @@
       "timeout": "Timeout",
       "data-center": "Data Center"
     },
+    "updatePages": {
+      "update-check": "Check Update",
+      "info-sync": "Info Sync"
+    },
     "index": {
       "title": "Quick Navigation",
       "reset": "Reset",

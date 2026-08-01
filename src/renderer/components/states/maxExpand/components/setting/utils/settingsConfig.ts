@@ -60,7 +60,8 @@ export type AiSettingsPageKey = 'general' | 'r1pxc' | 'ollama';
 export type MusicSettingsPageKey = 'whitelist' | 'lyrics' | 'smtc';
 export type MusicNavCardKey = 'music-whitelist' | 'music-lyrics' | 'music-smtc';
 export type NetworkSettingsPageKey = 'timeout' | 'data-center';
-export type SettingsTabLabelKey = SettingsSidebarTabKey | AppSettingsPageKey | AiSettingsPageKey | MusicNavCardKey;
+export type UpdateSettingsPageKey = 'update-check' | 'info-sync';
+export type SettingsTabLabelKey = SettingsSidebarTabKey | AppSettingsPageKey | AiSettingsPageKey | MusicNavCardKey | UpdateSettingsPageKey;
 
 export const SETTINGS_TAB_LABELS: Record<SettingsTabLabelKey, string> = {
   index: '快速导航',
@@ -99,6 +100,8 @@ export const SETTINGS_TAB_LABELS: Record<SettingsTabLabelKey, string> = {
   shortcut: '快捷键',
   user: '用户中心',
   update: '更新设置',
+  'update-check': '检查更新',
+  'info-sync': '信息同步',
   pluginMarket: '壁纸市场',
   about: '关于软件',
 };
@@ -139,6 +142,8 @@ export const SETTINGS_TAB_DESCRIPTIONS: Record<Exclude<SettingsTabLabelKey, 'ind
   shortcut: '隐藏、关闭、截图快捷键',
   user: '登录、资料、注销等账号操作',
   update: '检查与下载软件更新',
+  'update-check': '检查与下载软件更新',
+  'info-sync': '信息同步配置',
   pluginMarket: '壁纸市场入口与壁纸管理',
   about: '版本信息与项目链接',
 };
@@ -356,6 +361,11 @@ export const NETWORK_SETTINGS_PAGES: NetworkSettingsPageKey[] = ['timeout', 'dat
 export const NETWORK_SETTINGS_PAGE_LABELS: Record<NetworkSettingsPageKey, string> = {
   timeout: '请求超时',
   'data-center': '数据中心',
+};
+export const UPDATE_SETTINGS_PAGES: UpdateSettingsPageKey[] = ['update-check', 'info-sync'];
+export const UPDATE_SETTINGS_PAGE_LABELS: Record<UpdateSettingsPageKey, string> = {
+  'update-check': '检查更新',
+  'info-sync': '信息同步',
 };
 export const MUSIC_SETTINGS_PAGES: MusicSettingsPageKey[] = ['whitelist', 'lyrics', 'smtc'];
 export const MUSIC_SETTINGS_PAGE_LABELS: Record<MusicSettingsPageKey, string> = {

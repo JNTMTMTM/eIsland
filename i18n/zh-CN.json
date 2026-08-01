@@ -2051,6 +2051,10 @@
       "timeout": "请求超时",
       "data-center": "数据中心"
     },
+    "updatePages": {
+      "update-check": "检查更新",
+      "info-sync": "信息同步"
+    },
     "index": {
       "title": "快速导航",
       "reset": "恢复默认",
