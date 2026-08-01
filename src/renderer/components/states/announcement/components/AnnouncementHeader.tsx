@@ -51,6 +51,9 @@ export function AnnouncementHeader({ announcement, showVideo, onToggleVideo, onC
         <div className="announcement-subtitle">{subtitleText}</div>
       </div>
       <div className="announcement-header-actions">
+        <button type="button" className="announcement-github-btn" onClick={() => window.open('https://github.com/JNTMTMTM/eIsland', '_blank', 'noopener,noreferrer')}>
+          <img src={SvgIcon.GITHUB} alt="" draggable={false} />
+        </button>
         {announcement?.bvid && (
           <button type="button" className={`announcement-video-btn${showVideo ? ' active' : ''}`} onClick={onToggleVideo}>
             <img src={SvgIcon.VIDEO} alt="" draggable={false} />
