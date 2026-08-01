@@ -26,17 +26,10 @@
 
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { AnnouncementData } from '../../../../api/announcement/announcementApi';
 import { formatDatetime } from '../utils/formatDatetime';
 import { ANNOUNCEMENT_KEYS, ANNOUNCEMENT_DEFAULTS } from '../config/announcementDefaults';
+import type { AnnouncementHeaderProps } from '../types/AnnouncementHeader.types';
 import { SvgIcon } from '../../../../utils/SvgIcon';
-
-interface AnnouncementHeaderProps {
-  announcement: AnnouncementData | null;
-  showVideo: boolean;
-  onToggleVideo: () => void;
-  onClose: () => void;
-}
 
 /**
  * 渲染公告面板头部信息与关闭按钮。
