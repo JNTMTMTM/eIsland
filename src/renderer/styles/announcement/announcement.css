@@ -269,15 +269,32 @@
   flex: 1;
   display: flex;
   align-items: stretch;
-  gap: 14px;
+  gap: 0;
   overflow: hidden;
   min-height: 0;
+  transition: gap 0.35s ease-out;
+}
+
+.announcement-content-row.video-visible {
+  gap: 14px;
+}
+
+.announcement-content-row .announcement-body {
+  flex: 1;
+  transition: flex 0.35s ease-out;
 }
 
 .announcement-video-wrapper {
-  flex: 0 0 50%;
+  flex: 0 0 0%;
   align-self: center;
   min-width: 0;
   border-radius: 10px;
   overflow: hidden;
+  opacity: 0;
+  transition: flex 0.35s ease-out, opacity 0.35s ease-out;
+}
+
+.announcement-content-row.video-visible .announcement-video-wrapper {
+  flex: 0 0 50%;
+  opacity: 1;
 }

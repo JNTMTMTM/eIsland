@@ -57,9 +57,9 @@ export function AnnouncementBody({ loading, announcement, showVideo }: Announcem
     ? <div className="announcement-body" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(announcement.contentHtml) }} />
     : <div className="announcement-body"><pre>{announcement.content || ''}</pre></div>;
 
-  if (announcement.bvid && showVideo) {
+  if (announcement.bvid) {
     return (
-      <div className="announcement-content-row">
+      <div className={`announcement-content-row${showVideo ? ' video-visible' : ''}`}>
         <AnnouncementVideo bvid={announcement.bvid} autoplay={false} showDanmaku={false} aspectRatio={9 / 16} />
         {contentNode}
       </div>
