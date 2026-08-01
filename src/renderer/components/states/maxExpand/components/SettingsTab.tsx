@@ -2443,6 +2443,9 @@ export function SettingsTab(): ReactElement {
               networkSettingsPages={NETWORK_SETTINGS_PAGES}
               networkSettingsPageLabels={translatedNetworkSettingsPageLabels}
               setNetworkSettingsPage={setNetworkSettingsPage}
+              updateSource={updateSource}
+              updateSources={UPDATE_SOURCES}
+              onUpdateSourceChange={handleUpdateSourceChange}
             />
           )}
 
@@ -2671,9 +2674,6 @@ export function SettingsTab(): ReactElement {
           {activeTab === 'update' && (
             <UpdateSettingsSection
               aboutVersion={aboutVersion}
-              updateSource={updateSource}
-              updateSources={UPDATE_SOURCES}
-              isProUser={isProUser}
               updateAutoPromptEnabled={updateAutoPromptEnabled}
               announcementShowMode={announcementShowMode}
               updateStatus={updateStatus}
@@ -2681,7 +2681,6 @@ export function SettingsTab(): ReactElement {
               downloadProgress={downloadProgress}
               currentSourceLabel={currentSourceLabel}
               updateError={updateError}
-              onUpdateSourceChange={handleUpdateSourceChange}
               onUpdateAutoPromptEnabledChange={handleUpdateAutoPromptEnabledChange}
               onAnnouncementShowModeChange={handleAnnouncementShowModeChange}
               onCheckUpdate={handleCheckUpdate}

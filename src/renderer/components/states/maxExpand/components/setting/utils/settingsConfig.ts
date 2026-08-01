@@ -518,6 +518,7 @@ export const SEARCHABLE_SETTINGS: SearchableSettingItem[] = [
   { label: '请求超时时间', desc: '设置网络请求的最长等待时间，网络较差时可适当增大', labelKey: 'settings.network.timeout.title', descKey: 'settings.network.timeout.hint', tab: 'network', networkPage: 'timeout' },
   // ── 网络配置 > 数据中心 ──
   { label: '静态资源节点', desc: '所有用户默认使用 R2，PRO 用户可选择 R2/COS/OSS。', labelKey: 'settings.network.staticAssetNode.title', descKey: 'settings.network.staticAssetNode.hint', tab: 'network', networkPage: 'data-center' },
+  { label: '更新源', desc: '选择应用补丁包的下载来源，不同源在各地区速度有差异', labelKey: 'settings.network.updateSource.title', descKey: 'settings.network.updateSource.hint', tab: 'network', networkPage: 'data-center' },
   // ── 邮箱配置 ──
   { label: '账户信息', desc: '邮箱地址用于展示与默认发件人信息。', labelKey: 'settings.mail.account.title', descKey: 'settings.mail.account.hint', tab: 'mail' },
   { label: 'IMAP', desc: '用于收信、同步收件箱和文件夹状态。', labelKey: 'settings.mail.imap.title', descKey: 'settings.mail.imap.hint', tab: 'mail' },
@@ -561,7 +562,7 @@ export const SEARCHABLE_SETTINGS: SearchableSettingItem[] = [
   { label: '快速切换歌曲快捷键', desc: '按下后触发系统下一曲媒体按键（仅白名单播放器生效）', labelKey: 'settings.shortcut.media.nextSong.title', descKey: 'settings.shortcut.media.nextSong.hint', tab: 'shortcut' },
   { label: '暂停/播放歌曲快捷键', desc: '按下后触发系统播放/暂停媒体按键（仅白名单播放器生效）', labelKey: 'settings.shortcut.media.playPause.title', descKey: 'settings.shortcut.media.playPause.hint', tab: 'shortcut' },
   // ── 更新设置 ──
-  { label: '版本信息', desc: '查看当前版本并选择更新源,应用所有补丁包均通过该更新源下载', labelKey: 'settings.update.versionCardTitle', descKey: 'settings.update.versionCardHint', tab: 'update' },
+  { label: '版本信息', desc: '查看当前版本信息，更新源可在网络配置中设置', labelKey: 'settings.update.versionCardTitle', descKey: 'settings.update.versionCardHint', tab: 'update' },
   { label: '检查与安装', desc: '手动触发检查,有新版本时可下载安装;下载完成后点击"安装并重启"应用更新', labelKey: 'settings.update.actionCardTitle', descKey: 'settings.update.actionCardHint', tab: 'update' },
   { label: '更新提示', desc: '控制是否自动提示版本更新和公告展示策略', labelKey: 'settings.update.autoPromptTitle', descKey: 'settings.update.autoPromptHintStatic', tab: 'update' },
   { label: '引导界面', desc: '重新显示首次启动引导界面', labelKey: 'settings.update.guideCardTitle', descKey: 'settings.update.guideCardHint', tab: 'update' },

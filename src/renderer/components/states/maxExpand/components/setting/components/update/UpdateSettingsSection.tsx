@@ -26,15 +26,8 @@
 
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
-import { SvgIcon } from '../../../../../../../utils/SvgIcon';
 
 type UpdateStatus = 'idle' | 'checking' | 'available' | 'downloading' | 'ready' | 'error' | 'latest';
-
-interface UpdateSourceOption {
-  key: string;
-  label: string;
-  proOnly?: boolean;
-}
 
 interface DownloadProgressData {
   percent: number;
@@ -45,9 +38,6 @@ interface DownloadProgressData {
 
 interface UpdateSettingsSectionProps {
   aboutVersion: string;
-  updateSource: string;
-  updateSources: UpdateSourceOption[];
-  isProUser: boolean;
   updateAutoPromptEnabled: boolean;
   announcementShowMode: 'always' | 'version-update-only';
   updateStatus: UpdateStatus;
@@ -55,7 +45,6 @@ interface UpdateSettingsSectionProps {
   downloadProgress: DownloadProgressData | null;
   currentSourceLabel: string;
   updateError: string;
-  onUpdateSourceChange: (value: string) => void;
   onUpdateAutoPromptEnabledChange: (enabled: boolean) => void;
   onAnnouncementShowModeChange: (mode: 'always' | 'version-update-only') => void;
   onCheckUpdate: () => void;
@@ -72,9 +61,6 @@ interface UpdateSettingsSectionProps {
  */
 export function UpdateSettingsSection({
   aboutVersion,
-  updateSource,
-  updateSources,
-  isProUser,
   updateAutoPromptEnabled,
   announcementShowMode,
   updateStatus,
@@ -82,7 +68,6 @@ export function UpdateSettingsSection({
   downloadProgress,
   currentSourceLabel,
   updateError,
-  onUpdateSourceChange,
   onUpdateAutoPromptEnabledChange,
   onAnnouncementShowModeChange,
   onCheckUpdate,
@@ -101,11 +86,11 @@ export function UpdateSettingsSection({
 
       <div className="settings-cards">
 
-        {/* 卡片 1:版本与更新源 */}
+        {/* 卡片 1:版本信息 */}
         <div className="settings-card">
           <div className="settings-card-header">
             <div className="settings-card-title">{t('settings.update.versionCardTitle', { defaultValue: '版本信息' })}</div>
-            <div className="settings-card-subtitle">{t('settings.update.versionCardHint', { defaultValue: '查看当前版本并选择更新源,应用所有补丁包均通过该更新源下载' })}</div>
+            <div className="settings-card-subtitle">{t('settings.update.versionCardHint', { defaultValue: '查看当前版本信息，更新源可在网络配置中设置' })}</div>
           </div>
 
           <div className="settings-card-subgroup">
@@ -119,40 +104,6 @@ export function UpdateSettingsSection({
                   <span style={{ fontWeight: 500, marginLeft: 6, color: 'var(--accent-color, #4fc3f7)' }}>v{updateVersion}</span>
                 </>
               )}
-            </div>
-          </div>
-
-          <div className="settings-card-subgroup">
-            <div className="settings-card-subgroup-title">{t('settings.update.source', { defaultValue: '更新源' })}</div>
-            <div className="settings-music-hint" style={{ marginBottom: 6, whiteSpace: 'pre-line' }}>
-              {t('settings.update.sourceHint', {
-                defaultValue: 'Cloudflare R2：全球访问稳定，综合速度均衡\nESA CDN：ESA全球CDN，所有用户可用\nTencent COS：国内网络通常更快\nAliyun OSS：国内节点覆盖广，峰值速度高\nGitHub Releases：海外链路较稳，国内可能偏慢',
-              })}
-            </div>
-            <div className="settings-card-inline-row">
-              {updateSources.map((s) => (
-                <label key={s.key} className="settings-card-check">
-                  <input
-                    type="radio"
-                    name="update-source"
-                    value={s.key}
-                    checked={updateSource === s.key}
-                    disabled={Boolean(s.proOnly && !isProUser)}
-                    onChange={() => onUpdateSourceChange(s.key)}
-                  />
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
-                    {s.proOnly ? (
-                      <img
-                        src={SvgIcon.VIP}
-                        alt="VIP"
-                        width={16}
-                        height={16}
-                      />
-                    ) : null}
-                    {s.label}
-                  </span>
-                </label>
-              ))}
             </div>
           </div>
 
