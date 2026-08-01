@@ -59,7 +59,7 @@ export function AnnouncementHeader({ announcement, showVideo, onToggleVideo, onC
       </div>
       <div className="announcement-header-actions">
         {announcement?.bvid && (
-          <button type="button" className="announcement-close-btn" onClick={onToggleVideo}>
+          <button type="button" className={`announcement-video-btn${showVideo ? ' active' : ''}`} onClick={onToggleVideo}>
             <img src={SvgIcon.VIDEO} alt="" draggable={false} />
           </button>
         )}
