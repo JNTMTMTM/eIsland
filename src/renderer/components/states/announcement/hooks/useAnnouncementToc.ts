@@ -48,6 +48,8 @@ export function useAnnouncementToc({ contentHtml, showVideo }: UseAnnouncementTo
   const bodyRef = useRef<HTMLDivElement>(null);
   const tocRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const programmaticScrollTargetRef = useRef<number | null>(null);
+  const programmaticScrollIdleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [activeIndex, setActiveIndex] = useState<number>(-1);
   const [indicatorTop, setIndicatorTop] = useState(0);
 
@@ -67,8 +69,21 @@ export function useAnnouncementToc({ contentHtml, showVideo }: UseAnnouncementTo
     setIndicatorTop(itemTop + (itemRect.height - 12) / 2);
   }, []);
 
+  /** 在平滑滚动空闲后恢复按正文位置同步目录 */
+  const scheduleProgrammaticScrollRelease = useCallback((delay: number) => {
+    if (programmaticScrollIdleTimerRef.current) {
+      clearTimeout(programmaticScrollIdleTimerRef.current);
+    }
+    programmaticScrollIdleTimerRef.current = setTimeout(() => {
+      programmaticScrollTargetRef.current = null;
+      programmaticScrollIdleTimerRef.current = null;
+    }, delay);
+  }, []);
+
   /** 点击章节标题滚动到对应位置 */
   const handleTocClick = (text: string, index: number) => {
+    programmaticScrollTargetRef.current = index;
+    scheduleProgrammaticScrollRelease(1000);
     setActiveIndex(index);
     updateIndicator(index);
     const body = bodyRef.current;
@@ -88,6 +103,11 @@ export function useAnnouncementToc({ contentHtml, showVideo }: UseAnnouncementTo
     if (!body || !contentHtml || showVideo) return;
 
     const handleScroll = () => {
+      if (programmaticScrollTargetRef.current !== null) {
+        scheduleProgrammaticScrollRelease(120);
+        return;
+      }
+
       const els = body.querySelectorAll('h1, h2, h3');
       if (!els.length) return;
 
@@ -110,8 +130,15 @@ export function useAnnouncementToc({ contentHtml, showVideo }: UseAnnouncementTo
 
     body.addEventListener('scroll', handleScroll, { passive: true });
     handleScroll();
-    return () => body.removeEventListener('scroll', handleScroll);
-  }, [contentHtml, showVideo, updateIndicator]);
+    return () => {
+      body.removeEventListener('scroll', handleScroll);
+      if (programmaticScrollIdleTimerRef.current) {
+        clearTimeout(programmaticScrollIdleTimerRef.current);
+        programmaticScrollIdleTimerRef.current = null;
+      }
+      programmaticScrollTargetRef.current = null;
+    };
+  }, [contentHtml, showVideo, updateIndicator, scheduleProgrammaticScrollRelease]);
 
   return {
     bodyRef,
