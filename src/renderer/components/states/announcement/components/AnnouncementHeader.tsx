@@ -51,6 +51,9 @@ export function AnnouncementHeader({ announcement, showVideo, onToggleVideo, onC
         <div className="announcement-subtitle">{subtitleText}</div>
       </div>
       <div className="announcement-header-actions">
+        <button type="button" className="announcement-bilibili-btn" onClick={() => window.open('https://space.bilibili.com/1693679439', '_blank', 'noopener,noreferrer')}>
+          <img src={SvgIcon.BILIBILI} alt="" draggable={false} />
+        </button>
         <button type="button" className="announcement-github-btn" onClick={() => window.open('https://github.com/JNTMTMTM/eIsland', '_blank', 'noopener,noreferrer')}>
           <img src={SvgIcon.GITHUB} alt="" draggable={false} />
         </button>
