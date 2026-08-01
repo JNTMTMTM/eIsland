@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import { useMemo, useRef, type ReactElement } from 'react';
+import { useMemo, useRef, useState, useCallback, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import DOMPurify from 'dompurify';
 import type { AnnouncementData } from '../../../../api/announcement/announcementApi';
@@ -56,14 +56,31 @@ interface AnnouncementBodyProps {
 export function AnnouncementBody({ loading, announcement, showVideo }: AnnouncementBodyProps): ReactElement {
   const { t } = useTranslation();
   const bodyRef = useRef<HTMLDivElement>(null);
+  const tocRef = useRef<HTMLDivElement>(null);
+  const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const [activeIndex, setActiveIndex] = useState<number>(-1);
+  const [indicatorTop, setIndicatorTop] = useState(0);
 
   const headings = useMemo(() => {
     if (!announcement?.contentHtml) return [];
     return extractHeadings(announcement.contentHtml);
   }, [announcement?.contentHtml]);
 
+  /** 更新指示器位置 */
+  const updateIndicator = useCallback((index: number) => {
+    const item = itemRefs.current[index];
+    const toc = tocRef.current;
+    if (!item || !toc) return;
+    const tocRect = toc.getBoundingClientRect();
+    const itemRect = item.getBoundingClientRect();
+    const itemTop = itemRect.top - tocRect.top + toc.scrollTop;
+    setIndicatorTop(itemTop + (itemRect.height - 12) / 2);
+  }, []);
+
   /** 点击章节标题滚动到对应位置 */
-  const handleTocClick = (text: string) => {
+  const handleTocClick = (text: string, index: number) => {
+    setActiveIndex(index);
+    updateIndicator(index);
     const body = bodyRef.current;
     if (!body) return;
     const els = body.querySelectorAll('h1, h2, h3');
@@ -93,9 +110,18 @@ export function AnnouncementBody({ loading, announcement, showVideo }: Announcem
         <AnnouncementVideo bvid={announcement.bvid} autoplay={false} showDanmaku={false} aspectRatio={9 / 16} />
         {contentNode}
         {!showVideo && headings.length > 0 && (
-          <div className="announcement-toc">
+          <div ref={tocRef} className="announcement-toc">
+            <div
+              className="announcement-toc-indicator"
+              style={{ top: `${indicatorTop}px`, opacity: activeIndex >= 0 ? 1 : 0 }}
+            />
             {headings.map((h, i) => (
-              <div key={i} className={`announcement-toc-item level-${h.level}`} onClick={() => handleTocClick(h.text)}>{h.text}</div>
+              <div
+                key={i}
+                ref={(el) => { itemRefs.current[i] = el; }}
+                className={`announcement-toc-item level-${h.level}${i === activeIndex ? ' active' : ''}`}
+                onClick={() => handleTocClick(h.text, i)}
+              >{h.text}</div>
             ))}
           </div>
         )}
