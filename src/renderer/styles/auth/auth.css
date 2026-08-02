@@ -344,6 +344,10 @@
   color: rgba(var(--color-text-rgb), 0.62);
 }
 
+.payment-qr-box svg {
+  fill: rgba(var(--color-text-rgb), 0.85);
+}
+
 .payment-qr-hint {
   font-size: 12px;
   color: rgba(var(--color-text-rgb), 0.82);

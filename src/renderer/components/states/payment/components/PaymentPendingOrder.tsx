@@ -26,7 +26,7 @@
 
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
-import { SvgIcon } from '../../../../utils/SvgIcon';
+import { QRCodeSVG } from 'qrcode.react';
 import type { UserPaymentOrderData } from '../../../../api/user/userAccountApi';
 
 interface PaymentPendingOrderProps {
@@ -106,14 +106,31 @@ export function PaymentPendingOrder({
           </>
         ) : t('settings.user.payment.refreshStatus', { defaultValue: '刷新支付状态' })}
       </button>
-      {isPendingOrderPaying ? (
+      {isPendingOrderPaying && pendingOrder.channel === 'WECHAT' ? (
+        <div className="payment-qr-card">
+          <div className="payment-qr-box">
+            <QRCodeSVG
+              value={pendingOrder.qrCodeUrl || pendingOrder.payUrl || ''}
+              size={200}
+              level="M"
+              bgColor="transparent"
+            />
+          </div>
+          <div className="payment-qr-hint">
+            {t('settings.user.payment.scanQrHint', { defaultValue: '请使用微信扫一扫完成支付' })}
+          </div>
+          <div className="payment-qr-subhint">
+            {t('settings.user.payment.scanQrSubhint', { defaultValue: '扫码后请在手机上完成支付，再回到此处刷新状态' })}
+          </div>
+        </div>
+      ) : null}
+      {isPendingOrderPaying && pendingOrder.channel === 'ALIPAY' ? (
         <button
           type="button"
           className="settings-user-primary-btn payment-confirm-btn"
           onClick={onOpenPaymentPage}
           disabled={creatingOrRefreshing}
         >
-          <img className="payment-action-icon" src={SvgIcon.ALIPAY} alt="" aria-hidden="true" />
           {t('settings.user.payment.openPaymentPage', { defaultValue: '打开支付界面' })}
         </button>
       ) : null}
