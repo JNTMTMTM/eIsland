@@ -24,6 +24,7 @@
  * @author 鸡哥
  */
 
+import { getLanguage } from '../../i18n';
 import type { AnnouncementShowMode } from './types/AnnouncementShowMode';
 import type { AnnouncementData } from './types/AnnouncementData';
 
@@ -75,10 +76,14 @@ export async function writeAnnouncementLastShownAppVersion(version: string): Pro
 
 export async function fetchCurrentAnnouncement(): Promise<AnnouncementData | null> {
   try {
-    const response = await window.api.netFetch(`${ANNOUNCEMENT_API_BASE}/v1/announcement/current`, {
-      method: 'GET',
-      timeoutMs: 8000,
-    });
+    const language = getLanguage();
+    const response = await window.api.netFetch(
+      `${ANNOUNCEMENT_API_BASE}/v1/announcement/current?lang=${encodeURIComponent(language)}`,
+      {
+        method: 'GET',
+        timeoutMs: 8000,
+      },
+    );
     if (!response?.ok) return null;
 
     const payload = JSON.parse(response.body) as { code?: number; data?: AnnouncementData | null };

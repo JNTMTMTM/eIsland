@@ -26,6 +26,10 @@
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+vi.mock('../../i18n', () => ({
+  getLanguage: () => 'zh-CN',
+}));
+
 type TestWindow = {
   location?: { hostname: string };
   api?: {
@@ -82,6 +86,10 @@ describe('announcementApi', () => {
     const { fetchCurrentAnnouncement } = await import('../announcement/announcementApi');
     const data = await fetchCurrentAnnouncement();
 
+    expect(netFetch).toHaveBeenCalledWith(
+      expect.stringContaining('/v1/announcement/current?lang=zh-CN'),
+      expect.objectContaining({ method: 'GET' }),
+    );
     expect(data?.title).toBe('t');
     expect(data?.content).toBe('c');
   });
