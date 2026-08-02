@@ -56,7 +56,7 @@ export function AnnouncementBody({ loading, announcement, showVideo }: Announcem
     const link = target.closest('a');
     if (link?.href) {
       e.preventDefault();
-      window.open(link.href, '_blank', 'noopener,noreferrer');
+      void window.api.clipboardOpenUrl(link.href);
     }
   };
 
