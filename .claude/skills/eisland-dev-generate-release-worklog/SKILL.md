@@ -43,12 +43,12 @@ Group the commits by type prefix: `feat`, `fix`, `refactor`, `test`, `docs`, `i1
 
 ### Step 3: Read style reference
 
-Read the bundled reference file `references/V26.5.13.md` to extract the canonical format:
-1. The exact template structure (metadata blockquote, summary, sections, closing)
+Read the bundled reference files in `references/V26.6.5/` to extract the canonical format:
+1. The exact template structure (metadata blockquote, summary, sections, closing) — each version is a directory containing `CH_<version>.md` and `EN_<version>.md`
 2. The tone and phrasing patterns used in bullet items
-3. The section ordering convention (Chinese first, English second)
+3. The separation convention: Chinese and English are in separate files
 
-Also read the 2 most recent announcement files in `docs/announcement/` for additional style context.
+Read both `references/V26.6.5/CH_V26.6.5.md` and `references/V26.6.5/EN_V26.6.5.md` as the primary style reference.
 
 ### Step 4: Generate the announcement
 
@@ -62,14 +62,15 @@ Rewrite each commit into a concise user-facing bullet point in Chinese:
 
 ### Step 5: Format the output
 
-Generate the markdown with this exact structure:
+Generate **two separate markdown files** inside a directory named after the version:
+
+#### Chinese file: `docs/announcement/<version>/CH_<version>.md`
 
 ```
-> **Release Date:** *`<date>`* **GitHub Repository:** *`https://github.com/JNTMTMTM/eIsland`*
+> **更新时间:** *`<date>`*
+> **代码仓库:** [`https://github.com/JNTMTMTM/eIsland`](https://github.com/JNTMTMTM/eIsland)
 
 **<Chinese summary in bold>**
-
-*<English summary in italic>*
 
 ## 新功能
 
@@ -88,6 +89,15 @@ Generate the markdown with this exact structure:
 - <Chinese bullet>
 
 感谢大家持续反馈与支持。若你在升级后发现新问题，欢迎继续反馈，我们会尽快跟进。
+```
+
+#### English file: `docs/announcement/<version>/EN_<version>.md`
+
+```
+> **Release Date:** *`<date>`*
+> **GitHub Repository:** [`https://github.com/JNTMTMTM/eIsland`](https://github.com/JNTMTMTM/eIsland)
+
+*<English summary in italic>*
 
 ## New Features
 
@@ -116,26 +126,24 @@ Thank you for your continued feedback and support. If you encounter new issues a
 - Sub-items use 2-space indent
 - No empty entries, no duplicates
 - Keep bullet items concise (one sentence each)
-- Chinese sections first, then English sections (grouped by language)
-- Each section heading uses only one language (no bilingual headings like `## 新功能 / New Features`)
-- Metadata blockquote is a single line, English only, date and repo wrapped in italic backticks
-- Summary: Chinese in **bold**, English in *italic*
-- Chinese closing after the last Chinese section
-- English sections follow immediately after Chinese closing (no divider)
-- English closing at the very end
+- Chinese and English are in separate files, never mixed
+- Each file's metadata blockquote uses its own language (Chinese: 更新时间/代码仓库, English: Release Date/GitHub Repository)
+- Metadata fields are on separate lines (not a single line)
+- Chinese summary in **bold**, English summary in *italic*
+- Only include sections that have items
 
 ### Step 6: Write and commit
 
-Write the file to `docs/announcement/<version>.md`, then commit:
+Write both files to `docs/announcement/<version>/`, then commit:
 
 ```bash
-git add docs/announcement/<version>.md
+git add docs/announcement/<version>/
 git commit -m "docs(announcement): add <version> release notes"
 ```
 
 ## Output format
 
 Return:
-- The output file path
+- The output directory path
 - The git commit hash
-- A brief summary of what was included (section counts)
+- A brief summary of what was included (section counts per file)
