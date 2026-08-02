@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-08-01T12:30:58.106Z
+> 生成时间：2026-08-02T14:26:46.011Z
 
 ## 26.6.5
 
@@ -2946,6 +2946,41 @@
 
 ## Unreleased
 
+- 2026-08-02 | 4075628d | 鸡哥 | Merge pull request #183 from JNTMTMTM/dev
+- 2026-08-02 | 190c2bf3 | 鸡哥 | feat: add QR code visibility toggle based on payment order status
+- 2026-08-02 | cb047584 | 鸡哥 | feat: add close button and localization for announcement component
+- 2026-08-02 | 6931e058 | 鸡哥 | fix: update API base URL from test to production server
+- 2026-08-02 | d7b7d558 | 鸡哥 | fix: optimize scrolling behavior for chapter navigation in useAnnouncementToc hook
+- 2026-08-02 | de779719 | 鸡哥 | feat: add WeChat and Alipay icons to payment action buttons in PaymentPendingOrder component
+- 2026-08-02 | 0c191efa | 鸡哥 | fix: improve payment method selection visibility when no pending order exists
+- 2026-08-02 | b1bb05f6 | 鸡哥 | feat: add toggle for displaying QR code in PaymentPendingOrder component with localization support
+- 2026-08-02 | 232a3e4a | 鸡哥 | fix: update background color for QR code component to white
+- 2026-08-02 | 8bde166f | 鸡哥 | feat: add QR code payment option and hints for WeChat and Alipay in PaymentPendingOrder component
+- 2026-08-02 | 5d4fb486 | 鸡哥 | fix: remove development environment check for USER_ACCOUNT_API_BASE
+- 2026-08-02 | bc214f4c | 鸡哥 | feat: add BILIBILI button to AnnouncementHeader with styling
+- 2026-08-02 | bc14247e | 鸡哥 | feat: add BILIBILI icon to SvgIcon and update tests
+- 2026-08-02 | 21bc049d | 鸡哥 | feat: add GitHub button to AnnouncementHeader component with styling
+- 2026-08-02 | bffe8fe2 | 鸡哥 | feat: enhance useAnnouncementToc hook with programmatic scroll handling and cleanup
+- 2026-08-02 | 5855f374 | 鸡哥 | feat: add type definitions for useAnnouncementData and useAnnouncementToc hooks
+- 2026-08-02 | db316bf7 | 鸡哥 | feat: define AnnouncementHeaderProps interface for type safety in AnnouncementHeader component
+- 2026-08-02 | e510565f | 鸡哥 | feat: refactor AnnouncementVideo component to use centralized default configurations and type definitions
+- 2026-08-02 | d2b7b3b2 | 鸡哥 | feat: refactor announcement body component and add useAnnouncementToc hook for improved navigation
+- 2026-08-02 | 004c9182 | 鸡哥 | feat: add external link handling in announcement body component
+- 2026-08-02 | d4d6ac04 | 鸡哥 | feat: add scroll event handling to update active section in announcement body
+- 2026-08-02 | 0850f017 | 鸡哥 | feat: enhance table of contents item styling with active state indication
+- 2026-08-02 | 32871953 | 鸡哥 | feat: add table of contents functionality to announcement body with scroll-to feature
+- 2026-08-02 | 34299af4 | 鸡哥 | refactor: update announcement body scrollbar styles for improved visibility
+- 2026-08-02 | d2334069 | 鸡哥 | feat: enhance video display in announcement component with dynamic gap adjustment
+- 2026-08-02 | a311c5b0 | 鸡哥 | feat: update announcement header to use video button with styling
+- 2026-08-02 | 3d5a8774 | 鸡哥 | feat: add video toggle functionality to announcement component
+- 2026-08-02 | 8bfbd6a2 | 鸡哥 | feat: add VIDEO.svg icon and update SvgIcon to include it
+- 2026-08-02 | d9d4961b | 鸡哥 | refactor: remove unused announcement title and close text, update close button to use icon
+- 2026-08-02 | dc0278c2 | 鸡哥 | style: reduce padding in announcement panel for improved layout
+- 2026-08-02 | 90a608b3 | 鸡哥 | style: reduce padding and gap in announcement panel for improved layout
+- 2026-08-02 | 6a764539 | 鸡哥 | style: update announcement panel styles for improved layout and readability
+- 2026-08-02 | d147f3f0 | 鸡哥 | refactor: simplify announcement header component and remove unused styles
+- 2026-08-02 | 33d5c8d7 | 鸡哥 | feat: add sourcemap configuration for development mode in build settings
+- 2026-08-01 | 56e55854 | eislandBot | docs: auto update CHANGE_LOG.md for #182 by @JNTMTMTM [skip ci]
 - 2026-08-01 | c398773d | 鸡哥 | Merge pull request #182 from JNTMTMTM/dev
 - 2026-08-01 | 3960face | 鸡哥 | feat: add update source localization for improved clarity in network settings
 - 2026-08-01 | 6e06442a | 鸡哥 | feat: add static asset node icon mapping for improved visual representation in network settings
