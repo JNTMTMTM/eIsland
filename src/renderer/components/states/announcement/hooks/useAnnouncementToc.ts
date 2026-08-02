@@ -89,12 +89,13 @@ export function useAnnouncementToc({ contentHtml, showVideo }: UseAnnouncementTo
     const body = bodyRef.current;
     if (!body) return;
     const els = body.querySelectorAll('h1, h2, h3');
-    for (const el of els) {
+    Array.from(els).find((el) => {
       if (el.textContent?.trim() === text) {
         el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        break;
+        return true;
       }
-    }
+      return false;
+    });
   };
 
   /** 滚动时更新选中章节 */
