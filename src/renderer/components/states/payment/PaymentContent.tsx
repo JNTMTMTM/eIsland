@@ -216,12 +216,15 @@ export function PaymentContent(): ReactElement {
             : t('settings.user.payment.subtitle', { defaultValue: '选择支付方式后前往官网完成支付，支付成功后账号会自动同步 Pro 权益。' })}
         </div>
 
-        <PaymentMethodSelector method={method} wechatEnabled={wechatEnabled} alipayEnabled={alipayEnabled} onSelect={handleSelectMethod} />
-
-        {!anyChannelEnabled ? (
-          <div className="payment-order-feedback">
-            {t('settings.user.payment.channelsUnavailable', { defaultValue: '当前支付通道暂不可用，请稍后重试。' })}
-          </div>
+        {!pendingOrder ? (
+          <>
+            <PaymentMethodSelector method={method} wechatEnabled={wechatEnabled} alipayEnabled={alipayEnabled} onSelect={handleSelectMethod} />
+            {!anyChannelEnabled ? (
+              <div className="payment-order-feedback">
+                {t('settings.user.payment.channelsUnavailable', { defaultValue: '当前支付通道暂不可用，请稍后重试。' })}
+              </div>
+            ) : null}
+          </>
         ) : null}
 
         {method && !pendingOrder ? (

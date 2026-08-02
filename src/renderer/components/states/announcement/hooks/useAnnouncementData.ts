@@ -29,11 +29,7 @@ import {
   fetchCurrentAnnouncement,
   type AnnouncementData,
 } from '../../../../api/announcement/announcementApi';
-
-interface UseAnnouncementDataResult {
-  loading: boolean;
-  announcement: AnnouncementData | null;
-}
+import type { UseAnnouncementDataResult } from '../types/useAnnouncementData.types';
 
 /**
  * 拉取并维护公告数据状态。

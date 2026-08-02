@@ -24,25 +24,23 @@
  * @author 鸡哥
  */
 
-import type { ReactElement } from 'react';
+import { type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import DOMPurify from 'dompurify';
-import type { AnnouncementData } from '../../../../api/announcement/announcementApi';
 import { ANNOUNCEMENT_KEYS, ANNOUNCEMENT_DEFAULTS } from '../config/announcementDefaults';
+import { useAnnouncementToc } from '../hooks/useAnnouncementToc';
+import type { AnnouncementBodyProps } from '../types/AnnouncementBody.types';
 import { AnnouncementVideo } from './AnnouncementVideo';
-
-interface AnnouncementBodyProps {
-  loading: boolean;
-  announcement: AnnouncementData | null;
-}
 
 /**
  * 渲染公告面板正文内容。
  * @param props - 公告正文渲染参数。
  * @returns 公告正文区域。
  */
-export function AnnouncementBody({ loading, announcement }: AnnouncementBodyProps): ReactElement {
+export function AnnouncementBody({ loading, announcement, showVideo }: AnnouncementBodyProps): ReactElement {
   const { t } = useTranslation();
+  const { bodyRef, tocRef, itemRefs, headings, activeIndex, indicatorTop, handleTocClick } =
+    useAnnouncementToc({ contentHtml: announcement?.contentHtml, showVideo });
 
   if (loading) {
     return <div className="announcement-empty">{t(ANNOUNCEMENT_KEYS.LOADING, { defaultValue: ANNOUNCEMENT_DEFAULTS.LOADING })}</div>;
@@ -52,15 +50,41 @@ export function AnnouncementBody({ loading, announcement }: AnnouncementBodyProp
     return <div className="announcement-empty">{t(ANNOUNCEMENT_KEYS.EMPTY, { defaultValue: ANNOUNCEMENT_DEFAULTS.EMPTY })}</div>;
   }
 
+  /** 点击链接时在外部浏览器打开 */
+  const handleBodyClick = (e: React.MouseEvent) => {
+    const target = e.target as HTMLElement;
+    const link = target.closest('a');
+    if (link?.href) {
+      e.preventDefault();
+      window.open(link.href, '_blank', 'noopener,noreferrer');
+    }
+  };
+
   const contentNode = announcement.contentHtml
-    ? <div className="announcement-body" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(announcement.contentHtml) }} />
-    : <div className="announcement-body"><pre>{announcement.content || ''}</pre></div>;
+    ? <div ref={bodyRef} className="announcement-body" onClick={handleBodyClick} dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(announcement.contentHtml) }} />
+    : <div ref={bodyRef} className="announcement-body"><pre>{announcement.content || ''}</pre></div>;
 
   if (announcement.bvid) {
     return (
-      <div className="announcement-content-row">
+      <div className={`announcement-content-row${showVideo ? ' video-visible' : ''}`}>
         <AnnouncementVideo bvid={announcement.bvid} autoplay={false} showDanmaku={false} aspectRatio={9 / 16} />
         {contentNode}
+        {!showVideo && headings.length > 0 && (
+          <div ref={tocRef} className="announcement-toc">
+            <div
+              className="announcement-toc-indicator"
+              style={{ top: `${indicatorTop}px`, opacity: activeIndex >= 0 ? 1 : 0 }}
+            />
+            {headings.map((h, i) => (
+              <div
+                key={i}
+                ref={(el) => { itemRefs.current[i] = el; }}
+                className={`announcement-toc-item level-${h.level}${i === activeIndex ? ' active' : ''}`}
+                onClick={() => handleTocClick(h.text, i)}
+              >{h.text}</div>
+            ))}
+          </div>
+        )}
       </div>
     );
   }

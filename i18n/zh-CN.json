@@ -472,7 +472,6 @@
   "announcement": {
     "loading": "正在加载公告…",
     "empty": "暂无公告内容",
-    "title": "公告",
     "subtitle": "当前已是最新版本，以下为最新公告内容。",
     "defaultTitle": "系统公告",
     "updatedAt": "更新时间：{{time}}",
@@ -3463,6 +3462,10 @@
         },
         "wechatHint": "推荐使用微信扫码完成支付",
         "alipayHint": "推荐使用支付宝扫码完成支付",
+        "scanQrHint": "请使用微信扫一扫完成支付",
+        "scanQrSubhint": "扫码后请在手机上完成支付，再回到此处刷新状态",
+        "showQrCode": "显示二维码",
+        "hideQrCode": "收起二维码",
         "selectMethodHint": "请选择上方支付方式后再创建订单。",
         "fallbackHint": "如果扫码不可用，可点击下方按钮前往官网支付页面。",
         "goCheckout": "前往官网支付"

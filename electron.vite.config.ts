@@ -29,10 +29,11 @@ import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { resolve } from 'path';
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   main: {
     plugins: [externalizeDepsPlugin()],
     build: {
+      sourcemap: mode === 'development' ? 'inline' : false,
       outDir: 'out/main',
       rollupOptions: {
         input: {
@@ -45,6 +46,7 @@ export default defineConfig({
   preload: {
     plugins: [externalizeDepsPlugin()],
     build: {
+      sourcemap: mode === 'development' ? 'inline' : false,
       outDir: 'out/preload',
       rollupOptions: {
         input: {
@@ -57,6 +59,7 @@ export default defineConfig({
     root: 'src/renderer',
     publicDir: resolve(__dirname, 'src/renderer/public'),
     build: {
+      sourcemap: mode === 'development' ? 'inline' : false,
       outDir: 'out/renderer',
       rollupOptions: {
         input: {
@@ -70,4 +73,4 @@ export default defineConfig({
     },
     plugins: [react(), tailwindcss()]
   }
-});
+}));

@@ -331,10 +331,7 @@
   aspect-ratio: 1 / 1;
   border-radius: 10px;
   border: 1px dashed rgba(var(--color-text-rgb), 0.2);
-  background:
-    linear-gradient(45deg, rgba(var(--color-text-rgb), 0.04) 25%, transparent 25%, transparent 50%, rgba(var(--color-text-rgb), 0.04) 50%, rgba(var(--color-text-rgb), 0.04) 75%, transparent 75%, transparent),
-    rgba(var(--color-text-rgb), 0.02);
-  background-size: 12px 12px;
+  background: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -342,6 +339,10 @@
   font-weight: 700;
   letter-spacing: 0.8px;
   color: rgba(var(--color-text-rgb), 0.62);
+}
+
+.payment-qr-box svg {
+  fill: rgba(var(--color-text-rgb), 0.85);
 }
 
 .payment-qr-hint {

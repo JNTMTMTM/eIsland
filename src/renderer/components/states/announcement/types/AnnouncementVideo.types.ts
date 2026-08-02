@@ -19,27 +19,24 @@
  */
 
 /**
- * @file announcementDefaults.ts
- * @description 公告组件翻译键与默认值常量
+ * @file AnnouncementVideo.types.ts
+ * @description AnnouncementVideo 组件相关类型定义
  * @author 鸡哥
  */
 
-/** 公告面板 i18n 翻译键 */
-export const ANNOUNCEMENT_KEYS = {
-  SUBTITLE: 'announcement.subtitle',
-  DEFAULT_TITLE: 'announcement.defaultTitle',
-  UPDATED_AT: 'announcement.updatedAt',
-  LOADING: 'announcement.loading',
-  EMPTY: 'announcement.empty',
-  CLOSE: 'announcement.close',
-} as const;
-
-/** 公告面板翻译默认值 */
-export const ANNOUNCEMENT_DEFAULTS = {
-  SUBTITLE: '当前已是最新版本，以下为最新公告内容。',
-  DEFAULT_TITLE: '系统公告',
-  UPDATED_AT: '更新时间：{{time}}',
-  LOADING: '正在加载公告…',
-  EMPTY: '暂无公告内容',
-  CLOSE: '关闭',
-} as const;
+/** AnnouncementVideo 组件入参 */
+export interface AnnouncementVideoProps {
+  /** B站视频 BV 号 */
+  bvid: string;
+  /** 多 P 视频指定 cid */
+  cid?: string;
+  /** 默认第几 P，默认 1 */
+  page?: number;
+  className?: string;
+  autoplay?: boolean;
+  showDanmaku?: boolean;
+  /** 从指定秒数开始播放 */
+  startTime?: number;
+  /** 宽高比 (height / width)，默认 9/16 = 0.5625 */
+  aspectRatio?: number;
+}

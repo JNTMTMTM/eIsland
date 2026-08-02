@@ -25,22 +25,8 @@
  */
 
 import type { ReactElement } from 'react';
-
-interface AnnouncementVideoProps {
-  /** B站视频 BV 号 */
-  bvid: string;
-  /** 多 P 视频指定 cid */
-  cid?: string;
-  /** 默认第几 P，默认 1 */
-  page?: number;
-  className?: string;
-  autoplay?: boolean;
-  showDanmaku?: boolean;
-  /** 从指定秒数开始播放 */
-  startTime?: number;
-  /** 宽高比 (height / width)，默认 9/16 = 0.5625 */
-  aspectRatio?: number;
-}
+import { BILIBILI_PLAYER_URL, VIDEO_DEFAULTS } from '../config/announcementVideoDefaults';
+import type { AnnouncementVideoProps } from '../types/AnnouncementVideo.types';
 
 /**
  * 嵌入 B站播放器 iframe。
@@ -50,12 +36,12 @@ interface AnnouncementVideoProps {
 export function AnnouncementVideo({
   bvid,
   cid,
-  page = 1,
+  page = VIDEO_DEFAULTS.PAGE,
   className = '',
-  autoplay = false,
-  showDanmaku = false,
-  startTime = 0,
-  aspectRatio = 9 / 16,
+  autoplay = VIDEO_DEFAULTS.AUTOPLAY,
+  showDanmaku = VIDEO_DEFAULTS.SHOW_DANMAKU,
+  startTime = VIDEO_DEFAULTS.START_TIME,
+  aspectRatio = VIDEO_DEFAULTS.ASPECT_RATIO,
 }: AnnouncementVideoProps): ReactElement {
   const params = new URLSearchParams({
     bvid,
@@ -68,7 +54,7 @@ export function AnnouncementVideo({
     ...(startTime > 0 && { t: startTime.toString() }),
   });
 
-  const src = `https://player.bilibili.com/player.html?${params.toString()}`;
+  const src = `${BILIBILI_PLAYER_URL}?${params.toString()}`;
 
   return (
     <div className={`announcement-video-wrapper ${className}`.trim()}>

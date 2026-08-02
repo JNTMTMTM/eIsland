@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import type { ReactElement } from 'react';
+import { useState, type ReactElement } from 'react';
 import useIslandStore from '../../../store/slices';
 import { AnnouncementHeader } from './components/AnnouncementHeader';
 import { AnnouncementBody } from './components/AnnouncementBody';
@@ -38,15 +38,21 @@ import '../../../styles/announcement/announcement.css';
 export function AnnouncementContent(): ReactElement {
   const { setHover } = useIslandStore();
   const { loading, announcement } = useAnnouncementData();
+  const [showVideo, setShowVideo] = useState(false);
 
   return (
     <div className="announcement-state-content" onClick={(event) => event.stopPropagation()}>
       <div className="announcement-panel">
-        <AnnouncementHeader announcement={announcement} onClose={() => setHover()} />
+        <AnnouncementHeader
+          announcement={announcement}
+          showVideo={showVideo}
+          onToggleVideo={() => setShowVideo((v) => !v)}
+          onClose={() => setHover()}
+        />
 
         <div className="announcement-divider" />
 
-        <AnnouncementBody loading={loading} announcement={announcement} />
+        <AnnouncementBody loading={loading} announcement={announcement} showVideo={showVideo} />
       </div>
     </div>
   );

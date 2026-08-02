@@ -26,40 +26,44 @@
 
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { AnnouncementData } from '../../../../api/announcement/announcementApi';
 import { formatDatetime } from '../utils/formatDatetime';
 import { ANNOUNCEMENT_KEYS, ANNOUNCEMENT_DEFAULTS } from '../config/announcementDefaults';
-
-interface AnnouncementHeaderProps {
-  announcement: AnnouncementData | null;
-  onClose: () => void;
-}
+import type { AnnouncementHeaderProps } from '../types/AnnouncementHeader.types';
+import { SvgIcon } from '../../../../utils/SvgIcon';
 
 /**
  * 渲染公告面板头部信息与关闭按钮。
  * @param props - 公告头部渲染参数。
  * @returns 公告头部区域。
  */
-export function AnnouncementHeader({ announcement, onClose }: AnnouncementHeaderProps): ReactElement {
+export function AnnouncementHeader({ announcement, showVideo, onToggleVideo, onClose }: AnnouncementHeaderProps): ReactElement {
   const { t } = useTranslation();
+
+  const titleText = announcement?.title || t(ANNOUNCEMENT_KEYS.DEFAULT_TITLE, { defaultValue: ANNOUNCEMENT_DEFAULTS.DEFAULT_TITLE });
+  const subtitleText = announcement?.updatedAt
+    ? t(ANNOUNCEMENT_KEYS.UPDATED_AT, { defaultValue: ANNOUNCEMENT_DEFAULTS.UPDATED_AT, time: formatDatetime(announcement.updatedAt) })
+    : t(ANNOUNCEMENT_KEYS.SUBTITLE, { defaultValue: ANNOUNCEMENT_DEFAULTS.SUBTITLE });
 
   return (
     <div className="announcement-panel-header">
       <div>
-        <div className="announcement-title">{t(ANNOUNCEMENT_KEYS.TITLE, { defaultValue: ANNOUNCEMENT_DEFAULTS.TITLE })}</div>
-        <div className="announcement-subtitle">{t(ANNOUNCEMENT_KEYS.SUBTITLE, { defaultValue: ANNOUNCEMENT_DEFAULTS.SUBTITLE })}</div>
+        <div className="announcement-title">{titleText}</div>
+        <div className="announcement-subtitle">{subtitleText}</div>
       </div>
       <div className="announcement-header-actions">
-        {announcement && (
-          <div className="announcement-meta-vertical">
-            <span className="announcement-meta-title">{announcement.title || t(ANNOUNCEMENT_KEYS.DEFAULT_TITLE, { defaultValue: ANNOUNCEMENT_DEFAULTS.DEFAULT_TITLE })}</span>
-            {announcement.updatedAt && (
-              <span className="announcement-meta-time">{t(ANNOUNCEMENT_KEYS.UPDATED_AT, { defaultValue: ANNOUNCEMENT_DEFAULTS.UPDATED_AT, time: formatDatetime(announcement.updatedAt) })}</span>
-            )}
-          </div>
+        <button type="button" className="announcement-bilibili-btn" onClick={() => window.open('https://space.bilibili.com/1693679439', '_blank', 'noopener,noreferrer')}>
+          <img src={SvgIcon.BILIBILI} alt="" draggable={false} />
+        </button>
+        <button type="button" className="announcement-github-btn" onClick={() => window.open('https://github.com/JNTMTMTM/eIsland', '_blank', 'noopener,noreferrer')}>
+          <img src={SvgIcon.GITHUB} alt="" draggable={false} />
+        </button>
+        {announcement?.bvid && (
+          <button type="button" className={`announcement-video-btn${showVideo ? ' active' : ''}`} onClick={onToggleVideo}>
+            <img src={SvgIcon.VIDEO} alt="" draggable={false} />
+          </button>
         )}
-        <button type="button" className="announcement-close-btn" onClick={onClose}>
-          {t(ANNOUNCEMENT_KEYS.CLOSE, { defaultValue: ANNOUNCEMENT_DEFAULTS.CLOSE })}
+        <button type="button" className="announcement-close-btn" onClick={onClose} aria-label={t(ANNOUNCEMENT_KEYS.CLOSE, { defaultValue: ANNOUNCEMENT_DEFAULTS.CLOSE })}>
+          <img src={SvgIcon.CANCEL} alt="" draggable={false} />
         </button>
       </div>
     </div>
