@@ -3386,6 +3386,12 @@
           "loadFailed": "Failed to load orders",
           "closeFailed": "Failed to close order. Please try again later",
           "closeSuccess": "Order closed"
+        },
+        "pagination": {
+          "label": "Order history pagination",
+          "previous": "Previous",
+          "next": "Next",
+          "summary": "Page {{page}} / {{totalPages}}, {{total}} items"
         }
       },
       "pro": {
