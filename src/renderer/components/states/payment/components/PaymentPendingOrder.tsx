@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import { useState, type ReactElement } from 'react';
+import { useState, useEffect, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { QRCodeSVG } from 'qrcode.react';
 import { SvgIcon } from '../../../../utils/SvgIcon';
@@ -70,6 +70,12 @@ export function PaymentPendingOrder({
 }: PaymentPendingOrderProps): ReactElement {
   const { t } = useTranslation();
   const [showQr, setShowQr] = useState(false);
+  const hasQrUrl = Boolean(pendingOrder.qrCodeUrl || pendingOrder.payUrl);
+
+  /** 订单变更时重置二维码展开状态 */
+  useEffect(() => {
+    setShowQr(false);
+  }, [pendingOrder.outTradeNo]);
 
   return (
     <div className="payment-order-card">
@@ -110,18 +116,20 @@ export function PaymentPendingOrder({
       </button>
       {isPendingOrderPaying && pendingOrder.channel === 'WECHAT' ? (
         <>
-          <button
-            type="button"
-            className="settings-user-primary-btn payment-confirm-btn"
-            onClick={() => setShowQr((v) => !v)}
-            disabled={creatingOrRefreshing}
-          >
-            <img className="payment-action-icon" src={SvgIcon.WECHATPAY} alt="" aria-hidden="true" />
-            {showQr
-              ? t('settings.user.payment.hideQrCode', { defaultValue: '收起二维码' })
-              : t('settings.user.payment.showQrCode', { defaultValue: '显示二维码' })}
-          </button>
-          {showQr ? (
+          {hasQrUrl && (
+            <button
+              type="button"
+              className="settings-user-primary-btn payment-confirm-btn"
+              onClick={() => setShowQr((v) => !v)}
+              disabled={creatingOrRefreshing}
+            >
+              <img className="payment-action-icon" src={SvgIcon.WECHATPAY} alt="" aria-hidden="true" />
+              {showQr
+                ? t('settings.user.payment.hideQrCode', { defaultValue: '收起二维码' })
+                : t('settings.user.payment.showQrCode', { defaultValue: '显示二维码' })}
+            </button>
+          )}
+          {showQr && hasQrUrl ? (
             <div className="payment-qr-card">
               <div className="payment-qr-box">
                 <QRCodeSVG
