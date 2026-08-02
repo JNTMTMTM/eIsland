@@ -46,8 +46,8 @@ import {
   uploadUserAvatar,
   type ImageTranslationHistoryItem,
   type OAuthBindingItem,
-  type PaymentOrderPage,
   type UserPaymentOrderData,
+  PAYMENT_ORDERS_DEFAULT_PAGE_SIZE,
 } from '../../../../../../../api/user/userAccountApi';
 import { runSliderCaptcha } from '../../../../../../../utils/sliderCaptcha';
 import useIslandStore from '../../../../../../../store/slices';
@@ -231,7 +231,6 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
   const [ordersPage, setOrdersPage] = useState(1);
   const [ordersTotal, setOrdersTotal] = useState(0);
   const [ordersTotalPages, setOrdersTotalPages] = useState(0);
-  const ORDERS_PAGE_SIZE = 5;
   const [orderActionOutTradeNo, setOrderActionOutTradeNo] = useState('');
   const [rechargeSelected, setRechargeSelected] = useState<number | null>(null);
   const [rechargeCustomValue, setRechargeCustomValue] = useState('');
@@ -669,7 +668,7 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
     }
     setLoadingUserOrders(true);
     setOrdersFeedback(null);
-    const result = await fetchUserPaymentOrders(token, page, ORDERS_PAGE_SIZE);
+    const result = await fetchUserPaymentOrders(token, page, PAYMENT_ORDERS_DEFAULT_PAGE_SIZE);
     setLoadingUserOrders(false);
     if (!result.ok || !result.data || !Array.isArray(result.data.items)) {
       if (result.code === 401 || result.code === 4011) {

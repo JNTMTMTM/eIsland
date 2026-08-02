@@ -34,6 +34,9 @@ import type {
 import type { UserPaymentCreateChannel } from './types/UserPayment';
 import type { AgentBalanceData } from './types/UserPayment';
 
+/** 订单列表默认每页数量 */
+export const PAYMENT_ORDERS_DEFAULT_PAGE_SIZE = 5;
+
 /** 订单分页结果 */
 export interface PaymentOrderPage {
   items: UserPaymentOrderData[];
@@ -114,10 +117,10 @@ export function fetchPaymentOrder(
 export function fetchUserPaymentOrders(
   token: string,
   page = 1,
-  pageSize = 5,
+  pageSize = PAYMENT_ORDERS_DEFAULT_PAGE_SIZE,
 ): Promise<UserAccountResult<PaymentOrderPage>> {
   const normalizedPage = Math.max(1, Math.floor(Number(page) || 1));
-  const normalizedPageSize = Math.max(1, Math.min(Math.floor(Number(pageSize) || 5), 50));
+  const normalizedPageSize = Math.max(1, Math.min(Math.floor(Number(pageSize) || PAYMENT_ORDERS_DEFAULT_PAGE_SIZE), 50));
   return request<PaymentOrderPage>(
     `/v1/user/payment/orders?page=${normalizedPage}&pageSize=${normalizedPageSize}`,
     {
