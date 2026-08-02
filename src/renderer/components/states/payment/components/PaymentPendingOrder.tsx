@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import type { ReactElement } from 'react';
+import { useState, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { QRCodeSVG } from 'qrcode.react';
 import type { UserPaymentOrderData } from '../../../../api/user/userAccountApi';
@@ -68,6 +68,7 @@ export function PaymentPendingOrder({
   onGoUserCenter,
 }: PaymentPendingOrderProps): ReactElement {
   const { t } = useTranslation();
+  const [showQr, setShowQr] = useState(false);
 
   return (
     <div className="payment-order-card">
@@ -107,22 +108,36 @@ export function PaymentPendingOrder({
         ) : t('settings.user.payment.refreshStatus', { defaultValue: '刷新支付状态' })}
       </button>
       {isPendingOrderPaying && pendingOrder.channel === 'WECHAT' ? (
-        <div className="payment-qr-card">
-          <div className="payment-qr-box">
-            <QRCodeSVG
-              value={pendingOrder.qrCodeUrl || pendingOrder.payUrl || ''}
-              size={200}
-              level="M"
-              bgColor="#ffffff"
-            />
-          </div>
-          <div className="payment-qr-hint">
-            {t('settings.user.payment.scanQrHint', { defaultValue: '请使用微信扫一扫完成支付' })}
-          </div>
-          <div className="payment-qr-subhint">
-            {t('settings.user.payment.scanQrSubhint', { defaultValue: '扫码后请在手机上完成支付，再回到此处刷新状态' })}
-          </div>
-        </div>
+        <>
+          <button
+            type="button"
+            className="settings-user-primary-btn payment-confirm-btn"
+            onClick={() => setShowQr((v) => !v)}
+            disabled={creatingOrRefreshing}
+          >
+            {showQr
+              ? t('settings.user.payment.hideQrCode', { defaultValue: '收起二维码' })
+              : t('settings.user.payment.showQrCode', { defaultValue: '显示二维码' })}
+          </button>
+          {showQr ? (
+            <div className="payment-qr-card">
+              <div className="payment-qr-box">
+                <QRCodeSVG
+                  value={pendingOrder.qrCodeUrl || pendingOrder.payUrl || ''}
+                  size={200}
+                  level="M"
+                  bgColor="#ffffff"
+                />
+              </div>
+              <div className="payment-qr-hint">
+                {t('settings.user.payment.scanQrHint', { defaultValue: '请使用微信扫一扫完成支付' })}
+              </div>
+              <div className="payment-qr-subhint">
+                {t('settings.user.payment.scanQrSubhint', { defaultValue: '扫码后请在手机上完成支付，再回到此处刷新状态' })}
+              </div>
+            </div>
+          ) : null}
+        </>
       ) : null}
       {isPendingOrderPaying && pendingOrder.channel === 'ALIPAY' ? (
         <button

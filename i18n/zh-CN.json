@@ -3463,6 +3463,8 @@
         "alipayHint": "推荐使用支付宝扫码完成支付",
         "scanQrHint": "请使用微信扫一扫完成支付",
         "scanQrSubhint": "扫码后请在手机上完成支付，再回到此处刷新状态",
+        "showQrCode": "显示二维码",
+        "hideQrCode": "收起二维码",
         "selectMethodHint": "请选择上方支付方式后再创建订单。",
         "fallbackHint": "如果扫码不可用，可点击下方按钮前往官网支付页面。",
         "goCheckout": "前往官网支付"
