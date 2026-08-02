@@ -46,6 +46,7 @@ import {
   uploadUserAvatar,
   type ImageTranslationHistoryItem,
   type OAuthBindingItem,
+  type PaymentOrderPage,
   type UserPaymentOrderData,
 } from '../../../../../../../api/user/userAccountApi';
 import { runSliderCaptcha } from '../../../../../../../utils/sliderCaptcha';
@@ -227,6 +228,10 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
   const [userOrders, setUserOrders] = useState<UserPaymentOrderData[]>([]);
   const [loadingUserOrders, setLoadingUserOrders] = useState(false);
   const [ordersFeedback, setOrdersFeedback] = useState<Feedback | null>(null);
+  const [ordersPage, setOrdersPage] = useState(1);
+  const [ordersTotal, setOrdersTotal] = useState(0);
+  const [ordersTotalPages, setOrdersTotalPages] = useState(0);
+  const ORDERS_PAGE_SIZE = 5;
   const [orderActionOutTradeNo, setOrderActionOutTradeNo] = useState('');
   const [rechargeSelected, setRechargeSelected] = useState<number | null>(null);
   const [rechargeCustomValue, setRechargeCustomValue] = useState('');
@@ -653,16 +658,20 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
     }
   };
 
-  const loadUserOrders = useCallback(async (): Promise<void> => {
+  const loadUserOrders = useCallback(async (page: number): Promise<void> => {
     if (!token) {
       setUserOrders([]);
+      setOrdersPage(1);
+      setOrdersTotal(0);
+      setOrdersTotalPages(0);
       setLoadingUserOrders(false);
       return;
     }
     setLoadingUserOrders(true);
-    const result = await fetchUserPaymentOrders(token, 20);
+    setOrdersFeedback(null);
+    const result = await fetchUserPaymentOrders(token, page, ORDERS_PAGE_SIZE);
     setLoadingUserOrders(false);
-    if (!result.ok || !Array.isArray(result.data)) {
+    if (!result.ok || !result.data || !Array.isArray(result.data.items)) {
       if (result.code === 401 || result.code === 4011) {
         resetToLoggedOut();
         return;
@@ -670,8 +679,11 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
       setOrdersFeedback({ type: 'error', text: result.message || t('settings.user.orders.feedback.loadFailed', { defaultValue: '加载订单失败' }) });
       return;
     }
-    setUserOrders(result.data);
-    const hasPaidOrder = result.data.some((order) => String(order?.status || '').toUpperCase() === 'SUCCESS');
+    setUserOrders(result.data.items);
+    setOrdersPage(result.data.page);
+    setOrdersTotal(result.data.total);
+    setOrdersTotalPages(result.data.totalPages);
+    const hasPaidOrder = result.data.items.some((order) => String(order?.status || '').toUpperCase() === 'SUCCESS');
     if (hasPaidOrder) {
       await loadRemoteProfile(token);
     }
@@ -788,8 +800,8 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
     if (userProfilePage !== 'orders' || !token) {
       return;
     }
-    void loadUserOrders();
-  }, [loadUserOrders, token, userProfilePage]);
+    void loadUserOrders(ordersPage);
+  }, [loadUserOrders, ordersPage, token, userProfilePage]);
 
   useEffect(() => {
     if (userProfilePage !== 'image-translation' || !token) {
@@ -1178,7 +1190,11 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
       return;
     }
     setOrdersFeedback({ type: 'success', text: t('settings.user.orders.feedback.closeSuccess', { defaultValue: '订单已关闭' }) });
-    await loadUserOrders();
+    if (userOrders.length === 1 && ordersPage > 1) {
+      setOrdersPage((current) => Math.max(1, current - 1));
+      return;
+    }
+    await loadUserOrders(ordersPage);
   };
 
   const renderOrdersPage = (): ReactElement => (
@@ -1193,7 +1209,7 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
               type="button"
               className="settings-user-secondary-btn settings-user-orders-refresh-btn"
               disabled={loadingUserOrders || !!orderActionOutTradeNo}
-              onClick={() => void loadUserOrders()}
+              onClick={() => void loadUserOrders(ordersPage)}
             >
               {loadingUserOrders
                 ? (
@@ -1283,6 +1299,35 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
             </div>
           );
         })}
+
+        {ordersTotalPages > 0 ? (
+          <nav className="settings-plugin-market-pagination settings-user-orders-pagination" aria-label={t('settings.user.orders.pagination.label', { defaultValue: '订单历史分页' })}>
+            <button
+              type="button"
+              className="settings-hotkey-btn"
+              disabled={loadingUserOrders || ordersPage <= 1}
+              onClick={() => setOrdersPage((current) => Math.max(1, current - 1))}
+            >
+              {t('settings.user.orders.pagination.previous', { defaultValue: '上一页' })}
+            </button>
+            <span className="settings-plugin-market-pagination-text settings-user-orders-pagination-summary">
+              {t('settings.user.orders.pagination.summary', {
+                defaultValue: '第 {{page}} / {{totalPages}} 页，共 {{total}} 条',
+                page: ordersPage,
+                totalPages: ordersTotalPages,
+                total: ordersTotal,
+              })}
+            </span>
+            <button
+              type="button"
+              className="settings-hotkey-btn"
+              disabled={loadingUserOrders || ordersPage >= ordersTotalPages}
+              onClick={() => setOrdersPage((current) => Math.min(ordersTotalPages, current + 1))}
+            >
+              {t('settings.user.orders.pagination.next', { defaultValue: '下一页' })}
+            </button>
+          </nav>
+        ) : null}
     </div>
   );
 

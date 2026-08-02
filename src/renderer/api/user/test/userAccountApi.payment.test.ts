@@ -121,78 +121,67 @@ describe('userAccountApi.payment', () => {
   });
 
   describe('fetchUserPaymentOrders', () => {
-    it('sends GET to /v1/user/payment/orders with default limit 20', async () => {
+    it('sends GET to /v1/user/payment/orders with default page 1 and pageSize 5', async () => {
       mockRequest.mockResolvedValueOnce(okResult);
 
       await fetchUserPaymentOrders('my-token');
 
-      expect(mockRequest).toHaveBeenCalledWith('/v1/user/payment/orders?limit=20', {
+      expect(mockRequest).toHaveBeenCalledWith('/v1/user/payment/orders?page=1&pageSize=5', {
         method: 'GET',
         auth: 'my-token',
       });
     });
 
-    it('uses provided limit when within range', async () => {
+    it('uses provided page and pageSize', async () => {
       mockRequest.mockResolvedValueOnce(okResult);
 
-      await fetchUserPaymentOrders('my-token', 10);
+      await fetchUserPaymentOrders('my-token', 2, 10);
 
-      expect(mockRequest).toHaveBeenCalledWith('/v1/user/payment/orders?limit=10', {
+      expect(mockRequest).toHaveBeenCalledWith('/v1/user/payment/orders?page=2&pageSize=10', {
         method: 'GET',
         auth: 'my-token',
       });
     });
 
-    it('clamps limit to max 50', async () => {
+    it('clamps pageSize to max 50', async () => {
       mockRequest.mockResolvedValueOnce(okResult);
 
-      await fetchUserPaymentOrders('my-token', 100);
+      await fetchUserPaymentOrders('my-token', 1, 100);
 
-      expect(mockRequest).toHaveBeenCalledWith('/v1/user/payment/orders?limit=50', {
+      expect(mockRequest).toHaveBeenCalledWith('/v1/user/payment/orders?page=1&pageSize=50', {
         method: 'GET',
         auth: 'my-token',
       });
     });
 
-    it('clamps limit to min 1', async () => {
+    it('falls back to default pageSize for falsy input (0)', async () => {
       mockRequest.mockResolvedValueOnce(okResult);
 
-      await fetchUserPaymentOrders('my-token', 1);
+      await fetchUserPaymentOrders('my-token', 1, 0);
 
-      expect(mockRequest).toHaveBeenCalledWith('/v1/user/payment/orders?limit=1', {
+      expect(mockRequest).toHaveBeenCalledWith('/v1/user/payment/orders?page=1&pageSize=5', {
         method: 'GET',
         auth: 'my-token',
       });
     });
 
-    it('falls back to default 20 for falsy limit (0)', async () => {
+    it('clamps page to min 1', async () => {
       mockRequest.mockResolvedValueOnce(okResult);
 
-      await fetchUserPaymentOrders('my-token', 0);
+      await fetchUserPaymentOrders('my-token', 0, 5);
 
-      expect(mockRequest).toHaveBeenCalledWith('/v1/user/payment/orders?limit=20', {
+      expect(mockRequest).toHaveBeenCalledWith('/v1/user/payment/orders?page=1&pageSize=5', {
         method: 'GET',
         auth: 'my-token',
       });
     });
 
-    it('clamps negative limit to min 1', async () => {
+    it('falls back to defaults for NaN inputs', async () => {
       mockRequest.mockResolvedValueOnce(okResult);
 
-      await fetchUserPaymentOrders('my-token', -5);
+      await fetchUserPaymentOrders('my-token', Number.NaN, Number.NaN);
 
-      expect(mockRequest).toHaveBeenCalledWith('/v1/user/payment/orders?limit=1', {
-        method: 'GET',
-        auth: 'my-token',
-      });
-    });
-
-    it('falls back to default 20 for NaN input', async () => {
-      mockRequest.mockResolvedValueOnce(okResult);
-
-      await fetchUserPaymentOrders('my-token', Number.NaN);
-
-      expect(mockRequest).toHaveBeenCalledWith('/v1/user/payment/orders?limit=20', {
+      expect(mockRequest).toHaveBeenCalledWith('/v1/user/payment/orders?page=1&pageSize=5', {
         method: 'GET',
         auth: 'my-token',
       });

@@ -34,6 +34,15 @@ import type {
 import type { UserPaymentCreateChannel } from './types/UserPayment';
 import type { AgentBalanceData } from './types/UserPayment';
 
+/** 订单分页结果 */
+export interface PaymentOrderPage {
+  items: UserPaymentOrderData[];
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
+}
+
 export type { UserPaymentCreateChannel, AgentBalanceData };
 
 /**
@@ -96,20 +105,26 @@ export function fetchPaymentOrder(
 }
 
 /**
- * 查询当前用户支付订单列表。
+ * 查询当前用户支付订单列表（分页）。
  * @param token - 用户 token。
- * @param limit - 返回数量上限。
- * @returns 支付订单列表。
+ * @param page - 页码，默认 1。
+ * @param pageSize - 每页数量，默认 5，最大 50。
+ * @returns 分页的订单列表。
  */
 export function fetchUserPaymentOrders(
   token: string,
-  limit = 20,
-): Promise<UserAccountResult<UserPaymentOrderData[]>> {
-  const normalizedLimit = Math.max(1, Math.min(Number(limit) || 20, 50));
-  return request<UserPaymentOrderData[]>(`/v1/user/payment/orders?limit=${normalizedLimit}`, {
-    method: 'GET',
-    auth: token,
-  });
+  page = 1,
+  pageSize = 5,
+): Promise<UserAccountResult<PaymentOrderPage>> {
+  const normalizedPage = Math.max(1, Math.floor(Number(page) || 1));
+  const normalizedPageSize = Math.max(1, Math.min(Math.floor(Number(pageSize) || 5), 50));
+  return request<PaymentOrderPage>(
+    `/v1/user/payment/orders?page=${normalizedPage}&pageSize=${normalizedPageSize}`,
+    {
+      method: 'GET',
+      auth: token,
+    },
+  );
 }
 
 /**
