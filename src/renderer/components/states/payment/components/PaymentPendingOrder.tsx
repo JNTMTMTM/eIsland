@@ -27,6 +27,7 @@
 import { useState, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { QRCodeSVG } from 'qrcode.react';
+import { SvgIcon } from '../../../../utils/SvgIcon';
 import type { UserPaymentOrderData } from '../../../../api/user/userAccountApi';
 
 interface PaymentPendingOrderProps {
@@ -115,6 +116,7 @@ export function PaymentPendingOrder({
             onClick={() => setShowQr((v) => !v)}
             disabled={creatingOrRefreshing}
           >
+            <img className="payment-action-icon" src={SvgIcon.WECHATPAY} alt="" aria-hidden="true" />
             {showQr
               ? t('settings.user.payment.hideQrCode', { defaultValue: '收起二维码' })
               : t('settings.user.payment.showQrCode', { defaultValue: '显示二维码' })}
@@ -146,6 +148,7 @@ export function PaymentPendingOrder({
           onClick={onOpenPaymentPage}
           disabled={creatingOrRefreshing}
         >
+          <img className="payment-action-icon" src={SvgIcon.ALIPAY} alt="" aria-hidden="true" />
           {t('settings.user.payment.openPaymentPage', { defaultValue: '打开支付界面' })}
         </button>
       ) : null}
