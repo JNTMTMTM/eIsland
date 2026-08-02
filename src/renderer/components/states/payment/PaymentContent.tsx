@@ -31,8 +31,6 @@ import useIslandStore from '../../../store/slices';
 import {
   createProMonthOrder,
   createAgentRechargeOrder,
-  fetchPaymentOrder,
-  type UserPaymentOrderData,
 } from '../../../api/user/userAccountApi';
 import { runSliderCaptcha } from '../../../utils/sliderCaptcha';
 import { readLocalProfile, readLocalToken } from '../../../utils/userAccount';
@@ -40,6 +38,7 @@ import { SETTINGS_OPEN_TAB_STORE_KEY, EMAIL_PATTERN, type PaymentMethod } from '
 import { formatDateOnly } from './utils/formatDateOnly';
 import { usePaymentChannels } from './hooks/usePaymentChannels';
 import { usePaymentStatus } from './hooks/usePaymentStatus';
+import { usePaymentStatusPolling } from './hooks/usePaymentStatusPolling';
 import { useMethodValidation } from './hooks/useMethodValidation';
 import { PaymentMethodSelector } from './components/PaymentMethodSelector';
 import { PaymentOrderForm } from './components/PaymentOrderForm';
@@ -62,8 +61,12 @@ export function PaymentContent(): ReactElement {
   const [subscriptionPeriod, setSubscriptionPeriod] = useState('');
   const [feedback, setFeedback] = useState('');
   const [isCreatingOrder, setIsCreatingOrder] = useState(false);
-  const [isRefreshingStatus, setIsRefreshingStatus] = useState(false);
-  const [pendingOrder, setPendingOrder] = useState<UserPaymentOrderData | null>(null);
+  const {
+    pendingOrder,
+    setPendingOrder,
+    isRefreshingStatus,
+    refreshStatus,
+  } = usePaymentStatusPolling({ onManualFeedback: setFeedback });
 
   const { wechatEnabled, alipayEnabled, priceLabel } = usePaymentChannels(isRechargeMode, rechargeAmountFen);
   const {
@@ -170,26 +173,8 @@ export function PaymentContent(): ReactElement {
     setMaxExpand();
   };
 
-  const handleRefreshPaymentStatus = async (): Promise<void> => {
-    if (!pendingOrder || !pendingOrder.outTradeNo || isRefreshingStatus) return;
-    const token = readLocalToken();
-    if (!token) {
-      setFeedback(t('settings.user.payment.loginRequired', { defaultValue: '登录状态已失效，请重新登录后再试。' }));
-      return;
-    }
-    try {
-      setIsRefreshingStatus(true);
-      const result = await fetchPaymentOrder(token, pendingOrder.outTradeNo);
-      if (!result.ok || !result.data) {
-        setFeedback(result.message || t('settings.user.payment.refreshStatusFailed', { defaultValue: '刷新支付状态失败，请稍后重试。' }));
-        return;
-      }
-      setPendingOrder(result.data);
-      if (result.data.expireAt) setOrderExpireAt(result.data.expireAt);
-      setFeedback('');
-    } finally {
-      setIsRefreshingStatus(false);
-    }
+  const handleRefreshPaymentStatus = (): void => {
+    void refreshStatus();
   };
 
   const handleFillAccountEmail = (): void => {
