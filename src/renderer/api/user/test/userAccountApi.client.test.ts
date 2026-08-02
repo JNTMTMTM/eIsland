@@ -65,9 +65,9 @@ describe('userAccountApi.client', () => {
       expect(mod.USER_ACCOUNT_API_BASE).toMatch(/^https?:\/\//);
     });
 
-    it('uses test server when hostname is localhost', async () => {
+    it('uses production server', async () => {
       const mod = await import('../userAccountApi.client');
-      expect(mod.USER_ACCOUNT_API_BASE).toBe('https://test.server.pyisland.com/api');
+      expect(mod.USER_ACCOUNT_API_BASE).toBe('https://server.pyisland.com/api');
     });
   });
 
@@ -145,7 +145,7 @@ describe('userAccountApi.client', () => {
 
       expect(netFetchMock).toHaveBeenCalledOnce();
       const [url, opts] = netFetchMock.mock.calls[0];
-      expect(url).toBe('https://test.server.pyisland.com/api/v1/user/profile');
+      expect(url).toBe('https://server.pyisland.com/api/v1/user/profile');
       expect(opts.method).toBe('GET');
     });
 
