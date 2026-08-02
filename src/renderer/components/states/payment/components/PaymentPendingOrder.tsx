@@ -113,7 +113,7 @@ export function PaymentPendingOrder({
               value={pendingOrder.qrCodeUrl || pendingOrder.payUrl || ''}
               size={200}
               level="M"
-              bgColor="transparent"
+              bgColor="#ffffff"
             />
           </div>
           <div className="payment-qr-hint">
