@@ -3386,6 +3386,12 @@
           "loadFailed": "加载订单失败",
           "closeFailed": "关闭订单失败，请稍后重试",
           "closeSuccess": "订单已关闭"
+        },
+        "pagination": {
+          "label": "订单历史分页",
+          "previous": "上一页",
+          "next": "下一页",
+          "summary": "第 {{page}} / {{totalPages}} 页，共 {{total}} 条"
         }
       },
       "pro": {
@@ -3463,7 +3469,7 @@
         "wechatHint": "推荐使用微信扫码完成支付",
         "alipayHint": "推荐使用支付宝扫码完成支付",
         "scanQrHint": "请使用微信扫一扫完成支付",
-        "scanQrSubhint": "扫码后请在手机上完成支付，再回到此处刷新状态",
+        "scanQrSubhint": "扫码后请在手机上完成支付，支付结果将自动同步",
         "showQrCode": "显示二维码",
         "hideQrCode": "收起二维码",
         "selectMethodHint": "请选择上方支付方式后再创建订单。",

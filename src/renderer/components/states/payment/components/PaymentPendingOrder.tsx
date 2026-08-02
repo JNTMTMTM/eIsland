@@ -143,7 +143,7 @@ export function PaymentPendingOrder({
                 {t('settings.user.payment.scanQrHint', { defaultValue: '请使用微信扫一扫完成支付' })}
               </div>
               <div className="payment-qr-subhint">
-                {t('settings.user.payment.scanQrSubhint', { defaultValue: '扫码后请在手机上完成支付，再回到此处刷新状态' })}
+                {t('settings.user.payment.scanQrSubhint', { defaultValue: '扫码后请在手机上完成支付，支付结果将自动同步' })}
               </div>
             </div>
           ) : null}

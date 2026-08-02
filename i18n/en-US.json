@@ -3386,6 +3386,12 @@
           "loadFailed": "Failed to load orders",
           "closeFailed": "Failed to close order. Please try again later",
           "closeSuccess": "Order closed"
+        },
+        "pagination": {
+          "label": "Order history pagination",
+          "previous": "Previous",
+          "next": "Next",
+          "summary": "Page {{page}} / {{totalPages}}, {{total}} items"
         }
       },
       "pro": {
@@ -3463,7 +3469,7 @@
         "wechatHint": "Recommended: scan with WeChat",
         "alipayHint": "Recommended: scan with Alipay",
         "scanQrHint": "Please scan with WeChat to pay",
-        "scanQrSubhint": "After scanning, complete payment on your phone, then refresh status here",
+        "scanQrSubhint": "Complete payment on your phone after scanning. The result will update automatically.",
         "showQrCode": "Show QR Code",
         "hideQrCode": "Hide QR Code",
         "selectMethodHint": "Select a payment method above before creating an order.",
