@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-08-02T14:26:46.011Z
+> 生成时间：2026-08-02T16:13:11.195Z
 
 ## 26.6.5
 
@@ -2946,6 +2946,13 @@
 
 ## Unreleased
 
+- 2026-08-03 | 631c402f | 鸡哥 | Merge pull request #184 from JNTMTMTM/dev
+- 2026-08-03 | 1740dfdd | 鸡哥 | feat: refactor payment order pagination to use constant for default page size
+- 2026-08-03 | 61b38d78 | 鸡哥 | feat: add pagination labels for order history in English and Chinese
+- 2026-08-02 | 583bf5c2 | 鸡哥 | feat: update USER_ACCOUNT_API_BASE to use test server URL
+- 2026-08-02 | 56474174 | 鸡哥 | feat: update fetchUserPaymentOrders to support pagination with page and pageSize parameters
+- 2026-08-02 | 299fb254 | 鸡哥 | feat: implement payment status polling and update QR code hints in English and Chinese
+- 2026-08-02 | 99dd0774 | eislandBot | docs: auto update CHANGE_LOG.md for #183 by @JNTMTMTM [skip ci]
 - 2026-08-02 | 4075628d | 鸡哥 | Merge pull request #183 from JNTMTMTM/dev
 - 2026-08-02 | 190c2bf3 | 鸡哥 | feat: add QR code visibility toggle based on payment order status
 - 2026-08-02 | cb047584 | 鸡哥 | feat: add close button and localization for announcement component
