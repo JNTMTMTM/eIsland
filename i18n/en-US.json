@@ -474,7 +474,8 @@
     "empty": "No announcements",
     "subtitle": "You are on the latest version. Below are the latest announcements.",
     "defaultTitle": "System Announcement",
-    "updatedAt": "Updated: {{time}}"
+    "updatedAt": "Updated: {{time}}",
+    "close": "Close"
   },
   "notification": {
     "alarm": {

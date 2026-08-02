@@ -25,13 +25,14 @@
  */
 
 import { useMemo, useRef, useState, useCallback, useEffect } from 'react';
+import DOMPurify from 'dompurify';
 import type { TocHeading } from '../types/AnnouncementBody.types';
 import type { UseAnnouncementTocOptions } from '../types/useAnnouncementToc.types';
 
-/** 从 HTML 内容中提取章节标题 */
+/** 从已净化的 HTML 内容中提取章节标题，确保与实际渲染内容一致 */
 function extractHeadings(html: string): TocHeading[] {
   const container = document.createElement('div');
-  container.innerHTML = html;
+  container.innerHTML = DOMPurify.sanitize(html);
   const headings = container.querySelectorAll('h1, h2, h3');
   return Array.from(headings).map((el) => ({
     level: Number(el.tagName[1]),

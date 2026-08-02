@@ -62,7 +62,7 @@ export function AnnouncementHeader({ announcement, showVideo, onToggleVideo, onC
             <img src={SvgIcon.VIDEO} alt="" draggable={false} />
           </button>
         )}
-        <button type="button" className="announcement-close-btn" onClick={onClose}>
+        <button type="button" className="announcement-close-btn" onClick={onClose} aria-label={t(ANNOUNCEMENT_KEYS.CLOSE, { defaultValue: ANNOUNCEMENT_DEFAULTS.CLOSE })}>
           <img src={SvgIcon.CANCEL} alt="" draggable={false} />
         </button>
       </div>

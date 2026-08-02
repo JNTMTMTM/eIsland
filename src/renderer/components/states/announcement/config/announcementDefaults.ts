@@ -31,6 +31,7 @@ export const ANNOUNCEMENT_KEYS = {
   UPDATED_AT: 'announcement.updatedAt',
   LOADING: 'announcement.loading',
   EMPTY: 'announcement.empty',
+  CLOSE: 'announcement.close',
 } as const;
 
 /** 公告面板翻译默认值 */
@@ -40,4 +41,5 @@ export const ANNOUNCEMENT_DEFAULTS = {
   UPDATED_AT: '更新时间：{{time}}',
   LOADING: '正在加载公告…',
   EMPTY: '暂无公告内容',
+  CLOSE: '关闭',
 } as const;
