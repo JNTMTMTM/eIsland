@@ -90,7 +90,15 @@ export function AnnouncementContent(): ReactElement {
             showQr={showQr}
             canToggleList={!loading && announcements.length > 0}
             listExpanded={listExpanded}
-            onToggleList={() => setListExpanded((expanded) => !expanded)}
+            onToggleList={() => {
+              setListExpanded((expanded) => {
+                if (!expanded) {
+                  setShowVideo(false);
+                  setShowQr(false);
+                }
+                return !expanded;
+              });
+            }}
             onToggleVideo={() => {
               if (!showVideo) {
                 setListExpanded(false);
