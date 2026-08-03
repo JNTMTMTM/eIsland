@@ -225,31 +225,27 @@ describe('announcementApi', () => {
     });
   });
 
-  it('returns empty social config when data is missing or not an object', async () => {
-    const testCases = [
-      JSON.stringify({ code: 200 }),
-      JSON.stringify({ code: 200, data: null }),
-      JSON.stringify({ code: 200, data: [] }),
-    ];
+  it.each([
+    ['missing data', JSON.stringify({ code: 200 })],
+    ['null data', JSON.stringify({ code: 200, data: null })],
+    ['array data', JSON.stringify({ code: 200, data: [] })],
+  ])('returns empty social config when data is %s', async (_label, body) => {
+    setTestWindow({
+      location: { hostname: 'localhost' },
+      api: {
+        storeRead: vi.fn(),
+        storeWrite: vi.fn(),
+        netFetch: vi.fn(async () => ({ ok: true, status: 200, body })),
+      },
+    });
 
-    for (const body of testCases) {
-      setTestWindow({
-        location: { hostname: 'localhost' },
-        api: {
-          storeRead: vi.fn(),
-          storeWrite: vi.fn(),
-          netFetch: vi.fn(async () => ({ ok: true, status: 200, body })),
-        },
-      });
-
-      const { fetchAnnouncementSocialConfig } = await import('../announcement/announcementApi');
-      await expect(fetchAnnouncementSocialConfig()).resolves.toEqual({
-        githubUrl: '',
-        bilibiliUrl: '',
-        qqInviteUrl: '',
-        qqQrImageUrl: '',
-      });
-    }
+    const { fetchAnnouncementSocialConfig } = await import('../announcement/announcementApi');
+    await expect(fetchAnnouncementSocialConfig()).resolves.toEqual({
+      githubUrl: '',
+      bilibiliUrl: '',
+      qqInviteUrl: '',
+      qqQrImageUrl: '',
+    });
   });
 
   it('coerces non-string social config fields to empty strings', async () => {
