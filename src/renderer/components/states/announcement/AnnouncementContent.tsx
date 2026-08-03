@@ -50,8 +50,11 @@ export function AnnouncementContent(): ReactElement {
     setShowVideo(false);
   };
 
-  const announcementList = !loading && listExpanded && announcements.length > 0 ? (
-    <nav className="announcement-list">
+  const announcementList = !loading && announcements.length > 0 ? (
+    <nav
+      className={`announcement-list${listExpanded ? '' : ' collapsed'}`}
+      aria-hidden={!listExpanded}
+    >
       {announcements.map((announcement, index) => {
         const selected = announcement === selectedAnnouncement;
         return (
@@ -60,6 +63,7 @@ export function AnnouncementContent(): ReactElement {
             type="button"
             className={`announcement-list-item${selected ? ' active' : ''}`}
             aria-current={selected ? 'true' : undefined}
+            tabIndex={listExpanded ? 0 : -1}
             onClick={() => handleSelectAnnouncement(announcement)}
           >
             <span className="announcement-list-title">

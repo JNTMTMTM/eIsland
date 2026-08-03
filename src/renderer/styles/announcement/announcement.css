@@ -55,7 +55,24 @@
   overflow-y: auto;
   overflow-x: hidden;
   border-right: 1px solid rgba(var(--color-text-rgb), 0.12);
+  opacity: 1;
   scrollbar-width: none;
+  transition:
+    flex-basis 0.35s ease-out,
+    padding 0.35s ease-out,
+    margin-right 0.35s ease-out,
+    border-color 0.35s ease-out,
+    opacity 0.35s ease-out;
+}
+
+.announcement-list.collapsed {
+  flex-basis: 0;
+  padding-right: 0;
+  padding-left: 0;
+  margin-right: -14px;
+  border-color: transparent;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .announcement-list::-webkit-scrollbar {
