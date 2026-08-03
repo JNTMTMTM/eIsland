@@ -42,6 +42,7 @@ export function AnnouncementContent(): ReactElement {
   const { setHover } = useIslandStore();
   const { loading, announcements, selectedAnnouncement, selectAnnouncement } = useAnnouncementData();
   const [showVideo, setShowVideo] = useState(false);
+  const [listExpanded, setListExpanded] = useState(true);
 
   /** 切换公告时关闭视频，避免沿用上一条公告的媒体状态。 */
   const handleSelectAnnouncement = (announcement: (typeof announcements)[number]): void => {
@@ -49,7 +50,7 @@ export function AnnouncementContent(): ReactElement {
     setShowVideo(false);
   };
 
-  const announcementList = !loading && announcements.length > 0 ? (
+  const announcementList = !loading && listExpanded && announcements.length > 0 ? (
     <nav className="announcement-list">
       {announcements.map((announcement, index) => {
         const selected = announcement === selectedAnnouncement;
@@ -77,6 +78,9 @@ export function AnnouncementContent(): ReactElement {
           <AnnouncementHeader
             announcement={selectedAnnouncement}
             showVideo={showVideo}
+            canToggleList={!loading && announcements.length > 0}
+            listExpanded={listExpanded}
+            onToggleList={() => setListExpanded((expanded) => !expanded)}
             onToggleVideo={() => setShowVideo((visible) => !visible)}
             onClose={() => setHover()}
           />

@@ -30,6 +30,9 @@ import type { AnnouncementData } from '../../../../api/announcement/announcement
 export interface AnnouncementHeaderProps {
   announcement: AnnouncementData | null;
   showVideo: boolean;
+  canToggleList: boolean;
+  listExpanded: boolean;
+  onToggleList: () => void;
   onToggleVideo: () => void;
   onClose: () => void;
 }

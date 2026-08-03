@@ -29,16 +29,22 @@ import type { ReactElement } from 'react';
 
 const mocks = vi.hoisted(() => ({
   setShowVideo: vi.fn(),
+  setListExpanded: vi.fn(),
   selectAnnouncement: vi.fn(),
   useAnnouncementData: vi.fn(),
 }));
 
 vi.mock('react', async (importOriginal) => ({
   ...await importOriginal<typeof import('react')>(),
-  useState: () => [true, mocks.setShowVideo],
+  useState: (initialValue: unknown) => initialValue === true
+    ? [true, mocks.setListExpanded]
+    : [true, mocks.setShowVideo],
 }));
 vi.mock('react-i18next', () => ({
-  useTranslation: () => ({ t: (_key: string, fallback: string) => fallback }),
+  useTranslation: () => ({
+    t: (_key: string, options: string | { defaultValue: string }) =>
+      typeof options === 'string' ? options : options.defaultValue,
+  }),
 }));
 vi.mock('../../../../store/slices', () => ({
   default: () => ({ setHover: vi.fn() }),
@@ -48,6 +54,8 @@ vi.mock('../hooks/useAnnouncementData', () => ({
 }));
 
 import { AnnouncementContent } from '../AnnouncementContent';
+import { AnnouncementHeader } from '../components/AnnouncementHeader';
+import { SvgIcon } from '../../../../utils/SvgIcon';
 
 describe('AnnouncementContent', () => {
   beforeEach(() => {
@@ -80,5 +88,49 @@ describe('AnnouncementContent', () => {
     expect((buttons[1].props.children as ReactElement<{ children: string }>).props.children).toBe('系统公告');
     expect(mocks.selectAnnouncement).toHaveBeenCalledWith(announcements[1]);
     expect(mocks.setShowVideo).toHaveBeenCalledWith(false);
+  });
+
+  it('passes sidebar toggle state to the header', () => {
+    const announcements = [{ id: 1, title: 'First', content: 'A' }];
+    mocks.useAnnouncementData.mockReturnValue({
+      loading: false,
+      announcements,
+      selectedAnnouncement: announcements[0],
+      selectAnnouncement: mocks.selectAnnouncement,
+    });
+
+    const root = AnnouncementContent() as ReactElement<{ children: ReactElement }>;
+    const panel = root.props.children as ReactElement<{ children: ReactElement }>;
+    const detail = panel.props.children as ReactElement<{ children: ReactElement[] }>;
+    const header = detail.props.children[0] as ReactElement<{
+      canToggleList: boolean;
+      listExpanded: boolean;
+      onToggleList: () => void;
+    }>;
+
+    expect(header.props.canToggleList).toBe(true);
+    expect(header.props.listExpanded).toBe(true);
+    header.props.onToggleList();
+
+    expect(mocks.setListExpanded).toHaveBeenCalledTimes(1);
+    expect(mocks.setListExpanded.mock.calls[0][0](true)).toBe(false);
+  });
+
+  it('renders the collapse icon immediately before the Bilibili button', () => {
+    const header = AnnouncementHeader({
+      announcement: { id: 1, title: 'First', content: 'A' },
+      showVideo: false,
+      canToggleList: true,
+      listExpanded: true,
+      onToggleList: vi.fn(),
+      onToggleVideo: vi.fn(),
+      onClose: vi.fn(),
+    }) as ReactElement<{ children: ReactElement[] }>;
+    const actions = header.props.children[1] as ReactElement<{ children: ReactElement[] }>;
+    const [toggleButton, bilibiliButton] = actions.props.children;
+
+    expect(toggleButton.props.className).toContain('announcement-list-toggle-btn');
+    expect(toggleButton.props.children.props.src).toBe(SvgIcon.COLLAPSE);
+    expect(bilibiliButton.props.className).toBe('announcement-bilibili-btn');
   });
 });

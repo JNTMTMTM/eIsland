@@ -36,7 +36,15 @@ import { SvgIcon } from '../../../../utils/SvgIcon';
  * @param props - 公告头部渲染参数。
  * @returns 公告头部区域。
  */
-export function AnnouncementHeader({ announcement, showVideo, onToggleVideo, onClose }: AnnouncementHeaderProps): ReactElement {
+export function AnnouncementHeader({
+  announcement,
+  showVideo,
+  canToggleList,
+  listExpanded,
+  onToggleList,
+  onToggleVideo,
+  onClose,
+}: AnnouncementHeaderProps): ReactElement {
   const { t } = useTranslation();
 
   const titleText = announcement?.title || t(ANNOUNCEMENT_KEYS.DEFAULT_TITLE, { defaultValue: ANNOUNCEMENT_DEFAULTS.DEFAULT_TITLE });
@@ -51,6 +59,20 @@ export function AnnouncementHeader({ announcement, showVideo, onToggleVideo, onC
         <div className="announcement-subtitle">{subtitleText}</div>
       </div>
       <div className="announcement-header-actions">
+        {canToggleList && (
+          <button
+            type="button"
+            className={`announcement-list-toggle-btn${listExpanded ? ' active' : ''}`}
+            onClick={onToggleList}
+            aria-label={t(
+              listExpanded ? ANNOUNCEMENT_KEYS.HIDE_LIST : ANNOUNCEMENT_KEYS.SHOW_LIST,
+              { defaultValue: listExpanded ? ANNOUNCEMENT_DEFAULTS.HIDE_LIST : ANNOUNCEMENT_DEFAULTS.SHOW_LIST },
+            )}
+            aria-expanded={listExpanded}
+          >
+            <img src={listExpanded ? SvgIcon.COLLAPSE : SvgIcon.EXPAND} alt="" draggable={false} />
+          </button>
+        )}
         <button type="button" className="announcement-bilibili-btn" onClick={() => window.open('https://space.bilibili.com/1693679439', '_blank', 'noopener,noreferrer')}>
           <img src={SvgIcon.BILIBILI} alt="" draggable={false} />
         </button>

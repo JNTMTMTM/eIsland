@@ -177,6 +177,40 @@
   border-color: rgba(255, 255, 255, 0.28);
 }
 
+.announcement-list-toggle-btn {
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.announcement-list-toggle-btn img {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+  filter: brightness(0) invert(var(--icon-invert));
+  opacity: 0.5;
+}
+
+.announcement-list-toggle-btn:hover {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+.announcement-list-toggle-btn.active {
+  background: rgba(124, 188, 255, 0.2);
+  border-color: rgba(124, 188, 255, 0.4);
+}
+
+.announcement-list-toggle-btn.active img {
+  opacity: 0.9;
+}
+
 .announcement-bilibili-btn {
   border: 1px solid rgba(255, 255, 255, 0.16);
   background: rgba(255, 255, 255, 0.08);
