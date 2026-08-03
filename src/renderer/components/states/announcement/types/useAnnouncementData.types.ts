@@ -29,5 +29,7 @@ import type { AnnouncementData } from '../../../../api/announcement/announcement
 /** useAnnouncementData 返回值 */
 export interface UseAnnouncementDataResult {
   loading: boolean;
-  announcement: AnnouncementData | null;
+  announcements: AnnouncementData[];
+  selectedAnnouncement: AnnouncementData | null;
+  selectAnnouncement: (announcement: AnnouncementData) => void;
 }

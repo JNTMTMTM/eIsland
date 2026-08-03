@@ -26,7 +26,7 @@
 
 import { useEffect, useState } from 'react';
 import {
-  fetchCurrentAnnouncement,
+  fetchAnnouncements,
   type AnnouncementData,
 } from '../../../../api/announcement/announcementApi';
 import type { UseAnnouncementDataResult } from '../types/useAnnouncementData.types';
@@ -37,14 +37,16 @@ import type { UseAnnouncementDataResult } from '../types/useAnnouncementData.typ
  */
 export function useAnnouncementData(): UseAnnouncementDataResult {
   const [loading, setLoading] = useState(true);
-  const [announcement, setAnnouncement] = useState<AnnouncementData | null>(null);
+  const [announcements, setAnnouncements] = useState<AnnouncementData[]>([]);
+  const [selectedAnnouncement, setSelectedAnnouncement] = useState<AnnouncementData | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     const load = async (): Promise<void> => {
-      const result = await fetchCurrentAnnouncement();
+      const result = await fetchAnnouncements();
       if (cancelled) return;
-      setAnnouncement(result);
+      setAnnouncements(result);
+      setSelectedAnnouncement(result[0] ?? null);
       setLoading(false);
     };
     void load();
@@ -53,5 +55,10 @@ export function useAnnouncementData(): UseAnnouncementDataResult {
     };
   }, []);
 
-  return { loading, announcement };
+  return {
+    loading,
+    announcements,
+    selectedAnnouncement,
+    selectAnnouncement: setSelectedAnnouncement,
+  };
 }

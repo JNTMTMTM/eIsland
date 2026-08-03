@@ -92,5 +92,51 @@ describe('announcementApi', () => {
     );
     expect(data?.title).toBe('t');
     expect(data?.content).toBe('c');
+    expect(data?.bvid).toBe('BV1QEE36eEWJ');
+  });
+
+  it('fetches and normalizes the v2 announcement array', async () => {
+    const netFetch = vi.fn(async () => ({
+      ok: true,
+      status: 200,
+      body: JSON.stringify({
+        code: 200,
+        data: [
+          { id: 7, sortOrder: 20, title: 'Newest', content: 'Body', updatedAt: '2026-08-03' },
+          { id: 6, sortOrder: 10, title: '', content: '', contentHtml: '<p>Older</p>', bvid: 'BV-test' },
+          { id: 5, title: '', content: '' },
+        ],
+      }),
+    }));
+    setTestWindow({
+      location: { hostname: 'localhost' },
+      api: { storeRead: vi.fn(), storeWrite: vi.fn(), netFetch },
+    });
+
+    const { fetchAnnouncements } = await import('../announcement/announcementApi');
+    const data = await fetchAnnouncements();
+
+    expect(netFetch).toHaveBeenCalledWith(
+      expect.stringContaining('/v2/announcements/current?lang=zh-CN'),
+      expect.objectContaining({ method: 'GET' }),
+    );
+    expect(data).toHaveLength(2);
+    expect(data[0]).toMatchObject({ id: 7, sortOrder: 20, title: 'Newest' });
+    expect(data[0].bvid).toBeUndefined();
+    expect(data[1]).toMatchObject({ id: 6, contentHtml: '<p>Older</p>', bvid: 'BV-test' });
+  });
+
+  it('returns an empty v2 list for malformed payloads', async () => {
+    setTestWindow({
+      location: { hostname: 'localhost' },
+      api: {
+        storeRead: vi.fn(),
+        storeWrite: vi.fn(),
+        netFetch: vi.fn(async () => ({ ok: true, status: 200, body: '{invalid' })),
+      },
+    });
+
+    const { fetchAnnouncements } = await import('../announcement/announcementApi');
+    await expect(fetchAnnouncements()).resolves.toEqual([]);
   });
 });

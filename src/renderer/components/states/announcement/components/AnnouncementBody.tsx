@@ -37,7 +37,12 @@ import { AnnouncementVideo } from './AnnouncementVideo';
  * @param props - 公告正文渲染参数。
  * @returns 公告正文区域。
  */
-export function AnnouncementBody({ loading, announcement, showVideo }: AnnouncementBodyProps): ReactElement {
+export function AnnouncementBody({
+  loading,
+  announcement,
+  showVideo,
+  announcementList,
+}: AnnouncementBodyProps): ReactElement {
   const { t } = useTranslation();
   const { bodyRef, tocRef, itemRefs, headings, activeIndex, indicatorTop, handleTocClick } =
     useAnnouncementToc({ contentHtml: announcement?.contentHtml, showVideo });
@@ -64,30 +69,29 @@ export function AnnouncementBody({ loading, announcement, showVideo }: Announcem
     ? <div ref={bodyRef} className="announcement-body" onClick={handleBodyClick} dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(announcement.contentHtml) }} />
     : <div ref={bodyRef} className="announcement-body"><pre>{announcement.content || ''}</pre></div>;
 
-  if (announcement.bvid) {
-    return (
-      <div className={`announcement-content-row${showVideo ? ' video-visible' : ''}`}>
+  return (
+    <div className={`announcement-content-row${showVideo ? ' video-visible' : ''}`}>
+      {announcementList}
+      {announcement.bvid && (
         <AnnouncementVideo bvid={announcement.bvid} autoplay={false} showDanmaku={false} aspectRatio={9 / 16} />
-        {contentNode}
-        {!showVideo && headings.length > 0 && (
-          <div ref={tocRef} className="announcement-toc">
+      )}
+      {contentNode}
+      {!showVideo && headings.length > 0 && (
+        <div ref={tocRef} className="announcement-toc">
+          <div
+            className="announcement-toc-indicator"
+            style={{ top: `${indicatorTop}px`, opacity: activeIndex >= 0 ? 1 : 0 }}
+          />
+          {headings.map((h, i) => (
             <div
-              className="announcement-toc-indicator"
-              style={{ top: `${indicatorTop}px`, opacity: activeIndex >= 0 ? 1 : 0 }}
-            />
-            {headings.map((h, i) => (
-              <div
-                key={i}
-                ref={(el) => { itemRefs.current[i] = el; }}
-                className={`announcement-toc-item level-${h.level}${i === activeIndex ? ' active' : ''}`}
-                onClick={() => handleTocClick(h.text, i)}
-              >{h.text}</div>
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  return contentNode;
+              key={i}
+              ref={(el) => { itemRefs.current[i] = el; }}
+              className={`announcement-toc-item level-${h.level}${i === activeIndex ? ' active' : ''}`}
+              onClick={() => handleTocClick(h.text, i)}
+            >{h.text}</div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }

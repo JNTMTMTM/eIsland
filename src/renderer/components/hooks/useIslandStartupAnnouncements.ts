@@ -30,10 +30,11 @@ import { SvgIcon } from '../../utils/SvgIcon';
 import { fetchStartupWeatherAlerts } from '../../api/weather/weatherApi';
 import { fetchUpdateSourceUrl } from '../../api/user/userAccountApi';
 import {
-  fetchCurrentAnnouncement,
+  fetchAnnouncements,
   readAnnouncementLastShownAppVersion,
   readAnnouncementShowMode,
   writeAnnouncementLastShownAppVersion,
+  type AnnouncementData,
 } from '../../api/announcement/announcementApi';
 import { readLocalToken } from '../../utils/userAccount';
 import {
@@ -67,6 +68,22 @@ interface UseIslandStartupAnnouncementsOptions {
     urls?: string[];
   }) => void>;
   t: (key: string, options?: Record<string, unknown>) => string;
+}
+
+/**
+ * 创建公告展示标记，使同一应用版本内新增或更新公告仍可再次触发。
+ * @param appVersion - 当前应用版本。
+ * @param announcements - 当前生效的公告列表。
+ * @returns 包含应用版本和公告指纹的稳定字符串。
+ */
+export function createAnnouncementShownMarker(
+  appVersion: string,
+  announcements: AnnouncementData[],
+): string {
+  const fingerprints = announcements
+    .map((announcement) => `${announcement.id ?? ''}@${announcement.updatedAt ?? ''}`)
+    .sort();
+  return JSON.stringify({ appVersion, fingerprints });
 }
 
 /**
@@ -176,27 +193,28 @@ export function useIslandStartupAnnouncements(options: UseIslandStartupAnnouncem
 
         const mode = await readAnnouncementShowMode();
         const currentVersion = await window.api?.updaterVersion?.() ?? '';
+        const announcements = await fetchAnnouncements();
+        if (announcements.length === 0) return;
+
+        const shownMarker = createAnnouncementShownMarker(currentVersion, announcements);
         if (mode === 'version-update-only') {
-          const lastShownVersion = await readAnnouncementLastShownAppVersion();
-          if (currentVersion && lastShownVersion === currentVersion) return;
+          const lastShownMarker = await readAnnouncementLastShownAppVersion();
+          if (lastShownMarker === shownMarker) return;
         }
 
-        const announcement = await fetchCurrentAnnouncement();
-        if (!announcement) return;
-
-        const applyShownVersion = async (): Promise<void> => {
+        const applyShownMarker = async (): Promise<void> => {
           if (mode !== 'version-update-only' || !currentVersion) return;
-          await writeAnnouncementLastShownAppVersion(currentVersion);
+          await writeAnnouncementLastShownAppVersion(shownMarker);
         };
 
         if (current === 'guide') {
           pendingAnnouncementAfterGuideRef.current = true;
-          pendingAnnouncementAppVersionRef.current = mode === 'version-update-only' ? currentVersion : '';
+          pendingAnnouncementAppVersionRef.current = mode === 'version-update-only' ? shownMarker : '';
           return;
         }
 
         setAnnouncement();
-        await applyShownVersion();
+        await applyShownMarker();
       })();
     });
     return () => {

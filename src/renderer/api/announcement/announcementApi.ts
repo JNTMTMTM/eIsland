@@ -74,6 +74,41 @@ export async function writeAnnouncementLastShownAppVersion(version: string): Pro
   }
 }
 
+const DEFAULT_BVID = 'BV1QEE36eEWJ';
+
+/**
+ * 将服务端公告字段收敛为客户端可渲染的数据。
+ * @param value - 服务端返回的未知公告值。
+ * @returns 有效公告，内容为空时返回 null。
+ */
+function normalizeAnnouncement(value: unknown, useLegacyDefaultVideo = false): AnnouncementData | null {
+  if (!value || typeof value !== 'object') return null;
+  const data = value as Record<string, unknown>;
+  const title = typeof data.title === 'string' ? data.title : '';
+  const content = typeof data.content === 'string' ? data.content : '';
+  const contentHtml = typeof data.contentHtml === 'string' ? data.contentHtml : undefined;
+  if (!title && !content && !contentHtml) return null;
+
+  return {
+    id: typeof data.id === 'number' ? data.id : undefined,
+    sortOrder: typeof data.sortOrder === 'number' ? data.sortOrder : undefined,
+    title,
+    content,
+    contentHtml,
+    contentFormat: typeof data.contentFormat === 'string' ? data.contentFormat : undefined,
+    startAt: typeof data.startAt === 'string' ? data.startAt : undefined,
+    endAt: typeof data.endAt === 'string' ? data.endAt : undefined,
+    updatedAt: typeof data.updatedAt === 'string' ? data.updatedAt : undefined,
+    bvid: typeof data.bvid === 'string' && data.bvid
+      ? data.bvid
+      : useLegacyDefaultVideo ? DEFAULT_BVID : undefined,
+  };
+}
+
+/**
+ * 获取当前生效的单条 v1 公告。
+ * @returns 当前公告；请求失败或没有有效公告时返回 null。
+ */
 export async function fetchCurrentAnnouncement(): Promise<AnnouncementData | null> {
   try {
     const language = getLanguage();
@@ -86,32 +121,36 @@ export async function fetchCurrentAnnouncement(): Promise<AnnouncementData | nul
     );
     if (!response?.ok) return null;
 
-    const payload = JSON.parse(response.body) as { code?: number; data?: AnnouncementData | null };
-    if (payload?.code !== 200 || !payload.data) return null;
-
-    const title = typeof payload.data.title === 'string' ? payload.data.title : '';
-    const content = typeof payload.data.content === 'string' ? payload.data.content : '';
-    const contentHtml = typeof payload.data.contentHtml === 'string' ? payload.data.contentHtml : undefined;
-    const contentFormat = typeof payload.data.contentFormat === 'string' ? payload.data.contentFormat : undefined;
-    const startAt = typeof payload.data.startAt === 'string' ? payload.data.startAt : undefined;
-    const endAt = typeof payload.data.endAt === 'string' ? payload.data.endAt : undefined;
-    const updatedAt = typeof payload.data.updatedAt === 'string' ? payload.data.updatedAt : undefined;
-    const DEFAULT_BVID = 'BV1QEE36eEWJ';
-    const bvid = typeof payload.data.bvid === 'string' && payload.data.bvid ? payload.data.bvid : DEFAULT_BVID;
-
-    if (!title && !content && !contentHtml) return null;
-
-    return {
-      title,
-      content,
-      contentHtml,
-      contentFormat,
-      startAt,
-      endAt,
-      updatedAt,
-      bvid,
-    };
+    const payload = JSON.parse(response.body) as { code?: number; data?: unknown };
+    if (payload?.code !== 200) return null;
+    return normalizeAnnouncement(payload.data, true);
   } catch {
     return null;
+  }
+}
+
+/**
+ * 获取当前生效的 v2 公告列表。
+ * @returns 已规范化的公告数组；请求失败或响应无效时返回空数组。
+ */
+export async function fetchAnnouncements(): Promise<AnnouncementData[]> {
+  try {
+    const language = getLanguage();
+    const response = await window.api.netFetch(
+      `${ANNOUNCEMENT_API_BASE}/v2/announcements/current?lang=${encodeURIComponent(language)}`,
+      {
+        method: 'GET',
+        timeoutMs: 8000,
+      },
+    );
+    if (!response?.ok) return [];
+
+    const payload = JSON.parse(response.body) as { code?: number; data?: unknown };
+    if (payload?.code !== 200 || !Array.isArray(payload.data)) return [];
+    return payload.data
+      .map(normalizeAnnouncement)
+      .filter((announcement): announcement is AnnouncementData => announcement !== null);
+  } catch {
+    return [];
   }
 }

@@ -26,6 +26,10 @@
 
 /** 公告数据 */
 export interface AnnouncementData {
+  /** 公告标识；v1 响应可能不提供 */
+  id?: number;
+  /** 公告排序值；v1 响应可能不提供 */
+  sortOrder?: number;
   /** 公告标题 */
   title: string;
   /** 公告内容 */
