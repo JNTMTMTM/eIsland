@@ -85,7 +85,10 @@ export function AnnouncementContent(): ReactElement {
             canToggleList={!loading && announcements.length > 0}
             listExpanded={listExpanded}
             onToggleList={() => setListExpanded((expanded) => !expanded)}
-            onToggleVideo={() => setShowVideo((visible) => !visible)}
+            onToggleVideo={() => {
+              if (!showVideo) setListExpanded(false);
+              setShowVideo((visible) => !visible);
+            }}
             onClose={() => setHover()}
           />
 
