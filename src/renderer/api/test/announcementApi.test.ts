@@ -165,4 +165,121 @@ describe('announcementApi', () => {
     const { fetchAnnouncements } = await import('../announcement/announcementApi');
     await expect(fetchAnnouncements()).resolves.toEqual([]);
   });
+
+  it('returns an empty array when v2 response code is non-200', async () => {
+    setTestWindow({
+      location: { hostname: 'localhost' },
+      api: {
+        storeRead: vi.fn(),
+        storeWrite: vi.fn(),
+        netFetch: vi.fn(async () => ({
+          ok: true,
+          status: 200,
+          body: JSON.stringify({ code: 500, data: [{ id: 1, title: 'Ignored', content: 'Body' }] }),
+        })),
+      },
+    });
+
+    const { fetchAnnouncements } = await import('../announcement/announcementApi');
+    await expect(fetchAnnouncements()).resolves.toEqual([]);
+  });
+
+  it('returns an empty array when v2 response data is not an array', async () => {
+    setTestWindow({
+      location: { hostname: 'localhost' },
+      api: {
+        storeRead: vi.fn(),
+        storeWrite: vi.fn(),
+        netFetch: vi.fn(async () => ({
+          ok: true,
+          status: 200,
+          body: JSON.stringify({ code: 200, data: { id: 1, title: 'Not-an-array' } }),
+        })),
+      },
+    });
+
+    const { fetchAnnouncements } = await import('../announcement/announcementApi');
+    await expect(fetchAnnouncements()).resolves.toEqual([]);
+  });
+
+  it('returns empty social config when response code is non-200', async () => {
+    setTestWindow({
+      location: { hostname: 'localhost' },
+      api: {
+        storeRead: vi.fn(),
+        storeWrite: vi.fn(),
+        netFetch: vi.fn(async () => ({
+          ok: true,
+          status: 200,
+          body: JSON.stringify({ code: 500, data: { githubUrl: 'https://github.com/example' } }),
+        })),
+      },
+    });
+
+    const { fetchAnnouncementSocialConfig } = await import('../announcement/announcementApi');
+    await expect(fetchAnnouncementSocialConfig()).resolves.toEqual({
+      githubUrl: '',
+      bilibiliUrl: '',
+      qqInviteUrl: '',
+      qqQrImageUrl: '',
+    });
+  });
+
+  it('returns empty social config when data is missing or not an object', async () => {
+    const testCases = [
+      JSON.stringify({ code: 200 }),
+      JSON.stringify({ code: 200, data: null }),
+      JSON.stringify({ code: 200, data: [] }),
+    ];
+
+    for (const body of testCases) {
+      setTestWindow({
+        location: { hostname: 'localhost' },
+        api: {
+          storeRead: vi.fn(),
+          storeWrite: vi.fn(),
+          netFetch: vi.fn(async () => ({ ok: true, status: 200, body })),
+        },
+      });
+
+      const { fetchAnnouncementSocialConfig } = await import('../announcement/announcementApi');
+      await expect(fetchAnnouncementSocialConfig()).resolves.toEqual({
+        githubUrl: '',
+        bilibiliUrl: '',
+        qqInviteUrl: '',
+        qqQrImageUrl: '',
+      });
+    }
+  });
+
+  it('coerces non-string social config fields to empty strings', async () => {
+    setTestWindow({
+      location: { hostname: 'localhost' },
+      api: {
+        storeRead: vi.fn(),
+        storeWrite: vi.fn(),
+        netFetch: vi.fn(async () => ({
+          ok: true,
+          status: 200,
+          body: JSON.stringify({
+            code: 200,
+            data: {
+              githubUrl: 123,
+              bilibiliUrl: null,
+              qqInviteUrl: { url: 'https://qq.example' },
+              qqQrImageUrl: false,
+            },
+          }),
+        })),
+      },
+    });
+
+    const { fetchAnnouncementSocialConfig } = await import('../announcement/announcementApi');
+    await expect(fetchAnnouncementSocialConfig()).resolves.toEqual({
+      githubUrl: '',
+      bilibiliUrl: '',
+      qqInviteUrl: '',
+      qqQrImageUrl: '',
+    });
+  });
 });

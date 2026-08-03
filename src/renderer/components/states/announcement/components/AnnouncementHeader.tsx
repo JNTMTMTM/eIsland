@@ -77,20 +77,20 @@ export function AnnouncementHeader({
           </button>
         )}
         {socialConfig.bilibiliUrl && (
-          <button type="button" className="announcement-bilibili-btn" onClick={() => window.open(socialConfig.bilibiliUrl, '_blank', 'noopener,noreferrer')}>
+          <button type="button" className="announcement-bilibili-btn" onClick={() => void window.api.clipboardOpenUrl(socialConfig.bilibiliUrl)}>
             <img src={SvgIcon.BILIBILI} alt="" draggable={false} />
           </button>
         )}
         {(socialConfig.qqInviteUrl || socialConfig.qqQrImageUrl) && (
           <button type="button" className={`announcement-qq-btn${showQr ? ' active' : ''}`} onClick={() => {
-            if (!showQr && socialConfig.qqInviteUrl) window.open(socialConfig.qqInviteUrl, '_blank', 'noopener,noreferrer');
+            if (!showQr && socialConfig.qqInviteUrl) void window.api.clipboardOpenUrl(socialConfig.qqInviteUrl);
             if (socialConfig.qqQrImageUrl) onToggleQr();
           }}>
             <img src={SvgIcon.QQ} alt="" draggable={false} />
           </button>
         )}
         {socialConfig.githubUrl && (
-          <button type="button" className="announcement-github-btn" onClick={() => window.open(socialConfig.githubUrl, '_blank', 'noopener,noreferrer')}>
+          <button type="button" className="announcement-github-btn" onClick={() => void window.api.clipboardOpenUrl(socialConfig.githubUrl)}>
             <img src={SvgIcon.GITHUB} alt="" draggable={false} />
           </button>
         )}

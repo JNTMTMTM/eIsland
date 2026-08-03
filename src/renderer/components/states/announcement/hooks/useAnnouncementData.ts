@@ -56,8 +56,14 @@ export function useAnnouncementData(): UseAnnouncementDataResult {
         fetchAnnouncementSocialConfig(),
       ]);
       if (cancelled) return;
-      setAnnouncements(result);
-      setSelectedAnnouncement(result[0] ?? null);
+      const sorted = [...result].sort((a, b) => {
+        const sa = a.sortOrder ?? Infinity;
+        const sb = b.sortOrder ?? Infinity;
+        if (sa !== sb) return sa - sb;
+        return (a.id ?? 0) - (b.id ?? 0);
+      });
+      setAnnouncements(sorted);
+      setSelectedAnnouncement(sorted[0] ?? null);
       setSocialConfig(loadedSocialConfig);
       setLoading(false);
     };
