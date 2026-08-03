@@ -24,10 +24,16 @@
  * @author 鸡哥
  */
 
-import type { AnnouncementData } from '../../../../api/announcement/announcementApi';
+import type {
+  AnnouncementData,
+  AnnouncementSocialConfig,
+} from '../../../../api/announcement/announcementApi';
 
 /** useAnnouncementData 返回值 */
 export interface UseAnnouncementDataResult {
   loading: boolean;
-  announcement: AnnouncementData | null;
+  announcements: AnnouncementData[];
+  selectedAnnouncement: AnnouncementData | null;
+  socialConfig: AnnouncementSocialConfig;
+  selectAnnouncement: (announcement: AnnouncementData) => void;
 }

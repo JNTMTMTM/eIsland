@@ -36,7 +36,18 @@ import { SvgIcon } from '../../../../utils/SvgIcon';
  * @param props - 公告头部渲染参数。
  * @returns 公告头部区域。
  */
-export function AnnouncementHeader({ announcement, showVideo, onToggleVideo, onClose }: AnnouncementHeaderProps): ReactElement {
+export function AnnouncementHeader({
+  announcement,
+  socialConfig,
+  showVideo,
+  showQr,
+  canToggleList,
+  listExpanded,
+  onToggleList,
+  onToggleVideo,
+  onToggleQr,
+  onClose,
+}: AnnouncementHeaderProps): ReactElement {
   const { t } = useTranslation();
 
   const titleText = announcement?.title || t(ANNOUNCEMENT_KEYS.DEFAULT_TITLE, { defaultValue: ANNOUNCEMENT_DEFAULTS.DEFAULT_TITLE });
@@ -51,12 +62,38 @@ export function AnnouncementHeader({ announcement, showVideo, onToggleVideo, onC
         <div className="announcement-subtitle">{subtitleText}</div>
       </div>
       <div className="announcement-header-actions">
-        <button type="button" className="announcement-bilibili-btn" onClick={() => window.open('https://space.bilibili.com/1693679439', '_blank', 'noopener,noreferrer')}>
-          <img src={SvgIcon.BILIBILI} alt="" draggable={false} />
-        </button>
-        <button type="button" className="announcement-github-btn" onClick={() => window.open('https://github.com/JNTMTMTM/eIsland', '_blank', 'noopener,noreferrer')}>
-          <img src={SvgIcon.GITHUB} alt="" draggable={false} />
-        </button>
+        {canToggleList && (
+          <button
+            type="button"
+            className={`announcement-list-toggle-btn${listExpanded ? ' active' : ''}`}
+            onClick={onToggleList}
+            aria-label={t(
+              listExpanded ? ANNOUNCEMENT_KEYS.HIDE_LIST : ANNOUNCEMENT_KEYS.SHOW_LIST,
+              { defaultValue: listExpanded ? ANNOUNCEMENT_DEFAULTS.HIDE_LIST : ANNOUNCEMENT_DEFAULTS.SHOW_LIST },
+            )}
+            aria-expanded={listExpanded}
+          >
+            <img src={listExpanded ? SvgIcon.COLLAPSE : SvgIcon.EXPAND} alt="" draggable={false} />
+          </button>
+        )}
+        {socialConfig.bilibiliUrl && (
+          <button type="button" className="announcement-bilibili-btn" onClick={() => void window.api.clipboardOpenUrl(socialConfig.bilibiliUrl)}>
+            <img src={SvgIcon.BILIBILI} alt="" draggable={false} />
+          </button>
+        )}
+        {(socialConfig.qqInviteUrl || socialConfig.qqQrImageUrl) && (
+          <button type="button" className={`announcement-qq-btn${showQr ? ' active' : ''}`} onClick={() => {
+            if (!showQr && socialConfig.qqInviteUrl) void window.api.clipboardOpenUrl(socialConfig.qqInviteUrl);
+            if (socialConfig.qqQrImageUrl) onToggleQr();
+          }}>
+            <img src={SvgIcon.QQ} alt="" draggable={false} />
+          </button>
+        )}
+        {socialConfig.githubUrl && (
+          <button type="button" className="announcement-github-btn" onClick={() => void window.api.clipboardOpenUrl(socialConfig.githubUrl)}>
+            <img src={SvgIcon.GITHUB} alt="" draggable={false} />
+          </button>
+        )}
         {announcement?.bvid && (
           <button type="button" className={`announcement-video-btn${showVideo ? ' active' : ''}`} onClick={onToggleVideo}>
             <img src={SvgIcon.VIDEO} alt="" draggable={false} />

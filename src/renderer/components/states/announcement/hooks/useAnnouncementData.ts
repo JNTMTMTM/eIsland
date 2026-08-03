@@ -26,8 +26,10 @@
 
 import { useEffect, useState } from 'react';
 import {
-  fetchCurrentAnnouncement,
+  fetchAnnouncements,
+  fetchAnnouncementSocialConfig,
   type AnnouncementData,
+  type AnnouncementSocialConfig,
 } from '../../../../api/announcement/announcementApi';
 import type { UseAnnouncementDataResult } from '../types/useAnnouncementData.types';
 
@@ -37,14 +39,32 @@ import type { UseAnnouncementDataResult } from '../types/useAnnouncementData.typ
  */
 export function useAnnouncementData(): UseAnnouncementDataResult {
   const [loading, setLoading] = useState(true);
-  const [announcement, setAnnouncement] = useState<AnnouncementData | null>(null);
+  const [announcements, setAnnouncements] = useState<AnnouncementData[]>([]);
+  const [selectedAnnouncement, setSelectedAnnouncement] = useState<AnnouncementData | null>(null);
+  const [socialConfig, setSocialConfig] = useState<AnnouncementSocialConfig>({
+    githubUrl: '',
+    bilibiliUrl: '',
+    qqInviteUrl: '',
+    qqQrImageUrl: '',
+  });
 
   useEffect(() => {
     let cancelled = false;
     const load = async (): Promise<void> => {
-      const result = await fetchCurrentAnnouncement();
+      const [result, loadedSocialConfig] = await Promise.all([
+        fetchAnnouncements(),
+        fetchAnnouncementSocialConfig(),
+      ]);
       if (cancelled) return;
-      setAnnouncement(result);
+      const sorted = [...result].sort((a, b) => {
+        const sa = a.sortOrder ?? Infinity;
+        const sb = b.sortOrder ?? Infinity;
+        if (sa !== sb) return sa - sb;
+        return (a.id ?? 0) - (b.id ?? 0);
+      });
+      setAnnouncements(sorted);
+      setSelectedAnnouncement(sorted[0] ?? null);
+      setSocialConfig(loadedSocialConfig);
       setLoading(false);
     };
     void load();
@@ -53,5 +73,11 @@ export function useAnnouncementData(): UseAnnouncementDataResult {
     };
   }, []);
 
-  return { loading, announcement };
+  return {
+    loading,
+    announcements,
+    selectedAnnouncement,
+    socialConfig,
+    selectAnnouncement: setSelectedAnnouncement,
+  };
 }

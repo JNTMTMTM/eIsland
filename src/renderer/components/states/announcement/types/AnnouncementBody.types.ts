@@ -24,6 +24,7 @@
  * @author 鸡哥
  */
 
+import type { ReactNode } from 'react';
 import type { AnnouncementData } from '../../../../api/announcement/announcementApi';
 
 /** AnnouncementBody 组件入参 */
@@ -31,6 +32,9 @@ export interface AnnouncementBodyProps {
   loading: boolean;
   announcement: AnnouncementData | null;
   showVideo: boolean;
+  showQr: boolean;
+  qrImageUrl: string;
+  announcementList?: ReactNode;
 }
 
 /** 从 HTML 中提取的章节标题 */

@@ -40,6 +40,95 @@
   height: 100%;
   padding: 8px 14px 12px;
   display: flex;
+  gap: 14px;
+  overflow: hidden;
+}
+
+.announcement-list {
+  position: relative;
+  flex: 0 0 160px;
+  min-width: 0;
+  padding: 0 10px 0 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  border-right: 1px solid rgba(var(--color-text-rgb), 0.12);
+  opacity: 1;
+  scrollbar-width: none;
+  transition:
+    flex-basis 0.35s ease-out,
+    padding 0.35s ease-out,
+    margin-right 0.35s ease-out,
+    border-color 0.35s ease-out,
+    opacity 0.35s ease-out;
+}
+
+.announcement-list.collapsed {
+  flex-basis: 0;
+  padding-right: 0;
+  padding-left: 0;
+  margin-right: -14px;
+  border-color: transparent;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.announcement-list::-webkit-scrollbar {
+  display: none;
+}
+
+.announcement-list-item {
+  position: relative;
+  width: 100%;
+  padding: 7px 8px 7px 10px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: rgba(var(--color-text-rgb), 0.56);
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.announcement-list-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(var(--color-text-rgb), 0.9);
+}
+
+.announcement-list-item.active {
+  background: rgba(124, 188, 255, 0.08);
+  color: rgba(var(--color-text-rgb), 0.9);
+}
+
+.announcement-list-item.active::before {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 2px;
+  height: 12px;
+  border-radius: 1px;
+  background: #7cbcff;
+  content: '';
+  transform: translateY(-50%);
+}
+
+.announcement-list-title {
+  display: block;
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.announcement-detail {
+  flex: 1;
+  min-width: 0;
+  display: flex;
   flex-direction: column;
   gap: 8px;
   overflow: hidden;
@@ -105,6 +194,40 @@
   border-color: rgba(255, 255, 255, 0.28);
 }
 
+.announcement-list-toggle-btn {
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.announcement-list-toggle-btn img {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+  filter: brightness(0) invert(var(--icon-invert));
+  opacity: 0.5;
+}
+
+.announcement-list-toggle-btn:hover {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+.announcement-list-toggle-btn.active {
+  background: rgba(124, 188, 255, 0.2);
+  border-color: rgba(124, 188, 255, 0.4);
+}
+
+.announcement-list-toggle-btn.active img {
+  opacity: 0.9;
+}
+
 .announcement-bilibili-btn {
   border: 1px solid rgba(255, 255, 255, 0.16);
   background: rgba(255, 255, 255, 0.08);
@@ -128,6 +251,45 @@
 .announcement-bilibili-btn:hover {
   background: rgba(255, 255, 255, 0.16);
   border-color: rgba(255, 255, 255, 0.28);
+}
+
+.announcement-qq-btn {
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.announcement-qq-btn img {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+  filter: brightness(0) invert(var(--icon-invert));
+  opacity: 0.5;
+}
+
+.announcement-qq-btn:hover {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+.announcement-qq-btn.active {
+  background: rgba(124, 188, 255, 0.2);
+  border-color: rgba(124, 188, 255, 0.4);
+}
+
+.announcement-qq-btn.active img {
+  opacity: 0.9;
+}
+
+.announcement-qq-btn.active:hover {
+  background: rgba(124, 188, 255, 0.3);
+  border-color: rgba(124, 188, 255, 0.5);
 }
 
 .announcement-github-btn {
@@ -323,6 +485,27 @@
 
 .announcement-content-row.video-visible .announcement-video-wrapper {
   flex: 0 0 50%;
+  opacity: 1;
+}
+
+.announcement-qr-wrapper {
+  flex: 0 0 0%;
+  align-self: center;
+  min-width: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: flex 0.35s ease-out, opacity 0.35s ease-out;
+}
+
+.announcement-qr-image {
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+  object-fit: contain;
+}
+
+.announcement-content-row.qr-visible .announcement-qr-wrapper {
+  flex: 0 0 28%;
   opacity: 1;
 }
 

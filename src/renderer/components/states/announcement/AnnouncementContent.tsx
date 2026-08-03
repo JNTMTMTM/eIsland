@@ -25,9 +25,11 @@
  */
 
 import { useState, type ReactElement } from 'react';
+import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../store/slices';
 import { AnnouncementHeader } from './components/AnnouncementHeader';
 import { AnnouncementBody } from './components/AnnouncementBody';
+import { ANNOUNCEMENT_DEFAULTS, ANNOUNCEMENT_KEYS } from './config/announcementDefaults';
 import { useAnnouncementData } from './hooks/useAnnouncementData';
 import '../../../styles/announcement/announcement.css';
 
@@ -36,23 +38,93 @@ import '../../../styles/announcement/announcement.css';
  * @returns 公告状态视图
  */
 export function AnnouncementContent(): ReactElement {
+  const { t } = useTranslation();
   const { setHover } = useIslandStore();
-  const { loading, announcement } = useAnnouncementData();
+  const { loading, announcements, selectedAnnouncement, socialConfig, selectAnnouncement } = useAnnouncementData();
   const [showVideo, setShowVideo] = useState(false);
+  const [showQr, setShowQr] = useState(false);
+  const [listExpanded, setListExpanded] = useState(true);
+
+  /** 切换公告时关闭视频和二维码，避免沿用上一条公告的媒体状态。 */
+  const handleSelectAnnouncement = (announcement: (typeof announcements)[number]): void => {
+    selectAnnouncement(announcement);
+    setShowVideo(false);
+    setShowQr(false);
+  };
+
+  const announcementList = !loading && announcements.length > 0 ? (
+    <nav
+      className={`announcement-list${listExpanded ? '' : ' collapsed'}`}
+      aria-hidden={!listExpanded}
+    >
+      {announcements.map((announcement, index) => {
+        const selected = announcement === selectedAnnouncement;
+        return (
+          <button
+            key={announcement.id ?? `${announcement.updatedAt ?? 'announcement'}-${index}`}
+            type="button"
+            className={`announcement-list-item${selected ? ' active' : ''}`}
+            aria-current={selected ? 'true' : undefined}
+            tabIndex={listExpanded ? 0 : -1}
+            onClick={() => handleSelectAnnouncement(announcement)}
+          >
+            <span className="announcement-list-title">
+              {announcement.title || t(ANNOUNCEMENT_KEYS.DEFAULT_TITLE, ANNOUNCEMENT_DEFAULTS.DEFAULT_TITLE)}
+            </span>
+          </button>
+        );
+      })}
+    </nav>
+  ) : undefined;
 
   return (
     <div className="announcement-state-content" onClick={(event) => event.stopPropagation()}>
       <div className="announcement-panel">
-        <AnnouncementHeader
-          announcement={announcement}
-          showVideo={showVideo}
-          onToggleVideo={() => setShowVideo((v) => !v)}
-          onClose={() => setHover()}
-        />
+        <section className="announcement-detail">
+          <AnnouncementHeader
+            announcement={selectedAnnouncement}
+            socialConfig={socialConfig}
+            showVideo={showVideo}
+            showQr={showQr}
+            canToggleList={!loading && announcements.length > 0}
+            listExpanded={listExpanded}
+            onToggleList={() => {
+              setListExpanded((expanded) => {
+                if (!expanded) {
+                  setShowVideo(false);
+                  setShowQr(false);
+                }
+                return !expanded;
+              });
+            }}
+            onToggleVideo={() => {
+              if (!showVideo) {
+                setListExpanded(false);
+                setShowQr(false);
+              }
+              setShowVideo((visible) => !visible);
+            }}
+            onToggleQr={() => {
+              if (!showQr) {
+                setListExpanded(false);
+                setShowVideo(false);
+              }
+              setShowQr((visible) => !visible);
+            }}
+            onClose={() => setHover()}
+          />
 
-        <div className="announcement-divider" />
+          <div className="announcement-divider" />
 
-        <AnnouncementBody loading={loading} announcement={announcement} showVideo={showVideo} />
+          <AnnouncementBody
+            loading={loading}
+            announcement={selectedAnnouncement}
+            showVideo={showVideo}
+            showQr={showQr}
+            qrImageUrl={socialConfig.qqQrImageUrl}
+            announcementList={announcementList}
+          />
+        </section>
       </div>
     </div>
   );

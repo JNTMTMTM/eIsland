@@ -19,26 +19,19 @@
  */
 
 /**
- * @file AnnouncementHeader.types.ts
- * @description AnnouncementHeader 组件相关类型定义
+ * @file AnnouncementSocialConfig.ts
+ * @description 公告状态机外链配置数据结构定义
  * @author 鸡哥
  */
 
-import type {
-  AnnouncementData,
-  AnnouncementSocialConfig,
-} from '../../../../api/announcement/announcementApi';
-
-/** AnnouncementHeader 组件入参 */
-export interface AnnouncementHeaderProps {
-  announcement: AnnouncementData | null;
-  socialConfig: AnnouncementSocialConfig;
-  showVideo: boolean;
-  showQr: boolean;
-  canToggleList: boolean;
-  listExpanded: boolean;
-  onToggleList: () => void;
-  onToggleVideo: () => void;
-  onToggleQr: () => void;
-  onClose: () => void;
+/** 公告状态机外链配置 */
+export interface AnnouncementSocialConfig {
+  /** GitHub 项目主页地址 */
+  githubUrl: string;
+  /** B站主页地址 */
+  bilibiliUrl: string;
+  /** QQ 群邀请地址 */
+  qqInviteUrl: string;
+  /** QQ 群二维码图片地址 */
+  qqQrImageUrl: string;
 }

@@ -475,6 +475,9 @@
     "subtitle": "You are on the latest version. Below are the latest announcements.",
     "defaultTitle": "System Announcement",
     "updatedAt": "Updated: {{time}}",
+    "showList": "Expand announcement list",
+    "hideList": "Collapse announcement list",
+    "qqQrAlt": "QQ group QR code",
     "close": "Close"
   },
   "notification": {
