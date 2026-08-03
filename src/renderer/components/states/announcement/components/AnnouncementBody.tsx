@@ -41,6 +41,8 @@ export function AnnouncementBody({
   loading,
   announcement,
   showVideo,
+  showQr,
+  qrImageUrl,
   announcementList,
 }: AnnouncementBodyProps): ReactElement {
   const { t } = useTranslation();
@@ -70,7 +72,10 @@ export function AnnouncementBody({
     : <div ref={bodyRef} className="announcement-body"><pre>{announcement.content || ''}</pre></div>;
 
   return (
-    <div className={`announcement-content-row${showVideo ? ' video-visible' : ''}`}>
+    <div className={`announcement-content-row${showVideo ? ' video-visible' : ''}${showQr ? ' qr-visible' : ''}`}>
+      <div className="announcement-qr-wrapper">
+        <img className="announcement-qr-image" src={qrImageUrl} alt={t(ANNOUNCEMENT_KEYS.QQ_QR_ALT, { defaultValue: ANNOUNCEMENT_DEFAULTS.QQ_QR_ALT })} draggable={false} />
+      </div>
       {announcementList}
       {announcement.bvid && (
         <AnnouncementVideo bvid={announcement.bvid} autoplay={false} showDanmaku={false} aspectRatio={9 / 16} />

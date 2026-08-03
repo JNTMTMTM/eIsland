@@ -477,6 +477,7 @@
     "updatedAt": "Updated: {{time}}",
     "showList": "Expand announcement list",
     "hideList": "Collapse announcement list",
+    "qqQrAlt": "QQ group QR code",
     "close": "Close"
   },
   "notification": {

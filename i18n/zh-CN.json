@@ -477,6 +477,7 @@
     "updatedAt": "更新时间：{{time}}",
     "showList": "展开公告列表",
     "hideList": "收起公告列表",
+    "qqQrAlt": "QQ 群二维码",
     "close": "关闭"
   },
   "notification": {

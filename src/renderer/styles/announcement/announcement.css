@@ -253,6 +253,45 @@
   border-color: rgba(255, 255, 255, 0.28);
 }
 
+.announcement-qq-btn {
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.announcement-qq-btn img {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+  filter: brightness(0) invert(var(--icon-invert));
+  opacity: 0.5;
+}
+
+.announcement-qq-btn:hover {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+.announcement-qq-btn.active {
+  background: rgba(124, 188, 255, 0.2);
+  border-color: rgba(124, 188, 255, 0.4);
+}
+
+.announcement-qq-btn.active img {
+  opacity: 0.9;
+}
+
+.announcement-qq-btn.active:hover {
+  background: rgba(124, 188, 255, 0.3);
+  border-color: rgba(124, 188, 255, 0.5);
+}
+
 .announcement-github-btn {
   border: 1px solid rgba(255, 255, 255, 0.16);
   background: rgba(255, 255, 255, 0.08);
@@ -446,6 +485,27 @@
 
 .announcement-content-row.video-visible .announcement-video-wrapper {
   flex: 0 0 50%;
+  opacity: 1;
+}
+
+.announcement-qr-wrapper {
+  flex: 0 0 0%;
+  align-self: center;
+  min-width: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: flex 0.35s ease-out, opacity 0.35s ease-out;
+}
+
+.announcement-qr-image {
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+  object-fit: contain;
+}
+
+.announcement-content-row.qr-visible .announcement-qr-wrapper {
+  flex: 0 0 40%;
   opacity: 1;
 }
 

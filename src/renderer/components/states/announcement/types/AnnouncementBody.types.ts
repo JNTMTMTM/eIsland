@@ -32,6 +32,8 @@ export interface AnnouncementBodyProps {
   loading: boolean;
   announcement: AnnouncementData | null;
   showVideo: boolean;
+  showQr: boolean;
+  qrImageUrl: string;
   announcementList?: ReactNode;
 }
 

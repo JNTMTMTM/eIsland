@@ -33,6 +33,9 @@ import { ANNOUNCEMENT_DEFAULTS, ANNOUNCEMENT_KEYS } from './config/announcementD
 import { useAnnouncementData } from './hooks/useAnnouncementData';
 import '../../../styles/announcement/announcement.css';
 
+/** QQ 群二维码图片地址 */
+const QQ_GROUP_QR_URL = 'https://eisland-server-download-cdn.pyisland.com/eisland-update/qrcode_1785754150302.jpg';
+
 /**
  * 公告页内容组件
  * @returns 公告状态视图
@@ -42,12 +45,14 @@ export function AnnouncementContent(): ReactElement {
   const { setHover } = useIslandStore();
   const { loading, announcements, selectedAnnouncement, selectAnnouncement } = useAnnouncementData();
   const [showVideo, setShowVideo] = useState(false);
+  const [showQr, setShowQr] = useState(false);
   const [listExpanded, setListExpanded] = useState(true);
 
-  /** 切换公告时关闭视频，避免沿用上一条公告的媒体状态。 */
+  /** 切换公告时关闭视频和二维码，避免沿用上一条公告的媒体状态。 */
   const handleSelectAnnouncement = (announcement: (typeof announcements)[number]): void => {
     selectAnnouncement(announcement);
     setShowVideo(false);
+    setShowQr(false);
   };
 
   const announcementList = !loading && announcements.length > 0 ? (
@@ -82,12 +87,17 @@ export function AnnouncementContent(): ReactElement {
           <AnnouncementHeader
             announcement={selectedAnnouncement}
             showVideo={showVideo}
+            showQr={showQr}
             canToggleList={!loading && announcements.length > 0}
             listExpanded={listExpanded}
             onToggleList={() => setListExpanded((expanded) => !expanded)}
             onToggleVideo={() => {
               if (!showVideo) setListExpanded(false);
               setShowVideo((visible) => !visible);
+            }}
+            onToggleQr={() => {
+              if (!showQr) setListExpanded(false);
+              setShowQr((visible) => !visible);
             }}
             onClose={() => setHover()}
           />
@@ -98,6 +108,8 @@ export function AnnouncementContent(): ReactElement {
             loading={loading}
             announcement={selectedAnnouncement}
             showVideo={showVideo}
+            showQr={showQr}
+            qrImageUrl={QQ_GROUP_QR_URL}
             announcementList={announcementList}
           />
         </section>

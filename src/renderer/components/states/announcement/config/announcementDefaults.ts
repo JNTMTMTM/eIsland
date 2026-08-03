@@ -33,6 +33,7 @@ export const ANNOUNCEMENT_KEYS = {
   EMPTY: 'announcement.empty',
   SHOW_LIST: 'announcement.showList',
   HIDE_LIST: 'announcement.hideList',
+  QQ_QR_ALT: 'announcement.qqQrAlt',
   CLOSE: 'announcement.close',
 } as const;
 
@@ -45,5 +46,6 @@ export const ANNOUNCEMENT_DEFAULTS = {
   EMPTY: '暂无公告内容',
   SHOW_LIST: '展开公告列表',
   HIDE_LIST: '收起公告列表',
+  QQ_QR_ALT: 'QQ 群二维码',
   CLOSE: '关闭',
 } as const;
