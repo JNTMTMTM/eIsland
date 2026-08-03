@@ -27,7 +27,9 @@
 import { useEffect, useState } from 'react';
 import {
   fetchAnnouncements,
+  fetchAnnouncementSocialConfig,
   type AnnouncementData,
+  type AnnouncementSocialConfig,
 } from '../../../../api/announcement/announcementApi';
 import type { UseAnnouncementDataResult } from '../types/useAnnouncementData.types';
 
@@ -39,14 +41,24 @@ export function useAnnouncementData(): UseAnnouncementDataResult {
   const [loading, setLoading] = useState(true);
   const [announcements, setAnnouncements] = useState<AnnouncementData[]>([]);
   const [selectedAnnouncement, setSelectedAnnouncement] = useState<AnnouncementData | null>(null);
+  const [socialConfig, setSocialConfig] = useState<AnnouncementSocialConfig>({
+    githubUrl: '',
+    bilibiliUrl: '',
+    qqInviteUrl: '',
+    qqQrImageUrl: '',
+  });
 
   useEffect(() => {
     let cancelled = false;
     const load = async (): Promise<void> => {
-      const result = await fetchAnnouncements();
+      const [result, loadedSocialConfig] = await Promise.all([
+        fetchAnnouncements(),
+        fetchAnnouncementSocialConfig(),
+      ]);
       if (cancelled) return;
       setAnnouncements(result);
       setSelectedAnnouncement(result[0] ?? null);
+      setSocialConfig(loadedSocialConfig);
       setLoading(false);
     };
     void load();
@@ -59,6 +71,7 @@ export function useAnnouncementData(): UseAnnouncementDataResult {
     loading,
     announcements,
     selectedAnnouncement,
+    socialConfig,
     selectAnnouncement: setSelectedAnnouncement,
   };
 }

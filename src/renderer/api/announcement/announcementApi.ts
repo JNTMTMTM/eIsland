@@ -27,8 +27,9 @@
 import { getLanguage } from '../../i18n';
 import type { AnnouncementShowMode } from './types/AnnouncementShowMode';
 import type { AnnouncementData } from './types/AnnouncementData';
+import type { AnnouncementSocialConfig } from './types/AnnouncementSocialConfig';
 
-export type { AnnouncementShowMode, AnnouncementData };
+export type { AnnouncementShowMode, AnnouncementData, AnnouncementSocialConfig };
 
 const IS_DEV_RENDERER = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 
@@ -152,5 +153,40 @@ export async function fetchAnnouncements(): Promise<AnnouncementData[]> {
       .filter((announcement): announcement is AnnouncementData => announcement !== null);
   } catch {
     return [];
+  }
+}
+
+/**
+ * 获取公告状态机外链配置。
+ * @returns 服务端下发的外链配置；请求失败或响应无效时返回空配置。
+ */
+export async function fetchAnnouncementSocialConfig(): Promise<AnnouncementSocialConfig> {
+  const emptyConfig: AnnouncementSocialConfig = {
+    githubUrl: '',
+    bilibiliUrl: '',
+    qqInviteUrl: '',
+    qqQrImageUrl: '',
+  };
+  try {
+    const response = await window.api.netFetch(
+      `${ANNOUNCEMENT_API_BASE}/v1/announcement/social-config`,
+      {
+        method: 'GET',
+        timeoutMs: 8000,
+      },
+    );
+    if (!response?.ok) return emptyConfig;
+
+    const payload = JSON.parse(response.body) as { code?: number; data?: unknown };
+    if (payload?.code !== 200 || !payload.data || typeof payload.data !== 'object') return emptyConfig;
+    const data = payload.data as Record<string, unknown>;
+    return {
+      githubUrl: typeof data.githubUrl === 'string' ? data.githubUrl : '',
+      bilibiliUrl: typeof data.bilibiliUrl === 'string' ? data.bilibiliUrl : '',
+      qqInviteUrl: typeof data.qqInviteUrl === 'string' ? data.qqInviteUrl : '',
+      qqQrImageUrl: typeof data.qqQrImageUrl === 'string' ? data.qqQrImageUrl : '',
+    };
+  } catch {
+    return emptyConfig;
   }
 }

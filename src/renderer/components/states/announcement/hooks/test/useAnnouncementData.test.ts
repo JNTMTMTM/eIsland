@@ -32,13 +32,17 @@ const reactMocks = vi.hoisted(() => ({
   useEffect: vi.fn(),
 }));
 const fetchAnnouncements = vi.hoisted(() => vi.fn());
+const fetchAnnouncementSocialConfig = vi.hoisted(() => vi.fn());
 
 vi.mock('react', async (importOriginal) => ({
   ...await importOriginal<typeof import('react')>(),
   useState: reactMocks.useState,
   useEffect: reactMocks.useEffect,
 }));
-vi.mock('../../../../../api/announcement/announcementApi', () => ({ fetchAnnouncements }));
+vi.mock('../../../../../api/announcement/announcementApi', () => ({
+  fetchAnnouncements,
+  fetchAnnouncementSocialConfig,
+}));
 
 import { useAnnouncementData } from '../useAnnouncementData';
 
@@ -47,6 +51,7 @@ describe('useAnnouncementData', () => {
     reactMocks.useState.mockReset();
     reactMocks.useEffect.mockReset();
     fetchAnnouncements.mockReset();
+    fetchAnnouncementSocialConfig.mockReset();
   });
 
   it('loads the list, selects the first item, and exposes selection', async () => {
@@ -54,14 +59,23 @@ describe('useAnnouncementData', () => {
       { id: 1, sortOrder: 10, title: 'First', content: 'A' },
       { id: 2, sortOrder: 5, title: 'Second', content: 'B' },
     ];
+    const socialConfig = {
+      githubUrl: 'https://github.com/example/project',
+      bilibiliUrl: 'https://space.bilibili.com/1',
+      qqInviteUrl: 'https://qm.qq.com/example',
+      qqQrImageUrl: 'https://cdn.example.com/qr.jpg',
+    };
     const setLoading = vi.fn();
     const setAnnouncements = vi.fn();
     const setSelectedAnnouncement = vi.fn();
+    const setSocialConfig = vi.fn();
     fetchAnnouncements.mockResolvedValue(announcements);
+    fetchAnnouncementSocialConfig.mockResolvedValue(socialConfig);
     reactMocks.useState
       .mockReturnValueOnce([true, setLoading])
       .mockReturnValueOnce([[], setAnnouncements])
-      .mockReturnValueOnce([null, setSelectedAnnouncement]);
+      .mockReturnValueOnce([null, setSelectedAnnouncement])
+      .mockReturnValueOnce([{}, setSocialConfig]);
     reactMocks.useEffect.mockImplementation((effect: () => void) => effect());
 
     const result = useAnnouncementData();
@@ -70,6 +84,7 @@ describe('useAnnouncementData', () => {
     await vi.waitFor(() => {
       expect(setAnnouncements).toHaveBeenCalledWith(announcements);
       expect(setSelectedAnnouncement).toHaveBeenCalledWith(announcements[0]);
+      expect(setSocialConfig).toHaveBeenCalledWith(socialConfig);
       expect(setLoading).toHaveBeenCalledWith(false);
     });
     expect(setSelectedAnnouncement).toHaveBeenCalledWith(announcements[1]);

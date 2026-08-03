@@ -73,6 +73,12 @@ describe('AnnouncementContent', () => {
       loading: false,
       announcements,
       selectedAnnouncement: announcements[0],
+      socialConfig: {
+        githubUrl: 'https://github.com/example/project',
+        bilibiliUrl: 'https://space.bilibili.com/1',
+        qqInviteUrl: 'https://qm.qq.com/example',
+        qqQrImageUrl: 'https://cdn.example.com/qr.jpg',
+      },
       selectAnnouncement: mocks.selectAnnouncement,
     });
 
@@ -96,6 +102,12 @@ describe('AnnouncementContent', () => {
       loading: false,
       announcements,
       selectedAnnouncement: announcements[0],
+      socialConfig: {
+        githubUrl: 'https://github.com/example/project',
+        bilibiliUrl: 'https://space.bilibili.com/1',
+        qqInviteUrl: 'https://qm.qq.com/example',
+        qqQrImageUrl: 'https://cdn.example.com/qr.jpg',
+      },
       selectAnnouncement: mocks.selectAnnouncement,
     });
 
@@ -119,11 +131,19 @@ describe('AnnouncementContent', () => {
   it('renders the collapse icon immediately before the Bilibili button', () => {
     const header = AnnouncementHeader({
       announcement: { id: 1, title: 'First', content: 'A' },
+      socialConfig: {
+        githubUrl: 'https://github.com/example/project',
+        bilibiliUrl: 'https://space.bilibili.com/1',
+        qqInviteUrl: 'https://qm.qq.com/example',
+        qqQrImageUrl: 'https://cdn.example.com/qr.jpg',
+      },
       showVideo: false,
+      showQr: false,
       canToggleList: true,
       listExpanded: true,
       onToggleList: vi.fn(),
       onToggleVideo: vi.fn(),
+      onToggleQr: vi.fn(),
       onClose: vi.fn(),
     }) as ReactElement<{ children: ReactElement[] }>;
     const actions = header.props.children[1] as ReactElement<{ children: ReactElement[] }>;

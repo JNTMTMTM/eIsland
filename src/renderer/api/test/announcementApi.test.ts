@@ -126,6 +126,32 @@ describe('announcementApi', () => {
     expect(data[1]).toMatchObject({ id: 6, contentHtml: '<p>Older</p>', bvid: 'BV-test' });
   });
 
+  it('fetches announcement social links from the server', async () => {
+    const socialConfig = {
+      githubUrl: 'https://github.com/example/project',
+      bilibiliUrl: 'https://space.bilibili.com/1',
+      qqInviteUrl: 'https://qm.qq.com/example',
+      qqQrImageUrl: 'https://cdn.example.com/qr.jpg',
+    };
+    const netFetch = vi.fn(async () => ({
+      ok: true,
+      status: 200,
+      body: JSON.stringify({ code: 200, data: socialConfig }),
+    }));
+    setTestWindow({
+      location: { hostname: 'localhost' },
+      api: { storeRead: vi.fn(), storeWrite: vi.fn(), netFetch },
+    });
+
+    const { fetchAnnouncementSocialConfig } = await import('../announcement/announcementApi');
+
+    await expect(fetchAnnouncementSocialConfig()).resolves.toEqual(socialConfig);
+    expect(netFetch).toHaveBeenCalledWith(
+      expect.stringContaining('/v1/announcement/social-config'),
+      expect.objectContaining({ method: 'GET' }),
+    );
+  });
+
   it('returns an empty v2 list for malformed payloads', async () => {
     setTestWindow({
       location: { hostname: 'localhost' },

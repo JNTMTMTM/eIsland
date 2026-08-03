@@ -38,6 +38,7 @@ import { SvgIcon } from '../../../../utils/SvgIcon';
  */
 export function AnnouncementHeader({
   announcement,
+  socialConfig,
   showVideo,
   showQr,
   canToggleList,
@@ -75,18 +76,24 @@ export function AnnouncementHeader({
             <img src={listExpanded ? SvgIcon.COLLAPSE : SvgIcon.EXPAND} alt="" draggable={false} />
           </button>
         )}
-        <button type="button" className="announcement-bilibili-btn" onClick={() => window.open('https://space.bilibili.com/1693679439', '_blank', 'noopener,noreferrer')}>
-          <img src={SvgIcon.BILIBILI} alt="" draggable={false} />
-        </button>
-        <button type="button" className={`announcement-qq-btn${showQr ? ' active' : ''}`} onClick={() => {
-          if (!showQr) window.open('https://qm.qq.com/q/QropYqlgUW', '_blank', 'noopener,noreferrer');
-          onToggleQr();
-        }}>
-          <img src={SvgIcon.QQ} alt="" draggable={false} />
-        </button>
-        <button type="button" className="announcement-github-btn" onClick={() => window.open('https://github.com/JNTMTMTM/eIsland', '_blank', 'noopener,noreferrer')}>
-          <img src={SvgIcon.GITHUB} alt="" draggable={false} />
-        </button>
+        {socialConfig.bilibiliUrl && (
+          <button type="button" className="announcement-bilibili-btn" onClick={() => window.open(socialConfig.bilibiliUrl, '_blank', 'noopener,noreferrer')}>
+            <img src={SvgIcon.BILIBILI} alt="" draggable={false} />
+          </button>
+        )}
+        {(socialConfig.qqInviteUrl || socialConfig.qqQrImageUrl) && (
+          <button type="button" className={`announcement-qq-btn${showQr ? ' active' : ''}`} onClick={() => {
+            if (!showQr && socialConfig.qqInviteUrl) window.open(socialConfig.qqInviteUrl, '_blank', 'noopener,noreferrer');
+            if (socialConfig.qqQrImageUrl) onToggleQr();
+          }}>
+            <img src={SvgIcon.QQ} alt="" draggable={false} />
+          </button>
+        )}
+        {socialConfig.githubUrl && (
+          <button type="button" className="announcement-github-btn" onClick={() => window.open(socialConfig.githubUrl, '_blank', 'noopener,noreferrer')}>
+            <img src={SvgIcon.GITHUB} alt="" draggable={false} />
+          </button>
+        )}
         {announcement?.bvid && (
           <button type="button" className={`announcement-video-btn${showVideo ? ' active' : ''}`} onClick={onToggleVideo}>
             <img src={SvgIcon.VIDEO} alt="" draggable={false} />

@@ -33,9 +33,6 @@ import { ANNOUNCEMENT_DEFAULTS, ANNOUNCEMENT_KEYS } from './config/announcementD
 import { useAnnouncementData } from './hooks/useAnnouncementData';
 import '../../../styles/announcement/announcement.css';
 
-/** QQ 群二维码图片地址 */
-const QQ_GROUP_QR_URL = 'https://eisland-server-download-cdn.pyisland.com/eisland-update/qrcode_1785754150302.jpg';
-
 /**
  * 公告页内容组件
  * @returns 公告状态视图
@@ -43,7 +40,7 @@ const QQ_GROUP_QR_URL = 'https://eisland-server-download-cdn.pyisland.com/eislan
 export function AnnouncementContent(): ReactElement {
   const { t } = useTranslation();
   const { setHover } = useIslandStore();
-  const { loading, announcements, selectedAnnouncement, selectAnnouncement } = useAnnouncementData();
+  const { loading, announcements, selectedAnnouncement, socialConfig, selectAnnouncement } = useAnnouncementData();
   const [showVideo, setShowVideo] = useState(false);
   const [showQr, setShowQr] = useState(false);
   const [listExpanded, setListExpanded] = useState(true);
@@ -86,6 +83,7 @@ export function AnnouncementContent(): ReactElement {
         <section className="announcement-detail">
           <AnnouncementHeader
             announcement={selectedAnnouncement}
+            socialConfig={socialConfig}
             showVideo={showVideo}
             showQr={showQr}
             canToggleList={!loading && announcements.length > 0}
@@ -123,7 +121,7 @@ export function AnnouncementContent(): ReactElement {
             announcement={selectedAnnouncement}
             showVideo={showVideo}
             showQr={showQr}
-            qrImageUrl={QQ_GROUP_QR_URL}
+            qrImageUrl={socialConfig.qqQrImageUrl}
             announcementList={announcementList}
           />
         </section>
