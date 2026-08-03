@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-08-02T16:13:11.195Z
+> 生成时间：2026-08-03T17:40:36.687Z
 
 ## 26.6.5
 
@@ -2946,6 +2946,25 @@
 
 ## Unreleased
 
+- 2026-08-04 | 3e91684c | 鸡哥 | Merge pull request #185 from JNTMTMTM/dev
+- 2026-08-04 | cbb1b914 | 鸡哥 | feat: refactor social config test to use parameterized cases for better clarity
+- 2026-08-04 | 51e10310 | 鸡哥 | feat: update announcement selection logic to use sorted announcements
+- 2026-08-04 | 96ecef94 | 鸡哥 | feat: enhance announcement handling by adding social config tests and improving sorting logic
+- 2026-08-03 | ab14207c | 鸡哥 | feat: adjust announcement list width for improved layout
+- 2026-08-03 | 83481eec | 鸡哥 | feat: add AnnouncementSocialConfig type and integrate social links into announcement components
+- 2026-08-03 | 6e5080e2 | 鸡哥 | feat: adjust QR wrapper width in announcement content row for better layout
+- 2026-08-03 | 6b0c321a | 鸡哥 | feat: update toggle functionality to reset video and QR states when collapsing announcement list
+- 2026-08-03 | 3338c902 | 鸡哥 | feat: enhance toggle functionality to hide video and QR when toggling between states
+- 2026-08-03 | eb96aedd | 鸡哥 | feat: add QQ group QR code functionality and related UI updates
+- 2026-08-03 | 7e6afec8 | 鸡哥 | feat: add QQ icon to SvgIcon and update tests to include new property
+- 2026-08-03 | a439792e | 鸡哥 | feat: update video toggle functionality to collapse announcement list when video is shown
+- 2026-08-03 | 608d0a5a | 鸡哥 | feat: enhance announcement list with collapsible functionality and smooth transitions
+- 2026-08-03 | 24f246bb | 鸡哥 | feat: add toggle functionality for announcement list with corresponding UI updates
+- 2026-08-03 | 38b100ae | 鸡哥 | feat: implement v2 announcement fetching and normalization, update related components and tests
+- 2026-08-03 | ef21d9fc | 鸡哥 | feat: add release notes for version 26.6.5, including new features, improvements, bug fixes, and documentation updates
+- 2026-08-03 | 435e7a22 | 鸡哥 | feat: update link handling in AnnouncementBody to use clipboardOpenUrl
+- 2026-08-03 | 80376233 | 鸡哥 | feat: add language parameter to fetchCurrentAnnouncement and update tests
+- 2026-08-02 | ae54c294 | eislandBot | docs: auto update CHANGE_LOG.md for #184 by @JNTMTMTM [skip ci]
 - 2026-08-03 | 631c402f | 鸡哥 | Merge pull request #184 from JNTMTMTM/dev
 - 2026-08-03 | 1740dfdd | 鸡哥 | feat: refactor payment order pagination to use constant for default page size
 - 2026-08-03 | 61b38d78 | 鸡哥 | feat: add pagination labels for order history in English and Chinese
