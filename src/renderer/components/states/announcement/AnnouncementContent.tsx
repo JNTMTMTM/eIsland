@@ -92,11 +92,17 @@ export function AnnouncementContent(): ReactElement {
             listExpanded={listExpanded}
             onToggleList={() => setListExpanded((expanded) => !expanded)}
             onToggleVideo={() => {
-              if (!showVideo) setListExpanded(false);
+              if (!showVideo) {
+                setListExpanded(false);
+                setShowQr(false);
+              }
               setShowVideo((visible) => !visible);
             }}
             onToggleQr={() => {
-              if (!showQr) setListExpanded(false);
+              if (!showQr) {
+                setListExpanded(false);
+                setShowVideo(false);
+              }
               setShowQr((visible) => !visible);
             }}
             onClose={() => setHover()}
