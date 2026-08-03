@@ -505,7 +505,7 @@
 }
 
 .announcement-content-row.qr-visible .announcement-qr-wrapper {
-  flex: 0 0 40%;
+  flex: 0 0 28%;
   opacity: 1;
 }
 
