@@ -59,6 +59,10 @@ describe('useAnnouncementData', () => {
       { id: 1, sortOrder: 10, title: 'First', content: 'A' },
       { id: 2, sortOrder: 5, title: 'Second', content: 'B' },
     ];
+    const sortedAnnouncements: AnnouncementData[] = [
+      { id: 2, sortOrder: 5, title: 'Second', content: 'B' },
+      { id: 1, sortOrder: 10, title: 'First', content: 'A' },
+    ];
     const socialConfig = {
       githubUrl: 'https://github.com/example/project',
       bilibiliUrl: 'https://space.bilibili.com/1',
@@ -82,8 +86,8 @@ describe('useAnnouncementData', () => {
     result.selectAnnouncement(announcements[1]);
 
     await vi.waitFor(() => {
-      expect(setAnnouncements).toHaveBeenCalledWith(announcements);
-      expect(setSelectedAnnouncement).toHaveBeenCalledWith(announcements[0]);
+      expect(setAnnouncements).toHaveBeenCalledWith(sortedAnnouncements);
+      expect(setSelectedAnnouncement).toHaveBeenCalledWith(sortedAnnouncements[0]);
       expect(setSocialConfig).toHaveBeenCalledWith(socialConfig);
       expect(setLoading).toHaveBeenCalledWith(false);
     });
