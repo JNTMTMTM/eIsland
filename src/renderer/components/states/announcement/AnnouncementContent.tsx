@@ -49,27 +49,38 @@ export function AnnouncementContent(): ReactElement {
   const [listExpanded, setListExpanded] = useState(true);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isAdHovered, setIsAdHovered] = useState(false);
+  const [isAdFading, setIsAdFading] = useState(false);
+
+  /** 带淡入淡出的切换广告 */
+  const switchSlide = useCallback((nextIndex: number) => {
+    if (isAdFading) return;
+    setIsAdFading(true);
+    setTimeout(() => {
+      setCurrentSlide(nextIndex);
+      setIsAdFading(false);
+    }, 300);
+  }, [isAdFading]);
 
   /** 广告位轮播定时器 */
   useEffect(() => {
-    if (AD_SLIDES.length <= 1 || isAdHovered) return;
+    if (AD_SLIDES.length <= 1 || isAdHovered || isAdFading) return;
     const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % AD_SLIDES.length);
+      switchSlide((currentSlide + 1) % AD_SLIDES.length);
     }, AD_SLIDE_INTERVAL_MS);
     return () => clearInterval(timer);
-  }, [isAdHovered]);
+  }, [isAdHovered, isAdFading, currentSlide, switchSlide]);
 
   /** 切换到上一张广告 */
   const handlePrevSlide = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
-    setCurrentSlide((prev) => (prev - 1 + AD_SLIDES.length) % AD_SLIDES.length);
-  }, []);
+    switchSlide((currentSlide - 1 + AD_SLIDES.length) % AD_SLIDES.length);
+  }, [currentSlide, switchSlide]);
 
   /** 切换到下一张广告 */
   const handleNextSlide = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
-    setCurrentSlide((prev) => (prev + 1) % AD_SLIDES.length);
-  }, []);
+    switchSlide((currentSlide + 1) % AD_SLIDES.length);
+  }, [currentSlide, switchSlide]);
 
   /** 切换公告时关闭视频和二维码，避免沿用上一条公告的媒体状态。 */
   const handleSelectAnnouncement = (announcement: (typeof announcements)[number]): void => {
@@ -110,7 +121,7 @@ export function AnnouncementContent(): ReactElement {
       >
         <div className="announcement-ad-image-wrapper">
           <img
-            className="announcement-ad-image"
+            className={`announcement-ad-image${isAdFading ? ' fade-out' : ''}`}
             src={AD_SLIDES[currentSlide].imageUrl}
             alt={t(ANNOUNCEMENT_KEYS.AD_SPACE, { defaultValue: ANNOUNCEMENT_DEFAULTS.AD_SPACE })}
             draggable={false}
