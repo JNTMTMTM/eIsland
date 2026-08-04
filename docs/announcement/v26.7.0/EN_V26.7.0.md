@@ -1,7 +1,7 @@
 > **Release Date:** *`2026-08-05`*
 > **GitHub Repository:** [`https://github.com/JNTMTMTM/eIsland`](https://github.com/JNTMTMTM/eIsland)
 
-*V26.7.0 brings a brand-new announcement system, payment QR codes, Dynamic Island shape switching, lyrics karaoke, volume and brightness control, and many other major features. It also introduces new settings pages for network, updates, screenshots, and image translation history, along with comprehensive UI interaction and styling improvements.*
+*V26.7.0 brings a brand-new announcement system, payment QR codes, Dynamic Island shape switching, screenshot translation, lyrics karaoke, volume and brightness control, and many other major features. It also introduces new settings pages for network, updates, screenshots, and image translation history, along with comprehensive UI interaction and styling improvements.*
 
 ## New Features
 
@@ -13,6 +13,8 @@
 - Added WeChat and Alipay QR code payment with payment status polling and order pagination.
 - Added network settings page with timeout configuration and data center selection.
 - Added update settings page with update source selection and auto-update prompt configuration.
+- Added screenshot translation feature with Dynamic Island floating panel, supporting source text and translated text comparison.
+- Added screenshot capture toolbar with translation, mosaic, paintbrush, rectangle, and region selection annotation tools.
 - Added screenshot settings page with source language configuration for screenshot translation.
 - Added image translation history in user settings with pagination, image preview, zoom, drag, and download.
 - Added CLI session detection with Claude Code and Codex CLI status monitoring and lifecycle management.
@@ -20,7 +22,8 @@
 - Added screen brightness control with DDC/CI protocol and WMI dual-mode support.
 - Added Dynamic Island shape switching between pill mode and notch mode with hotkey configuration.
 - Added Dynamic Island guide step for shape selection with visual preview and description.
-- Added lyrics display with karaoke support, SilkyWave animation, and line-by-line scrolling.
+- Added lyrics display with karaoke support, SilkyWave animation, line-by-line scrolling, and lyrics source switching.
+- Added lyrics font customization settings for independent font and size configuration.
 - Added customizable font settings for UI and lyrics display independently.
 - Added music background wave preview effect.
 - Added album thumbnail loading functionality.
