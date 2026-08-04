@@ -110,6 +110,10 @@
   pointer-events: none;
 }
 
+.announcement-ad-image-wrapper {
+  position: relative;
+}
+
 .announcement-ad-image {
   display: block;
   width: 100%;
@@ -119,18 +123,65 @@
 }
 
 .announcement-ad-text {
-  display: block;
-  margin-top: 4px;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 2px 6px;
   font-size: 11px;
-  color: rgba(var(--color-text-rgb), 0.56);
+  color: #fff;
   line-height: 1.4;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 0 0 6px 6px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 .announcement-ad-indicator {
   margin-top: 6px;
+}
+
+.announcement-ad-nav-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: 1;
+}
+
+.announcement-ad-image-wrapper:hover .announcement-ad-nav-btn {
+  opacity: 1;
+}
+
+.announcement-ad-nav-btn:hover {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.announcement-ad-nav-btn.prev {
+  left: 4px;
+}
+
+.announcement-ad-nav-btn.next {
+  right: 4px;
+}
+
+.announcement-ad-nav-btn img {
+  width: 12px;
+  height: 12px;
+  filter: brightness(0) invert(1);
 }
 
 .announcement-list-item {

@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import { useState, useEffect, type ReactElement } from 'react';
+import { useState, useEffect, useCallback, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../store/slices';
 import { AnnouncementHeader } from './components/AnnouncementHeader';
@@ -33,6 +33,7 @@ import { ANNOUNCEMENT_DEFAULTS, ANNOUNCEMENT_KEYS } from './config/announcementD
 import { AD_SLIDES, AD_SLIDE_INTERVAL_MS } from './config/adSlides';
 import { useAnnouncementData } from './hooks/useAnnouncementData';
 import { ProcessIndicator } from '../../components/DynamicIslandProcessIndicator';
+import { SvgIcon } from '../../../utils/SvgIcon';
 import '../../../styles/announcement/announcement.css';
 
 /**
@@ -47,14 +48,27 @@ export function AnnouncementContent(): ReactElement {
   const [showQr, setShowQr] = useState(false);
   const [listExpanded, setListExpanded] = useState(true);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [isAdHovered, setIsAdHovered] = useState(false);
 
   /** 广告位轮播定时器 */
   useEffect(() => {
-    if (AD_SLIDES.length <= 1) return;
+    if (AD_SLIDES.length <= 1 || isAdHovered) return;
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % AD_SLIDES.length);
     }, AD_SLIDE_INTERVAL_MS);
     return () => clearInterval(timer);
+  }, [isAdHovered]);
+
+  /** 切换到上一张广告 */
+  const handlePrevSlide = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCurrentSlide((prev) => (prev - 1 + AD_SLIDES.length) % AD_SLIDES.length);
+  }, []);
+
+  /** 切换到下一张广告 */
+  const handleNextSlide = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCurrentSlide((prev) => (prev + 1) % AD_SLIDES.length);
   }, []);
 
   /** 切换公告时关闭视频和二维码，避免沿用上一条公告的媒体状态。 */
@@ -91,14 +105,38 @@ export function AnnouncementContent(): ReactElement {
       <div
         className="announcement-ad-space"
         onClick={() => void window.api.clipboardOpenUrl(AD_SLIDES[currentSlide].linkUrl)}
+        onMouseEnter={() => setIsAdHovered(true)}
+        onMouseLeave={() => setIsAdHovered(false)}
       >
-        <img
-          className="announcement-ad-image"
-          src={AD_SLIDES[currentSlide].imageUrl}
-          alt={t(ANNOUNCEMENT_KEYS.AD_SPACE, { defaultValue: ANNOUNCEMENT_DEFAULTS.AD_SPACE })}
-          draggable={false}
-        />
-        <span className="announcement-ad-text">租借男友</span>
+        <div className="announcement-ad-image-wrapper">
+          <img
+            className="announcement-ad-image"
+            src={AD_SLIDES[currentSlide].imageUrl}
+            alt={t(ANNOUNCEMENT_KEYS.AD_SPACE, { defaultValue: ANNOUNCEMENT_DEFAULTS.AD_SPACE })}
+            draggable={false}
+          />
+          <span className="announcement-ad-text">租借男友</span>
+          {AD_SLIDES.length > 1 && isAdHovered && (
+            <>
+              <button
+                type="button"
+                className="announcement-ad-nav-btn prev"
+                onClick={handlePrevSlide}
+                aria-label="Previous"
+              >
+                <img src={SvgIcon.PREVIOUS} alt="" draggable={false} />
+              </button>
+              <button
+                type="button"
+                className="announcement-ad-nav-btn next"
+                onClick={handleNextSlide}
+                aria-label="Next"
+              >
+                <img src={SvgIcon.NEXT} alt="" draggable={false} />
+              </button>
+            </>
+          )}
+        </div>
         {AD_SLIDES.length > 1 && (
           <div className="announcement-ad-indicator">
             <ProcessIndicator total={AD_SLIDES.length} current={currentSlide} />
