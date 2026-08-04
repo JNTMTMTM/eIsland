@@ -95,22 +95,38 @@
 .announcement-ad-space {
   flex-shrink: 0;
   padding: 8px 10px 8px 6px;
-  text-align: center;
   border-top: 1px solid rgba(var(--color-text-rgb), 0.08);
+  cursor: pointer;
   opacity: 1;
   transition: opacity 0.35s ease-out;
 }
 
+.announcement-ad-space:hover {
+  opacity: 0.85;
+}
+
 .announcement-list-container.collapsed .announcement-ad-space {
   opacity: 0;
+  pointer-events: none;
+}
+
+.announcement-ad-image {
+  display: block;
+  width: 100%;
+  max-height: 80px;
+  border-radius: 6px;
+  object-fit: cover;
 }
 
 .announcement-ad-text {
   display: block;
+  margin-top: 4px;
   font-size: 11px;
-  color: rgba(var(--color-text-rgb), 0.36);
+  color: rgba(var(--color-text-rgb), 0.56);
   line-height: 1.4;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .announcement-list-item {

@@ -76,10 +76,14 @@ export function AnnouncementContent(): ReactElement {
           );
         })}
       </nav>
-      <div className="announcement-ad-space">
-        <span className="announcement-ad-text">
-          {t(ANNOUNCEMENT_KEYS.AD_SPACE, { defaultValue: ANNOUNCEMENT_DEFAULTS.AD_SPACE })}
-        </span>
+      <div className="announcement-ad-space" onClick={() => void window.api.clipboardOpenUrl('https://www.bilibili.com/video/BV1GJ411x7h7')}>
+        <img
+          className="announcement-ad-image"
+          src="https://eisland-server-download-cdn.pyisland.com/eisland-update/t1.jpg"
+          alt={t(ANNOUNCEMENT_KEYS.AD_SPACE, { defaultValue: ANNOUNCEMENT_DEFAULTS.AD_SPACE })}
+          draggable={false}
+        />
+        <span className="announcement-ad-text">租借女友 (日结)</span>
       </div>
     </div>
   ) : undefined;
