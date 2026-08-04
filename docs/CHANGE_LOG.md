@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-08-03T17:40:36.687Z
+> 生成时间：2026-08-04T06:59:04.597Z
 
 ## 26.6.5
 
@@ -2946,6 +2946,17 @@
 
 ## Unreleased
 
+- 2026-08-04 | f6a2114e | 鸡哥 | Merge pull request #186 from JNTMTMTM/dev
+- 2026-08-04 | 3b8680b7 | 鸡哥 | feat: add fade-in effect for advertisement text on hover
+- 2026-08-04 | e89452a4 | 鸡哥 | feat: add navigation keys for advertisement slides and enhance announcement component functionality
+- 2026-08-04 | 8cb85865 | 鸡哥 | feat: refactor ad slideshow configuration and types for improved structure
+- 2026-08-04 | a3cb1a84 | 鸡哥 | feat: implement ad slideshow feature with data fetching and placeholder support
+- 2026-08-04 | 865aa90e | 鸡哥 | feat: add fade transition effect to advertisement images in announcement component
+- 2026-08-04 | 28a1681c | 鸡哥 | feat: enhance ad space layout with image wrapper and improved text styling
+- 2026-08-04 | be750e84 | 鸡哥 | feat: implement ad slideshow feature in announcement component
+- 2026-08-04 | de51474e | 鸡哥 | feat: enhance announcement ad space with image and hover effects
+- 2026-08-04 | d649050f | 鸡哥 | feat: add ad space to announcement component and update translations
+- 2026-08-03 | 166a7d64 | eislandBot | docs: auto update CHANGE_LOG.md for #185 by @JNTMTMTM [skip ci]
 - 2026-08-04 | 3e91684c | 鸡哥 | Merge pull request #185 from JNTMTMTM/dev
 - 2026-08-04 | cbb1b914 | 鸡哥 | feat: refactor social config test to use parameterized cases for better clarity
 - 2026-08-04 | 51e10310 | 鸡哥 | feat: update announcement selection logic to use sorted announcements
