@@ -479,7 +479,9 @@
     "hideList": "Collapse announcement list",
     "qqQrAlt": "QQ group QR code",
     "close": "Close",
-    "adSpace": "Ad Space for Rent"
+    "adSpace": "Ad Space for Rent",
+    "adPrev": "Previous",
+    "adNext": "Next"
   },
   "notification": {
     "alarm": {

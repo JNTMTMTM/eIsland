@@ -34,6 +34,10 @@ const mocks = vi.hoisted(() => ({
   useAnnouncementData: vi.fn(),
 }));
 
+/**
+ * 本测试以纯函数方式调用组件（不经 React reconciler），因此 useEffect / useCallback / useRef
+ * 需要桩函数。若后续需要验证定时器或淡入淡出逻辑，应改用 @testing-library/react 的 render()。
+ */
 vi.mock('react', async (importOriginal) => {
   const actual = await importOriginal<typeof import('react')>();
   return {
@@ -43,6 +47,7 @@ vi.mock('react', async (importOriginal) => {
       : [true, mocks.setShowVideo],
     useCallback: (fn: unknown) => fn,
     useEffect: () => {},
+    useRef: (initialValue: unknown) => ({ current: initialValue }),
   };
 });
 vi.mock('react-i18next', () => ({
@@ -95,9 +100,21 @@ describe('AnnouncementContent', () => {
     const panel = root.props.children as ReactElement<{ children: ReactElement }>;
     const detail = panel.props.children as ReactElement<{ children: ReactElement[] }>;
     const body = detail.props.children[2] as ReactElement<{ announcementList: ReactElement }>;
-    const list = body.props.announcementList as ReactElement<{ children: ReactElement[] }>;
+    const list = body.props.announcementList as ReactElement<{ children: ReactElement[]; className: string }>;
     const nav = list.props.children[0] as ReactElement<{ children: ReactElement<{ onClick: () => void }>[] }>;
     const buttons = nav.props.children;
+
+    // 断言列表容器结构
+    expect(list.props.className).toContain('announcement-list-container');
+
+    // 断言广告位是容器的第二个子元素
+    const adSpace = list.props.children[1] as ReactElement<{ className: string; style?: { cursor?: string } }>;
+    expect(adSpace.props.className).toContain('announcement-ad-space');
+
+    // 当 useAdSlides 返回空数组时，广告位应渲染占位符且光标为 default
+    expect(adSpace.props.style?.cursor).toBe('default');
+
+    // 现有行为：点击第二个公告按钮仍然有效
     buttons[1].props.onClick();
 
     expect(buttons).toHaveLength(2);

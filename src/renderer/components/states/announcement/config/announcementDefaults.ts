@@ -36,6 +36,8 @@ export const ANNOUNCEMENT_KEYS = {
   QQ_QR_ALT: 'announcement.qqQrAlt',
   CLOSE: 'announcement.close',
   AD_SPACE: 'announcement.adSpace',
+  AD_PREV: 'announcement.adPrev',
+  AD_NEXT: 'announcement.adNext',
 } as const;
 
 /** 公告面板翻译默认值 */
@@ -50,4 +52,6 @@ export const ANNOUNCEMENT_DEFAULTS = {
   QQ_QR_ALT: 'QQ 群二维码',
   CLOSE: '关闭',
   AD_SPACE: '广告位招租',
+  AD_PREV: '上一张',
+  AD_NEXT: '下一张',
 } as const;

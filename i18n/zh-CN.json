@@ -479,7 +479,9 @@
     "hideList": "收起公告列表",
     "qqQrAlt": "QQ 群二维码",
     "close": "关闭",
-    "adSpace": "广告位招租"
+    "adSpace": "广告位招租",
+    "adPrev": "上一张",
+    "adNext": "下一张"
   },
   "notification": {
     "alarm": {

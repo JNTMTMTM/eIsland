@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import { useState, useEffect, useCallback, type ReactElement } from 'react';
+import { useState, useEffect, useCallback, useRef, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../store/slices';
 import { AnnouncementHeader } from './components/AnnouncementHeader';
@@ -52,12 +52,23 @@ export function AnnouncementContent(): ReactElement {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isAdHovered, setIsAdHovered] = useState(false);
   const [isAdFading, setIsAdFading] = useState(false);
+  const fadeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  /** 组件卸载时清除未完成的淡入淡出定时器 */
+  useEffect(() => {
+    return () => {
+      if (fadeTimeoutRef.current !== null) {
+        clearTimeout(fadeTimeoutRef.current);
+      }
+    };
+  }, []);
 
   /** 带淡入淡出的切换广告 */
   const switchSlide = useCallback((nextIndex: number) => {
     if (isAdFading) return;
     setIsAdFading(true);
-    setTimeout(() => {
+    fadeTimeoutRef.current = setTimeout(() => {
+      fadeTimeoutRef.current = null;
       setCurrentSlide(nextIndex);
       setIsAdFading(false);
     }, 300);
@@ -117,7 +128,11 @@ export function AnnouncementContent(): ReactElement {
       </nav>
       <div
         className="announcement-ad-space"
-        onClick={adSlides.length > 0 ? () => void window.api.clipboardOpenUrl(adSlides[currentSlide].linkUrl) : undefined}
+        onClick={adSlides.length > 0 ? () => {
+          const linkUrl = adSlides[currentSlide].linkUrl?.trim();
+          if (!linkUrl || !/^https?:\/\//i.test(linkUrl)) return;
+          void window.api.clipboardOpenUrl(linkUrl);
+        } : undefined}
         onMouseEnter={() => setIsAdHovered(true)}
         onMouseLeave={() => setIsAdHovered(false)}
         style={adSlides.length === 0 ? { cursor: 'default' } : undefined}
@@ -140,7 +155,7 @@ export function AnnouncementContent(): ReactElement {
                     type="button"
                     className="announcement-ad-nav-btn prev"
                     onClick={handlePrevSlide}
-                    aria-label="Previous"
+                    aria-label={t(ANNOUNCEMENT_KEYS.AD_PREV, ANNOUNCEMENT_DEFAULTS.AD_PREV)}
                   >
                     <img src={SvgIcon.PREVIOUS} alt="" draggable={false} />
                   </button>
@@ -148,7 +163,7 @@ export function AnnouncementContent(): ReactElement {
                     type="button"
                     className="announcement-ad-nav-btn next"
                     onClick={handleNextSlide}
-                    aria-label="Next"
+                    aria-label={t(ANNOUNCEMENT_KEYS.AD_NEXT, ANNOUNCEMENT_DEFAULTS.AD_NEXT)}
                   >
                     <img src={SvgIcon.NEXT} alt="" draggable={false} />
                   </button>
