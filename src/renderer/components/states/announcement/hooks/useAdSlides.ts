@@ -19,13 +19,17 @@
  */
 
 /**
- * @file adSlides.ts
- * @description 广告位轮播图配置
+ * @file useAdSlides.ts
+ * @description 广告轮播图数据拉取 Hook
  * @author 鸡哥
  */
 
-/** 广告位轮播项 */
+import { useEffect, useState } from 'react';
+import { fetchAdSlides, type AdSlideData } from '../../../../api/announcement/announcementApi';
+
+/** 广告轮播项 */
 export interface AdSlide {
+  title: string;
   imageUrl: string;
   linkUrl: string;
 }
@@ -33,14 +37,29 @@ export interface AdSlide {
 /** 轮播间隔时间（毫秒） */
 export const AD_SLIDE_INTERVAL_MS = 5000;
 
-/** 广告位轮播数据 */
-export const AD_SLIDES: AdSlide[] = [
-  {
-    imageUrl: 'https://eisland-server-download-cdn.pyisland.com/eisland-update/t1.jpg',
-    linkUrl: 'https://www.bilibili.com/video/BV1GJ411x7h7',
-  },
-  {
-    imageUrl: 'https://eisland-server-download-cdn.pyisland.com/eisland-update/t1.jpg',
-    linkUrl: 'https://www.bilibili.com/video/BV1GJ411x7h7',
-  },
-];
+/**
+ * 拉取并维护广告轮播图数据状态。
+ * @returns 广告轮播图数据。
+ */
+export function useAdSlides(): AdSlide[] {
+  const [slides, setSlides] = useState<AdSlide[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const load = async (): Promise<void> => {
+      const result = await fetchAdSlides();
+      if (cancelled) return;
+      setSlides(result.map((item) => ({
+        title: item.title,
+        imageUrl: item.imageUrl,
+        linkUrl: item.linkUrl,
+      })));
+    };
+    void load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  return slides;
+}

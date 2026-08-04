@@ -128,6 +128,18 @@
   opacity: 0;
 }
 
+.announcement-ad-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 60px;
+  border-radius: 6px;
+  background: rgba(var(--color-text-rgb), 0.06);
+  color: rgba(var(--color-text-rgb), 0.36);
+  font-size: 12px;
+}
+
 .announcement-ad-text {
   position: absolute;
   bottom: 0;

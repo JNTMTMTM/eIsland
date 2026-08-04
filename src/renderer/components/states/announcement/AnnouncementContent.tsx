@@ -30,7 +30,7 @@ import useIslandStore from '../../../store/slices';
 import { AnnouncementHeader } from './components/AnnouncementHeader';
 import { AnnouncementBody } from './components/AnnouncementBody';
 import { ANNOUNCEMENT_DEFAULTS, ANNOUNCEMENT_KEYS } from './config/announcementDefaults';
-import { AD_SLIDES, AD_SLIDE_INTERVAL_MS } from './config/adSlides';
+import { useAdSlides, AD_SLIDE_INTERVAL_MS } from './hooks/useAdSlides';
 import { useAnnouncementData } from './hooks/useAnnouncementData';
 import { ProcessIndicator } from '../../components/DynamicIslandProcessIndicator';
 import { SvgIcon } from '../../../utils/SvgIcon';
@@ -44,6 +44,7 @@ export function AnnouncementContent(): ReactElement {
   const { t } = useTranslation();
   const { setHover } = useIslandStore();
   const { loading, announcements, selectedAnnouncement, socialConfig, selectAnnouncement } = useAnnouncementData();
+  const adSlides = useAdSlides();
   const [showVideo, setShowVideo] = useState(false);
   const [showQr, setShowQr] = useState(false);
   const [listExpanded, setListExpanded] = useState(true);
@@ -63,24 +64,24 @@ export function AnnouncementContent(): ReactElement {
 
   /** 广告位轮播定时器 */
   useEffect(() => {
-    if (AD_SLIDES.length <= 1 || isAdHovered || isAdFading) return;
+    if (adSlides.length <= 1 || isAdHovered || isAdFading) return;
     const timer = setInterval(() => {
-      switchSlide((currentSlide + 1) % AD_SLIDES.length);
+      switchSlide((currentSlide + 1) % adSlides.length);
     }, AD_SLIDE_INTERVAL_MS);
     return () => clearInterval(timer);
-  }, [isAdHovered, isAdFading, currentSlide, switchSlide]);
+  }, [adSlides, isAdHovered, isAdFading, currentSlide, switchSlide]);
 
   /** 切换到上一张广告 */
   const handlePrevSlide = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
-    switchSlide((currentSlide - 1 + AD_SLIDES.length) % AD_SLIDES.length);
-  }, [currentSlide, switchSlide]);
+    switchSlide((currentSlide - 1 + adSlides.length) % adSlides.length);
+  }, [adSlides, currentSlide, switchSlide]);
 
   /** 切换到下一张广告 */
   const handleNextSlide = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
-    switchSlide((currentSlide + 1) % AD_SLIDES.length);
-  }, [currentSlide, switchSlide]);
+    switchSlide((currentSlide + 1) % adSlides.length);
+  }, [adSlides, currentSlide, switchSlide]);
 
   /** 切换公告时关闭视频和二维码，避免沿用上一条公告的媒体状态。 */
   const handleSelectAnnouncement = (announcement: (typeof announcements)[number]): void => {
@@ -115,42 +116,53 @@ export function AnnouncementContent(): ReactElement {
       </nav>
       <div
         className="announcement-ad-space"
-        onClick={() => void window.api.clipboardOpenUrl(AD_SLIDES[currentSlide].linkUrl)}
+        onClick={adSlides.length > 0 ? () => void window.api.clipboardOpenUrl(adSlides[currentSlide].linkUrl) : undefined}
         onMouseEnter={() => setIsAdHovered(true)}
         onMouseLeave={() => setIsAdHovered(false)}
+        style={adSlides.length === 0 ? { cursor: 'default' } : undefined}
       >
         <div className="announcement-ad-image-wrapper">
-          <img
-            className={`announcement-ad-image${isAdFading ? ' fade-out' : ''}`}
-            src={AD_SLIDES[currentSlide].imageUrl}
-            alt={t(ANNOUNCEMENT_KEYS.AD_SPACE, { defaultValue: ANNOUNCEMENT_DEFAULTS.AD_SPACE })}
-            draggable={false}
-          />
-          <span className="announcement-ad-text">租借男友</span>
-          {AD_SLIDES.length > 1 && isAdHovered && (
+          {adSlides.length > 0 ? (
             <>
-              <button
-                type="button"
-                className="announcement-ad-nav-btn prev"
-                onClick={handlePrevSlide}
-                aria-label="Previous"
-              >
-                <img src={SvgIcon.PREVIOUS} alt="" draggable={false} />
-              </button>
-              <button
-                type="button"
-                className="announcement-ad-nav-btn next"
-                onClick={handleNextSlide}
-                aria-label="Next"
-              >
-                <img src={SvgIcon.NEXT} alt="" draggable={false} />
-              </button>
+              <img
+                className={`announcement-ad-image${isAdFading ? ' fade-out' : ''}`}
+                src={adSlides[currentSlide].imageUrl}
+                alt={adSlides[currentSlide].title || t(ANNOUNCEMENT_KEYS.AD_SPACE, { defaultValue: ANNOUNCEMENT_DEFAULTS.AD_SPACE })}
+                draggable={false}
+              />
+              {adSlides[currentSlide].title && (
+                <span className="announcement-ad-text">{adSlides[currentSlide].title}</span>
+              )}
+              {adSlides.length > 1 && isAdHovered && (
+                <>
+                  <button
+                    type="button"
+                    className="announcement-ad-nav-btn prev"
+                    onClick={handlePrevSlide}
+                    aria-label="Previous"
+                  >
+                    <img src={SvgIcon.PREVIOUS} alt="" draggable={false} />
+                  </button>
+                  <button
+                    type="button"
+                    className="announcement-ad-nav-btn next"
+                    onClick={handleNextSlide}
+                    aria-label="Next"
+                  >
+                    <img src={SvgIcon.NEXT} alt="" draggable={false} />
+                  </button>
+                </>
+              )}
             </>
+          ) : (
+            <div className="announcement-ad-placeholder">
+              <span>{t(ANNOUNCEMENT_KEYS.AD_SPACE, { defaultValue: ANNOUNCEMENT_DEFAULTS.AD_SPACE })}</span>
+            </div>
           )}
         </div>
-        {AD_SLIDES.length > 1 && (
+        {adSlides.length > 1 && (
           <div className="announcement-ad-indicator">
-            <ProcessIndicator total={AD_SLIDES.length} current={currentSlide} />
+            <ProcessIndicator total={adSlides.length} current={currentSlide} />
           </div>
         )}
       </div>

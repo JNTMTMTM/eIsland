@@ -190,3 +190,45 @@ export async function fetchAnnouncementSocialConfig(): Promise<AnnouncementSocia
     return emptyConfig;
   }
 }
+
+/** 广告轮播图数据 */
+export interface AdSlideData {
+  id: number;
+  title: string;
+  imageUrl: string;
+  linkUrl: string;
+  sortOrder: number;
+}
+
+/**
+ * 获取当前生效的广告轮播图列表。
+ * @returns 已规范化的广告数组；请求失败或响应无效时返回空数组。
+ */
+export async function fetchAdSlides(): Promise<AdSlideData[]> {
+  try {
+    const response = await window.api.netFetch(
+      `${ANNOUNCEMENT_API_BASE}/v1/ad-slides/current`,
+      {
+        method: 'GET',
+        timeoutMs: 8000,
+      },
+    );
+    if (!response?.ok) return [];
+
+    const payload = JSON.parse(response.body) as { code?: number; data?: unknown };
+    if (payload?.code !== 200 || !Array.isArray(payload.data)) return [];
+    return payload.data
+      .filter((item): item is Record<string, unknown> => !!item && typeof item === 'object')
+      .filter((item) => typeof item.imageUrl === 'string' && item.imageUrl.length > 0)
+      .map((item) => ({
+        id: typeof item.id === 'number' ? item.id : 0,
+        title: typeof item.title === 'string' ? item.title : '',
+        imageUrl: item.imageUrl as string,
+        linkUrl: typeof item.linkUrl === 'string' ? item.linkUrl : '',
+        sortOrder: typeof item.sortOrder === 'number' ? item.sortOrder : 0,
+      }))
+      .sort((a, b) => b.sortOrder - a.sortOrder || a.id - b.id);
+  } catch {
+    return [];
+  }
+}
