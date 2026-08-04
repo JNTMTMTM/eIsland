@@ -30,7 +30,11 @@ import type { InternalRequestInit } from './types/InternalRequestInit';
 
 export type { InternalRequestInit };
 
-export const USER_ACCOUNT_API_BASE = 'https://test.server.pyisland.com/api';
+const IS_DEV_RENDERER = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
+export const USER_ACCOUNT_API_BASE = IS_DEV_RENDERER
+  ? 'https://test.server.pyisland.com/api'
+  : 'https://server.pyisland.com/api';
 
 /** GitHub OAuth 固定使用生产域名 */
 export const GITHUB_API_BASE = 'https://server.pyisland.com/api';
