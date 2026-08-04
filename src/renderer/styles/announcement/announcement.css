@@ -129,6 +129,10 @@
   text-overflow: ellipsis;
 }
 
+.announcement-ad-indicator {
+  margin-top: 6px;
+}
+
 .announcement-list-item {
   position: relative;
   width: 100%;

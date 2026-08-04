@@ -24,13 +24,15 @@
  * @author 鸡哥
  */
 
-import { useState, type ReactElement } from 'react';
+import { useState, useEffect, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../store/slices';
 import { AnnouncementHeader } from './components/AnnouncementHeader';
 import { AnnouncementBody } from './components/AnnouncementBody';
 import { ANNOUNCEMENT_DEFAULTS, ANNOUNCEMENT_KEYS } from './config/announcementDefaults';
+import { AD_SLIDES, AD_SLIDE_INTERVAL_MS } from './config/adSlides';
 import { useAnnouncementData } from './hooks/useAnnouncementData';
+import { ProcessIndicator } from '../../components/DynamicIslandProcessIndicator';
 import '../../../styles/announcement/announcement.css';
 
 /**
@@ -44,6 +46,16 @@ export function AnnouncementContent(): ReactElement {
   const [showVideo, setShowVideo] = useState(false);
   const [showQr, setShowQr] = useState(false);
   const [listExpanded, setListExpanded] = useState(true);
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  /** 广告位轮播定时器 */
+  useEffect(() => {
+    if (AD_SLIDES.length <= 1) return;
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % AD_SLIDES.length);
+    }, AD_SLIDE_INTERVAL_MS);
+    return () => clearInterval(timer);
+  }, []);
 
   /** 切换公告时关闭视频和二维码，避免沿用上一条公告的媒体状态。 */
   const handleSelectAnnouncement = (announcement: (typeof announcements)[number]): void => {
@@ -76,14 +88,22 @@ export function AnnouncementContent(): ReactElement {
           );
         })}
       </nav>
-      <div className="announcement-ad-space" onClick={() => void window.api.clipboardOpenUrl('https://www.bilibili.com/video/BV1GJ411x7h7')}>
+      <div
+        className="announcement-ad-space"
+        onClick={() => void window.api.clipboardOpenUrl(AD_SLIDES[currentSlide].linkUrl)}
+      >
         <img
           className="announcement-ad-image"
-          src="https://eisland-server-download-cdn.pyisland.com/eisland-update/t1.jpg"
+          src={AD_SLIDES[currentSlide].imageUrl}
           alt={t(ANNOUNCEMENT_KEYS.AD_SPACE, { defaultValue: ANNOUNCEMENT_DEFAULTS.AD_SPACE })}
           draggable={false}
         />
-        <span className="announcement-ad-text">租借女友 (日结)</span>
+        <span className="announcement-ad-text">租借男友</span>
+        {AD_SLIDES.length > 1 && (
+          <div className="announcement-ad-indicator">
+            <ProcessIndicator total={AD_SLIDES.length} current={currentSlide} />
+          </div>
+        )}
       </div>
     </div>
   ) : undefined;
