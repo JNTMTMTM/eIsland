@@ -26,16 +26,7 @@
 
 import { useEffect, useState } from 'react';
 import { fetchAdSlides, type AdSlideData } from '../../../../api/announcement/announcementApi';
-
-/** 广告轮播项 */
-export interface AdSlide {
-  title: string;
-  imageUrl: string;
-  linkUrl: string;
-}
-
-/** 轮播间隔时间（毫秒） */
-export const AD_SLIDE_INTERVAL_MS = 5000;
+import type { AdSlide } from '../types/AdSlides.types';
 
 /**
  * 拉取并维护广告轮播图数据状态。
