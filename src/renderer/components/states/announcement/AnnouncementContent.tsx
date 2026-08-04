@@ -53,28 +53,35 @@ export function AnnouncementContent(): ReactElement {
   };
 
   const announcementList = !loading && announcements.length > 0 ? (
-    <nav
-      className={`announcement-list${listExpanded ? '' : ' collapsed'}`}
-      aria-hidden={!listExpanded}
-    >
-      {announcements.map((announcement, index) => {
-        const selected = announcement === selectedAnnouncement;
-        return (
-          <button
-            key={announcement.id ?? `${announcement.updatedAt ?? 'announcement'}-${index}`}
-            type="button"
-            className={`announcement-list-item${selected ? ' active' : ''}`}
-            aria-current={selected ? 'true' : undefined}
-            tabIndex={listExpanded ? 0 : -1}
-            onClick={() => handleSelectAnnouncement(announcement)}
-          >
-            <span className="announcement-list-title">
-              {announcement.title || t(ANNOUNCEMENT_KEYS.DEFAULT_TITLE, ANNOUNCEMENT_DEFAULTS.DEFAULT_TITLE)}
-            </span>
-          </button>
-        );
-      })}
-    </nav>
+    <div className={`announcement-list-container${listExpanded ? '' : ' collapsed'}`}>
+      <nav
+        className={`announcement-list${listExpanded ? '' : ' collapsed'}`}
+        aria-hidden={!listExpanded}
+      >
+        {announcements.map((announcement, index) => {
+          const selected = announcement === selectedAnnouncement;
+          return (
+            <button
+              key={announcement.id ?? `${announcement.updatedAt ?? 'announcement'}-${index}`}
+              type="button"
+              className={`announcement-list-item${selected ? ' active' : ''}`}
+              aria-current={selected ? 'true' : undefined}
+              tabIndex={listExpanded ? 0 : -1}
+              onClick={() => handleSelectAnnouncement(announcement)}
+            >
+              <span className="announcement-list-title">
+                {announcement.title || t(ANNOUNCEMENT_KEYS.DEFAULT_TITLE, ANNOUNCEMENT_DEFAULTS.DEFAULT_TITLE)}
+              </span>
+            </button>
+          );
+        })}
+      </nav>
+      <div className="announcement-ad-space">
+        <span className="announcement-ad-text">
+          {t(ANNOUNCEMENT_KEYS.AD_SPACE, { defaultValue: ANNOUNCEMENT_DEFAULTS.AD_SPACE })}
+        </span>
+      </div>
+    </div>
   ) : undefined;
 
   return (
