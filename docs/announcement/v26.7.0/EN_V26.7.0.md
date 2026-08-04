@@ -20,8 +20,10 @@
 - Added CLI session detection with Claude Code and Codex CLI status monitoring and lifecycle management.
 - Added system volume control with playback device volume adjustment and mute toggle.
 - Added screen brightness control with DDC/CI protocol and WMI dual-mode support.
-- Added Dynamic Island shape switching between pill mode and notch mode with hotkey configuration.
-- Added Dynamic Island guide step for shape selection with visual preview and description.
+- Added Dynamic Island shape switching between notch mode and pill mode with hotkey configuration.
+  - Notch mode: Classic Dynamic Island shape adapted to the top notch area, displaying the full feature panel.
+  - Pill mode: Compact floating pill shape with drag-to-move support, using streamlined layout for notifications and hover content.
+- Added Dynamic Island guide step for shape selection with visual preview and description to help users understand each shape's characteristics.
 - Added lyrics display with karaoke support, SilkyWave animation, line-by-line scrolling, and lyrics source switching.
 - Added lyrics font customization settings for independent font and size configuration.
 - Added customizable font settings for UI and lyrics display independently.
