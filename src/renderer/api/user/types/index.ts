@@ -40,6 +40,7 @@ export type {
   UserIssueFeedbackListData,
   SubmitUserIssueFeedbackPayload,
   UserFeedbackUploadOptions,
+  FeedbackQqGroupConfig,
 } from './UserFeedback';
 export type { UpdateUserProfilePayload, UpdateUserPasswordPayload } from './UserProfile';
 export type {

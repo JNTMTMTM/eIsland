@@ -3199,6 +3199,10 @@
           "loadFailed": "Failed to load feedback history",
           "prefilledFromAgent": "Agent output has been auto-filled. You can add reproduction steps and submit directly."
         },
+        "qqGroup": {
+          "label": "Join our QQ group for faster feedback response",
+          "join": "Join Group"
+        },
         "history": {
           "title": "My Feedback History",
           "loading": "Loading feedback history…",

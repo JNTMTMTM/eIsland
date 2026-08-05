@@ -97,3 +97,11 @@ export interface UserFeedbackUploadOptions {
   /** 上传进度回调 */
   onUploadProgress?: (percent: number) => void;
 }
+
+/** 问题反馈页 QQ 群配置 */
+export interface FeedbackQqGroupConfig {
+  /** QQ 群邀请链接 */
+  qqInviteUrl: string;
+  /** QQ 群二维码图片地址 */
+  qqQrImageUrl: string;
+}

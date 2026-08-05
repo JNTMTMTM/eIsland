@@ -3199,6 +3199,10 @@
           "loadFailed": "反馈记录加载失败",
           "prefilledFromAgent": "已自动填充 Agent 输出，你可以补充复现步骤后直接提交。"
         },
+        "qqGroup": {
+          "label": "加入 QQ 群获取更快反馈响应",
+          "join": "一键加群"
+        },
         "history": {
           "title": "我的反馈记录",
           "loading": "加载反馈记录中…",

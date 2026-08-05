@@ -30,10 +30,12 @@ import { useTranslation } from 'react-i18next';
 import avatarImg from '../../../../../../../assets/avatar/T.jpg';
 import publicSecurityRecordIcon from '../../../../../../../../../resources/icon/gabatb.png';
 import {
+  fetchFeedbackQqGroupConfig,
   fetchMyIssueFeedbackList,
   submitUserIssueFeedback,
   uploadUserFeedbackLog,
   uploadUserFeedbackScreenshot,
+  type FeedbackQqGroupConfig,
   type UserIssueFeedbackItem,
 } from '../../../../../../../api/user/userAccountApi';
 import { runSliderCaptcha } from '../../../../../../../utils/sliderCaptcha';
@@ -147,6 +149,7 @@ export function AboutSettingsSection({ aboutVersion, initialPage = 'development'
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [feedbackItems, setFeedbackItems] = useState<UserIssueFeedbackItem[]>([]);
   const [feedbackMessage, setFeedbackMessage] = useState<FeedbackMessage | null>(null);
+  const [qqGroupConfig, setQqGroupConfig] = useState<FeedbackQqGroupConfig | null>(null);
 
   useEffect(() => {
     setAboutPage(initialPage);
@@ -417,6 +420,7 @@ export function AboutSettingsSection({ aboutVersion, initialPage = 'development'
   useEffect(() => {
     if (aboutPage !== 'feedback') return;
     void loadFeedbackHistory();
+    void fetchFeedbackQqGroupConfig().then(setQqGroupConfig).catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [aboutPage, token, feedbackStatusFilter]);
 
@@ -513,6 +517,24 @@ export function AboutSettingsSection({ aboutVersion, initialPage = 'development'
         <div className="settings-about-feedback-intro">
           {t('settings.about.feedback.intro', { defaultValue: '问题反馈会进入管理后台审核，请尽量提供完整复现信息。' })}
         </div>
+        {qqGroupConfig && (qqGroupConfig.qqInviteUrl || qqGroupConfig.qqQrImageUrl) ? (
+          <div className="settings-about-feedback-qq-group">
+            <span className="settings-about-feedback-qq-group-label">
+              {t('settings.about.feedback.qqGroup.label', { defaultValue: '加入 QQ 群获取更快反馈响应' })}
+            </span>
+            <button
+              type="button"
+              className="settings-about-feedback-qq-group-btn"
+              onClick={() => {
+                if (qqGroupConfig.qqInviteUrl) {
+                  void window.api.clipboardOpenUrl(qqGroupConfig.qqInviteUrl);
+                }
+              }}
+            >
+              {t('settings.about.feedback.qqGroup.join', { defaultValue: '一键加群' })}
+            </button>
+          </div>
+        ) : null}
         {!token ? (
           <div className="settings-user-feedback settings-user-feedback--info">
             {t('settings.about.feedback.messages.loginRequired', { defaultValue: '请先登录后再使用反馈功能' })}

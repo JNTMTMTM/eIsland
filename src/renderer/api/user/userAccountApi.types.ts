@@ -40,6 +40,7 @@ export type {
   UserIssueFeedbackListData,
   SubmitUserIssueFeedbackPayload,
   UserFeedbackUploadOptions,
+  FeedbackQqGroupConfig,
   UpdateUserProfilePayload,
   UpdateUserPasswordPayload,
   UserPaymentPricingData,
