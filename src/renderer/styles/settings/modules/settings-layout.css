@@ -1861,6 +1861,7 @@
 
 .settings-about-feedback-qq-group-btn {
   flex-shrink: 0;
+  margin-left: auto;
   padding: 3px 10px;
   border-radius: 6px;
   font-size: 11px;
