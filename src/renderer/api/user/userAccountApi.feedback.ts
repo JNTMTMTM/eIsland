@@ -202,7 +202,6 @@ export async function fetchFeedbackQqGroupConfig(): Promise<FeedbackQqGroupConfi
     const data = payload.data as Record<string, unknown>;
     return {
       qqInviteUrl: typeof data.qqInviteUrl === 'string' ? data.qqInviteUrl : '',
-      qqQrImageUrl: typeof data.qqQrImageUrl === 'string' ? data.qqQrImageUrl : '',
     };
   } catch {
     return null;

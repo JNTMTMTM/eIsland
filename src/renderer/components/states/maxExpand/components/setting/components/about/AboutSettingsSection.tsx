@@ -517,7 +517,7 @@ export function AboutSettingsSection({ aboutVersion, initialPage = 'development'
         <div className="settings-about-feedback-intro">
           {t('settings.about.feedback.intro', { defaultValue: '问题反馈会进入管理后台审核，请尽量提供完整复现信息。' })}
         </div>
-        {qqGroupConfig && (qqGroupConfig.qqInviteUrl || qqGroupConfig.qqQrImageUrl) ? (
+        {qqGroupConfig && qqGroupConfig.qqInviteUrl ? (
           <div className="settings-about-feedback-qq-group">
             <span className="settings-about-feedback-qq-group-label">
               {t('settings.about.feedback.qqGroup.label', { defaultValue: '加入 QQ 群获取更快反馈响应' })}

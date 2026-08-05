@@ -102,6 +102,4 @@ export interface UserFeedbackUploadOptions {
 export interface FeedbackQqGroupConfig {
   /** QQ 群邀请链接 */
   qqInviteUrl: string;
-  /** QQ 群二维码图片地址 */
-  qqQrImageUrl: string;
 }
