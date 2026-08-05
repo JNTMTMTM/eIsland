@@ -111,20 +111,19 @@ export function createCaptureWindowService(options: CreateCaptureWindowServiceOp
       };
     }
 
-    let minX = Infinity;
-    let minY = Infinity;
-    let maxX = -Infinity;
-    let maxY = -Infinity;
-    let maxScale = 1;
-
-    for (const d of displays) {
-      const b = d.bounds;
-      minX = Math.min(minX, b.x);
-      minY = Math.min(minY, b.y);
-      maxX = Math.max(maxX, b.x + b.width);
-      maxY = Math.max(maxY, b.y + b.height);
-      maxScale = Math.max(maxScale, d.scaleFactor || 1);
-    }
+    const { minX, minY, maxX, maxY, maxScale } = displays.reduce(
+      (acc, d) => {
+        const b = d.bounds;
+        return {
+          minX: Math.min(acc.minX, b.x),
+          minY: Math.min(acc.minY, b.y),
+          maxX: Math.max(acc.maxX, b.x + b.width),
+          maxY: Math.max(acc.maxY, b.y + b.height),
+          maxScale: Math.max(acc.maxScale, d.scaleFactor || 1),
+        };
+      },
+      { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity, maxScale: 1 },
+    );
 
     return {
       x: minX,
