@@ -44,6 +44,7 @@ export interface VisibleWindowBounds {
 
 interface WindowsScreenshotHelper {
   capturePrimaryDisplayPng: () => ScreenshotResult | null;
+  captureAllDisplaysPng?: () => ScreenshotResult | null;
   getVisibleWindows?: () => VisibleWindowBounds[];
   getLastError?: () => string;
 }
@@ -100,6 +101,29 @@ export function capturePrimaryDisplayPng(): Buffer | null {
     return result.data;
   } catch (err) {
     console.warn('[ScreenshotHelper] capture error, fallback to desktopCapturer:', err);
+    return null;
+  }
+}
+
+/**
+ * 截取所有显示器画面（虚拟屏幕）并返回 PNG Buffer
+ * @description 优先使用原生插件截取全部多显示器画面，插件不可用时返回 null
+ * @returns PNG 格式的 Buffer，截屏失败或插件不可用时返回 null
+ */
+export function captureAllDisplaysPng(): Buffer | null {
+  const helper = loadWindowsScreenshotHelper();
+  if (!helper?.captureAllDisplaysPng) return null;
+
+  try {
+    const result = helper.captureAllDisplaysPng();
+    if (!result || !Buffer.isBuffer(result.data) || result.data.length === 0 || result.format !== 'png') {
+      const lastError = helper.getLastError?.();
+      if (lastError) console.warn('[ScreenshotHelper] capture all displays failed:', lastError);
+      return null;
+    }
+    return result.data;
+  } catch (err) {
+    console.warn('[ScreenshotHelper] capture all displays error:', err);
     return null;
   }
 }

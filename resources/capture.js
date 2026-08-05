@@ -50,6 +50,9 @@ let bgImage = null;
 let W = 0;
 let H = 0;
 let scaleFactor = 1;
+let captureDisplays = [];
+let captureVirtualScreen = null;
+let capturePhysicalScreen = null;
 
 let selX = 0;
 let selY = 0;
@@ -204,7 +207,30 @@ function initCanvases() {
 
 function drawBackground() {
   bgCtx.clearRect(0, 0, W, H);
-  if (bgImage) bgCtx.drawImage(bgImage, 0, 0, W, H);
+  if (!bgImage) return;
+
+  if (!captureVirtualScreen || !capturePhysicalScreen || captureDisplays.length === 0) {
+    bgCtx.drawImage(bgImage, 0, 0, W, H);
+    return;
+  }
+
+  const sourceScaleX = bgImage.naturalWidth / capturePhysicalScreen.width;
+  const sourceScaleY = bgImage.naturalHeight / capturePhysicalScreen.height;
+  captureDisplays.forEach((display) => {
+    const source = display.physicalBounds;
+    const target = display.bounds;
+    bgCtx.drawImage(
+      bgImage,
+      (source.x - capturePhysicalScreen.x) * sourceScaleX,
+      (source.y - capturePhysicalScreen.y) * sourceScaleY,
+      source.width * sourceScaleX,
+      source.height * sourceScaleY,
+      target.x - captureVirtualScreen.x,
+      target.y - captureVirtualScreen.y,
+      target.width,
+      target.height,
+    );
+  });
 }
 
 function clearTemp() {
@@ -280,17 +306,23 @@ function isInsideSelection(mx, my) {
   return mx >= selX && mx <= selX + selW && my >= selY && my <= selY + selH;
 }
 
-function setVisibleWindowRects(windows, display) {
-  const displayBounds = display?.bounds || { x: 0, y: 0, width: window.innerWidth, height: window.innerHeight };
+/**
+ * 设置可见窗口矩形列表
+ * @description 将窗口的虚拟屏幕坐标转换为画布相对坐标，支持多显示器偏移
+ * @param windows - 原始窗口边界数组（虚拟屏幕坐标）
+ * @param virtualScreen - 虚拟屏幕边界 { x, y, width, height }
+ */
+function setVisibleWindowRects(windows, virtualScreen) {
+  const vs = virtualScreen || { x: 0, y: 0, width: window.innerWidth, height: window.innerHeight };
   captureWindowRects = Array.isArray(windows)
     ? windows.map((item) => {
-      const left = Math.max(item.x, displayBounds.x);
-      const top = Math.max(item.y, displayBounds.y);
-      const right = Math.min(item.x + item.width, displayBounds.x + displayBounds.width);
-      const bottom = Math.min(item.y + item.height, displayBounds.y + displayBounds.height);
+      const left = Math.max(item.x, vs.x);
+      const top = Math.max(item.y, vs.y);
+      const right = Math.min(item.x + item.width, vs.x + vs.width);
+      const bottom = Math.min(item.y + item.height, vs.y + vs.height);
       return {
-        x: Math.max(0, Math.round(left - displayBounds.x)),
-        y: Math.max(0, Math.round(top - displayBounds.y)),
+        x: Math.max(0, Math.round(left - vs.x)),
+        y: Math.max(0, Math.round(top - vs.y)),
         width: Math.round(right - left),
         height: Math.round(bottom - top),
         title: item.title || '',
@@ -597,10 +629,12 @@ function finishSelection(mx, my) {
 function cropSelectionWithAnnotations() {
   if (!bgImage || selW < 2 || selH < 2) return null;
 
-  const imgW = bgImage.naturalWidth;
-  const imgH = bgImage.naturalHeight;
-  const scaleX = imgW / W;
-  const scaleY = imgH / H;
+  const usesCompositedBackground = Boolean(
+    captureVirtualScreen && capturePhysicalScreen && captureDisplays.length > 0,
+  );
+  const sourceCanvas = usesCompositedBackground ? bgCanvas : bgImage;
+  const scaleX = usesCompositedBackground ? 1 : bgImage.naturalWidth / W;
+  const scaleY = usesCompositedBackground ? 1 : bgImage.naturalHeight / H;
 
   const sx = Math.round(selX * scaleX);
   const sy = Math.round(selY * scaleY);
@@ -612,7 +646,7 @@ function cropSelectionWithAnnotations() {
   outCanvas.height = sh;
   const outCtx = outCanvas.getContext('2d');
 
-  outCtx.drawImage(bgImage, sx, sy, sw, sh, 0, 0, sw, sh);
+  outCtx.drawImage(sourceCanvas, sx, sy, sw, sh, 0, 0, sw, sh);
 
   const scaledDraw = document.createElement('canvas');
   scaledDraw.width = sw;
@@ -636,6 +670,9 @@ function releaseCaptureResources() {
 
   historyStack.length = 0;
   bgImage = null;
+  captureDisplays = [];
+  captureVirtualScreen = null;
+  capturePhysicalScreen = null;
 
   [bgCanvas, drawCanvas, tempCanvas, maskCanvas].forEach((cv) => {
     cv.width = 0;
@@ -646,8 +683,11 @@ function releaseCaptureResources() {
 ipcRenderer.on('capture-image', (_e, data) => {
   resetTranslationCache();
   scaleFactor = data.scaleFactor || 1;
+  captureDisplays = Array.isArray(data.displays) ? data.displays : [];
+  captureVirtualScreen = data.virtualScreen || null;
+  capturePhysicalScreen = data.physicalScreen || null;
   setCaptureSource(data.captureSource);
-  setVisibleWindowRects(data.visibleWindows, data.display);
+  setVisibleWindowRects(data.visibleWindows, captureVirtualScreen);
 
   if (currentCaptureObjectUrl) {
     URL.revokeObjectURL(currentCaptureObjectUrl);
