@@ -3116,7 +3116,8 @@
       "pagination": "关于软件分页",
       "pages": {
         "development": "开发信息",
-        "feedback": "问题反馈"
+        "feedback": "问题反馈",
+        "feedbackHistory": "反馈记录"
       },
       "authorAvatarAlt": "作者头像",
       "githubHome": "GitHub 主页",

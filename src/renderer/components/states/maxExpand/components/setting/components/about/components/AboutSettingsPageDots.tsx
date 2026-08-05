@@ -28,7 +28,7 @@ import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SettingsPageNavigation } from '../../SettingsPageNavigation';
 
-export type AboutSettingsPageKey = 'development' | 'feedback';
+export type AboutSettingsPageKey = 'development' | 'feedback' | 'feedbackHistory';
 
 interface AboutSettingsPageDotsProps {
   aboutPage: AboutSettingsPageKey;

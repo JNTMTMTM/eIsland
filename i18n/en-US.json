@@ -3116,7 +3116,8 @@
       "pagination": "About settings pages",
       "pages": {
         "development": "Development Info",
-        "feedback": "Issue Feedback"
+        "feedback": "Issue Feedback",
+        "feedbackHistory": "Feedback History"
       },
       "authorAvatarAlt": "Author avatar",
       "githubHome": "GitHub Home",
