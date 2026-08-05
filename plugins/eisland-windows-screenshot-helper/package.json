@@ -1,6 +1,6 @@
 {
   "name": "@eisland/windows-screenshot-helper",
-  "version": "26.0.1",
+  "version": "26.0.2",
   "description": "High-performance Windows screen capture via Native AOT DLL and JS FFI.",
   "author": "JNTMTMTM",
   "license": "GPL-3.0",

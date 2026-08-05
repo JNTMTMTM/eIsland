@@ -28,12 +28,17 @@ function capturePrimaryDisplayPng() {
   return callPng('sc_capture_primary_display_png');
 }
 
+function captureAllDisplaysPng() {
+  return callPng('sc_capture_all_displays_png');
+}
+
 function getVisibleWindows() {
   return callJson('sc_get_visible_windows') || [];
 }
 
 module.exports = {
   capturePrimaryDisplayPng,
+  captureAllDisplaysPng,
   getVisibleWindows,
   getLastError,
 };

@@ -15,5 +15,6 @@ export interface VisibleWindowBounds {
 }
 
 export function capturePrimaryDisplayPng(): ScreenshotResult | null;
+export function captureAllDisplaysPng(): ScreenshotResult | null;
 export function getVisibleWindows(): VisibleWindowBounds[];
 export function getLastError(): string;
