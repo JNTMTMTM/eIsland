@@ -425,7 +425,13 @@ export function AboutSettingsSection({ aboutVersion, initialPage = 'development'
     }
     if (aboutPage !== 'feedback') return;
     void loadFeedbackHistory();
-    void fetchFeedbackQqGroupConfig().then(setQqGroupConfig).catch(() => {});
+    void fetchFeedbackQqGroupConfig()
+      .then(setQqGroupConfig)
+      .catch((error: unknown) => {
+        // eslint-disable-next-line no-console
+        console.warn('Failed to fetch QQ group config', error);
+        setQqGroupConfig(null);
+      });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [aboutPage, token, feedbackStatusFilter]);
 
