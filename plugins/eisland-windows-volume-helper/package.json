@@ -1,6 +1,6 @@
 {
   "name": "@eisland/windows-volume-helper",
-  "version": "26.0.1",
+  "version": "26.0.2",
   "description": "Windows default playback device volume query, control, and monitoring via Core Audio COM.",
   "author": "JNTMTMTM",
   "license": "GPL-3.0",

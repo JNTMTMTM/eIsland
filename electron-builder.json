@@ -38,6 +38,16 @@
       "filter": ["**/*"]
     },
     {
+      "from": "node_modules/@eisland/windows-brightness-helper/src/bin/Release/net10.0",
+      "to": "helpers/brightness",
+      "filter": ["**/*"]
+    },
+    {
+      "from": "node_modules/@eisland/windows-volume-helper/src/bin/Release/net10.0",
+      "to": "helpers/volume",
+      "filter": ["**/*"]
+    },
+    {
       "from": "node_modules/ffmpeg-static/ffmpeg.exe",
       "to": "ffmpeg/ffmpeg.exe"
     }
