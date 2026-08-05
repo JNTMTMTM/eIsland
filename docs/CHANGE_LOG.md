@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-08-05T09:24:58.567Z
+> 生成时间：2026-08-05T17:11:48.063Z
 
 ## 26.7.0
 
@@ -3259,6 +3259,14 @@
 
 ## Unreleased
 
+- 2026-08-06 | ade2b1f2 | 鸡哥 | Merge pull request #188 from JNTMTMTM/dev
+- 2026-08-06 | 87ba9aa8 | 鸡哥 | feat: add legacy fallback for brightness and volume helpers, enhance screenshot capture logic, and introduce shared store keys
+- 2026-08-06 | 6816c006 | 鸡哥 | refactor: optimize virtual screen bounds calculation using reduce method
+- 2026-08-05 | 1e750272 | 鸡哥 | feat: add brightness and volume helper executables with path resolution in Electron packaging
+- 2026-08-05 | 0b913400 | 鸡哥 | feat: add screenshot engine selection and configuration options
+- 2026-08-05 | c802068f | 鸡哥 | feat: implement multi-display screenshot functionality and enhance capture logic
+- 2026-08-05 | 81a52f71 | 鸡哥 | feat: add support for capturing all displays as PNG
+- 2026-08-05 | 4d50b143 | eislandBot | docs: auto update CHANGE_LOG.md for #187 by @JNTMTMTM [skip ci]
 - 2026-08-05 | a7e30745 | 鸡哥 | Merge pull request #187 from JNTMTMTM/dev
 - 2026-08-05 | b1176742 | 鸡哥 | feat: enhance error handling for fetching QQ group config in AboutSettingsSection
 - 2026-08-05 | ba36abe1 | 鸡哥 | feat: add feedback history page to AboutSettingsSection and update translations
