@@ -47,6 +47,22 @@ public static class ScExports
         }
     }
 
+    [UnmanagedCallersOnly(EntryPoint = "sc_capture_all_displays_png")]
+    public static IntPtr CaptureAllDisplaysPng()
+    {
+        _lastError = "";
+        try
+        {
+            var png = ScreenCapture.CaptureAllDisplaysPng();
+            return png.Length == 0 ? IntPtr.Zero : StringToCoTaskMem(Convert.ToBase64String(png));
+        }
+        catch (Exception ex)
+        {
+            _lastError = ex.ToString();
+            return IntPtr.Zero;
+        }
+    }
+
     [UnmanagedCallersOnly(EntryPoint = "sc_get_visible_windows")]
     public static IntPtr GetVisibleWindows()
     {

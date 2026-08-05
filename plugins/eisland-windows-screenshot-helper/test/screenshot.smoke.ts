@@ -34,10 +34,16 @@ if (!fs.existsSync(dllPath)) {
   throw new Error('Native DLL not found. Run npm run build first.');
 }
 
-const { capturePrimaryDisplayPng } = require('..');
-const result = capturePrimaryDisplayPng();
-if (!result || !Buffer.isBuffer(result.data) || result.data.length === 0) {
+const { capturePrimaryDisplayPng, captureAllDisplaysPng } = require('..');
+
+const primary = capturePrimaryDisplayPng();
+if (!primary || !Buffer.isBuffer(primary.data) || primary.data.length === 0) {
   throw new Error('Failed to capture primary display PNG.');
 }
+console.log(`[Primary] Captured ${primary.size} bytes as ${primary.format}.`);
 
-console.log(`Captured ${result.size} bytes as ${result.format}.`);
+const allDisplays = captureAllDisplaysPng();
+if (!allDisplays || !Buffer.isBuffer(allDisplays.data) || allDisplays.data.length === 0) {
+  throw new Error('Failed to capture all displays PNG.');
+}
+console.log(`[AllDisplays] Captured ${allDisplays.size} bytes as ${allDisplays.format}.`);

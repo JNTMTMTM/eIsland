@@ -18,27 +18,14 @@
  * GNU General Public License for more details.
  */
 
-if (process.platform !== 'win32') {
-  throw new Error('@eisland/windows-screenshot-helper only supports Windows.');
-}
+/**
+ * @file storeKeys.ts
+ * @description 主进程与渲染进程共享的持久化存储键常量
+ * @author 鸡哥
+ */
 
-const { callPng, callJson, getLastError } = require('./ffi-loader');
+/** 截图引擎配置键 */
+export const SCREENSHOT_ENGINE_STORE_KEY = 'screenshot-engine';
 
-function capturePrimaryDisplayPng() {
-  return callPng('sc_capture_primary_display_png');
-}
-
-function captureAllDisplaysPng() {
-  return callPng('sc_capture_all_displays_png');
-}
-
-function getVisibleWindows() {
-  return callJson('sc_get_visible_windows') || [];
-}
-
-module.exports = {
-  capturePrimaryDisplayPng,
-  captureAllDisplaysPng,
-  getVisibleWindows,
-  getLastError,
-};
+/** 截图引擎类型 */
+export type ScreenshotEngine = 'plugin' | 'js';

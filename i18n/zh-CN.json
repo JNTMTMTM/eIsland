@@ -2129,6 +2129,10 @@
       "screenshotSettings": {
         "title": "截图设置",
         "hint": "截图相关配置。",
+        "engineTitle": "截图引擎",
+        "engineHint": "选择截图使用的引擎。插件模式支持多显示器截图，JS 模式兼容性更好。",
+        "enginePlugin": "插件模式",
+        "engineJs": "JS 模式",
         "translateTitle": "截图翻译语言",
         "translateHint": "配置截图翻译的源语言和目标语言。"
       },

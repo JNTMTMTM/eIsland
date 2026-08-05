@@ -135,6 +135,8 @@ export const DEFAULT_QUIT_HOTKEY = 'Alt+C';
 
 /** 默认截图快捷键 */
 export const DEFAULT_SCREENSHOT_HOTKEY = 'Alt+A';
+import { SCREENSHOT_ENGINE_STORE_KEY, type ScreenshotEngine } from '../../shared/storeKeys';
+export { SCREENSHOT_ENGINE_STORE_KEY, type ScreenshotEngine };
 
 /** 默认切歌快捷键（空表示默认不设置） */
 export const DEFAULT_NEXT_SONG_HOTKEY = '';
@@ -381,6 +383,15 @@ export function readQuitHotkeyConfig(): string {
 export function readScreenshotHotkeyConfig(): string {
   const data = readJsonFile(SCREENSHOT_HOTKEY_STORE_KEY);
   return typeof data === 'string' ? data : DEFAULT_SCREENSHOT_HOTKEY;
+}
+
+/**
+ * 读取截图引擎偏好配置
+ * @returns 'plugin'（原生插件优先）或 'js'（JS 回退优先），默认 'plugin'
+ */
+export function readScreenshotEngineConfig(): ScreenshotEngine {
+  const data = readJsonFile(SCREENSHOT_ENGINE_STORE_KEY);
+  return data === 'js' ? 'js' : 'plugin';
 }
 
 /**

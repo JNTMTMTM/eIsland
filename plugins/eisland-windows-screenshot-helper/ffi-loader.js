@@ -54,6 +54,7 @@ const sc = {
   sc_free_string: lib.func('void sc_free_string(void*)'),
   sc_get_last_error: lib.func('str sc_get_last_error()'),
   sc_capture_primary_display_png: lib.func('str sc_capture_primary_display_png()'),
+  sc_capture_all_displays_png: lib.func('str sc_capture_all_displays_png()'),
   sc_get_visible_windows: lib.func('str sc_get_visible_windows()'),
 };
 

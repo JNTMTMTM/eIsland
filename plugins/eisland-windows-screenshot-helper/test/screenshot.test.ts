@@ -43,6 +43,7 @@ interface ScreenshotResult {
 const screenshot = isWindows && hasNativeDll
   ? (require('../') as {
       capturePrimaryDisplayPng(): ScreenshotResult | null;
+      captureAllDisplaysPng(): ScreenshotResult | null;
       getVisibleWindows(): Array<{
         hwnd: string;
         title: string;
@@ -72,6 +73,7 @@ describe.skipIf(!isWindows || !hasNativeDll)('@eisland/windows-screenshot-helper
 
   it('exports expected functions', () => {
     expect(typeof mod.capturePrimaryDisplayPng).toBe('function');
+    expect(typeof mod.captureAllDisplaysPng).toBe('function');
     expect(typeof mod.getVisibleWindows).toBe('function');
     expect(typeof mod.getLastError).toBe('function');
   });
@@ -80,6 +82,20 @@ describe.skipIf(!isWindows || !hasNativeDll)('@eisland/windows-screenshot-helper
     const result = mod.capturePrimaryDisplayPng();
     expect(result).not.toBeNull();
     if (result) expectValidPng(result);
+  });
+
+  it('captures all displays as PNG buffer', () => {
+    const result = mod.captureAllDisplaysPng();
+    expect(result).not.toBeNull();
+    if (result) expectValidPng(result);
+  });
+
+  it('all-displays capture is >= primary display size', () => {
+    const primary = mod.capturePrimaryDisplayPng();
+    const all = mod.captureAllDisplaysPng();
+    if (primary && all) {
+      expect(all.size).toBeGreaterThanOrEqual(primary.size);
+    }
   });
 
   it('returns visible window bounds list', () => {

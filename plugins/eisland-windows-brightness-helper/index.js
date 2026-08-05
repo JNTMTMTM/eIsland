@@ -27,9 +27,13 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { EventEmitter } = require('node:events');
 
+const helperFileName = 'eIslandBrightnessReader.exe';
 const helperCandidates = [
-  path.join(__dirname, 'src', 'bin', 'Release', 'net10.0', 'eIslandBrightnessReader.exe'),
-  path.join(__dirname, 'src', 'bin', 'Debug', 'net10.0', 'eIslandBrightnessReader.exe'),
+  ...(typeof process.resourcesPath === 'string'
+    ? [path.join(process.resourcesPath, 'helpers', 'brightness', helperFileName)]
+    : []),
+  path.join(__dirname, 'src', 'bin', 'Release', 'net10.0', helperFileName),
+  path.join(__dirname, 'src', 'bin', 'Debug', 'net10.0', helperFileName),
 ];
 
 /**
