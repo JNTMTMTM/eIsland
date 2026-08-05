@@ -30,6 +30,7 @@ import { join } from 'path';
 import { existsSync } from 'fs';
 import { is } from '@electron-toolkit/utils';
 import { capturePrimaryDisplayPng, captureAllDisplaysPng, getVisibleWindows } from './screenshotHelper';
+import { readScreenshotEngineConfig } from '../config/storeConfig';
 
 interface CreateCaptureWindowServiceOptions {
   getMainWindow: () => BrowserWindow | null;
@@ -160,12 +161,18 @@ export function createCaptureWindowService(options: CreateCaptureWindowServiceOp
 
       await waitForMainWindowHidden();
 
-      /** 优先使用原生多显示器截图，不支持时回退到主显示器截图 */
-      let nativeScreenshot = isMultiMonitor ? captureAllDisplaysPng() : null;
+      /** 根据用户配置决定截图引擎优先级 */
+      const enginePref = readScreenshotEngineConfig();
+      let nativeScreenshot: Buffer | null = null;
       let captureSource: 'plugin' | 'js' = 'plugin';
-      if (!nativeScreenshot) {
-        nativeScreenshot = capturePrimaryDisplayPng();
+
+      if (enginePref === 'plugin') {
+        nativeScreenshot = isMultiMonitor ? captureAllDisplaysPng() : null;
+        if (!nativeScreenshot) {
+          nativeScreenshot = capturePrimaryDisplayPng();
+        }
       }
+
       const visibleWindows = getVisibleWindows();
 
       let imageBytes: Buffer | null = nativeScreenshot;

@@ -32,6 +32,7 @@ import { TRANSLATE_LANGUAGES, TRANSLATE_TARGET_LANGUAGES } from '../../../../too
 import {
   SCREENSHOT_TRANSLATE_SOURCE_LANG_STORE_KEY,
   SCREENSHOT_TRANSLATE_TARGET_LANG_STORE_KEY,
+  SCREENSHOT_ENGINE_STORE_KEY,
 } from '../../../config/settingsTabConfig';
 
 /** 翻译语言选项 */
@@ -138,6 +139,7 @@ export function ScreenshotSettingsPage(): ReactElement {
   const { t } = useTranslation();
   const [sourceLang, setSourceLang] = useState('auto');
   const [targetLang, setTargetLang] = useState('en');
+  const [screenshotEngine, setScreenshotEngine] = useState<'plugin' | 'js'>('plugin');
 
   useEffect(() => {
     let cancelled = false;
@@ -148,6 +150,10 @@ export function ScreenshotSettingsPage(): ReactElement {
     window.api.storeRead(SCREENSHOT_TRANSLATE_TARGET_LANG_STORE_KEY).then((value) => {
       if (cancelled || typeof value !== 'string') return;
       setTargetLang(value);
+    }).catch(() => {});
+    window.api.storeRead(SCREENSHOT_ENGINE_STORE_KEY).then((value) => {
+      if (cancelled) return;
+      setScreenshotEngine(value === 'js' ? 'js' : 'plugin');
     }).catch(() => {});
     return () => {
       cancelled = true;
@@ -164,9 +170,44 @@ export function ScreenshotSettingsPage(): ReactElement {
     void window.api.storeWrite(SCREENSHOT_TRANSLATE_TARGET_LANG_STORE_KEY, code);
   };
 
+  const handleScreenshotEngineChange = (engine: 'plugin' | 'js'): void => {
+    setScreenshotEngine(engine);
+    void window.api.storeWrite(SCREENSHOT_ENGINE_STORE_KEY, engine);
+  };
+
   return (
     <div className="settings-screenshot-page-panel">
       <div className="settings-cards">
+        <div className="settings-card">
+          <div className="settings-card-header">
+            <div className="settings-card-title">
+              {t('settings.app.screenshotSettings.engineTitle', { defaultValue: '截图引擎' })}
+            </div>
+            <div className="settings-card-subtitle">
+              {t('settings.app.screenshotSettings.engineHint', { defaultValue: '选择截图使用的引擎。插件模式支持多显示器截图，JS 模式兼容性更好。' })}
+            </div>
+          </div>
+          <div className="settings-card-inline-row">
+            <label className="settings-card-check">
+              <input
+                type="radio"
+                name="screenshot-engine"
+                checked={screenshotEngine === 'plugin'}
+                onChange={() => { handleScreenshotEngineChange('plugin'); }}
+              />
+              {t('settings.app.screenshotSettings.enginePlugin', { defaultValue: '插件模式' })}
+            </label>
+            <label className="settings-card-check">
+              <input
+                type="radio"
+                name="screenshot-engine"
+                checked={screenshotEngine === 'js'}
+                onChange={() => { handleScreenshotEngineChange('js'); }}
+              />
+              {t('settings.app.screenshotSettings.engineJs', { defaultValue: 'JS 模式' })}
+            </label>
+          </div>
+        </div>
         <div className="settings-card">
           <div className="settings-card-header">
             <div className="settings-card-title">

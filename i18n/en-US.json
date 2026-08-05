@@ -2129,6 +2129,10 @@
       "screenshotSettings": {
         "title": "Screenshot Settings",
         "hint": "Configure screenshot related settings.",
+        "engineTitle": "Screenshot Engine",
+        "engineHint": "Choose the engine for screenshots. Plugin mode supports multi-monitor capture, JS mode has better compatibility.",
+        "enginePlugin": "Plugin Mode",
+        "engineJs": "JS Mode",
         "translateTitle": "Screenshot Translation Language",
         "translateHint": "Configure source and target languages for screenshot translation."
       },
