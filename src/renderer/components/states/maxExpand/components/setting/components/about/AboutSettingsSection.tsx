@@ -30,10 +30,12 @@ import { useTranslation } from 'react-i18next';
 import avatarImg from '../../../../../../../assets/avatar/T.jpg';
 import publicSecurityRecordIcon from '../../../../../../../../../resources/icon/gabatb.png';
 import {
+  fetchFeedbackQqGroupConfig,
   fetchMyIssueFeedbackList,
   submitUserIssueFeedback,
   uploadUserFeedbackLog,
   uploadUserFeedbackScreenshot,
+  type FeedbackQqGroupConfig,
   type UserIssueFeedbackItem,
 } from '../../../../../../../api/user/userAccountApi';
 import { runSliderCaptcha } from '../../../../../../../utils/sliderCaptcha';
@@ -79,7 +81,7 @@ interface AboutSettingsSectionProps {
   initialPage?: AboutSettingsPageKey;
 }
 
-const ABOUT_PAGES: AboutSettingsPageKey[] = ['development', 'feedback'];
+const ABOUT_PAGES: AboutSettingsPageKey[] = ['development', 'feedback', 'feedbackHistory'];
 const SETTINGS_ABOUT_FEEDBACK_PREFILL_STORE_KEY = 'settings-about-feedback-prefill';
 const MAX_FEEDBACK_LOG_SIZE = 5 * 1024 * 1024;
 const MAX_FEEDBACK_SCREENSHOT_SIZE = 10 * 1024 * 1024;
@@ -147,6 +149,7 @@ export function AboutSettingsSection({ aboutVersion, initialPage = 'development'
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [feedbackItems, setFeedbackItems] = useState<UserIssueFeedbackItem[]>([]);
   const [feedbackMessage, setFeedbackMessage] = useState<FeedbackMessage | null>(null);
+  const [qqGroupConfig, setQqGroupConfig] = useState<FeedbackQqGroupConfig | null>(null);
 
   useEffect(() => {
     setAboutPage(initialPage);
@@ -165,6 +168,7 @@ export function AboutSettingsSection({ aboutVersion, initialPage = 'development'
   const pageLabels: Record<AboutSettingsPageKey, string> = {
     development: t('settings.about.pages.development', { defaultValue: '开发信息' }),
     feedback: t('settings.about.pages.feedback', { defaultValue: '问题反馈' }),
+    feedbackHistory: t('settings.about.pages.feedbackHistory', { defaultValue: '反馈记录' }),
   };
 
   const handleUploadFeedbackScreenshotClick = (): void => {
@@ -415,8 +419,19 @@ export function AboutSettingsSection({ aboutVersion, initialPage = 'development'
   };
 
   useEffect(() => {
+    if (aboutPage === 'feedbackHistory') {
+      void loadFeedbackHistory();
+      return;
+    }
     if (aboutPage !== 'feedback') return;
     void loadFeedbackHistory();
+    void fetchFeedbackQqGroupConfig()
+      .then(setQqGroupConfig)
+      .catch((error: unknown) => {
+        // eslint-disable-next-line no-console
+        console.warn('Failed to fetch QQ group config', error);
+        setQqGroupConfig(null);
+      });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [aboutPage, token, feedbackStatusFilter]);
 
@@ -513,6 +528,25 @@ export function AboutSettingsSection({ aboutVersion, initialPage = 'development'
         <div className="settings-about-feedback-intro">
           {t('settings.about.feedback.intro', { defaultValue: '问题反馈会进入管理后台审核，请尽量提供完整复现信息。' })}
         </div>
+        {qqGroupConfig && qqGroupConfig.qqInviteUrl ? (
+          <div className="settings-about-feedback-qq-group">
+            <span className="settings-about-feedback-qq-group-label">
+              {t('settings.about.feedback.qqGroup.label', { defaultValue: '加入 QQ 群获取更快反馈响应' })}
+            </span>
+            <button
+              type="button"
+              className="settings-about-feedback-qq-group-btn"
+              onClick={() => {
+                if (qqGroupConfig.qqInviteUrl) {
+                  void window.api.clipboardOpenUrl(qqGroupConfig.qqInviteUrl);
+                }
+              }}
+            >
+              <img className="settings-about-feedback-qq-group-icon" src={SvgIcon.QQ} alt="" draggable={false} />
+              {t('settings.about.feedback.qqGroup.join', { defaultValue: '一键加群' })}
+            </button>
+          </div>
+        ) : null}
         {!token ? (
           <div className="settings-user-feedback settings-user-feedback--info">
             {t('settings.about.feedback.messages.loginRequired', { defaultValue: '请先登录后再使用反馈功能' })}
@@ -816,7 +850,11 @@ export function AboutSettingsSection({ aboutVersion, initialPage = 'development'
           </>
         )}
       </div>
+    </div>
+  );
 
+  const renderFeedbackHistoryPage = (): ReactElement => (
+    <div className="settings-about-page-panel settings-about-feedback-panel">
       <div className="settings-about-feedback-card">
         <div className="settings-about-feedback-history-head">
           <div className="settings-about-feedback-history-title">
@@ -910,6 +948,7 @@ export function AboutSettingsSection({ aboutVersion, initialPage = 'development'
         <div className="settings-about-main">
           {aboutPage === 'development' && renderDevelopmentPage()}
           {aboutPage === 'feedback' && renderFeedbackPage()}
+          {aboutPage === 'feedbackHistory' && renderFeedbackHistoryPage()}
         </div>
         <AboutSettingsPageDots
           aboutPage={aboutPage}

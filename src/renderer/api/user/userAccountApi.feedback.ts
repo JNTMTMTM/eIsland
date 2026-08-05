@@ -31,6 +31,7 @@ import {
   USER_ACCOUNT_API_BASE,
 } from './userAccountApi.client';
 import type {
+  FeedbackQqGroupConfig,
   SubmitUserIssueFeedbackPayload,
   UserAccountResult,
   UserFeedbackUploadOptions,
@@ -183,4 +184,26 @@ async function uploadUserFeedbackAsset(
     options.onUploadProgress(100);
   }
   return payload.body.data;
+}
+
+/**
+ * 获取问题反馈页 QQ 群配置（公开接口，仅返回启用状态的配置）。
+ * @returns QQ 群邀请链接与二维码地址；未配置或已禁用时返回 null。
+ */
+export async function fetchFeedbackQqGroupConfig(): Promise<FeedbackQqGroupConfig | null> {
+  try {
+    const response = await window.api.netFetch(
+      `${USER_ACCOUNT_API_BASE}/v1/feedback/qq-group`,
+      { method: 'GET', timeoutMs: 8000 },
+    );
+    if (!response?.ok) return null;
+    const payload = JSON.parse(response.body) as { code?: number; data?: unknown };
+    if (payload?.code !== 200 || !payload.data || typeof payload.data !== 'object') return null;
+    const data = payload.data as Record<string, unknown>;
+    return {
+      qqInviteUrl: typeof data.qqInviteUrl === 'string' ? data.qqInviteUrl : '',
+    };
+  } catch {
+    return null;
+  }
 }

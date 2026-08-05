@@ -3116,7 +3116,8 @@
       "pagination": "About settings pages",
       "pages": {
         "development": "Development Info",
-        "feedback": "Issue Feedback"
+        "feedback": "Issue Feedback",
+        "feedbackHistory": "Feedback History"
       },
       "authorAvatarAlt": "Author avatar",
       "githubHome": "GitHub Home",
@@ -3198,6 +3199,10 @@
           "submitFailed": "Failed to submit feedback. Please try again later.",
           "loadFailed": "Failed to load feedback history",
           "prefilledFromAgent": "Agent output has been auto-filled. You can add reproduction steps and submit directly."
+        },
+        "qqGroup": {
+          "label": "Join our QQ group for faster feedback response",
+          "join": "Join Group"
         },
         "history": {
           "title": "My Feedback History",
