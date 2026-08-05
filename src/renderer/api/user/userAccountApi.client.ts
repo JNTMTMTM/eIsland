@@ -30,7 +30,8 @@ import type { InternalRequestInit } from './types/InternalRequestInit';
 
 export type { InternalRequestInit };
 
-const IS_DEV_RENDERER = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+const IS_DEV_RENDERER = typeof window !== 'undefined'
+  && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 
 export const USER_ACCOUNT_API_BASE = IS_DEV_RENDERER
   ? 'https://test.server.pyisland.com/api'
