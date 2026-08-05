@@ -953,7 +953,6 @@ Singleton configuration table for the QQ group invitation link displayed on the 
 |--------|------|----------|---------|-------------|
 | `id` | BIGINT | NO | — | Primary key (fixed value `1`) |
 | `qq_invite_url` | VARCHAR(500) | YES | NULL | QQ group invitation link |
-| `qq_qr_image_url` | VARCHAR(500) | YES | NULL | QQ group QR code image CDN URL |
 | `enabled` | TINYINT(1) | NO | `0` | Master enable switch: `1` = active, `0` = disabled |
 | `updated_by` | VARCHAR(100) | YES | NULL | Admin username who last updated the config |
 | `updated_at` | DATETIME | YES | NULL | Last update timestamp |

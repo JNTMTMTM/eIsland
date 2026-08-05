@@ -14,7 +14,7 @@ MyBatis mapper interface for QQ group invitation configuration CRUD operations.
 |---|---|---|
 | `selectCurrent()` | Fetch the singleton row (ID = 1) | `FeedbackQqGroupConfig` or `null` |
 | `insert(config)` | Insert a new config row | `int` (affected rows) |
-| `update(id, qqInviteUrl, qqQrImageUrl, enabled, updatedBy, updatedAt)` | Update existing config | `int` (affected rows) |
+| `update(id, qqInviteUrl, enabled, updatedBy, updatedAt)` | Update existing config | `int` (affected rows) |
 
 ## Update Parameters
 
@@ -22,7 +22,6 @@ MyBatis mapper interface for QQ group invitation configuration CRUD operations.
 |---|---|---|
 | `id` | `Long` | Config ID (always `1`) |
 | `qqInviteUrl` | `String` | QQ group invitation link |
-| `qqQrImageUrl` | `String` | QQ group QR code image URL |
 | `enabled` | `Boolean` | Enable/disable flag |
 | `updatedBy` | `String` | Admin username |
 | `updatedAt` | `LocalDateTime` | Update timestamp |

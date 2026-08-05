@@ -6,7 +6,7 @@ Singleton entity representing the QQ group invitation configuration for the issu
 
 ## Overview
 
-Represents the QQ group chat invitation URL and QR code image URL displayed to users on the feedback page. Admins can update this configuration via the admin API. The entity follows the same singleton pattern as `AnnouncementConfig`.
+Represents the QQ group chat invitation URL displayed to users on the feedback page. Admins can update this configuration via the admin API. The entity follows the same singleton pattern as `AnnouncementConfig`.
 
 ## Fields
 
@@ -14,7 +14,6 @@ Represents the QQ group chat invitation URL and QR code image URL displayed to u
 |---|---|---|
 | `id` | `Long` | Primary key (always `1`) |
 | `qqInviteUrl` | `String` | QQ group invitation link |
-| `qqQrImageUrl` | `String` | QQ group QR code image CDN URL |
 | `enabled` | `Boolean` | Whether the QQ group banner is displayed to users |
 | `updatedBy` | `String` | Username of last editor |
 | `updatedAt` | `LocalDateTime` | Last modification timestamp |

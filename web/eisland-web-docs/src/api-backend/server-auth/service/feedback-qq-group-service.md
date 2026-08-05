@@ -14,7 +14,7 @@ Manages the singleton QQ group config (ID = 1) for the feedback page. Supports p
 |---|---|
 | `getPublicConfig()` | Returns the active config if enabled; caches result in Redis for 60s |
 | `getAdminConfig()` | Returns the config regardless of enabled status (no cache) |
-| `save(qqInviteUrl, qqQrImageUrl, enabled, updatedBy)` | Upserts the singleton config and evicts Redis cache |
+| `save(qqInviteUrl, enabled, updatedBy)` | Upserts the singleton config and evicts Redis cache |
 
 ## Caching Strategy
 

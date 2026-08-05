@@ -22,8 +22,7 @@ Returns the current QQ group configuration if `enabled = 1`. Public endpoint, no
 {
   "code": 200,
   "data": {
-    "qqInviteUrl": "https://qm.qq.com/example",
-    "qqQrImageUrl": "https://cdn.example.com/qr.jpg"
+    "qqInviteUrl": "https://qm.qq.com/example"
   }
 }
 ```
@@ -48,7 +47,6 @@ Returns the current QQ group configuration regardless of `enabled` status. Requi
   "code": 200,
   "data": {
     "qqInviteUrl": "https://qm.qq.com/example",
-    "qqQrImageUrl": "https://cdn.example.com/qr.jpg",
     "enabled": true,
     "updatedBy": "admin",
     "updatedAt": "2026-08-05T12:00:00"
@@ -65,7 +63,6 @@ Updates the QQ group configuration. Requires `ROLE_ADMIN`. Evicts the Redis cach
 ```json
 {
   "qqInviteUrl": "https://qm.qq.com/example",
-  "qqQrImageUrl": "https://cdn.example.com/qr.jpg",
   "enabled": true
 }
 ```
@@ -73,7 +70,6 @@ Updates the QQ group configuration. Requires `ROLE_ADMIN`. Evicts the Redis cach
 | Field | Type | Required | Description |
 |---|---|---|---|
 | `qqInviteUrl` | `String` | Yes | QQ group invitation link (max 500 chars) |
-| `qqQrImageUrl` | `String` | No | QQ group QR code image CDN URL (max 500 chars) |
 | `enabled` | `Boolean` | No | Enable/disable the banner (default: `true`) |
 
 **Response (200):**
