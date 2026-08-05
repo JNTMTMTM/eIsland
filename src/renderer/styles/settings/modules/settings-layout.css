@@ -1860,6 +1860,9 @@
 }
 
 .settings-about-feedback-qq-group-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   flex-shrink: 0;
   margin-left: auto;
   padding: 3px 10px;
@@ -1874,6 +1877,11 @@
 
 .settings-about-feedback-qq-group-btn:hover {
   background: rgba(var(--color-accent-rgb, 59, 130, 246), 0.2);
+}
+
+.settings-about-feedback-qq-group-icon {
+  width: 14px;
+  height: 14px;
 }
 
 .settings-about-feedback-form-grid {

@@ -531,6 +531,7 @@ export function AboutSettingsSection({ aboutVersion, initialPage = 'development'
                 }
               }}
             >
+              <img className="settings-about-feedback-qq-group-icon" src={SvgIcon.QQ} alt="" draggable={false} />
               {t('settings.about.feedback.qqGroup.join', { defaultValue: '一键加群' })}
             </button>
           </div>
