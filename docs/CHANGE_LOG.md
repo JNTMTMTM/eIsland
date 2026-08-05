@@ -1,7 +1,320 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-08-04T06:59:04.597Z
+> 生成时间：2026-08-05T09:24:58.567Z
+
+## 26.7.0
+
+- 2026-08-05 | 75b8a0ee | 鸡哥 | chore: update version to 26.7.0 and add debug dependency
+- 2026-08-04 | cf329cdf | 鸡哥 | docs(announcement): update mode names from "药丸模式" to "灵动岛模式" in v26.7.0 release notes
+- 2026-08-04 | b4c62bdf | 鸡哥 | docs(announcement): add notch and pill shape mode descriptions to v26.7.0 release notes
+- 2026-08-04 | b6b59b30 | 鸡哥 | docs(announcement): add screenshot translation and lyrics details to v26.7.0 release notes
+- 2026-08-04 | 3457d979 | 鸡哥 | docs(announcement): add v26.7.0 release notes
+- 2026-08-04 | 0402e107 | eislandBot | docs: auto update CHANGE_LOG.md for #186 by @JNTMTMTM [skip ci]
+- 2026-08-04 | f6a2114e | 鸡哥 | Merge pull request #186 from JNTMTMTM/dev
+- 2026-08-04 | 3b8680b7 | 鸡哥 | feat: add fade-in effect for advertisement text on hover
+- 2026-08-04 | e89452a4 | 鸡哥 | feat: add navigation keys for advertisement slides and enhance announcement component functionality
+- 2026-08-04 | 8cb85865 | 鸡哥 | feat: refactor ad slideshow configuration and types for improved structure
+- 2026-08-04 | a3cb1a84 | 鸡哥 | feat: implement ad slideshow feature with data fetching and placeholder support
+- 2026-08-04 | 865aa90e | 鸡哥 | feat: add fade transition effect to advertisement images in announcement component
+- 2026-08-04 | 28a1681c | 鸡哥 | feat: enhance ad space layout with image wrapper and improved text styling
+- 2026-08-04 | be750e84 | 鸡哥 | feat: implement ad slideshow feature in announcement component
+- 2026-08-04 | de51474e | 鸡哥 | feat: enhance announcement ad space with image and hover effects
+- 2026-08-04 | d649050f | 鸡哥 | feat: add ad space to announcement component and update translations
+- 2026-08-03 | 166a7d64 | eislandBot | docs: auto update CHANGE_LOG.md for #185 by @JNTMTMTM [skip ci]
+- 2026-08-04 | 3e91684c | 鸡哥 | Merge pull request #185 from JNTMTMTM/dev
+- 2026-08-04 | cbb1b914 | 鸡哥 | feat: refactor social config test to use parameterized cases for better clarity
+- 2026-08-04 | 51e10310 | 鸡哥 | feat: update announcement selection logic to use sorted announcements
+- 2026-08-04 | 96ecef94 | 鸡哥 | feat: enhance announcement handling by adding social config tests and improving sorting logic
+- 2026-08-03 | ab14207c | 鸡哥 | feat: adjust announcement list width for improved layout
+- 2026-08-03 | 83481eec | 鸡哥 | feat: add AnnouncementSocialConfig type and integrate social links into announcement components
+- 2026-08-03 | 6e5080e2 | 鸡哥 | feat: adjust QR wrapper width in announcement content row for better layout
+- 2026-08-03 | 6b0c321a | 鸡哥 | feat: update toggle functionality to reset video and QR states when collapsing announcement list
+- 2026-08-03 | 3338c902 | 鸡哥 | feat: enhance toggle functionality to hide video and QR when toggling between states
+- 2026-08-03 | eb96aedd | 鸡哥 | feat: add QQ group QR code functionality and related UI updates
+- 2026-08-03 | 7e6afec8 | 鸡哥 | feat: add QQ icon to SvgIcon and update tests to include new property
+- 2026-08-03 | a439792e | 鸡哥 | feat: update video toggle functionality to collapse announcement list when video is shown
+- 2026-08-03 | 608d0a5a | 鸡哥 | feat: enhance announcement list with collapsible functionality and smooth transitions
+- 2026-08-03 | 24f246bb | 鸡哥 | feat: add toggle functionality for announcement list with corresponding UI updates
+- 2026-08-03 | 38b100ae | 鸡哥 | feat: implement v2 announcement fetching and normalization, update related components and tests
+- 2026-08-03 | ef21d9fc | 鸡哥 | feat: add release notes for version 26.6.5, including new features, improvements, bug fixes, and documentation updates
+- 2026-08-03 | 435e7a22 | 鸡哥 | feat: update link handling in AnnouncementBody to use clipboardOpenUrl
+- 2026-08-03 | 80376233 | 鸡哥 | feat: add language parameter to fetchCurrentAnnouncement and update tests
+- 2026-08-02 | ae54c294 | eislandBot | docs: auto update CHANGE_LOG.md for #184 by @JNTMTMTM [skip ci]
+- 2026-08-03 | 631c402f | 鸡哥 | Merge pull request #184 from JNTMTMTM/dev
+- 2026-08-03 | 1740dfdd | 鸡哥 | feat: refactor payment order pagination to use constant for default page size
+- 2026-08-03 | 61b38d78 | 鸡哥 | feat: add pagination labels for order history in English and Chinese
+- 2026-08-02 | 583bf5c2 | 鸡哥 | feat: update USER_ACCOUNT_API_BASE to use test server URL
+- 2026-08-02 | 56474174 | 鸡哥 | feat: update fetchUserPaymentOrders to support pagination with page and pageSize parameters
+- 2026-08-02 | 299fb254 | 鸡哥 | feat: implement payment status polling and update QR code hints in English and Chinese
+- 2026-08-02 | 99dd0774 | eislandBot | docs: auto update CHANGE_LOG.md for #183 by @JNTMTMTM [skip ci]
+- 2026-08-02 | 4075628d | 鸡哥 | Merge pull request #183 from JNTMTMTM/dev
+- 2026-08-02 | 190c2bf3 | 鸡哥 | feat: add QR code visibility toggle based on payment order status
+- 2026-08-02 | cb047584 | 鸡哥 | feat: add close button and localization for announcement component
+- 2026-08-02 | 6931e058 | 鸡哥 | fix: update API base URL from test to production server
+- 2026-08-02 | d7b7d558 | 鸡哥 | fix: optimize scrolling behavior for chapter navigation in useAnnouncementToc hook
+- 2026-08-02 | de779719 | 鸡哥 | feat: add WeChat and Alipay icons to payment action buttons in PaymentPendingOrder component
+- 2026-08-02 | 0c191efa | 鸡哥 | fix: improve payment method selection visibility when no pending order exists
+- 2026-08-02 | b1bb05f6 | 鸡哥 | feat: add toggle for displaying QR code in PaymentPendingOrder component with localization support
+- 2026-08-02 | 232a3e4a | 鸡哥 | fix: update background color for QR code component to white
+- 2026-08-02 | 8bde166f | 鸡哥 | feat: add QR code payment option and hints for WeChat and Alipay in PaymentPendingOrder component
+- 2026-08-02 | 5d4fb486 | 鸡哥 | fix: remove development environment check for USER_ACCOUNT_API_BASE
+- 2026-08-02 | bc214f4c | 鸡哥 | feat: add BILIBILI button to AnnouncementHeader with styling
+- 2026-08-02 | bc14247e | 鸡哥 | feat: add BILIBILI icon to SvgIcon and update tests
+- 2026-08-02 | 21bc049d | 鸡哥 | feat: add GitHub button to AnnouncementHeader component with styling
+- 2026-08-02 | bffe8fe2 | 鸡哥 | feat: enhance useAnnouncementToc hook with programmatic scroll handling and cleanup
+- 2026-08-02 | 5855f374 | 鸡哥 | feat: add type definitions for useAnnouncementData and useAnnouncementToc hooks
+- 2026-08-02 | db316bf7 | 鸡哥 | feat: define AnnouncementHeaderProps interface for type safety in AnnouncementHeader component
+- 2026-08-02 | e510565f | 鸡哥 | feat: refactor AnnouncementVideo component to use centralized default configurations and type definitions
+- 2026-08-02 | d2b7b3b2 | 鸡哥 | feat: refactor announcement body component and add useAnnouncementToc hook for improved navigation
+- 2026-08-02 | 004c9182 | 鸡哥 | feat: add external link handling in announcement body component
+- 2026-08-02 | d4d6ac04 | 鸡哥 | feat: add scroll event handling to update active section in announcement body
+- 2026-08-02 | 0850f017 | 鸡哥 | feat: enhance table of contents item styling with active state indication
+- 2026-08-02 | 32871953 | 鸡哥 | feat: add table of contents functionality to announcement body with scroll-to feature
+- 2026-08-02 | 34299af4 | 鸡哥 | refactor: update announcement body scrollbar styles for improved visibility
+- 2026-08-02 | d2334069 | 鸡哥 | feat: enhance video display in announcement component with dynamic gap adjustment
+- 2026-08-02 | a311c5b0 | 鸡哥 | feat: update announcement header to use video button with styling
+- 2026-08-02 | 3d5a8774 | 鸡哥 | feat: add video toggle functionality to announcement component
+- 2026-08-02 | 8bfbd6a2 | 鸡哥 | feat: add VIDEO.svg icon and update SvgIcon to include it
+- 2026-08-02 | d9d4961b | 鸡哥 | refactor: remove unused announcement title and close text, update close button to use icon
+- 2026-08-02 | dc0278c2 | 鸡哥 | style: reduce padding in announcement panel for improved layout
+- 2026-08-02 | 90a608b3 | 鸡哥 | style: reduce padding and gap in announcement panel for improved layout
+- 2026-08-02 | 6a764539 | 鸡哥 | style: update announcement panel styles for improved layout and readability
+- 2026-08-02 | d147f3f0 | 鸡哥 | refactor: simplify announcement header component and remove unused styles
+- 2026-08-02 | 33d5c8d7 | 鸡哥 | feat: add sourcemap configuration for development mode in build settings
+- 2026-08-01 | 56e55854 | eislandBot | docs: auto update CHANGE_LOG.md for #182 by @JNTMTMTM [skip ci]
+- 2026-08-01 | c398773d | 鸡哥 | Merge pull request #182 from JNTMTMTM/dev
+- 2026-08-01 | 3960face | 鸡哥 | feat: add update source localization for improved clarity in network settings
+- 2026-08-01 | 6e06442a | 鸡哥 | feat: add static asset node icon mapping for improved visual representation in network settings
+- 2026-08-01 | 54e9af46 | 鸡哥 | feat: add update source icon mapping for improved visual representation in network settings
+- 2026-08-01 | bfeaf925 | 鸡哥 | feat: add TENCENTCLOUD service icon and update ServiceIcon structure
+- 2026-08-01 | 1ae85666 | 鸡哥 | feat: reorganize update settings UI by moving auto prompt options to a new section for better clarity
+- 2026-08-01 | 36ee7d56 | 鸡哥 | fix: update agent label to "AI Agent" for clarity in zh-CN localization
+- 2026-08-01 | bcc37d4b | 鸡哥 | feat: add skill for creating an empty settings subpage with navigation support
+- 2026-08-01 | 8a4ad4d9 | 鸡哥 | feat: add update settings pages and related components for improved update management
+- 2026-08-01 | 1c3ff88c | 鸡哥 | feat: enhance update settings UI with improved layout and descriptions
+- 2026-08-01 | 75444f66 | 鸡哥 | feat: add update source selection to network settings and update related descriptions
+- 2026-07-31 | 37570905 | eislandBot | docs: auto update CHANGE_LOG.md for #181 by @JNTMTMTM [skip ci]
+- 2026-08-01 | af73da12 | 鸡哥 | Merge pull request #181 from JNTMTMTM/dev
+- 2026-08-01 | 6cecd81d | 鸡哥 | fix: update markdown link check to allow non-strict validation
+- 2026-08-01 | c17ed102 | 鸡哥 | feat: add pagination label for network settings in English and Chinese translations
+- 2026-08-01 | 1e3cadba | 鸡哥 | Merge pull request #180 from silenthim18303/dev
+- 2026-08-01 | e4f7446e | 鸡哥 | feat: add network settings page integration with settings tab and searchable settings
+- 2026-07-31 | c928b1a7 | 鸡哥 | feat: update shortcut settings to include display mode and clipboard options
+- 2026-07-31 | 589285a5 | 鸡哥 | feat: update network settings section to include data center options
+- 2026-07-31 | b911643d | 鸡哥 | Merge commit 'acd186d29055c2996e1eb0177d7ee491de187f4d' into dev
+- 2026-07-31 | 61106dae | 鸡哥 | feat: add network settings page with timeout and data center options
+- 2026-07-31 | 02089141 | silenthim | 更新了文档站
+- 2026-07-31 | acd186d2 | eislandBot | docs: auto update CHANGE_LOG.md for #178 by @JNTMTMTM [skip ci]
+- 2026-07-31 | 98c76951 | 鸡哥 | Merge pull request #178 from JNTMTMTM/dev
+- 2026-07-31 | 7c413d47 | 鸡哥 | feat: enhance image translation by adding source language support
+- 2026-07-31 | bb6b27f9 | 鸡哥 | feat: add translation settings for screenshot feature in both en-US and zh-CN locales
+- 2026-07-31 | af460d10 | 鸡哥 | feat: add screenshot settings page and update related configurations
+- 2026-07-30 | a6d8f9f7 | eislandBot | docs: auto update CHANGE_LOG.md for #177 by @JNTMTMTM [skip ci]
+- 2026-07-30 | c24249bf | 鸡哥 | Merge pull request #177 from JNTMTMTM/dev
+- 2026-07-30 | cb4d5926 | 鸡哥 | feat: enhance accessibility by adding aria-labels to toolbar buttons and updating SVG icons
+- 2026-07-30 | 90b66328 | 鸡哥 | feat: enhance translation button with label for improved accessibility
+- 2026-07-30 | 0885fd3d | 鸡哥 | feat: update capture toolbar with new SVG icons and improve accessibility att
+- 2026-07-30 | ceffae87 | 鸡哥 | feat: add new SVG icons for MOSAIC, PAINTBRUSH, RECTANGLE, SLSECTION, and S_LINE
+- 2026-07-29 | fde41c90 | eislandBot | docs: auto update CHANGE_LOG.md for #176 by @JNTMTMTM [skip ci]
+- 2026-07-29 | 16ba7623 | 鸡哥 | Merge pull request #176 from JNTMTMTM/dev
+- 2026-07-29 | 75b162c8 | 鸡哥 | feat: enhance user settings with image translation status labels and refactor preview handling
+- 2026-07-29 | 26ba0829 | 鸡哥 | feat: add documentation for image translation history functions
+- 2026-07-29 | 76b76915 | 鸡哥 | feat: implement image translation removal functionality with user feedback
+- 2026-07-29 | 6d13756c | 鸡哥 | feat: enhance user image translation actions with improved disabled button styles
+- 2026-07-29 | e52852d3 | 鸡哥 | feat: add download actions for image translation in user settings
+- 2026-07-29 | 9f8d2847 | 鸡哥 | feat: enhance image translation preview with drag functionality and cursor updates
+- 2026-07-29 | f9936976 | 鸡哥 | feat: add zoom functionality for image translation preview in user settings
+- 2026-07-29 | cd17f2cc | 鸡哥 | feat: add image preview functionality for translation history in user settings
+- 2026-07-29 | 8e5c936a | 鸡哥 | feat: implement pagination for image translation history in user settings
+- 2026-07-29 | 0ada8d71 | 鸡哥 | feat: add language icons for image translation in user settings
+- 2026-07-29 | bc9046bb | 鸡哥 | refactor: remove refresh button and related translations from image translation settings
+- 2026-07-29 | ba360b5b | 鸡哥 | feat: add language connector for image translation in user settings
+- 2026-07-29 | 698c736d | 鸡哥 | style: update padding and gap for user image translation item
+- 2026-07-29 | f170438f | 鸡哥 | feat: add image translation history feature to user settings
+- 2026-07-29 | 64ee686b | 鸡哥 | feat: add image translation page to user settings
+- 2026-07-29 | adc53808 | 鸡哥 | fix: add TypeScript configuration file for eisland-web-guide
+- 2026-07-29 | a976441c | eislandBot | docs: auto update CHANGE_LOG.md for #175 by @JNTMTMTM [skip ci]
+- 2026-07-29 | 11778ee7 | 鸡哥 | Merge pull request #175 from JNTMTMTM/dev
+- 2026-07-29 | c8fb3794 | 鸡哥 | fix: add permissions section to CI deploy guide
+- 2026-07-29 | 95b0058e | 鸡哥 | feat: add CI workflow for Markdown link checking
+- 2026-07-29 | 7b3b20b5 | 鸡哥 | feat: add CI deployment workflow for eisland guide
+- 2026-07-29 | e78aed83 | eislandBot | docs: auto update CHANGE_LOG.md for #174 by @JNTMTMTM [skip ci]
+- 2026-07-29 | 10507d8c | 鸡哥 | Merge pull request #174 from JNTMTMTM/dev
+- 2026-07-29 | ae8f32f1 | 鸡哥 | style: add licensing information and author details to multiple files
+- 2026-07-29 | dd64ccd1 | 鸡哥 | style: enhance error handling and localization for image translation process
+- 2026-07-29 | 74bf2be4 | 鸡哥 | style: update oauth label for clarity in settings
+- 2026-07-29 | 5283d7e9 | 鸡哥 | style: refactor MailSettingsSection layout for improved structure and responsiveness
+- 2026-07-29 | 1f168767 | 鸡哥 | style: add height to scrollbar for settings page navigation menu
+- 2026-07-29 | 16a50a04 | 鸡哥 | style: swap icon states for navigation toggle and simplify hover styles for consistency
+- 2026-07-29 | 8399bec3 | 鸡哥 | style: enhance settings page navigation menu layout for improved responsiveness
+- 2026-07-29 | 04bc35b6 | 鸡哥 | style: update network settings section layout and scrollbar styles for consistency
+- 2026-07-29 | ff83378e | 鸡哥 | style: reduce gap size in settings layout for improved spacing consistency
+- 2026-07-29 | afa6d66c | 鸡哥 | style: adjust user profile layout and padding for improved responsiveness
+- 2026-07-29 | 1c284a91 | 鸡哥 | feat: implement navigation toggle for settings pages and refactor pagination components
+- 2026-07-29 | b8c62de6 | 鸡哥 | feat: add translation button icon and SVG asset for improved UI
+- 2026-07-29 | 80cd2fd5 | 鸡哥 | style: update layout and spinner size in capture UI; improve translation messages
+- 2026-07-29 | 1ad15293 | 鸡哥 | feat: enhance translation button functionality and update UI labels
+- 2026-07-29 | 8915f233 | 鸡哥 | refactor: remove image translation feature
+- 2026-07-29 | d24ee3ec | 鸡哥 | feat: update CaptureTranslatePanel for improved image comparison and UI adjustments
+- 2026-07-29 | f9cd42b5 | 鸡哥 | feat: add image translation feature with dynamic island integration
+- 2026-07-29 | 3cb3769d | 鸡哥 | feat: add localization support and create English index page
+- 2026-07-29 | a8012cf8 | 鸡哥 | feat: add styles for DocSearch button in custom.css
+- 2026-07-29 | 47a16a5a | 鸡哥 | feat: add appearance setting for dark mode in VitePress config
+- 2026-07-29 | 6f8b9cb4 | 鸡哥 | feat: add WaveBackground component and integrate into home layout
+- 2026-07-29 | 7806d9bb | 鸡哥 | feat: implement video player in home layout and update styles
+- 2026-07-29 | 21184057 | 鸡哥 | Add new assets for the web guide
+- 2026-07-28 | e6990f81 | eislandBot | docs: auto update CHANGE_LOG.md for #173 by @JNTMTMTM [skip ci]
+- 2026-07-28 | 1c66f9bb | 鸡哥 | Merge pull request #173 from JNTMTMTM/dev
+- 2026-07-28 | 22614628 | 鸡哥 | fix: correct grammar in cli state description for clarity
+- 2026-07-28 | 7f60837b | 鸡哥 | feat: enhance CLI provider initialization and fallback logic in tests
+- 2026-07-28 | 702f2550 | 鸡哥 | fix: update version to 26.0.1 and refine type usage in smoke test
+- 2026-07-28 | 43740aeb | 鸡哥 | feat: add Claude Code and Codex CLI integration with session monitoring and lifecycle management
+- 2026-07-28 | fbdce936 | 鸡哥 | feat: add CLI state documentation and support for Codex monitoring
+- 2026-07-28 | 7bc35317 | 鸡哥 | fix: adjust height of cli-state content for better layout
+- 2026-07-28 | afb66cf9 | 鸡哥 | feat: add CLI session detection notification and update related components
+- 2026-07-28 | eaddf33e | 鸡哥 | fix: update icon imports for Codex and Claude in CLI components
+- 2026-07-28 | de217cee | 鸡哥 | feat: add Codex CLI status monitoring and session management
+- 2026-07-28 | 986bab37 | 鸡哥 | feat: add CODEX icon to AgentIcon and update tests
+- 2026-07-27 | d3fbc39f | eislandBot | docs: auto update CHANGE_LOG.md for #172 by @JNTMTMTM [skip ci]
+- 2026-07-27 | 937cfc47 | 鸡哥 | Merge pull request #172 from JNTMTMTM/dev
+- 2026-07-27 | 22c701b8 | 鸡哥 | fix: update author name in dynamicIslandPatterns test file
+- 2026-07-27 | ea385086 | 鸡哥 | feat: implement mute and unmute functionality for playback device
+- 2026-07-27 | 8b29fc0e | 鸡哥 | feat: add getMute and setMute functions for managing playback device mute state
+- 2026-07-27 | a2eb7d3a | 鸡哥 | feat: add vertical translation for song body and controls in overview dashboard
+- 2026-07-27 | 15d9502e | 鸡哥 | feat: add loading animation for song lyrics status in SongWidget
+- 2026-07-27 | 2b1d4219 | 鸡哥 | feat: enhance karaoke scroll progress calculation for smoother transitions
+- 2026-07-27 | 3f73ae3a | 鸡哥 | feat: adjust karaoke scroll progress calculation for improved accuracy
+- 2026-07-27 | 0901e7a7 | 鸡哥 | feat: implement scrolling text component for song lyrics and update styles for better overflow handling
+- 2026-07-27 | ce3b9413 | 鸡哥 | feat: adjust margin-top for song button for improved layout
+- 2026-07-27 | 404bd719 | 鸡哥 | feat: update song info layout for better responsiveness and adjust font size
+- 2026-07-27 | a38241f6 | 鸡哥 | feat: adjust layout and alignment of song details in overview dashboard
+- 2026-07-27 | 28606c3b | 鸡哥 | feat: add song information text and enhance SongWidget layout
+- 2026-07-27 | 97421b70 | 鸡哥 | feat: add INFORMATION SVG icon and update SvgIcon references
+- 2026-07-27 | 7b4e1255 | 鸡哥 | feat: add lyric and mute buttons to SongWidget and update translations
+- 2026-07-27 | 6ef0446c | 鸡哥 | feat: add LYRIC icon and update SvgIcon properties
+- 2026-07-27 | 676faa20 | 鸡哥 | feat: enhance SongWidget with lyrics display and karaoke support
+- 2026-07-27 | 88bb69b1 | 鸡哥 | feat: remove js-flags switch from Chromium performance flags
+- 2026-07-27 | 196f5fb6 | 鸡哥 | feat: add album thumbnail loading functionality and improve media handling
+- 2026-07-27 | 0125d996 | 鸡哥 | feat: set default toggle shape mode hotkey to 'Alt+E'
+- 2026-07-27 | 724c1b7c | 鸡哥 | feat: add thin scrollbar styling to various auth panels and forms
+- 2026-07-27 | 6e5ef0bd | silenthim18303 | 邮箱格式判定采用了更严格的判定方式，同时修复了滚动条样式丢失问题 喵⊙ω⊙`)“
+- 2026-07-27 | 5913295c | eislandBot | docs: auto update CHANGE_LOG.md for #170 by @JNTMTMTM [skip ci]
+- 2026-07-27 | 7ce7d021 | 鸡哥 | Merge pull request #170 from JNTMTMTM/dev
+- 2026-07-27 | c009964d | 鸡哥 | feat: replace delete icon with SVG image for font settings and add styling
+- 2026-07-27 | 64e51ab1 | 鸡哥 | feat: add hover effect for lyrics source button to enhance visual feedback
+- 2026-07-27 | fb8136aa | 鸡哥 | feat: enhance font handling with validation and improved injection logic
+- 2026-07-27 | b5238ebd | 鸡哥 | feat: optimize custom font loading with Promise.all for improved performance
+- 2026-07-27 | 1677ed61 | 鸡哥 | feat: add customizable font options and i18n keys for theme settings
+- 2026-07-27 | 32f553c2 | 鸡哥 | feat: implement font initialization and loading for custom fonts
+- 2026-07-27 | 96f076d1 | 鸡哥 | feat: update theme settings to support adding custom fonts
+- 2026-07-27 | f06f85a9 | 鸡哥 | feat: add custom font loaded message to theme settings
+- 2026-07-27 | 0b8eaa71 | 鸡哥 | feat: add font file dialog and custom font support in theme settings
+- 2026-07-27 | 4518651e | 鸡哥 | feat: add customizable font settings for UI and lyrics display
+- 2026-07-27 | e9948d8e | 鸡哥 | chore: remove environment specification from CI workflow jobs
+- 2026-07-27 | c80880ad | eislandBot | docs: auto update CHANGE_LOG.md for #169 by @JNTMTMTM [skip ci]
+- 2026-07-27 | 88335c28 | 鸡哥 | Merge pull request #169 from JNTMTMTM/dev
+- 2026-07-27 | 38b349ad | 鸡哥 | refactor: replace for loop with forEach for drawing lines in MusicBgWavePreview
+- 2026-07-27 | ea35927d | 鸡哥 | feat: update music background wave preview to use layered line waves
+- 2026-07-27 | d71e9439 | 鸡哥 | feat: reorganize music background style preview section in settings page
+- 2026-07-27 | b59fda78 | 鸡哥 | refactor: remove unused music background preview labels from settings page
+- 2026-07-27 | bfba6a4f | 鸡哥 | feat: enhance music background style preview with active state styling
+- 2026-07-27 | 4beaad45 | 鸡哥 | feat: add hover music background style preview and settings
+- 2026-07-26 | 68c519ea | eislandBot | docs: auto update CHANGE_LOG.md for #167 by @JNTMTMTM [skip ci]
+- 2026-07-27 | 68915708 | 鸡哥 | Merge pull request #167 from JNTMTMTM/dev
+- 2026-07-27 | 70c526eb | 鸡哥 | fix: correct workflow name formatting in build size report
+- 2026-07-27 | d224ccff | 鸡哥 | feat: update Node.js version to 22 in build size report workflow
+- 2026-07-27 | fd8afffa | 鸡哥 | feat: add volume control localization to English and Chinese language files
+- 2026-07-27 | 22e530df | 鸡哥 | feat: add volume control functionality with IPC handlers and UI components
+- 2026-07-26 | e2ebd76a | 鸡哥 | feat: add Windows Volume Helper with volume control and monitoring functionality
+- 2026-07-26 | b8ad5205 | 鸡哥 | feat: add Windows volume helper plugin with playback device control and monitoring
+- 2026-07-26 | 87448485 | 鸡哥 | feat: update brightness helper documentation to reflect DDC/CI support and clarify usage of WMI and DDC/CI for brightness control
+- 2026-07-26 | b7c79be7 | 鸡哥 | feat: enhance brightness control with DDC/CI support; update WMI integration and add tests
+- 2026-07-26 | 86641560 | 鸡哥 | feat: implement useBrightness hook for managing screen brightness state and logic; refactor BrightnessControl component
+- 2026-07-26 | b119d0b3 | 鸡哥 | feat: add brightness control feature with UI components and IPC handlers
+- 2026-07-26 | f324f122 | 鸡哥 | feat: refactor ActionButtons, CountdownEdit, and ToolButtons components; add custom hooks for action and countdown logic
+- 2026-07-26 | 4c33980c | 鸡哥 | feat: add ActionButtons, CountdownEdit, MediaButtons, ToolButtons components and update timeTabTypes
+- 2026-07-26 | add029cd | 鸡哥 | feat: add media buttons for brightness and volume adjustment in TimeTab
+- 2026-07-26 | 76490228 | 鸡哥 | feat: add VOLUME and BRIGHTNESS SVG icons to SvgIcon utility
+- 2026-07-25 | cb7d2f94 | eislandBot | docs: auto update CHANGE_LOG.md for #165 by @JNTMTMTM [skip ci]
+- 2026-07-25 | ac522921 | 鸡哥 | Merge pull request #165 from JNTMTMTM/dev
+- 2026-07-25 | 51cfd5d2 | 鸡哥 | fix: update file documentation for clarity and consistency
+- 2026-07-25 | cd897d99 | 鸡哥 | feat: add build size report workflow and size collection script
+- 2026-07-25 | a33a84a2 | 鸡哥 | feat: enhance test report generation with detailed log parsing and summary breakdown
+- 2026-07-25 | ae8c0af9 | 鸡哥 | feat: add environment specification to workflow jobs for consistency
+- 2026-07-25 | 1f746080 | 鸡哥 | feat: update workflow names to include 'eisland CI' prefix for consistency
+- 2026-07-25 | 1f3fce14 | eislandBot | docs: auto update CHANGE_LOG.md for #164 by @JNTMTMTM [skip ci]
+- 2026-07-25 | eefc9aee | 鸡哥 | Merge pull request #164 from JNTMTMTM/dev
+- 2026-07-25 | 047b4899 | 鸡哥 | feat: update SilkyWave color fallback and import TFunction type from i18next
+- 2026-07-25 | d4e07df6 | 鸡哥 | feat: update type imports for LyricsTab and SilkyWave components
+- 2026-07-25 | fd5fbaed | 鸡哥 | feat: enhance hover state with tab navigation and module structure details
+- 2026-07-25 | c3fa080c | 鸡哥 | feat: restructure weather module with new components and utility functions
+- 2026-07-25 | 8ea8be34 | 鸡哥 | feat: reorganize TimeTab component and its types into a new directory structure
+- 2026-07-25 | e31fdca3 | 鸡哥 | feat: implement lyrics module with SilkyWave animation and utility functions
+- 2026-07-25 | 4956a5ff | 鸡哥 | feat: create a new types module for hover components and update imports
+- 2026-07-25 | 28a1eb9e | 鸡哥 | feat: move HoverForm component to a new location and update imports
+- 2026-07-25 | 7fc51bc7 | 鸡哥 | refactor: restructure hover components and remove unused files
+- 2026-07-25 | bbe3f539 | 鸡哥 | feat: refactor lyric mode previews to use div elements and enhance styling
+- 2026-07-24 | 4a206837 | 鸡哥 | feat: add sample lyrics to lyric mode and adjust preview dimensions
+- 2026-07-24 | 9e61673c | 鸡哥 | feat: add lyric display mode configuration and related components
+- 2026-07-23 | 8a3a169c | eislandBot | docs: auto update CHANGE_LOG.md for #163 by @JNTMTMTM [skip ci]
+- 2026-07-23 | 7d579b06 | 鸡哥 | Merge pull request #163 from JNTMTMTM/dev
+- 2026-07-23 | 47bb640f | 鸡哥 | docs: update plugin creation guidelines in CLAUDE.md
+- 2026-07-23 | 853b04b1 | 鸡哥 | docs: add guidelines for plugin version bump in CLAUDE.md
+- 2026-07-23 | e84e4b6e | 鸡哥 | feat: add eisland-windows-hardware-info-helper to publish jobs
+- 2026-07-22 | 3db630ed | eislandBot | docs: auto update CHANGE_LOG.md for #162 by @JNTMTMTM [skip ci]
+- 2026-07-23 | 54dccb92 | 鸡哥 | Merge pull request #162 from JNTMTMTM/dev
+- 2026-07-23 | 1a97f90c | 鸡哥 | feat: constrain agent content height to 80px in pill mode
+- 2026-07-23 | aa24a2d9 | 鸡哥 | feat: update shape modes documentation with STT container height constraint and guide step details
+- 2026-07-23 | 7fa233ac | 鸡哥 | feat: adjust height of STT content container in pill mode
+- 2026-07-22 | f5cce33b | 鸡哥 | feat: enhance shape selection with visual previews and descriptions
+- 2026-07-22 | 2228dc36 | 鸡哥 | feat: add listener for external shape mode changes in BehaviorSettingsPage
+- 2026-07-22 | c0de89ee | 鸡哥 | fix: update shape mode listener to correctly handle external changes
+- 2026-07-22 | 683e67d6 | 鸡哥 | feat: add shape selection step to Dynamic Island guide with localization support
+- 2026-07-22 | 6de9d294 | 鸡哥 | feat: add DynamicIslandGuidePages shape component
+- 2026-07-21 | 94c19180 | eislandBot | docs: auto update CHANGE_LOG.md for #161 by @JNTMTMTM [skip ci]
+- 2026-07-21 | de89801a | 鸡哥 | Merge pull request #161 from JNTMTMTM/dev
+- 2026-07-21 | f7f92c57 | 鸡哥 | docs: enhance shape mode transition documentation with detailed idle and non-idle state behaviors
+- 2026-07-21 | af469998 | 鸡哥 | fix: adjust target window position calculations for notch and pill modes to ensure smooth animations
+- 2026-07-20 | b844ce93 | eislandBot | docs: auto update CHANGE_LOG.md for #160 by @JNTMTMTM [skip ci]
+- 2026-07-20 | 65651124 | 鸡哥 | Merge pull request #160 from JNTMTMTM/dev
+- 2026-07-20 | d236b2bd | 鸡哥 | feat: add toggle shape mode hotkey registration and configuration for improved user control
+- 2026-07-20 | 644e0a58 | 鸡哥 | feat: refactor shape mode handling to use config functions for improved maintainability fix: add validation for window move delta to prevent invalid values feat: enhance animation frame management in useIslandSettingsSync for better performance
+- 2026-07-20 | 9da26437 | 鸡哥 | fix: clarify notification dimensions in pill mode for improved understanding
+- 2026-07-20 | 66da0417 | 鸡哥 | feat: add shape modes documentation and update related references for improved user guidance
+- 2026-07-20 | d99989df | 鸡哥 | fix: notify main window on shape mode change to ensure proper animation execution
+- 2026-07-20 | dce48f1e | 鸡哥 | feat: add shape mode titles and hints for improved user guidance in hover and agent input sections
+- 2026-07-20 | 05db8dbd | 鸡哥 | feat: narrow notification content container in pill mode for improved layout
+- 2026-07-20 | bc90e1f9 | 鸡哥 | feat: add shape mode IPC handlers and hotkey configurations for improved functionality
+- 2026-07-20 | 54c758ff | 鸡哥 | fix: reset dragging state on shape mode change to ensure proper click handling
+- 2026-07-20 | 0148acef | 鸡哥 | feat: add new shape mode toggle and related event handlers to enhance functionality
+- 2026-07-20 | e6b42df7 | 鸡哥 | feat: implement dynamic window resizing based on state changes for improved user experience
+- 2026-07-20 | 06cf0435 | 鸡哥 | fix: remove unused PILL_ISLAND_WIDTH constant and adjust related calculations
+- 2026-07-20 | 301634be | 鸡哥 | feat: enhance shape mode change handling with smooth window animations and target position updates
+- 2026-07-20 | 9e0468e1 | 鸡哥 | feat: force window collapse on shape mode change to refresh dimensions
+- 2026-07-20 | d246be78 | 鸡哥 | fix: adjust padding in settings content for improved layout
+- 2026-07-20 | 5cfb2d59 | 鸡哥 | feat: add pill mode dimensions and update related window sizing logic
+- 2026-07-20 | b561be18 | 鸡哥 | fix: update comments for shape mode positioning logic in createMainWindowService
+- 2026-07-19 | f474724c | 鸡哥 | feat: implement shape mode change notification and listener in main and renderer processes
+- 2026-07-19 | 34974cf8 | 鸡哥 | feat: add toggle shape mode hotkey configuration and handling in settings
+- 2026-07-19 | 91d23bd3 | 鸡哥 | feat: add toggle shape mode hotkey functionality and related IPC handlers
+- 2026-07-19 | 2132e521 | 鸡哥 | feat: add setHoverTab function to useDynamicIslandShell and useDynamicIslandCoordinator hooks
+- 2026-07-19 | 08f64c79 | 鸡哥 | fix: ensure correct type handling for agentVoiceInput state in click-to-hover logic
+- 2026-07-19 | 8f20d32d | 鸡哥 | refactor: update click-to-hover logic for pill mode to include additional states
+- 2026-07-19 | bd69fa35 | 鸡哥 | feat: add island shape mode functionality with notch and pill options; implement drag support for pill mode
+- 2026-07-19 | e206f711 | eislandBot | docs: auto update CHANGE_LOG.md for #159 by @JNTMTMTM [skip ci]
+- 2026-07-19 | 32cdf866 | 鸡哥 | Merge pull request #159 from JNTMTMTM/dev
+- 2026-07-19 | ec37b8d1 | 鸡哥 | refactor: implement caching for helper EXE path and add reset function for testing
+- 2026-07-19 | aed9f8d8 | 鸡哥 | refactor: enhance error handling and logging in hardware info helper; update documentation for Bluetooth and monitor info
+- 2026-07-19 | 3babce72 | 鸡哥 | refactor: improve Windows platform checks and update data type handling in hardware info
+- 2026-07-19 | a4f77e09 | 鸡哥 | refactor: update author names in test files and configuration
+- 2026-07-19 | 744c12f1 | 鸡哥 | refactor: add descriptions to test files and configuration for clarity
+- 2026-07-19 | 8d6f5221 | 鸡哥 | refactor: optimize hardware info retrieval by using 'using' statements for ManagementObject
+- 2026-07-19 | 456c99ae | 鸡哥 | refactor: update title in BluetoothDeviceInfo documentation
+- 2026-07-19 | 8cd91278 | 鸡哥 | refactor: update launch configuration names and add Docs DEV Server
+- 2026-07-19 | 1b31bf90 | 鸡哥 | Add hardware information query functions and interfaces
+- 2026-07-19 | 02ab1dbc | 鸡哥 | Refactor hardware info helper: remove old code, implement new structure and tests
+- 2026-07-18 | f163578a | 鸡哥 | feat: add Windows hardware info helper plugin
 
 ## 26.6.5
 
@@ -2946,307 +3259,14 @@
 
 ## Unreleased
 
-- 2026-08-04 | f6a2114e | 鸡哥 | Merge pull request #186 from JNTMTMTM/dev
-- 2026-08-04 | 3b8680b7 | 鸡哥 | feat: add fade-in effect for advertisement text on hover
-- 2026-08-04 | e89452a4 | 鸡哥 | feat: add navigation keys for advertisement slides and enhance announcement component functionality
-- 2026-08-04 | 8cb85865 | 鸡哥 | feat: refactor ad slideshow configuration and types for improved structure
-- 2026-08-04 | a3cb1a84 | 鸡哥 | feat: implement ad slideshow feature with data fetching and placeholder support
-- 2026-08-04 | 865aa90e | 鸡哥 | feat: add fade transition effect to advertisement images in announcement component
-- 2026-08-04 | 28a1681c | 鸡哥 | feat: enhance ad space layout with image wrapper and improved text styling
-- 2026-08-04 | be750e84 | 鸡哥 | feat: implement ad slideshow feature in announcement component
-- 2026-08-04 | de51474e | 鸡哥 | feat: enhance announcement ad space with image and hover effects
-- 2026-08-04 | d649050f | 鸡哥 | feat: add ad space to announcement component and update translations
-- 2026-08-03 | 166a7d64 | eislandBot | docs: auto update CHANGE_LOG.md for #185 by @JNTMTMTM [skip ci]
-- 2026-08-04 | 3e91684c | 鸡哥 | Merge pull request #185 from JNTMTMTM/dev
-- 2026-08-04 | cbb1b914 | 鸡哥 | feat: refactor social config test to use parameterized cases for better clarity
-- 2026-08-04 | 51e10310 | 鸡哥 | feat: update announcement selection logic to use sorted announcements
-- 2026-08-04 | 96ecef94 | 鸡哥 | feat: enhance announcement handling by adding social config tests and improving sorting logic
-- 2026-08-03 | ab14207c | 鸡哥 | feat: adjust announcement list width for improved layout
-- 2026-08-03 | 83481eec | 鸡哥 | feat: add AnnouncementSocialConfig type and integrate social links into announcement components
-- 2026-08-03 | 6e5080e2 | 鸡哥 | feat: adjust QR wrapper width in announcement content row for better layout
-- 2026-08-03 | 6b0c321a | 鸡哥 | feat: update toggle functionality to reset video and QR states when collapsing announcement list
-- 2026-08-03 | 3338c902 | 鸡哥 | feat: enhance toggle functionality to hide video and QR when toggling between states
-- 2026-08-03 | eb96aedd | 鸡哥 | feat: add QQ group QR code functionality and related UI updates
-- 2026-08-03 | 7e6afec8 | 鸡哥 | feat: add QQ icon to SvgIcon and update tests to include new property
-- 2026-08-03 | a439792e | 鸡哥 | feat: update video toggle functionality to collapse announcement list when video is shown
-- 2026-08-03 | 608d0a5a | 鸡哥 | feat: enhance announcement list with collapsible functionality and smooth transitions
-- 2026-08-03 | 24f246bb | 鸡哥 | feat: add toggle functionality for announcement list with corresponding UI updates
-- 2026-08-03 | 38b100ae | 鸡哥 | feat: implement v2 announcement fetching and normalization, update related components and tests
-- 2026-08-03 | ef21d9fc | 鸡哥 | feat: add release notes for version 26.6.5, including new features, improvements, bug fixes, and documentation updates
-- 2026-08-03 | 435e7a22 | 鸡哥 | feat: update link handling in AnnouncementBody to use clipboardOpenUrl
-- 2026-08-03 | 80376233 | 鸡哥 | feat: add language parameter to fetchCurrentAnnouncement and update tests
-- 2026-08-02 | ae54c294 | eislandBot | docs: auto update CHANGE_LOG.md for #184 by @JNTMTMTM [skip ci]
-- 2026-08-03 | 631c402f | 鸡哥 | Merge pull request #184 from JNTMTMTM/dev
-- 2026-08-03 | 1740dfdd | 鸡哥 | feat: refactor payment order pagination to use constant for default page size
-- 2026-08-03 | 61b38d78 | 鸡哥 | feat: add pagination labels for order history in English and Chinese
-- 2026-08-02 | 583bf5c2 | 鸡哥 | feat: update USER_ACCOUNT_API_BASE to use test server URL
-- 2026-08-02 | 56474174 | 鸡哥 | feat: update fetchUserPaymentOrders to support pagination with page and pageSize parameters
-- 2026-08-02 | 299fb254 | 鸡哥 | feat: implement payment status polling and update QR code hints in English and Chinese
-- 2026-08-02 | 99dd0774 | eislandBot | docs: auto update CHANGE_LOG.md for #183 by @JNTMTMTM [skip ci]
-- 2026-08-02 | 4075628d | 鸡哥 | Merge pull request #183 from JNTMTMTM/dev
-- 2026-08-02 | 190c2bf3 | 鸡哥 | feat: add QR code visibility toggle based on payment order status
-- 2026-08-02 | cb047584 | 鸡哥 | feat: add close button and localization for announcement component
-- 2026-08-02 | 6931e058 | 鸡哥 | fix: update API base URL from test to production server
-- 2026-08-02 | d7b7d558 | 鸡哥 | fix: optimize scrolling behavior for chapter navigation in useAnnouncementToc hook
-- 2026-08-02 | de779719 | 鸡哥 | feat: add WeChat and Alipay icons to payment action buttons in PaymentPendingOrder component
-- 2026-08-02 | 0c191efa | 鸡哥 | fix: improve payment method selection visibility when no pending order exists
-- 2026-08-02 | b1bb05f6 | 鸡哥 | feat: add toggle for displaying QR code in PaymentPendingOrder component with localization support
-- 2026-08-02 | 232a3e4a | 鸡哥 | fix: update background color for QR code component to white
-- 2026-08-02 | 8bde166f | 鸡哥 | feat: add QR code payment option and hints for WeChat and Alipay in PaymentPendingOrder component
-- 2026-08-02 | 5d4fb486 | 鸡哥 | fix: remove development environment check for USER_ACCOUNT_API_BASE
-- 2026-08-02 | bc214f4c | 鸡哥 | feat: add BILIBILI button to AnnouncementHeader with styling
-- 2026-08-02 | bc14247e | 鸡哥 | feat: add BILIBILI icon to SvgIcon and update tests
-- 2026-08-02 | 21bc049d | 鸡哥 | feat: add GitHub button to AnnouncementHeader component with styling
-- 2026-08-02 | bffe8fe2 | 鸡哥 | feat: enhance useAnnouncementToc hook with programmatic scroll handling and cleanup
-- 2026-08-02 | 5855f374 | 鸡哥 | feat: add type definitions for useAnnouncementData and useAnnouncementToc hooks
-- 2026-08-02 | db316bf7 | 鸡哥 | feat: define AnnouncementHeaderProps interface for type safety in AnnouncementHeader component
-- 2026-08-02 | e510565f | 鸡哥 | feat: refactor AnnouncementVideo component to use centralized default configurations and type definitions
-- 2026-08-02 | d2b7b3b2 | 鸡哥 | feat: refactor announcement body component and add useAnnouncementToc hook for improved navigation
-- 2026-08-02 | 004c9182 | 鸡哥 | feat: add external link handling in announcement body component
-- 2026-08-02 | d4d6ac04 | 鸡哥 | feat: add scroll event handling to update active section in announcement body
-- 2026-08-02 | 0850f017 | 鸡哥 | feat: enhance table of contents item styling with active state indication
-- 2026-08-02 | 32871953 | 鸡哥 | feat: add table of contents functionality to announcement body with scroll-to feature
-- 2026-08-02 | 34299af4 | 鸡哥 | refactor: update announcement body scrollbar styles for improved visibility
-- 2026-08-02 | d2334069 | 鸡哥 | feat: enhance video display in announcement component with dynamic gap adjustment
-- 2026-08-02 | a311c5b0 | 鸡哥 | feat: update announcement header to use video button with styling
-- 2026-08-02 | 3d5a8774 | 鸡哥 | feat: add video toggle functionality to announcement component
-- 2026-08-02 | 8bfbd6a2 | 鸡哥 | feat: add VIDEO.svg icon and update SvgIcon to include it
-- 2026-08-02 | d9d4961b | 鸡哥 | refactor: remove unused announcement title and close text, update close button to use icon
-- 2026-08-02 | dc0278c2 | 鸡哥 | style: reduce padding in announcement panel for improved layout
-- 2026-08-02 | 90a608b3 | 鸡哥 | style: reduce padding and gap in announcement panel for improved layout
-- 2026-08-02 | 6a764539 | 鸡哥 | style: update announcement panel styles for improved layout and readability
-- 2026-08-02 | d147f3f0 | 鸡哥 | refactor: simplify announcement header component and remove unused styles
-- 2026-08-02 | 33d5c8d7 | 鸡哥 | feat: add sourcemap configuration for development mode in build settings
-- 2026-08-01 | 56e55854 | eislandBot | docs: auto update CHANGE_LOG.md for #182 by @JNTMTMTM [skip ci]
-- 2026-08-01 | c398773d | 鸡哥 | Merge pull request #182 from JNTMTMTM/dev
-- 2026-08-01 | 3960face | 鸡哥 | feat: add update source localization for improved clarity in network settings
-- 2026-08-01 | 6e06442a | 鸡哥 | feat: add static asset node icon mapping for improved visual representation in network settings
-- 2026-08-01 | 54e9af46 | 鸡哥 | feat: add update source icon mapping for improved visual representation in network settings
-- 2026-08-01 | bfeaf925 | 鸡哥 | feat: add TENCENTCLOUD service icon and update ServiceIcon structure
-- 2026-08-01 | 1ae85666 | 鸡哥 | feat: reorganize update settings UI by moving auto prompt options to a new section for better clarity
-- 2026-08-01 | 36ee7d56 | 鸡哥 | fix: update agent label to "AI Agent" for clarity in zh-CN localization
-- 2026-08-01 | bcc37d4b | 鸡哥 | feat: add skill for creating an empty settings subpage with navigation support
-- 2026-08-01 | 8a4ad4d9 | 鸡哥 | feat: add update settings pages and related components for improved update management
-- 2026-08-01 | 1c3ff88c | 鸡哥 | feat: enhance update settings UI with improved layout and descriptions
-- 2026-08-01 | 75444f66 | 鸡哥 | feat: add update source selection to network settings and update related descriptions
-- 2026-07-31 | 37570905 | eislandBot | docs: auto update CHANGE_LOG.md for #181 by @JNTMTMTM [skip ci]
-- 2026-08-01 | af73da12 | 鸡哥 | Merge pull request #181 from JNTMTMTM/dev
-- 2026-08-01 | 6cecd81d | 鸡哥 | fix: update markdown link check to allow non-strict validation
-- 2026-08-01 | c17ed102 | 鸡哥 | feat: add pagination label for network settings in English and Chinese translations
-- 2026-08-01 | 1e3cadba | 鸡哥 | Merge pull request #180 from silenthim18303/dev
-- 2026-08-01 | e4f7446e | 鸡哥 | feat: add network settings page integration with settings tab and searchable settings
-- 2026-07-31 | c928b1a7 | 鸡哥 | feat: update shortcut settings to include display mode and clipboard options
-- 2026-07-31 | 589285a5 | 鸡哥 | feat: update network settings section to include data center options
-- 2026-07-31 | b911643d | 鸡哥 | Merge commit 'acd186d29055c2996e1eb0177d7ee491de187f4d' into dev
-- 2026-07-31 | 61106dae | 鸡哥 | feat: add network settings page with timeout and data center options
-- 2026-07-31 | 02089141 | silenthim | 更新了文档站
-- 2026-07-31 | acd186d2 | eislandBot | docs: auto update CHANGE_LOG.md for #178 by @JNTMTMTM [skip ci]
-- 2026-07-31 | 98c76951 | 鸡哥 | Merge pull request #178 from JNTMTMTM/dev
-- 2026-07-31 | 7c413d47 | 鸡哥 | feat: enhance image translation by adding source language support
-- 2026-07-31 | bb6b27f9 | 鸡哥 | feat: add translation settings for screenshot feature in both en-US and zh-CN locales
-- 2026-07-31 | af460d10 | 鸡哥 | feat: add screenshot settings page and update related configurations
-- 2026-07-30 | a6d8f9f7 | eislandBot | docs: auto update CHANGE_LOG.md for #177 by @JNTMTMTM [skip ci]
-- 2026-07-30 | c24249bf | 鸡哥 | Merge pull request #177 from JNTMTMTM/dev
-- 2026-07-30 | cb4d5926 | 鸡哥 | feat: enhance accessibility by adding aria-labels to toolbar buttons and updating SVG icons
-- 2026-07-30 | 90b66328 | 鸡哥 | feat: enhance translation button with label for improved accessibility
-- 2026-07-30 | 0885fd3d | 鸡哥 | feat: update capture toolbar with new SVG icons and improve accessibility att
-- 2026-07-30 | ceffae87 | 鸡哥 | feat: add new SVG icons for MOSAIC, PAINTBRUSH, RECTANGLE, SLSECTION, and S_LINE
-- 2026-07-29 | fde41c90 | eislandBot | docs: auto update CHANGE_LOG.md for #176 by @JNTMTMTM [skip ci]
-- 2026-07-29 | 16ba7623 | 鸡哥 | Merge pull request #176 from JNTMTMTM/dev
-- 2026-07-29 | 75b162c8 | 鸡哥 | feat: enhance user settings with image translation status labels and refactor preview handling
-- 2026-07-29 | 26ba0829 | 鸡哥 | feat: add documentation for image translation history functions
-- 2026-07-29 | 76b76915 | 鸡哥 | feat: implement image translation removal functionality with user feedback
-- 2026-07-29 | 6d13756c | 鸡哥 | feat: enhance user image translation actions with improved disabled button styles
-- 2026-07-29 | e52852d3 | 鸡哥 | feat: add download actions for image translation in user settings
-- 2026-07-29 | 9f8d2847 | 鸡哥 | feat: enhance image translation preview with drag functionality and cursor updates
-- 2026-07-29 | f9936976 | 鸡哥 | feat: add zoom functionality for image translation preview in user settings
-- 2026-07-29 | cd17f2cc | 鸡哥 | feat: add image preview functionality for translation history in user settings
-- 2026-07-29 | 8e5c936a | 鸡哥 | feat: implement pagination for image translation history in user settings
-- 2026-07-29 | 0ada8d71 | 鸡哥 | feat: add language icons for image translation in user settings
-- 2026-07-29 | bc9046bb | 鸡哥 | refactor: remove refresh button and related translations from image translation settings
-- 2026-07-29 | ba360b5b | 鸡哥 | feat: add language connector for image translation in user settings
-- 2026-07-29 | 698c736d | 鸡哥 | style: update padding and gap for user image translation item
-- 2026-07-29 | f170438f | 鸡哥 | feat: add image translation history feature to user settings
-- 2026-07-29 | 64ee686b | 鸡哥 | feat: add image translation page to user settings
-- 2026-07-29 | adc53808 | 鸡哥 | fix: add TypeScript configuration file for eisland-web-guide
-- 2026-07-29 | a976441c | eislandBot | docs: auto update CHANGE_LOG.md for #175 by @JNTMTMTM [skip ci]
-- 2026-07-29 | 11778ee7 | 鸡哥 | Merge pull request #175 from JNTMTMTM/dev
-- 2026-07-29 | c8fb3794 | 鸡哥 | fix: add permissions section to CI deploy guide
-- 2026-07-29 | 95b0058e | 鸡哥 | feat: add CI workflow for Markdown link checking
-- 2026-07-29 | 7b3b20b5 | 鸡哥 | feat: add CI deployment workflow for eisland guide
-- 2026-07-29 | e78aed83 | eislandBot | docs: auto update CHANGE_LOG.md for #174 by @JNTMTMTM [skip ci]
-- 2026-07-29 | 10507d8c | 鸡哥 | Merge pull request #174 from JNTMTMTM/dev
-- 2026-07-29 | ae8f32f1 | 鸡哥 | style: add licensing information and author details to multiple files
-- 2026-07-29 | dd64ccd1 | 鸡哥 | style: enhance error handling and localization for image translation process
-- 2026-07-29 | 74bf2be4 | 鸡哥 | style: update oauth label for clarity in settings
-- 2026-07-29 | 5283d7e9 | 鸡哥 | style: refactor MailSettingsSection layout for improved structure and responsiveness
-- 2026-07-29 | 1f168767 | 鸡哥 | style: add height to scrollbar for settings page navigation menu
-- 2026-07-29 | 16a50a04 | 鸡哥 | style: swap icon states for navigation toggle and simplify hover styles for consistency
-- 2026-07-29 | 8399bec3 | 鸡哥 | style: enhance settings page navigation menu layout for improved responsiveness
-- 2026-07-29 | 04bc35b6 | 鸡哥 | style: update network settings section layout and scrollbar styles for consistency
-- 2026-07-29 | ff83378e | 鸡哥 | style: reduce gap size in settings layout for improved spacing consistency
-- 2026-07-29 | afa6d66c | 鸡哥 | style: adjust user profile layout and padding for improved responsiveness
-- 2026-07-29 | 1c284a91 | 鸡哥 | feat: implement navigation toggle for settings pages and refactor pagination components
-- 2026-07-29 | b8c62de6 | 鸡哥 | feat: add translation button icon and SVG asset for improved UI
-- 2026-07-29 | 80cd2fd5 | 鸡哥 | style: update layout and spinner size in capture UI; improve translation messages
-- 2026-07-29 | 1ad15293 | 鸡哥 | feat: enhance translation button functionality and update UI labels
-- 2026-07-29 | 8915f233 | 鸡哥 | refactor: remove image translation feature
-- 2026-07-29 | d24ee3ec | 鸡哥 | feat: update CaptureTranslatePanel for improved image comparison and UI adjustments
-- 2026-07-29 | f9cd42b5 | 鸡哥 | feat: add image translation feature with dynamic island integration
-- 2026-07-29 | 3cb3769d | 鸡哥 | feat: add localization support and create English index page
-- 2026-07-29 | a8012cf8 | 鸡哥 | feat: add styles for DocSearch button in custom.css
-- 2026-07-29 | 47a16a5a | 鸡哥 | feat: add appearance setting for dark mode in VitePress config
-- 2026-07-29 | 6f8b9cb4 | 鸡哥 | feat: add WaveBackground component and integrate into home layout
-- 2026-07-29 | 7806d9bb | 鸡哥 | feat: implement video player in home layout and update styles
-- 2026-07-29 | 21184057 | 鸡哥 | Add new assets for the web guide
-- 2026-07-28 | e6990f81 | eislandBot | docs: auto update CHANGE_LOG.md for #173 by @JNTMTMTM [skip ci]
-- 2026-07-28 | 1c66f9bb | 鸡哥 | Merge pull request #173 from JNTMTMTM/dev
-- 2026-07-28 | 22614628 | 鸡哥 | fix: correct grammar in cli state description for clarity
-- 2026-07-28 | 7f60837b | 鸡哥 | feat: enhance CLI provider initialization and fallback logic in tests
-- 2026-07-28 | 702f2550 | 鸡哥 | fix: update version to 26.0.1 and refine type usage in smoke test
-- 2026-07-28 | 43740aeb | 鸡哥 | feat: add Claude Code and Codex CLI integration with session monitoring and lifecycle management
-- 2026-07-28 | fbdce936 | 鸡哥 | feat: add CLI state documentation and support for Codex monitoring
-- 2026-07-28 | 7bc35317 | 鸡哥 | fix: adjust height of cli-state content for better layout
-- 2026-07-28 | afb66cf9 | 鸡哥 | feat: add CLI session detection notification and update related components
-- 2026-07-28 | eaddf33e | 鸡哥 | fix: update icon imports for Codex and Claude in CLI components
-- 2026-07-28 | de217cee | 鸡哥 | feat: add Codex CLI status monitoring and session management
-- 2026-07-28 | 986bab37 | 鸡哥 | feat: add CODEX icon to AgentIcon and update tests
-- 2026-07-27 | d3fbc39f | eislandBot | docs: auto update CHANGE_LOG.md for #172 by @JNTMTMTM [skip ci]
-- 2026-07-27 | 937cfc47 | 鸡哥 | Merge pull request #172 from JNTMTMTM/dev
-- 2026-07-27 | 22c701b8 | 鸡哥 | fix: update author name in dynamicIslandPatterns test file
-- 2026-07-27 | ea385086 | 鸡哥 | feat: implement mute and unmute functionality for playback device
-- 2026-07-27 | 8b29fc0e | 鸡哥 | feat: add getMute and setMute functions for managing playback device mute state
-- 2026-07-27 | a2eb7d3a | 鸡哥 | feat: add vertical translation for song body and controls in overview dashboard
-- 2026-07-27 | 15d9502e | 鸡哥 | feat: add loading animation for song lyrics status in SongWidget
-- 2026-07-27 | 2b1d4219 | 鸡哥 | feat: enhance karaoke scroll progress calculation for smoother transitions
-- 2026-07-27 | 3f73ae3a | 鸡哥 | feat: adjust karaoke scroll progress calculation for improved accuracy
-- 2026-07-27 | 0901e7a7 | 鸡哥 | feat: implement scrolling text component for song lyrics and update styles for better overflow handling
-- 2026-07-27 | ce3b9413 | 鸡哥 | feat: adjust margin-top for song button for improved layout
-- 2026-07-27 | 404bd719 | 鸡哥 | feat: update song info layout for better responsiveness and adjust font size
-- 2026-07-27 | a38241f6 | 鸡哥 | feat: adjust layout and alignment of song details in overview dashboard
-- 2026-07-27 | 28606c3b | 鸡哥 | feat: add song information text and enhance SongWidget layout
-- 2026-07-27 | 97421b70 | 鸡哥 | feat: add INFORMATION SVG icon and update SvgIcon references
-- 2026-07-27 | 7b4e1255 | 鸡哥 | feat: add lyric and mute buttons to SongWidget and update translations
-- 2026-07-27 | 6ef0446c | 鸡哥 | feat: add LYRIC icon and update SvgIcon properties
-- 2026-07-27 | 676faa20 | 鸡哥 | feat: enhance SongWidget with lyrics display and karaoke support
-- 2026-07-27 | 88bb69b1 | 鸡哥 | feat: remove js-flags switch from Chromium performance flags
-- 2026-07-27 | 196f5fb6 | 鸡哥 | feat: add album thumbnail loading functionality and improve media handling
-- 2026-07-27 | 0125d996 | 鸡哥 | feat: set default toggle shape mode hotkey to 'Alt+E'
-- 2026-07-27 | 724c1b7c | 鸡哥 | feat: add thin scrollbar styling to various auth panels and forms
-- 2026-07-27 | 6e5ef0bd | silenthim18303 | 邮箱格式判定采用了更严格的判定方式，同时修复了滚动条样式丢失问题 喵⊙ω⊙`)“
-- 2026-07-27 | 5913295c | eislandBot | docs: auto update CHANGE_LOG.md for #170 by @JNTMTMTM [skip ci]
-- 2026-07-27 | 7ce7d021 | 鸡哥 | Merge pull request #170 from JNTMTMTM/dev
-- 2026-07-27 | c009964d | 鸡哥 | feat: replace delete icon with SVG image for font settings and add styling
-- 2026-07-27 | 64e51ab1 | 鸡哥 | feat: add hover effect for lyrics source button to enhance visual feedback
-- 2026-07-27 | fb8136aa | 鸡哥 | feat: enhance font handling with validation and improved injection logic
-- 2026-07-27 | b5238ebd | 鸡哥 | feat: optimize custom font loading with Promise.all for improved performance
-- 2026-07-27 | 1677ed61 | 鸡哥 | feat: add customizable font options and i18n keys for theme settings
-- 2026-07-27 | 32f553c2 | 鸡哥 | feat: implement font initialization and loading for custom fonts
-- 2026-07-27 | 96f076d1 | 鸡哥 | feat: update theme settings to support adding custom fonts
-- 2026-07-27 | f06f85a9 | 鸡哥 | feat: add custom font loaded message to theme settings
-- 2026-07-27 | 0b8eaa71 | 鸡哥 | feat: add font file dialog and custom font support in theme settings
-- 2026-07-27 | 4518651e | 鸡哥 | feat: add customizable font settings for UI and lyrics display
-- 2026-07-27 | e9948d8e | 鸡哥 | chore: remove environment specification from CI workflow jobs
-- 2026-07-27 | c80880ad | eislandBot | docs: auto update CHANGE_LOG.md for #169 by @JNTMTMTM [skip ci]
-- 2026-07-27 | 88335c28 | 鸡哥 | Merge pull request #169 from JNTMTMTM/dev
-- 2026-07-27 | 38b349ad | 鸡哥 | refactor: replace for loop with forEach for drawing lines in MusicBgWavePreview
-- 2026-07-27 | ea35927d | 鸡哥 | feat: update music background wave preview to use layered line waves
-- 2026-07-27 | d71e9439 | 鸡哥 | feat: reorganize music background style preview section in settings page
-- 2026-07-27 | b59fda78 | 鸡哥 | refactor: remove unused music background preview labels from settings page
-- 2026-07-27 | bfba6a4f | 鸡哥 | feat: enhance music background style preview with active state styling
-- 2026-07-27 | 4beaad45 | 鸡哥 | feat: add hover music background style preview and settings
-- 2026-07-26 | 68c519ea | eislandBot | docs: auto update CHANGE_LOG.md for #167 by @JNTMTMTM [skip ci]
-- 2026-07-27 | 68915708 | 鸡哥 | Merge pull request #167 from JNTMTMTM/dev
-- 2026-07-27 | 70c526eb | 鸡哥 | fix: correct workflow name formatting in build size report
-- 2026-07-27 | d224ccff | 鸡哥 | feat: update Node.js version to 22 in build size report workflow
-- 2026-07-27 | fd8afffa | 鸡哥 | feat: add volume control localization to English and Chinese language files
-- 2026-07-27 | 22e530df | 鸡哥 | feat: add volume control functionality with IPC handlers and UI components
-- 2026-07-26 | e2ebd76a | 鸡哥 | feat: add Windows Volume Helper with volume control and monitoring functionality
-- 2026-07-26 | b8ad5205 | 鸡哥 | feat: add Windows volume helper plugin with playback device control and monitoring
-- 2026-07-26 | 87448485 | 鸡哥 | feat: update brightness helper documentation to reflect DDC/CI support and clarify usage of WMI and DDC/CI for brightness control
-- 2026-07-26 | b7c79be7 | 鸡哥 | feat: enhance brightness control with DDC/CI support; update WMI integration and add tests
-- 2026-07-26 | 86641560 | 鸡哥 | feat: implement useBrightness hook for managing screen brightness state and logic; refactor BrightnessControl component
-- 2026-07-26 | b119d0b3 | 鸡哥 | feat: add brightness control feature with UI components and IPC handlers
-- 2026-07-26 | f324f122 | 鸡哥 | feat: refactor ActionButtons, CountdownEdit, and ToolButtons components; add custom hooks for action and countdown logic
-- 2026-07-26 | 4c33980c | 鸡哥 | feat: add ActionButtons, CountdownEdit, MediaButtons, ToolButtons components and update timeTabTypes
-- 2026-07-26 | add029cd | 鸡哥 | feat: add media buttons for brightness and volume adjustment in TimeTab
-- 2026-07-26 | 76490228 | 鸡哥 | feat: add VOLUME and BRIGHTNESS SVG icons to SvgIcon utility
-- 2026-07-25 | cb7d2f94 | eislandBot | docs: auto update CHANGE_LOG.md for #165 by @JNTMTMTM [skip ci]
-- 2026-07-25 | ac522921 | 鸡哥 | Merge pull request #165 from JNTMTMTM/dev
-- 2026-07-25 | 51cfd5d2 | 鸡哥 | fix: update file documentation for clarity and consistency
-- 2026-07-25 | cd897d99 | 鸡哥 | feat: add build size report workflow and size collection script
-- 2026-07-25 | a33a84a2 | 鸡哥 | feat: enhance test report generation with detailed log parsing and summary breakdown
-- 2026-07-25 | ae8c0af9 | 鸡哥 | feat: add environment specification to workflow jobs for consistency
-- 2026-07-25 | 1f746080 | 鸡哥 | feat: update workflow names to include 'eisland CI' prefix for consistency
-- 2026-07-25 | 1f3fce14 | eislandBot | docs: auto update CHANGE_LOG.md for #164 by @JNTMTMTM [skip ci]
-- 2026-07-25 | eefc9aee | 鸡哥 | Merge pull request #164 from JNTMTMTM/dev
-- 2026-07-25 | 047b4899 | 鸡哥 | feat: update SilkyWave color fallback and import TFunction type from i18next
-- 2026-07-25 | d4e07df6 | 鸡哥 | feat: update type imports for LyricsTab and SilkyWave components
-- 2026-07-25 | fd5fbaed | 鸡哥 | feat: enhance hover state with tab navigation and module structure details
-- 2026-07-25 | c3fa080c | 鸡哥 | feat: restructure weather module with new components and utility functions
-- 2026-07-25 | 8ea8be34 | 鸡哥 | feat: reorganize TimeTab component and its types into a new directory structure
-- 2026-07-25 | e31fdca3 | 鸡哥 | feat: implement lyrics module with SilkyWave animation and utility functions
-- 2026-07-25 | 4956a5ff | 鸡哥 | feat: create a new types module for hover components and update imports
-- 2026-07-25 | 28a1eb9e | 鸡哥 | feat: move HoverForm component to a new location and update imports
-- 2026-07-25 | 7fc51bc7 | 鸡哥 | refactor: restructure hover components and remove unused files
-- 2026-07-25 | bbe3f539 | 鸡哥 | feat: refactor lyric mode previews to use div elements and enhance styling
-- 2026-07-24 | 4a206837 | 鸡哥 | feat: add sample lyrics to lyric mode and adjust preview dimensions
-- 2026-07-24 | 9e61673c | 鸡哥 | feat: add lyric display mode configuration and related components
-- 2026-07-23 | 8a3a169c | eislandBot | docs: auto update CHANGE_LOG.md for #163 by @JNTMTMTM [skip ci]
-- 2026-07-23 | 7d579b06 | 鸡哥 | Merge pull request #163 from JNTMTMTM/dev
-- 2026-07-23 | 47bb640f | 鸡哥 | docs: update plugin creation guidelines in CLAUDE.md
-- 2026-07-23 | 853b04b1 | 鸡哥 | docs: add guidelines for plugin version bump in CLAUDE.md
-- 2026-07-23 | e84e4b6e | 鸡哥 | feat: add eisland-windows-hardware-info-helper to publish jobs
-- 2026-07-22 | 3db630ed | eislandBot | docs: auto update CHANGE_LOG.md for #162 by @JNTMTMTM [skip ci]
-- 2026-07-23 | 54dccb92 | 鸡哥 | Merge pull request #162 from JNTMTMTM/dev
-- 2026-07-23 | 1a97f90c | 鸡哥 | feat: constrain agent content height to 80px in pill mode
-- 2026-07-23 | aa24a2d9 | 鸡哥 | feat: update shape modes documentation with STT container height constraint and guide step details
-- 2026-07-23 | 7fa233ac | 鸡哥 | feat: adjust height of STT content container in pill mode
-- 2026-07-22 | f5cce33b | 鸡哥 | feat: enhance shape selection with visual previews and descriptions
-- 2026-07-22 | 2228dc36 | 鸡哥 | feat: add listener for external shape mode changes in BehaviorSettingsPage
-- 2026-07-22 | c0de89ee | 鸡哥 | fix: update shape mode listener to correctly handle external changes
-- 2026-07-22 | 683e67d6 | 鸡哥 | feat: add shape selection step to Dynamic Island guide with localization support
-- 2026-07-22 | 6de9d294 | 鸡哥 | feat: add DynamicIslandGuidePages shape component
-- 2026-07-21 | 94c19180 | eislandBot | docs: auto update CHANGE_LOG.md for #161 by @JNTMTMTM [skip ci]
-- 2026-07-21 | de89801a | 鸡哥 | Merge pull request #161 from JNTMTMTM/dev
-- 2026-07-21 | f7f92c57 | 鸡哥 | docs: enhance shape mode transition documentation with detailed idle and non-idle state behaviors
-- 2026-07-21 | af469998 | 鸡哥 | fix: adjust target window position calculations for notch and pill modes to ensure smooth animations
-- 2026-07-20 | b844ce93 | eislandBot | docs: auto update CHANGE_LOG.md for #160 by @JNTMTMTM [skip ci]
-- 2026-07-20 | 65651124 | 鸡哥 | Merge pull request #160 from JNTMTMTM/dev
-- 2026-07-20 | d236b2bd | 鸡哥 | feat: add toggle shape mode hotkey registration and configuration for improved user control
-- 2026-07-20 | 644e0a58 | 鸡哥 | feat: refactor shape mode handling to use config functions for improved maintainability fix: add validation for window move delta to prevent invalid values feat: enhance animation frame management in useIslandSettingsSync for better performance
-- 2026-07-20 | 9da26437 | 鸡哥 | fix: clarify notification dimensions in pill mode for improved understanding
-- 2026-07-20 | 66da0417 | 鸡哥 | feat: add shape modes documentation and update related references for improved user guidance
-- 2026-07-20 | d99989df | 鸡哥 | fix: notify main window on shape mode change to ensure proper animation execution
-- 2026-07-20 | dce48f1e | 鸡哥 | feat: add shape mode titles and hints for improved user guidance in hover and agent input sections
-- 2026-07-20 | 05db8dbd | 鸡哥 | feat: narrow notification content container in pill mode for improved layout
-- 2026-07-20 | bc90e1f9 | 鸡哥 | feat: add shape mode IPC handlers and hotkey configurations for improved functionality
-- 2026-07-20 | 54c758ff | 鸡哥 | fix: reset dragging state on shape mode change to ensure proper click handling
-- 2026-07-20 | 0148acef | 鸡哥 | feat: add new shape mode toggle and related event handlers to enhance functionality
-- 2026-07-20 | e6b42df7 | 鸡哥 | feat: implement dynamic window resizing based on state changes for improved user experience
-- 2026-07-20 | 06cf0435 | 鸡哥 | fix: remove unused PILL_ISLAND_WIDTH constant and adjust related calculations
-- 2026-07-20 | 301634be | 鸡哥 | feat: enhance shape mode change handling with smooth window animations and target position updates
-- 2026-07-20 | 9e0468e1 | 鸡哥 | feat: force window collapse on shape mode change to refresh dimensions
-- 2026-07-20 | d246be78 | 鸡哥 | fix: adjust padding in settings content for improved layout
-- 2026-07-20 | 5cfb2d59 | 鸡哥 | feat: add pill mode dimensions and update related window sizing logic
-- 2026-07-20 | b561be18 | 鸡哥 | fix: update comments for shape mode positioning logic in createMainWindowService
-- 2026-07-19 | f474724c | 鸡哥 | feat: implement shape mode change notification and listener in main and renderer processes
-- 2026-07-19 | 34974cf8 | 鸡哥 | feat: add toggle shape mode hotkey configuration and handling in settings
-- 2026-07-19 | 91d23bd3 | 鸡哥 | feat: add toggle shape mode hotkey functionality and related IPC handlers
-- 2026-07-19 | 2132e521 | 鸡哥 | feat: add setHoverTab function to useDynamicIslandShell and useDynamicIslandCoordinator hooks
-- 2026-07-19 | 08f64c79 | 鸡哥 | fix: ensure correct type handling for agentVoiceInput state in click-to-hover logic
-- 2026-07-19 | 8f20d32d | 鸡哥 | refactor: update click-to-hover logic for pill mode to include additional states
-- 2026-07-19 | bd69fa35 | 鸡哥 | feat: add island shape mode functionality with notch and pill options; implement drag support for pill mode
-- 2026-07-19 | e206f711 | eislandBot | docs: auto update CHANGE_LOG.md for #159 by @JNTMTMTM [skip ci]
-- 2026-07-19 | 32cdf866 | 鸡哥 | Merge pull request #159 from JNTMTMTM/dev
-- 2026-07-19 | ec37b8d1 | 鸡哥 | refactor: implement caching for helper EXE path and add reset function for testing
-- 2026-07-19 | aed9f8d8 | 鸡哥 | refactor: enhance error handling and logging in hardware info helper; update documentation for Bluetooth and monitor info
-- 2026-07-19 | 3babce72 | 鸡哥 | refactor: improve Windows platform checks and update data type handling in hardware info
-- 2026-07-19 | a4f77e09 | 鸡哥 | refactor: update author names in test files and configuration
-- 2026-07-19 | 744c12f1 | 鸡哥 | refactor: add descriptions to test files and configuration for clarity
-- 2026-07-19 | 8d6f5221 | 鸡哥 | refactor: optimize hardware info retrieval by using 'using' statements for ManagementObject
-- 2026-07-19 | 456c99ae | 鸡哥 | refactor: update title in BluetoothDeviceInfo documentation
-- 2026-07-19 | 8cd91278 | 鸡哥 | refactor: update launch configuration names and add Docs DEV Server
-- 2026-07-19 | 1b31bf90 | 鸡哥 | Add hardware information query functions and interfaces
-- 2026-07-19 | 02ab1dbc | 鸡哥 | Refactor hardware info helper: remove old code, implement new structure and tests
-- 2026-07-18 | f163578a | 鸡哥 | feat: add Windows hardware info helper plugin
+- 2026-08-05 | a7e30745 | 鸡哥 | Merge pull request #187 from JNTMTMTM/dev
+- 2026-08-05 | b1176742 | 鸡哥 | feat: enhance error handling for fetching QQ group config in AboutSettingsSection
+- 2026-08-05 | ba36abe1 | 鸡哥 | feat: add feedback history page to AboutSettingsSection and update translations
+- 2026-08-05 | 12263d54 | 鸡哥 | feat: add QQ group icon and style adjustments for feedback button
+- 2026-08-05 | 0abe5e6e | 鸡哥 | feat: add margin-left to feedback QQ group button for improved layout
+- 2026-08-05 | 101ba8c7 | 鸡哥 | refactor: remove qqQrImageUrl from QQ group configuration across documentation and service layers
+- 2026-08-05 | 3a700e92 | 鸡哥 | feat: remove qqQrImageUrl from FeedbackQqGroupConfig and update related components
+- 2026-08-05 | 925740b5 | 鸡哥 | fix: ensure IS_DEV_RENDERER checks for window existence before accessing hostname
+- 2026-08-05 | b8b78260 | 鸡哥 | feat: add QQ group invitation feature and related UI components
+- 2026-08-05 | de9fabf8 | 鸡哥 | feat: add QQ group invitation configuration API and related documentation
+- 2026-08-05 | 6299ebe9 | 鸡哥 | fix: update USER_ACCOUNT_API_BASE to use environment-specific URLs
