@@ -102,6 +102,12 @@ Spring Cache keys are automatically prefixed with `server:` (configured via `spr
 |-------------|---------------|-----|---------|
 | `announcement:current:v2` | STRING (JSON or `__NONE__`) | 60 sec | Current active announcement. `__NONE__` sentinel prevents cache penetration when no announcement exists |
 
+### Feedback QQ Group Config Cache
+
+| Key Pattern | Data Structure | TTL | Purpose |
+|-------------|---------------|-----|---------|
+| `feedback:qq-group:config` | STRING (JSON or `__NONE__`) | 60 sec | QQ group invitation config for feedback page. `__NONE__` sentinel prevents cache penetration when no config exists or config is disabled |
+
 ### Toolbox Software Cache
 
 | Key Pattern | Data Structure | TTL | Purpose |
@@ -706,6 +712,7 @@ The application uses simple SETNX-based distributed locks without Redisson or Re
 |--------|-----|-----------|---------------------|
 | Default Cache | 0 | 4 | STRING (Spring Cache) |
 | Announcements | 0 | 1 | STRING |
+| Feedback QQ Group | 0 | 1 | STRING |
 | Toolbox Software | 0 | 1 | STRING |
 | Version Bloom | 0 | 2 | BITMAP, SET |
 | Avatar Cache | 1 | 1 | STRING (Spring Cache) |

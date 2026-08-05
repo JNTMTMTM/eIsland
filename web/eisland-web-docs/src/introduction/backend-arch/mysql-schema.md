@@ -29,7 +29,7 @@ Charset:  utf8mb4 / utf8mb4_unicode_ci
 | **Version** | `app_version` | Application version management and update tracking |
 | **Service Status** | `service_status` | API endpoint enable/disable control |
 | **Upload** | `object_outbox`, `object_replication_task`, `object_replication_log`, `object_replication_checkpoint` | Outbox pattern for cross-provider object replication |
-| **Feedback** | `issue_feedback` | User-submitted issue reports and admin replies |
+| **Feedback** | `issue_feedback`, `feedback_qq_group_config` | User-submitted issue reports, admin replies, and QQ group invitation config |
 | **Announcement** | `announcement_config` | System-wide announcement/broadcast configuration |
 | **Toolbox** | `toolbox_software`, `toolbox_translate_pricing` | Toolbox software catalog and translation pricing |
 | **Legacy** | `admin_user`, `app_user` | Merged into `user_account`; retained for rollback safety |
@@ -943,6 +943,27 @@ User-submitted issue reports and feature requests. Users can attach log files an
 | `idx_issue_feedback_user_created` | `username`, `created_at` | Non-unique | User's feedback history |
 | `idx_issue_feedback_status_created` | `status`, `created_at` | Non-unique | Admin dashboard: pending feedback sorted by date |
 
+### feedback_qq_group_config
+
+:::info
+Singleton configuration table for the QQ group invitation link displayed on the feedback page. Only one row (id=1) is used. Follows the same pattern as `announcement_config`.
+:::
+
+| Column | Type | Nullable | Default | Description |
+|--------|------|----------|---------|-------------|
+| `id` | BIGINT | NO | — | Primary key (fixed value `1`) |
+| `qq_invite_url` | VARCHAR(500) | YES | NULL | QQ group invitation link |
+| `qq_qr_image_url` | VARCHAR(500) | YES | NULL | QQ group QR code image CDN URL |
+| `enabled` | TINYINT(1) | NO | `0` | Master enable switch: `1` = active, `0` = disabled |
+| `updated_by` | VARCHAR(100) | YES | NULL | Admin username who last updated the config |
+| `updated_at` | DATETIME | YES | NULL | Last update timestamp |
+
+**Indexes:**
+
+| Name | Columns | Type | Purpose |
+|------|---------|------|---------|
+| PRIMARY | `id` | Clustered | Row identifier |
+
 ---
 
 ## Announcement Domain
@@ -1121,3 +1142,4 @@ The following tables are **deprecated** and retained only for rollback safety. T
 | 35 | `toolbox_translate_pricing` | Toolbox | Translation service pricing |
 | 36 | `admin_user` | Legacy | **Deprecated** — merged into `user_account` |
 | 37 | `app_user` | Legacy | **Deprecated** — merged into `user_account` |
+| 38 | `feedback_qq_group_config` | Feedback | QQ group invitation config for feedback page |
