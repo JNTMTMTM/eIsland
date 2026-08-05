@@ -134,76 +134,127 @@ export function createCaptureWindowService(options: CreateCaptureWindowServiceOp
     };
   }
 
+  interface DisplayLayout {
+    id: number;
+    bounds: Electron.Rectangle;
+    physicalBounds: Electron.Rectangle;
+    scaleFactor: number;
+  }
+
+  /**
+   * 获取所有显示器的布局信息
+   * @returns 显示器布局数组与合并后的物理屏幕边界
+   */
+  function getDisplayLayouts(): { displayLayouts: DisplayLayout[]; physicalScreen: { x: number; y: number; width: number; height: number } } {
+    const displays = screen.getAllDisplays();
+    const displayLayouts = displays.map((display) => ({
+      id: display.id,
+      bounds: display.bounds,
+      physicalBounds: screen.dipToScreenRect(null, display.bounds),
+      scaleFactor: display.scaleFactor,
+    }));
+    const physicalScreen = displayLayouts.reduce(
+      (bounds, display) => ({
+        x: Math.min(bounds.x, display.physicalBounds.x),
+        y: Math.min(bounds.y, display.physicalBounds.y),
+        right: Math.max(bounds.right, display.physicalBounds.x + display.physicalBounds.width),
+        bottom: Math.max(bounds.bottom, display.physicalBounds.y + display.physicalBounds.height),
+      }),
+      { x: Infinity, y: Infinity, right: -Infinity, bottom: -Infinity },
+    );
+
+    return {
+      displayLayouts,
+      physicalScreen: {
+        x: physicalScreen.x,
+        y: physicalScreen.y,
+        width: physicalScreen.right - physicalScreen.x,
+        height: physicalScreen.bottom - physicalScreen.y,
+      },
+    };
+  }
+
+  interface CaptureResult {
+    imageBytes: Buffer;
+    captureSource: 'plugin' | 'js';
+    winBounds: { x: number; y: number; width: number; height: number };
+    virtualScreen: { x: number; y: number; width: number; height: number };
+    scaleFactor: number;
+  }
+
+  /**
+   * 尝试截取屏幕图像，优先使用原生插件，回退到 JS 方案
+   * @param vs - 虚拟屏幕边界
+   * @param isMultiMonitor - 是否为多显示器环境
+   * @returns 截图结果，JS 回退失败时返回 null
+   */
+  async function tryCaptureScreenshot(vs: ReturnType<typeof getVirtualScreenBounds>, isMultiMonitor: boolean): Promise<CaptureResult | null> {
+    const enginePref = readScreenshotEngineConfig();
+    let nativeScreenshot: Buffer | null = null;
+
+    if (enginePref === 'plugin') {
+      nativeScreenshot = isMultiMonitor ? captureAllDisplaysPng() : null;
+      if (!nativeScreenshot) {
+        nativeScreenshot = capturePrimaryDisplayPng();
+      }
+    }
+
+    if (nativeScreenshot) {
+      return {
+        imageBytes: nativeScreenshot,
+        captureSource: 'plugin',
+        winBounds: { x: vs.x, y: vs.y, width: vs.width, height: vs.height },
+        virtualScreen: { x: vs.x, y: vs.y, width: vs.width, height: vs.height },
+        scaleFactor: vs.scaleFactor,
+      };
+    }
+
+    /** JS 回退：仅覆盖主显示器 */
+    const primaryDisplay = screen.getPrimaryDisplay();
+    const { width: sw, height: sh } = primaryDisplay.size;
+    const sf = primaryDisplay.scaleFactor || 1;
+    const sources = await desktopCapturer.getSources({
+      types: ['screen'],
+      thumbnailSize: { width: Math.round(sw * sf), height: Math.round(sh * sf) },
+    });
+    if (!sources || sources.length === 0) {
+      return null;
+    }
+
+    return {
+      imageBytes: sources[0].thumbnail.toPNG(),
+      captureSource: 'js',
+      winBounds: { x: primaryDisplay.bounds.x, y: primaryDisplay.bounds.y, width: sw, height: sh },
+      virtualScreen: { x: primaryDisplay.bounds.x, y: primaryDisplay.bounds.y, width: sw, height: sh },
+      scaleFactor: sf,
+    };
+  }
+
   async function startRegionScreenshot(): Promise<void> {
     if (captureWindow || isStartingCaptureWindow) return;
     isStartingCaptureWindow = true;
 
     try {
       const vs = getVirtualScreenBounds();
-      const displays = screen.getAllDisplays();
-      const isMultiMonitor = displays.length > 1;
-      const displayLayouts = displays.map((display) => ({
-        id: display.id,
-        bounds: display.bounds,
-        physicalBounds: screen.dipToScreenRect(null, display.bounds),
-        scaleFactor: display.scaleFactor,
-      }));
-      const physicalScreen = displayLayouts.reduce(
-        (bounds, display) => ({
-          x: Math.min(bounds.x, display.physicalBounds.x),
-          y: Math.min(bounds.y, display.physicalBounds.y),
-          right: Math.max(bounds.right, display.physicalBounds.x + display.physicalBounds.width),
-          bottom: Math.max(bounds.bottom, display.physicalBounds.y + display.physicalBounds.height),
-        }),
-        { x: Infinity, y: Infinity, right: -Infinity, bottom: -Infinity },
-      );
+      const isMultiMonitor = screen.getAllDisplays().length > 1;
+      const { displayLayouts, physicalScreen } = getDisplayLayouts();
 
       await waitForMainWindowHidden();
 
-      /** 根据用户配置决定截图引擎优先级 */
-      const enginePref = readScreenshotEngineConfig();
-      let nativeScreenshot: Buffer | null = null;
-      let captureSource: 'plugin' | 'js' = 'plugin';
-
-      if (enginePref === 'plugin') {
-        nativeScreenshot = isMultiMonitor ? captureAllDisplaysPng() : null;
-        if (!nativeScreenshot) {
-          nativeScreenshot = capturePrimaryDisplayPng();
-        }
-      }
-
       const visibleWindows = getVisibleWindows();
+      const capture = await tryCaptureScreenshot(vs, isMultiMonitor);
 
-      let imageBytes: Buffer | null = nativeScreenshot;
-
-      /** 截图窗口覆盖范围：原生截图用虚拟屏幕全范围，JS 回退仅覆盖主显示器 */
-      let winBounds = { x: vs.x, y: vs.y, width: vs.width, height: vs.height };
-      let virtualScreen = { x: vs.x, y: vs.y, width: vs.width, height: vs.height };
-      let scaleFactor = vs.scaleFactor;
-
-      if (!imageBytes) {
-        captureSource = 'js';
-        const primaryDisplay = screen.getPrimaryDisplay();
-        const { width: sw, height: sh } = primaryDisplay.size;
-        const sf = primaryDisplay.scaleFactor || 1;
-        const sources = await desktopCapturer.getSources({
-          types: ['screen'],
-          thumbnailSize: { width: Math.round(sw * sf), height: Math.round(sh * sf) },
-        });
-        if (!sources || sources.length === 0) {
-          closeCaptureWindow();
-          const mainWindow = options.getMainWindow();
-          if (mainWindow && !mainWindow.isDestroyed()) {
-            mainWindow.show();
-            mainWindow.setAlwaysOnTop(true, 'screen-saver');
-          }
-          return;
+      if (!capture) {
+        closeCaptureWindow();
+        const mainWindow = options.getMainWindow();
+        if (mainWindow && !mainWindow.isDestroyed()) {
+          mainWindow.show();
+          mainWindow.setAlwaysOnTop(true, 'screen-saver');
         }
-        imageBytes = sources[0].thumbnail.toPNG();
-        winBounds = { x: primaryDisplay.bounds.x, y: primaryDisplay.bounds.y, width: sw, height: sh };
-        virtualScreen = { x: primaryDisplay.bounds.x, y: primaryDisplay.bounds.y, width: sw, height: sh };
-        scaleFactor = sf;
+        return;
       }
+
+      const { imageBytes, captureSource, winBounds, virtualScreen, scaleFactor } = capture;
 
       captureWindow = new BrowserWindow({
         width: winBounds.width,
@@ -249,14 +300,7 @@ export function createCaptureWindowService(options: CreateCaptureWindowServiceOp
           imageBytes,
           virtualScreen,
           displays: captureSource === 'plugin' ? displayLayouts : [],
-          physicalScreen: captureSource === 'plugin'
-            ? {
-                x: physicalScreen.x,
-                y: physicalScreen.y,
-                width: physicalScreen.right - physicalScreen.x,
-                height: physicalScreen.bottom - physicalScreen.y,
-              }
-            : null,
+          physicalScreen: captureSource === 'plugin' ? physicalScreen : null,
           scaleFactor,
           captureSource,
           visibleWindows,

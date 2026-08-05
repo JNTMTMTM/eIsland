@@ -74,4 +74,39 @@ describe('packaged brightness helper path', () => {
       expect.objectContaining({ windowsHide: true }),
     );
   });
+
+  it('falls back to legacy helper path when packaged helper is unavailable', () => {
+    const asarDir = 'C:\\Program Files\\eIsland\\resources\\app.asar\\node_modules\\@eisland\\windows-brightness-helper';
+    const legacyHelperPath = path.join(asarDir, 'src', 'bin', 'Release', 'net10.0', 'eIslandBrightnessReader.exe');
+    const spawnSync = vi.fn(() => ({
+      status: 0,
+      error: undefined,
+      stdout: JSON.stringify({ currentBrightness: 30 }),
+    }));
+    const module = { exports: {} as BrightnessModule };
+
+    vm.runInNewContext(
+      readFileSync(path.join(__dirname, '..', 'index.js'), 'utf8'),
+      {
+        module,
+        exports: module.exports,
+        __dirname: asarDir,
+        process: { platform: 'win32' },
+        require: (id: string) => {
+          if (id === 'node:child_process') return { spawnSync, spawn: vi.fn() };
+          if (id === 'node:fs') return { existsSync: (candidate: string) => candidate === legacyHelperPath };
+          if (id === 'node:path') return path;
+          if (id === 'node:events') return { EventEmitter };
+          throw new Error(`Unexpected dependency: ${id}`);
+        },
+      },
+    );
+
+    expect(module.exports.getBrightness()).toEqual({ currentBrightness: 30 });
+    expect(spawnSync).toHaveBeenCalledWith(
+      legacyHelperPath,
+      ['get'],
+      expect.objectContaining({ windowsHide: true }),
+    );
+  });
 });

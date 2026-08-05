@@ -323,8 +323,8 @@ function setVisibleWindowRects(windows, virtualScreen) {
       return {
         x: Math.max(0, Math.round(left - vs.x)),
         y: Math.max(0, Math.round(top - vs.y)),
-        width: Math.round(right - left),
-        height: Math.round(bottom - top),
+        width: Math.max(0, Math.round(right - left)),
+        height: Math.max(0, Math.round(bottom - top)),
         title: item.title || '',
       };
     }).filter((item) => item.width >= 40 && item.height >= 40)

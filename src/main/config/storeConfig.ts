@@ -135,8 +135,8 @@ export const DEFAULT_QUIT_HOTKEY = 'Alt+C';
 
 /** 默认截图快捷键 */
 export const DEFAULT_SCREENSHOT_HOTKEY = 'Alt+A';
-export const SCREENSHOT_ENGINE_STORE_KEY = 'screenshot-engine';
-export type ScreenshotEngine = 'plugin' | 'js';
+import { SCREENSHOT_ENGINE_STORE_KEY, type ScreenshotEngine } from '../../shared/storeKeys';
+export { SCREENSHOT_ENGINE_STORE_KEY, type ScreenshotEngine };
 
 /** 默认切歌快捷键（空表示默认不设置） */
 export const DEFAULT_NEXT_SONG_HOTKEY = '';
