@@ -199,3 +199,7 @@ body {
   object-fit: contain;
   filter: brightness(0) invert(1);
 }
+
+.capture-pro-icon {
+  filter: none;
+}
