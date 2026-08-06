@@ -26,6 +26,9 @@
   "dependencies": {
     "node-gyp": "^11.2.0"
   },
+  "overrides": {
+    "glob": "10.5.0"
+  },
   "devDependencies": {
     "@types/node": "^25.9.3"
   },

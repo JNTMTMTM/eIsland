@@ -36,16 +36,23 @@ interface MusicSourceOption {
   label: string;
 }
 
+/** 播放器进程名关键词图标映射表 */
+const PLAYER_ICON_MAP: Array<{ keywords: string[]; icon: string }> = [
+  { keywords: ['qqmusic', 'qq音乐'], icon: PlayerIcon.QQMUSIC },
+  { keywords: ['netease', 'cloudmusic', '网易云'], icon: PlayerIcon.NETEASE },
+  { keywords: ['kugou', '酷狗'], icon: PlayerIcon.KUGOU },
+  { keywords: ['sodamusic', '汽水'], icon: PlayerIcon.SODAMUSIC },
+  { keywords: ['apple', 'applemusic'], icon: PlayerIcon.APPLE_MUSIC },
+  { keywords: ['spotify'], icon: PlayerIcon.SPOTIFY },
+];
+
 /** 根据进程名匹配播放器图标 */
 function getPlayerIcon(name: string): string | null {
   const lower = name.toLowerCase();
-  if (lower.includes('qqmusic') || lower.includes('qq音乐')) return PlayerIcon.QQMUSIC;
-  if (lower.includes('netease') || lower.includes('cloudmusic') || lower.includes('网易云')) return PlayerIcon.NETEASE;
-  if (lower.includes('kugou') || lower.includes('酷狗')) return PlayerIcon.KUGOU;
-  if (lower.includes('sodamusic') || lower.includes('汽水')) return PlayerIcon.SODAMUSIC;
-  if (lower.includes('apple') || lower.includes('applemusic')) return PlayerIcon.APPLE_MUSIC;
-  if (lower.includes('spotify')) return PlayerIcon.SPOTIFY;
-  return null;
+  const match = PLAYER_ICON_MAP.find((entry) =>
+    entry.keywords.some((kw) => lower.includes(kw)),
+  );
+  return match?.icon ?? null;
 }
 
 interface MusicConfigMessage {
@@ -180,7 +187,7 @@ export function MusicSettingsSection(props: MusicSettingsSectionProps): ReactEle
                   ) : whitelist.map((item: string, idx: number) => {
                     const playerIcon = getPlayerIcon(item);
                     return (
-                    <div className="settings-whitelist-item" key={idx}>
+                    <div className="settings-whitelist-item" key={item}>
                       {playerIcon && <img className="settings-whitelist-icon" src={playerIcon} alt="" />}
                       <span className="settings-whitelist-name">{item}</span>
                       <button
