@@ -112,6 +112,88 @@ body {
   text-wrap: balance;
 }
 
+.capture-ocr-panel {
+  position: fixed;
+  z-index: 30;
+  display: none;
+  flex-direction: column;
+  width: min(520px, calc(100vw - 24px));
+  min-width: 280px;
+  max-height: min(420px, calc(100vh - 24px));
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, .18);
+  border-radius: 10px;
+  color: #fff;
+  background: rgba(24, 26, 32, .96);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, .55);
+}
+
+.capture-ocr-header,
+.capture-ocr-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+}
+
+.capture-ocr-header {
+  border-bottom: 1px solid rgba(255, 255, 255, .12);
+  font: 14px/1.4 system-ui, sans-serif;
+}
+
+.capture-ocr-close,
+.capture-ocr-actions button {
+  border: 0;
+  border-radius: 5px;
+  color: #fff;
+  cursor: pointer;
+  background: rgba(255, 255, 255, .12);
+}
+
+.capture-ocr-close {
+  width: 28px;
+  height: 28px;
+  font-size: 20px;
+  line-height: 1;
+}
+
+.capture-ocr-text {
+  min-height: 160px;
+  padding: 12px;
+  resize: none;
+  border: 0;
+  outline: 0;
+  color: #fff;
+  font: 13px/1.65 system-ui, sans-serif;
+  background: rgba(0, 0, 0, .2);
+  user-select: text;
+}
+
+.capture-ocr-actions {
+  justify-content: flex-end;
+  border-top: 1px solid rgba(255, 255, 255, .12);
+}
+
+.capture-ocr-actions button {
+  padding: 6px 12px;
+}
+
+.capture-ocr-actions button:disabled {
+  cursor: default;
+  opacity: .45;
+}
+
+.capture-ocr-actions .primary {
+  background: rgba(56, 176, 0, .9);
+}
+
+.capture-ocr-button-mark {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .02em;
+}
+
 @keyframes capture-translate-spin {
   to { transform: rotate(360deg); }
 }
