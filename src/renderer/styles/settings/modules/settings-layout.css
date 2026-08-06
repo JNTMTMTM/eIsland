@@ -2423,6 +2423,12 @@
 .settings-whitelist-item:hover {
   background: rgba(var(--color-text-rgb), 0.12);
 }
+.settings-whitelist-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  object-fit: contain;
+}
 .settings-whitelist-name {
   max-width: 160px;
   overflow: hidden;

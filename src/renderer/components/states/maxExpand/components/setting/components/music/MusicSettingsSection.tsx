@@ -29,10 +29,23 @@ import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { MusicSettingsPageKey } from '../../utils/settingsConfig';
 import { SettingsPageNavigation, SettingsPageNavigationToggle } from '../SettingsPageNavigation';
+import { PlayerIcon } from '../../../../../../../utils/SvgIcon/player-icon';
 
 interface MusicSourceOption {
   value: string;
   label: string;
+}
+
+/** 根据进程名匹配播放器图标 */
+function getPlayerIcon(name: string): string | null {
+  const lower = name.toLowerCase();
+  if (lower.includes('qqmusic') || lower.includes('qq音乐')) return PlayerIcon.QQMUSIC;
+  if (lower.includes('netease') || lower.includes('cloudmusic') || lower.includes('网易云')) return PlayerIcon.NETEASE;
+  if (lower.includes('kugou') || lower.includes('酷狗')) return PlayerIcon.KUGOU;
+  if (lower.includes('sodamusic') || lower.includes('汽水')) return PlayerIcon.SODAMUSIC;
+  if (lower.includes('apple') || lower.includes('applemusic')) return PlayerIcon.APPLE_MUSIC;
+  if (lower.includes('spotify')) return PlayerIcon.SPOTIFY;
+  return null;
 }
 
 interface MusicConfigMessage {
@@ -164,8 +177,11 @@ export function MusicSettingsSection(props: MusicSettingsSectionProps): ReactEle
                 <div className="settings-whitelist-list">
                   {whitelist.length === 0 ? (
                     <span className="settings-hide-selected-empty">{t('settings.music.whitelist.empty', { defaultValue: '暂无已加入的播放器' })}</span>
-                  ) : whitelist.map((item: string, idx: number) => (
+                  ) : whitelist.map((item: string, idx: number) => {
+                    const playerIcon = getPlayerIcon(item);
+                    return (
                     <div className="settings-whitelist-item" key={idx}>
+                      {playerIcon && <img className="settings-whitelist-icon" src={playerIcon} alt="" />}
                       <span className="settings-whitelist-name">{item}</span>
                       <button
                         className="settings-whitelist-remove"
@@ -180,7 +196,8 @@ export function MusicSettingsSection(props: MusicSettingsSectionProps): ReactEle
                         ×
                       </button>
                     </div>
-                  ))}
+                  );
+                  })}
                 </div>
               </div>
 
