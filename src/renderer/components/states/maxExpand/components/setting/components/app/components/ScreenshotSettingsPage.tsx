@@ -26,7 +26,7 @@
 
 import { useEffect, useRef, useState, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
-import { SvgIcon } from '../../../../../../../../utils/SvgIcon';
+import { SvgIcon, ServiceIcon } from '../../../../../../../../utils/SvgIcon';
 import { resolveCountryIcon } from '../../../../../../../../utils/SvgIcon/country-icon';
 import { TRANSLATE_LANGUAGES, TRANSLATE_TARGET_LANGUAGES } from '../../../../tools/config/translateToolConfig';
 import {
@@ -238,13 +238,15 @@ export function ScreenshotSettingsPage(): ReactElement {
               />
               {t('settings.app.screenshotSettings.ocrEngineLocal')}
             </label>
-            <label className="settings-card-check">
+            <label className="settings-card-check" style={{ whiteSpace: 'nowrap' }}>
               <input
                 type="radio"
                 name="screenshot-ocr-engine"
                 checked={ocrEngine === 'server'}
                 onChange={() => { handleOcrEngineChange('server'); }}
               />
+              <img className="settings-inline-icon" src={ServiceIcon.ALIBABACLOUD} alt="" />
+              <img className="settings-inline-icon" src={SvgIcon.PRO} alt="" />
               {t('settings.app.screenshotSettings.ocrEngineServer')}
             </label>
           </div>
