@@ -491,15 +491,101 @@ function hideTranslateOverlay() {
   translateOverlay.classList.remove('is-error');
 }
 
+function rectanglesOverlap(first, second) {
+  return first.left < second.left + second.width
+    && first.left + first.width > second.left
+    && first.top < second.top + second.height
+    && first.top + first.height > second.top;
+}
+
+function getToolbarRect() {
+  const previousDisplay = toolbar.style.display;
+  const previousVisibility = toolbar.style.visibility;
+  toolbar.style.display = 'flex';
+  toolbar.style.visibility = 'hidden';
+  const width = toolbar.offsetWidth || 520;
+  const height = toolbar.offsetHeight || 40;
+  let left = selX + selW - width;
+  if (left < 6) left = 6;
+  let top = selY + selH + 8;
+  if (top + height > H - 6) top = selY - height - 8;
+  if (top < 6) top = 6;
+  toolbar.style.display = previousDisplay;
+  toolbar.style.visibility = previousVisibility;
+  return { left, top, width, height };
+}
+
+function availableSpace(candidate) {
+  return candidate.width * candidate.height;
+}
+
 function positionOcrPanel() {
-  const panelWidth = Math.min(520, Math.max(280, selW));
-  const panelHeight = Math.min(420, Math.max(220, selH));
-  const left = Math.max(12, Math.min(selX + (selW - panelWidth) / 2, W - panelWidth - 12));
-  const top = Math.max(12, Math.min(selY + (selH - panelHeight) / 2, H - panelHeight - 12));
-  ocrPanel.style.width = `${panelWidth}px`;
-  ocrPanel.style.maxHeight = `${panelHeight}px`;
-  ocrPanel.style.left = `${left}px`;
-  ocrPanel.style.top = `${top}px`;
+  const edge = 12;
+  const gap = 12;
+  const desiredWidth = Math.min(520, Math.max(280, W - edge * 2));
+  const desiredHeight = Math.min(420, Math.max(180, H - edge * 2));
+  const selection = {
+    left: selX,
+    top: selY,
+    width: selW,
+    height: selH,
+  };
+  const toolbarRect = getToolbarRect();
+  const createCandidate = (side) => {
+    const horizontal = side === 'top' || side === 'bottom';
+    const availableWidth = horizontal
+      ? W - edge * 2
+      : side === 'left' ? selX - gap - edge : W - selX - selW - gap - edge;
+    const availableHeight = horizontal
+      ? side === 'top' ? selY - gap - edge : H - selY - selH - gap - edge
+      : H - edge * 2;
+    const width = Math.min(desiredWidth, availableWidth);
+    const height = Math.min(desiredHeight, availableHeight);
+    if (width < 220 || height < 140) return null;
+
+    if (side === 'top' || side === 'bottom') {
+      return {
+        side,
+        left: Math.max(edge, Math.min(selX + (selW - width) / 2, W - width - edge)),
+        top: side === 'top' ? selY - height - gap : selY + selH + gap,
+        width,
+        height,
+      };
+    }
+    return {
+      side,
+      left: side === 'left' ? selX - width - gap : selX + selW + gap,
+      top: Math.max(edge, Math.min(selY + (selH - height) / 2, H - height - edge)),
+      width,
+      height,
+    };
+  };
+  const candidates = ['top', 'bottom', 'left', 'right']
+    .map(createCandidate)
+    .filter(Boolean);
+
+  const validCandidates = candidates
+    .filter((candidate) => (
+      candidate.left >= edge
+      && candidate.top >= edge
+      && candidate.left + candidate.width <= W - edge
+      && candidate.top + candidate.height <= H - edge
+      && !rectanglesOverlap(candidate, selection)
+      && !rectanglesOverlap(candidate, toolbarRect)
+    ))
+    .sort((first, second) => availableSpace(second) - availableSpace(first));
+
+  const selected = validCandidates[0];
+  if (!selected) {
+    ocrPanel.style.display = 'none';
+    return false;
+  }
+
+  ocrPanel.style.width = `${selected.width}px`;
+  ocrPanel.style.height = `${selected.height}px`;
+  ocrPanel.style.left = `${selected.left}px`;
+  ocrPanel.style.top = `${selected.top}px`;
+  return true;
 }
 
 function showOcrResult(text) {
@@ -507,8 +593,8 @@ function showOcrResult(text) {
   ocrText.value = text || tCapture('noTextFound');
   btnOcrCopy.disabled = !text;
   btnOcrCopy.textContent = tCapture('copyText');
-  positionOcrPanel();
   ocrPanel.style.display = 'flex';
+  positionOcrPanel();
 }
 
 function resetOcrResult() {

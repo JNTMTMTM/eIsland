@@ -118,9 +118,11 @@ body {
   display: none;
   flex-direction: column;
   width: min(520px, calc(100vw - 24px));
-  min-width: 280px;
-  max-height: min(420px, calc(100vh - 24px));
+  min-width: 0;
+  height: min(420px, calc(100vh - 24px));
+  min-height: 0;
   overflow: hidden;
+  box-sizing: border-box;
   border: 1px solid rgba(255, 255, 255, .18);
   border-radius: 10px;
   color: #fff;
@@ -133,6 +135,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex: 0 0 auto;
   gap: 8px;
   padding: 10px 12px;
 }
@@ -159,7 +162,8 @@ body {
 }
 
 .capture-ocr-text {
-  min-height: 160px;
+  min-height: 0;
+  flex: 1 1 auto;
   padding: 12px;
   resize: none;
   border: 0;
