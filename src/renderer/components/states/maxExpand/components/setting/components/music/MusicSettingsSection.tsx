@@ -38,10 +38,10 @@ interface MusicSourceOption {
 
 /** 播放器进程名关键词图标映射表 */
 const PLAYER_ICON_MAP: Array<{ keywords: string[]; icon: string }> = [
-  { keywords: ['qqmusic', 'qq音乐'], icon: PlayerIcon.QQMUSIC },
-  { keywords: ['netease', 'cloudmusic', '网易云'], icon: PlayerIcon.NETEASE },
-  { keywords: ['kugou', '酷狗'], icon: PlayerIcon.KUGOU },
-  { keywords: ['sodamusic', '汽水'], icon: PlayerIcon.SODAMUSIC },
+  { keywords: ['qqmusic', 'qq音乐'], icon: PlayerIcon.QQMUSIC }, // i18n-exclude
+  { keywords: ['netease', 'cloudmusic', '网易云'], icon: PlayerIcon.NETEASE }, // i18n-exclude
+  { keywords: ['kugou', '酷狗'], icon: PlayerIcon.KUGOU }, // i18n-exclude
+  { keywords: ['sodamusic', '汽水'], icon: PlayerIcon.SODAMUSIC }, // i18n-exclude
   { keywords: ['apple', 'applemusic'], icon: PlayerIcon.APPLE_MUSIC },
   { keywords: ['spotify'], icon: PlayerIcon.SPOTIFY },
 ];

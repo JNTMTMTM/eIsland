@@ -162,6 +162,9 @@ for (const filePath of sourceFiles) {
     // 跳过注释行和 import 行
     if (SKIP_RE.test(line.trim())) continue;
 
+    // 跳过带 i18n-exclude 注释的行（用于进程名、技术标识符等非 UI 字符串）
+    if (/\/\/\s*i18n-exclude/.test(line)) continue;
+
     const lineOpens = (line.match(/\(/g) ?? []).length;
     const lineCloses = (line.match(/\)/g) ?? []).length;
 
