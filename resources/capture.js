@@ -42,7 +42,7 @@ const colorPicker = document.getElementById('colorPicker');
 const sizePicker = document.getElementById('sizePicker');
 const btnUndo = document.getElementById('btnUndo');
 const btnOcr = document.getElementById('btnOcr');
-const ocrProviderIcon = document.querySelector('.capture-ocr-provider-icon');
+const ocrProIcon = document.querySelector('.capture-ocr-pro-icon');
 const ocrPanel = document.getElementById('ocrPanel');
 const ocrText = document.getElementById('ocrText');
 const btnOcrCopy = document.getElementById('btnOcrCopy');
@@ -229,8 +229,8 @@ async function initOcrEngine() {
   } catch {
     ocrEngine = 'server';
   }
-  if (ocrProviderIcon) {
-    ocrProviderIcon.style.display = ocrEngine === 'local' ? 'none' : '';
+  if (ocrProIcon) {
+    ocrProIcon.style.display = ocrEngine === 'local' ? 'none' : '';
   }
 }
 
