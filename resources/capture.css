@@ -124,9 +124,9 @@ body {
   overflow: hidden;
   box-sizing: border-box;
   border: 1px solid rgba(255, 255, 255, .18);
-  border-radius: 10px;
+  border-radius: 8px;
   color: #fff;
-  background: rgba(24, 26, 32, .96);
+  background: rgba(0, 0, 0, .96);
   box-shadow: 0 8px 32px rgba(0, 0, 0, .55);
 }
 
