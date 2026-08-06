@@ -800,6 +800,8 @@ registerAppLifecycleHandlers({
     externalAgentWatcher.stop();
     claudeCodeStatusService.stop();
     stopClipboardUrlWatcher();
+    smtcService.cleanupWorker();
+    destroyTray();
     globalShortcut.unregisterAll();
   },
   onWindowAllClosed: () => {
