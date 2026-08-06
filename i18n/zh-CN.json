@@ -2133,6 +2133,10 @@
         "engineHint": "选择截图使用的引擎。插件模式支持多显示器截图，JS 模式兼容性更好。",
         "enginePlugin": "插件模式",
         "engineJs": "JS 模式",
+        "ocrEngineTitle": "OCR 识别方案",
+        "ocrEngineHint": "本地 OCR 使用 Tesseract.js 在设备上识别，不上传图片；服务端 OCR 使用云端识别和计费。",
+        "ocrEngineLocal": "本地 OCR",
+        "ocrEngineServer": "服务端 OCR",
         "translateTitle": "截图翻译语言",
         "translateHint": "配置截图翻译的源语言和目标语言。"
       },

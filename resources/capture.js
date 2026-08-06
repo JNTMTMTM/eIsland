@@ -42,6 +42,7 @@ const colorPicker = document.getElementById('colorPicker');
 const sizePicker = document.getElementById('sizePicker');
 const btnUndo = document.getElementById('btnUndo');
 const btnOcr = document.getElementById('btnOcr');
+const ocrProviderIcon = document.querySelector('.capture-ocr-provider-icon');
 const ocrPanel = document.getElementById('ocrPanel');
 const ocrText = document.getElementById('ocrText');
 const btnOcrCopy = document.getElementById('btnOcrCopy');
@@ -94,6 +95,7 @@ let hoverWindowRect = null;
 let pendingWindowClickRect = null;
 let isTranslating = false;
 let isRecognizing = false;
+let ocrEngine = 'server';
 let recognizedText = '';
 let translationCache = null;
 let displayedImageVersion = 'original';
@@ -219,6 +221,20 @@ async function initCaptureLanguage() {
 }
 
 void initCaptureLanguage();
+
+async function initOcrEngine() {
+  try {
+    const stored = await ipcRenderer.invoke('store:read', 'screenshot-ocr-engine');
+    ocrEngine = stored === 'local' ? 'local' : 'server';
+  } catch {
+    ocrEngine = 'server';
+  }
+  if (ocrProviderIcon) {
+    ocrProviderIcon.style.display = ocrEngine === 'local' ? 'none' : '';
+  }
+}
+
+void initOcrEngine();
 
 /**
  * 初始化各层画布尺寸
@@ -1126,11 +1142,16 @@ btnOcr.addEventListener('click', async () => {
   showTranslateOverlay(tCapture('recognizing'));
 
   try {
-    const token = await ipcRenderer.invoke('store:read', 'user-account-token');
-    if (typeof token !== 'string' || !token.trim()) {
-      throw new Error(tCapture('ocrLoginRequired'));
+    let result;
+    if (ocrEngine === 'local') {
+      result = await ipcRenderer.invoke('capture-ocr-local', { dataURL: image });
+    } else {
+      const token = await ipcRenderer.invoke('store:read', 'user-account-token');
+      if (typeof token !== 'string' || !token.trim()) {
+        throw new Error(tCapture('ocrLoginRequired'));
+      }
+      result = await ipcRenderer.invoke('capture-ocr', { dataURL: image, token });
     }
-    const result = await ipcRenderer.invoke('capture-ocr', { dataURL: image, token });
     if (!result?.success) {
       const errorCode = result?.code;
       const fallbackMessage = errorCode && tCapture(errorCode) !== errorCode

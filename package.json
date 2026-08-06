@@ -89,6 +89,7 @@
     "remark-gfm": "^4.0.1",
     "stock-api": "^2.7.2",
     "systeminformation": "^5.31.6",
+    "tesseract.js": "^7.0.0",
     "uapi-sdk-typescript": "^0.1.14",
     "zustand": "^5.0.4"
   },

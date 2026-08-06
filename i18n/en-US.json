@@ -2133,6 +2133,10 @@
         "engineHint": "Choose the engine for screenshots. Plugin mode supports multi-monitor capture, JS mode has better compatibility.",
         "enginePlugin": "Plugin Mode",
         "engineJs": "JS Mode",
+        "ocrEngineTitle": "OCR Engine",
+        "ocrEngineHint": "Local OCR uses Tesseract.js on this device without uploading images; server OCR uses cloud recognition and billing.",
+        "ocrEngineLocal": "Local OCR",
+        "ocrEngineServer": "Server OCR",
         "translateTitle": "Screenshot Translation Language",
         "translateHint": "Configure source and target languages for screenshot translation."
       },
