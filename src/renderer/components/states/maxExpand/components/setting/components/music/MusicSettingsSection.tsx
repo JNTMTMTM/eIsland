@@ -29,10 +29,30 @@ import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { MusicSettingsPageKey } from '../../utils/settingsConfig';
 import { SettingsPageNavigation, SettingsPageNavigationToggle } from '../SettingsPageNavigation';
+import { PlayerIcon } from '../../../../../../../utils/SvgIcon/player-icon';
 
 interface MusicSourceOption {
   value: string;
   label: string;
+}
+
+/** 播放器进程名关键词图标映射表 */
+const PLAYER_ICON_MAP: Array<{ keywords: string[]; icon: string }> = [
+  { keywords: ['qqmusic', 'qq音乐'], icon: PlayerIcon.QQMUSIC }, // i18n-exclude
+  { keywords: ['netease', 'cloudmusic', '网易云'], icon: PlayerIcon.NETEASE }, // i18n-exclude
+  { keywords: ['kugou', '酷狗'], icon: PlayerIcon.KUGOU }, // i18n-exclude
+  { keywords: ['sodamusic', '汽水'], icon: PlayerIcon.SODAMUSIC }, // i18n-exclude
+  { keywords: ['apple', 'applemusic'], icon: PlayerIcon.APPLE_MUSIC },
+  { keywords: ['spotify'], icon: PlayerIcon.SPOTIFY },
+];
+
+/** 根据进程名匹配播放器图标 */
+function getPlayerIcon(name: string): string | null {
+  const lower = name.toLowerCase();
+  const match = PLAYER_ICON_MAP.find((entry) =>
+    entry.keywords.some((kw) => lower.includes(kw)),
+  );
+  return match?.icon ?? null;
 }
 
 interface MusicConfigMessage {
@@ -164,8 +184,11 @@ export function MusicSettingsSection(props: MusicSettingsSectionProps): ReactEle
                 <div className="settings-whitelist-list">
                   {whitelist.length === 0 ? (
                     <span className="settings-hide-selected-empty">{t('settings.music.whitelist.empty', { defaultValue: '暂无已加入的播放器' })}</span>
-                  ) : whitelist.map((item: string, idx: number) => (
-                    <div className="settings-whitelist-item" key={idx}>
+                  ) : whitelist.map((item: string, idx: number) => {
+                    const playerIcon = getPlayerIcon(item);
+                    return (
+                    <div className="settings-whitelist-item" key={item}>
+                      {playerIcon && <img className="settings-whitelist-icon" src={playerIcon} alt="" />}
                       <span className="settings-whitelist-name">{item}</span>
                       <button
                         className="settings-whitelist-remove"
@@ -180,7 +203,8 @@ export function MusicSettingsSection(props: MusicSettingsSectionProps): ReactEle
                         ×
                       </button>
                     </div>
-                  ))}
+                  );
+                  })}
                 </div>
               </div>
 

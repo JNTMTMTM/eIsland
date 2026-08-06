@@ -1,6 +1,6 @@
 {
   "name": "@eisland/windows-performance-monitor",
-  "version": "26.0.1",
+  "version": "26.0.2",
   "description": "Windows N-API addon for low-overhead CPU, memory, and temperature performance snapshots.",
   "author": "JNTMTMTM",
   "license": "GPL-3.0",
@@ -25,6 +25,9 @@
   },
   "dependencies": {
     "node-gyp": "^11.2.0"
+  },
+  "overrides": {
+    "glob": "10.5.0"
   },
   "devDependencies": {
     "@types/node": "^25.9.3"
