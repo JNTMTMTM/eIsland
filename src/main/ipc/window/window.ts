@@ -101,6 +101,7 @@ export function toggleMousePassthroughLock(getMainWindow: () => BrowserWindow | 
  */
 export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOptions): void {
   let pendingResizeTimer: ReturnType<typeof setTimeout> | null = null;
+  let logicalWindowSize: { width: number; height: number } | null = null;
 
   const withWindow = (fn: (win: BrowserWindow) => void): void => {
     const win = options.getMainWindow();
@@ -124,7 +125,27 @@ export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOpti
 
     const applyResize = (): void => {
       pendingResizeTimer = null;
-      withWindow((win) => win.setBounds(getTargetBounds(win)));
+      withWindow((win) => {
+        const targetBounds = getTargetBounds(win);
+        const currentBounds = win.getBounds();
+        const backingWidth = Math.max(currentBounds.width, targetBounds.width);
+        const backingX = Math.round(targetBounds.x - (backingWidth - targetBounds.width) / 2);
+        logicalWindowSize = { width: targetBounds.width, height: targetBounds.height };
+
+        win.setBounds({
+          x: backingX,
+          y: targetBounds.y,
+          width: backingWidth,
+          height: targetBounds.height,
+        });
+        win.setShape([{
+          x: Math.round((backingWidth - targetBounds.width) / 2),
+          y: 0,
+          width: targetBounds.width,
+          height: targetBounds.height,
+        }]);
+        win.webContents.invalidate();
+      });
     };
 
     if (safeDelayMs > 0) {
@@ -292,7 +313,14 @@ export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOpti
   ipcMain.handle('window:get-bounds', () => {
     const win = options.getMainWindow();
     if (win && !win.isDestroyed()) {
-      return win.getBounds();
+      const bounds = win.getBounds();
+      if (!logicalWindowSize) return bounds;
+      return {
+        x: Math.round(bounds.x + (bounds.width - logicalWindowSize.width) / 2),
+        y: bounds.y,
+        width: logicalWindowSize.width,
+        height: logicalWindowSize.height,
+      };
     }
     return null;
   });

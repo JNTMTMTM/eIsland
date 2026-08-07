@@ -73,8 +73,9 @@ describe('window ipc handlers', () => {
     setIgnoreMouseEvents: vi.fn(),
     getBounds: vi.fn(() => ({ x: 100, y: 200, width: 300, height: 100 })),
     setBounds: vi.fn(),
+    setShape: vi.fn(),
     hide: vi.fn(),
-    webContents: { send: vi.fn() },
+    webContents: { send: vi.fn(), invalidate: vi.fn() },
   };
 
   beforeEach(() => {
@@ -89,8 +90,10 @@ describe('window ipc handlers', () => {
     win.getBounds.mockReset();
     win.getBounds.mockReturnValue({ x: 100, y: 200, width: 300, height: 100 });
     win.setBounds.mockReset();
+    win.setShape.mockReset();
     win.hide.mockReset();
     win.webContents.send.mockReset();
+    win.webContents.invalidate.mockReset();
 
     handleMock.mockImplementation((channel: string, handler: (...args: unknown[]) => unknown) => {
       handleHandlers.set(channel, handler);
@@ -143,16 +146,20 @@ describe('window ipc handlers', () => {
     expect(win.setBounds).toHaveBeenCalledTimes(2);
 
     vi.useFakeTimers();
-    onHandlers.get('window:expand-full')?.({}, 700);
+    win.getBounds.mockReturnValue({ x: 100, y: 200, width: 1000, height: 600 });
+    onHandlers.get('window:expand')?.({}, 700);
     expect(win.setBounds).toHaveBeenCalledTimes(2);
     vi.advanceTimersByTime(699);
     expect(win.setBounds).toHaveBeenCalledTimes(2);
     vi.advanceTimersByTime(1);
     expect(win.setBounds).toHaveBeenCalledTimes(3);
+    expect(win.setShape).toHaveBeenLastCalledWith([{ x: 200, y: 0, width: 600, height: 200 }]);
+    expect(win.webContents.invalidate).toHaveBeenCalledTimes(3);
     vi.useRealTimers();
 
+    win.getBounds.mockReturnValue({ x: 0, y: 0, width: 1000, height: 200 });
     expect(handleHandlers.get('window:get-mouse-position')?.()).toEqual({ x: 10, y: 20 });
-    expect(handleHandlers.get('window:get-bounds')?.()).toEqual({ x: 100, y: 200, width: 300, height: 100 });
+    expect(handleHandlers.get('window:get-bounds')?.()).toEqual({ x: 200, y: 0, width: 600, height: 200 });
     expect(handleHandlers.get('window:island-displays:list')?.()).toEqual([{ id: '1', width: 1920, height: 1080, isPrimary: true }]);
   });
 
