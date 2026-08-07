@@ -3314,6 +3314,7 @@
         "account": "Account",
         "oauth": "Third-party App",
         "image-translation": "Image Translation",
+        "ocr-history": "OCR History",
         "switchTo": "Switch to {{label}}"
       },
       "oauth": {
@@ -3374,6 +3375,9 @@
           "failed": "Failed",
           "unknown": "Unknown"
         }
+      },
+      "ocrHistory": {
+        "subtitle": "View OCR recognition history"
       },
       "recharge": {
         "title": "Recharge Balance",

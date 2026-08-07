@@ -70,7 +70,7 @@ import { SettingsPageNavigation, SettingsPageNavigationToggle } from '../Setting
 import '../../../../../../../styles/settings/modules/cli.css';
 
 type FeedbackType = 'success' | 'error' | 'info';
-type UserProfilePage = 'info' | 'edit' | 'password' | 'pro' | 'recharge' | 'orders' | 'account' | 'oauth' | 'image-translation';
+type UserProfilePage = 'info' | 'edit' | 'password' | 'pro' | 'recharge' | 'orders' | 'account' | 'oauth' | 'image-translation' | 'ocr-history';
 
 interface Feedback {
   type: FeedbackType;
@@ -99,7 +99,7 @@ interface UserSettingsSectionProps {
 }
 
 const GENDER_VALUES: UserAccountGender[] = ['male', 'female', 'custom', 'undisclosed'];
-const USER_PROFILE_PAGES: UserProfilePage[] = ['info', 'edit', 'password', 'pro', 'recharge', 'orders', 'account', 'oauth', 'image-translation'];
+const USER_PROFILE_PAGES: UserProfilePage[] = ['info', 'edit', 'password', 'pro', 'recharge', 'orders', 'account', 'oauth', 'image-translation', 'ocr-history'];
 const IMAGE_TRANSLATION_PREVIEW_MIN_SCALE = 0.5;
 const IMAGE_TRANSLATION_PREVIEW_MAX_SCALE = 4;
 
@@ -279,7 +279,9 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
                   ? '关于账户'
                   : userProfilePage === 'oauth'
                     ? '第三方应用绑定'
-                    : '图片翻译',
+                    : userProfilePage === 'image-translation'
+                      ? '图片翻译'
+                      : 'OCR记录',
   });
 
   const avatarInputRef = useRef<HTMLInputElement | null>(null);
@@ -1379,6 +1381,7 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
       { id: 'account', label: t('settings.user.pages.account', { defaultValue: '关于账户' }) },
       { id: 'oauth', label: t('settings.user.pages.oauth', { defaultValue: '第三方应用绑定' }) },
       { id: 'image-translation', label: t('settings.user.pages.image-translation', { defaultValue: '图片翻译' }) },
+      { id: 'ocr-history', label: t('settings.user.pages.ocr-history', { defaultValue: 'OCR记录' }) },
     ];
     const profilePageLabels = Object.fromEntries(
       profilePageItems.map((item) => [item.id, item.label]),
@@ -1981,9 +1984,13 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
     const renderOAuthPage = (): ReactElement => (
       <div className="settings-user-page-panel settings-user-oauth-panel">
         <div className="settings-user-card settings-user-oauth-head-card">
-          <div className="settings-user-form-title">{t('settings.user.pages.oauth', { defaultValue: '第三方应用绑定' })}</div>
-          <div className="settings-user-card-title-hint">
-            {t('settings.user.oauth.subtitle', { defaultValue: '管理已绑定的第三方登录账号' })}
+          <div className="settings-user-oauth-head">
+            <div>
+              <div className="settings-user-form-title">{t('settings.user.pages.oauth', { defaultValue: '第三方应用绑定' })}</div>
+              <div className="settings-user-card-title-hint">
+                {t('settings.user.oauth.subtitle', { defaultValue: '管理已绑定的第三方登录账号' })}
+              </div>
+            </div>
           </div>
         </div>
 
@@ -2275,6 +2282,21 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
       </div>
     );
 
+    const renderOcrHistoryPage = (): ReactElement => (
+      <div className="settings-user-page-panel settings-user-ocr-history-panel">
+        <div className="settings-user-card settings-user-ocr-history-head-card">
+          <div className="settings-user-ocr-history-head">
+            <div>
+              <div className="settings-user-form-title">{t('settings.user.pages.ocr-history', { defaultValue: 'OCR记录' })}</div>
+              <div className="settings-user-card-title-hint">
+                {t('settings.user.ocrHistory.subtitle', { defaultValue: '查看 OCR 识别历史记录' })}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+
     const rechargeAmountYuan = rechargeSelected !== null && rechargeSelected !== undefined
       ? rechargeSelected
       : (rechargeCustomValue.trim() !== '' ? parseFloat(rechargeCustomValue) : NaN);
@@ -2366,6 +2388,7 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
           {userProfilePage === 'account' && renderAccountPage()}
           {userProfilePage === 'oauth' && renderOAuthPage()}
           {userProfilePage === 'image-translation' && renderImageTranslationPage()}
+          {userProfilePage === 'ocr-history' && renderOcrHistoryPage()}
         </div>
 
         <SettingsPageNavigation
