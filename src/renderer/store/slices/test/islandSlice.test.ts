@@ -90,8 +90,18 @@ describe('createIslandSlice', () => {
     store.getState().setIdle(true);
 
     expect(store.getState().state).toBe('idle');
-    expect(api.collapseWindow).toHaveBeenCalledTimes(1);
+    expect(api.collapseWindow).toHaveBeenCalledWith(700);
     expect(api.enableMousePassthrough).toHaveBeenCalledTimes(1);
+  });
+
+  it('delays maxExpand to expanded window resize until morphing completes', () => {
+    const store = createSliceState(createIslandSlice);
+
+    store.getState().setMaxExpand();
+    store.getState().setExpanded();
+
+    expect(store.getState().state).toBe('expanded');
+    expect(api.expandWindowFull).toHaveBeenLastCalledWith(700);
   });
 
   it('stores auth return state when entering login', () => {

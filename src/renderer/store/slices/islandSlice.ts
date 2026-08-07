@@ -27,6 +27,7 @@
 import type { StateCreator } from 'zustand';
 import type { IslandSlice } from '../types';
 import { emptyNotification } from '../constants/defaults';
+import { getIslandWindowShrinkDelay } from '../constants/islandTransition';
 import { playNotificationSoundOnce } from '../../utils/audio/notificationSound';
 
 function isStandaloneRenderer(): boolean {
@@ -73,21 +74,21 @@ export const createIslandSlice: StateCreator<
   setIdle: (force?: boolean) => set((prev) => {
     if (prev.uiStateLocked && prev.state !== 'idle') return prev;
     if (!force && (prev.state === 'expanded' || prev.state === 'maxExpand' || prev.state === 'guide' || prev.state === 'login' || prev.state === 'register' || prev.state === 'resetPassword' || prev.state === 'setPassword' || prev.state === 'bindOAuth' || prev.state === 'bindEmail' || prev.state === 'payment' || prev.state === 'announcement')) return prev;
-    window.api?.collapseWindow();
+    window.api?.collapseWindow(getIslandWindowShrinkDelay(prev.state, 'idle', prev.animationSpeed));
     window.api?.enableMousePassthrough();
     return { state: 'idle' as const, authReturnState: null };
   }),
 
   setHover: () => set((prev) => {
     if (prev.uiStateLocked && prev.state !== 'hover') return prev;
-    window.api?.expandWindow();
+    window.api?.expandWindow(getIslandWindowShrinkDelay(prev.state, 'hover', prev.animationSpeed));
     window.api?.disableMousePassthrough();
     return { state: 'hover', authReturnState: null };
   }),
 
   setExpanded: () => set((prev) => {
     if (prev.uiStateLocked && prev.state !== 'expanded') return prev;
-    window.api?.expandWindowFull();
+    window.api?.expandWindowFull(getIslandWindowShrinkDelay(prev.state, 'expanded', prev.animationSpeed));
     window.api?.disableMousePassthrough();
     return { state: 'expanded', authReturnState: null };
   }),
@@ -184,26 +185,26 @@ export const createIslandSlice: StateCreator<
 
     if (!standalone) {
       if (target === 'idle') {
-        window.api?.collapseWindow();
+        window.api?.collapseWindow(getIslandWindowShrinkDelay(prev.state, target, prev.animationSpeed));
         window.api?.enableMousePassthrough();
       } else if (target === 'hover') {
-        window.api?.expandWindow();
+        window.api?.expandWindow(getIslandWindowShrinkDelay(prev.state, target, prev.animationSpeed));
         window.api?.disableMousePassthrough();
       } else if (target === 'expanded') {
-        window.api?.expandWindowFull();
+        window.api?.expandWindowFull(getIslandWindowShrinkDelay(prev.state, target, prev.animationSpeed));
         window.api?.disableMousePassthrough();
       } else if (target === 'maxExpand' || target === 'guide' || target === 'login' || target === 'register' || target === 'payment' || target === 'announcement') {
         window.api?.expandWindowSettings();
         window.api?.disableMousePassthrough();
       } else if (target === 'lyrics' || target === 'agentVoiceInput' || target === 'lyricsTranslation') {
         if (target === 'lyricsTranslation') {
-          window.api?.expandWindowLyricsTranslation();
+          window.api?.expandWindowLyricsTranslation(getIslandWindowShrinkDelay(prev.state, target, prev.animationSpeed));
         } else {
-          window.api?.expandWindowLyrics();
+          window.api?.expandWindowLyrics(getIslandWindowShrinkDelay(prev.state, target, prev.animationSpeed));
         }
         window.api?.enableMousePassthrough();
       } else if (target === 'notification' || target === 'agent' || target === 'stt') {
-        window.api?.expandWindowNotification();
+        window.api?.expandWindowNotification(getIslandWindowShrinkDelay(prev.state, target, prev.animationSpeed));
         window.api?.disableMousePassthrough();
       }
     }
@@ -213,21 +214,21 @@ export const createIslandSlice: StateCreator<
 
   setLyrics: () => set((prev) => {
     if (prev.uiStateLocked && prev.state !== 'lyrics') return prev;
-    window.api?.expandWindowLyrics();
+    window.api?.expandWindowLyrics(getIslandWindowShrinkDelay(prev.state, 'lyrics', prev.animationSpeed));
     window.api?.enableMousePassthrough();
     return { state: 'lyrics', authReturnState: null };
   }),
 
   setLyricsTranslation: () => set((prev) => {
     if (prev.uiStateLocked && prev.state !== 'lyricsTranslation') return prev;
-    window.api?.expandWindowLyricsTranslation();
+    window.api?.expandWindowLyricsTranslation(getIslandWindowShrinkDelay(prev.state, 'lyricsTranslation', prev.animationSpeed));
     window.api?.enableMousePassthrough();
     return { state: 'lyricsTranslation', authReturnState: null };
   }),
 
   setNotification: (data) => set((prev) => {
     if (prev.uiStateLocked && prev.state !== 'notification') return prev;
-    window.api?.expandWindowNotification();
+    window.api?.expandWindowNotification(getIslandWindowShrinkDelay(prev.state, 'notification', prev.animationSpeed));
     if (data.type !== 'cli-session-detected') playNotificationSoundOnce();
     return { state: 'notification', notification: data, authReturnState: null };
   }),
@@ -248,28 +249,28 @@ export const createIslandSlice: StateCreator<
 
   setAgentVoiceInput: () => set((prev) => {
     if (prev.uiStateLocked && prev.state !== 'agentVoiceInput') return prev;
-    window.api?.expandWindowLyrics();
+    window.api?.expandWindowLyrics(getIslandWindowShrinkDelay(prev.state, 'agentVoiceInput', prev.animationSpeed));
     window.api?.enableMousePassthrough();
     return { state: 'agentVoiceInput' as const, authReturnState: null };
   }),
 
   setStt: (text?: string) => set((prev) => {
     if (prev.uiStateLocked && prev.state !== 'stt') return prev;
-    window.api?.expandWindowNotification();
+    window.api?.expandWindowNotification(getIslandWindowShrinkDelay(prev.state, 'stt', prev.animationSpeed));
     window.api?.disableMousePassthrough();
     return { state: 'stt' as const, sttText: text ?? '', authReturnState: null };
   }),
 
   setAgent: (prompt?: string) => set((prev) => {
     if (prev.uiStateLocked && prev.state !== 'agent') return prev;
-    window.api?.expandWindowNotification();
+    window.api?.expandWindowNotification(getIslandWindowShrinkDelay(prev.state, 'agent', prev.animationSpeed));
     window.api?.disableMousePassthrough();
     return { state: 'agent' as const, agentPrompt: prompt ?? prev.sttText ?? '', authReturnState: null };
   }),
 
   setCli: () => set((prev) => {
     if (prev.uiStateLocked && prev.state !== 'cli') return prev;
-    window.api?.expandWindowNotification();
+    window.api?.expandWindowNotification(getIslandWindowShrinkDelay(prev.state, 'cli', prev.animationSpeed));
     window.api?.disableMousePassthrough();
     return { state: 'cli' as const, authReturnState: null };
   }),

@@ -178,10 +178,6 @@
   pointer-events: none;
 }
 
-.island-shell.instant-resize {
-  transition-property: border-radius, background, box-shadow;
-}
-
 /** 状态切换形变脉冲动画（通用兜底） */
 .island-shell.spring-animation.morphing {
   animation: shellMorph 0.55s cubic-bezier(0.25, 1, 0.5, 1);

@@ -98,50 +98,50 @@ const api = {
    * 展开窗口到 hover 状态尺寸
    * @description 基于初始中心点，向两边均匀扩展
    */
-  expandWindow: (): void => {
-    ipcRenderer.send('window:expand');
+  expandWindow: (delayMs = 0): void => {
+    ipcRenderer.send('window:expand', delayMs);
   },
   /**
    * 展开窗口到 notification 状态尺寸
    * @description 使用通知专用尺寸（500x88）
    */
-  expandWindowNotification: (): void => {
-    ipcRenderer.send('window:expand-notification');
+  expandWindowNotification: (delayMs = 0): void => {
+    ipcRenderer.send('window:expand-notification', delayMs);
   },
   /**
    * 展开窗口到歌词状态尺寸
    * @description 宽度 500，高度与 idle 一致（42）
    */
-  expandWindowLyrics: (): void => {
-    ipcRenderer.send('window:expand-lyrics');
+  expandWindowLyrics: (delayMs = 0): void => {
+    ipcRenderer.send('window:expand-lyrics', delayMs);
   },
   /**
    * 展开窗口到歌词+翻译歌词状态尺寸
    * @description 宽度 500，高度 60（与 hover 一致）
    */
-  expandWindowLyricsTranslation: (): void => {
-    ipcRenderer.send('window:expand-lyrics-translation');
+  expandWindowLyricsTranslation: (delayMs = 0): void => {
+    ipcRenderer.send('window:expand-lyrics-translation', delayMs);
   },
   /**
    * 完整展开窗口到 expanded 状态尺寸
    * @description 单击灵动岛后展开为完整操作面板（560x200）
    */
-  expandWindowFull: (): void => {
-    ipcRenderer.send('window:expand-full');
+  expandWindowFull: (delayMs = 0): void => {
+    ipcRenderer.send('window:expand-full', delayMs);
   },
   /**
    * 展开窗口到设置面板尺寸
    * @description 比 expanded 更大的独立设置界面（860x400）
    */
-  expandWindowSettings: (): void => {
-    ipcRenderer.send('window:expand-settings');
+  expandWindowSettings: (delayMs = 0): void => {
+    ipcRenderer.send('window:expand-settings', delayMs);
   },
   /**
    * 收缩窗口到 idle 状态尺寸
    * @description 收缩回原始尺寸，保持中心对齐
    */
-  collapseWindow: (): void => {
-    ipcRenderer.send('window:collapse');
+  collapseWindow: (delayMs = 0): void => {
+    ipcRenderer.send('window:collapse', delayMs);
   },
   /**
    * 按像素偏移移动窗口（用于拖动）

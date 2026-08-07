@@ -25,30 +25,9 @@
  */
 
 import type { IslandState } from '../hooks/useDynamicIslandShell';
+import { ISLAND_STATE_AREA } from '../../store/constants/islandTransition';
 
-export const STATE_AREA: Record<string, number> = {
-  idle: 260 * 42,
-  minimal: 260 * 42,
-  lyrics: 500 * 42,
-  lyricsTranslation: 500 * 60,
-  hover: 500 * 60,
-  notification: 500 * 88,
-  expanded: 860 * 150,
-  maxExpand: 860 * 400,
-  guide: 860 * 400,
-  login: 860 * 400,
-  register: 860 * 400,
-  resetPassword: 860 * 400,
-  setPassword: 860 * 400,
-  bindOAuth: 860 * 400,
-  bindEmail: 860 * 400,
-  payment: 860 * 400,
-  announcement: 860 * 400,
-  agentVoiceInput: 500 * 42,
-  agent: 500 * 88,
-  stt: 500 * 88,
-  cli: 500 * 88,
-};
+export const STATE_AREA = ISLAND_STATE_AREA;
 
 interface StateConfig {
   name: IslandState;

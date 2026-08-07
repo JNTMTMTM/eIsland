@@ -142,6 +142,15 @@ describe('window ipc handlers', () => {
     onHandlers.get('window:collapse')?.();
     expect(win.setBounds).toHaveBeenCalledTimes(2);
 
+    vi.useFakeTimers();
+    onHandlers.get('window:expand-full')?.({}, 700);
+    expect(win.setBounds).toHaveBeenCalledTimes(2);
+    vi.advanceTimersByTime(699);
+    expect(win.setBounds).toHaveBeenCalledTimes(2);
+    vi.advanceTimersByTime(1);
+    expect(win.setBounds).toHaveBeenCalledTimes(3);
+    vi.useRealTimers();
+
     expect(handleHandlers.get('window:get-mouse-position')?.()).toEqual({ x: 10, y: 20 });
     expect(handleHandlers.get('window:get-bounds')?.()).toEqual({ x: 100, y: 200, width: 300, height: 100 });
     expect(handleHandlers.get('window:island-displays:list')?.()).toEqual([{ id: '1', width: 1920, height: 1080, isPrimary: true }]);
