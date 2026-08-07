@@ -27,6 +27,7 @@
 import { useEffect } from 'react';
 import useIslandStore from '../../store/isLandStore';
 import type { NotificationData } from '../../store/types';
+import { getIslandMorphDuration } from '../../store/constants/islandTransition';
 import {
   ISLAND_BG_MEDIA_STORE_KEY,
   ISLAND_BG_IMAGE_STORE_KEY,
@@ -352,22 +353,27 @@ export function useIslandSettingsSync(options: UseIslandSettingsSyncOptions): vo
      */
     /** 当前动画帧 ID，用于取消 */
     let animFrameId = 0;
+    let shapeChangeVersion = 0;
 
     const animateWindowMove = (totalDx: number, totalDy: number, duration: number): Promise<void> => {
       return new Promise((resolve) => {
         const startTime = performance.now();
-        let lastProgress = 0;
+        let movedX = 0;
+        let movedY = 0;
         const step = (now: number): void => {
           const elapsed = now - startTime;
           const progress = Math.min(elapsed / duration, 1);
           /** easeOutCubic 缓动 */
           const eased = 1 - Math.pow(1 - progress, 3);
-          const dx = Math.round(totalDx * (eased - lastProgress));
-          const dy = Math.round(totalDy * (eased - lastProgress));
+          const targetMovedX = Math.round(totalDx * eased);
+          const targetMovedY = Math.round(totalDy * eased);
+          const dx = targetMovedX - movedX;
+          const dy = targetMovedY - movedY;
           if (dx !== 0 || dy !== 0) {
             window.api?.moveWindowDelta?.(dx, dy);
+            movedX = targetMovedX;
+            movedY = targetMovedY;
           }
-          lastProgress = eased;
           if (progress < 1) {
             animFrameId = requestAnimationFrame(step);
           } else {
@@ -379,72 +385,51 @@ export function useIslandSettingsSync(options: UseIslandSettingsSyncOptions): vo
     };
 
     /** 根据当前状态调用对应的窗口 resize */
-    const applyWindowForState = (state: string): void => {
+    const applyWindowForState = (state: string, delayMs = 0): void => {
       if (state === 'hover') {
-        window.api?.expandWindow();
+        window.api?.expandWindow(delayMs);
       } else if (state === 'notification' || state === 'agent' || state === 'stt' || state === 'cli') {
-        window.api?.expandWindowNotification();
+        window.api?.expandWindowNotification(delayMs);
       } else if (state === 'lyrics' || state === 'agentVoiceInput') {
-        window.api?.expandWindowLyrics();
+        window.api?.expandWindowLyrics(delayMs);
       } else if (state === 'lyricsTranslation') {
-        window.api?.expandWindowLyricsTranslation();
+        window.api?.expandWindowLyricsTranslation(delayMs);
       } else if (state === 'expanded') {
-        window.api?.expandWindowFull();
+        window.api?.expandWindowFull(delayMs);
       } else if (state === 'maxExpand' || state === 'guide' || state === 'login' || state === 'register' || state === 'resetPassword' || state === 'setPassword' || state === 'bindOAuth' || state === 'bindEmail' || state === 'payment' || state === 'announcement') {
-        window.api?.expandWindowSettings();
+        window.api?.expandWindowSettings(delayMs);
       } else {
-        window.api?.collapseWindow();
+        window.api?.collapseWindow(delayMs);
       }
     };
 
     const unsub = window.api?.onShapeModeChanged?.((mode: string, targetX: number, targetY: number) => {
-      const v = mode === 'notch' || mode === 'pill' ? mode : 'notch';
+      const nextMode = mode === 'notch' || mode === 'pill' ? mode : 'notch';
       const store = useIslandStore.getState();
-      if (store.shapeMode === v) return;
+
+      shapeChangeVersion += 1;
+      const currentVersion = shapeChangeVersion;
+      if (animFrameId) {
+        cancelAnimationFrame(animFrameId);
+        animFrameId = 0;
+      }
 
       const currentState = store.state;
-      const isIdleSize = currentState === 'idle' || currentState === 'lyrics' || currentState === 'lyricsTranslation' || currentState === 'agentVoiceInput';
-      /** notch 与 pill 基准 Y 差值（pill 在 notch 下方 46px） */
-      const pillNotchDeltaY = 46;
+      const transitionDuration = Math.max(ANIM_DURATION, getIslandMorphDuration(store.animationSpeed));
+      if (store.shapeMode !== nextMode) store.setShapeMode(nextMode);
+      applyWindowForState(currentState, transitionDuration);
 
-      if (v === 'notch') {
-        if (isIdleSize) {
-          /** pill → notch idle：先动画移动窗口到顶部，再切换 CSS + resize */
-          /** targetX 基于 islandWidth(260) 计算，lyrics 等状态窗口宽度为 500，
-           *  需按实际宽度计算目标 X，使动画与 applyWindowForState 的最终位置一致，避免两步跳动 */
-          const ISLAND_WIDTH = 260;
-          const notchModeCenterX = targetX + ISLAND_WIDTH / 2;
-          const targetWindowX = Math.round(notchModeCenterX - window.outerWidth / 2);
-          const dx = targetWindowX - window.screenX;
-          const dy = targetY - window.screenY;
-          animateWindowMove(dx, dy, ANIM_DURATION).then(() => {
-            useIslandStore.getState().setShapeMode('notch');
-            applyWindowForState(currentState);
-          }).catch(() => {});
-        } else {
-          /** pill → notch 非 idle：切换 CSS，展开 handler 设置正确位置（getEffectiveY 贴顶） */
-          useIslandStore.getState().setShapeMode('notch');
-          applyWindowForState(currentState);
-        }
-      } else {
-        if (isIdleSize) {
-          /** notch → pill idle：先 resize 到 pill 尺寸，再切换 CSS，再动画移动窗口 */
-          applyWindowForState(currentState);
-          useIslandStore.getState().setShapeMode('pill');
-          /** targetX 基于 islandWidth(260) 计算，但 lyrics/lyricsTranslation/agentVoiceInput
-           *  窗口宽度为 500，与 idle(260) 不同，水平方向不移动，仅垂直下移 */
-          const dx = currentState === 'idle' ? targetX - window.screenX : 0;
-          const dy = targetY - window.screenY;
-          animateWindowMove(dx, dy, ANIM_DURATION).catch(() => {});
-        } else {
-          /** notch → pill 非 idle：切换 CSS + resize，再动画下移 */
-          useIslandStore.getState().setShapeMode('pill');
-          applyWindowForState(currentState);
-          animateWindowMove(0, pillNotchDeltaY, ANIM_DURATION).catch(() => {});
-        }
-      }
+      void window.api.getWindowBounds().then((bounds) => {
+        if (currentVersion !== shapeChangeVersion || !bounds) return;
+        const targetCenterX = targetX + 130;
+        const currentCenterX = bounds.x + bounds.width / 2;
+        const dx = Math.round(targetCenterX - currentCenterX);
+        const dy = Math.round(targetY - bounds.y);
+        return animateWindowMove(dx, dy, ANIM_DURATION);
+      }).catch(() => {});
     });
     return () => {
+      shapeChangeVersion += 1;
       if (animFrameId) cancelAnimationFrame(animFrameId);
       unsub?.();
     };

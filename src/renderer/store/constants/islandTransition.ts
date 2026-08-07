@@ -52,6 +52,15 @@ const MORPH_DURATION_BY_SPEED: Record<string, number> = {
 };
 
 /**
+ * 获取指定速度档位的完整形变保护时长。
+ * @param animationSpeed - 动画速度档位。
+ * @returns 形变保护时长（毫秒）。
+ */
+export function getIslandMorphDuration(animationSpeed: string): number {
+  return MORPH_DURATION_BY_SPEED[animationSpeed] ?? MORPH_DURATION_BY_SPEED.medium;
+}
+
+/**
  * 获取窗口缩小时应保留旧画布的时长。
  * @param fromState - 形变前状态。
  * @param toState - 形变后状态。
@@ -64,5 +73,5 @@ export function getIslandWindowShrinkDelay(
   animationSpeed: string,
 ): number {
   if (ISLAND_STATE_AREA[fromState] <= ISLAND_STATE_AREA[toState]) return 0;
-  return MORPH_DURATION_BY_SPEED[animationSpeed] ?? MORPH_DURATION_BY_SPEED.medium;
+  return getIslandMorphDuration(animationSpeed);
 }

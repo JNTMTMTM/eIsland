@@ -116,6 +116,32 @@ export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOpti
     }
   };
 
+  const applyWindowGeometry = (
+    win: BrowserWindow,
+    targetBounds: Electron.Rectangle,
+    visibleWidth: number,
+    visibleHeight: number,
+  ): void => {
+    const currentBounds = win.getBounds();
+    const backingWidth = Math.max(currentBounds.width, targetBounds.width, visibleWidth);
+    const backingX = Math.round(targetBounds.x - (backingWidth - targetBounds.width) / 2);
+    logicalWindowSize = { width: visibleWidth, height: visibleHeight };
+
+    win.setBounds({
+      x: backingX,
+      y: targetBounds.y,
+      width: backingWidth,
+      height: visibleHeight,
+    });
+    win.setShape([{
+      x: Math.round((backingWidth - visibleWidth) / 2),
+      y: 0,
+      width: visibleWidth,
+      height: visibleHeight,
+    }]);
+    win.webContents.invalidate();
+  };
+
   const resizeWindow = (getTargetBounds: (win: BrowserWindow) => Electron.Rectangle, delayMs = 0): void => {
     const safeDelayMs = Number.isFinite(delayMs) ? Math.max(0, delayMs) : 0;
     if (pendingResizeTimer) {
@@ -123,36 +149,37 @@ export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOpti
       pendingResizeTimer = null;
     }
 
-    const applyResize = (): void => {
-      pendingResizeTimer = null;
+    if (safeDelayMs > 0) {
       withWindow((win) => {
         const targetBounds = getTargetBounds(win);
         const currentBounds = win.getBounds();
-        const backingWidth = Math.max(currentBounds.width, targetBounds.width);
-        const backingX = Math.round(targetBounds.x - (backingWidth - targetBounds.width) / 2);
-        logicalWindowSize = { width: targetBounds.width, height: targetBounds.height };
-
-        win.setBounds({
-          x: backingX,
-          y: targetBounds.y,
-          width: backingWidth,
-          height: targetBounds.height,
-        });
-        win.setShape([{
-          x: Math.round((backingWidth - targetBounds.width) / 2),
-          y: 0,
-          width: targetBounds.width,
-          height: targetBounds.height,
-        }]);
-        win.webContents.invalidate();
+        const currentSize = logicalWindowSize ?? currentBounds;
+        const currentCenterX = currentBounds.x + currentBounds.width / 2;
+        applyWindowGeometry(
+          win,
+          {
+            ...targetBounds,
+            x: Math.round(currentCenterX - targetBounds.width / 2),
+            y: currentBounds.y,
+          },
+          Math.max(currentSize.width, targetBounds.width),
+          Math.max(currentSize.height, targetBounds.height),
+        );
       });
-    };
-
-    if (safeDelayMs > 0) {
-      pendingResizeTimer = setTimeout(applyResize, safeDelayMs);
+      pendingResizeTimer = setTimeout(() => {
+        pendingResizeTimer = null;
+        withWindow((win) => {
+          const targetBounds = getTargetBounds(win);
+          applyWindowGeometry(win, targetBounds, targetBounds.width, targetBounds.height);
+        });
+      }, safeDelayMs);
       return;
     }
-    applyResize();
+
+    withWindow((win) => {
+      const targetBounds = getTargetBounds(win);
+      applyWindowGeometry(win, targetBounds, targetBounds.width, targetBounds.height);
+    });
   };
 
   /** 获取当前窗口水平中心点（pill 模式用当前窗口中心，notch 模式用初始中心） */

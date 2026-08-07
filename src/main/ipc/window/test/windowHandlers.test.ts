@@ -148,13 +148,14 @@ describe('window ipc handlers', () => {
     vi.useFakeTimers();
     win.getBounds.mockReturnValue({ x: 100, y: 200, width: 1000, height: 600 });
     onHandlers.get('window:expand')?.({}, 700);
-    expect(win.setBounds).toHaveBeenCalledTimes(2);
-    vi.advanceTimersByTime(699);
-    expect(win.setBounds).toHaveBeenCalledTimes(2);
-    vi.advanceTimersByTime(1);
     expect(win.setBounds).toHaveBeenCalledTimes(3);
     expect(win.setShape).toHaveBeenLastCalledWith([{ x: 200, y: 0, width: 600, height: 200 }]);
-    expect(win.webContents.invalidate).toHaveBeenCalledTimes(3);
+    vi.advanceTimersByTime(699);
+    expect(win.setBounds).toHaveBeenCalledTimes(3);
+    vi.advanceTimersByTime(1);
+    expect(win.setBounds).toHaveBeenCalledTimes(4);
+    expect(win.setShape).toHaveBeenLastCalledWith([{ x: 200, y: 0, width: 600, height: 200 }]);
+    expect(win.webContents.invalidate).toHaveBeenCalledTimes(4);
     vi.useRealTimers();
 
     win.getBounds.mockReturnValue({ x: 0, y: 0, width: 1000, height: 200 });

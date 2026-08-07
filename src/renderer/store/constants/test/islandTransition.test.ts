@@ -20,13 +20,19 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import { getIslandWindowShrinkDelay } from '../islandTransition';
+import { getIslandMorphDuration, getIslandWindowShrinkDelay } from '../islandTransition';
 
 describe('getIslandWindowShrinkDelay', () => {
   it('keeps the old window canvas while a smaller state is animating', () => {
     expect(getIslandWindowShrinkDelay('expanded', 'idle', 'medium')).toBe(700);
     expect(getIslandWindowShrinkDelay('hover', 'idle', 'fast')).toBe(360);
     expect(getIslandWindowShrinkDelay('maxExpand', 'expanded', 'slow')).toBe(1100);
+  });
+
+  it('provides a protection duration for shape-mode changes', () => {
+    expect(getIslandMorphDuration('slow')).toBe(1100);
+    expect(getIslandMorphDuration('medium')).toBe(700);
+    expect(getIslandMorphDuration('fast')).toBe(360);
   });
 
   it('resizes immediately when the target state is not smaller', () => {
