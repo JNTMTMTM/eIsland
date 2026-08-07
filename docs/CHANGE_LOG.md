@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-08-06T09:27:57.016Z
+> 生成时间：2026-08-07T09:23:00.179Z
 
 ## 26.7.1
 
@@ -3284,6 +3284,22 @@
 
 ## Unreleased
 
+- 2026-08-07 | f9bf6c1c | 鸡哥 | Merge pull request #190 from JNTMTMTM/dev
+- 2026-08-07 | 51585a29 | 鸡哥 | feat: implement local OCR worker management and update error codes for login requirement
+- 2026-08-07 | da918882 | 鸡哥 | feat: add delete and download actions for OCR history with localization support
+- 2026-08-07 | 027497cb | 鸡哥 | feat: enhance user image translation button styles with scrollbar customization
+- 2026-08-07 | 518a1e31 | 鸡哥 | feat: implement OCR history feature with localization and pagination support
+- 2026-08-07 | 625e2b70 | 鸡哥 | feat: add OCR history page and localization support in user settings
+- 2026-08-07 | a9fb621a | 鸡哥 | feat: add inline icons for OCR engine selection and update styles
+- 2026-08-07 | 0eb0900f | 鸡哥 | feat: update OCR button icons and improve CSS styles for better visibility
+- 2026-08-07 | f5bbb666 | 鸡哥 | feat: implement local OCR functionality with Tesseract.js integration and UI updates
+- 2026-08-07 | 4a2c4cc4 | 鸡哥 | feat: enhance OCR text area with custom scrollbar styles
+- 2026-08-07 | 3969892e | 鸡哥 | feat: update OCR panel UI with new button icon and improved styles
+- 2026-08-07 | 087fa66d | 鸡哥 | feat: enhance OCR panel positioning logic and CSS styles for better responsiveness
+- 2026-08-07 | d97ca5dd | 鸡哥 | feat: add OCR button icon and SVG file for enhanced UI
+- 2026-08-07 | 517bf2d6 | 鸡哥 | feat: implement OCR functionality with UI panel and backend integration
+- 2026-08-06 | 75efbcfb | 鸡哥 | feat: add OCR.svg icon and update SvgIcon mapping
+- 2026-08-06 | 723057b8 | eislandBot | docs: auto update CHANGE_LOG.md for #189 by @JNTMTMTM [skip ci]
 - 2026-08-06 | 16ff7a35 | 鸡哥 | Merge pull request #189 from JNTMTMTM/dev
 - 2026-08-06 | 4527c951 | 鸡哥 | feat: add i18n-exclude comments to player icon mapping for clarity
 - 2026-08-06 | 62c1129d | 鸡哥 | feat: update dependencies and improve player icon mapping in music settings
