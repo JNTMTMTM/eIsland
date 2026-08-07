@@ -38,6 +38,7 @@ import { registerClaudeCodeStatusIpcHandlers } from './ipc/agent/claudeCodeStatu
 import { registerCodexStatusIpcHandlers } from './ipc/agent/codexStatusIpc';
 import { registerClipboardIpcHandlers } from './ipc/settings/clipboard';
 import { registerCaptureIpcHandlers } from './ipc/window/capture';
+import { disposeLocalOcrWorker } from './services/captureLocalOcrService';
 import { registerScreenshotHotkeyIpcHandlers } from './ipc/system/screenshotHotkey';
 import { registerAppIpcHandlers } from './ipc/app/app';
 import { registerSystemIpcHandlers } from './ipc/system/system';
@@ -801,6 +802,7 @@ registerAppLifecycleHandlers({
     claudeCodeStatusService.stop();
     stopClipboardUrlWatcher();
     smtcService.cleanupWorker();
+    void disposeLocalOcrWorker();
     destroyTray();
     globalShortcut.unregisterAll();
   },

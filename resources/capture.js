@@ -224,6 +224,7 @@ void initCaptureLanguage();
 
 async function initOcrEngine() {
   try {
+    // 与 src/shared/storeKeys.ts 中 SCREENSHOT_OCR_ENGINE_STORE_KEY 保持一致
     const stored = await ipcRenderer.invoke('store:read', 'screenshot-ocr-engine');
     ocrEngine = stored === 'local' ? 'local' : 'server';
   } catch {

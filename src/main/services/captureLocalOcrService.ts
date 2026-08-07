@@ -28,6 +28,61 @@ export type CaptureLocalOcrResult = {
   message?: string;
 };
 
+/** 复用的 Tesseract 单例 worker，避免每次请求重新初始化。 */
+let cachedWorker: Worker | null = null;
+let workerReady = false;
+let idleTimer: ReturnType<typeof setTimeout> | null = null;
+
+/** 空闲 5 分钟后自动释放 worker 以回收内存。 */
+const WORKER_IDLE_TIMEOUT_MS = 5 * 60 * 1000;
+
+/**
+ * 获取或创建 Tesseract 单例 worker。
+ * 首次调用时初始化，后续调用直接复用。
+ */
+async function getWorker(): Promise<Worker> {
+  if (cachedWorker && workerReady) {
+    return cachedWorker;
+  }
+  cachedWorker = await createWorker('eng+chi_sim');
+  workerReady = true;
+  return cachedWorker;
+}
+
+/** 每次使用后重置空闲计时器，超时自动释放 worker。 */
+function scheduleIdleDispose(): void {
+  if (idleTimer) clearTimeout(idleTimer);
+  idleTimer = setTimeout(() => {
+    void resetWorker();
+  }, WORKER_IDLE_TIMEOUT_MS);
+  // 允许 Node 在 app 退出前不因该定时器而阻塞
+  if (idleTimer.unref) idleTimer.unref();
+}
+
+/**
+ * 重置单例 worker（worker 出错或空闲超时后调用，下次请求会重新创建）。
+ */
+async function resetWorker(): Promise<void> {
+  if (idleTimer) {
+    clearTimeout(idleTimer);
+    idleTimer = null;
+  }
+  if (!cachedWorker) return;
+  const old = cachedWorker;
+  cachedWorker = null;
+  workerReady = false;
+  try {
+    await old.terminate();
+  } catch {
+    // 忽略终止失败
+  }
+}
+
+/** 应用退出时清理 worker。 */
+export async function disposeLocalOcrWorker(): Promise<void> {
+  await resetWorker();
+}
+
 function dataUrlToBuffer(dataUrl: string): Buffer | null {
   const [metadata, encoded = ''] = dataUrl.split(',', 2);
   if (!/^data:image\/(?:png|jpeg|bmp|gif|tiff|webp);base64$/i.test(metadata) || !encoded) {
@@ -52,32 +107,24 @@ export async function recognizeCaptureTextLocally(
     return { success: false, code: 'invalidData', message: '无效的截图数据' };
   }
 
-  let worker: Worker | null = null;
-  let terminated = false;
-  const terminate = async (): Promise<void> => {
-    if (!worker || terminated) return;
-    terminated = true;
-    await worker.terminate();
-  };
-  const abort = (): void => {
-    void terminate();
-  };
-  signal.addEventListener('abort', abort, { once: true });
+  if (signal.aborted) {
+    return { success: false, code: 'ocrTimeout', message: '文字识别请求已取消' };
+  }
 
   try {
-    if (signal.aborted) {
-      return { success: false, code: 'ocrTimeout', message: '文字识别请求已取消' };
-    }
-    worker = await createWorker('eng+chi_sim');
+    const worker = await getWorker();
     if (signal.aborted) {
       return { success: false, code: 'ocrTimeout', message: '文字识别请求已取消' };
     }
     const result = await worker.recognize(image);
+    scheduleIdleDispose();
     return {
       success: true,
       text: typeof result.data.text === 'string' ? result.data.text.trim() : '',
     };
   } catch (error) {
+    // worker 可能已损坏，下次请求重新创建
+    await resetWorker();
     if (signal.aborted) {
       return { success: false, code: 'ocrTimeout', message: '文字识别请求已取消' };
     }
@@ -86,8 +133,5 @@ export async function recognizeCaptureTextLocally(
       code: 'ocrFailed',
       message: error instanceof Error ? error.message : '本地文字识别失败',
     };
-  } finally {
-    signal.removeEventListener('abort', abort);
-    await terminate().catch(() => {});
   }
 }

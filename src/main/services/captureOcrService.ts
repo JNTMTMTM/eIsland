@@ -82,7 +82,7 @@ export async function recognizeCaptureText(
   signal: AbortSignal,
 ): Promise<CaptureOcrResult> {
   if (!token.trim()) {
-    return { success: false, code: 'loginRequired', message: '请先登录后再使用文字识别' };
+    return { success: false, code: 'ocrLoginRequired', message: '请先登录后再使用文字识别' };
   }
   const image = dataUrlToImage(dataUrl);
   if (!image) {
