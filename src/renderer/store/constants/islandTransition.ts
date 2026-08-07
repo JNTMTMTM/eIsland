@@ -20,10 +20,11 @@
  */
 
 import type { IslandState } from '../types';
+import { ISLAND_HEIGHT, ISLAND_WIDTH } from '../../../shared/islandDimensions';
 
 export const ISLAND_STATE_AREA: Record<string, number> = {
-  idle: 260 * 42,
-  minimal: 260 * 42,
+  idle: ISLAND_WIDTH * ISLAND_HEIGHT,
+  minimal: ISLAND_WIDTH * ISLAND_HEIGHT,
   lyrics: 500 * 42,
   lyricsTranslation: 500 * 60,
   hover: 500 * 60,
@@ -72,6 +73,9 @@ export function getIslandWindowShrinkDelay(
   toState: IslandState,
   animationSpeed: string,
 ): number {
-  if (ISLAND_STATE_AREA[fromState] <= ISLAND_STATE_AREA[toState]) return 0;
+  const fromArea = ISLAND_STATE_AREA[fromState] ?? 0;
+  const toArea = ISLAND_STATE_AREA[toState] ?? 0;
+
+  if (fromArea <= toArea) return 0;
   return getIslandMorphDuration(animationSpeed);
 }

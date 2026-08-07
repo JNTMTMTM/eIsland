@@ -35,6 +35,11 @@ describe('getIslandWindowShrinkDelay', () => {
     expect(getIslandMorphDuration('fast')).toBe(360);
   });
 
+  it('uses zero-area fallbacks when a state is missing from the area map', () => {
+    expect(getIslandWindowShrinkDelay('futureState' as never, 'idle', 'medium')).toBe(0);
+    expect(getIslandWindowShrinkDelay('idle', 'futureState' as never, 'medium')).toBe(700);
+  });
+
   it('resizes immediately when the target state is not smaller', () => {
     expect(getIslandWindowShrinkDelay('idle', 'hover', 'medium')).toBe(0);
     expect(getIslandWindowShrinkDelay('expanded', 'maxExpand', 'medium')).toBe(0);

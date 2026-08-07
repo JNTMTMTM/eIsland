@@ -55,8 +55,7 @@ export function sanitizeIslandDisplaySelection(raw: unknown): string {
 
 // ===== 灵动岛尺寸常量 =====
 
-export const ISLAND_WIDTH = 260;
-export const ISLAND_HEIGHT = 42;
+export { ISLAND_WIDTH, ISLAND_HEIGHT } from '../../shared/islandDimensions';
 export const EXPANDED_WIDTH = 500;
 export const EXPANDED_HEIGHT = 60;
 export const NOTIFICATION_WIDTH = 500;

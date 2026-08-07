@@ -28,6 +28,7 @@ import { useEffect } from 'react';
 import useIslandStore from '../../store/isLandStore';
 import type { NotificationData } from '../../store/types';
 import { getIslandMorphDuration } from '../../store/constants/islandTransition';
+import { ISLAND_WIDTH } from '../../../shared/islandDimensions';
 import {
   ISLAND_BG_MEDIA_STORE_KEY,
   ISLAND_BG_IMAGE_STORE_KEY,
@@ -343,8 +344,6 @@ export function useIslandSettingsSync(options: UseIslandSettingsSyncOptions): vo
 
   /** 专用形态模式变更监听（独立于 initRef 守卫，确保始终活跃） */
   useEffect(() => {
-    const ANIM_DURATION = 300;
-
     /**
      * 平滑移动窗口（增量式，每帧计算差值）
      * @param totalDx - 水平总位移
@@ -415,17 +414,17 @@ export function useIslandSettingsSync(options: UseIslandSettingsSyncOptions): vo
       }
 
       const currentState = store.state;
-      const transitionDuration = Math.max(ANIM_DURATION, getIslandMorphDuration(store.animationSpeed));
+      const transitionDuration = getIslandMorphDuration(store.animationSpeed);
       if (store.shapeMode !== nextMode) store.setShapeMode(nextMode);
       applyWindowForState(currentState, transitionDuration);
 
       void window.api.getWindowBounds().then((bounds) => {
         if (currentVersion !== shapeChangeVersion || !bounds) return;
-        const targetCenterX = targetX + 130;
+        const targetCenterX = targetX + ISLAND_WIDTH / 2;
         const currentCenterX = bounds.x + bounds.width / 2;
         const dx = Math.round(targetCenterX - currentCenterX);
         const dy = Math.round(targetY - bounds.y);
-        return animateWindowMove(dx, dy, ANIM_DURATION).then(async () => {
+        return animateWindowMove(dx, dy, transitionDuration).then(async () => {
           if (currentVersion !== shapeChangeVersion) return;
           const settledBounds = await window.api.getWindowBounds();
           if (currentVersion !== shapeChangeVersion || !settledBounds) return;
