@@ -67,6 +67,10 @@ export interface SessionSidebarProps {
   t: TFunction;
   provider: CliProvider;
   sessions: CliSessionSnapshot[];
+  totalSessionCount: number;
+  totalPages: number;
+  currentPage: number;
+  setPage: (page: number) => void;
   selectedSessionId: string | null;
   setSelectedSessionId: (id: string | null) => void;
   bulkSelectMode: boolean;

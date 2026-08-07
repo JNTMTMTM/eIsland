@@ -27,6 +27,9 @@
 /** 每页显示的流事件数量 */
 export const EVENTS_PER_PAGE = 3;
 
+/** 每页显示的会话数量 */
+export const SESSIONS_PER_PAGE = 6;
+
 /** 流结束事件名 */
 export const STOP_EVENTS = new Set(['Stop', 'StopFailure', 'SubagentStop', 'SessionEnd']);
 
