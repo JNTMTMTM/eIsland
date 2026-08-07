@@ -425,7 +425,16 @@ export function useIslandSettingsSync(options: UseIslandSettingsSyncOptions): vo
         const currentCenterX = bounds.x + bounds.width / 2;
         const dx = Math.round(targetCenterX - currentCenterX);
         const dy = Math.round(targetY - bounds.y);
-        return animateWindowMove(dx, dy, ANIM_DURATION);
+        return animateWindowMove(dx, dy, ANIM_DURATION).then(async () => {
+          if (currentVersion !== shapeChangeVersion) return;
+          const settledBounds = await window.api.getWindowBounds();
+          if (currentVersion !== shapeChangeVersion || !settledBounds) return;
+          const correctionX = Math.round(targetCenterX - (settledBounds.x + settledBounds.width / 2));
+          const correctionY = Math.round(targetY - settledBounds.y);
+          if (correctionX !== 0 || correctionY !== 0) {
+            window.api?.moveWindowDelta?.(correctionX, correctionY);
+          }
+        });
       }).catch(() => {});
     });
     return () => {
