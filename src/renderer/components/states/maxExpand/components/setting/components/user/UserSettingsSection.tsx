@@ -30,6 +30,7 @@ import { useTranslation } from 'react-i18next';
 import {
   closeUserPaymentOrder,
   deleteImageTranslationHistory,
+  deleteOcrHistory,
   fetchUserPaymentOrders,
   fetchProMonthPricing,
   fetchAgentBalance,
@@ -121,6 +122,17 @@ const buildImageTranslationDownloadName = (taskId: string, kind: 'source' | 'res
 };
 const IMAGE_TRANSLATION_HISTORY_PAGE_SIZE = 5;
 const OCR_HISTORY_PAGE_SIZE = 5;
+
+const buildOcrDownloadName = (id: number, imageUrl: string): string => {
+  let extension = '.jpg';
+  try {
+    const matchedExtension = new URL(imageUrl).pathname.match(/\.(jpe?g|png|webp)$/i)?.[0];
+    if (matchedExtension) extension = matchedExtension.toLowerCase();
+  } catch {
+    // 使用默认扩展名。
+  }
+  return `ocr-${id}-source${extension}`;
+};
 
 const getGenderIcon = (gender: UserAccountGender | null | undefined): string => {
   if (gender === 'male') return SvgIcon.BOY;
@@ -266,6 +278,10 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
   const [ocrHistoryTotalPages, setOcrHistoryTotalPages] = useState(0);
   const [loadingOcrHistory, setLoadingOcrHistory] = useState(false);
   const [ocrHistoryError, setOcrHistoryError] = useState('');
+  const [ocrHistoryDownloadingId, setOcrHistoryDownloadingId] = useState<number | null>(null);
+  const [ocrHistoryCopyingId, setOcrHistoryCopyingId] = useState<number | null>(null);
+  const [ocrHistoryRemovingId, setOcrHistoryRemovingId] = useState<number | null>(null);
+  const [ocrHistoryActionFeedback, setOcrHistoryActionFeedback] = useState<{ id: number; feedback: Feedback } | null>(null);
 
   /** 用户中心登录天数热力图：记录并展示当前用户每个自然日是否登录 */
   const [loginDays, setLoginDays] = useState<Set<string>>(() => readLoginDays(profile?.username));
@@ -756,6 +772,84 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
     setOcrHistoryTotal(result.data.total);
     setOcrHistoryTotalPages(result.data.totalPages);
   }, [resetToLoggedOut, t, token]);
+
+  const handleDownloadOcrImage = useCallback(async (item: OcrHistoryItem): Promise<void> => {
+    if (!item.sourceUrl || ocrHistoryDownloadingId !== null || ocrHistoryCopyingId !== null || ocrHistoryRemovingId !== null) return;
+    setOcrHistoryDownloadingId(item.id);
+    setOcrHistoryActionFeedback(null);
+    try {
+      const savePath = await window.api.downloadPickSavePath(buildOcrDownloadName(item.id, item.sourceUrl));
+      if (!savePath) return;
+      const result = await window.api.downloadStart({ url: item.sourceUrl, savePath, threads: 4 });
+      setOcrHistoryActionFeedback({
+        id: item.id,
+        feedback: result.ok
+          ? { type: 'success', text: t('settings.user.ocrHistory.actions.downloadStarted', { defaultValue: '已开始下载' }) }
+          : { type: 'error', text: result.message || t('settings.user.ocrHistory.actions.downloadFailed', { defaultValue: '下载失败' }) },
+      });
+    } catch {
+      setOcrHistoryActionFeedback({
+        id: item.id,
+        feedback: { type: 'error', text: t('settings.user.ocrHistory.actions.downloadFailed', { defaultValue: '下载失败' }) },
+      });
+    } finally {
+      setOcrHistoryDownloadingId(null);
+    }
+  }, [ocrHistoryCopyingId, ocrHistoryDownloadingId, ocrHistoryRemovingId, t]);
+
+  const handleCopyOcrText = useCallback(async (item: OcrHistoryItem): Promise<void> => {
+    if (!item.recognizedText || ocrHistoryDownloadingId !== null || ocrHistoryCopyingId !== null || ocrHistoryRemovingId !== null) return;
+    setOcrHistoryCopyingId(item.id);
+    setOcrHistoryActionFeedback(null);
+    try {
+      await navigator.clipboard.writeText(item.recognizedText);
+      setOcrHistoryActionFeedback({
+        id: item.id,
+        feedback: { type: 'success', text: t('settings.user.ocrHistory.actions.copySuccess', { defaultValue: '文本已复制' }) },
+      });
+    } catch {
+      setOcrHistoryActionFeedback({
+        id: item.id,
+        feedback: { type: 'error', text: t('settings.user.ocrHistory.actions.copyFailed', { defaultValue: '复制文本失败' }) },
+      });
+    } finally {
+      setOcrHistoryCopyingId(null);
+    }
+  }, [ocrHistoryCopyingId, ocrHistoryDownloadingId, ocrHistoryRemovingId, t]);
+
+  const handleRemoveOcrHistory = useCallback(async (item: OcrHistoryItem): Promise<void> => {
+    if (!token || ocrHistoryDownloadingId !== null || ocrHistoryCopyingId !== null || ocrHistoryRemovingId !== null) return;
+    setOcrHistoryRemovingId(item.id);
+    setOcrHistoryActionFeedback(null);
+    const result = await deleteOcrHistory(token, item.id);
+    setOcrHistoryRemovingId(null);
+    if (!result.ok) {
+      if (result.code === 401 || result.code === 4011) {
+        resetToLoggedOut();
+        return;
+      }
+      setOcrHistoryActionFeedback({
+        id: item.id,
+        feedback: { type: 'error', text: result.message || t('settings.user.ocrHistory.actions.removeFailed', { defaultValue: '抹掉记录失败' }) },
+      });
+      return;
+    }
+    if (ocrHistory.length === 1 && ocrHistoryPage > 1) {
+      setOcrHistoryPage((current) => Math.max(1, current - 1));
+      return;
+    }
+    await loadOcrHistory(ocrHistoryPage);
+  }, [
+    loadOcrHistory,
+    ocrHistory.length,
+    ocrHistoryCopyingId,
+    ocrHistoryDownloadingId,
+    ocrHistoryPage,
+    ocrHistoryRemovingId,
+    resetToLoggedOut,
+    t,
+    token,
+  ]);
 
   const handleDownloadImageTranslationImage = useCallback(async (
     task: ImageTranslationHistoryItem,
@@ -2389,6 +2483,43 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
                   </pre>
                 </figure>
               </div>
+
+              <div className="settings-user-image-translation-actions settings-user-ocr-history-actions">
+                <button
+                  type="button"
+                  className="settings-hotkey-btn"
+                  disabled={ocrHistoryDownloadingId !== null || ocrHistoryCopyingId !== null || ocrHistoryRemovingId !== null}
+                  onClick={() => void handleDownloadOcrImage(item)}
+                >
+                  {ocrHistoryDownloadingId === item.id
+                    ? t('settings.user.ocrHistory.actions.downloading', { defaultValue: '下载中…' })
+                    : t('settings.user.ocrHistory.actions.downloadSource', { defaultValue: '下载原图' })}
+                </button>
+                <button
+                  type="button"
+                  className="settings-hotkey-btn"
+                  disabled={!item.recognizedText || ocrHistoryDownloadingId !== null || ocrHistoryCopyingId !== null || ocrHistoryRemovingId !== null}
+                  onClick={() => void handleCopyOcrText(item)}
+                >
+                  {ocrHistoryCopyingId === item.id
+                    ? t('settings.user.ocrHistory.actions.copying', { defaultValue: '复制中…' })
+                    : t('settings.user.ocrHistory.actions.copyText', { defaultValue: '复制所有文本' })}
+                </button>
+                <button
+                  type="button"
+                  className="settings-hotkey-btn settings-user-image-translation-remove"
+                  disabled={ocrHistoryDownloadingId !== null || ocrHistoryCopyingId !== null || ocrHistoryRemovingId !== null}
+                  onClick={() => void handleRemoveOcrHistory(item)}
+                >
+                  {ocrHistoryRemovingId === item.id
+                    ? t('settings.user.ocrHistory.actions.removing', { defaultValue: '抹掉中…' })
+                    : t('settings.user.ocrHistory.actions.remove', { defaultValue: '抹掉此记录' })}
+                </button>
+              </div>
+
+              {ocrHistoryActionFeedback?.id === item.id
+                ? renderFeedback(ocrHistoryActionFeedback.feedback)
+                : null}
             </article>
           ))}
         </div>

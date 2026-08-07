@@ -32,7 +32,7 @@ vi.mock('../userAccountApi.client', () => ({
   request: mockRequest,
 }));
 
-import { fetchOcrHistory } from '../userAccountApi.translation';
+import { deleteOcrHistory, fetchOcrHistory } from '../userAccountApi.translation';
 
 describe('userAccountApi.translation', () => {
   const okResult = { ok: true, code: 200, message: 'success', data: undefined };
@@ -67,6 +67,19 @@ describe('userAccountApi.translation', () => {
 
       expect(mockRequest).toHaveBeenCalledWith('/v1/toolbox/ocr/history?page=1&pageSize=100', {
         method: 'GET',
+        auth: 'my-token',
+      });
+    });
+  });
+
+  describe('deleteOcrHistory', () => {
+    it('sends DELETE to the OCR history endpoint with auth', async () => {
+      mockRequest.mockResolvedValueOnce(okResult);
+
+      await deleteOcrHistory('my-token', 42);
+
+      expect(mockRequest).toHaveBeenCalledWith('/v1/toolbox/ocr/history/42', {
+        method: 'DELETE',
         auth: 'my-token',
       });
     });

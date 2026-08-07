@@ -135,3 +135,16 @@ export function fetchOcrHistory(
     },
   );
 }
+
+/**
+ * 删除指定的 OCR 历史记录
+ * @param token - 用户认证令牌
+ * @param id - OCR 历史记录 ID
+ * @returns 删除结果
+ */
+export function deleteOcrHistory(token: string, id: number): Promise<UserAccountResult<void>> {
+  return request<void>(`/v1/toolbox/ocr/history/${encodeURIComponent(String(id))}`, {
+    method: 'DELETE',
+    auth: token,
+  });
+}

@@ -38,7 +38,7 @@ export * from './userAccountApi.profile';
 export * from './userAccountApi.feedback';
 export * from './userAccountApi.wallpaper';
 export * from './userAccountApi.payment';
-export { deleteImageTranslationHistory, fetchImageTranslationHistory, fetchOcrHistory } from './userAccountApi.translation';
+export { deleteImageTranslationHistory, deleteOcrHistory, fetchImageTranslationHistory, fetchOcrHistory } from './userAccountApi.translation';
 export type {
   ImageTranslationHistoryItem,
   ImageTranslationHistoryPage,

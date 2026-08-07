@@ -3386,6 +3386,19 @@
         "sourceImageAlt": "OCR 原始图片",
         "recognizedText": "识别文本",
         "emptyText": "未识别到文本",
+        "actions": {
+          "downloadSource": "下载原图",
+          "downloading": "下载中…",
+          "downloadStarted": "已开始下载",
+          "downloadFailed": "下载失败",
+          "copyText": "复制所有文本",
+          "copying": "复制中…",
+          "copySuccess": "文本已复制",
+          "copyFailed": "复制文本失败",
+          "remove": "抹掉此记录",
+          "removing": "抹掉中…",
+          "removeFailed": "抹掉记录失败"
+        },
         "pagination": {
           "label": "OCR 历史分页",
           "previous": "上一页",

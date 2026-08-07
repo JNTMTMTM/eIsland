@@ -3386,6 +3386,19 @@
         "sourceImageAlt": "Original OCR image",
         "recognizedText": "Recognized Text",
         "emptyText": "No text recognized",
+        "actions": {
+          "downloadSource": "Download Original",
+          "downloading": "Downloading…",
+          "downloadStarted": "Download started",
+          "downloadFailed": "Download failed",
+          "copyText": "Copy All Text",
+          "copying": "Copying…",
+          "copySuccess": "Text copied",
+          "copyFailed": "Failed to copy text",
+          "remove": "Remove Record",
+          "removing": "Removing…",
+          "removeFailed": "Failed to remove record"
+        },
         "pagination": {
           "label": "OCR history pagination",
           "previous": "Previous",
