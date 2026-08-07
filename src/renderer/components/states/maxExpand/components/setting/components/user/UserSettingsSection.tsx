@@ -34,6 +34,7 @@ import {
   fetchProMonthPricing,
   fetchAgentBalance,
   fetchImageTranslationHistory,
+  fetchOcrHistory,
   fetchOAuthBindings,
   fetchUserProfile,
   logoutUser,
@@ -46,6 +47,7 @@ import {
   uploadUserAvatar,
   type ImageTranslationHistoryItem,
   type OAuthBindingItem,
+  type OcrHistoryItem,
   type UserPaymentOrderData,
   PAYMENT_ORDERS_DEFAULT_PAGE_SIZE,
 } from '../../../../../../../api/user/userAccountApi';
@@ -118,6 +120,7 @@ const buildImageTranslationDownloadName = (taskId: string, kind: 'source' | 'res
   return `image-translation-${taskId.slice(0, 8)}-${kind}${extension}`;
 };
 const IMAGE_TRANSLATION_HISTORY_PAGE_SIZE = 5;
+const OCR_HISTORY_PAGE_SIZE = 5;
 
 const getGenderIcon = (gender: UserAccountGender | null | undefined): string => {
   if (gender === 'male') return SvgIcon.BOY;
@@ -256,6 +259,13 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
   const [imageTranslationDownloadingKey, setImageTranslationDownloadingKey] = useState('');
   const [imageTranslationRemovingTaskId, setImageTranslationRemovingTaskId] = useState('');
   const [imageTranslationActionFeedback, setImageTranslationActionFeedback] = useState<{ taskId: string; feedback: Feedback } | null>(null);
+
+  const [ocrHistory, setOcrHistory] = useState<OcrHistoryItem[]>([]);
+  const [ocrHistoryPage, setOcrHistoryPage] = useState(1);
+  const [ocrHistoryTotal, setOcrHistoryTotal] = useState(0);
+  const [ocrHistoryTotalPages, setOcrHistoryTotalPages] = useState(0);
+  const [loadingOcrHistory, setLoadingOcrHistory] = useState(false);
+  const [ocrHistoryError, setOcrHistoryError] = useState('');
 
   /** 用户中心登录天数热力图：记录并展示当前用户每个自然日是否登录 */
   const [loginDays, setLoginDays] = useState<Set<string>>(() => readLoginDays(profile?.username));
@@ -719,6 +729,34 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
     setImageTranslationHistoryTotalPages(result.data.totalPages);
   }, [resetToLoggedOut, t, token]);
 
+  const loadOcrHistory = useCallback(async (page: number): Promise<void> => {
+    if (!token) {
+      setOcrHistory([]);
+      setOcrHistoryPage(1);
+      setOcrHistoryTotal(0);
+      setOcrHistoryTotalPages(0);
+      setLoadingOcrHistory(false);
+      setOcrHistoryError('');
+      return;
+    }
+    setLoadingOcrHistory(true);
+    setOcrHistoryError('');
+    const result = await fetchOcrHistory(token, page, OCR_HISTORY_PAGE_SIZE);
+    setLoadingOcrHistory(false);
+    if (!result.ok || !result.data || !Array.isArray(result.data.items)) {
+      if (result.code === 401 || result.code === 4011) {
+        resetToLoggedOut();
+        return;
+      }
+      setOcrHistoryError(result.message || t('settings.user.ocrHistory.loadFailed', { defaultValue: '加载 OCR 历史记录失败' }));
+      return;
+    }
+    setOcrHistory(result.data.items);
+    setOcrHistoryPage(result.data.page);
+    setOcrHistoryTotal(result.data.total);
+    setOcrHistoryTotalPages(result.data.totalPages);
+  }, [resetToLoggedOut, t, token]);
+
   const handleDownloadImageTranslationImage = useCallback(async (
     task: ImageTranslationHistoryItem,
     kind: 'source' | 'result',
@@ -810,6 +848,13 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
     }
     void loadImageTranslationHistory(imageTranslationHistoryPage);
   }, [imageTranslationHistoryPage, loadImageTranslationHistory, token, userProfilePage]);
+
+  useEffect(() => {
+    if (userProfilePage !== 'ocr-history' || !token) {
+      return;
+    }
+    void loadOcrHistory(ocrHistoryPage);
+  }, [loadOcrHistory, ocrHistoryPage, token, userProfilePage]);
 
   useEffect(() => {
     if (userProfilePage !== 'oauth' || !token) {
@@ -2283,17 +2328,99 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
     );
 
     const renderOcrHistoryPage = (): ReactElement => (
-      <div className="settings-user-page-panel settings-user-ocr-history-panel">
-        <div className="settings-user-card settings-user-ocr-history-head-card">
-          <div className="settings-user-ocr-history-head">
+      <div className="settings-user-page-panel settings-user-image-translation-panel settings-user-ocr-history-panel">
+        <div className="settings-user-card settings-user-image-translation-head-card settings-user-ocr-history-head-card">
+          <div className="settings-user-image-translation-head settings-user-ocr-history-head">
             <div>
               <div className="settings-user-form-title">{t('settings.user.pages.ocr-history', { defaultValue: 'OCR记录' })}</div>
               <div className="settings-user-card-title-hint">
-                {t('settings.user.ocrHistory.subtitle', { defaultValue: '查看 OCR 识别历史记录' })}
+                {t('settings.user.ocrHistory.subtitle', { defaultValue: '查看原始图片与 OCR 识别文本' })}
               </div>
             </div>
           </div>
         </div>
+
+        {loadingOcrHistory && ocrHistory.length === 0 ? (
+          <div className="settings-user-card settings-user-image-translation-state">
+            <span className="settings-user-orders-inline-spinner" aria-hidden="true" />
+            <span>{t('settings.user.ocrHistory.loading', { defaultValue: '加载 OCR 历史记录中…' })}</span>
+          </div>
+        ) : null}
+
+        {ocrHistoryError ? (
+          <div className="settings-user-feedback settings-user-feedback--error">
+            {ocrHistoryError}
+          </div>
+        ) : null}
+
+        {!loadingOcrHistory && !ocrHistoryError && ocrHistory.length === 0 ? (
+          <div className="settings-user-card settings-user-image-translation-state">
+            {t('settings.user.ocrHistory.empty', { defaultValue: '暂无 OCR 历史记录' })}
+          </div>
+        ) : null}
+
+        <div className="settings-user-image-translation-list">
+          {ocrHistory.map((item) => (
+            <article key={item.id} className="settings-user-card settings-user-image-translation-item">
+              <div className="settings-user-image-translation-item-head">
+                <div className="settings-user-image-translation-meta">
+                  <span>{t('settings.user.ocrHistory.record', { defaultValue: 'OCR #{{id}}', id: item.id })}</span>
+                  <span>{formatDateTime(item.createdAt)}</span>
+                </div>
+              </div>
+
+              <div className="settings-user-image-translation-images settings-user-ocr-history-content">
+                <figure className="settings-user-image-translation-image-card">
+                  <figcaption>{t('settings.user.ocrHistory.sourceImage', { defaultValue: '原始图片' })}</figcaption>
+                  <div className="settings-user-image-translation-image-wrap">
+                    <img
+                      src={item.sourceUrl}
+                      alt={t('settings.user.ocrHistory.sourceImageAlt', { defaultValue: 'OCR 原始图片' })}
+                      loading="lazy"
+                      draggable={false}
+                    />
+                  </div>
+                </figure>
+
+                <figure className="settings-user-image-translation-image-card">
+                  <figcaption>{t('settings.user.ocrHistory.recognizedText', { defaultValue: '识别文本' })}</figcaption>
+                  <pre className="settings-user-ocr-history-text">
+                    {item.recognizedText || t('settings.user.ocrHistory.emptyText', { defaultValue: '未识别到文本' })}
+                  </pre>
+                </figure>
+              </div>
+            </article>
+          ))}
+        </div>
+
+        {ocrHistoryTotalPages > 0 ? (
+          <nav className="settings-plugin-market-pagination settings-user-image-translation-pagination" aria-label={t('settings.user.ocrHistory.pagination.label', { defaultValue: 'OCR 历史分页' })}>
+            <button
+              type="button"
+              className="settings-hotkey-btn"
+              disabled={loadingOcrHistory || ocrHistoryPage <= 1}
+              onClick={() => setOcrHistoryPage((current) => Math.max(1, current - 1))}
+            >
+              {t('settings.user.ocrHistory.pagination.previous', { defaultValue: '上一页' })}
+            </button>
+            <span className="settings-plugin-market-pagination-text settings-user-image-translation-pagination-summary">
+              {t('settings.user.ocrHistory.pagination.summary', {
+                defaultValue: '第 {{page}} / {{totalPages}} 页，共 {{total}} 条',
+                page: ocrHistoryPage,
+                totalPages: ocrHistoryTotalPages,
+                total: ocrHistoryTotal,
+              })}
+            </span>
+            <button
+              type="button"
+              className="settings-hotkey-btn"
+              disabled={loadingOcrHistory || ocrHistoryPage >= ocrHistoryTotalPages}
+              onClick={() => setOcrHistoryPage((current) => Math.min(ocrHistoryTotalPages, current + 1))}
+            >
+              {t('settings.user.ocrHistory.pagination.next', { defaultValue: '下一页' })}
+            </button>
+          </nav>
+        ) : null}
       </div>
     );
 

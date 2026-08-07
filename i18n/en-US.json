@@ -3377,7 +3377,21 @@
         }
       },
       "ocrHistory": {
-        "subtitle": "View OCR recognition history"
+        "subtitle": "View original images alongside OCR-recognized text",
+        "loading": "Loading OCR history…",
+        "loadFailed": "Failed to load OCR history",
+        "empty": "No OCR history",
+        "record": "OCR #{{id}}",
+        "sourceImage": "Original Image",
+        "sourceImageAlt": "Original OCR image",
+        "recognizedText": "Recognized Text",
+        "emptyText": "No text recognized",
+        "pagination": {
+          "label": "OCR history pagination",
+          "previous": "Previous",
+          "next": "Next",
+          "summary": "Page {{page}} / {{totalPages}}, {{total}} total"
+        }
       },
       "recharge": {
         "title": "Recharge Balance",

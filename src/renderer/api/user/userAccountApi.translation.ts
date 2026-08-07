@@ -20,7 +20,7 @@
 
 /**
  * @file userAccountApi.translation.ts
- * @description 当前用户图片翻译历史接口。
+ * @description 当前用户图片翻译与 OCR 历史接口。
  * @author 鸡哥
  */
 
@@ -51,6 +51,23 @@ export interface ImageTranslationHistoryItem {
 
 export interface ImageTranslationHistoryPage {
   items: ImageTranslationHistoryItem[];
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
+}
+
+export interface OcrHistoryItem {
+  id: number;
+  username: string;
+  sourceUrl: string;
+  recognizedText: string;
+  providerRequestId: string | null;
+  createdAt: string;
+}
+
+export interface OcrHistoryPage {
+  items: OcrHistoryItem[];
   page: number;
   pageSize: number;
   total: number;
@@ -89,6 +106,29 @@ export function fetchImageTranslationHistory(
   const normalizedPageSize = Math.max(1, Math.min(Math.floor(Number(pageSize) || 5), 100));
   return request<ImageTranslationHistoryPage>(
     `/v1/toolbox/image-translations/history?page=${normalizedPage}&pageSize=${normalizedPageSize}`,
+    {
+      method: 'GET',
+      auth: token,
+    },
+  );
+}
+
+/**
+ * 获取 OCR 历史记录（分页）
+ * @param token - 用户认证令牌
+ * @param page - 页码，默认 1
+ * @param pageSize - 每页数量，默认 5，最大 100
+ * @returns 分页的 OCR 历史记录
+ */
+export function fetchOcrHistory(
+  token: string,
+  page = 1,
+  pageSize = 5,
+): Promise<UserAccountResult<OcrHistoryPage>> {
+  const normalizedPage = Math.max(1, Math.floor(Number(page) || 1));
+  const normalizedPageSize = Math.max(1, Math.min(Math.floor(Number(pageSize) || 5), 100));
+  return request<OcrHistoryPage>(
+    `/v1/toolbox/ocr/history?page=${normalizedPage}&pageSize=${normalizedPageSize}`,
     {
       method: 'GET',
       auth: token,

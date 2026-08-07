@@ -3377,7 +3377,21 @@
         }
       },
       "ocrHistory": {
-        "subtitle": "查看 OCR 识别历史记录"
+        "subtitle": "查看原始图片与 OCR 识别文本",
+        "loading": "加载 OCR 历史记录中…",
+        "loadFailed": "加载 OCR 历史记录失败",
+        "empty": "暂无 OCR 历史记录",
+        "record": "OCR #{{id}}",
+        "sourceImage": "原始图片",
+        "sourceImageAlt": "OCR 原始图片",
+        "recognizedText": "识别文本",
+        "emptyText": "未识别到文本",
+        "pagination": {
+          "label": "OCR 历史分页",
+          "previous": "上一页",
+          "next": "下一页",
+          "summary": "第 {{page}} / {{totalPages}} 页，共 {{total}} 条"
+        }
       },
       "recharge": {
         "title": "余额充值",
