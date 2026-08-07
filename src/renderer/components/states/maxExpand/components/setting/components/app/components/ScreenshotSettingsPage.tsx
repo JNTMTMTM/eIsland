@@ -26,13 +26,14 @@
 
 import { useEffect, useRef, useState, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
-import { SvgIcon } from '../../../../../../../../utils/SvgIcon';
+import { SvgIcon, ServiceIcon } from '../../../../../../../../utils/SvgIcon';
 import { resolveCountryIcon } from '../../../../../../../../utils/SvgIcon/country-icon';
 import { TRANSLATE_LANGUAGES, TRANSLATE_TARGET_LANGUAGES } from '../../../../tools/config/translateToolConfig';
 import {
   SCREENSHOT_TRANSLATE_SOURCE_LANG_STORE_KEY,
   SCREENSHOT_TRANSLATE_TARGET_LANG_STORE_KEY,
   SCREENSHOT_ENGINE_STORE_KEY,
+  SCREENSHOT_OCR_ENGINE_STORE_KEY,
 } from '../../../config/settingsTabConfig';
 
 /** 翻译语言选项 */
@@ -140,6 +141,7 @@ export function ScreenshotSettingsPage(): ReactElement {
   const [sourceLang, setSourceLang] = useState('auto');
   const [targetLang, setTargetLang] = useState('en');
   const [screenshotEngine, setScreenshotEngine] = useState<'plugin' | 'js'>('plugin');
+  const [ocrEngine, setOcrEngine] = useState<'local' | 'server'>('server');
 
   useEffect(() => {
     let cancelled = false;
@@ -154,6 +156,10 @@ export function ScreenshotSettingsPage(): ReactElement {
     window.api.storeRead(SCREENSHOT_ENGINE_STORE_KEY).then((value) => {
       if (cancelled) return;
       setScreenshotEngine(value === 'js' ? 'js' : 'plugin');
+    }).catch(() => {});
+    window.api.storeRead(SCREENSHOT_OCR_ENGINE_STORE_KEY).then((value) => {
+      if (cancelled) return;
+      setOcrEngine(value === 'local' ? 'local' : 'server');
     }).catch(() => {});
     return () => {
       cancelled = true;
@@ -173,6 +179,11 @@ export function ScreenshotSettingsPage(): ReactElement {
   const handleScreenshotEngineChange = (engine: 'plugin' | 'js'): void => {
     setScreenshotEngine(engine);
     void window.api.storeWrite(SCREENSHOT_ENGINE_STORE_KEY, engine);
+  };
+
+  const handleOcrEngineChange = (engine: 'local' | 'server'): void => {
+    setOcrEngine(engine);
+    void window.api.storeWrite(SCREENSHOT_OCR_ENGINE_STORE_KEY, engine);
   };
 
   return (
@@ -205,6 +216,38 @@ export function ScreenshotSettingsPage(): ReactElement {
                 onChange={() => { handleScreenshotEngineChange('js'); }}
               />
               {t('settings.app.screenshotSettings.engineJs', { defaultValue: 'JS 模式' })}
+            </label>
+          </div>
+        </div>
+        <div className="settings-card">
+          <div className="settings-card-header">
+            <div className="settings-card-title">
+              {t('settings.app.screenshotSettings.ocrEngineTitle')}
+            </div>
+            <div className="settings-card-subtitle">
+              {t('settings.app.screenshotSettings.ocrEngineHint')}
+            </div>
+          </div>
+          <div className="settings-card-inline-row">
+            <label className="settings-card-check">
+              <input
+                type="radio"
+                name="screenshot-ocr-engine"
+                checked={ocrEngine === 'local'}
+                onChange={() => { handleOcrEngineChange('local'); }}
+              />
+              {t('settings.app.screenshotSettings.ocrEngineLocal')}
+            </label>
+            <label className="settings-card-check" style={{ whiteSpace: 'nowrap' }}>
+              <input
+                type="radio"
+                name="screenshot-ocr-engine"
+                checked={ocrEngine === 'server'}
+                onChange={() => { handleOcrEngineChange('server'); }}
+              />
+              <img className="settings-inline-icon" src={ServiceIcon.ALIBABACLOUD} alt="" />
+              <img className="settings-inline-icon" src={SvgIcon.PRO} alt="" />
+              {t('settings.app.screenshotSettings.ocrEngineServer')}
             </label>
           </div>
         </div>

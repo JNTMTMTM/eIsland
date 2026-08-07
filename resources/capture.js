@@ -23,7 +23,7 @@
  * @author 鸡哥
  */
 
-const { ipcRenderer } = require('electron');
+const { ipcRenderer, clipboard } = require('electron');
 
 const bgCanvas = document.getElementById('bg-canvas');
 const drawCanvas = document.getElementById('draw-canvas');
@@ -41,6 +41,12 @@ const captureSourceBadge = document.getElementById('captureSourceBadge');
 const colorPicker = document.getElementById('colorPicker');
 const sizePicker = document.getElementById('sizePicker');
 const btnUndo = document.getElementById('btnUndo');
+const btnOcr = document.getElementById('btnOcr');
+const ocrProIcon = document.querySelector('.capture-ocr-pro-icon');
+const ocrPanel = document.getElementById('ocrPanel');
+const ocrText = document.getElementById('ocrText');
+const btnOcrCopy = document.getElementById('btnOcrCopy');
+const btnOcrClose = document.getElementById('btnOcrClose');
 const btnTranslate = document.getElementById('btnTranslate');
 const btnTranslateLabel = document.getElementById('btnTranslateLabel');
 const translateOverlay = document.getElementById('translateOverlay');
@@ -88,6 +94,9 @@ let captureWindowRects = [];
 let hoverWindowRect = null;
 let pendingWindowClickRect = null;
 let isTranslating = false;
+let isRecognizing = false;
+let ocrEngine = 'server';
+let recognizedText = '';
 let translationCache = null;
 let displayedImageVersion = 'original';
 
@@ -104,6 +113,18 @@ const CAPTURE_I18N = {
       color: '颜色',
       size: '粗细',
       save: '保存',
+      ocr: '文字识别',
+      ocrResult: '文字识别结果',
+      recognizing: '识别中',
+      ocrLoginRequired: '请先登录后再使用文字识别',
+      copyText: '复制文本',
+      copied: '已复制',
+      close: '关闭',
+      noTextFound: '未识别到文字',
+      ocrFailed: '文字识别失败',
+      ocrTimeout: '文字识别请求已取消或超时',
+      imageTooLarge: '截图不能超过 10MB',
+      invalidImageDimensions: '截图边长需为 15～8192 像素，且长宽比小于 50',
       translate: '图片翻译',
       showOriginal: '显示原文',
       showTranslation: '显示译文',
@@ -133,6 +154,18 @@ const CAPTURE_I18N = {
       color: 'Color',
       size: 'Size',
       save: 'Save',
+      ocr: 'Recognize text',
+      ocrResult: 'Recognized text',
+      recognizing: 'Recognizing',
+      ocrLoginRequired: 'Please sign in to use text recognition',
+      copyText: 'Copy text',
+      copied: 'Copied',
+      close: 'Close',
+      noTextFound: 'No text recognized',
+      ocrFailed: 'Text recognition failed',
+      ocrTimeout: 'Text recognition was cancelled or timed out',
+      imageTooLarge: 'Screenshot must not exceed 10MB',
+      invalidImageDimensions: 'Image sides must be 15–8192 px with an aspect ratio below 50',
       translate: 'Translate',
       showOriginal: 'Show original',
       showTranslation: 'Show translation',
@@ -188,6 +221,21 @@ async function initCaptureLanguage() {
 }
 
 void initCaptureLanguage();
+
+async function initOcrEngine() {
+  try {
+    // 与 src/shared/storeKeys.ts 中 SCREENSHOT_OCR_ENGINE_STORE_KEY 保持一致
+    const stored = await ipcRenderer.invoke('store:read', 'screenshot-ocr-engine');
+    ocrEngine = stored === 'local' ? 'local' : 'server';
+  } catch {
+    ocrEngine = 'server';
+  }
+  if (ocrProIcon) {
+    ocrProIcon.style.display = ocrEngine === 'local' ? 'none' : '';
+  }
+}
+
+void initOcrEngine();
 
 /**
  * 初始化各层画布尺寸
@@ -460,6 +508,124 @@ function hideTranslateOverlay() {
   translateOverlay.classList.remove('is-error');
 }
 
+function rectanglesOverlap(first, second) {
+  return first.left < second.left + second.width
+    && first.left + first.width > second.left
+    && first.top < second.top + second.height
+    && first.top + first.height > second.top;
+}
+
+function getToolbarRect() {
+  const previousDisplay = toolbar.style.display;
+  const previousVisibility = toolbar.style.visibility;
+  toolbar.style.display = 'flex';
+  toolbar.style.visibility = 'hidden';
+  const width = toolbar.offsetWidth || 520;
+  const height = toolbar.offsetHeight || 40;
+  let left = selX + selW - width;
+  if (left < 6) left = 6;
+  let top = selY + selH + 8;
+  if (top + height > H - 6) top = selY - height - 8;
+  if (top < 6) top = 6;
+  toolbar.style.display = previousDisplay;
+  toolbar.style.visibility = previousVisibility;
+  return { left, top, width, height };
+}
+
+function availableSpace(candidate) {
+  return candidate.width * candidate.height;
+}
+
+function positionOcrPanel() {
+  const edge = 12;
+  const gap = 12;
+  const desiredWidth = Math.min(520, Math.max(280, W - edge * 2));
+  const desiredHeight = Math.min(420, Math.max(180, H - edge * 2));
+  const selection = {
+    left: selX,
+    top: selY,
+    width: selW,
+    height: selH,
+  };
+  const toolbarRect = getToolbarRect();
+  const createCandidate = (side) => {
+    const horizontal = side === 'top' || side === 'bottom';
+    const availableWidth = horizontal
+      ? W - edge * 2
+      : side === 'left' ? selX - gap - edge : W - selX - selW - gap - edge;
+    const availableHeight = horizontal
+      ? side === 'top' ? selY - gap - edge : H - selY - selH - gap - edge
+      : H - edge * 2;
+    const width = Math.min(desiredWidth, availableWidth);
+    const height = Math.min(desiredHeight, availableHeight);
+    if (width < 220 || height < 140) return null;
+
+    if (side === 'top' || side === 'bottom') {
+      return {
+        side,
+        left: Math.max(edge, Math.min(selX + (selW - width) / 2, W - width - edge)),
+        top: side === 'top' ? selY - height - gap : selY + selH + gap,
+        width,
+        height,
+      };
+    }
+    return {
+      side,
+      left: side === 'left' ? selX - width - gap : selX + selW + gap,
+      top: Math.max(edge, Math.min(selY + (selH - height) / 2, H - height - edge)),
+      width,
+      height,
+    };
+  };
+  const candidates = ['top', 'bottom', 'left', 'right']
+    .map(createCandidate)
+    .filter(Boolean);
+
+  const validCandidates = candidates
+    .filter((candidate) => (
+      candidate.left >= edge
+      && candidate.top >= edge
+      && candidate.left + candidate.width <= W - edge
+      && candidate.top + candidate.height <= H - edge
+      && !rectanglesOverlap(candidate, selection)
+      && !rectanglesOverlap(candidate, toolbarRect)
+    ))
+    .sort((first, second) => availableSpace(second) - availableSpace(first));
+
+  const selected = validCandidates[0];
+  if (!selected) {
+    ocrPanel.style.display = 'none';
+    return false;
+  }
+
+  ocrPanel.style.width = `${selected.width}px`;
+  ocrPanel.style.height = `${selected.height}px`;
+  ocrPanel.style.left = `${selected.left}px`;
+  ocrPanel.style.top = `${selected.top}px`;
+  return true;
+}
+
+function showOcrResult(text) {
+  recognizedText = text;
+  ocrText.value = text || tCapture('noTextFound');
+  btnOcrCopy.disabled = !text;
+  btnOcrCopy.textContent = tCapture('copyText');
+  ocrPanel.style.display = 'flex';
+  positionOcrPanel();
+}
+
+function resetOcrResult() {
+  recognizedText = '';
+  ocrText.value = '';
+  btnOcrCopy.disabled = true;
+  ocrPanel.style.display = 'none';
+  btnOcrCopy.textContent = tCapture('copyText');
+}
+
+function isCaptureBusy() {
+  return isTranslating || isRecognizing;
+}
+
 function updateTranslateButtonLabel() {
   const labelKey = !translationCache
     ? 'translate'
@@ -470,6 +636,7 @@ function updateTranslateButtonLabel() {
 }
 
 function resetTranslationCache() {
+  resetOcrResult();
   translationCache = null;
   displayedImageVersion = 'original';
   updateTranslateButtonLabel();
@@ -727,7 +894,7 @@ ipcRenderer.on('capture-image', (_e, data) => {
 });
 
 tempCanvas.addEventListener('mousedown', (e) => {
-  if (isTranslating || e.button !== 0) return;
+  if (isCaptureBusy() || e.button !== 0) return;
   const mx = e.clientX;
   const my = e.clientY;
 
@@ -795,7 +962,7 @@ tempCanvas.addEventListener('mousedown', (e) => {
 });
 
 tempCanvas.addEventListener('mousemove', (e) => {
-  if (isTranslating) return;
+  if (isCaptureBusy()) return;
   const mx = e.clientX;
   const my = e.clientY;
 
@@ -894,7 +1061,7 @@ tempCanvas.addEventListener('mousemove', (e) => {
 });
 
 tempCanvas.addEventListener('mouseup', (e) => {
-  if (isTranslating) return;
+  if (isCaptureBusy()) return;
   const mx = e.clientX;
   const my = e.clientY;
 
@@ -944,7 +1111,7 @@ tempCanvas.addEventListener('mouseup', (e) => {
 
 Array.from(document.querySelectorAll('button.tool')).forEach((btn) => {
   btn.addEventListener('click', () => {
-    if (isTranslating || state !== STATE.SELECTED) return;
+    if (isCaptureBusy() || state !== STATE.SELECTED) return;
     setTool(btn.dataset.tool || 'select');
   });
 });
@@ -963,8 +1130,68 @@ document.getElementById('btnCopy').addEventListener('click', () => {
   if (dataURL) ipcRenderer.send('capture-complete', { dataURL });
 });
 
+btnOcr.addEventListener('click', async () => {
+  if (isCaptureBusy() || state !== STATE.SELECTED) return;
+
+  const image = cropSelectionWithAnnotations();
+  if (!image) return;
+
+  resetOcrResult();
+  isRecognizing = true;
+  hideToolbar();
+  sizeInfo.style.display = 'none';
+  showTranslateOverlay(tCapture('recognizing'));
+
+  try {
+    let result;
+    if (ocrEngine === 'local') {
+      result = await ipcRenderer.invoke('capture-ocr-local', { dataURL: image });
+    } else {
+      const token = await ipcRenderer.invoke('store:read', 'user-account-token');
+      if (typeof token !== 'string' || !token.trim()) {
+        throw new Error(tCapture('ocrLoginRequired'));
+      }
+      result = await ipcRenderer.invoke('capture-ocr', { dataURL: image, token });
+    }
+    if (!result?.success) {
+      const errorCode = result?.code;
+      const fallbackMessage = errorCode && tCapture(errorCode) !== errorCode
+        ? tCapture(errorCode)
+        : tCapture('ocrFailed');
+      throw new Error(result?.message || fallbackMessage);
+    }
+    hideTranslateOverlay();
+    showOcrResult(typeof result.text === 'string' ? result.text : '');
+  } catch (error) {
+    showTranslateOverlay(error instanceof Error ? error.message : tCapture('ocrFailed'), true);
+    await new Promise((resolve) => window.setTimeout(resolve, 2200));
+    hideTranslateOverlay();
+  } finally {
+    isRecognizing = false;
+    if (ocrPanel.style.display !== 'flex') {
+      showToolbar();
+      updateSizeInfo(selX, selY);
+    }
+  }
+});
+
+btnOcrCopy.addEventListener('click', () => {
+  if (!recognizedText) return;
+  clipboard.writeText(recognizedText);
+  btnOcrCopy.textContent = tCapture('copied');
+  window.setTimeout(() => {
+    btnOcrCopy.textContent = tCapture('copyText');
+  }, 1200);
+});
+
+btnOcrClose.addEventListener('click', () => {
+  resetOcrResult();
+  showToolbar();
+  updateSizeInfo(selX, selY);
+});
+
 btnTranslate.addEventListener('click', async () => {
-  if (isTranslating || state !== STATE.SELECTED) return;
+  if (isCaptureBusy() || state !== STATE.SELECTED) return;
 
   if (translationCache) {
     isTranslating = true;
@@ -1038,11 +1265,17 @@ document.getElementById('btnCancel').addEventListener('click', () => {
 });
 
 document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && ocrPanel.style.display === 'flex') {
+    resetOcrResult();
+    showToolbar();
+    updateSizeInfo(selX, selY);
+    return;
+  }
   if (e.key === 'Escape') {
     ipcRenderer.send('capture-cancel');
     return;
   }
-  if (e.key === 'Enter' && state === STATE.SELECTED) {
+  if (e.key === 'Enter' && state === STATE.SELECTED && ocrPanel.style.display !== 'flex') {
     const dataURL = cropSelectionWithAnnotations();
     if (dataURL) ipcRenderer.send('capture-complete', { dataURL });
     return;
@@ -1058,9 +1291,13 @@ document.addEventListener('keydown', (e) => {
 window.addEventListener('resize', () => {
   initCanvases();
   if (state !== STATE.IDLE) {
-    if (isTranslating) {
+    if (isCaptureBusy()) {
       hideToolbar();
       positionTranslateOverlay();
+      sizeInfo.style.display = 'none';
+    } else if (ocrPanel.style.display === 'flex') {
+      hideToolbar();
+      positionOcrPanel();
       sizeInfo.style.display = 'none';
     } else {
       showToolbar();

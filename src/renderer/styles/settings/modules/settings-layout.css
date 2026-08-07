@@ -3383,6 +3383,13 @@
   accent-color: var(--color-island-text);
 }
 
+.settings-inline-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+
 /** ========== 翻译面板 ========== */
 .translate-panel {
   flex: 1;
@@ -5661,6 +5668,28 @@ button.settings-user-image-translation-image-wrap:hover {
   color: rgba(var(--color-text-rgb), 0.42);
 }
 
+.settings-user-ocr-history-text {
+  box-sizing: border-box;
+  width: 100%;
+  height: 180px;
+  padding: 12px;
+  margin: 0;
+  overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(var(--color-text-rgb), 0.18) rgba(var(--color-text-rgb), 0.04);
+  user-select: text;
+  cursor: text;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  border: 1px solid rgba(var(--color-text-rgb), 0.09);
+  border-radius: 9px;
+  background: rgba(var(--color-text-rgb), 0.035);
+  color: rgba(var(--color-text-rgb), 0.78);
+  font-family: inherit;
+  font-size: 11px;
+  line-height: 1.55;
+}
+
 .settings-user-image-translation-error {
   padding: 7px 9px;
   border-radius: 7px;
@@ -5735,7 +5764,8 @@ button.settings-user-image-translation-image-wrap:hover {
     grid-template-columns: 1fr;
   }
 
-  .settings-user-image-translation-image-wrap {
+  .settings-user-image-translation-image-wrap,
+  .settings-user-ocr-history-text {
     height: 220px;
   }
 }

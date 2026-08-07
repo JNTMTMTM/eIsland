@@ -29,6 +29,8 @@ import { app, clipboard, desktopCapturer, dialog, ipcMain, nativeImage, type Bro
 import { join } from 'path';
 import { writeFileSync } from 'fs';
 import { capturePrimaryDisplayPng } from '../../window/screenshotHelper';
+import { recognizeCaptureTextLocally } from '../../services/captureLocalOcrService';
+import { recognizeCaptureText } from '../../services/captureOcrService';
 import { translateCaptureImage } from '../../services/imageTranslationService';
 
 interface RegisterCaptureIpcHandlersOptions {
@@ -82,6 +84,50 @@ export function registerCaptureIpcHandlers(options: RegisterCaptureIpcHandlersOp
       console.error('[Screenshot] copy error:', err);
     }
     options.closeCaptureWindow();
+  });
+
+  ipcMain.handle('capture-ocr-local', async (event, payload: {
+    dataURL: string;
+  }) => {
+    const captureWindow = options.getCaptureWindow();
+    if (!captureWindow || captureWindow.isDestroyed() || event.sender.id !== captureWindow.webContents.id) {
+      return { success: false, code: 'captureWindowClosed' };
+    }
+
+    const controller = new AbortController();
+    const abort = (): void => controller.abort();
+    event.sender.once('destroyed', abort);
+    try {
+      return await recognizeCaptureTextLocally(
+        typeof payload?.dataURL === 'string' ? payload.dataURL : '',
+        controller.signal,
+      );
+    } finally {
+      event.sender.removeListener('destroyed', abort);
+    }
+  });
+
+  ipcMain.handle('capture-ocr', async (event, payload: {
+    dataURL: string;
+    token: string;
+  }) => {
+    const captureWindow = options.getCaptureWindow();
+    if (!captureWindow || captureWindow.isDestroyed() || event.sender.id !== captureWindow.webContents.id) {
+      return { success: false, code: 'captureWindowClosed' };
+    }
+
+    const controller = new AbortController();
+    const abort = (): void => controller.abort();
+    event.sender.once('destroyed', abort);
+    try {
+      return await recognizeCaptureText(
+        typeof payload?.token === 'string' ? payload.token : '',
+        typeof payload?.dataURL === 'string' ? payload.dataURL : '',
+        controller.signal,
+      );
+    } finally {
+      event.sender.removeListener('destroyed', abort);
+    }
   });
 
   ipcMain.handle('capture-translate', async (event, payload: {

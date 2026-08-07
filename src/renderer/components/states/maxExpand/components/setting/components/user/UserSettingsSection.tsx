@@ -30,10 +30,12 @@ import { useTranslation } from 'react-i18next';
 import {
   closeUserPaymentOrder,
   deleteImageTranslationHistory,
+  deleteOcrHistory,
   fetchUserPaymentOrders,
   fetchProMonthPricing,
   fetchAgentBalance,
   fetchImageTranslationHistory,
+  fetchOcrHistory,
   fetchOAuthBindings,
   fetchUserProfile,
   logoutUser,
@@ -46,6 +48,7 @@ import {
   uploadUserAvatar,
   type ImageTranslationHistoryItem,
   type OAuthBindingItem,
+  type OcrHistoryItem,
   type UserPaymentOrderData,
   PAYMENT_ORDERS_DEFAULT_PAGE_SIZE,
 } from '../../../../../../../api/user/userAccountApi';
@@ -70,7 +73,7 @@ import { SettingsPageNavigation, SettingsPageNavigationToggle } from '../Setting
 import '../../../../../../../styles/settings/modules/cli.css';
 
 type FeedbackType = 'success' | 'error' | 'info';
-type UserProfilePage = 'info' | 'edit' | 'password' | 'pro' | 'recharge' | 'orders' | 'account' | 'oauth' | 'image-translation';
+type UserProfilePage = 'info' | 'edit' | 'password' | 'pro' | 'recharge' | 'orders' | 'account' | 'oauth' | 'image-translation' | 'ocr-history';
 
 interface Feedback {
   type: FeedbackType;
@@ -99,7 +102,7 @@ interface UserSettingsSectionProps {
 }
 
 const GENDER_VALUES: UserAccountGender[] = ['male', 'female', 'custom', 'undisclosed'];
-const USER_PROFILE_PAGES: UserProfilePage[] = ['info', 'edit', 'password', 'pro', 'recharge', 'orders', 'account', 'oauth', 'image-translation'];
+const USER_PROFILE_PAGES: UserProfilePage[] = ['info', 'edit', 'password', 'pro', 'recharge', 'orders', 'account', 'oauth', 'image-translation', 'ocr-history'];
 const IMAGE_TRANSLATION_PREVIEW_MIN_SCALE = 0.5;
 const IMAGE_TRANSLATION_PREVIEW_MAX_SCALE = 4;
 
@@ -118,6 +121,18 @@ const buildImageTranslationDownloadName = (taskId: string, kind: 'source' | 'res
   return `image-translation-${taskId.slice(0, 8)}-${kind}${extension}`;
 };
 const IMAGE_TRANSLATION_HISTORY_PAGE_SIZE = 5;
+const OCR_HISTORY_PAGE_SIZE = 5;
+
+const buildOcrDownloadName = (id: number, imageUrl: string): string => {
+  let extension = '.jpg';
+  try {
+    const matchedExtension = new URL(imageUrl).pathname.match(/\.(jpe?g|png|webp)$/i)?.[0];
+    if (matchedExtension) extension = matchedExtension.toLowerCase();
+  } catch {
+    // 使用默认扩展名。
+  }
+  return `ocr-${id}-source${extension}`;
+};
 
 const getGenderIcon = (gender: UserAccountGender | null | undefined): string => {
   if (gender === 'male') return SvgIcon.BOY;
@@ -257,6 +272,17 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
   const [imageTranslationRemovingTaskId, setImageTranslationRemovingTaskId] = useState('');
   const [imageTranslationActionFeedback, setImageTranslationActionFeedback] = useState<{ taskId: string; feedback: Feedback } | null>(null);
 
+  const [ocrHistory, setOcrHistory] = useState<OcrHistoryItem[]>([]);
+  const [ocrHistoryPage, setOcrHistoryPage] = useState(1);
+  const [ocrHistoryTotal, setOcrHistoryTotal] = useState(0);
+  const [ocrHistoryTotalPages, setOcrHistoryTotalPages] = useState(0);
+  const [loadingOcrHistory, setLoadingOcrHistory] = useState(false);
+  const [ocrHistoryError, setOcrHistoryError] = useState('');
+  const [ocrHistoryDownloadingId, setOcrHistoryDownloadingId] = useState<number | null>(null);
+  const [ocrHistoryCopyingId, setOcrHistoryCopyingId] = useState<number | null>(null);
+  const [ocrHistoryRemovingId, setOcrHistoryRemovingId] = useState<number | null>(null);
+  const [ocrHistoryActionFeedback, setOcrHistoryActionFeedback] = useState<{ id: number; feedback: Feedback } | null>(null);
+
   /** 用户中心登录天数热力图：记录并展示当前用户每个自然日是否登录 */
   const [loginDays, setLoginDays] = useState<Set<string>>(() => readLoginDays(profile?.username));
   /** 登录热力图是否展开（默认收起，点击右侧统计卡内的图标按钮切换） */
@@ -279,7 +305,9 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
                   ? '关于账户'
                   : userProfilePage === 'oauth'
                     ? '第三方应用绑定'
-                    : '图片翻译',
+                    : userProfilePage === 'image-translation'
+                      ? '图片翻译'
+                      : 'OCR记录',
   });
 
   const avatarInputRef = useRef<HTMLInputElement | null>(null);
@@ -717,6 +745,112 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
     setImageTranslationHistoryTotalPages(result.data.totalPages);
   }, [resetToLoggedOut, t, token]);
 
+  const loadOcrHistory = useCallback(async (page: number): Promise<void> => {
+    if (!token) {
+      setOcrHistory([]);
+      setOcrHistoryPage(1);
+      setOcrHistoryTotal(0);
+      setOcrHistoryTotalPages(0);
+      setLoadingOcrHistory(false);
+      setOcrHistoryError('');
+      return;
+    }
+    setLoadingOcrHistory(true);
+    setOcrHistoryError('');
+    const result = await fetchOcrHistory(token, page, OCR_HISTORY_PAGE_SIZE);
+    setLoadingOcrHistory(false);
+    if (!result.ok || !result.data || !Array.isArray(result.data.items)) {
+      if (result.code === 401 || result.code === 4011) {
+        resetToLoggedOut();
+        return;
+      }
+      setOcrHistoryError(result.message || t('settings.user.ocrHistory.loadFailed', { defaultValue: '加载 OCR 历史记录失败' }));
+      return;
+    }
+    setOcrHistory(result.data.items);
+    setOcrHistoryPage(result.data.page);
+    setOcrHistoryTotal(result.data.total);
+    setOcrHistoryTotalPages(result.data.totalPages);
+  }, [resetToLoggedOut, t, token]);
+
+  const handleDownloadOcrImage = useCallback(async (item: OcrHistoryItem): Promise<void> => {
+    if (!item.sourceUrl || ocrHistoryDownloadingId !== null || ocrHistoryCopyingId !== null || ocrHistoryRemovingId !== null) return;
+    setOcrHistoryDownloadingId(item.id);
+    setOcrHistoryActionFeedback(null);
+    try {
+      const savePath = await window.api.downloadPickSavePath(buildOcrDownloadName(item.id, item.sourceUrl));
+      if (!savePath) return;
+      const result = await window.api.downloadStart({ url: item.sourceUrl, savePath, threads: 4 });
+      setOcrHistoryActionFeedback({
+        id: item.id,
+        feedback: result.ok
+          ? { type: 'success', text: t('settings.user.ocrHistory.actions.downloadStarted', { defaultValue: '已开始下载' }) }
+          : { type: 'error', text: result.message || t('settings.user.ocrHistory.actions.downloadFailed', { defaultValue: '下载失败' }) },
+      });
+    } catch {
+      setOcrHistoryActionFeedback({
+        id: item.id,
+        feedback: { type: 'error', text: t('settings.user.ocrHistory.actions.downloadFailed', { defaultValue: '下载失败' }) },
+      });
+    } finally {
+      setOcrHistoryDownloadingId(null);
+    }
+  }, [ocrHistoryCopyingId, ocrHistoryDownloadingId, ocrHistoryRemovingId, t]);
+
+  const handleCopyOcrText = useCallback(async (item: OcrHistoryItem): Promise<void> => {
+    if (!item.recognizedText || ocrHistoryDownloadingId !== null || ocrHistoryCopyingId !== null || ocrHistoryRemovingId !== null) return;
+    setOcrHistoryCopyingId(item.id);
+    setOcrHistoryActionFeedback(null);
+    try {
+      await navigator.clipboard.writeText(item.recognizedText);
+      setOcrHistoryActionFeedback({
+        id: item.id,
+        feedback: { type: 'success', text: t('settings.user.ocrHistory.actions.copySuccess', { defaultValue: '文本已复制' }) },
+      });
+    } catch {
+      setOcrHistoryActionFeedback({
+        id: item.id,
+        feedback: { type: 'error', text: t('settings.user.ocrHistory.actions.copyFailed', { defaultValue: '复制文本失败' }) },
+      });
+    } finally {
+      setOcrHistoryCopyingId(null);
+    }
+  }, [ocrHistoryCopyingId, ocrHistoryDownloadingId, ocrHistoryRemovingId, t]);
+
+  const handleRemoveOcrHistory = useCallback(async (item: OcrHistoryItem): Promise<void> => {
+    if (!token || ocrHistoryDownloadingId !== null || ocrHistoryCopyingId !== null || ocrHistoryRemovingId !== null) return;
+    setOcrHistoryRemovingId(item.id);
+    setOcrHistoryActionFeedback(null);
+    const result = await deleteOcrHistory(token, item.id);
+    setOcrHistoryRemovingId(null);
+    if (!result.ok) {
+      if (result.code === 401 || result.code === 4011) {
+        resetToLoggedOut();
+        return;
+      }
+      setOcrHistoryActionFeedback({
+        id: item.id,
+        feedback: { type: 'error', text: result.message || t('settings.user.ocrHistory.actions.removeFailed', { defaultValue: '抹掉记录失败' }) },
+      });
+      return;
+    }
+    if (ocrHistory.length === 1 && ocrHistoryPage > 1) {
+      setOcrHistoryPage((current) => Math.max(1, current - 1));
+      return;
+    }
+    await loadOcrHistory(ocrHistoryPage);
+  }, [
+    loadOcrHistory,
+    ocrHistory.length,
+    ocrHistoryCopyingId,
+    ocrHistoryDownloadingId,
+    ocrHistoryPage,
+    ocrHistoryRemovingId,
+    resetToLoggedOut,
+    t,
+    token,
+  ]);
+
   const handleDownloadImageTranslationImage = useCallback(async (
     task: ImageTranslationHistoryItem,
     kind: 'source' | 'result',
@@ -808,6 +942,13 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
     }
     void loadImageTranslationHistory(imageTranslationHistoryPage);
   }, [imageTranslationHistoryPage, loadImageTranslationHistory, token, userProfilePage]);
+
+  useEffect(() => {
+    if (userProfilePage !== 'ocr-history' || !token) {
+      return;
+    }
+    void loadOcrHistory(ocrHistoryPage);
+  }, [loadOcrHistory, ocrHistoryPage, token, userProfilePage]);
 
   useEffect(() => {
     if (userProfilePage !== 'oauth' || !token) {
@@ -1379,6 +1520,7 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
       { id: 'account', label: t('settings.user.pages.account', { defaultValue: '关于账户' }) },
       { id: 'oauth', label: t('settings.user.pages.oauth', { defaultValue: '第三方应用绑定' }) },
       { id: 'image-translation', label: t('settings.user.pages.image-translation', { defaultValue: '图片翻译' }) },
+      { id: 'ocr-history', label: t('settings.user.pages.ocr-history', { defaultValue: 'OCR记录' }) },
     ];
     const profilePageLabels = Object.fromEntries(
       profilePageItems.map((item) => [item.id, item.label]),
@@ -1981,9 +2123,13 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
     const renderOAuthPage = (): ReactElement => (
       <div className="settings-user-page-panel settings-user-oauth-panel">
         <div className="settings-user-card settings-user-oauth-head-card">
-          <div className="settings-user-form-title">{t('settings.user.pages.oauth', { defaultValue: '第三方应用绑定' })}</div>
-          <div className="settings-user-card-title-hint">
-            {t('settings.user.oauth.subtitle', { defaultValue: '管理已绑定的第三方登录账号' })}
+          <div className="settings-user-oauth-head">
+            <div>
+              <div className="settings-user-form-title">{t('settings.user.pages.oauth', { defaultValue: '第三方应用绑定' })}</div>
+              <div className="settings-user-card-title-hint">
+                {t('settings.user.oauth.subtitle', { defaultValue: '管理已绑定的第三方登录账号' })}
+              </div>
+            </div>
           </div>
         </div>
 
@@ -2275,6 +2421,140 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
       </div>
     );
 
+    const renderOcrHistoryPage = (): ReactElement => (
+      <div className="settings-user-page-panel settings-user-image-translation-panel settings-user-ocr-history-panel">
+        <div className="settings-user-card settings-user-image-translation-head-card settings-user-ocr-history-head-card">
+          <div className="settings-user-image-translation-head settings-user-ocr-history-head">
+            <div>
+              <div className="settings-user-form-title">{t('settings.user.pages.ocr-history', { defaultValue: 'OCR记录' })}</div>
+              <div className="settings-user-card-title-hint">
+                {t('settings.user.ocrHistory.subtitle', { defaultValue: '查看原始图片与 OCR 识别文本' })}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {loadingOcrHistory && ocrHistory.length === 0 ? (
+          <div className="settings-user-card settings-user-image-translation-state">
+            <span className="settings-user-orders-inline-spinner" aria-hidden="true" />
+            <span>{t('settings.user.ocrHistory.loading', { defaultValue: '加载 OCR 历史记录中…' })}</span>
+          </div>
+        ) : null}
+
+        {ocrHistoryError ? (
+          <div className="settings-user-feedback settings-user-feedback--error">
+            {ocrHistoryError}
+          </div>
+        ) : null}
+
+        {!loadingOcrHistory && !ocrHistoryError && ocrHistory.length === 0 ? (
+          <div className="settings-user-card settings-user-image-translation-state">
+            {t('settings.user.ocrHistory.empty', { defaultValue: '暂无 OCR 历史记录' })}
+          </div>
+        ) : null}
+
+        <div className="settings-user-image-translation-list">
+          {ocrHistory.map((item) => (
+            <article key={item.id} className="settings-user-card settings-user-image-translation-item">
+              <div className="settings-user-image-translation-item-head">
+                <div className="settings-user-image-translation-meta">
+                  <span>{t('settings.user.ocrHistory.record', { defaultValue: 'OCR #{{id}}', id: item.id })}</span>
+                  <span>{formatDateTime(item.createdAt)}</span>
+                </div>
+              </div>
+
+              <div className="settings-user-image-translation-images settings-user-ocr-history-content">
+                <figure className="settings-user-image-translation-image-card">
+                  <figcaption>{t('settings.user.ocrHistory.sourceImage', { defaultValue: '原始图片' })}</figcaption>
+                  <div className="settings-user-image-translation-image-wrap">
+                    <img
+                      src={item.sourceUrl}
+                      alt={t('settings.user.ocrHistory.sourceImageAlt', { defaultValue: 'OCR 原始图片' })}
+                      loading="lazy"
+                      draggable={false}
+                    />
+                  </div>
+                </figure>
+
+                <figure className="settings-user-image-translation-image-card">
+                  <figcaption>{t('settings.user.ocrHistory.recognizedText', { defaultValue: '识别文本' })}</figcaption>
+                  <pre className="settings-user-ocr-history-text">
+                    {item.recognizedText || t('settings.user.ocrHistory.emptyText', { defaultValue: '未识别到文本' })}
+                  </pre>
+                </figure>
+              </div>
+
+              <div className="settings-user-image-translation-actions settings-user-ocr-history-actions">
+                <button
+                  type="button"
+                  className="settings-hotkey-btn"
+                  disabled={ocrHistoryDownloadingId !== null || ocrHistoryCopyingId !== null || ocrHistoryRemovingId !== null}
+                  onClick={() => void handleDownloadOcrImage(item)}
+                >
+                  {ocrHistoryDownloadingId === item.id
+                    ? t('settings.user.ocrHistory.actions.downloading', { defaultValue: '下载中…' })
+                    : t('settings.user.ocrHistory.actions.downloadSource', { defaultValue: '下载原图' })}
+                </button>
+                <button
+                  type="button"
+                  className="settings-hotkey-btn"
+                  disabled={!item.recognizedText || ocrHistoryDownloadingId !== null || ocrHistoryCopyingId !== null || ocrHistoryRemovingId !== null}
+                  onClick={() => void handleCopyOcrText(item)}
+                >
+                  {ocrHistoryCopyingId === item.id
+                    ? t('settings.user.ocrHistory.actions.copying', { defaultValue: '复制中…' })
+                    : t('settings.user.ocrHistory.actions.copyText', { defaultValue: '复制所有文本' })}
+                </button>
+                <button
+                  type="button"
+                  className="settings-hotkey-btn settings-user-image-translation-remove"
+                  disabled={ocrHistoryDownloadingId !== null || ocrHistoryCopyingId !== null || ocrHistoryRemovingId !== null}
+                  onClick={() => void handleRemoveOcrHistory(item)}
+                >
+                  {ocrHistoryRemovingId === item.id
+                    ? t('settings.user.ocrHistory.actions.removing', { defaultValue: '抹掉中…' })
+                    : t('settings.user.ocrHistory.actions.remove', { defaultValue: '抹掉此记录' })}
+                </button>
+              </div>
+
+              {ocrHistoryActionFeedback?.id === item.id
+                ? renderFeedback(ocrHistoryActionFeedback.feedback)
+                : null}
+            </article>
+          ))}
+        </div>
+
+        {ocrHistoryTotalPages > 0 ? (
+          <nav className="settings-plugin-market-pagination settings-user-image-translation-pagination" aria-label={t('settings.user.ocrHistory.pagination.label', { defaultValue: 'OCR 历史分页' })}>
+            <button
+              type="button"
+              className="settings-hotkey-btn"
+              disabled={loadingOcrHistory || ocrHistoryPage <= 1}
+              onClick={() => setOcrHistoryPage((current) => Math.max(1, current - 1))}
+            >
+              {t('settings.user.ocrHistory.pagination.previous', { defaultValue: '上一页' })}
+            </button>
+            <span className="settings-plugin-market-pagination-text settings-user-image-translation-pagination-summary">
+              {t('settings.user.ocrHistory.pagination.summary', {
+                defaultValue: '第 {{page}} / {{totalPages}} 页，共 {{total}} 条',
+                page: ocrHistoryPage,
+                totalPages: ocrHistoryTotalPages,
+                total: ocrHistoryTotal,
+              })}
+            </span>
+            <button
+              type="button"
+              className="settings-hotkey-btn"
+              disabled={loadingOcrHistory || ocrHistoryPage >= ocrHistoryTotalPages}
+              onClick={() => setOcrHistoryPage((current) => Math.min(ocrHistoryTotalPages, current + 1))}
+            >
+              {t('settings.user.ocrHistory.pagination.next', { defaultValue: '下一页' })}
+            </button>
+          </nav>
+        ) : null}
+      </div>
+    );
+
     const rechargeAmountYuan = rechargeSelected !== null && rechargeSelected !== undefined
       ? rechargeSelected
       : (rechargeCustomValue.trim() !== '' ? parseFloat(rechargeCustomValue) : NaN);
@@ -2366,6 +2646,7 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
           {userProfilePage === 'account' && renderAccountPage()}
           {userProfilePage === 'oauth' && renderOAuthPage()}
           {userProfilePage === 'image-translation' && renderImageTranslationPage()}
+          {userProfilePage === 'ocr-history' && renderOcrHistoryPage()}
         </div>
 
         <SettingsPageNavigation

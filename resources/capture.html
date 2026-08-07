@@ -38,6 +38,21 @@
   <span class="capture-translate-message" id="translateMessage"></span>
 </div>
 
+<div class="capture-ocr-panel" id="ocrPanel" role="dialog" aria-modal="true" aria-labelledby="ocrPanelTitle">
+  <div class="capture-ocr-header">
+    <strong id="ocrPanelTitle" data-i18n="ocrResult">文字识别结果</strong>
+    <button class="capture-ocr-close" id="btnOcrClose" data-i18n-title="close" data-i18n-aria-label="close" title="关闭" aria-label="关闭">
+      <img class="capture-btn-icon" src="./svg/CANCEL.svg" alt="" aria-hidden="true">
+    </button>
+  </div>
+  <textarea class="capture-ocr-text" id="ocrText" readonly></textarea>
+  <div class="capture-ocr-actions">
+    <button class="primary" id="btnOcrCopy" disabled>
+      <span data-i18n="copyText">复制文本</span>
+    </button>
+  </div>
+</div>
+
 <div class="capture-toolbar" id="toolbar">
   <span class="capture-source-badge" id="captureSourceBadge" data-capture-source="js">使用js</span>
   <button class="tool active" data-tool="select" data-i18n-title="select" data-i18n-aria-label="select" title="选区" aria-label="选区">
@@ -72,6 +87,11 @@
   </select>
 
   <div class="sep"></div>
+  <button id="btnOcr">
+    <img class="capture-btn-icon capture-ocr-provider-icon" src="./svg/OCR.svg" alt="" aria-hidden="true">
+    <img class="capture-btn-icon capture-pro-icon capture-ocr-pro-icon" src="./svg/PRO.svg" alt="Pro">
+    <span data-i18n="ocr">文字识别</span>
+  </button>
   <button id="btnTranslate">
     <img class="capture-btn-icon" src="./svg/TRANSLATION.svg" alt="" aria-hidden="true">
     <img class="capture-btn-icon capture-pro-icon" src="./svg/PRO.svg" alt="Pro">
