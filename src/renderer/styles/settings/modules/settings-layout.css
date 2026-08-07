@@ -5675,6 +5675,10 @@ button.settings-user-image-translation-image-wrap:hover {
   padding: 12px;
   margin: 0;
   overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(var(--color-text-rgb), 0.18) rgba(var(--color-text-rgb), 0.04);
+  user-select: text;
+  cursor: text;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
   border: 1px solid rgba(var(--color-text-rgb), 0.09);
