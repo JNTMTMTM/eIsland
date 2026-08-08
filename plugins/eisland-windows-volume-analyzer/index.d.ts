@@ -97,8 +97,9 @@ export interface AudioProcessInfo {
 /**
  * 启动进程音频分析
  * @param processId - 目标进程 ID
+ * @param includeProcessTree - 是否包含子进程音频（默认 true）
  */
-export function start(processId: number): CommandResult;
+export function start(processId: number, includeProcessTree?: boolean): CommandResult;
 
 /**
  * 启动进程音频分析（扩展参数）

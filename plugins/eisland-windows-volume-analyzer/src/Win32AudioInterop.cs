@@ -131,25 +131,56 @@ internal static class WaveFormat
 
 #endregion
 
-#region AUDIOCLIENT_PROCESS_LOOPBACK_PARAMS
+#region Process loopback activation
 
 /// <summary>
-/// 用于 ActivateAudioInterfaceAsync 的进程回环参数。
-/// 仅 Windows 10 20H1 (build 19041) 及以上版本支持。
+/// Selects whether process loopback includes the target process tree.
+/// </summary>
+internal enum PROCESS_LOOPBACK_MODE : uint
+{
+    IncludeTargetProcessTree = 0,
+    ExcludeTargetProcessTree = 1
+}
+
+/// <summary>
+/// Identifies the process audio stream requested by process loopback activation.
 /// </summary>
 [StructLayout(LayoutKind.Sequential)]
 internal struct AUDIOCLIENT_PROCESS_LOOPBACK_PARAMS
 {
-    /// <summary>目标进程 ID。设为 0 则捕获所有进程。</summary>
     public uint TargetProcessId;
+    public PROCESS_LOOPBACK_MODE ProcessLoopbackMode;
+}
 
-    /// <summary>
-    /// 包含进程树标志。
-    /// true: 捕获目标进程及其所有子进程。
-    /// false: 仅捕获目标进程。
-    /// </summary>
-    [MarshalAs(UnmanagedType.Bool)]
-    public bool IncludeProcessTree;
+/// <summary>
+/// Activation payload consumed by ActivateAudioInterfaceAsync.
+/// </summary>
+[StructLayout(LayoutKind.Sequential)]
+internal struct AUDIOCLIENT_ACTIVATION_PARAMS
+{
+    public AUDIOCLIENT_ACTIVATION_TYPE ActivationType;
+    public AUDIOCLIENT_PROCESS_LOOPBACK_PARAMS ProcessLoopbackParams;
+}
+
+/// <summary>
+/// The PROPVARIANT blob layout required by ActivateAudioInterfaceAsync.
+/// </summary>
+[StructLayout(LayoutKind.Sequential)]
+internal struct PROPVARIANT_BLOB
+{
+    public ushort VariantType;
+    public ushort Reserved1;
+    public ushort Reserved2;
+    public ushort Reserved3;
+    public uint BlobSize;
+    public IntPtr BlobData;
+}
+
+/// <summary>AudioClient activation mode.</summary>
+internal enum AUDIOCLIENT_ACTIVATION_TYPE : uint
+{
+    Default = 0,
+    ProcessLoopback = 1
 }
 
 #endregion
@@ -179,6 +210,26 @@ internal static class Win32Audio
 
     [DllImport("ole32.dll")]
     public static extern void CoUninitialize();
+
+    [DllImport("ole32.dll")]
+    public static extern int CoCreateInstance(
+        ref Guid rclsid,
+        IntPtr pUnkOuter,
+        uint dwClsContext,
+        ref Guid riid,
+        out IntPtr ppv);
+
+    /// <summary>
+    /// ActivateAudioInterfaceAsync —— 使用 IntPtr 回调参数。
+    /// 调用方需自行将托管回调对象转为 CCW (Marshal.GetComInterfaceForObject)。
+    /// </summary>
+    [DllImport("MMDevAPI.dll", ExactSpelling = true, PreserveSig = true)]
+    public static extern int ActivateAudioInterfaceAsync(
+        [MarshalAs(UnmanagedType.LPWStr)] string deviceInterfacePath,
+        ref Guid riid,
+        IntPtr activationParams,
+        IntPtr completionHandler,
+        out IntPtr activationOperation);
 
     public const uint COINIT_APARTMENTTHREADED = 0x2;
     public const uint COINIT_MULTITHREADED = 0x0;

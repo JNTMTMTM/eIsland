@@ -1,6 +1,6 @@
 {
   "name": "@eisland/windows-volume-analyzer",
-  "version": "26.0.0",
+  "version": "26.0.1",
   "description": "Process-specific audio analysis: frequency spectrum, amplitude, and beat detection via WASAPI loopback.",
   "author": "JNTMTMTM",
   "license": "GPL-3.0",
@@ -15,16 +15,14 @@
     "ia32"
   ],
   "scripts": {
-    "postinstall": "npm run build",
-    "build": "dotnet publish src/eIslandVolumeAnalyzer.csproj -c Release -r win-x64",
+    "postinstall": "dotnet build src/eIslandVolumeAnalyzer.csproj -c Release",
+    "build": "dotnet build src/eIslandVolumeAnalyzer.csproj -c Release",
     "clean": "dotnet clean src/eIslandVolumeAnalyzer.csproj",
     "rebuild": "npm run clean && npm run build",
     "test": "vitest run --config vitest.config.ts",
     "smoke": "node --experimental-strip-types test/volume-analyzer.smoke.ts"
   },
-  "dependencies": {
-    "koffi": "^2.9.1"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@types/node": "^25.9.3",
     "vitest": "^3.2.1"

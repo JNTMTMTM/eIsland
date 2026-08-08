@@ -14,7 +14,7 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
  */
 
@@ -22,10 +22,17 @@ if (process.platform !== 'win32') {
   throw new Error('@eisland/windows-volume-analyzer only supports Windows.');
 }
 
-const { analyzer, callJson, getLastError } = require('./ffi-loader');
+const { findExe, callExe, toUnpackedPath } = require('./ffi-loader');
+const { spawn } = require('node:child_process');
 
-/** @type {NodeJS.Timer | null} */
-let _pollTimer = null;
+/** @type {import('child_process').ChildProcess | null} */
+let _captureProcess = null;
+
+/** @type {AudioAnalysisResult} */
+let _latestResult = null;
+
+/** @type {string} */
+let _buffer = '';
 
 /** @type {((result: AudioAnalysisResult) => void) | null} */
 let _onUpdate = null;
@@ -33,16 +40,91 @@ let _onUpdate = null;
 /** @type {((err: Error) => void) | null} */
 let _onError = null;
 
+/** @type {string|null} */
+let _lastError = null;
+
+/** @type {NodeJS.Timeout | null} */
+let _pollTimer = null;
+
 /**
  * 启动进程音频分析
  * @param {number} processId - 目标进程 ID
+ * @param {boolean} [includeProcessTree=true] - 是否包含子进程
  * @returns {{ success: boolean, error: string|null }}
  */
-function start(processId) {
-  const r = analyzer.audio_analyzer_start(processId >>> 0);
-  return r === 0
-    ? { success: true, error: null }
-    : { success: false, error: getLastError() || 'Start failed.' };
+function start(processId, includeProcessTree) {
+  if (!Number.isSafeInteger(processId) || processId <= 0 || processId > 0xffffffff) {
+    return { success: false, error: 'processId must be a positive 32-bit integer.' };
+  }
+
+  if (_captureProcess) {
+    stop();
+  }
+
+  const exePath = findExe();
+  if (!exePath) {
+    const error = 'Analyzer EXE not found. Run "npm run build" first.';
+    _lastError = error;
+    return { success: false, error };
+  }
+
+  const args = ['capture', String(processId >>> 0)];
+  if (includeProcessTree !== false) {
+    args.push('--include-tree');
+  }
+
+  try {
+    const captureProcess = spawn(toUnpackedPath(exePath), args, {
+      windowsHide: true,
+      stdio: ['pipe', 'pipe', 'pipe'],
+    });
+    _captureProcess = captureProcess;
+    _buffer = '';
+    _latestResult = null;
+    _lastError = null;
+
+    captureProcess.stdout.on('data', (chunk) => {
+      _buffer += chunk.toString();
+      const lines = _buffer.split('\n');
+      _buffer = lines.pop() ?? '';
+
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed) continue;
+        try {
+          const result = normalizeResult(JSON.parse(trimmed));
+          _latestResult = result;
+          if (result.error) _lastError = result.error;
+        } catch {
+          // Ignore non-JSON output
+        }
+      }
+    });
+
+    captureProcess.stderr.on('data', (chunk) => {
+      const message = chunk.toString().trim();
+      if (!message) return;
+      _lastError = message;
+      if (_onError) _onError(new Error(message));
+    });
+
+    captureProcess.on('error', (error) => {
+      if (_captureProcess === captureProcess) _captureProcess = null;
+      _lastError = error.message;
+      if (_onError) _onError(error);
+    });
+
+    captureProcess.on('close', () => {
+      if (_captureProcess === captureProcess) _captureProcess = null;
+      _buffer = '';
+    });
+
+    return { success: true, error: null };
+  } catch (err) {
+    const error = err instanceof Error ? err.message : String(err);
+    _lastError = error;
+    return { success: false, error };
+  }
 }
 
 /**
@@ -52,10 +134,7 @@ function start(processId) {
  * @returns {{ success: boolean, error: string|null }}
  */
 function startEx(processId, includeProcessTree) {
-  const r = analyzer.audio_analyzer_start_ex(processId >>> 0, includeProcessTree ? 1 : 0);
-  return r === 0
-    ? { success: true, error: null }
-    : { success: false, error: getLastError() || 'Start failed.' };
+  return start(processId, includeProcessTree);
 }
 
 /**
@@ -63,23 +142,33 @@ function startEx(processId, includeProcessTree) {
  * @returns {{ success: boolean, error: string|null }}
  */
 function stop() {
-  const r = analyzer.audio_analyzer_stop();
-  if (_pollTimer) {
-    clearInterval(_pollTimer);
-    _pollTimer = null;
+  stopPolling();
+
+  if (_captureProcess) {
+    const proc = _captureProcess;
+    _captureProcess = null;
+
+    try {
+      proc.stdin.end('\n');
+    } catch { /* ignore */ }
+
+    const killTimer = setTimeout(() => {
+      if (!proc.killed) proc.kill();
+    }, 1000);
+    killTimer.unref();
   }
-  return r === 0
-    ? { success: true, error: null }
-    : { success: false, error: getLastError() || 'Stop failed.' };
+
+  _latestResult = null;
+  return { success: true, error: null };
 }
 
 /**
- * 获取当前分析结果（同步）
+ * 获取当前分析结果
  * @returns {AudioAnalysisResult}
  */
 function getResult() {
-  const raw = callJson('audio_analyzer_get_result');
-  return normalizeResult(raw);
+  if (_latestResult) return _latestResult;
+  return emptyResult;
 }
 
 /**
@@ -87,16 +176,14 @@ function getResult() {
  * @returns {{ isRunning: boolean, error: string|null }}
  */
 function getStatus() {
-  const raw = callJson('audio_analyzer_get_status');
-  if (!raw) return { isRunning: false, error: null };
   return {
-    isRunning: raw.isRunning ?? false,
-    error: raw.error ?? null,
+    isRunning: _captureProcess !== null,
+    error: _lastError,
   };
 }
 
 /**
- * 启动轮询模式：以指定间隔调用 DLL 获取结果并触发回调
+ * 启动轮询模式：以指定间隔触发回调
  * @param {number} intervalMs - 轮询间隔（毫秒），默认 50
  * @param {(result: AudioAnalysisResult) => void} onUpdate - 结果更新回调
  * @param {(err: Error) => void} [onError] - 错误回调
@@ -176,12 +263,15 @@ function normalizeResult(raw) {
 }
 
 /**
- * 获取当前正在播放音频的进程列表（同步）
- * @param {boolean} [activeOnly=true] - true=仅返回正在播放的进程，false=返回所有有音频会话的进程
+ * 获取当前正在播放音频的进程列表
+ * @param {boolean} [activeOnly=true] - true=仅返回正在播放的进程
  * @returns {AudioProcessInfo[]}
  */
 function getPlayingProcesses(activeOnly) {
-  const raw = callJson('audio_analyzer_get_playing_processes', activeOnly === false ? 0 : 1);
+  const args = ['processes'];
+  if (activeOnly === false) args.push('--all');
+
+  const raw = callExe(args);
   if (!Array.isArray(raw)) return [];
   return raw.map((p) => ({
     processId: p.processId ?? 0,

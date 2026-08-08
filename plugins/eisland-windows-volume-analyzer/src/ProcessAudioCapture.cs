@@ -1,343 +1,213 @@
-/*
- * eIsland - A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Electron.
- * https://github.com/JNTMTMTM/eIsland
- *
- * Copyright (C) 2026 JNTMTMTM
- * Copyright (C) 2026 pyisland.com
- *
- * Original author: JNTMTMTM[](https://github.com/JNTMTMTM)
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- */
-
-using System.Runtime.InteropServices;
-using System.Text.Json;
-
 namespace eIslandVolumeAnalyzer;
 
 /// <summary>
-/// 进程音频捕获与分析引擎。
-/// 通过 ActivateAudioInterfaceAsync 获取进程专属音频流，
-/// 执行 FFT 频谱分析和节拍检测。
+/// Captures and analyzes only the selected process audio stream.
 /// </summary>
 internal sealed class ProcessAudioCapture : IDisposable
 {
-    #region 状态字段
-
+    private readonly FftProcessor _fft;
+    private readonly object _resultLock = new();
+    private readonly ManualResetEventSlim _startupEvent = new(false);
+    private readonly IntPtr _stopEvent;
     private volatile bool _running;
     private Thread? _captureThread;
-    private uint _targetProcessId;
-    private bool _includeProcessTree;
-
-    // 分析组件
-    private readonly FftProcessor _fft;
-
-    // 音频参数
-    private int _sampleRate = 48000;
-    private int _channels = 2;
-
-    // 频谱分析结果（线程安全）
-    private readonly object _resultLock = new();
     private AudioAnalysisResult _result;
-
-    // 采样缓冲区
+    private string? _startupError;
     private float[]? _sampleBuffer;
     private int _bufferWritePos;
-
-    #endregion
-
-    #region Win32 事件
-
-    private IntPtr _stopEvent = IntPtr.Zero;
-
-    #endregion
+    private int _sampleRate = 48000;
+    private int _channels = 2;
 
     public ProcessAudioCapture(int fftSize = 2048)
     {
         _fft = new FftProcessor(fftSize);
         _result = AudioAnalysisResult.Empty;
+        _stopEvent = Win32Audio.CreateEventW(IntPtr.Zero, true, false, IntPtr.Zero);
+        if (_stopEvent == IntPtr.Zero)
+            throw new InvalidOperationException("Unable to create the capture stop event.");
     }
 
-    /// <summary>当前分析结果（线程安全）</summary>
+    /// <summary>Returns the latest immutable analysis snapshot.</summary>
     public AudioAnalysisResult LatestResult
     {
-        get
-        {
-            lock (_resultLock) return _result;
-        }
+        get { lock (_resultLock) return _result; }
     }
 
-    /// <summary>是否正在运行</summary>
+    /// <summary>Indicates whether the capture thread is active.</summary>
     public bool IsRunning => _running;
 
-    /// <summary>
-    /// 启动进程音频捕获
-    /// </summary>
-    /// <param name="processId">目标进程 ID</param>
-    /// <param name="includeProcessTree">是否包含子进程音频</param>
-    /// <returns>0=成功, 1=失败</returns>
+    /// <summary>Starts process loopback capture and waits for the stream to initialize.</summary>
     public int Start(uint processId, bool includeProcessTree = true)
     {
         if (_running) return 0;
 
-        _targetProcessId = processId;
-        _includeProcessTree = includeProcessTree;
-
-        if (_stopEvent == IntPtr.Zero)
-        {
-            _stopEvent = Win32Audio.CreateEventW(IntPtr.Zero, true, false, IntPtr.Zero);
-            if (_stopEvent == IntPtr.Zero) return 1;
-        }
+        _startupError = null;
+        _startupEvent.Reset();
         Win32Audio.ResetEvent(_stopEvent);
-
         _running = true;
-        _captureThread = new Thread(CaptureLoop)
+        _captureThread = new Thread(() => CaptureLoop(processId, includeProcessTree))
         {
             IsBackground = true,
             Name = $"AudioAnalyzer-{processId}"
         };
         _captureThread.Start();
 
-        return 0;
+        if (_startupEvent.Wait(5000))
+            return _startupError is null ? 0 : 1;
+
+        Stop();
+        SetError("Timed out while starting process audio capture.");
+        return 1;
     }
 
-    /// <summary>停止捕获</summary>
+    /// <summary>Stops capture and joins the background thread.</summary>
     public void Stop()
     {
-        if (!_running) return;
+        if (!_running && (_captureThread is null || !_captureThread.IsAlive)) return;
+
         _running = false;
-        if (_stopEvent != IntPtr.Zero)
-            Win32Audio.SetEvent(_stopEvent);
+        Win32Audio.SetEvent(_stopEvent);
         _captureThread?.Join(3000);
+        _captureThread = null;
     }
 
-    /// <summary>释放资源</summary>
+    /// <summary>Releases the capture event and analysis resources.</summary>
     public void Dispose()
     {
         Stop();
-        if (_stopEvent != IntPtr.Zero)
-        {
-            Win32Audio.CloseHandle(_stopEvent);
-            _stopEvent = IntPtr.Zero;
-        }
-        ProcessAudioActivator.Cleanup();
+        _startupEvent.Dispose();
+        Win32Audio.CloseHandle(_stopEvent);
     }
 
-    #region 捕获主循环
-
-    private unsafe void CaptureLoop()
+    private unsafe void CaptureLoop(uint processId, bool includeProcessTree)
     {
+        var comResult = Win32Audio.CoInitializeEx(IntPtr.Zero, Win32Audio.COINIT_MULTITHREADED);
+        var comInitialized = comResult is 0 or 1;
         IAudioClient? audioClient = null;
         IAudioCaptureClient? captureClient = null;
 
         try
         {
-            // 初始化 COM
-            Win32Audio.CoInitializeEx(IntPtr.Zero, Win32Audio.COINIT_APARTMENTTHREADED);
+            if (!comInitialized)
+                throw new InvalidOperationException($"COM initialization failed: 0x{comResult:X8}");
 
-            // 激活进程专属音频客户端
-            audioClient = ProcessAudioActivator.ActivateForProcess(_targetProcessId, _includeProcessTree);
-            if (audioClient == null)
-            {
-                System.Diagnostics.Debug.WriteLine("[VolumeAnalyzer] Failed to activate audio client");
-                return;
-            }
+            audioClient = ProcessAudioActivator.ActivateProcessLoopbackClient(processId, includeProcessTree);
 
-            // 获取设备混音格式
-            if (audioClient.GetMixFormat(out var mixFormat) != 0)
-            {
-                System.Diagnostics.Debug.WriteLine("[VolumeAnalyzer] Failed to get mix format");
-                return;
-            }
-
-            _sampleRate = (int)mixFormat.nSamplesPerSec;
-            _channels = mixFormat.nChannels;
-
-            // 构建请求格式：32-bit float 立体声
+            // Process-loopback clients do not guarantee GetMixFormat support; request a stable float format.
+            _sampleRate = 48000;
             var requestFormat = WaveFormat.CreateFloatStereo((uint)_sampleRate);
-
-            // 初始化音频客户端：共享模式 + 回环
             var sessionGuid = Guid.Empty;
-            int hr = audioClient.Initialize(
+            var streamFlags = (uint)(AUDCLNT_STREAMFLAGS.LOOPBACK | AUDCLNT_STREAMFLAGS.AUTOCONVERTPCM);
+            var hr = audioClient.Initialize(
                 AUDCLNT_SHAREMODE.SHARED,
-                (uint)AUDCLNT_STREAMFLAGS.LOOPBACK,
-                0, 0,
+                streamFlags,
+                0,
+                0,
                 ref requestFormat,
                 ref sessionGuid);
-
-            if (hr != 0)
-            {
-                // 回退到混音格式
-                requestFormat = mixFormat;
-                hr = audioClient.Initialize(
-                    AUDCLNT_SHAREMODE.SHARED,
-                    (uint)AUDCLNT_STREAMFLAGS.LOOPBACK,
-                    0, 0,
-                    ref requestFormat,
-                    ref sessionGuid);
-
-                if (hr != 0)
-                {
-                    System.Diagnostics.Debug.WriteLine($"[VolumeAnalyzer] Initialize failed: 0x{hr:X8}");
-                    return;
-                }
-            }
+            ThrowIfFailed(hr, "IAudioClient.Initialize");
 
             _channels = requestFormat.nChannels;
-            _sampleRate = (int)requestFormat.nSamplesPerSec;
-
-            // 用实际采样率重建节拍检测器
-            var beatDetector = new BeatDetector(_sampleRate, _fft.Size);
-
-            // 获取缓冲区大小
-            audioClient.GetBufferSize(out var bufferFrameCount);
-
-            // 准备采样缓冲区
-            int fftSize = _fft.Size;
-            _sampleBuffer = new float[fftSize];
+            _sampleBuffer = new float[_fft.Size];
             _bufferWritePos = 0;
 
-            // 获取捕获客户端
             var captureGuid = AudioInterfaceGuids.IID_IAudioCaptureClient;
-            audioClient.GetService(ref captureGuid, out var captureObj);
-            captureClient = (IAudioCaptureClient)captureObj;
+            ThrowIfFailed(audioClient.GetService(ref captureGuid, out var captureObject), "GetService(IAudioCaptureClient)");
+            captureClient = (IAudioCaptureClient)captureObject;
+            ThrowIfFailed(audioClient.Start(), "IAudioClient.Start");
+            _startupEvent.Set();
 
-            // 启动捕获
-            hr = audioClient.Start();
-            if (hr != 0)
-            {
-                System.Diagnostics.Debug.WriteLine($"[VolumeAnalyzer] Start failed: 0x{hr:X8}");
-                return;
-            }
-
-            // 主循环：读取音频数据并分析
-            var magnitudes = new float[fftSize / 2];
-
+            var beatDetector = new BeatDetector(_sampleRate, _fft.Size);
+            var magnitudes = new float[_fft.Size / 2];
             while (_running)
             {
-                // 等待数据或停止信号
-                var waitResult = Win32Audio.WaitForSingleObject(_stopEvent, 10);
-                if (waitResult == Win32Audio.WAIT_OBJECT_0) break;
+                if (Win32Audio.WaitForSingleObject(_stopEvent, 10) == Win32Audio.WAIT_OBJECT_0) break;
+                ThrowIfFailed(captureClient.GetNextPacketSize(out var packetFrameCount), "GetNextPacketSize");
 
-                // 读取所有可用的音频包
-                captureClient.GetNextPacketSize(out var packetFrameCount);
-                while (packetFrameCount > 0)
+                while (packetFrameCount > 0 && _running)
                 {
-                    hr = captureClient.GetBuffer(
+                    ThrowIfFailed(captureClient.GetBuffer(
                         out var dataPtr,
                         out var framesAvailable,
                         out var flags,
-                        out var devicePos,
-                        out var qpcPos);
-
-                    if (hr != 0) break;
-
-                    if ((flags & (uint)AUDCLNT_BUFFERFLAGS.SILENT) == 0 && dataPtr != IntPtr.Zero)
+                        out _,
+                        out _), "GetBuffer");
+                    try
                     {
-                        // 将原始数据转换为 float 采样（取左声道）
-                        int floatCount = (int)framesAvailable * _channels;
-                        var span = new ReadOnlySpan<float>(dataPtr.ToPointer(), floatCount);
-
-                        // 混合为单声道并写入缓冲区
-                        WriteToBuffer(span, _channels);
+                        var silent = (flags & (uint)AUDCLNT_BUFFERFLAGS.SILENT) != 0;
+                        if (silent || dataPtr == IntPtr.Zero)
+                            WriteSilence(framesAvailable, beatDetector, magnitudes);
+                        else
+                            WriteAudio(new ReadOnlySpan<float>(dataPtr.ToPointer(), checked((int)framesAvailable * _channels)), beatDetector, magnitudes);
                     }
-
-                    captureClient.ReleaseBuffer(framesAvailable);
-                    captureClient.GetNextPacketSize(out packetFrameCount);
-                }
-
-                // 如果缓冲区满，执行 FFT 分析
-                if (_bufferWritePos >= fftSize)
-                {
-                    AnalyzeBuffer(magnitudes, beatDetector);
-                    _bufferWritePos = 0;
+                    finally
+                    {
+                        ThrowIfFailed(captureClient.ReleaseBuffer(framesAvailable), "ReleaseBuffer");
+                    }
+                    ThrowIfFailed(captureClient.GetNextPacketSize(out packetFrameCount), "GetNextPacketSize");
                 }
             }
 
-            // 停止捕获
-            audioClient.Stop();
+            _ = audioClient.Stop();
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[VolumeAnalyzer] Capture error: {ex}");
-            lock (_resultLock)
-            {
-                _result = _result with { Error = ex.Message };
-            }
+            SetError(ex.Message);
+            _startupEvent.Set();
         }
         finally
         {
-            if (captureClient != null) Marshal.ReleaseComObject(captureClient);
-            if (audioClient != null) Marshal.ReleaseComObject(audioClient);
             _running = false;
+            if (comInitialized) Win32Audio.CoUninitialize();
         }
     }
 
-    /// <summary>
-    /// 将多声道采样混合为单声道并写入分析缓冲区
-    /// </summary>
-    private void WriteToBuffer(ReadOnlySpan<float> interleaved, int channels)
+    private void WriteAudio(ReadOnlySpan<float> interleaved, BeatDetector detector, float[] magnitudes)
     {
-        if (_sampleBuffer == null) return;
-
-        int sampleCount = interleaved.Length / channels;
-        for (int i = 0; i < sampleCount && _bufferWritePos < _sampleBuffer.Length; i++)
+        var sampleCount = interleaved.Length / _channels;
+        for (var frame = 0; frame < sampleCount; frame++)
         {
-            float mixed = 0f;
-            int baseIdx = i * channels;
-            for (int ch = 0; ch < channels; ch++)
-                mixed += interleaved[baseIdx + ch];
-            _sampleBuffer[_bufferWritePos++] = mixed / channels;
+            var sum = 0f;
+            var offset = frame * _channels;
+            for (var channel = 0; channel < _channels; channel++) sum += interleaved[offset + channel];
+            WriteSample(sum / _channels, detector, magnitudes);
         }
     }
 
-    /// <summary>
-    /// 对缓冲区数据执行 FFT 分析和节拍检测
-    /// </summary>
+    private void WriteSilence(uint frames, BeatDetector detector, float[] magnitudes)
+    {
+        for (var frame = 0u; frame < frames; frame++) WriteSample(0f, detector, magnitudes);
+    }
+
+    private void WriteSample(float sample, BeatDetector detector, float[] magnitudes)
+    {
+        if (_sampleBuffer is null) return;
+        _sampleBuffer[_bufferWritePos++] = sample;
+        if (_bufferWritePos < _sampleBuffer.Length) return;
+
+        AnalyzeBuffer(magnitudes, detector);
+        _bufferWritePos = 0;
+    }
+
     private void AnalyzeBuffer(float[] magnitudes, BeatDetector beatDetector)
     {
-        if (_sampleBuffer == null) return;
-
-        // 计算 FFT 幅度谱
+        if (_sampleBuffer is null) return;
         _fft.ComputeMagnitude(_sampleBuffer, magnitudes);
 
-        // 计算 RMS 和峰值
-        float rms = 0f, peak = 0f;
-        for (int i = 0; i < _sampleBuffer.Length; i++)
+        var sumSquares = 0f;
+        var peak = 0f;
+        foreach (var sample in _sampleBuffer)
         {
-            float abs = MathF.Abs(_sampleBuffer[i]);
-            rms += _sampleBuffer[i] * _sampleBuffer[i];
-            if (abs > peak) peak = abs;
+            var absolute = MathF.Abs(sample);
+            sumSquares += sample * sample;
+            if (absolute > peak) peak = absolute;
         }
-        rms = MathF.Sqrt(rms / _sampleBuffer.Length);
 
-        // 找出主要频率 bin（幅度最高的 N 个）
+        var rms = MathF.Sqrt(sumSquares / _sampleBuffer.Length);
         var topBins = FindTopFrequencyBins(magnitudes, 8);
-
-        // 节拍检测（关注低频：约 40-200 Hz）
-        int lowBin = Math.Max(2, (int)(40f * _fft.Size / _sampleRate));
-        int highBin = Math.Min(magnitudes.Length, (int)(200f * _fft.Size / _sampleRate));
+        var lowBin = Math.Max(2, (int)(40f * _fft.Size / _sampleRate));
+        var highBin = Math.Min(magnitudes.Length, Math.Max(lowBin + 1, (int)(200f * _fft.Size / _sampleRate)));
         beatDetector.Analyze(magnitudes, lowBin, highBin);
-
-        // 更新结果
-        float[] spectrum;
-        if (magnitudes.Length <= 512)
-        {
-            spectrum = magnitudes.ToArray();
-        }
-        else
-        {
-            // 降采样到 512 bins
-            spectrum = DownsampleSpectrum(magnitudes, 512);
-        }
 
         lock (_resultLock)
         {
@@ -346,19 +216,15 @@ internal sealed class ProcessAudioCapture : IDisposable
                 Error = null,
                 Frequency = new FrequencyData
                 {
-                    Spectrum = spectrum,
-                    DominantHz = topBins.Length > 0 ? BinToHz(topBins[0].Bin) : 0f,
-                    TopFrequencies = topBins.Select(b => new FrequencyPeak
+                    Spectrum = DownsampleSpectrum(magnitudes, 512),
+                    DominantHz = topBins.Length == 0 ? 0f : BinToHz(topBins[0].Bin),
+                    TopFrequencies = topBins.Select(bin => new FrequencyPeak
                     {
-                        Hz = BinToHz(b.Bin),
-                        Magnitude = b.Magnitude
+                        Hz = BinToHz(bin.Bin),
+                        Magnitude = bin.Magnitude
                     }).ToArray()
                 },
-                Amplitude = new AmplitudeData
-                {
-                    Rms = rms,
-                    Peak = peak
-                },
+                Amplitude = new AmplitudeData { Rms = rms, Peak = peak },
                 Beat = new BeatData
                 {
                     IsBeat = beatDetector.IsBeat,
@@ -369,90 +235,70 @@ internal sealed class ProcessAudioCapture : IDisposable
         }
     }
 
-    /// <summary>频率 bin 转 Hz</summary>
     private float BinToHz(int bin) => bin * (float)_sampleRate / _fft.Size;
 
-    /// <summary>找出幅度最高的 N 个频率 bin</summary>
-    private static (int Bin, float Magnitude)[] FindTopFrequencyBins(ReadOnlySpan<float> magnitudes, int count)
+    private void SetError(string error)
     {
-        // 跳过前 2 个 bin（直流分量和极低频）
-        var bins = new List<(int Bin, float Magnitude)>();
-        for (int i = 2; i < magnitudes.Length; i++)
-        {
-            bins.Add((i, magnitudes[i]));
-        }
-        return bins.OrderByDescending(b => b.Magnitude).Take(count).ToArray();
+        _startupError = error;
+        lock (_resultLock) _result = _result with { Error = error };
     }
 
-    /// <summary>频谱降采样</summary>
+    private static void ThrowIfFailed(int hResult, string operation)
+    {
+        if (hResult != 0) throw new InvalidOperationException($"{operation} failed: 0x{hResult:X8}");
+    }
+
+    private static (int Bin, float Magnitude)[] FindTopFrequencyBins(ReadOnlySpan<float> magnitudes, int count)
+    {
+        var bins = new List<(int Bin, float Magnitude)>(Math.Max(0, magnitudes.Length - 2));
+        for (var bin = 2; bin < magnitudes.Length; bin++)
+        {
+            if (magnitudes[bin] > 1e-8f) bins.Add((bin, magnitudes[bin]));
+        }
+
+        return bins.OrderByDescending(item => item.Magnitude).Take(count).ToArray();
+    }
+
     private static float[] DownsampleSpectrum(ReadOnlySpan<float> source, int targetSize)
     {
         var result = new float[targetSize];
-        float ratio = (float)source.Length / targetSize;
-        for (int i = 0; i < targetSize; i++)
+        var ratio = (float)source.Length / targetSize;
+        for (var i = 0; i < targetSize; i++)
         {
-            int start = (int)(i * ratio);
-            int end = (int)((i + 1) * ratio);
-            if (end <= start) end = start + 1;
-            if (end > source.Length) end = source.Length;
-
-            float max = 0f;
-            for (int j = start; j < end; j++)
-            {
-                if (source[j] > max) max = source[j];
-            }
-            result[i] = max;
+            var start = Math.Min(source.Length, (int)(i * ratio));
+            var end = Math.Min(source.Length, Math.Max(start + 1, (int)((i + 1) * ratio)));
+            for (var j = start; j < end; j++) result[i] = MathF.Max(result[i], source[j]);
         }
         return result;
     }
-
-    #endregion
 }
 
-/// <summary>频率峰值</summary>
 internal record struct FrequencyPeak
 {
     public float Hz { get; init; }
     public float Magnitude { get; init; }
 }
 
-/// <summary>频率分析数据</summary>
 internal record struct FrequencyData
 {
-    /// <summary>频谱幅度数组（降采样到 512 bins）</summary>
     public float[] Spectrum { get; init; }
-
-    /// <summary>主频率 (Hz)</summary>
     public float DominantHz { get; init; }
-
-    /// <summary>幅度最高的频率峰值列表</summary>
     public FrequencyPeak[] TopFrequencies { get; init; }
 }
 
-/// <summary>振幅分析数据</summary>
 internal record struct AmplitudeData
 {
-    /// <summary>均方根振幅</summary>
     public float Rms { get; init; }
-
-    /// <summary>峰值振幅</summary>
     public float Peak { get; init; }
 }
 
-/// <summary>节拍检测数据</summary>
 internal record struct BeatData
 {
-    /// <summary>当前帧是否有节拍</summary>
     public bool IsBeat { get; init; }
-
-    /// <summary>检测到的 BPM</summary>
     public float Bpm { get; init; }
-
-    /// <summary>节拍强度 (0.0 ~ 1.0)</summary>
     public float Intensity { get; init; }
 }
 
-/// <summary>完整音频分析结果</summary>
 internal record AudioAnalysisResult
 {
     public string? Error { get; init; }
@@ -462,8 +308,18 @@ internal record AudioAnalysisResult
 
     public static AudioAnalysisResult Empty => new()
     {
-        Frequency = new FrequencyData { Spectrum = Array.Empty<float>(), TopFrequencies = Array.Empty<FrequencyPeak>() },
-        Amplitude = default,
-        Beat = default
+        Frequency = new FrequencyData
+        {
+            Spectrum = Array.Empty<float>(),
+            TopFrequencies = Array.Empty<FrequencyPeak>()
+        },
+        Amplitude = new AmplitudeData(),
+        Beat = new BeatData()
     };
+}
+
+internal record StatusInfo
+{
+    public bool IsRunning { get; init; }
+    public string? Error { get; init; }
 }
