@@ -27,6 +27,7 @@
     "plugin:build:bluetooth": "cd plugins/eisland-windows-bluetooth-helper && npm run build:all",
     "plugin:build:brightness": "cd plugins/eisland-windows-brightness-helper && npm run build",
     "plugin:build:volume": "cd plugins/eisland-windows-volume-helper && npm run build",
+    "plugin:build:volume-analyzer": "cd plugins/eisland-windows-volume-analyzer && npm run build",
     "plugin:build:power": "cd plugins/eisland-windows-power-helper && npm run build:all",
     "plugin:build:processes": "cd plugins/eisland-windows-processes-attacker && npm run build",
     "plugin:build:smtc": "cd plugins/eisland-windows-smtc-helper && npm run build:all",
@@ -39,6 +40,7 @@
     "plugin:clean:bluetooth": "cd plugins/eisland-windows-bluetooth-helper && npm run clean",
     "plugin:clean:brightness": "cd plugins/eisland-windows-brightness-helper && npm run clean",
     "plugin:clean:volume": "cd plugins/eisland-windows-volume-helper && npm run clean",
+    "plugin:clean:volume-analyzer": "cd plugins/eisland-windows-volume-analyzer && npm run clean",
     "plugin:clean:power": "cd plugins/eisland-windows-power-helper && npm run clean",
     "plugin:clean:processes": "cd plugins/eisland-windows-processes-attacker && npm run clean",
     "plugin:clean:smtc": "cd plugins/eisland-windows-smtc-helper && npm run clean",
@@ -48,8 +50,8 @@
     "plugin:clean:perfmon": "cd plugins/eisland-windows-performance-monitor && npm run clean",
     "plugin:clean:icon-helper": "cd plugins/eisland-windows-application-icon-helper && npm run clean",
     "plugin:clean:screenshot-helper": "cd plugins/eisland-windows-screenshot-helper && npm run clean",
-    "plugins:build": "run-s plugin:build:bluetooth plugin:build:brightness plugin:build:volume plugin:build:power plugin:build:processes plugin:build:smtc plugin:build:toast plugin:build:wifi plugin:build:fullscreen plugin:build:perfmon plugin:build:icon-helper plugin:build:screenshot-helper",
-    "plugins:clean": "run-p plugin:clean:bluetooth plugin:clean:brightness plugin:clean:volume plugin:clean:power plugin:clean:processes plugin:clean:smtc plugin:clean:toast plugin:clean:wifi plugin:clean:fullscreen plugin:clean:perfmon plugin:clean:icon-helper plugin:clean:screenshot-helper"
+    "plugins:build": "run-s plugin:build:bluetooth plugin:build:brightness plugin:build:volume plugin:build:volume-analyzer plugin:build:power plugin:build:processes plugin:build:smtc plugin:build:toast plugin:build:wifi plugin:build:fullscreen plugin:build:perfmon plugin:build:icon-helper plugin:build:screenshot-helper",
+    "plugins:clean": "run-p plugin:clean:bluetooth plugin:clean:brightness plugin:clean:volume plugin:clean:volume-analyzer plugin:clean:power plugin:clean:processes plugin:clean:smtc plugin:clean:toast plugin:clean:wifi plugin:clean:fullscreen plugin:clean:perfmon plugin:clean:icon-helper plugin:clean:screenshot-helper"
   },
   "dependencies": {
     "@eisland/windows-application-icon-helper": "file:plugins/eisland-windows-application-icon-helper",
@@ -62,6 +64,7 @@
     "@eisland/windows-screenshot-helper": "file:plugins/eisland-windows-screenshot-helper",
     "@eisland/windows-smtc-helper": "file:plugins/eisland-windows-smtc-helper",
     "@eisland/windows-toast-listener": "file:plugins/eisland-windows-toast-listener",
+    "@eisland/windows-volume-analyzer": "file:plugins/eisland-windows-volume-analyzer",
     "@eisland/windows-volume-helper": "file:plugins/eisland-windows-volume-helper",
     "@eisland/windows-wifi-helper": "file:plugins/eisland-windows-wifi-helper",
     "@gsap/react": "^2.1.2",
