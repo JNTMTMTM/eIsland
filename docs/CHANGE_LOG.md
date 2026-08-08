@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-08-07T09:23:00.179Z
+> 生成时间：2026-08-08T05:50:24.365Z
 
 ## 26.7.1
 
@@ -3284,6 +3284,14 @@
 
 ## Unreleased
 
+- 2026-08-08 | 8369f36a | 鸡哥 | Merge pull request #191 from JNTMTMTM/dev
+- 2026-08-08 | 96f56cb4 | 鸡哥 | feat: refactor island dimensions to shared module and update related calculations
+- 2026-08-08 | 1291b119 | 鸡哥 | feat: implement session limits and pagination for CLI sessions
+- 2026-08-08 | e11fd959 | 鸡哥 | feat: enhance window movement logic with post-animation correction for shape changes
+- 2026-08-08 | 5ac6c611 | 鸡哥 | feat: implement window geometry adjustments and shape handling in IPC handlers
+- 2026-08-07 | ffea600d | 鸡哥 | feat: enhance window resizing logic with shape adjustment and logical size tracking
+- 2026-08-07 | f3d0726d | 鸡哥 | feat: add delay parameter to window resize functions and implement shrink delay logic
+- 2026-08-07 | 2faf42c2 | eislandBot | docs: auto update CHANGE_LOG.md for #190 by @JNTMTMTM [skip ci]
 - 2026-08-07 | f9bf6c1c | 鸡哥 | Merge pull request #190 from JNTMTMTM/dev
 - 2026-08-07 | 51585a29 | 鸡哥 | feat: implement local OCR worker management and update error codes for login requirement
 - 2026-08-07 | da918882 | 鸡哥 | feat: add delete and download actions for OCR history with localization support
