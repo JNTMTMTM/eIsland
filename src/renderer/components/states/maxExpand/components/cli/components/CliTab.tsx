@@ -30,6 +30,7 @@ import { useCliStatus } from '../hooks/useCliStatus';
 import { useCliEvents } from '../hooks/useCliEvents';
 import { useBulkSelect } from '../hooks/useBulkSelect';
 import { useEventPagination } from '../hooks/useEventPagination';
+import { useSessionPagination } from '../hooks/useSessionPagination';
 import { usePendingPermissions } from '../hooks/usePendingPermissions';
 import useIslandStore from '../../../../../../store/isLandStore';
 import { EventStreamPanel } from './EventStreamPanel';
@@ -64,6 +65,12 @@ export function CliTab(): ReactElement {
     handleDeleteSelectedSessions,
   } = useBulkSelect(snapshot.sessions, deleteSessions, selectedSessionId, setSelectedSessionId);
   const { setPage, totalPages, currentPage, pagedEvents } = useEventPagination(filteredEvents, eventFilter, selectedSessionId);
+  const {
+    setPage: setSessionPage,
+    totalPages: totalSessionPages,
+    currentPage: currentSessionPage,
+    pagedSessions,
+  } = useSessionPagination(snapshot.sessions, provider);
   const pendingPermissionEventIds = usePendingPermissions(snapshot.sessions);
 
   return (
@@ -71,7 +78,11 @@ export function CliTab(): ReactElement {
       <SessionSidebar
         t={t}
         provider={provider}
-        sessions={snapshot.sessions}
+        sessions={pagedSessions}
+        totalSessionCount={snapshot.sessions.length}
+        totalPages={totalSessionPages}
+        currentPage={currentSessionPage}
+        setPage={setSessionPage}
         selectedSessionId={selectedSessionId}
         setSelectedSessionId={setSelectedSessionId}
         bulkSelectMode={bulkSelectMode}

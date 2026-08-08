@@ -100,6 +100,9 @@ export function toggleMousePassthroughLock(getMainWindow: () => BrowserWindow | 
  * @param options - 配置选项，包含窗口获取和位置管理函数
  */
 export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOptions): void {
+  let pendingResizeTimer: ReturnType<typeof setTimeout> | null = null;
+  let logicalWindowSize: { width: number; height: number } | null = null;
+
   const withWindow = (fn: (win: BrowserWindow) => void): void => {
     const win = options.getMainWindow();
     if (!win || win.isDestroyed()) return;
@@ -111,6 +114,72 @@ export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOpti
         console.error('[WindowIPC] handler error:', err);
       }
     }
+  };
+
+  const applyWindowGeometry = (
+    win: BrowserWindow,
+    targetBounds: Electron.Rectangle,
+    visibleWidth: number,
+    visibleHeight: number,
+  ): void => {
+    const currentBounds = win.getBounds();
+    const backingWidth = Math.max(currentBounds.width, targetBounds.width, visibleWidth);
+    const backingX = Math.round(targetBounds.x - (backingWidth - targetBounds.width) / 2);
+    logicalWindowSize = { width: visibleWidth, height: visibleHeight };
+
+    win.setBounds({
+      x: backingX,
+      y: targetBounds.y,
+      width: backingWidth,
+      height: visibleHeight,
+    });
+    win.setShape([{
+      x: Math.round((backingWidth - visibleWidth) / 2),
+      y: 0,
+      width: visibleWidth,
+      height: visibleHeight,
+    }]);
+    win.webContents.invalidate();
+  };
+
+  const resizeWindow = (getTargetBounds: (win: BrowserWindow) => Electron.Rectangle, delayMs = 0): void => {
+    const safeDelayMs = Number.isFinite(delayMs) ? Math.max(0, delayMs) : 0;
+    if (pendingResizeTimer) {
+      clearTimeout(pendingResizeTimer);
+      pendingResizeTimer = null;
+    }
+
+    if (safeDelayMs > 0) {
+      withWindow((win) => {
+        const targetBounds = getTargetBounds(win);
+        const currentBounds = win.getBounds();
+        const currentSize = logicalWindowSize ?? currentBounds;
+        const currentCenterX = currentBounds.x + currentBounds.width / 2;
+        applyWindowGeometry(
+          win,
+          {
+            ...targetBounds,
+            x: Math.round(currentCenterX - targetBounds.width / 2),
+            y: currentBounds.y,
+          },
+          Math.max(currentSize.width, targetBounds.width),
+          Math.max(currentSize.height, targetBounds.height),
+        );
+      });
+      pendingResizeTimer = setTimeout(() => {
+        pendingResizeTimer = null;
+        withWindow((win) => {
+          const targetBounds = getTargetBounds(win);
+          applyWindowGeometry(win, targetBounds, targetBounds.width, targetBounds.height);
+        });
+      }, safeDelayMs);
+      return;
+    }
+
+    withWindow((win) => {
+      const targetBounds = getTargetBounds(win);
+      applyWindowGeometry(win, targetBounds, targetBounds.width, targetBounds.height);
+    });
   };
 
   /** 获取当前窗口水平中心点（pill 模式用当前窗口中心，notch 模式用初始中心） */
@@ -159,88 +228,88 @@ export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOpti
     });
   });
 
-  ipcMain.on('window:expand', () => {
-    withWindow((win) => {
+  ipcMain.on('window:expand', (_event, delayMs = 0) => {
+    resizeWindow((win) => {
       const centerX = getEffectiveCenterX(win);
-      win.setBounds({
+      return {
         x: Math.round(centerX - options.sizes.expandedWidth / 2),
         y: getEffectiveY(win),
         width: options.sizes.expandedWidth,
         height: getHeight(options.sizes.expandedHeight, PILL_EXPANDED_HEIGHT),
-      });
-    });
+      };
+    }, delayMs);
   });
 
-  ipcMain.on('window:expand-notification', () => {
-    withWindow((win) => {
+  ipcMain.on('window:expand-notification', (_event, delayMs = 0) => {
+    resizeWindow((win) => {
       const centerX = getEffectiveCenterX(win);
-      win.setBounds({
+      return {
         x: Math.round(centerX - options.sizes.notificationWidth / 2),
         y: getEffectiveY(win),
         width: options.sizes.notificationWidth,
         height: getHeight(options.sizes.notificationHeight, PILL_NOTIFICATION_HEIGHT),
-      });
-    });
+      };
+    }, delayMs);
   });
 
-  ipcMain.on('window:expand-lyrics', () => {
-    withWindow((win) => {
+  ipcMain.on('window:expand-lyrics', (_event, delayMs = 0) => {
+    resizeWindow((win) => {
       const centerX = getEffectiveCenterX(win);
-      win.setBounds({
+      return {
         x: Math.round(centerX - options.sizes.lyricsWidth / 2),
         y: getEffectiveY(win),
         width: options.sizes.lyricsWidth,
         height: getHeight(options.sizes.lyricsHeight, PILL_LYRICS_HEIGHT),
-      });
-    });
+      };
+    }, delayMs);
   });
 
-  ipcMain.on('window:expand-lyrics-translation', () => {
-    withWindow((win) => {
+  ipcMain.on('window:expand-lyrics-translation', (_event, delayMs = 0) => {
+    resizeWindow((win) => {
       const centerX = getEffectiveCenterX(win);
-      win.setBounds({
+      return {
         x: Math.round(centerX - options.sizes.lyricsWidth / 2),
         y: getEffectiveY(win),
         width: options.sizes.lyricsWidth,
         height: getHeight(options.sizes.lyricsTranslationHeight, PILL_LYRICS_TRANSLATION_HEIGHT),
-      });
-    });
+      };
+    }, delayMs);
   });
 
-  ipcMain.on('window:expand-full', () => {
-    withWindow((win) => {
+  ipcMain.on('window:expand-full', (_event, delayMs = 0) => {
+    resizeWindow((win) => {
       const centerX = getEffectiveCenterX(win);
-      win.setBounds({
+      return {
         x: Math.round(centerX - options.sizes.expandedFullWidth / 2),
         y: getEffectiveY(win),
         width: options.sizes.expandedFullWidth,
         height: getHeight(options.sizes.expandedFullHeight, PILL_EXPANDED_FULL_HEIGHT),
-      });
-    });
+      };
+    }, delayMs);
   });
 
-  ipcMain.on('window:expand-settings', () => {
-    withWindow((win) => {
+  ipcMain.on('window:expand-settings', (_event, delayMs = 0) => {
+    resizeWindow((win) => {
       const centerX = getEffectiveCenterX(win);
-      win.setBounds({
+      return {
         x: Math.round(centerX - options.sizes.settingsWidth / 2),
         y: getEffectiveY(win),
         width: options.sizes.settingsWidth,
         height: getHeight(options.sizes.settingsHeight, PILL_SETTINGS_HEIGHT),
-      });
-    });
+      };
+    }, delayMs);
   });
 
-  ipcMain.on('window:collapse', () => {
-    withWindow((win) => {
+  ipcMain.on('window:collapse', (_event, delayMs = 0) => {
+    resizeWindow((win) => {
       const centerX = getEffectiveCenterX(win);
-      win.setBounds({
+      return {
         x: Math.round(centerX - options.sizes.islandWidth / 2),
         y: getEffectiveY(win),
         width: options.sizes.islandWidth,
         height: getHeight(options.sizes.islandHeight, PILL_ISLAND_HEIGHT),
-      });
-    });
+      };
+    }, delayMs);
   });
 
   ipcMain.on('window:hide', () => {
@@ -271,7 +340,14 @@ export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOpti
   ipcMain.handle('window:get-bounds', () => {
     const win = options.getMainWindow();
     if (win && !win.isDestroyed()) {
-      return win.getBounds();
+      const bounds = win.getBounds();
+      if (!logicalWindowSize) return bounds;
+      return {
+        x: Math.round(bounds.x + (bounds.width - logicalWindowSize.width) / 2),
+        y: bounds.y,
+        width: logicalWindowSize.width,
+        height: logicalWindowSize.height,
+      };
     }
     return null;
   });

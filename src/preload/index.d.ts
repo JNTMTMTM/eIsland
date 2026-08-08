@@ -84,13 +84,13 @@ declare global {
     api: {
       enableMousePassthrough: () => void;
       disableMousePassthrough: () => void;
-      expandWindow: () => void;
-      expandWindowNotification: () => void;
-      expandWindowLyrics: () => void;
-      expandWindowLyricsTranslation: () => void;
-      expandWindowFull: () => void;
-      expandWindowSettings: () => void;
-      collapseWindow: () => void;
+      expandWindow: (delayMs?: number) => void;
+      expandWindowNotification: (delayMs?: number) => void;
+      expandWindowLyrics: (delayMs?: number) => void;
+      expandWindowLyricsTranslation: (delayMs?: number) => void;
+      expandWindowFull: (delayMs?: number) => void;
+      expandWindowSettings: (delayMs?: number) => void;
+      collapseWindow: (delayMs?: number) => void;
       hideWindow: () => void;
       moveWindowDelta: (dx: number, dy: number) => void;
       getMousePosition: () => Promise<Point>;

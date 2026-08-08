@@ -25,7 +25,7 @@
  */
 
 import { useMemo } from 'react';
-import { STATE_AREA, getStateClassName } from '../config/dynamicIslandConfig';
+import { getStateClassName } from '../config/dynamicIslandConfig';
 import type { IslandShapeMode } from '../../store/types';
 
 interface UseIslandShellPresentationOptions {
@@ -62,12 +62,7 @@ export function useIslandShellPresentation(options: UseIslandShellPresentationOp
   } = options;
 
   const shellClassName = useMemo(() => {
-    const stateAreaMap = STATE_AREA as Record<string, number>;
-    const instantResize = morphing
-      && fromState
-      && (stateAreaMap[fromState] ?? 0) > (stateAreaMap[state] ?? 0);
-
-    return `island-shell shape-${shapeMode} ${getStateClassName(state as Parameters<typeof getStateClassName>[0])}${morphing ? ' morphing' : ''}${fromState ? ` from-${fromState}` : ''}${instantResize ? ' instant-resize' : ''}${showGlow ? ' music-glow' : ''}${showGlow === 'paused' ? ' music-paused' : ''}${springAnimation ? ' spring-animation' : ''} speed-${animationSpeed}`;
+    return `island-shell shape-${shapeMode} ${getStateClassName(state as Parameters<typeof getStateClassName>[0])}${morphing ? ' morphing' : ''}${fromState ? ` from-${fromState}` : ''}${showGlow ? ' music-glow' : ''}${showGlow === 'paused' ? ' music-paused' : ''}${springAnimation ? ' spring-animation' : ''} speed-${animationSpeed}`;
   }, [state, morphing, fromState, showGlow, springAnimation, animationSpeed, shapeMode]);
 
   const shellStyle = useMemo<React.CSSProperties | undefined>(() => {

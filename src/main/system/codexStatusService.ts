@@ -28,6 +28,7 @@ import type { ClaudeCodeSessionSnapshot } from '../types/system/ClaudeCodeSessio
 import type { ClaudeCodeStatusSnapshot } from '../types/system/ClaudeCodeStatusSnapshot';
 import type { CodexMonitorMutationResult, CodexStatusService } from '../types/system/CodexStatusService';
 import { parseCodexSessionContent, type ParsedCodexSession } from './codexSessionParser';
+import { MAX_CLI_SESSIONS } from './sessionLimits';
 
 interface CreateCodexStatusServiceOptions {
   getMainWindow: () => BrowserWindow | null;
@@ -52,7 +53,6 @@ interface PersistedCodexState {
   deletedBeforeBySession: Record<string, number>;
 }
 
-const MAX_FILES = 120;
 const MAX_EVENTS = 120;
 const MAX_SESSION_EVENTS = 40;
 const DEFAULT_POLL_INTERVAL_MS = 5000;
@@ -75,7 +75,7 @@ function collectJsonlFiles(root: string): FileEntry[] {
   if (!existsSync(root)) return [];
   const output: FileEntry[] = [];
   const visit = (directory: string): void => {
-    if (output.length >= MAX_FILES) return;
+    if (output.length >= MAX_CLI_SESSIONS) return;
     let entries: Dirent<string>[];
     try {
       entries = readdirSync(directory, { withFileTypes: true, encoding: 'utf-8' });
@@ -83,7 +83,7 @@ function collectJsonlFiles(root: string): FileEntry[] {
       return;
     }
     entries.sort((a, b) => b.name.localeCompare(a.name)).some((entry) => {
-      if (output.length >= MAX_FILES) return true;
+      if (output.length >= MAX_CLI_SESSIONS) return true;
       const path = join(directory, entry.name);
       if (entry.isDirectory()) {
         visit(path);
@@ -100,7 +100,7 @@ function collectJsonlFiles(root: string): FileEntry[] {
     });
   };
   visit(root);
-  return output.sort((a, b) => b.mtimeMs - a.mtimeMs).slice(0, MAX_FILES);
+  return output.sort((a, b) => b.mtimeMs - a.mtimeMs).slice(0, MAX_CLI_SESSIONS);
 }
 
 function mergeHeatmap(target: ClaudeCodeHeatmapDaily, source: ClaudeCodeHeatmapDaily): void {

@@ -34,6 +34,7 @@ import type { ClaudeCodeSessionSnapshot, ClaudeCodeSessionPhase } from '../types
 import type { ClaudeCodeHeatmapDailyCount, ClaudeCodeHeatmapDaily } from '../types/system/ClaudeCodeHeatmapDailyCount';
 import type { ClaudeCodeStatusSnapshot } from '../types/system/ClaudeCodeStatusSnapshot';
 import type { ClaudeCodeStatusService, ClaudeSettingsMutationResult, PermissionDecision } from '../types/system/ClaudeCodeStatusService';
+import { limitRecentSessions } from './sessionLimits';
 
 export type {
   ClaudeCodeHookEventDetailItem,
@@ -455,7 +456,7 @@ export function createClaudeCodeStatusService(options: CreateClaudeCodeStatusSer
       const payload = JSON.stringify({
         version: 1,
         events,
-        sessions: Array.from(sessions.values()),
+        sessions: limitRecentSessions(sessions.values()),
         updatedAt,
       });
       writeFileSync(persistPath, payload, 'utf-8');
@@ -511,7 +512,9 @@ export function createClaudeCodeStatusService(options: CreateClaudeCodeStatusSer
       if (!existsSync(persistPath)) return;
       const root = asRecord(JSON.parse(readFileSync(persistPath, 'utf-8')));
       const loadedEvents = Array.isArray(root.events) ? (root.events as ClaudeCodeHookEvent[]) : [];
-      const loadedSessions = Array.isArray(root.sessions) ? (root.sessions as ClaudeCodeSessionSnapshot[]) : [];
+      const loadedSessions = Array.isArray(root.sessions)
+        ? limitRecentSessions(root.sessions as ClaudeCodeSessionSnapshot[])
+        : [];
       events = loadedEvents.slice(0, MAX_EVENTS);
       sessions.clear();
       loadedSessions.forEach((session) => {
@@ -594,7 +597,7 @@ export function createClaudeCodeStatusService(options: CreateClaudeCodeStatusSer
     receiverUrl,
     settingsPath,
     hookScriptPath,
-    sessions: Array.from(sessions.values()).sort((a, b) => b.lastEventAt - a.lastEventAt),
+    sessions: limitRecentSessions(sessions.values()),
     events,
     heatmap: heatmapDaily,
     updatedAt,
@@ -784,6 +787,10 @@ export function createClaudeCodeStatusService(options: CreateClaudeCodeStatusSer
       pendingPermission: nextPhase === 'waiting_permission' ? event : null,
       events: nextEvents,
     });
+    const retainedSessionIds = new Set(limitRecentSessions(sessions.values()).map((session) => session.id));
+    Array.from(sessions.keys())
+      .filter((sessionIdToRemove) => !retainedSessionIds.has(sessionIdToRemove))
+      .forEach((sessionIdToRemove) => sessions.delete(sessionIdToRemove));
     scheduleEventBackfill(event);
     emitSnapshot();
     return event;

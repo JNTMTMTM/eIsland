@@ -170,6 +170,24 @@
   border-radius: 2px;
 }
 
+.cli-tab-session-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  gap: 8px;
+  min-height: 34px;
+  border-top: 1px solid rgba(var(--color-text-rgb), 0.06);
+}
+
+.cli-tab-session-page-indicator {
+  min-width: 52px;
+  color: rgba(var(--color-text-rgb), 0.5);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
 .cli-tab-session-item {
   position: relative;
   display: block;

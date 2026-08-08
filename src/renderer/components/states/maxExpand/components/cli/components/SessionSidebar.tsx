@@ -38,6 +38,10 @@ export function SessionSidebar({
   t,
   provider,
   sessions,
+  totalSessionCount,
+  totalPages,
+  currentPage,
+  setPage,
   selectedSessionId,
   setSelectedSessionId,
   bulkSelectMode,
@@ -130,6 +134,33 @@ export function SessionSidebar({
           );
         })}
       </div>
+      {totalPages > 1 && (
+        <div className="cli-tab-session-pagination">
+          <button
+            className="cli-tab-page-btn"
+            type="button"
+            disabled={currentPage === 0}
+            onClick={() => setPage(currentPage - 1)}
+            title={t('maxExpand.cli.prevPage')}
+            aria-label={t('maxExpand.cli.prevPage')}
+          >
+            <img src={SvgIcon.PREVIOUS} alt="" width="12" height="12" draggable={false} />
+          </button>
+          <span className="cli-tab-session-page-indicator">
+            {currentPage + 1}/{totalPages} · {totalSessionCount}
+          </span>
+          <button
+            className="cli-tab-page-btn"
+            type="button"
+            disabled={currentPage >= totalPages - 1}
+            onClick={() => setPage(currentPage + 1)}
+            title={t('maxExpand.cli.nextPage')}
+            aria-label={t('maxExpand.cli.nextPage')}
+          >
+            <img src={SvgIcon.NEXT} alt="" width="12" height="12" draggable={false} />
+          </button>
+        </div>
+      )}
     </div>
   );
 }
