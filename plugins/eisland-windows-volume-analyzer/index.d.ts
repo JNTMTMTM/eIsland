@@ -80,6 +80,18 @@ export interface CommandResult {
   error: string | null;
 }
 
+/** 音频进程信息 */
+export interface AudioProcessInfo {
+  /** 进程 ID */
+  processId: number;
+  /** 进程名称（不含 .exe） */
+  processName: string | null;
+  /** 会话状态：active / inactive / expired */
+  state: 'active' | 'inactive' | 'expired' | 'unknown';
+  /** 会话显示名称 */
+  displayName: string | null;
+}
+
 // ── 命令函数 ──────────────────────────────────────────────────
 
 /**
@@ -121,3 +133,10 @@ export function startPolling(
 
 /** 停止轮询 */
 export function stopPolling(): void;
+
+/**
+ * 获取当前正在播放音频的进程列表（同步）
+ * 通过 WASAPI 音频会话枚举实现
+ * @param activeOnly - true（默认）= 仅返回正在播放的进程，false = 返回所有有音频会话的进程
+ */
+export function getPlayingProcesses(activeOnly?: boolean): AudioProcessInfo[];

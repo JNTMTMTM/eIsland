@@ -65,6 +65,7 @@ const analyzer = {
   audio_analyzer_get_result:  lib.func('str audio_analyzer_get_result()'),
   audio_analyzer_get_status:  lib.func('str audio_analyzer_get_status()'),
   audio_analyzer_get_last_error: lib.func('str audio_analyzer_get_last_error()'),
+  audio_analyzer_get_playing_processes: lib.func('str audio_analyzer_get_playing_processes(int)'),
 };
 
 /**

@@ -175,6 +175,22 @@ function normalizeResult(raw) {
   };
 }
 
+/**
+ * 获取当前正在播放音频的进程列表（同步）
+ * @param {boolean} [activeOnly=true] - true=仅返回正在播放的进程，false=返回所有有音频会话的进程
+ * @returns {AudioProcessInfo[]}
+ */
+function getPlayingProcesses(activeOnly) {
+  const raw = callJson('audio_analyzer_get_playing_processes', activeOnly === false ? 0 : 1);
+  if (!Array.isArray(raw)) return [];
+  return raw.map((p) => ({
+    processId: p.processId ?? 0,
+    processName: p.processName ?? null,
+    state: p.state ?? 'unknown',
+    displayName: p.displayName ?? null,
+  }));
+}
+
 module.exports = {
   start,
   startEx,
@@ -183,4 +199,5 @@ module.exports = {
   getStatus,
   startPolling,
   stopPolling,
+  getPlayingProcesses,
 };

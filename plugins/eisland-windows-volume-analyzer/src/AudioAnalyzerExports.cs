@@ -177,6 +177,27 @@ public static class AudioAnalyzerExports
     {
         return StringToCoTaskMem(_lastError);
     }
+
+    /// <summary>
+    /// 获取当前正在播放音频的进程列表 JSON。
+    /// 返回 CoTaskMem 分配的 UTF-8 字符串，koffi 'str' 会自动释放。
+    /// </summary>
+    /// <param name="activeOnly">1=仅活跃会话, 0=全部</param>
+    [UnmanagedCallersOnly(EntryPoint = "audio_analyzer_get_playing_processes")]
+    public static IntPtr GetPlayingProcesses(int activeOnly)
+    {
+        try
+        {
+            var processes = AudioSessionEnumerator.GetPlayingProcesses(activeOnly != 0);
+            var json = JsonSerializer.Serialize(processes, AudioAnalyzerJsonContext.Default.AudioProcessInfoArray);
+            return StringToCoTaskMem(json);
+        }
+        catch (Exception ex)
+        {
+            _lastError = ex.Message;
+            return StringToCoTaskMem("[]");
+        }
+    }
 }
 
 /// <summary>状态信息</summary>

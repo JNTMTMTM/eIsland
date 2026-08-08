@@ -31,6 +31,8 @@ namespace eIslandVolumeAnalyzer;
 [JsonSerializable(typeof(FrequencyPeak[]))]
 [JsonSerializable(typeof(float[]))]
 [JsonSerializable(typeof(StatusInfo))]
+[JsonSerializable(typeof(AudioProcessInfo))]
+[JsonSerializable(typeof(AudioProcessInfo[]))]
 [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
 internal partial class AudioAnalyzerJsonContext : JsonSerializerContext
 {

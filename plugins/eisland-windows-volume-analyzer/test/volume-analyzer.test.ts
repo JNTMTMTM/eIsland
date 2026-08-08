@@ -32,6 +32,7 @@ import type {
   FrequencyData,
   AmplitudeData,
   BeatData,
+  AudioProcessInfo,
 } from '../index';
 
 const analyzer = require('../') as {
@@ -42,6 +43,7 @@ const analyzer = require('../') as {
   getStatus(): AnalyzerStatus;
   startPolling(intervalMs: number, onUpdate: (r: AudioAnalysisResult) => void, onError?: (e: Error) => void): void;
   stopPolling(): void;
+  getPlayingProcesses(activeOnly?: boolean): AudioProcessInfo[];
 };
 
 // 确保测试结束后停止分析器
@@ -61,6 +63,7 @@ describe('@eisland/windows-volume-analyzer', () => {
       expect(typeof analyzer.getStatus).toBe('function');
       expect(typeof analyzer.startPolling).toBe('function');
       expect(typeof analyzer.stopPolling).toBe('function');
+      expect(typeof analyzer.getPlayingProcesses).toBe('function');
     });
   });
 
@@ -271,6 +274,63 @@ describe('@eisland/windows-volume-analyzer', () => {
     });
   });
 
+  // ── getPlayingProcesses ─────────────────────────────────────
+  describe('getPlayingProcesses', () => {
+    it('returns an array', () => {
+      const result = analyzer.getPlayingProcesses();
+      expect(Array.isArray(result)).toBe(true);
+    });
+
+    it('returns well-shaped AudioProcessInfo objects', () => {
+      const result = analyzer.getPlayingProcesses();
+
+      for (const proc of result) {
+        expect(typeof proc).toBe('object');
+        expect(typeof proc.processId).toBe('number');
+        expect(proc.processId).toBeGreaterThan(0);
+
+        if (proc.processName !== null) {
+          expect(typeof proc.processName).toBe('string');
+          expect(proc.processName.length).toBeGreaterThan(0);
+        }
+
+        expect(['active', 'inactive', 'expired', 'unknown']).toContain(proc.state);
+
+        if (proc.displayName !== null) {
+          expect(typeof proc.displayName).toBe('string');
+        }
+      }
+    });
+
+    it('activeOnly=true filters to active sessions only', () => {
+      const active = analyzer.getPlayingProcesses(true);
+      for (const proc of active) {
+        expect(proc.state).toBe('active');
+      }
+    });
+
+    it('activeOnly=false returns all sessions', () => {
+      const all = analyzer.getPlayingProcesses(false);
+      // 至少结构正确
+      expect(Array.isArray(all)).toBe(true);
+      // 所有条目应比 activeOnly=true 多或相等
+      const active = analyzer.getPlayingProcesses(true);
+      expect(all.length).toBeGreaterThanOrEqual(active.length);
+    });
+
+    it('default parameter is activeOnly=true', () => {
+      const defaultResult = analyzer.getPlayingProcesses();
+      const explicitActive = analyzer.getPlayingProcesses(true);
+      expect(defaultResult.length).toBe(explicitActive.length);
+    });
+
+    it('never throws', () => {
+      expect(() => analyzer.getPlayingProcesses()).not.toThrow();
+      expect(() => analyzer.getPlayingProcesses(true)).not.toThrow();
+      expect(() => analyzer.getPlayingProcesses(false)).not.toThrow();
+    });
+  });
+
   // ── 类型兼容性 ──────────────────────────────────────────────
   describe('type shapes', () => {
     it('FrequencyData shape matches', () => {
@@ -297,6 +357,15 @@ describe('@eisland/windows-volume-analyzer', () => {
       expect(typeof beat.isBeat).toBe('boolean');
       expect(typeof beat.bpm).toBe('number');
       expect(typeof beat.intensity).toBe('number');
+    });
+
+    it('AudioProcessInfo shape matches', () => {
+      const processes = analyzer.getPlayingProcesses();
+      for (const proc of processes) {
+        const info: AudioProcessInfo = proc;
+        expect(typeof info.processId).toBe('number');
+        expect(typeof info.state).toBe('string');
+      }
     });
   });
 });

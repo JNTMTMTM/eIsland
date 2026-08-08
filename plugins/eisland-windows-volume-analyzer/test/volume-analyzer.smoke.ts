@@ -29,8 +29,21 @@ const analyzer = require('../');
 
 console.log('=== Volume Analyzer Smoke Test ===\n');
 
+// ── 0. 获取正在播放音频的进程 ─────────────────────────────────
+console.log('0. getPlayingProcesses():');
+const playing = analyzer.getPlayingProcesses();
+console.log(JSON.stringify(playing, null, 2));
+if (playing.length > 0) {
+  console.log(`   Found ${playing.length} audio process(es):`);
+  for (const p of playing) {
+    console.log(`     [${p.processId}] ${p.processName ?? 'unknown'} (${p.state})`);
+  }
+} else {
+  console.log('   No active audio processes found.');
+}
+
 // ── 1. 初始状态 ──────────────────────────────────────────────
-console.log('1. getStatus():');
+console.log('\n1. getStatus():');
 const status0 = analyzer.getStatus();
 console.log(JSON.stringify(status0, null, 2));
 console.assert(!status0.isRunning, 'Should not be running initially');
