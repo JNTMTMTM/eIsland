@@ -588,6 +588,7 @@ function registerIpcHandlers(): void {
     getCurrentDeviceId: smtcService.getCurrentDeviceId,
     setCurrentDeviceId: smtcService.setCurrentDeviceId,
     getSmtcSessionRuntime: smtcService.getSmtcSessionRuntime,
+    onSourceSwitchAccepted: startMusicBeatAnalyzer,
   });
 
   const writeMainLog = createSessionMainLogger();
