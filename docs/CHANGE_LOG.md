@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-08-08T05:50:24.365Z
+> 生成时间：2026-08-09T06:33:58.000Z
 
 ## 26.7.1
 
@@ -3284,6 +3284,16 @@
 
 ## Unreleased
 
+- 2026-08-09 | d1a77fbc | 鸡哥 | Merge pull request #192 from JNTMTMTM/dev
+- 2026-08-09 | 70890395 | 鸡哥 | chore: add file description and author information to vitest.config.ts
+- 2026-08-09 | fcc6d55e | 鸡哥 | fix: update badge types from enum to interface in SidebarBadges.vue fix: change icon for Windows Volume Analyzer in sidebar.ts
+- 2026-08-09 | 4df68a8e | 鸡哥 | Add audio analysis documentation for volume analyzer API
+- 2026-08-09 | 001a8ecf | 鸡哥 | feat: add getMute and setMute functions for volume control in Windows Volume Helper
+- 2026-08-09 | bc616896 | 鸡哥 | feat: add volume analyzer plugin to build and clean scripts
+- 2026-08-09 | 8762e901 | 鸡哥 | Refactor audio capture and activation for process loopback
+- 2026-08-08 | 3855724d | 鸡哥 | feat: add functionality to retrieve currently playing audio processes
+- 2026-08-08 | d70490e5 | 鸡哥 | feat: add ProcessAudioCapture for audio analysis and capture
+- 2026-08-08 | d8ef534b | eislandBot | docs: auto update CHANGE_LOG.md for #191 by @JNTMTMTM [skip ci]
 - 2026-08-08 | 8369f36a | 鸡哥 | Merge pull request #191 from JNTMTMTM/dev
 - 2026-08-08 | 96f56cb4 | 鸡哥 | feat: refactor island dimensions to shared module and update related calculations
 - 2026-08-08 | 1291b119 | 鸡哥 | feat: implement session limits and pagination for CLI sessions
