@@ -76,6 +76,7 @@ import type {
   ClaudeCodeHookMutationResult,
   CodexStatusSnapshot,
   CodexMonitorMutationResult,
+  MusicMarqueeBeatResult,
 } from './types';
 
 /** 自定义 API，供渲染进程调用 */
@@ -1093,7 +1094,7 @@ const api = {
     return ipcRenderer.invoke('music:marquee-beat:start');
   },
   /** 获取跑马灯节拍分析结果 */
-  musicMarqueeBeatGet: (): Promise<unknown> => {
+  musicMarqueeBeatGet: (): Promise<MusicMarqueeBeatResult | null> => {
     return ipcRenderer.invoke('music:marquee-beat:get');
   },
   /** 停止跑马灯节拍分析 */

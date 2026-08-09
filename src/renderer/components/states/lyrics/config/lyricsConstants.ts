@@ -20,9 +20,20 @@
 
 /**
  * @file lyricsConstants.ts
- * @description 歌词组件配置常量
+ * @description 歌词与音乐光效组件共享常量
  * @author 鸡哥
  */
 
 /** 音乐外发光效果的持久化存储键 */
 export const MUSIC_OUTER_GLOW_EFFECT_STORE_KEY = 'music-outer-glow-effect-enabled';
+
+/** 跑马灯模式持久化存储键 */
+export const MUSIC_MARQUEE_MODE_STORE_KEY = 'music-marquee-mode';
+
+/** 跑马灯工作模式 */
+export type MusicMarqueeMode = 'normal' | 'rhythm' | 'amplitude';
+
+/** 判断值是否为合法的跑马灯模式 */
+export function isMusicMarqueeMode(value: unknown): value is MusicMarqueeMode {
+  return value === 'normal' || value === 'rhythm' || value === 'amplitude';
+}

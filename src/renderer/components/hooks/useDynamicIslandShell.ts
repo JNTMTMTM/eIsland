@@ -27,9 +27,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import useIslandStore from '../../store/isLandStore';
 import type { IslandState } from '../../store/types';
-
-const MUSIC_OUTER_GLOW_EFFECT_STORE_KEY = 'music-outer-glow-effect-enabled';
-const MUSIC_MARQUEE_MODE_STORE_KEY = 'music-marquee-mode';
+import {
+  MUSIC_OUTER_GLOW_EFFECT_STORE_KEY,
+  MUSIC_MARQUEE_MODE_STORE_KEY,
+  isMusicMarqueeMode,
+} from '../states/lyrics/config/lyricsConstants';
+import type { MusicMarqueeMode } from '../states/lyrics/config/lyricsConstants';
 
 export type { IslandState };
 
@@ -89,19 +92,21 @@ export function useDynamicIslandShell(options: UseDynamicIslandShellOptions): Dy
   const [morphing, setMorphing] = useState(false);
   const [fromState, setFromState] = useState('');
   const [glowEffectEnabled, setGlowEffectEnabled] = useState<boolean>(true);
-  const [marqueeMode, setMarqueeMode] = useState<'normal' | 'rhythm' | 'amplitude'>('normal');
+  const [marqueeMode, setMarqueeMode] = useState<MusicMarqueeMode>('normal');
   const [marqueeBeatPulse, setMarqueeBeatPulse] = useState(false);
   const [marqueeAmplitudeLevel, setMarqueeAmplitudeLevel] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
     window.api.storeRead(MUSIC_MARQUEE_MODE_STORE_KEY).then((value) => {
-      if (!cancelled && (value === 'normal' || value === 'rhythm' || value === 'amplitude')) setMarqueeMode(value);
-    }).catch(() => {});
+      if (!cancelled && isMusicMarqueeMode(value)) setMarqueeMode(value);
+    }).catch((err) => {
+      console.warn('[MarqueeBeat] failed to read marquee mode:', err);
+    });
 
     const handler = (event: Event): void => {
       const value = (event as CustomEvent).detail;
-      if (value === 'normal' || value === 'rhythm' || value === 'amplitude') setMarqueeMode(value);
+      if (isMusicMarqueeMode(value)) setMarqueeMode(value);
     };
     window.addEventListener('music-marquee-mode-changed', handler);
     return () => {
@@ -113,7 +118,9 @@ export function useDynamicIslandShell(options: UseDynamicIslandShellOptions): Dy
   useEffect(() => {
     const usesAnalyzer = marqueeMode === 'rhythm' || marqueeMode === 'amplitude';
     if (!usesAnalyzer || !isMusicPlaying || !isPlaying || !glowEffectEnabled) {
-      window.api.musicMarqueeBeatStop().catch(() => {});
+      window.api.musicMarqueeBeatStop().catch((err) => {
+        console.warn('[MarqueeBeat] stop failed:', err);
+      });
       setMarqueeBeatPulse(false);
       setMarqueeAmplitudeLevel(0);
       return;
@@ -147,7 +154,9 @@ export function useDynamicIslandShell(options: UseDynamicIslandShellOptions): Dy
       beatClockTimer = window.setTimeout(tick, periodMs);
     };
 
-    window.api.musicMarqueeBeatStart().catch(() => {});
+    window.api.musicMarqueeBeatStart().catch((err) => {
+      console.warn('[MarqueeBeat] start failed:', err);
+    });
     const pollTimer = window.setInterval(() => {
       window.api.musicMarqueeBeatGet().then((result) => {
         if (cancelled || !result) return;
@@ -183,7 +192,9 @@ export function useDynamicIslandShell(options: UseDynamicIslandShellOptions): Dy
         const periodMs = subdivision === 8 ? 30_000 / baseBpm : 60_000 / baseBpm;
         triggerPulse();
         synchronizeBeatClock(periodMs);
-      }).catch(() => {});
+      }).catch((err) => {
+        if (!cancelled) console.warn('[MarqueeBeat] poll failed:', err);
+      });
     }, marqueeMode === 'amplitude' ? 50 : 80);
 
     return () => {
@@ -192,7 +203,9 @@ export function useDynamicIslandShell(options: UseDynamicIslandShellOptions): Dy
       if (pulseTimer !== undefined) window.clearTimeout(pulseTimer);
       if (beatClockTimer !== undefined) window.clearTimeout(beatClockTimer);
       setMarqueeAmplitudeLevel(0);
-      window.api.musicMarqueeBeatStop().catch(() => {});
+      window.api.musicMarqueeBeatStop().catch((err) => {
+        console.warn('[MarqueeBeat] stop failed:', err);
+      });
     };
   }, [glowEffectEnabled, isMusicPlaying, isPlaying, marqueeMode]);
 

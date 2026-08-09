@@ -32,6 +32,12 @@ import useIslandStore from '../../../../../../../../store/slices';
 import { SvgIcon } from '../../../../../../../../utils/SvgIcon';
 import { injectFontFace } from '../../../../../../../../utils/font';
 import type { AppSettingsSectionProps } from './types';
+import {
+  MUSIC_OUTER_GLOW_EFFECT_STORE_KEY,
+  MUSIC_MARQUEE_MODE_STORE_KEY,
+  isMusicMarqueeMode,
+} from '../../../../../../lyrics/config/lyricsConstants';
+import type { MusicMarqueeMode } from '../../../../../../lyrics/config/lyricsConstants';
 
 type ThemeSettingsPageProps = Pick<
   AppSettingsSectionProps,
@@ -93,8 +99,6 @@ type ThemeSettingsPageProps = Pick<
   | 'handleAutoDimDelayChange'
 >;
 
-const MUSIC_OUTER_GLOW_EFFECT_STORE_KEY = 'music-outer-glow-effect-enabled';
-const MUSIC_MARQUEE_MODE_STORE_KEY = 'music-marquee-mode';
 const UI_FONT_STORE_KEY = 'ui-font-family';
 const LYRICS_FONT_STORE_KEY = 'lyrics-font-family';
 const UI_CUSTOM_FONTS_STORE_KEY = 'ui-custom-fonts';
@@ -186,7 +190,7 @@ export function ThemeSettingsPage({
   const { t } = useTranslation();
   const setNotification = useIslandStore((s) => s.setNotification);
   const [musicOuterGlowEffectEnabled, setMusicOuterGlowEffectEnabled] = useState<boolean>(true);
-  const [musicMarqueeMode, setMusicMarqueeMode] = useState<'normal' | 'rhythm' | 'amplitude'>('normal');
+  const [musicMarqueeMode, setMusicMarqueeMode] = useState<MusicMarqueeMode>('normal');
   const [uiFont, setUIFont] = useState<string>('default');
   const [lyricsFont, setLyricsFont] = useState<string>('default');
   const [uiCustomFonts, setUiCustomFonts] = useState<CustomFont[]>([]);
@@ -209,7 +213,7 @@ export function ThemeSettingsPage({
     }).catch(() => {});
     window.api.storeRead(MUSIC_MARQUEE_MODE_STORE_KEY).then((value) => {
       if (cancelled) return;
-      if (value === 'normal' || value === 'rhythm' || value === 'amplitude') setMusicMarqueeMode(value);
+      if (isMusicMarqueeMode(value)) setMusicMarqueeMode(value);
     }).catch(() => {});
     return () => { cancelled = true; };
   }, []);
