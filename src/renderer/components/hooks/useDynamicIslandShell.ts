@@ -124,6 +124,8 @@ export function useDynamicIslandShell(options: UseDynamicIslandShellOptions): Dy
     let beatClockTimer: number | undefined;
     let lastNativeBeatAt = 0;
     let smoothedAmplitude = 0;
+    let amplitudeBaseline = 0;
+    let amplitudeCeiling = 0.18;
     const bpmSamples: number[] = [];
 
     const triggerPulse = (): void => {
@@ -150,9 +152,16 @@ export function useDynamicIslandShell(options: UseDynamicIslandShellOptions): Dy
       window.api.musicMarqueeBeatGet().then((result) => {
         if (cancelled || !result) return;
         if (marqueeMode === 'amplitude') {
-          const sampleStrength = Math.min(1, Math.max(result.amplitude.rms * 2.4, result.amplitude.peak * 0.7));
-          const gatedStrength = sampleStrength < 0.05 ? 0 : sampleStrength;
-          smoothedAmplitude = smoothedAmplitude * 0.68 + gatedStrength * 0.32;
+          const sampleStrength = result.amplitude.rms * 0.9 + result.amplitude.peak * 0.1;
+          amplitudeBaseline = amplitudeBaseline === 0
+            ? sampleStrength
+            : amplitudeBaseline * 0.96 + sampleStrength * 0.04;
+          amplitudeCeiling = Math.max(sampleStrength, amplitudeCeiling * 0.99);
+          const dynamicRange = Math.max(0.06, amplitudeCeiling - amplitudeBaseline);
+          const normalizedStrength = Math.min(1, Math.max(0, (sampleStrength - amplitudeBaseline) / dynamicRange));
+          const targetAmplitude = normalizedStrength ** 1.4;
+          const smoothingFactor = targetAmplitude > smoothedAmplitude ? 0.4 : 0.16;
+          smoothedAmplitude += (targetAmplitude - smoothedAmplitude) * smoothingFactor;
           setMarqueeAmplitudeLevel(smoothedAmplitude);
           return;
         }

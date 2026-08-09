@@ -80,7 +80,7 @@ export function useIslandShellPresentation(options: UseIslandShellPresentationOp
       '--glow-r': r,
       '--glow-g': g,
       '--glow-b': b,
-      '--music-glow-inset': `${2 + marqueeAmplitudeLevel * 8}px`,
+      '--music-glow-inset': `${2 + marqueeAmplitudeLevel * 5.5}px`,
       '--music-glow-opacity': 0.62 + marqueeAmplitudeLevel * 0.36,
     } as React.CSSProperties;
   }, [showGlow, dominantColor, marqueeAmplitudeLevel]);
