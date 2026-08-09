@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-08-09T06:33:58.000Z
+> 生成时间：2026-08-09T16:57:35.253Z
 
 ## 26.7.1
 
@@ -3284,6 +3284,18 @@
 
 ## Unreleased
 
+- 2026-08-10 | cffd7b53 | 鸡哥 | Merge pull request #193 from JNTMTMTM/dev
+- 2026-08-10 | 8d73b472 | 鸡哥 | feat: enhance music marquee functionality with type definitions and improved state management
+- 2026-08-10 | bee0d21a | 鸡哥 | feat: add music marquee mode title and hint to settings page
+- 2026-08-10 | 5191e68d | 鸡哥 | feat: add onSourceSwitchAccepted handler to media IPC for audio process management
+- 2026-08-09 | d6fea450 | 鸡哥 | feat: implement music audio process resolution and add corresponding tests
+- 2026-08-09 | 60175abf | 鸡哥 | feat: refine amplitude calculations and adjust music glow inset for improved visual effects
+- 2026-08-09 | 491388e6 | 鸡哥 | fix: improve music glow styles for better visibility and animation effects
+- 2026-08-09 | f09e4ee3 | 鸡哥 | feat: add amplitude mode to music marquee with updated hints and styles
+- 2026-08-09 | 156ba006 | 鸡哥 | feat: enhance music marquee beat synchronization and pulse triggering
+- 2026-08-09 | f55b377a | 鸡哥 | fix: adjust music glow styles for rhythm effect and animation timing
+- 2026-08-09 | 1a4d5f01 | 鸡哥 | feat: add music marquee mode with rhythm and normal options
+- 2026-08-09 | 8de469d9 | eislandBot | docs: auto update CHANGE_LOG.md for #192 by @JNTMTMTM [skip ci]
 - 2026-08-09 | d1a77fbc | 鸡哥 | Merge pull request #192 from JNTMTMTM/dev
 - 2026-08-09 | 70890395 | 鸡哥 | chore: add file description and author information to vitest.config.ts
 - 2026-08-09 | fcc6d55e | 鸡哥 | fix: update badge types from enum to interface in SidebarBadges.vue fix: change icon for Windows Volume Analyzer in sidebar.ts
