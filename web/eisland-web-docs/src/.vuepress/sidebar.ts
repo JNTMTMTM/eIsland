@@ -276,7 +276,7 @@ export default sidebar({
     },
     {
       text: "Windows Volume Analyzer",
-      icon: "waveform",
+      icon: "volume-high",
       collapsible: true,
       children: [
         "media-notifications/volume-analyzer/frequency-peak.md",

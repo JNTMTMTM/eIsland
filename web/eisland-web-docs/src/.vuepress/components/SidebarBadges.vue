@@ -65,8 +65,8 @@ const BADGE_MAP: Record<string, string> = {
   // SMTC Helper
   TimelineProperties: 'interface',
   PlaybackControls: 'interface',
-  MediaStatus: 'enum',
-  CommandResult: 'enum',
+  MediaStatus: 'interface',
+  CommandResult: 'interface',
   TimestampInfo: 'interface',
   MediaProps: 'interface',
   PlaybackInfo: 'interface',
