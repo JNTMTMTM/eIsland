@@ -19,6 +19,7 @@ Complete API reference for all eIsland native plugins. Each plugin provides Wind
 | [Windows Brightness Helper](display-graphics/brightness-helper.md) | Screen brightness monitoring and control |
 | [Windows Fullscreen Detector](display-graphics/fullscreen-detector.md) | Fullscreen window detection |
 | [Windows Screenshot Helper](display-graphics/screenshot-helper.md) | Primary display screen capture |
+| [Windows Volume Helper](display-graphics/volume-helper.md) | Playback device volume and mute control |
 
 ### Connectivity
 
