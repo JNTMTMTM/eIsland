@@ -599,28 +599,32 @@
 }
 
 .island-shell.music-glow.music-glow-rhythm::after {
-  padding: 3px;
-  background: rgba(var(--glow-r), var(--glow-g), var(--glow-b), 0.72);
-  filter: brightness(1.15);
+  padding: 2px;
+  background: rgba(var(--glow-r), var(--glow-g), var(--glow-b), 0.48);
+  opacity: 0.82;
+  filter: brightness(1.05);
   animation: none;
 }
 
 .island-shell.music-glow.music-glow-rhythm.music-glow-beat::after {
-  animation: music-glow-beat-pulse 180ms ease-out;
+  animation: music-glow-beat-pulse 280ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @keyframes music-glow-beat-pulse {
   0% {
-    padding: 3px;
-    filter: brightness(1.15);
+    padding: 2px;
+    opacity: 0.82;
+    filter: brightness(1.05);
   }
-  45% {
-    padding: 10px;
-    filter: brightness(2);
+  40% {
+    padding: 6px;
+    opacity: 0.96;
+    filter: brightness(1.35);
   }
   100% {
-    padding: 3px;
-    filter: brightness(1.15);
+    padding: 2px;
+    opacity: 0.82;
+    filter: brightness(1.05);
   }
 }
 
