@@ -32,6 +32,12 @@ import useIslandStore from '../../../../../../../../store/slices';
 import { SvgIcon } from '../../../../../../../../utils/SvgIcon';
 import { injectFontFace } from '../../../../../../../../utils/font';
 import type { AppSettingsSectionProps } from './types';
+import {
+  MUSIC_OUTER_GLOW_EFFECT_STORE_KEY,
+  MUSIC_MARQUEE_MODE_STORE_KEY,
+  isMusicMarqueeMode,
+} from '../../../../../../lyrics/config/lyricsConstants';
+import type { MusicMarqueeMode } from '../../../../../../lyrics/config/lyricsConstants';
 
 type ThemeSettingsPageProps = Pick<
   AppSettingsSectionProps,
@@ -93,7 +99,6 @@ type ThemeSettingsPageProps = Pick<
   | 'handleAutoDimDelayChange'
 >;
 
-const MUSIC_OUTER_GLOW_EFFECT_STORE_KEY = 'music-outer-glow-effect-enabled';
 const UI_FONT_STORE_KEY = 'ui-font-family';
 const LYRICS_FONT_STORE_KEY = 'lyrics-font-family';
 const UI_CUSTOM_FONTS_STORE_KEY = 'ui-custom-fonts';
@@ -185,6 +190,7 @@ export function ThemeSettingsPage({
   const { t } = useTranslation();
   const setNotification = useIslandStore((s) => s.setNotification);
   const [musicOuterGlowEffectEnabled, setMusicOuterGlowEffectEnabled] = useState<boolean>(true);
+  const [musicMarqueeMode, setMusicMarqueeMode] = useState<MusicMarqueeMode>('normal');
   const [uiFont, setUIFont] = useState<string>('default');
   const [lyricsFont, setLyricsFont] = useState<string>('default');
   const [uiCustomFonts, setUiCustomFonts] = useState<CustomFont[]>([]);
@@ -204,6 +210,10 @@ export function ThemeSettingsPage({
       if (typeof value === 'boolean') {
         setMusicOuterGlowEffectEnabled(value);
       }
+    }).catch(() => {});
+    window.api.storeRead(MUSIC_MARQUEE_MODE_STORE_KEY).then((value) => {
+      if (cancelled) return;
+      if (isMusicMarqueeMode(value)) setMusicMarqueeMode(value);
     }).catch(() => {});
     return () => { cancelled = true; };
   }, []);
@@ -312,24 +322,49 @@ export function ThemeSettingsPage({
             ))}
           </div>
 
+        </div>
+
+        <div className="settings-card">
+          <div className="settings-card-header">
+            <div className="settings-card-title">{t('settings.app.theme.musicOuterGlowTitle', { defaultValue: '音乐外光圈特效' })}</div>
+            <div className="settings-card-subtitle">{t('settings.app.theme.musicOuterGlowHint', { defaultValue: '控制歌曲播放时专辑封面外圈的跑马灯/光晕动态效果。' })}</div>
+          </div>
+          <div className="settings-card-inline-row">
+            <label className="settings-card-check">
+              <input
+                type="checkbox"
+                checked={musicOuterGlowEffectEnabled}
+                onChange={(event) => {
+                  const next = event.target.checked;
+                  setMusicOuterGlowEffectEnabled(next);
+                  window.api.storeWrite(MUSIC_OUTER_GLOW_EFFECT_STORE_KEY, next).catch(() => {});
+                  window.api.settingsPreview(`store:${MUSIC_OUTER_GLOW_EFFECT_STORE_KEY}`, next).catch(() => {});
+                  window.dispatchEvent(new CustomEvent('music-outer-glow-effect-changed', { detail: next }));
+                }}
+              />
+              {t('settings.app.theme.musicOuterGlowToggle', { defaultValue: '启用歌曲播放外光圈跑马灯特效' })}
+            </label>
+          </div>
           <div className="settings-card-subgroup" style={{ marginTop: 10 }}>
-            <div className="settings-card-subgroup-title">{t('settings.app.theme.musicOuterGlowTitle', { defaultValue: '音乐外光圈特效' })}</div>
-            <div className="settings-music-hint">{t('settings.app.theme.musicOuterGlowHint', { defaultValue: '控制歌曲播放时专辑封面外圈的跑马灯/光晕动态效果。' })}</div>
-            <div className="settings-card-inline-row">
-              <label className="settings-card-check">
-                <input
-                  type="checkbox"
-                  checked={musicOuterGlowEffectEnabled}
-                  onChange={(event) => {
-                    const next = event.target.checked;
-                    setMusicOuterGlowEffectEnabled(next);
-                    window.api.storeWrite(MUSIC_OUTER_GLOW_EFFECT_STORE_KEY, next).catch(() => {});
-                    window.api.settingsPreview(`store:${MUSIC_OUTER_GLOW_EFFECT_STORE_KEY}`, next).catch(() => {});
-                    window.dispatchEvent(new CustomEvent('music-outer-glow-effect-changed', { detail: next }));
+            <div className="settings-card-subgroup-title">{t('settings.app.theme.musicMarqueeModeTitle', { defaultValue: '跑马灯模式' })}</div>
+            <div className="settings-music-hint">{t('settings.app.theme.musicMarqueeModeHint', { defaultValue: '律动模式按节拍闪烁，振幅模式根据采样强度调整向内振动幅度' })}</div>
+            <div className="settings-lyrics-source-options">
+              {(['normal', 'rhythm', 'amplitude'] as const).map((mode) => (
+                <button
+                  key={mode}
+                  className={`settings-lyrics-source-btn ${musicMarqueeMode === mode ? 'active' : ''}`}
+                  type="button"
+                  onClick={() => {
+                    setMusicMarqueeMode(mode);
+                    window.api.storeWrite(MUSIC_MARQUEE_MODE_STORE_KEY, mode).catch(() => {});
+                    window.dispatchEvent(new CustomEvent('music-marquee-mode-changed', { detail: mode }));
                   }}
-                />
-                {t('settings.app.theme.musicOuterGlowToggle', { defaultValue: '启用歌曲播放外光圈跑马灯特效' })}
-              </label>
+                >
+                  {t(`settings.app.theme.musicMarqueeModeOptions.${mode}`, {
+                    defaultValue: mode === 'normal' ? '普通模式' : mode === 'rhythm' ? '律动模式' : '振幅模式',
+                  })}
+                </button>
+              ))}
             </div>
           </div>
         </div>

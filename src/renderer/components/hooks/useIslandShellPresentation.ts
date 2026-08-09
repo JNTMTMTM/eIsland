@@ -33,6 +33,10 @@ interface UseIslandShellPresentationOptions {
   morphing: boolean;
   fromState: string;
   showGlow: string | null;
+  marqueeRhythmEnabled: boolean;
+  marqueeAmplitudeEnabled: boolean;
+  marqueeAmplitudeLevel: number;
+  marqueeBeatPulse: boolean;
   springAnimation: boolean;
   animationSpeed: string;
   shapeMode: IslandShapeMode;
@@ -55,6 +59,10 @@ export function useIslandShellPresentation(options: UseIslandShellPresentationOp
     morphing,
     fromState,
     showGlow,
+    marqueeRhythmEnabled,
+    marqueeAmplitudeEnabled,
+    marqueeAmplitudeLevel,
+    marqueeBeatPulse,
     springAnimation,
     animationSpeed,
     shapeMode,
@@ -62,8 +70,8 @@ export function useIslandShellPresentation(options: UseIslandShellPresentationOp
   } = options;
 
   const shellClassName = useMemo(() => {
-    return `island-shell shape-${shapeMode} ${getStateClassName(state as Parameters<typeof getStateClassName>[0])}${morphing ? ' morphing' : ''}${fromState ? ` from-${fromState}` : ''}${showGlow ? ' music-glow' : ''}${showGlow === 'paused' ? ' music-paused' : ''}${springAnimation ? ' spring-animation' : ''} speed-${animationSpeed}`;
-  }, [state, morphing, fromState, showGlow, springAnimation, animationSpeed, shapeMode]);
+    return `island-shell shape-${shapeMode} ${getStateClassName(state as Parameters<typeof getStateClassName>[0])}${morphing ? ' morphing' : ''}${fromState ? ` from-${fromState}` : ''}${showGlow ? ' music-glow' : ''}${showGlow === 'paused' ? ' music-paused' : ''}${marqueeRhythmEnabled ? ' music-glow-rhythm' : ''}${marqueeAmplitudeEnabled ? ' music-glow-amplitude' : ''}${marqueeBeatPulse ? ' music-glow-beat' : ''}${springAnimation ? ' spring-animation' : ''} speed-${animationSpeed}`;
+  }, [state, morphing, fromState, showGlow, marqueeRhythmEnabled, marqueeAmplitudeEnabled, marqueeBeatPulse, springAnimation, animationSpeed, shapeMode]);
 
   const shellStyle = useMemo<React.CSSProperties | undefined>(() => {
     if (!showGlow) return undefined;
@@ -72,8 +80,10 @@ export function useIslandShellPresentation(options: UseIslandShellPresentationOp
       '--glow-r': r,
       '--glow-g': g,
       '--glow-b': b,
+      '--music-glow-inset': `${2 + marqueeAmplitudeLevel * 5.5}px`,
+      '--music-glow-opacity': 0.62 + marqueeAmplitudeLevel * 0.36,
     } as React.CSSProperties;
-  }, [showGlow, dominantColor]);
+  }, [showGlow, dominantColor, marqueeAmplitudeLevel]);
 
   return {
     shellClassName,

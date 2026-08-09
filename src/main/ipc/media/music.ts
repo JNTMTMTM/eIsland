@@ -52,6 +52,9 @@ interface RegisterMusicIpcHandlersOptions {
   setSmtcUnsubscribeMs: (value: number) => void;
   sanitizeSmtcUnsubscribeMs: (value: unknown) => number;
   detectAllSources: () => Promise<Array<{ sourceAppId: string; isPlaying: boolean; hasTitle: boolean; thumbnail: string | null }>>;
+  getMusicBeat: () => unknown;
+  startMusicBeat: () => boolean;
+  stopMusicBeat: () => void;
 }
 
 /**
@@ -114,6 +117,13 @@ export function registerMusicIpcHandlers(options: RegisterMusicIpcHandlersOption
       console.error('[LyricsKaraoke] persist error:', err);
       return false;
     }
+  });
+
+  ipcMain.handle('music:marquee-beat:start', () => options.startMusicBeat());
+  ipcMain.handle('music:marquee-beat:get', () => options.getMusicBeat());
+  ipcMain.handle('music:marquee-beat:stop', () => {
+    options.stopMusicBeat();
+    return true;
   });
 
   ipcMain.handle('music:lyrics-clock:get', () => {

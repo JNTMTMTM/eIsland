@@ -598,7 +598,45 @@
   z-index: 2;
 }
 
-/** 跑马灯旋转动画 */
+.island-shell.music-glow.music-glow-rhythm::after {
+  padding: 2px;
+  background: rgba(var(--glow-r), var(--glow-g), var(--glow-b), 0.62);
+  opacity: 0.9;
+  filter: brightness(1.05);
+  animation: none;
+}
+
+.island-shell.music-glow.music-glow-rhythm.music-glow-beat::after {
+  animation: music-glow-beat-pulse 280ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes music-glow-beat-pulse {
+  0% {
+    padding: 2px;
+    opacity: 0.9;
+    filter: brightness(1.05);
+  }
+  40% {
+    padding: 4px;
+    opacity: 0.99;
+    filter: brightness(1.35);
+  }
+  100% {
+    padding: 2px;
+    opacity: 0.9;
+    filter: brightness(1.05);
+  }
+}
+
+.island-shell.music-glow.music-glow-amplitude::after {
+  padding: var(--music-glow-inset, 2px);
+  background: rgba(var(--glow-r), var(--glow-g), var(--glow-b), 0.68);
+  opacity: var(--music-glow-opacity, 0.62);
+  filter: brightness(1.08);
+  transition: padding 70ms linear, opacity 70ms linear;
+  animation: none;
+}
+
 @keyframes music-glow-rotate {
   to {
     --glow-angle: 360deg;

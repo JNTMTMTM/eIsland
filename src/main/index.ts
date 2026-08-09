@@ -70,12 +70,14 @@ import { openStandaloneWindow } from './window/standaloneWindow';
 import { showSplashWindow, closeSplashWindow } from './window/splashWindow';
 import { showGuideWindow } from './window/guideWindow';
 import { createSmtcService } from './music/smtcService';
+import { resolveMusicAudioProcess } from './music/musicBeatSource';
 import { setSmtcAccessor } from './music/smtcAccessor';
 import { createAutoHideWatcher } from './system/autoHideWatcher';
 import { createExternalAgentWatcher } from './system/externalAgentWatcher';
 import { createClaudeCodeStatusService } from './system/claudeCodeStatusService';
 import { createCodexStatusService } from './system/codexStatusService';
 import { play, pause, next } from '@eisland/windows-smtc-helper';
+import * as musicBeatAnalyzer from '@eisland/windows-volume-analyzer';
 import {
   queryFocusedWindow,
   queryOpenWindowsWithIcons,
@@ -141,7 +143,47 @@ let mainWindow: BrowserWindow | null = null;
 let agentVoiceInputWindow: BrowserWindow | null = null;
 let cliGlowWindow: BrowserWindow | null = null;
 let cachedFullscreenDetector: { isAnyFullscreenWindow: () => boolean } | null | undefined;
+let musicBeatProcessId: number | null = null;
+let musicBeatSourceAppId = '';
 
+function startMusicBeatAnalyzer(): boolean {
+  try {
+    const sourceAppId = smtcService.getCurrentDeviceId();
+    if (!sourceAppId) return false;
+    const analyzerStatus = musicBeatAnalyzer.getStatus();
+    if (musicBeatSourceAppId === sourceAppId && musicBeatProcessId !== null && analyzerStatus.isRunning) {
+      return true;
+    }
+
+    const processes = musicBeatAnalyzer.getPlayingProcesses(true);
+    const target = resolveMusicAudioProcess(sourceAppId, processes);
+    if (!target) {
+      stopMusicBeatAnalyzer();
+      return false;
+    }
+
+    musicBeatAnalyzer.stop();
+    const result = musicBeatAnalyzer.start(target.processId, true);
+    if (!result.success) {
+      musicBeatProcessId = null;
+      musicBeatSourceAppId = '';
+      return false;
+    }
+    musicBeatProcessId = target.processId;
+    musicBeatSourceAppId = sourceAppId;
+    return true;
+  } catch {
+    musicBeatProcessId = null;
+    musicBeatSourceAppId = '';
+    return false;
+  }
+}
+
+function stopMusicBeatAnalyzer(): void {
+  musicBeatAnalyzer.stop();
+  musicBeatProcessId = null;
+  musicBeatSourceAppId = '';
+}
 function detectAnyFullscreenWindow(): boolean {
   if (process.platform !== 'win32') return false;
   if (cachedFullscreenDetector === undefined) {
@@ -546,6 +588,7 @@ function registerIpcHandlers(): void {
     getCurrentDeviceId: smtcService.getCurrentDeviceId,
     setCurrentDeviceId: smtcService.setCurrentDeviceId,
     getSmtcSessionRuntime: smtcService.getSmtcSessionRuntime,
+    onSourceSwitchAccepted: startMusicBeatAnalyzer,
   });
 
   const writeMainLog = createSessionMainLogger();
@@ -621,6 +664,12 @@ function registerIpcHandlers(): void {
     },
     sanitizeSmtcUnsubscribeMs,
     detectAllSources: smtcService.detectAllSources,
+    getMusicBeat: () => {
+      startMusicBeatAnalyzer();
+      return musicBeatAnalyzer.getResult();
+    },
+    startMusicBeat: startMusicBeatAnalyzer,
+    stopMusicBeat: stopMusicBeatAnalyzer,
   });
 
   // ===== 歌曲设置 IPC =====
