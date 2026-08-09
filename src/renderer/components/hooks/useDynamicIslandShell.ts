@@ -116,29 +116,49 @@ export function useDynamicIslandShell(options: UseDynamicIslandShellOptions): Dy
 
     let cancelled = false;
     let pulseTimer: number | undefined;
-    let averageRms = 0;
-    let lastPulseAt = 0;
+    let beatClockTimer: number | undefined;
+    let lastNativeBeatAt = 0;
+    const bpmSamples: number[] = [];
+
+    const triggerPulse = (): void => {
+      setMarqueeBeatPulse(false);
+      window.requestAnimationFrame(() => {
+        if (!cancelled) setMarqueeBeatPulse(true);
+      });
+      if (pulseTimer !== undefined) window.clearTimeout(pulseTimer);
+      pulseTimer = window.setTimeout(() => setMarqueeBeatPulse(false), 280);
+    };
+
+    const synchronizeBeatClock = (periodMs: number): void => {
+      if (beatClockTimer !== undefined) window.clearTimeout(beatClockTimer);
+      const tick = (): void => {
+        if (cancelled) return;
+        triggerPulse();
+        beatClockTimer = window.setTimeout(tick, periodMs);
+      };
+      beatClockTimer = window.setTimeout(tick, periodMs);
+    };
+
     window.api.musicMarqueeBeatStart().catch(() => {});
     const pollTimer = window.setInterval(() => {
       window.api.musicMarqueeBeatGet().then((result) => {
-        if (cancelled) return;
-        const rms = result?.amplitude.rms ?? 0;
-        const peak = result?.amplitude.peak ?? 0;
-        const now = performance.now();
-        const amplitudeBeat = averageRms > 0
-          && rms > Math.max(0.08, averageRms * 1.35)
-          && peak > 0.25
-          && now - lastPulseAt >= 180;
-        averageRms = averageRms === 0 ? rms : averageRms * 0.82 + rms * 0.18;
-        if (result?.beat.isBeat !== true && !amplitudeBeat) return;
+        if (cancelled || beatClockTimer !== undefined || result?.beat.isBeat !== true) return;
+        const bpm = result.beat.bpm;
+        if (!Number.isFinite(bpm) || bpm < 30 || bpm > 300) return;
 
-        lastPulseAt = now;
-        setMarqueeBeatPulse(false);
-        window.requestAnimationFrame(() => {
-          if (!cancelled) setMarqueeBeatPulse(true);
-        });
-        if (pulseTimer !== undefined) window.clearTimeout(pulseTimer);
-        pulseTimer = window.setTimeout(() => setMarqueeBeatPulse(false), 180);
+        const now = performance.now();
+        if (now - lastNativeBeatAt < 150) return;
+        lastNativeBeatAt = now;
+        bpmSamples.push(bpm);
+        if (bpmSamples.length < 4) return;
+
+        const sortedBpms = [...bpmSamples].sort((left, right) => left - right);
+        const detectedBpm = sortedBpms[Math.floor(sortedBpms.length / 2)];
+        const subdivision = detectedBpm >= 160 ? 8 : 4;
+        const baseBpm = subdivision === 8 ? detectedBpm / 2 : detectedBpm;
+        const periodMs = subdivision === 8 ? 30_000 / baseBpm : 60_000 / baseBpm;
+        triggerPulse();
+        synchronizeBeatClock(periodMs);
       }).catch(() => {});
     }, 80);
 
@@ -146,6 +166,7 @@ export function useDynamicIslandShell(options: UseDynamicIslandShellOptions): Dy
       cancelled = true;
       window.clearInterval(pollTimer);
       if (pulseTimer !== undefined) window.clearTimeout(pulseTimer);
+      if (beatClockTimer !== undefined) window.clearTimeout(beatClockTimer);
       window.api.musicMarqueeBeatStop().catch(() => {});
     };
   }, [glowEffectEnabled, isMusicPlaying, isPlaying, marqueeMode]);
