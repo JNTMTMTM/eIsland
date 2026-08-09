@@ -318,25 +318,31 @@ export function ThemeSettingsPage({
             ))}
           </div>
 
+        </div>
+
+        <div className="settings-card">
+          <div className="settings-card-header">
+            <div className="settings-card-title">{t('settings.app.theme.musicOuterGlowTitle', { defaultValue: '音乐外光圈特效' })}</div>
+            <div className="settings-card-subtitle">{t('settings.app.theme.musicOuterGlowHint', { defaultValue: '控制歌曲播放时专辑封面外圈的跑马灯/光晕动态效果。' })}</div>
+          </div>
+          <div className="settings-card-inline-row">
+            <label className="settings-card-check">
+              <input
+                type="checkbox"
+                checked={musicOuterGlowEffectEnabled}
+                onChange={(event) => {
+                  const next = event.target.checked;
+                  setMusicOuterGlowEffectEnabled(next);
+                  window.api.storeWrite(MUSIC_OUTER_GLOW_EFFECT_STORE_KEY, next).catch(() => {});
+                  window.api.settingsPreview(`store:${MUSIC_OUTER_GLOW_EFFECT_STORE_KEY}`, next).catch(() => {});
+                  window.dispatchEvent(new CustomEvent('music-outer-glow-effect-changed', { detail: next }));
+                }}
+              />
+              {t('settings.app.theme.musicOuterGlowToggle', { defaultValue: '启用歌曲播放外光圈跑马灯特效' })}
+            </label>
+          </div>
           <div className="settings-card-subgroup" style={{ marginTop: 10 }}>
-            <div className="settings-card-subgroup-title">{t('settings.app.theme.musicOuterGlowTitle', { defaultValue: '音乐外光圈特效' })}</div>
-            <div className="settings-music-hint">{t('settings.app.theme.musicOuterGlowHint', { defaultValue: '控制歌曲播放时专辑封面外圈的跑马灯/光晕动态效果。' })}</div>
-            <div className="settings-card-inline-row">
-              <label className="settings-card-check">
-                <input
-                  type="checkbox"
-                  checked={musicOuterGlowEffectEnabled}
-                  onChange={(event) => {
-                    const next = event.target.checked;
-                    setMusicOuterGlowEffectEnabled(next);
-                    window.api.storeWrite(MUSIC_OUTER_GLOW_EFFECT_STORE_KEY, next).catch(() => {});
-                    window.api.settingsPreview(`store:${MUSIC_OUTER_GLOW_EFFECT_STORE_KEY}`, next).catch(() => {});
-                    window.dispatchEvent(new CustomEvent('music-outer-glow-effect-changed', { detail: next }));
-                  }}
-                />
-                {t('settings.app.theme.musicOuterGlowToggle', { defaultValue: '启用歌曲播放外光圈跑马灯特效' })}
-              </label>
-            </div>
+            <div className="settings-card-subgroup-title">{t('settings.app.theme.musicMarqueeModeTitle', { defaultValue: '跑马灯模式' })}</div>
             <div className="settings-music-hint">{t('settings.app.theme.musicMarqueeModeHint', { defaultValue: '律动模式按节拍闪烁，振幅模式根据采样强度调整向内振动幅度' })}</div>
             <div className="settings-lyrics-source-options">
               {(['normal', 'rhythm', 'amplitude'] as const).map((mode) => (

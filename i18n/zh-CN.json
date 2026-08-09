@@ -2306,6 +2306,7 @@
         "musicOuterGlowTitle": "音乐外光圈特效",
         "musicOuterGlowHint": "控制歌曲播放时专辑封面外圈的跑马灯/光晕动态效果。",
         "musicOuterGlowToggle": "启用歌曲播放外光圈跑马灯特效",
+        "musicMarqueeModeTitle": "跑马灯模式",
         "musicMarqueeModeHint": "律动模式按节拍闪烁，振幅模式根据采样强度调整向内振动幅度",
         "musicMarqueeModeOptions": {
           "normal": "普通模式",
