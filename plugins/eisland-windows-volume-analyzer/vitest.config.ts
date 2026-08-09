@@ -18,6 +18,12 @@
  * GNU General Public License for more details.
  */
 
+/**
+ * @file vitest.config.ts
+ * @description Windows 音频分析插件测试配置
+ * @author 鸡哥
+ */
+
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
