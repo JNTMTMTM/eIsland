@@ -29,6 +29,7 @@ import useIslandStore from '../../store/isLandStore';
 import type { IslandState } from '../../store/types';
 
 const MUSIC_OUTER_GLOW_EFFECT_STORE_KEY = 'music-outer-glow-effect-enabled';
+const MUSIC_MARQUEE_MODE_STORE_KEY = 'music-marquee-mode';
 
 export type { IslandState };
 
@@ -55,6 +56,8 @@ interface DynamicIslandShellState {
   morphing: boolean;
   fromState: string;
   showGlow: string | null;
+  marqueeRhythmEnabled: boolean;
+  marqueeBeatPulse: boolean;
   handleIslandClick: () => void;
 }
 
@@ -84,6 +87,68 @@ export function useDynamicIslandShell(options: UseDynamicIslandShellOptions): Dy
   const [morphing, setMorphing] = useState(false);
   const [fromState, setFromState] = useState('');
   const [glowEffectEnabled, setGlowEffectEnabled] = useState<boolean>(true);
+  const [marqueeMode, setMarqueeMode] = useState<'normal' | 'rhythm'>('normal');
+  const [marqueeBeatPulse, setMarqueeBeatPulse] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    window.api.storeRead(MUSIC_MARQUEE_MODE_STORE_KEY).then((value) => {
+      if (!cancelled && (value === 'normal' || value === 'rhythm')) setMarqueeMode(value);
+    }).catch(() => {});
+
+    const handler = (event: Event): void => {
+      const value = (event as CustomEvent).detail;
+      if (value === 'normal' || value === 'rhythm') setMarqueeMode(value);
+    };
+    window.addEventListener('music-marquee-mode-changed', handler);
+    return () => {
+      cancelled = true;
+      window.removeEventListener('music-marquee-mode-changed', handler);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (marqueeMode !== 'rhythm' || !isMusicPlaying || !isPlaying || !glowEffectEnabled) {
+      window.api.musicMarqueeBeatStop().catch(() => {});
+      setMarqueeBeatPulse(false);
+      return;
+    }
+
+    let cancelled = false;
+    let pulseTimer: number | undefined;
+    let averageRms = 0;
+    let lastPulseAt = 0;
+    window.api.musicMarqueeBeatStart().catch(() => {});
+    const pollTimer = window.setInterval(() => {
+      window.api.musicMarqueeBeatGet().then((result) => {
+        if (cancelled) return;
+        const rms = result?.amplitude.rms ?? 0;
+        const peak = result?.amplitude.peak ?? 0;
+        const now = performance.now();
+        const amplitudeBeat = averageRms > 0
+          && rms > Math.max(0.08, averageRms * 1.35)
+          && peak > 0.25
+          && now - lastPulseAt >= 180;
+        averageRms = averageRms === 0 ? rms : averageRms * 0.82 + rms * 0.18;
+        if (result?.beat.isBeat !== true && !amplitudeBeat) return;
+
+        lastPulseAt = now;
+        setMarqueeBeatPulse(false);
+        window.requestAnimationFrame(() => {
+          if (!cancelled) setMarqueeBeatPulse(true);
+        });
+        if (pulseTimer !== undefined) window.clearTimeout(pulseTimer);
+        pulseTimer = window.setTimeout(() => setMarqueeBeatPulse(false), 180);
+      }).catch(() => {});
+    }, 80);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(pollTimer);
+      if (pulseTimer !== undefined) window.clearTimeout(pulseTimer);
+      window.api.musicMarqueeBeatStop().catch(() => {});
+    };
+  }, [glowEffectEnabled, isMusicPlaying, isPlaying, marqueeMode]);
 
   useEffect(() => {
     let cancelled = false;
@@ -148,6 +213,8 @@ export function useDynamicIslandShell(options: UseDynamicIslandShellOptions): Dy
     morphing,
     fromState,
     showGlow: glowEffectEnabled && isMusicPlaying && coverImage ? (isPlaying ? 'playing' : 'paused') : null,
+    marqueeRhythmEnabled: marqueeMode === 'rhythm',
+    marqueeBeatPulse,
     handleIslandClick,
   };
 }

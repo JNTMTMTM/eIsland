@@ -155,6 +155,8 @@ export function useDynamicIslandCoordinator(options: UseDynamicIslandCoordinator
     morphing,
     fromState,
     showGlow,
+    marqueeRhythmEnabled,
+    marqueeBeatPulse,
     handleIslandClick,
   } = useDynamicIslandShell({
     state,
@@ -305,6 +307,8 @@ export function useDynamicIslandCoordinator(options: UseDynamicIslandCoordinator
     morphing,
     fromState,
     showGlow,
+    marqueeRhythmEnabled,
+    marqueeBeatPulse,
     springAnimation,
     animationSpeed,
     shapeMode,

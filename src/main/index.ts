@@ -76,6 +76,7 @@ import { createExternalAgentWatcher } from './system/externalAgentWatcher';
 import { createClaudeCodeStatusService } from './system/claudeCodeStatusService';
 import { createCodexStatusService } from './system/codexStatusService';
 import { play, pause, next } from '@eisland/windows-smtc-helper';
+import * as musicBeatAnalyzer from '@eisland/windows-volume-analyzer';
 import {
   queryFocusedWindow,
   queryOpenWindowsWithIcons,
@@ -141,7 +142,33 @@ let mainWindow: BrowserWindow | null = null;
 let agentVoiceInputWindow: BrowserWindow | null = null;
 let cliGlowWindow: BrowserWindow | null = null;
 let cachedFullscreenDetector: { isAnyFullscreenWindow: () => boolean } | null | undefined;
+let musicBeatProcessId: number | null = null;
 
+function startMusicBeatAnalyzer(): boolean {
+  try {
+    const processes = musicBeatAnalyzer.getPlayingProcesses(true);
+    const target = processes[0];
+    if (!target) return false;
+    if (musicBeatProcessId !== target.processId) {
+      musicBeatAnalyzer.stop();
+      musicBeatProcessId = target.processId;
+      const result = musicBeatAnalyzer.start(target.processId, true);
+      if (!result.success) {
+        musicBeatProcessId = null;
+        return false;
+      }
+    }
+    return true;
+  } catch {
+    musicBeatProcessId = null;
+    return false;
+  }
+}
+
+function stopMusicBeatAnalyzer(): void {
+  musicBeatAnalyzer.stop();
+  musicBeatProcessId = null;
+}
 function detectAnyFullscreenWindow(): boolean {
   if (process.platform !== 'win32') return false;
   if (cachedFullscreenDetector === undefined) {
@@ -621,6 +648,9 @@ function registerIpcHandlers(): void {
     },
     sanitizeSmtcUnsubscribeMs,
     detectAllSources: smtcService.detectAllSources,
+    getMusicBeat: () => musicBeatAnalyzer.getResult(),
+    startMusicBeat: startMusicBeatAnalyzer,
+    stopMusicBeat: stopMusicBeatAnalyzer,
   });
 
   // ===== 歌曲设置 IPC =====

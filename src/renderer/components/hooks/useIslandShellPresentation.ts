@@ -33,6 +33,8 @@ interface UseIslandShellPresentationOptions {
   morphing: boolean;
   fromState: string;
   showGlow: string | null;
+  marqueeRhythmEnabled: boolean;
+  marqueeBeatPulse: boolean;
   springAnimation: boolean;
   animationSpeed: string;
   shapeMode: IslandShapeMode;
@@ -55,6 +57,8 @@ export function useIslandShellPresentation(options: UseIslandShellPresentationOp
     morphing,
     fromState,
     showGlow,
+    marqueeRhythmEnabled,
+    marqueeBeatPulse,
     springAnimation,
     animationSpeed,
     shapeMode,
@@ -62,8 +66,8 @@ export function useIslandShellPresentation(options: UseIslandShellPresentationOp
   } = options;
 
   const shellClassName = useMemo(() => {
-    return `island-shell shape-${shapeMode} ${getStateClassName(state as Parameters<typeof getStateClassName>[0])}${morphing ? ' morphing' : ''}${fromState ? ` from-${fromState}` : ''}${showGlow ? ' music-glow' : ''}${showGlow === 'paused' ? ' music-paused' : ''}${springAnimation ? ' spring-animation' : ''} speed-${animationSpeed}`;
-  }, [state, morphing, fromState, showGlow, springAnimation, animationSpeed, shapeMode]);
+    return `island-shell shape-${shapeMode} ${getStateClassName(state as Parameters<typeof getStateClassName>[0])}${morphing ? ' morphing' : ''}${fromState ? ` from-${fromState}` : ''}${showGlow ? ' music-glow' : ''}${showGlow === 'paused' ? ' music-paused' : ''}${marqueeRhythmEnabled ? ' music-glow-rhythm' : ''}${marqueeBeatPulse ? ' music-glow-beat' : ''}${springAnimation ? ' spring-animation' : ''} speed-${animationSpeed}`;
+  }, [state, morphing, fromState, showGlow, marqueeRhythmEnabled, marqueeBeatPulse, springAnimation, animationSpeed, shapeMode]);
 
   const shellStyle = useMemo<React.CSSProperties | undefined>(() => {
     if (!showGlow) return undefined;

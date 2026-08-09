@@ -1088,6 +1088,18 @@ const api = {
   musicLyricsKaraokeSet: (enabled: boolean): Promise<boolean> => {
     return ipcRenderer.invoke('music:lyrics-karaoke:set', enabled);
   },
+  /** 启动跑马灯节拍分析 */
+  musicMarqueeBeatStart: (): Promise<boolean> => {
+    return ipcRenderer.invoke('music:marquee-beat:start');
+  },
+  /** 获取跑马灯节拍分析结果 */
+  musicMarqueeBeatGet: (): Promise<unknown> => {
+    return ipcRenderer.invoke('music:marquee-beat:get');
+  },
+  /** 停止跑马灯节拍分析 */
+  musicMarqueeBeatStop: (): Promise<boolean> => {
+    return ipcRenderer.invoke('music:marquee-beat:stop');
+  },
   /**
    * 获取歌词界面时钟开关
    * @returns 是否显示时钟

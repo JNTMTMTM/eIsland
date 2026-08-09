@@ -233,6 +233,14 @@ declare global {
       musicLyricsTranslationEnabledSet: (enabled: boolean) => Promise<boolean>;
       musicLyricsKaraokeGet: () => Promise<boolean>;
       musicLyricsKaraokeSet: (enabled: boolean) => Promise<boolean>;
+      musicMarqueeBeatStart: () => Promise<boolean>;
+      musicMarqueeBeatGet: () => Promise<{
+        error: string | null;
+        frequency: { dominantHz: number; spectrum: number[] };
+        amplitude: { rms: number; peak: number };
+        beat: { isBeat: boolean; bpm: number; intensity: number };
+      }>;
+      musicMarqueeBeatStop: () => Promise<boolean>;
       musicLyricsClockGet: () => Promise<boolean>;
       musicLyricsClockSet: (enabled: boolean) => Promise<boolean>;
       musicLyricsCalibrateEnabledGet: () => Promise<boolean>;

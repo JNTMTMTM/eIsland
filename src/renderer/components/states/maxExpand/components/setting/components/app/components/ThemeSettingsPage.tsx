@@ -94,6 +94,7 @@ type ThemeSettingsPageProps = Pick<
 >;
 
 const MUSIC_OUTER_GLOW_EFFECT_STORE_KEY = 'music-outer-glow-effect-enabled';
+const MUSIC_MARQUEE_MODE_STORE_KEY = 'music-marquee-mode';
 const UI_FONT_STORE_KEY = 'ui-font-family';
 const LYRICS_FONT_STORE_KEY = 'lyrics-font-family';
 const UI_CUSTOM_FONTS_STORE_KEY = 'ui-custom-fonts';
@@ -185,6 +186,7 @@ export function ThemeSettingsPage({
   const { t } = useTranslation();
   const setNotification = useIslandStore((s) => s.setNotification);
   const [musicOuterGlowEffectEnabled, setMusicOuterGlowEffectEnabled] = useState<boolean>(true);
+  const [musicMarqueeMode, setMusicMarqueeMode] = useState<'normal' | 'rhythm'>('normal');
   const [uiFont, setUIFont] = useState<string>('default');
   const [lyricsFont, setLyricsFont] = useState<string>('default');
   const [uiCustomFonts, setUiCustomFonts] = useState<CustomFont[]>([]);
@@ -204,6 +206,10 @@ export function ThemeSettingsPage({
       if (typeof value === 'boolean') {
         setMusicOuterGlowEffectEnabled(value);
       }
+    }).catch(() => {});
+    window.api.storeRead(MUSIC_MARQUEE_MODE_STORE_KEY).then((value) => {
+      if (cancelled) return;
+      if (value === 'normal' || value === 'rhythm') setMusicMarqueeMode(value);
     }).catch(() => {});
     return () => { cancelled = true; };
   }, []);
@@ -330,6 +336,25 @@ export function ThemeSettingsPage({
                 />
                 {t('settings.app.theme.musicOuterGlowToggle', { defaultValue: '启用歌曲播放外光圈跑马灯特效' })}
               </label>
+            </div>
+            <div className="settings-music-hint">{t('settings.app.theme.musicMarqueeModeHint', { defaultValue: '律动模式会让跑马灯跟随当前音频鼓点增强闪烁' })}</div>
+            <div className="settings-lyrics-source-options">
+              {(['normal', 'rhythm'] as const).map((mode) => (
+                <button
+                  key={mode}
+                  className={`settings-lyrics-source-btn ${musicMarqueeMode === mode ? 'active' : ''}`}
+                  type="button"
+                  onClick={() => {
+                    setMusicMarqueeMode(mode);
+                    window.api.storeWrite(MUSIC_MARQUEE_MODE_STORE_KEY, mode).catch(() => {});
+                    window.dispatchEvent(new CustomEvent('music-marquee-mode-changed', { detail: mode }));
+                  }}
+                >
+                  {t(`settings.app.theme.musicMarqueeModeOptions.${mode}`, {
+                    defaultValue: mode === 'normal' ? '普通模式' : '律动模式',
+                  })}
+                </button>
+              ))}
             </div>
           </div>
         </div>
