@@ -65,8 +65,8 @@ const BADGE_MAP: Record<string, string> = {
   // SMTC Helper
   TimelineProperties: 'interface',
   PlaybackControls: 'interface',
-  MediaStatus: 'enum',
-  CommandResult: 'enum',
+  MediaStatus: 'interface',
+  CommandResult: 'interface',
   TimestampInfo: 'interface',
   MediaProps: 'interface',
   PlaybackInfo: 'interface',
@@ -93,6 +93,14 @@ const BADGE_MAP: Record<string, string> = {
   VisibleWindowBounds: 'interface',
   // Volume Helper
   VolumeMonitor: 'monitor',
+  // Volume Analyzer
+  FrequencyPeak: 'interface',
+  FrequencyData: 'interface',
+  AmplitudeData: 'interface',
+  BeatData: 'interface',
+  AudioAnalysisResult: 'interface',
+  AnalyzerStatus: 'interface',
+  AudioProcessInfo: 'interface',
 }
 
 // ── badge label text ─────────────────────────────────────────────
