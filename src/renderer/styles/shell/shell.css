@@ -617,7 +617,7 @@
     filter: brightness(1.05);
   }
   40% {
-    padding: 6px;
+    padding: 4px;
     opacity: 0.99;
     filter: brightness(1.35);
   }

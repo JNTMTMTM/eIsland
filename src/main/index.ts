@@ -70,6 +70,7 @@ import { openStandaloneWindow } from './window/standaloneWindow';
 import { showSplashWindow, closeSplashWindow } from './window/splashWindow';
 import { showGuideWindow } from './window/guideWindow';
 import { createSmtcService } from './music/smtcService';
+import { resolveMusicAudioProcess } from './music/musicBeatSource';
 import { setSmtcAccessor } from './music/smtcAccessor';
 import { createAutoHideWatcher } from './system/autoHideWatcher';
 import { createExternalAgentWatcher } from './system/externalAgentWatcher';
@@ -143,24 +144,37 @@ let agentVoiceInputWindow: BrowserWindow | null = null;
 let cliGlowWindow: BrowserWindow | null = null;
 let cachedFullscreenDetector: { isAnyFullscreenWindow: () => boolean } | null | undefined;
 let musicBeatProcessId: number | null = null;
+let musicBeatSourceAppId = '';
 
 function startMusicBeatAnalyzer(): boolean {
   try {
-    const processes = musicBeatAnalyzer.getPlayingProcesses(true);
-    const target = processes[0];
-    if (!target) return false;
-    if (musicBeatProcessId !== target.processId) {
-      musicBeatAnalyzer.stop();
-      musicBeatProcessId = target.processId;
-      const result = musicBeatAnalyzer.start(target.processId, true);
-      if (!result.success) {
-        musicBeatProcessId = null;
-        return false;
-      }
+    const sourceAppId = smtcService.getCurrentDeviceId();
+    if (!sourceAppId) return false;
+    const analyzerStatus = musicBeatAnalyzer.getStatus();
+    if (musicBeatSourceAppId === sourceAppId && musicBeatProcessId !== null && analyzerStatus.isRunning) {
+      return true;
     }
+
+    const processes = musicBeatAnalyzer.getPlayingProcesses(true);
+    const target = resolveMusicAudioProcess(sourceAppId, processes);
+    if (!target) {
+      stopMusicBeatAnalyzer();
+      return false;
+    }
+
+    musicBeatAnalyzer.stop();
+    const result = musicBeatAnalyzer.start(target.processId, true);
+    if (!result.success) {
+      musicBeatProcessId = null;
+      musicBeatSourceAppId = '';
+      return false;
+    }
+    musicBeatProcessId = target.processId;
+    musicBeatSourceAppId = sourceAppId;
     return true;
   } catch {
     musicBeatProcessId = null;
+    musicBeatSourceAppId = '';
     return false;
   }
 }
@@ -168,6 +182,7 @@ function startMusicBeatAnalyzer(): boolean {
 function stopMusicBeatAnalyzer(): void {
   musicBeatAnalyzer.stop();
   musicBeatProcessId = null;
+  musicBeatSourceAppId = '';
 }
 function detectAnyFullscreenWindow(): boolean {
   if (process.platform !== 'win32') return false;
@@ -648,7 +663,10 @@ function registerIpcHandlers(): void {
     },
     sanitizeSmtcUnsubscribeMs,
     detectAllSources: smtcService.detectAllSources,
-    getMusicBeat: () => musicBeatAnalyzer.getResult(),
+    getMusicBeat: () => {
+      startMusicBeatAnalyzer();
+      return musicBeatAnalyzer.getResult();
+    },
     startMusicBeat: startMusicBeatAnalyzer,
     stopMusicBeat: stopMusicBeatAnalyzer,
   });
