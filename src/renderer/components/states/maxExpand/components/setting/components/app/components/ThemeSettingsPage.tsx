@@ -186,7 +186,7 @@ export function ThemeSettingsPage({
   const { t } = useTranslation();
   const setNotification = useIslandStore((s) => s.setNotification);
   const [musicOuterGlowEffectEnabled, setMusicOuterGlowEffectEnabled] = useState<boolean>(true);
-  const [musicMarqueeMode, setMusicMarqueeMode] = useState<'normal' | 'rhythm'>('normal');
+  const [musicMarqueeMode, setMusicMarqueeMode] = useState<'normal' | 'rhythm' | 'amplitude'>('normal');
   const [uiFont, setUIFont] = useState<string>('default');
   const [lyricsFont, setLyricsFont] = useState<string>('default');
   const [uiCustomFonts, setUiCustomFonts] = useState<CustomFont[]>([]);
@@ -209,7 +209,7 @@ export function ThemeSettingsPage({
     }).catch(() => {});
     window.api.storeRead(MUSIC_MARQUEE_MODE_STORE_KEY).then((value) => {
       if (cancelled) return;
-      if (value === 'normal' || value === 'rhythm') setMusicMarqueeMode(value);
+      if (value === 'normal' || value === 'rhythm' || value === 'amplitude') setMusicMarqueeMode(value);
     }).catch(() => {});
     return () => { cancelled = true; };
   }, []);
@@ -337,9 +337,9 @@ export function ThemeSettingsPage({
                 {t('settings.app.theme.musicOuterGlowToggle', { defaultValue: '启用歌曲播放外光圈跑马灯特效' })}
               </label>
             </div>
-            <div className="settings-music-hint">{t('settings.app.theme.musicMarqueeModeHint', { defaultValue: '律动模式会让跑马灯跟随当前音频鼓点增强闪烁' })}</div>
+            <div className="settings-music-hint">{t('settings.app.theme.musicMarqueeModeHint', { defaultValue: '律动模式按节拍闪烁，振幅模式根据采样强度调整向内振动幅度' })}</div>
             <div className="settings-lyrics-source-options">
-              {(['normal', 'rhythm'] as const).map((mode) => (
+              {(['normal', 'rhythm', 'amplitude'] as const).map((mode) => (
                 <button
                   key={mode}
                   className={`settings-lyrics-source-btn ${musicMarqueeMode === mode ? 'active' : ''}`}
@@ -351,7 +351,7 @@ export function ThemeSettingsPage({
                   }}
                 >
                   {t(`settings.app.theme.musicMarqueeModeOptions.${mode}`, {
-                    defaultValue: mode === 'normal' ? '普通模式' : '律动模式',
+                    defaultValue: mode === 'normal' ? '普通模式' : mode === 'rhythm' ? '律动模式' : '振幅模式',
                   })}
                 </button>
               ))}

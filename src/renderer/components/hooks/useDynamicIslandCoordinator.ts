@@ -156,6 +156,8 @@ export function useDynamicIslandCoordinator(options: UseDynamicIslandCoordinator
     fromState,
     showGlow,
     marqueeRhythmEnabled,
+    marqueeAmplitudeEnabled,
+    marqueeAmplitudeLevel,
     marqueeBeatPulse,
     handleIslandClick,
   } = useDynamicIslandShell({
@@ -308,6 +310,8 @@ export function useDynamicIslandCoordinator(options: UseDynamicIslandCoordinator
     fromState,
     showGlow,
     marqueeRhythmEnabled,
+    marqueeAmplitudeEnabled,
+    marqueeAmplitudeLevel,
     marqueeBeatPulse,
     springAnimation,
     animationSpeed,

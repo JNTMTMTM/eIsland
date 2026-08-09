@@ -2306,10 +2306,11 @@
         "musicOuterGlowTitle": "Music Outer Glow Effect",
         "musicOuterGlowHint": "Control the marquee/glow animation around the album cover while music is playing.",
         "musicOuterGlowToggle": "Enable outer glow marquee effect while music is playing",
-        "musicMarqueeModeHint": "Rhythm mode intensifies the marquee with the beat of the current audio",
+        "musicMarqueeModeHint": "Rhythm mode flashes on the beat; amplitude mode adjusts inward motion from each sample's strength",
         "musicMarqueeModeOptions": {
           "normal": "Normal",
-          "rhythm": "Rhythm"
+          "rhythm": "Rhythm",
+          "amplitude": "Amplitude"
         },
         "windowControlsTitle": "Standalone Window Controls Style",
         "windowControlsHint": "When enabled, the top-right controls in standalone window use macOS-style traffic-light dots",

@@ -57,6 +57,8 @@ interface DynamicIslandShellState {
   fromState: string;
   showGlow: string | null;
   marqueeRhythmEnabled: boolean;
+  marqueeAmplitudeEnabled: boolean;
+  marqueeAmplitudeLevel: number;
   marqueeBeatPulse: boolean;
   handleIslandClick: () => void;
 }
@@ -87,18 +89,19 @@ export function useDynamicIslandShell(options: UseDynamicIslandShellOptions): Dy
   const [morphing, setMorphing] = useState(false);
   const [fromState, setFromState] = useState('');
   const [glowEffectEnabled, setGlowEffectEnabled] = useState<boolean>(true);
-  const [marqueeMode, setMarqueeMode] = useState<'normal' | 'rhythm'>('normal');
+  const [marqueeMode, setMarqueeMode] = useState<'normal' | 'rhythm' | 'amplitude'>('normal');
   const [marqueeBeatPulse, setMarqueeBeatPulse] = useState(false);
+  const [marqueeAmplitudeLevel, setMarqueeAmplitudeLevel] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
     window.api.storeRead(MUSIC_MARQUEE_MODE_STORE_KEY).then((value) => {
-      if (!cancelled && (value === 'normal' || value === 'rhythm')) setMarqueeMode(value);
+      if (!cancelled && (value === 'normal' || value === 'rhythm' || value === 'amplitude')) setMarqueeMode(value);
     }).catch(() => {});
 
     const handler = (event: Event): void => {
       const value = (event as CustomEvent).detail;
-      if (value === 'normal' || value === 'rhythm') setMarqueeMode(value);
+      if (value === 'normal' || value === 'rhythm' || value === 'amplitude') setMarqueeMode(value);
     };
     window.addEventListener('music-marquee-mode-changed', handler);
     return () => {
@@ -108,9 +111,11 @@ export function useDynamicIslandShell(options: UseDynamicIslandShellOptions): Dy
   }, []);
 
   useEffect(() => {
-    if (marqueeMode !== 'rhythm' || !isMusicPlaying || !isPlaying || !glowEffectEnabled) {
+    const usesAnalyzer = marqueeMode === 'rhythm' || marqueeMode === 'amplitude';
+    if (!usesAnalyzer || !isMusicPlaying || !isPlaying || !glowEffectEnabled) {
       window.api.musicMarqueeBeatStop().catch(() => {});
       setMarqueeBeatPulse(false);
+      setMarqueeAmplitudeLevel(0);
       return;
     }
 
@@ -118,6 +123,7 @@ export function useDynamicIslandShell(options: UseDynamicIslandShellOptions): Dy
     let pulseTimer: number | undefined;
     let beatClockTimer: number | undefined;
     let lastNativeBeatAt = 0;
+    let smoothedAmplitude = 0;
     const bpmSamples: number[] = [];
 
     const triggerPulse = (): void => {
@@ -142,7 +148,16 @@ export function useDynamicIslandShell(options: UseDynamicIslandShellOptions): Dy
     window.api.musicMarqueeBeatStart().catch(() => {});
     const pollTimer = window.setInterval(() => {
       window.api.musicMarqueeBeatGet().then((result) => {
-        if (cancelled || beatClockTimer !== undefined || result?.beat.isBeat !== true) return;
+        if (cancelled || !result) return;
+        if (marqueeMode === 'amplitude') {
+          const sampleStrength = Math.min(1, Math.max(result.amplitude.rms * 2.4, result.amplitude.peak * 0.7));
+          const gatedStrength = sampleStrength < 0.05 ? 0 : sampleStrength;
+          smoothedAmplitude = smoothedAmplitude * 0.68 + gatedStrength * 0.32;
+          setMarqueeAmplitudeLevel(smoothedAmplitude);
+          return;
+        }
+
+        if (beatClockTimer !== undefined || result.beat.isBeat !== true) return;
         const bpm = result.beat.bpm;
         if (!Number.isFinite(bpm) || bpm < 30 || bpm > 300) return;
 
@@ -160,13 +175,14 @@ export function useDynamicIslandShell(options: UseDynamicIslandShellOptions): Dy
         triggerPulse();
         synchronizeBeatClock(periodMs);
       }).catch(() => {});
-    }, 80);
+    }, marqueeMode === 'amplitude' ? 50 : 80);
 
     return () => {
       cancelled = true;
       window.clearInterval(pollTimer);
       if (pulseTimer !== undefined) window.clearTimeout(pulseTimer);
       if (beatClockTimer !== undefined) window.clearTimeout(beatClockTimer);
+      setMarqueeAmplitudeLevel(0);
       window.api.musicMarqueeBeatStop().catch(() => {});
     };
   }, [glowEffectEnabled, isMusicPlaying, isPlaying, marqueeMode]);
@@ -235,6 +251,8 @@ export function useDynamicIslandShell(options: UseDynamicIslandShellOptions): Dy
     fromState,
     showGlow: glowEffectEnabled && isMusicPlaying && coverImage ? (isPlaying ? 'playing' : 'paused') : null,
     marqueeRhythmEnabled: marqueeMode === 'rhythm',
+    marqueeAmplitudeEnabled: marqueeMode === 'amplitude',
+    marqueeAmplitudeLevel,
     marqueeBeatPulse,
     handleIslandClick,
   };
