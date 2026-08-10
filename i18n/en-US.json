@@ -2877,6 +2877,20 @@
       "guideResetError": "Failed. Please try again later",
       "pagination": "Update settings pagination"
     },
+    "extensions": {
+      "title": "Extensions",
+      "description": "Manage optional feature extensions, install on demand to reduce package size",
+      "statusNotInstalled": "Not Installed",
+      "statusInstalled": "Installed",
+      "install": "Install",
+      "uninstall": "Uninstall",
+      "installing": "Installing…",
+      "uninstalling": "Uninstalling…",
+      "restartRequired": "Restart the app to apply changes",
+      "noExtensions": "No extensions available",
+      "volume-analyzerName": "Audio Beat Analyzer",
+      "volume-analyzerDesc": "Process-level audio spectrum analysis, amplitude detection and BPM recognition for marquee beat effects"
+    },
     "pluginMarket": {
       "pagination": "Wallpaper market pagination",
       "search": {

@@ -24,11 +24,12 @@
  * @author 鸡哥
  */
 
-import { useState, type ReactElement } from 'react';
+import { useState, useEffect, useCallback, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { UpdateSettingsPageDots } from './UpdateSettingsPageDots';
 import { SettingsPageNavigationToggle } from '../SettingsPageNavigation';
 import type { UpdateSettingsPageKey } from '../../utils/settingsConfig';
+import type { ExtensionStatus, ExtensionProgressData } from '../../../../../../../preload/types/extension';
 
 type UpdateStatus = 'idle' | 'checking' | 'available' | 'downloading' | 'ready' | 'error' | 'latest';
 
@@ -179,10 +180,177 @@ export function UpdateSettingsSection({
     </div>
   );
 
+  // ===== 拓展内容页状态 =====
+  const [extensions, setExtensions] = useState<ExtensionStatus[]>([]);
+  const [extProgress, setExtProgress] = useState<Record<string, ExtensionProgressData>>({});
+  const [extAction, setExtAction] = useState<Record<string, 'installing' | 'uninstalling'>>({});
+
+  /** 加载扩展列表 */
+  const loadExtensions = useCallback(async () => {
+    try {
+      const list = await window.api.extensionList();
+      setExtensions(list);
+    } catch (e) {
+      console.warn('[Extensions] Failed to load:', e);
+    }
+  }, []);
+
+  /** 初始加载 */
+  useEffect(() => {
+    if (updateSettingsPage === 'extensions') {
+      loadExtensions();
+    }
+  }, [updateSettingsPage, loadExtensions]);
+
+  /** 监听安装进度 */
+  useEffect(() => {
+    const unsubscribe = window.api.onExtensionInstallProgress((data: ExtensionProgressData) => {
+      setExtProgress((prev) => ({ ...prev, [data.id]: data }));
+    });
+    return unsubscribe;
+  }, []);
+
+  /** 安装扩展 */
+  const handleInstallExt = useCallback(async (extId: string) => {
+    setExtAction((prev) => ({ ...prev, [extId]: 'installing' }));
+    try {
+      const result = await window.api.extensionInstall(extId);
+      if (result.success) {
+        await loadExtensions();
+      } else {
+        console.error('[Extensions] Install failed:', result.error);
+      }
+    } catch (e) {
+      console.error('[Extensions] Install error:', e);
+    } finally {
+      setExtAction((prev) => {
+        const next = { ...prev };
+        delete next[extId];
+        return next;
+      });
+      setExtProgress((prev) => {
+        const next = { ...prev };
+        delete next[extId];
+        return next;
+      });
+    }
+  }, [loadExtensions]);
+
+  /** 卸载扩展 */
+  const handleUninstallExt = useCallback(async (extId: string) => {
+    setExtAction((prev) => ({ ...prev, [extId]: 'uninstalling' }));
+    try {
+      const result = await window.api.extensionUninstall(extId);
+      if (result.success) {
+        await loadExtensions();
+      }
+    } finally {
+      setExtAction((prev) => {
+        const next = { ...prev };
+        delete next[extId];
+        return next;
+      });
+    }
+  }, [loadExtensions]);
+
   /** 渲染拓展内容页 */
   const renderExtensionsPage = (): ReactElement => (
     <div className="settings-cards">
-      {/* 拓展内容 - 待实现 */}
+
+      {/* 说明卡片 */}
+      <div className="settings-card">
+        <div className="settings-card-header">
+          <div className="settings-card-title">{t('settings.extensions.title', { defaultValue: '拓展内容' })}</div>
+          <div className="settings-card-subtitle">{t('settings.extensions.description', { defaultValue: '管理可选的功能扩展组件，按需安装以减小安装包体积' })}</div>
+        </div>
+      </div>
+
+      {/* 扩展列表 */}
+      {extensions.map((ext) => {
+        const action = extAction[ext.id];
+        const progress = extProgress[ext.id];
+        const isBusy = action !== undefined;
+
+        return (
+          <div className="settings-card" key={ext.id}>
+            <div className="settings-card-header">
+              <div className="settings-card-title">
+                {t(`settings.extensions.${ext.id}Name`, { defaultValue: ext.name })}
+              </div>
+              <div className="settings-card-subtitle">
+                {t(`settings.extensions.${ext.id}Desc`, { defaultValue: ext.description })}
+              </div>
+            </div>
+
+            <div className="settings-card-subgroup">
+              <div className="settings-card-subgroup-title">
+                {ext.isInstalled
+                  ? `${t('settings.extensions.statusInstalled', { defaultValue: '已安装' })} v${ext.installedVersion}`
+                  : t('settings.extensions.statusNotInstalled', { defaultValue: '未安装' })}
+              </div>
+            </div>
+
+            {/* 安装进度 */}
+            {action === 'installing' && progress && (
+              <div style={{ marginBottom: 8 }}>
+                <div className="settings-about-update-progress-bar">
+                  <div
+                    className="settings-about-update-progress-fill"
+                    style={{ width: `${progress.progress}%` }}
+                  />
+                </div>
+                <span className="settings-about-update-progress-text">
+                  {progress.progress}% · {(progress.transferred / 1024 / 1024).toFixed(1)} MB
+                  {progress.total > 0 ? ` / ${(progress.total / 1024 / 1024).toFixed(1)} MB` : ''}
+                </span>
+              </div>
+            )}
+
+            {/* 操作按钮 */}
+            <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+              {!ext.isInstalled && (
+                <button
+                  className="settings-about-update-btn"
+                  type="button"
+                  disabled={isBusy}
+                  onClick={() => handleInstallExt(ext.id)}
+                >
+                  {action === 'installing'
+                    ? t('settings.extensions.installing', { defaultValue: '安装中…' })
+                    : t('settings.extensions.install', { defaultValue: '安装' })}
+                </button>
+              )}
+              {ext.isInstalled && (
+                <button
+                  className="settings-about-update-btn"
+                  type="button"
+                  disabled={isBusy}
+                  onClick={() => handleUninstallExt(ext.id)}
+                >
+                  {action === 'uninstalling'
+                    ? t('settings.extensions.uninstalling', { defaultValue: '卸载中…' })
+                    : t('settings.extensions.uninstall', { defaultValue: '卸载' })}
+                </button>
+              )}
+            </div>
+
+            {ext.requiredRestart && (ext.isInstalled || action === 'uninstalling') && (
+              <div className="settings-music-hint" style={{ marginTop: 6, fontSize: 12, opacity: 0.6 }}>
+                {t('settings.extensions.restartRequired', { defaultValue: '操作完成后需要重启应用生效' })}
+              </div>
+            )}
+          </div>
+        );
+      })}
+
+      {extensions.length === 0 && (
+        <div className="settings-card">
+          <div className="settings-music-hint" style={{ textAlign: 'center', opacity: 0.5 }}>
+            {t('settings.extensions.noExtensions', { defaultValue: '暂无可用扩展' })}
+          </div>
+        </div>
+      )}
+
     </div>
   );
 

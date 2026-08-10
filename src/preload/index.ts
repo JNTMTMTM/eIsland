@@ -77,6 +77,8 @@ import type {
   CodexStatusSnapshot,
   CodexMonitorMutationResult,
   MusicMarqueeBeatResult,
+  ExtensionStatus,
+  ExtensionProgressData,
 } from './types';
 
 /** 自定义 API，供渲染进程调用 */
@@ -1673,7 +1675,32 @@ const api = {
     return () => {
       ipcRenderer.removeListener('codex:status-updated', handler);
     };
-  }
+  },
+
+  // ===== 可选扩展管理 =====
+
+  /** 获取可选扩展列表及状态 */
+  extensionList: (): Promise<ExtensionStatus[]> => {
+    return ipcRenderer.invoke('extension:list');
+  },
+  /** 安装扩展 */
+  extensionInstall: (id: string, source?: string, resolvedUrl?: string): Promise<{ success: boolean; error?: string }> => {
+    return ipcRenderer.invoke('extension:install', id, source, resolvedUrl);
+  },
+  /** 卸载扩展 */
+  extensionUninstall: (id: string): Promise<{ success: boolean; error?: string }> => {
+    return ipcRenderer.invoke('extension:uninstall', id);
+  },
+  /** 监听扩展安装进度 */
+  onExtensionInstallProgress: (callback: (data: ExtensionProgressData) => void): (() => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, data: ExtensionProgressData): void => {
+      callback(data);
+    };
+    ipcRenderer.on('extension:install-progress', handler);
+    return () => {
+      ipcRenderer.removeListener('extension:install-progress', handler);
+    };
+  },
 };
 
 /** 注入到 window 对象，供渲染进程访问 */

@@ -325,6 +325,24 @@ function uploadToTarget(awsExecutable: string, target: UploadTarget, files: stri
   }
 }
 
+/**
+ * 解析扩展 zip 文件列表
+ * @param distDir - dist 目录
+ * @returns 扩展 zip 文件绝对路径数组
+ */
+function resolveExtensionZips(distDir: string): string[] {
+  const extDir = resolve(process.cwd(), distDir, 'extensions');
+  if (!existsSync(extDir) || !statSync(extDir).isDirectory()) {
+    console.log('[EXTENSIONS] No extensions directory found, skipping.');
+    return [];
+  }
+  const entries = readdirSync(extDir);
+  return entries
+    .filter((name) => name.endsWith('.zip'))
+    .map((name) => join(extDir, name))
+    .filter((p) => statSync(p).isFile());
+}
+
 async function main(): Promise<void> {
   loadEnvFile('.env');
 
@@ -340,12 +358,38 @@ async function main(): Promise<void> {
   console.log(`Blockmap: ${blockmapFile}`);
   console.log(`Metadata: ${latestYmlFile}`);
 
+  // 解析扩展 zip 文件
+  const extensionZips = resolveExtensionZips(distDir);
+  if (extensionZips.length > 0) {
+    console.log(`Extensions: ${extensionZips.map((f) => f.split(/[\\/]/).pop()).join(', ')}`);
+  }
+
   const awsExecutable = resolveAwsExecutable();
 
   if (!minioOnly) {
     const targets = getUploadTargets();
     for (const target of targets) {
       uploadToTarget(awsExecutable, target, uploadFiles);
+      // 上传扩展 zip（带 extensions/ 前缀）
+      for (const zip of extensionZips) {
+        const fileName = zip.split(/[\\/]/).pop() ?? zip;
+        const env = {
+          ...process.env,
+          AWS_REQUEST_CHECKSUM_CALCULATION: 'WHEN_REQUIRED',
+          AWS_RESPONSE_CHECKSUM_VALIDATION: 'WHEN_REQUIRED',
+          AWS_ACCESS_KEY_ID: target.accessKeyId,
+          AWS_SECRET_ACCESS_KEY: target.secretAccessKey,
+        };
+        runAwsCommand(awsExecutable, ['configure', 'set', 'default.s3.addressing_style', 'virtual'], env);
+        runAwsCommand(awsExecutable, ['configure', 'set', 'default.s3.payload_signing_enabled', 'false'], env);
+        console.log(`[${target.provider.toUpperCase()}] Uploading extensions/${fileName}`);
+        runAwsCommand(
+          awsExecutable,
+          ['s3', 'cp', zip, `s3://${target.bucket}/extensions/${fileName}`, '--endpoint-url', target.endpoint, '--region', target.region],
+          env,
+        );
+        console.log(green(`[${target.provider.toUpperCase()}] Upload completed: extensions/${fileName}`));
+      }
     }
   }
 
@@ -353,13 +397,35 @@ async function main(): Promise<void> {
 
   if (minioTarget) {
     uploadToTarget(awsExecutable, minioTarget, uploadFiles);
+    // 上传扩展 zip 到 MinIO
+    for (const zip of extensionZips) {
+      const fileName = zip.split(/[\\/]/).pop() ?? zip;
+      const env = {
+        ...process.env,
+        AWS_REQUEST_CHECKSUM_CALCULATION: 'WHEN_REQUIRED',
+        AWS_RESPONSE_CHECKSUM_VALIDATION: 'WHEN_REQUIRED',
+        AWS_ACCESS_KEY_ID: minioTarget.accessKeyId,
+        AWS_SECRET_ACCESS_KEY: minioTarget.secretAccessKey,
+      };
+      runAwsCommand(awsExecutable, ['configure', 'set', 'default.s3.addressing_style', 'path'], env);
+      runAwsCommand(awsExecutable, ['configure', 'set', 'default.s3.payload_signing_enabled', 'false'], env);
+      console.log(`[MINIO] Uploading extensions/${fileName}`);
+      runAwsCommand(
+        awsExecutable,
+        ['s3', 'cp', zip, `s3://${minioTarget.bucket}/extensions/${fileName}`, '--endpoint-url', minioTarget.endpoint, '--region', minioTarget.region],
+        env,
+      );
+      console.log(green(`[MINIO] Upload completed: extensions/${fileName}`));
+    }
   } else if (minioOnly) {
     throw new Error('[MINIO] MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, MINIO_BUCKET must all be set');
   }
 
   const parts = minioOnly ? [] : ['COS', 'OSS'];
   if (minioTarget) parts.push('MinIO');
-  console.log(`\n${green(`Upload completed: ${parts.join(' + ')} (installer + blockmap + latest.yml)`)}`);
+  const fileDesc = ['installer + blockmap + latest.yml'];
+  if (extensionZips.length > 0) fileDesc.push(`${extensionZips.length} extension(s)`);
+  console.log(`\n${green(`Upload completed: ${parts.join(' + ')} (${fileDesc.join(', ')})`)}`);
   if (!minioOnly && !minioTarget) {
     console.log('[MINIO] Skipped — MINIO_ENDPOINT or credentials not set');
   }

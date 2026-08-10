@@ -19,27 +19,37 @@
  */
 
 /**
- * @file index.ts
- * @description 预加载脚本共享类型定义桶文件，聚合所有子模块导出
+ * @file ExtensionStatus.ts
+ * @description 可选扩展状态类型定义
  * @author 鸡哥
  */
 
-export * from './common';
-export * from './window';
-export * from './file';
-export * from './performance';
-export * from './process';
-export * from './media';
-export * from './agent';
-export * from './claudeCode';
-export * from './codex';
-export * from './imageCompression';
-export * from './download';
-export * from './formatFactory';
-export * from './net';
-export * from './mail';
-export * from './updater';
-export * from './clipboard';
-export * from './navigation';
-export * from './settings';
-export * from './extension';
+/** 扩展安装状态 */
+export interface ExtensionStatus {
+  /** 扩展 ID */
+  id: string;
+  /** 显示名称 */
+  name: string;
+  /** 功能描述 */
+  description: string;
+  /** 可用版本（CDN 上的版本） */
+  availableVersion: string;
+  /** 已安装版本（null 表示未安装） */
+  installedVersion: string | null;
+  /** 是否已安装 */
+  isInstalled: boolean;
+  /** 安装后是否需要重启 */
+  requiredRestart: boolean;
+}
+
+/** 扩展安装进度 */
+export interface ExtensionProgressData {
+  /** 扩展 ID */
+  id: string;
+  /** 进度百分比 0-100 */
+  progress: number;
+  /** 已下载字节数 */
+  transferred: number;
+  /** 总字节数 */
+  total: number;
+}
