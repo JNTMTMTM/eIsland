@@ -153,15 +153,51 @@ function buildExtension(config: ExtensionBuildConfig): void {
   console.log(`[extension:build] ✓ ${zipName} (${(existsSync(zipPath) ? statSync(zipPath).size / 1024 / 1024 : 0).toFixed(1)} MB)`);
 }
 
+/** 构建元数据（用于生成 latest_ext.yml） */
+interface ExtensionBuildResult {
+  id: string;
+  version: string;
+  zipName: string;
+  size: number;
+}
+
 // ===== Main =====
 
 const targetId = process.argv[2]; // 可选：只构建指定扩展
 
 console.log('[extension:build] Building extension packages...');
 
+const buildResults: ExtensionBuildResult[] = [];
+
 for (const ext of EXTENSIONS) {
   if (targetId && ext.id !== targetId) continue;
   buildExtension(ext);
+
+  // 收集构建结果用于生成 latest_ext.yml
+  const pluginPath = join(ROOT, ext.pluginDir);
+  const pkgPath = join(pluginPath, 'package.json');
+  const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'));
+  const version = pkg.version || '0.0.0';
+  const zipName = `${ext.id}-v${version}.zip`;
+  const zipPath = join(DIST_EXT_DIR, zipName);
+  const size = existsSync(zipPath) ? statSync(zipPath).size : 0;
+
+  buildResults.push({ id: ext.id, version, zipName, size });
+}
+
+// 生成 latest_ext.yml
+if (buildResults.length > 0) {
+  const lines: string[] = [];
+  for (const r of buildResults) {
+    lines.push(`- id: ${r.id}`);
+    lines.push(`  version: ${r.version}`);
+    lines.push(`  url: ${r.zipName}`);
+    lines.push(`  size: ${r.size}`);
+  }
+  const ymlContent = lines.join('\n') + '\n';
+  const ymlPath = join(DIST_EXT_DIR, 'latest_ext.yml');
+  writeFileSync(ymlPath, ymlContent, 'utf-8');
+  console.log(`\n[extension:build] Generated latest_ext.yml with ${buildResults.length} extension(s)`);
 }
 
 console.log('\n[extension:build] Done.');

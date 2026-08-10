@@ -343,6 +343,19 @@ function resolveExtensionZips(distDir: string): string[] {
     .filter((p) => statSync(p).isFile());
 }
 
+/**
+ * 解析 latest_ext.yml 文件路径
+ * @param distDir - dist 目录
+ * @returns 文件绝对路径，不存在返回 null
+ */
+function resolveLatestExtYml(distDir: string): string | null {
+  const ymlPath = resolve(process.cwd(), distDir, 'extensions', 'latest_ext.yml');
+  if (existsSync(ymlPath) && statSync(ymlPath).isFile()) {
+    return ymlPath;
+  }
+  return null;
+}
+
 async function main(): Promise<void> {
   loadEnvFile('.env');
 
@@ -360,8 +373,12 @@ async function main(): Promise<void> {
 
   // 解析扩展 zip 文件
   const extensionZips = resolveExtensionZips(distDir);
+  const latestExtYml = resolveLatestExtYml(distDir);
   if (extensionZips.length > 0) {
     console.log(`Extensions: ${extensionZips.map((f) => f.split(/[\\/]/).pop()).join(', ')}`);
+  }
+  if (latestExtYml) {
+    console.log(`Extension metadata: ${latestExtYml.split(/[\\/]/).pop()}`);
   }
 
   const awsExecutable = resolveAwsExecutable();
@@ -390,6 +407,25 @@ async function main(): Promise<void> {
         );
         console.log(green(`[${target.provider.toUpperCase()}] Upload completed: extensions/${fileName}`));
       }
+      // 上传 latest_ext.yml
+      if (latestExtYml) {
+        const env = {
+          ...process.env,
+          AWS_REQUEST_CHECKSUM_CALCULATION: 'WHEN_REQUIRED',
+          AWS_RESPONSE_CHECKSUM_VALIDATION: 'WHEN_REQUIRED',
+          AWS_ACCESS_KEY_ID: target.accessKeyId,
+          AWS_SECRET_ACCESS_KEY: target.secretAccessKey,
+        };
+        runAwsCommand(awsExecutable, ['configure', 'set', 'default.s3.addressing_style', 'virtual'], env);
+        runAwsCommand(awsExecutable, ['configure', 'set', 'default.s3.payload_signing_enabled', 'false'], env);
+        console.log(`[${target.provider.toUpperCase()}] Uploading extensions/latest_ext.yml`);
+        runAwsCommand(
+          awsExecutable,
+          ['s3', 'cp', latestExtYml, `s3://${target.bucket}/extensions/latest_ext.yml`, '--endpoint-url', target.endpoint, '--region', target.region],
+          env,
+        );
+        console.log(green(`[${target.provider.toUpperCase()}] Upload completed: extensions/latest_ext.yml`));
+      }
     }
   }
 
@@ -416,6 +452,25 @@ async function main(): Promise<void> {
         env,
       );
       console.log(green(`[MINIO] Upload completed: extensions/${fileName}`));
+    }
+    // 上传 latest_ext.yml 到 MinIO
+    if (latestExtYml) {
+      const env = {
+        ...process.env,
+        AWS_REQUEST_CHECKSUM_CALCULATION: 'WHEN_REQUIRED',
+        AWS_RESPONSE_CHECKSUM_VALIDATION: 'WHEN_REQUIRED',
+        AWS_ACCESS_KEY_ID: minioTarget.accessKeyId,
+        AWS_SECRET_ACCESS_KEY: minioTarget.secretAccessKey,
+      };
+      runAwsCommand(awsExecutable, ['configure', 'set', 'default.s3.addressing_style', 'path'], env);
+      runAwsCommand(awsExecutable, ['configure', 'set', 'default.s3.payload_signing_enabled', 'false'], env);
+      console.log('[MINIO] Uploading extensions/latest_ext.yml');
+      runAwsCommand(
+        awsExecutable,
+        ['s3', 'cp', latestExtYml, `s3://${minioTarget.bucket}/extensions/latest_ext.yml`, '--endpoint-url', minioTarget.endpoint, '--region', minioTarget.region],
+        env,
+      );
+      console.log(green('[MINIO] Upload completed: extensions/latest_ext.yml'));
     }
   } else if (minioOnly) {
     throw new Error('[MINIO] MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, MINIO_BUCKET must all be set');

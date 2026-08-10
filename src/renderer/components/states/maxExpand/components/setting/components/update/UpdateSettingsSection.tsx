@@ -29,7 +29,8 @@ import { useTranslation } from 'react-i18next';
 import { UpdateSettingsPageDots } from './UpdateSettingsPageDots';
 import { SettingsPageNavigationToggle } from '../SettingsPageNavigation';
 import type { UpdateSettingsPageKey } from '../../utils/settingsConfig';
-import type { ExtensionStatus, ExtensionProgressData } from '../../../../../../../preload/types/extension';
+import type { UpdateSourceKey } from '../../config/settingsTabConfig';
+import type { ExtensionStatus, ExtensionProgressData } from '../../../../../../../../preload/types/extension';
 
 type UpdateStatus = 'idle' | 'checking' | 'available' | 'downloading' | 'ready' | 'error' | 'latest';
 
@@ -56,6 +57,8 @@ interface UpdateSettingsSectionProps {
   onInstallUpdate: () => void;
   onResetGuide: () => void;
   guideResetStatus: 'idle' | 'success' | 'error';
+  updateSource: UpdateSourceKey;
+  resolveUpdateSourceUrl: (source: UpdateSourceKey) => Promise<string | undefined>;
   currentUpdateSettingsPageLabel: string;
   updateSettingsPage: UpdateSettingsPageKey;
   updateSettingsPages: UpdateSettingsPageKey[];
@@ -84,6 +87,8 @@ export function UpdateSettingsSection({
   onInstallUpdate,
   onResetGuide,
   guideResetStatus,
+  updateSource,
+  resolveUpdateSourceUrl,
   currentUpdateSettingsPageLabel,
   updateSettingsPage,
   updateSettingsPages,
@@ -188,12 +193,13 @@ export function UpdateSettingsSection({
   /** 加载扩展列表 */
   const loadExtensions = useCallback(async () => {
     try {
-      const list = await window.api.extensionList();
+      const resolvedUrl = await resolveUpdateSourceUrl(updateSource).catch(() => undefined);
+      const list = await window.api.extensionList(updateSource, resolvedUrl);
       setExtensions(list);
     } catch (e) {
       console.warn('[Extensions] Failed to load:', e);
     }
-  }, []);
+  }, [updateSource, resolveUpdateSourceUrl]);
 
   /** 初始加载 */
   useEffect(() => {
@@ -214,7 +220,8 @@ export function UpdateSettingsSection({
   const handleInstallExt = useCallback(async (extId: string) => {
     setExtAction((prev) => ({ ...prev, [extId]: 'installing' }));
     try {
-      const result = await window.api.extensionInstall(extId);
+      const resolvedUrl = await resolveUpdateSourceUrl(updateSource).catch(() => undefined);
+      const result = await window.api.extensionInstall(extId, updateSource, resolvedUrl);
       if (result.success) {
         await loadExtensions();
       } else {
@@ -234,7 +241,7 @@ export function UpdateSettingsSection({
         return next;
       });
     }
-  }, [loadExtensions]);
+  }, [loadExtensions, updateSource, resolveUpdateSourceUrl]);
 
   /** 卸载扩展 */
   const handleUninstallExt = useCallback(async (extId: string) => {

@@ -77,6 +77,8 @@ import type {
   ClaudeCodeHookMutationResult,
   CodexStatusSnapshot,
   CodexMonitorMutationResult,
+  ExtensionStatus,
+  ExtensionProgressData,
 } from './types';
 
 declare global {
@@ -330,6 +332,10 @@ declare global {
       codexEventsClear: () => Promise<CodexStatusSnapshot>;
       codexSessionsDelete: (sessionIds: string[]) => Promise<CodexStatusSnapshot>;
       onCodexStatusUpdated: (callback: (snapshot: CodexStatusSnapshot) => void) => () => void;
+      extensionList: (source?: string, resolvedUrl?: string) => Promise<ExtensionStatus[]>;
+      extensionInstall: (id: string, source?: string, resolvedUrl?: string) => Promise<{ success: boolean; error?: string }>;
+      extensionUninstall: (id: string) => Promise<{ success: boolean; error?: string }>;
+      onExtensionInstallProgress: (callback: (data: ExtensionProgressData) => void) => () => void;
     };
   }
 }

@@ -1680,8 +1680,8 @@ const api = {
   // ===== 可选扩展管理 =====
 
   /** 获取可选扩展列表及状态 */
-  extensionList: (): Promise<ExtensionStatus[]> => {
-    return ipcRenderer.invoke('extension:list');
+  extensionList: (source?: string, resolvedUrl?: string): Promise<ExtensionStatus[]> => {
+    return ipcRenderer.invoke('extension:list', source, resolvedUrl);
   },
   /** 安装扩展 */
   extensionInstall: (id: string, source?: string, resolvedUrl?: string): Promise<{ success: boolean; error?: string }> => {

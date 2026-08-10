@@ -37,9 +37,9 @@ import type { UpdateSourceKey } from './types';
  */
 export function registerExtensionIpcHandlers(): void {
   /** 获取所有扩展状态 */
-  ipcMain.handle('extension:list', () => {
+  ipcMain.handle('extension:list', async (_event, source?: UpdateSourceKey, resolvedUrl?: string) => {
     try {
-      return getExtensionStatusList();
+      return await getExtensionStatusList(source, resolvedUrl);
     } catch (err) {
       console.error('[Extension:list] ERROR:', err);
       return [];

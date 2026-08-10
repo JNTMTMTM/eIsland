@@ -199,6 +199,16 @@ function collectExtensionZips(dir: string, explicitFiles: string[]): string[] {
   return [...new Set(result)];
 }
 
+/** 解析 latest_ext.yml 文件路径 */
+function resolveLatestExtYml(dir: string): string | null {
+  const absDir = resolve(process.cwd(), dir);
+  const ymlPath = absDir + '/latest_ext.yml';
+  if (existsSync(ymlPath) && statSync(ymlPath).isFile()) {
+    return ymlPath;
+  }
+  return null;
+}
+
 function getUploadTargets(): UploadTarget[] {
   const cosRegion = requireEnv('COS_REGION');
   const ossRegion = requireEnv('OSS_REGION');
@@ -253,8 +263,8 @@ function runAwsCommand(awsExecutable: string, args: string[], env: NodeJS.Proces
   }
 }
 
-/** 上传扩展 zip 到指定 provider */
-function uploadExtensions(awsExecutable: string, target: UploadTarget, zips: string[]): void {
+/** 上传扩展 zip 和元数据到指定 provider */
+function uploadExtensions(awsExecutable: string, target: UploadTarget, zips: string[], latestExtYml: string | null): void {
   const isMinio = target.provider === 'minio';
   const addressingStyle = isMinio ? 'path' : 'virtual';
 
@@ -283,6 +293,18 @@ function uploadExtensions(awsExecutable: string, target: UploadTarget, zips: str
     );
     console.log(green(`[${target.provider.toUpperCase()}] Upload completed: ${remoteKey}`));
   }
+
+  // 上传 latest_ext.yml
+  if (latestExtYml) {
+    const remoteKey = 'extensions/latest_ext.yml';
+    console.log(`[${target.provider.toUpperCase()}] Uploading ${remoteKey}`);
+    runAwsCommand(
+      awsExecutable,
+      ['s3', 'cp', latestExtYml, `s3://${target.bucket}/${remoteKey}`, '--endpoint-url', target.endpoint, '--region', target.region],
+      env,
+    );
+    console.log(green(`[${target.provider.toUpperCase()}] Upload completed: ${remoteKey}`));
+  }
 }
 
 async function main(): Promise<void> {
@@ -304,17 +326,22 @@ async function main(): Promise<void> {
   }
 
   const awsExecutable = resolveAwsExecutable();
+  const latestExtYml = resolveLatestExtYml(dir);
+
+  if (latestExtYml) {
+    console.log(`[EXTENSION] Found latest_ext.yml: ${latestExtYml}`);
+  }
 
   if (!minioOnly) {
     const targets = getUploadTargets();
     for (const target of targets) {
-      uploadExtensions(awsExecutable, target, zips);
+      uploadExtensions(awsExecutable, target, zips, latestExtYml);
     }
   }
 
   const minioTarget = getMinioTarget();
   if (minioTarget) {
-    uploadExtensions(awsExecutable, minioTarget, zips);
+    uploadExtensions(awsExecutable, minioTarget, zips, latestExtYml);
   } else if (minioOnly) {
     throw new Error('[MINIO] MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, MINIO_BUCKET must all be set');
   }

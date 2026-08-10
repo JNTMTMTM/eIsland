@@ -463,6 +463,7 @@ export function SettingsTab(): ReactElement {
     handleInstallUpdate,
     handleResetGuide,
     guideResetStatus,
+    resolveUpdateSourceUrl,
   } = useUpdateSettingsState({
     t,
     isProUser,
@@ -2699,6 +2700,8 @@ export function SettingsTab(): ReactElement {
               onInstallUpdate={handleInstallUpdate}
               onResetGuide={handleResetGuide}
               guideResetStatus={guideResetStatus}
+              updateSource={updateSource}
+              resolveUpdateSourceUrl={resolveUpdateSourceUrl}
               currentUpdateSettingsPageLabel={currentUpdateSettingsPageLabel}
               updateSettingsPage={updateSettingsPage}
               updateSettingsPages={UPDATE_SETTINGS_PAGES}

@@ -34,9 +34,108 @@ import type { ExtensionStatus, ExtensionProgressData } from '../ipc/app/types/Ex
 import type { UpdateSourceKey } from '../ipc/app/types/UpdateSourceKey';
 import { R2_UPDATE_URL, ESA_CDN_URL, GITHUB_OWNER, GITHUB_REPO } from '../ipc/app/config/updater';
 
+/** 扩展远程版本信息 */
+interface ExtensionRemoteVersion {
+  id: string;
+  version: string;
+  url: string;
+  size: number;
+}
+
 /** 扩展安装根目录 */
 function getExtensionsDir(): string {
   return join(app.getPath('userData'), 'extensions');
+}
+
+/**
+ * 根据更新源构造扩展 CDN 基础 URL
+ * @param source - 更新源
+ * @param resolvedUrl - COS/OSS 自定义 URL
+ * @returns 基础 URL
+ */
+function resolveExtensionBaseUrl(source: UpdateSourceKey, resolvedUrl?: string): string {
+  if (source === 'github') {
+    return `https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}/releases/download/v${app.getVersion()}`;
+  }
+  if ((source === 'tencent-cos' || source === 'aliyun-oss') && resolvedUrl) {
+    return resolvedUrl.replace(/\/$/, '');
+  }
+  if (source === 'esa-cdn') {
+    return ESA_CDN_URL;
+  }
+  return R2_UPDATE_URL;
+}
+
+/**
+ * 解析 latest_ext.yml 内容
+ * @param content - YAML 文本内容
+ * @returns 扩展版本信息数组
+ */
+function parseLatestExtYml(content: string): ExtensionRemoteVersion[] {
+  const results: ExtensionRemoteVersion[] = [];
+  const lines = content.split('\n');
+  let current: Partial<ExtensionRemoteVersion> = {};
+
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith('#')) continue;
+
+    if (line.startsWith('- id:')) {
+      if (current.id && current.version && current.url) {
+        results.push(current as ExtensionRemoteVersion);
+      }
+      current = { id: line.slice(5).trim() };
+    } else if (line.startsWith('version:')) {
+      current.version = line.slice(8).trim();
+    } else if (line.startsWith('url:')) {
+      current.url = line.slice(4).trim();
+    } else if (line.startsWith('size:')) {
+      current.size = parseInt(line.slice(5).trim(), 10) || 0;
+    }
+  }
+
+  if (current.id && current.version && current.url) {
+    results.push(current as ExtensionRemoteVersion);
+  }
+
+  return results;
+}
+
+/**
+ * 获取远程扩展版本信息
+ * @param source - 更新源
+ * @param resolvedUrl - COS/OSS 自定义 URL
+ * @returns 扩展版本信息数组，失败返回空数组
+ */
+async function fetchRemoteExtensionVersions(source: UpdateSourceKey, resolvedUrl?: string): Promise<ExtensionRemoteVersion[]> {
+  const baseUrl = resolveExtensionBaseUrl(source, resolvedUrl);
+  const url = `${baseUrl}/extensions/latest_ext.yml`;
+
+  return new Promise((resolve) => {
+    const request = net.request(url);
+    request.on('response', (response) => {
+      if (response.statusCode !== 200) {
+        console.warn(`[Extension] Failed to fetch latest_ext.yml: HTTP ${response.statusCode}`);
+        resolve([]);
+        return;
+      }
+      const chunks: Buffer[] = [];
+      response.on('data', (chunk: Buffer) => chunks.push(chunk));
+      response.on('end', () => {
+        try {
+          const content = Buffer.concat(chunks).toString('utf-8');
+          const versions = parseLatestExtYml(content);
+          resolve(versions);
+        } catch (err) {
+          console.warn('[Extension] Failed to parse latest_ext.yml:', err);
+          resolve([]);
+        }
+      });
+      response.on('error', () => resolve([]));
+    });
+    request.on('error', () => resolve([]));
+    request.end();
+  });
 }
 
 /**
@@ -77,21 +176,13 @@ function getInstalledVersion(extId: string): string | null {
  * @param meta - 扩展元数据
  * @param source - 更新源
  * @param resolvedUrl - COS/OSS 自定义 URL
+ * @param remoteVersion - 远程版本（来自 latest_ext.yml）
  * @returns 下载地址
  */
-function resolveDownloadUrl(meta: ExtensionMeta, source: UpdateSourceKey, resolvedUrl?: string): string {
-  if (source === 'github') {
-    return `https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}/releases/download/v${app.getVersion()}/${meta.zipName}`;
-  }
-  if ((source === 'tencent-cos' || source === 'aliyun-oss') && resolvedUrl) {
-    // COS/OSS 使用用户配置的 base URL
-    return `${resolvedUrl.replace(/\/$/, '')}/extensions/${meta.zipName}`;
-  }
-  if (source === 'esa-cdn') {
-    return `${ESA_CDN_URL}/extensions/${meta.zipName}`;
-  }
-  // 默认 R2
-  return `${R2_UPDATE_URL}/extensions/${meta.zipName}`;
+function resolveDownloadUrl(meta: ExtensionMeta, source: UpdateSourceKey, resolvedUrl?: string, remoteVersion?: string): string {
+  const zipName = remoteVersion ? `${meta.id}-v${remoteVersion}.zip` : meta.zipName;
+  const baseUrl = resolveExtensionBaseUrl(source, resolvedUrl);
+  return `${baseUrl}/extensions/${zipName}`;
 }
 
 /**
@@ -155,17 +246,27 @@ async function extractZip(zipPath: string, destDir: string): Promise<void> {
 
 /**
  * 获取所有扩展的状态列表
+ * @param source - 更新源（用于获取远程版本）
+ * @param resolvedUrl - COS/OSS 自定义 URL
  * @returns 扩展状态数组
  */
-export function getExtensionStatusList(): ExtensionStatus[] {
+export async function getExtensionStatusList(source?: UpdateSourceKey, resolvedUrl?: string): Promise<ExtensionStatus[]> {
   const registry = getExtensionRegistry();
+
+  // 获取远程版本信息
+  let remoteVersions: ExtensionRemoteVersion[] = [];
+  if (source) {
+    remoteVersions = await fetchRemoteExtensionVersions(source, resolvedUrl);
+  }
+
   return registry.map((meta) => {
     const installed = isInstalled(meta.id);
+    const remote = remoteVersions.find((r) => r.id === meta.id);
     return {
       id: meta.id,
       name: meta.name,
       description: meta.description,
-      availableVersion: app.getVersion(),
+      availableVersion: remote?.version ?? app.getVersion(),
       installedVersion: installed ? getInstalledVersion(meta.id) : null,
       isInstalled: installed,
       requiredRestart: meta.requiredRestart,
@@ -193,7 +294,11 @@ export async function installExtension(
   const extDir = getExtensionsDir();
   mkdirSync(extDir, { recursive: true });
 
-  const url = resolveDownloadUrl(meta, source, resolvedUrl);
+  // 获取远程版本
+  const remoteVersions = await fetchRemoteExtensionVersions(source, resolvedUrl);
+  const remote = remoteVersions.find((r) => r.id === extId);
+
+  const url = resolveDownloadUrl(meta, source, resolvedUrl, remote?.version);
   const tempZip = join(extDir, `${extId}.zip.tmp`);
   const installPath = join(extDir, meta.installDir);
 
