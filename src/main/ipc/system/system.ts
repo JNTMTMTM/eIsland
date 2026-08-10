@@ -29,8 +29,29 @@ import { ipcMain } from 'electron';
 import { exec } from 'child_process';
 import os from 'os';
 import * as si from 'systeminformation';
-import { getBrightness, setBrightness } from '@eisland/windows-brightness-helper';
-import { getVolume, setVolume } from '@eisland/windows-volume-helper';
+import { getExtensionPath } from '../../extensions/extensionManager';
+
+/** 动态加载亮度控制扩展 */
+async function loadBrightnessExtension(): Promise<{ getBrightness: () => { currentBrightness: number } | null; setBrightness: (v: number) => boolean } | null> {
+  const extPath = getExtensionPath('brightness-helper');
+  if (!extPath) return null;
+  try {
+    return await import(/* @vite-ignore */ `${extPath}/index.js`);
+  } catch {
+    return null;
+  }
+}
+
+/** 动态加载音量控制扩展 */
+async function loadVolumeExtension(): Promise<{ getVolume: () => number; setVolume: (v: number) => boolean; getMute: () => boolean; setMute: (v: boolean) => boolean } | null> {
+  const extPath = getExtensionPath('volume-helper');
+  if (!extPath) return null;
+  try {
+    return await import(/* @vite-ignore */ `${extPath}/index.js`);
+  } catch {
+    return null;
+  }
+}
 
 interface PerformanceSnapshot {
   timestamp: number;
@@ -373,44 +394,52 @@ export function registerSystemIpcHandlers(options: RegisterSystemIpcHandlersOpti
     return options.queryFocusedWindow();
   });
 
-  ipcMain.handle('system:brightness:get', () => {
+  ipcMain.handle('system:brightness:get', async () => {
     if (process.platform !== 'win32') return null;
     try {
-      return getBrightness()?.currentBrightness ?? null;
+      const ext = await loadBrightnessExtension();
+      if (!ext) return null;
+      return ext.getBrightness()?.currentBrightness ?? null;
     } catch (err) {
       console.error('[System] brightness:get error:', err);
       return null;
     }
   });
 
-  ipcMain.handle('system:brightness:set', (_event, brightness: unknown) => {
+  ipcMain.handle('system:brightness:set', async (_event, brightness: unknown) => {
     if (process.platform !== 'win32' || typeof brightness !== 'number' || !Number.isFinite(brightness)) {
       return false;
     }
     try {
-      return setBrightness(brightness);
+      const ext = await loadBrightnessExtension();
+      if (!ext) return false;
+      return ext.setBrightness(brightness);
     } catch (err) {
       console.error('[System] brightness:set error:', err);
       return false;
     }
   });
 
-  ipcMain.handle('system:volume:get', () => {
+  ipcMain.handle('system:volume:get', async () => {
     if (process.platform !== 'win32') return null;
     try {
-      return getVolume();
+      const ext = await loadVolumeExtension();
+      if (!ext) return null;
+      return ext.getVolume();
     } catch (err) {
       console.error('[System] volume:get error:', err);
       return null;
     }
   });
 
-  ipcMain.handle('system:volume:set', (_event, volume: unknown) => {
+  ipcMain.handle('system:volume:set', async (_event, volume: unknown) => {
     if (process.platform !== 'win32' || typeof volume !== 'number' || !Number.isFinite(volume)) {
       return false;
     }
     try {
-      return setVolume(volume);
+      const ext = await loadVolumeExtension();
+      if (!ext) return false;
+      return ext.setVolume(volume);
     } catch (err) {
       console.error('[System] volume:set error:', err);
       return false;

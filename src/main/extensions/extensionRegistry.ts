@@ -57,5 +57,21 @@ export function getExtensionRegistry(): ExtensionMeta[] {
       installDir: 'volume-analyzer',
       requiredRestart: true,
     },
+    {
+      id: 'volume-helper',
+      name: '音量控制助手',
+      description: 'Windows 默认播放设备音量查询、控制与监听（Core Audio COM）',
+      zipName: `volume-helper-v${version}.zip`,
+      installDir: 'volume-helper',
+      requiredRestart: true,
+    },
+    {
+      id: 'brightness-helper',
+      name: '亮度控制助手',
+      description: 'Windows 屏幕亮度查询与控制（WMI / DDC/CI），支持亮度事件监听',
+      zipName: `brightness-helper-v${version}.zip`,
+      installDir: 'brightness-helper',
+      requiredRestart: true,
+    },
   ];
 }

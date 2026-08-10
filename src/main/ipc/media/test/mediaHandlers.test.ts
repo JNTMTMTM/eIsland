@@ -84,10 +84,14 @@ vi.mock('../../../utils/broadcast', () => ({
   broadcastSettingChange: broadcastSettingChangeMock,
 }));
 
-vi.mock('@eisland/windows-volume-helper', () => ({
+vi.mock('../../../extensions/extensionManager', () => ({
+  getExtensionPath: vi.fn((id: string) => id === 'volume-helper' ? '/mock/volume-helper' : null),
+}));
+
+vi.mock('/mock/volume-helper/index.js', () => ({
   getMute: getMuteMock,
   setMute: setMuteMock,
-}));
+}), { virtual: true });
 
 vi.mock('@eisland/windows-smtc-helper', () => ({
   play: playMock,
@@ -147,7 +151,7 @@ describe('media ipc handlers', () => {
     expect(previousMock).not.toHaveBeenCalled();
   });
 
-  it('reads and toggles the default playback device mute state', () => {
+  it('reads and toggles the default playback device mute state', async () => {
     getMuteMock
       .mockReturnValueOnce(false)
       .mockReturnValueOnce(false)
@@ -169,12 +173,12 @@ describe('media ipc handlers', () => {
       getSmtcSessionRuntime: () => new Map(),
     });
 
-    expect(handlers.get('media:get-muted')?.({})).toBe(false);
-    expect(handlers.get('media:toggle-muted')?.({})).toBe(true);
+    await expect(handlers.get('media:get-muted')?.({})).resolves.toBe(false);
+    await expect(handlers.get('media:toggle-muted')?.({})).resolves.toBe(true);
     expect(setMuteMock).toHaveBeenNthCalledWith(1, true);
-    expect(handlers.get('media:toggle-muted')?.({})).toBeNull();
+    await expect(handlers.get('media:toggle-muted')?.({})).resolves.toBeNull();
     expect(setMuteMock).toHaveBeenNthCalledWith(2, false);
-    expect(handlers.get('media:toggle-muted')?.({})).toBeNull();
+    await expect(handlers.get('media:toggle-muted')?.({})).resolves.toBeNull();
   });
 
   it('returns current info and applies source switch updates', () => {

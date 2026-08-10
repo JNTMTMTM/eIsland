@@ -2889,7 +2889,11 @@
       "restartRequired": "操作完成后需要重启应用生效",
       "noExtensions": "暂无可用扩展",
       "volume-analyzerName": "音频节拍分析器",
-      "volume-analyzerDesc": "进程级音频频谱分析、振幅检测与 BPM 识别，用于跑马灯节拍特效"
+      "volume-analyzerDesc": "进程级音频频谱分析、振幅检测与 BPM 识别，用于跑马灯节拍特效",
+      "volume-helperName": "音量控制助手",
+      "volume-helperDesc": "Windows 默认播放设备音量查询、控制与监听（Core Audio COM）",
+      "brightness-helperName": "亮度控制助手",
+      "brightness-helperDesc": "Windows 屏幕亮度查询与控制（WMI / DDC/CI），支持亮度事件监听"
     },
     "pluginMarket": {
       "pagination": "壁纸市场分页",

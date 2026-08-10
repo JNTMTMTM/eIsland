@@ -27,7 +27,18 @@
 
 import { BrowserWindow, ipcMain } from 'electron';
 import { play, pause, next, previous, seek, getTimestamp } from '@eisland/windows-smtc-helper';
-import { getMute, setMute } from '@eisland/windows-volume-helper';
+import { getExtensionPath } from '../../extensions/extensionManager';
+
+/** 动态加载音量控制扩展 */
+async function loadVolumeExtension(): Promise<{ getMute: () => boolean; setMute: (v: boolean) => boolean } | null> {
+  const extPath = getExtensionPath('volume-helper');
+  if (!extPath) return null;
+  try {
+    return await import(/* @vite-ignore */ `${extPath}/index.js`);
+  } catch {
+    return null;
+  }
+}
 
 interface MediaSessionRuntimeEntry {
   payload: unknown;
@@ -109,14 +120,21 @@ export function registerMediaIpcHandlers(options: RegisterMediaIpcHandlersOption
     // SMTC 不支持应用级音量控制
   });
 
-  ipcMain.handle('media:get-muted', () => getMute());
+  ipcMain.handle('media:get-muted', async () => {
+    const ext = await loadVolumeExtension();
+    if (!ext) return null;
+    return ext.getMute();
+  });
 
-  ipcMain.handle('media:toggle-muted', () => {
-    const muted = getMute();
+  ipcMain.handle('media:toggle-muted', async () => {
+    const ext = await loadVolumeExtension();
+    if (!ext) return null;
+
+    const muted = ext.getMute();
     if (muted === null) return null;
 
     const nextMuted = !muted;
-    return setMute(nextMuted) ? nextMuted : null;
+    return ext.setMute(nextMuted) ? nextMuted : null;
   });
 
   ipcMain.handle('smtc:get-timestamp', () => {
