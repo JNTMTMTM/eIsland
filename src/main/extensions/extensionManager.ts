@@ -299,7 +299,7 @@ export async function installExtension(
   const remote = remoteVersions.find((r) => r.id === extId);
 
   const url = resolveDownloadUrl(meta, source, resolvedUrl, remote?.version);
-  const tempZip = join(extDir, `${extId}.zip.tmp`);
+  const tempZip = join(extDir, `${extId}.tmp.zip`);
   const installPath = join(extDir, meta.installDir);
 
   console.log(`[Extension] Downloading ${extId} from ${url}`);
