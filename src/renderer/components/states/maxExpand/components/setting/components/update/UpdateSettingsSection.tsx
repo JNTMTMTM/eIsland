@@ -179,6 +179,13 @@ export function UpdateSettingsSection({
     </div>
   );
 
+  /** 渲染拓展内容页 */
+  const renderExtensionsPage = (): ReactElement => (
+    <div className="settings-cards">
+      {/* 拓展内容 - 待实现 */}
+    </div>
+  );
+
   /** 渲染信息同步页 */
   const renderInfoSyncPage = (): ReactElement => (
     <div className="settings-cards">
@@ -250,6 +257,8 @@ export function UpdateSettingsSection({
         return renderUpdateCheckPage();
       case 'info-sync':
         return renderInfoSyncPage();
+      case 'extensions':
+        return renderExtensionsPage();
       default:
         return null;
     }

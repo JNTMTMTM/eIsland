@@ -2058,7 +2058,8 @@
     },
     "updatePages": {
       "update-check": "检查更新",
-      "info-sync": "信息同步"
+      "info-sync": "信息同步",
+      "extensions": "拓展内容"
     },
     "index": {
       "title": "快速导航",

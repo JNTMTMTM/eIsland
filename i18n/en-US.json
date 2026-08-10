@@ -2058,7 +2058,8 @@
     },
     "updatePages": {
       "update-check": "Check Update",
-      "info-sync": "Info Sync"
+      "info-sync": "Info Sync",
+      "extensions": "Extensions"
     },
     "index": {
       "title": "Quick Navigation",

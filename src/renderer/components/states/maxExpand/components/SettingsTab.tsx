@@ -311,6 +311,7 @@ export function SettingsTab(): ReactElement {
   const translatedUpdateSettingsPageLabels = useMemo<Record<UpdateSettingsPageKey, string>>(() => ({
     'update-check': t('settings.updatePages.update-check', { defaultValue: UPDATE_SETTINGS_PAGE_LABELS['update-check'] }),
     'info-sync': t('settings.updatePages.info-sync', { defaultValue: UPDATE_SETTINGS_PAGE_LABELS['info-sync'] }),
+    extensions: t('settings.updatePages.extensions', { defaultValue: UPDATE_SETTINGS_PAGE_LABELS['extensions'] }),
   }), [t]);
 
   const translatedMailSettingsPageLabels = useMemo<Record<MailSettingsPageKey, string>>(() => ({
