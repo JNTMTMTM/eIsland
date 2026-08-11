@@ -55,11 +55,11 @@ export function registerExtensionIpcHandlers(): void {
         resolvedUrl,
         (progressData) => {
           // 向所有窗口广播进度
-          for (const win of BrowserWindow.getAllWindows()) {
+          BrowserWindow.getAllWindows().forEach((win) => {
             if (!win.isDestroyed()) {
               win.webContents.send('extension:install-progress', progressData);
             }
-          }
+          });
         },
       );
       return { success: true };

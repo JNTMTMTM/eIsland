@@ -76,9 +76,9 @@ function parseLatestExtYml(content: string): ExtensionRemoteVersion[] {
   const lines = content.split('\n');
   let current: Partial<ExtensionRemoteVersion> = {};
 
-  for (const rawLine of lines) {
+  lines.forEach((rawLine) => {
     const line = rawLine.trim();
-    if (!line || line.startsWith('#')) continue;
+    if (!line || line.startsWith('#')) return;
 
     if (line.startsWith('- id:')) {
       if (current.id && current.version && current.url) {
@@ -92,7 +92,7 @@ function parseLatestExtYml(content: string): ExtensionRemoteVersion[] {
     } else if (line.startsWith('size:')) {
       current.size = parseInt(line.slice(5).trim(), 10) || 0;
     }
-  }
+  });
 
   if (current.id && current.version && current.url) {
     results.push(current as ExtensionRemoteVersion);
