@@ -1,7 +1,66 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-08-09T06:33:58.000Z
+> 生成时间：2026-08-11T20:03:47.586Z
+
+## 26.7.2
+
+- 2026-08-10 | a27f5982 | 鸡哥 | chore: update version to 26.7.2 in package.json and package-lock.json
+- 2026-08-10 | ef8d22d5 | 鸡哥 | docs(announcement): add V26.7.2 release notes
+- 2026-08-09 | ca6a97b8 | eislandBot | docs: auto update CHANGE_LOG.md for #193 by @JNTMTMTM [skip ci]
+- 2026-08-10 | cffd7b53 | 鸡哥 | Merge pull request #193 from JNTMTMTM/dev
+- 2026-08-10 | 8d73b472 | 鸡哥 | feat: enhance music marquee functionality with type definitions and improved state management
+- 2026-08-10 | bee0d21a | 鸡哥 | feat: add music marquee mode title and hint to settings page
+- 2026-08-10 | 5191e68d | 鸡哥 | feat: add onSourceSwitchAccepted handler to media IPC for audio process management
+- 2026-08-09 | d6fea450 | 鸡哥 | feat: implement music audio process resolution and add corresponding tests
+- 2026-08-09 | 60175abf | 鸡哥 | feat: refine amplitude calculations and adjust music glow inset for improved visual effects
+- 2026-08-09 | 491388e6 | 鸡哥 | fix: improve music glow styles for better visibility and animation effects
+- 2026-08-09 | f09e4ee3 | 鸡哥 | feat: add amplitude mode to music marquee with updated hints and styles
+- 2026-08-09 | 156ba006 | 鸡哥 | feat: enhance music marquee beat synchronization and pulse triggering
+- 2026-08-09 | f55b377a | 鸡哥 | fix: adjust music glow styles for rhythm effect and animation timing
+- 2026-08-09 | 1a4d5f01 | 鸡哥 | feat: add music marquee mode with rhythm and normal options
+- 2026-08-09 | 8de469d9 | eislandBot | docs: auto update CHANGE_LOG.md for #192 by @JNTMTMTM [skip ci]
+- 2026-08-09 | d1a77fbc | 鸡哥 | Merge pull request #192 from JNTMTMTM/dev
+- 2026-08-09 | 70890395 | 鸡哥 | chore: add file description and author information to vitest.config.ts
+- 2026-08-09 | fcc6d55e | 鸡哥 | fix: update badge types from enum to interface in SidebarBadges.vue fix: change icon for Windows Volume Analyzer in sidebar.ts
+- 2026-08-09 | 4df68a8e | 鸡哥 | Add audio analysis documentation for volume analyzer API
+- 2026-08-09 | 001a8ecf | 鸡哥 | feat: add getMute and setMute functions for volume control in Windows Volume Helper
+- 2026-08-09 | bc616896 | 鸡哥 | feat: add volume analyzer plugin to build and clean scripts
+- 2026-08-09 | 8762e901 | 鸡哥 | Refactor audio capture and activation for process loopback
+- 2026-08-08 | 3855724d | 鸡哥 | feat: add functionality to retrieve currently playing audio processes
+- 2026-08-08 | d70490e5 | 鸡哥 | feat: add ProcessAudioCapture for audio analysis and capture
+- 2026-08-08 | d8ef534b | eislandBot | docs: auto update CHANGE_LOG.md for #191 by @JNTMTMTM [skip ci]
+- 2026-08-08 | 8369f36a | 鸡哥 | Merge pull request #191 from JNTMTMTM/dev
+- 2026-08-08 | 96f56cb4 | 鸡哥 | feat: refactor island dimensions to shared module and update related calculations
+- 2026-08-08 | 1291b119 | 鸡哥 | feat: implement session limits and pagination for CLI sessions
+- 2026-08-08 | e11fd959 | 鸡哥 | feat: enhance window movement logic with post-animation correction for shape changes
+- 2026-08-08 | 5ac6c611 | 鸡哥 | feat: implement window geometry adjustments and shape handling in IPC handlers
+- 2026-08-07 | ffea600d | 鸡哥 | feat: enhance window resizing logic with shape adjustment and logical size tracking
+- 2026-08-07 | f3d0726d | 鸡哥 | feat: add delay parameter to window resize functions and implement shrink delay logic
+- 2026-08-07 | 2faf42c2 | eislandBot | docs: auto update CHANGE_LOG.md for #190 by @JNTMTMTM [skip ci]
+- 2026-08-07 | f9bf6c1c | 鸡哥 | Merge pull request #190 from JNTMTMTM/dev
+- 2026-08-07 | 51585a29 | 鸡哥 | feat: implement local OCR worker management and update error codes for login requirement
+- 2026-08-07 | da918882 | 鸡哥 | feat: add delete and download actions for OCR history with localization support
+- 2026-08-07 | 027497cb | 鸡哥 | feat: enhance user image translation button styles with scrollbar customization
+- 2026-08-07 | 518a1e31 | 鸡哥 | feat: implement OCR history feature with localization and pagination support
+- 2026-08-07 | 625e2b70 | 鸡哥 | feat: add OCR history page and localization support in user settings
+- 2026-08-07 | a9fb621a | 鸡哥 | feat: add inline icons for OCR engine selection and update styles
+- 2026-08-07 | 0eb0900f | 鸡哥 | feat: update OCR button icons and improve CSS styles for better visibility
+- 2026-08-07 | f5bbb666 | 鸡哥 | feat: implement local OCR functionality with Tesseract.js integration and UI updates
+- 2026-08-07 | 4a2c4cc4 | 鸡哥 | feat: enhance OCR text area with custom scrollbar styles
+- 2026-08-07 | 3969892e | 鸡哥 | feat: update OCR panel UI with new button icon and improved styles
+- 2026-08-07 | 087fa66d | 鸡哥 | feat: enhance OCR panel positioning logic and CSS styles for better responsiveness
+- 2026-08-07 | d97ca5dd | 鸡哥 | feat: add OCR button icon and SVG file for enhanced UI
+- 2026-08-07 | 517bf2d6 | 鸡哥 | feat: implement OCR functionality with UI panel and backend integration
+- 2026-08-06 | 75efbcfb | 鸡哥 | feat: add OCR.svg icon and update SvgIcon mapping
+- 2026-08-06 | 723057b8 | eislandBot | docs: auto update CHANGE_LOG.md for #189 by @JNTMTMTM [skip ci]
+- 2026-08-06 | 16ff7a35 | 鸡哥 | Merge pull request #189 from JNTMTMTM/dev
+- 2026-08-06 | 4527c951 | 鸡哥 | feat: add i18n-exclude comments to player icon mapping for clarity
+- 2026-08-06 | 62c1129d | 鸡哥 | feat: update dependencies and improve player icon mapping in music settings
+- 2026-08-06 | 8f1b6069 | 鸡哥 | feat: add player icon mapping and display in music settings whitelist
+- 2026-08-06 | 6e213603 | 鸡哥 | chore: update package versions and enable self-contained builds
+- 2026-08-06 | 87af4a3c | 鸡哥 | feat: cleanup resources on app exit by adding smtcService and destroyTray calls
+- 2026-08-06 | 6fef49c8 | 鸡哥 | feat: add PRO icon to capture toolbar and update styles for capture-pro-icon
 
 ## 26.7.1
 
@@ -3284,44 +3343,16 @@
 
 ## Unreleased
 
-- 2026-08-09 | d1a77fbc | 鸡哥 | Merge pull request #192 from JNTMTMTM/dev
-- 2026-08-09 | 70890395 | 鸡哥 | chore: add file description and author information to vitest.config.ts
-- 2026-08-09 | fcc6d55e | 鸡哥 | fix: update badge types from enum to interface in SidebarBadges.vue fix: change icon for Windows Volume Analyzer in sidebar.ts
-- 2026-08-09 | 4df68a8e | 鸡哥 | Add audio analysis documentation for volume analyzer API
-- 2026-08-09 | 001a8ecf | 鸡哥 | feat: add getMute and setMute functions for volume control in Windows Volume Helper
-- 2026-08-09 | bc616896 | 鸡哥 | feat: add volume analyzer plugin to build and clean scripts
-- 2026-08-09 | 8762e901 | 鸡哥 | Refactor audio capture and activation for process loopback
-- 2026-08-08 | 3855724d | 鸡哥 | feat: add functionality to retrieve currently playing audio processes
-- 2026-08-08 | d70490e5 | 鸡哥 | feat: add ProcessAudioCapture for audio analysis and capture
-- 2026-08-08 | d8ef534b | eislandBot | docs: auto update CHANGE_LOG.md for #191 by @JNTMTMTM [skip ci]
-- 2026-08-08 | 8369f36a | 鸡哥 | Merge pull request #191 from JNTMTMTM/dev
-- 2026-08-08 | 96f56cb4 | 鸡哥 | feat: refactor island dimensions to shared module and update related calculations
-- 2026-08-08 | 1291b119 | 鸡哥 | feat: implement session limits and pagination for CLI sessions
-- 2026-08-08 | e11fd959 | 鸡哥 | feat: enhance window movement logic with post-animation correction for shape changes
-- 2026-08-08 | 5ac6c611 | 鸡哥 | feat: implement window geometry adjustments and shape handling in IPC handlers
-- 2026-08-07 | ffea600d | 鸡哥 | feat: enhance window resizing logic with shape adjustment and logical size tracking
-- 2026-08-07 | f3d0726d | 鸡哥 | feat: add delay parameter to window resize functions and implement shrink delay logic
-- 2026-08-07 | 2faf42c2 | eislandBot | docs: auto update CHANGE_LOG.md for #190 by @JNTMTMTM [skip ci]
-- 2026-08-07 | f9bf6c1c | 鸡哥 | Merge pull request #190 from JNTMTMTM/dev
-- 2026-08-07 | 51585a29 | 鸡哥 | feat: implement local OCR worker management and update error codes for login requirement
-- 2026-08-07 | da918882 | 鸡哥 | feat: add delete and download actions for OCR history with localization support
-- 2026-08-07 | 027497cb | 鸡哥 | feat: enhance user image translation button styles with scrollbar customization
-- 2026-08-07 | 518a1e31 | 鸡哥 | feat: implement OCR history feature with localization and pagination support
-- 2026-08-07 | 625e2b70 | 鸡哥 | feat: add OCR history page and localization support in user settings
-- 2026-08-07 | a9fb621a | 鸡哥 | feat: add inline icons for OCR engine selection and update styles
-- 2026-08-07 | 0eb0900f | 鸡哥 | feat: update OCR button icons and improve CSS styles for better visibility
-- 2026-08-07 | f5bbb666 | 鸡哥 | feat: implement local OCR functionality with Tesseract.js integration and UI updates
-- 2026-08-07 | 4a2c4cc4 | 鸡哥 | feat: enhance OCR text area with custom scrollbar styles
-- 2026-08-07 | 3969892e | 鸡哥 | feat: update OCR panel UI with new button icon and improved styles
-- 2026-08-07 | 087fa66d | 鸡哥 | feat: enhance OCR panel positioning logic and CSS styles for better responsiveness
-- 2026-08-07 | d97ca5dd | 鸡哥 | feat: add OCR button icon and SVG file for enhanced UI
-- 2026-08-07 | 517bf2d6 | 鸡哥 | feat: implement OCR functionality with UI panel and backend integration
-- 2026-08-06 | 75efbcfb | 鸡哥 | feat: add OCR.svg icon and update SvgIcon mapping
-- 2026-08-06 | 723057b8 | eislandBot | docs: auto update CHANGE_LOG.md for #189 by @JNTMTMTM [skip ci]
-- 2026-08-06 | 16ff7a35 | 鸡哥 | Merge pull request #189 from JNTMTMTM/dev
-- 2026-08-06 | 4527c951 | 鸡哥 | feat: add i18n-exclude comments to player icon mapping for clarity
-- 2026-08-06 | 62c1129d | 鸡哥 | feat: update dependencies and improve player icon mapping in music settings
-- 2026-08-06 | 8f1b6069 | 鸡哥 | feat: add player icon mapping and display in music settings whitelist
-- 2026-08-06 | 6e213603 | 鸡哥 | chore: update package versions and enable self-contained builds
-- 2026-08-06 | 87af4a3c | 鸡哥 | feat: cleanup resources on app exit by adding smtcService and destroyTray calls
-- 2026-08-06 | 6fef49c8 | 鸡哥 | feat: add PRO icon to capture toolbar and update styles for capture-pro-icon
+- 2026-08-12 | 581564d8 | 鸡哥 | Merge pull request #195 from JNTMTMTM/dev
+- 2026-08-12 | cf6ac7c9 | 鸡哥 | feat: introduce shared extension types and refactor related imports
+- 2026-08-12 | 4c71f5f1 | 鸡哥 | refactor: replace for loops with forEach for better readability in extension management
+- 2026-08-12 | 8721a0a6 | 鸡哥 | feat: update default update source to 'esa-cdn' in configuration and state management
+- 2026-08-11 | abff54c1 | 鸡哥 | fix: update package version to 26.0.2 in package.json and package-lock.json
+- 2026-08-11 | 478fa6df | 鸡哥 | fix: update package version to 26.7.2 and remove unused volume analyzer dependency
+- 2026-08-11 | 1186d0a6 | 鸡哥 | revert: roll back codebase to commit 8de469d9
+- 2026-08-11 | 7463b57f | 鸡哥 | feat: add ESA CDN cache purging functionality with AliCloud integration
+- 2026-08-10 | 4207c7b7 | 鸡哥 | feat: add volume and brightness helper extensions with IPC integration
+- 2026-08-10 | 9737a472 | 鸡哥 | fix: rename temporary zip file to use .tmp.zip extension for consistency
+- 2026-08-10 | 1322b93e | 鸡哥 | feat: enhance extension management with latest_ext.yml support and update API for fetching remote versions
+- 2026-08-10 | 90236e7b | 鸡哥 | feat: add optional extension management functionality
+- 2026-08-10 | 4436b5f9 | 鸡哥 | feat: add extensions page to update settings with translations
