@@ -27,6 +27,9 @@
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
+import * as ESA20240910 from '@alicloud/esa20240910';
+import * as OpenApi from '@alicloud/openapi-client';
+import * as Util from '@alicloud/tea-util';
 
 type Provider = 'cos' | 'oss' | 'minio';
 
@@ -351,6 +354,64 @@ async function main(): Promise<void> {
   console.log(`\n${green(`Extension upload completed: ${parts.join(' + ')} (${zips.length} file(s))`)}`);
   if (!minioOnly && !minioTarget) {
     console.log('[MINIO] Skipped — MINIO_ENDPOINT or credentials not set');
+  }
+
+  // 清除 ESA CDN 缓存
+  await purgeEsaCache();
+}
+
+/** 清除 ESA CDN 缓存 */
+async function purgeEsaCache(): Promise<void> {
+  const accessKeyId = process.env.ESA_ACCESS_KEY_ID?.trim();
+  const accessKeySecret = process.env.ESA_ACCESS_KEY_SECRET?.trim();
+  const siteIdRaw = process.env.ESA_ZONE_ID?.trim();
+  const baseUrl = process.env.ESA_PURGE_URL?.trim();
+
+  if (!accessKeyId || !accessKeySecret || !siteIdRaw || !baseUrl) {
+    console.log('[ESA] Skipped — ESA env vars not set');
+    return;
+  }
+
+  const siteId = Number(siteIdRaw);
+  if (!Number.isFinite(siteId)) {
+    console.error(`[ESA] ESA_ZONE_ID must be a number, got: ${siteIdRaw}`);
+    return;
+  }
+
+  const config = new OpenApi.Config({
+    accessKeyId,
+    accessKeySecret,
+    endpoint: 'esa.cn-hangzhou.aliyuncs.com',
+  });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const client = new ((ESA20240910.default as any).default)(config);
+
+  // 提取基础 URL（去掉最后的文件名部分）
+  const baseUrlClean = baseUrl.replace(/\/[^/]*$/, '').replace(/\/$/, '');
+  const filesToPurge = [
+    `${baseUrlClean}/extensions/latest_ext.yml`,
+  ];
+
+  for (const fileUrl of filesToPurge) {
+    try {
+      const content = new ESA20240910.PurgeCachesRequestContent({
+        files: [fileUrl],
+        purgeAll: false,
+      });
+      const request = new ESA20240910.PurgeCachesRequest({
+        content,
+        type: 'file',
+        siteId,
+        force: true,
+        edgeComputePurge: true,
+      });
+      const runtime = new Util.RuntimeOptions({});
+      await client.purgeCachesWithOptions(request, runtime);
+      console.log(`[ESA] Cache purged: ${fileUrl}`);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.error(`[ESA] Purge failed for ${fileUrl}: ${message}`);
+    }
   }
 }
 
