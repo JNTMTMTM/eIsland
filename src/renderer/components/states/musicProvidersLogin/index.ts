@@ -24,4 +24,4 @@
  * @author 鸡哥
  */
 
-export { MusicProvidersLoginContent } from './MusicProvidersLoginContent';
+export { MusicProvidersLoginContent } from './components/MusicProvidersLoginContent';
