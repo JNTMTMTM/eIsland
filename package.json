@@ -1,6 +1,6 @@
 {
   "name": "eisland",
-  "version": "26.7.1",
+  "version": "26.7.2",
   "description": "A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Electron.",
   "main": "./out/main/index.js",
   "author": "JNTMTMTM",
@@ -64,7 +64,6 @@
     "@eisland/windows-screenshot-helper": "file:plugins/eisland-windows-screenshot-helper",
     "@eisland/windows-smtc-helper": "file:plugins/eisland-windows-smtc-helper",
     "@eisland/windows-toast-listener": "file:plugins/eisland-windows-toast-listener",
-    "@eisland/windows-volume-analyzer": "file:plugins/eisland-windows-volume-analyzer",
     "@eisland/windows-volume-helper": "file:plugins/eisland-windows-volume-helper",
     "@eisland/windows-wifi-helper": "file:plugins/eisland-windows-wifi-helper",
     "@gsap/react": "^2.1.2",
