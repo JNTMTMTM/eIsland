@@ -504,6 +504,12 @@ export function MusicSettingsSection(props: MusicSettingsSectionProps): ReactEle
 
             </div>
           )}
+
+          {musicSettingsPage === 'providers' && (
+            <div className="settings-cards">
+              {/* empty — to be implemented */}
+            </div>
+          )}
         </div>
 
         <SettingsPageNavigation

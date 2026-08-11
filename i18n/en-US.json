@@ -2050,7 +2050,8 @@
     "musicPages": {
       "whitelist": "Whitelist",
       "lyrics": "Lyrics",
-      "smtc": "SMTC"
+      "smtc": "SMTC",
+      "providers": "Providers"
     },
     "networkPages": {
       "timeout": "Timeout",

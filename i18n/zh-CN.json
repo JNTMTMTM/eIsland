@@ -2050,7 +2050,8 @@
     "musicPages": {
       "whitelist": "白名单",
       "lyrics": "歌词源",
-      "smtc": "SMTC"
+      "smtc": "SMTC",
+      "providers": "提供源"
     },
     "networkPages": {
       "timeout": "请求超时",
