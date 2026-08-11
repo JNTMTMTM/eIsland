@@ -27,18 +27,7 @@
 
 import { BrowserWindow, ipcMain } from 'electron';
 import { play, pause, next, previous, seek, getTimestamp } from '@eisland/windows-smtc-helper';
-import { getExtensionPath } from '../../extensions/extensionManager';
-
-/** 动态加载音量控制扩展 */
-async function loadVolumeExtension(): Promise<{ getMute: () => boolean; setMute: (v: boolean) => boolean } | null> {
-  const extPath = getExtensionPath('volume-helper');
-  if (!extPath) return null;
-  try {
-    return await import(/* @vite-ignore */ `${extPath}/index.js`);
-  } catch {
-    return null;
-  }
-}
+import { getMute, setMute } from '@eisland/windows-volume-helper';
 
 interface MediaSessionRuntimeEntry {
   payload: unknown;
@@ -55,8 +44,6 @@ interface RegisterMediaIpcHandlersOptions {
   getCurrentDeviceId: () => string;
   setCurrentDeviceId: (id: string) => void;
   getSmtcSessionRuntime: () => Map<string, MediaSessionRuntimeEntry> | null;
-  /** 用户主动切换播放源后触发，用于重启进程音频监听等后置逻辑 */
-  onSourceSwitchAccepted?: () => void;
 }
 
 /**
@@ -100,7 +87,6 @@ export function registerMediaIpcHandlers(options: RegisterMediaIpcHandlersOption
           win.webContents.send('nowplaying:info', payload);
         }
       });
-      options.onSourceSwitchAccepted?.();
     }
   });
 
@@ -120,21 +106,14 @@ export function registerMediaIpcHandlers(options: RegisterMediaIpcHandlersOption
     // SMTC 不支持应用级音量控制
   });
 
-  ipcMain.handle('media:get-muted', async () => {
-    const ext = await loadVolumeExtension();
-    if (!ext) return null;
-    return ext.getMute();
-  });
+  ipcMain.handle('media:get-muted', () => getMute());
 
-  ipcMain.handle('media:toggle-muted', async () => {
-    const ext = await loadVolumeExtension();
-    if (!ext) return null;
-
-    const muted = ext.getMute();
+  ipcMain.handle('media:toggle-muted', () => {
+    const muted = getMute();
     if (muted === null) return null;
 
     const nextMuted = !muted;
-    return ext.setMute(nextMuted) ? nextMuted : null;
+    return setMute(nextMuted) ? nextMuted : null;
   });
 
   ipcMain.handle('smtc:get-timestamp', () => {

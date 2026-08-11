@@ -49,8 +49,6 @@ import { registerWallpaperIpcHandlers } from './ipc/window/wallpaper';
 import { registerWallpaperVideoIpcHandlers } from './ipc/media/wallpaperVideo';
 import { registerFormatFactoryIpcHandlers } from './ipc/app/formatFactory';
 import { registerNetIpcHandlers } from './ipc/app/net';
-import { registerExtensionIpcHandlers } from './ipc/app/extension';
-import { getExtensionPath } from './extensions/extensionManager';
 import { registerMailIpcHandlers } from './ipc/app/mail';
 import { registerStoreIpcHandlers } from './ipc/app/store';
 import { registerLogIpcHandlers } from './ipc/app/log';
@@ -72,41 +70,12 @@ import { openStandaloneWindow } from './window/standaloneWindow';
 import { showSplashWindow, closeSplashWindow } from './window/splashWindow';
 import { showGuideWindow } from './window/guideWindow';
 import { createSmtcService } from './music/smtcService';
-import { resolveMusicAudioProcess } from './music/musicBeatSource';
 import { setSmtcAccessor } from './music/smtcAccessor';
 import { createAutoHideWatcher } from './system/autoHideWatcher';
 import { createExternalAgentWatcher } from './system/externalAgentWatcher';
 import { createClaudeCodeStatusService } from './system/claudeCodeStatusService';
 import { createCodexStatusService } from './system/codexStatusService';
 import { play, pause, next } from '@eisland/windows-smtc-helper';
-
-// ===== 可选扩展：volume-analyzer（按需加载） =====
-
-/** volume-analyzer 扩展模块（懒加载，未安装时为 null） */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let musicBeatAnalyzer: any = null;
-let musicBeatAnalyzerLoadAttempted = false;
-
-/**
- * 尝试加载 volume-analyzer 扩展
- * @returns 扩展模块，未安装时返回 null
- */
-function loadMusicBeatAnalyzer() {
-  if (musicBeatAnalyzerLoadAttempted) return musicBeatAnalyzer;
-  musicBeatAnalyzerLoadAttempted = true;
-  try {
-    const extPath = getExtensionPath('volume-analyzer');
-    if (extPath) {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      musicBeatAnalyzer = require(extPath);
-      console.log('[Extension] volume-analyzer loaded from', extPath);
-    }
-  } catch (e) {
-    console.warn('[Extension] Failed to load volume-analyzer:', e);
-    musicBeatAnalyzer = null;
-  }
-  return musicBeatAnalyzer;
-}
 import {
   queryFocusedWindow,
   queryOpenWindowsWithIcons,
@@ -172,50 +141,7 @@ let mainWindow: BrowserWindow | null = null;
 let agentVoiceInputWindow: BrowserWindow | null = null;
 let cliGlowWindow: BrowserWindow | null = null;
 let cachedFullscreenDetector: { isAnyFullscreenWindow: () => boolean } | null | undefined;
-let musicBeatProcessId: number | null = null;
-let musicBeatSourceAppId = '';
 
-function startMusicBeatAnalyzer(): boolean {
-  const analyzer = loadMusicBeatAnalyzer();
-  if (!analyzer) return false;
-  try {
-    const sourceAppId = smtcService.getCurrentDeviceId();
-    if (!sourceAppId) return false;
-    const analyzerStatus = analyzer.getStatus();
-    if (musicBeatSourceAppId === sourceAppId && musicBeatProcessId !== null && analyzerStatus.isRunning) {
-      return true;
-    }
-
-    const processes = analyzer.getPlayingProcesses(true);
-    const target = resolveMusicAudioProcess(sourceAppId, processes);
-    if (!target) {
-      stopMusicBeatAnalyzer();
-      return false;
-    }
-
-    analyzer.stop();
-    const result = analyzer.start(target.processId, true);
-    if (!result.success) {
-      musicBeatProcessId = null;
-      musicBeatSourceAppId = '';
-      return false;
-    }
-    musicBeatProcessId = target.processId;
-    musicBeatSourceAppId = sourceAppId;
-    return true;
-  } catch {
-    musicBeatProcessId = null;
-    musicBeatSourceAppId = '';
-    return false;
-  }
-}
-
-function stopMusicBeatAnalyzer(): void {
-  const analyzer = loadMusicBeatAnalyzer();
-  if (analyzer) analyzer.stop();
-  musicBeatProcessId = null;
-  musicBeatSourceAppId = '';
-}
 function detectAnyFullscreenWindow(): boolean {
   if (process.platform !== 'win32') return false;
   if (cachedFullscreenDetector === undefined) {
@@ -620,7 +546,6 @@ function registerIpcHandlers(): void {
     getCurrentDeviceId: smtcService.getCurrentDeviceId,
     setCurrentDeviceId: smtcService.setCurrentDeviceId,
     getSmtcSessionRuntime: smtcService.getSmtcSessionRuntime,
-    onSourceSwitchAccepted: startMusicBeatAnalyzer,
   });
 
   const writeMainLog = createSessionMainLogger();
@@ -696,13 +621,6 @@ function registerIpcHandlers(): void {
     },
     sanitizeSmtcUnsubscribeMs,
     detectAllSources: smtcService.detectAllSources,
-    getMusicBeat: () => {
-      startMusicBeatAnalyzer();
-      const analyzer = loadMusicBeatAnalyzer();
-      return analyzer ? analyzer.getResult() : null;
-    },
-    startMusicBeat: startMusicBeatAnalyzer,
-    stopMusicBeat: stopMusicBeatAnalyzer,
   });
 
   // ===== 歌曲设置 IPC =====
@@ -846,8 +764,6 @@ function registerIpcHandlers(): void {
   registerDownloadIpcHandlers({
     getDownloadsPath: () => app.getPath('downloads'),
   });
-
-  registerExtensionIpcHandlers();
 }
 
 // ===== 剪贴板 URL 监听 =====

@@ -27,12 +27,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import useIslandStore from '../../store/isLandStore';
 import type { IslandState } from '../../store/types';
-import {
-  MUSIC_OUTER_GLOW_EFFECT_STORE_KEY,
-  MUSIC_MARQUEE_MODE_STORE_KEY,
-  isMusicMarqueeMode,
-} from '../states/lyrics/config/lyricsConstants';
-import type { MusicMarqueeMode } from '../states/lyrics/config/lyricsConstants';
+
+const MUSIC_OUTER_GLOW_EFFECT_STORE_KEY = 'music-outer-glow-effect-enabled';
 
 export type { IslandState };
 
@@ -59,10 +55,6 @@ interface DynamicIslandShellState {
   morphing: boolean;
   fromState: string;
   showGlow: string | null;
-  marqueeRhythmEnabled: boolean;
-  marqueeAmplitudeEnabled: boolean;
-  marqueeAmplitudeLevel: number;
-  marqueeBeatPulse: boolean;
   handleIslandClick: () => void;
 }
 
@@ -92,122 +84,6 @@ export function useDynamicIslandShell(options: UseDynamicIslandShellOptions): Dy
   const [morphing, setMorphing] = useState(false);
   const [fromState, setFromState] = useState('');
   const [glowEffectEnabled, setGlowEffectEnabled] = useState<boolean>(true);
-  const [marqueeMode, setMarqueeMode] = useState<MusicMarqueeMode>('normal');
-  const [marqueeBeatPulse, setMarqueeBeatPulse] = useState(false);
-  const [marqueeAmplitudeLevel, setMarqueeAmplitudeLevel] = useState(0);
-
-  useEffect(() => {
-    let cancelled = false;
-    window.api.storeRead(MUSIC_MARQUEE_MODE_STORE_KEY).then((value) => {
-      if (!cancelled && isMusicMarqueeMode(value)) setMarqueeMode(value);
-    }).catch((err) => {
-      console.warn('[MarqueeBeat] failed to read marquee mode:', err);
-    });
-
-    const handler = (event: Event): void => {
-      const value = (event as CustomEvent).detail;
-      if (isMusicMarqueeMode(value)) setMarqueeMode(value);
-    };
-    window.addEventListener('music-marquee-mode-changed', handler);
-    return () => {
-      cancelled = true;
-      window.removeEventListener('music-marquee-mode-changed', handler);
-    };
-  }, []);
-
-  useEffect(() => {
-    const usesAnalyzer = marqueeMode === 'rhythm' || marqueeMode === 'amplitude';
-    if (!usesAnalyzer || !isMusicPlaying || !isPlaying || !glowEffectEnabled) {
-      window.api.musicMarqueeBeatStop().catch((err) => {
-        console.warn('[MarqueeBeat] stop failed:', err);
-      });
-      setMarqueeBeatPulse(false);
-      setMarqueeAmplitudeLevel(0);
-      return;
-    }
-
-    let cancelled = false;
-    let pulseTimer: number | undefined;
-    let beatClockTimer: number | undefined;
-    let lastNativeBeatAt = 0;
-    let smoothedAmplitude = 0;
-    let amplitudeBaseline = 0;
-    let amplitudeCeiling = 0.18;
-    const bpmSamples: number[] = [];
-
-    const triggerPulse = (): void => {
-      setMarqueeBeatPulse(false);
-      window.requestAnimationFrame(() => {
-        if (!cancelled) setMarqueeBeatPulse(true);
-      });
-      if (pulseTimer !== undefined) window.clearTimeout(pulseTimer);
-      pulseTimer = window.setTimeout(() => setMarqueeBeatPulse(false), 280);
-    };
-
-    const synchronizeBeatClock = (periodMs: number): void => {
-      if (beatClockTimer !== undefined) window.clearTimeout(beatClockTimer);
-      const tick = (): void => {
-        if (cancelled) return;
-        triggerPulse();
-        beatClockTimer = window.setTimeout(tick, periodMs);
-      };
-      beatClockTimer = window.setTimeout(tick, periodMs);
-    };
-
-    window.api.musicMarqueeBeatStart().catch((err) => {
-      console.warn('[MarqueeBeat] start failed:', err);
-    });
-    const pollTimer = window.setInterval(() => {
-      window.api.musicMarqueeBeatGet().then((result) => {
-        if (cancelled || !result) return;
-        if (marqueeMode === 'amplitude') {
-          const sampleStrength = result.amplitude.rms * 0.9 + result.amplitude.peak * 0.1;
-          amplitudeBaseline = amplitudeBaseline === 0
-            ? sampleStrength
-            : amplitudeBaseline * 0.96 + sampleStrength * 0.04;
-          amplitudeCeiling = Math.max(sampleStrength, amplitudeCeiling * 0.99);
-          const dynamicRange = Math.max(0.06, amplitudeCeiling - amplitudeBaseline);
-          const normalizedStrength = Math.min(1, Math.max(0, (sampleStrength - amplitudeBaseline) / dynamicRange));
-          const targetAmplitude = normalizedStrength ** 1.4;
-          const smoothingFactor = targetAmplitude > smoothedAmplitude ? 0.4 : 0.16;
-          smoothedAmplitude += (targetAmplitude - smoothedAmplitude) * smoothingFactor;
-          setMarqueeAmplitudeLevel(smoothedAmplitude);
-          return;
-        }
-
-        if (beatClockTimer !== undefined || result.beat.isBeat !== true) return;
-        const bpm = result.beat.bpm;
-        if (!Number.isFinite(bpm) || bpm < 30 || bpm > 300) return;
-
-        const now = performance.now();
-        if (now - lastNativeBeatAt < 150) return;
-        lastNativeBeatAt = now;
-        bpmSamples.push(bpm);
-        if (bpmSamples.length < 4) return;
-
-        const sortedBpms = [...bpmSamples].sort((left, right) => left - right);
-        const detectedBpm = sortedBpms[Math.floor(sortedBpms.length / 2)];
-        const subdivision = detectedBpm >= 160 ? 8 : 4;
-        const baseBpm = subdivision === 8 ? detectedBpm / 2 : detectedBpm;
-        const periodMs = subdivision === 8 ? 30_000 / baseBpm : 60_000 / baseBpm;
-        triggerPulse();
-        synchronizeBeatClock(periodMs);
-      }).catch((err) => {
-        if (!cancelled) console.warn('[MarqueeBeat] poll failed:', err);
-      });
-    }, marqueeMode === 'amplitude' ? 50 : 80);
-
-    return () => {
-      cancelled = true;
-      window.clearInterval(pollTimer);
-      if (pulseTimer !== undefined) window.clearTimeout(pulseTimer);
-      if (beatClockTimer !== undefined) window.clearTimeout(beatClockTimer);
-      setMarqueeAmplitudeLevel(0);
-      window.api.musicMarqueeBeatStop().catch((err) => {
-        console.warn('[MarqueeBeat] stop failed:', err);
-      });
-    };
-  }, [glowEffectEnabled, isMusicPlaying, isPlaying, marqueeMode]);
 
   useEffect(() => {
     let cancelled = false;
@@ -272,10 +148,6 @@ export function useDynamicIslandShell(options: UseDynamicIslandShellOptions): Dy
     morphing,
     fromState,
     showGlow: glowEffectEnabled && isMusicPlaying && coverImage ? (isPlaying ? 'playing' : 'paused') : null,
-    marqueeRhythmEnabled: marqueeMode === 'rhythm',
-    marqueeAmplitudeEnabled: marqueeMode === 'amplitude',
-    marqueeAmplitudeLevel,
-    marqueeBeatPulse,
     handleIslandClick,
   };
 }

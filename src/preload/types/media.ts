@@ -77,21 +77,3 @@ export interface SourceSwitchRequestData {
   title: string;
   artist: string;
 }
-
-/** 频率峰值 */
-export interface MarqueeFrequencyPeak {
-  hz: number;
-  magnitude: number;
-}
-
-/** 跑马灯节拍分析结果（对应 volume-analyzer 插件的 AudioAnalysisResult） */
-export interface MusicMarqueeBeatResult {
-  error: string | null;
-  frequency: {
-    spectrum: number[];
-    dominantHz: number;
-    topFrequencies: MarqueeFrequencyPeak[];
-  };
-  amplitude: { rms: number; peak: number };
-  beat: { isBeat: boolean; bpm: number; intensity: number };
-}

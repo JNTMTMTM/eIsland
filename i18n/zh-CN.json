@@ -2058,8 +2058,7 @@
     },
     "updatePages": {
       "update-check": "检查更新",
-      "info-sync": "信息同步",
-      "extensions": "拓展内容"
+      "info-sync": "信息同步"
     },
     "index": {
       "title": "快速导航",
@@ -2307,13 +2306,6 @@
         "musicOuterGlowTitle": "音乐外光圈特效",
         "musicOuterGlowHint": "控制歌曲播放时专辑封面外圈的跑马灯/光晕动态效果。",
         "musicOuterGlowToggle": "启用歌曲播放外光圈跑马灯特效",
-        "musicMarqueeModeTitle": "跑马灯模式",
-        "musicMarqueeModeHint": "律动模式按节拍闪烁，振幅模式根据采样强度调整向内振动幅度",
-        "musicMarqueeModeOptions": {
-          "normal": "普通模式",
-          "rhythm": "律动模式",
-          "amplitude": "振幅模式"
-        },
         "windowControlsTitle": "独立窗口控制按钮样式",
         "windowControlsHint": "启用后，独立窗口右上角将显示 macOS 风格三色圆点控制按钮",
         "windowControlsMacToggle": "使用 Mac 风格窗口控制按钮",
@@ -2876,24 +2868,6 @@
       "guideResetSuccess": "设置成功，下次启动将显示引导界面",
       "guideResetError": "设置失败，请稍后重试",
       "pagination": "更新设置分页"
-    },
-    "extensions": {
-      "title": "拓展内容",
-      "description": "管理可选的功能扩展组件，按需安装以减小安装包体积",
-      "statusNotInstalled": "未安装",
-      "statusInstalled": "已安装",
-      "install": "安装",
-      "uninstall": "卸载",
-      "installing": "安装中…",
-      "uninstalling": "卸载中…",
-      "restartRequired": "操作完成后需要重启应用生效",
-      "noExtensions": "暂无可用扩展",
-      "volume-analyzerName": "音频节拍分析器",
-      "volume-analyzerDesc": "进程级音频频谱分析、振幅检测与 BPM 识别，用于跑马灯节拍特效",
-      "volume-helperName": "音量控制助手",
-      "volume-helperDesc": "Windows 默认播放设备音量查询、控制与监听（Core Audio COM）",
-      "brightness-helperName": "亮度控制助手",
-      "brightness-helperDesc": "Windows 屏幕亮度查询与控制（WMI / DDC/CI），支持亮度事件监听"
     },
     "pluginMarket": {
       "pagination": "壁纸市场分页",

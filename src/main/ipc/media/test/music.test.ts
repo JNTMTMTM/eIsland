@@ -88,9 +88,6 @@ describe('registerMusicIpcHandlers', () => {
       setSmtcUnsubscribeMs: vi.fn(),
       sanitizeSmtcUnsubscribeMs: vi.fn((v: unknown) => Number(v) || 3000),
       detectAllSources: vi.fn().mockResolvedValue([]),
-      getMusicBeat: vi.fn().mockReturnValue({}),
-      startMusicBeat: vi.fn().mockReturnValue(true),
-      stopMusicBeat: vi.fn(),
     };
     registerMusicIpcHandlers({ ...defaults, ...overrides });
   }
@@ -454,9 +451,9 @@ describe('registerMusicIpcHandlers', () => {
   // ipcMain.handle registration
   // ---------------------------------------------------------------
   describe('channel registration', () => {
-    it('registers exactly 22 IPC channels', () => {
+    it('registers exactly 15 IPC channels', () => {
       register();
-      expect(handleMock).toHaveBeenCalledTimes(22);
+      expect(handleMock).toHaveBeenCalledTimes(19);
     });
 
     it('registers all expected channels', () => {
@@ -467,9 +464,6 @@ describe('registerMusicIpcHandlers', () => {
         'music:lyrics-source:set',
         'music:lyrics-karaoke:get',
         'music:lyrics-karaoke:set',
-        'music:marquee-beat:start',
-        'music:marquee-beat:get',
-        'music:marquee-beat:stop',
         'music:lyrics-clock:get',
         'music:lyrics-clock:set',
         'music:lyrics-calibrate-enabled:get',

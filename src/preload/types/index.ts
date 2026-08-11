@@ -42,4 +42,3 @@ export * from './updater';
 export * from './clipboard';
 export * from './navigation';
 export * from './settings';
-export * from './extension';

@@ -47,9 +47,6 @@ jobs:
       - name: Build plugins
         run: npm run plugins:build
 
-      - name: Build extension packages
-        run: npm run extension:build
-
       - name: Build & Package
         run: npm run package
         env:
@@ -75,16 +72,6 @@ jobs:
               --endpoint-url "$R2_ENDPOINT" \
               --region auto
           done
-          # 上传扩展 zip 包
-          if [ -d "dist/extensions" ]; then
-            for f in dist/extensions/*.zip; do
-              [ -f "$f" ] || continue
-              echo "Uploading extensions/$(basename $f) ..."
-              aws s3 cp "$f" "s3://$R2_BUCKET/extensions/$(basename $f)" \
-                --endpoint-url "$R2_ENDPOINT" \
-                --region auto
-            done
-          fi
 
       # - name: Upload to Tencent COS and Aliyun OSS
       #   shell: pwsh
@@ -109,7 +96,6 @@ jobs:
             dist/*.exe
             dist/*.blockmap
             dist/latest.yml
-            dist/extensions/*.zip
           body_path: RELEASE_NOTES.md
         env:
           GITHUB_TOKEN: ${{ secrets.BOT_PAT || secrets.GITHUB_TOKEN }}

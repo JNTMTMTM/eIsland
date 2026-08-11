@@ -8,19 +8,7 @@ const fs = require('node:fs');
 const { spawnSync } = require('node:child_process');
 
 const exeName = 'eIslandVolumeAnalyzer.exe';
-
-/** userData 扩展安装路径（按需下载模式） */
-function getUserDataExtensionPath() {
-  try {
-    const { app } = require('electron');
-    return path.join(app.getPath('userData'), 'extensions', 'volume-analyzer', exeName);
-  } catch {
-    return null;
-  }
-}
-
 const exeCandidates = [
-  getUserDataExtensionPath(),
   ...(typeof process.resourcesPath === 'string'
     ? [path.join(process.resourcesPath, 'helpers', 'analyzer', exeName)]
     : []),
@@ -28,7 +16,7 @@ const exeCandidates = [
   path.join(__dirname, 'src', 'bin', 'Release', 'net10.0', 'win-x64', exeName),
   path.join(__dirname, 'src', 'bin', 'Debug', 'net10.0', exeName),
   path.join(__dirname, 'src', 'bin', 'Debug', 'net10.0', 'win-x64', exeName),
-].filter(Boolean);
+];
 
 function findExe() {
   return exeCandidates.find((candidate) => fs.existsSync(candidate)) ?? null;

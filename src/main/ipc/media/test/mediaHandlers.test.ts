@@ -84,14 +84,10 @@ vi.mock('../../../utils/broadcast', () => ({
   broadcastSettingChange: broadcastSettingChangeMock,
 }));
 
-vi.mock('../../../extensions/extensionManager', () => ({
-  getExtensionPath: vi.fn((id: string) => id === 'volume-helper' ? '/mock/volume-helper' : null),
-}));
-
-vi.mock('/mock/volume-helper/index.js', () => ({
+vi.mock('@eisland/windows-volume-helper', () => ({
   getMute: getMuteMock,
   setMute: setMuteMock,
-}), { virtual: true });
+}));
 
 vi.mock('@eisland/windows-smtc-helper', () => ({
   play: playMock,
@@ -151,7 +147,7 @@ describe('media ipc handlers', () => {
     expect(previousMock).not.toHaveBeenCalled();
   });
 
-  it('reads and toggles the default playback device mute state', async () => {
+  it('reads and toggles the default playback device mute state', () => {
     getMuteMock
       .mockReturnValueOnce(false)
       .mockReturnValueOnce(false)
@@ -173,12 +169,12 @@ describe('media ipc handlers', () => {
       getSmtcSessionRuntime: () => new Map(),
     });
 
-    await expect(handlers.get('media:get-muted')?.({})).resolves.toBe(false);
-    await expect(handlers.get('media:toggle-muted')?.({})).resolves.toBe(true);
+    expect(handlers.get('media:get-muted')?.({})).toBe(false);
+    expect(handlers.get('media:toggle-muted')?.({})).toBe(true);
     expect(setMuteMock).toHaveBeenNthCalledWith(1, true);
-    await expect(handlers.get('media:toggle-muted')?.({})).resolves.toBeNull();
+    expect(handlers.get('media:toggle-muted')?.({})).toBeNull();
     expect(setMuteMock).toHaveBeenNthCalledWith(2, false);
-    await expect(handlers.get('media:toggle-muted')?.({})).resolves.toBeNull();
+    expect(handlers.get('media:toggle-muted')?.({})).toBeNull();
   });
 
   it('returns current info and applies source switch updates', () => {
@@ -261,9 +257,6 @@ describe('media ipc handlers', () => {
         .mockResolvedValueOnce([])
         .mockResolvedValueOnce([{ sourceAppId: 'spotify', isPlaying: true, hasTitle: true, thumbnail: null }])
         .mockRejectedValueOnce(new Error('boom')),
-      getMusicBeat: vi.fn().mockReturnValue({}),
-      startMusicBeat: vi.fn().mockReturnValue(true),
-      stopMusicBeat: vi.fn(),
     });
 
     const event = { sender: { id: 42 } };

@@ -63,6 +63,3 @@ export type { MailInboxCacheStore } from './MailInboxCacheStore';
 // File search
 export type { LocalFileSearchItem } from './LocalFileSearchItem';
 export type { LocalFileSearchOptions } from './LocalFileSearchOptions';
-
-// Extension
-export type { ExtensionStatus, ExtensionProgressData } from './ExtensionStatus';

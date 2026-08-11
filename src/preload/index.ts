@@ -76,9 +76,6 @@ import type {
   ClaudeCodeHookMutationResult,
   CodexStatusSnapshot,
   CodexMonitorMutationResult,
-  MusicMarqueeBeatResult,
-  ExtensionStatus,
-  ExtensionProgressData,
 } from './types';
 
 /** 自定义 API，供渲染进程调用 */
@@ -1091,18 +1088,6 @@ const api = {
   musicLyricsKaraokeSet: (enabled: boolean): Promise<boolean> => {
     return ipcRenderer.invoke('music:lyrics-karaoke:set', enabled);
   },
-  /** 启动跑马灯节拍分析 */
-  musicMarqueeBeatStart: (): Promise<boolean> => {
-    return ipcRenderer.invoke('music:marquee-beat:start');
-  },
-  /** 获取跑马灯节拍分析结果 */
-  musicMarqueeBeatGet: (): Promise<MusicMarqueeBeatResult | null> => {
-    return ipcRenderer.invoke('music:marquee-beat:get');
-  },
-  /** 停止跑马灯节拍分析 */
-  musicMarqueeBeatStop: (): Promise<boolean> => {
-    return ipcRenderer.invoke('music:marquee-beat:stop');
-  },
   /**
    * 获取歌词界面时钟开关
    * @returns 是否显示时钟
@@ -1675,32 +1660,7 @@ const api = {
     return () => {
       ipcRenderer.removeListener('codex:status-updated', handler);
     };
-  },
-
-  // ===== 可选扩展管理 =====
-
-  /** 获取可选扩展列表及状态 */
-  extensionList: (source?: string, resolvedUrl?: string): Promise<ExtensionStatus[]> => {
-    return ipcRenderer.invoke('extension:list', source, resolvedUrl);
-  },
-  /** 安装扩展 */
-  extensionInstall: (id: string, source?: string, resolvedUrl?: string): Promise<{ success: boolean; error?: string }> => {
-    return ipcRenderer.invoke('extension:install', id, source, resolvedUrl);
-  },
-  /** 卸载扩展 */
-  extensionUninstall: (id: string): Promise<{ success: boolean; error?: string }> => {
-    return ipcRenderer.invoke('extension:uninstall', id);
-  },
-  /** 监听扩展安装进度 */
-  onExtensionInstallProgress: (callback: (data: ExtensionProgressData) => void): (() => void) => {
-    const handler = (_event: Electron.IpcRendererEvent, data: ExtensionProgressData): void => {
-      callback(data);
-    };
-    ipcRenderer.on('extension:install-progress', handler);
-    return () => {
-      ipcRenderer.removeListener('extension:install-progress', handler);
-    };
-  },
+  }
 };
 
 /** 注入到 window 对象，供渲染进程访问 */

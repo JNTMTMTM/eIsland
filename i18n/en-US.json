@@ -2058,8 +2058,7 @@
     },
     "updatePages": {
       "update-check": "Check Update",
-      "info-sync": "Info Sync",
-      "extensions": "Extensions"
+      "info-sync": "Info Sync"
     },
     "index": {
       "title": "Quick Navigation",
@@ -2307,13 +2306,6 @@
         "musicOuterGlowTitle": "Music Outer Glow Effect",
         "musicOuterGlowHint": "Control the marquee/glow animation around the album cover while music is playing.",
         "musicOuterGlowToggle": "Enable outer glow marquee effect while music is playing",
-        "musicMarqueeModeTitle": "Marquee Mode",
-        "musicMarqueeModeHint": "Rhythm mode flashes on the beat; amplitude mode adjusts inward motion from each sample's strength",
-        "musicMarqueeModeOptions": {
-          "normal": "Normal",
-          "rhythm": "Rhythm",
-          "amplitude": "Amplitude"
-        },
         "windowControlsTitle": "Standalone Window Controls Style",
         "windowControlsHint": "When enabled, the top-right controls in standalone window use macOS-style traffic-light dots",
         "windowControlsMacToggle": "Use Mac-style window controls",
@@ -2876,24 +2868,6 @@
       "guideResetSuccess": "Success! Guide will show on next launch",
       "guideResetError": "Failed. Please try again later",
       "pagination": "Update settings pagination"
-    },
-    "extensions": {
-      "title": "Extensions",
-      "description": "Manage optional feature extensions, install on demand to reduce package size",
-      "statusNotInstalled": "Not Installed",
-      "statusInstalled": "Installed",
-      "install": "Install",
-      "uninstall": "Uninstall",
-      "installing": "Installing…",
-      "uninstalling": "Uninstalling…",
-      "restartRequired": "Restart the app to apply changes",
-      "noExtensions": "No extensions available",
-      "volume-analyzerName": "Audio Beat Analyzer",
-      "volume-analyzerDesc": "Process-level audio spectrum analysis, amplitude detection and BPM recognition for marquee beat effects",
-      "volume-helperName": "Volume Control Helper",
-      "volume-helperDesc": "Windows default playback device volume query, control and monitoring via Core Audio COM",
-      "brightness-helperName": "Brightness Control Helper",
-      "brightness-helperDesc": "Windows screen brightness query and control via WMI / DDC/CI, with brightness event monitoring"
     },
     "pluginMarket": {
       "pagination": "Wallpaper market pagination",
