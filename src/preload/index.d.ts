@@ -34,7 +34,6 @@ import type {
   SaveTextFilePayload,
   SaveTextFileResult,
   ComputeFileHashResult,
-  MusicMarqueeBeatResult,
   ExecuteAgentLocalToolRequest,
   ExecuteAgentLocalToolResult,
   OllamaChatRequest,
@@ -234,9 +233,6 @@ declare global {
       musicLyricsTranslationEnabledSet: (enabled: boolean) => Promise<boolean>;
       musicLyricsKaraokeGet: () => Promise<boolean>;
       musicLyricsKaraokeSet: (enabled: boolean) => Promise<boolean>;
-      musicMarqueeBeatStart: () => Promise<boolean>;
-      musicMarqueeBeatGet: () => Promise<MusicMarqueeBeatResult | null>;
-      musicMarqueeBeatStop: () => Promise<boolean>;
       musicLyricsClockGet: () => Promise<boolean>;
       musicLyricsClockSet: (enabled: boolean) => Promise<boolean>;
       musicLyricsCalibrateEnabledGet: () => Promise<boolean>;

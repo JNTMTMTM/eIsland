@@ -19,10 +19,9 @@
  */
 
 /**
- * @file lyricsConstants.ts
- * @description 歌词组件配置常量
+ * @file ExtensionStatus.ts
+ * @description 可选扩展状态类型定义（re-export from shared）
  * @author 鸡哥
  */
 
-/** 音乐外发光效果的持久化存储键 */
-export const MUSIC_OUTER_GLOW_EFFECT_STORE_KEY = 'music-outer-glow-effect-enabled';
+export type { ExtensionStatus, ExtensionProgressData } from '../../../../shared/extensionTypes';

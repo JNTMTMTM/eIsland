@@ -48,5 +48,5 @@ export const UPDATE_SOURCE_OPTIONS: UpdateSourceOption[] = UPDATE_SOURCES
 /** 更新源持久化存储键 */
 export const UPDATE_SOURCE_STORE_KEY = 'update-source';
 
-/** 默认更新源 */
-export const DEFAULT_UPDATE_SOURCE = 'cloudflare-r2';
+/** 默认更新源（首次使用时的预选值） */
+export const DEFAULT_UPDATE_SOURCE = 'esa-cdn';

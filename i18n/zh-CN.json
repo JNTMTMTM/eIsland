@@ -2306,13 +2306,6 @@
         "musicOuterGlowTitle": "音乐外光圈特效",
         "musicOuterGlowHint": "控制歌曲播放时专辑封面外圈的跑马灯/光晕动态效果。",
         "musicOuterGlowToggle": "启用歌曲播放外光圈跑马灯特效",
-        "musicMarqueeModeTitle": "跑马灯模式",
-        "musicMarqueeModeHint": "律动模式按节拍闪烁，振幅模式根据采样强度调整向内振动幅度",
-        "musicMarqueeModeOptions": {
-          "normal": "普通模式",
-          "rhythm": "律动模式",
-          "amplitude": "振幅模式"
-        },
         "windowControlsTitle": "独立窗口控制按钮样式",
         "windowControlsHint": "启用后，独立窗口右上角将显示 macOS 风格三色圆点控制按钮",
         "windowControlsMacToggle": "使用 Mac 风格窗口控制按钮",

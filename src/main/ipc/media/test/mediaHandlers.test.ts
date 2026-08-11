@@ -257,9 +257,6 @@ describe('media ipc handlers', () => {
         .mockResolvedValueOnce([])
         .mockResolvedValueOnce([{ sourceAppId: 'spotify', isPlaying: true, hasTitle: true, thumbnail: null }])
         .mockRejectedValueOnce(new Error('boom')),
-      getMusicBeat: vi.fn().mockReturnValue({}),
-      startMusicBeat: vi.fn().mockReturnValue(true),
-      stopMusicBeat: vi.fn(),
     });
 
     const event = { sender: { id: 42 } };

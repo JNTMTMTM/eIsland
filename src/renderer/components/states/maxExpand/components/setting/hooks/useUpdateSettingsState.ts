@@ -63,7 +63,7 @@ export default function useUpdateSettingsState({ t, isProUser, sessionToken }: U
   const [downloadProgress, setDownloadProgress] = useState<UpdateDownloadProgress | null>(null);
   const [updateAutoPromptEnabled, setUpdateAutoPromptEnabled] = useState<boolean>(true);
   const [announcementShowMode, setAnnouncementShowMode] = useState<AnnouncementShowMode>('version-update-only');
-  const [updateSource, setUpdateSource] = useState<UpdateSourceKey>('cloudflare-r2');
+  const [updateSource, setUpdateSource] = useState<UpdateSourceKey>('esa-cdn');
   const [guideResetStatus, setGuideResetStatus] = useState<'idle' | 'success' | 'error'>('idle');
 
   const currentSourceLabel = UPDATE_SOURCES.find((s) => s.key === updateSource)?.label ?? updateSource;

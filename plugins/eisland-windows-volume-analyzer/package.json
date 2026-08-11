@@ -1,6 +1,6 @@
 {
   "name": "@eisland/windows-volume-analyzer",
-  "version": "26.0.1",
+  "version": "26.0.2",
   "description": "Process-specific audio analysis: frequency spectrum, amplitude, and beat detection via WASAPI loopback.",
   "author": "JNTMTMTM",
   "license": "GPL-3.0",

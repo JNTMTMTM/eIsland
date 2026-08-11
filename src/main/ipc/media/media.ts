@@ -44,8 +44,6 @@ interface RegisterMediaIpcHandlersOptions {
   getCurrentDeviceId: () => string;
   setCurrentDeviceId: (id: string) => void;
   getSmtcSessionRuntime: () => Map<string, MediaSessionRuntimeEntry> | null;
-  /** 用户主动切换播放源后触发，用于重启进程音频监听等后置逻辑 */
-  onSourceSwitchAccepted?: () => void;
 }
 
 /**
@@ -89,7 +87,6 @@ export function registerMediaIpcHandlers(options: RegisterMediaIpcHandlersOption
           win.webContents.send('nowplaying:info', payload);
         }
       });
-      options.onSourceSwitchAccepted?.();
     }
   });
 
