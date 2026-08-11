@@ -150,7 +150,7 @@ function printHelpAndExit(code: number): never {
       'Options:',
       '  -d, --dir <dir>       Extension zip directory (default: dist/extensions)',
       '  -f, --file <path>     Upload a specific zip file (can be repeated)',
-      '  --minio_only           Only upload to MinIO, skip COS/OSS',
+      '  --minio-only           Only upload to MinIO, skip COS/OSS',
       '  -h, --help            Show this help',
       '',
       'Required env (COS):',
@@ -372,11 +372,7 @@ async function purgeEsaCache(): Promise<void> {
     return;
   }
 
-  const siteId = Number(siteIdRaw);
-  if (!Number.isFinite(siteId)) {
-    console.error(`[ESA] ESA_ZONE_ID must be a number, got: ${siteIdRaw}`);
-    return;
-  }
+  const siteId = siteIdRaw;
 
   const config = new OpenApi.Config({
     accessKeyId,

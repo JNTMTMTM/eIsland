@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import { existsSync, mkdirSync, cpSync, writeFileSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, mkdirSync, cpSync, writeFileSync, readFileSync, statSync, rmSync } from 'node:fs';
 import { resolve, join } from 'node:path';
 import { spawnSync } from 'node:child_process';
 
@@ -107,7 +107,7 @@ function buildExtension(config: ExtensionBuildConfig): void {
   // 收集产物到临时目录
   const stagingDir = join(DIST_EXT_DIR, `_staging_${id}`);
   if (existsSync(stagingDir)) {
-    spawnSync('rm', ['-rf', stagingDir], { shell: true });
+    rmSync(stagingDir, { recursive: true, force: true });
   }
   mkdirSync(stagingDir, { recursive: true });
 
@@ -162,7 +162,7 @@ function buildExtension(config: ExtensionBuildConfig): void {
   }
 
   // 清理临时目录
-  spawnSync('rm', ['-rf', stagingDir], { shell: true });
+  rmSync(stagingDir, { recursive: true, force: true });
 
   console.log(`[extension:build] ✓ ${zipName} (${(existsSync(zipPath) ? statSync(zipPath).size / 1024 / 1024 : 0).toFixed(1)} MB)`);
 }

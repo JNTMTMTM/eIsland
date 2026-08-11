@@ -20,36 +20,8 @@
 
 /**
  * @file ExtensionStatus.ts
- * @description 可选扩展状态类型定义
+ * @description 可选扩展状态类型定义（re-export from shared）
  * @author 鸡哥
  */
 
-/** 扩展安装状态 */
-export interface ExtensionStatus {
-  /** 扩展 ID */
-  id: string;
-  /** 显示名称 */
-  name: string;
-  /** 功能描述 */
-  description: string;
-  /** 可用版本（CDN 上的版本） */
-  availableVersion: string;
-  /** 已安装版本（null 表示未安装） */
-  installedVersion: string | null;
-  /** 是否已安装 */
-  isInstalled: boolean;
-  /** 安装后是否需要重启 */
-  requiredRestart: boolean;
-}
-
-/** 扩展安装进度 */
-export interface ExtensionProgressData {
-  /** 扩展 ID */
-  id: string;
-  /** 进度百分比 0-100 */
-  progress: number;
-  /** 已下载字节数 */
-  transferred: number;
-  /** 总字节数 */
-  total: number;
-}
+export type { ExtensionStatus, ExtensionProgressData } from '../../../../shared/extensionTypes';

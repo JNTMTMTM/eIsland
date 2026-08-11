@@ -30,7 +30,7 @@ import { join } from 'path';
 import { createWriteStream } from 'fs';
 import { pipeline } from 'stream/promises';
 import { getExtensionRegistry, type ExtensionMeta } from './extensionRegistry';
-import type { ExtensionStatus, ExtensionProgressData } from '../ipc/app/types/ExtensionStatus';
+import type { ExtensionStatus, ExtensionProgressData } from '../../shared/extensionTypes';
 import type { UpdateSourceKey } from '../ipc/app/types/UpdateSourceKey';
 import { R2_UPDATE_URL, ESA_CDN_URL, GITHUB_OWNER, GITHUB_REPO } from '../ipc/app/config/updater';
 

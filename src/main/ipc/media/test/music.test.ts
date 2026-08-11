@@ -451,7 +451,7 @@ describe('registerMusicIpcHandlers', () => {
   // ipcMain.handle registration
   // ---------------------------------------------------------------
   describe('channel registration', () => {
-    it('registers exactly 15 IPC channels', () => {
+    it('registers exactly 19 IPC channels', () => {
       register();
       expect(handleMock).toHaveBeenCalledTimes(19);
     });
