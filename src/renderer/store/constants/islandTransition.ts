@@ -44,6 +44,7 @@ export const ISLAND_STATE_AREA: Record<string, number> = {
   agent: 500 * 88,
   stt: 500 * 88,
   cli: 500 * 88,
+  musicProvidersLogin: 860 * 400,
 };
 
 const MORPH_DURATION_BY_SPEED: Record<string, number> = {

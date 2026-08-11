@@ -465,7 +465,8 @@
 .island-shell.setPassword .auth-state-content,
 .island-shell.bindOAuth .auth-state-content,
 .island-shell.bindEmail .auth-state-content,
-.island-shell.payment .auth-state-content {
+.island-shell.payment .auth-state-content,
+.island-shell.musicProvidersLogin .auth-state-content {
   align-items: center;
   padding: 14px 22px;
 }

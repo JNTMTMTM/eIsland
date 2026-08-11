@@ -31,7 +31,7 @@ import type { TranslationLyricsResult } from '../../api/lyrics/lrcApi';
 export type { WeatherApiConfig };
 
 /** 灵动岛 UI 状态枚举 */
-export type IslandState = 'idle' | 'hover' | 'expanded' | 'notification' | 'maxExpand' | 'lyrics' | 'lyricsTranslation' | 'guide' | 'login' | 'register' | 'resetPassword' | 'setPassword' | 'bindOAuth' | 'bindEmail' | 'payment' | 'announcement' | 'agentVoiceInput' | 'agent' | 'stt' | 'cli';
+export type IslandState = 'idle' | 'hover' | 'expanded' | 'notification' | 'maxExpand' | 'lyrics' | 'lyricsTranslation' | 'guide' | 'login' | 'register' | 'resetPassword' | 'setPassword' | 'bindOAuth' | 'bindEmail' | 'payment' | 'announcement' | 'agentVoiceInput' | 'agent' | 'stt' | 'cli' | 'musicProvidersLogin';
 
 /** 灵动岛动画速度档位 */
 export type AnimationSpeed = 'slow' | 'medium' | 'fast';
@@ -361,6 +361,7 @@ export interface IslandSlice {
   setBindOAuth: (context: BindOAuthContext) => void;
   bindEmailContext: BindEmailContext;
   setBindEmail: (context: BindEmailContext) => void;
+  setMusicProvidersLogin: () => void;
   returnFromAuth: () => void;
   setLyrics: () => void;
   setLyricsTranslation: () => void;

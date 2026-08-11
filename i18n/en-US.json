@@ -2751,6 +2751,14 @@
         "savedNeverUnsubscribe": "Saved: Never auto-unsubscribe",
         "savedAutoUnsubscribe": "Saved: Auto-unsubscribe after {{ms}} ms"
       },
+      "providers": {
+        "sodaMusic": {
+          "title": "Soda Music Provider",
+          "hint": "Log in to Soda Music account to fetch lyrics",
+          "status": "Not logged in",
+          "login": "Log in"
+        }
+      },
       "pagination": "Music settings pagination"
     },
     "hotkey": {

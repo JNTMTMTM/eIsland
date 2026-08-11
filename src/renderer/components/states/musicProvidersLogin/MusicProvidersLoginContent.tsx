@@ -19,9 +19,15 @@
  */
 
 /**
- * @file index.ts
- * @description 音乐提供方登录状态模块入口
+ * @file MusicProvidersLoginContent.tsx
+ * @description 音乐提供方登录状态内容组件（占位）
  * @author 鸡哥
  */
 
-export { MusicProvidersLoginContent } from './MusicProvidersLoginContent';
+import type { ReactElement } from 'react';
+import '../../../styles/auth/auth.css';
+
+/** 音乐提供方登录状态内容 */
+export function MusicProvidersLoginContent(): ReactElement {
+  return <div className="auth-state-content" />;
+}

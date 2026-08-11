@@ -2751,6 +2751,14 @@
         "savedNeverUnsubscribe": "已保存：永不自动取消订阅",
         "savedAutoUnsubscribe": "已保存：{{ms}} ms 自动取消订阅"
       },
+      "providers": {
+        "sodaMusic": {
+          "title": "汽水音乐提供方",
+          "hint": "登录汽水音乐账号以获取歌词",
+          "status": "未登录",
+          "login": "登录"
+        }
+      },
       "pagination": "歌曲设置分页"
     },
     "hotkey": {

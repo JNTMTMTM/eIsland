@@ -28,6 +28,7 @@ import { useState } from 'react';
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { MusicSettingsPageKey } from '../../utils/settingsConfig';
+import useIslandStore from '../../../../../../../store/slices';
 import { SettingsPageNavigation, SettingsPageNavigationToggle } from '../SettingsPageNavigation';
 import { PlayerIcon } from '../../../../../../../utils/SvgIcon/player-icon';
 
@@ -158,6 +159,8 @@ export function MusicSettingsSection(props: MusicSettingsSectionProps): ReactEle
     musicSettingsPageLabels,
     setMusicSettingsPage,
   } = props;
+
+  const { setMusicProvidersLogin } = useIslandStore();
 
   return (
     <div className="max-expand-settings-section">
@@ -507,7 +510,24 @@ export function MusicSettingsSection(props: MusicSettingsSectionProps): ReactEle
 
           {musicSettingsPage === 'providers' && (
             <div className="settings-cards">
-              {/* empty — to be implemented */}
+
+              <div className="settings-card">
+                <div className="settings-card-header">
+                  <div className="settings-card-title">{t('settings.music.providers.sodaMusic.title', { defaultValue: '汽水音乐提供方' })}</div>
+                  <div className="settings-card-subtitle">{t('settings.music.providers.sodaMusic.hint', { defaultValue: '登录汽水音乐账号以获取歌词' })}</div>
+                </div>
+                <div className="settings-hotkey-row" style={{ alignItems: 'center' }}>
+                  <span className="settings-card-label">{t('settings.music.providers.sodaMusic.status', { defaultValue: '未登录' })}</span>
+                  <button
+                    className="settings-hotkey-btn"
+                    type="button"
+                    onClick={() => setMusicProvidersLogin()}
+                  >
+                    {t('settings.music.providers.sodaMusic.login', { defaultValue: '登录' })}
+                  </button>
+                </div>
+              </div>
+
             </div>
           )}
         </div>

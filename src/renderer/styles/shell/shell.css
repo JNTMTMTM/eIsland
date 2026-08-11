@@ -423,7 +423,8 @@
 .island-shell.bindOAuth,
 .island-shell.bindEmail,
 .island-shell.payment,
-.island-shell.announcement {
+.island-shell.announcement,
+.island-shell.musicProvidersLogin {
   width: 860px;
   height: 400px;
   background: var(--color-island-bg);
@@ -438,7 +439,8 @@
 .island-shell.bindOAuth::before,
 .island-shell.bindEmail::before,
 .island-shell.payment::before,
-.island-shell.announcement::before {
+.island-shell.announcement::before,
+.island-shell.musicProvidersLogin::before {
   opacity: 0;
   pointer-events: none;
 }
