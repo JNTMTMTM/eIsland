@@ -513,7 +513,10 @@ export function MusicSettingsSection(props: MusicSettingsSectionProps): ReactEle
 
               <div className="settings-card">
                 <div className="settings-card-header">
-                  <div className="settings-card-title">{t('settings.music.providers.sodaMusic.title', { defaultValue: '汽水音乐提供方' })}</div>
+                  <div className="settings-card-title" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <img src={PlayerIcon.SODAMUSIC} alt="SodaMusic" width={16} height={16} style={{ flexShrink: 0 }} />
+                    {t('settings.music.providers.sodaMusic.title', { defaultValue: '汽水音乐提供方' })}
+                  </div>
                   <div className="settings-card-subtitle">{t('settings.music.providers.sodaMusic.hint', { defaultValue: '登录汽水音乐账号以获取歌词' })}</div>
                 </div>
                 <div className="settings-hotkey-row" style={{ alignItems: 'center' }}>
