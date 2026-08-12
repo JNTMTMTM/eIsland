@@ -25,7 +25,7 @@
  */
 
 import type { ReactElement } from 'react';
-import '../../../styles/auth/auth.css';
+import '../../../../styles/auth/auth.css';
 
 /** 音乐提供方登录状态内容 */
 export function MusicProvidersLoginContent(): ReactElement {
