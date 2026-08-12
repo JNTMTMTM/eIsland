@@ -2754,8 +2754,6 @@
       "providers": {
         "sodaMusic": {
           "title": "Soda Music Provider",
-          "hint": "Log in to Soda Music account to fetch lyrics",
-          "status": "Not logged in",
           "login": "Log in"
         }
       },
