@@ -33,6 +33,19 @@
       "to": "capture.js"
     },
     {
+      "from": "resources/qishui-auth-v6.js",
+      "to": "qishui-auth-v6.js"
+    },
+    {
+      "from": "resources/qishui-qr-login.js",
+      "to": "qishui-qr-login.js"
+    },
+    {
+      "from": "resources/qishui-auth-v6",
+      "to": "qishui-auth-v6",
+      "filter": ["**/*"]
+    },
+    {
       "from": "resources/svg",
       "to": "svg",
       "filter": ["**/*"]

@@ -31,7 +31,7 @@ import { STATE_CONFIGS, isMouseInWindow } from '../config/dynamicIslandConfig';
 import { isCurrentLyricIdenticalToTranslation } from '../states/lyrics/utils/isCurrentLyricIdenticalToTranslation';
 
 /** 不自动离开悬停状态的面板状态集合 */
-const AUTH_STATES = new Set(['login', 'register', 'resetPassword', 'setPassword', 'bindOAuth', 'bindEmail', 'payment']);
+const AUTH_STATES = new Set(['login', 'register', 'resetPassword', 'setPassword', 'bindOAuth', 'bindEmail', 'payment', 'musicProvidersLogin']);
 
 interface UseIslandHoverInteractionOptions {
   state: IslandState;
@@ -131,7 +131,7 @@ export function useIslandHoverInteraction(options: UseIslandHoverInteractionOpti
         return;
       }
 
-      if (state === 'notification' || state === 'agent' || state === 'stt' || state === 'cli' || state === 'agentVoiceInput' || state === 'guide' || state === 'login' || state === 'register' || state === 'resetPassword' || state === 'payment' || state === 'announcement') {
+      if (state === 'notification' || state === 'agent' || state === 'stt' || state === 'cli' || state === 'agentVoiceInput' || state === 'guide' || state === 'login' || state === 'register' || state === 'resetPassword' || state === 'payment' || state === 'announcement' || state === 'musicProvidersLogin') {
         if (inWindow) {
           window.api?.disableMousePassthrough();
         }

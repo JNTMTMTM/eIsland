@@ -34,6 +34,7 @@ interface RegisterMusicIpcHandlersOptions {
   storeDir: string;
   whitelistStoreKey: string;
   lyricsSourceStoreKey: string;
+  providerModeStoreKey: string;
   lyricsKaraokeStoreKey: string;
   lyricsClockStoreKey: string;
   lyricsCalibrateEnabledStoreKey: string;
@@ -88,6 +89,28 @@ export function registerMusicIpcHandlers(options: RegisterMusicIpcHandlersOption
       return true;
     } catch (err) {
       console.error('[LyricsSource] persist error:', err);
+      return false;
+    }
+  });
+
+  ipcMain.handle('music:provider-mode:get', () => {
+    try {
+      const filePath = join(options.storeDir, `${options.providerModeStoreKey}.json`);
+      if (!existsSync(filePath)) return 'guest';
+      const value = JSON.parse(readFileSync(filePath, 'utf-8'));
+      return value === 'logged-in' ? 'logged-in' : 'guest';
+    } catch {
+      return 'guest';
+    }
+  });
+
+  ipcMain.handle('music:provider-mode:set', (_event, mode: string) => {
+    try {
+      const filePath = join(options.storeDir, `${options.providerModeStoreKey}.json`);
+      writeFileSync(filePath, JSON.stringify(mode === 'logged-in' ? 'logged-in' : 'guest', null, 2), 'utf-8');
+      return true;
+    } catch (err) {
+      console.error('[MusicProviderMode] persist error:', err);
       return false;
     }
   });

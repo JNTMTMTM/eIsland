@@ -1,4 +1,13 @@
-# AGENTS.md
+<!-- CODEGRAPH_START -->
+## CodeGraph
+
+In repositories indexed by CodeGraph (a `.codegraph/` directory exists at the repo root), reach for it BEFORE grep/find or reading files when you need to understand or locate code:
+
+- **MCP tool** (when available): `codegraph_explore` answers most code questions in one call — the relevant symbols' verbatim source plus the call paths between them, including dynamic-dispatch hops grep can't follow. Name a file or symbol in the query to read its current line-numbered source. If it's listed but deferred, load it by name via tool search.
+- **Shell** (always works): `codegraph explore "<symbol names or question>"` prints the same output.
+
+If there is no `.codegraph/` directory, skip CodeGraph entirely — indexing is the user's decision.
+<!-- CODEGRAPH_END -->
 
 Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-specific instructions as needed.
 
@@ -91,6 +100,19 @@ Verification: `grep -rn "defaultValue" src/renderer/components/<changed-dir>/` s
 ## 8. Frontend Standards (Code Change Gate)
 
 **All frontend code must comply with [`docs/FRONTEND_STANDARDS.md`](docs/FRONTEND_STANDARDS.md). No exceptions.**
+
+## 9. Plugin Version Bump (Plugin Change Gate)
+
+**Any change to a plugin's source code requires a version bump in its `package.json`.**
+
+- After modifying files under `plugins/<name>/`, check if `plugins/<name>/package.json` version was incremented.
+- Follow semver: patch for bug fixes, minor for new features, major for breaking changes.
+- The `publish-plugins.yml` workflow skips publish when the version is unchanged — forgetting the bump means the change never ships.
+
+**Creating a new plugin requires registering it in `.github/workflows/publish-plugins.yml`.**
+
+- Add the plugin name to both `publish-npm` and `publish-gpr` job matrices.
+- Without registration, the new plugin will never be published to npm or GitHub Packages.
 
 ---
 

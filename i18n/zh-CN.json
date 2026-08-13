@@ -2050,7 +2050,8 @@
     "musicPages": {
       "whitelist": "白名单",
       "lyrics": "歌词源",
-      "smtc": "SMTC"
+      "smtc": "SMTC",
+      "providers": "提供源"
     },
     "networkPages": {
       "timeout": "请求超时",
@@ -2750,7 +2751,53 @@
         "savedNeverUnsubscribe": "已保存：永不自动取消订阅",
         "savedAutoUnsubscribe": "已保存：{{ms}} ms 自动取消订阅"
       },
+      "providers": {
+        "mode": {
+          "title": "汽水音乐请求模式",
+          "hint": "默认使用非登录态；登录态需要先完成汽水音乐登录",
+          "guest": "非登录态",
+          "logged-in": "登录态"
+        },
+        "sodaMusic": {
+          "title": "汽水音乐提供方",
+          "login": "登录"
+        }
+      },
       "pagination": "歌曲设置分页"
+    },
+    "musicProviderLogin": {
+      "title": "音乐提供商账号连接",
+      "connected": "已连接",
+      "notConnected": "未连接",
+      "loading": "正在生成二维码…",
+      "qrUnavailable": "二维码暂不可用",
+      "success": "登录成功",
+      "successTitle": "汽水音乐已连接",
+      "qishui": {
+        "name": "汽水音乐",
+        "instruction": "使用汽水音乐 App 扫码登录"
+      },
+      "status": {
+        "idle": "准备登录",
+        "waiting": "等待扫码确认…",
+        "scanned": "已扫码，请在手机上确认…",
+        "confirmed": "登录成功，会话已安全保存",
+        "expired": "二维码已过期，请刷新",
+        "rate_limited": "请求较频繁，稍后自动继续检查…",
+        "mfa_cancelled": "二次验证已取消，请刷新二维码后重试",
+        "error": "登录状态检查失败，正在重试…"
+      },
+      "steps": {
+        "openDouyin": "打开手机上的抖音 App",
+        "scan": "使用扫一扫扫描左侧二维码",
+        "confirm": "在手机上确认授权登录"
+      },
+      "actions": {
+        "back": "返回提供商设置",
+        "refresh": "刷新二维码",
+        "logout": "退出登录",
+        "done": "完成"
+      }
     },
     "hotkey": {
       "duplicateHotkey": "重复快捷键",

@@ -68,6 +68,9 @@ import type {
   UpdaterNotAvailableData,
   UpdaterStartupAutoCheckRequestData,
   ClipboardUrlsDetectedData,
+  MusicProviderAuthStatus,
+  MusicProviderId,
+  MusicProviderQrCodeResult,
   ExternalAgentData,
   SourceSwitchRequestData,
   RunningProcessInfo,
@@ -1029,6 +1032,39 @@ const api = {
     return ipcRenderer.invoke('music:whitelist:set', list);
   },
   /**
+   * 获取音乐提供商登录状态
+   * @param provider - 音乐提供商标识
+   * @returns 当前登录状态
+   */
+  musicProviderAuthStatus: (provider: MusicProviderId): Promise<MusicProviderAuthStatus> => {
+    return ipcRenderer.invoke('music-provider-auth:status', provider);
+  },
+  /**
+   * 创建音乐提供商登录二维码
+   * @param provider - 音乐提供商标识
+   * @returns 二维码内容与轮询 token
+   */
+  musicProviderAuthCreateQr: (provider: MusicProviderId): Promise<MusicProviderQrCodeResult> => {
+    return ipcRenderer.invoke('music-provider-auth:create-qr', provider);
+  },
+  /**
+   * 检查音乐提供商二维码登录状态
+   * @param provider - 音乐提供商标识
+   * @param token - 二维码轮询 token
+   * @returns 最新登录状态
+   */
+  musicProviderAuthCheckQr: (provider: MusicProviderId, token: string): Promise<MusicProviderAuthStatus> => {
+    return ipcRenderer.invoke('music-provider-auth:check-qr', provider, token);
+  },
+  /**
+   * 清除音乐提供商登录会话
+   * @param provider - 音乐提供商标识
+   * @returns 清理后的登录状态
+   */
+  musicProviderAuthClear: (provider: MusicProviderId): Promise<MusicProviderAuthStatus> => {
+    return ipcRenderer.invoke('music-provider-auth:clear', provider);
+  },
+  /**
    * 获取歌词源配置
    * @returns 歌词源标识字符串
    */
@@ -1042,6 +1078,12 @@ const api = {
    */
   musicLyricsSourceSet: (source: string): Promise<boolean> => {
     return ipcRenderer.invoke('music:lyrics-source:set', source);
+  },
+  musicProviderModeGet: (): Promise<'guest' | 'logged-in'> => {
+    return ipcRenderer.invoke('music:provider-mode:get');
+  },
+  musicProviderModeSet: (mode: 'guest' | 'logged-in'): Promise<boolean> => {
+    return ipcRenderer.invoke('music:provider-mode:set', mode);
   },
   /**
    * 获取歌词功能开关

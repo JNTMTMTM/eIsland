@@ -24,10 +24,11 @@
  * @author 鸡哥
  */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { MusicSettingsPageKey } from '../../utils/settingsConfig';
+import useIslandStore from '../../../../../../../store/slices';
 import { SettingsPageNavigation, SettingsPageNavigationToggle } from '../SettingsPageNavigation';
 import { PlayerIcon } from '../../../../../../../utils/SvgIcon/player-icon';
 
@@ -158,6 +159,44 @@ export function MusicSettingsSection(props: MusicSettingsSectionProps): ReactEle
     musicSettingsPageLabels,
     setMusicSettingsPage,
   } = props;
+
+  const { setMusicProvidersLogin } = useIslandStore();
+  const [qishuiLoggedIn, setQishuiLoggedIn] = useState(false);
+  const [qishuiAuthLoading, setQishuiAuthLoading] = useState(true);
+  const [qishuiMode, setQishuiMode] = useState<'guest' | 'logged-in'>('guest');
+
+  useEffect(() => {
+    Promise.all([
+      window.api.musicProviderAuthStatus('qishui'),
+      window.api.musicProviderModeGet(),
+    ])
+      .then(([status, mode]) => {
+        setQishuiLoggedIn(status.loggedIn);
+        setQishuiMode(mode);
+      })
+      .catch(() => {
+        setQishuiLoggedIn(false);
+        setQishuiMode('guest');
+      })
+      .finally(() => setQishuiAuthLoading(false));
+  }, []);
+
+  const handleQishuiModeChange = (mode: 'guest' | 'logged-in'): void => {
+    setQishuiMode(mode);
+    window.api.musicProviderModeSet(mode).catch(() => {});
+  };
+
+  const handleQishuiAuthAction = (): void => {
+    if (!qishuiLoggedIn) {
+      setMusicProvidersLogin('qishui');
+      return;
+    }
+
+    setQishuiAuthLoading(true);
+    window.api.musicProviderAuthClear('qishui')
+      .then(() => setQishuiLoggedIn(false))
+      .finally(() => setQishuiAuthLoading(false));
+  };
 
   return (
     <div className="max-expand-settings-section">
@@ -500,6 +539,55 @@ export function MusicSettingsSection(props: MusicSettingsSectionProps): ReactEle
                     {musicSmtcConfigMessage.text}
                   </div>
                 )}
+              </div>
+
+            </div>
+          )}
+
+          {musicSettingsPage === 'providers' && (
+            <div className="settings-cards">
+
+              <div className="settings-card">
+                <div className="settings-card-header">
+                  <div className="settings-card-title">{t('settings.music.providers.mode.title', { defaultValue: '汽水音乐请求模式' })}</div>
+                  <div className="settings-card-subtitle">{t('settings.music.providers.mode.hint', { defaultValue: '默认使用非登录态；登录态需要先完成汽水音乐登录' })}</div>
+                </div>
+                <div className="settings-lyrics-source-options">
+                  {(['guest', 'logged-in'] as const).map((mode) => (
+                    <button
+                      key={mode}
+                      className={`settings-lyrics-source-btn ${qishuiMode === mode ? 'active' : ''}`}
+                      type="button"
+                      disabled={qishuiAuthLoading || (mode === 'logged-in' && !qishuiLoggedIn)}
+                      onClick={() => handleQishuiModeChange(mode)}
+                    >
+                      {t(`settings.music.providers.mode.${mode}`, {
+                        defaultValue: mode === 'guest' ? '非登录态' : '登录态',
+                      })}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="settings-card">
+                <div className="settings-card-header">
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div className="settings-card-title" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <img className="settings-provider-icon-img no-filter" src={PlayerIcon.SODAMUSIC} alt="" width={16} height={16} style={{ flexShrink: 0 }} />
+                      {t('settings.music.providers.sodaMusic.title', { defaultValue: '汽水音乐提供方' })}
+                    </div>
+                    <button
+                      className={`settings-hotkey-btn${qishuiLoggedIn ? ' settings-hotkey-btn-danger' : ''}`}
+                      type="button"
+                      disabled={qishuiAuthLoading}
+                      onClick={handleQishuiAuthAction}
+                    >
+                      {t(qishuiLoggedIn ? 'settings.musicProviderLogin.actions.logout' : 'settings.music.providers.sodaMusic.login', {
+                        defaultValue: qishuiLoggedIn ? '退出登录' : '登录',
+                      })}
+                    </button>
+                  </div>
+                </div>
               </div>
 
             </div>

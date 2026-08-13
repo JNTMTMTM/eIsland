@@ -1,4 +1,13 @@
-# CLAUDE.md
+<!-- CODEGRAPH_START -->
+## CodeGraph
+
+In repositories indexed by CodeGraph (a `.codegraph/` directory exists at the repo root), reach for it BEFORE grep/find or reading files when you need to understand or locate code:
+
+- **MCP tool** (when available): `codegraph_explore` answers most code questions in one call — the relevant symbols' verbatim source plus the call paths between them, including dynamic-dispatch hops grep can't follow. Name a file or symbol in the query to read its current line-numbered source. If it's listed but deferred, load it by name via tool search.
+- **Shell** (always works): `codegraph explore "<symbol names or question>"` prints the same output.
+
+If there is no `.codegraph/` directory, skip CodeGraph entirely — indexing is the user's decision.
+<!-- CODEGRAPH_END -->
 
 Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-specific instructions as needed.
 
@@ -13,6 +22,9 @@ Before implementing:
 - If multiple interpretations exist, present them - don't pick silently.
 - If a simpler approach exists, say so. Push back when warranted.
 - If something is unclear, stop. Name what's confusing. Ask.
+
+Before any uncertain operation:
+- If an operation could be risky, ambiguous, or has unclear impact, pause and ask the user before proceeding.
 
 ## 2. Simplicity First
 
@@ -60,7 +72,16 @@ For multi-step tasks, state a brief plan:
 
 Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
 
-## 5. i18n Completeness (UI Change Gate)
+## 5. Agent Prompt Sync (Global Rule)
+
+**When feature scope changes, agent prompts must be updated in the same task.**
+
+- If you add/remove/change any user-facing eIsland feature, also sync corresponding agent prompt descriptions in `eisland-server/server`.
+- Treat prompt sync as part of Definition of Done; do not mark the task complete if prompts are stale.
+- At minimum, verify all affected prompt builders mention the new capability consistently.
+- If uncertain which prompts are affected, explicitly ask and confirm before finishing.
+
+## 6. i18n Completeness (UI Change Gate)
 
 **Every user-facing string must have translations. No exceptions.**
 
@@ -72,15 +93,15 @@ After any UI change (new component, new text, modified labels, new feedback mess
 
 Verification: `grep -rn "defaultValue" src/renderer/components/<changed-dir>/` should show `t()` wrappers, not raw strings.
 
-## 6. Comment Standards (Code Change Gate)
+## 7. Comment Standards (Code Change Gate)
 
 **All code must comply with [`docs/COMMENT_STANDARDS.md`](docs/COMMENT_STANDARDS.md). No exceptions.**
 
-## 7. Frontend Standards (Code Change Gate)
+## 8. Frontend Standards (Code Change Gate)
 
 **All frontend code must comply with [`docs/FRONTEND_STANDARDS.md`](docs/FRONTEND_STANDARDS.md). No exceptions.**
 
-## 8. Plugin Version Bump (Plugin Change Gate)
+## 9. Plugin Version Bump (Plugin Change Gate)
 
 **Any change to a plugin's source code requires a version bump in its `package.json`.**
 

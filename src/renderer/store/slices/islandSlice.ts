@@ -60,6 +60,7 @@ export const createIslandSlice: StateCreator<
   setPasswordContext: { tempToken: '', suggestedUsername: '', email: '' },
   bindOAuthContext: { tempToken: '', username: '', email: '' },
   bindEmailContext: { tempToken: '', suggestedUsername: '' },
+  musicProviderLogin: 'qishui',
   hoverTab: 'time',
   expandTab: 'overview',
   maxExpandTab: 'todo',
@@ -73,7 +74,7 @@ export const createIslandSlice: StateCreator<
 
   setIdle: (force?: boolean) => set((prev) => {
     if (prev.uiStateLocked && prev.state !== 'idle') return prev;
-    if (!force && (prev.state === 'expanded' || prev.state === 'maxExpand' || prev.state === 'guide' || prev.state === 'login' || prev.state === 'register' || prev.state === 'resetPassword' || prev.state === 'setPassword' || prev.state === 'bindOAuth' || prev.state === 'bindEmail' || prev.state === 'payment' || prev.state === 'announcement')) return prev;
+    if (!force && (prev.state === 'expanded' || prev.state === 'maxExpand' || prev.state === 'guide' || prev.state === 'login' || prev.state === 'register' || prev.state === 'resetPassword' || prev.state === 'setPassword' || prev.state === 'bindOAuth' || prev.state === 'bindEmail' || prev.state === 'payment' || prev.state === 'announcement' || prev.state === 'musicProvidersLogin')) return prev;
     window.api?.collapseWindow(getIslandWindowShrinkDelay(prev.state, 'idle', prev.animationSpeed));
     window.api?.enableMousePassthrough();
     return { state: 'idle' as const, authReturnState: null };
@@ -178,6 +179,19 @@ export const createIslandSlice: StateCreator<
     return { state: 'bindEmail' as never, authReturnState: nextAuthReturnState, bindEmailContext: context };
   }),
 
+  setMusicProvidersLogin: (provider = 'qishui') => set((prev) => {
+    if (prev.uiStateLocked && prev.state !== 'musicProvidersLogin') return prev;
+    const standalone = isStandaloneRenderer();
+    if (!standalone) {
+      window.api?.expandWindowSettings();
+      window.api?.disableMousePassthrough();
+    }
+    const nextAuthReturnState = (prev.state === 'login' || prev.state === 'register' || prev.state === 'payment' || prev.state === 'setPassword' || prev.state === 'bindOAuth' || prev.state === 'bindEmail' || prev.state === 'musicProvidersLogin')
+      ? prev.authReturnState
+      : (standalone ? 'maxExpand' : prev.state);
+    return { state: 'musicProvidersLogin' as never, authReturnState: nextAuthReturnState, musicProviderLogin: provider };
+  }),
+
   returnFromAuth: () => set((prev) => {
     if (prev.uiStateLocked) return prev;
     const standalone = isStandaloneRenderer();
@@ -193,7 +207,7 @@ export const createIslandSlice: StateCreator<
       } else if (target === 'expanded') {
         window.api?.expandWindowFull(getIslandWindowShrinkDelay(prev.state, target, prev.animationSpeed));
         window.api?.disableMousePassthrough();
-      } else if (target === 'maxExpand' || target === 'guide' || target === 'login' || target === 'register' || target === 'payment' || target === 'announcement') {
+      } else if (target === 'maxExpand' || target === 'guide' || target === 'login' || target === 'register' || target === 'payment' || target === 'announcement' || target === 'musicProvidersLogin') {
         window.api?.expandWindowSettings();
         window.api?.disableMousePassthrough();
       } else if (target === 'lyrics' || target === 'agentVoiceInput' || target === 'lyricsTranslation') {
@@ -208,7 +222,7 @@ export const createIslandSlice: StateCreator<
         window.api?.disableMousePassthrough();
       }
     }
-    const authStates = ['login', 'register', 'payment', 'setPassword', 'bindOAuth', 'bindEmail', 'resetPassword'];
+    const authStates = ['login', 'register', 'payment', 'setPassword', 'bindOAuth', 'bindEmail', 'resetPassword', 'musicProvidersLogin'];
     return { state: authStates.includes(target) ? 'maxExpand' : target, authReturnState: null };
   }),
 

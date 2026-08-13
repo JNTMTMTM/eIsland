@@ -40,6 +40,7 @@ import { LoginContent } from '../states/login';
 import { RegisterContent } from '../states/register/RegisterContent';
 import { ResetPasswordContent } from '../states/resetPassword';
 import { PaymentContent } from '../states/payment/PaymentContent';
+import { MusicProvidersLoginContent } from '../states/musicProvidersLogin';
 import type { WindowTab } from '../config/standaloneWindowConfig';
 
 interface StandaloneWindowViewportProps {
@@ -69,7 +70,8 @@ export function StandaloneWindowViewport({ activeTab, state }: StandaloneWindowV
       {activeTab === 'settings' && state === 'register' && <RegisterContent />}
       {activeTab === 'settings' && state === 'resetPassword' && <ResetPasswordContent />}
       {activeTab === 'settings' && state === 'payment' && <PaymentContent />}
-      {activeTab === 'settings' && state !== 'login' && state !== 'register' && state !== 'resetPassword' && state !== 'payment' && <SettingsTab />}
+      {activeTab === 'settings' && state === 'musicProvidersLogin' && <MusicProvidersLoginContent />}
+      {activeTab === 'settings' && state !== 'login' && state !== 'register' && state !== 'resetPassword' && state !== 'payment' && state !== 'musicProvidersLogin' && <SettingsTab />}
     </div>
   );
 }

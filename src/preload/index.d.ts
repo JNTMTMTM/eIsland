@@ -67,6 +67,9 @@ import type {
   UpdaterNotAvailableData,
   UpdaterStartupAutoCheckRequestData,
   ClipboardUrlsDetectedData,
+  MusicProviderAuthStatus,
+  MusicProviderId,
+  MusicProviderQrCodeResult,
   ExternalAgentData,
   RunningProcessInfo,
   RunningWindowInfo,
@@ -225,8 +228,14 @@ declare global {
       logWrite: (level: string, message: string) => void;
       musicWhitelistGet: () => Promise<string[]>;
       musicWhitelistSet: (list: string[]) => Promise<boolean>;
+      musicProviderAuthStatus: (provider: MusicProviderId) => Promise<MusicProviderAuthStatus>;
+      musicProviderAuthCreateQr: (provider: MusicProviderId) => Promise<MusicProviderQrCodeResult>;
+      musicProviderAuthCheckQr: (provider: MusicProviderId, token: string) => Promise<MusicProviderAuthStatus>;
+      musicProviderAuthClear: (provider: MusicProviderId) => Promise<MusicProviderAuthStatus>;
       musicLyricsSourceGet: () => Promise<string>;
       musicLyricsSourceSet: (source: string) => Promise<boolean>;
+      musicProviderModeGet: () => Promise<'guest' | 'logged-in'>;
+      musicProviderModeSet: (mode: 'guest' | 'logged-in') => Promise<boolean>;
       musicLyricsEnabledGet: () => Promise<boolean>;
       musicLyricsEnabledSet: (enabled: boolean) => Promise<boolean>;
       musicLyricsTranslationEnabledGet: () => Promise<boolean>;

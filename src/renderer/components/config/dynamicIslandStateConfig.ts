@@ -185,6 +185,13 @@ export const STATE_CONFIGS: Record<IslandState, StateConfig> = {
     enterDelay: 0,
     leaveDelay: 0,
   },
+  musicProvidersLogin: {
+    name: 'musicProvidersLogin',
+    mousePassthrough: false,
+    expanded: true,
+    enterDelay: 0,
+    leaveDelay: 0,
+  },
 };
 
 /**

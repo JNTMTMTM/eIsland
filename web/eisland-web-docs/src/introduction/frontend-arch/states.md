@@ -6,7 +6,7 @@ icon: diagram-project
 # eIsland State Machine
 
 :::info
-The eIsland state machine is the core architecture that controls the island's appearance, behavior, and interactions. It manages **20 distinct states**, each with defined pixel dimensions, mouse behavior, and transition rules. The dimensions shown below are for **Notch** mode — see [Shape Modes](shape-modes.md) for **Pill** mode dimensions.
+The eIsland state machine is the core architecture that controls the island's appearance, behavior, and interactions. It manages **21 distinct states**, each with defined pixel dimensions, mouse behavior, and transition rules. The dimensions shown below are for **Notch** mode — see [Shape Modes](shape-modes.md) for **Pill** mode dimensions.
 :::
 
 ## State Categories
@@ -42,6 +42,7 @@ The eIsland state machine is the core architecture that controls the island's ap
 | `bindOAuth` | Bind OAuth to existing account | No | 860×400 px |
 | `bindEmail` | Bind email for OAuth (WeChat, KOOK) | No | 860×400 px |
 | `payment` | Payment processing | No | 860×400 px |
+| `musicProvidersLogin` | Music provider QR code login | No | 860×400 px |
 
 ### AI & Input States
 
@@ -90,6 +91,7 @@ export const STATE_CONFIGS: Record<IslandState, StateConfig> = {
   announcement:   { mousePassthrough: false, expanded: true,  enterDelay: 0,   leaveDelay: 0   },
   stt:            { mousePassthrough: false, expanded: true,  enterDelay: 0,   leaveDelay: 0   },
   cli:            { mousePassthrough: false, expanded: true,  enterDelay: 0,   leaveDelay: 0   },
+  musicProvidersLogin:{ mousePassthrough: false, expanded: true, enterDelay: 0, leaveDelay: 0 },
 };
 ```
 
@@ -122,6 +124,7 @@ export const STATE_AREA: Record<string, number> = {
   announcement: 860 * 400,  // 344,000 px²
   stt: 500 * 88,            // 44,000 px²
   cli: 500 * 88,            // 44,000 px²
+  musicProvidersLogin: 860 * 400, // 344,000 px²
 };
 ```
 
@@ -1268,3 +1271,105 @@ The `cli` state provides real-time monitoring of **Claude Code** and **Codex** C
 - Permission request auto-prompts with tool details
 - Pill mode: content height reduced to 80px (shell stays 100px)
 - Click body to expand into full `maxExpand` CLI panel with session sidebar, event stream, and activity heatmap
+
+---
+
+### musicProvidersLogin
+
+:::info
+The `musicProvidersLogin` state provides a QR code login interface for third-party music providers. It currently supports **Soda Music** (Qishui) and is designed to be extensible to other providers. The state uses a polling-based architecture to detect when the user scans and confirms the QR code on their phone.
+:::
+
+| Property | Value |
+|----------|-------|
+| **Dimensions** | 860×400 px |
+| **Mouse** | Interactive |
+| **Expanded** | Yes |
+| **Enter Delay** | 0ms |
+| **Leave Delay** | 0ms |
+
+**Entry Conditions:**
+- User initiates music provider login from Settings → Music → Providers tab
+- Store action `setMusicProvidersLogin(provider)` triggers the state transition
+
+**Exit Conditions:**
+- Login confirmed → return to previous state (via `returnFromAuth`)
+- Back button → return to previous state
+- Escape key → return to previous state
+
+**UI Components Rendered:**
+- Provider icon and name
+- QR code (generated from provider's scan URL)
+- Status indicator (waiting / scanned / confirmed / expired / error)
+- Success checkmark animation on confirmation
+- Refresh button (re-generates QR code)
+- Back / Done button
+- Report issue button (shown after confirmation)
+
+**Behavior Details:**
+- Self-handled navigation (does not follow standard click flow)
+- QR code polling interval: 1.2s initial, then 4.5s default (or provider-specified `retryAfterMs`)
+- Generation-aware polling: stale responses from previous QR sessions are discarded
+- Error recovery: on poll failure, retries after 8 seconds
+- On mount: checks existing auth status; if already logged in, shows confirmed state immediately
+
+#### QR Login State Machine
+
+```mermaid
+stateDiagram-v2
+    [*] --> idle
+    idle --> waiting: createQrCode()
+    waiting --> scanned: QR scanned by user
+    waiting --> expired: QR expires
+    waiting --> rate_limited: Too many requests
+    waiting --> mfa_cancelled: MFA cancelled
+    waiting --> error: Poll failure
+    scanned --> confirmed: User confirms on phone
+    scanned --> expired: QR expires
+    confirmed --> [*]
+    expired --> waiting: refresh()
+    rate_limited --> waiting: retry (60s cooldown)
+    error --> waiting: retry (8s backoff)
+    mfa_cancelled --> idle: Back
+```
+
+#### Auth State Values
+
+| State | Description | Action |
+|-------|-------------|--------|
+| `idle` | Initial state, no QR code active | Show loading spinner |
+| `waiting` | QR code displayed, waiting for scan | Show QR code, poll every 4.5s |
+| `scanned` | User scanned QR on phone | Show QR code with scanned indicator |
+| `confirmed` | Login successful | Show success checkmark, stop polling |
+| `expired` | QR code expired | Show expired message, offer refresh |
+| `rate_limited` | Too many QR requests | Wait 60s before retry |
+| `mfa_cancelled` | User cancelled MFA prompt | Stop polling, show cancellation |
+| `error` | Poll or network error | Show error, retry after 8s |
+
+#### IPC Channels
+
+| Channel | Direction | Description |
+|---------|-----------|-------------|
+| `music-provider-auth:status` | Renderer → Main | Check if provider is already logged in |
+| `music-provider-auth:create-qr` | Renderer → Main | Generate new QR code, returns token + scan URL |
+| `music-provider-auth:check-qr` | Renderer → Main | Poll QR scan status with token |
+| `music-provider-auth:clear` | Renderer → Main | Clear stored auth session |
+
+#### Module Structure
+
+:::details musicProvidersLogin module file tree
+```
+musicProvidersLogin/
+├── index.ts                              # Module entry point, re-exports MusicProvidersLoginContent
+├── config/
+│   └── providerConfig.ts                 # Static config per provider (icon, i18n keys)
+├── hooks/
+│   └── useMusicProviderQrLogin.ts        # QR polling hook, state management
+└── components/
+    └── MusicProvidersLoginContent.tsx     # Login UI with QR code, buttons, status
+```
+:::
+
+:::tip
+Adding a new music provider requires: (1) adding the provider to `MusicProviderId` union type in `shared/musicProviderAuth.ts`, (2) creating a provider-specific auth service in `main/music/providers/`, (3) registering it in the `PROVIDER_HANDLERS` map in `main/ipc/media/musicProviderAuth.ts`, and (4) adding a config entry in `config/providerConfig.ts`.
+:::

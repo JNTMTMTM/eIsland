@@ -57,8 +57,8 @@ export type AppSettingsPageKey = 'layout-preview' | 'expand-layout' | 'maxexpand
 export type WeatherSettingsPageKey = 'location' | 'provider';
 export type MailSettingsPageKey = 'account' | 'imap' | 'preferences';
 export type AiSettingsPageKey = 'general' | 'r1pxc' | 'ollama';
-export type MusicSettingsPageKey = 'whitelist' | 'lyrics' | 'smtc';
-export type MusicNavCardKey = 'music-whitelist' | 'music-lyrics' | 'music-smtc';
+export type MusicSettingsPageKey = 'whitelist' | 'lyrics' | 'smtc' | 'providers';
+export type MusicNavCardKey = 'music-whitelist' | 'music-lyrics' | 'music-smtc' | 'music-providers';
 export type NetworkSettingsPageKey = 'timeout' | 'data-center';
 export type UpdateSettingsPageKey = 'update-check' | 'info-sync';
 export type SettingsTabLabelKey = SettingsSidebarTabKey | AppSettingsPageKey | AiSettingsPageKey | MusicNavCardKey | UpdateSettingsPageKey;
@@ -93,6 +93,7 @@ export const SETTINGS_TAB_LABELS: Record<SettingsTabLabelKey, string> = {
   'music-whitelist': '播放器白名单',
   'music-lyrics': '歌词源',
   'music-smtc': 'SMTC',
+  'music-providers': '歌词提供源',
   ai: 'AI Agent',
   general: '通用配置',
   r1pxc: 'r1pxc Agent',
@@ -135,6 +136,7 @@ export const SETTINGS_TAB_DESCRIPTIONS: Record<Exclude<SettingsTabLabelKey, 'ind
   'music-whitelist': '配置允许接入灵动岛的播放器。',
   'music-lyrics': '选择歌词来源与显示模式。',
   'music-smtc': '系统媒体传输控制相关配置。',
+  'music-providers': '配置歌词获取来源与优先级。',
   ai: 'AI 服务与 Prompt 配置',
   general: '模型凭据与工作区配置。',
   r1pxc: 'r1pxc Agent 头像与个性化配置。',
@@ -162,6 +164,7 @@ export const SETTINGS_TAB_ICONS: Partial<Record<SettingsTabLabelKey, string>> = 
   'music-whitelist': SvgIcon.MUSIC,
   'music-lyrics': SvgIcon.LRC,
   'music-smtc': SvgIcon.SMTC,
+  'music-providers': SvgIcon.LRC,
   ai: SvgIcon.AI,
   shortcut: SvgIcon.SHORTCUT_KEY,
   update: SvgIcon.UPDATE_TIME,
@@ -367,11 +370,12 @@ export const UPDATE_SETTINGS_PAGE_LABELS: Record<UpdateSettingsPageKey, string> 
   'update-check': '检查更新',
   'info-sync': '信息同步',
 };
-export const MUSIC_SETTINGS_PAGES: MusicSettingsPageKey[] = ['whitelist', 'lyrics', 'smtc'];
+export const MUSIC_SETTINGS_PAGES: MusicSettingsPageKey[] = ['whitelist', 'lyrics', 'smtc', 'providers'];
 export const MUSIC_SETTINGS_PAGE_LABELS: Record<MusicSettingsPageKey, string> = {
   whitelist: '白名单',
   lyrics: '歌词源',
   smtc: 'SMTC',
+  providers: '歌词提供源',
 };
 
 export interface NavCardDef {
@@ -420,6 +424,7 @@ export const NAV_CARDS: NavCardDef[] = [
   { id: 'music-whitelist', label: SETTINGS_TAB_LABELS['music-whitelist'], desc: SETTINGS_TAB_DESCRIPTIONS['music-whitelist'], icon: SETTINGS_TAB_ICONS['music-whitelist'], tab: 'music', musicPage: 'whitelist' },
   { id: 'music-lyrics', label: SETTINGS_TAB_LABELS['music-lyrics'], desc: SETTINGS_TAB_DESCRIPTIONS['music-lyrics'], icon: SETTINGS_TAB_ICONS['music-lyrics'], tab: 'music', musicPage: 'lyrics' },
   { id: 'music-smtc', label: SETTINGS_TAB_LABELS['music-smtc'], desc: SETTINGS_TAB_DESCRIPTIONS['music-smtc'], icon: SETTINGS_TAB_ICONS['music-smtc'], tab: 'music', musicPage: 'smtc' },
+  { id: 'music-providers', label: SETTINGS_TAB_LABELS['music-providers'], desc: SETTINGS_TAB_DESCRIPTIONS['music-providers'], icon: SETTINGS_TAB_ICONS['music-providers'], tab: 'music', musicPage: 'providers' },
 ];
 
 export const DEFAULT_NAV_ORDER: string[] = NAV_CARDS.map((c) => c.id);

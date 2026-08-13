@@ -53,6 +53,7 @@ import { registerMailIpcHandlers } from './ipc/app/mail';
 import { registerStoreIpcHandlers } from './ipc/app/store';
 import { registerLogIpcHandlers } from './ipc/app/log';
 import { registerMusicIpcHandlers } from './ipc/media/music';
+import { registerMusicProviderAuthIpcHandlers } from './ipc/media/musicProviderAuth';
 import { registerHotkeyIpcHandlers } from './ipc/system/hotkey';
 import { registerIslandIpcHandlers } from './ipc/settings/island';
 import { registerHideProcessIpcHandlers } from './ipc/system/hideProcess';
@@ -96,7 +97,7 @@ import {
   DEFAULT_CLIPBOARD_URL_DETECT_MODE,
   DEFAULT_ISLAND_POSITION_OFFSET,
   DEFAULT_ISLAND_DISPLAY_SELECTION,
-  WHITELIST_STORE_KEY, LYRICS_SOURCE_STORE_KEY,
+  WHITELIST_STORE_KEY, LYRICS_SOURCE_STORE_KEY, MUSIC_PROVIDER_MODE_STORE_KEY,
   LYRICS_KARAOKE_STORE_KEY, LYRICS_CLOCK_STORE_KEY,
   LYRICS_CALIBRATE_ENABLED_STORE_KEY, LYRICS_CALIBRATE_DELAY_STORE_KEY,
   LYRICS_ENABLED_STORE_KEY, LYRICS_TRANSLATION_ENABLED_STORE_KEY,
@@ -594,11 +595,13 @@ function registerIpcHandlers(): void {
   registerSettingsPreviewHandler();
 
   registerLogIpcHandlers({ writeMainLog });
+  registerMusicProviderAuthIpcHandlers();
 
   registerMusicIpcHandlers({
     storeDir,
     whitelistStoreKey: WHITELIST_STORE_KEY,
     lyricsSourceStoreKey: LYRICS_SOURCE_STORE_KEY,
+    providerModeStoreKey: MUSIC_PROVIDER_MODE_STORE_KEY,
     lyricsKaraokeStoreKey: LYRICS_KARAOKE_STORE_KEY,
     lyricsClockStoreKey: LYRICS_CLOCK_STORE_KEY,
     lyricsCalibrateEnabledStoreKey: LYRICS_CALIBRATE_ENABLED_STORE_KEY,
