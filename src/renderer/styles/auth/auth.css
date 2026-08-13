@@ -20,7 +20,7 @@
  */
 
 .music-provider-login-panel {
-  width: min(100%, 620px);
+  width: min(100%, 360px);
 }
 
 .music-provider-login-title {
@@ -44,31 +44,15 @@
   opacity: 1;
 }
 
-.music-provider-login-badge {
-  padding: 4px 8px;
-  border-radius: 999px;
-  background: rgba(var(--color-text-rgb), 0.08);
-  color: rgba(var(--color-text-rgb), 0.58);
-  font-size: 10px;
-  font-weight: 500;
-}
-
-.music-provider-login-badge.connected {
-  background: rgba(64, 196, 120, 0.13);
-  color: #72e0a0;
-}
-
 .music-provider-login-body {
-  display: grid;
-  grid-template-columns: 216px minmax(0, 1fr);
-  align-items: center;
-  gap: 22px;
+  display: flex;
+  justify-content: center;
   padding: 4px 0;
 }
 
 .music-provider-login-qr {
-  width: 216px;
-  height: 216px;
+  width: 198px;
+  height: 198px;
   border: 1px solid rgba(var(--color-text-rgb), 0.1);
   border-radius: 14px;
   background: #fff;
@@ -77,60 +61,12 @@
   overflow: hidden;
 }
 
-.music-provider-login-qr.confirmed {
-  background: rgba(64, 196, 120, 0.1);
-}
-
 .music-provider-login-placeholder {
   padding: 20px;
   color: rgba(var(--color-text-rgb), 0.64);
   font-size: 13px;
   line-height: 1.5;
   text-align: center;
-}
-
-.music-provider-login-details {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.music-provider-login-status {
-  min-height: 36px;
-  margin: 0;
-  padding: 9px 10px;
-  border-radius: 8px;
-  background: rgba(var(--color-text-rgb), 0.05);
-  color: rgba(var(--color-text-rgb), 0.68);
-  font-size: 12px;
-  line-height: 1.5;
-  text-align: center;
-  overflow-wrap: anywhere;
-}
-
-.music-provider-login-status.scanned,
-.music-provider-login-status.confirmed {
-  background: rgba(64, 196, 120, 0.1);
-  color: #72e0a0;
-}
-
-.music-provider-login-status.expired,
-.music-provider-login-status.mfa_cancelled,
-.music-provider-login-status.error {
-  background: rgba(255, 90, 90, 0.08);
-  color: #ff8b8b;
-}
-
-.music-provider-login-steps {
-  margin: 0;
-  padding-left: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-  color: rgba(var(--color-text-rgb), 0.7);
-  font-size: 12px;
-  line-height: 1.45;
 }
 
 .auth-state-content {

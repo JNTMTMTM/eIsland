@@ -2769,7 +2769,7 @@
       "successTitle": "Soda Music is connected",
       "qishui": {
         "name": "Soda Music",
-        "instruction": "Scan with the Douyin app to log in"
+        "instruction": "Scan with the Soda Music app to log in"
       },
       "status": {
         "idle": "Ready to log in",

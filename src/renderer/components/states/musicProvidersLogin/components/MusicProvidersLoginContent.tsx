@@ -32,9 +32,8 @@ export function MusicProvidersLoginContent(): ReactElement {
   const { t } = useTranslation();
   const { musicProviderLogin, returnFromAuth } = useIslandStore();
   const provider = MUSIC_PROVIDER_LOGIN_CONFIGS[musicProviderLogin] ?? MUSIC_PROVIDER_LOGIN_CONFIGS.qishui;
-  const { authState, qrContent, loading, error, refresh, logout } = useMusicProviderQrLogin(provider.id);
+  const { authState, qrContent, loading, refresh } = useMusicProviderQrLogin(provider.id);
   const confirmed = authState === 'confirmed';
-  const statusKey = `settings.musicProviderLogin.status.${authState}`;
 
   return (
     <div className="auth-state-content" onClick={(event) => event.stopPropagation()}>
@@ -42,20 +41,17 @@ export function MusicProvidersLoginContent(): ReactElement {
         <div className="auth-panel-title music-provider-login-title">
           <img className="music-provider-login-icon-img no-filter" src={provider.icon} alt="" />
           <span>{t(provider.nameKey)}</span>
-          <span className={`music-provider-login-badge ${confirmed ? 'connected' : ''}`}>
-            {t(confirmed ? 'settings.musicProviderLogin.connected' : 'settings.musicProviderLogin.notConnected')}
-          </span>
         </div>
         <div className="auth-panel-subtitle">
           {t(confirmed ? 'settings.musicProviderLogin.successTitle' : provider.instructionKey)}
         </div>
 
         <div className="music-provider-login-body">
-          <div className={`music-provider-login-qr ${confirmed ? 'confirmed' : ''}`}>
-            {qrContent && !confirmed ? (
+          <div className="music-provider-login-qr">
+            {qrContent ? (
               <QRCodeSVG
                 value={qrContent}
-                size={196}
+                size={180}
                 level="M"
                 marginSize={2}
                 bgColor="#ffffff"
@@ -63,21 +59,8 @@ export function MusicProvidersLoginContent(): ReactElement {
               />
             ) : (
               <div className="music-provider-login-placeholder">
-                {loading ? t('settings.musicProviderLogin.loading') : t(confirmed ? 'settings.musicProviderLogin.success' : 'settings.musicProviderLogin.qrUnavailable')}
+                {loading ? t('settings.musicProviderLogin.loading') : t('settings.musicProviderLogin.qrUnavailable')}
               </div>
-            )}
-          </div>
-
-          <div className="music-provider-login-details">
-            <p className={`music-provider-login-status ${authState}`}>
-              {error || t(statusKey)}
-            </p>
-            {!confirmed && (
-              <ol className="music-provider-login-steps">
-                <li>{t('settings.musicProviderLogin.steps.openDouyin')}</li>
-                <li>{t('settings.musicProviderLogin.steps.scan')}</li>
-                <li>{t('settings.musicProviderLogin.steps.confirm')}</li>
-              </ol>
             )}
           </div>
         </div>
@@ -86,11 +69,6 @@ export function MusicProvidersLoginContent(): ReactElement {
           {!confirmed && (
             <button className="settings-user-primary-btn" type="button" disabled={loading} onClick={() => { void refresh(); }}>
               {t('settings.musicProviderLogin.actions.refresh')}
-            </button>
-          )}
-          {confirmed && (
-            <button className="settings-user-secondary-btn" type="button" disabled={loading} onClick={() => { void logout(); }}>
-              {t('settings.musicProviderLogin.actions.logout')}
             </button>
           )}
           <button className={confirmed ? 'settings-user-primary-btn' : 'settings-user-secondary-btn'} type="button" onClick={returnFromAuth}>
