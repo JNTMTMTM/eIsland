@@ -19,116 +19,58 @@
  * @author 鸡哥
  */
 
-.music-provider-login-state {
-  padding: 18px 24px;
-}
-
 .music-provider-login-panel {
-  width: min(100%, 720px);
-  min-height: 320px;
-  padding: 18px 20px;
-  border: 1px solid rgba(var(--color-text-rgb), 0.12);
-  border-radius: 16px;
-  background: rgba(var(--color-text-rgb), 0.04);
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
+  width: min(100%, 620px);
 }
 
-.music-provider-login-header {
-  display: grid;
-  grid-template-columns: 96px minmax(0, 1fr) 96px;
-  align-items: center;
-  gap: 12px;
-}
-
-.music-provider-login-back,
-.music-provider-login-badge {
-  font-size: 12px;
-}
-
-.music-provider-login-back {
-  appearance: none;
-  justify-self: start;
-  border: 0;
-  padding: 6px 0;
-  background: transparent;
-  color: rgba(var(--color-text-rgb), 0.68);
-  cursor: pointer;
-  font-family: inherit;
-}
-
-.music-provider-login-back:hover {
-  color: rgba(var(--color-text-rgb), 0.96);
-}
-
-.music-provider-login-identity {
-  min-width: 0;
+.music-provider-login-title {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-}
-
-.music-provider-login-identity h1,
-.music-provider-login-identity p,
-.music-provider-login-details h2,
-.music-provider-login-details p {
-  margin: 0;
-}
-
-.music-provider-login-identity h1 {
-  font-size: 18px;
-  color: rgba(var(--color-text-rgb), 0.96);
-}
-
-.music-provider-login-identity p {
-  margin-top: 2px;
-  font-size: 11px;
-  color: rgba(var(--color-text-rgb), 0.56);
-}
-
-.music-provider-login-icon-img,
-.settings-provider-icon-img {
-  filter: brightness(0) invert(1);
+  gap: 8px;
 }
 
 .music-provider-login-icon-img {
-  width: 34px;
-  height: 34px;
+  width: 30px;
+  height: 30px;
   object-fit: contain;
 }
 
-[data-theme='light'] .music-provider-login-icon-img,
-[data-theme='light'] .settings-provider-icon-img {
-  filter: brightness(0) invert(0);
+.music-provider-login-icon-img.no-filter,
+.settings-provider-icon-img.no-filter,
+[data-theme='light'] .music-provider-login-icon-img.no-filter,
+[data-theme='light'] .settings-provider-icon-img.no-filter {
+  filter: none;
+  opacity: 1;
 }
 
 .music-provider-login-badge {
-  justify-self: end;
-  padding: 5px 9px;
+  padding: 4px 8px;
   border-radius: 999px;
+  background: rgba(var(--color-text-rgb), 0.08);
   color: rgba(var(--color-text-rgb), 0.58);
-  background: rgba(var(--color-text-rgb), 0.07);
+  font-size: 10px;
+  font-weight: 500;
 }
 
 .music-provider-login-badge.connected {
-  color: #72e0a0;
   background: rgba(64, 196, 120, 0.13);
+  color: #72e0a0;
 }
 
 .music-provider-login-body {
-  flex: 1;
   display: grid;
-  grid-template-columns: 244px minmax(0, 1fr);
+  grid-template-columns: 216px minmax(0, 1fr);
   align-items: center;
-  gap: 30px;
+  gap: 22px;
+  padding: 4px 0;
 }
 
 .music-provider-login-qr {
-  width: 236px;
-  height: 236px;
-  border-radius: 18px;
+  width: 216px;
+  height: 216px;
+  border: 1px solid rgba(var(--color-text-rgb), 0.1);
+  border-radius: 14px;
   background: #fff;
   display: grid;
   place-items: center;
@@ -136,13 +78,14 @@
 }
 
 .music-provider-login-qr.confirmed {
-  background: rgba(64, 196, 120, 0.12);
+  background: rgba(64, 196, 120, 0.1);
 }
 
 .music-provider-login-placeholder {
   padding: 20px;
   color: rgba(var(--color-text-rgb), 0.64);
   font-size: 13px;
+  line-height: 1.5;
   text-align: center;
 }
 
@@ -153,44 +96,41 @@
   gap: 12px;
 }
 
-.music-provider-login-details h2 {
-  font-size: 18px;
-  color: rgba(var(--color-text-rgb), 0.94);
-}
-
 .music-provider-login-status {
   min-height: 36px;
+  margin: 0;
+  padding: 9px 10px;
+  border-radius: 8px;
+  background: rgba(var(--color-text-rgb), 0.05);
+  color: rgba(var(--color-text-rgb), 0.68);
   font-size: 12px;
   line-height: 1.5;
-  color: rgba(var(--color-text-rgb), 0.62);
+  text-align: center;
   overflow-wrap: anywhere;
 }
 
 .music-provider-login-status.scanned,
 .music-provider-login-status.confirmed {
+  background: rgba(64, 196, 120, 0.1);
   color: #72e0a0;
 }
 
 .music-provider-login-status.expired,
 .music-provider-login-status.mfa_cancelled,
 .music-provider-login-status.error {
+  background: rgba(255, 90, 90, 0.08);
   color: #ff8b8b;
 }
 
 .music-provider-login-steps {
   margin: 0;
-  padding-left: 18px;
+  padding-left: 20px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 7px;
+  color: rgba(var(--color-text-rgb), 0.7);
   font-size: 12px;
   line-height: 1.45;
-  color: rgba(var(--color-text-rgb), 0.7);
-}
-
-.music-provider-login-actions {
-  display: flex;
-  gap: 8px;
 }
 
 .auth-state-content {
