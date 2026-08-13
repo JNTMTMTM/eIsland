@@ -540,7 +540,7 @@ export function MusicSettingsSection(props: MusicSettingsSectionProps): ReactEle
                       {t('settings.music.providers.sodaMusic.title', { defaultValue: '汽水音乐提供方' })}
                     </div>
                     <button
-                      className="settings-hotkey-btn"
+                      className={`settings-hotkey-btn${qishuiLoggedIn ? ' settings-hotkey-btn-danger' : ''}`}
                       type="button"
                       disabled={qishuiAuthLoading}
                       onClick={handleQishuiAuthAction}

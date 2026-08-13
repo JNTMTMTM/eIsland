@@ -1149,6 +1149,17 @@
   box-shadow: inset 0 0 0 1px rgba(var(--color-accent-rgb, var(--color-text-rgb)), 0.25);
 }
 
+.settings-hotkey-btn-danger {
+  border-color: rgba(255, 100, 100, 0.45);
+  color: rgba(255, 100, 100, 0.85);
+}
+
+.settings-hotkey-btn-danger:hover {
+  background: rgba(255, 100, 100, 0.1);
+  border-color: rgba(255, 100, 100, 0.6);
+  color: rgba(255, 100, 100, 0.95);
+}
+
 .settings-hotkey-error {
   font-size: 11px;
   color: rgba(255, 100, 100, 0.85);
