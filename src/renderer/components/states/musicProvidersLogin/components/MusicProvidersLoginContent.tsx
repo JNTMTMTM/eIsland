@@ -31,10 +31,17 @@ import '../../../../styles/auth/auth.css';
 /** 渲染音乐提供商扫码登录界面 */
 export function MusicProvidersLoginContent(): ReactElement {
   const { t } = useTranslation();
-  const { musicProviderLogin, returnFromAuth } = useIslandStore();
+  const { musicProviderLogin, returnFromAuth, setMaxExpandTab, setMaxExpand } = useIslandStore();
   const provider = MUSIC_PROVIDER_LOGIN_CONFIGS[musicProviderLogin] ?? MUSIC_PROVIDER_LOGIN_CONFIGS.qishui;
   const { authState, qrContent, loading, refresh } = useMusicProviderQrLogin(provider.id);
   const confirmed = authState === 'confirmed';
+
+  /** 跳转到设置页反馈标签 */
+  const handleReportIssue = (): void => {
+    window.api.storeWrite('settings-open-tab', 'about-feedback').catch(() => {});
+    setMaxExpandTab('settings');
+    setMaxExpand();
+  };
 
   return (
     <div className="auth-state-content" onClick={(event) => event.stopPropagation()}>
@@ -81,6 +88,11 @@ export function MusicProvidersLoginContent(): ReactElement {
           <button className={confirmed ? 'settings-user-primary-btn' : 'settings-user-secondary-btn'} type="button" onClick={returnFromAuth}>
             {t(confirmed ? 'settings.musicProviderLogin.actions.done' : 'settings.musicProviderLogin.actions.back')}
           </button>
+          {confirmed && (
+            <button className="settings-user-secondary-btn" type="button" onClick={handleReportIssue}>
+              {t('settings.user.actions.reportIssue', { defaultValue: '报告问题' })}
+            </button>
+          )}
         </div>
       </div>
     </div>
