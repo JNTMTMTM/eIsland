@@ -47,8 +47,13 @@ export function MusicProvidersLoginContent(): ReactElement {
         </div>
 
         <div className="music-provider-login-body">
-          <div className="music-provider-login-qr">
-            {qrContent ? (
+          <div className={`music-provider-login-qr${confirmed ? ' confirmed' : ''}`}>
+            {confirmed ? (
+              <div className="music-provider-login-success">
+                <span className="music-provider-login-success-icon" aria-hidden="true">✓</span>
+                <span>{t('settings.musicProviderLogin.success')}</span>
+              </div>
+            ) : qrContent ? (
               <QRCodeSVG
                 value={qrContent}
                 size={180}
@@ -59,7 +64,8 @@ export function MusicProvidersLoginContent(): ReactElement {
               />
             ) : (
               <div className="music-provider-login-placeholder">
-                {loading ? t('settings.musicProviderLogin.loading') : t('settings.musicProviderLogin.qrUnavailable')}
+                {loading && <span className="music-provider-login-spinner" aria-hidden="true" />}
+                <span>{loading ? t('settings.musicProviderLogin.loading') : t('settings.musicProviderLogin.qrUnavailable')}</span>
               </div>
             )}
           </div>
