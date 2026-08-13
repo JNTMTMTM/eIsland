@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { MusicSettingsPageKey } from '../../utils/settingsConfig';
@@ -161,6 +161,27 @@ export function MusicSettingsSection(props: MusicSettingsSectionProps): ReactEle
   } = props;
 
   const { setMusicProvidersLogin } = useIslandStore();
+  const [qishuiLoggedIn, setQishuiLoggedIn] = useState(false);
+  const [qishuiAuthLoading, setQishuiAuthLoading] = useState(true);
+
+  useEffect(() => {
+    window.api.musicProviderAuthStatus('qishui')
+      .then((status) => setQishuiLoggedIn(status.loggedIn))
+      .catch(() => setQishuiLoggedIn(false))
+      .finally(() => setQishuiAuthLoading(false));
+  }, []);
+
+  const handleQishuiAuthAction = (): void => {
+    if (!qishuiLoggedIn) {
+      setMusicProvidersLogin('qishui');
+      return;
+    }
+
+    setQishuiAuthLoading(true);
+    window.api.musicProviderAuthClear('qishui')
+      .then(() => setQishuiLoggedIn(false))
+      .finally(() => setQishuiAuthLoading(false));
+  };
 
   return (
     <div className="max-expand-settings-section">
@@ -521,9 +542,12 @@ export function MusicSettingsSection(props: MusicSettingsSectionProps): ReactEle
                     <button
                       className="settings-hotkey-btn"
                       type="button"
-                      onClick={() => setMusicProvidersLogin('qishui')}
+                      disabled={qishuiAuthLoading}
+                      onClick={handleQishuiAuthAction}
                     >
-                      {t('settings.music.providers.sodaMusic.login', { defaultValue: '登录' })}
+                      {t(qishuiLoggedIn ? 'settings.musicProviderLogin.actions.logout' : 'settings.music.providers.sodaMusic.login', {
+                        defaultValue: qishuiLoggedIn ? '退出登录' : '登录',
+                      })}
                     </button>
                   </div>
                 </div>
