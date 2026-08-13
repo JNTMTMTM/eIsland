@@ -108,12 +108,12 @@
 .music-provider-login-success-icon {
   width: 42px;
   height: 42px;
-  border: 2px solid currentColor;
+  padding: 8px;
+  box-sizing: border-box;
+  border: 2px solid #52c41a;
   border-radius: 50%;
-  display: grid;
-  place-items: center;
-  font-size: 26px;
-  line-height: 1;
+  object-fit: contain;
+  filter: invert(57%) sepia(98%) saturate(415%) hue-rotate(72deg) brightness(95%) contrast(91%);
 }
 
 .auth-state-content {

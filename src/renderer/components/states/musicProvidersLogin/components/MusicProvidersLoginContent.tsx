@@ -23,6 +23,7 @@ import type { ReactElement } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../../store/slices';
+import { SvgIcon } from '../../../../utils/SvgIcon';
 import { MUSIC_PROVIDER_LOGIN_CONFIGS } from '../config/providerConfig';
 import { useMusicProviderQrLogin } from '../hooks/useMusicProviderQrLogin';
 import '../../../../styles/auth/auth.css';
@@ -50,7 +51,7 @@ export function MusicProvidersLoginContent(): ReactElement {
           <div className={`music-provider-login-qr${confirmed ? ' confirmed' : ''}`}>
             {confirmed ? (
               <div className="music-provider-login-success">
-                <span className="music-provider-login-success-icon" aria-hidden="true">✓</span>
+                <img className="music-provider-login-success-icon" src={SvgIcon.CHECKED} alt="" />
                 <span>{t('settings.musicProviderLogin.success')}</span>
               </div>
             ) : qrContent ? (
