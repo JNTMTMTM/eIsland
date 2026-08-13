@@ -2752,6 +2752,12 @@
         "savedAutoUnsubscribe": "Saved: Auto-unsubscribe after {{ms}} ms"
       },
       "providers": {
+        "mode": {
+          "title": "Soda Music request mode",
+          "hint": "Guest mode is used by default; logged-in mode requires a connected Soda Music account",
+          "guest": "Guest mode",
+          "logged-in": "Logged-in mode"
+        },
         "sodaMusic": {
           "title": "Soda Music Provider",
           "login": "Log in"

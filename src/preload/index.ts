@@ -1079,6 +1079,12 @@ const api = {
   musicLyricsSourceSet: (source: string): Promise<boolean> => {
     return ipcRenderer.invoke('music:lyrics-source:set', source);
   },
+  musicProviderModeGet: (): Promise<'guest' | 'logged-in'> => {
+    return ipcRenderer.invoke('music:provider-mode:get');
+  },
+  musicProviderModeSet: (mode: 'guest' | 'logged-in'): Promise<boolean> => {
+    return ipcRenderer.invoke('music:provider-mode:set', mode);
+  },
   /**
    * 获取歌词功能开关
    * @returns 是否启用歌词功能

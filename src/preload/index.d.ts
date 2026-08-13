@@ -234,6 +234,8 @@ declare global {
       musicProviderAuthClear: (provider: MusicProviderId) => Promise<MusicProviderAuthStatus>;
       musicLyricsSourceGet: () => Promise<string>;
       musicLyricsSourceSet: (source: string) => Promise<boolean>;
+      musicProviderModeGet: () => Promise<'guest' | 'logged-in'>;
+      musicProviderModeSet: (mode: 'guest' | 'logged-in') => Promise<boolean>;
       musicLyricsEnabledGet: () => Promise<boolean>;
       musicLyricsEnabledSet: (enabled: boolean) => Promise<boolean>;
       musicLyricsTranslationEnabledGet: () => Promise<boolean>;

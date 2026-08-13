@@ -169,11 +169,20 @@ export const DEFAULT_AGENT_VOICE_INPUT_HOTKEY = 'Alt+P';
 
 // ===== Store 键名 =====
 
+/** 汽水音乐请求模式 */
+export type MusicProviderMode = 'guest' | 'logged-in';
+
+/** 汽水音乐请求模式默认值 */
+export const DEFAULT_MUSIC_PROVIDER_MODE: MusicProviderMode = 'guest';
+
 /** 白名单存储键名 */
 export const WHITELIST_STORE_KEY = 'music-whitelist';
 
 /** 歌词源存储键名 */
 export const LYRICS_SOURCE_STORE_KEY = 'lyrics-source';
+
+/** 汽水音乐请求模式存储键名 */
+export const MUSIC_PROVIDER_MODE_STORE_KEY = 'music-provider-mode';
 
 /** 逐字扫光开关存储键名 */
 export const LYRICS_KARAOKE_STORE_KEY = 'lyrics-karaoke';

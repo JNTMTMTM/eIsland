@@ -2752,6 +2752,12 @@
         "savedAutoUnsubscribe": "已保存：{{ms}} ms 自动取消订阅"
       },
       "providers": {
+        "mode": {
+          "title": "汽水音乐请求模式",
+          "hint": "默认使用非登录态；登录态需要先完成汽水音乐登录",
+          "guest": "非登录态",
+          "logged-in": "登录态"
+        },
         "sodaMusic": {
           "title": "汽水音乐提供方",
           "login": "登录"

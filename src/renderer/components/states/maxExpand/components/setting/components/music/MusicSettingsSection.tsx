@@ -163,13 +163,28 @@ export function MusicSettingsSection(props: MusicSettingsSectionProps): ReactEle
   const { setMusicProvidersLogin } = useIslandStore();
   const [qishuiLoggedIn, setQishuiLoggedIn] = useState(false);
   const [qishuiAuthLoading, setQishuiAuthLoading] = useState(true);
+  const [qishuiMode, setQishuiMode] = useState<'guest' | 'logged-in'>('guest');
 
   useEffect(() => {
-    window.api.musicProviderAuthStatus('qishui')
-      .then((status) => setQishuiLoggedIn(status.loggedIn))
-      .catch(() => setQishuiLoggedIn(false))
+    Promise.all([
+      window.api.musicProviderAuthStatus('qishui'),
+      window.api.musicProviderModeGet(),
+    ])
+      .then(([status, mode]) => {
+        setQishuiLoggedIn(status.loggedIn);
+        setQishuiMode(mode);
+      })
+      .catch(() => {
+        setQishuiLoggedIn(false);
+        setQishuiMode('guest');
+      })
       .finally(() => setQishuiAuthLoading(false));
   }, []);
+
+  const handleQishuiModeChange = (mode: 'guest' | 'logged-in'): void => {
+    setQishuiMode(mode);
+    window.api.musicProviderModeSet(mode).catch(() => {});
+  };
 
   const handleQishuiAuthAction = (): void => {
     if (!qishuiLoggedIn) {
@@ -531,6 +546,28 @@ export function MusicSettingsSection(props: MusicSettingsSectionProps): ReactEle
 
           {musicSettingsPage === 'providers' && (
             <div className="settings-cards">
+
+              <div className="settings-card">
+                <div className="settings-card-header">
+                  <div className="settings-card-title">{t('settings.music.providers.mode.title', { defaultValue: '汽水音乐请求模式' })}</div>
+                  <div className="settings-card-subtitle">{t('settings.music.providers.mode.hint', { defaultValue: '默认使用非登录态；登录态需要先完成汽水音乐登录' })}</div>
+                </div>
+                <div className="settings-lyrics-source-options">
+                  {(['guest', 'logged-in'] as const).map((mode) => (
+                    <button
+                      key={mode}
+                      className={`settings-lyrics-source-btn ${qishuiMode === mode ? 'active' : ''}`}
+                      type="button"
+                      disabled={qishuiAuthLoading || (mode === 'logged-in' && !qishuiLoggedIn)}
+                      onClick={() => handleQishuiModeChange(mode)}
+                    >
+                      {t(`settings.music.providers.mode.${mode}`, {
+                        defaultValue: mode === 'guest' ? '非登录态' : '登录态',
+                      })}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
               <div className="settings-card">
                 <div className="settings-card-header">
