@@ -60,6 +60,7 @@ export const createIslandSlice: StateCreator<
   setPasswordContext: { tempToken: '', suggestedUsername: '', email: '' },
   bindOAuthContext: { tempToken: '', username: '', email: '' },
   bindEmailContext: { tempToken: '', suggestedUsername: '' },
+  musicProviderLogin: 'qishui',
   hoverTab: 'time',
   expandTab: 'overview',
   maxExpandTab: 'todo',
@@ -178,7 +179,7 @@ export const createIslandSlice: StateCreator<
     return { state: 'bindEmail' as never, authReturnState: nextAuthReturnState, bindEmailContext: context };
   }),
 
-  setMusicProvidersLogin: () => set((prev) => {
+  setMusicProvidersLogin: (provider = 'qishui') => set((prev) => {
     if (prev.uiStateLocked && prev.state !== 'musicProvidersLogin') return prev;
     const standalone = isStandaloneRenderer();
     if (!standalone) {
@@ -188,7 +189,7 @@ export const createIslandSlice: StateCreator<
     const nextAuthReturnState = (prev.state === 'login' || prev.state === 'register' || prev.state === 'payment' || prev.state === 'setPassword' || prev.state === 'bindOAuth' || prev.state === 'bindEmail' || prev.state === 'musicProvidersLogin')
       ? prev.authReturnState
       : (standalone ? 'maxExpand' : prev.state);
-    return { state: 'musicProvidersLogin' as never, authReturnState: nextAuthReturnState };
+    return { state: 'musicProvidersLogin' as never, authReturnState: nextAuthReturnState, musicProviderLogin: provider };
   }),
 
   returnFromAuth: () => set((prev) => {

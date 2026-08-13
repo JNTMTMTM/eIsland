@@ -53,6 +53,7 @@ import { registerMailIpcHandlers } from './ipc/app/mail';
 import { registerStoreIpcHandlers } from './ipc/app/store';
 import { registerLogIpcHandlers } from './ipc/app/log';
 import { registerMusicIpcHandlers } from './ipc/media/music';
+import { registerMusicProviderAuthIpcHandlers } from './ipc/media/musicProviderAuth';
 import { registerHotkeyIpcHandlers } from './ipc/system/hotkey';
 import { registerIslandIpcHandlers } from './ipc/settings/island';
 import { registerHideProcessIpcHandlers } from './ipc/system/hideProcess';
@@ -594,6 +595,7 @@ function registerIpcHandlers(): void {
   registerSettingsPreviewHandler();
 
   registerLogIpcHandlers({ writeMainLog });
+  registerMusicProviderAuthIpcHandlers();
 
   registerMusicIpcHandlers({
     storeDir,

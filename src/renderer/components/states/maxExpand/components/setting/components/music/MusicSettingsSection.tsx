@@ -515,13 +515,13 @@ export function MusicSettingsSection(props: MusicSettingsSectionProps): ReactEle
                 <div className="settings-card-header">
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <div className="settings-card-title" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <img src={PlayerIcon.SODAMUSIC} alt="SodaMusic" width={16} height={16} style={{ flexShrink: 0 }} />
+                      <img className="settings-provider-icon-img" src={PlayerIcon.SODAMUSIC} alt="" width={16} height={16} style={{ flexShrink: 0 }} />
                       {t('settings.music.providers.sodaMusic.title', { defaultValue: '汽水音乐提供方' })}
                     </div>
                     <button
                       className="settings-hotkey-btn"
                       type="button"
-                      onClick={() => setMusicProvidersLogin()}
+                      onClick={() => setMusicProvidersLogin('qishui')}
                     >
                       {t('settings.music.providers.sodaMusic.login', { defaultValue: '登录' })}
                     </button>

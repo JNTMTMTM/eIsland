@@ -27,6 +27,7 @@
 import type { LocationInfo } from '../../api/weather/locationApi';
 import type { WeatherApiConfig } from '../../api/weather/weatherApi';
 import type { TranslationLyricsResult } from '../../api/lyrics/lrcApi';
+import type { MusicProviderId } from '../../../shared/musicProviderAuth';
 
 export type { WeatherApiConfig };
 
@@ -361,7 +362,8 @@ export interface IslandSlice {
   setBindOAuth: (context: BindOAuthContext) => void;
   bindEmailContext: BindEmailContext;
   setBindEmail: (context: BindEmailContext) => void;
-  setMusicProvidersLogin: () => void;
+  musicProviderLogin: MusicProviderId;
+  setMusicProvidersLogin: (provider?: MusicProviderId) => void;
   returnFromAuth: () => void;
   setLyrics: () => void;
   setLyricsTranslation: () => void;

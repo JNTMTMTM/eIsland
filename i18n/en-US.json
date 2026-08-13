@@ -2759,6 +2759,40 @@
       },
       "pagination": "Music settings pagination"
     },
+    "musicProviderLogin": {
+      "title": "Music provider account connection",
+      "connected": "Connected",
+      "notConnected": "Not connected",
+      "loading": "Generating QR code...",
+      "qrUnavailable": "QR code unavailable",
+      "success": "Login successful",
+      "successTitle": "Soda Music is connected",
+      "qishui": {
+        "name": "Soda Music",
+        "instruction": "Scan with the Douyin app to log in"
+      },
+      "status": {
+        "idle": "Ready to log in",
+        "waiting": "Waiting for scan confirmation...",
+        "scanned": "Scanned. Confirm on your phone...",
+        "confirmed": "Login successful. The session was saved securely",
+        "expired": "The QR code expired. Refresh it to continue",
+        "rate_limited": "Too many requests. Checking will resume automatically...",
+        "mfa_cancelled": "Secondary verification was cancelled. Refresh the QR code and retry",
+        "error": "Login status check failed. Retrying..."
+      },
+      "steps": {
+        "openDouyin": "Open the Douyin app on your phone",
+        "scan": "Use Scan to scan the QR code on the left",
+        "confirm": "Confirm the login authorization on your phone"
+      },
+      "actions": {
+        "back": "Back to provider settings",
+        "refresh": "Refresh QR code",
+        "logout": "Log out",
+        "done": "Done"
+      }
+    },
     "hotkey": {
       "duplicateHotkey": "Duplicate hotkey",
       "registerFailed": "Hotkey registration failed",
