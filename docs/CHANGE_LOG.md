@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-08-11T20:03:47.586Z
+> 生成时间：2026-08-13T17:48:00.766Z
 
 ## 26.7.2
 
@@ -3343,6 +3343,29 @@
 
 ## Unreleased
 
+- 2026-08-14 | 71b03eca | 鸡哥 | Merge pull request #196 from JNTMTMTM/dev
+- 2026-08-14 | 08607d2d | 鸡哥 | fix: update state count from 20 to 21 in documentation and add musicProvidersLogin state details
+- 2026-08-14 | 6f5f75c8 | 鸡哥 | test: update IPC channel registration test to reflect new handlers count
+- 2026-08-14 | bf27e8e5 | 鸡哥 | feat: implement Soda Music provider mode selection and handling
+- 2026-08-14 | 74d3c122 | 鸡哥 | feat: add danger styling for hotkey button in MusicSettingsSection
+- 2026-08-13 | 0472b0de | 鸡哥 | feat: add Qishui music provider authentication handling in MusicSettingsSection
+- 2026-08-13 | 61161029 | 鸡哥 | feat: add report issue functionality to MusicProvidersLoginContent component
+- 2026-08-13 | 9d4ff3ac | 鸡哥 | feat: update success icon in QR login with SVG and enhance styles
+- 2026-08-13 | 381969dd | 鸡哥 | feat: enhance QR login interface with success state and loading spinner
+- 2026-08-13 | e0af0b7f | 鸡哥 | refactor: update Soda Music login instructions and adjust layout for improved user experience
+- 2026-08-13 | 940f6258 | 鸡哥 | refactor: update styles and structure for MusicProvidersLoginContent and MusicSettingsSection components
+- 2026-08-13 | 5bf478ee | 鸡哥 | feat: add Qishui music provider QR login functionality
+- 2026-08-13 | 6ef64c2c | 鸡哥 | refactor: remove hint and status from Soda Music provider in localization files
+- 2026-08-13 | 792c4d67 | 鸡哥 | feat: enhance SodaMusic provider display with icon and improved layout
+- 2026-08-13 | 4d0844e0 | 鸡哥 | feat: update CodeGraph documentation and add guidelines for plugin versioning and agent prompt synchronization
+- 2026-08-12 | bd7c90e2 | 鸡哥 | fix: update import path for auth CSS in MusicProvidersLoginContent component
+- 2026-08-12 | 58387bfa | 鸡哥 | feat: add evals configuration for empty state machines and related prompts
+- 2026-08-12 | 72b13aee | 鸡哥 | feat: add empty IslandState for dynamic island with configuration steps and component creation
+- 2026-08-12 | ab41559e | 鸡哥 | feat: refactor MusicProvidersLoginContent component structure and update import path
+- 2026-08-12 | c6e43720 | 鸡哥 | feat: add musicProvidersLogin state and related components for provider login functionality
+- 2026-08-12 | 319b4408 | 鸡哥 | feat: add musicProvidersLogin component
+- 2026-08-12 | 940db75a | 鸡哥 | feat: add 'providers' option to music settings and update related translations
+- 2026-08-11 | dffda339 | eislandBot | docs: auto update CHANGE_LOG.md for #195 by @JNTMTMTM [skip ci]
 - 2026-08-12 | 581564d8 | 鸡哥 | Merge pull request #195 from JNTMTMTM/dev
 - 2026-08-12 | cf6ac7c9 | 鸡哥 | feat: introduce shared extension types and refactor related imports
 - 2026-08-12 | 4c71f5f1 | 鸡哥 | refactor: replace for loops with forEach for better readability in extension management
