@@ -47,6 +47,9 @@ type ExposedApi = {
   getMousePosition: () => Promise<unknown>;
   mediaGetMuted: () => Promise<boolean | null>;
   mediaToggleMuted: () => Promise<boolean | null>;
+  qishuiSearch: (keyword: string, options?: { limit?: number }) => Promise<unknown>;
+  qishuiLyrics: (id: string) => Promise<unknown>;
+  qishuiSongUrl: (id: string, quality?: string) => Promise<unknown>;
   onNowPlayingInfo: (callback: (payload: unknown) => void) => () => void;
   getPathForFile: (file: File) => string;
   windowClose: () => void;
@@ -152,6 +155,15 @@ describe('preload bridge', () => {
 
     await api.mediaToggleMuted();
     expect(setup.invokeMock).toHaveBeenCalledWith('media:toggle-muted');
+
+    await api.qishuiSearch('track', { limit: 8 });
+    expect(setup.invokeMock).toHaveBeenCalledWith('qishui:search', 'track', { limit: 8 });
+
+    await api.qishuiLyrics('track-id');
+    expect(setup.invokeMock).toHaveBeenCalledWith('qishui:lyrics', 'track-id');
+
+    await api.qishuiSongUrl('track-id', 'standard');
+    expect(setup.invokeMock).toHaveBeenCalledWith('qishui:song-url', 'track-id', 'standard');
 
     const callback = vi.fn();
     const unsubscribe = api.onNowPlayingInfo(callback);

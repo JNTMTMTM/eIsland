@@ -31,6 +31,8 @@ import type { KaraokeLine } from '../types';
 
 const mockRequestJsonWithLog = vi.hoisted(() => vi.fn());
 const mockRequestTextWithLog = vi.hoisted(() => vi.fn());
+const mockQishuiSearch = vi.hoisted(() => vi.fn());
+const mockQishuiLyrics = vi.hoisted(() => vi.fn());
 
 const mockCleanTitle = vi.hoisted(() => vi.fn((t: string) => t));
 const mockCleanArtist = vi.hoisted(() => vi.fn((a: string) => a));
@@ -75,6 +77,13 @@ vi.mock('../parsers', () => ({
 vi.mock('../../../../../utils/logger', () => ({
   logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
 }));
+
+vi.stubGlobal('window', {
+  api: {
+    qishuiSearch: mockQishuiSearch,
+    qishuiLyrics: mockQishuiLyrics,
+  },
+});
 
 /* ---------- imports under test ---------- */
 
@@ -442,13 +451,13 @@ describe('fetchKaraokeFromSodaMusic', () => {
 
   it('returns null when detail response has no lyric content', async () => {
     mockSearchWithScoring.mockResolvedValue({ id: '100', title: 't', artists: ['a'] });
-    mockRequestJsonWithLog.mockResolvedValueOnce({ lyric: {} });
+    mockQishuiLyrics.mockResolvedValueOnce({ lyric: '', tlyric: '' });
     expect(await fetchKaraokeFromSodaMusic('t', 'a')).toBeNull();
   });
 
   it('returns null when detail response has no lyric field', async () => {
     mockSearchWithScoring.mockResolvedValue({ id: '100', title: 't', artists: ['a'] });
-    mockRequestJsonWithLog.mockResolvedValueOnce({});
+    mockQishuiLyrics.mockResolvedValueOnce({});
     expect(await fetchKaraokeFromSodaMusic('t', 'a')).toBeNull();
   });
 
@@ -457,7 +466,7 @@ describe('fetchKaraokeFromSodaMusic', () => {
     const expected = [makeKaraokeLine('Hello')];
 
     mockSearchWithScoring.mockResolvedValue({ id: '42', title: 't', artists: ['a'] });
-    mockRequestJsonWithLog.mockResolvedValueOnce({ lyric: { content: lyricContent } });
+    mockQishuiLyrics.mockResolvedValueOnce({ lyric: lyricContent, tlyric: '' });
     mockParseSyncedLines.mockReturnValueOnce(expected);
 
     const result = await fetchKaraokeFromSodaMusic('t', 'a');
@@ -467,7 +476,7 @@ describe('fetchKaraokeFromSodaMusic', () => {
 
   it('returns null when parseSyncedLines yields no syllable lines', async () => {
     mockSearchWithScoring.mockResolvedValue({ id: '1', title: 't', artists: ['a'] });
-    mockRequestJsonWithLog.mockResolvedValueOnce({ lyric: { content: 'bad-data' } });
+    mockQishuiLyrics.mockResolvedValueOnce({ lyric: 'bad-data', tlyric: '' });
     mockParseSyncedLines.mockReturnValueOnce([]);
 
     expect(await fetchKaraokeFromSodaMusic('t', 'a')).toBeNull();
@@ -475,7 +484,7 @@ describe('fetchKaraokeFromSodaMusic', () => {
 
   it('returns null when detail response is null', async () => {
     mockSearchWithScoring.mockResolvedValue({ id: '99', title: 't', artists: ['a'] });
-    mockRequestJsonWithLog.mockResolvedValueOnce(null);
+    mockQishuiLyrics.mockResolvedValueOnce(null);
     expect(await fetchKaraokeFromSodaMusic('t', 'a')).toBeNull();
   });
 

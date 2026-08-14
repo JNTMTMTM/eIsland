@@ -26,7 +26,6 @@
  * @docs https://github.com/cXp1r/lyricify-lyrics-provider-rs
  */
 
-import { requestJsonWithLog } from '../../normal/request';
 import { logger } from '../../../../../utils/logger';
 import { parseSyncedLines } from '../parsers';
 import { searchWithScoring } from '../../normal/matcher';
@@ -34,68 +33,35 @@ import type { SearchCandidate } from '../../normal/searchTypes';
 import type { KaraokeLine } from '../types';
 
 const LOG_TAG = '[KaraokeSodaMusic]';
-const SODA_HEADERS = {
-  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
-  Referer: 'https://api.qishui.com/',
-};
-
-/* ── 搜索 ──────────────────────────────────────────────────────────── */
-
-interface SodaTrack {
-  id?: number | string;
+interface QishuiSong {
+  id?: string;
+  providerSongId?: string;
   name?: string;
+  artist?: string;
   artists?: Array<{ name?: string }>;
-  album?: { name?: string };
+  album?: string;
   duration?: number;
 }
 
 async function searchSodaMusicApi(query: string): Promise<SearchCandidate[]> {
-  const searchUrl =
-    `https://api.qishui.com/luna/pc/search/track?aid=386088&app_name=&region=&geo_region=&os_region=&sim_region=&device_id=&cdid=&iid=&version_name=&version_code=&channel=&build_mode=&network_carrier=&ac=&tz_name=&resolution=&device_platform=&device_type=&os_version=&fp=&q=${encodeURIComponent(query)}&cursor=&search_id=&search_method=input&debug_params=&from_search_id=&search_scene=`;
-
-  const json = await requestJsonWithLog<Record<string, unknown>>(searchUrl, { headers: SODA_HEADERS });
-  if (!json) return [];
-
-  const resultGroups = json.result_groups as unknown[] | undefined;
-  if (!resultGroups || resultGroups.length === 0) return [];
-
-  return resultGroups.flatMap((group) => {
-    const g = group as Record<string, unknown>;
-    const items = g.data as unknown[] | undefined;
-    if (!items) return [];
-    return items
-      .map((item) => {
-        const it = item as Record<string, unknown>;
-        const entity = it.entity as Record<string, unknown> | undefined;
-        const track = entity?.track as SodaTrack | undefined;
-        if (!track?.id) return null;
-        return {
-          id: String(track.id),
-          title: track.name ?? '',
-          artists: (track.artists ?? []).map((a) => a.name ?? ''),
-          album: track.album?.name ?? '',
-          durationMs: track.duration,
-        };
-      })
-      .filter((c) => c !== null);
-  });
+  const result = await window.api.qishuiSearch(query, { limit: 18 });
+  const songs = Array.isArray(result.songs) ? result.songs as QishuiSong[] : [];
+  return songs.map((song) => ({
+    id: String(song.providerSongId || song.id || ''),
+    title: song.name || '',
+    artists: song.artists?.map((artist) => artist.name || '').filter(Boolean)
+      || (song.artist ? [song.artist] : []),
+    album: song.album || '',
+    durationMs: song.duration,
+  })).filter((song) => song.id && song.title);
 }
 
 /* ── 详情 + 逐字歌词获取 ───────────────────────────────────────────── */
 
 async function fetchKaraokeByTrackId(trackId: string): Promise<KaraokeLine[] | null> {
-  const detailUrl =
-    `https://api.qishui.com/luna/pc/track_v2?track_id=${encodeURIComponent(trackId)}&media_type=track&queue_type=&aid=386088&iid=114514`;
-
-  const detailJson = await requestJsonWithLog<Record<string, unknown>>(detailUrl, { headers: SODA_HEADERS });
-  if (!detailJson) {
-    logger.warn(`${LOG_TAG} 详情接口返回空, trackId=${trackId}`);
-    return null;
-  }
-
-  const lyricInfo = detailJson.lyric as Record<string, unknown> | undefined;
-  const content = typeof lyricInfo?.content === 'string' ? lyricInfo.content : null;
-  if (!content || content.length === 0) {
+  const detailJson = await window.api.qishuiLyrics(trackId);
+  const content = detailJson && typeof detailJson.lyric === 'string' ? detailJson.lyric : null;
+  if (!content) {
     logger.warn(`${LOG_TAG} 歌词内容为空, trackId=${trackId}`);
     return null;
   }
