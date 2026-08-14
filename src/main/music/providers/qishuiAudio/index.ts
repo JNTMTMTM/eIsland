@@ -75,13 +75,30 @@ export async function handleQishuiAudioRequest(request: Request): Promise<Respon
     return new Response('Not Found', { status: 404 });
   }
   try {
-    const upstream = await fetch(entry.sourceUrl, { signal: AbortSignal.timeout(30_000) });
+    const rangeHeader = request.headers.get('range');
+    const upstream = await fetch(entry.sourceUrl, {
+      signal: AbortSignal.timeout(30_000),
+      headers: rangeHeader ? { range: rangeHeader } : undefined,
+    });
     if (!upstream.ok) return new Response('Bad Gateway', { status: 502 });
+
+    // Stream unencrypted audio directly when upstream supports range requests
+    if (!entry.playAuth && rangeHeader && upstream.body) {
+      const acceptRanges = upstream.headers.get('accept-ranges');
+      const isPartial = upstream.status === 206;
+      if ((acceptRanges && acceptRanges.toLowerCase() !== 'none') || isPartial) {
+        const headers = new Headers(upstream.headers);
+        if (!headers.has('content-type')) headers.set('content-type', 'audio/mp4');
+        return new Response(upstream.body, { status: upstream.status, headers });
+      }
+    }
+
+    // Fallback: buffer and handle ranges locally (required for encrypted audio)
     const encrypted = Buffer.from(await upstream.arrayBuffer());
     const audio = entry.playAuth
       ? decryptQishuiAudio(encrypted, entry.playAuth)
       : { buffer: encrypted, contentType: upstream.headers.get('content-type') || 'audio/mp4' };
-    return rangedResponse(audio.buffer, audio.contentType, request.headers.get('range'));
+    return rangedResponse(audio.buffer, audio.contentType, rangeHeader);
   } catch {
     return new Response('Bad Gateway', { status: 502 });
   }

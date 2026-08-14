@@ -52,6 +52,7 @@ export interface QishuiSongsResult {
   songs: QishuiSong[];
   configured?: boolean;
   loggedIn?: boolean;
+  publicCatalog?: boolean;
   offset?: number;
   limit?: number;
   nextOffset?: number;

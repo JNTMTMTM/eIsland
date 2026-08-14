@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import { describe, expect, it, vi, beforeEach, type Mock } from 'vitest';
+import { describe, expect, it, vi, beforeEach, afterEach, type Mock } from 'vitest';
 
 /* ---------- hoisted mock stubs ---------- */
 
@@ -70,11 +70,17 @@ vi.mock('../../../../../utils/logger', () => ({
   logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
 }));
 
-vi.stubGlobal('window', {
-  api: {
-    qishuiSearch: mockQishuiSearch,
-    qishuiLyrics: mockQishuiLyrics,
-  },
+beforeEach(() => {
+  vi.stubGlobal('window', {
+    api: {
+      qishuiSearch: mockQishuiSearch,
+      qishuiLyrics: mockQishuiLyrics,
+    },
+  });
+});
+
+afterEach(() => {
+  vi.unstubAllGlobals();
 });
 
 /* ---------- imports under test ---------- */

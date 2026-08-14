@@ -32,32 +32,25 @@ import { parseTranslationLyrics } from '../translation';
 import { logger } from '../../../../../utils/logger';
 import { searchWithScoring } from '../matcher';
 import type { SearchCandidate } from '../searchTypes';
+import type { QishuiSong } from '../../../../../../shared/qishuiBusiness';
 
 const LOG_TAG = '[SodaMusic]';
-
-interface QishuiSong {
-  id?: string;
-  providerSongId?: string;
-  name?: string;
-  artist?: string;
-  artists?: Array<{ name?: string }>;
-  album?: string;
-  duration?: number;
-}
 
 async function searchSodaMusicApi(query: string): Promise<SearchCandidate[]> {
   const result = await window.api.qishuiSearch(query, { limit: 18 });
   const auth = result.loggedIn ? 'login' : result.publicCatalog ? 'public' : 'unknown';
   logger.info(`${LOG_TAG} 搜索 auth=${auth}, query="${query}", 结果数=${Array.isArray(result.songs) ? result.songs.length : 0}`);
   const songs = Array.isArray(result.songs) ? result.songs as QishuiSong[] : [];
-  return songs.map((song) => ({
-    id: String(song.providerSongId || song.id || ''),
-    title: song.name || '',
-    artists: song.artists?.map((artist) => artist.name || '').filter(Boolean)
-      || (song.artist ? [song.artist] : []),
-    album: song.album || '',
-    durationMs: song.duration,
-  })).filter((song) => song.id && song.title);
+  return songs.map((song) => {
+    const mappedArtists = song.artists?.map((artist) => artist.name || '').filter(Boolean) ?? [];
+    return {
+      id: String(song.providerSongId || song.id || ''),
+      title: song.name || '',
+      artists: mappedArtists.length > 0 ? mappedArtists : (song.artist ? [song.artist] : []),
+      album: song.album || '',
+      durationMs: song.duration,
+    };
+  }).filter((song) => song.id && song.title);
 }
 
 /* ── 详情 + 歌词获取 ───────────────────────────────────────────────── */
