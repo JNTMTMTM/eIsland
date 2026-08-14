@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-08-13T17:48:00.766Z
+> 生成时间：2026-08-14T19:23:16.785Z
 
 ## 26.7.2
 
@@ -3343,6 +3343,14 @@
 
 ## Unreleased
 
+- 2026-08-15 | 8b1c3d17 | 鸡哥 | Merge pull request #197 from JNTMTMTM/dev
+- 2026-08-15 | 52839c64 | 鸡哥 | feat: enhance Qishui audio handling with range support and improve song mapping in SodaMusic API
+- 2026-08-15 | 15c0a65c | 鸡哥 | refactor: improve unwrapList function and enhance type handling in Qishui service methods
+- 2026-08-15 | 794e2825 | 鸡哥 | feat: implement scrolling text component and karaoke scroll progress hook for lyrics display
+- 2026-08-15 | b0e0472a | 鸡哥 | feat: add authentication tracking to Qishui lyrics and song fetching functions
+- 2026-08-15 | 0928413c | 鸡哥 | fix: enhance lyric translation handling in getQishuiLyrics function
+- 2026-08-15 | d4b3e790 | 鸡哥 | feat: add Qishui business service integration
+- 2026-08-13 | 1d3f3cb8 | eislandBot | docs: auto update CHANGE_LOG.md for #196 by @JNTMTMTM [skip ci]
 - 2026-08-14 | 71b03eca | 鸡哥 | Merge pull request #196 from JNTMTMTM/dev
 - 2026-08-14 | 08607d2d | 鸡哥 | fix: update state count from 20 to 21 in documentation and add musicProvidersLogin state details
 - 2026-08-14 | 6f5f75c8 | 鸡哥 | test: update IPC channel registration test to reflect new handlers count
