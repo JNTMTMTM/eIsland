@@ -501,11 +501,22 @@ export async function getQishuiLyrics(id: string): Promise<Record<string, unknow
   const track = Object.keys(record(data.track)).length ? record(data.track) : data;
   const lyric = record(track.lyric_info || track.lyric || data.lyric_info || data.lyric);
   const lyricEntity = record(lyric.lyric_entity);
+  const rawTranslations = lyric.translated_lyric ?? lyric.translation ?? lyric.tlyric ?? lyric.translations;
+  let translationText: string | null = null;
+  if (typeof rawTranslations === 'string') {
+    translationText = rawTranslations;
+  } else if (Array.isArray(rawTranslations) && rawTranslations.length > 0) {
+    const first = rawTranslations[0] as Record<string, unknown> | undefined;
+    if (first && typeof first.content === 'string') translationText = first.content;
+  } else if (rawTranslations && typeof rawTranslations === 'object' && !Array.isArray(rawTranslations)) {
+    const found = Object.values(rawTranslations as Record<string, unknown>).find((v): v is string => typeof v === 'string' && v.trim().length > 0);
+    if (found) translationText = found;
+  }
   return {
     provider: 'qishui',
     id,
     lyric: text(lyric.content || lyric.lyric_text || lyric.text || lyricEntity.content),
-    tlyric: text(lyric.translated_lyric || lyric.translation || lyric.tlyric),
+    tlyric: translationText ? translationText.trim() : '',
   };
 }
 
