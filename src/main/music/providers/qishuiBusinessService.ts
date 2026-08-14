@@ -205,11 +205,13 @@ function record(value: unknown): Record<string, unknown> {
 function unwrapList(payload: unknown): unknown[] {
   const root = record(payload);
   const data = record(root.data);
-  for (const source of [root, data]) {
-    for (const key of ['list', 'items', 'songs', 'tracks', 'media_list', 'result']) {
-      if (Array.isArray(source[key])) return source[key];
-    }
-  }
+  const listKeys = ['list', 'items', 'songs', 'tracks', 'media_list', 'result'];
+  const found = [root, data].reduce<unknown[] | undefined>((result, source) => {
+    if (result) return result;
+    const key = listKeys.find((k) => Array.isArray(source[k]));
+    return key ? (source[key] as unknown[]) : undefined;
+  }, undefined);
+  if (found) return found;
   const groups = Array.isArray(root.result_groups) ? root.result_groups : [];
   return groups.flatMap((group) => {
     const value = record(group);
@@ -374,7 +376,7 @@ export async function searchQishui(keyword: string, options: QishuiRequestOption
     }
   }
   if (!PUBLIC_ENABLED) return { provider: 'qishui', configured: false, songs: [], error: 'QISHUI_SEARCH_UNAVAILABLE' };
-  const payload = await requestJson<any>(withParams(PUBLIC_SEARCH_URL, {
+  const payload = await requestJson<unknown>(withParams(PUBLIC_SEARCH_URL, {
     keyword: query, search_type: 'music', limit: Math.min(100, Math.max(36, (offset + limit) * 3)), real_offset: 0, search_source: 'qishui',
   }), { headers: PUBLIC_HEADERS });
   const songs = unwrapList(payload).map(mapTrack).filter((song) => song.id && song.name).slice(offset, offset + limit);
@@ -390,7 +392,9 @@ export async function getQishuiFeed(limit = 8): Promise<Record<string, unknown>>
   const normalizedLimit = Math.max(1, Math.min(18, Number(limit) || 8));
   const session = readSession();
   if (hasSession(cookiePairs(session.cookie))) {
-    for (const path of ['/luna/feed/song-tab', '/luna/pc/feed/song-tab']) {
+    const feedResult = await ['/luna/feed/song-tab', '/luna/pc/feed/song-tab'].reduce<Promise<Record<string, unknown> | null>>(async (prevPromise, path) => {
+      const prevResult = await prevPromise;
+      if (prevResult) return prevResult;
       try {
         const payload = await pcGet(path, { cursor: 0, cnt: normalizedLimit, count: normalizedLimit }, session);
         const songs = unwrapList(payload).map(mapTrack).filter((song) => song.id);
@@ -398,7 +402,9 @@ export async function getQishuiFeed(limit = 8): Promise<Record<string, unknown>>
       } catch {
         // 继续尝试下一条官方链路。
       }
-    }
+      return null;
+    }, Promise.resolve(null));
+    if (feedResult) return feedResult;
   }
   if (readOpenApiToken()) {
     const payload = await openApiPost(OPEN_API_FEED_PATH, {
@@ -609,7 +615,7 @@ export const qishuiBusiness = {
   songUrl: getQishuiSongUrl,
   comments: async (id: string, options: QishuiRequestOptions = {}) => {
     const session = readSession();
-    const payload = await pcGet<any>('/luna/pc/comments', {
+    const payload = await pcGet<unknown>('/luna/pc/comments', {
       group_id: id, cursor: options.cursor || options.offset || '', count: options.limit || 20, group_type: 0,
     }, session);
     return { provider: 'qishui', id, comments: unwrapList(payload), loggedIn: true };
