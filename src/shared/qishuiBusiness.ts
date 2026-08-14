@@ -62,6 +62,7 @@ export interface QishuiSongsResult {
 export interface QishuiLyricsResult {
   provider: 'qishui';
   id: string;
+  auth: string;
   lyric: string;
   tlyric: string;
 }

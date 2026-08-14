@@ -47,6 +47,8 @@ interface QishuiSong {
 
 async function searchSodaMusicApi(query: string): Promise<SearchCandidate[]> {
   const result = await window.api.qishuiSearch(query, { limit: 18 });
+  const auth = result.loggedIn ? 'login' : result.publicCatalog ? 'public' : 'unknown';
+  logger.info(`${LOG_TAG} 搜索 auth=${auth}, query="${query}", 结果数=${Array.isArray(result.songs) ? result.songs.length : 0}`);
   const songs = Array.isArray(result.songs) ? result.songs as QishuiSong[] : [];
   return songs.map((song) => ({
     id: String(song.providerSongId || song.id || ''),
@@ -62,21 +64,22 @@ async function searchSodaMusicApi(query: string): Promise<SearchCandidate[]> {
 
 async function fetchLyricsByTrackId(trackId: string): Promise<LyricsFetchResult | null> {
   const detailJson = await window.api.qishuiLyrics(trackId);
+  const auth = detailJson && typeof detailJson.auth === 'string' ? detailJson.auth : 'unknown';
   const content = detailJson && typeof detailJson.lyric === 'string' ? detailJson.lyric : null;
   if (!content) {
-    logger.warn(`${LOG_TAG} 歌词内容为空, trackId=${trackId}`);
+    logger.warn(`${LOG_TAG} 歌词内容为空, trackId=${trackId}, auth=${auth}`);
     return null;
   }
 
   const lines = parseKrc(content);
   if (lines.length === 0) {
-    logger.warn(`${LOG_TAG} KRC 解析后 0 行, trackId=${trackId}`);
+    logger.warn(`${LOG_TAG} KRC 解析后 0 行, trackId=${trackId}, auth=${auth}`);
     return null;
   }
   const translationText = detailJson && typeof detailJson.tlyric === 'string' ? detailJson.tlyric : null;
   const translation = parseTranslationLyrics(translationText);
 
-  logger.info(`${LOG_TAG} 获取成功, trackId=${trackId}, 行数=${lines.length}, 翻译歌词状态=${translation.status}`);
+  logger.info(`${LOG_TAG} 获取成功, trackId=${trackId}, auth=${auth}, 行数=${lines.length}, 翻译歌词状态=${translation.status}`);
   return { lyrics: lines, translation };
 }
 

@@ -45,6 +45,8 @@ interface QishuiSong {
 
 async function searchSodaMusicApi(query: string): Promise<SearchCandidate[]> {
   const result = await window.api.qishuiSearch(query, { limit: 18 });
+  const auth = result.loggedIn ? 'login' : result.publicCatalog ? 'public' : 'unknown';
+  logger.info(`${LOG_TAG} 搜索 auth=${auth}, query="${query}", 结果数=${Array.isArray(result.songs) ? result.songs.length : 0}`);
   const songs = Array.isArray(result.songs) ? result.songs as QishuiSong[] : [];
   return songs.map((song) => ({
     id: String(song.providerSongId || song.id || ''),
@@ -60,9 +62,10 @@ async function searchSodaMusicApi(query: string): Promise<SearchCandidate[]> {
 
 async function fetchKaraokeByTrackId(trackId: string): Promise<KaraokeLine[] | null> {
   const detailJson = await window.api.qishuiLyrics(trackId);
+  const auth = detailJson && typeof detailJson.auth === 'string' ? detailJson.auth : 'unknown';
   const content = detailJson && typeof detailJson.lyric === 'string' ? detailJson.lyric : null;
   if (!content) {
-    logger.warn(`${LOG_TAG} 歌词内容为空, trackId=${trackId}`);
+    logger.warn(`${LOG_TAG} 歌词内容为空, trackId=${trackId}, auth=${auth}`);
     return null;
   }
 
@@ -70,10 +73,10 @@ async function fetchKaraokeByTrackId(trackId: string): Promise<KaraokeLine[] | n
   const lines = parseSyncedLines(content, 'prefix', 'relative');
   const withSyllables = lines.filter((l) => l.syllables.length > 0);
   if (withSyllables.length === 0) {
-    logger.warn(`${LOG_TAG} 解析出 0 行逐字, trackId=${trackId}`);
+    logger.warn(`${LOG_TAG} 解析出 0 行逐字, trackId=${trackId}, auth=${auth}`);
     return null;
   }
-  logger.info(`${LOG_TAG} 获取成功, trackId=${trackId}, 行数=${withSyllables.length}`);
+  logger.info(`${LOG_TAG} 获取成功, trackId=${trackId}, auth=${auth}, 行数=${withSyllables.length}`);
   return withSyllables;
 }
 

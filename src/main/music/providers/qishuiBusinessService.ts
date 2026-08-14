@@ -472,15 +472,18 @@ export async function getQishuiPlaylistTracks(id: string, options: QishuiRequest
 export async function getQishuiLyrics(id: string): Promise<Record<string, unknown>> {
   const session = readSession();
   let payload: unknown = null;
+  let auth: string = 'none';
   try {
     payload = await requestJson(withParams('https://beta-luna.douyin.com/luna/h5/seo_track', {
       track_id: id,
       device_platform: 'web',
     }), { headers: PUBLIC_HEADERS });
+    if (payload) auth = 'seo_track';
   } catch {
     if (hasSession(cookiePairs(session.cookie))) {
       try {
         payload = await pcGet('/luna/pc/track_v2', { track_id: id, media_type: 'track' }, session);
+        if (payload) auth = 'login';
       } catch {
         payload = null;
       }
@@ -495,6 +498,7 @@ export async function getQishuiLyrics(id: string): Promise<Record<string, unknow
       need_stat: true,
       item_ids: id,
     }), { headers: PUBLIC_HEADERS });
+    if (payload) auth = 'public';
   }
   const root = record(payload);
   const data = Object.keys(record(root.data)).length ? record(root.data) : root;
@@ -515,6 +519,7 @@ export async function getQishuiLyrics(id: string): Promise<Record<string, unknow
   return {
     provider: 'qishui',
     id,
+    auth,
     lyric: text(lyric.content || lyric.lyric_text || lyric.text || lyricEntity.content),
     tlyric: translationText ? translationText.trim() : '',
   };
