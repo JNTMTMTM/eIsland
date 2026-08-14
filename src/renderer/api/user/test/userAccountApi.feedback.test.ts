@@ -59,7 +59,7 @@ const MockXHR: {
   responseText: '',
 }));
 
-vi.stubGlobal('XMLHttpRequest', vi.fn(() => MockXHR));
+vi.stubGlobal('XMLHttpRequest', vi.fn(function () { return MockXHR; }));
 
 import {
   submitUserIssueFeedback,
