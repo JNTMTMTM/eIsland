@@ -24,70 +24,16 @@
  * @author 鸡哥
  */
 
-import type { CSSProperties, ReactElement, ReactNode } from 'react';
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import type { CSSProperties, ReactElement } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../../../../../store/slices';
 import { SvgIcon } from '../../../../../../../utils/SvgIcon';
 import { KaraokeSyllableLine } from '../../../../../lyrics/components/KaraokeSyllableLine';
+import { ScrollingText } from '../../../../../lyrics/components/ScrollingText';
 import { useCurrentLyric } from '../../../../../lyrics/hooks/useCurrentLyric';
+import { useKaraokeScrollProgress } from '../../../../../lyrics/hooks/useKaraokeScrollProgress';
 import { useLyricsSettings } from '../../../../../lyrics/hooks/useLyricsSettings';
-
-interface ScrollingTextProps {
-  children: ReactNode;
-  className: string;
-  scrollProgress?: number;
-}
-
-/**
- * 仅在文本溢出可用宽度时启用往返滚动。
- * @param props - 文本节点与外层样式类名。
- * @returns 可根据实际宽度切换滚动状态的文本元素。
- */
-function ScrollingText({ children, className, scrollProgress }: ScrollingTextProps): ReactElement {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const contentRef = useRef<HTMLSpanElement>(null);
-  const [overflowDistance, setOverflowDistance] = useState(0);
-
-  useLayoutEffect(() => {
-    const container = containerRef.current;
-    const content = contentRef.current;
-    if (!container || !content) return undefined;
-
-    const updateOverflow = (): void => {
-      setOverflowDistance(Math.max(0, content.scrollWidth - container.clientWidth));
-    };
-    const observer = new ResizeObserver(updateOverflow);
-    observer.observe(container);
-    observer.observe(content);
-    updateOverflow();
-
-    return () => observer.disconnect();
-  }, []);
-
-  const normalizedProgress = scrollProgress === undefined
-    ? undefined
-    : Math.min(1, Math.max(0, scrollProgress));
-  const style = overflowDistance > 0
-    ? {
-      '--song-text-scroll-distance': `${overflowDistance}px`,
-      '--song-text-scroll-duration': `${Math.max(6, overflowDistance / 18 + 4)}s`,
-      '--song-text-scroll-offset': `${overflowDistance * (normalizedProgress ?? 0)}px`,
-    } as CSSProperties
-    : undefined;
-  const progressClass = normalizedProgress === undefined ? '' : ' is-progress-driven';
-
-  return (
-    <div
-      ref={containerRef}
-      className={`${className} ov-dash-song-scroll${overflowDistance > 0 ? ` is-overflowing${progressClass}` : ''}`}
-    >
-      <span ref={contentRef} className="ov-dash-song-scroll-content" style={style}>
-        {children}
-      </span>
-    </div>
-  );
-}
 
 /** 正在播放小组件，展示当前播放歌曲与媒体控制。 */
 export function SongWidget(): ReactElement {
@@ -140,17 +86,7 @@ export function SongWidget(): ReactElement {
   const lyricText = isIntro ? syncedLyrics?.[0]?.text ?? '' : currentText;
   const nextLyricText = syncedLyrics?.[isIntro ? 1 : currentIdx + 1]?.text ?? '';
   const lyricsVisible = showLyrics && lyricsEnabled;
-  const karaokeLineDurationMs = currentLine?.syllables?.reduce(
-    (duration, syllable) => Math.max(duration, syllable.start_offset_ms + syllable.duration_ms),
-    0,
-  ) ?? 0;
-  const karaokeLinearScrollProgress = karaokeEnabled && hasSyllables && currentLine && !isIntro && karaokeLineDurationMs > 0
-    ? Math.min(1, Math.max(0, (currentPositionMs - currentLine.time_ms) / (karaokeLineDurationMs * 0.85)))
-    : undefined;
-  // 平滑变速避免线性跟随在行首、行尾产生突兀位移。
-  const karaokeScrollProgress = karaokeLinearScrollProgress === undefined
-    ? undefined
-    : karaokeLinearScrollProgress ** 2 * (3 - 2 * karaokeLinearScrollProgress);
+  const karaokeScrollProgress = useKaraokeScrollProgress(karaokeEnabled, currentLine, hasSyllables, isIntro, currentPositionMs);
   const [r, g, b] = dominantColor;
   const muteLabel = isMuted
     ? t('overview.song.unmute')

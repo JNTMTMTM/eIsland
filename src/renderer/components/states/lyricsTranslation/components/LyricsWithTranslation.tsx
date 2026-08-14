@@ -29,6 +29,8 @@ import { useTranslation } from 'react-i18next';
 import type { SyncedLyricLine } from '../../../../store/types';
 import { SvgIcon } from '../../../../utils/SvgIcon';
 import { KaraokeSyllableLine } from '../../lyrics/components/KaraokeSyllableLine';
+import { ScrollingText } from '../../lyrics/components/ScrollingText';
+import { useKaraokeScrollProgress } from '../../lyrics/hooks/useKaraokeScrollProgress';
 
 interface LyricsWithTranslationProps {
   currentPositionMs: number;
@@ -63,6 +65,8 @@ export function LyricsWithTranslation(props: LyricsWithTranslationProps): ReactE
     translationText,
   } = props;
 
+  const karaokeScrollProgress = useKaraokeScrollProgress(karaokeEnabled, currentLine, hasSyllables, isIntro, currentPositionMs);
+
   return (
     <div className="lyrics-right">
       {lyricsLoading ? (
@@ -79,9 +83,10 @@ export function LyricsWithTranslation(props: LyricsWithTranslationProps): ReactE
         </>
       ) : currentText ? (
         <div className="lyrics-lines-wrapper">
-          <span
+          <ScrollingText
             key={currentIdx}
             className={`lyrics-current-line${karaokeEnabled && hasSyllables ? ' lyrics-karaoke' : ''}`}
+            scrollProgress={karaokeScrollProgress}
           >
             {karaokeEnabled && hasSyllables && currentLine ? (
               <KaraokeSyllableLine
@@ -92,7 +97,7 @@ export function LyricsWithTranslation(props: LyricsWithTranslationProps): ReactE
             ) : (
               currentText
             )}
-          </span>
+          </ScrollingText>
           {translationText && (
             <span key={`t-${currentIdx}`} className="lyrics-translation-line">
               {translationText}
