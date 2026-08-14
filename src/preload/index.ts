@@ -71,6 +71,11 @@ import type {
   MusicProviderAuthStatus,
   MusicProviderId,
   MusicProviderQrCodeResult,
+  QishuiBusinessRequestOptions,
+  QishuiBusinessStatus,
+  QishuiLyricsResult,
+  QishuiSongsResult,
+  QishuiSongUrlResult,
   ExternalAgentData,
   SourceSwitchRequestData,
   RunningProcessInfo,
@@ -1064,6 +1069,37 @@ const api = {
   musicProviderAuthClear: (provider: MusicProviderId): Promise<MusicProviderAuthStatus> => {
     return ipcRenderer.invoke('music-provider-auth:clear', provider);
   },
+  qishuiStatus: (): Promise<QishuiBusinessStatus> => ipcRenderer.invoke('qishui:status'),
+  qishuiSearch: (keyword: string, options?: QishuiBusinessRequestOptions): Promise<QishuiSongsResult> => {
+    return ipcRenderer.invoke('qishui:search', keyword, options);
+  },
+  qishuiFeed: (limit?: number): Promise<QishuiSongsResult> => ipcRenderer.invoke('qishui:feed', limit),
+  qishuiPlaylists: (): Promise<Record<string, unknown>> => ipcRenderer.invoke('qishui:playlists'),
+  qishuiPlaylistTracks: (id: string, options?: QishuiBusinessRequestOptions): Promise<Record<string, unknown>> => {
+    return ipcRenderer.invoke('qishui:playlist-tracks', id, options);
+  },
+  qishuiLyrics: (id: string): Promise<QishuiLyricsResult> => ipcRenderer.invoke('qishui:lyrics', id),
+  qishuiSongUrl: (id: string, quality?: string): Promise<QishuiSongUrlResult> => {
+    return ipcRenderer.invoke('qishui:song-url', id, quality);
+  },
+  qishuiComments: (id: string, options?: QishuiBusinessRequestOptions): Promise<Record<string, unknown>> => {
+    return ipcRenderer.invoke('qishui:comments', id, options);
+  },
+  qishuiCreateComment: (id: string, content: string): Promise<Record<string, unknown>> => {
+    return ipcRenderer.invoke('qishui:create-comment', id, content);
+  },
+  qishuiCheckLiked: (ids: string[]): Promise<Record<string, unknown>> => ipcRenderer.invoke('qishui:check-liked', ids),
+  qishuiLike: (id: string, liked: boolean): Promise<Record<string, unknown>> => ipcRenderer.invoke('qishui:like', id, liked),
+  qishuiCollectPlaylist: (id: string, collected: boolean): Promise<Record<string, unknown>> => {
+    return ipcRenderer.invoke('qishui:collect-playlist', id, collected);
+  },
+  qishuiCollectAlbum: (id: string, collected: boolean): Promise<Record<string, unknown>> => {
+    return ipcRenderer.invoke('qishui:collect-album', id, collected);
+  },
+  qishuiAddSong: (playlistId: string, trackId: string): Promise<Record<string, unknown>> => {
+    return ipcRenderer.invoke('qishui:add-song', playlistId, trackId);
+  },
+  qishuiRecentPlay: (id: string): Promise<Record<string, unknown>> => ipcRenderer.invoke('qishui:recent-play', id),
   /**
    * 获取歌词源配置
    * @returns 歌词源标识字符串

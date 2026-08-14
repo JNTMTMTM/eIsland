@@ -24,12 +24,14 @@
  * @author 鸡哥
  */
 
-import { describe, expect, it, vi, beforeEach, type Mock } from 'vitest';
+import { describe, expect, it, vi, beforeEach, afterEach, type Mock } from 'vitest';
 
 /* ---------- hoisted mock stubs ---------- */
 
 const mockRequestJsonWithLog = vi.hoisted(() => vi.fn());
 const mockRequestTextWithLog = vi.hoisted(() => vi.fn());
+const mockQishuiSearch = vi.hoisted(() => vi.fn());
+const mockQishuiLyrics = vi.hoisted(() => vi.fn());
 
 const mockCleanTitle = vi.hoisted(() => vi.fn((t: string) => t));
 const mockCleanArtist = vi.hoisted(() => vi.fn((a: string) => a));
@@ -67,6 +69,19 @@ vi.mock('../matcher', () => ({
 vi.mock('../../../../../utils/logger', () => ({
   logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
 }));
+
+beforeEach(() => {
+  vi.stubGlobal('window', {
+    api: {
+      qishuiSearch: mockQishuiSearch,
+      qishuiLyrics: mockQishuiLyrics,
+    },
+  });
+});
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
 
 /* ---------- imports under test ---------- */
 
@@ -524,22 +539,19 @@ describe('fetchLyricsFromSodaMusic', () => {
 
   it('returns null when detail response has no lyric content', async () => {
     mockSearchWithScoring.mockResolvedValue({ id: '100', title: 't', artists: ['a'] });
-    mockRequestJsonWithLog.mockResolvedValueOnce({ lyric: {} });
+    mockQishuiLyrics.mockResolvedValueOnce({ lyric: '', tlyric: '' });
     expect(await fetchLyricsFromSodaMusic('t', 'a')).toBeNull();
   });
 
-  it('fetches detail URL with track_id and calls parseKrc', async () => {
+  it('requests lyrics through preload API and calls parseKrc', async () => {
     const krcLines = okLines('soda-line');
     mockSearchWithScoring.mockResolvedValue({ id: '42', title: 't', artists: ['a'] });
-    mockRequestJsonWithLog.mockResolvedValueOnce({ lyric: { content: 'krc-data' } });
+    mockQishuiLyrics.mockResolvedValueOnce({ lyric: 'krc-data', tlyric: '' });
     mockParseKrc.mockReturnValueOnce(krcLines);
 
     const result = await fetchLyricsFromSodaMusic('t', 'a');
     expect(result).toEqual(krcLines);
-
-    const detailUrl: string = mockRequestJsonWithLog.mock.calls[0][0];
-    expect(detailUrl).toContain('api.qishui.com/luna/pc/track_v2');
-    expect(detailUrl).toContain('track_id=42');
+    expect(mockQishuiLyrics).toHaveBeenCalledWith('42');
     expect(mockParseKrc).toHaveBeenCalledWith('krc-data');
   });
 
@@ -547,8 +559,8 @@ describe('fetchLyricsFromSodaMusic', () => {
     const krcLines = okLines('soda-line');
     const translationLines = okLines('soda-translated');
     mockSearchWithScoring.mockResolvedValue({ id: '42', title: 't', artists: ['a'] });
-    mockRequestJsonWithLog.mockResolvedValueOnce({
-      lyric: { content: 'krc-data', translations: '[00:01.00]soda-translated' },
+    mockQishuiLyrics.mockResolvedValueOnce({
+      lyric: 'krc-data', tlyric: '[00:01.00]soda-translated',
     });
     mockParseKrc.mockReturnValueOnce(krcLines);
     mockParseSyncedLrc.mockReturnValueOnce(translationLines);
@@ -561,12 +573,12 @@ describe('fetchLyricsFromSodaMusic', () => {
     });
   });
 
-  it('returns translation lyrics from array format translations', async () => {
+  it('returns normalized translation lyrics from the business API', async () => {
     const krcLines = okLines('soda-line');
     const translationLines = okLines('soda-translated');
     mockSearchWithScoring.mockResolvedValue({ id: '42', title: 't', artists: ['a'] });
-    mockRequestJsonWithLog.mockResolvedValueOnce({
-      lyric: { content: 'krc-data', translations: [{ lang: 'zh', content: '[00:01.00]soda-translated' }] },
+    mockQishuiLyrics.mockResolvedValueOnce({
+      lyric: 'krc-data', tlyric: '[00:01.00]soda-translated',
     });
     mockParseKrc.mockReturnValueOnce(krcLines);
     mockParseSyncedLrc.mockReturnValueOnce(translationLines);
@@ -579,12 +591,12 @@ describe('fetchLyricsFromSodaMusic', () => {
     });
   });
 
-  it('returns translation lyrics from object format translations (lang key)', async () => {
+  it('passes normalized tlyric text to the translation parser', async () => {
     const krcLines = okLines('soda-line');
     const translationLines = okLines('soda-translated');
     mockSearchWithScoring.mockResolvedValue({ id: '42', title: 't', artists: ['a'] });
-    mockRequestJsonWithLog.mockResolvedValueOnce({
-      lyric: { content: 'krc-data', translations: { cn: '[00:01.00]soda-translated' } },
+    mockQishuiLyrics.mockResolvedValueOnce({
+      lyric: 'krc-data', tlyric: '[00:01.00]soda-translated',
     });
     mockParseKrc.mockReturnValueOnce(krcLines);
     mockParseSyncedLrc.mockReturnValueOnce(translationLines);
@@ -595,13 +607,14 @@ describe('fetchLyricsFromSodaMusic', () => {
       lyrics: krcLines,
       translation: { status: 'available', lines: translationLines },
     });
+    expect(mockParseSyncedLrc).toHaveBeenCalledWith('[00:01.00]soda-translated');
   });
 
   it('returns not-provided when translations is null', async () => {
     const krcLines = okLines('soda-line');
     mockSearchWithScoring.mockResolvedValue({ id: '42', title: 't', artists: ['a'] });
-    mockRequestJsonWithLog.mockResolvedValueOnce({
-      lyric: { content: 'krc-data', translations: null },
+    mockQishuiLyrics.mockResolvedValueOnce({
+      lyric: 'krc-data', tlyric: '',
     });
     mockParseKrc.mockReturnValueOnce(krcLines);
 
@@ -615,7 +628,7 @@ describe('fetchLyricsFromSodaMusic', () => {
 
   it('returns null when parseKrc returns empty', async () => {
     mockSearchWithScoring.mockResolvedValue({ id: '1', title: 't', artists: ['a'] });
-    mockRequestJsonWithLog.mockResolvedValueOnce({ lyric: { content: 'bad-krc' } });
+    mockQishuiLyrics.mockResolvedValueOnce({ lyric: 'bad-krc', tlyric: '' });
     mockParseKrc.mockReturnValueOnce([]);
 
     expect(await fetchLyricsFromSodaMusic('t', 'a')).toBeNull();
@@ -623,7 +636,7 @@ describe('fetchLyricsFromSodaMusic', () => {
 
   it('returns null when detail response is null', async () => {
     mockSearchWithScoring.mockResolvedValue({ id: '99', title: 't', artists: ['a'] });
-    mockRequestJsonWithLog.mockResolvedValueOnce(null);
+    mockQishuiLyrics.mockResolvedValueOnce(null);
     expect(await fetchLyricsFromSodaMusic('t', 'a')).toBeNull();
   });
 

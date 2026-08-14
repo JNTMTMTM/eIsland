@@ -80,12 +80,22 @@ export function makeSearchQueries(title: string, artist: string, album?: string)
  * 截断于 ( / [ /  -  ，移除特殊标点
  */
 function cleanForScore(title: string): string {
-  const truncated = ['(', '[', ' - '].reduce((acc, pattern) => {
+  const truncated = ['(', '（', '[', '【', ' - '].reduce((acc, pattern) => {
     const idx = acc.indexOf(pattern);
     return idx !== -1 ? acc.substring(0, idx).trim() : acc;
   }, title);
   // 移除特殊标点
   return truncated.replace(/[《》「」『』！!?。、·•…]/g, '').trim();
+}
+
+function splitArtists(value: string, splitChar: string): string[] {
+  const separators = splitChar.trim()
+    ? new RegExp(`[\\s、，,/＆&;；]+|${splitChar.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'i')
+    : /[\s、，,/＆&;；]+/;
+  return value
+    .split(separators)
+    .map((artist) => artist.trim().toLowerCase())
+    .filter(Boolean);
 }
 
 /**
@@ -131,16 +141,13 @@ export function scoreTrack(input: ScoreInput, candidate: SearchCandidate, splitC
   }
 
   // ── 艺术家匹配 ──
-  const artists = input.artist
-    .split(splitChar)
-    .map((s) => s.trim().toLowerCase())
-    .filter((s) => s.length > 0);
+  const artists = splitArtists(input.artist, splitChar);
+  const candidateArtists = candidate.artists.flatMap((artist) => splitArtists(artist, splitChar));
 
-  score += artists.filter((a) =>
-    candidate.artists.some((b) => {
-      const bl = b.toLowerCase();
-      return a === bl || a.includes(bl) || bl.includes(a);
-    }),
+  score += artists.filter((artist) =>
+    candidateArtists.some((candidateArtist) =>
+      artist === candidateArtist || artist.includes(candidateArtist) || candidateArtist.includes(artist),
+    ),
   ).length;
 
   // ── 专辑匹配 ──

@@ -54,6 +54,8 @@ import { registerStoreIpcHandlers } from './ipc/app/store';
 import { registerLogIpcHandlers } from './ipc/app/log';
 import { registerMusicIpcHandlers } from './ipc/media/music';
 import { registerMusicProviderAuthIpcHandlers } from './ipc/media/musicProviderAuth';
+import { registerQishuiBusinessIpcHandlers } from './ipc/media/qishui';
+import { handleQishuiAudioRequest } from './music/providers/qishuiAudio';
 import { registerHotkeyIpcHandlers } from './ipc/system/hotkey';
 import { registerIslandIpcHandlers } from './ipc/settings/island';
 import { registerHideProcessIpcHandlers } from './ipc/system/hideProcess';
@@ -596,6 +598,7 @@ function registerIpcHandlers(): void {
 
   registerLogIpcHandlers({ writeMainLog });
   registerMusicProviderAuthIpcHandlers();
+  registerQishuiBusinessIpcHandlers();
 
   registerMusicIpcHandlers({
     storeDir,
@@ -795,6 +798,15 @@ protocol.registerSchemesAsPrivileged([
       stream: true,
     },
   },
+  {
+    scheme: 'eisland-qishui',
+    privileges: {
+      standard: true,
+      secure: true,
+      supportFetchAPI: true,
+      stream: true,
+    },
+  },
 ]);
 
 registerAppLifecycleHandlers({
@@ -875,6 +887,8 @@ app.whenReady().then(() => {
       return new Response('Bad Request', { status: 400 });
     }
   });
+
+  protocol.handle('eisland-qishui', handleQishuiAudioRequest);
 
   islandPositionOffset = readIslandPositionOffsetConfig();
   islandDisplaySelection = readIslandDisplaySelectionConfig();

@@ -32,7 +32,9 @@ import { useLyricsSettings } from './hooks/useLyricsSettings';
 import { useBeijingClock } from './hooks/useBeijingClock';
 import { useAutoIdle } from './hooks/useAutoIdle';
 import { useCurrentLyric } from './hooks/useCurrentLyric';
+import { useKaraokeScrollProgress } from './hooks/useKaraokeScrollProgress';
 import { KaraokeSyllableLine } from './components/KaraokeSyllableLine';
+import { ScrollingText } from './components/ScrollingText';
 import '../../../styles/lyrics/lyrics.css';
 
 /**
@@ -55,6 +57,7 @@ export function LyricsContent(): ReactElement {
   const clockText = useBeijingClock(clockEnabled);
   useAutoIdle(isMusicPlaying, lyricsLoading, syncedLyrics, setIdle);
   const { currentIdx, hasLyrics, isIntro, currentLine, currentText, hasSyllables } = useCurrentLyric(syncedLyrics, lyricsLoading, currentPositionMs);
+  const karaokeScrollProgress = useKaraokeScrollProgress(karaokeEnabled, currentLine, hasSyllables, isIntro, currentPositionMs);
 
   const [r, g, b] = dominantColor;
 
@@ -99,9 +102,10 @@ export function LyricsContent(): ReactElement {
             <img src={SvgIcon.MUSIC} alt="" className="lyrics-intro-icon" />
           </>
         ) : currentText ? (
-          <span
+          <ScrollingText
             key={currentIdx}
             className={`lyrics-current-line${karaokeEnabled && hasSyllables ? ' lyrics-karaoke' : ''}`}
+            scrollProgress={karaokeScrollProgress}
           >
             {karaokeEnabled && hasSyllables && currentLine ? (
               <KaraokeSyllableLine
@@ -112,7 +116,7 @@ export function LyricsContent(): ReactElement {
             ) : (
               currentText
             )}
-          </span>
+          </ScrollingText>
         ) : (
           <span className="lyrics-empty">{t('songTab.lyrics.empty')} {t('songTab.lyrics.enjoyMusic', { defaultValue: '享受音乐' })}</span>
         )}

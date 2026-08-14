@@ -1023,44 +1023,44 @@
   text-align: right;
 }
 
-.ov-dash-song-scroll {
+.scroll-text {
   overflow: hidden;
   text-overflow: clip;
   white-space: nowrap;
 }
 
-.ov-dash-song-scroll-content {
+.scroll-text-content {
   display: inline-block;
   min-width: max-content;
   transform: translateX(0);
 }
 
-.ov-dash-song-scroll.is-overflowing {
+.scroll-text.is-overflowing {
   text-align: left;
 }
 
-.ov-dash-song-scroll.is-overflowing .ov-dash-song-scroll-content {
-  animation: ov-song-text-scroll var(--song-text-scroll-duration) ease-in-out 1s infinite alternate;
+.scroll-text.is-overflowing .scroll-text-content {
+  animation: scroll-text-scroll var(--scroll-text-duration) ease-in-out 1s infinite alternate;
 }
 
-.ov-dash-song-scroll.is-progress-driven .ov-dash-song-scroll-content {
+.scroll-text.is-progress-driven .scroll-text-content {
   animation: none;
-  transform: translateX(calc(-1 * var(--song-text-scroll-offset)));
+  transform: translateX(calc(-1 * var(--scroll-text-offset)));
   transition: transform 0.12s linear;
 }
 
-@keyframes ov-song-text-scroll {
+@keyframes scroll-text-scroll {
   from {
     transform: translateX(0);
   }
 
   to {
-    transform: translateX(calc(-1 * var(--song-text-scroll-distance)));
+    transform: translateX(calc(-1 * var(--scroll-text-distance)));
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ov-dash-song-scroll.is-overflowing .ov-dash-song-scroll-content {
+  .scroll-text.is-overflowing .scroll-text-content {
     animation: none;
     transform: translateX(0);
     transition: none;
