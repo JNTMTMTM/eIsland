@@ -28,6 +28,7 @@ import { useCallback, useState } from 'react';
 import type { CalcOperator, CalcState, ScientificFn, UseCalculatorReturn } from '../types/calculatorTypes';
 import { INITIAL_STATE } from '../config/calculatorConfig';
 import { evaluateFormula, formatDisplay, getScientificInput } from '../utils/calculatorUtils';
+import { snapFormulaCursor } from '../utils/formulaCursorUtils';
 
 function insertAtCursor(state: CalcState, text: string, cursorOffset = 0, preserveInitial = false): CalcState {
   const formula = !preserveInitial && state.formula === '0' && state.cursor === 1 ? '' : state.formula;
@@ -102,7 +103,7 @@ export function useCalculator(): UseCalculatorReturn {
   const moveCursor = useCallback((position: number): void => {
     setState((previous) => ({
       ...previous,
-      cursor: Math.max(0, Math.min(position, previous.formula.length)),
+      cursor: snapFormulaCursor(previous.formula, position, previous.cursor),
     }));
   }, []);
 

@@ -25,6 +25,7 @@
  */
 
 import { useRef, type KeyboardEvent, type MouseEvent, type ReactElement } from 'react';
+import { readFunctionToken } from '../utils/formulaCursorUtils';
 
 interface CalcDisplayProps {
   formula: string;
@@ -52,6 +53,30 @@ function renderFormula(formula: string, cursor: number, onCursorChange: (positio
 
     const tokenIndex = index;
     const character = formula[tokenIndex];
+    const functionToken = readFunctionToken(formula, tokenIndex);
+    if (functionToken) {
+      const handleFunctionClick = (event: MouseEvent<HTMLSpanElement>): void => {
+        event.stopPropagation();
+        (event.currentTarget.closest('.calc-display') as HTMLElement | null)?.focus();
+        const bounds = event.currentTarget.getBoundingClientRect();
+        const position = event.clientX - bounds.left < bounds.width / 2
+          ? tokenIndex
+          : tokenIndex + functionToken.length;
+        onCursorChange(position);
+      };
+
+      nodes.push(
+        <span
+          className={exponent ? 'calc-token calc-token--superscript' : 'calc-token'}
+          key={`token-${tokenIndex}`}
+          onClick={handleFunctionClick}
+        >
+          {functionToken}
+        </span>,
+      );
+      index += functionToken.length;
+      continue;
+    }
     if (character === '^') {
       exponent = true;
       parenthesizedExponent = formula[tokenIndex + 1] === '(';
