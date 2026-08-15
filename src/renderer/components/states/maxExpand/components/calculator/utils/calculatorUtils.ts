@@ -91,6 +91,8 @@ class FormulaParser {
         value = { type: 'binary', operator: '×', left: value, right: this.parsePower() };
       } else if (this.consume('÷') || this.consume('/')) {
         value = { type: 'binary', operator: '÷', left: value, right: this.parsePower() };
+      } else if (this.startsImplicitFactor()) {
+        value = { type: 'binary', operator: '×', left: value, right: this.parsePower() };
       } else return value;
     }
   }
@@ -156,6 +158,12 @@ class FormulaParser {
     if (!match) return '';
     this.position += match[0].length;
     return match[0].toLowerCase();
+  }
+
+  private startsImplicitFactor(): boolean {
+    this.skipWhitespace();
+    const token = this.formula[this.position] ?? '';
+    return token === '(' || token === 'π' || /^[a-z]$/i.test(token);
   }
 
   private consume(token: string): boolean {

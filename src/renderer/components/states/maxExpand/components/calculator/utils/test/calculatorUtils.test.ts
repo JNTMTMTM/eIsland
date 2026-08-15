@@ -60,6 +60,14 @@ describe('evaluateFormula', () => {
     expect(() => evaluateFormula('x+1')).toThrow();
   });
 
+  it('将相邻变量和表达式解析为隐式乘法', () => {
+    expect(evaluateFormula('2π')).toBeCloseTo(2 * Math.PI);
+    expect(evaluateFormula('2(3+4)')).toBe(14);
+    expect(evaluateFormula('2sin(π÷2)')).toBeCloseTo(2);
+    expect(evaluateFormula('sum(2x,1,3)')).toBe(12);
+    expect(evaluateFormula('integral(2x,0,1)')).toBeCloseTo(1, 7);
+  });
+
   it('支持定积分与指定点微分', () => {
     expect(evaluateFormula('integral(x^2,0,1)')).toBeCloseTo(1 / 3, 7);
     expect(evaluateFormula('integral(sin(x),0,π)')).toBeCloseTo(2, 7);
