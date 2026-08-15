@@ -1,0 +1,23 @@
+{
+  "skill_name": "eisland-dev-add-maxexpand-tab",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "在全展开模式里加一个天气页面，先留白，后续再填充内容",
+      "expected_output": "8 个文件修改完成：创建 components/weather/components/WeatherTab.tsx 占位组件和 index.ts 入口，store/types/index.ts MaxExpandTab 联合类型添加 'weather'，settingsConfig.ts MAXEXPAND_CONFIGURABLE_TABS 和 MAXEXPAND_TAB_LABELS 添加 weather: '天气'，MaxExpandContentLazy.tsx 注册懒加载，MaxExpandContentEager.tsx 注册即时加载，zh-CN.json 和 en-US.json 添加 tabLabels 翻译。TypeScript 编译通过。",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "帮我创建一个 maxexpand 的 bookmark 页面，中文名叫书签收藏，界面内容留白就行",
+      "expected_output": "8 个文件修改完成：创建 components/bookmark/components/BookmarkTab.tsx 占位组件和 index.ts，MaxExpandTab 添加 'bookmark'，settingsConfig 添加 bookmark: '书签收藏'，懒加载和即时加载均注册，i18n 两个语言文件添加 'bookmark': '书签收藏' / 'Bookmarks'。TypeScript 编译通过。",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "新建一个 maxexpand 界面，叫 unitConverter，中文名单位换算，标准的占位组件就行",
+      "expected_output": "8 个文件修改完成：创建 components/unitConverter/components/UnitConverterTab.tsx 占位组件和 index.ts，MaxExpandTab 添加 'unitConverter'，settingsConfig 添加 unitConverter: '单位换算'，懒加载和即时加载均注册，i18n 添加 'unitConverter': '单位换算' / 'Unit Converter'。TypeScript 编译通过。",
+      "files": []
+    }
+  ]
+}
