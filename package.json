@@ -5,6 +5,9 @@
   "main": "./out/main/index.js",
   "author": "JNTMTMTM",
   "license": "GPL-3.0",
+  "engines": {
+    "node": ">=25.0.0"
+  },
   "scripts": {
     "dev": "electron-vite dev",
     "build": "electron-vite build",
