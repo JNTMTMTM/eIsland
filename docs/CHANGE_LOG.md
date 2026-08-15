@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-08-14T19:23:16.785Z
+> 生成时间：2026-08-15T08:40:08.075Z
 
 ## 26.7.2
 
@@ -3343,6 +3343,14 @@
 
 ## Unreleased
 
+- 2026-08-15 | bb5b2592 | 鸡哥 | Merge pull request #198 from JNTMTMTM/dev
+- 2026-08-15 | b2a39bcd | 鸡哥 | chore: add engines field to package.json and package-lock.json to specify Node.js version requirement refactor: improve XMLHttpRequest mock in user feedback tests for better clarity
+- 2026-08-15 | 29b85551 | 鸡哥 | style: increase max width of auth panel from 550px to 580px
+- 2026-08-15 | 4e6a6a9d | 鸡哥 | test: reset mocks in store IPC tests and update XMLHttpRequest stub in user feedback tests
+- 2026-08-15 | cdaf5e99 | 鸡哥 | chore: update vitest and coverage-v8 dependencies to latest versions
+- 2026-08-15 | ba8d70df | 鸡哥 | chore: update dependencies to latest versions
+- 2026-08-15 | 1833a10f | 鸡哥 | chore: update Node.js version to 25 in CI workflows
+- 2026-08-14 | b921999a | eislandBot | docs: auto update CHANGE_LOG.md for #197 by @JNTMTMTM [skip ci]
 - 2026-08-15 | 8b1c3d17 | 鸡哥 | Merge pull request #197 from JNTMTMTM/dev
 - 2026-08-15 | 52839c64 | 鸡哥 | feat: enhance Qishui audio handling with range support and improve song mapping in SodaMusic API
 - 2026-08-15 | 15c0a65c | 鸡哥 | refactor: improve unwrapList function and enhance type handling in Qishui service methods
