@@ -45,14 +45,12 @@ export function snapFormulaCursor(
   previousPosition: number,
 ): number {
   const position = Math.max(0, Math.min(requestedPosition, formula.length));
-  FUNCTION_OPEN_PATTERN.lastIndex = 0;
 
-  for (const match of formula.matchAll(FUNCTION_OPEN_PATTERN)) {
-    const start = match.index;
-    const end = start + match[0].length;
-    if (position > start && position < end) {
-      return position < previousPosition ? start : end;
-    }
+  const match = Array.from(formula.matchAll(FUNCTION_OPEN_PATTERN))
+    .find((m) => position > m.index && position < m.index + m[0].length);
+
+  if (match) {
+    return position < previousPosition ? match.index : match.index + match[0].length;
   }
 
   return position;
