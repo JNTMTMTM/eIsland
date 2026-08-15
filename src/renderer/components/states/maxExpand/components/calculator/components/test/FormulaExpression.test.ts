@@ -60,12 +60,16 @@ describe('FormulaExpression', () => {
   });
 
   it('渲染求和、积分与指定点微分结构', () => {
+    const nestedRoot: FormulaDocument = {
+      segments: [{ type: 'structure', value: { id: 'nested-sqrt', kind: 'sqrt', slots: { radicand: text('2') } } }],
+    };
     const sum = renderStructure('sum', { lower: text('1'), upper: text('3'), body: text('x^2') });
-    const integral = renderStructure('integral', { lower: text('0'), upper: text('1'), body: text('x') });
+    const integral = renderStructure('integral', { lower: text('0'), upper: nestedRoot, body: text('x') });
     const derivative = renderStructure('derivative', { body: text('x^2'), point: text('2') });
 
     expect(sum).toContain('Σ');
     expect(integral).toContain('∫');
+    expect(integral).toContain('calc-root__sign');
     expect(integral).toContain('dx');
     expect(derivative).toContain('d/dx');
     expect(derivative).toContain('|x=');

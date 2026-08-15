@@ -271,12 +271,12 @@
 .calc-root {
   align-items: stretch;
   position: relative;
-  margin: 0 2px;
+  margin: 0 0.07em;
 }
 
 .calc-root__index {
   align-self: flex-start;
-  margin-right: 1px;
+  margin-right: 0.04em;
   font-size: 0.48em;
   line-height: 1;
   min-width: 0.6em;
@@ -296,10 +296,10 @@
 }
 
 .calc-root__radicand {
-  padding: 0 3px;
+  padding: 0 0.1em;
   min-width: 0.8em;
   min-height: 1em;
-  border-top: 2px solid currentColor;
+  border-top: 0.07em solid currentColor;
 }
 
 .calc-derivative {
@@ -321,11 +321,11 @@
 
 .calc-cursor {
   align-self: stretch;
-  flex: 0 0 2px;
-  width: 2px;
-  min-height: 30px;
-  margin: 2px 1px;
-  border-radius: 1px;
+  flex: 0 0 0.07em;
+  width: 0.07em;
+  min-height: 1em;
+  margin: 0.07em 0.035em;
+  border-radius: 0.035em;
   background: var(--color-accent, #6390ff);
   animation: calc-cursor-blink 1s steps(1) infinite;
 }
