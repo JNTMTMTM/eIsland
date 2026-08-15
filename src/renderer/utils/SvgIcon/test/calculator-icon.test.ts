@@ -36,12 +36,18 @@ describe('CalculatorIcon', () => {
     expect(CalculatorIcon).toHaveProperty('COORDINATE');
     expect(CalculatorIcon).toHaveProperty('DIVISION');
     expect(CalculatorIcon).toHaveProperty('EXPAND');
+    expect(CalculatorIcon).toHaveProperty('FRACTION');
+    expect(CalculatorIcon).toHaveProperty('INTEGRATION');
     expect(CalculatorIcon).toHaveProperty('MINUS');
     expect(CalculatorIcon).toHaveProperty('MULTIPLICATION');
+    expect(CalculatorIcon).toHaveProperty('N_ROOT');
     expect(CalculatorIcon).toHaveProperty('PERCENTAGE');
+    expect(CalculatorIcon).toHaveProperty('PI');
     expect(CalculatorIcon).toHaveProperty('PLUS');
     expect(CalculatorIcon).toHaveProperty('PLUS_MINUS');
+    expect(CalculatorIcon).toHaveProperty('ROOT');
     expect(CalculatorIcon).toHaveProperty('SCIENTIFIC');
+    expect(CalculatorIcon).toHaveProperty('SIGMA');
     expect(CalculatorIcon).toHaveProperty('UNIT_CONVERSION');
   });
 
@@ -53,6 +59,6 @@ describe('CalculatorIcon', () => {
   });
 
   it('should contain exactly 14 keys', () => {
-    expect(Object.keys(CalculatorIcon)).toHaveLength(14);
+    expect(Object.keys(CalculatorIcon)).toHaveLength(20);
   });
 });

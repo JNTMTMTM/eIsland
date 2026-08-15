@@ -32,12 +32,18 @@ export const CalculatorIcon = {
   COORDINATE: './svg/calculator/COORDINATE.svg',
   DIVISION: './svg/calculator/DIVISION.svg',
   EXPAND: './svg/EXPAND.svg',
+  FRACTION: './svg/calculator/FRACTION.svg',
+  INTEGRATION: './svg/calculator/INTEGRATION.svg',
   MINUS: './svg/calculator/MINUS.svg',
   MULTIPLICATION: './svg/calculator/MULTIPLICATION.svg',
+  N_ROOT: './svg/calculator/N_ROOT.svg',
   PERCENTAGE: './svg/calculator/PERCENTAGE.svg',
+  PI: './svg/calculator/PI.svg',
   PLUS: './svg/calculator/PLUS.svg',
   PLUS_MINUS: './svg/calculator/PLUS_MINUS.svg',
+  ROOT: './svg/calculator/ROOT.svg',
   SCIENTIFIC: './svg/calculator/SCIENTIFIC.svg',
+  SIGMA: './svg/calculator/SIGMA.svg',
   UNIT_CONVERSION: './svg/calculator/UNIT_CONVERSION.svg',
 } as const;
 
