@@ -244,6 +244,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 3px;
   font-size: 0.48em;
   line-height: 1;
 }
@@ -251,6 +252,10 @@
 .calc-large-operator__symbol {
   font-size: 2.2em;
   line-height: 0.9;
+}
+
+.calc-large-operator__limits > :last-child {
+  margin-top: 2px;
 }
 
 .calc-large-operator__body {
