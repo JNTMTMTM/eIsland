@@ -20,155 +20,124 @@
 
 /**
  * @file useCalculator.ts
- * @description 计算器核心逻辑 hook — 状态机驱动，支持四则运算与科学函数
+ * @description 计算器公式编辑状态，所有输入先写入公式，仅等号触发求值。
  * @author 鸡哥
  */
 
-import { useState, useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import type { CalcOperator, CalcState, ScientificFn, UseCalculatorReturn } from '../types/calculatorTypes';
 import { INITIAL_STATE } from '../config/calculatorConfig';
-import { formatDisplay, evaluate, applyScientificFn } from '../utils/calculatorUtils';
+import { evaluateFormula, formatDisplay, getScientificInput } from '../utils/calculatorUtils';
+
+function insertAtCursor(state: CalcState, text: string, cursorOffset = 0, preserveInitial = false): CalcState {
+  const formula = !preserveInitial && state.formula === '0' && state.cursor === 1 ? '' : state.formula;
+  const cursor = formula === '' ? 0 : state.cursor;
+  const nextFormula = `${formula.slice(0, cursor)}${text}${formula.slice(cursor)}`;
+  return {
+    formula: nextFormula || '0',
+    result: null,
+    cursor: cursor + text.length - cursorOffset,
+  };
+}
 
 /**
- * 计算器核心逻辑 hook。
- * 使用状态机模式管理计算流程，支持四则运算与科学函数。
- * @returns 计算器状态与操作方法
+ * 管理公式字符串、编辑光标和最终求值。
+ * @returns 计算器编辑状态与操作方法
  */
 export function useCalculator(): UseCalculatorReturn {
   const [state, setState] = useState<CalcState>(INITIAL_STATE);
 
-  /** 输入数字（0-9） */
+  const inputText = useCallback((text: string): void => {
+    setState((previous) => insertAtCursor(previous, text));
+  }, []);
+
   const inputDigit = useCallback((digit: string): void => {
-    setState((prev) => {
-      if (prev.waitingForOperand) {
-        return { ...prev, display: digit, waitingForOperand: false };
-      }
-      if (prev.display === '0' && digit !== '0') {
-        return { ...prev, display: digit };
-      }
-      if (prev.display === '0' && digit === '0') {
-        return prev;
-      }
-      return { ...prev, display: prev.display + digit };
-    });
+    setState((previous) => insertAtCursor(previous, digit));
   }, []);
 
-  /** 输入小数点 */
   const inputDot = useCallback((): void => {
-    setState((prev) => {
-      if (prev.waitingForOperand) {
-        return { ...prev, display: '0.', waitingForOperand: false };
-      }
-      if (prev.display.includes('.')) return prev;
-      return { ...prev, display: prev.display + '.' };
-    });
+    setState((previous) => insertAtCursor(previous, '.'));
   }, []);
 
-  /** 设置运算符 */
-  const setOperator = useCallback((op: CalcOperator): void => {
-    setState((prev) => {
-      const current = parseFloat(prev.display);
-      if (prev.operator && !prev.waitingForOperand && prev.operand !== null) {
-        const left = parseFloat(prev.operand);
-        const result = evaluate(left, current, prev.operator);
-        const resultStr = formatDisplay(result);
-        return {
-          display: resultStr,
-          operand: resultStr,
-          operator: op,
-          waitingForOperand: true,
-          expression: `${resultStr} ${op}`,
-        };
-      }
-      return {
-        ...prev,
-        operand: prev.display,
-        operator: op,
-        waitingForOperand: true,
-        expression: `${prev.display} ${op}`,
-      };
-    });
+  const inputOperator = useCallback((operator: CalcOperator): void => {
+    setState((previous) => insertAtCursor(previous, operator, 0, true));
   }, []);
 
-  /** 执行等号计算 */
   const calculate = useCallback((): void => {
-    setState((prev) => {
-      if (prev.operator === null || prev.operand === null) return prev;
-      const left = parseFloat(prev.operand);
-      const right = parseFloat(prev.display);
-      const result = evaluate(left, right, prev.operator);
-      const resultStr = formatDisplay(result);
-      return {
-        display: resultStr,
-        operand: null,
-        operator: null,
-        waitingForOperand: true,
-        expression: '',
-      };
+    setState((previous) => {
+      try {
+        return { ...previous, result: formatDisplay(evaluateFormula(previous.formula)) };
+      } catch {
+        return { ...previous, result: 'Error' };
+      }
     });
   }, []);
 
-  /** 清除全部 */
-  const clear = useCallback((): void => {
-    setState(INITIAL_STATE);
-  }, []);
+  const clear = useCallback((): void => setState(INITIAL_STATE), []);
 
-  /** 退格 */
   const backspace = useCallback((): void => {
-    setState((prev) => {
-      if (prev.waitingForOperand) return prev;
-      if (prev.display.length <= 1 || (prev.display.length === 2 && prev.display[0] === '-')) {
-        return { ...prev, display: '0' };
-      }
-      return { ...prev, display: prev.display.slice(0, -1) };
-    });
-  }, []);
-
-  /** 正负切换 */
-  const toggleSign = useCallback((): void => {
-    setState((prev) => {
-      if (prev.display === '0') return prev;
-      if (prev.display.startsWith('-')) {
-        return { ...prev, display: prev.display.slice(1) };
-      }
-      return { ...prev, display: `-${prev.display}` };
-    });
-  }, []);
-
-  /** 百分比 */
-  const percentage = useCallback((): void => {
-    setState((prev) => {
-      const current = parseFloat(prev.display);
-      return { ...prev, display: formatDisplay(current / 100) };
-    });
-  }, []);
-
-  /** 执行科学函数 */
-  const applyScientific = useCallback((fn: ScientificFn): void => {
-    setState((prev) => {
-      const current = parseFloat(prev.display);
-      const result = applyScientificFn(fn, current);
-      const resultStr = formatDisplay(result);
+    setState((previous) => {
+      if (previous.cursor === 0) return previous;
+      const formula = `${previous.formula.slice(0, previous.cursor - 1)}${previous.formula.slice(previous.cursor)}`;
       return {
-        ...prev,
-        display: resultStr,
-        waitingForOperand: true,
+        formula: formula || '0',
+        result: null,
+        cursor: formula ? previous.cursor - 1 : 1,
       };
     });
   }, []);
+
+  const deleteForward = useCallback((): void => {
+    setState((previous) => {
+      if (previous.cursor >= previous.formula.length) return previous;
+      const formula = `${previous.formula.slice(0, previous.cursor)}${previous.formula.slice(previous.cursor + 1)}`;
+      return {
+        formula: formula || '0',
+        result: null,
+        cursor: formula ? previous.cursor : 1,
+      };
+    });
+  }, []);
+
+  const moveCursor = useCallback((position: number): void => {
+    setState((previous) => ({
+      ...previous,
+      cursor: Math.max(0, Math.min(position, previous.formula.length)),
+    }));
+  }, []);
+
+  const toggleSign = useCallback((): void => {
+    setState((previous) => insertAtCursor(previous, '-'));
+  }, []);
+
+  const percentage = useCallback((): void => {
+    setState((previous) => insertAtCursor(previous, '%', 0, true));
+  }, []);
+
+  const applyScientific = useCallback((fn: ScientificFn): void => {
+    const input = getScientificInput(fn);
+    const preserveInitial = fn === 'square' || fn === 'cube' || fn === 'pow' || fn === 'factorial';
+    setState((previous) => insertAtCursor(previous, input.text, input.cursorOffset, preserveInitial));
+  }, []);
+
+  const currentValue = state.result === null ? Number.NaN : Number(state.result);
 
   return {
-    display: state.display,
-    expression: state.expression,
+    formula: state.formula,
+    result: state.result,
+    cursor: state.cursor,
     inputDigit,
     inputDot,
-    setOperator,
+    inputOperator,
+    inputText,
     calculate,
     clear,
     backspace,
+    deleteForward,
+    moveCursor,
     toggleSign,
     percentage,
     applyScientific,
-    currentValue: parseFloat(state.display),
+    currentValue,
   };
 }

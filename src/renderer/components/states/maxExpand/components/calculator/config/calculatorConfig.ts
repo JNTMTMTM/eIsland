@@ -29,11 +29,9 @@ import type { CalcState, CalcButtonDef, CalcSidebarNavItem } from '../types/calc
 
 /** 计算器初始状态 */
 export const INITIAL_STATE: CalcState = {
-  display: '0',
-  operand: null,
-  operator: null,
-  waitingForOperand: false,
-  expression: '',
+  formula: '0',
+  result: null,
+  cursor: 1,
 };
 
 /** 侧边栏导航项 */

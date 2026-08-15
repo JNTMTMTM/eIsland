@@ -20,45 +20,41 @@
 
 /**
  * @file CalculatorTab.tsx
- * @description 最大展开模式 — 计算器 Tab — 薄组合层，由 useCalculator hook 驱动
+ * @description 最大展开模式计算器，组合公式编辑区与输入按钮。
  * @author 鸡哥
  */
 
-import { useState, useCallback, type ReactElement } from 'react';
-import type { CalcOperator, CalcButtonDef, CalcMode, ScientificFn } from '../types/calculatorTypes';
+import { useCallback, useState, type KeyboardEvent, type ReactElement } from 'react';
+import type { CalcButtonDef, CalcMode, CalcOperator, ScientificFn } from '../types/calculatorTypes';
 import { BUTTON_LAYOUT, SCIENTIFIC_FN_LAYOUT } from '../config/calculatorConfig';
 import { useCalculator } from '../hooks/useCalculator';
+import { CalcDisplay } from './CalcDisplay';
 import { CalculatorSidebar } from './CalculatorSidebar';
 
-/**
- * 按钮网格渲染组件。
- * @param layout - 按钮布局二维数组
- * @param onButton - 按钮点击回调
- * @param className - 额外 CSS 类名
- */
 function ButtonGrid({
   layout,
   onButton,
   className,
 }: {
   layout: CalcButtonDef[][];
-  onButton: (def: CalcButtonDef) => void;
+  onButton: (definition: CalcButtonDef) => void;
   className?: string;
 }): ReactElement {
   return (
     <div className={`calc-buttons${className ? ` ${className}` : ''}`}>
-      {layout.map((row, rowIdx) => (
-        <div className="calc-row" key={rowIdx}>
-          {row.map((btn) => (
+      {layout.map((row, rowIndex) => (
+        <div className="calc-row" key={rowIndex}>
+          {row.map((button) => (
             <button
-              key={btn.alt}
+              className={`calc-btn ${button.className ?? ''}`}
+              key={button.alt}
               type="button"
-              className={`calc-btn ${btn.className ?? ''}`}
-              onClick={() => onButton(btn)}
+              onMouseDown={(event) => event.preventDefault()}
+              onClick={() => onButton(button)}
             >
-              {btn.icon
-                ? <img src={btn.icon} alt={btn.alt} className="calc-btn-icon" />
-                : btn.label
+              {button.icon
+                ? <img className="calc-btn-icon" src={button.icon} alt={button.alt} />
+                : button.label
               }
             </button>
           ))}
@@ -69,43 +65,60 @@ function ButtonGrid({
 }
 
 /**
- * Calculator Tab — 最大展开模式下的计算器面板
+ * 渲染最大展开模式下的公式编辑计算器。
+ * @returns 计算器面板
  */
 export function CalculatorTab(): ReactElement {
-  const calc = useCalculator();
+  const calculator = useCalculator();
   const [activeMode, setActiveMode] = useState<CalcMode>('arithmetic');
   const [collapsed, setCollapsed] = useState(true);
 
-  /** 切换模式，自动展开侧边栏 */
   const handleSwitchMode = useCallback((mode: CalcMode): void => {
     setActiveMode(mode);
     if (mode !== 'arithmetic') setCollapsed(false);
   }, []);
 
-  /** 切换侧边栏展开/收起 */
   const handleToggleCollapse = useCallback((): void => {
-    setCollapsed((prev) => !prev);
+    setCollapsed((previous) => !previous);
   }, []);
 
-  /** 分发按钮操作 */
-  const handleButton = useCallback((def: CalcButtonDef): void => {
-    switch (def.action) {
-      case 'digit':       calc.inputDigit(def.value!); break;
-      case 'operator':    calc.setOperator(def.value as CalcOperator); break;
-      case 'equals':      calc.calculate(); break;
-      case 'clear':       calc.clear(); break;
-      case 'backspace':   calc.backspace(); break;
-      case 'dot':         calc.inputDot(); break;
-      case 'toggleSign':  calc.toggleSign(); break;
-      case 'percentage':  calc.percentage(); break;
-      case 'scientific':  calc.applyScientific(def.value as ScientificFn); break;
+  const handleButton = useCallback((definition: CalcButtonDef): void => {
+    switch (definition.action) {
+      case 'digit': calculator.inputDigit(definition.value!); break;
+      case 'operator': calculator.inputOperator(definition.value as CalcOperator); break;
+      case 'equals': calculator.calculate(); break;
+      case 'clear': calculator.clear(); break;
+      case 'backspace': calculator.backspace(); break;
+      case 'dot': calculator.inputDot(); break;
+      case 'toggleSign': calculator.toggleSign(); break;
+      case 'percentage': calculator.percentage(); break;
+      case 'scientific': calculator.applyScientific(definition.value as ScientificFn); break;
     }
-  }, [calc]);
+  }, [calculator]);
+
+  const handleKeyDown = useCallback((event: KeyboardEvent<HTMLDivElement>): void => {
+    const key = event.key;
+    if (/^[0-9]$/.test(key)) calculator.inputDigit(key);
+    else if (key === '.') calculator.inputDot();
+    else if (key === '+' || key === '-') calculator.inputOperator(key);
+    else if (key === '*' || key === 'x' || key === 'X') calculator.inputOperator('×');
+    else if (key === '/') calculator.inputOperator('÷');
+    else if (key === '^' || key === '(' || key === ')' || key === ',') calculator.inputText(key);
+    else if (key === '%') calculator.percentage();
+    else if (key === 'Enter' || key === '=') calculator.calculate();
+    else if (key === 'Backspace') calculator.backspace();
+    else if (key === 'Delete') calculator.deleteForward();
+    else if (key === 'ArrowLeft') calculator.moveCursor(calculator.cursor - 1);
+    else if (key === 'ArrowRight') calculator.moveCursor(calculator.cursor + 1);
+    else if (key === 'Home') calculator.moveCursor(0);
+    else if (key === 'End') calculator.moveCursor(calculator.formula.length);
+    else return;
+    event.preventDefault();
+  }, [calculator]);
 
   const isScientific = activeMode === 'scientific';
-
-  /** 动态计算显示字体大小：数字越长字号越小 */
-  const displayFontSize = calc.display.length > 10 ? '22px' : calc.display.length > 7 ? '28px' : '36px';
+  const formulaLength = calculator.formula.length;
+  const displayFontSize = formulaLength > 24 ? '20px' : formulaLength > 14 ? '26px' : '34px';
 
   return (
     <div className="max-expand-tab-panel calculator-panel">
@@ -117,12 +130,14 @@ export function CalculatorTab(): ReactElement {
       />
 
       <div className="calc-main">
-        <div className="calc-display">
-          <div className="calc-expression">{calc.expression || ' '}</div>
-          <div className="calc-value" style={{ fontSize: displayFontSize }}>
-            {calc.display}
-          </div>
-        </div>
+        <CalcDisplay
+          cursor={calculator.cursor}
+          fontSize={displayFontSize}
+          formula={calculator.formula}
+          result={calculator.result}
+          onCursorChange={calculator.moveCursor}
+          onKeyDown={handleKeyDown}
+        />
 
         {isScientific ? (
           <div className="calc-buttons-dual">
