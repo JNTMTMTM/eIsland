@@ -1,0 +1,150 @@
+/*
+ * eIsland - A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Electron.
+ * https://github.com/JNTMTMTM/eIsland
+ *
+ * Copyright (C) 2026 JNTMTMTM
+ * Copyright (C) 2026 pyisland.com
+ *
+ * Original author: JNTMTMTM[](https://github.com/JNTMTMTM)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+/**
+ * @file settings-calculator.css
+ * @description 计算器面板样式
+ * @author 鸡哥
+ */
+
+/* ========== 计算器容器 ========== */
+.calculator-panel {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  padding: 12px 16px;
+  box-sizing: border-box;
+  user-select: none;
+}
+
+/* ========== 显示区域 ========== */
+.calc-display {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: 8px 12px 12px;
+  min-height: 80px;
+  margin-bottom: 8px;
+  border-radius: 10px;
+  background: rgba(var(--color-text-rgb), 0.04);
+}
+
+.calc-expression {
+  font-size: 13px;
+  line-height: 1;
+  color: rgba(var(--color-text-rgb), 0.4);
+  min-height: 16px;
+  margin-bottom: 4px;
+}
+
+.calc-value {
+  font-size: 36px;
+  font-weight: 500;
+  line-height: 1.1;
+  color: rgba(var(--color-text-rgb), 0.92);
+  word-break: break-all;
+  text-align: right;
+  max-width: 100%;
+  transition: font-size 0.15s ease;
+}
+
+/* ========== 按钮网格 ========== */
+.calc-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-height: 0;
+}
+
+.calc-row {
+  display: flex;
+  gap: 6px;
+  flex: 1;
+  min-height: 0;
+}
+
+/* ========== 按钮基础样式 ========== */
+.calc-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 10px;
+  font-size: 18px;
+  font-weight: 400;
+  cursor: pointer;
+  background: rgba(var(--color-text-rgb), 0.07);
+  color: rgba(var(--color-text-rgb), 0.88);
+  transition: background 0.12s ease, transform 0.1s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.calc-btn:hover {
+  background: rgba(var(--color-text-rgb), 0.12);
+}
+
+.calc-btn:active {
+  background: rgba(var(--color-text-rgb), 0.16);
+  transform: scale(0.96);
+}
+
+/* ========== 功能按钮（C、±、%） ========== */
+.calc-btn--func {
+  background: rgba(var(--color-text-rgb), 0.12);
+  color: rgba(var(--color-text-rgb), 0.72);
+  font-size: 16px;
+}
+
+.calc-btn--func:hover {
+  background: rgba(var(--color-text-rgb), 0.18);
+}
+
+/* ========== 运算符按钮 ========== */
+.calc-btn--op {
+  background: rgba(var(--color-accent-rgb, 99, 144, 255), 0.18);
+  color: var(--color-accent, #6390ff);
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.calc-btn--op:hover {
+  background: rgba(var(--color-accent-rgb, 99, 144, 255), 0.28);
+}
+
+/* ========== 等号按钮 ========== */
+.calc-btn--equals {
+  background: var(--color-accent, #6390ff);
+  color: #fff;
+  font-size: 22px;
+  font-weight: 500;
+}
+
+.calc-btn--equals:hover {
+  background: var(--color-accent-hover, #7aa3ff);
+}
+
+/* ========== 零按钮（占两列） ========== */
+.calc-btn--zero {
+  flex: 2;
+}
