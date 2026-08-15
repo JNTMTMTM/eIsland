@@ -24,6 +24,7 @@
  * @author 鸡哥
  */
 
+/** 计算器模块图标；COLLAPSE / EXPAND 复用 eIsland 共享图标（./svg/ 根目录） */
 export const CalculatorIcon = {
   ARITHMETIC: './svg/calculator/ARITHMETIC.svg',
   BACKSPACE: './svg/calculator/BACKSPACE.svg',

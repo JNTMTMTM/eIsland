@@ -43,9 +43,10 @@ describe('formulaKatexCompiler', () => {
     expect(compilation.tex).toContain('^{');
     expect(compilation.tex).toContain('\\pi');
     expect(compilation.anchors.length).toBeGreaterThan(4);
+    expect(compilation.anchors.every((anchor) => anchor.kind === 'token')).toBe(true);
   });
 
-  it('编译分数、根式和积分上下限', () => {
+  it('编译分数、根式和积分上下限（完整结构）', () => {
     const root = structure('sqrt', { radicand: text('x') });
     const fraction = structure('fraction', { numerator: root, denominator: text('2') });
     const integral = structure('integral', { lower: text('0'), upper: text('1'), body: fraction });
@@ -54,7 +55,30 @@ describe('formulaKatexCompiler', () => {
     expect(compilation.tex).toContain('\\int_{');
     expect(compilation.tex).toContain('\\frac{');
     expect(compilation.tex).toContain('\\sqrt{');
+    expect(compilation.anchors.length).toBeGreaterThan(0);
+    expect(compilation.anchors.filter((anchor) => anchor.kind === 'token').length).toBe(
+      compilation.anchors.length,
+    );
     expect(compilation.anchors.some((anchor) => anchor.kind === 'slot')).toBe(false);
+  });
+
+  it('编译带空上限的积分结构，应为空槽创建 slot 锚点', () => {
+    const root = structure('sqrt', { radicand: text('x') });
+    const fraction = structure('fraction', { numerator: root, denominator: text('2') });
+    const integralWithEmptyUpper = structure('integral', {
+      lower: text('0'),
+      body: fraction,
+    });
+    const compilation = compileFormulaToKatex(integralWithEmptyUpper);
+
+    expect(compilation.tex).toContain('\\int_{');
+    expect(compilation.tex).toContain('\\frac{');
+    expect(compilation.tex).toContain('\\sqrt{');
+    expect(compilation.anchors.some((anchor) => anchor.kind === 'slot')).toBe(true);
+
+    const tokenCount = compilation.anchors.filter((anchor) => anchor.kind === 'token').length;
+    expect(tokenCount).toBeGreaterThan(0);
+    expect(tokenCount).toBeLessThan(compilation.anchors.length);
   });
 
   it('生成的 TeX 可由 KaTeX 严格解析', () => {

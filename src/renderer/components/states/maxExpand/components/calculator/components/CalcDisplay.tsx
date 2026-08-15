@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import { useRef, type KeyboardEvent, type ReactElement } from 'react';
+import { useEffect, useRef, type KeyboardEvent, type ReactElement } from 'react';
 import type { FormulaCursor, FormulaDocument } from '../types/calculatorTypes';
 import { FormulaExpression } from './FormulaExpression';
 
@@ -54,6 +54,10 @@ export function CalcDisplay({
 }: CalcDisplayProps): ReactElement {
   const displayRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    displayRef.current?.focus();
+  }, []);
+
   const handleDisplayClick = (): void => {
     displayRef.current?.focus();
     onMoveEnd();
@@ -65,7 +69,6 @@ export function CalcDisplay({
       ref={displayRef}
       role="textbox"
       tabIndex={0}
-      autoFocus
       aria-multiline="false"
       onClickCapture={handleDisplayClick}
       onKeyDown={onKeyDown}
