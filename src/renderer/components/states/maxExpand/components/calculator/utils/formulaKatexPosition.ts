@@ -48,6 +48,7 @@ function sameCursor(left: FormulaCursor, right: FormulaCursor): boolean {
 
 function cursorInAnchor(cursor: FormulaCursor, anchor: FormulaKatexAnchor): boolean {
   if (!samePath(cursor.path, anchor.start.path) || !samePath(cursor.path, anchor.end.path)) return false;
+  if (cursor.segmentIndex !== anchor.start.segmentIndex || cursor.segmentIndex !== anchor.end.segmentIndex) return false;
   return cursor.offset >= anchor.start.offset && cursor.offset <= anchor.end.offset;
 }
 
@@ -68,7 +69,7 @@ export function getFormulaKatexCaret(
   return {
     left: rect.left + (atEnd ? rect.width : 0),
     top: rect.top,
-    height: rect.height,
+    height: Math.max(rect.height, 1),
   };
 }
 

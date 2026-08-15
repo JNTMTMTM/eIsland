@@ -177,9 +177,15 @@
 }
 
 .calc-katex-cursor {
+  display: block;
   position: absolute;
+  z-index: 2;
+  width: 2px;
+  min-width: 2px;
+  min-height: 1em;
   pointer-events: none;
   margin: 0;
+  border-radius: 1px;
 }
 
 .calc-cursor {

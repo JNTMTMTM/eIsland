@@ -91,7 +91,7 @@ class FormulaKatexCompiler {
     if (segment.type === 'text') {
       if (segment.value.length === 0) {
         const cursor = cursorAt(path, segmentIndex, 0);
-        return this.withAnchor('token', cursor, cursor, '\\kern0.1em');
+        return this.withAnchor('token', cursor, cursor, '\\phantom{\\square}');
       }
       return this.compileText(segment.value, path, segmentIndex, 0);
     }

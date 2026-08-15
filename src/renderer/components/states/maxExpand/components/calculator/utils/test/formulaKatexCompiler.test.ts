@@ -74,7 +74,7 @@ describe('formulaKatexCompiler', () => {
     ] });
 
     expect(compilation.anchors.filter((anchor) => anchor.start.offset === anchor.end.offset)).toHaveLength(2);
-    expect(compilation.tex).toContain('\\kern0.1em');
+    expect(compilation.tex).toContain('\\phantom{\\square}');
   });
 
   it('为所有空槽生成可定位占位锚点', () => {
