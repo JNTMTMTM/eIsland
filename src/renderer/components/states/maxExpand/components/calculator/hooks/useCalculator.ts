@@ -20,19 +20,18 @@
 
 /**
  * @file useCalculator.ts
- * @description 计算器核心逻辑 hook — 状态机驱动，支持四则运算，可拓展科学函数
+ * @description 计算器核心逻辑 hook — 状态机驱动，支持四则运算与科学函数
  * @author 鸡哥
  */
 
 import { useState, useCallback } from 'react';
-import type { CalcOperator, CalcState, UseCalculatorReturn } from '../types/calculatorTypes';
+import type { CalcOperator, CalcState, ScientificFn, UseCalculatorReturn } from '../types/calculatorTypes';
 import { INITIAL_STATE } from '../config/calculatorConfig';
-import { formatDisplay, evaluate } from '../utils/calculatorUtils';
+import { formatDisplay, evaluate, applyScientificFn } from '../utils/calculatorUtils';
 
 /**
  * 计算器核心逻辑 hook。
- * 使用状态机模式管理计算流程，运算符与计算逻辑解耦，
- * 便于后续拓展科学函数（如 sin/cos/√ 等）。
+ * 使用状态机模式管理计算流程，支持四则运算与科学函数。
  * @returns 计算器状态与操作方法
  */
 export function useCalculator(): UseCalculatorReturn {
@@ -44,7 +43,6 @@ export function useCalculator(): UseCalculatorReturn {
       if (prev.waitingForOperand) {
         return { ...prev, display: digit, waitingForOperand: false };
       }
-      // 防止前导零（但保留 "0." 的情况）
       if (prev.display === '0' && digit !== '0') {
         return { ...prev, display: digit };
       }
@@ -70,8 +68,6 @@ export function useCalculator(): UseCalculatorReturn {
   const setOperator = useCallback((op: CalcOperator): void => {
     setState((prev) => {
       const current = parseFloat(prev.display);
-
-      // 如果已有运算符且未处于等待状态，先计算中间结果
       if (prev.operator && !prev.waitingForOperand && prev.operand !== null) {
         const left = parseFloat(prev.operand);
         const result = evaluate(left, current, prev.operator);
@@ -84,7 +80,6 @@ export function useCalculator(): UseCalculatorReturn {
           expression: `${resultStr} ${op}`,
         };
       }
-
       return {
         ...prev,
         operand: prev.display,
@@ -99,12 +94,10 @@ export function useCalculator(): UseCalculatorReturn {
   const calculate = useCallback((): void => {
     setState((prev) => {
       if (prev.operator === null || prev.operand === null) return prev;
-
       const left = parseFloat(prev.operand);
       const right = parseFloat(prev.display);
       const result = evaluate(left, right, prev.operator);
       const resultStr = formatDisplay(result);
-
       return {
         display: resultStr,
         operand: null,
@@ -150,6 +143,20 @@ export function useCalculator(): UseCalculatorReturn {
     });
   }, []);
 
+  /** 执行科学函数 */
+  const applyScientific = useCallback((fn: ScientificFn): void => {
+    setState((prev) => {
+      const current = parseFloat(prev.display);
+      const result = applyScientificFn(fn, current);
+      const resultStr = formatDisplay(result);
+      return {
+        ...prev,
+        display: resultStr,
+        waitingForOperand: true,
+      };
+    });
+  }, []);
+
   return {
     display: state.display,
     expression: state.expression,
@@ -161,6 +168,7 @@ export function useCalculator(): UseCalculatorReturn {
     backspace,
     toggleSign,
     percentage,
+    applyScientific,
     currentValue: parseFloat(state.display),
   };
 }

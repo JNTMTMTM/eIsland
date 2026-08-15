@@ -28,7 +28,27 @@
 export type CalcOperator = '+' | '-' | '×' | '÷';
 
 /** 按钮动作类型 */
-export type CalcButtonAction = 'digit' | 'operator' | 'equals' | 'clear' | 'backspace' | 'dot' | 'toggleSign' | 'percentage';
+export type CalcButtonAction =
+  | 'digit'
+  | 'operator'
+  | 'equals'
+  | 'clear'
+  | 'backspace'
+  | 'dot'
+  | 'toggleSign'
+  | 'percentage'
+  | 'scientific';
+
+/** 科学函数类型 */
+export type ScientificFn =
+  | 'sin' | 'cos' | 'tan'
+  | 'asin' | 'acos' | 'atan'
+  | 'log' | 'ln'
+  | 'sqrt' | 'cbrt' | 'nthroot'
+  | 'square' | 'cube' | 'reciprocal'
+  | 'factorial' | 'abs'
+  | 'pi' | 'e'
+  | 'pow' | 'exp';
 
 /** 计算器内部状态 */
 export interface CalcState {
@@ -66,6 +86,8 @@ export interface UseCalculatorReturn {
   toggleSign: () => void;
   /** 百分比 */
   percentage: () => void;
+  /** 执行科学函数 */
+  applyScientific: (fn: ScientificFn) => void;
   /** 当前数值（供外部读取） */
   currentValue: number;
 }

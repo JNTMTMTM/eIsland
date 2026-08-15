@@ -89,7 +89,7 @@
 }
 
 .calc-sidebar-nav-btn--active .calc-sidebar-nav-icon {
-  opacity: 0.9;
+  opacity: 1;
 }
 
 /* ========== 导航标签（展开后显示） ========== */
@@ -153,7 +153,7 @@
   transition: font-size 0.15s ease;
 }
 
-/* ========== 按钮网格 ========== */
+/* ========== 按钮网格（通用） ========== */
 .calc-buttons {
   display: flex;
   flex-direction: column;
@@ -167,6 +167,28 @@
   gap: 6px;
   flex: 1;
   min-height: 0;
+}
+
+/* ========== 双栏布局（科学模式） ========== */
+.calc-buttons-dual {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  flex: 1;
+  min-height: 0;
+}
+
+/* 左侧科学函数网格 — 固定宽度 */
+.calc-buttons--sci {
+  flex: 0 0 auto;
+  width: 180px;
+  min-width: 180px;
+}
+
+/* 右侧四则运算网格 — 占满剩余空间 */
+.calc-buttons--arith {
+  flex: 1;
+  min-width: 0;
 }
 
 /* ========== 按钮基础样式 ========== */
@@ -252,4 +274,16 @@
 /* ========== 零按钮（占两列） ========== */
 .calc-btn--zero {
   flex: 2;
+}
+
+/* ========== 科学函数按钮 ========== */
+.calc-btn--sci {
+  font-size: 13px;
+  font-weight: 500;
+  background: rgba(var(--color-text-rgb), 0.04);
+  color: rgba(var(--color-text-rgb), 0.68);
+}
+
+.calc-btn--sci:hover {
+  background: rgba(var(--color-text-rgb), 0.08);
 }

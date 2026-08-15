@@ -44,7 +44,7 @@ export const CALC_SIDEBAR_NAV_ITEMS: CalcSidebarNavItem[] = [
   { mode: 'unitConversion', icon: CalculatorIcon.UNIT_CONVERSION, labelKey: 'calculator.modes.unitConversion', defaultLabel: '单位换算' },
 ];
 
-/** 按钮布局定义（5×4 网格） */
+/** 四则运算按钮布局（5×4 网格） */
 export const BUTTON_LAYOUT: CalcButtonDef[][] = [
   [
     { icon: CalculatorIcon.CLEAR, alt: 'C', action: 'clear', className: 'calc-btn--func' },
@@ -75,5 +75,39 @@ export const BUTTON_LAYOUT: CalcButtonDef[][] = [
     { label: '.', alt: '.', action: 'dot' },
     { icon: CalculatorIcon.BACKSPACE, alt: '⌫', action: 'backspace' },
     { label: '=', alt: '=', action: 'equals', className: 'calc-btn--equals' },
+  ],
+];
+
+/** 科学函数按钮布局（5×4 网格，仅科学函数，与四则运算左右并排） */
+export const SCIENTIFIC_FN_LAYOUT: CalcButtonDef[][] = [
+  [
+    { label: 'sin', alt: 'sin', action: 'scientific', value: 'sin', className: 'calc-btn--sci' },
+    { label: 'cos', alt: 'cos', action: 'scientific', value: 'cos', className: 'calc-btn--sci' },
+    { label: 'tan', alt: 'tan', action: 'scientific', value: 'tan', className: 'calc-btn--sci' },
+    { label: 'π', alt: 'π', action: 'scientific', value: 'pi', className: 'calc-btn--sci' },
+  ],
+  [
+    { label: 'sin⁻¹', alt: 'sin⁻¹', action: 'scientific', value: 'asin', className: 'calc-btn--sci' },
+    { label: 'cos⁻¹', alt: 'cos⁻¹', action: 'scientific', value: 'acos', className: 'calc-btn--sci' },
+    { label: 'tan⁻¹', alt: 'tan⁻¹', action: 'scientific', value: 'atan', className: 'calc-btn--sci' },
+    { label: 'e', alt: 'e', action: 'scientific', value: 'e', className: 'calc-btn--sci' },
+  ],
+  [
+    { label: 'x²', alt: 'x²', action: 'scientific', value: 'square', className: 'calc-btn--sci' },
+    { label: 'x³', alt: 'x³', action: 'scientific', value: 'cube', className: 'calc-btn--sci' },
+    { label: 'x!', alt: 'x!', action: 'scientific', value: 'factorial', className: 'calc-btn--sci' },
+    { label: 'eˣ', alt: 'eˣ', action: 'scientific', value: 'exp', className: 'calc-btn--sci' },
+  ],
+  [
+    { label: '√', alt: '√', action: 'scientific', value: 'sqrt', className: 'calc-btn--sci' },
+    { label: '∛', alt: '∛', action: 'scientific', value: 'cbrt', className: 'calc-btn--sci' },
+    { label: 'log', alt: 'log', action: 'scientific', value: 'log', className: 'calc-btn--sci' },
+    { label: 'ln', alt: 'ln', action: 'scientific', value: 'ln', className: 'calc-btn--sci' },
+  ],
+  [
+    { label: '1/x', alt: '1/x', action: 'scientific', value: 'reciprocal', className: 'calc-btn--sci' },
+    { label: '|x|', alt: '|x|', action: 'scientific', value: 'abs', className: 'calc-btn--sci' },
+    { label: 'n√', alt: 'n√', action: 'scientific', value: 'nthroot', className: 'calc-btn--sci' },
+    { label: 'xʸ', alt: 'xʸ', action: 'scientific', value: 'pow', className: 'calc-btn--sci' },
   ],
 ];

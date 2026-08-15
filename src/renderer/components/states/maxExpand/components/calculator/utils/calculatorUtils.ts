@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import type { CalcOperator } from '../types/calculatorTypes';
+import type { CalcOperator, ScientificFn } from '../types/calculatorTypes';
 
 /**
  * 格式化数值为显示字符串。
@@ -54,5 +54,78 @@ export function evaluate(left: number, right: number, op: CalcOperator): number 
     case '-': return left - right;
     case '×': return left * right;
     case '÷': return right === 0 ? NaN : left / right;
+  }
+}
+
+/**
+ * 阶乘函数（仅支持非负整数）。
+ * @param n - 非负整数
+ * @returns n! 或 NaN（输入无效时）
+ */
+function factorial(n: number): number {
+  if (n < 0 || !Number.isInteger(n)) return NaN;
+  if (n > 170) return Infinity;
+  let result = 1;
+  for (let i = 2; i <= n; i++) result *= i;
+  return result;
+}
+
+/**
+ * 执行科学函数运算。
+ * 一元函数直接对当前值运算；常量函数返回对应值。
+ * @param fn - 科学函数标识
+ * @param value - 当前数值（常量函数忽略）
+ * @returns 运算结果
+ */
+export function applyScientificFn(fn: ScientificFn, value: number): number {
+  switch (fn) {
+    case 'sin':       return Math.sin(value);
+    case 'cos':       return Math.cos(value);
+    case 'tan':       return Math.tan(value);
+    case 'asin':      return Math.asin(value);
+    case 'acos':      return Math.acos(value);
+    case 'atan':      return Math.atan(value);
+    case 'log':       return Math.log10(value);
+    case 'ln':        return Math.log(value);
+    case 'sqrt':      return Math.sqrt(value);
+    case 'cbrt':      return Math.cbrt(value);
+    case 'square':    return value * value;
+    case 'cube':      return value * value * value;
+    case 'reciprocal': return value === 0 ? NaN : 1 / value;
+    case 'factorial': return factorial(value);
+    case 'pi':        return Math.PI;
+    case 'e':         return Math.E;
+    case 'pow':       return value; // x^y 需要二元操作，此处仅占位
+    case 'exp':       return Math.exp(value);
+    case 'abs':       return Math.abs(value);
+    case 'nthroot':   return value; // n√x 需要二元操作，此处仅占位
+  }
+}
+
+/**
+ * 获取科学函数的显示标签。
+ * @param fn - 科学函数标识
+ * @returns 显示用文本
+ */
+export function getScientificFnLabel(fn: ScientificFn): string {
+  switch (fn) {
+    case 'sin':       return 'sin';
+    case 'cos':       return 'cos';
+    case 'tan':       return 'tan';
+    case 'asin':      return 'sin⁻¹';
+    case 'acos':      return 'cos⁻¹';
+    case 'atan':      return 'tan⁻¹';
+    case 'log':       return 'log';
+    case 'ln':        return 'ln';
+    case 'sqrt':      return '√';
+    case 'cbrt':      return '∛';
+    case 'square':    return 'x²';
+    case 'cube':      return 'x³';
+    case 'reciprocal': return '1/x';
+    case 'factorial': return 'n!';
+    case 'pi':        return 'π';
+    case 'e':         return 'e';
+    case 'pow':       return 'x^y';
+    case 'exp':       return 'eˣ';
   }
 }

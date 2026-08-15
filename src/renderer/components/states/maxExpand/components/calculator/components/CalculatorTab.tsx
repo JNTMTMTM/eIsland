@@ -25,10 +25,48 @@
  */
 
 import { useState, useCallback, type ReactElement } from 'react';
-import type { CalcOperator, CalcButtonDef, CalcMode } from '../types/calculatorTypes';
-import { BUTTON_LAYOUT } from '../config/calculatorConfig';
+import type { CalcOperator, CalcButtonDef, CalcMode, ScientificFn } from '../types/calculatorTypes';
+import { BUTTON_LAYOUT, SCIENTIFIC_FN_LAYOUT } from '../config/calculatorConfig';
 import { useCalculator } from '../hooks/useCalculator';
 import { CalculatorSidebar } from './CalculatorSidebar';
+
+/**
+ * 按钮网格渲染组件。
+ * @param layout - 按钮布局二维数组
+ * @param onButton - 按钮点击回调
+ * @param className - 额外 CSS 类名
+ */
+function ButtonGrid({
+  layout,
+  onButton,
+  className,
+}: {
+  layout: CalcButtonDef[][];
+  onButton: (def: CalcButtonDef) => void;
+  className?: string;
+}): ReactElement {
+  return (
+    <div className={`calc-buttons${className ? ` ${className}` : ''}`}>
+      {layout.map((row, rowIdx) => (
+        <div className="calc-row" key={rowIdx}>
+          {row.map((btn) => (
+            <button
+              key={btn.alt}
+              type="button"
+              className={`calc-btn ${btn.className ?? ''}`}
+              onClick={() => onButton(btn)}
+            >
+              {btn.icon
+                ? <img src={btn.icon} alt={btn.alt} className="calc-btn-icon" />
+                : btn.label
+              }
+            </button>
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+}
 
 /**
  * Calculator Tab — 最大展开模式下的计算器面板
@@ -49,45 +87,28 @@ export function CalculatorTab(): ReactElement {
     setCollapsed((prev) => !prev);
   }, []);
 
-  /**
-   * 根据按钮配置分发操作。
-   * 将按钮动作映射到 hook 方法，保持 UI 与逻辑解耦。
-   */
+  /** 分发按钮操作 */
   const handleButton = useCallback((def: CalcButtonDef): void => {
     switch (def.action) {
-      case 'digit':
-        calc.inputDigit(def.value!);
-        break;
-      case 'operator':
-        calc.setOperator(def.value as CalcOperator);
-        break;
-      case 'equals':
-        calc.calculate();
-        break;
-      case 'clear':
-        calc.clear();
-        break;
-      case 'backspace':
-        calc.backspace();
-        break;
-      case 'dot':
-        calc.inputDot();
-        break;
-      case 'toggleSign':
-        calc.toggleSign();
-        break;
-      case 'percentage':
-        calc.percentage();
-        break;
+      case 'digit':       calc.inputDigit(def.value!); break;
+      case 'operator':    calc.setOperator(def.value as CalcOperator); break;
+      case 'equals':      calc.calculate(); break;
+      case 'clear':       calc.clear(); break;
+      case 'backspace':   calc.backspace(); break;
+      case 'dot':         calc.inputDot(); break;
+      case 'toggleSign':  calc.toggleSign(); break;
+      case 'percentage':  calc.percentage(); break;
+      case 'scientific':  calc.applyScientific(def.value as ScientificFn); break;
     }
   }, [calc]);
+
+  const isScientific = activeMode === 'scientific';
 
   /** 动态计算显示字体大小：数字越长字号越小 */
   const displayFontSize = calc.display.length > 10 ? '22px' : calc.display.length > 7 ? '28px' : '36px';
 
   return (
     <div className="max-expand-tab-panel calculator-panel">
-      {/* 左侧边栏 */}
       <CalculatorSidebar
         activeMode={activeMode}
         collapsed={collapsed}
@@ -95,9 +116,7 @@ export function CalculatorTab(): ReactElement {
         onToggleCollapse={handleToggleCollapse}
       />
 
-      {/* 右侧主内容区 */}
       <div className="calc-main">
-        {/* 显示区域 */}
         <div className="calc-display">
           <div className="calc-expression">{calc.expression || ' '}</div>
           <div className="calc-value" style={{ fontSize: displayFontSize }}>
@@ -105,26 +124,14 @@ export function CalculatorTab(): ReactElement {
           </div>
         </div>
 
-        {/* 按钮网格 */}
-        <div className="calc-buttons">
-          {BUTTON_LAYOUT.map((row, rowIdx) => (
-            <div className="calc-row" key={rowIdx}>
-              {row.map((btn) => (
-                <button
-                  key={btn.alt}
-                  type="button"
-                  className={`calc-btn ${btn.className ?? ''}`}
-                  onClick={() => handleButton(btn)}
-                >
-                  {btn.icon
-                    ? <img src={btn.icon} alt={btn.alt} className="calc-btn-icon" />
-                    : btn.label
-                  }
-                </button>
-              ))}
-            </div>
-          ))}
-        </div>
+        {isScientific ? (
+          <div className="calc-buttons-dual">
+            <ButtonGrid layout={SCIENTIFIC_FN_LAYOUT} onButton={handleButton} className="calc-buttons--sci" />
+            <ButtonGrid layout={BUTTON_LAYOUT} onButton={handleButton} className="calc-buttons--arith" />
+          </div>
+        ) : (
+          <ButtonGrid layout={BUTTON_LAYOUT} onButton={handleButton} />
+        )}
       </div>
     </div>
   );
