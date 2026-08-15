@@ -29,6 +29,11 @@ import { CalculatorIcon } from '../calculator-icon';
 
 describe('CalculatorIcon', () => {
   it('should contain expected keys', () => {
+    expect(CalculatorIcon).toHaveProperty('BACKSPACE');
+    expect(CalculatorIcon).toHaveProperty('DIVISION');
+    expect(CalculatorIcon).toHaveProperty('MINUS');
+    expect(CalculatorIcon).toHaveProperty('MULTIPLICATION');
+    expect(CalculatorIcon).toHaveProperty('PLUS');
     expect(CalculatorIcon).toHaveProperty('PLUS_MINUS');
   });
 
@@ -39,7 +44,7 @@ describe('CalculatorIcon', () => {
     });
   });
 
-  it('should contain exactly 1 keys', () => {
-    expect(Object.keys(CalculatorIcon)).toHaveLength(1);
+  it('should contain exactly 6 keys', () => {
+    expect(Object.keys(CalculatorIcon)).toHaveLength(6);
   });
 });

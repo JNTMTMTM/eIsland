@@ -25,6 +25,11 @@
  */
 
 export const CalculatorIcon = {
+  BACKSPACE: './svg/calculator/BACKSPACE.svg',
+  DIVISION: './svg/calculator/DIVISION.svg',
+  MINUS: './svg/calculator/MINUS.svg',
+  MULTIPLICATION: './svg/calculator/MULTIPLICATION.svg',
+  PLUS: './svg/calculator/PLUS.svg',
   PLUS_MINUS: './svg/calculator/PLUS_MINUS.svg',
 } as const;
 
