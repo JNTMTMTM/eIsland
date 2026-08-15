@@ -44,9 +44,9 @@ interface CalcButtonDef {
 /** 按钮布局定义（4×5 网格） */
 const BUTTON_LAYOUT: CalcButtonDef[][] = [
   [
-    { label: 'C', alt: 'C', action: 'clear', className: 'calc-btn--func' },
+    { icon: CalculatorIcon.CLEAR, alt: 'C', action: 'clear', className: 'calc-btn--func' },
     { icon: CalculatorIcon.PLUS_MINUS, alt: '±', action: 'toggleSign', className: 'calc-btn--func' },
-    { label: '%', alt: '%', action: 'percentage', className: 'calc-btn--func' },
+    { icon: CalculatorIcon.PERCENTAGE, alt: '%', action: 'percentage', className: 'calc-btn--func' },
     { icon: CalculatorIcon.DIVISION, alt: '÷', action: 'operator', value: '÷', className: 'calc-btn--op' },
   ],
   [
