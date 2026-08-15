@@ -20,29 +20,35 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import { readFunctionToken, snapFormulaCursor } from '../formulaCursorUtils';
+import { readFunctionOpenToken, snapFormulaCursor } from '../formulaCursorUtils';
 
-describe('readFunctionToken', () => {
-  it('仅将函数调用前的完整单词识别为 token', () => {
-    expect(readFunctionToken('cos(0)', 0)).toBe('cos');
-    expect(readFunctionToken('2+sqrt(9)', 2)).toBe('sqrt');
-    expect(readFunctionToken('2+3', 0)).toBeNull();
+describe('readFunctionOpenToken', () => {
+  it('将函数名与左括号识别为不可拆分 token', () => {
+    expect(readFunctionOpenToken('cos(0)', 0)).toBe('cos(');
+    expect(readFunctionOpenToken('2+sqrt(9)', 2)).toBe('sqrt(');
+    expect(readFunctionOpenToken('2+3', 0)).toBeNull();
   });
 });
 
 describe('snapFormulaCursor', () => {
-  it('向右移动时跳到函数名末尾', () => {
-    expect(snapFormulaCursor('cos(0)', 1, 0)).toBe(3);
-    expect(snapFormulaCursor('2+sqrt(9)', 3, 2)).toBe(6);
+  it('向右移动时跳到左括号内部', () => {
+    expect(snapFormulaCursor('cos(0)', 1, 0)).toBe(4);
+    expect(snapFormulaCursor('2+sqrt(9)', 3, 2)).toBe(7);
   });
 
-  it('向左移动时跳到函数名开头', () => {
-    expect(snapFormulaCursor('cos(0)', 2, 3)).toBe(0);
-    expect(snapFormulaCursor('2+sqrt(9)', 5, 6)).toBe(2);
+  it('向左移动时跳到函数名前', () => {
+    expect(snapFormulaCursor('cos(0)', 3, 4)).toBe(0);
+    expect(snapFormulaCursor('2+sqrt(9)', 6, 7)).toBe(2);
   });
 
-  it('保留函数名外部的合法位置', () => {
+  it('嵌套函数分别保留各自的参数编辑位置', () => {
+    expect(snapFormulaCursor('sin(cos(0))+2', 6, 4)).toBe(8);
+    expect(snapFormulaCursor('sin(cos(0))+2', 6, 8)).toBe(4);
+  });
+
+  it('允许光标停在括号中间和函数外部', () => {
     expect(snapFormulaCursor('cos(0)+2', 4, 3)).toBe(4);
+    expect(snapFormulaCursor('cos(0)+2', 5, 4)).toBe(5);
     expect(snapFormulaCursor('cos(0)+2', 8, 7)).toBe(8);
   });
 });

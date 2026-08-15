@@ -19,25 +19,25 @@
  * @author 鸡哥
  */
 
-const FUNCTION_TOKEN_PATTERN = /[a-z]+(?=\()/gi;
+const FUNCTION_OPEN_PATTERN = /[a-z]+\(/gi;
 
 /**
- * 读取指定位置开始的科学函数名。
+ * 读取指定位置开始的科学函数头。
  * @param formula - 当前公式
  * @param start - token 起始索引
- * @returns 科学函数名；当前位置不是函数起点时返回 null
+ * @returns 包含函数名与左括号的 token；当前位置不是函数头时返回 null
  */
-export function readFunctionToken(formula: string, start: number): string | null {
-  const match = formula.slice(start).match(/^[a-z]+(?=\()/i);
+export function readFunctionOpenToken(formula: string, start: number): string | null {
+  const match = formula.slice(start).match(/^[a-z]+\(/i);
   return match?.[0] ?? null;
 }
 
 /**
- * 将目标光标位置吸附到科学函数名的前后边界。
+ * 将目标光标位置吸附到科学函数头的前后边界。
  * @param formula - 当前公式
  * @param requestedPosition - 请求移动到的位置
  * @param previousPosition - 移动前的位置，用于判断移动方向
- * @returns 不会位于函数名内部的光标位置
+ * @returns 不会位于函数名或名称与左括号之间的光标位置
  */
 export function snapFormulaCursor(
   formula: string,
@@ -45,9 +45,9 @@ export function snapFormulaCursor(
   previousPosition: number,
 ): number {
   const position = Math.max(0, Math.min(requestedPosition, formula.length));
-  FUNCTION_TOKEN_PATTERN.lastIndex = 0;
+  FUNCTION_OPEN_PATTERN.lastIndex = 0;
 
-  for (const match of formula.matchAll(FUNCTION_TOKEN_PATTERN)) {
+  for (const match of formula.matchAll(FUNCTION_OPEN_PATTERN)) {
     const start = match.index;
     const end = start + match[0].length;
     if (position > start && position < end) {

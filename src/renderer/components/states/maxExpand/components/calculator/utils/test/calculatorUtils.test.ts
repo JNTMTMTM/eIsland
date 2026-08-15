@@ -42,6 +42,9 @@ describe('evaluateFormula', () => {
     expect(evaluateFormula('sqrt(16)+cbrt(8)')).toBe(6);
     expect(evaluateFormula('root(3,27)')).toBeCloseTo(3);
     expect(evaluateFormula('cos(0)+π')).toBeCloseTo(1 + Math.PI);
+    expect(evaluateFormula('arcsin(0)')).toBe(0);
+    expect(evaluateFormula('arccos(1)')).toBe(0);
+    expect(evaluateFormula('arctan(0)')).toBe(0);
   });
 
   it('拒绝不完整公式', () => {
@@ -51,6 +54,12 @@ describe('evaluateFormula', () => {
 });
 
 describe('getScientificInput', () => {
+  it('将反三角函数按钮转换为 arc 公式', () => {
+    expect(getScientificInput('arcsin')).toEqual({ text: 'arcsin()', cursorOffset: 1 });
+    expect(getScientificInput('arccos')).toEqual({ text: 'arccos()', cursorOffset: 1 });
+    expect(getScientificInput('arctan')).toEqual({ text: 'arctan()', cursorOffset: 1 });
+  });
+
   it('将幂按钮转换为可编辑的指数占位', () => {
     expect(getScientificInput('pow')).toEqual({ text: '^()', cursorOffset: 1 });
     expect(getScientificInput('square')).toEqual({ text: '^2', cursorOffset: 0 });

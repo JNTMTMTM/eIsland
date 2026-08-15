@@ -25,7 +25,7 @@
  */
 
 import { useRef, type KeyboardEvent, type MouseEvent, type ReactElement } from 'react';
-import { readFunctionToken } from '../utils/formulaCursorUtils';
+import { readFunctionOpenToken } from '../utils/formulaCursorUtils';
 
 interface CalcDisplayProps {
   formula: string;
@@ -53,7 +53,7 @@ function renderFormula(formula: string, cursor: number, onCursorChange: (positio
 
     const tokenIndex = index;
     const character = formula[tokenIndex];
-    const functionToken = readFunctionToken(formula, tokenIndex);
+    const functionToken = readFunctionOpenToken(formula, tokenIndex);
     if (functionToken) {
       const handleFunctionClick = (event: MouseEvent<HTMLSpanElement>): void => {
         event.stopPropagation();

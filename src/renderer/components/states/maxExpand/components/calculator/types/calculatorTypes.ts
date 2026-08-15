@@ -38,7 +38,7 @@ export type CalcButtonAction =
 
 export type ScientificFn =
   | 'sin' | 'cos' | 'tan'
-  | 'asin' | 'acos' | 'atan'
+  | 'arcsin' | 'arccos' | 'arctan'
   | 'log' | 'ln'
   | 'sqrt' | 'cbrt' | 'nthroot'
   | 'square' | 'cube' | 'reciprocal'

@@ -124,9 +124,9 @@ class FormulaParser {
       case 'sin': return Math.sin(first);
       case 'cos': return Math.cos(first);
       case 'tan': return Math.tan(first);
-      case 'asin': return Math.asin(first);
-      case 'acos': return Math.acos(first);
-      case 'atan': return Math.atan(first);
+      case 'arcsin': return Math.asin(first);
+      case 'arccos': return Math.acos(first);
+      case 'arctan': return Math.atan(first);
       case 'log': return Math.log10(first);
       case 'ln': return Math.log(first);
       case 'sqrt': return Math.sqrt(first);

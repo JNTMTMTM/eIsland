@@ -85,9 +85,9 @@ export const SCIENTIFIC_FN_LAYOUT: CalcButtonDef[][] = [
     { label: 'π', alt: 'π', action: 'scientific', value: 'pi', className: 'calc-btn--sci' },
   ],
   [
-    { label: 'sin⁻¹', alt: 'sin⁻¹', action: 'scientific', value: 'asin', className: 'calc-btn--sci' },
-    { label: 'cos⁻¹', alt: 'cos⁻¹', action: 'scientific', value: 'acos', className: 'calc-btn--sci' },
-    { label: 'tan⁻¹', alt: 'tan⁻¹', action: 'scientific', value: 'atan', className: 'calc-btn--sci' },
+    { label: 'sin⁻¹', alt: 'sin⁻¹', action: 'scientific', value: 'arcsin', className: 'calc-btn--sci' },
+    { label: 'cos⁻¹', alt: 'cos⁻¹', action: 'scientific', value: 'arccos', className: 'calc-btn--sci' },
+    { label: 'tan⁻¹', alt: 'tan⁻¹', action: 'scientific', value: 'arctan', className: 'calc-btn--sci' },
     { label: 'e', alt: 'e', action: 'scientific', value: 'e', className: 'calc-btn--sci' },
   ],
   [
