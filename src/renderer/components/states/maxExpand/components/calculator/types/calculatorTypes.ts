@@ -85,3 +85,18 @@ export interface CalcButtonDef {
   /** 额外 CSS 类名 */
   className?: string;
 }
+
+/** 计算器模式 */
+export type CalcMode = 'arithmetic' | 'scientific' | 'coordinate' | 'unitConversion';
+
+/** 侧边栏导航项配置 */
+export interface CalcSidebarNavItem {
+  /** 模式标识 */
+  mode: CalcMode;
+  /** 图标路径 */
+  icon: string;
+  /** i18n 翻译键 */
+  labelKey: string;
+  /** 默认标签（i18n 未加载时的兜底） */
+  defaultLabel: string;
+}

@@ -1924,6 +1924,18 @@
         "alarm2": "核弹",
         "alarm3": "奶蛙捧腹大笑"
       }
+    },
+    "calculator": {
+      "modes": {
+        "arithmetic": "四则运算",
+        "scientific": "科学计算",
+        "coordinate": "绘图",
+        "unitConversion": "单位换算"
+      },
+      "sidebar": {
+        "expand": "展开",
+        "collapse": "收起"
+      }
     }
   },
   "settings": {

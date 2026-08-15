@@ -32,24 +32,27 @@ describe('CalculatorIcon', () => {
     expect(CalculatorIcon).toHaveProperty('ARITHMETIC');
     expect(CalculatorIcon).toHaveProperty('BACKSPACE');
     expect(CalculatorIcon).toHaveProperty('CLEAR');
+    expect(CalculatorIcon).toHaveProperty('COLLAPSE');
     expect(CalculatorIcon).toHaveProperty('COORDINATE');
     expect(CalculatorIcon).toHaveProperty('DIVISION');
+    expect(CalculatorIcon).toHaveProperty('EXPAND');
     expect(CalculatorIcon).toHaveProperty('MINUS');
     expect(CalculatorIcon).toHaveProperty('MULTIPLICATION');
     expect(CalculatorIcon).toHaveProperty('PERCENTAGE');
     expect(CalculatorIcon).toHaveProperty('PLUS');
     expect(CalculatorIcon).toHaveProperty('PLUS_MINUS');
+    expect(CalculatorIcon).toHaveProperty('SCIENTIFIC');
     expect(CalculatorIcon).toHaveProperty('UNIT_CONVERSION');
   });
 
-  it('all values should be strings starting with ./svg/calculator/ and ending with .svg', () => {
+  it('all values should be strings ending with .svg', () => {
     Object.entries(CalculatorIcon).forEach(([, value]) => {
       expect(typeof value).toBe('string');
-      expect(value).toMatch(/^\.\/svg\/calculator\/.+\.svg$/);
+      expect(value).toMatch(/^\.\/svg\/.+\.svg$/);
     });
   });
 
-  it('should contain exactly 11 keys', () => {
-    expect(Object.keys(CalculatorIcon)).toHaveLength(11);
+  it('should contain exactly 14 keys', () => {
+    expect(Object.keys(CalculatorIcon)).toHaveLength(14);
   });
 });

@@ -28,13 +28,16 @@ export const CalculatorIcon = {
   ARITHMETIC: './svg/calculator/ARITHMETIC.svg',
   BACKSPACE: './svg/calculator/BACKSPACE.svg',
   CLEAR: './svg/calculator/CLEAR.svg',
+  COLLAPSE: './svg/COLLAPSE.svg',
   COORDINATE: './svg/calculator/COORDINATE.svg',
   DIVISION: './svg/calculator/DIVISION.svg',
+  EXPAND: './svg/EXPAND.svg',
   MINUS: './svg/calculator/MINUS.svg',
   MULTIPLICATION: './svg/calculator/MULTIPLICATION.svg',
   PERCENTAGE: './svg/calculator/PERCENTAGE.svg',
   PLUS: './svg/calculator/PLUS.svg',
   PLUS_MINUS: './svg/calculator/PLUS_MINUS.svg',
+  SCIENTIFIC: './svg/calculator/SCIENTIFIC.svg',
   UNIT_CONVERSION: './svg/calculator/UNIT_CONVERSION.svg',
 } as const;
 
