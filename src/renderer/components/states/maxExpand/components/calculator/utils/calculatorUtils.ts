@@ -127,5 +127,7 @@ export function getScientificFnLabel(fn: ScientificFn): string {
     case 'e':         return 'e';
     case 'pow':       return 'x^y';
     case 'exp':       return 'eˣ';
+    case 'abs':       return '|x|';
+    case 'nthroot':   return 'n√';
   }
 }

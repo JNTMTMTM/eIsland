@@ -89,7 +89,7 @@
 }
 
 .calc-sidebar-nav-btn--active .calc-sidebar-nav-icon {
-  opacity: 1;
+  opacity: 0.9;
 }
 
 /* ========== 导航标签（展开后显示） ========== */
@@ -178,11 +178,21 @@
   min-height: 0;
 }
 
-/* 左侧科学函数网格 — 固定宽度 */
+/* 左侧科学函数网格 — CSS Grid 实现正方形按钮 */
 .calc-buttons--sci {
-  flex: 0 0 auto;
-  width: 180px;
-  min-width: 180px;
+  flex: 0 0 200px;
+  width: 200px;
+  min-width: 200px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-auto-rows: 1fr;
+  gap: 4px;
+  align-content: start;
+}
+
+/* Grid 布局下 row 容器不参与布局，按钮直接进格子 */
+.calc-buttons--sci .calc-row {
+  display: contents;
 }
 
 /* 右侧四则运算网格 — 占满剩余空间 */
