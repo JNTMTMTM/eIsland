@@ -24,96 +24,16 @@
  * @author 鸡哥
  */
 
-import { useState, useCallback, type Dispatch, type SetStateAction } from 'react';
-
-/** 运算符类型 */
-export type CalcOperator = '+' | '-' | '×' | '÷';
-
-/** 计算器状态 */
-interface CalcState {
-  /** 当前显示值 */
-  display: string;
-  /** 已输入的操作数（左侧） */
-  operand: string | null;
-  /** 当前运算符 */
-  operator: CalcOperator | null;
-  /** 是否等待下一个操作数输入 */
-  waitingForOperand: boolean;
-  /** 表达式预览（如 "3 +"） */
-  expression: string;
-}
-
-/** 计算器 hook 返回接口 */
-export interface UseCalculatorReturn {
-  /** 当前显示值 */
-  display: string;
-  /** 表达式预览 */
-  expression: string;
-  /** 输入数字 */
-  inputDigit: (digit: string) => void;
-  /** 输入小数点 */
-  inputDot: () => void;
-  /** 设置运算符 */
-  setOperator: (op: CalcOperator) => void;
-  /** 执行计算 */
-  calculate: () => void;
-  /** 清除全部 */
-  clear: () => void;
-  /** 退格 */
-  backspace: () => void;
-  /** 正负切换 */
-  toggleSign: () => void;
-  /** 百分比 */
-  percentage: () => void;
-  /** 当前显示值（供外部读取） */
-  currentValue: number;
-}
-
-/** 初始状态 */
-const INITIAL_STATE: CalcState = {
-  display: '0',
-  operand: null,
-  operator: null,
-  waitingForOperand: false,
-  expression: '',
-};
-
-/**
- * 格式化数值为显示字符串。
- * 去除尾部多余小数点，限制最大显示位数。
- * @param value - 数值
- * @returns 格式化后的字符串
- */
-function formatDisplay(value: number): string {
-  if (!isFinite(value)) return 'Error';
-  const str = String(value);
-  // 限制最大 12 位有效数字，避免溢出显示区
-  if (str.replace(/[^0-9]/g, '').length > 12) {
-    return value.toPrecision(12).replace(/\.?0+$/, '');
-  }
-  return str;
-}
-
-/**
- * 执行二元运算。
- * @param left - 左操作数
- * @param right - 右操作数
- * @param op - 运算符
- * @returns 运算结果
- */
-function evaluate(left: number, right: number, op: CalcOperator): number {
-  switch (op) {
-    case '+': return left + right;
-    case '-': return left - right;
-    case '×': return left * right;
-    case '÷': return right === 0 ? NaN : left / right;
-  }
-}
+import { useState, useCallback } from 'react';
+import type { CalcOperator, CalcState, UseCalculatorReturn } from '../types/calculatorTypes';
+import { INITIAL_STATE } from '../config/calculatorConfig';
+import { formatDisplay, evaluate } from '../utils/calculatorUtils';
 
 /**
  * 计算器核心逻辑 hook。
  * 使用状态机模式管理计算流程，运算符与计算逻辑解耦，
  * 便于后续拓展科学函数（如 sin/cos/√ 等）。
+ * @returns 计算器状态与操作方法
  */
 export function useCalculator(): UseCalculatorReturn {
   const [state, setState] = useState<CalcState>(INITIAL_STATE);

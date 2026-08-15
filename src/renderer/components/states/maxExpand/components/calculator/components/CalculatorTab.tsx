@@ -20,60 +20,14 @@
 
 /**
  * @file CalculatorTab.tsx
- * @description 最大展开模式 — 计算器 Tab — 四则运算计算器，架构支持科学函数拓展
+ * @description 最大展开模式 — 计算器 Tab — 薄组合层，由 useCalculator hook 驱动
  * @author 鸡哥
  */
 
 import { useCallback, type ReactElement } from 'react';
-import { CalculatorIcon } from '../../../../../../utils/SvgIcon';
-import { useCalculator, type CalcOperator } from '../hooks/useCalculator';
-
-/** 按钮配置项 */
-interface CalcButtonDef {
-  /** 文本标签（数字、C、%、.、= 等无图标的按钮） */
-  label?: string;
-  /** SVG 图标路径（有图标的按钮） */
-  icon?: string;
-  /** 图标 alt 文本 / 按钮 key */
-  alt: string;
-  action: 'digit' | 'operator' | 'equals' | 'clear' | 'backspace' | 'dot' | 'toggleSign' | 'percentage';
-  value?: string;
-  className?: string;
-}
-
-/** 按钮布局定义（4×5 网格） */
-const BUTTON_LAYOUT: CalcButtonDef[][] = [
-  [
-    { icon: CalculatorIcon.CLEAR, alt: 'C', action: 'clear', className: 'calc-btn--func' },
-    { icon: CalculatorIcon.PLUS_MINUS, alt: '±', action: 'toggleSign', className: 'calc-btn--func' },
-    { icon: CalculatorIcon.PERCENTAGE, alt: '%', action: 'percentage', className: 'calc-btn--func' },
-    { icon: CalculatorIcon.DIVISION, alt: '÷', action: 'operator', value: '÷', className: 'calc-btn--op' },
-  ],
-  [
-    { label: '7', alt: '7', action: 'digit', value: '7' },
-    { label: '8', alt: '8', action: 'digit', value: '8' },
-    { label: '9', alt: '9', action: 'digit', value: '9' },
-    { icon: CalculatorIcon.MULTIPLICATION, alt: '×', action: 'operator', value: '×', className: 'calc-btn--op' },
-  ],
-  [
-    { label: '4', alt: '4', action: 'digit', value: '4' },
-    { label: '5', alt: '5', action: 'digit', value: '5' },
-    { label: '6', alt: '6', action: 'digit', value: '6' },
-    { icon: CalculatorIcon.MINUS, alt: '-', action: 'operator', value: '-', className: 'calc-btn--op' },
-  ],
-  [
-    { label: '1', alt: '1', action: 'digit', value: '1' },
-    { label: '2', alt: '2', action: 'digit', value: '2' },
-    { label: '3', alt: '3', action: 'digit', value: '3' },
-    { icon: CalculatorIcon.PLUS, alt: '+', action: 'operator', value: '+', className: 'calc-btn--op' },
-  ],
-  [
-    { label: '0', alt: '0', action: 'digit', value: '0', className: 'calc-btn--zero' },
-    { label: '.', alt: '.', action: 'dot' },
-    { icon: CalculatorIcon.BACKSPACE, alt: '⌫', action: 'backspace' },
-    { label: '=', alt: '=', action: 'equals', className: 'calc-btn--equals' },
-  ],
-];
+import type { CalcOperator, CalcButtonDef } from '../types/calculatorTypes';
+import { BUTTON_LAYOUT } from '../config/calculatorConfig';
+import { useCalculator } from '../hooks/useCalculator';
 
 /**
  * Calculator Tab — 最大展开模式下的计算器面板
