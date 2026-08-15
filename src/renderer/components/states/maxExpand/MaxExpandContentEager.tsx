@@ -42,6 +42,7 @@ import { ToolboxTab } from './components/ToolboxTab';
 import { MiniGameTab } from './components/MiniGameTab';
 import { StockTab } from './components/stock';
 import { CliTab } from './components/cli';
+import { CalculatorTab } from './components/calculator';
 
 function renderEagerActiveTab(activeTab: MaxExpandTab, loadingFallback: ReactElement, contentReady: boolean): ReactElement | null {
   if (!contentReady) return loadingFallback;
@@ -59,6 +60,7 @@ function renderEagerActiveTab(activeTab: MaxExpandTab, loadingFallback: ReactEle
   if (activeTab === 'miniGame') return <MiniGameTab />;
   if (activeTab === 'stock') return <StockTab />;
   if (activeTab === 'cli') return <CliTab />;
+  if (activeTab === 'calculator') return <CalculatorTab />;
   if (activeTab === 'settings') return <SettingsTab />;
   return null;
 }

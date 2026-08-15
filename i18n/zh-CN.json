@@ -1926,6 +1926,26 @@
       }
     }
   },
+  "calculator": {
+    "modes": {
+      "arithmetic": "四则运算",
+      "scientific": "科学计算",
+      "coordinate": "绘图",
+      "unitConversion": "单位换算"
+    },
+    "sidebar": {
+      "expand": "展开",
+      "collapse": "收起"
+    },
+    "functions": {
+      "logn": "任意底数对数",
+      "fraction": "分数",
+      "sum": "有限求和",
+      "integral": "定积分",
+      "derivative": "指定点微分",
+      "variable": "变量 x"
+    }
+  },
   "settings": {
     "navigation": {
       "expand": "展开页面导航",
@@ -2261,7 +2281,8 @@
           "toolbox": "工具箱",
           "miniGame": "小游戏",
           "stock": "股票行情",
-          "cli": "CLI 控制台"
+          "cli": "CLI 控制台",
+          "calculator": "计算器"
         }
       },
       "hideProcess": {

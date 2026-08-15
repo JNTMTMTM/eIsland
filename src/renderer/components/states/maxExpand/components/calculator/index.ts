@@ -20,30 +20,8 @@
 
 /**
  * @file index.ts
- * @description SvgIcon 统一入口
+ * @description 计算器模块入口，导出 CalculatorTab 组件
  * @author 鸡哥
  */
 
-export { SvgIcon } from './eisland-icon';
-export type { SvgIconKey } from './eisland-icon';
-
-export {
-  DevIcon,
-  DEVICON_LANGUAGE_ALIASES,
-  resolveDevIconLanguage,
-  resolveDevIconByLanguage,
-  resolveDevIconByFileName,
-} from './dev-icon';
-export type { DevIconKey } from './dev-icon';
-
-export { AgentIcon } from './agent-icon';
-export type { AgentIconKey } from './agent-icon';
-
-export { PlayerIcon } from './player-icon';
-export type { PlayerIconKey } from './player-icon';
-
-export { ServiceIcon } from './service-icon';
-export type { ServiceIconKey } from './service-icon';
-
-export { CalculatorIcon } from './calculator-icon';
-export type { CalculatorIconKey } from './calculator-icon';
+export { CalculatorTab } from './components/CalculatorTab';

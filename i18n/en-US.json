@@ -1926,6 +1926,26 @@
       }
     }
   },
+  "calculator": {
+    "modes": {
+      "arithmetic": "Arithmetic",
+      "scientific": "Scientific",
+      "coordinate": "Graphing",
+      "unitConversion": "Unit Converter"
+    },
+    "sidebar": {
+      "expand": "Expand",
+      "collapse": "Collapse"
+    },
+    "functions": {
+      "logn": "Arbitrary-base logarithm",
+      "fraction": "Fraction",
+      "sum": "Finite summation",
+      "integral": "Definite integral",
+      "derivative": "Derivative at a point",
+      "variable": "Variable x"
+    }
+  },
   "settings": {
     "navigation": {
       "expand": "Expand page navigation",
@@ -2261,7 +2281,8 @@
           "toolbox": "Toolbox",
           "miniGame": "Mini Game",
           "stock": "Stock Market",
-          "cli": "CLI Console"
+          "cli": "CLI Console",
+          "calculator": "Calculator"
         }
       },
       "hideProcess": {

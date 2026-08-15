@@ -44,6 +44,7 @@ const ToolboxTab = lazy(() => import('./components/ToolboxTab').then((module) =>
 const MiniGameTab = lazy(() => import('./components/MiniGameTab').then((module) => ({ default: module.MiniGameTab })));
 const StockTab = lazy(() => import('./components/stock').then((module) => ({ default: module.StockTab })));
 const CliTab = lazy(() => import('./components/cli').then((module) => ({ default: module.CliTab })));
+const CalculatorTab = lazy(() => import('./components/calculator').then((module) => ({ default: module.CalculatorTab })));
 
 function renderLazyActiveTab(activeTab: MaxExpandTab, loadingFallback: ReactElement, contentReady: boolean): ReactElement | null {
   if (!contentReady) return loadingFallback;
@@ -62,6 +63,7 @@ function renderLazyActiveTab(activeTab: MaxExpandTab, loadingFallback: ReactElem
   if (activeTab === 'miniGame') content = <MiniGameTab />;
   if (activeTab === 'stock') content = <StockTab />;
   if (activeTab === 'cli') content = <CliTab />;
+  if (activeTab === 'calculator') content = <CalculatorTab />;
   if (activeTab === 'settings') content = <SettingsTab />;
   return <Suspense fallback={loadingFallback}>{content}</Suspense>;
 }

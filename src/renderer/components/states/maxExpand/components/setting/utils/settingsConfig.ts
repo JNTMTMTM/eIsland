@@ -279,7 +279,7 @@ export interface MaxExpandNavItem {
 
 export type MaxExpandNavLayoutConfig = MaxExpandNavItem[];
 
-export const MAXEXPAND_CONFIGURABLE_TABS: string[] = ['todo', 'urlFavorites', 'album', 'mail', 'localFileSearch', 'clipboardHistory', 'aiChat', 'memo', 'countdown', 'alarm', 'toolbox', 'miniGame', 'stock', 'cli'];
+export const MAXEXPAND_CONFIGURABLE_TABS: string[] = ['todo', 'urlFavorites', 'album', 'mail', 'localFileSearch', 'clipboardHistory', 'aiChat', 'memo', 'countdown', 'alarm', 'toolbox', 'miniGame', 'stock', 'cli', 'calculator'];
 
 export const MAXEXPAND_ALWAYS_VISIBLE_TABS: Set<string> = new Set<string>();
 
@@ -298,6 +298,7 @@ export const MAXEXPAND_TAB_LABELS: Record<string, string> = {
   miniGame: '小游戏',
   stock: '股票行情',
   cli: 'CLI 控制台',
+  calculator: '计算器',
 };
 
 export const DEFAULT_MAXEXPAND_NAV_LAYOUT: MaxExpandNavLayoutConfig = MAXEXPAND_CONFIGURABLE_TABS.map((id) => ({ id, visible: true }));

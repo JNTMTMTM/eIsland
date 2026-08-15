@@ -25,6 +25,7 @@ Register a new SVG file in the project's icon enum system and ensure test covera
 src/renderer/public/svg/
 ├── *.svg                  → SvgIcon (eisland-icon.ts)
 ├── agent/*.svg            → AgentIcon (agent-icon.ts)
+├── calculator/*.svg       → CalculatorIcon (calculator-icon.ts)
 ├── countries/*.svg        → CountryIcon (country-icon.ts)
 ├── devicons/*.svg         → DevIcon (dev-icon.ts)
 ├── player/*.svg           → PlayerIcon (player-icon.ts)
@@ -34,6 +35,7 @@ src/renderer/utils/SvgIcon/
 ├── index.ts               → unified exports
 ├── eisland-icon.ts        → SvgIcon enum
 ├── agent-icon.ts          → AgentIcon enum
+├── calculator-icon.ts     → CalculatorIcon enum
 ├── country-icon.ts        → CountryIcon enum + aliases + resolvers
 ├── dev-icon.ts            → DevIcon enum + aliases + resolvers
 ├── player-icon.ts         → PlayerIcon enum
@@ -41,6 +43,7 @@ src/renderer/utils/SvgIcon/
 └── test/
     ├── eisland-icon.test.ts
     ├── agent-icon.test.ts
+    ├── calculator-icon.test.ts
     ├── country-icon.test.ts
     ├── dev-icon.test.ts
     ├── player-icon.test.ts
@@ -57,6 +60,7 @@ Determine which enum the SVG belongs to based on its filesystem path:
 |----------|-----------|-----------|-------------|
 | `svg/FOO.svg` | `eisland-icon.ts` | `SvgIcon` | `./svg/` |
 | `svg/agent/FOO.svg` | `agent-icon.ts` | `AgentIcon` | `./svg/agent/` |
+| `svg/calculator/FOO.svg` | `calculator-icon.ts` | `CalculatorIcon` | `./svg/calculator/` |
 | `svg/countries/FOO.svg` | `country-icon.ts` | `CountryIcon` | `./svg/countries/` |
 | `svg/devicons/FOO.svg` | `dev-icon.ts` | `DevIcon` | `/svg/devicons/` |
 | `svg/player/FOO.svg` | `player-icon.ts` | `PlayerIcon` | `./svg/player/` |
@@ -79,11 +83,12 @@ For country-icon and dev-icon, keys follow their existing conventions (e.g., `CH
 
 Read the enum file, then add the new entry before the closing `} as const;`. Keep entries sorted logically or grouped with related icons — match the existing ordering style.
 
-**eisland-icon.ts / agent-icon.ts / player-icon.ts / service-icon.ts pattern:**
+**eisland-icon.ts / agent-icon.ts / calculator-icon.ts / player-icon.ts / service-icon.ts pattern:**
 ```ts
   NEW_ICON: './svg/NEW_ICON.svg',
   // player-icon.ts uses: './svg/player/name.svg'
   // service-icon.ts uses: './svg/services/name.svg'
+  // calculator-icon.ts uses: './svg/calculator/name.svg'
 ```
 
 **country-icon.ts / dev-icon.ts:** These have aliases and resolver functions. Only add if the user explicitly asks, and follow the existing alias/resolver patterns.
@@ -100,7 +105,7 @@ Read the test file for the enum, then make three changes:
 
 ### Step 5: Export from index.ts (new category only)
 
-If adding to an existing enum file (eisland-icon, agent-icon, etc.), no change to `index.ts` is needed — it's already exported.
+If adding to an existing enum file (eisland-icon, agent-icon, calculator-icon, etc.), no change to `index.ts` is needed — it's already exported.
 
 If creating a **new** category (a new enum file), add the export to `src/renderer/utils/SvgIcon/index.ts`:
 ```ts

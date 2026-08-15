@@ -1,8 +1,8 @@
-# 🎙 Voice Assistant
+#  Voice Assistant
 
 eIsland supports a voice assistant feature powered by Tencent Cloud ASR services, with high recognition accuracy and multi-language support.
 
-## ⌨️ How to Trigger
+##  How to Trigger
 
 ### Steps
 1. Press `Alt + P` to trigger the voice assistant
@@ -14,7 +14,7 @@ eIsland supports a voice assistant feature powered by Tencent Cloud ASR services
 - eIsland account login required
 - Sufficient account balance
 
-## 🚀 Supported Features
+##  Supported Features
 
 The voice assistant can convert voice commands into computer operations, including:
 
@@ -22,14 +22,14 @@ The voice assistant can convert voice commands into computer operations, includi
 - Complex tasks: Open system environment variable window and add environment variables
 - File operations: Requires workspace configuration first (see below)
 
-## ⚠️ Precautions
+##  Precautions
 
 1. **Environment**: Recommended to use in a quiet environment; noisy environments may cause recognition errors
 2. **Hardware**: Requires a working microphone; virtual sound cards may cause recognition failure
 3. **Security**: Sensitive operations will immediately notify the user for authorization
 4. **File Operations**: Workspace must be configured before file-related operations can be executed
 
-## 📂 Workspace Configuration
+##  Workspace Configuration
 
 ### Standard Method
 1. Enter the maximum expanded state

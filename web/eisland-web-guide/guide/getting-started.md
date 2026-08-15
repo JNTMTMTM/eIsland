@@ -15,6 +15,21 @@ eIsland 操作逻辑主要使用**鼠标滑轮操作**逻辑，在指定位置�
   <p style="text-align: center; color: #666; margin-top: 8px;">eIsland 操作界面展示</p>
 </center>
 
+## 新界面介绍（后续新加）
+
+<center>
+  <img src="/eisland_faq/1newz.png" alt="eIsland操作界面" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+  <p style="text-align: center; color: #666; margin-top: 8px;">eIsland 新操作界面未展开</p>
+</center>
+
+
+<center>
+  <img src="/eisland_faq/1new.png" alt="eIsland操作界面" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+  <p style="text-align: center; color: #666; margin-top: 8px;">eIsland 新操作界面展开</p>
+</center>
+
+#### 其实大差不差，只不过将右侧的点栏变成了更好的文字描述，你依然可以按照此文档对软件进行操作
+
 在后续文章中：
 
 - 红色框的列表我们会直接叫"**左侧栏**"
@@ -58,17 +73,24 @@ eIsland 操作逻辑主要使用**鼠标滑轮操作**逻辑，在指定位置�
     <li>建议操作系统：Windows 10 22H2 或以上版本</li>
     <li>内存要求：8GB 以上，推荐 DDR4 2133MHz 及以上速率</li>
     <li>存储建议：推荐运行在 SSD 上，以获得更好的性能</li>
-    <li>显卡说明：核心显卡运行时可能会占用一些系统内存</li>
+    <li>显卡说明：核心显卡运行时可能会占用一些系统内存，请保持充足的运行内存</li>
+    <li>某些平台运行Eisland的时候可能会存在兼容性问题，例如Wine转译，ARM平台等等，遇到棘手的问题可以及时联系开发者</li>
+    <li>Eisland开发者会尽最大可能去优化软件，如果遇到问题，还请通过以下联系方式告诉我们</li>
+    <li>Eisland QQ群：897871598</li>
+    <li>Pyisland 闲聊群：1104986706</li>
   </ul>
 </div>
 
-## Github 仓库
+## 相关链接
 
-<a href="https://github.com/JNTMTMTM/eIsland" target="_blank" style="display: inline-block; padding: 8px 16px; background-color: #24292f; color: white; border-radius: 6px; text-decoration: none; transition: background-color 0.2s;">
-  <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-mark-github">
-    <path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"></path>
-  </svg>
+<a href="https://github.com/JNTMTMTM/eIsland" target="_blank" style="display: inline-block; padding: 8px 16px; background-color: #24292f; color: white; border-radius: 6px; text-decoration: none; transition: background-color 0.2s; margin-right: 8px;">
   访问 Github 仓库
+</a>
+<a href="https://www.bilibili.com/video/BV1QEE36eEWJ/?" target="_blank" style="display: inline-block; padding: 8px 16px; background-color: #FB7299; color: white; border-radius: 6px; text-decoration: none; transition: background-color 0.2s;margin-right: 8px;">
+  观看 B站 视频
+</a>
+<a href="https://v.douyin.com/AI27vwESH10/" target="_blank" style="display: inline-block; padding: 8px 16px; background-color: #885fe7ff; color: white; border-radius: 6px; text-decoration: none; transition: background-color 0.2s;">
+  观看 抖音 视频
 </a>
 
 ### 小贴士
