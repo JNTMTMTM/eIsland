@@ -120,6 +120,11 @@
   background: rgba(var(--color-text-rgb), 0.18);
 }
 
+.calc-btn--func .calc-btn-icon {
+  width: 16px;
+  height: 16px;
+}
+
 /* ========== 运算符按钮 ========== */
 .calc-btn--op {
   background: rgba(var(--color-accent-rgb, 99, 144, 255), 0.18);
