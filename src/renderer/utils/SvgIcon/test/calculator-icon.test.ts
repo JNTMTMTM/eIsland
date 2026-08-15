@@ -30,9 +30,11 @@ import { CalculatorIcon } from '../calculator-icon';
 describe('CalculatorIcon', () => {
   it('should contain expected keys', () => {
     expect(CalculatorIcon).toHaveProperty('BACKSPACE');
+    expect(CalculatorIcon).toHaveProperty('CLEAR');
     expect(CalculatorIcon).toHaveProperty('DIVISION');
     expect(CalculatorIcon).toHaveProperty('MINUS');
     expect(CalculatorIcon).toHaveProperty('MULTIPLICATION');
+    expect(CalculatorIcon).toHaveProperty('PERCENTAGE');
     expect(CalculatorIcon).toHaveProperty('PLUS');
     expect(CalculatorIcon).toHaveProperty('PLUS_MINUS');
   });
@@ -44,7 +46,7 @@ describe('CalculatorIcon', () => {
     });
   });
 
-  it('should contain exactly 6 keys', () => {
-    expect(Object.keys(CalculatorIcon)).toHaveLength(6);
+  it('should contain exactly 8 keys', () => {
+    expect(Object.keys(CalculatorIcon)).toHaveLength(8);
   });
 });
