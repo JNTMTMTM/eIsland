@@ -1924,18 +1924,18 @@
         "alarm2": "Nuke",
         "alarm3": "NL Laughing"
       }
+    }
+  },
+  "calculator": {
+    "modes": {
+      "arithmetic": "Arithmetic",
+      "scientific": "Scientific",
+      "coordinate": "Graphing",
+      "unitConversion": "Unit Converter"
     },
-    "calculator": {
-      "modes": {
-        "arithmetic": "Arithmetic",
-        "scientific": "Scientific",
-        "coordinate": "Graphing",
-        "unitConversion": "Unit Converter"
-      },
-      "sidebar": {
-        "expand": "Expand",
-        "collapse": "Collapse"
-      }
+    "sidebar": {
+      "expand": "Expand",
+      "collapse": "Collapse"
     }
   },
   "settings": {
