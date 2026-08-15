@@ -59,7 +59,12 @@ const MockXHR: {
   responseText: '',
 }));
 
-vi.stubGlobal('XMLHttpRequest', vi.fn(() => MockXHR));
+/**
+ * XMLHttpRequest mock — 可通过 `new` 构造，返回共享实例。
+ * 当构造函数返回对象时，`new` 运算符使用该对象作为结果，
+ * 因此 `new XMLHttpRequest()` 正确返回 MockXHR。
+ */
+vi.stubGlobal('XMLHttpRequest', vi.fn(function FakeXHR() { return MockXHR; }));
 
 import {
   submitUserIssueFeedback,

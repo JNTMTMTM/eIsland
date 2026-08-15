@@ -71,6 +71,10 @@ describe('registerStoreIpcHandlers', () => {
 
   beforeEach(() => {
     handlers.clear();
+    existsSyncMock.mockReset();
+    readFileSyncMock.mockReset();
+    writeFileSyncMock.mockReset();
+    broadcastSettingChangeMock.mockReset();
     handleMock.mockImplementation((channel: string, handler: (...args: unknown[]) => unknown) => {
       handlers.set(channel, handler);
     });
