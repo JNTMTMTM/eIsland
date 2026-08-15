@@ -160,163 +160,26 @@
   display: none;
 }
 
-.calc-token {
+.calc-katex-expression {
   display: inline-block;
-  flex: 0 0 auto;
-}
-
-.calc-token--superscript {
-  align-self: flex-start;
-  margin-top: 1px;
-  font-size: 0.58em;
-  line-height: 1;
-}
-
-.calc-token--superscript.calc-token--placeholder {
-  color: rgba(var(--color-text-rgb), 0.26);
-  font-size: 0.7em;
-  cursor: text;
-}
-
-.calc-document,
-.calc-document-segment,
-.calc-structure,
-.calc-slot {
-  display: inline-flex;
-  align-items: center;
-}
-
-.calc-document {
-  min-width: max-content;
-}
-
-.calc-slot {
-  min-width: 0.7em;
-  min-height: 1em;
-  padding: 0 1px;
-  border-radius: 3px;
-}
-
-.calc-slot--active {
-  background: rgba(var(--color-accent-rgb, 99, 144, 255), 0.08);
-}
-
-.calc-slot-placeholder {
-  color: rgba(var(--color-text-rgb), 0.26);
-  font-size: 0.7em;
-}
-
-.calc-logn {
-  align-items: baseline;
-}
-
-.calc-logn__base {
-  align-self: flex-end;
-  margin: 0 1px 0 -1px;
-  font-size: 0.55em;
-}
-
-.calc-fraction {
-  flex-direction: column;
-  justify-content: center;
-  min-width: 1.4em;
-  margin: 0 4px;
-  vertical-align: middle;
-}
-
-.calc-fraction__part {
-  display: flex;
-  justify-content: center;
-  min-width: 100%;
-  font-size: 0.72em;
-  line-height: 1.05;
-}
-
-.calc-fraction__line {
-  width: 100%;
-  min-width: 1.2em;
-  height: 1px;
-  margin: 2px 0;
-  background: currentColor;
-}
-
-.calc-large-operator {
-  gap: 3px;
-  margin: 0 4px;
-}
-
-.calc-large-operator__limits {
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 3px;
-  font-size: 0.48em;
-  line-height: 1;
-}
-
-.calc-large-operator__symbol {
-  font-size: 2.2em;
-  line-height: 0.9;
-}
-
-.calc-large-operator__limits > :last-child {
-  margin-top: 2px;
-}
-
-.calc-large-operator__body {
-  min-width: 1em;
-}
-
-.calc-root {
-  align-items: stretch;
   position: relative;
-  margin: 0 0.07em;
+  min-width: max-content;
+  line-height: 1.25;
 }
 
-.calc-root__index {
-  align-self: flex-start;
-  margin-right: 0.04em;
-  font-size: 0.48em;
-  line-height: 1;
-  min-width: 0.6em;
-  min-height: 0.6em;
+.calc-katex-render {
+  display: inline-block;
+  color: inherit;
 }
 
-.calc-root__sign {
-  align-self: stretch;
-  display: inline-flex;
-  align-items: flex-end;
-  margin-right: -0.08em;
-  font-family: "Cambria Math", "STIX Two Math", serif;
-  font-size: 1.35em;
-  font-weight: 400;
-  line-height: 0.92;
-  transform: translateY(0.04em);
+.calc-katex-render .katex {
+  color: inherit;
 }
 
-.calc-root__radicand {
-  padding: 0 0.1em;
-  min-width: 0.8em;
-  min-height: 1em;
-  border-top: 0.07em solid currentColor;
-}
-
-.calc-derivative {
-  align-items: baseline;
-  gap: 2px;
-}
-
-.calc-derivative__operator {
-  font-size: 0.75em;
-  white-space: nowrap;
-}
-
-.calc-derivative__point {
-  display: inline-flex;
-  align-items: flex-end;
-  margin-left: 2px;
-  font-size: 0.55em;
+.calc-katex-cursor {
+  position: absolute;
+  pointer-events: none;
+  margin: 0;
 }
 
 .calc-cursor {

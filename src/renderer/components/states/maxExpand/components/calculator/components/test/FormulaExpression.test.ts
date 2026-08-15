@@ -54,9 +54,9 @@ describe('FormulaExpression', () => {
     const logarithm = renderStructure('logn', { base: text('2'), value: text('8') });
     const fraction = renderStructure('fraction', { numerator: text('1'), denominator: text('3') });
 
-    expect(logarithm).toContain('calc-logn__base');
-    expect(logarithm).toContain('log');
-    expect(fraction).toContain('calc-fraction__line');
+    expect(logarithm).toContain('class="katex"');
+    expect(logarithm).toContain('data-formula-anchor');
+    expect(fraction).toContain('class="mfrac"');
   });
 
   it('渲染求和、积分与指定点微分结构', () => {
@@ -67,21 +67,21 @@ describe('FormulaExpression', () => {
     const integral = renderStructure('integral', { lower: text('0'), upper: nestedRoot, body: text('x') });
     const derivative = renderStructure('derivative', { body: text('x^2'), point: text('2') });
 
-    expect(sum).toContain('Σ');
+    expect(sum).toContain('∑');
     expect(integral).toContain('∫');
-    expect(integral).toContain('calc-root__sign');
+    expect(integral).toContain('data-formula-anchor');
     expect(integral).toContain('dx');
-    expect(derivative).toContain('d/dx');
-    expect(derivative).toContain('|x=');
+    expect(derivative).toContain('data-formula-anchor');
+    expect(derivative).toContain('application/x-tex');
   });
 
   it('区分平方根与带指数根式', () => {
     const squareRoot = renderStructure('sqrt', { radicand: text('9') });
     const nthRoot = renderStructure('root', { index: text('3'), radicand: text('8') });
 
-    expect(squareRoot).toContain('calc-root__sign');
-    expect(squareRoot).toContain('>√</span>');
-    expect(squareRoot).not.toContain('calc-root__index');
-    expect(nthRoot).toContain('calc-root__index');
+    expect(squareRoot).toContain('sqrt');
+    expect(squareRoot).toContain('data-formula-anchor');
+    expect(nthRoot).toContain('sqrt');
+    expect(nthRoot).toContain('data-formula-anchor');
   });
 });

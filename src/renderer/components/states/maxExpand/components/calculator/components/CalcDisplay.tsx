@@ -67,7 +67,7 @@ export function CalcDisplay({
       tabIndex={0}
       autoFocus
       aria-multiline="false"
-      onClick={handleDisplayClick}
+      onClickCapture={handleDisplayClick}
       onKeyDown={onKeyDown}
     >
       <div className="calc-expression" style={{ fontSize }}>

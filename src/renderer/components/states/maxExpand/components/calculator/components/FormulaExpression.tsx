@@ -1,6 +1,6 @@
 /*
  * eIsland - A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Electron.
- * https://github.com/JNTMTM/eIsland
+ * https://github.com/JNTMTMTM/eIsland
  *
  * Copyright (C) 2026 JNTMTMTM
  * Copyright (C) 2026 pyisland.com
@@ -15,19 +15,15 @@
 
 /**
  * @file FormulaExpression.tsx
- * @description 结构化公式的递归排版与槽位光标渲染。
+ * @description 使用 KaTeX 排版结构化公式，并保留槽位光标交互。
  * @author 鸡哥
  */
 
-import type { MouseEvent, ReactElement, ReactNode } from 'react';
-import type {
-  FormulaCursor,
-  FormulaDocument,
-  FormulaPathStep,
-  FormulaSlotName,
-  FormulaStructure,
-} from '../types/calculatorTypes';
-import { readFunctionOpenToken } from '../utils/formulaCursorUtils';
+import katex from 'katex';
+import { useLayoutEffect, useMemo, useRef, useState, type MouseEvent, type ReactElement } from 'react';
+import type { FormulaCursor, FormulaDocument } from '../types/calculatorTypes';
+import { compileFormulaToKatex, type FormulaKatexAnchor } from '../utils/formulaKatexCompiler';
+import { getFormulaKatexCaret, type FormulaKatexRect } from '../utils/formulaKatexPosition';
 
 interface FormulaExpressionProps {
   document: FormulaDocument;
@@ -35,209 +31,91 @@ interface FormulaExpressionProps {
   onCursorChange: (cursor: FormulaCursor) => void;
 }
 
-function pathMatches(left: FormulaPathStep[], right: FormulaPathStep[]): boolean {
-  return left.length === right.length
-    && left.every((step, index) => step.segmentIndex === right[index].segmentIndex && step.slot === right[index].slot);
+interface MeasuredAnchor {
+  anchor: FormulaKatexAnchor;
+  rect: FormulaKatexRect;
 }
 
-function renderText(
-  value: string,
-  activeOffset: number | null,
-  onOffsetChange: (offset: number) => void,
-  keyPrefix: string,
-): ReactElement[] {
-  const nodes: ReactElement[] = [];
-  let index = 0;
-  let exponent = false;
-  let parenthesizedExponent = false;
-
-  while (index < value.length) {
-    if (index === activeOffset) {
-      nodes.push(<span className="calc-cursor" key={`${keyPrefix}-cursor-${index}`} aria-hidden="true" />);
-    }
-
-    const tokenIndex = index;
-    const character = value[tokenIndex];
-    const functionToken = readFunctionOpenToken(value, tokenIndex);
-    if (functionToken) {
-      const handleFunctionClick = (event: MouseEvent<HTMLSpanElement>): void => {
-        event.stopPropagation();
-        const bounds = event.currentTarget.getBoundingClientRect();
-        onOffsetChange(event.clientX - bounds.left < bounds.width / 2
-          ? tokenIndex
-          : tokenIndex + functionToken.length);
-      };
-      nodes.push(
-        <span className="calc-token" key={`${keyPrefix}-function-${tokenIndex}`} onClick={handleFunctionClick}>
-          {functionToken}
-        </span>,
-      );
-      index += functionToken.length;
-      continue;
-    }
-
-    if (character === '^') {
-      exponent = true;
-      parenthesizedExponent = value[tokenIndex + 1] === '(';
-      index += parenthesizedExponent ? 2 : 1;
-      continue;
-    }
-    if (parenthesizedExponent && character === ')') {
-      if (activeOffset !== null && activeOffset < tokenIndex) {
-        nodes.push(<span className="calc-cursor" key={`${keyPrefix}-cursor-exp-${activeOffset}`} aria-hidden="true" />);
-      }
-      if (index === tokenIndex) {
-        const handlePlaceholderClick = (event: MouseEvent<HTMLSpanElement>): void => {
-          event.stopPropagation();
-          onOffsetChange(tokenIndex);
-        };
-        nodes.push(
-          <span className="calc-token calc-token--superscript calc-token--placeholder" key={`${keyPrefix}-exp-placeholder-${tokenIndex}`} onClick={handlePlaceholderClick}>□</span>,
-        );
-      }
-      exponent = false;
-      parenthesizedExponent = false;
-      index += 1;
-      continue;
-    }
-
-    const handleClick = (event: MouseEvent<HTMLSpanElement>): void => {
-      event.stopPropagation();
-      const bounds = event.currentTarget.getBoundingClientRect();
-      onOffsetChange(event.clientX - bounds.left < bounds.width / 2 ? tokenIndex : tokenIndex + 1);
-    };
-    nodes.push(
-      <span
-        className={exponent ? 'calc-token calc-token--superscript' : 'calc-token'}
-        key={`${keyPrefix}-token-${tokenIndex}`}
-        onClick={handleClick}
-      >
-        {character}
-      </span>,
-    );
-    index += 1;
-  }
-
-  if (activeOffset === value.length) {
-    nodes.push(<span className="calc-cursor" key={`${keyPrefix}-cursor-${value.length}`} aria-hidden="true" />);
-  }
-  return nodes;
+function renderKatex(tex: string): string {
+  return katex.renderToString(tex, {
+    strict: 'ignore',
+    throwOnError: false,
+    trust: ({ command }) => command === '\\htmlData',
+  });
 }
 
-function FormulaSlot({
-  structure,
-  structureIndex,
-  slot,
-  path,
-  cursor,
-  onCursorChange,
-  className = '',
-}: {
-  structure: FormulaStructure;
-  structureIndex: number;
-  slot: FormulaSlotName;
-  path: FormulaPathStep[];
-  cursor: FormulaCursor;
-  onCursorChange: (cursor: FormulaCursor) => void;
-  className?: string;
-}): ReactElement {
-  const slotDocument = structure.slots[slot] ?? { segments: [{ type: 'text', value: '' }] };
-  const slotPath = [...path, { segmentIndex: structureIndex, slot }];
-  const isEmpty = slotDocument.segments.length === 1
-    && slotDocument.segments[0].type === 'text'
-    && slotDocument.segments[0].value === '';
-  const isActive = pathMatches(cursor.path, slotPath);
-
-  const handleClick = (event: MouseEvent<HTMLSpanElement>): void => {
-    event.stopPropagation();
-    if (isEmpty) onCursorChange({ path: slotPath, segmentIndex: 0, offset: 0 });
-  };
-
-  return (
-    <span className={`calc-slot${isActive ? ' calc-slot--active' : ''}${className ? ` ${className}` : ''}`} onClick={handleClick}>
-      {isEmpty && !isActive ? <span className="calc-slot-placeholder">□</span> : null}
-      <FormulaDocumentView
-        document={slotDocument}
-        path={slotPath}
-        cursor={cursor}
-        onCursorChange={onCursorChange}
-      />
-    </span>
-  );
-}
-
-function renderStructure(
-  structure: FormulaStructure,
-  structureIndex: number,
-  path: FormulaPathStep[],
-  cursor: FormulaCursor,
-  onCursorChange: (cursor: FormulaCursor) => void,
-): ReactNode {
-  const slot = (name: FormulaSlotName, className = ''): ReactElement => (
-    <FormulaSlot
-      structure={structure}
-      structureIndex={structureIndex}
-      slot={name}
-      path={path}
-      cursor={cursor}
-      onCursorChange={onCursorChange}
-      className={className}
-    />
-  );
-
-  switch (structure.kind) {
-    case 'logn':
-      return <span className="calc-structure calc-logn"><span>log</span>{slot('base', 'calc-logn__base')}<span>(</span>{slot('value')}<span>)</span></span>;
-    case 'fraction':
-      return <span className="calc-structure calc-fraction"><span className="calc-fraction__part">{slot('numerator')}</span><span className="calc-fraction__line" /><span className="calc-fraction__part">{slot('denominator')}</span></span>;
-    case 'sum':
-      return <span className="calc-structure calc-large-operator"><span className="calc-large-operator__limits"><span>{slot('upper')}</span><span className="calc-large-operator__symbol">Σ</span><span>x={slot('lower')}</span></span>{slot('body', 'calc-large-operator__body')}</span>;
-    case 'integral':
-      return <span className="calc-structure calc-large-operator"><span className="calc-large-operator__limits"><span>{slot('upper')}</span><span className="calc-large-operator__symbol">∫</span><span>{slot('lower')}</span></span>{slot('body', 'calc-large-operator__body')}<span>dx</span></span>;
-    case 'derivative':
-      return <span className="calc-structure calc-derivative"><span className="calc-derivative__operator">d/dx</span><span>(</span>{slot('body')}<span>)</span><span className="calc-derivative__point">|x={slot('point')}</span></span>;
-    case 'sqrt':
-      return <span className="calc-structure calc-root"><span className="calc-root__sign" aria-hidden="true">√</span><span className="calc-root__radicand">{slot('radicand')}</span></span>;
-    case 'root':
-      return <span className="calc-structure calc-root"><span className="calc-root__index">{slot('index')}</span><span className="calc-root__sign" aria-hidden="true">√</span><span className="calc-root__radicand">{slot('radicand')}</span></span>;
-  }
-}
-
-function FormulaDocumentView({
-  document,
-  path,
-  cursor,
-  onCursorChange,
-}: FormulaExpressionProps & { path: FormulaPathStep[] }): ReactElement {
-  return (
-    <span className="calc-document">
-      {document.segments.map((segment, segmentIndex) => {
-        if (segment.type === 'structure') {
-          return (
-            <span className="calc-document-segment" key={segment.value.id}>
-              {renderStructure(segment.value, segmentIndex, path, cursor, onCursorChange)}
-            </span>
-          );
-        }
-        const activeOffset = pathMatches(cursor.path, path) && cursor.segmentIndex === segmentIndex
-          ? cursor.offset
-          : null;
-        const onOffsetChange = (offset: number): void => onCursorChange({ path, segmentIndex, offset });
-        return (
-          <span className="calc-document-segment" key={`text-${segmentIndex}`}>
-            {renderText(segment.value, activeOffset, onOffsetChange, `${path.length}-${segmentIndex}`)}
-          </span>
-        );
-      })}
-    </span>
-  );
+function readAnchorId(element: Element): string | null {
+  return element.closest<HTMLElement>('[data-formula-anchor]')?.dataset.formulaAnchor ?? null;
 }
 
 /**
- * 渲染结构化公式及其活动槽位光标。
- * @param props - 公式文档、光标与定位回调
- * @returns 可交互的结构化公式
+ * 渲染 KaTeX 公式并把点击映射回结构化光标。
+ * @param props - 公式文档、光标和光标更新回调
+ * @returns 带 KaTeX 排版和活动光标覆盖层的公式
  */
 export function FormulaExpression({ document, cursor, onCursorChange }: FormulaExpressionProps): ReactElement {
-  return <FormulaDocumentView document={document} path={[]} cursor={cursor} onCursorChange={onCursorChange} />;
+  const rootRef = useRef<HTMLSpanElement>(null);
+  const compilation = useMemo(() => compileFormulaToKatex(document), [document]);
+  const html = useMemo(() => renderKatex(compilation.tex), [compilation.tex]);
+  const [measuredAnchors, setMeasuredAnchors] = useState<MeasuredAnchor[]>([]);
+
+  useLayoutEffect(() => {
+    const root = rootRef.current;
+    if (!root) return undefined;
+
+    const measure = (): void => {
+      const rootRect = root.getBoundingClientRect();
+      const nextMeasurements = compilation.anchors.flatMap((anchor) => {
+        const element = root.querySelector<HTMLElement>(`[data-formula-anchor="${anchor.id}"]`);
+        if (!element) return [];
+        const rect = element.getBoundingClientRect();
+        return [{
+          anchor,
+          rect: {
+            left: rect.left - rootRect.left,
+            top: rect.top - rootRect.top,
+            width: rect.width,
+            height: rect.height,
+          },
+        }];
+      });
+      setMeasuredAnchors(nextMeasurements);
+    };
+
+    measure();
+    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(measure);
+    observer?.observe(root);
+    const fontsReady = globalThis.document?.fonts?.ready;
+    if (fontsReady) void fontsReady.then(measure);
+    return () => observer?.disconnect();
+  }, [compilation, html]);
+
+  const handleClick = (event: MouseEvent<HTMLSpanElement>): void => {
+    const root = rootRef.current;
+    const anchorId = readAnchorId(event.target as Element);
+    if (!root || !anchorId) return;
+    const measured = measuredAnchors.find(({ anchor }) => anchor.id === anchorId);
+    if (!measured) return;
+    const element = root.querySelector<HTMLElement>(`[data-formula-anchor="${anchorId}"]`);
+    if (!element) return;
+    const rect = element.getBoundingClientRect();
+    const localX = event.clientX - rect.left;
+    const midpoint = rect.width / 2;
+    onCursorChange(localX < midpoint ? measured.anchor.start : measured.anchor.end);
+    event.stopPropagation();
+  };
+
+  const caret = getFormulaKatexCaret(cursor, measuredAnchors);
+  return (
+    <span ref={rootRef} className="calc-katex-expression" onClick={handleClick}>
+      <span className="calc-katex-render" dangerouslySetInnerHTML={{ __html: html }} />
+      {caret ? (
+        <span
+          className="calc-cursor calc-katex-cursor"
+          aria-hidden="true"
+          style={{ left: caret.left, top: caret.top, height: caret.height }}
+        />
+      ) : null}
+    </span>
+  );
 }
