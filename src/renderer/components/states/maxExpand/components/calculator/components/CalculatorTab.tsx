@@ -19,9 +19,16 @@
  */
 
 /**
- * @file index.ts
- * @description 计算器模块入口，导出 CalculatorTab 组件
+ * @file CalculatorTab.tsx
+ * @description 最大展开模式 — 计算器 Tab — 占位组件（内容留白）
  * @author 鸡哥
  */
 
-export { CalculatorTab } from './components/CalculatorTab';
+import type { ReactElement } from 'react';
+
+/**
+ * Calculator Tab — 最大展开模式下的计算器面板（占位）
+ */
+export function CalculatorTab(): ReactElement {
+  return <div className="max-expand-tab-panel calculator-panel" />;
+}
