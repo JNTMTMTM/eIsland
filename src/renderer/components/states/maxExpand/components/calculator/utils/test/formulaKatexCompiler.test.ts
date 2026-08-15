@@ -66,6 +66,17 @@ describe('formulaKatexCompiler', () => {
     })).not.toThrow();
   });
 
+  it('为空文本段生成末尾光标锚点', () => {
+    const compilation = compileFormulaToKatex({ segments: [
+      { type: 'text', value: '' },
+      { type: 'text', value: '1' },
+      { type: 'text', value: '' },
+    ] });
+
+    expect(compilation.anchors.filter((anchor) => anchor.start.offset === anchor.end.offset)).toHaveLength(2);
+    expect(compilation.tex).toContain('\\kern0.1em');
+  });
+
   it('为所有空槽生成可定位占位锚点', () => {
     const compilation = compileFormulaToKatex(structure('root', { index: text(''), radicand: text('') }));
 

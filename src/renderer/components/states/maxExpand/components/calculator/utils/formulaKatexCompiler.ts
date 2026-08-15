@@ -88,7 +88,13 @@ class FormulaKatexCompiler {
   }
 
   private compileSegment(segment: FormulaSegment, segmentIndex: number, path: FormulaPathStep[]): string {
-    if (segment.type === 'text') return this.compileText(segment.value, path, segmentIndex, 0);
+    if (segment.type === 'text') {
+      if (segment.value.length === 0) {
+        const cursor = cursorAt(path, segmentIndex, 0);
+        return this.withAnchor('token', cursor, cursor, '\\kern0.1em');
+      }
+      return this.compileText(segment.value, path, segmentIndex, 0);
+    }
     return this.compileStructure(segment.value, segmentIndex, path);
   }
 

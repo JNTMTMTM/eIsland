@@ -94,14 +94,14 @@ export function FormulaExpression({ document, cursor, onCursorChange }: FormulaE
     const root = rootRef.current;
     const anchorId = readAnchorId(event.target as Element);
     if (!root || !anchorId) return;
-    const measured = measuredAnchors.find(({ anchor }) => anchor.id === anchorId);
-    if (!measured) return;
+    const anchor = compilation.anchors.find((candidate) => candidate.id === anchorId);
+    if (!root || !anchor) return;
     const element = root.querySelector<HTMLElement>(`[data-formula-anchor="${anchorId}"]`);
     if (!element) return;
     const rect = element.getBoundingClientRect();
     const localX = event.clientX - rect.left;
     const midpoint = rect.width / 2;
-    onCursorChange(localX < midpoint ? measured.anchor.start : measured.anchor.end);
+    onCursorChange(localX < midpoint ? anchor.start : anchor.end);
     event.stopPropagation();
   };
 
