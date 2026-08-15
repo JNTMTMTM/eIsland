@@ -29,14 +29,17 @@ import { CalculatorIcon } from '../calculator-icon';
 
 describe('CalculatorIcon', () => {
   it('should contain expected keys', () => {
+    expect(CalculatorIcon).toHaveProperty('ARITHMETIC');
     expect(CalculatorIcon).toHaveProperty('BACKSPACE');
     expect(CalculatorIcon).toHaveProperty('CLEAR');
+    expect(CalculatorIcon).toHaveProperty('COORDINATE');
     expect(CalculatorIcon).toHaveProperty('DIVISION');
     expect(CalculatorIcon).toHaveProperty('MINUS');
     expect(CalculatorIcon).toHaveProperty('MULTIPLICATION');
     expect(CalculatorIcon).toHaveProperty('PERCENTAGE');
     expect(CalculatorIcon).toHaveProperty('PLUS');
     expect(CalculatorIcon).toHaveProperty('PLUS_MINUS');
+    expect(CalculatorIcon).toHaveProperty('UNIT_CONVERSION');
   });
 
   it('all values should be strings starting with ./svg/calculator/ and ending with .svg', () => {
@@ -46,7 +49,7 @@ describe('CalculatorIcon', () => {
     });
   });
 
-  it('should contain exactly 8 keys', () => {
-    expect(Object.keys(CalculatorIcon)).toHaveLength(8);
+  it('should contain exactly 11 keys', () => {
+    expect(Object.keys(CalculatorIcon)).toHaveLength(11);
   });
 });
