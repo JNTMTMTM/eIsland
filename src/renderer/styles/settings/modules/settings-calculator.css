@@ -172,6 +172,12 @@
   line-height: 1;
 }
 
+.calc-token--superscript.calc-token--placeholder {
+  color: rgba(var(--color-text-rgb), 0.26);
+  font-size: 0.7em;
+  cursor: text;
+}
+
 .calc-document,
 .calc-document-segment,
 .calc-structure,
@@ -260,6 +266,40 @@
 
 .calc-large-operator__body {
   min-width: 1em;
+}
+
+.calc-root {
+  align-items: stretch;
+  position: relative;
+  margin: 0 2px;
+}
+
+.calc-root__index {
+  align-self: flex-start;
+  margin-right: 1px;
+  font-size: 0.48em;
+  line-height: 1;
+  min-width: 0.6em;
+  min-height: 0.6em;
+}
+
+.calc-root__sign {
+  align-self: stretch;
+  display: inline-flex;
+  align-items: flex-end;
+  margin-right: -0.08em;
+  font-family: "Cambria Math", "STIX Two Math", serif;
+  font-size: 1.35em;
+  font-weight: 400;
+  line-height: 0.92;
+  transform: translateY(0.04em);
+}
+
+.calc-root__radicand {
+  padding: 0 3px;
+  min-width: 0.8em;
+  min-height: 1em;
+  border-top: 2px solid currentColor;
 }
 
 .calc-derivative {

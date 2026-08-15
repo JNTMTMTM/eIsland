@@ -48,6 +48,19 @@ describe('formulaDocumentUtils', () => {
     expect(serializeFormulaDocument(nested.document)).toBe('integral(,frac(,),)');
   });
 
+  it('分别序列化平方根与带指数根式', () => {
+    const initial = createInitialFormula();
+    const squareRoot = insertFormulaStructure(initial.document, initial.cursor, 'sqrt');
+    const squareRadicand = insertFormulaText(squareRoot.document, squareRoot.cursor, '9');
+    const nthRoot = insertFormulaStructure(initial.document, initial.cursor, 'root');
+    const index = insertFormulaText(nthRoot.document, nthRoot.cursor, '3');
+    const radicandCursor = moveFormulaCursor(index.document, index.cursor, 1);
+    const radicand = insertFormulaText(index.document, radicandCursor, '8');
+
+    expect(serializeFormulaDocument(squareRadicand.document)).toBe('sqrt(9)');
+    expect(serializeFormulaDocument(radicand.document)).toBe('root(3,8)');
+  });
+
   it('在文本边界原子删除相邻结构', () => {
     const initial = createInitialFormula();
     const fraction = insertFormulaStructure(initial.document, initial.cursor, 'fraction');

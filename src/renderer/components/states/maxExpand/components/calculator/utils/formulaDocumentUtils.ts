@@ -41,6 +41,8 @@ const SLOT_ORDER: Record<FormulaStructureKind, FormulaSlotName[]> = {
   sum: ['lower', 'upper', 'body'],
   integral: ['lower', 'upper', 'body'],
   derivative: ['body', 'point'],
+  sqrt: ['radicand'],
+  root: ['index', 'radicand'],
 };
 
 let nextStructureId = 1;
@@ -117,6 +119,8 @@ export function serializeFormulaDocument(document: FormulaDocument): string {
       case 'sum': return `sum(${read('body')},${read('lower')},${read('upper')})`;
       case 'integral': return `integral(${read('body')},${read('lower')},${read('upper')})`;
       case 'derivative': return `derivative(${read('body')},${read('point')})`;
+      case 'sqrt': return `sqrt(${read('radicand')})`;
+      case 'root': return `root(${read('index')},${read('radicand')})`;
     }
   }).join('');
 }

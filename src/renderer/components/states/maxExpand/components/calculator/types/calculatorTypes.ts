@@ -47,8 +47,8 @@ export type ScientificFn =
   | 'pow' | 'exp' | 'variable'
   | 'fraction' | 'sum' | 'integral' | 'derivative';
 
-export type FormulaStructureKind = 'logn' | 'fraction' | 'sum' | 'integral' | 'derivative';
-export type FormulaSlotName = 'base' | 'value' | 'numerator' | 'denominator' | 'body' | 'lower' | 'upper' | 'point';
+export type FormulaStructureKind = 'logn' | 'fraction' | 'sum' | 'integral' | 'derivative' | 'sqrt' | 'root';
+export type FormulaSlotName = 'base' | 'value' | 'numerator' | 'denominator' | 'body' | 'lower' | 'upper' | 'point' | 'index' | 'radicand';
 
 export interface FormulaStructure {
   id: string;

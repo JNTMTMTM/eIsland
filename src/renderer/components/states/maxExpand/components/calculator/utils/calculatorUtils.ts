@@ -335,7 +335,6 @@ export function getScientificInput(fn: ScientificFn): { text: string; cursorOffs
     case 'exp': return { text: 'e^()', cursorOffset: 1 };
     case 'factorial': return { text: '!', cursorOffset: 0 };
     case 'reciprocal': return { text: '1/()', cursorOffset: 1 };
-    case 'nthroot': return { text: 'root(,)', cursorOffset: 2 };
     default: return { text: `${fn}()`, cursorOffset: 1 };
   }
 }

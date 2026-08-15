@@ -83,6 +83,18 @@ function renderText(
       continue;
     }
     if (parenthesizedExponent && character === ')') {
+      if (activeOffset !== null && activeOffset < tokenIndex) {
+        nodes.push(<span className="calc-cursor" key={`${keyPrefix}-cursor-exp-${activeOffset}`} aria-hidden="true" />);
+      }
+      if (index === tokenIndex) {
+        const handlePlaceholderClick = (event: MouseEvent<HTMLSpanElement>): void => {
+          event.stopPropagation();
+          onOffsetChange(tokenIndex);
+        };
+        nodes.push(
+          <span className="calc-token calc-token--superscript calc-token--placeholder" key={`${keyPrefix}-exp-placeholder-${tokenIndex}`} onClick={handlePlaceholderClick}>□</span>,
+        );
+      }
       exponent = false;
       parenthesizedExponent = false;
       index += 1;
@@ -184,6 +196,10 @@ function renderStructure(
       return <span className="calc-structure calc-large-operator"><span className="calc-large-operator__limits"><span>{slot('upper')}</span><span className="calc-large-operator__symbol">∫</span><span>{slot('lower')}</span></span>{slot('body', 'calc-large-operator__body')}<span>dx</span></span>;
     case 'derivative':
       return <span className="calc-structure calc-derivative"><span className="calc-derivative__operator">d/dx</span><span>(</span>{slot('body')}<span>)</span><span className="calc-derivative__point">|x={slot('point')}</span></span>;
+    case 'sqrt':
+      return <span className="calc-structure calc-root"><span className="calc-root__sign" aria-hidden="true">√</span><span className="calc-root__radicand">{slot('radicand')}</span></span>;
+    case 'root':
+      return <span className="calc-structure calc-root"><span className="calc-root__index">{slot('index')}</span><span className="calc-root__sign" aria-hidden="true">√</span><span className="calc-root__radicand">{slot('radicand')}</span></span>;
   }
 }
 

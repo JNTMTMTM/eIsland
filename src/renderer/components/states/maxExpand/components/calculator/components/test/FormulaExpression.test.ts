@@ -70,4 +70,14 @@ describe('FormulaExpression', () => {
     expect(derivative).toContain('d/dx');
     expect(derivative).toContain('|x=');
   });
+
+  it('区分平方根与带指数根式', () => {
+    const squareRoot = renderStructure('sqrt', { radicand: text('9') });
+    const nthRoot = renderStructure('root', { index: text('3'), radicand: text('8') });
+
+    expect(squareRoot).toContain('calc-root__sign');
+    expect(squareRoot).toContain('>√</span>');
+    expect(squareRoot).not.toContain('calc-root__index');
+    expect(nthRoot).toContain('calc-root__index');
+  });
 });

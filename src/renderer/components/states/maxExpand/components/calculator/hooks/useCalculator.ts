@@ -51,6 +51,8 @@ const STRUCTURE_KIND: Partial<Record<ScientificFn, FormulaStructureKind>> = {
   sum: 'sum',
   integral: 'integral',
   derivative: 'derivative',
+  sqrt: 'sqrt',
+  nthroot: 'root',
 };
 
 /**
