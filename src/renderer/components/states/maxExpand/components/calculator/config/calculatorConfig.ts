@@ -25,13 +25,16 @@
  */
 
 import { CalculatorIcon } from '../../../../../../utils/SvgIcon';
+import { createInitialFormula } from '../utils/formulaDocumentUtils';
 import type { CalcState, CalcButtonDef, CalcSidebarNavItem } from '../types/calculatorTypes';
+
+const INITIAL_FORMULA = createInitialFormula();
 
 /** 计算器初始状态 */
 export const INITIAL_STATE: CalcState = {
-  formula: '0',
+  document: INITIAL_FORMULA.document,
   result: null,
-  cursor: 1,
+  cursor: INITIAL_FORMULA.cursor,
 };
 
 /** 侧边栏导航项 */
@@ -107,5 +110,15 @@ export const SCIENTIFIC_FN_LAYOUT: CalcButtonDef[][] = [
     { label: '|x|', alt: '|x|', action: 'scientific', value: 'abs', className: 'calc-btn--sci' },
     { label: 'n√', alt: 'n√', action: 'scientific', value: 'nthroot', className: 'calc-btn--sci' },
     { label: 'xʸ', alt: 'xʸ', action: 'scientific', value: 'pow', className: 'calc-btn--sci' },
+  ],
+  [
+    { label: 'logₙ', alt: 'logₙ', labelKey: 'calculator.functions.logn', action: 'scientific', value: 'logn', className: 'calc-btn--sci' },
+    { label: 'a⁄b', alt: 'a⁄b', labelKey: 'calculator.functions.fraction', action: 'scientific', value: 'fraction', className: 'calc-btn--sci' },
+    { label: 'Σ', alt: 'Σ', labelKey: 'calculator.functions.sum', action: 'scientific', value: 'sum', className: 'calc-btn--sci' },
+    { label: '∫', alt: '∫', labelKey: 'calculator.functions.integral', action: 'scientific', value: 'integral', className: 'calc-btn--sci' },
+  ],
+  [
+    { label: 'd/dx', alt: 'd/dx', labelKey: 'calculator.functions.derivative', action: 'scientific', value: 'derivative', className: 'calc-btn--sci' },
+    { label: 'x', alt: 'x', labelKey: 'calculator.functions.variable', action: 'scientific', value: 'variable', className: 'calc-btn--sci' },
   ],
 ];

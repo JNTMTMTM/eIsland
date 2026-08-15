@@ -1936,6 +1936,14 @@
     "sidebar": {
       "expand": "展开",
       "collapse": "收起"
+    },
+    "functions": {
+      "logn": "任意底数对数",
+      "fraction": "分数",
+      "sum": "有限求和",
+      "integral": "定积分",
+      "derivative": "指定点微分",
+      "variable": "变量 x"
     }
   },
   "settings": {

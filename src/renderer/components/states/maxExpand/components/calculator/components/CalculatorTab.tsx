@@ -25,6 +25,7 @@
  */
 
 import { useCallback, useState, type KeyboardEvent, type ReactElement } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { CalcButtonDef, CalcMode, CalcOperator, ScientificFn } from '../types/calculatorTypes';
 import { BUTTON_LAYOUT, SCIENTIFIC_FN_LAYOUT } from '../config/calculatorConfig';
 import { useCalculator } from '../hooks/useCalculator';
@@ -40,6 +41,8 @@ function ButtonGrid({
   onButton: (definition: CalcButtonDef) => void;
   className?: string;
 }): ReactElement {
+  const { t } = useTranslation();
+
   return (
     <div className={`calc-buttons${className ? ` ${className}` : ''}`}>
       {layout.map((row, rowIndex) => (
@@ -49,6 +52,7 @@ function ButtonGrid({
               className={`calc-btn ${button.className ?? ''}`}
               key={button.alt}
               type="button"
+              aria-label={button.labelKey ? t(button.labelKey) : button.alt}
               onMouseDown={(event) => event.preventDefault()}
               onClick={() => onButton(button)}
             >
@@ -108,10 +112,10 @@ export function CalculatorTab(): ReactElement {
     else if (key === 'Enter' || key === '=') calculator.calculate();
     else if (key === 'Backspace') calculator.backspace();
     else if (key === 'Delete') calculator.deleteForward();
-    else if (key === 'ArrowLeft') calculator.moveCursor(calculator.cursor - 1);
-    else if (key === 'ArrowRight') calculator.moveCursor(calculator.cursor + 1);
-    else if (key === 'Home') calculator.moveCursor(0);
-    else if (key === 'End') calculator.moveCursor(calculator.formula.length);
+    else if (key === 'ArrowLeft') calculator.moveCursorHorizontal(-1);
+    else if (key === 'ArrowRight') calculator.moveCursorHorizontal(1);
+    else if (key === 'Home') calculator.moveCursorBoundary('start');
+    else if (key === 'End') calculator.moveCursorBoundary('end');
     else return;
     event.preventDefault();
   }, [calculator]);
@@ -132,10 +136,11 @@ export function CalculatorTab(): ReactElement {
       <div className="calc-main">
         <CalcDisplay
           cursor={calculator.cursor}
+          document={calculator.document}
           fontSize={displayFontSize}
-          formula={calculator.formula}
           result={calculator.result}
           onCursorChange={calculator.moveCursor}
+          onMoveEnd={() => calculator.moveCursorBoundary('end')}
           onKeyDown={handleKeyDown}
         />
 

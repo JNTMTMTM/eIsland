@@ -39,23 +39,53 @@ export type CalcButtonAction =
 export type ScientificFn =
   | 'sin' | 'cos' | 'tan'
   | 'arcsin' | 'arccos' | 'arctan'
-  | 'log' | 'ln'
+  | 'log' | 'ln' | 'logn'
   | 'sqrt' | 'cbrt' | 'nthroot'
   | 'square' | 'cube' | 'reciprocal'
   | 'factorial' | 'abs'
   | 'pi' | 'e'
-  | 'pow' | 'exp';
+  | 'pow' | 'exp' | 'variable'
+  | 'fraction' | 'sum' | 'integral' | 'derivative';
+
+export type FormulaStructureKind = 'logn' | 'fraction' | 'sum' | 'integral' | 'derivative';
+export type FormulaSlotName = 'base' | 'value' | 'numerator' | 'denominator' | 'body' | 'lower' | 'upper' | 'point';
+
+export interface FormulaStructure {
+  id: string;
+  kind: FormulaStructureKind;
+  slots: Partial<Record<FormulaSlotName, FormulaDocument>>;
+}
+
+export type FormulaSegment =
+  | { type: 'text'; value: string }
+  | { type: 'structure'; value: FormulaStructure };
+
+export interface FormulaDocument {
+  segments: FormulaSegment[];
+}
+
+export interface FormulaPathStep {
+  segmentIndex: number;
+  slot: FormulaSlotName;
+}
+
+export interface FormulaCursor {
+  path: FormulaPathStep[];
+  segmentIndex: number;
+  offset: number;
+}
 
 export interface CalcState {
-  formula: string;
+  document: FormulaDocument;
   result: string | null;
-  cursor: number;
+  cursor: FormulaCursor;
 }
 
 export interface UseCalculatorReturn {
+  document: FormulaDocument;
   formula: string;
   result: string | null;
-  cursor: number;
+  cursor: FormulaCursor;
   inputDigit: (digit: string) => void;
   inputDot: () => void;
   inputOperator: (operator: CalcOperator) => void;
@@ -64,7 +94,9 @@ export interface UseCalculatorReturn {
   clear: () => void;
   backspace: () => void;
   deleteForward: () => void;
-  moveCursor: (position: number) => void;
+  moveCursor: (cursor: FormulaCursor) => void;
+  moveCursorHorizontal: (direction: -1 | 1) => void;
+  moveCursorBoundary: (boundary: 'start' | 'end') => void;
   toggleSign: () => void;
   percentage: () => void;
   applyScientific: (fn: ScientificFn) => void;
@@ -75,6 +107,8 @@ export interface CalcButtonDef {
   label?: string;
   icon?: string;
   alt: string;
+  /** i18n 可访问名称键 */
+  labelKey?: string;
   action: CalcButtonAction;
   value?: string;
   className?: string;

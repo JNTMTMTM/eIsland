@@ -47,6 +47,26 @@ describe('evaluateFormula', () => {
     expect(evaluateFormula('arctan(0)')).toBe(0);
   });
 
+  it('支持任意底数对数与分数', () => {
+    expect(evaluateFormula('logn(2,8)')).toBe(3);
+    expect(evaluateFormula('frac(1,2)+frac(1,4)')).toBe(0.75);
+    expect(() => evaluateFormula('logn(1,8)')).toThrow();
+    expect(() => evaluateFormula('frac(1,0)')).toThrow();
+  });
+
+  it('支持单变量有限求和', () => {
+    expect(evaluateFormula('sum(x^2,1,3)')).toBe(14);
+    expect(() => evaluateFormula('sum(x,1.5,3)')).toThrow();
+    expect(() => evaluateFormula('x+1')).toThrow();
+  });
+
+  it('支持定积分与指定点微分', () => {
+    expect(evaluateFormula('integral(x^2,0,1)')).toBeCloseTo(1 / 3, 7);
+    expect(evaluateFormula('integral(sin(x),0,π)')).toBeCloseTo(2, 7);
+    expect(evaluateFormula('derivative(x^2,2)')).toBeCloseTo(4, 5);
+    expect(evaluateFormula('derivative(sin(x),0)')).toBeCloseTo(1, 5);
+  });
+
   it('拒绝不完整公式', () => {
     expect(() => evaluateFormula('2+')).toThrow();
     expect(() => evaluateFormula('sqrt(')).toThrow();

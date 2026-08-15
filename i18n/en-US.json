@@ -1936,6 +1936,14 @@
     "sidebar": {
       "expand": "Expand",
       "collapse": "Collapse"
+    },
+    "functions": {
+      "logn": "Arbitrary-base logarithm",
+      "fraction": "Fraction",
+      "sum": "Finite summation",
+      "integral": "Definite integral",
+      "derivative": "Derivative at a point",
+      "variable": "Variable x"
     }
   },
   "settings": {
