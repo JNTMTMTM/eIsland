@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-08-15T08:40:08.075Z
+> 生成时间：2026-08-15T20:04:03.556Z
 
 ## 26.7.2
 
@@ -3343,6 +3343,47 @@
 
 ## Unreleased
 
+- 2026-08-16 | 17f67209 | 鸡哥 | Merge pull request #200 from JNTMTMTM/dev
+- 2026-08-16 | 12ce9028 | 鸡哥 | feat(calculator): add focus effect to CalcDisplay and enhance test coverage for formula compilation refactor(icon): update CalculatorIcon documentation and adjust test for key count docs: correct spelling in Shape.md header
+- 2026-08-16 | 23220387 | 鸡哥 | refactor(calculator): simplify cursor snapping logic in snapFormulaCursor function
+- 2026-08-16 | 65492029 | 鸡哥 | feat(calculator): update formula compilation and cursor handling for improved rendering and interaction
+- 2026-08-16 | 864f7ebc | 鸡哥 | feat(calculator): enhance formula compilation to handle empty text segments and update cursor anchoring
+- 2026-08-16 | 5095d0a9 | 鸡哥 | feat(calculator): integrate KaTeX for formula rendering and interaction
+- 2026-08-15 | a1c6321f | 鸡哥 | Merge commit '7df96f0491732e5d32b6429d5d13391ce72ad21d' into dev
+- 2026-08-15 | 7df96f04 | 鸡哥 | Merge pull request #199 from silenthim18303/dev
+- 2026-08-15 | 55c389e7 | 鸡哥 | feat(calculator): refine styling for root and derivative components for improved layout
+- 2026-08-15 | 3260324c | 鸡哥 | feat(calculator): add square root and nth root functionality with corresponding UI and tests
+- 2026-08-15 | 877fc691 | 鸡哥 | feat(calculator): enhance layout spacing for large operator limits
+- 2026-08-15 | 4a71caba | 鸡哥 | feat(calculator): add implicit multiplication parsing and corresponding tests
+- 2026-08-15 | 7d4a98d8 | 鸡哥 | feat(calculator): enhance formula evaluation and rendering capabilities
+- 2026-08-15 | 59f272ca | 鸡哥 | feat: add new scientific functions and corresponding SVG icons for calculator
+- 2026-08-15 | da3a53b3 | 鸡哥 | feat: update scientific function names and enhance formula parsing for calculator
+- 2026-08-15 | b683308a | 鸡哥 | feat: add function token recognition and cursor snapping for calculator
+- 2026-08-15 | 1975e850 | 鸡哥 | feat: implement calculator display and core functionality with formula parsing
+- 2026-08-15 | df010f33 | 鸡哥 | feat: enhance scientific function labels and improve sidebar button styles
+- 2026-08-15 | 39bef06f | 鸡哥 | feat: add scientific function support and enhance button layout in calculator
+- 2026-08-15 | 49a1eb8e | 鸡哥 | feat: restructure calculator section in localization files for improved organization
+- 2026-08-15 | 9597ea06 | 鸡哥 | feat: refine sidebar navigation styles for improved layout and spacing
+- 2026-08-15 | e35eff24 | 鸡哥 | feat: adjust width of expanded sidebar navigation for improved layout
+- 2026-08-15 | 218d264c | 鸡哥 | feat: enhance CalculatorSidebar with expanded mode labels and improved styles
+- 2026-08-15 | 11b20005 | 鸡哥 | feat: implement calculator sidebar with mode navigation and toggle functionality
+- 2026-08-15 | 78d089b6 | 鸡哥 | feat: add new calculator icons and update tests
+- 2026-08-15 | d15b2715 | silenthim | docs:修改了部分文档内容，添加了形态切换文档
+- 2026-08-15 | 093f4d98 | 鸡哥 | feat: refactor calculator module by organizing types, utils, and configuration
+- 2026-08-15 | 9624a8e0 | 鸡哥 | feat: add dimensions for function button icons in calculator styles
+- 2026-08-15 | 31835ace | 鸡哥 | feat: update BUTTON_LAYOUT to use CalculatorIcon for CLEAR and PERCENTAGE buttons
+- 2026-08-15 | f01574b5 | 鸡哥 | feat: add CLEAR and PERCENTAGE SVG icons and update CalculatorIcon enum
+- 2026-08-15 | ada6c4b0 | 鸡哥 | feat: enhance CalculatorTab with SVG icons for buttons and update styles for button icons
+- 2026-08-15 | 0de8fb41 | 鸡哥 | feat: add calculator SVG icons for BACKSPACE, DIVISION, MINUS, MULTIPLICATION, and PLUS
+- 2026-08-15 | 31f6981b | 鸡哥 | fix: update PLUS_MINUS.svg to correct icon paths and structure
+- 2026-08-15 | 39811090 | 鸡哥 | feat: add CalculatorIcon enum and test with SVG assets
+- 2026-08-15 | 91bb01e5 | 鸡哥 | Remove deprecated GSAP skills: gsap-react, gsap-scrolltrigger, gsap-timeline, and gsap-utils documentation files.
+- 2026-08-15 | e6fd315d | 鸡哥 | feat: implement calculator tab with core logic and styles
+- 2026-08-15 | 2ddaa720 | 鸡哥 | feat: add evals.json for maxexpand tab configurations and prompts
+- 2026-08-15 | e2d3be7b | 鸡哥 | feat: add new MaxExpand tab page with comprehensive setup instructions
+- 2026-08-15 | 7015b976 | 鸡哥 | feat: add calculator tab and update related configurations
+- 2026-08-15 | bac47041 | 鸡哥 | feat: add calculator component to maxExpand state
+- 2026-08-15 | 6cf706c0 | eislandBot | docs: auto update CHANGE_LOG.md for #198 by @JNTMTMTM [skip ci]
 - 2026-08-15 | bb5b2592 | 鸡哥 | Merge pull request #198 from JNTMTMTM/dev
 - 2026-08-15 | b2a39bcd | 鸡哥 | chore: add engines field to package.json and package-lock.json to specify Node.js version requirement refactor: improve XMLHttpRequest mock in user feedback tests for better clarity
 - 2026-08-15 | 29b85551 | 鸡哥 | style: increase max width of auth panel from 550px to 580px
