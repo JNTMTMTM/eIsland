@@ -36,45 +36,55 @@
   overflow: hidden;
 }
 
-/* ========== 侧边栏图标导航栏（固定 48px） ========== */
+/* ========== 侧边栏导航栏 ========== */
 .calc-sidebar-nav {
   display: flex;
   flex-direction: column;
-  align-items: center;
   gap: 4px;
   padding: 8px 6px;
   width: 48px;
   min-width: 48px;
   border-right: 1px solid rgba(var(--color-text-rgb), 0.08);
+  transition: width 0.2s ease, min-width 0.2s ease, padding 0.2s ease;
+  overflow: hidden;
 }
 
+.calc-sidebar-nav--expanded {
+  width: 160px;
+  min-width: 160px;
+  padding: 8px 10px;
+}
+
+/* ========== 导航按钮 ========== */
 .calc-sidebar-nav-btn {
   display: flex;
   align-items: center;
-  justify-content: center;
-  width: 32px;
+  gap: 8px;
+  width: 100%;
   height: 32px;
   padding: 0;
-  border: 1px solid transparent;
+  border: none;
   border-radius: 6px;
-  background: rgba(var(--color-text-rgb), 0.06);
-  color: rgba(var(--color-text-rgb), 0.72);
+  background: transparent;
+  color: rgba(var(--color-text-rgb), 0.56);
   cursor: pointer;
-  transition: background 0.2s ease, border-color 0.2s ease;
+  transition: color 0.2s ease;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 .calc-sidebar-nav-btn:hover {
-  background: rgba(var(--color-text-rgb), 0.1);
+  color: rgba(var(--color-text-rgb), 0.72);
 }
 
 .calc-sidebar-nav-btn--active {
-  border-color: rgba(100, 181, 246, 0.48);
-  background: rgba(100, 181, 246, 0.14);
+  color: rgba(var(--color-text-rgb), 0.88);
 }
 
 .calc-sidebar-nav-icon {
   width: 17px;
   height: 17px;
+  min-width: 17px;
   pointer-events: none;
   filter: brightness(0) invert(var(--icon-invert));
   opacity: 0.72;
@@ -84,46 +94,23 @@
   opacity: 0.9;
 }
 
+/* ========== 导航标签（展开后显示） ========== */
+.calc-sidebar-nav-label {
+  font-size: 13px;
+  font-weight: 500;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.calc-sidebar-nav--expanded .calc-sidebar-nav-label {
+  opacity: 1;
+}
+
 /* 展开/收起按钮 — 固定在底部 */
 .calc-sidebar-toggle-btn {
   margin-top: auto;
-}
-
-/* ========== 侧边栏可收起内容面板 ========== */
-.calc-sidebar-panel {
-  flex: 0 0 180px;
-  width: 180px;
-  min-width: 180px;
-  border-right: 1px solid rgba(var(--color-text-rgb), 0.08);
-  overflow: hidden;
-  transition: flex-basis 0.2s ease, width 0.2s ease, min-width 0.2s ease;
-}
-
-.calc-sidebar-panel--collapsed {
-  flex: 0 0 0;
-  width: 0;
-  min-width: 0;
-  border-right: none;
-}
-
-.calc-sidebar-panel-content {
-  display: flex;
-  flex-direction: column;
-  width: 180px;
-  height: 100%;
-  padding: 10px 8px;
-}
-
-.calc-sidebar-panel-label {
-  font-size: 13px;
-  font-weight: 500;
-  color: rgba(var(--color-text-rgb), 0.88);
-  margin-bottom: 8px;
-}
-
-.calc-sidebar-panel-placeholder {
-  flex: 1;
-  min-height: 0;
 }
 
 /* ========== 右侧主内容区 ========== */

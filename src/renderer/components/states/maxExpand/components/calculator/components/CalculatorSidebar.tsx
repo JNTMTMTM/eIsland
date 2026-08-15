@@ -42,7 +42,7 @@ interface CalculatorSidebarProps {
 }
 
 /**
- * Calculator Sidebar — 左侧图标导航栏 + 可收起内容面板
+ * Calculator Sidebar — 左侧图标导航栏，展开后图标右侧显示模式名称
  */
 export function CalculatorSidebar({
   activeMode,
@@ -52,55 +52,39 @@ export function CalculatorSidebar({
 }: CalculatorSidebarProps): ReactElement {
   const { t } = useTranslation();
 
-  const activeItem = CALC_SIDEBAR_NAV_ITEMS.find((i) => i.mode === activeMode);
-
   return (
-    <>
-      {/* 固定图标导航栏 */}
-      <nav className="calc-sidebar-nav">
-        {CALC_SIDEBAR_NAV_ITEMS.map((item) => (
-          <button
-            key={item.mode}
-            type="button"
-            className={`calc-sidebar-nav-btn${activeMode === item.mode ? ' calc-sidebar-nav-btn--active' : ''}`}
-            onClick={() => onSwitchMode(item.mode)}
-            title={t(item.labelKey, { defaultValue: item.defaultLabel })}
-          >
-            <img src={item.icon} alt={t(item.labelKey, { defaultValue: item.defaultLabel })} className="calc-sidebar-nav-icon" />
-          </button>
-        ))}
-
-        {/* 展开/收起按钮 — 固定在底部 */}
+    <nav className={`calc-sidebar-nav${collapsed ? '' : ' calc-sidebar-nav--expanded'}`}>
+      {CALC_SIDEBAR_NAV_ITEMS.map((item) => (
         <button
+          key={item.mode}
           type="button"
-          className="calc-sidebar-nav-btn calc-sidebar-toggle-btn"
-          onClick={onToggleCollapse}
-          title={collapsed
-            ? t('calculator.sidebar.expand', { defaultValue: '展开' })
-            : t('calculator.sidebar.collapse', { defaultValue: '收起' })
-          }
+          className={`calc-sidebar-nav-btn${activeMode === item.mode ? ' calc-sidebar-nav-btn--active' : ''}`}
+          onClick={() => onSwitchMode(item.mode)}
+          title={t(item.labelKey, { defaultValue: item.defaultLabel })}
         >
-          <img
-            src={collapsed ? CalculatorIcon.EXPAND : CalculatorIcon.COLLAPSE}
-            alt=""
-            className="calc-sidebar-nav-icon"
-          />
+          <img src={item.icon} alt="" className="calc-sidebar-nav-icon" />
+          <span className="calc-sidebar-nav-label">
+            {t(item.labelKey, { defaultValue: item.defaultLabel })}
+          </span>
         </button>
-      </nav>
+      ))}
 
-      {/* 可收起内容面板 */}
-      <aside className={`calc-sidebar-panel${collapsed ? ' calc-sidebar-panel--collapsed' : ''}`}>
-        {!collapsed && (
-          <div className="calc-sidebar-panel-content">
-            <div className="calc-sidebar-panel-label">
-              {activeItem ? t(activeItem.labelKey, { defaultValue: activeItem.defaultLabel }) : ''}
-            </div>
-            <div className="calc-sidebar-panel-placeholder">
-              {/* 后续拓展：科学计算 / 绘图 / 单位换算的内容区域 */}
-            </div>
-          </div>
-        )}
-      </aside>
-    </>
+      {/* 展开/收起按钮 — 固定在底部 */}
+      <button
+        type="button"
+        className="calc-sidebar-nav-btn calc-sidebar-toggle-btn"
+        onClick={onToggleCollapse}
+        title={collapsed
+          ? t('calculator.sidebar.expand', { defaultValue: '展开' })
+          : t('calculator.sidebar.collapse', { defaultValue: '收起' })
+        }
+      >
+        <img
+          src={collapsed ? CalculatorIcon.EXPAND : CalculatorIcon.COLLAPSE}
+          alt=""
+          className="calc-sidebar-nav-icon"
+        />
+      </button>
+    </nav>
   );
 }
