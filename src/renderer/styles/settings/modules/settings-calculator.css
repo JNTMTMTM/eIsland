@@ -144,6 +144,21 @@
   background: var(--color-accent-hover, #7aa3ff);
 }
 
+/* ========== 按钮图标 ========== */
+.calc-btn-icon {
+  width: 20px;
+  height: 20px;
+  pointer-events: none;
+  filter: brightness(0) invert(var(--icon-invert));
+  opacity: 0.88;
+}
+
+/* 运算符图标 — 深色模式白色，浅色模式深色 */
+.calc-btn--op .calc-btn-icon {
+  filter: brightness(0) invert(var(--icon-invert));
+  opacity: 0.9;
+}
+
 /* ========== 零按钮（占两列） ========== */
 .calc-btn--zero {
   flex: 2;

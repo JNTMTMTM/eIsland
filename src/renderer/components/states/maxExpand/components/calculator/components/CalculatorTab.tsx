@@ -25,11 +25,17 @@
  */
 
 import { useCallback, type ReactElement } from 'react';
+import { CalculatorIcon } from '../../../../../../utils/SvgIcon';
 import { useCalculator, type CalcOperator } from '../hooks/useCalculator';
 
 /** 按钮配置项 */
 interface CalcButtonDef {
-  label: string;
+  /** 文本标签（数字、C、%、.、= 等无图标的按钮） */
+  label?: string;
+  /** SVG 图标路径（有图标的按钮） */
+  icon?: string;
+  /** 图标 alt 文本 / 按钮 key */
+  alt: string;
   action: 'digit' | 'operator' | 'equals' | 'clear' | 'backspace' | 'dot' | 'toggleSign' | 'percentage';
   value?: string;
   className?: string;
@@ -38,34 +44,34 @@ interface CalcButtonDef {
 /** 按钮布局定义（4×5 网格） */
 const BUTTON_LAYOUT: CalcButtonDef[][] = [
   [
-    { label: 'C', action: 'clear', className: 'calc-btn--func' },
-    { label: '±', action: 'toggleSign', className: 'calc-btn--func' },
-    { label: '%', action: 'percentage', className: 'calc-btn--func' },
-    { label: '÷', action: 'operator', value: '÷', className: 'calc-btn--op' },
+    { label: 'C', alt: 'C', action: 'clear', className: 'calc-btn--func' },
+    { icon: CalculatorIcon.PLUS_MINUS, alt: '±', action: 'toggleSign', className: 'calc-btn--func' },
+    { label: '%', alt: '%', action: 'percentage', className: 'calc-btn--func' },
+    { icon: CalculatorIcon.DIVISION, alt: '÷', action: 'operator', value: '÷', className: 'calc-btn--op' },
   ],
   [
-    { label: '7', action: 'digit', value: '7' },
-    { label: '8', action: 'digit', value: '8' },
-    { label: '9', action: 'digit', value: '9' },
-    { label: '×', action: 'operator', value: '×', className: 'calc-btn--op' },
+    { label: '7', alt: '7', action: 'digit', value: '7' },
+    { label: '8', alt: '8', action: 'digit', value: '8' },
+    { label: '9', alt: '9', action: 'digit', value: '9' },
+    { icon: CalculatorIcon.MULTIPLICATION, alt: '×', action: 'operator', value: '×', className: 'calc-btn--op' },
   ],
   [
-    { label: '4', action: 'digit', value: '4' },
-    { label: '5', action: 'digit', value: '5' },
-    { label: '6', action: 'digit', value: '6' },
-    { label: '-', action: 'operator', value: '-', className: 'calc-btn--op' },
+    { label: '4', alt: '4', action: 'digit', value: '4' },
+    { label: '5', alt: '5', action: 'digit', value: '5' },
+    { label: '6', alt: '6', action: 'digit', value: '6' },
+    { icon: CalculatorIcon.MINUS, alt: '-', action: 'operator', value: '-', className: 'calc-btn--op' },
   ],
   [
-    { label: '1', action: 'digit', value: '1' },
-    { label: '2', action: 'digit', value: '2' },
-    { label: '3', action: 'digit', value: '3' },
-    { label: '+', action: 'operator', value: '+', className: 'calc-btn--op' },
+    { label: '1', alt: '1', action: 'digit', value: '1' },
+    { label: '2', alt: '2', action: 'digit', value: '2' },
+    { label: '3', alt: '3', action: 'digit', value: '3' },
+    { icon: CalculatorIcon.PLUS, alt: '+', action: 'operator', value: '+', className: 'calc-btn--op' },
   ],
   [
-    { label: '0', action: 'digit', value: '0', className: 'calc-btn--zero' },
-    { label: '.', action: 'dot' },
-    { label: '⌫', action: 'backspace' },
-    { label: '=', action: 'equals', className: 'calc-btn--equals' },
+    { label: '0', alt: '0', action: 'digit', value: '0', className: 'calc-btn--zero' },
+    { label: '.', alt: '.', action: 'dot' },
+    { icon: CalculatorIcon.BACKSPACE, alt: '⌫', action: 'backspace' },
+    { label: '=', alt: '=', action: 'equals', className: 'calc-btn--equals' },
   ],
 ];
 
@@ -115,7 +121,7 @@ export function CalculatorTab(): ReactElement {
     <div className="max-expand-tab-panel calculator-panel">
       {/* 显示区域 */}
       <div className="calc-display">
-        <div className="calc-expression">{calc.expression || ' '}</div>
+        <div className="calc-expression">{calc.expression || ' '}</div>
         <div className="calc-value" style={{ fontSize: displayFontSize }}>
           {calc.display}
         </div>
@@ -127,12 +133,15 @@ export function CalculatorTab(): ReactElement {
           <div className="calc-row" key={rowIdx}>
             {row.map((btn) => (
               <button
-                key={btn.label}
+                key={btn.alt}
                 type="button"
                 className={`calc-btn ${btn.className ?? ''}`}
                 onClick={() => handleButton(btn)}
               >
-                {btn.label}
+                {btn.icon
+                  ? <img src={btn.icon} alt={btn.alt} className="calc-btn-icon" />
+                  : btn.label
+                }
               </button>
             ))}
           </div>
