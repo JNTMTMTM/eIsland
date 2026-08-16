@@ -162,6 +162,8 @@ export function CoordinateGraph({ expression }: CoordinateGraphProps): ReactElem
         width: plotRef.current.clientWidth,
         height: plotRef.current.clientHeight,
         grid: true,
+        xAxis: { position: 'sticky', domain: [0, 10] },
+        yAxis: { position: 'sticky', domain: [0, 10] },
         data: [{ fn: plotExpression || '0', color: '#6390ff', graphType: 'polyline' }],
         tip: { xLine: true, yLine: true },
       });
