@@ -33,6 +33,7 @@ interface CalcDisplayProps {
   result: string | null;
   cursor: FormulaCursor;
   fontSize: string;
+  hasResult: boolean;
   onCursorChange: (cursor: FormulaCursor) => void;
   onMoveEnd: () => void;
   onKeyDown: (event: KeyboardEvent<HTMLDivElement>) => void;
@@ -48,6 +49,7 @@ export function CalcDisplay({
   result,
   cursor,
   fontSize,
+  hasResult,
   onCursorChange,
   onMoveEnd,
   onKeyDown,
@@ -65,7 +67,7 @@ export function CalcDisplay({
 
   return (
     <div
-      className="calc-display"
+      className={`calc-display${hasResult ? ' calc-display--has-result' : ''}`}
       ref={displayRef}
       role="textbox"
       tabIndex={0}
@@ -73,10 +75,10 @@ export function CalcDisplay({
       onClickCapture={handleDisplayClick}
       onKeyDown={onKeyDown}
     >
-      <div className="calc-expression" style={{ fontSize }}>
+      <div className={`calc-expression${hasResult ? ' calc-expression--as-result' : ''}`} style={hasResult ? undefined : { fontSize }}>
         <FormulaExpression document={document} cursor={cursor} onCursorChange={onCursorChange} />
       </div>
-      <div className="calc-value">
+      <div className={`calc-value${hasResult ? ' calc-value--as-expression' : ''}`}>
         {result ?? ' '}
       </div>
     </div>

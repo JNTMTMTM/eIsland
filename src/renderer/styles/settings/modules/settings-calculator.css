@@ -128,13 +128,14 @@
   align-items: stretch;
   justify-content: center;
   padding: 10px 14px;
-  min-height: 80px;
+  min-height: 98px;
   margin-bottom: 8px;
   border: 1px solid transparent;
   border-radius: 10px;
   background: rgba(var(--color-text-rgb), 0.04);
   cursor: text;
   outline: none;
+  box-sizing: border-box;
 }
 
 .calc-display:focus {
@@ -206,12 +207,36 @@
 
 .calc-value {
   min-height: 24px;
-  margin-top: 3px;
+  margin-top: 6px;
   color: rgba(var(--color-text-rgb), 0.46);
+  font-size: 18px;
   font-weight: 500;
   line-height: 1.1;
   text-align: right;
   transition: font-size 0.15s ease;
+}
+
+/* ========== 有结果时的样式互换 ========== */
+.calc-expression--as-result {
+  min-height: 24px;
+  color: rgba(var(--color-text-rgb), 0.46);
+  font-size: 14px;
+  font-weight: 500;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  line-height: 1.1;
+  order: -1;
+}
+
+.calc-value--as-expression {
+  min-height: 40px;
+  margin-top: 0;
+  margin-bottom: 6px;
+  color: rgba(var(--color-text-rgb), 0.92);
+  font-size: 34px;
+  font-weight: 500;
+  font-family: var(--island-ui-font);
+  line-height: 1.25;
+  order: 1;
 }
 
 /* ========== 按钮网格（通用） ========== */

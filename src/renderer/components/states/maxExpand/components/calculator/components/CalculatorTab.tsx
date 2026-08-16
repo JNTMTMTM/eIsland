@@ -138,6 +138,7 @@ export function CalculatorTab(): ReactElement {
           document={calculator.document}
           fontSize={displayFontSize}
           result={calculator.result}
+          hasResult={calculator.result !== null}
           onCursorChange={calculator.moveCursor}
           onMoveEnd={() => calculator.moveCursorBoundary('end')}
           onKeyDown={handleKeyDown}
