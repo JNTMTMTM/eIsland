@@ -81,7 +81,7 @@ function normalizeRootExpression(expression: string): string {
   return normalizeBinaryFunctionExpression(
     expression,
     'root',
-    (index, radicand) => `(${radicand})^(1/(${index}))`,
+    (index, radicand) => `nthRoot(${radicand},${index})`,
   );
 }
 

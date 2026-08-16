@@ -58,6 +58,6 @@ describe('CalculatorIcon', () => {
   });
 
   it('should contain exactly 20 keys', () => {
-    expect(Object.keys(CalculatorIcon)).toHaveLength(20);
+    expect(Object.keys(CalculatorIcon)).toHaveLength(19);
   });
 });

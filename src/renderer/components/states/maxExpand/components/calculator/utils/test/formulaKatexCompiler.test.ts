@@ -126,4 +126,3 @@ describe('formulaKatexCompiler', () => {
     expect(compilation.tex).toContain('\\square');
     expect(compilation.anchors.filter((anchor) => anchor.kind === 'slot')).toHaveLength(2);
   });
-});
