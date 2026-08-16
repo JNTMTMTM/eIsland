@@ -76,6 +76,7 @@
     "dompurify": "^3.4.9",
     "electron-updater": "^6.8.9",
     "fetch-installed-software": "^0.0.7",
+    "function-plot": "^1.25.4",
     "get-windows": "^9.3.0",
     "gsap": "^3.15.0",
     "highcharts": "^13.0.0",

@@ -1944,6 +1944,10 @@
       "integral": "定积分",
       "derivative": "指定点微分",
       "variable": "变量 x"
+    },
+    "coordinate": {
+      "placeholder": "输入函数，如 x^2, sin(x)",
+      "error": "无效的表达式"
     }
   },
   "settings": {

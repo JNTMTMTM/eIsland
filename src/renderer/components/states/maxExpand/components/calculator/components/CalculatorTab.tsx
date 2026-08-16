@@ -31,6 +31,7 @@ import { BUTTON_LAYOUT, SCIENTIFIC_FN_LAYOUT } from '../config/calculatorConfig'
 import { useCalculator } from '../hooks/useCalculator';
 import { CalcDisplay } from './CalcDisplay';
 import { CalculatorSidebar } from './CalculatorSidebar';
+import { CoordinateGraph } from './CoordinateGraph';
 
 function ButtonGrid({
   layout,
@@ -120,6 +121,7 @@ export function CalculatorTab(): ReactElement {
   }, [calculator]);
 
   const isScientific = activeMode === 'scientific';
+  const isCoordinate = activeMode === 'coordinate';
   const formulaLength = calculator.formula.length;
   const displayFontSize = formulaLength > 24 ? '20px' : formulaLength > 14 ? '26px' : '34px';
 
@@ -133,24 +135,30 @@ export function CalculatorTab(): ReactElement {
       />
 
       <div className="calc-main">
-        <CalcDisplay
-          cursor={calculator.cursor}
-          document={calculator.document}
-          fontSize={displayFontSize}
-          result={calculator.result}
-          hasResult={calculator.result !== null}
-          onCursorChange={calculator.moveCursor}
-          onMoveEnd={() => calculator.moveCursorBoundary('end')}
-          onKeyDown={handleKeyDown}
-        />
-
-        {isScientific ? (
-          <div className="calc-buttons-dual">
-            <ButtonGrid layout={SCIENTIFIC_FN_LAYOUT} onButton={handleButton} className="calc-buttons--sci" />
-            <ButtonGrid layout={BUTTON_LAYOUT} onButton={handleButton} className="calc-buttons--arith" />
-          </div>
+        {isCoordinate ? (
+          <CoordinateGraph />
         ) : (
-          <ButtonGrid layout={BUTTON_LAYOUT} onButton={handleButton} />
+          <>
+            <CalcDisplay
+              cursor={calculator.cursor}
+              document={calculator.document}
+              fontSize={displayFontSize}
+              result={calculator.result}
+              hasResult={calculator.result !== null}
+              onCursorChange={calculator.moveCursor}
+              onMoveEnd={() => calculator.moveCursorBoundary('end')}
+              onKeyDown={handleKeyDown}
+            />
+
+            {isScientific ? (
+              <div className="calc-buttons-dual">
+                <ButtonGrid layout={SCIENTIFIC_FN_LAYOUT} onButton={handleButton} className="calc-buttons--sci" />
+                <ButtonGrid layout={BUTTON_LAYOUT} onButton={handleButton} className="calc-buttons--arith" />
+              </div>
+            ) : (
+              <ButtonGrid layout={BUTTON_LAYOUT} onButton={handleButton} />
+            )}
+          </>
         )}
       </div>
     </div>
