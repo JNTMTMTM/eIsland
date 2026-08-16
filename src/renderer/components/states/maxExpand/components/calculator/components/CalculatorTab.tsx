@@ -79,7 +79,6 @@ export function CalculatorTab(): ReactElement {
 
   const handleSwitchMode = useCallback((mode: CalcMode): void => {
     setActiveMode(mode);
-    if (mode !== 'arithmetic') setCollapsed(false);
   }, []);
 
   const handleToggleCollapse = useCallback((): void => {
