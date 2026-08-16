@@ -1947,7 +1947,9 @@
     },
     "coordinate": {
       "placeholder": "输入函数，如 x^2, sin(x)",
-      "error": "无效的表达式"
+      "error": "无效的表达式",
+      "plot": "函数图像",
+      "toggleKeys": "切换输入面板"
     }
   },
   "settings": {

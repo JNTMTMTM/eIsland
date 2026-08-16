@@ -74,9 +74,11 @@ function ButtonGrid({
  * @returns 计算器面板
  */
 export function CalculatorTab(): ReactElement {
+  const { t } = useTranslation();
   const calculator = useCalculator();
   const [activeMode, setActiveMode] = useState<CalcMode>('arithmetic');
   const [collapsed, setCollapsed] = useState(true);
+  const [showScientificKeys, setShowScientificKeys] = useState(true);
 
   const handleSwitchMode = useCallback((mode: CalcMode): void => {
     setActiveMode(mode);
@@ -136,7 +138,36 @@ export function CalculatorTab(): ReactElement {
 
       <div className="calc-main">
         {isCoordinate ? (
-          <CoordinateGraph />
+          <div className="calc-coordinate-layout">
+            <div className="calc-coordinate-controls">
+              <CalcDisplay
+                cursor={calculator.cursor}
+                document={calculator.document}
+                fontSize={displayFontSize}
+                result={calculator.result}
+                hasResult={calculator.result !== null}
+                onCursorChange={calculator.moveCursor}
+                onMoveEnd={() => calculator.moveCursorBoundary('end')}
+                onKeyDown={handleKeyDown}
+              />
+              <button
+                type="button"
+                className="calc-btn calc-btn--toggle"
+                onClick={() => setShowScientificKeys((previous) => !previous)}
+                aria-label={t('calculator.coordinate.toggleKeys', { defaultValue: '切换输入面板' })}
+              >
+                {showScientificKeys ? '123' : 'f(x)'}
+              </button>
+              {showScientificKeys ? (
+                <ButtonGrid layout={SCIENTIFIC_FN_LAYOUT} onButton={handleButton} className="calc-buttons--sci-inner" />
+              ) : (
+                <ButtonGrid layout={BUTTON_LAYOUT} onButton={handleButton} className="calc-buttons--arith-inner" />
+              )}
+            </div>
+            <div className="calc-coordinate-workspace">
+              <CoordinateGraph expression={calculator.formula} />
+            </div>
+          </div>
         ) : (
           <>
             <CalcDisplay

@@ -20,7 +20,7 @@
 
 /**
  * @file CoordinateGraph.tsx
- * @description 坐标绘图组件，支持 y=f(x) 绘图
+ * @description 坐标绘图组件，使用计算器公式实时绘制 y=f(x)。
  * @author 鸡哥
  */
 
@@ -28,40 +28,39 @@ import { useCallback, useEffect, useRef, useState, type ReactElement } from 'rea
 import { useTranslation } from 'react-i18next';
 import functionPlot from 'function-plot';
 
+interface CoordinateGraphProps {
+  expression: string;
+}
+
 /**
- * 坐标绘图组件
+ * 根据计算器当前公式绘制函数图像。
+ * @param expression - 计算器公式序列化后的表达式
  * @returns 绘图区域
  */
-export function CoordinateGraph(): ReactElement {
+export function CoordinateGraph({ expression }: CoordinateGraphProps): ReactElement {
   const { t } = useTranslation();
   const plotRef = useRef<HTMLDivElement>(null);
-  const [expression, setExpression] = useState('x^2');
   const [error, setError] = useState<string | null>(null);
 
-  const renderPlot = useCallback(() => {
+  const renderPlot = useCallback((): void => {
     if (!plotRef.current) return;
 
     try {
       setError(null);
       plotRef.current.innerHTML = '';
-
+      const plotExpression = expression
+        .replaceAll('π', 'PI')
+        .replaceAll('×', '*')
+        .replaceAll('÷', '/');
       functionPlot({
         target: plotRef.current,
         width: plotRef.current.clientWidth,
         height: plotRef.current.clientHeight,
         grid: true,
-        data: [
-          {
-            fn: expression,
-            color: '#6390ff',
-          },
-        ],
-        tip: {
-          xLine: true,
-          yLine: true,
-        },
+        data: [{ fn: plotExpression || '0', color: '#6390ff' }],
+        tip: { xLine: true, yLine: true },
       });
-    } catch (err) {
+    } catch {
       setError(t('calculator.coordinate.error', { defaultValue: '无效的表达式' }));
     }
   }, [expression, t]);
@@ -71,41 +70,14 @@ export function CoordinateGraph(): ReactElement {
   }, [renderPlot]);
 
   useEffect(() => {
-    const handleResize = () => {
-      renderPlot();
-    };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [renderPlot]);
-
-  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setExpression(e.target.value);
-  }, []);
-
-  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      renderPlot();
-    }
+    window.addEventListener('resize', renderPlot);
+    return () => window.removeEventListener('resize', renderPlot);
   }, [renderPlot]);
 
   return (
-    <div className="coordinate-graph">
-      <div className="coordinate-graph-header">
-        <div className="coordinate-graph-input-group">
-          <span className="coordinate-graph-label">y =</span>
-          <input
-            type="text"
-            className="coordinate-graph-input"
-            value={expression}
-            onChange={handleInputChange}
-            onKeyDown={handleKeyDown}
-            placeholder={t('calculator.coordinate.placeholder', { defaultValue: '输入函数，如 x^2, sin(x)' })}
-            spellCheck={false}
-          />
-        </div>
-        {error && <div className="coordinate-graph-error">{error}</div>}
-      </div>
-      <div className="coordinate-graph-container" ref={plotRef} />
+    <div className="coordinate-graph-container" aria-label={t('calculator.coordinate.plot', { defaultValue: '函数图像' })}>
+      <div className="coordinate-graph-canvas" ref={plotRef} />
+      {error && <div className="coordinate-graph-error">{error}</div>}
     </div>
   );
 }

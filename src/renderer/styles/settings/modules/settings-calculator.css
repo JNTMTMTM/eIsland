@@ -384,7 +384,87 @@
   background: rgba(var(--color-text-rgb), 0.08);
 }
 
-/* ========== 坐标绘图区域 ========== */
+/* ========== 切换按钮 ========== */
+.calc-btn--toggle {
+  flex: 0 0 28px;
+  width: 100%;
+  font-size: 12px;
+  font-weight: 600;
+  background: rgba(var(--color-accent-rgb, 99, 144, 255), 0.18);
+  color: var(--color-accent, #6390ff);
+  margin-bottom: 4px;
+  height: 28px;
+  min-height: 28px;
+}
+
+.calc-btn--toggle:hover {
+  background: rgba(var(--color-accent-rgb, 99, 144, 255), 0.28);
+}
+
+/* ========== 绘图模式下的内部按钮网格 ========== */
+.calc-buttons--sci-inner {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-auto-rows: 1fr;
+  gap: 4px;
+  align-content: start;
+}
+
+.calc-buttons--sci-inner .calc-row {
+  display: contents;
+}
+
+.calc-buttons--arith-inner {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-auto-rows: 1fr;
+  gap: 4px;
+  align-content: start;
+}
+
+.calc-buttons--arith-inner .calc-row {
+  display: contents;
+}
+
+/* ========== 绘图模式四象限布局 ========== */
+.calc-coordinate-layout {
+  display: grid;
+  grid-template-columns: minmax(178px, 0.36fr) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  gap: 10px;
+  flex: 1;
+  min-height: 0;
+}
+
+.calc-coordinate-controls {
+  grid-column: 1;
+  grid-row: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 0;
+}
+
+.calc-coordinate-controls .calc-buttons--sci-inner,
+.calc-coordinate-controls .calc-buttons--arith-inner {
+  flex: 1;
+}
+
+.calc-coordinate-workspace {
+  grid-column: 2;
+  grid-row: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  min-height: 0;
+}
+
+
 .coordinate-graph {
   display: flex;
   flex-direction: column;
@@ -396,11 +476,24 @@
   overflow: hidden;
 }
 
-.coordinate-graph-header {
+.coordinate-graph-display {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  align-items: stretch;
+  justify-content: center;
+  padding: 10px 14px;
+  min-height: 89px;
   margin-bottom: 12px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: rgba(var(--color-text-rgb), 0.04);
+  cursor: text;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.coordinate-graph-display:focus-within {
+  border-color: rgba(var(--color-accent-rgb, 99, 144, 255), 0.42);
 }
 
 .coordinate-graph-input-group {
@@ -419,19 +512,13 @@
 .coordinate-graph-input {
   flex: 1;
   height: 36px;
-  padding: 0 12px;
-  border: 1px solid rgba(var(--color-text-rgb), 0.12);
-  border-radius: 8px;
-  background: rgba(var(--color-text-rgb), 0.04);
+  padding: 0;
+  border: none;
+  background: transparent;
   color: rgba(var(--color-text-rgb), 0.92);
-  font-size: 14px;
+  font-size: 18px;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   outline: none;
-  transition: border-color 0.2s ease;
-}
-
-.coordinate-graph-input:focus {
-  border-color: rgba(var(--color-accent-rgb, 99, 144, 255), 0.42);
 }
 
 .coordinate-graph-input::placeholder {
@@ -439,19 +526,27 @@
 }
 
 .coordinate-graph-error {
-  padding: 6px 12px;
-  border-radius: 6px;
+  margin-top: 6px;
+  padding: 4px 8px;
+  border-radius: 4px;
   background: rgba(255, 59, 48, 0.1);
   color: #ff3b30;
   font-size: 12px;
 }
 
 .coordinate-graph-container {
+  display: flex;
+  flex-direction: column;
   flex: 1;
   min-height: 0;
   border-radius: 10px;
   background: rgba(var(--color-text-rgb), 0.04);
   overflow: hidden;
+}
+
+.coordinate-graph-canvas {
+  flex: 1;
+  min-height: 0;
 }
 
 .coordinate-graph-container .function-plot {
