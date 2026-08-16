@@ -140,16 +140,6 @@ export function CalculatorTab(): ReactElement {
         {isCoordinate ? (
           <div className="calc-coordinate-layout">
             <div className="calc-coordinate-controls">
-              <CalcDisplay
-                cursor={calculator.cursor}
-                document={calculator.document}
-                fontSize={displayFontSize}
-                result={null}
-                hasResult={false}
-                onCursorChange={calculator.moveCursor}
-                onMoveEnd={() => calculator.moveCursorBoundary('end')}
-                onKeyDown={handleKeyDown}
-              />
               <button
                 type="button"
                 className="calc-btn calc-btn--toggle"
@@ -165,6 +155,16 @@ export function CalculatorTab(): ReactElement {
               )}
             </div>
             <div className="calc-coordinate-workspace">
+              <CalcDisplay
+                cursor={calculator.cursor}
+                document={calculator.document}
+                fontSize={displayFontSize}
+                result={null}
+                hasResult={false}
+                onCursorChange={calculator.moveCursor}
+                onMoveEnd={() => calculator.moveCursorBoundary('end')}
+                onKeyDown={handleKeyDown}
+              />
               <CoordinateGraph expression={calculator.formula} />
             </div>
           </div>
