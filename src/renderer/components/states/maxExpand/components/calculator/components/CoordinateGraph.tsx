@@ -32,12 +32,17 @@ interface CoordinateGraphProps {
   expression: string;
 }
 
-function normalizeLogarithmExpression(expression: string): string {
+function normalizeBinaryFunctionExpression(
+  expression: string,
+  functionName: string,
+  format: (left: string, right: string) => string,
+): string {
+  const marker = `${functionName}(`;
   let result = '';
   let cursor = 0;
 
   while (cursor < expression.length) {
-    const start = expression.indexOf('logn(', cursor);
+    const start = expression.indexOf(marker, cursor);
     if (start < 0) {
       result += expression.slice(cursor);
       break;
@@ -45,7 +50,7 @@ function normalizeLogarithmExpression(expression: string): string {
 
     result += expression.slice(cursor, start);
     let depth = 1;
-    let end = start + 'logn('.length;
+    let end = start + marker.length;
     while (end < expression.length && depth > 0) {
       if (expression[end] === '(') depth += 1;
       if (expression[end] === ')') depth -= 1;
@@ -57,19 +62,31 @@ function normalizeLogarithmExpression(expression: string): string {
       break;
     }
 
-    const content = expression.slice(start + 'logn('.length, end - 1);
+    const content = expression.slice(start + marker.length, end - 1);
     const separator = content.indexOf(',');
     if (separator < 0) {
       result += expression.slice(start, end);
     } else {
-      const base = normalizeLogarithmExpression(content.slice(0, separator));
-      const value = normalizeLogarithmExpression(content.slice(separator + 1));
-      result += `(log(${value})/log(${base}))`;
+      const left = normalizeBinaryFunctionExpression(content.slice(0, separator), functionName, format);
+      const right = normalizeBinaryFunctionExpression(content.slice(separator + 1), functionName, format);
+      result += format(left, right);
     }
     cursor = end;
   }
 
   return result;
+}
+
+function normalizeLogarithmExpression(expression: string): string {
+  return normalizeBinaryFunctionExpression(
+    expression,
+    'logn',
+    (base, value) => `(log(${value})/log(${base}))`,
+  );
+}
+
+function normalizeFractionExpression(expression: string): string {
+  return normalizeBinaryFunctionExpression(expression, 'frac', (numerator, denominator) => `(${numerator})/(${denominator})`);
 }
 
 /**
@@ -88,7 +105,7 @@ export function CoordinateGraph({ expression }: CoordinateGraphProps): ReactElem
     try {
       setError(null);
       plotRef.current.innerHTML = '';
-      const plotExpression = normalizeLogarithmExpression(expression)
+      const plotExpression = normalizeFractionExpression(normalizeLogarithmExpression(expression))
         .replaceAll('arcsin(', 'asin(')
         .replaceAll('arccos(', 'acos(')
         .replaceAll('arctan(', 'atan(')
