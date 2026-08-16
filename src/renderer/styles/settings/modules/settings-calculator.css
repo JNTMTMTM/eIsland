@@ -76,7 +76,7 @@
 }
 
 .calc-sidebar-nav-btn--active {
-  color: rgba(var(--color-text-rgb), 0.88);
+  color: rgba(var(--color-text-rgb), 1);
 }
 
 .calc-sidebar-nav-icon {
@@ -89,7 +89,7 @@
 }
 
 .calc-sidebar-nav-btn--active .calc-sidebar-nav-icon {
-  opacity: 0.9;
+  opacity: 1;
 }
 
 /* ========== 导航标签（展开后显示） ========== */
