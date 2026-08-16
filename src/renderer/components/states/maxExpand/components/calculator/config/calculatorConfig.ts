@@ -42,7 +42,6 @@ export const CALC_SIDEBAR_NAV_ITEMS: CalcSidebarNavItem[] = [
   { mode: 'arithmetic', icon: CalculatorIcon.ARITHMETIC, labelKey: 'calculator.modes.arithmetic', defaultLabel: '四则运算' },
   { mode: 'scientific', icon: CalculatorIcon.SCIENTIFIC, labelKey: 'calculator.modes.scientific', defaultLabel: '科学计算' },
   { mode: 'coordinate', icon: CalculatorIcon.COORDINATE, labelKey: 'calculator.modes.coordinate', defaultLabel: '绘图' },
-  { mode: 'unitConversion', icon: CalculatorIcon.UNIT_CONVERSION, labelKey: 'calculator.modes.unitConversion', defaultLabel: '单位换算' },
 ];
 
 /** 四则运算按钮布局（5×4 网格） */

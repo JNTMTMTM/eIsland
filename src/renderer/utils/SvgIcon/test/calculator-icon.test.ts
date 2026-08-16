@@ -48,7 +48,6 @@ describe('CalculatorIcon', () => {
     expect(CalculatorIcon).toHaveProperty('ROOT');
     expect(CalculatorIcon).toHaveProperty('SCIENTIFIC');
     expect(CalculatorIcon).toHaveProperty('SIGMA');
-    expect(CalculatorIcon).toHaveProperty('UNIT_CONVERSION');
   });
 
   it('all values should be strings ending with .svg', () => {
