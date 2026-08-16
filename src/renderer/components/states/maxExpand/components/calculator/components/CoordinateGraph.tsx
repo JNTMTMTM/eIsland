@@ -155,7 +155,8 @@ export function CoordinateGraph({ expression }: CoordinateGraphProps): ReactElem
         .replaceAll('arctan(', 'atan(')
         .replaceAll('π', 'PI')
         .replaceAll('×', '*')
-        .replaceAll('÷', '/');
+        .replaceAll('÷', '/')
+        .replace(/(?<![a-zA-Z])e\^[(]/g, 'exp(');
       functionPlot({
         target: plotRef.current,
         width: plotRef.current.clientWidth,
