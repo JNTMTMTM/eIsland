@@ -74,6 +74,16 @@ function cursorAt(path: FormulaPathStep[], segmentIndex: number, offset: number)
   return { path, segmentIndex, offset };
 }
 
+function findClosingParenthesis(value: string, openIndex: number): number {
+  let depth = 1;
+  for (let index = openIndex + 1; index < value.length; index += 1) {
+    if (value[index] === '(') depth += 1;
+    if (value[index] === ')') depth -= 1;
+    if (depth === 0) return index;
+  }
+  return -1;
+}
+
 class FormulaKatexCompiler {
   private nextAnchorId = 1;
 
@@ -133,9 +143,29 @@ class FormulaKatexCompiler {
       const token = readFunctionOpenToken(value, offset);
       if (token) {
         const start = cursorAt(path, segmentIndex, baseOffset + offset);
+        const functionName = token.slice(0, -1);
+        if (functionName === 'cbrt') {
+          const openIndex = offset + token.length - 1;
+          const closeIndex = findClosingParenthesis(value, openIndex);
+          if (closeIndex >= 0) {
+            const argument = value.slice(openIndex + 1, closeIndex);
+            const argumentTex = argument
+              ? this.compileText(argument, path, segmentIndex, baseOffset + openIndex + 1)
+              : this.withAnchor(
+                'slot',
+                cursorAt(path, segmentIndex, baseOffset + openIndex + 1),
+                cursorAt(path, segmentIndex, baseOffset + openIndex + 1),
+                '\\square',
+              );
+            const end = cursorAt(path, segmentIndex, baseOffset + closeIndex + 1);
+            result += this.withAnchor('token', start, end, `\\sqrt[3]{${argumentTex}}`);
+            offset = closeIndex + 1;
+            continue;
+          }
+        }
         const end = cursorAt(path, segmentIndex, baseOffset + offset + token.length);
-        const command = FUNCTION_COMMANDS[token.slice(0, -1)];
-        const functionTex = command ?? `\\operatorname{${escapeText(token.slice(0, -1))}}`;
+        const command = FUNCTION_COMMANDS[functionName];
+        const functionTex = command ?? `\\operatorname{${escapeText(functionName)}}`;
         result += this.withAnchor('token', start, end, `${functionTex}(`);
         offset += token.length;
         continue;

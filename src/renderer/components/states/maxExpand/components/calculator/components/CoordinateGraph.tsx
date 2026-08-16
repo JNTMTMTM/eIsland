@@ -77,6 +77,48 @@ function normalizeBinaryFunctionExpression(
   return result;
 }
 
+function normalizeRootExpression(expression: string): string {
+  return normalizeBinaryFunctionExpression(
+    expression,
+    'root',
+    (index, radicand) => `(${radicand})^(1/(${index}))`,
+  );
+}
+
+function normalizeCbrtExpression(expression: string): string {
+  const marker = 'cbrt(';
+  let result = '';
+  let cursor = 0;
+
+  while (cursor < expression.length) {
+    const start = expression.indexOf(marker, cursor);
+    if (start < 0) {
+      result += expression.slice(cursor);
+      break;
+    }
+
+    result += expression.slice(cursor, start);
+    let depth = 1;
+    let end = start + marker.length;
+    while (end < expression.length && depth > 0) {
+      if (expression[end] === '(') depth += 1;
+      if (expression[end] === ')') depth -= 1;
+      end += 1;
+    }
+
+    if (depth !== 0) {
+      result += expression.slice(start);
+      break;
+    }
+
+    const argument = normalizeCbrtExpression(expression.slice(start + marker.length, end - 1));
+    result += `(${argument})^(1/3)`;
+    cursor = end;
+  }
+
+  return result;
+}
+
 function normalizeLogarithmExpression(expression: string): string {
   return normalizeBinaryFunctionExpression(
     expression,
@@ -105,7 +147,9 @@ export function CoordinateGraph({ expression }: CoordinateGraphProps): ReactElem
     try {
       setError(null);
       plotRef.current.innerHTML = '';
-      const plotExpression = normalizeFractionExpression(normalizeLogarithmExpression(expression))
+      const plotExpression = normalizeCbrtExpression(
+        normalizeRootExpression(normalizeFractionExpression(normalizeLogarithmExpression(expression))),
+      )
         .replaceAll('arcsin(', 'asin(')
         .replaceAll('arccos(', 'acos(')
         .replaceAll('arctan(', 'atan(')
