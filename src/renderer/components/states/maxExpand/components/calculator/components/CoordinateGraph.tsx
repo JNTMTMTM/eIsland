@@ -32,6 +32,46 @@ interface CoordinateGraphProps {
   expression: string;
 }
 
+function normalizeLogarithmExpression(expression: string): string {
+  let result = '';
+  let cursor = 0;
+
+  while (cursor < expression.length) {
+    const start = expression.indexOf('logn(', cursor);
+    if (start < 0) {
+      result += expression.slice(cursor);
+      break;
+    }
+
+    result += expression.slice(cursor, start);
+    let depth = 1;
+    let end = start + 'logn('.length;
+    while (end < expression.length && depth > 0) {
+      if (expression[end] === '(') depth += 1;
+      if (expression[end] === ')') depth -= 1;
+      end += 1;
+    }
+
+    if (depth !== 0) {
+      result += expression.slice(start);
+      break;
+    }
+
+    const content = expression.slice(start + 'logn('.length, end - 1);
+    const separator = content.indexOf(',');
+    if (separator < 0) {
+      result += expression.slice(start, end);
+    } else {
+      const base = normalizeLogarithmExpression(content.slice(0, separator));
+      const value = normalizeLogarithmExpression(content.slice(separator + 1));
+      result += `(log(${value})/log(${base}))`;
+    }
+    cursor = end;
+  }
+
+  return result;
+}
+
 /**
  * 根据计算器当前公式绘制函数图像。
  * @param expression - 计算器公式序列化后的表达式
@@ -48,7 +88,7 @@ export function CoordinateGraph({ expression }: CoordinateGraphProps): ReactElem
     try {
       setError(null);
       plotRef.current.innerHTML = '';
-      const plotExpression = expression
+      const plotExpression = normalizeLogarithmExpression(expression)
         .replaceAll('π', 'PI')
         .replaceAll('×', '*')
         .replaceAll('÷', '/');
