@@ -89,6 +89,9 @@ export function CoordinateGraph({ expression }: CoordinateGraphProps): ReactElem
       setError(null);
       plotRef.current.innerHTML = '';
       const plotExpression = normalizeLogarithmExpression(expression)
+        .replaceAll('arcsin(', 'asin(')
+        .replaceAll('arccos(', 'acos(')
+        .replaceAll('arctan(', 'atan(')
         .replaceAll('π', 'PI')
         .replaceAll('×', '*')
         .replaceAll('÷', '/');
