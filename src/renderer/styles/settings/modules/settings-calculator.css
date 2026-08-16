@@ -274,6 +274,24 @@
   grid-auto-rows: 1fr;
   gap: 4px;
   align-content: start;
+  overflow: hidden;
+  animation: calc-scientific-keys-expand 0.2s ease both;
+}
+
+@keyframes calc-scientific-keys-expand {
+  from {
+    flex-basis: 0;
+    width: 0;
+    min-width: 0;
+    opacity: 0;
+  }
+
+  to {
+    flex-basis: 200px;
+    width: 200px;
+    min-width: 200px;
+    opacity: 1;
+  }
 }
 
 /* Grid 布局下 row 容器不参与布局，按钮直接进格子 */
