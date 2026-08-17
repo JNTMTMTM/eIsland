@@ -27,108 +27,10 @@
 import { useCallback, useEffect, useRef, useState, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import functionPlot from 'function-plot';
+import { normalizeExpressionForPlot } from '../utils/expressionUtils';
 
 interface CoordinateGraphProps {
   expression: string;
-}
-
-function normalizeBinaryFunctionExpression(
-  expression: string,
-  functionName: string,
-  format: (left: string, right: string) => string,
-): string {
-  const marker = `${functionName}(`;
-  let result = '';
-  let cursor = 0;
-
-  while (cursor < expression.length) {
-    const start = expression.indexOf(marker, cursor);
-    if (start < 0) {
-      result += expression.slice(cursor);
-      break;
-    }
-
-    result += expression.slice(cursor, start);
-    let depth = 1;
-    let end = start + marker.length;
-    while (end < expression.length && depth > 0) {
-      if (expression[end] === '(') depth += 1;
-      if (expression[end] === ')') depth -= 1;
-      end += 1;
-    }
-
-    if (depth !== 0) {
-      result += expression.slice(start);
-      break;
-    }
-
-    const content = expression.slice(start + marker.length, end - 1);
-    const separator = content.indexOf(',');
-    if (separator < 0) {
-      result += expression.slice(start, end);
-    } else {
-      const left = normalizeBinaryFunctionExpression(content.slice(0, separator), functionName, format);
-      const right = normalizeBinaryFunctionExpression(content.slice(separator + 1), functionName, format);
-      result += format(left, right);
-    }
-    cursor = end;
-  }
-
-  return result;
-}
-
-function normalizeRootExpression(expression: string): string {
-  return normalizeBinaryFunctionExpression(
-    expression,
-    'root',
-    (index, radicand) => `nthRoot(${radicand},${index})`,
-  );
-}
-
-function normalizeCbrtExpression(expression: string): string {
-  const marker = 'cbrt(';
-  let result = '';
-  let cursor = 0;
-
-  while (cursor < expression.length) {
-    const start = expression.indexOf(marker, cursor);
-    if (start < 0) {
-      result += expression.slice(cursor);
-      break;
-    }
-
-    result += expression.slice(cursor, start);
-    let depth = 1;
-    let end = start + marker.length;
-    while (end < expression.length && depth > 0) {
-      if (expression[end] === '(') depth += 1;
-      if (expression[end] === ')') depth -= 1;
-      end += 1;
-    }
-
-    if (depth !== 0) {
-      result += expression.slice(start);
-      break;
-    }
-
-    const argument = normalizeCbrtExpression(expression.slice(start + marker.length, end - 1));
-    result += `(${argument})^(1/3)`;
-    cursor = end;
-  }
-
-  return result;
-}
-
-function normalizeLogarithmExpression(expression: string): string {
-  return normalizeBinaryFunctionExpression(
-    expression,
-    'logn',
-    (base, value) => `(log(${value})/log(${base}))`,
-  );
-}
-
-function normalizeFractionExpression(expression: string): string {
-  return normalizeBinaryFunctionExpression(expression, 'frac', (numerator, denominator) => `(${numerator})/(${denominator})`);
 }
 
 /**
@@ -147,16 +49,7 @@ export function CoordinateGraph({ expression }: CoordinateGraphProps): ReactElem
     try {
       setError(null);
       plotRef.current.innerHTML = '';
-      const plotExpression = normalizeCbrtExpression(
-        normalizeRootExpression(normalizeFractionExpression(normalizeLogarithmExpression(expression))),
-      )
-        .replaceAll('arcsin(', 'asin(')
-        .replaceAll('arccos(', 'acos(')
-        .replaceAll('arctan(', 'atan(')
-        .replaceAll('π', 'PI')
-        .replaceAll('×', '*')
-        .replaceAll('÷', '/')
-        .replace(/(?<![a-zA-Z])e\^[(]/g, 'exp(');
+      const plotExpression = normalizeExpressionForPlot(expression);
       functionPlot({
         target: plotRef.current,
         width: plotRef.current.clientWidth,

@@ -29,6 +29,7 @@ import type {
 } from '../types/calculatorTypes';
 import { getStructureSlotOrder } from './formulaDocumentUtils';
 import { readFunctionOpenToken } from './formulaCursorUtils';
+import { findClosingParenthesis } from './expressionUtils';
 
 export interface FormulaKatexAnchor {
   id: string;
@@ -72,16 +73,6 @@ function escapeText(value: string): string {
 
 function cursorAt(path: FormulaPathStep[], segmentIndex: number, offset: number): FormulaCursor {
   return { path, segmentIndex, offset };
-}
-
-function findClosingParenthesis(value: string, openIndex: number): number {
-  let depth = 1;
-  for (let index = openIndex + 1; index < value.length; index += 1) {
-    if (value[index] === '(') depth += 1;
-    if (value[index] === ')') depth -= 1;
-    if (depth === 0) return index;
-  }
-  return -1;
 }
 
 class FormulaKatexCompiler {
