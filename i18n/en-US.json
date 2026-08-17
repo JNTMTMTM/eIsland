@@ -1944,6 +1944,12 @@
       "integral": "Definite integral",
       "derivative": "Derivative at a point",
       "variable": "Variable x"
+    },
+    "coordinate": {
+      "placeholder": "Enter function, e.g. x^2, sin(x)",
+      "error": "Invalid expression",
+      "plot": "Function graph",
+      "toggleKeys": "Switch input panel"
     }
   },
   "settings": {

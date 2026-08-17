@@ -46,7 +46,25 @@ describe('formulaKatexCompiler', () => {
     expect(compilation.anchors.every((anchor) => anchor.kind === 'token')).toBe(true);
   });
 
-  it('编译分数、根式和积分上下限（完整结构）', () => {
+  it('将 cbrt 函数渲染为三次根号', () => {
+    const compilation = compileFormulaToKatex(text('cbrt(x+1)'));
+
+    expect(compilation.tex).toContain('\\sqrt[3]{');
+    expect(() => katex.renderToString(compilation.tex, {
+      throwOnError: true,
+      trust: ({ command }) => command === '\\htmlData',
+    })).not.toThrow();
+  });
+
+  it('为空的 cbrt 创建根式输入占位符', () => {
+    const compilation = compileFormulaToKatex(text('cbrt()'));
+
+    expect(compilation.tex).toContain('\\sqrt[3]{');
+    expect(compilation.tex).toContain('\\square');
+    expect(compilation.anchors.some((anchor) => anchor.kind === 'slot')).toBe(true);
+  });
+
+
     const root = structure('sqrt', { radicand: text('x') });
     const fraction = structure('fraction', { numerator: root, denominator: text('2') });
     const integral = structure('integral', { lower: text('0'), upper: text('1'), body: fraction });
@@ -108,4 +126,3 @@ describe('formulaKatexCompiler', () => {
     expect(compilation.tex).toContain('\\square');
     expect(compilation.anchors.filter((anchor) => anchor.kind === 'slot')).toHaveLength(2);
   });
-});

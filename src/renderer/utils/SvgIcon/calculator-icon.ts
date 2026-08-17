@@ -45,7 +45,6 @@ export const CalculatorIcon = {
   ROOT: './svg/calculator/ROOT.svg',
   SCIENTIFIC: './svg/calculator/SCIENTIFIC.svg',
   SIGMA: './svg/calculator/SIGMA.svg',
-  UNIT_CONVERSION: './svg/calculator/UNIT_CONVERSION.svg',
 } as const;
 
 export type CalculatorIconKey = keyof typeof CalculatorIcon;

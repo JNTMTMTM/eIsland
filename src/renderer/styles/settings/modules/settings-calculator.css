@@ -76,7 +76,7 @@
 }
 
 .calc-sidebar-nav-btn--active {
-  color: rgba(var(--color-text-rgb), 0.88);
+  color: rgba(var(--color-text-rgb), 1);
 }
 
 .calc-sidebar-nav-icon {
@@ -89,7 +89,7 @@
 }
 
 .calc-sidebar-nav-btn--active .calc-sidebar-nav-icon {
-  opacity: 0.9;
+  opacity: 1;
 }
 
 /* ========== 导航标签（展开后显示） ========== */
@@ -128,13 +128,14 @@
   align-items: stretch;
   justify-content: center;
   padding: 10px 14px;
-  min-height: 80px;
+  min-height: 98px;
   margin-bottom: 8px;
   border: 1px solid transparent;
   border-radius: 10px;
   background: rgba(var(--color-text-rgb), 0.04);
   cursor: text;
   outline: none;
+  box-sizing: border-box;
 }
 
 .calc-display:focus {
@@ -206,12 +207,36 @@
 
 .calc-value {
   min-height: 24px;
-  margin-top: 3px;
+  margin-top: 6px;
   color: rgba(var(--color-text-rgb), 0.46);
+  font-size: 18px;
   font-weight: 500;
   line-height: 1.1;
   text-align: right;
   transition: font-size 0.15s ease;
+}
+
+/* ========== 有结果时的样式互换 ========== */
+.calc-expression--as-result {
+  min-height: 24px;
+  color: rgba(var(--color-text-rgb), 0.46);
+  font-size: 14px;
+  font-weight: 500;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  line-height: 1.1;
+  order: -1;
+}
+
+.calc-value--as-expression {
+  min-height: 40px;
+  margin-top: 0;
+  margin-bottom: 6px;
+  color: rgba(var(--color-text-rgb), 0.92);
+  font-size: 34px;
+  font-weight: 500;
+  font-family: var(--island-ui-font);
+  line-height: 1.25;
+  order: 1;
 }
 
 /* ========== 按钮网格（通用） ========== */
@@ -249,6 +274,24 @@
   grid-auto-rows: 1fr;
   gap: 4px;
   align-content: start;
+  overflow: hidden;
+  animation: calc-scientific-keys-expand 0.2s ease both;
+}
+
+@keyframes calc-scientific-keys-expand {
+  from {
+    flex-basis: 0;
+    width: 0;
+    min-width: 0;
+    opacity: 0;
+  }
+
+  to {
+    flex-basis: 200px;
+    width: 200px;
+    min-width: 200px;
+    opacity: 1;
+  }
 }
 
 /* Grid 布局下 row 容器不参与布局，按钮直接进格子 */
@@ -357,4 +400,205 @@
 
 .calc-btn--sci:hover {
   background: rgba(var(--color-text-rgb), 0.08);
+}
+
+/* ========== 切换按钮 ========== */
+.calc-btn--toggle {
+  flex: 0 0 28px;
+  width: 100%;
+  font-size: 12px;
+  font-weight: 600;
+  background: rgba(var(--color-accent-rgb, 99, 144, 255), 0.18);
+  color: var(--color-accent, #6390ff);
+  margin-bottom: 4px;
+  height: 28px;
+  min-height: 28px;
+}
+
+.calc-btn--toggle:hover {
+  background: rgba(var(--color-accent-rgb, 99, 144, 255), 0.28);
+}
+
+/* ========== 绘图模式下的内部按钮网格 ========== */
+.calc-buttons--sci-inner {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-auto-rows: 1fr;
+  gap: 4px;
+  align-content: start;
+}
+
+.calc-buttons--sci-inner .calc-row {
+  display: contents;
+}
+
+.calc-buttons--arith-inner {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-auto-rows: 1fr;
+  gap: 4px;
+  align-content: start;
+}
+
+.calc-buttons--arith-inner .calc-row {
+  display: contents;
+}
+
+/* ========== 绘图模式四象限布局 ========== */
+.calc-coordinate-layout {
+  display: grid;
+  grid-template-columns: minmax(178px, 0.36fr) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  gap: 10px;
+  flex: 1;
+  min-height: 0;
+}
+
+.calc-coordinate-controls {
+  grid-column: 1;
+  grid-row: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 0;
+}
+
+.calc-coordinate-controls .calc-buttons--sci-inner,
+.calc-coordinate-controls .calc-buttons--arith-inner {
+  flex: 1;
+}
+
+.calc-coordinate-workspace {
+  grid-column: 2;
+  grid-row: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  min-height: 0;
+}
+
+
+.coordinate-graph {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  padding: 12px 16px;
+  box-sizing: border-box;
+  user-select: none;
+  overflow: hidden;
+}
+
+.coordinate-graph-display {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  padding: 10px 14px;
+  min-height: 89px;
+  margin-bottom: 12px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: rgba(var(--color-text-rgb), 0.04);
+  cursor: text;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.coordinate-graph-display:focus-within {
+  border-color: rgba(var(--color-accent-rgb, 99, 144, 255), 0.42);
+}
+
+.coordinate-graph-input-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.coordinate-graph-label {
+  font-size: 16px;
+  font-weight: 600;
+  color: rgba(var(--color-text-rgb), 0.92);
+  white-space: nowrap;
+}
+
+.coordinate-graph-input {
+  flex: 1;
+  height: 36px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: rgba(var(--color-text-rgb), 0.92);
+  font-size: 18px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  outline: none;
+}
+
+.coordinate-graph-input::placeholder {
+  color: rgba(var(--color-text-rgb), 0.36);
+}
+
+.coordinate-graph-error {
+  margin-top: 6px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: rgba(255, 59, 48, 0.1);
+  color: #ff3b30;
+  font-size: 12px;
+}
+
+.coordinate-graph-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  border-radius: 10px;
+  background: rgba(var(--color-text-rgb), 0.04);
+  overflow: hidden;
+}
+
+.coordinate-graph-canvas {
+  flex: 1;
+  min-height: 0;
+}
+
+.coordinate-graph-container .function-plot {
+  width: 100%;
+  height: 100%;
+}
+
+.coordinate-graph-container svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* ========== function-plot 样式覆盖 ========== */
+.coordinate-graph-container .tick text {
+  fill: rgba(var(--color-text-rgb), 0.56);
+  font-size: 11px;
+}
+
+.coordinate-graph-container .tick line {
+  stroke: rgba(var(--color-text-rgb), 0.08);
+}
+
+.coordinate-graph-container .grid-line {
+  stroke: rgba(var(--color-text-rgb), 0.06);
+}
+
+.coordinate-graph-container .axis-line {
+  stroke: rgba(var(--color-text-rgb), 0.16);
+}
+
+.coordinate-graph-container .tip {
+  background: rgba(var(--color-text-rgb), 0.92);
+  color: rgba(var(--color-background-rgb, 255, 255, 255), 1);
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 12px;
 }
