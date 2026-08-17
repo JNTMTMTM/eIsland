@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-08-15T20:04:03.556Z
+> 生成时间：2026-08-17T18:35:45.215Z
 
 ## 26.7.2
 
@@ -3343,6 +3343,28 @@
 
 ## Unreleased
 
+- 2026-08-18 | 5c3ff6aa | 鸡哥 | Merge pull request #201 from JNTMTMTM/dev
+- 2026-08-17 | c8edd154 | 鸡哥 | chore(tests): add file description and author information to expressionUtils test
+- 2026-08-17 | ee571d0f | 鸡哥 | feat(expressionUtils): add expression normalization utilities and tests for improved expression handling
+- 2026-08-17 | 6b4b4d8b | 鸡哥 | feat(CoordinateGraph): add sticky axes with defined domains for better visualization
+- 2026-08-17 | 04a2da4b | 鸡哥 | feat(CoordinateGraph): add support for exponential notation in expressions
+- 2026-08-17 | 1aa565ba | 鸡哥 | feat(CoordinateGraph): add graphType property to data for polyline rendering
+- 2026-08-17 | 1e94f1ec | 鸡哥 | test(calculator-icon): update expected key count to reflect changes in CalculatorIcon
+- 2026-08-17 | efdcf840 | 鸡哥 | feat(calculator): add normalization for root and cube root expressions
+- 2026-08-17 | b9a863b7 | 鸡哥 | feat(calculator): add animation for scientific keys expansion in CSS
+- 2026-08-17 | 424145de | 鸡哥 | feat(calculator): remove unit conversion mode and associated assets
+- 2026-08-16 | 31a2162d | 鸡哥 | feat(calculator): refactor logarithm normalization to use a generic binary function handler
+- 2026-08-16 | 751966a0 | 鸡哥 | feat(calculator): add showValue prop to CalcDisplay for conditional rendering
+- 2026-08-16 | d0b9ae5e | 鸡哥 | feat(calculator): move CalcDisplay component to the coordinate workspace in CalculatorTab
+- 2026-08-16 | 5925c429 | 鸡哥 | feat(calculator): update normalizeLogarithmExpression to replace arcsin, arccos, and arctan with their shorthand forms
+- 2026-08-16 | c1c0c554 | 鸡哥 | feat(calculator): add normalizeLogarithmExpression function for handling logarithmic expressions
+- 2026-08-16 | 81e57020 | 鸡哥 | fix(calculator): set result and hasResult props to null and false in CalculatorTab
+- 2026-08-16 | 264b6891 | 鸡哥 | feat(calculator): enhance CoordinateGraph with dynamic plotting and toggle controls
+- 2026-08-16 | b15fe5ce | 鸡哥 | feat(calculator): add CoordinateGraph component for function plotting and update styles
+- 2026-08-16 | a7dd7599 | 鸡哥 | feat(calculator): add hasResult prop to CalcDisplay and update styles for result display
+- 2026-08-16 | 3079bfc3 | 鸡哥 | style(calculator): enhance active button visibility by adjusting color and opacity
+- 2026-08-16 | 638bfad9 | 鸡哥 | refactor(calculator): remove auto-collapse behavior on mode switch
+- 2026-08-15 | c3ff14b8 | eislandBot | docs: auto update CHANGE_LOG.md for #200 by @JNTMTMTM [skip ci]
 - 2026-08-16 | 17f67209 | 鸡哥 | Merge pull request #200 from JNTMTMTM/dev
 - 2026-08-16 | 12ce9028 | 鸡哥 | feat(calculator): add focus effect to CalcDisplay and enhance test coverage for formula compilation refactor(icon): update CalculatorIcon documentation and adjust test for key count docs: correct spelling in Shape.md header
 - 2026-08-16 | 23220387 | 鸡哥 | refactor(calculator): simplify cursor snapping logic in snapFormulaCursor function
