@@ -45,4 +45,5 @@ export interface WebGPUContext {
   bindGroup: any;
   values: Float32Array;
   startedAt: number;
+  format: string;
 }

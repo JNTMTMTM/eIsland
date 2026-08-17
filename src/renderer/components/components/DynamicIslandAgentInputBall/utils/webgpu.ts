@@ -28,8 +28,8 @@
 import type { WebGPUContext } from '../types';
 
 /** GPUBufferUsage 标志位常量，兼容缺少 WebGPU 类型定义的环境。 */
-const GPU_BUFFER_USAGE_UNIFORM = 0x0002;
-const GPU_BUFFER_USAGE_COPY_DST = 0x0010;
+const GPU_BUFFER_USAGE_UNIFORM = 0x0040;
+const GPU_BUFFER_USAGE_COPY_DST = 0x0008;
 
 /**
  * 初始化 WebGPU 渲染上下文。
@@ -60,6 +60,7 @@ export async function initWebGPU(
   }
 
   const format = (navigator as any).gpu.getPreferredCanvasFormat();
+  try { context.unconfigure(); } catch { /* 首次调用可忽略 */ }
   context.configure({ device, format, alphaMode: 'premultiplied' });
 
   const shader = device.createShaderModule({ code: shaderCode });
@@ -101,6 +102,7 @@ export async function initWebGPU(
     bindGroup,
     values,
     startedAt: performance.now(),
+    format,
   };
 }
 
@@ -123,6 +125,14 @@ export function renderFrame(
     canvas.width = width;
     canvas.height = height;
   }
+
+  // 每帧重新配置 swap chain，确保纹理与当前设备匹配（Electron GPU 进程同步）
+  ctx.context.unconfigure();
+  ctx.context.configure({
+    device: ctx.device,
+    format: ctx.format,
+    alphaMode: 'premultiplied',
+  });
 
   ctx.values[0] = width;
   ctx.values[1] = height;

@@ -84,7 +84,10 @@ export function useWebGPURenderer(
           stop(new Error(`WebGPU 渲染错误：${event.error.message}`));
         });
 
-        frame(performance.now());
+        // 延迟一帧开始渲染，给 GPU 进程时间完成 swap chain 初始化
+        rafRef.current = requestAnimationFrame(() => {
+          if (!stoppedRef.current) frame(performance.now());
+        });
       } catch (err) {
         stop(err instanceof Error ? err : new Error(String(err)));
       }
@@ -114,6 +117,7 @@ export function useWebGPURenderer(
       cancelAnimationFrame(rafRef.current);
       ctxRef.current?.device.destroy();
       ctxRef.current = null;
+      console.error('[LiquidOrb]', error);
       onErrorRef.current?.(error);
     }
 

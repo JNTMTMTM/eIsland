@@ -24,7 +24,9 @@
  * @author 鸡哥
  */
 
+import { useState } from 'react';
 import type { ReactElement } from 'react';
+import { LiquidOrbCanvas } from '../../../components/DynamicIslandAgentInputBall';
 
 interface AgentVoiceInputViewProps {
   statusText: string;
@@ -39,14 +41,21 @@ interface AgentVoiceInputViewProps {
  */
 export function AgentVoiceInputView(props: AgentVoiceInputViewProps): ReactElement {
   const { statusText, transcript, textRef } = props;
+  const [orbFailed, setOrbFailed] = useState(false);
 
   return (
     <div className="agent-voice-input-content">
       <div className="agent-voice-input-status">
         <div className="agent-voice-input-indicator">
-          <span className="agent-voice-input-dot" />
-          <span className="agent-voice-input-dot" />
-          <span className="agent-voice-input-dot" />
+          {orbFailed ? (
+            <>
+              <span className="agent-voice-input-dot" />
+              <span className="agent-voice-input-dot" />
+              <span className="agent-voice-input-dot" />
+            </>
+          ) : (
+            <LiquidOrbCanvas onError={() => setOrbFailed(true)} />
+          )}
         </div>
         <span className="agent-voice-input-label">{statusText}</span>
       </div>
