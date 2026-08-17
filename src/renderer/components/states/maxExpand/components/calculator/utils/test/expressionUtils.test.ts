@@ -18,6 +18,12 @@
  * GNU General Public License for more details.
  */
 
+/**
+ * @file expressionUtils.test.ts
+ * @description expressionUtils 的单元测试。
+ * @author 鸡哥
+ */
+
 import { describe, expect, it } from 'vitest';
 import {
   findClosingParenthesis,
