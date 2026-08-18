@@ -42,12 +42,42 @@ jobs:
               })
               .map((item) => `${item.id} | ${item.label}`);
 
-            const detectViolationLines = (text, testFn) => {
+            const detectViolationLines = (text, testFn, ruleId) => {
               const lines = text.split('\n');
               const matched = [];
+
+              // Check for file-level eslint-disable (covers the whole file)
+              const fileDisablePattern = /\/\*[\s*]*eslint-disable\s+([^*]*)\*\//;
+              const fileDisableMatch = text.match(fileDisablePattern);
+              if (fileDisableMatch) {
+                const disabledRules = fileDisableMatch[1].split(',').map((r) => r.trim().replace(/^@[\w-]+\//, ''));
+                if (disabledRules.includes(ruleId) || disabledRules.length === 0) {
+                  return [];
+                }
+              }
+
               for (let i = 0; i < lines.length; i += 1) {
                 try {
-                  if (testFn(lines[i])) matched.push(i + 1);
+                  if (!testFn(lines[i])) continue;
+
+                  // Check eslint-disable-next-line on the line above
+                  if (i > 0) {
+                    const prevLine = lines[i - 1];
+                    const nextLineMatch = prevLine.match(/\/\/\s*eslint-disable-next-line\s+(.+)/);
+                    if (nextLineMatch) {
+                      const disabledRules = nextLineMatch[1].split(',').map((r) => r.trim().replace(/^@[\w-]+\//, ''));
+                      if (disabledRules.includes(ruleId)) continue;
+                    }
+                  }
+
+                  // Check inline eslint-disable-line on the same line
+                  const inlineMatch = lines[i].match(/\/\/\s*eslint-disable-line\s+(.+)/);
+                  if (inlineMatch) {
+                    const disabledRules = inlineMatch[1].split(',').map((r) => r.trim().replace(/^@[\w-]+\//, ''));
+                    if (disabledRules.includes(ruleId)) continue;
+                  }
+
+                  matched.push(i + 1);
                 } catch {
                   // Skip to next line if single-line detection fails
                 }
@@ -165,7 +195,7 @@ jobs:
               for (const rule of rules) {
                 if (!rule.applies.test(filename)) continue;
                 if (rule.test(text)) {
-                  const lines = detectViolationLines(text, rule.test);
+                  const lines = detectViolationLines(text, rule.test, rule.id);
                   if (lines.length > 0) {
                     for (const line of lines) {
                       violations.push(`${filename}:${line} | ${rule.id} | ${rule.desc}`);
