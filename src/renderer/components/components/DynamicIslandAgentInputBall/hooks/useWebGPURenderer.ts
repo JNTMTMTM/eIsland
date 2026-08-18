@@ -124,7 +124,11 @@ export function useWebGPURenderer(
       if (stoppedRef.current) return;
       stoppedRef.current = true;
       cancelAnimationFrame(rafRef.current);
-      ctxRef.current?.device.destroy();
+      // GPUDevice.destroy() is in the WebGPU spec but typed as `any` here;
+      // guard defensively for environments where the method is absent.
+      if (typeof ctxRef.current?.device?.destroy === 'function') {
+        ctxRef.current.device.destroy();
+      }
       ctxRef.current = null;
       console.error('[LiquidOrb]', error);
       onErrorRef.current?.(error);
