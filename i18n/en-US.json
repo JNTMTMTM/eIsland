@@ -2076,7 +2076,8 @@
     "aiPages": {
       "general": "General",
       "r1pxc": "r1pxc Agent",
-      "ollama": "Ollama Local"
+      "ollama": "Ollama Local",
+      "orb-style": "Orb Style"
     },
     "musicPages": {
       "whitelist": "Whitelist",

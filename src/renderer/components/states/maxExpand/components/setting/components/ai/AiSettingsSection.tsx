@@ -499,6 +499,13 @@ export function AiSettingsSection({
     </div>
   );
 
+  /** 渲染 Orb 样式页面 */
+  const renderOrbStylePage = (): ReactElement => (
+    <div className="settings-cards">
+      {/* 空页面 - 待实现 */}
+    </div>
+  );
+
   const renderCurrentPage = (): ReactElement | null => {
     switch (aiSettingsPage) {
       case 'general':
@@ -507,6 +514,8 @@ export function AiSettingsSection({
         return renderR1pxcPage();
       case 'ollama':
         return renderOllamaPage();
+      case 'orb-style':
+        return renderOrbStylePage();
       default:
         return null;
     }

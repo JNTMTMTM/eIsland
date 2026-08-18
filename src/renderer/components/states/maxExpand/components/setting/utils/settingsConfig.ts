@@ -56,7 +56,7 @@ export type SettingsSidebarTabKey = (typeof SETTINGS_TABS)[number];
 export type AppSettingsPageKey = 'layout-preview' | 'expand-layout' | 'maxexpand-layout' | 'album' | 'hide-process-list' | 'position' | 'theme' | 'language' | 'behavior' | 'animation' | 'url-parser' | 'clipboard-history' | 'alarm' | 'break-reminder' | 'autostart' | 'sound' | 'notification' | 'performance' | 'performance-monitor' | 'screenshot-settings';
 export type WeatherSettingsPageKey = 'location' | 'provider';
 export type MailSettingsPageKey = 'account' | 'imap' | 'preferences';
-export type AiSettingsPageKey = 'general' | 'r1pxc' | 'ollama';
+export type AiSettingsPageKey = 'general' | 'r1pxc' | 'ollama' | 'orb-style';
 export type MusicSettingsPageKey = 'whitelist' | 'lyrics' | 'smtc' | 'providers';
 export type MusicNavCardKey = 'music-whitelist' | 'music-lyrics' | 'music-smtc' | 'music-providers';
 export type NetworkSettingsPageKey = 'timeout' | 'data-center';
@@ -98,6 +98,7 @@ export const SETTINGS_TAB_LABELS: Record<SettingsTabLabelKey, string> = {
   general: '通用配置',
   r1pxc: 'r1pxc Agent',
   ollama: 'Ollama 本地',
+  'orb-style': 'Orb 样式',
   shortcut: '快捷键',
   user: '用户中心',
   update: '更新设置',
@@ -141,6 +142,7 @@ export const SETTINGS_TAB_DESCRIPTIONS: Record<Exclude<SettingsTabLabelKey, 'ind
   general: '模型凭据与工作区配置。',
   r1pxc: 'r1pxc Agent 头像与个性化配置。',
   ollama: '本地 Ollama 模型与连接配置。',
+  'orb-style': 'Agent 液态 Orb 样式配置。',
   shortcut: '隐藏、关闭、截图快捷键',
   user: '登录、资料、注销等账号操作',
   update: '检查与下载软件更新',
@@ -355,11 +357,12 @@ export const MAIL_SETTINGS_PAGE_LABELS: Record<MailSettingsPageKey, string> = {
   imap: 'IMAP',
   preferences: '收信设置',
 };
-export const AI_SETTINGS_PAGES: AiSettingsPageKey[] = ['general', 'r1pxc', 'ollama'];
+export const AI_SETTINGS_PAGES: AiSettingsPageKey[] = ['general', 'r1pxc', 'ollama', 'orb-style'];
 export const AI_SETTINGS_PAGE_LABELS: Record<AiSettingsPageKey, string> = {
   general: '通用配置',
   r1pxc: 'r1pxc Agent',
   ollama: 'Ollama 本地',
+  'orb-style': 'Orb 样式',
 };
 export const NETWORK_SETTINGS_PAGES: NetworkSettingsPageKey[] = ['timeout', 'data-center'];
 export const NETWORK_SETTINGS_PAGE_LABELS: Record<NetworkSettingsPageKey, string> = {

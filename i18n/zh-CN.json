@@ -2076,7 +2076,8 @@
     "aiPages": {
       "general": "通用配置",
       "r1pxc": "r1pxc Agent",
-      "ollama": "Ollama 本地"
+      "ollama": "Ollama 本地",
+      "orb-style": "Orb 样式"
     },
     "musicPages": {
       "whitelist": "白名单",
