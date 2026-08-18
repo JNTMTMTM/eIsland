@@ -3198,6 +3198,9 @@
       "r1pxcAvatarClear": "清除头像",
       "r1pxcAvatarFileTypeError": "请选择图片文件（png/jpg/webp 等）",
       "r1pxcAvatarReadError": "头像读取失败，请换一张图片重试",
+      "sttOrbTitle": "STT 界面 Orb",
+      "sttOrbHint": "控制语音输入界面是否显示液态 Orb 动画，关闭后将使用简约指示点代替",
+      "sttOrbToggle": "在 STT 界面启用 Agent Orb",
       "pagination": "AI 设置分页"
     },
     "about": {

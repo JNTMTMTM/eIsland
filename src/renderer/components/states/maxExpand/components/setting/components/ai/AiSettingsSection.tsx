@@ -44,6 +44,7 @@ interface AiSettingsSectionProps {
     r1pxcAvatar: string;
     ollamaModel: string;
     ollamaBaseUrl: string;
+    sttOrbEnabled: boolean;
   };
   setAiConfig: (config: Partial<AiSettingsSectionProps['aiConfig']>) => void;
   onAddWorkspace: () => void;
@@ -502,7 +503,23 @@ export function AiSettingsSection({
   /** 渲染 Orb 样式页面 */
   const renderOrbStylePage = (): ReactElement => (
     <div className="settings-cards">
-      {/* 空页面 - 待实现 */}
+      {/* 卡片: STT 界面 Orb 开关 */}
+      <div className="settings-card">
+        <div className="settings-card-header">
+          <div className="settings-card-title">{t('settings.ai.sttOrbTitle', { defaultValue: 'STT 界面 Orb' })}</div>
+          <div className="settings-card-subtitle">{t('settings.ai.sttOrbHint', { defaultValue: '控制语音输入界面是否显示液态 Orb 动画，关闭后将使用简约指示点代替' })}</div>
+        </div>
+        <div className="settings-card-inline-row">
+          <label className="settings-card-check">
+            <input
+              type="checkbox"
+              checked={aiConfig.sttOrbEnabled}
+              onChange={(e) => setAiConfig({ sttOrbEnabled: e.target.checked })}
+            />
+            {t('settings.ai.sttOrbToggle', { defaultValue: '在 STT 界面启用 Agent Orb' })}
+          </label>
+        </div>
+      </div>
     </div>
   );
 

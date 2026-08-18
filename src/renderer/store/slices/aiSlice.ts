@@ -49,6 +49,7 @@ function loadAiConfig(): AiConfig {
     ollamaBaseUrl: '',
     customApiModel: '',
     customApiMode: 'relay',
+    sttOrbEnabled: true,
   };
   try {
     const raw = localStorage.getItem(AI_CONFIG_KEY);
@@ -71,6 +72,7 @@ function loadAiConfig(): AiConfig {
       merged.ollamaBaseUrl = typeof merged.ollamaBaseUrl === 'string' ? merged.ollamaBaseUrl.trim() : '';
       merged.customApiModel = typeof merged.customApiModel === 'string' ? merged.customApiModel.trim() : '';
       merged.customApiMode = merged.customApiMode === 'direct' ? 'direct' : 'relay';
+      merged.sttOrbEnabled = merged.sttOrbEnabled !== false;
       return merged;
     }
   } catch { /* ignore */ }

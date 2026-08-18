@@ -223,6 +223,7 @@ export interface AiConfig {
   ollamaBaseUrl: string;
   customApiModel: string;
   customApiMode: 'relay' | 'direct';
+  sttOrbEnabled: boolean;
 }
 
 /** AI 工具调用轨迹 */

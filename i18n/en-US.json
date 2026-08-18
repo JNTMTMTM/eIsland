@@ -3198,6 +3198,9 @@
       "r1pxcAvatarClear": "Clear Avatar",
       "r1pxcAvatarFileTypeError": "Please choose an image file (png/jpg/webp etc.)",
       "r1pxcAvatarReadError": "Failed to read avatar. Please try another image",
+      "sttOrbTitle": "STT Interface Orb",
+      "sttOrbHint": "Toggle the liquid Orb animation in the voice input interface. When off, minimal indicator dots are shown instead",
+      "sttOrbToggle": "Enable Agent Orb in STT interface",
       "pagination": "AI settings pagination"
     },
     "about": {
