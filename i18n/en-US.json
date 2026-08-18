@@ -1993,6 +1993,7 @@
       "ai": "AI Agent",
       "general": "General",
       "r1pxc": "r1pxc Agent",
+      "ollama": "Ollama Local",
       "shortcut": "Shortcuts",
       "user": "Account",
       "update": "Updates",
@@ -2071,7 +2072,8 @@
     },
     "aiPages": {
       "general": "General",
-      "r1pxc": "r1pxc Agent"
+      "r1pxc": "r1pxc Agent",
+      "ollama": "Ollama Local"
     },
     "musicPages": {
       "whitelist": "Whitelist",

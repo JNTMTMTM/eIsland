@@ -1993,6 +1993,7 @@
       "ai": "AI Agent",
       "general": "通用配置",
       "r1pxc": "r1pxc Agent",
+      "ollama": "Ollama 本地",
       "shortcut": "快捷键",
       "user": "用户中心",
       "update": "更新设置",
@@ -2071,7 +2072,8 @@
     },
     "aiPages": {
       "general": "通用配置",
-      "r1pxc": "r1pxc Agent"
+      "r1pxc": "r1pxc Agent",
+      "ollama": "Ollama 本地"
     },
     "musicPages": {
       "whitelist": "白名单",
