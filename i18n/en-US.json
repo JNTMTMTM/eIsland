@@ -1363,6 +1363,9 @@
       "denyAuth": "Deny",
       "allowAuth": "Allow",
       "close": "Close"
+    },
+    "liquidOrb": {
+      "ariaLabel": "Dynamic liquid glass orb"
     }
   },
   "cli": {

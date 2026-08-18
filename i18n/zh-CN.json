@@ -1363,6 +1363,9 @@
       "denyAuth": "不授权",
       "allowAuth": "授权",
       "close": "关闭"
+    },
+    "liquidOrb": {
+      "ariaLabel": "动态液态玻璃球"
     }
   },
   "cli": {

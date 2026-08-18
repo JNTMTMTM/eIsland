@@ -26,6 +26,7 @@
 
 import { useMemo, useRef } from 'react';
 import type { ReactElement } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useWebGPURenderer } from '../hooks/useWebGPURenderer';
 import { LIQUID_ORB_UNIFORM_SEED } from '../config/uniformDefaults';
 import type { LiquidOrbCanvasProps } from '../types';
@@ -42,6 +43,7 @@ export function LiquidOrbCanvas({
   uniformOverrides,
   onError,
 }: LiquidOrbCanvasProps): ReactElement {
+  const { t } = useTranslation();
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const uniformData = useMemo(
@@ -54,7 +56,7 @@ export function LiquidOrbCanvas({
   return (
     <canvas
       ref={canvasRef}
-      aria-label="动态液态玻璃球"
+      aria-label={t('agent.liquidOrb.ariaLabel', { defaultValue: '动态液态玻璃球' })}
       style={{ width: '100%', height: '100%', display: 'block' }}
     />
   );
