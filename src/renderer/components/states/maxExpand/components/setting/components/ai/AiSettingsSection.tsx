@@ -318,7 +318,7 @@ export function AiSettingsSection({
                     title={t('settings.ai.workspaceRemove', { defaultValue: '移除' })}
                     aria-label={t('settings.ai.workspaceRemove', { defaultValue: '移除' })}
                   >
-                    ×
+                    <img src={SvgIcon.CANCEL} alt="" draggable={false} />
                   </button>
                 </li>
               ))}
@@ -552,7 +552,7 @@ export function AiSettingsSection({
                   onClick={() => setAiConfig({ orbColorA: '' })}
                   title={t('settings.ai.orbColorReset', { defaultValue: '重置为默认' })}
                 >
-                  ×
+                  <img src={SvgIcon.CANCEL} alt="" draggable={false} />
                 </button>
               )}
             </div>
@@ -579,7 +579,7 @@ export function AiSettingsSection({
                   onClick={() => setAiConfig({ orbColorB: '' })}
                   title={t('settings.ai.orbColorReset', { defaultValue: '重置为默认' })}
                 >
-                  ×
+                  <img src={SvgIcon.CANCEL} alt="" draggable={false} />
                 </button>
               )}
             </div>

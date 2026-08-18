@@ -944,9 +944,20 @@
   transition: background 0.15s, color 0.15s;
 }
 
+.settings-ai-workspace-remove-btn img {
+  width: 12px;
+  height: 12px;
+  opacity: 0.35;
+  transition: opacity 0.15s;
+}
+
 .settings-ai-workspace-remove-btn:hover {
   background: rgba(220, 80, 80, 0.15);
   color: rgba(220, 80, 80, 0.9);
+}
+
+.settings-ai-workspace-remove-btn:hover img {
+  opacity: 0.7;
 }
 
 .settings-ai-workspace-empty {
