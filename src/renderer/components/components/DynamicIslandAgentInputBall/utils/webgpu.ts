@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-explicit-any, no-any */
 import type { WebGPUContext } from '../types';
 
 /** GPUBufferUsage 标志位常量，兼容缺少 WebGPU 类型定义的环境。 */

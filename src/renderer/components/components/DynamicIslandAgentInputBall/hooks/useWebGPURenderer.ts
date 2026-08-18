@@ -80,11 +80,11 @@ export function useWebGPURenderer(
           uniformData,
         );
 
-        ctxRef.current.device.lost.then((info: any) => {
+        ctxRef.current.device.lost.then((info: { message?: string; reason?: string }) => {
           stop(new Error(`WebGPU 设备已断开：${info.message || info.reason}`));
         });
 
-        ctxRef.current.device.addEventListener('uncapturederror', (event: any) => {
+        ctxRef.current.device.addEventListener('uncapturederror', (event: { error: { message: string }; preventDefault(): void }) => {
           event.preventDefault();
           stop(new Error(`WebGPU 渲染错误：${event.error.message}`));
         });

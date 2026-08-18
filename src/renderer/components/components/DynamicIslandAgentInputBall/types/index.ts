@@ -36,7 +36,7 @@ export interface LiquidOrbCanvasProps {
   onError?: (error: Error) => void;
 }
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-explicit-any, no-any */
 
 /** WebGPU 渲染上下文，包含管线、缓冲区和绑定组。 */
 export interface WebGPUContext {
