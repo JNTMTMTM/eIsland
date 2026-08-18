@@ -50,10 +50,18 @@ export function useWebGPURenderer(
   const ctxRef = useRef<WebGPUContext | null>(null);
   const rafRef = useRef(0);
   const stoppedRef = useRef(false);
+  const uniformDataRef = useRef<Float32Array>(uniformData);
   const onReadyRef = useRef(onReady);
   const onErrorRef = useRef(onError);
+  uniformDataRef.current = uniformData;
   onReadyRef.current = onReady;
   onErrorRef.current = onError;
+
+  useEffect(() => {
+    if (ctxRef.current) {
+      ctxRef.current.values.set(uniformData);
+    }
+  }, [uniformData]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -77,7 +85,7 @@ export function useWebGPURenderer(
         ctxRef.current = await initWebGPU(
           canvas!,
           LIQUID_ORB_SHADER_SOURCE,
-          uniformData,
+          uniformDataRef.current,
         );
 
         ctxRef.current.device.lost.then((info: { message?: string; reason?: string }) => {
@@ -140,5 +148,5 @@ export function useWebGPURenderer(
       stoppedRef.current = true;
       cancelAnimationFrame(rafRef.current);
     };
-  }, [canvasRef, playing, uniformData]);
+  }, [canvasRef, playing]);
 }
