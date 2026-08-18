@@ -2583,6 +2583,20 @@
   box-shadow: 0 0 0 1px rgba(var(--color-text-rgb), 0.4);
 }
 
+.settings-language-flag-icon {
+  width: 18px;
+  height: 13px;
+  object-fit: cover;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.settings-language-flag-icon.no-filter,
+[data-theme='light'] .settings-language-flag-icon.no-filter {
+  filter: none;
+  opacity: 1;
+}
+
 .settings-font-delete {
   margin-left: 4px;
   padding: 0;
