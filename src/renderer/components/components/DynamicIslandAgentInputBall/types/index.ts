@@ -30,6 +30,8 @@ export interface LiquidOrbCanvasProps {
   playing?: boolean;
   /** 自定义 uniform 种子数据，覆盖默认值。 */
   uniformOverrides?: Float32Array;
+  /** 首帧成功提交后的回调。 */
+  onReady?: () => void;
   /** 渲染出错时的回调。 */
   onError?: (error: Error) => void;
 }

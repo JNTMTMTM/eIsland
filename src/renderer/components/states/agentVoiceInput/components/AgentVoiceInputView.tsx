@@ -41,21 +41,28 @@ interface AgentVoiceInputViewProps {
  */
 export function AgentVoiceInputView(props: AgentVoiceInputViewProps): ReactElement {
   const { statusText, transcript, textRef } = props;
+  const [orbReady, setOrbReady] = useState(false);
   const [orbFailed, setOrbFailed] = useState(false);
 
   return (
     <div className="agent-voice-input-content">
       <div className="agent-voice-input-status">
         <div className="agent-voice-input-indicator">
-          {orbFailed ? (
+          {!orbReady || orbFailed ? (
             <>
               <span className="agent-voice-input-dot" />
               <span className="agent-voice-input-dot" />
               <span className="agent-voice-input-dot" />
             </>
-          ) : (
-            <LiquidOrbCanvas onError={() => setOrbFailed(true)} />
-          )}
+          ) : null}
+          {!orbFailed ? (
+            <div className={`agent-voice-input-orb${orbReady ? ' is-ready' : ''}`}>
+              <LiquidOrbCanvas
+                onReady={() => setOrbReady(true)}
+                onError={() => setOrbFailed(true)}
+              />
+            </div>
+          ) : null}
         </div>
         <span className="agent-voice-input-label">{statusText}</span>
       </div>

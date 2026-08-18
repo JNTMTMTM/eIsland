@@ -44,12 +44,24 @@
 }
 
 .agent-voice-input-indicator {
+  position: relative;
   flex-shrink: 0;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 4px;
   width: 42px;
   height: 42px;
+}
+
+.agent-voice-input-orb {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+}
+
+.agent-voice-input-orb.is-ready {
+  opacity: 1;
 }
 
 .agent-voice-input-dot {

@@ -35,12 +35,14 @@ import type { LiquidOrbCanvasProps } from '../types';
  * 渲染液态玻璃球 WebGPU 画布。
  * @param playing - 是否播放渲染循环，默认 true。
  * @param uniformOverrides - 自定义 uniform 种子数据，覆盖默认值。
+ * @param onReady - 首帧成功提交后的回调。
  * @param onError - 渲染出错时的回调。
  * @returns 液态玻璃球画布节点。
  */
 export function LiquidOrbCanvas({
   playing = true,
   uniformOverrides,
+  onReady,
   onError,
 }: LiquidOrbCanvasProps): ReactElement {
   const { t } = useTranslation();
@@ -51,7 +53,7 @@ export function LiquidOrbCanvas({
     [uniformOverrides],
   );
 
-  useWebGPURenderer(canvasRef, playing, uniformData, onError);
+  useWebGPURenderer(canvasRef, playing, uniformData, onReady, onError);
 
   return (
     <canvas

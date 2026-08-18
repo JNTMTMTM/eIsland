@@ -36,6 +36,7 @@ import { initWebGPU, renderFrame } from '../utils/webgpu';
  * @param canvasRef - 需要承载液态玻璃球的画布引用。
  * @param playing - 是否播放渲染循环。
  * @param uniformData - uniform 种子数据。
+ * @param onReady - 首帧成功提交后的回调。
  * @param onError - 渲染出错时的回调。
  * @returns 无返回值。
  */
@@ -43,12 +44,15 @@ export function useWebGPURenderer(
   canvasRef: RefObject<HTMLCanvasElement | null>,
   playing: boolean,
   uniformData: Float32Array,
+  onReady?: () => void,
   onError?: (error: Error) => void,
 ): void {
   const ctxRef = useRef<WebGPUContext | null>(null);
   const rafRef = useRef(0);
   const stoppedRef = useRef(false);
+  const onReadyRef = useRef(onReady);
   const onErrorRef = useRef(onError);
+  onReadyRef.current = onReady;
   onErrorRef.current = onError;
 
   useEffect(() => {
@@ -56,6 +60,7 @@ export function useWebGPURenderer(
     if (!canvas || !playing) return;
 
     stoppedRef.current = false;
+    let firstFrameReady = false;
 
     /**
      * 启动 WebGPU 渲染循环。
@@ -101,6 +106,10 @@ export function useWebGPURenderer(
       if (stoppedRef.current || !ctxRef.current) return;
       try {
         renderFrame(ctxRef.current, canvas!, now);
+        if (!firstFrameReady) {
+          firstFrameReady = true;
+          onReadyRef.current?.();
+        }
         rafRef.current = requestAnimationFrame(frame);
       } catch (err) {
         stop(err instanceof Error ? err : new Error(String(err)));
