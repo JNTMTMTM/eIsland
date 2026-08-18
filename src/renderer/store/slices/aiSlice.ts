@@ -50,6 +50,8 @@ function loadAiConfig(): AiConfig {
     customApiModel: '',
     customApiMode: 'relay',
     sttOrbEnabled: true,
+    orbColorA: '',
+    orbColorB: '',
   };
   try {
     const raw = localStorage.getItem(AI_CONFIG_KEY);
@@ -73,6 +75,8 @@ function loadAiConfig(): AiConfig {
       merged.customApiModel = typeof merged.customApiModel === 'string' ? merged.customApiModel.trim() : '';
       merged.customApiMode = merged.customApiMode === 'direct' ? 'direct' : 'relay';
       merged.sttOrbEnabled = merged.sttOrbEnabled !== false;
+      merged.orbColorA = typeof merged.orbColorA === 'string' && /^#[0-9a-fA-F]{6}$/.test(merged.orbColorA) ? merged.orbColorA : '';
+      merged.orbColorB = typeof merged.orbColorB === 'string' && /^#[0-9a-fA-F]{6}$/.test(merged.orbColorB) ? merged.orbColorB : '';
       return merged;
     }
   } catch { /* ignore */ }

@@ -224,6 +224,8 @@ export interface AiConfig {
   customApiModel: string;
   customApiMode: 'relay' | 'direct';
   sttOrbEnabled: boolean;
+  orbColorA: string;
+  orbColorB: string;
 }
 
 /** AI 工具调用轨迹 */

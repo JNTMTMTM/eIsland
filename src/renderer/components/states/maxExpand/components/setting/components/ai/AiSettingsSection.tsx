@@ -45,6 +45,8 @@ interface AiSettingsSectionProps {
     ollamaModel: string;
     ollamaBaseUrl: string;
     sttOrbEnabled: boolean;
+    orbColorA: string;
+    orbColorB: string;
   };
   setAiConfig: (config: Partial<AiSettingsSectionProps['aiConfig']>) => void;
   onAddWorkspace: () => void;
@@ -518,6 +520,70 @@ export function AiSettingsSection({
             />
             {t('settings.ai.sttOrbToggle', { defaultValue: '在 STT 界面启用 Agent Orb' })}
           </label>
+        </div>
+      </div>
+
+      {/* 卡片: Orb 颜色自定义 */}
+      <div className="settings-card">
+        <div className="settings-card-header">
+          <div className="settings-card-title">{t('settings.ai.orbColorTitle', { defaultValue: 'Orb 颜色自定义' })}</div>
+          <div className="settings-card-subtitle">{t('settings.ai.orbColorHint', { defaultValue: '自定义液态 Orb 的主色调，留空则使用默认颜色' })}</div>
+        </div>
+        <div className="settings-field-group">
+          <div className="settings-field">
+            <label className="settings-field-label">{t('settings.ai.orbColorA', { defaultValue: '主色 A' })}</label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <input
+                type="color"
+                value={aiConfig.orbColorA || '#d86bff'}
+                onChange={(e) => setAiConfig({ orbColorA: e.target.value })}
+              />
+              <input
+                className="settings-field-input"
+                type="text"
+                value={aiConfig.orbColorA}
+                placeholder={t('settings.ai.orbColorPlaceholder', { defaultValue: '留空使用默认，如 #d86bff' })}
+                onChange={(e) => setAiConfig({ orbColorA: e.target.value })}
+              />
+              {aiConfig.orbColorA && (
+                <button
+                  className="settings-ai-workspace-remove-btn"
+                  type="button"
+                  onClick={() => setAiConfig({ orbColorA: '' })}
+                  title={t('settings.ai.orbColorReset', { defaultValue: '重置为默认' })}
+                >
+                  ×
+                </button>
+              )}
+            </div>
+          </div>
+          <div className="settings-field">
+            <label className="settings-field-label">{t('settings.ai.orbColorB', { defaultValue: '主色 B' })}</label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <input
+                type="color"
+                value={aiConfig.orbColorB || '#f4ff69'}
+                onChange={(e) => setAiConfig({ orbColorB: e.target.value })}
+              />
+              <input
+                className="settings-field-input"
+                type="text"
+                value={aiConfig.orbColorB}
+                placeholder={t('settings.ai.orbColorPlaceholder', { defaultValue: '留空使用默认，如 #f4ff69' })}
+                onChange={(e) => setAiConfig({ orbColorB: e.target.value })}
+              />
+              {aiConfig.orbColorB && (
+                <button
+                  className="settings-ai-workspace-remove-btn"
+                  type="button"
+                  onClick={() => setAiConfig({ orbColorB: '' })}
+                  title={t('settings.ai.orbColorReset', { defaultValue: '重置为默认' })}
+                >
+                  ×
+                </button>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>

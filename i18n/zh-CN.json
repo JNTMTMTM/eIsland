@@ -3201,6 +3201,12 @@
       "sttOrbTitle": "STT 界面 Orb",
       "sttOrbHint": "控制语音输入界面是否显示液态 Orb 动画，关闭后将使用简约指示点代替",
       "sttOrbToggle": "在 STT 界面启用 Agent Orb",
+      "orbColorTitle": "Orb 颜色自定义",
+      "orbColorHint": "自定义液态 Orb 的主色调，留空则使用默认颜色",
+      "orbColorA": "主色 A",
+      "orbColorB": "主色 B",
+      "orbColorPlaceholder": "留空使用默认，如 #d86bff",
+      "orbColorReset": "重置为默认",
       "pagination": "AI 设置分页"
     },
     "about": {
