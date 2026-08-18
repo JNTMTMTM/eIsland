@@ -24,13 +24,16 @@
  * @author 鸡哥
  */
 
-import { useRef, useState, type ReactElement } from 'react';
+import { useMemo, useRef, useState, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AiSettingsPageDots } from './AiSettingsPageDots';
 import { SettingsPageNavigationToggle } from '../SettingsPageNavigation';
 import type { AiSettingsPageKey } from '../../utils/settingsConfig';
 import { SvgIcon } from '../../../../../../../utils/SvgIcon';
 import { getOllamaModels, detectOllamaBaseUrl } from '../../../../../../../api/ai/ollamaLocalAgent';
+import { LiquidOrbCanvas } from '../../../../../../components/DynamicIslandAgentInputBall';
+import { LIQUID_ORB_UNIFORM_SEED } from '../../../../../../components/DynamicIslandAgentInputBall/config/uniformDefaults';
+import { hexToRgbFloat } from '../../../../../../components/DynamicIslandAgentInputBall/utils/color';
 
 interface AiSettingsSectionProps {
   currentAiSettingsPageLabel: string;
@@ -87,6 +90,20 @@ export function AiSettingsSection({
   const SettingsField = SettingsFieldComponent;
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [avatarUploadError, setAvatarUploadError] = useState<string>('');
+
+  const orbUniformOverrides = useMemo(() => {
+    if (!aiConfig.orbColorA && !aiConfig.orbColorB) return undefined;
+    const data = new Float32Array(LIQUID_ORB_UNIFORM_SEED);
+    if (aiConfig.orbColorA) {
+      const [r, g, b] = hexToRgbFloat(aiConfig.orbColorA);
+      data[32] = r; data[33] = g; data[34] = b; data[35] = 1.0;
+    }
+    if (aiConfig.orbColorB) {
+      const [r, g, b] = hexToRgbFloat(aiConfig.orbColorB);
+      data[36] = r; data[37] = g; data[38] = b; data[39] = 1.0;
+    }
+    return data;
+  }, [aiConfig.orbColorA, aiConfig.orbColorB]);
 
   // ── Ollama 设置页状态 ──
   const [ollamaModelsList, setOllamaModelsList] = useState<string[]>([]);
@@ -523,66 +540,72 @@ export function AiSettingsSection({
         </div>
       </div>
 
-      {/* 卡片: Orb 颜色自定义 */}
-      <div className="settings-card">
-        <div className="settings-card-header">
-          <div className="settings-card-title">{t('settings.ai.orbColorTitle', { defaultValue: 'Orb 颜色自定义' })}</div>
-          <div className="settings-card-subtitle">{t('settings.ai.orbColorHint', { defaultValue: '自定义液态 Orb 的主色调，留空则使用默认颜色' })}</div>
-        </div>
-        <div className="settings-field-group">
-          <div className="settings-field">
-            <label className="settings-field-label">{t('settings.ai.orbColorA', { defaultValue: '主色 A' })}</label>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <input
-                type="color"
-                value={aiConfig.orbColorA || '#d86bff'}
-                onChange={(e) => setAiConfig({ orbColorA: e.target.value })}
-              />
-              <input
-                className="settings-field-input"
-                type="text"
-                value={aiConfig.orbColorA}
-                placeholder={t('settings.ai.orbColorPlaceholder', { defaultValue: '留空使用默认，如 #d86bff' })}
-                onChange={(e) => setAiConfig({ orbColorA: e.target.value })}
-              />
-              {aiConfig.orbColorA && (
-                <button
-                  className="settings-ai-workspace-remove-btn"
-                  type="button"
-                  onClick={() => setAiConfig({ orbColorA: '' })}
-                  title={t('settings.ai.orbColorReset', { defaultValue: '重置为默认' })}
-                >
-                  <img src={SvgIcon.CANCEL} alt="" draggable={false} />
-                </button>
-              )}
+      <div className="settings-orb-preview-row">
+        <div className="settings-card settings-orb-preview-card">
+          <div className="settings-card-header">
+            <div className="settings-card-title">{t('settings.ai.orbColorTitle', { defaultValue: 'Orb 颜色自定义' })}</div>
+            <div className="settings-card-subtitle">{t('settings.ai.orbColorHint', { defaultValue: '自定义液态 Orb 的主色调，留空则使用默认颜色' })}</div>
+          </div>
+          <div className="settings-field-group">
+            <div className="settings-field">
+              <label className="settings-field-label">{t('settings.ai.orbColorA', { defaultValue: '主色 A' })}</label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <input
+                  type="color"
+                  value={aiConfig.orbColorA || '#d86bff'}
+                  onChange={(e) => setAiConfig({ orbColorA: e.target.value })}
+                />
+                <input
+                  className="settings-field-input"
+                  type="text"
+                  value={aiConfig.orbColorA}
+                  placeholder={t('settings.ai.orbColorPlaceholder', { defaultValue: '留空使用默认，如 #d86bff' })}
+                  onChange={(e) => setAiConfig({ orbColorA: e.target.value })}
+                />
+                {aiConfig.orbColorA && (
+                  <button
+                    className="settings-ai-workspace-remove-btn"
+                    type="button"
+                    onClick={() => setAiConfig({ orbColorA: '' })}
+                    title={t('settings.ai.orbColorReset', { defaultValue: '重置为默认' })}
+                  >
+                    <img src={SvgIcon.CANCEL} alt="" draggable={false} />
+                  </button>
+                )}
+              </div>
+            </div>
+            <div className="settings-field">
+              <label className="settings-field-label">{t('settings.ai.orbColorB', { defaultValue: '主色 B' })}</label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <input
+                  type="color"
+                  value={aiConfig.orbColorB || '#f4ff69'}
+                  onChange={(e) => setAiConfig({ orbColorB: e.target.value })}
+                />
+                <input
+                  className="settings-field-input"
+                  type="text"
+                  value={aiConfig.orbColorB}
+                  placeholder={t('settings.ai.orbColorPlaceholder', { defaultValue: '留空使用默认，如 #f4ff69' })}
+                  onChange={(e) => setAiConfig({ orbColorB: e.target.value })}
+                />
+                {aiConfig.orbColorB && (
+                  <button
+                    className="settings-ai-workspace-remove-btn"
+                    type="button"
+                    onClick={() => setAiConfig({ orbColorB: '' })}
+                    title={t('settings.ai.orbColorReset', { defaultValue: '重置为默认' })}
+                  >
+                    <img src={SvgIcon.CANCEL} alt="" draggable={false} />
+                  </button>
+                )}
+              </div>
             </div>
           </div>
-          <div className="settings-field">
-            <label className="settings-field-label">{t('settings.ai.orbColorB', { defaultValue: '主色 B' })}</label>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <input
-                type="color"
-                value={aiConfig.orbColorB || '#f4ff69'}
-                onChange={(e) => setAiConfig({ orbColorB: e.target.value })}
-              />
-              <input
-                className="settings-field-input"
-                type="text"
-                value={aiConfig.orbColorB}
-                placeholder={t('settings.ai.orbColorPlaceholder', { defaultValue: '留空使用默认，如 #f4ff69' })}
-                onChange={(e) => setAiConfig({ orbColorB: e.target.value })}
-              />
-              {aiConfig.orbColorB && (
-                <button
-                  className="settings-ai-workspace-remove-btn"
-                  type="button"
-                  onClick={() => setAiConfig({ orbColorB: '' })}
-                  title={t('settings.ai.orbColorReset', { defaultValue: '重置为默认' })}
-                >
-                  <img src={SvgIcon.CANCEL} alt="" draggable={false} />
-                </button>
-              )}
-            </div>
+        </div>
+        <div className="settings-orb-preview-container">
+          <div className="settings-orb-preview-stage">
+            <LiquidOrbCanvas uniformOverrides={orbUniformOverrides} />
           </div>
         </div>
       </div>

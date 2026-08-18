@@ -3093,6 +3093,48 @@
   margin-left: auto;
 }
 
+/* ── Orb 颜色预览 ── */
+
+.settings-orb-preview-row {
+  display: flex;
+  gap: 12px;
+  align-items: stretch;
+}
+
+.settings-orb-preview-card {
+  flex: 1;
+  min-width: 0;
+}
+
+.settings-orb-preview-container {
+  flex: 0 0 280px;
+  display: flex;
+  flex-direction: column;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(var(--color-text-rgb), 0.08);
+  background: rgba(var(--color-text-rgb), 0.03);
+}
+
+.settings-orb-preview-stage {
+  position: relative;
+  min-height: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #050509;
+}
+
+@media (max-width: 760px) {
+  .settings-orb-preview-row {
+    flex-direction: column;
+  }
+
+  .settings-orb-preview-container {
+    flex-basis: auto;
+  }
+}
+
 /* ── 启动动画预览 ── */
 
 .settings-splash-preview-row {
