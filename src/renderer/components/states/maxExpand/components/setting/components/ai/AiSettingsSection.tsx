@@ -90,6 +90,7 @@ export function AiSettingsSection({
   const SettingsField = SettingsFieldComponent;
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [avatarUploadError, setAvatarUploadError] = useState<string>('');
+  const [orbPreviewReady, setOrbPreviewReady] = useState(false);
 
   const orbUniformOverrides = useMemo(() => {
     if (!aiConfig.orbColorA && !aiConfig.orbColorB) return undefined;
@@ -605,7 +606,20 @@ export function AiSettingsSection({
         </div>
         <div className="settings-orb-preview-container">
           <div className="settings-orb-preview-stage">
-            <LiquidOrbCanvas uniformOverrides={orbUniformOverrides} />
+            <LiquidOrbCanvas
+              uniformOverrides={orbUniformOverrides}
+              onReady={() => setOrbPreviewReady(true)}
+              onError={() => setOrbPreviewReady(true)}
+            />
+            {!orbPreviewReady && (
+              <div
+                className="settings-orb-preview-loading"
+                role="status"
+                aria-label={t('agent.liquidOrb.ariaLabel', { defaultValue: '动态液态玻璃球' })}
+              >
+                <span className="settings-orb-preview-spinner" />
+              </div>
+            )}
           </div>
         </div>
       </div>
