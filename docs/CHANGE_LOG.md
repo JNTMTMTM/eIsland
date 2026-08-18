@@ -1,7 +1,128 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-08-17T18:35:45.215Z
+> 生成时间：2026-08-18T09:07:51.820Z
+
+## 26.7.3
+
+- 2026-08-18 | d01234fe | 鸡哥 | chore: update version to 26.7.3 in package.json and package-lock.json
+- 2026-08-18 | 337eff03 | 鸡哥 | docs(announcement): add V26.7.3 release notes
+- 2026-08-17 | 63285f98 | eislandBot | docs: auto update CHANGE_LOG.md for #201 by @JNTMTMTM [skip ci]
+- 2026-08-18 | 5c3ff6aa | 鸡哥 | Merge pull request #201 from JNTMTMTM/dev
+- 2026-08-17 | c8edd154 | 鸡哥 | chore(tests): add file description and author information to expressionUtils test
+- 2026-08-17 | ee571d0f | 鸡哥 | feat(expressionUtils): add expression normalization utilities and tests for improved expression handling
+- 2026-08-17 | 6b4b4d8b | 鸡哥 | feat(CoordinateGraph): add sticky axes with defined domains for better visualization
+- 2026-08-17 | 04a2da4b | 鸡哥 | feat(CoordinateGraph): add support for exponential notation in expressions
+- 2026-08-17 | 1aa565ba | 鸡哥 | feat(CoordinateGraph): add graphType property to data for polyline rendering
+- 2026-08-17 | 1e94f1ec | 鸡哥 | test(calculator-icon): update expected key count to reflect changes in CalculatorIcon
+- 2026-08-17 | efdcf840 | 鸡哥 | feat(calculator): add normalization for root and cube root expressions
+- 2026-08-17 | b9a863b7 | 鸡哥 | feat(calculator): add animation for scientific keys expansion in CSS
+- 2026-08-17 | 424145de | 鸡哥 | feat(calculator): remove unit conversion mode and associated assets
+- 2026-08-16 | 31a2162d | 鸡哥 | feat(calculator): refactor logarithm normalization to use a generic binary function handler
+- 2026-08-16 | 751966a0 | 鸡哥 | feat(calculator): add showValue prop to CalcDisplay for conditional rendering
+- 2026-08-16 | d0b9ae5e | 鸡哥 | feat(calculator): move CalcDisplay component to the coordinate workspace in CalculatorTab
+- 2026-08-16 | 5925c429 | 鸡哥 | feat(calculator): update normalizeLogarithmExpression to replace arcsin, arccos, and arctan with their shorthand forms
+- 2026-08-16 | c1c0c554 | 鸡哥 | feat(calculator): add normalizeLogarithmExpression function for handling logarithmic expressions
+- 2026-08-16 | 81e57020 | 鸡哥 | fix(calculator): set result and hasResult props to null and false in CalculatorTab
+- 2026-08-16 | 264b6891 | 鸡哥 | feat(calculator): enhance CoordinateGraph with dynamic plotting and toggle controls
+- 2026-08-16 | b15fe5ce | 鸡哥 | feat(calculator): add CoordinateGraph component for function plotting and update styles
+- 2026-08-16 | a7dd7599 | 鸡哥 | feat(calculator): add hasResult prop to CalcDisplay and update styles for result display
+- 2026-08-16 | 3079bfc3 | 鸡哥 | style(calculator): enhance active button visibility by adjusting color and opacity
+- 2026-08-16 | 638bfad9 | 鸡哥 | refactor(calculator): remove auto-collapse behavior on mode switch
+- 2026-08-15 | c3ff14b8 | eislandBot | docs: auto update CHANGE_LOG.md for #200 by @JNTMTMTM [skip ci]
+- 2026-08-16 | 17f67209 | 鸡哥 | Merge pull request #200 from JNTMTMTM/dev
+- 2026-08-16 | 12ce9028 | 鸡哥 | feat(calculator): add focus effect to CalcDisplay and enhance test coverage for formula compilation refactor(icon): update CalculatorIcon documentation and adjust test for key count docs: correct spelling in Shape.md header
+- 2026-08-16 | 23220387 | 鸡哥 | refactor(calculator): simplify cursor snapping logic in snapFormulaCursor function
+- 2026-08-16 | 65492029 | 鸡哥 | feat(calculator): update formula compilation and cursor handling for improved rendering and interaction
+- 2026-08-16 | 864f7ebc | 鸡哥 | feat(calculator): enhance formula compilation to handle empty text segments and update cursor anchoring
+- 2026-08-16 | 5095d0a9 | 鸡哥 | feat(calculator): integrate KaTeX for formula rendering and interaction
+- 2026-08-15 | a1c6321f | 鸡哥 | Merge commit '7df96f0491732e5d32b6429d5d13391ce72ad21d' into dev
+- 2026-08-15 | 7df96f04 | 鸡哥 | Merge pull request #199 from silenthim18303/dev
+- 2026-08-15 | 55c389e7 | 鸡哥 | feat(calculator): refine styling for root and derivative components for improved layout
+- 2026-08-15 | 3260324c | 鸡哥 | feat(calculator): add square root and nth root functionality with corresponding UI and tests
+- 2026-08-15 | 877fc691 | 鸡哥 | feat(calculator): enhance layout spacing for large operator limits
+- 2026-08-15 | 4a71caba | 鸡哥 | feat(calculator): add implicit multiplication parsing and corresponding tests
+- 2026-08-15 | 7d4a98d8 | 鸡哥 | feat(calculator): enhance formula evaluation and rendering capabilities
+- 2026-08-15 | 59f272ca | 鸡哥 | feat: add new scientific functions and corresponding SVG icons for calculator
+- 2026-08-15 | da3a53b3 | 鸡哥 | feat: update scientific function names and enhance formula parsing for calculator
+- 2026-08-15 | b683308a | 鸡哥 | feat: add function token recognition and cursor snapping for calculator
+- 2026-08-15 | 1975e850 | 鸡哥 | feat: implement calculator display and core functionality with formula parsing
+- 2026-08-15 | df010f33 | 鸡哥 | feat: enhance scientific function labels and improve sidebar button styles
+- 2026-08-15 | 39bef06f | 鸡哥 | feat: add scientific function support and enhance button layout in calculator
+- 2026-08-15 | 49a1eb8e | 鸡哥 | feat: restructure calculator section in localization files for improved organization
+- 2026-08-15 | 9597ea06 | 鸡哥 | feat: refine sidebar navigation styles for improved layout and spacing
+- 2026-08-15 | e35eff24 | 鸡哥 | feat: adjust width of expanded sidebar navigation for improved layout
+- 2026-08-15 | 218d264c | 鸡哥 | feat: enhance CalculatorSidebar with expanded mode labels and improved styles
+- 2026-08-15 | 11b20005 | 鸡哥 | feat: implement calculator sidebar with mode navigation and toggle functionality
+- 2026-08-15 | 78d089b6 | 鸡哥 | feat: add new calculator icons and update tests
+- 2026-08-15 | d15b2715 | silenthim | docs:修改了部分文档内容，添加了形态切换文档
+- 2026-08-15 | 093f4d98 | 鸡哥 | feat: refactor calculator module by organizing types, utils, and configuration
+- 2026-08-15 | 9624a8e0 | 鸡哥 | feat: add dimensions for function button icons in calculator styles
+- 2026-08-15 | 31835ace | 鸡哥 | feat: update BUTTON_LAYOUT to use CalculatorIcon for CLEAR and PERCENTAGE buttons
+- 2026-08-15 | f01574b5 | 鸡哥 | feat: add CLEAR and PERCENTAGE SVG icons and update CalculatorIcon enum
+- 2026-08-15 | ada6c4b0 | 鸡哥 | feat: enhance CalculatorTab with SVG icons for buttons and update styles for button icons
+- 2026-08-15 | 0de8fb41 | 鸡哥 | feat: add calculator SVG icons for BACKSPACE, DIVISION, MINUS, MULTIPLICATION, and PLUS
+- 2026-08-15 | 31f6981b | 鸡哥 | fix: update PLUS_MINUS.svg to correct icon paths and structure
+- 2026-08-15 | 39811090 | 鸡哥 | feat: add CalculatorIcon enum and test with SVG assets
+- 2026-08-15 | 91bb01e5 | 鸡哥 | Remove deprecated GSAP skills: gsap-react, gsap-scrolltrigger, gsap-timeline, and gsap-utils documentation files.
+- 2026-08-15 | e6fd315d | 鸡哥 | feat: implement calculator tab with core logic and styles
+- 2026-08-15 | 2ddaa720 | 鸡哥 | feat: add evals.json for maxexpand tab configurations and prompts
+- 2026-08-15 | e2d3be7b | 鸡哥 | feat: add new MaxExpand tab page with comprehensive setup instructions
+- 2026-08-15 | 7015b976 | 鸡哥 | feat: add calculator tab and update related configurations
+- 2026-08-15 | bac47041 | 鸡哥 | feat: add calculator component to maxExpand state
+- 2026-08-15 | 6cf706c0 | eislandBot | docs: auto update CHANGE_LOG.md for #198 by @JNTMTMTM [skip ci]
+- 2026-08-15 | bb5b2592 | 鸡哥 | Merge pull request #198 from JNTMTMTM/dev
+- 2026-08-15 | b2a39bcd | 鸡哥 | chore: add engines field to package.json and package-lock.json to specify Node.js version requirement refactor: improve XMLHttpRequest mock in user feedback tests for better clarity
+- 2026-08-15 | 29b85551 | 鸡哥 | style: increase max width of auth panel from 550px to 580px
+- 2026-08-15 | 4e6a6a9d | 鸡哥 | test: reset mocks in store IPC tests and update XMLHttpRequest stub in user feedback tests
+- 2026-08-15 | cdaf5e99 | 鸡哥 | chore: update vitest and coverage-v8 dependencies to latest versions
+- 2026-08-15 | ba8d70df | 鸡哥 | chore: update dependencies to latest versions
+- 2026-08-15 | 1833a10f | 鸡哥 | chore: update Node.js version to 25 in CI workflows
+- 2026-08-14 | b921999a | eislandBot | docs: auto update CHANGE_LOG.md for #197 by @JNTMTMTM [skip ci]
+- 2026-08-15 | 8b1c3d17 | 鸡哥 | Merge pull request #197 from JNTMTMTM/dev
+- 2026-08-15 | 52839c64 | 鸡哥 | feat: enhance Qishui audio handling with range support and improve song mapping in SodaMusic API
+- 2026-08-15 | 15c0a65c | 鸡哥 | refactor: improve unwrapList function and enhance type handling in Qishui service methods
+- 2026-08-15 | 794e2825 | 鸡哥 | feat: implement scrolling text component and karaoke scroll progress hook for lyrics display
+- 2026-08-15 | b0e0472a | 鸡哥 | feat: add authentication tracking to Qishui lyrics and song fetching functions
+- 2026-08-15 | 0928413c | 鸡哥 | fix: enhance lyric translation handling in getQishuiLyrics function
+- 2026-08-15 | d4b3e790 | 鸡哥 | feat: add Qishui business service integration
+- 2026-08-13 | 1d3f3cb8 | eislandBot | docs: auto update CHANGE_LOG.md for #196 by @JNTMTMTM [skip ci]
+- 2026-08-14 | 71b03eca | 鸡哥 | Merge pull request #196 from JNTMTMTM/dev
+- 2026-08-14 | 08607d2d | 鸡哥 | fix: update state count from 20 to 21 in documentation and add musicProvidersLogin state details
+- 2026-08-14 | 6f5f75c8 | 鸡哥 | test: update IPC channel registration test to reflect new handlers count
+- 2026-08-14 | bf27e8e5 | 鸡哥 | feat: implement Soda Music provider mode selection and handling
+- 2026-08-14 | 74d3c122 | 鸡哥 | feat: add danger styling for hotkey button in MusicSettingsSection
+- 2026-08-13 | 0472b0de | 鸡哥 | feat: add Qishui music provider authentication handling in MusicSettingsSection
+- 2026-08-13 | 61161029 | 鸡哥 | feat: add report issue functionality to MusicProvidersLoginContent component
+- 2026-08-13 | 9d4ff3ac | 鸡哥 | feat: update success icon in QR login with SVG and enhance styles
+- 2026-08-13 | 381969dd | 鸡哥 | feat: enhance QR login interface with success state and loading spinner
+- 2026-08-13 | e0af0b7f | 鸡哥 | refactor: update Soda Music login instructions and adjust layout for improved user experience
+- 2026-08-13 | 940f6258 | 鸡哥 | refactor: update styles and structure for MusicProvidersLoginContent and MusicSettingsSection components
+- 2026-08-13 | 5bf478ee | 鸡哥 | feat: add Qishui music provider QR login functionality
+- 2026-08-13 | 6ef64c2c | 鸡哥 | refactor: remove hint and status from Soda Music provider in localization files
+- 2026-08-13 | 792c4d67 | 鸡哥 | feat: enhance SodaMusic provider display with icon and improved layout
+- 2026-08-13 | 4d0844e0 | 鸡哥 | feat: update CodeGraph documentation and add guidelines for plugin versioning and agent prompt synchronization
+- 2026-08-12 | bd7c90e2 | 鸡哥 | fix: update import path for auth CSS in MusicProvidersLoginContent component
+- 2026-08-12 | 58387bfa | 鸡哥 | feat: add evals configuration for empty state machines and related prompts
+- 2026-08-12 | 72b13aee | 鸡哥 | feat: add empty IslandState for dynamic island with configuration steps and component creation
+- 2026-08-12 | ab41559e | 鸡哥 | feat: refactor MusicProvidersLoginContent component structure and update import path
+- 2026-08-12 | c6e43720 | 鸡哥 | feat: add musicProvidersLogin state and related components for provider login functionality
+- 2026-08-12 | 319b4408 | 鸡哥 | feat: add musicProvidersLogin component
+- 2026-08-12 | 940db75a | 鸡哥 | feat: add 'providers' option to music settings and update related translations
+- 2026-08-11 | dffda339 | eislandBot | docs: auto update CHANGE_LOG.md for #195 by @JNTMTMTM [skip ci]
+- 2026-08-12 | 581564d8 | 鸡哥 | Merge pull request #195 from JNTMTMTM/dev
+- 2026-08-12 | cf6ac7c9 | 鸡哥 | feat: introduce shared extension types and refactor related imports
+- 2026-08-12 | 4c71f5f1 | 鸡哥 | refactor: replace for loops with forEach for better readability in extension management
+- 2026-08-12 | 8721a0a6 | 鸡哥 | feat: update default update source to 'esa-cdn' in configuration and state management
+- 2026-08-11 | abff54c1 | 鸡哥 | fix: update package version to 26.0.2 in package.json and package-lock.json
+- 2026-08-11 | 478fa6df | 鸡哥 | fix: update package version to 26.7.2 and remove unused volume analyzer dependency
+- 2026-08-11 | 1186d0a6 | 鸡哥 | revert: roll back codebase to commit 8de469d9
+- 2026-08-11 | 7463b57f | 鸡哥 | feat: add ESA CDN cache purging functionality with AliCloud integration
+- 2026-08-10 | 4207c7b7 | 鸡哥 | feat: add volume and brightness helper extensions with IPC integration
+- 2026-08-10 | 9737a472 | 鸡哥 | fix: rename temporary zip file to use .tmp.zip extension for consistency
+- 2026-08-10 | 1322b93e | 鸡哥 | feat: enhance extension management with latest_ext.yml support and update API for fetching remote versions
+- 2026-08-10 | 90236e7b | 鸡哥 | feat: add optional extension management functionality
+- 2026-08-10 | 4436b5f9 | 鸡哥 | feat: add extensions page to update settings with translations
 
 ## 26.7.2
 
@@ -3343,118 +3464,13 @@
 
 ## Unreleased
 
-- 2026-08-18 | 5c3ff6aa | 鸡哥 | Merge pull request #201 from JNTMTMTM/dev
-- 2026-08-17 | c8edd154 | 鸡哥 | chore(tests): add file description and author information to expressionUtils test
-- 2026-08-17 | ee571d0f | 鸡哥 | feat(expressionUtils): add expression normalization utilities and tests for improved expression handling
-- 2026-08-17 | 6b4b4d8b | 鸡哥 | feat(CoordinateGraph): add sticky axes with defined domains for better visualization
-- 2026-08-17 | 04a2da4b | 鸡哥 | feat(CoordinateGraph): add support for exponential notation in expressions
-- 2026-08-17 | 1aa565ba | 鸡哥 | feat(CoordinateGraph): add graphType property to data for polyline rendering
-- 2026-08-17 | 1e94f1ec | 鸡哥 | test(calculator-icon): update expected key count to reflect changes in CalculatorIcon
-- 2026-08-17 | efdcf840 | 鸡哥 | feat(calculator): add normalization for root and cube root expressions
-- 2026-08-17 | b9a863b7 | 鸡哥 | feat(calculator): add animation for scientific keys expansion in CSS
-- 2026-08-17 | 424145de | 鸡哥 | feat(calculator): remove unit conversion mode and associated assets
-- 2026-08-16 | 31a2162d | 鸡哥 | feat(calculator): refactor logarithm normalization to use a generic binary function handler
-- 2026-08-16 | 751966a0 | 鸡哥 | feat(calculator): add showValue prop to CalcDisplay for conditional rendering
-- 2026-08-16 | d0b9ae5e | 鸡哥 | feat(calculator): move CalcDisplay component to the coordinate workspace in CalculatorTab
-- 2026-08-16 | 5925c429 | 鸡哥 | feat(calculator): update normalizeLogarithmExpression to replace arcsin, arccos, and arctan with their shorthand forms
-- 2026-08-16 | c1c0c554 | 鸡哥 | feat(calculator): add normalizeLogarithmExpression function for handling logarithmic expressions
-- 2026-08-16 | 81e57020 | 鸡哥 | fix(calculator): set result and hasResult props to null and false in CalculatorTab
-- 2026-08-16 | 264b6891 | 鸡哥 | feat(calculator): enhance CoordinateGraph with dynamic plotting and toggle controls
-- 2026-08-16 | b15fe5ce | 鸡哥 | feat(calculator): add CoordinateGraph component for function plotting and update styles
-- 2026-08-16 | a7dd7599 | 鸡哥 | feat(calculator): add hasResult prop to CalcDisplay and update styles for result display
-- 2026-08-16 | 3079bfc3 | 鸡哥 | style(calculator): enhance active button visibility by adjusting color and opacity
-- 2026-08-16 | 638bfad9 | 鸡哥 | refactor(calculator): remove auto-collapse behavior on mode switch
-- 2026-08-15 | c3ff14b8 | eislandBot | docs: auto update CHANGE_LOG.md for #200 by @JNTMTMTM [skip ci]
-- 2026-08-16 | 17f67209 | 鸡哥 | Merge pull request #200 from JNTMTMTM/dev
-- 2026-08-16 | 12ce9028 | 鸡哥 | feat(calculator): add focus effect to CalcDisplay and enhance test coverage for formula compilation refactor(icon): update CalculatorIcon documentation and adjust test for key count docs: correct spelling in Shape.md header
-- 2026-08-16 | 23220387 | 鸡哥 | refactor(calculator): simplify cursor snapping logic in snapFormulaCursor function
-- 2026-08-16 | 65492029 | 鸡哥 | feat(calculator): update formula compilation and cursor handling for improved rendering and interaction
-- 2026-08-16 | 864f7ebc | 鸡哥 | feat(calculator): enhance formula compilation to handle empty text segments and update cursor anchoring
-- 2026-08-16 | 5095d0a9 | 鸡哥 | feat(calculator): integrate KaTeX for formula rendering and interaction
-- 2026-08-15 | a1c6321f | 鸡哥 | Merge commit '7df96f0491732e5d32b6429d5d13391ce72ad21d' into dev
-- 2026-08-15 | 7df96f04 | 鸡哥 | Merge pull request #199 from silenthim18303/dev
-- 2026-08-15 | 55c389e7 | 鸡哥 | feat(calculator): refine styling for root and derivative components for improved layout
-- 2026-08-15 | 3260324c | 鸡哥 | feat(calculator): add square root and nth root functionality with corresponding UI and tests
-- 2026-08-15 | 877fc691 | 鸡哥 | feat(calculator): enhance layout spacing for large operator limits
-- 2026-08-15 | 4a71caba | 鸡哥 | feat(calculator): add implicit multiplication parsing and corresponding tests
-- 2026-08-15 | 7d4a98d8 | 鸡哥 | feat(calculator): enhance formula evaluation and rendering capabilities
-- 2026-08-15 | 59f272ca | 鸡哥 | feat: add new scientific functions and corresponding SVG icons for calculator
-- 2026-08-15 | da3a53b3 | 鸡哥 | feat: update scientific function names and enhance formula parsing for calculator
-- 2026-08-15 | b683308a | 鸡哥 | feat: add function token recognition and cursor snapping for calculator
-- 2026-08-15 | 1975e850 | 鸡哥 | feat: implement calculator display and core functionality with formula parsing
-- 2026-08-15 | df010f33 | 鸡哥 | feat: enhance scientific function labels and improve sidebar button styles
-- 2026-08-15 | 39bef06f | 鸡哥 | feat: add scientific function support and enhance button layout in calculator
-- 2026-08-15 | 49a1eb8e | 鸡哥 | feat: restructure calculator section in localization files for improved organization
-- 2026-08-15 | 9597ea06 | 鸡哥 | feat: refine sidebar navigation styles for improved layout and spacing
-- 2026-08-15 | e35eff24 | 鸡哥 | feat: adjust width of expanded sidebar navigation for improved layout
-- 2026-08-15 | 218d264c | 鸡哥 | feat: enhance CalculatorSidebar with expanded mode labels and improved styles
-- 2026-08-15 | 11b20005 | 鸡哥 | feat: implement calculator sidebar with mode navigation and toggle functionality
-- 2026-08-15 | 78d089b6 | 鸡哥 | feat: add new calculator icons and update tests
-- 2026-08-15 | d15b2715 | silenthim | docs:修改了部分文档内容，添加了形态切换文档
-- 2026-08-15 | 093f4d98 | 鸡哥 | feat: refactor calculator module by organizing types, utils, and configuration
-- 2026-08-15 | 9624a8e0 | 鸡哥 | feat: add dimensions for function button icons in calculator styles
-- 2026-08-15 | 31835ace | 鸡哥 | feat: update BUTTON_LAYOUT to use CalculatorIcon for CLEAR and PERCENTAGE buttons
-- 2026-08-15 | f01574b5 | 鸡哥 | feat: add CLEAR and PERCENTAGE SVG icons and update CalculatorIcon enum
-- 2026-08-15 | ada6c4b0 | 鸡哥 | feat: enhance CalculatorTab with SVG icons for buttons and update styles for button icons
-- 2026-08-15 | 0de8fb41 | 鸡哥 | feat: add calculator SVG icons for BACKSPACE, DIVISION, MINUS, MULTIPLICATION, and PLUS
-- 2026-08-15 | 31f6981b | 鸡哥 | fix: update PLUS_MINUS.svg to correct icon paths and structure
-- 2026-08-15 | 39811090 | 鸡哥 | feat: add CalculatorIcon enum and test with SVG assets
-- 2026-08-15 | 91bb01e5 | 鸡哥 | Remove deprecated GSAP skills: gsap-react, gsap-scrolltrigger, gsap-timeline, and gsap-utils documentation files.
-- 2026-08-15 | e6fd315d | 鸡哥 | feat: implement calculator tab with core logic and styles
-- 2026-08-15 | 2ddaa720 | 鸡哥 | feat: add evals.json for maxexpand tab configurations and prompts
-- 2026-08-15 | e2d3be7b | 鸡哥 | feat: add new MaxExpand tab page with comprehensive setup instructions
-- 2026-08-15 | 7015b976 | 鸡哥 | feat: add calculator tab and update related configurations
-- 2026-08-15 | bac47041 | 鸡哥 | feat: add calculator component to maxExpand state
-- 2026-08-15 | 6cf706c0 | eislandBot | docs: auto update CHANGE_LOG.md for #198 by @JNTMTMTM [skip ci]
-- 2026-08-15 | bb5b2592 | 鸡哥 | Merge pull request #198 from JNTMTMTM/dev
-- 2026-08-15 | b2a39bcd | 鸡哥 | chore: add engines field to package.json and package-lock.json to specify Node.js version requirement refactor: improve XMLHttpRequest mock in user feedback tests for better clarity
-- 2026-08-15 | 29b85551 | 鸡哥 | style: increase max width of auth panel from 550px to 580px
-- 2026-08-15 | 4e6a6a9d | 鸡哥 | test: reset mocks in store IPC tests and update XMLHttpRequest stub in user feedback tests
-- 2026-08-15 | cdaf5e99 | 鸡哥 | chore: update vitest and coverage-v8 dependencies to latest versions
-- 2026-08-15 | ba8d70df | 鸡哥 | chore: update dependencies to latest versions
-- 2026-08-15 | 1833a10f | 鸡哥 | chore: update Node.js version to 25 in CI workflows
-- 2026-08-14 | b921999a | eislandBot | docs: auto update CHANGE_LOG.md for #197 by @JNTMTMTM [skip ci]
-- 2026-08-15 | 8b1c3d17 | 鸡哥 | Merge pull request #197 from JNTMTMTM/dev
-- 2026-08-15 | 52839c64 | 鸡哥 | feat: enhance Qishui audio handling with range support and improve song mapping in SodaMusic API
-- 2026-08-15 | 15c0a65c | 鸡哥 | refactor: improve unwrapList function and enhance type handling in Qishui service methods
-- 2026-08-15 | 794e2825 | 鸡哥 | feat: implement scrolling text component and karaoke scroll progress hook for lyrics display
-- 2026-08-15 | b0e0472a | 鸡哥 | feat: add authentication tracking to Qishui lyrics and song fetching functions
-- 2026-08-15 | 0928413c | 鸡哥 | fix: enhance lyric translation handling in getQishuiLyrics function
-- 2026-08-15 | d4b3e790 | 鸡哥 | feat: add Qishui business service integration
-- 2026-08-13 | 1d3f3cb8 | eislandBot | docs: auto update CHANGE_LOG.md for #196 by @JNTMTMTM [skip ci]
-- 2026-08-14 | 71b03eca | 鸡哥 | Merge pull request #196 from JNTMTMTM/dev
-- 2026-08-14 | 08607d2d | 鸡哥 | fix: update state count from 20 to 21 in documentation and add musicProvidersLogin state details
-- 2026-08-14 | 6f5f75c8 | 鸡哥 | test: update IPC channel registration test to reflect new handlers count
-- 2026-08-14 | bf27e8e5 | 鸡哥 | feat: implement Soda Music provider mode selection and handling
-- 2026-08-14 | 74d3c122 | 鸡哥 | feat: add danger styling for hotkey button in MusicSettingsSection
-- 2026-08-13 | 0472b0de | 鸡哥 | feat: add Qishui music provider authentication handling in MusicSettingsSection
-- 2026-08-13 | 61161029 | 鸡哥 | feat: add report issue functionality to MusicProvidersLoginContent component
-- 2026-08-13 | 9d4ff3ac | 鸡哥 | feat: update success icon in QR login with SVG and enhance styles
-- 2026-08-13 | 381969dd | 鸡哥 | feat: enhance QR login interface with success state and loading spinner
-- 2026-08-13 | e0af0b7f | 鸡哥 | refactor: update Soda Music login instructions and adjust layout for improved user experience
-- 2026-08-13 | 940f6258 | 鸡哥 | refactor: update styles and structure for MusicProvidersLoginContent and MusicSettingsSection components
-- 2026-08-13 | 5bf478ee | 鸡哥 | feat: add Qishui music provider QR login functionality
-- 2026-08-13 | 6ef64c2c | 鸡哥 | refactor: remove hint and status from Soda Music provider in localization files
-- 2026-08-13 | 792c4d67 | 鸡哥 | feat: enhance SodaMusic provider display with icon and improved layout
-- 2026-08-13 | 4d0844e0 | 鸡哥 | feat: update CodeGraph documentation and add guidelines for plugin versioning and agent prompt synchronization
-- 2026-08-12 | bd7c90e2 | 鸡哥 | fix: update import path for auth CSS in MusicProvidersLoginContent component
-- 2026-08-12 | 58387bfa | 鸡哥 | feat: add evals configuration for empty state machines and related prompts
-- 2026-08-12 | 72b13aee | 鸡哥 | feat: add empty IslandState for dynamic island with configuration steps and component creation
-- 2026-08-12 | ab41559e | 鸡哥 | feat: refactor MusicProvidersLoginContent component structure and update import path
-- 2026-08-12 | c6e43720 | 鸡哥 | feat: add musicProvidersLogin state and related components for provider login functionality
-- 2026-08-12 | 319b4408 | 鸡哥 | feat: add musicProvidersLogin component
-- 2026-08-12 | 940db75a | 鸡哥 | feat: add 'providers' option to music settings and update related translations
-- 2026-08-11 | dffda339 | eislandBot | docs: auto update CHANGE_LOG.md for #195 by @JNTMTMTM [skip ci]
-- 2026-08-12 | 581564d8 | 鸡哥 | Merge pull request #195 from JNTMTMTM/dev
-- 2026-08-12 | cf6ac7c9 | 鸡哥 | feat: introduce shared extension types and refactor related imports
-- 2026-08-12 | 4c71f5f1 | 鸡哥 | refactor: replace for loops with forEach for better readability in extension management
-- 2026-08-12 | 8721a0a6 | 鸡哥 | feat: update default update source to 'esa-cdn' in configuration and state management
-- 2026-08-11 | abff54c1 | 鸡哥 | fix: update package version to 26.0.2 in package.json and package-lock.json
-- 2026-08-11 | 478fa6df | 鸡哥 | fix: update package version to 26.7.2 and remove unused volume analyzer dependency
-- 2026-08-11 | 1186d0a6 | 鸡哥 | revert: roll back codebase to commit 8de469d9
-- 2026-08-11 | 7463b57f | 鸡哥 | feat: add ESA CDN cache purging functionality with AliCloud integration
-- 2026-08-10 | 4207c7b7 | 鸡哥 | feat: add volume and brightness helper extensions with IPC integration
-- 2026-08-10 | 9737a472 | 鸡哥 | fix: rename temporary zip file to use .tmp.zip extension for consistency
-- 2026-08-10 | 1322b93e | 鸡哥 | feat: enhance extension management with latest_ext.yml support and update API for fetching remote versions
-- 2026-08-10 | 90236e7b | 鸡哥 | feat: add optional extension management functionality
-- 2026-08-10 | 4436b5f9 | 鸡哥 | feat: add extensions page to update settings with translations
+- 2026-08-18 | 9411dc76 | 鸡哥 | Merge pull request #202 from JNTMTMTM/dev
+- 2026-08-18 | 64b38700 | 鸡哥 | fix: enhance ESLint rule detection in code quality review workflow
+- 2026-08-18 | 1e086fcb | 鸡哥 | fix: add defensive check for GPUDevice.destroy method in useWebGPURenderer style: use CSS variable for orb size in agentVoiceInput
+- 2026-08-18 | 61bb6bf7 | 鸡哥 | fix: improve type definitions and error handling in WebGPU renderer
+- 2026-08-18 | f1ca4d6b | 鸡哥 | feat: add onReady callback to LiquidOrbCanvas and use it in AgentVoiceInputView
+- 2026-08-18 | fa18a175 | 鸡哥 | feat: add localization support for Liquid Orb aria label in English and Chinese
+- 2026-08-18 | f1130ff4 | 鸡哥 | feat: add Ollama localization support in English and Chinese language files
+- 2026-08-18 | 9463fb01 | 鸡哥 | fix: correct LIQUID_ORB_UNIFORM_SEED values in uniformDefaults.ts
+- 2026-08-18 | 31620eb7 | 鸡哥 | feat: enhance WebGPU rendering and error handling in Liquid Orb component
+- 2026-08-18 | e7b98634 | 鸡哥 | feat: add WebGPU rendering support for Liquid Orb component
