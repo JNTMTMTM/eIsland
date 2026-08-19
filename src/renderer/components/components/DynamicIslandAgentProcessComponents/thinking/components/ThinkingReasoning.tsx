@@ -25,14 +25,10 @@
  */
 
 import type { ReactElement } from 'react';
-import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import type { ThinkingReasoningProps } from '../types/thinkingTypes';
+import { useThinkingReasoning } from '../hooks/useThinkingReasoning';
 import styles from '../styles/thinking-reasoning.module.css';
-
-interface ThinkingReasoningProps {
-  content: string;
-  isThinking: boolean;
-}
 
 /**
  * 渲染可折叠的思考过程。
@@ -42,41 +38,7 @@ interface ThinkingReasoningProps {
  */
 export function ThinkingReasoning({ content, isThinking }: ThinkingReasoningProps): ReactElement {
   const { t } = useTranslation();
-  const [open, setOpen] = useState(false);
-  const [elapsedSeconds, setElapsedSeconds] = useState<number | null>(null);
-  const startedAtRef = useRef<number | null>(isThinking ? Date.now() : null);
-  const viewportRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!isThinking) {
-      setOpen(false);
-      if (startedAtRef.current !== null) {
-        setElapsedSeconds(Math.max(1, Math.round((Date.now() - startedAtRef.current) / 1000)));
-      }
-      return undefined;
-    }
-
-    if (startedAtRef.current === null) startedAtRef.current = Date.now();
-    const updateElapsed = (): void => {
-      if (startedAtRef.current === null) return;
-      setElapsedSeconds(Math.max(1, Math.round((Date.now() - startedAtRef.current) / 1000)));
-    };
-    updateElapsed();
-    const timer = window.setInterval(updateElapsed, 1000);
-    return () => window.clearInterval(timer);
-  }, [isThinking]);
-
-  useEffect(() => {
-    if (!isThinking || !viewportRef.current) return;
-    viewportRef.current.scrollTop = viewportRef.current.scrollHeight;
-  }, [content, isThinking]);
-
-  const expanded = isThinking || open;
-  const toggle = (): void => {
-    const nextOpen = !open;
-    setOpen(nextOpen);
-    if (nextOpen && viewportRef.current) viewportRef.current.scrollTop = 0;
-  };
+  const { expanded, elapsedSeconds, viewportRef, toggle } = useThinkingReasoning(isThinking, content);
 
   return (
     <div className={styles.container}>
