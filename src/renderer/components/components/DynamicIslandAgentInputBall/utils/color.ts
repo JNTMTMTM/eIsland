@@ -24,6 +24,8 @@
  * @author 鸡哥
  */
 
+import { ORB_COLOR_A_OFFSET, ORB_COLOR_B_OFFSET } from '../config/uniformDefaults';
+
 /**
  * 将 hex 颜色字符串转换为 [r, g, b] 归一化浮点数组（0~1）。
  * 对无效输入返回 [0, 0, 0] 而非 NaN，避免污染 uniform 缓冲区。
@@ -52,10 +54,6 @@ export function rgbFloatToHex(rgb: [number, number, number]): string {
       .padStart(2, '0');
   return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
 }
-
-/** colorA / colorB 在 uniform 种子中的起始偏移量。 */
-const ORB_COLOR_A_OFFSET = 32;
-const ORB_COLOR_B_OFFSET = 36;
 
 /**
  * 将用户自定义的 orb 颜色 A/B 写入 uniform 种子数据的对应槽位。
