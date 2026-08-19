@@ -30,6 +30,7 @@ import type { AiChatMessage, AiTodoSnapshot } from '../../../../../../store/type
 import { normalizeMarkdownCodeFences, toPrettyJson } from '../utils/chatUtils';
 import { AssistantMarkdown } from './AssistantMarkdown';
 import { ThinkingReasoning } from '../../../../../components/DynamicIslandAgentProcessComponents/thinking';
+import { TodoList } from '../../../../../components/DynamicIslandAgentProcessComponents/todo';
 
 /** MessageTimeline 组件 Props */
 interface MessageTimelineProps {
@@ -82,36 +83,11 @@ export function MessageTimeline({
   const unturnedTodoSnapshots = todoSnapshots.filter((snap) => !(snap.turn > 0));
   for (let snapIndex = 0; snapIndex < unturnedTodoSnapshots.length; snapIndex++) {
     const snap = unturnedTodoSnapshots[snapIndex];
-    const completedCount = snap.items.reduce((acc, item) => acc + (item.status === 'completed' ? 1 : 0), 0);
-    const allCompleted = completedCount === snap.items.length;
     timelineNodes.push(
-      <details
+      <TodoList
         key={`todo-0-${snapIndex}`}
-        className="max-expand-chat-todo-card"
-        open={!allCompleted}
-      >
-        <summary className="max-expand-chat-todo-card-head">
-          <span className="max-expand-chat-todo-title">
-            <span>{t('aiChat.timeline.todoList', { defaultValue: '任务清单' })}</span>
-          </span>
-          <span className="max-expand-chat-todo-progress">
-            {completedCount}/{snap.items.length}
-          </span>
-        </summary>
-        <ul className="max-expand-chat-todo-list">
-          {snap.items.map((item) => (
-            <li
-              key={item.id}
-              className={`max-expand-chat-todo-item status-${item.status}`}
-            >
-              <span className="max-expand-chat-todo-item-marker" aria-hidden>
-                {item.status === 'completed' ? '✓' : item.status === 'in_progress' ? '●' : '○'}
-              </span>
-              <span className="max-expand-chat-todo-item-text">{item.content}</span>
-            </li>
-          ))}
-        </ul>
-      </details>,
+        items={snap.items}
+      />,
     );
   }
 
@@ -146,37 +122,11 @@ export function MessageTimeline({
     const turnTodoSnapshots = todoSnapshots.filter((snap) => snap.turn === turn);
     for (let snapIndex = 0; snapIndex < turnTodoSnapshots.length; snapIndex++) {
       const snap = turnTodoSnapshots[snapIndex];
-      const completedCount = snap.items.reduce((acc, item) => acc + (item.status === 'completed' ? 1 : 0), 0);
-      const allCompleted = completedCount === snap.items.length;
       timelineNodes.push(
-        <details
+        <TodoList
           key={`todo-${turn}-${snapIndex}`}
-          className="max-expand-chat-todo-card"
-          open={!allCompleted}
-        >
-          <summary className="max-expand-chat-todo-card-head">
-            <span className="max-expand-chat-todo-title">
-              <span>{t('aiChat.timeline.todoList', { defaultValue: '任务清单' })}</span>
-              <span className="max-expand-chat-tool-turn">#{turn}</span>
-            </span>
-            <span className="max-expand-chat-todo-progress">
-              {completedCount}/{snap.items.length}
-            </span>
-          </summary>
-          <ul className="max-expand-chat-todo-list">
-            {snap.items.map((item) => (
-              <li
-                key={item.id}
-                className={`max-expand-chat-todo-item status-${item.status}`}
-              >
-                <span className="max-expand-chat-todo-item-marker" aria-hidden>
-                  {item.status === 'completed' ? '✓' : item.status === 'in_progress' ? '●' : '○'}
-                </span>
-                <span className="max-expand-chat-todo-item-text">{item.content}</span>
-              </li>
-            ))}
-          </ul>
-        </details>,
+          items={snap.items}
+        />,
       );
     }
 

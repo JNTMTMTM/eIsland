@@ -833,6 +833,10 @@
     },
     "timeline": {
       "todoList": "任务清单",
+      "todoTitle": "待办事项",
+      "todo": {
+        "toggle": "展开或折叠任务清单"
+      },
       "thinkingProcess": "思考过程 #{{index}}",
       "thinking": {
         "thinking": "思考中…",
