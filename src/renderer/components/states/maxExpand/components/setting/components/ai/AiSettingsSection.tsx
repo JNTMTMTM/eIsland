@@ -33,7 +33,7 @@ import { SvgIcon } from '../../../../../../../utils/SvgIcon';
 import { getOllamaModels, detectOllamaBaseUrl } from '../../../../../../../api/ai/ollamaLocalAgent';
 import { LiquidOrbCanvas } from '../../../../../../components/DynamicIslandAgentInputBall';
 import { LIQUID_ORB_UNIFORM_SEED } from '../../../../../../components/DynamicIslandAgentInputBall/config/uniformDefaults';
-import { hexToRgbFloat } from '../../../../../../components/DynamicIslandAgentInputBall/utils/color';
+import { applyOrbColorsToUniforms } from '../../../../../../components/DynamicIslandAgentInputBall/utils/color';
 
 interface AiSettingsSectionProps {
   currentAiSettingsPageLabel: string;
@@ -92,19 +92,10 @@ export function AiSettingsSection({
   const [avatarUploadError, setAvatarUploadError] = useState<string>('');
   const [orbPreviewReady, setOrbPreviewReady] = useState(false);
 
-  const orbUniformOverrides = useMemo(() => {
-    if (!aiConfig.orbColorA && !aiConfig.orbColorB) return undefined;
-    const data = new Float32Array(LIQUID_ORB_UNIFORM_SEED);
-    if (aiConfig.orbColorA) {
-      const [r, g, b] = hexToRgbFloat(aiConfig.orbColorA);
-      data[32] = r; data[33] = g; data[34] = b; data[35] = 1.0;
-    }
-    if (aiConfig.orbColorB) {
-      const [r, g, b] = hexToRgbFloat(aiConfig.orbColorB);
-      data[36] = r; data[37] = g; data[38] = b; data[39] = 1.0;
-    }
-    return data;
-  }, [aiConfig.orbColorA, aiConfig.orbColorB]);
+  const orbUniformOverrides = useMemo(
+    () => applyOrbColorsToUniforms(LIQUID_ORB_UNIFORM_SEED, aiConfig.orbColorA, aiConfig.orbColorB),
+    [aiConfig.orbColorA, aiConfig.orbColorB],
+  );
 
   // ── Ollama 设置页状态 ──
   const [ollamaModelsList, setOllamaModelsList] = useState<string[]>([]);
@@ -615,7 +606,7 @@ export function AiSettingsSection({
               <div
                 className="settings-orb-preview-loading"
                 role="status"
-                aria-label={t('agent.liquidOrb.ariaLabel', { defaultValue: '动态液态玻璃球' })}
+                aria-label={t('agent.liquidOrb.loadingLabel', { defaultValue: '正在加载液态玻璃球预览' })}
               >
                 <span className="settings-orb-preview-spinner" />
               </div>

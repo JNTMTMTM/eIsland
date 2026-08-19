@@ -1365,7 +1365,8 @@
       "close": "Close"
     },
     "liquidOrb": {
-      "ariaLabel": "Dynamic liquid glass orb"
+      "ariaLabel": "Dynamic liquid glass orb",
+      "loadingLabel": "Loading liquid glass orb preview"
     }
   },
   "cli": {

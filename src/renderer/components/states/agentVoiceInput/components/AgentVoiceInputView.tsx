@@ -27,7 +27,7 @@
 import { useMemo, useState } from 'react';
 import type { ReactElement } from 'react';
 import { LiquidOrbCanvas } from '../../../components/DynamicIslandAgentInputBall';
-import { hexToRgbFloat } from '../../../components/DynamicIslandAgentInputBall/utils/color';
+import { applyOrbColorsToUniforms } from '../../../components/DynamicIslandAgentInputBall/utils/color';
 import { LIQUID_ORB_UNIFORM_SEED } from '../../../components/DynamicIslandAgentInputBall/config/uniformDefaults';
 import useIslandStore from '../../../../store/slices';
 
@@ -51,19 +51,10 @@ export function AgentVoiceInputView(props: AgentVoiceInputViewProps): ReactEleme
   const [orbFailed, setOrbFailed] = useState(false);
 
   /** 若用户自定义了颜色，生成 uniformOverrides 覆盖默认种子值 */
-  const uniformOverrides = useMemo(() => {
-    if (!orbColorA && !orbColorB) return undefined;
-    const data = new Float32Array(LIQUID_ORB_UNIFORM_SEED);
-    if (orbColorA) {
-      const [r, g, b] = hexToRgbFloat(orbColorA);
-      data[32] = r; data[33] = g; data[34] = b; data[35] = 1.0;
-    }
-    if (orbColorB) {
-      const [r, g, b] = hexToRgbFloat(orbColorB);
-      data[36] = r; data[37] = g; data[38] = b; data[39] = 1.0;
-    }
-    return data;
-  }, [orbColorA, orbColorB]);
+  const uniformOverrides = useMemo(
+    () => applyOrbColorsToUniforms(LIQUID_ORB_UNIFORM_SEED, orbColorA, orbColorB),
+    [orbColorA, orbColorB],
+  );
 
   return (
     <div className="agent-voice-input-content">

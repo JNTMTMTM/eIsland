@@ -1365,7 +1365,8 @@
       "close": "关闭"
     },
     "liquidOrb": {
-      "ariaLabel": "动态液态玻璃球"
+      "ariaLabel": "动态液态玻璃球",
+      "loadingLabel": "正在加载液态玻璃球预览"
     }
   },
   "cli": {
