@@ -834,6 +834,12 @@
     "timeline": {
       "todoList": "任务清单",
       "thinkingProcess": "思考过程 #{{index}}",
+      "thinking": {
+        "thinking": "思考中…",
+        "thought": "思考",
+        "elapsed": " 用时 {{seconds}} 秒",
+        "toggleThought": "展开或折叠思考过程"
+      },
       "toolResultTitle": "工具返回结果",
       "toolStatus": {
         "pending": "执行中",

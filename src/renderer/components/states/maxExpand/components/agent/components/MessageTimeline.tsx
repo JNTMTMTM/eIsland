@@ -26,11 +26,10 @@
 
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
-import { SvgIcon } from '../../../../../../utils/SvgIcon';
-import { isMinimaxModel } from '../utils/chatHelpers';
 import type { AiChatMessage, AiTodoSnapshot } from '../../../../../../store/types';
 import { normalizeMarkdownCodeFences, toPrettyJson } from '../utils/chatUtils';
 import { AssistantMarkdown } from './AssistantMarkdown';
+import { ThinkingReasoning } from '../../../../../components/DynamicIslandAgentProcessComponents/thinking';
 
 /** MessageTimeline 组件 Props */
 interface MessageTimelineProps {
@@ -40,17 +39,6 @@ interface MessageTimelineProps {
   isStreaming: boolean;
   showThinking: boolean;
   onReportIssue: (traceId: string, finalAnswer: string) => void;
-}
-
-/**
- * 获取模型图标
- */
-function resolveModelIcon(model: string | undefined): string {
-  if (model === 'custom-api') return SvgIcon.AI;
-  if (model === 'ollama') return SvgIcon.OLLAMA;
-  if (model?.startsWith('mimo-')) return SvgIcon.MIMO;
-  if (isMinimaxModel(model ?? '')) return SvgIcon.MINIMAX;
-  return SvgIcon.DEEPSEEK;
 }
 
 /** AI 助手消息时间线（思考过程 + 工具调用 + Todo + 最终输出） */
@@ -85,7 +73,6 @@ export function MessageTimeline({
   const traceId = typeof msg.traceId === 'string' ? msg.traceId.trim() : '';
   const isMsgOllama = msg.model === 'ollama';
   const isMsgCustomApi = msg.model === 'custom-api';
-  const msgModelIcon = resolveModelIcon(msg.model);
   const showFinalTraceMeta = Boolean(msg.finalized);
   const normalizedMarkdownContent = normalizeMarkdownCodeFences(msg.content);
 
@@ -143,19 +130,11 @@ export function MessageTimeline({
   /** think[0] 放在所有工具/todo 组之前（初始推理） */
   if (thinkBlocks.length > 0 && thinkBlocks[0]) {
     timelineNodes.push(
-      <details
+      <ThinkingReasoning
         key="think-0"
-        className="max-expand-chat-think-card"
-        open={isStreaming && thinkBlocks.length === 1 && isLatestAssistantMsg}
-      >
-        <summary>
-          <span className="max-expand-chat-think-title">
-            <img className="max-expand-chat-think-title-icon" src={msgModelIcon} alt="" />
-            <span>{t('aiChat.timeline.thinkingProcess', { defaultValue: '思考过程 #{{index}}', index: 1 })}</span>
-          </span>
-        </summary>
-        <div className="max-expand-chat-think-content">{thinkBlocks[0]}</div>
-      </details>,
+        content={thinkBlocks[0]}
+        isThinking={isStreaming && isLatestAssistantMsg}
+      />,
     );
   }
 
@@ -238,19 +217,11 @@ export function MessageTimeline({
       const thinkIdx = nextThinkIdx;
       nextThinkIdx++;
       timelineNodes.push(
-        <details
+        <ThinkingReasoning
           key={`think-${thinkIdx}`}
-          className="max-expand-chat-think-card"
-          open={isStreaming && thinkIdx === thinkBlocks.length - 1 && isLatestAssistantMsg}
-        >
-          <summary>
-            <span className="max-expand-chat-think-title">
-              <img className="max-expand-chat-think-title-icon" src={msgModelIcon} alt="" />
-              <span>{t('aiChat.timeline.thinkingProcess', { defaultValue: '思考过程 #{{index}}', index: thinkIdx + 1 })}</span>
-            </span>
-          </summary>
-          <div className="max-expand-chat-think-content">{thinkText}</div>
-        </details>,
+          content={thinkText}
+          isThinking={isStreaming && thinkIdx === thinkBlocks.length - 1 && isLatestAssistantMsg}
+        />,
       );
     }
   }
@@ -260,19 +231,11 @@ export function MessageTimeline({
     const thinkText = thinkBlocks[idx] || '';
     if (thinkText) {
       timelineNodes.push(
-        <details
+        <ThinkingReasoning
           key={`think-${idx}`}
-          className="max-expand-chat-think-card"
-          open={isStreaming && idx === thinkBlocks.length - 1 && isLatestAssistantMsg}
-        >
-          <summary>
-            <span className="max-expand-chat-think-title">
-              <img className="max-expand-chat-think-title-icon" src={msgModelIcon} alt="" />
-              <span>{t('aiChat.timeline.thinkingProcess', { defaultValue: '思考过程 #{{index}}', index: idx + 1 })}</span>
-            </span>
-          </summary>
-          <div className="max-expand-chat-think-content">{thinkText}</div>
-        </details>,
+          content={thinkText}
+          isThinking={isStreaming && idx === thinkBlocks.length - 1 && isLatestAssistantMsg}
+        />,
       );
     }
   }

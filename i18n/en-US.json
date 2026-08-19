@@ -834,6 +834,12 @@
     "timeline": {
       "todoList": "Todo List",
       "thinkingProcess": "Thinking Process #{{index}}",
+      "thinking": {
+        "thinking": "Thinking…",
+        "thought": "Thought",
+        "elapsed": " for {{seconds}}s",
+        "toggleThought": "Expand or collapse thought process"
+      },
       "toolResultTitle": "Tool Result",
       "toolStatus": {
         "pending": "Running",
