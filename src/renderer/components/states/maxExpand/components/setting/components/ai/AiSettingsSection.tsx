@@ -24,13 +24,16 @@
  * @author 鸡哥
  */
 
-import { useRef, useState, type ReactElement } from 'react';
+import { useMemo, useRef, useState, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AiSettingsPageDots } from './AiSettingsPageDots';
 import { SettingsPageNavigationToggle } from '../SettingsPageNavigation';
 import type { AiSettingsPageKey } from '../../utils/settingsConfig';
 import { SvgIcon } from '../../../../../../../utils/SvgIcon';
 import { getOllamaModels, detectOllamaBaseUrl } from '../../../../../../../api/ai/ollamaLocalAgent';
+import { LiquidOrbCanvas } from '../../../../../../components/DynamicIslandAgentInputBall';
+import { LIQUID_ORB_UNIFORM_SEED } from '../../../../../../components/DynamicIslandAgentInputBall/config/uniformDefaults';
+import { applyOrbColorsToUniforms } from '../../../../../../components/DynamicIslandAgentInputBall/utils/color';
 
 interface AiSettingsSectionProps {
   currentAiSettingsPageLabel: string;
@@ -44,6 +47,9 @@ interface AiSettingsSectionProps {
     r1pxcAvatar: string;
     ollamaModel: string;
     ollamaBaseUrl: string;
+    sttOrbEnabled: boolean;
+    orbColorA: string;
+    orbColorB: string;
   };
   setAiConfig: (config: Partial<AiSettingsSectionProps['aiConfig']>) => void;
   onAddWorkspace: () => void;
@@ -84,6 +90,12 @@ export function AiSettingsSection({
   const SettingsField = SettingsFieldComponent;
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [avatarUploadError, setAvatarUploadError] = useState<string>('');
+  const [orbPreviewReady, setOrbPreviewReady] = useState(false);
+
+  const orbUniformOverrides = useMemo(
+    () => applyOrbColorsToUniforms(LIQUID_ORB_UNIFORM_SEED, aiConfig.orbColorA, aiConfig.orbColorB),
+    [aiConfig.orbColorA, aiConfig.orbColorB],
+  );
 
   // ── Ollama 设置页状态 ──
   const [ollamaModelsList, setOllamaModelsList] = useState<string[]>([]);
@@ -315,7 +327,7 @@ export function AiSettingsSection({
                     title={t('settings.ai.workspaceRemove', { defaultValue: '移除' })}
                     aria-label={t('settings.ai.workspaceRemove', { defaultValue: '移除' })}
                   >
-                    ×
+                    <img src={SvgIcon.CANCEL} alt="" draggable={false} />
                   </button>
                 </li>
               ))}
@@ -499,6 +511,112 @@ export function AiSettingsSection({
     </div>
   );
 
+  /** 渲染 Orb 样式页面 */
+  const renderOrbStylePage = (): ReactElement => (
+    <div className="settings-cards">
+      {/* 卡片: STT 界面 Orb 开关 */}
+      <div className="settings-card">
+        <div className="settings-card-header">
+          <div className="settings-card-title">{t('settings.ai.sttOrbTitle', { defaultValue: 'STT 界面 Orb' })}</div>
+          <div className="settings-card-subtitle">{t('settings.ai.sttOrbHint', { defaultValue: '控制语音输入界面是否显示液态 Orb 动画，关闭后将使用简约指示点代替' })}</div>
+        </div>
+        <div className="settings-card-inline-row">
+          <label className="settings-card-check">
+            <input
+              type="checkbox"
+              checked={aiConfig.sttOrbEnabled}
+              onChange={(e) => setAiConfig({ sttOrbEnabled: e.target.checked })}
+            />
+            {t('settings.ai.sttOrbToggle', { defaultValue: '在 STT 界面启用 Agent Orb' })}
+          </label>
+        </div>
+      </div>
+
+      <div className="settings-orb-preview-row">
+        <div className="settings-card settings-orb-preview-card">
+          <div className="settings-card-header">
+            <div className="settings-card-title">{t('settings.ai.orbColorTitle', { defaultValue: 'Orb 颜色自定义' })}</div>
+            <div className="settings-card-subtitle">{t('settings.ai.orbColorHint', { defaultValue: '自定义液态 Orb 的主色调，留空则使用默认颜色' })}</div>
+          </div>
+          <div className="settings-field-group">
+            <div className="settings-field">
+              <label className="settings-field-label">{t('settings.ai.orbColorA', { defaultValue: '主色 A' })}</label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <input
+                  type="color"
+                  value={aiConfig.orbColorA || '#d86bff'}
+                  onChange={(e) => setAiConfig({ orbColorA: e.target.value })}
+                />
+                <input
+                  className="settings-field-input"
+                  type="text"
+                  value={aiConfig.orbColorA}
+                  placeholder={t('settings.ai.orbColorPlaceholder', { defaultValue: '留空使用默认，如 #d86bff' })}
+                  onChange={(e) => setAiConfig({ orbColorA: e.target.value })}
+                />
+                {aiConfig.orbColorA && (
+                  <button
+                    className="settings-ai-workspace-remove-btn"
+                    type="button"
+                    onClick={() => setAiConfig({ orbColorA: '' })}
+                    title={t('settings.ai.orbColorReset', { defaultValue: '重置为默认' })}
+                  >
+                    <img src={SvgIcon.CANCEL} alt="" draggable={false} />
+                  </button>
+                )}
+              </div>
+            </div>
+            <div className="settings-field">
+              <label className="settings-field-label">{t('settings.ai.orbColorB', { defaultValue: '主色 B' })}</label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <input
+                  type="color"
+                  value={aiConfig.orbColorB || '#f4ff69'}
+                  onChange={(e) => setAiConfig({ orbColorB: e.target.value })}
+                />
+                <input
+                  className="settings-field-input"
+                  type="text"
+                  value={aiConfig.orbColorB}
+                  placeholder={t('settings.ai.orbColorPlaceholder', { defaultValue: '留空使用默认，如 #f4ff69' })}
+                  onChange={(e) => setAiConfig({ orbColorB: e.target.value })}
+                />
+                {aiConfig.orbColorB && (
+                  <button
+                    className="settings-ai-workspace-remove-btn"
+                    type="button"
+                    onClick={() => setAiConfig({ orbColorB: '' })}
+                    title={t('settings.ai.orbColorReset', { defaultValue: '重置为默认' })}
+                  >
+                    <img src={SvgIcon.CANCEL} alt="" draggable={false} />
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="settings-orb-preview-container">
+          <div className="settings-orb-preview-stage">
+            <LiquidOrbCanvas
+              uniformOverrides={orbUniformOverrides}
+              onReady={() => setOrbPreviewReady(true)}
+              onError={() => setOrbPreviewReady(true)}
+            />
+            {!orbPreviewReady && (
+              <div
+                className="settings-orb-preview-loading"
+                role="status"
+                aria-label={t('agent.liquidOrb.loadingLabel', { defaultValue: '正在加载液态玻璃球预览' })}
+              >
+                <span className="settings-orb-preview-spinner" />
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   const renderCurrentPage = (): ReactElement | null => {
     switch (aiSettingsPage) {
       case 'general':
@@ -507,6 +625,8 @@ export function AiSettingsSection({
         return renderR1pxcPage();
       case 'ollama':
         return renderOllamaPage();
+      case 'orb-style':
+        return renderOrbStylePage();
       default:
         return null;
     }

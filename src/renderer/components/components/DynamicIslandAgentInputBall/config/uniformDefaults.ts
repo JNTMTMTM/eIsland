@@ -62,3 +62,8 @@ export const LIQUID_ORB_UNIFORM_SEED: readonly number[] = [
   0.43529412150382996, 0.6196078658103943, 0.9098039269447327, 1,
   0.43529412150382996, 0.6196078658103943, 0.9098039269447327, 1,
 ];
+
+/** colorA 在 uniform 种子中的起始偏移量。 */
+export const ORB_COLOR_A_OFFSET = 32;
+/** colorB 在 uniform 种子中的起始偏移量。 */
+export const ORB_COLOR_B_OFFSET = 36;

@@ -944,9 +944,20 @@
   transition: background 0.15s, color 0.15s;
 }
 
+.settings-ai-workspace-remove-btn img {
+  width: 12px;
+  height: 12px;
+  opacity: 0.35;
+  transition: opacity 0.15s;
+}
+
 .settings-ai-workspace-remove-btn:hover {
   background: rgba(220, 80, 80, 0.15);
   color: rgba(220, 80, 80, 0.9);
+}
+
+.settings-ai-workspace-remove-btn:hover img {
+  opacity: 0.7;
 }
 
 .settings-ai-workspace-empty {
@@ -2572,6 +2583,20 @@
   box-shadow: 0 0 0 1px rgba(var(--color-text-rgb), 0.4);
 }
 
+.settings-language-flag-icon {
+  width: 18px;
+  height: 13px;
+  object-fit: cover;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.settings-language-flag-icon.no-filter,
+[data-theme='light'] .settings-language-flag-icon.no-filter {
+  filter: none;
+  opacity: 1;
+}
+
 .settings-font-delete {
   margin-left: 4px;
   padding: 0;
@@ -3080,6 +3105,79 @@
 .settings-performance-monitor-color-row .settings-hotkey-btn {
   flex: 0 0 auto;
   margin-left: auto;
+}
+
+/* ── Orb 颜色预览 ── */
+
+.settings-orb-preview-row {
+  display: flex;
+  gap: 12px;
+  align-items: stretch;
+}
+
+.settings-orb-preview-card {
+  flex: 1;
+  min-width: 0;
+}
+
+.settings-orb-preview-container {
+  flex: 0 0 280px;
+  display: flex;
+  flex-direction: column;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(var(--color-text-rgb), 0.08);
+  background: rgba(var(--color-text-rgb), 0.03);
+}
+
+.settings-orb-preview-stage {
+  position: relative;
+  min-height: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #050509;
+}
+
+.settings-orb-preview-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(5, 5, 9, 0.82);
+  z-index: 1;
+}
+
+.settings-orb-preview-spinner {
+  width: 28px;
+  height: 28px;
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  border-top-color: rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  animation: settings-orb-preview-spin 0.8s linear infinite;
+}
+
+@keyframes settings-orb-preview-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .settings-orb-preview-spinner {
+    animation-duration: 1.8s;
+  }
+}
+
+@media (max-width: 760px) {
+  .settings-orb-preview-row {
+    flex-direction: column;
+  }
+
+  .settings-orb-preview-container {
+    flex-basis: auto;
+  }
 }
 
 /* ── 启动动画预览 ── */

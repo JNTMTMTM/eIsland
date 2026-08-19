@@ -24,9 +24,12 @@
  * @author 鸡哥
  */
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { ReactElement } from 'react';
 import { LiquidOrbCanvas } from '../../../components/DynamicIslandAgentInputBall';
+import { applyOrbColorsToUniforms } from '../../../components/DynamicIslandAgentInputBall/utils/color';
+import { LIQUID_ORB_UNIFORM_SEED } from '../../../components/DynamicIslandAgentInputBall/config/uniformDefaults';
+import useIslandStore from '../../../../store/slices';
 
 interface AgentVoiceInputViewProps {
   statusText: string;
@@ -41,23 +44,33 @@ interface AgentVoiceInputViewProps {
  */
 export function AgentVoiceInputView(props: AgentVoiceInputViewProps): ReactElement {
   const { statusText, transcript, textRef } = props;
+  const sttOrbEnabled = useIslandStore((s) => s.aiConfig.sttOrbEnabled);
+  const orbColorA = useIslandStore((s) => s.aiConfig.orbColorA);
+  const orbColorB = useIslandStore((s) => s.aiConfig.orbColorB);
   const [orbReady, setOrbReady] = useState(false);
   const [orbFailed, setOrbFailed] = useState(false);
+
+  /** 若用户自定义了颜色，生成 uniformOverrides 覆盖默认种子值 */
+  const uniformOverrides = useMemo(
+    () => applyOrbColorsToUniforms(LIQUID_ORB_UNIFORM_SEED, orbColorA, orbColorB),
+    [orbColorA, orbColorB],
+  );
 
   return (
     <div className="agent-voice-input-content">
       <div className="agent-voice-input-status">
         <div className="agent-voice-input-indicator">
-          {!orbReady || orbFailed ? (
+          {!sttOrbEnabled || !orbReady || orbFailed ? (
             <>
               <span className="agent-voice-input-dot" />
               <span className="agent-voice-input-dot" />
               <span className="agent-voice-input-dot" />
             </>
           ) : null}
-          {!orbFailed ? (
+          {sttOrbEnabled && !orbFailed ? (
             <div className={`agent-voice-input-orb${orbReady ? ' is-ready' : ''}`}>
               <LiquidOrbCanvas
+                uniformOverrides={uniformOverrides}
                 onReady={() => setOrbReady(true)}
                 onError={() => setOrbFailed(true)}
               />

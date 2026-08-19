@@ -1365,7 +1365,8 @@
       "close": "Close"
     },
     "liquidOrb": {
-      "ariaLabel": "Dynamic liquid glass orb"
+      "ariaLabel": "Dynamic liquid glass orb",
+      "loadingLabel": "Loading liquid glass orb preview"
     }
   },
   "cli": {
@@ -1997,6 +1998,7 @@
       "general": "General",
       "r1pxc": "r1pxc Agent",
       "ollama": "Ollama Local",
+      "orb-style": "Orb Style",
       "shortcut": "Shortcuts",
       "user": "Account",
       "update": "Updates",
@@ -2076,7 +2078,8 @@
     "aiPages": {
       "general": "General",
       "r1pxc": "r1pxc Agent",
-      "ollama": "Ollama Local"
+      "ollama": "Ollama Local",
+      "orb-style": "Orb Style"
     },
     "musicPages": {
       "whitelist": "Whitelist",
@@ -3197,6 +3200,15 @@
       "r1pxcAvatarClear": "Clear Avatar",
       "r1pxcAvatarFileTypeError": "Please choose an image file (png/jpg/webp etc.)",
       "r1pxcAvatarReadError": "Failed to read avatar. Please try another image",
+      "sttOrbTitle": "STT Interface Orb",
+      "sttOrbHint": "Toggle the liquid Orb animation in the voice input interface. When off, minimal indicator dots are shown instead",
+      "sttOrbToggle": "Enable Agent Orb in STT interface",
+      "orbColorTitle": "Orb Color Customization",
+      "orbColorHint": "Customize the main colors of the liquid Orb. Leave empty to use defaults",
+      "orbColorA": "Color A",
+      "orbColorB": "Color B",
+      "orbColorPlaceholder": "Leave empty for default, e.g. #d86bff",
+      "orbColorReset": "Reset to default",
       "pagination": "AI settings pagination"
     },
     "about": {

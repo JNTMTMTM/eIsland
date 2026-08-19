@@ -223,6 +223,9 @@ export interface AiConfig {
   ollamaBaseUrl: string;
   customApiModel: string;
   customApiMode: 'relay' | 'direct';
+  sttOrbEnabled: boolean;
+  orbColorA: string;
+  orbColorB: string;
 }
 
 /** AI 工具调用轨迹 */

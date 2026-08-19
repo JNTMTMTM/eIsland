@@ -27,6 +27,7 @@
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { AppSettingsSectionProps } from './types';
+import { resolveCountryIcon } from '../../../../../../../../utils/SvgIcon/country-icon';
 
 type LanguageSettingsPageProps = Pick<AppSettingsSectionProps, 'appLanguage' | 'applyAppLanguage'>;
 
@@ -51,16 +52,20 @@ export function LanguageSettingsPage({ appLanguage, applyAppLanguage }: Language
             {([
               { value: 'zh-CN', label: t('settings.language.options.zh-CN', { defaultValue: '简体中文' }) },
               { value: 'en-US', label: t('settings.language.options.en-US', { defaultValue: 'English' }) },
-            ] as Array<{ value: 'zh-CN' | 'en-US'; label: string }>).map((opt) => (
-              <button
-                key={opt.value}
-                className={`settings-lyrics-source-btn ${appLanguage === opt.value ? 'active' : ''}`}
-                type="button"
-                onClick={() => applyAppLanguage(opt.value)}
-              >
-                {opt.label}
-              </button>
-            ))}
+            ] as Array<{ value: 'zh-CN' | 'en-US'; label: string }>).map((opt) => {
+              const iconSrc = resolveCountryIcon(opt.value);
+              return (
+                <button
+                  key={opt.value}
+                  className={`settings-lyrics-source-btn ${appLanguage === opt.value ? 'active' : ''}`}
+                  type="button"
+                  onClick={() => applyAppLanguage(opt.value)}
+                >
+                  {iconSrc && <img className="settings-language-flag-icon no-filter" src={iconSrc} alt="" draggable={false} />}
+                  {opt.label}
+                </button>
+              );
+            })}
           </div>
           <div className="settings-music-hint">
             {appLanguage === 'zh-CN'

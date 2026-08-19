@@ -1365,7 +1365,8 @@
       "close": "关闭"
     },
     "liquidOrb": {
-      "ariaLabel": "动态液态玻璃球"
+      "ariaLabel": "动态液态玻璃球",
+      "loadingLabel": "正在加载液态玻璃球预览"
     }
   },
   "cli": {
@@ -1997,6 +1998,7 @@
       "general": "通用配置",
       "r1pxc": "r1pxc Agent",
       "ollama": "Ollama 本地",
+      "orb-style": "Orb 样式",
       "shortcut": "快捷键",
       "user": "用户中心",
       "update": "更新设置",
@@ -2076,7 +2078,8 @@
     "aiPages": {
       "general": "通用配置",
       "r1pxc": "r1pxc Agent",
-      "ollama": "Ollama 本地"
+      "ollama": "Ollama 本地",
+      "orb-style": "Orb 样式"
     },
     "musicPages": {
       "whitelist": "白名单",
@@ -3197,6 +3200,15 @@
       "r1pxcAvatarClear": "清除头像",
       "r1pxcAvatarFileTypeError": "请选择图片文件（png/jpg/webp 等）",
       "r1pxcAvatarReadError": "头像读取失败，请换一张图片重试",
+      "sttOrbTitle": "STT 界面 Orb",
+      "sttOrbHint": "控制语音输入界面是否显示液态 Orb 动画，关闭后将使用简约指示点代替",
+      "sttOrbToggle": "在 STT 界面启用 Agent Orb",
+      "orbColorTitle": "Orb 颜色自定义",
+      "orbColorHint": "自定义液态 Orb 的主色调，留空则使用默认颜色",
+      "orbColorA": "主色 A",
+      "orbColorB": "主色 B",
+      "orbColorPlaceholder": "留空使用默认，如 #d86bff",
+      "orbColorReset": "重置为默认",
       "pagination": "AI 设置分页"
     },
     "about": {
