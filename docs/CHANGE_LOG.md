@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-08-18T09:07:51.820Z
+> 生成时间：2026-08-19T18:16:40.245Z
 
 ## 26.7.3
 
@@ -3464,6 +3464,19 @@
 
 ## Unreleased
 
+- 2026-08-20 | 621c376c | 鸡哥 | Merge pull request #203 from JNTMTMTM/dev
+- 2026-08-20 | 1b47da82 | 鸡哥 | feat: add color offset constants for orb colors in uniform configuration
+- 2026-08-20 | e0367fe2 | 鸡哥 | feat: add loading label for liquid orb preview and refactor color application logic
+- 2026-08-19 | abdeef9a | 鸡哥 | feat: add country flag icons to language selection buttons in settings
+- 2026-08-19 | f9fe2193 | 鸡哥 | feat: add 'orb-style' localization for English and Chinese language files
+- 2026-08-19 | ea369f35 | 鸡哥 | feat: add loading spinner for orb preview in AI settings section
+- 2026-08-19 | 474a1739 | 鸡哥 | feat: update useWebGPURenderer to handle uniform data updates and improve rendering lifecycle
+- 2026-08-19 | 38cd1bbf | 鸡哥 | feat: enhance orb color customization with preview and layout adjustments
+- 2026-08-19 | 4110b94c | 鸡哥 | feat: replace remove button text with icon and add styling for hover effects
+- 2026-08-19 | e3baf9c0 | 鸡哥 | feat: add orb color customization settings and utility functions
+- 2026-08-18 | 6af49d76 | 鸡哥 | feat: add STT interface Orb toggle and localization support
+- 2026-08-18 | d493d7b4 | 鸡哥 | feat: add 'orb-style' settings page and localization support
+- 2026-08-18 | 9084519d | eislandBot | docs: auto update CHANGE_LOG.md for #202 by @JNTMTMTM [skip ci]
 - 2026-08-18 | 9411dc76 | 鸡哥 | Merge pull request #202 from JNTMTMTM/dev
 - 2026-08-18 | 64b38700 | 鸡哥 | fix: enhance ESLint rule detection in code quality review workflow
 - 2026-08-18 | 1e086fcb | 鸡哥 | fix: add defensive check for GPUDevice.destroy method in useWebGPURenderer style: use CSS variable for orb size in agentVoiceInput
