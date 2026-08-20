@@ -33,3 +33,19 @@ export interface TodoListProps {
   /** 所属 turn 编号（可选，用于时间线上下文） */
   turn?: number;
 }
+
+/** useTodoList hook 返回值类型 */
+export interface UseTodoListReturn {
+  /** 是否折叠 */
+  collapsed: boolean;
+  /** 已完成数量 */
+  completedCount: number;
+  /** 是否全部完成 */
+  allCompleted: boolean;
+  /** 是否已开始（有非 pending 项） */
+  hasStarted: boolean;
+  /** 完成进度百分比 */
+  progress: number;
+  /** 切换折叠/展开 */
+  toggle: () => void;
+}
