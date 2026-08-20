@@ -25,29 +25,36 @@
  */
 
 import { useEffect, useRef, useState } from 'react';
-import type { UseThinkingReasoningReturn } from '../types/thinkingTypes';
+import type { UseThinkingReasoningOptions, UseThinkingReasoningReturn } from '../types/thinkingTypes';
 
 /**
  * 管理思考过程的展开状态、计时和自动滚动。
  * @param isThinking - 是否仍在接收思考内容。
  * @param content - 当前思考过程文本（用于触发自动滚动）。
+ * @param options - 可选配置：持久化耗时、结束回调。
  * @returns 展开状态、耗时、ref 和切换函数。
  */
 export function useThinkingReasoning(
   isThinking: boolean,
   content: string,
+  options?: UseThinkingReasoningOptions,
 ): UseThinkingReasoningReturn {
+  const { persistedDuration, onDurationComputed } = options ?? {};
   const [open, setOpen] = useState(false);
-  const [elapsedSeconds, setElapsedSeconds] = useState<number | null>(null);
+  const [elapsedSeconds, setElapsedSeconds] = useState<number | null>(persistedDuration ?? null);
   const startedAtRef = useRef<number | null>(isThinking ? Date.now() : null);
   const viewportRef = useRef<HTMLDivElement>(null);
+  const onDurationComputedRef = useRef(onDurationComputed);
+  onDurationComputedRef.current = onDurationComputed;
 
   // 计时逻辑：thinking 期间每秒更新，结束时记录最终耗时
   useEffect(() => {
     if (!isThinking) {
       setOpen(false);
       if (startedAtRef.current !== null) {
-        setElapsedSeconds(Math.max(1, Math.round((Date.now() - startedAtRef.current) / 1000)));
+        const seconds = Math.max(1, Math.round((Date.now() - startedAtRef.current) / 1000));
+        setElapsedSeconds(seconds);
+        onDurationComputedRef.current?.(seconds);
       }
       return undefined;
     }

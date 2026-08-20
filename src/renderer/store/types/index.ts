@@ -276,6 +276,7 @@ export interface AiChatMessage {
   traceId?: string;
   finalized?: boolean;
   thinkBlocks?: string[];
+  thinkDurations?: number[];
   toolCalls?: AiToolCall[];
   todoSnapshots?: AiTodoSnapshot[];
   attachments?: AiChatAttachment[];
@@ -452,6 +453,7 @@ export interface AiSlice {
   setAiChatStreaming: (streaming: boolean) => void;
   setAiChatSessionMessages: (sessionId: string, messages: AiChatMessage[]) => void;
   markAiChatSessionReplyFinished: (sessionId: string, finishedAt?: number) => void;
+  setAiChatMessageThinkDuration: (messageIndex: number, thinkIndex: number, seconds: number) => void;
   setAiChatMessages: (messages: AiChatMessage[]) => void;
   clearAiChatMessages: () => void;
   aiWebAccessPrompt: AiWebAccessPrompt | null;

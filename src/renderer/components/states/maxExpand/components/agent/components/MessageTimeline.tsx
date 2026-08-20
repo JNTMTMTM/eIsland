@@ -25,8 +25,10 @@
  */
 
 import type { ReactElement } from 'react';
+import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { AiChatMessage, AiTodoSnapshot } from '../../../../../../store/types';
+import useIslandStore from '../../../../../../store/slices';
 import { normalizeMarkdownCodeFences, toPrettyJson } from '../utils/chatUtils';
 import { AssistantMarkdown } from './AssistantMarkdown';
 import { ThinkingReasoning } from '../../../../../components/DynamicIslandAgentProcessComponents/thinking';
@@ -57,6 +59,13 @@ export function MessageTimeline({
   const thinkBlocks = showThinking && Array.isArray(msg.thinkBlocks)
     ? msg.thinkBlocks
     : [];
+  const thinkDurations = Array.isArray(msg.thinkDurations) ? msg.thinkDurations : [];
+
+  /** 将思考耗时持久化到消息 */
+  const setAiChatMessageThinkDuration = useIslandStore((s) => s.setAiChatMessageThinkDuration);
+  const handleDurationComputed = useCallback((thinkIndex: number, seconds: number): void => {
+    setAiChatMessageThinkDuration(absoluteIndex, thinkIndex, seconds);
+  }, [absoluteIndex, setAiChatMessageThinkDuration]);
 
   const sortedToolCalls = Array.isArray(msg.toolCalls)
     ? [...msg.toolCalls]
@@ -110,6 +119,8 @@ export function MessageTimeline({
         key="think-0"
         content={thinkBlocks[0]}
         isThinking={isStreaming && isLatestAssistantMsg}
+        persistedDuration={thinkDurations[0]}
+        onDurationComputed={(seconds): void => handleDurationComputed(0, seconds)}
       />,
     );
   }
@@ -171,6 +182,8 @@ export function MessageTimeline({
           key={`think-${thinkIdx}`}
           content={thinkText}
           isThinking={isStreaming && thinkIdx === thinkBlocks.length - 1 && isLatestAssistantMsg}
+          persistedDuration={thinkDurations[thinkIdx]}
+          onDurationComputed={(seconds): void => handleDurationComputed(thinkIdx, seconds)}
         />,
       );
     }
@@ -185,6 +198,8 @@ export function MessageTimeline({
           key={`think-${idx}`}
           content={thinkText}
           isThinking={isStreaming && idx === thinkBlocks.length - 1 && isLatestAssistantMsg}
+          persistedDuration={thinkDurations[idx]}
+          onDurationComputed={(seconds): void => handleDurationComputed(idx, seconds)}
         />,
       );
     }

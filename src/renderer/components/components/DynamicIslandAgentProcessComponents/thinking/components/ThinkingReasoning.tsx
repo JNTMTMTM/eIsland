@@ -36,9 +36,9 @@ import styles from '../styles/thinking-reasoning.module.css';
  * @param isThinking - 是否仍在接收思考内容。
  * @returns 思考过程展示组件。
  */
-export function ThinkingReasoning({ content, isThinking }: ThinkingReasoningProps): ReactElement {
+export function ThinkingReasoning({ content, isThinking, persistedDuration, onDurationComputed }: ThinkingReasoningProps): ReactElement {
   const { t } = useTranslation();
-  const { expanded, elapsedSeconds, viewportRef, toggle } = useThinkingReasoning(isThinking, content);
+  const { expanded, elapsedSeconds, viewportRef, toggle } = useThinkingReasoning(isThinking, content, { persistedDuration, onDurationComputed });
 
   return (
     <div className={styles.container}>

@@ -30,6 +30,18 @@ export interface ThinkingReasoningProps {
   content: string;
   /** 是否仍在接收思考内容 */
   isThinking: boolean;
+  /** 已持久化的思考耗时（重启后恢复用） */
+  persistedDuration?: number | null;
+  /** 思考结束时回调，用于持久化耗时 */
+  onDurationComputed?: (seconds: number) => void;
+}
+
+/** useThinkingReasoning hook 入参选项 */
+export interface UseThinkingReasoningOptions {
+  /** 已持久化的思考耗时（重启后恢复用） */
+  persistedDuration?: number | null;
+  /** 思考结束时回调，用于持久化耗时 */
+  onDurationComputed?: (seconds: number) => void;
 }
 
 /** useThinkingReasoning hook 返回值类型 */
