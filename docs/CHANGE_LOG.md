@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-08-19T18:16:40.245Z
+> 生成时间：2026-08-20T17:49:27.651Z
 
 ## 26.7.3
 
@@ -3464,6 +3464,16 @@
 
 ## Unreleased
 
+- 2026-08-21 | 39c5a000 | 鸡哥 | Merge pull request #204 from JNTMTMTM/dev
+- 2026-08-21 | c7a80a71 | 鸡哥 | feat: implement useTodoList hook for managing TodoList state and progress
+- 2026-08-21 | 0103d711 | 鸡哥 | fix: update turn prop check in TodoList component for better type safety
+- 2026-08-21 | 9242756c | 鸡哥 | feat: enhance TodoList component with turn prop and auto-collapse functionality
+- 2026-08-21 | fd383811 | 鸡哥 | feat: enhance ThinkingReasoning component with persisted duration and duration computed callback
+- 2026-08-20 | 1e1bf96b | 鸡哥 | refactor: clean up CSS styles for headerIcon and item components
+- 2026-08-20 | 72b9a703 | 鸡哥 | feat: implement TodoList component with collapsible functionality and integrate into MessageTimeline
+- 2026-08-20 | 3015e3e7 | 鸡哥 | feat: refactor ThinkingReasoning component and add useThinkingReasoning hook for improved state management
+- 2026-08-20 | 2106bf55 | 鸡哥 | feat: add ThinkingReasoning component and integrate into MessageTimeline for enhanced thought process display
+- 2026-08-19 | 599b9901 | eislandBot | docs: auto update CHANGE_LOG.md for #203 by @JNTMTMTM [skip ci]
 - 2026-08-20 | 621c376c | 鸡哥 | Merge pull request #203 from JNTMTMTM/dev
 - 2026-08-20 | 1b47da82 | 鸡哥 | feat: add color offset constants for orb colors in uniform configuration
 - 2026-08-20 | e0367fe2 | 鸡哥 | feat: add loading label for liquid orb preview and refactor color application logic
