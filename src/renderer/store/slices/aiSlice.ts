@@ -147,6 +147,9 @@ function normalizeAiChatMessage(value: unknown): AiChatMessage | null {
   const thinkBlocks = Array.isArray(source.thinkBlocks)
     ? source.thinkBlocks.filter((item): item is string => typeof item === 'string')
     : [];
+  const thinkDurations = Array.isArray(source.thinkDurations)
+    ? source.thinkDurations.filter((item): item is number => typeof item === 'number' && Number.isFinite(item) && item > 0)
+    : [];
   const toolCalls = Array.isArray(source.toolCalls)
     ? source.toolCalls
       .map((item) => normalizeAiToolCall(item))
@@ -163,6 +166,9 @@ function normalizeAiChatMessage(value: unknown): AiChatMessage | null {
   };
   if (thinkBlocks.length > 0) {
     normalized.thinkBlocks = thinkBlocks;
+  }
+  if (thinkDurations.length > 0) {
+    normalized.thinkDurations = thinkDurations;
   }
   if (toolCalls.length > 0) {
     normalized.toolCalls = toolCalls;
@@ -529,6 +535,23 @@ export const createAiSlice: StateCreator<
         };
       });
       saveAiChatSessions(nextSessions, get().activeAiChatSessionId);
+      set({ aiChatSessions: nextSessions });
+    },
+
+    setAiChatMessageThinkDuration: (messageIndex, thinkIndex, seconds) => {
+      const messages = [...get().aiChatMessages];
+      const msg = messages[messageIndex];
+      if (!msg) return;
+      const durations = Array.isArray(msg.thinkDurations) ? [...msg.thinkDurations] : [];
+      if (durations[thinkIndex] === seconds) return;
+      durations[thinkIndex] = seconds;
+      messages[messageIndex] = { ...msg, thinkDurations: durations };
+      set({ aiChatMessages: messages });
+      const activeId = get().activeAiChatSessionId;
+      const nextSessions = get().aiChatSessions.map((session) =>
+        session.id === activeId ? { ...session, messages } : session,
+      );
+      saveAiChatSessions(nextSessions, activeId);
       set({ aiChatSessions: nextSessions });
     },
 

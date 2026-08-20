@@ -833,7 +833,17 @@
     },
     "timeline": {
       "todoList": "Todo List",
+      "todoTitle": "To-dos",
+      "todo": {
+        "toggle": "Expand or collapse todo list"
+      },
       "thinkingProcess": "Thinking Process #{{index}}",
+      "thinking": {
+        "thinking": "Thinking…",
+        "thought": "Thought",
+        "elapsed": " for {{seconds}}s",
+        "toggleThought": "Expand or collapse thought process"
+      },
       "toolResultTitle": "Tool Result",
       "toolStatus": {
         "pending": "Running",
