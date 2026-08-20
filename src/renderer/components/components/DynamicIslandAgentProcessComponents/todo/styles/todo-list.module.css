@@ -24,13 +24,13 @@
   cursor: pointer;
 }
 
-.container .headerIcon {
-  position: relative !important;
-  display: block !important;
-  width: 24px !important;
-  min-width: 24px !important;
-  height: 18px !important;
-  flex: 0 0 24px !important;
+.container .headerIcon.headerIcon {
+  position: relative;
+  display: block;
+  width: 24px;
+  min-width: 24px;
+  height: 18px;
+  flex: 0 0 24px;
   margin-right: 2px;
   color: rgba(var(--color-text-rgb), 0.55);
 }
@@ -47,16 +47,16 @@
   transition: opacity 140ms ease, transform 220ms ease;
 }
 
-.container .headerIcon > .listIcon,
-.container .headerIcon > .completedIcon,
-.container .headerIcon > .progressIcon,
-.container .headerIcon > .chevron {
-  position: absolute !important;
-  inset: 1px auto auto 2px !important;
-  display: block !important;
-  width: 16px !important;
-  height: 16px !important;
-  margin: 0 !important;
+.container .headerIcon > .listIcon.listIcon,
+.container .headerIcon > .completedIcon.completedIcon,
+.container .headerIcon > .progressIcon.progressIcon,
+.container .headerIcon > .chevron.chevron {
+  position: absolute;
+  inset: 1px auto auto 2px;
+  display: block;
+  width: 16px;
+  height: 16px;
+  margin: 0;
 }
 .completedIcon { color: #15a06a; }
 .progressIcon { color: rgba(var(--color-text-rgb), 0.55); }
@@ -127,14 +127,14 @@
   list-style: none;
 }
 
-.container .item {
-  display: flex !important;
-  flex-direction: row !important;
-  flex-wrap: nowrap !important;
-  align-items: flex-start !important;
-  gap: 9px !important;
-  margin: 0 !important;
-  padding: 0 !important;
+.container .item.item {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: flex-start;
+  gap: 9px;
+  margin: 0;
+  padding: 0;
   color: rgba(var(--color-text-rgb), 0.62);
   font-size: 12px;
   line-height: 18px;
@@ -143,33 +143,33 @@
   animation-delay: calc(var(--todo-index, 0) * 50ms);
 }
 
-.container .itemIconWrap {
-  position: relative !important;
-  display: block !important;
-  width: 20px !important;
-  min-width: 20px !important;
-  height: 18px !important;
-  flex: 0 0 20px !important;
-  margin: 0 !important;
-  padding: 0 !important;
+.container .itemIconWrap.itemIconWrap {
+  position: relative;
+  display: block;
+  width: 20px;
+  min-width: 20px;
+  height: 18px;
+  flex: 0 0 20px;
+  margin: 0;
+  padding: 0;
 }
-.container .itemIconWrap > .itemIcon {
-  position: absolute !important;
-  inset: 1px auto auto 2px !important;
-  display: block !important;
-  width: 16px !important;
-  height: 16px !important;
-  margin: 0 !important;
+.container .itemIconWrap > .itemIcon.itemIcon {
+  position: absolute;
+  inset: 1px auto auto 2px;
+  display: block;
+  width: 16px;
+  height: 16px;
+  margin: 0;
 }
 .container .itemIconWrap > .itemIcon { color: rgba(var(--color-text-rgb), 0.58); }
 .itemIcon.active { opacity: 1; }
 .itemIcon.strong { color: rgba(var(--color-text-rgb), 0.9); }
 
-.container .itemText {
+.container .itemText.itemText {
   position: relative;
-  display: block !important;
+  display: block;
   min-width: 0;
-  flex: 1 1 auto !important;
+  flex: 1 1 auto;
   overflow-wrap: anywhere;
   text-decoration: none;
   transition: color 360ms ease;
