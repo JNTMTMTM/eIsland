@@ -25,3 +25,11 @@ export interface AgentTodoItem {
   content: string;
   status: 'pending' | 'in_progress' | 'completed';
 }
+
+/** TodoList 组件 Props */
+export interface TodoListProps {
+  /** 当前任务列表 */
+  items: AgentTodoItem[];
+  /** 所属 turn 编号（可选，用于时间线上下文） */
+  turn?: number;
+}

@@ -25,3 +25,4 @@
  */
 
 export { ThinkingReasoning } from "./components/ThinkingReasoning";
+export type { ThinkingReasoningProps } from "./types/thinkingTypes";

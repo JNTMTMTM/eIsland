@@ -81,6 +81,16 @@
   flex: 0 1 auto;
   font-weight: 500;
 }
+.turnBadge {
+  flex: 0 0 auto;
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: rgba(var(--color-text-rgb), 0.1);
+  color: rgba(var(--color-text-rgb), 0.5);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 16px;
+}
 .count {
   flex: 0 0 auto;
   margin-left: auto;

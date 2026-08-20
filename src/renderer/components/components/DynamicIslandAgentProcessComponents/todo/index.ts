@@ -20,4 +20,4 @@
  */
 
 export { TodoList } from './components/TodoList';
-export type { AgentTodoItem } from './types/todoTypes';
+export type { AgentTodoItem, TodoListProps } from './types/todoTypes';

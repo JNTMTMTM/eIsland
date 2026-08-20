@@ -27,12 +27,8 @@
 import type { CSSProperties, ReactElement } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { AgentTodoItem } from '../types/todoTypes';
+import type { TodoListProps } from '../types/todoTypes';
 import styles from '../styles/todo-list.module.css';
-
-interface TodoListProps {
-  items: AgentTodoItem[];
-}
 
 const classNames = (base: string, active = false): string => `${base}${active ? ` ${styles.active}` : ''}`;
 
@@ -109,19 +105,33 @@ function FilledCheckIcon(): ReactElement {
 /**
  * 渲染可折叠的 Agent 任务清单。
  * @param items - 当前任务及其状态。
+ * @param turn - 所属 turn 编号（可选）。
  * @returns Agent 任务清单组件。
  */
-export function TodoList({ items }: TodoListProps): ReactElement {
+export function TodoList({ items, turn }: TodoListProps): ReactElement {
   const { t } = useTranslation();
   const completedCount = items.reduce((count, item) => count + (item.status === 'completed' ? 1 : 0), 0);
   const allCompleted = items.length > 0 && completedCount === items.length;
   const hasStarted = items.some((item) => item.status !== 'pending');
   const [collapsed, setCollapsed] = useState(allCompleted);
   const progress = items.length === 0 ? 0 : Math.round((completedCount / items.length) * 100);
+  const prevItemCountRef = useRef(items.length);
 
+  /** 全部完成时自动折叠 */
   useEffect(() => {
     if (allCompleted) setCollapsed(true);
   }, [allCompleted]);
+
+  /** 新增未完成项时自动展开 */
+  useEffect(() => {
+    if (items.length > prevItemCountRef.current && !allCompleted) {
+      setCollapsed(false);
+    }
+    prevItemCountRef.current = items.length;
+  }, [items.length, allCompleted]);
+
+  /** 空列表不渲染 */
+  if (items.length === 0) return <></>;
 
   return (
     <section className={styles.container}>
@@ -147,6 +157,9 @@ export function TodoList({ items }: TodoListProps): ReactElement {
           </svg>
         </span>
         <span className={styles.title}>{t('aiChat.timeline.todoTitle')}</span>
+        {turn != null && turn > 0 && (
+          <span className={styles.turnBadge}>#{turn}</span>
+        )}
         <span className={styles.count}><RollingCount value={`${completedCount}/${items.length}`} /></span>
       </button>
 

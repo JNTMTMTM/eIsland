@@ -100,18 +100,6 @@ export function MessageTimeline({
     );
   }
 
-  /** 收集所有有效 turn */
-  const allGroupTurns = new Set<number>();
-  const allToolCalls = Array.isArray(msg.toolCalls) ? msg.toolCalls : [];
-  allToolCalls.forEach((tc) => {
-    const t = Number.isFinite(tc.turn) && (tc.turn ?? 0) > 0 ? Number(tc.turn) : 0;
-    if (t > 0) allGroupTurns.add(t);
-  });
-  todoSnapshots.forEach((snap) => {
-    if (snap.turn > 0) allGroupTurns.add(snap.turn);
-  });
-  const sortedGroupTurns = [...allGroupTurns].sort((a, b) => a - b);
-
   /** think[0] 放在所有工具/todo 组之前（初始推理） */
   if (thinkBlocks.length > 0 && thinkBlocks[0]) {
     timelineNodes.push(
@@ -125,6 +113,18 @@ export function MessageTimeline({
     );
   }
 
+  /** 收集所有有效 turn */
+  const allGroupTurns = new Set<number>();
+  const allToolCalls = Array.isArray(msg.toolCalls) ? msg.toolCalls : [];
+  allToolCalls.forEach((tc) => {
+    const t = Number.isFinite(tc.turn) && (tc.turn ?? 0) > 0 ? Number(tc.turn) : 0;
+    if (t > 0) allGroupTurns.add(t);
+  });
+  todoSnapshots.forEach((snap) => {
+    if (snap.turn > 0) allGroupTurns.add(snap.turn);
+  });
+  const sortedGroupTurns = [...allGroupTurns].sort((a, b) => a - b);
+
   /** 按 turn 顺序渲染工具/todo 组，每组后面穿插对应的 think 块 */
   let nextThinkIdx = 1;
   for (let groupIdx = 0; groupIdx < sortedGroupTurns.length; groupIdx++) {
@@ -137,6 +137,7 @@ export function MessageTimeline({
         <TodoList
           key={`todo-${turn}-${snapIndex}`}
           items={snap.items}
+          turn={turn}
         />,
       );
     }
