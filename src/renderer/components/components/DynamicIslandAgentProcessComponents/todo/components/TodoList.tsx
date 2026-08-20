@@ -157,7 +157,7 @@ export function TodoList({ items, turn }: TodoListProps): ReactElement {
           </svg>
         </span>
         <span className={styles.title}>{t('aiChat.timeline.todoTitle')}</span>
-        {turn != null && turn > 0 && (
+        {turn !== undefined && turn > 0 && (
           <span className={styles.turnBadge}>#{turn}</span>
         )}
         <span className={styles.count}><RollingCount value={`${completedCount}/${items.length}`} /></span>
