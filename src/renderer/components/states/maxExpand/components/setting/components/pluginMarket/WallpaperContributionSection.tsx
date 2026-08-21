@@ -45,9 +45,6 @@ interface VideoMeta {
   height: number;
 }
 
-interface WallpaperContributionSectionProps {
-  onGoWallpaper: () => void;
-}
 
 const MAX_IMAGE_SIZE = 20 * 1024 * 1024;
 const MAX_VIDEO_SIZE = 100 * 1024 * 1024;
@@ -226,7 +223,7 @@ async function createVideoPosterAndMeta(file: File): Promise<{ poster: File; wid
 /**
  * 壁纸贡献内容区
  */
-export function WallpaperContributionSection({ onGoWallpaper }: WallpaperContributionSectionProps) {
+export function WallpaperContributionSection() {
   const { t } = useTranslation();
   const [message, setMessage] = useState('');
   const [uploading, setUploading] = useState(false);
@@ -430,12 +427,6 @@ export function WallpaperContributionSection({ onGoWallpaper }: WallpaperContrib
 
   return (
     <div className="settings-plugin-market-wallpaper">
-      <div className="settings-plugin-market-top-actions">
-        <button className="settings-hotkey-btn" type="button" onClick={onGoWallpaper}>
-          {t('settings.pluginMarket.contribution.actions.backToWallpaper', { defaultValue: '返回壁纸市场' })}
-        </button>
-      </div>
-
       <div className="settings-plugin-market-upload">
         <div className="settings-plugin-market-contribution-title">
           {t('settings.pluginMarket.contribution.title', { defaultValue: '贡献你的壁纸' })}

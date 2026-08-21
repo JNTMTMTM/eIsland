@@ -2742,7 +2742,7 @@ export function SettingsTab(): ReactElement {
                       />
                     )}
                     {pluginMarketPage === 'contribution' && (
-                      <WallpaperContributionSection onGoWallpaper={() => setPluginMarketPage('wallpaper')} />
+                      <WallpaperContributionSection />
                     )}
                     {pluginMarketPage === 'edit' && (
                       <WallpaperEditSection
