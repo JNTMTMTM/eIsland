@@ -2721,6 +2721,7 @@ export function SettingsTab(): ReactElement {
                     aria-label={t('settings.pluginMarket.wallpaper.actions.refresh', { defaultValue: '刷新壁纸列表' })}
                   >
                     <img src={SvgIcon.REVERT} alt="" className="settings-app-title-refresh-icon" />
+                    <img src={SvgIcon.SEARCH} alt="" className="settings-app-title-search-icon" />
                   </button>
                 )}
                 {hasLoginSession && (

@@ -742,6 +742,16 @@
   filter: brightness(0) invert(var(--icon-invert));
 }
 
+.settings-app-title-search-icon {
+  width: 13px;
+  height: 13px;
+  display: block;
+  object-fit: contain;
+  opacity: 0.72;
+  filter: brightness(0) invert(var(--icon-invert));
+  margin-left: 4px;
+}
+
 .max-expand-settings-desc {
   font-size: 13px;
   color: rgba(var(--color-text-rgb), 0.55);
