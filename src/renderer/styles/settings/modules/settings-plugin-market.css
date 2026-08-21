@@ -438,6 +438,7 @@
 .settings-plugin-market-detail .settings-plugin-market-top-actions {
   display: grid;
   grid-template-columns: 1fr 1fr;
+  margin-bottom: 10px;
 }
 
 .settings-plugin-market-detail .settings-plugin-market-toolbar {
