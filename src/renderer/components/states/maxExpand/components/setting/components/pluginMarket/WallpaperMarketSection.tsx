@@ -44,7 +44,7 @@ interface WallpaperMarketSectionProps {
 }
 
 const DEFAULT_MARKET_PAGE_SIZE = 8;
-const STANDALONE_MARKET_PAGE_SIZE = 8;
+const STANDALONE_MARKET_PAGE_SIZE = 18;
 const STANDALONE_WINDOW_MODE_STORE_KEY = 'standalone-window-mode';
 const LEGACY_COUNTDOWN_WINDOW_MODE_STORE_KEY = 'countdown-window-mode';
 
