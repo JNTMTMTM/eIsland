@@ -88,6 +88,7 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
   ];
   const [list, setList] = useState<WallpaperMarketItem[]>([]);
   const [selected, setSelected] = useState<WallpaperMarketItem | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [keyword, setKeyword] = useState('');
   const [sortBy, setSortBy] = useState<'newest' | 'rating' | 'apply'>('newest');
@@ -162,6 +163,11 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
     setDetailVideoPlaybackRate(1);
   }, [selected?.id]);
 
+  // 同步详情面板展开状态
+  useEffect(() => {
+    setDetailOpen(!!selected);
+  }, [selected]);
+
   useEffect(() => {
     const video = detailVideoRef.current;
     if (!video) return;
@@ -234,15 +240,8 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
         } else {
           setTotalPages((prev) => Math.max(prev, targetPage, hasMore ? targetPage + 1 : targetPage));
         }
-        if (nextList.length === 0) {
+        if (nextList.length === 0 || !selected || !nextList.some((item) => item.id === selected.id)) {
           setSelected(null);
-        } else if (!selected || !nextList.some((item) => item.id === selected.id)) {
-          const next = nextList[0];
-          setSelected(next);
-          // 列表项若是视频，拉一次详情补齐 originalUrl / 封面等字段，保证视频预览能正常进入
-          if (next.type === 'video') {
-            loadDetail(next.id).catch(() => {});
-          }
         }
         return;
       }
@@ -375,7 +374,13 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
                     key={item.id}
                     type="button"
                     className={`settings-plugin-market-card ${selected?.id === item.id ? 'active' : ''}`}
-                    onClick={() => { loadDetail(item.id).catch(() => {}); }}
+                    onClick={() => {
+                      if (selected?.id === item.id) {
+                        setSelected(null);
+                      } else {
+                        loadDetail(item.id).catch(() => {});
+                      }
+                    }}
                     onMouseEnter={() => handleHoverCard(item)}
                     onMouseLeave={handleLeaveCard}
                     onFocus={() => handleHoverCard(item)}
@@ -466,7 +471,8 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
           </div>
         </div>
 
-        <div className="settings-plugin-market-detail">
+        <div className={`settings-plugin-market-detail${detailOpen ? ' settings-plugin-market-detail--open' : ''}`}>
+          <div className="settings-plugin-market-detail-content-fade">
           <div className="settings-plugin-market-top-actions">
             <button className="settings-hotkey-btn" type="button" onClick={() => setSearchExpanded((prev) => !prev)}>
               {searchExpanded
@@ -745,6 +751,7 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
               </div>
             </div>
           )}
+          </div>
         </div>
       </div>
     </div>

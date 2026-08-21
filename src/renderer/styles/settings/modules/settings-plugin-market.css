@@ -220,8 +220,7 @@
 }
 
 .settings-plugin-market-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 300px;
+  display: flex;
   gap: 12px;
   flex: 1;
   min-height: 300px;
@@ -233,6 +232,8 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+  flex: 1 1 0;
+  min-width: 0;
 }
 
 .settings-plugin-market-list {
@@ -248,10 +249,6 @@
   overflow-y: auto;
   overflow-x: hidden;
   padding-right: 4px;
-}
-
-.cw-viewport .settings-plugin-market-list {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .settings-plugin-market-pagination {
@@ -382,17 +379,44 @@
 }
 
 .settings-plugin-market-detail {
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  flex: 0 0 0;
+  border: 1px solid transparent;
   border-radius: 10px;
-  padding: 10px;
+  padding: 0;
   background: rgba(255, 255, 255, 0.03);
   display: flex;
   flex-direction: column;
   gap: 8px;
   min-height: 0;
   max-height: 100%;
+  overflow: hidden;
+  opacity: 0;
+  transition: flex-basis 300ms cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 200ms ease,
+              padding 300ms cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 300ms ease;
+}
+
+.settings-plugin-market-detail--open {
+  flex: 0 0 300px;
+  border-color: rgba(255, 255, 255, 0.08);
+  padding: 10px;
   overflow-y: auto;
   overflow-x: hidden;
+  opacity: 1;
+}
+
+.settings-plugin-market-detail-content-fade {
+  opacity: 0;
+}
+
+.settings-plugin-market-detail--open .settings-plugin-market-detail-content-fade {
+  animation: detail-fade-in 300ms ease 150ms both;
+}
+
+@keyframes detail-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .settings-plugin-market-list::-webkit-scrollbar,
@@ -901,8 +925,8 @@
 }
 
 @media (max-width: 960px) {
-  .settings-plugin-market-layout {
-    grid-template-columns: minmax(0, 1fr) 260px;
+  .settings-plugin-market-detail--open {
+    flex-basis: 260px;
   }
 
   .settings-plugin-market-card-media {
@@ -920,8 +944,8 @@
 }
 
 @media (max-width: 720px) {
-  .settings-plugin-market-layout {
-    grid-template-columns: minmax(0, 1fr) 220px;
+  .settings-plugin-market-detail--open {
+    flex-basis: 220px;
   }
 
   .settings-plugin-market-detail .settings-plugin-market-top-actions {
