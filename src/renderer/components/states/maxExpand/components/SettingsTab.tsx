@@ -2734,8 +2734,9 @@ export function SettingsTab(): ReactElement {
                     </button>
                     {pluginMarketPage === 'wallpaper' && (
                       <button
-                        className={`settings-app-title-refresh-btn${wallpaperSearchExpanded ? ' active' : ''}`}
+                        className={`settings-app-title-refresh-btn${wallpaperSearchExpanded ? ' active' : ''}${wallpaperDetailOpen && pluginMarketNavigationExpanded ? ' disabled' : ''}`}
                         type="button"
+                        disabled={wallpaperDetailOpen && pluginMarketNavigationExpanded}
                         onClick={() => setWallpaperSearchExpanded((prev) => !prev)}
                         title={t('settings.pluginMarket.wallpaper.actions.expandSearch', { defaultValue: '展开搜索' })}
                         aria-label={t('settings.pluginMarket.wallpaper.actions.expandSearch', { defaultValue: '展开搜索' })}
