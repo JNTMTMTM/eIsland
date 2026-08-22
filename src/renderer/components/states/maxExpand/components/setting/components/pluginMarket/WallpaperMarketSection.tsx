@@ -114,6 +114,7 @@ export function WallpaperMarketSection({ onApplyBackground, searchExpanded, onSe
   const [detailVideoPlaying, setDetailVideoPlaying] = useState<boolean>(true);
   const detailVideoRef = useRef<HTMLVideoElement | null>(null);
   const listRequestSeqRef = useRef(0);
+  const detailRequestSeqRef = useRef(0);
 
   useEffect(() => {
     if (!message) return;
@@ -220,6 +221,8 @@ export function WallpaperMarketSection({ onApplyBackground, searchExpanded, onSe
       return;
     }
     setLoading(true);
+    // 列表刷新时使进行中的详情请求失效
+    detailRequestSeqRef.current += 1;
     try {
       const result = await listUserWallpapers(token, {
         keyword: keyword.trim() || undefined,
@@ -263,7 +266,10 @@ export function WallpaperMarketSection({ onApplyBackground, searchExpanded, onSe
   const loadDetail = async (id: number): Promise<void> => {
     const token = readLocalToken();
     if (!token) return;
+    const seq = detailRequestSeqRef.current;
     const result = await getUserWallpaperDetail(token, id);
+    // 列表已刷新时忽略过期的详情响应
+    if (seq !== detailRequestSeqRef.current) return;
     if (result.ok && result.data) {
       setSelected(result.data);
       return;

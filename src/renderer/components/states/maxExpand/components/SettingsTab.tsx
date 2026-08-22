@@ -2724,8 +2724,9 @@ export function SettingsTab(): ReactElement {
                 {hasLoginSession && (pluginMarketPage === 'wallpaper' || pluginMarketPage === 'edit') && (
                   <>
                     <button
-                      className="settings-app-title-refresh-btn"
+                      className={`settings-app-title-refresh-btn${wallpaperDetailOpen && pluginMarketNavigationExpanded ? ' disabled' : ''}`}
                       type="button"
+                      disabled={wallpaperDetailOpen && pluginMarketNavigationExpanded}
                       onClick={() => setWallpaperMarketRefreshKey((prev) => prev + 1)}
                       title={t('settings.pluginMarket.wallpaper.actions.refresh', { defaultValue: '刷新壁纸列表' })}
                       aria-label={t('settings.pluginMarket.wallpaper.actions.refresh', { defaultValue: '刷新壁纸列表' })}
