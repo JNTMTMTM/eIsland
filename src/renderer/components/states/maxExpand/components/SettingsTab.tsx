@@ -2739,7 +2739,6 @@ export function SettingsTab(): ReactElement {
                       <WallpaperMarketSection
                         key={wallpaperMarketRefreshKey}
                         onApplyBackground={handleApplyMarketplaceWallpaper}
-                        onGoContribution={() => setPluginMarketPage('contribution')}
                       />
                     )}
                     {pluginMarketPage === 'contribution' && (

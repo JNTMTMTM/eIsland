@@ -40,7 +40,6 @@ import { SvgIcon } from '../../../../../../../utils/SvgIcon';
 
 interface WallpaperMarketSectionProps {
   onApplyBackground: (imageUrl: string, options?: { type?: 'image' | 'video' }) => void;
-  onGoContribution: () => void;
 }
 
 const DEFAULT_MARKET_PAGE_SIZE = 8;
@@ -76,7 +75,7 @@ function formatDuration(durationMs: number | undefined): string {
 /**
  * 壁纸市场内容区
  */
-export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: WallpaperMarketSectionProps) {
+export function WallpaperMarketSection({ onApplyBackground }: WallpaperMarketSectionProps) {
   const { t } = useTranslation();
   const [marketPageSize, setMarketPageSize] = useState(DEFAULT_MARKET_PAGE_SIZE);
   const ratingDescriptions = [
@@ -478,9 +477,6 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
               {searchExpanded
                 ? t('settings.pluginMarket.wallpaper.actions.collapseSearch', { defaultValue: '收起搜索' })
                 : t('settings.pluginMarket.wallpaper.actions.expandSearch', { defaultValue: '展开搜索' })}
-            </button>
-            <button className="settings-hotkey-btn" type="button" onClick={onGoContribution}>
-              {t('settings.pluginMarket.wallpaper.actions.goContribution', { defaultValue: '前往贡献' })}
             </button>
           </div>
 
