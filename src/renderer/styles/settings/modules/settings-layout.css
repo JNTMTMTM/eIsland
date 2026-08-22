@@ -754,7 +754,7 @@
   object-fit: contain;
   opacity: 0.72;
   filter: brightness(0) invert(var(--icon-invert));
-  margin-left: 4px;
+  margin-left: 0;
 }
 
 .max-expand-settings-desc {
