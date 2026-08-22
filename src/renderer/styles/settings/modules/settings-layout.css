@@ -733,6 +733,11 @@
   border-color: rgba(var(--color-text-rgb), 0.18);
 }
 
+.settings-app-title-refresh-btn.disabled {
+  opacity: 0.35;
+  pointer-events: none;
+}
+
 .settings-app-title-refresh-icon {
   width: 12px;
   height: 12px;
@@ -740,6 +745,16 @@
   object-fit: contain;
   opacity: 0.72;
   filter: brightness(0) invert(var(--icon-invert));
+}
+
+.settings-app-title-search-icon {
+  width: 13px;
+  height: 13px;
+  display: block;
+  object-fit: contain;
+  opacity: 0.72;
+  filter: brightness(0) invert(var(--icon-invert));
+  margin-left: 0;
 }
 
 .max-expand-settings-desc {

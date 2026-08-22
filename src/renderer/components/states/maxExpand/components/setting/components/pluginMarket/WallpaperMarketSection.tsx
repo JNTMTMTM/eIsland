@@ -40,11 +40,13 @@ import { SvgIcon } from '../../../../../../../utils/SvgIcon';
 
 interface WallpaperMarketSectionProps {
   onApplyBackground: (imageUrl: string, options?: { type?: 'image' | 'video' }) => void;
-  onGoContribution: () => void;
+  searchExpanded: boolean;
+  onSearchExpandedChange: (expanded: boolean | ((prev: boolean) => boolean)) => void;
+  onDetailOpenChange?: (open: boolean) => void;
 }
 
-const DEFAULT_MARKET_PAGE_SIZE = 6;
-const STANDALONE_MARKET_PAGE_SIZE = 9;
+const DEFAULT_MARKET_PAGE_SIZE = 8;
+const STANDALONE_MARKET_PAGE_SIZE = 18;
 const STANDALONE_WINDOW_MODE_STORE_KEY = 'standalone-window-mode';
 const LEGACY_COUNTDOWN_WINDOW_MODE_STORE_KEY = 'countdown-window-mode';
 
@@ -76,7 +78,7 @@ function formatDuration(durationMs: number | undefined): string {
 /**
  * 壁纸市场内容区
  */
-export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: WallpaperMarketSectionProps) {
+export function WallpaperMarketSection({ onApplyBackground, searchExpanded, onSearchExpandedChange, onDetailOpenChange }: WallpaperMarketSectionProps) {
   const { t } = useTranslation();
   const [marketPageSize, setMarketPageSize] = useState(DEFAULT_MARKET_PAGE_SIZE);
   const ratingDescriptions = [
@@ -88,13 +90,13 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
   ];
   const [list, setList] = useState<WallpaperMarketItem[]>([]);
   const [selected, setSelected] = useState<WallpaperMarketItem | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [keyword, setKeyword] = useState('');
   const [sortBy, setSortBy] = useState<'newest' | 'rating' | 'apply'>('newest');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [hasNextPage, setHasNextPage] = useState(false);
-  const [searchExpanded, setSearchExpanded] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [ratingScore, setRatingScore] = useState(5);
   const [ratingExpanded, setRatingExpanded] = useState(false);
@@ -112,6 +114,7 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
   const [detailVideoPlaying, setDetailVideoPlaying] = useState<boolean>(true);
   const detailVideoRef = useRef<HTMLVideoElement | null>(null);
   const listRequestSeqRef = useRef(0);
+  const detailRequestSeqRef = useRef(0);
 
   useEffect(() => {
     if (!message) return;
@@ -162,6 +165,16 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
     setDetailVideoPlaybackRate(1);
   }, [selected?.id]);
 
+  // 同步详情面板展开状态
+  useEffect(() => {
+    setDetailOpen(!!selected);
+  }, [selected]);
+
+  // 通知父组件详情面板展开状态变化
+  useEffect(() => {
+    onDetailOpenChange?.(detailOpen);
+  }, [detailOpen, onDetailOpenChange]);
+
   useEffect(() => {
     const video = detailVideoRef.current;
     if (!video) return;
@@ -208,6 +221,8 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
       return;
     }
     setLoading(true);
+    // 列表刷新时使进行中的详情请求失效
+    detailRequestSeqRef.current += 1;
     try {
       const result = await listUserWallpapers(token, {
         keyword: keyword.trim() || undefined,
@@ -234,15 +249,8 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
         } else {
           setTotalPages((prev) => Math.max(prev, targetPage, hasMore ? targetPage + 1 : targetPage));
         }
-        if (nextList.length === 0) {
+        if (nextList.length === 0 || !selected || !nextList.some((item) => item.id === selected.id)) {
           setSelected(null);
-        } else if (!selected || !nextList.some((item) => item.id === selected.id)) {
-          const next = nextList[0];
-          setSelected(next);
-          // 列表项若是视频，拉一次详情补齐 originalUrl / 封面等字段，保证视频预览能正常进入
-          if (next.type === 'video') {
-            loadDetail(next.id).catch(() => {});
-          }
         }
         return;
       }
@@ -258,7 +266,10 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
   const loadDetail = async (id: number): Promise<void> => {
     const token = readLocalToken();
     if (!token) return;
+    const seq = detailRequestSeqRef.current;
     const result = await getUserWallpaperDetail(token, id);
+    // 列表已刷新时忽略过期的详情响应
+    if (seq !== detailRequestSeqRef.current) return;
     if (result.ok && result.data) {
       setSelected(result.data);
       return;
@@ -359,6 +370,28 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
 
       <div className="settings-plugin-market-layout">
         <div className="settings-plugin-market-list-panel">
+          <div className={`settings-plugin-market-search-panel${searchExpanded ? ' settings-plugin-market-search-panel--open' : ''}`}>
+            <div className="settings-plugin-market-search-content">
+              <input
+                className="settings-field-input"
+                value={keyword}
+                onChange={(e) => setKeyword(e.target.value)}
+                placeholder={t('settings.pluginMarket.wallpaper.searchPlaceholder', { defaultValue: '搜索标题/作者/描述/标签' })}
+              />
+              <select
+                className="settings-field-input"
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as 'newest' | 'rating' | 'apply')}
+              >
+                <option value="newest">{t('settings.pluginMarket.wallpaper.sort.newest', { defaultValue: '最新' })}</option>
+                <option value="rating">{t('settings.pluginMarket.wallpaper.sort.rating', { defaultValue: '评分最高' })}</option>
+                <option value="apply">{t('settings.pluginMarket.wallpaper.sort.apply', { defaultValue: '应用最多' })}</option>
+              </select>
+              <button className="settings-hotkey-btn" type="button" onClick={handleSearch}>
+                {t('settings.pluginMarket.wallpaper.actions.search', { defaultValue: '搜索' })}
+              </button>
+            </div>
+          </div>
           <div className="settings-plugin-market-list">
             {loading ? (
               <div className="settings-plugin-market-empty">{t('settings.pluginMarket.wallpaper.feedback.loading', { defaultValue: '加载中…' })}</div>
@@ -375,7 +408,13 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
                     key={item.id}
                     type="button"
                     className={`settings-plugin-market-card ${selected?.id === item.id ? 'active' : ''}`}
-                    onClick={() => { loadDetail(item.id).catch(() => {}); }}
+                    onClick={() => {
+                      if (selected?.id === item.id) {
+                        setSelected(null);
+                      } else {
+                        loadDetail(item.id).catch(() => {});
+                      }
+                    }}
                     onMouseEnter={() => handleHoverCard(item)}
                     onMouseLeave={handleLeaveCard}
                     onFocus={() => handleHoverCard(item)}
@@ -466,40 +505,8 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
           </div>
         </div>
 
-        <div className="settings-plugin-market-detail">
-          <div className="settings-plugin-market-top-actions">
-            <button className="settings-hotkey-btn" type="button" onClick={() => setSearchExpanded((prev) => !prev)}>
-              {searchExpanded
-                ? t('settings.pluginMarket.wallpaper.actions.collapseSearch', { defaultValue: '收起搜索' })
-                : t('settings.pluginMarket.wallpaper.actions.expandSearch', { defaultValue: '展开搜索' })}
-            </button>
-            <button className="settings-hotkey-btn" type="button" onClick={onGoContribution}>
-              {t('settings.pluginMarket.wallpaper.actions.goContribution', { defaultValue: '前往贡献' })}
-            </button>
-          </div>
-
-          {searchExpanded && (
-            <div className="settings-plugin-market-toolbar">
-              <input
-                className="settings-field-input"
-                value={keyword}
-                onChange={(e) => setKeyword(e.target.value)}
-                placeholder={t('settings.pluginMarket.wallpaper.searchPlaceholder', { defaultValue: '搜索标题/作者/描述/标签' })}
-              />
-              <select
-                className="settings-field-input"
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as 'newest' | 'rating' | 'apply')}
-              >
-                <option value="newest">{t('settings.pluginMarket.wallpaper.sort.newest', { defaultValue: '最新' })}</option>
-                <option value="rating">{t('settings.pluginMarket.wallpaper.sort.rating', { defaultValue: '评分最高' })}</option>
-                <option value="apply">{t('settings.pluginMarket.wallpaper.sort.apply', { defaultValue: '应用最多' })}</option>
-              </select>
-              <button className="settings-hotkey-btn" type="button" onClick={handleSearch}>
-                {t('settings.pluginMarket.wallpaper.actions.search', { defaultValue: '搜索' })}
-              </button>
-            </div>
-          )}
+        <div className={`settings-plugin-market-detail${detailOpen ? ' settings-plugin-market-detail--open' : ''}`}>
+          <div className="settings-plugin-market-detail-content-fade">
 
           {!selected ? (
             <div className="settings-plugin-market-empty">{t('settings.pluginMarket.wallpaper.feedback.selectHint', { defaultValue: '请选择左侧壁纸查看详情' })}</div>
@@ -745,6 +752,7 @@ export function WallpaperMarketSection({ onApplyBackground, onGoContribution }: 
               </div>
             </div>
           )}
+          </div>
         </div>
       </div>
     </div>

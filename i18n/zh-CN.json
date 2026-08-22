@@ -2988,10 +2988,7 @@
         "removeTag": "移除标签"
       },
       "contribution": {
-        "title": "贡献你的壁纸",
-        "actions": {
-          "backToWallpaper": "返回壁纸市场"
-        }
+        "title": "贡献你的壁纸"
       },
       "edit": {
         "searchPlaceholder": "搜索自己的壁纸",
@@ -3084,7 +3081,6 @@
           "refresh": "刷新壁纸列表",
           "expandSearch": "展开搜索",
           "collapseSearch": "收起搜索",
-          "goContribution": "前往贡献",
           "prevPage": "上一页",
           "nextPage": "下一页",
           "upload": "上传壁纸",

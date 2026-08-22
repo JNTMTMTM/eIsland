@@ -2988,10 +2988,7 @@
         "removeTag": "Remove tag"
       },
       "contribution": {
-        "title": "Contribute Your Wallpaper",
-        "actions": {
-          "backToWallpaper": "Back to Market"
-        }
+        "title": "Contribute Your Wallpaper"
       },
       "edit": {
         "searchPlaceholder": "Search your wallpapers",
@@ -3084,7 +3081,6 @@
           "refresh": "Refresh wallpaper list",
           "expandSearch": "Expand Search",
           "collapseSearch": "Collapse Search",
-          "goContribution": "Go to Contribution",
           "prevPage": "Previous",
           "nextPage": "Next",
           "upload": "Upload Wallpaper",
