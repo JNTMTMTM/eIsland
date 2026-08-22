@@ -42,6 +42,7 @@ interface WallpaperMarketSectionProps {
   onApplyBackground: (imageUrl: string, options?: { type?: 'image' | 'video' }) => void;
   searchExpanded: boolean;
   onSearchExpandedChange: (expanded: boolean | ((prev: boolean) => boolean)) => void;
+  onDetailOpenChange?: (open: boolean) => void;
 }
 
 const DEFAULT_MARKET_PAGE_SIZE = 8;
@@ -77,7 +78,7 @@ function formatDuration(durationMs: number | undefined): string {
 /**
  * 壁纸市场内容区
  */
-export function WallpaperMarketSection({ onApplyBackground, searchExpanded, onSearchExpandedChange }: WallpaperMarketSectionProps) {
+export function WallpaperMarketSection({ onApplyBackground, searchExpanded, onSearchExpandedChange, onDetailOpenChange }: WallpaperMarketSectionProps) {
   const { t } = useTranslation();
   const [marketPageSize, setMarketPageSize] = useState(DEFAULT_MARKET_PAGE_SIZE);
   const ratingDescriptions = [
@@ -167,6 +168,11 @@ export function WallpaperMarketSection({ onApplyBackground, searchExpanded, onSe
   useEffect(() => {
     setDetailOpen(!!selected);
   }, [selected]);
+
+  // 通知父组件详情面板展开状态变化
+  useEffect(() => {
+    onDetailOpenChange?.(detailOpen);
+  }, [detailOpen, onDetailOpenChange]);
 
   useEffect(() => {
     const video = detailVideoRef.current;
