@@ -40,6 +40,8 @@ import { SvgIcon } from '../../../../../../../utils/SvgIcon';
 
 interface WallpaperMarketSectionProps {
   onApplyBackground: (imageUrl: string, options?: { type?: 'image' | 'video' }) => void;
+  searchExpanded: boolean;
+  onSearchExpandedChange: (expanded: boolean | ((prev: boolean) => boolean)) => void;
 }
 
 const DEFAULT_MARKET_PAGE_SIZE = 8;
@@ -75,7 +77,7 @@ function formatDuration(durationMs: number | undefined): string {
 /**
  * 壁纸市场内容区
  */
-export function WallpaperMarketSection({ onApplyBackground }: WallpaperMarketSectionProps) {
+export function WallpaperMarketSection({ onApplyBackground, searchExpanded, onSearchExpandedChange }: WallpaperMarketSectionProps) {
   const { t } = useTranslation();
   const [marketPageSize, setMarketPageSize] = useState(DEFAULT_MARKET_PAGE_SIZE);
   const ratingDescriptions = [
@@ -94,7 +96,6 @@ export function WallpaperMarketSection({ onApplyBackground }: WallpaperMarketSec
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [hasNextPage, setHasNextPage] = useState(false);
-  const [searchExpanded, setSearchExpanded] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [ratingScore, setRatingScore] = useState(5);
   const [ratingExpanded, setRatingExpanded] = useState(false);
@@ -357,6 +358,28 @@ export function WallpaperMarketSection({ onApplyBackground }: WallpaperMarketSec
 
       <div className="settings-plugin-market-layout">
         <div className="settings-plugin-market-list-panel">
+          <div className={`settings-plugin-market-search-panel${searchExpanded ? ' settings-plugin-market-search-panel--open' : ''}`}>
+            <div className="settings-plugin-market-search-content">
+              <input
+                className="settings-field-input"
+                value={keyword}
+                onChange={(e) => setKeyword(e.target.value)}
+                placeholder={t('settings.pluginMarket.wallpaper.searchPlaceholder', { defaultValue: '搜索标题/作者/描述/标签' })}
+              />
+              <select
+                className="settings-field-input"
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as 'newest' | 'rating' | 'apply')}
+              >
+                <option value="newest">{t('settings.pluginMarket.wallpaper.sort.newest', { defaultValue: '最新' })}</option>
+                <option value="rating">{t('settings.pluginMarket.wallpaper.sort.rating', { defaultValue: '评分最高' })}</option>
+                <option value="apply">{t('settings.pluginMarket.wallpaper.sort.apply', { defaultValue: '应用最多' })}</option>
+              </select>
+              <button className="settings-hotkey-btn" type="button" onClick={handleSearch}>
+                {t('settings.pluginMarket.wallpaper.actions.search', { defaultValue: '搜索' })}
+              </button>
+            </div>
+          </div>
           <div className="settings-plugin-market-list">
             {loading ? (
               <div className="settings-plugin-market-empty">{t('settings.pluginMarket.wallpaper.feedback.loading', { defaultValue: '加载中…' })}</div>
@@ -472,36 +495,6 @@ export function WallpaperMarketSection({ onApplyBackground }: WallpaperMarketSec
 
         <div className={`settings-plugin-market-detail${detailOpen ? ' settings-plugin-market-detail--open' : ''}`}>
           <div className="settings-plugin-market-detail-content-fade">
-          <div className="settings-plugin-market-top-actions">
-            <button className="settings-hotkey-btn" type="button" onClick={() => setSearchExpanded((prev) => !prev)}>
-              {searchExpanded
-                ? t('settings.pluginMarket.wallpaper.actions.collapseSearch', { defaultValue: '收起搜索' })
-                : t('settings.pluginMarket.wallpaper.actions.expandSearch', { defaultValue: '展开搜索' })}
-            </button>
-          </div>
-
-          {searchExpanded && (
-            <div className="settings-plugin-market-toolbar">
-              <input
-                className="settings-field-input"
-                value={keyword}
-                onChange={(e) => setKeyword(e.target.value)}
-                placeholder={t('settings.pluginMarket.wallpaper.searchPlaceholder', { defaultValue: '搜索标题/作者/描述/标签' })}
-              />
-              <select
-                className="settings-field-input"
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as 'newest' | 'rating' | 'apply')}
-              >
-                <option value="newest">{t('settings.pluginMarket.wallpaper.sort.newest', { defaultValue: '最新' })}</option>
-                <option value="rating">{t('settings.pluginMarket.wallpaper.sort.rating', { defaultValue: '评分最高' })}</option>
-                <option value="apply">{t('settings.pluginMarket.wallpaper.sort.apply', { defaultValue: '应用最多' })}</option>
-              </select>
-              <button className="settings-hotkey-btn" type="button" onClick={handleSearch}>
-                {t('settings.pluginMarket.wallpaper.actions.search', { defaultValue: '搜索' })}
-              </button>
-            </div>
-          )}
 
           {!selected ? (
             <div className="settings-plugin-market-empty">{t('settings.pluginMarket.wallpaper.feedback.selectHint', { defaultValue: '请选择左侧壁纸查看详情' })}</div>

@@ -235,6 +235,7 @@ export function SettingsTab(): ReactElement {
   const [pluginMarketPage, setPluginMarketPage] = useState<PluginMarketPageKey>('wallpaper');
   const [pluginMarketNavigationExpanded, setPluginMarketNavigationExpanded] = useState(false);
   const [wallpaperMarketRefreshKey, setWallpaperMarketRefreshKey] = useState(0);
+  const [wallpaperSearchExpanded, setWallpaperSearchExpanded] = useState(false);
   const { aiConfig, setAiConfig, fetchWeatherData, setLogin, setRegister, setNotification } = useIslandStore();
   const settingsRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -2713,16 +2714,28 @@ export function SettingsTab(): ReactElement {
                 <span>{t('settings.labels.pluginMarket', { defaultValue: '壁纸市场' })}</span>
                 {hasLoginSession && <span className="settings-app-title-sub">- {currentPluginMarketPageLabel}</span>}
                 {hasLoginSession && (pluginMarketPage === 'wallpaper' || pluginMarketPage === 'edit') && (
-                  <button
-                    className="settings-app-title-refresh-btn"
-                    type="button"
-                    onClick={() => setWallpaperMarketRefreshKey((prev) => prev + 1)}
-                    title={t('settings.pluginMarket.wallpaper.actions.refresh', { defaultValue: '刷新壁纸列表' })}
-                    aria-label={t('settings.pluginMarket.wallpaper.actions.refresh', { defaultValue: '刷新壁纸列表' })}
-                  >
-                    <img src={SvgIcon.REVERT} alt="" className="settings-app-title-refresh-icon" />
-                    <img src={SvgIcon.SEARCH} alt="" className="settings-app-title-search-icon" />
-                  </button>
+                  <>
+                    <button
+                      className="settings-app-title-refresh-btn"
+                      type="button"
+                      onClick={() => setWallpaperMarketRefreshKey((prev) => prev + 1)}
+                      title={t('settings.pluginMarket.wallpaper.actions.refresh', { defaultValue: '刷新壁纸列表' })}
+                      aria-label={t('settings.pluginMarket.wallpaper.actions.refresh', { defaultValue: '刷新壁纸列表' })}
+                    >
+                      <img src={SvgIcon.REVERT} alt="" className="settings-app-title-refresh-icon" />
+                    </button>
+                    {pluginMarketPage === 'wallpaper' && (
+                      <button
+                        className={`settings-app-title-refresh-btn${wallpaperSearchExpanded ? ' active' : ''}`}
+                        type="button"
+                        onClick={() => setWallpaperSearchExpanded((prev) => !prev)}
+                        title={t('settings.pluginMarket.wallpaper.actions.expandSearch', { defaultValue: '展开搜索' })}
+                        aria-label={t('settings.pluginMarket.wallpaper.actions.expandSearch', { defaultValue: '展开搜索' })}
+                      >
+                        <img src={SvgIcon.SEARCH} alt="" className="settings-app-title-search-icon" />
+                      </button>
+                    )}
+                  </>
                 )}
                 {hasLoginSession && (
                   <SettingsPageNavigationToggle
@@ -2739,6 +2752,8 @@ export function SettingsTab(): ReactElement {
                       <WallpaperMarketSection
                         key={wallpaperMarketRefreshKey}
                         onApplyBackground={handleApplyMarketplaceWallpaper}
+                        searchExpanded={wallpaperSearchExpanded}
+                        onSearchExpandedChange={setWallpaperSearchExpanded}
                       />
                     )}
                     {pluginMarketPage === 'contribution' && (
