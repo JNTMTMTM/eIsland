@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-08-20T17:49:27.651Z
+> 生成时间：2026-08-22T16:01:53.795Z
 
 ## 26.7.3
 
@@ -3464,6 +3464,20 @@
 
 ## Unreleased
 
+- 2026-08-23 | 1d38fe33 | 鸡哥 | Merge pull request #205 from JNTMTMTM/dev
+- 2026-08-22 | 6ed7b98a | 鸡哥 | feat: implement detail request sequence management in WallpaperMarketSection and disable refresh button in SettingsTab
+- 2026-08-22 | 4339164a | 鸡哥 | fix: adjust margin-left for settings icon in layout CSS
+- 2026-08-22 | da8d5dd2 | 鸡哥 | feat: disable refresh button when wallpaper detail is open and navigation is expanded
+- 2026-08-22 | 27ef09dc | 鸡哥 | feat: add wallpaper detail open state management to SettingsTab and update WallpaperMarketSection props
+- 2026-08-22 | b0d4ad44 | 鸡哥 | feat: add search functionality to WallpaperMarketSection with expandable search panel
+- 2026-08-22 | 874fd9e9 | 鸡哥 | fix: remove 'Go to Contribution' button and related functionality from WallpaperMarketSection
+- 2026-08-22 | 4097a7c1 | 鸡哥 | feat: add search icon to settings tab with styling
+- 2026-08-22 | cbb33f85 | 鸡哥 | fix: update STANDALONE_MARKET_PAGE_SIZE to 18 for consistency
+- 2026-08-22 | a52e0156 | 鸡哥 | fix: update default market page sizes for consistency
+- 2026-08-22 | b7a27033 | 鸡哥 | feat: add margin to top actions in market detail section
+- 2026-08-22 | 9ae94560 | 鸡哥 | feat: enhance WallpaperMarketSection with detail panel toggle and animations
+- 2026-08-21 | b589c609 | 鸡哥 | refactor: simplify WallpaperContributionSection by removing unused props and actions
+- 2026-08-20 | 4a029d4a | eislandBot | docs: auto update CHANGE_LOG.md for #204 by @JNTMTMTM [skip ci]
 - 2026-08-21 | 39c5a000 | 鸡哥 | Merge pull request #204 from JNTMTMTM/dev
 - 2026-08-21 | c7a80a71 | 鸡哥 | feat: implement useTodoList hook for managing TodoList state and progress
 - 2026-08-21 | 0103d711 | 鸡哥 | fix: update turn prop check in TodoList component for better type safety
