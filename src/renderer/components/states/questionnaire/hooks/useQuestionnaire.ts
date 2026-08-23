@@ -48,10 +48,12 @@ export function useQuestionnaire() {
   const [submitting, setSubmitting] = useState(false);
   const [submission, setSubmission] = useState<QuestionnaireSubmissionData | null>(null);
   const [message, setMessage] = useState('');
+  const [submissionError, setSubmissionError] = useState('');
 
   const load = useCallback(async (): Promise<void> => {
     setViewState('loading');
     setMessage('');
+    setSubmissionError('');
     const current = await fetchCurrentQuestionnaire(token);
     if (!current) {
       setQuestionnaire(null);
@@ -78,6 +80,7 @@ export function useQuestionnaire() {
   const updateAnswer = useCallback((questionId: string, answer: QuestionnaireAnswer): void => {
     setAnswers((current) => ({ ...current, [questionId]: answer }));
     setMessage('');
+    setSubmissionError('');
   }, []);
 
   const saveDraft = useCallback((): void => {
@@ -94,6 +97,7 @@ export function useQuestionnaire() {
     }
     setSubmitting(true);
     setMessage('');
+    setSubmissionError('');
     const result = await submitQuestionnaire(questionnaire.id, answers, token);
     setSubmitting(false);
     if (!result.ok || !result.data) {
@@ -102,7 +106,7 @@ export function useQuestionnaire() {
         clearQuestionnaireDraft(questionnaire.id);
         setMessage('alreadySubmitted');
       } else {
-        setMessage('submitFailed');
+        setSubmissionError(`${result.message} (${result.code})`);
       }
       return;
     }
@@ -120,6 +124,7 @@ export function useQuestionnaire() {
     submitting,
     submission,
     message,
+    submissionError,
     load,
     updateAnswer,
     saveDraft,

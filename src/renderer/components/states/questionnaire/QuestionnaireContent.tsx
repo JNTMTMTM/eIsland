@@ -44,6 +44,7 @@ export function QuestionnaireContent(): ReactElement {
     submitting,
     submission,
     message,
+    submissionError,
     load,
     updateAnswer,
     saveDraft,
@@ -133,7 +134,8 @@ export function QuestionnaireContent(): ReactElement {
             ))}
             <footer className="questionnaire-actions">
               <div>
-                {message && <span className={message === 'draftSaved' ? 'success' : 'error'}>{t(`questionnaire.${message}`)}</span>}
+                {submissionError && <span className="error">{submissionError}</span>}
+                {!submissionError && message && <span className={message === 'draftSaved' ? 'success' : 'error'}>{t(`questionnaire.${message}`)}</span>}
                 {!token && <span>{t('questionnaire.loginRequired')}</span>}
               </div>
               <button type="button" className="secondary" onClick={saveDraft}>{t('questionnaire.saveDraft')}</button>
