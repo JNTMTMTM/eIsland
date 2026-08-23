@@ -115,9 +115,6 @@ export function QuestionnaireContent(): ReactElement {
               <span>{questionnaire.title}</span>
               <small>{t('questionnaire.validUntil', { time: questionnaire.endsAt.replace('T', ' ').slice(0, 16) })}</small>
             </button>
-            {questionnaire.rewardProDays && (
-              <div className="questionnaire-list-reward">{t('questionnaire.rewardHint', { days: questionnaire.rewardProDays })}</div>
-            )}
           </aside>
           <main ref={navigation.scrollRef} className="questionnaire-body">
             {questionnaire.questions.map((question, index) => (

@@ -165,17 +165,6 @@
   font-size: 10px;
 }
 
-.questionnaire-list-reward {
-  margin-top: auto;
-  padding: 9px;
-  border: 1px solid rgba(255, 197, 61, .16);
-  border-radius: 7px;
-  color: rgba(255, 215, 110, .8);
-  background: rgba(255, 197, 61, .06);
-  font-size: 10px;
-  line-height: 1.45;
-}
-
 .questionnaire-body {
   min-width: 0;
   flex: 1;

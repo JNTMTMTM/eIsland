@@ -497,7 +497,6 @@
     "subtitle": "Complete the questions below and submit your feedback.",
     "progress": "Completed {{completed}} / {{total}}",
     "validUntil": "Valid until {{time}}",
-    "rewardHint": "Complete and submit for the first time to receive {{days}} days of Pro",
     "required": "Required",
     "textPlaceholder": "Enter a plain-text answer",
     "saveDraft": "Save draft",
