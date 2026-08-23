@@ -27,12 +27,14 @@
 import { useState, useEffect, useCallback, useRef, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../store/slices';
+import { AnnouncementQuestionnaireBanner } from './components/AnnouncementQuestionnaireBanner';
 import { AnnouncementHeader } from './components/AnnouncementHeader';
 import { AnnouncementBody } from './components/AnnouncementBody';
 import { ANNOUNCEMENT_DEFAULTS, ANNOUNCEMENT_KEYS } from './config/announcementDefaults';
 import { useAdSlides } from './hooks/useAdSlides';
 import { AD_SLIDE_INTERVAL_MS } from './config/adSlidesDefaults';
 import { useAnnouncementData } from './hooks/useAnnouncementData';
+import { useAnnouncementQuestionnaire } from './hooks/useAnnouncementQuestionnaire';
 import { ProcessIndicator } from '../../components/DynamicIslandProcessIndicator';
 import { SvgIcon } from '../../../utils/SvgIcon';
 import '../../../styles/announcement/announcement.css';
@@ -43,8 +45,9 @@ import '../../../styles/announcement/announcement.css';
  */
 export function AnnouncementContent(): ReactElement {
   const { t } = useTranslation();
-  const { setHover } = useIslandStore();
+  const { setHover, setQuestionnaire } = useIslandStore();
   const { loading, announcements, selectedAnnouncement, socialConfig, selectAnnouncement } = useAnnouncementData();
+  const questionnaireReminder = useAnnouncementQuestionnaire();
   const adSlides = useAdSlides();
   const [showVideo, setShowVideo] = useState(false);
   const [showQr, setShowQr] = useState(false);
@@ -231,6 +234,12 @@ export function AnnouncementContent(): ReactElement {
             showQr={showQr}
             qrImageUrl={socialConfig.qqQrImageUrl}
             announcementList={announcementList}
+            questionnaireBanner={questionnaireReminder.questionnaire ? (
+              <AnnouncementQuestionnaireBanner
+                onOpen={setQuestionnaire}
+                onDismiss={questionnaireReminder.dismiss}
+              />
+            ) : undefined}
           />
         </section>
       </div>

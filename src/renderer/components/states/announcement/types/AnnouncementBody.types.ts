@@ -35,6 +35,7 @@ export interface AnnouncementBodyProps {
   showQr: boolean;
   qrImageUrl: string;
   announcementList?: ReactNode;
+  questionnaireBanner?: ReactNode;
 }
 
 /** 从 HTML 中提取的章节标题 */

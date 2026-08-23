@@ -481,7 +481,12 @@
     "close": "Close",
     "adSpace": "Ad Space for Rent",
     "adPrev": "Previous",
-    "adNext": "Next"
+    "adNext": "Next",
+    "questionnaireBanner": {
+      "title": "You have an unfinished questionnaire",
+      "open": "Fill it out",
+      "dismiss": "Ignore"
+    }
   },
   "questionnaire": {
     "loading": "Loading questionnaire…",

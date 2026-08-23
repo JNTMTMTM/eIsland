@@ -37,6 +37,24 @@ export type {
 } from './questionnaireApi.types';
 
 const QUESTIONNAIRE_DRAFT_KEY_PREFIX = 'questionnaire-draft:';
+const QUESTIONNAIRE_COMPLETED_KEY_PREFIX = 'questionnaire-completed:';
+const QUESTIONNAIRE_DISMISSED_KEY_PREFIX = 'questionnaire-dismissed:';
+
+function hasQuestionnaireMarker(prefix: string, surveyId: number): boolean {
+  try {
+    return localStorage.getItem(`${prefix}${surveyId}`) === 'true';
+  } catch {
+    return false;
+  }
+}
+
+function writeQuestionnaireMarker(prefix: string, surveyId: number): void {
+  try {
+    localStorage.setItem(`${prefix}${surveyId}`, 'true');
+  } catch {
+    // 标记不可持久化时不阻断问卷主流程。
+  }
+}
 
 function normalizeQuestion(value: unknown): QuestionnaireQuestion | null {
   if (!value || typeof value !== 'object') return null;
@@ -83,10 +101,13 @@ function normalizeQuestionnaire(value: unknown): QuestionnaireData | null {
 
 /**
  * 获取当前有效问卷。
+ * @param token - 可选的当前用户 JWT。
  * @returns 当前有效问卷；无问卷或响应无效时返回 null。
  */
-export async function fetchCurrentQuestionnaire(): Promise<QuestionnaireData | null> {
-  const result = await request<unknown>('/v1/surveys/current');
+export async function fetchCurrentQuestionnaire(token?: string | null): Promise<QuestionnaireData | null> {
+  const result = token
+    ? await request<unknown>('/v1/surveys/current', { auth: token })
+    : await request<unknown>('/v1/surveys/current');
   return result.ok ? normalizeQuestionnaire(result.data) : null;
 }
 
@@ -149,4 +170,38 @@ export function clearQuestionnaireDraft(surveyId: number): void {
   } catch {
     // ignore storage errors
   }
+}
+
+/**
+ * 判断指定问卷是否已在本机提交完成。
+ * @param surveyId - 问卷 ID。
+ * @returns 存在完成标记时返回 true。
+ */
+export function isQuestionnaireCompleted(surveyId: number): boolean {
+  return hasQuestionnaireMarker(QUESTIONNAIRE_COMPLETED_KEY_PREFIX, surveyId);
+}
+
+/**
+ * 标记指定问卷已在本机提交完成。
+ * @param surveyId - 问卷 ID。
+ */
+export function markQuestionnaireCompleted(surveyId: number): void {
+  writeQuestionnaireMarker(QUESTIONNAIRE_COMPLETED_KEY_PREFIX, surveyId);
+}
+
+/**
+ * 判断指定问卷是否已在本机关闭公告提醒。
+ * @param surveyId - 问卷 ID。
+ * @returns 存在关闭提醒标记时返回 true。
+ */
+export function isQuestionnaireReminderDismissed(surveyId: number): boolean {
+  return hasQuestionnaireMarker(QUESTIONNAIRE_DISMISSED_KEY_PREFIX, surveyId);
+}
+
+/**
+ * 永久关闭指定问卷在本机的公告提醒。
+ * @param surveyId - 问卷 ID。
+ */
+export function dismissQuestionnaireReminder(surveyId: number): void {
+  writeQuestionnaireMarker(QUESTIONNAIRE_DISMISSED_KEY_PREFIX, surveyId);
 }

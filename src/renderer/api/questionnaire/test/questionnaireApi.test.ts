@@ -26,7 +26,11 @@ vi.mock('../../user/userAccountApi.client', () => ({ request: requestMock }));
 
 import {
   clearQuestionnaireDraft,
+  dismissQuestionnaireReminder,
   fetchCurrentQuestionnaire,
+  isQuestionnaireCompleted,
+  isQuestionnaireReminderDismissed,
+  markQuestionnaireCompleted,
   readQuestionnaireDraft,
   submitQuestionnaire,
   writeQuestionnaireDraft,
@@ -75,6 +79,14 @@ describe('questionnaireApi', () => {
     expect(result?.questions[0]).toMatchObject({ id: 'q1', type: 'rating', min: 0, max: 5 });
   });
 
+  it('attaches authentication when loading the current questionnaire for a signed-in user', async () => {
+    requestMock.mockResolvedValue({ ok: false, code: 404, message: 'not found' });
+
+    await fetchCurrentQuestionnaire('token');
+
+    expect(requestMock).toHaveBeenCalledWith('/v1/surveys/current', { auth: 'token' });
+  });
+
   it('submits answers as a JSON string with authentication', async () => {
     requestMock.mockResolvedValue({ ok: true, code: 200, message: 'success', data: {} });
 
@@ -94,5 +106,15 @@ describe('questionnaireApi', () => {
 
     clearQuestionnaireDraft(7);
     expect(readQuestionnaireDraft(7)).toBeNull();
+  });
+
+  it('tracks completion and dismissed reminders independently per survey', () => {
+    markQuestionnaireCompleted(7);
+    dismissQuestionnaireReminder(8);
+
+    expect(isQuestionnaireCompleted(7)).toBe(true);
+    expect(isQuestionnaireCompleted(8)).toBe(false);
+    expect(isQuestionnaireReminderDismissed(7)).toBe(false);
+    expect(isQuestionnaireReminderDismissed(8)).toBe(true);
   });
 });

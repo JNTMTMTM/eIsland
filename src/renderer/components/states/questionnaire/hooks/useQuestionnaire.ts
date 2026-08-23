@@ -23,6 +23,7 @@ import { useCallback, useEffect, useState } from 'react';
 import {
   clearQuestionnaireDraft,
   fetchCurrentQuestionnaire,
+  markQuestionnaireCompleted,
   readQuestionnaireDraft,
   submitQuestionnaire,
   writeQuestionnaireDraft,
@@ -51,7 +52,7 @@ export function useQuestionnaire() {
   const load = useCallback(async (): Promise<void> => {
     setViewState('loading');
     setMessage('');
-    const current = await fetchCurrentQuestionnaire();
+    const current = await fetchCurrentQuestionnaire(token);
     if (!current) {
       setQuestionnaire(null);
       setViewState('empty');
@@ -60,7 +61,7 @@ export function useQuestionnaire() {
     setQuestionnaire(current);
     setAnswers(readQuestionnaireDraft(current.id)?.answers ?? {});
     setViewState('ready');
-  }, []);
+  }, [token]);
 
   useEffect(() => {
     void load();
@@ -96,10 +97,17 @@ export function useQuestionnaire() {
     const result = await submitQuestionnaire(questionnaire.id, answers, token);
     setSubmitting(false);
     if (!result.ok || !result.data) {
-      setMessage(result.code === 409 ? 'alreadySubmitted' : 'submitFailed');
+      if (result.code === 409) {
+        markQuestionnaireCompleted(questionnaire.id);
+        clearQuestionnaireDraft(questionnaire.id);
+        setMessage('alreadySubmitted');
+      } else {
+        setMessage('submitFailed');
+      }
       return;
     }
     clearQuestionnaireDraft(questionnaire.id);
+    markQuestionnaireCompleted(questionnaire.id);
     setSubmission(result.data);
     setViewState('completed');
   }, [answers, questionnaire, submitting, token]);

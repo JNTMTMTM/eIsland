@@ -481,7 +481,12 @@
     "close": "关闭",
     "adSpace": "广告位招租",
     "adPrev": "上一张",
-    "adNext": "下一张"
+    "adNext": "下一张",
+    "questionnaireBanner": {
+      "title": "存在未完成的问卷",
+      "open": "前往填写",
+      "dismiss": "忽略"
+    }
   },
   "questionnaire": {
     "loading": "正在加载问卷…",
