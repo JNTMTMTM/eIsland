@@ -157,6 +157,13 @@ export const STATE_CONFIGS: Record<IslandState, StateConfig> = {
     enterDelay: 0,
     leaveDelay: 0,
   },
+  questionnaire: {
+    name: 'questionnaire',
+    mousePassthrough: false,
+    expanded: true,
+    enterDelay: 0,
+    leaveDelay: 0,
+  },
   agentVoiceInput: {
     name: 'agentVoiceInput',
     mousePassthrough: true,

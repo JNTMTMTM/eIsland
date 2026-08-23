@@ -32,7 +32,7 @@ import type { MusicProviderId } from '../../../shared/musicProviderAuth';
 export type { WeatherApiConfig };
 
 /** 灵动岛 UI 状态枚举 */
-export type IslandState = 'idle' | 'hover' | 'expanded' | 'notification' | 'maxExpand' | 'lyrics' | 'lyricsTranslation' | 'guide' | 'login' | 'register' | 'resetPassword' | 'setPassword' | 'bindOAuth' | 'bindEmail' | 'payment' | 'announcement' | 'agentVoiceInput' | 'agent' | 'stt' | 'cli' | 'musicProvidersLogin';
+export type IslandState = 'idle' | 'hover' | 'expanded' | 'notification' | 'maxExpand' | 'lyrics' | 'lyricsTranslation' | 'guide' | 'login' | 'register' | 'resetPassword' | 'setPassword' | 'bindOAuth' | 'bindEmail' | 'payment' | 'announcement' | 'questionnaire' | 'agentVoiceInput' | 'agent' | 'stt' | 'cli' | 'musicProvidersLogin';
 
 /** 灵动岛动画速度档位 */
 export type AnimationSpeed = 'slow' | 'medium' | 'fast';
@@ -375,6 +375,7 @@ export interface IslandSlice {
 
   setGuide: () => void;
   setAnnouncement: () => void;
+  setQuestionnaire: () => void;
   setAgentVoiceInput: () => void;
   setStt: (text?: string) => void;
   setAgent: (prompt?: string) => void;

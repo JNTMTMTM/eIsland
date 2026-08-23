@@ -74,7 +74,7 @@ export const createIslandSlice: StateCreator<
 
   setIdle: (force?: boolean) => set((prev) => {
     if (prev.uiStateLocked && prev.state !== 'idle') return prev;
-    if (!force && (prev.state === 'expanded' || prev.state === 'maxExpand' || prev.state === 'guide' || prev.state === 'login' || prev.state === 'register' || prev.state === 'resetPassword' || prev.state === 'setPassword' || prev.state === 'bindOAuth' || prev.state === 'bindEmail' || prev.state === 'payment' || prev.state === 'announcement' || prev.state === 'musicProvidersLogin')) return prev;
+    if (!force && (prev.state === 'expanded' || prev.state === 'maxExpand' || prev.state === 'guide' || prev.state === 'login' || prev.state === 'register' || prev.state === 'resetPassword' || prev.state === 'setPassword' || prev.state === 'bindOAuth' || prev.state === 'bindEmail' || prev.state === 'payment' || prev.state === 'announcement' || prev.state === 'questionnaire' || prev.state === 'musicProvidersLogin')) return prev;
     window.api?.collapseWindow(getIslandWindowShrinkDelay(prev.state, 'idle', prev.animationSpeed));
     window.api?.enableMousePassthrough();
     return { state: 'idle' as const, authReturnState: null };
@@ -259,6 +259,13 @@ export const createIslandSlice: StateCreator<
     window.api?.expandWindowSettings();
     window.api?.disableMousePassthrough();
     return { state: 'announcement' as const, authReturnState: null };
+  }),
+
+  setQuestionnaire: () => set((prev) => {
+    if (prev.uiStateLocked && prev.state !== 'questionnaire') return prev;
+    window.api?.expandWindowSettings();
+    window.api?.disableMousePassthrough();
+    return { state: 'questionnaire' as const, authReturnState: null };
   }),
 
   setAgentVoiceInput: () => set((prev) => {
