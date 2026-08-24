@@ -32,12 +32,17 @@ export function useQuestionnaireNavigation(questionCount: number, questionnaireI
   const questionRefs = useRef<(HTMLElement | null)[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
   const observerRef = useRef<IntersectionObserver | null>(null);
+  const programmaticScrollRef = useRef(false);
 
   const scrollToQuestion = useCallback((index: number): void => {
     const target = questionRefs.current[index];
     if (!target) return;
+    programmaticScrollRef.current = true;
     setActiveIndex(index);
     target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setTimeout(() => {
+      programmaticScrollRef.current = false;
+    }, 600);
   }, []);
 
   useEffect(() => {
@@ -53,6 +58,7 @@ export function useQuestionnaireNavigation(questionCount: number, questionnaireI
 
     const observer = new IntersectionObserver(
       (entries) => {
+        if (programmaticScrollRef.current) return;
         for (const entry of entries) {
           if (entry.isIntersecting) {
             const index = questionRefs.current.findIndex((ref) => ref === entry.target);
@@ -76,6 +82,7 @@ export function useQuestionnaireNavigation(questionCount: number, questionnaireI
     });
 
     const handleScroll = (): void => {
+      if (programmaticScrollRef.current) return;
       const { scrollTop, scrollHeight, clientHeight } = container;
       if (scrollTop + clientHeight >= scrollHeight - 2) {
         setActiveIndex(questionCount - 1);
