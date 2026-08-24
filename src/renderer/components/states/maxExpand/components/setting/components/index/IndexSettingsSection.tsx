@@ -203,11 +203,13 @@ export function IndexSettingsSection({
         </div>
       </div>
       {questionnaireReminder.questionnaire && (
-        <QuestionnaireBanner
-          count={questionnaireReminder.count}
-          onOpen={setQuestionnaire}
-          onDismiss={questionnaireReminder.dismiss}
-        />
+        <div style={{ marginTop: 2 }}>
+          <QuestionnaireBanner
+            count={questionnaireReminder.count}
+            onOpen={setQuestionnaire}
+            onDismiss={questionnaireReminder.dismiss}
+          />
+        </div>
       )}
       <div className="settings-index-cards" aria-label={t('settings.index.ariaNav', { defaultValue: '设置快速导航' })}>
           {visibleCards.map((card, idx) => (
