@@ -199,10 +199,7 @@ export function QuestionnaireContent(): ReactElement {
                   className={`${index === navigation.activeIndex ? 'active' : ''}${completed ? ' completed' : ''}`}
                   aria-label={t('questionnaire.jumpToQuestion', { number: index + 1 })}
                   onClick={() => navigation.scrollToQuestion(index)}
-                >
-                  <span>{index + 1}</span>
-                  <i />
-                </button>
+                />
               );
             })}
           </nav>

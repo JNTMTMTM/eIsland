@@ -347,51 +347,41 @@
 }
 
 .questionnaire-toc {
-  display: flex;
-  flex: 0 0 46px;
-  flex-direction: column;
-  gap: 5px;
-  padding: 4px 2px 4px 10px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  flex: 0 0 80px;
+  width: 80px;
+  padding: 4px 6px 4px 10px;
+  align-content: start;
   overflow-y: auto;
   border-left: 1px solid rgba(var(--color-text-rgb), .08);
 }
 
 .questionnaire-toc button {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 4px;
-  width: 100%;
-  padding: 4px 2px 4px 5px;
+  aspect-ratio: 1;
   border: 0;
-  border-radius: 5px;
-  color: rgba(var(--color-text-rgb), .38);
-  background: transparent;
+  border-radius: 4px;
+  background: rgba(var(--color-text-rgb), .12);
   cursor: pointer;
+  transition: background .18s ease, box-shadow .18s ease;
 }
 
 .questionnaire-toc button:hover,
 .questionnaire-toc button.active {
-  color: var(--color-text);
-  background: rgba(124, 188, 255, .08);
+  background: rgba(var(--color-text-rgb), .22);
+  box-shadow: 0 0 0 1px rgba(var(--color-text-rgb), .3);
 }
 
-.questionnaire-toc span {
-  font-size: 10px;
-  font-weight: 600;
+.questionnaire-toc button.completed {
+  background: rgba(100, 180, 255, .65);
+  box-shadow: 0 0 6px rgba(100, 180, 255, .35);
 }
 
-.questionnaire-toc i {
-  width: 5px;
-  height: 5px;
-  border: 1px solid rgba(var(--color-text-rgb), .24);
-  border-radius: 50%;
-}
-
-.questionnaire-toc button.completed i {
-  border-color: #30d158;
-  background: #30d158;
-  box-shadow: 0 0 5px rgba(48, 209, 88, .45);
+.questionnaire-toc button.completed:hover,
+.questionnaire-toc button.completed.active {
+  background: rgba(100, 180, 255, .85);
+  box-shadow: 0 0 8px rgba(100, 180, 255, .5);
 }
 
 .questionnaire-empty,
