@@ -413,7 +413,7 @@
   min-height: 0;
   overflow-y: auto;
   padding-right: 2px;
-  padding-top: 12px;
+  padding-top: 6px;
   padding-bottom: 18px;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
