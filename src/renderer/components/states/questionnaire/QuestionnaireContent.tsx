@@ -214,6 +214,7 @@ export function QuestionnaireContent(): ReactElement {
                 {!submissionError && message && <span className={message === 'draftSaved' ? 'success' : 'error'}>{t(`questionnaire.${message}`)}</span>}
                 {!token && <span>{t('questionnaire.loginRequired')}</span>}
               </div>
+              <button type="button" className="settings-user-secondary-btn" onClick={handleReportIssue}>{t('questionnaire.reportIssue')}</button>
               <button type="button" className="settings-user-secondary-btn" onClick={saveDraft}>{t('questionnaire.saveDraft')}</button>
               <button
                 type="button"
@@ -221,7 +222,6 @@ export function QuestionnaireContent(): ReactElement {
                 disabled={!token || !requiredComplete || submitting}
                 onClick={() => void submit()}
               >{submitting ? t('questionnaire.submitting') : t('questionnaire.submit')}</button>
-              <button type="button" className="settings-user-secondary-btn" onClick={handleReportIssue}>{t('questionnaire.reportIssue')}</button>
             </footer>
           </main>
           <nav className="questionnaire-toc" aria-label={t('questionnaire.questionNavigation')}>
