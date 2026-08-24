@@ -99,16 +99,44 @@ function normalizeQuestionnaire(value: unknown): QuestionnaireData | null {
   }
 }
 
+function normalizeQuestionnaires(value: unknown): QuestionnaireData[] {
+  const values = Array.isArray(value) ? value : [value];
+  const seen = new Set<number>();
+  return values.reduce<QuestionnaireData[]>((questionnaires, item) => {
+    const questionnaire = normalizeQuestionnaire(item);
+    if (!questionnaire || seen.has(questionnaire.id)) return questionnaires;
+    seen.add(questionnaire.id);
+    questionnaires.push(questionnaire);
+    return questionnaires;
+  }, []);
+}
+
+/**
+ * 获取全部当前有效问卷。
+ * @description 优先使用多问卷接口，并在服务端尚未升级时回退到单问卷接口。
+ * @param token - 可选的当前用户 JWT。
+ * @returns 已通过格式校验且按服务端顺序排列的问卷列表。
+ */
+export async function fetchActiveQuestionnaires(token?: string | null): Promise<QuestionnaireData[]> {
+  const authOptions = token ? { auth: token } : undefined;
+  const result = authOptions
+    ? await request<unknown>('/v1/surveys/active', authOptions)
+    : await request<unknown>('/v1/surveys/active');
+  if (result.ok) return normalizeQuestionnaires(result.data);
+
+  const fallback = authOptions
+    ? await request<unknown>('/v1/surveys/current', authOptions)
+    : await request<unknown>('/v1/surveys/current');
+  return fallback.ok ? normalizeQuestionnaires(fallback.data) : [];
+}
+
 /**
  * 获取当前有效问卷。
  * @param token - 可选的当前用户 JWT。
- * @returns 当前有效问卷；无问卷或响应无效时返回 null。
+ * @returns 第一份当前有效问卷；无问卷或响应无效时返回 null。
  */
 export async function fetchCurrentQuestionnaire(token?: string | null): Promise<QuestionnaireData | null> {
-  const result = token
-    ? await request<unknown>('/v1/surveys/current', { auth: token })
-    : await request<unknown>('/v1/surveys/current');
-  return result.ok ? normalizeQuestionnaire(result.data) : null;
+  return (await fetchActiveQuestionnaires(token))[0] ?? null;
 }
 
 /**

@@ -27,6 +27,7 @@ vi.mock('../../user/userAccountApi.client', () => ({ request: requestMock }));
 import {
   clearQuestionnaireDraft,
   dismissQuestionnaireReminder,
+  fetchActiveQuestionnaires,
   fetchCurrentQuestionnaire,
   isQuestionnaireCompleted,
   isQuestionnaireReminderDismissed,
@@ -57,34 +58,62 @@ describe('questionnaireApi', () => {
     });
   });
 
-  it('normalizes current questionnaire content JSON', async () => {
+  it('normalizes every active questionnaire content JSON', async () => {
+    const createSurvey = (id: number, title: string) => ({
+      id,
+      title,
+      description: 'Description',
+      rewardProDays: 3,
+      startsAt: '2026-08-01T00:00:00',
+      endsAt: '2026-08-31T00:00:00',
+      contentJson: JSON.stringify({ questions: [{ id: 'q1', title: 'Score', type: 'rating', required: true, min: 0, max: 5 }] }),
+    });
     requestMock.mockResolvedValue({
       ok: true,
       code: 200,
       message: 'success',
-      data: {
-        id: 7,
-        title: 'Survey',
-        description: 'Description',
-        rewardProDays: 3,
-        startsAt: '2026-08-01T00:00:00',
-        endsAt: '2026-08-31T00:00:00',
-        contentJson: JSON.stringify({ questions: [{ id: 'q1', title: 'Score', type: 'rating', required: true, min: 0, max: 5 }] }),
-      },
+      data: [createSurvey(7, 'Survey A'), createSurvey(8, 'Survey B')],
     });
+
+    const result = await fetchActiveQuestionnaires();
+
+    expect(requestMock).toHaveBeenCalledWith('/v1/surveys/active');
+    expect(result).toHaveLength(2);
+    expect(result[0].questions[0]).toMatchObject({ id: 'q1', type: 'rating', min: 0, max: 5 });
+    expect(result[1].id).toBe(8);
+  });
+
+  it('falls back to the legacy current questionnaire endpoint', async () => {
+    requestMock
+      .mockResolvedValueOnce({ ok: false, code: 404, message: 'not found' })
+      .mockResolvedValueOnce({
+        ok: true,
+        code: 200,
+        message: 'success',
+        data: {
+          id: 7,
+          title: 'Survey',
+          description: '',
+          rewardProDays: null,
+          startsAt: '2026-08-01T00:00:00',
+          endsAt: '2026-08-31T00:00:00',
+          contentJson: JSON.stringify({ questions: [{ id: 'q1', title: 'Score', type: 'rating' }] }),
+        },
+      });
 
     const result = await fetchCurrentQuestionnaire();
 
-    expect(requestMock).toHaveBeenCalledWith('/v1/surveys/current');
-    expect(result?.questions[0]).toMatchObject({ id: 'q1', type: 'rating', min: 0, max: 5 });
+    expect(requestMock).toHaveBeenNthCalledWith(1, '/v1/surveys/active');
+    expect(requestMock).toHaveBeenNthCalledWith(2, '/v1/surveys/current');
+    expect(result?.id).toBe(7);
   });
 
-  it('attaches authentication when loading the current questionnaire for a signed-in user', async () => {
-    requestMock.mockResolvedValue({ ok: false, code: 404, message: 'not found' });
+  it('attaches authentication when loading active questionnaires for a signed-in user', async () => {
+    requestMock.mockResolvedValue({ ok: true, code: 200, message: 'success', data: [] });
 
-    await fetchCurrentQuestionnaire('token');
+    await fetchActiveQuestionnaires('token');
 
-    expect(requestMock).toHaveBeenCalledWith('/v1/surveys/current', { auth: 'token' });
+    expect(requestMock).toHaveBeenCalledWith('/v1/surveys/active', { auth: 'token' });
   });
 
   it('submits answers as a JSON string with authentication', async () => {

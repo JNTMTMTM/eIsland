@@ -483,9 +483,9 @@
     "adPrev": "Previous",
     "adNext": "Next",
     "questionnaireBanner": {
-      "title": "You have an unfinished questionnaire",
-      "open": "Fill it out",
-      "dismiss": "Ignore"
+      "title": "Unfinished questionnaires: {{count}}",
+      "open": "Fill them out",
+      "dismiss": "Ignore current"
     }
   },
   "questionnaire": {
@@ -507,7 +507,9 @@
     "submitFailed": "Submission failed. Try again later.",
     "submitting": "Submitting…",
     "submit": "Submit",
+    "continue": "Continue to next",
     "questionNavigation": "Question navigation",
+    "questionnaireNavigation": "Questionnaire list",
     "jumpToQuestion": "Jump to question {{number}}",
     "completedTitle": "Questionnaire submitted",
     "completedDescription": "Thank you. Your feedback has been saved.",

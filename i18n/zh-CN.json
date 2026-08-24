@@ -483,9 +483,9 @@
     "adPrev": "上一张",
     "adNext": "下一张",
     "questionnaireBanner": {
-      "title": "存在未完成的问卷",
+      "title": "未完成问卷：{{count}} 份",
       "open": "前往填写",
-      "dismiss": "忽略"
+      "dismiss": "忽略当前问卷"
     }
   },
   "questionnaire": {
@@ -507,7 +507,9 @@
     "submitFailed": "提交失败，请稍后重试",
     "submitting": "提交中…",
     "submit": "提交问卷",
+    "continue": "填写下一份",
     "questionNavigation": "题目导航",
+    "questionnaireNavigation": "问卷列表",
     "jumpToQuestion": "跳转到第 {{number}} 题",
     "completedTitle": "问卷已提交",
     "completedDescription": "感谢你的反馈，答案已成功保存。",

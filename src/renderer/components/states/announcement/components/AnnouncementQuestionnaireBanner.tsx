@@ -23,23 +23,25 @@ import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 
 interface AnnouncementQuestionnaireBannerProps {
+  count: number;
   onOpen: () => void;
   onDismiss: () => void;
 }
 
 /**
  * 渲染未完成问卷提醒与操作按钮。
- * @param props - 打开问卷和关闭提醒回调。
+ * @param props - 待处理问卷数量、打开问卷和关闭当前提醒回调。
  * @returns 公告正文顶部提醒横幅。
  */
 export function AnnouncementQuestionnaireBanner({
+  count,
   onOpen,
   onDismiss,
 }: AnnouncementQuestionnaireBannerProps): ReactElement {
   const { t } = useTranslation();
   return (
     <div className="announcement-questionnaire-banner" role="status">
-      <span>{t('announcement.questionnaireBanner.title')}</span>
+      <span>{t('announcement.questionnaireBanner.title', { count })}</span>
       <div>
         <button type="button" className="primary" onClick={onOpen}>
           {t('announcement.questionnaireBanner.open')}

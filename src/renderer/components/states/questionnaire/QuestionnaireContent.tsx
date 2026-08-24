@@ -37,7 +37,9 @@ export function QuestionnaireContent(): ReactElement {
   const { t } = useTranslation();
   const { setHover } = useIslandStore();
   const {
+    questionnaires,
     questionnaire,
+    selectedQuestionnaireId,
     answers,
     token,
     viewState,
@@ -46,11 +48,16 @@ export function QuestionnaireContent(): ReactElement {
     message,
     submissionError,
     load,
+    selectQuestionnaire,
     updateAnswer,
     saveDraft,
     submit,
+    continueAfterSubmission,
   } = useQuestionnaire();
-  const navigation = useQuestionnaireNavigation(questionnaire?.questions.length ?? 0);
+  const navigation = useQuestionnaireNavigation(
+    questionnaire?.questions.length ?? 0,
+    selectedQuestionnaireId,
+  );
   const requiredComplete = questionnaire
     ? areRequiredQuestionsComplete(questionnaire.questions, answers)
     : false;
@@ -88,7 +95,12 @@ export function QuestionnaireContent(): ReactElement {
               {submission.rewardProExpireAt && <span>{t('questionnaire.rewardExpireAt', { time: submission.rewardProExpireAt.replace('T', ' ') })}</span>}
             </div>
           ) : <span className="questionnaire-no-reward">{t('questionnaire.noReward')}</span>}
-          <button type="button" onClick={setHover}>{t('questionnaire.close')}</button>
+          <button
+            type="button"
+            onClick={questionnaires.length > 1 ? continueAfterSubmission : setHover}
+          >
+            {t(questionnaires.length > 1 ? 'questionnaire.continue' : 'questionnaire.close')}
+          </button>
         </div>
       </div>
     );
@@ -111,11 +123,20 @@ export function QuestionnaireContent(): ReactElement {
         </header>
         <div className="questionnaire-divider" />
         <div className="questionnaire-content-row">
-          <aside className="questionnaire-list">
-            <button type="button" className="active">
-              <span>{questionnaire.title}</span>
-              <small>{t('questionnaire.validUntil', { time: questionnaire.endsAt.replace('T', ' ').slice(0, 16) })}</small>
-            </button>
+          <aside className="questionnaire-list" aria-label={t('questionnaire.questionnaireNavigation')}>
+            {questionnaires.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                className={item.id === selectedQuestionnaireId ? 'active' : ''}
+                aria-current={item.id === selectedQuestionnaireId ? 'true' : undefined}
+                disabled={submitting}
+                onClick={() => selectQuestionnaire(item.id)}
+              >
+                <span>{item.title}</span>
+                <small>{t('questionnaire.validUntil', { time: item.endsAt.replace('T', ' ').slice(0, 16) })}</small>
+              </button>
+            ))}
           </aside>
           <main ref={navigation.scrollRef} className="questionnaire-body">
             {questionnaire.questions.map((question, index) => (

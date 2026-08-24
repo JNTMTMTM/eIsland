@@ -129,9 +129,16 @@
   overflow: hidden;
   border: 0;
   border-radius: 6px;
+  color: rgba(var(--color-text-rgb), .62);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.questionnaire-list > button:hover,
+.questionnaire-list > button.active {
   color: rgba(var(--color-text-rgb), .9);
   background: rgba(124, 188, 255, .08);
-  text-align: left;
 }
 
 .questionnaire-list > button::before {
@@ -143,7 +150,12 @@
   border-radius: 1px;
   background: #7cbcff;
   content: "";
+  opacity: 0;
   transform: translateY(-50%);
+}
+
+.questionnaire-list > button.active::before {
+  opacity: 1;
 }
 
 .questionnaire-list > button span,

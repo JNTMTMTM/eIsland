@@ -24,9 +24,10 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 /**
  * 管理题目滚动定位和当前题号。
  * @param questionCount - 当前问卷题目数量。
+ * @param questionnaireId - 当前问卷 ID，用于切换问卷时重置滚动位置。
  * @returns 题目节点引用、当前题号和点击跳转方法。
  */
-export function useQuestionnaireNavigation(questionCount: number) {
+export function useQuestionnaireNavigation(questionCount: number, questionnaireId: number | null) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const questionRefs = useRef<(HTMLElement | null)[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -37,6 +38,11 @@ export function useQuestionnaireNavigation(questionCount: number) {
     setActiveIndex(index);
     target.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, []);
+
+  useEffect(() => {
+    setActiveIndex(0);
+    scrollRef.current?.scrollTo({ top: 0 });
+  }, [questionnaireId]);
 
   useEffect(() => {
     const container = scrollRef.current;

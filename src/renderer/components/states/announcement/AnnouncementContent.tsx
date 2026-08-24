@@ -236,6 +236,7 @@ export function AnnouncementContent(): ReactElement {
             announcementList={announcementList}
             questionnaireBanner={questionnaireReminder.questionnaire ? (
               <AnnouncementQuestionnaireBanner
+                count={questionnaireReminder.count}
                 onOpen={setQuestionnaire}
                 onDismiss={questionnaireReminder.dismiss}
               />

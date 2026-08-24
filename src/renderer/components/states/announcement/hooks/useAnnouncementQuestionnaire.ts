@@ -23,7 +23,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { readLocalToken } from '../../../../utils/userAccount';
 import {
   dismissQuestionnaireReminder,
-  fetchCurrentQuestionnaire,
+  fetchActiveQuestionnaires,
   isQuestionnaireCompleted,
   isQuestionnaireReminderDismissed,
   type QuestionnaireData,
@@ -34,23 +34,29 @@ import {
  * @returns 待提醒问卷与关闭提醒操作。
  */
 export function useAnnouncementQuestionnaire() {
-  const [questionnaire, setQuestionnaire] = useState<QuestionnaireData | null>(null);
+  const [questionnaires, setQuestionnaires] = useState<QuestionnaireData[]>([]);
 
   useEffect(() => {
     let active = true;
-    void fetchCurrentQuestionnaire(readLocalToken()).then((current) => {
-      if (!active || !current) return;
-      if (isQuestionnaireCompleted(current.id) || isQuestionnaireReminderDismissed(current.id)) return;
-      setQuestionnaire(current);
+    void fetchActiveQuestionnaires(readLocalToken()).then((items) => {
+      if (!active) return;
+      setQuestionnaires(items.filter((item) => (
+        !isQuestionnaireCompleted(item.id) && !isQuestionnaireReminderDismissed(item.id)
+      )));
     });
     return () => { active = false; };
   }, []);
 
   const dismiss = useCallback((): void => {
+    const questionnaire = questionnaires[0];
     if (!questionnaire) return;
     dismissQuestionnaireReminder(questionnaire.id);
-    setQuestionnaire(null);
-  }, [questionnaire]);
+    setQuestionnaires((current) => current.filter((item) => item.id !== questionnaire.id));
+  }, [questionnaires]);
 
-  return { questionnaire, dismiss };
+  return {
+    questionnaire: questionnaires[0] ?? null,
+    count: questionnaires.length,
+    dismiss,
+  };
 }

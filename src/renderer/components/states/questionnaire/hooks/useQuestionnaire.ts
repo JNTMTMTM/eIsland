@@ -22,7 +22,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
   clearQuestionnaireDraft,
-  fetchCurrentQuestionnaire,
+  fetchActiveQuestionnaires,
+  isQuestionnaireCompleted,
   markQuestionnaireCompleted,
   readQuestionnaireDraft,
   submitQuestionnaire,
@@ -41,28 +42,33 @@ export type QuestionnaireViewState = 'loading' | 'ready' | 'empty' | 'completed'
  * @returns 问卷数据、答案、登录态、提交状态和操作函数。
  */
 export function useQuestionnaire() {
-  const [questionnaire, setQuestionnaire] = useState<QuestionnaireData | null>(null);
-  const [answers, setAnswers] = useState<Record<string, QuestionnaireAnswer>>({});
+  const [questionnaires, setQuestionnaires] = useState<QuestionnaireData[]>([]);
+  const [selectedQuestionnaireId, setSelectedQuestionnaireId] = useState<number | null>(null);
+  const [answersByQuestionnaire, setAnswersByQuestionnaire] = useState<Record<number, Record<string, QuestionnaireAnswer>>>({});
   const [token, setToken] = useState<string | null>(() => readLocalToken());
   const [viewState, setViewState] = useState<QuestionnaireViewState>('loading');
   const [submitting, setSubmitting] = useState(false);
   const [submission, setSubmission] = useState<QuestionnaireSubmissionData | null>(null);
   const [message, setMessage] = useState('');
   const [submissionError, setSubmissionError] = useState('');
+  const questionnaire = questionnaires.find((item) => item.id === selectedQuestionnaireId) ?? null;
+  const answers = selectedQuestionnaireId === null ? {} : answersByQuestionnaire[selectedQuestionnaireId] ?? {};
 
   const load = useCallback(async (): Promise<void> => {
     setViewState('loading');
     setMessage('');
     setSubmissionError('');
-    const current = await fetchCurrentQuestionnaire(token);
-    if (!current) {
-      setQuestionnaire(null);
-      setViewState('empty');
-      return;
-    }
-    setQuestionnaire(current);
-    setAnswers(readQuestionnaireDraft(current.id)?.answers ?? {});
-    setViewState('ready');
+    setSubmission(null);
+    const active = (await fetchActiveQuestionnaires(token))
+      .filter((item) => !isQuestionnaireCompleted(item.id));
+    setQuestionnaires(active);
+    setAnswersByQuestionnaire(Object.fromEntries(
+      active.map((item) => [item.id, readQuestionnaireDraft(item.id)?.answers ?? {}]),
+    ));
+    setSelectedQuestionnaireId((current) => (
+      active.some((item) => item.id === current) ? current : active[0]?.id ?? null
+    ));
+    setViewState(active.length > 0 ? 'ready' : 'empty');
   }, [token]);
 
   useEffect(() => {
@@ -78,10 +84,26 @@ export function useQuestionnaire() {
   }, [answers, questionnaire, viewState]);
 
   const updateAnswer = useCallback((questionId: string, answer: QuestionnaireAnswer): void => {
-    setAnswers((current) => ({ ...current, [questionId]: answer }));
+    if (selectedQuestionnaireId === null) return;
+    setAnswersByQuestionnaire((current) => ({
+      ...current,
+      [selectedQuestionnaireId]: {
+        ...(current[selectedQuestionnaireId] ?? {}),
+        [questionId]: answer,
+      },
+    }));
     setMessage('');
     setSubmissionError('');
-  }, []);
+  }, [selectedQuestionnaireId]);
+
+  const selectQuestionnaire = useCallback((surveyId: number): void => {
+    if (!questionnaires.some((item) => item.id === surveyId)) return;
+    setSelectedQuestionnaireId(surveyId);
+    setSubmission(null);
+    setViewState('ready');
+    setMessage('');
+    setSubmissionError('');
+  }, [questionnaires]);
 
   const saveDraft = useCallback((): void => {
     if (!questionnaire) return;
@@ -116,8 +138,21 @@ export function useQuestionnaire() {
     setViewState('completed');
   }, [answers, questionnaire, submitting, token]);
 
+  const continueAfterSubmission = useCallback((): void => {
+    if (!questionnaire) return;
+    const remaining = questionnaires.filter((item) => item.id !== questionnaire.id);
+    setQuestionnaires(remaining);
+    setSelectedQuestionnaireId(remaining[0]?.id ?? null);
+    setSubmission(null);
+    setMessage('');
+    setSubmissionError('');
+    setViewState(remaining.length > 0 ? 'ready' : 'empty');
+  }, [questionnaire, questionnaires]);
+
   return {
+    questionnaires,
     questionnaire,
+    selectedQuestionnaireId,
     answers,
     token,
     viewState,
@@ -126,8 +161,10 @@ export function useQuestionnaire() {
     message,
     submissionError,
     load,
+    selectQuestionnaire,
     updateAnswer,
     saveDraft,
     submit,
+    continueAfterSubmission,
   };
 }
