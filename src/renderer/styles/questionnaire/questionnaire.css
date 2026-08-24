@@ -346,34 +346,6 @@
   color: rgba(255, 110, 102, .9);
 }
 
-.questionnaire-actions > button,
-.questionnaire-empty button,
-.questionnaire-completed > button {
-  padding: 7px 13px;
-  border: 0;
-  border-radius: 7px;
-  font-size: 11px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.questionnaire-actions .secondary,
-.questionnaire-empty button {
-  color: rgba(var(--color-text-rgb), .72);
-  background: rgba(var(--color-text-rgb), .08);
-}
-
-.questionnaire-actions .primary,
-.questionnaire-completed > button {
-  color: #fff;
-  background: #0a84ff;
-}
-
-.questionnaire-actions button:disabled {
-  cursor: not-allowed;
-  opacity: .35;
-}
-
 .questionnaire-toc {
   display: flex;
   flex: 0 0 46px;

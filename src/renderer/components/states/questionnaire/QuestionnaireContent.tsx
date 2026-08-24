@@ -27,6 +27,7 @@ import { QuestionnaireQuestion } from './components/QuestionnaireQuestion';
 import { useQuestionnaire } from './hooks/useQuestionnaire';
 import { useQuestionnaireNavigation } from './hooks/useQuestionnaireNavigation';
 import { areRequiredQuestionsComplete, isQuestionnaireAnswerComplete } from './utils/questionnaireAnswers';
+import '../../../styles/settings/settings.css';
 import '../../../styles/questionnaire/questionnaire.css';
 
 /**
@@ -74,8 +75,8 @@ export function QuestionnaireContent(): ReactElement {
           <strong>{t('questionnaire.emptyTitle')}</strong>
           <span>{t('questionnaire.emptyDescription')}</span>
           <div>
-            <button type="button" onClick={() => void load()}>{t('questionnaire.retry')}</button>
-            <button type="button" onClick={setHover}>{t('questionnaire.close')}</button>
+            <button type="button" className="settings-user-secondary-btn" onClick={() => void load()}>{t('questionnaire.retry')}</button>
+            <button type="button" className="settings-user-secondary-btn" onClick={setHover}>{t('questionnaire.close')}</button>
           </div>
         </div>
       </div>
@@ -97,6 +98,7 @@ export function QuestionnaireContent(): ReactElement {
           ) : <span className="questionnaire-no-reward">{t('questionnaire.noReward')}</span>}
           <button
             type="button"
+            className="settings-user-primary-btn"
             onClick={questionnaires.length > 1 ? continueAfterSubmission : setHover}
           >
             {t(questionnaires.length > 1 ? 'questionnaire.continue' : 'questionnaire.close')}
@@ -159,10 +161,10 @@ export function QuestionnaireContent(): ReactElement {
                 {!submissionError && message && <span className={message === 'draftSaved' ? 'success' : 'error'}>{t(`questionnaire.${message}`)}</span>}
                 {!token && <span>{t('questionnaire.loginRequired')}</span>}
               </div>
-              <button type="button" className="secondary" onClick={saveDraft}>{t('questionnaire.saveDraft')}</button>
+              <button type="button" className="settings-user-secondary-btn" onClick={saveDraft}>{t('questionnaire.saveDraft')}</button>
               <button
                 type="button"
-                className="primary"
+                className="settings-user-primary-btn"
                 disabled={!token || !requiredComplete || submitting}
                 onClick={() => void submit()}
               >{submitting ? t('questionnaire.submitting') : t('questionnaire.submit')}</button>
