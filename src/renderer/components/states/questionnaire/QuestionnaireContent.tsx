@@ -101,13 +101,16 @@ export function QuestionnaireContent(): ReactElement {
               {submission.rewardProExpireAt && <span>{t('questionnaire.rewardExpireAt', { time: submission.rewardProExpireAt.replace('T', ' ') })}</span>}
             </div>
           ) : <span className="questionnaire-no-reward">{t('questionnaire.noReward')}</span>}
-          <button
-            type="button"
-            className="settings-user-primary-btn"
-            onClick={questionnaires.length > 1 ? continueAfterSubmission : setHover}
-          >
-            {t(questionnaires.length > 1 ? 'questionnaire.continue' : 'questionnaire.close')}
-          </button>
+          <div className="questionnaire-completed-actions">
+            <button
+              type="button"
+              className="settings-user-primary-btn"
+              onClick={questionnaires.length > 1 ? continueAfterSubmission : setHover}
+            >
+              {t(questionnaires.length > 1 ? 'questionnaire.continue' : 'questionnaire.close')}
+            </button>
+            <button type="button" className="settings-user-secondary-btn" onClick={handleReportIssue}>{t('questionnaire.reportIssue')}</button>
+          </div>
         </div>
       </div>
     );
