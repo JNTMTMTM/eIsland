@@ -26,6 +26,9 @@
 
 import { useState, useMemo, type MutableRefObject, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
+import useIslandStore from '../../../../../../../store/slices';
+import { useAnnouncementQuestionnaire } from '../../../../../../states/announcement/hooks/useAnnouncementQuestionnaire';
+import { QuestionnaireBanner } from '../../../../../../../components/components/DynamicIslandQuestionnaireBanner';
 import { SEARCHABLE_SETTINGS, SETTINGS_TAB_ICONS, type SearchableSettingItem, type AppSettingsPageKey, type MusicSettingsPageKey, type AiSettingsPageKey, type NetworkSettingsPageKey, type SettingsSidebarTabKey } from '../../utils/settingsConfig';
 
 interface IndexNavCard {
@@ -88,6 +91,8 @@ export function IndexSettingsSection({
   onAction,
 }: IndexSettingsSectionProps): ReactElement {
   const { t, i18n } = useTranslation();
+  const { setQuestionnaire } = useIslandStore();
+  const questionnaireReminder = useAnnouncementQuestionnaire();
   const [searchQuery, setSearchQuery] = useState('');
   const getCardOutlineClass = (cardId: string): string => {
     if (cardId === 'user-pro') return ' settings-user-pro-nav-card--outline';
@@ -196,12 +201,14 @@ export function IndexSettingsSection({
             )}
           </div>
         </div>
-        <div className="settings-music-hint settings-index-hint">
-          {navEditMode
-            ? t('settings.index.hintEdit', { defaultValue: '拖拽卡片可调整排列顺序，点击「完成」保存。' })
-            : t('settings.index.hintView', { defaultValue: '点击卡片可快速跳转到对应配置页。' })}
-        </div>
       </div>
+      {questionnaireReminder.questionnaire && (
+        <QuestionnaireBanner
+          count={questionnaireReminder.count}
+          onOpen={setQuestionnaire}
+          onDismiss={questionnaireReminder.dismiss}
+        />
+      )}
       <div className="settings-index-cards" aria-label={t('settings.index.ariaNav', { defaultValue: '设置快速导航' })}>
           {visibleCards.map((card, idx) => (
             navEditMode ? (
