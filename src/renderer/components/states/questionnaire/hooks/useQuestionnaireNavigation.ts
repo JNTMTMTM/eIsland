@@ -75,9 +75,19 @@ export function useQuestionnaireNavigation(questionCount: number, questionnaireI
       if (question) observer.observe(question);
     });
 
+    const handleScroll = (): void => {
+      const { scrollTop, scrollHeight, clientHeight } = container;
+      if (scrollTop + clientHeight >= scrollHeight - 2) {
+        setActiveIndex(questionCount - 1);
+      }
+    };
+
+    container.addEventListener('scroll', handleScroll, { passive: true });
+
     return () => {
       observer.disconnect();
       observerRef.current = null;
+      container.removeEventListener('scroll', handleScroll);
     };
   }, [questionCount]);
 
