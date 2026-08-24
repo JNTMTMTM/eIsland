@@ -125,7 +125,6 @@ export function QuestionnaireContent(): ReactElement {
             <p>{questionnaire.description || t('questionnaire.subtitle')}</p>
           </div>
           <div className="questionnaire-header-meta">
-            <span>{t('questionnaire.progress', { completed: completedCount, total: questionnaire.questions.length })}</span>
             <button
               type="button"
               className="questionnaire-close"
