@@ -87,7 +87,6 @@ export function QuestionnaireContent(): ReactElement {
     return (
       <div className="questionnaire-state-content" onClick={(event) => event.stopPropagation()}>
         <div className="questionnaire-completed">
-          <div className="questionnaire-completed-mark">✓</div>
           <h1>{t('questionnaire.completedTitle')}</h1>
           <p>{t('questionnaire.completedDescription')}</p>
           {submission.rewardProDays > 0 ? (

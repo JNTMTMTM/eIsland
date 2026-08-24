@@ -421,17 +421,6 @@
   margin-top: 6px;
 }
 
-.questionnaire-completed-mark {
-  display: grid;
-  width: 48px;
-  height: 48px;
-  place-items: center;
-  border-radius: 50%;
-  color: #30d158;
-  background: rgba(48, 209, 88, .12);
-  font-size: 23px;
-}
-
 .questionnaire-completed p {
   margin: 0;
   font-size: 12px;
