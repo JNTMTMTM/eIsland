@@ -523,10 +523,19 @@
   font-size: 11px;
 }
 
-.announcement-questionnaire-banner > span {
+.announcement-questionnaire-banner-text {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.announcement-questionnaire-banner-text > img {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
 }
 
 .announcement-questionnaire-banner > div {

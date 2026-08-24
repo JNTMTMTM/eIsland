@@ -21,6 +21,7 @@
 
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
+import { SvgIcon } from '../../../../utils/SvgIcon';
 
 interface AnnouncementQuestionnaireBannerProps {
   count: number;
@@ -41,7 +42,10 @@ export function AnnouncementQuestionnaireBanner({
   const { t } = useTranslation();
   return (
     <div className="announcement-questionnaire-banner" role="status">
-      <span>{t('announcement.questionnaireBanner.title', { count })}</span>
+      <span className="announcement-questionnaire-banner-text">
+        <img src={SvgIcon.QUESTIONNAIRE} alt="" draggable={false} />
+        {t('announcement.questionnaireBanner.title', { count })}
+      </span>
       <div>
         <button type="button" className="primary" onClick={onOpen}>
           {t('announcement.questionnaireBanner.open')}
