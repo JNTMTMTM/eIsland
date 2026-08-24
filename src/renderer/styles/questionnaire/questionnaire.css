@@ -349,9 +349,9 @@
 .questionnaire-toc {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 6px;
-  flex: 0 0 80px;
-  width: 80px;
+  gap: 5px;
+  flex: 0 0 92px;
+  width: 92px;
   padding: 4px 6px 4px 10px;
   align-content: start;
   overflow-y: auto;
@@ -367,10 +367,13 @@
   transition: background .18s ease, box-shadow .18s ease;
 }
 
-.questionnaire-toc button:hover,
-.questionnaire-toc button.active {
+.questionnaire-toc button:hover {
   background: rgba(var(--color-text-rgb), .22);
-  box-shadow: 0 0 0 1px rgba(var(--color-text-rgb), .3);
+}
+
+.questionnaire-toc button.active {
+  background: rgba(var(--color-text-rgb), .28);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, .5);
 }
 
 .questionnaire-toc button.completed {
@@ -378,10 +381,13 @@
   box-shadow: 0 0 6px rgba(100, 180, 255, .35);
 }
 
-.questionnaire-toc button.completed:hover,
-.questionnaire-toc button.completed.active {
+.questionnaire-toc button.completed:hover {
   background: rgba(100, 180, 255, .85);
-  box-shadow: 0 0 8px rgba(100, 180, 255, .5);
+}
+
+.questionnaire-toc button.completed.active {
+  background: rgba(100, 180, 255, .9);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, .6), 0 0 8px rgba(100, 180, 255, .5);
 }
 
 .questionnaire-empty,

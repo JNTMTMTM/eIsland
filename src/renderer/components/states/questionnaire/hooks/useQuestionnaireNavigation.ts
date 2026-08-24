@@ -31,6 +31,7 @@ export function useQuestionnaireNavigation(questionCount: number, questionnaireI
   const scrollRef = useRef<HTMLDivElement>(null);
   const questionRefs = useRef<(HTMLElement | null)[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
+  const observerRef = useRef<IntersectionObserver | null>(null);
 
   const scrollToQuestion = useCallback((index: number): void => {
     const target = questionRefs.current[index];
@@ -47,23 +48,37 @@ export function useQuestionnaireNavigation(questionCount: number, questionnaireI
   useEffect(() => {
     const container = scrollRef.current;
     if (!container || questionCount === 0) return;
-    const handleScroll = (): void => {
-      const containerTop = container.getBoundingClientRect().top;
-      let closestIndex = 0;
-      let closestDistance = Number.POSITIVE_INFINITY;
-      questionRefs.current.forEach((question, index) => {
-        if (!question) return;
-        const distance = Math.abs(question.getBoundingClientRect().top - containerTop - 8);
-        if (distance < closestDistance) {
-          closestDistance = distance;
-          closestIndex = index;
+
+    observerRef.current?.disconnect();
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            const index = questionRefs.current.findIndex((ref) => ref === entry.target);
+            if (index !== -1) {
+              setActiveIndex(index);
+            }
+          }
         }
-      });
-      setActiveIndex(closestIndex);
+      },
+      {
+        root: container,
+        rootMargin: '-10% 0px -80% 0px',
+        threshold: 0,
+      },
+    );
+
+    observerRef.current = observer;
+
+    questionRefs.current.forEach((question) => {
+      if (question) observer.observe(question);
+    });
+
+    return () => {
+      observer.disconnect();
+      observerRef.current = null;
     };
-    container.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll();
-    return () => container.removeEventListener('scroll', handleScroll);
   }, [questionCount]);
 
   return { scrollRef, questionRefs, activeIndex, scrollToQuestion };
