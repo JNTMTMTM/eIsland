@@ -495,6 +495,8 @@
     "retry": "Reload",
     "close": "Close",
     "reportIssue": "Report issue",
+    "hideList": "Hide questionnaire list",
+    "showList": "Show questionnaire list",
     "subtitle": "Complete the questions below and submit your feedback.",
     "progress": "Completed {{completed}} / {{total}}",
     "validUntil": "Valid until {{time}}",
