@@ -196,6 +196,7 @@ export function QuestionnaireContent(): ReactElement {
           <main ref={navigation.scrollRef} className="questionnaire-body">
             {questionnaire.rewardProDays != null && (
               <div className="questionnaire-reward-banner" role="status">
+                <img src={SvgIcon.PRO} alt="" draggable={false} />
                 <span>{t('questionnaire.rewardBanner', { days: questionnaire.rewardProDays })}</span>
               </div>
             )}

@@ -181,6 +181,12 @@
   font-size: 11px;
 }
 
+.questionnaire-reward-banner > img {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
 .questionnaire-reward-banner > span {
   overflow: hidden;
   text-overflow: ellipsis;
