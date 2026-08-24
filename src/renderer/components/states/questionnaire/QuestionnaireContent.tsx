@@ -154,7 +154,7 @@ export function QuestionnaireContent(): ReactElement {
                 onClick={() => selectQuestionnaire(item.id)}
               >
                 <span>{item.title}</span>
-                <small>{t('questionnaire.validUntil', { time: item.endsAt.replace('T', ' ').slice(0, 16) })}</small>
+                <small>{item.endsAt.replace('T', ' ').slice(0, 16)}</small>
               </button>
             ))}
           </aside>
