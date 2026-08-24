@@ -36,7 +36,7 @@ import '../../../styles/questionnaire/questionnaire.css';
  */
 export function QuestionnaireContent(): ReactElement {
   const { t } = useTranslation();
-  const { setHover } = useIslandStore();
+  const { setHover, setMaxExpand, setMaxExpandTab } = useIslandStore();
   const {
     questionnaires,
     questionnaire,
@@ -63,6 +63,12 @@ export function QuestionnaireContent(): ReactElement {
     ? areRequiredQuestionsComplete(questionnaire.questions, answers)
     : false;
   const completedCount = questionnaire?.questions.filter((question) => isQuestionnaireAnswerComplete(answers[question.id])).length ?? 0;
+
+  const handleReportIssue = (): void => {
+    window.api.storeWrite('settings-open-tab', 'about-feedback').catch(() => {});
+    setMaxExpandTab('settings');
+    setMaxExpand();
+  };
 
   if (viewState === 'loading') {
     return <div className="questionnaire-state-content"><div className="questionnaire-empty">{t('questionnaire.loading')}</div></div>;
@@ -117,6 +123,16 @@ export function QuestionnaireContent(): ReactElement {
           </div>
           <div className="questionnaire-header-meta">
             <span>{t('questionnaire.progress', { completed: completedCount, total: questionnaire.questions.length })}</span>
+            <button
+              type="button"
+              className="questionnaire-close"
+              aria-label={t('questionnaire.reportIssue')}
+              onClick={() => {
+                window.api.clipboardOpenUrl('https://github.com/JNTMTMTM/eIsland/issues/new').catch(() => {});
+              }}
+            >
+              <img src={SvgIcon.GITHUB} alt="" draggable={false} />
+            </button>
             <button type="button" className="questionnaire-close" aria-label={t('questionnaire.close')} onClick={setHover}>
               <img src={SvgIcon.CANCEL} alt="" draggable={false} />
             </button>
@@ -167,6 +183,7 @@ export function QuestionnaireContent(): ReactElement {
                 disabled={!token || !requiredComplete || submitting}
                 onClick={() => void submit()}
               >{submitting ? t('questionnaire.submitting') : t('questionnaire.submit')}</button>
+              <button type="button" className="settings-user-secondary-btn" onClick={handleReportIssue}>{t('questionnaire.reportIssue')}</button>
             </footer>
           </main>
           <nav className="questionnaire-toc" aria-label={t('questionnaire.questionNavigation')}>

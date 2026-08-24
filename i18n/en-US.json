@@ -494,6 +494,7 @@
     "emptyDescription": "Please check again later.",
     "retry": "Reload",
     "close": "Close",
+    "reportIssue": "Report issue",
     "subtitle": "Complete the questions below and submit your feedback.",
     "progress": "Completed {{completed}} / {{total}}",
     "validUntil": "Valid until {{time}}",

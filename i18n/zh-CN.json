@@ -494,6 +494,7 @@
     "emptyDescription": "请稍后再来查看。",
     "retry": "重新加载",
     "close": "关闭",
+    "reportIssue": "报告问题",
     "subtitle": "请完成以下问题并提交反馈。",
     "progress": "已完成 {{completed}} / {{total}}",
     "validUntil": "有效期至 {{time}}",
