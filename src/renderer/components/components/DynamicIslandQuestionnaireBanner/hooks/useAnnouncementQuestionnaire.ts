@@ -11,11 +11,16 @@
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  */
 
 /**
  * @file useAnnouncementQuestionnaire.ts
- * @description 公告页未完成问卷提醒数据 Hook。
+ * @description 未完成问卷提醒数据 Hook。
  * @author 鸡哥
  */
 
@@ -30,7 +35,7 @@ import {
 } from '../../../../api/questionnaire/questionnaireApi';
 
 /**
- * 公告页挂载时查询一次当前问卷并过滤本机完成或屏蔽标记。
+ * 挂载时查询一次当前问卷并过滤本机完成或屏蔽标记。
  * @returns 待提醒问卷与关闭提醒操作。
  */
 export function useAnnouncementQuestionnaire() {

@@ -25,4 +25,5 @@
  */
 
 export { QuestionnaireBanner } from './components/QuestionnaireBanner';
+export { useAnnouncementQuestionnaire } from './hooks/useAnnouncementQuestionnaire';
 export type { QuestionnaireBannerProps } from './types';
