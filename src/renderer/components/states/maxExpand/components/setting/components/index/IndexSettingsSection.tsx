@@ -30,6 +30,7 @@ import useIslandStore from '../../../../../../../store/slices';
 import { useAnnouncementQuestionnaire } from '../../../../../../states/announcement/hooks/useAnnouncementQuestionnaire';
 import { QuestionnaireBanner } from '../../../../../../../components/components/DynamicIslandQuestionnaireBanner';
 import { SEARCHABLE_SETTINGS, SETTINGS_TAB_ICONS, type SearchableSettingItem, type AppSettingsPageKey, type MusicSettingsPageKey, type AiSettingsPageKey, type NetworkSettingsPageKey, type SettingsSidebarTabKey } from '../../utils/settingsConfig';
+import '../../../../../../../styles/announcement/announcement.css';
 
 interface IndexNavCard {
   id: string;
