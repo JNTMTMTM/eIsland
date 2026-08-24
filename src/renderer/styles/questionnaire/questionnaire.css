@@ -167,6 +167,26 @@
   scrollbar-width: thin;
 }
 
+.questionnaire-reward-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+  padding: 7px 11px;
+  margin-bottom: 10px;
+  border: 1px solid rgba(124, 188, 255, .2);
+  border-radius: 8px;
+  color: rgba(var(--color-text-rgb), .82);
+  background: rgba(124, 188, 255, .08);
+  font-size: 11px;
+}
+
+.questionnaire-reward-banner > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .questionnaire-question-section {
   scroll-margin-top: 4px;
 }

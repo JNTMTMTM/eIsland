@@ -518,7 +518,8 @@
     "completedDescription": "感谢你的反馈，答案已成功保存。",
     "rewardDays": "已获赠 {{days}} 天 Pro 会员",
     "rewardExpireAt": "新的到期时间：{{time}}",
-    "noReward": "本问卷未配置 Pro 奖励"
+    "noReward": "本问卷未配置 Pro 奖励",
+    "rewardBanner": "完成本问卷可获赠 {{days}} 天 Pro 会员"
   },
   "notification": {
     "alarm": {

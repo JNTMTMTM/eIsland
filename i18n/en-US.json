@@ -518,7 +518,8 @@
     "completedDescription": "Thank you. Your feedback has been saved.",
     "rewardDays": "You received {{days}} days of Pro",
     "rewardExpireAt": "New expiration: {{time}}",
-    "noReward": "This questionnaire has no Pro reward"
+    "noReward": "This questionnaire has no Pro reward",
+    "rewardBanner": "Complete this questionnaire to get {{days}} days of Pro"
   },
   "notification": {
     "alarm": {

@@ -194,6 +194,11 @@ export function QuestionnaireContent(): ReactElement {
             ))}
           </aside>
           <main ref={navigation.scrollRef} className="questionnaire-body">
+            {questionnaire.rewardProDays != null && (
+              <div className="questionnaire-reward-banner" role="status">
+                <span>{t('questionnaire.rewardBanner', { days: questionnaire.rewardProDays })}</span>
+              </div>
+            )}
             {questionnaire.questions.map((question, index) => (
               <section
                 key={question.id}
