@@ -27,7 +27,7 @@
 import { useState, useEffect, useCallback, useRef, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../store/slices';
-import { AnnouncementQuestionnaireBanner } from './components/AnnouncementQuestionnaireBanner';
+import { QuestionnaireBanner } from '../../components/DynamicIslandQuestionnaireBanner';
 import { AnnouncementHeader } from './components/AnnouncementHeader';
 import { AnnouncementBody } from './components/AnnouncementBody';
 import { ANNOUNCEMENT_DEFAULTS, ANNOUNCEMENT_KEYS } from './config/announcementDefaults';
@@ -235,7 +235,7 @@ export function AnnouncementContent(): ReactElement {
             qrImageUrl={socialConfig.qqQrImageUrl}
             announcementList={announcementList}
             questionnaireBanner={questionnaireReminder.questionnaire ? (
-              <AnnouncementQuestionnaireBanner
+              <QuestionnaireBanner
                 count={questionnaireReminder.count}
                 onOpen={setQuestionnaire}
                 onDismiss={questionnaireReminder.dismiss}

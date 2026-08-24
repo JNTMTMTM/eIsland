@@ -19,10 +19,13 @@
  */
 
 /**
- * @file index.ts
- * @description 问卷横幅组件模块入口
+ * @file types/index.ts
+ * @description 问卷横幅组件类型定义。
  * @author 鸡哥
  */
 
-export { QuestionnaireBanner } from './components/QuestionnaireBanner';
-export type { QuestionnaireBannerProps } from './types';
+export interface QuestionnaireBannerProps {
+  count: number;
+  onOpen: () => void;
+  onDismiss: () => void;
+}

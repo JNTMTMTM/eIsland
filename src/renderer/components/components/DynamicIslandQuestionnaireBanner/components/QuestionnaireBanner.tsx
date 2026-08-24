@@ -11,34 +11,34 @@
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  */
 
 /**
- * @file AnnouncementQuestionnaireBanner.tsx
- * @description 公告正文顶部未完成问卷提醒横幅。
+ * @file QuestionnaireBanner.tsx
+ * @description 未完成问卷提醒横幅。
  * @author 鸡哥
  */
 
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SvgIcon } from '../../../../utils/SvgIcon';
-
-interface AnnouncementQuestionnaireBannerProps {
-  count: number;
-  onOpen: () => void;
-  onDismiss: () => void;
-}
+import type { QuestionnaireBannerProps } from '../types';
 
 /**
  * 渲染未完成问卷提醒与操作按钮。
  * @param props - 待处理问卷数量、打开问卷和关闭当前提醒回调。
- * @returns 公告正文顶部提醒横幅。
+ * @returns 问卷提醒横幅。
  */
-export function AnnouncementQuestionnaireBanner({
+export function QuestionnaireBanner({
   count,
   onOpen,
   onDismiss,
-}: AnnouncementQuestionnaireBannerProps): ReactElement {
+}: QuestionnaireBannerProps): ReactElement {
   const { t } = useTranslation();
   return (
     <div className="announcement-questionnaire-banner" role="status">
