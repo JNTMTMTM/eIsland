@@ -516,10 +516,10 @@
     "jumpToQuestion": "Jump to question {{number}}",
     "completedTitle": "Questionnaire submitted",
     "completedDescription": "Thank you. Your feedback has been saved.",
-    "rewardDays": "You received {{days}} days of Pro",
+    "rewardDays": "You received {{days}} day(s) of Pro",
     "rewardExpireAt": "New expiration: {{time}}",
     "noReward": "This questionnaire has no Pro reward",
-    "rewardBanner": "Complete this questionnaire to get {{days}} days of Pro"
+    "rewardBanner": "Complete this questionnaire to get {{days}} day(s) of Pro"
   },
   "notification": {
     "alarm": {
