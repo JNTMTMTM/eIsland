@@ -4732,6 +4732,7 @@
   gap: 10px;
   align-content: start;
   flex-shrink: 0;
+  margin-top: -10px;
 }
 
 .settings-user-info-nav-cards .settings-index-card {
