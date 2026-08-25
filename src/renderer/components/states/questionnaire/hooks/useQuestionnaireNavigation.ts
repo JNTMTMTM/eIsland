@@ -59,14 +59,14 @@ export function useQuestionnaireNavigation(questionCount: number, questionnaireI
     const observer = new IntersectionObserver(
       (entries) => {
         if (programmaticScrollRef.current) return;
-        for (const entry of entries) {
+        entries.forEach((entry) => {
           if (entry.isIntersecting) {
             const index = questionRefs.current.findIndex((ref) => ref === entry.target);
             if (index !== -1) {
               setActiveIndex(index);
             }
           }
-        }
+        });
       },
       {
         root: container,
