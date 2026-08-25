@@ -126,6 +126,10 @@ export function useQuestionnaire() {
       if (result.code === 409) {
         markQuestionnaireCompleted(questionnaire.id);
         clearQuestionnaireDraft(questionnaire.id);
+        const remaining = questionnaires.filter((item) => item.id !== questionnaire.id);
+        setQuestionnaires(remaining);
+        setSelectedQuestionnaireId(remaining[0]?.id ?? null);
+        setViewState(remaining.length > 0 ? 'ready' : 'empty');
         setMessage('alreadySubmitted');
       } else {
         setSubmissionError(`${result.message} (${result.code})`);
@@ -136,7 +140,7 @@ export function useQuestionnaire() {
     markQuestionnaireCompleted(questionnaire.id);
     setSubmission(result.data);
     setViewState('completed');
-  }, [answers, questionnaire, submitting, token]);
+  }, [answers, questionnaire, questionnaires, submitting, token]);
 
   const continueAfterSubmission = useCallback((): void => {
     if (!questionnaire) return;

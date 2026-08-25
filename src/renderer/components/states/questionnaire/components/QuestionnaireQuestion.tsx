@@ -53,9 +53,13 @@ export function QuestionnaireQuestion({ question, index, answer, readOnly = fals
         <h2>{question.title}</h2>
         {question.required && <b>{t('questionnaire.required')}</b>}
       </div>
-      {question.type === 'rating' && (
+      {question.type === 'rating' && (() => {
+        const min = question.min ?? 0;
+        const max = question.max ?? 5;
+        const choices = Array.from({ length: max - min + 1 }, (_, i) => min + i);
+        return (
         <div className="questionnaire-rating" role="radiogroup" aria-label={question.title}>
-          {[0, 1, 2, 3, 4, 5].map((value) => (
+          {choices.map((value) => (
             <button
               key={value}
               type="button"
@@ -67,7 +71,8 @@ export function QuestionnaireQuestion({ question, index, answer, readOnly = fals
             >{value}</button>
           ))}
         </div>
-      )}
+        );
+      })()}
       {question.type === 'single_choice' && (
         <div className="questionnaire-options">
           {question.options.map((option) => (
