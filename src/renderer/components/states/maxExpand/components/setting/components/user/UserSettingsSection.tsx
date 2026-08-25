@@ -73,6 +73,8 @@ import { SvgIcon } from '../../../../../../../utils/SvgIcon';
 import { resolveCountryIcon } from '../../../../../../../utils/SvgIcon/country-icon';
 import { EMAIL_PATTERN } from '../../../../../../../components/config/dynamicIslandPatterns';
 import { LoginHeatmap } from './components/LoginHeatmap';
+import { QuestionnaireBanner, useAnnouncementQuestionnaire } from '../../../../../../components/DynamicIslandQuestionnaireBanner';
+import '../../../../../../../styles/announcement/announcement.css';
 import { readLoginDays, recordLoginDay } from './utils/loginHeatmapStorage';
 import { SettingsPageNavigation, SettingsPageNavigationToggle } from '../SettingsPageNavigation';
 import '../../../../../../../styles/settings/modules/cli.css';
@@ -203,7 +205,8 @@ const getRoleFromToken = (token: string | null | undefined): string | null => {
  */
 export function UserSettingsSection({ initialProfilePage = 'info' }: UserSettingsSectionProps): ReactElement {
   const { t, i18n } = useTranslation();
-  const { setLogin, setRegister, setPayment } = useIslandStore();
+  const { setLogin, setRegister, setPayment, setQuestionnaire } = useIslandStore();
+  const questionnaireReminder = useAnnouncementQuestionnaire();
   const [token, setToken] = useState<string | null>(() => readLocalToken());
   const [profile, setProfile] = useState<UserAccountProfile | null>(() => readLocalProfile());
   const [loadingProfile, setLoadingProfile] = useState(false);
@@ -2615,6 +2618,14 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
             </div>
           </div>
         </div>
+
+        {questionnaireReminder.questionnaire && (
+          <QuestionnaireBanner
+            count={questionnaireReminder.count}
+            onOpen={setQuestionnaire}
+            onDismiss={questionnaireReminder.dismiss}
+          />
+        )}
 
         {loadingQuestionnaireHistory && questionnaireHistory.length === 0 ? (
           <div className="settings-user-card settings-user-questionnaire-empty">
