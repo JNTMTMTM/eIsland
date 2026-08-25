@@ -73,7 +73,7 @@ import { SettingsPageNavigation, SettingsPageNavigationToggle } from '../Setting
 import '../../../../../../../styles/settings/modules/cli.css';
 
 type FeedbackType = 'success' | 'error' | 'info';
-type UserProfilePage = 'info' | 'edit' | 'password' | 'pro' | 'recharge' | 'orders' | 'account' | 'oauth' | 'image-translation' | 'ocr-history';
+type UserProfilePage = 'info' | 'edit' | 'password' | 'pro' | 'recharge' | 'orders' | 'account' | 'oauth' | 'image-translation' | 'ocr-history' | 'questionnaire';
 
 interface Feedback {
   type: FeedbackType;
@@ -102,7 +102,7 @@ interface UserSettingsSectionProps {
 }
 
 const GENDER_VALUES: UserAccountGender[] = ['male', 'female', 'custom', 'undisclosed'];
-const USER_PROFILE_PAGES: UserProfilePage[] = ['info', 'edit', 'password', 'pro', 'recharge', 'orders', 'account', 'oauth', 'image-translation', 'ocr-history'];
+const USER_PROFILE_PAGES: UserProfilePage[] = ['info', 'edit', 'password', 'pro', 'recharge', 'orders', 'account', 'oauth', 'image-translation', 'ocr-history', 'questionnaire'];
 const IMAGE_TRANSLATION_PREVIEW_MIN_SCALE = 0.5;
 const IMAGE_TRANSLATION_PREVIEW_MAX_SCALE = 4;
 
@@ -307,7 +307,9 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
                     ? '第三方应用绑定'
                     : userProfilePage === 'image-translation'
                       ? '图片翻译'
-                      : 'OCR记录',
+                      : userProfilePage === 'ocr-history'
+                        ? 'OCR记录'
+                        : '问卷记录',
   });
 
   const avatarInputRef = useRef<HTMLInputElement | null>(null);
@@ -1521,6 +1523,7 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
       { id: 'oauth', label: t('settings.user.pages.oauth', { defaultValue: '第三方应用绑定' }) },
       { id: 'image-translation', label: t('settings.user.pages.image-translation', { defaultValue: '图片翻译' }) },
       { id: 'ocr-history', label: t('settings.user.pages.ocr-history', { defaultValue: 'OCR记录' }) },
+      { id: 'questionnaire', label: t('settings.user.pages.questionnaire', { defaultValue: '问卷记录' }) },
     ];
     const profilePageLabels = Object.fromEntries(
       profilePageItems.map((item) => [item.id, item.label]),
@@ -2555,6 +2558,26 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
       </div>
     );
 
+    /** 渲染问卷记录页面（空壳，待后续实现） */
+    const renderQuestionnairePage = (): ReactElement => (
+      <div className="settings-user-page-panel settings-user-questionnaire-panel">
+        <div className="settings-user-card settings-user-questionnaire-head-card">
+          <div className="settings-user-questionnaire-head">
+            <div>
+              <div className="settings-user-form-title">{t('settings.user.pages.questionnaire', { defaultValue: '问卷记录' })}</div>
+              <div className="settings-user-card-title-hint">
+                {t('settings.user.questionnaire.subtitle', { defaultValue: '查看历史问卷填写记录' })}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="settings-user-card settings-user-questionnaire-empty">
+          {t('settings.user.questionnaire.empty', { defaultValue: '暂无问卷记录' })}
+        </div>
+      </div>
+    );
+
     const rechargeAmountYuan = rechargeSelected !== null && rechargeSelected !== undefined
       ? rechargeSelected
       : (rechargeCustomValue.trim() !== '' ? parseFloat(rechargeCustomValue) : NaN);
@@ -2647,6 +2670,7 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
           {userProfilePage === 'oauth' && renderOAuthPage()}
           {userProfilePage === 'image-translation' && renderImageTranslationPage()}
           {userProfilePage === 'ocr-history' && renderOcrHistoryPage()}
+          {userProfilePage === 'questionnaire' && renderQuestionnairePage()}
         </div>
 
         <SettingsPageNavigation

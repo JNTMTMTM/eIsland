@@ -3450,6 +3450,7 @@
         "oauth": "Third-party App",
         "image-translation": "Image Translation",
         "ocr-history": "OCR History",
+        "questionnaire": "Questionnaire Records",
         "switchTo": "Switch to {{label}}"
       },
       "oauth": {
@@ -3510,6 +3511,10 @@
           "failed": "Failed",
           "unknown": "Unknown"
         }
+      },
+      "questionnaire": {
+        "subtitle": "View questionnaire submission history",
+        "empty": "No questionnaire records yet"
       },
       "ocrHistory": {
         "subtitle": "View original images alongside OCR-recognized text",

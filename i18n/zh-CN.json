@@ -3450,6 +3450,7 @@
         "oauth": "第三方应用绑定",
         "image-translation": "图片翻译",
         "ocr-history": "OCR记录",
+        "questionnaire": "问卷记录",
         "switchTo": "切换到{{label}}"
       },
       "oauth": {
@@ -3510,6 +3511,10 @@
           "failed": "失败",
           "unknown": "未知"
         }
+      },
+      "questionnaire": {
+        "subtitle": "查看历史问卷填写记录",
+        "empty": "暂无问卷记录"
       },
       "ocrHistory": {
         "subtitle": "查看原始图片与 OCR 识别文本",
