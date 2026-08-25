@@ -1761,6 +1761,21 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
               <span className="settings-index-card-desc">{t('settings.user.infoNav.oauthDesc', { defaultValue: '查看已绑定的第三方登录账号' })}</span>
               <img className="settings-index-card-layout-icon" src={SvgIcon.LINK} alt="" aria-hidden="true" />
             </button>
+            <button type="button" className="settings-index-card" onClick={() => setUserProfilePage('ocr-history')}>
+              <span className="settings-index-card-title">{t('settings.user.pages.ocr-history', { defaultValue: 'OCR记录' })}</span>
+              <span className="settings-index-card-desc">{t('settings.user.infoNav.ocrDesc', { defaultValue: '查看历史 OCR 文字识别记录' })}</span>
+              <img className="settings-index-card-layout-icon" src={SvgIcon.OCR} alt="" aria-hidden="true" />
+            </button>
+            <button type="button" className="settings-index-card" onClick={() => setUserProfilePage('image-translation')}>
+              <span className="settings-index-card-title">{t('settings.user.pages.image-translation', { defaultValue: '图片翻译' })}</span>
+              <span className="settings-index-card-desc">{t('settings.user.infoNav.imageTranslationDesc', { defaultValue: '查看历史图片翻译记录' })}</span>
+              <img className="settings-index-card-layout-icon" src={SvgIcon.LANGUAGE} alt="" aria-hidden="true" />
+            </button>
+            <button type="button" className="settings-index-card" onClick={() => setUserProfilePage('questionnaire')}>
+              <span className="settings-index-card-title">{t('settings.user.pages.questionnaire', { defaultValue: '问卷记录' })}</span>
+              <span className="settings-index-card-desc">{t('settings.user.infoNav.questionnaireDesc', { defaultValue: '查看历史问卷填写记录' })}</span>
+              <img className="settings-index-card-layout-icon" src={SvgIcon.QUESTIONNAIRE} alt="" aria-hidden="true" />
+            </button>
             <button
               type="button"
               className="settings-index-card"

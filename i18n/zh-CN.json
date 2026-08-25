@@ -3437,7 +3437,10 @@
         "rechargeDesc": "为 AI 助手对话余额充值",
         "ordersDesc": "查看订单状态、继续支付或主动关闭待支付订单",
         "logoutDesc": "退出当前账号或注销",
-        "oauthDesc": "查看已绑定的第三方登录账号"
+        "oauthDesc": "查看已绑定的第三方登录账号",
+        "ocrDesc": "查看历史 OCR 文字识别记录",
+        "imageTranslationDesc": "查看历史图片翻译记录",
+        "questionnaireDesc": "查看历史问卷填写记录"
       },
       "pages": {
         "info": "用户信息",
