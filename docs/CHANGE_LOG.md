@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-08-22T16:01:53.795Z
+> 生成时间：2026-08-25T18:46:59.148Z
 
 ## 26.7.3
 
@@ -3464,6 +3464,53 @@
 
 ## Unreleased
 
+- 2026-08-26 | b1c3c945 | 鸡哥 | Merge pull request #206 from JNTMTMTM/dev
+- 2026-08-26 | 775e165e | 鸡哥 | feat: enhance escape navigation and questionnaire components with new state handling and dynamic rendering
+- 2026-08-26 | 0412b37c | 鸡哥 | fix: remove redundant reference to Questionnaire State Machine in documentation
+- 2026-08-26 | c19b75ba | 鸡哥 | fix: update conditional check for rewardProDays and refactor IntersectionObserver loop
+- 2026-08-26 | d50fed21 | 鸡哥 | feat: add questionnaire state and update state machine documentation
+- 2026-08-26 | 1c2a90de | 鸡哥 | feat: enhance user questionnaire details with animations and styling
+- 2026-08-26 | 01af2153 | 鸡哥 | feat: add OCR and image translation history sections to UserSettings
+- 2026-08-26 | 0816d97e | 鸡哥 | fix: adjust margin-top for settings index card layout
+- 2026-08-26 | b5462748 | 鸡哥 | feat: add QuestionnaireBanner to display reminders in UserSettingsSection
+- 2026-08-25 | 6f9a3345 | 鸡哥 | feat: add questionnaire submission deletion functionality and update UI feedback
+- 2026-08-25 | 95b4265f | 鸡哥 | feat: integrate QuestionnaireBanner and useAnnouncementQuestionnaire in UserSettingsSection
+- 2026-08-25 | 366f0c5d | 鸡哥 | feat: implement questionnaire history feature with loading states and error handling
+- 2026-08-25 | 5112d95d | 鸡哥 | feat: add styles for empty user questionnaire state
+- 2026-08-25 | 885e479e | 鸡哥 | feat: add questionnaire records section and update user settings page
+- 2026-08-25 | 59428568 | 鸡哥 | feat: move useAnnouncementQuestionnaire hook to DynamicIslandQuestionnaireBanner and update imports
+- 2026-08-25 | 1f5379f4 | 鸡哥 | feat: import announcement styles for QuestionnaireBanner integration
+- 2026-08-25 | 90621265 | 鸡哥 | fix: add margin to QuestionnaireBanner for improved layout
+- 2026-08-25 | 2083f862 | 鸡哥 | fix: reduce top padding in settings layout for improved spacing
+- 2026-08-25 | 04128ef3 | 鸡哥 | feat: integrate QuestionnaireBanner into IndexSettingsSection with state management
+- 2026-08-25 | d594428c | 鸡哥 | feat: refactor questionnaire banner components and types
+- 2026-08-25 | c38fa872 | 鸡哥 | feat: add DynamicIslandQuestionnaireBanner component
+- 2026-08-25 | dade9f72 | 鸡哥 | feat: enhance AnnouncementQuestionnaireBanner with SVG icon and updated styles
+- 2026-08-25 | 438ae827 | 鸡哥 | feat: add QUESTIONNAIRE SVG icon and update SvgIcon utility
+- 2026-08-25 | 519b9207 | 鸡哥 | fix: update pluralization for Pro days in questionnaire messages
+- 2026-08-25 | edcc3aca | 鸡哥 | feat: add image to reward banner in questionnaire and style it
+- 2026-08-25 | d81bd01e | 鸡哥 | feat: add reward banner to questionnaire for Pro days
+- 2026-08-25 | 32e04af7 | 鸡哥 | feat: add report issue button to questionnaire footer
+- 2026-08-25 | 4dc29f93 | 鸡哥 | feat: add toggle functionality for questionnaire list visibility and update translations
+- 2026-08-25 | 7e5af325 | 鸡哥 | feat: remove progress display from questionnaire header
+- 2026-08-24 | 6b90595a | 鸡哥 | feat: remove translation from questionnaire valid until date display
+- 2026-08-24 | ed38b9a8 | 鸡哥 | feat: enhance questionnaire navigation by preventing index updates during programmatic scrolling
+- 2026-08-24 | 38213991 | 鸡哥 | feat: add scroll event handling to update active question index in questionnaire navigation
+- 2026-08-24 | 9a62306d | 鸡哥 | feat: implement IntersectionObserver for question navigation and update styles in TOC for improved layout
+- 2026-08-24 | d02fdd2c | 鸡哥 | feat: update layout and styles for questionnaire table of contents for improved usability
+- 2026-08-24 | 885d7c1c | 鸡哥 | feat: enhance text styles in completed questionnaire section for better readability
+- 2026-08-24 | c396d519 | 鸡哥 | feat: add margin-top to completed actions in questionnaire styles
+- 2026-08-24 | 22d05fb2 | 鸡哥 | feat: add report issue button and improve layout in questionnaire component
+- 2026-08-24 | 2937db7f | 鸡哥 | feat: add report issue functionality to questionnaire component
+- 2026-08-24 | a1948e82 | 鸡哥 | refactor: remove completed mark styles from questionnaire component
+- 2026-08-24 | 48ae4d43 | 鸡哥 | feat: update button styles in questionnaire component for improved UI consistency
+- 2026-08-24 | 4b77caf5 | 鸡哥 | feat: enhance questionnaire functionality with multi-questionnaire support and UI updates
+- 2026-08-24 | adb553f2 | 鸡哥 | feat: add submission error handling to questionnaire hook and component
+- 2026-08-24 | b19d4b0d | 鸡哥 | refactor: remove reward hint and related styles from questionnaire component
+- 2026-08-24 | f63c13be | 鸡哥 | feat: add questionnaire reminder banner and related functionality
+- 2026-08-24 | e357209c | 鸡哥 | feat: add questionnaire API types and implement questionnaire functionality
+- 2026-08-23 | ec949d4f | 鸡哥 | feat: add initial implementation of questionnaire component
+- 2026-08-22 | 6facc9b3 | eislandBot | docs: auto update CHANGE_LOG.md for #205 by @JNTMTMTM [skip ci]
 - 2026-08-23 | 1d38fe33 | 鸡哥 | Merge pull request #205 from JNTMTMTM/dev
 - 2026-08-22 | 6ed7b98a | 鸡哥 | feat: implement detail request sequence management in WallpaperMarketSection and disable refresh button in SettingsTab
 - 2026-08-22 | 4339164a | 鸡哥 | fix: adjust margin-left for settings icon in layout CSS
