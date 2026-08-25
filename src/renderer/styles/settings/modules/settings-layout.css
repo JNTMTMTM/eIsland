@@ -5591,6 +5591,16 @@
   color: rgba(var(--color-text-rgb), 0.56);
 }
 
+.settings-user-questionnaire-empty {
+  min-height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 12px;
+  color: rgba(var(--color-text-rgb), 0.56);
+}
+
 .settings-user-image-translation-list {
   display: flex;
   flex-direction: column;
