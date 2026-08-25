@@ -6,7 +6,7 @@ icon: diagram-project
 # eIsland State Machine
 
 :::info
-The eIsland state machine is the core architecture that controls the island's appearance, behavior, and interactions. It manages **21 distinct states**, each with defined pixel dimensions, mouse behavior, and transition rules. The dimensions shown below are for **Notch** mode — see [Shape Modes](shape-modes.md) for **Pill** mode dimensions.
+The eIsland state machine is the core architecture that controls the island's appearance, behavior, and interactions. It manages **23 distinct states**, each with defined pixel dimensions, mouse behavior, and transition rules. The dimensions shown below are for **Notch** mode — see [Shape Modes](shape-modes.md) for **Pill** mode dimensions.
 :::
 
 ## State Categories
@@ -29,6 +29,7 @@ The eIsland state machine is the core architecture that controls the island's ap
 | `lyricsTranslation` | Lyrics with translation | Yes | 500×60 px |
 | `notification` | Alert and message display | No | 500×88 px |
 | `announcement` | System announcements | No | 860×400 px |
+| `questionnaire` | Survey/questionnaire form | No | 860×400 px |
 
 ### User Flow States
 
@@ -89,6 +90,7 @@ export const STATE_CONFIGS: Record<IslandState, StateConfig> = {
   payment:        { mousePassthrough: false, expanded: true,  enterDelay: 0,   leaveDelay: 0   },
   guide:          { mousePassthrough: false, expanded: true,  enterDelay: 0,   leaveDelay: 0   },
   announcement:   { mousePassthrough: false, expanded: true,  enterDelay: 0,   leaveDelay: 0   },
+  questionnaire:  { mousePassthrough: false, expanded: true,  enterDelay: 0,   leaveDelay: 0   },
   stt:            { mousePassthrough: false, expanded: true,  enterDelay: 0,   leaveDelay: 0   },
   cli:            { mousePassthrough: false, expanded: true,  enterDelay: 0,   leaveDelay: 0   },
   musicProvidersLogin:{ mousePassthrough: false, expanded: true, enterDelay: 0, leaveDelay: 0 },
@@ -122,6 +124,7 @@ export const STATE_AREA: Record<string, number> = {
   payment: 860 * 400,       // 344,000 px²
   guide: 860 * 400,         // 344,000 px²
   announcement: 860 * 400,  // 344,000 px²
+  questionnaire: 860 * 400, // 344,000 px²
   stt: 500 * 88,            // 44,000 px²
   cli: 500 * 88,            // 44,000 px²
   musicProvidersLogin: 860 * 400, // 344,000 px²
@@ -156,7 +159,8 @@ function handleIslandClick() {
     case 'login':
     case 'register':
     case 'payment':
-      // Auth states handle their own navigation
+    case 'questionnaire':
+      // Auth / questionnaire states handle their own navigation
       break;
     case 'lyrics':
     case 'lyricsTranslation':
@@ -183,6 +187,7 @@ function handleIslandClick() {
 | `login` | Click | — | Self-handled |
 | `register` | Click | — | Self-handled |
 | `payment` | Click | — | Self-handled |
+| `questionnaire` | Click | — | Self-handled |
 | Any other | Click | `idle` | Default fallback |
 
 ### Auto-Transitions
@@ -659,6 +664,86 @@ The `announcement` state displays system announcements, updates, and important i
 - Version-specific announcements
 - Dismiss tracking (won't show again)
 - Integration with auto-updater
+
+---
+
+### questionnaire
+
+:::info
+The `questionnaire` state provides a full survey/questionnaire form interface with draft persistence, multi-questionnaire navigation, authenticated submission, and completion tracking. For the complete data flow and API details, see [Questionnaire State Machine](questionnaire.md).
+:::
+
+| Property | Value |
+|----------|-------|
+| **Dimensions** | 860×400 px |
+| **Mouse** | Interactive |
+| **Expanded** | Yes |
+| **Enter Delay** | 0ms |
+| **Leave Delay** | 0ms |
+
+**Entry Conditions:**
+- User clicks "Open" on a questionnaire reminder banner
+- Announcement page questionnaire banner action
+- Settings page questionnaire navigation card
+- `setQuestionnaire()` store action
+
+**Exit Conditions:**
+- Click close button → `hover`
+- Escape key → `hover`
+- All questionnaires completed → `hover`
+
+**UI Components Rendered:**
+- Questionnaire sidebar list (multi-questionnaire selector)
+- Question list with navigation dots
+- Answer inputs (rating, single choice, multiple choice, text)
+- Draft auto-save indicator
+- Submit / Save Draft buttons
+- Completion card with reward info
+- Login prompt (if not authenticated)
+
+**View States:**
+
+| View State | Description | UI |
+|------------|-------------|----|
+| `loading` | Fetching active questionnaires from server | Spinner with loading text |
+| `ready` | Questionnaire loaded, user can answer | Question list, navigation dots, action buttons |
+| `completed` | Submission succeeded, showing reward info | Success card with reward days and continue button |
+| `empty` | No active questionnaires remain | Empty state message |
+
+**Behavior Details:**
+- Self-handled navigation (does not follow standard click flow)
+- Drafts auto-saved to LocalStorage every 250ms (debounced)
+- Multi-questionnaire support with independent answer sets
+- Required question validation before submission
+- 409 conflict handling (duplicate submission detection)
+- Completion and dismiss markers persisted in LocalStorage
+- Scroll-synced question navigation via IntersectionObserver
+- Question types: rating, single_choice, multiple_choice, text (max 2000 chars)
+
+**LocalStorage Keys:**
+
+| Key Pattern | Purpose | Lifetime |
+|-------------|---------|----------|
+| `questionnaire-draft:{surveyId}` | Serialized draft answers | Until submission or clear |
+| `questionnaire-completed:{surveyId}` | Completion marker (`"true"`) | Permanent until deletion |
+| `questionnaire-dismissed:{surveyId}` | Banner dismiss marker (`"true"`) | Permanent until deletion |
+
+#### Module Structure
+
+:::details questionnaire module file tree
+```
+questionnaire/
+├── index.ts                              # Module entry point
+├── QuestionnaireContent.tsx              # Main UI: loading, ready, completed, empty views
+├── components/
+│   └── QuestionnaireQuestion.tsx         # Individual question renderer (rating, choice, text)
+├── hooks/
+│   ├── useQuestionnaire.ts              # Data hook: load, draft, submit, multi-questionnaire
+│   └── useQuestionnaireNavigation.ts    # Scroll sync and active question tracking
+└── utils/
+    └── questionnaireAnswers.ts          # Answer validation helpers
+```
+:::
 
 ---
 

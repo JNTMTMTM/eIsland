@@ -61,6 +61,7 @@ export default sidebar({
         "frontend-arch/states.md",
         "frontend-arch/shape-modes.md",
         "frontend-arch/cli.md",
+        "frontend-arch/questionnaire.md",
         "frontend-arch/electron-windows.md",
       ],
     },
