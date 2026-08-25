@@ -21,5 +21,4 @@ The eIsland frontend is built on Electron's multi-process architecture with a st
 | [State Machine](states.md) | The 23-state state machine that controls the island's visual modes, transitions, and interaction behavior |
 | [Shape Modes](shape-modes.md) | Notch and Pill shape modes: dimensions, positioning, interaction differences, and toggle mechanism |
 | [CLI State & Codex Support](cli.md) | Claude Code and Codex CLI session monitoring: dual-provider architecture, event streaming, permission handling, and activity heatmap |
-| [Questionnaire State Machine](questionnaire.md) | Survey delivery, draft persistence, multi-questionnaire navigation, authenticated submission, and completion tracking |
 | [Electron Windows](electron-windows.md) | All BrowserWindow instances: main island, splash, guide, standalone, capture, and glow overlays |

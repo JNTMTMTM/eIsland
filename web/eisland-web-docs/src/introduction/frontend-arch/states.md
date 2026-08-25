@@ -670,7 +670,7 @@ The `announcement` state displays system announcements, updates, and important i
 ### questionnaire
 
 :::info
-The `questionnaire` state provides a full survey/questionnaire form interface with draft persistence, multi-questionnaire navigation, authenticated submission, and completion tracking. For the complete data flow and API details, see [Questionnaire State Machine](questionnaire.md).
+The `questionnaire` state provides a full survey/questionnaire form interface with draft persistence, multi-questionnaire navigation, authenticated submission, and completion tracking.
 :::
 
 | Property | Value |
