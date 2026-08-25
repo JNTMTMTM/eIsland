@@ -3522,7 +3522,13 @@
         "rewardExpireAt": "PRO expires: {{time}}",
         "noReward": "No PRO reward",
         "viewDetails": "View answers",
-        "hideDetails": "Hide answers"
+        "hideDetails": "Hide answers",
+        "erase": "Delete my submission",
+        "confirmErase": "Confirm deletion",
+        "cancelErase": "Cancel",
+        "erasing": "Deleting…",
+        "eraseSuccess": "Questionnaire submission deleted; you may submit again without another reward",
+        "eraseFailed": "Failed to delete questionnaire submission"
       },
       "ocrHistory": {
         "subtitle": "View original images alongside OCR-recognized text",

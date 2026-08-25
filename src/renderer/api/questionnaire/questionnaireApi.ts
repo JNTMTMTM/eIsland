@@ -59,6 +59,14 @@ function writeQuestionnaireMarker(prefix: string, surveyId: number): void {
   }
 }
 
+function removeQuestionnaireStorage(prefix: string, surveyId: number): void {
+  try {
+    localStorage.removeItem(`${prefix}${surveyId}`);
+  } catch {
+    // 本地存储不可用时，服务端删除结果仍然有效。
+  }
+}
+
 function normalizeQuestion(value: unknown): QuestionnaireQuestion | null {
   if (!value || typeof value !== 'object') return null;
   const source = value as Record<string, unknown>;
@@ -203,6 +211,26 @@ export async function fetchQuestionnaireHistory(token: string): Promise<UserAcco
 }
 
 /**
+ * 删除当前用户指定的问卷提交记录及对应本地状态。
+ * @param token - 当前用户 JWT。
+ * @param resultId - 问卷提交记录 ID。
+ * @param surveyId - 问卷 ID。
+ * @returns 后端删除结果。
+ */
+export async function deleteQuestionnaireHistory(
+  token: string,
+  resultId: number,
+  surveyId: number,
+): Promise<UserAccountResult<void>> {
+  const result = await request<void>(`/v1/surveys/my/results/${encodeURIComponent(String(resultId))}`, {
+    method: 'DELETE',
+    auth: token,
+  });
+  if (result.ok) clearQuestionnaireLocalState(surveyId);
+  return result;
+}
+
+/**
  * 提交当前用户的问卷答案。
  * @param surveyId - 问卷 ID。
  * @param answers - 按题目 ID 索引的答案。
@@ -256,11 +284,17 @@ export function writeQuestionnaireDraft(surveyId: number, answers: Record<string
  * @param surveyId - 问卷 ID。
  */
 export function clearQuestionnaireDraft(surveyId: number): void {
-  try {
-    localStorage.removeItem(`${QUESTIONNAIRE_DRAFT_KEY_PREFIX}${surveyId}`);
-  } catch {
-    // ignore storage errors
-  }
+  removeQuestionnaireStorage(QUESTIONNAIRE_DRAFT_KEY_PREFIX, surveyId);
+}
+
+/**
+ * 清除指定问卷的草稿、完成标记和关闭提醒标记。
+ * @param surveyId - 问卷 ID。
+ */
+export function clearQuestionnaireLocalState(surveyId: number): void {
+  removeQuestionnaireStorage(QUESTIONNAIRE_DRAFT_KEY_PREFIX, surveyId);
+  removeQuestionnaireStorage(QUESTIONNAIRE_COMPLETED_KEY_PREFIX, surveyId);
+  removeQuestionnaireStorage(QUESTIONNAIRE_DISMISSED_KEY_PREFIX, surveyId);
 }
 
 /**

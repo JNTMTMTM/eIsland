@@ -55,6 +55,7 @@ import {
 import { runSliderCaptcha } from '../../../../../../../utils/sliderCaptcha';
 import {
   fetchQuestionnaireHistory,
+  deleteQuestionnaireHistory,
   type QuestionnaireHistoryItem,
 } from '../../../../../../../api/questionnaire/questionnaireApi';
 import { QuestionnaireQuestion } from '../../../../../questionnaire/components/QuestionnaireQuestion';
@@ -295,6 +296,9 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
   const [questionnaireHistory, setQuestionnaireHistory] = useState<QuestionnaireHistoryItem[]>([]);
   const [loadingQuestionnaireHistory, setLoadingQuestionnaireHistory] = useState(false);
   const [questionnaireHistoryError, setQuestionnaireHistoryError] = useState('');
+  const [questionnaireHistoryFeedback, setQuestionnaireHistoryFeedback] = useState<Feedback | null>(null);
+  const [questionnaireEraseConfirmResultId, setQuestionnaireEraseConfirmResultId] = useState<number | null>(null);
+  const [questionnaireErasingResultId, setQuestionnaireErasingResultId] = useState<number | null>(null);
   const [expandedQuestionnaireResultId, setExpandedQuestionnaireResultId] = useState<number | null>(null);
 
   /** 用户中心登录天数热力图：记录并展示当前用户每个自然日是否登录 */
@@ -794,11 +798,15 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
       setQuestionnaireHistory([]);
       setLoadingQuestionnaireHistory(false);
       setQuestionnaireHistoryError('');
+      setQuestionnaireHistoryFeedback(null);
+      setQuestionnaireEraseConfirmResultId(null);
+      setQuestionnaireErasingResultId(null);
       setExpandedQuestionnaireResultId(null);
       return;
     }
     setLoadingQuestionnaireHistory(true);
     setQuestionnaireHistoryError('');
+    setQuestionnaireHistoryFeedback(null);
     const result = await fetchQuestionnaireHistory(token);
     setLoadingQuestionnaireHistory(false);
     if (!result.ok || !Array.isArray(result.data)) {
@@ -813,7 +821,37 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
     setExpandedQuestionnaireResultId((current) => (
       result.data?.some((item) => item.resultId === current) ? current : null
     ));
+    setQuestionnaireEraseConfirmResultId((current) => (
+      result.data?.some((item) => item.resultId === current) ? current : null
+    ));
   }, [resetToLoggedOut, t, token]);
+
+  const handleEraseQuestionnaireHistory = useCallback(async (item: QuestionnaireHistoryItem): Promise<void> => {
+    if (!token || questionnaireErasingResultId !== null) return;
+    setQuestionnaireErasingResultId(item.resultId);
+    setQuestionnaireHistoryFeedback(null);
+    const result = await deleteQuestionnaireHistory(token, item.resultId, item.questionnaire.id);
+    setQuestionnaireErasingResultId(null);
+    if (!result.ok) {
+      if (result.code === 401 || result.code === 4011) {
+        resetToLoggedOut();
+        return;
+      }
+      setQuestionnaireHistoryFeedback({
+        type: 'error',
+        text: result.message || t('settings.user.questionnaire.eraseFailed'),
+      });
+      return;
+    }
+    void questionnaireReminder.reload();
+    setQuestionnaireHistory((current) => current.filter((record) => record.resultId !== item.resultId));
+    setExpandedQuestionnaireResultId((current) => current === item.resultId ? null : current);
+    setQuestionnaireEraseConfirmResultId(null);
+    setQuestionnaireHistoryFeedback({
+      type: 'success',
+      text: t('settings.user.questionnaire.eraseSuccess'),
+    });
+  }, [questionnaireErasingResultId, questionnaireReminder.reload, resetToLoggedOut, t, token]);
 
   const handleDownloadOcrImage = useCallback(async (item: OcrHistoryItem): Promise<void> => {
     if (!item.sourceUrl || ocrHistoryDownloadingId !== null || ocrHistoryCopyingId !== null || ocrHistoryRemovingId !== null) return;
@@ -2640,6 +2678,8 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
           </div>
         ) : null}
 
+        {renderFeedback(questionnaireHistoryFeedback)}
+
         {!loadingQuestionnaireHistory && !questionnaireHistoryError && questionnaireHistory.length === 0 ? (
           <div className="settings-user-card settings-user-questionnaire-empty">
             {t('settings.user.questionnaire.empty')}
@@ -2656,14 +2696,51 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
                     <strong>{item.questionnaire.title}</strong>
                     {item.questionnaire.description ? <span>{item.questionnaire.description}</span> : null}
                   </div>
-                  <button
-                    type="button"
-                    className="settings-hotkey-btn"
-                    aria-expanded={expanded}
-                    onClick={() => setExpandedQuestionnaireResultId(expanded ? null : item.resultId)}
-                  >
-                    {t(expanded ? 'settings.user.questionnaire.hideDetails' : 'settings.user.questionnaire.viewDetails')}
-                  </button>
+                  <div className="settings-user-questionnaire-item-actions">
+                    <button
+                      type="button"
+                      className="settings-hotkey-btn"
+                      aria-expanded={expanded}
+                      disabled={questionnaireErasingResultId !== null}
+                      onClick={() => setExpandedQuestionnaireResultId(expanded ? null : item.resultId)}
+                    >
+                      {t(expanded ? 'settings.user.questionnaire.hideDetails' : 'settings.user.questionnaire.viewDetails')}
+                    </button>
+                    {questionnaireEraseConfirmResultId === item.resultId ? (
+                      <>
+                        <button
+                          type="button"
+                          className="settings-hotkey-btn settings-hotkey-btn-danger"
+                          disabled={questionnaireErasingResultId !== null}
+                          onClick={() => void handleEraseQuestionnaireHistory(item)}
+                        >
+                          {questionnaireErasingResultId === item.resultId
+                            ? t('settings.user.questionnaire.erasing')
+                            : t('settings.user.questionnaire.confirmErase')}
+                        </button>
+                        <button
+                          type="button"
+                          className="settings-hotkey-btn"
+                          disabled={questionnaireErasingResultId !== null}
+                          onClick={() => setQuestionnaireEraseConfirmResultId(null)}
+                        >
+                          {t('settings.user.questionnaire.cancelErase')}
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        type="button"
+                        className="settings-hotkey-btn settings-hotkey-btn-danger"
+                        disabled={questionnaireErasingResultId !== null}
+                        onClick={() => {
+                          setQuestionnaireHistoryFeedback(null);
+                          setQuestionnaireEraseConfirmResultId(item.resultId);
+                        }}
+                      >
+                        {t('settings.user.questionnaire.erase')}
+                      </button>
+                    )}
+                  </div>
                 </header>
                 <div className="settings-user-questionnaire-meta">
                   <span>{t('settings.user.questionnaire.submittedAt', { time: formatDateTime(item.submittedAt) })}</span>

@@ -41,6 +41,13 @@ import {
 export function useAnnouncementQuestionnaire() {
   const [questionnaires, setQuestionnaires] = useState<QuestionnaireData[]>([]);
 
+  const reload = useCallback(async (): Promise<void> => {
+    const items = await fetchActiveQuestionnaires(readLocalToken());
+    setQuestionnaires(items.filter((item) => (
+      !isQuestionnaireCompleted(item.id) && !isQuestionnaireReminderDismissed(item.id)
+    )));
+  }, []);
+
   useEffect(() => {
     let active = true;
     void fetchActiveQuestionnaires(readLocalToken()).then((items) => {
@@ -63,5 +70,6 @@ export function useAnnouncementQuestionnaire() {
     questionnaire: questionnaires[0] ?? null,
     count: questionnaires.length,
     dismiss,
+    reload,
   };
 }

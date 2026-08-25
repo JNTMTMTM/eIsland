@@ -26,7 +26,9 @@ vi.mock('../../user/userAccountApi.client', () => ({ request: requestMock }));
 
 import {
   clearQuestionnaireDraft,
+  clearQuestionnaireLocalState,
   dismissQuestionnaireReminder,
+  deleteQuestionnaireHistory,
   fetchActiveQuestionnaires,
   fetchCurrentQuestionnaire,
   fetchQuestionnaireHistory,
@@ -180,6 +182,34 @@ describe('questionnaireApi', () => {
     expect(result.data?.[0].answers).toEqual({});
   });
 
+  it('deletes an owned questionnaire result and clears its local state', async () => {
+    requestMock.mockResolvedValue({ ok: true, code: 200, message: 'success' });
+    writeQuestionnaireDraft(7, { q1: 'draft' });
+    markQuestionnaireCompleted(7);
+    dismissQuestionnaireReminder(7);
+
+    await deleteQuestionnaireHistory('token', 21, 7);
+
+    expect(requestMock).toHaveBeenCalledWith('/v1/surveys/my/results/21', {
+      method: 'DELETE',
+      auth: 'token',
+    });
+    expect(readQuestionnaireDraft(7)).toBeNull();
+    expect(isQuestionnaireCompleted(7)).toBe(false);
+    expect(isQuestionnaireReminderDismissed(7)).toBe(false);
+  });
+
+  it('keeps local questionnaire state when deletion fails', async () => {
+    requestMock.mockResolvedValue({ ok: false, code: 500, message: 'failed' });
+    writeQuestionnaireDraft(7, { q1: 'draft' });
+    markQuestionnaireCompleted(7);
+
+    await deleteQuestionnaireHistory('token', 21, 7);
+
+    expect(readQuestionnaireDraft(7)?.answers).toEqual({ q1: 'draft' });
+    expect(isQuestionnaireCompleted(7)).toBe(true);
+  });
+
   it('submits answers as a JSON string with authentication', async () => {
     requestMock.mockResolvedValue({ ok: true, code: 200, message: 'success', data: {} });
 
@@ -199,6 +229,24 @@ describe('questionnaireApi', () => {
 
     clearQuestionnaireDraft(7);
     expect(readQuestionnaireDraft(7)).toBeNull();
+  });
+
+  it('clears every local state for one survey only', () => {
+    writeQuestionnaireDraft(7, { q1: 'draft' });
+    writeQuestionnaireDraft(8, { q1: 'keep' });
+    markQuestionnaireCompleted(7);
+    markQuestionnaireCompleted(8);
+    dismissQuestionnaireReminder(7);
+    dismissQuestionnaireReminder(8);
+
+    clearQuestionnaireLocalState(7);
+
+    expect(readQuestionnaireDraft(7)).toBeNull();
+    expect(isQuestionnaireCompleted(7)).toBe(false);
+    expect(isQuestionnaireReminderDismissed(7)).toBe(false);
+    expect(readQuestionnaireDraft(8)?.answers).toEqual({ q1: 'keep' });
+    expect(isQuestionnaireCompleted(8)).toBe(true);
+    expect(isQuestionnaireReminderDismissed(8)).toBe(true);
   });
 
   it('tracks completion and dismissed reminders independently per survey', () => {

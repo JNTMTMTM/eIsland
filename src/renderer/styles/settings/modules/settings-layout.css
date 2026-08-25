@@ -5618,6 +5618,13 @@
   justify-content: space-between;
 }
 
+.settings-user-questionnaire-item-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
 .settings-user-questionnaire-title {
   min-width: 0;
   display: flex;
