@@ -27,7 +27,8 @@ interface QuestionnaireQuestionProps {
   question: QuestionnaireQuestionData;
   index: number;
   answer?: QuestionnaireAnswer;
-  onChange: (answer: QuestionnaireAnswer) => void;
+  readOnly?: boolean;
+  onChange?: (answer: QuestionnaireAnswer) => void;
 }
 
 /**
@@ -35,11 +36,14 @@ interface QuestionnaireQuestionProps {
  * @param props - 题目、答案和变更回调。
  * @returns 与题型匹配的作答控件。
  */
-export function QuestionnaireQuestion({ question, index, answer, onChange }: QuestionnaireQuestionProps): ReactElement {
+export function QuestionnaireQuestion({ question, index, answer, readOnly = false, onChange }: QuestionnaireQuestionProps): ReactElement {
   const { t } = useTranslation();
+  const updateAnswer = (nextAnswer: QuestionnaireAnswer): void => {
+    if (!readOnly) onChange?.(nextAnswer);
+  };
   const toggleMultipleChoice = (option: string): void => {
     const selected = Array.isArray(answer) ? answer : [];
-    onChange(selected.includes(option) ? selected.filter((item) => item !== option) : [...selected, option]);
+    updateAnswer(selected.includes(option) ? selected.filter((item) => item !== option) : [...selected, option]);
   };
 
   return (
@@ -58,7 +62,8 @@ export function QuestionnaireQuestion({ question, index, answer, onChange }: Que
               className={answer === value ? 'active' : ''}
               role="radio"
               aria-checked={answer === value}
-              onClick={() => onChange(value)}
+              disabled={readOnly}
+              onClick={() => updateAnswer(value)}
             >{value}</button>
           ))}
         </div>
@@ -67,7 +72,7 @@ export function QuestionnaireQuestion({ question, index, answer, onChange }: Que
         <div className="questionnaire-options">
           {question.options.map((option) => (
             <label key={option} className={answer === option ? 'selected' : ''}>
-              <input type="radio" name={question.id} checked={answer === option} onChange={() => onChange(option)} />
+              <input type="radio" name={question.id} checked={answer === option} disabled={readOnly} onChange={() => updateAnswer(option)} />
               <span>{option}</span>
             </label>
           ))}
@@ -79,7 +84,7 @@ export function QuestionnaireQuestion({ question, index, answer, onChange }: Que
             const checked = Array.isArray(answer) && answer.includes(option);
             return (
               <label key={option} className={checked ? 'selected' : ''}>
-                <input type="checkbox" checked={checked} onChange={() => toggleMultipleChoice(option)} />
+                <input type="checkbox" checked={checked} disabled={readOnly} onChange={() => toggleMultipleChoice(option)} />
                 <span>{option}</span>
               </label>
             );
@@ -92,7 +97,8 @@ export function QuestionnaireQuestion({ question, index, answer, onChange }: Que
             value={typeof answer === 'string' ? answer : ''}
             maxLength={question.maxLength ?? 2000}
             placeholder={t('questionnaire.textPlaceholder')}
-            onChange={(event) => onChange(event.target.value)}
+            readOnly={readOnly}
+            onChange={(event) => updateAnswer(event.target.value)}
           />
           <span>{typeof answer === 'string' ? answer.length : 0} / {question.maxLength ?? 2000}</span>
         </div>

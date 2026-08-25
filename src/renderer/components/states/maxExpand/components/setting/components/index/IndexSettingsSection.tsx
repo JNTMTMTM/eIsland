@@ -181,6 +181,8 @@ export function IndexSettingsSection({
                         } else if (item.networkPage && setNetworkSettingsPage) {
                           setNetworkSettingsPage(item.networkPage);
                           setActiveTab('network');
+                        } else if (item.actionId && onAction) {
+                          onAction(item.actionId);
                         } else {
                           setActiveTab(item.tab);
                         }

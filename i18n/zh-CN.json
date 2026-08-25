@@ -3514,7 +3514,15 @@
       },
       "questionnaire": {
         "subtitle": "查看历史问卷填写记录",
-        "empty": "暂无问卷记录"
+        "loading": "加载问卷记录中…",
+        "loadFailed": "加载问卷记录失败",
+        "empty": "暂无问卷记录",
+        "submittedAt": "提交时间：{{time}}",
+        "rewardDays": "奖励 PRO {{days}} 天",
+        "rewardExpireAt": "PRO 到期时间：{{time}}",
+        "noReward": "无 PRO 奖励",
+        "viewDetails": "查看填写结果",
+        "hideDetails": "收起填写结果"
       },
       "ocrHistory": {
         "subtitle": "查看原始图片与 OCR 识别文本",

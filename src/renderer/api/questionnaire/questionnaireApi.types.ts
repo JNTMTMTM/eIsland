@@ -50,6 +50,15 @@ export interface QuestionnaireSubmissionData {
   submittedAt: string;
 }
 
+export interface QuestionnaireHistoryItem {
+  resultId: number;
+  questionnaire: QuestionnaireData;
+  answers: Record<string, QuestionnaireAnswer>;
+  submittedAt: string;
+  rewardProDays: number;
+  rewardProExpireAt: string | null;
+}
+
 export interface QuestionnaireDraft {
   surveyId: number;
   answers: Record<string, QuestionnaireAnswer>;

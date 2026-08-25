@@ -2328,6 +2328,11 @@ export function SettingsTab(): ReactElement {
                 if (actionId === 'user-recharge') {
                   setUserInitialProfilePage('recharge');
                   setActiveTab('user');
+                  return;
+                }
+                if (actionId === 'user-questionnaire') {
+                  setUserInitialProfilePage('questionnaire');
+                  setActiveTab('user');
                 }
               }}
             />

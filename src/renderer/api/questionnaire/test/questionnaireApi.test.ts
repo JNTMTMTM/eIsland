@@ -29,6 +29,7 @@ import {
   dismissQuestionnaireReminder,
   fetchActiveQuestionnaires,
   fetchCurrentQuestionnaire,
+  fetchQuestionnaireHistory,
   isQuestionnaireCompleted,
   isQuestionnaireReminderDismissed,
   markQuestionnaireCompleted,
@@ -114,6 +115,69 @@ describe('questionnaireApi', () => {
     await fetchActiveQuestionnaires('token');
 
     expect(requestMock).toHaveBeenCalledWith('/v1/surveys/active', { auth: 'token' });
+  });
+
+  it('normalizes the current users questionnaire history', async () => {
+    requestMock.mockResolvedValue({
+      ok: true,
+      code: 200,
+      message: 'success',
+      data: [{
+        resultId: 21,
+        surveyId: 7,
+        title: 'Survey',
+        description: 'Description',
+        contentJson: JSON.stringify({ questions: [{ id: 'q1', title: 'Score', type: 'rating' }] }),
+        answersJson: JSON.stringify({ answers: { q1: 5 } }),
+        submittedAt: '2026-08-25T12:00:00',
+        rewardProDays: 3,
+        rewardProExpireAt: '2026-08-28T12:00:00',
+      }],
+    });
+
+    const result = await fetchQuestionnaireHistory('token');
+
+    expect(requestMock).toHaveBeenCalledWith('/v1/surveys/my/results', { auth: 'token' });
+    expect(result.data?.[0]).toMatchObject({
+      resultId: 21,
+      answers: { q1: 5 },
+      rewardProDays: 3,
+    });
+    expect(result.data?.[0].questionnaire.questions[0].id).toBe('q1');
+  });
+
+  it('filters malformed questionnaire definitions and safely clears malformed answers', async () => {
+    requestMock.mockResolvedValue({
+      ok: true,
+      code: 200,
+      message: 'success',
+      data: [
+        {
+          resultId: 21,
+          surveyId: 7,
+          title: 'Valid survey',
+          description: '',
+          contentJson: JSON.stringify({ questions: [{ id: 'q1', title: 'Text', type: 'text' }] }),
+          answersJson: '{invalid',
+          submittedAt: '2026-08-25T12:00:00',
+          rewardProDays: 0,
+          rewardProExpireAt: null,
+        },
+        {
+          resultId: 22,
+          surveyId: 8,
+          title: 'Invalid survey',
+          contentJson: '{invalid',
+          answersJson: '{}',
+          submittedAt: '2026-08-25T11:00:00',
+        },
+      ],
+    });
+
+    const result = await fetchQuestionnaireHistory('token');
+
+    expect(result.data).toHaveLength(1);
+    expect(result.data?.[0].answers).toEqual({});
   });
 
   it('submits answers as a JSON string with authentication', async () => {

@@ -53,6 +53,11 @@ import {
   PAYMENT_ORDERS_DEFAULT_PAGE_SIZE,
 } from '../../../../../../../api/user/userAccountApi';
 import { runSliderCaptcha } from '../../../../../../../utils/sliderCaptcha';
+import {
+  fetchQuestionnaireHistory,
+  type QuestionnaireHistoryItem,
+} from '../../../../../../../api/questionnaire/questionnaireApi';
+import { QuestionnaireQuestion } from '../../../../../questionnaire/components/QuestionnaireQuestion';
 import useIslandStore from '../../../../../../../store/slices';
 import {
   clearLocalAccount,
@@ -71,6 +76,7 @@ import { LoginHeatmap } from './components/LoginHeatmap';
 import { readLoginDays, recordLoginDay } from './utils/loginHeatmapStorage';
 import { SettingsPageNavigation, SettingsPageNavigationToggle } from '../SettingsPageNavigation';
 import '../../../../../../../styles/settings/modules/cli.css';
+import '../../../../../../../styles/questionnaire/questionnaire.css';
 
 type FeedbackType = 'success' | 'error' | 'info';
 type UserProfilePage = 'info' | 'edit' | 'password' | 'pro' | 'recharge' | 'orders' | 'account' | 'oauth' | 'image-translation' | 'ocr-history' | 'questionnaire';
@@ -282,6 +288,11 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
   const [ocrHistoryCopyingId, setOcrHistoryCopyingId] = useState<number | null>(null);
   const [ocrHistoryRemovingId, setOcrHistoryRemovingId] = useState<number | null>(null);
   const [ocrHistoryActionFeedback, setOcrHistoryActionFeedback] = useState<{ id: number; feedback: Feedback } | null>(null);
+
+  const [questionnaireHistory, setQuestionnaireHistory] = useState<QuestionnaireHistoryItem[]>([]);
+  const [loadingQuestionnaireHistory, setLoadingQuestionnaireHistory] = useState(false);
+  const [questionnaireHistoryError, setQuestionnaireHistoryError] = useState('');
+  const [expandedQuestionnaireResultId, setExpandedQuestionnaireResultId] = useState<number | null>(null);
 
   /** 用户中心登录天数热力图：记录并展示当前用户每个自然日是否登录 */
   const [loginDays, setLoginDays] = useState<Set<string>>(() => readLoginDays(profile?.username));
@@ -775,6 +786,32 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
     setOcrHistoryTotalPages(result.data.totalPages);
   }, [resetToLoggedOut, t, token]);
 
+  const loadQuestionnaireHistory = useCallback(async (): Promise<void> => {
+    if (!token) {
+      setQuestionnaireHistory([]);
+      setLoadingQuestionnaireHistory(false);
+      setQuestionnaireHistoryError('');
+      setExpandedQuestionnaireResultId(null);
+      return;
+    }
+    setLoadingQuestionnaireHistory(true);
+    setQuestionnaireHistoryError('');
+    const result = await fetchQuestionnaireHistory(token);
+    setLoadingQuestionnaireHistory(false);
+    if (!result.ok || !Array.isArray(result.data)) {
+      if (result.code === 401 || result.code === 4011) {
+        resetToLoggedOut();
+        return;
+      }
+      setQuestionnaireHistoryError(result.message || t('settings.user.questionnaire.loadFailed'));
+      return;
+    }
+    setQuestionnaireHistory(result.data);
+    setExpandedQuestionnaireResultId((current) => (
+      result.data?.some((item) => item.resultId === current) ? current : null
+    ));
+  }, [resetToLoggedOut, t, token]);
+
   const handleDownloadOcrImage = useCallback(async (item: OcrHistoryItem): Promise<void> => {
     if (!item.sourceUrl || ocrHistoryDownloadingId !== null || ocrHistoryCopyingId !== null || ocrHistoryRemovingId !== null) return;
     setOcrHistoryDownloadingId(item.id);
@@ -951,6 +988,13 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
     }
     void loadOcrHistory(ocrHistoryPage);
   }, [loadOcrHistory, ocrHistoryPage, token, userProfilePage]);
+
+  useEffect(() => {
+    if (userProfilePage !== 'questionnaire' || !token) {
+      return;
+    }
+    void loadQuestionnaireHistory();
+  }, [loadQuestionnaireHistory, token, userProfilePage]);
 
   useEffect(() => {
     if (userProfilePage !== 'oauth' || !token) {
@@ -2558,22 +2602,87 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
       </div>
     );
 
-    /** 渲染问卷记录页面（空壳，待后续实现） */
+    /** 渲染当前用户的问卷提交记录与只读答案。 */
     const renderQuestionnairePage = (): ReactElement => (
       <div className="settings-user-page-panel settings-user-questionnaire-panel">
         <div className="settings-user-card settings-user-questionnaire-head-card">
           <div className="settings-user-questionnaire-head">
             <div>
-              <div className="settings-user-form-title">{t('settings.user.pages.questionnaire', { defaultValue: '问卷记录' })}</div>
+              <div className="settings-user-form-title">{t('settings.user.pages.questionnaire')}</div>
               <div className="settings-user-card-title-hint">
-                {t('settings.user.questionnaire.subtitle', { defaultValue: '查看历史问卷填写记录' })}
+                {t('settings.user.questionnaire.subtitle')}
               </div>
             </div>
           </div>
         </div>
 
-        <div className="settings-user-card settings-user-questionnaire-empty">
-          {t('settings.user.questionnaire.empty', { defaultValue: '暂无问卷记录' })}
+        {loadingQuestionnaireHistory && questionnaireHistory.length === 0 ? (
+          <div className="settings-user-card settings-user-questionnaire-empty">
+            <span className="settings-user-orders-inline-spinner" aria-hidden="true" />
+            <span>{t('settings.user.questionnaire.loading')}</span>
+          </div>
+        ) : null}
+
+        {questionnaireHistoryError ? (
+          <div className="settings-user-feedback settings-user-feedback--error">
+            {questionnaireHistoryError}
+          </div>
+        ) : null}
+
+        {!loadingQuestionnaireHistory && !questionnaireHistoryError && questionnaireHistory.length === 0 ? (
+          <div className="settings-user-card settings-user-questionnaire-empty">
+            {t('settings.user.questionnaire.empty')}
+          </div>
+        ) : null}
+
+        <div className="settings-user-questionnaire-list">
+          {questionnaireHistory.map((item) => {
+            const expanded = expandedQuestionnaireResultId === item.resultId;
+            return (
+              <article key={item.resultId} className="settings-user-card settings-user-questionnaire-item">
+                <header className="settings-user-questionnaire-item-head">
+                  <div className="settings-user-questionnaire-title">
+                    <strong>{item.questionnaire.title}</strong>
+                    {item.questionnaire.description ? <span>{item.questionnaire.description}</span> : null}
+                  </div>
+                  <button
+                    type="button"
+                    className="settings-hotkey-btn"
+                    aria-expanded={expanded}
+                    onClick={() => setExpandedQuestionnaireResultId(expanded ? null : item.resultId)}
+                  >
+                    {t(expanded ? 'settings.user.questionnaire.hideDetails' : 'settings.user.questionnaire.viewDetails')}
+                  </button>
+                </header>
+                <div className="settings-user-questionnaire-meta">
+                  <span>{t('settings.user.questionnaire.submittedAt', { time: formatDateTime(item.submittedAt) })}</span>
+                  {item.rewardProDays > 0 ? (
+                    <>
+                      <span className="settings-user-questionnaire-reward">
+                        {t('settings.user.questionnaire.rewardDays', { days: item.rewardProDays })}
+                      </span>
+                      {item.rewardProExpireAt ? (
+                        <span>{t('settings.user.questionnaire.rewardExpireAt', { time: formatDateTime(item.rewardProExpireAt) })}</span>
+                      ) : null}
+                    </>
+                  ) : <span>{t('settings.user.questionnaire.noReward')}</span>}
+                </div>
+                {expanded ? (
+                  <div className="settings-user-questionnaire-answers">
+                    {item.questionnaire.questions.map((question, index) => (
+                      <QuestionnaireQuestion
+                        key={question.id}
+                        question={question}
+                        index={index}
+                        answer={item.answers[question.id]}
+                        readOnly
+                      />
+                    ))}
+                  </div>
+                ) : null}
+              </article>
+            );
+          })}
         </div>
       </div>
     );

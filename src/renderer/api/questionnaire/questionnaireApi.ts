@@ -20,10 +20,12 @@
  */
 
 import { request } from '../user/userAccountApi.client';
+import type { UserAccountResult } from '../user/userAccountApi.types';
 import type {
   QuestionnaireAnswer,
   QuestionnaireData,
   QuestionnaireDraft,
+  QuestionnaireHistoryItem,
   QuestionnaireQuestion,
   QuestionnaireSubmissionData,
 } from './questionnaireApi.types';
@@ -32,6 +34,7 @@ export type {
   QuestionnaireAnswer,
   QuestionnaireData,
   QuestionnaireDraft,
+  QuestionnaireHistoryItem,
   QuestionnaireQuestion,
   QuestionnaireSubmissionData,
 } from './questionnaireApi.types';
@@ -111,6 +114,53 @@ function normalizeQuestionnaires(value: unknown): QuestionnaireData[] {
   }, []);
 }
 
+function normalizeAnswers(value: unknown): Record<string, QuestionnaireAnswer> {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
+  return Object.entries(value).reduce<Record<string, QuestionnaireAnswer>>((answers, [questionId, answer]) => {
+    if (typeof answer === 'number' || typeof answer === 'string') {
+      answers[questionId] = answer;
+    } else if (Array.isArray(answer) && answer.every((item) => typeof item === 'string')) {
+      answers[questionId] = answer;
+    }
+    return answers;
+  }, {});
+}
+
+function normalizeQuestionnaireHistory(value: unknown): QuestionnaireHistoryItem[] {
+  if (!Array.isArray(value)) return [];
+  return value.reduce<QuestionnaireHistoryItem[]>((history, item) => {
+    if (!item || typeof item !== 'object') return history;
+    const source = item as Record<string, unknown>;
+    if (typeof source.resultId !== 'number' || typeof source.surveyId !== 'number' || typeof source.submittedAt !== 'string') return history;
+    const questionnaire = normalizeQuestionnaire({
+      ...source,
+      id: source.surveyId,
+      rewardProDays: source.rewardProDays,
+      startsAt: '',
+      endsAt: '',
+    });
+    if (!questionnaire) return history;
+    let answers: Record<string, QuestionnaireAnswer> = {};
+    if (typeof source.answersJson === 'string') {
+      try {
+        const parsed = JSON.parse(source.answersJson) as { answers?: unknown };
+        answers = normalizeAnswers(parsed.answers);
+      } catch {
+        answers = {};
+      }
+    }
+    history.push({
+      resultId: source.resultId,
+      questionnaire,
+      answers,
+      submittedAt: source.submittedAt,
+      rewardProDays: typeof source.rewardProDays === 'number' ? source.rewardProDays : 0,
+      rewardProExpireAt: typeof source.rewardProExpireAt === 'string' ? source.rewardProExpireAt : null,
+    });
+    return history;
+  }, []);
+}
+
 /**
  * 获取全部当前有效问卷。
  * @description 优先使用多问卷接口，并在服务端尚未升级时回退到单问卷接口。
@@ -137,6 +187,19 @@ export async function fetchActiveQuestionnaires(token?: string | null): Promise<
  */
 export async function fetchCurrentQuestionnaire(token?: string | null): Promise<QuestionnaireData | null> {
   return (await fetchActiveQuestionnaires(token))[0] ?? null;
+}
+
+/**
+ * 获取当前用户的全部问卷提交记录。
+ * @param token - 当前用户 JWT。
+ * @returns 统一响应，其中记录已完成问卷定义与答案格式校验。
+ */
+export async function fetchQuestionnaireHistory(token: string): Promise<UserAccountResult<QuestionnaireHistoryItem[]>> {
+  const result = await request<unknown>('/v1/surveys/my/results', { auth: token });
+  return {
+    ...result,
+    data: result.ok ? normalizeQuestionnaireHistory(result.data) : undefined,
+  };
 }
 
 /**
