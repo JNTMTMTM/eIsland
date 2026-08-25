@@ -1698,6 +1698,14 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
             </div>
           </div>
 
+          {questionnaireReminder.questionnaire && (
+            <QuestionnaireBanner
+              count={questionnaireReminder.count}
+              onOpen={setQuestionnaire}
+              onDismiss={questionnaireReminder.dismiss}
+            />
+          )}
+
           <div className={`settings-user-info-heatmap${loginHeatmapVisible ? ' settings-user-info-heatmap--open' : ''}`}>
             <LoginHeatmap loginDays={loginDays} compact visible={loginHeatmapVisible} />
           </div>
