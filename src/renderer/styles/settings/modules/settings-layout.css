@@ -5610,6 +5610,12 @@
 
 .settings-user-questionnaire-item {
   gap: 10px;
+  transition: border-color .3s ease, box-shadow .3s ease;
+}
+
+.settings-user-questionnaire-item:has(.settings-user-questionnaire-details--expanded) {
+  border-color: rgba(100, 180, 255, .18);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, .08);
 }
 
 .settings-user-questionnaire-item-head {
@@ -5655,6 +5661,27 @@
   font-weight: 600;
 }
 
+.settings-user-questionnaire-details {
+  display: grid;
+  grid-template-rows: 0fr;
+  margin-top: -10px;
+  opacity: 0;
+  transform: translateY(-6px);
+  transition: grid-template-rows .34s cubic-bezier(.22, 1, .36, 1), margin-top .34s cubic-bezier(.22, 1, .36, 1), opacity .22s ease, transform .34s cubic-bezier(.22, 1, .36, 1);
+}
+
+.settings-user-questionnaire-details--expanded {
+  grid-template-rows: 1fr;
+  margin-top: 0;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.settings-user-questionnaire-details-inner {
+  min-height: 0;
+  overflow: hidden;
+}
+
 .settings-user-questionnaire-answers {
   display: flex;
   flex-direction: column;
@@ -5684,6 +5711,13 @@
 .settings-user-questionnaire-answers :disabled,
 .settings-user-questionnaire-answers textarea:read-only {
   opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .settings-user-questionnaire-item,
+  .settings-user-questionnaire-details {
+    transition: none;
+  }
 }
 
 .settings-user-image-translation-list {

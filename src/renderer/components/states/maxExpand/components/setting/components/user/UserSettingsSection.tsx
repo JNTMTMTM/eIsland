@@ -2778,19 +2778,25 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
                     </>
                   ) : <span>{t('settings.user.questionnaire.noReward')}</span>}
                 </div>
-                {expanded ? (
-                  <div className="settings-user-questionnaire-answers">
-                    {item.questionnaire.questions.map((question, index) => (
-                      <QuestionnaireQuestion
-                        key={question.id}
-                        question={question}
-                        index={index}
-                        answer={item.answers[question.id]}
-                        readOnly
-                      />
-                    ))}
+                <div
+                  className={`settings-user-questionnaire-details${expanded ? ' settings-user-questionnaire-details--expanded' : ''}`}
+                  aria-hidden={!expanded}
+                  inert={!expanded}
+                >
+                  <div className="settings-user-questionnaire-details-inner">
+                    <div className="settings-user-questionnaire-answers">
+                      {item.questionnaire.questions.map((question, index) => (
+                        <QuestionnaireQuestion
+                          key={question.id}
+                          question={question}
+                          index={index}
+                          answer={item.answers[question.id]}
+                          readOnly
+                        />
+                      ))}
+                    </div>
                   </div>
-                ) : null}
+                </div>
               </article>
             );
           })}
