@@ -42,6 +42,7 @@ interface UseIslandEscapeNavigationOptions {
 export function getEscapeNavigationTarget(state: IslandState): IslandState | null {
   if (state === 'maxExpand') return 'expanded';
   if (state === 'expanded') return 'hover';
+  if (state === 'questionnaire') return 'hover';
   if (state === 'hover') return 'idle';
   return null;
 }

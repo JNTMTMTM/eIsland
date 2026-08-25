@@ -481,7 +481,45 @@
     "close": "Close",
     "adSpace": "Ad Space for Rent",
     "adPrev": "Previous",
-    "adNext": "Next"
+    "adNext": "Next",
+    "questionnaireBanner": {
+      "title": "Unfinished questionnaires: {{count}}",
+      "open": "Fill them out",
+      "dismiss": "Ignore current"
+    }
+  },
+  "questionnaire": {
+    "loading": "Loading questionnaire…",
+    "emptyTitle": "No active questionnaire",
+    "emptyDescription": "Please check again later.",
+    "retry": "Reload",
+    "close": "Close",
+    "reportIssue": "Report issue",
+    "hideList": "Hide questionnaire list",
+    "showList": "Show questionnaire list",
+    "subtitle": "Complete the questions below and submit your feedback.",
+    "progress": "Completed {{completed}} / {{total}}",
+    "validUntil": "Valid until {{time}}",
+    "required": "Required",
+    "textPlaceholder": "Enter a plain-text answer",
+    "saveDraft": "Save draft",
+    "draftSaved": "Draft saved locally",
+    "loginRequired": "Sign in to submit. You can still save a draft.",
+    "requiredIncomplete": "Complete all required questions",
+    "alreadySubmitted": "You have already submitted this questionnaire",
+    "submitFailed": "Submission failed. Try again later.",
+    "submitting": "Submitting…",
+    "submit": "Submit",
+    "continue": "Continue to next",
+    "questionNavigation": "Question navigation",
+    "questionnaireNavigation": "Questionnaire list",
+    "jumpToQuestion": "Jump to question {{number}}",
+    "completedTitle": "Questionnaire submitted",
+    "completedDescription": "Thank you. Your feedback has been saved.",
+    "rewardDays": "You received {{days}} day(s) of Pro",
+    "rewardExpireAt": "New expiration: {{time}}",
+    "noReward": "This questionnaire has no Pro reward",
+    "rewardBanner": "Complete this questionnaire to get {{days}} day(s) of Pro"
   },
   "notification": {
     "alarm": {
@@ -3399,7 +3437,10 @@
         "rechargeDesc": "Top up your balance for AI assistant conversations",
         "ordersDesc": "Check order status, continue payment, or close pending orders",
         "logoutDesc": "Sign out or delete your account",
-        "oauthDesc": "View linked third-party login accounts"
+        "oauthDesc": "View linked third-party login accounts",
+        "ocrDesc": "View past OCR text recognition records",
+        "imageTranslationDesc": "View past image translation records",
+        "questionnaireDesc": "View past questionnaire submission records"
       },
       "pages": {
         "info": "Profile",
@@ -3412,6 +3453,7 @@
         "oauth": "Third-party App",
         "image-translation": "Image Translation",
         "ocr-history": "OCR History",
+        "questionnaire": "Questionnaire Records",
         "switchTo": "Switch to {{label}}"
       },
       "oauth": {
@@ -3472,6 +3514,24 @@
           "failed": "Failed",
           "unknown": "Unknown"
         }
+      },
+      "questionnaire": {
+        "subtitle": "View questionnaire submission history",
+        "loading": "Loading questionnaire records…",
+        "loadFailed": "Failed to load questionnaire records",
+        "empty": "No questionnaire records yet",
+        "submittedAt": "Submitted: {{time}}",
+        "rewardDays": "PRO reward: {{days}} days",
+        "rewardExpireAt": "PRO expires: {{time}}",
+        "noReward": "No PRO reward",
+        "viewDetails": "View answers",
+        "hideDetails": "Hide answers",
+        "erase": "Delete my submission",
+        "confirmErase": "Confirm deletion",
+        "cancelErase": "Cancel",
+        "erasing": "Deleting…",
+        "eraseSuccess": "Questionnaire submission deleted; you may submit again without another reward",
+        "eraseFailed": "Failed to delete questionnaire submission"
       },
       "ocrHistory": {
         "subtitle": "View original images alongside OCR-recognized text",

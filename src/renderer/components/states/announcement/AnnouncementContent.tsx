@@ -27,6 +27,7 @@
 import { useState, useEffect, useCallback, useRef, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../store/slices';
+import { QuestionnaireBanner, useAnnouncementQuestionnaire } from '../../components/DynamicIslandQuestionnaireBanner';
 import { AnnouncementHeader } from './components/AnnouncementHeader';
 import { AnnouncementBody } from './components/AnnouncementBody';
 import { ANNOUNCEMENT_DEFAULTS, ANNOUNCEMENT_KEYS } from './config/announcementDefaults';
@@ -43,8 +44,9 @@ import '../../../styles/announcement/announcement.css';
  */
 export function AnnouncementContent(): ReactElement {
   const { t } = useTranslation();
-  const { setHover } = useIslandStore();
+  const { setHover, setQuestionnaire } = useIslandStore();
   const { loading, announcements, selectedAnnouncement, socialConfig, selectAnnouncement } = useAnnouncementData();
+  const questionnaireReminder = useAnnouncementQuestionnaire();
   const adSlides = useAdSlides();
   const [showVideo, setShowVideo] = useState(false);
   const [showQr, setShowQr] = useState(false);
@@ -231,6 +233,13 @@ export function AnnouncementContent(): ReactElement {
             showQr={showQr}
             qrImageUrl={socialConfig.qqQrImageUrl}
             announcementList={announcementList}
+            questionnaireBanner={questionnaireReminder.questionnaire ? (
+              <QuestionnaireBanner
+                count={questionnaireReminder.count}
+                onOpen={setQuestionnaire}
+                onDismiss={questionnaireReminder.dismiss}
+              />
+            ) : undefined}
           />
         </section>
       </div>

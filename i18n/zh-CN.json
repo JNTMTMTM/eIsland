@@ -481,7 +481,45 @@
     "close": "关闭",
     "adSpace": "广告位招租",
     "adPrev": "上一张",
-    "adNext": "下一张"
+    "adNext": "下一张",
+    "questionnaireBanner": {
+      "title": "未完成问卷：{{count}} 份",
+      "open": "前往填写",
+      "dismiss": "忽略当前问卷"
+    }
+  },
+  "questionnaire": {
+    "loading": "正在加载问卷…",
+    "emptyTitle": "当前暂无有效问卷",
+    "emptyDescription": "请稍后再来查看。",
+    "retry": "重新加载",
+    "close": "关闭",
+    "reportIssue": "报告问题",
+    "hideList": "收起问卷列表",
+    "showList": "展开问卷列表",
+    "subtitle": "请完成以下问题并提交反馈。",
+    "progress": "已完成 {{completed}} / {{total}}",
+    "validUntil": "有效期至 {{time}}",
+    "required": "必填",
+    "textPlaceholder": "请输入纯文本答案",
+    "saveDraft": "保存草稿",
+    "draftSaved": "草稿已保存到本地",
+    "loginRequired": "登录后才可提交，当前仍可保存草稿",
+    "requiredIncomplete": "请完成所有必填题",
+    "alreadySubmitted": "你已经提交过这份问卷",
+    "submitFailed": "提交失败，请稍后重试",
+    "submitting": "提交中…",
+    "submit": "提交问卷",
+    "continue": "填写下一份",
+    "questionNavigation": "题目导航",
+    "questionnaireNavigation": "问卷列表",
+    "jumpToQuestion": "跳转到第 {{number}} 题",
+    "completedTitle": "问卷已提交",
+    "completedDescription": "感谢你的反馈，答案已成功保存。",
+    "rewardDays": "已获赠 {{days}} 天 Pro 会员",
+    "rewardExpireAt": "新的到期时间：{{time}}",
+    "noReward": "本问卷未配置 Pro 奖励",
+    "rewardBanner": "完成本问卷可获赠 {{days}} 天 Pro 会员"
   },
   "notification": {
     "alarm": {
@@ -3399,7 +3437,10 @@
         "rechargeDesc": "为 AI 助手对话余额充值",
         "ordersDesc": "查看订单状态、继续支付或主动关闭待支付订单",
         "logoutDesc": "退出当前账号或注销",
-        "oauthDesc": "查看已绑定的第三方登录账号"
+        "oauthDesc": "查看已绑定的第三方登录账号",
+        "ocrDesc": "查看历史 OCR 文字识别记录",
+        "imageTranslationDesc": "查看历史图片翻译记录",
+        "questionnaireDesc": "查看历史问卷填写记录"
       },
       "pages": {
         "info": "用户信息",
@@ -3412,6 +3453,7 @@
         "oauth": "第三方应用绑定",
         "image-translation": "图片翻译",
         "ocr-history": "OCR记录",
+        "questionnaire": "问卷记录",
         "switchTo": "切换到{{label}}"
       },
       "oauth": {
@@ -3472,6 +3514,24 @@
           "failed": "失败",
           "unknown": "未知"
         }
+      },
+      "questionnaire": {
+        "subtitle": "查看历史问卷填写记录",
+        "loading": "加载问卷记录中…",
+        "loadFailed": "加载问卷记录失败",
+        "empty": "暂无问卷记录",
+        "submittedAt": "提交时间：{{time}}",
+        "rewardDays": "奖励 PRO {{days}} 天",
+        "rewardExpireAt": "PRO 到期时间：{{time}}",
+        "noReward": "无 PRO 奖励",
+        "viewDetails": "查看填写结果",
+        "hideDetails": "收起填写结果",
+        "erase": "删除我的提交记录",
+        "confirmErase": "确认删除",
+        "cancelErase": "取消",
+        "erasing": "删除中…",
+        "eraseSuccess": "问卷提交记录已删除，可重新提交但不会再次获得奖励",
+        "eraseFailed": "删除问卷提交记录失败"
       },
       "ocrHistory": {
         "subtitle": "查看原始图片与 OCR 识别文本",

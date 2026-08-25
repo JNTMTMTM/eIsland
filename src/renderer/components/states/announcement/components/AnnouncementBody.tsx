@@ -44,6 +44,7 @@ export function AnnouncementBody({
   showQr,
   qrImageUrl,
   announcementList,
+  questionnaireBanner,
 }: AnnouncementBodyProps): ReactElement {
   const { t } = useTranslation();
   const { bodyRef, tocRef, itemRefs, headings, activeIndex, indicatorTop, handleTocClick } =
@@ -67,9 +68,16 @@ export function AnnouncementBody({
     }
   };
 
-  const contentNode = announcement.contentHtml
-    ? <div ref={bodyRef} className="announcement-body" onClick={handleBodyClick} dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(announcement.contentHtml) }} />
-    : <div ref={bodyRef} className="announcement-body"><pre>{announcement.content || ''}</pre></div>;
+  const contentNode = (
+    <div className="announcement-main-column">
+      {questionnaireBanner}
+      {announcement.contentHtml ? (
+        <div ref={bodyRef} className="announcement-body" onClick={handleBodyClick} dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(announcement.contentHtml) }} />
+      ) : (
+        <div ref={bodyRef} className="announcement-body"><pre>{announcement.content || ''}</pre></div>
+      )}
+    </div>
+  );
 
   return (
     <div className={`announcement-content-row${showVideo ? ' video-visible' : ''}${showQr ? ' qr-visible' : ''}`}>

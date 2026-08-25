@@ -89,7 +89,8 @@
 .island-shell.shape-pill.bindOAuth,
 .island-shell.shape-pill.bindEmail,
 .island-shell.shape-pill.payment,
-.island-shell.shape-pill.announcement {
+.island-shell.shape-pill.announcement,
+.island-shell.shape-pill.questionnaire {
   border-radius: 26px;
 }
 
@@ -106,7 +107,8 @@
 .island-shell.shape-pill.bindOAuth,
 .island-shell.shape-pill.bindEmail,
 .island-shell.shape-pill.payment,
-.island-shell.shape-pill.announcement {
+.island-shell.shape-pill.announcement,
+.island-shell.shape-pill.questionnaire {
   height: 416px;
 }
 
@@ -207,7 +209,8 @@
 .island-shell.spring-animation.hover.morphing.from-expanded,
 .island-shell.spring-animation.hover.morphing.from-maxExpand,
 .island-shell.spring-animation.hover.morphing.from-guide,
-.island-shell.spring-animation.hover.morphing.from-announcement {
+.island-shell.spring-animation.hover.morphing.from-announcement,
+.island-shell.spring-animation.hover.morphing.from-questionnaire {
   animation: shellContractToHover 0.68s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -424,6 +427,7 @@
 .island-shell.bindEmail,
 .island-shell.payment,
 .island-shell.announcement,
+.island-shell.questionnaire,
 .island-shell.musicProvidersLogin {
   width: 860px;
   height: 400px;
@@ -440,6 +444,7 @@
 .island-shell.bindEmail::before,
 .island-shell.payment::before,
 .island-shell.announcement::before,
+.island-shell.questionnaire::before,
 .island-shell.musicProvidersLogin::before {
   opacity: 0;
   pointer-events: none;

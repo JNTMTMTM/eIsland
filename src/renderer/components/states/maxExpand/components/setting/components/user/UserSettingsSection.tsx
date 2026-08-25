@@ -53,6 +53,12 @@ import {
   PAYMENT_ORDERS_DEFAULT_PAGE_SIZE,
 } from '../../../../../../../api/user/userAccountApi';
 import { runSliderCaptcha } from '../../../../../../../utils/sliderCaptcha';
+import {
+  fetchQuestionnaireHistory,
+  deleteQuestionnaireHistory,
+  type QuestionnaireHistoryItem,
+} from '../../../../../../../api/questionnaire/questionnaireApi';
+import { QuestionnaireQuestion } from '../../../../../questionnaire/components/QuestionnaireQuestion';
 import useIslandStore from '../../../../../../../store/slices';
 import {
   clearLocalAccount,
@@ -68,12 +74,15 @@ import { SvgIcon } from '../../../../../../../utils/SvgIcon';
 import { resolveCountryIcon } from '../../../../../../../utils/SvgIcon/country-icon';
 import { EMAIL_PATTERN } from '../../../../../../../components/config/dynamicIslandPatterns';
 import { LoginHeatmap } from './components/LoginHeatmap';
+import { QuestionnaireBanner, useAnnouncementQuestionnaire } from '../../../../../../components/DynamicIslandQuestionnaireBanner';
+import '../../../../../../../styles/announcement/announcement.css';
 import { readLoginDays, recordLoginDay } from './utils/loginHeatmapStorage';
 import { SettingsPageNavigation, SettingsPageNavigationToggle } from '../SettingsPageNavigation';
 import '../../../../../../../styles/settings/modules/cli.css';
+import '../../../../../../../styles/questionnaire/questionnaire.css';
 
 type FeedbackType = 'success' | 'error' | 'info';
-type UserProfilePage = 'info' | 'edit' | 'password' | 'pro' | 'recharge' | 'orders' | 'account' | 'oauth' | 'image-translation' | 'ocr-history';
+type UserProfilePage = 'info' | 'edit' | 'password' | 'pro' | 'recharge' | 'orders' | 'account' | 'oauth' | 'image-translation' | 'ocr-history' | 'questionnaire';
 
 interface Feedback {
   type: FeedbackType;
@@ -102,7 +111,7 @@ interface UserSettingsSectionProps {
 }
 
 const GENDER_VALUES: UserAccountGender[] = ['male', 'female', 'custom', 'undisclosed'];
-const USER_PROFILE_PAGES: UserProfilePage[] = ['info', 'edit', 'password', 'pro', 'recharge', 'orders', 'account', 'oauth', 'image-translation', 'ocr-history'];
+const USER_PROFILE_PAGES: UserProfilePage[] = ['info', 'edit', 'password', 'pro', 'recharge', 'orders', 'account', 'oauth', 'image-translation', 'ocr-history', 'questionnaire'];
 const IMAGE_TRANSLATION_PREVIEW_MIN_SCALE = 0.5;
 const IMAGE_TRANSLATION_PREVIEW_MAX_SCALE = 4;
 
@@ -197,7 +206,8 @@ const getRoleFromToken = (token: string | null | undefined): string | null => {
  */
 export function UserSettingsSection({ initialProfilePage = 'info' }: UserSettingsSectionProps): ReactElement {
   const { t, i18n } = useTranslation();
-  const { setLogin, setRegister, setPayment } = useIslandStore();
+  const { setLogin, setRegister, setPayment, setQuestionnaire } = useIslandStore();
+  const questionnaireReminder = useAnnouncementQuestionnaire();
   const [token, setToken] = useState<string | null>(() => readLocalToken());
   const [profile, setProfile] = useState<UserAccountProfile | null>(() => readLocalProfile());
   const [loadingProfile, setLoadingProfile] = useState(false);
@@ -283,6 +293,14 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
   const [ocrHistoryRemovingId, setOcrHistoryRemovingId] = useState<number | null>(null);
   const [ocrHistoryActionFeedback, setOcrHistoryActionFeedback] = useState<{ id: number; feedback: Feedback } | null>(null);
 
+  const [questionnaireHistory, setQuestionnaireHistory] = useState<QuestionnaireHistoryItem[]>([]);
+  const [loadingQuestionnaireHistory, setLoadingQuestionnaireHistory] = useState(false);
+  const [questionnaireHistoryError, setQuestionnaireHistoryError] = useState('');
+  const [questionnaireHistoryFeedback, setQuestionnaireHistoryFeedback] = useState<Feedback | null>(null);
+  const [questionnaireEraseConfirmResultId, setQuestionnaireEraseConfirmResultId] = useState<number | null>(null);
+  const [questionnaireErasingResultId, setQuestionnaireErasingResultId] = useState<number | null>(null);
+  const [expandedQuestionnaireResultId, setExpandedQuestionnaireResultId] = useState<number | null>(null);
+
   /** 用户中心登录天数热力图：记录并展示当前用户每个自然日是否登录 */
   const [loginDays, setLoginDays] = useState<Set<string>>(() => readLoginDays(profile?.username));
   /** 登录热力图是否展开（默认收起，点击右侧统计卡内的图标按钮切换） */
@@ -307,7 +325,9 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
                     ? '第三方应用绑定'
                     : userProfilePage === 'image-translation'
                       ? '图片翻译'
-                      : 'OCR记录',
+                      : userProfilePage === 'ocr-history'
+                        ? 'OCR记录'
+                        : '问卷记录',
   });
 
   const avatarInputRef = useRef<HTMLInputElement | null>(null);
@@ -773,6 +793,66 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
     setOcrHistoryTotalPages(result.data.totalPages);
   }, [resetToLoggedOut, t, token]);
 
+  const loadQuestionnaireHistory = useCallback(async (): Promise<void> => {
+    if (!token) {
+      setQuestionnaireHistory([]);
+      setLoadingQuestionnaireHistory(false);
+      setQuestionnaireHistoryError('');
+      setQuestionnaireHistoryFeedback(null);
+      setQuestionnaireEraseConfirmResultId(null);
+      setQuestionnaireErasingResultId(null);
+      setExpandedQuestionnaireResultId(null);
+      return;
+    }
+    setLoadingQuestionnaireHistory(true);
+    setQuestionnaireHistoryError('');
+    setQuestionnaireHistoryFeedback(null);
+    const result = await fetchQuestionnaireHistory(token);
+    setLoadingQuestionnaireHistory(false);
+    if (!result.ok || !Array.isArray(result.data)) {
+      if (result.code === 401 || result.code === 4011) {
+        resetToLoggedOut();
+        return;
+      }
+      setQuestionnaireHistoryError(result.message || t('settings.user.questionnaire.loadFailed'));
+      return;
+    }
+    setQuestionnaireHistory(result.data);
+    setExpandedQuestionnaireResultId((current) => (
+      result.data?.some((item) => item.resultId === current) ? current : null
+    ));
+    setQuestionnaireEraseConfirmResultId((current) => (
+      result.data?.some((item) => item.resultId === current) ? current : null
+    ));
+  }, [resetToLoggedOut, t, token]);
+
+  const handleEraseQuestionnaireHistory = useCallback(async (item: QuestionnaireHistoryItem): Promise<void> => {
+    if (!token || questionnaireErasingResultId !== null) return;
+    setQuestionnaireErasingResultId(item.resultId);
+    setQuestionnaireHistoryFeedback(null);
+    const result = await deleteQuestionnaireHistory(token, item.resultId, item.questionnaire.id);
+    setQuestionnaireErasingResultId(null);
+    if (!result.ok) {
+      if (result.code === 401 || result.code === 4011) {
+        resetToLoggedOut();
+        return;
+      }
+      setQuestionnaireHistoryFeedback({
+        type: 'error',
+        text: result.message || t('settings.user.questionnaire.eraseFailed'),
+      });
+      return;
+    }
+    void questionnaireReminder.reload();
+    setQuestionnaireHistory((current) => current.filter((record) => record.resultId !== item.resultId));
+    setExpandedQuestionnaireResultId((current) => current === item.resultId ? null : current);
+    setQuestionnaireEraseConfirmResultId(null);
+    setQuestionnaireHistoryFeedback({
+      type: 'success',
+      text: t('settings.user.questionnaire.eraseSuccess'),
+    });
+  }, [questionnaireErasingResultId, questionnaireReminder.reload, resetToLoggedOut, t, token]);
+
   const handleDownloadOcrImage = useCallback(async (item: OcrHistoryItem): Promise<void> => {
     if (!item.sourceUrl || ocrHistoryDownloadingId !== null || ocrHistoryCopyingId !== null || ocrHistoryRemovingId !== null) return;
     setOcrHistoryDownloadingId(item.id);
@@ -949,6 +1029,13 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
     }
     void loadOcrHistory(ocrHistoryPage);
   }, [loadOcrHistory, ocrHistoryPage, token, userProfilePage]);
+
+  useEffect(() => {
+    if (userProfilePage !== 'questionnaire' || !token) {
+      return;
+    }
+    void loadQuestionnaireHistory();
+  }, [loadQuestionnaireHistory, token, userProfilePage]);
 
   useEffect(() => {
     if (userProfilePage !== 'oauth' || !token) {
@@ -1521,6 +1608,7 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
       { id: 'oauth', label: t('settings.user.pages.oauth', { defaultValue: '第三方应用绑定' }) },
       { id: 'image-translation', label: t('settings.user.pages.image-translation', { defaultValue: '图片翻译' }) },
       { id: 'ocr-history', label: t('settings.user.pages.ocr-history', { defaultValue: 'OCR记录' }) },
+      { id: 'questionnaire', label: t('settings.user.pages.questionnaire', { defaultValue: '问卷记录' }) },
     ];
     const profilePageLabels = Object.fromEntries(
       profilePageItems.map((item) => [item.id, item.label]),
@@ -1610,6 +1698,14 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
             </div>
           </div>
 
+          {questionnaireReminder.questionnaire && (
+            <QuestionnaireBanner
+              count={questionnaireReminder.count}
+              onOpen={setQuestionnaire}
+              onDismiss={questionnaireReminder.dismiss}
+            />
+          )}
+
           <div className={`settings-user-info-heatmap${loginHeatmapVisible ? ' settings-user-info-heatmap--open' : ''}`}>
             <LoginHeatmap loginDays={loginDays} compact visible={loginHeatmapVisible} />
           </div>
@@ -1664,6 +1760,21 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
               <span className="settings-index-card-title">{t('settings.user.pages.oauth', { defaultValue: '第三方应用绑定' })}</span>
               <span className="settings-index-card-desc">{t('settings.user.infoNav.oauthDesc', { defaultValue: '查看已绑定的第三方登录账号' })}</span>
               <img className="settings-index-card-layout-icon" src={SvgIcon.LINK} alt="" aria-hidden="true" />
+            </button>
+            <button type="button" className="settings-index-card" onClick={() => setUserProfilePage('ocr-history')}>
+              <span className="settings-index-card-title">{t('settings.user.pages.ocr-history', { defaultValue: 'OCR记录' })}</span>
+              <span className="settings-index-card-desc">{t('settings.user.infoNav.ocrDesc', { defaultValue: '查看历史 OCR 文字识别记录' })}</span>
+              <img className="settings-index-card-layout-icon" src={SvgIcon.OCR} alt="" aria-hidden="true" />
+            </button>
+            <button type="button" className="settings-index-card" onClick={() => setUserProfilePage('image-translation')}>
+              <span className="settings-index-card-title">{t('settings.user.pages.image-translation', { defaultValue: '图片翻译' })}</span>
+              <span className="settings-index-card-desc">{t('settings.user.infoNav.imageTranslationDesc', { defaultValue: '查看历史图片翻译记录' })}</span>
+              <img className="settings-index-card-layout-icon" src={SvgIcon.LANGUAGE} alt="" aria-hidden="true" />
+            </button>
+            <button type="button" className="settings-index-card" onClick={() => setUserProfilePage('questionnaire')}>
+              <span className="settings-index-card-title">{t('settings.user.pages.questionnaire', { defaultValue: '问卷记录' })}</span>
+              <span className="settings-index-card-desc">{t('settings.user.infoNav.questionnaireDesc', { defaultValue: '查看历史问卷填写记录' })}</span>
+              <img className="settings-index-card-layout-icon" src={SvgIcon.QUESTIONNAIRE} alt="" aria-hidden="true" />
             </button>
             <button
               type="button"
@@ -2555,6 +2666,144 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
       </div>
     );
 
+    /** 渲染当前用户的问卷提交记录与只读答案。 */
+    const renderQuestionnairePage = (): ReactElement => (
+      <div className="settings-user-page-panel settings-user-questionnaire-panel">
+        <div className="settings-user-card settings-user-questionnaire-head-card">
+          <div className="settings-user-questionnaire-head">
+            <div>
+              <div className="settings-user-form-title">{t('settings.user.pages.questionnaire')}</div>
+              <div className="settings-user-card-title-hint">
+                {t('settings.user.questionnaire.subtitle')}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {questionnaireReminder.questionnaire && (
+          <QuestionnaireBanner
+            count={questionnaireReminder.count}
+            onOpen={setQuestionnaire}
+            onDismiss={questionnaireReminder.dismiss}
+          />
+        )}
+
+        {loadingQuestionnaireHistory && questionnaireHistory.length === 0 ? (
+          <div className="settings-user-card settings-user-questionnaire-empty">
+            <span className="settings-user-orders-inline-spinner" aria-hidden="true" />
+            <span>{t('settings.user.questionnaire.loading')}</span>
+          </div>
+        ) : null}
+
+        {questionnaireHistoryError ? (
+          <div className="settings-user-feedback settings-user-feedback--error">
+            {questionnaireHistoryError}
+          </div>
+        ) : null}
+
+        {renderFeedback(questionnaireHistoryFeedback)}
+
+        {!loadingQuestionnaireHistory && !questionnaireHistoryError && questionnaireHistory.length === 0 ? (
+          <div className="settings-user-card settings-user-questionnaire-empty">
+            {t('settings.user.questionnaire.empty')}
+          </div>
+        ) : null}
+
+        <div className="settings-user-questionnaire-list">
+          {questionnaireHistory.map((item) => {
+            const expanded = expandedQuestionnaireResultId === item.resultId;
+            return (
+              <article key={item.resultId} className="settings-user-card settings-user-questionnaire-item">
+                <header className="settings-user-questionnaire-item-head">
+                  <div className="settings-user-questionnaire-title">
+                    <strong>{item.questionnaire.title}</strong>
+                    {item.questionnaire.description ? <span>{item.questionnaire.description}</span> : null}
+                  </div>
+                  <div className="settings-user-questionnaire-item-actions">
+                    <button
+                      type="button"
+                      className="settings-hotkey-btn"
+                      aria-expanded={expanded}
+                      disabled={questionnaireErasingResultId !== null}
+                      onClick={() => setExpandedQuestionnaireResultId(expanded ? null : item.resultId)}
+                    >
+                      {t(expanded ? 'settings.user.questionnaire.hideDetails' : 'settings.user.questionnaire.viewDetails')}
+                    </button>
+                    {questionnaireEraseConfirmResultId === item.resultId ? (
+                      <>
+                        <button
+                          type="button"
+                          className="settings-hotkey-btn settings-hotkey-btn-danger"
+                          disabled={questionnaireErasingResultId !== null}
+                          onClick={() => void handleEraseQuestionnaireHistory(item)}
+                        >
+                          {questionnaireErasingResultId === item.resultId
+                            ? t('settings.user.questionnaire.erasing')
+                            : t('settings.user.questionnaire.confirmErase')}
+                        </button>
+                        <button
+                          type="button"
+                          className="settings-hotkey-btn"
+                          disabled={questionnaireErasingResultId !== null}
+                          onClick={() => setQuestionnaireEraseConfirmResultId(null)}
+                        >
+                          {t('settings.user.questionnaire.cancelErase')}
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        type="button"
+                        className="settings-hotkey-btn settings-hotkey-btn-danger"
+                        disabled={questionnaireErasingResultId !== null}
+                        onClick={() => {
+                          setQuestionnaireHistoryFeedback(null);
+                          setQuestionnaireEraseConfirmResultId(item.resultId);
+                        }}
+                      >
+                        {t('settings.user.questionnaire.erase')}
+                      </button>
+                    )}
+                  </div>
+                </header>
+                <div className="settings-user-questionnaire-meta">
+                  <span>{t('settings.user.questionnaire.submittedAt', { time: formatDateTime(item.submittedAt) })}</span>
+                  {item.rewardProDays > 0 ? (
+                    <>
+                      <span className="settings-user-questionnaire-reward">
+                        {t('settings.user.questionnaire.rewardDays', { days: item.rewardProDays })}
+                      </span>
+                      {item.rewardProExpireAt ? (
+                        <span>{t('settings.user.questionnaire.rewardExpireAt', { time: formatDateTime(item.rewardProExpireAt) })}</span>
+                      ) : null}
+                    </>
+                  ) : <span>{t('settings.user.questionnaire.noReward')}</span>}
+                </div>
+                <div
+                  className={`settings-user-questionnaire-details${expanded ? ' settings-user-questionnaire-details--expanded' : ''}`}
+                  aria-hidden={!expanded}
+                  inert={!expanded}
+                >
+                  <div className="settings-user-questionnaire-details-inner">
+                    <div className="settings-user-questionnaire-answers">
+                      {item.questionnaire.questions.map((question, index) => (
+                        <QuestionnaireQuestion
+                          key={question.id}
+                          question={question}
+                          index={index}
+                          answer={item.answers[question.id]}
+                          readOnly
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      </div>
+    );
+
     const rechargeAmountYuan = rechargeSelected !== null && rechargeSelected !== undefined
       ? rechargeSelected
       : (rechargeCustomValue.trim() !== '' ? parseFloat(rechargeCustomValue) : NaN);
@@ -2647,6 +2896,7 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
           {userProfilePage === 'oauth' && renderOAuthPage()}
           {userProfilePage === 'image-translation' && renderImageTranslationPage()}
           {userProfilePage === 'ocr-history' && renderOcrHistoryPage()}
+          {userProfilePage === 'questionnaire' && renderQuestionnairePage()}
         </div>
 
         <SettingsPageNavigation

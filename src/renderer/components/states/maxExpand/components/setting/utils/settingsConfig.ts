@@ -444,6 +444,7 @@ export interface SearchableSettingItem {
   musicPage?: MusicSettingsPageKey;
   aiPage?: AiSettingsPageKey;
   networkPage?: NetworkSettingsPageKey;
+  actionId?: string;
 }
 
 export const SEARCHABLE_SETTINGS: SearchableSettingItem[] = [
@@ -580,6 +581,8 @@ export const SEARCHABLE_SETTINGS: SearchableSettingItem[] = [
   // ── 快捷键 > 媒体 ──
   { label: '快速切换歌曲快捷键', desc: '按下后触发系统下一曲媒体按键（仅白名单播放器生效）', labelKey: 'settings.shortcut.media.nextSong.title', descKey: 'settings.shortcut.media.nextSong.hint', tab: 'shortcut' },
   { label: '暂停/播放歌曲快捷键', desc: '按下后触发系统播放/暂停媒体按键（仅白名单播放器生效）', labelKey: 'settings.shortcut.media.playPause.title', descKey: 'settings.shortcut.media.playPause.hint', tab: 'shortcut' },
+  // ── 用户中心 ──
+  { label: '问卷记录', desc: '查看历史问卷填写记录', labelKey: 'settings.user.pages.questionnaire', descKey: 'settings.user.questionnaire.subtitle', tab: 'user', actionId: 'user-questionnaire' },
   // ── 更新设置 ──
   { label: '版本信息', desc: '查看当前版本信息，更新源可在网络配置中设置', labelKey: 'settings.update.versionCardTitle', descKey: 'settings.update.versionCardHint', tab: 'update' },
   { label: '检查与安装', desc: '手动触发检查,有新版本时可下载安装;下载完成后点击"安装并重启"应用更新', labelKey: 'settings.update.actionCardTitle', descKey: 'settings.update.actionCardHint', tab: 'update' },

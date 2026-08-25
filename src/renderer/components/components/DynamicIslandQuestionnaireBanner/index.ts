@@ -19,27 +19,11 @@
  */
 
 /**
- * @file AnnouncementBody.types.ts
- * @description AnnouncementBody 组件相关类型定义
+ * @file index.ts
+ * @description 问卷横幅组件模块入口
  * @author 鸡哥
  */
 
-import type { ReactNode } from 'react';
-import type { AnnouncementData } from '../../../../api/announcement/announcementApi';
-
-/** AnnouncementBody 组件入参 */
-export interface AnnouncementBodyProps {
-  loading: boolean;
-  announcement: AnnouncementData | null;
-  showVideo: boolean;
-  showQr: boolean;
-  qrImageUrl: string;
-  announcementList?: ReactNode;
-  questionnaireBanner?: ReactNode;
-}
-
-/** 从 HTML 中提取的章节标题 */
-export interface TocHeading {
-  level: number;
-  text: string;
-}
+export { QuestionnaireBanner } from './components/QuestionnaireBanner';
+export { useAnnouncementQuestionnaire } from './hooks/useAnnouncementQuestionnaire';
+export type { QuestionnaireBannerProps } from './types';
