@@ -216,7 +216,8 @@ export function createCodexStatusService(options: CreateCodexStatusServiceOption
       heatmap,
       updatedAt: Date.now(),
     };
-    const signature = JSON.stringify({ enabled: next.enabled, running: next.receiverRunning, sessions: next.sessions, events: next.events, heatmap: next.heatmap });
+    // 增量签名：排除 updatedAt 等易变字段，保留阶段与事件内容以确保变更可检测
+    const signature = JSON.stringify({ ...next, updatedAt: 0 });
     snapshot = next;
     if (signature !== snapshotSignature) {
       snapshotSignature = signature;
