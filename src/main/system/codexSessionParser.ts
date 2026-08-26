@@ -121,25 +121,25 @@ function mapEventMessage(payload: Record<string, unknown>, context: CodexParserC
   const type = asString(payload.type) ?? '';
   const message = asString(payload.message) ?? asString(payload.text) ?? asString(payload.last_agent_message);
   if (type === 'task_started' || type === 'turn_started') {
-    return { eventName: 'TurnStart', kind: 'session', summary: 'Codex 开始处理任务', detailItems: detailItems([['model', context.model]]), toolName: null, toolInputPreview: null };
+    return { eventName: 'TurnStart', kind: 'session', summary: 'Codex 开始处理任务', detailItems: detailItems([['model', context.model], ['rawEvent', payload]]), toolName: null, toolInputPreview: null };
   }
   if (type === 'user_message') {
     const text = message ?? contentText(payload.content) ?? '';
-    return { eventName: 'UserPromptSubmit', kind: 'message', summary: clip(text) ?? '获取到用户提示词', detailItems: detailItems([['userInput', text], ['model', context.model]]), toolName: null, toolInputPreview: null };
+    return { eventName: 'UserPromptSubmit', kind: 'message', summary: clip(text) ?? '获取到用户提示词', detailItems: detailItems([['userInput', text], ['model', context.model], ['rawEvent', payload]]), toolName: null, toolInputPreview: null };
   }
   if (type === 'agent_message' || type === 'agent_message_delta') {
     const text = message ?? contentText(payload.content) ?? '';
     if (!text) return null;
-    return { eventName: 'AssistantOutput', kind: 'completed', summary: clip(text) ?? 'Codex 输出', detailItems: detailItems([['assistantOutput', text], ['model', context.model]]), toolName: null, toolInputPreview: null };
+    return { eventName: 'AssistantOutput', kind: 'completed', summary: clip(text) ?? 'Codex 输出', detailItems: detailItems([['assistantOutput', text], ['model', context.model], ['rawEvent', payload]]), toolName: null, toolInputPreview: null };
   }
   if (type === 'exec_approval_request' || type === 'apply_patch_approval_request' || type === 'request_permissions') {
     const toolName = type === 'apply_patch_approval_request' ? 'apply_patch' : 'shell';
     const preview = toolPreview(payload);
-    return { eventName: 'PermissionRequest', kind: 'permission', summary: preview ? `${toolName} 请求授权：${preview}` : `${toolName} 请求授权`, detailItems: detailItems([['toolInput', payload], ['model', context.model]]), toolName, toolInputPreview: preview };
+    return { eventName: 'PermissionRequest', kind: 'permission', summary: preview ? `${toolName} 请求授权：${preview}` : `${toolName} 请求授权`, detailItems: detailItems([['toolInput', payload], ['model', context.model], ['rawEvent', payload]]), toolName, toolInputPreview: preview };
   }
   if (type === 'task_complete' || type === 'turn_complete' || type === 'turn_completed') {
     const text = message ?? asString(payload.last_agent_message);
-    return { eventName: 'Stop', kind: 'completed', summary: clip(text) ?? '本轮完成', detailItems: detailItems([['assistantOutput', text], ['model', context.model]]), toolName: null, toolInputPreview: null };
+    return { eventName: 'Stop', kind: 'completed', summary: clip(text) ?? '本轮完成', detailItems: detailItems([['assistantOutput', text], ['model', context.model], ['rawEvent', payload]]), toolName: null, toolInputPreview: null };
   }
   if (type === 'turn_aborted' || type === 'error') {
     return { eventName: 'StopFailure', kind: 'completed', summary: clip(message) ?? '本轮异常结束', detailItems: detailItems([['error', payload.error ?? message], ['rawEvent', payload]]), toolName: null, toolInputPreview: null };
@@ -154,20 +154,20 @@ function mapResponseItem(payload: Record<string, unknown>, context: CodexParserC
     const text = contentText(payload.content) ?? asString(payload.text) ?? '';
     if (!text) return null;
     if (role === 'user') {
-      return { eventName: 'UserPromptSubmit', kind: 'message', summary: clip(text) ?? '获取到用户提示词', detailItems: detailItems([['userInput', text], ['model', context.model]]), toolName: null, toolInputPreview: null };
+      return { eventName: 'UserPromptSubmit', kind: 'message', summary: clip(text) ?? '获取到用户提示词', detailItems: detailItems([['userInput', text], ['model', context.model], ['rawEvent', payload]]), toolName: null, toolInputPreview: null };
     }
     if (role === 'assistant') {
-      return { eventName: 'AssistantOutput', kind: 'completed', summary: clip(text) ?? 'Codex 输出', detailItems: detailItems([['assistantOutput', text], ['model', context.model]]), toolName: null, toolInputPreview: null };
+      return { eventName: 'AssistantOutput', kind: 'completed', summary: clip(text) ?? 'Codex 输出', detailItems: detailItems([['assistantOutput', text], ['model', context.model], ['rawEvent', payload]]), toolName: null, toolInputPreview: null };
     }
   }
   if (type === 'function_call' || type === 'custom_tool_call' || type === 'local_shell_call') {
     const toolName = asString(payload.name) ?? (type === 'local_shell_call' ? 'shell' : 'tool');
     const preview = toolPreview(payload);
-    return { eventName: 'PreToolUse', kind: 'tool', summary: preview ? `正在使用 ${toolName}：${preview}` : `正在使用 ${toolName}`, detailItems: detailItems([['toolUseId', payload.call_id ?? payload.id], ['toolInput', payload.arguments ?? payload.input ?? payload], ['model', context.model]]), toolName, toolInputPreview: preview };
+    return { eventName: 'PreToolUse', kind: 'tool', summary: preview ? `正在使用 ${toolName}：${preview}` : `正在使用 ${toolName}`, detailItems: detailItems([['toolUseId', payload.call_id ?? payload.id], ['toolInput', payload.arguments ?? payload.input ?? payload], ['model', context.model], ['rawEvent', payload]]), toolName, toolInputPreview: preview };
   }
   if (type === 'function_call_output' || type === 'custom_tool_call_output' || type === 'local_shell_call_output') {
     const output = payload.output ?? payload.content;
-    return { eventName: 'PostToolUse', kind: 'tool', summary: clip(stringify(output)) ?? '工具调用已完成', detailItems: detailItems([['toolUseId', payload.call_id ?? payload.id], ['toolResult', output], ['model', context.model]]), toolName: asString(payload.name), toolInputPreview: null };
+    return { eventName: 'PostToolUse', kind: 'tool', summary: clip(stringify(output)) ?? '工具调用已完成', detailItems: detailItems([['toolUseId', payload.call_id ?? payload.id], ['toolResult', output], ['model', context.model], ['rawEvent', payload]]), toolName: asString(payload.name), toolInputPreview: null };
   }
   return null;
 }
