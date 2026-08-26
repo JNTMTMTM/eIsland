@@ -185,6 +185,14 @@ export function createCodexStatusService(options: CreateCodexStatusServiceOption
         parsed = null;
       }
       cache.set(file.path, { mtimeMs: file.mtimeMs, size: file.size, parsed });
+      // 缓存超出上限时清理最旧条目，防止内存无限增长
+      if (cache.size > MAX_CLI_SESSIONS * 2) {
+        const entries = Array.from(cache.entries());
+        entries.sort((a, b) => a[1].mtimeMs - b[1].mtimeMs);
+        for (let i = 0; i < entries.length - MAX_CLI_SESSIONS; i++) {
+          cache.delete(entries[i][0]);
+        }
+      }
       return parsed ? [parsed] : [];
     });
 
@@ -216,7 +224,8 @@ export function createCodexStatusService(options: CreateCodexStatusServiceOption
       heatmap,
       updatedAt: Date.now(),
     };
-    const signature = JSON.stringify({ enabled: next.enabled, running: next.receiverRunning, sessions: next.sessions, events: next.events, heatmap: next.heatmap });
+    // 增量签名：只用关键字段拼接，避免对整个快照 JSON.stringify
+    const signature = `${next.enabled}-${next.receiverRunning}-${next.sessions.length}-${next.events.length}-${next.events[0]?.id ?? ''}-${next.sessions[0]?.lastEventAt ?? 0}`;
     snapshot = next;
     if (signature !== snapshotSignature) {
       snapshotSignature = signature;

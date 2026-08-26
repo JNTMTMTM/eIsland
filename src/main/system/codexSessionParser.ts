@@ -272,7 +272,7 @@ export function parseCodexSessionContent(
       transcriptPath,
       summary: mapped.summary,
       detail: null,
-      detailItems: [...mapped.detailItems, ...detailItems([['rawEvent', payload]])],
+      detailItems: mapped.detailItems,
       toolName: mapped.toolName,
       toolInputPreview: mapped.toolInputPreview,
       createdAt,
