@@ -188,10 +188,10 @@ export function createCodexStatusService(options: CreateCodexStatusServiceOption
       // 缓存超出上限时清理最旧条目，防止内存无限增长
       if (cache.size > MAX_CLI_SESSIONS * 2) {
         const entries = Array.from(cache.entries());
-        entries.sort((a, b) => a[1].mtimeMs - b[1].mtimeMs);
-        for (let i = 0; i < entries.length - MAX_CLI_SESSIONS; i++) {
-          cache.delete(entries[i][0]);
-        }
+        const toRemove = entries
+          .sort((a, b) => a[1].mtimeMs - b[1].mtimeMs)
+          .slice(0, entries.length - MAX_CLI_SESSIONS);
+        toRemove.forEach(([path]) => cache.delete(path));
       }
       return parsed ? [parsed] : [];
     });
