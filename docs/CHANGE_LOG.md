@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-08-25T18:46:59.148Z
+> 生成时间：2026-08-26T18:20:21.911Z
 
 ## 26.7.3
 
@@ -3464,6 +3464,11 @@
 
 ## Unreleased
 
+- 2026-08-27 | 8a3dabc0 | 鸡哥 | Merge pull request #207 from JNTMTMTM/dev
+- 2026-08-27 | e32f58d6 | 鸡哥 | fix: enhance event mapping with raw event details and optimize signature generation in Codex status service
+- 2026-08-27 | 2bd0f342 | 鸡哥 | fix: optimize cache cleanup logic in createCodexStatusService function
+- 2026-08-26 | 1980b22b | 鸡哥 | fix: optimize cache management and improve signature generation in Codex status service
+- 2026-08-25 | 6ca46ba5 | eislandBot | docs: auto update CHANGE_LOG.md for #206 by @JNTMTMTM [skip ci]
 - 2026-08-26 | b1c3c945 | 鸡哥 | Merge pull request #206 from JNTMTMTM/dev
 - 2026-08-26 | 775e165e | 鸡哥 | feat: enhance escape navigation and questionnaire components with new state handling and dynamic rendering
 - 2026-08-26 | 0412b37c | 鸡哥 | fix: remove redundant reference to Questionnaire State Machine in documentation
