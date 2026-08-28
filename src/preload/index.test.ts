@@ -45,6 +45,7 @@ type TestWindow = {
 type ExposedApi = {
   enableMousePassthrough: () => void;
   getMousePosition: () => Promise<unknown>;
+  getMouseWindowState: () => Promise<unknown>;
   mediaGetMuted: () => Promise<boolean | null>;
   mediaToggleMuted: () => Promise<boolean | null>;
   qishuiSearch: (keyword: string, options?: { limit?: number }) => Promise<unknown>;
@@ -149,6 +150,9 @@ describe('preload bridge', () => {
     setup.invokeMock.mockResolvedValue({ x: 100, y: 200 });
     await api.getMousePosition();
     expect(setup.invokeMock).toHaveBeenCalledWith('window:get-mouse-position');
+
+    await api.getMouseWindowState();
+    expect(setup.invokeMock).toHaveBeenCalledWith('window:get-mouse-window-state');
 
     await api.mediaGetMuted();
     expect(setup.invokeMock).toHaveBeenCalledWith('media:get-muted');

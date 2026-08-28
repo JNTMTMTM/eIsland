@@ -102,6 +102,7 @@ declare global {
       hideWindow: () => void;
       moveWindowDelta: (dx: number, dy: number) => void;
       getMousePosition: () => Promise<Point>;
+      getMouseWindowState?: () => Promise<{ mousePosition: Point; bounds: Bounds } | null>;
       getWindowBounds: () => Promise<Bounds>;
       getIslandDisplays: () => Promise<IslandDisplayInfo[]>;
       getIslandDisplaySelection: () => Promise<string>;

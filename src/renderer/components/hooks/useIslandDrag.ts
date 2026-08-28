@@ -57,10 +57,27 @@ export function useIslandDrag(options: UseIslandDragOptions): UseIslandDragResul
   useEffect(() => {
     if (!draggable) return;
 
+    let animationFrameId: number | null = null;
+    let pendingDelta = { x: 0, y: 0 };
+
+    const flushPendingDelta = (): void => {
+      animationFrameId = null;
+      if (pendingDelta.x === 0 && pendingDelta.y === 0) return;
+      const { x, y } = pendingDelta;
+      pendingDelta = { x: 0, y: 0 };
+      window.api?.moveWindowDelta?.(x, y);
+    };
+
+    const scheduleDeltaFlush = (): void => {
+      if (animationFrameId !== null) return;
+      animationFrameId = requestAnimationFrame(flushPendingDelta);
+    };
+
     const handleMouseDown = (e: MouseEvent): void => {
       if (e.button !== 0) return;
       isDraggingRef.current = true;
       hasMovedRef.current = false;
+      pendingDelta = { x: 0, y: 0 };
       startPosRef.current = { x: e.screenX, y: e.screenY };
     };
 
@@ -72,13 +89,19 @@ export function useIslandDrag(options: UseIslandDragOptions): UseIslandDragResul
         hasMovedRef.current = true;
       }
       if (hasMovedRef.current) {
-        window.api?.moveWindowDelta?.(dx, dy);
+        pendingDelta.x += dx;
+        pendingDelta.y += dy;
         startPosRef.current = { x: e.screenX, y: e.screenY };
+        scheduleDeltaFlush();
       }
     };
 
     const handleMouseUp = (): void => {
       isDraggingRef.current = false;
+      if (animationFrameId !== null) {
+        cancelAnimationFrame(animationFrameId);
+        flushPendingDelta();
+      }
     };
 
     document.addEventListener('mousedown', handleMouseDown);
@@ -89,6 +112,9 @@ export function useIslandDrag(options: UseIslandDragOptions): UseIslandDragResul
       document.removeEventListener('mousedown', handleMouseDown);
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
+      if (animationFrameId !== null) cancelAnimationFrame(animationFrameId);
+      animationFrameId = null;
+      pendingDelta = { x: 0, y: 0 };
       /** 形态模式切换（如 pill→notch）导致 draggable 变为 false 时，重置拖动标记以恢复点击 */
       isDraggingRef.current = false;
       hasMovedRef.current = false;
