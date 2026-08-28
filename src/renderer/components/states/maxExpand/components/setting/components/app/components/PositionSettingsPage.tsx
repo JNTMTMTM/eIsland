@@ -31,6 +31,8 @@ import type { AppSettingsSectionProps } from './types';
 type PositionSettingsPageProps = Pick<
   AppSettingsSectionProps,
   | 'islandPositionOffset'
+  | 'islandPositionLocked'
+  | 'onIslandPositionLockedChange'
   | 'applyIslandPositionOffset'
   | 'islandPositionInput'
   | 'setIslandPositionInput'
@@ -55,6 +57,8 @@ type PositionSettingsPageProps = Pick<
  */
 export function PositionSettingsPage({
   islandPositionOffset,
+  islandPositionLocked,
+  onIslandPositionLockedChange,
   applyIslandPositionOffset,
   islandPositionInput,
   setIslandPositionInput,
@@ -103,6 +107,23 @@ export function PositionSettingsPage({
             <button className="settings-hotkey-btn" type="button" onClick={() => applyIslandPositionOffset(islandPositionOffset.x + 10, islandPositionOffset.y)}>{t('settings.app.position.moveRight', { defaultValue: '右移 10' })}</button>
             <button className="settings-hotkey-btn" type="button" onClick={() => applyIslandPositionOffset(islandPositionOffset.x, islandPositionOffset.y - 10)}>{t('settings.app.position.moveUp', { defaultValue: '上移 10' })}</button>
             <button className="settings-hotkey-btn" type="button" onClick={() => applyIslandPositionOffset(islandPositionOffset.x, islandPositionOffset.y + 10)}>{t('settings.app.position.moveDown', { defaultValue: '下移 10' })}</button>
+          </div>
+        </div>
+
+        <div className="settings-card">
+          <div className="settings-card-header">
+            <div className="settings-card-title">{t('settings.app.position.lockTitle', { defaultValue: '锁定灵动岛位置' })}</div>
+            <div className="settings-card-subtitle">{t('settings.app.position.lockHint', { defaultValue: '启用后仅在 pill 模式下禁止通过鼠标拖动灵动岛，位置校准仍可使用。' })}</div>
+          </div>
+          <div className="settings-card-inline-row">
+            <label className="settings-card-check">
+              <input
+                type="checkbox"
+                checked={islandPositionLocked}
+                onChange={(e) => onIslandPositionLockedChange(e.target.checked)}
+              />
+              {t('settings.app.position.lockToggle', { defaultValue: '锁定 pill 模式下的灵动岛位置' })}
+            </label>
           </div>
         </div>
 

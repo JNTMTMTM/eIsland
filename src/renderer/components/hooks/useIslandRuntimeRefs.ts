@@ -45,6 +45,7 @@ interface IslandRuntimeRefsState {
   startupAutoCheckHandledRef: React.MutableRefObject<boolean>;
   autoDimEnabledRef: React.MutableRefObject<boolean>;
   autoDimDelayRef: React.MutableRefObject<number>;
+  positionLockedRef: React.MutableRefObject<boolean>;
 }
 
 /**
@@ -68,6 +69,7 @@ export function useIslandRuntimeRefs(options: UseIslandRuntimeRefsOptions): Isla
   const startupAutoCheckHandledRef = useRef(false);
   const autoDimEnabledRef = useRef(false);
   const autoDimDelayRef = useRef(10);
+  const positionLockedRef = useRef(false);
 
   useLayoutEffect(() => {
     setNotificationRef.current = setNotification;
@@ -87,5 +89,6 @@ export function useIslandRuntimeRefs(options: UseIslandRuntimeRefsOptions): Isla
     startupAutoCheckHandledRef,
     autoDimEnabledRef,
     autoDimDelayRef,
+    positionLockedRef,
   };
 }

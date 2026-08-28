@@ -97,6 +97,8 @@ export interface AppSettingsSectionProps {
   autoHideFullscreenWindows: boolean;
   setAutoHideFullscreenWindows: (enabled: boolean) => void;
   islandPositionOffset: AppPositionOffset;
+  islandPositionLocked: boolean;
+  onIslandPositionLockedChange: (locked: boolean) => void;
   applyIslandPositionOffset: (x: number, y: number) => void;
   islandPositionInput: AppPositionInput;
   setIslandPositionInput: Dispatch<SetStateAction<AppPositionInput>>;

@@ -151,6 +151,7 @@ import { setThemeMode as applyThemeMode, getThemeMode, type ThemeMode } from '..
 import { getLanguage, setLanguage, type AppLanguage } from '../../../../i18n';
 import { readLocalToken } from '../../../../utils/userAccount';
 import { SvgIcon } from '../../../../utils/SvgIcon';
+import { ISLAND_POSITION_LOCKED_STORE_KEY } from '../../../../../shared/storeKeys';
 
 /** 单行配置项 */
 function SettingsField({
@@ -447,6 +448,7 @@ export function SettingsTab(): ReactElement {
     handleApplyMarketplaceWallpaper,
   } = useBackgroundMediaSettingsState();
   const [islandPositionOffset, setIslandPositionOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [islandPositionLocked, setIslandPositionLocked] = useState<boolean>(false);
   const [islandPositionInput, setIslandPositionInput] = useState<{ x: string; y: string }>({ x: '0', y: '0' });
   const [islandDisplaySelection, setIslandDisplaySelection] = useState<string>('primary');
   const [islandDisplayOptions, setIslandDisplayOptions] = useState<Array<{ id: string; label: string }>>([
@@ -745,6 +747,10 @@ export function SettingsTab(): ReactElement {
       const y = typeof offset.y === 'number' && Number.isFinite(offset.y) ? Math.round(offset.y) : 0;
       setIslandPositionOffset({ x, y });
     }).catch(() => {});
+    window.api.storeRead(ISLAND_POSITION_LOCKED_STORE_KEY).then((value) => {
+      if (cancelled) return;
+      setIslandPositionLocked(value === true);
+    }).catch(() => {});
     return () => { cancelled = true; };
   }, []);
 
@@ -1008,6 +1014,9 @@ export function SettingsTab(): ReactElement {
         if (typeof value === 'boolean') {
           setSyncDesktopWallpaperOnBackgroundChange(value);
         }
+      }
+      if (channel === `store:${ISLAND_POSITION_LOCKED_STORE_KEY}`) {
+        if (typeof value === 'boolean') setIslandPositionLocked(value);
       }
       if (channel === `store:${ISLAND_AUTO_DIM_ENABLED_STORE_KEY}`) {
         if (typeof value === 'boolean') setAutoDimEnabled(value);
@@ -1379,6 +1388,13 @@ export function SettingsTab(): ReactElement {
     setMaxExpandNavLayout(normalized);
     window.api.storeWrite(MAXEXPAND_NAV_LAYOUT_STORE_KEY, normalized).catch(() => {});
     window.dispatchEvent(new CustomEvent('maxexpand-nav-layout-changed', { detail: normalized }));
+  };
+
+  const handleIslandPositionLockedChange = (locked: boolean): void => {
+    setIslandPositionLocked(locked);
+    window.api.storeWrite(ISLAND_POSITION_LOCKED_STORE_KEY, locked).catch(() => {});
+    window.api.settingsPreview(`store:${ISLAND_POSITION_LOCKED_STORE_KEY}`, locked).catch(() => {});
+    window.dispatchEvent(new CustomEvent('island-position-lock-local-sync', { detail: { locked } }));
   };
 
   const applyIslandPositionOffset = (x: number, y: number): void => {
@@ -2364,6 +2380,8 @@ export function SettingsTab(): ReactElement {
               autoHideFullscreenWindows={autoHideFullscreenWindows}
               setAutoHideFullscreenWindows={setAutoHideFullscreenWindows}
               islandPositionOffset={islandPositionOffset}
+              islandPositionLocked={islandPositionLocked}
+              onIslandPositionLockedChange={handleIslandPositionLockedChange}
               applyIslandPositionOffset={applyIslandPositionOffset}
               islandPositionInput={islandPositionInput}
               setIslandPositionInput={setIslandPositionInput}

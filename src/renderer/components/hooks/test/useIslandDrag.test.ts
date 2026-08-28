@@ -105,7 +105,8 @@ beforeEach(() => {
 describe('useIslandDrag', () => {
   it('coalesces mouse movement until the next animation frame', async () => {
     const { useIslandDrag } = await import('../useIslandDrag');
-    useIslandDrag({ shapeMode: 'pill', state: 'idle' });
+    const positionLockedRef = { current: false };
+    useIslandDrag({ shapeMode: 'pill', state: 'idle', positionLockedRef });
 
     dispatchMouseEvent('mousedown', { button: 0, screenX: 100, screenY: 200 });
     dispatchMouseEvent('mousemove', { screenX: 110, screenY: 205 });
@@ -123,7 +124,8 @@ describe('useIslandDrag', () => {
 
   it('flushes pending movement when the mouse is released', async () => {
     const { useIslandDrag } = await import('../useIslandDrag');
-    useIslandDrag({ shapeMode: 'pill', state: 'idle' });
+    const positionLockedRef = { current: false };
+    useIslandDrag({ shapeMode: 'pill', state: 'idle', positionLockedRef });
 
     dispatchMouseEvent('mousedown', { button: 0, screenX: 100, screenY: 200 });
     dispatchMouseEvent('mousemove', { screenX: 110, screenY: 205 });
@@ -134,9 +136,21 @@ describe('useIslandDrag', () => {
     expect(frameCallbacks.size).toBe(0);
   });
 
+  it('does not move the island while its position is locked', async () => {
+    const { useIslandDrag } = await import('../useIslandDrag');
+    const positionLockedRef = { current: true };
+    useIslandDrag({ shapeMode: 'pill', state: 'idle', positionLockedRef });
+
+    dispatchMouseEvent('mousedown', { button: 0, screenX: 100, screenY: 200 });
+    dispatchMouseEvent('mousemove', { screenX: 120, screenY: 220 });
+
+    expect(moveWindowDeltaMock).not.toHaveBeenCalled();
+    expect(frameCallbacks.size).toBe(0);
+  });
   it('does not attach drag listeners for non-draggable states', async () => {
     const { useIslandDrag } = await import('../useIslandDrag');
-    useIslandDrag({ shapeMode: 'notch', state: 'idle' });
+    const positionLockedRef = { current: false };
+    useIslandDrag({ shapeMode: 'notch', state: 'idle', positionLockedRef });
 
     expect(listeners.size).toBe(0);
   });

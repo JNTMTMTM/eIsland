@@ -42,6 +42,7 @@ import {
   normalizeBgMediaConfig,
   resolveBgMediaPreviewUrl,
 } from '../config/dynamicIslandConfig';
+import { ISLAND_POSITION_LOCKED_STORE_KEY } from '../../../shared/storeKeys';
 import { ISLAND_AUTO_DIM_ENABLED_STORE_KEY, ISLAND_AUTO_DIM_DELAY_STORE_KEY, DEFAULT_AUTO_DIM_DELAY_SEC } from './useIslandAutoDim';
 import type { IslandBgMediaConfig, UpdateSourceKey } from '../config/dynamicIslandConfig';
 
@@ -63,6 +64,7 @@ interface UseIslandSettingsSyncOptions {
   setBgVideoHwDecode: React.Dispatch<React.SetStateAction<boolean>>;
   autoDimEnabledRef: React.MutableRefObject<boolean>;
   autoDimDelayRef: React.MutableRefObject<number>;
+  positionLockedRef: React.MutableRefObject<boolean>;
 }
 
 /**
@@ -88,6 +90,7 @@ export function useIslandSettingsSync(options: UseIslandSettingsSyncOptions): vo
     setBgVideoHwDecode,
     autoDimEnabledRef,
     autoDimDelayRef,
+    positionLockedRef,
   } = options;
 
   useEffect(() => {
@@ -97,6 +100,7 @@ export function useIslandSettingsSync(options: UseIslandSettingsSyncOptions): vo
       window.api?.expandMouseleaveIdleGet?.().then((value) => { expandLeaveIdleRef.current = value; }).catch(() => {});
       window.api?.maxexpandMouseleaveIdleGet?.().then((value) => { maxExpandLeaveIdleRef.current = value; }).catch(() => {});
       window.api?.idleClickExpandGet?.().then((value) => { idleClickExpandRef.current = value; }).catch(() => {});
+      window.api?.storeRead?.(ISLAND_POSITION_LOCKED_STORE_KEY).then((value) => { positionLockedRef.current = value === true; }).catch(() => {});
       window.api?.storeRead?.(ISLAND_AUTO_DIM_ENABLED_STORE_KEY).then((value) => { autoDimEnabledRef.current = value === true; }).catch(() => {});
       window.api?.storeRead?.(ISLAND_AUTO_DIM_DELAY_STORE_KEY).then((value) => { autoDimDelayRef.current = typeof value === 'number' && Number.isFinite(value) ? Math.max(1, value) : DEFAULT_AUTO_DIM_DELAY_SEC; }).catch(() => {});
       window.api?.springAnimationGet?.().then((value) => { useIslandStore.getState().setSpringAnimation(value); }).catch(() => {});
@@ -160,13 +164,14 @@ export function useIslandSettingsSync(options: UseIslandSettingsSyncOptions): vo
           el.style.filter = safeBlur > 0 ? `blur(${safeBlur}px)` : 'none';
         }
       }).catch(() => {});
+    }
 
-      const unsubscribeSettings = window.api?.onSettingsChanged?.((channel: string, value: unknown) => {
-        if (channel === 'shortcut:open-clipboard-history') {
-          const store = useIslandStore.getState();
-          store.setMaxExpandTab('clipboardHistory');
-          store.setMaxExpand();
-        }
+    const unsubscribeSettings = window.api?.onSettingsChanged?.((channel: string, value: unknown) => {
+      if (channel === 'shortcut:open-clipboard-history') {
+        const store = useIslandStore.getState();
+        store.setMaxExpandTab('clipboardHistory');
+        store.setMaxExpand();
+      }
         if (channel === 'shortcut:toggle-ui-lock') {
           const store = useIslandStore.getState();
           store.toggleUiStateLock();
@@ -191,6 +196,9 @@ export function useIslandSettingsSync(options: UseIslandSettingsSyncOptions): vo
         }
         if (channel === 'island:idle-click-expand') {
           idleClickExpandRef.current = Boolean(value);
+        }
+        if (channel === `store:${ISLAND_POSITION_LOCKED_STORE_KEY}`) {
+          positionLockedRef.current = value === true;
         }
         if (channel === `store:${ISLAND_AUTO_DIM_ENABLED_STORE_KEY}`) {
           autoDimEnabledRef.current = value === true;
@@ -315,13 +323,20 @@ export function useIslandSettingsSync(options: UseIslandSettingsSyncOptions): vo
       };
       window.addEventListener('island-auto-dim-local-sync', autoDimLocalHandler as EventListener);
 
+      const positionLockLocalHandler = (event: Event): void => {
+        const detail = (event as CustomEvent).detail;
+        if (!detail || typeof detail !== 'object' || typeof detail.locked !== 'boolean') return;
+        positionLockedRef.current = detail.locked;
+      };
+      window.addEventListener('island-position-lock-local-sync', positionLockLocalHandler as EventListener);
+
       // cleanup: 释放所有监听器，防止组件卸载后残留
       return () => {
         unsubscribeSettings?.();
         window.removeEventListener(LOCAL_ISLAND_BG_SYNC_EVENT, localBgSyncHandler as EventListener);
         window.removeEventListener('island-auto-dim-local-sync', autoDimLocalHandler as EventListener);
+        window.removeEventListener('island-position-lock-local-sync', positionLockLocalHandler as EventListener);
       };
-    }
   }, [
     language,
     initRef,
@@ -340,6 +355,7 @@ export function useIslandSettingsSync(options: UseIslandSettingsSyncOptions): vo
     setBgVideoHwDecode,
     autoDimEnabledRef,
     autoDimDelayRef,
+    positionLockedRef,
   ]);
 
   /** 专用形态模式变更监听（独立于 initRef 守卫，确保始终活跃） */

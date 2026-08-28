@@ -33,6 +33,7 @@ const DRAG_THRESHOLD = 4;
 interface UseIslandDragOptions {
   shapeMode: IslandShapeMode;
   state: IslandState;
+  positionLockedRef: React.MutableRefObject<boolean>;
 }
 
 interface UseIslandDragResult {
@@ -46,7 +47,7 @@ interface UseIslandDragResult {
  * @returns 包装后的点击处理函数。
  */
 export function useIslandDrag(options: UseIslandDragOptions): UseIslandDragResult {
-  const { shapeMode, state } = options;
+  const { shapeMode, state, positionLockedRef } = options;
   const isDraggingRef = useRef(false);
   const startPosRef = useRef({ x: 0, y: 0 });
   const hasMovedRef = useRef(false);
@@ -62,6 +63,10 @@ export function useIslandDrag(options: UseIslandDragOptions): UseIslandDragResul
 
     const flushPendingDelta = (): void => {
       animationFrameId = null;
+      if (positionLockedRef.current) {
+        pendingDelta = { x: 0, y: 0 };
+        return;
+      }
       if (pendingDelta.x === 0 && pendingDelta.y === 0) return;
       const { x, y } = pendingDelta;
       pendingDelta = { x: 0, y: 0 };
@@ -74,7 +79,7 @@ export function useIslandDrag(options: UseIslandDragOptions): UseIslandDragResul
     };
 
     const handleMouseDown = (e: MouseEvent): void => {
-      if (e.button !== 0) return;
+      if (e.button !== 0 || positionLockedRef.current) return;
       isDraggingRef.current = true;
       hasMovedRef.current = false;
       pendingDelta = { x: 0, y: 0 };
@@ -83,6 +88,16 @@ export function useIslandDrag(options: UseIslandDragOptions): UseIslandDragResul
 
     const handleMouseMove = (e: MouseEvent): void => {
       if (!isDraggingRef.current) return;
+      if (positionLockedRef.current) {
+        isDraggingRef.current = false;
+        hasMovedRef.current = false;
+        pendingDelta = { x: 0, y: 0 };
+        if (animationFrameId !== null) {
+          cancelAnimationFrame(animationFrameId);
+          animationFrameId = null;
+        }
+        return;
+      }
       const dx = e.screenX - startPosRef.current.x;
       const dy = e.screenY - startPosRef.current.y;
       if (!hasMovedRef.current && (Math.abs(dx) > DRAG_THRESHOLD || Math.abs(dy) > DRAG_THRESHOLD)) {
