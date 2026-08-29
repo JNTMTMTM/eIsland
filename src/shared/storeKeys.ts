@@ -24,6 +24,9 @@
  * @author 鸡哥
  */
 
+/** pill 模式灵动岛位置锁定配置键 */
+export const ISLAND_POSITION_LOCKED_STORE_KEY = 'island-position-locked';
+
 /** 截图引擎配置键 */
 export const SCREENSHOT_ENGINE_STORE_KEY = 'screenshot-engine';
 

@@ -33,6 +33,7 @@ const DRAG_THRESHOLD = 4;
 interface UseIslandDragOptions {
   shapeMode: IslandShapeMode;
   state: IslandState;
+  positionLockedRef: React.MutableRefObject<boolean>;
 }
 
 interface UseIslandDragResult {
@@ -46,7 +47,7 @@ interface UseIslandDragResult {
  * @returns 包装后的点击处理函数。
  */
 export function useIslandDrag(options: UseIslandDragOptions): UseIslandDragResult {
-  const { shapeMode, state } = options;
+  const { shapeMode, state, positionLockedRef } = options;
   const isDraggingRef = useRef(false);
   const startPosRef = useRef({ x: 0, y: 0 });
   const hasMovedRef = useRef(false);
@@ -57,28 +58,65 @@ export function useIslandDrag(options: UseIslandDragOptions): UseIslandDragResul
   useEffect(() => {
     if (!draggable) return;
 
+    let animationFrameId: number | null = null;
+    let pendingDelta = { x: 0, y: 0 };
+
+    const flushPendingDelta = (): void => {
+      animationFrameId = null;
+      if (positionLockedRef.current) {
+        pendingDelta = { x: 0, y: 0 };
+        return;
+      }
+      if (pendingDelta.x === 0 && pendingDelta.y === 0) return;
+      const { x, y } = pendingDelta;
+      pendingDelta = { x: 0, y: 0 };
+      window.api?.moveWindowDelta?.(x, y);
+    };
+
+    const scheduleDeltaFlush = (): void => {
+      if (animationFrameId !== null) return;
+      animationFrameId = requestAnimationFrame(flushPendingDelta);
+    };
+
     const handleMouseDown = (e: MouseEvent): void => {
-      if (e.button !== 0) return;
+      if (e.button !== 0 || positionLockedRef.current) return;
       isDraggingRef.current = true;
       hasMovedRef.current = false;
+      pendingDelta = { x: 0, y: 0 };
       startPosRef.current = { x: e.screenX, y: e.screenY };
     };
 
     const handleMouseMove = (e: MouseEvent): void => {
       if (!isDraggingRef.current) return;
+      if (positionLockedRef.current) {
+        isDraggingRef.current = false;
+        hasMovedRef.current = false;
+        pendingDelta = { x: 0, y: 0 };
+        if (animationFrameId !== null) {
+          cancelAnimationFrame(animationFrameId);
+          animationFrameId = null;
+        }
+        return;
+      }
       const dx = e.screenX - startPosRef.current.x;
       const dy = e.screenY - startPosRef.current.y;
       if (!hasMovedRef.current && (Math.abs(dx) > DRAG_THRESHOLD || Math.abs(dy) > DRAG_THRESHOLD)) {
         hasMovedRef.current = true;
       }
       if (hasMovedRef.current) {
-        window.api?.moveWindowDelta?.(dx, dy);
+        pendingDelta.x += dx;
+        pendingDelta.y += dy;
         startPosRef.current = { x: e.screenX, y: e.screenY };
+        scheduleDeltaFlush();
       }
     };
 
     const handleMouseUp = (): void => {
       isDraggingRef.current = false;
+      if (animationFrameId !== null) {
+        cancelAnimationFrame(animationFrameId);
+        flushPendingDelta();
+      }
     };
 
     document.addEventListener('mousedown', handleMouseDown);
@@ -89,6 +127,9 @@ export function useIslandDrag(options: UseIslandDragOptions): UseIslandDragResul
       document.removeEventListener('mousedown', handleMouseDown);
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
+      if (animationFrameId !== null) cancelAnimationFrame(animationFrameId);
+      animationFrameId = null;
+      pendingDelta = { x: 0, y: 0 };
       /** 形态模式切换（如 pill→notch）导致 draggable 变为 false 时，重置拖动标记以恢复点击 */
       isDraggingRef.current = false;
       hasMovedRef.current = false;

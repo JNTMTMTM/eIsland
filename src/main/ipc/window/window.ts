@@ -337,6 +337,26 @@ export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOpti
     });
   });
 
+  ipcMain.handle('window:get-mouse-window-state', () => {
+    const win = options.getMainWindow();
+    if (!win || win.isDestroyed()) return null;
+
+    const currentBounds = win.getBounds();
+    const bounds = logicalWindowSize
+      ? {
+        x: Math.round(currentBounds.x + (currentBounds.width - logicalWindowSize.width) / 2),
+        y: currentBounds.y,
+        width: logicalWindowSize.width,
+        height: logicalWindowSize.height,
+      }
+      : currentBounds;
+    const point = screen.getCursorScreenPoint();
+    return {
+      mousePosition: { x: point.x, y: point.y },
+      bounds,
+    };
+  });
+
   ipcMain.handle('window:get-bounds', () => {
     const win = options.getMainWindow();
     if (win && !win.isDestroyed()) {

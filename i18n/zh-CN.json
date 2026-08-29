@@ -2364,6 +2364,9 @@
       "position": {
         "title": "灵动岛位置偏移",
         "hint": "调整后自动保存，重启后会按该位置校准。",
+        "lockTitle": "锁定灵动岛位置",
+        "lockHint": "启用后仅在 pill 模式下禁止通过鼠标拖动灵动岛，位置校准仍可使用。",
+        "lockToggle": "锁定 pill 模式下的灵动岛位置",
         "quickAdjustTitle": "快速微调",
         "quickAdjustHint": "每次按钮点击以 10px 步进移动灵动岛位置，并自动保存。",
         "displayTitle": "显示器选择",

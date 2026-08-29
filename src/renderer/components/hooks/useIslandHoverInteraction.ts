@@ -85,33 +85,43 @@ export function useIslandHoverInteraction(options: UseIslandHoverInteractionOpti
   }, [enterTimerRef, leaveTimerRef]);
 
   useEffect(() => {
-    let rafId: number | null = null;
+    let checkTimer: ReturnType<typeof setTimeout> | null = null;
     let aborted = false;
-    let lastCheckTime = 0;
-    const CHECK_INTERVAL = 16;
+    let mousePassthroughState: boolean | null = null;
+    const CHECK_INTERVAL = 50;
+
+    const setMousePassthrough = (enabled: boolean): void => {
+      if (mousePassthroughState === enabled) return;
+      mousePassthroughState = enabled;
+      if (enabled) {
+        window.api?.enableMousePassthrough();
+      } else {
+        window.api?.disableMousePassthrough();
+      }
+    };
 
     if (state === 'maxExpand' || state === 'expanded' || state === 'announcement' || state === 'questionnaire') {
       isHoveringRef.current = true;
     }
 
+    const scheduleCheck = (): void => {
+      if (!aborted) {
+        checkTimer = setTimeout(() => {
+          checkTimer = null;
+          void checkMousePosition();
+        }, CHECK_INTERVAL);
+      }
+    };
+
     const checkMousePosition = async (): Promise<void> => {
       if (aborted) return;
-
-      const now = Date.now();
-      if (now - lastCheckTime < CHECK_INTERVAL) {
-        rafId = requestAnimationFrame(checkMousePosition);
-        return;
-      }
-      lastCheckTime = now;
 
       const inWindow = await isMouseInWindow();
       if (aborted) return;
 
       if (useIslandStore.getState().uiStateLocked) {
         clearAllTimers();
-        if (!aborted) {
-          rafId = requestAnimationFrame(checkMousePosition);
-        }
+        scheduleCheck();
         return;
       }
 
@@ -124,20 +134,16 @@ export function useIslandHoverInteraction(options: UseIslandHoverInteractionOpti
           leaveTimerRef.current = null;
         }
         isHoveringRef.current = true;
-        window.api?.disableMousePassthrough();
-        if (!aborted) {
-          rafId = requestAnimationFrame(checkMousePosition);
-        }
+        setMousePassthrough(false);
+        scheduleCheck();
         return;
       }
 
       if (state === 'notification' || state === 'agent' || state === 'stt' || state === 'cli' || state === 'agentVoiceInput' || state === 'guide' || state === 'login' || state === 'register' || state === 'resetPassword' || state === 'payment' || state === 'announcement' || state === 'questionnaire' || state === 'musicProvidersLogin') {
         if (inWindow) {
-          window.api?.disableMousePassthrough();
+          setMousePassthrough(false);
         }
-        if (!aborted) {
-          rafId = requestAnimationFrame(checkMousePosition);
-        }
+        scheduleCheck();
         return;
       }
 
@@ -152,7 +158,7 @@ export function useIslandHoverInteraction(options: UseIslandHoverInteractionOpti
           const clickToHoverStates = state === 'idle' || state === 'lyrics' || state === 'lyricsTranslation' || (state as string) === 'agentVoiceInput';
           if (clickToHoverStates && (forceClickToHover || idleClickExpandRef.current)) {
             if (config.mousePassthrough) {
-              window.api?.disableMousePassthrough();
+              setMousePassthrough(false);
             }
           } else {
             enterTimerRef.current = setTimeout(() => {
@@ -161,7 +167,7 @@ export function useIslandHoverInteraction(options: UseIslandHoverInteractionOpti
 
               isHoveringRef.current = true;
               if (config.mousePassthrough) {
-                window.api?.disableMousePassthrough();
+                setMousePassthrough(false);
               }
               setHover();
               if (state === 'lyrics' || state === 'lyricsTranslation') {
@@ -177,7 +183,7 @@ export function useIslandHoverInteraction(options: UseIslandHoverInteractionOpti
         }
 
         if ((state === 'idle' || state === 'lyrics' || state === 'lyricsTranslation' || (state as string) === 'agentVoiceInput') && (forceClickToHover || idleClickExpandRef.current) && !isHoveringRef.current) {
-          window.api?.enableMousePassthrough();
+          setMousePassthrough(true);
         }
 
         if (isHoveringRef.current && leaveTimerRef.current === null) {
@@ -215,16 +221,14 @@ export function useIslandHoverInteraction(options: UseIslandHoverInteractionOpti
         }
       }
 
-      if (!aborted) {
-        rafId = requestAnimationFrame(checkMousePosition);
-      }
+      scheduleCheck();
     };
 
-    rafId = requestAnimationFrame(checkMousePosition);
+    void checkMousePosition();
 
     return () => {
       aborted = true;
-      if (rafId !== null) cancelAnimationFrame(rafId);
+      if (checkTimer !== null) clearTimeout(checkTimer);
       clearAllTimers();
     };
   }, [

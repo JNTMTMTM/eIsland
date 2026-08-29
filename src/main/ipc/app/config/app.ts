@@ -65,6 +65,7 @@ export const ISLAND_SETTINGS_REGISTRY: Array<{ key: string; description: string;
   { key: 'update-source', description: '更新源 (cloudflare-r2/github/tencent-cos/aliyun-oss)', type: 'string' },
   { key: 'weather-alert-enabled', description: '天气预警通知', type: 'boolean' },
   { key: 'island-position-offset', description: '灵动岛位置偏移 {x, y}', type: 'object' },
+  { key: 'island-position-locked', description: 'pill 模式下锁定灵动岛位置', type: 'boolean' },
   { key: 'island-display-id', description: '灵动岛显示器选择 (primary 或显示器 id)', type: 'string' },
   { key: 'island-bg-opacity', description: '背景图片透明度 (0-100)', type: 'number' },
   { key: 'island-bg-blur', description: '背景模糊度 (0-50)', type: 'number' },

@@ -470,6 +470,7 @@ export const SEARCHABLE_SETTINGS: SearchableSettingItem[] = [
   { label: '隐藏窗口管理', desc: '当黑名单进程对应窗口处于焦点状态时，将立即隐藏灵动岛；失去焦点后自动显示。', labelKey: 'settings.app.hideProcess.title', descKey: 'settings.app.hideProcess.hint', tab: 'app', appPage: 'hide-process-list' },
   { label: '当前运行的窗口', desc: '在列表中点击可将窗口加入 / 移出黑名单，支持按进程名搜索。', labelKey: 'settings.app.hideProcess.runningTitle', descKey: 'settings.app.hideProcess.runningHint', tab: 'app', appPage: 'hide-process-list' },
   // ── 软件设置 > 位置校准 ──
+  { label: '锁定灵动岛位置', desc: '仅在 pill 模式下禁止通过鼠标拖动灵动岛，位置校准仍可使用。', labelKey: 'settings.app.position.lockTitle', descKey: 'settings.app.position.lockHint', tab: 'app', appPage: 'position' },
   { label: '显示器选择', desc: '多显示器环境可指定灵动岛显示器。', labelKey: 'settings.app.position.displayTitle', descKey: 'settings.app.position.displayHint', tab: 'app', appPage: 'position' },
   { label: '快速微调', desc: '每次按钮点击以 10px 步进移动灵动岛位置，并自动保存。', labelKey: 'settings.app.position.quickAdjustTitle', descKey: 'settings.app.position.quickAdjustHint', tab: 'app', appPage: 'position' },
   { label: '精确偏移', desc: '手动输入水平 / 垂直偏移量（单位 px），回车或点击"应用"后生效。', labelKey: 'settings.app.position.preciseTitle', descKey: 'settings.app.position.preciseHint', tab: 'app', appPage: 'position' },

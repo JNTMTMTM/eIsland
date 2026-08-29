@@ -82,6 +82,8 @@ export function AppSettingsSection({
   setAutoHideFullscreenWindows,
 
   islandPositionOffset,
+  islandPositionLocked,
+  onIslandPositionLockedChange,
   applyIslandPositionOffset,
   islandPositionInput,
   setIslandPositionInput,
@@ -223,6 +225,8 @@ export function AppSettingsSection({
         return (
           <PositionSettingsPage
             islandPositionOffset={islandPositionOffset}
+            islandPositionLocked={islandPositionLocked}
+            onIslandPositionLockedChange={onIslandPositionLockedChange}
             applyIslandPositionOffset={applyIslandPositionOffset}
             islandPositionInput={islandPositionInput}
             setIslandPositionInput={setIslandPositionInput}

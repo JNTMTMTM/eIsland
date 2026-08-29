@@ -26,8 +26,9 @@
 
 import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
 
-const { getMousePositionMock, getWindowBoundsMock } = vi.hoisted(() => ({
+const { getMousePositionMock, getMouseWindowStateMock, getWindowBoundsMock } = vi.hoisted(() => ({
   getMousePositionMock: vi.fn(),
+  getMouseWindowStateMock: vi.fn(),
   getWindowBoundsMock: vi.fn(),
 }));
 
@@ -37,10 +38,13 @@ const originalApi = (globalThis as Record<string, unknown>).window
   : undefined;
 
 beforeEach(() => {
-  // Set up window.api in the node test environment
+  getMousePositionMock.mockReset();
+  getMouseWindowStateMock.mockReset();
+  getWindowBoundsMock.mockReset();
   (globalThis as unknown as { window: Record<string, unknown> }).window = globalThis.window ?? {};
   (globalThis as unknown as { window: { api: Record<string, unknown> } }).window.api = {
     getMousePosition: getMousePositionMock,
+    getMouseWindowState: getMouseWindowStateMock,
     getWindowBounds: getWindowBoundsMock,
   };
 });
@@ -51,6 +55,30 @@ describe('isMouseInWindow', () => {
   beforeEach(async () => {
     const mod = await import('../dynamicIslandWindowUtils');
     isMouseInWindow = mod.isMouseInWindow;
+  });
+
+  describe('combined mouse and window state API', () => {
+    it('should use one IPC response when the combined API is available', async () => {
+      getMouseWindowStateMock.mockResolvedValue({
+        mousePosition: { x: 150, y: 150 },
+        bounds: { x: 100, y: 100, width: 100, height: 100 },
+      });
+
+      expect(await isMouseInWindow()).toBe(true);
+      expect(getMouseWindowStateMock).toHaveBeenCalledTimes(1);
+      expect(getMousePositionMock).not.toHaveBeenCalled();
+      expect(getWindowBoundsMock).not.toHaveBeenCalled();
+    });
+
+    it('should fall back to the separate APIs when the combined API returns null', async () => {
+      getMouseWindowStateMock.mockResolvedValue(null);
+      getMousePositionMock.mockResolvedValue({ x: 150, y: 150 });
+      getWindowBoundsMock.mockResolvedValue({ x: 100, y: 100, width: 100, height: 100 });
+
+      expect(await isMouseInWindow()).toBe(true);
+      expect(getMousePositionMock).toHaveBeenCalledTimes(1);
+      expect(getWindowBoundsMock).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('mouse inside window', () => {

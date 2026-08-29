@@ -173,6 +173,13 @@ const api = {
     return ipcRenderer.invoke('window:get-mouse-position');
   },
   /**
+   * 获取鼠标位置和灵动岛窗口边界（单次 IPC）
+   * @returns 当前鼠标位置与窗口边界，窗口不可用时返回 null
+   */
+  getMouseWindowState: (): Promise<{ mousePosition: Point; bounds: Bounds } | null> => {
+    return ipcRenderer.invoke('window:get-mouse-window-state');
+  },
+  /**
    * 获取窗口边界信息
    * @returns 包含 x、y、width、height 的边界对象
    */

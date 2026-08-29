@@ -80,7 +80,8 @@
     "perMachine": false,
     "allowToChangeInstallationDirectory": true,
     "allowElevation": true,
-    "deleteAppDataOnUninstall": false
+    "deleteAppDataOnUninstall": false,
+    "include": "installer.nsh"
   },
   "publish": {
     "provider": "generic",

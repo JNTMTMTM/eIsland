@@ -2364,6 +2364,9 @@
       "position": {
         "title": "Dynamic Island Offset",
         "hint": "Saved automatically after adjustment.",
+        "lockTitle": "Lock Dynamic Island Position",
+        "lockHint": "When enabled, mouse dragging is disabled only in pill mode. Position calibration remains available.",
+        "lockToggle": "Lock the Dynamic Island position in pill mode",
         "quickAdjustTitle": "Quick Nudge",
         "quickAdjustHint": "Each click moves the island by 10px and saves automatically.",
         "displayTitle": "Display Selection",

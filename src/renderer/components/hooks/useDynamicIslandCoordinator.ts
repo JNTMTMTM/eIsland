@@ -123,6 +123,7 @@ export function useDynamicIslandCoordinator(options: UseDynamicIslandCoordinator
     startupAutoCheckHandledRef,
     autoDimEnabledRef,
     autoDimDelayRef,
+    positionLockedRef,
   } = useIslandRuntimeRefs({
     setNotification,
   });
@@ -227,6 +228,7 @@ export function useDynamicIslandCoordinator(options: UseDynamicIslandCoordinator
     setBgVideoHwDecode,
     autoDimEnabledRef,
     autoDimDelayRef,
+    positionLockedRef,
   });
 
   useIslandAutoDim({
@@ -311,7 +313,7 @@ export function useDynamicIslandCoordinator(options: UseDynamicIslandCoordinator
     dominantColor,
   });
 
-  const { wrapClick } = useIslandDrag({ shapeMode, state });
+  const { wrapClick } = useIslandDrag({ shapeMode, state, positionLockedRef });
 
   return {
     shellClassName,

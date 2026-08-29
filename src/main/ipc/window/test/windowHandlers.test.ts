@@ -160,6 +160,10 @@ describe('window ipc handlers', () => {
 
     win.getBounds.mockReturnValue({ x: 0, y: 0, width: 1000, height: 200 });
     expect(handleHandlers.get('window:get-mouse-position')?.()).toEqual({ x: 10, y: 20 });
+    expect(handleHandlers.get('window:get-mouse-window-state')?.()).toEqual({
+      mousePosition: { x: 10, y: 20 },
+      bounds: { x: 200, y: 0, width: 600, height: 200 },
+    });
     expect(handleHandlers.get('window:get-bounds')?.()).toEqual({ x: 200, y: 0, width: 600, height: 200 });
     expect(handleHandlers.get('window:island-displays:list')?.()).toEqual([{ id: '1', width: 1920, height: 1080, isPrimary: true }]);
   });
