@@ -13,12 +13,12 @@ Var pid
     nsExec::Exec `"$PowerShellPath" -NoProfile -NonInteractive -C "$$found = Get-CimInstance -ClassName Win32_Process | Where-Object { $$_.ExecutablePath -and $$_.ExecutablePath -ieq [System.IO.Path]::GetFullPath('$INSTDIR\${APP_EXECUTABLE_FILENAME}') }; if ($$found) { exit 0 } else { exit 1 }"`
     Pop ${RETURN}
   ${else}
-    # The fallback preserves an exact image-name check rather than a prefix match.
-    !ifdef INSTALL_MODE_PER_ALL_USERS
-      nsExec::Exec `"$CmdPath" /C tasklist /FI "IMAGENAME eq ${APP_EXECUTABLE_FILENAME}" /FO CSV /NH | "$SYSDIR\findstr.exe" /B /I /C:"\"${APP_EXECUTABLE_FILENAME}\""`
-    !else
-      nsExec::Exec `"$CmdPath" /C tasklist /FI "USERNAME eq %USERNAME%" /FI "IMAGENAME eq ${APP_EXECUTABLE_FILENAME}" /FO CSV /NH | "$SYSDIR\findstr.exe" /B /I /C:"\"${APP_EXECUTABLE_FILENAME}\""`
-    !endif
+    # Use wmic path-aware lookup — only matches processes under $INSTDIR,
+    # so unrelated installs of the same executable are not treated as running.
+    # A temp batch file avoids WQL backslash-escaping issues in inline commands.
+    nsExec::ExecToStack `cmd /C "echo wmic process where "ExecutablePath='$INSTDIR\${APP_EXECUTABLE_FILENAME}'" get ProcessId | findstr /R "^[0-9]"" > "$PLUGINSDIR\_efind.bat"`
+    Pop $R0
+    nsExec::ExecToStack `"$PLUGINSDIR\_efind.bat"`
     Pop ${RETURN}
   ${endIf}
 !macroend
@@ -27,11 +27,11 @@ Var pid
   ${if} $IsPowerShellAvailable == 0
     nsExec::Exec `"$PowerShellPath" -NoProfile -NonInteractive -C "Get-CimInstance -ClassName Win32_Process | Where-Object { $$_.ExecutablePath -and $$_.ExecutablePath -ieq [System.IO.Path]::GetFullPath('$INSTDIR\${APP_EXECUTABLE_FILENAME}') } | ForEach-Object { Stop-Process -Id $$_.ProcessId -Force -ErrorAction SilentlyContinue }"`
   ${else}
-    !ifdef INSTALL_MODE_PER_ALL_USERS
-      nsExec::Exec `taskkill /T /F /IM "${APP_EXECUTABLE_FILENAME}"`
-    !else
-      nsExec::Exec `"$CmdPath" /C taskkill /T /F /IM "${APP_EXECUTABLE_FILENAME}" /FI "USERNAME eq %USERNAME%"`
-    !endif
+    # Find PID by exact executable path, then kill by PID — avoids terminating
+    # unrelated processes that happen to share the same image name.
+    nsExec::ExecToStack `cmd /C "echo for /f "tokens=*" %%A in ('wmic process where "ExecutablePath='$INSTDIR\${APP_EXECUTABLE_FILENAME}'" get ProcessId ^| findstr /R "^[0-9]"') do taskkill /T /F /PID %%A" > "$PLUGINSDIR\_ekill.bat"`
+    Pop $R0
+    nsExec::Exec `"$PLUGINSDIR\_ekill.bat"`
   ${endIf}
   Pop $R0
 !macroend

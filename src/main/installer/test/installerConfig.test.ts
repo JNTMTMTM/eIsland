@@ -43,9 +43,11 @@ describe('NSIS overwrite-install process detection', () => {
     expect(installerScript).not.toContain('$_.Path.StartsWith');
   });
 
-  it('keeps the fallback check restricted to the application image name', () => {
-    expect(installerScript).toContain('tasklist /FI "IMAGENAME eq ${APP_EXECUTABLE_FILENAME}"');
-    expect(installerScript).toContain('taskkill /T /F /IM "${APP_EXECUTABLE_FILENAME}"');
+  it('uses path-aware process detection in the wmic fallback', () => {
+    expect(installerScript).toContain("wmic process where \"ExecutablePath='");
+    expect(installerScript).not.toContain('tasklist /FI "IMAGENAME eq');
+    expect(installerScript).toContain('taskkill /T /F /PID');
+    expect(installerScript).not.toContain('taskkill /T /F /IM "${APP_EXECUTABLE_FILENAME}"');
   });
 
   it('does not define a second current-process name check', () => {
