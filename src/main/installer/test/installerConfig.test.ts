@@ -50,6 +50,7 @@ describe('NSIS overwrite-install process detection', () => {
 
   it('does not define a second current-process name check', () => {
     expect(installerScript).toContain('${GetProcessInfo} 0 $pid $1 $2 $3 $4');
+    // eslint-disable-next-line eqeqeq -- `!=` is NSIS script content, not a JS comparison
     expect(installerScript).toContain('$3 != "${APP_EXECUTABLE_FILENAME}"');
   });
 });
