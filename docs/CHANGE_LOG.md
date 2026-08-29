@@ -1,7 +1,112 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-08-26T18:20:21.911Z
+> 生成时间：2026-08-29T13:41:25.428Z
+
+## 26.7.4
+
+- 2026-08-27 | ab17f7c0 | 鸡哥 | chore: update version to 26.7.4 in package.json and package-lock.json
+- 2026-08-27 | 2df16f00 | 鸡哥 | docs(announcement): add V26.7.4 release notes
+- 2026-08-26 | 107e7eea | eislandBot | docs: auto update CHANGE_LOG.md for #207 by @JNTMTMTM [skip ci]
+- 2026-08-27 | 8a3dabc0 | 鸡哥 | Merge pull request #207 from JNTMTMTM/dev
+- 2026-08-27 | e32f58d6 | 鸡哥 | fix: enhance event mapping with raw event details and optimize signature generation in Codex status service
+- 2026-08-27 | 2bd0f342 | 鸡哥 | fix: optimize cache cleanup logic in createCodexStatusService function
+- 2026-08-26 | 1980b22b | 鸡哥 | fix: optimize cache management and improve signature generation in Codex status service
+- 2026-08-25 | 6ca46ba5 | eislandBot | docs: auto update CHANGE_LOG.md for #206 by @JNTMTMTM [skip ci]
+- 2026-08-26 | b1c3c945 | 鸡哥 | Merge pull request #206 from JNTMTMTM/dev
+- 2026-08-26 | 775e165e | 鸡哥 | feat: enhance escape navigation and questionnaire components with new state handling and dynamic rendering
+- 2026-08-26 | 0412b37c | 鸡哥 | fix: remove redundant reference to Questionnaire State Machine in documentation
+- 2026-08-26 | c19b75ba | 鸡哥 | fix: update conditional check for rewardProDays and refactor IntersectionObserver loop
+- 2026-08-26 | d50fed21 | 鸡哥 | feat: add questionnaire state and update state machine documentation
+- 2026-08-26 | 1c2a90de | 鸡哥 | feat: enhance user questionnaire details with animations and styling
+- 2026-08-26 | 01af2153 | 鸡哥 | feat: add OCR and image translation history sections to UserSettings
+- 2026-08-26 | 0816d97e | 鸡哥 | fix: adjust margin-top for settings index card layout
+- 2026-08-26 | b5462748 | 鸡哥 | feat: add QuestionnaireBanner to display reminders in UserSettingsSection
+- 2026-08-25 | 6f9a3345 | 鸡哥 | feat: add questionnaire submission deletion functionality and update UI feedback
+- 2026-08-25 | 95b4265f | 鸡哥 | feat: integrate QuestionnaireBanner and useAnnouncementQuestionnaire in UserSettingsSection
+- 2026-08-25 | 366f0c5d | 鸡哥 | feat: implement questionnaire history feature with loading states and error handling
+- 2026-08-25 | 5112d95d | 鸡哥 | feat: add styles for empty user questionnaire state
+- 2026-08-25 | 885e479e | 鸡哥 | feat: add questionnaire records section and update user settings page
+- 2026-08-25 | 59428568 | 鸡哥 | feat: move useAnnouncementQuestionnaire hook to DynamicIslandQuestionnaireBanner and update imports
+- 2026-08-25 | 1f5379f4 | 鸡哥 | feat: import announcement styles for QuestionnaireBanner integration
+- 2026-08-25 | 90621265 | 鸡哥 | fix: add margin to QuestionnaireBanner for improved layout
+- 2026-08-25 | 2083f862 | 鸡哥 | fix: reduce top padding in settings layout for improved spacing
+- 2026-08-25 | 04128ef3 | 鸡哥 | feat: integrate QuestionnaireBanner into IndexSettingsSection with state management
+- 2026-08-25 | d594428c | 鸡哥 | feat: refactor questionnaire banner components and types
+- 2026-08-25 | c38fa872 | 鸡哥 | feat: add DynamicIslandQuestionnaireBanner component
+- 2026-08-25 | dade9f72 | 鸡哥 | feat: enhance AnnouncementQuestionnaireBanner with SVG icon and updated styles
+- 2026-08-25 | 438ae827 | 鸡哥 | feat: add QUESTIONNAIRE SVG icon and update SvgIcon utility
+- 2026-08-25 | 519b9207 | 鸡哥 | fix: update pluralization for Pro days in questionnaire messages
+- 2026-08-25 | edcc3aca | 鸡哥 | feat: add image to reward banner in questionnaire and style it
+- 2026-08-25 | d81bd01e | 鸡哥 | feat: add reward banner to questionnaire for Pro days
+- 2026-08-25 | 32e04af7 | 鸡哥 | feat: add report issue button to questionnaire footer
+- 2026-08-25 | 4dc29f93 | 鸡哥 | feat: add toggle functionality for questionnaire list visibility and update translations
+- 2026-08-25 | 7e5af325 | 鸡哥 | feat: remove progress display from questionnaire header
+- 2026-08-24 | 6b90595a | 鸡哥 | feat: remove translation from questionnaire valid until date display
+- 2026-08-24 | ed38b9a8 | 鸡哥 | feat: enhance questionnaire navigation by preventing index updates during programmatic scrolling
+- 2026-08-24 | 38213991 | 鸡哥 | feat: add scroll event handling to update active question index in questionnaire navigation
+- 2026-08-24 | 9a62306d | 鸡哥 | feat: implement IntersectionObserver for question navigation and update styles in TOC for improved layout
+- 2026-08-24 | d02fdd2c | 鸡哥 | feat: update layout and styles for questionnaire table of contents for improved usability
+- 2026-08-24 | 885d7c1c | 鸡哥 | feat: enhance text styles in completed questionnaire section for better readability
+- 2026-08-24 | c396d519 | 鸡哥 | feat: add margin-top to completed actions in questionnaire styles
+- 2026-08-24 | 22d05fb2 | 鸡哥 | feat: add report issue button and improve layout in questionnaire component
+- 2026-08-24 | 2937db7f | 鸡哥 | feat: add report issue functionality to questionnaire component
+- 2026-08-24 | a1948e82 | 鸡哥 | refactor: remove completed mark styles from questionnaire component
+- 2026-08-24 | 48ae4d43 | 鸡哥 | feat: update button styles in questionnaire component for improved UI consistency
+- 2026-08-24 | 4b77caf5 | 鸡哥 | feat: enhance questionnaire functionality with multi-questionnaire support and UI updates
+- 2026-08-24 | adb553f2 | 鸡哥 | feat: add submission error handling to questionnaire hook and component
+- 2026-08-24 | b19d4b0d | 鸡哥 | refactor: remove reward hint and related styles from questionnaire component
+- 2026-08-24 | f63c13be | 鸡哥 | feat: add questionnaire reminder banner and related functionality
+- 2026-08-24 | e357209c | 鸡哥 | feat: add questionnaire API types and implement questionnaire functionality
+- 2026-08-23 | ec949d4f | 鸡哥 | feat: add initial implementation of questionnaire component
+- 2026-08-22 | 6facc9b3 | eislandBot | docs: auto update CHANGE_LOG.md for #205 by @JNTMTMTM [skip ci]
+- 2026-08-23 | 1d38fe33 | 鸡哥 | Merge pull request #205 from JNTMTMTM/dev
+- 2026-08-22 | 6ed7b98a | 鸡哥 | feat: implement detail request sequence management in WallpaperMarketSection and disable refresh button in SettingsTab
+- 2026-08-22 | 4339164a | 鸡哥 | fix: adjust margin-left for settings icon in layout CSS
+- 2026-08-22 | da8d5dd2 | 鸡哥 | feat: disable refresh button when wallpaper detail is open and navigation is expanded
+- 2026-08-22 | 27ef09dc | 鸡哥 | feat: add wallpaper detail open state management to SettingsTab and update WallpaperMarketSection props
+- 2026-08-22 | b0d4ad44 | 鸡哥 | feat: add search functionality to WallpaperMarketSection with expandable search panel
+- 2026-08-22 | 874fd9e9 | 鸡哥 | fix: remove 'Go to Contribution' button and related functionality from WallpaperMarketSection
+- 2026-08-22 | 4097a7c1 | 鸡哥 | feat: add search icon to settings tab with styling
+- 2026-08-22 | cbb33f85 | 鸡哥 | fix: update STANDALONE_MARKET_PAGE_SIZE to 18 for consistency
+- 2026-08-22 | a52e0156 | 鸡哥 | fix: update default market page sizes for consistency
+- 2026-08-22 | b7a27033 | 鸡哥 | feat: add margin to top actions in market detail section
+- 2026-08-22 | 9ae94560 | 鸡哥 | feat: enhance WallpaperMarketSection with detail panel toggle and animations
+- 2026-08-21 | b589c609 | 鸡哥 | refactor: simplify WallpaperContributionSection by removing unused props and actions
+- 2026-08-20 | 4a029d4a | eislandBot | docs: auto update CHANGE_LOG.md for #204 by @JNTMTMTM [skip ci]
+- 2026-08-21 | 39c5a000 | 鸡哥 | Merge pull request #204 from JNTMTMTM/dev
+- 2026-08-21 | c7a80a71 | 鸡哥 | feat: implement useTodoList hook for managing TodoList state and progress
+- 2026-08-21 | 0103d711 | 鸡哥 | fix: update turn prop check in TodoList component for better type safety
+- 2026-08-21 | 9242756c | 鸡哥 | feat: enhance TodoList component with turn prop and auto-collapse functionality
+- 2026-08-21 | fd383811 | 鸡哥 | feat: enhance ThinkingReasoning component with persisted duration and duration computed callback
+- 2026-08-20 | 1e1bf96b | 鸡哥 | refactor: clean up CSS styles for headerIcon and item components
+- 2026-08-20 | 72b9a703 | 鸡哥 | feat: implement TodoList component with collapsible functionality and integrate into MessageTimeline
+- 2026-08-20 | 3015e3e7 | 鸡哥 | feat: refactor ThinkingReasoning component and add useThinkingReasoning hook for improved state management
+- 2026-08-20 | 2106bf55 | 鸡哥 | feat: add ThinkingReasoning component and integrate into MessageTimeline for enhanced thought process display
+- 2026-08-19 | 599b9901 | eislandBot | docs: auto update CHANGE_LOG.md for #203 by @JNTMTMTM [skip ci]
+- 2026-08-20 | 621c376c | 鸡哥 | Merge pull request #203 from JNTMTMTM/dev
+- 2026-08-20 | 1b47da82 | 鸡哥 | feat: add color offset constants for orb colors in uniform configuration
+- 2026-08-20 | e0367fe2 | 鸡哥 | feat: add loading label for liquid orb preview and refactor color application logic
+- 2026-08-19 | abdeef9a | 鸡哥 | feat: add country flag icons to language selection buttons in settings
+- 2026-08-19 | f9fe2193 | 鸡哥 | feat: add 'orb-style' localization for English and Chinese language files
+- 2026-08-19 | ea369f35 | 鸡哥 | feat: add loading spinner for orb preview in AI settings section
+- 2026-08-19 | 474a1739 | 鸡哥 | feat: update useWebGPURenderer to handle uniform data updates and improve rendering lifecycle
+- 2026-08-19 | 38cd1bbf | 鸡哥 | feat: enhance orb color customization with preview and layout adjustments
+- 2026-08-19 | 4110b94c | 鸡哥 | feat: replace remove button text with icon and add styling for hover effects
+- 2026-08-19 | e3baf9c0 | 鸡哥 | feat: add orb color customization settings and utility functions
+- 2026-08-18 | 6af49d76 | 鸡哥 | feat: add STT interface Orb toggle and localization support
+- 2026-08-18 | d493d7b4 | 鸡哥 | feat: add 'orb-style' settings page and localization support
+- 2026-08-18 | 9084519d | eislandBot | docs: auto update CHANGE_LOG.md for #202 by @JNTMTMTM [skip ci]
+- 2026-08-18 | 9411dc76 | 鸡哥 | Merge pull request #202 from JNTMTMTM/dev
+- 2026-08-18 | 64b38700 | 鸡哥 | fix: enhance ESLint rule detection in code quality review workflow
+- 2026-08-18 | 1e086fcb | 鸡哥 | fix: add defensive check for GPUDevice.destroy method in useWebGPURenderer style: use CSS variable for orb size in agentVoiceInput
+- 2026-08-18 | 61bb6bf7 | 鸡哥 | fix: improve type definitions and error handling in WebGPU renderer
+- 2026-08-18 | f1ca4d6b | 鸡哥 | feat: add onReady callback to LiquidOrbCanvas and use it in AgentVoiceInputView
+- 2026-08-18 | fa18a175 | 鸡哥 | feat: add localization support for Liquid Orb aria label in English and Chinese
+- 2026-08-18 | f1130ff4 | 鸡哥 | feat: add Ollama localization support in English and Chinese language files
+- 2026-08-18 | 9463fb01 | 鸡哥 | fix: correct LIQUID_ORB_UNIFORM_SEED values in uniformDefaults.ts
+- 2026-08-18 | 31620eb7 | 鸡哥 | feat: enhance WebGPU rendering and error handling in Liquid Orb component
+- 2026-08-18 | e7b98634 | 鸡哥 | feat: add WebGPU rendering support for Liquid Orb component
 
 ## 26.7.3
 
@@ -3464,102 +3569,12 @@
 
 ## Unreleased
 
-- 2026-08-27 | 8a3dabc0 | 鸡哥 | Merge pull request #207 from JNTMTMTM/dev
-- 2026-08-27 | e32f58d6 | 鸡哥 | fix: enhance event mapping with raw event details and optimize signature generation in Codex status service
-- 2026-08-27 | 2bd0f342 | 鸡哥 | fix: optimize cache cleanup logic in createCodexStatusService function
-- 2026-08-26 | 1980b22b | 鸡哥 | fix: optimize cache management and improve signature generation in Codex status service
-- 2026-08-25 | 6ca46ba5 | eislandBot | docs: auto update CHANGE_LOG.md for #206 by @JNTMTMTM [skip ci]
-- 2026-08-26 | b1c3c945 | 鸡哥 | Merge pull request #206 from JNTMTMTM/dev
-- 2026-08-26 | 775e165e | 鸡哥 | feat: enhance escape navigation and questionnaire components with new state handling and dynamic rendering
-- 2026-08-26 | 0412b37c | 鸡哥 | fix: remove redundant reference to Questionnaire State Machine in documentation
-- 2026-08-26 | c19b75ba | 鸡哥 | fix: update conditional check for rewardProDays and refactor IntersectionObserver loop
-- 2026-08-26 | d50fed21 | 鸡哥 | feat: add questionnaire state and update state machine documentation
-- 2026-08-26 | 1c2a90de | 鸡哥 | feat: enhance user questionnaire details with animations and styling
-- 2026-08-26 | 01af2153 | 鸡哥 | feat: add OCR and image translation history sections to UserSettings
-- 2026-08-26 | 0816d97e | 鸡哥 | fix: adjust margin-top for settings index card layout
-- 2026-08-26 | b5462748 | 鸡哥 | feat: add QuestionnaireBanner to display reminders in UserSettingsSection
-- 2026-08-25 | 6f9a3345 | 鸡哥 | feat: add questionnaire submission deletion functionality and update UI feedback
-- 2026-08-25 | 95b4265f | 鸡哥 | feat: integrate QuestionnaireBanner and useAnnouncementQuestionnaire in UserSettingsSection
-- 2026-08-25 | 366f0c5d | 鸡哥 | feat: implement questionnaire history feature with loading states and error handling
-- 2026-08-25 | 5112d95d | 鸡哥 | feat: add styles for empty user questionnaire state
-- 2026-08-25 | 885e479e | 鸡哥 | feat: add questionnaire records section and update user settings page
-- 2026-08-25 | 59428568 | 鸡哥 | feat: move useAnnouncementQuestionnaire hook to DynamicIslandQuestionnaireBanner and update imports
-- 2026-08-25 | 1f5379f4 | 鸡哥 | feat: import announcement styles for QuestionnaireBanner integration
-- 2026-08-25 | 90621265 | 鸡哥 | fix: add margin to QuestionnaireBanner for improved layout
-- 2026-08-25 | 2083f862 | 鸡哥 | fix: reduce top padding in settings layout for improved spacing
-- 2026-08-25 | 04128ef3 | 鸡哥 | feat: integrate QuestionnaireBanner into IndexSettingsSection with state management
-- 2026-08-25 | d594428c | 鸡哥 | feat: refactor questionnaire banner components and types
-- 2026-08-25 | c38fa872 | 鸡哥 | feat: add DynamicIslandQuestionnaireBanner component
-- 2026-08-25 | dade9f72 | 鸡哥 | feat: enhance AnnouncementQuestionnaireBanner with SVG icon and updated styles
-- 2026-08-25 | 438ae827 | 鸡哥 | feat: add QUESTIONNAIRE SVG icon and update SvgIcon utility
-- 2026-08-25 | 519b9207 | 鸡哥 | fix: update pluralization for Pro days in questionnaire messages
-- 2026-08-25 | edcc3aca | 鸡哥 | feat: add image to reward banner in questionnaire and style it
-- 2026-08-25 | d81bd01e | 鸡哥 | feat: add reward banner to questionnaire for Pro days
-- 2026-08-25 | 32e04af7 | 鸡哥 | feat: add report issue button to questionnaire footer
-- 2026-08-25 | 4dc29f93 | 鸡哥 | feat: add toggle functionality for questionnaire list visibility and update translations
-- 2026-08-25 | 7e5af325 | 鸡哥 | feat: remove progress display from questionnaire header
-- 2026-08-24 | 6b90595a | 鸡哥 | feat: remove translation from questionnaire valid until date display
-- 2026-08-24 | ed38b9a8 | 鸡哥 | feat: enhance questionnaire navigation by preventing index updates during programmatic scrolling
-- 2026-08-24 | 38213991 | 鸡哥 | feat: add scroll event handling to update active question index in questionnaire navigation
-- 2026-08-24 | 9a62306d | 鸡哥 | feat: implement IntersectionObserver for question navigation and update styles in TOC for improved layout
-- 2026-08-24 | d02fdd2c | 鸡哥 | feat: update layout and styles for questionnaire table of contents for improved usability
-- 2026-08-24 | 885d7c1c | 鸡哥 | feat: enhance text styles in completed questionnaire section for better readability
-- 2026-08-24 | c396d519 | 鸡哥 | feat: add margin-top to completed actions in questionnaire styles
-- 2026-08-24 | 22d05fb2 | 鸡哥 | feat: add report issue button and improve layout in questionnaire component
-- 2026-08-24 | 2937db7f | 鸡哥 | feat: add report issue functionality to questionnaire component
-- 2026-08-24 | a1948e82 | 鸡哥 | refactor: remove completed mark styles from questionnaire component
-- 2026-08-24 | 48ae4d43 | 鸡哥 | feat: update button styles in questionnaire component for improved UI consistency
-- 2026-08-24 | 4b77caf5 | 鸡哥 | feat: enhance questionnaire functionality with multi-questionnaire support and UI updates
-- 2026-08-24 | adb553f2 | 鸡哥 | feat: add submission error handling to questionnaire hook and component
-- 2026-08-24 | b19d4b0d | 鸡哥 | refactor: remove reward hint and related styles from questionnaire component
-- 2026-08-24 | f63c13be | 鸡哥 | feat: add questionnaire reminder banner and related functionality
-- 2026-08-24 | e357209c | 鸡哥 | feat: add questionnaire API types and implement questionnaire functionality
-- 2026-08-23 | ec949d4f | 鸡哥 | feat: add initial implementation of questionnaire component
-- 2026-08-22 | 6facc9b3 | eislandBot | docs: auto update CHANGE_LOG.md for #205 by @JNTMTMTM [skip ci]
-- 2026-08-23 | 1d38fe33 | 鸡哥 | Merge pull request #205 from JNTMTMTM/dev
-- 2026-08-22 | 6ed7b98a | 鸡哥 | feat: implement detail request sequence management in WallpaperMarketSection and disable refresh button in SettingsTab
-- 2026-08-22 | 4339164a | 鸡哥 | fix: adjust margin-left for settings icon in layout CSS
-- 2026-08-22 | da8d5dd2 | 鸡哥 | feat: disable refresh button when wallpaper detail is open and navigation is expanded
-- 2026-08-22 | 27ef09dc | 鸡哥 | feat: add wallpaper detail open state management to SettingsTab and update WallpaperMarketSection props
-- 2026-08-22 | b0d4ad44 | 鸡哥 | feat: add search functionality to WallpaperMarketSection with expandable search panel
-- 2026-08-22 | 874fd9e9 | 鸡哥 | fix: remove 'Go to Contribution' button and related functionality from WallpaperMarketSection
-- 2026-08-22 | 4097a7c1 | 鸡哥 | feat: add search icon to settings tab with styling
-- 2026-08-22 | cbb33f85 | 鸡哥 | fix: update STANDALONE_MARKET_PAGE_SIZE to 18 for consistency
-- 2026-08-22 | a52e0156 | 鸡哥 | fix: update default market page sizes for consistency
-- 2026-08-22 | b7a27033 | 鸡哥 | feat: add margin to top actions in market detail section
-- 2026-08-22 | 9ae94560 | 鸡哥 | feat: enhance WallpaperMarketSection with detail panel toggle and animations
-- 2026-08-21 | b589c609 | 鸡哥 | refactor: simplify WallpaperContributionSection by removing unused props and actions
-- 2026-08-20 | 4a029d4a | eislandBot | docs: auto update CHANGE_LOG.md for #204 by @JNTMTMTM [skip ci]
-- 2026-08-21 | 39c5a000 | 鸡哥 | Merge pull request #204 from JNTMTMTM/dev
-- 2026-08-21 | c7a80a71 | 鸡哥 | feat: implement useTodoList hook for managing TodoList state and progress
-- 2026-08-21 | 0103d711 | 鸡哥 | fix: update turn prop check in TodoList component for better type safety
-- 2026-08-21 | 9242756c | 鸡哥 | feat: enhance TodoList component with turn prop and auto-collapse functionality
-- 2026-08-21 | fd383811 | 鸡哥 | feat: enhance ThinkingReasoning component with persisted duration and duration computed callback
-- 2026-08-20 | 1e1bf96b | 鸡哥 | refactor: clean up CSS styles for headerIcon and item components
-- 2026-08-20 | 72b9a703 | 鸡哥 | feat: implement TodoList component with collapsible functionality and integrate into MessageTimeline
-- 2026-08-20 | 3015e3e7 | 鸡哥 | feat: refactor ThinkingReasoning component and add useThinkingReasoning hook for improved state management
-- 2026-08-20 | 2106bf55 | 鸡哥 | feat: add ThinkingReasoning component and integrate into MessageTimeline for enhanced thought process display
-- 2026-08-19 | 599b9901 | eislandBot | docs: auto update CHANGE_LOG.md for #203 by @JNTMTMTM [skip ci]
-- 2026-08-20 | 621c376c | 鸡哥 | Merge pull request #203 from JNTMTMTM/dev
-- 2026-08-20 | 1b47da82 | 鸡哥 | feat: add color offset constants for orb colors in uniform configuration
-- 2026-08-20 | e0367fe2 | 鸡哥 | feat: add loading label for liquid orb preview and refactor color application logic
-- 2026-08-19 | abdeef9a | 鸡哥 | feat: add country flag icons to language selection buttons in settings
-- 2026-08-19 | f9fe2193 | 鸡哥 | feat: add 'orb-style' localization for English and Chinese language files
-- 2026-08-19 | ea369f35 | 鸡哥 | feat: add loading spinner for orb preview in AI settings section
-- 2026-08-19 | 474a1739 | 鸡哥 | feat: update useWebGPURenderer to handle uniform data updates and improve rendering lifecycle
-- 2026-08-19 | 38cd1bbf | 鸡哥 | feat: enhance orb color customization with preview and layout adjustments
-- 2026-08-19 | 4110b94c | 鸡哥 | feat: replace remove button text with icon and add styling for hover effects
-- 2026-08-19 | e3baf9c0 | 鸡哥 | feat: add orb color customization settings and utility functions
-- 2026-08-18 | 6af49d76 | 鸡哥 | feat: add STT interface Orb toggle and localization support
-- 2026-08-18 | d493d7b4 | 鸡哥 | feat: add 'orb-style' settings page and localization support
-- 2026-08-18 | 9084519d | eislandBot | docs: auto update CHANGE_LOG.md for #202 by @JNTMTMTM [skip ci]
-- 2026-08-18 | 9411dc76 | 鸡哥 | Merge pull request #202 from JNTMTMTM/dev
-- 2026-08-18 | 64b38700 | 鸡哥 | fix: enhance ESLint rule detection in code quality review workflow
-- 2026-08-18 | 1e086fcb | 鸡哥 | fix: add defensive check for GPUDevice.destroy method in useWebGPURenderer style: use CSS variable for orb size in agentVoiceInput
-- 2026-08-18 | 61bb6bf7 | 鸡哥 | fix: improve type definitions and error handling in WebGPU renderer
-- 2026-08-18 | f1ca4d6b | 鸡哥 | feat: add onReady callback to LiquidOrbCanvas and use it in AgentVoiceInputView
-- 2026-08-18 | fa18a175 | 鸡哥 | feat: add localization support for Liquid Orb aria label in English and Chinese
-- 2026-08-18 | f1130ff4 | 鸡哥 | feat: add Ollama localization support in English and Chinese language files
-- 2026-08-18 | 9463fb01 | 鸡哥 | fix: correct LIQUID_ORB_UNIFORM_SEED values in uniformDefaults.ts
-- 2026-08-18 | 31620eb7 | 鸡哥 | feat: enhance WebGPU rendering and error handling in Liquid Orb component
-- 2026-08-18 | e7b98634 | 鸡哥 | feat: add WebGPU rendering support for Liquid Orb component
+- 2026-08-29 | a982892d | 鸡哥 | Merge pull request #211 from JNTMTMTM/dev
+- 2026-08-29 | f3d91147 | 鸡哥 | feat: enhance NSIS installer process detection with path-aware checks
+- 2026-08-29 | 5dc6a78f | 鸡哥 | test: add eslint disable comment for NSIS script content comparison
+- 2026-08-29 | 6a80f4de | 鸡哥 | feat: add NSIS installer script and tests for overwrite-install process detection
+- 2026-08-29 | d1c03a4c | 鸡哥 | feat: add position locking feature for Dynamic Island in pill mode
+- 2026-08-29 | 5638683d | 鸡哥 | feat: implement combined mouse and window state API with tests (#208)
+- 2026-08-28 | 266845f2 | 鸡哥 | style: change overflow property from hidden to visible in settings-memo.css (#210)
+- 2026-08-28 | 46ef1c81 | 鸡哥 | style: adjust padding and max-width in cli-state.css for better layout
+- 2026-08-27 | 33050cab | 鸡哥 | feat: add legal documents including Billing Refund Policy, Privacy Policy, and Terms of Service
