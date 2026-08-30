@@ -166,7 +166,7 @@
         "title": "Account Service",
         "desc": "Log in or register now to enable cross-device sync and account management.",
         "tipSync": "After login, your profile can be synced.",
-        "tipMode": "You can use the Wallpaper Market feature."
+        "tipMode": "You can use the General Market feature."
       }
     },
     "interactionCards": {
@@ -2050,7 +2050,7 @@
       "shortcut": "Shortcuts",
       "user": "Account",
       "update": "Updates",
-      "pluginMarket": "Market",
+      "pluginMarket": "General Market",
       "about": "About"
     },
     "mail": {
@@ -3003,9 +3003,9 @@
       "pagination": "Update settings pagination"
     },
     "pluginMarket": {
-      "pagination": "Wallpaper market pagination",
+      "pagination": "General market pagination",
       "search": {
-        "wallpaperTitle": "Wallpaper Market",
+        "wallpaperTitle": "General Market",
         "wallpaperHint": "Browse and apply community-shared wallpapers, supporting both image and video wallpapers",
         "contributionTitle": "Wallpaper Contribution",
         "contributionHint": "Upload your wallpaper creations to share with the community",
@@ -3013,7 +3013,7 @@
         "editHint": "View and edit your contributed wallpapers and manage review status"
       },
       "auth": {
-        "entryTitle": "Sign in to access wallpaper market content",
+        "entryTitle": "Sign in to access general market content",
         "gotoLogin": "Go to Login",
         "gotoRegister": "Go to Register",
         "hint": "Sign in to browse wallpapers."
@@ -3884,8 +3884,8 @@
         "desc": "Check for and download app updates"
       },
       "pluginMarket": {
-        "label": "Wallpaper Market",
-        "desc": "Wallpaper market entry and wallpaper management"
+        "label": "General Market",
+        "desc": "General market entry and wallpaper management"
       },
       "user": {
         "label": "Account",

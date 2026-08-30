@@ -51,7 +51,7 @@ export const WEATHER_LOCATION_PRIORITY_OPTIONS: Array<{ value: WeatherLocationPr
   { value: 'custom', label: '自定义位置优先' },
 ];
 
-export const SETTINGS_TABS = ['index', 'app', 'network', 'mail', 'weather', 'music', 'ai', 'shortcut', 'user', 'update', 'pluginMarket', 'about'] as const;
+export const SETTINGS_TABS = ['index', 'app', 'pluginMarket', 'network', 'mail', 'weather', 'music', 'ai', 'shortcut', 'user', 'update', 'about'] as const;
 export type SettingsSidebarTabKey = (typeof SETTINGS_TABS)[number];
 export type AppSettingsPageKey = 'layout-preview' | 'expand-layout' | 'maxexpand-layout' | 'album' | 'hide-process-list' | 'position' | 'theme' | 'language' | 'behavior' | 'animation' | 'url-parser' | 'clipboard-history' | 'alarm' | 'break-reminder' | 'autostart' | 'sound' | 'notification' | 'performance' | 'performance-monitor' | 'screenshot-settings';
 export type WeatherSettingsPageKey = 'location' | 'provider';
@@ -104,7 +104,7 @@ export const SETTINGS_TAB_LABELS: Record<SettingsTabLabelKey, string> = {
   update: '更新设置',
   'update-check': '检查更新',
   'info-sync': '信息同步',
-  pluginMarket: '壁纸市场',
+  pluginMarket: '综合市场',
   about: '关于软件',
 };
 
@@ -148,7 +148,7 @@ export const SETTINGS_TAB_DESCRIPTIONS: Record<Exclude<SettingsTabLabelKey, 'ind
   update: '检查与下载软件更新',
   'update-check': '检查与下载软件更新',
   'info-sync': '信息同步配置',
-  pluginMarket: '壁纸市场入口与壁纸管理',
+  pluginMarket: '综合市场入口与壁纸管理',
   about: '版本信息与项目链接',
 };
 
@@ -590,7 +590,7 @@ export const SEARCHABLE_SETTINGS: SearchableSettingItem[] = [
   { label: '更新提示', desc: '控制是否自动提示版本更新和公告展示策略', labelKey: 'settings.update.autoPromptTitle', descKey: 'settings.update.autoPromptHintStatic', tab: 'update' },
   { label: '引导界面', desc: '重新显示首次启动引导界面', labelKey: 'settings.update.guideCardTitle', descKey: 'settings.update.guideCardHint', tab: 'update' },
   // ── 插件市场 ──
-  { label: '壁纸市场', desc: '浏览并应用社区分享的壁纸资源，支持图片和视频壁纸', labelKey: 'settings.pluginMarket.search.wallpaperTitle', descKey: 'settings.pluginMarket.search.wallpaperHint', tab: 'pluginMarket' },
+  { label: '综合市场', desc: '浏览并应用社区分享的壁纸资源，支持图片和视频壁纸', labelKey: 'settings.pluginMarket.search.wallpaperTitle', descKey: 'settings.pluginMarket.search.wallpaperHint', tab: 'pluginMarket' },
   { label: '壁纸贡献', desc: '上传你的壁纸作品，分享给社区用户', labelKey: 'settings.pluginMarket.search.contributionTitle', descKey: 'settings.pluginMarket.search.contributionHint', tab: 'pluginMarket' },
   { label: '壁纸管理', desc: '查看和编辑你已贡献的壁纸作品，管理审核状态', labelKey: 'settings.pluginMarket.search.editTitle', descKey: 'settings.pluginMarket.search.editHint', tab: 'pluginMarket' },
 ];

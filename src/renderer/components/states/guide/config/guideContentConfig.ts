@@ -264,7 +264,7 @@ export function getGuidePages(t: TFunction, showAuthPrompt: boolean): GuidePage[
       desc: t('guide.sections.auth.desc', { defaultValue: '现在就登录或注册，开启跨设备同步与账号管理。' }),
       tips: [
         { text: t('guide.sections.auth.tipSync', { defaultValue: '登录后可同步账号资料。' }) },
-        { text: t('guide.sections.auth.tipMode', { defaultValue: '可使用壁纸市场功能。' }) },
+        { text: t('guide.sections.auth.tipMode', { defaultValue: '可使用综合市场功能。' }) },
       ],
     },
   ];

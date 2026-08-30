@@ -312,7 +312,7 @@ export function WallpaperEditSection({ onGoWallpaper }: WallpaperEditSectionProp
                 : t('settings.pluginMarket.wallpaper.actions.expandSearch', { defaultValue: '展开搜索' })}
             </button>
             <button className="settings-hotkey-btn" type="button" onClick={onGoWallpaper}>
-              {t('settings.pluginMarket.edit.actions.backToMarket', { defaultValue: '返回壁纸市场' })}
+              {t('settings.pluginMarket.edit.actions.backToMarket', { defaultValue: '返回综合市场' })}
             </button>
           </div>
 
