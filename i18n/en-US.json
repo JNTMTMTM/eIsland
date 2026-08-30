@@ -3021,7 +3021,8 @@
       "pages": {
         "wallpaper": "Wallpaper",
         "contribution": "Contribution",
-        "edit": "Edit Wallpapers"
+        "edit": "Edit Wallpapers",
+        "apps": "Apps"
       },
       "tag": {
         "placeholder": "Type a tag then press Enter or comma",

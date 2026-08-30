@@ -373,8 +373,8 @@ describe('exported constants', () => {
     expect(DEFAULT_AUTO_DIM_DELAY_SEC).toBe(10);
   });
 
-  it('exports PLUGIN_MARKET_PAGES with three entries', () => {
-    expect(PLUGIN_MARKET_PAGES).toEqual(['wallpaper', 'contribution', 'edit']);
+  it('exports PLUGIN_MARKET_PAGES with four entries', () => {
+    expect(PLUGIN_MARKET_PAGES).toEqual(['wallpaper', 'contribution', 'edit', 'apps']);
   });
 
   it('exports UPDATE_SOURCES with five entries', () => {

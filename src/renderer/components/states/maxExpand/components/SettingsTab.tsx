@@ -297,6 +297,7 @@ export function SettingsTab(): ReactElement {
     wallpaper: t('settings.pluginMarket.pages.wallpaper', { defaultValue: '壁纸' }),
     contribution: t('settings.pluginMarket.pages.contribution', { defaultValue: '贡献' }),
     edit: t('settings.pluginMarket.pages.edit', { defaultValue: '修改壁纸' }),
+    apps: t('settings.pluginMarket.pages.apps', { defaultValue: '应用' }),
   };
   const currentPluginMarketPageLabel = pluginMarketPageLabels[pluginMarketPage];
 
@@ -2798,6 +2799,11 @@ export function SettingsTab(): ReactElement {
                         key={wallpaperMarketRefreshKey}
                         onGoWallpaper={() => setPluginMarketPage('wallpaper')}
                       />
+                    )}
+                    {pluginMarketPage === 'apps' && (
+                      <div className="settings-cards">
+                        {/* 应用分页 - 待实现 */}
+                      </div>
                     )}
                   </div>
                   <SettingsPageNavigation
