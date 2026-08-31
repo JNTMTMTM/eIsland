@@ -374,7 +374,7 @@ describe('exported constants', () => {
   });
 
   it('exports PLUGIN_MARKET_PAGES with four entries', () => {
-    expect(PLUGIN_MARKET_PAGES).toEqual(['wallpaper', 'contribution', 'edit', 'apps']);
+    expect(PLUGIN_MARKET_PAGES).toEqual(['wallpaper', 'apps', 'contribution', 'edit']);
   });
 
   it('exports UPDATE_SOURCES with five entries', () => {

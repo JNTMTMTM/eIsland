@@ -96,7 +96,7 @@ export interface UpdateDownloadProgress {
 
 const PRO_UPDATE_SOURCE_SET: ReadonlySet<UpdateSourceKey> = new Set<UpdateSourceKey>(['tencent-cos', 'aliyun-oss']);
 
-export const PLUGIN_MARKET_PAGES: PluginMarketPageKey[] = ['wallpaper', 'contribution', 'edit', 'apps'];
+export const PLUGIN_MARKET_PAGES: PluginMarketPageKey[] = ['wallpaper', 'apps', 'contribution', 'edit'];
 
 export const UPDATE_SOURCES: { key: UpdateSourceKey; label: string; proOnly?: boolean }[] = [
   { key: 'cloudflare-r2', label: 'Cloudflare R2' },

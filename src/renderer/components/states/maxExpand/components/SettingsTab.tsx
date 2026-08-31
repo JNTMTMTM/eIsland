@@ -2791,6 +2791,11 @@ export function SettingsTab(): ReactElement {
                         onDetailOpenChange={setWallpaperDetailOpen}
                       />
                     )}
+                    {pluginMarketPage === 'apps' && (
+                      <div className="settings-cards">
+                        {/* 应用分页 - 待实现 */}
+                      </div>
+                    )}
                     {pluginMarketPage === 'contribution' && (
                       <WallpaperContributionSection />
                     )}
@@ -2799,11 +2804,6 @@ export function SettingsTab(): ReactElement {
                         key={wallpaperMarketRefreshKey}
                         onGoWallpaper={() => setPluginMarketPage('wallpaper')}
                       />
-                    )}
-                    {pluginMarketPage === 'apps' && (
-                      <div className="settings-cards">
-                        {/* 应用分页 - 待实现 */}
-                      </div>
                     )}
                   </div>
                   <SettingsPageNavigation
