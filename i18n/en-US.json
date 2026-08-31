@@ -2042,6 +2042,7 @@
       "music-whitelist": "Player Whitelist",
       "music-lyrics": "Lyrics Source",
       "music-smtc": "SMTC",
+      "music-providers": "Lyrics Providers",
       "ai": "AI Agent",
       "general": "General",
       "r1pxc": "r1pxc Agent",
@@ -3915,6 +3916,10 @@
       "music-smtc": {
         "label": "SMTC",
         "desc": "System Media Transport Controls settings."
+      },
+      "music-providers": {
+        "label": "Lyrics Providers",
+        "desc": "Configure lyrics fetch sources and priority."
       }
     }
   },

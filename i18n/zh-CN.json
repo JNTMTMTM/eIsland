@@ -2042,6 +2042,7 @@
       "music-whitelist": "播放器白名单",
       "music-lyrics": "歌词源",
       "music-smtc": "SMTC",
+      "music-providers": "歌词提供源",
       "ai": "AI Agent",
       "general": "通用配置",
       "r1pxc": "r1pxc Agent",
@@ -3915,6 +3916,10 @@
       "music-smtc": {
         "label": "SMTC",
         "desc": "系统媒体传输控制相关配置。"
+      },
+      "music-providers": {
+        "label": "歌词提供源",
+        "desc": "配置歌词获取来源与优先级。"
       }
     }
   },
