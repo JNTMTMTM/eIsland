@@ -186,7 +186,7 @@ export const SETTINGS_TAB_ICONS: Partial<Record<SettingsTabLabelKey, string>> = 
   performance: SvgIcon.TASK_MANAGER,
   'performance-monitor': SvgIcon.TASK_MANAGER,
   'screenshot-settings': SvgIcon.SCREENSHOT,
-  pluginMarket: SvgIcon.PLUGIN,
+  pluginMarket: SvgIcon.MARKET,
 };
 
 export const NETWORK_TIMEOUT_OPTIONS = [
