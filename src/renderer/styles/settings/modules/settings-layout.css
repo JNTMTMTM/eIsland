@@ -2649,6 +2649,30 @@
   font-size: 14px;
 }
 
+/* 敬请期待占位 */
+.settings-coming-soon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  gap: 8px;
+}
+
+.settings-coming-soon-title {
+  font-size: 12px;
+  line-height: 1.45;
+  color: rgba(var(--color-text-rgb), 0.74);
+  text-align: center;
+}
+
+.settings-coming-soon-hint {
+  font-size: 11px;
+  color: rgba(var(--color-text-rgb), 0.35);
+  line-height: 1.45;
+  text-align: center;
+}
+
 /* 网络超时设置行 */
 .settings-network-timeout-row {
   display: flex;

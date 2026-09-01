@@ -2793,7 +2793,14 @@ export function SettingsTab(): ReactElement {
                     )}
                     {pluginMarketPage === 'apps' && (
                       <div className="settings-cards">
-                        {/* 应用分页 - 待实现 */}
+                        <div className="settings-coming-soon">
+                          <div className="settings-coming-soon-title">
+                            {t('settings.pluginMarket.apps.comingSoon', { defaultValue: '敬请期待' })}
+                          </div>
+                          <div className="settings-coming-soon-hint">
+                            {t('settings.pluginMarket.apps.comingSoonHint', { defaultValue: '应用市场功能即将上线' })}
+                          </div>
+                        </div>
                       </div>
                     )}
                     {pluginMarketPage === 'contribution' && (

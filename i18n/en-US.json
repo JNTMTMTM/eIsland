@@ -3025,6 +3025,10 @@
         "edit": "Edit Wallpapers",
         "apps": "Apps"
       },
+      "apps": {
+        "comingSoon": "Coming Soon",
+        "comingSoonHint": "The apps market feature is coming soon"
+      },
       "tag": {
         "placeholder": "Type a tag then press Enter or comma",
         "createNew": "Create new tag",
