@@ -1222,6 +1222,12 @@
   overflow-y: auto;
 }
 
+/* 让 settings-cards 填满 page-main 可用高度，使居中占位生效 */
+.settings-app-page-main > .settings-cards {
+  flex: 1;
+  min-height: 0;
+}
+
 .settings-app-page-main::-webkit-scrollbar {
   width: 3px;
 }
