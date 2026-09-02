@@ -108,6 +108,7 @@ describe('SvgIcon', () => {
     expect(SvgIcon).toHaveProperty('MAIL');
     expect(SvgIcon).toHaveProperty('UPDATE_TIME');
     expect(SvgIcon).toHaveProperty('PLUGIN');
+    expect(SvgIcon).toHaveProperty('MARKET');
     expect(SvgIcon).toHaveProperty('MINIMAX');
     expect(SvgIcon).toHaveProperty('BREAK');
     expect(SvgIcon).toHaveProperty('PROLONGED_SITTING');

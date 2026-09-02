@@ -104,6 +104,7 @@ export const SvgIcon = {
   MAIL: './svg/MAIL.svg',
   UPDATE_TIME: './svg/UPDATE_TIME.svg',
   PLUGIN: './svg/PLUGIN.svg',
+  MARKET: './svg/MARKET.svg',
   MINIMAX: './svg/MINIMAX.svg',
   BREAK: './svg/BREAK.svg',
   PROLONGED_SITTING: './svg/PROLONGED_SITTING.svg',

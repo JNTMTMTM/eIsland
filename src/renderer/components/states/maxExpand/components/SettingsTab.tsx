@@ -297,6 +297,7 @@ export function SettingsTab(): ReactElement {
     wallpaper: t('settings.pluginMarket.pages.wallpaper', { defaultValue: '壁纸' }),
     contribution: t('settings.pluginMarket.pages.contribution', { defaultValue: '贡献' }),
     edit: t('settings.pluginMarket.pages.edit', { defaultValue: '修改壁纸' }),
+    apps: t('settings.pluginMarket.pages.apps', { defaultValue: '应用' }),
   };
   const currentPluginMarketPageLabel = pluginMarketPageLabels[pluginMarketPage];
 
@@ -2233,6 +2234,14 @@ export function SettingsTab(): ReactElement {
             {getSettingsLabel('app')}
           </button>
           <button
+            className={`max-expand-settings-sidebar-item ${activeTab === 'pluginMarket' ? 'active' : ''}`}
+            onClick={() => setActiveTab('pluginMarket')}
+            type="button"
+          >
+            <span className="sidebar-dot" />
+            {getSettingsLabel('pluginMarket')}
+          </button>
+          <button
             className={`max-expand-settings-sidebar-item ${activeTab === 'network' ? 'active' : ''}`}
             onClick={() => setActiveTab('network')}
             type="button"
@@ -2295,14 +2304,6 @@ export function SettingsTab(): ReactElement {
           >
             <span className="sidebar-dot" />
             {getSettingsLabel('update')}
-          </button>
-          <button
-            className={`max-expand-settings-sidebar-item ${activeTab === 'pluginMarket' ? 'active' : ''}`}
-            onClick={() => setActiveTab('pluginMarket')}
-            type="button"
-          >
-            <span className="sidebar-dot" />
-            {getSettingsLabel('pluginMarket')}
           </button>
           <button
             className={`max-expand-settings-sidebar-item ${activeTab === 'about' ? 'active' : ''}`}
@@ -2742,7 +2743,7 @@ export function SettingsTab(): ReactElement {
           {activeTab === 'pluginMarket' && (
             <div className="max-expand-settings-section">
               <div className="max-expand-settings-title settings-app-title-line">
-                <span>{t('settings.labels.pluginMarket', { defaultValue: '壁纸市场' })}</span>
+                <span>{t('settings.labels.pluginMarket', { defaultValue: '综合市场' })}</span>
                 {hasLoginSession && <span className="settings-app-title-sub">- {currentPluginMarketPageLabel}</span>}
                 {hasLoginSession && (pluginMarketPage === 'wallpaper' || pluginMarketPage === 'edit') && (
                   <>
@@ -2790,6 +2791,18 @@ export function SettingsTab(): ReactElement {
                         onDetailOpenChange={setWallpaperDetailOpen}
                       />
                     )}
+                    {pluginMarketPage === 'apps' && (
+                      <div className="settings-cards">
+                        <div className="settings-coming-soon">
+                          <div className="settings-coming-soon-title">
+                            {t('settings.pluginMarket.apps.comingSoon', { defaultValue: '敬请期待' })}
+                          </div>
+                          <div className="settings-coming-soon-hint">
+                            {t('settings.pluginMarket.apps.comingSoonHint', { defaultValue: '应用市场功能即将上线' })}
+                          </div>
+                        </div>
+                      </div>
+                    )}
                     {pluginMarketPage === 'contribution' && (
                       <WallpaperContributionSection />
                     )}
@@ -2812,7 +2825,7 @@ export function SettingsTab(): ReactElement {
               ) : (
                 <div className="settings-user-auth">
                   <div className="settings-user-auth-entry-title">
-                    {t('settings.pluginMarket.auth.entryTitle', { defaultValue: '登录后即可访问壁纸市场内容' })}
+                    {t('settings.pluginMarket.auth.entryTitle', { defaultValue: '登录后即可访问综合市场内容' })}
                   </div>
                   <div className="settings-user-auth-entry-actions">
                     <button

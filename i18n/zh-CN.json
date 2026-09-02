@@ -166,7 +166,7 @@
         "title": "账号服务",
         "desc": "现在就登录或注册，开启跨设备同步与账号管理。",
         "tipSync": "登录后可同步账号资料。",
-        "tipMode": "可使用壁纸市场功能。"
+        "tipMode": "可使用综合市场功能。"
       }
     },
     "interactionCards": {
@@ -2042,6 +2042,7 @@
       "music-whitelist": "播放器白名单",
       "music-lyrics": "歌词源",
       "music-smtc": "SMTC",
+      "music-providers": "歌词提供源",
       "ai": "AI Agent",
       "general": "通用配置",
       "r1pxc": "r1pxc Agent",
@@ -2050,7 +2051,7 @@
       "shortcut": "快捷键",
       "user": "用户中心",
       "update": "更新设置",
-      "pluginMarket": "壁纸市场",
+      "pluginMarket": "综合市场",
       "about": "关于软件"
     },
     "mail": {
@@ -3003,9 +3004,9 @@
       "pagination": "更新设置分页"
     },
     "pluginMarket": {
-      "pagination": "壁纸市场分页",
+      "pagination": "综合市场分页",
       "search": {
-        "wallpaperTitle": "壁纸市场",
+        "wallpaperTitle": "综合市场",
         "wallpaperHint": "浏览并应用社区分享的壁纸资源，支持图片和视频壁纸",
         "contributionTitle": "壁纸贡献",
         "contributionHint": "上传你的壁纸作品，分享给社区用户",
@@ -3013,7 +3014,7 @@
         "editHint": "查看和编辑你已贡献的壁纸作品，管理审核状态"
       },
       "auth": {
-        "entryTitle": "登录后即可访问壁纸市场内容",
+        "entryTitle": "登录后即可访问综合市场内容",
         "gotoLogin": "前往登录",
         "gotoRegister": "前往注册",
         "hint": "登录后可浏览壁纸内容。"
@@ -3021,7 +3022,12 @@
       "pages": {
         "wallpaper": "壁纸",
         "contribution": "贡献",
-        "edit": "修改壁纸"
+        "edit": "修改壁纸",
+        "apps": "应用"
+      },
+      "apps": {
+        "comingSoon": "敬请期待",
+        "comingSoonHint": "应用市场功能即将上线"
       },
       "tag": {
         "placeholder": "输入标签后回车或逗号确认",
@@ -3034,7 +3040,7 @@
       "edit": {
         "searchPlaceholder": "搜索自己的壁纸",
         "actions": {
-          "backToMarket": "返回壁纸市场"
+          "backToMarket": "返回综合市场"
         },
         "feedback": {
           "emptyMine": "你还没有上传过壁纸",
@@ -3884,8 +3890,8 @@
         "desc": "检查与下载软件更新"
       },
       "pluginMarket": {
-        "label": "壁纸市场",
-        "desc": "壁纸市场入口与壁纸管理"
+        "label": "综合市场",
+        "desc": "综合市场入口与壁纸管理"
       },
       "user": {
         "label": "用户中心",
@@ -3914,6 +3920,10 @@
       "music-smtc": {
         "label": "SMTC",
         "desc": "系统媒体传输控制相关配置。"
+      },
+      "music-providers": {
+        "label": "歌词提供源",
+        "desc": "配置歌词获取来源与优先级。"
       }
     }
   },
