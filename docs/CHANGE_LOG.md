@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-08-29T13:41:25.428Z
+> 生成时间：2026-09-02T13:06:08.723Z
 
 ## 26.7.4
 
@@ -3569,6 +3569,16 @@
 
 ## Unreleased
 
+- 2026-09-02 | c98fe092 | 鸡哥 | Merge pull request #212 from JNTMTMTM/dev
+- 2026-09-02 | c8a04dd6 | 鸡哥 | feat: make settings cards fill available height in page main for better centering
+- 2026-09-02 | 1bed2ee2 | 鸡哥 | feat: update settings layout to increase minimum height and use flex for better responsiveness
+- 2026-09-02 | fbc42d9c | 鸡哥 | feat: add 'Coming Soon' message for apps market in settings and update styles
+- 2026-09-01 | 6566f46d | 鸡哥 | feat: add 'Lyrics Providers' configuration to music settings in localization files
+- 2026-09-01 | 2b6abc93 | 鸡哥 | feat: add MARKET icon and update references in settings configuration and tests
+- 2026-08-31 | c93a4820 | 鸡哥 | feat: reorder plugin market pages and update related tests
+- 2026-08-31 | d926711a | 鸡哥 | feat: add 'Apps' page to plugin market and update related configurations
+- 2026-08-30 | e4d5cf00 | 鸡哥 | refactor: update references from 'Wallpaper Market' to 'General Market' in localization files and settings
+- 2026-08-29 | 79cca7e8 | eislandBot | docs: auto update CHANGE_LOG.md for #211 by @JNTMTMTM [skip ci]
 - 2026-08-29 | a982892d | 鸡哥 | Merge pull request #211 from JNTMTMTM/dev
 - 2026-08-29 | f3d91147 | 鸡哥 | feat: enhance NSIS installer process detection with path-aware checks
 - 2026-08-29 | 5dc6a78f | 鸡哥 | test: add eslint disable comment for NSIS script content comparison
