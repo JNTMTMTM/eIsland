@@ -2345,7 +2345,8 @@
           "miniGame": "Mini Game",
           "stock": "Stock Market",
           "cli": "CLI Console",
-          "calculator": "Calculator"
+          "calculator": "Calculator",
+          "worldClock": "World Clock"
         }
       },
       "hideProcess": {
