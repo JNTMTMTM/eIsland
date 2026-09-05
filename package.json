@@ -70,6 +70,7 @@
     "@eisland/windows-volume-helper": "file:plugins/eisland-windows-volume-helper",
     "@eisland/windows-wifi-helper": "file:plugins/eisland-windows-wifi-helper",
     "@gsap/react": "^2.1.2",
+    "@multisystemsuite/timezone-engine-core": "^5.0.0",
     "@tailwindcss/vite": "^4.2.2",
     "colorthief": "^3.3.1",
     "debug": "^4.4.3",

@@ -20,15 +20,64 @@
 
 /**
  * @file WorldClockTab.tsx
- * @description 最大展开模式 — 世界时钟 Tab — 占位组件（内容留白）
+ * @description 最大展开模式 — 世界时钟 Tab — 多时区实时时钟显示
  * @author 鸡哥
  */
 
-import type { ReactElement } from 'react';
+import { useMemo, type ReactElement } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useWorldClockState } from '../hooks/useWorldClockState';
+import { getAllTimezoneOptions } from '../utils/worldClockUtils';
+import { WorldClockCard } from './WorldClockCard';
+import { WorldClockCityPicker } from './WorldClockCityPicker';
 
 /**
- * 世界时钟 Tab — 最大展开模式下的世界时钟面板（占位）
+ * 世界时钟 Tab — 最大展开模式下的世界时钟面板
  */
 export function WorldClockTab(): ReactElement {
-  return <div className="max-expand-tab-panel world-clock-panel" />;
+  const { t } = useTranslation();
+  const state = useWorldClockState();
+  const timezoneOptions = useMemo(() => getAllTimezoneOptions(), []);
+
+  const existingTimezones = useMemo(
+    () => state.cities.map((c) => c.timezone),
+    [state.cities],
+  );
+
+  return (
+    <div className="max-expand-tab-panel world-clock-panel">
+      <div className="world-clock-header">
+        <span className="world-clock-title">
+          {t('maxExpand.worldClock.title', { defaultValue: '世界时钟' })}
+        </span>
+        <button
+          className="world-clock-add-btn"
+          type="button"
+          onClick={() => state.setShowPicker(true)}
+          title={t('maxExpand.worldClock.addCity', { defaultValue: '添加城市' })}
+        >
+          +
+        </button>
+      </div>
+
+      <div className="world-clock-grid">
+        {state.ticks.map((tick) => (
+          <WorldClockCard
+            key={tick.timezone}
+            tick={tick}
+            onRemove={state.removeCity}
+          />
+        ))}
+      </div>
+
+      {state.showPicker && (
+        <WorldClockCityPicker
+          existingTimezones={existingTimezones}
+          onSelect={state.addCity}
+          onClose={() => state.setShowPicker(false)}
+          options={timezoneOptions}
+        />
+      )}
+    </div>
+  );
 }

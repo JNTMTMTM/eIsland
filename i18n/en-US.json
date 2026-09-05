@@ -1976,6 +1976,15 @@
         "alarm2": "Nuke",
         "alarm3": "NL Laughing"
       }
+    },
+    "worldClock": {
+      "title": "World Clock",
+      "addCity": "Add City",
+      "local": "Local",
+      "searchTimezone": "Search timezone...",
+      "alreadyAdded": "Added",
+      "noResults": "No results",
+      "removeCity": "Remove"
     }
   },
   "calculator": {

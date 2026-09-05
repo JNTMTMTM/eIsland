@@ -1976,6 +1976,15 @@
         "alarm2": "核弹",
         "alarm3": "奶蛙捧腹大笑"
       }
+    },
+    "worldClock": {
+      "title": "世界时钟",
+      "addCity": "添加城市",
+      "local": "本地",
+      "searchTimezone": "搜索时区...",
+      "alreadyAdded": "已添加",
+      "noResults": "未找到结果",
+      "removeCity": "移除"
     }
   },
   "calculator": {

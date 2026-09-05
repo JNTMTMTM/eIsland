@@ -1,0 +1,353 @@
+/*
+ * eIsland - A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Electron.
+ *
+ * Copyright (C) 2026 JNTMTMTM
+ * Copyright (C) 2026 pyisland.com
+ */
+
+/**
+ * @file settings-world-clock.css
+ * @description 世界时钟 Tab 样式 — 网格卡片布局，实时时钟显示
+ */
+
+/* ══════════════════════════════════════
+   容器
+   ══════════════════════════════════════ */
+.world-clock-panel {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  color: rgba(var(--color-text-rgb), 0.88);
+  overflow: hidden;
+}
+
+/* ══════════════════════════════════════
+   头部
+   ══════════════════════════════════════ */
+.world-clock-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px 10px;
+  flex-shrink: 0;
+}
+
+.world-clock-title {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.world-clock-add-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(var(--color-text-rgb), 0.07);
+  color: rgba(var(--color-text-rgb), 0.55);
+  font-size: 17px;
+  font-weight: 300;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s, transform 0.25s;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.world-clock-add-btn:hover {
+  background: rgba(var(--color-text-rgb), 0.12);
+  color: rgba(var(--color-text-rgb), 0.85);
+}
+
+.world-clock-add-btn:active {
+  transform: scale(0.9);
+}
+
+/* ══════════════════════════════════════
+   时钟网格
+   ══════════════════════════════════════ */
+.world-clock-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px;
+  padding: 0 16px 16px;
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  align-content: start;
+}
+
+.world-clock-grid::-webkit-scrollbar {
+  width: 3px;
+}
+
+.world-clock-grid::-webkit-scrollbar-thumb {
+  background: rgba(var(--color-text-rgb), 0.1);
+  border-radius: 2px;
+}
+
+/* ══════════════════════════════════════
+   时钟卡片
+   ══════════════════════════════════════ */
+.world-clock-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 12px 14px 10px;
+  border-radius: 12px;
+  background: rgba(var(--color-text-rgb), 0.04);
+  transition: background 0.18s, transform 0.2s;
+  cursor: default;
+}
+
+.world-clock-card:hover {
+  background: rgba(var(--color-text-rgb), 0.07);
+}
+
+.world-clock-card--local {
+  background: rgba(var(--color-accent-rgb, 59, 130, 246), 0.08);
+}
+
+.world-clock-card--local:hover {
+  background: rgba(var(--color-accent-rgb, 59, 130, 246), 0.12);
+}
+
+.world-clock-card-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.world-clock-card-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(var(--color-text-rgb), 0.7);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
+}
+
+.world-clock-card-badge {
+  font-size: 10px;
+  font-weight: 500;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgba(var(--color-accent-rgb, 59, 130, 246), 0.15);
+  color: rgba(var(--color-accent-rgb, 59, 130, 246), 0.9);
+  flex-shrink: 0;
+}
+
+.world-clock-card-remove {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(var(--color-text-rgb), 0.1);
+  color: rgba(var(--color-text-rgb), 0.5);
+  font-size: 13px;
+  cursor: pointer;
+  flex-shrink: 0;
+  line-height: 1;
+  padding: 0;
+  transition: background 0.15s, color 0.15s;
+}
+
+.world-clock-card:hover .world-clock-card-remove {
+  display: flex;
+}
+
+.world-clock-card-remove:hover {
+  background: rgba(var(--color-text-rgb), 0.18);
+  color: rgba(var(--color-text-rgb), 0.85);
+}
+
+.world-clock-card-time {
+  font-size: 32px;
+  font-weight: 200;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+  color: rgba(var(--color-text-rgb), 0.92);
+}
+
+.world-clock-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  font-size: 11px;
+  color: rgba(var(--color-text-rgb), 0.4);
+}
+
+.world-clock-card-offset {
+  font-variant-numeric: tabular-nums;
+}
+
+.world-clock-card-dst {
+  color: rgba(var(--color-accent-rgb, 59, 130, 246), 0.7);
+}
+
+/* ══════════════════════════════════════
+   城市选择器弹窗
+   ══════════════════════════════════════ */
+.world-clock-picker-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(4px);
+}
+
+.world-clock-picker {
+  display: flex;
+  flex-direction: column;
+  width: 340px;
+  max-height: 420px;
+  border-radius: 14px;
+  background: rgba(var(--color-bg-rgb, 30, 30, 30), 0.96);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
+
+.world-clock-picker-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px 10px;
+}
+
+.world-clock-picker-title {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.world-clock-picker-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(var(--color-text-rgb), 0.08);
+  color: rgba(var(--color-text-rgb), 0.5);
+  font-size: 15px;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+  transition: background 0.15s;
+}
+
+.world-clock-picker-close:hover {
+  background: rgba(var(--color-text-rgb), 0.15);
+}
+
+.world-clock-picker-search {
+  margin: 0 12px 8px;
+  padding: 8px 12px;
+  border: 1px solid rgba(var(--color-text-rgb), 0.1);
+  border-radius: 8px;
+  background: rgba(var(--color-text-rgb), 0.04);
+  color: rgba(var(--color-text-rgb), 0.88);
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.18s;
+}
+
+.world-clock-picker-search::placeholder {
+  color: rgba(var(--color-text-rgb), 0.3);
+}
+
+.world-clock-picker-search:focus {
+  border-color: rgba(var(--color-accent-rgb, 59, 130, 246), 0.5);
+}
+
+.world-clock-picker-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 4px 8px;
+}
+
+.world-clock-picker-list::-webkit-scrollbar {
+  width: 3px;
+}
+
+.world-clock-picker-list::-webkit-scrollbar-thumb {
+  background: rgba(var(--color-text-rgb), 0.1);
+  border-radius: 2px;
+}
+
+.world-clock-picker-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+  font-size: 12px;
+  color: rgba(var(--color-text-rgb), 0.28);
+}
+
+.world-clock-picker-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 12px;
+  border: none;
+  background: transparent;
+  color: rgba(var(--color-text-rgb), 0.88);
+  font-size: 13px;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s;
+  border-radius: 6px;
+  margin: 0 4px;
+  box-sizing: border-box;
+}
+
+.world-clock-picker-item:hover:not(:disabled) {
+  background: rgba(var(--color-text-rgb), 0.06);
+}
+
+.world-clock-picker-item--added {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.world-clock-picker-item-label {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 500;
+}
+
+.world-clock-picker-item-tz {
+  font-size: 11px;
+  color: rgba(var(--color-text-rgb), 0.35);
+  white-space: nowrap;
+}
+
+.world-clock-picker-item-badge {
+  font-size: 10px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgba(var(--color-text-rgb), 0.08);
+  color: rgba(var(--color-text-rgb), 0.45);
+  flex-shrink: 0;
+}
