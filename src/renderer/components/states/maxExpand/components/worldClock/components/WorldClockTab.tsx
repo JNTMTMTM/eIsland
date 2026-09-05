@@ -45,39 +45,40 @@ export function WorldClockTab(): ReactElement {
   );
 
   return (
-    <div className="max-expand-tab-panel world-clock-panel">
-      <div className="world-clock-header">
-        <span className="world-clock-title">
-          {t('maxExpand.worldClock.title', { defaultValue: '世界时钟' })}
-        </span>
-        <button
-          className="world-clock-add-btn"
-          type="button"
-          onClick={() => state.setShowPicker(true)}
-          title={t('maxExpand.worldClock.addCity', { defaultValue: '添加城市' })}
-        >
-          +
-        </button>
+    <div className={`max-expand-tab-panel world-clock-container${state.showPicker ? ' world-clock-container--split' : ''}`}>
+      <div className={`world-clock-sidebar${state.showPicker ? ' world-clock-sidebar--compact' : ''}`}>
+        <div className="world-clock-header">
+          <span className="world-clock-title">
+            {t('maxExpand.worldClock.title', { defaultValue: '世界时钟' })}
+          </span>
+          <button
+            className={`world-clock-add-btn${state.showPicker ? ' world-clock-add-btn--active' : ''}`}
+            type="button"
+            onClick={() => state.setShowPicker(!state.showPicker)}
+            title={t('maxExpand.worldClock.addCity', { defaultValue: '添加城市' })}
+          >
+            +
+          </button>
+        </div>
+
+        <div className="world-clock-grid">
+          {state.ticks.map((tick) => (
+            <WorldClockCard
+              key={tick.timezone}
+              tick={tick}
+              onRemove={state.removeCity}
+            />
+          ))}
+        </div>
       </div>
 
-      <div className="world-clock-grid">
-        {state.ticks.map((tick) => (
-          <WorldClockCard
-            key={tick.timezone}
-            tick={tick}
-            onRemove={state.removeCity}
-          />
-        ))}
-      </div>
-
-      {state.showPicker && (
-        <WorldClockCityPicker
-          existingTimezones={existingTimezones}
-          onSelect={state.addCity}
-          onClose={() => state.setShowPicker(false)}
-          options={timezoneOptions}
-        />
-      )}
+      <WorldClockCityPicker
+        visible={state.showPicker}
+        existingTimezones={existingTimezones}
+        onSelect={state.addCity}
+        onClose={() => state.setShowPicker(false)}
+        options={timezoneOptions}
+      />
     </div>
   );
 }

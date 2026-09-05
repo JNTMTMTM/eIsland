@@ -123,13 +123,12 @@ export function useWorldClockState(): UseWorldClockStateReturn {
     return () => clearInterval(timer);
   }, [cities, loaded]);
 
-  /** 添加城市（去重） */
+  /** 添加城市（去重，不自动关闭选择器） */
   const addCity = useCallback((city: WorldClockCity): void => {
     setCities((prev) => {
       if (prev.some((c) => c.timezone === city.timezone)) return prev;
       return [...prev, { ...city, order: prev.length }];
     });
-    setShowPicker(false);
   }, []);
 
   /** 移除城市 */

@@ -20,7 +20,7 @@
 
 /**
  * @file WorldClockCityPicker.tsx
- * @description 城市时区搜索选择器弹窗
+ * @description 城市时区搜索选择器 — 左侧边栏展开面板
  * @author 鸡哥
  */
 
@@ -30,6 +30,8 @@ import type { WorldClockCity, TimezoneOption } from '../types/worldClockTypes';
 import { PICKER_SEARCH_DEBOUNCE_MS } from '../config/worldClockConfig';
 
 interface WorldClockCityPickerProps {
+  /** 面板是否可见 */
+  visible: boolean;
   /** 已存在的时区（用于灰显） */
   existingTimezones: string[];
   /** 选择回调 */
@@ -40,8 +42,9 @@ interface WorldClockCityPickerProps {
   options: TimezoneOption[];
 }
 
-/** 城市时区选择器 */
+/** 城市时区选择器 — 左侧边栏面板 */
 export function WorldClockCityPicker({
+  visible,
   existingTimezones,
   onSelect,
   onClose,
@@ -53,10 +56,15 @@ export function WorldClockCityPicker({
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [debouncedQuery, setDebouncedQuery] = useState('');
 
-  /** 自动聚焦 */
+  /** 展开时自动聚焦 */
   useEffect(() => {
-    inputRef.current?.focus();
-  }, []);
+    if (visible) {
+      setTimeout(() => inputRef.current?.focus(), 50);
+    } else {
+      setQuery('');
+      setDebouncedQuery('');
+    }
+  }, [visible]);
 
   /** 防抖搜索 */
   const handleQueryChange = useCallback((value: string) => {
@@ -89,66 +97,62 @@ export function WorldClockCityPicker({
 
   /** ESC 关闭 */
   useEffect(() => {
+    if (!visible) return;
     const handleKey = (e: KeyboardEvent): void => {
       if (e.key === 'Escape') onClose();
     };
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
-  }, [onClose]);
+  }, [visible, onClose]);
 
   return (
-    <div className="world-clock-picker-overlay" onClick={onClose}>
-      <div
-        className="world-clock-picker"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="world-clock-picker-header">
-          <span className="world-clock-picker-title">
-            {t('maxExpand.worldClock.addCity', { defaultValue: '添加城市' })}
-          </span>
-          <button
-            className="world-clock-picker-close"
-            type="button"
-            onClick={onClose}
-          >
-            ×
-          </button>
-        </div>
-        <input
-          ref={inputRef}
-          className="world-clock-picker-search"
-          type="text"
-          placeholder={t('maxExpand.worldClock.searchTimezone', { defaultValue: '搜索时区...' })}
-          value={query}
-          onChange={(e) => handleQueryChange(e.target.value)}
-        />
-        <div className="world-clock-picker-list">
-          {filtered.length === 0 && (
-            <div className="world-clock-picker-empty">
-              {t('maxExpand.worldClock.noResults', { defaultValue: '未找到结果' })}
-            </div>
-          )}
-          {filtered.map((opt) => {
-            const added = existingSet.has(opt.timezone);
-            return (
-              <button
-                key={opt.timezone}
-                className={`world-clock-picker-item${added ? ' world-clock-picker-item--added' : ''}`}
-                type="button"
-                disabled={added}
-                onClick={() => onSelect({ timezone: opt.timezone, label: opt.label, order: 0 })}
-              >
-                <span className="world-clock-picker-item-label">{opt.label}</span>
-                <span className="world-clock-picker-item-tz">{opt.timezone}</span>
-                {added && (
-                  <span className="world-clock-picker-item-badge">
-                    {t('maxExpand.worldClock.alreadyAdded', { defaultValue: '已添加' })}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
+    <div className={`world-clock-picker-sidebar${visible ? ' world-clock-picker-sidebar--visible' : ''}`}>
+      <div className="world-clock-picker-header">
+        <span className="world-clock-picker-title">
+          {t('maxExpand.worldClock.addCity', { defaultValue: '添加城市' })}
+        </span>
+        <button
+          className="world-clock-picker-close"
+          type="button"
+          onClick={onClose}
+        >
+          ×
+        </button>
+      </div>
+      <input
+        ref={inputRef}
+        className="world-clock-picker-search"
+        type="text"
+        placeholder={t('maxExpand.worldClock.searchTimezone', { defaultValue: '搜索时区...' })}
+        value={query}
+        onChange={(e) => handleQueryChange(e.target.value)}
+      />
+      <div className="world-clock-picker-list">
+        {filtered.length === 0 && (
+          <div className="world-clock-picker-empty">
+            {t('maxExpand.worldClock.noResults', { defaultValue: '未找到结果' })}
+          </div>
+        )}
+        {filtered.map((opt) => {
+          const added = existingSet.has(opt.timezone);
+          return (
+            <button
+              key={opt.timezone}
+              className={`world-clock-picker-item${added ? ' world-clock-picker-item--added' : ''}`}
+              type="button"
+              disabled={added}
+              onClick={() => onSelect({ timezone: opt.timezone, label: opt.label, order: 0 })}
+            >
+              <span className="world-clock-picker-item-label">{opt.label}</span>
+              <span className="world-clock-picker-item-tz">{opt.timezone}</span>
+              {added && (
+                <span className="world-clock-picker-item-badge">
+                  {t('maxExpand.worldClock.alreadyAdded', { defaultValue: '已添加' })}
+                </span>
+              )}
+            </button>
+          );
+        })}
       </div>
     </div>
   );
