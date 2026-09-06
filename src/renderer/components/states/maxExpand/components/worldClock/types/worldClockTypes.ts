@@ -53,7 +53,10 @@ export interface WorldClockTick {
 /** 时区选择器条目 */
 export interface TimezoneOption {
   timezone: string;
+  /** 回退显示名（英文/时区 ID） */
   label: string;
+  /** i18n 翻译键 */
+  labelKey: string;
 }
 
 /** 持久化存储 key */

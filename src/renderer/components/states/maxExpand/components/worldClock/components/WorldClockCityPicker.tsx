@@ -141,9 +141,9 @@ export function WorldClockCityPicker({
               className={`world-clock-picker-item${added ? ' world-clock-picker-item--added' : ''}`}
               type="button"
               disabled={added}
-              onClick={() => onSelect({ timezone: opt.timezone, label: opt.label, order: 0 })}
+              onClick={() => onSelect({ timezone: opt.timezone, label: opt.labelKey ? (t(opt.labelKey, { defaultValue: opt.label }) as string) : opt.label, order: 0 })}
             >
-              <span className="world-clock-picker-item-label">{opt.label}</span>
+              <span className="world-clock-picker-item-label">{opt.labelKey ? (t(opt.labelKey, { defaultValue: opt.label }) as string) : opt.label}</span>
               <span className="world-clock-picker-item-tz">{opt.timezone}</span>
               {added && (
                 <span className="world-clock-picker-item-badge">

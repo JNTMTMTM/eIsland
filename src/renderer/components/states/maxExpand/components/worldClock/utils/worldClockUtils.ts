@@ -28,6 +28,7 @@ import { getWorldClockTime, listSupportedTimezones } from '@multisystemsuite/tim
 import { getTimezoneInfo, listCities } from '@multisystemsuite/timezone-engine-world-data';
 import type { WorldClockCity, WorldClockTick, TimezoneOption } from '../types/worldClockTypes';
 import { STORE_KEY } from '../types/worldClockTypes';
+import { TIMEZONE_LABELS } from '../config/timezoneLabels';
 
 /** 通过 IPC 写入文件 */
 export function persistCities(cities: WorldClockCity[]): void {
@@ -75,10 +76,9 @@ export function getAllTimezoneOptions(): TimezoneOption[] {
     cityMap.set(c.timezone, c.city);
   }
   return supported.map((tz) => {
-    const info = getTimezoneInfo(tz);
-    const cityName = cityMap.get(tz);
-    const label = cityName ?? info?.city ?? tz.replace(/_/g, ' ').split('/').pop() ?? tz;
-    return { timezone: tz, label };
+    const label = cityMap.get(tz) ?? getTimezoneInfo(tz)?.city ?? tz.replace(/_/g, ' ').split('/').pop() ?? tz;
+    const labelKey = TIMEZONE_LABELS[tz] ?? '';
+    return { timezone: tz, label, labelKey };
   });
 }
 
