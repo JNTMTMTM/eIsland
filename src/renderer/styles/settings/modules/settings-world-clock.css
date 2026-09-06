@@ -96,7 +96,7 @@
    ══════════════════════════════════════ */
 .world-clock-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  grid-template-columns: 1fr;
   gap: 10px;
   padding: 0 16px 16px;
   flex: 1;
@@ -114,9 +114,8 @@
   border-radius: 2px;
 }
 
-/* 侧边栏紧凑模式：缩小网格列宽 */
+/* 侧边栏紧凑模式（picker 展开） */
 .world-clock-sidebar--compact .world-clock-grid {
-  grid-template-columns: 1fr;
   gap: 6px;
   padding: 0 8px 8px;
 }
@@ -230,18 +229,9 @@
   color: rgba(var(--color-accent-rgb, 59, 130, 246), 0.7);
 }
 
-/* 侧边栏紧凑模式：缩小卡片 */
+/* 侧边栏紧凑模式：仅水平压缩，垂直不变 */
 .world-clock-sidebar--compact .world-clock-card {
-  padding: 8px 10px 6px;
   border-radius: 8px;
-}
-
-.world-clock-sidebar--compact .world-clock-card-time {
-  font-size: 24px;
-}
-
-.world-clock-sidebar--compact .world-clock-card-meta {
-  font-size: 10px;
 }
 
 /* ══════════════════════════════════════
