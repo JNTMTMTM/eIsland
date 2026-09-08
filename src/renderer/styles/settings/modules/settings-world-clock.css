@@ -314,6 +314,7 @@
 .world-clock-picker-list {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 0 4px 8px;
 }
 
