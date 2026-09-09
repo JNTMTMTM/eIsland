@@ -46,9 +46,10 @@
    ══════════════════════════════════════ */
 .world-clock-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  padding: 14px 16px 10px;
+  gap: 12px;
+  padding: 8px 16px 10px;
   flex-shrink: 0;
 }
 
@@ -75,6 +76,7 @@
   transition: background 0.18s, color 0.18s, transform 0.25s;
   line-height: 1;
   flex-shrink: 0;
+  margin-top: 4px;
 }
 
 .world-clock-add-btn:hover {
@@ -257,9 +259,10 @@
 
 .world-clock-picker-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  padding: 14px 16px 10px;
+  gap: 12px;
+  padding: 8px 16px 10px;
   flex-shrink: 0;
 }
 
@@ -285,6 +288,7 @@
   line-height: 1;
   padding: 0;
   transition: background 0.15s;
+  margin-top: 4px;
 }
 
 .world-clock-picker-close:hover {
