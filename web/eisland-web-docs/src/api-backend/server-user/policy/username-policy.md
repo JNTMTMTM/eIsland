@@ -23,9 +23,9 @@ A stateless policy class (private constructor, static methods) that validates us
 
 | Rule | Error Message |
 |---|---|
-| Must not be null or blank | `"用户名不能为空"` |
-| Length must be 2-32 code points | `"用户名长度需为 2-32 位"` |
-| Only `[\p{L}\p{N}_.\-]` allowed | `"用户名仅允许中英文、数字、下划线、点或短横线"` |
+| Must not be null or blank | `"Username cannot be empty"` |
+| Length must be 2-32 code points | `"Username must be 2-32 characters"` |
+| Only `[\p{L}\p{N}_.\-]` allowed | `"Username only allows letters, numbers, underscores, dots, or hyphens"` |
 
 ## Methods
 

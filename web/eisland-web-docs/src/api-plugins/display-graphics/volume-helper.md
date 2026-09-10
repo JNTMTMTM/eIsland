@@ -10,6 +10,10 @@ icon: volume-high
 
 Volume query, control, and real-time monitoring for the default Windows playback device via Core Audio COM.
 
+:::warning
+Volume values range from `0.0` to `1.0`. Setting a value outside this range will throw an error.
+:::
+
 ## Functions
 
 | Function | Description |

@@ -10,6 +10,10 @@ icon: sun
 
 Screen brightness monitoring and control via .NET console EXE (spawnSync/spawn). Supports built-in displays via WMI and external monitors via DDC/CI.
 
+:::important
+Setting brightness on external monitors requires DDC/CI support. If the monitor does not support DDC/CI, `setBrightness` will silently fail for that display.
+:::
+
 ## Interfaces
 
 | Interface | Description |

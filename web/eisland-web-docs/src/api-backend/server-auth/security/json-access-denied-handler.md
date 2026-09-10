@@ -17,14 +17,14 @@ Handles `AccessDeniedException` thrown when an authenticated user lacks the requ
 ```json
 {
   "code": 403,
-  "message": "无权限访问"
+  "message": "Access denied"
 }
 ```
 
 | Field | Type | Value |
 |---|---|---|
 | `code` | `int` | `403` |
-| `message` | `String` | `无权限访问` |
+| `message` | `String` | `Access denied` |
 
 HTTP Status: `403 Forbidden`
 

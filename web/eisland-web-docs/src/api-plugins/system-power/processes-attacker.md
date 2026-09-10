@@ -10,6 +10,10 @@ icon: skull-crossbones
 
 Process termination utilities via C N-API native addon.
 
+:::danger
+`closeProcess` and `closeProcesses` forcibly terminate processes. Unsaved data in the target process will be lost. Use with caution.
+:::
+
 ## Interfaces
 
 | Interface | Description |

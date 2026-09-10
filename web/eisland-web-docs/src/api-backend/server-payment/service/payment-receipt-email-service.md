@@ -43,9 +43,9 @@ The receipt email includes:
 
 ## Email Format
 
-- Subject: `eIsland 支付收据 - {outTradeNo}`
+- Subject: `eIsland Payment Receipt - {outTradeNo}`
 - Body: HTML table with payment details
-- Language: Chinese
+- Language: Chinese (zh-CN)
 
 :::tip
 If `resend.api-key` or `resend.from` is not configured, `isEnabled()` returns `false` and receipt sending is silently skipped.

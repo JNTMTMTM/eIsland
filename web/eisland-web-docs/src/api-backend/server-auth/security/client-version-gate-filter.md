@@ -41,10 +41,10 @@ Intercepts client-facing API requests and rejects those without valid `X-App-Nam
 
 | Code | Condition | Message |
 |---|---|---|
-| `4262` | Missing `X-App-Name` | 缺少应用标识头 |
-| `4261` | Missing `X-Client-Version` | 缺少客户端版本头 |
-| `5031` | No version configured for app | 服务端未配置该应用可用版本 |
-| `4260` | Version mismatch | 客户端版本过旧，请升级至最新版本 |
+| `4262` | Missing `X-App-Name` | Missing application identifier header |
+| `4261` | Missing `X-Client-Version` | Missing client version header |
+| `5031` | No version configured for app | Server has not configured available versions for this application |
+| `4260` | Version mismatch | Client version is outdated, please upgrade to the latest version |
 
 All errors return HTTP 426 (Upgrade Required).
 

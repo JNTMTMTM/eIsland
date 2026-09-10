@@ -10,6 +10,10 @@ icon: music
 
 System Media Transport Controls via .NET NativeAOT DLL (koffi FFI).
 
+:::note
+SMTC commands (`play`, `pause`, `next`, `previous`, `seek`, `stop`) only work when a media session is active. Call `getStatus` first to verify a session exists before issuing commands.
+:::
+
 ## Interfaces
 
 | Interface | Description |

@@ -10,6 +10,10 @@ icon: gauge-high
 
 CPU, memory, and hardware temperature monitoring via C N-API native addon + .NET helper.
 
+:::warning
+Temperature readings depend on hardware sensor availability. Not all systems expose temperature data — `getTemperature` may return an empty readings array on virtual machines or systems without supported sensors.
+:::
+
 ## Type Aliases
 
 | Type | Description |

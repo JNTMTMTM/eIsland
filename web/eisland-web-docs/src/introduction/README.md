@@ -40,6 +40,10 @@ eIsland desktop application's frontend architecture.
 |----------|-------------|
 | [Process Model](frontend-arch/process-model.md) | Electron's multi-process architecture: Main, Preload, and Renderer processes |
 | [State Machine](frontend-arch/states.md) | The 15-state state machine controlling the island's visual modes and transitions |
+| [Shape Modes](frontend-arch/shape-modes.md) | Visual shape modes: pill, compact, expanded, and widget configurations |
+| [CLI Commands](frontend-arch/cli.md) | Command-line interface for development and debugging |
+| [Questionnaire](frontend-arch/questionnaire.md) | First-run questionnaire system for user preferences |
+| [Electron Windows](frontend-arch/electron-windows.md) | Window types, creation, and management across the application |
 
 ### Backend Architecture
 

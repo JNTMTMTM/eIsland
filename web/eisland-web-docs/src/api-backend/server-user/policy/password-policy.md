@@ -23,12 +23,12 @@ A stateless policy class that validates password strength at registration and pa
 
 | Rule | Error Message |
 |---|---|
-| Must not be null or blank | `"密码不能为空"` |
-| Minimum 8 characters | `"密码长度不能少于 8 位"` |
-| Maximum 128 characters | `"密码长度不能超过 128 位"` |
-| No whitespace characters | `"密码不能包含空白字符"` |
-| Must contain at least one letter | `"密码必须同时包含字母和数字"` |
-| Must contain at least one digit | `"密码必须同时包含字母和数字"` |
+| Must not be null or blank | `"Password cannot be empty"` |
+| Minimum 8 characters | `"Password must be at least 8 characters"` |
+| Maximum 128 characters | `"Password must not exceed 128 characters"` |
+| No whitespace characters | `"Password cannot contain whitespace"` |
+| Must contain at least one letter | `"Password must contain both letters and numbers"` |
+| Must contain at least one digit | `"Password must contain both letters and numbers"` |
 
 ## Methods
 

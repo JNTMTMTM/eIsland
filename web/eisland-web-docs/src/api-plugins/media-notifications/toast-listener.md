@@ -10,6 +10,10 @@ icon: bell
 
 Toast notification listening and suppression via C++ N-API native addon.
 
+:::important
+Call `requestAccess` before `startListening`. If access is denied, the listener will not receive any notifications. Check `getAccessStatus` to verify the current permission state.
+:::
+
 ## Types
 
 | Type | Description |

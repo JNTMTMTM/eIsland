@@ -1,3 +1,8 @@
+---
+title: FeedbackQqGroupConfigMapper
+icon: database
+---
+
 # FeedbackQqGroupConfigMapper
 
 :::info

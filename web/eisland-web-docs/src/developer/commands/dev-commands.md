@@ -41,7 +41,7 @@ The renderer uses **React Fast Refresh** — component state is preserved across
 
 | Problem | Cause | Solution |
 |---------|-------|----------|
-| Port 5173 in use | Another process占用the port | `netstat -ano \| findstr :5173` then `taskkill /PID <pid> /F` |
+| Port 5173 in use | Another process is occupying the port | `netstat -ano \| findstr :5173` then `taskkill /PID <pid> /F` |
 | White screen | Renderer dev server not ready | Wait a few seconds; Vite needs time to bundle on first run |
 | Native module errors | Modules not rebuilt for Electron | Run `npx electron-builder install-app-deps` |
 

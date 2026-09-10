@@ -33,10 +33,10 @@ Parses the JWT from the `Authorization` header, validates the token signature an
 
 | Condition | HTTP Status | Code | Message |
 |---|---|---|---|
-| User deleted | 401 | 401 | 账号已被删除 |
-| User banned | 403 | 4031 | 账号已被封禁 |
-| User disabled | 401 | 401 | 账号已被禁用 |
-| Session kicked | 401 | 4011 | 账号已在其他设备登录 |
+| User deleted | 401 | 401 | Account has been deleted |
+| User banned | 403 | 4031 | Account has been banned |
+| User disabled | 401 | 401 | Account has been disabled |
+| Session kicked | 401 | 4011 | Account logged in on another device |
 
 ## Request Attributes Set
 

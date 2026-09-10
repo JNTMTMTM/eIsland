@@ -38,10 +38,10 @@ Memory (volatile fields) → Redis → MySQL
 | Field | Default |
 |---|---|
 | `proMonthAmountFen` | 1500 (15.00 CNY) |
-| `freeDesc` | 基础功能可用，适合轻度日常使用。 |
-| `freeFeatures` | 基础灵动岛组件, 常规设置与个性化, 社区公开内容浏览 |
-| `proDesc` | 完整高级能力与持续更新支持。 |
-| `proFeatures` | 全部 Free 权益, Pro 专属功能与扩展, 优先体验新功能 |
+| `freeDesc` | Basic features available, suitable for light daily use. |
+| `freeFeatures` | Basic Dynamic Island widgets, Standard settings & personalization, Public community content browsing |
+| `proDesc` | Full premium capabilities with continuous update support. |
+| `proFeatures` | All Free benefits, Pro-exclusive features & extensions, Early access to new features |
 
 :::warning
 The singleton row is auto-created on first read if it does not exist in the database.

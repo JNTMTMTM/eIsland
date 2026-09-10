@@ -10,6 +10,10 @@ icon: battery-half
 
 Battery and power status monitoring via .NET NativeAOT DLL (koffi FFI).
 
+:::note
+`PowerMonitor` fires events on battery level changes, charge state transitions, and power source switches. Subscribe once at app startup and keep the listener active.
+:::
+
 ## Enums
 
 | Enum | Description |
