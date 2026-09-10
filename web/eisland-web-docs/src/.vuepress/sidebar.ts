@@ -944,10 +944,60 @@ export default sidebar({
   ],
   "/api-frontend/": [
     {
-      text: "API Frontend",
-      icon: "display",
-      collapsible: false,
-      children: [],
+      text: "Window Management",
+      icon: "window-restore",
+      collapsible: true,
+      children: [
+        "window-management.md",
+      ],
+    },
+    {
+      text: "App Lifecycle",
+      icon: "power-off",
+      collapsible: true,
+      children: [
+        "app-lifecycle.md",
+      ],
+    },
+    {
+      text: "Media Control",
+      icon: "music",
+      collapsible: true,
+      children: [
+        "media-control.md",
+      ],
+    },
+    {
+      text: "AI & Agent",
+      icon: "robot",
+      collapsible: true,
+      children: [
+        "ai-agent.md",
+      ],
+    },
+    {
+      text: "System Tools",
+      icon: "screwdriver-wrench",
+      collapsible: true,
+      children: [
+        "system-tools.md",
+      ],
+    },
+    {
+      text: "Settings & Appearance",
+      icon: "sliders",
+      collapsible: true,
+      children: [
+        "settings-appearance.md",
+      ],
+    },
+    {
+      text: "Network & Storage",
+      icon: "network-wired",
+      collapsible: true,
+      children: [
+        "network-storage.md",
+      ],
     },
   ],
   "/developer/": [
