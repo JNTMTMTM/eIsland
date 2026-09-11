@@ -69,19 +69,25 @@
   border: none;
   border-radius: 50%;
   background: rgba(var(--color-text-rgb), 0.07);
-  color: rgba(var(--color-text-rgb), 0.55);
-  font-size: 17px;
-  font-weight: 300;
   cursor: pointer;
-  transition: background 0.18s, color 0.18s, transform 0.25s;
-  line-height: 1;
+  transition: background 0.18s, transform 0.25s;
   flex-shrink: 0;
   margin-top: 4px;
 }
 
+.world-clock-add-btn-icon {
+  width: 14px;
+  height: 14px;
+  opacity: 0.55;
+  transition: opacity 0.18s;
+}
+
 .world-clock-add-btn:hover {
   background: rgba(var(--color-text-rgb), 0.12);
-  color: rgba(var(--color-text-rgb), 0.85);
+}
+
+.world-clock-add-btn:hover .world-clock-add-btn-icon {
+  opacity: 0.85;
 }
 
 .world-clock-add-btn:active {
@@ -90,7 +96,10 @@
 
 .world-clock-add-btn--active {
   background: rgba(var(--color-text-rgb), 0.14);
-  color: rgba(var(--color-text-rgb), 0.9);
+}
+
+.world-clock-add-btn--active .world-clock-add-btn-icon {
+  opacity: 0.9;
 }
 
 /* ══════════════════════════════════════
@@ -185,13 +194,17 @@
   border: none;
   border-radius: 50%;
   background: rgba(var(--color-text-rgb), 0.1);
-  color: rgba(var(--color-text-rgb), 0.5);
-  font-size: 13px;
   cursor: pointer;
   flex-shrink: 0;
-  line-height: 1;
   padding: 0;
-  transition: background 0.15s, color 0.15s;
+  transition: background 0.15s;
+}
+
+.world-clock-card-remove-icon {
+  width: 10px;
+  height: 10px;
+  opacity: 0.5;
+  transition: opacity 0.15s;
 }
 
 .world-clock-card:hover .world-clock-card-remove {
@@ -200,7 +213,10 @@
 
 .world-clock-card-remove:hover {
   background: rgba(var(--color-text-rgb), 0.18);
-  color: rgba(var(--color-text-rgb), 0.85);
+}
+
+.world-clock-card-remove:hover .world-clock-card-remove-icon {
+  opacity: 0.85;
 }
 
 .world-clock-card-time {
@@ -282,17 +298,25 @@
   border: none;
   border-radius: 50%;
   background: rgba(var(--color-text-rgb), 0.08);
-  color: rgba(var(--color-text-rgb), 0.5);
-  font-size: 15px;
   cursor: pointer;
-  line-height: 1;
   padding: 0;
   transition: background 0.15s;
   margin-top: 4px;
 }
 
+.world-clock-picker-close-icon {
+  width: 12px;
+  height: 12px;
+  opacity: 0.5;
+  transition: opacity 0.15s;
+}
+
 .world-clock-picker-close:hover {
   background: rgba(var(--color-text-rgb), 0.15);
+}
+
+.world-clock-picker-close:hover .world-clock-picker-close-icon {
+  opacity: 0.85;
 }
 
 .world-clock-picker-search {

@@ -26,6 +26,7 @@
 
 import { useMemo, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
+import { SvgIcon } from '../../../../../../utils/SvgIcon';
 import { useWorldClockState } from '../hooks/useWorldClockState';
 import { getAllTimezoneOptions } from '../utils/worldClockUtils';
 import { WorldClockCard } from './WorldClockCard';
@@ -48,17 +49,17 @@ export function WorldClockTab(): ReactElement {
     <div className={`max-expand-tab-panel world-clock-container${state.showPicker ? ' world-clock-container--split' : ''}`}>
       <div className={`world-clock-sidebar${state.showPicker ? ' world-clock-sidebar--compact' : ''}`}>
         <div className="world-clock-header">
-          <span className="world-clock-title">
-            {t('maxExpand.worldClock.title', { defaultValue: '世界时钟' })}
-          </span>
           <button
             className={`world-clock-add-btn${state.showPicker ? ' world-clock-add-btn--active' : ''}`}
             type="button"
             onClick={() => state.setShowPicker(!state.showPicker)}
             title={t('maxExpand.worldClock.addCity', { defaultValue: '添加城市' })}
           >
-            +
+            <img src={SvgIcon.PLUS} alt="" className="world-clock-add-btn-icon" />
           </button>
+          <span className="world-clock-title">
+            {t('maxExpand.worldClock.title', { defaultValue: '世界时钟' })}
+          </span>
         </div>
 
         <div className="world-clock-grid">

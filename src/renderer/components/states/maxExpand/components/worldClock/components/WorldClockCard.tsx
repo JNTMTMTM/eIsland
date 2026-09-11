@@ -26,6 +26,7 @@
 
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
+import { SvgIcon } from '../../../../../../utils/SvgIcon';
 import type { WorldClockTick } from '../types/worldClockTypes';
 
 interface WorldClockCardProps {
@@ -52,7 +53,7 @@ export function WorldClockCard({ tick, onRemove }: WorldClockCardProps): ReactEl
           onClick={() => onRemove(tick.timezone)}
           title={t('maxExpand.worldClock.removeCity', { defaultValue: '移除' })}
         >
-          ×
+          <img src={SvgIcon.DELETE} alt="" className="world-clock-card-remove-icon" />
         </button>
       </div>
       <div className="world-clock-card-time">{tick.formattedTime}</div>
