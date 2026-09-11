@@ -25,11 +25,12 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { getUserTimezone } from '@multisystemsuite/timezone-engine-core';
 import type { WorldClockCity, WorldClockTick } from '../types/worldClockTypes';
 import { STORE_KEY } from '../types/worldClockTypes';
 import { DEFAULT_CITIES, CLOCK_UPDATE_INTERVAL_MS } from '../config/worldClockConfig';
-import { persistCities, normalizeCities, buildAllTicks } from '../utils/worldClockUtils';
+import { persistCities, normalizeCities, buildAllTicks, getCanonicalTimezone } from '../utils/worldClockUtils';
 
 /** useWorldClockState Hook 返回类型 */
 export interface UseWorldClockStateReturn {
@@ -53,6 +54,8 @@ export interface UseWorldClockStateReturn {
 
 /** 世界时钟集中式状态管理 Hook */
 export function useWorldClockState(): UseWorldClockStateReturn {
+  const { i18n } = useTranslation();
+  const locale = i18n.resolvedLanguage || i18n.language;
   const [cities, setCities] = useState<WorldClockCity[]>([]);
   const [ticks, setTicks] = useState<WorldClockTick[]>([]);
   const [loaded, setLoaded] = useState(false);
@@ -115,18 +118,18 @@ export function useWorldClockState(): UseWorldClockStateReturn {
     }
 
     const update = (): void => {
-      setTicks(buildAllTicks(cities, localTimezone.current));
+      setTicks(buildAllTicks(cities, localTimezone.current, locale));
     };
 
     update();
     const timer = setInterval(update, CLOCK_UPDATE_INTERVAL_MS);
     return () => clearInterval(timer);
-  }, [cities, loaded]);
+  }, [cities, loaded, locale]);
 
   /** 添加城市（去重，不自动关闭选择器） */
   const addCity = useCallback((city: WorldClockCity): void => {
     setCities((prev) => {
-      if (prev.some((c) => c.timezone === city.timezone)) return prev;
+      if (prev.some((c) => getCanonicalTimezone(c.timezone) === getCanonicalTimezone(city.timezone))) return prev;
       return [...prev, { ...city, order: prev.length }];
     });
   }, []);

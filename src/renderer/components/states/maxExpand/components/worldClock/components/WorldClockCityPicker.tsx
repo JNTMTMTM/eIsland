@@ -29,6 +29,7 @@ import { useTranslation } from 'react-i18next';
 import { SvgIcon } from '../../../../../../utils/SvgIcon';
 import type { WorldClockCity, TimezoneOption } from '../types/worldClockTypes';
 import { PICKER_SEARCH_DEBOUNCE_MS } from '../config/worldClockConfig';
+import { filterTimezoneOptions, getCanonicalTimezone, getCityLabel } from '../utils/worldClockUtils';
 
 interface WorldClockCityPickerProps {
   /** 面板是否可见 */
@@ -81,20 +82,13 @@ export function WorldClockCityPicker({
   }, []);
 
   /** 已添加时区 Set */
-  const existingSet = useMemo(() => new Set(existingTimezones), [existingTimezones]);
+  const existingSet = useMemo(() => new Set(existingTimezones.map(getCanonicalTimezone)), [existingTimezones]);
 
   /** 过滤列表 */
-  const filtered = useMemo(() => {
-    const q = debouncedQuery.toLowerCase().trim();
-    const list = q
-      ? options.filter(
-          (o) =>
-            o.label.toLowerCase().includes(q) ||
-            o.timezone.toLowerCase().includes(q),
-        )
-      : options;
-    return list.slice(0, 50);
-  }, [options, debouncedQuery]);
+  const filtered = useMemo(
+    () => filterTimezoneOptions(options, debouncedQuery, t),
+    [options, debouncedQuery, t],
+  );
 
   /** ESC 关闭 */
   useEffect(() => {
@@ -135,16 +129,16 @@ export function WorldClockCityPicker({
           </div>
         )}
         {filtered.map((opt) => {
-          const added = existingSet.has(opt.timezone);
+          const added = existingSet.has(getCanonicalTimezone(opt.timezone));
           return (
             <button
-              key={opt.timezone}
+              key={`${opt.timezone}:${opt.labelKey}`}
               className={`world-clock-picker-item${added ? ' world-clock-picker-item--added' : ''}`}
               type="button"
               disabled={added}
-              onClick={() => onSelect({ timezone: opt.timezone, label: opt.labelKey ? (t(opt.labelKey, { defaultValue: opt.label }) as string) : opt.label, order: 0 })}
+              onClick={() => onSelect({ timezone: opt.timezone, label: opt.label, labelKey: opt.labelKey, order: 0 })}
             >
-              <span className="world-clock-picker-item-label">{opt.labelKey ? (t(opt.labelKey, { defaultValue: opt.label }) as string) : opt.label}</span>
+              <span className="world-clock-picker-item-label">{getCityLabel(opt, t)}</span>
               <span className="world-clock-picker-item-tz">{opt.timezone}</span>
               {added && (
                 <span className="world-clock-picker-item-badge">

@@ -30,6 +30,8 @@ export interface WorldClockCity {
   timezone: string;
   /** 显示名称，如 "上海" */
   label: string;
+  /** 城市翻译键；旧存档可通过时区推导 */
+  labelKey?: string;
   /** 排序权重，越小越靠前 */
   order: number;
 }
@@ -38,6 +40,7 @@ export interface WorldClockCity {
 export interface WorldClockTick {
   timezone: string;
   label: string;
+  labelKey?: string;
   /** 格式化时间，如 "14:30" */
   formattedTime: string;
   /** 格式化日期，如 "9/4" 或 "9月4日" */
