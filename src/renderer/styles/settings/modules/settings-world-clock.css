@@ -46,7 +46,7 @@
    ══════════════════════════════════════ */
 .world-clock-header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 12px;
   padding: 8px 16px 10px;
@@ -72,7 +72,6 @@
   cursor: pointer;
   transition: background 0.18s, transform 0.25s;
   flex-shrink: 0;
-  margin-top: 4px;
 }
 
 .world-clock-add-btn-icon {
@@ -123,12 +122,6 @@
 .world-clock-grid::-webkit-scrollbar-thumb {
   background: rgba(var(--color-text-rgb), 0.1);
   border-radius: 2px;
-}
-
-/* 侧边栏紧凑模式（picker 展开） */
-.world-clock-sidebar--compact .world-clock-grid {
-  gap: 6px;
-  padding: 0 8px 8px;
 }
 
 /* ══════════════════════════════════════
