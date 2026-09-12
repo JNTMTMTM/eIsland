@@ -145,6 +145,14 @@ describe('world clock translation and time', () => {
     expect(normal).not.toContain('world-clock-card--remove-highlighted');
   });
 
+  it('places the card delete button after the analog dial', () => {
+    const tick = buildTick(DEFAULT_CITIES[0], new Date(), 'UTC');
+    const markup = renderToStaticMarkup(createElement(I18nextProvider, { i18n }, createElement(WorldClockCard, {
+      tick, onRemove: vi.fn(),
+    })));
+    expect(markup.indexOf('world-clock-card-dial')).toBeLessThan(markup.indexOf('world-clock-card-remove'));
+  });
+
   it('translates existing saved clocks and defaults at render time', async () => {
     const [legacy] = normalizeCities([{ timezone: 'Asia/Shanghai', label: '上海', order: 0 }]);
     await i18n.changeLanguage('en-US');

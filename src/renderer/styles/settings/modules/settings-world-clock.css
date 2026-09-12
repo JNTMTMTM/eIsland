@@ -130,8 +130,8 @@
 .world-clock-card {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 64px;
-  column-gap: 14px;
+  grid-template-columns: minmax(0, 1fr) 64px 18px;
+  column-gap: 10px;
   padding: 12px 14px 10px;
   border-radius: 12px;
   background: rgba(var(--color-text-rgb), 0.04);
@@ -198,6 +198,12 @@
   flex-shrink: 0;
   padding: 0;
   transition: background 0.15s;
+}
+
+.world-clock-card-remove {
+  grid-column: 3;
+  grid-row: 1 / 4;
+  align-self: center;
 }
 
 .world-clock-card-remove-icon,

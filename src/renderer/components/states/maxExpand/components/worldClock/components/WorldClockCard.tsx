@@ -47,14 +47,6 @@ export function WorldClockCard({ tick, onRemove, removeHighlighted = false }: Wo
       <div className="world-clock-card-header">
         <WorldClockFlag countryCode={tick.countryCode} />
         <span className="world-clock-card-label">{getCityLabel(tick, t)}</span>
-        <button
-          className="world-clock-card-remove"
-          type="button"
-          onClick={() => onRemove(tick.timezone)}
-          title={t('maxExpand.worldClock.removeCity', { defaultValue: '移除' })}
-        >
-          <img src={SvgIcon.DELETE} alt="" className="world-clock-card-remove-icon" />
-        </button>
       </div>
       <div className="world-clock-card-time">{tick.formattedTime}</div>
       <div className="world-clock-card-meta">
@@ -66,6 +58,14 @@ export function WorldClockCard({ tick, onRemove, removeHighlighted = false }: Wo
         <span className="world-clock-card-hand world-clock-card-hand--minute" style={{ transform: `rotate(${tick.handAngles.minute}deg)` }} />
         <span className="world-clock-card-hand world-clock-card-hand--second" style={{ transform: `rotate(${tick.handAngles.second}deg)` }} />
       </div>
+      <button
+        className="world-clock-card-remove"
+        type="button"
+        onClick={() => onRemove(tick.timezone)}
+        title={t('maxExpand.worldClock.removeCity', { defaultValue: '移除' })}
+      >
+        <img src={SvgIcon.DELETE} alt="" className="world-clock-card-remove-icon" />
+      </button>
     </div>
   );
 }
