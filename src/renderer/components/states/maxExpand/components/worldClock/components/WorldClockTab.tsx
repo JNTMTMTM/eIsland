@@ -106,9 +106,11 @@ export function WorldClockTab(): ReactElement {
             className={`world-clock-add-btn${state.showPicker ? ' world-clock-add-btn--active' : ''}`}
             type="button"
             onClick={() => state.setShowPicker(!state.showPicker)}
-            title={t('maxExpand.worldClock.addCity', { defaultValue: '添加城市' })}
+            title={state.showPicker ? t('maxExpand.worldClock.closePicker') : t('maxExpand.worldClock.addCity')}
+            aria-label={state.showPicker ? t('maxExpand.worldClock.closePicker') : t('maxExpand.worldClock.addCity')}
+            aria-expanded={state.showPicker}
           >
-            <img src={SvgIcon.PLUS} alt="" className="world-clock-add-btn-icon" />
+            <img src={state.showPicker ? SvgIcon.CANCEL : SvgIcon.PLUS} alt="" className="world-clock-add-btn-icon" />
           </button>
         </div>
 

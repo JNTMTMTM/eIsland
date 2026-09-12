@@ -1986,6 +1986,7 @@
     "worldClock": {
       "title": "世界时钟",
       "addCity": "添加城市",
+      "closePicker": "关闭添加城市",
       "local": "本地",
       "searchTimezone": "搜索时区...",
       "alreadyAdded": "已添加",

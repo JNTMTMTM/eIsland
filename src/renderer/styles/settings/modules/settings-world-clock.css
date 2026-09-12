@@ -75,6 +75,7 @@
 }
 
 .world-clock-add-btn-icon {
+  filter: brightness(0) invert(1);
   width: 14px;
   height: 14px;
   opacity: 0.55;
@@ -98,7 +99,13 @@
 }
 
 .world-clock-add-btn--active .world-clock-add-btn-icon {
-  opacity: 0.9;
+  width: 12px;
+  height: 12px;
+  opacity: 0.45;
+}
+
+.world-clock-add-btn--active:hover .world-clock-add-btn-icon {
+  opacity: 0.65;
 }
 
 .world-clock-card-actions {
@@ -412,36 +419,6 @@
   color: rgba(var(--color-text-rgb), 0.85);
 }
 
-.world-clock-picker-close {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  border: none;
-  border-radius: 50%;
-  background: rgba(var(--color-text-rgb), 0.08);
-  cursor: pointer;
-  padding: 0;
-  transition: background 0.15s;
-  margin-top: 4px;
-}
-
-.world-clock-picker-close-icon {
-  width: 12px;
-  height: 12px;
-  opacity: 0.5;
-  transition: opacity 0.15s;
-}
-
-.world-clock-picker-close:hover {
-  background: rgba(var(--color-text-rgb), 0.15);
-}
-
-.world-clock-picker-close:hover .world-clock-picker-close-icon {
-  opacity: 0.85;
-}
-
 .world-clock-picker-search {
   margin: 0 12px 8px;
   padding: 8px 12px;
@@ -550,6 +527,7 @@
   filter: brightness(0) invert(1);
 }
 
+[data-theme="light"] .world-clock-add-btn-icon,
 [data-theme="light"] .world-clock-picker-remove-icon {
   filter: brightness(0) invert(0);
 }

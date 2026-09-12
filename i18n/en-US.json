@@ -1986,6 +1986,7 @@
     "worldClock": {
       "title": "World Clock",
       "addCity": "Add City",
+      "closePicker": "Close city picker",
       "local": "Local",
       "searchTimezone": "Search timezone...",
       "alreadyAdded": "Added",
