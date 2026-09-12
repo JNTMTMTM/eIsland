@@ -29,6 +29,7 @@ import type { CSSProperties, ReactElement, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { OverviewLayoutConfig, OverviewWidgetType } from '../../../../../../expand/components/OverviewTab';
 import { SvgIcon } from '../../../../../../../../utils/SvgIcon';
+import { WorldClockFlag } from '../../../../../components/worldClock/components/WorldClockFlag';
 
 interface PreviewCountdownItem {
   id: number;
@@ -372,12 +373,12 @@ export function OverviewPreview({ layoutConfig }: { layoutConfig: OverviewLayout
               <div className="ov-dash-world-clock-item">
                 <span className="ov-dash-world-clock-city">{t('overview.worldClock.previewFirstCity')}</span>
                 <span className="ov-dash-world-clock-time">09:41:08</span>
-                <span className="ov-dash-world-clock-date">9/12</span>
+                <WorldClockFlag countryCode="cn" />
               </div>
               <div className="ov-dash-world-clock-item">
                 <span className="ov-dash-world-clock-city">{t('overview.worldClock.previewSecondCity')}</span>
                 <span className="ov-dash-world-clock-time">21:41:08</span>
-                <span className="ov-dash-world-clock-date">9/11</span>
+                <WorldClockFlag countryCode="us" />
               </div>
             </div>
           </div>
