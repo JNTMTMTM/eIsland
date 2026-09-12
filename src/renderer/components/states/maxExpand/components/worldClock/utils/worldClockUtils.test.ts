@@ -49,34 +49,34 @@ describe('world clock city catalog', () => {
   it('includes every runtime timezone plus UTC and keeps every city reachable', () => {
     const options = getAllTimezoneOptions();
     const timezones = new Set(options.map(option => option.timezone));
-    for (const timezone of [...listSupportedTimezones(), 'UTC']) expect(timezones.has(timezone)).toBe(true);
+    [...listSupportedTimezones(), 'UTC'].forEach(timezone => expect(timezones.has(timezone)).toBe(true));
     expect(filterTimezoneOptions(options, '', i18n.getFixedT('zh-CN'))).toHaveLength(options.length);
     expect(options.length).toBeGreaterThan(400);
-    for (const option of options) expect(() => new Intl.DateTimeFormat('en', { timeZone: option.timezone })).not.toThrow();
+    options.forEach(option => expect(() => new Intl.DateTimeFormat('en', { timeZone: option.timezone })).not.toThrow());
     expect(new Set(options.map(option => option.timezone + ':' + option.labelKey)).size).toBe(options.length);
-    for (const option of options.filter(option => option.timezone !== 'UTC')) {
+    options.filter(option => option.timezone !== 'UTC').forEach(option => {
       expect(option.countryCode, option.timezone).toMatch(/^[a-z]{2}$/);
-    }
+    });
   });
 
   it('resolves all configured translations in both languages without fallback', () => {
     const keys = [...Object.values(TIMEZONE_LABELS), ...getAllTimezoneOptions().map(option => option.labelKey)];
-    for (const lng of ['zh-CN', 'en-US']) {
-      for (const key of keys) expect(i18n.exists(key, { lng }), lng + ': ' + key).toBe(true);
-    }
+    ['zh-CN', 'en-US'].forEach(lng => {
+      keys.forEach(key => expect(i18n.exists(key, { lng }), lng + ': ' + key).toBe(true));
+    });
   });
 
   it('finds common cities by localized name, English name and timezone', () => {
     const options = getAllTimezoneOptions();
     const t = i18n.getFixedT('zh-CN');
-    for (const query of ['北京', '深圳', '新德里', '旧金山', '孟买', '檀香山', '加德满都', '巴库', '第比利斯', '埃里温']) {
+    ['北京', '深圳', '新德里', '旧金山', '孟买', '檀香山', '加德满都', '巴库', '第比利斯', '埃里温'].forEach(query => {
       expect(filterTimezoneOptions(options, query, t).length, query).toBeGreaterThan(0);
-    }
+    });
     expect(filterTimezoneOptions(options, '  san francisco  ', t)[0].timezone).toBe('America/Los_Angeles');
     expect(filterTimezoneOptions(options, 'Asia/Shanghai', t).length).toBeGreaterThan(0);
-    for (const query of ['Kolkata', 'Kyiv', 'Ho Chi Minh City', 'Asia/Kolkata']) {
+    ['Kolkata', 'Kyiv', 'Ho Chi Minh City', 'Asia/Kolkata'].forEach(query => {
       expect(filterTimezoneOptions(options, query, t).length, query).toBeGreaterThan(0);
-    }
+    });
     expect(filterTimezoneOptions(options, 'nonexistent city', t)).toEqual([]);
   });
 
@@ -173,30 +173,30 @@ describe('world clock translation and time', () => {
   });
 
   it('maps IANA aliases and multi-country regions to their correct flags', () => {
-    for (const [timezone, countryCode] of [
+    [
       ['Asia/Shanghai', 'cn'], ['Europe/London', 'gb'], ['America/New_York', 'us'],
       ['Asia/Calcutta', 'in'], ['Europe/Kiev', 'ua'], ['Pacific/Truk', 'fm'],
       ['America/Godthab', 'gl'], ['Antarctica/Casey', 'aq'],
-    ]) expect(getTimezoneCountryCode(timezone)).toBe(countryCode);
+    ].forEach(([timezone, countryCode]) => expect(getTimezoneCountryCode(timezone)).toBe(countryCode));
     expect(getTimezoneCountryCode('UTC')).toBeUndefined();
   });
 
   it('treats modern and legacy IANA names as the same timezone', () => {
-    for (const [modern, legacy] of [['Asia/Kolkata', 'Asia/Calcutta'], ['Asia/Kathmandu', 'Asia/Katmandu'], ['Europe/Kyiv', 'Europe/Kiev']]) {
+    [['Asia/Kolkata', 'Asia/Calcutta'], ['Asia/Kathmandu', 'Asia/Katmandu'], ['Europe/Kyiv', 'Europe/Kiev']].forEach(([modern, legacy]) => {
       expect(getCanonicalTimezone(modern)).toBe(getCanonicalTimezone(legacy));
       expect(buildTick({ timezone: modern, label: modern, order: 0 }, new Date(), legacy).isLocal).toBe(true);
-    }
+    });
   });
 
   it('restores the original complete date and time, including seconds and fractional offsets', () => {
     const now = new Date('2026-01-01T00:00:17Z');
-    for (const [timezone, expected] of [['Asia/Kolkata', '5:30:17 AM'], ['Asia/Kathmandu', '5:45:17 AM'], ['Pacific/Chatham', '1:45:17 PM'], ['UTC', '12:00:17 AM']]) {
+    [['Asia/Kolkata', '5:30:17 AM'], ['Asia/Kathmandu', '5:45:17 AM'], ['Pacific/Chatham', '1:45:17 PM'], ['UTC', '12:00:17 AM']].forEach(([timezone, expected]) => {
       const tick = buildTick({ timezone, label: timezone, order: 0 }, now, 'UTC', 'zh-CN');
       expect(tick.formattedTime).toBe(getWorldClockTime(timezone, timezone, now).formattedTime);
       expect(tick.formattedTime).toContain('Jan 1, 2026');
       expect(tick.formattedTime).toContain(expected);
       expect(tick.formattedDate).toBe(new Intl.DateTimeFormat('zh-CN', { timeZone: timezone, month: 'numeric', day: 'numeric' }).format(now));
-    }
+    });
   });
 
   it('uses seasonal timezone rules and does not reorder the stored city array', () => {
