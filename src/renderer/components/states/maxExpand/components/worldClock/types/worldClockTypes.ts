@@ -42,7 +42,7 @@ export interface WorldClockTick {
   label: string;
   labelKey?: string;
   countryCode?: string;
-  /** 格式化时间，如 "14:30" */
+  /** 时钟库的完整日期时间，包含秒与上午/下午 */
   formattedTime: string;
   /** 格式化日期，如 "9/4" 或 "9月4日" */
   formattedDate: string;

@@ -24,12 +24,13 @@
  * @author 鸡哥
  */
 
-import { useState, useMemo, useCallback, useRef, useEffect, type ReactElement } from 'react';
+import { memo, useState, useMemo, useCallback, useRef, useEffect, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SvgIcon } from '../../../../../../utils/SvgIcon';
 import type { WorldClockCity, TimezoneOption } from '../types/worldClockTypes';
 import { PICKER_SEARCH_DEBOUNCE_MS } from '../config/worldClockConfig';
 import { filterTimezoneOptions, getCanonicalTimezone, getCityLabel } from '../utils/worldClockUtils';
+import { WorldClockFlag } from './WorldClockFlag';
 
 interface WorldClockCityPickerProps {
   /** 面板是否可见 */
@@ -45,7 +46,7 @@ interface WorldClockCityPickerProps {
 }
 
 /** 城市时区选择器 — 左侧边栏面板 */
-export function WorldClockCityPicker({
+export const WorldClockCityPicker = memo(function WorldClockCityPicker({
   visible,
   existingTimezones,
   onSelect,
@@ -61,11 +62,13 @@ export function WorldClockCityPicker({
   /** 展开时自动聚焦 */
   useEffect(() => {
     if (visible) {
-      setTimeout(() => inputRef.current?.focus(), 50);
+      const focusTimer = setTimeout(() => inputRef.current?.focus({ preventScroll: true }), 50);
+      return () => clearTimeout(focusTimer);
     } else {
       setQuery('');
       setDebouncedQuery('');
     }
+    return undefined;
   }, [visible]);
 
   /** 防抖搜索 */
@@ -86,8 +89,8 @@ export function WorldClockCityPicker({
 
   /** 过滤列表 */
   const filtered = useMemo(
-    () => filterTimezoneOptions(options, debouncedQuery, t),
-    [options, debouncedQuery, t],
+    () => visible ? filterTimezoneOptions(options, debouncedQuery, t) : [],
+    [visible, options, debouncedQuery, t],
   );
 
   /** ESC 关闭 */
@@ -123,7 +126,7 @@ export function WorldClockCityPicker({
         onChange={(e) => handleQueryChange(e.target.value)}
       />
       <div className="world-clock-picker-list">
-        {filtered.length === 0 && (
+        {visible && filtered.length === 0 && (
           <div className="world-clock-picker-empty">
             {t('maxExpand.worldClock.noResults', { defaultValue: '未找到结果' })}
           </div>
@@ -143,12 +146,7 @@ export function WorldClockCityPicker({
                 order: 0,
               })}
             >
-              {opt.countryCode && (
-                <span
-                  aria-hidden="true"
-                  className={`fi fi-${opt.countryCode} world-clock-country-flag`}
-                />
-              )}
+              <WorldClockFlag countryCode={opt.countryCode} />
               <span className="world-clock-picker-item-label">{getCityLabel(opt, t)}</span>
               <span className="world-clock-picker-item-tz">{opt.timezone}</span>
               {added && (
@@ -162,4 +160,4 @@ export function WorldClockCityPicker({
       </div>
     </div>
   );
-}
+});

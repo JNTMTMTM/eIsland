@@ -29,6 +29,7 @@ import { useTranslation } from 'react-i18next';
 import { SvgIcon } from '../../../../../../utils/SvgIcon';
 import type { WorldClockTick } from '../types/worldClockTypes';
 import { getCityLabel } from '../utils/worldClockUtils';
+import { WorldClockFlag } from './WorldClockFlag';
 
 interface WorldClockCardProps {
   tick: WorldClockTick;
@@ -42,12 +43,7 @@ export function WorldClockCard({ tick, onRemove }: WorldClockCardProps): ReactEl
   return (
     <div className={`world-clock-card${tick.isLocal ? ' world-clock-card--local' : ''}`}>
       <div className="world-clock-card-header">
-        {tick.countryCode && (
-          <span
-            aria-hidden="true"
-            className={`fi fi-${tick.countryCode} world-clock-country-flag`}
-          />
-        )}
+        <WorldClockFlag countryCode={tick.countryCode} />
         <span className="world-clock-card-label">{getCityLabel(tick, t)}</span>
         {tick.isLocal && (
           <span className="world-clock-card-badge">

@@ -30,7 +30,7 @@ import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { I18nextProvider } from 'react-i18next';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
-import { listSupportedTimezones } from '@multisystemsuite/timezone-engine-core';
+import { getWorldClockTime, listSupportedTimezones } from '@multisystemsuite/timezone-engine-core';
 import { DEFAULT_CITIES } from '../config/worldClockConfig';
 import { TIMEZONE_LABELS } from '../config/timezoneLabels';
 import { WorldClockCard } from '../components/WorldClockCard';
@@ -99,8 +99,9 @@ describe('world clock translation and time', () => {
     })));
     expect(markup).toContain('北京');
     expect(markup).toContain('开普敦');
-    expect(markup).toContain('fi-cn');
-    expect(markup).toContain('fi-za');
+    expect(markup).toContain('/cn.svg');
+    expect(markup).toContain('/za.svg');
+    expect(markup.match(/loading="lazy"/g)).toHaveLength(options.filter(option => option.countryCode).length);
     expect(markup.match(/class="world-clock-picker-item"/g)).toHaveLength(options.length);
   });
 
@@ -109,7 +110,7 @@ describe('world clock translation and time', () => {
     await i18n.changeLanguage('en-US');
     const english = renderToStaticMarkup(createElement(I18nextProvider, { i18n }, createElement(WorldClockCard, { tick, onRemove: vi.fn() })));
     expect(english).toContain('Shanghai');
-    expect(english).toContain('fi-cn');
+    expect(english).toContain('/cn.svg');
     await i18n.changeLanguage('zh-CN');
     const chinese = renderToStaticMarkup(createElement(I18nextProvider, { i18n }, createElement(WorldClockCard, { tick, onRemove: vi.fn() })));
     expect(chinese).toContain('上海');
@@ -150,21 +151,42 @@ describe('world clock translation and time', () => {
     }
   });
 
-  it('formats time without the dependency English date and honors fractional offsets', () => {
-    const now = new Date('2026-01-01T00:00:00Z');
-    for (const [timezone, expected] of [['Asia/Kolkata', '05:30'], ['Asia/Kathmandu', '05:45'], ['Pacific/Chatham', '13:45'], ['UTC', '00:00']]) {
+  it('restores the original complete date and time, including seconds and fractional offsets', () => {
+    const now = new Date('2026-01-01T00:00:17Z');
+    for (const [timezone, expected] of [['Asia/Kolkata', '5:30:17 AM'], ['Asia/Kathmandu', '5:45:17 AM'], ['Pacific/Chatham', '1:45:17 PM'], ['UTC', '12:00:17 AM']]) {
       const tick = buildTick({ timezone, label: timezone, order: 0 }, now, 'UTC', 'zh-CN');
-      expect(tick.formattedTime).toBe(expected);
+      expect(tick.formattedTime).toBe(getWorldClockTime(timezone, timezone, now).formattedTime);
+      expect(tick.formattedTime).toContain('Jan 1, 2026');
+      expect(tick.formattedTime).toContain(expected);
       expect(tick.formattedDate).toBe(new Intl.DateTimeFormat('zh-CN', { timeZone: timezone, month: 'numeric', day: 'numeric' }).format(now));
     }
   });
 
   it('uses seasonal timezone rules and does not reorder the stored city array', () => {
     const city = { timezone: 'America/New_York', label: 'New York', order: 0 };
-    expect(buildTick(city, new Date('2026-01-01T12:00:00Z'), 'UTC', 'en-US').formattedTime).toBe('07:00');
-    expect(buildTick(city, new Date('2026-07-01T12:00:00Z'), 'UTC', 'en-US').formattedTime).toBe('08:00');
+    expect(buildTick(city, new Date('2026-01-01T12:00:00Z'), 'UTC', 'en-US').formattedTime).toContain('7:00:00 AM');
+    expect(buildTick(city, new Date('2026-07-01T12:00:00Z'), 'UTC', 'en-US').formattedTime).toContain('8:00:00 AM');
     const cities = [{ timezone: 'UTC', label: 'UTC', order: 1 }, city];
     expect(buildAllTicks(cities, 'UTC')[0].timezone).toBe(city.timezone);
     expect(cities[0].timezone).toBe('UTC');
+  });
+});
+
+describe('world clock rendering performance', () => {
+  it('does not mount the city rows or flags while the picker is closed', () => {
+    const markup = renderToStaticMarkup(createElement(I18nextProvider, { i18n }, createElement(WorldClockCityPicker, {
+      visible: false, existingTimezones: [], options: getAllTimezoneOptions(), onSelect: vi.fn(), onClose: vi.fn(),
+    })));
+    expect(markup).not.toContain('world-clock-picker-item');
+    expect(markup).not.toContain('world-clock-country-flag');
+    expect(markup).toContain('world-clock-picker-sidebar');
+  });
+
+  it('reuses timezone resolution across clock updates and repeated city searches', () => {
+    const timezone = 'Etc/GMT+7';
+    const canonical = getCanonicalTimezone(timezone);
+    const formatter = vi.spyOn(Intl, 'DateTimeFormat');
+    for (let index = 0; index < 100; index += 1) expect(getCanonicalTimezone(timezone)).toBe(canonical);
+    expect(formatter).not.toHaveBeenCalled();
   });
 });

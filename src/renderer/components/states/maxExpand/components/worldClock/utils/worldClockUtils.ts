@@ -32,6 +32,10 @@ import { TIMEZONE_LABELS } from '../config/timezoneLabels';
 import { COMMON_CITY_OPTIONS } from '../config/commonCities';
 import { TIMEZONE_COUNTRY_CODES } from '../config/timezoneCountryCodes';
 
+/** 时区别名与日期格式器不随每秒 tick 改变，跨渲染复用。 */
+const canonicalTimezoneCache = new Map<string, string>();
+const dateFormatterCache = new Map<string, Intl.DateTimeFormat>();
+
 /** 通过 IPC 写入文件 */
 export function persistCities(cities: WorldClockCity[]): void {
   window.api.storeWrite(STORE_KEY, cities).catch(() => {});
@@ -56,12 +60,7 @@ export function buildTick(city: WorldClockCity, now: Date, localTz: string, loca
     label: entry.label,
     labelKey: city.labelKey,
     countryCode: getTimezoneCountryCode(entry.timezone),
-    formattedTime: new Intl.DateTimeFormat(locale, {
-      timeZone: entry.timezone,
-      hour: '2-digit',
-      minute: '2-digit',
-      hourCycle: 'h23',
-    }).format(now),
+    formattedTime: entry.formattedTime,
     formattedDate: formatTickDate(now, entry.timezone, locale),
     utcOffset: entry.utcOffset,
     isDST: entry.isDST,
@@ -116,8 +115,12 @@ export function getTimezoneCountryCode(timezone: string): string | undefined {
  * @returns 运行时规范名称，无法解析时保留原值
  */
 export function getCanonicalTimezone(timezone: string): string {
+  const cached = canonicalTimezoneCache.get(timezone);
+  if (cached) return cached;
   try {
-    return new Intl.DateTimeFormat('en', { timeZone: timezone }).resolvedOptions().timeZone;
+    const canonical = new Intl.DateTimeFormat('en', { timeZone: timezone }).resolvedOptions().timeZone;
+    canonicalTimezoneCache.set(timezone, canonical);
+    return canonical;
   } catch {
     return timezone;
   }
@@ -159,11 +162,17 @@ export function filterTimezoneOptions(options: TimezoneOption[], query: string, 
 /** 格式化 tick 日期（简短） */
 function formatTickDate(now: Date, timezone: string, locale?: string): string {
   try {
-    return new Intl.DateTimeFormat(locale, {
-      timeZone: timezone,
-      month: 'numeric',
-      day: 'numeric',
-    }).format(now);
+    const cacheKey = `${locale ?? ''}:${timezone}`;
+    let formatter = dateFormatterCache.get(cacheKey);
+    if (!formatter) {
+      formatter = new Intl.DateTimeFormat(locale, {
+        timeZone: timezone,
+        month: 'numeric',
+        day: 'numeric',
+      });
+      dateFormatterCache.set(cacheKey, formatter);
+    }
+    return formatter.format(now);
   } catch {
     return '';
   }

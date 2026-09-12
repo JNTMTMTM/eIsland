@@ -25,7 +25,6 @@
  */
 
 @import "katex/dist/katex.min.css";
-@import "flag-icons/css/flag-icons.min.css";
 @import "./reset/reset.css";
 @import "./shell/shell.css";
 @import "./hover/hover.css";

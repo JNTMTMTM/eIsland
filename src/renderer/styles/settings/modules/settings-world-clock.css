@@ -160,7 +160,15 @@
 .world-clock-country-flag {
   flex-shrink: 0;
   width: 18px;
+  height: 14px;
+  object-fit: contain;
   border-radius: 2px;
+}
+
+.world-clock-country-flag.no-filter,
+[data-theme="light"] .world-clock-country-flag.no-filter {
+  filter: none;
+  opacity: 1;
 }
 
 .world-clock-card-label {
@@ -379,6 +387,8 @@
   border-radius: 6px;
   margin: 0 4px;
   box-sizing: border-box;
+  content-visibility: auto;
+  contain-intrinsic-size: auto 32px;
 }
 
 .world-clock-picker-item:hover:not(:disabled) {
