@@ -47,11 +47,6 @@ export function WorldClockCard({ tick, onRemove, removeHighlighted = false }: Wo
       <div className="world-clock-card-header">
         <WorldClockFlag countryCode={tick.countryCode} />
         <span className="world-clock-card-label">{getCityLabel(tick, t)}</span>
-        {tick.isLocal && (
-          <span className="world-clock-card-badge">
-            {t('maxExpand.worldClock.local', { defaultValue: '本地' })}
-          </span>
-        )}
         <button
           className="world-clock-card-remove"
           type="button"

@@ -184,16 +184,6 @@
   min-width: 0;
 }
 
-.world-clock-card-badge {
-  font-size: 10px;
-  font-weight: 500;
-  padding: 1px 5px;
-  border-radius: 4px;
-  background: rgba(var(--color-accent-rgb, 59, 130, 246), 0.15);
-  color: rgba(var(--color-accent-rgb, 59, 130, 246), 0.9);
-  flex-shrink: 0;
-}
-
 .world-clock-card-remove,
 .world-clock-picker-remove {
   display: none;
