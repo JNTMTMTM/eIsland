@@ -46,6 +46,8 @@ export interface WorldClockTick {
   formattedTime: string;
   /** 格式化日期，如 "9/4" 或 "9月4日" */
   formattedDate: string;
+  /** 模拟时钟指针角度，以十二点方向为零度 */
+  handAngles: { hour: number; minute: number; second: number };
   /** UTC 偏移，如 "+08:00" */
   utcOffset: string;
   /** 是否处于夏令时 */

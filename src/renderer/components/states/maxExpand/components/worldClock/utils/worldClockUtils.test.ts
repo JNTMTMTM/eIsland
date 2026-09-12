@@ -199,6 +199,22 @@ describe('world clock translation and time', () => {
     expect(buildAllTicks(cities, 'UTC')[0].timezone).toBe(city.timezone);
     expect(cities[0].timezone).toBe('UTC');
   });
+
+  it.each([
+    ['Asia/Kolkata', '2026-01-01T00:00:30Z', 165.25, 183, 180],
+    ['Asia/Kathmandu', '2026-01-01T00:00:30Z', 172.75, 273, 180],
+    ['Pacific/Chatham', '2026-01-01T00:00:30Z', 52.75, 273, 180],
+    ['America/St_Johns', '2026-01-01T00:00:30Z', 255.25, 183, 180],
+    ['UTC', '2026-01-01T23:59:59Z', 359.9916666667, 359.9, 354],
+    ['UTC', '2026-01-02T00:00:00Z', 0, 0, 0],
+    ['America/New_York', '2026-03-08T06:59:59Z', 59.9916666667, 359.9, 354],
+    ['America/New_York', '2026-03-08T07:00:00Z', 90, 0, 0],
+  ])('keeps analog hands in sync for %s at %s', (timezone, timestamp, hour, minute, second) => {
+    const tick = buildTick({ timezone, label: timezone, order: 0 }, new Date(timestamp), 'UTC');
+    expect(tick.handAngles.hour).toBeCloseTo(hour, 6);
+    expect(tick.handAngles.minute).toBeCloseTo(minute, 6);
+    expect(tick.handAngles.second).toBe(second);
+  });
 });
 
 describe('world clock rendering performance', () => {

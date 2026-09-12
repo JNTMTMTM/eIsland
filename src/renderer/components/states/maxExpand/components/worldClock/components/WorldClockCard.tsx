@@ -66,6 +66,11 @@ export function WorldClockCard({ tick, onRemove, removeHighlighted = false }: Wo
         <span className="world-clock-card-offset">{tick.utcOffset}</span>
         <span className="world-clock-card-date">{tick.formattedDate}</span>
       </div>
+      <div className="world-clock-card-dial" aria-hidden="true">
+        <span className="world-clock-card-hand world-clock-card-hand--hour" style={{ transform: `rotate(${tick.handAngles.hour}deg)` }} />
+        <span className="world-clock-card-hand world-clock-card-hand--minute" style={{ transform: `rotate(${tick.handAngles.minute}deg)` }} />
+        <span className="world-clock-card-hand world-clock-card-hand--second" style={{ transform: `rotate(${tick.handAngles.second}deg)` }} />
+      </div>
     </div>
   );
 }

@@ -62,10 +62,27 @@ export function buildTick(city: WorldClockCity, now: Date, localTz: string, loca
     countryCode: getTimezoneCountryCode(entry.timezone),
     formattedTime: entry.formattedTime,
     formattedDate: formatTickDate(now, entry.timezone, locale),
+    handAngles: getClockHandAngles(now, entry.utcOffset),
     utcOffset: entry.utcOffset,
     isDST: entry.isDST,
     isLocal: getCanonicalTimezone(entry.timezone) === getCanonicalTimezone(localTz),
   };
+}
+
+/**
+ * 复用时钟库已计算的实时偏移，避免为表盘重复执行时区格式化。
+ * @param now - 与文字时钟相同的时间快照
+ * @param utcOffset - 时钟库提供的带符号 HH:mm 偏移，已包含夏令时
+ * @returns 从十二点方向顺时针旋转的三根指针角度
+ */
+function getClockHandAngles(now: Date, utcOffset: string): WorldClockTick['handAngles'] {
+  const [hours, minutes] = utcOffset.slice(1).split(':').map(Number);
+  const offsetMinutes = (hours * 60 + minutes) * (utcOffset.startsWith('-') ? -1 : 1);
+  const localTime = new Date(now.getTime() + offsetMinutes * 60_000);
+  const second = localTime.getUTCSeconds();
+  const minute = localTime.getUTCMinutes() + second / 60;
+  const hour = localTime.getUTCHours() % 12 + minute / 60;
+  return { hour: hour * 30, minute: minute * 6, second: second * 6 };
 }
 
 /** 构建所有时钟 ticks */

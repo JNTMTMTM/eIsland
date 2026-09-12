@@ -129,8 +129,9 @@
    ══════════════════════════════════════ */
 .world-clock-card {
   position: relative;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 64px;
+  column-gap: 14px;
   padding: 12px 14px 10px;
   border-radius: 12px;
   background: rgba(var(--color-text-rgb), 0.04);
@@ -151,6 +152,7 @@
 }
 
 .world-clock-card-header {
+  grid-column: 1;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -242,6 +244,7 @@
 }
 
 .world-clock-card-time {
+  grid-column: 1;
   font-size: 32px;
   font-weight: 200;
   letter-spacing: -0.02em;
@@ -252,6 +255,7 @@
 }
 
 .world-clock-card-meta {
+  grid-column: 1;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -259,6 +263,61 @@
   font-size: 11px;
   color: rgba(var(--color-text-rgb), 0.4);
   transition: font-size 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 表盘复用每秒 tick，仅更新指针 transform，不添加独立定时器。 */
+.world-clock-card-dial {
+  position: relative;
+  grid-column: 2;
+  grid-row: 1 / 4;
+  align-self: center;
+  width: 64px;
+  height: 64px;
+  box-sizing: border-box;
+  border: 1px solid rgba(var(--color-text-rgb), 0.2);
+  border-radius: 50%;
+  background: rgba(var(--color-text-rgb), 0.035);
+  pointer-events: none;
+}
+
+.world-clock-card-hand {
+  position: absolute;
+  bottom: 50%;
+  left: 50%;
+  border-radius: 2px;
+  background: rgba(var(--color-text-rgb), 0.88);
+  transform-origin: 50% 100%;
+}
+
+.world-clock-card-hand--hour {
+  width: 3px;
+  height: 17px;
+  margin-left: -1.5px;
+}
+
+.world-clock-card-hand--minute {
+  width: 2px;
+  height: 24px;
+  margin-left: -1px;
+}
+
+.world-clock-card-hand--second {
+  width: 1px;
+  height: 26px;
+  margin-left: -0.5px;
+  background: rgb(255, 59, 48);
+}
+
+.world-clock-card-dial::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgb(255, 59, 48);
+  transform: translate(-50%, -50%);
 }
 
 .world-clock-card-offset {
