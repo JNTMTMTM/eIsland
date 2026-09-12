@@ -27,16 +27,9 @@
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SvgIcon } from '../../../../../../utils/SvgIcon';
-import type { WorldClockTick } from '../types/worldClockTypes';
+import type { WorldClockCardProps } from '../types/worldClockTypes';
 import { getCityLabel } from '../utils/worldClockUtils';
 import { WorldClockFlag } from './WorldClockFlag';
-
-interface WorldClockCardProps {
-  tick: WorldClockTick;
-  onRemove: (timezone: string) => void;
-  /** 城市选择器中的删除操作正在指向此卡片 */
-  removeHighlighted?: boolean;
-}
 
 /** 世界时钟卡片 */
 export function WorldClockCard({ tick, onRemove, removeHighlighted = false }: WorldClockCardProps): ReactElement {

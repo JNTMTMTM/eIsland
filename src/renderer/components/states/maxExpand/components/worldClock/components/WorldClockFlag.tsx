@@ -27,6 +27,7 @@
 /// <reference types="vite/client" />
 
 import { memo, type ReactElement } from 'react';
+import type { WorldClockFlagProps } from '../types/worldClockTypes';
 
 // 仅生成 4:3 图片的 URL 索引，禁止将整套 SVG 内联进 JS 或全局 CSS。
 const flagUrls = import.meta.glob<string>('../../../../../../../../node_modules/flag-icons/flags/4x3/*.svg', {
@@ -40,7 +41,7 @@ const flagUrls = import.meta.glob<string>('../../../../../../../../node_modules/
  * @param props - 可选 ISO 国家代码
  * @returns 延迟加载的国旗图片或空内容
  */
-export const WorldClockFlag = memo(function WorldClockFlag({ countryCode }: { countryCode?: string }): ReactElement | null {
+export const WorldClockFlag = memo(function WorldClockFlag({ countryCode }: WorldClockFlagProps): ReactElement | null {
   const src = countryCode ? flagUrls[`../../../../../../../../node_modules/flag-icons/flags/4x3/${countryCode}.svg`] : undefined;
   if (!src) return null;
 

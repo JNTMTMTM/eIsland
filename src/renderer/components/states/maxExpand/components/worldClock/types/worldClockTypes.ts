@@ -24,6 +24,8 @@
  * @author 鸡哥
  */
 
+import type { Dispatch, SetStateAction } from 'react';
+
 /** 持久化的城市时钟条目 */
 export interface WorldClockCity {
   /** IANA 时区 ID，如 "Asia/Shanghai" */
@@ -69,3 +71,88 @@ export interface TimezoneOption {
 
 /** 持久化存储 key */
 export const STORE_KEY = 'worldClockCities';
+
+// ── 组件 Props ──
+
+/** WorldClockCard 组件 Props */
+export interface WorldClockCardProps {
+  tick: WorldClockTick;
+  onRemove: (timezone: string) => void;
+  /** 城市选择器中的删除操作正在指向此卡片 */
+  removeHighlighted?: boolean;
+}
+
+/** WorldClockCityPicker 组件 Props */
+export interface WorldClockCityPickerProps {
+  /** 面板是否可见 */
+  visible: boolean;
+  /** 已存在的时区（用于匹配删除目标） */
+  existingTimezones: string[];
+  /** 选择回调 */
+  onSelect: (city: WorldClockCity) => void;
+  /** 删除已添加的时钟 */
+  onRemove: (timezone: string) => void;
+  /** 通知主面板高亮或取消高亮待删除的卡片 */
+  onRemoveHover: (timezone: string | null) => void;
+  /** 关闭回调 */
+  onClose: () => void;
+  /** 可选时区列表 */
+  options: TimezoneOption[];
+}
+
+/** WorldClockFlag 组件 Props */
+export interface WorldClockFlagProps {
+  countryCode?: string;
+}
+
+// ── Hook 返回类型 ──
+
+/** useCitiesPersistence Hook 返回类型 */
+export interface UseCitiesPersistenceReturn {
+  /** 持久化的城市列表 */
+  cities: WorldClockCity[];
+  /** 设置城市列表 */
+  setCities: Dispatch<SetStateAction<WorldClockCity[]>>;
+  /** 是否已从 store 加载 */
+  loaded: boolean;
+}
+
+/** useDebouncedQuery Hook 返回类型 */
+export interface UseDebouncedQueryReturn {
+  /** 当前输入值 */
+  query: string;
+  /** 防抖后的查询值 */
+  debouncedQuery: string;
+  /** 更新输入值（自动触发防抖） */
+  handleQueryChange: (value: string) => void;
+  /** 重置输入 */
+  resetQuery: () => void;
+}
+
+/** useCityOperations Hook 返回类型 */
+export interface UseCityOperationsReturn {
+  /** 添加城市（自动去重） */
+  addCity: (city: WorldClockCity) => void;
+  /** 移除城市 */
+  removeCity: (timezone: string) => void;
+}
+
+/** useWorldClockState Hook 返回类型 */
+export interface UseWorldClockStateReturn {
+  /** 持久化的城市列表 */
+  cities: WorldClockCity[];
+  /** 实时时钟 ticks */
+  ticks: WorldClockTick[];
+  /** 是否已从 store 加载 */
+  loaded: boolean;
+  /** 本机时区 */
+  localTimezone: string;
+  /** 城市选择器可见性 */
+  showPicker: boolean;
+  /** 设置选择器可见性 */
+  setShowPicker: (v: boolean) => void;
+  /** 添加城市（自动去重） */
+  addCity: (city: WorldClockCity) => void;
+  /** 移除城市 */
+  removeCity: (timezone: string) => void;
+}

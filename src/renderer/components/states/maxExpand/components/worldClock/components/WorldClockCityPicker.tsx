@@ -24,30 +24,15 @@
  * @author 鸡哥
  */
 
-import { memo, useState, useMemo, useCallback, useRef, useEffect, type ReactElement } from 'react';
+import { memo, useMemo, useEffect, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SvgIcon } from '../../../../../../utils/SvgIcon';
-import type { WorldClockCity, TimezoneOption } from '../types/worldClockTypes';
-import { PICKER_SEARCH_DEBOUNCE_MS } from '../config/worldClockConfig';
+import type { WorldClockCityPickerProps } from '../types/worldClockTypes';
 import { filterTimezoneOptions, getCanonicalTimezone, getCityLabel } from '../utils/worldClockUtils';
+import { useDebouncedQuery } from '../hooks/useDebouncedQuery';
+import { usePickerAutoFocus } from '../hooks/usePickerAutoFocus';
+import { useEscToClose } from '../hooks/useEscToClose';
 import { WorldClockFlag } from './WorldClockFlag';
-
-interface WorldClockCityPickerProps {
-  /** 面板是否可见 */
-  visible: boolean;
-  /** 已存在的时区（用于匹配删除目标） */
-  existingTimezones: string[];
-  /** 选择回调 */
-  onSelect: (city: WorldClockCity) => void;
-  /** 删除已添加的时钟 */
-  onRemove: (timezone: string) => void;
-  /** 通知主面板高亮或取消高亮待删除的卡片 */
-  onRemoveHover: (timezone: string | null) => void;
-  /** 关闭回调 */
-  onClose: () => void;
-  /** 可选时区列表 */
-  options: TimezoneOption[];
-}
 
 /** 城市时区选择器 — 左侧边栏面板 */
 export const WorldClockCityPicker = memo(function WorldClockCityPicker({
@@ -60,35 +45,14 @@ export const WorldClockCityPicker = memo(function WorldClockCityPicker({
   options,
 }: WorldClockCityPickerProps): ReactElement {
   const { t } = useTranslation();
-  const [query, setQuery] = useState('');
-  const inputRef = useRef<HTMLInputElement>(null);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [debouncedQuery, setDebouncedQuery] = useState('');
+  const inputRef = usePickerAutoFocus(visible);
+  const { query, debouncedQuery, handleQueryChange, resetQuery } = useDebouncedQuery();
+  useEscToClose(visible, onClose);
 
-  /** 展开时自动聚焦 */
+  /** 面板关闭时重置搜索 */
   useEffect(() => {
-    if (visible) {
-      const focusTimer = setTimeout(() => inputRef.current?.focus({ preventScroll: true }), 50);
-      return () => clearTimeout(focusTimer);
-    } else {
-      setQuery('');
-      setDebouncedQuery('');
-    }
-    return undefined;
-  }, [visible]);
-
-  /** 防抖搜索 */
-  const handleQueryChange = useCallback((value: string) => {
-    setQuery(value);
-    if (timerRef.current) clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(() => {
-      setDebouncedQuery(value);
-    }, PICKER_SEARCH_DEBOUNCE_MS);
-  }, []);
-
-  useEffect(() => () => {
-    if (timerRef.current) clearTimeout(timerRef.current);
-  }, []);
+    if (!visible) resetQuery();
+  }, [visible, resetQuery]);
 
   // 保留存档原始时区名称，确保通过别名找到的条目也能删除对应卡片。
   const existingTimezoneMap = useMemo(
@@ -104,16 +68,6 @@ export const WorldClockCityPicker = memo(function WorldClockCityPicker({
 
   // 搜索、删除或关闭面板会卸载按钮，届时不能依赖鼠标移出事件清除高亮。
   useEffect(() => () => onRemoveHover(null), [filtered, existingTimezones, onRemoveHover]);
-
-  /** ESC 关闭 */
-  useEffect(() => {
-    if (!visible) return;
-    const handleKey = (e: KeyboardEvent): void => {
-      if (e.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
-  }, [visible, onClose]);
 
   return (
     <div className={`world-clock-picker-sidebar${visible ? ' world-clock-picker-sidebar--visible' : ''}`}>

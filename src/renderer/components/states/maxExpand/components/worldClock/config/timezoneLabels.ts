@@ -24,13 +24,7 @@
  * @author 鸡哥
  */
 
-/**
- * 将 IANA 时区 ID 转为 i18n 键后缀（/ → _）
- * 例: "Asia/Shanghai" → "Asia_Shanghai"
- */
-function tzKey(tz: string): string {
-  return `maxExpand.worldClock.timezoneLabels.${tz.replace(/\//g, '_')}`;
-}
+import { tzKey } from '../utils/tzKey';
 
 /** IANA 时区 ID → i18n 翻译键 */
 export const TIMEZONE_LABELS: Record<string, string> = Object.fromEntries([
