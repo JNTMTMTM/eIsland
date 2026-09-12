@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import { useCallback, useMemo, type ReactElement } from 'react';
+import { useCallback, useMemo, useState, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SvgIcon } from '../../../../../../utils/SvgIcon';
 import { useWorldClockState } from '../hooks/useWorldClockState';
@@ -38,6 +38,7 @@ import { WorldClockCityPicker } from './WorldClockCityPicker';
 export function WorldClockTab(): ReactElement {
   const { t } = useTranslation();
   const state = useWorldClockState();
+  const [removeHoveredTimezone, setRemoveHoveredTimezone] = useState<string | null>(null);
   const timezoneOptions = useMemo(() => getAllTimezoneOptions(), []);
   const { setShowPicker } = state;
   const closePicker = useCallback(() => setShowPicker(false), [setShowPicker]);
@@ -70,6 +71,7 @@ export function WorldClockTab(): ReactElement {
               key={tick.timezone}
               tick={tick}
               onRemove={state.removeCity}
+              removeHighlighted={state.showPicker && removeHoveredTimezone === tick.timezone}
             />
           ))}
         </div>
@@ -79,6 +81,8 @@ export function WorldClockTab(): ReactElement {
         visible={state.showPicker}
         existingTimezones={existingTimezones}
         onSelect={state.addCity}
+        onRemove={state.removeCity}
+        onRemoveHover={setRemoveHoveredTimezone}
         onClose={closePicker}
         options={timezoneOptions}
       />

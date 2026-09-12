@@ -35,10 +35,14 @@ import { WorldClockFlag } from './WorldClockFlag';
 interface WorldClockCityPickerProps {
   /** 面板是否可见 */
   visible: boolean;
-  /** 已存在的时区（用于灰显） */
+  /** 已存在的时区（用于匹配删除目标） */
   existingTimezones: string[];
   /** 选择回调 */
   onSelect: (city: WorldClockCity) => void;
+  /** 删除已添加的时钟 */
+  onRemove: (timezone: string) => void;
+  /** 通知主面板高亮或取消高亮待删除的卡片 */
+  onRemoveHover: (timezone: string | null) => void;
   /** 关闭回调 */
   onClose: () => void;
   /** 可选时区列表 */
@@ -50,6 +54,8 @@ export const WorldClockCityPicker = memo(function WorldClockCityPicker({
   visible,
   existingTimezones,
   onSelect,
+  onRemove,
+  onRemoveHover,
   onClose,
   options,
 }: WorldClockCityPickerProps): ReactElement {
@@ -84,14 +90,20 @@ export const WorldClockCityPicker = memo(function WorldClockCityPicker({
     if (timerRef.current) clearTimeout(timerRef.current);
   }, []);
 
-  /** 已添加时区 Set */
-  const existingSet = useMemo(() => new Set(existingTimezones.map(getCanonicalTimezone)), [existingTimezones]);
+  // 保留存档原始时区名称，确保通过别名找到的条目也能删除对应卡片。
+  const existingTimezoneMap = useMemo(
+    () => new Map(existingTimezones.map((timezone) => [getCanonicalTimezone(timezone), timezone])),
+    [existingTimezones],
+  );
 
   /** 过滤列表 */
   const filtered = useMemo(
     () => visible ? filterTimezoneOptions(options, debouncedQuery, t) : [],
     [visible, options, debouncedQuery, t],
   );
+
+  // 搜索、删除或关闭面板会卸载按钮，届时不能依赖鼠标移出事件清除高亮。
+  useEffect(() => () => onRemoveHover(null), [filtered, existingTimezones, onRemoveHover]);
 
   /** ESC 关闭 */
   useEffect(() => {
@@ -132,29 +144,47 @@ export const WorldClockCityPicker = memo(function WorldClockCityPicker({
           </div>
         )}
         {filtered.map((opt) => {
-          const added = existingSet.has(getCanonicalTimezone(opt.timezone));
+          const existingTimezone = existingTimezoneMap.get(getCanonicalTimezone(opt.timezone));
+          const added = existingTimezone !== undefined;
           return (
-            <button
+            <div
               key={`${opt.timezone}:${opt.labelKey}`}
               className={`world-clock-picker-item${added ? ' world-clock-picker-item--added' : ''}`}
-              type="button"
-              disabled={added}
-              onClick={() => onSelect({
-                timezone: opt.timezone,
-                label: opt.label,
-                labelKey: opt.labelKey,
-                order: 0,
-              })}
             >
-              <WorldClockFlag countryCode={opt.countryCode} />
-              <span className="world-clock-picker-item-label">{getCityLabel(opt, t)}</span>
-              <span className="world-clock-picker-item-tz">{opt.timezone}</span>
-              {added && (
-                <span className="world-clock-picker-item-badge">
-                  {t('maxExpand.worldClock.alreadyAdded', { defaultValue: '已添加' })}
-                </span>
+              <button
+                className="world-clock-picker-select"
+                type="button"
+                disabled={added}
+                onClick={() => onSelect({
+                  timezone: opt.timezone,
+                  label: opt.label,
+                  labelKey: opt.labelKey,
+                  order: 0,
+                })}
+              >
+                <WorldClockFlag countryCode={opt.countryCode} />
+                <span className="world-clock-picker-item-label">{getCityLabel(opt, t)}</span>
+                <span className="world-clock-picker-item-tz">{opt.timezone}</span>
+              </button>
+              {existingTimezone !== undefined && (
+                <button
+                  className="world-clock-picker-remove"
+                  type="button"
+                  title={t('maxExpand.worldClock.removeCity', { defaultValue: '移除' })}
+                  aria-label={`${t('maxExpand.worldClock.removeCity', { defaultValue: '移除' })} ${getCityLabel(opt, t)}`}
+                  onClick={() => {
+                    onRemoveHover(null);
+                    onRemove(existingTimezone);
+                  }}
+                  onMouseEnter={() => onRemoveHover(existingTimezone)}
+                  onMouseLeave={() => onRemoveHover(null)}
+                  onFocus={() => onRemoveHover(existingTimezone)}
+                  onBlur={() => onRemoveHover(null)}
+                >
+                  <img src={SvgIcon.DELETE} alt="" className="world-clock-picker-remove-icon" />
+                </button>
               )}
-            </button>
+            </div>
           );
         })}
       </div>

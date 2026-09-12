@@ -95,7 +95,7 @@ describe('world clock translation and time', () => {
     await i18n.changeLanguage('zh-CN');
     const options = getAllTimezoneOptions();
     const markup = renderToStaticMarkup(createElement(I18nextProvider, { i18n }, createElement(WorldClockCityPicker, {
-      visible: true, existingTimezones: [], options, onSelect: vi.fn(), onClose: vi.fn(),
+      visible: true, existingTimezones: [], options, onSelect: vi.fn(), onClose: vi.fn(), onRemove: vi.fn(), onRemoveHover: vi.fn(),
     })));
     expect(markup).toContain('北京');
     expect(markup).toContain('开普敦');
@@ -114,6 +114,35 @@ describe('world clock translation and time', () => {
     await i18n.changeLanguage('zh-CN');
     const chinese = renderToStaticMarkup(createElement(I18nextProvider, { i18n }, createElement(WorldClockCard, { tick, onRemove: vi.fn() })));
     expect(chinese).toContain('上海');
+  });
+
+  it('offers an enabled delete button for an added timezone matched through an alias', async () => {
+    await i18n.changeLanguage('en-US');
+    const options = [{ timezone: 'Asia/Calcutta', label: 'Kolkata', labelKey: 'maxExpand.worldClock.timezoneLabels.Asia_Calcutta' }];
+    const markup = renderToStaticMarkup(createElement(I18nextProvider, { i18n }, createElement(WorldClockCityPicker, {
+      visible: true, existingTimezones: ['Asia/Kolkata'], options, onSelect: vi.fn(), onClose: vi.fn(),
+      onRemove: vi.fn(), onRemoveHover: vi.fn(),
+    })));
+    expect(markup).toContain('world-clock-picker-item--added');
+    expect(markup).toMatch(/<button class="world-clock-picker-select"[^>]*disabled=""/);
+    const removeButton = markup.match(/<button class="world-clock-picker-remove"[^>]*>/)?.[0];
+    expect(removeButton).toBeDefined();
+    expect(removeButton).not.toContain('disabled');
+    expect(removeButton).toContain('Kolkata');
+    expect(markup).not.toContain('world-clock-picker-item-badge');
+    expect(markup).toMatch(/<\/button><button class="world-clock-picker-remove"/);
+  });
+
+  it('renders the shared delete highlight on the targeted card', () => {
+    const tick = buildTick(DEFAULT_CITIES[0], new Date(), 'UTC');
+    const highlighted = renderToStaticMarkup(createElement(I18nextProvider, { i18n }, createElement(WorldClockCard, {
+      tick, onRemove: vi.fn(), removeHighlighted: true,
+    })));
+    const normal = renderToStaticMarkup(createElement(I18nextProvider, { i18n }, createElement(WorldClockCard, {
+      tick, onRemove: vi.fn(), removeHighlighted: false,
+    })));
+    expect(highlighted).toContain('world-clock-card--remove-highlighted');
+    expect(normal).not.toContain('world-clock-card--remove-highlighted');
   });
 
   it('translates existing saved clocks and defaults at render time', async () => {
@@ -176,6 +205,7 @@ describe('world clock rendering performance', () => {
   it('does not mount the city rows or flags while the picker is closed', () => {
     const markup = renderToStaticMarkup(createElement(I18nextProvider, { i18n }, createElement(WorldClockCityPicker, {
       visible: false, existingTimezones: [], options: getAllTimezoneOptions(), onSelect: vi.fn(), onClose: vi.fn(),
+      onRemove: vi.fn(), onRemoveHover: vi.fn(),
     })));
     expect(markup).not.toContain('world-clock-picker-item');
     expect(markup).not.toContain('world-clock-country-flag');

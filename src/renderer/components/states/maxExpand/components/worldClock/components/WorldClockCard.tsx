@@ -34,14 +34,16 @@ import { WorldClockFlag } from './WorldClockFlag';
 interface WorldClockCardProps {
   tick: WorldClockTick;
   onRemove: (timezone: string) => void;
+  /** 城市选择器中的删除操作正在指向此卡片 */
+  removeHighlighted?: boolean;
 }
 
 /** 世界时钟卡片 */
-export function WorldClockCard({ tick, onRemove }: WorldClockCardProps): ReactElement {
+export function WorldClockCard({ tick, onRemove, removeHighlighted = false }: WorldClockCardProps): ReactElement {
   const { t } = useTranslation();
 
   return (
-    <div className={`world-clock-card${tick.isLocal ? ' world-clock-card--local' : ''}`}>
+    <div className={`world-clock-card${tick.isLocal ? ' world-clock-card--local' : ''}${removeHighlighted ? ' world-clock-card--remove-highlighted' : ''}`}>
       <div className="world-clock-card-header">
         <WorldClockFlag countryCode={tick.countryCode} />
         <span className="world-clock-card-label">{getCityLabel(tick, t)}</span>
