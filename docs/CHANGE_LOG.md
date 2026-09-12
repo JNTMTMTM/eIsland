@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-09-02T13:06:08.723Z
+> 生成时间：2026-09-12T03:23:46.132Z
 
 ## 26.7.4
 
@@ -3569,6 +3569,34 @@
 
 ## Unreleased
 
+- 2026-09-11 | 4fe4db33 | 鸡哥 | Merge pull request #213 from JNTMTMTM/dev
+- 2026-09-12 | ae6af257 | 鸡哥 | feat(worldClock): implement hooks for city persistence, operations, and clock ticks; refactor WorldClock components for improved structure and type safety
+- 2026-09-12 | b5027121 | 鸡哥 | refactor(worldClock): replace for loops with forEach for improved readability in tests
+- 2026-09-12 | 82a293bd | 鸡哥 | feat(worldClock): update styles for world clock card layout and remove button visibility
+- 2026-09-12 | d593716c | 鸡哥 | feat(worldClock): reposition delete button and update styles for WorldClockCard
+- 2026-09-12 | f37dc5ea | 鸡哥 | feat(worldClock): remove local badge from WorldClockCard and associated styles
+- 2026-09-12 | 97d07bbf | 鸡哥 | feat(worldClock): add analog clock hands and update styles for WorldClockCard
+- 2026-09-12 | bc6914c9 | 鸡哥 | feat(worldClock): enhance card hover effects with box-shadow for improved visibility
+- 2026-09-12 | 2a830cec | 鸡哥 | feat(worldClock): update hover styles for card remove button
+- 2026-09-12 | 1bd0b26b | 鸡哥 | feat(worldClock): implement WorldClockFlag component for optimized country flag rendering
+- 2026-09-12 | 9e99a010 | 鸡哥 | feat(worldClock): add country flag representation and update styles
+- 2026-09-11 | 6ad6cede | 鸡哥 | feat(dependencies): add flag-icons package for enhanced flag representation
+- 2026-09-12 | f9e632ca | 鸡哥 | feat(worldClock): enhance city labels and timezone management
+- 2026-09-12 | f25b4882 | 鸡哥 | feat(worldClock): update layout and styling for World Clock Tab header
+- 2026-09-11 | 7c639217 | 鸡哥 | feat(worldClock): replace button text with icons for add, remove, and close actions
+- 2026-09-10 | a3ae35b3 | 鸡哥 | feat(skill): add new skills for creating empty settings subpage, empty state machine, guide step, and maxexpand tab with detailed implementation steps
+- 2026-09-10 | 14c89510 | 鸡哥 | feat(docs): add feedback QQ group API and service documentation, update existing documentation for clarity and consistency
+- 2026-09-09 | e901cd3a | 鸡哥 | Add comprehensive API documentation for various features
+- 2026-09-09 | c6f19407 | 鸡哥 | feat(questionnaire): add detailed documentation for the questionnaire system and its features
+- 2026-09-09 | cb836abc | 鸡哥 | style(worldClock): adjust header and picker styles for improved layout
+- 2026-09-08 | aff93192 | 鸡哥 | style(worldClock): hide horizontal overflow in world clock picker list
+- 2026-09-07 | 7e00192e | 鸡哥 | style(worldClock): adjust grid layout and sidebar compact mode styles
+- 2026-09-07 | 622082de | 鸡哥 | feat: add internationalization support for timezone labels in World Clock
+- 2026-09-06 | 1a7044ff | 鸡哥 | feat(useWheelNavigation): add world clock container and picker sidebar to excluded selectors
+- 2026-09-05 | d609e7fa | 鸡哥 | feat(worldClock): enhance city picker and tab layout with sidebar support
+- 2026-09-05 | 84d5e84c | 鸡哥 | feat(worldClock): add world clock feature with city picker and card components
+- 2026-09-03 | 847b0ab3 | 鸡哥 | feat: add World Clock tab and update related configurations
+- 2026-09-02 | 493872c0 | eislandBot | docs: auto update CHANGE_LOG.md for #212 by @JNTMTMTM [skip ci]
 - 2026-09-02 | c98fe092 | 鸡哥 | Merge pull request #212 from JNTMTMTM/dev
 - 2026-09-02 | c8a04dd6 | 鸡哥 | feat: make settings cards fill available height in page main for better centering
 - 2026-09-02 | 1bed2ee2 | 鸡哥 | feat: update settings layout to increase minimum height and use flex for better responsiveness
