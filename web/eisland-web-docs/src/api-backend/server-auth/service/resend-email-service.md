@@ -22,16 +22,16 @@ Wraps the Resend SDK to deliver verification code emails. Builds scene-specific 
 
 | Scene | Subject |
 |---|---|
-| `REGISTER` | eIsland 注册验证码 |
-| `LOGIN` | eIsland 登录验证码 |
-| `RESET_PASSWORD` | eIsland 重置密码验证码 |
-| `CHANGE_EMAIL` | eIsland 更换邮箱验证码 |
-| `UNREGISTER` | eIsland 注销账号验证码 |
+| `REGISTER` | eIsland Registration Verification Code |
+| `LOGIN` | eIsland Login Verification Code |
+| `RESET_PASSWORD` | eIsland Password Reset Verification Code |
+| `CHANGE_EMAIL` | eIsland Email Change Verification Code |
+| `UNREGISTER` | eIsland Account Deletion Verification Code |
 
 ## Email Template
 
 The HTML template includes:
-- Scene label (e.g. "注册账号", "登录账号")
+- Scene label (e.g. "Register Account", "Login")
 - Verification code (5-minute validity)
 - Trace ID for debugging
 

@@ -17,14 +17,14 @@ Handles `AuthenticationException` thrown when a request lacks valid authenticati
 ```json
 {
   "code": 401,
-  "message": "未登录或token已过期"
+  "message": "Not logged in or token has expired"
 }
 ```
 
 | Field | Type | Default | Customizable Via |
 |---|---|---|---|
 | `code` | `int` | `401` | `request.getAttribute("auth_error_code")` |
-| `message` | `String` | `未登录或token已过期` | `request.getAttribute("auth_error_message")` |
+| `message` | `String` | `Not logged in or token has expired` | `request.getAttribute("auth_error_message")` |
 
 HTTP Status: `401 Unauthorized`
 
@@ -33,7 +33,7 @@ HTTP Status: `401 Unauthorized`
 | Attribute | Type | Description |
 |---|---|---|
 | `auth_error_code` | `Integer` | Custom business error code (defaults to 401) |
-| `auth_error_message` | `String` | Custom error message (defaults to "未登录或token已过期") |
+| `auth_error_message` | `String` | Custom error message (defaults to "Not logged in or token has expired") |
 
 ## Dependencies
 

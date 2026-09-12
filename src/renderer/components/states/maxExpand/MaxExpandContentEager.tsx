@@ -43,6 +43,7 @@ import { MiniGameTab } from './components/MiniGameTab';
 import { StockTab } from './components/stock';
 import { CliTab } from './components/cli';
 import { CalculatorTab } from './components/calculator';
+import { WorldClockTab } from './components/worldClock';
 
 function renderEagerActiveTab(activeTab: MaxExpandTab, loadingFallback: ReactElement, contentReady: boolean): ReactElement | null {
   if (!contentReady) return loadingFallback;
@@ -61,6 +62,7 @@ function renderEagerActiveTab(activeTab: MaxExpandTab, loadingFallback: ReactEle
   if (activeTab === 'stock') return <StockTab />;
   if (activeTab === 'cli') return <CliTab />;
   if (activeTab === 'calculator') return <CalculatorTab />;
+  if (activeTab === 'worldClock') return <WorldClockTab />;
   if (activeTab === 'settings') return <SettingsTab />;
   return null;
 }

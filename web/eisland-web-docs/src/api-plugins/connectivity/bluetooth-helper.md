@@ -10,6 +10,10 @@ icon: bluetooth
 
 Bluetooth device management and monitoring via .NET NativeAOT DLL (koffi FFI).
 
+:::tip
+The `BluetoothMonitor` class provides real-time device change events. Use it to react to connect/disconnect/pair events without polling.
+:::
+
 ## Interfaces
 
 | Interface | Description |

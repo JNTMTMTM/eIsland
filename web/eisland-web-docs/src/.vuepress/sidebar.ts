@@ -399,6 +399,7 @@ export default sidebar({
             "server-auth/controller/email-verification-controller.md",
             "server-auth/controller/issue-feedback-controller.md",
             "server-auth/controller/admin-email-dlq-controller.md",
+            "server-auth/controller/feedback-qq-group-controller.md",
           ],
         },
         {
@@ -407,6 +408,7 @@ export default sidebar({
           collapsible: true,
           children: [
             "server-auth/service/email-verification-service.md",
+            "server-auth/service/feedback-qq-group-service.md",
             "server-auth/service/issue-feedback-service.md",
             "server-auth/service/resend-email-service.md",
             "server-auth/service/slider-captcha-service.md",
@@ -418,6 +420,7 @@ export default sidebar({
           collapsible: true,
           children: [
             "server-auth/entity/email-dispatch-dlq-log.md",
+            "server-auth/entity/feedback-qq-group-config.md",
           ],
         },
         {
@@ -426,6 +429,7 @@ export default sidebar({
           collapsible: true,
           children: [
             "server-auth/mapper/email-dispatch-dlq-log-mapper.md",
+            "server-auth/mapper/feedback-qq-group-config-mapper.md",
             "server-auth/mapper/issue-feedback-mapper.md",
           ],
         },
@@ -944,10 +948,60 @@ export default sidebar({
   ],
   "/api-frontend/": [
     {
-      text: "API Frontend",
-      icon: "display",
-      collapsible: false,
-      children: [],
+      text: "Window Management",
+      icon: "window-restore",
+      collapsible: true,
+      children: [
+        "window-management.md",
+      ],
+    },
+    {
+      text: "App Lifecycle",
+      icon: "power-off",
+      collapsible: true,
+      children: [
+        "app-lifecycle.md",
+      ],
+    },
+    {
+      text: "Media Control",
+      icon: "music",
+      collapsible: true,
+      children: [
+        "media-control.md",
+      ],
+    },
+    {
+      text: "AI & Agent",
+      icon: "robot",
+      collapsible: true,
+      children: [
+        "ai-agent.md",
+      ],
+    },
+    {
+      text: "System Tools",
+      icon: "screwdriver-wrench",
+      collapsible: true,
+      children: [
+        "system-tools.md",
+      ],
+    },
+    {
+      text: "Settings & Appearance",
+      icon: "sliders",
+      collapsible: true,
+      children: [
+        "settings-appearance.md",
+      ],
+    },
+    {
+      text: "Network & Storage",
+      icon: "network-wired",
+      collapsible: true,
+      children: [
+        "network-storage.md",
+      ],
     },
   ],
   "/developer/": [

@@ -1,0 +1,64 @@
+/*
+ * eIsland - A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Electron.
+ * https://github.com/JNTMTMTM/eIsland
+ *
+ * Copyright (C) 2026 JNTMTMTM
+ * Copyright (C) 2026 pyisland.com
+ *
+ * Original author: JNTMTMTM[](https://github.com/JNTMTMTM)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+/**
+ * @file WorldClockCard.tsx
+ * @description 单个城市时钟卡片组件
+ * @author 鸡哥
+ */
+
+import type { ReactElement } from 'react';
+import { useTranslation } from 'react-i18next';
+import { SvgIcon } from '../../../../../../utils/SvgIcon';
+import type { WorldClockCardProps } from '../types/worldClockTypes';
+import { getCityLabel } from '../utils/worldClockUtils';
+import { WorldClockFlag } from './WorldClockFlag';
+
+/** 世界时钟卡片 */
+export function WorldClockCard({ tick, onRemove, removeHighlighted = false }: WorldClockCardProps): ReactElement {
+  const { t } = useTranslation();
+
+  return (
+    <div className={`world-clock-card${tick.isLocal ? ' world-clock-card--local' : ''}${removeHighlighted ? ' world-clock-card--remove-highlighted' : ''}`}>
+      <div className="world-clock-card-header">
+        <WorldClockFlag countryCode={tick.countryCode} />
+        <span className="world-clock-card-label">{getCityLabel(tick, t)}</span>
+      </div>
+      <div className="world-clock-card-time">{tick.formattedTime}</div>
+      <div className="world-clock-card-meta">
+        <span className="world-clock-card-offset">{tick.utcOffset}</span>
+        <span className="world-clock-card-date">{tick.formattedDate}</span>
+      </div>
+      <div className="world-clock-card-dial" aria-hidden="true">
+        <span className="world-clock-card-hand world-clock-card-hand--hour" style={{ transform: `rotate(${tick.handAngles.hour}deg)` }} />
+        <span className="world-clock-card-hand world-clock-card-hand--minute" style={{ transform: `rotate(${tick.handAngles.minute}deg)` }} />
+        <span className="world-clock-card-hand world-clock-card-hand--second" style={{ transform: `rotate(${tick.handAngles.second}deg)` }} />
+      </div>
+      <button
+        className="world-clock-card-remove"
+        type="button"
+        onClick={() => onRemove(tick.timezone)}
+        title={t('maxExpand.worldClock.removeCity', { defaultValue: '移除' })}
+      >
+        <img src={SvgIcon.DELETE} alt="" className="world-clock-card-remove-icon" />
+      </button>
+    </div>
+  );
+}

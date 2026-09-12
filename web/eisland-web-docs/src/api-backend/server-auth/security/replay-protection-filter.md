@@ -47,8 +47,8 @@ Intercepts POST/PUT/DELETE requests to protected paths and requires `X-Timestamp
 
 | Code | Condition | Message |
 |---|---|---|
-| `4002` | Missing/invalid headers or expired timestamp | 缺少防重放请求头 / 非法 nonce / 非法时间戳 / 请求时间窗口已过期 |
-| `4003` | Duplicate nonce detected | 检测到重放请求 |
+| `4002` | Missing/invalid headers or expired timestamp | Missing replay-protection headers / Invalid nonce / Invalid timestamp / Request time window expired |
+| `4003` | Duplicate nonce detected | Duplicate replay request detected |
 
 All errors return HTTP 400.
 

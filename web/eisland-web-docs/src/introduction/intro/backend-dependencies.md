@@ -112,7 +112,7 @@ Libraries for handling payments and financial transactions.
 
 | Library | What It Does |
 |---------|--------------|
-| **Alipay SDK Java** | Integrates with Alipay (支付宝) — one of China's largest payment platforms. Handles payment creation, QR code generation, payment verification, and refund processing. |
+| **Alipay SDK Java** | Integrates with Alipay (Zhifubao) — one of China's largest payment platforms. Handles payment creation, QR code generation, payment verification, and refund processing. |
 
 :::warning
 Payment processing involves real financial transactions. The Alipay SDK handles secure communication with Alipay's servers, verifies payment callbacks to prevent fraud, and ensures all transactions are properly recorded.

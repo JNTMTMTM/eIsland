@@ -10,6 +10,10 @@ icon: wifi
 
 WiFi connection status and monitoring via .NET NativeAOT DLL (koffi FFI).
 
+:::note
+The `WifiMonitor` class provides real-time connectivity change events. Use it to detect network switches without polling `getWifiInfo` repeatedly.
+:::
+
 ## Enums
 
 | Enum | Description |

@@ -22,3 +22,4 @@ The eIsland frontend is built on Electron's multi-process architecture with a st
 | [Shape Modes](shape-modes.md) | Notch and Pill shape modes: dimensions, positioning, interaction differences, and toggle mechanism |
 | [CLI State & Codex Support](cli.md) | Claude Code and Codex CLI session monitoring: dual-provider architecture, event streaming, permission handling, and activity heatmap |
 | [Electron Windows](electron-windows.md) | All BrowserWindow instances: main island, splash, guide, standalone, capture, and glow overlays |
+| [Questionnaire System](questionnaire.md) | Survey/questionnaire interface: question types, draft persistence, multi-questionnaire navigation, and reward system |

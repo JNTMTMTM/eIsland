@@ -74,7 +74,7 @@ for (const adapter of adapters) {
 ## Notes
 
 :::note
-Wi-Fi adapters appear alongside Ethernet adapters. The `adapterType` field distinguishes them (e.g., `"以太网 802.3"` for Ethernet, `"IEEE 802.11"` for Wi-Fi).
+Wi-Fi adapters appear alongside Ethernet adapters. The `adapterType` field distinguishes them (e.g., `"Ethernet 802.3"` for Ethernet, `"IEEE 802.11"` for Wi-Fi). Note: the actual system-returned value may be in the OS display language.
 :::
 
 :::tip

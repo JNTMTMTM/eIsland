@@ -10,6 +10,10 @@ icon: maximize
 
 Fullscreen window detection via C N-API native addon.
 
+:::tip
+Use `isAnyFullscreenWindow` for quick boolean checks. Only call `getFullscreenWindows` when you need the actual window list — it returns more data and is slightly more expensive.
+:::
+
 ## Interfaces
 
 | Interface | Description |

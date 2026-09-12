@@ -1,3 +1,8 @@
+---
+title: FeedbackQqGroupConfig
+icon: table
+---
+
 # FeedbackQqGroupConfig
 
 :::info

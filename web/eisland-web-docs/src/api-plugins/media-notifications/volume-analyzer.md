@@ -10,6 +10,10 @@ icon: waveform
 
 Process-specific audio analysis: frequency spectrum, amplitude, and beat detection via WASAPI loopback.
 
+:::tip
+Use `getPlayingProcesses` to discover which processes have active audio sessions before calling `start`. This avoids starting analysis on a process that produces no audio.
+:::
+
 ## Interfaces
 
 | Interface | Description |

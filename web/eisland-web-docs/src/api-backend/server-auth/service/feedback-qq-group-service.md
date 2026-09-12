@@ -1,3 +1,8 @@
+---
+title: FeedbackQqGroupConfigService
+icon: server
+---
+
 # FeedbackQqGroupConfigService
 
 :::info

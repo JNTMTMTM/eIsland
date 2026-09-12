@@ -31,7 +31,7 @@ interface NetworkAdapterInfo {
 | `name` | `string \| null` | Adapter name (e.g., `"Intel(R) Ethernet Controller I226-V"`) |
 | `manufacturer` | `string \| null` | Adapter manufacturer (e.g., `"Intel"`, `"Realtek"`) |
 | `macAddress` | `string \| null` | MAC address in `XX:XX:XX:XX:XX:XX` format |
-| `adapterType` | `string \| null` | Adapter type (e.g., `"以太网 802.3"`, `"IEEE 802.11"`) |
+| `adapterType` | `string \| null` | Adapter type (e.g., `"Ethernet 802.3"`, `"IEEE 802.11"`). Note: value may be in OS display language. |
 | `speedBps` | `number \| null` | Link speed in bits per second |
 | `netConnectionStatus` | `boolean \| null` | `true` if connected, `false` if disconnected |
 | `pnpDeviceId` | `string \| null` | PnP device identifier |

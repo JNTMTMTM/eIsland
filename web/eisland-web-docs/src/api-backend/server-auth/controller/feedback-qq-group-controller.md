@@ -1,3 +1,8 @@
+---
+title: Feedback QQ Group Config API
+icon: plug
+---
+
 # Feedback QQ Group Config API
 
 :::info

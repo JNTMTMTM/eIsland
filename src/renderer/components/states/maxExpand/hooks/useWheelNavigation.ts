@@ -59,6 +59,8 @@ const WHEEL_EXCLUDED_SELECTORS = [
   '.settings-field-textarea',
   '.memo-tab-container',
   '.alarm-tab-container',
+  '.world-clock-container',
+  '.world-clock-picker-sidebar',
   '.cli-tab',
   '.cli-tab-event-list',
   '.cli-tab-session-list',
