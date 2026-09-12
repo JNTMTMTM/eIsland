@@ -157,6 +157,12 @@
   margin-bottom: 4px;
 }
 
+.world-clock-country-flag {
+  flex-shrink: 0;
+  width: 18px;
+  border-radius: 2px;
+}
+
 .world-clock-card-label {
   font-size: 13px;
   font-weight: 500;

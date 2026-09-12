@@ -30,6 +30,7 @@ import type { WorldClockCity, WorldClockTick, TimezoneOption } from '../types/wo
 import { STORE_KEY } from '../types/worldClockTypes';
 import { TIMEZONE_LABELS } from '../config/timezoneLabels';
 import { COMMON_CITY_OPTIONS } from '../config/commonCities';
+import { TIMEZONE_COUNTRY_CODES } from '../config/timezoneCountryCodes';
 
 /** 通过 IPC 写入文件 */
 export function persistCities(cities: WorldClockCity[]): void {
@@ -54,6 +55,7 @@ export function buildTick(city: WorldClockCity, now: Date, localTz: string, loca
     timezone: entry.timezone,
     label: entry.label,
     labelKey: city.labelKey,
+    countryCode: getTimezoneCountryCode(entry.timezone),
     formattedTime: new Intl.DateTimeFormat(locale, {
       timeZone: entry.timezone,
       hour: '2-digit',
@@ -90,12 +92,22 @@ export function getAllTimezoneOptions(): TimezoneOption[] {
   const options = [...new Set(['UTC', ...timezones])].map((tz) => {
     const label = tz.replace(/_/g, ' ').split('/').pop() ?? tz;
     const labelKey = TIMEZONE_LABELS[tz] ?? '';
-    return { timezone: tz, label, labelKey };
+    return { timezone: tz, label, labelKey, countryCode: getTimezoneCountryCode(tz) };
   });
   return [...options, ...COMMON_CITY_OPTIONS.map((option) => ({
     ...option,
     timezone: getCanonicalTimezone(option.timezone),
+    countryCode: getTimezoneCountryCode(option.timezone),
   }))];
+}
+
+/**
+ * 获取时区对应的 ISO 国家代码，用于显示国旗。
+ * @param timezone - IANA 时区名称或历史别名
+ * @returns 小写 ISO 3166-1 alpha-2 国家代码，UTC 等无归属时返回 undefined
+ */
+export function getTimezoneCountryCode(timezone: string): string | undefined {
+  return TIMEZONE_COUNTRY_CODES[timezone] ?? TIMEZONE_COUNTRY_CODES[getCanonicalTimezone(timezone)] ?? undefined;
 }
 
 /**

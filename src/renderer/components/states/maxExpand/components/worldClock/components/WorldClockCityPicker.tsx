@@ -136,8 +136,19 @@ export function WorldClockCityPicker({
               className={`world-clock-picker-item${added ? ' world-clock-picker-item--added' : ''}`}
               type="button"
               disabled={added}
-              onClick={() => onSelect({ timezone: opt.timezone, label: opt.label, labelKey: opt.labelKey, order: 0 })}
+              onClick={() => onSelect({
+                timezone: opt.timezone,
+                label: opt.label,
+                labelKey: opt.labelKey,
+                order: 0,
+              })}
             >
+              {opt.countryCode && (
+                <span
+                  aria-hidden="true"
+                  className={`fi fi-${opt.countryCode} world-clock-country-flag`}
+                />
+              )}
               <span className="world-clock-picker-item-label">{getCityLabel(opt, t)}</span>
               <span className="world-clock-picker-item-tz">{opt.timezone}</span>
               {added && (

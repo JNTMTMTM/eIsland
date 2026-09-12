@@ -41,6 +41,7 @@ export interface WorldClockTick {
   timezone: string;
   label: string;
   labelKey?: string;
+  countryCode?: string;
   /** 格式化时间，如 "14:30" */
   formattedTime: string;
   /** 格式化日期，如 "9/4" 或 "9月4日" */
@@ -60,6 +61,8 @@ export interface TimezoneOption {
   label: string;
   /** i18n 翻译键 */
   labelKey: string;
+  /** ISO 3166-1 alpha-2 国家代码；UTC 等无归属时为空 */
+  countryCode?: string;
 }
 
 /** 持久化存储 key */
