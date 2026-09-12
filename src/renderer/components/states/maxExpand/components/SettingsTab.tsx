@@ -204,6 +204,7 @@ export function SettingsTab(): ReactElement {
       album: 'settings.app.layout.widgetNames.album',
       mokugyo: 'settings.app.layout.widgetNames.mokugyo',
       breakReminder: 'settings.app.layout.widgetNames.breakReminder',
+      worldClock: 'settings.app.layout.widgetNames.worldClock',
     };
     return OVERVIEW_WIDGET_OPTIONS.map((option) => ({
       ...option,

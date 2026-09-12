@@ -593,6 +593,56 @@
   color: rgba(var(--color-text-rgb), 0.85);
 }
 
+/** 世界时钟控件 */
+.ov-dash-world-clock-list {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 0;
+}
+.ov-dash-world-clock-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: 8px;
+  padding: 7px 8px;
+  border-radius: 7px;
+  background: rgba(var(--color-text-rgb), 0.035);
+}
+.ov-dash-world-clock-city {
+  overflow: hidden;
+  color: rgba(var(--color-text-rgb), 0.62);
+  font-size: 10px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ov-dash-world-clock-time {
+  grid-column: 1;
+  color: rgba(var(--color-text-rgb), 0.9);
+  font-size: 18px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.3px;
+  line-height: 1.2;
+}
+.ov-dash-world-clock-date {
+  grid-column: 2;
+  grid-row: 1 / 3;
+  align-self: center;
+  color: rgba(var(--color-text-rgb), 0.32);
+  font-size: 9px;
+  font-variant-numeric: tabular-nums;
+}
+.ov-dash-world-clock-empty {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  color: rgba(var(--color-text-rgb), 0.24);
+  font-size: 10px;
+  text-align: center;
+}
+
 /** 相册轮播控件 */
 .ov-dash-album-count {
   position: absolute;

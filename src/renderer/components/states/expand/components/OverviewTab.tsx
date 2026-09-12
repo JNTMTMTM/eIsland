@@ -38,6 +38,7 @@ import {
   SongWidget,
   TodoWidget,
   UrlFavoritesWidget,
+  WorldClockWidget,
 } from './OverviewTab/components/OverviewWidgets';
 import {
   APPS_STORE_KEY,
@@ -50,7 +51,7 @@ import {
 } from './OverviewTab/utils/overviewUtils';
 
 /** 总览控件类型 */
-export type OverviewWidgetType = 'shortcuts' | 'todo' | 'song' | 'countdown' | 'pomodoro' | 'urlFavorites' | 'album' | 'mokugyo' | 'breakReminder';
+export type OverviewWidgetType = 'shortcuts' | 'todo' | 'song' | 'countdown' | 'pomodoro' | 'urlFavorites' | 'album' | 'mokugyo' | 'breakReminder' | 'worldClock';
 
 /** 中间时钟样式类型 */
 export type OverviewClockStyle = 'classic' | 'gradient' | 'minimal';
@@ -66,6 +67,7 @@ export const OVERVIEW_WIDGET_OPTIONS: { value: OverviewWidgetType }[] = [
   { value: 'mokugyo' },
   { value: 'urlFavorites' },
   { value: 'breakReminder' },
+  { value: 'worldClock' },
 ];
 
 /** 时钟样式选项 */
@@ -385,6 +387,8 @@ export function OverviewTab(): React.ReactElement {
         return <UrlFavoritesWidget openUrlFavoritesPage={() => openTargetPage('urlFavorites')} />;
       case 'breakReminder':
         return <BreakReminderWidget openBreakReminderPage={() => openTargetPage('settings')} />;
+      case 'worldClock':
+        return <WorldClockWidget />;
       default:
         return null;
     }

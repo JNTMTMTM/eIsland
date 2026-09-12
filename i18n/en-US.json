@@ -697,6 +697,12 @@
       "title": "Countdown",
       "empty": "No countdown events"
     },
+    "worldClock": {
+      "title": "World Clock",
+      "previewFirstCity": "Shanghai",
+      "previewSecondCity": "New York",
+      "empty": "Choose up to two timezones in the full World Clock"
+    },
     "breakReminder": {
       "title": "Break Reminder",
       "count": "{{count}} items",
@@ -1985,6 +1991,9 @@
       "alreadyAdded": "Added",
       "noResults": "No results",
       "removeCity": "Remove",
+      "addToOverview": "Add to Overview",
+      "removeFromOverview": "Remove from Overview",
+      "overviewLimitReached": "Overview shows up to two timezones",
       "cityLabels": {
         "Beijing": "Beijing",
         "Guangzhou": "Guangzhou",
@@ -2774,7 +2783,8 @@
           "urlFavorites": "URL Favorites",
           "album": "Album Carousel",
           "mokugyo": "Mokugyo",
-          "breakReminder": "Break Reminder"
+          "breakReminder": "Break Reminder",
+          "worldClock": "World Clock"
         },
         "previewMock": {
           "previewTag": "Preview",

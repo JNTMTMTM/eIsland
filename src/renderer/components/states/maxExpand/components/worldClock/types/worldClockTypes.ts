@@ -78,6 +78,12 @@ export const STORE_KEY = 'worldClockCities';
 export interface WorldClockCardProps {
   tick: WorldClockTick;
   onRemove: (timezone: string) => void;
+  /** 添加或移出 Overview 展示列表 */
+  onToggleOverview: (timezone: string) => void;
+  /** 当前时区是否已展示在 Overview */
+  overviewSelected: boolean;
+  /** Overview 展示列表是否已达到两个时区上限 */
+  overviewSelectionFull: boolean;
   /** 城市选择器中的删除操作正在指向此卡片 */
   removeHighlighted?: boolean;
 }

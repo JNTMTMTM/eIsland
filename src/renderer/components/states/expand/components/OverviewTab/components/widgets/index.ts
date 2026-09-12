@@ -33,3 +33,4 @@ export * from './AlbumCarouselWidget';
 export * from './ShortcutsWidget';
 export * from './TodoWidget';
 export * from './BreakReminderWidget';
+export * from './WorldClockWidget';

@@ -24,10 +24,16 @@
  * @author 鸡哥
  */
 
-import { useCallback, useMemo, useState, type ReactElement } from 'react';
+import { useCallback, useEffect, useMemo, useState, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SvgIcon } from '../../../../../../utils/SvgIcon';
 import { useWorldClockState } from '../hooks/useWorldClockState';
+import {
+  DEFAULT_OVERVIEW_WORLD_CLOCK_CONFIG,
+  normalizeOverviewWorldClockConfig,
+  OVERVIEW_TIMEZONES_STORE_KEY,
+  type OverviewWorldClockConfig,
+} from '../config/overviewWorldClockConfig';
 import { getAllTimezoneOptions } from '../utils/worldClockUtils';
 import { WorldClockCard } from './WorldClockCard';
 import { WorldClockCityPicker } from './WorldClockCityPicker';
@@ -39,9 +45,50 @@ export function WorldClockTab(): ReactElement {
   const { t } = useTranslation();
   const state = useWorldClockState();
   const [removeHoveredTimezone, setRemoveHoveredTimezone] = useState<string | null>(null);
+  const [overviewConfig, setOverviewConfig] = useState<OverviewWorldClockConfig>(DEFAULT_OVERVIEW_WORLD_CLOCK_CONFIG);
   const timezoneOptions = useMemo(() => getAllTimezoneOptions(), []);
   const { setShowPicker } = state;
   const closePicker = useCallback(() => setShowPicker(false), [setShowPicker]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const applyConfig = (value: unknown): void => {
+      if (!cancelled) setOverviewConfig(normalizeOverviewWorldClockConfig(value));
+    };
+
+    window.api.storeRead(OVERVIEW_TIMEZONES_STORE_KEY).then(applyConfig).catch(() => {});
+    const unsub = window.api.onSettingsChanged((channel: string, value: unknown) => {
+      if (channel === `store:${OVERVIEW_TIMEZONES_STORE_KEY}`) applyConfig(value);
+    });
+    return () => {
+      cancelled = true;
+      unsub();
+    };
+  }, []);
+
+  const updateOverviewTimezones = useCallback((timezones: string[]): void => {
+    const updated = normalizeOverviewWorldClockConfig({ timezones });
+    setOverviewConfig(updated);
+    window.api.storeWrite(OVERVIEW_TIMEZONES_STORE_KEY, updated).catch(() => {});
+  }, []);
+
+  const handleToggleOverview = useCallback((timezone: string): void => {
+    const selected = overviewConfig.timezones.includes(timezone);
+    if (selected) {
+      updateOverviewTimezones(overviewConfig.timezones.filter((item) => item !== timezone));
+      return;
+    }
+    if (overviewConfig.timezones.length < 2) {
+      updateOverviewTimezones([...overviewConfig.timezones, timezone]);
+    }
+  }, [overviewConfig.timezones, updateOverviewTimezones]);
+
+  const handleRemoveCity = useCallback((timezone: string): void => {
+    state.removeCity(timezone);
+    if (overviewConfig.timezones.includes(timezone)) {
+      updateOverviewTimezones(overviewConfig.timezones.filter((item) => item !== timezone));
+    }
+  }, [overviewConfig.timezones, state.removeCity, updateOverviewTimezones]);
 
   const existingTimezones = useMemo(
     () => state.cities.map((c) => c.timezone),
@@ -70,7 +117,10 @@ export function WorldClockTab(): ReactElement {
             <WorldClockCard
               key={tick.timezone}
               tick={tick}
-              onRemove={state.removeCity}
+              onRemove={handleRemoveCity}
+              onToggleOverview={handleToggleOverview}
+              overviewSelected={overviewConfig.timezones.includes(tick.timezone)}
+              overviewSelectionFull={overviewConfig.timezones.length >= 2}
               removeHighlighted={state.showPicker && removeHoveredTimezone === tick.timezone}
             />
           ))}

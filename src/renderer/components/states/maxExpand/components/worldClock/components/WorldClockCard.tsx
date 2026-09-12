@@ -32,7 +32,14 @@ import { getCityLabel } from '../utils/worldClockUtils';
 import { WorldClockFlag } from './WorldClockFlag';
 
 /** 世界时钟卡片 */
-export function WorldClockCard({ tick, onRemove, removeHighlighted = false }: WorldClockCardProps): ReactElement {
+export function WorldClockCard({
+  tick,
+  onRemove,
+  onToggleOverview,
+  overviewSelected,
+  overviewSelectionFull,
+  removeHighlighted = false,
+}: WorldClockCardProps): ReactElement {
   const { t } = useTranslation();
 
   return (
@@ -58,6 +65,20 @@ export function WorldClockCard({ tick, onRemove, removeHighlighted = false }: Wo
         title={t('maxExpand.worldClock.removeCity', { defaultValue: '移除' })}
       >
         <img src={SvgIcon.DELETE} alt="" className="world-clock-card-remove-icon" />
+      </button>
+      <button
+        className={`world-clock-card-add-overview${overviewSelected ? ' world-clock-card-add-overview--selected' : ''}`}
+        type="button"
+        disabled={!overviewSelected && overviewSelectionFull}
+        onClick={() => onToggleOverview(tick.timezone)}
+        title={overviewSelected
+          ? t('maxExpand.worldClock.removeFromOverview')
+          : overviewSelectionFull
+            ? t('maxExpand.worldClock.overviewLimitReached')
+            : t('maxExpand.worldClock.addToOverview')
+        }
+      >
+        <img src={SvgIcon.PLUS} alt="" className="world-clock-card-add-overview-icon" />
       </button>
     </div>
   );
