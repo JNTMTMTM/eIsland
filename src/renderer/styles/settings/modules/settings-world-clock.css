@@ -179,11 +179,11 @@
   background: rgba(var(--color-text-rgb), 0.07);
 }
 
-.world-clock-card--local {
+.world-clock-card--selected {
   background: rgba(var(--color-accent-rgb, 59, 130, 246), 0.08);
 }
 
-.world-clock-card--local:hover {
+.world-clock-card--selected:hover {
   background: rgba(var(--color-accent-rgb, 59, 130, 246), 0.12);
 }
 

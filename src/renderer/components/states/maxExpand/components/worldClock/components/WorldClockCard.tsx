@@ -43,7 +43,7 @@ export function WorldClockCard({
   const { t } = useTranslation();
 
   return (
-    <div className={`world-clock-card${tick.isLocal ? ' world-clock-card--local' : ''}${removeHighlighted ? ' world-clock-card--remove-highlighted' : ''}`}>
+    <div className={`world-clock-card${overviewSelected ? ' world-clock-card--selected' : ''}${removeHighlighted ? ' world-clock-card--remove-highlighted' : ''}`}>
       <div className="world-clock-card-header">
         <WorldClockFlag countryCode={tick.countryCode} />
         <span className="world-clock-card-label">{getCityLabel(tick, t)}</span>
