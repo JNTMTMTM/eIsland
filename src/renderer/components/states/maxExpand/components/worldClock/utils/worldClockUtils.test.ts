@@ -101,6 +101,14 @@ describe('overview world clock configuration', () => {
     expect(normalizeOverviewWorldClockConfig({ firstTimezone: 'Europe/London', secondTimezone: 'Asia/Tokyo' }))
       .toEqual({ timezones: ['Europe/London', 'Asia/Tokyo'] });
   });
+
+  it('canonicalizes aliases before deduplication so the same zone cannot occupy two slots', () => {
+    expect(normalizeOverviewWorldClockConfig({ timezones: ['US/Eastern', 'America/New_York'] }))
+      .toEqual({ timezones: ['America/New_York'] });
+    const result = normalizeOverviewWorldClockConfig({ timezones: ['Asia/Calcutta', 'Asia/Kolkata', 'Asia/Tokyo'] });
+    expect(result.timezones).toHaveLength(2);
+    expect(result.timezones).toContain('Asia/Tokyo');
+  });
 });
 
 describe('world clock translation and time', () => {

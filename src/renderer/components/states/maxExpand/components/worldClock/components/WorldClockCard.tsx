@@ -31,7 +31,16 @@ import type { WorldClockCardProps } from '../types/worldClockTypes';
 import { getCityLabel } from '../utils/worldClockUtils';
 import { WorldClockFlag } from './WorldClockFlag';
 
-/** 世界时钟卡片 */
+/**
+ * 世界时钟卡片。
+ * @param tick - 当前时钟 tick 数据
+ * @param onRemove - 移除此城市
+ * @param onToggleOverview - 将此城市加入或移出总览展示
+ * @param overviewSelected - 此城市是否已展示在总览
+ * @param overviewSelectionFull - 总览是否已达两个时区上限
+ * @param removeHighlighted - 城市选择器的删除操作是否指向此卡片
+ * @returns 时钟卡片元素
+ */
 export function WorldClockCard({
   tick,
   onRemove,
@@ -79,7 +88,7 @@ export function WorldClockCard({
               : t('maxExpand.worldClock.addToOverview')
           }
         >
-          <img src={SvgIcon.PLUS} alt="" className="world-clock-card-add-overview-icon" />
+          <img src={overviewSelected ? SvgIcon.CHECKED : SvgIcon.PLUS} alt="" className="world-clock-card-add-overview-icon" />
         </button>
       </div>
     </div>

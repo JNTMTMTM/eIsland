@@ -24,15 +24,14 @@
  * @author 鸡哥
  */
 
-import { useCallback, useEffect, useMemo, useState, type ReactElement } from 'react';
+import { useCallback, useMemo, useState, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SvgIcon } from '../../../../../../utils/SvgIcon';
 import { useWorldClockState } from '../hooks/useWorldClockState';
+import { useOverviewWorldClockConfig } from '../hooks/useOverviewWorldClockConfig';
 import {
-  DEFAULT_OVERVIEW_WORLD_CLOCK_CONFIG,
   normalizeOverviewWorldClockConfig,
   OVERVIEW_TIMEZONES_STORE_KEY,
-  type OverviewWorldClockConfig,
 } from '../config/overviewWorldClockConfig';
 import { getAllTimezoneOptions } from '../utils/worldClockUtils';
 import { WorldClockCard } from './WorldClockCard';
@@ -45,26 +44,10 @@ export function WorldClockTab(): ReactElement {
   const { t } = useTranslation();
   const state = useWorldClockState();
   const [removeHoveredTimezone, setRemoveHoveredTimezone] = useState<string | null>(null);
-  const [overviewConfig, setOverviewConfig] = useState<OverviewWorldClockConfig>(DEFAULT_OVERVIEW_WORLD_CLOCK_CONFIG);
+  const [overviewConfig, setOverviewConfig] = useOverviewWorldClockConfig();
   const timezoneOptions = useMemo(() => getAllTimezoneOptions(), []);
   const { setShowPicker } = state;
   const closePicker = useCallback(() => setShowPicker(false), [setShowPicker]);
-
-  useEffect(() => {
-    let cancelled = false;
-    const applyConfig = (value: unknown): void => {
-      if (!cancelled) setOverviewConfig(normalizeOverviewWorldClockConfig(value));
-    };
-
-    window.api.storeRead(OVERVIEW_TIMEZONES_STORE_KEY).then(applyConfig).catch(() => {});
-    const unsub = window.api.onSettingsChanged((channel: string, value: unknown) => {
-      if (channel === `store:${OVERVIEW_TIMEZONES_STORE_KEY}`) applyConfig(value);
-    });
-    return () => {
-      cancelled = true;
-      unsub();
-    };
-  }, []);
 
   const updateOverviewTimezones = useCallback((timezones: string[]): void => {
     const updated = normalizeOverviewWorldClockConfig({ timezones });

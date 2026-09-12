@@ -27,12 +27,7 @@
 import { useEffect, useMemo, useRef, useState, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getUserTimezone } from '@multisystemsuite/timezone-engine-core';
-import {
-  DEFAULT_OVERVIEW_WORLD_CLOCK_CONFIG,
-  normalizeOverviewWorldClockConfig,
-  OVERVIEW_TIMEZONES_STORE_KEY,
-  type OverviewWorldClockConfig,
-} from '../../../../../maxExpand/components/worldClock/config/overviewWorldClockConfig';
+import { useOverviewWorldClockConfig } from '../../../../../maxExpand/components/worldClock/hooks/useOverviewWorldClockConfig';
 import type { WorldClockCity, WorldClockTick } from '../../../../../maxExpand/components/worldClock/types/worldClockTypes';
 import { buildAllTicks, getAllTimezoneOptions, getCityLabel } from '../../../../../maxExpand/components/worldClock/utils/worldClockUtils';
 import { WorldClockFlag } from '../../../../../maxExpand/components/worldClock/components/WorldClockFlag';
@@ -47,7 +42,7 @@ const CLOCK_UPDATE_INTERVAL_MS = 1000;
 export function WorldClockWidget(): ReactElement {
   const { t, i18n } = useTranslation();
   const localTimezoneRef = useRef(getUserTimezone('UTC'));
-  const [config, setConfig] = useState<OverviewWorldClockConfig>(DEFAULT_OVERVIEW_WORLD_CLOCK_CONFIG);
+  const [config] = useOverviewWorldClockConfig();
   const [ticks, setTicks] = useState<WorldClockTick[]>([]);
   const timezoneOptions = useMemo(() => getAllTimezoneOptions(), []);
   const locale = i18n.resolvedLanguage || i18n.language;
@@ -62,23 +57,6 @@ export function WorldClockWidget(): ReactElement {
       };
     });
   }, [config, timezoneOptions]);
-
-  useEffect(() => {
-    let cancelled = false;
-    const applyConfig = (value: unknown): void => {
-      if (!cancelled) setConfig(normalizeOverviewWorldClockConfig(value));
-    };
-
-    window.api.storeRead(OVERVIEW_TIMEZONES_STORE_KEY).then(applyConfig).catch(() => {});
-    const unsub = window.api.onSettingsChanged((channel: string, value: unknown) => {
-      if (channel === `store:${OVERVIEW_TIMEZONES_STORE_KEY}`) applyConfig(value);
-    });
-
-    return () => {
-      cancelled = true;
-      unsub();
-    };
-  }, []);
 
   useEffect(() => {
     const update = (): void => {

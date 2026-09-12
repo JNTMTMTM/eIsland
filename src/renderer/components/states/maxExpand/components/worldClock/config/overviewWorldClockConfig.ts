@@ -38,22 +38,22 @@ export const DEFAULT_OVERVIEW_WORLD_CLOCK_CONFIG: OverviewWorldClockConfig = {
 };
 
 /**
- * 判断时区是否可由当前运行时解析。
- * @param timezone - 候选 IANA 时区名称
- * @returns 可解析时返回 true
+ * 验证并解析时区为运行时规范名称。
+ * @param timezone - 候选时区值
+ * @returns 规范 IANA 名称；无效输入返回 null
  */
-function isSupportedTimezone(timezone: unknown): timezone is string {
-  if (typeof timezone !== 'string') return false;
+function canonicalizeTimezone(timezone: unknown): string | null {
+  if (typeof timezone !== 'string') return null;
   try {
-    new Intl.DateTimeFormat('en', { timeZone: timezone });
-    return true;
+    return new Intl.DateTimeFormat('en', { timeZone: timezone }).resolvedOptions().timeZone;
   } catch {
-    return false;
+    return null;
   }
 }
 
 /**
  * 标准化总览时区配置。
+ * @description 规范化别名（如 US/Eastern → America/New_York）后再去重，防止同一时区以不同别名占两个槽位。
  * @param raw - 任意来源的原始配置
  * @returns 最多包含两个不同有效时区的配置
  */
@@ -63,6 +63,15 @@ export function normalizeOverviewWorldClockConfig(raw: unknown): OverviewWorldCl
   const source = Array.isArray(candidate.timezones)
     ? candidate.timezones
     : [candidate.firstTimezone, candidate.secondTimezone];
-  const timezones = source.filter(isSupportedTimezone).filter((timezone, index, values) => values.indexOf(timezone) === index).slice(0, 2);
+  const seen = new Set<string>();
+  const timezones: string[] = [];
+  for (const entry of source) {
+    const canonical = canonicalizeTimezone(entry);
+    if (canonical && !seen.has(canonical)) {
+      seen.add(canonical);
+      timezones.push(canonical);
+      if (timezones.length === 2) break;
+    }
+  }
   return { timezones };
 }
