@@ -101,33 +101,24 @@
   opacity: 0.9;
 }
 
-.world-clock-card-add-overview {
+.world-clock-card-actions {
   position: absolute;
-  top: calc(50% + 14px);
+  top: 50%;
   right: 14px;
   z-index: 1;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  width: 18px;
-  height: 18px;
-  padding: 0;
-  border: none;
-  border-radius: 50%;
-  background: rgba(var(--color-text-rgb), 0.1);
-  cursor: pointer;
+  gap: 14px;
   visibility: hidden;
   opacity: 0;
   pointer-events: none;
   transform: translateY(-50%) scale(0.85);
-  transition: background 0.15s, opacity 0.18s ease, transform 0.22s ease, visibility 0s linear 0.22s;
+  transition: opacity 0.18s ease, transform 0.22s ease, visibility 0s linear 0.22s;
 }
-.world-clock-card-add-overview-icon {
-  width: 10px;
-  height: 10px;
-  opacity: 0.5;
-}
-.world-clock-card:hover .world-clock-card-add-overview {
+.world-clock-card:hover .world-clock-card-actions,
+.world-clock-card:has(:focus-visible) .world-clock-card-actions,
+.world-clock-card--remove-highlighted .world-clock-card-actions {
   visibility: visible;
   opacity: 1;
   pointer-events: auto;
@@ -135,7 +126,7 @@
   transition-delay: 0s;
 }
 .world-clock-card-add-overview:hover:not(:disabled),
-.world-clock-card-add-overview--selected {
+.world-clock-card-add-overview.world-clock-card-add-overview--selected {
   background: rgba(var(--color-accent-rgb, 59, 130, 246), 0.24);
 }
 .world-clock-card-add-overview--selected .world-clock-card-add-overview-icon {
@@ -230,6 +221,7 @@
 }
 
 .world-clock-card-remove,
+.world-clock-card-add-overview,
 .world-clock-picker-remove {
   display: flex;
   align-items: center;
@@ -245,19 +237,14 @@
   transition: background 0.15s;
 }
 
-.world-clock-card-remove {
-  position: absolute;
-  top: 50%;
-  right: 14px;
-  z-index: 1;
-  visibility: hidden;
-  opacity: 0;
-  pointer-events: none;
-  transform: translateY(-50%) scale(0.85);
-  transition: background 0.15s, opacity 0.18s ease, transform 0.22s ease, visibility 0s linear 0.22s;
+.world-clock-card-remove,
+.world-clock-card-add-overview {
+  width: 26px;
+  height: 26px;
 }
 
 .world-clock-card-remove-icon,
+.world-clock-card-add-overview-icon,
 .world-clock-picker-remove-icon {
   width: 10px;
   height: 10px;
@@ -265,13 +252,10 @@
   transition: opacity 0.15s;
 }
 
-.world-clock-card:hover .world-clock-card-remove,
-.world-clock-card--remove-highlighted .world-clock-card-remove {
-  visibility: visible;
-  opacity: 1;
-  pointer-events: auto;
-  transform: translateY(-50%) scale(1);
-  transition-delay: 0s;
+.world-clock-card-remove-icon,
+.world-clock-card-add-overview-icon {
+  width: 14px;
+  height: 14px;
 }
 
 .world-clock-card-remove:hover,
@@ -333,8 +317,9 @@
 }
 
 .world-clock-card:hover .world-clock-card-dial,
+.world-clock-card:has(:focus-visible) .world-clock-card-dial,
 .world-clock-card--remove-highlighted .world-clock-card-dial {
-  transform: translateX(-28px);
+  transform: translateX(-36px);
 }
 
 .world-clock-card-hand {

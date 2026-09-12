@@ -58,28 +58,30 @@ export function WorldClockCard({
         <span className="world-clock-card-hand world-clock-card-hand--minute" style={{ transform: `rotate(${tick.handAngles.minute}deg)` }} />
         <span className="world-clock-card-hand world-clock-card-hand--second" style={{ transform: `rotate(${tick.handAngles.second}deg)` }} />
       </div>
-      <button
-        className="world-clock-card-remove"
-        type="button"
-        onClick={() => onRemove(tick.timezone)}
-        title={t('maxExpand.worldClock.removeCity', { defaultValue: '移除' })}
-      >
-        <img src={SvgIcon.DELETE} alt="" className="world-clock-card-remove-icon" />
-      </button>
-      <button
-        className={`world-clock-card-add-overview${overviewSelected ? ' world-clock-card-add-overview--selected' : ''}`}
-        type="button"
-        disabled={!overviewSelected && overviewSelectionFull}
-        onClick={() => onToggleOverview(tick.timezone)}
-        title={overviewSelected
-          ? t('maxExpand.worldClock.removeFromOverview')
-          : overviewSelectionFull
-            ? t('maxExpand.worldClock.overviewLimitReached')
-            : t('maxExpand.worldClock.addToOverview')
-        }
-      >
-        <img src={SvgIcon.PLUS} alt="" className="world-clock-card-add-overview-icon" />
-      </button>
+      <div className="world-clock-card-actions">
+        <button
+          className="world-clock-card-remove"
+          type="button"
+          onClick={() => onRemove(tick.timezone)}
+          title={t('maxExpand.worldClock.removeCity', { defaultValue: '移除' })}
+        >
+          <img src={SvgIcon.DELETE} alt="" className="world-clock-card-remove-icon" />
+        </button>
+        <button
+          className={`world-clock-card-add-overview${overviewSelected ? ' world-clock-card-add-overview--selected' : ''}`}
+          type="button"
+          disabled={!overviewSelected && overviewSelectionFull}
+          onClick={() => onToggleOverview(tick.timezone)}
+          title={overviewSelected
+            ? t('maxExpand.worldClock.removeFromOverview')
+            : overviewSelectionFull
+              ? t('maxExpand.worldClock.overviewLimitReached')
+              : t('maxExpand.worldClock.addToOverview')
+          }
+        >
+          <img src={SvgIcon.PLUS} alt="" className="world-clock-card-add-overview-icon" />
+        </button>
+      </div>
     </div>
   );
 }
