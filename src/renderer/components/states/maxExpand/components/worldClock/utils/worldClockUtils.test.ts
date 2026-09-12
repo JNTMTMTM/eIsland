@@ -187,7 +187,7 @@ describe('world clock translation and time', () => {
 
   it('maps IANA aliases and multi-country regions to their correct flags', () => {
     [
-      ['Asia/Shanghai', 'cn'], ['Europe/London', 'gb'], ['America/New_York', 'us'],
+      ['Asia/Shanghai', 'cn'], ['Asia/Taipei', 'cn'], ['Europe/London', 'gb'], ['America/New_York', 'us'],
       ['Asia/Calcutta', 'in'], ['Europe/Kiev', 'ua'], ['Pacific/Truk', 'fm'],
       ['America/Godthab', 'gl'], ['Antarctica/Casey', 'aq'],
     ].forEach(([timezone, countryCode]) => expect(getTimezoneCountryCode(timezone)).toBe(countryCode));
