@@ -130,8 +130,8 @@
 .world-clock-card {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 64px 18px;
-  column-gap: 10px;
+  grid-template-columns: minmax(0, 1fr) 64px;
+  column-gap: 14px;
   padding: 12px 14px 10px;
   border-radius: 12px;
   background: rgba(var(--color-text-rgb), 0.04);
@@ -186,7 +186,7 @@
 
 .world-clock-card-remove,
 .world-clock-picker-remove {
-  display: none;
+  display: flex;
   align-items: center;
   justify-content: center;
   width: 18px;
@@ -201,9 +201,15 @@
 }
 
 .world-clock-card-remove {
-  grid-column: 3;
-  grid-row: 1 / 4;
-  align-self: center;
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  z-index: 1;
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-50%) scale(0.85);
+  transition: background 0.15s, opacity 0.18s ease, transform 0.22s ease, visibility 0s linear 0.22s;
 }
 
 .world-clock-card-remove-icon,
@@ -215,9 +221,12 @@
 }
 
 .world-clock-card:hover .world-clock-card-remove,
-.world-clock-card--remove-highlighted .world-clock-card-remove,
-.world-clock-picker-remove {
-  display: flex;
+.world-clock-card--remove-highlighted .world-clock-card-remove {
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(-50%) scale(1);
+  transition-delay: 0s;
 }
 
 .world-clock-card-remove:hover,
@@ -274,6 +283,13 @@
   border-radius: 50%;
   background: rgba(var(--color-text-rgb), 0.035);
   pointer-events: none;
+  transition: transform 0.22s ease;
+  will-change: transform;
+}
+
+.world-clock-card:hover .world-clock-card-dial,
+.world-clock-card--remove-highlighted .world-clock-card-dial {
+  transform: translateX(-28px);
 }
 
 .world-clock-card-hand {
