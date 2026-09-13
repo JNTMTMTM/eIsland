@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-09-13T02:00:33.573Z
+> 生成时间：2026-09-13T20:30:39.052Z
 
 ## 26.7.4
 
@@ -3569,6 +3569,19 @@
 
 ## Unreleased
 
+- 2026-09-13 | 9bd8e985 | 鸡哥 | Merge pull request #215 from JNTMTMTM/dev
+- 2026-09-14 | f7b0a206 | 鸡哥 | feat(alarm): enhance updateAlarmIds to handle async operations and error management
+- 2026-09-14 | e3d9b857 | 鸡哥 | refactor(test): simplify loop for alarm state updates in ipcHandlers tests
+- 2026-09-14 | 9b9da28d | 鸡哥 | chore: update license information and author attribution in multiple files
+- 2026-09-14 | d33dc2d0 | 鸡哥 | refactor(alarm): remove unused alarm background icon and related styles
+- 2026-09-14 | 448d5b74 | 鸡哥 | feat(alarm): add sync error message and enhance alarm state management
+- 2026-09-14 | 14f139a0 | 鸡哥 | feat(alarm): implement overview alarm widget and enhance alarm management features
+- 2026-09-14 | bccd7710 | 鸡哥 | refactor(alarm): remove unnecessary flex-direction property from compact sidebar card
+- 2026-09-14 | f7d06418 | 鸡哥 | feat(alarm): enhance WheelPicker functionality with improved scrolling and drag handling
+- 2026-09-14 | eb8e56f1 | 鸡哥 | refactor(alarm): use CSS variable for sidebar width to enhance responsiveness
+- 2026-09-14 | 225d245a | 鸡哥 | style(alarm): update active button styles for improved visibility and consistency
+- 2026-09-14 | 10918a40 | 鸡哥 | refactor(alarm): enhance AlarmCard and AlarmSidebar components for improved accessibility and styling
+- 2026-09-13 | 3bdc4dae | eislandBot | docs: auto update CHANGE_LOG.md for #214 by @JNTMTMTM [skip ci]
 - 2026-09-12 | eebd4685 | 鸡哥 | Merge pull request #214 from JNTMTMTM/dev
 - 2026-09-13 | a7ee98e9 | 鸡哥 | refactor(worldClock): simplify timezone normalization logic in normalizeOverviewWorldClockConfig
 - 2026-09-13 | 93eb3745 | 鸡哥 | feat(overviewTab): add openWorldClockPage callback for navigation in WorldClockWidget
