@@ -63,15 +63,10 @@ export function normalizeOverviewWorldClockConfig(raw: unknown): OverviewWorldCl
   const source = Array.isArray(candidate.timezones)
     ? candidate.timezones
     : [candidate.firstTimezone, candidate.secondTimezone];
-  const seen = new Set<string>();
-  const timezones: string[] = [];
-  for (const entry of source) {
-    const canonical = canonicalizeTimezone(entry);
-    if (canonical && !seen.has(canonical)) {
-      seen.add(canonical);
-      timezones.push(canonical);
-      if (timezones.length === 2) break;
-    }
-  }
+  const timezones = source
+    .map(canonicalizeTimezone)
+    .filter((tz): tz is string => tz !== null)
+    .filter((tz, index, arr) => arr.indexOf(tz) === index)
+    .slice(0, 2);
   return { timezones };
 }
