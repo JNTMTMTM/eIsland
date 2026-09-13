@@ -130,9 +130,9 @@ describe('app ipc handlers', () => {
     existsSyncMock.mockReturnValue(true);
     readFileSyncMock.mockReturnValue(JSON.stringify([{ id: 1, enabled: true }]));
     const update = handleHandlers.get('alarm:set-enabled');
-    for (const [id, enabled] of [[-1, true], [1.5, false], [1, 'false'], [2, false]]) {
+    [[-1, true], [1.5, false], [1, 'false'], [2, false]].forEach(([id, enabled]) => {
       expect(update?.({}, id, enabled)).toBe(false);
-    }
+    });
     readFileSyncMock.mockReturnValue('{}');
     expect(update?.({}, 1, false)).toBe(false);
     existsSyncMock.mockReturnValue(false);
