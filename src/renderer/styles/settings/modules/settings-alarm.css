@@ -7,7 +7,7 @@
 
 /**
  * @file settings-alarm.css
- * @description 闹钟 Tab 样式 — Apple Clock 风格，左右分栏布局
+ * @description 闹钟 Tab 样式 — 与世界时钟统一的标题、卡片层级及左右分栏布局
  */
 
 /* ══════════════════════════════════════
@@ -49,7 +49,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 16px 10px;
+  gap: 12px;
+  padding: 8px 16px 10px;
   flex-shrink: 0;
 }
 
@@ -93,15 +94,29 @@
 }
 
 .alarm-tab-add-btn--active .alarm-tab-btn-icon {
-  width: 10px;
-  height: 10px;
+  width: 12px;
+  height: 12px;
+  opacity: 0.45;
+}
+
+.alarm-tab-add-btn:hover .alarm-tab-btn-icon {
+  opacity: 0.85;
+}
+
+.alarm-tab-add-btn--active:hover .alarm-tab-btn-icon {
+  opacity: 0.65;
 }
 
 .alarm-tab-btn-icon {
   width: 14px;
   height: 14px;
-  opacity: 0.6;
-  filter: brightness(0) invert(var(--icon-invert));
+  opacity: 0.55;
+  filter: brightness(0) invert(1);
+  transition: opacity 0.18s;
+}
+
+[data-theme="light"] .alarm-tab-btn-icon {
+  filter: brightness(0) invert(0);
 }
 
 /* ── 列表 ── */
@@ -109,9 +124,10 @@
   display: flex;
   flex-direction: column;
   flex: 1;
+  gap: 10px;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 0 0 8px;
+  padding: 0 16px 16px;
 }
 
 .alarm-tab-list::-webkit-scrollbar {
@@ -157,19 +173,17 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
-  background: transparent;
+  gap: 14px;
+  flex-shrink: 0;
+  padding: 12px 14px 10px;
+  border-radius: 12px;
+  background: rgba(var(--color-text-rgb), 0.04);
   transition: background 0.18s, opacity 0.3s, padding 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-  border-bottom: 1px solid rgba(var(--color-text-rgb), 0.05);
   cursor: default;
 }
 
-.alarm-card:last-child {
-  border-bottom: none;
-}
-
 .alarm-card:hover {
-  background: rgba(var(--color-text-rgb), 0.03);
+  background: rgba(var(--color-text-rgb), 0.07);
 }
 
 .alarm-card--active {
@@ -187,17 +201,24 @@
 .alarm-card-left {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  align-items: stretch;
+  gap: 4px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
   cursor: pointer;
   flex: 1;
   min-width: 0;
 }
 
 .alarm-card-time {
-  font-size: 36px;
+  font-size: 32px;
   font-weight: 200;
   letter-spacing: -0.02em;
-  line-height: 1.1;
+  line-height: 1.15;
   font-variant-numeric: tabular-nums;
   color: rgba(var(--color-text-rgb), 0.92);
   transition: font-size 0.35s cubic-bezier(0.4, 0, 0.2, 1);
@@ -209,7 +230,8 @@
 
 /* 侧边栏紧凑模式：缩小卡片字号 */
 .alarm-tab-sidebar--compact .alarm-card {
-  padding: 10px 14px;
+  gap: 8px;
+  border-radius: 8px;
 }
 
 
@@ -242,16 +264,23 @@
 .alarm-card-meta {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 5px;
-  font-size: 12px;
+  font-size: 11px;
+  line-height: 1.4;
   color: rgba(var(--color-text-rgb), 0.4);
   letter-spacing: -0.01em;
   transition: font-size 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .alarm-card-label {
-  color: rgba(var(--color-text-rgb), 0.55);
+  overflow: hidden;
+  color: rgba(var(--color-text-rgb), 0.7);
+  font-size: 13px;
   font-weight: 500;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .alarm-card-meta-sep {
@@ -267,6 +296,10 @@
   align-items: center;
   gap: 8px;
   flex-shrink: 0;
+}
+
+.alarm-tab-sidebar--compact .alarm-card-right {
+  flex-direction: column-reverse;
 }
 
 /* ── 开关 Toggle (iOS) ── */
@@ -330,7 +363,8 @@
   transition: opacity 0.18s, background 0.18s;
 }
 
-.alarm-card:hover .alarm-delete-btn {
+.alarm-card:hover .alarm-delete-btn,
+.alarm-card:has(:focus-visible) .alarm-delete-btn {
   opacity: 0.35;
 }
 
@@ -374,22 +408,27 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 16px 4px;
+  flex-wrap: wrap;
+  gap: 12px;
+  min-height: 28px;
+  padding: 8px 16px 10px;
   flex-shrink: 0;
 }
 
 .alarm-editor-panel-title {
   font-size: 16px;
   font-weight: 600;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
+  line-height: 1.4;
   color: rgba(var(--color-text-rgb), 0.85);
 }
 
 /* 可滚动表单区 */
 .alarm-editor-panel-body {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
-  padding: 4px 16px 16px;
+  padding: 0 16px 16px;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -523,6 +562,8 @@
 .alarm-editor-field-label-row {
   display: flex;
   align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
@@ -613,12 +654,14 @@
 
 /* ── 星期选择 ── */
 .alarm-editor-weekdays {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 5px;
 }
 
 .alarm-weekday-btn {
-  width: 36px;
+  width: 100%;
+  max-width: 36px;
   height: 36px;
   border: none;
   border-radius: 50%;
@@ -666,10 +709,11 @@
 
 .alarm-editor-cancel-btn,
 .alarm-editor-save-btn {
-  padding: 8px 22px;
+  min-height: 28px;
+  padding: 4px 12px;
   border: none;
   border-radius: 980px;
-  font-size: 14px;
+  font-size: 12px;
   letter-spacing: -0.01em;
   cursor: pointer;
   transition: background 0.18s, color 0.18s, transform 0.18s;

@@ -64,7 +64,9 @@ export function AlarmSidebar({
             if (adding) { closeEditor(); }
             else { const _now = new Date(); setNewHour(_now.getHours()); setNewMinute(_now.getMinutes()); setNewSecond(_now.getSeconds()); setAdding(true); }
           }}
-          title={t('maxExpand.alarm.add', { defaultValue: '新建闹钟' })}
+          title={adding ? t('maxExpand.alarm.cancel') : t('maxExpand.alarm.add')}
+          aria-label={adding ? t('maxExpand.alarm.cancel') : t('maxExpand.alarm.add')}
+          aria-expanded={adding}
         >
           <img src={adding ? SvgIcon.CANCEL : SvgIcon.PLUS} alt="" className="alarm-tab-btn-icon" />
         </button>

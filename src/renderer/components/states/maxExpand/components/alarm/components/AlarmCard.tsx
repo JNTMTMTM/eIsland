@@ -42,12 +42,9 @@ export function AlarmCard({
 }: AlarmCardProps): ReactElement {
   const { t } = useTranslation();
 
-  /** 构建 meta 片段（label · repeat · next），用圆点分隔 */
+  /** 构建重复规则与下次响铃的辅助信息，用圆点分隔。 */
   const buildMetaFragments = (): ReactNode[] => {
     const parts: ReactNode[] = [];
-    if (alarm.label) {
-      parts.push(<span key="label" className="alarm-card-label">{alarm.label}</span>);
-    }
     const rep = repeatSummary(alarm.repeat);
     if (rep) {
       if (parts.length > 0) parts.push(<span key="s1" className="alarm-card-meta-sep" />);
@@ -65,12 +62,15 @@ export function AlarmCard({
     <div
       className={`alarm-card${alarm.enabled ? '' : ' alarm-card--disabled'}${isActive ? ' alarm-card--active' : ''}`}
     >
-      <div className="alarm-card-left" onClick={() => onStartEdit(alarm)}>
-        <div className="alarm-card-time">{formatTime(alarm.hour, alarm.minute, alarm.second)}</div>
-        <div className="alarm-card-meta">
+      <button className="alarm-card-left" type="button" onClick={() => onStartEdit(alarm)}>
+        <span className="alarm-card-label" title={alarm.label || t('maxExpand.alarm.title')}>
+          {alarm.label || t('maxExpand.alarm.title')}
+        </span>
+        <span className="alarm-card-time">{formatTime(alarm.hour, alarm.minute, alarm.second)}</span>
+        <span className="alarm-card-meta">
           {buildMetaFragments()}
-        </div>
-      </div>
+        </span>
+      </button>
       <div className="alarm-card-right">
         <button
           className="alarm-delete-btn"
