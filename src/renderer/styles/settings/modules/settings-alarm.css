@@ -612,10 +612,13 @@
   color: rgba(var(--color-text-rgb), 0.72);
 }
 
-.alarm-editor-ringtone-btn--active,
+.alarm-editor-ringtone-btn--active {
+  background: rgba(var(--color-accent-rgb, 59, 130, 246), 0.24);
+  color: rgba(var(--color-text-rgb), 0.9);
+}
+
 .alarm-editor-ringtone-btn--active:hover {
-  background: rgba(var(--color-text-rgb), 0.82);
-  color: rgba(var(--color-bg-rgb, 0, 0, 0), 0.95);
+  background: rgba(var(--color-accent-rgb, 59, 130, 246), 0.32);
 }
 
 .alarm-editor-check-row {
@@ -683,13 +686,13 @@
 }
 
 .alarm-weekday-btn--active {
-  background: rgba(var(--color-text-rgb), 0.85);
-  color: rgba(var(--color-bg-rgb, 0, 0, 0), 0.95);
+  background: rgba(var(--color-accent-rgb, 59, 130, 246), 0.24);
+  color: rgba(var(--color-text-rgb), 0.9);
   font-weight: 600;
 }
 
 .alarm-weekday-btn--active:hover {
-  background: rgba(var(--color-text-rgb), 0.75);
+  background: rgba(var(--color-accent-rgb, 59, 130, 246), 0.32);
 }
 
 .alarm-editor-repeat-hint {
@@ -736,28 +739,18 @@
 }
 
 .alarm-editor-save-btn {
-  background: rgba(var(--color-text-rgb), 0.85);
-  color: rgba(var(--color-bg-rgb, 0, 0, 0), 0.95);
+  background: rgba(var(--color-accent-rgb, 59, 130, 246), 0.24);
+  color: rgba(var(--color-text-rgb), 0.9);
   font-weight: 500;
 }
 
 .alarm-editor-save-btn:hover {
-  background: rgba(var(--color-text-rgb), 0.75);
+  background: rgba(var(--color-accent-rgb, 59, 130, 246), 0.32);
 }
 
 /* ══════ 浅色主题覆盖 ══════ */
 [data-theme='light'] .alarm-toggle--on .alarm-toggle-track {
   background: #34c759;
-}
-
-[data-theme='light'] .alarm-weekday-btn--active {
-  background: rgba(var(--color-text-rgb), 0.82);
-  color: #fff;
-}
-
-[data-theme='light'] .alarm-editor-save-btn {
-  background: rgba(var(--color-text-rgb), 0.82);
-  color: #fff;
 }
 
 [data-theme='light'] .alarm-delete-btn:hover {
