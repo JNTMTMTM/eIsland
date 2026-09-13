@@ -43,6 +43,7 @@ type TestWindow = {
 };
 
 type ExposedApi = {
+  setAlarmEnabled: (id: number, enabled: boolean) => Promise<boolean>;
   enableMousePassthrough: () => void;
   getMousePosition: () => Promise<unknown>;
   getMouseWindowState: () => Promise<unknown>;
@@ -143,6 +144,10 @@ describe('preload bridge', () => {
     expect(apiCall).toBeTruthy();
 
     const api = apiCall?.[1] as ExposedApi;
+
+    setup.invokeMock.mockResolvedValue(true);
+    expect(await api.setAlarmEnabled(42, false)).toBe(true);
+    expect(setup.invokeMock).toHaveBeenCalledWith('alarm:set-enabled', 42, false);
 
     api.enableMousePassthrough();
     expect(setup.sendMock).toHaveBeenCalledWith('window:enable-mouse-passthrough');

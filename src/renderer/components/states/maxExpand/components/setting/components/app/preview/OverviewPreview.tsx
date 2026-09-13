@@ -394,7 +394,9 @@ export function OverviewPreview({ layoutConfig }: { layoutConfig: OverviewLayout
                 <div key={time} className="ov-dash-world-clock-item ov-dash-alarm-item">
                   <span className="ov-dash-world-clock-city">{t('overview.alarm.title')}</span>
                   <span className="ov-dash-world-clock-time">{time}</span>
-                  <span className="ov-dash-alarm-status">{t('overview.alarm.enabled')}</span>
+                  <span className="alarm-toggle ov-dash-alarm-toggle alarm-toggle--on" aria-hidden="true">
+                    <span className="alarm-toggle-track"><span className="alarm-toggle-thumb" /></span>
+                  </span>
                   <img className="ov-dash-alarm-bg-icon" src={SvgIcon.TIMER} alt="" />
                 </div>
               ))}

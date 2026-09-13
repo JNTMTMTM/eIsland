@@ -181,10 +181,10 @@ export function useIslandTimerAndAlarm(options: UseIslandTimerAndAlarmOptions): 
         }
 
         if (disableOnceAlarmIds.length > 0) {
-          const updated = data.map((a: { id: number }) =>
-            disableOnceAlarmIds.includes(a.id) ? { ...a, enabled: false } : a,
-          );
-          await window.api?.storeWrite(ALARM_STORE_KEY, updated).catch(() => {});
+          // 单次闹钟响铃后的自动关闭也同步回本窗口的小组件与管理页。
+          await Promise.all(disableOnceAlarmIds.map((id) =>
+            window.api?.setAlarmEnabled(id, false).catch(() => {}),
+          ));
         }
 
         if (alarmFiredSetRef.current.size > 200) {

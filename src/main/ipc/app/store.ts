@@ -42,6 +42,26 @@ function isValidStoreKey(key: unknown): key is string {
  * @param options - 配置选项，包含存储目录
  */
 export function registerStoreIpcHandlers(options: RegisterStoreIpcHandlersOptions): void {
+  // 同步读改写单个闹钟，避免两个界面的开关操作用旧列表覆盖其他字段。
+  ipcMain.handle('alarm:set-enabled', (_event, id: number, enabled: boolean) => {
+    if (!Number.isSafeInteger(id) || id < 0 || typeof enabled !== 'boolean') return false;
+    try {
+      const filePath = join(options.storeDir, 'alarms.json');
+      if (!existsSync(filePath)) return false;
+      const alarms: unknown = JSON.parse(readFileSync(filePath, 'utf-8'));
+      if (!Array.isArray(alarms)) return false;
+      const alarm = alarms.find((item) => item && typeof item === 'object' && item.id === id);
+      if (!alarm) return false;
+      alarm.enabled = enabled;
+      writeFileSync(filePath, JSON.stringify(alarms, null, 2), 'utf-8');
+      broadcastSettingChange(-1, 'store:alarms', alarms);
+      return true;
+    } catch (err) {
+      console.error('[Alarm] update enabled error:', err);
+      return false;
+    }
+  });
+
   ipcMain.handle('store:read', (_event, key: string) => {
     try {
       if (!isValidStoreKey(key)) return null;

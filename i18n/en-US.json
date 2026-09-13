@@ -700,6 +700,7 @@
     "alarm": {
       "title": "Alarms",
       "empty": "Choose up to two alarms on the Alarms page",
+      "syncError": "Could not save. Please try again.",
       "enabled": "On",
       "add": "Show in Overview",
       "remove": "Remove from Overview",

@@ -700,6 +700,7 @@
     "alarm": {
       "title": "闹钟",
       "empty": "在闹钟页面选择最多两个闹钟展示",
+      "syncError": "保存失败，请重试",
       "enabled": "已开启",
       "add": "展示到 Overview",
       "remove": "从 Overview 移除",

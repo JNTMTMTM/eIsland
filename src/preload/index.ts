@@ -780,6 +780,10 @@ const api = {
   storeWrite: (key: string, data: unknown): Promise<boolean> => {
     return ipcRenderer.invoke('store:write', key, data);
   },
+  /** 设置单个闹钟的开关状态，并同步所有窗口。 */
+  setAlarmEnabled: (id: number, enabled: boolean): Promise<boolean> => {
+    return ipcRenderer.invoke('alarm:set-enabled', id, enabled);
+  },
   /** ===== 快捷键 API ===== */
   /**
    * 获取当前隐藏灵动岛的快捷键

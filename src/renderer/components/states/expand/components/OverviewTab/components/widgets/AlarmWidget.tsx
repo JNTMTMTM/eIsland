@@ -10,7 +10,7 @@
  * @author 鸡哥
  */
 
-import { useEffect, useState, type ReactElement } from 'react';
+import { useEffect, useRef, useState, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SvgIcon } from '../../../../../../../utils/SvgIcon';
 import { useOverviewAlarmConfig } from '../../../../../maxExpand/components/alarm/hooks/useOverviewAlarmConfig';
@@ -22,6 +22,26 @@ export function AlarmWidget({ onOpenAlarmPage }: { onOpenAlarmPage: () => void }
   const { t } = useTranslation();
   const { alarmIds } = useOverviewAlarmConfig();
   const [alarms, setAlarms] = useState<AlarmItem[]>([]);
+  const [pendingId, setPendingId] = useState<number | null>(null);
+  const pendingRef = useRef(false);
+  const [toggleFailed, setToggleFailed] = useState(false);
+
+  /** 由主进程更新单个闹钟，两个界面统一通过存储广播接收结果。 */
+  const toggleEnabled = async (alarm: AlarmItem): Promise<void> => {
+    if (pendingRef.current) return;
+    pendingRef.current = true;
+    setPendingId(alarm.id);
+    setToggleFailed(false);
+    try {
+      const saved = await window.api.setAlarmEnabled(alarm.id, !alarm.enabled);
+      setToggleFailed(!saved);
+    } catch {
+      setToggleFailed(true);
+    } finally {
+      pendingRef.current = false;
+      setPendingId(null);
+    }
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -56,11 +76,24 @@ export function AlarmWidget({ onOpenAlarmPage }: { onOpenAlarmPage: () => void }
           <div key={alarm.id} className={`ov-dash-world-clock-item ov-dash-alarm-item${alarm.enabled ? '' : ' ov-dash-alarm-item--disabled'}`}>
             <span className="ov-dash-world-clock-city">{alarm.label || t('overview.alarm.title')}</span>
             <span className="ov-dash-world-clock-time">{formatTime(alarm.hour, alarm.minute, alarm.second)}</span>
-            <span className="ov-dash-alarm-status">{alarm.enabled ? t('overview.alarm.enabled') : t('maxExpand.alarm.disabled')}</span>
+            <button
+              className={`alarm-toggle ov-dash-alarm-toggle${alarm.enabled ? ' alarm-toggle--on' : ''}`}
+              type="button"
+              role="switch"
+              aria-checked={alarm.enabled}
+              aria-busy={pendingId === alarm.id}
+              aria-label={`${alarm.label || t('overview.alarm.title')} ${alarm.enabled ? t('maxExpand.alarm.turnOff') : t('maxExpand.alarm.turnOn')}`}
+              title={alarm.enabled ? t('maxExpand.alarm.turnOff') : t('maxExpand.alarm.turnOn')}
+              disabled={pendingId !== null}
+              onClick={() => { void toggleEnabled(alarm); }}
+            >
+              <span className="alarm-toggle-track"><span className="alarm-toggle-thumb" /></span>
+            </button>
             <img className="ov-dash-alarm-bg-icon" src={SvgIcon.TIMER} alt="" />
           </div>
         ))}
       </div>
+      {toggleFailed && <span className="ov-dash-alarm-error" role="alert">{t('overview.alarm.syncError')}</span>}
     </div>
   );
 }

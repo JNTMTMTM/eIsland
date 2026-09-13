@@ -101,6 +101,60 @@ describe('app ipc handlers', () => {
     expect(broadcastSettingChangeMock).toHaveBeenCalledWith(9, 'store:config', { b: 2 });
   });
 
+  it('updates only the target alarm and broadcasts the saved state to every window', () => {
+    registerStoreIpcHandlers({ storeDir: 'C:/store' });
+    existsSyncMock.mockReturnValue(true);
+    const alarms = [
+      { id: 1, enabled: true, label: 'Morning', hour: 8, repeat: [1, 2] },
+      { id: 2, enabled: false, label: 'Evening', hour: 21, repeat: [] },
+    ];
+    readFileSyncMock.mockReturnValue(JSON.stringify(alarms));
+    const update = handleHandlers.get('alarm:set-enabled');
+
+    expect(update?.({ sender: { id: 9 } }, 1, false)).toBe(true);
+    const expected = [{ ...alarms[0], enabled: false }, alarms[1]];
+    expect(JSON.parse(writeFileSyncMock.mock.calls[0][1])).toEqual(expected);
+    expect(broadcastSettingChangeMock).toHaveBeenCalledWith(-1, 'store:alarms', expected);
+
+    // 下一次操作从最新存储读取，保留另一窗口已经编辑的备注与开关。
+    const latest = [{ ...expected[0], label: 'Updated' }, expected[1]];
+    readFileSyncMock.mockReturnValue(JSON.stringify(latest));
+    expect(update?.({ sender: { id: 10 } }, 2, true)).toBe(true);
+    expect(JSON.parse(writeFileSyncMock.mock.calls[1][1])).toEqual([
+      latest[0], { ...latest[1], enabled: true },
+    ]);
+  });
+
+  it('rejects invalid requests and missing alarms without writing or broadcasting', () => {
+    registerStoreIpcHandlers({ storeDir: 'C:/store' });
+    existsSyncMock.mockReturnValue(true);
+    readFileSyncMock.mockReturnValue(JSON.stringify([{ id: 1, enabled: true }]));
+    const update = handleHandlers.get('alarm:set-enabled');
+    for (const [id, enabled] of [[-1, true], [1.5, false], [1, 'false'], [2, false]]) {
+      expect(update?.({}, id, enabled)).toBe(false);
+    }
+    readFileSyncMock.mockReturnValue('{}');
+    expect(update?.({}, 1, false)).toBe(false);
+    existsSyncMock.mockReturnValue(false);
+    expect(update?.({}, 1, false)).toBe(false);
+    expect(writeFileSyncMock).not.toHaveBeenCalled();
+    expect(broadcastSettingChangeMock).not.toHaveBeenCalled();
+  });
+
+  it('does not broadcast a state that failed to save', () => {
+    registerStoreIpcHandlers({ storeDir: 'C:/store' });
+    existsSyncMock.mockReturnValue(true);
+    readFileSyncMock.mockReturnValue(JSON.stringify([{ id: 1, enabled: true }]));
+    writeFileSyncMock.mockImplementation(() => { throw new Error('disk full'); });
+    const log = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      expect(handleHandlers.get('alarm:set-enabled')?.({}, 1, false)).toBe(false);
+      expect(broadcastSettingChangeMock).not.toHaveBeenCalled();
+    } finally {
+      log.mockRestore();
+    }
+  });
+
   it('registers and normalizes log write levels', () => {
     const writeMainLog = vi.fn();
     registerLogIpcHandlers({ writeMainLog });
