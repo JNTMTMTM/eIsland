@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-09-12T03:23:46.132Z
+> 生成时间：2026-09-13T02:00:33.573Z
 
 ## 26.7.4
 
@@ -3569,6 +3569,18 @@
 
 ## Unreleased
 
+- 2026-09-12 | eebd4685 | 鸡哥 | Merge pull request #214 from JNTMTMTM/dev
+- 2026-09-13 | a7ee98e9 | 鸡哥 | refactor(worldClock): simplify timezone normalization logic in normalizeOverviewWorldClockConfig
+- 2026-09-13 | 93eb3745 | 鸡哥 | feat(overviewTab): add openWorldClockPage callback for navigation in WorldClockWidget
+- 2026-09-13 | 2185bc96 | 鸡哥 | feat(worldClock): add onOpenWorldClockPage callback to WorldClockWidget for navigation
+- 2026-09-13 | b3cce401 | 鸡哥 | feat(worldClock): implement useOverviewWorldClockConfig hook for shared configuration management refactor(worldClock): streamline WorldClockWidget and WorldClockTab to utilize new hook refactor(worldClock): enhance WorldClockCard documentation and update button icon logic test(worldClock): add tests for canonicalization and deduplication of timezones in overview config
+- 2026-09-13 | 88903692 | 鸡哥 | fix(worldClock): update Taiwan timezone mapping to use China flag for consistency
+- 2026-09-13 | c66fba10 | 鸡哥 | feat(worldClock): integrate WorldClockFlag component into WorldClockWidget and OverviewPreview for enhanced city representation
+- 2026-09-13 | 761dfc63 | 鸡哥 | feat(worldClock): add closePicker text and update button functionality in WorldClockCityPicker
+- 2026-09-13 | f614845f | 鸡哥 | refactor(worldClock): update class names for world clock card to improve clarity and styling
+- 2026-09-13 | f6a9293c | 鸡哥 | refactor(worldClock): restructure action buttons in WorldClockCard for improved layout and styling
+- 2026-09-13 | f75a932c | 鸡哥 | feat(worldClock): add world clock widget with dual timezone configuration and styling
+- 2026-09-12 | 9b869ad6 | eislandBot | docs: auto update CHANGE_LOG.md for #213 by @JNTMTMTM [skip ci]
 - 2026-09-11 | 4fe4db33 | 鸡哥 | Merge pull request #213 from JNTMTMTM/dev
 - 2026-09-12 | ae6af257 | 鸡哥 | feat(worldClock): implement hooks for city persistence, operations, and clock ticks; refactor WorldClock components for improved structure and type safety
 - 2026-09-12 | b5027121 | 鸡哥 | refactor(worldClock): replace for loops with forEach for improved readability in tests
