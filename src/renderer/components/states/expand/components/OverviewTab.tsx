@@ -179,6 +179,12 @@ export function OverviewTab(): React.ReactElement {
     });
   }, [setMaxExpand, setMaxExpandTab]);
 
+  // 世界时钟仅在灵动岛最大展开页面中提供。
+  const openWorldClockPage = useCallback((): void => {
+    setMaxExpandTab('worldClock');
+    setMaxExpand();
+  }, [setMaxExpand, setMaxExpandTab]);
+
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(id);
@@ -388,7 +394,7 @@ export function OverviewTab(): React.ReactElement {
       case 'breakReminder':
         return <BreakReminderWidget openBreakReminderPage={() => openTargetPage('settings')} />;
       case 'worldClock':
-        return <WorldClockWidget onOpenWorldClockPage={() => openTargetPage('worldClock')} />;
+        return <WorldClockWidget onOpenWorldClockPage={openWorldClockPage} />;
       default:
         return null;
     }

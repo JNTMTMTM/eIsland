@@ -89,6 +89,9 @@ export function MaxExpandContentShell({ renderActiveTab, deferContent = true }: 
   navDotsRef.current = NAV_DOTS;
 
   useEffect(() => {
+    // 导航配置加载前不能判定目标页不可见，否则会覆盖入口指定的标签。
+    if (!navLayoutLoaded) return;
+
     if (startupMode === 'standalone' && navLayoutLoaded && NAV_DOTS.length === 1) {
       setExpanded();
       return;
