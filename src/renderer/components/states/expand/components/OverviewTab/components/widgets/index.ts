@@ -34,3 +34,4 @@ export * from './ShortcutsWidget';
 export * from './TodoWidget';
 export * from './BreakReminderWidget';
 export * from './WorldClockWidget';
+export * from './AlarmWidget';

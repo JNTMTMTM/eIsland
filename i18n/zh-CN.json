@@ -697,6 +697,14 @@
       "title": "倒数日",
       "empty": "暂无倒数日"
     },
+    "alarm": {
+      "title": "闹钟",
+      "empty": "在闹钟页面选择最多两个闹钟展示",
+      "enabled": "已开启",
+      "add": "展示到 Overview",
+      "remove": "从 Overview 移除",
+      "limit": "最多展示两个闹钟"
+    },
     "worldClock": {
       "title": "世界时钟",
       "previewFirstCity": "上海",
@@ -2785,6 +2793,7 @@
           "album": "相册轮播",
           "mokugyo": "电子木鱼",
           "breakReminder": "休息提醒",
+          "alarm": "闹钟",
           "worldClock": "世界时钟"
         },
         "previewMock": {

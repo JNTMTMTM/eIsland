@@ -39,6 +39,9 @@ export function AlarmCard({
   onStartEdit,
   onDelete,
   onToggle,
+  onToggleOverview,
+  overviewSelected,
+  overviewSelectionFull,
 }: AlarmCardProps): ReactElement {
   const { t } = useTranslation();
 
@@ -60,7 +63,7 @@ export function AlarmCard({
 
   return (
     <div
-      className={`alarm-card${alarm.enabled ? '' : ' alarm-card--disabled'}${isActive ? ' alarm-card--active' : ''}`}
+      className={`alarm-card${alarm.enabled ? '' : ' alarm-card--disabled'}${isActive ? ' alarm-card--active' : ''}${overviewSelected ? ' alarm-card--overview-selected' : ''}`}
     >
       <button className="alarm-card-left" type="button" onClick={() => onStartEdit(alarm)}>
         <span className="alarm-card-label" title={alarm.label || t('maxExpand.alarm.title')}>
@@ -71,7 +74,7 @@ export function AlarmCard({
           {buildMetaFragments()}
         </span>
       </button>
-      <div className="alarm-card-right">
+      <div className="alarm-card-actions">
         <button
           className="alarm-delete-btn"
           type="button"
@@ -80,6 +83,19 @@ export function AlarmCard({
         >
           <img src={SvgIcon.DELETE} alt="" className="alarm-tab-btn-icon" />
         </button>
+        <button
+          className={`alarm-overview-btn${overviewSelected ? ' alarm-overview-btn--selected' : ''}`}
+          type="button"
+          disabled={!overviewSelected && overviewSelectionFull}
+          aria-pressed={overviewSelected}
+          onClick={() => onToggleOverview(alarm.id)}
+          title={overviewSelected ? t('overview.alarm.remove') : overviewSelectionFull ? t('overview.alarm.limit') : t('overview.alarm.add')}
+          aria-label={overviewSelected ? t('overview.alarm.remove') : t('overview.alarm.add')}
+        >
+          <img src={SvgIcon.PLUS} alt="" className="alarm-tab-btn-icon" />
+        </button>
+      </div>
+      <div className="alarm-card-right">
         <button
           className={`alarm-toggle${alarm.enabled ? ' alarm-toggle--on' : ''}`}
           type="button"

@@ -593,6 +593,47 @@
   color: rgba(var(--color-text-rgb), 0.85);
 }
 
+/** 闹钟与世界时钟共用紧凑的两行卡片布局。 */
+.ov-dash-alarm-title {
+  padding: 0;
+  border: none;
+  background: none;
+  font-family: inherit;
+  text-align: left;
+}
+.ov-dash-world-clock-item.ov-dash-alarm-item {
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: 6px;
+}
+.ov-dash-alarm-item .ov-dash-world-clock-time {
+  grid-column: 1 / -1;
+  grid-row: 2;
+}
+.ov-dash-alarm-status {
+  grid-column: 2;
+  grid-row: 1;
+  align-self: center;
+  color: rgba(var(--color-text-rgb), 0.4);
+  font-size: 9px;
+  white-space: nowrap;
+}
+.ov-dash-alarm-item--disabled {
+  opacity: 0.5;
+}
+.ov-dash-alarm-bg-icon {
+  position: absolute;
+  right: 8px;
+  bottom: 5px;
+  width: 24px;
+  height: 24px;
+  filter: brightness(0) invert(1);
+  opacity: 0.12;
+  pointer-events: none;
+}
+[data-theme="light"] .ov-dash-alarm-bg-icon {
+  filter: brightness(0) invert(0);
+}
+
 /** 世界时钟控件 */
 .ov-dash-world-clock-list {
   display: flex;

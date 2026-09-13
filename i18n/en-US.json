@@ -697,6 +697,14 @@
       "title": "Countdown",
       "empty": "No countdown events"
     },
+    "alarm": {
+      "title": "Alarms",
+      "empty": "Choose up to two alarms on the Alarms page",
+      "enabled": "On",
+      "add": "Show in Overview",
+      "remove": "Remove from Overview",
+      "limit": "Show up to two alarms"
+    },
     "worldClock": {
       "title": "World Clock",
       "previewFirstCity": "Shanghai",
@@ -2785,6 +2793,7 @@
           "album": "Album Carousel",
           "mokugyo": "Mokugyo",
           "breakReminder": "Break Reminder",
+          "alarm": "Alarms",
           "worldClock": "World Clock"
         },
         "previewMock": {
