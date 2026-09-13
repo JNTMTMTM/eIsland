@@ -468,19 +468,17 @@
   overflow: hidden;
   border-radius: 10px;
   background: rgba(var(--color-text-rgb), 0.03);
-  transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
-  transform: scale(1);
+  flex-shrink: 0;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
 }
 
 .alarm-wheel-picker:hover {
   background: rgba(var(--color-text-rgb), 0.05);
   box-shadow: 0 0 0 1px rgba(var(--color-text-rgb), 0.06);
-  transform: scale(1.05);
 }
 
 .alarm-wheel-picker:active {
   background: rgba(var(--color-text-rgb), 0.06);
-  transform: scale(1.02);
 }
 
 /* 中心高亮条 */
@@ -502,17 +500,16 @@
   background: rgba(var(--color-text-rgb), 0.10);
 }
 
-/* 上下淡入遮罩 */
-.alarm-wheel-picker::before,
-.alarm-wheel-picker::after {
-  content: '';
-}
-
 /* 滚动区域 */
 .alarm-wheel-scroll {
   overflow-y: auto;
-  scroll-snap-type: y mandatory;
-  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  cursor: grab;
+  mask-image: linear-gradient(to bottom, transparent, #000 30%, #000 70%, transparent);
+}
+
+.alarm-wheel-scroll--dragging {
+  cursor: grabbing;
 }
 
 .alarm-wheel-scroll::-webkit-scrollbar {
@@ -525,12 +522,11 @@
   align-items: center;
   justify-content: center;
   font-size: 14px;
-  font-weight: 400;
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
   color: rgba(var(--color-text-rgb), 0.25);
-  scroll-snap-align: start;
   user-select: none;
-  transition: color 0.2s ease, font-size 0.2s ease, font-weight 0.2s ease, transform 0.2s ease;
+  transition: color 0.15s ease, transform 0.15s ease;
 }
 
 .alarm-wheel-item:hover:not(.alarm-wheel-item--active) {
@@ -539,14 +535,8 @@
 
 .alarm-wheel-item--active {
   color: rgba(var(--color-text-rgb), 0.9);
-  font-weight: 600;
-  font-size: 16px;
-  transform: scale(1);
+  transform: scale(1.14);
   opacity: 1;
-}
-
-.alarm-wheel-picker:hover .alarm-wheel-item--active {
-  transform: scale(1.1);
 }
 
 .alarm-wheel-item--empty {
