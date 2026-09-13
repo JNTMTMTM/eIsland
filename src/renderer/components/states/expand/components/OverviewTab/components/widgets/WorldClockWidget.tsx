@@ -35,11 +35,16 @@ import { WorldClockFlag } from '../../../../../maxExpand/components/worldClock/c
 /** 世界时钟刷新间隔（毫秒）。 */
 const CLOCK_UPDATE_INTERVAL_MS = 1000;
 
+/** 世界时钟小组件的页面跳转回调。 */
+interface WorldClockWidgetProps {
+  onOpenWorldClockPage: () => void;
+}
+
 /**
  * 渲染总览世界时钟小组件。
  * @returns 世界时钟小组件
  */
-export function WorldClockWidget(): ReactElement {
+export function WorldClockWidget({ onOpenWorldClockPage }: WorldClockWidgetProps): ReactElement {
   const { t, i18n } = useTranslation();
   const localTimezoneRef = useRef(getUserTimezone('UTC'));
   const [config] = useOverviewWorldClockConfig();
@@ -71,7 +76,20 @@ export function WorldClockWidget(): ReactElement {
   return (
     <div className="ov-dash-widget ov-dash-world-clock-widget">
       <div className="ov-dash-widget-header">
-        <span className="ov-dash-widget-title">{t('overview.worldClock.title')}</span>
+        <span
+          className="ov-dash-widget-title ov-dash-widget-title--link"
+          role="button"
+          tabIndex={0}
+          onClick={onOpenWorldClockPage}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault();
+              onOpenWorldClockPage();
+            }
+          }}
+        >
+          {t('overview.worldClock.title')}
+        </span>
       </div>
       <div className="ov-dash-world-clock-list">
         {ticks.length === 0 && <span className="ov-dash-world-clock-empty">{t('overview.worldClock.empty')}</span>}

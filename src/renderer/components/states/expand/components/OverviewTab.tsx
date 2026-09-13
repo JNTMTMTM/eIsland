@@ -388,7 +388,7 @@ export function OverviewTab(): React.ReactElement {
       case 'breakReminder':
         return <BreakReminderWidget openBreakReminderPage={() => openTargetPage('settings')} />;
       case 'worldClock':
-        return <WorldClockWidget />;
+        return <WorldClockWidget onOpenWorldClockPage={() => openTargetPage('worldClock')} />;
       default:
         return null;
     }
