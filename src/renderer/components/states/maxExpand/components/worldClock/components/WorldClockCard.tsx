@@ -31,12 +31,28 @@ import type { WorldClockCardProps } from '../types/worldClockTypes';
 import { getCityLabel } from '../utils/worldClockUtils';
 import { WorldClockFlag } from './WorldClockFlag';
 
-/** 世界时钟卡片 */
-export function WorldClockCard({ tick, onRemove, removeHighlighted = false }: WorldClockCardProps): ReactElement {
+/**
+ * 世界时钟卡片。
+ * @param tick - 当前时钟 tick 数据
+ * @param onRemove - 移除此城市
+ * @param onToggleOverview - 将此城市加入或移出总览展示
+ * @param overviewSelected - 此城市是否已展示在总览
+ * @param overviewSelectionFull - 总览是否已达两个时区上限
+ * @param removeHighlighted - 城市选择器的删除操作是否指向此卡片
+ * @returns 时钟卡片元素
+ */
+export function WorldClockCard({
+  tick,
+  onRemove,
+  onToggleOverview,
+  overviewSelected,
+  overviewSelectionFull,
+  removeHighlighted = false,
+}: WorldClockCardProps): ReactElement {
   const { t } = useTranslation();
 
   return (
-    <div className={`world-clock-card${tick.isLocal ? ' world-clock-card--local' : ''}${removeHighlighted ? ' world-clock-card--remove-highlighted' : ''}`}>
+    <div className={`world-clock-card${overviewSelected ? ' world-clock-card--selected' : ''}${removeHighlighted ? ' world-clock-card--remove-highlighted' : ''}`}>
       <div className="world-clock-card-header">
         <WorldClockFlag countryCode={tick.countryCode} />
         <span className="world-clock-card-label">{getCityLabel(tick, t)}</span>
@@ -51,14 +67,30 @@ export function WorldClockCard({ tick, onRemove, removeHighlighted = false }: Wo
         <span className="world-clock-card-hand world-clock-card-hand--minute" style={{ transform: `rotate(${tick.handAngles.minute}deg)` }} />
         <span className="world-clock-card-hand world-clock-card-hand--second" style={{ transform: `rotate(${tick.handAngles.second}deg)` }} />
       </div>
-      <button
-        className="world-clock-card-remove"
-        type="button"
-        onClick={() => onRemove(tick.timezone)}
-        title={t('maxExpand.worldClock.removeCity', { defaultValue: '移除' })}
-      >
-        <img src={SvgIcon.DELETE} alt="" className="world-clock-card-remove-icon" />
-      </button>
+      <div className="world-clock-card-actions">
+        <button
+          className="world-clock-card-remove"
+          type="button"
+          onClick={() => onRemove(tick.timezone)}
+          title={t('maxExpand.worldClock.removeCity', { defaultValue: '移除' })}
+        >
+          <img src={SvgIcon.DELETE} alt="" className="world-clock-card-remove-icon" />
+        </button>
+        <button
+          className={`world-clock-card-add-overview${overviewSelected ? ' world-clock-card-add-overview--selected' : ''}`}
+          type="button"
+          disabled={!overviewSelected && overviewSelectionFull}
+          onClick={() => onToggleOverview(tick.timezone)}
+          title={overviewSelected
+            ? t('maxExpand.worldClock.removeFromOverview')
+            : overviewSelectionFull
+              ? t('maxExpand.worldClock.overviewLimitReached')
+              : t('maxExpand.worldClock.addToOverview')
+          }
+        >
+          <img src={overviewSelected ? SvgIcon.CHECKED : SvgIcon.PLUS} alt="" className="world-clock-card-add-overview-icon" />
+        </button>
+      </div>
     </div>
   );
 }

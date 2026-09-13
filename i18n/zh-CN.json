@@ -697,6 +697,12 @@
       "title": "倒数日",
       "empty": "暂无倒数日"
     },
+    "worldClock": {
+      "title": "世界时钟",
+      "previewFirstCity": "上海",
+      "previewSecondCity": "纽约",
+      "empty": "在全展开世界时钟中选择最多两个时区"
+    },
     "breakReminder": {
       "title": "休息提醒",
       "count": "{{count}} 项",
@@ -1980,11 +1986,15 @@
     "worldClock": {
       "title": "世界时钟",
       "addCity": "添加城市",
+      "closePicker": "关闭添加城市",
       "local": "本地",
       "searchTimezone": "搜索时区...",
       "alreadyAdded": "已添加",
       "noResults": "未找到结果",
       "removeCity": "移除",
+      "addToOverview": "添加到总览",
+      "removeFromOverview": "从总览移除",
+      "overviewLimitReached": "总览最多显示两个时区",
       "cityLabels": {
         "Beijing": "北京",
         "Guangzhou": "广州",
@@ -2774,7 +2784,8 @@
           "urlFavorites": "URL 收藏",
           "album": "相册轮播",
           "mokugyo": "电子木鱼",
-          "breakReminder": "休息提醒"
+          "breakReminder": "休息提醒",
+          "worldClock": "世界时钟"
         },
         "previewMock": {
           "previewTag": "预览",

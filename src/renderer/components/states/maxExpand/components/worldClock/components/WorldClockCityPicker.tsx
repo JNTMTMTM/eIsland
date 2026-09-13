@@ -72,13 +72,6 @@ export const WorldClockCityPicker = memo(function WorldClockCityPicker({
   return (
     <div className={`world-clock-picker-sidebar${visible ? ' world-clock-picker-sidebar--visible' : ''}`}>
       <div className="world-clock-picker-header">
-        <button
-          className="world-clock-picker-close"
-          type="button"
-          onClick={onClose}
-        >
-          <img src={SvgIcon.CANCEL} alt="" className="world-clock-picker-close-icon" />
-        </button>
         <span className="world-clock-picker-title">
           {t('maxExpand.worldClock.addCity', { defaultValue: '添加城市' })}
         </span>

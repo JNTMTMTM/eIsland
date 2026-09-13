@@ -304,7 +304,7 @@ export const TIMEZONE_COUNTRY_CODES: Readonly<Record<string, string | null>> = {
   "Asia/Shanghai": "cn",
   "Asia/Singapore": "sg",
   "Asia/Srednekolymsk": "ru",
-  "Asia/Taipei": "tw",
+  "Asia/Taipei": "cn",
   "Asia/Tashkent": "uz",
   "Asia/Tbilisi": "ge",
   "Asia/Tehran": "ir",

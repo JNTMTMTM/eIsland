@@ -28,6 +28,11 @@ import { useCallback, useMemo, useState, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SvgIcon } from '../../../../../../utils/SvgIcon';
 import { useWorldClockState } from '../hooks/useWorldClockState';
+import { useOverviewWorldClockConfig } from '../hooks/useOverviewWorldClockConfig';
+import {
+  normalizeOverviewWorldClockConfig,
+  OVERVIEW_TIMEZONES_STORE_KEY,
+} from '../config/overviewWorldClockConfig';
 import { getAllTimezoneOptions } from '../utils/worldClockUtils';
 import { WorldClockCard } from './WorldClockCard';
 import { WorldClockCityPicker } from './WorldClockCityPicker';
@@ -39,9 +44,34 @@ export function WorldClockTab(): ReactElement {
   const { t } = useTranslation();
   const state = useWorldClockState();
   const [removeHoveredTimezone, setRemoveHoveredTimezone] = useState<string | null>(null);
+  const [overviewConfig, setOverviewConfig] = useOverviewWorldClockConfig();
   const timezoneOptions = useMemo(() => getAllTimezoneOptions(), []);
   const { setShowPicker } = state;
   const closePicker = useCallback(() => setShowPicker(false), [setShowPicker]);
+
+  const updateOverviewTimezones = useCallback((timezones: string[]): void => {
+    const updated = normalizeOverviewWorldClockConfig({ timezones });
+    setOverviewConfig(updated);
+    window.api.storeWrite(OVERVIEW_TIMEZONES_STORE_KEY, updated).catch(() => {});
+  }, []);
+
+  const handleToggleOverview = useCallback((timezone: string): void => {
+    const selected = overviewConfig.timezones.includes(timezone);
+    if (selected) {
+      updateOverviewTimezones(overviewConfig.timezones.filter((item) => item !== timezone));
+      return;
+    }
+    if (overviewConfig.timezones.length < 2) {
+      updateOverviewTimezones([...overviewConfig.timezones, timezone]);
+    }
+  }, [overviewConfig.timezones, updateOverviewTimezones]);
+
+  const handleRemoveCity = useCallback((timezone: string): void => {
+    state.removeCity(timezone);
+    if (overviewConfig.timezones.includes(timezone)) {
+      updateOverviewTimezones(overviewConfig.timezones.filter((item) => item !== timezone));
+    }
+  }, [overviewConfig.timezones, state.removeCity, updateOverviewTimezones]);
 
   const existingTimezones = useMemo(
     () => state.cities.map((c) => c.timezone),
@@ -59,9 +89,11 @@ export function WorldClockTab(): ReactElement {
             className={`world-clock-add-btn${state.showPicker ? ' world-clock-add-btn--active' : ''}`}
             type="button"
             onClick={() => state.setShowPicker(!state.showPicker)}
-            title={t('maxExpand.worldClock.addCity', { defaultValue: '添加城市' })}
+            title={state.showPicker ? t('maxExpand.worldClock.closePicker') : t('maxExpand.worldClock.addCity')}
+            aria-label={state.showPicker ? t('maxExpand.worldClock.closePicker') : t('maxExpand.worldClock.addCity')}
+            aria-expanded={state.showPicker}
           >
-            <img src={SvgIcon.PLUS} alt="" className="world-clock-add-btn-icon" />
+            <img src={state.showPicker ? SvgIcon.CANCEL : SvgIcon.PLUS} alt="" className="world-clock-add-btn-icon" />
           </button>
         </div>
 
@@ -70,7 +102,10 @@ export function WorldClockTab(): ReactElement {
             <WorldClockCard
               key={tick.timezone}
               tick={tick}
-              onRemove={state.removeCity}
+              onRemove={handleRemoveCity}
+              onToggleOverview={handleToggleOverview}
+              overviewSelected={overviewConfig.timezones.includes(tick.timezone)}
+              overviewSelectionFull={overviewConfig.timezones.length >= 2}
               removeHighlighted={state.showPicker && removeHoveredTimezone === tick.timezone}
             />
           ))}

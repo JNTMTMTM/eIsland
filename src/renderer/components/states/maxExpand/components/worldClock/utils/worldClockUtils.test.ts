@@ -32,6 +32,7 @@ import { I18nextProvider } from 'react-i18next';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { getWorldClockTime, listSupportedTimezones } from '@multisystemsuite/timezone-engine-core';
 import { DEFAULT_CITIES } from '../config/worldClockConfig';
+import { DEFAULT_OVERVIEW_WORLD_CLOCK_CONFIG, normalizeOverviewWorldClockConfig } from '../config/overviewWorldClockConfig';
 import { TIMEZONE_LABELS } from '../config/timezoneLabels';
 import { WorldClockCard } from '../components/WorldClockCard';
 import { WorldClockCityPicker } from '../components/WorldClockCityPicker';
@@ -90,6 +91,26 @@ describe('world clock city catalog', () => {
   });
 });
 
+describe('overview world clock configuration', () => {
+  it('uses an empty selection by default and retains only two distinct valid timezones', () => {
+    expect(normalizeOverviewWorldClockConfig(null)).toEqual(DEFAULT_OVERVIEW_WORLD_CLOCK_CONFIG);
+    expect(normalizeOverviewWorldClockConfig({ firstTimezone: 'invalid', secondTimezone: 'invalid' }))
+      .toEqual(DEFAULT_OVERVIEW_WORLD_CLOCK_CONFIG);
+    expect(normalizeOverviewWorldClockConfig({ timezones: ['Europe/London', 'Europe/London', 'Asia/Tokyo'] }))
+      .toEqual({ timezones: ['Europe/London', 'Asia/Tokyo'] });
+    expect(normalizeOverviewWorldClockConfig({ firstTimezone: 'Europe/London', secondTimezone: 'Asia/Tokyo' }))
+      .toEqual({ timezones: ['Europe/London', 'Asia/Tokyo'] });
+  });
+
+  it('canonicalizes aliases before deduplication so the same zone cannot occupy two slots', () => {
+    expect(normalizeOverviewWorldClockConfig({ timezones: ['US/Eastern', 'America/New_York'] }))
+      .toEqual({ timezones: ['America/New_York'] });
+    const result = normalizeOverviewWorldClockConfig({ timezones: ['Asia/Calcutta', 'Asia/Kolkata', 'Asia/Tokyo'] });
+    expect(result.timezones).toHaveLength(2);
+    expect(result.timezones).toContain('Asia/Tokyo');
+  });
+});
+
 describe('world clock translation and time', () => {
   it('renders the entire picker with translated city labels', async () => {
     await i18n.changeLanguage('zh-CN');
@@ -108,11 +129,11 @@ describe('world clock translation and time', () => {
   it('renders a saved card in the active language after a language switch', async () => {
     const tick = buildTick(DEFAULT_CITIES[0], new Date('2026-01-01T00:00:00Z'), 'UTC', 'en-US');
     await i18n.changeLanguage('en-US');
-    const english = renderToStaticMarkup(createElement(I18nextProvider, { i18n }, createElement(WorldClockCard, { tick, onRemove: vi.fn() })));
+    const english = renderToStaticMarkup(createElement(I18nextProvider, { i18n }, createElement(WorldClockCard, { tick, onRemove: vi.fn(), onToggleOverview: vi.fn(), overviewSelected: false, overviewSelectionFull: false })));
     expect(english).toContain('Shanghai');
     expect(english).toContain('/cn.svg');
     await i18n.changeLanguage('zh-CN');
-    const chinese = renderToStaticMarkup(createElement(I18nextProvider, { i18n }, createElement(WorldClockCard, { tick, onRemove: vi.fn() })));
+    const chinese = renderToStaticMarkup(createElement(I18nextProvider, { i18n }, createElement(WorldClockCard, { tick, onRemove: vi.fn(), onToggleOverview: vi.fn(), overviewSelected: false, overviewSelectionFull: false })));
     expect(chinese).toContain('上海');
   });
 
@@ -136,10 +157,10 @@ describe('world clock translation and time', () => {
   it('renders the shared delete highlight on the targeted card', () => {
     const tick = buildTick(DEFAULT_CITIES[0], new Date(), 'UTC');
     const highlighted = renderToStaticMarkup(createElement(I18nextProvider, { i18n }, createElement(WorldClockCard, {
-      tick, onRemove: vi.fn(), removeHighlighted: true,
+      tick, onRemove: vi.fn(), onToggleOverview: vi.fn(), overviewSelected: false, overviewSelectionFull: false, removeHighlighted: true,
     })));
     const normal = renderToStaticMarkup(createElement(I18nextProvider, { i18n }, createElement(WorldClockCard, {
-      tick, onRemove: vi.fn(), removeHighlighted: false,
+      tick, onRemove: vi.fn(), onToggleOverview: vi.fn(), overviewSelected: false, overviewSelectionFull: false, removeHighlighted: false,
     })));
     expect(highlighted).toContain('world-clock-card--remove-highlighted');
     expect(normal).not.toContain('world-clock-card--remove-highlighted');
@@ -148,7 +169,7 @@ describe('world clock translation and time', () => {
   it('places the card delete button after the analog dial', () => {
     const tick = buildTick(DEFAULT_CITIES[0], new Date(), 'UTC');
     const markup = renderToStaticMarkup(createElement(I18nextProvider, { i18n }, createElement(WorldClockCard, {
-      tick, onRemove: vi.fn(),
+      tick, onRemove: vi.fn(), onToggleOverview: vi.fn(), overviewSelected: false, overviewSelectionFull: false,
     })));
     expect(markup.indexOf('world-clock-card-dial')).toBeLessThan(markup.indexOf('world-clock-card-remove'));
   });
@@ -174,7 +195,7 @@ describe('world clock translation and time', () => {
 
   it('maps IANA aliases and multi-country regions to their correct flags', () => {
     [
-      ['Asia/Shanghai', 'cn'], ['Europe/London', 'gb'], ['America/New_York', 'us'],
+      ['Asia/Shanghai', 'cn'], ['Asia/Taipei', 'cn'], ['Europe/London', 'gb'], ['America/New_York', 'us'],
       ['Asia/Calcutta', 'in'], ['Europe/Kiev', 'ua'], ['Pacific/Truk', 'fm'],
       ['America/Godthab', 'gl'], ['Antarctica/Casey', 'aq'],
     ].forEach(([timezone, countryCode]) => expect(getTimezoneCountryCode(timezone)).toBe(countryCode));
