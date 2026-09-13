@@ -50,12 +50,21 @@ export function useOverviewAlarmConfig() {
     return () => { cancelled = true; unsubscribe(); };
   }, []);
 
-  const updateAlarmIds = useCallback((ids: number[]): void => {
+  const updateAlarmIds = useCallback(async (ids: number[]): Promise<boolean> => {
+    const prev = alarmIds;
     const next = normalizeOverviewAlarmIds({ alarmIds: ids });
     revision.current++;
     setAlarmIds(next);
-    window.api.storeWrite(OVERVIEW_ALARM_STORE_KEY, { alarmIds: next }).catch(() => {});
-  }, []);
+    try {
+      const ok = await window.api.storeWrite(OVERVIEW_ALARM_STORE_KEY, { alarmIds: next });
+      if (!ok) { revision.current++; setAlarmIds(prev); }
+      return ok;
+    } catch {
+      revision.current++;
+      setAlarmIds(prev);
+      return false;
+    }
+  }, [alarmIds]);
 
   return { alarmIds, loaded, updateAlarmIds };
 }

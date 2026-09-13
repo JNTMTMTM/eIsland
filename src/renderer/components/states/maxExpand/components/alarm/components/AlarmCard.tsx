@@ -90,7 +90,7 @@ export function AlarmCard({
           aria-pressed={overviewSelected}
           onClick={() => onToggleOverview(alarm.id)}
           title={overviewSelected ? t('overview.alarm.remove') : overviewSelectionFull ? t('overview.alarm.limit') : t('overview.alarm.add')}
-          aria-label={overviewSelected ? t('overview.alarm.remove') : t('overview.alarm.add')}
+          aria-label={overviewSelected ? t('overview.alarm.remove') : overviewSelectionFull ? t('overview.alarm.limit') : t('overview.alarm.add')}
         >
           <img src={SvgIcon.PLUS} alt="" className="alarm-tab-btn-icon" />
         </button>
