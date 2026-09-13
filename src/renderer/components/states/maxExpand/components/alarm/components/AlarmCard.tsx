@@ -39,15 +39,15 @@ export function AlarmCard({
   onStartEdit,
   onDelete,
   onToggle,
+  onToggleOverview,
+  overviewSelected,
+  overviewSelectionFull,
 }: AlarmCardProps): ReactElement {
   const { t } = useTranslation();
 
-  /** 构建 meta 片段（label · repeat · next），用圆点分隔 */
+  /** 构建重复规则与下次响铃的辅助信息，用圆点分隔。 */
   const buildMetaFragments = (): ReactNode[] => {
     const parts: ReactNode[] = [];
-    if (alarm.label) {
-      parts.push(<span key="label" className="alarm-card-label">{alarm.label}</span>);
-    }
     const rep = repeatSummary(alarm.repeat);
     if (rep) {
       if (parts.length > 0) parts.push(<span key="s1" className="alarm-card-meta-sep" />);
@@ -63,15 +63,18 @@ export function AlarmCard({
 
   return (
     <div
-      className={`alarm-card${alarm.enabled ? '' : ' alarm-card--disabled'}${isActive ? ' alarm-card--active' : ''}`}
+      className={`alarm-card${alarm.enabled ? '' : ' alarm-card--disabled'}${isActive ? ' alarm-card--active' : ''}${overviewSelected ? ' alarm-card--overview-selected' : ''}`}
     >
-      <div className="alarm-card-left" onClick={() => onStartEdit(alarm)}>
-        <div className="alarm-card-time">{formatTime(alarm.hour, alarm.minute, alarm.second)}</div>
-        <div className="alarm-card-meta">
+      <button className="alarm-card-left" type="button" onClick={() => onStartEdit(alarm)}>
+        <span className="alarm-card-label" title={alarm.label || t('maxExpand.alarm.title')}>
+          {alarm.label || t('maxExpand.alarm.title')}
+        </span>
+        <span className="alarm-card-time">{formatTime(alarm.hour, alarm.minute, alarm.second)}</span>
+        <span className="alarm-card-meta">
           {buildMetaFragments()}
-        </div>
-      </div>
-      <div className="alarm-card-right">
+        </span>
+      </button>
+      <div className="alarm-card-actions">
         <button
           className="alarm-delete-btn"
           type="button"
@@ -80,6 +83,19 @@ export function AlarmCard({
         >
           <img src={SvgIcon.DELETE} alt="" className="alarm-tab-btn-icon" />
         </button>
+        <button
+          className={`alarm-overview-btn${overviewSelected ? ' alarm-overview-btn--selected' : ''}`}
+          type="button"
+          disabled={!overviewSelected && overviewSelectionFull}
+          aria-pressed={overviewSelected}
+          onClick={() => onToggleOverview(alarm.id)}
+          title={overviewSelected ? t('overview.alarm.remove') : overviewSelectionFull ? t('overview.alarm.limit') : t('overview.alarm.add')}
+          aria-label={overviewSelected ? t('overview.alarm.remove') : overviewSelectionFull ? t('overview.alarm.limit') : t('overview.alarm.add')}
+        >
+          <img src={SvgIcon.PLUS} alt="" className="alarm-tab-btn-icon" />
+        </button>
+      </div>
+      <div className="alarm-card-right">
         <button
           className={`alarm-toggle${alarm.enabled ? ' alarm-toggle--on' : ''}`}
           type="button"

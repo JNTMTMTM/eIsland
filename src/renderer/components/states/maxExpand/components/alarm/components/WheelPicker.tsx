@@ -45,7 +45,7 @@ export function WheelPicker({ min, max, value, onChange }: WheelPickerProps): Re
         className="alarm-wheel-scroll"
         ref={containerRef}
         onMouseDown={handleMouseDown}
-        style={{ height: containerHeight, cursor: 'grab' }}
+        style={{ height: containerHeight }}
       >
         {Array.from({ length: padding }, (_, i) => (
           <div key={`pt${i}`} className="alarm-wheel-item alarm-wheel-item--empty" style={{ height: WHEEL_ITEM_HEIGHT }} />

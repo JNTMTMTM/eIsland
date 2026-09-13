@@ -449,6 +449,7 @@ export interface SearchableSettingItem {
 }
 
 export const SEARCHABLE_SETTINGS: SearchableSettingItem[] = [
+  { label: '闹钟', desc: '在闹钟页面选择最多两个闹钟展示', labelKey: 'settings.app.layout.widgetNames.alarm', descKey: 'overview.alarm.empty', tab: 'app', appPage: 'layout-preview' },
   // ── 软件设置 > 布局预览 ──
   { label: '总览布局预览', desc: '实时显示左右控件组合后的 Expand 态灵动岛样式，切换下方控件可即时预览。', labelKey: 'settings.app.layout.previewTitle', descKey: 'settings.app.layout.previewHint', tab: 'app', appPage: 'layout-preview' },
   { label: '控件组合', desc: '分别选择左右两侧展示的控件，切换后自动保存。', labelKey: 'settings.app.layout.widgetPickerTitle', descKey: 'settings.app.layout.widgetPickerHint', tab: 'app', appPage: 'layout-preview' },

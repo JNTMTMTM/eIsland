@@ -24,10 +24,12 @@
  * @author 鸡哥
  */
 
-import type { ReactElement } from 'react';
+import { useEffect, type ReactElement } from 'react';
 import { SvgIcon } from '../../../../../../utils/SvgIcon';
 import type { AlarmSidebarProps } from '../types/alarmTypes';
 import { AlarmCard } from './AlarmCard';
+import { useOverviewAlarmConfig } from '../hooks/useOverviewAlarmConfig';
+import { OVERVIEW_ALARM_LIMIT } from '../config/overviewAlarmConfig';
 
 /**
  * 闹钟面板左侧列表
@@ -53,6 +55,21 @@ export function AlarmSidebar({
   setNewMinute,
   setNewSecond,
 }: AlarmSidebarProps): ReactElement {
+  const { alarmIds, loaded: selectionLoaded, updateAlarmIds } = useOverviewAlarmConfig();
+
+  // 删除闹钟或其他窗口更新列表后，移除失效的展示选项。
+  useEffect(() => {
+    if (!loaded || !selectionLoaded) return;
+    const existing = alarmIds.filter((id) => sortedAlarms.some((alarm) => alarm.id === id));
+    if (existing.length !== alarmIds.length) updateAlarmIds(existing);
+  }, [loaded, selectionLoaded, alarmIds, sortedAlarms, updateAlarmIds]);
+
+  const toggleOverview = (id: number): void => {
+    if (!selectionLoaded) return;
+    if (alarmIds.includes(id)) updateAlarmIds(alarmIds.filter((item) => item !== id));
+    else if (alarmIds.length < OVERVIEW_ALARM_LIMIT) updateAlarmIds([...alarmIds, id]);
+  };
+
   return (
     <div className={`alarm-tab-sidebar${showEditor ? ' alarm-tab-sidebar--compact' : ''}`}>
       <div className="alarm-tab-header">
@@ -64,7 +81,9 @@ export function AlarmSidebar({
             if (adding) { closeEditor(); }
             else { const _now = new Date(); setNewHour(_now.getHours()); setNewMinute(_now.getMinutes()); setNewSecond(_now.getSeconds()); setAdding(true); }
           }}
-          title={t('maxExpand.alarm.add', { defaultValue: '新建闹钟' })}
+          title={adding ? t('maxExpand.alarm.cancel') : t('maxExpand.alarm.add')}
+          aria-label={adding ? t('maxExpand.alarm.cancel') : t('maxExpand.alarm.add')}
+          aria-expanded={adding}
         >
           <img src={adding ? SvgIcon.CANCEL : SvgIcon.PLUS} alt="" className="alarm-tab-btn-icon" />
         </button>
@@ -88,6 +107,9 @@ export function AlarmSidebar({
             onStartEdit={startEdit}
             onDelete={deleteAlarm}
             onToggle={toggleEnabled}
+            onToggleOverview={toggleOverview}
+            overviewSelected={alarmIds.includes(alarm.id)}
+            overviewSelectionFull={!selectionLoaded || alarmIds.length >= OVERVIEW_ALARM_LIMIT}
           />
         ))}
       </div>

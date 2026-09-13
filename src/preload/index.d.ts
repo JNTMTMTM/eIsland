@@ -199,6 +199,7 @@ declare global {
       mailInboxList: (configOrLimit?: Record<string, unknown> | number, limit?: number) => Promise<MailInboxResult>;
       storeRead: (key: string) => Promise<unknown>;
       storeWrite: (key: string, data: unknown) => Promise<boolean>;
+      setAlarmEnabled: (id: number, enabled: boolean) => Promise<boolean>;
       hotkeyGet: () => Promise<string>;
       hotkeySet: (accelerator: string) => Promise<boolean>;
       hotkeySuspend: () => Promise<boolean>;

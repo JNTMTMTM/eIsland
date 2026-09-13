@@ -19,19 +19,18 @@
  */
 
 /**
- * @file index.ts
- * @description Overview widgets 统一导出入口。
+ * @file overviewAlarmConfig.ts
+ * @description 总览闹钟选择配置。
  * @author 鸡哥
  */
 
-export * from './MokugyoWidget';
-export * from './SongWidget';
-export * from './CountdownWidget';
-export * from './PomodoroWidget';
-export * from './UrlFavoritesWidget';
-export * from './AlbumCarouselWidget';
-export * from './ShortcutsWidget';
-export * from './TodoWidget';
-export * from './BreakReminderWidget';
-export * from './WorldClockWidget';
-export * from './AlarmWidget';
+export const OVERVIEW_ALARM_STORE_KEY = 'overview-alarm-selection';
+export const OVERVIEW_ALARM_LIMIT = 2;
+
+/** 校验存档，保留最多两个不同的闹钟 ID。 */
+export function normalizeOverviewAlarmIds(value: unknown): number[] {
+  if (!value || typeof value !== 'object') return [];
+  const ids = (value as { alarmIds?: unknown }).alarmIds;
+  if (!Array.isArray(ids)) return [];
+  return [...new Set(ids.filter((id): id is number => typeof id === 'number' && Number.isSafeInteger(id) && id >= 0))].slice(0, OVERVIEW_ALARM_LIMIT);
+}

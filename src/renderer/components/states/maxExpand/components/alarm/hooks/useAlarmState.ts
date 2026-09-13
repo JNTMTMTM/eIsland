@@ -122,6 +122,7 @@ export function useAlarmState(): AlarmState {
   /** 启动时从文件加载 */
   useEffect(() => {
     let cancelled = false;
+    let receivedUpdate = false;
     const applyAlarms = (data: unknown): void => {
       if (!Array.isArray(data)) return;
       skipPersistOnceRef.current = true;
@@ -130,17 +131,22 @@ export function useAlarmState(): AlarmState {
 
     window.api.storeRead(STORE_KEY).then((data) => {
       if (cancelled) return;
-      if (Array.isArray(data) && data.length > 0) {
+      skipPersistOnceRef.current = true;
+      if (!receivedUpdate && Array.isArray(data)) {
         setAlarms(normalizeAlarms(data as AlarmItem[]));
       }
       setLoaded(true);
     }).catch(() => {
-      if (!cancelled) setLoaded(true);
+      if (!cancelled) {
+        skipPersistOnceRef.current = true;
+        setLoaded(true);
+      }
     });
 
     const unsub = window.api.onSettingsChanged((channel: string, value: unknown) => {
       if (cancelled) return;
       if (channel === `store:${STORE_KEY}`) {
+        receivedUpdate = true;
         applyAlarms(value);
       }
     });
@@ -241,7 +247,10 @@ export function useAlarmState(): AlarmState {
 
   /** 切换开关 */
   const toggleEnabled = (id: number): void => {
-    setAlarms((prev) => prev.map((a) => a.id === id ? { ...a, enabled: !a.enabled } : a));
+    const alarm = alarms.find((item) => item.id === id);
+    if (!alarm) return;
+    // 等待保存后的广播更新 UI，不用本地快照覆盖整个闹钟列表。
+    window.api.setAlarmEnabled(id, !alarm.enabled).catch(() => {});
   };
 
   /** 进入编辑 */

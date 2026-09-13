@@ -593,6 +593,57 @@
   color: rgba(var(--color-text-rgb), 0.85);
 }
 
+/** 闹钟与世界时钟共用紧凑的两行卡片布局。 */
+.ov-dash-alarm-title {
+  padding: 0;
+  border: none;
+  background: none;
+  font-family: inherit;
+  text-align: left;
+}
+.ov-dash-world-clock-item.ov-dash-alarm-item {
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: 6px;
+}
+.ov-dash-alarm-item .ov-dash-world-clock-time {
+  grid-column: 1;
+  grid-row: 2;
+}
+.ov-dash-alarm-widget .ov-dash-alarm-toggle {
+  grid-column: 2;
+  grid-row: 1 / 3;
+  align-self: center;
+  z-index: 1;
+  width: 30px;
+  height: 18px;
+  border-radius: 9px;
+}
+.ov-dash-alarm-toggle .alarm-toggle-track {
+  border-radius: 9px;
+}
+.ov-dash-alarm-toggle .alarm-toggle-thumb {
+  width: 14px;
+  height: 14px;
+}
+.ov-dash-alarm-toggle.alarm-toggle--on .alarm-toggle-thumb {
+  transform: translateX(12px);
+}
+.ov-dash-alarm-toggle:focus-visible {
+  outline: 2px solid rgba(var(--color-accent-rgb, 59, 130, 246), 0.8);
+  outline-offset: 3px;
+}
+.ov-dash-alarm-toggle:disabled {
+  cursor: wait;
+}
+.ov-dash-alarm-item--disabled .ov-dash-world-clock-city,
+.ov-dash-alarm-item--disabled .ov-dash-world-clock-time {
+  opacity: 0.5;
+}
+.ov-dash-alarm-error {
+  color: #ff6961;
+  font-size: 9px;
+}
+
 /** 世界时钟控件 */
 .ov-dash-world-clock-list {
   display: flex;

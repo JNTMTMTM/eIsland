@@ -383,6 +383,25 @@ export function OverviewPreview({ layoutConfig }: { layoutConfig: OverviewLayout
             </div>
           </div>
         );
+      case 'alarm':
+        return (
+          <div className="ov-dash-widget ov-dash-alarm-widget">
+            <div className="ov-dash-widget-header">
+              <span className="ov-dash-widget-title">{t('overview.alarm.title')}</span>
+            </div>
+            <div className="ov-dash-world-clock-list">
+              {['08:00:00', '21:30:00'].map((time) => (
+                <div key={time} className="ov-dash-world-clock-item ov-dash-alarm-item">
+                  <span className="ov-dash-world-clock-city">{t('overview.alarm.title')}</span>
+                  <span className="ov-dash-world-clock-time">{time}</span>
+                  <span className="alarm-toggle ov-dash-alarm-toggle alarm-toggle--on" aria-hidden="true">
+                    <span className="alarm-toggle-track"><span className="alarm-toggle-thumb" /></span>
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
       default:
         return null;
     }
