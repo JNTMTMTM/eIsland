@@ -643,19 +643,6 @@
   color: #ff6961;
   font-size: 9px;
 }
-.ov-dash-alarm-bg-icon {
-  position: absolute;
-  right: 8px;
-  bottom: 5px;
-  width: 24px;
-  height: 24px;
-  filter: brightness(0) invert(1);
-  opacity: 0.12;
-  pointer-events: none;
-}
-[data-theme="light"] .ov-dash-alarm-bg-icon {
-  filter: brightness(0) invert(0);
-}
 
 /** 世界时钟控件 */
 .ov-dash-world-clock-list {

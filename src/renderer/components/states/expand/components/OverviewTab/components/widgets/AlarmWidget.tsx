@@ -12,7 +12,6 @@
 
 import { useEffect, useRef, useState, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
-import { SvgIcon } from '../../../../../../../utils/SvgIcon';
 import { useOverviewAlarmConfig } from '../../../../../maxExpand/components/alarm/hooks/useOverviewAlarmConfig';
 import { STORE_KEY, type AlarmItem } from '../../../../../maxExpand/components/alarm/types/alarmTypes';
 import { formatTime, normalizeAlarms } from '../../../../../maxExpand/components/alarm/utils/alarmUtils';
@@ -89,7 +88,6 @@ export function AlarmWidget({ onOpenAlarmPage }: { onOpenAlarmPage: () => void }
             >
               <span className="alarm-toggle-track"><span className="alarm-toggle-thumb" /></span>
             </button>
-            <img className="ov-dash-alarm-bg-icon" src={SvgIcon.TIMER} alt="" />
           </div>
         ))}
       </div>

@@ -397,7 +397,6 @@ export function OverviewPreview({ layoutConfig }: { layoutConfig: OverviewLayout
                   <span className="alarm-toggle ov-dash-alarm-toggle alarm-toggle--on" aria-hidden="true">
                     <span className="alarm-toggle-track"><span className="alarm-toggle-thumb" /></span>
                   </span>
-                  <img className="ov-dash-alarm-bg-icon" src={SvgIcon.TIMER} alt="" />
                 </div>
               ))}
             </div>
