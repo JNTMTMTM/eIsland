@@ -299,10 +299,6 @@
   flex-shrink: 0;
 }
 
-.alarm-tab-sidebar--compact .alarm-card-right {
-  flex-direction: column-reverse;
-}
-
 /* ── 开关 Toggle (iOS) ── */
 .alarm-toggle {
   position: relative;
