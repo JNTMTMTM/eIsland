@@ -359,6 +359,7 @@
   transition: width .18s ease, margin-left .18s ease, opacity .18s ease, transform .18s ease, background .15s ease;
 }
 
+.expand-todo-item.expanded .expand-todo-delete,
 .expand-todo-row:hover .expand-todo-delete,
 .expand-todo-delete:focus-visible,
 .expand-todo-sub:hover .expand-todo-sub-delete,
