@@ -119,14 +119,6 @@ export function TodoItem({
       >
         <div className="expand-todo-collapse-inner">
           <div className="expand-todo-detail" onClick={(e) => e.stopPropagation()}>
-            {/* 描述区域 */}
-            <TodoScheduleEditor
-              todo={todo}
-              todos={todos}
-              onSaveDesc={onSaveDesc}
-              onSetDueDate={onSetDueDate}
-            />
-
             {/* 子待办列表 */}
             <div className="expand-todo-subs">
               {subs.length > 0 && (
@@ -186,6 +178,14 @@ export function TodoItem({
                 <button className="expand-todo-sub-add-btn" disabled={!subInput.trim()} onClick={() => onAddSubTodo(todo.id)}>{t('todo.add')}</button>
               </div>
             </div>
+
+            {/* 描述区域 */}
+            <TodoScheduleEditor
+              todo={todo}
+              todos={todos}
+              onSaveDesc={onSaveDesc}
+              onSetDueDate={onSetDueDate}
+            />
           </div>
         </div>
       </div>
