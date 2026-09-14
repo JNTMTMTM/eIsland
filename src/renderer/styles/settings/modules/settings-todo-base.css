@@ -283,23 +283,6 @@
   border-color: rgba(var(--color-text-rgb), .25);
 }
 
-.expand-todo-expand {
-  flex-shrink: 0;
-  height: 26px;
-  padding: 0 6px;
-  font-size: 11px;
-  color: rgba(var(--color-text-rgb), .5);
-  cursor: pointer;
-  background: transparent;
-  border: 0;
-  border-radius: 5px;
-}
-
-.expand-todo-expand:hover {
-  color: var(--color-island-text);
-  background: rgba(var(--color-text-rgb), .08);
-}
-
 .expand-todo-item.done .expand-todo-text,
 .expand-todo-sub.done .expand-todo-sub-text {
   color: rgba(var(--color-text-rgb), .4);
@@ -381,6 +364,7 @@
   width: 14px;
   height: 14px;
   filter: brightness(0) invert(1);
+  opacity: .45;
 }
 
 [data-theme="light"] .expand-todo-delete-icon-img {

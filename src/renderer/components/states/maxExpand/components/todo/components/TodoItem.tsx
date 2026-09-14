@@ -65,7 +65,18 @@ export function TodoItem({
         </button>
         <div
           className="expand-todo-body"
+          role="button"
+          tabIndex={0}
+          aria-label={isExpanded ? t('todo.collapse') : t('todo.expand')}
+          aria-expanded={isExpanded}
+          aria-controls={detailId}
           onClick={() => onToggleExpand(todo.id)}
+          onKeyDown={(e) => {
+            if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) {
+              e.preventDefault();
+              onToggleExpand(todo.id);
+            }
+          }}
         >
           <span className="expand-todo-summary">
             <TodoTitleInput
@@ -105,15 +116,6 @@ export function TodoItem({
             <span className="expand-todo-desc-preview" aria-hidden={isExpanded} title={todo.description}>{todo.description}</span>
           )}
         </div>
-        <button
-          className="expand-todo-expand"
-          type="button"
-          aria-expanded={isExpanded}
-          aria-controls={detailId}
-          onClick={() => onToggleExpand(todo.id)}
-        >
-          {isExpanded ? t('todo.collapse') : t('todo.expand')}
-        </button>
         <button
           className="expand-todo-delete"
           type="button"
