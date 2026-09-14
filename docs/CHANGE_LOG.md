@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-09-13T20:30:39.052Z
+> 生成时间：2026-09-14T23:53:33.008Z
 
 ## 26.7.4
 
@@ -3569,6 +3569,23 @@
 
 ## Unreleased
 
+- 2026-09-14 | d248ad1a | 鸡哥 | Merge pull request #216 from JNTMTMTM/dev
+- 2026-09-15 | 92af63f1 | 鸡哥 | feat(tests): refactor date validation tests to use forEach for improved readability
+- 2026-09-15 | 21518d45 | 鸡哥 | feat(todo): update clear deadline button to use icon and improve styling for better visibility
+- 2026-09-15 | 44f6c010 | 鸡哥 | feat(todo): improve calendar period styling with animations and responsive adjustments
+- 2026-09-15 | dc0c5680 | 鸡哥 | feat(todo): enhance border color transitions for expanded todo items and delete button hover states
+- 2026-09-15 | 89f28366 | 鸡哥 | feat(todo): replace expand button with clickable area for better accessibility and interaction
+- 2026-09-15 | 697c1957 | 鸡哥 | feat(todo): add hover and focus styles for delete button in expanded todo items
+- 2026-09-15 | 1cf9a0dc | 鸡哥 | feat(todo): update delete button to use icon and improve styling for better visibility and interaction
+- 2026-09-15 | 2f78e314 | 鸡哥 | feat(todo): enhance subtask display with a dedicated list container for improved organization
+- 2026-09-15 | 4650b3f1 | 鸡哥 | feat(todo): reorganize TodoItem component to separate description and subtasks areas for better clarity
+- 2026-09-15 | c05c2b7f | 鸡哥 | feat(todo): implement editable title input for tasks and subtasks with save functionality
+- 2026-09-15 | 143cd3dd | 鸡哥 | feat(todo): reposition description area in TodoItem component for improved layout
+- 2026-09-15 | 585f2e63 | 鸡哥 | feat(todo): add due date functionality with calendar integration and enhance UI for task management
+- 2026-09-15 | f6e6d213 | 鸡哥 | feat(todo): enhance expand/collapse animations and improve description visibility
+- 2026-09-15 | 1401ea9d | 鸡哥 | refactor: enhance Todo components with improved accessibility and UI updates
+- 2026-09-15 | f94fd299 | 鸡哥 | feat(theme): enhance theme mode application with transition effects and origin tracking
+- 2026-09-13 | c6943cf4 | eislandBot | docs: auto update CHANGE_LOG.md for #215 by @JNTMTMTM [skip ci]
 - 2026-09-13 | 9bd8e985 | 鸡哥 | Merge pull request #215 from JNTMTMTM/dev
 - 2026-09-14 | f7b0a206 | 鸡哥 | feat(alarm): enhance updateAlarmIds to handle async operations and error management
 - 2026-09-14 | e3d9b857 | 鸡哥 | refactor(test): simplify loop for alarm state updates in ipcHandlers tests
