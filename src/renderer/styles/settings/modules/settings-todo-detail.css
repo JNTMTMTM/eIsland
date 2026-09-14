@@ -23,6 +23,27 @@
  * @description Settings Todo 详情与子待办样式
  */
 
+/* 网格轨道跟随内容高度过渡，无需固定最大高度或延迟卸载。 */
+.expand-todo-collapse {
+  display: grid;
+  grid-template-rows: 0fr;
+  visibility: hidden;
+  opacity: 0;
+  transition: grid-template-rows .22s cubic-bezier(.2, 0, 0, 1), opacity .18s ease, visibility 0s linear .22s;
+}
+
+.expand-todo-item.expanded .expand-todo-collapse {
+  grid-template-rows: 1fr;
+  visibility: visible;
+  opacity: 1;
+  transition-delay: 0s;
+}
+
+.expand-todo-collapse-inner {
+  min-height: 0;
+  overflow: hidden;
+}
+
 .expand-todo-detail {
   display: flex;
   flex-direction: column;
@@ -80,4 +101,11 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .expand-todo-collapse,
+  .expand-todo-desc-preview {
+    transition: none;
+  }
 }

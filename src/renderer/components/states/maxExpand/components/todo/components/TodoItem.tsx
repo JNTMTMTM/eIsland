@@ -64,7 +64,7 @@ export function TodoItem({
           className="expand-todo-body"
           type="button"
           aria-expanded={isExpanded}
-          aria-controls={isExpanded ? detailId : undefined}
+          aria-controls={detailId}
           onClick={() => onToggleExpand(todo.id)}
         >
           <span className="expand-todo-summary">
@@ -95,8 +95,8 @@ export function TodoItem({
             )}
             <span className="expand-todo-time">{formatCreatedTime(todo.createdAt ?? todo.id)}</span>
           </span>
-          {!isExpanded && todo.description && (
-            <span className="expand-todo-desc-preview" title={todo.description}>{todo.description}</span>
+          {todo.description && (
+            <span className="expand-todo-desc-preview" aria-hidden={isExpanded} title={todo.description}>{todo.description}</span>
           )}
         </button>
         <button
@@ -108,98 +108,105 @@ export function TodoItem({
         </button>
       </div>
 
-      {/* 展开详情 */}
-      {isExpanded && (
-        <div id={detailId} className="expand-todo-detail" onClick={(e) => e.stopPropagation()}>
-          {/* 描述区域 */}
-          <div className="expand-todo-desc-area">
-            {editingDescId === todo.id ? (
-              <>
-                <textarea
-                  ref={descRef}
-                  className="expand-todo-desc"
-                  placeholder={t('todo.descPlaceholder', { defaultValue: '添加详细描述...' })}
-                  aria-label={t('todo.editDescTitle')}
-                  value={descDraft}
-                  onChange={(e) => setDescDraft(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); onSaveDesc(todo.id); }
-                  }}
-                  rows={3}
-                />
-                <button className="expand-todo-desc-btn save" onClick={() => onSaveDesc(todo.id)} title={t('todo.saveTitle', { defaultValue: '保存 (Ctrl+Enter)' })}>{t('todo.save', { defaultValue: '保存' })}</button>
-              </>
-            ) : (
-              <>
-                {todo.description && <div className="expand-todo-desc-text">{todo.description}</div>}
-                <button className="expand-todo-desc-btn edit" onClick={() => onStartEditDesc(todo)}>
-                  {todo.description ? t('todo.edit') : t('todo.addDescription')}
-                </button>
-              </>
-            )}
-          </div>
+      {/* 保留详情节点以播放收起动画，折叠时禁用交互并释放共享输入框引用。 */}
+      <div
+        id={detailId}
+        className="expand-todo-collapse"
+        aria-hidden={!isExpanded}
+        inert={!isExpanded}
+      >
+        <div className="expand-todo-collapse-inner">
+          <div className="expand-todo-detail" onClick={(e) => e.stopPropagation()}>
+            {/* 描述区域 */}
+            <div className="expand-todo-desc-area">
+              {editingDescId === todo.id ? (
+                <>
+                  <textarea
+                    ref={isExpanded ? descRef : undefined}
+                    className="expand-todo-desc"
+                    placeholder={t('todo.descPlaceholder', { defaultValue: '添加详细描述...' })}
+                    aria-label={t('todo.editDescTitle')}
+                    value={descDraft}
+                    onChange={(e) => setDescDraft(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); onSaveDesc(todo.id); }
+                    }}
+                    rows={3}
+                  />
+                  <button className="expand-todo-desc-btn save" onClick={() => onSaveDesc(todo.id)} title={t('todo.saveTitle', { defaultValue: '保存 (Ctrl+Enter)' })}>{t('todo.save', { defaultValue: '保存' })}</button>
+                </>
+              ) : (
+                <>
+                  {todo.description && <div className="expand-todo-desc-text">{todo.description}</div>}
+                  <button className="expand-todo-desc-btn edit" onClick={() => onStartEditDesc(todo)}>
+                    {todo.description ? t('todo.edit') : t('todo.addDescription')}
+                  </button>
+                </>
+              )}
+            </div>
 
-          {/* 子待办列表 */}
-          <div className="expand-todo-subs">
-            {subs.length > 0 && (
-              <div className="expand-todo-subs-header">{t('todo.subtasks')}</div>
-            )}
-            {subs.map(sub => (
-              <TodoSubItem
-                key={sub.id}
-                sub={sub}
-                parentId={todo.id}
-                onToggleSubDone={onToggleSubDone}
-                onRemoveSubTodo={onRemoveSubTodo}
-              />
-            ))}
-            {/* 添加子待办 */}
-            <div className="expand-todo-sub-add">
-              <input
-                ref={subInputRef}
-                className="expand-todo-sub-input"
-                type="text"
-                placeholder={t('todo.addSubPlaceholder', { defaultValue: '添加子任务...' })}
-                aria-label={t('todo.addSubPlaceholder')}
-                value={subInput}
-                onChange={(e) => setSubInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') { e.preventDefault(); onAddSubTodo(todo.id); }
-                }}
-              />
-              <div className="expand-todo-selector">
-                {PRIORITIES.map(p => (
-                  <button
-                    key={p.value}
-                    className={`expand-todo-tag ${subPriority === p.value ? 'active' : ''}`}
-                    style={{ '--tag-color': p.color } as CSSProperties}
-                    onClick={() => setSubPriority(subPriority === p.value ? undefined : p.value)}
-                    aria-pressed={subPriority === p.value}
-                    title={t('todo.priorityTitle', { label: p.label })}
-                  >
-                    {p.label}
-                  </button>
-                ))}
+            {/* 子待办列表 */}
+            <div className="expand-todo-subs">
+              {subs.length > 0 && (
+                <div className="expand-todo-subs-header">{t('todo.subtasks')}</div>
+              )}
+              {subs.map(sub => (
+                <TodoSubItem
+                  key={sub.id}
+                  sub={sub}
+                  parentId={todo.id}
+                  onToggleSubDone={onToggleSubDone}
+                  onRemoveSubTodo={onRemoveSubTodo}
+                />
+              ))}
+              {/* 添加子待办 */}
+              <div className="expand-todo-sub-add">
+                <input
+                  ref={isExpanded ? subInputRef : undefined}
+                  className="expand-todo-sub-input"
+                  type="text"
+                  placeholder={t('todo.addSubPlaceholder', { defaultValue: '添加子任务...' })}
+                  aria-label={t('todo.addSubPlaceholder')}
+                  value={subInput}
+                  onChange={(e) => setSubInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') { e.preventDefault(); onAddSubTodo(todo.id); }
+                  }}
+                />
+                <div className="expand-todo-selector">
+                  {PRIORITIES.map(p => (
+                    <button
+                      key={p.value}
+                      className={`expand-todo-tag ${subPriority === p.value ? 'active' : ''}`}
+                      style={{ '--tag-color': p.color } as CSSProperties}
+                      onClick={() => setSubPriority(subPriority === p.value ? undefined : p.value)}
+                      aria-pressed={subPriority === p.value}
+                      title={t('todo.priorityTitle', { label: p.label })}
+                    >
+                      {p.label}
+                    </button>
+                  ))}
+                </div>
+                <div className="expand-todo-selector">
+                  {SIZES.map(s => (
+                    <button
+                      key={s.value}
+                      className={`expand-todo-tag size ${subSize === s.value ? 'active' : ''}`}
+                      style={{ '--tag-color': s.color } as CSSProperties}
+                      onClick={() => setSubSize(subSize === s.value ? undefined : s.value)}
+                      aria-pressed={subSize === s.value}
+                      title={t('todo.sizeTitle', { label: s.label })}
+                    >
+                      {s.label}
+                    </button>
+                  ))}
+                </div>
+                <button className="expand-todo-sub-add-btn" disabled={!subInput.trim()} onClick={() => onAddSubTodo(todo.id)}>{t('todo.add')}</button>
               </div>
-              <div className="expand-todo-selector">
-                {SIZES.map(s => (
-                  <button
-                    key={s.value}
-                    className={`expand-todo-tag size ${subSize === s.value ? 'active' : ''}`}
-                    style={{ '--tag-color': s.color } as CSSProperties}
-                    onClick={() => setSubSize(subSize === s.value ? undefined : s.value)}
-                    aria-pressed={subSize === s.value}
-                    title={t('todo.sizeTitle', { label: s.label })}
-                  >
-                    {s.label}
-                  </button>
-                ))}
-              </div>
-              <button className="expand-todo-sub-add-btn" disabled={!subInput.trim()} onClick={() => onAddSubTodo(todo.id)}>{t('todo.add')}</button>
             </div>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }

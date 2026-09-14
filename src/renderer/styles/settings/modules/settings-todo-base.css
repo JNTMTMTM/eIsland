@@ -232,7 +232,7 @@
   display: flex;
   flex: 1;
   flex-direction: column;
-  gap: 4px;
+  gap: 0;
   min-width: 0;
   padding: 4px 0;
   font: inherit;
@@ -356,12 +356,22 @@
 
 .expand-todo-desc-preview {
   width: 100%;
+  max-height: 1.4em;
+  margin-top: 4px;
   overflow: hidden;
   font-size: 11px;
   line-height: 1.4;
   color: rgba(var(--color-text-rgb), .45);
   text-overflow: ellipsis;
   white-space: nowrap;
+  opacity: 1;
+  transition: max-height .22s cubic-bezier(.2, 0, 0, 1), margin-top .22s ease, opacity .18s ease;
+}
+
+.expand-todo-item.expanded .expand-todo-desc-preview {
+  max-height: 0;
+  margin-top: 0;
+  opacity: 0;
 }
 
 [data-theme="light"] .expand-todo-tag.active,
