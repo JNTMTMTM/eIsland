@@ -110,7 +110,10 @@ export interface AppSettingsSectionProps {
   setIslandDisplaySelection: (selection: string) => void;
   themeMode: 'dark' | 'light' | 'system';
   setThemeModeState: (mode: 'dark' | 'light' | 'system') => void;
-  applyThemeMode: (mode: 'dark' | 'light' | 'system') => Promise<void>;
+  applyThemeMode: (
+    mode: 'dark' | 'light' | 'system',
+    origin?: { x: number; y: number },
+  ) => Promise<void>;
   standaloneMacControls: boolean;
   setStandaloneMacControls: (value: boolean) => void;
   appLanguage: 'zh-CN' | 'en-US';

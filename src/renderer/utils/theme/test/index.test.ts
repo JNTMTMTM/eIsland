@@ -31,20 +31,26 @@ const mocks = vi.hoisted(() => {
   const themeModeSetMock = vi.fn();
   const onSettingsChangedMock = vi.fn();
   const setAttributeMock = vi.fn();
+  const animateMock = vi.fn();
+  const startViewTransitionMock = vi.fn();
   const mqAddEventListenerMock = vi.fn();
 
   const darkMqMock = {
     matches: false,
     addEventListener: mqAddEventListenerMock,
   };
+  const reducedMotionMqMock = { matches: false };
 
   return {
     themeModeGetMock,
     themeModeSetMock,
     onSettingsChangedMock,
     setAttributeMock,
+    animateMock,
+    startViewTransitionMock,
     mqAddEventListenerMock,
     darkMqMock,
+    reducedMotionMqMock,
   };
 });
 
@@ -53,10 +59,17 @@ describe('theme utils', () => {
     vi.resetModules();
 
     mocks.darkMqMock.matches = false;
+    mocks.reducedMotionMqMock.matches = false;
+    mocks.animateMock.mockReset();
+    mocks.startViewTransitionMock.mockReset();
 
     Object.defineProperty(globalThis, 'window', {
       value: {
-        matchMedia: vi.fn().mockReturnValue(mocks.darkMqMock),
+        innerWidth: 1280,
+        innerHeight: 720,
+        matchMedia: vi.fn().mockImplementation((query: string) => (
+          query.includes('prefers-reduced-motion') ? mocks.reducedMotionMqMock : mocks.darkMqMock
+        )),
         api: {
           themeModeGet: mocks.themeModeGetMock,
           themeModeSet: mocks.themeModeSetMock,
@@ -71,6 +84,7 @@ describe('theme utils', () => {
       value: {
         documentElement: {
           setAttribute: mocks.setAttributeMock,
+          animate: mocks.animateMock,
         },
       },
       configurable: true,
@@ -162,6 +176,54 @@ describe('theme utils', () => {
       await setThemeMode('system');
       expect(mocks.setAttributeMock).toHaveBeenCalledWith('data-theme', 'dark');
       expect(mocks.themeModeSetMock).toHaveBeenCalledWith('system');
+    });
+
+    it('reveals the new theme in a circle from the supplied origin', async () => {
+      mocks.themeModeGetMock.mockResolvedValue('dark');
+      mocks.startViewTransitionMock.mockImplementation((update: () => void) => {
+        update();
+        return { ready: Promise.resolve() };
+      });
+      Object.defineProperty(globalThis.document, 'startViewTransition', {
+        value: mocks.startViewTransitionMock,
+        configurable: true,
+      });
+
+      const { initTheme, setThemeMode } = await import('../index');
+      await initTheme();
+      await setThemeMode('light', { x: 100, y: 200 });
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(mocks.startViewTransitionMock).toHaveBeenCalledOnce();
+      expect(mocks.animateMock).toHaveBeenCalledWith(
+        {
+          clipPath: [
+            'circle(0px at 100px 200px)',
+            expect.stringMatching(/^circle\(.+px at 100px 200px\)$/),
+          ],
+        },
+        expect.objectContaining({
+          duration: 520,
+          pseudoElement: '::view-transition-new(root)',
+        }),
+      );
+    });
+
+    it('skips the animation when reduced motion is preferred', async () => {
+      mocks.themeModeGetMock.mockResolvedValue('dark');
+      mocks.reducedMotionMqMock.matches = true;
+      Object.defineProperty(globalThis.document, 'startViewTransition', {
+        value: mocks.startViewTransitionMock,
+        configurable: true,
+      });
+
+      const { initTheme, setThemeMode } = await import('../index');
+      await initTheme();
+      await setThemeMode('light', { x: 100, y: 200 });
+
+      expect(mocks.startViewTransitionMock).not.toHaveBeenCalled();
+      expect(mocks.setAttributeMock).toHaveBeenCalledWith('data-theme', 'light');
     });
   });
 
