@@ -26,6 +26,12 @@
 
 export type ThemeMode = 'dark' | 'light' | 'system';
 
+/** 主题切换动画的圆心坐标（相对于当前视口） */
+export interface ThemeTransitionOrigin {
+  x: number;
+  y: number;
+}
+
 /** 系统偏好媒体查询 */
 const darkMq = window.matchMedia('(prefers-color-scheme: dark)');
 
@@ -35,12 +41,64 @@ let currentMode: ThemeMode = 'dark';
 /** 幂等标记：防止 initTheme 重复注册监听器 */
 let initialized = false;
 
+/** 根据用户模式解析最终视觉主题 */
+function getVisualTheme(mode: ThemeMode): 'dark' | 'light' {
+  return mode === 'system' ? (darkMq.matches ? 'dark' : 'light') : mode;
+}
+
 /**
  * 根据模式解析最终视觉主题并设置 data-theme
  */
 function applyVisualTheme(mode: ThemeMode): void {
-  const visual = mode === 'system' ? (darkMq.matches ? 'dark' : 'light') : mode;
-  document.documentElement.setAttribute('data-theme', visual);
+  document.documentElement.setAttribute('data-theme', getVisualTheme(mode));
+}
+
+/** 用户要求减少动态效果时跳过主题切换动画 */
+function prefersReducedMotion(): boolean {
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
+/**
+ * 从指定位置以圆形扩散方式应用主题；不支持 View Transitions 时直接切换。
+ */
+function applyVisualThemeWithTransition(
+  mode: ThemeMode,
+  origin: ThemeTransitionOrigin | undefined,
+  previousVisualTheme: 'dark' | 'light',
+): void {
+  const nextVisualTheme = getVisualTheme(mode);
+  const startViewTransition = document.startViewTransition;
+
+  if (!origin || previousVisualTheme === nextVisualTheme || !startViewTransition || prefersReducedMotion()) {
+    applyVisualTheme(mode);
+    return;
+  }
+
+  const transition = startViewTransition.call(document, () => applyVisualTheme(mode));
+  void transition.ready.then(() => {
+    const x = Math.max(0, Math.min(origin.x, window.innerWidth));
+    const y = Math.max(0, Math.min(origin.y, window.innerHeight));
+    const radius = Math.hypot(
+      Math.max(x, window.innerWidth - x),
+      Math.max(y, window.innerHeight - y),
+    );
+    const animationOptions: KeyframeAnimationOptions & { pseudoElement: string } = {
+      duration: 520,
+      easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+      fill: 'both',
+      pseudoElement: '::view-transition-new(root)',
+    };
+
+    document.documentElement.animate(
+      {
+        clipPath: [
+          `circle(0px at ${x}px ${y}px)`,
+          `circle(${radius}px at ${x}px ${y}px)`,
+        ],
+      },
+      animationOptions,
+    );
+  }).catch(() => {});
 }
 
 /**
@@ -85,9 +143,10 @@ export async function initTheme(): Promise<void> {
  * 切换主题模式并持久化
  * @param mode - 目标模式
  */
-export async function setThemeMode(mode: ThemeMode): Promise<void> {
+export async function setThemeMode(mode: ThemeMode, origin?: ThemeTransitionOrigin): Promise<void> {
+  const previousVisualTheme = getVisualTheme(currentMode);
   currentMode = mode;
-  applyVisualTheme(mode);
+  applyVisualThemeWithTransition(mode, origin, previousVisualTheme);
   await window.api.themeModeSet(mode);
 }
 

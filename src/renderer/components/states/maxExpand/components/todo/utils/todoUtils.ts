@@ -26,6 +26,7 @@
 
 import { LOCAL_STORAGE_KEY, STORE_KEY } from '../config/todoConfig';
 import type { TodoItem } from '../types/todoTypes';
+import { getTodoStartDate, parseTodoDate } from './todoCalendarUtils';
 
 /** 格式化时间为 yyyy-mm-dd hh:mm:ss */
 export function formatCreatedTime(ts: number): string {
@@ -44,6 +45,7 @@ export function normalizeTodos(items: TodoItem[]): TodoItem[] {
   return items.map(t => ({
     ...t,
     description: t.description ?? '',
+    dueDate: t.dueDate && parseTodoDate(t.dueDate) && t.dueDate >= getTodoStartDate(t) ? t.dueDate : undefined,
     subTodos: (t.subTodos ?? []).map(s => ({
       ...s,
       priority: s.priority,

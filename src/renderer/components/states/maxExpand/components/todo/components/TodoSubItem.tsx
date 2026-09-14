@@ -25,23 +25,35 @@
  */
 
 import type { CSSProperties, ReactElement } from 'react';
+import { useTranslation } from 'react-i18next';
+import { SvgIcon } from '../../../../../../utils/SvgIcon';
 import { PRIORITIES, SIZES } from '../config/todoConfig';
 import type { TodoSubItemProps } from '../types/todoTypes';
+import { TodoTitleInput } from './TodoTitleInput';
 
 /**
  * 子待办条目
  * @description 显示单条子任务，支持切换完成和删除
  */
-export function TodoSubItem({ sub, parentId, onToggleSubDone, onRemoveSubTodo }: TodoSubItemProps): ReactElement {
+export function TodoSubItem({ sub, parentId, onToggleSubDone, onRemoveSubTodo, onSaveSubTitle }: TodoSubItemProps): ReactElement {
+  const { t } = useTranslation();
+
   return (
     <div className={`expand-todo-sub ${sub.done ? 'done' : ''}`}>
       <button
         className="expand-todo-sub-check"
+        aria-pressed={sub.done}
+        aria-label={sub.done ? t('todo.markUndone') : t('todo.markDone')}
         onClick={() => onToggleSubDone(parentId, sub.id)}
       >
-        {sub.done ? '✓' : '○'}
+        {sub.done ? '✓' : ''}
       </button>
-      <span className="expand-todo-sub-text">{sub.text}</span>
+      <TodoTitleInput
+        className="expand-todo-sub-text"
+        text={sub.text}
+        label={t('todo.editSubTitle')}
+        onSave={(text) => onSaveSubTitle(parentId, sub.id, text)}
+      />
       {sub.priority && (
         <span
           className="expand-todo-priority-badge"
@@ -60,9 +72,12 @@ export function TodoSubItem({ sub, parentId, onToggleSubDone, onRemoveSubTodo }:
       )}
       <button
         className="expand-todo-sub-delete"
+        type="button"
+        aria-label={t('todo.delete')}
+        title={t('todo.delete')}
         onClick={() => onRemoveSubTodo(parentId, sub.id)}
       >
-        ×
+        <img className="expand-todo-delete-icon-img" src={SvgIcon.DELETE} alt="" draggable={false} />
       </button>
     </div>
   );

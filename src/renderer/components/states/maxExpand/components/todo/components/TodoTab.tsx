@@ -38,13 +38,12 @@ export function TodoTab(): ReactElement {
   const {
     todos, expandedId,
     input, setInput, priority, setPriority, size, setSize,
-    editingDescId, descDraft, setDescDraft,
     subInput, setSubInput, subPriority, setSubPriority, subSize, setSubSize,
-    descRef, inputRef, listRef, subInputRef,
+    inputRef, listRef, subInputRef,
     doneCount, undoneCount, p0Count, p1Count, p2Count,
     handleAdd, handleKeyDown,
     toggleDone, removeTodo, toggleExpand,
-    startEditDesc, saveDesc,
+    saveTitle, saveSubTitle, saveDesc, setDueDate,
     addSubTodo, toggleSubDone, removeSubTodo,
   } = useTodos();
 
@@ -73,10 +72,6 @@ export function TodoTab(): ReactElement {
       <TodoList
         todos={todos}
         expandedId={expandedId}
-        editingDescId={editingDescId}
-        descDraft={descDraft}
-        setDescDraft={setDescDraft}
-        descRef={descRef}
         subInput={subInput}
         setSubInput={setSubInput}
         subPriority={subPriority}
@@ -88,8 +83,10 @@ export function TodoTab(): ReactElement {
         onToggleDone={toggleDone}
         onRemove={removeTodo}
         onToggleExpand={toggleExpand}
-        onStartEditDesc={startEditDesc}
+        onSaveTitle={saveTitle}
+        onSaveSubTitle={saveSubTitle}
         onSaveDesc={saveDesc}
+        onSetDueDate={setDueDate}
         onAddSubTodo={addSubTodo}
         onToggleSubDone={toggleSubDone}
         onRemoveSubTodo={removeSubTodo}

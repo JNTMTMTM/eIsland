@@ -302,9 +302,9 @@ export function ThemeSettingsPage({
                 key={opt.value}
                 className={`settings-lyrics-source-btn ${themeMode === opt.value ? 'active' : ''}`}
                 type="button"
-                onClick={() => {
+                onClick={(event) => {
                   setThemeModeState(opt.value);
-                  applyThemeMode(opt.value).catch(() => {});
+                  applyThemeMode(opt.value, { x: event.clientX, y: event.clientY }).catch(() => {});
                 }}
               >
                 {opt.label}

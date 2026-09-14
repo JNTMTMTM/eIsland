@@ -48,6 +48,8 @@ export interface TodoItem {
   priority?: Priority;
   size?: Size;
   description?: string;
+  /** 本地日历日期，格式为 YYYY-MM-DD；未设置时不显示周期。 */
+  dueDate?: string;
   subTodos?: SubTodo[];
 }
 
@@ -67,10 +69,6 @@ export interface UseTodosReturn {
   setSubPriority: React.Dispatch<React.SetStateAction<Priority | undefined>>;
   subSize: Size | undefined;
   setSubSize: React.Dispatch<React.SetStateAction<Size | undefined>>;
-  editingDescId: number | null;
-  descDraft: string;
-  setDescDraft: React.Dispatch<React.SetStateAction<string>>;
-  descRef: React.RefObject<HTMLTextAreaElement | null>;
   inputRef: React.RefObject<HTMLInputElement | null>;
   listRef: React.RefObject<HTMLDivElement | null>;
   subInputRef: React.RefObject<HTMLInputElement | null>;
@@ -84,8 +82,10 @@ export interface UseTodosReturn {
   toggleDone: (id: number) => void;
   removeTodo: (id: number) => void;
   toggleExpand: (id: number) => void;
-  startEditDesc: (todo: TodoItem) => void;
-  saveDesc: (id: number) => void;
+  saveTitle: (id: number, text: string) => void;
+  saveSubTitle: (parentId: number, subId: number, text: string) => void;
+  saveDesc: (id: number, description: string) => void;
+  setDueDate: (id: number, dueDate: string) => void;
   addSubTodo: (parentId: number) => void;
   toggleSubDone: (parentId: number, subId: number) => void;
   removeSubTodo: (parentId: number, subId: number) => void;
@@ -115,12 +115,9 @@ export interface TodoInputBarProps {
 
 /** TodoItem 组件入参 */
 export interface TodoItemProps {
+  todos: TodoItem[];
   todo: TodoItem;
   isExpanded: boolean;
-  editingDescId: number | null;
-  descDraft: string;
-  setDescDraft: React.Dispatch<React.SetStateAction<string>>;
-  descRef: React.RefObject<HTMLTextAreaElement | null>;
   subInput: string;
   setSubInput: React.Dispatch<React.SetStateAction<string>>;
   subPriority: Priority | undefined;
@@ -131,8 +128,10 @@ export interface TodoItemProps {
   onToggleDone: (id: number) => void;
   onRemove: (id: number) => void;
   onToggleExpand: (id: number) => void;
-  onStartEditDesc: (todo: TodoItem) => void;
-  onSaveDesc: (id: number) => void;
+  onSaveTitle: (id: number, text: string) => void;
+  onSaveSubTitle: (parentId: number, subId: number, text: string) => void;
+  onSaveDesc: (id: number, description: string) => void;
+  onSetDueDate: (id: number, dueDate: string) => void;
   onAddSubTodo: (parentId: number) => void;
   onToggleSubDone: (parentId: number, subId: number) => void;
   onRemoveSubTodo: (parentId: number, subId: number) => void;
@@ -142,10 +141,6 @@ export interface TodoItemProps {
 export interface TodoListProps {
   todos: TodoItem[];
   expandedId: number | null;
-  editingDescId: number | null;
-  descDraft: string;
-  setDescDraft: React.Dispatch<React.SetStateAction<string>>;
-  descRef: React.RefObject<HTMLTextAreaElement | null>;
   subInput: string;
   setSubInput: React.Dispatch<React.SetStateAction<string>>;
   subPriority: Priority | undefined;
@@ -157,8 +152,10 @@ export interface TodoListProps {
   onToggleDone: (id: number) => void;
   onRemove: (id: number) => void;
   onToggleExpand: (id: number) => void;
-  onStartEditDesc: (todo: TodoItem) => void;
-  onSaveDesc: (id: number) => void;
+  onSaveTitle: (id: number, text: string) => void;
+  onSaveSubTitle: (parentId: number, subId: number, text: string) => void;
+  onSaveDesc: (id: number, description: string) => void;
+  onSetDueDate: (id: number, dueDate: string) => void;
   onAddSubTodo: (parentId: number) => void;
   onToggleSubDone: (parentId: number, subId: number) => void;
   onRemoveSubTodo: (parentId: number, subId: number) => void;
@@ -166,6 +163,7 @@ export interface TodoListProps {
 
 /** TodoSubItem 组件入参 */
 export interface TodoSubItemProps {
+  onSaveSubTitle: (parentId: number, subId: number, text: string) => void;
   sub: SubTodo;
   parentId: number;
   onToggleSubDone: (parentId: number, subId: number) => void;

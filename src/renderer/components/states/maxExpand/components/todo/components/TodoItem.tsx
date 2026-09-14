@@ -24,170 +24,191 @@
  * @author 鸡哥
  */
 
-import type { CSSProperties, ReactElement } from 'react';
+import { useId, type CSSProperties, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
+import { SvgIcon } from '../../../../../../utils/SvgIcon';
 import { PRIORITIES, SIZES } from '../config/todoConfig';
 import type { TodoItemProps } from '../types/todoTypes';
 import { formatCreatedTime } from '../utils/todoUtils';
 import { TodoSubItem } from './TodoSubItem';
+import { TodoTitleInput } from './TodoTitleInput';
+import { TodoScheduleEditor } from './TodoScheduleEditor';
 
 /**
  * 待办条目
  * @description 显示单条待办的标题行，展开后可编辑描述和管理子任务
  */
 export function TodoItem({
-  todo, isExpanded, editingDescId, descDraft, setDescDraft, descRef,
+  todo, todos, isExpanded,
   subInput, setSubInput, subPriority, setSubPriority, subSize, setSubSize, subInputRef,
-  onToggleDone, onRemove, onToggleExpand, onStartEditDesc, onSaveDesc,
+  onToggleDone, onRemove, onToggleExpand, onSaveTitle, onSaveSubTitle, onSaveDesc, onSetDueDate,
   onAddSubTodo, onToggleSubDone, onRemoveSubTodo,
 }: TodoItemProps): ReactElement {
   const { t } = useTranslation();
+  const detailId = useId();
   const subs = todo.subTodos ?? [];
   const subDone = subs.filter(s => s.done).length;
 
   return (
     <div className={`expand-todo-item ${todo.done ? 'done' : ''} ${isExpanded ? 'expanded' : ''}`}>
       {/* 标题行 */}
-      <div className="expand-todo-row" onClick={() => onToggleExpand(todo.id)}>
+      <div className="expand-todo-row">
         <button
           className="expand-todo-check"
           onClick={(e) => { e.stopPropagation(); onToggleDone(todo.id); }}
+          aria-pressed={todo.done}
           aria-label={todo.done
             ? t('todo.markUndone', { defaultValue: '标记未完成' })
             : t('todo.markDone', { defaultValue: '标记完成' })}
         >
-          {todo.done ? '✓' : '○'}
+          {todo.done ? '✓' : ''}
         </button>
-        <div className="expand-todo-body">
-          <span className="expand-todo-text">{todo.text}</span>
-          {todo.priority && (
-            <span
-              className="expand-todo-priority-badge"
-              style={{ '--tag-color': PRIORITIES.find(p => p.value === todo.priority)?.color } as CSSProperties}
-            >
-              {todo.priority}
-            </span>
-          )}
-          {todo.size && (
-            <span
-              className="expand-todo-size-badge"
-              style={{ '--tag-color': SIZES.find(s => s.value === todo.size)?.color } as CSSProperties}
-            >
-              {todo.size}
-            </span>
-          )}
-          {subs.length > 0 && (
-            <span className="expand-todo-progress-wrap">
-              <span className="expand-todo-progress-bar">
-                <span className="expand-todo-progress-fill" style={{ width: `${subs.length > 0 ? (subDone / subs.length) * 100 : 0}%` }} />
+        <div
+          className="expand-todo-body"
+          role="button"
+          tabIndex={0}
+          aria-label={isExpanded ? t('todo.collapse') : t('todo.expand')}
+          aria-expanded={isExpanded}
+          aria-controls={detailId}
+          onClick={() => onToggleExpand(todo.id)}
+          onKeyDown={(e) => {
+            if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) {
+              e.preventDefault();
+              onToggleExpand(todo.id);
+            }
+          }}
+        >
+          <span className="expand-todo-summary">
+            <TodoTitleInput
+              className="expand-todo-text"
+              text={todo.text}
+              label={t('todo.editTitle')}
+              onSave={(text) => onSaveTitle(todo.id, text)}
+            />
+            {todo.priority && (
+              <span
+                className="expand-todo-priority-badge"
+                style={{ '--tag-color': PRIORITIES.find(p => p.value === todo.priority)?.color } as CSSProperties}
+              >
+                {todo.priority}
               </span>
-              <span className="expand-todo-progress-label">{subDone}/{subs.length}</span>
-            </span>
+            )}
+            {todo.size && (
+              <span
+                className="expand-todo-size-badge"
+                style={{ '--tag-color': SIZES.find(s => s.value === todo.size)?.color } as CSSProperties}
+              >
+                {todo.size}
+              </span>
+            )}
+            {subs.length > 0 && (
+              <span className="expand-todo-progress-wrap">
+                <span className="expand-todo-progress-bar">
+                  <span className="expand-todo-progress-fill" style={{ width: `${subs.length > 0 ? (subDone / subs.length) * 100 : 0}%` }} />
+                </span>
+                <span className="expand-todo-progress-label">{subDone}/{subs.length}</span>
+              </span>
+            )}
+            {todo.dueDate && <span className="expand-todo-deadline-badge">{t('todo.deadline')} {todo.dueDate}</span>}
+            <span className="expand-todo-time">{formatCreatedTime(todo.createdAt ?? todo.id)}</span>
+          </span>
+          {todo.description && (
+            <span className="expand-todo-desc-preview" aria-hidden={isExpanded} title={todo.description}>{todo.description}</span>
           )}
-          <span className="expand-todo-time">{formatCreatedTime(todo.createdAt ?? todo.id)}</span>
         </div>
-        {!isExpanded && todo.description && (
-          <span className="expand-todo-desc-preview" title={todo.description}>{todo.description}</span>
-        )}
-        <span className={`expand-todo-arrow ${isExpanded ? 'open' : ''}`}>›</span>
         <button
           className="expand-todo-delete"
+          type="button"
+          title={t('todo.delete')}
           onClick={(e) => { e.stopPropagation(); onRemove(todo.id); }}
           aria-label={t('todo.delete', { defaultValue: '删除' })}
         >
-          ×
+          <img className="expand-todo-delete-icon-img" src={SvgIcon.DELETE} alt="" draggable={false} />
         </button>
       </div>
 
-      {/* 展开详情 */}
-      {isExpanded && (
-        <div className="expand-todo-detail" onClick={(e) => e.stopPropagation()}>
-          {/* 描述区域 */}
-          <div className="expand-todo-desc-area">
-            {editingDescId === todo.id ? (
-              <>
-                <textarea
-                  ref={descRef}
-                  className="expand-todo-desc"
-                  placeholder={t('todo.descPlaceholder', { defaultValue: '添加详细描述...' })}
-                  value={descDraft}
-                  onChange={(e) => setDescDraft(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); onSaveDesc(todo.id); }
-                  }}
-                  rows={3}
-                />
-                <button className="expand-todo-desc-btn save" onClick={() => onSaveDesc(todo.id)} title={t('todo.saveTitle', { defaultValue: '保存 (Ctrl+Enter)' })}>{t('todo.save', { defaultValue: '保存' })}</button>
-              </>
-            ) : (
-              <>
-                <div className="expand-todo-desc-text">
-                  {todo.description ? todo.description : <span className="expand-todo-desc-empty">{t('todo.noDesc', { defaultValue: '暂无描述' })}</span>}
-                </div>
-                <button className="expand-todo-desc-btn edit" onClick={() => onStartEditDesc(todo)} title={t('todo.editDescTitle', { defaultValue: '编辑描述' })}>{t('todo.edit', { defaultValue: '编辑' })}</button>
-              </>
-            )}
-          </div>
+      {/* 保留详情节点以播放收起动画，折叠时禁用交互并释放共享输入框引用。 */}
+      <div
+        id={detailId}
+        className="expand-todo-collapse"
+        aria-hidden={!isExpanded}
+        inert={!isExpanded}
+      >
+        <div className="expand-todo-collapse-inner">
+          <div className="expand-todo-detail" onClick={(e) => e.stopPropagation()}>
+            {/* 描述区域 */}
+            <TodoScheduleEditor
+              todo={todo}
+              todos={todos}
+              onSaveDesc={onSaveDesc}
+              onSetDueDate={onSetDueDate}
+            />
 
-          {/* 子待办列表 */}
-          <div className="expand-todo-subs">
-            <div className="expand-todo-subs-header">
-              <span className="expand-todo-subs-title">{t('todo.subtasks', { defaultValue: '子任务' })}</span>
-              {subs.length > 0 && <span className="expand-todo-subs-progress">{subDone}/{subs.length}</span>}
-            </div>
-            {subs.map(sub => (
-              <TodoSubItem
-                key={sub.id}
-                sub={sub}
-                parentId={todo.id}
-                onToggleSubDone={onToggleSubDone}
-                onRemoveSubTodo={onRemoveSubTodo}
-              />
-            ))}
-            {/* 添加子待办 */}
-            <div className="expand-todo-sub-add">
-              <input
-                ref={subInputRef}
-                className="expand-todo-sub-input"
-                type="text"
-                placeholder={t('todo.addSubPlaceholder', { defaultValue: '添加子任务...' })}
-                value={subInput}
-                onChange={(e) => setSubInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') { e.preventDefault(); onAddSubTodo(todo.id); }
-                }}
-              />
-              <div className="expand-todo-selector">
-                {PRIORITIES.map(p => (
-                  <button
-                    key={p.value}
-                    className={`expand-todo-tag ${subPriority === p.value ? 'active' : ''}`}
-                    style={{ '--tag-color': p.color } as CSSProperties}
-                    onClick={() => setSubPriority(subPriority === p.value ? undefined : p.value)}
-                    title={p.label}
-                  >
-                    {p.label}
-                  </button>
-                ))}
+            {/* 子待办区域 */}
+            <div className="expand-todo-subs">
+              {/* 添加子待办 */}
+              <div className="expand-todo-sub-add">
+                <input
+                  ref={isExpanded ? subInputRef : undefined}
+                  className="expand-todo-sub-input"
+                  type="text"
+                  placeholder={t('todo.addSubPlaceholder', { defaultValue: '添加子任务...' })}
+                  aria-label={t('todo.addSubPlaceholder')}
+                  value={subInput}
+                  onChange={(e) => setSubInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') { e.preventDefault(); onAddSubTodo(todo.id); }
+                  }}
+                />
+                <div className="expand-todo-selector">
+                  {PRIORITIES.map(p => (
+                    <button
+                      key={p.value}
+                      className={`expand-todo-tag ${subPriority === p.value ? 'active' : ''}`}
+                      style={{ '--tag-color': p.color } as CSSProperties}
+                      onClick={() => setSubPriority(subPriority === p.value ? undefined : p.value)}
+                      aria-pressed={subPriority === p.value}
+                      title={t('todo.priorityTitle', { label: p.label })}
+                    >
+                      {p.label}
+                    </button>
+                  ))}
+                </div>
+                <div className="expand-todo-selector">
+                  {SIZES.map(s => (
+                    <button
+                      key={s.value}
+                      className={`expand-todo-tag size ${subSize === s.value ? 'active' : ''}`}
+                      style={{ '--tag-color': s.color } as CSSProperties}
+                      onClick={() => setSubSize(subSize === s.value ? undefined : s.value)}
+                      aria-pressed={subSize === s.value}
+                      title={t('todo.sizeTitle', { label: s.label })}
+                    >
+                      {s.label}
+                    </button>
+                  ))}
+                </div>
+                <button className="expand-todo-sub-add-btn" disabled={!subInput.trim()} onClick={() => onAddSubTodo(todo.id)}>{t('todo.add')}</button>
               </div>
-              <div className="expand-todo-selector">
-                {SIZES.map(s => (
-                  <button
-                    key={s.value}
-                    className={`expand-todo-tag size ${subSize === s.value ? 'active' : ''}`}
-                    style={{ '--tag-color': s.color } as CSSProperties}
-                    onClick={() => setSubSize(subSize === s.value ? undefined : s.value)}
-                    title={s.label}
-                  >
-                    {s.label}
-                  </button>
-                ))}
-              </div>
-              <button className="expand-todo-sub-add-btn" onClick={() => onAddSubTodo(todo.id)}>+</button>
+              {subs.length > 0 && (
+                <div className="expand-todo-sub-list">
+                  <div className="expand-todo-subs-header">{t('todo.subtasks')}</div>
+                  {subs.map(sub => (
+                    <TodoSubItem
+                      key={sub.id}
+                      sub={sub}
+                      parentId={todo.id}
+                      onToggleSubDone={onToggleSubDone}
+                      onRemoveSubTodo={onRemoveSubTodo}
+                      onSaveSubTitle={onSaveSubTitle}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }
