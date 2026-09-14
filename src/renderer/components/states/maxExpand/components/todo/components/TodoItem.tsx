@@ -131,21 +131,16 @@ export function TodoItem({
       >
         <div className="expand-todo-collapse-inner">
           <div className="expand-todo-detail" onClick={(e) => e.stopPropagation()}>
-            {/* 子待办列表 */}
+            {/* 描述区域 */}
+            <TodoScheduleEditor
+              todo={todo}
+              todos={todos}
+              onSaveDesc={onSaveDesc}
+              onSetDueDate={onSetDueDate}
+            />
+
+            {/* 子待办区域 */}
             <div className="expand-todo-subs">
-              {subs.length > 0 && (
-                <div className="expand-todo-subs-header">{t('todo.subtasks')}</div>
-              )}
-              {subs.map(sub => (
-                <TodoSubItem
-                  key={sub.id}
-                  sub={sub}
-                  parentId={todo.id}
-                  onToggleSubDone={onToggleSubDone}
-                  onRemoveSubTodo={onRemoveSubTodo}
-                  onSaveSubTitle={onSaveSubTitle}
-                />
-              ))}
               {/* 添加子待办 */}
               <div className="expand-todo-sub-add">
                 <input
@@ -190,15 +185,20 @@ export function TodoItem({
                 </div>
                 <button className="expand-todo-sub-add-btn" disabled={!subInput.trim()} onClick={() => onAddSubTodo(todo.id)}>{t('todo.add')}</button>
               </div>
+              {subs.length > 0 && (
+                <div className="expand-todo-subs-header">{t('todo.subtasks')}</div>
+              )}
+              {subs.map(sub => (
+                <TodoSubItem
+                  key={sub.id}
+                  sub={sub}
+                  parentId={todo.id}
+                  onToggleSubDone={onToggleSubDone}
+                  onRemoveSubTodo={onRemoveSubTodo}
+                  onSaveSubTitle={onSaveSubTitle}
+                />
+              ))}
             </div>
-
-            {/* 描述区域 */}
-            <TodoScheduleEditor
-              todo={todo}
-              todos={todos}
-              onSaveDesc={onSaveDesc}
-              onSetDueDate={onSetDueDate}
-            />
           </div>
         </div>
       </div>
