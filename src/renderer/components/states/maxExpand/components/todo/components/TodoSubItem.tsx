@@ -26,6 +26,7 @@
 
 import type { CSSProperties, ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
+import { SvgIcon } from '../../../../../../utils/SvgIcon';
 import { PRIORITIES, SIZES } from '../config/todoConfig';
 import type { TodoSubItemProps } from '../types/todoTypes';
 import { TodoTitleInput } from './TodoTitleInput';
@@ -71,9 +72,12 @@ export function TodoSubItem({ sub, parentId, onToggleSubDone, onRemoveSubTodo, o
       )}
       <button
         className="expand-todo-sub-delete"
+        type="button"
+        aria-label={t('todo.delete')}
+        title={t('todo.delete')}
         onClick={() => onRemoveSubTodo(parentId, sub.id)}
       >
-        {t('todo.delete')}
+        <img className="expand-todo-delete-icon-img" src={SvgIcon.DELETE} alt="" draggable={false} />
       </button>
     </div>
   );

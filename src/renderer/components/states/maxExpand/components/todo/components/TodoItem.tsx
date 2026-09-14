@@ -26,6 +26,7 @@
 
 import { useId, type CSSProperties, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
+import { SvgIcon } from '../../../../../../utils/SvgIcon';
 import { PRIORITIES, SIZES } from '../config/todoConfig';
 import type { TodoItemProps } from '../types/todoTypes';
 import { formatCreatedTime } from '../utils/todoUtils';
@@ -115,10 +116,12 @@ export function TodoItem({
         </button>
         <button
           className="expand-todo-delete"
+          type="button"
+          title={t('todo.delete')}
           onClick={(e) => { e.stopPropagation(); onRemove(todo.id); }}
           aria-label={t('todo.delete', { defaultValue: '删除' })}
         >
-          {t('todo.delete')}
+          <img className="expand-todo-delete-icon-img" src={SvgIcon.DELETE} alt="" draggable={false} />
         </button>
       </div>
 

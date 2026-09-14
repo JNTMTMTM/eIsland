@@ -336,32 +336,61 @@
   border-color: rgba(var(--color-text-rgb), .45);
 }
 
+/* 抵消行间距，使隐藏的删除按钮不保留布局空位。 */
 .expand-todo-delete,
 .expand-todo-sub-delete {
+  display: flex;
   flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 0;
+  min-width: 0;
   height: 26px;
-  padding: 0 6px;
-  font-size: 11px;
-  color: rgba(var(--color-text-rgb), .45);
+  margin-left: -8px;
+  padding: 0;
+  overflow: hidden;
   cursor: pointer;
+  pointer-events: none;
   background: transparent;
   border: 0;
   border-radius: 5px;
   opacity: 0;
-  transition: opacity .15s ease, background .15s ease;
+  transform: translateX(4px);
+  transition: width .18s ease, margin-left .18s ease, opacity .18s ease, transform .18s ease, background .15s ease;
 }
 
 .expand-todo-row:hover .expand-todo-delete,
-.expand-todo-row:focus-within .expand-todo-delete,
+.expand-todo-delete:focus-visible,
 .expand-todo-sub:hover .expand-todo-sub-delete,
-.expand-todo-sub:focus-within .expand-todo-sub-delete {
+.expand-todo-sub-delete:focus-visible {
+  width: 26px;
+  margin-left: 0;
+  pointer-events: auto;
   opacity: 1;
+  transform: translateX(0);
 }
 
 .expand-todo-delete:hover,
 .expand-todo-sub-delete:hover {
-  color: #ff5252;
-  background: rgba(255, 82, 82, .1);
+  background: rgba(255, 82, 82, .15);
+}
+
+.expand-todo-delete-icon-img {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+  filter: brightness(0) invert(1);
+}
+
+[data-theme="light"] .expand-todo-delete-icon-img {
+  filter: brightness(0) invert(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .expand-todo-delete,
+  .expand-todo-sub-delete {
+    transition: none;
+  }
 }
 
 .expand-todo-progress-wrap {
