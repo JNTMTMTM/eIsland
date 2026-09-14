@@ -25,6 +25,7 @@
  */
 
 import type { CSSProperties, ReactElement } from 'react';
+import { useTranslation } from 'react-i18next';
 import { PRIORITIES, SIZES } from '../config/todoConfig';
 import type { TodoSubItemProps } from '../types/todoTypes';
 
@@ -33,13 +34,17 @@ import type { TodoSubItemProps } from '../types/todoTypes';
  * @description 显示单条子任务，支持切换完成和删除
  */
 export function TodoSubItem({ sub, parentId, onToggleSubDone, onRemoveSubTodo }: TodoSubItemProps): ReactElement {
+  const { t } = useTranslation();
+
   return (
     <div className={`expand-todo-sub ${sub.done ? 'done' : ''}`}>
       <button
         className="expand-todo-sub-check"
+        aria-pressed={sub.done}
+        aria-label={sub.done ? t('todo.markUndone') : t('todo.markDone')}
         onClick={() => onToggleSubDone(parentId, sub.id)}
       >
-        {sub.done ? '✓' : '○'}
+        {sub.done ? '✓' : ''}
       </button>
       <span className="expand-todo-sub-text">{sub.text}</span>
       {sub.priority && (
@@ -62,7 +67,7 @@ export function TodoSubItem({ sub, parentId, onToggleSubDone, onRemoveSubTodo }:
         className="expand-todo-sub-delete"
         onClick={() => onRemoveSubTodo(parentId, sub.id)}
       >
-        ×
+        {t('todo.delete')}
       </button>
     </div>
   );

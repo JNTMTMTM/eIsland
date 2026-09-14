@@ -39,8 +39,8 @@ export function TodoHeader({ doneCount, undoneCount, p0Count, p1Count, p2Count }
     <div className="expand-todo-header">
       <span className="expand-todo-title">{t('todo.title', { defaultValue: '待办事项' })}</span>
       <div className="expand-todo-stats">
-        <span className="expand-todo-stat done">✓ {doneCount}</span>
-        <span className="expand-todo-stat undone">○ {undoneCount}</span>
+        <span className="expand-todo-stat">{t('todo.doneCount', { count: doneCount })}</span>
+        <span className="expand-todo-stat">{t('todo.undoneCount', { count: undoneCount })}</span>
         {p0Count > 0 && <span className="expand-todo-stat p0">P0 {p0Count}</span>}
         {p1Count > 0 && <span className="expand-todo-stat p1">P1 {p1Count}</span>}
         {p2Count > 0 && <span className="expand-todo-stat p2">P2 {p2Count}</span>}

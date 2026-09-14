@@ -20,7 +20,7 @@
 
 /**
  * @file TodoList.tsx
- * @description Todo 列表容器组件：空状态引导 + 待办条目列表。
+ * @description Todo 列表容器组件：简洁空状态 + 待办条目列表。
  * @author 鸡哥
  */
 
@@ -31,7 +31,7 @@ import { TodoItem } from './TodoItem';
 
 /**
  * Todo 列表容器
- * @description 空状态时显示引导界面，有待办时渲染条目列表
+ * @description 空状态时显示简短提示，有待办时渲染条目列表
  */
 export function TodoList({
   todos, expandedId, editingDescId, descDraft, setDescDraft, descRef,
@@ -45,31 +45,7 @@ export function TodoList({
   return (
     <div className="expand-todo-list" ref={listRef}>
       {todos.length === 0 && (
-        <div className="expand-todo-onboarding">
-          <div className="expand-todo-onboarding-icon">
-            <span className="onboarding-check">✓</span>
-            <span className="onboarding-circle" />
-          </div>
-          <div className="expand-todo-onboarding-title">{t('todo.onboarding.title', { defaultValue: '待办事项' })}</div>
-          <div className="expand-todo-onboarding-desc">
-            {t('todo.onboarding.desc', { defaultValue: '在这里管理你的任务，保持高效有序' })}
-          </div>
-          <div className="expand-todo-onboarding-features">
-            <div className="onboarding-feature">
-              <span className="onboarding-feature-dot" />
-              <span>{t('todo.onboarding.feature1', { defaultValue: '创建待办并设置紧急程度与大小' })}</span>
-            </div>
-            <div className="onboarding-feature">
-              <span className="onboarding-feature-dot" />
-              <span>{t('todo.onboarding.feature2', { defaultValue: '点击展开查看详情，添加描述' })}</span>
-            </div>
-            <div className="onboarding-feature">
-              <span className="onboarding-feature-dot" />
-              <span>{t('todo.onboarding.feature3', { defaultValue: '拆分子任务，追踪完成进度' })}</span>
-            </div>
-          </div>
-          <div className="expand-todo-onboarding-hint">{t('todo.onboarding.hint', { defaultValue: '在上方输入框添加你的第一个待办 ↑' })}</div>
-        </div>
+        <div className="expand-todo-empty">{t('todo.empty')}</div>
       )}
       {todos.map(todo => (
         <TodoItem

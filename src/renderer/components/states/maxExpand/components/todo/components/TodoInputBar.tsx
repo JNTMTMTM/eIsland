@@ -46,6 +46,7 @@ export function TodoInputBar({
         className="expand-todo-input"
         type="text"
         placeholder={t('todo.addPlaceholder', { defaultValue: '添加待办...' })}
+        aria-label={t('todo.addPlaceholder')}
         value={input}
         onChange={(e) => setInput(e.target.value)}
         onKeyDown={onKeyDown}
@@ -58,6 +59,7 @@ export function TodoInputBar({
             className={`expand-todo-tag ${priority === p.value ? 'active' : ''}`}
             style={{ '--tag-color': p.color } as CSSProperties}
             onClick={() => setPriority(priority === p.value ? undefined : p.value)}
+            aria-pressed={priority === p.value}
             title={t('todo.priorityTitle', { defaultValue: '紧急程度 {{label}}', label: p.label })}
           >
             {p.label}
@@ -72,13 +74,14 @@ export function TodoInputBar({
             className={`expand-todo-tag size ${size === s.value ? 'active' : ''}`}
             style={{ '--tag-color': s.color } as CSSProperties}
             onClick={() => setSize(size === s.value ? undefined : s.value)}
+            aria-pressed={size === s.value}
             title={t('todo.sizeTitle', { defaultValue: '事件大小 {{label}}', label: s.label })}
           >
             {s.label}
           </button>
         ))}
       </div>
-      <button className="expand-todo-add" onClick={onAdd}>+</button>
+      <button className="expand-todo-add" disabled={!input.trim()} onClick={onAdd}>{t('todo.add')}</button>
     </div>
   );
 }
