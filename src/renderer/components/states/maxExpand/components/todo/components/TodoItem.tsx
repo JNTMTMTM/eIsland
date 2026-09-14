@@ -30,6 +30,7 @@ import { PRIORITIES, SIZES } from '../config/todoConfig';
 import type { TodoItemProps } from '../types/todoTypes';
 import { formatCreatedTime } from '../utils/todoUtils';
 import { TodoSubItem } from './TodoSubItem';
+import { TodoTitleInput } from './TodoTitleInput';
 import { TodoScheduleEditor } from './TodoScheduleEditor';
 
 /**
@@ -39,7 +40,7 @@ import { TodoScheduleEditor } from './TodoScheduleEditor';
 export function TodoItem({
   todo, todos, isExpanded,
   subInput, setSubInput, subPriority, setSubPriority, subSize, setSubSize, subInputRef,
-  onToggleDone, onRemove, onToggleExpand, onSaveDesc, onSetDueDate,
+  onToggleDone, onRemove, onToggleExpand, onSaveTitle, onSaveSubTitle, onSaveDesc, onSetDueDate,
   onAddSubTodo, onToggleSubDone, onRemoveSubTodo,
 }: TodoItemProps): ReactElement {
   const { t } = useTranslation();
@@ -61,15 +62,17 @@ export function TodoItem({
         >
           {todo.done ? '✓' : ''}
         </button>
-        <button
+        <div
           className="expand-todo-body"
-          type="button"
-          aria-expanded={isExpanded}
-          aria-controls={detailId}
           onClick={() => onToggleExpand(todo.id)}
         >
           <span className="expand-todo-summary">
-            <span className="expand-todo-text">{todo.text}</span>
+            <TodoTitleInput
+              className="expand-todo-text"
+              text={todo.text}
+              label={t('todo.editTitle')}
+              onSave={(text) => onSaveTitle(todo.id, text)}
+            />
             {todo.priority && (
               <span
                 className="expand-todo-priority-badge"
@@ -100,6 +103,15 @@ export function TodoItem({
           {todo.description && (
             <span className="expand-todo-desc-preview" aria-hidden={isExpanded} title={todo.description}>{todo.description}</span>
           )}
+        </div>
+        <button
+          className="expand-todo-expand"
+          type="button"
+          aria-expanded={isExpanded}
+          aria-controls={detailId}
+          onClick={() => onToggleExpand(todo.id)}
+        >
+          {isExpanded ? t('todo.collapse') : t('todo.expand')}
         </button>
         <button
           className="expand-todo-delete"
@@ -131,6 +143,7 @@ export function TodoItem({
                   parentId={todo.id}
                   onToggleSubDone={onToggleSubDone}
                   onRemoveSubTodo={onRemoveSubTodo}
+                  onSaveSubTitle={onSaveSubTitle}
                 />
               ))}
               {/* 添加子待办 */}

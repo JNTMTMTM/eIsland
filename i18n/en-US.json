@@ -334,7 +334,12 @@
     "noDeadline": "No due date",
     "previousMonth": "Previous month",
     "nextMonth": "Next month",
-    "chooseDeadline": "Set due date to {{date}}"
+    "chooseDeadline": "Set due date to {{date}}",
+    "editTitle": "Edit task title",
+    "editSubTitle": "Edit subtask title",
+    "editTitleHint": "Click to edit, Enter to save, Esc to cancel",
+    "expand": "Expand",
+    "collapse": "Collapse"
   },
   "countdown": {
     "editTitle": "Edit Event",

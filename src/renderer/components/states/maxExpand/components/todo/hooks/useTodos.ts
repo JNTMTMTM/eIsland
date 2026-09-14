@@ -149,6 +149,22 @@ export function useTodos(): UseTodosReturn {
     setSubSize(undefined);
   };
 
+  /** 保存非空主任务标题，保留日期、描述、子任务等字段。 */
+  const saveTitle = (id: number, value: string): void => {
+    const text = value.trim();
+    if (!text) return;
+    update(prev => prev.map(todo => todo.id === id ? { ...todo, text } : todo));
+  };
+
+  /** 只更新指定子任务的非空标题。 */
+  const saveSubTitle = (parentId: number, subId: number, value: string): void => {
+    const text = value.trim();
+    if (!text) return;
+    update(prev => prev.map(todo => todo.id === parentId
+      ? { ...todo, subTodos: (todo.subTodos ?? []).map(sub => sub.id === subId ? { ...sub, text } : sub) }
+      : todo));
+  };
+
   /** 直接编辑描述时同步保存，避免切换条目丢失草稿。 */
   const saveDesc = (id: number, description: string): void => {
     update(prev => prev.map(todo => todo.id === id ? { ...todo, description } : todo));
@@ -214,7 +230,7 @@ export function useTodos(): UseTodosReturn {
     p0Count, p1Count, p2Count,
     handleAdd, handleKeyDown,
     toggleDone, removeTodo, toggleExpand,
-    saveDesc, setDueDate,
+    saveTitle, saveSubTitle, saveDesc, setDueDate,
     addSubTodo, toggleSubDone, removeSubTodo,
   };
 }

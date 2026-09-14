@@ -259,6 +259,47 @@
   white-space: nowrap;
 }
 
+.expand-todo-title-input {
+  box-sizing: border-box;
+  width: 0;
+  padding: 2px 4px;
+  font-family: inherit;
+  cursor: text;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  outline: none;
+  transition: background .15s ease, border-color .15s ease;
+}
+
+.expand-todo-title-input:hover {
+  background: rgba(var(--color-text-rgb), .04);
+}
+
+.expand-todo-title-input:focus {
+  color: rgba(var(--color-text-rgb), .9);
+  text-decoration: none;
+  background: rgba(var(--color-text-rgb), .06);
+  border-color: rgba(var(--color-text-rgb), .25);
+}
+
+.expand-todo-expand {
+  flex-shrink: 0;
+  height: 26px;
+  padding: 0 6px;
+  font-size: 11px;
+  color: rgba(var(--color-text-rgb), .5);
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  border-radius: 5px;
+}
+
+.expand-todo-expand:hover {
+  color: var(--color-island-text);
+  background: rgba(var(--color-text-rgb), .08);
+}
+
 .expand-todo-item.done .expand-todo-text,
 .expand-todo-sub.done .expand-todo-sub-text {
   color: rgba(var(--color-text-rgb), .4);

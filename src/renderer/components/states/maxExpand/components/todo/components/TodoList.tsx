@@ -37,7 +37,7 @@ export function TodoList({
   todos, expandedId,
   subInput, setSubInput, subPriority, setSubPriority, subSize, setSubSize, subInputRef,
   listRef,
-  onToggleDone, onRemove, onToggleExpand, onSaveDesc, onSetDueDate,
+  onToggleDone, onRemove, onToggleExpand, onSaveTitle, onSaveSubTitle, onSaveDesc, onSetDueDate,
   onAddSubTodo, onToggleSubDone, onRemoveSubTodo,
 }: TodoListProps): ReactElement {
   const { t } = useTranslation();
@@ -63,6 +63,8 @@ export function TodoList({
           onToggleDone={onToggleDone}
           onRemove={onRemove}
           onToggleExpand={onToggleExpand}
+          onSaveTitle={onSaveTitle}
+          onSaveSubTitle={onSaveSubTitle}
           onSaveDesc={onSaveDesc}
           onSetDueDate={onSetDueDate}
           onAddSubTodo={onAddSubTodo}

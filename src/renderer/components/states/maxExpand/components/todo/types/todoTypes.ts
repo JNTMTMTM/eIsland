@@ -82,6 +82,8 @@ export interface UseTodosReturn {
   toggleDone: (id: number) => void;
   removeTodo: (id: number) => void;
   toggleExpand: (id: number) => void;
+  saveTitle: (id: number, text: string) => void;
+  saveSubTitle: (parentId: number, subId: number, text: string) => void;
   saveDesc: (id: number, description: string) => void;
   setDueDate: (id: number, dueDate: string) => void;
   addSubTodo: (parentId: number) => void;
@@ -126,6 +128,8 @@ export interface TodoItemProps {
   onToggleDone: (id: number) => void;
   onRemove: (id: number) => void;
   onToggleExpand: (id: number) => void;
+  onSaveTitle: (id: number, text: string) => void;
+  onSaveSubTitle: (parentId: number, subId: number, text: string) => void;
   onSaveDesc: (id: number, description: string) => void;
   onSetDueDate: (id: number, dueDate: string) => void;
   onAddSubTodo: (parentId: number) => void;
@@ -148,6 +152,8 @@ export interface TodoListProps {
   onToggleDone: (id: number) => void;
   onRemove: (id: number) => void;
   onToggleExpand: (id: number) => void;
+  onSaveTitle: (id: number, text: string) => void;
+  onSaveSubTitle: (parentId: number, subId: number, text: string) => void;
   onSaveDesc: (id: number, description: string) => void;
   onSetDueDate: (id: number, dueDate: string) => void;
   onAddSubTodo: (parentId: number) => void;
@@ -157,6 +163,7 @@ export interface TodoListProps {
 
 /** TodoSubItem 组件入参 */
 export interface TodoSubItemProps {
+  onSaveSubTitle: (parentId: number, subId: number, text: string) => void;
   sub: SubTodo;
   parentId: number;
   onToggleSubDone: (parentId: number, subId: number) => void;

@@ -334,7 +334,12 @@
     "noDeadline": "未设置截止日期",
     "previousMonth": "上个月",
     "nextMonth": "下个月",
-    "chooseDeadline": "截止日期设为 {{date}}"
+    "chooseDeadline": "截止日期设为 {{date}}",
+    "editTitle": "编辑任务标题",
+    "editSubTitle": "编辑子任务标题",
+    "editTitleHint": "点击编辑，回车保存，Esc 取消",
+    "expand": "展开",
+    "collapse": "收起"
   },
   "countdown": {
     "editTitle": "编辑事件",

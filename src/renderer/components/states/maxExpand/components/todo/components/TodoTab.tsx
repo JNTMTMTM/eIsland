@@ -43,7 +43,7 @@ export function TodoTab(): ReactElement {
     doneCount, undoneCount, p0Count, p1Count, p2Count,
     handleAdd, handleKeyDown,
     toggleDone, removeTodo, toggleExpand,
-    saveDesc, setDueDate,
+    saveTitle, saveSubTitle, saveDesc, setDueDate,
     addSubTodo, toggleSubDone, removeSubTodo,
   } = useTodos();
 
@@ -83,6 +83,8 @@ export function TodoTab(): ReactElement {
         onToggleDone={toggleDone}
         onRemove={removeTodo}
         onToggleExpand={toggleExpand}
+        onSaveTitle={saveTitle}
+        onSaveSubTitle={saveSubTitle}
         onSaveDesc={saveDesc}
         onSetDueDate={setDueDate}
         onAddSubTodo={addSubTodo}
