@@ -245,6 +245,17 @@
   gap: 6px;
 }
 
+.expand-todo-sub-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  padding: 10px;
+  background: rgba(var(--color-text-rgb), .04);
+  border: 1px solid rgba(var(--color-text-rgb), .12);
+  border-radius: 8px;
+}
+
 .expand-todo-subs-header {
   font-size: 11px;
   color: rgba(var(--color-text-rgb), .5);

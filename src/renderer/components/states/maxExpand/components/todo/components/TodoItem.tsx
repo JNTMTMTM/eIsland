@@ -186,18 +186,20 @@ export function TodoItem({
                 <button className="expand-todo-sub-add-btn" disabled={!subInput.trim()} onClick={() => onAddSubTodo(todo.id)}>{t('todo.add')}</button>
               </div>
               {subs.length > 0 && (
-                <div className="expand-todo-subs-header">{t('todo.subtasks')}</div>
+                <div className="expand-todo-sub-list">
+                  <div className="expand-todo-subs-header">{t('todo.subtasks')}</div>
+                  {subs.map(sub => (
+                    <TodoSubItem
+                      key={sub.id}
+                      sub={sub}
+                      parentId={todo.id}
+                      onToggleSubDone={onToggleSubDone}
+                      onRemoveSubTodo={onRemoveSubTodo}
+                      onSaveSubTitle={onSaveSubTitle}
+                    />
+                  ))}
+                </div>
               )}
-              {subs.map(sub => (
-                <TodoSubItem
-                  key={sub.id}
-                  sub={sub}
-                  parentId={todo.id}
-                  onToggleSubDone={onToggleSubDone}
-                  onRemoveSubTodo={onRemoveSubTodo}
-                  onSaveSubTitle={onSaveSubTitle}
-                />
-              ))}
             </div>
           </div>
         </div>
