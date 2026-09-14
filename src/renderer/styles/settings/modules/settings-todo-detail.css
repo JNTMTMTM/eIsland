@@ -188,6 +188,8 @@
 }
 
 .expand-todo-calendar-period {
+  box-sizing: border-box;
+  grid-column: 1 / -1;
   min-width: 0;
   padding: 2px 4px;
   overflow: hidden;
@@ -198,6 +200,18 @@
   white-space: nowrap;
   background: color-mix(in srgb, var(--period-color) 20%, transparent);
   border-radius: 3px;
+  transition: width .22s ease, margin-left .22s ease, box-shadow .22s ease, background-color .22s ease, opacity .22s ease;
+  animation: todo-calendar-period-enter .22s ease;
+}
+
+@keyframes todo-calendar-period-enter {
+  from {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+  to {
+    transform: translateY(0);
+  }
 }
 
 .expand-todo-calendar-period.selected {
@@ -277,7 +291,12 @@
 
 @media (prefers-reduced-motion: reduce) {
   .expand-todo-collapse,
+  .expand-todo-calendar-period,
   .expand-todo-desc-preview {
     transition: none;
+  }
+
+  .expand-todo-calendar-period {
+    animation: none;
   }
 }

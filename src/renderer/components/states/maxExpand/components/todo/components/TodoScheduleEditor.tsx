@@ -108,7 +108,7 @@ export function TodoScheduleEditor({ todo, todos, onSaveDesc, onSetDueDate }: To
                     <div key={item.id} className="expand-todo-calendar-period-row">
                       <span
                         className={`expand-todo-calendar-period${item.id === todo.id ? ' selected' : ''}${item.done ? ' done' : ''}`}
-                        style={{ gridColumn: `${segment.column} / span ${segment.span}`, '--period-color': getTodoColor(item.id) } as CSSProperties}
+                        style={{ width: `${segment.span / 7 * 100}%`, marginLeft: `${(segment.column - 1) / 7 * 100}%`, '--period-color': getTodoColor(item.id) } as CSSProperties}
                         title={label}
                         aria-label={label}
                       >
