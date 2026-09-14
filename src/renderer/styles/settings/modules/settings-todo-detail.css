@@ -123,6 +123,15 @@
   background: rgba(var(--color-text-rgb), .1);
 }
 
+.expand-todo-deadline-clear {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+}
+
 .expand-todo-calendar-nav button {
   width: 26px;
   height: 26px;

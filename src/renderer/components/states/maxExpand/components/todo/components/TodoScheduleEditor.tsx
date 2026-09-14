@@ -26,6 +26,7 @@
 
 import { useState, type CSSProperties, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
+import { SvgIcon } from '../../../../../../utils/SvgIcon';
 import type { TodoItem } from '../types/todoTypes';
 import { formatTodoDate, getTodoColor, getTodoMonthWeeks, getTodoStartDate, getTodoWeekSegment, parseTodoDate } from '../utils/todoCalendarUtils';
 
@@ -68,7 +69,17 @@ export function TodoScheduleEditor({ todo, todos, onSaveDesc, onSetDueDate }: To
               }}
             />
           </label>
-          {todo.dueDate && <button type="button" onClick={() => onSetDueDate(todo.id, '')}>{t('todo.clearDeadline')}</button>}
+          {todo.dueDate && (
+            <button
+              className="expand-todo-deadline-clear"
+              type="button"
+              title={t('todo.clearDeadline')}
+              aria-label={t('todo.clearDeadline')}
+              onClick={() => onSetDueDate(todo.id, '')}
+            >
+              <img className="expand-todo-delete-icon-img" src={SvgIcon.DELETE} alt="" draggable={false} />
+            </button>
+          )}
         </div>
         <div className="expand-todo-calendar-nav">
           <button type="button" aria-label={t('todo.previousMonth')} onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() - 1, 1))}>‹</button>
