@@ -53,29 +53,190 @@
   border-top: 1px solid rgba(var(--color-text-rgb), .08);
 }
 
-.expand-todo-desc-area {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
+.expand-todo-schedule-editor {
+  display: grid;
+  grid-template-columns: minmax(250px, 1fr) minmax(0, 1.2fr);
+  gap: 12px;
+  align-items: stretch;
 }
 
-.expand-todo-desc-text {
+.expand-todo-schedule-editor .expand-todo-desc {
+  width: 100%;
+  height: auto;
+  min-height: 220px;
+  padding: 10px 12px;
+  line-height: 1.7;
+  resize: vertical;
+}
+
+.expand-todo-calendar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  padding: 10px;
+  font-size: 11px;
+  color: rgba(var(--color-text-rgb), .8);
+  border: 1px solid rgba(var(--color-text-rgb), .1);
+  border-radius: 8px;
+}
+
+.expand-todo-deadline-control,
+.expand-todo-deadline-control label,
+.expand-todo-calendar-nav {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+}
+
+.expand-todo-deadline-control label {
   flex: 1;
   min-width: 0;
-  padding: 5px 0;
-  font-size: 12px;
-  line-height: 1.6;
-  color: rgba(var(--color-text-rgb), .75);
-  overflow-wrap: anywhere;
-  white-space: pre-wrap;
 }
 
-.expand-todo-desc {
-  height: auto;
-  min-height: 70px;
-  padding: 6px 10px;
-  line-height: 1.5;
-  resize: vertical;
+.expand-todo-deadline-control input {
+  box-sizing: border-box;
+  min-width: 0;
+  width: 135px;
+  padding: 3px 5px;
+  font: inherit;
+  color: inherit;
+  color-scheme: dark;
+  background: rgba(var(--color-text-rgb), .04);
+  border: 1px solid rgba(var(--color-text-rgb), .12);
+  border-radius: 5px;
+}
+
+.expand-todo-calendar button {
+  padding: 3px 5px;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  border-radius: 4px;
+}
+
+.expand-todo-calendar button:hover:not(:disabled) {
+  background: rgba(var(--color-text-rgb), .1);
+}
+
+.expand-todo-calendar-nav button {
+  width: 26px;
+  height: 26px;
+  font-size: 18px;
+}
+
+.expand-todo-calendar-weekdays,
+.expand-todo-calendar-days,
+.expand-todo-calendar-period-row {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.expand-todo-calendar-weekdays {
+  font-size: 10px;
+  color: rgba(var(--color-text-rgb), .45);
+  text-align: center;
+}
+
+.expand-todo-calendar-weeks {
+  max-height: 300px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.expand-todo-calendar-week {
+  padding-bottom: 4px;
+}
+
+.expand-todo-calendar-days {
+  gap: 2px;
+}
+
+.expand-todo-calendar-day {
+  min-width: 0;
+  min-height: 26px;
+  font-size: 11px;
+}
+
+.expand-todo-calendar-day.outside,
+.expand-todo-calendar-day:disabled {
+  opacity: .35;
+}
+
+.expand-todo-calendar-day:disabled {
+  cursor: default;
+}
+
+.expand-todo-calendar-day.today {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.expand-todo-calendar-day[aria-pressed="true"] {
+  background: rgba(var(--color-text-rgb), .18);
+  box-shadow: inset 0 0 0 1px rgba(var(--color-text-rgb), .35);
+}
+
+.expand-todo-calendar-periods {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.expand-todo-calendar-period {
+  min-width: 0;
+  padding: 2px 4px;
+  overflow: hidden;
+  font-size: 9px;
+  line-height: 1.4;
+  color: var(--period-color);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  background: color-mix(in srgb, var(--period-color) 20%, transparent);
+  border-radius: 3px;
+}
+
+.expand-todo-calendar-period.selected {
+  box-shadow: inset 0 0 0 1px var(--period-color);
+}
+
+.expand-todo-calendar-period.done {
+  opacity: .5;
+  text-decoration: line-through;
+}
+
+.expand-todo-calendar-range {
+  font-size: 10px;
+  color: rgba(var(--color-text-rgb), .5);
+  overflow-wrap: anywhere;
+}
+
+.expand-todo-deadline-badge {
+  flex-shrink: 0;
+  font-size: 10px;
+  color: rgba(var(--color-text-rgb), .65);
+}
+
+[data-theme="light"] .expand-todo-deadline-control input {
+  color-scheme: light;
+}
+
+[data-theme="light"] .expand-todo-calendar-period {
+  color: color-mix(in srgb, var(--period-color) 60%, #000);
+}
+
+@container (max-width: 680px) {
+  .expand-todo-schedule-editor {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .expand-todo-schedule-editor .expand-todo-desc {
+    min-height: 130px;
+  }
 }
 
 .expand-todo-subs {

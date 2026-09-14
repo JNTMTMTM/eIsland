@@ -30,15 +30,16 @@ import { PRIORITIES, SIZES } from '../config/todoConfig';
 import type { TodoItemProps } from '../types/todoTypes';
 import { formatCreatedTime } from '../utils/todoUtils';
 import { TodoSubItem } from './TodoSubItem';
+import { TodoScheduleEditor } from './TodoScheduleEditor';
 
 /**
  * 待办条目
  * @description 显示单条待办的标题行，展开后可编辑描述和管理子任务
  */
 export function TodoItem({
-  todo, isExpanded, editingDescId, descDraft, setDescDraft, descRef,
+  todo, todos, isExpanded,
   subInput, setSubInput, subPriority, setSubPriority, subSize, setSubSize, subInputRef,
-  onToggleDone, onRemove, onToggleExpand, onStartEditDesc, onSaveDesc,
+  onToggleDone, onRemove, onToggleExpand, onSaveDesc, onSetDueDate,
   onAddSubTodo, onToggleSubDone, onRemoveSubTodo,
 }: TodoItemProps): ReactElement {
   const { t } = useTranslation();
@@ -93,6 +94,7 @@ export function TodoItem({
                 <span className="expand-todo-progress-label">{subDone}/{subs.length}</span>
               </span>
             )}
+            {todo.dueDate && <span className="expand-todo-deadline-badge">{t('todo.deadline')} {todo.dueDate}</span>}
             <span className="expand-todo-time">{formatCreatedTime(todo.createdAt ?? todo.id)}</span>
           </span>
           {todo.description && (
@@ -118,32 +120,12 @@ export function TodoItem({
         <div className="expand-todo-collapse-inner">
           <div className="expand-todo-detail" onClick={(e) => e.stopPropagation()}>
             {/* 描述区域 */}
-            <div className="expand-todo-desc-area">
-              {editingDescId === todo.id ? (
-                <>
-                  <textarea
-                    ref={isExpanded ? descRef : undefined}
-                    className="expand-todo-desc"
-                    placeholder={t('todo.descPlaceholder', { defaultValue: '添加详细描述...' })}
-                    aria-label={t('todo.editDescTitle')}
-                    value={descDraft}
-                    onChange={(e) => setDescDraft(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); onSaveDesc(todo.id); }
-                    }}
-                    rows={3}
-                  />
-                  <button className="expand-todo-desc-btn save" onClick={() => onSaveDesc(todo.id)} title={t('todo.saveTitle', { defaultValue: '保存 (Ctrl+Enter)' })}>{t('todo.save', { defaultValue: '保存' })}</button>
-                </>
-              ) : (
-                <>
-                  {todo.description && <div className="expand-todo-desc-text">{todo.description}</div>}
-                  <button className="expand-todo-desc-btn edit" onClick={() => onStartEditDesc(todo)}>
-                    {todo.description ? t('todo.edit') : t('todo.addDescription')}
-                  </button>
-                </>
-              )}
-            </div>
+            <TodoScheduleEditor
+              todo={todo}
+              todos={todos}
+              onSaveDesc={onSaveDesc}
+              onSetDueDate={onSetDueDate}
+            />
 
             {/* 子待办列表 */}
             <div className="expand-todo-subs">

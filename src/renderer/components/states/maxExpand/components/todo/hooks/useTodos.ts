@@ -28,6 +28,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { LOCAL_STORAGE_KEY, STORE_KEY } from '../config/todoConfig';
 import type { Priority, Size, TodoItem, UseTodosReturn } from '../types/todoTypes';
 import { normalizeTodos, persistTodos } from '../utils/todoUtils';
+import { getTodoStartDate, parseTodoDate } from '../utils/todoCalendarUtils';
 
 /**
  * Todo 模块状态管理 hook
@@ -43,10 +44,7 @@ export function useTodos(): UseTodosReturn {
   const [subInput, setSubInput] = useState('');
   const [subPriority, setSubPriority] = useState<Priority | undefined>(undefined);
   const [subSize, setSubSize] = useState<Size | undefined>(undefined);
-  const [editingDescId, setEditingDescId] = useState<number | null>(null);
-  const [descDraft, setDescDraft] = useState('');
   const skipPersistOnceRef = useRef(false);
-  const descRef = useRef<HTMLTextAreaElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const subInputRef = useRef<HTMLInputElement>(null);
@@ -151,17 +149,18 @@ export function useTodos(): UseTodosReturn {
     setSubSize(undefined);
   };
 
-  /** 进入描述编辑模式 */
-  const startEditDesc = (todo: TodoItem): void => {
-    setEditingDescId(todo.id);
-    setDescDraft(todo.description ?? '');
-    requestAnimationFrame(() => descRef.current?.focus());
+  /** 直接编辑描述时同步保存，避免切换条目丢失草稿。 */
+  const saveDesc = (id: number, description: string): void => {
+    update(prev => prev.map(todo => todo.id === id ? { ...todo, description } : todo));
   };
 
-  /** 保存描述 */
-  const saveDesc = (id: number): void => {
-    update(prev => prev.map(t => t.id === id ? { ...t, description: descDraft } : t));
-    setEditingDescId(null);
+  /** 截止日期按本地日历保存，不能早于任务创建日期。 */
+  const setDueDate = (id: number, dueDate: string): void => {
+    if (dueDate && !parseTodoDate(dueDate)) return;
+    update(prev => prev.map(todo => {
+      if (todo.id !== id || (dueDate && dueDate < getTodoStartDate(todo))) return todo;
+      return { ...todo, dueDate: dueDate || undefined };
+    }));
   };
 
   /** 添加子待办 */
@@ -210,14 +209,12 @@ export function useTodos(): UseTodosReturn {
     subInput, setSubInput,
     subPriority, setSubPriority,
     subSize, setSubSize,
-    editingDescId,
-    descDraft, setDescDraft,
-    descRef, inputRef, listRef, subInputRef,
+    inputRef, listRef, subInputRef,
     doneCount, undoneCount,
     p0Count, p1Count, p2Count,
     handleAdd, handleKeyDown,
     toggleDone, removeTodo, toggleExpand,
-    startEditDesc, saveDesc,
+    saveDesc, setDueDate,
     addSubTodo, toggleSubDone, removeSubTodo,
   };
 }

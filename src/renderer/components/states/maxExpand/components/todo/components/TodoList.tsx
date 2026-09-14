@@ -34,10 +34,10 @@ import { TodoItem } from './TodoItem';
  * @description 空状态时显示简短提示，有待办时渲染条目列表
  */
 export function TodoList({
-  todos, expandedId, editingDescId, descDraft, setDescDraft, descRef,
+  todos, expandedId,
   subInput, setSubInput, subPriority, setSubPriority, subSize, setSubSize, subInputRef,
   listRef,
-  onToggleDone, onRemove, onToggleExpand, onStartEditDesc, onSaveDesc,
+  onToggleDone, onRemove, onToggleExpand, onSaveDesc, onSetDueDate,
   onAddSubTodo, onToggleSubDone, onRemoveSubTodo,
 }: TodoListProps): ReactElement {
   const { t } = useTranslation();
@@ -51,11 +51,8 @@ export function TodoList({
         <TodoItem
           key={todo.id}
           todo={todo}
+          todos={todos}
           isExpanded={expandedId === todo.id}
-          editingDescId={editingDescId}
-          descDraft={descDraft}
-          setDescDraft={setDescDraft}
-          descRef={descRef}
           subInput={subInput}
           setSubInput={setSubInput}
           subPriority={subPriority}
@@ -66,8 +63,8 @@ export function TodoList({
           onToggleDone={onToggleDone}
           onRemove={onRemove}
           onToggleExpand={onToggleExpand}
-          onStartEditDesc={onStartEditDesc}
           onSaveDesc={onSaveDesc}
+          onSetDueDate={onSetDueDate}
           onAddSubTodo={onAddSubTodo}
           onToggleSubDone={onToggleSubDone}
           onRemoveSubTodo={onRemoveSubTodo}

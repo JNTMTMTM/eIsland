@@ -323,16 +323,18 @@
     "markUndone": "标记未完成",
     "delete": "删除",
     "descPlaceholder": "添加详细描述...",
-    "saveTitle": "保存 (Ctrl+Enter)",
-    "save": "保存",
     "editDescTitle": "编辑描述",
-    "edit": "编辑",
     "subtasks": "子任务",
     "empty": "暂无待办",
     "add": "添加",
-    "addDescription": "添加描述",
     "doneCount": "已完成 {{count}}",
-    "undoneCount": "未完成 {{count}}"
+    "undoneCount": "未完成 {{count}}",
+    "deadline": "截止日期",
+    "clearDeadline": "清除",
+    "noDeadline": "未设置截止日期",
+    "previousMonth": "上个月",
+    "nextMonth": "下个月",
+    "chooseDeadline": "截止日期设为 {{date}}"
   },
   "countdown": {
     "editTitle": "编辑事件",

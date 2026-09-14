@@ -323,16 +323,18 @@
     "markUndone": "Mark not done",
     "delete": "Delete",
     "descPlaceholder": "Add detailed description...",
-    "saveTitle": "Save (Ctrl+Enter)",
-    "save": "Save",
     "editDescTitle": "Edit description",
-    "edit": "Edit",
     "subtasks": "Subtasks",
     "empty": "No tasks yet",
     "add": "Add",
-    "addDescription": "Add description",
     "doneCount": "{{count}} done",
-    "undoneCount": "{{count}} remaining"
+    "undoneCount": "{{count}} remaining",
+    "deadline": "Due date",
+    "clearDeadline": "Clear",
+    "noDeadline": "No due date",
+    "previousMonth": "Previous month",
+    "nextMonth": "Next month",
+    "chooseDeadline": "Set due date to {{date}}"
   },
   "countdown": {
     "editTitle": "Edit Event",

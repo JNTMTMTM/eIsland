@@ -152,8 +152,7 @@
 }
 
 .expand-todo-add,
-.expand-todo-sub-add-btn,
-.expand-todo-desc-btn {
+.expand-todo-sub-add-btn {
   flex-shrink: 0;
   height: 30px;
   padding: 0 12px;
@@ -168,8 +167,7 @@
 }
 
 .expand-todo-add:hover:not(:disabled),
-.expand-todo-sub-add-btn:hover:not(:disabled),
-.expand-todo-desc-btn:hover {
+.expand-todo-sub-add-btn:hover:not(:disabled) {
   color: var(--color-island-text);
   background: rgba(var(--color-text-rgb), .2);
 }
