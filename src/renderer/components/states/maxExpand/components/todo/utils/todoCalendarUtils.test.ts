@@ -34,9 +34,9 @@ const todo: TodoItem = { id: new Date(2026, 8, 15).getTime(), createdAt: new Dat
 describe('todo calendar periods', () => {
   it('validates leap dates and rejects invalid or non-date values', () => {
     expect(formatTodoDate(parseTodoDate('2024-02-29')!)).toBe('2024-02-29');
-    for (const value of ['2026-02-29', '2026-04-31', '2026-13-01', '2026-9-15', 'invalid']) {
+    ['2026-02-29', '2026-04-31', '2026-13-01', '2026-9-15', 'invalid'].forEach(value => {
       expect(parseTodoDate(value)).toBeNull();
-    }
+    });
   });
 
   it('uses local calendar dates rather than UTC conversion', () => {
@@ -68,8 +68,8 @@ describe('todo calendar periods', () => {
   });
 
   it('discards impossible and pre-creation deadlines on load', () => {
-    for (const dueDate of ['2026-02-31', '2026-09-14', '']) {
+    ['2026-02-31', '2026-09-14', ''].forEach(dueDate => {
       expect(normalizeTodos([{ ...todo, dueDate }])[0].dueDate).toBeUndefined();
-    }
+    });
   });
 });
