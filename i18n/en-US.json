@@ -1459,6 +1459,10 @@
       "toolbox": "Toolbox",
       "miniGame": "Mini Game",
       "cli": "CLI Console",
+      "stock": "Stock Market",
+      "calculator": "Calculator",
+      "worldClock": "World Clock",
+      "calendar": "Calendar",
       "settings": "Settings",
       "switchTo": "Switch to {{label}}"
     },

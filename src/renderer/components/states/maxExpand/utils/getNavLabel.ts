@@ -42,6 +42,10 @@ const NAV_LABEL_MAP: Record<string, string> = {
   toolbox: '工具箱',
   miniGame: '小游戏',
   stock: '股票行情',
+  cli: 'CLI 控制台',
+  calculator: '计算器',
+  worldClock: '世界时钟',
+  calendar: '日历',
   settings: '设置',
 };
 
