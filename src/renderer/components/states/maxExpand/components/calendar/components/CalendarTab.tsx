@@ -105,7 +105,7 @@ export function CalendarTab(): ReactElement {
   };
 
   return (
-    <div className="max-expand-tab-panel calendar-panel @container flex size-full min-h-0 flex-col overflow-y-auto text-[rgba(var(--color-text-rgb),.88)]" onKeyDown={(event) => { if (event.key === 'Tab') event.stopPropagation(); }}>
+    <div className="max-expand-tab-panel calendar-panel @container flex size-full min-h-0 flex-col overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden text-[rgba(var(--color-text-rgb),.88)]" onKeyDown={(event) => { if (event.key === 'Tab') event.stopPropagation(); }}>
       <div className="grid flex-1 grid-cols-1 gap-4 px-4 pb-2 @[560px]:grid-cols-[minmax(0,1.8fr)_minmax(190px,1fr)]">
         <section className="flex min-w-0 flex-col" aria-labelledby={monthId}>
           <div className="flex items-center justify-between gap-3 pb-2">
