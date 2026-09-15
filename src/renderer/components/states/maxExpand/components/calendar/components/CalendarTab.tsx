@@ -138,7 +138,7 @@ export function CalendarTab(): ReactElement {
                     let colors = 'text-[rgba(var(--color-text-rgb),.85)] hover:bg-[rgba(var(--color-text-rgb),.07)]';
                     if (weekend) colors = 'text-[rgba(var(--color-text-rgb),.5)] hover:bg-[rgba(var(--color-text-rgb),.07)]';
                     if (outside) colors = 'text-[rgba(var(--color-text-rgb),.25)] hover:bg-[rgba(var(--color-text-rgb),.04)]';
-                    if (selected) colors = 'bg-[rgba(var(--color-text-rgb),.9)] text-[var(--color-island-bg)]';
+                    if (selected) colors = 'bg-[rgba(var(--color-accent-rgb,59,130,246),.24)] text-[rgba(var(--color-text-rgb),.9)] hover:bg-[rgba(var(--color-accent-rgb,59,130,246),.32)]';
                     const lunarDay = locale.startsWith('zh')
                       ? Lunar.fromDate(date).getDayInChinese()
                       : formats.lunarDay.formatToParts(date).find((part) => part.type === 'day')?.value;
