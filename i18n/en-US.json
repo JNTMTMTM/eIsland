@@ -1443,6 +1443,21 @@
     }
   },
   "maxExpand": {
+    "calendar": {
+      "today": "Today",
+      "previousMonth": "Previous month",
+      "nextMonth": "Next month",
+      "daysAfter_one": "In {{count}} day",
+      "daysAfter_other": "In {{count}} days",
+      "daysBefore_one": "{{count}} day ago",
+      "daysBefore_other": "{{count}} days ago",
+      "daysAfter": "In {{count}} days",
+      "daysBefore": "{{count}} days ago",
+      "details": "Date details",
+      "selectedDate": "Selected date",
+      "lunarDate": "Lunar date",
+      "dayOfMonth": "Day {{day}} of {{total}} this month"
+    },
     "loading": "Loading max expand view...",
     "nav": {
       "expanded": "Back",

@@ -1443,6 +1443,21 @@
     }
   },
   "maxExpand": {
+    "calendar": {
+      "today": "今天",
+      "previousMonth": "上个月",
+      "nextMonth": "下个月",
+      "daysAfter": "{{count}} 天后",
+      "daysBefore": "{{count}} 天前",
+      "details": "日期详情",
+      "selectedDate": "所选日期",
+      "lunarDate": "农历",
+      "dayOfMonth": "本月第 {{day}} / {{total}} 天",
+      "daysAfter_one": "{{count}} 天后",
+      "daysAfter_other": "{{count}} 天后",
+      "daysBefore_one": "{{count}} 天前",
+      "daysBefore_other": "{{count}} 天前"
+    },
     "loading": "正在加载最大展开界面...",
     "nav": {
       "expanded": "返回",
