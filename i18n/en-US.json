@@ -2873,7 +2873,8 @@
           "stock": "Stock Market",
           "cli": "CLI Console",
           "calculator": "Calculator",
-          "worldClock": "World Clock"
+          "worldClock": "World Clock",
+          "calendar": "Calendar"
         }
       },
       "hideProcess": {
