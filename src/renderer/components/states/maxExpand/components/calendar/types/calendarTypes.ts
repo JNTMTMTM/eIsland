@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import type { KeyboardEvent, RefObject } from 'react';
+import type { KeyboardEvent, RefObject, WheelEvent } from 'react';
 
 /** useCalendar hook 返回值类型 */
 export interface UseCalendarReturn {
@@ -54,10 +54,8 @@ export interface UseCalendarReturn {
   monthProgress: number;
   /** 相对今天的人类可读标签 */
   relativeLabel: string;
-  /** 切换到上个月 */
-  goToPreviousMonth: () => void;
-  /** 切换到下个月 */
-  goToNextMonth: () => void;
+  /** 月历区域滚动切换月份 */
+  handleMonthWheel: (event: WheelEvent<HTMLElement>) => void;
   /** 选中指定日期 */
   selectDate: (date: Date) => void;
   /** 日期按钮键盘导航 */
@@ -94,10 +92,8 @@ export interface CalendarGridProps {
   formats: CalendarFormats;
   /** 选中日期按钮的 ref */
   selectedButtonRef: RefObject<HTMLButtonElement | null>;
-  /** 切换到上个月 */
-  onPreviousMonth: () => void;
-  /** 切换到下个月 */
-  onNextMonth: () => void;
+  /** 月历区域滚动切换月份 */
+  onMonthWheel: (event: WheelEvent<HTMLElement>) => void;
   /** 选中指定日期 */
   onSelectDate: (date: Date) => void;
   /** 日期按钮键盘导航 */

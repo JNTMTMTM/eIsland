@@ -24,10 +24,12 @@
  * @author 鸡哥
  */
 
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type WheelEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getCalendarDayDifference, getCalendarWeeks, shiftCalendarMonth } from '../utils/calendarUtils';
 import type { CalendarFormats, UseCalendarReturn } from '../types/calendarTypes';
+
+const MONTH_SCROLL_THRESHOLD = 40;
 
 /**
  * 日历模块状态管理 hook
@@ -40,6 +42,7 @@ export function useCalendar(): UseCalendarReturn {
   const [selectedDate, setSelectedDate] = useState(() => new Date());
   const selectedButtonRef = useRef<HTMLButtonElement>(null);
   const focusDateRef = useRef(false);
+  const monthScrollDeltaRef = useRef(0);
 
   const locale = i18n.resolvedLanguage ?? i18n.language;
   const year = selectedDate.getFullYear();
@@ -85,14 +88,15 @@ export function useCalendar(): UseCalendarReturn {
     }
   }, [selectedDate]);
 
-  /** 切换到上个月 */
-  const goToPreviousMonth = (): void => {
-    setSelectedDate((date) => shiftCalendarMonth(date, -1));
-  };
-
-  /** 切换到下个月 */
-  const goToNextMonth = (): void => {
-    setSelectedDate((date) => shiftCalendarMonth(date, 1));
+  /** 在月历区域滚动时切换月份，累积触控板的小幅滚动以避免误触。 */
+  const handleMonthWheel = (event: WheelEvent<HTMLElement>): void => {
+    event.preventDefault();
+    event.stopPropagation();
+    monthScrollDeltaRef.current += event.deltaY;
+    if (Math.abs(monthScrollDeltaRef.current) < MONTH_SCROLL_THRESHOLD) return;
+    const offset = monthScrollDeltaRef.current > 0 ? 1 : -1;
+    monthScrollDeltaRef.current = 0;
+    setSelectedDate((date) => shiftCalendarMonth(date, offset));
   };
 
   /** 选中指定日期 */
@@ -137,8 +141,7 @@ export function useCalendar(): UseCalendarReturn {
     selectedDay,
     monthProgress,
     relativeLabel,
-    goToPreviousMonth,
-    goToNextMonth,
+    handleMonthWheel,
     selectDate,
     handleDateKeyDown,
   };

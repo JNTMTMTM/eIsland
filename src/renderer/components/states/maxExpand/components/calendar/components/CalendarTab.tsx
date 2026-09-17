@@ -47,8 +47,7 @@ export function CalendarTab(): ReactElement {
     selectedDay,
     monthProgress,
     relativeLabel,
-    goToPreviousMonth,
-    goToNextMonth,
+    handleMonthWheel,
     selectDate,
     handleDateKeyDown,
   } = useCalendar();
@@ -67,8 +66,7 @@ export function CalendarTab(): ReactElement {
           locale={locale}
           formats={formats}
           selectedButtonRef={selectedButtonRef}
-          onPreviousMonth={goToPreviousMonth}
-          onNextMonth={goToNextMonth}
+          onMonthWheel={handleMonthWheel}
           onSelectDate={selectDate}
           onDateKeyDown={handleDateKeyDown}
         />

@@ -1445,8 +1445,6 @@
   "maxExpand": {
     "calendar": {
       "today": "Today",
-      "previousMonth": "Previous month",
-      "nextMonth": "Next month",
       "daysAfter_one": "In {{count}} day",
       "daysAfter_other": "In {{count}} days",
       "daysBefore_one": "{{count}} day ago",

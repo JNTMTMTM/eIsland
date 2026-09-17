@@ -1445,8 +1445,6 @@
   "maxExpand": {
     "calendar": {
       "today": "今天",
-      "previousMonth": "上个月",
-      "nextMonth": "下个月",
       "daysAfter": "{{count}} 天后",
       "daysBefore": "{{count}} 天前",
       "details": "日期详情",

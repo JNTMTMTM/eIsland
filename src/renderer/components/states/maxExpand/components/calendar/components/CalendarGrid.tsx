@@ -25,15 +25,13 @@
  */
 
 import { useId, type ReactElement } from 'react';
-import { useTranslation } from 'react-i18next';
 import { Lunar } from 'lunar-javascript';
 import { getCalendarDayDifference } from '../utils/calendarUtils';
-import { NAV_BUTTON_CLASS } from '../config/calendarConfig';
 import type { CalendarGridProps } from '../types/calendarTypes';
 
 /**
  * 日历月视图网格
- * @description 包含月份导航按钮和六周日期表格，支持键盘导航与农历显示。
+ * @description 包含可滚动切月的六周日期表格，支持键盘导航与农历显示。
  * @param props - 组件入参
  * @returns 月视图 JSX
  */
@@ -45,40 +43,18 @@ export function CalendarGrid({
   locale,
   formats,
   selectedButtonRef,
-  onPreviousMonth,
-  onNextMonth,
+  onMonthWheel,
   onSelectDate,
   onDateKeyDown,
 }: CalendarGridProps): ReactElement {
-  const { t } = useTranslation();
   const monthId = useId();
 
   return (
-    <section className="flex min-w-0 flex-col" aria-labelledby={monthId}>
+    <section className="flex min-w-0 flex-col" aria-labelledby={monthId} onWheel={onMonthWheel}>
       <div className="flex items-center justify-between gap-3 pb-2">
         <h2 className="m-0 text-sm font-semibold tabular-nums" id={monthId} aria-live="polite">
           {formats.month.format(selectedDate)}
         </h2>
-        <div className="flex gap-1.5">
-          <button
-            className={NAV_BUTTON_CLASS}
-            type="button"
-            title={t('maxExpand.calendar.previousMonth')}
-            aria-label={t('maxExpand.calendar.previousMonth')}
-            onClick={onPreviousMonth}
-          >
-            <span className="text-xl leading-none" aria-hidden="true">‹</span>
-          </button>
-          <button
-            className={NAV_BUTTON_CLASS}
-            type="button"
-            title={t('maxExpand.calendar.nextMonth')}
-            aria-label={t('maxExpand.calendar.nextMonth')}
-            onClick={onNextMonth}
-          >
-            <span className="text-xl leading-none" aria-hidden="true">›</span>
-          </button>
-        </div>
       </div>
       <table className="w-full flex-1 table-fixed border-separate border-spacing-1 text-center" aria-labelledby={monthId}>
         <thead>
