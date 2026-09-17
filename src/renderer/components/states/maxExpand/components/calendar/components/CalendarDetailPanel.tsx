@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import type { ReactElement } from 'react';
+import type { CSSProperties, ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getLunarDate } from '../../../../../../utils/timeUtils';
 import type { CalendarDetailPanelProps } from '../types/calendarTypes';
@@ -48,38 +48,38 @@ export function CalendarDetailPanel({
 
   return (
     <aside
-      className="flex min-w-0 flex-col gap-4 border-t border-[rgba(var(--color-text-rgb),.12)] px-3 py-4 @[560px]:border-t-0 @[560px]:border-l @[560px]:pl-6"
+      className="calendar-details"
       aria-label={t('maxExpand.calendar.details')}
       aria-live="polite"
       aria-atomic="true"
     >
-      <div className="flex items-center justify-between gap-2 text-[11px] text-[rgba(var(--color-text-rgb),.5)]">
+      <div className="calendar-details-heading">
         <span>{t('maxExpand.calendar.selectedDate')}</span>
-        <span className="rounded-full bg-[rgba(var(--color-accent-rgb,59,130,246),.12)] px-2.5 py-1 text-[rgb(var(--color-accent-rgb,59,130,246))]">{relativeLabel}</span>
+        <span className="calendar-relative-date">{relativeLabel}</span>
       </div>
       <div>
-        <div className="text-[72px] leading-none font-semibold tracking-[-.06em] text-[rgba(var(--color-text-rgb),.95)] tabular-nums">
+        <div className="calendar-selected-day">
           {String(selectedDay).padStart(2, '0')}
         </div>
-        <div className="mt-2 text-xs text-[rgba(var(--color-text-rgb),.6)]">
+        <div className="calendar-full-date">
           {formats.full.format(selectedDate)}
         </div>
       </div>
-      <div className="border-t border-[rgba(var(--color-text-rgb),.08)] pt-3">
-        <div className="mb-1.5 text-[10px] text-[rgba(var(--color-text-rgb),.4)]">
+      <div className="calendar-lunar-details">
+        <div className="calendar-lunar-label">
           {t('maxExpand.calendar.lunarDate')}
         </div>
-        <div className="text-xs leading-relaxed">
+        <div className="calendar-lunar-value">
           {locale.startsWith('zh') ? getLunarDate(selectedDate) : formats.lunar.format(selectedDate)}
         </div>
       </div>
-      <div className="mt-auto pt-1">
-        <div className="mb-2 flex items-center justify-between gap-2 text-[10px] text-[rgba(var(--color-text-rgb),.5)]">
+      <div className="calendar-progress">
+        <div className="calendar-progress-label">
           <span>{t('maxExpand.calendar.dayOfMonth', { day: selectedDay, total: daysInMonth })}</span>
-          <span className="tabular-nums">{monthProgress}%</span>
+          <span className="calendar-progress-percent">{monthProgress}%</span>
         </div>
-        <div className="h-1 overflow-hidden rounded-full bg-[rgba(var(--color-text-rgb),.07)]" aria-hidden="true">
-          <div className="h-full rounded-full bg-[rgb(var(--color-accent-rgb,59,130,246))]" style={{ width: `${monthProgress}%` }} />
+        <div className="calendar-progress-track" style={{ '--calendar-progress': `${monthProgress}%` } as CSSProperties} aria-hidden="true">
+          <div className="calendar-progress-fill" />
         </div>
       </div>
     </aside>

@@ -28,6 +28,7 @@ import type { ReactElement } from 'react';
 import { useCalendar } from '../hooks/useCalendar';
 import { CalendarGrid } from './CalendarGrid';
 import { CalendarDetailPanel } from './CalendarDetailPanel';
+import '../styles/calendar.css';
 
 /**
  * 最大展开日历面板
@@ -52,10 +53,10 @@ export function CalendarTab(): ReactElement {
 
   return (
     <div
-      className="max-expand-tab-panel calendar-panel @container flex size-full min-h-0 flex-col overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden text-[rgba(var(--color-text-rgb),.88)]"
+      className="max-expand-tab-panel calendar-panel"
       onKeyDown={(event) => { if (event.key === 'Tab') event.stopPropagation(); }}
     >
-      <div className="grid shrink-0 grid-cols-1 gap-4 px-4 pb-2 @[560px]:min-h-0 @[560px]:flex-1 @[560px]:grid-cols-[minmax(0,1.8fr)_minmax(190px,1fr)]">
+      <div className="calendar-layout">
         <CalendarGrid
           selectedDate={selectedDate}
           today={today}
