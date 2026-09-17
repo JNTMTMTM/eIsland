@@ -87,8 +87,8 @@ export function useCalendar(): UseCalendarReturn {
       ArrowRight: 1,
       ArrowUp: -7,
       ArrowDown: 7,
-      Home: -((date.getDay() + 6) % 7),
-      End: 6 - ((date.getDay() + 6) % 7),
+      Home: -date.getDay(),
+      End: 6 - date.getDay(),
     };
     let next: Date;
     if (event.key === 'PageUp' || event.key === 'PageDown') {

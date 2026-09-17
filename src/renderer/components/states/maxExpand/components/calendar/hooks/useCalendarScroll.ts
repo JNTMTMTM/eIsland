@@ -66,7 +66,7 @@ export function useCalendarScroll(selectedDate: Date) {
       const months = getCalendarMonthLayouts(anchor, start, end);
       const month = months[index - start];
       const compensatedTop = current.top + months[current.start - start].top;
-      const week = Math.floor(((month.date.getDay() + 6) % 7 + selectedDate.getDate() - 1) / 7);
+      const week = Math.floor((month.date.getDay() + selectedDate.getDate() - 1) / 7);
       const rowTop = month.top + CALENDAR_MONTH_GAP + CALENDAR_MONTH_HEADER_HEIGHT + week * CALENDAR_WEEK_HEIGHT;
       let top = compensatedTop;
       if (rowTop < top) top = rowTop;

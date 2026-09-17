@@ -25,13 +25,13 @@
  */
 
 /**
- * 返回从周一开始的六周日期，固定行数以避免切月时布局跳动。
+ * 返回从周日开始的六周日期，固定行数以避免切月时布局跳动。
  * @param month - 当前显示月份内的任意日期。
  * @returns 按周分组的本地日期。
  */
 export function getCalendarWeeks(month: Date): Date[][] {
   const first = new Date(month.getFullYear(), month.getMonth(), 1, 12);
-  const offset = (first.getDay() + 6) % 7;
+  const offset = first.getDay();
   return Array.from({ length: 6 }, (_, week) =>
     Array.from({ length: 7 }, (_, day) =>
       new Date(first.getFullYear(), first.getMonth(), 1 - offset + week * 7 + day, 12)
@@ -40,8 +40,8 @@ export function getCalendarWeeks(month: Date): Date[][] {
 }
 
 /**
- * 从固定周一起点生成连续日期，不在月界重复补齐相邻月份。
- * @param anchor - 基准周的周一。
+ * 从固定周日起点生成连续日期，不在月界重复补齐相邻月份。
+ * @param anchor - 基准周的周日。
  * @param offset - 相对基准周的整数偏移。
  * @returns 按本地日历顺序排列的七天。
  */
@@ -71,7 +71,7 @@ export function getCalendarMonthLayouts(anchor: Date, start: number, end: number
     const index = start + offset;
     const date = new Date(anchor.getFullYear(), anchor.getMonth() + index, 1, 12);
     const days = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
-    const weekCount = Math.ceil(((date.getDay() + 6) % 7 + days) / 7);
+    const weekCount = Math.ceil((date.getDay() + days) / 7);
     const weeks = getCalendarWeeks(date).slice(0, weekCount);
     const height = CALENDAR_MONTH_GAP + CALENDAR_MONTH_HEADER_HEIGHT + weekCount * CALENDAR_WEEK_HEIGHT;
     const layout = { index, date, weeks, top, height };

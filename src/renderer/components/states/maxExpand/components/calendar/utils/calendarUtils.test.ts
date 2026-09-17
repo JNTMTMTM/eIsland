@@ -29,7 +29,7 @@ import { CALENDAR_MONTH_GAP, CALENDAR_MONTH_HEADER_HEIGHT, CALENDAR_WEEK_HEIGHT,
 
 describe('calendar month navigation', () => {
   it('sizes short and long months with a separate heading and gap', () => {
-    const months = getCalendarMonthLayouts(new Date(2021, 1, 1, 12), 0, 4);
+    const months = getCalendarMonthLayouts(new Date(2026, 1, 1, 12), 0, 4);
     expect(months.map((month) => month.weeks.length)).toEqual([4, 5, 5, 6]);
     expect(months[0].top).toBe(0);
     months.forEach((month, index) => {
@@ -53,28 +53,29 @@ describe('calendar month navigation', () => {
   });
 
   it('keeps consecutive weeks unique across month and year boundaries', () => {
-    const anchor = new Date(2025, 11, 29, 12);
+    const anchor = new Date(2025, 11, 28, 12);
     const days = Array.from({ length: 20 }, (_, index) => getCalendarWeek(anchor, index - 10)).flat();
     expect(new Set(days.map((day) => day.getTime())).size).toBe(140);
     expect(days.slice(1).every((day, index) => getCalendarDayDifference(day, days[index]) === 1)).toBe(true);
-    expect(getCalendarWeek(anchor, 1)[0].getDate()).toBe(5);
+    expect(getCalendarWeek(anchor, 1)[0].getDate()).toBe(4);
     expect(getCalendarWeek(anchor, 1)[0].getFullYear()).toBe(2026);
   });
 
   it('includes leap day exactly once in the continuous week sequence', () => {
-    const days = [...getCalendarWeek(new Date(2024, 1, 26, 12), 0), ...getCalendarWeek(new Date(2024, 1, 26, 12), 1)];
+    const days = [...getCalendarWeek(new Date(2024, 1, 25, 12), 0), ...getCalendarWeek(new Date(2024, 1, 25, 12), 1)];
     expect(days.filter((day) => day.getMonth() === 1 && day.getDate() === 29)).toHaveLength(1);
-    expect(days[4].getMonth()).toBe(2);
-    expect(days[4].getDate()).toBe(1);
-    expect(days[7].getDay()).toBe(1);
+    expect(days[5].getMonth()).toBe(2);
+    expect(days[5].getDate()).toBe(1);
+    expect(days[7].getDay()).toBe(0);
   });
 
-  it('renders six complete Monday-first weeks including adjacent months', () => {
+  it('renders six complete Sunday-first weeks including adjacent months', () => {
     const weeks = getCalendarWeeks(new Date(2026, 1, 1));
     expect(weeks).toHaveLength(6);
-    expect(weeks.every((week) => week.length === 7 && week[0].getDay() === 1)).toBe(true);
-    expect(weeks[0][0].getMonth()).toBe(0);
-    expect(weeks[0][0].getDate()).toBe(26);
+    expect(weeks.every((week) => week.length === 7 && week[0].getDay() === 0)).toBe(true);
+    expect(weeks[0].map((day) => day.getDay())).toEqual([0, 1, 2, 3, 4, 5, 6]);
+    expect(weeks[0][0].getMonth()).toBe(1);
+    expect(weeks[0][0].getDate()).toBe(1);
     expect(weeks.flat().filter((day) => day.getMonth() === 1)).toHaveLength(28);
     expect(new Set(weeks.flat().map((day) => day.getTime())).size).toBe(42);
   });
