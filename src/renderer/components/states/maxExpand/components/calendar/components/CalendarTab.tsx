@@ -39,15 +39,13 @@ export function CalendarTab(): ReactElement {
     today,
     selectedDate,
     selectedButtonRef,
+    focusDateRef,
     locale,
-    month,
-    weeks,
     formats,
     daysInMonth,
     selectedDay,
     monthProgress,
     relativeLabel,
-    handleMonthWheel,
     selectDate,
     handleDateKeyDown,
   } = useCalendar();
@@ -57,16 +55,14 @@ export function CalendarTab(): ReactElement {
       className="max-expand-tab-panel calendar-panel @container flex size-full min-h-0 flex-col overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden text-[rgba(var(--color-text-rgb),.88)]"
       onKeyDown={(event) => { if (event.key === 'Tab') event.stopPropagation(); }}
     >
-      <div className="grid flex-1 grid-cols-1 gap-4 px-4 pb-2 @[560px]:grid-cols-[minmax(0,1.8fr)_minmax(190px,1fr)]">
+      <div className="grid shrink-0 grid-cols-1 gap-4 px-4 pb-2 @[560px]:min-h-0 @[560px]:flex-1 @[560px]:grid-cols-[minmax(0,1.8fr)_minmax(190px,1fr)]">
         <CalendarGrid
-          weeks={weeks}
           selectedDate={selectedDate}
           today={today}
-          month={month}
           locale={locale}
           formats={formats}
           selectedButtonRef={selectedButtonRef}
-          onMonthWheel={handleMonthWheel}
+          focusDateRef={focusDateRef}
           onSelectDate={selectDate}
           onDateKeyDown={handleDateKeyDown}
         />

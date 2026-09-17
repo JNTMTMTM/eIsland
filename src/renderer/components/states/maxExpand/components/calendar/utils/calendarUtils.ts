@@ -40,6 +40,18 @@ export function getCalendarWeeks(month: Date): Date[][] {
 }
 
 /**
+ * 从固定周一起点生成连续日期，不在月界重复补齐相邻月份。
+ * @param anchor - 基准周的周一。
+ * @param offset - 相对基准周的整数偏移。
+ * @returns 按本地日历顺序排列的七天。
+ */
+export function getCalendarWeek(anchor: Date, offset: number): Date[] {
+  return Array.from({ length: 7 }, (_, day) =>
+    new Date(anchor.getFullYear(), anchor.getMonth(), anchor.getDate() + offset * 7 + day, 12)
+  );
+}
+
+/**
  * 切换月份并将月末日期限制到目标月份的最后一天。
  * @param date - 当前选中日期。
  * @param offset - 相对月份偏移，负值向前。

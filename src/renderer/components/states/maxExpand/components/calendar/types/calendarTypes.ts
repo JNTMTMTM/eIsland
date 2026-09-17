@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import type { KeyboardEvent, RefObject, WheelEvent } from 'react';
+import type { KeyboardEvent, RefObject } from 'react';
 
 /** useCalendar hook 返回值类型 */
 export interface UseCalendarReturn {
@@ -34,14 +34,14 @@ export interface UseCalendarReturn {
   selectedDate: Date;
   /** 选中日期按钮的 ref，用于键盘导航后聚焦 */
   selectedButtonRef: RefObject<HTMLButtonElement | null>;
+  /** 等待连续日历渲染键盘选中日期后再聚焦 */
+  focusDateRef: RefObject<boolean>;
   /** 本地化语言代码 */
   locale: string;
   /** 选中日期所在年份 */
   year: number;
   /** 选中日期所在月份（0-indexed） */
   month: number;
-  /** 六周日历网格，按周分组 */
-  weeks: Date[][];
   /** Intl 格式化器集合 */
   formats: CalendarFormats;
   /** 选中日期与今天的日历天数差 */
@@ -54,12 +54,10 @@ export interface UseCalendarReturn {
   monthProgress: number;
   /** 相对今天的人类可读标签 */
   relativeLabel: string;
-  /** 月历区域滚动切换月份 */
-  handleMonthWheel: (event: WheelEvent<HTMLElement>) => void;
   /** 选中指定日期 */
   selectDate: (date: Date) => void;
   /** 日期按钮键盘导航 */
-  handleDateKeyDown: (event: KeyboardEvent<HTMLButtonElement>, date: Date) => void;
+  handleDateKeyDown: (event: KeyboardEvent<HTMLElement>, date: Date) => void;
 }
 
 /** Intl.DateTimeFormat 格式化器集合 */
@@ -78,26 +76,22 @@ export interface CalendarFormats {
 
 /** CalendarGrid 组件入参 */
 export interface CalendarGridProps {
-  /** 六周日历网格 */
-  weeks: Date[][];
   /** 选中日期 */
   selectedDate: Date;
   /** 今天日期 */
   today: Date;
-  /** 当前月份（0-indexed） */
-  month: number;
   /** 本地化语言代码 */
   locale: string;
   /** Intl 格式化器集合 */
   formats: CalendarFormats;
   /** 选中日期按钮的 ref */
   selectedButtonRef: RefObject<HTMLButtonElement | null>;
-  /** 月历区域滚动切换月份 */
-  onMonthWheel: (event: WheelEvent<HTMLElement>) => void;
+  /** 键盘选中日期的待聚焦标记 */
+  focusDateRef: RefObject<boolean>;
   /** 选中指定日期 */
   onSelectDate: (date: Date) => void;
   /** 日期按钮键盘导航 */
-  onDateKeyDown: (event: KeyboardEvent<HTMLButtonElement>, date: Date) => void;
+  onDateKeyDown: (event: KeyboardEvent<HTMLElement>, date: Date) => void;
 }
 
 /** CalendarDetailPanel 组件入参 */

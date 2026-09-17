@@ -25,9 +25,26 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import { getCalendarDayDifference, getCalendarWeeks, shiftCalendarMonth } from './calendarUtils';
+import { getCalendarDayDifference, getCalendarWeek, getCalendarWeeks, shiftCalendarMonth } from './calendarUtils';
 
 describe('calendar month navigation', () => {
+  it('keeps consecutive weeks unique across month and year boundaries', () => {
+    const anchor = new Date(2025, 11, 29, 12);
+    const days = Array.from({ length: 20 }, (_, index) => getCalendarWeek(anchor, index - 10)).flat();
+    expect(new Set(days.map((day) => day.getTime())).size).toBe(140);
+    expect(days.slice(1).every((day, index) => getCalendarDayDifference(day, days[index]) === 1)).toBe(true);
+    expect(getCalendarWeek(anchor, 1)[0].getDate()).toBe(5);
+    expect(getCalendarWeek(anchor, 1)[0].getFullYear()).toBe(2026);
+  });
+
+  it('includes leap day exactly once in the continuous week sequence', () => {
+    const days = [...getCalendarWeek(new Date(2024, 1, 26, 12), 0), ...getCalendarWeek(new Date(2024, 1, 26, 12), 1)];
+    expect(days.filter((day) => day.getMonth() === 1 && day.getDate() === 29)).toHaveLength(1);
+    expect(days[4].getMonth()).toBe(2);
+    expect(days[4].getDate()).toBe(1);
+    expect(days[7].getDay()).toBe(1);
+  });
+
   it('renders six complete Monday-first weeks including adjacent months', () => {
     const weeks = getCalendarWeeks(new Date(2026, 1, 1));
     expect(weeks).toHaveLength(6);

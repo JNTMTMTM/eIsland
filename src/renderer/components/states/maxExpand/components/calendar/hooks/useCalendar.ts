@@ -24,12 +24,10 @@
  * @author 鸡哥
  */
 
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type WheelEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import { getCalendarDayDifference, getCalendarWeeks, shiftCalendarMonth } from '../utils/calendarUtils';
+import { getCalendarDayDifference, shiftCalendarMonth } from '../utils/calendarUtils';
 import type { CalendarFormats, UseCalendarReturn } from '../types/calendarTypes';
-
-const MONTH_SCROLL_THRESHOLD = 40;
 
 /**
  * 日历模块状态管理 hook
@@ -42,13 +40,10 @@ export function useCalendar(): UseCalendarReturn {
   const [selectedDate, setSelectedDate] = useState(() => new Date());
   const selectedButtonRef = useRef<HTMLButtonElement>(null);
   const focusDateRef = useRef(false);
-  const monthScrollDeltaRef = useRef(0);
 
   const locale = i18n.resolvedLanguage ?? i18n.language;
   const year = selectedDate.getFullYear();
   const month = selectedDate.getMonth();
-
-  const weeks = useMemo(() => getCalendarWeeks(new Date(year, month, 1)), [year, month]);
 
   const formats = useMemo<CalendarFormats>(() => ({
     month: new Intl.DateTimeFormat(locale, { year: 'numeric', month: 'long' }),
@@ -80,32 +75,13 @@ export function useCalendar(): UseCalendarReturn {
     };
   }, [today]);
 
-  // 键盘导航后将焦点移到新选中的日期按钮。
-  useEffect(() => {
-    if (focusDateRef.current) {
-      selectedButtonRef.current?.focus();
-      focusDateRef.current = false;
-    }
-  }, [selectedDate]);
-
-  /** 在月历区域滚动时切换月份，累积触控板的小幅滚动以避免误触。 */
-  const handleMonthWheel = (event: WheelEvent<HTMLElement>): void => {
-    event.preventDefault();
-    event.stopPropagation();
-    monthScrollDeltaRef.current += event.deltaY;
-    if (Math.abs(monthScrollDeltaRef.current) < MONTH_SCROLL_THRESHOLD) return;
-    const offset = monthScrollDeltaRef.current > 0 ? 1 : -1;
-    monthScrollDeltaRef.current = 0;
-    setSelectedDate((date) => shiftCalendarMonth(date, offset));
-  };
-
   /** 选中指定日期 */
   const selectDate = (date: Date): void => {
     setSelectedDate(date);
   };
 
   /** 日期按钮键盘导航：方向键逐日/逐周，PageUp/PageDown 切月，Home/End 跳首尾 */
-  const handleDateKeyDown = (event: KeyboardEvent<HTMLButtonElement>, date: Date): void => {
+  const handleDateKeyDown = (event: KeyboardEvent<HTMLElement>, date: Date): void => {
     const offsets: Record<string, number> = {
       ArrowLeft: -1,
       ArrowRight: 1,
@@ -131,17 +107,16 @@ export function useCalendar(): UseCalendarReturn {
     today,
     selectedDate,
     selectedButtonRef,
+    focusDateRef,
     locale,
     year,
     month,
-    weeks,
     formats,
     difference,
     daysInMonth,
     selectedDay,
     monthProgress,
     relativeLabel,
-    handleMonthWheel,
     selectDate,
     handleDateKeyDown,
   };
