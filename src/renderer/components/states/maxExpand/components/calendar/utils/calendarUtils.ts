@@ -53,7 +53,7 @@ export function getCalendarWeek(anchor: Date, offset: number): Date[] {
 
 /** 每周日期行的固定高度，供渲染与滚动定位共用。 */
 export const CALENDAR_WEEK_HEIGHT = 56;
-/** 月份标题高度。 */
+/** 固定在星期栏上方的月份标题高度，不计入滚动内容。 */
 export const CALENDAR_MONTH_HEADER_HEIGHT = 48;
 /** 相邻月份之间的留白。 */
 export const CALENDAR_MONTH_GAP = 24;
@@ -73,7 +73,7 @@ export function getCalendarMonthLayouts(anchor: Date, start: number, end: number
     const days = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
     const weekCount = Math.ceil((date.getDay() + days) / 7);
     const weeks = getCalendarWeeks(date).slice(0, weekCount);
-    const height = CALENDAR_MONTH_GAP + CALENDAR_MONTH_HEADER_HEIGHT + weekCount * CALENDAR_WEEK_HEIGHT;
+    const height = CALENDAR_MONTH_GAP + weekCount * CALENDAR_WEEK_HEIGHT;
     const layout = { index, date, weeks, top, height };
     top += height;
     return layout;

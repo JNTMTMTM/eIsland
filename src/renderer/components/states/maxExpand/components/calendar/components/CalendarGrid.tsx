@@ -68,8 +68,11 @@ export function CalendarGrid({
 
   return (
     <section className="flex h-80 min-h-0 min-w-0 flex-col @[560px]:h-full" aria-labelledby={monthId}>
-      <h2 className="sr-only" id={monthId} aria-live="polite">
-        {formats.month.format(visibleDate)}
+      <h2 className="m-0 flex shrink-0 items-center justify-between gap-2 px-2 tabular-nums" id={monthId} style={{ height: headerHeight }} aria-label={formats.month.format(visibleDate)} aria-live="polite">
+        <span className={`text-[24px] leading-none font-bold tracking-tight ${visibleDate.getFullYear() === today.getFullYear() && visibleDate.getMonth() === today.getMonth() ? 'text-[rgb(var(--color-accent-rgb,59,130,246))]' : 'text-[rgba(var(--color-text-rgb),.92)]'}`}>
+          {monthFormat.format(visibleDate)}
+        </span>
+        <span className="text-[11px] font-medium text-[rgba(var(--color-text-rgb),.4)]">{yearFormat.format(visibleDate)}</span>
       </h2>
       <div className="grid shrink-0 grid-cols-7 border-b border-[rgba(var(--color-text-rgb),.14)] pb-2 text-center" aria-hidden="true">
         {months[0].weeks[0].map((date) => (
@@ -91,14 +94,8 @@ export function CalendarGrid({
       >
         <div style={{ paddingTop, paddingBottom }}>
           {months.map((month) => (
-            <div key={month.date.getTime()} style={{ height: month.height }}>
+            <div key={month.date.getTime()} style={{ height: month.height }} role="group" aria-label={formats.month.format(month.date)}>
               <div style={{ height: monthGap }} aria-hidden="true" />
-              <h3 className="m-0 flex items-center justify-between gap-2 px-2 tabular-nums" style={{ height: headerHeight }} aria-label={formats.month.format(month.date)}>
-                <span className={`text-[24px] leading-none font-bold tracking-tight ${month.date.getFullYear() === today.getFullYear() && month.date.getMonth() === today.getMonth() ? 'text-[rgb(var(--color-accent-rgb,59,130,246))]' : 'text-[rgba(var(--color-text-rgb),.92)]'}`}>
-                  {monthFormat.format(month.date)}
-                </span>
-                <span className="text-[11px] font-medium text-[rgba(var(--color-text-rgb),.4)]">{yearFormat.format(month.date)}</span>
-              </h3>
               {month.weeks.map((week) => (
                 <div className="grid grid-cols-7" key={week[0].getTime()} style={{ height: weekHeight }}>
                   {week.map((date) => {

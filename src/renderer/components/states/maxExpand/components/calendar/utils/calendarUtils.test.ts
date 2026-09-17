@@ -25,15 +25,15 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import { CALENDAR_MONTH_GAP, CALENDAR_MONTH_HEADER_HEIGHT, CALENDAR_WEEK_HEIGHT, getCalendarDayDifference, getCalendarMonthLayouts, getCalendarWeek, getCalendarWeeks, shiftCalendarMonth } from './calendarUtils';
+import { CALENDAR_MONTH_GAP, CALENDAR_WEEK_HEIGHT, getCalendarDayDifference, getCalendarMonthLayouts, getCalendarWeek, getCalendarWeeks, shiftCalendarMonth } from './calendarUtils';
 
 describe('calendar month navigation', () => {
-  it('sizes short and long months with a separate heading and gap', () => {
+  it('sizes short and long months with gaps but excludes the fixed heading', () => {
     const months = getCalendarMonthLayouts(new Date(2026, 1, 1, 12), 0, 4);
     expect(months.map((month) => month.weeks.length)).toEqual([4, 5, 5, 6]);
     expect(months[0].top).toBe(0);
     months.forEach((month, index) => {
-      expect(month.height).toBe(CALENDAR_MONTH_GAP + CALENDAR_MONTH_HEADER_HEIGHT + month.weeks.length * CALENDAR_WEEK_HEIGHT);
+      expect(month.height).toBe(CALENDAR_MONTH_GAP + month.weeks.length * CALENDAR_WEEK_HEIGHT);
       if (index > 0) expect(month.top).toBe(months[index - 1].top + months[index - 1].height);
     });
   });
