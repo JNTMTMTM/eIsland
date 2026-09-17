@@ -48,17 +48,17 @@ export function CalendarDetailPanel({
 
   return (
     <aside
-      className="flex min-w-0 flex-col gap-3 rounded-2xl border border-[rgba(var(--color-text-rgb),.06)] bg-[rgba(var(--color-text-rgb),.035)] p-4"
+      className="flex min-w-0 flex-col gap-4 border-t border-[rgba(var(--color-text-rgb),.12)] px-3 py-4 @[560px]:border-t-0 @[560px]:border-l @[560px]:pl-6"
       aria-label={t('maxExpand.calendar.details')}
       aria-live="polite"
       aria-atomic="true"
     >
       <div className="flex items-center justify-between gap-2 text-[11px] text-[rgba(var(--color-text-rgb),.5)]">
         <span>{t('maxExpand.calendar.selectedDate')}</span>
-        <span className="rounded-full bg-[rgba(var(--color-text-rgb),.07)] px-2 py-1">{relativeLabel}</span>
+        <span className="rounded-full bg-[rgba(var(--color-accent-rgb,59,130,246),.12)] px-2.5 py-1 text-[rgb(var(--color-accent-rgb,59,130,246))]">{relativeLabel}</span>
       </div>
       <div>
-        <div className="text-[64px] leading-none font-light tracking-[-.06em] tabular-nums">
+        <div className="text-[72px] leading-none font-semibold tracking-[-.06em] text-[rgba(var(--color-text-rgb),.95)] tabular-nums">
           {String(selectedDay).padStart(2, '0')}
         </div>
         <div className="mt-2 text-xs text-[rgba(var(--color-text-rgb),.6)]">
@@ -79,7 +79,7 @@ export function CalendarDetailPanel({
           <span className="tabular-nums">{monthProgress}%</span>
         </div>
         <div className="h-1 overflow-hidden rounded-full bg-[rgba(var(--color-text-rgb),.07)]" aria-hidden="true">
-          <div className="h-full rounded-full bg-[rgba(var(--color-text-rgb),.45)]" style={{ width: `${monthProgress}%` }} />
+          <div className="h-full rounded-full bg-[rgb(var(--color-accent-rgb,59,130,246))]" style={{ width: `${monthProgress}%` }} />
         </div>
       </div>
     </aside>

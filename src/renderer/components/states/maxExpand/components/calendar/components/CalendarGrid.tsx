@@ -20,7 +20,7 @@
 
 /**
  * @file CalendarGrid.tsx
- * @description 连续月历：月份以留白、分隔线和标题分组，使用原生滚动。
+ * @description Apple 风格连续月历：大号月份、细周分隔线和主题蓝色圆形日期。
  * @author 鸡哥
  */
 
@@ -47,6 +47,8 @@ export function CalendarGrid({
   onDateKeyDown,
 }: CalendarGridProps): ReactElement {
   const monthId = useId();
+  const monthFormat = useMemo(() => new Intl.DateTimeFormat(locale, { month: 'long' }), [locale]);
+  const yearFormat = useMemo(() => new Intl.DateTimeFormat(locale, { year: 'numeric' }), [locale]);
   const { scrollRef, onScroll, months, visibleDate, weekHeight, headerHeight, monthGap, paddingTop, paddingBottom } = useCalendarScroll(selectedDate);
   // 像素级滚动不重复计算农历，只在可见周或语言变化时更新。
   const lunarDays = useMemo(() => new Map(months.flatMap((month) => month.weeks.flat().filter((date) => date.getMonth() === month.date.getMonth())).map((date) => [
@@ -69,9 +71,9 @@ export function CalendarGrid({
       <h2 className="sr-only" id={monthId} aria-live="polite">
         {formats.month.format(visibleDate)}
       </h2>
-      <div className="grid shrink-0 grid-cols-7 pb-1 text-center" aria-hidden="true">
+      <div className="grid shrink-0 grid-cols-7 border-b border-[rgba(var(--color-text-rgb),.14)] pb-2 text-center" aria-hidden="true">
         {months[0].weeks[0].map((date) => (
-          <span className="text-[10px] font-medium text-[rgba(var(--color-text-rgb),.4)]" key={date.getDay()}>
+          <span className="text-[10px] font-medium text-[rgba(var(--color-text-rgb),.45)]" key={date.getDay()}>
             {formats.weekday.format(date)}
           </span>
         ))}
@@ -91,8 +93,11 @@ export function CalendarGrid({
           {months.map((month) => (
             <div key={month.date.getTime()} style={{ height: month.height }}>
               <div style={{ height: monthGap }} aria-hidden="true" />
-              <h3 className="m-0 flex items-center border-t border-[rgba(var(--color-text-rgb),.16)] px-1 text-sm font-semibold tabular-nums" style={{ height: headerHeight }}>
-                {formats.month.format(month.date)}
+              <h3 className="m-0 flex items-center justify-between gap-2 px-2 tabular-nums" style={{ height: headerHeight }} aria-label={formats.month.format(month.date)}>
+                <span className={`text-[24px] leading-none font-bold tracking-tight ${month.date.getFullYear() === today.getFullYear() && month.date.getMonth() === today.getMonth() ? 'text-[rgb(var(--color-accent-rgb,59,130,246))]' : 'text-[rgba(var(--color-text-rgb),.92)]'}`}>
+                  {monthFormat.format(month.date)}
+                </span>
+                <span className="text-[11px] font-medium text-[rgba(var(--color-text-rgb),.4)]">{yearFormat.format(month.date)}</span>
               </h3>
               {month.weeks.map((week) => (
                 <div className="grid grid-cols-7" key={week[0].getTime()} style={{ height: weekHeight }}>
@@ -101,14 +106,15 @@ export function CalendarGrid({
                     const selected = getCalendarDayDifference(date, selectedDate) === 0;
                     const isToday = getCalendarDayDifference(date, today) === 0;
                     const weekend = date.getDay() === 0 || date.getDay() === 6;
-                    let colors = 'text-[rgba(var(--color-text-rgb),.85)] hover:bg-[rgba(var(--color-text-rgb),.07)]';
-                    if (weekend) colors = 'text-[rgba(var(--color-text-rgb),.5)] hover:bg-[rgba(var(--color-text-rgb),.07)]';
-                    if (selected) colors = 'bg-[rgba(var(--color-accent-rgb,59,130,246),.24)] text-[rgba(var(--color-text-rgb),.9)] hover:bg-[rgba(var(--color-accent-rgb,59,130,246),.32)]';
+                    let colors = 'text-[rgba(var(--color-text-rgb),.9)] group-hover:bg-[rgba(var(--color-text-rgb),.07)]';
+                    if (weekend) colors = 'text-[rgba(var(--color-text-rgb),.4)] group-hover:bg-[rgba(var(--color-text-rgb),.07)]';
+                    if (isToday) colors = 'text-[rgb(var(--color-accent-rgb,59,130,246))] ring-1 ring-inset ring-[rgba(var(--color-accent-rgb,59,130,246),.5)] group-hover:bg-[rgba(var(--color-accent-rgb,59,130,246),.1)]';
+                    if (selected) colors = 'bg-[rgb(var(--color-accent-rgb,59,130,246))] text-white group-hover:bg-[rgba(var(--color-accent-rgb,59,130,246),.85)]';
                     const lunarDay = lunarDays.get(date.getTime());
                     return (
-                      <div className="min-w-0 px-0.5 py-0.5" key={date.getTime()}>
+                      <div className="min-w-0 border-t border-[rgba(var(--color-text-rgb),.14)]" key={date.getTime()}>
                         <button
-                          className={`relative flex h-full w-full flex-col items-center justify-center rounded-lg transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-current ${colors} ${isToday && !selected ? 'ring-1 ring-inset ring-[rgba(var(--color-text-rgb),.3)]' : ''}`}
+                          className="group flex h-full w-full flex-col items-center justify-center gap-0.5 rounded-md focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[rgb(var(--color-accent-rgb,59,130,246))]"
                           ref={selected ? selectedButtonRef : undefined}
                           type="button"
                           title={formats.lunar.format(date)}
@@ -119,8 +125,8 @@ export function CalendarGrid({
                           onClick={() => onSelectDate(date)}
                           onKeyDown={(event) => onDateKeyDown(event, date)}
                         >
-                          <span className="text-[13px] leading-4 font-medium tabular-nums">{date.getDate()}</span>
-                          <span className="text-[9px] leading-3 opacity-60" aria-hidden="true">{lunarDay}</span>
+                          <span className={`flex size-8 shrink-0 items-center justify-center rounded-full text-[18px] leading-none font-medium tabular-nums transition-colors ${colors}`}>{date.getDate()}</span>
+                          <span className={`text-[9px] leading-3 ${selected || isToday ? 'text-[rgb(var(--color-accent-rgb,59,130,246))]' : 'text-[rgba(var(--color-text-rgb),.4)]'}`} aria-hidden="true">{lunarDay}</span>
                         </button>
                       </div>
                     );

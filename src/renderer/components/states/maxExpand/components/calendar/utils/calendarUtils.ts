@@ -52,9 +52,9 @@ export function getCalendarWeek(anchor: Date, offset: number): Date[] {
 }
 
 /** 每周日期行的固定高度，供渲染与滚动定位共用。 */
-export const CALENDAR_WEEK_HEIGHT = 48;
+export const CALENDAR_WEEK_HEIGHT = 56;
 /** 月份标题高度。 */
-export const CALENDAR_MONTH_HEADER_HEIGHT = 36;
+export const CALENDAR_MONTH_HEADER_HEIGHT = 48;
 /** 相邻月份之间的留白。 */
 export const CALENDAR_MONTH_GAP = 24;
 
