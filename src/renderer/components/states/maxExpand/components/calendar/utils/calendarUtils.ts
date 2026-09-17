@@ -51,6 +51,35 @@ export function getCalendarWeek(anchor: Date, offset: number): Date[] {
   );
 }
 
+/** 每周日期行的固定高度，供渲染与滚动定位共用。 */
+export const CALENDAR_WEEK_HEIGHT = 48;
+/** 月份标题高度。 */
+export const CALENDAR_MONTH_HEADER_HEIGHT = 36;
+/** 相邻月份之间的留白。 */
+export const CALENDAR_MONTH_GAP = 24;
+
+/**
+ * 生成带月份间隔的布局，精确计算各月高度以保持滚动位置稳定。
+ * @param anchor - 基准月份内的日期。
+ * @param start - 起始月份偏移（包含）。
+ * @param end - 结束月份偏移（不包含）。
+ * @returns 每个月的日期、所需周行、顶部位置和高度。
+ */
+export function getCalendarMonthLayouts(anchor: Date, start: number, end: number) {
+  let top = 0;
+  return Array.from({ length: end - start }, (_, offset) => {
+    const index = start + offset;
+    const date = new Date(anchor.getFullYear(), anchor.getMonth() + index, 1, 12);
+    const days = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+    const weekCount = Math.ceil(((date.getDay() + 6) % 7 + days) / 7);
+    const weeks = getCalendarWeeks(date).slice(0, weekCount);
+    const height = CALENDAR_MONTH_GAP + CALENDAR_MONTH_HEADER_HEIGHT + weekCount * CALENDAR_WEEK_HEIGHT;
+    const layout = { index, date, weeks, top, height };
+    top += height;
+    return layout;
+  });
+}
+
 /**
  * 切换月份并将月末日期限制到目标月份的最后一天。
  * @param date - 当前选中日期。

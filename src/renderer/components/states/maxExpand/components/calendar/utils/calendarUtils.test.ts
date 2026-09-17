@@ -25,9 +25,33 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import { getCalendarDayDifference, getCalendarWeek, getCalendarWeeks, shiftCalendarMonth } from './calendarUtils';
+import { CALENDAR_MONTH_GAP, CALENDAR_MONTH_HEADER_HEIGHT, CALENDAR_WEEK_HEIGHT, getCalendarDayDifference, getCalendarMonthLayouts, getCalendarWeek, getCalendarWeeks, shiftCalendarMonth } from './calendarUtils';
 
 describe('calendar month navigation', () => {
+  it('sizes short and long months with a separate heading and gap', () => {
+    const months = getCalendarMonthLayouts(new Date(2021, 1, 1, 12), 0, 4);
+    expect(months.map((month) => month.weeks.length)).toEqual([4, 5, 5, 6]);
+    expect(months[0].top).toBe(0);
+    months.forEach((month, index) => {
+      expect(month.height).toBe(CALENDAR_MONTH_GAP + CALENDAR_MONTH_HEADER_HEIGHT + month.weeks.length * CALENDAR_WEEK_HEIGHT);
+      if (index > 0) expect(month.top).toBe(months[index - 1].top + months[index - 1].height);
+    });
+  });
+
+  it('keeps dates unique when grouping leap-year months and compensates prepended heights', () => {
+    const anchor = new Date(2024, 0, 1, 12);
+    const months = getCalendarMonthLayouts(anchor, 0, 3);
+    const dates = months.flatMap((month) => month.weeks.flat().filter((date) => date.getMonth() === month.date.getMonth()));
+    expect(dates).toHaveLength(91);
+    expect(new Set(dates.map((date) => date.getTime())).size).toBe(91);
+    expect(dates.slice(1).every((date, index) => getCalendarDayDifference(date, dates[index]) === 1)).toBe(true);
+    const expanded = getCalendarMonthLayouts(anchor, -12, 3);
+    const prependedHeight = expanded[12].top;
+    months.forEach((month, index) => {
+      expect(expanded[index + 12].top - prependedHeight).toBe(month.top);
+    });
+  });
+
   it('keeps consecutive weeks unique across month and year boundaries', () => {
     const anchor = new Date(2025, 11, 29, 12);
     const days = Array.from({ length: 20 }, (_, index) => getCalendarWeek(anchor, index - 10)).flat();
