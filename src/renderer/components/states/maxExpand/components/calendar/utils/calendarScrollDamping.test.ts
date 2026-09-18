@@ -20,8 +20,11 @@ describe('calendar scroll damping', () => {
   let frames: Map<number, FrameRequestCallback>;
   let now: number;
   let cleanup: () => void;
+  let monthStarts: number[];
 
   beforeEach(() => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    monthStarts = [];
     element = Object.assign(new EventTarget(), { scrollTop: 1000, clientHeight: 300 }) as HTMLElement;
     media = Object.assign(new EventTarget(), { matches: false }) as MediaQueryList;
     frames = new Map();
@@ -34,11 +37,12 @@ describe('calendar scroll damping', () => {
       return sequence;
     });
     vi.stubGlobal('cancelAnimationFrame', (id: number) => frames.delete(id));
-    cleanup = attachCalendarScrollDamping(element);
+    cleanup = attachCalendarScrollDamping(element, () => monthStarts);
   });
 
   afterEach(() => {
     cleanup();
+    vi.useRealTimers();
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
   });
@@ -125,5 +129,64 @@ describe('calendar scroll damping', () => {
     wheel(120);
     expect(element.scrollTop).toBe(1066);
     expect(frames.size).toBe(0);
+  });
+
+  it('gently aligns to a nearby month start after input stops', () => {
+    monthStarts = [1000, 1100, 1404];
+    wheel(120);
+    settle();
+    expect(element.scrollTop).toBeCloseTo(1066);
+    vi.advanceTimersByTime(160);
+    advance();
+    expect(element.scrollTop).toBeGreaterThan(1066);
+    expect(element.scrollTop).toBeLessThan(1100);
+    settle();
+    expect(element.scrollTop).toBeCloseTo(1100);
+  });
+
+  it('does not pull back to the departure month or snap across a distant gap', () => {
+    monthStarts = [1000, 1304];
+    wheel(120);
+    settle();
+    vi.advanceTimersByTime(160);
+    settle();
+    expect(element.scrollTop).toBeCloseTo(1066);
+  });
+
+  it('snaps upward and uses updated month positions after range expansion', () => {
+    monthStarts = [900];
+    wheel(-120);
+    settle();
+    element.scrollTop += 3600;
+    monthStarts = [4500];
+    vi.advanceTimersByTime(160);
+    settle();
+    expect(element.scrollTop).toBeCloseTo(4500);
+  });
+
+  it('lets new wheel input interrupt an active snap immediately', () => {
+    monthStarts = [1100];
+    wheel(120);
+    settle();
+    vi.advanceTimersByTime(160);
+    advance();
+    const before = element.scrollTop;
+    wheel(-40);
+    settle();
+    expect(element.scrollTop).toBeCloseTo(before - 22);
+  });
+
+  it('cancels a pending snap on click, keyboard input and cleanup', () => {
+    monthStarts = [1100];
+    ['pointerdown', 'keydown', 'cleanup'].forEach((type) => {
+      element.scrollTop = 1000;
+      wheel(120);
+      settle();
+      if (type === 'cleanup') cleanup();
+      else element.dispatchEvent(new Event(type));
+      vi.advanceTimersByTime(160);
+      settle();
+      expect(element.scrollTop).toBeCloseTo(1066);
+    });
   });
 });

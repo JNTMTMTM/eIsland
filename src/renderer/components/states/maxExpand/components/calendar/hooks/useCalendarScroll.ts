@@ -38,11 +38,18 @@ export function useCalendarScroll(selectedDate: Date) {
   const layouts = useMemo(() => getCalendarMonthLayouts(anchor, viewport.start, viewport.end), [anchor, viewport.start, viewport.end]);
   const lastLayout = layouts[layouts.length - 1];
   const totalHeight = lastLayout.top + lastLayout.height;
+  const layoutsRef = useRef(layouts);
+
+  useLayoutEffect(() => {
+    layoutsRef.current = layouts;
+  }, [layouts]);
 
   useLayoutEffect(() => {
     const element = scrollRef.current;
     if (!element) return;
-    return attachCalendarScrollDamping(element);
+    return attachCalendarScrollDamping(element, () =>
+      layoutsRef.current.map((month) => month.top + CALENDAR_MONTH_GAP)
+    );
   }, []);
 
   // 按实际月份高度补偿上方新增内容，避免长短月份交界处跳动。
