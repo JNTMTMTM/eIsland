@@ -13,6 +13,7 @@
 
 import { useLayoutEffect, useMemo, useRef, useState, type UIEvent } from 'react';
 import { CALENDAR_MONTH_GAP, CALENDAR_MONTH_HEADER_HEIGHT, CALENDAR_WEEK_HEIGHT, getCalendarMonthLayouts } from '../utils/calendarUtils';
+import { attachCalendarScrollDamping } from '../utils/calendarScrollDamping';
 
 const BUFFER_MONTHS = 12;
 
@@ -37,6 +38,12 @@ export function useCalendarScroll(selectedDate: Date) {
   const layouts = useMemo(() => getCalendarMonthLayouts(anchor, viewport.start, viewport.end), [anchor, viewport.start, viewport.end]);
   const lastLayout = layouts[layouts.length - 1];
   const totalHeight = lastLayout.top + lastLayout.height;
+
+  useLayoutEffect(() => {
+    const element = scrollRef.current;
+    if (!element) return;
+    return attachCalendarScrollDamping(element);
+  }, []);
 
   // 按实际月份高度补偿上方新增内容，避免长短月份交界处跳动。
   useLayoutEffect(() => {
