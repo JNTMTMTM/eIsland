@@ -14,11 +14,10 @@
 const WHEEL_SCALE = .55;
 const DAMPING_TIME_MS = 70;
 const STOP_DISTANCE = .25;
-const SNAP_DELAY_MS = 160;
 const SNAP_DISTANCE = 72;
 
 /**
- * 在滚动容器上启用阻尼；使用相对位移，兼容虚拟列表向前补充月份。
+ * 在滚动容器上启用阻尼与单段吸附；使用相对位移兼容向前补充月份。
  * @param element - 日历日期滚动容器。
  * @param getMonthStarts - 读取最新月初位置，兼容滚动中动态补充月份。
  * @returns 解绑监听并取消未完成动画的清理函数。
@@ -26,73 +25,56 @@ const SNAP_DISTANCE = 72;
 export function attachCalendarScrollDamping(element: HTMLElement, getMonthStarts: () => readonly number[]): () => void {
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   let remaining = 0;
+  let snapRemaining = 0;
+  let fractional = 0;
   let frame: number | null = null;
   let lastTime = 0;
-  let snapTimer: ReturnType<typeof setTimeout> | null = null;
   let snapping = false;
-  let direction = 1;
 
-  /** 用户点击、键盘导航或触摸时立即结束余下的滚轮位移。 */
+  /** 用户点击、键盘导航或触摸时立即结束余下位移。 */
   const stop = (): void => {
     if (frame !== null) cancelAnimationFrame(frame);
-    if (snapTimer !== null) clearTimeout(snapTimer);
     frame = null;
-    snapTimer = null;
     remaining = 0;
+    snapRemaining = 0;
+    fractional = 0;
     snapping = false;
   };
 
-  /** 停止输入后只吸向滚动方向上邻近的月初，避免小幅滚动被拉回原月。 */
-  const scheduleSnap = (): void => {
-    if (snapTimer !== null) clearTimeout(snapTimer);
-    snapTimer = setTimeout(() => {
-      snapTimer = null;
-      const projected = element.scrollTop + remaining;
-      const radius = Math.min(SNAP_DISTANCE, element.clientHeight * .28);
-      const target = getMonthStarts().filter((top) =>
-        (top - projected) * direction >= 0 && Math.abs(top - projected) <= radius
-      ).sort((a, b) => Math.abs(a - projected) - Math.abs(b - projected))[0];
-      if (target === undefined) return;
-      if (reducedMotion.matches) {
-        element.scrollTop = target;
-        return;
-      }
-      remaining = target - element.scrollTop;
-      snapping = true;
-      if (frame === null) {
-        lastTime = performance.now();
-        frame = requestAnimationFrame(animate);
-      }
-    }, SNAP_DELAY_MS);
-  };
-
-  /** 使用实际帧间隔计算衰减，避免高刷新率屏幕上的滚动手感变化。 */
+  /** 滚轮位移与吸附位移共用衰减曲线，避免先减速再二次启动。 */
   const animate = (time: number): void => {
     frame = null;
     const elapsed = Math.min(Math.max(time - lastTime, 0), 64);
     lastTime = time;
-    const step = Math.abs(remaining) <= STOP_DISTANCE
-      ? remaining
-      : remaining * (1 - Math.exp(-elapsed / DAMPING_TIME_MS));
+    const total = remaining + snapRemaining;
+    const decay = Math.abs(total) <= STOP_DISTANCE ? 0 : Math.exp(-elapsed / DAMPING_TIME_MS);
+    const step = total * (1 - decay) + fractional;
     const before = element.scrollTop;
     element.scrollTop += step;
-    remaining -= step;
-    // 到达真实边界时放弃残余惯性；月份扩展仍由原滚动逻辑负责。
-    if (element.scrollTop === before && Math.abs(step) >= 1) remaining = 0;
-    if (Math.abs(remaining) > STOP_DISTANCE) {
+    // 保留浏览器舍入掉的小数位移，避免结束时再跳几像素校正。
+    fractional = step - (element.scrollTop - before);
+    remaining *= decay;
+    snapRemaining *= decay;
+    if (element.scrollTop === before && Math.abs(step) >= 1) {
+      stop();
+      return;
+    }
+    if (Math.abs(remaining + snapRemaining) > STOP_DISTANCE) {
       frame = requestAnimationFrame(animate);
     } else {
-      element.scrollTop += remaining;
+      element.scrollTop += remaining + snapRemaining + fractional;
       remaining = 0;
-      // 浏览器逐帧舍入可能积累数像素偏差，吸附结束时精确对齐最新月初。
+      snapRemaining = 0;
+      fractional = 0;
       if (snapping) {
-        const target = getMonthStarts().find((top) => Math.abs(top - element.scrollTop) <= SNAP_DISTANCE);
+        const target = getMonthStarts().find((top) => Math.abs(top - element.scrollTop) <= 1);
         if (target !== undefined) element.scrollTop = target;
       }
+      snapping = false;
     }
   };
 
-  /** 归一化不同设备的滚轮单位，限制积累距离并支持立即反向。 */
+  /** 根据本次输入预先确定最终停靠点，以一次连续缓动抵达。 */
   const onWheel = (event: WheelEvent): void => {
     if (event.ctrlKey || event.shiftKey || Math.abs(event.deltaX) > Math.abs(event.deltaY) || !event.cancelable) {
       stop();
@@ -100,25 +82,32 @@ export function attachCalendarScrollDamping(element: HTMLElement, getMonthStarts
     }
     if (event.deltaY === 0 || element.clientHeight === 0) return;
     event.preventDefault();
-    // 新输入优先于自动定位，同方向滚动也不继承尚未完成的吸附位移。
-    if (snapping) stop();
-    direction = Math.sign(event.deltaY);
+    const direction = Math.sign(event.deltaY);
     const unit = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? element.clientHeight : 1;
     const limit = element.clientHeight * .8;
     const delta = Math.max(-limit, Math.min(limit, event.deltaY * unit)) * WHEEL_SCALE;
+    if (Math.sign(delta) !== Math.sign(remaining)) {
+      remaining = 0;
+      fractional = 0;
+    }
+    remaining = Math.max(-limit, Math.min(limit, remaining + delta));
+    // 新输入只保留用户滚动的余量，重新计算吸附，避免多次叠加自动位移。
+    const projected = element.scrollTop + remaining + fractional;
+    const radius = Math.min(SNAP_DISTANCE, element.clientHeight * .28);
+    const target = getMonthStarts().filter((top) =>
+      (top - projected) * direction >= 0 && Math.abs(top - projected) <= radius
+    ).sort((a, b) => Math.abs(a - projected) - Math.abs(b - projected))[0];
+    snapping = target !== undefined;
+    snapRemaining = target === undefined ? 0 : target - projected;
     if (reducedMotion.matches) {
+      element.scrollTop += remaining + snapRemaining + fractional;
       stop();
-      element.scrollTop += delta;
-      scheduleSnap();
       return;
     }
-    if (Math.sign(delta) !== Math.sign(remaining)) remaining = 0;
-    remaining = Math.max(-limit, Math.min(limit, remaining + delta));
     if (frame === null) {
       lastTime = performance.now();
       frame = requestAnimationFrame(animate);
     }
-    scheduleSnap();
   };
 
   element.addEventListener('wheel', onWheel, { passive: false });
