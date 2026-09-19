@@ -65,14 +65,16 @@ export function CalendarDetailPanel({
           {formats.full.format(selectedDate)}
         </div>
       </div>
-      <div className="calendar-lunar-details">
-        <div className="calendar-lunar-label">
-          {t('maxExpand.calendar.lunarDate')}
+      {!locale.startsWith('en') && (
+        <div className="calendar-lunar-details">
+          <div className="calendar-lunar-label">
+            {t('maxExpand.calendar.lunarDate')}
+          </div>
+          <div className="calendar-lunar-value">
+            {locale.startsWith('zh') ? getLunarDate(selectedDate) : formats.lunar.format(selectedDate)}
+          </div>
         </div>
-        <div className="calendar-lunar-value">
-          {locale.startsWith('zh') ? getLunarDate(selectedDate) : formats.lunar.format(selectedDate)}
-        </div>
-      </div>
+      )}
       <div className="calendar-progress">
         <div className="calendar-progress-label">
           <span>{t('maxExpand.calendar.dayOfMonth', { day: selectedDay, total: daysInMonth })}</span>

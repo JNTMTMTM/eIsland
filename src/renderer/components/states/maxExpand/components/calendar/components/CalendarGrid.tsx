@@ -47,17 +47,18 @@ export function CalendarGrid({
   onDateKeyDown,
 }: CalendarGridProps): ReactElement {
   const monthId = useId();
+  const showLunar = !locale.startsWith('en');
   const monthFormat = useMemo(() => new Intl.DateTimeFormat(locale, { month: 'long' }), [locale]);
   const shortMonthFormat = useMemo(() => new Intl.DateTimeFormat(locale, { month: 'short' }), [locale]);
   const yearFormat = useMemo(() => new Intl.DateTimeFormat(locale, { year: 'numeric' }), [locale]);
   const { scrollRef, onScroll, months, visibleDate, weekHeight, headerHeight, monthGap, monthLabelHeight, paddingTop, paddingBottom } = useCalendarScroll(selectedDate);
   // 像素级滚动不重复计算农历，只在可见周或语言变化时更新。
-  const lunarDays = useMemo(() => new Map(months.flatMap((month) => month.weeks.flat().filter((date) => date.getMonth() === month.date.getMonth())).map((date) => [
+  const lunarDays = useMemo(() => new Map((showLunar ? months : []).flatMap((month) => month.weeks.flat().filter((date) => date.getMonth() === month.date.getMonth())).map((date) => [
     date.getTime(),
     locale.startsWith('zh')
       ? Lunar.fromDate(date).getDayInChinese()
       : formats.lunarDay.formatToParts(date).find((part) => part.type === 'day')?.value,
-  ])), [months, locale, formats]);
+  ])), [months, locale, formats, showLunar]);
 
   // 等待虚拟周行挂载后聚焦，避免键盘跨越可视区时丢失焦点。
   useLayoutEffect(() => {
@@ -83,7 +84,7 @@ export function CalendarGrid({
       <h2 className="calendar-month-heading" id={monthId} aria-label={formats.month.format(visibleDate)} aria-live="polite">
         <span className="calendar-month-name" data-current-month={visibleDate.getFullYear() === today.getFullYear() && visibleDate.getMonth() === today.getMonth()}>
           {monthFormat.format(visibleDate)}
-        </span>
+        </span> 
         <span className="calendar-year">{yearFormat.format(visibleDate)}</span>
       </h2>
       <div className="calendar-weekdays" aria-hidden="true">
@@ -131,7 +132,7 @@ export function CalendarGrid({
                           data-weekend={weekend}
                           ref={selected ? selectedButtonRef : undefined}
                           type="button"
-                          title={formats.lunar.format(date)}
+                          title={showLunar ? formats.lunar.format(date) : undefined}
                           aria-label={formats.full.format(date)}
                           aria-pressed={selected}
                           aria-current={isToday ? 'date' : undefined}
@@ -140,7 +141,7 @@ export function CalendarGrid({
                           onKeyDown={(event) => onDateKeyDown(event, date)}
                         >
                           <span className="calendar-day-number">{date.getDate()}</span>
-                          <span className="calendar-day-lunar" aria-hidden="true">{lunarDay}</span>
+                          {showLunar && <span className="calendar-day-lunar" aria-hidden="true">{lunarDay}</span>}
                         </button>
                       </div>
                     );
