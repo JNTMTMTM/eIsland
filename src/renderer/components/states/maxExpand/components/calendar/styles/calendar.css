@@ -334,6 +334,7 @@
 
 .calendar-region-select select {
   appearance: none;
+  outline: none;
   width: 100%;
   min-height: 30px;
   padding: .375rem 1.75rem .375rem .625rem;
@@ -398,8 +399,7 @@
   color: rgb(var(--color-accent-rgb, 59, 130, 246));
 }
 
-.calendar-holiday-status button:focus-visible,
-.calendar-holiday-region select:focus-visible {
+.calendar-holiday-status button:focus-visible {
   outline: 2px solid rgb(var(--color-accent-rgb, 59, 130, 246));
   outline-offset: 2px;
 }
