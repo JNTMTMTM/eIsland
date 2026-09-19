@@ -78,17 +78,3 @@ export function indexCalendarHolidays(holidays: CalendarHoliday[], countryCode: 
   }
   return index;
 }
-
-/**
- * 判断同周、同月的相邻日期是否能连成一条假期横线。
- * @param date - 当前日期
- * @param direction - 相邻方向
- * @param holidays - 日期索引
- * @returns 是否连接相邻日期
- */
-export function hasAdjacentCalendarHoliday(date: Date, direction: -1 | 1, holidays: CalendarHolidayIndex): boolean {
-  if ((direction === -1 && date.getDay() === 0) || (direction === 1 && date.getDay() === 6)) return false;
-  const adjacent = new Date(date);
-  adjacent.setDate(adjacent.getDate() + direction);
-  return adjacent.getMonth() === date.getMonth() && holidays.has(getCalendarDateKey(adjacent));
-}

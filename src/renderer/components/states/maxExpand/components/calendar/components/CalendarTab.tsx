@@ -24,9 +24,11 @@
  * @author 鸡哥
  */
 
-import type { ReactElement } from 'react';
+import { useMemo, type ReactElement } from 'react';
 import { useCalendar } from '../hooks/useCalendar';
 import { useCalendarHolidays } from '../hooks/useCalendarHolidays';
+import { useCalendarTodos } from '../hooks/useCalendarTodos';
+import { getCalendarTimelineEvents } from '../utils/calendarTimelineUtils';
 import { CalendarGrid } from './CalendarGrid';
 import { CalendarDetailPanel } from './CalendarDetailPanel';
 import '../styles/calendar.css';
@@ -52,6 +54,8 @@ export function CalendarTab(): ReactElement {
     handleDateKeyDown,
   } = useCalendar();
   const holidayInfo = useCalendarHolidays(selectedDate.getFullYear());
+  const todos = useCalendarTodos();
+  const events = useMemo(() => getCalendarTimelineEvents(holidayInfo.holidays, todos), [holidayInfo.holidays, todos]);
 
   return (
     <div
@@ -60,6 +64,7 @@ export function CalendarTab(): ReactElement {
     >
       <div className="calendar-layout">
         <CalendarGrid
+          events={events}
           holidays={holidayInfo.holidays}
           onVisibleYearChange={holidayInfo.setVisibleYear}
           selectedDate={selectedDate}
@@ -72,6 +77,7 @@ export function CalendarTab(): ReactElement {
           onDateKeyDown={handleDateKeyDown}
         />
         <CalendarDetailPanel
+          events={events}
           holidayInfo={holidayInfo}
           selectedDate={selectedDate}
           locale={locale}

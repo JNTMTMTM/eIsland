@@ -13,7 +13,7 @@
 
 import { describe, expect, it } from 'vitest';
 import type { CalendarHoliday } from '../types/calendarHolidayTypes';
-import { getCalendarDateKey, getCalendarSubdivision, hasAdjacentCalendarHoliday, indexCalendarHolidays, parseCalendarHolidays } from './calendarHolidayUtils';
+import { getCalendarDateKey, getCalendarSubdivision, indexCalendarHolidays, parseCalendarHolidays } from './calendarHolidayUtils';
 
 const national: CalendarHoliday = { date: '2026-09-25', name: 'Holiday', countryCode: 'US', nationalHoliday: true, subdivisionCodes: null, holidayTypes: ['Public'] };
 
@@ -40,16 +40,6 @@ describe('calendar holidays', () => {
     expect(() => parseCalendarHolidays({}, 'US', 2026)).toThrow();
   });
 
-  it('joins consecutive dates only within the same week and month', () => {
-    const holidays = new Map(['2026-09-25', '2026-09-26', '2026-09-27', '2026-09-30', '2026-10-01'].map((day) => [day, ['Holiday']]));
-    expect(hasAdjacentCalendarHoliday(new Date(2026, 8, 25, 12), 1, holidays)).toBe(true);
-    expect(hasAdjacentCalendarHoliday(new Date(2026, 8, 26, 12), -1, holidays)).toBe(true);
-    expect(hasAdjacentCalendarHoliday(new Date(2026, 8, 26, 12), 1, holidays)).toBe(false);
-    expect(hasAdjacentCalendarHoliday(new Date(2026, 8, 27, 12), -1, holidays)).toBe(false);
-    expect(hasAdjacentCalendarHoliday(new Date(2026, 8, 30, 12), 1, holidays)).toBe(false);
-    expect(hasAdjacentCalendarHoliday(new Date(2026, 9, 1, 12), -1, holidays)).toBe(false);
-    expect(hasAdjacentCalendarHoliday(new Date(2026, 8, 27, 12), 1, holidays)).toBe(false);
-  });
 
   it('uses local calendar fields at midnight and year boundaries', () => {
     expect(getCalendarDateKey(new Date(2026, 0, 1, 0))).toBe('2026-01-01');

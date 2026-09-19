@@ -13,19 +13,21 @@
 
 import { useLayoutEffect, useMemo, useRef, useState, type UIEvent } from 'react';
 import { BUFFER_MONTHS, CALENDAR_MONTH_GAP, CALENDAR_MONTH_HEADER_HEIGHT, CALENDAR_MONTH_LABEL_HEIGHT, CALENDAR_WEEK_HEIGHT } from '../config/calendarConfig';
-import { getCalendarMonthLayouts } from '../utils/calendarUtils';
+import { getCalendarMonthLayouts, getCalendarReflowTop } from '../utils/calendarUtils';
 import { attachCalendarScrollDamping } from '../utils/calendarScrollDamping';
+import type { CalendarTimelineEvent } from '../types/calendarTimelineTypes';
 
 /**
  * 以有明确间隔的月份分组连续滚动，浏览位置与日期选择独立。
  * @param selectedDate - 点击或键盘选中的日期。
+ * @param events - 决定各周动态高度的日历事件。
  * @returns 可见月份、滚动容器引用、事件和上下占位高度。
  */
-export function useCalendarScroll(selectedDate: Date) {
+export function useCalendarScroll(selectedDate: Date, events: CalendarTimelineEvent[]) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [anchor] = useState(() => new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1, 12));
   const [viewport, setViewport] = useState(() => {
-    const months = getCalendarMonthLayouts(anchor, -BUFFER_MONTHS, BUFFER_MONTHS * 2);
+    const months = getCalendarMonthLayouts(anchor, -BUFFER_MONTHS, BUFFER_MONTHS * 2, events);
     return {
       start: -BUFFER_MONTHS,
       end: BUFFER_MONTHS * 2,
@@ -34,13 +36,23 @@ export function useCalendarScroll(selectedDate: Date) {
     };
   });
   const pendingTopRef = useRef<number | null>(viewport.top);
-  const layouts = useMemo(() => getCalendarMonthLayouts(anchor, viewport.start, viewport.end), [anchor, viewport.start, viewport.end]);
+  const layouts = useMemo(() => getCalendarMonthLayouts(anchor, viewport.start, viewport.end, events), [anchor, viewport.start, viewport.end, events]);
   const lastLayout = layouts[layouts.length - 1];
   const totalHeight = lastLayout.top + lastLayout.height;
   const layoutsRef = useRef(layouts);
+  const eventsRef = useRef(events);
 
   useLayoutEffect(() => {
+    const previous = layoutsRef.current;
     layoutsRef.current = layouts;
+    eventsRef.current = events;
+    // 扩展月份已有单独补偿；这里只修正事件数据引起的行高变化。
+    if (previous === layouts || previous[0].index !== layouts[0].index || previous.length !== layouts.length) return;
+    const element = scrollRef.current;
+    if (!element) return;
+    const top = getCalendarReflowTop(previous, layouts, element.scrollTop);
+    element.scrollTop = top;
+    setViewport((current) => current.top === top ? current : { ...current, top });
   }, [layouts]);
 
   useLayoutEffect(() => {
@@ -76,11 +88,11 @@ export function useCalendarScroll(selectedDate: Date) {
     setViewport((current) => {
       const start = Math.min(current.start, index - BUFFER_MONTHS);
       const end = Math.max(current.end, index + BUFFER_MONTHS + 1);
-      const months = getCalendarMonthLayouts(anchor, start, end);
+      const months = getCalendarMonthLayouts(anchor, start, end, eventsRef.current);
       const month = months[index - start];
       const compensatedTop = current.top + months[current.start - start].top;
       const week = Math.floor((month.date.getDay() + selectedDate.getDate() - 1) / 7);
-      const rowTop = month.top + CALENDAR_MONTH_GAP + week * CALENDAR_WEEK_HEIGHT;
+      const rowTop = month.top + month.weekLayouts[week].top;
       let top = compensatedTop;
       if (rowTop < top) top = rowTop;
       if (rowTop + CALENDAR_WEEK_HEIGHT > top + current.height) top = rowTop + CALENDAR_WEEK_HEIGHT - current.height;
@@ -96,7 +108,7 @@ export function useCalendarScroll(selectedDate: Date) {
       let { start, end } = current;
       let top = Math.max(0, scrollTop);
       if (top < current.height * 2) {
-        const preceding = getCalendarMonthLayouts(anchor, start - BUFFER_MONTHS, start);
+        const preceding = getCalendarMonthLayouts(anchor, start - BUFFER_MONTHS, start, eventsRef.current);
         const last = preceding[preceding.length - 1];
         start -= BUFFER_MONTHS;
         top += last.top + last.height;

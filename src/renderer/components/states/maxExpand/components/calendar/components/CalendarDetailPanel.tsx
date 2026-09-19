@@ -28,6 +28,7 @@ import type { CSSProperties, ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getLunarDate } from '../../../../../../utils/timeUtils';
 import { CalendarHolidayDetails } from './CalendarHolidayDetails';
+import { getCalendarDateKey } from '../utils/calendarHolidayUtils';
 import type { CalendarDetailPanelProps } from '../types/calendarTypes';
 
 /**
@@ -37,6 +38,7 @@ import type { CalendarDetailPanelProps } from '../types/calendarTypes';
  * @returns 日期详情 JSX
  */
 export function CalendarDetailPanel({
+  events,
   holidayInfo,
   selectedDate,
   locale,
@@ -47,6 +49,8 @@ export function CalendarDetailPanel({
   relativeLabel,
 }: CalendarDetailPanelProps): ReactElement {
   const { t } = useTranslation();
+  const selectedKey = getCalendarDateKey(selectedDate);
+  const todos = events.filter((event) => event.kind === 'todo' && event.start <= selectedKey && event.end >= selectedKey);
 
   return (
     <aside
@@ -78,6 +82,19 @@ export function CalendarDetailPanel({
         </div>
       )}
       <CalendarHolidayDetails selectedDate={selectedDate} locale={locale} info={holidayInfo} />
+      {todos.length > 0 && (
+        <section aria-label={t('maxExpand.calendar.scheduledTodos')}>
+          <h3 className="calendar-todo-heading">{t('maxExpand.calendar.scheduledTodos')}</h3>
+          <ul className="calendar-todo-list">
+            {todos.map((event) => (
+              <li className="calendar-todo-item" key={event.id} data-done={event.done || undefined} style={{ '--calendar-event-color': event.color } as CSSProperties}>
+                <span>{event.label}{event.done ? ` · ${t('maxExpand.calendar.eventCompleted')}` : ''}</span>
+                <span className="calendar-todo-period">{event.start} → {event.end}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
       <div className="calendar-progress">
         <div className="calendar-progress-label">
           <span>{t('maxExpand.calendar.dayOfMonth', { day: selectedDay, total: daysInMonth })}</span>

@@ -24,7 +24,9 @@
  * @author 鸡哥
  */
 
-import { CALENDAR_MONTH_GAP, CALENDAR_WEEK_HEIGHT } from '../config/calendarConfig';
+import { CALENDAR_EVENT_BOTTOM_GAP, CALENDAR_EVENT_LANE_HEIGHT, CALENDAR_MONTH_GAP, CALENDAR_WEEK_HEIGHT } from '../config/calendarConfig';
+import type { CalendarTimelineEvent } from '../types/calendarTimelineTypes';
+import { getCalendarWeekTimeline } from './calendarTimelineUtils';
 
 /**
  * 返回从周日开始的六周日期，固定行数以避免切月时布局跳动。
@@ -58,9 +60,10 @@ export function getCalendarWeek(anchor: Date, offset: number): Date[] {
  * @param anchor - 基准月份内的日期。
  * @param start - 起始月份偏移（包含）。
  * @param end - 结束月份偏移（不包含）。
+ * @param events - 决定周行高度的假日与待办周期。
  * @returns 每个月的日期、所需周行、顶部位置和高度。
  */
-export function getCalendarMonthLayouts(anchor: Date, start: number, end: number) {
+export function getCalendarMonthLayouts(anchor: Date, start: number, end: number, events: CalendarTimelineEvent[] = []) {
   let top = 0;
   return Array.from({ length: end - start }, (_, offset) => {
     const index = start + offset;
@@ -68,11 +71,36 @@ export function getCalendarMonthLayouts(anchor: Date, start: number, end: number
     const days = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
     const weekCount = Math.ceil((date.getDay() + days) / 7);
     const weeks = getCalendarWeeks(date).slice(0, weekCount);
-    const height = CALENDAR_MONTH_GAP + weekCount * CALENDAR_WEEK_HEIGHT;
-    const layout = { index, date, weeks, top, height };
+    let height = CALENDAR_MONTH_GAP;
+    const weekLayouts = weeks.map((dates) => {
+      const timeline = getCalendarWeekTimeline(dates, date, events);
+      const rowHeight = CALENDAR_WEEK_HEIGHT + (timeline.lanes ? timeline.lanes * CALENDAR_EVENT_LANE_HEIGHT + CALENDAR_EVENT_BOTTOM_GAP : 0);
+      const week = { dates, ...timeline, top: height, height: rowHeight };
+      height += rowHeight;
+      return week;
+    });
+    const layout = { index, date, weeks, weekLayouts, top, height };
     top += height;
     return layout;
   });
+}
+
+/**
+ * 数据更新改变行高时，保持当前可视周及周内偏移，避免滚动跳到其他日期。
+ * @param previous - 更新前布局
+ * @param next - 更新后布局
+ * @param scrollTop - 原滚动位置
+ * @returns 补偿后的滚动位置
+ */
+export function getCalendarReflowTop(previous: ReturnType<typeof getCalendarMonthLayouts>, next: ReturnType<typeof getCalendarMonthLayouts>, scrollTop: number): number {
+  const month = previous.find((item) => item.top + item.height > scrollTop) ?? previous[previous.length - 1];
+  const target = next.find((item) => item.index === month.index);
+  if (!target) return scrollTop;
+  const localTop = scrollTop - month.top;
+  if (localTop < CALENDAR_MONTH_GAP) return target.top + localTop;
+  const row = month.weekLayouts.findIndex((week) => week.top + week.height > localTop);
+  if (row < 0) return target.top + target.height;
+  return target.top + target.weekLayouts[row].top + Math.min(localTop - month.weekLayouts[row].top, target.weekLayouts[row].height - 1);
 }
 
 /**

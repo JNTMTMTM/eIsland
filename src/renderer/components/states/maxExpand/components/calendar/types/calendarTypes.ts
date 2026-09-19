@@ -26,6 +26,7 @@
 
 import type { KeyboardEvent, RefObject } from 'react';
 import type { CalendarHolidayIndex, CalendarHolidayInfo } from './calendarHolidayTypes';
+import type { CalendarTimelineEvent } from './calendarTimelineTypes';
 
 /** useCalendar hook 返回值类型 */
 export interface UseCalendarReturn {
@@ -77,6 +78,8 @@ export interface CalendarFormats {
 
 /** CalendarGrid 组件入参 */
 export interface CalendarGridProps {
+  /** 假日与待办时间条。 */
+  events: CalendarTimelineEvent[];
   /** 当前地区的节假日索引。 */
   holidays: CalendarHolidayIndex;
   /** 按可视年份预加载节假日。 */
@@ -101,6 +104,8 @@ export interface CalendarGridProps {
 
 /** CalendarDetailPanel 组件入参 */
 export interface CalendarDetailPanelProps {
+  /** 所选日期对应的待办周期。 */
+  events: CalendarTimelineEvent[];
   /** 节假日详情、地区及加载状态。 */
   holidayInfo: CalendarHolidayInfo;
   /** 选中日期 */

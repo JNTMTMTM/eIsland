@@ -31,6 +31,8 @@ export const STORE_KEY = 'todos';
 
 /** localStorage 缓存键 */
 export const LOCAL_STORAGE_KEY = 'eIsland_todos';
+/** 同一窗口内同步待办更新，跨窗口继续使用现有 IPC 广播。 */
+export const TODOS_UPDATED_EVENT = 'eisland:todos-updated';
 
 /** 优先级配置 */
 export const PRIORITIES: { value: Priority; label: string; color: string }[] = [
