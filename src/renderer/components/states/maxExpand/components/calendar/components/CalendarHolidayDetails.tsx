@@ -40,10 +40,12 @@ export function CalendarHolidayDetails({ selectedDate, locale, info }: {
       {info.subdivisionCodes.length > 0 && (
         <div className="calendar-holiday-region">
           <label htmlFor={regionId}>{t('maxExpand.calendar.subdivision')}</label>
-          <select id={regionId} value={info.subdivisionCode} onChange={(event) => info.selectSubdivision(event.target.value)}>
-            <option value="">{t('maxExpand.calendar.nationalHolidays')}</option>
-            {info.subdivisionCodes.map((code) => <option key={code} value={code}>{code}</option>)}
-          </select>
+          <div className="calendar-region-select">
+            <select id={regionId} value={info.subdivisionCode} onChange={(event) => info.selectSubdivision(event.target.value)}>
+              <option value="">{t('maxExpand.calendar.nationalHolidays')}</option>
+              {info.subdivisionCodes.map((code) => <option key={code} value={code}>{code}</option>)}
+            </select>
+          </div>
         </div>
       )}
       {names && <ul className="calendar-holiday-names">{names.map((name) => <li key={name}>{name}</li>)}</ul>}

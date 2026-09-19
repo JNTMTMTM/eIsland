@@ -312,24 +312,51 @@
   font-weight: 600;
 }
 
-.calendar-holiday-region select {
+.calendar-region-select {
+  position: relative;
+  flex: 1;
+  min-width: 0;
   max-width: 65%;
-  padding: .125rem .375rem;
-  color: rgb(var(--color-text-rgb));
+}
+
+.calendar-region-select::after {
+  position: absolute;
+  top: 50%;
+  right: .75rem;
+  width: 5px;
+  height: 5px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: translateY(-70%) rotate(45deg);
+  pointer-events: none;
+  content: "";
+}
+
+.calendar-region-select select {
+  appearance: none;
+  width: 100%;
+  min-height: 30px;
+  padding: .375rem 1.75rem .375rem .625rem;
+  color: var(--color-island-text);
   color-scheme: dark;
-  background-color: rgba(var(--color-text-rgb), .05);
-  border: 1px solid rgba(var(--color-text-rgb), .14);
-  border-radius: .375rem;
+  font-size: 11px;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  background-color: rgba(var(--color-text-rgb), .06);
+  border: 1px solid rgba(var(--color-text-rgb), .1);
+  border-radius: .5rem;
+  transition: background-color .15s, border-color .15s;
 }
 
 .calendar-holiday-region select:hover {
   background-color: rgba(var(--color-text-rgb), .08);
-  border-color: rgba(var(--color-text-rgb), .24);
+  border-color: rgba(var(--color-text-rgb), .22);
 }
 
 .calendar-holiday-region option {
   color: var(--color-island-text);
-  background-color: var(--color-island-bg);
+  background-color: #1f1f22;
 }
 
 .calendar-holiday-region option:checked {
@@ -339,6 +366,14 @@
 
 [data-theme="light"] .calendar-holiday-region select {
   color-scheme: light;
+}
+
+[data-theme="light"] .calendar-holiday-region option {
+  background-color: #fff;
+}
+
+[data-theme="light"] .calendar-holiday-region option:checked {
+  background-color: rgb(var(--color-accent-rgb, 59, 130, 246));
 }
 
 .calendar-holiday-names {
