@@ -48,12 +48,8 @@ export interface UseCalendarReturn {
   formats: CalendarFormats;
   /** 选中日期与今天的日历天数差 */
   difference: number;
-  /** 当月天数 */
-  daysInMonth: number;
   /** 选中日期的日号 */
   selectedDay: number;
-  /** 月份进度百分比 */
-  monthProgress: number;
   /** 相对今天的人类可读标签 */
   relativeLabel: string;
   /** 选中指定日期 */
@@ -116,10 +112,6 @@ export interface CalendarDetailPanelProps {
   formats: CalendarFormats;
   /** 选中日期的日号 */
   selectedDay: number;
-  /** 当月天数 */
-  daysInMonth: number;
-  /** 月份进度百分比 */
-  monthProgress: number;
   /** 相对今天的人类可读标签 */
   relativeLabel: string;
 }

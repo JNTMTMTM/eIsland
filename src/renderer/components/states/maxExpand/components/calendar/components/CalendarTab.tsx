@@ -46,9 +46,7 @@ export function CalendarTab(): ReactElement {
     focusDateRef,
     locale,
     formats,
-    daysInMonth,
     selectedDay,
-    monthProgress,
     relativeLabel,
     selectDate,
     handleDateKeyDown,
@@ -83,8 +81,6 @@ export function CalendarTab(): ReactElement {
           locale={locale}
           formats={formats}
           selectedDay={selectedDay}
-          daysInMonth={daysInMonth}
-          monthProgress={monthProgress}
           relativeLabel={relativeLabel}
         />
       </div>

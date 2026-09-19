@@ -20,7 +20,7 @@
 
 /**
  * @file CalendarDetailPanel.tsx
- * @description 分层展示选中日期、农历、假日、待办与月份进度。
+ * @description 分层展示选中日期、农历、待办与假日。
  * @author 鸡哥
  */
 
@@ -33,7 +33,7 @@ import type { CalendarDetailPanelProps } from '../types/calendarTypes';
 
 /**
  * 选中日期详情面板
- * @description 展示选中日期的大号数字、完整日期、农历信息和月份进度。
+ * @description 展示选中日期的大号数字、完整日期、农历、待办和假日信息。
  * @param props - 组件入参
  * @returns 日期详情 JSX
  */
@@ -44,8 +44,6 @@ export function CalendarDetailPanel({
   locale,
   formats,
   selectedDay,
-  daysInMonth,
-  monthProgress,
   relativeLabel,
 }: CalendarDetailPanelProps): ReactElement {
   const { t } = useTranslation();
@@ -101,15 +99,6 @@ export function CalendarDetailPanel({
           </section>
         )}
         <CalendarHolidayDetails selectedDate={selectedDate} locale={locale} info={holidayInfo} />
-      </div>
-      <div className="calendar-progress">
-        <div className="calendar-progress-label">
-          <span>{t('maxExpand.calendar.dayOfMonth', { day: selectedDay, total: daysInMonth })}</span>
-          <span className="calendar-progress-percent">{monthProgress}%</span>
-        </div>
-        <div className="calendar-progress-track" style={{ '--calendar-progress': `${monthProgress}%` } as CSSProperties} aria-hidden="true">
-          <div className="calendar-progress-fill" />
-        </div>
       </div>
     </aside>
   );

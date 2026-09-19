@@ -504,8 +504,7 @@
   border-top: 1px solid rgba(var(--color-text-rgb), .08);
 }
 
-.calendar-details-heading,
-.calendar-progress-label {
+.calendar-details-heading {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -559,36 +558,6 @@
   font-size: 11px;
   line-height: 1.625;
   text-align: right;
-}
-
-.calendar-progress {
-  flex-shrink: 0;
-  margin-top: auto;
-  padding-top: .75rem;
-  border-top: 1px solid rgba(var(--color-text-rgb), .12);
-}
-
-.calendar-progress-label {
-  margin-bottom: .5rem;
-  font-size: 10px;
-}
-
-.calendar-progress-percent {
-  font-variant-numeric: tabular-nums;
-}
-
-.calendar-progress-track {
-  height: .25rem;
-  overflow: hidden;
-  background-color: rgba(var(--color-text-rgb), .07);
-  border-radius: 9999px;
-}
-
-.calendar-progress-fill {
-  width: var(--calendar-progress);
-  height: 100%;
-  background-color: rgb(var(--color-accent-rgb, 59, 130, 246));
-  border-radius: inherit;
 }
 
 @container calendar (min-width: 560px) {

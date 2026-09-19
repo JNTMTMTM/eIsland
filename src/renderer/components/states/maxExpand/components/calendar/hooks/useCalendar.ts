@@ -54,9 +54,7 @@ export function useCalendar(): UseCalendarReturn {
   }), [locale]);
 
   const difference = getCalendarDayDifference(selectedDate, today);
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
   const selectedDay = selectedDate.getDate();
-  const monthProgress = Math.round(selectedDay / daysInMonth * 100);
 
   let relativeLabel = t('maxExpand.calendar.today');
   if (difference > 0) relativeLabel = t('maxExpand.calendar.daysAfter', { count: difference });
@@ -113,9 +111,7 @@ export function useCalendar(): UseCalendarReturn {
     month,
     formats,
     difference,
-    daysInMonth,
     selectedDay,
-    monthProgress,
     relativeLabel,
     selectDate,
     handleDateKeyDown,
