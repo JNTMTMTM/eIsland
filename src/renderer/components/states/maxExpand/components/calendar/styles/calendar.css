@@ -113,7 +113,34 @@
 }
 
 .calendar-month-gap {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  align-items: end;
   height: var(--calendar-month-gap);
+}
+
+.calendar-month-label {
+  grid-column: var(--calendar-month-start-column) / -1;
+  display: flex;
+  align-items: center;
+  gap: .625rem;
+  height: var(--calendar-month-label-height);
+  padding-left: .5rem;
+  color: rgb(var(--color-accent-rgb, 59, 130, 246));
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.calendar-month-label::after {
+  flex: 1;
+  height: 1px;
+  background-color: rgba(var(--color-text-rgb), .14);
+  content: "";
+}
+
+.calendar-month-gap + .calendar-week .calendar-day-cell {
+  border-top: 0;
 }
 
 .calendar-week {

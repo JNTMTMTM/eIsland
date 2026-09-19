@@ -24,6 +24,8 @@
  * @author 鸡哥
  */
 
+import { CALENDAR_MONTH_GAP, CALENDAR_WEEK_HEIGHT } from '../config/calendarConfig';
+
 /**
  * 返回从周日开始的六周日期，固定行数以避免切月时布局跳动。
  * @param month - 当前显示月份内的任意日期。
@@ -50,13 +52,6 @@ export function getCalendarWeek(anchor: Date, offset: number): Date[] {
     new Date(anchor.getFullYear(), anchor.getMonth(), anchor.getDate() + offset * 7 + day, 12)
   );
 }
-
-/** 每周日期行的固定高度，供渲染与滚动定位共用。 */
-export const CALENDAR_WEEK_HEIGHT = 56;
-/** 固定在星期栏上方的月份标题高度，不计入滚动内容。 */
-export const CALENDAR_MONTH_HEADER_HEIGHT = 48;
-/** 相邻月份之间的留白。 */
-export const CALENDAR_MONTH_GAP = 24;
 
 /**
  * 生成带月份间隔的布局，精确计算各月高度以保持滚动位置稳定。

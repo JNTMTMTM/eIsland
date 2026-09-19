@@ -25,7 +25,8 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import { CALENDAR_MONTH_GAP, CALENDAR_WEEK_HEIGHT, getCalendarDayDifference, getCalendarMonthLayouts, getCalendarWeek, getCalendarWeeks, shiftCalendarMonth } from './calendarUtils';
+import { CALENDAR_MONTH_GAP, CALENDAR_WEEK_HEIGHT } from '../config/calendarConfig';
+import { getCalendarDayDifference, getCalendarMonthLayouts, getCalendarWeek, getCalendarWeeks, shiftCalendarMonth } from './calendarUtils';
 
 describe('calendar month navigation', () => {
   it('sizes short and long months with gaps but excludes the fixed heading', () => {

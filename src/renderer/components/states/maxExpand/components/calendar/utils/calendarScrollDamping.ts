@@ -11,10 +11,7 @@
  * @author 鸡哥
  */
 
-const WHEEL_SCALE = .55;
-const DAMPING_TIME_MS = 70;
-const STOP_DISTANCE = .25;
-const SNAP_DISTANCE = 72;
+import { DAMPING_TIME_MS, SNAP_DISTANCE, STOP_DISTANCE, WHEEL_SCALE } from '../config/calendarConfig';
 
 /**
  * 在滚动容器上启用阻尼与单段吸附；使用相对位移兼容向前补充月份。

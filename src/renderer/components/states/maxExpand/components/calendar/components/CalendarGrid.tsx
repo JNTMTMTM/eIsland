@@ -48,8 +48,9 @@ export function CalendarGrid({
 }: CalendarGridProps): ReactElement {
   const monthId = useId();
   const monthFormat = useMemo(() => new Intl.DateTimeFormat(locale, { month: 'long' }), [locale]);
+  const shortMonthFormat = useMemo(() => new Intl.DateTimeFormat(locale, { month: 'short' }), [locale]);
   const yearFormat = useMemo(() => new Intl.DateTimeFormat(locale, { year: 'numeric' }), [locale]);
-  const { scrollRef, onScroll, months, visibleDate, weekHeight, headerHeight, monthGap, paddingTop, paddingBottom } = useCalendarScroll(selectedDate);
+  const { scrollRef, onScroll, months, visibleDate, weekHeight, headerHeight, monthGap, monthLabelHeight, paddingTop, paddingBottom } = useCalendarScroll(selectedDate);
   // 像素级滚动不重复计算农历，只在可见周或语言变化时更新。
   const lunarDays = useMemo(() => new Map(months.flatMap((month) => month.weeks.flat().filter((date) => date.getMonth() === month.date.getMonth())).map((date) => [
     date.getTime(),
@@ -73,6 +74,7 @@ export function CalendarGrid({
         '--calendar-week-height': `${weekHeight}px`,
         '--calendar-header-height': `${headerHeight}px`,
         '--calendar-month-gap': `${monthGap}px`,
+        '--calendar-month-label-height': `${monthLabelHeight}px`,
         '--calendar-padding-top': `${paddingTop}px`,
         '--calendar-padding-bottom': `${paddingBottom}px`,
       } as CSSProperties}
@@ -104,8 +106,16 @@ export function CalendarGrid({
       >
         <div className="calendar-months">
           {months.map((month) => (
-            <div className="calendar-month" key={month.date.getTime()} role="group" aria-label={formats.month.format(month.date)}>
-              <div className="calendar-month-gap" aria-hidden="true" />
+            <div
+              className="calendar-month"
+              key={month.date.getTime()}
+              style={{ '--calendar-month-start-column': month.date.getDay() + 1 } as CSSProperties}
+              role="group"
+              aria-label={formats.month.format(month.date)}
+            >
+              <div className="calendar-month-gap" aria-hidden="true">
+                <div className="calendar-month-label">{shortMonthFormat.format(month.date)}</div>
+              </div>
               {month.weeks.map((week) => (
                 <div className="calendar-week" key={week[0].getTime()}>
                   {week.map((date) => {

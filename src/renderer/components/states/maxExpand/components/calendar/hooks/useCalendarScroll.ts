@@ -12,10 +12,9 @@
  */
 
 import { useLayoutEffect, useMemo, useRef, useState, type UIEvent } from 'react';
-import { CALENDAR_MONTH_GAP, CALENDAR_MONTH_HEADER_HEIGHT, CALENDAR_WEEK_HEIGHT, getCalendarMonthLayouts } from '../utils/calendarUtils';
+import { BUFFER_MONTHS, CALENDAR_MONTH_GAP, CALENDAR_MONTH_HEADER_HEIGHT, CALENDAR_MONTH_LABEL_HEIGHT, CALENDAR_WEEK_HEIGHT } from '../config/calendarConfig';
+import { getCalendarMonthLayouts } from '../utils/calendarUtils';
 import { attachCalendarScrollDamping } from '../utils/calendarScrollDamping';
-
-const BUFFER_MONTHS = 12;
 
 /**
  * 以有明确间隔的月份分组连续滚动，浏览位置与日期选择独立。
@@ -30,7 +29,7 @@ export function useCalendarScroll(selectedDate: Date) {
     return {
       start: -BUFFER_MONTHS,
       end: BUFFER_MONTHS * 2,
-      top: months[BUFFER_MONTHS].top + CALENDAR_MONTH_GAP,
+      top: months[BUFFER_MONTHS].top + CALENDAR_MONTH_GAP - CALENDAR_MONTH_LABEL_HEIGHT,
       height: CALENDAR_WEEK_HEIGHT * 6,
     };
   });
@@ -48,7 +47,7 @@ export function useCalendarScroll(selectedDate: Date) {
     const element = scrollRef.current;
     if (!element) return;
     return attachCalendarScrollDamping(element, () =>
-      layoutsRef.current.map((month) => month.top + CALENDAR_MONTH_GAP)
+      layoutsRef.current.map((month) => month.top + CALENDAR_MONTH_GAP - CALENDAR_MONTH_LABEL_HEIGHT)
     );
   }, []);
 
@@ -124,6 +123,7 @@ export function useCalendarScroll(selectedDate: Date) {
     weekHeight: CALENDAR_WEEK_HEIGHT,
     headerHeight: CALENDAR_MONTH_HEADER_HEIGHT,
     monthGap: CALENDAR_MONTH_GAP,
+    monthLabelHeight: CALENDAR_MONTH_LABEL_HEIGHT,
     paddingTop: months[0].top,
     paddingBottom: totalHeight - lastMonth.top - lastMonth.height,
   };
