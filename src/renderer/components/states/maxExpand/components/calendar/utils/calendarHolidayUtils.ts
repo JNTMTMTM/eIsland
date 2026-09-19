@@ -69,12 +69,12 @@ export function parseCalendarHolidays(data: unknown, countryCode: string, year: 
  */
 export function indexCalendarHolidays(holidays: CalendarHoliday[], countryCode: string, subdivisionCode: string): CalendarHolidayIndex {
   const index: CalendarHolidayIndex = new Map();
-  for (const holiday of holidays) {
-    if (holiday.countryCode !== countryCode || !holiday.holidayTypes.includes('Public')) continue;
-    if (!holiday.nationalHoliday && (!subdivisionCode || !holiday.subdivisionCodes?.includes(subdivisionCode))) continue;
+  holidays.forEach((holiday) => {
+    if (holiday.countryCode !== countryCode || !holiday.holidayTypes.includes('Public')) return;
+    if (!holiday.nationalHoliday && (!subdivisionCode || !holiday.subdivisionCodes?.includes(subdivisionCode))) return;
     const names = index.get(holiday.date) ?? [];
     if (!names.includes(holiday.name)) names.push(holiday.name);
     index.set(holiday.date, names);
-  }
+  });
   return index;
 }

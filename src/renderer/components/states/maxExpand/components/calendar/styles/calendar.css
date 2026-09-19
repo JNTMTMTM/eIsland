@@ -534,6 +534,9 @@
 }
 
 .calendar-full-date {
+  flex: 1;
+  min-width: 0;
+  text-align: right;
   color: rgba(var(--color-text-rgb), .65);
   font-size: .75rem;
   line-height: 1.5;

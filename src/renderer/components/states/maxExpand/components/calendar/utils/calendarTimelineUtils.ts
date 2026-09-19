@@ -26,11 +26,11 @@ import { getCalendarDateKey } from './calendarHolidayUtils';
 export function getCalendarTimelineEvents(holidays: CalendarHolidayIndex, todos: TodoItem[]): CalendarTimelineEvent[] {
   const events: CalendarTimelineEvent[] = [];
   const lastByName = new Map<string, CalendarTimelineEvent>();
-  for (const [date, names] of [...holidays].sort(([left], [right]) => left.localeCompare(right))) {
+  [...holidays].sort(([left], [right]) => left.localeCompare(right)).forEach(([date, names]) => {
     const previousDate = parseTodoDate(date);
-    if (!previousDate) continue;
+    if (!previousDate) return;
     previousDate.setDate(previousDate.getDate() - 1);
-    for (const name of names) {
+    names.forEach((name) => {
       const previous = lastByName.get(name);
       if (previous?.end === getCalendarDateKey(previousDate)) {
         previous.end = date;
@@ -39,13 +39,13 @@ export function getCalendarTimelineEvents(holidays: CalendarHolidayIndex, todos:
         lastByName.set(name, event);
         events.push(event);
       }
-    }
-  }
-  for (const todo of todos) {
+    });
+  });
+  todos.forEach((todo) => {
     const start = getTodoStartDate(todo);
-    if (!parseTodoDate(start) || !todo.dueDate || !parseTodoDate(todo.dueDate) || todo.dueDate < start) continue;
+    if (!parseTodoDate(start) || !todo.dueDate || !parseTodoDate(todo.dueDate) || todo.dueDate < start) return;
     events.push({ id: `todo:${todo.id}`, kind: 'todo', label: todo.text, start, end: todo.dueDate, done: todo.done, color: getTodoColor(todo.id) });
-  }
+  });
   return events.sort((left, right) => left.start.localeCompare(right.start) || right.end.localeCompare(left.end) || left.id.localeCompare(right.id));
 }
 
@@ -62,8 +62,8 @@ export function getCalendarWeekTimeline(week: Date[], month: Date, events: Calen
   const last = week.findLastIndex((date) => date.getMonth() === month.getMonth());
   const occupied: number[] = [];
   const segments: CalendarTimelineSegment[] = [];
-  for (const event of events) {
-    if (event.end < days[first] || event.start > days[last]) continue;
+  events.forEach((event) => {
+    if (event.end < days[first] || event.start > days[last]) return;
     const begin = Math.max(first, days.findIndex((day) => day >= event.start));
     const end = Math.min(last, days.findLastIndex((day) => day <= event.end));
     const mask = ((1 << (end - begin + 1)) - 1) << begin;
@@ -71,6 +71,6 @@ export function getCalendarWeekTimeline(week: Date[], month: Date, events: Calen
     if (lane < 0) lane = occupied.length;
     occupied[lane] = (occupied[lane] ?? 0) | mask;
     segments.push({ event, column: begin + 1, span: end - begin + 1, lane, start: week[begin], continuesBefore: event.start < days[begin], continuesAfter: event.end > days[end] });
-  }
+  });
   return { segments, lanes: occupied.length };
 }

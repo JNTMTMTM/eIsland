@@ -34,9 +34,9 @@ describe('calendar holidays', () => {
 
   it('rejects malformed, impossible or mismatched API records', () => {
     expect(parseCalendarHolidays([national], 'US', 2026)).toEqual([national]);
-    for (const record of [{ ...national, date: '2026-02-30' }, { ...national, countryCode: 'CN' }, { ...national, date: '2025-09-25' }, { ...national, holidayTypes: null }, { ...national, subdivisionCodes: 1 }]) {
+    [{ ...national, date: '2026-02-30' }, { ...national, countryCode: 'CN' }, { ...national, date: '2025-09-25' }, { ...national, holidayTypes: null }, { ...national, subdivisionCodes: 1 }].forEach((record) => {
       expect(() => parseCalendarHolidays([record], 'US', 2026)).toThrow();
-    }
+    });
     expect(() => parseCalendarHolidays({}, 'US', 2026)).toThrow();
   });
 

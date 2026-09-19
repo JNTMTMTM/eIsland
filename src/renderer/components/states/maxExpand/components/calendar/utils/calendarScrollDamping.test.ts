@@ -108,13 +108,13 @@ describe('calendar scroll damping', () => {
   });
 
   it('cancels residual motion for pointer, keyboard and unmount', () => {
-    for (const type of ['pointerdown', 'keydown']) {
+    ['pointerdown', 'keydown'].forEach((type) => {
       wheel(120);
       element.dispatchEvent(new Event(type));
       advance();
       expect(element.scrollTop).toBe(1000);
       expect(frames.size).toBe(0);
-    }
+    });
     wheel(120);
     cleanup();
     advance();

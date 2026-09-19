@@ -64,19 +64,13 @@ export const createWeatherSlice: StateCreator<WeatherSlice, [], [], WeatherSlice
             && Number.isFinite(custom.latitude) && Number.isFinite(custom.longitude)
             ? { latitude: custom.latitude, longitude: custom.longitude, city: custom.city || '', regionName: '', country: '' }
             : null;
-          const order = config.priority === 'custom' ? ['custom', 'ip'] : ['ip', 'custom'];
-          for (const source of order) {
-            if (source === 'custom') {
-              if (customLocation) return customLocation;
-              continue;
-            }
-            try {
-              return await fetchLocation();
-            } catch (error) {
-              logger.warn('[Location] IP 定位失败:', error);
-            }
+          if (config.priority === 'custom' && customLocation) return customLocation;
+          try {
+            return await fetchLocation();
+          } catch (error) {
+            logger.warn('[Location] IP 定位失败:', error);
           }
-          return null;
+          return customLocation;
         })();
       }
 
