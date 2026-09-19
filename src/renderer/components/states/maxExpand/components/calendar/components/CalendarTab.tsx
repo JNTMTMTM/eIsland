@@ -26,6 +26,7 @@
 
 import type { ReactElement } from 'react';
 import { useCalendar } from '../hooks/useCalendar';
+import { useCalendarHolidays } from '../hooks/useCalendarHolidays';
 import { CalendarGrid } from './CalendarGrid';
 import { CalendarDetailPanel } from './CalendarDetailPanel';
 import '../styles/calendar.css';
@@ -50,6 +51,7 @@ export function CalendarTab(): ReactElement {
     selectDate,
     handleDateKeyDown,
   } = useCalendar();
+  const holidayInfo = useCalendarHolidays(selectedDate.getFullYear());
 
   return (
     <div
@@ -58,6 +60,8 @@ export function CalendarTab(): ReactElement {
     >
       <div className="calendar-layout">
         <CalendarGrid
+          holidays={holidayInfo.holidays}
+          onVisibleYearChange={holidayInfo.setVisibleYear}
           selectedDate={selectedDate}
           today={today}
           locale={locale}
@@ -68,6 +72,7 @@ export function CalendarTab(): ReactElement {
           onDateKeyDown={handleDateKeyDown}
         />
         <CalendarDetailPanel
+          holidayInfo={holidayInfo}
           selectedDate={selectedDate}
           locale={locale}
           formats={formats}

@@ -153,6 +153,7 @@
 }
 
 .calendar-day-button {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -160,7 +161,91 @@
   gap: .125rem;
   width: 100%;
   height: 100%;
+  padding-bottom: .5rem;
   border-radius: .375rem;
+}
+
+.calendar-holiday-bar {
+  position: absolute;
+  right: 3px;
+  bottom: 3px;
+  left: 3px;
+  height: 3px;
+  pointer-events: none;
+  background-color: rgb(var(--color-accent-rgb, 59, 130, 246));
+  border-radius: 9999px;
+}
+
+.calendar-holiday-bar[data-continues-before="true"] {
+  left: 0;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.calendar-holiday-bar[data-continues-after="true"] {
+  right: 0;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.calendar-holiday-details {
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.calendar-holiday-heading,
+.calendar-holiday-region {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+  color: rgba(var(--color-text-rgb), .5);
+}
+
+.calendar-holiday-region {
+  margin-top: .375rem;
+}
+
+.calendar-holiday-region select {
+  max-width: 65%;
+  padding: .125rem .375rem;
+  color: rgb(var(--color-text-rgb));
+  color-scheme: dark;
+  background-color: rgba(var(--color-text-rgb), .05);
+  border: 1px solid rgba(var(--color-text-rgb), .14);
+  border-radius: .375rem;
+}
+
+[data-theme="light"] .calendar-holiday-region select {
+  color-scheme: light;
+}
+
+.calendar-holiday-names {
+  display: grid;
+  gap: .25rem;
+  margin-top: .375rem;
+  color: rgb(var(--color-accent-rgb, 59, 130, 246));
+  overflow-wrap: anywhere;
+}
+
+.calendar-holiday-status {
+  margin-top: .375rem;
+  color: rgba(var(--color-text-rgb), .4);
+}
+
+.calendar-holiday-status:empty {
+  display: none;
+}
+
+.calendar-holiday-status button {
+  margin-left: .5rem;
+  color: rgb(var(--color-accent-rgb, 59, 130, 246));
+}
+
+.calendar-holiday-status button:focus-visible,
+.calendar-holiday-region select:focus-visible {
+  outline: 2px solid rgb(var(--color-accent-rgb, 59, 130, 246));
+  outline-offset: 2px;
 }
 
 .calendar-day-button:focus-visible {

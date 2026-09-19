@@ -24,9 +24,10 @@
  * @author 鸡哥
  */
 
-import { useId, useLayoutEffect, useMemo, type CSSProperties, type ReactElement } from 'react';
+import { useEffect, useId, useLayoutEffect, useMemo, type CSSProperties, type ReactElement } from 'react';
 import { Lunar } from 'lunar-javascript';
 import { getCalendarDayDifference } from '../utils/calendarUtils';
+import { getCalendarDateKey, hasAdjacentCalendarHoliday } from '../utils/calendarHolidayUtils';
 import { useCalendarScroll } from '../hooks/useCalendarScroll';
 import type { CalendarGridProps } from '../types/calendarTypes';
 
@@ -37,6 +38,8 @@ import type { CalendarGridProps } from '../types/calendarTypes';
  * @returns 月视图 JSX
  */
 export function CalendarGrid({
+  holidays,
+  onVisibleYearChange,
   selectedDate,
   today,
   locale,
@@ -52,6 +55,8 @@ export function CalendarGrid({
   const shortMonthFormat = useMemo(() => new Intl.DateTimeFormat(locale, { month: 'short' }), [locale]);
   const yearFormat = useMemo(() => new Intl.DateTimeFormat(locale, { year: 'numeric' }), [locale]);
   const { scrollRef, onScroll, months, visibleDate, weekHeight, headerHeight, monthGap, monthLabelHeight, paddingTop, paddingBottom } = useCalendarScroll(selectedDate);
+  const visibleYear = visibleDate.getFullYear();
+  useEffect(() => { onVisibleYearChange(visibleYear); }, [visibleYear, onVisibleYearChange]);
   // 像素级滚动不重复计算农历，只在可见周或语言变化时更新。
   const lunarDays = useMemo(() => new Map((showLunar ? months : []).flatMap((month) => month.weeks.flat().filter((date) => date.getMonth() === month.date.getMonth())).map((date) => [
     date.getTime(),
@@ -125,6 +130,8 @@ export function CalendarGrid({
                     const isToday = getCalendarDayDifference(date, today) === 0;
                     const weekend = date.getDay() === 0 || date.getDay() === 6;
                     const lunarDay = lunarDays.get(date.getTime());
+                    const holidayNames = holidays.get(getCalendarDateKey(date));
+                    const dateTitle = [showLunar ? formats.lunar.format(date) : '', ...(holidayNames ?? [])].filter(Boolean).join('\n');
                     return (
                       <div className="calendar-day-cell" key={date.getTime()}>
                         <button
@@ -132,8 +139,8 @@ export function CalendarGrid({
                           data-weekend={weekend}
                           ref={selected ? selectedButtonRef : undefined}
                           type="button"
-                          title={showLunar ? formats.lunar.format(date) : undefined}
-                          aria-label={formats.full.format(date)}
+                          title={dateTitle || undefined}
+                          aria-label={[formats.full.format(date), ...(holidayNames ?? [])].join(', ')}
                           aria-pressed={selected}
                           aria-current={isToday ? 'date' : undefined}
                           tabIndex={selected ? 0 : -1}
@@ -142,6 +149,14 @@ export function CalendarGrid({
                         >
                           <span className="calendar-day-number">{date.getDate()}</span>
                           {showLunar && <span className="calendar-day-lunar" aria-hidden="true">{lunarDay}</span>}
+                          {holidayNames && (
+                            <span
+                              className="calendar-holiday-bar"
+                              data-continues-before={hasAdjacentCalendarHoliday(date, -1, holidays)}
+                              data-continues-after={hasAdjacentCalendarHoliday(date, 1, holidays)}
+                              aria-hidden="true"
+                            />
+                          )}
                         </button>
                       </div>
                     );

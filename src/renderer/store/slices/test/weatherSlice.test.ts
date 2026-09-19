@@ -131,4 +131,40 @@ describe('createWeatherSlice', () => {
     expect(fetchWeatherMock).not.toHaveBeenCalled();
     expect(saveWeatherToStorageMock).not.toHaveBeenCalled();
   });
+
+  it('shares an in-flight location request between the calendar and weather', async () => {
+    const location = { latitude: 31.2, longitude: 121.5, city: '上海', regionName: '上海', country: '中国', countryCode: 'CN', regionCode: 'SH' };
+    let resolve!: (value: typeof location) => void;
+    fetchLocationMock.mockReturnValue(new Promise((done) => { resolve = done; }));
+    fetchWeatherMock.mockResolvedValue(defaultWeather);
+    const store = createSliceState(createWeatherSlice);
+    const calendar = store.getState().refreshLocation();
+    const weather = store.getState().fetchWeatherData();
+    expect(fetchLocationMock).toHaveBeenCalledTimes(1);
+    expect(fetchWeatherMock).not.toHaveBeenCalled();
+    resolve(location);
+    expect(await calendar).toEqual(location);
+    await weather;
+    expect(store.getState().location).toEqual(location);
+    expect(saveLocationToStorageMock).toHaveBeenCalledWith(location);
+    expect(fetchWeatherMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps custom location priority and does not request IP or weather for the calendar', async () => {
+    loadWeatherLocationConfigMock.mockReturnValue({ priority: 'custom', customLocation: { latitude: 1, longitude: 2, city: 'Custom' } });
+    const store = createSliceState(createWeatherSlice);
+    expect(await store.getState().refreshLocation()).toMatchObject({ latitude: 1, longitude: 2, city: 'Custom' });
+    expect(fetchLocationMock).not.toHaveBeenCalled();
+    expect(fetchWeatherMock).not.toHaveBeenCalled();
+  });
+
+  it('falls back to cached location on failure but not for forced refresh', async () => {
+    const cached = { latitude: 1, longitude: 2, countryCode: 'US' };
+    loadLocationFromStorageMock.mockReturnValue(cached);
+    fetchLocationMock.mockRejectedValue(new Error('offline'));
+    const store = createSliceState(createWeatherSlice);
+    expect(await store.getState().refreshLocation()).toEqual(cached);
+    expect(await store.getState().refreshLocation(true)).toBeNull();
+    expect(fetchLocationMock).toHaveBeenCalledTimes(2);
+  });
 });

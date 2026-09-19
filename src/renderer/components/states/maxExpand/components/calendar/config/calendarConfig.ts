@@ -30,3 +30,16 @@ export const DAMPING_TIME_MS = 70;
 export const STOP_DISTANCE = .25;
 /** 月初吸附的最大作用距离，单位为像素。 */
 export const SNAP_DISTANCE = 72;
+
+/** Nager.Holidays 公共节假日接口。 */
+export const HOLIDAY_API_BASE = 'https://nagerholidays.com/api/v4';
+/** 节假日请求超时，单位为毫秒。 */
+export const HOLIDAY_TIMEOUT_MS = 10000;
+/** 国家年度数据缓存时长，单位为毫秒。 */
+export const HOLIDAY_CACHE_MS = 24 * 60 * 60 * 1000;
+/** 年度缓存上限，避免连续浏览无限积累。 */
+export const HOLIDAY_CACHE_LIMIT = 12;
+/** 各国家的州、省级假日选择存储前缀。 */
+export const HOLIDAY_SUBDIVISION_KEY = 'eisland-calendar-subdivision-';
+/** 定位服务使用与 ISO 一致的字母州、省代码的国家；其余地区由用户确认。 */
+export const HOLIDAY_AUTO_SUBDIVISION_COUNTRIES = ['US', 'CA', 'AU', 'DE', 'GB'];

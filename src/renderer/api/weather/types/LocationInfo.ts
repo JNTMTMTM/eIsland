@@ -36,4 +36,8 @@ export interface LocationInfo {
   regionName: string;
   /** 国家 */
   country: string;
+  /** ISO 3166-1 国家代码；旧缓存和仅坐标的手动位置可能缺失。 */
+  countryCode?: string;
+  /** 定位服务的地区短码，可能是 ISO 或 FIPS，不能无条件当作 ISO 3166-2。 */
+  regionCode?: string;
 }

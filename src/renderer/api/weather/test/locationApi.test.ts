@@ -119,6 +119,18 @@ describe('locationApi', () => {
       expect(result.country).toBe('中国');
     });
 
+    it('preserves country and region codes for shared holiday matching', async () => {
+      mockNetFetch.mockResolvedValue({ ok: true, status: 200, body: makeLocationBody({ countryCode: 'US', region: 'CA' }) });
+      const { fetchLocation } = await import('../locationApi');
+      expect(await fetchLocation()).toMatchObject({ countryCode: 'US', regionCode: 'CA' });
+    });
+
+    it('rejects a failed geolocation response instead of caching it', async () => {
+      mockNetFetch.mockResolvedValue({ ok: true, status: 200, body: JSON.stringify({ status: 'fail' }) });
+      const { fetchLocation } = await import('../locationApi');
+      await expect(fetchLocation()).rejects.toThrow('invalid location');
+    });
+
     it('correctly constructs ip-api.com URL with required fields', async () => {
       mockNetFetch.mockResolvedValue({
         ok: true,

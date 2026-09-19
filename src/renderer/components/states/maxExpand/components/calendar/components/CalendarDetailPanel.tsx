@@ -27,6 +27,7 @@
 import type { CSSProperties, ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getLunarDate } from '../../../../../../utils/timeUtils';
+import { CalendarHolidayDetails } from './CalendarHolidayDetails';
 import type { CalendarDetailPanelProps } from '../types/calendarTypes';
 
 /**
@@ -36,6 +37,7 @@ import type { CalendarDetailPanelProps } from '../types/calendarTypes';
  * @returns 日期详情 JSX
  */
 export function CalendarDetailPanel({
+  holidayInfo,
   selectedDate,
   locale,
   formats,
@@ -75,6 +77,7 @@ export function CalendarDetailPanel({
           </div>
         </div>
       )}
+      <CalendarHolidayDetails selectedDate={selectedDate} locale={locale} info={holidayInfo} />
       <div className="calendar-progress">
         <div className="calendar-progress-label">
           <span>{t('maxExpand.calendar.dayOfMonth', { day: selectedDay, total: daysInMonth })}</span>

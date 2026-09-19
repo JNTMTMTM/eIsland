@@ -394,6 +394,8 @@ export interface IslandSlice {
 export interface WeatherSlice {
   weather: WeatherData;
   location: LocationInfo | null;
+  /** 共用定位策略、缓存及并发请求，不触发天气查询。 */
+  refreshLocation: (forceRefresh?: boolean) => Promise<LocationInfo | null>;
   setWeather: (data: WeatherData) => void;
   fetchWeatherData: (config?: WeatherApiConfig, forceRefresh?: boolean) => Promise<void>;
 }
