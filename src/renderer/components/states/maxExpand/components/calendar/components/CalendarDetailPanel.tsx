@@ -20,7 +20,7 @@
 
 /**
  * @file CalendarDetailPanel.tsx
- * @description 选中日期的详情面板：大号日期、农历、月份进度条。
+ * @description 分层展示选中日期、农历、假日、待办与月份进度。
  * @author 鸡哥
  */
 
@@ -59,42 +59,49 @@ export function CalendarDetailPanel({
       aria-live="polite"
       aria-atomic="true"
     >
-      <div className="calendar-details-heading">
-        <span>{t('maxExpand.calendar.selectedDate')}</span>
-        <span className="calendar-relative-date">{relativeLabel}</span>
-      </div>
-      <div>
-        <div className="calendar-selected-day">
-          {String(selectedDay).padStart(2, '0')}
+      <header className="calendar-details-header">
+        <div className="calendar-details-heading">
+          <span>{t('maxExpand.calendar.selectedDate')}</span>
+          <span className="calendar-relative-date">{relativeLabel}</span>
         </div>
-        <div className="calendar-full-date">
-          {formats.full.format(selectedDate)}
-        </div>
-      </div>
-      {!locale.startsWith('en') && (
-        <div className="calendar-lunar-details">
-          <div className="calendar-lunar-label">
-            {t('maxExpand.calendar.lunarDate')}
+        <div className="calendar-date-summary">
+          <div className="calendar-selected-day">
+            {String(selectedDay).padStart(2, '0')}
           </div>
-          <div className="calendar-lunar-value">
-            {locale.startsWith('zh') ? getLunarDate(selectedDate) : formats.lunar.format(selectedDate)}
+          <div className="calendar-full-date">
+            {formats.full.format(selectedDate)}
           </div>
         </div>
-      )}
-      <CalendarHolidayDetails selectedDate={selectedDate} locale={locale} info={holidayInfo} />
-      {todos.length > 0 && (
-        <section aria-label={t('maxExpand.calendar.scheduledTodos')}>
-          <h3 className="calendar-todo-heading">{t('maxExpand.calendar.scheduledTodos')}</h3>
-          <ul className="calendar-todo-list">
-            {todos.map((event) => (
-              <li className="calendar-todo-item" key={event.id} data-done={event.done || undefined} style={{ '--calendar-event-color': event.color } as CSSProperties}>
-                <span>{event.label}{event.done ? ` · ${t('maxExpand.calendar.eventCompleted')}` : ''}</span>
-                <span className="calendar-todo-period">{event.start} → {event.end}</span>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
+        {!locale.startsWith('en') && (
+          <div className="calendar-lunar-details">
+            <div className="calendar-lunar-label">
+              {t('maxExpand.calendar.lunarDate')}
+            </div>
+            <div className="calendar-lunar-value">
+              {locale.startsWith('zh') ? getLunarDate(selectedDate) : formats.lunar.format(selectedDate)}
+            </div>
+          </div>
+        )}
+      </header>
+      <div className="calendar-details-content">
+        {todos.length > 0 && (
+          <section className="calendar-todo-details" aria-label={t('maxExpand.calendar.scheduledTodos')}>
+            <h3 className="calendar-todo-heading">
+              {t('maxExpand.calendar.scheduledTodos')}
+              <span className="calendar-todo-count">{todos.length}</span>
+            </h3>
+            <ul className="calendar-todo-list">
+              {todos.map((event) => (
+                <li className="calendar-todo-item" key={event.id} data-done={event.done || undefined} style={{ '--calendar-event-color': event.color } as CSSProperties}>
+                  <span>{event.label}{event.done ? ` · ${t('maxExpand.calendar.eventCompleted')}` : ''}</span>
+                  <span className="calendar-todo-period">{event.start} → {event.end}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+        <CalendarHolidayDetails selectedDate={selectedDate} locale={locale} info={holidayInfo} />
+      </div>
       <div className="calendar-progress">
         <div className="calendar-progress-label">
           <span>{t('maxExpand.calendar.dayOfMonth', { day: selectedDay, total: daysInMonth })}</span>

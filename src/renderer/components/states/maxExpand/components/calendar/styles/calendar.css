@@ -246,25 +246,44 @@
 }
 
 .calendar-todo-heading {
-  margin-bottom: .375rem;
-  color: rgba(var(--color-text-rgb), .5);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+  margin-bottom: .625rem;
+  color: rgba(var(--color-text-rgb), .8);
   font-size: 11px;
+  font-weight: 600;
+}
+
+.calendar-todo-count {
+  min-width: 1.125rem;
+  padding: .0625rem .25rem;
+  color: rgba(var(--color-text-rgb), .5);
+  font-size: 10px;
+  font-weight: 500;
+  text-align: center;
+  background-color: rgba(var(--color-text-rgb), .06);
+  border-radius: .25rem;
 }
 
 .calendar-todo-list {
   display: grid;
-  gap: .375rem;
+  gap: .625rem;
 }
 
 .calendar-todo-item {
   padding-left: .5rem;
+  color: rgba(var(--color-text-rgb), .88);
   font-size: 11px;
+  line-height: 1.5;
   border-left: 2px solid var(--calendar-event-color);
   overflow-wrap: anywhere;
 }
 
 .calendar-todo-period {
   display: block;
+  margin-top: .125rem;
   color: rgba(var(--color-text-rgb), .45);
   font-size: 9px;
   font-variant-numeric: tabular-nums;
@@ -286,6 +305,11 @@
 
 .calendar-holiday-region {
   margin-top: .375rem;
+}
+
+.calendar-holiday-heading > :first-child {
+  color: rgba(var(--color-text-rgb), .8);
+  font-weight: 600;
 }
 
 .calendar-holiday-region select {
@@ -407,16 +431,42 @@
 .calendar-details {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
   min-width: 0;
-  overflow-y: auto;
-  scrollbar-width: none;
-  padding: 1rem .75rem;
+  min-height: 0;
+  padding: .75rem .75rem .5rem;
   border-top: 1px solid rgba(var(--color-text-rgb), .12);
 }
 
-.calendar-details::-webkit-scrollbar {
+.calendar-details-header {
+  flex-shrink: 0;
+  padding-bottom: .875rem;
+  border-bottom: 1px solid rgba(var(--color-text-rgb), .12);
+}
+
+.calendar-date-summary {
+  display: flex;
+  align-items: center;
+  gap: .875rem;
+  margin-top: .5rem;
+}
+
+.calendar-details-content {
+  flex: 1;
+  min-height: 0;
+  padding: .875rem 0;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scrollbar-width: none;
+}
+
+.calendar-details-content::-webkit-scrollbar {
   display: none;
+}
+
+.calendar-details-content > * + * {
+  margin-top: .875rem;
+  padding-top: .875rem;
+  border-top: 1px solid rgba(var(--color-text-rgb), .08);
 }
 
 .calendar-details-heading,
@@ -440,8 +490,9 @@
 }
 
 .calendar-selected-day {
+  flex-shrink: 0;
   color: rgba(var(--color-text-rgb), .95);
-  font-size: 72px;
+  font-size: 56px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   line-height: 1;
@@ -449,31 +500,37 @@
 }
 
 .calendar-full-date {
-  margin-top: .5rem;
-  color: rgba(var(--color-text-rgb), .6);
+  color: rgba(var(--color-text-rgb), .65);
   font-size: .75rem;
-  line-height: 1rem;
+  line-height: 1.5;
 }
 
 .calendar-lunar-details {
-  padding-top: .75rem;
-  border-top: 1px solid rgba(var(--color-text-rgb), .08);
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: .75rem;
+  margin-top: .625rem;
 }
 
 .calendar-lunar-label {
-  margin-bottom: .375rem;
-  color: rgba(var(--color-text-rgb), .4);
+  flex-shrink: 0;
+  color: rgba(var(--color-text-rgb), .45);
   font-size: 10px;
 }
 
 .calendar-lunar-value {
-  font-size: .75rem;
+  color: rgba(var(--color-text-rgb), .7);
+  font-size: 11px;
   line-height: 1.625;
+  text-align: right;
 }
 
 .calendar-progress {
+  flex-shrink: 0;
   margin-top: auto;
-  padding-top: .25rem;
+  padding-top: .75rem;
+  border-top: 1px solid rgba(var(--color-text-rgb), .12);
 }
 
 .calendar-progress-label {
