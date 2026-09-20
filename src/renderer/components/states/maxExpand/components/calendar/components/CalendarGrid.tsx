@@ -25,12 +25,9 @@
  */
 
 import { useEffect, useId, useLayoutEffect, useMemo, type CSSProperties, type ReactElement } from 'react';
-import { Lunar } from 'lunar-javascript';
-import { getCalendarDayDifference } from '../utils/calendarUtils';
-import { getCalendarDateKey } from '../utils/calendarHolidayUtils';
 import { useCalendarScroll } from '../hooks/useCalendarScroll';
 import { CALENDAR_EVENT_BOTTOM_GAP, CALENDAR_EVENT_LANE_HEIGHT } from '../config/calendarConfig';
-import { CalendarEventBars } from './CalendarEventBars';
+import { CalendarMonthGrid } from './CalendarMonthGrid';
 import type { CalendarGridProps } from '../types/calendarTypes';
 
 /**
@@ -53,20 +50,12 @@ export function CalendarGrid({
   onDateKeyDown,
 }: CalendarGridProps): ReactElement {
   const monthId = useId();
-  const showLunar = !locale.startsWith('en');
   const monthFormat = useMemo(() => new Intl.DateTimeFormat(locale, { month: 'long' }), [locale]);
   const shortMonthFormat = useMemo(() => new Intl.DateTimeFormat(locale, { month: 'short' }), [locale]);
   const yearFormat = useMemo(() => new Intl.DateTimeFormat(locale, { year: 'numeric' }), [locale]);
   const { scrollRef, onScroll, months, visibleDate, weekHeight, headerHeight, monthGap, monthLabelHeight, paddingTop, paddingBottom } = useCalendarScroll(selectedDate, events);
   const visibleYear = visibleDate.getFullYear();
   useEffect(() => { onVisibleYearChange(visibleYear); }, [visibleYear, onVisibleYearChange]);
-  // 像素级滚动不重复计算农历，只在可见周或语言变化时更新。
-  const lunarDays = useMemo(() => new Map((showLunar ? months : []).flatMap((month) => month.weeks.flat().filter((date) => date.getMonth() === month.date.getMonth())).map((date) => [
-    date.getTime(),
-    locale.startsWith('zh')
-      ? Lunar.fromDate(date).getDayInChinese()
-      : formats.lunarDay.formatToParts(date).find((part) => part.type === 'day')?.value,
-  ])), [months, locale, formats, showLunar]);
 
   // 等待虚拟周行挂载后聚焦，避免键盘跨越可视区时丢失焦点。
   useLayoutEffect(() => {
@@ -117,53 +106,19 @@ export function CalendarGrid({
       >
         <div className="calendar-months">
           {months.map((month) => (
-            <div
-              className="calendar-month"
+            <CalendarMonthGrid
               key={month.date.getTime()}
-              style={{ '--calendar-month-start-column': month.date.getDay() + 1 } as CSSProperties}
-              role="group"
-              aria-label={formats.month.format(month.date)}
-            >
-              <div className="calendar-month-gap" aria-hidden="true">
-                <div className="calendar-month-label">{shortMonthFormat.format(month.date)}</div>
-              </div>
-              {month.weekLayouts.map(({ dates: week, height, segments, lanes }) => (
-                <div className="calendar-week" key={week[0].getTime()} style={{ '--calendar-row-height': `${height}px` } as CSSProperties}>
-                  <div className="calendar-week-days">
-                    {week.map((date) => {
-                      if (date.getMonth() !== month.date.getMonth()) return <div key={date.getTime()} aria-hidden="true" />;
-                      const selected = getCalendarDayDifference(date, selectedDate) === 0;
-                      const isToday = getCalendarDayDifference(date, today) === 0;
-                      const weekend = date.getDay() === 0 || date.getDay() === 6;
-                      const lunarDay = lunarDays.get(date.getTime());
-                      const holidayNames = holidays.get(getCalendarDateKey(date));
-                      const dateTitle = [showLunar ? formats.lunar.format(date) : '', ...(holidayNames ?? [])].filter(Boolean).join('\n');
-                      return (
-                        <div className="calendar-day-cell" key={date.getTime()}>
-                          <button
-                            className="calendar-day-button"
-                            data-weekend={weekend}
-                            ref={selected ? selectedButtonRef : undefined}
-                            type="button"
-                            title={dateTitle || undefined}
-                            aria-label={[formats.full.format(date), ...(holidayNames ?? [])].join(', ')}
-                            aria-pressed={selected}
-                            aria-current={isToday ? 'date' : undefined}
-                            tabIndex={selected ? 0 : -1}
-                            onClick={() => onSelectDate(date)}
-                            onKeyDown={(event) => onDateKeyDown(event, date)}
-                          >
-                            <span className="calendar-day-number">{date.getDate()}</span>
-                            {showLunar && <span className="calendar-day-lunar" aria-hidden="true">{lunarDay}</span>}
-                          </button>
-                        </div>
-                      );
-                    })}
-                  </div>
-                  <CalendarEventBars segments={segments} lanes={lanes} onSelectDate={onSelectDate} />
-                </div>
-              ))}
-            </div>
+              month={month}
+              selectedDay={selectedDate.getFullYear() === month.date.getFullYear() && selectedDate.getMonth() === month.date.getMonth() ? selectedDate.getDate() : null}
+              todayDay={today.getFullYear() === month.date.getFullYear() && today.getMonth() === month.date.getMonth() ? today.getDate() : null}
+              holidays={holidays}
+              locale={locale}
+              formats={formats}
+              shortMonthFormat={shortMonthFormat}
+              selectedButtonRef={selectedButtonRef}
+              onSelectDate={onSelectDate}
+              onDateKeyDown={onDateKeyDown}
+            />
           ))}
         </div>
       </div>

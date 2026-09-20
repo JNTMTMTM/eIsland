@@ -64,16 +64,26 @@ export function getCalendarWeek(anchor: Date, offset: number): Date[] {
  * @returns 每个月的日期、所需周行、顶部位置和高度。
  */
 export function getCalendarMonthLayouts(anchor: Date, start: number, end: number, events: CalendarTimelineEvent[] = []) {
+  const monthCount = end - start;
+  const firstMonth = anchor.getFullYear() * 12 + anchor.getMonth() + start;
+  const monthlyEvents: CalendarTimelineEvent[][] = Array.from({ length: monthCount }, () => []);
+  // 只把事件分配给覆盖的月份，避免每个缓冲周反复扫描全部历史待办。
+  for (const event of events) {
+    const first = Math.max(0, Number(event.start.slice(0, 4)) * 12 + Number(event.start.slice(5, 7)) - 1 - firstMonth);
+    const last = Math.min(monthCount - 1, Number(event.end.slice(0, 4)) * 12 + Number(event.end.slice(5, 7)) - 1 - firstMonth);
+    for (let index = first; index <= last; index += 1) monthlyEvents[index].push(event);
+  }
   let top = 0;
-  return Array.from({ length: end - start }, (_, offset) => {
+  return Array.from({ length: monthCount }, (_, offset) => {
     const index = start + offset;
     const date = new Date(anchor.getFullYear(), anchor.getMonth() + index, 1, 12);
     const days = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
     const weekCount = Math.ceil((date.getDay() + days) / 7);
-    const weeks = getCalendarWeeks(date).slice(0, weekCount);
+    const firstWeek = new Date(date.getFullYear(), date.getMonth(), 1 - date.getDay(), 12);
+    const weeks = Array.from({ length: weekCount }, (_, week) => getCalendarWeek(firstWeek, week));
     let height = CALENDAR_MONTH_GAP;
     const weekLayouts = weeks.map((dates) => {
-      const timeline = getCalendarWeekTimeline(dates, date, events);
+      const timeline = getCalendarWeekTimeline(dates, date, monthlyEvents[offset]);
       const rowHeight = CALENDAR_WEEK_HEIGHT + (timeline.lanes ? timeline.lanes * CALENDAR_EVENT_LANE_HEIGHT + CALENDAR_EVENT_BOTTOM_GAP : 0);
       const week = { dates, ...timeline, top: height, height: rowHeight };
       height += rowHeight;

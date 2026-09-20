@@ -85,4 +85,31 @@ describe('calendar timeline', () => {
     const result = getCalendarReflowTop(expanded, plain, row.top + row.height - 1);
     expect(result).toBe(plain[0].weekLayouts[3].top + CALENDAR_WEEK_HEIGHT - 1);
   });
+
+  it('keeps month-bucketed timelines identical to full event scans across leap years and year boundaries', () => {
+    const events = [
+      period('outside-before', '2020-01-01', '2020-12-31'),
+      period('long', '2023-10-01', '2025-04-30'),
+      period('leap', '2024-02-28', '2024-03-02'),
+      period('overlap', '2024-02-29', '2024-03-01'),
+      period('year', '2024-12-31', '2025-01-01'),
+      period('outside-after', '2028-01-01', '2028-12-31'),
+    ];
+    const layouts = getCalendarMonthLayouts(new Date(2024, 2, 1, 12), -4, 13, events);
+    for (const month of layouts) {
+      for (const week of month.weekLayouts) {
+        expect({ segments: week.segments, lanes: week.lanes }).toEqual(getCalendarWeekTimeline(week.dates, month.date, events));
+      }
+    }
+  });
+
+  it('does not retain stale event buckets after a due date changes or tasks are removed', () => {
+    const events = [period('moving', '2026-09-20', '2026-10-01')];
+    const before = getCalendarMonthLayouts(september, 0, 2, events);
+    expect(before[1].weekLayouts[0].segments).toHaveLength(1);
+    events[0].end = '2026-09-30';
+    const after = getCalendarMonthLayouts(september, 0, 2, events);
+    expect(after[1].weekLayouts.every((week) => week.segments.length === 0)).toBe(true);
+    expect(getCalendarMonthLayouts(september, 0, 2, []).every((month) => month.weekLayouts.every((week) => week.lanes === 0))).toBe(true);
+  });
 });

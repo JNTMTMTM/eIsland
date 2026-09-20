@@ -57,11 +57,12 @@ export function getCalendarTimelineEvents(holidays: CalendarHolidayIndex, todos:
  * @returns 可见片段和需要的轨道数
  */
 export function getCalendarWeekTimeline(week: Date[], month: Date, events: CalendarTimelineEvent[]) {
+  const occupied: number[] = [];
+  const segments: CalendarTimelineSegment[] = [];
+  if (!events.length) return { segments, lanes: 0 };
   const days = week.map(getCalendarDateKey);
   const first = week.findIndex((date) => date.getMonth() === month.getMonth());
   const last = week.findLastIndex((date) => date.getMonth() === month.getMonth());
-  const occupied: number[] = [];
-  const segments: CalendarTimelineSegment[] = [];
   events.forEach((event) => {
     if (event.end < days[first] || event.start > days[last]) return;
     const begin = Math.max(first, days.findIndex((day) => day >= event.start));

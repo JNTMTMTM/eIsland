@@ -15,6 +15,7 @@ import { useLayoutEffect, useMemo, useRef, useState, type UIEvent } from 'react'
 import { BUFFER_MONTHS, CALENDAR_MONTH_GAP, CALENDAR_MONTH_HEADER_HEIGHT, CALENDAR_MONTH_LABEL_HEIGHT, CALENDAR_WEEK_HEIGHT } from '../config/calendarConfig';
 import { getCalendarMonthLayouts, getCalendarReflowTop } from '../utils/calendarUtils';
 import { attachCalendarScrollDamping } from '../utils/calendarScrollDamping';
+import { getCalendarViewportRange } from '../utils/calendarViewportUtils';
 import type { CalendarTimelineEvent } from '../types/calendarTimelineTypes';
 
 /**
@@ -41,11 +42,14 @@ export function useCalendarScroll(selectedDate: Date, events: CalendarTimelineEv
   const totalHeight = lastLayout.top + lastLayout.height;
   const layoutsRef = useRef(layouts);
   const eventsRef = useRef(events);
+  const monthStarts = useMemo(() => layouts.map((month) => month.top + CALENDAR_MONTH_GAP - CALENDAR_MONTH_LABEL_HEIGHT), [layouts]);
+  const monthStartsRef = useRef(monthStarts);
 
   useLayoutEffect(() => {
     const previous = layoutsRef.current;
     layoutsRef.current = layouts;
     eventsRef.current = events;
+    monthStartsRef.current = monthStarts;
     // 扩展月份已有单独补偿；这里只修正事件数据引起的行高变化。
     if (previous === layouts || previous[0].index !== layouts[0].index || previous.length !== layouts.length) return;
     const element = scrollRef.current;
@@ -53,14 +57,12 @@ export function useCalendarScroll(selectedDate: Date, events: CalendarTimelineEv
     const top = getCalendarReflowTop(previous, layouts, element.scrollTop);
     element.scrollTop = top;
     setViewport((current) => current.top === top ? current : { ...current, top });
-  }, [layouts]);
+  }, [layouts, events, monthStarts]);
 
   useLayoutEffect(() => {
     const element = scrollRef.current;
     if (!element) return;
-    return attachCalendarScrollDamping(element, () =>
-      layoutsRef.current.map((month) => month.top + CALENDAR_MONTH_GAP - CALENDAR_MONTH_LABEL_HEIGHT)
-    );
+    return attachCalendarScrollDamping(element, () => monthStartsRef.current);
   }, []);
 
   // 按实际月份高度补偿上方新增内容，避免长短月份交界处跳动。
@@ -77,7 +79,7 @@ export function useCalendarScroll(selectedDate: Date, events: CalendarTimelineEv
     const observer = new ResizeObserver(() => {
       setViewport((current) => current.height === element.clientHeight
         ? current
-        : { ...current, height: element.clientHeight });
+        : { ...current, top: element.scrollTop, height: element.clientHeight });
     });
     observer.observe(element);
     return () => observer.disconnect();
@@ -88,9 +90,11 @@ export function useCalendarScroll(selectedDate: Date, events: CalendarTimelineEv
     setViewport((current) => {
       const start = Math.min(current.start, index - BUFFER_MONTHS);
       const end = Math.max(current.end, index + BUFFER_MONTHS + 1);
-      const months = getCalendarMonthLayouts(anchor, start, end, eventsRef.current);
+      const months = start === current.start && end === current.end
+        ? layoutsRef.current
+        : getCalendarMonthLayouts(anchor, start, end, eventsRef.current);
       const month = months[index - start];
-      const compensatedTop = current.top + months[current.start - start].top;
+      const compensatedTop = (scrollRef.current?.scrollTop ?? current.top) + months[current.start - start].top;
       const week = Math.floor((month.date.getDay() + selectedDate.getDate() - 1) / 7);
       const rowTop = month.top + month.weekLayouts[week].top;
       let top = compensatedTop;
@@ -104,6 +108,11 @@ export function useCalendarScroll(selectedDate: Date, events: CalendarTimelineEv
 
   const onScroll = (event: UIEvent<HTMLDivElement>): void => {
     const scrollTop = event.currentTarget.scrollTop;
+    const nearStart = scrollTop < viewport.height * 2;
+    const nearEnd = totalHeight - scrollTop - viewport.height < viewport.height * 2;
+    const next = getCalendarViewportRange(layouts, scrollTop, viewport.height);
+    // 月份窗口不变时由浏览器直接滚动，不触发 React 更新。
+    if (!nearStart && !nearEnd && next.visibleIndex === visibleIndex && next.first === first && next.last === last) return;
     setViewport((current) => {
       let { start, end } = current;
       let top = Math.max(0, scrollTop);
@@ -120,10 +129,7 @@ export function useCalendarScroll(selectedDate: Date, events: CalendarTimelineEv
     });
   };
 
-  const visibleIndex = Math.max(0, layouts.findIndex((month) => month.top + month.height > viewport.top));
-  const lastVisible = layouts.findIndex((month) => month.top >= viewport.top + viewport.height);
-  const first = Math.max(0, visibleIndex - 1);
-  const last = lastVisible < 0 ? layouts.length : Math.min(layouts.length, lastVisible + 1);
+  const { visibleIndex, first, last } = getCalendarViewportRange(layouts, viewport.top, viewport.height);
   const months = useMemo(() => layouts.slice(first, last), [layouts, first, last]);
   const lastMonth = months[months.length - 1];
 

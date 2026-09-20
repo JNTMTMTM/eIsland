@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getCalendarDayDifference, shiftCalendarMonth } from '../utils/calendarUtils';
 import type { CalendarFormats, UseCalendarReturn } from '../types/calendarTypes';
@@ -74,12 +74,12 @@ export function useCalendar(): UseCalendarReturn {
   }, [today]);
 
   /** 选中指定日期 */
-  const selectDate = (date: Date): void => {
+  const selectDate = useCallback((date: Date): void => {
     setSelectedDate(date);
-  };
+  }, []);
 
   /** 日期按钮键盘导航：方向键逐日/逐周，PageUp/PageDown 切月，Home/End 跳首尾 */
-  const handleDateKeyDown = (event: KeyboardEvent<HTMLElement>, date: Date): void => {
+  const handleDateKeyDown = useCallback((event: KeyboardEvent<HTMLElement>, date: Date): void => {
     const offsets: Record<string, number> = {
       ArrowLeft: -1,
       ArrowRight: 1,
@@ -99,7 +99,7 @@ export function useCalendar(): UseCalendarReturn {
     event.preventDefault();
     focusDateRef.current = true;
     setSelectedDate(next);
-  };
+  }, []);
 
   return {
     today,
