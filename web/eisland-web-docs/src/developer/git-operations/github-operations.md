@@ -384,7 +384,7 @@ The eIsland project uses GitHub Actions for continuous integration. CI runs auto
 
 | Stage | Trigger | What It Does |
 |-------|---------|--------------|
-| **Lint** | Every PR and push | Runs ESLint and Prettier checks |
+| **Lint** | Every PR and push | Runs ESLint, Stylelint, and HTML-validate checks |
 | **Test** | Every PR and push | Runs the full test suite (`npm run test` / `mvnw test`) |
 | **Build** | Every PR and push | Builds the project to verify compilation |
 | **Package** | Tag push (`v*`) | Creates release artifacts |

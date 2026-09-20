@@ -212,11 +212,17 @@ These commands are for **testing and maintainer use only**. Regular developers d
 
 | Command | Description | When to Use |
 |---------|-------------|-------------|
-| `comment:check` | Validate source files comply with comment standards (`scripts/check-comment-standards.ts`) | Before committing — ensures JSDoc/Javadoc headers and inline comments follow project conventions |
-| `i18n:check` | Validate i18n completeness — checks all `t()` keys exist in both `zh-CN.json` and `en-US.json` | After any UI change that adds or modifies `t()` translation calls — catches missing translations |
+| `lint` | Run ESLint on the entire project (`eslint . --max-warnings=0`) | Before every commit — catches JS/TS, React, import, and JSDoc violations |
+| `lint:fix` | Run ESLint with auto-fix | After pulling upstream changes or when lint reports fixable issues |
+| `lint:css` | Run Stylelint on all CSS/SCSS files | After modifying styles — enforces property order, selector limits, and naming |
+| `lint:css:fix` | Run Stylelint with auto-fix | When Stylelint reports fixable CSS issues |
+| `lint:html` | Validate HTML files against project standards | After modifying HTML files — enforces doctype, lang, and accessibility rules |
+| `lint:all` | Run all checks in parallel (ESLint + Stylelint + HTML + i18n) | Before opening a PR — comprehensive quality gate |
+| `comment:check` | Validate source files comply with comment standards | Before committing — ensures JSDoc headers and inline comments follow conventions |
+| `i18n:check` | Validate i18n completeness — all `t()` keys in both locale files | After any UI change that adds or modifies `t()` translation calls |
 
 :::warning
-Both `comment:check` and `i18n:check` use `--experimental-strip-types` (Node.js 22+ native TS execution). Ensure your Node.js version meets the requirement.
+`comment:check` and `i18n:check` use `--experimental-strip-types` (Node.js 22+ native TS execution). Ensure your Node.js version meets the requirement. See [Quality Commands](/developer/commands/quality-commands.md) for full details.
 :::
 
 ### Lifecycle Hooks
