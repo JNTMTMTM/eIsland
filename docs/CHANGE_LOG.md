@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-09-20T00:34:13.982Z
+> 生成时间：2026-09-20T22:08:05.869Z
 
 ## 26.7.4
 
@@ -3569,6 +3569,17 @@
 
 ## Unreleased
 
+- 2026-09-20 | ed436d72 | 鸡哥 | Merge pull request #218 from JNTMTMTM/dev
+- 2026-09-21 | e7d25bbe | 鸡哥 | feat(ci): enhance PR comment report with escaped table cells and collapsible sections for changed files
+- 2026-09-21 | c3af653f | 鸡哥 | feat(ci): enhance markdown link check workflow with external and local link validation
+- 2026-09-21 | 30527e8d | 鸡哥 | feat(docs): update license and author information across configuration files
+- 2026-09-21 | fbafda02 | 鸡哥 | feat(lint): enhance lint reporting and documentation for local checks
+- 2026-09-21 | 0c32bb3f | 鸡哥 | feat(docs): add ESLint report generation commands to quality commands documentation
+- 2026-09-21 | f6e6a449 | 鸡哥 | feat(lint): add ESLint report generation scripts for HTML and JSON formats
+- 2026-09-20 | 3cbdde33 | 鸡哥 | chore: update vite-env.d.ts with comprehensive licensing and author information
+- 2026-09-20 | 8439f546 | 鸡哥 | docs: update code quality documentation to include ESLint, Stylelint, and HTML validation commands
+- 2026-09-20 | b5751e77 | 鸡哥 | feat(lint): integrate ESLint and Stylelint configurations with custom rules
+- 2026-09-20 | d0ef2f2d | eislandBot | docs: auto update CHANGE_LOG.md for #217 by @JNTMTMTM [skip ci]
 - 2026-09-19 | d57d73d9 | 鸡哥 | Merge pull request #217 from JNTMTMTM/dev
 - 2026-09-20 | 0b9d07cc | 鸡哥 | feat(weather): add coordinate-based district resolution and enhance location metadata handling
 - 2026-09-20 | 03ce53f4 | 鸡哥 | refactor(calendar): replace for loops with forEach for better readability in calendar utilities
