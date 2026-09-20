@@ -683,7 +683,8 @@
 
 }
 
-.countdown-calendar .react-datepicker__day:hover {
+/* 覆盖组件自带的 :not([aria-disabled=true]):hover，避免延迟加载后出现浅色背景。 */
+.countdown-calendar .react-datepicker__day:not([aria-disabled="true"]):hover {
   color: rgb(var(--color-text-rgb));
   background: rgb(105 192 255 / 20%);
 
@@ -710,7 +711,8 @@
 
 }
 
-.countdown-calendar .react-datepicker__day--selected, .countdown-calendar .react-datepicker__day--selected:hover {
+.countdown-calendar .react-datepicker__day--selected,
+.countdown-calendar .react-datepicker__day--selected:not([aria-disabled="true"]):hover {
   color: #071d30;
   background: #85ccff;
   border-radius: 5px;
