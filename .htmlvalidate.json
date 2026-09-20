@@ -1,0 +1,17 @@
+{
+  "root": true,
+  "extends": ["html-validate:recommended"],
+  "plugins": ["./scripts/lint/html-rules.cjs"],
+  "rules": {
+    "eisland/document-standards": "error",
+    "doctype-style": ["error", { "style": "lowercase" }],
+    "missing-doctype": "error",
+    "attr-quotes": ["error", { "style": "double" }],
+    "attribute-boolean-style": ["error", { "style": "omit" }],
+    "void-style": ["error", { "style": "omit" }],
+    "heading-level": "error",
+    "input-missing-label": "error",
+    "no-missing-references": "error",
+    "no-inline-style": "off"
+  }
+}
