@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-09-14T23:53:33.008Z
+> 生成时间：2026-09-20T00:34:13.982Z
 
 ## 26.7.4
 
@@ -3569,6 +3569,38 @@
 
 ## Unreleased
 
+- 2026-09-19 | d57d73d9 | 鸡哥 | Merge pull request #217 from JNTMTMTM/dev
+- 2026-09-20 | 0b9d07cc | 鸡哥 | feat(weather): add coordinate-based district resolution and enhance location metadata handling
+- 2026-09-20 | 03ce53f4 | 鸡哥 | refactor(calendar): replace for loops with forEach for better readability in calendar utilities
+- 2026-09-20 | 54140f0f | 鸡哥 | refactor(calendar): update CalendarMonthGridProps type definition for clarity and consistency
+- 2026-09-20 | af43a5b9 | 鸡哥 | feat(calendar): implement month grid component and optimize calendar rendering
+- 2026-09-20 | 09c4af13 | 鸡哥 | refactor(calendar): simplify holiday parsing and improve error handling in tests
+- 2026-09-20 | 0f1225ed | 鸡哥 | feat(calendar): remove month progress and days in month from CalendarDetailPanel and CalendarTab
+- 2026-09-20 | 20ae0916 | 鸡哥 | feat(calendar): improve focus styles for region select and holiday status button
+- 2026-09-20 | afa2c3d2 | 鸡哥 | feat(calendar): enhance region selection styling for improved usability
+- 2026-09-20 | edffb8f5 | 鸡哥 | feat(calendar): enhance CalendarDetailPanel layout and styling for improved user experience
+- 2026-09-20 | d7e3cb6b | 鸡哥 | feat(calendar): enhance holiday region select styles for better user interaction
+- 2026-09-20 | 51394ec1 | 鸡哥 | feat(calendar): integrate holiday API and enhance calendar functionality
+- 2026-09-19 | cdf20194 | 鸡哥 | feat(calendar): conditionally display lunar date details based on locale settings
+- 2026-09-19 | c408fb3d | 鸡哥 | feat(calendar): add month label display and enhance calendar layout with new configuration
+- 2026-09-18 | 93d1c5cd | 鸡哥 | refactor(calendar): optimize scroll damping logic and enhance snapping behavior
+- 2026-09-18 | e7366fd1 | 鸡哥 | feat(calendar): enhance scroll damping functionality with month alignment and dynamic updates
+- 2026-09-18 | 53b8c251 | 鸡哥 | feat(calendar): implement scroll damping for smoother calendar navigation
+- 2026-09-18 | bd5071fe | 鸡哥 | feat(calendar): enhance calendar components with improved styling and layout structure
+- 2026-09-18 | 5a07dce6 | 鸡哥 | refactor(calendar): streamline month layout calculations and improve header accessibility
+- 2026-09-18 | d487ff84 | 鸡哥 | fix(calendar): adjust date calculations for week and month layouts to ensure accurate rendering
+- 2026-09-18 | 72d9596f | 鸡哥 | feat(calendar): update CalendarDetailPanel and CalendarGrid styles for improved aesthetics and usability
+- 2026-09-18 | 9ba71f36 | 鸡哥 | feat(calendar): enhance month layout with clear separation and improved scrolling functionality
+- 2026-09-18 | bd75bb40 | 鸡哥 | feat(calendar): implement continuous week calendar with native scrolling and date range expansion
+- 2026-09-18 | 68787197 | 鸡哥 | feat(calendar): implement month navigation via scroll and remove previous/next month buttons for improved usability
+- 2026-09-17 | dea714fc | 鸡哥 | feat(calendar): refactor CalendarTab and add CalendarGrid and CalendarDetailPanel components for improved structure and functionality
+- 2026-09-16 | 56013807 | 鸡哥 | feat(calendar): hide scrollbar in CalendarTab for a cleaner interface
+- 2026-09-16 | 8562c8fd | 鸡哥 | feat(calendar): update selected date styling in CalendarTab for improved visibility
+- 2026-09-16 | 8c0ef63f | 鸡哥 | feat(calendar): implement CalendarTab with month navigation and lunar date details; add calendar translations
+- 2026-09-15 | a384e6b5 | 鸡哥 | feat(i18n): update translation entries for new MaxExpand Tab in multiple locations
+- 2026-09-15 | 12736a7e | 鸡哥 | feat(i18n): add new navigation labels and translations for stock, calculator, world clock, and calendar
+- 2026-09-15 | aeeccf9e | 鸡哥 | feat(calendar): add CalendarTab component and integrate into MaxExpand
+- 2026-09-14 | 3b866695 | eislandBot | docs: auto update CHANGE_LOG.md for #216 by @JNTMTMTM [skip ci]
 - 2026-09-14 | d248ad1a | 鸡哥 | Merge pull request #216 from JNTMTMTM/dev
 - 2026-09-15 | 92af63f1 | 鸡哥 | feat(tests): refactor date validation tests to use forEach for improved readability
 - 2026-09-15 | 21518d45 | 鸡哥 | feat(todo): update clear deadline button to use icon and improve styling for better visibility
