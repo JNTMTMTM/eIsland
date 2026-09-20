@@ -20,102 +20,45 @@
 
 /**
  * @file CountdownWidget.tsx
- * @description Overview 倒数日小组件，展示最近的倒计时事件卡片。
+ * @description expand 倒数日小组件，与管理页共用卡片、排序及存储订阅。
  * @author 鸡哥
  */
 
-import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { CD_TYPE_LABELS, cdDiffDays, type CountdownDateItem } from '../../utils/overviewUtils';
+import { CountdownCard } from '../../../../../maxExpand/components/countdown/components/CountdownCard';
+import { useCountdownItems } from '../../../../../maxExpand/components/countdown/hooks/useCountdownItems';
+import { useCountdownToday } from '../../../../../maxExpand/components/countdown/hooks/useCountdownToday';
+import { isArchived, sortCountdownItems } from '../../../../../maxExpand/components/countdown/utils/countdownUtils';
+import type { ReactElement } from 'react';
 
 interface CountdownWidgetProps {
   openTargetPage: (target: 'todo' | 'countdown' | 'settings') => void;
 }
 
-/** 倒数日小组件，展示最近的倒计时事件卡片。 */
-export function CountdownWidget({ openTargetPage }: CountdownWidgetProps): React.ReactElement {
+/**
+ * 展示置顶或最近两项事件，并通过既有状态转换进入倒数日管理页。
+ * @param props - expand 页面导航回调
+ * @param props.openTargetPage - 打开管理页的状态转换回调
+ * @returns 倒数日小组件
+ */
+export function CountdownWidget({ openTargetPage }: CountdownWidgetProps): ReactElement {
   const { t } = useTranslation();
-  const [cdItems, setCdItems] = useState<CountdownDateItem[]>([]);
-
-  useEffect(() => {
-    let cancelled = false;
-    const applyCountdownData = (data: unknown): void => {
-      if (!Array.isArray(data)) return;
-      setCdItems(data as CountdownDateItem[]);
-    };
-
-    window.api.storeRead('countdown-dates').then((data) => {
-      if (cancelled) return;
-      applyCountdownData(data);
-    }).catch(() => {});
-
-    const unsub = window.api.onSettingsChanged((channel: string, value: unknown) => {
-      if (cancelled) return;
-      if (channel === 'store:countdown-dates') {
-        applyCountdownData(value);
-      }
-    });
-
-    return () => {
-      cancelled = true;
-      unsub();
-    };
-  }, []);
-
-  const sorted = [...cdItems].sort((a, b) => {
-    const da = Math.abs(cdDiffDays(a.date));
-    const db = Math.abs(cdDiffDays(b.date));
-    return da - db;
-  }).slice(0, 2);
-
-  const goToCountdown = (): void => {
-    openTargetPage('countdown');
-  };
-
+  const { items, loaded, error } = useCountdownItems();
+  const now = useCountdownToday();
+  const active = sortCountdownItems(items.filter((item) => !isArchived(item, now)), now);
+  const shown = active.slice(0, 2);
+  const open = (): void => openTargetPage('countdown');
   return (
     <div className="ov-dash-widget ov-dash-countdown-widget">
       <div className="ov-dash-widget-header">
-        <span className="ov-dash-widget-title ov-dash-widget-title--link" onClick={goToCountdown}>{t('overview.countdown.title', { defaultValue: '倒数日' })}</span>
+        <button className="ov-dash-widget-title cd-widget-link" type="button" onClick={open}>{t('overview.countdown.title')}</button>
+        <button className="cd-widget-link cd-widget-more" type="button" onClick={open}>{t('countdown.manage.viewAll', { count: active.length })}</button>
       </div>
-      {sorted.length === 0 ? (
-        <div className="ov-dash-countdown-empty">{t('overview.countdown.empty', { defaultValue: '暂无倒数日' })}</div>
-      ) : (
-        <div className={`ov-dash-countdown-cards ${sorted.length === 1 ? 'single' : ''}`}>
-          {sorted.map((item) => {
-            const days = cdDiffDays(item.date);
-            const typeLabel = t(`countdown.types.${item.type}`, { defaultValue: CD_TYPE_LABELS[item.type] || item.type });
-            return (
-              <div
-                key={item.id}
-                className={`cd-card cd-card-${item.type} ov-cd-card`}
-                style={{ borderColor: item.color }}
-              >
-                {item.backgroundImage && (
-                  <div className="cd-card-bg" style={{ backgroundImage: `url(${item.backgroundImage})`, opacity: item.backgroundOpacity ?? 0.5 }} />
-                )}
-                <div className="cd-card-overlay" style={{ background: `linear-gradient(135deg, ${item.color}30, ${item.color}10)` }} />
-                <div className="cd-card-content">
-                  <div className="cd-card-top-row">
-                    <span className="cd-card-type-badge" style={{ background: `${item.color}50`, color: '#fff' }}>{typeLabel}</span>
-                  </div>
-                  <div className="cd-card-name">{item.name}</div>
-                  {item.description && <div className="cd-card-desc">{item.description}</div>}
-                  <div className="cd-card-bottom">
-                    <span className="cd-card-date">{item.date}</span>
-                    <span className="cd-card-days" style={{ color: item.color }}>
-                      {days > 0
-                        ? t('countdown.days.after', { defaultValue: '{{days}} 天后', days })
-                        : days === 0
-                          ? t('countdown.days.today', { defaultValue: '就是今天' })
-                          : t('countdown.days.before', { defaultValue: '{{days}} 天前', days: Math.abs(days) })}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
+      {shown.length === 0 ? <button className="ov-dash-countdown-empty cd-widget-link" type="button" onClick={open}>
+        {t(error ? 'countdown.manage.saveError' : !loaded ? 'countdown.manage.loading' : 'countdown.manage.new')}
+      </button> : <div className={`ov-dash-countdown-cards ${shown.length === 1 ? 'single' : ''}`}>
+        {shown.map((item) => <CountdownCard key={item.id} item={item} now={now} compact onClick={open} />)}
+      </div>}
     </div>
   );
 }

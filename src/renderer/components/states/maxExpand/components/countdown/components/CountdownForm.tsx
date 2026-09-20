@@ -20,292 +20,106 @@
 
 /**
  * @file CountdownForm.tsx
- * @description 倒数日新建/编辑表单组件。
+ * @description 共用事件表单，分别设置分类、计时规则和外观。
  * @author 鸡哥
  */
 
-import type { ReactElement } from 'react';
+import { useState, type ReactElement, type Dispatch, type SetStateAction } from 'react';
 import { useTranslation } from 'react-i18next';
 import { COLOR_PRESETS, EVENT_TYPES } from '../config/countdownConfig';
-import { normalizeImageSource, toLocalDateStr } from '../utils/countdownUtils';
-import type { CountdownFormProps } from '../types/countdownTypes';
+import { defaultRules, normalizeImageSource } from '../utils/countdownUtils';
+import type { CountdownDraft, EventType } from '../types/countdownTypes';
 
-/** 新建/编辑事件表单 */
-export function CountdownForm({
-  editing, selectedDate, editItem, resolvedCoverImage,
-  form, onAdd, onSaveEdit, onCancelEdit,
-  getEventTypeLabel,
-}: CountdownFormProps): ReactElement {
+interface CountdownFormProps {
+  draft: CountdownDraft;
+  setDraft: Dispatch<SetStateAction<CountdownDraft>>;
+  editing: boolean;
+  saving: boolean;
+  resolvedCoverImage: string | null;
+  onSave: () => Promise<void>;
+  onCancel: () => void;
+  onDelete?: () => void;
+}
+
+/**
+ * 编辑事件内容与规则，外观放入可展开区域。
+ * @param props - 草稿、保存状态及操作
+ * @param props.draft - 未保存的事件草稿
+ * @param props.setDraft - 更新草稿
+ * @param props.editing - 是否编辑已有事件
+ * @param props.saving - 是否正在保存
+ * @param props.resolvedCoverImage - 当前专辑封面
+ * @param props.onSave - 保存草稿
+ * @param props.onCancel - 取消编辑
+ * @param props.onDelete - 删除当前事件
+ * @returns 可提交表单
+ */
+export function CountdownForm({ draft, setDraft, editing, saving, resolvedCoverImage, onSave, onCancel, onDelete }: CountdownFormProps): ReactElement {
   const { t } = useTranslation();
-
-  /* ── 编辑模式 ── */
-  if (editing && editItem) {
-    return (
-      <div className="cd-editor-form">
-        <div className="cd-editor-title">{t('countdown.editTitle', { defaultValue: '编辑事件' })}</div>
-        <input
-          className="cd-input"
-          value={form.editData.name || ''}
-          onChange={(e) => form.setEditData(prev => ({ ...prev, name: e.target.value }))}
-          placeholder={t('countdown.namePlaceholder', { defaultValue: '事件名称' })}
-        />
-        <textarea
-          className="cd-textarea"
-          value={form.editData.description || ''}
-          onChange={(e) => form.setEditData(prev => ({ ...prev, description: e.target.value }))}
-          placeholder={t('countdown.descPlaceholder', { defaultValue: '描述（可选）' })}
-          rows={2}
-        />
-        <div className="cd-form-row">
-          <span className="cd-form-label">{t('countdown.form.type', { defaultValue: '类型' })}</span>
-          <div className="cd-type-selector">
-            {EVENT_TYPES.map(type => (
-              <button
-                key={type}
-                className={`cd-type-btn ${form.editData.type === type ? 'active' : ''}`}
-                onClick={() => form.setEditData(prev => ({ ...prev, type }))}
-                type="button"
-                title={getEventTypeLabel(type)}
-              >
-                <span className="cd-type-label">{getEventTypeLabel(type)}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-        <div className="cd-form-row">
-          <span className="cd-form-label">{t('countdown.form.color', { defaultValue: '颜色' })}</span>
-          <div className="cd-color-row">
-            {COLOR_PRESETS.map(c => (
-              <button
-                key={c}
-                className={`cd-color-dot ${(form.editData.color || '#69c0ff') === c ? 'active' : ''}`}
-                style={{ background: c }}
-                onClick={() => form.setEditData(prev => ({ ...prev, color: c }))}
-                type="button"
-              />
-            ))}
-            <button
-              className="cd-color-dot cd-color-custom-trigger"
-              style={{ background: COLOR_PRESETS.includes(form.editData.color || '') ? undefined : form.editData.color }}
-              onClick={() => form.editCustomColorRef.current?.click()}
-              type="button"
-              title={t('countdown.form.customColor', { defaultValue: '自定义颜色' })}
-            >
-              <span className="cd-color-custom-icon">+</span>
-            </button>
-            <input
-              ref={form.editCustomColorRef}
-              type="color"
-              className="cd-color-native-hidden"
-              value={form.editData.color || '#69c0ff'}
-              onChange={form.handleEditColorInput}
-            />
-          </div>
-        </div>
-        <div className="cd-form-row">
-          <span className="cd-form-label">{t('countdown.form.background', { defaultValue: '背景' })}</span>
-          <div className="cd-bg-row">
-            <button
-              className={`cd-bg-btn ${form.editBgImage && resolvedCoverImage && form.editBgImage === resolvedCoverImage ? 'active' : ''}`}
-              type="button"
-              title={resolvedCoverImage
-                ? t('countdown.form.useAlbumCover', { defaultValue: '使用当前专辑封面' })
-                : t('countdown.form.noPlayingSong', { defaultValue: '暂无正在播放的歌曲' })}
-              disabled={!resolvedCoverImage}
-              onClick={() => { if (resolvedCoverImage) form.setEditBgImage(resolvedCoverImage); }}
-            >
-              {resolvedCoverImage ? (
-                <img src={resolvedCoverImage} className="cd-bg-btn-thumb" alt="" />
-              ) : (
-                <span className="cd-bg-btn-icon">♪</span>
-              )}
-            </button>
-            <span className="cd-bg-label">{t('countdown.form.albumBackground', { defaultValue: '专辑背景' })}</span>
-            <button
-              className="cd-bg-btn"
-              type="button"
-              title={t('countdown.form.selectImageFile', { defaultValue: '从文件选择图片' })}
-              onClick={async () => {
-                const path = await window.api.openImageDialog();
-                if (path) {
-                  const normalized = await normalizeImageSource(path);
-                  if (normalized) form.setEditBgImage(normalized);
-                }
-              }}
-            >
-              <span className="cd-bg-btn-icon">…</span>
-            </button>
-            <span className="cd-bg-label">{t('countdown.form.customBackground', { defaultValue: '自定义背景' })}</span>
-            {form.editBgImage && (
-              <button
-                className="cd-bg-btn cd-bg-btn-clear"
-                type="button"
-                title={t('countdown.form.clearBackground', { defaultValue: '清除背景' })}
-                onClick={() => form.setEditBgImage(undefined)}
-              >
-                <span className="cd-bg-btn-icon">x</span>
-              </button>
-            )}
-          </div>
-        </div>
-        {form.editBgImage && (
-          <div className="cd-form-row">
-            <span className="cd-form-label">{t('countdown.form.opacity', { defaultValue: '透明度' })}</span>
-            <input
-              type="range"
-              className="cd-opacity-slider"
-              min={0} max={1} step={0.05}
-              value={form.editBgOpacity}
-              onChange={(e) => form.setEditBgOpacity(parseFloat(e.target.value))}
-            />
-            <span className="cd-opacity-value">{Math.round(form.editBgOpacity * 100)}%</span>
-          </div>
-        )}
-        <div className="cd-form-actions">
-          <button className="cd-btn save" onClick={onSaveEdit} type="button">{t('countdown.actions.save', { defaultValue: '保存' })}</button>
-          <button className="cd-btn cancel" onClick={onCancelEdit} type="button">{t('countdown.actions.cancel', { defaultValue: '取消' })}</button>
-        </div>
-      </div>
-    );
-  }
-
-  /* ── 新建模式 ── */
+  const [imageError, setImageError] = useState(false);
+  const change = (patch: Partial<CountdownDraft>): void => setDraft((value) => ({ ...value, ...patch }));
+  const selectImage = async (): Promise<void> => {
+    try {
+      const path = await window.api.openImageDialog();
+      if (path) change({ backgroundImage: await normalizeImageSource(path) });
+      setImageError(false);
+    } catch { setImageError(true); }
+  };
   return (
-    <div className="cd-editor-form">
-      <div className="cd-editor-title">
-        {selectedDate
-          ? t('countdown.newTitleWithDate', { defaultValue: '新建事件 - {{date}}', date: toLocalDateStr(selectedDate) })
-          : t('countdown.newTitlePlaceholder', { defaultValue: '< 选择日期以添加事件' })}
+    <form className="cd-editor-form" onSubmit={(e) => { e.preventDefault(); void onSave(); }}>
+      <label className="cd-field">{t('countdown.namePlaceholder')}
+        <input className="cd-input" required maxLength={120} value={draft.name} autoFocus onChange={(e) => change({ name: e.target.value })} />
+      </label>
+      <div className="cd-form-grid">
+        <label className="cd-field">{t('countdown.manage.date')}
+          <input className="cd-input" type="date" required min="1900-01-01" max="9999-12-31" value={draft.date} onChange={(e) => { if (e.target.value) change({ date: e.target.value }); }} />
+        </label>
+        <label className="cd-field">{t('countdown.form.type')}
+          <select className="cd-input" value={draft.type} onChange={(e) => {
+            const type = e.target.value as EventType;
+            change({ type, ...defaultRules(type) });
+          }}>{EVENT_TYPES.map((type) => <option value={type} key={type}>{t(`countdown.types.${type}`)}</option>)}</select>
+        </label>
+        <label className="cd-field">{t('countdown.manage.mode')}
+          <select className="cd-input" value={draft.mode ?? 'down'} onChange={(e) => change({ mode: e.target.value as 'up' | 'down', repeat: 'none', expiryAction: 'continue' })}>
+            <option value="down">{t('countdown.manage.down')}</option><option value="up">{t('countdown.manage.up')}</option>
+          </select>
+        </label>
+        {draft.mode !== 'up' ? <label className="cd-field">{t('countdown.manage.expiry')}
+          <select className="cd-input" value={draft.repeat === 'yearly' ? 'yearly' : draft.expiryAction ?? 'continue'}
+            onChange={(e) => change({ repeat: e.target.value === 'yearly' ? 'yearly' : 'none', expiryAction: e.target.value === 'archive' ? 'archive' : 'continue' })}>
+            <option value="continue">{t('countdown.manage.continue')}</option><option value="yearly">{t('countdown.manage.yearly')}</option><option value="archive">{t('countdown.manage.autoArchive')}</option>
+          </select>
+        </label> : <label className="cd-check"><input type="checkbox" checked={Boolean(draft.includeToday)} onChange={(e) => change({ includeToday: e.target.checked })} />{t('countdown.manage.includeToday')}</label>}
       </div>
-      <input
-        className="cd-input"
-        placeholder={t('countdown.namePlaceholder', { defaultValue: '事件名称' })}
-        value={form.newName}
-        onChange={(e) => form.setNewName(e.target.value)}
-        onKeyDown={(e) => { if (e.key === 'Enter') onAdd(); }}
-      />
-      <textarea
-        className="cd-textarea"
-        placeholder={t('countdown.descPlaceholder', { defaultValue: '描述（可选）' })}
-        value={form.newDesc}
-        onChange={(e) => form.setNewDesc(e.target.value)}
-        rows={2}
-      />
-      <div className="cd-form-row">
-        <span className="cd-form-label">{t('countdown.form.type', { defaultValue: '类型' })}</span>
-        <div className="cd-type-selector">
-          {EVENT_TYPES.map(type => (
-            <button
-              key={type}
-              className={`cd-type-btn ${form.newType === type ? 'active' : ''}`}
-              onClick={() => form.setNewType(type)}
-              type="button"
-              title={getEventTypeLabel(type)}
-            >
-              <span className="cd-type-label">{getEventTypeLabel(type)}</span>
-            </button>
-          ))}
+      <p className="cd-hint">{t(draft.mode === 'up' ? 'countdown.manage.upHint' : 'countdown.manage.downHint')}</p>
+      <label className="cd-field">{t('countdown.descPlaceholder')}
+        <textarea className="cd-textarea" value={draft.description ?? ''} rows={2} maxLength={500} onChange={(e) => change({ description: e.target.value })} />
+      </label>
+      <fieldset className="cd-reminders"><legend>{t('countdown.manage.reminders')}</legend>
+        {[7, 1, 0].map((days) => (<label className="cd-check" key={days}><input type="checkbox" checked={draft.reminderDays?.includes(days) ?? false}
+          onChange={(e) => change({ reminderDays: e.target.checked ? [...(draft.reminderDays ?? []), days] : draft.reminderDays?.filter((day) => day !== days) })} />
+        {t(days === 0 ? 'countdown.manage.onDate' : 'countdown.manage.beforeDate', { days })}</label>))}
+        <p className="cd-hint">{t('countdown.manage.reminderHint')}</p>
+      </fieldset>
+      <details className="cd-appearance"><summary>{t('countdown.manage.appearance')}</summary>
+        <div className="cd-color-row">{COLOR_PRESETS.map((color) => (<button className={`cd-color-dot${draft.color === color ? ' active' : ''}`} key={color} type="button"
+          style={{ background: color }} title={t('countdown.manage.colorValue', { color })} aria-label={t('countdown.manage.colorValue', { color })} aria-pressed={draft.color === color} onClick={() => change({ color })} />))}
+        <label className="cd-check">{t('countdown.form.customColor')}<input type="color" value={draft.color} onChange={(e) => change({ color: e.target.value })} /></label>
         </div>
-      </div>
-      <div className="cd-form-row">
-        <span className="cd-form-label">{t('countdown.form.color', { defaultValue: '颜色' })}</span>
-        <div className="cd-color-row">
-          {COLOR_PRESETS.map(c => (
-            <button
-              key={c}
-              className={`cd-color-dot ${form.newColor === c ? 'active' : ''}`}
-              style={{ background: c }}
-              onClick={() => form.setNewColor(c)}
-              type="button"
-            />
-          ))}
-          <button
-            className="cd-color-dot cd-color-custom-trigger"
-            style={{ background: COLOR_PRESETS.includes(form.newColor) ? undefined : form.newColor }}
-            onClick={() => form.addCustomColorRef.current?.click()}
-            type="button"
-            title={t('countdown.form.customColor', { defaultValue: '自定义颜色' })}
-          >
-            <span className="cd-color-custom-icon">+</span>
-          </button>
-          <input
-            ref={form.addCustomColorRef}
-            type="color"
-            className="cd-color-native-hidden"
-            value={form.newColor}
-            onChange={form.handleAddColorInput}
-          />
+        <div className="cd-form-actions">
+          <button className="cd-btn cancel" type="button" disabled={!resolvedCoverImage} onClick={() => { if (resolvedCoverImage) change({ backgroundImage: resolvedCoverImage }); }}>{t('countdown.form.albumBackground')}</button>
+          <button className="cd-btn cancel" type="button" onClick={() => void selectImage()}>{t('countdown.form.customBackground')}</button>
+          {draft.backgroundImage && <button className="cd-btn cancel" type="button" onClick={() => change({ backgroundImage: undefined })}>{t('countdown.form.clearBackground')}</button>}
         </div>
-      </div>
-      <div className="cd-form-row">
-        <span className="cd-form-label">{t('countdown.form.background', { defaultValue: '背景' })}</span>
-        <div className="cd-bg-row">
-          <button
-            className={`cd-bg-btn ${form.newBgImage && resolvedCoverImage && form.newBgImage === resolvedCoverImage ? 'active' : ''}`}
-            type="button"
-            title={resolvedCoverImage
-              ? t('countdown.form.useAlbumCover', { defaultValue: '使用当前专辑封面' })
-              : t('countdown.form.noPlayingSong', { defaultValue: '暂无正在播放的歌曲' })}
-            disabled={!resolvedCoverImage}
-            onClick={() => { if (resolvedCoverImage) form.setNewBgImage(resolvedCoverImage); }}
-          >
-            {resolvedCoverImage ? (
-              <img src={resolvedCoverImage} className="cd-bg-btn-thumb" alt="" />
-            ) : (
-              <span className="cd-bg-btn-icon">♪</span>
-            )}
-          </button>
-          <span className="cd-bg-label">{t('countdown.form.albumBackground', { defaultValue: '专辑背景' })}</span>
-          <button
-            className="cd-bg-btn"
-            type="button"
-            title={t('countdown.form.selectImageFile', { defaultValue: '从文件选择图片' })}
-            onClick={async () => {
-              const path = await window.api.openImageDialog();
-              if (path) {
-                const normalized = await normalizeImageSource(path);
-                if (normalized) form.setNewBgImage(normalized);
-              }
-            }}
-          >
-            <span className="cd-bg-btn-icon">…</span>
-          </button>
-          <span className="cd-bg-label">{t('countdown.form.customBackground', { defaultValue: '自定义背景' })}</span>
-          {form.newBgImage && (
-            <button
-              className="cd-bg-btn cd-bg-btn-clear"
-              type="button"
-              title={t('countdown.form.clearBackground', { defaultValue: '清除背景' })}
-              onClick={() => form.setNewBgImage(undefined)}
-            >
-              <span className="cd-bg-btn-icon">x</span>
-            </button>
-          )}
-        </div>
-      </div>
-      {form.newBgImage && (
-        <div className="cd-form-row">
-          <span className="cd-form-label">{t('countdown.form.opacity', { defaultValue: '透明度' })}</span>
-          <input
-            type="range"
-            className="cd-opacity-slider"
-            min={0} max={1} step={0.05}
-            value={form.newBgOpacity}
-            onChange={(e) => form.setNewBgOpacity(parseFloat(e.target.value))}
-          />
-          <span className="cd-opacity-value">{Math.round(form.newBgOpacity * 100)}%</span>
-        </div>
-      )}
+        {draft.backgroundImage && <label className="cd-field">{t('countdown.form.opacity')}<input type="range" min={0} max={1} step={0.05} value={draft.backgroundOpacity ?? 0.35} onChange={(e) => change({ backgroundOpacity: Number(e.target.value) })} /></label>}
+        {imageError && <p role="alert" className="cd-error">{t('countdown.manage.imageError')}</p>}
+      </details>
       <div className="cd-form-actions">
-        <button
-          className="cd-btn save"
-          onClick={onAdd}
-          disabled={!selectedDate || !form.newName.trim()}
-          type="button"
-        >
-          {t('countdown.actions.add', { defaultValue: '添加' })}
-        </button>
+        <button className="cd-btn save" type="submit" disabled={saving || !draft.name.trim()}>{t(saving ? 'countdown.manage.saving' : editing ? 'countdown.actions.save' : 'countdown.actions.add')}</button>
+        <button className="cd-btn cancel" type="button" disabled={saving} onClick={onCancel}>{t('countdown.actions.cancel')}</button>
+        {onDelete && <button className="cd-btn danger" type="button" disabled={saving} onClick={onDelete}>{t('countdown.manage.delete')}</button>}
       </div>
-    </div>
+    </form>
   );
 }

@@ -20,51 +20,54 @@
 
 /**
  * @file CountdownCardList.tsx
- * @description 倒数日卡片水平列表。
+ * @description 可滚动事件网格，提供编辑、置顶、复制、归档与恢复操作。
  * @author 鸡哥
  */
 
-import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Archive, ArchiveRestore, Copy, Pencil, Pin, PinOff } from 'lucide-react';
+import { isArchived } from '../utils/countdownUtils';
 import { CountdownCard } from './CountdownCard';
-import { diffDays } from '../utils/countdownUtils';
-import type { CountdownCardListProps } from '../types/countdownTypes';
+import type { ReactElement } from 'react';
+import type { CountdownItem } from '../types/countdownTypes';
 
-/** 下部卡片水平列表 */
-export function CountdownCardList({
-  items, onStartEdit, onRemove,
-  getEventTypeLabel, formatDayText,
-  cardsRef, onWheel,
-}: CountdownCardListProps): ReactElement {
+interface CountdownCardListProps {
+  items: CountdownItem[];
+  now: Date;
+  saving: boolean;
+  onStartEdit: (item: CountdownItem) => void;
+  onAction: (item: CountdownItem, action: 'pin' | 'copy' | 'archive') => void;
+}
+
+/**
+ * 展示筛选后的事件及可键盘访问的快捷操作。
+ * @param props - 条目及操作回调
+ * @param props.items - 排序筛选后的事件
+ * @param props.now - 当前本地日期
+ * @param props.saving - 是否正在保存
+ * @param props.onStartEdit - 打开编辑器
+ * @param props.onAction - 持久化快捷操作
+ * @returns 自适应卡片网格
+ */
+export function CountdownCardList({ items, now, saving, onStartEdit, onAction }: CountdownCardListProps): ReactElement {
   const { t } = useTranslation();
-
   return (
-    <div className="cd-cards-wrap" ref={cardsRef} onWheel={onWheel}>
-      {items.length === 0 ? (
-        <div className="cd-cards-empty">{t('countdown.empty', { defaultValue: '选择日期并添加事件' })}</div>
-      ) : (
-        items.map(item => {
-          const days = diffDays(item.date);
-          return (
-            <CountdownCard
-              key={item.id}
-              item={item}
-              color={item.color}
-              type={item.type}
-              name={item.name}
-              description={item.description}
-              backgroundImage={item.backgroundImage}
-              backgroundOpacity={item.backgroundOpacity}
-              dateText={item.date}
-              daysText={formatDayText(days)}
-              showDelete
-              onDelete={(e) => { e.stopPropagation(); onRemove(item.id); }}
-              onClick={() => onStartEdit(item)}
-              getEventTypeLabel={getEventTypeLabel}
-            />
-          );
-        })
-      )}
+    <div className="cd-cards-wrap" onWheel={(e) => e.stopPropagation()}>
+      {items.length === 0 ? <div className="cd-cards-empty">{t('countdown.manage.empty')}</div>
+        : items.map((item) => (<article className="cd-event" key={item.id}>
+          <CountdownCard item={item} now={now} onClick={() => onStartEdit(item)} />
+          <div className="cd-card-actions">
+            <button type="button" title={t('countdown.manage.edit')} aria-label={t('countdown.manage.edit')} onClick={() => onStartEdit(item)}><Pencil size={14} /></button>
+            <button type="button" disabled={saving} title={t(item.pinned ? 'countdown.manage.unpin' : 'countdown.manage.pin')}
+              aria-label={t(item.pinned ? 'countdown.manage.unpin' : 'countdown.manage.pin')} aria-pressed={Boolean(item.pinned)}
+              onClick={() => onAction(item, 'pin')}>{item.pinned ? <PinOff size={14} /> : <Pin size={14} />}</button>
+            <button type="button" disabled={saving} title={t('countdown.manage.copy')} aria-label={t('countdown.manage.copy')} onClick={() => onAction(item, 'copy')}><Copy size={14} /></button>
+            <button type="button" disabled={saving} title={t(isArchived(item, now) ? 'countdown.manage.restore' : 'countdown.manage.archive')}
+              aria-label={t(isArchived(item, now) ? 'countdown.manage.restore' : 'countdown.manage.archive')} onClick={() => onAction(item, 'archive')}>
+              {isArchived(item, now) ? <ArchiveRestore size={14} /> : <Archive size={14} />}
+            </button>
+          </div>
+        </article>))}
     </div>
   );
 }

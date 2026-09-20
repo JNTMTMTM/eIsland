@@ -33,6 +33,7 @@ import { useIslandNowPlayingSync } from './useIslandNowPlayingSync';
 import { useIslandNotificationSubscriptions } from './useIslandNotificationSubscriptions';
 import { useIslandSettingsSync } from './useIslandSettingsSync';
 import { useIslandStartupAnnouncements } from './useIslandStartupAnnouncements';
+import { useIslandCountdownReminders } from './useIslandCountdownReminders';
 import { useIslandTimerAndAlarm } from './useIslandTimerAndAlarm';
 import { useIslandBreakReminder } from './useIslandBreakReminder';
 import { useIslandBackgroundVideoSync } from './useIslandBackgroundVideoSync';
@@ -195,6 +196,8 @@ export function useDynamicIslandCoordinator(options: UseDynamicIslandCoordinator
     t,
     language,
   });
+
+  useIslandCountdownReminders(setNotificationRef);
 
   useIslandTimerAndAlarm({
     language,

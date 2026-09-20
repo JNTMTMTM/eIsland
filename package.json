@@ -88,6 +88,7 @@
     "@multisystemsuite/timezone-engine-core": "^5.0.0",
     "@tailwindcss/vite": "^4.2.2",
     "colorthief": "^3.3.1",
+    "date-fns": "4.1.0",
     "debug": "^4.4.3",
     "dompurify": "^3.4.9",
     "electron-updater": "^6.8.9",

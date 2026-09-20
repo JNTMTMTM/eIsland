@@ -20,26 +20,45 @@
 
 /**
  * @file CountdownCalendar.tsx
- * @description 倒数日日历选择器组件。
+ * @description 带日期状态图例与本地化标签的日历选择器。
  * @author 鸡哥
  */
 
-import type { ReactElement } from 'react';
+import { useTranslation } from 'react-i18next';
 import DatePicker from 'react-datepicker';
+import { zhCN, enUS } from 'date-fns/locale';
+import type { ReactElement } from 'react';
 import 'react-datepicker/dist/react-datepicker.css';
-import type { CountdownCalendarProps } from '../types/countdownTypes';
 
-/** 日历选择器，支持高亮已有事件日期 */
+interface CountdownCalendarProps {
+  selectedDate: Date;
+  onSelectDate: (date: Date) => void;
+  highlightDates: Date[];
+}
+
+/**
+ * 区分今日描边、选中填充及事件圆点。
+ * @param props - 日期选择及事件高亮
+ * @param props.selectedDate - 当前选中日期
+ * @param props.onSelectDate - 选择有效日期的回调
+ * @param props.highlightDates - 含有事件的日期
+ * @returns 日历与图例
+ */
 export function CountdownCalendar({ selectedDate, onSelectDate, highlightDates }: CountdownCalendarProps): ReactElement {
+  const { t, i18n } = useTranslation();
   return (
     <div className="cd-calendar-wrap countdown-calendar-wrap">
-      <DatePicker
-        selected={selectedDate}
-        onChange={(date: Date | null) => onSelectDate(date)}
-        inline
-        highlightDates={highlightDates}
-        calendarClassName="countdown-calendar"
-      />
+      <DatePicker selected={selectedDate} onChange={(date) => { if (date) onSelectDate(date); }} inline
+        locale={i18n.language.startsWith('zh') ? zhCN : enUS}
+        chooseDayAriaLabelPrefix={t('countdown.manage.chooseDate')} monthAriaLabelPrefix={t('countdown.manage.month')}
+        previousMonthButtonLabel={t('countdown.manage.previousMonth')} nextMonthButtonLabel={t('countdown.manage.nextMonth')}
+        previousMonthAriaLabel={t('countdown.manage.previousMonth')} nextMonthAriaLabel={t('countdown.manage.nextMonth')}
+        highlightDates={highlightDates} calendarClassName="countdown-calendar" />
+      <div className="cd-calendar-legend">
+        <span className="cd-legend-today">{t('countdown.manage.today')}</span>
+        <span className="cd-legend-selected">{t('countdown.manage.selected')}</span>
+        <span className="cd-legend-event">{t('countdown.manage.hasEvent')}</span>
+      </div>
     </div>
   );
 }

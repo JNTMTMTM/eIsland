@@ -24,10 +24,4 @@
  * @author 鸡哥
  */
 
-/** 计算目标日期与今天的差值天数（正数表示未来，负数表示已过）。 */
-export function cdDiffDays(targetStr: string): number {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const target = new Date(`${targetStr}T00:00:00`);
-  return Math.ceil((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-}
+export { diffDays as cdDiffDays } from '../../../../maxExpand/components/countdown/utils/countdownUtils';

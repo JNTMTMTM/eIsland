@@ -43,6 +43,7 @@ const WHEEL_EXCLUDED_SELECTORS = [
   '.clipboard-history-list',
   '.max-expand-settings',
   '.calendar-panel',
+  '.countdown-panel-v2',
   '.countdown-calendar-wrap',
   '.cd-cards-wrap',
   '.cd-editor-form',

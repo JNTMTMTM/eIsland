@@ -20,112 +20,36 @@
 
 /**
  * @file useCountdownForm.ts
- * @description 倒数日表单状态管理 hook：新建/编辑表单、颜色输入、CRUD 操作。
+ * @description 新建与编辑共用草稿，保存成功后才关闭编辑器。
  * @author 鸡哥
  */
 
-import { useState, useCallback, useRef } from 'react';
-import { toLocalDateStr } from '../utils/countdownUtils';
-import type { CountdownItem, EventType, UseCountdownFormReturn } from '../types/countdownTypes';
+import { useState } from 'react';
+import { defaultRules, toLocalDateStr } from '../utils/countdownUtils';
+import type { CountdownDraft, CountdownItem } from '../types/countdownTypes';
 
-/** 管理倒数日新建/编辑表单状态及 CRUD 操作 */
-export function useCountdownForm(
-  setItems: React.Dispatch<React.SetStateAction<CountdownItem[]>>,
-): UseCountdownFormReturn {
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [newName, setNewName] = useState('');
-  const [newColor, setNewColor] = useState('#69c0ff');
-  const [newType, setNewType] = useState<EventType>('countdown');
-  const [newDesc, setNewDesc] = useState('');
-  const [newBgImage, setNewBgImage] = useState<string | undefined>(undefined);
-  const [newBgOpacity, setNewBgOpacity] = useState(0.5);
+function newDraft(): CountdownDraft {
+  return { name: '', date: toLocalDateStr(new Date()), color: '#69c0ff', type: 'countdown',
+    ...defaultRules('countdown'), backgroundOpacity: 0.35, reminderDays: [] };
+}
+
+/**
+ * 管理可取消的事件草稿。
+ * @param updateItems - 持久化更新方法
+ * @returns 草稿、编辑器状态及操作
+ */
+export function useCountdownForm(updateItems: (update: (items: CountdownItem[]) => CountdownItem[]) => Promise<boolean>) {
+  const [draft, setDraft] = useState<CountdownDraft>(newDraft);
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [editData, setEditData] = useState<Partial<CountdownItem>>({});
-  const [editBgImage, setEditBgImage] = useState<string | undefined>(undefined);
-  const [editBgOpacity, setEditBgOpacity] = useState(0.5);
-  const editCustomColorRef = useRef<HTMLInputElement>(null);
-  const addCustomColorRef = useRef<HTMLInputElement>(null);
-  const colorRafRef = useRef<number | null>(null);
-
-  const handleEditColorInput = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const v = e.target.value;
-    if (colorRafRef.current !== null) cancelAnimationFrame(colorRafRef.current);
-    colorRafRef.current = requestAnimationFrame(() => {
-      setEditData(prev => ({ ...prev, color: v }));
-      colorRafRef.current = null;
-    });
-  }, []);
-
-  const handleAddColorInput = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const v = e.target.value;
-    if (colorRafRef.current !== null) cancelAnimationFrame(colorRafRef.current);
-    colorRafRef.current = requestAnimationFrame(() => {
-      setNewColor(v);
-      colorRafRef.current = null;
-    });
-  }, []);
-
-  /** 添加 */
-  const addItem = useCallback(() => {
-    if (!selectedDate || !newName.trim()) return;
-    const dateStr = toLocalDateStr(selectedDate);
-    setItems(prev => [...prev, {
-      id: Date.now() + Math.random(),
-      name: newName.trim(),
-      date: dateStr,
-      color: newColor,
-      type: newType,
-      description: newDesc.trim() || undefined,
-      backgroundImage: newBgImage,
-      backgroundOpacity: newBgImage ? newBgOpacity : undefined,
-    }]);
-    setNewName('');
-    setNewDesc('');
-    setNewBgImage(undefined);
-    setNewBgOpacity(0.5);
-    setSelectedDate(null);
-  }, [selectedDate, newName, newColor, newType, newDesc, newBgImage, newBgOpacity, setItems]);
-
-  /** 开始编辑 */
-  const startEdit = useCallback((item: CountdownItem) => {
-    setEditingId(item.id);
-    setEditData({ name: item.name, description: item.description || '', color: item.color, type: item.type });
-    setEditBgImage(item.backgroundImage);
-    setEditBgOpacity(item.backgroundOpacity ?? 0.5);
-  }, []);
-
-  /** 保存编辑 */
-  const saveEdit = useCallback(() => {
-    if (editingId === null) return;
-    setItems(prev => prev.map(i => {
-      if (i.id !== editingId) return i;
-      return {
-        ...i,
-        name: (editData.name || '').trim() || i.name,
-        description: (editData.description || '').trim() || undefined,
-        color: editData.color || i.color,
-        type: editData.type || i.type,
-        backgroundImage: editBgImage,
-        backgroundOpacity: editBgImage ? editBgOpacity : undefined,
-      };
-    }));
-    setEditingId(null);
-  }, [editingId, editData, editBgImage, editBgOpacity, setItems]);
-
-  return {
-    selectedDate, setSelectedDate,
-    newName, setNewName,
-    newColor, setNewColor,
-    newType, setNewType,
-    newDesc, setNewDesc,
-    newBgImage, setNewBgImage,
-    newBgOpacity, setNewBgOpacity,
-    editingId, setEditingId,
-    editData, setEditData,
-    editBgImage, setEditBgImage,
-    editBgOpacity, setEditBgOpacity,
-    addItem, startEdit, saveEdit,
-    handleEditColorInput, handleAddColorInput,
-    editCustomColorRef, addCustomColorRef,
+  const [open, setOpen] = useState(false);
+  const startNew = (): void => { setDraft(newDraft()); setEditingId(null); setOpen(true); };
+  const startEdit = (item: CountdownItem): void => { setDraft({ ...item }); setEditingId(item.id); setOpen(true); };
+  const save = async (): Promise<void> => {
+    if (!draft.name.trim() || !draft.date) return;
+    const item = { ...draft, name: draft.name.trim(), id: editingId ?? Date.now() + Math.random() };
+    const saved = await updateItems((items) => editingId === null ? [...items, item]
+      : items.map((existing) => existing.id === editingId ? item : existing));
+    if (saved) setOpen(false);
   };
+  return { draft, setDraft, editingId, open, setOpen, startNew, startEdit, save };
 }
