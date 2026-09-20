@@ -24,6 +24,9 @@
  */
 
 .countdown-panel-v2 {
+  --cd-accent-rgb: 100, 180, 255;
+  --cd-accent-text: rgb(130 200 255 / 95%);
+
   position: relative;
   display: flex;
   flex-direction: column;
@@ -34,6 +37,12 @@
   overflow: hidden;
   color: rgb(var(--color-text-rgb));
   container-type: inline-size;
+
+}
+
+[data-theme="light"] .countdown-panel-v2 {
+  --cd-accent-rgb: 37, 99, 235;
+  --cd-accent-text: #1d4ed8;
 
 }
 
@@ -82,6 +91,7 @@
   background: transparent;
   border: 0;
   border-radius: 6px;
+  transition: background .18s ease, color .18s ease;
 
 }
 
@@ -95,8 +105,8 @@
 }
 
 .cd-filter-tabs .active {
-  color: #69c0ff;
-  background: rgb(105 192 255 / 16%);
+  color: var(--cd-accent-text);
+  background: rgb(var(--cd-accent-rgb), .16);
 
 }
 
@@ -162,32 +172,35 @@
   gap: 6px;
   align-items: center;
   justify-content: center;
-  padding: 7px 12px;
+  min-height: 30px;
+  padding: 6px 16px;
   font: inherit;
   font-size: 12px;
   cursor: pointer;
   border: 1px solid transparent;
-  border-radius: 7px;
+  border-radius: 8px;
+  transition: background .18s ease, color .18s ease, border-color .18s ease, opacity .18s ease;
 
 }
 
-.cd-btn.save {
-  color: #071d30;
-  background: #85ccff;
-  border-color: #a5daff;
+.cd-btn.save, .cd-new-event {
+  color: var(--cd-accent-text);
+  background: rgb(var(--cd-accent-rgb), .2);
+  border: 1px solid rgb(var(--cd-accent-rgb), .4);
 
 }
 
 .cd-btn.cancel {
-  color: rgb(var(--color-text-rgb));
-  background: rgb(var(--color-text-rgb), .08);
-  border-color: rgb(var(--color-text-rgb), .16);
+  color: var(--cd-accent-text);
+  background: rgb(var(--cd-accent-rgb), .06);
+  border-color: rgb(var(--cd-accent-rgb), .18);
 
 }
 
 .cd-btn.danger {
-  color: #ff9797;
-  background: rgb(255 70 70 / 10%);
+  color: rgb(252 165 165 / 95%);
+  background: rgb(239 68 68 / 18%);
+  border-color: rgb(239 68 68 / 45%);
 
 }
 
@@ -196,14 +209,41 @@
 
 }
 
+.cd-btn.save:hover:not(:disabled), .cd-new-event:hover:not(:disabled) {
+  background: rgb(var(--cd-accent-rgb), .28);
+  border-color: rgb(var(--cd-accent-rgb), .55);
+
+}
+
+.cd-btn.cancel:hover:not(:disabled) {
+  background: rgb(var(--cd-accent-rgb), .12);
+  border-color: rgb(var(--cd-accent-rgb), .3);
+
+}
+
+.cd-btn.danger:hover:not(:disabled) {
+  background: rgb(239 68 68 / 28%);
+
+}
+
+.cd-btn.save:active:not(:disabled), .cd-new-event:active:not(:disabled) {
+  background: rgb(var(--cd-accent-rgb), .36);
+
+}
+
+.cd-btn.cancel:active:not(:disabled) {
+  background: rgb(var(--cd-accent-rgb), .2);
+
+}
+
 .countdown-panel-v2 button:disabled {
   cursor: not-allowed;
-  opacity: .4;
+  opacity: .55;
 
 }
 
 .countdown-panel-v2 :focus-visible, .ov-dash-countdown-widget :focus-visible {
-  outline: 2px solid #69c0ff;
+  outline: 2px solid rgb(var(--cd-accent-rgb, 100, 180, 255));
   outline-offset: 2px;
 
 }
@@ -226,6 +266,7 @@
 }
 
 .cd-feedback button {
+  color: var(--cd-accent-text);
   text-decoration: underline;
 
 }
@@ -389,9 +430,12 @@
 
 }
 
-.cd-card-actions button:hover, .cd-card-actions [aria-pressed="true"] {
-  color: rgb(var(--color-text-rgb));
-  background: rgb(var(--color-text-rgb), .1);
+.cd-card-actions button:hover:not(:disabled),
+.cd-card-actions [aria-pressed="true"],
+.cd-filter-tabs button:hover:not(:disabled),
+.cd-feedback button:hover:not(:disabled) {
+  color: var(--cd-accent-text);
+  background: rgb(var(--cd-accent-rgb), .16);
 
 }
 
@@ -662,19 +706,10 @@
   padding: 0 12px;
   font: inherit;
   font-size: 12px;
-  color: rgb(var(--color-text-rgb), .82);
   white-space: nowrap;
   cursor: pointer;
-  background: rgb(var(--color-text-rgb), .12);
-  border: 0;
   border-radius: 8px;
-  transition: background .15s ease, color .15s ease;
-
-}
-
-.cd-new-event:hover:not(:disabled) {
-  color: var(--color-island-text);
-  background: rgb(var(--color-text-rgb), .2);
+  transition: background .18s ease, color .18s ease, border-color .18s ease, opacity .18s ease;
 
 }
 
@@ -773,11 +808,13 @@
   background: rgb(var(--color-text-rgb), .06);
   border: 0;
   border-radius: 6px;
+  transition: background .18s ease, color .18s ease;
 
 }
 
 .cd-drawer-close:hover:not(:disabled) {
-  background: rgb(var(--color-text-rgb), .12);
+  color: var(--cd-accent-text);
+  background: rgb(var(--cd-accent-rgb), .16);
 
 }
 
