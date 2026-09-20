@@ -11,8 +11,13 @@
  */
 
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
+import { existsSync, mkdtempDisposableSync, readFileSync, writeFileSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { dirname, join } from 'node:path';
 import test from 'node:test';
+import { fileURLToPath } from 'node:url';
 
 import { ESLint } from 'eslint';
 import { HtmlValidate } from 'html-validate';
@@ -20,6 +25,42 @@ import stylelint from 'stylelint';
 import tseslint from 'typescript-eslint';
 
 import htmlRules from './html-rules.cjs';
+
+const ESLINT_BIN = fileURLToPath(new URL('./bin/eslint.js', import.meta.resolve('eslint/package.json')));
+const { scripts } = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8'));
+
+['lint:report', 'lint:report:json'].forEach((name) => {
+  [false, true].forEach((hasViolation) => {
+    test(`${name} 在缺少 reports 目录时生成报告并保留退出状态（违规：${hasViolation}）`, (context) => {
+      const directory = mkdtempDisposableSync(join(tmpdir(), 'eisland-report-test-'));
+      assert.equal(dirname(directory.path), tmpdir());
+      context.after(() => directory.remove());
+      writeFileSync(join(directory.path, 'eslint.config.mjs'), 'export default [{ rules: { "no-var": "error" } }];\n');
+      writeFileSync(join(directory.path, 'probe.js'), `${hasViolation ? 'var' : 'const'} value = 1;\n`);
+
+      // 使用 package 指令中的实际 CLI 参数，不依赖 npm/cmd/bash 的平台差异。
+      const [command, ...args] = scripts[name].split(' ');
+      assert.equal(command, 'eslint');
+      assert.equal(existsSync(join(directory.path, 'reports')), false);
+      const result = spawnSync(process.execPath, [ESLINT_BIN, ...args], {
+        cwd: directory.path,
+        encoding: 'utf8',
+        timeout: 30_000,
+      });
+      assert.ifError(result.error);
+      assert.equal(result.status, hasViolation ? 1 : 0, result.stderr);
+      const output = readFileSync(join(directory.path, args[args.indexOf('--output-file') + 1]), 'utf8');
+      if (name === 'lint:report:json') {
+        const probe = JSON.parse(output).find(({ filePath }) => filePath.endsWith('probe.js'));
+        assert.equal(probe.errorCount, hasViolation ? 1 : 0);
+        assert.equal(probe.messages.some(({ ruleId }) => ruleId === 'no-var'), hasViolation);
+      } else {
+        assert.match(output, /<title>ESLint Report<\/title>/u);
+        if (hasViolation) assert.match(output, /no-var/u);
+      }
+    });
+  });
+});
 
 const HEADER = `/*
  * eIsland - https://github.com/JNTMTMTM/eIsland

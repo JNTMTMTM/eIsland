@@ -214,6 +214,7 @@ jobs:
             }, {});
 
             const summary = [];
+            summary.push('Scope: limited pattern checks on selected changed files; ESLint, Stylelint, and HTML Validate are not executed.');
             summary.push(`Scanned files: ${targets.length}`);
             summary.push(`Violations: ${violations.length}`);
             summary.push(`By rule: ${JSON.stringify(byRule)}`);
@@ -285,6 +286,7 @@ jobs:
             echo "- Branch: \`${{ github.event.pull_request.head.ref }}\` -> \`${{ github.event.pull_request.base.ref }}\`"
             echo "- Trigger commit: \`${{ github.event.pull_request.head.sha }}\`"
             echo "- Review result: ${{ steps.quality_check.outputs.passed == 'true' && 'PASS' || 'FAIL' }}"
+            echo '- Scope: limited pattern checks only. Run `npm run lint:all` locally for ESLint, CSS/SCSS, HTML, and i18n checks.'
             echo "- Violations: \`${{ steps.quality_check.outputs.violations }}\`"
             echo "- Checklist unchecked (self-check only, non-blocking): \`${{ steps.quality_check.outputs.checklist_missing }}\`"
             echo ""
