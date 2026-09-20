@@ -165,7 +165,7 @@ jobs:
 
             // -- Critical changes table
             if (critical.length > 0) {
-              body += `### Critical Size Changes\n\n`;
+              body += `<details>\n<summary>Critical Size Changes (${critical.length} files)</summary>\n\n`;
               body += `Includes changes greater than or equal to 2%:\n\n`;
               body += `| File | +/- | Base | Current | +/- gzip | Base gzip | Current gzip |\n`;
               body += `|------|-----|------|---------|----------|-----------|--------------|\n`;
@@ -174,7 +174,7 @@ jobs:
                 const sign = r.rawDiff > 0 ? '+' : r.rawDiff < 0 ? '-' : '=';
                 body += `| ${r.path} | **${sign}** ${fmtPct(r.rawPct)} | ${fmt(r.baseRaw)} | ${fmt(r.prRaw)} | ${fmt(r.gzipDiff)} | ${fmt(r.baseGzip)} | ${fmt(r.prGzip)} |\n`;
               }
-              body += `\n`;
+              body += `\n</details>\n\n`;
             }
 
             // -- Significant changes table
