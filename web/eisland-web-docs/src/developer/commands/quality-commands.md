@@ -66,6 +66,30 @@ npm run lint:fix
 Use `lint:fix` after pulling upstream changes to auto-resolve formatting conflicts. Review the diff before committing — auto-fix may change behavior in edge cases.
 :::
 
+### `lint:report`
+
+Runs ESLint and generates an HTML report in `reports/eslint.html`. Useful for reviewing all violations in a browser with clickable file links.
+
+```bash
+npm run lint:report
+```
+
+**Under the hood:** `eslint . --max-warnings=0 --format html --output-file reports/eslint.html`
+
+:::tip
+Use `lint:report` when onboarding or after a large refactor — the HTML report makes it easier to triage many violations than terminal output.
+:::
+
+### `lint:report:json`
+
+Runs ESLint and generates a machine-readable JSON report in `reports/eslint.json`. Useful for CI pipelines or custom tooling that consumes lint results programmatically.
+
+```bash
+npm run lint:report:json
+```
+
+**Under the hood:** `eslint . --max-warnings=0 --format json --output-file reports/eslint.json`
+
 ### `lint:comments`
 
 Runs only the comment-related ESLint rules (JSDoc, file headers, method comments). Faster than a full lint when you only need to validate documentation compliance.

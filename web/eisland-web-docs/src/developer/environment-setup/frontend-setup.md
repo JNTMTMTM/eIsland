@@ -214,6 +214,8 @@ These commands are for **testing and maintainer use only**. Regular developers d
 |---------|-------------|-------------|
 | `lint` | Run ESLint on the entire project (`eslint . --max-warnings=0`) | Before every commit — catches JS/TS, React, import, and JSDoc violations |
 | `lint:fix` | Run ESLint with auto-fix | After pulling upstream changes or when lint reports fixable issues |
+| `lint:report` | Generate HTML lint report (`reports/eslint.html`) | After large refactors — review all violations in a browser |
+| `lint:report:json` | Generate JSON lint report (`reports/eslint.json`) | CI pipelines or custom tooling that consumes lint results |
 | `lint:css` | Run Stylelint on all CSS/SCSS files | After modifying styles — enforces property order, selector limits, and naming |
 | `lint:css:fix` | Run Stylelint with auto-fix | When Stylelint reports fixable CSS issues |
 | `lint:html` | Validate HTML files against project standards | After modifying HTML files — enforces doctype, lang, and accessibility rules |
