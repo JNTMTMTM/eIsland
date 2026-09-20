@@ -57,6 +57,8 @@
     "plugins:clean": "run-p plugin:clean:bluetooth plugin:clean:brightness plugin:clean:volume plugin:clean:volume-analyzer plugin:clean:power plugin:clean:processes plugin:clean:smtc plugin:clean:toast plugin:clean:wifi plugin:clean:fullscreen plugin:clean:perfmon plugin:clean:icon-helper plugin:clean:screenshot-helper",
     "lint": "eslint . --max-warnings=0",
     "lint:eslint": "eslint . --max-warnings=0",
+    "lint:report": "eslint . --max-warnings=0 --format html --output-file reports/eslint.html",
+    "lint:report:json": "eslint . --max-warnings=0 --format json --output-file reports/eslint.json",
     "lint:fix": "eslint . --fix --max-warnings=0",
     "lint:css": "stylelint \"{src,web}/**/*.{css,scss}\" \"web/**/.vuepress/**/*.{css,scss}\" --max-warnings=0",
     "lint:css:fix": "npm run lint:css -- --fix",
