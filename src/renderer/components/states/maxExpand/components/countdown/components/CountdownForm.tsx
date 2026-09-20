@@ -107,7 +107,7 @@ export function CountdownForm({ formId, draft, setDraft, editing, saving, resolv
         {draft.backgroundImage && <label className="cd-field">{t('countdown.form.opacity')}<input type="range" min={0} max={1} step={0.05} value={draft.backgroundOpacity ?? 0.35} onChange={(e) => change({ backgroundOpacity: Number(e.target.value) })} /></label>}
         {imageError && <p role="alert" className="cd-error">{t('countdown.manage.imageError')}</p>}
       </details>
-      <div className="cd-form-actions">
+      <div className="cd-form-actions cd-form-submit-actions">
         <button className="cd-btn save" type="submit" disabled={saving || !draft.name.trim()}>{t(saving ? 'countdown.manage.saving' : editing ? 'countdown.actions.save' : 'countdown.actions.add')}</button>
         <button className="cd-btn cancel" type="button" disabled={saving} onClick={onCancel}>{t('countdown.actions.cancel')}</button>
         {onDelete && <button className="cd-btn danger" type="button" disabled={saving} onClick={onDelete}>{t('countdown.manage.delete')}</button>}
