@@ -1,0 +1,12 @@
+# docs/FRONTEND_STANDARDS.md §3.15 要求 LF；防止 Windows checkout 引入 CRLF。
+*.js text eol=lf
+*.jsx text eol=lf
+*.mjs text eol=lf
+*.cjs text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
+*.mts text eol=lf
+*.cts text eol=lf
+*.css text eol=lf
+*.scss text eol=lf
+*.html text eol=lf

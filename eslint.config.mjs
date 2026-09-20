@@ -19,9 +19,10 @@
  */
 
 /**
- * @file vite-env.d.ts
- * @description Vite 客户端类型声明引用，为 issue-report 子项目提供类型补全。
+ * @file eslint.config.mjs
+ * @description ESLint 配置统一入口
  * @author 鸡哥
  */
 
-/// <reference types="vite/client" />
+// 原生 Node ESM 必须保留扩展名；具体规则及依赖位于独立工具 workspace。
+export { default } from './scripts/lint/eslint.config.mjs';

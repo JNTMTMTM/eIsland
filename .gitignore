@@ -1,5 +1,6 @@
 /.windsurf
 /coverage
+/reports/
 /.claude/settings.json
 /.claude/settings.local.json
 /test.ts

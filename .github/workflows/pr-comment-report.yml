@@ -133,10 +133,22 @@ jobs:
               per_page: 100
             });
 
-            const changedFileLines = files.map((f) => `${f.status}\t${f.filename}`);
+            /**
+             * 转义表格单元格，避免文件名中的 Markdown 符号破坏报告布局。
+             * @param {string} value - 要显示的单元格文本
+             * @returns {string} 可直接放入 Markdown 表格的文本
+             */
+            const escapeTableCell = (value) => value
+              .replace(/[&<>]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[char])
+              .replace(/[\\`*_[\]|]/g, '\\$&')
+              .replace(/\r?\n/g, '<br>');
+
+            const changedFileLines = files.map((f) => `| ${escapeTableCell(f.status)} | ${escapeTableCell(f.filename)} |`);
             fs.writeFileSync(
               'pr-changed-files.md',
-              changedFileLines.length > 0 ? changedFileLines.join('\n') : '- No changed files detected.',
+              changedFileLines.length > 0
+                ? ['| Status | File |', '| --- | --- |', ...changedFileLines].join('\n')
+                : 'No changed files detected.',
               'utf8'
             );
 
@@ -169,11 +181,16 @@ jobs:
             }, {});
 
             const checkLog = [];
-            checkLog.push(`Comment standard violations: ${violations.length}`);
-            checkLog.push(`By rule: ${JSON.stringify(byRule)}`);
+            checkLog.push(`**Comment standard violations:** ${violations.length}`);
             checkLog.push('');
             if (violations.length > 0) {
-              checkLog.push(...violations);
+              checkLog.push('**By rule:**');
+              checkLog.push('');
+              checkLog.push(...Object.entries(byRule).map(([rule, count]) => `- ${escapeTableCell(rule)}: ${count}`));
+              checkLog.push('');
+              checkLog.push('| File / Line | Rule | Message |');
+              checkLog.push('| --- | --- | --- |');
+              checkLog.push(...violations.map((line) => `| ${line.split(' | ').map(escapeTableCell).join(' | ')} |`));
             } else {
               checkLog.push('Comment standard check passed for changed TS/TSX files.');
             }
@@ -183,6 +200,9 @@ jobs:
 
       - name: Compose PR comment body
         shell: bash
+        env:
+          PR_HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          PR_BASE_REF: ${{ github.event.pull_request.base.ref }}
         run: |
           if [ -s comment-check.log ]; then
             sed -n '1,120p' comment-check.log > comment-check-preview.log
@@ -195,22 +215,27 @@ jobs:
             echo "## PR Auto Check Report"
             echo ""
             echo "- PR: #${{ github.event.pull_request.number }}"
-            echo "- Branch: \`${{ github.event.pull_request.head.ref }}\` -> \`${{ github.event.pull_request.base.ref }}\`"
+            echo "- Branch: \`${PR_HEAD_REF}\` -> \`${PR_BASE_REF}\`"
             echo "- Trigger commit: \`${{ github.event.pull_request.head.sha }}\`"
             echo "- Comment standard check: ${{ steps.comment_check.outputs.passed == 'true' && 'PASS' || 'FAIL' }}"
             echo ""
             echo "### PR Update Log"
+            echo ""
             cat pr-change-notes.md
             echo ""
-            echo "### Changed Files"
-            echo '```text'
+            echo ""
+            echo '<details>'
+            echo '<summary>Changed Files</summary>'
+            echo ""
             cat pr-changed-files.md
-            echo '```'
+            echo ""
+            echo ""
+            echo '</details>'
             echo ""
             echo "### Comment Check Output (first 120 lines)"
-            echo '```text'
+            echo ""
             cat comment-check-preview.log
-            echo '```'
+            echo ""
           } > pr-comment.md
 
       - name: Create or update PR comment

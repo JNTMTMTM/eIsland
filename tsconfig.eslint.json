@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "jsx": "react-jsx",
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "types": ["node", "electron-vite/node"],
+    "paths": { "@/*": ["./src/renderer/*"] }
+  },
+  "include": ["*.ts", "*.mts", "*.cts", "src/**/*", "scripts/**/*", "test/**/*", "sdk/**/*", "plugins/**/*", "web/**/*", "web/eisland-web-docs/src/.vuepress/**/*", "web/eisland-web-guide/.vitepress/**/*"],
+  "exclude": ["**/node_modules/**", "**/dist/**", "**/out/**", "**/build/**", "**/coverage/**", "**/.temp/**", "**/.cache/**"]
+}

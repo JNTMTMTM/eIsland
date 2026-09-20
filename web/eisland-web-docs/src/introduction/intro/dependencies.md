@@ -194,12 +194,23 @@ These are tools developers use to build, test, and package eIsland. They are not
 
 | Tool | What It Does |
 |------|--------------|
-| **ESLint** | A code quality checker that enforces consistent coding style and catches common mistakes. |
+| **ESLint** | The core code quality checker that enforces consistent coding style and catches common mistakes across the entire project. |
 | **ESLint JS** | Provides ESLint's core set of JavaScript rules for detecting errors and enforcing best practices. |
-| **TypeScript ESLint** | Connects ESLint with TypeScript, enabling linting rules that understand TypeScript-specific syntax. |
+| **TypeScript ESLint** | Connects ESLint with TypeScript, enabling type-aware linting rules that understand TypeScript-specific syntax and catch issues like floating promises. |
+| **ESLint Community Comments** | Enforces rules for ESLint disable/enable comments — requires rule names, descriptions, and prevents unlimited disables. |
+| **Stylistic ESLint Plugin** | Handles code formatting rules (indentation, spacing, quotes) within ESLint, replacing the need for Prettier. |
+| **ESLint Import X** | Enforces import ordering, prevents duplicate imports, and ensures consistent module syntax across the project. |
+| **ESLint JSDoc** | Validates JSDoc comments on exported functions and classes — ensures parameters, return values, and descriptions are documented. |
+| **ESLint Promise** | Enforces proper Promise handling — prevents nesting, encourages async/await, and catches common promise anti-patterns. |
+| **ESLint JSX Accessibility** | Checks React JSX for accessibility issues — missing alt text, invalid ARIA attributes, and keyboard navigation problems. |
+| **ESLint Better Tailwind CSS** | Validates Tailwind CSS class usage in React components — enforces class ordering, catches unknown classes, and prevents duplicates. |
+| **ESLint React** | Enforces React-specific coding rules — component definition patterns, JSX formatting, props handling, and performance best practices. |
 | **ESLint React Hooks** | Enforces rules for React Hooks to prevent common bugs like missing dependencies or incorrect hook usage. |
-| **ESLint React Refresh** | Ensures components are correctly set up for React Fast Refresh, so code changes appear instantly during development. |
 | **Globals** | Provides standard global variable definitions (like `window`, `document`, `console`) for ESLint to recognize. |
+| **Stylelint** | A CSS/SCSS quality checker that enforces property ordering, selector complexity limits, color rules, and naming conventions. |
+| **Stylelint Order** | Enforces CSS property declaration order — position, display, box model, typography, and visual properties must follow a fixed sequence. |
+| **Stylelint Config Standard SCSS** | Provides the base SCSS linting rules for Stylelint, extending the standard CSS rules with SCSS-specific syntax support. |
+| **HTML Validate** | Validates HTML files against project standards — checks doctype, language attributes, accessibility, and structural correctness. |
 
 ### Electron Tooling
 
@@ -245,10 +256,9 @@ A separate web application where users can report bugs and issues with eIsland.
 | **ESLint** | Enforces code quality in the issue report website's source code. |
 | **ESLint JS** | Core JavaScript linting rules for the issue report site. |
 | **ESLint React Hooks** | Ensures correct React Hooks usage in the issue report site. |
-| **ESLint React Refresh** | Enables fast development feedback for the issue report site. |
+| **Globals** | Provides standard global variable definitions for ESLint in the issue report site. |
 | **TypeScript** | Provides type safety for the issue report website's codebase. |
 | **TypeScript ESLint** | Enables TypeScript-aware linting for the issue report site. |
-| **Globals** | Provides standard global variable definitions for ESLint in the issue report site. |
 
 ## Documentation Website
 

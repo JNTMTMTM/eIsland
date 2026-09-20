@@ -5,6 +5,7 @@ on:
     types: [opened, reopened, synchronize, ready_for_review]
     paths:
       - '**/*.md'
+      - '.github/workflows/markdown-link-check.yml'
 
 permissions:
   contents: read
@@ -22,11 +23,37 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Check Markdown links
+      # VuePress 的 /xxx 链接以 src 为根，不能按仓库根目录检查或生成修复建议。
+      - name: Check repository Markdown links
         uses: dvdstelt/hyperhawk@ed46ad292b0c81d5aeecb9efc30425d31de522d1 # v1.11.0
         with:
           token: ${{ github.token }}
-          files: '**/*.md'
+          files: '**/*.md,!web/eisland-web-docs/src/**/*.md'
           skip-code-blocks: true
           report-only-changed: true
           strict: false
+
+      - name: Check documentation external links
+        uses: dvdstelt/hyperhawk@ed46ad292b0c81d5aeecb9efc30425d31de522d1 # v1.11.0
+        with:
+          token: ${{ github.token }}
+          files: 'web/eisland-web-docs/src/**/*.md'
+          # 本地链接由下面的 Lychee 检查，避免错误的仓库路径替换建议。
+          ignore-patterns: '^(?!https?://)'
+          skip-code-blocks: true
+          report-only-changed: true
+          strict: false
+
+      - name: Check documentation local links
+        uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2
+        with:
+          lycheeVersion: v0.24.2
+          args: >-
+            --offline --no-progress
+            --root-dir '${{ github.workspace }}/web/eisland-web-docs/src'
+            --fallback-extensions md
+            --index-files README.md,index.md,index.html
+            'web/eisland-web-docs/src/**/*.md'
+          # 与原来的 strict: false 一致；本地链接结果显示在工作流摘要中。
+          fail: false
+          output: lychee/docs-local-links.md

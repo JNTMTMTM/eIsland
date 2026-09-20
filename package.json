@@ -22,7 +22,7 @@
     "release:upload": "npm run package && node --experimental-strip-types scripts/upload-release-to-cos-oss.ts && npm run esa:purge",
     "release:upload-only": "node --experimental-strip-types scripts/upload-release-to-cos-oss.ts && npm run esa:purge",
     "release:upload-minio": "node --experimental-strip-types scripts/upload-release-to-cos-oss.ts --minio-only && npm run esa:purge",
-    "comment:check": "node --experimental-strip-types scripts/check-comment-standards.ts",
+    "comment:check": "npm run lint:comments",
     "i18n:check": "node --experimental-strip-types scripts/check-i18n-completeness.ts",
     "esa:purge": "node --experimental-strip-types scripts/esa/purge-esa-cache.ts",
     "esa:purge-hostname": "node --experimental-strip-types scripts/esa/purge-esa-hostname.ts",
@@ -54,7 +54,22 @@
     "plugin:clean:icon-helper": "cd plugins/eisland-windows-application-icon-helper && npm run clean",
     "plugin:clean:screenshot-helper": "cd plugins/eisland-windows-screenshot-helper && npm run clean",
     "plugins:build": "run-s plugin:build:bluetooth plugin:build:brightness plugin:build:volume plugin:build:volume-analyzer plugin:build:power plugin:build:processes plugin:build:smtc plugin:build:toast plugin:build:wifi plugin:build:fullscreen plugin:build:perfmon plugin:build:icon-helper plugin:build:screenshot-helper",
-    "plugins:clean": "run-p plugin:clean:bluetooth plugin:clean:brightness plugin:clean:volume plugin:clean:volume-analyzer plugin:clean:power plugin:clean:processes plugin:clean:smtc plugin:clean:toast plugin:clean:wifi plugin:clean:fullscreen plugin:clean:perfmon plugin:clean:icon-helper plugin:clean:screenshot-helper"
+    "plugins:clean": "run-p plugin:clean:bluetooth plugin:clean:brightness plugin:clean:volume plugin:clean:volume-analyzer plugin:clean:power plugin:clean:processes plugin:clean:smtc plugin:clean:toast plugin:clean:wifi plugin:clean:fullscreen plugin:clean:perfmon plugin:clean:icon-helper plugin:clean:screenshot-helper",
+    "lint": "eslint . --max-warnings=0",
+    "lint:eslint": "eslint . --max-warnings=0",
+    "lint:report": "eslint . --max-warnings=0 --format html --output-file reports/eslint.html",
+    "lint:report:json": "eslint . --max-warnings=0 --format json --output-file reports/eslint.json",
+    "lint:fix": "eslint . --fix --max-warnings=0",
+    "lint:css": "stylelint \"{src,web}/**/*.{css,scss}\" \"web/**/.vuepress/**/*.{css,scss}\" --max-warnings=0",
+    "lint:css:fix": "npm run lint:css -- --fix",
+    "lint:html": "html-validate \"{src,web}/**/*.html\" --max-warnings=0",
+    "lint:comments": "eslint . --config scripts/lint/comments.config.mjs --max-warnings=0",
+    "lint:all": "run-p --continue-on-error lint:eslint lint:css lint:html i18n:check",
+    "lint:config:test": "node --test scripts/lint/config.test.mjs",
+    "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
+    "typecheck:web": "tsc --noEmit -p tsconfig.web.json --composite false",
+    "typecheck": "run-p --continue-on-error typecheck:node typecheck:web",
+    "check": "run-p --continue-on-error lint:all typecheck test"
   },
   "dependencies": {
     "@eisland/windows-application-icon-helper": "file:plugins/eisland-windows-application-icon-helper",
@@ -133,5 +148,13 @@
     "typescript": "^7.0.2",
     "vite": "^7.3.6",
     "vitest": "^4.1.10"
+  },
+  "workspaces": [
+    "scripts/lint"
+  ],
+  "overrides": {
+    "ts-api-utils": {
+      "typescript": "~6.0.3"
+    }
   }
 }
