@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import { useState, type ReactElement, type Dispatch, type SetStateAction } from 'react';
+import { useState, type ReactElement, type CSSProperties, type Dispatch, type SetStateAction } from 'react';
 import { useTranslation } from 'react-i18next';
 import { COLOR_PRESETS, EVENT_TYPES } from '../config/countdownConfig';
 import { defaultRules, normalizeImageSource } from '../utils/countdownUtils';
@@ -104,7 +104,7 @@ export function CountdownForm({ formId, draft, setDraft, editing, saving, resolv
           <button className="cd-btn cancel" type="button" onClick={() => void selectImage()}>{t('countdown.form.customBackground')}</button>
           {draft.backgroundImage && <button className="cd-btn cancel" type="button" onClick={() => change({ backgroundImage: undefined })}>{t('countdown.form.clearBackground')}</button>}
         </div>
-        {draft.backgroundImage && <label className="cd-field">{t('countdown.form.opacity')}<input type="range" min={0} max={1} step={0.05} value={draft.backgroundOpacity ?? 0.35} onChange={(e) => change({ backgroundOpacity: Number(e.target.value) })} /></label>}
+        {draft.backgroundImage && <label className="cd-field">{t('countdown.form.opacity')}<input type="range" min={0} max={1} step={0.05} value={draft.backgroundOpacity ?? 0.35} style={{ '--cd-range-progress': `${Math.min(1, Math.max(0, draft.backgroundOpacity ?? 0.35)) * 100}%` } as CSSProperties} onChange={(e) => change({ backgroundOpacity: Number(e.target.value) })} /></label>}
         {imageError && <p role="alert" className="cd-error">{t('countdown.manage.imageError')}</p>}
       </div>
       <div className="cd-form-actions cd-form-submit-actions">
