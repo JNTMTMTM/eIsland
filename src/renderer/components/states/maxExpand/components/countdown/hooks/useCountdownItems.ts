@@ -59,7 +59,7 @@ async function updateItems(update: (items: CountdownItem[]) => CountdownItem[]):
 }
 
 /**
- * 订阅主页面、全局提醒与 expand 小组件共享的数据。
+ * 订阅主页面与 expand 小组件共享的数据。
  * @returns 条目、保存状态和持久化操作
  */
 export function useCountdownItems() {

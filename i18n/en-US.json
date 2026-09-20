@@ -424,26 +424,17 @@
       "yearly": "Repeat yearly",
       "autoArchive": "Archive the following day",
       "includeToday": "Count the start date as day 1",
-      "upHint": "Counts calendar days. Without this option, the start date is day 0.",
-      "downHint": "Uses local calendar dates: Today on the date, Tomorrow one day before. Yearly February 29 events use February 28 in non-leap years.",
-      "reminders": "Reminders",
-      "onDate": "On the day",
-      "beforeDate": "{{days}} days before",
-      "reminderHint": "Reminds at 9 AM on selected dates while eIsland is running. Starting later that day catches up; previous days are skipped.",
       "appearance": "Color and background",
       "colorValue": "Choose color {{color}}",
       "saving": "Saving…",
       "saveError": "Could not load or save. Please try again; unsaved edits are retained.",
       "imageError": "Could not load the image. Please choose it again.",
-      "today": "Today",
-      "selected": "Selected",
-      "hasEvent": "Event",
       "previousMonth": "Previous month",
       "nextMonth": "Next month",
       "viewAll": "All {{count}} events ›",
-      "reminderTitle": "Event reminder",
       "chooseDate": "Choose date",
-      "month": "Month"
+      "month": "Month",
+      "closeEditor": "Close editor"
     }
   },
   "hover": {

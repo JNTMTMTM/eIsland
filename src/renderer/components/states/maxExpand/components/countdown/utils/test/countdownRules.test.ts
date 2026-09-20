@@ -20,14 +20,13 @@
 
 /**
  * @file countdownRules.test.ts
- * @description 验证日期边界、历史兼容、归档排序及提醒去重。
+ * @description 验证日期边界、历史兼容、归档排序。
  * @author 鸡哥
  */
 
 import { describe, expect, it } from 'vitest';
 import i18next from 'i18next';
 import { countdownText, defaultRules, diffDays, isArchived, occurrenceDate, parseCountdownItems, sortCountdownItems } from '../countdownUtils';
-import { dueCountdownReminders } from '../countdownReminders';
 import type { CountdownItem } from '../../types/countdownTypes';
 
 const base: CountdownItem = { id: 1, name: 'Test', date: '2026-09-23', type: 'countdown', color: '#69c0ff' };
@@ -99,27 +98,5 @@ describe('management rules', () => {
   });
   it('rejects invalid records and impossible dates', () => {
     expect(parseCountdownItems([base, null, {}, { ...base, date: '2026-02-30' }, { ...base, date: 'oops' }])).toEqual([base]);
-  });
-});
-
-describe('reminders', () => {
-  const item = { ...base, date: '2026-09-22', reminderDays: [7, 1, 0] };
-  it('waits for 9 AM and catches up later that same day', () => {
-    expect(dueCountdownReminders([item], [], new Date('2026-09-21T08:59:00'))).toEqual([]);
-    expect(dueCountdownReminders([item], [], new Date('2026-09-21T20:00:00'))).toHaveLength(1);
-  });
-  it('does not repeat a persisted reminder', () => {
-    const due = dueCountdownReminders([item], [], now);
-    expect(dueCountdownReminders([item], [due[0].key], now)).toEqual([]);
-  });
-  it('skips archives, disabled reminders and past dates', () => {
-    expect(dueCountdownReminders([{ ...item, archived: true }, { ...item, reminderDays: [] }, { ...item, date: '2026-09-20' }], [], now)).toEqual([]);
-  });
-  it('uses a distinct key for each annual cycle', () => {
-    const annual = { ...item, repeat: 'yearly' as const };
-    const due = dueCountdownReminders([annual], [], now);
-    const next = dueCountdownReminders([annual], [due[0].key], new Date('2027-09-21T10:00:00'));
-    expect(next).toHaveLength(1);
-    expect(next[0].key).not.toBe(due[0].key);
   });
 });

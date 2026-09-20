@@ -424,26 +424,17 @@
       "yearly": "每年重复",
       "autoArchive": "到期次日自动归档",
       "includeToday": "起始日记为第 1 天",
-      "upHint": "正数按日历日期计算；不勾选时，起始日为第 0 天。",
-      "downHint": "按本地日历日期计算：当天显示“就是今天”，明天显示“明天”。每年重复的 2 月 29 日在平年按 2 月 28 日计算。",
-      "reminders": "提醒",
-      "onDate": "当天",
-      "beforeDate": "提前 {{days}} 天",
-      "reminderHint": "在所选日期上午 9 点提醒；需保持 eIsland 运行。当日稍后启动会补发，往日不补发。",
       "appearance": "颜色与背景",
       "colorValue": "选择颜色 {{color}}",
       "saving": "保存中…",
       "saveError": "读取或保存失败，请重试；未保存的编辑仍保留。",
       "imageError": "图片载入失败，请重新选择。",
-      "today": "今天",
-      "selected": "选中",
-      "hasEvent": "有事件",
       "previousMonth": "上个月",
       "nextMonth": "下个月",
       "viewAll": "全部 {{count}} 项 ›",
-      "reminderTitle": "倒数日提醒",
       "chooseDate": "选择日期",
-      "month": "月份"
+      "month": "月份",
+      "closeEditor": "关闭编辑面板"
     }
   },
   "hover": {

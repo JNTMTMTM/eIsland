@@ -149,7 +149,7 @@ export function defaultRules(type: EventType): Pick<CountdownDraft, 'mode' | 're
 }
 
 /**
- * 校验存储数据，避免损坏条目使卡片和提醒产生无效日期。
+ * 校验存储数据，避免损坏条目使卡片产生无效日期。
  * @param data - 磁盘或同步通道内容
  * @returns 有效事件列表
  */

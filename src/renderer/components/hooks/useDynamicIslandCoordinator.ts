@@ -33,7 +33,6 @@ import { useIslandNowPlayingSync } from './useIslandNowPlayingSync';
 import { useIslandNotificationSubscriptions } from './useIslandNotificationSubscriptions';
 import { useIslandSettingsSync } from './useIslandSettingsSync';
 import { useIslandStartupAnnouncements } from './useIslandStartupAnnouncements';
-import { useIslandCountdownReminders } from './useIslandCountdownReminders';
 import { useIslandTimerAndAlarm } from './useIslandTimerAndAlarm';
 import { useIslandBreakReminder } from './useIslandBreakReminder';
 import { useIslandBackgroundVideoSync } from './useIslandBackgroundVideoSync';
@@ -71,7 +70,7 @@ interface DynamicIslandCoordinatorState {
 }
 
 /**
- * @description 协调灵动岛运行时逻辑并返回渲染所需状态。
+ * 协调灵动岛运行时逻辑并返回渲染所需状态。
  * @param options - 协调器初始化参数。
  * @returns 灵动岛渲染所需的聚合状态。
  */
@@ -197,7 +196,6 @@ export function useDynamicIslandCoordinator(options: UseDynamicIslandCoordinator
     language,
   });
 
-  useIslandCountdownReminders(setNotificationRef);
 
   useIslandTimerAndAlarm({
     language,

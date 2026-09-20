@@ -30,7 +30,7 @@ import type { CountdownDraft, CountdownItem } from '../types/countdownTypes';
 
 function newDraft(): CountdownDraft {
   return { name: '', date: toLocalDateStr(new Date()), color: '#69c0ff', type: 'countdown',
-    ...defaultRules('countdown'), backgroundOpacity: 0.35, reminderDays: [] };
+    ...defaultRules('countdown'), backgroundOpacity: 0.35 };
 }
 
 /**

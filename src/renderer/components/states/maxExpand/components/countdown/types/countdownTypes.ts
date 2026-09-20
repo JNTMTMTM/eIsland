@@ -44,7 +44,6 @@ export interface CountdownItem {
   includeToday?: boolean;
   pinned?: boolean;
   archived?: boolean;
-  reminderDays?: number[];
 }
 
 export type CountdownDraft = Omit<CountdownItem, 'id'>;

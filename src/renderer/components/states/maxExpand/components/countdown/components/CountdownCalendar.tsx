@@ -20,7 +20,7 @@
 
 /**
  * @file CountdownCalendar.tsx
- * @description 带日期状态图例与本地化标签的日历选择器。
+ * @description 支持直接输入与本地化标签的日历选择器。
  * @author 鸡哥
  */
 
@@ -29,36 +29,38 @@ import DatePicker from 'react-datepicker';
 import { zhCN, enUS } from 'date-fns/locale';
 import type { ReactElement } from 'react';
 import 'react-datepicker/dist/react-datepicker.css';
+import { toLocalDateStr } from '../utils/countdownUtils';
 
 interface CountdownCalendarProps {
+  formId: string;
   selectedDate: Date;
   onSelectDate: (date: Date) => void;
   highlightDates: Date[];
 }
 
 /**
- * 区分今日描边、选中填充及事件圆点。
+ * 集中显示日期输入、今日描边、选中填充及事件标记。
  * @param props - 日期选择及事件高亮
+ * @param props.formId - 日期输入所属的事件表单标识
  * @param props.selectedDate - 当前选中日期
  * @param props.onSelectDate - 选择有效日期的回调
  * @param props.highlightDates - 含有事件的日期
- * @returns 日历与图例
+ * @returns 日期输入与日历
  */
-export function CountdownCalendar({ selectedDate, onSelectDate, highlightDates }: CountdownCalendarProps): ReactElement {
+export function CountdownCalendar({ formId, selectedDate, onSelectDate, highlightDates }: CountdownCalendarProps): ReactElement {
   const { t, i18n } = useTranslation();
   return (
     <div className="cd-calendar-wrap countdown-calendar-wrap">
-      <DatePicker selected={selectedDate} onChange={(date) => { if (date) onSelectDate(date); }} inline
+      <label className="cd-field">{t('countdown.manage.date')}
+        <input className="cd-input" form={formId} type="date" required min="1900-01-01" max="9999-12-31" value={toLocalDateStr(selectedDate)}
+          onInput={(e) => { if (e.currentTarget.value && e.currentTarget.validity.valid) onSelectDate(new Date(`${e.currentTarget.value}T00:00:00`)); }} />
+      </label>
+      <DatePicker minDate={new Date(1900, 0, 1)} maxDate={new Date(9999, 11, 31)} selected={selectedDate} onChange={(date) => { if (date) onSelectDate(date); }} inline
         locale={i18n.language.startsWith('zh') ? zhCN : enUS}
         chooseDayAriaLabelPrefix={t('countdown.manage.chooseDate')} monthAriaLabelPrefix={t('countdown.manage.month')}
         previousMonthButtonLabel={t('countdown.manage.previousMonth')} nextMonthButtonLabel={t('countdown.manage.nextMonth')}
         previousMonthAriaLabel={t('countdown.manage.previousMonth')} nextMonthAriaLabel={t('countdown.manage.nextMonth')}
         highlightDates={highlightDates} calendarClassName="countdown-calendar" />
-      <div className="cd-calendar-legend">
-        <span className="cd-legend-today">{t('countdown.manage.today')}</span>
-        <span className="cd-legend-selected">{t('countdown.manage.selected')}</span>
-        <span className="cd-legend-event">{t('countdown.manage.hasEvent')}</span>
-      </div>
     </div>
   );
 }

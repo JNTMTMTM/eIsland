@@ -31,6 +31,7 @@ import { defaultRules, normalizeImageSource } from '../utils/countdownUtils';
 import type { CountdownDraft, EventType } from '../types/countdownTypes';
 
 interface CountdownFormProps {
+  formId: string;
   draft: CountdownDraft;
   setDraft: Dispatch<SetStateAction<CountdownDraft>>;
   editing: boolean;
@@ -44,6 +45,7 @@ interface CountdownFormProps {
 /**
  * 编辑事件内容与规则，外观放入可展开区域。
  * @param props - 草稿、保存状态及操作
+ * @param props.formId - 关联右侧日期输入的表单标识
  * @param props.draft - 未保存的事件草稿
  * @param props.setDraft - 更新草稿
  * @param props.editing - 是否编辑已有事件
@@ -54,7 +56,7 @@ interface CountdownFormProps {
  * @param props.onDelete - 删除当前事件
  * @returns 可提交表单
  */
-export function CountdownForm({ draft, setDraft, editing, saving, resolvedCoverImage, onSave, onCancel, onDelete }: CountdownFormProps): ReactElement {
+export function CountdownForm({ formId, draft, setDraft, editing, saving, resolvedCoverImage, onSave, onCancel, onDelete }: CountdownFormProps): ReactElement {
   const { t } = useTranslation();
   const [imageError, setImageError] = useState(false);
   const change = (patch: Partial<CountdownDraft>): void => setDraft((value) => ({ ...value, ...patch }));
@@ -66,14 +68,11 @@ export function CountdownForm({ draft, setDraft, editing, saving, resolvedCoverI
     } catch { setImageError(true); }
   };
   return (
-    <form className="cd-editor-form" onSubmit={(e) => { e.preventDefault(); void onSave(); }}>
+    <form className="cd-editor-form" id={formId} onSubmit={(e) => { e.preventDefault(); void onSave(); }}>
       <label className="cd-field">{t('countdown.namePlaceholder')}
-        <input className="cd-input" required maxLength={120} value={draft.name} autoFocus onChange={(e) => change({ name: e.target.value })} />
+        <input className="cd-input" required maxLength={120} value={draft.name} onChange={(e) => change({ name: e.target.value })} />
       </label>
       <div className="cd-form-grid">
-        <label className="cd-field">{t('countdown.manage.date')}
-          <input className="cd-input" type="date" required min="1900-01-01" max="9999-12-31" value={draft.date} onChange={(e) => { if (e.target.value) change({ date: e.target.value }); }} />
-        </label>
         <label className="cd-field">{t('countdown.form.type')}
           <select className="cd-input" value={draft.type} onChange={(e) => {
             const type = e.target.value as EventType;
@@ -92,16 +91,9 @@ export function CountdownForm({ draft, setDraft, editing, saving, resolvedCoverI
           </select>
         </label> : <label className="cd-check"><input type="checkbox" checked={Boolean(draft.includeToday)} onChange={(e) => change({ includeToday: e.target.checked })} />{t('countdown.manage.includeToday')}</label>}
       </div>
-      <p className="cd-hint">{t(draft.mode === 'up' ? 'countdown.manage.upHint' : 'countdown.manage.downHint')}</p>
       <label className="cd-field">{t('countdown.descPlaceholder')}
         <textarea className="cd-textarea" value={draft.description ?? ''} rows={2} maxLength={500} onChange={(e) => change({ description: e.target.value })} />
       </label>
-      <fieldset className="cd-reminders"><legend>{t('countdown.manage.reminders')}</legend>
-        {[7, 1, 0].map((days) => (<label className="cd-check" key={days}><input type="checkbox" checked={draft.reminderDays?.includes(days) ?? false}
-          onChange={(e) => change({ reminderDays: e.target.checked ? [...(draft.reminderDays ?? []), days] : draft.reminderDays?.filter((day) => day !== days) })} />
-        {t(days === 0 ? 'countdown.manage.onDate' : 'countdown.manage.beforeDate', { days })}</label>))}
-        <p className="cd-hint">{t('countdown.manage.reminderHint')}</p>
-      </fieldset>
       <details className="cd-appearance"><summary>{t('countdown.manage.appearance')}</summary>
         <div className="cd-color-row">{COLOR_PRESETS.map((color) => (<button className={`cd-color-dot${draft.color === color ? ' active' : ''}`} key={color} type="button"
           style={{ background: color }} title={t('countdown.manage.colorValue', { color })} aria-label={t('countdown.manage.colorValue', { color })} aria-pressed={draft.color === color} onClick={() => change({ color })} />))}
