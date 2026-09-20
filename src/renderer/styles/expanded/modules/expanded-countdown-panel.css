@@ -723,7 +723,7 @@
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  width: min(740px, calc(100% - 32px));
+  width: min(640px, calc(100% - 32px));
   height: 100%;
   background: var(--color-island-bg, #111);
   box-shadow: -12px 0 32px rgb(0 0 0 / 18%);
