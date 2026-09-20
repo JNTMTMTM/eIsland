@@ -96,11 +96,11 @@ describe('calendar timeline', () => {
       period('outside-after', '2028-01-01', '2028-12-31'),
     ];
     const layouts = getCalendarMonthLayouts(new Date(2024, 2, 1, 12), -4, 13, events);
-    for (const month of layouts) {
-      for (const week of month.weekLayouts) {
+    layouts.forEach((month) => {
+      month.weekLayouts.forEach((week) => {
         expect({ segments: week.segments, lanes: week.lanes }).toEqual(getCalendarWeekTimeline(week.dates, month.date, events));
-      }
-    }
+      });
+    });
   });
 
   it('does not retain stale event buckets after a due date changes or tasks are removed', () => {

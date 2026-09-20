@@ -68,11 +68,11 @@ export function getCalendarMonthLayouts(anchor: Date, start: number, end: number
   const firstMonth = anchor.getFullYear() * 12 + anchor.getMonth() + start;
   const monthlyEvents: CalendarTimelineEvent[][] = Array.from({ length: monthCount }, () => []);
   // 只把事件分配给覆盖的月份，避免每个缓冲周反复扫描全部历史待办。
-  for (const event of events) {
+  events.forEach((event) => {
     const first = Math.max(0, Number(event.start.slice(0, 4)) * 12 + Number(event.start.slice(5, 7)) - 1 - firstMonth);
     const last = Math.min(monthCount - 1, Number(event.end.slice(0, 4)) * 12 + Number(event.end.slice(5, 7)) - 1 - firstMonth);
     for (let index = first; index <= last; index += 1) monthlyEvents[index].push(event);
-  }
+  });
   let top = 0;
   return Array.from({ length: monthCount }, (_, offset) => {
     const index = start + offset;
