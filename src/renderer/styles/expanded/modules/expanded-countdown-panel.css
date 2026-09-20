@@ -587,10 +587,32 @@
 
 }
 
-.cd-check [type="color"] {
-  width: 28px;
-  height: 23px;
-  border: 0;
+.cd-custom-color {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  background: rgb(var(--color-text-rgb), .08);
+  border-color: rgb(var(--color-text-rgb), .2);
+
+}
+
+.cd-custom-color:hover {
+  background: rgb(var(--color-text-rgb), .14);
+
+}
+
+.cd-custom-color-icon {
+  width: 11px;
+  height: 11px;
+  pointer-events: none;
+  filter: brightness(0) invert(1);
+  opacity: .8;
+
+}
+
+[data-theme="light"] .cd-custom-color-icon {
+  filter: brightness(0);
 
 }
 

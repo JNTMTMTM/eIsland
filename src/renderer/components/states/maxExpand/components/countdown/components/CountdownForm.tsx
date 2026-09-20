@@ -24,8 +24,9 @@
  * @author 鸡哥
  */
 
-import { useState, type ReactElement, type CSSProperties, type Dispatch, type SetStateAction } from 'react';
+import { useRef, useState, type ReactElement, type CSSProperties, type Dispatch, type SetStateAction } from 'react';
 import { useTranslation } from 'react-i18next';
+import { SvgIcon } from '../../../../../../utils/SvgIcon';
 import { COLOR_PRESETS, EVENT_TYPES } from '../config/countdownConfig';
 import { defaultRules, normalizeImageSource } from '../utils/countdownUtils';
 import type { CountdownDraft, EventType } from '../types/countdownTypes';
@@ -59,6 +60,8 @@ interface CountdownFormProps {
 export function CountdownForm({ formId, draft, setDraft, editing, saving, resolvedCoverImage, onSave, onCancel, onDelete }: CountdownFormProps): ReactElement {
   const { t } = useTranslation();
   const [imageError, setImageError] = useState(false);
+  const customColorRef = useRef<HTMLInputElement>(null);
+  const isCustomColor = !COLOR_PRESETS.includes(draft.color);
   const change = (patch: Partial<CountdownDraft>): void => setDraft((value) => ({ ...value, ...patch }));
   const selectImage = async (): Promise<void> => {
     try {
@@ -97,7 +100,12 @@ export function CountdownForm({ formId, draft, setDraft, editing, saving, resolv
       <div className="cd-appearance"><div className="cd-appearance-title">{t('countdown.manage.appearance')}</div>
         <div className="cd-color-row">{COLOR_PRESETS.map((color) => (<button className={`cd-color-dot${draft.color === color ? ' active' : ''}`} key={color} type="button"
           style={{ background: color }} title={t('countdown.manage.colorValue', { color })} aria-label={t('countdown.manage.colorValue', { color })} aria-pressed={draft.color === color} onClick={() => change({ color })} />))}
-        <label className="cd-check">{t('countdown.form.customColor')}<input type="color" value={draft.color} onChange={(e) => change({ color: e.target.value })} /></label>
+        <button className={`cd-color-dot cd-custom-color${isCustomColor ? ' active' : ''}`} type="button"
+          title={t('countdown.form.customColor')} aria-label={t('countdown.form.customColor')} aria-pressed={isCustomColor}
+          style={{ borderColor: isCustomColor ? draft.color : undefined }} onClick={() => customColorRef.current?.click()}>
+          <img className="cd-custom-color-icon" src={SvgIcon.PLUS} alt="" />
+        </button>
+        <input ref={customColorRef} type="color" hidden tabIndex={-1} value={draft.color} onChange={(e) => change({ color: e.target.value })} />
         </div>
         <div className="cd-form-actions">
           <button className="cd-btn cancel" type="button" disabled={!resolvedCoverImage} onClick={() => { if (resolvedCoverImage) change({ backgroundImage: resolvedCoverImage }); }}>{t('countdown.form.albumBackground')}</button>
