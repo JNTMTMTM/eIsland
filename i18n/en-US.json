@@ -1443,6 +1443,32 @@
     }
   },
   "maxExpand": {
+    "calendar": {
+      "today": "Today",
+      "daysAfter_one": "In {{count}} day",
+      "daysAfter_other": "In {{count}} days",
+      "daysBefore_one": "{{count}} day ago",
+      "daysBefore_other": "{{count}} days ago",
+      "daysAfter": "In {{count}} days",
+      "daysBefore": "{{count}} days ago",
+      "details": "Date details",
+      "selectedDate": "Selected date",
+      "lunarDate": "Lunar date",
+      "holidays": "Public holidays",
+      "scheduledTodos": "Scheduled to-dos",
+      "eventPeriod": "{{name}}: {{start}} → {{end}}",
+      "eventCompleted": "Completed",
+      "currentRegion": "Current country or region",
+      "holidaysLocationUnavailable": "Country information is unavailable for the current location",
+      "subdivision": "Region",
+      "nationalHolidays": "National holidays",
+      "holidaysLoading": "Loading holidays…",
+      "holidaysUnsupported": "Holiday data is unavailable for this region or year",
+      "holidaysError": "Couldn't load holidays",
+      "holidaysRetry": "Retry",
+      "noHoliday": "No public holiday on this date",
+      "dayOfMonth": "Day {{day}} of {{total}} this month"
+    },
     "loading": "Loading max expand view...",
     "nav": {
       "expanded": "Back",
@@ -1459,6 +1485,10 @@
       "toolbox": "Toolbox",
       "miniGame": "Mini Game",
       "cli": "CLI Console",
+      "stock": "Stock Market",
+      "calculator": "Calculator",
+      "worldClock": "World Clock",
+      "calendar": "Calendar",
       "settings": "Settings",
       "switchTo": "Switch to {{label}}"
     },
@@ -2873,7 +2903,8 @@
           "stock": "Stock Market",
           "cli": "CLI Console",
           "calculator": "Calculator",
-          "worldClock": "World Clock"
+          "worldClock": "World Clock",
+          "calendar": "Calendar"
         }
       },
       "hideProcess": {

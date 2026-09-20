@@ -95,6 +95,43 @@ const makeDataResultsBody = (items: Array<Record<string, unknown>>): string =>
 /* ------------------------------------------------------------------ */
 
 describe('adcodeApi', () => {
+  describe('resolveDistrictLocationByCoordinates', () => {
+    it('queries coordinates and preserves them instead of the returned district centroid', async () => {
+      mockNetFetch.mockResolvedValue({ ok: true, status: 200, body: makeSuccessBody([
+        { name: 'Tokyo', country: 'Japan', country_code: 'jp', province: 'Tokyo', center: { lat: 35.7, lng: 139.8 } },
+      ]) });
+      const { resolveDistrictLocationByCoordinates } = await import('../adcodeApi');
+      expect(await resolveDistrictLocationByCoordinates(35.6, 139.7)).toEqual({
+        latitude: 35.6, longitude: 139.7, city: 'Tokyo', country: 'Japan', countryCode: 'JP', regionName: 'Tokyo',
+      });
+      const url = new URL(mockNetFetch.mock.calls[0][0]);
+      expect(url.searchParams.get('lat')).toBe('35.6');
+      expect(url.searchParams.get('lng')).toBe('139.7');
+      expect(url.searchParams.get('limit')).toBe('1');
+    });
+
+    it('supports zero and negative coordinates with the existing response envelopes', async () => {
+      mockNetFetch.mockResolvedValue({ ok: true, status: 200, body: makeDataListBody([
+        { name: 'Test', country_code: 'EC', country: 'Ecuador' },
+      ]) });
+      const { resolveDistrictLocationByCoordinates } = await import('../adcodeApi');
+      expect(await resolveDistrictLocationByCoordinates(0, -78)).toMatchObject({ latitude: 0, longitude: -78, countryCode: 'EC' });
+      expect(new URL(mockNetFetch.mock.calls[0][0]).searchParams.get('lat')).toBe('0');
+    });
+
+    it.each([[], [{ country: 'Japan' }], [{ country_code: 'JPN' }], [{ country_code: '1A' }]])('rejects missing or invalid country metadata: %j', async (...items) => {
+      mockNetFetch.mockResolvedValue({ ok: true, status: 200, body: makeSuccessBody(items as Array<Record<string, unknown>>) });
+      const { resolveDistrictLocationByCoordinates } = await import('../adcodeApi');
+      await expect(resolveDistrictLocationByCoordinates(35.6, 139.7)).rejects.toThrow('no country code');
+    });
+
+    it.each([[91, 0], [0, -181], [NaN, 0], [0, Infinity]])('rejects invalid coordinates %s, %s before requesting', async (latitude, longitude) => {
+      const { resolveDistrictLocationByCoordinates } = await import('../adcodeApi');
+      await expect(resolveDistrictLocationByCoordinates(latitude, longitude)).rejects.toThrow('Invalid custom location');
+      expect(mockNetFetch).not.toHaveBeenCalled();
+    });
+  });
+
   beforeEach(() => {
     vi.resetModules();
     mockNetFetch.mockReset();

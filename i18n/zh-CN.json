@@ -1443,6 +1443,32 @@
     }
   },
   "maxExpand": {
+    "calendar": {
+      "today": "今天",
+      "daysAfter": "{{count}} 天后",
+      "daysBefore": "{{count}} 天前",
+      "details": "日期详情",
+      "selectedDate": "所选日期",
+      "lunarDate": "农历",
+      "holidays": "公共假日",
+      "scheduledTodos": "当日待办",
+      "eventPeriod": "{{name}}：{{start}} → {{end}}",
+      "eventCompleted": "已完成",
+      "currentRegion": "当前位置的国家或地区",
+      "holidaysLocationUnavailable": "当前位置缺少国家信息，暂无法匹配节假日",
+      "subdivision": "地区",
+      "nationalHolidays": "全国假日",
+      "holidaysLoading": "正在加载节假日…",
+      "holidaysUnsupported": "暂未提供该地区或年份的节假日数据",
+      "holidaysError": "节假日加载失败",
+      "holidaysRetry": "重试",
+      "noHoliday": "当日无公共假日",
+      "dayOfMonth": "本月第 {{day}} / {{total}} 天",
+      "daysAfter_one": "{{count}} 天后",
+      "daysAfter_other": "{{count}} 天后",
+      "daysBefore_one": "{{count}} 天前",
+      "daysBefore_other": "{{count}} 天前"
+    },
     "loading": "正在加载最大展开界面...",
     "nav": {
       "expanded": "返回",
@@ -1459,6 +1485,10 @@
       "toolbox": "工具箱",
       "miniGame": "小游戏",
       "cli": "CLI 控制台",
+      "stock": "股票行情",
+      "calculator": "计算器",
+      "worldClock": "世界时钟",
+      "calendar": "日历",
       "settings": "设置",
       "switchTo": "切换到{{label}}"
     },
@@ -2873,7 +2903,8 @@
           "stock": "股票行情",
           "cli": "CLI 控制台",
           "calculator": "计算器",
-          "worldClock": "世界时钟"
+          "worldClock": "世界时钟",
+          "calendar": "日历"
         }
       },
       "hideProcess": {

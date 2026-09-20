@@ -154,7 +154,9 @@ if (activeTab === '<tabName>') return <<TabName>Tab />;
 
 ### Step 6: 添加 i18n 翻译
 
-在两个语言文件的 `settings.app.maxExpandLayout.tabLabels` 对象中添加条目：
+需要在 **3 个位置** 添加翻译条目，遗漏任何一处都会导致 tooltip 或设置界面显示原始英文 ID。
+
+**6a.** 设置界面标签 — 在两个语言文件的 `settings.app.maxExpandLayout.tabLabels` 对象中添加：
 
 **`i18n/zh-CN.json`：**
 ```json
@@ -164,6 +166,24 @@ if (activeTab === '<tabName>') return <<TabName>Tab />;
 **`i18n/en-US.json`：**
 ```json
 "<tabName>": "<English Label>"
+```
+
+**6b.** 底部导航点 tooltip — 在两个语言文件的 `maxExpand.nav` 对象中添加（该对象控制导航点的 `title` 属性）：
+
+**`i18n/zh-CN.json`：**
+```json
+"<tabName>": "<中文标签>"
+```
+
+**`i18n/en-US.json`：**
+```json
+"<tabName>": "<English Label>"
+```
+
+**6c.** 导航点默认标签回退 — 在 `src/renderer/components/states/maxExpand/utils/getNavLabel.ts` 的 `NAV_LABEL_MAP` 中添加：
+
+```typescript
+<tabName>: '<中文标签>',
 ```
 
 ### Step 7: 验证
@@ -182,8 +202,9 @@ npx tsc --noEmit --skipLibCheck
 - [ ] `components/states/maxExpand/components/setting/utils/settingsConfig.ts` — CONFIGURABLE_TABS + TAB_LABELS
 - [ ] `components/states/maxExpand/MaxExpandContentLazy.tsx` — 懒加载注册
 - [ ] `components/states/maxExpand/MaxExpandContentEager.tsx` — 即时加载注册
-- [ ] `i18n/zh-CN.json` — 中文翻译
-- [ ] `i18n/en-US.json` — 英文翻译
+- [ ] `i18n/zh-CN.json` — `settings.app.maxExpandLayout.tabLabels` + `maxExpand.nav` 两处翻译
+- [ ] `i18n/en-US.json` — `settings.app.maxExpandLayout.tabLabels` + `maxExpand.nav` 两处翻译
+- [ ] `components/states/maxExpand/utils/getNavLabel.ts` — NAV_LABEL_MAP 回退标签
 
 ## 注意事项
 
@@ -191,3 +212,4 @@ npx tsc --noEmit --skipLibCheck
 - `MAXEXPAND_CONFIGURABLE_TABS` 中的顺序决定了默认导航排列顺序，新 Tab 默认追加到末尾。
 - 懒加载和即时加载两种模式都必须注册，否则在对应性能模式下新页面不会渲染。
 - 组件使用 `max-expand-tab-panel` 作为通用容器类名，与已有 Tab 保持一致。
+- **翻译必须覆盖 3 处**：`settings.app.maxExpandLayout.tabLabels`（设置界面标签）、`maxExpand.nav`（底部导航点 tooltip）、`getNavLabel.ts` 的 `NAV_LABEL_MAP`（导航点中文回退）。遗漏任一处会导致对应场景显示原始英文 ID。

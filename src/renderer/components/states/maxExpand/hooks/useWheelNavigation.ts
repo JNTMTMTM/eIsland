@@ -42,6 +42,7 @@ const WHEEL_EXCLUDED_SELECTORS = [
   '.local-file-search-query-input',
   '.clipboard-history-list',
   '.max-expand-settings',
+  '.calendar-panel',
   '.countdown-calendar-wrap',
   '.cd-cards-wrap',
   '.cd-editor-form',

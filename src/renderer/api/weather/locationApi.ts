@@ -36,7 +36,7 @@ export type { LocationInfo };
  */
 export async function fetchLocation(): Promise<LocationInfo> {
   const { timeoutMs } = loadNetworkConfig();
-  const url = 'http://ip-api.com/json/?fields=lat,lon,city,regionName,country&lang=zh-CN';
+  const url = 'http://ip-api.com/json/?fields=lat,lon,city,regionName,country,countryCode,region,status&lang=zh-CN';
   const headers: Record<string, string> = {};
   const body = '';
   logger.info('[LocationApi] request', { url, headers, body, timeoutMs });
@@ -51,13 +51,22 @@ export async function fetchLocation(): Promise<LocationInfo> {
     city: string;
     regionName: string;
     country: string;
+    countryCode?: string;
+    region?: string;
+    status?: string;
   };
+
+  if (data.status === 'fail' || !Number.isFinite(data.lat) || !Number.isFinite(data.lon)) {
+    throw new Error('Location API returned invalid location');
+  }
 
   return {
     latitude: data.lat,
     longitude: data.lon,
     city: data.city,
     regionName: data.regionName,
-    country: data.country
+    country: data.country,
+    countryCode: typeof data.countryCode === 'string' && /^[A-Z]{2}$/.test(data.countryCode) ? data.countryCode : undefined,
+    regionCode: typeof data.region === 'string' ? data.region : undefined,
   };
 }

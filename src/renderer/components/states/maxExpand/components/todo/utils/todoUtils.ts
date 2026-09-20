@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import { LOCAL_STORAGE_KEY, STORE_KEY } from '../config/todoConfig';
+import { LOCAL_STORAGE_KEY, STORE_KEY, TODOS_UPDATED_EVENT } from '../config/todoConfig';
 import type { TodoItem } from '../types/todoTypes';
 import { getTodoStartDate, parseTodoDate } from './todoCalendarUtils';
 
@@ -57,5 +57,6 @@ export function normalizeTodos(items: TodoItem[]): TodoItem[] {
 /** 通过 IPC 写入文件，同时同步写入 localStorage 作为缓存 */
 export function persistTodos(items: TodoItem[]): void {
   try { localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(items)); } catch { /* noop */ }
+  window.dispatchEvent(new CustomEvent(TODOS_UPDATED_EVENT, { detail: items }));
   window.api.storeWrite(STORE_KEY, items).catch(() => {});
 }

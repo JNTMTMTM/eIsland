@@ -19,25 +19,9 @@
  */
 
 /**
- * @file LocationInfo.ts
- * @description 位置信息数据结构定义
+ * @file index.ts
+ * @description 日历模块入口，导出 CalendarTab 组件
  * @author 鸡哥
  */
 
-/** 位置信息 */
-export interface LocationInfo {
-  /** 纬度 */
-  latitude: number;
-  /** 经度 */
-  longitude: number;
-  /** 城市 */
-  city: string;
-  /** 地区名称 */
-  regionName: string;
-  /** 国家 */
-  country: string;
-  /** ISO 3166-1 国家代码；旧缓存和仅坐标的手动位置可能缺失。 */
-  countryCode?: string;
-  /** 定位服务的地区短码，可能是 ISO 或 FIPS，不能无条件当作 ISO 3166-2。 */
-  regionCode?: string;
-}
+export { CalendarTab } from './components/CalendarTab';

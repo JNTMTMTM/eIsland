@@ -50,7 +50,7 @@ export type ExpandTab = 'hover' | 'overview' | 'song' | 'tools' | 'translation' 
 export type CliProvider = 'claude' | 'codex';
 
 /** MaxExpand 状态下的子标签页类型 */
-export type MaxExpandTab = 'aiChat' | 'todo' | 'urlFavorites' | 'localFileSearch' | 'clipboardHistory' | 'album' | 'mail' | 'memo' | 'countdown' | 'alarm' | 'toolbox' | 'miniGame' | 'stock' | 'cli' | 'calculator' | 'worldClock' | 'settings';
+export type MaxExpandTab = 'aiChat' | 'todo' | 'urlFavorites' | 'localFileSearch' | 'clipboardHistory' | 'album' | 'mail' | 'memo' | 'countdown' | 'alarm' | 'toolbox' | 'miniGame' | 'stock' | 'cli' | 'calculator' | 'worldClock' | 'calendar' | 'settings';
 
 /** 歌词显示模式 */
 export type LrcMode = 'off' | 'info' | 'lrc';
@@ -394,6 +394,8 @@ export interface IslandSlice {
 export interface WeatherSlice {
   weather: WeatherData;
   location: LocationInfo | null;
+  /** 共用定位策略、缓存及并发请求，不触发天气查询。 */
+  refreshLocation: (forceRefresh?: boolean) => Promise<LocationInfo | null>;
   setWeather: (data: WeatherData) => void;
   fetchWeatherData: (config?: WeatherApiConfig, forceRefresh?: boolean) => Promise<void>;
 }

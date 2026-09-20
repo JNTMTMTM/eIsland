@@ -26,6 +26,12 @@
 
 /** 行政区查询参数 */
 export interface DistrictQueryParams {
+  /** 反向查询纬度，与 lng 一同使用。 */
+  lat?: number;
+  /** 反向查询经度，与 lat 一同使用。 */
+  lng?: number;
+  /** 返回结果数量上限。 */
+  limit?: number;
   /** 行政区编码（可选，与 keyword 二选一或同时提供） */
   adcode?: string;
   /** 区域关键字（支持中文/英文） */
@@ -50,6 +56,8 @@ export interface DistrictItem {
   level?: string;
   /** 国家 */
   country?: string;
+  /** ISO 3166-1 alpha-2 国家代码。 */
+  country_code?: string;
   /** 省份 */
   province?: string;
   /** 城市 */
